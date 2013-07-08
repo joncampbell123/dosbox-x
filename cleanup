@@ -9,4 +9,5 @@ svn del visualc_net/Debug
 svn del visualc_net/Release
 svn del visualc_net/libpng/projects/visualc71/Win32_LIB_Debug
 svn del visualc_net/libpng/projects/visualc71/Win32_LIB_Release
+rm -Rfv autom4te.cache
 
