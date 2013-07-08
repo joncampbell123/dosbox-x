@@ -1,0 +1,1134 @@
+/*
+ *  Copyright (C) 2002-2010  The DOSBox Team
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+/* $Id: risc_armv4le-thumb.h,v 1.6 2009-06-27 12:51:10 c2woody Exp $ */
+
+
+/* ARMv4 (little endian) backend by M-HT (thumb version) */
+
+
+// temporary "lo" registers
+#define templo1 HOST_v3
+#define templo2 HOST_v4
+#define templo3 HOST_v2
+
+// register that holds function return values
+#define FC_RETOP HOST_a1
+
+// register used for address calculations,
+#define FC_ADDR HOST_v1			// has to be saved across calls, see DRC_PROTECT_ADDR_REG
+
+// register that holds the first parameter
+#define FC_OP1 HOST_a1
+
+// register that holds the second parameter
+#define FC_OP2 HOST_a2
+
+// special register that holds the third parameter for _R3 calls (byte accessible)
+#define FC_OP3 HOST_a4
+
+// register that holds byte-accessible temporary values
+#define FC_TMP_BA1 HOST_a1
+
+// register that holds byte-accessible temporary values
+#define FC_TMP_BA2 HOST_a2
+
+// temporary register for LEA
+#define TEMP_REG_DRC HOST_a4
+
+#ifdef DRC_USE_REGS_ADDR
+// used to hold the address of "cpu_regs" - preferably filled in function gen_run_code
+#define FC_REGS_ADDR HOST_v7
+#endif
+
+#ifdef DRC_USE_SEGS_ADDR
+// used to hold the address of "Segs" - preferably filled in function gen_run_code
+#define FC_SEGS_ADDR HOST_v8
+#endif
+
+
+// instruction encodings
+
+// move
+// mov dst, #imm		@	0 <= imm <= 255
+#define MOV_IMM(dst, imm) (0x2000 + ((dst) << 8) + (imm) )
+// mov dst, src
+#define MOV_REG(dst, src) ADD_IMM3(dst, src, 0)
+// mov dst, src
+#define MOV_LO_HI(dst, src) (0x4640 + (dst) + (((src) - HOST_r8) << 3) )
+// mov dst, src
+#define MOV_HI_LO(dst, src) (0x4680 + ((dst) - HOST_r8) + ((src) << 3) )
+
+// arithmetic
+// add dst, src, #imm		@	0 <= imm <= 7
+#define ADD_IMM3(dst, src, imm) (0x1c00 + (dst) + ((src) << 3) + ((imm) << 6) )
+// add dst, #imm		@	0 <= imm <= 255
+#define ADD_IMM8(dst, imm) (0x3000 + ((dst) << 8) + (imm) )
+// add dst, src1, src2
+#define ADD_REG(dst, src1, src2) (0x1800 + (dst) + ((src1) << 3) + ((src2) << 6) )
+// add dst, pc, #imm		@	0 <= imm < 1024	&	imm mod 4 = 0
+#define ADD_LO_PC_IMM(dst, imm) (0xa000 + ((dst) << 8) + ((imm) >> 2) )
+// sub dst, src1, src2
+#define SUB_REG(dst, src1, src2) (0x1a00 + (dst) + ((src1) << 3) + ((src2) << 6) )
+// sub dst, src, #imm		@	0 <= imm <= 7
+#define SUB_IMM3(dst, src, imm) (0x1e00 + (dst) + ((src) << 3) + ((imm) << 6) )
+// sub dst, #imm		@	0 <= imm <= 255
+#define SUB_IMM8(dst, imm) (0x3800 + ((dst) << 8) + (imm) )
+// neg dst, src
+#define NEG(dst, src) (0x4240 + (dst) + ((src) << 3) )
+// cmp dst, #imm		@	0 <= imm <= 255
+#define CMP_IMM(dst, imm) (0x2800 + ((dst) << 8) + (imm) )
+// nop
+#define NOP (0x46c0)
+
+// logical
+// and dst, src
+#define AND(dst, src) (0x4000 + (dst) + ((src) << 3) )
+// eor dst, src
+#define EOR(dst, src) (0x4040 + (dst) + ((src) << 3) )
+// orr dst, src
+#define ORR(dst, src) (0x4300 + (dst) + ((src) << 3) )
+
+// shift/rotate
+// lsl dst, src, #imm
+#define LSL_IMM(dst, src, imm) (0x0000 + (dst) + ((src) << 3) + ((imm) << 6) )
+// lsl dst, reg
+#define LSL_REG(dst, reg) (0x4080 + (dst) + ((reg) << 3) )
+// lsr dst, src, #imm
+#define LSR_IMM(dst, src, imm) (0x0800 + (dst) + ((src) << 3) + ((imm) << 6) )
+// lsr dst, reg
+#define LSR_REG(dst, reg) (0x40c0 + (dst) + ((reg) << 3) )
+// asr dst, src, #imm
+#define ASR_IMM(dst, src, imm) (0x1000 + (dst) + ((src) << 3) + ((imm) << 6) )
+// asr dst, reg
+#define ASR_REG(dst, reg) (0x4100 + (dst) + ((reg) << 3) )
+// ror dst, reg
+#define ROR_REG(dst, reg) (0x41c0 + (dst) + ((reg) << 3) )
+
+// load
+// ldr reg, [addr, #imm]		@	0 <= imm < 128	&	imm mod 4 = 0
+#define LDR_IMM(reg, addr, imm) (0x6800 + (reg) + ((addr) << 3) + ((imm) << 4) )
+// ldrh reg, [addr, #imm]		@	0 <= imm < 64	&	imm mod 2 = 0
+#define LDRH_IMM(reg, addr, imm) (0x8800 + (reg) + ((addr) << 3) + ((imm) << 5) )
+// ldrb reg, [addr, #imm]		@	0 <= imm < 32
+#define LDRB_IMM(reg, addr, imm) (0x7800 + (reg) + ((addr) << 3) + ((imm) << 6) )
+// ldr reg, [pc, #imm]		@	0 <= imm < 1024	&	imm mod 4 = 0
+#define LDR_PC_IMM(reg, imm) (0x4800 + ((reg) << 8) + ((imm) >> 2) )
+
+// store
+// str reg, [addr, #imm]		@	0 <= imm < 128	&	imm mod 4 = 0
+#define STR_IMM(reg, addr, imm) (0x6000 + (reg) + ((addr) << 3) + ((imm) << 4) )
+// strh reg, [addr, #imm]		@	0 <= imm < 64	&	imm mod 2 = 0
+#define STRH_IMM(reg, addr, imm) (0x8000 + (reg) + ((addr) << 3) + ((imm) << 5) )
+// strb reg, [addr, #imm]		@	0 <= imm < 32
+#define STRB_IMM(reg, addr, imm) (0x7000 + (reg) + ((addr) << 3) + ((imm) << 6) )
+
+// branch
+// beq pc+imm		@	0 <= imm < 256	&	imm mod 2 = 0
+#define BEQ_FWD(imm) (0xd000 + ((imm) >> 1) )
+// bne pc+imm		@	0 <= imm < 256	&	imm mod 2 = 0
+#define BNE_FWD(imm) (0xd100 + ((imm) >> 1) )
+// bgt pc+imm		@	0 <= imm < 256	&	imm mod 2 = 0
+#define BGT_FWD(imm) (0xdc00 + ((imm) >> 1) )
+// b pc+imm		@	0 <= imm < 2048	&	imm mod 2 = 0
+#define B_FWD(imm) (0xe000 + ((imm) >> 1) )
+// bx reg
+#define BX(reg) (0x4700 + ((reg) << 3) )
+
+
+// move a full register from reg_src to reg_dst
+static void gen_mov_regs(HostReg reg_dst,HostReg reg_src) {
+	if(reg_src == reg_dst) return;
+	cache_addw( MOV_REG(reg_dst, reg_src) );      // mov reg_dst, reg_src
+}
+
+// move a 32bit constant value into dest_reg
+static void gen_mov_dword_to_reg_imm(HostReg dest_reg,Bit32u imm) {
+	if ((imm & 0xffffff00) == 0) {
+		cache_addw( MOV_IMM(dest_reg, imm) );      // mov dest_reg, #(imm)
+	} else if ((imm & 0xffff00ff) == 0) {
+		cache_addw( MOV_IMM(dest_reg, imm >> 8) );      // mov dest_reg, #(imm >> 8)
+		cache_addw( LSL_IMM(dest_reg, dest_reg, 8) );      // lsl dest_reg, dest_reg, #8
+	} else if ((imm & 0xff00ffff) == 0) {
+		cache_addw( MOV_IMM(dest_reg, imm >> 16) );      // mov dest_reg, #(imm >> 16)
+		cache_addw( LSL_IMM(dest_reg, dest_reg, 16) );      // lsl dest_reg, dest_reg, #16
+	} else if ((imm & 0x00ffffff) == 0) {
+		cache_addw( MOV_IMM(dest_reg, imm >> 24) );      // mov dest_reg, #(imm >> 24)
+		cache_addw( LSL_IMM(dest_reg, dest_reg, 24) );      // lsl dest_reg, dest_reg, #24
+	} else {
+		Bit32u diff;
+		
+		diff = imm - ((Bit32u)cache.pos+4);
+		
+		if ((diff < 1024) && ((imm & 0x03) == 0)) {
+			if (((Bit32u)cache.pos & 0x03) == 0) {
+				cache_addw( ADD_LO_PC_IMM(dest_reg, diff) );      // add dest_reg, pc, #(diff >> 2)
+			} else {
+				cache_addw( NOP );      // nop
+				cache_addw( ADD_LO_PC_IMM(dest_reg, diff - 2) );      // add dest_reg, pc, #((diff - 2) >> 2)
+			}
+		} else {
+			if (((Bit32u)cache.pos & 0x03) == 0) {
+				cache_addw( LDR_PC_IMM(dest_reg, 0) );      // ldr dest_reg, [pc, #0]
+				cache_addw( B_FWD(2) );      // b next_code (pc+2)
+				cache_addd(imm);      // .int imm
+				// next_code:
+			} else {
+				cache_addw( LDR_PC_IMM(dest_reg, 4) );      // ldr dest_reg, [pc, #4]
+				cache_addw( B_FWD(4) );      // b next_code (pc+4)
+				cache_addw( NOP );      // nop
+				cache_addd(imm);      // .int imm
+				// next_code:
+			}
+		}
+	}
+}
+
+// helper function for gen_mov_word_to_reg
+static void gen_mov_word_to_reg_helper(HostReg dest_reg,void* data,bool dword,HostReg data_reg) {
+	// alignment....
+	if (dword) {
+		if ((Bit32u)data & 3) {
+			if ( ((Bit32u)data & 3) == 2 ) {
+				cache_addw( LDRH_IMM(dest_reg, data_reg, 0) );      // ldrh dest_reg, [data_reg]
+				cache_addw( LDRH_IMM(templo1, data_reg, 2) );      // ldrh templo1, [data_reg, #2]
+				cache_addw( LSL_IMM(templo1, templo1, 16) );      // lsl templo1, templo1, #16
+				cache_addw( ORR(dest_reg, templo1) );      // orr dest_reg, templo1
+			} else {
+				cache_addw( LDRB_IMM(dest_reg, data_reg, 0) );      // ldrb dest_reg, [data_reg]
+				cache_addw( ADD_IMM3(templo1, data_reg, 1) );      // add templo1, data_reg, #1
+				cache_addw( LDRH_IMM(templo1, templo1, 0) );      // ldrh templo1, [templo1]
+				cache_addw( LSL_IMM(templo1, templo1, 8) );      // lsl templo1, templo1, #8
+				cache_addw( ORR(dest_reg, templo1) );      // orr dest_reg, templo1
+				cache_addw( LDRB_IMM(templo1, data_reg, 3) );      // ldrb templo1, [data_reg, #3]
+				cache_addw( LSL_IMM(templo1, templo1, 24) );      // lsl templo1, templo1, #24
+				cache_addw( ORR(dest_reg, templo1) );      // orr dest_reg, templo1
+			}
+		} else {
+			cache_addw( LDR_IMM(dest_reg, data_reg, 0) );      // ldr dest_reg, [data_reg]
+		}
+	} else {
+		if ((Bit32u)data & 1) {
+			cache_addw( LDRB_IMM(dest_reg, data_reg, 0) );      // ldrb dest_reg, [data_reg]
+			cache_addw( LDRB_IMM(templo1, data_reg, 1) );      // ldrb templo1, [data_reg, #1]
+			cache_addw( LSL_IMM(templo1, templo1, 8) );      // lsl templo1, templo1, #8
+			cache_addw( ORR(dest_reg, templo1) );      // orr dest_reg, templo1
+		} else {
+			cache_addw( LDRH_IMM(dest_reg, data_reg, 0) );      // ldrh dest_reg, [data_reg]
+		}
+	}
+}
+
+// move a 32bit (dword==true) or 16bit (dword==false) value from memory into dest_reg
+// 16bit moves may destroy the upper 16bit of the destination register
+static void gen_mov_word_to_reg(HostReg dest_reg,void* data,bool dword) {
+	gen_mov_dword_to_reg_imm(templo2, (Bit32u)data);
+	gen_mov_word_to_reg_helper(dest_reg, data, dword, templo2);
+}
+
+// move a 16bit constant value into dest_reg
+// the upper 16bit of the destination register may be destroyed
+static void INLINE gen_mov_word_to_reg_imm(HostReg dest_reg,Bit16u imm) {
+	gen_mov_dword_to_reg_imm(dest_reg, (Bit32u)imm);
+}
+
+// helper function for gen_mov_word_from_reg
+static void gen_mov_word_from_reg_helper(HostReg src_reg,void* dest,bool dword, HostReg data_reg) {
+	// alignment....
+	if (dword) {
+		if ((Bit32u)dest & 3) {
+			if ( ((Bit32u)dest & 3) == 2 ) {
+				cache_addw( STRH_IMM(src_reg, data_reg, 0) );      // strh src_reg, [data_reg]
+				cache_addw( MOV_REG(templo1, src_reg) );      // mov templo1, src_reg
+				cache_addw( LSR_IMM(templo1, templo1, 16) );      // lsr templo1, templo1, #16
+				cache_addw( STRH_IMM(templo1, data_reg, 2) );      // strh templo1, [data_reg, #2]
+			} else {
+				cache_addw( STRB_IMM(src_reg, data_reg, 0) );      // strb src_reg, [data_reg]
+				cache_addw( MOV_REG(templo1, src_reg) );      // mov templo1, src_reg
+				cache_addw( LSR_IMM(templo1, templo1, 8) );      // lsr templo1, templo1, #8
+				cache_addw( STRB_IMM(templo1, data_reg, 1) );      // strb templo1, [data_reg, #1]
+				cache_addw( MOV_REG(templo1, src_reg) );      // mov templo1, src_reg
+				cache_addw( LSR_IMM(templo1, templo1, 16) );      // lsr templo1, templo1, #16
+				cache_addw( STRB_IMM(templo1, data_reg, 2) );      // strb templo1, [data_reg, #2]
+				cache_addw( MOV_REG(templo1, src_reg) );      // mov templo1, src_reg
+				cache_addw( LSR_IMM(templo1, templo1, 24) );      // lsr templo1, templo1, #24
+				cache_addw( STRB_IMM(templo1, data_reg, 3) );      // strb templo1, [data_reg, #3]
+			}
+		} else {
+			cache_addw( STR_IMM(src_reg, data_reg, 0) );      // str src_reg, [data_reg]
+		}
+	} else {
+		if ((Bit32u)dest & 1) {
+			cache_addw( STRB_IMM(src_reg, data_reg, 0) );      // strb src_reg, [data_reg]
+			cache_addw( MOV_REG(templo1, src_reg) );      // mov templo1, src_reg
+			cache_addw( LSR_IMM(templo1, templo1, 8) );      // lsr templo1, templo1, #8
+			cache_addw( STRB_IMM(templo1, data_reg, 1) );      // strb templo1, [data_reg, #1]
+		} else {
+			cache_addw( STRH_IMM(src_reg, data_reg, 0) );      // strh src_reg, [data_reg]
+		}
+	}
+}
+
+// move 32bit (dword==true) or 16bit (dword==false) of a register into memory
+static void gen_mov_word_from_reg(HostReg src_reg,void* dest,bool dword) {
+	gen_mov_dword_to_reg_imm(templo2, (Bit32u)dest);
+	gen_mov_word_from_reg_helper(src_reg, dest, dword, templo2);
+}
+
+// move an 8bit value from memory into dest_reg
+// the upper 24bit of the destination register can be destroyed
+// this function does not use FC_OP1/FC_OP2 as dest_reg as these
+// registers might not be directly byte-accessible on some architectures
+static void gen_mov_byte_to_reg_low(HostReg dest_reg,void* data) {
+	gen_mov_dword_to_reg_imm(templo1, (Bit32u)data);
+	cache_addw( LDRB_IMM(dest_reg, templo1, 0) );      // ldrb dest_reg, [templo1]
+}
+
+// move an 8bit value from memory into dest_reg
+// the upper 24bit of the destination register can be destroyed
+// this function can use FC_OP1/FC_OP2 as dest_reg which are
+// not directly byte-accessible on some architectures
+static void INLINE gen_mov_byte_to_reg_low_canuseword(HostReg dest_reg,void* data) {
+	gen_mov_byte_to_reg_low(dest_reg, data);
+}
+
+// move an 8bit constant value into dest_reg
+// the upper 24bit of the destination register can be destroyed
+// this function does not use FC_OP1/FC_OP2 as dest_reg as these
+// registers might not be directly byte-accessible on some architectures
+static void gen_mov_byte_to_reg_low_imm(HostReg dest_reg,Bit8u imm) {
+	cache_addw( MOV_IMM(dest_reg, imm) );      // mov dest_reg, #(imm)
+}
+
+// move an 8bit constant value into dest_reg
+// the upper 24bit of the destination register can be destroyed
+// this function can use FC_OP1/FC_OP2 as dest_reg which are
+// not directly byte-accessible on some architectures
+static void INLINE gen_mov_byte_to_reg_low_imm_canuseword(HostReg dest_reg,Bit8u imm) {
+	gen_mov_byte_to_reg_low_imm(dest_reg, imm);
+}
+
+// move the lowest 8bit of a register into memory
+static void gen_mov_byte_from_reg_low(HostReg src_reg,void* dest) {
+	gen_mov_dword_to_reg_imm(templo1, (Bit32u)dest);
+	cache_addw( STRB_IMM(src_reg, templo1, 0) );      // strb src_reg, [templo1]
+}
+
+
+
+// convert an 8bit word to a 32bit dword
+// the register is zero-extended (sign==false) or sign-extended (sign==true)
+static void gen_extend_byte(bool sign,HostReg reg) {
+	cache_addw( LSL_IMM(reg, reg, 24) );      // lsl reg, reg, #24
+
+	if (sign) {
+		cache_addw( ASR_IMM(reg, reg, 24) );      // asr reg, reg, #24
+	} else {
+		cache_addw( LSR_IMM(reg, reg, 24) );      // lsr reg, reg, #24
+	}
+}
+
+// convert a 16bit word to a 32bit dword
+// the register is zero-extended (sign==false) or sign-extended (sign==true)
+static void gen_extend_word(bool sign,HostReg reg) {
+	cache_addw( LSL_IMM(reg, reg, 16) );      // lsl reg, reg, #16
+
+	if (sign) {
+		cache_addw( ASR_IMM(reg, reg, 16) );      // asr reg, reg, #16
+	} else {
+		cache_addw( LSR_IMM(reg, reg, 16) );      // lsr reg, reg, #16
+	}
+}
+
+// add a 32bit value from memory to a full register
+static void gen_add(HostReg reg,void* op) {
+	gen_mov_word_to_reg(templo3, op, 1);
+	cache_addw( ADD_REG(reg, reg, templo3) );      // add reg, reg, templo3
+}
+
+// add a 32bit constant value to a full register
+static void gen_add_imm(HostReg reg,Bit32u imm) {
+	if(!imm) return;
+	gen_mov_dword_to_reg_imm(templo1, imm);
+	cache_addw( ADD_REG(reg, reg, templo1) );      // add reg, reg, templo1
+}
+
+// and a 32bit constant value with a full register
+static void gen_and_imm(HostReg reg,Bit32u imm) {
+	if(imm == 0xffffffff) return;
+	gen_mov_dword_to_reg_imm(templo1, imm);
+	cache_addw( AND(reg, templo1) );      // and reg, templo1
+}
+
+
+// move a 32bit constant value into memory
+static void gen_mov_direct_dword(void* dest,Bit32u imm) {
+	gen_mov_dword_to_reg_imm(templo3, imm);
+	gen_mov_word_from_reg(templo3, dest, 1);
+}
+
+// move an address into memory
+static void INLINE gen_mov_direct_ptr(void* dest,DRC_PTR_SIZE_IM imm) {
+	gen_mov_direct_dword(dest,(Bit32u)imm);
+}
+
+// add an 8bit constant value to a dword memory value
+static void gen_add_direct_byte(void* dest,Bit8s imm) {
+	if(!imm) return;
+	gen_mov_dword_to_reg_imm(templo2, (Bit32u)dest);
+	gen_mov_word_to_reg_helper(templo3, dest, 1, templo2);
+	if (imm >= 0) {
+		cache_addw( ADD_IMM8(templo3, (Bit32s)imm) );      // add templo3, #(imm)
+	} else {
+		cache_addw( SUB_IMM8(templo3, -((Bit32s)imm)) );      // sub templo3, #(-imm)
+	}
+	gen_mov_word_from_reg_helper(templo3, dest, 1, templo2);
+}
+
+// add a 32bit (dword==true) or 16bit (dword==false) constant value to a memory value
+static void gen_add_direct_word(void* dest,Bit32u imm,bool dword) {
+	if(!imm) return;
+	if (dword && ( (imm<128) || (imm>=0xffffff80) ) ) {
+		gen_add_direct_byte(dest,(Bit8s)imm);
+		return;
+	}
+	gen_mov_dword_to_reg_imm(templo2, (Bit32u)dest);
+	gen_mov_word_to_reg_helper(templo3, dest, dword, templo2);
+	if (dword) {
+		gen_mov_dword_to_reg_imm(templo1, imm);
+	} else {
+		gen_mov_word_to_reg_imm(templo1, (Bit16u)imm);
+	}
+	cache_addw( ADD_REG(templo3, templo3, templo1) );      // add templo3, templo3, templo1
+	gen_mov_word_from_reg_helper(templo3, dest, dword, templo2);
+}
+
+// subtract an 8bit constant value from a dword memory value
+static void gen_sub_direct_byte(void* dest,Bit8s imm) {
+	if(!imm) return;
+	gen_mov_dword_to_reg_imm(templo2, (Bit32u)dest);
+	gen_mov_word_to_reg_helper(templo3, dest, 1, templo2);
+	if (imm >= 0) {
+		cache_addw( SUB_IMM8(templo3, (Bit32s)imm) );      // sub templo3, #(imm)
+	} else {
+		cache_addw( ADD_IMM8(templo3, -((Bit32s)imm)) );      // add templo3, #(-imm)
+	}
+	gen_mov_word_from_reg_helper(templo3, dest, 1, templo2);
+}
+
+// subtract a 32bit (dword==true) or 16bit (dword==false) constant value from a memory value
+static void gen_sub_direct_word(void* dest,Bit32u imm,bool dword) {
+	if(!imm) return;
+	if (dword && ( (imm<128) || (imm>=0xffffff80) ) ) {
+		gen_sub_direct_byte(dest,(Bit8s)imm);
+		return;
+	}
+	gen_mov_dword_to_reg_imm(templo2, (Bit32u)dest);
+	gen_mov_word_to_reg_helper(templo3, dest, dword, templo2);
+	if (dword) {
+		gen_mov_dword_to_reg_imm(templo1, imm);
+	} else {
+		gen_mov_word_to_reg_imm(templo1, (Bit16u)imm);
+	}
+	cache_addw( SUB_REG(templo3, templo3, templo1) );      // sub templo3, templo3, templo1
+	gen_mov_word_from_reg_helper(templo3, dest, dword, templo2);
+}
+
+// effective address calculation, destination is dest_reg
+// scale_reg is scaled by scale (scale_reg*(2^scale)) and
+// added to dest_reg, then the immediate value is added
+static INLINE void gen_lea(HostReg dest_reg,HostReg scale_reg,Bitu scale,Bits imm) {
+	if (scale) {
+		cache_addw( LSL_IMM(templo1, scale_reg, scale) );      // lsl templo1, scale_reg, #(scale)
+		cache_addw( ADD_REG(dest_reg, dest_reg, templo1) );      // add dest_reg, dest_reg, templo1
+	} else {
+		cache_addw( ADD_REG(dest_reg, dest_reg, scale_reg) );      // add dest_reg, dest_reg, scale_reg
+	}
+	gen_add_imm(dest_reg, imm);
+}
+
+// effective address calculation, destination is dest_reg
+// dest_reg is scaled by scale (dest_reg*(2^scale)),
+// then the immediate value is added
+static INLINE void gen_lea(HostReg dest_reg,Bitu scale,Bits imm) {
+	if (scale) {
+		cache_addw( LSL_IMM(dest_reg, dest_reg, scale) );      // lsl dest_reg, dest_reg, #(scale)
+	}
+	gen_add_imm(dest_reg, imm);
+}
+
+// generate a call to a parameterless function
+static void INLINE gen_call_function_raw(void * func) {
+	if (((Bit32u)cache.pos & 0x03) == 0) {
+		cache_addw( LDR_PC_IMM(templo1, 4) );      // ldr templo1, [pc, #4]
+		cache_addw( ADD_LO_PC_IMM(templo2, 8) );      // adr templo2, after_call (add templo2, pc, #8)
+		cache_addw( MOV_HI_LO(HOST_lr, templo2) );      // mov lr, templo2
+		cache_addw( BX(templo1) );      // bx templo1     --- switch to arm state
+	} else {
+		cache_addw( LDR_PC_IMM(templo1, 8) );      // ldr templo1, [pc, #8]
+		cache_addw( ADD_LO_PC_IMM(templo2, 8) );      // adr templo2, after_call (add templo2, pc, #8)
+		cache_addw( MOV_HI_LO(HOST_lr, templo2) );      // mov lr, templo2
+		cache_addw( BX(templo1) );      // bx templo1     --- switch to arm state
+		cache_addw( NOP );      // nop
+	}
+	cache_addd((Bit32u)func);      // .int func
+	// after_call:
+
+	// switch from arm to thumb state
+	cache_addd(0xe2800000 + (templo1 << 12) + (HOST_pc << 16) + (1));      // add templo1, pc, #1
+	cache_addd(0xe12fff10 + (templo1));      // bx templo1
+	
+	// thumb state from now on
+}
+
+// generate a call to a function with paramcount parameters
+// note: the parameters are loaded in the architecture specific way
+// using the gen_load_param_ functions below
+static Bit32u INLINE gen_call_function_setup(void * func,Bitu paramcount,bool fastcall=false) {
+	Bit32u proc_addr = (Bit32u)cache.pos;
+	gen_call_function_raw(func);
+	return proc_addr;
+	// if proc_addr is on word  boundary ((proc_addr & 0x03) == 0)
+	//   then length of generated code is 20 bytes
+	//   otherwise length of generated code is 22 bytes
+}
+
+#if (1)
+// max of 4 parameters in a1-a4
+
+// load an immediate value as param'th function parameter
+static void INLINE gen_load_param_imm(Bitu imm,Bitu param) {
+	gen_mov_dword_to_reg_imm(param, imm);
+}
+
+// load an address as param'th function parameter
+static void INLINE gen_load_param_addr(Bitu addr,Bitu param) {
+	gen_mov_dword_to_reg_imm(param, addr);
+}
+
+// load a host-register as param'th function parameter
+static void INLINE gen_load_param_reg(Bitu reg,Bitu param) {
+	gen_mov_regs(param, reg);
+}
+
+// load a value from memory as param'th function parameter
+static void INLINE gen_load_param_mem(Bitu mem,Bitu param) {
+	gen_mov_word_to_reg(param, (void *)mem, 1);
+}
+#else
+	other arm abis
+#endif
+
+// jump to an address pointed at by ptr, offset is in imm
+static void gen_jmp_ptr(void * ptr,Bits imm=0) {
+	gen_mov_word_to_reg(templo3, ptr, 1);
+
+	if (imm) {
+		gen_mov_dword_to_reg_imm(templo2, imm);
+		cache_addw( ADD_REG(templo3, templo3, templo2) );      // add templo3, templo3, templo2
+	}
+
+#if (1)
+// (*ptr) should be word aligned 
+	if ((imm & 0x03) == 0) {
+		cache_addw( LDR_IMM(templo2, templo3, 0) );      // ldr templo2, [templo3]
+	} else
+#endif
+	{
+		cache_addw( LDRB_IMM(templo2, templo3, 0) );      // ldrb templo2, [templo3]
+		cache_addw( LDRB_IMM(templo1, templo3, 1) );      // ldrb templo1, [templo3, #1]
+		cache_addw( LSL_IMM(templo1, templo1, 8) );      // lsl templo1, templo1, #8
+		cache_addw( ORR(templo2, templo1) );      // orr templo2, templo1
+		cache_addw( LDRB_IMM(templo1, templo3, 2) );      // ldrb templo1, [templo3, #2]
+		cache_addw( LSL_IMM(templo1, templo1, 16) );      // lsl templo1, templo1, #16
+		cache_addw( ORR(templo2, templo1) );      // orr templo2, templo1
+		cache_addw( LDRB_IMM(templo1, templo3, 3) );      // ldrb templo1, [templo3, #3]
+		cache_addw( LSL_IMM(templo1, templo1, 24) );      // lsl templo1, templo1, #24
+		cache_addw( ORR(templo2, templo1) );      // orr templo2, templo1
+	}
+
+	// increase jmp address to keep thumb state
+	cache_addw( ADD_IMM3(templo2, templo2, 1) );      // add templo2, templo2, #1
+
+	cache_addw( BX(templo2) );      // bx templo2
+}
+
+// short conditional jump (+-127 bytes) if register is zero
+// the destination is set by gen_fill_branch() later
+static Bit32u gen_create_branch_on_zero(HostReg reg,bool dword) {
+	if (dword) {
+		cache_addw( CMP_IMM(reg, 0) );      // cmp reg, #0
+	} else {
+		cache_addw( LSL_IMM(templo1, reg, 16) );      // lsl templo1, reg, #16
+	}
+	cache_addw( BEQ_FWD(0) );      // beq j
+	return ((Bit32u)cache.pos-2);
+}
+
+// short conditional jump (+-127 bytes) if register is nonzero
+// the destination is set by gen_fill_branch() later
+static Bit32u gen_create_branch_on_nonzero(HostReg reg,bool dword) {
+	if (dword) {
+		cache_addw( CMP_IMM(reg, 0) );      // cmp reg, #0
+	} else {
+		cache_addw( LSL_IMM(templo1, reg, 16) );      // lsl templo1, reg, #16
+	}
+	cache_addw( BNE_FWD(0) );      // bne j
+	return ((Bit32u)cache.pos-2);
+}
+
+// calculate relative offset and fill it into the location pointed to by data
+static void INLINE gen_fill_branch(DRC_PTR_SIZE_IM data) {
+#if C_DEBUG
+	Bits len=(Bit32u)cache.pos-(data+4);
+	if (len<0) len=-len;
+	if (len>252) LOG_MSG("Big jump %d",len);
+#endif
+	*(Bit8u*)data=(Bit8u)( ((Bit32u)cache.pos-(data+4)) >> 1 );
+}
+
+// conditional jump if register is nonzero
+// for isdword==true the 32bit of the register are tested
+// for isdword==false the lowest 8bit of the register are tested
+static Bit32u gen_create_branch_long_nonzero(HostReg reg,bool isdword) {
+	if (isdword) {
+		cache_addw( CMP_IMM(reg, 0) );      // cmp reg, #0
+	} else {
+		cache_addw( LSL_IMM(templo2, reg, 24) );      // lsl templo2, reg, #24
+	}
+	if (((Bit32u)cache.pos & 0x03) == 0) {
+		cache_addw( BEQ_FWD(8) );      // beq nobranch (pc+8)
+		cache_addw( LDR_PC_IMM(templo1, 4) );      // ldr templo1, [pc, #4]
+		cache_addw( BX(templo1) );      // bx templo1
+		cache_addw( NOP );      // nop
+	} else {
+		cache_addw( BEQ_FWD(6) );      // beq nobranch (pc+6)
+		cache_addw( LDR_PC_IMM(templo1, 0) );      // ldr templo1, [pc, #0]
+		cache_addw( BX(templo1) );      // bx templo1
+	}
+	cache_addd(0);      // fill j
+	// nobranch:
+	return ((Bit32u)cache.pos-4);
+}
+
+// compare 32bit-register against zero and jump if value less/equal than zero
+static Bit32u gen_create_branch_long_leqzero(HostReg reg) {
+	cache_addw( CMP_IMM(reg, 0) );      // cmp reg, #0
+	if (((Bit32u)cache.pos & 0x03) == 0) {
+		cache_addw( BGT_FWD(8) );      // bgt nobranch (pc+8)
+		cache_addw( LDR_PC_IMM(templo1, 4) );      // ldr templo1, [pc, #4]
+		cache_addw( BX(templo1) );      // bx templo1
+		cache_addw( NOP );      // nop
+	} else {
+		cache_addw( BGT_FWD(6) );      // bgt nobranch (pc+6)
+		cache_addw( LDR_PC_IMM(templo1, 0) );      // ldr templo1, [pc, #0]
+		cache_addw( BX(templo1) );      // bx templo1
+	}
+	cache_addd(0);      // fill j
+	// nobranch:
+	return ((Bit32u)cache.pos-4);
+}
+
+// calculate long relative offset and fill it into the location pointed to by data
+static void INLINE gen_fill_branch_long(Bit32u data) {
+	// this is an absolute branch
+	*(Bit32u*)data=((Bit32u)cache.pos) + 1; // add 1 to keep processor in thumb state
+}
+
+static void gen_run_code(void) {
+	// switch from arm to thumb state
+	cache_addd(0xe2800000 + (HOST_r3 << 12) + (HOST_pc << 16) + (1));      // add r3, pc, #1
+	cache_addd(0xe12fff10 + (HOST_r3));      // bx r3
+
+	// thumb state from now on
+	cache_addw(0xb500);      // push {lr}
+	cache_addw( MOV_LO_HI(HOST_r3, FC_SEGS_ADDR) );      // mov r3, FC_SEGS_ADDR
+	cache_addw( MOV_LO_HI(HOST_r2, FC_REGS_ADDR) );      // mov r2, FC_REGS_ADDR
+	cache_addw(0xb4fc);      // push {r2,r3,v1-v4}
+
+	// adr: 16
+	cache_addw( LDR_PC_IMM(HOST_r3, 64 - (16 + 4)) );        // ldr r3, [pc, #(&Segs)]
+	// adr: 18
+	cache_addw( LDR_PC_IMM(HOST_r2, 68 - (18 + 2)) );        // ldr r2, [pc, #(&cpu_regs)]
+	cache_addw( MOV_HI_LO(FC_SEGS_ADDR, HOST_r3) );      // mov FC_SEGS_ADDR, r3
+	cache_addw( MOV_HI_LO(FC_REGS_ADDR, HOST_r2) );      // mov FC_REGS_ADDR, r2
+
+	// align 4
+	cache_addw( ADD_LO_PC_IMM(HOST_r3, 8) );      // add r3, pc, #8
+	cache_addw( ADD_IMM8(HOST_r0, 1) );      // add r0, #1
+	cache_addw( ADD_IMM8(HOST_r3, 1) );      // add r3, #1
+	cache_addw(0xb408);      // push {r3}
+	cache_addw( BX(HOST_r0) );      // bx r0
+	cache_addw( NOP );      // nop
+
+	// align 4
+	cache_addw(0xbcfc);      // pop {r2,r3,v1-v4}
+	cache_addw( MOV_HI_LO(FC_SEGS_ADDR, HOST_r3) );      // mov FC_SEGS_ADDR, r3
+	cache_addw( MOV_HI_LO(FC_REGS_ADDR, HOST_r2) );      // mov FC_REGS_ADDR, r2
+
+	cache_addw(0xbc08);      // pop {r3}
+	cache_addw( BX(HOST_r3) );      // bx r3
+
+	// fill up to 64 bytes
+	cache_addw( NOP );      // nop
+	cache_addd( NOP | (NOP << 16) );  // nop, nop
+	cache_addd( NOP | (NOP << 16) );  // nop, nop
+	cache_addd( NOP | (NOP << 16) );  // nop, nop
+	cache_addd( NOP | (NOP << 16) );  // nop, nop
+
+	// adr: 64
+	cache_addd((Bit32u)&Segs);      // address of "Segs"
+	// adr: 68
+	cache_addd((Bit32u)&cpu_regs);  // address of "cpu_regs"
+}
+
+// return from a function
+static void gen_return_function(void) {
+	cache_addw(0xbc08);      // pop {r3}
+	cache_addw( BX(HOST_r3) );      // bx r3
+}
+
+#ifdef DRC_FLAGS_INVALIDATION
+
+// called when a call to a function can be replaced by a
+// call to a simpler function
+static void gen_fill_function_ptr(Bit8u * pos,void* fct_ptr,Bitu flags_type) {
+#ifdef DRC_FLAGS_INVALIDATION_DCODE
+	if (((Bit32u)pos & 0x03) == 0)
+	{
+		// try to avoid function calls but rather directly fill in code
+		switch (flags_type) {
+			case t_ADDb:
+			case t_ADDw:
+			case t_ADDd:
+				*(Bit16u*)pos=ADD_REG(HOST_a1, HOST_a1, HOST_a2);	// add a1, a1, a2
+				*(Bit16u*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
+				break;
+			case t_ORb:
+			case t_ORw:
+			case t_ORd:
+				*(Bit16u*)pos=ORR(HOST_a1, HOST_a2);				// orr a1, a2
+				*(Bit16u*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
+				break;
+			case t_ANDb:
+			case t_ANDw:
+			case t_ANDd:
+				*(Bit16u*)pos=AND(HOST_a1, HOST_a2);				// and a1, a2
+				*(Bit16u*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
+				break;
+			case t_SUBb:
+			case t_SUBw:
+			case t_SUBd:
+				*(Bit16u*)pos=SUB_REG(HOST_a1, HOST_a1, HOST_a2);	// sub a1, a1, a2
+				*(Bit16u*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
+				break;
+			case t_XORb:
+			case t_XORw:
+			case t_XORd:
+				*(Bit16u*)pos=EOR(HOST_a1, HOST_a2);				// eor a1, a2
+				*(Bit16u*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
+				break;
+			case t_CMPb:
+			case t_CMPw:
+			case t_CMPd:
+			case t_TESTb:
+			case t_TESTw:
+			case t_TESTd:
+				*(Bit16u*)pos=B_FWD(16);							// b after_call (pc+16)
+				break;
+			case t_INCb:
+			case t_INCw:
+			case t_INCd:
+				*(Bit16u*)pos=ADD_IMM3(HOST_a1, HOST_a1, 1);		// add a1, a1, #1
+				*(Bit16u*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
+				break;
+			case t_DECb:
+			case t_DECw:
+			case t_DECd:
+				*(Bit16u*)pos=SUB_IMM3(HOST_a1, HOST_a1, 1);		// sub a1, a1, #1
+				*(Bit16u*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
+				break;
+			case t_SHLb:
+			case t_SHLw:
+			case t_SHLd:
+				*(Bit16u*)pos=LSL_REG(HOST_a1, HOST_a2);			// lsl a1, a2
+				*(Bit16u*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
+				break;
+			case t_SHRb:
+				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 24);		// lsl a1, a1, #24
+				*(Bit16u*)(pos+2)=LSR_IMM(HOST_a1, HOST_a1, 24);	// lsr a1, a1, #24
+				*(Bit16u*)(pos+4)=LSR_REG(HOST_a1, HOST_a2);		// lsr a1, a2
+				*(Bit16u*)(pos+6)=B_FWD(10);						// b after_call (pc+10)
+				break;
+			case t_SHRw:
+				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 16);		// lsl a1, a1, #16
+				*(Bit16u*)(pos+2)=LSR_IMM(HOST_a1, HOST_a1, 16);	// lsr a1, a1, #16
+				*(Bit16u*)(pos+4)=LSR_REG(HOST_a1, HOST_a2);		// lsr a1, a2
+				*(Bit16u*)(pos+6)=B_FWD(10);						// b after_call (pc+10)
+				break;
+			case t_SHRd:
+				*(Bit16u*)pos=LSR_REG(HOST_a1, HOST_a2);			// lsr a1, a2
+				*(Bit16u*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
+				break;
+			case t_SARb:
+				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 24);		// lsl a1, a1, #24
+				*(Bit16u*)(pos+2)=ASR_IMM(HOST_a1, HOST_a1, 24);	// asr a1, a1, #24
+				*(Bit16u*)(pos+4)=ASR_REG(HOST_a1, HOST_a2);		// asr a1, a2
+				*(Bit16u*)(pos+6)=B_FWD(10);						// b after_call (pc+10)
+				break;
+			case t_SARw:
+				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 16);		// lsl a1, a1, #16
+				*(Bit16u*)(pos+2)=ASR_IMM(HOST_a1, HOST_a1, 16);	// asr a1, a1, #16
+				*(Bit16u*)(pos+4)=ASR_REG(HOST_a1, HOST_a2);		// asr a1, a2
+				*(Bit16u*)(pos+6)=B_FWD(10);						// b after_call (pc+10)
+				break;
+			case t_SARd:
+				*(Bit16u*)pos=ASR_REG(HOST_a1, HOST_a2);			// asr a1, a2
+				*(Bit16u*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
+				break;
+			case t_RORb:
+				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 24);		// lsl a1, a1, #24
+				*(Bit16u*)(pos+2)=LSR_IMM(templo1, HOST_a1, 8);		// lsr templo1, a1, #8
+				*(Bit16u*)(pos+4)=ORR(HOST_a1, templo1);			// orr a1, templo1
+				*(Bit16u*)(pos+6)=LSR_IMM(templo1, HOST_a1, 16);	// lsr templo1, a1, #16
+				*(Bit16u*)(pos+8)=ORR(HOST_a1, templo1);			// orr a1, templo1
+				*(Bit16u*)(pos+10)=ROR_REG(HOST_a1, HOST_a2);		// ror a1, a2
+				*(Bit16u*)(pos+12)=B_FWD(4);						// b after_call (pc+4)
+				break;
+			case t_RORw:
+				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 16);		// lsl a1, a1, #16
+				*(Bit16u*)(pos+2)=LSR_IMM(templo1, HOST_a1, 16);	// lsr templo1, a1, #16
+				*(Bit16u*)(pos+4)=ORR(HOST_a1, templo1);			// orr a1, templo1
+				*(Bit16u*)(pos+6)=ROR_REG(HOST_a1, HOST_a2);		// ror a1, a2
+				*(Bit16u*)(pos+8)=B_FWD(8);							// b after_call (pc+8)
+				break;
+			case t_RORd:
+				*(Bit16u*)pos=ROR_REG(HOST_a1, HOST_a2);			// ror a1, a2
+				*(Bit16u*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
+				break;
+			case t_ROLb:
+				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 24);		// lsl a1, a1, #24
+				*(Bit16u*)(pos+2)=NEG(HOST_a2, HOST_a2);			// neg a2, a2
+				*(Bit16u*)(pos+4)=LSR_IMM(templo1, HOST_a1, 8);		// lsr templo1, a1, #8
+				*(Bit16u*)(pos+6)=ADD_IMM8(HOST_a2, 32);			// add a2, #32
+				*(Bit16u*)(pos+8)=ORR(HOST_a1, templo1);			// orr a1, templo1
+				*(Bit16u*)(pos+10)=NOP;								// nop
+				*(Bit16u*)(pos+12)=LSR_IMM(templo1, HOST_a1, 16);	// lsr templo1, a1, #16
+				*(Bit16u*)(pos+14)=NOP;								// nop
+				*(Bit16u*)(pos+16)=ORR(HOST_a1, templo1);			// orr a1, templo1
+				*(Bit16u*)(pos+18)=ROR_REG(HOST_a1, HOST_a2);		// ror a1, a2
+				break;
+			case t_ROLw:
+				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 16);		// lsl a1, a1, #16
+				*(Bit16u*)(pos+2)=NEG(HOST_a2, HOST_a2);			// neg a2, a2
+				*(Bit16u*)(pos+4)=LSR_IMM(templo1, HOST_a1, 16);	// lsr templo1, a1, #16
+				*(Bit16u*)(pos+6)=ADD_IMM8(HOST_a2, 32);			// add a2, #32
+				*(Bit16u*)(pos+8)=ORR(HOST_a1, templo1);			// orr a1, templo1
+				*(Bit16u*)(pos+10)=ROR_REG(HOST_a1, HOST_a2);		// ror a1, a2
+				*(Bit16u*)(pos+12)=B_FWD(4);						// b after_call (pc+4)
+				break;
+			case t_ROLd:
+				*(Bit16u*)pos=NEG(HOST_a2, HOST_a2);				// neg a2, a2
+				*(Bit16u*)(pos+2)=ADD_IMM8(HOST_a2, 32);			// add a2, #32
+				*(Bit16u*)(pos+4)=ROR_REG(HOST_a1, HOST_a2);		// ror a1, a2
+				*(Bit16u*)(pos+6)=B_FWD(10);						// b after_call (pc+10)
+				break;
+			case t_NEGb:
+			case t_NEGw:
+			case t_NEGd:
+				*(Bit16u*)pos=NEG(HOST_a1, HOST_a1);				// neg a1, a1
+				*(Bit16u*)(pos+2)=B_FWD(14);						// b after_call (pc+14)
+				break;
+			default:
+				*(Bit32u*)(pos+8)=(Bit32u)fct_ptr;		// simple_func
+				break;
+		}
+	}
+	else
+	{
+		// try to avoid function calls but rather directly fill in code
+		switch (flags_type) {
+			case t_ADDb:
+			case t_ADDw:
+			case t_ADDd:
+				*(Bit16u*)pos=ADD_REG(HOST_a1, HOST_a1, HOST_a2);	// add a1, a1, a2
+				*(Bit16u*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
+				break;
+			case t_ORb:
+			case t_ORw:
+			case t_ORd:
+				*(Bit16u*)pos=ORR(HOST_a1, HOST_a2);				// orr a1, a2
+				*(Bit16u*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
+				break;
+			case t_ANDb:
+			case t_ANDw:
+			case t_ANDd:
+				*(Bit16u*)pos=AND(HOST_a1, HOST_a2);				// and a1, a2
+				*(Bit16u*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
+				break;
+			case t_SUBb:
+			case t_SUBw:
+			case t_SUBd:
+				*(Bit16u*)pos=SUB_REG(HOST_a1, HOST_a1, HOST_a2);	// sub a1, a1, a2
+				*(Bit16u*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
+				break;
+			case t_XORb:
+			case t_XORw:
+			case t_XORd:
+				*(Bit16u*)pos=EOR(HOST_a1, HOST_a2);				// eor a1, a2
+				*(Bit16u*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
+				break;
+			case t_CMPb:
+			case t_CMPw:
+			case t_CMPd:
+			case t_TESTb:
+			case t_TESTw:
+			case t_TESTd:
+				*(Bit16u*)pos=B_FWD(18);							// b after_call (pc+18)
+				break;
+			case t_INCb:
+			case t_INCw:
+			case t_INCd:
+				*(Bit16u*)pos=ADD_IMM3(HOST_a1, HOST_a1, 1);		// add a1, a1, #1
+				*(Bit16u*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
+				break;
+			case t_DECb:
+			case t_DECw:
+			case t_DECd:
+				*(Bit16u*)pos=SUB_IMM3(HOST_a1, HOST_a1, 1);		// sub a1, a1, #1
+				*(Bit16u*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
+				break;
+			case t_SHLb:
+			case t_SHLw:
+			case t_SHLd:
+				*(Bit16u*)pos=LSL_REG(HOST_a1, HOST_a2);			// lsl a1, a2
+				*(Bit16u*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
+				break;
+			case t_SHRb:
+				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 24);		// lsl a1, a1, #24
+				*(Bit16u*)(pos+2)=LSR_IMM(HOST_a1, HOST_a1, 24);	// lsr a1, a1, #24
+				*(Bit16u*)(pos+4)=LSR_REG(HOST_a1, HOST_a2);		// lsr a1, a2
+				*(Bit16u*)(pos+6)=B_FWD(12);						// b after_call (pc+12)
+				break;
+			case t_SHRw:
+				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 16);		// lsl a1, a1, #16
+				*(Bit16u*)(pos+2)=LSR_IMM(HOST_a1, HOST_a1, 16);	// lsr a1, a1, #16
+				*(Bit16u*)(pos+4)=LSR_REG(HOST_a1, HOST_a2);		// lsr a1, a2
+				*(Bit16u*)(pos+6)=B_FWD(12);						// b after_call (pc+12)
+				break;
+			case t_SHRd:
+				*(Bit16u*)pos=LSR_REG(HOST_a1, HOST_a2);			// lsr a1, a2
+				*(Bit16u*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
+				break;
+			case t_SARb:
+				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 24);		// lsl a1, a1, #24
+				*(Bit16u*)(pos+2)=ASR_IMM(HOST_a1, HOST_a1, 24);	// asr a1, a1, #24
+				*(Bit16u*)(pos+4)=ASR_REG(HOST_a1, HOST_a2);		// asr a1, a2
+				*(Bit16u*)(pos+6)=B_FWD(12);						// b after_call (pc+12)
+				break;
+			case t_SARw:
+				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 16);		// lsl a1, a1, #16
+				*(Bit16u*)(pos+2)=ASR_IMM(HOST_a1, HOST_a1, 16);	// asr a1, a1, #16
+				*(Bit16u*)(pos+4)=ASR_REG(HOST_a1, HOST_a2);		// asr a1, a2
+				*(Bit16u*)(pos+6)=B_FWD(12);						// b after_call (pc+12)
+				break;
+			case t_SARd:
+				*(Bit16u*)pos=ASR_REG(HOST_a1, HOST_a2);			// asr a1, a2
+				*(Bit16u*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
+				break;
+			case t_RORb:
+				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 24);		// lsl a1, a1, #24
+				*(Bit16u*)(pos+2)=LSR_IMM(templo1, HOST_a1, 8);		// lsr templo1, a1, #8
+				*(Bit16u*)(pos+4)=ORR(HOST_a1, templo1);			// orr a1, templo1
+				*(Bit16u*)(pos+6)=LSR_IMM(templo1, HOST_a1, 16);	// lsr templo1, a1, #16
+				*(Bit16u*)(pos+8)=ORR(HOST_a1, templo1);			// orr a1, templo1
+				*(Bit16u*)(pos+10)=ROR_REG(HOST_a1, HOST_a2);		// ror a1, a2
+				*(Bit16u*)(pos+12)=B_FWD(6);						// b after_call (pc+6)
+				break;
+			case t_RORw:
+				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 16);		// lsl a1, a1, #16
+				*(Bit16u*)(pos+2)=LSR_IMM(templo1, HOST_a1, 16);	// lsr templo1, a1, #16
+				*(Bit16u*)(pos+4)=ORR(HOST_a1, templo1);			// orr a1, templo1
+				*(Bit16u*)(pos+6)=ROR_REG(HOST_a1, HOST_a2);		// ror a1, a2
+				*(Bit16u*)(pos+8)=B_FWD(10);						// b after_call (pc+10)
+				break;
+			case t_RORd:
+				*(Bit16u*)pos=ROR_REG(HOST_a1, HOST_a2);			// ror a1, a2
+				*(Bit16u*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
+				break;
+			case t_ROLb:
+				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 24);		// lsl a1, a1, #24
+				*(Bit16u*)(pos+2)=NEG(HOST_a2, HOST_a2);			// neg a2, a2
+				*(Bit16u*)(pos+4)=LSR_IMM(templo1, HOST_a1, 8);		// lsr templo1, a1, #8
+				*(Bit16u*)(pos+6)=ADD_IMM8(HOST_a2, 32);			// add a2, #32
+				*(Bit16u*)(pos+8)=ORR(HOST_a1, templo1);			// orr a1, templo1
+				*(Bit16u*)(pos+10)=NOP;								// nop
+				*(Bit16u*)(pos+12)=LSR_IMM(templo1, HOST_a1, 16);	// lsr templo1, a1, #16
+				*(Bit16u*)(pos+14)=NOP;								// nop
+				*(Bit16u*)(pos+16)=ORR(HOST_a1, templo1);			// orr a1, templo1
+				*(Bit16u*)(pos+18)=NOP;								// nop
+				*(Bit16u*)(pos+20)=ROR_REG(HOST_a1, HOST_a2);		// ror a1, a2
+				break;
+			case t_ROLw:
+				*(Bit16u*)pos=LSL_IMM(HOST_a1, HOST_a1, 16);		// lsl a1, a1, #16
+				*(Bit16u*)(pos+2)=NEG(HOST_a2, HOST_a2);			// neg a2, a2
+				*(Bit16u*)(pos+4)=LSR_IMM(templo1, HOST_a1, 16);	// lsr templo1, a1, #16
+				*(Bit16u*)(pos+6)=ADD_IMM8(HOST_a2, 32);			// add a2, #32
+				*(Bit16u*)(pos+8)=ORR(HOST_a1, templo1);			// orr a1, templo1
+				*(Bit16u*)(pos+10)=ROR_REG(HOST_a1, HOST_a2);		// ror a1, a2
+				*(Bit16u*)(pos+12)=B_FWD(6);						// b after_call (pc+6)
+				break;
+			case t_ROLd:
+				*(Bit16u*)pos=NEG(HOST_a2, HOST_a2);				// neg a2, a2
+				*(Bit16u*)(pos+2)=ADD_IMM8(HOST_a2, 32);			// add a2, #32
+				*(Bit16u*)(pos+4)=ROR_REG(HOST_a1, HOST_a2);		// ror a1, a2
+				*(Bit16u*)(pos+6)=B_FWD(12);						// b after_call (pc+12)
+				break;
+			case t_NEGb:
+			case t_NEGw:
+			case t_NEGd:
+				*(Bit16u*)pos=NEG(HOST_a1, HOST_a1);				// neg a1, a1
+				*(Bit16u*)(pos+2)=B_FWD(16);						// b after_call (pc+16)
+				break;
+			default:
+				*(Bit32u*)(pos+10)=(Bit32u)fct_ptr;		// simple_func
+				break;
+		}
+
+	}
+#else
+	if (((Bit32u)pos & 0x03) == 0)
+	{
+		*(Bit32u*)(pos+8)=(Bit32u)fct_ptr;		// simple_func
+	}
+	else
+	{
+		*(Bit32u*)(pos+10)=(Bit32u)fct_ptr;		// simple_func
+	}
+#endif
+}
+#endif
+
+static void cache_block_before_close(void) { }
+
+#ifdef DRC_USE_SEGS_ADDR
+
+// mov 16bit value from Segs[index] into dest_reg using FC_SEGS_ADDR (index modulo 2 must be zero)
+// 16bit moves may destroy the upper 16bit of the destination register
+static void gen_mov_seg16_to_reg(HostReg dest_reg,Bitu index) {
+	cache_addw( MOV_LO_HI(templo1, FC_SEGS_ADDR) );      // mov templo1, FC_SEGS_ADDR
+	cache_addw( LDRH_IMM(dest_reg, templo1, index) );      // ldrh dest_reg, [templo1, #index]
+}
+
+// mov 32bit value from Segs[index] into dest_reg using FC_SEGS_ADDR (index modulo 4 must be zero)
+static void gen_mov_seg32_to_reg(HostReg dest_reg,Bitu index) {
+	cache_addw( MOV_LO_HI(templo1, FC_SEGS_ADDR) );      // mov templo1, FC_SEGS_ADDR
+	cache_addw( LDR_IMM(dest_reg, templo1, index) );      // ldr dest_reg, [templo1, #index]
+}
+
+// add a 32bit value from Segs[index] to a full register using FC_SEGS_ADDR (index modulo 4 must be zero)
+static void gen_add_seg32_to_reg(HostReg reg,Bitu index) {
+	cache_addw( MOV_LO_HI(templo1, FC_SEGS_ADDR) );      // mov templo1, FC_SEGS_ADDR
+	cache_addw( LDR_IMM(templo2, templo1, index) );      // ldr templo2, [templo1, #index]
+	cache_addw( ADD_REG(reg, reg, templo2) );      // add reg, reg, templo2
+}
+
+#endif
+
+#ifdef DRC_USE_REGS_ADDR
+
+// mov 16bit value from cpu_regs[index] into dest_reg using FC_REGS_ADDR (index modulo 2 must be zero)
+// 16bit moves may destroy the upper 16bit of the destination register
+static void gen_mov_regval16_to_reg(HostReg dest_reg,Bitu index) {
+	cache_addw( MOV_LO_HI(templo2, FC_REGS_ADDR) );      // mov templo2, FC_REGS_ADDR
+	cache_addw( LDRH_IMM(dest_reg, templo2, index) );      // ldrh dest_reg, [templo2, #index]
+}
+
+// mov 32bit value from cpu_regs[index] into dest_reg using FC_REGS_ADDR (index modulo 4 must be zero)
+static void gen_mov_regval32_to_reg(HostReg dest_reg,Bitu index) {
+	cache_addw( MOV_LO_HI(templo2, FC_REGS_ADDR) );      // mov templo2, FC_REGS_ADDR
+	cache_addw( LDR_IMM(dest_reg, templo2, index) );      // ldr dest_reg, [templo2, #index]
+}
+
+// move a 32bit (dword==true) or 16bit (dword==false) value from cpu_regs[index] into dest_reg using FC_REGS_ADDR (if dword==true index modulo 4 must be zero) (if dword==false index modulo 2 must be zero)
+// 16bit moves may destroy the upper 16bit of the destination register
+static void gen_mov_regword_to_reg(HostReg dest_reg,Bitu index,bool dword) {
+	cache_addw( MOV_LO_HI(templo2, FC_REGS_ADDR) );      // mov templo2, FC_REGS_ADDR
+	if (dword) {
+		cache_addw( LDR_IMM(dest_reg, templo2, index) );      // ldr dest_reg, [templo2, #index]
+	} else {
+		cache_addw( LDRH_IMM(dest_reg, templo2, index) );      // ldrh dest_reg, [templo2, #index]
+	}
+}
+
+// move an 8bit value from cpu_regs[index]  into dest_reg using FC_REGS_ADDR
+// the upper 24bit of the destination register can be destroyed
+// this function does not use FC_OP1/FC_OP2 as dest_reg as these
+// registers might not be directly byte-accessible on some architectures
+static void gen_mov_regbyte_to_reg_low(HostReg dest_reg,Bitu index) {
+	cache_addw( MOV_LO_HI(templo2, FC_REGS_ADDR) );      // mov templo2, FC_REGS_ADDR
+	cache_addw( LDRB_IMM(dest_reg, templo2, index) );      // ldrb dest_reg, [templo2, #index]
+}
+
+// move an 8bit value from cpu_regs[index]  into dest_reg using FC_REGS_ADDR
+// the upper 24bit of the destination register can be destroyed
+// this function can use FC_OP1/FC_OP2 as dest_reg which are
+// not directly byte-accessible on some architectures
+static void INLINE gen_mov_regbyte_to_reg_low_canuseword(HostReg dest_reg,Bitu index) {
+	cache_addw( MOV_LO_HI(templo2, FC_REGS_ADDR) );      // mov templo2, FC_REGS_ADDR
+	cache_addw( LDRB_IMM(dest_reg, templo2, index) );      // ldrb dest_reg, [templo2, #index]
+}
+
+
+// add a 32bit value from cpu_regs[index] to a full register using FC_REGS_ADDR (index modulo 4 must be zero)
+static void gen_add_regval32_to_reg(HostReg reg,Bitu index) {
+	cache_addw( MOV_LO_HI(templo2, FC_REGS_ADDR) );      // mov templo2, FC_REGS_ADDR
+	cache_addw( LDR_IMM(templo1, templo2, index) );      // ldr templo1, [templo2, #index]
+	cache_addw( ADD_REG(reg, reg, templo1) );      // add reg, reg, templo1
+}
+
+
+// move 16bit of register into cpu_regs[index] using FC_REGS_ADDR (index modulo 2 must be zero)
+static void gen_mov_regval16_from_reg(HostReg src_reg,Bitu index) {
+	cache_addw( MOV_LO_HI(templo1, FC_REGS_ADDR) );      // mov templo1, FC_REGS_ADDR
+	cache_addw( STRH_IMM(src_reg, templo1, index) );      // strh src_reg, [templo1, #index]
+}
+
+// move 32bit of register into cpu_regs[index] using FC_REGS_ADDR (index modulo 4 must be zero)
+static void gen_mov_regval32_from_reg(HostReg src_reg,Bitu index) {
+	cache_addw( MOV_LO_HI(templo1, FC_REGS_ADDR) );      // mov templo1, FC_REGS_ADDR
+	cache_addw( STR_IMM(src_reg, templo1, index) );      // str src_reg, [templo1, #index]
+}
+
+// move 32bit (dword==true) or 16bit (dword==false) of a register into cpu_regs[index] using FC_REGS_ADDR (if dword==true index modulo 4 must be zero) (if dword==false index modulo 2 must be zero)
+static void gen_mov_regword_from_reg(HostReg src_reg,Bitu index,bool dword) {
+	cache_addw( MOV_LO_HI(templo1, FC_REGS_ADDR) );      // mov templo1, FC_REGS_ADDR
+	if (dword) {
+		cache_addw( STR_IMM(src_reg, templo1, index) );      // str src_reg, [templo1, #index]
+	} else {
+		cache_addw( STRH_IMM(src_reg, templo1, index) );      // strh src_reg, [templo1, #index]
+	}
+}
+
+// move the lowest 8bit of a register into cpu_regs[index] using FC_REGS_ADDR
+static void gen_mov_regbyte_from_reg_low(HostReg src_reg,Bitu index) {
+	cache_addw( MOV_LO_HI(templo1, FC_REGS_ADDR) );      // mov templo1, FC_REGS_ADDR
+	cache_addw( STRB_IMM(src_reg, templo1, index) );      // strb src_reg, [templo1, #index]
+}
+
+#endif

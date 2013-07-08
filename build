@@ -1,0 +1,5 @@
+#!/bin/bash
+chmod +x configure
+./configure --enable-core-inline --disable-debug --prefix=/usr || exit 1
+make -j3 || exit 1
+

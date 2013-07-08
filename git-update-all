@@ -1,0 +1,19 @@
+#!/bin/bash
+# sort of like svn-update-all
+
+curbranch=`git branch | grep '^\*' | sed -e 's/^\* //'`
+if [[ x"$curbranch" == x"" ]]; then
+	echo Unable to determine current branch
+	exit 1
+fi
+
+make clean 2>/dev/null
+make distclean 2>/dev/null
+./cleantree 2>/dev/null
+for i in \* \*/\* \*/\*/\*; do git add $i 2>/dev/null; done
+git commit -a
+./cleantree 2>/dev/null
+git push origin "$curbranch"
+git pull origin "$curbranch"
+git fetch
+

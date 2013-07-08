@@ -1,0 +1,66 @@
+
+Libpng 1.2.48 - March 8, 2012
+
+This is a public release of libpng, intended for use in production codes.
+
+Files available for download:
+
+Source files with LF line endings (for Unix/Linux) and with a
+"configure" script
+
+   libpng-1.2.48.tar.xz (LZMA-compressed, recommended)
+   libpng-1.2.48.tar.gz
+   libpng-1.2.48.tar.bz2
+
+Source files with LF line endings (for Unix/Linux) without the
+"configure" script
+
+   libpng-1.2.48-no-config.tar.xz (LZMA-compressed, recommended)
+   libpng-1.2.48-no-config.tar.gz
+   libpng-1.2.48-no-config.tar.bz2
+
+Source files with CRLF line endings (for Windows), without the
+"configure" script
+
+   lpng1248.zip
+   lpng1248.7z
+   lpng1248.tar.bz2
+
+Project files
+
+   libpng-1.2.48-project-netware.zip
+   libpng-1.2.48-project-wince.zip
+
+Other information:
+
+   libpng-1.2.48-README.txt
+   libpng-1.2.48-KNOWNBUGS.txt
+   libpng-1.2.48-LICENSE.txt
+   libpng-1.2.48-Y2K-compliance.txt
+   libpng-1.2.48-[previous version]-diff.txt
+
+Changes since the last public release (1.2.47):
+
+version 1.2.48 [March 8, 2012]
+
+  Removed two useless #ifdef directives from pngread.c and one from pngrutil.c
+  Eliminated redundant png_push_read_tEXt|zTXt|iTXt|unknown code from
+    pngpread.c and use the sequential png_handle_tEXt, etc., in pngrutil.c;
+    now that png_ptr->buffer is inaccessible to applications, the special
+    handling is no longer useful.
+  Fixed bug with png_handle_hIST with odd chunk length (Frank Busse).
+  Fixed incorrect type (int copy should be png_size_t copy) in png_inflate().
+  Fixed off-by-one bug in png_handle_sCAL() when using fixed point arithmetic,
+    causing out-of-bounds read in png_set_sCAL() because of failure to copy
+    the string terminators.  This bug was introduced in libpng-1.0.6 (Frank
+    Busse).
+  Removed the png_free() of unused png_ptr->current_text from pngread.c.
+  Added libpng license text to pnggccrd.c and pngvcrd.c (requested by Chrome).
+  Removed all of the assembler code from pnggccrd.c and just "return 2;".
+
+Send comments/corrections/commendations to png-mng-implement at lists.sf.net
+(subscription required; visit
+https://lists.sourceforge.net/lists/listinfo/png-mng-implement
+to subscribe) or to glennrp at users.sourceforge.net
+
+Glenn R-P

@@ -1,0 +1,55 @@
+diff -ru SDL-1.2.12/src/main/win32/version.rc SDL-1.2.12release/src/main/win32/version.rc
+--- SDL-1.2.12/src/main/win32/version.rc	2007-07-20 07:52:05.000000000 +0200
++++ SDL-1.2.12release/src/main/win32/version.rc	2007-08-17 19:03:42.000000000 +0200
+@@ -13,7 +13,7 @@
+  FILEVERSION 1,2,12,0
+  PRODUCTVERSION 1,2,12,0
+  FILEFLAGSMASK 0x3fL
+- FILEFLAGS 0x0L
++ FILEFLAGS 0x4L
+  FILEOS 0x40004L
+  FILETYPE 0x2L
+  FILESUBTYPE 0x0L
+diff -ru SDL-1.2.12/src/video/SDL_video.c SDL-1.2.12release/src/video/SDL_video.c
+--- SDL-1.2.12/src/video/SDL_video.c	2007-07-20 07:52:25.000000000 +0200
++++ SDL-1.2.12release/src/video/SDL_video.c	2007-08-17 02:51:52.000000000 +0200
+@@ -75,12 +75,12 @@
+ #if SDL_VIDEO_DRIVER_GAPI
+ 	&GAPI_bootstrap,
+ #endif
+-#if SDL_VIDEO_DRIVER_WINDIB
+-	&WINDIB_bootstrap,
+-#endif
+ #if SDL_VIDEO_DRIVER_DDRAW
+ 	&DIRECTX_bootstrap,
+ #endif
++#if SDL_VIDEO_DRIVER_WINDIB
++	&WINDIB_bootstrap,
++#endif
+ #if SDL_VIDEO_DRIVER_BWINDOW
+ 	&BWINDOW_bootstrap,
+ #endif
+diff -ru SDL-1.2.12/src/video/windx5/SDL_dx5events.c SDL-1.2.12release/src/video/windx5/SDL_dx5events.c
+--- SDL-1.2.12/src/video/windx5/SDL_dx5events.c	2007-07-20 07:52:25.000000000 +0200
++++ SDL-1.2.12release/src/video/windx5/SDL_dx5events.c	2007-08-17 02:51:52.000000000 +0200
+@@ -519,7 +519,7 @@
+ 		case WM_SYSKEYDOWN: {
+ 			/* Pass syskey to DefWindwoProc (ALT-F4, etc.) */
+ 		}
+-		break;
++//		break;
+ 		case WM_KEYUP:
+ 		case WM_KEYDOWN: {
+ 			/* Ignore windows keyboard messages */;
+diff -ru SDL-1.2.12/src/video/windx5/SDL_dx5video.c SDL-1.2.12release/src/video/windx5/SDL_dx5video.c
+--- SDL-1.2.12/src/video/windx5/SDL_dx5video.c	2007-07-20 07:52:25.000000000 +0200
++++ SDL-1.2.12release/src/video/windx5/SDL_dx5video.c	2007-08-17 02:51:52.000000000 +0200
+@@ -1496,7 +1496,7 @@
+ 			}
+ 		}
+ 		dd_surface3 = NULL;
+-#if 0 /* FIXME: enable this when SDL consistently reports lost surfaces */
++#if 1 /* FIXME: enable this when SDL consistently reports lost surfaces */
+ 		if ( (flags & SDL_HWSURFACE) == SDL_HWSURFACE ) {
+ 			video->flags |= SDL_HWSURFACE;
+ 		} else {

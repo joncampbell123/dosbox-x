@@ -1,0 +1,104 @@
+Things needed for compilation.
+
+SDL 
+    The Simple DirectMedia Library available at http://www.libsdl.org
+    The dll distributed with the windows version of DOSBox is slightly
+    modified. You can find the changes in the sourcepackage of DOSBox
+    (src/platform/sdl-win32.diff). If you want the patched sourcetree
+    send us an email. (see README)
+    Licensed under LGPL
+    Note that only version 1.2 and its subversions (1.2.8, 1.2.13 etc.)
+    are currently supported.
+
+Curses (optional)
+    If you want to enable the debugger you need a curses library.
+    ncurses should be installed on just about every unix distro.
+    For win32 get pdcurses at http://pdcurses.sourceforge.net
+    License: Open source
+
+Libpng (optional)
+    Needed for the screenshots.
+    For win32 get libpng from http://gnuwin32.sourceforge.net/packages.html
+    See http://www.libpng.org/pub/png/ for more details.
+    License: Open Source
+
+Zlib (optional)
+    Needed by libpng.
+    For win32 get libz (rename to zlib) from http://gnuwin32.sourceforge.net/packages.html
+    See http://www.zlib.net for more details.
+    License: Open Source
+
+SDL_Net (optional)
+    For modem/ipx support. Get it from http://www.libsdl.org/projects/SDL_net/
+    Licensed under LGPL
+
+SDL_Sound 
+    For compressed audio on diskimages. (optional)
+    This is for cue/bin cdrom images with compressed (mp3/ogg) audio tracks.
+    Get it from http://icculus.org/SDL_sound
+    Licenced under LGPL
+
+ALSA_Headers
+    (optional)
+    for Alsa support under linux. Part of the linux kernel sources
+    Licensed under LGPL
+
+If you want compile from the CVS under a unix system, you'll also need 
+automake (>=1.6), autoconf(>=2.50). Should be available at http://www.gnu.org
+
+For building on unix systems.
+If you are building from the cvs run ./autogen.sh first before doing the following.
+
+1. ./configure
+2. make
+
+In step 1 you could add the following switches:
+--enable-debug 
+        enables the internal debugger. --enable-debug=heavy enables even more 
+        debug options. DOSBox should then be run from a xterm and when the sdl-
+        window is active press alt-pause to enter the debugger.
+
+--enable-core-inline
+        enables some memory increasing inlines. This greatly increases 
+        compiletime for maybe a increase in speed.
+
+--disable-fpu
+        disables the emulated fpu. Although the fpu emulation code isn't 
+        finished and isn't entirely accurate it's advised to leave it on. 
+
+--disable-fpu-x86
+        disables the assembly fpu core. Although relatively new the x86 fpu 
+        core has more accuracy then the regular fpu core. 
+
+--disable-dynamic-x86
+        disables the dynamic x86 specific cpu core. Although it might be 
+        be a bit unstable, it can greatly improve the speed of dosbox on x86 
+        hosts.
+        Please note that this option on x86 will result in a different
+        dynamic/recompiling cpu core being compiled then the default.
+        For more information see the option --disable-dynrec
+
+--disable-dynrec
+        disables the recompiling cpu core. Currently x86 and x86_64 only.
+        You can activate this core on x86 by disabling the dynamic-x86 core.
+
+--disable-dynamic-core
+        disables all dynamic cores. (same effect as 
+        --disable-dynamic-x86 --disable-dynrec)
+
+--disable-opengl
+        disables OpenGL-support (output mode that can be selected in the
+        DOSBox configuration file).
+
+--disable-unaligned-memory
+        disables unaligned memory access.
+
+Check the src subdir for the binary.
+
+NOTE: If capslock and numlock appear to be broken. open
+src/ints/bios_keyboard.cpp and go to line 30 and read there how to fix it.
+
+
+Build instructions for VC++6 
+Don't use VC++ 6: it creates faulty code in core_normal.cpp
+Later Visual Studio versions work fine (vs2003/.net, vs2005, vs2008)

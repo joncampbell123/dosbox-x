@@ -1,0 +1,377 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.TH DOSBOX 1 "Feb 26, 2010"
+.\" Please adjust this date whenever revising the manpage.
+.SH NAME
+dosbox \- an x86/DOS emulator with sound/graphics
+.SH SYNOPSIS
+.B dosbox
+.B [\-fullscreen]
+.B [\-startmapper]
+.B [\-noautoexec]
+.B [\-securemode]
+.B [\-userconf]
+.BI "[\-scaler " scaler ] 
+.BI "[\-forcescaler " scaler ]
+.BI "[\-conf " configfile ]
+.BI "[\-lang " langfile ]
+.B [file]
+.BI "[\-c " command ]
+.B [\-exit]
+.BI "[\-machine " machinetype ]
+.LP
+.B dosbox \-version
+.LP
+.BI "dosbox \-editconf" " program"
+.LP
+.BI "dosbox \-opencaptures" " program"
+.LP
+.B dosbox \-printconf
+.LP
+.B dosbox \-eraseconf
+.LP
+.B dosbox \-resetconf
+.LP
+.B dosbox \-erasemapper
+.LP
+.B dosbox \-resetmapper
+.SH DESCRIPTION
+This manual page briefly documents
+.BR "dosbox" ", an x86/DOS emulator."
+.LP
+.RB "The optional " file " argument should be a DOS executable or a"
+directory. If it is a dos executable (.com .exe .bat) the program will 
+run automatically. If it is a directory, a DOS session will run with 
+the directory mounted as C:\\.
+.LP
+.RI "For an introduction type " INTRO 
+.RB "inside " dosbox .
+.SH OPTIONS
+A summary of options is included below.
+.TP
+.B \-fullscreen
+.RB "Start " dosbox " in fullscreen mode."
+.TP
+.B \-startmapper
+.RB "Start the internal keymapper on startup of " dosbox ". You can use it to change the keys " dosbox " uses."
+.TP
+.B \-noautoexec
+Skips the [autoexec] section of the loaded configuration file.
+.TP
+.B \-securemode
+.RB "Same as " \-noautoexec ", but adds " "config.com  \-securemode" 
+at the end of
+.I AUTOEXEC.BAT 
+(which in turn disables any changes to how the drives are mounted 
+.RB "inside " dosbox )
+.TP
+.B \-userconf
+Load the configuration file located in ~/.dosbox. Can be combined with
+.RB "the " \-conf " option." 
+.TP
+.BI \-scaler " scaler"
+.RI "Uses the graphical scaler specified by " scaler ". See the configuration"
+file for the available scalers
+.TP
+.BI \-forcescaler " scaler"
+.RB "Similar to the " \-scaler " parameter, but tries to force usage of"
+the specified scaler even if it might not fit.
+.TP
+.BI \-c  " command" 
+.RI "Runs the specified " command " before running " 
+.BR file . 
+.RI "Multiple commands can be specified. Each " command " should start with "
+.BR \-c " though. A command can be:"
+an Internal Program, a DOS command or an executable on a mounted drive.
+.TP
+.BI \-conf " configfile
+.RB "Start " dosbox " with the options specified in "
+.IR configfile ". This file has a section in which you can put commands you "
+wish to execute on startup. Multiple 
+.IR configfiles " can be present at the commandline."
+.TP
+.BI \-lang " langfile
+.RB "Start " dosbox " with the language specified in "
+.IR langfile .
+.TP
+.B "\-exit "
+.BR "dosbox" " will close itself when the DOS program specified by "file " ends."
+.TP
+.BI \-machine " machinetype
+.RB "Setup " dosbox " to emulate a specific type of machine." 
+.RI "Valid choices are: " "hercules, cga, tandy, pcjr, ega, vgaonly, svga_s3(default), svga_et3000, svga_et4000, svga_paradise, vesa_nolfb, vesa_oldvbe".
+The machinetype has influence on both the videocard and the available
+soundcards.
+.TP
+.B \-version
+Output version information and exit. Useful for frontends.
+.TP
+.BI \-editconf " program"
+.RI calls " program" " with as first parameter the configuration file."
+You can specify this command more than once. In this case it will
+.RI " move to second " program " if the first one fails to start."
+.TP
+.BI \-opencaptures " program"
+.RI "calls " program " with as  first paramater the location of the captures folder."
+.TP
+.B \-printconf
+prints the location of the default configuration file.
+.TP
+.B \-eraseconf, \-resetconf
+removes the default configuration file.
+.TP
+.B \-erasemapper, \-resetmapper
+removes the mapperfile configured in the clean default configuration file.
+.SH "INTERNAL COMMANDS"
+.B dosbox
+supports most of the DOS commands found in command.com. In addition, the
+following extra commands are available:
+.HP
+.BI "MOUNT [\-t " type "] [\-size " size ]
+.I driveletter sourcedirectory 
+.B [\-ioctl]
+.BI "[\-usecd " number "] [\-label " drivelabel "] [\-freesize " freesize ] 
+.LP
+.B MOUNT \-cd
+.LP
+.B MOUNT \-u driveletter
+.LP
+.RB "Program to mount local directories as drives inside " dosbox .
+.RS
+.TP
+.I driveletter
+The driveletter inside dosbox (eg. C).
+.TP
+.I sourcedirectory
+The local directory you want to have inside dosbox.
+.TP
+.BI \-t " type"
+Type of the mounted directory. Supported are: dir (standard), floppy, cdrom.
+.TP 
+.BI \-size " drivesize"
+Sets the size of the drive. See the examples in the README for details.
+.TP
+.BI \-freesize " size_in_mb"
+Sets the amount of free space available on a drive in MB's. This is a more 
+.RB "simple version of " \-size .
+.TP
+.BI \-label " drivelabel"
+.RI "Sets the name of the drive to " drivelabel ". Needed on some" 
+systems if the cd label isn't read correctly. Useful when a 
+program can't find its cdrom. If you don't specify a label and no
+.RB "lowlevel support is selected (" "\-usecd #" " and/or " "\-ioctl/aspi" "):"
+.RS
+.LP
+For win32: label is extracted from "Real Drive".
+.TP
+For Linux: label is set to NO_LABEL.
+.TP
+If you do specify a label this label will be kept as long as the drive
+is mounted. It will not be updated !!
+.RE
+.TP
+.B \-ioctl   
+Forces to use ioctl commands.
+.TP
+.BI \-usecd " number"
+Forces to use SDL cdrom support for drive number.
+.IR Number " can be found by "
+.BR \-cd ".
+.TP
+.B \-cd
+.RB "Displays all detected cdrom drives and their numbers. Use with " \-usecd "."
+.TP
+.B \-u
+Unmounts a mounted drive. Doesn't work on virtual Drives (like Z:\\)
+.RE
+.PP 
+.B "Example:" 
+.TP
+.RB "To mount your /home/dos/dosgames directory as C drive in " dosbox :
+.RS
+mount c /home/dos/dosgames
+.RE
+.TP
+.B MEM
+.LP
+Display the amount of free memory
+.TP
+.B CONFIG [\-writeconf] [\-writelang] file
+.LP
+.B CONFIG \-securemode
+.LP
+.RB "Write the current configuration or language settings to " file ,
+which is located on the local filesystem. Not a mounted drive in 
+.BR dosbox .
+.RS
+.TP
+.B \-securemode
+.RB Switches dosbox " to a more secure mode. In this mode the"
+.RI "internal commands " MOUNT ", " IMGMOUNT " and " BOOT " won\'t work."
+It\'s not possible
+either to create a new configfile or languagefile in this mode.
+(Warning you can only undo this mode by restarting
+.BR dosbox .)
+.RE
+.LP 
+The configuration file controls various settings of 
+.BR dosbox ": The amount of emulated memory,"
+the emulated soundcards and many
+.RI "more things. It futher allows acces to " AUTOEXEC.BAT .
+.LP
+The language file controls all visible ouput of the internal commands and
+the internal dos. 
+.RB "See the section " FILES " for more information."
+.TP 
+.B LOADFIX [\-size] [programname] [parameters]
+.LP
+.B LOADFIX \-f
+.LP
+Program to reduce the amount of  memory available. Useful for old programs which don't expect much memory to be free.
+.RS
+.TP
+.B [programname]
+The name of the program which is executed after loadfix eats up its memory.
+.TP
+.B [parameters]
+.RB "Parameters given to the " programname " executable."
+.TP
+.B \-size
+The amount of memory to eat up (in kb). Example \-32, \-64 or \-128 
+.TP
+.B \-f
+Frees all memory eaten up by loadfix.
+.RE
+.TP
+.B RESCAN
+.LP
+.RB "Make " dosbox " reread the directory structure. Useful if you changed
+.RB "something on a mounted drive outside " dosbox ".(CTRL\-F4 does"
+this as well!)
+.TP
+.B IMGMOUNT
+.LP
+.RB "A utility to mount disk images and CD\(hyROM images in " dosbox .
+.TP
+.RB "Read the " README " of " dosbox " for the full and correct syntax."
+.RE
+.TP
+.B BOOT
+.LP
+Boot will start floppy images or hard disk images independent of the
+.RB "operating system emulation offered by " dosbox ".  This will allow you to play booter floppies or boot to other operating systems inside " dosbox .
+.TP
+.RB "Read the " README " of " dosbox " for the full and correct syntax."
+.RE
+.TP
+.B IPX
+.LP
+.RB "You need to enable IPX networking in the configuration file of " dosbox .
+.RB "All of the IPX networking is managed through the internal " dosbox " program
+.BR IPXNET ". For help on the IPX networking from inside " dosbox ", type"
+.BR "IPXNET HELP" " and the program will list out the commands and relevant documentation."
+.TP
+.RB "Read the " README " of " dosbox " for the full and correct syntax."
+.RE
+.TP
+.B KEYB
+.LP
+Keyb can change the keyboardlayout and the codepage used inside dosbox.
+.TP
+.RB "Read the " README " of " dosbox " for the full and correct syntax."
+.RE
+.SH FILES
+Configuration and language files use a format similar to Windows .ini files. 
+If no configfile is specified at the commandline, a file named
+.BR dosbox.conf " (if present in the current directory) will be"
+loaded automatically. If a configfile is specified at the commandline
+that one will be used instead. If no configfile is specified or found
+in the current directory
+.RB " then dosbox will load one from " ~/.dosbox/ ". It will try to create "
+one if there is none.
+.SH "SPECIAL KEYS"
+.TP 12m
+.IP ALT\-ENTER
+Go full screen and back.
+.IP ALT\-PAUSE
+Pause emulation.
+.IP CTRL\-F1
+Start the keymapper.
+.IP CTRL\-ALT\-F5
+Start/Stop creating a movie of the screen.
+.IP CTRL\-F4
+Swap mounted disk\(hyimage (Only used with imgmount). Update directory cache
+for all drives!
+.IP CTRL\-F5
+Save a screenshot.(png)
+.IP CTRL\-F6
+Start/Stop recording sound output to a wave file.
+.IP CTRL\-ALT\-F7
+Start/Stop recording of OPL commands.
+.IP CTRL\-ALT\-F8
+Start/Stop the recording of raw MIDI commands.
+.IP CTRL\-F7
+Decrease frameskip.
+.IP CTRL\-F8
+Increase frameskip.
+.IP CTRL\-F9
+Kill dosbox.
+.IP CTRL\-F10
+Capture/Release the mouse.
+.IP CTRL\-F11
+Slow down emulation (Increase dosbox Cycles).
+.IP CTRL\-F12
+Speed up emulation (Decrease dosbox Cycles).
+.IP ALT\-F12
+Unlock speed (turbo button).
+.PP
+These are the default keybindings. They can be changed in the keymapper.
+.PP
+Saved/recorded files can be found in current_directory/capture
+(can be changed in the configfile).
+.RB "The directory has to exist prior to starting " dosbox " else nothing"
+gets saved/recorded !
+.PP
+.BR "Note: " "Once you increase your " dosbox " cycles beyond your computer's maximum
+capacity, it will produce the same effect as slowing down the emulation.
+This maximum will vary from computer to computer, there is no standard.
+.SH "SYSTEM REQUIREMENTS"
+Fast machine. My guess would be pentium\-2 400+ to get decent emulation
+of games written for an 286 machine.
+For protected mode games a 1 Ghz machine is recommended and don't expect
+them to run fast though!! Be sure to read the next section on how to speed
+it up somewhat.
+.SS "To run resource\-demanding games"
+.BR dosbox " emulates the CPU, the sound and graphic cards, and some other"
+.RB " stuff, all at the same time. You can overclock " dosbox " by using CTRL\-F12, but"
+you'll be limited by the power of your actual CPU. You can see how much free
+time your true CPU has by various utils (top).  Once 100% of your real CPU time is
+.RB "used there is no further way to speed up " dosbox " unless you reduce the load"
+.RB "generated by the non\-CPU parts of " dosbox .
+.PP
+So:
+.PP
+.RB "Close every program but " dosbox .
+.PP
+.RB "Overclock  " dosbox " until 100% of your CPU is used.(CTRL\-F12)" 
+.PP
+.RB "Since VGA emulation is the most demanding part of " dosbox " in terms of actual"
+CPU usage, we'll start here. Increase the number of frames skipped (in
+increments of one) by pressing CTRL\-F8. Your CPU usage should decrease.
+Go back one step and repeat this until the game runs fast enough for you.
+Please note that this is a trade off: you lose in fluidity of video what you
+gain in speed.
+.SH NOTES
+.RB "While we hope that, one day, " dosbox " will run virtually all programs ever made for the PC..."
+.RB "we are not there yet. At present, " dosbox " run on a 1.7 Gigahertz PC is roughly the equivalent of a 25MHz 386 PC."
+While the 0.60 release has added support for "protected mode" allowing for more complex and recent programs, 
+but note that this support is early in development and nowhere near as complete as the support for 386 real\-mode 
+games (or earlier). Also note that "protected mode" games need substantially more resources and may 
+.RB "require a much faster processor for you to run it properly in " dosbox .
+.SH BUGS
+Not all DOS programs work properly.
+.BR dosbox " will exit without warning if an error occurred."
+.SH "SEE ALSO"
+The README in /usr/share/doc/dosbox
+.SH AUTHOR
+This manual page was written by Peter Veenstra <H.P.Veenstra@student.rug.nl> and James Oakley <jfunk@funktronics.ca>,
+for the Debian system (but may be used by others).

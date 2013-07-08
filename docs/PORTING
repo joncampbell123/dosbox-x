@@ -1,0 +1,50 @@
+Some notes about porting DOSBox to systems with certain restrictions,
+like handheld devices.
+
+General:
+  - depending on where you start off with the port, assure that the
+    config.h entries are correct/exhausting, like GCC_ATTRIBUTE is
+    required (struct packing) but is undefined if you base the port
+    on msvc sources which have a special config.h
+
+If memory is a constraint:
+  - in paging.h out-comment the USE_FULL_TLB define to enable special
+    TLB linking code that uses less memory
+    drawback: none (the code is not heavily tested though)
+    gain: reduces memory requirements about ~15mb
+  - in render.h lower the scaler integration:
+      #define RENDER_USE_ADVANCED_SCALERS 1
+    or
+      #define RENDER_USE_ADVANCED_SCALERS 0
+    drawback: complex scalers and the scaler cache are disabled,
+              be sure to test if this affects speed!
+              with define RENDER_USE_ADVANCED_SCALERS==0 most simple
+              scalers are disabled as well, some graphics modes won't
+              work due to reduced cache sizes
+    gain: ~2mb with RENDER_USE_ADVANCED_SCALERS==1
+          ~5mb with RENDER_USE_ADVANCED_SCALERS==0
+  - in dos_system.h reduce the drive cache entries:
+      #define MAX_OPENDIRS 256
+    drawback: some apps might not work with large directory trees
+    gain: ~1mb per mounted drive
+  - remove the GUS emulation (gus.cpp, especially GUSRam[1024*1024] )
+    drawback: no gravis ultrasound
+    gain: reduces memory requirements about 1mb
+  - reduce the size of the emulated graphics memory:
+    see the memory sizing in SVGA_Setup_*, especially the defaults
+    in vga_s3.cpp's SVGA_Setup_S3Trio
+    drawback: some graphics modes won't work then
+    gain: reduces memory requirements
+    TODO: fully check this, introduce hard limits
+
+If speed is a constraint:
+  - see if the simple core is faster, possibly remove the normal core
+    set the simple core as default
+    drawback: one game is known to not work with the simple core;
+              the simple core does only work for games which don't use paging
+              (when paging is requested the normal core is used automatically)
+    gain: the simple core should be somewhat faster
+    TODO: add possibility to easily remove the normal core, use fullcore fallback
+  - raise the default frameskip value
+    drawback: minor graphics smoothness loss for some games (video playback)
+    gain: reduces graphics load

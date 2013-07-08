@@ -1,0 +1,9 @@
+#!/bin/bash
+# sort of like svn-update-all
+make clean 2>/dev/null
+make distclean 2>/dev/null
+./cleantree 2>/dev/null
+for i in \* \*/\* \*/\*/\*; do git add $i 2>/dev/null; done
+git commit -a
+./cleantree 2>/dev/null
+

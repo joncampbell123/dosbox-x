@@ -1,0 +1,27 @@
+At this time, using git to develop is quite new to me [Jonathan Campbell]
+so I am writing notes here to assist:
+
+
+# Setting up development
+- Get your SSH private key from the firewall (mine is: git@firewall.impactstudiopro.com:/data/git/ssh-keys/Jonathan-Campbell/git_rsa)
+- If ssh-agent is not already running, start ssh-agent by typing eval `ssh-agent`
+- Add your SSH private key with: ssh-add <path to your private key>
+
+# get the code
+git clone ssh://git@firewall.impactstudiopro.com/~/builder-v4.git
+# make the firewall the default push location
+git push origin master
+
+# adding changed or new files
+git add <files>
+
+# commit changed/new files
+git commit -a
+
+# push to server
+git push
+
+# set the user name listed in the commit (globally)
+git config --global user.name 'Jonathan Campbell'
+git config --global user.email 'jonathan@castus.tv'
+

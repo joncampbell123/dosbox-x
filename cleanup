@@ -1,0 +1,12 @@
+#!/bin/bash
+make clean 2>/dev/null
+make distclean 2>/dev/null
+find -name \*~ -delete
+rm -Rfv autom4te.cache
+for i in DOSBox.exe DOSBox.map SDL.dll SDL.lib SDLmain.lib zlib.lib libpng.lib; do svn --force del $i >/dev/null 2>&1; done
+for ext in pdb bsc exp obj ncb opt plg idb; do find -name \*.$ext -exec svn --force del {} +; done
+svn del visualc_net/Debug
+svn del visualc_net/Release
+svn del visualc_net/libpng/projects/visualc71/Win32_LIB_Debug
+svn del visualc_net/libpng/projects/visualc71/Win32_LIB_Release
+
