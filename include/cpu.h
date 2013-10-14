@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: cpu.h,v 1.57 2009-05-27 09:15:40 qbix79 Exp $ */
 
 #ifndef DOSBOX_CPU_H
 #define DOSBOX_CPU_H
@@ -42,11 +41,11 @@
 
 
 #define CPU_ARCHTYPE_MIXED			0xff
-#define CPU_ARCHTYPE_386SLOW		0x30
-#define CPU_ARCHTYPE_386FAST		0x35
-#define CPU_ARCHTYPE_486OLDSLOW		0x40
-#define CPU_ARCHTYPE_486NEWSLOW		0x45
-#define CPU_ARCHTYPE_PENTIUMSLOW	0x50
+#define CPU_ARCHTYPE_386			0x35
+#define CPU_ARCHTYPE_486OLD			0x40
+#define CPU_ARCHTYPE_486NEW			0x45
+#define CPU_ARCHTYPE_PENTIUM		0x50
+#define CPU_ARCHTYPE_P55CSLOW		0x55
 
 /* CPU Cycle Timing */
 extern Bit32s CPU_Cycles;
@@ -59,6 +58,9 @@ extern Bit64s CPU_IODelayRemoved;
 extern bool CPU_CycleAutoAdjust;
 extern bool CPU_SkipCycleAutoAdjust;
 extern Bitu CPU_AutoDetermineMode;
+extern Bitu CPU_CyclesCur;
+extern Bit32s CPU_CyclesSet;
+extern char core_mode[16];
 
 extern Bitu CPU_ArchitectureType;
 
@@ -89,6 +91,7 @@ void CPU_Reset_AutoAdjust(void);
 
 extern Bit16u parity_lookup[256];
 
+void CPU_SetCPL(Bitu newcpl);
 bool CPU_LLDT(Bitu selector);
 bool CPU_LTR(Bitu selector);
 void CPU_LIDT(Bitu limit,Bitu base);
@@ -181,6 +184,7 @@ void CPU_SetFlags(Bitu word,Bitu mask);
 #define CR0_FPUEMULATION		0x00000004
 #define CR0_TASKSWITCH			0x00000008
 #define CR0_FPUPRESENT			0x00000010
+#define CR0_WRITEPROTECT		0x00010000
 #define CR0_PAGING				0x80000000
 
 
@@ -378,6 +382,9 @@ public:
 		desc.Load(table_base+(selector));
 		return true;
 	}
+
+	virtual void SaveState( std::ostream& stream );
+	virtual void LoadState( std::istream& stream );
 protected:
 	PhysPt table_base;
 	Bitu table_limit;
@@ -428,6 +435,9 @@ public:
 		ldt_value=value;
 		return true;
 	}
+
+	virtual void SaveState( std::ostream& stream );
+	virtual void LoadState( std::istream& stream );
 private:
 	PhysPt ldt_base;
 	Bitu ldt_limit;
@@ -456,6 +466,11 @@ struct CPUBlock {
 	bool pmode;							/* Is Protected mode enabled */
 	GDTDescriptorTable gdt;
 	DescriptorTable idt;
+	struct {
+		Bitu cr0_and;
+		Bitu cr0_or;
+		Bitu eflags;
+	} masks;
 	struct {
 		Bitu mask,notmask;
 		bool big;

@@ -1,0 +1,105 @@
+[Version]
+Signature="$CHICAGO$"
+Provider=%ZMBV_PUBLISHER%
+Class=MEDIA
+
+
+[DefaultInstall]
+CopyFiles=ZMBV.Files.Inf,ZMBV.Files.Dll
+AddReg=ZMBV.Reg9x
+UpdateInis=ZMBV.INIs
+
+[DefaultInstall.ntx86]
+CopyFiles=ZMBV.Files.Inf,ZMBV.Files.Dll
+AddReg=ZMBV.RegNTx86
+UpdateInis=ZMBV.INIs
+
+[DefaultInstall.ntamd64]
+CopyFiles=ZMBV.Files.Inf,ZMBV.Files.Dll.NTamd64
+AddReg=ZMBV.RegNTamd64
+UpdateInis=ZMBV.INIs
+
+[DefaultUnInstall]
+DelFiles=ZMBV.Files.Dll,ZMBV.Files.Inf,ZMBV.Files.Ini
+DelReg=ZMBV.Reg9x
+UpdateInis=ZMBV.INIs.Del
+
+[DefaultUnInstall.ntx86]
+DelFiles=ZMBV.Files.Dll,ZMBV.Files.Inf,ZMBV.Files.Ini
+DelReg=ZMBV.RegNTx86
+UpdateInis=ZMBV.INIs.Del
+
+[DefaultUnInstall.ntamd64]
+DelFiles=ZMBV.Files.Dll.NTamd64,ZMBV.Files.Inf,ZMBV.Files.Ini
+DelReg=ZMBV.RegNTamd64
+UpdateInis=ZMBV.INIs.Del
+
+[SourceDisksNames]
+1="Zip Motion Block Video codec","",1
+
+[SourceDisksFiles]
+ZMBV.INF=1
+
+[DestinationDirs]
+ZMBV.Files.Inf=17
+ZMBV.Files.Dll=11
+ZMBV.Files.Dll.NTamd64=10,SysWOW64
+ZMBV.Files.Ini=25
+
+[ZMBV.Files.Inf]
+zmbv.inf
+
+[ZMBV.Files.Dll]
+zmbv.dll
+
+[ZMBV.Files.Dll.NTamd64]
+zmbv.dll
+
+[ZMBV.Files.Ini]
+zmbv.ini
+
+[ZMBV.Reg9x]
+HKLM,SYSTEM\CurrentControlSet\Control\MediaResources\icm\VIDC.ZMBV,Description,,"%ZMBV_DISPLAY_NAME%"
+HKLM,SYSTEM\CurrentControlSet\Control\MediaResources\icm\VIDC.ZMBV,Driver,,"zmbv.dll"
+HKLM,SYSTEM\CurrentControlSet\Control\MediaResources\icm\VIDC.ZMBV,FriendlyName,,"%ZMBV_DISPLAY_NAME%"
+
+HKLM,Software\Microsoft\Windows\CurrentVersion\Uninstall\ZMBV
+HKLM,Software\Microsoft\Windows\CurrentVersion\Uninstall\ZMBV,DisplayName,,"%ZMBV_UNINST_DISPLAY_NAME%"
+HKLM,Software\Microsoft\Windows\CurrentVersion\Uninstall\ZMBV,UninstallString,,"rundll.exe setupx.dll,InstallHinfSection DefaultUninstall 132 %17%\ZMBV.INF"
+
+[ZMBV.RegNTx86]
+HKLM,SOFTWARE\Microsoft\Windows NT\CurrentVersion\drivers.desc,zmbv.dll,,"%ZMBV_DISPLAY_NAME%"
+HKLM,SOFTWARE\Microsoft\Windows NT\CurrentVersion\drivers32,vidc.zmbv,,zmbv.dll
+
+HKLM,SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\ZMBV
+HKLM,SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\ZMBV,DisplayName,,"%ZMBV_UNINST_DISPLAY_NAME%"
+HKLM,SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\ZMBV,Publisher,,"%ZMBV_PUBLISHER%"
+HKLM,SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\ZMBV,URLInfoAbout,,"%ZMBV_URL_HOMEPAGE%"
+HKLM,SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\ZMBV,NoRepair,0x10001,01,00,00,00
+HKLM,SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\ZMBV,NoModify,0x10001,01,00,00,00
+HKLM,SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\ZMBV,UninstallString,,"rundll32.exe setupapi,InstallHinfSection DefaultUninstall 132 %17%\ZMBV.INF"
+
+[ZMBV.RegNTamd64]
+HKLM,SOFTWARE\Wow6432Node\Microsoft\Windows NT\CurrentVersion\drivers.desc,zmbv.dll,,"%ZMBV_DISPLAY_NAME%"
+HKLM,SOFTWARE\Wow6432Node\Microsoft\Windows NT\CurrentVersion\drivers32,vidc.zmbv,,zmbv.dll
+
+HKLM,SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\ZMBV
+HKLM,SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\ZMBV,DisplayName,,"%ZMBV_UNINST_DISPLAY_NAME%"
+HKLM,SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\ZMBV,Publisher,,"%ZMBV_PUBLISHER%"
+HKLM,SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\ZMBV,URLInfoAbout,,"%ZMBV_URL_HOMEPAGE%"
+HKLM,SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\ZMBV,NoRepair,0x10001,01,00,00,00
+HKLM,SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\ZMBV,NoModify,0x10001,01,00,00,00
+HKLM,SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\ZMBV,UninstallString,,"rundll32.exe setupapi.dll,InstallHinfSection DefaultUninstall 132 %17%\ZMBV.INF"
+
+[ZMBV.INIs]
+system.ini, drivers32,, "VIDC.ZMBV=zmbv.dll"
+
+[ZMBV.INIs.Del]
+system.ini, drivers32, "VIDC.ZMBV=zmbv.dll"
+
+[Strings]
+ZMBV_PUBLISHER = "DOSBox Team"
+ZMBV_DISPLAY_NAME = "Zip Motion Block Video [ZMBV]"
+ZMBV_UNINST_DISPLAY_NAME = "Zip Motion Block Video codec (Remove Only)"
+ZMBV_URL_HOMEPAGE = "http://www.dosbox.com/"
+CODEC_INSTALLATION_FINISHED = "Zip Motion Block Video codec installation is complete."

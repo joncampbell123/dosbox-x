@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,12 +16,13 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: vga_s3.cpp,v 1.18 2009-03-15 11:28:35 c2woody Exp $ */
 
 #include "dosbox.h"
 #include "inout.h"
 #include "vga.h"
 #include "mem.h"
+#include "pci_bus.h"
+#include "../save_state.h"
 
 void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
 	switch (reg) {
@@ -83,6 +84,18 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
 		break;
 	case 0x41:  /* CR41 BIOS flags */
 		vga.s3.reg_41 = val;
+		break;
+	case 0x42:  /* CR42 Mode Control */
+		if ((val ^ vga.s3.reg_42) & 0x20) {
+			vga.s3.reg_42=val;
+			VGA_StartResize();
+		} else vga.s3.reg_42=val;
+		/*
+		3d4h index 42h (R/W):  CR42 Mode Control
+		bit  0-3  DCLK Select. These bits are effective when the VGA Clock Select
+				  (3C2h/3CCh bit 2-3) is 3.
+		       5  Interlaced Mode if set.
+	   */
 		break;
 	case 0x43:	/* CR43 Extended Mode */
 		vga.s3.reg_43=val & ~0x4;
@@ -156,6 +169,7 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
 			case S3_XGA_640:  vga.s3.xga_screen_width = 640; break;
 			case S3_XGA_800:  vga.s3.xga_screen_width = 800; break;
 			case S3_XGA_1280: vga.s3.xga_screen_width = 1280; break;
+			case S3_XGA_1600: vga.s3.xga_screen_width = 1600; break;
 			default:  vga.s3.xga_screen_width = 1024; break;
 		}
 		break;
@@ -342,7 +356,7 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
 		vga.svga.bank_write = vga.svga.bank_read;
 		VGA_SetupHandlers();
 		break;
-	case 0x6b:	// BIOS scratchpad: LFB adress
+	case 0x6b:	// BIOS scratchpad: LFB address
 		vga.s3.reg_6b=(Bit8u)val;
 		break;
 	default:
@@ -470,6 +484,10 @@ void SVGA_S3_WriteSEQ(Bitu reg,Bitu val,Bitu iolen) {
 	}
 }
 
+// to make the S3 Trio64 BIOS work
+const Bit8u reg17ret[] ={0x7b, 0xc0, 0x0, 0xda};
+Bit8u reg17index=0;
+
 Bitu SVGA_S3_ReadSEQ(Bitu reg,Bitu iolen) {
 	/* S3 specific group */
 	if (reg>0x8 && vga.s3.pll.lock!=0x6) {
@@ -489,6 +507,12 @@ Bitu SVGA_S3_ReadSEQ(Bitu reg,Bitu iolen) {
 		return vga.s3.clk[3].m;
 	case 0x15:
 		return vga.s3.pll.cmd;
+	case 0x17: {
+			Bit8u retval = reg17ret[reg17index];
+			reg17index++;
+			if(reg17index>3)reg17index=0;
+			return retval;
+		}
 	default:
 		LOG(LOG_VGAMISC,LOG_NORMAL)("VGA:S3:SEQ:Read from illegal index %2X", reg);
 		return 0;
@@ -531,8 +555,8 @@ void SVGA_Setup_S3Trio(void) {
 	svga.hardware_cursor_active = &SVGA_S3_HWCursorActive;
 	svga.accepts_mode = &SVGA_S3_AcceptsMode;
 
-	if (vga.vmemsize == 0)
-		vga.vmemsize = 2*1024*1024; // the most common S3 configuration
+	//if (vga.vmemsize == 0)
+	//	vga.vmemsize = 2*1024*1024; // the most common S3 configuration
 
 	// Set CRTC 36 to specify amount of VRAM and PCI
 	if (vga.vmemsize < 1024*1024) {
@@ -547,20 +571,121 @@ void SVGA_Setup_S3Trio(void) {
 	} else if (vga.vmemsize < 4096*1024)	{
 		vga.vmemsize = 3072*1024;
 		vga.s3.reg_36 = 0x5a;		// 3mb fast page mode
-	} else {	// Trio64 supported only up to 4M
+	} else if (vga.vmemsize < 8192*1024) {	// Trio64 supported only up to 4M
 		vga.vmemsize = 4096*1024;
 		vga.s3.reg_36 = 0x1a;		// 4mb fast page mode
+	} else {	// 8M
+		vga.vmemsize = 8192*1024;
+		vga.s3.reg_36 = 0x7a;		// 8mb fast page mode
 	}
 
 	// S3 ROM signature
-	PhysPt rom_base=PhysMake(0xc000,0);
-	phys_writeb(rom_base+0x003f,'S');
-	phys_writeb(rom_base+0x0040,'3');
-	phys_writeb(rom_base+0x0041,' ');
-	phys_writeb(rom_base+0x0042,'8');
-	phys_writeb(rom_base+0x0043,'6');
-	phys_writeb(rom_base+0x0044,'C');
-	phys_writeb(rom_base+0x0045,'7');
-	phys_writeb(rom_base+0x0046,'6');
-	phys_writeb(rom_base+0x0047,'4');
+	phys_writes(PhysMake(0xc000,0)+0x003f, "S3 86C764", 10);
+
+	PCI_AddSVGAS3_Device();
 }
+
+
+
+// save state support
+
+void POD_Save_VGA_S3( std::ostream& stream )
+{
+	// - pure struct data
+	WRITE_POD( &vga.s3, vga.s3 );
+
+	//*****************************************
+	//*****************************************
+
+	// static globals
+
+	WRITE_POD( &reg17index, reg17index );
+}
+
+
+void POD_Load_VGA_S3( std::istream& stream )
+{
+	// - pure struct data
+	READ_POD( &vga.s3, vga.s3 );
+
+	//*****************************************
+	//*****************************************
+
+	// static globals
+
+	READ_POD( &reg17index, reg17index );
+}
+
+
+/*
+ykhwong svn-daum 2012-02-20
+
+static globals:
+
+// - pure data
+Bit8u reg17index;
+
+
+
+struct VGA_S3:
+
+typedef struct {
+
+// - pure data
+	Bit8u reg_lock1;
+	Bit8u reg_lock2;
+	Bit8u reg_31;
+	Bit8u reg_35;
+	Bit8u reg_36; // RAM size
+	Bit8u reg_3a; // 4/8/doublepixel bit in there
+	Bit8u reg_40; // 8415/A functionality register
+	Bit8u reg_41; // BIOS flags 
+	Bit8u reg_42; // CR42 Mode Control
+	Bit8u reg_43;
+	Bit8u reg_45; // Hardware graphics cursor
+	Bit8u reg_50;
+	Bit8u reg_51;
+	Bit8u reg_52;
+	Bit8u reg_55;
+	Bit8u reg_58;
+	Bit8u reg_6b; // LFB BIOS scratchpad
+	Bit8u ex_hor_overflow;
+	Bit8u ex_ver_overflow;
+	Bit16u la_window;
+	Bit8u misc_control_2;
+	Bit8u ext_mem_ctrl;
+	Bitu xga_screen_width;
+	VGAModes xga_color_mode;
+
+
+// - pure struct data
+	struct {
+		Bit8u r;
+		Bit8u n;
+		Bit8u m;
+	} clk[4],mclk;
+
+
+// - pure struct data
+	struct {
+		Bit8u lock;
+		Bit8u cmd;
+	} pll;
+
+
+	VGA_HWCURSOR hgc;
+
+
+
+struct VGA_HWCURSOR:
+
+// - pure data
+	Bit8u curmode;
+	Bit16u originx, originy;
+	Bit8u fstackpos, bstackpos;
+	Bit8u forestack[4];
+	Bit8u backstack[4];
+	Bit16u startaddr;
+	Bit8u posx, posy;
+	Bit8u mc[64][64];
+*/

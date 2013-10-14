@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,11 +16,12 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: dev_con.h,v 1.35 2009-05-27 09:15:41 qbix79 Exp $ */
 
 #include "dos_inc.h"
 #include "../ints/int10.h"
 #include <string.h>
+#include "inout.h"
+#include "callback.h"
 
 #define NUMBER_ANSI_DATA 10
 
@@ -35,10 +36,13 @@ public:
 	Bit16u GetInformation(void);
 	bool ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode){return false;}
 	bool WriteToControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode){return false;}
+
+	virtual void SaveState( std::ostream& stream );
+	virtual void LoadState( std::istream& stream );
 private:
 	Bit8u readcache;
 	Bit8u lastwrite;
-	struct ansi { /* should create a constructor which fills them with the appriorate values */
+	struct ansi { /* should create a constructor, which would fill them with the appropriate values */
 		bool esc;
 		bool sci;
 		bool enabled;
@@ -51,17 +55,154 @@ private:
 		Bit8s saverow;
 		bool warned;
 	} ansi;
+
+	static void Real_INT10_SetCursorPos(Bit8u row,Bit8u col,Bit8u page) {
+		Bit16u		oldax,oldbx,olddx;
+
+		oldax=reg_ax;
+		oldbx=reg_bx;
+		olddx=reg_dx;
+
+		reg_ah=0x2;
+		reg_dh=row;
+		reg_dl=col;
+		reg_bh=page;
+		CALLBACK_RunRealInt(0x10);
+
+		reg_ax=oldax;
+		reg_bx=oldbx;
+		reg_dx=olddx;
+	}
+
+
+	static void Real_INT10_TeletypeOutput(Bit8u xChar,Bit8u xAttr) {
+		Bit16u		oldax,oldbx;
+
+		oldax=reg_ax;
+		oldbx=reg_bx;
+
+		reg_ah=0xE;
+		reg_al=xChar;
+		reg_bl=xAttr;
+		CALLBACK_RunRealInt(0x10);
+
+		reg_ax=oldax;
+		reg_bx=oldbx;
+	}
+
+
+	static void Real_WriteChar(Bit8u cur_col,Bit8u cur_row,
+					Bit8u page,Bit8u chr,Bit8u attr,Bit8u useattr) {
+		//Cursor position
+		Real_INT10_SetCursorPos(cur_row,cur_col,page);
+
+		//Write the character
+		Bit16u		oldax,oldbx,oldcx;
+		oldax=reg_ax;
+		oldbx=reg_bx;
+		oldcx=reg_cx;
+
+		reg_al=chr;
+		reg_bl=attr;
+		reg_bh=page;
+		reg_cx=1;
+		if(useattr)
+				reg_ah=0x9;
+		else	reg_ah=0x0A;
+		CALLBACK_RunRealInt(0x10);
+
+		reg_ax=oldax;
+		reg_bx=oldbx;
+		reg_cx=oldcx;
+	}//static void Real_WriteChar(cur_col,cur_row,page,chr,attr,useattr)
+
+	
+	static void AdjustCursorPosition(Bit8u& cur_col,Bit8u& cur_row) {
+		BIOS_NCOLS;BIOS_NROWS;
+		//Need a new line?
+		if(cur_col==ncols) 
+		{
+			cur_col=0;
+			cur_row++;
+			Real_INT10_TeletypeOutput('\r',0x7);
+		}
+		
+		//Reached the bottom?
+		if(cur_row==nrows) 
+		{
+			Real_INT10_TeletypeOutput('\n',0x7);	//Scroll up
+			cur_row--;
+		}
+	}
+
+
+	void Real_INT10_TeletypeOutputAttr(Bit8u chr,Bit8u attr,bool useattr) {
+		//TODO Check if this page thing is correct
+		Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+		BIOS_NCOLS;BIOS_NROWS;
+		Bit8u cur_row=CURSOR_POS_ROW(page);
+		Bit8u cur_col=CURSOR_POS_COL(page);
+		switch (chr) 
+		{
+		case 7: {
+			// set timer (this should not be needed as the timer already is programmed 
+			// with those values, but the speaker stays silent without it)
+			IO_Write(0x43,0xb6);
+			IO_Write(0x42,1320&0xff);
+			IO_Write(0x42,1320>>8);
+			// enable speaker
+			IO_Write(0x61,IO_Read(0x61)|0x3);
+			for(Bitu i=0; i < 333; i++) CALLBACK_Idle();
+			IO_Write(0x61,IO_Read(0x61)&~0x3);
+			break;
+		}
+		case 8:
+			if(cur_col>0)
+				cur_col--;
+			break;
+		case '\r':
+			cur_col=0;
+			break;
+		case '\n':
+			cur_col=0;
+			cur_row++;
+			break;
+		case '\t':
+			do {
+				Real_INT10_TeletypeOutputAttr(' ',attr,useattr);
+				cur_row=CURSOR_POS_ROW(page);
+				cur_col=CURSOR_POS_COL(page);
+			} while(cur_col%8);
+			break;
+		default:
+			//* Draw the actual Character 
+			Real_WriteChar(cur_col,cur_row,page,chr,attr,useattr);
+			cur_col++;
+		}
+		
+		AdjustCursorPosition(cur_col,cur_row);
+		Real_INT10_SetCursorPos(cur_row,cur_col,page);	
+	}//void Real_INT10_TeletypeOutputAttr(Bit8u chr,Bit8u attr,bool useattr) 
 };
+
+
 
 bool device_CON::Read(Bit8u * data,Bit16u * size) {
 	Bit16u oldax=reg_ax;
 	Bit16u count=0;
+	INT10_SetCurMode();
 	if ((readcache) && (*size)) {
 		data[count++]=readcache;
-		if(dos.echo) INT10_TeletypeOutput(readcache,7);
+		if(dos.echo) Real_INT10_TeletypeOutput(readcache,7);
 		readcache=0;
 	}
 	while (*size>count) {
+	/*	while (true) {
+			reg_ah=0x1; // check for keystroke
+			CALLBACK_RunRealInt(0x16);
+			if (!GETFLAG(ZF)) break;
+			CALLBACK_RunRealInt(0x28);
+		}; */ //DOSIdle
 		reg_ah=(IS_EGAVGA_ARCH)?0x10:0x0;
 		CALLBACK_RunRealInt(0x16);
 		switch(reg_al) {
@@ -71,8 +212,8 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
 			*size=count;
 			reg_ax=oldax;
 			if(dos.echo) { 
-				INT10_TeletypeOutput(13,7); //maybe don't do this ( no need for it actually ) (but it's compatible)
-				INT10_TeletypeOutput(10,7);
+				Real_INT10_TeletypeOutput(13,7); //maybe don't do this ( no need for it actually ) (but it's compatible)
+				Real_INT10_TeletypeOutput(10,7);
 			}
 			return true;
 			break;
@@ -80,8 +221,8 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
 			if(*size==1) data[count++]=reg_al;  //one char at the time so give back that BS
 			else if(count) {                    //Remove data if it exists (extended keys don't go right)
 				data[count--]=0;
-				INT10_TeletypeOutput(8,7);
-				INT10_TeletypeOutput(' ',7);
+				Real_INT10_TeletypeOutput(8,7);
+				Real_INT10_TeletypeOutput(' ',7);
 			} else {
 				continue;                       //no data read yet so restart whileloop.
 			}
@@ -105,7 +246,7 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
 			break;
 		}
 		if(dos.echo) { //what to do if *size==1 and character is BS ?????
-			INT10_TeletypeOutput(reg_al,7);
+			Real_INT10_TeletypeOutput(reg_al,7);
 		}
 	}
 	*size=count;
@@ -119,6 +260,7 @@ bool device_CON::Write(Bit8u * data,Bit16u * size) {
 	Bitu i;
 	Bit8u col,row;
 	Bit8u tempdata;
+	INT10_SetCurMode();
 	while (*size>count) {
 		if (!ansi.esc){
 			if(data[count]=='\033') {
@@ -129,10 +271,10 @@ bool device_CON::Write(Bit8u * data,Bit16u * size) {
 				count++;
 				continue;
 			} else { 
-				/* Some sort of "hack" now that \n doesn't set col to 0 (int10_char.cpp old chessgame) */
-				if((data[count] == '\n') && (lastwrite != '\r')) INT10_TeletypeOutputAttr('\r',ansi.attr,ansi.enabled);
-				/* pass attribute only if ansi is enabled */
-				INT10_TeletypeOutputAttr(data[count],ansi.attr,ansi.enabled);
+				/* Some sort of "hack" now that '\n' doesn't set col to 0 (int10_char.cpp old chessgame) */
+				if((data[count] == '\n') && (lastwrite != '\r')) Real_INT10_TeletypeOutputAttr('\r',ansi.attr,ansi.enabled);
+ 				/* pass attribute only if ansi is enabled */
+				Real_INT10_TeletypeOutputAttr(data[count],ansi.attr,ansi.enabled);
 				lastwrite = data[count++];
 				continue;
 		}
@@ -275,7 +417,7 @@ bool device_CON::Write(Bit8u * data,Bit16u * size) {
 			if(ansi.data[1] == 0) ansi.data[1] = 1;
 			if(ansi.data[0] > ansi.nrows) ansi.data[0] = (Bit8u)ansi.nrows;
 			if(ansi.data[1] > ansi.ncols) ansi.data[1] = (Bit8u)ansi.ncols;
-			INT10_SetCursorPos(--(ansi.data[0]),--(ansi.data[1]),page); /*ansi=1 based, int10 is 0 based */
+			Real_INT10_SetCursorPos(--(ansi.data[0]),--(ansi.data[1]),page); /*ansi=1 based, int10 is 0 based */
 			ClearAnsi();
 			break;
 			/* cursor up down and forward and backward only change the row or the col not both */
@@ -285,7 +427,7 @@ bool device_CON::Write(Bit8u * data,Bit16u * size) {
 			tempdata = (ansi.data[0]? ansi.data[0] : 1);
 			if(tempdata > row) { row=0; } 
 			else { row-=tempdata;}
-			INT10_SetCursorPos(row,col,page);
+			Real_INT10_SetCursorPos(row,col,page);
 			ClearAnsi();
 			break;
 		case 'B': /*cursor Down */
@@ -295,7 +437,7 @@ bool device_CON::Write(Bit8u * data,Bit16u * size) {
 			if(tempdata + static_cast<Bitu>(row) >= ansi.nrows)
 				{ row = ansi.nrows - 1;}
 			else	{ row += tempdata; }
-			INT10_SetCursorPos(row,col,page);
+			Real_INT10_SetCursorPos(row,col,page);
 			ClearAnsi();
 			break;
 		case 'C': /*cursor forward */
@@ -305,7 +447,7 @@ bool device_CON::Write(Bit8u * data,Bit16u * size) {
 			if(tempdata + static_cast<Bitu>(col) >= ansi.ncols) 
 				{ col = ansi.ncols - 1;} 
 			else	{ col += tempdata;}
-			INT10_SetCursorPos(row,col,page);
+			Real_INT10_SetCursorPos(row,col,page);
 			ClearAnsi();
 			break;
 		case 'D': /*Cursor Backward  */
@@ -314,7 +456,7 @@ bool device_CON::Write(Bit8u * data,Bit16u * size) {
 			tempdata=(ansi.data[0]? ansi.data[0] : 1);
 			if(tempdata > col) {col = 0;}
 			else { col -= tempdata;}
-			INT10_SetCursorPos(row,col,page);
+			Real_INT10_SetCursorPos(row,col,page);
 			ClearAnsi();
 			break;
 		case 'J': /*erase screen and move cursor home*/
@@ -324,7 +466,7 @@ bool device_CON::Write(Bit8u * data,Bit16u * size) {
 			}
 			INT10_ScrollWindow(0,0,255,255,0,ansi.attr,page);
 			ClearAnsi();
-			INT10_SetCursorPos(0,0,page);
+			Real_INT10_SetCursorPos(0,0,page);
 			break;
 		case 'h': /* SET   MODE (if code =7 enable linewrap) */
 		case 'I': /* RESET MODE */
@@ -332,7 +474,7 @@ bool device_CON::Write(Bit8u * data,Bit16u * size) {
 			ClearAnsi();
 			break;
 		case 'u': /* Restore Cursor Pos */
-			INT10_SetCursorPos(ansi.saverow,ansi.savecol,page);
+			Real_INT10_SetCursorPos(ansi.saverow,ansi.savecol,page);
 			ClearAnsi();
 			break;
 		case 's': /* SAVE CURSOR POS */
@@ -343,9 +485,10 @@ bool device_CON::Write(Bit8u * data,Bit16u * size) {
 		case 'K': /* erase till end of line (don't touch cursor) */
 			col = CURSOR_POS_COL(page);
 			row = CURSOR_POS_ROW(page);
-			INT10_WriteChar(' ',ansi.attr,page,ansi.ncols-col,true); //Use this one to prevent scrolling when end of screen is reached
+			INT10_WriteChar(' ',ansi.attr,page,ansi.ncols-col,true); //Real_WriteChar(ansi.ncols-col,row,page,' ',ansi.attr,true);
+
 			//for(i = col;i<(Bitu) ansi.ncols; i++) INT10_TeletypeOutputAttr(' ',ansi.attr,true);
-			INT10_SetCursorPos(row,col,page);
+			Real_INT10_SetCursorPos(row,col,page);
 			ClearAnsi();
 			break;
 		case 'M': /* delete line (NANSI) */
@@ -414,3 +557,46 @@ void device_CON::ClearAnsi(void){
 	ansi.sci=false;
 	ansi.numberofarg=0;
 }
+
+
+// save state support
+void device_CON::SaveState( std::ostream& stream )
+{
+	// - pure data
+	WRITE_POD( &readcache, readcache );
+	WRITE_POD( &lastwrite, lastwrite );
+
+	WRITE_POD( &ansi, ansi );
+}
+
+
+void device_CON::LoadState( std::istream& stream )
+{
+	// - pure data
+	READ_POD( &readcache, readcache );
+	READ_POD( &lastwrite, lastwrite );
+
+	READ_POD( &ansi, ansi );
+}
+
+
+
+/*
+ykhwong svn-daum 2012-05-21
+
+	// - pure data
+	Bit8u readcache;
+	Bit8u lastwrite;
+	struct ansi
+		bool esc;
+		bool sci;
+		bool enabled;
+		Bit8u attr;
+		Bit8u data[NUMBER_ANSI_DATA];
+		Bit8u numberofarg;
+		Bit16u nrows;
+		Bit16u ncols;
+		Bit8s savecol;
+		Bit8s saverow;
+		bool warned;
+*/

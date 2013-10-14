@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: gus.cpp,v 1.37 2009-09-03 16:03:01 c2woody Exp $ */
 
 #include <string.h>
 #include <iomanip>
@@ -30,6 +29,7 @@
 #include "shell.h"
 #include "math.h"
 #include "regs.h"
+#include "../save_state.h"
 using namespace std;
 
 //Extra bits of precision over normal gus
@@ -49,8 +49,8 @@ using namespace std;
 
 Bit8u adlib_commandreg;
 static MixerChannel * gus_chan;
-static Bit8u irqtable[8] = { 0, 2, 5, 3, 7, 11, 12, 15 };
-static Bit8u dmatable[8] = { 0, 1, 3, 5, 6, 7, 0, 0 };
+static Bit8u const irqtable[8] = { 0, 2, 5, 3, 7, 11, 12, 15 };
+static Bit8u const dmatable[8] = { 0, 1, 3, 5, 6, 7, 0, 0 };
 static Bit8u GUSRam[1024*1024]; // 1024K of GUS Ram
 static Bit32s AutoAmp = 512;
 static Bit16u vol16bit[4096];
@@ -909,3 +909,242 @@ void GUS_Init(Section* sec) {
 	test = new GUS(sec);
 	sec->AddDestroyFunction(&GUS_ShutDown,true);
 }
+
+
+
+// save state support
+void *GUS_TimerEvent_PIC_Event = (void*)GUS_TimerEvent;
+void *GUS_DMA_Callback_Func = (void*)GUS_DMA_Callback;
+
+
+void POD_Save_GUS( std::ostream& stream )
+{
+	const char pod_name[32] = "GUS";
+
+	if( stream.fail() ) return;
+	if( !test ) return;
+	if( !gus_chan ) return;
+
+
+	WRITE_POD( &pod_name, pod_name );
+
+	//*******************************************
+	//*******************************************
+	//*******************************************
+
+	Bit8u curchan_idx;
+
+
+	curchan_idx = 0xff;
+	for( int lcv=0; lcv<32; lcv++ ) {
+		if( curchan == guschan[lcv] ) { curchan_idx = lcv; break; }
+	}
+
+	// *******************************************
+	// *******************************************
+	// *******************************************
+
+	// - pure data
+	WRITE_POD( &adlib_commandreg, adlib_commandreg );
+	WRITE_POD( &GUSRam, GUSRam );
+	WRITE_POD( &AutoAmp, AutoAmp );
+	WRITE_POD( &vol16bit, vol16bit );
+	WRITE_POD( &pantable, pantable );
+
+	// - pure struct data
+	WRITE_POD( &myGUS, myGUS );
+
+
+	// - pure data
+	for( int lcv=0; lcv<32; lcv++ ) {
+		WRITE_POD( guschan[lcv], *guschan[lcv] );
+	}
+
+	// *******************************************
+	// *******************************************
+	// *******************************************
+
+	// - reloc ptr
+	WRITE_POD( &curchan_idx, curchan_idx );
+
+	// *******************************************
+	// *******************************************
+	// *******************************************
+
+	gus_chan->SaveState(stream);
+}
+
+
+void POD_Load_GUS( std::istream& stream )
+{
+	char pod_name[32] = {0};
+
+	if( stream.fail() ) return;
+	if( !test ) return;
+	if( !gus_chan ) return;
+
+
+	// error checking
+	READ_POD( &pod_name, pod_name );
+	if( strcmp( pod_name, "GUS" ) ) {
+		stream.clear( std::istream::failbit | std::istream::badbit );
+		return;
+	}
+
+	//************************************************
+	//************************************************
+	//************************************************
+
+	Bit8u curchan_idx;
+
+	// *******************************************
+	// *******************************************
+	// *******************************************
+
+	// - pure data
+	READ_POD( &adlib_commandreg, adlib_commandreg );
+	READ_POD( &GUSRam, GUSRam );
+	READ_POD( &AutoAmp, AutoAmp );
+	READ_POD( &vol16bit, vol16bit );
+	READ_POD( &pantable, pantable );
+
+	READ_POD( &myGUS, myGUS );
+
+	for( int lcv=0; lcv<32; lcv++ ) {
+		if( !guschan[lcv] ) continue;
+
+		READ_POD( guschan[lcv], *guschan[lcv] );
+	}
+
+	// *******************************************
+	// *******************************************
+	// *******************************************
+
+	// - reloc ptr
+	READ_POD( &curchan_idx, curchan_idx );
+
+	curchan = NULL;
+	if( curchan_idx != 0xff ) curchan = guschan[curchan_idx];
+
+	// *******************************************
+	// *******************************************
+	// *******************************************
+
+	gus_chan->LoadState(stream);
+}
+
+
+/*
+ykhwong svn-daum 2012-02-20
+
+
+static globals:
+
+
+// - pure data
+Bit8u adlib_commandreg;
+
+// - static 'new' ptr
+static MixerChannel * gus_chan;
+
+// - static data
+static const Bit8u irqtable[8] = { 0, 2, 5, 3, 7, 11, 12, 15 };
+static const Bit8u dmatable[8] = { 0, 1, 3, 5, 6, 7, 0, 0 };
+
+// - pure data
+static Bit8u GUSRam[1024*1024]; // 1024K of GUS Ram
+static Bit32s AutoAmp = 512;
+static Bit16u vol16bit[4096];
+static Bit32u pantable[16];
+
+
+
+struct GFGus myGUS
+
+	// - pure data
+	Bit8u gRegSelect;
+	Bit16u gRegData;
+	Bit32u gDramAddr;
+	Bit16u gCurChannel;
+
+	// - pure data
+	Bit8u DMAControl;
+	Bit16u dmaAddr;
+	Bit8u TimerControl;
+	Bit8u SampControl;
+	Bit8u mixControl;
+	Bit8u ActiveChannels;
+	Bit32u basefreq;
+
+	// - pure data
+	struct GusTimer {
+		Bit8u value;
+		bool reached;
+		bool raiseirq;
+		bool masked;
+		bool running;
+		float delay;
+	} timers[2];
+
+	// - pure data
+	Bit32u rate;
+	Bitu portbase;
+	Bit8u dma1;
+	Bit8u dma2;
+
+	// - pure data
+	Bit8u irq1;
+	Bit8u irq2;
+
+	// - pure data
+	bool irqenabled;
+	bool ChangeIRQDMA;
+	Bit8u IRQStatus;
+	Bit32u ActiveMask;
+	Bit8u IRQChan;
+	Bit32u RampIRQ;
+	Bit32u WaveIRQ;
+
+
+// - static 'new' ptr
+static GUSChannels *guschan[32];
+
+// - reloc ptr (!!!)
+static GUSChannels *curchan;
+
+	// - pure data
+	Bit32u WaveStart;
+	Bit32u WaveEnd;
+	Bit32u WaveAddr;
+	Bit32u WaveAdd;
+	Bit8u  WaveCtrl;
+	Bit16u WaveFreq;
+
+	Bit32u RampStart;
+	Bit32u RampEnd;
+	Bit32u RampVol;
+	Bit32u RampAdd;
+	Bit32u RampAddReal;
+
+	Bit8u RampRate;
+	Bit8u RampCtrl;
+
+	Bit8u PanPot;
+	Bit8u channum;
+	Bit32u irqmask;
+	Bit32u PanLeft;
+	Bit32u PanRight;
+	Bit32s VolLeft;
+	Bit32s VolRight;
+
+
+
+// - static 'new' ptr
+static GUS* test;
+
+	// - static data
+	IO_ReadHandleObject ReadHandler[8];
+	IO_WriteHandleObject WriteHandler[9];
+	AutoexecObject autoexecline[2];
+	MixerObject MixerChan;
+*/

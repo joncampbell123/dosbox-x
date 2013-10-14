@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: vga_crtc.cpp,v 1.34 2009-03-18 18:08:16 c2woody Exp $ */
 
 #include <stdlib.h>
 #include "dosbox.h"
@@ -26,6 +25,7 @@
 #include "cpu.h"
 #include "video.h"
 #include "pic.h"
+#include "../save_state.h"
 
 #define crtc(blah) vga.crtc.blah
 
@@ -45,7 +45,8 @@ Bitu vga_read_p3d4(Bitu port,Bitu iolen) {
 }
 
 void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
-//	if (crtc(index)>0x18) LOG_MSG("VGA CRCT write %X to reg %X",val,crtc(index));
+//	if((crtc(index)!=0xe)&&(crtc(index)!=0xf)) 
+//		LOG_MSG("CRTC w #%2x val %2x",crtc(index),val);
 	switch(crtc(index)) {
 	case 0x00:	/* Horizontal Total Register */
 		if (crtc(read_only)) break;
@@ -138,27 +139,22 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		*/
 		break;
 	case 0x09: /* Maximum Scan Line Register */
-		if (IS_VGA_ARCH)
-			vga.config.line_compare=(vga.config.line_compare & 0x5ff)|(val&0x40)<<3;
-
-		if (IS_VGA_ARCH && (svgaCard==SVGA_None) && (vga.mode==M_EGA || vga.mode==M_VGA)) {
-			// in vgaonly mode we take special care of line repeats (excluding CGA modes)
-			if ((vga.crtc.maximum_scan_line ^ val) & 0x20) {
-				crtc(maximum_scan_line)=val;
-				VGA_StartResize();
-			} else {
-				crtc(maximum_scan_line)=val;
+	{
+		if (IS_VGA_ARCH) {
+			vga.config.line_compare &= 0x5ff;
+			vga.config.line_compare |= (val&0x40)<<3;
+		} else if(machine==MCH_EGA) {
+			val &= 0x7f; // EGA ignores the doublescan bit
 			}
+		Bit8u old = crtc(maximum_scan_line);
+		crtc(maximum_scan_line) = val;
+
+		if(!vga.draw.doublescan_merging) {
+			if ((old ^ val) & 0x20) VGA_StartResize();
 			vga.draw.address_line_total = (val &0x1F) + 1;
 			if (val&0x80) vga.draw.address_line_total*=2;
-		} else {
-			if ((vga.crtc.maximum_scan_line ^ val) & 0xbf) {
-				crtc(maximum_scan_line)=val;
+		} else if ((old ^ val) & 0xbf)
 				VGA_StartResize();
-			} else {
-				crtc(maximum_scan_line)=val;
-			}
-		}
 		/*
 			0-4	Number of scan lines in a character row -1. In graphics modes this is
 				the number of times (-1) the line is displayed before passing on to
@@ -170,6 +166,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 			7	Doubles each scan line if set. I.e. displays 200 lines on a 400 display.
 		*/
 		break;
+	}
 	case 0x0A:	/* Cursor Start Register */
 		crtc(cursor_start)=val;
 		vga.draw.cursor.sline=val&0x1f;
@@ -302,10 +299,14 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		*/
 		break;
 	case 0x16:	/*  End Vertical Blank Register */
-		crtc(end_vertical_blanking)=val;
-		 /*
+		if (val!=crtc(end_vertical_blanking)) {
+			crtc(end_vertical_blanking)=val;
+			VGA_StartResize();
+		}
+		/*
 			0-6	Vertical blanking stops when the lower 7 bits of the line counter
 				equals this field. Some SVGA chips uses all 8 bits!
+				IBM actually says bits 0-7.
 		*/
 		break;
 	case 0x17:	/* Mode Control Register */
@@ -364,8 +365,15 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 	}
 }
 
+
+Bitu vga_read_p3d5x(Bitu port,Bitu iolen);
 Bitu vga_read_p3d5(Bitu port,Bitu iolen) {
-//	LOG_MSG("VGA CRCT read from reg %X",crtc(index));
+	Bitu retval = vga_read_p3d5x(port,iolen);
+//	LOG_MSG("CRTC r #%2x val %2x",crtc(index),retval);
+	return retval;
+}
+
+Bitu vga_read_p3d5x(Bitu port,Bitu iolen) {
 	switch(crtc(index)) {
 	case 0x00:	/* Horizontal Total Register */
 		return crtc(horizontal_total);
@@ -429,4 +437,64 @@ Bitu vga_read_p3d5(Bitu port,Bitu iolen) {
 
 
 
+// save state support
 
+void POD_Save_VGA_Crtc( std::ostream& stream )
+{
+	// - pure struct data
+	WRITE_POD( &vga.crtc, vga.crtc );
+
+
+	// no static globals found
+}
+
+
+void POD_Load_VGA_Crtc( std::istream& stream )
+{
+	// - pure struct data
+	READ_POD( &vga.crtc, vga.crtc );
+
+
+	// no static globals found
+}
+
+
+/*
+ykhwong svn-daum 2012-02-20
+
+static globals: none
+
+
+struct VGA_Crtc:
+
+// - pure data
+typedef struct {
+	Bit8u horizontal_total;
+	Bit8u horizontal_display_end;
+	Bit8u start_horizontal_blanking;
+	Bit8u end_horizontal_blanking;
+	Bit8u start_horizontal_retrace;
+	Bit8u end_horizontal_retrace;
+	Bit8u vertical_total;
+	Bit8u overflow;
+	Bit8u preset_row_scan;
+	Bit8u maximum_scan_line;
+	Bit8u cursor_start;
+	Bit8u cursor_end;
+	Bit8u start_address_high;
+	Bit8u start_address_low;
+	Bit8u cursor_location_high;
+	Bit8u cursor_location_low;
+	Bit8u vertical_retrace_start;
+	Bit8u vertical_retrace_end;
+	Bit8u vertical_display_end;
+	Bit8u offset;
+	Bit8u underline_location;
+	Bit8u start_vertical_blanking;
+	Bit8u end_vertical_blanking;
+	Bit8u mode_control;
+	Bit8u line_compare;
+
+	Bit8u index;
+	bool read_only;
+*/

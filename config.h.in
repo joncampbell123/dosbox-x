@@ -1,8 +1,8 @@
-/* config.h.in.  Generated from configure.in by autoheader.  */
+/* config.h.in.  Generated from configure.ac by autoheader.  */
 
 
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -35,8 +35,14 @@
 /* Define to 1 to use inlined memory functions in cpu core */
 #undef C_CORE_INLINE
 
+/* Define to 1 to use Direct3D shaders, requires d3d9.h and libd3dx9 */
+#undef C_D3DSHADERS
+
 /* Define to 1 to enable internal debugger, requires libcurses */
 #undef C_DEBUG
+
+/* Define to 1 if you want parallel passthrough support (Win32, Linux). */
+#undef C_DIRECTLPT
 
 /* Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).
    */
@@ -48,6 +54,9 @@
 /* Define to 1 to use recompiling cpu core. Can not be used together with the
    dynamic-x86 core */
 #undef C_DYNREC
+
+/* Define to 1 to enable fluidsynth MIDI synthesis */
+#undef C_FLUIDSYNTH
 
 /* Define to 1 to enable floating point emulation */
 #undef C_FPU
@@ -65,17 +74,29 @@
 /* Define to 1 if you have the mprotect function */
 #undef C_HAVE_MPROTECT
 
+/* Define to 1 if you have physfs library */
+#undef C_HAVE_PHYSFS
+
 /* Define to 1 to enable heavy debugging, also have to enable C_DEBUG */
 #undef C_HEAVY_DEBUG
 
 /* Define to 1 to enable IPX over Internet networking, requires SDL_net */
 #undef C_IPX
 
+/* Define to 1 if you have libpng */
+#undef C_LIBPNG
+
 /* Define to 1 to enable internal modem support, requires SDL_net */
 #undef C_MODEM
 
+/* Define to 1 to enable NE2000 ethernet passthrough, requires libpcap */
+#undef C_NE2000
+
 /* Define to 1 to use opengl display output support */
 #undef C_OPENGL
+
+/* Define to 1 to use printer support */
+#undef C_PRINTER
 
 /* Define to 1 to enable SDL_sound support */
 #undef C_SDL_SOUND
@@ -110,20 +131,17 @@
 /* Define to 1 to use ALSA for MIDI */
 #undef HAVE_ALSA
 
+/* Define to 1 if you have the <d3d9.h> header file. */
+#undef HAVE_D3D9_H
+
 /* Define to 1 if you have the <ddraw.h> header file. */
 #undef HAVE_DDRAW_H
-
-/* Define to 1 to use FluidSynth for MIDI */
-#undef HAVE_FLUID
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
 /* Define to 1 if you have the `asound' library (-lasound). */
 #undef HAVE_LIBASOUND
-
-/* Define to 1 if you have the `fluidsynth' library (-lfluidsynth). */
-#undef HAVE_LIBFLUIDSYNTH
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H

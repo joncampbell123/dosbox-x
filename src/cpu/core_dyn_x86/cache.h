@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: cache.h,v 1.20 2009-07-12 20:13:05 c2woody Exp $ */
 
 class CacheBlock {
 public:
@@ -68,14 +67,16 @@ static CacheBlock link_blocks[2];
 
 class CodePageHandler : public PageHandler {
 public:
-	CodePageHandler() {
+	CodePageHandler() : PageHandler(0) {
 		invalidation_map=NULL;
 	}
+
 	void SetupAt(Bitu _phys_page,PageHandler * _old_pagehandler) {
 		phys_page=_phys_page;
 		old_pagehandler=_old_pagehandler;
-		flags=old_pagehandler->flags|PFLAG_HASCODE;
-		flags&=~PFLAG_WRITEABLE;
+		Bitu newflags = old_pagehandler->getFlags() | PFLAG_HASCODE;
+		newflags&=~PFLAG_WRITEABLE;
+		setFlags(newflags);
 		active_blocks=0;
 		active_count=16;
 		memset(&hash_map,0,sizeof(hash_map));
@@ -108,8 +109,8 @@ public:
 		return is_current_block;
 	}
 	void writeb(PhysPt addr,Bitu val){
-		if (GCC_UNLIKELY(old_pagehandler->flags&PFLAG_HASROM)) return;
-		if (GCC_UNLIKELY((old_pagehandler->flags&PFLAG_READABLE)!=PFLAG_READABLE)) {
+		if (GCC_UNLIKELY(old_pagehandler->getFlags() & PFLAG_HASROM)) return;
+		if (GCC_UNLIKELY((old_pagehandler->getFlags() & PFLAG_READABLE)!=PFLAG_READABLE)) {
 			E_Exit("wb:non-readable code page found that is no ROM page");
 		}
 		addr&=4095;
@@ -128,8 +129,8 @@ public:
 		InvalidateRange(addr,addr);
 	}
 	void writew(PhysPt addr,Bitu val){
-		if (GCC_UNLIKELY(old_pagehandler->flags&PFLAG_HASROM)) return;
-		if (GCC_UNLIKELY((old_pagehandler->flags&PFLAG_READABLE)!=PFLAG_READABLE)) {
+		if (GCC_UNLIKELY(old_pagehandler->getFlags() & PFLAG_HASROM)) return;
+		if (GCC_UNLIKELY((old_pagehandler->getFlags() & PFLAG_READABLE)!=PFLAG_READABLE)) {
 			E_Exit("ww:non-readable code page found that is no ROM page");
 		}
 		addr&=4095;
@@ -148,8 +149,8 @@ public:
 		InvalidateRange(addr,addr+1);
 	}
 	void writed(PhysPt addr,Bitu val){
-		if (GCC_UNLIKELY(old_pagehandler->flags&PFLAG_HASROM)) return;
-		if (GCC_UNLIKELY((old_pagehandler->flags&PFLAG_READABLE)!=PFLAG_READABLE)) {
+		if (GCC_UNLIKELY(old_pagehandler->getFlags() & PFLAG_HASROM)) return;
+		if (GCC_UNLIKELY((old_pagehandler->getFlags() & PFLAG_READABLE)!=PFLAG_READABLE)) {
 			E_Exit("wd:non-readable code page found that is no ROM page");
 		}
 		addr&=4095;
@@ -168,8 +169,8 @@ public:
 		InvalidateRange(addr,addr+3);
 	}
 	bool writeb_checked(PhysPt addr,Bitu val) {
-		if (GCC_UNLIKELY(old_pagehandler->flags&PFLAG_HASROM)) return false;
-		if (GCC_UNLIKELY((old_pagehandler->flags&PFLAG_READABLE)!=PFLAG_READABLE)) {
+		if (GCC_UNLIKELY(old_pagehandler->getFlags()&PFLAG_HASROM)) return false;
+		if (GCC_UNLIKELY((old_pagehandler->getFlags()&PFLAG_READABLE)!=PFLAG_READABLE)) {
 			E_Exit("cb:non-readable code page found that is no ROM page");
 		}
 		addr&=4095;
@@ -194,8 +195,8 @@ public:
 		return false;
 	}
 	bool writew_checked(PhysPt addr,Bitu val) {
-		if (GCC_UNLIKELY(old_pagehandler->flags&PFLAG_HASROM)) return false;
-		if (GCC_UNLIKELY((old_pagehandler->flags&PFLAG_READABLE)!=PFLAG_READABLE)) {
+		if (GCC_UNLIKELY(old_pagehandler->getFlags() & PFLAG_HASROM)) return false;
+		if (GCC_UNLIKELY((old_pagehandler->getFlags() & PFLAG_READABLE)!=PFLAG_READABLE)) {
 			E_Exit("cw:non-readable code page found that is no ROM page");
 		}
 		addr&=4095;
@@ -220,8 +221,8 @@ public:
 		return false;
 	}
 	bool writed_checked(PhysPt addr,Bitu val) {
-		if (GCC_UNLIKELY(old_pagehandler->flags&PFLAG_HASROM)) return false;
-		if (GCC_UNLIKELY((old_pagehandler->flags&PFLAG_READABLE)!=PFLAG_READABLE)) {
+		if (GCC_UNLIKELY(old_pagehandler->getFlags() & PFLAG_HASROM)) return false;
+		if (GCC_UNLIKELY((old_pagehandler->getFlags() & PFLAG_READABLE)!=PFLAG_READABLE)) {
 			E_Exit("cd:non-readable code page found that is no ROM page");
 		}
 		addr&=4095;
@@ -569,4 +570,76 @@ static void cache_close(void) {
 	cache_code = NULL;
 	cache_code_link_blocks = NULL;
 	cache_initialized = false; */
+}
+
+static void cache_reset(void) {
+	if (cache_initialized) {
+		for (;;) {
+			if (cache.used_pages) {
+				CodePageHandler * cpage=cache.used_pages;
+				CodePageHandler * npage=cache.used_pages->next;
+				cpage->ClearRelease();
+				delete cpage;
+				cache.used_pages=npage;
+			} else break;
+		}
+
+		if (cache_blocks == NULL) {
+			cache_blocks=(CacheBlock*)malloc(CACHE_BLOCKS*sizeof(CacheBlock));
+			if(!cache_blocks) E_Exit("Allocating cache_blocks has failed");
+		}
+		memset(cache_blocks,0,sizeof(CacheBlock)*CACHE_BLOCKS);
+		cache.block.free=&cache_blocks[0];
+		for (Bits i=0;i<CACHE_BLOCKS-1;i++) {
+			cache_blocks[i].link[0].to=(CacheBlock *)1;
+			cache_blocks[i].link[1].to=(CacheBlock *)1;
+			cache_blocks[i].cache.next=&cache_blocks[i+1];
+		}
+
+		if (cache_code_start_ptr==NULL) {
+#if defined (WIN32)
+			cache_code_start_ptr=(Bit8u*)VirtualAlloc(0,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP,
+				MEM_COMMIT,PAGE_EXECUTE_READWRITE);
+			if (!cache_code_start_ptr)
+				cache_code_start_ptr=(Bit8u*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
+#else
+			cache_code_start_ptr=(Bit8u*)malloc(CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP-1+PAGESIZE_TEMP);
+#endif
+			if (!cache_code_start_ptr) E_Exit("Allocating dynamic core cache memory failed");
+
+			cache_code=(Bit8u*)(((int)cache_code_start_ptr + PAGESIZE_TEMP-1) & ~(PAGESIZE_TEMP-1)); //MEM LEAK. store old pointer if you want to free it.
+
+			cache_code_link_blocks=cache_code;
+			cache_code+=PAGESIZE_TEMP;
+
+#if (C_HAVE_MPROTECT)
+			if(mprotect(cache_code_link_blocks,CACHE_TOTAL+CACHE_MAXSIZE+PAGESIZE_TEMP,PROT_WRITE|PROT_READ|PROT_EXEC))
+				LOG_MSG("Setting excute permission on the code cache has failed!");
+#endif
+		}
+
+		CacheBlock * block=cache_getblock();
+		cache.block.first=block;
+		cache.block.active=block;
+		block->cache.start=&cache_code[0];
+		block->cache.size=CACHE_TOTAL;
+		block->cache.next=0;								//Last block in the list
+
+		/* Setup the default blocks for block linkage returns */
+		cache.pos=&cache_code_link_blocks[0];
+		link_blocks[0].cache.start=cache.pos;
+		gen_return(BR_Link1);
+		cache.pos=&cache_code_link_blocks[32];
+		link_blocks[1].cache.start=cache.pos;
+		gen_return(BR_Link2);
+		cache.free_pages=0;
+		cache.last_page=0;
+		cache.used_pages=0;
+		/* Setup the code pages */
+		for (Bitu i=0;i<CACHE_PAGES;i++) {
+			CodePageHandler * newpage=new CodePageHandler();
+			newpage->next=cache.free_pages;
+			cache.free_pages=newpage;
+		}
+	}
 }

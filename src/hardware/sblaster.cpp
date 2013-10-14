@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: sblaster.cpp,v 1.78 2009-10-25 16:22:22 c2woody Exp $ */
 
 #include <iomanip>
 #include <sstream>
@@ -32,12 +31,11 @@
 #include "setup.h"
 #include "support.h"
 #include "shell.h"
+#include "../save_state.h"
 using namespace std;
 
 void MIDI_RawOutByte(Bit8u data);
 bool MIDI_Available(void);
-
-#define ENABLE_GOLDPLAY_HACK 1
 
 #define SB_PIC_EVENTS 0
 
@@ -61,15 +59,8 @@ bool MIDI_Available(void);
 #define DSP_DACSIZE 512
 
 //Should be enough for sound generated in millisecond blocks
-#define SB_BUF_SIZE 8096
 #define SB_SH	14
 #define SB_SH_MASK	((1 << SB_SH)-1)
-
-#ifdef C_DEBUG
-#define fprintf silent_fprintf
-static size_t silent_fprintf(FILE *f,const char *fmt,...) {
-}
-#endif
 
 enum {DSP_S_RESET,DSP_S_RESET_WAIT,DSP_S_NORMAL,DSP_S_HIGHSPEED};
 enum SB_TYPES {SBT_NONE=0,SBT_1=1,SBT_PRO1=2,SBT_2=3,SBT_PRO2=4,SBT_16=6,SBT_GB=7};
@@ -121,6 +112,7 @@ struct SB_INFO {
 			      on actual hardware this happens to work (though with kind of a gritty sound to it),
 			      The DMA emulation here does not handle that well. */
 	bool dma_dac_warning;
+	bool goldplay;
 	Bit8u time_constant;
 	DSP_MODES mode;
 	SB_TYPES type;
@@ -180,7 +172,7 @@ static SB_INFO sb;
 static char const * const copyright_string="COPYRIGHT (C) CREATIVE TECHNOLOGY LTD, 1992.";
 
 // number of bytes in input for commands (sb/sbpro)
-static Bit8u DSP_cmd_len_sb[256] = {
+static Bit8u const DSP_cmd_len_sb[256] = {
   0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0x00
 //  1,0,0,0, 2,0,2,2, 0,0,0,0, 0,0,0,0,  // 0x10
   1,0,0,0, 2,2,2,2, 0,0,0,0, 0,0,0,0,  // 0x10 Wari hack
@@ -204,7 +196,7 @@ static Bit8u DSP_cmd_len_sb[256] = {
 };
 
 // number of bytes in input for commands (sb16)
-static Bit8u DSP_cmd_len_sb16[256] = {
+static Bit8u const DSP_cmd_len_sb16[256] = {
   0,0,0,0, 1,2,0,0, 1,0,0,0, 0,0,2,1,  // 0x00
 //  1,0,0,0, 2,0,2,2, 0,0,0,0, 0,0,0,0,  // 0x10
   1,0,0,0, 2,2,2,2, 0,0,0,0, 0,0,0,0,  // 0x10 Wari hack
@@ -230,7 +222,7 @@ static Bit8u DSP_cmd_len_sb16[256] = {
 static Bit8u ASP_regs[256];
 static bool ASP_init_in_progress = false;
 
-static int E2_incr_table[4][9] = {
+static int const E2_incr_table[4][9] = {
   {  0x01, -0x02, -0x04,  0x08, -0x10,  0x20,  0x40, -0x80, -106 },
   { -0x01,  0x02, -0x04,  0x08,  0x10, -0x20,  0x40, -0x80,  165 },
   { -0x01,  0x02,  0x04, -0x08,  0x10, -0x20, -0x40,  0x80, -151 },
@@ -523,6 +515,8 @@ static void GenerateDMASound(Bitu size) {
 	sb.dma.left-=read;
 	if (!sb.dma.left) {
 		PIC_RemoveEvents(END_DMA_Event);
+		if (sb.dma.mode >= DSP_DMA_16) SB_RaiseIRQ(SB_IRQ_16);
+		else SB_RaiseIRQ(SB_IRQ_8);
 		if (!sb.dma.autoinit) {
 			LOG(LOG_SB,LOG_NORMAL)("Single cycle transfer ended");
 			sb.mode=MODE_NONE;
@@ -534,8 +528,6 @@ static void GenerateDMASound(Bitu size) {
 				sb.mode=MODE_NONE;
 			}
 		}
-		if (sb.dma.mode >= DSP_DMA_16) SB_RaiseIRQ(SB_IRQ_16);
-		else SB_RaiseIRQ(SB_IRQ_8);
 	}
 }
 
@@ -592,8 +584,8 @@ static void DMA_DAC_Event(Bitu val) {
 
 	expct = (sb.dma.stereo ? 2 : 1) * (sb.dma.mode == DSP_DMA_16 ? 2 : 1);
 	read = sb.dma.chan->Read(expct,tmp);
-	if (read != expct)
-		fprintf(stderr,"DMA read was not sample aligned. Sound may swap channels or become static. On real hardware the same may happen unless audio is prepared specifically.\n");
+	//if (read != expct)
+	//	fprintf(stderr,"DMA read was not sample aligned. Sound may swap channels or become static. On real hardware the same may happen unless audio is prepared specifically.\n");
 
 	if (sb.dma.mode == DSP_DMA_16) {
 		L = (int16_t)host_readw(&tmp[0]);
@@ -818,10 +810,10 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo) {
 	 *    Triton - Crystal Dream (1992) [SB and SB Pro modes] ----FIXME: Yes, but apparently the demo fails to acknowledge the IRQ and sound stops
 	 *    The Jungly (1992) [SB and SB Pro modes]
 	 */
-	if (ENABLE_GOLDPLAY_HACK && sb.dma_dac_srcrate > 0 && sb.dma.chan->basecnt < 2/* && sb.dma.chan->autoinit && mode == DSP_DMA_8*/) {
+	if (sb.goldplay && sb.dma_dac_srcrate > 0 && sb.dma.chan->basecnt < 2/* && sb.dma.chan->autoinit && mode == DSP_DMA_8*/) {
 		if (!sb.dma_dac_warning) {
-			fprintf(stderr,"SoundBlaster: DMA count is way too small. Switching to per-sample DMA rendering, which may reduce emulator performance @ %uHz.\n",sb.dma_dac_srcrate);
-			fprintf(stderr,"This is usually caused by DOS demos using the GoldPlay library. See src/hardware/sblaster.cpp comments for more information.\n");
+			//fprintf(stderr,"SoundBlaster: DMA count is way too small. Switching to per-sample DMA rendering, which may reduce emulator performance @ %uHz.\n",sb.dma_dac_srcrate);
+			//fprintf(stderr,"This is usually caused by DOS demos using the GoldPlay library. See src/hardware/sblaster.cpp comments for more information.\n");
 			sb.dma_dac_warning=1;
 		}
 		sb.dma_dac_mode=1;
@@ -897,13 +889,14 @@ static void DSP_FinishReset(Bitu /*val*/) {
 }
 
 static void DSP_Reset(void) {
-	LOG(LOG_SB,LOG_ERROR)("DSP:Reset");
+	LOG(LOG_SB,LOG_NORMAL)("DSP:Reset");
 	PIC_DeActivateIRQ(sb.hw.irq);
 
 	DSP_ChangeMode(MODE_NONE);
 	DSP_FlushData();
 	sb.dsp.cmd_len=0;
 	sb.dsp.in.pos=0;
+	sb.dsp.out.pos=0;
 	sb.dsp.write_busy=0;
 	PIC_RemoveEvents(DSP_FinishReset);
 
@@ -1083,6 +1076,11 @@ static void DSP_DoCommand(void) {
 	case 0x76:  /* 074h : Single Cycle 3-bit(2.6bit) ADPCM */
 		DSP_PrepareDMA_Old(DSP_DMA_3,false,false);
 		break;
+	case 0x7d:	/* Auto Init 4-bit ADPCM Reference */
+		DSP_SB2_ABOVE;
+		sb.adpcm.haveref=true;
+		DSP_PrepareDMA_Old(DSP_DMA_4,true,false);
+		break;
 	case 0x17:	/* 017h : Single Cycle 2-bit ADPCM Reference*/
 		sb.adpcm.haveref=true;
 	case 0x16:  /* 074h : Single Cycle 2-bit ADPCM */
@@ -1111,6 +1109,9 @@ static void DSP_DoCommand(void) {
 	case 0xd0:	/* Halt 8-bit DMA */
 //		DSP_ChangeMode(MODE_NONE);
 //		Games sometimes already program a new dma before stopping, gives noise
+		if (sb.mode==MODE_NONE) {
+			// possibly different code here that does not switch to MODE_DMA_PAUSE
+		}
 		sb.mode=MODE_DMA_PAUSE;
 		PIC_RemoveEvents(END_DMA_Event);
 		PIC_RemoveEvents(DMA_DAC_Event);
@@ -1132,7 +1133,7 @@ static void DSP_DoCommand(void) {
 	case 0xd4:	/* Continue DMA 8-bit*/
 		if (sb.mode==MODE_DMA_PAUSE) {
 			sb.mode=MODE_DMA_MASKED;
-			sb.dma.chan->Register_Callback(DSP_DMA_CallBack);
+			if (sb.dma.chan!=NULL) sb.dma.chan->Register_Callback(DSP_DMA_CallBack);
 		}
 		break;
 	case 0xd9:  /* Exit Autoinitialize 16-bit */
@@ -1191,6 +1192,10 @@ static void DSP_DoCommand(void) {
 	case 0xf2:	/* Trigger 8bit IRQ */
 		SB_RaiseIRQ(SB_IRQ_8);
 		break;
+	case 0xf3:   /* Trigger 16bit IRQ */
+		DSP_SB16_ONLY; 
+		SB_RaiseIRQ(SB_IRQ_16);
+		break;
 	case 0xf8:  /* Undocumented, pre-SB16 only */
 		DSP_FlushData();
 		DSP_AddData(0);
@@ -1202,7 +1207,7 @@ static void DSP_DoCommand(void) {
 		DSP_SB2_ABOVE;
 		LOG(LOG_SB,LOG_ERROR)("DSP:Unimplemented MIDI UART command %2X",sb.dsp.cmd);
 		break;
-	case 0x7d: case 0x7f: case 0x1f:
+	case 0x7f: case 0x1f:
 		DSP_SB2_ABOVE;
 		LOG(LOG_SB,LOG_ERROR)("DSP:Unimplemented auto-init DMA ADPCM command %2X",sb.dsp.cmd);
 		break;
@@ -1302,11 +1307,16 @@ static void CTMIXER_UpdateVolumes(void) {
 	chan=MIXER_FindChannel("FM");
 	if (chan) chan->SetVolume(float(sb.mixer.master[0])/31.0f*CALCVOL(sb.mixer.fm[0]),
 							  float(sb.mixer.master[1])/31.0f*CALCVOL(sb.mixer.fm[1]));
+	chan=MIXER_FindChannel("CDAUDIO");
+	if (chan) chan->SetVolume(float(sb.mixer.master[0])/31.0f*CALCVOL(sb.mixer.cda[0]),
+							  float(sb.mixer.master[1])/31.0f*CALCVOL(sb.mixer.cda[1]));
 }
 
 static void CTMIXER_Reset(void) {
 	sb.mixer.fm[0]=
 	sb.mixer.fm[1]=
+	sb.mixer.cda[0]=
+	sb.mixer.cda[1]=
 	sb.mixer.dac[0]=
 	sb.mixer.dac[1]=31;
 	sb.mixer.master[0]=
@@ -1359,10 +1369,15 @@ static void CTMIXER_Write(Bit8u val) {
 		break;
 	case 0x08:		/* CDA Volume (SB2 Only) */
 		SETPROVOL(sb.mixer.cda,(val&0xf)|(val<<4));
+		CTMIXER_UpdateVolumes();
 		break;
 	case 0x0a:		/* Mic Level (SBPRO) or DAC Volume (SB2): 2-bit, 3-bit on SB16 */
-		if (sb.type==SBT_2) sb.mixer.dac[0]=sb.mixer.dac[1]=((val & 0x6) << 2)|3;
-		else sb.mixer.mic=((val & 0x7) << 2)|(sb.type==SBT_16?1:3);
+		if (sb.type==SBT_2) {
+			sb.mixer.dac[0]=sb.mixer.dac[1]=((val & 0x6) << 2)|3;
+			CTMIXER_UpdateVolumes();
+		} else {
+			sb.mixer.mic=((val & 0x7) << 2)|(sb.type==SBT_16?1:3);
+		}
 		break;
 	case 0x0e:		/* Output/Stereo Select */
 		sb.mixer.stereo=(val & 0x2) > 0;
@@ -1380,6 +1395,7 @@ static void CTMIXER_Write(Bit8u val) {
 		break;
 	case 0x28:		/* CD Audio Volume (SBPRO) */
 		SETPROVOL(sb.mixer.cda,val);
+		CTMIXER_UpdateVolumes();
 		break;
 	case 0x2e:		/* Line-in Volume (SBPRO) */
 		SETPROVOL(sb.mixer.lin,val);
@@ -1423,10 +1439,16 @@ static void CTMIXER_Write(Bit8u val) {
 		}
 		break;
 	case 0x36:		/* CD Volume Left (SB16) */
-		if (sb.type==SBT_16) sb.mixer.cda[0]=val>>3;
+		if (sb.type==SBT_16) {
+			sb.mixer.cda[0]=val>>3;
+			CTMIXER_UpdateVolumes();
+		}
 		break;
 	case 0x37:		/* CD Volume Right (SB16) */
-		if (sb.type==SBT_16) sb.mixer.cda[1]=val>>3;
+		if (sb.type==SBT_16) {
+			sb.mixer.cda[1]=val>>3;
+			CTMIXER_UpdateVolumes();
+		}
 		break;
 	case 0x38:		/* Line-in Volume Left (SB16) */
 		if (sb.type==SBT_16) sb.mixer.lin[0]=val>>3;
@@ -1561,7 +1583,8 @@ static Bit8u CTMIXER_Read(void) {
 		return ret;
 	case 0x82:		/* IRQ Status */
 		return	(sb.irq.pending_8bit ? 0x1 : 0) |
-				(sb.irq.pending_16bit ? 0x2 : 0);
+				(sb.irq.pending_16bit ? 0x2 : 0) | 
+				((sb.type == SBT_16) ? 0x20 : 0);
 	default:
 		if (	((sb.type == SBT_PRO1 || sb.type == SBT_PRO2) && sb.mixer.index==0x0c) || /* Input control on SBPro */
 			(sb.type == SBT_16 && sb.mixer.index >= 0x3b && sb.mixer.index <= 0x47)) /* New SB16 registers */
@@ -1791,15 +1814,15 @@ class ViBRA_PnP : public ISAPnPDevice {
 						break;
 					case 0x60: case 0x61:	/* I/O [0] sound blaster */
 						/* TODO: on-the-fly changing */
-						fprintf(stderr,"ISA PnP Warning: Sound Blaster I/O port changing not implemented yet\n");
+						//fprintf(stderr,"ISA PnP Warning: Sound Blaster I/O port changing not implemented yet\n");
 						break;
 					case 0x62: case 0x63:	/* I/O [1] MPU */
 						/* TODO: on-the-fly changing */
-						fprintf(stderr,"ISA PnP Warning: MPU I/O port changing not implemented yet\n");
+						//fprintf(stderr,"ISA PnP Warning: MPU I/O port changing not implemented yet\n");
 						break;
 					case 0x64: case 0x65:	/* I/O [1] OPL-3 */
 						/* TODO: on-the-fly changing */
-						fprintf(stderr,"ISA PnP Warning: OPL-3 I/O port changing not implemented yet\n");
+						//fprintf(stderr,"ISA PnP Warning: OPL-3 I/O port changing not implemented yet\n");
 						break;
 					case 0x70: /* IRQ[0] */
 						if (val & 0xF)
@@ -1826,12 +1849,14 @@ class ViBRA_PnP : public ISAPnPDevice {
 				switch (addr) {
 					case 0x60: case 0x61:	/* I/O [0] gameport */
 						/* TODO: on-the-fly changing */
-						fprintf(stderr,"ISA PnP Warning: Gameport I/O port changing not implemented yet\n");
+						//fprintf(stderr,"ISA PnP Warning: Gameport I/O port changing not implemented yet\n");
 						break;
 				};
 			}
 		}
 };
+
+extern void HARDOPL_Init(Bitu hardwareaddr, Bitu sbbase, bool isCMS);
 
 class SBLASTER: public Module_base {
 private:
@@ -1873,6 +1898,8 @@ private:
 		else if (!strcasecmp(omode,"opl2")) opl_mode=OPL_opl2;
 		else if (!strcasecmp(omode,"dualopl2")) opl_mode=OPL_dualopl2;
 		else if (!strcasecmp(omode,"opl3")) opl_mode=OPL_opl3;
+		else if (!strcasecmp(omode,"hardware")) opl_mode=OPL_hardware;
+		else if (!strcasecmp(omode,"hardwaregb")) opl_mode=OPL_hardwareCMS;
 		/* Else assume auto */
 		else {
 			switch (type) {
@@ -1903,6 +1930,7 @@ public:
 
 		sb.hw.base=section->Get_hex("sbbase");
 		sb.hw.irq=section->Get_int("irq");
+		sb.goldplay=section->Get_bool("goldplay");
 		Bitu dma8bit=section->Get_int("dma");
 		if (dma8bit>0xff) dma8bit=0xff;
 		sb.hw.dma8=(Bit8u)(dma8bit&0xff);
@@ -1912,8 +1940,9 @@ public:
 
 		sb.mixer.enabled=section->Get_bool("sbmixer");
 		sb.mixer.stereo=false;
-
+		OPL_Mode opl_mode = OPL_none;
 		Find_Type_And_Opl(section,sb.type,oplmode);
+		bool isCMSpassthrough = false;
 	
 		switch (oplmode) {
 		case OPL_none:
@@ -1929,6 +1958,12 @@ public:
 		case OPL_dualopl2:
 		case OPL_opl3:
 			OPL_Init(section,oplmode);
+			break;
+		case OPL_hardwareCMS:
+			isCMSpassthrough = true;
+		case OPL_hardware:
+			Bitu base = section->Get_hex("hardwarebase");
+			HARDOPL_Init(base, sb.hw.base, isCMSpassthrough);
 			break;
 		}
 		if (sb.type==SBT_NONE || sb.type==SBT_GB) return;
@@ -1993,9 +2028,11 @@ public:
 	}	
 }; //End of SBLASTER class
 
+extern void HWOPL_Cleanup();
 
 static SBLASTER* test;
 void SBLASTER_ShutDown(Section* /*sec*/) {
+	HWOPL_Cleanup();
 	delete test;	
 }
 
@@ -2005,3 +2042,249 @@ void SBLASTER_Init(Section* sec) {
 	sb.dma_dac_warning = 0;
 	sb.dma_dac_src_div2count = 0;
 }
+
+
+
+// save state support
+void *DMA_Silent_Event_PIC_Event = (void*)DMA_Silent_Event;
+void *DSP_FinishReset_PIC_Event = (void*)DSP_FinishReset;
+void *DSP_RaiseIRQEvent_PIC_Event = (void*)DSP_RaiseIRQEvent;
+void *END_DMA_Event_PIC_Event = (void*)END_DMA_Event;
+
+void *SB_DSP_DMA_CallBack_Func = (void*)DSP_DMA_CallBack;
+void *SB_DSP_ADC_CallBack_Func = (void*)DSP_ADC_CallBack;
+void *SB_DSP_E2_DMA_CallBack_Func = (void*)DSP_E2_DMA_CallBack;
+
+
+void POD_Save_Sblaster( std::ostream& stream )
+{
+	const char pod_name[32] = "SBlaster";
+
+	if( stream.fail() ) return;
+	if( !test ) return;
+	if( !sb.chan ) return;
+
+
+	WRITE_POD( &pod_name, pod_name );
+
+	//*******************************************
+	//*******************************************
+	//*******************************************
+
+	Bit8u dma_idx;
+
+	dma_idx = 0xff;
+	for( int lcv=0; lcv<8; lcv++ ) {
+		if( sb.dma.chan == GetDMAChannel(lcv) ) { dma_idx = lcv; break; }
+	}
+
+	// *******************************************
+	// *******************************************
+
+	// - near-pure data
+	WRITE_POD( &sb, sb );
+
+
+	// - pure data
+	WRITE_POD( &ASP_regs, ASP_regs );
+	WRITE_POD( &ASP_init_in_progress, ASP_init_in_progress );
+
+	// *******************************************
+	// *******************************************
+
+	// - reloc ptr
+	WRITE_POD( &dma_idx, dma_idx );
+
+	// *******************************************
+	// *******************************************
+
+	sb.chan->SaveState(stream);
+}
+
+
+void POD_Load_Sblaster( std::istream& stream )
+{
+	char pod_name[32] = {0};
+
+	if( stream.fail() ) return;
+	if( !test ) return;
+	if( !sb.chan ) return;
+
+
+	// error checking
+	READ_POD( &pod_name, pod_name );
+	if( strcmp( pod_name, "SBlaster" ) ) {
+		stream.clear( std::istream::failbit | std::istream::badbit );
+		return;
+	}
+
+	//************************************************
+	//************************************************
+	//************************************************
+
+	Bit8u dma_idx;
+	MixerChannel *mixer_old;
+
+	
+	// save static ptr
+	mixer_old = sb.chan;
+
+	// *******************************************
+	// *******************************************
+
+	// - near-pure data
+	READ_POD( &sb, sb );
+
+
+	// - pure data
+	READ_POD( &ASP_regs, ASP_regs );
+	READ_POD( &ASP_init_in_progress, ASP_init_in_progress );
+
+	// *******************************************
+	// *******************************************
+
+	// - reloc ptr
+	READ_POD( &dma_idx, dma_idx );
+
+
+	sb.dma.chan = NULL;
+	if( dma_idx != 0xff ) sb.dma.chan = GetDMAChannel(dma_idx);
+
+	// *******************************************
+	// *******************************************
+
+	// restore static ptr
+	sb.chan = mixer_old;
+
+
+	sb.chan->LoadState(stream);
+}
+
+
+/*
+ykhwong svn-daum 2012-02-20
+
+
+static globals:
+
+
+static SB_INFO sb;
+
+	// - pure data
+	Bitu freq;
+
+	// - near-pure struct data
+	struct {
+		bool stereo,sign,autoinit;
+		DMA_MODES mode;
+		Bitu rate,mul;
+		Bitu total,left,min;
+		Bit64u start;
+		union {
+			Bit8u  b8[DMA_BUFSIZE];
+			Bit16s b16[DMA_BUFSIZE];
+		} buf;
+		Bitu bits;
+
+		// - reloc ptr (!!!)
+		DmaChannel * chan;
+
+		Bitu remain_size;
+	} dma;
+
+	// - pure struct data
+	bool speaker;
+	bool midi;
+	Bit8u time_constant;
+	DSP_MODES mode;
+	SB_TYPES type;
+
+	// - pure struct data
+	struct {
+		bool pending_8bit;
+		bool pending_16bit;
+	} irq;
+
+	// - pure struct data
+	struct {
+		Bit8u state;
+		Bit8u cmd;
+		Bit8u cmd_len;
+		Bit8u cmd_in_pos;
+		Bit8u cmd_in[DSP_BUFSIZE];
+		struct {
+			Bit8u lastval;
+			Bit8u data[DSP_BUFSIZE];
+			Bitu pos,used;
+		} in,out;
+		Bit8u test_register;
+		Bitu write_busy;
+	} dsp;
+
+	// - pure struct data
+	struct {
+		Bit16s data[DSP_DACSIZE+1];
+		Bitu used;
+		Bit16s last;
+	} dac;
+
+	// - pure struct data
+	struct {
+		Bit8u index;
+		Bit8u dac[2],fm[2],cda[2],master[2],lin[2];
+		Bit8u mic;
+		bool stereo;
+		bool enabled;
+		bool filtered;
+		Bit8u unhandled[0x48];
+	} mixer;
+
+	// - pure struct data
+	struct {
+		Bit8u reference;
+		Bits stepsize;
+		bool haveref;
+	} adpcm;
+
+	// - pure struct data
+	struct {
+		Bitu base;
+		Bitu irq;
+		Bit8u dma8,dma16;
+	} hw;
+
+	// - pure struct data
+	struct {
+		Bits value;
+		Bitu count;
+	} e2;
+
+	// - static ptr (constructor)
+	MixerChannel * chan;
+
+
+// - static data
+static char const * const copyright_string="COPYRIGHT (C) CREATIVE TECHNOLOGY LTD, 1992.";
+static const Bit8u DSP_cmd_len_sb[256];
+static const Bit8u DSP_cmd_len_sb16[256];
+
+
+// - pure data
+static Bit8u ASP_regs[256];
+static bool ASP_init_in_progress = false;
+
+
+// - static data
+static const int E2_incr_table[4][9];
+
+
+// - static ptr
+static SBLASTER* test;
+
+	// - static data (constructor)
+	IO_ReadHandleObject ReadHandler[0x10];
+	IO_WriteHandleObject WriteHandler[0x10];
+	AutoexecObject autoexecline;
+	MixerObject MixerChan;
+	OPL_Mode oplmode;
+*/

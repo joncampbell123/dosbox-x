@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: cdrom_image.cpp,v 1.24 2009-03-19 20:45:42 c2woody Exp $ */
 
 #include <cctype>
 #include <cmath>
@@ -24,7 +23,6 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
-#include <limits.h> //GCC 2.95
 #include <sstream>
 #include <vector>
 #include <sys/stat.h>
@@ -109,21 +107,8 @@ bool CDROM_Interface_Image::AudioFile::read(Bit8u *buffer, int seek, int count)
 
 int CDROM_Interface_Image::AudioFile::getLength()
 {
-	int time = 1;
-	int shift = 0;
-	if (!(sample->flags & SOUND_SAMPLEFLAG_CANSEEK)) return -1;
-	
-	while (true) {
-		int success = Sound_Seek(sample, (unsigned int)(shift + time));
-		if (!success) {
-			if (time == 1) return lround((double)shift * 176.4f);
-			shift += time >> 1;
-			time = 1;
-		} else {
-			if (time > ((numeric_limits<int>::max() - shift) / 2)) return -1;
-			time = time << 1;
-		}
-	}
+	int length = Sound_GetDuration(sample);
+	return (int)floor((length * 176.4) + 0.5);
 }
 #endif
 
@@ -131,7 +116,7 @@ int CDROM_Interface_Image::AudioFile::getLength()
 int CDROM_Interface_Image::refCount = 0;
 CDROM_Interface_Image* CDROM_Interface_Image::images[26];
 CDROM_Interface_Image::imagePlayer CDROM_Interface_Image::player = {
-	NULL, NULL, NULL, {0}, 0, 0, 0, false, false };
+	NULL, NULL, NULL, {0}, 0, 0, 0, false, false, false, {0} };
 
 	
 CDROM_Interface_Image::CDROM_Interface_Image(Bit8u subUnit)
@@ -168,10 +153,13 @@ bool CDROM_Interface_Image::SetDevice(char* path, int forceCD)
 	if (LoadIsoFile(path)) return true;
 	
 	// print error message on dosbox console
+	/*
 	char buf[MAX_LINE_LENGTH];
 	snprintf(buf, MAX_LINE_LENGTH, "Could not load image file: %s\n", path);
 	Bit16u size = (Bit16u)strlen(buf);
 	DOS_WriteFile(STDOUT, (Bit8u*)buf, &size);
+	*/
+	LOG_MSG("Could not load image file: %s", path);
 	return false;
 }
 
@@ -247,7 +235,6 @@ bool CDROM_Interface_Image::PlayAudioSector(unsigned long start,unsigned long le
 
 bool CDROM_Interface_Image::PauseAudio(bool resume)
 {
-	if (!player.isPlaying) return false;
 	player.isPaused = !resume;
 	return true;
 }
@@ -257,6 +244,12 @@ bool CDROM_Interface_Image::StopAudio(void)
 	player.isPlaying = false;
 	player.isPaused = false;
 	return true;
+}
+
+void CDROM_Interface_Image::ChannelControl(TCtrl ctrl)
+{
+	player.ctrlUsed = (ctrl.out[0]!=0 || ctrl.out[1]!=1 || ctrl.vol[0]<0xfe || ctrl.vol[1]<0xfe);
+	player.ctrlData = ctrl;
 }
 
 bool CDROM_Interface_Image::ReadSectors(PhysPt buffer, bool raw, unsigned long sector, unsigned long num)
@@ -314,10 +307,16 @@ bool CDROM_Interface_Image::ReadSector(Bit8u *buffer, bool raw, unsigned long se
 {
 	int track = GetTrack(sector) - 1;
 	if (track < 0) return false;
-	
-	int seek = tracks[track].skip + (sector - tracks[track].start) * tracks[track].sectorSize;
-	int length = (raw ? RAW_SECTOR_SIZE : COOKED_SECTOR_SIZE);
+
 	if (tracks[track].sectorSize != RAW_SECTOR_SIZE && raw) return false;
+	int length = (raw ? RAW_SECTOR_SIZE : COOKED_SECTOR_SIZE);
+
+	if (sector >= (unsigned long)(tracks[track].start + tracks[track].length)) {
+		memset(buffer, 0, length);
+		return true;
+	}
+
+	int seek = tracks[track].skip + (sector - tracks[track].start) * tracks[track].sectorSize;
 	if (tracks[track].sectorSize == RAW_SECTOR_SIZE && !tracks[track].mode2 && !raw) seek += 16;
 	if (tracks[track].mode2 && !raw) seek += 24;
 
@@ -350,9 +349,25 @@ void CDROM_Interface_Image::CDAudioCallBack(Bitu len)
 		}
 	}
 	SDL_mutexV(player.mutex);
+	if (player.ctrlUsed) {
+		Bit16s sample0,sample1;
+		Bit16s * samples=(Bit16s *)&player.buffer;
+		for (Bitu pos=0;pos<len/4;pos++) {
 #if defined(WORDS_BIGENDIAN)
-	player.channel->AddSamples_s16_nonnative(len/4,(Bit16s *)player.buffer);
+			sample0=(Bit16s)host_readw((HostPt)&samples[pos*2+player.ctrlData.out[0]]);
+			sample1=(Bit16s)host_readw((HostPt)&samples[pos*2+player.ctrlData.out[1]]);
 #else
+			sample0=samples[pos*2+player.ctrlData.out[0]];
+			sample1=samples[pos*2+player.ctrlData.out[1]];
+#endif
+			samples[pos*2+0]=(Bit16s)(sample0*player.ctrlData.vol[0]/255.0);
+			samples[pos*2+1]=(Bit16s)(sample1*player.ctrlData.vol[1]/255.0);
+		}
+#if defined(WORDS_BIGENDIAN)
+		player.channel->AddSamples_s16(len/4,(Bit16s *)player.buffer);
+	} else	player.channel->AddSamples_s16_nonnative(len/4,(Bit16s *)player.buffer);
+#else
+	}
 	player.channel->AddSamples_s16(len/4,(Bit16s *)player.buffer);
 #endif
 	memmove(player.buffer, &player.buffer[len], player.bufLen - len);
@@ -652,7 +667,30 @@ bool CDROM_Interface_Image::GetRealFileName(string &filename, string &pathname)
 			return true;
 		}
 	}
-	
+#if defined (WIN32) || defined(OS2)
+	//Nothing
+#else
+	//Consider the possibility that the filename has a windows directory seperator (inside the CUE file) 
+	//which is common for some commercial rereleases of DOS games using DOSBox
+
+	string copy = filename;
+	size_t l = copy.size();
+	for (size_t i = 0; i < l;i++) {
+		if(copy[i] == '\\') copy[i] = '/';
+	}
+
+	if (stat(copy.c_str(), &test) == 0) {
+		filename = copy;
+		return true;
+	}
+
+	tmpstr = pathname + "/" + copy;
+	if (stat(tmpstr.c_str(), &test) == 0) {
+		filename = tmpstr;
+		return true;
+	}
+
+#endif
 	return false;
 }
 

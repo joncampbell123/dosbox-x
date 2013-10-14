@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: decoder.h,v 1.8 2009-10-18 17:52:10 c2woody Exp $ */
 
 
 #include "decoder_basic.h"
@@ -27,7 +26,7 @@
 
 /*
 	The function CreateCacheBlock translates the instruction stream
-	until either an unhandled instruction is found, the maximal
+	until either an unhandled instruction is found, the maximum
 	number of translated instructions is reached or some critical
 	instruction is encountered.
 */
@@ -242,7 +241,9 @@ restart_prefix:
 				case 0xbf:dyn_movx_ev_gw(true);break;
 
 				default:
-//					DYN_LOG("Unhandled dual opcode 0F%02X",dual_code);
+#if DYN_LOG
+//					LOG_MSG("Unhandled dual opcode 0F%02X",dual_code);
+#endif
 					goto illegalopcode;
 			}
 			break;
@@ -579,11 +580,13 @@ restart_prefix:
 			break;
 
 		default:
-//			DYN_LOG("Dynrec unhandled opcode %X",opcode);
+#if DYN_LOG
+//			LOG_MSG("Dynrec unhandled opcode %X",opcode);
+#endif
 			goto illegalopcode;
 		}
 	}
-	// link to next block because the maximal number of opcodes has been reached
+	// link to next block because the maximum number of opcodes has been reached
 	dyn_set_eip_end();
 	dyn_reduce_cycles();
 	gen_jmp_ptr(&decode.block->link[0].to,offsetof(CacheBlockDynRec,cache.start));

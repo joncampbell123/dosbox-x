@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: cross.h,v 1.21 2009-03-14 18:02:34 qbix79 Exp $ */
 
 #ifndef DOSBOX_CROSS_H
 #define DOSBOX_CROSS_H
@@ -36,6 +35,8 @@
 #define LONGTYPE(a) a##i64
 #define snprintf _snprintf
 #define vsnprintf _vsnprintf
+#define alloca _alloca
+#define putenv _putenv
 #else										/* LINUX / GCC */
 #include <dirent.h>
 #include <unistd.h>
@@ -74,6 +75,7 @@ public:
 	static void CreatePlatformConfigDir(std::string& in);
 	static void ResolveHomedir(std::string & temp_line);
 	static void CreateDir(std::string const& temp);
+	static bool IsPathAbsolute(std::string const& in);
 };
 
 

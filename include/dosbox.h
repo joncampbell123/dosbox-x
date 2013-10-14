@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,17 +16,16 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: dosbox.h,v 1.32 2009-05-27 09:15:41 qbix79 Exp $ */
 
 #ifndef DOSBOX_DOSBOX_H
 #define DOSBOX_DOSBOX_H
 
 #include "config.h"
 
-void E_Exit(const char * message,...) GCC_ATTRIBUTE( __format__(__printf__, 1, 2));
+GCC_ATTRIBUTE(noreturn) void E_Exit(const char * message,...) GCC_ATTRIBUTE( __format__(__printf__, 1, 2));
 
-void MSG_Add(const char*,const char*); //add messages to the internal langaugefile
-const char* MSG_Get(char const *);     //get messages from the internal langaugafile
+void MSG_Add(const char*,const char*); //add messages to the internal languagefile
+const char* MSG_Get(char const *);     //get messages from the internal languagefile
 
 class Section;
 
@@ -37,6 +36,11 @@ void DOSBOX_SetLoop(LoopHandler * handler);
 void DOSBOX_SetNormalLoop();
 
 void DOSBOX_Init(void);
+
+#ifdef __SSE__
+extern bool sse1_available;
+extern bool sse2_available;
+#endif
 
 class Config;
 extern Config * control;
@@ -62,11 +66,12 @@ enum SVGACards {
 extern SVGACards svgaCard;
 extern MachineType machine;
 extern bool SDLNetInited;
+extern bool mono_cga;
 
-#define IS_TANDY_ARCH ((machine==MCH_TANDY) || (machine==MCH_PCJR) || (machine==MCH_AMSTRAD))
+#define IS_TANDY_ARCH ((machine==MCH_TANDY) || (machine==MCH_PCJR))
 #define IS_EGAVGA_ARCH ((machine==MCH_EGA) || (machine==MCH_VGA))
 #define IS_VGA_ARCH (machine==MCH_VGA)
-#define TANDY_ARCH_CASE MCH_TANDY: case MCH_PCJR: case MCH_AMSTRAD
+#define TANDY_ARCH_CASE MCH_TANDY: case MCH_PCJR
 #define EGAVGA_ARCH_CASE MCH_EGA: case MCH_VGA
 #define VGA_ARCH_CASE MCH_VGA
 

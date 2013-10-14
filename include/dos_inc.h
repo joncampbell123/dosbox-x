@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: dos_inc.h,v 1.83 2009-10-28 21:45:12 qbix79 Exp $ */
 
 #ifndef DOSBOX_DOS_INC_H
 #define DOSBOX_DOS_INC_H
@@ -29,6 +28,8 @@
 #ifndef DOSBOX_MEM_H
 #include "mem.h"
 #endif
+
+#include <stddef.h> //for offsetof
 
 #ifdef _MSC_VER
 #pragma pack (1)
@@ -51,6 +52,27 @@ struct DOS_Version {
 	Bit8u major,minor,revision;
 };
 
+#ifndef MACOSX
+#if defined (__APPLE__)
+#define MACOSX 1
+#endif
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef signed char         INT8, *PINT8;
+typedef signed short        INT16, *PINT16;
+typedef signed int          INT32, *PINT32;
+//typedef signed __int64      INT64, *PINT64;
+typedef unsigned char       UINT8, *PUINT8;
+typedef unsigned short      UINT16, *PUINT16;
+typedef unsigned int        UINT32, *PUINT32;
+//typedef unsigned __int64    UINT64, *PUINT64;
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef _MSC_VER
 #pragma pack (1)
@@ -74,7 +96,8 @@ union bootSector {
 enum { MCB_FREE=0x0000,MCB_DOS=0x0008 };
 enum { RETURN_EXIT=0,RETURN_CTRLC=1,RETURN_ABORT=2,RETURN_TSR=3};
 
-#define DOS_FILES 127
+extern Bitu DOS_FILES;
+
 #define DOS_DRIVES 26
 #define DOS_DEVICES 10
 
@@ -88,14 +111,15 @@ enum { RETURN_EXIT=0,RETURN_CTRLC=1,RETURN_ABORT=2,RETURN_TSR=3};
 #define DOS_SDA_OFS 0
 #define DOS_CDS_SEG 0x108
 #define DOS_FIRST_SHELL 0x118
-#define DOS_MEM_START 0x16f		//First Segment that DOS can use
+#define DOS_MEM_START 0x158	 // regression to r3437 fixes nascar 2 colors
+//#define DOS_MEM_START 0x16f		//First Segment that DOS can use 
 
 #define DOS_PRIVATE_SEGMENT 0xc800
 #define DOS_PRIVATE_SEGMENT_END 0xd000
 
 /* internal Dos Tables */
 
-extern DOS_File * Files[DOS_FILES];
+extern DOS_File ** Files;
 extern DOS_Drive * Drives[DOS_DRIVES];
 extern DOS_Device * Devices[DOS_DEVICES];
 
@@ -114,11 +138,14 @@ void DOS_SetupFiles (void);
 bool DOS_ReadFile(Bit16u handle,Bit8u * data,Bit16u * amount);
 bool DOS_WriteFile(Bit16u handle,Bit8u * data,Bit16u * amount);
 bool DOS_SeekFile(Bit16u handle,Bit32u * pos,Bit32u type);
+/* ert, 20100711: Locking extensions */
+bool DOS_LockFile(Bit16u entry,Bit8u mode,Bit32u pos,Bit32u size);
 bool DOS_CloseFile(Bit16u handle);
 bool DOS_FlushFile(Bit16u handle);
 bool DOS_DuplicateEntry(Bit16u entry,Bit16u * newentry);
 bool DOS_ForceDuplicateEntry(Bit16u entry,Bit16u newentry);
 bool DOS_GetFileDate(Bit16u entry, Bit16u* otime, Bit16u* odate);
+bool DOS_SetFileDate(Bit16u entry, Bit16u ntime, Bit16u ndate);
 
 /* Routines for Drive Class */
 bool DOS_OpenFile(char const * name,Bit8u flags,Bit16u * entry);
@@ -178,8 +205,8 @@ bool DOS_FCBFindFirst(Bit16u seg,Bit16u offset);
 bool DOS_FCBFindNext(Bit16u seg,Bit16u offset);
 Bit8u DOS_FCBRead(Bit16u seg,Bit16u offset, Bit16u numBlocks);
 Bit8u DOS_FCBWrite(Bit16u seg,Bit16u offset,Bit16u numBlocks);
-Bit8u DOS_FCBRandomRead(Bit16u seg,Bit16u offset,Bit16u numRec,bool restore);
-Bit8u DOS_FCBRandomWrite(Bit16u seg,Bit16u offset,Bit16u numRec,bool restore);
+Bit8u DOS_FCBRandomRead(Bit16u seg,Bit16u offset,Bit16u * numRec,bool restore);
+Bit8u DOS_FCBRandomWrite(Bit16u seg,Bit16u offset,Bit16u * numRec,bool restore);
 bool DOS_FCBGetFileSize(Bit16u seg,Bit16u offset);
 bool DOS_FCBDeleteFile(Bit16u seg,Bit16u offset);
 bool DOS_FCBRenameFile(Bit16u seg, Bit16u offset);
@@ -224,6 +251,22 @@ static INLINE Bit16u DOS_PackTime(Bit16u hour,Bit16u min,Bit16u sec) {
 static INLINE Bit16u DOS_PackDate(Bit16u year,Bit16u mon,Bit16u day) {
 	return ((year-1980)&0x7f)<<9 | (mon&0x3f) << 5 | (day&0x1f);
 }
+
+/* fopen64, ftello64, fseeko64 */
+#if defined(__APPLE__)
+ #define fopen64 fopen
+ #define ftello64 ftell
+ #define fseeko64 fseek
+#elif defined (_MSC_VER)
+ #define fopen64 fopen
+ #if (_MSC_VER >= 1400)
+  #define ftello64 _ftelli64
+  #define fseeko64 _fseeki64
+ #else
+  #define ftello64 ftell
+  #define fseeko64 fseek
+ #endif
+#endif
 
 /* Dos Error Codes */
 #define DOSERR_NONE 0
@@ -508,6 +551,7 @@ public:
 	bool Extended(void);
 	void GetAttr(Bit8u & attr);
 	void SetAttr(Bit8u attr);
+	void SetResultAttr(Bit8u attr);
 	bool Valid(void);
 private:
 	bool extended;
@@ -607,6 +651,7 @@ extern DOS_InfoBlock dos_infoblock;
 
 struct DOS_Block {
 	DOS_Date date;
+	bool hostdate;
 	DOS_Version version;
 	Bit16u firstMCB;
 	Bit16u errorcode;
@@ -638,7 +683,7 @@ struct DOS_Block {
 
 extern DOS_Block dos;
 
-static Bit8u RealHandle(Bit16u handle) {
+static INLINE Bit8u RealHandle(Bit16u handle) {
 	DOS_PSP psp(dos.psp());	
 	return psp.GetFileHandle(handle);
 }

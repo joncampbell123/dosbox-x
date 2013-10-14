@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,8 +28,10 @@
 #include "pic.h"
 #include "dma.h"
 #include "hardware.h"
+#include "sn76496.h"
 #include <cstring>
 #include <math.h>
+#include "../save_state.h"
 
 #define MAX_OUTPUT 0x7fff
 #define STEP 0x10000
@@ -54,21 +56,6 @@ Hope that helps the System E stuff, more news on the PSG as and when!
 
 /* noise generator start preset (for periodic noise) */
 #define NG_PRESET 0x0f35
-
-
-struct SN76496 {
-	int SampleRate;
-	unsigned int UpdateStep;
-	int VolTable[16];	/* volume table         */
-	int Register[8];	/* registers */
-	int LastRegister;	/* last register written */
-	int Volume[4];		/* volume of voice 0-2 and noise */
-	unsigned int RNG;		/* noise generator      */
-	int NoiseFB;		/* noise feedback mask */
-	int Period[4];
-	int Count[4];
-	int Output[4];
-};
 
 static struct SN76496 sn;
 
@@ -99,16 +86,7 @@ static struct {
 	} dac;
 } tandy;
 
-
-static void SN76496Write(Bitu /*port*/,Bitu data,Bitu /*iolen*/) {
-	struct SN76496 *R = &sn;
-
-	tandy.last_write=PIC_Ticks;
-	if (!tandy.enabled) {
-		tandy.chan->Enable(true);
-		tandy.enabled=true;
-	}
-
+void SN76496Write(struct SN76496 *R,Bitu port,Bitu data) {
 	/* update the output buffer before changing the registers */
 
 	if (data & 0x80)
@@ -177,14 +155,8 @@ static void SN76496Write(Bitu /*port*/,Bitu data,Bitu /*iolen*/) {
 	}
 }
 
-static void SN76496Update(Bitu length) {
-	if ((tandy.last_write+5000)<PIC_Ticks) {
-		tandy.enabled=false;
-		tandy.chan->Enable(false);
-	}
+void SN76496Update(struct SN76496 *R, Bit16s *buffer, Bitu length) {
 	int i;
-	struct SN76496 *R = &sn;
-	Bit16s * buffer=(Bit16s *)MixTemp;
 
 	/* If the volume is 0, increase the counter */
 	for (i = 0;i < 4;i++)
@@ -270,14 +242,38 @@ static void SN76496Update(Bitu length) {
 
 		count--;
 	}
+}
+
+static void TandySN76496Write(Bitu port,Bitu data,Bitu iolen) {
+	struct SN76496 *R = &sn;
+ 
+	tandy.last_write=PIC_Ticks;
+	if (!tandy.enabled) {
+		tandy.chan->Enable(true);
+		tandy.enabled=true;
+	}
+
+	SN76496Write(R,port,data);
+}
+
+static void TandySN76496Update(Bitu length) {
+	struct SN76496 *R = &sn;
+
+	if ((tandy.last_write+5000)<PIC_Ticks) {
+		tandy.enabled=false;
+		tandy.chan->Enable(false);
+	}
+ 
+	Bit16s * buffer=(Bit16s *)MixTemp;
+	SN76496Update(R,buffer,length);
 	tandy.chan->AddSamples_m16(length,(Bit16s *)MixTemp);
 }
 
+static void TandyDACWrite(Bitu port,Bitu data,Bitu iolen) {
+	LOG_MSG("Write tandy dac %X val %X",port,data);
+}
 
-
-static void SN76496_set_clock(int clock) {
-	struct SN76496 *R = &sn;
-
+static void SN76496_set_clock(struct SN76496 *R, int clock) {
 	/* the base clock for the tone generators is the chip clock divided by 16; */
 	/* for the noise generator, it is clock / 256. */
 	/* Here we calculate the number of steps which happen during one sample */
@@ -288,8 +284,7 @@ static void SN76496_set_clock(int clock) {
 }
 
 
-static void SN76496_set_gain(int gain) {
-	struct SN76496 *R = &sn;
+static void SN76496_set_gain(struct SN76496 *R, int gain) {
 	int i;
 	double out;
 
@@ -312,7 +307,27 @@ static void SN76496_set_gain(int gain) {
 	R->VolTable[15] = 0;
 }
 
-
+void SN76496Reset(struct SN76496 *R, Bitu Clock, Bitu sample_rate) {
+	Bitu i;
+	R->SampleRate = sample_rate;
+	SN76496_set_clock(R,Clock);
+	for (i = 0;i < 4;i++) R->Volume[i] = 0;
+	R->LastRegister = 0;
+	for (i = 0;i < 8;i+=2)
+	{
+		R->Register[i] = 0;
+		R->Register[i + 1] = 0x0f;	/* volume = 0 */
+	}
+	
+	for (i = 0;i < 4;i++)
+	{
+		R->Output[i] = 0;
+		R->Period[i] = R->Count[i] = R->UpdateStep;
+	}
+	R->RNG = NG_PRESET;
+	R->Output[3] = R->RNG & 1;
+	SN76496_set_gain(R,0x1);
+}
 
 bool TS_Get_Address(Bitu& tsaddr, Bitu& tsirq, Bitu& tsdma) {
 	tsaddr=0;
@@ -372,66 +387,6 @@ static void TandyDACDMAEnabled(void) {
 }
 
 static void TandyDACDMADisabled(void) {
-}
-
-static void TandyDACWrite(Bitu port,Bitu data,Bitu /*iolen*/) {
-	switch (port) {
-	case 0xc4: {
-		Bitu oldmode = tandy.dac.mode;
-		tandy.dac.mode = (Bit8u)(data&0xff);
-		if ((data&3)!=(oldmode&3)) {
-			TandyDACModeChanged();
-		}
-		if (((data&0x0c)==0x0c) && ((oldmode&0x0c)!=0x0c)) {
-			TandyDACDMAEnabled();
-		} else if (((data&0x0c)!=0x0c) && ((oldmode&0x0c)==0x0c)) {
-			TandyDACDMADisabled();
-		}
-		}
-		break;
-	case 0xc5:
-		switch (tandy.dac.mode&3) {
-		case 0:
-			// joystick mode
-			break;
-		case 1:
-			tandy.dac.control = (Bit8u)(data&0xff);
-			break;
-		case 2:
-			break;
-		case 3:
-			// direct output
-			break;
-		}
-		break;
-	case 0xc6:
-		tandy.dac.frequency = tandy.dac.frequency & 0xf00 | (Bit8u)(data&0xff);
-		switch (tandy.dac.mode&3) {
-		case 0:
-			// joystick mode
-			break;
-		case 1:
-		case 2:
-		case 3:
-			TandyDACModeChanged();
-			break;
-		}
-		break;
-	case 0xc7:
-		tandy.dac.frequency = tandy.dac.frequency & 0x00ff | (((Bit8u)(data&0xf))<<8);
-		tandy.dac.amplitude = (Bit8u)(data>>5);
-		switch (tandy.dac.mode&3) {
-		case 0:
-			// joystick mode
-			break;
-		case 1:
-		case 2:
-		case 3:
-			TandyDACModeChanged();
-			break;
-		}
-		break;
-	}
 }
 
 static Bitu TandyDACRead(Bitu port,Bitu /*iolen*/) {
@@ -507,7 +462,7 @@ public:
 			CloseSecondDMAController();
 
 			if (enable_hw_tandy_dac) {
-				WriteHandler[2].Install(0x1e0,SN76496Write,IO_MB,2);
+				WriteHandler[2].Install(0x1e0,TandySN76496Write,IO_MB,2);
 				WriteHandler[3].Install(0x1e4,TandyDACWrite,IO_MB,4);
 //				ReadHandler[3].Install(0x1e4,TandyDACRead,IO_MB,4);
 			}
@@ -515,9 +470,9 @@ public:
 
 
 		Bit32u sample_rate = section->Get_int("tandyrate");
-		tandy.chan=MixerChan.Install(&SN76496Update,sample_rate,"TANDY");
+		tandy.chan=MixerChan.Install(&TandySN76496Update,sample_rate,"TANDY");
 
-		WriteHandler[0].Install(0xc0,SN76496Write,IO_MB,2);
+		WriteHandler[0].Install(0xc0,TandySN76496Write,IO_MB,2);
 
 		if (enable_hw_tandy_dac) {
 			// enable low-level Tandy DAC emulation
@@ -548,26 +503,7 @@ public:
 		tandy.enabled=false;
 		real_writeb(0x40,0xd4,0xff);	/* BIOS Tandy DAC initialization value */
 
-		Bitu i;
-		struct SN76496 *R = &sn;
-		R->SampleRate = sample_rate;
-		SN76496_set_clock(3579545);
-		for (i = 0;i < 4;i++) R->Volume[i] = 0;
-		R->LastRegister = 0;
-		for (i = 0;i < 8;i+=2)
-		{
-			R->Register[i] = 0;
-			R->Register[i + 1] = 0x0f;	/* volume = 0 */
-		}
-	
-		for (i = 0;i < 4;i++)
-		{
-			R->Output[i] = 0;
-			R->Period[i] = R->Count[i] = R->UpdateStep;
-		}
-		R->RNG = NG_PRESET;
-		R->Output[3] = R->RNG & 1;
-		SN76496_set_gain(0x1);
+		SN76496Reset( &sn, 3579545, sample_rate );
 	}
 	~TANDYSOUND(){ }
 };
@@ -584,3 +520,194 @@ void TANDYSOUND_Init(Section* sec) {
 	test = new TANDYSOUND(sec);
 	sec->AddDestroyFunction(&TANDYSOUND_ShutDown,true);
 }
+
+
+
+// save state support
+void *TandyDAC_DMA_CallBack_Func = (void*)TandyDAC_DMA_CallBack;
+
+
+void POD_Save_Tandy_Sound( std::ostream& stream )
+{
+	const char pod_name[32] = "Tandy";
+
+	if( stream.fail() ) return;
+	if( !test ) return;
+	if( !tandy.chan ) return;
+
+
+	WRITE_POD( &pod_name, pod_name );
+
+	//*******************************************
+	//*******************************************
+	//*******************************************
+
+	Bit8u dma_idx;
+
+
+	dma_idx = 0xff;
+	if( tandy.dac.chan ) {
+		for( int lcv=0; lcv<8; lcv++ ) {
+			if( tandy.dac.dma.chan == GetDMAChannel(lcv) ) { dma_idx = lcv; break; }
+		}
+	}
+
+	// *******************************************
+	// *******************************************
+
+	// - pure data
+	WRITE_POD( &sn, sn );
+
+
+	// - near-pure data
+	WRITE_POD( &tandy, tandy );
+
+	// *******************************************
+	// *******************************************
+
+	// - reloc ptr
+	WRITE_POD( &dma_idx, dma_idx );
+
+	// *******************************************
+	// *******************************************
+
+	tandy.chan->SaveState(stream);
+	if( tandy.dac.chan ) tandy.dac.chan->SaveState(stream);
+}
+
+
+void POD_Load_Tandy_Sound( std::istream& stream )
+{
+	char pod_name[32] = {0};
+
+	if( stream.fail() ) return;
+	if( !test ) return;
+	if( !tandy.chan ) return;
+
+
+	// error checking
+	READ_POD( &pod_name, pod_name );
+	if( strcmp( pod_name, "Tandy" ) ) {
+		stream.clear( std::istream::failbit | std::istream::badbit );
+		return;
+	}
+
+	//************************************************
+	//************************************************
+	//************************************************
+
+	Bit8u dma_idx;
+	MixerChannel *chan_old, *dac_chan_old;
+
+
+	// - save static ptrs
+	chan_old = tandy.chan;
+	dac_chan_old = tandy.dac.chan;
+
+	// *******************************************
+	// *******************************************
+
+	// - pure data
+	READ_POD( &sn, sn );
+
+
+	// - near-pure data
+	READ_POD( &tandy, tandy );
+
+	// *******************************************
+	// *******************************************
+
+	// - reloc ptr
+	READ_POD( &dma_idx, dma_idx );
+
+
+	tandy.dac.dma.chan = NULL;
+	if( dma_idx != 0xff ) tandy.dac.dma.chan = GetDMAChannel(dma_idx);
+
+	// *******************************************
+	// *******************************************
+
+	// - restore static ptrs
+	tandy.chan = chan_old;
+	tandy.dac.chan = dac_chan_old;
+
+
+	tandy.chan->LoadState(stream);
+	if( tandy.dac.chan ) tandy.dac.chan->LoadState(stream);
+}
+
+
+/*
+ykhwong svn-daum 2012-02-20
+
+
+static globals:
+
+
+static struct SN76496 sn;
+	// - pure data
+	int SampleRate;
+	unsigned int UpdateStep;
+	int VolTable[16];
+	int Register[8];
+	int LastRegister;
+	int Volume[4];
+	unsigned int RNG;
+	int NoiseFB;
+	int Period[4];
+	int Count[4];
+	int Output[4];
+
+
+static struct tandy:
+	// - static ptr (constructor) = mono
+	MixerChannel * chan;
+
+	// - pure data
+	bool enabled;
+	Bitu last_write;
+
+	struct {
+		// - static ptr (constructor) = mono
+		MixerChannel * chan;
+
+		// - pure data
+		bool enabled;
+		
+		// - pure data
+		struct {
+			Bitu base;
+			Bit8u irq,dma;
+		} hw;
+
+		// - near-pure data
+		struct {
+			Bitu rate;
+			Bit8u buf[TDAC_DMA_BUFSIZE];
+			Bit8u last_sample;
+
+			// - reloc ptr (!!!)
+			DmaChannel * chan;
+
+			bool transfer_done;
+		} dma;
+
+		// - pure data
+		Bit8u mode,control;
+		Bit16u frequency;
+		Bit8u amplitude;
+		bool irq_activated;
+	} dac;
+
+
+
+
+// - static ptr
+static TANDYSOUND* test;
+
+	// - static data (constructor)
+	IO_WriteHandleObject WriteHandler[4];
+	IO_ReadHandleObject ReadHandler[4];
+	MixerObject MixerChan;
+	MixerObject MixerChanDAC;
+*/

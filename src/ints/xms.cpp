@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,10 +16,10 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: xms.cpp,v 1.55 2009-05-27 09:15:42 qbix79 Exp $ */
 
 #include <stdlib.h>
 #include <string.h>
+#include <stddef.h>
 #include "dosbox.h"
 #include "callback.h"
 #include "mem.h"
@@ -29,6 +29,7 @@
 #include "inout.h"
 #include "xms.h"
 #include "bios.h"
+#include "../save_state.h"
 
 #define XMS_HANDLES							50		/* 50 XMS Memory Blocks */ 
 #define XMS_VERSION    						0x0300	/* version 3.00 */
@@ -415,6 +416,8 @@ Bitu XMS_Handler(void) {
 	return CBRET_NONE;
 }
 
+Bitu GetEMSType(Section_prop * section);
+
 class XMS: public Module_base {
 private:
 	CALLBACK_HandlerObject callbackhandler;
@@ -448,7 +451,8 @@ public:
 
 		/* Set up UMB chain */
 		umb_available=section->Get_bool("umb");
-		DOS_BuildUMBChain(section->Get_bool("umb"),section->Get_bool("ems"));
+		bool ems_available = GetEMSType(section)>0;
+		DOS_BuildUMBChain(section->Get_bool("umb"),ems_available);
 	}
 
 	~XMS(){
@@ -483,3 +487,18 @@ void XMS_Init(Section* sec) {
 	test = new XMS(sec);
 	sec->AddDestroyFunction(&XMS_ShutDown,true);
 }
+
+
+//save state support
+		namespace
+{
+class SerializeXMS : public SerializeGlobalPOD
+{
+public:
+    SerializeXMS() : SerializeGlobalPOD("XMS")
+    {
+        registerPOD(xms_handles);
+    }
+} dummy;
+}
+

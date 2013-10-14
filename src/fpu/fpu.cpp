@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: fpu.cpp,v 1.31 2009-09-16 18:01:53 qbix79 Exp $ */
 
 #include "dosbox.h"
 #if C_FPU
@@ -27,6 +26,7 @@
 #include "mem.h"
 #include "fpu.h"
 #include "cpu.h"
+#include "../save_state.h"
 
 FPU_rec fpu;
 
@@ -629,3 +629,17 @@ void FPU_Init(Section*) {
 }
 
 #endif
+
+
+//save state support
+namespace
+{
+class SerializeFpu : public SerializeGlobalPOD
+{
+public:
+    SerializeFpu() : SerializeGlobalPOD("FPU")
+    {
+        registerPOD(fpu);
+    }
+} dummy;
+}

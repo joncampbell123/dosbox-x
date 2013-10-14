@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: ipx.cpp,v 1.17 2009-05-27 09:15:41 qbix79 Exp $ */
 
 #include "dosbox.h"
 
@@ -936,7 +935,7 @@ public:
 			if(strcasecmp("startserver", temp_line.c_str()) == 0) {
 				if(!isIpxServer) {
 					if(incomingPacket.connected) {
-						WriteOut("IPX Tunneling Client alreadu connected to another server.  Disconnect first.\n");
+						WriteOut("IPX Tunneling Client already connected to another server.  Disconnect first.\n");
 						return;
 					}
 					bool startsuccess;
@@ -1197,5 +1196,10 @@ void IPX_Init(Section* sec) {
 
 //Initialize static members;
 Bit16u IPX::dospage = 0;
+
+
+// save state support
+void *IPX_AES_EventHandler_PIC_Event = (void*)IPX_AES_EventHandler;
+void *IPX_ClientLoop_PIC_Timer = (void*)IPX_ClientLoop;
 
 #endif

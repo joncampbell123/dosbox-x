@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: iohandler.cpp,v 1.30 2009-05-27 09:15:41 qbix79 Exp $ */
 
 #include <string.h>
 #include "dosbox.h"
@@ -25,6 +24,7 @@
 #include "cpu.h"
 #include "../src/cpu/lazyflags.h"
 #include "callback.h"
+#include "../save_state.h"
 
 //#define ENABLE_PORTLOG
 
@@ -45,7 +45,7 @@ static Bitu IO_ReadDefault(Bitu port,Bitu iolen) {
 		io_readhandlers[0][port]=IO_ReadBlocked;
 		return 0xff;
 	case 2:
-		return 
+		return
 			(io_readhandlers[0][port+0](port+0,1) << 0) |
 			(io_readhandlers[0][port+1](port+1,1) << 8);
 	case 4:
@@ -59,7 +59,7 @@ static Bitu IO_ReadDefault(Bitu port,Bitu iolen) {
 void IO_WriteDefault(Bitu port,Bitu val,Bitu iolen) {
 	switch (iolen) {
 	case 1:
-		LOG(LOG_IO,LOG_WARN)("Writing %02X to port %04X",val,port);		
+		LOG(LOG_IO,LOG_WARN)("Writing %02X to port %04X",val,port);
 		io_writehandlers[0][port]=IO_WriteBlocked;
 		break;
 	case 2:
@@ -116,12 +116,17 @@ void IO_ReadHandleObject::Install(Bitu port,IO_ReadHandler * handler,Bitu mask,B
 		m_mask=mask;
 		m_range=range;
 		IO_RegisterReadHandler(port,handler,mask,range);
-	} else E_Exit("IO_readHandler allready installed port %x",port);
+	} else E_Exit("IO_readHandler already installed port %x",port);
+}
+
+void IO_ReadHandleObject::Uninstall(){
+	if(!installed) return;
+	IO_FreeReadHandler(m_port,m_mask,m_range);
+	installed=false;
 }
 
 IO_ReadHandleObject::~IO_ReadHandleObject(){
-	if(!installed) return;
-	IO_FreeReadHandler(m_port,m_mask,m_range);
+	Uninstall();
 }
 
 void IO_WriteHandleObject::Install(Bitu port,IO_WriteHandler * handler,Bitu mask,Bitu range) {
@@ -131,12 +136,17 @@ void IO_WriteHandleObject::Install(Bitu port,IO_WriteHandler * handler,Bitu mask
 		m_mask=mask;
 		m_range=range;
 		IO_RegisterWriteHandler(port,handler,mask,range);
-	} else E_Exit("IO_writeHandler allready installed port %x",port);
+	} else E_Exit("IO_writeHandler already installed port %x",port);
+}
+
+void IO_WriteHandleObject::Uninstall() {
+	if(!installed) return;
+	IO_FreeWriteHandler(m_port,m_mask,m_range);
+	installed=false;
 }
 
 IO_WriteHandleObject::~IO_WriteHandleObject(){
-	if(!installed) return;
-	IO_FreeWriteHandler(m_port,m_mask,m_range);
+	Uninstall();
 	//LOG_MSG("FreeWritehandler called with port %X",m_port);
 }
 
@@ -151,13 +161,13 @@ static struct {
 	IOF_Entry entries[IOF_QUEUESIZE];
 } iof_queue;
 
-static Bits IOFaultCore(void) {
+Bits IOFaultCore(void) {
 	CPU_CycleLeft+=CPU_Cycles;
 	CPU_Cycles=1;
 	Bits ret=CPU_Core_Full_Run();
 	CPU_CycleLeft+=CPU_Cycles;
 	if (ret<0) E_Exit("Got a dosbox close machine in IO-fault core?");
-	if (ret) 
+	if (ret)
 		return ret;
 	if (!iof_queue.used) E_Exit("IO-faul Core without IO-faul");
 	IOF_Entry * entry=&iof_queue.entries[iof_queue.used-1];
@@ -187,7 +197,7 @@ inline void IO_USEC_read_delay_old() {
 inline void IO_USEC_write_delay_old() {
 	if(CPU_CycleMax > static_cast<Bit32s>((IODELAY_WRITE_MICROS*1000.0))) {
 		// this could be calculated whenever CPU_CycleMax changes
-		Bits delaycyc = static_cast<Bits>((CPU_CycleMax/1000)*IODELAY_WRITE_MICROS); 
+		Bits delaycyc = static_cast<Bits>((CPU_CycleMax/1000)*IODELAY_WRITE_MICROS);
 		if(CPU_Cycles > delaycyc) CPU_Cycles -= delaycyc;
 		else CPU_Cycles = 0;
 	}
@@ -205,7 +215,7 @@ inline void IO_USEC_read_delay() {
 }
 
 inline void IO_USEC_write_delay() {
-	Bits delaycyc = CPU_CycleMax/IODELAY_WRITE_MICROSk; 
+	Bits delaycyc = CPU_CycleMax/IODELAY_WRITE_MICROSk;
 	if(GCC_UNLIKELY(CPU_Cycles < 3*delaycyc)) delaycyc=0;
 	CPU_Cycles -= delaycyc;
 	CPU_IODelayRemoved += delaycyc;
@@ -328,7 +338,7 @@ void IO_WriteW(Bitu port,Bitu val) {
 		CPU_Push16(reg_ip);
 		Bit16u old_ax = reg_ax;
 		Bit16u old_dx = reg_dx;
-		reg_al = val;
+		reg_ax = val;
 		reg_dx = port;
 		RealPt icb = CALLBACK_RealPointer(call_priv_io);
 		SegSet16(cs,RealSeg(icb));
@@ -364,7 +374,7 @@ void IO_WriteD(Bitu port,Bitu val) {
 		CPU_Push16(reg_ip);
 		Bit32u old_eax = reg_eax;
 		Bit16u old_dx = reg_dx;
-		reg_al = val;
+		reg_eax = val;
 		reg_dx = port;
 		RealPt icb = CALLBACK_RealPointer(call_priv_io);
 		SegSet16(cs,RealSeg(icb));
@@ -406,7 +416,7 @@ Bitu IO_ReadB(Bitu port) {
 		iof_queue.used--;
 
 		retval = reg_al;
-		reg_dx = old_dx;		
+		reg_dx = old_dx;
 		memcpy(&lflags,&old_lflags,sizeof(LazyFlags));
 		cpudecoder=old_cpudecoder;
 		return retval;
@@ -443,7 +453,7 @@ Bitu IO_ReadW(Bitu port) {
 		iof_queue.used--;
 
 		retval = reg_ax;
-		reg_dx = old_dx;		
+		reg_dx = old_dx;
 		memcpy(&lflags,&old_lflags,sizeof(LazyFlags));
 		cpudecoder=old_cpudecoder;
 	}
@@ -479,7 +489,7 @@ Bitu IO_ReadD(Bitu port) {
 		iof_queue.used--;
 
 		retval = reg_eax;
-		reg_dx = old_dx;		
+		reg_dx = old_dx;
 		memcpy(&lflags,&old_lflags,sizeof(LazyFlags));
 		cpudecoder=old_cpudecoder;
 	} else {
@@ -511,4 +521,21 @@ void IO_Destroy(Section*) {
 void IO_Init(Section * sect) {
 	test = new IO(sect);
 	sect->AddDestroyFunction(&IO_Destroy);
+}
+
+
+//save state support
+namespace
+{
+class SerializeIO : public SerializeGlobalPOD
+{
+public:
+    SerializeIO() : SerializeGlobalPOD("IO handler")
+    {
+        //io_writehandlers -> quasi constant
+        //io_readhandlers  -> quasi constant
+
+        registerPOD(iof_queue.used); registerPOD(iof_queue.entries);
+    }
+} dummy;
 }

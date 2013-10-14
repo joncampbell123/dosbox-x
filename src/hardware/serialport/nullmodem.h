@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: nullmodem.h,v 1.4 2009-09-25 23:40:47 h-a-l-9000 Exp $ */
 
 // include guard
 #ifndef DOSBOX_NULLMODEM_WIN32_H
@@ -36,16 +35,8 @@
 
 class CNullModem : public CSerial {
 public:
-	TCPServerSocket* serversocket;
-	TCPClientSocket* clientsocket;
-
 	CNullModem(Bitu id, CommandLine* cmd);
 	~CNullModem();
-	bool receiveblock;		// It's not a block of data it rather blocks
-	Bit16u serverport;		// we are a server if this is nonzero
-	Bit16u clientport;
-
-	Bit8u hostnamebuffer[128]; // the name passed to us by the user
 
 	void updatePortConfig(Bit16u divider, Bit8u lcr);
 	void updateMSR();
@@ -57,6 +48,16 @@ public:
 	void setDTR(bool val);
 	void handleUpperEvent(Bit16u type);
 
+private:
+	TCPServerSocket* serversocket;
+	TCPClientSocket* clientsocket;
+
+	bool receiveblock;		// It's not a block of data it rather blocks
+	Bit16u serverport;		// we are a server if this is nonzero
+	Bit16u clientport;
+
+	Bit8u hostnamebuffer[128]; // the name passed to us by the user
+
 	Bitu rx_state;
 #define N_RX_IDLE		0
 #define N_RX_WAIT		1
@@ -65,10 +66,16 @@ public:
 #define N_RX_DISC		4
 
 	bool doReceive();
-	void ClientConnect();
+	bool ClientConnect(TCPClientSocket* newsocket);
+	bool ServerListen();
+	bool ServerConnect();
     void Disconnect();
 	Bits readChar();
 	void WriteChar(Bit8u data);
+
+	bool DTR_delta;		// with dtrrespect, we try to establish a connection
+						// whenever DTR switches to 1. This variable is
+						// used to remember the old state.
 
 	bool tx_block;		// true while the SERIAL_TX_REDUCTION event
 						// is pending

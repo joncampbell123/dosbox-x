@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: cross.cpp,v 1.7 2009-05-26 17:43:39 qbix79 Exp $ */
 
 #include "dosbox.h"
 #include "cross.h"
@@ -120,6 +119,19 @@ void Cross::CreateDir(std::string const& in) {
 #else
 	mkdir(in.c_str(),0700);
 #endif
+}
+
+bool Cross::IsPathAbsolute(std::string const& in) {
+	// Absolute paths
+#if defined (WIN32) || defined(OS2)
+	// drive letter
+	if (in.size() > 2 && in[1] == ':' ) return true;
+	// UNC path
+	else if (in.size() > 2 && in[0]=='\\' && in[1]=='\\') return true;
+#else
+	if (in.size() > 1 && in[0] == '/' ) return true;
+#endif
+	return false;
 }
 
 #if defined (WIN32)

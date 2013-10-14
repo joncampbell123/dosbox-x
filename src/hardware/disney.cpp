@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: disney.cpp,v 1.17 2009-05-14 17:04:37 qbix79 Exp $ */
 
 #include <string.h>
 #include "dosbox.h"
@@ -24,6 +23,9 @@
 #include "mixer.h"
 #include "pic.h"
 #include "setup.h"
+#include "bios.h"
+#include "mem.h"
+#include "../save_state.h"
 
 #define DISNEY_BASE 0x0378
 
@@ -70,11 +72,9 @@ static void DISNEY_disable(Bitu) {
 	if(disney.mo) {
 		disney.chan->AddSilence();
 		disney.chan->Enable(false);
-		delete disney.mo;
 	}
 	disney.leader = 0;
 	disney.last_used = 0;
-	disney.mo = 0;
 	disney.state = DS_IDLE;
 	disney.interface_det = 0;
 	disney.interface_det_ext = 0;
@@ -91,8 +91,7 @@ static void DISNEY_enable(Bitu freq) {
 		if(disney.stereo) LOG(LOG_MISC,LOG_NORMAL)("disney enable %d Hz, stereo",freq);
 		else LOG(LOG_MISC,LOG_NORMAL)("disney enable %d Hz, mono",freq);
 #endif
-		disney.mo = new MixerObject();
-		disney.chan=disney.mo->Install(&DISNEY_CallBack,freq,"DISNEY");
+		disney.chan->SetFreq(freq);
 		disney.chan->Enable(true);
 		disney.state = DS_RUNNING;
 	}
@@ -185,6 +184,7 @@ static void disney_write(Bitu port,Bitu val,Bitu iolen) {
 	disney.last_used=PIC_Ticks;
 	switch (port-DISNEY_BASE) {
 	case 0:		/* Data Port */
+	case 0x330-DISNEY_BASE:
 	{
 		disney.data=val;
 		// if data is written here too often without using the stereo
@@ -365,24 +365,34 @@ class DISNEY: public Module_base {
 private:
 	IO_ReadHandleObject ReadHandler;
 	IO_WriteHandleObject WriteHandler;
+	//FIXME: this conflicts with MPU-401, is this really needed? //IO_WriteHandleObject WriteHandler_cvm;
 	//MixerObject MixerChan;
 public:
 	DISNEY(Section* configuration):Module_base(configuration) {
 		Section_prop * section=static_cast<Section_prop *>(configuration);
 		if(!section->Get_bool("disney")) return;
+		if(mem_readw(BIOS_ADDRESS_LPT1) != 0) return;
+		BIOS_SetLPTPort(0,0x378);
 	
 		WriteHandler.Install(DISNEY_BASE,disney_write,IO_MB,3);
 		ReadHandler.Install(DISNEY_BASE,disney_read,IO_MB,3);
+		// see above //WriteHandler_cvm.Install(0x330,disney_write,IO_MB,1);
 	
 		disney.status=0x84;
 		disney.control=0;
 		disney.last_used=0;
 
-		disney.mo=0;
+		disney.mo = new MixerObject();
+		disney.chan=disney.mo->Install(&DISNEY_CallBack,10000,"DISNEY");
 		DISNEY_disable(0);
+
+
 	}
 	~DISNEY(){
+		BIOS_SetLPTPort(0,0);
 		DISNEY_disable(0);
+		if (disney.mo)
+			delete disney.mo;
 	}
 };
 
@@ -396,3 +406,166 @@ void DISNEY_Init(Section* sec) {
 	test = new DISNEY(sec);
 	sec->AddDestroyFunction(&DISNEY_ShutDown,true);
 }
+
+
+
+// save state support
+void *DISNEY_disable_PIC_Event = (void*)DISNEY_disable;
+
+
+void POD_Save_Disney( std::ostream& stream )
+{
+	const char pod_name[32] = "Disney";
+
+	if( stream.fail() ) return;
+	if( !test ) return;
+	if( !disney.chan ) return;
+
+
+	WRITE_POD( &pod_name, pod_name );
+
+	//************************************************
+	//************************************************
+	//************************************************
+
+	Bit8u dac_leader_idx;
+
+
+	dac_leader_idx = 0xff;
+	for( int lcv=0; lcv<2; lcv++ ) {
+		if( disney.leader == &disney.da[lcv] ) { dac_leader_idx = lcv; break; }
+	}
+
+	// *******************************************
+	// *******************************************
+
+	// - near-pure struct data
+	WRITE_POD( &disney, disney );
+
+	// *******************************************
+	// *******************************************
+
+	// - reloc ptr
+	WRITE_POD( &dac_leader_idx, dac_leader_idx );
+
+	// *******************************************
+	// *******************************************
+
+	disney.chan->SaveState(stream);
+}
+
+
+void POD_Load_Disney( std::istream& stream )
+{
+	char pod_name[32] = {0};
+
+	if( stream.fail() ) return;
+	if( !test ) return;
+	if( !disney.chan ) return;
+
+
+	// error checking
+	READ_POD( &pod_name, pod_name );
+	if( strcmp( pod_name, "Disney" ) ) {
+		stream.clear( std::istream::failbit | std::istream::badbit );
+		return;
+	}
+
+	//************************************************
+	//************************************************
+	//************************************************
+
+	Bit8u dac_leader_idx;
+	MixerObject *mo_old;
+	MixerChannel *chan_old;
+
+
+	// save old ptrs
+	mo_old = disney.mo;
+	chan_old = disney.chan;
+
+	// *******************************************
+	// *******************************************
+
+	// - near-pure struct data
+	READ_POD( &disney, disney );
+
+	// *******************************************
+	// *******************************************
+
+	// - reloc ptr
+	READ_POD( &dac_leader_idx, dac_leader_idx );
+
+
+	disney.leader = NULL;
+	if( dac_leader_idx != 0xff ) disney.leader = &disney.da[dac_leader_idx];
+
+	// *******************************************
+	// *******************************************
+
+	// restore old ptrs
+	disney.mo = mo_old;
+	disney.chan = chan_old;
+
+
+	disney.chan->LoadState(stream);
+}
+
+
+/*
+ykhwong svn-daum 2012-02-20
+
+
+static globals:
+
+
+static struct disney
+
+	// - pure data
+	Bit8u data;
+	Bit8u status;
+	Bit8u control;
+	dac_channel da[2];
+
+		// - pure data
+		Bit8u buffer[DISNEY_SIZE];
+		Bitu used;
+		double speedcheck_sum;
+		double speedcheck_last;
+		bool speedcheck_failed;
+		bool speedcheck_init;
+
+
+	// - pure data
+	Bitu last_used;
+
+
+	// - static 'new' ptrs
+	MixerObject * mo;
+	MixerChannel * chan;
+
+
+	// - pure data
+	bool stereo;
+
+
+	// - reloc ptr (!!!)
+	dac_channel* leader;
+
+
+	// - pure data
+	Bitu state;
+	Bitu interface_det;
+	Bitu interface_det_ext;
+
+
+
+// - static 'new' ptr
+static DISNEY* test;
+
+	// - static data
+	IO_ReadHandleObject ReadHandler;
+	IO_WriteHandleObject WriteHandler;
+	IO_WriteHandleObject WriteHandler_cvm;
+	//MixerObject MixerChan;
+*/

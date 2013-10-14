@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: dos_execute.cpp,v 1.68 2009-10-04 14:28:07 c2woody Exp $ */
 
 #include <string.h>
 #include <ctype.h>
@@ -89,14 +88,19 @@ static void RestoreRegisters(void) {
 	reg_sp+=18;
 }
 
-extern void GFX_SetTitle(Bit32s cycles,Bits frameskip,bool paused);
+extern void GFX_SetTitle(Bit32s cycles, Bits frameskip, Bits timing, bool paused);
 void DOS_UpdatePSPName(void) {
 	DOS_MCB mcb(dos.psp()-1);
 	static char name[9];
 	mcb.GetFileName(name);
+	name[8] = 0;
 	if (!strlen(name)) strcpy(name,"DOSBOX");
-	RunningProgram=name;
-	GFX_SetTitle(-1,-1,false);
+	for(Bitu i = 0;i < 8;i++) { //Don't put garbage in the title bar. Mac OS X doesn't like it
+		if (name[i] == 0) break;
+		if ( !isprint(*reinterpret_cast<unsigned char*>(&name[i])) ) name[i] = '?';
+	}
+	RunningProgram = name;
+	GFX_SetTitle(-1,-1,-1,false);
 }
 
 void DOS_Terminate(Bit16u pspseg,bool tsr,Bit8u exitcode) {
@@ -140,9 +144,9 @@ void DOS_Terminate(Bit16u pspseg,bool tsr,Bit8u exitcode) {
 		CPU_CycleLeft=0;
 		CPU_Cycles=0;
 		CPU_CycleMax=CPU_OldCycleMax;
-		GFX_SetTitle(CPU_OldCycleMax,-1,false);
+		GFX_SetTitle(CPU_OldCycleMax,-1,-1,false);
 	} else {
-		GFX_SetTitle(-1,-1,false);
+		GFX_SetTitle(-1,-1,-1,false);
 	}
 #if (C_DYNAMIC_X86) || (C_DYNREC)
 	if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CORE) {

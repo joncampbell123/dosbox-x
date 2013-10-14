@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,10 +16,10 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: dma.h,v 1.20 2009-07-24 09:56:14 c2woody Exp $ */
 
 #ifndef DOSBOX_DMA_H
 #define DOSBOX_DMA_H
+#include <fstream>
 
 enum DMAEvent {
 	DMA_REACHED_TC,
@@ -79,6 +79,9 @@ public:
 	}
 	Bitu Read(Bitu size, Bit8u * buffer);
 	Bitu Write(Bitu size, Bit8u * buffer);
+
+	void SaveState( std::ostream& stream );
+	void LoadState( std::istream& stream );
 };
 
 class DmaController {
@@ -107,6 +110,9 @@ public:
 	}
 	void WriteControllerReg(Bitu reg,Bitu val,Bitu len);
 	Bitu ReadControllerReg(Bitu reg,Bitu len);
+
+	void SaveState( std::ostream& stream );
+	void LoadState( std::istream& stream );
 };
 
 DmaChannel * GetDMAChannel(Bit8u chan);
@@ -114,6 +120,6 @@ DmaChannel * GetDMAChannel(Bit8u chan);
 void CloseSecondDMAController(void);
 bool SecondDMAControllerAvailable(void);
 
-static Bit32u dma_wrapping = 0xffff;
+void DMA_SetWrapping(Bitu wrap);
 
 #endif

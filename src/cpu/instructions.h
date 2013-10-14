@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -798,7 +798,7 @@
 	Bits res=((Bit16s)op2) * ((Bit16s)op3);					\
 	save(op1,res & 0xffff);									\
 	FillFlagsNoCFOF();										\
-	if ((res> -32768)  && (res<32767)) {					\
+	if ((res>= -32768)  && (res<=32767)) {					\
 		SETFLAGBIT(CF,false);SETFLAGBIT(OF,false);			\
 	} else {												\
 		SETFLAGBIT(CF,true);SETFLAGBIT(OF,true);			\
@@ -810,8 +810,8 @@
 	Bit64s res=((Bit64s)((Bit32s)op2))*((Bit64s)((Bit32s)op3));	\
 	save(op1,(Bit32s)res);									\
 	FillFlagsNoCFOF();										\
-	if ((res>-((Bit64s)(2147483647)+1)) &&					\
-		(res<(Bit64s)2147483647)) {							\
+	if ((res>=-((Bit64s)(2147483647)+1)) &&					\
+		(res<=(Bit64s)2147483647)) {						\
 		SETFLAGBIT(CF,false);SETFLAGBIT(OF,false);			\
 	} else {												\
 		SETFLAGBIT(CF,true);SETFLAGBIT(OF,true);			\

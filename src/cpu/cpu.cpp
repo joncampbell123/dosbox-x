@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,13 +16,14 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: cpu.cpp,v 1.116 2009-03-16 18:10:08 c2woody Exp $ */
 
 #include <assert.h>
 #include <sstream>
+#include <stddef.h>
 #include "dosbox.h"
 #include "cpu.h"
 #include "memory.h"
+#include "../save_state.h"
 #include "debug.h"
 #include "mapper.h"
 #include "setup.h"
@@ -30,9 +31,10 @@
 #include "paging.h"
 #include "lazyflags.h"
 #include "support.h"
+#include "control.h"
 
 Bitu DEBUG_EnableDebugger(void);
-extern void GFX_SetTitle(Bit32s cycles ,Bits frameskip,bool paused);
+extern void GFX_SetTitle(Bit32s cycles, Bits frameskip, Bits timing, bool paused);
 
 #if 1
 #undef LOG
@@ -48,8 +50,6 @@ CPU_Regs cpu_regs;
 CPUBlock cpu;
 Segments Segs;
 
-Bitu disable_cpuid = 0;
-
 Bit32s CPU_Cycles = 0;
 Bit32s CPU_CycleLeft = 3000;
 Bit32s CPU_CycleMax = 3000;
@@ -58,7 +58,10 @@ Bit32s CPU_CyclePercUsed = 100;
 Bit32s CPU_CycleLimit = -1;
 Bit32s CPU_CycleUp = 0;
 Bit32s CPU_CycleDown = 0;
+Bit32s CPU_CyclesSet = 3000;
+Bitu CPU_CyclesCur = 0;
 Bit64s CPU_IODelayRemoved = 0;
+char core_mode[16];
 CPU_Decoder * cpudecoder;
 bool CPU_CycleAutoAdjust = false;
 bool CPU_SkipCycleAutoAdjust = false;
@@ -66,7 +69,7 @@ Bitu CPU_AutoDetermineMode = 0;
 
 Bitu CPU_ArchitectureType = CPU_ARCHTYPE_MIXED;
 
-Bitu CPU_flag_id_toggle=0;
+Bitu CPU_extflags_toggle=0;	// ID and AC flags may be toggled depending on emulated CPU architecture
 
 Bitu CPU_PrefetchQueueSize=0;
 
@@ -132,7 +135,7 @@ void Descriptor:: Save(PhysPt address) {
 	Bit32u* data = (Bit32u*)&saved;
 	mem_writed(address,*data);
 	mem_writed(address+4,*(data+1));
-	cpu.mpl=03;
+	cpu.mpl=3;
 }
 
 
@@ -170,9 +173,18 @@ PhysPt SelBase(Bitu sel) {
 	}
 }
 
+void CPU_SetCPL(Bitu newcpl) {
+	if (newcpl != cpu.cpl) {
+		if (paging.enabled) {
+			if ( ((cpu.cpl < 3) && (newcpl == 3)) || ((cpu.cpl == 3) && (newcpl < 3)) )
+			PAGING_SwitchCPL(newcpl == 3);
+		}
+		cpu.cpl = newcpl;
+	}
+}
 
 void CPU_SetFlags(Bitu word,Bitu mask) {
-	mask|=CPU_flag_id_toggle;	// ID-flag can be toggled on cpuid-supporting CPUs
+	mask|=CPU_extflags_toggle;	// ID-flag and AC-flag can be toggled on CPUID-supporting CPUs
 	reg_flags=(reg_flags & ~mask)|(word & mask)|2;
 	cpu.direction=1-((reg_flags & FLAG_DF) >> 9);
 }
@@ -329,6 +341,10 @@ public:
 		is386=desc.Is386();
 		return true;
 	}
+
+	void SaveState( std::ostream& stream );
+	void LoadState( std::istream& stream );
+
 	TSS_Descriptor desc;
 	Bitu selector;
 	PhysPt base;
@@ -452,6 +468,9 @@ bool CPU_SwitchTask(Bitu new_tss_selector,TSwitchType tstype,Bitu old_eip) {
 	} else {
 	
 		/* Setup the new cr3 */
+		if (paging.cr3 != new_cr3)
+			// if they are the same it is not flushed
+			// according to the 386 manual
 		PAGING_SetDirBase(new_cr3);
 
 		/* Load new context */
@@ -476,13 +495,13 @@ bool CPU_SwitchTask(Bitu new_tss_selector,TSwitchType tstype,Bitu old_eip) {
 	if (reg_flags & FLAG_VM) {
 		SegSet16(cs,new_cs);
 		cpu.code.big=false;
-		cpu.cpl=3;			//We don't have segment caches so this will do
+		CPU_SetCPL(3);			//We don't have segment caches so this will do
 	} else {
 		/* Protected mode task */
 		if (new_ldt!=0) CPU_LLDT(new_ldt);
 		/* Load the new CS*/
 		Descriptor cs_desc;
-		cpu.cpl=new_cs & 3;
+		CPU_SetCPL(new_cs & 3);
 		if (!cpu.gdt.GetDescriptor(new_cs,cs_desc))
 			E_Exit("Task switch with CS beyond limits");
 		if (!cs_desc.saved.seg.p)
@@ -679,7 +698,7 @@ void CPU_Interrupt(Bitu num,Bitu type,Bitu oldeip) {
 							reg_sp=n_esp & 0xffff;
 						}
 
-						cpu.cpl=cs_dpl;
+						CPU_SetCPL(cs_dpl);
 						if (gate.Type() & 0x8) {	/* 32-bit Gate */
 							if (reg_flags & FLAG_VM) {
 								CPU_Push32(SegValue(gs));SegSet16(gs,0x0);
@@ -849,7 +868,7 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 
 				CPU_SetFlags(n_flags,FMASK_ALL | FLAG_VM);
 				DestroyConditionFlags();
-				cpu.cpl=3;
+				CPU_SetCPL(3);
 
 				CPU_SetSegGeneral(ss,n_ss);
 				CPU_SetSegGeneral(es,n_es);
@@ -970,7 +989,7 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 			CPU_SetFlags(n_flags,mask);
 			DestroyConditionFlags();
 
-			cpu.cpl=n_cs_rpl;
+			CPU_SetCPL(n_cs_rpl);
 			reg_eip=n_eip;
 
 			Segs.val[ss]=n_ss;
@@ -1219,7 +1238,7 @@ call_code:
 							reg_sp=n_esp & 0xffff;
 						}
 
-						cpu.cpl = n_cs_desc.DPL();
+						CPU_SetCPL(n_cs_desc.DPL());
 						Bit16u oldcs    = SegValue(cs);
 						/* Switch to new CS:EIP */
 						Segs.phys[cs]	= n_cs_desc.GetBase();
@@ -1442,7 +1461,7 @@ RET_same_level:
 				"RET:Stack segment not present",
 				EXCEPTION_SS,n_ss & 0xfffc)
 
-			cpu.cpl = rpl;
+			CPU_SetCPL(rpl);
 			Segs.phys[cs]=desc.GetBase();
 			cpu.code.big=desc.Big()>0;
 			Segs.val[cs]=(selector&0xfffc) | cpu.cpl;
@@ -1549,13 +1568,18 @@ void CPU_SET_CRX(Bitu cr,Bitu value) {
 	switch (cr) {
 	case 0:
 		{
+			value|=CR0_FPUPRESENT;
 			Bitu changed=cpu.cr0 ^ value;
 			if (!changed) return;
+			if (GCC_UNLIKELY(changed & CR0_WRITEPROTECT)) {
+				if (CPU_ArchitectureType >= CPU_ARCHTYPE_486OLD)
+					PAGING_SetWP((value&CR0_WRITEPROTECT)? true:false);
+			}
 			cpu.cr0=value;
 			if (value & CR0_PROTECTION) {
 				cpu.pmode=true;
 				LOG(LOG_CPU,LOG_NORMAL)("Protected mode");
-				PAGING_Enable((value & CR0_PAGING)>0);
+				PAGING_Enable((value&CR0_PAGING)? true:false);
 
 				if (!(CPU_AutoDetermineMode&CPU_AUTODETERMINE_MASK)) break;
 
@@ -1564,18 +1588,19 @@ void CPU_SET_CRX(Bitu cr,Bitu value) {
 					CPU_CycleLeft=0;
 					CPU_Cycles=0;
 					CPU_OldCycleMax=CPU_CycleMax;
-					GFX_SetTitle(CPU_CyclePercUsed,-1,false);
+					GFX_SetTitle(CPU_CyclePercUsed,-1,-1,false);
 					if(!printed_cycles_auto_info) {
 						printed_cycles_auto_info = true;
 						LOG_MSG("DOSBox switched to max cycles, because of the setting: cycles=auto. If the game runs too fast try a fixed cycles amount in DOSBox's options.");
 					}
 				} else {
-					GFX_SetTitle(-1,-1,false);
+					GFX_SetTitle(-1,-1,-1,false);
 				}
 #if (C_DYNAMIC_X86)
 				if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CORE) {
 					CPU_Core_Dyn_X86_Cache_Init(true);
 					cpudecoder=&CPU_Core_Dyn_X86_Run;
+					strcpy(core_mode, "dynamic");
 				}
 #elif (C_DYNREC)
 				if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CORE) {
@@ -1608,7 +1633,7 @@ bool CPU_WRITE_CRX(Bitu cr,Bitu value) {
 	/* Check if privileged to access control registers */
 	if (cpu.pmode && (cpu.cpl>0)) return CPU_PrepareException(EXCEPTION_GP,0);
 	if ((cr==1) || (cr>4)) return CPU_PrepareException(EXCEPTION_UD,0);
-	if (CPU_ArchitectureType<CPU_ARCHTYPE_486OLDSLOW) {
+	if (CPU_ArchitectureType<CPU_ARCHTYPE_486OLD) {
 		if (cr==4) return CPU_PrepareException(EXCEPTION_UD,0);
 	}
 	CPU_SET_CRX(cr,value);
@@ -1618,8 +1643,8 @@ bool CPU_WRITE_CRX(Bitu cr,Bitu value) {
 Bitu CPU_GET_CRX(Bitu cr) {
 	switch (cr) {
 	case 0:
-		if (CPU_ArchitectureType>=CPU_ARCHTYPE_PENTIUMSLOW) return cpu.cr0;
-		else if (CPU_ArchitectureType>=CPU_ARCHTYPE_486OLDSLOW) return (cpu.cr0 & 0xe005003f);
+		if (CPU_ArchitectureType>=CPU_ARCHTYPE_PENTIUM) return cpu.cr0;
+		else if (CPU_ArchitectureType>=CPU_ARCHTYPE_486OLD) return (cpu.cr0 & 0xe005003f);
 		else return (cpu.cr0 | 0x7ffffff0);
 	case 2:
 		return paging.cr2;
@@ -1657,7 +1682,7 @@ bool CPU_WRITE_DRX(Bitu dr,Bitu value) {
 		break;
 	case 5:
 	case 7:
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMSLOW) {
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUM) {
 			cpu.drx[7]=(value|0x400) & 0xffff2fff;
 		} else {
 			cpu.drx[7]=(value|0x400);
@@ -2010,7 +2035,7 @@ bool CPU_PopSeg(SegNames seg,bool use32) {
 }
 
 bool CPU_CPUID(void) {
-	if (CPU_ArchitectureType<CPU_ARCHTYPE_486NEWSLOW) return false;
+	if (CPU_ArchitectureType<CPU_ARCHTYPE_486NEW) return false;
 	switch (reg_eax) {
 	case 0:	/* Vendor ID String and maximum level? */
 		reg_eax=1;  /* Maximum level */ 
@@ -2019,17 +2044,22 @@ bool CPU_CPUID(void) {
 		reg_ecx='n' | ('t' << 8) | ('e' << 16) | ('l'<< 24); 
 		break;
 	case 1:	/* get processor type/family/model/stepping and feature flags */
-		if ((CPU_ArchitectureType==CPU_ARCHTYPE_486NEWSLOW) ||
+		if ((CPU_ArchitectureType==CPU_ARCHTYPE_486NEW) ||
 			(CPU_ArchitectureType==CPU_ARCHTYPE_MIXED)) {
 			reg_eax=0x402;		/* intel 486dx */
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
 			reg_edx=0x00000001;	/* FPU */
-		} else if (CPU_ArchitectureType==CPU_ARCHTYPE_PENTIUMSLOW) {
+		} else if (CPU_ArchitectureType==CPU_ARCHTYPE_PENTIUM) {
 			reg_eax=0x513;		/* intel pentium */
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
 			reg_edx=0x00000011;	/* FPU+TimeStamp/RDTSC */
+		} else if (CPU_ArchitectureType==CPU_ARCHTYPE_P55CSLOW) {
+			reg_eax=0x543;		/* intel pentium mmx (P55C) */
+			reg_ebx=0;			/* Not Supported */
+			reg_ecx=0;			/* No features */
+			reg_edx=0x00800011;	/* FPU+TimeStamp/RDTSC+MMX */
 		} else {
 			return false;
 		}
@@ -2050,6 +2080,7 @@ static Bits HLT_Decode(void) {
 	if (reg_eip!=cpu.hlt.eip || SegValue(cs) != cpu.hlt.cs) {
 		cpudecoder=cpu.hlt.old_decoder;
 	} else {
+		CPU_IODelayRemoved += CPU_Cycles;
 		CPU_Cycles=0;
 	}
 	return 0;
@@ -2057,6 +2088,7 @@ static Bits HLT_Decode(void) {
 
 void CPU_HLT(Bitu oldeip) {
 	reg_eip=oldeip;
+	CPU_IODelayRemoved += CPU_Cycles;
 	CPU_Cycles=0;
 	cpu.hlt.cs=SegValue(cs);
 	cpu.hlt.eip=reg_eip;
@@ -2097,13 +2129,13 @@ void CPU_ENTER(bool use32,Bitu bytes,Bitu level) {
 	reg_esp=(reg_esp&cpu.stack.notmask)|((sp_index)&cpu.stack.mask);
 }
 
-static void CPU_CycleIncrease(bool pressed) {
+void CPU_CycleIncrease(bool pressed) {
 	if (!pressed) return;
 	if (CPU_CycleAutoAdjust) {
 		CPU_CyclePercUsed+=5;
 		if (CPU_CyclePercUsed>105) CPU_CyclePercUsed=105;
 		LOG_MSG("CPU speed: max %d percent.",CPU_CyclePercUsed);
-		GFX_SetTitle(CPU_CyclePercUsed,-1,false);
+		GFX_SetTitle(CPU_CyclePercUsed,-1,-1,false);
 	} else {
 		Bit32s old_cycles=CPU_CycleMax;
 		if (CPU_CycleUp < 100) {
@@ -2114,15 +2146,19 @@ static void CPU_CycleIncrease(bool pressed) {
 	    
 		CPU_CycleLeft=0;CPU_Cycles=0;
 		if (CPU_CycleMax==old_cycles) CPU_CycleMax++;
-		if(CPU_CycleMax > 15000 ) 
+		if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES) {
+		    LOG_MSG("CPU:%d cycles (auto)",CPU_CycleMax);
+		} else {
+		    CPU_CyclesSet=CPU_CycleMax;
+		    if(CPU_CycleMax > 15000 )
 			LOG_MSG("CPU speed: fixed %d cycles. If you need more than 20000, try core=dynamic in DOSBox's options.",CPU_CycleMax);
-		else
-			LOG_MSG("CPU speed: fixed %d cycles.",CPU_CycleMax);
-		GFX_SetTitle(CPU_CycleMax,-1,false);
+			else LOG_MSG("CPU speed: fixed %d cycles.",CPU_CycleMax);
+		}
+		GFX_SetTitle(CPU_CycleMax,-1,-1,false);
 	}
 }
 
-static void CPU_CycleDecrease(bool pressed) {
+void CPU_CycleDecrease(bool pressed) {
 	if (!pressed) return;
 	if (CPU_CycleAutoAdjust) {
 		CPU_CyclePercUsed-=5;
@@ -2131,7 +2167,7 @@ static void CPU_CycleDecrease(bool pressed) {
 			LOG_MSG("CPU speed: max %d percent. If the game runs too fast, try a fixed cycles amount in DOSBox's options.",CPU_CyclePercUsed);
 		else
 			LOG_MSG("CPU speed: max %d percent.",CPU_CyclePercUsed);
-		GFX_SetTitle(CPU_CyclePercUsed,-1,false);
+		GFX_SetTitle(CPU_CyclePercUsed,-1,-1,false);
 	} else {
 		if (CPU_CycleDown < 100) {
 			CPU_CycleMax = (Bit32s)(CPU_CycleMax / (1 + (float)CPU_CycleDown / 100.0));
@@ -2140,9 +2176,85 @@ static void CPU_CycleDecrease(bool pressed) {
 		}
 		CPU_CycleLeft=0;CPU_Cycles=0;
 		if (CPU_CycleMax <= 0) CPU_CycleMax=1;
-		LOG_MSG("CPU speed: fixed %d cycles.",CPU_CycleMax);
-		GFX_SetTitle(CPU_CycleMax,-1,false);
+		if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES) {
+		    LOG_MSG("CPU:%d cycles (auto)",CPU_CycleMax);
+		} else {
+		    CPU_CyclesSet=CPU_CycleMax;
+		    LOG_MSG("CPU speed: fixed %d cycles.",CPU_CycleMax);
+		}
+		GFX_SetTitle(CPU_CycleMax,-1,-1,false);
 	}
+}
+
+static void CPU_ToggleAutoCycles(bool pressed) {
+    if (!pressed)
+	return;
+    Section* sec=control->GetSection("cpu");
+    if(sec) {
+	std::string tmp("cycles=");
+	sec->ExecuteDestroy(false);
+	if(CPU_CycleAutoAdjust) {
+	    std::ostringstream str;
+	    str << "fixed " << CPU_CyclesSet;
+	    tmp.append(str.str());
+	} else if(CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES) {
+	    tmp.append("max");
+	} else {
+	    tmp.append("auto");
+	}
+	sec->HandleInputline(tmp);
+	sec->ExecuteInit(false);
+    }
+}
+
+static void CPU_ToggleFullCore(bool pressed) {
+    if (!pressed)
+	return;
+    Section* sec=control->GetSection("cpu");
+    if(sec) {
+	std::string tmp="core=full";
+	sec->ExecuteDestroy(false);
+	sec->HandleInputline(tmp);
+	sec->ExecuteInit(false);
+    }
+}
+
+static void CPU_ToggleNormalCore(bool pressed) {
+    if (!pressed)
+	return;
+    Section* sec=control->GetSection("cpu");
+    if(sec) {
+	std::string tmp="core=normal";
+	sec->ExecuteDestroy(false);
+	sec->HandleInputline(tmp);
+	sec->ExecuteInit(false);
+    }
+}
+
+#if ((C_DYNAMIC_X86) || (C_DYNREC))
+static void CPU_ToggleDynamicCore(bool pressed) {
+    if (!pressed)
+	return;
+    Section* sec=control->GetSection("cpu");
+    if(sec) {
+	std::string tmp="core=dynamic";
+	sec->ExecuteDestroy(false);
+	sec->HandleInputline(tmp);
+	sec->ExecuteInit(false);
+    }
+}
+#endif
+
+static void CPU_ToggleSimpleCore(bool pressed) {
+    if (!pressed)
+	return;
+    Section* sec=control->GetSection("cpu");
+    std::string tmp="core=simple";
+    if(sec) {
+	sec->ExecuteDestroy(false);
+	sec->HandleInputline(tmp);
+	sec->ExecuteInit(false);
+    }
 }
 
 void CPU_Enable_SkipAutoAdjust(void) {
@@ -2210,7 +2322,7 @@ public:
 			cpu.drx[i]=0;
 			cpu.trx[i]=0;
 		}
-		if (CPU_ArchitectureType==CPU_ARCHTYPE_PENTIUMSLOW) {
+		if (CPU_ArchitectureType>=CPU_ARCHTYPE_PENTIUM) {
 			cpu.drx[6]=0xffff0ff0;
 		} else {
 			cpu.drx[6]=0xffff1ff0;
@@ -2228,6 +2340,13 @@ public:
 #endif
 		MAPPER_AddHandler(CPU_CycleDecrease,MK_f11,MMOD1,"cycledown","Dec Cycles");
 		MAPPER_AddHandler(CPU_CycleIncrease,MK_f12,MMOD1,"cycleup"  ,"Inc Cycles");
+		MAPPER_AddHandler(CPU_ToggleAutoCycles,MK_equals,MMOD1,"cycauto","Tog. Cycles Auto");
+		MAPPER_AddHandler(CPU_ToggleNormalCore,MK_1,MMOD1,"normal"  ,"Tog. Normal Core");
+		MAPPER_AddHandler(CPU_ToggleFullCore,MK_2,MMOD1,"full","Tog. Full Core");
+#if ((C_DYNAMIC_X86) || (C_DYNREC))
+		MAPPER_AddHandler(CPU_ToggleDynamicCore,MK_3,MMOD1,"dynamic","Tog. Dynamic Core");
+#endif
+		MAPPER_AddHandler(CPU_ToggleSimpleCore,MK_4,MMOD1,"simple","Tog. Simple Core");
 		Change_Config(configuration);	
 		CPU_JMP(false,0,0,0);					//Setup the first cpu core
 	}
@@ -2310,6 +2429,7 @@ public:
 				int rmdval=0;
 				stream >> rmdval;
 				if(rmdval) CPU_CycleMax=(Bit32s)rmdval;
+				if(rmdval) CPU_CyclesSet=(Bit32s)rmdval;
 			}
 			CPU_CycleAutoAdjust=false;
 		}
@@ -2318,6 +2438,8 @@ public:
 		CPU_CycleDown=section->Get_int("cycledown");
 		std::string core(section->Get_string("core"));
 		cpudecoder=&CPU_Core_Normal_Run;
+		safe_strncpy(core_mode,core.c_str(),15);
+		core_mode[15] = '\0';
 		if (core == "normal") {
 			cpudecoder=&CPU_Core_Normal_Run;
 		} else if (core =="simple") {
@@ -2343,7 +2465,11 @@ public:
 #else
 
 #endif
+		} else {
+			strcpy(core_mode,"normal");
+			LOG_MSG("CPU:Unknown core type %s, switching back to normal.",core.c_str());
 		}
+  
 
 #if (C_DYNAMIC_X86)
 		CPU_Core_Dyn_X86_Cache_Init((core == "dynamic") || (core == "dynamic_nodhfpu"));
@@ -2356,9 +2482,9 @@ public:
 		if (cputype == "auto") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_MIXED;
 		} else if (cputype == "386") {
-			CPU_ArchitectureType = CPU_ARCHTYPE_386FAST;
+			CPU_ArchitectureType = CPU_ARCHTYPE_386;
 		} else if (cputype == "386_prefetch") {
-			CPU_ArchitectureType = CPU_ARCHTYPE_386FAST;
+			CPU_ArchitectureType = CPU_ARCHTYPE_386;
 			if (core == "normal") {
 				cpudecoder=&CPU_Core_Prefetch_Run;
 				CPU_PrefetchQueueSize = 16;
@@ -2369,16 +2495,10 @@ public:
 			} else {
 				E_Exit("prefetch queue emulation requires the normal core setting.");
 			}
-		} else if (cputype == "386_slow") {
-			CPU_ArchitectureType = CPU_ARCHTYPE_386SLOW;
-		} else if (cputype == "486_slow_nocpuid") {
-			CPU_ArchitectureType = CPU_ARCHTYPE_486NEWSLOW;
-			fprintf(stderr,"Emulating CPUID-less 486\n");
-			disable_cpuid = 1;
-		} else if (cputype == "486_slow") {
-			CPU_ArchitectureType = CPU_ARCHTYPE_486NEWSLOW;
+		} else if (cputype == "486") {
+			CPU_ArchitectureType = CPU_ARCHTYPE_486NEW;
 		} else if (cputype == "486_prefetch") {
-			CPU_ArchitectureType = CPU_ARCHTYPE_486NEWSLOW;
+			CPU_ArchitectureType = CPU_ARCHTYPE_486NEW;
 			if (core == "normal") {
 				cpudecoder=&CPU_Core_Prefetch_Run;
 				CPU_PrefetchQueueSize = 32;
@@ -2389,22 +2509,22 @@ public:
 			} else {
 				E_Exit("prefetch queue emulation requires the normal core setting.");
 			}
-		} else if (cputype == "pentium_slow") {
-			CPU_ArchitectureType = CPU_ARCHTYPE_PENTIUMSLOW;
-		}
+		} else if (cputype == "pentium") {
+			CPU_ArchitectureType = CPU_ARCHTYPE_PENTIUM;
+		} else if (cputype == "pentium_mmx") {
+			CPU_ArchitectureType = CPU_ARCHTYPE_P55CSLOW;
+ 		}
 
-		if (CPU_ArchitectureType>=CPU_ARCHTYPE_486NEWSLOW && !disable_cpuid) CPU_flag_id_toggle=FLAG_ID;
-		else CPU_flag_id_toggle=0;
+		if (CPU_ArchitectureType>=CPU_ARCHTYPE_486NEW) CPU_extflags_toggle=(FLAG_ID|FLAG_AC);
+		else if (CPU_ArchitectureType>=CPU_ARCHTYPE_486OLD) CPU_extflags_toggle=(FLAG_AC);
+		else CPU_extflags_toggle=0;
 
-		if (CPU_ArchitectureType>=CPU_ARCHTYPE_486NEWSLOW) CPU_flag_id_toggle|=FLAG_AC;
-
-		fprintf(stderr,"ID toggleable flags 0x%08lX\n",CPU_flag_id_toggle);
 
 		if(CPU_CycleMax <= 0) CPU_CycleMax = 3000;
 		if(CPU_CycleUp <= 0)   CPU_CycleUp = 500;
 		if(CPU_CycleDown <= 0) CPU_CycleDown = 20;
-		if (CPU_CycleAutoAdjust) GFX_SetTitle(CPU_CyclePercUsed,-1,false);
-		else GFX_SetTitle(CPU_CycleMax,-1,false);
+		if (CPU_CycleAutoAdjust) GFX_SetTitle(CPU_CyclePercUsed,-1,-1,false);
+		else GFX_SetTitle(CPU_CycleMax,-1,-1,false);
 		return true;
 	}
 	~CPU(){ /* empty */};
@@ -2427,3 +2547,494 @@ void CPU_Init(Section* sec) {
 }
 //initialize static members
 bool CPU::inited=false;
+
+
+
+//save state support
+void DescriptorTable::SaveState( std::ostream& stream )
+{
+	WRITE_POD( &table_base, table_base );
+	WRITE_POD( &table_limit, table_limit );
+}
+
+
+void DescriptorTable::LoadState( std::istream& stream )
+{
+	READ_POD( &table_base, table_base );
+	READ_POD( &table_limit, table_limit );
+}
+
+
+void GDTDescriptorTable::SaveState(std::ostream& stream)
+{
+	this->DescriptorTable::SaveState(stream);
+
+
+	WRITE_POD( &ldt_base, ldt_base );
+	WRITE_POD( &ldt_limit, ldt_limit );
+	WRITE_POD( &ldt_value, ldt_value );
+}
+
+
+void GDTDescriptorTable::LoadState(std::istream& stream)
+{
+	this->DescriptorTable::LoadState(stream);
+
+
+	READ_POD( &ldt_base, ldt_base );
+	READ_POD( &ldt_limit, ldt_limit );
+	READ_POD( &ldt_value, ldt_value );
+}
+
+
+void TaskStateSegment::SaveState( std::ostream& stream )
+{
+	WRITE_POD( &desc.saved, desc.saved );
+	WRITE_POD( &selector, selector );
+	WRITE_POD( &base, base );
+	WRITE_POD( &limit, limit );
+	WRITE_POD( &is386, is386 );
+	WRITE_POD( &valid, valid );
+}
+
+
+void TaskStateSegment::LoadState( std::istream& stream )
+{
+	READ_POD( &desc.saved, desc.saved );
+	READ_POD( &selector, selector );
+	READ_POD( &base, base );
+	READ_POD( &limit, limit );
+	READ_POD( &is386, is386 );
+	READ_POD( &valid, valid );
+}
+
+
+Bit16u CPU_FindDecoderType( CPU_Decoder *decoder )
+{
+	Bit16u decoder_idx;
+
+	decoder_idx = 0xffff;
+
+
+	if(0) {}
+	else if( cpudecoder == &CPU_Core_Normal_Run ) decoder_idx = 0;
+	else if( cpudecoder == &CPU_Core_Prefetch_Run ) decoder_idx = 1;
+	else if( cpudecoder == &CPU_Core_Simple_Run ) decoder_idx = 2;
+	else if( cpudecoder == &CPU_Core_Full_Run ) decoder_idx = 3;
+	else if( cpudecoder == &CPU_Core_Dyn_X86_Run ) decoder_idx = 4;
+#if (C_DYNREC)
+	else if( cpudecoder == &CPU_Core_Dynrec_Run ) decoder_idx = 5;
+#endif
+
+	else if( cpudecoder == &CPU_Core_Normal_Trap_Run ) decoder_idx = 100;
+	else if( cpudecoder == &CPU_Core_Dyn_X86_Trap_Run ) decoder_idx = 101;
+#if(C_DYNREC)
+	else if( cpudecoder == &CPU_Core_Dynrec_Trap_Run ) decoder_idx = 102;
+#endif
+
+	else if( cpudecoder == &HLT_Decode ) decoder_idx = 200;
+
+
+	return decoder_idx;
+}
+
+
+CPU_Decoder *CPU_IndexDecoderType( Bit16u decoder_idx )
+{
+	CPU_Decoder *cpudecoder;
+
+
+	cpudecoder = 0;
+	switch( decoder_idx ) {
+		case 0: cpudecoder = &CPU_Core_Normal_Run; break;
+		case 1: cpudecoder = &CPU_Core_Prefetch_Run; break;
+		case 2: cpudecoder = &CPU_Core_Simple_Run; break;
+		case 3: cpudecoder = &CPU_Core_Full_Run; break;
+		case 4: cpudecoder = &CPU_Core_Dyn_X86_Run; break;
+#if (C_DYNREC)
+		case 5: cpudecoder = &CPU_Core_Dynrec_Run; break;
+#endif
+
+		case 100: cpudecoder = &CPU_Core_Normal_Trap_Run; break;
+		case 101: cpudecoder = &CPU_Core_Dyn_X86_Trap_Run; break;
+#if (C_DYNREC)
+		case 102: cpudecoder = &CPU_Core_Dynrec_Trap_Run; break;
+#endif
+
+		case 200: cpudecoder = &HLT_Decode; break;
+	}
+
+
+	return cpudecoder;
+}
+
+extern void POD_Save_CPU_Flags( std::ostream& stream );
+extern void POD_Save_CPU_MMX( std::ostream& stream );
+extern void POD_Save_CPU_Paging( std::ostream& stream );
+extern void POD_Load_CPU_Flags( std::istream& stream );
+extern void POD_Load_CPU_MMX( std::istream& stream );
+extern void POD_Load_CPU_Paging( std::istream& stream );
+extern void CPU_Core_Dyn_X86_Cache_Reset(void);
+
+namespace
+{
+class SerializeCPU : public SerializeGlobalPOD
+{
+public:
+	SerializeCPU() : SerializeGlobalPOD("CPU")
+	{}
+
+private:
+	virtual void getBytes(std::ostream& stream)
+	{
+		Bit16u decoder_idx;
+
+		extern Bits PageFaultCore(void);
+		extern Bits IOFaultCore(void);
+
+		decoder_idx = CPU_FindDecoderType( cpudecoder );
+
+		//********************************************
+		//********************************************
+		//********************************************
+
+		SerializeGlobalPOD::getBytes(stream);
+
+
+		// - pure data
+		WRITE_POD( &cpu_regs, cpu_regs );
+
+		WRITE_POD( &cpu.cpl, cpu.cpl );
+		WRITE_POD( &cpu.mpl, cpu.mpl );
+		WRITE_POD( &cpu.cr0, cpu.cr0 );
+		WRITE_POD( &cpu.pmode, cpu.pmode );
+		cpu.gdt.SaveState(stream);
+		cpu.idt.SaveState(stream);
+		WRITE_POD( &cpu.stack, cpu.stack );
+		WRITE_POD( &cpu.code, cpu.code );
+		WRITE_POD( &cpu.hlt.cs, cpu.hlt.cs );
+		WRITE_POD( &cpu.hlt.eip, cpu.hlt.eip );
+		WRITE_POD( &cpu.exception, cpu.exception );
+		WRITE_POD( &cpu.direction, cpu.direction );
+		WRITE_POD( &cpu.trap_skip, cpu.trap_skip );
+		WRITE_POD( &cpu.drx, cpu.drx );
+		WRITE_POD( &cpu.trx, cpu.trx );
+
+		WRITE_POD( &Segs, Segs );
+		WRITE_POD( &CPU_Cycles, CPU_Cycles );
+		WRITE_POD( &CPU_CycleLeft, CPU_CycleLeft );
+		WRITE_POD( &CPU_IODelayRemoved, CPU_IODelayRemoved );
+		cpu_tss.SaveState(stream);
+		WRITE_POD( &lastint, lastint );
+
+		//********************************************
+		//********************************************
+		//********************************************
+
+		// - reloc func ptr
+		WRITE_POD( &decoder_idx, decoder_idx );
+
+
+
+		POD_Save_CPU_Flags(stream);
+		POD_Save_CPU_MMX(stream);
+		POD_Save_CPU_Paging(stream);
+	}
+
+	virtual void setBytes(std::istream& stream)
+	{
+		Bit16u decoder_idx;
+		Bit16u decoder_old;
+
+		decoder_old = CPU_FindDecoderType( cpudecoder );
+
+		//********************************************
+		//********************************************
+		//********************************************
+
+		SerializeGlobalPOD::setBytes(stream);
+
+
+		// - pure data
+		READ_POD( &cpu_regs, cpu_regs );
+
+		READ_POD( &cpu.cpl, cpu.cpl );
+		READ_POD( &cpu.mpl, cpu.mpl );
+		READ_POD( &cpu.cr0, cpu.cr0 );
+		READ_POD( &cpu.pmode, cpu.pmode );
+		cpu.gdt.LoadState(stream);
+		cpu.idt.LoadState(stream);
+		READ_POD( &cpu.stack, cpu.stack );
+		READ_POD( &cpu.code, cpu.code );
+		READ_POD( &cpu.hlt.cs, cpu.hlt.cs );
+		READ_POD( &cpu.hlt.eip, cpu.hlt.eip );
+		READ_POD( &cpu.exception, cpu.exception );
+		READ_POD( &cpu.direction, cpu.direction );
+		READ_POD( &cpu.trap_skip, cpu.trap_skip );
+		READ_POD( &cpu.drx, cpu.drx );
+		READ_POD( &cpu.trx, cpu.trx );
+
+		READ_POD( &Segs, Segs );
+		READ_POD( &CPU_Cycles, CPU_Cycles );
+		READ_POD( &CPU_CycleLeft, CPU_CycleLeft );
+		READ_POD( &CPU_IODelayRemoved, CPU_IODelayRemoved );
+		cpu_tss.LoadState(stream);
+		READ_POD( &lastint, lastint );
+
+		//********************************************
+		//********************************************
+		//********************************************
+
+		// - reloc func ptr
+		READ_POD( &decoder_idx, decoder_idx );
+
+
+
+		POD_Load_CPU_Flags(stream);
+		POD_Load_CPU_MMX(stream);
+		POD_Load_CPU_Paging(stream);
+
+		//*******************************************
+		//*******************************************
+		//*******************************************
+
+		// switch to running core
+		if( decoder_idx < 100 ) {
+			switch( decoder_old ) {
+				// run -> run (0-99)
+
+				// trap -> run
+				case 100: cpudecoder = CPU_IndexDecoderType(0); break;
+				case 101: cpudecoder = CPU_IndexDecoderType(4); break;
+				case 102: cpudecoder = CPU_IndexDecoderType(5); break;
+
+				// hlt -> run
+				case 200: cpudecoder = cpu.hlt.old_decoder; break;
+			}
+		}
+
+		// switch to trap core
+		else if( decoder_idx < 200 ) {
+			switch( decoder_old ) {
+				// run -> trap
+				case 0:
+				case 1:
+				case 2:
+				case 3: cpudecoder = CPU_IndexDecoderType(100); break;
+				case 4: cpudecoder = CPU_IndexDecoderType(101); break;
+				case 5: cpudecoder = CPU_IndexDecoderType(102); break;
+
+				// trap -> trap (100-199)
+
+				// hlt -> trap
+				case 200: {
+					switch( CPU_FindDecoderType(cpu.hlt.old_decoder) ) {
+						case 0:
+						case 1:
+						case 2:
+						case 3: cpudecoder = CPU_IndexDecoderType(100); break;
+						case 4: cpudecoder = CPU_IndexDecoderType(101); break;
+						case 5: cpudecoder = CPU_IndexDecoderType(102); break;
+					}
+				}
+			}
+		}
+
+		// switch to hlt core
+		else if( decoder_idx < 300 ) {
+			cpu.hlt.old_decoder = cpudecoder;
+			cpudecoder = CPU_IndexDecoderType(200);
+		}
+
+
+
+		CPU_Core_Dyn_X86_Cache_Reset();
+	}
+} dummy;
+}
+
+
+
+/*
+ykhwong svn-daum 2012-02-20
+
+
+static globals:
+
+
+struct CPU_Regs cpu_regs;
+	// - pure data
+	union GenReg32 regs[8],ip;
+		Bit32u dword[1];
+		Bit16u word[2];
+		Bit8u byte[4];
+
+	Bitu flags;
+
+
+struct CPUBlock cpu;
+	// - pure data
+	Bitu cpl;
+	Bitu mpl;
+	Bitu cr0;
+	bool pmode;
+	
+
+	// - pure class data
+	class GDTDescriptorTable gdt;
+		PhysPt ldt_base;
+		Bitu ldt_limit;
+		Bitu ldt_value;
+	
+
+	// - pure class data
+	class DescriptorTable idt;
+		PhysPt table_base;
+		Bitu table_limit;
+
+
+	// - pure struct data
+	struct {
+		Bitu cr0_and;
+		Bitu cr0_or;
+		Bitu eflags;
+	} masks;
+
+
+	// - pure struct data
+	struct {
+		Bitu mask,notmask;
+		bool big;
+	} stack;
+
+
+	// - pure struct data
+	struct {
+		bool big;
+	} code;
+
+
+	struct {
+		// - pure data
+		Bitu cs,eip;
+
+		// - static reloc func ptr
+		CPU_Decoder * old_decoder;
+	} hlt;
+
+
+	// - pure struct data
+	struct {
+		Bitu which,error;
+	} exception;
+
+
+	// - pure data
+	Bits direction;
+	bool trap_skip;
+	Bit32u drx[8];
+	Bit32u trx[8];
+};
+
+
+// - pure struct data
+struct Segments Segs;
+	Bitu val[8];
+	PhysPt phys[8];
+
+
+// - pure data
+Bit32s CPU_Cycles = 0;
+Bit32s CPU_CycleLeft = 3000;
+
+// - system data
+Bit32s CPU_CycleMax = 3000;
+Bit32s CPU_OldCycleMax = 3000;
+Bit32s CPU_CyclePercUsed = 100;
+Bit32s CPU_CycleLimit = -1;
+Bit32s CPU_CycleUp = 0;
+Bit32s CPU_CycleDown = 0;
+Bit32s CPU_CyclesSet = 3000;
+
+// - pure data
+Bitu CPU_CyclesCur = 0;
+Bit64s CPU_IODelayRemoved = 0;
+
+
+// - system data
+char core_mode[16];
+
+// - system reloc func ptr
+CPU_Decoder * cpudecoder;
+
+// - system data
+bool CPU_CycleAutoAdjust = false;
+bool CPU_SkipCycleAutoAdjust = false;
+Bitu CPU_AutoDetermineMode = 0;
+Bitu CPU_ArchitectureType = CPU_ARCHTYPE_MIXED;
+Bitu CPU_extflags_toggle=0;
+Bitu CPU_PrefetchQueueSize=0;
+
+
+// - pure class data
+class TaskStateSegment cpu_tss
+
+	// - pure class data
+	class TSS_Descriptor desc;
+		union {
+			S_Descriptor seg;
+				Bit32u limit_0_15	:16;
+				Bit32u base_0_15	:16;
+				Bit32u base_16_23	:8;
+				Bit32u type			:5;
+				Bit32u dpl			:2;
+				Bit32u p			:1;
+				Bit32u limit_16_19	:4;
+				Bit32u avl			:1;
+				Bit32u r			:1;
+				Bit32u big			:1;
+				Bit32u g			:1;
+				Bit32u base_24_31	:8;
+
+			G_Descriptor gate;
+				Bit32u offset_0_15	:16;
+				Bit32u selector		:16;
+				Bit32u paramcount	:5;
+				Bit32u reserved		:3;
+				Bit32u type			:5;
+				Bit32u dpl			:2;
+				Bit32u p			:1;
+				Bit32u offset_16_31	:16;
+
+			Bit32u fill[2];
+		} saved;
+
+	// - pure data
+	Bitu selector;
+	PhysPt base;
+	Bitu limit;
+	Bitu is386;
+	bool valid;
+
+
+// - pure data
+Bit8u lastint;
+
+
+// - system data
+static bool printed_cycles_auto_info = false;
+
+
+// - static 'new' ptr
+static CPU * test
+	// - static data
+	static bool inited;
+
+	// - static class data
+	class CPU: public Module_base
+		Section* m_configuration;
+
+
+// - static data
+bool CPU::inited=false;
+*/

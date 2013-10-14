@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: int10_vesa.cpp,v 1.40 2009-07-31 15:36:01 c2woody Exp $ */
 
 #include <string.h>
 #include <stddef.h>
@@ -29,6 +28,13 @@
 #include "int10.h"
 #include "dos_inc.h"
 
+#define VESA_SUCCESS          0x00
+#define VESA_FAIL             0x01
+#define VESA_HW_UNSUPPORTED   0x02
+#define VESA_MODE_UNSUPPORTED 0x03
+// internal definition to pass to the caller
+#define VESA_UNIMPLEMENTED    0xFF
+
 static struct {
 	Bitu setwindow;
 	Bitu pmStart;
@@ -39,7 +45,7 @@ static struct {
 static char string_oem[]="S3 Incorporated. Trio64";
 static char string_vendorname[]="DOSBox Development Team";
 static char string_productname[]="DOSBox - The DOS Emulator";
-static char string_productrev[]="DOSBox "VERSION;
+static char string_productrev[]="DOSBox SVN-Daum";
 
 #ifdef _MSC_VER
 #pragma pack (1)
@@ -117,7 +123,7 @@ Bit8u VESA_GetSVGAInformation(Bit16u seg,Bit16u off) {
 	mem_writed(buffer+0x0a,0x0);					//Capabilities and flags
 	mem_writed(buffer+0x0e,int10.rom.vesa_modes);	//VESA Mode list
 	mem_writew(buffer+0x12,(Bit16u)(vga.vmemsize/(64*1024))); // memory size in 64kb blocks
-	return 0x00;
+	return VESA_SUCCESS;
 }
 
 Bit8u VESA_GetSVGAModeInformation(Bit16u mode,Bit16u seg,Bit16u off) {
@@ -136,14 +142,13 @@ Bit8u VESA_GetSVGAModeInformation(Bit16u mode,Bit16u seg,Bit16u off) {
 	while (ModeList_VGA[i].mode!=0xffff) {
 		if (mode==ModeList_VGA[i].mode) goto foundit; else i++;
 	}
-	return 0x01;
+	return VESA_FAIL;
 foundit:
 	if ((int10.vesa_oldvbe) && (ModeList_VGA[i].mode>=0x120)) return 0x01;
 	VideoModeBlock * mblock=&ModeList_VGA[i];
 	switch (mblock->type) {
 	case M_LIN4:
 		pageSize = mblock->sheight * mblock->swidth/2;
-		pageSize = (pageSize | 15) & ~ 15;
 		var_write(&minfo.BytesPerScanLine,mblock->swidth/8);
 		var_write(&minfo.NumberOfPlanes,0x4);
 		var_write(&minfo.BitsPerPixel,4);
@@ -152,7 +157,6 @@ foundit:
 		break;
 	case M_LIN8:
 		pageSize = mblock->sheight * mblock->swidth;
-		pageSize = (pageSize | 15) & ~ 15;
 		var_write(&minfo.BytesPerScanLine,mblock->swidth);
 		var_write(&minfo.NumberOfPlanes,0x1);
 		var_write(&minfo.BitsPerPixel,8);
@@ -162,7 +166,6 @@ foundit:
 		break;
 	case M_LIN15:
 		pageSize = mblock->sheight * mblock->swidth*2;
-		pageSize = (pageSize | 15) & ~ 15;
 		var_write(&minfo.BytesPerScanLine,mblock->swidth*2);
 		var_write(&minfo.NumberOfPlanes,0x1);
 		var_write(&minfo.BitsPerPixel,15);
@@ -180,7 +183,6 @@ foundit:
 		break;
 	case M_LIN16:
 		pageSize = mblock->sheight * mblock->swidth*2;
-		pageSize = (pageSize | 15) & ~ 15;
 		var_write(&minfo.BytesPerScanLine,mblock->swidth*2);
 		var_write(&minfo.NumberOfPlanes,0x1);
 		var_write(&minfo.BitsPerPixel,16);
@@ -196,7 +198,6 @@ foundit:
 		break;
 	case M_LIN32:
 		pageSize = mblock->sheight * mblock->swidth*4;
-		pageSize = (pageSize | 15) & ~ 15;
 		var_write(&minfo.BytesPerScanLine,mblock->swidth*4);
 		var_write(&minfo.NumberOfPlanes,0x1);
 		var_write(&minfo.BitsPerPixel,32);
@@ -212,36 +213,40 @@ foundit:
 		modeAttributes = 0x1b;	// Color, graphics
 		if (!int10.vesa_nolfb) modeAttributes |= 0x80;	// linear framebuffer
 		break;
-/*	case M_TEXT:
-		pageSize = mblock->sheight/8 * mblock->swidth*2/8;
-		pageSize = (pageSize | 15) & ~ 15;
-		var_write(&minfo.BytesPerScanLine,mblock->swidth*2/8);
+	case M_TEXT:
+		pageSize = 0;
+		var_write(&minfo.BytesPerScanLine, mblock->twidth * 2);
 		var_write(&minfo.NumberOfPlanes,0x4);
 		var_write(&minfo.BitsPerPixel,4);
-		var_write(&minfo.MemoryModel,0);	//Text
+		var_write(&minfo.MemoryModel,0);	// text
 		modeAttributes = 0x0f;	//Color, text, bios output
-		break; */
+		break;
 	default:
-		return 0x1;
+		return VESA_FAIL;
 	}
-	var_write(&minfo.WinAAttributes,0x7);	// Exists/readable/writable
-	
-	if(pageSize > vga.vmemsize) {
-		// Mode not supported by current hardware configuration
-		var_write(&minfo.ModeAttributes, modeAttributes & ~0x1);
-		var_write(&minfo.NumberOfImagePages,0);
-	} else {
-		var_write(&minfo.ModeAttributes, modeAttributes);
-		Bitu pages = (vga.vmemsize / pageSize)-1;
-		var_write(&minfo.NumberOfImagePages,pages);
+	if (pageSize & 0xFFFF) {
+		// It is documented that many applications assume 64k-aligned page sizes
+		// VBETEST is one of them
+		pageSize += 0x10000;
+		pageSize &= ~0xFFFF;
 	}
+	Bitu pages = 0;
+	if (pageSize > vga.vmemsize) {
+		// mode not supported by current hardware configuration
+		modeAttributes &= ~0x1;
+	} else if (pageSize) {
+		pages = (vga.vmemsize / pageSize)-1;
+	}
+	var_write(&minfo.NumberOfImagePages, pages);
+	var_write(&minfo.ModeAttributes, modeAttributes);
+	var_write(&minfo.WinAAttributes, 0x7);	// Exists/readable/writable
 
 	if (mblock->type==M_TEXT) {
 		var_write(&minfo.WinGranularity,32);
 		var_write(&minfo.WinSize,32);
 		var_write(&minfo.WinASegment,0xb800);
-		var_write(&minfo.XResolution,mblock->swidth/8);
-		var_write(&minfo.YResolution,mblock->sheight/8);
+		var_write(&minfo.XResolution,mblock->twidth);
+		var_write(&minfo.YResolution,mblock->theight);
 	} else {
 		var_write(&minfo.WinGranularity,64);
 		var_write(&minfo.WinSize,64);
@@ -257,46 +262,46 @@ foundit:
 	if (!int10.vesa_nolfb) var_write(&minfo.PhysBasePtr,S3_LFB_BASE);
 
 	MEM_BlockWrite(buf,&minfo,sizeof(MODE_INFO));
-	return 0x00;
+	return VESA_SUCCESS;
 }
 
 
 Bit8u VESA_SetSVGAMode(Bit16u mode) {
 	if (INT10_SetVideoMode(mode)) {
 		int10.vesa_setmode=mode&0x7fff;
-		return 0x00;
+		return VESA_SUCCESS;
 	}
-	return 0x01;
+	return VESA_FAIL;
 }
 
 Bit8u VESA_GetSVGAMode(Bit16u & mode) {
 	if (int10.vesa_setmode!=0xffff) mode=int10.vesa_setmode;
 	else mode=CurMode->mode;
-	return 0x00;
+	return VESA_SUCCESS;
 }
 
 Bit8u VESA_SetCPUWindow(Bit8u window,Bit8u address) {
-	if (window) return 0x1;
+	if (window) return VESA_FAIL;
 	if (((Bit32u)(address)*64*1024<vga.vmemsize)) {
 		IO_Write(0x3d4,0x6a);
 		IO_Write(0x3d5,(Bit8u)address);
-		return 0x0;
-	} else return 0x1;
+		return VESA_SUCCESS;
+	} else return VESA_FAIL;
 }
 
 Bit8u VESA_GetCPUWindow(Bit8u window,Bit16u & address) {
-	if (window) return 0x1;
+	if (window) return VESA_FAIL;
 	IO_Write(0x3d4,0x6a);
 	address=IO_Read(0x3d5);
-	return 0x0;
+	return VESA_SUCCESS;
 }
 
 
 Bit8u VESA_SetPalette(PhysPt data,Bitu index,Bitu count) {
 //Structure is (vesa 3.0 doc): blue,green,red,alignment
 	Bit8u r,g,b;
-	if (index>255) return 0x1;
-	if (index+count>256) return 0x1;
+	if (index>255) return VESA_FAIL;
+	if (index+count>256) return VESA_FAIL;
 	IO_Write(0x3c8,(Bit8u)index);
 	while (count) {
 		b = mem_readb(data++);
@@ -308,14 +313,14 @@ Bit8u VESA_SetPalette(PhysPt data,Bitu index,Bitu count) {
 		IO_Write(0x3c9,b);
 		count--;
 	}
-	return 0x00;
+	return VESA_SUCCESS;
 }
 
 
 Bit8u VESA_GetPalette(PhysPt data,Bitu index,Bitu count) {
 	Bit8u r,g,b;
-	if (index>255) return 0x1;
-	if (index+count>256) return 0x1;
+	if (index>255) return VESA_FAIL;
+	if (index+count>256) return VESA_FAIL;
 	IO_Write(0x3c7,(Bit8u)index);
 	while (count) {
 		r = IO_Read(0x3c9);
@@ -327,114 +332,182 @@ Bit8u VESA_GetPalette(PhysPt data,Bitu index,Bitu count) {
 		data++;
 		count--;
 	}
-	return 0x00;
+	return VESA_SUCCESS;
 }
 
+// maximum offset for the S3 Trio64 is 10 bits
+#define S3_MAX_OFFSET 0x3ff
 
 Bit8u VESA_ScanLineLength(Bit8u subcall,Bit16u val, Bit16u & bytes,Bit16u & pixels,Bit16u & lines) {
-	Bit8u bpp;
+	// offset register: virtual scanline length
+	Bitu pixels_per_offset;
+	Bitu bytes_per_offset = 8;
+	Bitu vmemsize = vga.vmemsize;
+	Bitu new_offset = vga.config.scan_len;
+	Bitu screen_height = CurMode->sheight;
+
 	switch (CurMode->type) {
+	case M_TEXT:
+		vmemsize = 0x8000;      // we have only the 32kB window here
+		screen_height = CurMode->theight;
+		pixels_per_offset = 16; // two characters each 8 pixels wide
+		bytes_per_offset = 4;   // 2 characters + 2 attributes
+		break;
 	case M_LIN4:
-		bpp = 1;
+		pixels_per_offset = 16;
 		break;
 	case M_LIN8:
-		bpp=1;
+		pixels_per_offset = 8;
 		break;
 	case M_LIN15:
 	case M_LIN16:
-		bpp=2;
+		pixels_per_offset = 4;
 		break;
 	case M_LIN32:
-		bpp=4;
+		pixels_per_offset = 2;
 		break;
 	default:
-		return 0x1;
+		return VESA_MODE_UNSUPPORTED;
 	}
 	switch (subcall) {
-	case 0x00:	/* Set in pixels */
-		if(CurMode->type==M_LIN4) vga.config.scan_len=val/2;
-		else vga.config.scan_len = (val * bpp);
+	case 0x00: // set scan length in pixels
+		new_offset = val / pixels_per_offset;
+		if (val % pixels_per_offset) new_offset++;
+		
+		if (new_offset > S3_MAX_OFFSET)
+			return VESA_HW_UNSUPPORTED; // scanline too long
+		vga.config.scan_len = new_offset;
+		VGA_CheckScanLength();
 		break;
-	case 0x02:	/* Set in bytes */
-		if(CurMode->type==M_LIN4) vga.config.scan_len = val*4;
-		else vga.config.scan_len = val;
+
+	case 0x01: // get current scanline length
+		// implemented at the end of this function
 		break;
-	case 0x03:	/* Get maximum */
-		bytes=0x400*4;
-		pixels=bytes/bpp;
-		lines = (Bit16u)(vga.vmemsize / bytes);
-		return 0x00;
-	case 0x01:	/* Get lengths */
+
+	case 0x02: // set scan length in bytes
+		new_offset = val / bytes_per_offset;
+		if (val % bytes_per_offset) new_offset++;
+		
+		if (new_offset > S3_MAX_OFFSET)
+			return VESA_HW_UNSUPPORTED; // scanline too long
+		vga.config.scan_len = new_offset;
+		VGA_CheckScanLength();
 		break;
+
+	case 0x03: // get maximum scan line length
+		// the smaller of either the hardware maximum scanline length or
+		// the limit to get full y resolution of this mode
+		new_offset = S3_MAX_OFFSET;
+		if ((new_offset * bytes_per_offset * screen_height) > vmemsize)
+			new_offset = vmemsize / (bytes_per_offset * screen_height);
+		break;
+
 	default:
-		return 0x1;			//Illegal call
+		return VESA_UNIMPLEMENTED;
 	}
-	if (subcall!=0x01) {
-		/* Write the scan line to video card the simple way */
-		if (vga.config.scan_len & 7)
-			vga.config.scan_len += 8;
-		vga.config.scan_len /= 8;
-	}
-	if(CurMode->type==M_LIN4) {
-		pixels=(vga.config.scan_len*16)/bpp;
-		bytes=vga.config.scan_len*2;
-		lines = (Bit16u)(vga.vmemsize /( bytes*4));
-	}
-	else {
-		pixels=(vga.config.scan_len*8)/bpp;
-		bytes=vga.config.scan_len*8;
-		lines = (Bit16u)(vga.vmemsize / bytes);
-	}
-	VGA_StartResize();
-	return 0x0;
+
+	// set up the return values
+	bytes = (Bit16u)(new_offset * bytes_per_offset);
+	pixels = (Bit16u)(new_offset * pixels_per_offset);
+	if (!bytes)
+		// return failure on division by zero
+		// some real VESA BIOS implementations may crash here
+		return VESA_FAIL;
+
+	lines = (Bit16u)(vmemsize / bytes);
+	
+	if (CurMode->type==M_TEXT)
+		lines *= CurMode->cheight;
+
+	return VESA_SUCCESS;
 }
 
 Bit8u VESA_SetDisplayStart(Bit16u x,Bit16u y) {
-	//TODO Maybe do things differently with lowres double line modes?	
-	Bitu start;
+	// TODO wait for retrace in case bl==0x80
+	Bitu pixels_per_offset;
+	Bitu panning_factor = 1;
+
 	switch (CurMode->type) {
+	case M_TEXT:
 	case M_LIN4:
-		start=vga.config.scan_len*16*y+x;
-		vga.config.display_start=start/8;
-		IO_Read(0x3da);
-		IO_Write(0x3c0,0x13+32);
-		IO_Write(0x3c0,start % 8);
+		pixels_per_offset = 16;
 		break;
 	case M_LIN8:
-		start=vga.config.scan_len*8*y+x;
-		vga.config.display_start=start/4;
-		IO_Read(0x3da);
-		IO_Write(0x3c0,0x13+32);
-		IO_Write(0x3c0,(start % 4)*2);
+		panning_factor = 2; // the panning register ignores bit0 in this mode
+		pixels_per_offset = 8;
 		break;
-	case M_LIN16:
 	case M_LIN15:
-		start=vga.config.scan_len*8*y+x*2;
-		vga.config.display_start=start/4;
+	case M_LIN16:
+		panning_factor = 2; // this may be DOSBox specific
+		pixels_per_offset = 4;
 		break;
 	case M_LIN32:
-		start=vga.config.scan_len*8*y+x*4;
-		vga.config.display_start=start/4;
+		pixels_per_offset = 2;
 		break;
 	default:
-		return 0x1;
+		return VESA_MODE_UNSUPPORTED;
 	}
-	return 0x00;
+	// We would have to divide y by the character height for text modes and
+	// write the remainder to the CRTC preset row scan register,
+	// but VBE2 BIOSes that actually get that far also don't.
+	// Only a VBE3 BIOS got it right.
+	Bitu virtual_screen_width = vga.config.scan_len * pixels_per_offset;
+	Bitu new_start_pixel = virtual_screen_width * y + x;
+	Bitu new_crtc_start = new_start_pixel / (pixels_per_offset/2);
+	Bitu new_panning = new_start_pixel % (pixels_per_offset/2);
+	new_panning *= panning_factor;
+
+	vga.config.display_start = new_crtc_start;
+	
+	// Setting the panning register is nice as it allows for super smooth
+	// scrolling, but if we hit the retrace pulse there may be flicker as
+	// panning and display start are latched at different times. 
+
+	IO_Read(0x3da);              // reset attribute flipflop
+	IO_Write(0x3c0,0x13 | 0x20); // panning register, screen on
+	IO_Write(0x3c0,new_panning);
+
+	return VESA_SUCCESS;
 }
 
 Bit8u VESA_GetDisplayStart(Bit16u & x,Bit16u & y) {
-	Bitu times=(vga.config.display_start*4)/(vga.config.scan_len*8);
-	Bitu rem=(vga.config.display_start*4) % (vga.config.scan_len*8);
-	Bitu pan=vga.config.pel_panning;
+	Bitu pixels_per_offset;
+	Bitu panning_factor = 1;
+
 	switch (CurMode->type) {
+	case M_TEXT:
+		pixels_per_offset = 16;
+		break;
+	case M_LIN4:
+		pixels_per_offset = 16;
+		break;
 	case M_LIN8:
-		y=(Bit16u)times;
-		x=(Bit16u)(rem+pan);
+		panning_factor = 2;
+		pixels_per_offset = 8;
+		break;
+	case M_LIN15:
+	case M_LIN16:
+		panning_factor = 2;
+		pixels_per_offset = 4;
+		break;
+	case M_LIN32:
+		pixels_per_offset = 2;
 		break;
 	default:
-		return 0x1;
+		return VESA_MODE_UNSUPPORTED;
 	}
-	return 0x00;
+
+	IO_Read(0x3da);              // reset attribute flipflop
+	IO_Write(0x3c0,0x13 | 0x20); // panning register, screen on
+	Bit8u panning = IO_Read(0x3c1);
+
+	Bitu virtual_screen_width = vga.config.scan_len * pixels_per_offset;
+	Bitu start_pixel = vga.config.display_start * (pixels_per_offset/2) 
+		+ panning / panning_factor;
+	
+	y = start_pixel / virtual_screen_width;
+	x = start_pixel % virtual_screen_width;
+	return VESA_SUCCESS;
 }
 
 static Bitu VESA_SetWindow(void) {
@@ -453,6 +526,10 @@ static Bitu VESA_PMSetPalette(void) {
 	return 0;
 }
 static Bitu VESA_PMSetStart(void) {
+	// This function is from VBE2 and directly sets the VGA
+	// display start address.
+
+	// TODO wait for retrace in case bl==0x80
 	Bit32u start = (reg_dx << 16) | reg_cx;
 	vga.config.display_start = start;
 	return 0;
@@ -508,7 +585,7 @@ void INT10_SetupVESA(void) {
 	int10.rom.pmode_interface_start = int10.rom.used - RealOff( int10.rom.pmode_interface );
 	phys_writew( Real2Phys(int10.rom.pmode_interface) + 2, int10.rom.pmode_interface_start);
 	callback.pmStart=CALLBACK_Allocate();
-	int10.rom.used += (Bit16u)CALLBACK_Setup(callback.pmStart, VESA_PMSetStart, CB_RETN, PhysMake(0xc000,int10.rom.used), "VESA PM Set Start");
+	int10.rom.used += (Bit16u)CALLBACK_Setup(callback.pmStart, VESA_PMSetStart, CB_VESA_START, PhysMake(0xc000,int10.rom.used), "VESA PM Set Start");
 	/* PM Set Palette call */
 	int10.rom.pmode_interface_palette = int10.rom.used - RealOff( int10.rom.pmode_interface );
 	phys_writew( Real2Phys(int10.rom.pmode_interface) + 4, int10.rom.pmode_interface_palette);

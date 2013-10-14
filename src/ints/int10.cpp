@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: int10.cpp,v 1.56 2009-09-06 19:25:34 c2woody Exp $ */
 
 #include "dosbox.h"
 #include "mem.h"
@@ -25,12 +24,14 @@
 #include "inout.h"
 #include "int10.h"
 #include "setup.h"
+#include "../save_state.h"
 
 Int10Data int10;
 static Bitu call_10;
 static bool warned_ff=false;
 
 static Bitu INT10_Handler(void) {
+	INT10_SetCurMode();
 #if 0
 	switch (reg_ah) {
 	case 0x02:
@@ -107,7 +108,9 @@ static Bitu INT10_Handler(void) {
 		INT10_ReadCharAttr(&reg_ax,reg_bh);
 		break;						
 	case 0x09:								/* Write Character & Attribute at cursor CX times */
-		INT10_WriteChar(reg_al,reg_bl,reg_bh,reg_cx,true);
+		if (real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE)==0x11)
+			INT10_WriteChar(reg_al,(reg_bl&0x80)|0x3f,reg_bh,reg_cx,true);
+		else INT10_WriteChar(reg_al,reg_bl,reg_bh,reg_cx,true);
 		break;
 	case 0x0A:								/* Write Character at cursor CX times */
 		INT10_WriteChar(reg_al,reg_bl,reg_bh,reg_cx,false);
@@ -138,8 +141,8 @@ static Bitu INT10_Handler(void) {
 		reg_ah=(Bit8u)real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
 		break;					
 	case 0x10:								/* Palette functions */
-		if ((machine==MCH_CGA) || ((!IS_VGA_ARCH) && (reg_al>0x02))) break;
-		//TODO: subfunction 0x03 for ega
+		if (!IS_EGAVGA_ARCH && (reg_al>0x02)) break;
+		else if (!IS_VGA_ARCH && (reg_al>0x03)) break;
 		switch (reg_al) {
 		case 0x00:							/* SET SINGLE PALETTE REGISTER */
 			INT10_SetSinglePaletteRegister(reg_bl,reg_bh);
@@ -163,7 +166,7 @@ static Bitu INT10_Handler(void) {
 			INT10_GetAllPaletteRegisters(SegPhys(es)+reg_dx);
 			break;
 		case 0x10:							/* SET INDIVIDUAL DAC REGISTER */
-			INT10_SetSingleDacRegister(reg_bl,reg_dh,reg_ch,reg_cl);
+			INT10_SetSingleDACRegister(reg_bl,reg_dh,reg_ch,reg_cl);
 			break;
 		case 0x12:							/* SET BLOCK OF DAC REGISTERS */
 			INT10_SetDACBlock(reg_bx,reg_cx,SegPhys(es)+reg_dx);
@@ -172,7 +175,7 @@ static Bitu INT10_Handler(void) {
 			INT10_SelectDACPage(reg_bl,reg_bh);
 			break;
 		case 0x15:							/* GET INDIVIDUAL DAC REGISTER */
-			INT10_GetSingleDacRegister(reg_bl,&reg_dh,&reg_ch,&reg_cl);
+			INT10_GetSingleDACRegister(reg_bl,&reg_dh,&reg_ch,&reg_cl);
 			break;
 		case 0x17:							/* GET BLOCK OF DAC REGISTER */
 			INT10_GetDACBlock(reg_bx,reg_cx,SegPhys(es)+reg_dx);
@@ -190,9 +193,11 @@ static Bitu INT10_Handler(void) {
 		case 0x1B:							/* PERFORM GRAY-SCALE SUMMING */
 			INT10_PerformGrayScaleSumming(reg_bx,reg_cx);
 			break;
-		case 0xF0:							/* ET4000: SET HiColor GRAPHICS MODE */
-		case 0xF1:							/* ET4000: GET DAC TYPE */
-		case 0xF2:							/* ET4000: CHECK/SET HiColor MODE */
+		case 0xF0: case 0xF1: case 0xF2: /* ET4000 Sierra HiColor DAC support */
+			if (svgaCard == SVGA_TsengET4K && svga.int10_extensions) {
+				svga.int10_extensions();
+				break;
+			}
 		default:
 			LOG(LOG_INT10,LOG_ERROR)("Function 10:Unhandled EGA/VGA Palette Function %2X",reg_al);
 			break;
@@ -209,11 +214,11 @@ static Bitu INT10_Handler(void) {
 			break;
 		case 0x01:			/* Load 8x14 font */
 		case 0x11:
-			INT10_LoadFont(Real2Phys(int10.rom.font_14),reg_al==0x11,256,0,0,14);
+			INT10_LoadFont(Real2Phys(int10.rom.font_14),reg_al==0x11,256,0,reg_bl,14);
 			break;
 		case 0x02:			/* Load 8x8 font */
 		case 0x12:
-			INT10_LoadFont(Real2Phys(int10.rom.font_8_first),reg_al==0x12,256,0,0,8);
+			INT10_LoadFont(Real2Phys(int10.rom.font_8_first),reg_al==0x12,256,0,reg_bl,8);
 			break;
 		case 0x03:			/* Set Block Specifier */
 			IO_Write(0x3c4,0x3);IO_Write(0x3c5,reg_bl);
@@ -221,7 +226,7 @@ static Bitu INT10_Handler(void) {
 		case 0x04:			/* Load 8x16 font */
 		case 0x14:
 			if (!IS_VGA_ARCH) break;
-			INT10_LoadFont(Real2Phys(int10.rom.font_16),reg_al==0x14,256,0,0,16);
+			INT10_LoadFont(Real2Phys(int10.rom.font_16),reg_al==0x14,256,0,reg_bl,16);
 			break;
 /* Graphics mode calls */
 		case 0x20:			/* Set User 8x8 Graphics characters */
@@ -302,13 +307,8 @@ graphics_chars:
 				break;
 			}
 			if ((reg_bh<=7) || (svgaCard==SVGA_TsengET4K)) {
-				if (machine==MCH_EGA) {
-					reg_cx=0x0e;
-					reg_dl=0x18;
-				} else {
-					reg_cx=real_readw(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
-					reg_dl=real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS);
-				}
+				reg_cx=real_readw(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
+				reg_dl=real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS);
 			}
 			break;
 		default:
@@ -379,7 +379,7 @@ graphics_chars:
 				reg_al=0x12;
 				break;	
 			}		
-		case 0x32:							/* Video adressing */
+		case 0x32:							/* Video addressing */
 			if (!IS_VGA_ARCH) break;
 			LOG(LOG_INT10,LOG_ERROR)("Function 12:Call %2X not handled",reg_bl);
 			if (svgaCard==SVGA_TsengET4K) reg_al&=1;
@@ -448,45 +448,8 @@ graphics_chars:
 		break;
 	case 0x1A:								/* Display Combination */
 		if (!IS_VGA_ARCH) break;
-		if (reg_al==0) {	// get dcc
-			// walk the tables...
-			RealPt vsavept=real_readd(BIOSMEM_SEG,BIOSMEM_VS_POINTER);
-			RealPt svstable=real_readd(RealSeg(vsavept),RealOff(vsavept)+0x10);
-			if (svstable) {
-				RealPt dcctable=real_readd(RealSeg(svstable),RealOff(svstable)+0x02);
-				Bit8u entries=real_readb(RealSeg(dcctable),RealOff(dcctable)+0x00);
-				Bit8u idx=real_readb(BIOSMEM_SEG,BIOSMEM_DCC_INDEX);
-				// check if index within range
-				if (idx<entries) {
-					Bit16u dccentry=real_readw(RealSeg(dcctable),RealOff(dcctable)+0x04+idx*2);
-					if ((dccentry&0xff)==0) reg_bx=dccentry>>8;
-					else reg_bx=dccentry;
-				} else reg_bx=0xffff;
-			} else reg_bx=0xffff;
-			reg_ax=0x1A;	// high part destroyed or zeroed depending on BIOS
-		} else if (reg_al==1) {	// set dcc
-			Bit8u newidx=0xff;
-			// walk the tables...
-			RealPt vsavept=real_readd(BIOSMEM_SEG,BIOSMEM_VS_POINTER);
-			RealPt svstable=real_readd(RealSeg(vsavept),RealOff(vsavept)+0x10);
-			if (svstable) {
-				RealPt dcctable=real_readd(RealSeg(svstable),RealOff(svstable)+0x02);
-				Bit8u entries=real_readb(RealSeg(dcctable),RealOff(dcctable)+0x00);
-				if (entries) {
-					Bitu ct;
-					Bit16u swpidx=reg_bh|(reg_bl<<8);
-					// search the ddc index in the dcc table
-					for (ct=0; ct<entries; ct++) {
-						Bit16u dccentry=real_readw(RealSeg(dcctable),RealOff(dcctable)+0x04+ct*2);
-						if ((dccentry==reg_bx) || (dccentry==swpidx)) {
-							newidx=(Bit8u)ct;
-							break;
-						}
-					}
-				}
-			}
-
-			real_writeb(BIOSMEM_SEG,BIOSMEM_DCC_INDEX,newidx);
+		if (reg_al<2) {
+			INT10_DisplayCombinationCode(&reg_bx,(reg_al==1));
 			reg_ax=0x1A;	// high part destroyed or zeroed depending on BIOS
 		}
 		break;
@@ -529,7 +492,8 @@ graphics_chars:
 		}
 		break;
 	case 0x4f:								/* VESA Calls */
-		if ((!IS_VGA_ARCH) || (svgaCard!=SVGA_S3Trio)) break;
+		if ((!IS_VGA_ARCH) || (svgaCard!=SVGA_S3Trio))
+			break;
 		switch (reg_al) {
 		case 0x00:							/* Get SVGA Information */
 			reg_al=0x4f;
@@ -590,6 +554,7 @@ graphics_chars:
 		case 0x07:
 			switch (reg_bl) {
 			case 0x80:						/* Set Display Start during retrace ?? */
+				LOG(LOG_INT10,LOG_ERROR)("Unhandled VESA Function %X Subfunction %X",reg_al,reg_bh);
 			case 0x00:						/* Set display Start */
 				reg_al=0x4f;
 				reg_ah=VESA_SetDisplayStart(reg_cx,reg_dx);
@@ -701,6 +666,9 @@ graphics_chars:
 	return CBRET_NONE;
 }
 
+#if defined(WIN32) && !(C_DEBUG)
+bool DISP2_Active(void);
+#endif
 static void INT10_Seg40Init(void) {
 	// the default char height
 	real_writeb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT,16);
@@ -709,7 +677,11 @@ static void INT10_Seg40Init(void) {
 	// Set the basic screen we have
 	real_writeb(BIOSMEM_SEG,BIOSMEM_SWITCHES,0xF9);
 	// Set the basic modeset options
-	real_writeb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL,0x51);
+#if defined(WIN32) && !(C_DEBUG)
+	real_writeb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL,0x10|(DISP2_Active()?0:1));
+#else
+	real_writeb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL,0x51); // why is display switching enabled (bit 6) ?
+#endif
 	// Set the  default MSR
 	real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,0x09);
 }
@@ -757,4 +729,28 @@ void INT10_Init(Section* /*sec*/) {
 	INT10_SetupVESA();
 	INT10_SetupRomMemoryChecksum();//SetupVesa modifies the rom as well.
 	INT10_SetVideoMode(0x3);
+}
+
+
+
+
+//save state support
+namespace
+{
+class SerializeInt10 : public SerializeGlobalPOD
+{
+public:
+    SerializeInt10() : SerializeGlobalPOD("Int10")
+    {
+        registerPOD(int10);
+        //registerPOD(CurMode);
+        //registerPOD(call_10);
+        //registerPOD(warned_ff);
+    }
+
+	 //   virtual void setBytes(std::istream& stream)
+    //{
+      //  SerializeGlobalPOD::setBytes(stream);
+		//}
+} dummy;
 }

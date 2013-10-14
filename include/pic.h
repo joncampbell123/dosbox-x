@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,11 +29,7 @@ typedef void (PIC_EOIHandler) (void);
 typedef void (* PIC_EventHandler)(Bitu val);
 
 
-#define PIC_MAXIRQ 15
-#define PIC_NOIRQ 0xFF
-
 extern Bitu PIC_IRQCheck;
-extern Bitu PIC_IRQActive;
 extern Bitu PIC_Ticks;
 
 static INLINE float PIC_TickIndex(void) {

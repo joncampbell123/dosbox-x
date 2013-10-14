@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@ CDROM_Interface_Ioctl::CDROM_Interface_Ioctl(void) : CDROM_Interface_SDL()
 bool CDROM_Interface_Ioctl::GetUPC(unsigned char& attr, char* upc)
 {
 	int cdrom_fd = open(device_name, O_RDONLY | O_NONBLOCK);
-	if (cdrom_fd <= 0) return false;
+	if (cdrom_fd == -1) return false;
 	
 	struct cdrom_mcn cdrom_mcn;
 	int ret = ioctl(cdrom_fd, CDROM_GET_MCN, &cdrom_mcn);
@@ -55,7 +55,7 @@ bool CDROM_Interface_Ioctl::GetUPC(unsigned char& attr, char* upc)
 bool CDROM_Interface_Ioctl::ReadSectors(PhysPt buffer, bool raw, unsigned long sector, unsigned long num)
 {
 	int cdrom_fd = open(device_name, O_RDONLY | O_NONBLOCK);
-	if (cdrom_fd <= 0) return false;
+	if (cdrom_fd == -1) return false;
 	
 	Bits buflen = raw ? num * CD_FRAMESIZE_RAW : num * CD_FRAMESIZE;
 	Bit8u* buf = new Bit8u[buflen];	

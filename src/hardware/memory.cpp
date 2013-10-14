@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: memory.cpp,v 1.56 2009-05-27 09:15:41 qbix79 Exp $ */
 
 #include <stdint.h>
 #include "dosbox.h"
@@ -25,12 +24,15 @@
 #include "setup.h"
 #include "paging.h"
 #include "regs.h"
-
 #ifndef WIN32
 # include <stdlib.h>
 # include <unistd.h>
 # include <stdio.h>
 #endif
+#include "glidedef.h"
+#include "../save_state.h"
+
+#include "voodoo.h"
 
 #include <string.h>
 
@@ -68,31 +70,35 @@ static struct MemoryBlock {
 
 HostPt MemBase;
 
+namespace
+{
+size_t memorySize;
+}
+
+
 class IllegalPageHandler : public PageHandler {
 public:
-	IllegalPageHandler() {
-		flags=PFLAG_INIT|PFLAG_NOCODE;
-	}
+	IllegalPageHandler() : PageHandler(PFLAG_INIT|PFLAG_NOCODE) {}
 	Bitu readb(PhysPt addr) {
 #if C_DEBUG
-		LOG_MSG("Illegal read from %x, CS:IP %8x:%8x",addr,SegValue(cs),reg_eip);
+		LOG_MSG("Warning: Illegal read from %x, CS:IP %8x:%8x",addr,SegValue(cs),reg_eip);
 #else
 		static Bits lcount=0;
 		if (lcount<1000) {
 			lcount++;
-			LOG_MSG("Illegal read from %x, CS:IP %8x:%8x",addr,SegValue(cs),reg_eip);
+			//LOG_MSG("Warning: Illegal read from %x, CS:IP %8x:%8x",addr,SegValue(cs),reg_eip);
 		}
 #endif
 		return 0xFF; /* Real hardware returns 0xFF not 0x00 */
 	} 
 	void writeb(PhysPt addr,Bitu val) {
 #if C_DEBUG
-		LOG_MSG("Illegal write to %x, CS:IP %8x:%8x",addr,SegValue(cs),reg_eip);
+		LOG_MSG("Warning: Illegal write to %x, CS:IP %8x:%8x",addr,SegValue(cs),reg_eip);
 #else
 		static Bits lcount=0;
 		if (lcount<1000) {
 			lcount++;
-			LOG_MSG("Illegal write to %x, CS:IP %8x:%8x",addr,SegValue(cs),reg_eip);
+			//LOG_MSG("Warning: Illegal write to %x, CS:IP %8x:%8x",addr,SegValue(cs),reg_eip);
 		}
 #endif
 	}
@@ -100,9 +106,8 @@ public:
 
 class RAMPageHandler : public PageHandler {
 public:
-	RAMPageHandler() {
-		flags=PFLAG_READABLE|PFLAG_WRITEABLE;
-	}
+	RAMPageHandler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE) {}
+	RAMPageHandler(Bitu flags) : PageHandler(flags) {}
 	HostPt GetHostReadPt(Bitu phys_page) {
 		return MemBase+phys_page*MEM_PAGESIZE;
 	}
@@ -165,6 +170,10 @@ PageHandler * MEM_GetPageHandler(Bitu phys_page) {
 	} else if ((phys_page>=memory.lfb.start_page+0x01000000/4096) &&
 				(phys_page<memory.lfb.start_page+0x01000000/4096+16)) {
 		return memory.lfb.mmiohandler;
+	} else if (glide.enabled && (phys_page>=(GLIDE_LFB>>12)) && (phys_page<(GLIDE_LFB>>12)+GLIDE_PAGES)) {
+		return (PageHandler*)glide.lfb_pagehandler;
+	} else if (!glide.enabled && VOODOO_PCI_CheckLFBPage(phys_page)) {
+		return VOODOO_GetPageHandler();
 	}
 	return &illegal_page_handler;
 }
@@ -215,8 +224,50 @@ void MEM_BlockRead(PhysPt pt,void * data,Bitu size) {
 
 void MEM_BlockWrite(PhysPt pt,void const * const data,Bitu size) {
 	Bit8u const * read = reinterpret_cast<Bit8u const * const>(data);
+	if (size==0)
+		return;
+
+	if ((pt >> 12) == ((pt+size-1)>>12)) { // Always same TLB entry
+		HostPt tlb_addr=get_tlb_write(pt);
+		if (!tlb_addr) {
+			Bit8u val = *read++;
+			get_tlb_writehandler(pt)->writeb(pt,val);
+			tlb_addr=get_tlb_write(pt);
+			pt++; size--;
+			if (!tlb_addr) {
+				// Slow path
+				while (size--) {
+					mem_writeb_inline(pt++,*read++);
+				}
+				return;
+			}
+		}
+		// Fast path
+		memcpy(tlb_addr+pt, read, size);
+	}
+	else {
+		const Bitu current = (((pt>>12)+1)<<12) - pt;
+		Bitu remainder = size - current;
+		MEM_BlockWrite(pt, data, current);
+		MEM_BlockWrite(pt+current, reinterpret_cast<Bit8u const * const>(data)+current, remainder);
+	}
+}
+
+void MEM_BlockRead32(PhysPt pt,void * data,Bitu size) {
+	Bit32u * write=(Bit32u *) data;
+	size>>=2;
 	while (size--) {
-		mem_writeb_inline(pt++,*read++);
+		*write++=mem_readd_inline(pt);
+		pt+=4;
+	}
+}
+
+void MEM_BlockWrite32(PhysPt pt,void * data,Bitu size) {
+	Bit32u * read=(Bit32u *) data;
+	size>>=2;
+	while (size--) {
+		mem_writed_inline(pt,*read++);
+		pt+=4;
 	}
 }
 
@@ -456,15 +507,17 @@ void MEM_A20_Enable(bool enabled) {
 
 /* Memory access functions */
 Bit16u mem_unalignedreadw(PhysPt address) {
-	return mem_readb_inline(address) |
-		mem_readb_inline(address+1) << 8;
+	Bit16u ret = mem_readb_inline(address);
+	ret       |= mem_readb_inline(address+1) << 8;
+	return ret;
 }
 
 Bit32u mem_unalignedreadd(PhysPt address) {
-	return mem_readb_inline(address) |
-		(mem_readb_inline(address+1) << 8) |
-		(mem_readb_inline(address+2) << 16) |
-		(mem_readb_inline(address+3) << 24);
+	Bit32u ret = mem_readb_inline(address);
+	ret       |= mem_readb_inline(address+1) << 8;
+	ret       |= mem_readb_inline(address+2) << 16;
+	ret       |= mem_readb_inline(address+3) << 24;
+	return ret;
 }
 
 
@@ -537,6 +590,10 @@ void mem_writed(PhysPt address,Bit32u val) {
 	mem_writed_inline(address,val);
 }
 
+void phys_writes(PhysPt addr, const char* string, Bitu length) {
+	for(Bitu i = 0; i < length; i++) host_writeb(MemBase+addr+i,string[i]);
+}
+
 static void write_p92(Bitu port,Bitu val,Bitu iolen) {	
 	// Bit 0 = system reset (switch back to real mode)
 	if (val&1) E_Exit("XMS: CPU reset via port 0x92 not supported.");
@@ -574,7 +631,7 @@ public:
 		Section_prop * section=static_cast<Section_prop *>(configuration);
 	
 		/* Setup the Physical Page Links */
-		Bitu memsize=section->Get_int("memsize");
+		Bitu memsize=section->Get_int("memsize");	
 		Bitu memsizekb=section->Get_int("memsizekb");
 		Bitu address_bits=section->Get_int("memalias");
 
@@ -596,8 +653,8 @@ public:
 		   DOSBox that relies on reading and maintaining DOS structures and wrapping in
 		   that way is a good way to cause a crash. Note 0xFF << 12 == 0xFFFFF */
 		if ((memory.mem_alias_pagemask & 0xFF) != 0xFF) {
-			fprintf(stderr,"BUG: invalid alias pagemask 0x%08lX\n",
-				(unsigned long)memory.mem_alias_pagemask);
+			//fprintf(stderr,"BUG: invalid alias pagemask 0x%08lX\n",
+			//	(unsigned long)memory.mem_alias_pagemask);
 			abort();
 		}
 
@@ -609,7 +666,7 @@ public:
 			memsizekb = 0;
 		}
 
-		if (memsizekb > 32768) memsizekb = 32768;
+		if (memsizekb > 524288) memsizekb = 524288;
 		if (memsizekb == 0 && memsize < 1) memsize = 1;
 		else if (memsizekb != 0 && memsize < 0) memsize = 0;
 		/* max 63 to solve problems with certain xms handlers */
@@ -620,6 +677,7 @@ public:
 		}
 		if ((memsize+(memsizekb/1024)) > SAFE_MEMORY-1) {
 			LOG_MSG("Memory sizes above %d MB are NOT recommended.",SAFE_MEMORY - 1);
+			if ((memsize+(memsizekb/1024)) > 200) LOG_MSG("Memory sizes above 200 MB are too big for saving/loading states.");
 			LOG_MSG("Stick with the default values unless you are absolutely certain.");
 		}
 		memory.reported_pages = memory.pages =
@@ -632,6 +690,7 @@ public:
 			memory.pages = ((1024*1024)/4096);
 
 		MemBase = new Bit8u[memory.pages*4096];
+		memorySize = sizeof(Bit8u) * memsize*1024*1024;
 		if (!MemBase) E_Exit("Can't allocate main memory of %d MB",memsize);
 		/* Clear the memory, as new doesn't always give zeroed memory
 		 * (Visual C debug mode). We want zeroed memory though. */
@@ -713,3 +772,180 @@ void MEM_Init(Section * sec) {
 	test = new MEMORY(sec);
 	sec->AddDestroyFunction(&MEM_ShutDown);
 }
+
+
+
+//save state support
+extern void* VGA_PageHandler_Func[16];
+
+Bit32u Memory_PageHandler_table[] = 
+{
+	NULL,
+	(Bit32u) &ram_page_handler,
+	(Bit32u) &rom_page_handler,
+
+	(Bit32u) VGA_PageHandler_Func[0],
+	(Bit32u) VGA_PageHandler_Func[1],
+	(Bit32u) VGA_PageHandler_Func[2],
+	(Bit32u) VGA_PageHandler_Func[3],
+	(Bit32u) VGA_PageHandler_Func[4],
+	(Bit32u) VGA_PageHandler_Func[5],
+	(Bit32u) VGA_PageHandler_Func[6],
+	(Bit32u) VGA_PageHandler_Func[7],
+	(Bit32u) VGA_PageHandler_Func[8],
+	(Bit32u) VGA_PageHandler_Func[9],
+	(Bit32u) VGA_PageHandler_Func[10],
+	(Bit32u) VGA_PageHandler_Func[11],
+	(Bit32u) VGA_PageHandler_Func[12],
+	(Bit32u) VGA_PageHandler_Func[13],
+	(Bit32u) VGA_PageHandler_Func[14],
+	(Bit32u) VGA_PageHandler_Func[15],
+};
+
+
+namespace
+{
+class SerializeMemory : public SerializeGlobalPOD
+{
+public:
+	SerializeMemory() : SerializeGlobalPOD("Memory") 
+	{}
+
+private:
+	virtual void getBytes(std::ostream& stream)
+	{
+		Bit8u pagehandler_idx[0x10000];
+		int size_table;
+
+
+		// assume 256MB max memory
+		size_table = sizeof(Memory_PageHandler_table) / sizeof(Bit32u);
+		for( int lcv=0; lcv<memory.pages; lcv++ ) {
+			pagehandler_idx[lcv] = 0xff;
+
+			for( int lcv2=0; lcv2<size_table; lcv2++ ) {
+				if( (Bit32u) memory.phandlers[lcv] == Memory_PageHandler_table[lcv2] ) {
+					pagehandler_idx[lcv] = lcv2;
+					break;
+				}
+			}
+		}
+		
+		//*******************************************
+		//*******************************************
+
+		SerializeGlobalPOD::getBytes(stream);
+
+		// - near-pure data
+		WRITE_POD( &memory, memory );
+
+		// - static 'new' ptr
+		WRITE_POD_SIZE( MemBase, memory.pages*4096 );
+
+		//***********************************************
+		//***********************************************
+
+		WRITE_POD_SIZE( memory.mhandles, sizeof(MemHandle) * memory.pages );
+		WRITE_POD( &pagehandler_idx, pagehandler_idx );
+	}
+
+	virtual void setBytes(std::istream& stream)
+	{
+		Bit8u pagehandler_idx[0x10000];
+		void *old_ptrs[4];
+
+		old_ptrs[0] = (void *) memory.phandlers;
+		old_ptrs[1] = (void *) memory.mhandles;
+		old_ptrs[2] = (void *) memory.lfb.handler;
+		old_ptrs[3] = (void *) memory.lfb.mmiohandler;
+
+		//***********************************************
+		//***********************************************
+
+		SerializeGlobalPOD::setBytes(stream);
+
+
+		// - near-pure data
+		READ_POD( &memory, memory );
+
+		// - static 'new' ptr
+		READ_POD_SIZE( MemBase, memory.pages*4096 );
+
+		//***********************************************
+		//***********************************************
+
+		memory.phandlers = (PageHandler **) old_ptrs[0];
+		memory.mhandles = (MemHandle *) old_ptrs[1];
+		memory.lfb.handler = (PageHandler *) old_ptrs[2];
+		memory.lfb.mmiohandler = (PageHandler *) old_ptrs[3];
+
+
+		READ_POD_SIZE( memory.mhandles, sizeof(MemHandle) * memory.pages );
+		READ_POD( &pagehandler_idx, pagehandler_idx );
+
+
+		for( int lcv=0; lcv<memory.pages; lcv++ ) {
+			if( pagehandler_idx[lcv] == 0xff ) continue;
+
+			memory.phandlers[lcv] = (PageHandler *) Memory_PageHandler_table[ pagehandler_idx[lcv] ];
+		}
+	}
+} dummy;
+}
+
+
+
+/*
+ykhwong svn-daum 2012-02-20
+
+
+static struct MemoryBlock memory:
+	// - pure data
+	Bitu pages;
+
+
+	// - static 'new' ptr
+	PageHandler * * phandlers;
+	MemHandle * mhandles;
+
+
+	LinkBlock links;
+		// - pure data
+		Bitu used;
+		Bit32u pages[MAX_LINKS];
+
+
+	struct lfb:
+		// - pure data
+		Bitu		start_page;
+		Bitu		end_page;
+		Bitu		pages;
+
+		// - static ptr (const values to date)
+		PageHandler *handler;
+		PageHandler *mmiohandler;
+
+	struct a20:
+		// - pure data
+		bool enabled;
+		Bit8u controlport;
+
+
+
+// - static 'new' ptr
+HostPt MemBase;
+
+
+// - static data
+static IllegalPageHandler illegal_page_handler;
+static RAMPageHandler ram_page_handler;
+static ROMPageHandler rom_page_handler;
+
+
+// - static 'new' ptr
+static MEMORY* test;	
+
+	// - static data
+	IO_ReadHandleObject ReadHandler;
+	IO_WriteHandleObject WriteHandler;
+*/

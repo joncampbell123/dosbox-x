@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,15 +16,13 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: bios_disk.cpp,v 1.40 2009-08-23 17:24:54 c2woody Exp $ */
 
 #include "dosbox.h"
 #include "callback.h"
 #include "bios.h"
+#include "bios_disk.h"
 #include "regs.h"
-#include "pic.h"
 #include "mem.h"
-#include "inout.h"
 #include "dos_inc.h" /* for Drives[] */
 #include "../dos/drives.h"
 #include "mapper.h"
@@ -95,13 +93,26 @@ void updateDPT(void) {
 	}
 }
 
+void incrementFDD(void) {
+	Bit16u equipment=mem_readw(BIOS_CONFIGURATION);
+	if(equipment&1) {
+		Bitu numofdisks = (equipment>>6)&3;
+		numofdisks++;
+		if(numofdisks > 1) numofdisks=1;//max 2 floppies at the moment
+		equipment&=~0x00C0;
+		equipment|=(numofdisks<<6);
+	} else equipment|=1;
+	mem_writew(BIOS_CONFIGURATION,equipment);
+	CMOS_SetRegister(0x14, (Bit8u)(equipment&0xff));
+}
+
 void swapInDisks(void) {
 	bool allNull = true;
 	Bits diskcount = 0;
 	Bits swapPos = swapPosition;
 	int i;
 
-	/* Check to make sure there's atleast one setup image */
+	/* Check to make sure that  there is at least one setup image */
 	for(i=0;i<MAX_SWAPPABLE_DISKS;i++) {
 		if(diskSwap[i]!=NULL) {
 			allNull = false;
@@ -155,13 +166,13 @@ Bit8u imageDisk::Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * da
 }
 
 Bit8u imageDisk::Read_AbsoluteSector(Bit32u sectnum, void * data) {
-	Bit32u bytenum;
+	Bit64u bytenum;
 
-	bytenum = sectnum * sector_size;
+	bytenum = (Bit64u)sectnum * sector_size;
 
-/* TODO: use lseek64 (Linux) or _lseeki64 (Microsoft C++) which would allow
-         DOSBox to use disk images 2GB or larger */
-	fseek(diskimg,bytenum,SEEK_SET);
+	//LOG_MSG("Reading sectors %ld at bytenum %I64d", sectnum, bytenum);
+
+	fseeko64(diskimg,bytenum,SEEK_SET);
 	fread(data, 1, sector_size, diskimg);
 
 	return 0x00;
@@ -173,20 +184,17 @@ Bit8u imageDisk::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * d
 	sectnum = ( (cylinder * heads + head) * sectors ) + sector - 1L;
 
 	return Write_AbsoluteSector(sectnum, data);
-
 }
 
 
 Bit8u imageDisk::Write_AbsoluteSector(Bit32u sectnum, void *data) {
-	Bit32u bytenum;
+	Bit64u bytenum;
 
-	bytenum = sectnum * sector_size;
+	bytenum = (Bit64u)sectnum * sector_size;
 
 	//LOG_MSG("Writing sectors to %ld at bytenum %d", sectnum, bytenum);
 
-/* TODO: use lseek64 (Linux) or _lseeki64 (Microsoft C++) which would allow
-         DOSBox to use disk images 2GB or larger */
-	fseek(diskimg,bytenum,SEEK_SET);
+	fseeko64(diskimg,bytenum,SEEK_SET);
 	size_t ret=fwrite(data, sector_size, 1, diskimg);
 
 	return ((ret>0)?0x00:0x05);
@@ -230,23 +238,21 @@ imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHard
 		if(!founddisk) {
 			active = false;
 		} else {
-			Bit16u equipment=mem_readw(BIOS_CONFIGURATION);
-			if(equipment&1) {
-				Bitu numofdisks = (equipment>>6)&3;
-				numofdisks++;
-				if(numofdisks > 1) numofdisks=1;//max 2 floppies at the moment
-				equipment&=~0x00C0;
-				equipment|=(numofdisks<<6);
-			} else equipment|=1;
-			mem_writew(BIOS_CONFIGURATION,equipment);
-			CMOS_SetRegister(0x14, (Bit8u)(equipment&0xff));
+			incrementFDD();
 		}
 	}
 }
 
 void imageDisk::Set_Geometry(Bit32u setHeads, Bit32u setCyl, Bit32u setSect, Bit32u setSectSize) {
-	heads = setHeads;
-	cylinders = setCyl;
+	Bitu bigdisk_shift = 0;
+	if(setCyl > 16384 ) LOG_MSG("This disk image is too big.");
+	else if(setCyl > 8192) bigdisk_shift = 4;
+	else if(setCyl > 4096) bigdisk_shift = 3;
+	else if(setCyl > 2048) bigdisk_shift = 2;
+	else if(setCyl > 1024) bigdisk_shift = 1;
+
+	heads = setHeads << bigdisk_shift;
+	cylinders = setCyl >> bigdisk_shift;
 	sectors = setSect;
 	sector_size = setSectSize;
 	active = true;
@@ -310,6 +316,29 @@ static bool driveInactive(Bitu driveNum) {
 	return false;
 }
 
+static struct {
+	Bit8u sz;
+	Bit8u res;
+	Bit16u num;
+	Bit16u off;
+	Bit16u seg;
+	Bit32u sector;
+} dap;
+
+static void readDAP(Bit16u seg, Bit16u off) {
+	dap.sz = real_readb(seg,off++);
+	dap.res = real_readb(seg,off++);
+	dap.num = real_readw(seg,off); off += 2;
+	dap.off = real_readw(seg,off); off += 2;
+	dap.seg = real_readw(seg,off); off += 2;
+
+	/* Although sector size is 64-bit, 32-bit 2TB limit should be more than enough */
+	dap.sector = real_readd(seg,off); off +=4;
+
+	if (real_readd(seg,off)) {
+		E_Exit("INT13: 64-bit sector addressing not supported");
+	}
+}
 
 static Bitu INT13_DiskHandler(void) {
 	Bit16u segat, bufptr;
@@ -322,8 +351,6 @@ static Bitu INT13_DiskHandler(void) {
 	for(i = 0;i < MAX_DISK_IMAGES;i++) {
 		if(imageDiskList[i]) any_images=true;
 	}
-
-//	fprintf(stderr,"INT 13h AX=%04X BX=%04X CX=%04X DX=%04X\n",reg_ax,reg_bx,reg_cx,reg_dx);
 
 	// unconditionally enable the interrupt flag
 	CALLBACK_SIF(true);
@@ -342,12 +369,14 @@ static Bitu INT13_DiskHandler(void) {
 				if ((machine==MCH_CGA) || (machine==MCH_AMSTRAD) || (machine==MCH_PCJR)) {
 					/* those bioses call floppy drive reset for invalid drive values */
 					if (((imageDiskList[0]) && (imageDiskList[0]->active)) || ((imageDiskList[1]) && (imageDiskList[1]->active))) {
+						if (machine!=MCH_PCJR && reg_dl<0x80) reg_ip++;
 						last_status = 0x00;
 						CALLBACK_SCF(false);
 					}
 				}
 				return CBRET_NONE;
 			}
+			if (machine!=MCH_PCJR && reg_dl<0x80) reg_ip++;
 			last_status = 0x00;
 			CALLBACK_SCF(false);
 		}
@@ -515,6 +544,85 @@ static Bitu INT13_DiskHandler(void) {
 		reg_ah = 0x00;
 		CALLBACK_SCF(false);
 		break;
+	case 0x41: /* Check Extensions Present */
+		if ((reg_bx == 0x55aa) && !(driveInactive(drivenum))) {
+			LOG_MSG("INT13: Check Extensions Present for drive: 0x%x", reg_dl);
+			reg_ah=0x1;	/* 1.x extension supported */
+			reg_bx=0xaa55;	/* Extensions installed */
+			reg_cx=0x1;	/* Extended disk access functions (AH=42h-44h,47h,48h) supported */
+			CALLBACK_SCF(false);
+			break;
+		}
+		LOG_MSG("INT13: AH=41h, Function not supported 0x%x for drive: 0x%x", reg_bx, reg_dl);
+		CALLBACK_SCF(true);
+		break;
+	case 0x42: /* Extended Read Sectors From Drive */
+		/* Read Disk Address Packet */
+		readDAP(SegValue(ds),reg_si);
+
+		if (dap.num==0) {
+			reg_ah = 0x01;
+			CALLBACK_SCF(true);
+			return CBRET_NONE;
+		}
+		if (!any_images) {
+			// Inherit the Earth cdrom (uses it as disk test)
+			if (((reg_dl&0x80)==0x80) && (reg_dh==0) && ((reg_cl&0x3f)==1)) {
+				reg_ah = 0;
+				CALLBACK_SCF(false);
+				return CBRET_NONE;
+			}
+		}
+		if (driveInactive(drivenum)) {
+			reg_ah = 0xff;
+			CALLBACK_SCF(true);
+			return CBRET_NONE;
+		}
+
+		segat = dap.seg;
+		bufptr = dap.off;
+		for(i=0;i<dap.num;i++) {
+			last_status = imageDiskList[drivenum]->Read_AbsoluteSector(dap.sector+i, sectbuf);
+			if((last_status != 0x00) || (killRead)) {
+				LOG_MSG("Error in disk read");
+				killRead = false;
+				reg_ah = 0x04;
+				CALLBACK_SCF(true);
+				return CBRET_NONE;
+			}
+			for(t=0;t<512;t++) {
+				real_writeb(segat,bufptr,sectbuf[t]);
+				bufptr++;
+			}
+		}
+		reg_ah = 0x00;
+		CALLBACK_SCF(false);
+		break;
+	case 0x43: /* Extended Write Sectors to Drive */
+		if(driveInactive(drivenum)) {
+			reg_ah = 0xff;
+			CALLBACK_SCF(true);
+			return CBRET_NONE;
+		}
+
+		/* Read Disk Address Packet */
+		readDAP(SegValue(ds),reg_si);
+		bufptr = dap.off;
+		for(i=0;i<dap.num;i++) {
+			for(t=0;t<imageDiskList[drivenum]->getSectSize();t++) {
+				sectbuf[t] = real_readb(dap.seg,bufptr);
+				bufptr++;
+			}
+
+			last_status = imageDiskList[drivenum]->Write_AbsoluteSector(dap.sector+i, &sectbuf[0]);
+			if(last_status != 0x00) {
+				CALLBACK_SCF(true);
+				return CBRET_NONE;
+			}
+		}
+		reg_ah = 0x00;
+		CALLBACK_SCF(false);
+		break;
 	default:
 		LOG(LOG_BIOS,LOG_ERROR)("INT13: Function %x called on drive %x (dos drive %d)", reg_ah,  reg_dl, drivenum);
 		reg_ah=0xff;
@@ -527,7 +635,7 @@ static Bitu INT13_DiskHandler(void) {
 void BIOS_SetupDisks(void) {
 /* TODO Start the time correctly */
 	call_int13=CALLBACK_Allocate();	
-	CALLBACK_Setup(call_int13,&INT13_DiskHandler,CB_IRET,"Int 13 Bios disk");
+	CALLBACK_Setup(call_int13,&INT13_DiskHandler,CB_INT13,"Int 13 Bios disk");
 	RealSetVec(0x13,CALLBACK_RealPointer(call_int13));
 	int i;
 	for(i=0;i<4;i++) {

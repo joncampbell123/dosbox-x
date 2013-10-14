@@ -1,0 +1,28 @@
+Microsoft Visual Studio Solution File, Format Version 7.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Glide2x", "Glide2x.vcproj", "{A9DE043C-CA98-44A4-80BE-D93BACDFB186}"
+EndProject
+Global
+	GlobalSection(SourceCodeControl) = preSolution
+		SccNumberOfProjects = 1
+		SccProjectUniqueName0 = Glide2x.vcproj
+		SccProjectName0 = \u0022$/Glide2x\u0022,\u0020BAAAAAAA
+		SccLocalPath0 = .
+		SccProvider0 = MSSCCI:Microsoft\u0020Visual\u0020SourceSafe
+	EndGlobalSection
+	GlobalSection(SolutionConfiguration) = preSolution
+		ConfigName.0 = Debug
+		ConfigName.1 = Release
+	EndGlobalSection
+	GlobalSection(ProjectDependencies) = postSolution
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{A9DE043C-CA98-44A4-80BE-D93BACDFB186}.Debug.ActiveCfg = Debug|Win32
+		{A9DE043C-CA98-44A4-80BE-D93BACDFB186}.Debug.Build.0 = Debug|Win32
+		{A9DE043C-CA98-44A4-80BE-D93BACDFB186}.Release.ActiveCfg = Release|Win32
+		{A9DE043C-CA98-44A4-80BE-D93BACDFB186}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

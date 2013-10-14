@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: core_dynrec.cpp,v 1.15 2009-08-02 16:52:33 c2woody Exp $ */
 
 #include "dosbox.h"
 
@@ -62,11 +61,9 @@
 #define DYN_PAGE_HASH	(4096>>DYN_HASH_SHIFT)
 #define DYN_LINKS		(16)
 
-#if 0
-#define DYN_LOG	LOG_MSG
-#else 
-#define DYN_LOG
-#endif
+
+//#define DYN_LOG 1 //Turn Logging on.
+
 
 #if C_FPU
 #define CPU_FPU 1                                               //Enable FPU escape instructions
@@ -140,6 +137,7 @@ static struct {
 #define X86_64		0x02
 #define MIPSEL		0x03
 #define ARMV4LE		0x04
+#define ARMV7LE		0x05
 #define POWERPC		0x04
 
 #if C_TARGETCPU == X86_64
@@ -148,7 +146,7 @@ static struct {
 #include "core_dynrec/risc_x86.h"
 #elif C_TARGETCPU == MIPSEL
 #include "core_dynrec/risc_mipsel32.h"
-#elif C_TARGETCPU == ARMV4LE
+#elif (C_TARGETCPU == ARMV4LE) || (C_TARGETCPU == ARMV7LE)
 #include "core_dynrec/risc_armv4le.h"
 #elif C_TARGETCPU == POWERPC
 #include "core_dynrec/risc_ppc.h"
@@ -228,9 +226,11 @@ Bits CPU_Core_Dynrec_Run(void) {
 
 run_block:
 		cache.block.running=0;
+		Bitu CPU_CyclesOld = CPU_Cycles;
 		// now we're ready to run the dynamic code block
 //		BlockReturn ret=((BlockReturn (*)(void))(block->cache.start))();
 		BlockReturn ret=core_dynrec.runcode(block->cache.start);
+		cycle_count += CPU_CyclesOld - CPU_Cycles;
 
 		switch (ret) {
 		case BR_Iret:
@@ -249,7 +249,7 @@ run_block:
 			// the block was exited due to a non-predictable control flow
 			// modifying instruction (like ret) or some nontrivial cpu state
 			// changing instruction (for example switch to/from pmode),
-			// or the maximal number of instructions to translate was reached
+			// or the maximum number of instructions to translate was reached
 #if C_HEAVY_DEBUG
 			if (DEBUG_HeavyIsBreakpoint()) return debugCallback;
 #endif

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -257,6 +257,113 @@ static void conc3d(Cache,SBPP,DBPP) (const void * s) {
 #undef SCALERHEIGHT
 #undef SCALERFUNC
 
+#define SCALERNAME		Normal4x
+#define SCALERWIDTH		4
+#define SCALERHEIGHT	4
+#define SCALERFUNC							   \
+	line0[0] = P;								\
+	line0[1] = P;								\
+	line0[2] = P;								\
+	line0[3] = P;								\
+	line1[0] = P;								\
+	line1[1] = P;								\
+	line1[2] = P;								\
+	line1[3] = P;								\
+	line2[0] = P;								\
+	line2[1] = P;								\
+	line2[2] = P;								\
+	line2[3] = P;								\
+	line3[0] = P;								\
+	line3[1] = P;								\
+	line3[2] = P;								\
+	line3[3] = P; 
+#include "render_simple.h"
+#undef SCALERNAME
+#undef SCALERWIDTH
+#undef SCALERHEIGHT
+#undef SCALERFUNC
+
+#define SCALERNAME		Normal5x
+#define SCALERWIDTH		5
+#define SCALERHEIGHT	5
+#define SCALERFUNC							   \
+	line0[0] = P;								\
+	line0[1] = P;								\
+	line0[2] = P;								\
+	line0[3] = P;								\
+	line0[4] = P;								\
+	line1[0] = P;								\
+	line1[1] = P;								\
+	line1[2] = P;								\
+	line1[3] = P;								\
+	line1[4] = P;								\
+	line2[0] = P;								\
+	line2[1] = P;								\
+	line2[2] = P;								\
+	line2[3] = P;								\
+	line2[4] = P;								\
+	line3[0] = P;								\
+	line3[1] = P;								\
+	line3[2] = P;								\
+	line3[3] = P;								 \
+	line3[4] = P;								\
+	line4[0] = P;								\
+	line4[1] = P;								\
+	line4[2] = P;								\
+	line4[3] = P;								 \
+	line4[4] = P;								
+#include "render_simple.h"
+#undef SCALERNAME
+#undef SCALERWIDTH
+#undef SCALERHEIGHT
+#undef SCALERFUNC
+/*
+#define SCALERNAME		Normal6x
+#define SCALERWIDTH		6
+#define SCALERHEIGHT	6
+#define SCALERFUNC							   \
+	line0[0] = P;								\
+	line0[1] = P;								\
+	line0[2] = P;								\
+	line0[3] = P;								\
+	line0[4] = P;								\
+	line0[5] = P;								\
+	line1[0] = P;								\
+	line1[1] = P;								\
+	line1[2] = P;								\
+	line1[3] = P;								\
+	line1[4] = P;								\
+	line1[5] = P;								\
+	line2[0] = P;								\
+	line2[1] = P;								\
+	line2[2] = P;								\
+	line2[3] = P;								\
+	line2[4] = P;								\
+	line2[5] = P;								\
+	line3[0] = P;								\
+	line3[1] = P;								\
+	line3[2] = P;								\
+	line3[3] = P;								 \
+	line3[4] = P;								\
+	line3[5] = P;								\
+	line4[0] = P;								\
+	line4[1] = P;								\
+	line4[2] = P;								\
+	line4[3] = P;								 \
+	line4[4] = P;								\
+	line4[5] = P;								\
+	line5[0] = P;								\
+	line5[1] = P;								\
+	line5[2] = P;								\
+	line5[3] = P;								 \
+	line5[4] = P;								\
+	line5[5] = P;								
+#include "render_simple.h"
+#undef SCALERNAME
+#undef SCALERWIDTH
+#undef SCALERHEIGHT
+#undef SCALERFUNC
+*/
 #define SCALERNAME		NormalDw
 #define SCALERWIDTH		2
 #define SCALERHEIGHT	1
@@ -292,10 +399,10 @@ static void conc3d(Cache,SBPP,DBPP) (const void * s) {
 {													\
 	Bitu halfpixel=(((P & redblueMask) * 5) >> 3) & redblueMask;	\
 	halfpixel|=(((P & greenMask) * 5) >> 3) & greenMask;			\
-	line0[0]=P;							\
-	line0[1]=P;							\
-	line1[0]=halfpixel;						\
-	line1[1]=halfpixel;						\
+	line0[0]=halfpixel;							\
+	line0[1]=halfpixel;							\
+	line1[0]=P;						\
+	line1[1]=P;						\
 }
 #include "render_simple.h"
 #undef SCALERNAME

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: serialport.cpp,v 1.14 2009-10-01 17:25:28 h-a-l-9000 Exp $ */
 
 #include <string.h>
 #include <ctype.h>
@@ -225,7 +224,8 @@ void CSerial::changeLineProperties() {
 	else bitlen = (1000.0f/115200.0f)*(float)baud_divider;
 	bytetime=bitlen*(float)(1+5+1);		// startbit + minimum length + stopbit
 	bytetime+= bitlen*(float)(LCR&0x3); // databits
-	if(LCR&0x4) bytetime+=bitlen;		// stopbit
+	if(LCR&0x4) bytetime+=bitlen;		// 2nd stopbit
+	if(LCR&0x8) bytetime+=bitlen;		// parity
 
 #if SERIAL_DEBUG
 	const char* const dbgtext[]={"none","odd","none","even","none","mark","none","space"};
@@ -1300,3 +1300,7 @@ void SERIAL_Init (Section * sec) {
 	testSerialPortsBaseclass = new SERIALPORTS (sec);
 	sec->AddDestroyFunction (&SERIAL_Destroy, true);
 }
+
+
+// save state support
+void *Serial_EventHandler_PIC_Event = (void*)Serial_EventHandler;

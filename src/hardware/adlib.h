@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: adlib.h,v 1.5 2009-04-28 21:45:43 c2woody Exp $ */
 
 #ifndef DOSBOX_ADLIB_H
 #define DOSBOX_ADLIB_H
@@ -104,6 +103,10 @@ public:
 	virtual void Generate( MixerChannel* chan, Bitu samples ) = 0;
 	//Initialize at a specific sample rate and mode
 	virtual void Init( Bitu rate ) = 0;
+
+	virtual void SaveState( std::ostream& stream ) {}
+	virtual void LoadState( std::istream& stream ) {}
+
 	virtual ~Handler() {
 	}
 };
@@ -142,6 +145,9 @@ public:
 	void PortWrite( Bitu port, Bitu val, Bitu iolen );
 	Bitu PortRead( Bitu port, Bitu iolen );
 	void Init( Mode m );
+
+	virtual void SaveState( std::ostream& stream );
+	virtual void LoadState( std::istream& stream );
 
 	Module( Section* configuration); 
 	~Module();

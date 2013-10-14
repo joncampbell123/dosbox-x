@@ -43,11 +43,11 @@ ALSA_Headers
     for Alsa support under linux. Part of the linux kernel sources
     Licensed under LGPL
 
-If you want compile from the CVS under a unix system, you'll also need 
+If you want compile from developer sources (SVN) under a unix system, you'll also need 
 automake (>=1.6), autoconf(>=2.50). Should be available at http://www.gnu.org
 
 For building on unix systems.
-If you are building from the cvs run ./autogen.sh first before doing the following.
+If you are building from developer sources run ./autogen.sh first before doing the following.
 
 1. ./configure
 2. make
@@ -101,4 +101,4 @@ src/ints/bios_keyboard.cpp and go to line 30 and read there how to fix it.
 
 Build instructions for VC++6 
 Don't use VC++ 6: it creates faulty code in core_normal.cpp
-Later Visual Studio versions work fine (vs2003/.net, vs2005, vs2008)
+Later Visual Studio versions work fine (vs2003/.net up to vs2010)

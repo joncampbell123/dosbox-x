@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,12 +16,12 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: dos_tables.cpp,v 1.32 2009-10-28 21:45:12 qbix79 Exp $ */
 
 #include "dosbox.h"
 #include "mem.h"
 #include "dos_inc.h"
 #include "callback.h"
+#include "../save_state.h"
 
 #ifdef _MSC_VER
 #pragma pack(1)
@@ -174,3 +174,47 @@ void DOS_SetupTables(void) {
 	host_writed(country_info + 0x12, CALLBACK_RealPointer(call_casemap));
 	dos.tables.country=country_info;
 }
+
+
+
+// save state support
+void POD_Save_DOS_Tables( std::ostream& stream )
+{
+	// - pure data
+	WRITE_POD( &DOS_TableUpCase, DOS_TableUpCase );
+	WRITE_POD( &DOS_TableLowCase, DOS_TableLowCase );
+
+	WRITE_POD( &dos_memseg, dos_memseg );
+}
+
+
+void POD_Load_DOS_Tables( std::istream& stream )
+{
+	// - pure data
+	READ_POD( &DOS_TableUpCase, DOS_TableUpCase );
+	READ_POD( &DOS_TableLowCase, DOS_TableLowCase );
+
+	READ_POD( &dos_memseg, dos_memseg );
+}
+
+
+/*
+ykhwong svn-daum 2012-05-21
+
+
+// - pure data
+struct DOS_TableCase
+	Bit16u size;
+	Bit8u chars[256];
+
+RealPt DOS_TableUpCase;
+RealPt DOS_TableLowCase;
+
+
+// - assume static func ptr
+static Bitu call_casemap;
+
+
+// - pure data
+static Bit16u dos_memseg;
+*/

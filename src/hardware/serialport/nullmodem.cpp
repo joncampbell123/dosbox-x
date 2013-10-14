@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: nullmodem.cpp,v 1.8 2009-09-25 23:40:47 h-a-l-9000 Exp $ */
 
 #include "dosbox.h"
 
@@ -53,137 +52,108 @@ CNullModem::CNullModem(Bitu id, CommandLine* cmd):CSerial (id, cmd) {
 	// 1) when it is client connect to the server not immediately but
 	//    as soon as a modem-aware application is started (DTR is switched on).
 	// 2) only receive data when DTR is on.
-	if(getBituSubstring("usedtr:", &bool_temp, cmd)) {
-		if(bool_temp==1) {
+	if (getBituSubstring("usedtr:", &bool_temp, cmd)) {
+		if (bool_temp==1) {
 			dtrrespect=true;
 			transparent=true;
+			DTR_delta=false; // connect immediately when DTR is already 1
 		}
 	}
 	// transparent: don't add additional handshake control.
-	if(getBituSubstring("transparent:", &bool_temp, cmd)) {
-		if(bool_temp==1) transparent=true;
+	if (getBituSubstring("transparent:", &bool_temp, cmd)) {
+		if (bool_temp==1) transparent=true;
 		else transparent=false;
 	}
 	// telnet: interpret telnet commands.
-	if(getBituSubstring("telnet:", &bool_temp, cmd)) {
-		if(bool_temp==1) {
+	if (getBituSubstring("telnet:", &bool_temp, cmd)) {
+		if (bool_temp==1) {
 			transparent=true;
 			telnet=true;
 		}
 	}
 	// rxdelay: How many milliseconds to wait before causing an
 	// overflow when the application is unresponsive.
-	if(getBituSubstring("rxdelay:", &rx_retry_max, cmd)) {
-		if(!(rx_retry_max<=10000)) {
+	if (getBituSubstring("rxdelay:", &rx_retry_max, cmd)) {
+		if (!(rx_retry_max<=10000)) {
 			rx_retry_max=50;
 		}
 	}
 	// txdelay: How many milliseconds to wait before sending data.
 	// This reduces network overhead quite a lot.
-	if(getBituSubstring("txdelay:", &tx_gather, cmd)) {
-		if(!(tx_gather<=500)) {
+	if (getBituSubstring("txdelay:", &tx_gather, cmd)) {
+		if (!(tx_gather<=500)) {
 			tx_gather=12;
 		}
 	}
 	// port is for both server and client
-	if(getBituSubstring("port:", &temptcpport, cmd)) {
-		if(!(temptcpport>0&&temptcpport<65536)) {
+	if (getBituSubstring("port:", &temptcpport, cmd)) {
+		if (!(temptcpport>0&&temptcpport<65536)) {
 			temptcpport=23;
 		}
 	}
-	// socket inheritance
-	if(getBituSubstring("inhsocket:", &bool_temp, cmd)) {
+	// socket inheritance (client-alike)
+	if (getBituSubstring("inhsocket:", &bool_temp, cmd)) {
 #ifdef NATIVESOCKETS
-		if(Netwrapper_GetCapabilities()&NETWRAPPER_TCP_NATIVESOCKET) {
-			if(bool_temp==1) {
+		if (Netwrapper_GetCapabilities()&NETWRAPPER_TCP_NATIVESOCKET) {
+			if (bool_temp==1) {
 				int sock;
 				if (control->cmdline->FindInt("-socket",sock,true)) {
 					dtrrespect=false;
 					transparent=true;
-					// custom connect
-					Bit8u peernamebuf[16];
-					LOG_MSG("inheritance port: %d",sock);
-					clientsocket = new TCPClientSocket(sock);
-					if(!clientsocket->isopen) {
-						LOG_MSG("Serial%d: Connection failed.",COMNUMBER);
-#if SERIAL_DEBUG
-						log_ser(dbg_aux,"Nullmodem: Connection failed.");
-#endif
-						delete clientsocket;
-						clientsocket=0;
+					LOG_MSG("Inheritance socket handle: %d",sock);
+					if (!ClientConnect(new TCPClientSocket(sock)))
 						return;
-					}
-					clientsocket->SetSendBufferSize(256);
-					clientsocket->GetRemoteAddressString(peernamebuf);
-					// transmit the line status
-					if(!transparent) setRTSDTR(getRTS(), getDTR());
-
-					LOG_MSG("Serial%d: Connected to %s",COMNUMBER,peernamebuf);
-#if SERIAL_DEBUG
-					log_ser(dbg_aux,"Nullmodem: Connected to %s",peernamebuf);
-#endif
-					setEvent(SERIAL_POLLING_EVENT, 1);
-
-					CSerial::Init_Registers ();
-					InstallationSuccessful = true;
-
-					setCTS(true);
-					setDSR(true);
-					setRI (false);
-					setCD (true);
-					return;
 				} else {
-					LOG_MSG("Serial%d: -socket start parameter missing.",COMNUMBER);
+					LOG_MSG("Serial%d: -socket parameter missing.",COMNUMBER);
 					return;
 				}
 			}
 		} else {
-#endif
 			LOG_MSG("Serial%d: socket inheritance not supported on this platform.",
 				COMNUMBER);
 			return;
 		}
-	}
-	std::string tmpstring;
-	if(cmd->FindStringBegin("server:",tmpstring,false)) {
-		// we are a client
-		const char* hostnamechar=tmpstring.c_str();
-		size_t hostlen=strlen(hostnamechar)+1;
-		if(hostlen>sizeof(hostnamebuffer)) {
-			hostlen=sizeof(hostnamebuffer);
-			hostnamebuffer[sizeof(hostnamebuffer)-1]=0;
-		}
-		memcpy(hostnamebuffer,hostnamechar,hostlen);
-		clientport=(Bit16u)temptcpport;
-		if(dtrrespect) {
-			// we connect as soon as DTR is switched on
-			setEvent(SERIAL_NULLMODEM_DTR_EVENT, 50);
-			LOG_MSG("Serial%d: Waiting for DTR...",COMNUMBER);
-		} else ClientConnect();
+#else
+		LOG_MSG("Serial%d: socket inheritance not available.", COMNUMBER);
+#endif
 	} else {
-		// we are a server
-		serverport = (Bit16u)temptcpport;
-		serversocket = new TCPServerSocket(serverport);
-		if(!serversocket->isopen) return;
-		LOG_MSG("Serial%d: Nullmodem server waiting for connection on port %d...",
-			COMNUMBER,serverport);
-		setEvent(SERIAL_SERVER_POLLING_EVENT, 50);
+		// normal server/client
+		std::string tmpstring;
+		if (cmd->FindStringBegin("server:",tmpstring,false)) {
+			// we are a client
+			const char* hostnamechar=tmpstring.c_str();
+			size_t hostlen=strlen(hostnamechar)+1;
+			if (hostlen>sizeof(hostnamebuffer)) {
+				hostlen=sizeof(hostnamebuffer);
+				hostnamebuffer[sizeof(hostnamebuffer)-1]=0;
+			}
+			memcpy(hostnamebuffer,hostnamechar,hostlen);
+			clientport=(Bit16u)temptcpport;
+			if (dtrrespect) {
+				// we connect as soon as DTR is switched on
+				setEvent(SERIAL_NULLMODEM_DTR_EVENT, 50);
+				LOG_MSG("Serial%d: Waiting for DTR...",COMNUMBER);
+			} else if (!ClientConnect(
+				new TCPClientSocket((char*)hostnamebuffer,(Bit16u)clientport)))
+				return;
+		} else {
+			// we are a server
+			serverport = (Bit16u)temptcpport;
+			if (!ServerListen()) return;
+		}
 	}
-
-	// ....
-
-	CSerial::Init_Registers ();
+	CSerial::Init_Registers();
 	InstallationSuccessful = true;
 
 	setCTS(dtrrespect||transparent);
 	setDSR(dtrrespect||transparent);
-	setRI (false);
-	setCD (dtrrespect);
+	setRI(false);
+	setCD(clientsocket > 0); // CD on if connection established
 }
 
-CNullModem::~CNullModem () {
-	if(serversocket) delete serversocket;
-	if(clientsocket) delete clientsocket;
+CNullModem::~CNullModem() {
+	if (serversocket) delete serversocket;
+	if (clientsocket) delete clientsocket;
 	// remove events
 	for(Bit16u i = SERIAL_BASE_EVENT_COUNT+1;
 			i <= SERIAL_NULLMODEM_EVENT_COUNT; i++) {
@@ -192,9 +162,8 @@ CNullModem::~CNullModem () {
 }
 
 void CNullModem::WriteChar(Bit8u data) {
-	
-	if(clientsocket)clientsocket->SendByteBuffered(data);
-	if(!tx_block) {
+	if (clientsocket)clientsocket->SendByteBuffered(data);
+	if (!tx_block) {
 		//LOG_MSG("setevreduct");
 		setEvent(SERIAL_TX_REDUCTION, (float)tx_gather);
 		tx_block=true;
@@ -202,37 +171,75 @@ void CNullModem::WriteChar(Bit8u data) {
 }
 
 Bits CNullModem::readChar() {
-	
 	Bits rxchar = clientsocket->GetcharNonBlock();
-	if(telnet && rxchar>=0) return TelnetEmulation((Bit8u)rxchar);
-	else if(rxchar==0xff && !transparent) {// escape char
+	if (telnet && rxchar>=0) return TelnetEmulation((Bit8u)rxchar);
+	else if (rxchar==0xff && !transparent) {// escape char
 		// get the next char
 		Bits rxchar = clientsocket->GetcharNonBlock();
-		if(rxchar==0xff) return rxchar; // 0xff 0xff -> 0xff was meant
+		if (rxchar==0xff) return rxchar; // 0xff 0xff -> 0xff was meant
 		rxchar&0x1? setCTS(true) : setCTS(false);
 		rxchar&0x2? setDSR(true) : setDSR(false);
-		if(rxchar&0x4) receiveByteEx(0x0,0x10);
+		if (rxchar&0x4) receiveByteEx(0x0,0x10);
 		return -1;	// no "payload" received
 	} else return rxchar;
 }
 
-void CNullModem::ClientConnect(){
+bool CNullModem::ClientConnect(TCPClientSocket* newsocket) {
 	Bit8u peernamebuf[16];
-	clientsocket = new TCPClientSocket((char*)hostnamebuffer,
-										(Bit16u)clientport); 
-	if(!clientsocket->isopen) {
-		LOG_MSG("Serial%d: Connection failed.",idnumber+1);
+	clientsocket = newsocket;
+ 
+	if (!clientsocket->isopen) {
+		LOG_MSG("Serial%d: Connection failed.",COMNUMBER);
 		delete clientsocket;
 		clientsocket=0;
-		return;
+		setCD(false);
+		return false;
 	}
 	clientsocket->SetSendBufferSize(256);
 	clientsocket->GetRemoteAddressString(peernamebuf);
 	// transmit the line status
-	if(!transparent) setRTSDTR(getRTS(), getDTR());
+	if (!transparent) setRTSDTR(getRTS(), getDTR());
 	rx_state=N_RX_IDLE;
-	LOG_MSG("Serial%d: Connected to %s",idnumber+1,peernamebuf);
+	LOG_MSG("Serial%d: Connected to %s",COMNUMBER,peernamebuf);
 	setEvent(SERIAL_POLLING_EVENT, 1);
+	setCD(true);
+	return true;
+}
+
+bool CNullModem::ServerListen() {
+	// Start the server listen port.
+	serversocket = new TCPServerSocket(serverport);
+	if (!serversocket->isopen) return false;
+	LOG_MSG("Serial%d: Nullmodem server waiting for connection on port %d...",
+		COMNUMBER,serverport);
+	setEvent(SERIAL_SERVER_POLLING_EVENT, 50);
+	setCD(false);
+	return true;
+}
+
+bool CNullModem::ServerConnect() {
+	// check if a connection is available.
+	clientsocket=serversocket->Accept();
+	if (!clientsocket) return false;
+	
+	Bit8u peeripbuf[16];
+	clientsocket->GetRemoteAddressString(peeripbuf);
+	LOG_MSG("Serial%d: A client (%s) has connected.",COMNUMBER,peeripbuf);
+#if SERIAL_DEBUG
+	log_ser(dbg_aux,"Nullmodem: A client (%s) has connected.", peeripbuf);
+#endif
+	clientsocket->SetSendBufferSize(256);
+	rx_state=N_RX_IDLE;
+	setEvent(SERIAL_POLLING_EVENT, 1);
+	
+	// we don't accept further connections
+	delete serversocket;
+	serversocket=0;
+
+	// transmit the line status
+	setRTSDTR(getRTS(), getDTR());
+	if (transparent) setCD(true);
+	return true;
 }
 
 void CNullModem::Disconnect() {
@@ -244,11 +251,16 @@ void CNullModem::Disconnect() {
 	clientsocket=0;
 	setDSR(false);
 	setCTS(false);
-	if(serverport) {
+	setCD(false);
+	
+	if (serverport) {
 		serversocket = new TCPServerSocket(serverport);
-		if(serversocket->isopen) 
+		if (serversocket->isopen) 
 			setEvent(SERIAL_SERVER_POLLING_EVENT, 50);
 		else delete serversocket;
+	} else if (dtrrespect) {
+		setEvent(SERIAL_NULLMODEM_DTR_EVENT,50);
+		DTR_delta = getDTR(); // try to reconnect the next time DTR is set
 	}
 }
 
@@ -263,8 +275,8 @@ void CNullModem::handleUpperEvent(Bit16u type) {
 			updateMSR();
 			switch(rx_state) {
 				case N_RX_IDLE:
-					if(CanReceiveByte()) {
-						if(doReceive()) {
+					if (CanReceiveByte()) {
+						if (doReceive()) {
 							// a byte was received
 							rx_state=N_RX_WAIT;
 							setEvent(SERIAL_RX_EVENT, bytetime*0.9f);
@@ -280,13 +292,13 @@ void CNullModem::handleUpperEvent(Bit16u type) {
 					break;
 				case N_RX_BLOCKED:
                     // one timeout tick
-					if(!CanReceiveByte()) {
+					if (!CanReceiveByte()) {
 						rx_retry++;
-						if(rx_retry>=rx_retry_max) {
+						if (rx_retry>=rx_retry_max) {
 							// it has timed out:
 							rx_retry=0;
 							removeEvent(SERIAL_RX_EVENT);
-							if(doReceive()) {
+							if (doReceive()) {
 								// read away everything
 								while(doReceive());
 								rx_state=N_RX_WAIT;
@@ -303,7 +315,7 @@ void CNullModem::handleUpperEvent(Bit16u type) {
 						// good: we can receive again
 						removeEvent(SERIAL_RX_EVENT);
 						rx_retry=0;
-						if(doReceive()) {
+						if (doReceive()) {
 							rx_state=N_RX_FASTWAIT;
 							setEvent(SERIAL_RX_EVENT, bytetime*0.65f);
 						} else {
@@ -328,11 +340,11 @@ void CNullModem::handleUpperEvent(Bit16u type) {
 				case N_RX_BLOCKED: // try to receive
 				case N_RX_WAIT:
 				case N_RX_FASTWAIT:
-					if(CanReceiveByte()) {
+					if (CanReceiveByte()) {
 						// just works or unblocked
-						if(doReceive()) {
+						if (doReceive()) {
 							rx_retry=0; // not waiting anymore
-							if(rx_state==N_RX_WAIT) setEvent(SERIAL_RX_EVENT, bytetime*0.9f);
+							if (rx_state==N_RX_WAIT) setEvent(SERIAL_RX_EVENT, bytetime*0.9f);
 							else {
 								// maybe unblocked
 								rx_state=N_RX_FASTWAIT;
@@ -346,7 +358,7 @@ void CNullModem::handleUpperEvent(Bit16u type) {
 					} else {
 						// blocking now or still blocked
 #if SERIAL_DEBUG
-						if(rx_state==N_RX_BLOCKED)
+						if (rx_state==N_RX_BLOCKED)
 							log_ser(dbg_aux,"Nullmodem: rx still blocked (retry=%d)",rx_retry);
 						else log_ser(dbg_aux,"Nullmodem: block on continued rx (retry=%d).",rx_retry);
 #endif
@@ -360,8 +372,8 @@ void CNullModem::handleUpperEvent(Bit16u type) {
 		}
 		case SERIAL_TX_EVENT: {
 			// Maybe echo cirquit works a bit better this way
-			if(rx_state==N_RX_IDLE && CanReceiveByte() && clientsocket) {
-				if(doReceive()) {
+			if (rx_state==N_RX_IDLE && CanReceiveByte() && clientsocket) {
+				if (doReceive()) {
 					// a byte was received
 					rx_state=N_RX_WAIT;
 					setEvent(SERIAL_RX_EVENT, bytetime*0.9f);
@@ -379,25 +391,7 @@ void CNullModem::handleUpperEvent(Bit16u type) {
 		case SERIAL_SERVER_POLLING_EVENT: {
 			// As long as nothing is connected to our server poll the
 			// connection.
-			clientsocket=serversocket->Accept();
-			if(clientsocket) {
-				Bit8u peeripbuf[16];
-				clientsocket->GetRemoteAddressString(peeripbuf);
-				LOG_MSG("Serial%d: A client (%s) has connected.",COMNUMBER,peeripbuf);
-#if SERIAL_DEBUG
-				log_ser(dbg_aux,"Nullmodem: A client (%s) has connected.", peeripbuf);
-#endif// new socket found...
-				clientsocket->SetSendBufferSize(256);
-				rx_state=N_RX_IDLE;
-				setEvent(SERIAL_POLLING_EVENT, 1);
-				
-				// we don't accept further connections
-				delete serversocket;
-				serversocket=0;
-
-				// transmit the line status
-				setRTSDTR(getRTS(), getDTR());
-			} else {
+			if (!ServerConnect()) {
 				// continue looking
 				setEvent(SERIAL_SERVER_POLLING_EVENT, 50);
 			}
@@ -405,13 +399,19 @@ void CNullModem::handleUpperEvent(Bit16u type) {
 		}
 		case SERIAL_TX_REDUCTION: {
 			// Flush the data in the transmitting buffer.
-			if(clientsocket) clientsocket->FlushBuffer();
+			if (clientsocket) clientsocket->FlushBuffer();
 			tx_block=false;
 			break;						  
 		}
 		case SERIAL_NULLMODEM_DTR_EVENT: {
-			if(getDTR()) ClientConnect();
-			else setEvent(SERIAL_NULLMODEM_DTR_EVENT,50);
+			if ((!DTR_delta) && getDTR()) {
+				// DTR went positive. Try to connect.
+				if (ClientConnect(new TCPClientSocket((char*)hostnamebuffer,
+								(Bit16u)clientport)))
+					break; // no more DTR wait event when connected
+			}
+			DTR_delta = getDTR();
+			setEvent(SERIAL_NULLMODEM_DTR_EVENT,50);
 			break;
 		}
 	}
@@ -431,11 +431,11 @@ void CNullModem::updateMSR () {
 
 bool CNullModem::doReceive () {
 		Bits rxchar = readChar();
-		if(rxchar>=0) {
+		if (rxchar>=0) {
 			receiveByteEx((Bit8u)rxchar,0);
 			return true;
 		}
-		else if(rxchar==-2) {
+		else if (rxchar==-2) {
 			Disconnect();
 		}
 		return false;
@@ -443,7 +443,7 @@ bool CNullModem::doReceive () {
  
 void CNullModem::transmitByte (Bit8u val, bool first) {
  	// transmit it later in THR_Event
-	if(first) setEvent(SERIAL_THR_EVENT, bytetime/8);
+	if (first) setEvent(SERIAL_THR_EVENT, bytetime/8);
 	else setEvent(SERIAL_TX_EVENT, bytetime);
 
 	// disable 0xff escaping when transparent mode is enabled
@@ -454,73 +454,73 @@ void CNullModem::transmitByte (Bit8u val, bool first) {
 
 Bits CNullModem::TelnetEmulation(Bit8u data) {
 	Bit8u response[3];
-	if(telClient.inIAC) {
-		if(telClient.recCommand) {
-			if((data != 0) && (data != 1) && (data != 3)) {
+	if (telClient.inIAC) {
+		if (telClient.recCommand) {
+			if ((data != 0) && (data != 1) && (data != 3)) {
 				LOG_MSG("Serial%d: Unrecognized telnet option %d",COMNUMBER, data);
-				if(telClient.command>250) {
+				if (telClient.command>250) {
 					/* Reject anything we don't recognize */
 					response[0]=0xff;
 					response[1]=252;
 					response[2]=data; /* We won't do crap! */
-					if(clientsocket) clientsocket->SendArray(response, 3);
+					if (clientsocket) clientsocket->SendArray(response, 3);
 				}
 			}
 			switch(telClient.command) {
 				case 251: /* Will */
-					if(data == 0) telClient.binary[TEL_SERVER] = true;
-					if(data == 1) telClient.echo[TEL_SERVER] = true;
-					if(data == 3) telClient.supressGA[TEL_SERVER] = true;
+					if (data == 0) telClient.binary[TEL_SERVER] = true;
+					if (data == 1) telClient.echo[TEL_SERVER] = true;
+					if (data == 3) telClient.supressGA[TEL_SERVER] = true;
 					break;
 				case 252: /* Won't */
-					if(data == 0) telClient.binary[TEL_SERVER] = false;
-					if(data == 1) telClient.echo[TEL_SERVER] = false;
-					if(data == 3) telClient.supressGA[TEL_SERVER] = false;
+					if (data == 0) telClient.binary[TEL_SERVER] = false;
+					if (data == 1) telClient.echo[TEL_SERVER] = false;
+					if (data == 3) telClient.supressGA[TEL_SERVER] = false;
 					break;
 				case 253: /* Do */
-					if(data == 0) {
+					if (data == 0) {
 						telClient.binary[TEL_CLIENT] = true;
 							response[0]=0xff;
 							response[1]=251;
 							response[2]=0; /* Will do binary transfer */
-							if(clientsocket) clientsocket->SendArray(response, 3);
+							if (clientsocket) clientsocket->SendArray(response, 3);
 					}
-					if(data == 1) {
+					if (data == 1) {
 						telClient.echo[TEL_CLIENT] = false;
 							response[0]=0xff;
 							response[1]=252;
 							response[2]=1; /* Won't echo (too lazy) */
-							if(clientsocket) clientsocket->SendArray(response, 3);
+							if (clientsocket) clientsocket->SendArray(response, 3);
 					}
-					if(data == 3) {
+					if (data == 3) {
 						telClient.supressGA[TEL_CLIENT] = true;
 							response[0]=0xff;
 							response[1]=251;
 							response[2]=3; /* Will Suppress GA */
-							if(clientsocket) clientsocket->SendArray(response, 3);
+							if (clientsocket) clientsocket->SendArray(response, 3);
 					}
 					break;
 				case 254: /* Don't */
-					if(data == 0) {
+					if (data == 0) {
 						telClient.binary[TEL_CLIENT] = false;
 						response[0]=0xff;
 						response[1]=252;
 						response[2]=0; /* Won't do binary transfer */
-						if(clientsocket) clientsocket->SendArray(response, 3);
+						if (clientsocket) clientsocket->SendArray(response, 3);
 					}
-					if(data == 1) {
+					if (data == 1) {
 						telClient.echo[TEL_CLIENT] = false;
 						response[0]=0xff;
 						response[1]=252;
 						response[2]=1; /* Won't echo (fine by me) */
-						if(clientsocket) clientsocket->SendArray(response, 3);
+						if (clientsocket) clientsocket->SendArray(response, 3);
 					}
-					if(data == 3) {
+					if (data == 3) {
 						telClient.supressGA[TEL_CLIENT] = true;
 						response[0]=0xff;
 						response[1]=251;
 						response[2]=3; /* Will Suppress GA (too lazy) */
-						if(clientsocket) clientsocket->SendArray(response, 3);
+						if (clientsocket) clientsocket->SendArray(response, 3);
 					}
 					break;
 				default:
@@ -531,7 +531,7 @@ Bits CNullModem::TelnetEmulation(Bit8u data) {
 			telClient.recCommand = false;
 			return -1; //continue;
 		} else {
-			if(data==249) {
+			if (data==249) {
 				/* Go Ahead received */
 				telClient.inIAC = false;
 				return -1; //continue;
@@ -539,7 +539,7 @@ Bits CNullModem::TelnetEmulation(Bit8u data) {
 			telClient.command = data;
 			telClient.recCommand = true;
 			
-			if((telClient.binary[TEL_SERVER]) && (data == 0xff)) {
+			if ((telClient.binary[TEL_SERVER]) && (data == 0xff)) {
 				/* Binary data with value of 255 */
 				telClient.inIAC = false;
 				telClient.recCommand = false;
@@ -547,7 +547,7 @@ Bits CNullModem::TelnetEmulation(Bit8u data) {
 			}
 		}
 	} else {
-		if(data == 0xff) {
+		if (data == 0xff) {
 			telClient.inIAC = true;
 			return -1;
 		}
@@ -569,14 +569,14 @@ void CNullModem::setBreak (bool /*value*/) {
 /* updateModemControlLines(mcr) sets DTR and RTS.                           **/
 /*****************************************************************************/
 void CNullModem::setRTSDTR(bool xrts, bool xdtr) {
-	if(!transparent) {
+	if (!transparent) {
 		Bit8u control[2];
 		control[0]=0xff;
 		control[1]=0x0;
-		if(xrts) control[1]|=1;
-		if(xdtr) control[1]|=2;
-		if(LCR&LCR_BREAK_MASK) control[1]|=4;
-		if(clientsocket) clientsocket->SendArray(control, 2);
+		if (xrts) control[1]|=1;
+		if (xdtr) control[1]|=2;
+		if (LCR&LCR_BREAK_MASK) control[1]|=4;
+		if (clientsocket) clientsocket->SendArray(control, 2);
 	}
 }
 void CNullModem::setRTS(bool val) {

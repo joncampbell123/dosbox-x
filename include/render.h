@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@
 #define RENDER_SKIP_CACHE	16
 //Enable this for scalers to support 0 input for empty lines
 //#define RENDER_NULL_INPUT
+#define xBRZ_w_TBB 1
 
 typedef struct {
 	struct { 
@@ -56,6 +57,7 @@ typedef struct {
 		bool dblw,dblh;
 		double ratio;
 		float fps;
+		double scrn_ratio;
 	} src;
 	struct {
 		Bitu count;
@@ -70,6 +72,7 @@ typedef struct {
 		scalerOperation_t op;
 		bool clearCache;
 		bool forced;
+		bool hardware;
 		ScalerLineHandler_t lineHandler;
 		ScalerLineHandler_t linePalHandler;
 		ScalerComplexHandler_t complexHandler;
@@ -85,11 +88,16 @@ typedef struct {
 	bool active;
 	bool aspect;
 	bool fullFrame;
+	bool forceUpdate;
+	bool autofit;
+#if defined (xBRZ_w_TBB)
+	bool xbrz_using;
+#endif
 } Render_t;
 
 extern Render_t render;
 extern ScalerLineHandler_t RENDER_DrawLine;
-void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double ratio,bool dblw,bool dblh);
+void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio);
 bool RENDER_StartUpdate(void);
 void RENDER_EndUpdate(bool abort);
 void RENDER_SetPal(Bit8u entry,Bit8u red,Bit8u green,Bit8u blue);

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2012  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: mpu401.cpp,v 1.29 2009-05-27 09:15:41 qbix79 Exp $ */
 
 #include <string.h>
 #include "dosbox.h"
@@ -25,18 +24,22 @@
 #include "setup.h"
 #include "cpu.h"
 #include "support.h"
+#include "../save_state.h"
 
 void MIDI_RawOutByte(Bit8u data);
 bool MIDI_Available(void);
 
 static void MPU401_Event(Bitu);
 static void MPU401_Reset(void);
-static void MPU401_EOIHandler(void);
+static void MPU401_ResetDone(Bitu);
+static void MPU401_EOIHandler(Bitu val=0);
+static void MPU401_EOIHandlerDispatch(void);
 
 #define MPU401_VERSION	0x15
 #define MPU401_REVISION	0x01
 #define MPU401_QUEUE 32
 #define MPU401_TIMECONSTANT (60000000/1000.0f)
+#define MPU401_RESETBUSY 27.0f
 
 enum MpuMode { M_UART,M_INTELLIGENT };
 enum MpuDataType {T_OVERFLOW,T_MARK,T_MIDI_SYS,T_MIDI_NORM,T_COMMAND};
@@ -73,8 +76,9 @@ static struct {
 		bool wsd,wsm,wsd_start;
 		bool run_irq,irq_pending;
 		bool send_now;
+		bool eoi_scheduled;
 		Bits data_onoff;
-		Bitu command_byte;
+		Bitu command_byte,cmd_pending;
 		Bit8u tmask,cmask,amask;
 		Bit16u midi_mask;
 		Bit16u req_mask;
@@ -113,12 +117,13 @@ static void ClrQueue(void) {
 
 static Bitu MPU401_ReadStatus(Bitu port,Bitu iolen) {
 	Bit8u ret=0x3f;	/* Bits 6 and 7 clear */
+	if (mpu.state.cmd_pending) ret|=0x40;
 	if (!mpu.queue_used) ret|=0x80;
 	return ret;
 }
 
 static void MPU401_WriteCommand(Bitu port,Bitu val,Bitu iolen) {
-	mpu.state.reset=0;
+	if (mpu.state.reset) {mpu.state.cmd_pending=val+1;return;}
 	if (val<=0x2f) {
 		switch (val&3) { /* MIDI stop, start, continue */
 			case 1: {MIDI_RawOutByte(0xfc);break;}
@@ -240,12 +245,10 @@ static void MPU401_WriteCommand(Bitu port,Bitu val,Bitu iolen) {
 			break;
 		case 0xff:	/* Reset MPU-401 */
 			LOG(LOG_MISC,LOG_NORMAL)("MPU-401:Reset %X",val);
-			mpu.state.reset=1;
-			if (CPU_Cycles > 5) { //It came from the desert wants a fast irq
-				CPU_CycleLeft += CPU_Cycles;
-				CPU_Cycles = 5;
-			}
+			PIC_AddEvent(MPU401_ResetDone,MPU401_RESETBUSY);
+			mpu.state.reset=true;
 			MPU401_Reset();
+			if (mpu.mode==M_UART) return;//do not send ack in UART mode
 			break;
 		case 0x3f:	/* UART mode */
 			LOG(LOG_MISC,LOG_NORMAL)("MPU-401:Set UART mode %X",val);
@@ -285,7 +288,7 @@ static Bitu MPU401_ReadData(Bitu port,Bitu iolen) {
 	}
 	if (ret==MSG_MPU_END || ret==MSG_MPU_CLOCK || ret==MSG_MPU_ACK) {
 		mpu.state.data_onoff=-1;
-		MPU401_EOIHandler();
+		MPU401_EOIHandlerDispatch();
 	}
 	return ret;
 }
@@ -391,7 +394,7 @@ static void MPU401_WriteData(Bitu port,Bitu val,Bitu iolen) {
 				if (val<0xf0) mpu.state.data_onoff++;
 				else {
 					mpu.state.data_onoff=-1;
-					MPU401_EOIHandler();
+					MPU401_EOIHandlerDispatch();
 					return;
 				}
 				if (val==0) mpu.state.send_now=true;
@@ -403,13 +406,13 @@ static void MPU401_WriteData(Bitu port,Bitu val,Bitu iolen) {
 				if (val==0xf8 || val==0xf9) mpu.condbuf.type=T_OVERFLOW;
 				mpu.condbuf.value[mpu.condbuf.vlength]=val;
 				mpu.condbuf.vlength++;
-				if ((val&0xf0)!=0xe0) MPU401_EOIHandler();
+				if ((val&0xf0)!=0xe0) MPU401_EOIHandlerDispatch();
 				else mpu.state.data_onoff++;
 				break;
 			case  2:/* Command byte #2 */
 				mpu.condbuf.value[mpu.condbuf.vlength]=val;
 				mpu.condbuf.vlength++;
-				MPU401_EOIHandler();
+				MPU401_EOIHandlerDispatch();
 				break;
 		}
 		return;
@@ -421,7 +424,7 @@ static void MPU401_WriteData(Bitu port,Bitu val,Bitu iolen) {
 			if (val<0xf0) mpu.state.data_onoff=1;
 			else {
 				mpu.state.data_onoff=-1;
-				MPU401_EOIHandler();
+				MPU401_EOIHandlerDispatch();
 				return;
 			}
 			if (val==0) mpu.state.send_now=true;
@@ -462,7 +465,7 @@ static void MPU401_WriteData(Bitu port,Bitu val,Bitu iolen) {
 				}
 			}
 			if (!(posd==1 && val>=0xf0)) mpu.playbuf[mpu.state.channel].value[posd-1]=val;
-			if (posd==length) MPU401_EOIHandler();
+			if (posd==length) MPU401_EOIHandlerDispatch();
 	}
 }
 
@@ -541,7 +544,18 @@ next_event:
 	PIC_AddEvent(MPU401_Event,MPU401_TIMECONSTANT/new_time);
 }
 
-static void MPU401_EOIHandler(void) {
+
+static void MPU401_EOIHandlerDispatch(void) {
+	if (mpu.state.send_now) {
+		mpu.state.eoi_scheduled=true;
+		PIC_AddEvent(MPU401_EOIHandler,0.06f); //Possible a bit longer
+	}
+	else if (!mpu.state.eoi_scheduled) MPU401_EOIHandler();
+}
+
+//Updates counters and requests new data on "End of Input"
+static void MPU401_EOIHandler(Bitu val) {
+	mpu.state.eoi_scheduled=false;
 	if (mpu.state.send_now) {
 		mpu.state.send_now=false;
 		if (mpu.state.cond_req) UpdateConductor();
@@ -559,9 +573,18 @@ static void MPU401_EOIHandler(void) {
 	} while ((i++)<16);
 }
 
+static void MPU401_ResetDone(Bitu) {
+	mpu.state.reset=false;
+	if (mpu.state.cmd_pending) {
+		MPU401_WriteCommand(0x331,mpu.state.cmd_pending-1,1);
+		mpu.state.cmd_pending=0;
+	}
+}
 static void MPU401_Reset(void) {
 	PIC_DeActivateIRQ(mpu.irq);
 	mpu.mode=(mpu.intelligent ? M_INTELLIGENT : M_UART);
+	PIC_RemoveEvents(MPU401_EOIHandler);
+	mpu.state.eoi_scheduled=false;
 	mpu.state.wsd=false;
 	mpu.state.wsm=false;
 	mpu.state.conductor=false;
@@ -590,6 +613,15 @@ static void MPU401_Reset(void) {
 	for (Bitu i=0;i<8;i++) {mpu.playbuf[i].type=T_OVERFLOW;mpu.playbuf[i].counter=0;}
 }
 
+static void IMF_Write(Bitu port,Bitu val,Bitu iolen) {
+	LOG(LOG_MISC,LOG_NORMAL)("IMF:Wr %4X,%X",port,val);
+}
+
+static Bitu IMF_Read(Bitu port,Bitu iolen) {
+	LOG(LOG_MISC,LOG_NORMAL)("IMF:Rd %4X",port);
+	return 0x00;
+}
+
 class MPU401:public Module_base{
 private:
 	IO_ReadHandleObject ReadHandler[2];
@@ -611,7 +643,42 @@ public:
 		WriteHandler[1].Install(0x331,&MPU401_WriteCommand,IO_MB);
 		ReadHandler[0].Install(0x330,&MPU401_ReadData,IO_MB);
 		ReadHandler[1].Install(0x331,&MPU401_ReadStatus,IO_MB);
-	
+/*
+		IO_RegisterWriteHandler(0x280,&IMF_Write,IO_MB);
+		IO_RegisterWriteHandler(0x281,&IMF_Write,IO_MB);
+		IO_RegisterReadHandler(0x280,&IMF_Read,IO_MB);
+		IO_RegisterReadHandler(0x281,&IMF_Read,IO_MB);
+*/
+/*
+		IO_RegisterWriteHandler(0x200,&IMF_Write,IO_MB);
+		IO_RegisterWriteHandler(0x201,&IMF_Write,IO_MB);
+		IO_RegisterWriteHandler(0x202,&IMF_Write,IO_MB);
+		IO_RegisterWriteHandler(0x203,&IMF_Write,IO_MB);
+		IO_RegisterWriteHandler(0x204,&IMF_Write,IO_MB);
+
+		IO_RegisterReadHandler(0x200,&IMF_Read,IO_MB);
+		IO_RegisterReadHandler(0x201,&IMF_Read,IO_MB);
+		IO_RegisterReadHandler(0x202,&IMF_Read,IO_MB);
+		IO_RegisterReadHandler(0x203,&IMF_Read,IO_MB);
+		IO_RegisterReadHandler(0x204,&IMF_Read,IO_MB);
+*/
+		IO_RegisterWriteHandler(0x2A20,&IMF_Write,IO_MB);
+		IO_RegisterWriteHandler(0x2A21,&IMF_Write,IO_MB);
+		IO_RegisterWriteHandler(0x2A22,&IMF_Write,IO_MB);
+		IO_RegisterWriteHandler(0x2A23,&IMF_Write,IO_MB);
+		IO_RegisterWriteHandler(0x2A24,&IMF_Write,IO_MB);
+		IO_RegisterWriteHandler(0x2A25,&IMF_Write,IO_MB);
+		IO_RegisterWriteHandler(0x2A26,&IMF_Write,IO_MB);
+		IO_RegisterWriteHandler(0x2A27,&IMF_Write,IO_MB);
+		IO_RegisterWriteHandler(0x2A28,&IMF_Write,IO_MB);
+		IO_RegisterWriteHandler(0x2A29,&IMF_Write,IO_MB);
+		IO_RegisterWriteHandler(0x2A2A,&IMF_Write,IO_MB);
+		IO_RegisterWriteHandler(0x2A2B,&IMF_Write,IO_MB);
+		IO_RegisterWriteHandler(0x2A2C,&IMF_Write,IO_MB);
+		IO_RegisterWriteHandler(0x2A2D,&IMF_Write,IO_MB);
+		IO_RegisterWriteHandler(0x2A2E,&IMF_Write,IO_MB);
+		IO_RegisterWriteHandler(0x2A2F,&IMF_Write,IO_MB);
+
 		mpu.queue_used=0;
 		mpu.queue_pos=0;
 		mpu.mode=M_UART;
@@ -642,3 +709,114 @@ void MPU401_Init(Section* sec) {
 	test = new MPU401(sec);
 	sec->AddDestroyFunction(&MPU401_Destroy,true);
 }
+
+
+
+// save state support
+void *MPU401_Event_PIC_Event = (void*)MPU401_Event;
+
+
+void POD_Save_MPU401( std::ostream& stream )
+{
+	const char pod_name[32] = "MPU401";
+
+	if( stream.fail() ) return;
+	if( !test ) return;
+
+
+	WRITE_POD( &pod_name, pod_name );
+
+	//*******************************************
+	//*******************************************
+	//*******************************************
+
+	// - pure data
+	WRITE_POD( &mpu, mpu );
+}
+
+
+void POD_Load_MPU401( std::istream& stream )
+{
+	char pod_name[32] = {0};
+
+	if( stream.fail() ) return;
+	if( !test ) return;
+
+
+	// error checking
+	READ_POD( &pod_name, pod_name );
+	if( strcmp( pod_name, "MPU401" ) ) {
+		stream.clear( std::istream::failbit | std::istream::badbit );
+		return;
+	}
+
+	//************************************************
+	//************************************************
+	//************************************************
+
+	// - pure data
+	READ_POD( &mpu, mpu );
+}
+
+
+/*
+ykhwong svn-daum 2012-02-20
+
+
+static globals:
+
+
+static struct mpu
+
+	// - pure data
+	bool intelligent;
+	MpuMode mode;
+	Bitu irq;
+	Bit8u queue[MPU401_QUEUE];
+	Bitu queue_pos,queue_used;
+
+	// - pure data
+	struct track {
+		Bits counter;
+		Bit8u value[8],sys_val;
+		Bit8u vlength,length;
+		MpuDataType type;
+	} playbuf[8],condbuf;
+
+	// - pure data
+	struct {
+		bool conductor,cond_req,cond_set, block_ack;
+		bool playing,reset;
+		bool wsd,wsm,wsd_start;
+		bool run_irq,irq_pending;
+		bool send_now;
+		Bits data_onoff;
+		Bitu command_byte;
+		Bit8u tmask,cmask,amask;
+		Bit16u midi_mask;
+		Bit16u req_mask;
+		Bit8u channel,old_chan;
+	} state;
+
+	// - pure data
+	struct {
+		Bit8u timebase,old_timebase;
+		Bit8u tempo,old_tempo;
+		Bit8u tempo_rel,old_tempo_rel;
+		Bit8u tempo_grad;
+		Bit8u cth_rate,cth_counter;
+		bool clock_to_host,cth_active;
+	} clock;
+
+
+
+// - static 'new' ptr
+static MPU401* test;
+
+	// - static data
+	IO_ReadHandleObject ReadHandler[2];
+	IO_WriteHandleObject WriteHandler[2];
+
+	// - system data
+	bool installed;
+*/

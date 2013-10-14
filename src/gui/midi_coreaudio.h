@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: midi_coreaudio.h,v 1.12 2009-10-18 18:06:28 qbix79 Exp $ */
 
 #include <AudioToolbox/AUGraph.h>
 #include <CoreServices/CoreServices.h>
@@ -33,6 +32,7 @@ class MidiHandler_coreaudio : public MidiHandler {
 private:
 	AUGraph m_auGraph;
 	AudioUnit m_synth;
+        const char *soundfont;
 public:
 	MidiHandler_coreaudio() : m_auGraph(0), m_synth(0) {}
 	const char * GetName(void) { return "coreaudio"; }
@@ -71,6 +71,22 @@ public:
 
 		// Get the music device from the graph.
 		RequireNoErr(AUGraphGetNodeInfo(m_auGraph, synthNode, NULL, NULL, NULL, &m_synth));
+
+                // Optionally load a soundfont 
+                if (conf && conf[0]) {
+                  soundfont = conf;
+                  FSRef soundfontRef;
+                  RequireNoErr(FSPathMakeRef((const UInt8*)soundfont, &soundfontRef, NULL));
+                  RequireNoErr(AudioUnitSetProperty(
+                                                    m_synth,
+                                                    kMusicDeviceProperty_SoundBankFSRef, 
+                                                    kAudioUnitScope_Global,
+                                                    0,
+                                                    &soundfontRef,
+                                                    sizeof(soundfontRef)
+                                                    ));
+                  LOG_MSG("MIDI:coreaudio: loaded soundfont: %s",soundfont);
+                } 
 
 		// Finally: Start the graph!
 		RequireNoErr(AUGraphStart(m_auGraph));

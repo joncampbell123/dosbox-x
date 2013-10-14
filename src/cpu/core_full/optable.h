@@ -1,3 +1,21 @@
+/*
+ *  Copyright (C) 2002-2013  The DOSBox Team
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
 /* Big ass opcode table normal,double, 66 normal, 66 double */
 static OpCode OpCodeTable[1024]={
 /* 0x00 - 0x07 */
@@ -216,7 +234,7 @@ static OpCode OpCodeTable[1024]={
 {0			,0			,0		,0		},{0		,0			,0		,0		},
 
 /* 0x130 - 0x137 */
-{0			,0			,0		,0		},{0		,0			,0		,0		},
+{0			,0			,0		,0		},{D_RDTSC	,0			,0		,0		},
 {0			,0			,0		,0		},{0		,0			,0		,0		},
 {0			,0			,0		,0		},{0		,0			,0		,0		},
 {0			,0			,0		,0		},{0		,0			,0		,0		},
@@ -572,7 +590,7 @@ static OpCode OpCodeTable[1024]={
 {0			,0			,0		,0		},{0		,0			,0		,0		},
 
 /* 0x330 - 0x337 */
-{0			,0			,0		,0		},{0		,0			,0		,0		},
+{0			,0			,0		,0		},{D_RDTSC	,0			,0		,0		},
 {0			,0			,0		,0		},{0		,0			,0		,0		},
 {0			,0			,0		,0		},{0		,0			,0		,0		},
 {0			,0			,0		,0		},{0		,0			,0		,0		},

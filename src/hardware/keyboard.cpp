@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: keyboard.cpp,v 1.41 2009-05-27 09:15:41 qbix79 Exp $ */
 
 #include "dosbox.h"
 #include "keyboard.h"
@@ -28,8 +27,10 @@
 #include "mem.h"
 #include "mixer.h"
 #include "timer.h"
+#include <math.h>
+#include "../save_state.h"
 
-#define KEYBUFSIZE 32
+#define KEYBUFSIZE 32*3
 #define RESETDELAY 400
 #define KEYDELAY 0.300f			//Considering 20-30 khz serial clock and 11 bits/char
 
@@ -125,6 +126,8 @@ static struct {
 	bool cb_irq1;
 	bool cb_xlat;
 	bool cb_sys;
+	bool leftctrl_pressed;
+	bool rightctrl_pressed;
 } keyb;
 
 /* NTS: INT33H emulation is coded to call this ONLY if it hasn't taken over the role of mouse input */
@@ -135,15 +138,19 @@ void KEYBOARD_AUX_Event(float x,float y,Bitu buttons) {
 	keyb.ps2mouse.r = (buttons & 2)>0;
 	keyb.ps2mouse.m = (buttons & 4)>0;
 
+	fprintf(stderr,"AUX event\n");
+
 	if (keyb.ps2mouse.reporting && keyb.ps2mouse.mode == MM_STREAM) {
 		if ((keyb.used+4) < KEYBUFSIZE) {
 			int x,y;
 
 			x = (int)(keyb.ps2mouse.acx * (1 << keyb.ps2mouse.resolution));
+			x /= 16; /* FIXME: Or else the cursor is WAY too sensitive in Windows 3.1 */
 			if (x < -256) x = -256;
 			else if (x > 255) x = 255;
 
 			y = -((int)(keyb.ps2mouse.acy * (1 << keyb.ps2mouse.resolution)));
+			y /= 16; /* FIXME: Or else the cursor is WAY too sensitive in Windows 3.1 */
 			if (y < -256) y = -256;
 			else if (y > 255) y = 255;
 
@@ -203,7 +210,7 @@ static void KEYBOARD_ResetDelay(Bitu val) {
 
 static void KEYBOARD_TransferBuffer(Bitu val) {
 	/* 8042 responses take priority over the keyboard */
-	if (keyb.buf8042_len != 0) {
+	if (keyb.enable_aux && keyb.buf8042_len != 0) {
 		KEYBOARD_SetPort60(keyb.buf8042[keyb.buf8042_pos]);
 		if (++keyb.buf8042_pos >= keyb.buf8042_len)
 			keyb.buf8042_len = keyb.buf8042_pos = 0;
@@ -230,6 +237,7 @@ void KEYBOARD_ClrBuffer(void) {
 }
 
 static void KEYBOARD_Add8042Response(Bit8u data) {
+	if(!keyb.enable_aux) return;
 	if (keyb.buf8042_pos >= keyb.buf8042_len)
 		keyb.buf8042_pos = keyb.buf8042_len = 0;
 	else if (keyb.buf8042_len == 0)
@@ -237,7 +245,7 @@ static void KEYBOARD_Add8042Response(Bit8u data) {
 
 	if (keyb.buf8042_pos >= sizeof(keyb.buf8042)) {
 		LOG(LOG_KEYBOARD,LOG_NORMAL)("8042 Buffer full, dropping code");
-		return;
+		KEYBOARD_ClrBuffer(); return;
 	}
 
 	keyb.buf8042[keyb.buf8042_len++] = data;
@@ -247,7 +255,7 @@ static void KEYBOARD_Add8042Response(Bit8u data) {
 static void KEYBOARD_AddBuffer(Bit16u data) {
 	if (keyb.used>=KEYBUFSIZE) {
 		LOG(LOG_KEYBOARD,LOG_NORMAL)("Buffer full, dropping code");
-		return;
+		KEYBOARD_ClrBuffer(); return;
 	}
 	Bitu start=keyb.pos+keyb.used;
 	if (start>=KEYBUFSIZE) start-=KEYBUFSIZE;
@@ -547,17 +555,20 @@ static void write_p60(Bitu port,Bitu val,Bitu iolen) {
 }
 
 static Bit8u port_61_data = 0;
-static Bitu read_p61(Bitu port,Bitu iolen) {
-	port_61_data^=0x20;
-	port_61_data^=0x10;
-	return port_61_data;
-}
 
-extern void TIMER_SetGate2(bool);
-static void write_p61(Bitu port,Bitu val,Bitu iolen) {
-	if ((port_61_data ^ val) & 3) {
-		if((port_61_data ^ val) & 1) TIMER_SetGate2(val&0x1);
-		PCSPEAKER_SetType(val & 3);
+static Bitu read_p61(Bitu, Bitu) {
+	return	(port_61_data & 0xF) |
+			(TIMER_GetOutput2()? 0x20:0) |
+			((fmod(PIC_FullIndex(),0.030) > 0.015)? 0x10:0);
+	}
+
+static void write_p61(Bitu, Bitu val, Bitu) {
+	Bit8u diff = port_61_data ^ (Bit8u)val;
+	if (diff & 0x1) TIMER_SetGate2(val & 0x1);
+	if (diff & 0x3) {
+		bool pit_clock_gate_enabled = val & 0x1;
+		bool pit_output_enabled = val & 0x2;
+		PCSPEAKER_SetType(pit_clock_gate_enabled, pit_output_enabled);
 	}
 	port_61_data = val;
 }
@@ -582,8 +593,8 @@ static void write_p64(Bitu port,Bitu val,Bitu iolen) {
 		break;
 	case 0xa7:		/* disable aux */
 		if (keyb.enable_aux) {
-			keyb.auxactive=false;
-			LOG(LOG_KEYBOARD,LOG_NORMAL)("AUX De-Activated");
+			//keyb.auxactive=false;
+			//LOG(LOG_KEYBOARD,LOG_NORMAL)("AUX De-Activated");
 		}
 		break;
 	case 0xa8:		/* enable aux */
@@ -667,11 +678,13 @@ void KEYBOARD_AddKey3(KBD_KEYS keytype,bool pressed) {
 		return;
 
 	/* if the keyboard is disabled, then store the keystroke but don't transmit yet */
+	/*
 	if (!keyb.active || !keyb.scanning) {
 		keyb.pending_key = keytype;
 		keyb.pending_key_state = pressed;
 		return;
 	}
+	*/
 
 	switch (keytype) {
 	case KBD_esc:ret=0x08;break;
@@ -813,11 +826,11 @@ void KEYBOARD_AddKey2(KBD_KEYS keytype,bool pressed) {
 		return;
 
 	/* if the keyboard is disabled, then store the keystroke but don't transmit yet */
-	if (!keyb.active || !keyb.scanning) {
+	/*if (!keyb.active || !keyb.scanning) {
 		keyb.pending_key = keytype;
 		keyb.pending_key_state = pressed;
 		return;
-	}
+	}*/
 
 	switch (keytype) {
 	case KBD_esc:ret=0x76;break;
@@ -978,11 +991,11 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
 		return;
 
 	/* if the keyboard is disabled, then store the keystroke but don't transmit yet */
-	if (!keyb.active || !keyb.scanning) {
+	/*if (!keyb.active || !keyb.scanning) {
 		keyb.pending_key = keytype;
 		keyb.pending_key_state = pressed;
 		return;
-	}
+	}*/
 
 	switch (keytype) {
 	case KBD_esc:ret=1;break;
@@ -1016,7 +1029,10 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
 	case KBD_leftbracket:ret=26;break;
 	case KBD_rightbracket:ret=27;break;
 	case KBD_enter:ret=28;break;
-	case KBD_leftctrl:ret=29;break;
+	case KBD_leftctrl:
+		ret=29;
+		keyb.leftctrl_pressed=pressed;
+		break;
 
 	case KBD_a:ret=30;break;
 	case KBD_s:ret=31;break;
@@ -1085,7 +1101,10 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
 	//The Extended keys
 
 	case KBD_kpenter:extend=true;ret=28;break;
-	case KBD_rightctrl:extend=true;ret=29;break;
+	case KBD_rightctrl:
+		extend=true;ret=29;
+		keyb.rightctrl_pressed=pressed;
+		break;
 	case KBD_kpdivide:extend=true;ret=53;break;
 	case KBD_rightalt:extend=true;ret=56;break;
 	case KBD_home:extend=true;ret=71;break;
@@ -1099,9 +1118,29 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
 	case KBD_insert:extend=true;ret=82;break;
 	case KBD_delete:extend=true;ret=83;break;
 	case KBD_pause:
-		KEYBOARD_AddBuffer(0xe1);
-		KEYBOARD_AddBuffer(29|(pressed?0:0x80));
-		KEYBOARD_AddBuffer(69|(pressed?0:0x80));
+		if (!pressed) {
+			/* keyboards send both make&break codes for this key on
+			   key press and nothing on key release */
+			return;
+		}
+		if (!keyb.leftctrl_pressed && !keyb.rightctrl_pressed) {
+			/* neither leftctrl, nor rightctrl pressed -> PAUSE key */
+			KEYBOARD_AddBuffer(0xe1);
+			KEYBOARD_AddBuffer(29);
+			KEYBOARD_AddBuffer(69);
+			KEYBOARD_AddBuffer(0xe1);
+			KEYBOARD_AddBuffer(29|0x80);
+			KEYBOARD_AddBuffer(69|0x80);
+		} else if (!keyb.leftctrl_pressed || !keyb.rightctrl_pressed) {
+			/* exactly one of [leftctrl, rightctrl] is pressed -> Ctrl+BREAK */
+			KEYBOARD_AddBuffer(0xe0);
+			KEYBOARD_AddBuffer(70);
+			KEYBOARD_AddBuffer(0xe0);
+			KEYBOARD_AddBuffer(70|0x80);
+		}
+		/* pressing this key also disables any previous key repeat */
+		keyb.repeat.key=KBD_NONE;
+		keyb.repeat.wait=0;
 		return;
 	case KBD_printscreen:
 		extend=true;
@@ -1114,15 +1153,18 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
 	}
 	/* Add the actual key in the keyboard queue */
 	if (pressed) {
-		if (keyb.repeat.key==keytype) keyb.repeat.wait=keyb.repeat.rate;		
-		else keyb.repeat.wait=keyb.repeat.pause;
-		keyb.repeat.key=keytype;
+		if (keyb.repeat.key == keytype) keyb.repeat.wait = keyb.repeat.rate;		
+		else keyb.repeat.wait = keyb.repeat.pause;
+		keyb.repeat.key = keytype;
 	} else {
-		keyb.repeat.key=KBD_NONE;
-		keyb.repeat.wait=0;
-		ret+=128;
+		if (keyb.repeat.key == keytype) {
+			/* repeated key being released */
+			keyb.repeat.key  = KBD_NONE;
+			keyb.repeat.wait = 0;
+		}
+		ret += 128;
 	}
-	if (extend) KEYBOARD_AddBuffer(0xe0); 
+	if (extend) KEYBOARD_AddBuffer(0xe0);
 	KEYBOARD_AddBuffer(ret);
 	if (ret2 != 0) {
 		if (extend) KEYBOARD_AddBuffer(0xe0); 
@@ -1235,9 +1277,11 @@ void KEYBOARD_Reset() {
 	keyb.p60changed=false;
 	keyb.auxchanged=false;
 	keyb.repeat.key=KBD_NONE;
-	keyb.repeat.pause=500;
+	keyb.repeat.pause=200;
 	keyb.repeat.rate=33;
 	keyb.repeat.wait=0;
+	keyb.leftctrl_pressed=false;
+	keyb.rightctrl_pressed=false;
 	keyb.scanset=1;
 	/* command byte */
 	keyb.cb_override_inhibit=false;
@@ -1249,4 +1293,36 @@ void KEYBOARD_Reset() {
 	/* OK */
 	KEYBOARD_ClrBuffer();
 	KEYBOARD_SetLEDs(0);
+}
+
+
+//save state support
+void *KEYBOARD_TransferBuffer_PIC_Event = (void*)KEYBOARD_TransferBuffer;
+void *KEYBOARD_TickHandler_PIC_Timer = (void*)KEYBOARD_TickHandler;
+
+namespace
+{
+class SerializeKeyboard : public SerializeGlobalPOD
+{
+public:
+    SerializeKeyboard() : SerializeGlobalPOD("Keyboard")
+    {
+        registerPOD(keyb.buffer);
+        registerPOD(keyb.used); 
+        registerPOD(keyb.pos); 
+        registerPOD(keyb.repeat.key); 
+        registerPOD(keyb.repeat.wait); 
+        registerPOD(keyb.repeat.pause); 
+        registerPOD(keyb.repeat.rate); 
+        registerPOD(keyb.command); 
+        registerPOD(keyb.p60data); 
+        registerPOD(keyb.p60changed); 
+        registerPOD(keyb.active); 
+        registerPOD(keyb.scanning); 
+        registerPOD(keyb.scheduled);
+        registerPOD(keyb.leftctrl_pressed);
+        registerPOD(keyb.rightctrl_pressed);
+        registerPOD(port_61_data);
+    }
+} dummy;
 }

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: vga_xga.cpp,v 1.17 2009-05-27 09:15:41 qbix79 Exp $ */
 
 #include <string.h>
 #include "dosbox.h"
@@ -26,6 +25,7 @@
 #include <stdio.h>
 #include "callback.h"
 #include "cpu.h"		// for 0x3da delay
+#include "../save_state.h"
 
 #define XGA_SCREEN_WIDTH	vga.s3.xga_screen_width
 #define XGA_COLOR_MODE		vga.s3.xga_color_mode
@@ -896,6 +896,7 @@ void XGA_DrawPattern(Bitu val) {
 void XGA_DrawCmd(Bitu val, Bitu len) {
 	Bit16u cmd;
 	cmd = val >> 13;
+	if (val & 0x800) cmd |= 0x8; // S3 CMD bit 3
 #if XGA_SHOW_COMMAND_TRACE == 1
 	//LOG_MSG("XGA: Draw command %x", cmd);
 #endif
@@ -1130,7 +1131,7 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 			xga.destx = val&0x3fff;
 			break;
 		case 0xb2e8:
-			LOG_MSG("COLOR_CMP not implemented");
+			//LOG_MSG("COLOR_CMP not implemented");
 			break;
 		case 0xb6e8:
 			xga.backmix = val;
@@ -1318,3 +1319,70 @@ void VGA_SetupXGA(void) {
 	IO_RegisterWriteHandler(0xe2ea,&XGA_Write,IO_MB | IO_MW | IO_MD);
 	IO_RegisterReadHandler(0xe2ea,&XGA_Read,IO_MB | IO_MW | IO_MD);
 }
+
+
+
+// save state support
+
+void POD_Save_VGA_XGA( std::ostream& stream )
+{
+	// static globals
+
+
+	// - pure struct data
+	WRITE_POD( &xga, xga );
+}
+
+
+void POD_Load_VGA_XGA( std::istream& stream )
+{
+	// static globals
+
+
+	// - pure struct data
+	READ_POD( &xga, xga );
+}
+
+
+/*
+ykhwong svn-daum 2012-02-20
+
+static globals:
+
+
+struct XGAStatus xga;
+
+
+// - pure struct data
+- struct scissorreg scissors
+  - Bit16u x1, y1, x2, y2;
+
+// - pure data
+- Bit32u readmask;
+- Bit32u writemask;
+- Bit32u forecolor;
+- Bit32u backcolor;
+- Bitu curcommand;
+- Bit16u foremix;
+- Bit16u backmix;
+- Bit16u curx, cury;
+- Bit16u destx, desty;
+- Bit16u ErrTerm;
+- Bit16u MIPcount;
+- Bit16u MAPcount;
+- Bit16u pix_cntl;
+- Bit16u control1;
+- Bit16u control2;
+- Bit16u read_sel;
+
+// - pure struct data
+- struct XGA_WaitCmd {
+	- bool newline;
+	- bool wait;
+	- Bit16u cmd;
+	- Bit16u curx, cury;
+	- Bit16u x1, y1, x2, y2, sizex, sizey;
+	- Bit32u data;
+	- Bitu datasize;
+	- Bitu buswidth;
+*/

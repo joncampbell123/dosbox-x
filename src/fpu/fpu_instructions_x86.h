@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: fpu_instructions_x86.h,v 1.7 2009-05-27 09:15:41 qbix79 Exp $ */
 
 
 // #define WEAK_EXCEPTIONS
@@ -661,9 +660,9 @@
 			"fstpt		(%2, %%eax)		\n"	\
 			"movw		%0, %%ax		\n"	\
 			"sahf						\n"	\
-			"jp			argument_too_large1		\n"	\
+			"jp			1f				\n"	\
 			"fstpt		(%2, %1)		\n"	\
-			"argument_too_large1:		"	\
+			"1:							"	\
 			:	"=m" (new_sw)				\
 			:	"r" (TOP), "r" (fpu.p_regs)	\
 			:	"eax", "cc", "memory"		\
@@ -687,9 +686,9 @@
 			"fstpt		(%2, %%eax)		\n"	\
 			"movw		%0, %%ax		\n"	\
 			"sahf						\n"	\
-			"jp			argument_too_large2		\n"	\
+			"jp			1f				\n"	\
 			"fstpt		(%2, %1)		\n"	\
-			"argument_too_large2:		"	\
+			"1:							"	\
 			:	"=m" (new_sw)				\
 			:	"r" (TOP), "r" (fpu.p_regs)	\
 			:	"eax", "cc", "memory"		\

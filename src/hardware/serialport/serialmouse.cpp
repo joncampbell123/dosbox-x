@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -42,6 +42,11 @@ void on_mouse_event_for_serial(int delta_x,int delta_y,Bit8u buttonstate) {
 
 void CSerialMouse::start_packet() {
 	xmit_another_packet = false;
+
+	/* FIX: Default mapping deltas as-is in previous versions of this code
+	 *      resulted in serial mouse input that was way too sensitive */
+	mouse_delta_x /= 4;
+	mouse_delta_y /= 4;
 
 	if (mouse_delta_x < -128) mouse_delta_x = -128;
 	else if (mouse_delta_x > 127) mouse_delta_x = 127;

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: int10_char.cpp,v 1.60 2009-10-15 20:36:56 c2woody Exp $ */
 
 /* Character displaying moving functions */
 
@@ -25,6 +24,7 @@
 #include "mem.h"
 #include "inout.h"
 #include "int10.h"
+#include "callback.h"
 
 static void CGA2_CopyRow(Bit8u cleft,Bit8u cright,Bit8u rold,Bit8u rnew,PhysPt base) {
 	Bit8u cheight = real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
@@ -202,9 +202,23 @@ void INT10_ScrollWindow(Bit8u rul,Bit8u cul,Bit8u rlr,Bit8u clr,Bit8s nlines,Bit
 	if(clr>=ncols) clr=(Bit8u)ncols-1;
 	clr++;
 
-	/* Get the correct page */
-	if(page==0xFF) page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-	PhysPt base=CurMode->pstart+page*real_readw(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE);
+	/* Get the correct page: current start address for current page (0xFF),
+	   otherwise calculate from page number and page size */
+	PhysPt base=CurMode->pstart;
+	if (page==0xff) base+=real_readw(BIOSMEM_SEG,BIOSMEM_CURRENT_START);
+	else base+=page*real_readw(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE);
+	
+	if (GCC_UNLIKELY(machine==MCH_PCJR)) {
+		if (real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_MODE) >= 9) {
+			// PCJr cannot handle these modes at 0xb800
+			// See INT10_PutPixel M_TANDY16
+			Bitu cpupage =
+				(real_readb(BIOSMEM_SEG, BIOSMEM_CRTCPU_PAGE) >> 3) & 0x7;
+
+			base = cpupage << 14;
+			base += page*real_readw(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE);
+		}
+	}
 
 	/* See how much lines need to be copied */
 	Bit8u start,end;Bits next;
@@ -507,7 +521,7 @@ void WriteChar(Bit16u col,Bit16u row,Bit8u page,Bit8u chr,Bit8u attr,bool useatt
 		case M_TANDY16:
 		case M_EGA:
 		default:
-			attr = 0xf;
+			attr = 0x7;
 			break;
 		}
 	}
@@ -574,9 +588,14 @@ static void INT10_TeletypeOutputAttr(Bit8u chr,Bit8u attr,bool useattr,Bit8u pag
 	Bit8u cur_row=CURSOR_POS_ROW(page);
 	Bit8u cur_col=CURSOR_POS_COL(page);
 	switch (chr) {
-	case 7:
-	//TODO BEEP
+	case 7: {
+		// enable speaker
+		IO_Write(0x61,IO_Read(0x61)|0x3);
+		for(Bitu i=0; i < 333; i++) CALLBACK_Idle();
+		IO_Write(0x61,IO_Read(0x61)&~0x3);
 	break;
+	}
+
 	case 8:
 		if(cur_col>0) cur_col--;
 		break;

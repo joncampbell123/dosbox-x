@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: setup.cpp,v 1.56 2009-05-27 09:15:42 qbix79 Exp $ */
 
 #include "dosbox.h"
 #include "cross.h"
@@ -29,6 +28,8 @@
 #include <list>
 #include <stdlib.h>
 #include <stdio.h>
+#include <limits>
+#include <limits.h>
 
 using namespace std;
 static std::string current_config_dir; // Set by parseconfigfile so Prop_path can use it to construct the realpath
@@ -104,7 +105,7 @@ bool Value::operator==(Value const& other) {
 	}
 	return false;
 }
-void Value::SetValue(string const& in,Etype _type) throw(WrongType) {
+bool Value::SetValue(string const& in,Etype _type) throw(WrongType) {
 	/* Throw exception if the current type isn't the wanted type 
 	 * Unless the wanted type is current.
 	 */
@@ -113,21 +114,22 @@ void Value::SetValue(string const& in,Etype _type) throw(WrongType) {
 		if(type != V_NONE && type != _type) throw WrongType();
 		type = _type;
 	}
+	bool retval = true;
 	switch(type){
 		case V_HEX:
-			set_hex(in);
+			retval = set_hex(in);
 			break;
 		case V_INT:
-			set_int(in);
+			retval = set_int(in);
 			break;
 		case V_BOOL:
-			set_bool(in);
+			retval = set_bool(in);
 			break;
 		case V_STRING:
 			set_string(in);
 			break;
 		case V_DOUBLE:
-			set_double(in);
+			retval = set_double(in);
 			break;
 
 		case V_NONE:
@@ -137,39 +139,51 @@ void Value::SetValue(string const& in,Etype _type) throw(WrongType) {
 			throw WrongType();
 			break;
 	}
+	return retval;
 }
 
-void Value::set_hex(std::string const& in) {
+bool Value::set_hex(std::string const& in) {
 	istringstream input(in);
 	input.flags(ios::hex);
-	int result = 0;
+	Bits result = INT_MIN;
 	input >> result;
+	if(result == INT_MIN) return false;
 	_hex = result;
+	return true;
 }
 
-void Value::set_int(string const &in) {
+bool Value::set_int(string const &in) {
 	istringstream input(in);
-	int result = 0;
+	Bits result = INT_MIN;
 	input >> result;
+	if(result == INT_MIN) return false;
 	_int = result;
+	return true;
 }
-void Value::set_double(string const &in) {
+bool Value::set_double(string const &in) {
 	istringstream input(in);
-	double result = 0;
+	double result = std::numeric_limits<double>::infinity();
 	input >> result;
+	if(result == std::numeric_limits<double>::infinity()) return false;
 	_double = result;
+	return true;
 }
 
-void Value::set_bool(string const &in) {
+bool Value::set_bool(string const &in) {
 	istringstream input(in);
 	string result;
 	input >> result;
-	_bool = true;
 	lowcase(result);
-	/* valid false entries: 0 ,d*, f*, off  everything else gets true */
-	if( !result.size() ) return;
-	if(result[0] == '0' || result[0] == 'd' || result[0] == 'f' || result == "off") 
+	_bool = true; // TODO
+	if(!result.size()) return false;
+	
+	if(result=="0" || result=="disabled" || result=="false" || result=="off") {
 		_bool = false;
+	} else if(result=="1" || result=="enabled" || result=="true" || result=="on") {
+		_bool = true;
+	} else return false;
+	
+	return true;
 }
 
 void Value::set_string(string const & in) {
@@ -242,27 +256,30 @@ bool Prop_int::CheckValue(Value const& in, bool warn) {
 	return false;
 }
 
-void Prop_double::SetValue(std::string const& input){
-	Value val(input,Value::V_DOUBLE);
-	SetVal(val,false,true);
+bool Prop_double::SetValue(std::string const& input){
+	Value val;
+	if(!val.SetValue(input,Value::V_DOUBLE)) return false;
+	return SetVal(val,false,true);
 }
 
 //void Property::SetValue(char* input){ 
 //	value.SetValue(input, Value::V_CURRENT);
 //}
-void Prop_int::SetValue(std::string const& input){;
-	Value val(input,Value::V_INT);
-	SetVal(val,false,true);
+bool Prop_int::SetValue(std::string const& input){;
+	Value val;
+	if(!val.SetValue(input,Value::V_INT)) return false;
+	bool retval = SetVal(val,false,true);
+	return retval;
 }
 
-void Prop_string::SetValue(std::string const& input){
+bool Prop_string::SetValue(std::string const& input){
 	//Special version for lowcase stuff
 	std::string temp(input);
 	//suggested values always case insensitive. 
 	//If there are none then it can be paths and such which are case sensitive
 	if(!suggested_values.empty()) lowcase(temp);
 	Value val(temp,Value::V_STRING);
-	SetVal(val,false,true);
+	return SetVal(val,false,true);
 }
 bool Prop_string::CheckValue(Value const& in, bool warn){
 	if(suggested_values.empty()) return true;
@@ -271,25 +288,25 @@ bool Prop_string::CheckValue(Value const& in, bool warn){
 			return true;
 		}
 		if((*it).ToString() == "%u") {
-			Bitu value;
+			Bit32u value;
 			if(sscanf(in.ToString().c_str(),"%u",&value) == 1) {
 				return true;
 			}
 		}
 	}
-	if(warn) LOG_MSG("\"%s\" is not a valid value for variable: %s.\nIt might now be reset it to default value: %s",in.ToString().c_str(),propname.c_str(),default_value.ToString().c_str());
+	if(warn) LOG_MSG("\"%s\" is not a valid value for variable: %s.\nIt might now be reset to the default value: %s",in.ToString().c_str(),propname.c_str(),default_value.ToString().c_str());
 	return false;
 }
 
-void Prop_path::SetValue(std::string const& input){
+bool Prop_path::SetValue(std::string const& input){
 	//Special version to merge realpath with it
 
 	Value val(input,Value::V_STRING);
-	SetVal(val,false,true);
+	bool retval = SetVal(val,false,true);
 
 	if(input.empty()) {
 		realpath = "";
-		return;
+		return false;
 	}
 	std::string workcopy(input);
 	Cross::ResolveHomedir(workcopy); //Parse ~ and friends
@@ -297,20 +314,18 @@ void Prop_path::SetValue(std::string const& input){
 	if( current_config_dir.empty()) realpath = workcopy;
 	else realpath = current_config_dir + CROSS_FILESPLIT + workcopy;
 	//Absolute paths
-#if defined (WIN32) || defined(OS2)
-	if( workcopy.size() > 2 && workcopy[1] == ':' ) realpath = workcopy;
-#else
-	if( workcopy.size() > 1 && workcopy[0] == '/' ) realpath = workcopy;
-#endif
+	if (Cross::IsPathAbsolute(workcopy)) realpath = workcopy;
+	return retval;
 }
 	
-void Prop_bool::SetValue(std::string const& input){
-	value.SetValue(input,Value::V_BOOL);
+bool Prop_bool::SetValue(std::string const& input){
+	return value.SetValue(input,Value::V_BOOL);
 }
 
-void Prop_hex::SetValue(std::string const& input){
-	Value val(input,Value::V_HEX);
-	SetVal(val,false,true);
+bool Prop_hex::SetValue(std::string const& input){
+	Value val;
+	val.SetValue(input,Value::V_HEX);
+	return SetVal(val,false,true);
 }
 
 void Prop_multival::make_default_value(){
@@ -331,15 +346,15 @@ void Prop_multival::make_default_value(){
    
 
 //TODO checkvalue stuff
-void Prop_multival_remain::SetValue(std::string const& input) {
+bool Prop_multival_remain::SetValue(std::string const& input) {
 	Value val(input,Value::V_STRING);
-	SetVal(val,false,true);
+	bool retval = SetVal(val,false,true);
 
 	std::string local(input);
 	int i = 0,number_of_properties = 0;
 	Property *p = section->Get_prop(0);
 	//No properties in this section. do nothing
-	if(!p) return;
+	if(!p) return false;
 	
 	while( (section->Get_prop(number_of_properties)) )
 		number_of_properties++;
@@ -364,22 +379,23 @@ void Prop_multival_remain::SetValue(std::string const& input) {
 		Value valtest (in,p->Get_type());
 		if(!p->CheckValue(valtest,true)) {
 			make_default_value();
-			return;
+			return false;
 		}
 		p->SetValue(in);
 	}
+	return retval;
 }
 
 //TODO checkvalue stuff
-void Prop_multival::SetValue(std::string const& input) {
+bool Prop_multival::SetValue(std::string const& input) {
 	Value val(input,Value::V_STRING);
-	SetVal(val,false,true);
+	bool retval = SetVal(val,false,true);
 
 	std::string local(input);
 	int i = 0;
 	Property *p = section->Get_prop(0);
 	//No properties in this section. do nothing
-	if(!p) return;
+	if(!p) return false;
 	string::size_type loc = string::npos;
 	while( (p = section->Get_prop(i++)) ) {
 		//trim leading seperators
@@ -398,11 +414,12 @@ void Prop_multival::SetValue(std::string const& input) {
 		Value valtest (in,p->Get_type());
 		if(!p->CheckValue(valtest,true)) {
 			make_default_value();
-			return;
+			return false;
 		}
 		p->SetValue(in);
 
 	}
+	return retval;
 }
 
 const std::vector<Value>& Property::GetValues() const {
@@ -563,20 +580,20 @@ void trim(string& in) {
 }
 
 //TODO double c_str
-void Section_prop::HandleInputline(string const& gegevens){
+bool Section_prop::HandleInputline(string const& gegevens){
 	string str1 = gegevens;
 	string::size_type loc = str1.find('=');
-	if(loc == string::npos) return;
+	if(loc == string::npos) return false;
 	string name = str1.substr(0,loc);
 	string val = str1.substr(loc + 1);
 	/* trim the results incase there were spaces somewhere */
 	trim(name);trim(val);
 	for(it tel=properties.begin();tel!=properties.end();tel++){
 		if(!strcasecmp((*tel)->propname.c_str(),name.c_str())){
-			(*tel)->SetValue(val);
-			return;
+			return (*tel)->SetValue(val);
 		}
 	}
+	return false;
 }
 
 void Section_prop::PrintData(FILE* outfile) const {
@@ -596,9 +613,10 @@ string Section_prop::GetPropValue(string const& _property) const{
 	return NO_SUCH_PROPERTY;
 }
 
-void Section_line::HandleInputline(string const& line){ 
+bool Section_line::HandleInputline(string const& line){ 
 	data+=line;
 	data+="\n";
+	return true;
 }
 
 void Section_line::PrintData(FILE* outfile) const {
@@ -633,7 +651,7 @@ bool Config::PrintConfig(char const * const configfilename) const {
 			}
 			i=0;
 			char prefix[80];
-			snprintf(prefix,80, "\n# %*s  ", maxwidth, "");
+			snprintf(prefix,80, "\n# %*s  ", (int)maxwidth, "");
 			while ((p = sec->Get_prop(i++))) {		
 				std::string help = p->Get_help();
 				std::string::size_type pos = std::string::npos;
@@ -641,7 +659,7 @@ bool Config::PrintConfig(char const * const configfilename) const {
 					help.replace(pos, 1, prefix);
 				}
 		     
-				fprintf(outfile, "# %*s: %s", maxwidth, p->propname.c_str(), help.c_str());
+				fprintf(outfile, "# %*s: %s", (int)maxwidth, p->propname.c_str(), help.c_str());
 
 				std::vector<Value> values = p->GetValues();
 				if (!values.empty()) {
@@ -770,11 +788,13 @@ Section* Config::GetSectionFromProperty(char const * const prop) const{
 
 
 bool Config::ParseConfigFile(char const * const configfilename){
-	static bool first_configfile = true;
+	//static bool first_configfile = true;
 	ifstream in(configfilename);
 	if (!in) return false;
-	const char * settings_type = first_configfile?"primary":"additional";
-	first_configfile = false;
+	const char * settings_type;
+	settings_type = (configfiles.size() == 0)? "primary":"additional";
+	configfiles.push_back(configfilename);
+	
 	LOG_MSG("CONFIG:Loading %s settings from config file %s", settings_type,configfilename);
 
 	//Get directory from configfilename, used with relative paths.
@@ -824,6 +844,10 @@ bool Config::ParseConfigFile(char const * const configfilename){
 	return true;
 }
 
+/*const char* Config::GetPrimaryConfigFile() {
+	return configfile.c_str();
+}*/
+
 void Config::ParseEnv(char ** envp) {
 	for(char** env=envp; *env;env++) {
 		char copy[1024];
@@ -850,6 +874,7 @@ void Config::SetStartUp(void (*_function)(void)) {
 
 
 void Config::StartUp(void) {
+	initialised=true;
 	(*_start_function)();
 }
 
@@ -930,6 +955,39 @@ bool CommandLine::FindStringRemain(char const * const name,std::string & value) 
 	return true;
 }
 
+/* Only used for parsing command.com /C 
+ * Allowing /C dir and /Cdir
+ * Restoring quotes back into the commands so command /C mount d "/tmp/a b" works as intended
+ */
+bool CommandLine::FindStringRemainBegin(char const * const name,std::string & value) {
+	cmd_it it;value="";
+	if (!FindEntry(name,it)) {
+		size_t len = strlen(name);
+			for (it=cmds.begin();it!=cmds.end();it++) {
+				if (strncasecmp(name,(*it).c_str(),len)==0) {
+					std::string temp = ((*it).c_str() + len);
+					//Restore quotes for correct parsing in later stages
+					if(temp.find(" ") != std::string::npos)
+						value = std::string("\"") + temp + std::string("\"");
+					else
+						value = temp;
+					break;
+				}
+			}
+		if( it == cmds.end()) return false;
+	}
+	it++;
+	for (;it!=cmds.end();it++) {
+		value += " ";
+		std::string temp = (*it);
+		if(temp.find(" ") != std::string::npos)
+			value += std::string("\"") + temp + std::string("\"");
+		else
+			value += temp;
+	}
+	return true;
+}
+
 bool CommandLine::GetStringRemain(std::string & value) {
 	if(!cmds.size()) return false;
 		
@@ -945,6 +1003,90 @@ bool CommandLine::GetStringRemain(std::string & value) {
 unsigned int CommandLine::GetCount(void) {
 	return (unsigned int)cmds.size();
 }
+
+void CommandLine::FillVector(std::vector<std::string> & vector) {
+	for(cmd_it it=cmds.begin(); it != cmds.end(); it++) {
+		vector.push_back((*it));
+	}
+	// add back the \" if the parameter contained a space
+	for(Bitu i = 0; i < vector.size(); i++) {
+		if(vector[i].find(' ') != std::string::npos) {
+			vector[i] = "\""+vector[i]+"\"";
+		}
+	}
+}
+
+int CommandLine::GetParameterFromList(const char* const params[], std::vector<std::string> & output) {
+	// return values: 0 = P_NOMATCH, 1 = P_NOPARAMS
+	// TODO return nomoreparams
+	int retval = 1;
+	output.clear();
+	enum {
+		P_START, P_FIRSTNOMATCH, P_FIRSTMATCH
+	} parsestate = P_START;
+	cmd_it it = cmds.begin();
+	while(it!=cmds.end()) {
+		bool found = false;
+		for(Bitu i = 0; *params[i]!=0; i++) {
+			if (!strcasecmp((*it).c_str(),params[i])) {
+				// found a parameter
+				found = true;
+				switch(parsestate) {
+				case P_START:
+					retval = i+2;
+					parsestate = P_FIRSTMATCH;
+					break;
+				case P_FIRSTMATCH:
+				case P_FIRSTNOMATCH:
+					return retval;
+				}
+			}
+		}
+		if(!found) 
+			switch(parsestate) {
+			case P_START:
+				retval = 0; // no match
+				parsestate = P_FIRSTNOMATCH;
+				output.push_back(*it);
+				break;
+			case P_FIRSTMATCH:
+			case P_FIRSTNOMATCH:
+				output.push_back(*it);
+				break;
+			}
+		cmd_it itold = it;
+		it++;
+		cmds.erase(itold);
+
+	}
+	
+	return retval;
+/*
+bool CommandLine::FindEntry(char const * const name,cmd_it & it,bool neednext) {
+	for (it=cmds.begin();it!=cmds.end();it++) {
+		if (!strcasecmp((*it).c_str(),name)) {
+			cmd_it itnext=it;itnext++;
+			if (neednext && (itnext==cmds.end())) return false;
+			return true;
+		}
+	}
+	return false;
+*/
+
+
+/*
+	cmd_it it=cmds.begin();value=(*it++);
+	while(it != cmds.end()) {
+		if(params.
+
+		it++;
+	}
+*/
+	// find next parameter
+	//return -1;
+
+}
+
 
 CommandLine::CommandLine(int argc,char const * const argv[]) {
 	if (argc>0) {

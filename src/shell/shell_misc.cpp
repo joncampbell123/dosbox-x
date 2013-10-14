@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,23 +16,76 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: shell_misc.cpp,v 1.54 2009-05-27 09:15:42 qbix79 Exp $ */
 
 #include <stdlib.h>
 #include <string.h>
 #include <algorithm> //std::copy
 #include <iterator>  //std::front_inserter
 #include "shell.h"
+#include "timer.h"
+#include "bios.h"
+#include "control.h"
 #include "regs.h"
 #include "callback.h"
 #include "support.h"
+#ifdef WIN32
+#include "../dos/cdrom.h"
+#endif 
 
 void DOS_Shell::ShowPrompt(void) {
 	Bit8u drive=DOS_GetDefaultDrive()+'A';
 	char dir[DOS_PATHLENGTH];
 	dir[0] = 0; //DOS_GetCurrentDir doesn't always return something. (if drive is messed up)
 	DOS_GetCurrentDir(0,dir);
-	WriteOut("%c:\\%s>",drive,dir);
+	std::string line;
+	char * promptstr = "\0";
+
+	if(GetEnvStr("PROMPT",line)) {
+		std::string::size_type idx = line.find('=');
+		std::string value=line.substr(idx +1 , std::string::npos);
+		line = std::string(promptstr) + value;
+		promptstr=const_cast<char*>(line.c_str());
+	}
+
+	while (*promptstr) {
+		if (!strcasecmp(promptstr,"$"))
+			WriteOut("\0");
+		else if(*promptstr != '$')
+			WriteOut("%c",*promptstr);
+		else switch (toupper(*++promptstr)) {
+			case 'A': WriteOut("&"); break;
+			case 'B': WriteOut("|"); break;
+			case 'C': WriteOut("("); break;
+			case 'D': WriteOut("%02d-%02d-%04d",dos.date.day,dos.date.month,dos.date.year); break;
+			case 'E': WriteOut("%c",27);  break;
+			case 'F': WriteOut(")");  break;
+			case 'G': WriteOut(">"); break;
+			case 'H': WriteOut("\b");   break;
+			case 'L': WriteOut("<"); break;
+			case 'N': WriteOut("%c",DOS_GetDefaultDrive()+'A'); break;
+			case 'P': WriteOut("%c:\\%s",DOS_GetDefaultDrive()+'A',dir); break;
+			case 'Q': WriteOut("="); break;
+			case 'S': WriteOut(" "); break;
+			case 'T': {
+				Bitu ticks=(Bitu)(((65536.0 * 100.0)/(double)PIT_TICK_RATE)* mem_readd(BIOS_TIMER));
+				reg_dl=(Bit8u)((Bitu)ticks % 100);
+				ticks/=100;
+				reg_dh=(Bit8u)((Bitu)ticks % 60);
+				ticks/=60;
+				reg_cl=(Bit8u)((Bitu)ticks % 60);
+				ticks/=60;
+				reg_ch=(Bit8u)((Bitu)ticks % 24);
+				WriteOut("%2d:%02d:%02d.%02d",reg_ch,reg_cl,reg_dh,reg_dl);
+				break;
+			}
+			case 'V': WriteOut("DOSBox version %s. Reported DOS version %d.%d.",VERSION,dos.version.major,dos.version.minor); break;
+			case '$': WriteOut("$"); break;
+			case '_': WriteOut("\n"); break;
+			case 'M': break;
+			case '+': break;
+		}
+		promptstr++;
+	}
 }
 
 static void outc(Bit8u c) {
@@ -57,11 +110,7 @@ void DOS_Shell::InputCommand(char * line) {
 			Bit16u dummy;
 			DOS_CloseFile(input_handle);
 			DOS_OpenFile("con",2,&dummy);
-			if (dummy != 0) {
-				fprintf(stderr,"Fatal error: Unable to reopen CON as handle 0\n");
-				abort();
-			}
-			LOG(LOG_MISC,LOG_ERROR)("Reopening the input handle.This is a bug!");
+			LOG(LOG_MISC,LOG_ERROR)("Reopening the input handle. This is a bug!");
 		}
 		if (!n) {
 			size=0;			//Kill the while loop
@@ -179,6 +228,24 @@ void DOS_Shell::InputCommand(char * line) {
 						size++;
 					}
 					break;
+				case 15:		/* Shift-Tab */
+					if (l_completion.size()) {
+						if (it_completion == l_completion.begin()) it_completion = l_completion.end (); 
+						it_completion--;
+		
+						if (it_completion->length()) {
+							for (;str_index > completion_index; str_index--) {
+								// removes all characters
+								outc(8); outc(' '); outc(8);
+							}
+
+							strcpy(&line[completion_index], it_completion->c_str());
+							len = (Bit16u)it_completion->length();
+							str_len = str_index = completion_index + len;
+							size = CMD_MAXLINE - str_index - 2;
+							DOS_WriteFile(STDOUT, (Bit8u *)it_completion->c_str(), &len);
+						}
+					}
 				default:
 					break;
 				}
@@ -206,11 +273,19 @@ void DOS_Shell::InputCommand(char * line) {
 			}
 			if (l_completion.size()) l_completion.clear();
 			break;
-		case 0x0a:				/* New Line not handled */
-			/* Don't care */
-			break;
-		case 0x0d:				/* Return */
+		case 0x0a:				/* Give a new Line */
 			outc('\n');
+			break;
+		case '': // FAKE CTRL-C
+			outc(94); outc('C');
+			*line = 0;      // reset the line.
+			if (l_completion.size()) l_completion.clear(); //reset the completion list.
+			if(!echo) outc('\n');
+			size = 0;       // stop the next loop
+			str_len = 0;    // prevent multiple adds of the same line
+			break;
+		case 0x0d:				/* /* Don't care, and return */
+			if(!echo) outc('\n');
 			size=0;			//Kill the while loop
 			break;
 		case'\t':
@@ -286,7 +361,7 @@ void DOS_Shell::InputCommand(char * line) {
 						}
 						res=DOS_FindNext();
 					}
-					/* Add excutable list to front of completion list. */
+					/* Add executable list to front of completion list. */
 					std::copy(executable.begin(),executable.end(),std::front_inserter(l_completion));
 					it_completion = l_completion.begin();
 					dos.dta(save_dta);
@@ -353,9 +428,53 @@ void DOS_Shell::InputCommand(char * line) {
 		l_history.pop_front();
 	}
 
+	/* Now parse the line for % stuff */
+	char * percentfirst=strchr(line,'%');
+	char * percentlast=strrchr(line,'%');
+	if(percentfirst<percentlast && percentfirst!=NULL && percentlast!=NULL)
+		ProcessCmdLineEnvVarStitution(line);
+
 	// add command line to history
 	l_history.push_front(line); it_history = l_history.begin();
 	if (l_completion.size()) l_completion.clear();
+
+}
+
+
+/*Make sure that 'line' contains string(s) in %xxx% format before calling it*/
+void DOS_Shell::ProcessCmdLineEnvVarStitution(char * line) {
+	char temp[CMD_MAXLINE];
+	strcpy(temp,line);
+	
+	char * cmd_write=line;
+	char * cmd_read=temp;
+
+	char env_name[256];char * env_write;
+	while (*cmd_read) {
+		env_write=env_name;
+		if (*cmd_read=='%') {
+			cmd_read++;
+			
+			/* try to get the environment */
+			char * first=strchr(cmd_read,'%');
+			if (!first) 
+				continue; 
+			*first++=0;
+			std::string temp;
+			if (GetEnvStr(cmd_read,temp)) {
+					const char * equals=strchr(temp.c_str(),'=');
+					if (!equals) continue;
+					equals++;
+					strcpy(cmd_write,equals);
+					cmd_write+=strlen(equals);
+			
+			cmd_read=first;
+			}
+		} else {
+			*cmd_write++=*cmd_read++;
+		}
+	}
+	*cmd_write=0;
 }
 
 std::string full_arguments = "";
@@ -382,7 +501,70 @@ bool DOS_Shell::Execute(char * name,char * args) {
 	/* check for a drive change */
 	if (((strcmp(name + 1, ":") == 0) || (strcmp(name + 1, ":\\") == 0)) && isalpha(*name))
 	{
+		if (strrchr(name,'\\')) { WriteOut(MSG_Get("SHELL_EXECUTE_ILLEGAL_COMMAND"),name); return true; }
 		if (!DOS_SetDrive(toupper(name[0])-'A')) {
+#ifdef WIN32
+			Section_prop * sec=0; sec=static_cast<Section_prop *>(control->GetSection("dos"));
+			if(!sec->Get_bool("automount")) { WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0])); return true; }
+			// automount: attempt direct letter to drive map.
+			if((GetDriveType(name)==3) && (strcasecmp(name,"c:")==0)) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_WARNING_WIN"));
+first_1:
+			if(GetDriveType(name)==5) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_CDROM"),toupper(name[0]));
+			else if(GetDriveType(name)==2) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_FLOPPY"),toupper(name[0]));
+			else if((GetDriveType(name)==3)||(GetDriveType(name)==4)||(GetDriveType(name)==6)) WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_ACCESS_FIXED"),toupper(name[0]));
+			else { WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0])); return true; }
+
+first_2:
+		Bit8u c;Bit16u n=1;
+		DOS_ReadFile (STDIN,&c,&n);
+		do switch (c) {
+			case 'n':			case 'N':
+			{
+				DOS_WriteFile (STDOUT,&c, &n);
+				DOS_ReadFile (STDIN,&c,&n);
+				do switch (c) {
+					case 0xD: WriteOut("\n\n"); WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0])); return true;
+					case 0x08: WriteOut("\b \b"); goto first_2;
+				} while (DOS_ReadFile (STDIN,&c,&n));
+			}
+			case 'y':			case 'Y':
+			{
+				DOS_WriteFile (STDOUT,&c, &n);
+				DOS_ReadFile (STDIN,&c,&n);
+				do switch (c) {
+					case 0xD: WriteOut("\n"); goto continue_1;
+					case 0x08: WriteOut("\b \b"); goto first_2;
+				} while (DOS_ReadFile (STDIN,&c,&n));
+			}
+			case 0xD: WriteOut("\n"); goto first_1;
+			case '\t': case 0x08: goto first_2;
+			default:
+			{
+				DOS_WriteFile (STDOUT,&c, &n);
+				DOS_ReadFile (STDIN,&c,&n);
+				do switch (c) {
+					case 0xD: WriteOut("\n");goto first_1;
+					case 0x08: WriteOut("\b \b"); goto first_2;
+				} while (DOS_ReadFile (STDIN,&c,&n));
+				goto first_2;
+			}
+		} while (DOS_ReadFile (STDIN,&c,&n));
+
+continue_1:
+
+			char mountstring[DOS_PATHLENGTH+CROSS_LEN+20];
+			sprintf(mountstring,"MOUNT %s ",name);
+
+			if(GetDriveType(name)==5) strcat(mountstring,"-t cdrom ");
+			else if(GetDriveType(name)==2) strcat(mountstring,"-t floppy ");
+			strcat(mountstring,name);
+			strcat(mountstring,"\\");
+//			if(GetDriveType(name)==5) strcat(mountstring," -ioctl");
+			
+			this->ParseLine(mountstring);
+failed:
+			if (!DOS_SetDrive(toupper(name[0])-'A'))
+#endif
 			WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(name[0]));
 		}
 		return true;
@@ -460,7 +642,7 @@ bool DOS_Shell::Execute(char * name,char * args) {
 		/* Fill the command line */
 		CommandTail cmdtail;
 		cmdtail.count = 0;
-		memset(&cmdtail.buffer,0,126); //Else some part of the string is unitialized (valgrind)
+		memset(&cmdtail.buffer,0,127); //Else some part of the string is unitialized (valgrind)
 		if (strlen(line)>126) line[126]=0;
 		cmdtail.count=(Bit8u)strlen(line);
 		memcpy(cmdtail.buffer,line,strlen(line));

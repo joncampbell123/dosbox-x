@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: ems.cpp,v 1.65 2009-10-11 17:11:52 c2woody Exp $ */
 
 #include <string.h>
 #include <stdlib.h>
@@ -32,6 +31,8 @@
 #include "setup.h"
 #include "support.h"
 #include "cpu.h"
+#include "../save_state.h"
+#include "dma.h"
 
 #define EMM_PAGEFRAME	0xE000
 #define EMM_PAGEFRAME4K	((EMM_PAGEFRAME*16)/4096)
@@ -88,6 +89,8 @@ struct EMM_Handle {
 	EMM_Mapping page_map[EMM_MAX_PHYS];
 };
 
+static Bitu ems_type;
+
 static EMM_Handle emm_handles[EMM_MAX_HANDLES];
 static EMM_Mapping emm_mappings[EMM_MAX_PHYS];
 static EMM_Mapping emm_segmentmappings[0x40];
@@ -97,7 +100,8 @@ static Bit16u GEMMIS_seg;
 
 class device_EMM : public DOS_Device {
 public:
-	device_EMM() {
+	device_EMM(bool is_emm386_avail) {
+		is_emm386=is_emm386_avail;
 		SetName("EMMXXXX0");
 		GEMMIS_seg=0;
 	}
@@ -108,11 +112,12 @@ public:
 	}
 	bool Seek(Bit32u * /*pos*/,Bit32u /*type*/){return false;}
 	bool Close(){return false;}
-	Bit16u GetInformation(void){return 0xc080;}
+	Bit16u GetInformation(void){return 0xc0c0;}
 	bool ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode);
 	bool WriteToControlChannel(PhysPt /*bufptr*/,Bit16u /*size*/,Bit16u * /*retcode*/){return true;}
 private:
 	Bit8u cache;
+	bool is_emm386;
 };
 
 bool device_EMM::ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode) { 
@@ -125,6 +130,7 @@ bool device_EMM::ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retco
 			*retcode=6;
 			return true;
 		case 0x01: {
+			if (!is_emm386) return false;
 			if (size!=6) return false;
 			if (GEMMIS_seg==0) GEMMIS_seg=DOS_GetMemory(0x20);
 			PhysPt GEMMIS_addr=PhysMake(GEMMIS_seg,0);
@@ -181,12 +187,14 @@ bool device_EMM::ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retco
 			return true;
 			}
 		case 0x02:
+			if (!is_emm386) return false;
 			if (size!=2) return false;
 			mem_writeb(bufptr+0x00,EMM_VERSION>>4);		// version 4
 			mem_writeb(bufptr+0x01,EMM_MINOR_VERSION);
 			*retcode=2;
 			return true;
 		case 0x03:
+			if (!is_emm386) return false;
 			if (EMM_MINOR_VERSION < 0x2d) return false;
 			if (size!=4) return false;
 			mem_writew(bufptr+0x00,(Bit16u)(MEM_TotalPages()*4));	// max size (kb)
@@ -323,7 +331,23 @@ static Bit8u EMM_MapPage(Bitu phys_page,Bit16u handle,Bit16u log_page) {
 static Bit8u EMM_MapSegment(Bitu segment,Bit16u handle,Bit16u log_page) {
 //	LOG_MSG("EMS MapSegment handle %d segment %d log %d",handle,segment,log_page);
 
-	if (((segment>=0xa000) && (segment<0xb000)) || ((segment>=EMM_PAGEFRAME-0x1000) && (segment<EMM_PAGEFRAME+0x1000))) {
+	bool valid_segment=false;
+
+	if ((ems_type==1) || (ems_type==3)) {
+		if (segment<0xf000+0x1000) valid_segment=true;
+	} else {
+		if ((segment>=0xa000) && (segment<0xb000)) {
+			valid_segment=true;		// allow mapping of graphics memory
+		}
+		if ((segment>=EMM_PAGEFRAME) && (segment<EMM_PAGEFRAME+0x1000)) {
+			valid_segment=true;		// allow mapping of EMS page frame
+		}
+/*		if ((segment>=EMM_PAGEFRAME-0x1000) && (segment<EMM_PAGEFRAME)) {
+			valid_segment=true;
+		} */
+	}
+
+	if (valid_segment) {
 		Bit32s tphysPage = ((Bit32s)segment-EMM_PAGEFRAME)/(0x1000/EMM_MAX_PHYS);
 
 		/* unmapping doesn't need valid handle (as handle isn't used) */
@@ -466,7 +490,7 @@ static Bit8u EMM_PartialPageMapping(void) {
 				mem_writew(data,segment);data+=2;
 				MEM_BlockWrite(data,&emm_mappings[page],sizeof(EMM_Mapping));
 				data+=sizeof(EMM_Mapping);
-			} else if (((segment>=EMM_PAGEFRAME-0x1000) && (segment<EMM_PAGEFRAME)) || ((segment>=0xa000) && (segment<0xb000))) {
+			} else if ((ems_type==1) || (ems_type==3) || ((segment>=EMM_PAGEFRAME-0x1000) && (segment<EMM_PAGEFRAME)) || ((segment>=0xa000) && (segment<0xb000))) {
 				mem_writew(data,segment);data+=2;
 				MEM_BlockWrite(data,&emm_segmentmappings[segment>>10],sizeof(EMM_Mapping));
 				data+=sizeof(EMM_Mapping);
@@ -483,7 +507,7 @@ static Bit8u EMM_PartialPageMapping(void) {
 			if ((segment>=EMM_PAGEFRAME) && (segment<EMM_PAGEFRAME+0x1000)) {
 				Bit16u page = (segment-EMM_PAGEFRAME) / (EMM_PAGE_SIZE>>4);
 				MEM_BlockRead(data,&emm_mappings[page],sizeof(EMM_Mapping));
-			} else if (((segment>=EMM_PAGEFRAME-0x1000) && (segment<EMM_PAGEFRAME)) || ((segment>=0xa000) && (segment<0xb000))) {
+			} else if ((ems_type==1) || (ems_type==3) || ((segment>=EMM_PAGEFRAME-0x1000) && (segment<EMM_PAGEFRAME)) || ((segment>=0xa000) && (segment<0xb000))) {
 				MEM_BlockRead(data,&emm_segmentmappings[segment>>10],sizeof(EMM_Mapping));
 			} else {
 				return EMM_ILL_PHYS;
@@ -928,7 +952,7 @@ static Bitu INT67_Handler(void) {
 				break;
 			case 0x0c: {	/* VCPI Switch from V86 to Protected Mode */
 				reg_flags&=(~FLAG_IF);
-				cpu.cpl=0;
+				CPU_SetCPL(0);
 
 				/* Read data from ESI (linear address) */
 				Bit32u new_cr3=mem_readd(reg_esi);
@@ -1056,7 +1080,7 @@ static Bitu V86_Monitor() {
 
 		reg_esp+=6;		// skip ip of CALL and error code of EXCEPTION 0x0d
 
-		/* Get adress of faulting instruction */
+		/* Get address of faulting instruction */
 		Bit16u v86_cs=mem_readw(SegPhys(ss)+((reg_esp+4) & cpu.stack.mask));
 		Bit16u v86_ip=mem_readw(SegPhys(ss)+((reg_esp+0) & cpu.stack.mask));
 		Bit8u v86_opcode=mem_readb((v86_cs<<4)+v86_ip);
@@ -1262,9 +1286,25 @@ static Bitu INT4B_Handler() {
 	return CBRET_NONE;
 }
 
+Bitu GetEMSType(Section_prop * section) {
+	Bitu rtype = 0;
+	std::string emstypestr(section->Get_string("ems"));
+	if (emstypestr=="true") {
+		rtype = 1;	// mixed mode
+	} else if (emstypestr=="emsboard") {
+		rtype = 2;
+	} else if (emstypestr=="emm386") {
+		rtype = 3;
+	} else {
+		rtype = 0;
+	}
+	return rtype;
+}
+
 
 class EMS: public Module_base {
 private:
+	DOS_Device * emm_device;
 	/* location in protected unfreeable memory where the ems name and callback are
 	 * stored  32 bytes.*/
 	static Bit16u ems_baseseg;
@@ -1273,7 +1313,9 @@ private:
 	Bitu call_int67;
 
 public:
-	EMS(Section* configuration):Module_base(configuration){
+	EMS(Section* configuration):Module_base(configuration) {
+		emm_device=NULL;
+		ems_type=0;
 
 		/* Virtual DMA interrupt callback */
 		call_vdma.Install(&INT4B_Handler,CB_IRET,"Int 4b vdma");
@@ -1283,8 +1325,11 @@ public:
 		GEMMIS_seg=0;
 		
 		Section_prop * section=static_cast<Section_prop *>(configuration);
-		if (!section->Get_bool("ems")) return;
+		ems_type=GetEMSType(section);
+		if (ems_type<=0) return;
+
 		if (machine==MCH_PCJR) {
+			ems_type=0;
 			LOG_MSG("EMS disabled for PCJr machine");
 			return;
 		}
@@ -1302,8 +1347,8 @@ public:
 
 		/* Register the ems device */
 		//TODO MAYBE put it in the class.
-		DOS_Device * newdev = new device_EMM();
-		DOS_AddDevice(newdev);
+		emm_device = new device_EMM(ems_type!=2);
+		DOS_AddDevice(emm_device);
 
 		/* Clear handle and page tables */
 		Bitu i;
@@ -1321,63 +1366,69 @@ public:
 			emm_segmentmappings[i].handle=NULL_HANDLE;
 		}
 
-		EMM_AllocateSystemHandle(8);	// allocate OS-dedicated handle (ems handle zero, 128kb)
+		EMM_AllocateSystemHandle(24);	// allocate OS-dedicated handle (ems handle zero, 384kb)
 
+		if (ems_type==3) {
+			DMA_SetWrapping(0xffffffff);	// emm386-bug that disables dma wrapping
+		}
 
 		if (!ENABLE_VCPI) return;
 
-		/* Install a callback that handles VCPI-requests in protected mode requests */
-		call_vcpi.Install(&VCPI_PM_Handler,CB_IRETD,"VCPI PM");
-		vcpi.pm_interface=(call_vcpi.Get_callback())*CB_SIZE;
+		if (ems_type!=2) {
+			/* Install a callback that handles VCPI-requests in protected mode requests */
+			call_vcpi.Install(&VCPI_PM_Handler,CB_IRETD,"VCPI PM");
+			vcpi.pm_interface=(call_vcpi.Get_callback())*CB_SIZE;
 
-		/* Initialize private data area and set up descriptor tables */
-		SetupVCPI();
+			/* Initialize private data area and set up descriptor tables */
+			SetupVCPI();
 
-		if (!vcpi.enabled) return;
+			if (!vcpi.enabled) return;
 
-		/* Install v86-callback that handles interrupts occuring
-		   in v86 mode, including protection fault exceptions */
-		call_v86mon.Install(&V86_Monitor,CB_IRET,"V86 Monitor");
+			/* Install v86-callback that handles interrupts occuring
+			   in v86 mode, including protection fault exceptions */
+			call_v86mon.Install(&V86_Monitor,CB_IRET,"V86 Monitor");
 
-		mem_writeb(vcpi.private_area+0x2e00,(Bit8u)0xFE);       //GRP 4
-		mem_writeb(vcpi.private_area+0x2e01,(Bit8u)0x38);       //Extra Callback instruction
-		mem_writew(vcpi.private_area+0x2e02,call_v86mon.Get_callback());		//The immediate word
-		mem_writeb(vcpi.private_area+0x2e04,(Bit8u)0x66);
-		mem_writeb(vcpi.private_area+0x2e05,(Bit8u)0xCF);       //A IRETD Instruction
+			mem_writeb(vcpi.private_area+0x2e00,(Bit8u)0xFE);       //GRP 4
+			mem_writeb(vcpi.private_area+0x2e01,(Bit8u)0x38);       //Extra Callback instruction
+			mem_writew(vcpi.private_area+0x2e02,call_v86mon.Get_callback());		//The immediate word
+			mem_writeb(vcpi.private_area+0x2e04,(Bit8u)0x66);
+			mem_writeb(vcpi.private_area+0x2e05,(Bit8u)0xCF);       //A IRETD Instruction
 
-		/* Testcode only, starts up dosbox in v86-mode */
-		if (ENABLE_V86_STARTUP) {
-			/* Prepare V86-task */
-			CPU_SET_CRX(0, 1);
-			CPU_LGDT(0xff, vcpi.private_area+0x0000);
-			CPU_LIDT(0x7ff, vcpi.private_area+0x2000);
-			if (CPU_LLDT(0x08)) LOG_MSG("VCPI:Could not load LDT");
-			if (CPU_LTR(0x10)) LOG_MSG("VCPI:Could not load TR");
+			/* Testcode only, starts up dosbox in v86-mode */
+			if (ENABLE_V86_STARTUP) {
+				/* Prepare V86-task */
+				CPU_SET_CRX(0, 1);
+				CPU_LGDT(0xff, vcpi.private_area+0x0000);
+				CPU_LIDT(0x7ff, vcpi.private_area+0x2000);
+				if (CPU_LLDT(0x08)) LOG_MSG("VCPI:Could not load LDT");
+				if (CPU_LTR(0x10)) LOG_MSG("VCPI:Could not load TR");
 
-			CPU_Push32(SegValue(gs));
-			CPU_Push32(SegValue(fs));
-			CPU_Push32(SegValue(ds));
-			CPU_Push32(SegValue(es));
-			CPU_Push32(SegValue(ss));
-			CPU_Push32(0x23002);
-			CPU_Push32(SegValue(cs));
-			CPU_Push32(reg_eip&0xffff);
-			/* Switch to V86-mode */
-			cpu.cpl=0;
-			CPU_IRET(true,0);
+				CPU_Push32(SegValue(gs));
+				CPU_Push32(SegValue(fs));
+				CPU_Push32(SegValue(ds));
+				CPU_Push32(SegValue(es));
+				CPU_Push32(SegValue(ss));
+				CPU_Push32(0x23002);
+				CPU_Push32(SegValue(cs));
+				CPU_Push32(reg_eip&0xffff);
+				/* Switch to V86-mode */
+				CPU_SetCPL(0);
+				CPU_IRET(true,0);
+			}
 		}
 	}
 	
 	~EMS() {
-		Section_prop * section=static_cast<Section_prop *>(m_configuration);
-		if (!section->Get_bool("ems")) return;
+		if (ems_type<=0) return;
 
 		/* Undo Biosclearing */
 		BIOS_ZeroExtendedSize(false);
  
 		/* Remove ems device */
-		device_EMM newdev;
-		DOS_DelDevice(&newdev);
+		if (emm_device!=NULL) {
+			DOS_DelDevice(emm_device);
+			emm_device=NULL;
+		}
 		GEMMIS_seg=0;
 
 		/* Remove the emsname and callback hack */
@@ -1401,7 +1452,7 @@ public:
 			CPU_SET_CRX(3, 0);
 			reg_flags&=(~(FLAG_IOPL|FLAG_VM));
 			CPU_LIDT(0x3ff, 0);
-			cpu.cpl=0;
+			CPU_SetCPL(0);
 		}
 	}
 };
@@ -1419,3 +1470,27 @@ void EMS_Init(Section* sec) {
 
 //Initialize static members
 Bit16u EMS::ems_baseseg = 0;
+
+
+
+//save state support
+namespace
+{
+class SerializeEMS : public SerializeGlobalPOD
+{
+public:
+    SerializeEMS() : SerializeGlobalPOD("EMS")
+    {
+        registerPOD(emm_handles);
+        registerPOD(emm_mappings);
+        registerPOD(emm_segmentmappings);
+        registerPOD(GEMMIS_seg);
+        registerPOD(vcpi.enabled);
+        registerPOD(vcpi.ems_handle);
+        registerPOD(vcpi.pm_interface);
+        registerPOD(vcpi.private_area);
+        registerPOD(vcpi.pic1_remapping);
+        registerPOD(vcpi.pic2_remapping);
+    }
+} dummy;
+}

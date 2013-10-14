@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: int10_put_pixel.cpp,v 1.23 2009-05-27 09:15:42 qbix79 Exp $ */
 
 #include "dosbox.h"
 #include "mem.h"
@@ -31,34 +30,44 @@ void INT10_PutPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u color) {
 
 	switch (CurMode->type) {
 	case M_CGA4:
-		{
-				if (real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE)<=5) {
-					Bit16u off=(y>>1)*80+(x>>2);
-					if (y&1) off+=8*1024;
+	{
+		if (real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE)<=5) {
+			// this is a 16k mode
+			Bit16u off=(y>>1)*80+(x>>2);
+			if (y&1) off+=8*1024;
 
-					Bit8u old=real_readb(0xb800,off);
-					if (color & 0x80) {
-						color&=3;
-						old^=color << (2*(3-(x&3)));
-					} else {
-						old=(old&cga_masks[x&3])|((color&3) << (2*(3-(x&3))));
-					}
-					real_writeb(0xb800,off,old);
-				} else {
-					Bit16u off=(y>>2)*160+((x>>2)&(~1));
-					off+=(8*1024) * (y & 3);
+			Bit8u old=real_readb(0xb800,off);
+			if (color & 0x80) {
+				color&=3;
+				old^=color << (2*(3-(x&3)));
+			} else {
+				old=(old&cga_masks[x&3])|((color&3) << (2*(3-(x&3))));
+			}
+			real_writeb(0xb800,off,old);
+		} else {
+			// a 32k mode: PCJr special case (see M_TANDY16)
+			Bit16u seg;
+			if (machine==MCH_PCJR) {
+				Bitu cpupage =
+					(real_readb(BIOSMEM_SEG, BIOSMEM_CRTCPU_PAGE) >> 3) & 0x7;
+				seg = cpupage << 10; // A14-16 to addr bits 14-16
+			} else
+				seg = 0xb800;
 
-					Bit16u old=real_readw(0xb800,off);
-					if (color & 0x80) {
-						old^=(color&1) << (7-(x&7));
-						old^=((color&2)>>1) << ((7-(x&7))+8);
-					} else {
-						old=(old&(~(0x101<<(7-(x&7))))) | ((color&1) << (7-(x&7))) | (((color&2)>>1) << ((7-(x&7))+8));
-					}
-					real_writew(0xb800,off,old);
-				}
+			Bit16u off=(y>>2)*160+((x>>2)&(~1));
+			off+=(8*1024) * (y & 3);
+
+			Bit16u old=real_readw(seg,off);
+			if (color & 0x80) {
+				old^=(color&1) << (7-(x&7));
+				old^=((color&2)>>1) << ((7-(x&7))+8);
+			} else {
+				old=(old&(~(0x101<<(7-(x&7))))) | ((color&1) << (7-(x&7))) | (((color&2)>>1) << ((7-(x&7))+8));
+			}
+			real_writew(seg,off,old);
 		}
-		break;
+	}
+	break;
 	case M_CGA2:
 		{
 				Bit16u off=(y>>1)*80+(x>>3);
@@ -74,26 +83,50 @@ void INT10_PutPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u color) {
 		}
 		break;
 	case M_TANDY16:
-		{
-			IO_Write(0x3d4,0x09);
-			Bit8u scanlines_m1=IO_Read(0x3d5);
-			Bit16u off=(y>>((scanlines_m1==1)?1:2))*(CurMode->swidth>>1)+(x>>1);
-			off+=(8*1024) * (y & scanlines_m1);
-			Bit8u old=real_readb(0xb800,off);
-			Bit8u p[2];
-			p[1] = (old >> 4) & 0xf;
-			p[0] = old & 0xf;
-			Bitu ind = 1-(x & 0x1);
+	{
+		// find out if we are in a 32k mode (0x9 or 0xa)
+		// This requires special handling on the PCJR
+		// because only 16k are mapped at 0xB800
+		bool is_32k = (real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_MODE) >= 9)?
+			true:false;
 
-			if (color & 0x80) {
-	 			p[ind]^=(color & 0x7f);
-			} else {
-				p[ind]=color;
-			}
-			old = (p[1] << 4) | p[0];
-			real_writeb(0xb800,off,old);
+		Bit16u segment, offset;
+		if (is_32k) {
+			if (machine==MCH_PCJR) {
+				Bitu cpupage =
+					(real_readb(BIOSMEM_SEG, BIOSMEM_CRTCPU_PAGE) >> 3) & 0x7;
+				segment = cpupage << 10; // A14-16 to addr bits 14-16
+			} else
+				segment = 0xb800;
+			// bits 1 and 0 of y select the bank
+			// two pixels per byte (thus x>>1)
+			offset = (y >> 2) * (CurMode->swidth >> 1) + (x>>1);
+			// select the scanline bank
+			offset += (8*1024) * (y & 3);
+		} else {
+			segment = 0xb800;
+			// bit 0 of y selects the bank
+			offset = (y >> 1) * (CurMode->swidth >> 1) + (x>>1);
+			offset += (8*1024) * (y & 1);
 		}
-		break;
+
+		// update the pixel
+		Bit8u old=real_readb(segment, offset);
+		Bit8u p[2];
+		p[1] = (old >> 4) & 0xf;
+		p[0] = old & 0xf;
+		Bitu ind = 1-(x & 0x1);
+
+		if (color & 0x80) {
+			// color is to be XORed
+	 		p[ind]^=(color & 0x7f);
+		} else {
+			p[ind]=color;
+		}
+		old = (p[1] << 4) | p[0];
+		real_writeb(segment,offset, old);
+	}
+	break;
 	case M_LIN4:
 		if ((machine!=MCH_VGA) || (svgaCard!=SVGA_TsengET4K) ||
 				(CurMode->swidth>800)) {

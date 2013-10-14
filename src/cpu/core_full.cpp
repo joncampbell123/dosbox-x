@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -64,8 +64,8 @@ typedef PhysPt EAPoint;
 Bits CPU_Core_Full_Run(void) {
 	FullData inst;	
 	while (CPU_Cycles-->0) {
-#if C_DEBUG
 		cycle_count++;
+#if C_DEBUG		
 #if C_HEAVY_DEBUG
 		if (DEBUG_HeavyIsBreakpoint()) {
 			FillFlags();

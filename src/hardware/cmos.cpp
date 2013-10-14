@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: cmos.cpp,v 1.29 2009-06-16 18:19:18 qbix79 Exp $ */
 
 #include <time.h>
 #include <math.h>
@@ -29,11 +28,40 @@
 #include "bios_disk.h"
 #include "setup.h"
 #include "cross.h" //fmod on certain platforms
+#include "../save_state.h"
+#include "control.h"
+bool date_host_forced=false;
+#if defined (WIN32)
+#include "sys/timeb.h"
+#else
+#include "sys/time.h"
+#endif
+
+// sigh... Windows doesn't know gettimeofday
+#if defined (WIN32)
+typedef Bitu suseconds_t;
+
+struct timeval {
+	time_t tv_sec;
+	suseconds_t tv_usec;
+};
+
+static void gettimeofday (timeval* ptime, void* pdummy) {
+	struct _timeb thetime;
+	_ftime(&thetime);
+
+	ptime->tv_sec = thetime.time;
+	ptime->tv_usec = (Bitu)thetime.millitm;
+}
+
+#endif
 
 static struct {
 	Bit8u regs[0x40];
 	bool nmi;
 	bool bcd;
+	bool ampm;					// am/pm mode (false = 24h mode)
+	bool lock;					// lock bit set (no updates)
 	Bit8u reg;
 	struct {
 		bool enabled;
@@ -47,6 +75,9 @@ static struct {
 		double alarm;
 	} last;
 	bool update_ended;
+	time_t time_diff;			// difference between real UTC and DOSbox UTC
+	struct timeval locktime;	// UTC time of setting lock bit
+	struct timeval safetime;	// UTC time of last safe time
 } cmos;
 
 static void cmos_timerevent(Bitu val) {
@@ -79,6 +110,112 @@ void cmos_selreg(Bitu port,Bitu val,Bitu iolen) {
 }
 
 static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
+	if (date_host_forced && (cmos.reg <= 0x09 || cmos.reg == 0x32)) {	// date/time related registers
+		if (cmos.bcd)			// values supplied are BCD, convert to binary values
+		{
+			if ((val & 0xf0) > 0x90 || (val & 0x0f) > 0x09) return;		// invalid BCD value
+			// other checks for valid values are done in case-switch
+
+			// convert pm hours differently (bcd 81-92 corresponds to hex 81-8c)
+			if (cmos.reg == 0x04 && val >= 0x80)
+			{
+				val = (val < 90) ? 0x80 : 0x8a + (val & 0x0f);
+			}
+			else
+			{
+				val = ((val >> 4) * 10) + (val & 0x0f);
+			}
+		}
+
+		struct tm *loctime;			// local dosbox time (based on dosbox UTC)
+
+		if (cmos.lock)				// if locked, use locktime instead of current time
+		{
+			loctime = localtime(&cmos.locktime.tv_sec);
+		}
+		else						// not locked, use current time
+		{
+			struct timeval curtime;
+			gettimeofday(&curtime, NULL);
+			curtime.tv_sec += cmos.time_diff;
+			loctime = localtime (&curtime.tv_sec);
+		}
+
+		switch (cmos.reg)
+		{
+		case 0x00:		/* Seconds */
+			if (val > 59) return;		// invalid seconds value
+			loctime->tm_sec = val;
+			break;
+
+		case 0x02:		/* Minutes */
+			if (val > 59) return;		// invalid minutes value
+			loctime->tm_min = val;
+			break;
+
+		case 0x04:		/* Hours */
+			if (cmos.ampm)				// 12h am/pm mode
+			{
+				if (val > 12 && val < 0x81 || val > 0x8c) return;	// invalid hour value
+				if (val > 12) val -= (0x80-12);			// convert pm to 24h
+			}
+			else						// 24h mode
+			{
+				if (val > 23) return;								// invalid hour value
+			}
+
+			loctime->tm_hour = val;			
+			break;
+
+		case 0x06:		/* Day of week */
+			// seems silly to set this, as it is calculated? ignore for now
+			break;
+
+		case 0x07:		/* Date of month */
+			if (val > 31) return;				// invalid date value (mktime() should catch the rest)
+			loctime->tm_mday = val;
+			break;
+
+		case 0x08:		/* Month */
+			if (val > 12) return;				// invalid month value
+			loctime->tm_mon = val;
+			break;
+
+		case 0x09:		/* Year */
+			loctime->tm_year = val;
+			break;
+
+		case 0x32:		/* Century */
+			if (val < 19) return;				// invalid century value?
+			loctime->tm_year += (val * 100) - 1900;
+			break;
+
+		case 0x01:		/* Seconds Alarm */
+		case 0x03:		/* Minutes Alarm */
+		case 0x05:		/* Hours Alarm */
+			LOG(LOG_BIOS,LOG_NORMAL)("CMOS:Trying to set alarm");
+			cmos.regs[cmos.reg] = val;
+			return;		// done
+		}
+
+		time_t newtime = mktime(loctime);		// convert new local time back to dosbox UTC
+
+		if (newtime != (time_t)-1)
+		{
+			if (!cmos.lock)			// no lock, takes immediate effect
+			{
+				cmos.time_diff = newtime - time(NULL);	// calculate new diff
+			}
+			else
+			{
+				cmos.locktime.tv_sec = newtime;			// store for later use
+				// no need to set usec, we don't use it
+			}
+		}
+
+		return;
+	}
+
 	switch (cmos.reg) {
 	case 0x00:		/* Seconds */
 	case 0x02:		/* Minutes */
@@ -89,13 +226,15 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
 	case 0x09:		/* Year */
 	case 0x32:              /* Century */
 		/* Ignore writes to change alarm */
-		break;
+		if(!date_host_forced) break;
 	case 0x01:		/* Seconds Alarm */
 	case 0x03:		/* Minutes Alarm */
 	case 0x05:		/* Hours Alarm */
-		LOG(LOG_BIOS,LOG_NORMAL)("CMOS:Trying to set alarm");
-		cmos.regs[cmos.reg]=val;
-		break;
+		if(!date_host_forced) {
+			LOG(LOG_BIOS,LOG_NORMAL)("CMOS:Trying to set alarm");
+			cmos.regs[cmos.reg]=val;
+			break;
+		}
 	case 0x0a:		/* Status reg A */
 		cmos.regs[cmos.reg]=val & 0x7f;
 		if ((val & 0x70)!=0x20) LOG(LOG_BIOS,LOG_ERROR)("CMOS Illegal 22 stage divider value");
@@ -103,14 +242,46 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
 		cmos_checktimer();
 		break;
 	case 0x0b:		/* Status reg B */
-		cmos.bcd=!(val & 0x4);
-		cmos.regs[cmos.reg]=val & 0x7f;
-		cmos.timer.enabled=(val & 0x40)>0;
-		if (val&0x10) LOG(LOG_BIOS,LOG_ERROR)("CMOS:Updated ended interrupt not supported yet");
-		cmos_checktimer();
+		if(date_host_forced) {
+			bool waslocked = cmos.lock;
+
+			cmos.ampm = !(val & 0x02);
+			cmos.bcd = !(val & 0x04);
+			if ((val & 0x10) != 0) LOG(LOG_BIOS,LOG_ERROR)("CMOS:Updated ended interrupt not supported yet");
+			cmos.timer.enabled = (val & 0x40) > 0;
+			cmos.lock = (val & 0x80) != 0;
+
+			if (cmos.lock)				// if locked, set locktime for later use
+			{
+				if (!waslocked)			// if already locked, no further action
+				{
+					// locked for the first time, calculate dosbox UTC
+					gettimeofday(&cmos.locktime, NULL);
+					cmos.locktime.tv_sec += cmos.time_diff;
+				}
+			}
+			else if (waslocked)			// time was locked, now unlock
+			{
+				// calculate new diff between real UTC and dosbox UTC
+				cmos.time_diff = cmos.locktime.tv_sec - time(NULL);
+			}
+
+			cmos.regs[cmos.reg] = val;
+			cmos_checktimer();
+		} else {
+			cmos.bcd=!(val & 0x4);
+			cmos.regs[cmos.reg]=val & 0x7f;
+			cmos.timer.enabled=(val & 0x40)>0;
+			if (val&0x10) LOG(LOG_BIOS,LOG_ERROR)("CMOS:Updated ended interrupt not supported yet");
+			cmos_checktimer();
+		}
 		break;
+	case 0x0c:
+		if(date_host_forced) break;
 	case 0x0d:/* Status reg D */
-		cmos.regs[cmos.reg]=val & 0x80;	/*Bit 7=1:RTC Pown on*/
+		if(!date_host_forced) {
+			cmos.regs[cmos.reg]=val & 0x80;	/*Bit 7=1:RTC Pown on*/
+		}
 		break;
 	case 0x0f:		/* Shutdown status byte */
 		cmos.regs[cmos.reg]=val & 0x7f;
@@ -129,6 +300,62 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
 		LOG(LOG_BIOS,LOG_ERROR)("CMOS:Read from illegal register %x",cmos.reg);
 		return 0xff;
 	}
+
+	// JAL_20060817 - rewrote most of the date/time part
+	if (date_host_forced && (cmos.reg <= 0x09 || cmos.reg == 0x32)) {		// date/time related registers
+		struct tm* loctime;
+
+		if (cmos.lock)				// if locked, use locktime instead of current time
+		{
+			loctime = localtime(&cmos.locktime.tv_sec);
+		}
+		else						// not locked, get current time
+		{
+			struct timeval curtime;
+			gettimeofday(&curtime, NULL);
+	
+			// allow a little more leeway (1 sec) than the .244 sec officially given
+			if (curtime.tv_sec - cmos.safetime.tv_sec == 1 &&
+				curtime.tv_usec < cmos.safetime.tv_usec)
+			{
+				curtime = cmos.safetime;		// within safe range, use safetime instead of current time
+			}
+
+			curtime.tv_sec += cmos.time_diff;
+			loctime = localtime (&curtime.tv_sec);
+		}
+
+		switch (cmos.reg)
+		{
+		case 0x00:		// seconds
+			return MAKE_RETURN(loctime->tm_sec);
+		case 0x02:		// minutes
+			return MAKE_RETURN(loctime->tm_min);
+		case 0x04:		// hours
+			if (cmos.ampm && loctime->tm_hour > 12)		// time pm, convert
+			{
+				loctime->tm_hour -= 12;
+				loctime->tm_hour += (cmos.bcd) ? 80 : 0x80;
+			}
+			return MAKE_RETURN(loctime->tm_hour);
+		case 0x06:		/* Day of week */
+			return MAKE_RETURN(loctime->tm_wday + 1);
+		case 0x07:		/* Date of month */
+			return MAKE_RETURN(loctime->tm_mday);
+		case 0x08:		/* Month */
+			return MAKE_RETURN(loctime->tm_mon + 1);
+		case 0x09:		/* Year */
+			return MAKE_RETURN(loctime->tm_year % 100);
+		case 0x32:		/* Century */
+			return MAKE_RETURN(loctime->tm_year / 100 + 19);
+
+		case 0x01:		/* Seconds Alarm */
+		case 0x03:		/* Minutes Alarm */
+		case 0x05:		/* Hours Alarm */
+			return MAKE_RETURN(cmos.regs[cmos.reg]);
+		}
+	}
+
 	Bitu drive_a, drive_b;
 	Bit8u hdparm;
 	time_t curtime;
@@ -141,30 +368,41 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
 
 	switch (cmos.reg) {
 	case 0x00:		/* Seconds */
-		return 	MAKE_RETURN(loctime->tm_sec);
+		if(!date_host_forced) return 	MAKE_RETURN(loctime->tm_sec);
 	case 0x02:		/* Minutes */
-		return 	MAKE_RETURN(loctime->tm_min);
+		if(!date_host_forced) return 	MAKE_RETURN(loctime->tm_min);
 	case 0x04:		/* Hours */
-		return 	MAKE_RETURN(loctime->tm_hour);
+		if(!date_host_forced) return 	MAKE_RETURN(loctime->tm_hour);
 	case 0x06:		/* Day of week */
-		return 	MAKE_RETURN(loctime->tm_wday + 1);
+		if(!date_host_forced) return 	MAKE_RETURN(loctime->tm_wday + 1);
 	case 0x07:		/* Date of month */
-		return 	MAKE_RETURN(loctime->tm_mday);
+		if(!date_host_forced) return 	MAKE_RETURN(loctime->tm_mday);
 	case 0x08:		/* Month */
-		return 	MAKE_RETURN(loctime->tm_mon + 1);
+		if(!date_host_forced) return 	MAKE_RETURN(loctime->tm_mon + 1);
 	case 0x09:		/* Year */
-		return 	MAKE_RETURN(loctime->tm_year % 100);
+		if(!date_host_forced) return 	MAKE_RETURN(loctime->tm_year % 100);
 	case 0x32:		/* Century */
-		return 	MAKE_RETURN(loctime->tm_year / 100 + 19);
+		if(!date_host_forced) return 	MAKE_RETURN(loctime->tm_year / 100 + 19);
 	case 0x01:		/* Seconds Alarm */
 	case 0x03:		/* Minutes Alarm */
 	case 0x05:		/* Hours Alarm */
-		return cmos.regs[cmos.reg];
+		if(!date_host_forced) return cmos.regs[cmos.reg];
 	case 0x0a:		/* Status register A */
-		if (PIC_TickIndex()<0.002) {
-			return (cmos.regs[0x0a]&0x7f) | 0x80;
+		if(date_host_forced) {
+			// take bit 7 of reg b into account (if set, never updates)
+			gettimeofday (&cmos.safetime, NULL);		// get current UTC time
+			if (cmos.lock ||							// if lock then never updated, so reading safe
+				cmos.safetime.tv_usec < (1000-244)) {	// if 0, at least 244 usec should be available
+				return cmos.regs[0x0a];					// reading safe
+			} else {
+				return cmos.regs[0x0a] | 0x80;			// reading not safe!
+			}
 		} else {
-			return (cmos.regs[0x0a]&0x7f);
+			if (PIC_TickIndex()<0.002) {
+				return (cmos.regs[0x0a]&0x7f) | 0x80;
+			} else {
+				return (cmos.regs[0x0a]&0x7f);
+			}
 		}
 	case 0x0c:		/* Status register C */
 		cmos.timer.acknowledged=true;
@@ -184,7 +422,8 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
 			if (index>=(cmos.last.ended+1000)) {
 				cmos.last.ended=index;
 				val|=0x10;
-			} 
+			}
+			if(date_host_forced) cmos.regs[0xc] = 0;		// JAL_20060817 - reset here too!
 			return val;
 		}
 	case 0x10:		/* Floppy size */
@@ -282,6 +521,10 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
 	case 0x31:		/* Extended memory in KB High Byte */
 //		LOG(LOG_BIOS,LOG_NORMAL)("CMOS:Read from reg %X : %04X",cmos.reg,cmos.regs[cmos.reg]);
 		return cmos.regs[cmos.reg];
+	case 0x2F:
+		extern bool PS1AudioCard;
+		if( PS1AudioCard )
+			return 0xFF;
 	default:
 		LOG(LOG_BIOS,LOG_NORMAL)("CMOS:Read from reg %X",cmos.reg);
 		return cmos.regs[cmos.reg];
@@ -308,8 +551,12 @@ public:
 		cmos_writereg(0x71,0x26,1);
 		cmos.reg=0xb;
 		cmos_writereg(0x71,0x2,1);	//Struct tm *loctime is of 24 hour format,
-		cmos.reg=0xd;
-		cmos_writereg(0x71,0x80,1); /* RTC power on */
+		if(date_host_forced) {
+			cmos.regs[0x0d]=(Bit8u)0x80;
+		} else {
+			cmos.reg=0xd;
+			cmos_writereg(0x71,0x80,1); /* RTC power on */
+		}
 		// Equipment is updated from bios.cpp and bios_disk.cpp
 		/* Fill in base memory size, it is 640K always */
 		cmos.regs[0x15]=(Bit8u)0x80;
@@ -321,6 +568,10 @@ public:
 		cmos.regs[0x18]=(Bit8u)(exsize >> 8);
 		cmos.regs[0x30]=(Bit8u)exsize;
 		cmos.regs[0x31]=(Bit8u)(exsize >> 8);
+		if(date_host_forced) {
+			cmos.time_diff = 0;
+			cmos.locktime.tv_sec = 0;
+		}
 	}
 };
 
@@ -331,6 +582,36 @@ void CMOS_Destroy(Section* sec){
 }
 
 void CMOS_Init(Section* sec) {
+	if (control->cmdline->FindExist("-date_host_forced")) {
+		LOG_MSG("Synchronize date with host: Forced");
+		date_host_forced=true;
+	}
 	test = new CMOS(sec);
 	sec->AddDestroyFunction(&CMOS_Destroy,true);
+}
+
+
+// save state support
+void *cmos_timerevent_PIC_Event = (void*)cmos_timerevent;
+
+namespace
+{
+class SerializeCmos : public SerializeGlobalPOD
+{
+public:
+    SerializeCmos() : SerializeGlobalPOD("CMOS")
+    {
+        registerPOD(cmos.regs);
+        registerPOD(cmos.nmi);
+        registerPOD(cmos.reg);
+        registerPOD(cmos.timer.enabled);
+        registerPOD(cmos.timer.div);
+        registerPOD(cmos.timer.delay);
+        registerPOD(cmos.timer.acknowledged);
+        registerPOD(cmos.last.timer);
+        registerPOD(cmos.last.ended);
+        registerPOD(cmos.last.alarm);
+        registerPOD(cmos.update_ended);
+    }
+} dummy;
 }

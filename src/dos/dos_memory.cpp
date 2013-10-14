@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,12 +16,12 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: dos_memory.cpp,v 1.45 2009-07-15 17:05:07 c2woody Exp $ */
 
 #include "dosbox.h"
 #include "mem.h"
 #include "dos_inc.h"
 #include "callback.h"
+#include "../save_state.h"
 
 #define UMB_START_SEG 0x9fff
 
@@ -31,8 +31,10 @@ static void DOS_CompressMemory(void) {
 	Bit16u mcb_segment=dos.firstMCB;
 	DOS_MCB mcb(mcb_segment);
 	DOS_MCB mcb_next(0);
+	Bitu counter=0;
 
-	while (mcb.GetType()!=0x5a) {
+	while (mcb.GetType()!='Z') {
+		if(counter++ > 10000000) E_Exit("DOS MCB list corrupted.");
 		mcb_next.SetPt((Bit16u)(mcb_segment+mcb.GetSize()+1));
 		if ((mcb.GetPSPSeg()==0) && (mcb_next.GetPSPSeg()==0)) {
 			mcb.SetSize(mcb.GetSize()+mcb_next.GetSize()+1);
@@ -47,7 +49,9 @@ static void DOS_CompressMemory(void) {
 void DOS_FreeProcessMemory(Bit16u pspseg) {
 	Bit16u mcb_segment=dos.firstMCB;
 	DOS_MCB mcb(mcb_segment);
+	Bitu counter = 0;
 	for (;;) {
+		if(counter++ > 10000000) E_Exit("DOS MCB list corrupted.");
 		if (mcb.GetPSPSeg()==pspseg) {
 			mcb.SetPSPSeg(MCB_FREE);
 		}
@@ -375,6 +379,10 @@ bool DOS_LinkUMBsToMemChain(Bit16u linkstate) {
 			break;
 		case 0x0001:	// link
 			if (mcb.GetType()==0x5a) {
+				if ((mcb_segment+mcb.GetSize()+1) != umb_start) {
+					LOG_MSG("MCB chain no longer goes to end of memory (corruption?), not linking in UMB!");
+					return false;
+				}
 				mcb.SetType(0x4d);
 				dos_infoblock.SetUMBChainState(1);
 			}
@@ -442,14 +450,14 @@ void DOS_SetupMemory(void) {
 	if (machine==MCH_TANDY) {
 		if (seg_limit < ((384*1024)/16))
 			E_Exit("Tandy requires at least 384K");
-
 		/* memory up to 608k available, the rest (to 640k) is used by
 			the tandy graphics system's variable mapping of 0xb800 */
-		mcb.SetSize(/*0x97FF*/(seg_limit-0x801) - DOS_MEM_START - mcb_sizes);
+/*
+		mcb.SetSize(0x9BFF - DOS_MEM_START - mcb_sizes);
+*/		mcb.SetSize(/*0x9BFF*/(seg_limit-0x801) - DOS_MEM_START - mcb_sizes);
 	} else if (machine==MCH_PCJR) {
 		if (seg_limit < ((256*1024)/16))
 			E_Exit("PCjr requires at least 256K");
-
 		/* memory from 128k to 640k is available */
 		mcb_devicedummy.SetPt((Bit16u)0x2000);
 		mcb_devicedummy.SetPSPSeg(MCB_FREE);
@@ -477,3 +485,30 @@ void DOS_SetupMemory(void) {
 	dos.firstMCB=DOS_MEM_START;
 	dos_infoblock.SetFirstMCB(DOS_MEM_START);
 }
+
+
+void POD_Save_DOS_Memory( std::ostream& stream )
+{
+	// - pure data
+	WRITE_POD( &memAllocStrategy, memAllocStrategy );
+}
+
+
+void POD_Load_DOS_Memory( std::istream& stream )
+{
+	// - pure data
+	READ_POD( &memAllocStrategy, memAllocStrategy );
+}
+
+
+/*
+ykhwong svn-daum 2012-05-21
+
+
+// - pure data
+static Bit16u memAllocStrategy;
+
+
+// - static class data
+static CALLBACK_HandlerObject callbackhandler;
+*/

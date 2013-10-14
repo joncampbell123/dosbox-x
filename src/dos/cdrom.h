@@ -1,3 +1,21 @@
+/*
+ *  Copyright (C) 2002-2013  The DOSBox Team
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
 
 #ifndef __CDROM_INTERFACE__
 #define __CDROM_INTERFACE__
@@ -31,6 +49,11 @@ typedef struct SMSF {
 	unsigned char fr;
 } TMSF;
 
+typedef struct SCtrl {
+	Bit8u	out[4];			// output channel
+	Bit8u	vol[4];			// channel volume
+} TCtrl;
+
 extern int CDROM_GetMountType(char* path, int force);
 
 class CDROM_Interface
@@ -52,6 +75,7 @@ public:
 	virtual bool	PlayAudioSector		(unsigned long start,unsigned long len) = 0;
 	virtual bool	PauseAudio			(bool resume) = 0;
 	virtual bool	StopAudio			(void) = 0;
+	virtual void	ChannelControl		(TCtrl ctrl) = 0;
 	
 	virtual bool	ReadSectors			(PhysPt buffer, bool raw, unsigned long sector, unsigned long num) = 0;
 	/* This is needed for IDE hack, who's buffer does not exist in DOS physical memory */
@@ -78,6 +102,7 @@ public:
 	virtual bool	PlayAudioSector		(unsigned long start,unsigned long len);
 	virtual bool	PauseAudio			(bool resume);
 	virtual bool	StopAudio			(void);
+	virtual void	ChannelControl		(TCtrl ctrl) { return; };
 	virtual bool	ReadSectors			(PhysPt /*buffer*/, bool /*raw*/, unsigned long /*sector*/, unsigned long /*num*/) { return false; };
 	/* This is needed for IDE hack, who's buffer does not exist in DOS physical memory */
 	virtual bool	ReadSectorsHost			(void* buffer, bool raw, unsigned long sector, unsigned long num);
@@ -106,6 +131,7 @@ public:
 	bool	PlayAudioSector		(unsigned long /*start*/,unsigned long /*len*/) { return true; };
 	bool	PauseAudio			(bool /*resume*/) { return true; };
 	bool	StopAudio			(void) { return true; };
+	void	ChannelControl		(TCtrl ctrl) { return; };
 	bool	ReadSectors			(PhysPt /*buffer*/, bool /*raw*/, unsigned long /*sector*/, unsigned long /*num*/) { return true; };
 	/* This is needed for IDE hack, who's buffer does not exist in DOS physical memory */
 	bool	ReadSectorsHost			(void* buffer, bool raw, unsigned long sector, unsigned long num);
@@ -174,6 +200,7 @@ public:
 	bool	PlayAudioSector		(unsigned long start,unsigned long len);
 	bool	PauseAudio		(bool resume);
 	bool	StopAudio		(void);
+	void	ChannelControl		(TCtrl ctrl);
 	bool	ReadSectors		(PhysPt buffer, bool raw, unsigned long sector, unsigned long num);
 	/* This is needed for IDE hack, who's buffer does not exist in DOS physical memory */
 	bool	ReadSectorsHost			(void* buffer, bool raw, unsigned long sector, unsigned long num);
@@ -198,6 +225,8 @@ static  struct imagePlayer {
 		int     targetFrame;
 		bool    isPlaying;
 		bool    isPaused;
+		bool    ctrlUsed;
+		TCtrl   ctrlData;
 	} player;
 	
 	void 	ClearTracks();
@@ -244,6 +273,7 @@ public:
 	bool	PlayAudioSector		(unsigned long start,unsigned long len);
 	bool	PauseAudio			(bool resume);
 	bool	StopAudio			(void);
+	void	ChannelControl		(TCtrl ctrl) { return; };
 	
 	bool	ReadSectors			(PhysPt buffer, bool raw, unsigned long sector, unsigned long num);
 	/* This is needed for IDE hack, who's buffer does not exist in DOS physical memory */
@@ -296,6 +326,7 @@ public:
 	bool	PlayAudioSector		(unsigned long start,unsigned long len);
 	bool	PauseAudio			(bool resume);
 	bool	StopAudio			(void);
+	void	ChannelControl		(TCtrl ctrl);
 	
 	bool	ReadSector			(Bit8u *buffer, bool raw, unsigned long sector);
 	bool	ReadSectors			(PhysPt buffer, bool raw, unsigned long sector, unsigned long num);
@@ -352,6 +383,8 @@ private:
 		int     targetFrame;
 		bool    isPlaying;
 		bool    isPaused;
+		bool    ctrlUsed;
+		TCtrl   ctrlData;
 	} player;
 
 };

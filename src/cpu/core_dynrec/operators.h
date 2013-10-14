@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: operators.h,v 1.8 2009-06-25 19:31:43 c2woody Exp $ */
 
 
 static Bit8u DRC_CALL_CONV dynrec_add_byte(Bit8u op1,Bit8u op2) DRC_FC;

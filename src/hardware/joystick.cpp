@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: joystick.cpp,v 1.21 2009-05-27 09:15:41 qbix79 Exp $ */
 
 #include <string.h>
 #include "dosbox.h"
@@ -25,6 +24,7 @@
 #include "joystick.h"
 #include "pic.h"
 #include "support.h"
+#include "../save_state.h"
 
 #define RANGE 64
 #define TIMEOUT 10
@@ -228,4 +228,25 @@ void JOYSTICK_Destroy(Section* sec) {
 void JOYSTICK_Init(Section* sec) {
 	test = new JOYSTICK(sec);
 	sec->AddDestroyFunction(&JOYSTICK_Destroy,true); 
+}
+
+
+
+//save state support
+namespace
+{
+class SerializeStick : public SerializeGlobalPOD
+{
+public:
+    SerializeStick() : SerializeGlobalPOD("Joystick")
+    {
+        registerPOD(joytype);
+        registerPOD(stick);
+        registerPOD(last_write);
+        registerPOD(write_active);
+        registerPOD(swap34);
+        registerPOD(button_wrapping_enabled);
+        registerPOD(autofire);
+    }
+} dummy;
 }

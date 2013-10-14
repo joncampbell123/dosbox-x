@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -879,7 +879,7 @@
 		{	
 			Bitu port=Fetchb();
 			if (CPU_IO_Exception(port,2)) RUNEXCEPTION();
-			reg_al=IO_ReadW(port);
+			reg_ax=IO_ReadW(port);
 			break;
 		}
 	CASE_B(0xe6)												/* OUT Ib,AL */
@@ -935,6 +935,12 @@
 	CASE_B(0xec)												/* IN AL,DX */
 		if (CPU_IO_Exception(reg_dx,1)) RUNEXCEPTION();
 		reg_al=IO_ReadB(reg_dx);
+#if C_DEBUG
+		if (reg_dx == 0x1F7) {
+			reg_eip++;
+			return debugCallback;
+		}
+#endif
 		break;
 	CASE_W(0xed)												/* IN AX,DX */
 		if (CPU_IO_Exception(reg_dx,2)) RUNEXCEPTION();
@@ -1171,8 +1177,10 @@
 				else {GetEAa;Push_16(LoadMw(eaa));}
 				break;
 			default:
-				LOG(LOG_CPU,LOG_ERROR)("CPU:GRP5:Illegal Call %2X",which);
-				goto illegal_opcode;
+				//LOG(LOG_CPU,LOG_ERROR)("CPU:GRP5:Illegal Call %2X",which);
+				//goto illegal_opcode;
+				CPU_Exception(6,0);
+				continue;
 			}
 			break;
 		}

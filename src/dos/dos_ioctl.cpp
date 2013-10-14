@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: dos_ioctl.cpp,v 1.35 2009-04-16 12:16:52 qbix79 Exp $ */
 
 #include <string.h>
 #include "dosbox.h"
@@ -41,7 +40,7 @@ bool DOS_IOCTL(void) {
 	} else if (reg_al<0x12) { 				/* those use a diskdrive except 0x0b */
 		if (reg_al!=0x0b) {
 			drive=reg_bl;if (!drive) drive = DOS_GetDefaultDrive();else drive--;
-			if( !(( drive < DOS_DRIVES ) && Drives[drive]) ) {
+			if( (drive >= 2) && !(( drive < DOS_DRIVES ) && Drives[drive]) ) {
 				DOS_SetError(DOSERR_INVALID_DRIVE);
 				return false;
 			}
@@ -134,7 +133,7 @@ bool DOS_IOCTL(void) {
 		}
 		return true;
 	case 0x09:		/* Check if block device remote */
-		if (Drives[drive]->isRemote()) {
+		if ((drive >= 2) && Drives[drive]->isRemote()) {
 			reg_dx=0x1000;	// device is remote
 			// undocumented bits always clear
 		} else {
@@ -144,6 +143,10 @@ bool DOS_IOCTL(void) {
 		}
 		reg_ax=0x300;
 		return true;
+	case 0x0A:		/* Is Device of Handle Remote? */
+		reg_dx=0x8000;
+		LOG(LOG_IOCTL,LOG_NORMAL)("0A:Faked output: device of handle %d is remote",handle);
+		return true;
 	case 0x0B:		/* Set sharing retry count */
 		if (reg_dx==0) {
 			DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
@@ -152,7 +155,7 @@ bool DOS_IOCTL(void) {
 		return true;
 	case 0x0D:		/* Generic block device request */
 		{
-			if (Drives[drive]->isRemovable()) {
+			if ((drive < 2) || Drives[drive]->isRemovable()) {
 				DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
 				return false;
 			}
@@ -203,11 +206,14 @@ bool DOS_IOCTL(void) {
 			return true;
 		}
 	case 0x0E:			/* Get Logical Drive Map */
-		if (Drives[drive]->isRemovable()) {
+		if (drive < 2) {
+			if (Drives[drive]) reg_al=drive+1;
+			else reg_al=1;
+		} else if (Drives[drive]->isRemovable()) {
 			DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
 			return false;
-		}
-		reg_al = 0;		/* Only 1 logical drive assigned */
+		} else reg_al=0;	/* Only 1 logical drive assigned */
+		reg_ah=0x07;
 		return true;
 	default:
 		LOG(LOG_DOSMISC,LOG_ERROR)("DOS:IOCTL Call %2X unhandled",reg_al);

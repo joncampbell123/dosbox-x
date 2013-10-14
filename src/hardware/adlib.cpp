@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: adlib.cpp,v 1.42 2009-11-03 20:17:42 qbix79 Exp $ */
 
 #include <stdlib.h>
 #include <string.h>
@@ -28,6 +27,7 @@
 #include "mapper.h"
 #include "mem.h"
 #include "dbopl.h"
+#include "../save_state.h"
 
 namespace OPL2 {
 	#include "opl.cpp"
@@ -49,9 +49,46 @@ namespace OPL2 {
 				chan->AddSamples_m16( todo, buf );
 			}
 		}
+
 		virtual void Init( Bitu rate ) {
 			adlib_init(rate);
 		}
+
+		virtual void SaveState( std::ostream& stream ) {
+			const char pod_name[32] = "OPL2";
+
+			if( stream.fail() ) return;
+
+
+			WRITE_POD( &pod_name, pod_name );
+
+			//************************************************
+			//************************************************
+			//************************************************
+
+			adlib_savestate(stream);
+		}
+
+		virtual void LoadState( std::istream& stream ) {
+			char pod_name[32] = {0};
+
+			if( stream.fail() ) return;
+
+
+			// error checking
+			READ_POD( &pod_name, pod_name );
+			if( strcmp( pod_name, "OPL2" ) ) {
+				stream.clear( std::istream::failbit | std::istream::badbit );
+				return;
+			}
+
+			//************************************************
+			//************************************************
+			//************************************************
+
+			adlib_loadstate(stream);
+		}
+
 		~Handler() {
 		}
 	};
@@ -78,9 +115,46 @@ namespace OPL3 {
 				chan->AddSamples_s16( todo, buf );
 			}
 		}
+
 		virtual void Init( Bitu rate ) {
 			adlib_init(rate);
 		}
+
+		virtual void SaveState( std::ostream& stream ) {
+			const char pod_name[32] = "OPL3";
+
+			if( stream.fail() ) return;
+
+
+			WRITE_POD( &pod_name, pod_name );
+
+			//************************************************
+			//************************************************
+			//************************************************
+
+			adlib_savestate(stream);
+		}
+
+		virtual void LoadState( std::istream& stream ) {
+			char pod_name[32] = {0};
+
+			if( stream.fail() ) return;
+
+
+			// error checking
+			READ_POD( &pod_name, pod_name );
+			if( strcmp( pod_name, "OPL3" ) ) {
+				stream.clear( std::istream::failbit | std::istream::badbit );
+				return;
+			}
+
+			//************************************************
+			//************************************************
+			//************************************************
+
+			adlib_loadstate(stream);
+		}
+
 		~Handler() {
 		}
 	};
@@ -607,7 +681,7 @@ static void SaveRad() {
 };
 
 
-static void OPL_SaveRawEvent(bool pressed) {
+void OPL_SaveRawEvent(bool pressed) {
 	if (!pressed)
 		return;
 //	SaveRad();return;
@@ -706,3 +780,228 @@ void OPL_ShutDown(Section* sec){
 	module = 0;
 
 }
+
+
+
+// savestate support
+void Adlib::Module::SaveState( std::ostream& stream )
+{
+	// - pure data
+	WRITE_POD( &mode, mode );
+	WRITE_POD( &reg, reg );
+	WRITE_POD( &oplmode, oplmode );
+	WRITE_POD( &lastUsed, lastUsed );
+
+	handler->SaveState(stream);
+
+	WRITE_POD( &cache, cache );
+	WRITE_POD( &chip, chip );
+}
+
+
+void Adlib::Module::LoadState( std::istream& stream )
+{
+	// - pure data
+	READ_POD( &mode, mode );
+	READ_POD( &reg, reg );
+	READ_POD( &oplmode, oplmode );
+	READ_POD( &lastUsed, lastUsed );
+
+	handler->LoadState(stream);
+
+	READ_POD( &cache, cache );
+	READ_POD( &chip, chip );
+}
+
+
+void POD_Save_Adlib(std::ostream& stream)
+{
+	const char pod_name[32] = "Adlib";
+
+	if( stream.fail() ) return;
+	if( !module ) return;
+	if( !module->mixerChan ) return;
+
+
+	WRITE_POD( &pod_name, pod_name );
+
+	//************************************************
+	//************************************************
+	//************************************************
+
+	module->SaveState(stream);
+	module->mixerChan->SaveState(stream);
+}
+
+
+void POD_Load_Adlib(std::istream& stream)
+{
+	char pod_name[32] = {0};
+
+	if( stream.fail() ) return;
+	if( !module ) return;
+	if( !module->mixerChan ) return;
+
+
+	// error checking
+	READ_POD( &pod_name, pod_name );
+	if( strcmp( pod_name, "Adlib" ) ) {
+		stream.clear( std::istream::failbit | std::istream::badbit );
+		return;
+	}
+
+	//************************************************
+	//************************************************
+	//************************************************
+
+	module->LoadState(stream);
+	module->mixerChan->LoadState(stream);
+}
+
+
+/*
+ykhwong 2012-05-21
+
+
+class Module: public Module_base {
+
+	// - system data
+	IO_ReadHandleObject ReadHandler[3];
+	IO_WriteHandleObject WriteHandler[3];
+	MixerObject mixerObject;
+
+	// - pure data
+	Mode mode;
+	union {
+		Bit32u normal;
+		Bit8u dual[2];
+	} reg;
+
+	// - pure data
+	static OPL_Mode oplmode;
+
+	// - system 'new' ptr
+	MixerChannel* mixerChan;
+
+	// - pure data
+	Bit32u lastUsed;
+
+	// - static 'new' ptr (no data)
+	Handler* handler;
+
+	// - pure data
+	RegisterCache cache;
+
+	// - system data
+	Capture* capture;
+
+	// - pure struct data
+	Chip	chip[2];
+
+		// - pure struct data
+		Timer timer[2];
+
+			// - pure data
+			double start;
+			double delay;
+			bool enabled, overflow, masked;
+			Bit8u counter;
+
+			
+
+Handler : OPL2
+Handler : OPL3
+
+opl.cpp
+	// - pure data
+	fltype recipsamp;
+	Bit16s wavtable[WAVEPREC*3];
+
+	// - static data
+	Bit32s vib_table[VIBTAB_SIZE];
+	Bit32s trem_table[TREMTAB_SIZE*2];
+	Bit32s vibval_const[BLOCKBUF_SIZE];
+	Bit32s tremval_const[BLOCKBUF_SIZE];
+
+	// - pure data
+	Bit32s vibval_var1[BLOCKBUF_SIZE];
+	Bit32s vibval_var2[BLOCKBUF_SIZE];
+
+	// - reloc ptr (!!!)
+	Bit32s *vibval1, *vibval2, *vibval3, *vibval4;
+	Bit32s *tremval1, *tremval2, *tremval3, *tremval4;
+
+	// - static data
+	fltype kslmul[4];
+	fltype frqmul_tab[16];
+	fltype frqmul[16];
+	Bit8u kslev[8][16];
+	Bit8u modulatorbase[9];
+	Bit8u regbase2modop[44];
+	Bit8u regbase2op[44];
+	Bit32u waveform[8];
+	Bit32u wavemask[8];
+	Bit32u wavestart[8];
+	fltype attackconst[4];
+	fltype decrelconst[4];
+
+
+opl.h
+
+	// - pure data
+	Bitu chip_num;
+
+	// - struct data
+	op_type op[MAXOPERATORS];
+
+		// - pure data
+		Bit32s cval, lastcval;
+		Bit32u tcount, wfpos, tinc;
+		fltype amp, step_amp;
+		fltype vol;
+		fltype sustain_level;
+		Bit32s mfbi;
+		fltype a0, a1, a2, a3;
+		fltype decaymul, releasemul;
+		Bit32u op_state;
+		Bit32u toff;
+		Bit32s freq_high;
+
+		// - reloc ptr (!!!)
+		Bit16s* cur_wform;
+
+		// - pure data
+		Bit32u cur_wmask;
+		Bit32u act_state;
+		bool sus_keep;
+		bool vibrato,tremolo;
+		
+		Bit32u generator_pos;
+		Bits cur_env_step;
+		Bits env_step_a,env_step_d,env_step_r;
+		Bit8u step_skip_pos_a;
+		Bits env_step_skip_a;
+
+		// - OPL3 only (!!!)
+		bool is_4op,is_4op_attached;
+		Bit32s left_pan,right_pan;
+
+
+	Bits int_samplerate;
+
+	Bit8u status;
+	Bit32u opl_index;
+	Bit8u adlibreg[OPL2 / OPL3];
+	Bit8u wave_sel[OPL2 / OPL3];
+
+	// - pure data
+	Bit32u vibtab_pos;
+	Bit32u vibtab_add;
+	Bit32u tremtab_pos;
+	Bit32u tremtab_add;
+	Bit32u generator_add;
+
+
+Handler : DBOPL
+(see dbopl.cpp)
+*/

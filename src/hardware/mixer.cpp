@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: mixer.cpp,v 1.54 2009-09-05 11:10:04 qbix79 Exp $ */
 
 /* 
 	Remove the sdl code from here and have it handeld in the sdlmain.
@@ -48,6 +47,7 @@
 #include "mapper.h"
 #include "hardware.h"
 #include "programs.h"
+#include "../save_state.h"
 
 #define MIXER_SSIZE 4
 #define MIXER_SHIFT 14
@@ -72,6 +72,7 @@ static struct {
 	bool nosound;
 	Bit32u freq;
 	Bit32u blocksize;
+	bool swapstereo;
 } mixer;
 
 Bit8u MixTemp[MIXER_BUFSIZE];
@@ -167,6 +168,9 @@ inline void MixerChannel::AddSamples(Bitu len, const Type* data) {
 	Bitu mixpos=mixer.pos+done;
 	freq_index&=MIXER_REMAIN;
 	Bitu pos=0;Bitu new_pos;
+	int offset[2]; 
+	offset[0] = mixer.swapstereo ? 1:0; 
+	offset[1] = mixer.swapstereo ? 0:1; 
 
 	goto thestart;
 	for (;;) {
@@ -180,15 +184,15 @@ thestart:
 			if ( sizeof( Type) == 1) {
 				if (!signeddata) {
 					if (stereo) {
-						diff[0]=(((Bit8s)(data[pos*2+0] ^ 0x80)) << 8)-last[0];
-						diff[1]=(((Bit8s)(data[pos*2+1] ^ 0x80)) << 8)-last[1];
+						diff[0]=(((Bit8s)(data[pos*2+offset[0]] ^ 0x80)) << 8)-last[0]; 
+						diff[1]=(((Bit8s)(data[pos*2+offset[1]] ^ 0x80)) << 8)-last[1]; 
 					} else {
 						diff[0]=(((Bit8s)(data[pos] ^ 0x80)) << 8)-last[0];
 					}
 				} else {
 					if (stereo) {
-						diff[0]=(data[pos*2+0] << 8)-last[0];
-						diff[1]=(data[pos*2+1] << 8)-last[1];
+						diff[0]=(data[pos*2+offset[0]] << 8)-last[0]; 
+						diff[1]=(data[pos*2+offset[1]] << 8)-last[1]; 
 					} else {
 						diff[0]=(data[pos] << 8)-last[0];
 					}
@@ -198,8 +202,8 @@ thestart:
 				if (signeddata) {
 					if (stereo) {
 						if (nativeorder) {
-							diff[0]=data[pos*2+0]-last[0];
-							diff[1]=data[pos*2+1]-last[1];
+							diff[0]=data[pos*2+offset[0]]-last[0]; 
+							diff[1]=data[pos*2+offset[1]]-last[1]; 
 						} else {
 							if ( sizeof( Type) == 2) {
 								diff[0]=(Bit16s)host_readw((HostPt)&data[pos*2+0])-last[0];
@@ -223,8 +227,8 @@ thestart:
 				} else {
 					if (stereo) {
 						if (nativeorder) {
-							diff[0]=(Bits)data[pos*2+0]-32768-last[0];
-							diff[1]=(Bits)data[pos*2+1]-32768-last[1];
+							diff[0]=(Bits)data[pos*2+offset[0]]-32768-last[0]; 
+							diff[1]=(Bits)data[pos*2+offset[1]]-32768-last[1]; 
 						} else {
 							if ( sizeof( Type) == 2) {
 								diff[0]=(Bits)host_readw((HostPt)&data[pos*2+0])-32768-last[0];
@@ -635,7 +639,7 @@ MixerChannel* MixerObject::Install(MIXER_Handler handler,Bitu freq,const char * 
 		installed = true;
 		return MIXER_AddChannel(handler,freq,name);
 	} else {
-		E_Exit("allready added mixer channel.");
+		E_Exit("already added mixer channel.");
 		return 0; //Compiler happy
 	}
 }
@@ -645,6 +649,11 @@ MixerObject::~MixerObject(){
 	MIXER_DelChannel(MIXER_FindChannel(m_name));
 }
 
+#ifdef WIN32
+void MENU_swapstereo(bool enabled) {
+	mixer.swapstereo=enabled;
+}
+#endif
 
 void MIXER_Init(Section* sec) {
 	sec->AddDestroyFunction(&MIXER_Stop);
@@ -654,6 +663,7 @@ void MIXER_Init(Section* sec) {
 	mixer.freq=section->Get_int("rate");
 	mixer.nosound=section->Get_bool("nosound");
 	mixer.blocksize=section->Get_int("blocksize");
+	mixer.swapstereo=section->Get_bool("swapstereo");
 
 	/* Initialize the internal stuff */
 	mixer.channels=0;
@@ -694,9 +704,152 @@ void MIXER_Init(Section* sec) {
 		SDL_PauseAudio(0);
 	}
 	mixer.min_needed=section->Get_int("prebuffer");
-	if (mixer.min_needed>100) mixer.min_needed=100;
+	if (mixer.min_needed>90) mixer.min_needed=90;
 	mixer.min_needed=(mixer.freq*mixer.min_needed)/1000;
 	mixer.max_needed=mixer.blocksize * 2 + 2*mixer.min_needed;
 	mixer.needed=mixer.min_needed+1;
 	PROGRAMS_MakeFile("MIXER.COM",MIXER_ProgramStart);
 }
+
+
+
+// save state support
+void *MIXER_Mix_NoSound_PIC_Timer = (void*)MIXER_Mix_NoSound;
+void *MIXER_Mix_PIC_Timer = (void*)MIXER_Mix;
+
+
+void MixerChannel::SaveState( std::ostream& stream )
+{
+	// - pure data
+	WRITE_POD( &volmain, volmain );
+	WRITE_POD( &scale, scale );
+	WRITE_POD( &volmul, volmul );
+	WRITE_POD( &freq_add, freq_add );
+	WRITE_POD( &freq_index, freq_index );
+	WRITE_POD( &enabled, enabled );
+}
+
+
+void MixerChannel::LoadState( std::istream& stream )
+{
+	// - pure data
+	READ_POD( &volmain, volmain );
+	READ_POD( &scale, scale );
+	READ_POD( &volmul, volmul );
+	READ_POD( &freq_add, freq_add );
+	READ_POD( &freq_index, freq_index );
+	READ_POD( &enabled, enabled );
+
+	//********************************************
+	//********************************************
+	//********************************************
+
+	// reset mixer channel (system data)
+	done = 0;
+	needed = 0;
+	last[0] = 0;
+	last[1] = 0;
+}
+
+extern void POD_Save_Adlib(std::ostream& stream);
+extern void POD_Save_Disney(std::ostream& stream);
+extern void POD_Save_Gameblaster(std::ostream& stream);
+extern void POD_Save_GUS(std::ostream& stream);
+extern void POD_Save_Innova(std::ostream& stream);
+extern void POD_Save_MPU401(std::ostream& stream);
+extern void POD_Save_PCSpeaker(std::ostream& stream);
+extern void POD_Save_PS1_Sound(std::ostream& stream);
+extern void POD_Save_Sblaster(std::ostream& stream);
+extern void POD_Save_Tandy_Sound(std::ostream& stream);
+extern void POD_Load_Adlib(std::istream& stream);
+extern void POD_Load_Disney(std::istream& stream);
+extern void POD_Load_Gameblaster(std::istream& stream);
+extern void POD_Load_GUS(std::istream& stream);
+extern void POD_Load_Innova(std::istream& stream);
+extern void POD_Load_MPU401(std::istream& stream);
+extern void POD_Load_PCSpeaker(std::istream& stream);
+extern void POD_Load_PS1_Sound(std::istream& stream);
+extern void POD_Load_Sblaster(std::istream& stream);
+extern void POD_Load_Tandy_Sound(std::istream& stream);
+
+namespace
+{
+class SerializeMixer : public SerializeGlobalPOD
+{
+public:
+	SerializeMixer() : SerializeGlobalPOD("Mixer")
+	{}
+
+private:
+	virtual void getBytes(std::ostream& stream)
+	{
+		//*************************************************
+		//*************************************************
+
+		SerializeGlobalPOD::getBytes(stream);
+
+
+		POD_Save_Adlib(stream);
+		POD_Save_Disney(stream);
+		POD_Save_Gameblaster(stream);
+		POD_Save_GUS(stream);
+		POD_Save_Innova(stream);
+		POD_Save_MPU401(stream);
+		POD_Save_PCSpeaker(stream);
+		POD_Save_PS1_Sound(stream);
+		POD_Save_Sblaster(stream);
+		POD_Save_Tandy_Sound(stream);
+	}
+
+	virtual void setBytes(std::istream& stream)
+	{
+		//*************************************************
+		//*************************************************
+
+		SerializeGlobalPOD::setBytes(stream);
+
+
+		POD_Load_Adlib(stream);
+		POD_Load_Disney(stream);
+		POD_Load_Gameblaster(stream);
+		POD_Load_GUS(stream);
+		POD_Load_Innova(stream);
+		POD_Load_MPU401(stream);
+		POD_Load_PCSpeaker(stream);
+		POD_Load_PS1_Sound(stream);
+		POD_Load_Sblaster(stream);
+		POD_Load_Tandy_Sound(stream);
+	}
+
+} dummy;
+}
+
+
+
+/*
+ykhwong svn-daum 2012-02-20
+
+
+class MixerChannel {
+	// - static func ptr
+	MIXER_Handler handler;
+
+	// - pure data
+	float volmain[2];
+	float scale;
+	Bit32s volmul[2];
+	Bitu freq_add,freq_index;
+
+	// - system data
+	Bitu done,needed;
+	Bits last[2];
+
+	// - static data
+	const char * name;
+
+	// - pure data
+	bool enabled;
+
+	// - static ptr
+	MixerChannel * next;
+*/

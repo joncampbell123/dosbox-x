@@ -1,16 +1,3 @@
-
-External patches also incorporated:
- - Amstrad 640x200x16 graphics support
-      [http://vogons.zetafleet.com/viewtopic.php?t=18302&sid=3cb6d8c018c9674d162edc14a78588b4]
-
-Jonathan Campbell
- - Added ISA PnP emulation, SB DMA hack fix, etc. Full description in this forum.
-      [http://vogons.zetafleet.com/viewtopic.php?t=31881]
-
-
-
-
-
 DOSBox v0.74 Manual (always use the latest version from www.dosbox.com)
 
 
@@ -59,7 +46,7 @@ Type INTRO in DOSBox for a quick tour.
 It is essential that you get familiar with the idea of mounting, DOSBox does not
 automatically make any drive (or a part of it) accessible to the emulation. See
 the FAQ entry "How to start?" as well as the description of the MOUNT command
-(section 4: "Internal Programs"). If you have your game on a cdrom you may try
+(Section 4: "Internal Programs"). If you have your game on a cdrom you may try
 this guide: http://vogons.zetafleet.com/viewtopic.php?t=8933
 
 
@@ -105,7 +92,7 @@ START: How to start?
 AUTOMATION: Do I always have to type these commands?
     In the DOSBox configuration file is an [autoexec] section. The commands
     present there are run when DOSBox starts, so you can use this section
-    for the mounting. Look at Section 13: The configuration (options) file
+    for the mounting. Look at Section 13: "The configuration (options) file".
 
 
 FULLSCREEN: How do I change to fullscreen?
@@ -129,11 +116,11 @@ CD-ROM: My CD-ROM doesn't work.
       To enable SDL-support (does not include low-level CD access!):
         - mount d f:\ -t cdrom -usecd 0 -noioctl
       To enable ioctl access using digital audio extraction for CD audio
-      (windows-only, useful for Vista):
+      (Windows-only, useful for Vista):
         - mount d f:\ -t cdrom -ioctl_dx
-      To enable ioctl access using MCI for CD audio (windows-only):
+      To enable ioctl access using MCI for CD audio (Windows-only):
         - mount d f:\ -t cdrom -ioctl_mci
-      To force ioctl-only access (windows-only):
+      To force ioctl-only access (Windows-only):
         - mount d f:\ -t cdrom -ioctl_dio
       To enable low-level aspi-support (win98 with aspi-layer installed):
         - mount d f:\ -t cdrom -aspi
@@ -156,7 +143,7 @@ CD-ROM: The game/application can't find its CD-ROM.
     Under Windows you can specify -ioctl, -aspi or -noioctl. Look at the
     description of the mount command in Section 4: "Internal programs"
     for their meaning and the
-    additional audio-CD related options -ioctl_dx, ioctl_mci, ioctl_dio.
+    additional audio-CD related options -ioctl_dx, -ioctl_mci, -ioctl_dio.
 
     Try creating a CD-ROM image (preferably CUE/BIN pair) and use the
     DOSBox's internal IMGMOUNT tool to mount the image (the CUE sheet).
@@ -174,7 +161,7 @@ SOUND: There is no sound.
     Be sure that the sound is correctly configured in the game. This might be
     done during the installation or with a setup/setsound utility that
     accompanies the game. First see if an autodetection option is provided. If
-    there is none try selecting Soundblaster or Soundblaster 16 with the default
+    there is none try selecting SoundBlaster or SoundBlaster 16 with the default
     settings being "address=220 irq=7 dma=1" (sometimes highdma=5). You might
     also want to select Sound Canvas/SCC/MPU-401/General MIDI/Wave Blaster
     at "address=330 IRQ=2" as music device.
@@ -184,8 +171,8 @@ SOUND: There is no sound.
     configuration and use some lower fixed cycles value (like cycles=2000). Also
     assure that your host operating sound does provide sound.
     In certain cases it might be useful to use a different emulated sound device
-    like a soundblaster pro (sbtype=sbpro1 in the DOSBox configuration file) or
-    the gravis ultrasound (gus=true).
+    like a SoundBlaster Pro (sbtype=sbpro1 in the DOSBox configuration file) or
+    the Gravis Ultrasound (gus=true).
 
 
 SOUND: What sound hardware does DOSBox presently emulate?
@@ -195,21 +182,21 @@ SOUND: What sound hardware does DOSBox presently emulate?
       digital sound output through the internal speaker.
     - Creative CMS/Gameblaster
       The is the first card released by Creative Labs(R).  The default
-      configuration places it on address 220. It is disabled as default.
+      configuration places it on address 220. It is disabled by default.
     - Tandy 3 voice
       The emulation of this sound hardware is complete with the exception of
       the noise channel. The noise channel is not very well documented and as
       such is only a best guess as to the sound's accuracy. It is disabled as
       default.
     - Tandy DAC
-      Some games may require turning off sound blaster emulation (sbtype=none)
-      for better tandy DAC sound support. Don't forget to set the sbtype back to
-      sb16 if you don't use tandy sound.
+      Some games may require turning off SoundBlaster emulation (sbtype=none)
+      for better Tandy DAC sound support. Don't forget to set the sbtype back to
+      sb16 if you don't use Tandy sound.
     - Adlib
       This emulation is almost perfect and includes the Adlib's ability to
       almost play digitized sound. Placed at address 220 (also on 388).
     - SoundBlaster 16 / SoundBlaster Pro I & II / SoundBlaster I & II
-      By default DOSBox provides Soundblaster 16 level 16-bit stereo sound.
+      By default DOSBox provides SoundBlaster 16 level 16-bit stereo sound.
       You can select a different SoundBlaster version in the configuration of
       DOSBox. AWE32 music is not emulated as you can use MPU-401 instead
       (see below).
@@ -220,24 +207,25 @@ SOUND: What sound hardware does DOSBox presently emulate?
       The emulation of this hardware is nearly complete, though the MIDI
       capabilities have been left out, since an MPU-401 has been emulated
       in other code. For Gravis music you also have to install Gravis drivers
-      inside DOSBox. It is disabled as default.
+      inside DOSBox. It is disabled by default.
     - MPU-401
       A MIDI passthrough interface is also emulated. This method of sound
       output will only work when used with external device/emulator.
-      Every Windows XP/Vista/7 and MAC OS has got a default emulator compatible
-      with: Sound Canvas/SCC/General Standard/General MIDI/Wave Blaster.
-      A different device/emulator is needed for Roland LAPC/CM-32L/MT-32
-      compatibility.
+      Every Windows XP/Vista/7 and Mac OS X has got a default emulator 
+      compatible with: Sound Canvas/SCC/General Standard/General MIDI/Wave 
+      Blaster. A different device/emulator is needed for 
+      Roland LAPC/CM-32L/MT-32 compatibility.
 
 
 SOUND: The sound stutters or sounds stretched/weird.
     You may be using too much CPU power to keep DOSBox running at the current
     speed. You can lower the cycles, skip frames, reduce the sampling rate of
-    the respective sound device, increase the prebuffer. See section 13: "The
-    configuration (options) file"
-    If you are using cycles=max or =auto, then make sure that there is no
-    background processes interfering! (especially if they access the harddisk)
-    Also look at Section 10. "How to speed up/slow down DOSBox"
+    the respective sound device, increase the prebuffer. See Section 13: "The
+    configuration (options) file".
+    If you are using 'cycles=max' or 'cycles=auto', then make sure that there is
+    no background processes interfering! (especially if they access the harddisk)
+    Also look at Section 10: "How to speed up/slow down DOSBox" as well as
+    Section 11: "Troubleshooting".
 
 
 KEYBOARD: I can't type \ or : in DOSBox.
@@ -246,7 +234,7 @@ KEYBOARD: I can't type \ or : in DOSBox.
     detected), or the key mapping is wrong.
     Some possible fixes:
       1. Use / instead, or ALT-58 for : and ALT-92 for \.
-      2. Change the DOS keyboard layout (see Section 8: Keyboard Layout).
+      2. Change the DOS keyboard layout (see Section 8: "Keyboard Layout").
       3. Add the commands you want to execute to the [autoexec] section
          of the DOSBox configuration file.
       4. Open the DOSBox configuration file and change the usescancodes entry.
@@ -287,16 +275,16 @@ CONTROL: The character/cursor/mouse pointer always moves into one direction!
 
 
 SPEED: The game/application runs much too slow/too fast!
-    Look at the section 10: "How to speed up/slow down DOSBox" for more
+    Look at Section 10: "How to speed up/slow down DOSBox" for more
     information.
 
 
 CRASH: The game/application does not run at all/crashes!
-    Look at Section 11: Troubleshooting
+    Look at Section 11: "Troubleshooting".
 
 
-CRASH: DOSBox crashes on startup!.
-    Look at Section 11: Troubleshooting
+CRASH: DOSBox crashes on startup!
+    Look at Section 11: "Troubleshooting".
 
 
 GAME: My Build game(Duke3D/Blood/Shadow Warrior) has problems.
@@ -315,7 +303,7 @@ SAFETY: Can DOSBox harm my computer?
 
 
 OPTIONS: I would like to change DOSBox's options.
-    Look at Section 13. "The configuration (options) file"
+    Look at Section 13: "The configuration (options) file".
 
 
 HELP: Great Manual, but I still don't get it.
@@ -332,12 +320,12 @@ HELP: Great Manual, but I still don't get it.
 
 An overview of the command line options you can give to DOSBox. Although
 in most cases it is easier to use DOSBox's configuration file instead.
-See: Section 13. "The configuration (options) file"
+See Section 13: "The configuration (options) file".
 
 To be able to use Command Line Parameters:
 (Windows)  open cmd.exe or command.com or edit the shortcut to dosbox.exe
 (Linux)    use console
-(MAC OS X) start terminal.app and navigate to:
+(Mac OS X) start terminal.app and navigate to:
            /applications/dosbox.app/contents/macos/dosbox
 
 The options are valid for all operating systems unless noted in the option
@@ -381,24 +369,24 @@ dosbox -erasemapper
   -conf configfilelocation
         Start DOSBox with the options specified in "configfilelocation".
         Multiple -conf options may be present.
-        See Section 13 for more details.
+        See Section 13: "The configuration (options) file" for more details.
 
   -lang languagefilelocation
         Start DOSBox using the language specified in "languagefilelocation".
-        See Section 14 for more details.
+        See Section 14: "The Language File" for more details.
 
   -machine machinetype
         Setup DOSBox to emulate a specific type of machine. Valid choices are:
         hercules, cga, ega, pcjr, tandy, svga_s3 (default) as well as
-        the additional svga chipsets listed in the DOSBox configuration file.
-        svga_s3 enables vesa emulation as well.
-        For some special vga effects the machinetype vgaonly can be used,
-        note that this disables svga capabilities and might be slower due to the
+        the additional SVGA chipsets listed in the DOSBox configuration file.
+        svga_s3 enables VESA emulation as well.
+        For some special VGA effects the machinetype vgaonly can be used,
+        note that this disables SVGA capabilities and might be slower due to the
         higher emulation precision.
         The machinetype affects the video card and the available sound cards.
 
   -noconsole (Windows Only)
-        Start DOSBox without showing DOSBox Status Window (console).
+        Start DOSBox without showing the DOSBox status window (console).
         Output will be redirected to stdout.txt and stderr.txt
 
   -startmapper
@@ -538,7 +526,7 @@ MOUNT -u "Emulated Drive letter"
         Forces use of the SDL CD-ROM layer. Valid on all systems.
 
   -usecd number
-        Valid on all systems, under windows the -noioctl switch has to be
+        Valid on all systems, under Windows the -noioctl switch has to be
         present to make use of the -usecd switch.
         Enables to select the drive that should be used by SDL. Use this if
         the wrong or no CD-ROM drive is mounted while using the SDL CD-ROM
@@ -634,7 +622,19 @@ VER set major_version [minor_version]
 
 
 CONFIG -writeconf filelocation
+CONFIG -writeconf
+CONFIG -wcp filelocation
+CONFIG -wcd
 CONFIG -writelang filelocation
+CONFIG -axadd
+CONFIG -axclear
+CONFIG -axtype
+CONFIG -r [parameters]
+CONFIG -l
+CONFIG -help
+CONFIG -help sections
+CONFIG -help section
+CONFIG -help section property
 CONFIG -securemode
 CONFIG -set "section property=value"
 CONFIG -get "section property"
@@ -645,20 +645,74 @@ CONFIG -get "section property"
   be found in Section 13: "The configuration (options) file".
 
   -writeconf filelocation
-     Write the current configuration settings to a file in a specified location.
-    "filelocation" is located on the local drive, not a mounted drive in DOSBox.
+     (or -wc filelocation)
+     Write the current configuration settings to a file in a specified location
+     relative to the DOSBox config directory. Relative and absolute paths are 
+     possible. "filelocation" is located on the local drive, not a mounted 
+     drive in DOSBox.
+     
      The configuration file controls various settings of DOSBox:
      the amount of emulated memory, the emulated sound cards and many more
      things. It allows access to AUTOEXEC.BAT as well.
      See Section 13: "The configuration (options) file" for more information.
 
+  -writeconf
+     (or -wc)
+     Write the configuration to the primary loaded config file.
+
+  -wcp filelocation
+     Write the current configuration settings to the specified file in or 
+     relative to the DOSBox program start directory. Realtive and absolute 
+     paths are possible. This is located on a drive on the host, not a mounted
+     drive in DOSBox. It is useful if you keep DOSBox on a removable media.
+     If file is omitted, the configuration will be written to dosbox.conf.
+     
+  -wcd
+     Write the current configuration to the default config file.
+        
+     
   -writelang filelocation
+     (or -wl filelocation)
      Write the current language settings to a file in a specified location.
      "filelocation" is located on the local drive, not a mounted drive
      in DOSBox. The language file controls all visible output of the internal
      commands and the internal DOS.
      See Section 14: "The Language File" for more information.
 
+  -axadd "line1" "line2" ...
+     Adds a command line to the autoexec section.
+
+  -axclear
+     Clears the autoexec section.
+     
+  -axtype
+     Prints the content of the autoexec section.
+
+  -r [parameters]
+     Restart DOSBox, either with the parameters that were used to start the
+     current instance or any that are appended.
+
+  -l 
+     lists DOSBox parameters:
+     - the configuration directory
+     - the config files that were used when starting this session
+     - the command line parameters DOSBox was started with
+
+  -h, -help, -?
+     Displays an overvie of the config commands.
+
+  -h, -help, -? sections
+     Displays the list of sections in the config file.
+  
+  -h, -help, -? section
+     Displays the list of properties contained in the specified section.
+     
+  -h, -help, -? section property
+     Shows information about the specified property in the specified section:
+     - purpose of the property
+     - possible values, current value, default value
+     - wether it can definitely not be changed at runtime
+       
   -securemode
      Switches DOSBox to a more secure mode. In this mode the internal
      commands MOUNT, IMGMOUNT and BOOT won't work. It's not possible either
@@ -667,7 +721,6 @@ CONFIG -get "section property"
 
   -set "section property=value"
      CONFIG will attempt to set the property to new value.
-     Currently CONFIG can not report whether the command succeeded or not.
 
   -get "section property"
      The current value of the property is reported and stored in the
@@ -683,11 +736,26 @@ CONFIG -get "section property"
         config -writeconf c:\dosgames\dosbox.conf
     2. To set the cpu cycles to 10000:
         config -set "cpu cycles=10000"
-    3. To turn ems memory emulation off:
-        config -set "dos ems=off"
+    3. To turn EMS memory emulation off:
+        config -set "dos ems=false"
     4. To check which cpu core is being used.
         config -get "cpu core"
-
+    5. To view the list of possible cpu cores:
+        config -help cpu core
+    6. To change the machine type and restart:
+        config -set "machine cga"
+        config -wc -r
+    7. To configure the autoexec section to auto-mount a directory at start:
+        config -axadd "mount c c:\dosgames" "c:"
+        config -wc
+    8. To create a specific config file in the config directory:
+        config -set "dos ems=false"
+        config -set "cpu cycles=10000"
+        config -set "core dynamic"
+        config -axadd "mount c c:\dosgames" "c:" "cd my_game" "my_game"
+        config -wc my_config.conf
+    9. To restart DOSBox from a specific config file in the config directory:
+        config -r -conf my_config.conf
 
 LOADFIX [-size] [program] [program-parameters]
 LOADFIX -f
@@ -710,10 +778,19 @@ LOADFIX -f
        loadfix -f
 
 
-RESCAN
+RESCAN [Drive:] [-All]
   Make DOSBox reread the directory structure. Useful if you changed something
   on a mounted drive outside of DOSBox. (CTRL - F4 does this as well!)
+  
+  Drive: 
+        Drive to refresh.
 
+  -All
+        Refresh all drives.
+
+  if both a Drive: and -All are missing, then the current drive will be 
+  refreshed.
+  
 
 MIXER
   Makes DOSBox display its current volume settings.
@@ -935,7 +1012,7 @@ IPX
 KEYB [keyboardlayoutcode [codepage [codepagefile]]]
 
   Change the keyboard layout. For detailed information about keyboard layouts
-  please see Section 8: "Keyboard Layout"
+  please see Section 8: "Keyboard Layout".
 
   [keyboardlayoutcode] is a string consisting of five or less characters,
      examples are PL214 (Polish typists) or PL457 (Polish programmers).
@@ -997,8 +1074,9 @@ CTRL-F10      Capture/Release the mouse.
 CTRL-F11      Slow down emulation (Decrease DOSBox Cycles).
 CTRL-F12      Speed up emulation (Increase DOSBox Cycles)*.
 ALT-F12       Unlock speed (turbo button/fast forward)**.
-F11, ALT-F11  (machine=cga) change tint in NTSC output modes***
-F11           (machine=hercules) cycle through amber, green, white colouring***
+CTRL-ALT-HOME Restart DOSBox.
+F11, ALT-F11  (machine=cga) change tint in NTSC output modes***.
+F11           (machine=hercules) cycle through amber, green, white colouring***.
 
 *NOTE: Once you increase your DOSBox cycles beyond your computer CPU resources,
        it will produce the same effect as slowing down the emulation.
@@ -1012,15 +1090,16 @@ F11           (machine=hercules) cycle through amber, green, white colouring***
          a different machine type. So either reassign them or reset the mapper.
 
 These are the default keybindings. They can be changed in the keymapper
-(see Section 7: KeyMapper). 
+(see Section 7: "KeyMapper"). 
 
-In MAC OS you can try using cmd(applekey) together with Ctrl if the key doesn't
-work eg. cmd-ctrl-F1, but some keys may still need remapping (in Linux too).
+In Mac OS X you can try using cmd(applekey) together with Ctrl (and/or ) Fn, 
+if the key doesn't work i.e. fn-cmd-ctrl-F1, but some keys may still need 
+remapping (in Linux too).
 
 Saved/recorded files can be found in:
    (Windows)    "Start/WinLogo Menu"->"All Programs"->DOSBox-0.74->Extras
    (Linux)      ~/.dosbox/capture
-   (MAC OS X)   "~/Library/Preferences/capture"
+   (Mac OS X)   "~/Library/Preferences/capture"
 This can be changed in the DOSBox configuration file.
 
 
@@ -1053,17 +1132,12 @@ ch    - supports only first controller, emulates CH Flightstick,
         than one button at the same time.
 
 You also have to configure controller properly inside the game.
-
 It is important to remember that if you saved the mapperfile without joystick
-
-connected, or with a different joystick setting, your new setting will 
-not work
-properly, 
-or not work at all, until you reset DOSBox's mapperfile.
-
+connected, or with a different joystick setting, your new setting will not work
+properly, or not work at all, until you reset DOSBox's mapperfile.
 
 If controller is working properly outside DOSBox, but doesn't calibrate properly
-inside DOSBox, try different 'timed' setting in DOSBox's configuration file.
+inside DOSBox, try a different 'timed' setting in DOSBox's configuration file.
 
 
 
@@ -1071,8 +1145,8 @@ inside DOSBox, try different 'timed' setting in DOSBox's configuration file.
 7. KeyMapper:
 =============
 
-You start the DOSBox mapper either with CTRL-F1 (see section 5. Special Keys)
-or -startmapper (see Section 3. Command Line Parameters). 
+Start the DOSBox mapper either with CTRL-F1 (see Section 5: "Special Keys") or
+-startmapper (see Section 3: "Command Line Parameters"). 
 You are presented with a virtual keyboard and a virtual joystick.
 
 These virtual devices correspond to the keys and events DOSBox will
@@ -1128,7 +1202,7 @@ Q3. If you try it out in DOSBox, you will notice that pressing X makes ZX
         mapped key X. Click "Del".
 
 
-Examples about remapping the joystick:
+Examples of remapping the joystick:
   You have a joystick attached, it is working fine under DOSBox and you
   want to play some keyboard-only game with the joystick (it is assumed
   that the game is controlled by the arrows on the keyboard):
@@ -1150,7 +1224,7 @@ Examples about remapping the joystick:
 
   If you want to remap anything to your d-pad/hat you will have to change
   'joysticktype=auto' to 'joysticktype=fcs' in configuration file. Maybe this
-  will be improved in the next dosbox version.
+  will be improved in the next DOSBox version.
 
 
 If you change the default mapping, you can save your changes by clicking on
@@ -1165,12 +1239,12 @@ your mapperfile, if it is present in the DOSBox configuration file.
 ===================
 
 To switch to a different keyboard layout, either the entry "keyboardlayout"
-in the [dos] section of the DOSBox configuration file can be used, or the
-internal DOSBox program keyb.com (Section 4: Internal Programs)
-Both accept DOS conforming language codes (see below),
-but only by using keyb.com a custom codepage can be specified.
+in the [dos] section of the DOSBox configuration file or the internal DOSBox
+program keyb.com (Section 4: "Internal Programs") can be used. Both accept
+DOS conforming language codes (see below), but only by using keyb.com a
+custom codepage can be specified.
 
-The default keyboardlayout=auto currently works under windows only. The language
+The default keyboardlayout=auto currently works under Windows only. The language
 is chosen according to the OS language, but the keyboard layout is not detected.
 
 Layout switching
@@ -1243,7 +1317,7 @@ of the nullmodem connection. These are all parameters:
  * port:         - TCP port number. Default: 23
  * rxdelay:      - how long (milliseconds) to delay received data if the
                    interface is not ready. Increase this value if you encounter
-                   overrun errors in the DOSBox Status Window. Default: 100
+                   overrun errors in the DOSBox status window. Default: 100
  * txdelay:      - how long to gather data before sending a packet. Default: 12
                    (reduces Network overhead)
  * server:       - This nullmodem will be a client connecting to the specified
@@ -1282,8 +1356,8 @@ CPU Cycles (speed up/slow down)
   a different setting in the DOSBox's configuration file.
 
   You can force the slow or fast behavior by setting a fixed amount of cycles
-  in the DOSBox's configuration file. If you for example set cycles=10000, then
-  DOSBox window will display a line "Cpu Speed: fixed 10000 cycles" at the top.
+  in the DOSBox's configuration file. If you set for example cycles=10000, the
+  DOSBox window will display a line "CPU speed: fixed 10000 cycles" at the top.
   In this mode you can reduce the amount of cycles even more by hitting CTRL-F11
   (you can go as low as you want) or raise it by hitting CTRL-F12 as much as you
   want, but you will be limited by the power of one core of your computer's CPU.
@@ -1298,8 +1372,8 @@ CPU Cycles (speed up/slow down)
 
   You can also force the fast behavior by setting cycles=max in the DOSBox
   configuration file. The DOSBox window will display a line
-  "Cpu Speed: max 100% cycles" at the top then. This time you won't have to care
-  how much free time your real CPU's cores have, because DOSBox will always use
+  "CPU speed: max 100% cycles" at the top then. This time you won't have to care
+  how much free time your real CPU cores have, because DOSBox will always use
   100% of your real CPU's one core. In this mode you can reduce the amount
   of your real CPU's core usage by CTRL-F11 or raise it with CTRL-F12.
 
@@ -1349,7 +1423,7 @@ Example:
 ====================
 
 General tip:
-  Check messages in DOSBox Status Window. See section 12. "DOSBox Status Window"
+  Check messages in the DOSBox status window. See Section 12: "DOSBox Status Window".
 
 DOSBox crashes right after starting it:
   - use different values for the output= entry in your DOSBox
@@ -1395,14 +1469,14 @@ The game exits to the DOSBox prompt with some error message:
 12. DOSBox Status Window:
 =========================
 
-DOSBox's Staus window contains many useful information about your currant
-configuration, your actions in DOSBox, errors that happened and more.
-Whenever you have any problem with DOSBox check these messages.
+DOSBox's status window contains useful information about your current
+configuration, your actions in DOSBox, errors which occurred and more.
+Check these messages in case you encounter any problems with DOSBox.
 
-To start DOSBox Status Window:
-  (Windows)  Status Window is being started together with main DOSBox window.
-  (Linux)    You may have to start DOSBox from a console to see Status Window.
-  (MAC OS X) Right click on DOSBox.app, choose "Show Package Contents"->
+To display the DOSBox status window:
+  (Windows)  The status window is being started together with main DOSBox window.
+  (Linux)    You may have to start DOSBox from a console to see the status window.
+  (Mac OS X) Right click on DOSBox.app, choose "Show Package Contents"->
              ->enter "Contents"->enter "MacOS"->run "DOSBox"
 
 
@@ -1415,7 +1489,7 @@ The configuration file is automatically created the first time you run DOSBox.
 The file can be found in:
    (Windows)  "Start/WinLogo Menu"->"All Programs"->DOSBox-0.74->Options
    (Linux)    ~/.dosbox/dosbox-0.74.conf
-   (MAC OS X) "~/Library/Preferences/DOSBox 0.74 Preferences"
+   (Mac OS X) "~/Library/Preferences/DOSBox 0.74 Preferences"
 The file is divided into several sections. Each section starts with a
 [section name] line. The settings are the property=value lines where value can
 be altered to customize DOSBox.

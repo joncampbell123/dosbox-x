@@ -1,0 +1,1 @@
+DOSBox.exe -resetconf

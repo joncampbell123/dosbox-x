@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -128,6 +128,8 @@ void mem_writeb(PhysPt pt,Bit8u val);
 void mem_writew(PhysPt pt,Bit16u val);
 void mem_writed(PhysPt pt,Bit32u val);
 
+void phys_writes(PhysPt addr, const char* string, Bitu length);
+
 static INLINE void phys_writeb(PhysPt addr,Bit8u val) {
 	host_writeb(MemBase+addr,val);
 }
@@ -152,6 +154,8 @@ static INLINE Bit32u phys_readd(PhysPt addr){
 
 void MEM_BlockWrite(PhysPt pt,void const * const data,Bitu size);
 void MEM_BlockRead(PhysPt pt,void * data,Bitu size);
+void MEM_BlockWrite32(PhysPt pt,void * data,Bitu size);
+void MEM_BlockRead32(PhysPt pt,void * data,Bitu size);
 void MEM_BlockCopy(PhysPt dest,PhysPt src,Bitu size);
 void MEM_StrCopy(PhysPt pt,char * data,Bitu size);
 

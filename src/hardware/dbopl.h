@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -251,6 +251,9 @@ struct Handler : public Adlib::Handler {
 	virtual void WriteReg( Bit32u addr, Bit8u val );
 	virtual void Generate( MixerChannel* chan, Bitu samples );
 	virtual void Init( Bitu rate );
+
+	virtual void SaveState( std::ostream& stream );
+	virtual void LoadState( std::istream& stream );
 };
 
 

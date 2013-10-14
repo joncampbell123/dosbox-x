@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -32,7 +32,6 @@
 	//DUNNO Keyon in 4op, switch to 2op without keyoff.
 */
 
-/* $Id: dbopl.cpp,v 1.10 2009-06-10 19:54:51 harekiet Exp $ */
 
 
 #include <math.h>
@@ -40,6 +39,7 @@
 #include <string.h>
 #include "dosbox.h"
 #include "dbopl.h"
+#include "../save_state.h"
 
 
 #ifndef PI
@@ -213,7 +213,7 @@ static void EnvelopeSelect( Bit8u val, Bit8u& index, Bit8u& shift ) {
 /*
 	Generate the different waveforms out of the sine/exponetial table using handlers
 */
-static inline Bits MakeVolume( Bitu wave, Bitu volume ) {
+static /*inline*/ Bits MakeVolume( Bitu wave, Bitu volume ) {
 	Bitu total = wave + volume;
 	Bitu index = total & 0xff;
 	Bitu sig = ExpTable[ index ];
@@ -286,7 +286,7 @@ static const WaveHandler WaveHandlerTable[8] = {
 */
 
 //We zero out when rate == 0
-inline void Operator::UpdateAttack( const Chip* chip ) {
+/*inline*/ void Operator::UpdateAttack( const Chip* chip ) {
 	Bit8u rate = reg60 >> 4;
 	if ( rate ) {
 		Bit8u val = (rate << 2) + ksr;
@@ -297,7 +297,7 @@ inline void Operator::UpdateAttack( const Chip* chip ) {
 		rateZero |= (1 << ATTACK);
 	}
 }
-inline void Operator::UpdateDecay( const Chip* chip ) {
+/*inline*/ void Operator::UpdateDecay( const Chip* chip ) {
 	Bit8u rate = reg60 & 0xf;
 	if ( rate ) {
 		Bit8u val = (rate << 2) + ksr;
@@ -308,7 +308,7 @@ inline void Operator::UpdateDecay( const Chip* chip ) {
 		rateZero |= (1 << DECAY);
 	}
 }
-inline void Operator::UpdateRelease( const Chip* chip ) {
+/*inline*/ void Operator::UpdateRelease( const Chip* chip ) {
 	Bit8u rate = reg80 & 0xf;
 	if ( rate ) {
 		Bit8u val = (rate << 2) + ksr;
@@ -326,7 +326,7 @@ inline void Operator::UpdateRelease( const Chip* chip ) {
 	}
 }
 
-inline void Operator::UpdateAttenuation( ) {
+/*inline*/ void Operator::UpdateAttenuation( ) {
 	Bit8u kslBase = (Bit8u)((chanData >> SHIFT_KSLBASE) & 0xff);
 	Bit32u tl = reg40 & 0x3f;
 	Bit8u kslShift = KslShiftTable[ reg40 >> 6 ];
@@ -373,7 +373,7 @@ void Operator::UpdateRates( const Chip* chip ) {
 	UpdateRelease( chip );
 }
 
-INLINE Bit32s Operator::RateForward( Bit32u add ) {
+/*INLINE*/ Bit32s Operator::RateForward( Bit32u add ) {
 	rateIndex += add;
 	Bit32s ret = rateIndex >> RATE_SH;
 	rateIndex = rateIndex & RATE_MASK;
@@ -439,12 +439,12 @@ static const VolumeHandler VolumeHandlerTable[5] = {
 	&Operator::TemplateVolume< Operator::ATTACK >
 };
 
-INLINE Bitu Operator::ForwardVolume() {
+/*INLINE*/ Bitu Operator::ForwardVolume() {
 	return currentLevel + (this->*volHandler)();
 }
 
 
-INLINE Bitu Operator::ForwardWave() {
+/*INLINE*/ Bitu Operator::ForwardWave() {
 	waveIndex += waveCurrent;	
 	return waveIndex >> WAVE_SH;
 }
@@ -521,12 +521,12 @@ void Operator::WriteE0( const Chip* chip, Bit8u val ) {
 #endif
 }
 
-INLINE void Operator::SetState( Bit8u s ) {
+/*INLINE*/ void Operator::SetState( Bit8u s ) {
 	state = s;
 	volHandler = VolumeHandlerTable[ s ];
 }
 
-INLINE bool Operator::Silent() const {
+/*INLINE*/ bool Operator::Silent() const {
 	if ( !ENV_SILENT( totalLevel + volume ) )
 		return false;
 	if ( !(rateZero & ( 1 << state ) ) )
@@ -534,7 +534,7 @@ INLINE bool Operator::Silent() const {
 	return true;
 }
 
-INLINE void Operator::Prepare( const Chip* chip )  {
+/*INLINE*/ void Operator::Prepare( const Chip* chip )  {
 	currentLevel = totalLevel + (chip->tremoloValue & tremoloMask);
 	waveCurrent = waveAdd;
 	if ( vibStrength >> chip->vibratoShift ) {
@@ -570,7 +570,7 @@ void Operator::KeyOff( Bit8u mask ) {
 	}
 }
 
-INLINE Bits Operator::GetWave( Bitu index, Bitu vol ) {
+/*INLINE*/ Bits Operator::GetWave( Bitu index, Bitu vol ) {
 #if ( DBOPL_WAVE == WAVE_HANDLER )
 	return waveHandler( index, vol << ( 3 - ENV_EXTRA ) );
 #elif ( DBOPL_WAVE == WAVE_TABLEMUL )
@@ -587,7 +587,7 @@ INLINE Bits Operator::GetWave( Bitu index, Bitu vol ) {
 #endif
 }
 
-Bits INLINE Operator::GetSample( Bits modulation ) {
+Bits /*INLINE*/ Operator::GetSample( Bits modulation ) {
 	Bitu vol = ForwardVolume();
 	if ( ENV_SILENT( vol ) ) {
 		//Simply forward the wave
@@ -790,7 +790,7 @@ void Channel::ResetC0( const Chip* chip ) {
 };
 
 template< bool opl3Mode>
-INLINE void Channel::GeneratePercussion( Chip* chip, Bit32s* output ) {
+/*INLINE*/ void Channel::GeneratePercussion( Chip* chip, Bit32s* output ) {
 	Channel* chan = this;
 
 	//BassDrum
@@ -981,7 +981,7 @@ Chip::Chip() {
 	opl3Active = 0;
 }
 
-INLINE Bit32u Chip::ForwardNoise() {
+/*INLINE*/ Bit32u Chip::ForwardNoise() {
 	noiseCounter += noiseAdd;
 	Bitu count = noiseCounter >> LFO_SH;
 	noiseCounter &= WAVE_MASK;
@@ -993,7 +993,7 @@ INLINE Bit32u Chip::ForwardNoise() {
 	return noiseValue;
 }
 
-INLINE Bit32u Chip::ForwardLFO( Bit32u samples ) {
+/*INLINE*/ Bit32u Chip::ForwardLFO( Bit32u samples ) {
 	//Current vibrato value, runs 4x slower than tremolo
 	vibratoSign = ( VibratoTable[ vibratoIndex >> 2] ) >> 7;
 	vibratoShift = ( VibratoTable[ vibratoIndex >> 2] & 7) + vibratoStrength; 
@@ -1509,4 +1509,276 @@ void Handler::Init( Bitu rate ) {
 }
 
 
+void Handler::SaveState( std::ostream& stream )
+{
+	const char pod_name[32] = "DBOPL";
+
+	if( stream.fail() ) return;
+
+
+	WRITE_POD( &pod_name, pod_name );
+
+	//************************************************
+	//************************************************
+	//************************************************
+
+	Bit8u volhandler_idx[18][2];
+	Bit32u wavebase_idx[18][2];
+	Bit8u synthhandler_idx[18];
+
+
+	for( int lcv1=0; lcv1<18; lcv1++ ) {
+		for( int lcv2=0; lcv2<2; lcv2++ ) {
+			volhandler_idx[lcv1][lcv2] = 0xff;
+
+			for( int lcv3=0; lcv3<5; lcv3++ ) {
+				if( chip.chan[lcv1].op[lcv2].volHandler == VolumeHandlerTable[lcv3] ) {
+					volhandler_idx[lcv1][lcv2] = lcv3;
+					break;
+				}
+			}
+
+			wavebase_idx[lcv1][lcv2] = (Bit32u) chip.chan[lcv1].op[lcv2].waveBase - (Bit32u) &WaveTable;
+		}
+
+
+		synthhandler_idx[lcv1] = 0xff;
+		if(0) {}
+		else if( chip.chan[lcv1].synthHandler == (SynthHandler)&Channel::BlockTemplate< sm3FMFM > ) synthhandler_idx[lcv1] = 0x00;
+		else if( chip.chan[lcv1].synthHandler == (SynthHandler)&Channel::BlockTemplate< sm3AMFM > ) synthhandler_idx[lcv1] = 0x01;
+		else if( chip.chan[lcv1].synthHandler == (SynthHandler)&Channel::BlockTemplate< sm3FMAM > ) synthhandler_idx[lcv1] = 0x02;
+		else if( chip.chan[lcv1].synthHandler == (SynthHandler)&Channel::BlockTemplate< sm3AMAM > ) synthhandler_idx[lcv1] = 0x03;
+		else if( chip.chan[lcv1].synthHandler == (SynthHandler)&Channel::BlockTemplate< sm3AM > ) synthhandler_idx[lcv1] = 0x04;
+		else if( chip.chan[lcv1].synthHandler == (SynthHandler)&Channel::BlockTemplate< sm3FM > ) synthhandler_idx[lcv1] = 0x05;
+		else if( chip.chan[lcv1].synthHandler == (SynthHandler)&Channel::BlockTemplate< sm2AM > ) synthhandler_idx[lcv1] = 0x06;
+		else if( chip.chan[lcv1].synthHandler == (SynthHandler)&Channel::BlockTemplate< sm2FM > ) synthhandler_idx[lcv1] = 0x07;
+		else if( chip.chan[lcv1].synthHandler == (SynthHandler)&Channel::BlockTemplate< sm3Percussion > ) synthhandler_idx[lcv1] = 0x08;
+		else if( chip.chan[lcv1].synthHandler == (SynthHandler)&Channel::BlockTemplate< sm2Percussion > ) synthhandler_idx[lcv1] = 0x09;
+	}
+
+	//***************************************************
+	//***************************************************
+	//***************************************************
+
+	// dbopl.cpp
+
+	// - pure data
+	WRITE_POD( &WaveTable, WaveTable );
+	WRITE_POD( &doneTables, doneTables );
+
+	//***************************************************
+	//***************************************************
+	//***************************************************
+
+	// dbopl.h
+
+	// - near-pure data
+	WRITE_POD( &chip, chip );
+
+
+
+
+	// - reloc ptr (!!!)
+	WRITE_POD( &volhandler_idx, volhandler_idx );
+	WRITE_POD( &wavebase_idx, wavebase_idx );
+	WRITE_POD( &synthhandler_idx, synthhandler_idx );
+}
+
+void Handler::LoadState( std::istream& stream )
+{
+	char pod_name[32] = {0};
+
+	if( stream.fail() ) return;
+
+
+	// error checking
+	READ_POD( &pod_name, pod_name );
+	if( strcmp( pod_name, "DBOPL" ) ) {
+		stream.clear( std::istream::failbit | std::istream::badbit );
+		return;
+	}
+
+	//************************************************
+	//************************************************
+	//************************************************
+
+	Bit8u volhandler_idx[18][2];
+	Bit32u wavebase_idx[18][2];
+	Bit8u synthhandler_idx[18];
+
+	//***************************************************
+	//***************************************************
+	//***************************************************
+
+	// dbopl.cpp
+
+	// - pure data
+	READ_POD( &WaveTable, WaveTable );
+	READ_POD( &doneTables, doneTables );
+
+	//***************************************************
+	//***************************************************
+	//***************************************************
+
+	// dbopl.h
+
+	// - near-pure data
+	READ_POD( &chip, chip );
+
+
+
+
+	// - reloc ptr (!!!)
+	READ_POD( &volhandler_idx, volhandler_idx );
+	READ_POD( &wavebase_idx, wavebase_idx );
+	READ_POD( &synthhandler_idx, synthhandler_idx );
+
+	//***************************************************
+	//***************************************************
+	//***************************************************
+
+	for( int lcv1=0; lcv1<18; lcv1++ ) {
+		for( int lcv2=0; lcv2<2; lcv2++ ) {
+			chip.chan[lcv1].op[lcv2].volHandler = VolumeHandlerTable[ volhandler_idx[lcv1][lcv2] ];
+
+			chip.chan[lcv1].op[lcv2].waveBase = (Bit16s *) ((Bit32u) wavebase_idx[lcv1][lcv2] + (Bit32u) &WaveTable);
+		}
+
+
+		switch( synthhandler_idx[lcv1] ) {
+			case 0x00: chip.chan[lcv1].synthHandler = &Channel::BlockTemplate< sm3FMFM >; break;
+			case 0x01: chip.chan[lcv1].synthHandler = &Channel::BlockTemplate< sm3AMFM >; break;
+			case 0x02: chip.chan[lcv1].synthHandler = &Channel::BlockTemplate< sm3FMAM >; break;
+			case 0x03: chip.chan[lcv1].synthHandler = &Channel::BlockTemplate< sm3AMAM >; break;
+			case 0x04: chip.chan[lcv1].synthHandler = &Channel::BlockTemplate< sm3AM >; break;
+			case 0x05: chip.chan[lcv1].synthHandler = &Channel::BlockTemplate< sm3FM >; break;
+			case 0x06: chip.chan[lcv1].synthHandler = &Channel::BlockTemplate< sm2AM >; break;
+			case 0x07: chip.chan[lcv1].synthHandler = &Channel::BlockTemplate< sm2FM >; break;
+			case 0x08: chip.chan[lcv1].synthHandler = &Channel::BlockTemplate< sm3Percussion >; break;
+			case 0x09: chip.chan[lcv1].synthHandler = &Channel::BlockTemplate< sm2Percussion >; break;
+		}
+	}
+}
+
 };		//Namespace DBOPL
+
+
+/*
+ykhwong svn-daum 2012-05-21
+
+
+Handler : DBOPL
+
+// dbopl.cpp
+
+	// - static data
+	Bit8u KslCreateTable[16];
+	Bit8u FreqCreateTable[16];
+	Bit8u AttackSamplesTable[13];
+	Bit8u EnvelopeIncreaseTable[13];
+
+	// - pure data
+	Bit16s WaveTable[ 8 * 512 ];
+
+	// - static data
+	Bit16u WaveBaseTable[8];
+	Bit16u WaveMaskTable[8];
+	Bit16u WaveStartTable[8];
+
+	Bit8u KslTable[ 8 * 16 ];
+	Bit8u TremoloTable[ TREMOLO_TABLE ];
+	Bit16u ChanOffsetTable[32];
+	Bit16u OpOffsetTable[64];
+	Bit8s VibratoTable[ 8 ];
+	Bit8u KslShiftTable[4];
+
+	VolumeHandler VolumeHandlerTable[5];
+
+	// - pure data
+	bool doneTables
+
+
+
+// dbopl.h
+	struct DBOPL::Chip chip;
+
+		// - pure data
+		Bit32u lfoCounter;
+		Bit32u lfoAdd;
+
+		Bit32u noiseCounter;
+		Bit32u noiseAdd;
+		Bit32u noiseValue;
+
+		// - static data
+		Bit32u freqMul[16];
+		Bit32u linearRates[76];
+		Bit32u attackRates[76];
+
+		struct Channel chan[18];
+			Operator op[2];
+				// - reloc func ptr (!!!)
+				VolumeHandler volHandler;
+
+				// - reloc ptr (!!!)
+				Bit16s* waveBase;
+
+				// - pure data
+				Bit32u waveMask;
+				Bit32u waveStart;
+
+				Bit32u waveIndex;
+				Bit32u waveAdd;
+				Bit32u waveCurrent;
+
+				Bit32u chanData;
+				Bit32u freqMul;
+				Bit32u vibrato;
+				Bit32s sustainLevel;
+				Bit32s totalLevel;
+				Bit32u currentLevel;
+				Bit32s volume;
+				
+				Bit32u attackAdd;
+				Bit32u decayAdd;
+				Bit32u releaseAdd;
+				Bit32u rateIndex;
+
+				Bit8u rateZero;
+				Bit8u keyOn;
+				Bit8u reg20, reg40, reg60, reg80, regE0;
+				Bit8u state;
+				Bit8u tremoloMask;
+				Bit8u vibStrength;
+				Bit8u ksr;
+
+			// - reloc func ptr (!!!)
+			SynthHandler synthHandler;
+
+			// - pure data
+			Bit32u chanData;		//Frequency/octave and derived values
+			Bit32s old[2];			//Old data for feedback
+
+			Bit8u feedback;			//Feedback shift
+			Bit8u regB0;			//Register values to check for changes
+			Bit8u regC0;
+
+			Bit8u fourMask;
+			Bit8s maskLeft;		//Sign extended values for both channel's panning
+			Bit8s maskRight;
+
+		// - pure data
+		Bit8u reg104;
+		Bit8u reg08;
+		Bit8u reg04;
+		Bit8u regBD;
+		Bit8u vibratoIndex;
+		Bit8u tremoloIndex;
+		Bit8s vibratoSign;
+		Bit8u vibratoShift;
+		Bit8u tremoloValue;
+		Bit8u vibratoStrength;
+		Bit8u tremoloStrength;
+		Bit8u waveFormMask;
+		Bit8s opl3Active;
+*/

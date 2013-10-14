@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: shell.h,v 1.28 2009-07-03 19:36:57 qbix79 Exp $ */
 
 #ifndef DOSBOX_SHELL_H
 #define DOSBOX_SHELL_H
@@ -67,6 +66,9 @@ private:
 	char *completion_start;
 	Bit16u completion_index;
 	
+private:
+	void ProcessCmdLineEnvVarStitution(char * line);
+
 public:
 
 	DOS_Shell();
@@ -88,6 +90,8 @@ public:
 	void CMD_HELP(char * args);
 	void CMD_CLS(char * args);
 	void CMD_COPY(char * args);
+	void CMD_DATE(char * args);
+	void CMD_TIME(char * args);
 	void CMD_DIR(char * args);
 	void CMD_DELETE(char * args);
 	void CMD_ECHO(char * args);
@@ -111,6 +115,12 @@ public:
 	void CMD_PATH(char * args);
 	void CMD_SHIFT(char * args);
 	void CMD_VER(char * args);
+	void CMD_ADDKEY(char * args);
+	void CMD_VOL(char * args);
+	void CMD_PROMPT(char * args);
+	void CMD_LABEL(char * args);
+	void CMD_MORE(char * args);
+	void CMD_FOR(char * args);
 	/* The shell's variables */
 	Bit16u input_handle;
 	BatchFile * bf;

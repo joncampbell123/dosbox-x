@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -65,9 +65,11 @@ public:
 
 	Bit32u sector_size;
 	Bit32u heads,cylinders,sectors;
+	Bit64u current_fpos;
 };
 
 void updateDPT(void);
+void incrementFDD(void);
 
 #define MAX_HDD_IMAGES 2
 

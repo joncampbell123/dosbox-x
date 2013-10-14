@@ -1,3 +1,21 @@
+/*
+ *  Copyright (C) 2002-2013  The DOSBox Team
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
 switch (inst.code.load) {
 /* General loading */
 	case L_POPwRM:
@@ -482,6 +500,13 @@ l_M_Ed:
 	case D_ICEBP:
 		CPU_SW_Interrupt_NoIOPLCheck(1,GetIP());
 		continue;
+	case D_RDTSC: {
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUM) goto illegalopcode;
+		Bit64s tsc=(Bit64s)(PIC_FullIndex()*(double)(CPU_CycleAutoAdjust?70000:CPU_CycleMax));
+		reg_edx=(Bit32u)(tsc>>32);
+		reg_eax=(Bit32u)(tsc&0xffffffff);
+		break;
+		}
 	default:
 		LOG(LOG_CPU,LOG_ERROR)("LOAD:Unhandled code %d opcode %X",inst.code.load,inst.entry);
 		goto illegalopcode;

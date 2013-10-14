@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: sdl_mapper.cpp,v 1.60 2009-06-01 10:25:51 qbix79 Exp $ */
 
 #include <vector>
 #include <list>
@@ -33,10 +32,12 @@
 #include "dosbox.h"
 #include "video.h"
 #include "keyboard.h"
+#include "pic.h"
 #include "joystick.h"
 #include "support.h"
 #include "mapper.h"
 #include "setup.h"
+#include "menu.h"
 
 enum {
 	CLR_BLACK=0,
@@ -68,6 +69,8 @@ enum BC_Types {
 #define MAXACTIVE 16
 #define MAXBUTTON 32
 #define MAXBUTTON_CAP 16
+#define MAXAXIS 8
+#define MAXHAT 2
 
 class CEvent;
 class CHandlerEvent;
@@ -521,10 +524,11 @@ protected:
 };
 
 #define MAX_VJOY_BUTTONS 8
+#define MAX_VJOY_AXES 8
 
 static struct {
 	bool button_pressed[MAX_VJOY_BUTTONS];
-	Bit16s axis_pos[8];
+	Bit16s axis_pos[MAX_VJOY_AXES];
 	bool hat_pressed[16];
 } virtual_joysticks[2];
 
@@ -615,8 +619,8 @@ public:
 		if (_dummy) return;
 
 		// initialize binding lists and position data
-		pos_axis_lists=new CBindList[4];
-		neg_axis_lists=new CBindList[4];
+		pos_axis_lists=new CBindList[MAXAXIS];
+		neg_axis_lists=new CBindList[MAXAXIS];
 		button_lists=new CBindList[MAXBUTTON];
 		hat_lists=new CBindList[4];
 		Bitu i;
@@ -625,7 +629,7 @@ public:
 			old_button_state[i]=0;
 		}
 		for(i=0;i<16;i++) old_hat_state[i]=0;
-		for (i=0; i<4; i++) {
+		for (i=0; i<MAXAXIS; i++) {
 			old_pos_axis_state[i]=false;
 			old_neg_axis_state[i]=false;
 		}
@@ -643,8 +647,16 @@ public:
 		}
 
 		axes=SDL_JoystickNumAxes(sdl_joystick);
-		buttons=SDL_JoystickNumButtons(sdl_joystick);
+		if (axes > MAXAXIS) axes = MAXAXIS;
+		axes_cap=emulated_axes;
+		if (axes_cap>axes) axes_cap=axes;
+
 		hats=SDL_JoystickNumHats(sdl_joystick);
+		if (hats > MAXHAT) hats = MAXHAT;
+		hats_cap=emulated_hats;
+		if (hats_cap>hats) hats_cap=hats;
+
+		buttons=SDL_JoystickNumButtons(sdl_joystick);
 		button_wrap=buttons;
 		button_cap=buttons;
 		if (button_wrapping_enabled) {
@@ -652,10 +664,7 @@ public:
 			if (buttons>MAXBUTTON_CAP) button_cap = MAXBUTTON_CAP;
 		}
 		if (button_wrap > MAXBUTTON) button_wrap = MAXBUTTON;
-		axes_cap=emulated_axes;
-		if (axes_cap>axes) axes_cap=axes;
-		hats_cap=emulated_hats;
-		if (hats_cap>hats) hats_cap=hats;
+
 		LOG_MSG("Using joystick %s with %d axes, %d buttons and %d hat(s)",SDL_JoystickName(stick),axes,buttons,hats);
 	}
 	~CStickBindGroup() {
@@ -688,7 +697,7 @@ public:
 		if (event->type==SDL_JOYAXISMOTION) {
 			if (event->jaxis.which!=stick) return 0;
 #if defined (REDUCE_JOYSTICK_POLLING)
-			if (event->jaxis.axis>=emulated_axes) return 0;
+			if (event->jaxis.axis>=axes) return 0;
 #endif
 			if (abs(event->jaxis.value)<25000) return 0;
 			return CreateAxisBind(event->jaxis.axis,event->jaxis.value>0);
@@ -780,7 +789,7 @@ public:
 			}
 		}
 
-		for (i=0; i<axes_cap; i++) {
+		for (i=0; i<axes; i++) {
 			Sint16 caxis_pos=SDL_JoystickGetAxis(sdl_joystick,i);
 			/* activate bindings for joystick position */
 			if (caxis_pos>1) {
@@ -812,7 +821,7 @@ public:
 			}
 		}
 
-		for (i=0; i<hats_cap; i++) {
+		for (i=0; i<hats; i++) {
 			Uint8 chat_state=SDL_JoystickGetHat(sdl_joystick,i);
 
 			/* activate binding if hat state has changed */
@@ -838,7 +847,7 @@ public:
 
 private:
 	CBind * CreateAxisBind(Bitu axis,bool positive) {
-		if (axis<emulated_axes) {
+		if (axis<axes) {
 			if (positive) return new CJAxisBind(&pos_axis_lists[axis],this,axis,positive);
 			else return new CJAxisBind(&neg_axis_lists[axis],this,axis,positive);
 		}
@@ -877,8 +886,8 @@ protected:
 	char configname[10];
 	Bitu button_autofire[MAXBUTTON];
 	bool old_button_state[MAXBUTTON];
-	bool old_pos_axis_state[16];
-	bool old_neg_axis_state[16];
+	bool old_pos_axis_state[MAXAXIS];
+	bool old_neg_axis_state[MAXAXIS];
 	Uint8 old_hat_state[16];
 	bool is_dummy;
 };
@@ -1575,6 +1584,9 @@ public:
 		case MK_kpminus:
 			key=SDLK_KP_MINUS;
 			break;
+		case MK_equals:
+			key=SDLK_EQUALS;
+			break;
 		case MK_scrolllock:
 			key=SDLK_SCROLLOCK;
 			break;
@@ -1583,6 +1595,21 @@ public:
 			break;
 		case MK_printscreen:
 			key=SDLK_PRINT;
+			break;
+		case MK_home: 
+			key=SDLK_HOME; 
+			break;
+		case MK_1:
+			key=SDLK_1;
+			break;
+		case MK_2:
+			key=SDLK_2;
+			break;
+		case MK_3:
+			key=SDLK_3;
+			break;
+		case MK_4:
+			key=SDLK_4;
 			break;
 		}
 		sprintf(buf,"%s \"key %d%s%s%s\"",
@@ -1773,7 +1800,7 @@ static void CreateLayout(void) {
 	Bitu i;
 	/* Create the buttons for the Keyboard */
 #define BW 28
-#define BH 20
+#define BH 18
 #define DX 5
 #define PX(_X_) ((_X_)*BW + DX)
 #define PY(_Y_) (10+(_Y_)*BH)
@@ -1949,7 +1976,7 @@ static void CreateLayout(void) {
 //	new CTextButton(PX(6),0,124,20,"Keyboard Layout");
 //	new CTextButton(PX(17),0,124,20,"Joystick Layout");
 
-	bind_but.action=new CCaptionButton(180,330,0,0);
+	bind_but.action=new CCaptionButton(180,420,0,0);
 
 	bind_but.event_title=new CCaptionButton(0,350,0,0);
 	bind_but.bind_title=new CCaptionButton(0,365,0,0);
@@ -2105,11 +2132,11 @@ static void CreateDefaultBinds(void) {
 }
 
 void MAPPER_AddHandler(MAPPER_Handler * handler,MapKeys key,Bitu mods,char const * const eventname,char const * const buttonname) {
-	//Check if it allready exists=> if so return.
+	//Check if it already exists=> if so return.
 	for(CHandlerEventVector_it it=handlergroup.begin();it!=handlergroup.end();it++)
 		if(strcmp((*it)->buttonname,buttonname) == 0) return;
 
-	char tempname[17];
+	char tempname[27];
 	strcpy(tempname,"hand_");
 	strcat(tempname,eventname);
 	new CHandlerEvent(tempname,handler,key,mods,buttonname);
@@ -2301,15 +2328,22 @@ void MAPPER_LosingFocus(void) {
 	}
 }
 
-void MAPPER_Run(bool pressed) {
-	if (pressed)
-		return;
+void MAPPER_RunEvent(Bitu /*val*/) {
 	KEYBOARD_ClrBuffer();	//Clear buffer
 	GFX_LosingFocus();		//Release any keys pressed (buffer gets filled again).
 	MAPPER_RunInternal();
 }
 
+void MAPPER_Run(bool pressed) {
+	if (pressed)
+		return;
+	PIC_AddEvent(MAPPER_RunEvent,0.0001f);	//In case mapper deletes the key object that ran it
+}
+
 void MAPPER_RunInternal() {
+#ifdef __WIN32__
+	if(menu.maxwindow) ShowWindow(GetHWND(), SW_RESTORE);
+#endif
 	int cursor = SDL_ShowCursor(SDL_QUERY);
 	SDL_ShowCursor(SDL_ENABLE);
 	bool mousetoggle=false;
@@ -2320,7 +2354,7 @@ void MAPPER_RunInternal() {
 
 	/* Be sure that there is no update in progress */
 	GFX_EndUpdate( 0 );
-	mapper.surface=SDL_SetVideoMode(640,480,8,0);
+	mapper.surface=SDL_SetVideoMode(640,480,8,SDL_RESIZABLE);
 	if (mapper.surface == NULL) E_Exit("Could not initialize video mode for mapper: %s",SDL_GetError());
 
 	/* Set some palette entries */
@@ -2349,7 +2383,35 @@ void MAPPER_RunInternal() {
 #endif
 	if(mousetoggle) GFX_CaptureMouse();
 	SDL_ShowCursor(cursor);
-	GFX_ResetScreen();
+#ifdef __WIN32__
+	UI_Shortcut(0);
+#endif
+	DOSBox_RefreshMenu();
+	if(!menu_gui) {
+		SDL_FreeSurface(mapper.surface);
+		GFX_RestoreMode();
+	}
+#ifdef __WIN32__
+	if(GetAsyncKeyState(0x11)) {
+		INPUT ip;
+
+		// Set up a generic keyboard event.
+		ip.type = INPUT_KEYBOARD;
+		ip.ki.wScan = 0; // hardware scan code for key
+		ip.ki.time = 0;
+		ip.ki.dwExtraInfo = 0;
+
+		ip.ki.wVk = 0x11;
+		ip.ki.dwFlags = 0; // 0 for key press
+		SendInput(1, &ip, sizeof(INPUT));
+
+		// Release the "ctrl" key
+		ip.ki.dwFlags = KEYEVENTF_KEYUP; // KEYEVENTF_KEYUP for key release
+	    SendInput(1, &ip, sizeof(INPUT));
+	}
+#endif
+	KEYBOARD_ClrBuffer();
+	GFX_LosingFocus();
 }
 
 void MAPPER_Init(void) {
@@ -2359,17 +2421,21 @@ void MAPPER_Init(void) {
 	if (!MAPPER_LoadBinds()) CreateDefaultBinds();
 	if (SDL_GetModState()&KMOD_CAPS) {
 		for (CBindList_it bit=caps_lock_event->bindlist.begin();bit!=caps_lock_event->bindlist.end();bit++) {
-			(*bit)->ActivateBind(32767,true,true);
 #if SDL_VERSION_ATLEAST(1, 2, 14)
+			(*bit)->ActivateBind(32767,true,false);
 			(*bit)->DeActivateBind(false);
+#else
+			(*bit)->ActivateBind(32767,true,true); //Skip the action itself as bios_keyboard.cpp handles the startup state.
 #endif
 		}
 	}
 	if (SDL_GetModState()&KMOD_NUM) {
 		for (CBindList_it bit=num_lock_event->bindlist.begin();bit!=num_lock_event->bindlist.end();bit++) {
-			(*bit)->ActivateBind(32767,true,true);
 #if SDL_VERSION_ATLEAST(1, 2, 14)
+			(*bit)->ActivateBind(32767,true,false);
 			(*bit)->DeActivateBind(false);
+#else
+			(*bit)->ActivateBind(32767,true,true);
 #endif
 		}
 	}
@@ -2384,13 +2450,14 @@ void MAPPER_StartUp(Section * sec) {
 	mapper.sticks.num=0;
 	mapper.sticks.num_groups=0;
 	Bitu i;
-	for (i=0; i<16; i++) {
+
+	for (i=0; i<MAX_VJOY_BUTTONS; i++) {
 		virtual_joysticks[0].button_pressed[i]=false;
 		virtual_joysticks[1].button_pressed[i]=false;
 		virtual_joysticks[0].hat_pressed[i]=false;
 		virtual_joysticks[1].hat_pressed[i]=false;
 	}
-	for (i=0; i<8; i++) {
+	for (i=0; i<MAX_VJOY_AXES; i++) {
 		virtual_joysticks[0].axis_pos[i]=0;
 		virtual_joysticks[0].axis_pos[i]=0;
 	}
@@ -2510,3 +2577,6 @@ void MAPPER_StartUp(Section * sec) {
 	MAPPER_AddHandler(&MAPPER_Run,MK_f1,MMOD1,"mapper","Mapper");
 }
 
+
+// save state support
+void *MAPPER_RunEvent_PIC_Event = (void*)MAPPER_RunEvent;

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: cdrom_ioctl_win32.cpp,v 1.16 2009-01-07 22:39:18 c2woody Exp $ */
 
 #if defined (WIN32)
 
@@ -175,7 +174,7 @@ bool CDROM_Interface_Ioctl::mci_CDPosition(int *position) {
 
 
 CDROM_Interface_Ioctl::dxPlayer CDROM_Interface_Ioctl::player = {
-	NULL, NULL, NULL, 0, 0,	0, 0, 0, false,	false };
+	NULL, NULL, NULL, {0}, 0, 0, 0, false, false, false, {0} };
 
 CDROM_Interface_Ioctl::CDROM_Interface_Ioctl(cdioctl_cdatype ioctl_cda) {
 	pathname[0] = 0;
@@ -430,7 +429,6 @@ bool CDROM_Interface_Ioctl::PauseAudio(bool resume) {
 		return false;
 	}
 	if (use_dxplay) {
-		if (!player.isPlaying) return false;
 		player.isPaused = !resume;
 		return true;
 	}
@@ -460,6 +458,12 @@ bool CDROM_Interface_Ioctl::StopAudio(void) {
 	bStat = DeviceIoControl(hIOCTL,IOCTL_CDROM_STOP_AUDIO, NULL, 0, 
 							NULL, 0, &byteCount,NULL);	
 	return bStat>0;
+}
+
+void CDROM_Interface_Ioctl::ChannelControl(TCtrl ctrl)
+{
+	player.ctrlUsed = (ctrl.out[0]!=0 || ctrl.out[1]!=1 || ctrl.vol[0]<0xfe || ctrl.vol[1]<0xfe);
+	player.ctrlData = ctrl;
 }
 
 bool CDROM_Interface_Ioctl::LoadUnloadMedia(bool unload) {
@@ -553,6 +557,16 @@ void CDROM_Interface_Ioctl::dx_CDAudioCallBack(Bitu len) {
 		}
 	}
 	SDL_mutexV(player.mutex);
+	if (player.ctrlUsed) {
+		Bit16s sample0,sample1;
+		Bit16s * samples=(Bit16s *)&player.buffer;
+		for (Bitu pos=0;pos<len/4;pos++) {
+			sample0=samples[pos*2+player.ctrlData.out[0]];
+			sample1=samples[pos*2+player.ctrlData.out[1]];
+			samples[pos*2+0]=(Bit16s)(sample0*player.ctrlData.vol[0]/255.0);
+			samples[pos*2+1]=(Bit16s)(sample1*player.ctrlData.vol[1]/255.0);
+		}
+	}
 	player.channel->AddSamples_s16(len/4,(Bit16s *)player.buffer);
 	memmove(player.buffer, &player.buffer[len], player.bufLen - len);
 	player.bufLen -= len;

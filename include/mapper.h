@@ -1,5 +1,5 @@
  /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,7 +21,8 @@
 
 enum MapKeys {
 	MK_f1,MK_f2,MK_f3,MK_f4,MK_f5,MK_f6,MK_f7,MK_f8,MK_f9,MK_f10,MK_f11,MK_f12,
-	MK_return,MK_kpminus,MK_scrolllock,MK_printscreen,MK_pause
+	MK_return,MK_kpminus,MK_equals,MK_scrolllock,MK_printscreen,MK_pause,MK_home,
+	MK_1, MK_2, MK_3, MK_4
 
 };
 
@@ -30,6 +31,7 @@ void MAPPER_AddHandler(MAPPER_Handler * handler,MapKeys key,Bitu mods,char const
 void MAPPER_Init(void);
 void MAPPER_StartUp(Section * sec);
 void MAPPER_Run(bool pressed);
+void MAPPER_RunEvent(Bitu);
 void MAPPER_RunInternal();
 void MAPPER_LosingFocus(void);
 

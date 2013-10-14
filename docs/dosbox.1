@@ -111,7 +111,7 @@ You can specify this command more than once. In this case it will
 .RI " move to second " program " if the first one fails to start."
 .TP
 .BI \-opencaptures " program"
-.RI "calls " program " with as  first paramater the location of the captures folder."
+.RI "calls " program " with as  first parameter the location of the captures folder."
 .TP
 .B \-printconf
 prints the location of the default configuration file.
@@ -205,7 +205,7 @@ which is located on the local filesystem. Not a mounted drive in
 .RS
 .TP
 .B \-securemode
-.RB Switches dosbox " to a more secure mode. In this mode the"
+.RB "Switches " dosbox " to a more secure mode. In this mode the"
 .RI "internal commands " MOUNT ", " IMGMOUNT " and " BOOT " won\'t work."
 It\'s not possible
 either to create a new configfile or languagefile in this mode.
@@ -216,9 +216,9 @@ either to create a new configfile or languagefile in this mode.
 The configuration file controls various settings of 
 .BR dosbox ": The amount of emulated memory,"
 the emulated soundcards and many
-.RI "more things. It futher allows acces to " AUTOEXEC.BAT .
+.RI "more things. It further allows access to " AUTOEXEC.BAT .
 .LP
-The language file controls all visible ouput of the internal commands and
+The language file controls all visible output of the internal commands and
 the internal dos. 
 .RB "See the section " FILES " for more information."
 .TP 
@@ -242,11 +242,21 @@ The amount of memory to eat up (in kb). Example \-32, \-64 or \-128
 Frees all memory eaten up by loadfix.
 .RE
 .TP
-.B RESCAN
+.B RESCAN [\-All] [Drive:]
 .LP
 .RB "Make " dosbox " reread the directory structure. Useful if you changed
 .RB "something on a mounted drive outside " dosbox ".(CTRL\-F4 does"
 this as well!)
+.RS
+.TP
+.B \-All
+.R Reread directory structure for all drives.
+.TP
+.B Drive:
+.RB "Reread directory structure for drive " Drive:
+.RE
+.LP
+.RB "If both " \-All " and " Drive: " are missing, then the current drive is used.
 .TP
 .B IMGMOUNT
 .LP
@@ -335,7 +345,7 @@ gets saved/recorded !
 capacity, it will produce the same effect as slowing down the emulation.
 This maximum will vary from computer to computer, there is no standard.
 .SH "SYSTEM REQUIREMENTS"
-Fast machine. My guess would be pentium\-2 400+ to get decent emulation
+Fast machine. My guess would be Pentium\-2 400+ to get decent emulation
 of games written for an 286 machine.
 For protected mode games a 1 Ghz machine is recommended and don't expect
 them to run fast though!! Be sure to read the next section on how to speed

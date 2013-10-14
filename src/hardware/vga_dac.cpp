@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 #include "inout.h"
 #include "render.h"
 #include "vga.h"
+#include "../save_state.h"
 
 /*
 3C6h (R/W):  PEL Mask
@@ -65,7 +66,13 @@ static void VGA_DAC_UpdateColor( Bitu index ) {
 	VGA_DAC_SendColor( index, maskIndex );
 }
 
-static void write_p3c6(Bitu port,Bitu val,Bitu iolen) {
+void write_p3c6(Bitu port,Bitu val,Bitu iolen) {
+	if((IS_VGA_ARCH) && (svgaCard==SVGA_None) && (vga.dac.hidac_counter>3)) {
+		vga.dac.reg02=val;
+		vga.dac.hidac_counter=0;
+		VGA_StartResize();
+		return;
+	}
 	if ( vga.dac.pel_mask != val ) {
 		LOG(LOG_VGAMISC,LOG_NORMAL)("VGA:DCA:Pel Mask set to %X", val);
 		vga.dac.pel_mask = val;
@@ -75,34 +82,40 @@ static void write_p3c6(Bitu port,Bitu val,Bitu iolen) {
 }
 
 
-static Bitu read_p3c6(Bitu port,Bitu iolen) {
+Bitu read_p3c6(Bitu port,Bitu iolen) {
+	vga.dac.hidac_counter++;
 	return vga.dac.pel_mask;
 }
 
 
-static void write_p3c7(Bitu port,Bitu val,Bitu iolen) {
+void write_p3c7(Bitu port,Bitu val,Bitu iolen) {
+	vga.dac.hidac_counter=0;
 	vga.dac.read_index=val;
 	vga.dac.pel_index=0;
 	vga.dac.state=DAC_READ;
 	vga.dac.write_index= val + 1;
 }
 
-static Bitu read_p3c7(Bitu port,Bitu iolen) {
+Bitu read_p3c7(Bitu port,Bitu iolen) {
+	vga.dac.hidac_counter=0;
 	if (vga.dac.state==DAC_READ) return 0x3;
 	else return 0x0;
 }
 
-static void write_p3c8(Bitu port,Bitu val,Bitu iolen) {
+void write_p3c8(Bitu port,Bitu val,Bitu iolen) {
+	vga.dac.hidac_counter=0;
 	vga.dac.write_index=val;
 	vga.dac.pel_index=0;
 	vga.dac.state=DAC_WRITE;
 }
 
-static Bitu read_p3c8(Bitu port, Bitu iolen){
+Bitu read_p3c8(Bitu port, Bitu iolen){
+	vga.dac.hidac_counter=0;
 	return vga.dac.write_index;
 }
 
-static void write_p3c9(Bitu port,Bitu val,Bitu iolen) {
+void write_p3c9(Bitu port,Bitu val,Bitu iolen) {
+	vga.dac.hidac_counter=0;
 	val&=0x3f;
 	switch (vga.dac.pel_index) {
 	case 0:
@@ -146,7 +159,8 @@ static void write_p3c9(Bitu port,Bitu val,Bitu iolen) {
 	};
 }
 
-static Bitu read_p3c9(Bitu port,Bitu iolen) {
+Bitu read_p3c9(Bitu port,Bitu iolen) {
+	vga.dac.hidac_counter=0;
 	Bit8u ret;
 	switch (vga.dac.pel_index) {
 	case 0:
@@ -178,8 +192,9 @@ void VGA_DAC_CombineColor(Bit8u attr,Bit8u pal) {
 	case M_LIN8:
 		break;
 	case M_VGA:
-		// used by copper demo; almost no video card seems to suport it
-		if(!IS_VGA_ARCH || (svgaCard!=SVGA_None)) break;
+		// used by copper demo; almost no video card seems to support it
+		// Update: supported by ET4000AX (and not by ET4000AF)
+		if(!vga.draw.linewise_effect) break;
 	default:
 		VGA_DAC_SendColor( attr, pal );
 	}
@@ -203,29 +218,69 @@ void VGA_SetupDAC(void) {
 	vga.dac.state=DAC_READ;
 	vga.dac.read_index=0;
 	vga.dac.write_index=0;
+	vga.dac.hidac_counter=0;
+	vga.dac.reg02=0;
 	if (IS_VGA_ARCH) {
 		/* Setup the DAC IO port Handlers */
-		IO_RegisterWriteHandler(0x3c6,write_p3c6,IO_MB);
-		IO_RegisterReadHandler(0x3c6,read_p3c6,IO_MB);
-		IO_RegisterWriteHandler(0x3c7,write_p3c7,IO_MB);
-		IO_RegisterReadHandler(0x3c7,read_p3c7,IO_MB);
-		IO_RegisterWriteHandler(0x3c8,write_p3c8,IO_MB);
-		IO_RegisterReadHandler(0x3c8,read_p3c8,IO_MB);
-		IO_RegisterWriteHandler(0x3c9,write_p3c9,IO_MB);
-		IO_RegisterReadHandler(0x3c9,read_p3c9,IO_MB);
-	} else if (machine==MCH_EGA) {
-		for (Bitu i=0;i<64;i++) {
-			if ((i&4)>0) vga.dac.rgb[i].red=0x2a;
-			else vga.dac.rgb[i].red=0;
-			if ((i&32)>0) vga.dac.rgb[i].red+=0x15;
-
-			if ((i&2)>0) vga.dac.rgb[i].green=0x2a;
-			else vga.dac.rgb[i].green=0;
-			if ((i&16)>0) vga.dac.rgb[i].green+=0x15;
-
-			if ((i&1)>0) vga.dac.rgb[i].blue=0x2a;
-			else vga.dac.rgb[i].blue=0;
-			if ((i&8)>0) vga.dac.rgb[i].blue+=0x15;
+		if (svga.setup_dac) {
+			svga.setup_dac();
+		} else {
+			IO_RegisterWriteHandler(0x3c6,write_p3c6,IO_MB);
+			IO_RegisterReadHandler(0x3c6,read_p3c6,IO_MB);
+			IO_RegisterWriteHandler(0x3c7,write_p3c7,IO_MB);
+			IO_RegisterReadHandler(0x3c7,read_p3c7,IO_MB);
+			IO_RegisterWriteHandler(0x3c8,write_p3c8,IO_MB);
+			IO_RegisterReadHandler(0x3c8,read_p3c8,IO_MB);
+			IO_RegisterWriteHandler(0x3c9,write_p3c9,IO_MB);
+			IO_RegisterReadHandler(0x3c9,read_p3c9,IO_MB);
 		}
 	}
 }
+
+
+
+// save state support
+
+void POD_Save_VGA_Dac( std::ostream& stream )
+{
+	// - pure struct data
+	WRITE_POD( &vga.dac, vga.dac );
+
+
+	// no static globals found
+}
+
+
+void POD_Load_VGA_Dac( std::istream& stream )
+{
+	// - pure struct data
+	READ_POD( &vga.dac, vga.dac );
+
+
+	// no static globals found
+}
+
+
+/*
+ykhwong svn-daum 2012-02-20
+
+static globals: none
+
+
+struct VGA_Dac:
+
+// - pure data
+typedef struct {
+	Bit8u bits;
+	Bit8u pel_mask;
+	Bit8u pel_index;	
+	Bit8u state;
+	Bit8u write_index;
+	Bit8u read_index;
+	Bitu first_changed;
+	Bit8u combine[16];
+	RGBEntry rgb[0x100];
+	Bit16u xlat16[256];
+	Bit8u hidac_counter;
+	Bit8u reg02;
+*/

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: timer.cpp,v 1.49 2009-04-10 09:53:04 c2woody Exp $ */
 
 #include <math.h>
 #include "dosbox.h"
@@ -26,6 +25,7 @@
 #include "mixer.h"
 #include "timer.h"
 #include "setup.h"
+#include "../save_state.h"
 
 static INLINE void BIN2BCD(Bit16u& val) {
 	Bit16u temp=val%10 + (((val/10)%10)<<4)+ (((val/100)%10)<<8) + (((val/1000)%10)<<12);
@@ -75,7 +75,10 @@ static void PIT0_Event(Bitu /*val*/) {
 			pit[0].delay=(1000.0f/((float)PIT_TICK_RATE/(float)pit[0].cntr));
 			pit[0].update_count=false;
 		}
-		PIC_AddEvent(PIT0_Event,pit[0].delay);
+		// regression to r3533 fixes flight simulator 5.0
+ 		double error = 	pit[0].start - PIC_FullIndex();
+ 		PIC_AddEvent(PIT0_Event,(float)(pit[0].delay + error));			
+//		PIC_AddEvent(PIT0_Event,pit[0].delay); // r3534
 	}
 }
 
@@ -138,8 +141,14 @@ static void counter_latch(Bitu counter) {
 	p->go_read_latch=false;
 
 	//If gate2 is disabled don't update the read_latch
-	if(counter == 2 && !gate2 && p->mode !=1) return;
-
+	if (counter == 2 && !gate2 && p->mode !=1) return;
+	if (GCC_UNLIKELY(p->new_mode)) {
+		double passed_time = PIC_FullIndex() - p->start;
+		Bitu ticks_since_then = (Bitu)(passed_time / (1000.0/PIT_TICK_RATE));
+		//if (p->mode==3) ticks_since_then /= 2; // TODO figure this out on real hardware
+		p->read_latch -= ticks_since_then;
+		return;
+	}
 	double index=PIC_FullIndex()-p->start;
 	switch (p->mode) {
 	case 4:		/* Software Triggered Strobe */
@@ -299,6 +308,10 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 			/* Counter latch command */
 			counter_latch(latch);
 		} else {
+			// save output status to be used with timer 0 irq
+			bool old_output = counter_output(0);
+			// save the current count value to be re-used in undocumented newmode
+			counter_latch(latch);
 			pit[latch].bcd = (val&1)>0;   
 			if (val & 1) {
 				if(pit[latch].cntr>=9999) pit[latch].cntr=9999;
@@ -309,6 +322,8 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 				pit[latch].counterstatus_set=false;
 				latched_timerstatus_locked=false;
 			}
+			pit[latch].start = PIC_FullIndex(); // for undocumented newmode
+			pit[latch].go_read_latch = true;
 			pit[latch].update_count = false;
 			pit[latch].counting = false;
 			pit[latch].read_state  = (val >> 4) & 0x03;
@@ -317,9 +332,7 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 			if (mode > 5)
 				mode -= 4; //6,7 become 2 and 3
 
-			/* Don't set it directly so counter_output uses the old mode */
-			/* That's theory. It breaks panic. So set it here again */
-			if(!pit[latch].mode) pit[latch].mode     = mode;
+			pit[latch].mode = mode;
 
 			/* If the line goes from low to up => generate irq. 
 			 *      ( BUT needs to stay up until acknowlegded by the cpu!!! therefore: )
@@ -327,20 +340,21 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 			 * Mode 0 starts with a low line. (so always disable irq)
 			 * Mode 2,3 start with a high line.
 			 * counter_output tells if the current counter is high or low 
-			 * So actually a mode 2 timer enables and disables irq al the time. (not handled) */
+			 * So actually a mode 3 timer enables and disables irq al the time. (not handled) */
 
 			if (latch == 0) {
 				PIC_RemoveEvents(PIT0_Event);
-				if (!counter_output(0) && mode) {
+				if((mode != 0)&& !old_output) {
 					PIC_ActivateIRQ(0);
-					//Don't raise instantaniously. (Origamo)
-					if(CPU_Cycles < 25) CPU_Cycles = 25;
-				}
-				if(!mode)
+				} else {
 					PIC_DeActivateIRQ(0);
+				}
 			}
 			pit[latch].new_mode = true;
-			pit[latch].mode     = mode; //Set the correct mode (here)
+			if (latch == 2) {
+				// notify pc speaker code that the control word was written
+				PCSPEAKER_SetPITControl(mode);
+			}
 		}
 		break;
     case 3:
@@ -393,6 +407,11 @@ void TIMER_SetGate2(bool in) {
 	}
 	gate2 = in; //Set it here so the counter_latch above works
 }
+
+bool TIMER_GetOutput2() {
+	return counter_output(2);
+}
+
 
 class TIMER:public Module_base{
 private:
@@ -458,4 +477,25 @@ void TIMER_Destroy(Section*){
 void TIMER_Init(Section* sec) {
 	test = new TIMER(sec);
 	sec->AddDestroyFunction(&TIMER_Destroy);
+}
+
+
+
+//save state support
+void *PIT0_Event_PIC_Event = (void*)PIT0_Event;
+
+
+namespace
+{
+class SerializeTimer : public SerializeGlobalPOD
+{
+public:
+    SerializeTimer() : SerializeGlobalPOD("IntTimer10")
+    {
+        registerPOD(pit);
+        registerPOD(gate2);
+        registerPOD(latched_timerstatus);
+		registerPOD(latched_timerstatus_locked);
+    }
+} dummy;
 }

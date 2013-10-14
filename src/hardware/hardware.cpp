@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: hardware.cpp,v 1.23 2009-10-11 18:09:22 qbix79 Exp $ */
 
 #include <string.h>
 #include <stdlib.h>
@@ -36,7 +35,7 @@
 #include "../libs/zmbv/zmbv.cpp"
 #endif
 
-static std::string capturedir;
+std::string capturedir;
 extern const char* RunningProgram;
 Bitu CaptureState;
 
@@ -161,13 +160,17 @@ static void CAPTURE_AddAviChunk(const char * tag, Bit32u size, void * data, Bit3
 #endif
 
 #if (C_SSHOT)
+void CAPTURE_VideoEvent(bool pressed) {
+	if (!pressed)
+		return;
+	if (CaptureState & CAPTURE_VIDEO) {
+		/* Close the video */
+		CaptureState &= ~CAPTURE_VIDEO;
+		LOG_MSG("Stopped capturing video.");	
 
-static void CAPTURE_VideoHeader() {
 		Bit8u avi_header[AVI_HEADER_SIZE];
 		Bitu main_list;
 		Bitu header_pos=0;
-		Bitu save_pos=ftell(capture.video.handle);
-
 #define AVIOUT4(_S_) memcpy(&avi_header[header_pos],_S_,4);header_pos+=4;
 #define AVIOUTw(_S_) host_writew(&avi_header[header_pos], _S_);header_pos+=2;
 #define AVIOUTd(_S_) host_writed(&avi_header[header_pos], _S_);header_pos+=4;
@@ -284,20 +287,6 @@ static void CAPTURE_VideoHeader() {
 		fwrite( capture.video.index, 1, capture.video.indexused, capture.video.handle);
 		fseek(capture.video.handle, 0, SEEK_SET);
 		fwrite(&avi_header, 1, AVI_HEADER_SIZE, capture.video.handle);
-		fseek(capture.video.handle, save_pos, SEEK_SET);
-}
-
-static void CAPTURE_VideoEvent(bool pressed) {
-	if (!pressed)
-		return;
-	if (CaptureState & CAPTURE_VIDEO) {
-		/* Close the video */
-		CaptureState &= ~CAPTURE_VIDEO;
-		LOG_MSG("Stopped capturing video.");	
-
-		/* Adds AVI header to the file */
-		CAPTURE_VideoHeader();
-
 		fclose( capture.video.handle );
 		free( capture.video.index );
 		free( capture.video.buf );
@@ -334,7 +323,7 @@ void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags,
 		/* Open the actual file */
 		FILE * fp=OpenCaptureFile("Screenshot",".png");
 		if (!fp) goto skip_shot;
-		/* First try to alloacte the png structures */
+		/* First try to allocate the png structures */
 		png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL,NULL, NULL);
 		if (!png_ptr) goto skip_shot;
 		info_ptr = png_create_info_struct(png_ptr);
@@ -370,7 +359,23 @@ void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags,
 				8, PNG_COLOR_TYPE_RGB, PNG_INTERLACE_NONE,
 				PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
 		}
+#ifdef PNG_TEXT_SUPPORTED
+		int fields = 1;
+		png_text text[1];
+		const char* text_s = "DOSBox " VERSION;
+		size_t strl = strlen(text_s);
+		char* ptext_s = new char[strl + 1];
+		strcpy(ptext_s, text_s);
+		char software[9] = { 'S','o','f','t','w','a','r','e',0};
+		text[0].compression = PNG_TEXT_COMPRESSION_NONE;
+		text[0].key  = software;
+		text[0].text = ptext_s;
+		png_set_text(png_ptr, info_ptr, text, fields);
+#endif
 		png_write_info(png_ptr, info_ptr);
+#ifdef PNG_TEXT_SUPPORTED
+		delete [] ptext_s;
+#endif
 		for (i=0;i<height;i++) {
 			void *rowPointer;
 			void *srcLine;
@@ -557,9 +562,6 @@ skip_shot:
 			capture.video.audioused = 0;
 		}
 
-		/* Adds AVI header to the file */
-		CAPTURE_VideoHeader();
-
 		/* Everything went okay, set flag again for next frame */
 		CaptureState |= CAPTURE_VIDEO;
 	}
@@ -570,7 +572,7 @@ skip_video:
 
 
 #if (C_SSHOT)
-static void CAPTURE_ScreenShotEvent(bool pressed) {
+void CAPTURE_ScreenShotEvent(bool pressed) {
 	if (!pressed)
 		return;
 	CaptureState |= CAPTURE_IMAGE;
@@ -629,7 +631,7 @@ void CAPTURE_AddWave(Bit32u freq, Bit32u len, Bit16s * data) {
 		}
 	}
 }
-static void CAPTURE_WaveEvent(bool pressed) {
+void CAPTURE_WaveEvent(bool pressed) {
 	if (!pressed)
 		return;
 	/* Check for previously opened wave file */
@@ -703,7 +705,7 @@ void CAPTURE_AddMidi(bool sysex, Bitu len, Bit8u * data) {
 		RawMidiAdd(data[i]);
 }
 
-static void CAPTURE_MidiEvent(bool pressed) {
+void CAPTURE_MidiEvent(bool pressed) {
 	if (!pressed)
 		return;
 	/* Check for previously opened wave file */
@@ -756,6 +758,9 @@ public:
 #endif
 	}
 	~HARDWARE(){
+#if (C_SSHOT)
+		if (capture.video.handle) CAPTURE_VideoEvent(true);
+#endif
 		if (capture.wave.handle) CAPTURE_WaveEvent(true);
 		if (capture.midi.handle) CAPTURE_MidiEvent(true);
 	}

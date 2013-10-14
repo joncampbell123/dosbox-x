@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: bios.cpp,v 1.78 2009-10-10 13:26:46 h-a-l-9000 Exp $ */
 
 #include "dosbox.h"
 #include "mem.h"
@@ -28,12 +27,16 @@
 #include "inout.h"
 #include "pic.h"
 #include "hardware.h"
+#include "pci_bus.h"
 #include "joystick.h"
 #include "mouse.h"
 #include "setup.h"
 #include "serialport.h"
 #include "vga.h"
-
+extern bool PS1AudioCard;
+#include "parport.h"
+#include <time.h>
+#include <sys/timeb.h>
 /* mouse.cpp */
 extern bool en_bios_ps2mouse;
 
@@ -63,14 +66,9 @@ const unsigned char isa_pnp_init_keystring[32] = {
 	0xE8,0x74,0x3A,0x9D,0xCE,0xE7,0x73,0x39
 };
 
-#ifdef C_DEBUG
-#define fprintf silent_fprintf
-static size_t silent_fprintf(FILE *f,const char *fmt,...) {
-}
-#endif
-
 static unsigned char ISA_PNP_KEYMATCH=0;
 static Bits other_memsystems=0;
+static bool apm_realmode_connected = false;
 void CMOS_SetRegister(Bitu regNr, Bit8u val); //For setting equipment word
 bool ISAPNPBIOS=false;
 
@@ -157,8 +155,8 @@ void ISA_PNP_devreg(ISAPnPDevice *x) {
 		ISA_PNP_devs[ISA_PNP_devnext++] = x;
 		x->CSN = ISA_PNP_devnext;
 	}
-	else
-		fprintf(stderr,"WARNING: ignored PnP device registration\n");
+	//else
+	//	fprintf(stderr,"WARNING: ignored PnP device registration\n");
 }
 
 static Bitu isapnp_read_port(Bitu port,Bitu /*iolen*/) {
@@ -245,7 +243,7 @@ static void isapnp_write_port(Bitu port,Bitu val,Bitu /*iolen*/) {
 					ISA_PNP_WPORT = np;
 					delete ISAPNP_PNP_READ_PORT;
 					ISAPNP_PNP_READ_PORT = new IO_ReadHandleObject;
-					fprintf(stderr,"PNP OS changed I/O read port to 0x%03X (from 0x%03X)\n",ISA_PNP_WPORT,old);
+					//fprintf(stderr,"PNP OS changed I/O read port to 0x%03X (from 0x%03X)\n",ISA_PNP_WPORT,old);
 					ISAPNP_PNP_READ_PORT->Install(ISA_PNP_WPORT,isapnp_read_port,IO_MB);
 					if (ISA_PNP_selected != NULL) {
 						ISA_PNP_selected->ident_bp = 0;
@@ -619,15 +617,15 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
 		arg = SegPhys(ss) + reg_sp + (2*2); /* entry point (real and protected) is 16-bit, expected to RETF (skip CS:IP) */
 
 	if (protmode != ISAPNP_CPU_ProtMode()) {
-		fprintf(stderr,"ISA PnP %s entry point called from %s. On real BIOSes this would CRASH\n",protmode ? "Protected mode" : "Real mode",
-			ISAPNP_CPU_ProtMode() ? "Protected mode" : "Real mode");
+		//fprintf(stderr,"ISA PnP %s entry point called from %s. On real BIOSes this would CRASH\n",protmode ? "Protected mode" : "Real mode",
+		//	ISAPNP_CPU_ProtMode() ? "Protected mode" : "Real mode");
 		reg_ax = 0x84;/* BAD_PARAMETER */
 		return 0;
 	}
 
-	fprintf(stderr,"PnP prot=%u DS=%04x (base=0x%08lx) SS:ESP=%04x:%04x (base=0x%08lx phys=0x%08lx)\n",protmode,
-		SegValue(ds),SegPhys(ds),
-		SegValue(ss),reg_esp,SegPhys(ss),arg);
+	//fprintf(stderr,"PnP prot=%u DS=%04x (base=0x%08lx) SS:ESP=%04x:%04x (base=0x%08lx phys=0x%08lx)\n",protmode,
+	//	SegValue(ds),SegPhys(ds),
+	//	SegValue(ss),reg_esp,SegPhys(ss),arg);
 
 	/* every function takes the form
 	 *
@@ -675,9 +673,9 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
 				break;
 			}
 
-			fprintf(stderr,"devNodePtr = 0x%08lx\n",devNodeBuffer_ptr);
+			//fprintf(stderr,"devNodePtr = 0x%08lx\n",devNodeBuffer_ptr);
 			devNodeBuffer_ptr = ISAPNP_xlate_address(devNodeBuffer_ptr);
-			fprintf(stderr,"        to = 0x%08lx\n",devNodeBuffer_ptr);
+			//fprintf(stderr,"        to = 0x%08lx\n",devNodeBuffer_ptr);
 
 			Node_ptr = ISAPNP_xlate_address(Node_ptr);
 			Node = mem_readb(Node_ptr);
@@ -709,20 +707,20 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
 
 			switch (Message) {
 				case 0x41:	/* POWER_OFF */
-					fprintf(stderr,"Plug & Play OS requested power off.\n");
+					//fprintf(stderr,"Plug & Play OS requested power off.\n");
 					throw 1;	/* NTS: Based on the Reboot handler code, causes DOSBox to cleanly shutdown and exit */
 					reg_ax = 0;
 					break;
 				case 0x42:	/* PNP_OS_ACTIVE */
-					fprintf(stderr,"Plug & Play OS reports itself active\n");
+					//fprintf(stderr,"Plug & Play OS reports itself active\n");
 					reg_ax = 0;
 					break;
 				case 0x43:	/* PNP_OS_INACTIVE */
-					fprintf(stderr,"Plug & Play OS reports itself inactive\n");
+					//fprintf(stderr,"Plug & Play OS reports itself inactive\n");
 					reg_ax = 0;
 					break;
 				default:
-					fprintf(stderr,"Unknown ISA PnP message 0x%04x\n",Message);
+					//fprintf(stderr,"Unknown ISA PnP message 0x%04x\n",Message);
 					reg_ax = 0x82;/* FUNCTION_NOT_SUPPORTED */
 					break;
 			}
@@ -754,7 +752,7 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
 			reg_ax = 0x00;/* SUCCESS */
 		} break;
 		default:
-			fprintf(stderr,"Unsupported ISA PnP function 0x%04x\n",func);
+			//fprintf(stderr,"Unsupported ISA PnP function 0x%04x\n",func);
 			reg_ax = 0x82;/* FUNCTION_NOT_SUPPORTED */
 			break;
 	};
@@ -763,24 +761,24 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
 badBiosSelector:
 	/* return an error. remind the user (possible developer) how lucky he is, a real
 	 * BIOS implementation would CRASH when misused like this */
-	fprintf(stderr,"ISA PnP function 0x%04x called with incorrect BiosSelector parameter 0x%04x\n",func,BiosSelector);
-	fprintf(stderr," > STACK %04X %04X %04X %04X %04X %04X %04X %04X\n",
-		mem_readw(arg),
-		mem_readw(arg+2),
-		mem_readw(arg+4),
-		mem_readw(arg+6),
-		mem_readw(arg+8),
-		mem_readw(arg+10),
-		mem_readw(arg+12),
-		mem_readw(arg+14));
+	//fprintf(stderr,"ISA PnP function 0x%04x called with incorrect BiosSelector parameter 0x%04x\n",func,BiosSelector);
+	//fprintf(stderr," > STACK %04X %04X %04X %04X %04X %04X %04X %04X\n",
+	//	mem_readw(arg),
+	//	mem_readw(arg+2),
+	//	mem_readw(arg+4),
+	//	mem_readw(arg+6),
+	//	mem_readw(arg+8),
+	//	mem_readw(arg+10),
+	//	mem_readw(arg+12),
+	//	mem_readw(arg+14));
 
 	if (cpu.pmode && !(reg_flags & FLAG_VM) && BiosSelector != 0) {
 		Descriptor desc;
-
-		if (cpu.gdt.GetDescriptor(BiosSelector,desc))
-			fprintf(stderr," > BiosSelector base=0x%08lx\n",(unsigned long)desc.GetBase());
-		else
-			fprintf(stderr," > BiosSelector N/A\n");
+		if (cpu.gdt.GetDescriptor(BiosSelector,desc)) {
+		//	fprintf(stderr," > BiosSelector base=0x%08lx\n",(unsigned long)desc.GetBase());
+		} else {
+		//	fprintf(stderr," > BiosSelector N/A\n");
+		}
 	}
 
 	reg_ax = 0x84;/* BAD_PARAMETER */
@@ -1062,12 +1060,41 @@ static void TandyDAC_Handler(Bit8u tfunction) {
 	}
 }
 
+extern bool date_host_forced;
+static Bit8u ReadCmosByte (Bitu index) {
+	IO_Write(0x70, index);
+	return IO_Read(0x71);
+}
+
+static void WriteCmosByte (Bitu index, Bitu val) {
+	IO_Write(0x70, index);
+	IO_Write(0x71, val);
+}
+
+static bool RtcUpdateDone () {
+	while ((ReadCmosByte(0x0a) & 0x80) != 0) CALLBACK_Idle();
+	return true;			// cannot fail in DOSbox
+}
+
+static void InitRtc () {
+	WriteCmosByte(0x0a, 0x26);		// default value (32768Hz, 1024Hz)
+
+	// leave bits 6 (pirq), 5 (airq), 0 (dst) untouched
+	// reset bits 7 (freeze), 4 (uirq), 3 (sqw), 2 (bcd)
+	// set bit 1 (24h)
+	WriteCmosByte(0x0b, (ReadCmosByte(0x0b) & 0x61) | 0x02);
+
+	ReadCmosByte(0x0c);				// clear any bits set
+}
+
 static Bitu INT1A_Handler(void) {
+	CALLBACK_SIF(true);
 	switch (reg_ah) {
 	case 0x00:	/* Get System time */
 		{
 			Bit32u ticks=mem_readd(BIOS_TIMER);
-			reg_al=0;		/* Midnight never passes :) */
+			reg_al=mem_readb(BIOS_24_HOURS_FLAG);
+			mem_writeb(BIOS_24_HOURS_FLAG,0); // reset the "flag"
 			reg_cx=(Bit16u)(ticks >> 16);
 			reg_dx=(Bit16u)(ticks & 0xffff);
 			break;
@@ -1076,6 +1103,17 @@ static Bitu INT1A_Handler(void) {
 		mem_writed(BIOS_TIMER,(reg_cx<<16)|reg_dx);
 		break;
 	case 0x02:	/* GET REAL-TIME CLOCK TIME (AT,XT286,PS) */
+		if(date_host_forced) {
+			InitRtc();							// make sure BCD and no am/pm
+			if (RtcUpdateDone()) {				// make sure it's safe to read
+				reg_ch = ReadCmosByte(0x04);	// hours
+				reg_cl = ReadCmosByte(0x02);	// minutes
+				reg_dh = ReadCmosByte(0x00);	// seconds
+				reg_dl = ReadCmosByte(0x0b) & 0x01;	// daylight saving time
+			}
+			CALLBACK_SCF(false);
+			break;
+		}
 		IO_Write(0x70,0x04);		//Hours
 		reg_ch=IO_Read(0x71);
 		IO_Write(0x70,0x02);		//Minutes
@@ -1085,7 +1123,28 @@ static Bitu INT1A_Handler(void) {
 		reg_dl=0;			//Daylight saving disabled
 		CALLBACK_SCF(false);
 		break;
+	case 0x03:	// set RTC time
+		if(date_host_forced) {
+			InitRtc();							// make sure BCD and no am/pm
+			WriteCmosByte(0x0b, ReadCmosByte(0x0b) | 0x80);		// prohibit updates
+			WriteCmosByte(0x04, reg_ch);		// hours
+			WriteCmosByte(0x02, reg_cl);		// minutes
+			WriteCmosByte(0x00, reg_dh);		// seconds
+			WriteCmosByte(0x0b, (ReadCmosByte(0x0b) & 0x7e) | (reg_dh & 0x01));	// dst + implicitly allow updates
+		}
+		break;
 	case 0x04:	/* GET REAL-TIME ClOCK DATE  (AT,XT286,PS) */
+		if(date_host_forced) {
+			InitRtc();							// make sure BCD and no am/pm
+			if (RtcUpdateDone()) {				// make sure it's safe to read
+				reg_ch = ReadCmosByte(0x32);	// century
+				reg_cl = ReadCmosByte(0x09);	// year
+				reg_dh = ReadCmosByte(0x08);	// month
+				reg_dl = ReadCmosByte(0x07);	// day
+			}
+			CALLBACK_SCF(false);
+			break;
+		}
 		IO_Write(0x70,0x32);		//Centuries
 		reg_ch=IO_Read(0x71);
 		IO_Write(0x70,0x09);		//Years
@@ -1095,6 +1154,17 @@ static Bitu INT1A_Handler(void) {
 		IO_Write(0x70,0x07);		//Days
 		reg_dl=IO_Read(0x71);
 		CALLBACK_SCF(false);
+		break;
+	case 0x05:	// set RTC date
+		if(date_host_forced) {
+			InitRtc();							// make sure BCD and no am/pm
+			WriteCmosByte(0x0b, ReadCmosByte(0x0b) | 0x80);		// prohibit updates
+			WriteCmosByte(0x32, reg_ch);	// century
+			WriteCmosByte(0x09, reg_cl);	// year
+			WriteCmosByte(0x08, reg_dh);	// month
+			WriteCmosByte(0x07, reg_dl);	// day
+			WriteCmosByte(0x0b, (ReadCmosByte(0x0b) & 0x7f));	// allow updates
+		}
 		break;
 	case 0x80:	/* Pcjr Setup Sound Multiplexer */
 		LOG(LOG_BIOS,LOG_ERROR)("INT1A:80:Setup tandy sound multiplexer to %d",reg_al);
@@ -1107,8 +1177,120 @@ static Bitu INT1A_Handler(void) {
 		TandyDAC_Handler(reg_ah);
 		break;
 	case 0xb1:		/* PCI Bios Calls */
-		LOG(LOG_BIOS,LOG_ERROR)("INT1A:PCI bios call %2X",reg_al);
+		LOG(LOG_BIOS,LOG_WARN)("INT1A:PCI bios call %2X",reg_al);
+#if defined(PCI_FUNCTIONALITY_ENABLED)
+		switch (reg_al) {
+			case 0x01:	// installation check
+				if (PCI_IsInitialized()) {
+					reg_ah=0x00;
+					reg_al=0x01;	// cfg space mechanism 1 supported
+					reg_bx=0x0210;	// ver 2.10
+					reg_cx=0x0000;	// only one PCI bus
+					reg_edx=0x20494350;
+					reg_edi=PCI_GetPModeInterface();
+					CALLBACK_SCF(false);
+				} else {
+					CALLBACK_SCF(true);
+				}
+				break;
+			case 0x02: {	// find device
+				Bitu devnr=0;
+				Bitu count=0x100;
+				Bit32u devicetag=(reg_cx<<16)|reg_dx;
+				Bits found=-1;
+				for (Bitu i=0; i<=count; i++) {
+					IO_WriteD(0xcf8,0x80000000|(i<<8));	// query unique device/subdevice entries
+					if (IO_ReadD(0xcfc)==devicetag) {
+						if (devnr==reg_si) {
+							found=i;
+							break;
+						} else {
+							// device found, but not the SIth device
+							devnr++;
+						}
+					}
+				}
+				if (found>=0) {
+					reg_ah=0x00;
+					reg_bh=0x00;	// bus 0
+					reg_bl=(Bit8u)(found&0xff);
+					CALLBACK_SCF(false);
+				} else {
+					reg_ah=0x86;	// device not found
+					CALLBACK_SCF(true);
+				}
+				}
+				break;
+			case 0x03: {	// find device by class code
+				Bitu devnr=0;
+				Bitu count=0x100;
+				Bit32u classtag=reg_ecx&0xffffff;
+				Bits found=-1;
+				for (Bitu i=0; i<=count; i++) {
+					IO_WriteD(0xcf8,0x80000000|(i<<8));	// query unique device/subdevice entries
+					if (IO_ReadD(0xcfc)!=0xffffffff) {
+						IO_WriteD(0xcf8,0x80000000|(i<<8)|0x08);
+						if ((IO_ReadD(0xcfc)>>8)==classtag) {
+							if (devnr==reg_si) {
+								found=i;
+								break;
+							} else {
+								// device found, but not the SIth device
+								devnr++;
+							}
+						}
+					}
+				}
+				if (found>=0) {
+					reg_ah=0x00;
+					reg_bh=0x00;	// bus 0
+					reg_bl=(Bit8u)(found&0xff);
+					CALLBACK_SCF(false);
+				} else {
+					reg_ah=0x86;	// device not found
+					CALLBACK_SCF(true);
+				}
+				}
+				break;
+			case 0x08:	// read configuration byte
+				IO_WriteD(0xcf8,0x80000000|(reg_bx<<8)|(reg_di&0xfc));
+				reg_cl=IO_ReadB(0xcfc+(reg_di&3));
+				CALLBACK_SCF(false);
+				break;
+			case 0x09:	// read configuration word
+				IO_WriteD(0xcf8,0x80000000|(reg_bx<<8)|(reg_di&0xfc));
+				reg_cx=IO_ReadW(0xcfc+(reg_di&2));
+				CALLBACK_SCF(false);
+				break;
+			case 0x0a:	// read configuration dword
+				IO_WriteD(0xcf8,0x80000000|(reg_bx<<8)|(reg_di&0xfc));
+				reg_ecx=IO_ReadD(0xcfc+(reg_di&3));
+				CALLBACK_SCF(false);
+				break;
+			case 0x0b:	// write configuration byte
+				IO_WriteD(0xcf8,0x80000000|(reg_bx<<8)|(reg_di&0xfc));
+				IO_WriteB(0xcfc+(reg_di&3),reg_cl);
+				CALLBACK_SCF(false);
+				break;
+			case 0x0c:	// write configuration word
+				IO_WriteD(0xcf8,0x80000000|(reg_bx<<8)|(reg_di&0xfc));
+				IO_WriteW(0xcfc+(reg_di&2),reg_cx);
+				CALLBACK_SCF(false);
+				break;
+			case 0x0d:	// write configuration dword
+				IO_WriteD(0xcf8,0x80000000|(reg_bx<<8)|(reg_di&0xfc));
+				IO_WriteD(0xcfc+(reg_di&3),reg_ecx);
+				CALLBACK_SCF(false);
+				break;
+			default:
+				LOG(LOG_BIOS,LOG_ERROR)("INT1A:PCI BIOS: unknown function %x (%x %x %x)",
+					reg_ax,reg_bx,reg_cx,reg_dx);
+				CALLBACK_SCF(true);
+				break;
+		}
+#else
 		CALLBACK_SCF(true);
+#endif
 		break;
 	default:
 		LOG(LOG_BIOS,LOG_ERROR)("INT1A:Undefined call %2X",reg_ah);
@@ -1127,9 +1309,45 @@ static Bitu INT11_Handler(void) {
 #ifndef DOSBOX_CLOCKSYNC
 #define DOSBOX_CLOCKSYNC 0
 #endif
+
+static void BIOS_HostTimeSync() {
+	/* Setup time and date */
+	struct timeb timebuffer;
+	ftime(&timebuffer);
+	
+	struct tm *loctime;
+	loctime = localtime (&timebuffer.time);
+
+	/*
+	loctime->tm_hour = 23;
+	loctime->tm_min = 59;
+	loctime->tm_sec = 45;
+	loctime->tm_mday = 28;
+	loctime->tm_mon = 2-1;
+	loctime->tm_year = 2007 - 1900;
+	*/
+
+	dos.date.day=(Bit8u)loctime->tm_mday;
+	dos.date.month=(Bit8u)loctime->tm_mon+1;
+	dos.date.year=(Bit16u)loctime->tm_year+1900;
+
+	Bit32u ticks=(Bit32u)(((double)(
+		loctime->tm_hour*3600*1000+
+		loctime->tm_min*60*1000+
+		loctime->tm_sec*1000+
+		timebuffer.millitm))*(((double)PIT_TICK_RATE/65536.0)/1000.0));
+	mem_writed(BIOS_TIMER,ticks);
+}
+
 static Bitu INT8_Handler(void) {
 	/* Increase the bios tick counter */
 	Bit32u value = mem_readd(BIOS_TIMER) + 1;
+	if(value >= 0x1800B0) {
+		// time wrap at midnight
+		mem_writeb(BIOS_24_HOURS_FLAG,mem_readb(BIOS_24_HOURS_FLAG)+1);
+		value=0;
+	}
+
 #if DOSBOX_CLOCKSYNC
 	static bool check = false;
 	if((value %50)==0) {
@@ -1171,36 +1389,45 @@ static Bitu INT12_Handler(void) {
 }
 
 static Bitu INT17_Handler(void) {
-	LOG(LOG_BIOS,LOG_NORMAL)("INT17:Function %X",reg_ah);
+	if (reg_ah > 0x2 || reg_dx > 0x2) {	// 0-2 printer port functions
+										// and no more than 3 parallel ports
+		LOG_MSG("BIOS INT17: Unhandled call AH=%2X DX=%4x",reg_ah,reg_dx);
+		return CBRET_NONE;
+	}
+
 	switch(reg_ah) {
-	case 0x00:		/* PRINTER: Write Character */
-		reg_ah=1;	/* Report a timeout */
+	case 0x00:		// PRINTER: Write Character
+		if(parallelPortObjects[reg_dx]!=0) {
+			if(parallelPortObjects[reg_dx]->Putchar(reg_al))
+				reg_ah=parallelPortObjects[reg_dx]->getPrinterStatus();
+			else reg_ah=1;
+		}
 		break;
-	case 0x01:		/* PRINTER: Initialize port */
+	case 0x01:		// PRINTER: Initialize port
+		if(parallelPortObjects[reg_dx]!= 0) {
+			parallelPortObjects[reg_dx]->initialize();
+			reg_ah=parallelPortObjects[reg_dx]->getPrinterStatus();
+		}
 		break;
-	case 0x02:		/* PRINTER: Get Status */
-		reg_ah=0;	
+	case 0x02:		// PRINTER: Get Status
+		if(parallelPortObjects[reg_dx] != 0)
+			reg_ah=parallelPortObjects[reg_dx]->getPrinterStatus();
+		//LOG_MSG("printer status: %x",reg_ah);
 		break;
-	case 0x20:		/* Some sort of printerdriver install check*/
-		break;
-	default:
-		E_Exit("Unhandled INT 17 call %2X",reg_ah);
 	};
 	return CBRET_NONE;
 }
 
-static Bit8u INT14_Wait(Bit16u port, Bit8u mask, Bit8u timeout) {
+static bool INT14_Wait(Bit16u port, Bit8u mask, Bit8u timeout, Bit8u* retval) {
 	double starttime = PIC_FullIndex();
 	double timeout_f = timeout * 1000.0;
-	Bit8u retval;
-	while (((retval = IO_ReadB(port)) & mask) != mask) {
+	while (((*retval = IO_ReadB(port)) & mask) != mask) {
 		if (starttime < (PIC_FullIndex() - timeout_f)) {
-			retval |= 0x80;
-			break;
+			return false;
 		}
 		CALLBACK_Idle();
 	}
-	return retval;
+	return true;
 }
 
 static Bitu INT14_Handler(void) {
@@ -1255,7 +1482,7 @@ static Bitu INT14_Handler(void) {
 		CALLBACK_SCF(false);
 		break;
 	}
-	case 0x01: { // Transmit character
+	case 0x01: // Transmit character
 		// Parameters:				Return:
 		// AL: character			AL: unchanged
 		// AH: 0x01					AH: line status from just before the char was sent
@@ -1265,20 +1492,19 @@ static Bitu INT14_Handler(void) {
 
 		// set DTR & RTS on
 		IO_WriteB(port+4,0x3);
-
 		// wait for DSR & CTS
-		reg_ah = INT14_Wait(port+6, 0x30, timeout);
-		if (!(reg_ah & 0x80)) {
+		if (INT14_Wait(port+6, 0x30, timeout, &reg_ah)) {
 			// wait for TX buffer empty
-			reg_ah = INT14_Wait(port+5, 0x20, timeout);
-			if (!(reg_ah & 0x80)) {
+			if (INT14_Wait(port+5, 0x20, timeout, &reg_ah)) {
 				// fianlly send the character
 				IO_WriteB(port,reg_al);
-			}
-		} // else timed out
+			} else
+				reg_ah |= 0x80;
+		} else // timed out
+			reg_ah |= 0x80;
+
 		CALLBACK_SCF(false);
 		break;
-	}
 	case 0x02: // Read character
 		// Parameters:				Return:
 		// AH: 0x02					AL: received character
@@ -1292,15 +1518,16 @@ static Bitu INT14_Handler(void) {
 		IO_WriteB(port+4,0x1);
 
 		// wait for DSR
-		reg_ah = INT14_Wait(port+6, 0x20, timeout);
-		if (!(reg_ah & 0x80)) {
+		if (INT14_Wait(port+6, 0x20, timeout, &reg_ah)) {
 			// wait for character to arrive
-			reg_ah = INT14_Wait(port+5, 0x01, timeout);
-			if (!(reg_ah & 0x80)) {
+			if (INT14_Wait(port+5, 0x01, timeout, &reg_ah)) {
 				reg_ah &= 0x1E;
 				reg_al = IO_ReadB(port);
-			}
-		}
+			} else
+				reg_ah |= 0x80;
+		} else
+			reg_ah |= 0x80;
+
 		CALLBACK_SCF(false);
 		break;
 	case 0x03: // get status
@@ -1343,6 +1570,9 @@ static Bitu INT15_Handler(void) {
 				// 02 = NVR checksum error.
 				// AL = Byte read from NVR.
 				// CC.
+			default:
+				LOG(LOG_BIOS,LOG_NORMAL)("INT15 Unsupported PC1512 Call %02X",reg_ah);
+				return CBRET_NONE;
 			case 0x03:
 				// Write VDU Colour Plane Write Register.
 				vga.amstrad.write_plane = reg_al & 0x0F;
@@ -1363,15 +1593,11 @@ static Bitu INT15_Handler(void) {
 				reg_bx = 0x0001;
 				CALLBACK_SCF(false);
 				break;
-			default:
-				LOG(LOG_BIOS,LOG_NORMAL)("INT15 Unsupported PC1512 Call %02X",reg_ah);
-				return CBRET_NONE;
 		}
 	}
-
 	switch (reg_ah) {
 	case 0x06:
-		LOG(LOG_BIOS,LOG_NORMAL)("INT15 Unkown Function 6");
+		LOG(LOG_BIOS,LOG_NORMAL)("INT15 Unkown Function 6 (Amstrad?)");
 		break;
 	case 0xC0:	/* Get Configuration*/
 		{
@@ -1391,8 +1617,13 @@ static Bitu INT15_Handler(void) {
 				/* Tandy doesn't have a 2nd PIC, left as is for now */
 				mem_writeb(data+5,(1<<6)|(1<<5)|(1<<4));	// Feature Byte 1
 			} else {
-				mem_writeb(data+2,0xFC);					// Model ID (PC)
-				mem_writeb(data+3,0x00);					// Submodel ID
+				if( PS1AudioCard ) {
+					mem_writeb(data+2,0xFC);					// Model ID (PC)
+					mem_writeb(data+3,0x0B);					// Submodel ID (PS/1).
+				} else {
+					mem_writeb(data+2,0xFC);					// Model ID (PC)
+					mem_writeb(data+3,0x00);					// Submodel ID
+				}
 				mem_writeb(data+4,0x01);					// Bios Revision
 				mem_writeb(data+5,(1<<6)|(1<<5)|(1<<4));	// Feature Byte 1
 			}
@@ -1487,6 +1718,7 @@ static Bitu INT15_Handler(void) {
 				CALLBACK_Idle();
 			}
 			CALLBACK_SCF(false);
+			break;
 		}
 	case 0x87:	/* Copy extended memory */
 		{
@@ -1510,8 +1742,8 @@ static Bitu INT15_Handler(void) {
 		break;
 	case 0x89:	/* SYSTEM - SWITCH TO PROTECTED MODE */
 		{
-			IO_Write(0x20,0x10);IO_Write(0x21,reg_bh);IO_Write(0x21,0);
-			IO_Write(0xA0,0x10);IO_Write(0xA1,reg_bl);IO_Write(0xA1,0);
+			IO_Write(0x20,0x10);IO_Write(0x21,reg_bh);IO_Write(0x21,0);IO_Write(0x21,0xFF);
+			IO_Write(0xA0,0x10);IO_Write(0xA1,reg_bl);IO_Write(0xA1,0);IO_Write(0xA1,0xFF);
 			MEM_A20_Enable(true);
 			PhysPt table=SegPhys(es)+reg_si;
 			CPU_LGDT(mem_readw(table+0x8),mem_readd(table+0x8+0x2) & 0xFFFFFF);
@@ -1520,10 +1752,11 @@ static Bitu INT15_Handler(void) {
 			CPU_SetSegGeneral(ds,0x18);
 			CPU_SetSegGeneral(es,0x20);
 			CPU_SetSegGeneral(ss,0x28);
+			Bitu ret = mem_readw(SegPhys(ss)+reg_sp);
 			reg_sp+=6;			//Clear stack of interrupt frame
 			CPU_SetFlags(0,FMASK_ALL);
 			reg_ax=0;
-			CPU_JMP(false,0x30,reg_cx,0);
+			CPU_JMP(false,0x30,ret,0);
 		}
 		break;
 	case 0x8A:	/* EXTENDED MEMORY SIZE */
@@ -1620,6 +1853,118 @@ static Bitu INT15_Handler(void) {
 		LOG(LOG_BIOS,LOG_NORMAL)("INT15:Function %X called, bios mouse not supported",reg_ah);
 		CALLBACK_SCF(true);
 		break;
+	case 0x53: // APM BIOS
+		switch(reg_al) {
+		case 0x00: // installation check
+			reg_ah = 1;			// APM 1.2
+			reg_al = 2;
+			reg_bx = 0x504d;	// 'PM'
+			reg_cx = 0;			// about no capabilities 
+			// 32-bit interface seems to be needed for standby in win95
+			break;
+		case 0x01: // connect real mode interface
+			if(reg_bx != 0x0) {
+				reg_ah = 0x09;	// unrecognized device ID
+				CALLBACK_SCF(true);			
+				break;
+			}
+			if(!apm_realmode_connected) { // not yet connected
+				CALLBACK_SCF(false);
+				apm_realmode_connected=true;
+			} else {
+				reg_ah = 0x02;	// interface connection already in effect
+				CALLBACK_SCF(true);			
+			}
+			break;
+		case 0x04: // DISCONNECT INTERFACE
+			if(reg_bx != 0x0) {
+				reg_ah = 0x09;	// unrecognized device ID
+				CALLBACK_SCF(true);			
+				break;
+			}
+			if(apm_realmode_connected) {
+				CALLBACK_SCF(false);
+				apm_realmode_connected=false;
+			} else {
+				reg_ah = 0x03;	// interface not connected
+				CALLBACK_SCF(true);			
+			}
+			break;
+		case 0x07:
+			if(reg_bx != 0x1) {
+				reg_ah = 0x09;	// wrong device ID
+				CALLBACK_SCF(true);			
+				break;
+			}
+			if(!apm_realmode_connected) {
+				reg_ah = 0x03;
+				CALLBACK_SCF(true);
+				break;
+			}
+			switch(reg_cx) {
+			case 0x3: // power off
+				throw(0);
+				break;
+			default:
+				reg_ah = 0x0A; // invalid parameter value in CX
+				CALLBACK_SCF(true);
+				break;
+			}
+			break;
+		case 0x08: // ENABLE/DISABLE POWER MANAGEMENT
+			if(reg_bx != 0x0 && reg_bx != 0x1) {
+				reg_ah = 0x09;	// unrecognized device ID
+				CALLBACK_SCF(true);			
+				break;
+			} else if(!apm_realmode_connected) {
+				reg_ah = 0x03;
+				CALLBACK_SCF(true);
+				break;
+			}
+			if(reg_cx==0x0) LOG_MSG("disable APM for device %4x",reg_bx);
+			else if(reg_cx==0x1) LOG_MSG("enable APM for device %4x",reg_bx);
+			else {
+				reg_ah = 0x0A; // invalid parameter value in CX
+				CALLBACK_SCF(true);
+			}
+			break;
+		case 0x0e:
+			if(reg_bx != 0x0) {
+				reg_ah = 0x09;	// unrecognized device ID
+				CALLBACK_SCF(true);			
+				break;
+			} else if(!apm_realmode_connected) {
+				reg_ah = 0x03;	// interface not connected
+				CALLBACK_SCF(true);
+				break;
+			}
+			if(reg_ah < 1) reg_ah = 1;
+			if(reg_al < 2) reg_al = 2;
+			CALLBACK_SCF(false);
+			break;
+		case 0x0f:
+			if(reg_bx != 0x0 && reg_bx != 0x1) {
+				reg_ah = 0x09;	// unrecognized device ID
+				CALLBACK_SCF(true);			
+				break;
+			} else if(!apm_realmode_connected) {
+				reg_ah = 0x03;
+				CALLBACK_SCF(true);
+				break;
+			}
+			if(reg_cx==0x0) LOG_MSG("disengage APM for device %4x",reg_bx);
+			else if(reg_cx==0x1) LOG_MSG("engage APM for device %4x",reg_bx);
+			else {
+				reg_ah = 0x0A; // invalid parameter value in CX
+				CALLBACK_SCF(true);
+			}
+			break;
+		default:
+			LOG(LOG_BIOS,LOG_NORMAL)("unknown APM BIOS call %x",reg_ax);
+			break;
+		}
+		CALLBACK_SCF(false);
+		break;
 	case 0xe8:
 		switch (reg_al) {
 			case 0x01: { /* E801: memory size */
@@ -1690,7 +2035,7 @@ static Bitu INT15_Handler(void) {
 		LOG(LOG_BIOS,LOG_ERROR)("INT15:Unknown call %4X",reg_ax);
 		reg_ah=0x86;
 		CALLBACK_SCF(true);
-		if ((IS_EGAVGA_ARCH) || (machine==MCH_CGA)) {
+		if ((IS_EGAVGA_ARCH) || (machine==MCH_CGA) || (machine==MCH_AMSTRAD)) {
 			/* relict from comparisons, as int15 exits with a retf2 instead of an iret */
 			CALLBACK_SZF(false);
 		}
@@ -1698,9 +2043,11 @@ static Bitu INT15_Handler(void) {
 	return CBRET_NONE;
 }
 
+void restart_program(std::vector<std::string> & parameters);
+
 static Bitu Reboot_Handler(void) {
 	// switch to text mode, notify user (let's hope INT10 still works)
-	const char* const text = "\n\n   Reboot requested, quitting now.";
+	const char* const text = "\n\n   Restart requested by application.";
 	reg_ax = 0;
 	CALLBACK_RunRealInt(0x10);
 	reg_ah = 0xe;
@@ -1712,7 +2059,8 @@ static Bitu Reboot_Handler(void) {
 	LOG_MSG(text);
 	double start = PIC_FullIndex();
 	while((PIC_FullIndex()-start)<3000) CALLBACK_Idle();
-	throw 1;
+	control->startup_params.insert(control->startup_params.begin(),control->cmdline->GetFileName());
+	restart_program(control->startup_params);
 	return CBRET_NONE;
 }
 
@@ -1759,6 +2107,9 @@ public:
 		/* tandy DAC can be requested in tandy_sound.cpp by initializing this field */
 		bool use_tandyDAC=(real_readb(0x40,0xd4)==0xff);
 
+		// Disney workaround
+		Bit16u disney_port = mem_readw(BIOS_ADDRESS_LPT1);
+
 		/* Clear the Bios Data Area (0x400-0x5ff, 0x600- is accounted to DOS) */
 		for (Bit16u i=0;i<0x200;i++) real_writeb(0x40,i,0);
 
@@ -1769,14 +2120,14 @@ public:
 		CALLBACK_Setup(call_irq0,INT8_Handler,CB_IRQ0,Real2Phys(BIOS_DEFAULT_IRQ0_LOCATION),"IRQ 0 Clock");
 		RealSetVec(0x08,BIOS_DEFAULT_IRQ0_LOCATION);
 		// pseudocode for CB_IRQ0:
+		//	sti
 		//	callback INT8_Handler
-		//	push ax,dx,ds
+		//	push ds,ax,dx
 		//	int 0x1c
 		//	cli
-		//	pop ds,dx
 		//	mov al, 0x20
 		//	out 0x20, al
-		//	pop ax
+		//	pop dx,ax,ds
 		//	iret
 
 		mem_writed(BIOS_TIMER,0);			//Calculate the correct time
@@ -1791,7 +2142,7 @@ public:
 		if (IS_TANDY_ARCH) {
 			/* reduce reported memory size for the Tandy (32k graphics memory
 			   at the end of the conventional 640k) */
-			if (machine==MCH_TANDY) mem_writew(BIOS_MEMORY_SIZE,608);
+			if (machine==MCH_TANDY) mem_writew(BIOS_MEMORY_SIZE,624);
 			else mem_writew(BIOS_MEMORY_SIZE,640);
 			mem_writew(BIOS_TRUE_MEMORY_SIZE,640);
 		} else mem_writew(BIOS_MEMORY_SIZE,640);
@@ -1831,14 +2182,29 @@ public:
 		callback[9].Set_RealVec(0x71);
 
 		/* Reboot */
+		// This handler is an exit for more than only reboots, since we
+		// don't handle these cases
 		callback[10].Install(&Reboot_Handler,CB_IRET,"reboot");
+		
+		// INT 18h: Enter BASIC
+		// Non-IBM BIOS would display "NO ROM BASIC" here
 		callback[10].Set_RealVec(0x18);
 		RealPt rptr = callback[10].Get_RealPointer();
+
+		// INT 19h: Boot function
+		// This is not a complete reboot as it happens after the POST
+		// We don't handle it, so use the reboot function as exit.
 		RealSetVec(0x19,rptr);
-		// set system BIOS entry point too
-		phys_writeb(0xFFFF0,0xEA);	// FARJMP
-		phys_writew(0xFFFF1,RealOff(rptr));	// offset
-		phys_writew(0xFFFF3,RealSeg(rptr));	// segment
+
+		// The farjump at the processor reset entry point (jumps to POST routine)
+		phys_writeb(0xFFFF0,0xEA);		// FARJMP
+		phys_writew(0xFFFF1,RealOff(BIOS_DEFAULT_RESET_LOCATION));	// offset
+		phys_writew(0xFFFF3,RealSeg(BIOS_DEFAULT_RESET_LOCATION));	// segment
+
+		// Compatible POST routine location: jump to the callback
+		phys_writeb(Real2Phys(BIOS_DEFAULT_RESET_LOCATION)+0,0xEA);				// FARJMP
+		phys_writew(Real2Phys(BIOS_DEFAULT_RESET_LOCATION)+1,RealOff(rptr));	// offset
+		phys_writew(Real2Phys(BIOS_DEFAULT_RESET_LOCATION)+3,RealSeg(rptr));	// segment
 
 		/* Irq 2 */
 		Bitu call_irq2=CALLBACK_Allocate();	
@@ -1868,6 +2234,13 @@ public:
 		for(Bitu i = 0; i < strlen(b_date); i++) phys_writeb(0xffff5+i,b_date[i]);
 		phys_writeb(0xfffff,0x55); // signature
 
+		// program system timer
+		// timer 2
+		IO_Write(0x43,0xb6);
+		IO_Write(0x42,1320&0xff);
+		IO_Write(0x42,1320>>8);
+
+		// tandy DAC setup
 		tandy_sb.port=0;
 		tandy_dac.port=0;
 		if (use_tandyDAC) {
@@ -1915,60 +2288,19 @@ public:
 		
 		// port timeouts
 		// always 1 second even if the port does not exist
-		mem_writeb(BIOS_LPT1_TIMEOUT,1);
-		mem_writeb(BIOS_LPT2_TIMEOUT,1);
-		mem_writeb(BIOS_LPT3_TIMEOUT,1);
+		BIOS_SetLPTPort(0, disney_port);
+		for(Bitu i = 1; i < 3; i++) BIOS_SetLPTPort(i, 0);
 		mem_writeb(BIOS_COM1_TIMEOUT,1);
 		mem_writeb(BIOS_COM2_TIMEOUT,1);
 		mem_writeb(BIOS_COM3_TIMEOUT,1);
 		mem_writeb(BIOS_COM4_TIMEOUT,1);
 		
-		/* detect parallel ports */
-		Bitu ppindex=0; // number of lpt ports
-		if ((IO_Read(0x378)!=0xff)|(IO_Read(0x379)!=0xff)) {
-			// this is our LPT1
-			mem_writew(BIOS_ADDRESS_LPT1,0x378);
-			ppindex++;
-			if((IO_Read(0x278)!=0xff)|(IO_Read(0x279)!=0xff)) {
-				// this is our LPT2
-				mem_writew(BIOS_ADDRESS_LPT2,0x278);
-				ppindex++;
-				if((IO_Read(0x3bc)!=0xff)|(IO_Read(0x3be)!=0xff)) {
-					// this is our LPT3
-					mem_writew(BIOS_ADDRESS_LPT3,0x3bc);
-					ppindex++;
-				}
-			} else if((IO_Read(0x3bc)!=0xff)|(IO_Read(0x3be)!=0xff)) {
-				// this is our LPT2
-				mem_writew(BIOS_ADDRESS_LPT2,0x3bc);
-				ppindex++;
-			}
-		} else if((IO_Read(0x3bc)!=0xff)|(IO_Read(0x3be)!=0xff)) {
-			// this is our LPT1
-			mem_writew(BIOS_ADDRESS_LPT1,0x3bc);
-			ppindex++;
-			if((IO_Read(0x278)!=0xff)|(IO_Read(0x279)!=0xff)) {
-				// this is our LPT2
-				mem_writew(BIOS_ADDRESS_LPT2,0x278);
-				ppindex++;
-			}
-		} else if((IO_Read(0x278)!=0xff)|(IO_Read(0x279)!=0xff)) {
-			// this is our LPT1
-			mem_writew(BIOS_ADDRESS_LPT1,0x278);
-			ppindex++;
-		}
-
 		/* Setup equipment list */
 		// look http://www.bioscentral.com/misc/bda.htm
 		
 		//Bit16u config=0x4400;	//1 Floppy, 2 serial and 1 parallel 
 		Bit16u config = 0x0;
 		
-		// set number of parallel ports
-		// if(ppindex == 0) config |= 0x8000; // looks like 0 ports are not specified
-		//else if(ppindex == 1) config |= 0x0000;
-		if(ppindex == 2) config |= 0x4000;
-		else config |= 0xc000;	// 3 ports
 #if (C_FPU)
 		//FPU
 		config|=0x2;
@@ -1981,6 +2313,7 @@ public:
 		case EGAVGA_ARCH_CASE:
 		case MCH_CGA:
 		case TANDY_ARCH_CASE:
+		case MCH_AMSTRAD:
 			//Startup 80x25 color
 			config|=0x20;
 			break;
@@ -2002,6 +2335,7 @@ public:
 		size_extended=IO_Read(0x71);
 		IO_Write(0x70,0x31);
 		size_extended|=(IO_Read(0x71) << 8);
+		BIOS_HostTimeSync();
 
 		// ISA Plug & Play I/O ports
 		if (1) {
@@ -2021,17 +2355,17 @@ public:
 			unsigned char c,tmp[256];
 			Bitu base = 0xfe100; /* take the unused space just after the fake BIOS signature */
 
-			fprintf(stderr,"ISA Plug & Play BIOS enabled\n");
+			LOG_MSG("ISA Plug & Play BIOS enabled");
 
 			Bitu call_pnp_r = CALLBACK_Allocate();
 			Bitu call_pnp_rp = PNPentry_real = CALLBACK_RealPointer(call_pnp_r);
 			CALLBACK_Setup(call_pnp_r,ISAPNP_Handler_RM,CB_RETF,"ISA Plug & Play entry point (real)");
-			fprintf(stderr,"real entry pt=%08lx\n",PNPentry_real);
+			//fprintf(stderr,"real entry pt=%08lx\n",PNPentry_real);
 
 			Bitu call_pnp_p = CALLBACK_Allocate();
 			Bitu call_pnp_pp = PNPentry_prot = CALLBACK_RealPointer(call_pnp_p);
 			CALLBACK_Setup(call_pnp_p,ISAPNP_Handler_PM,CB_RETF,"ISA Plug & Play entry point (protected)");
-			fprintf(stderr,"prot entry pt=%08lx\n",PNPentry_prot);
+			//fprintf(stderr,"prot entry pt=%08lx\n",PNPentry_prot);
 
 			phys_writeb(base+0,'$');
 			phys_writeb(base+1,'P');
@@ -2241,6 +2575,34 @@ void BIOS_SetComPorts(Bit16u baseaddr[]) {
 	CMOS_SetRegister(0x14,(Bit8u)(equipmentword&0xff)); //Should be updated on changes
 }
 
+void BIOS_SetLPTPort(Bitu port, Bit16u baseaddr) {
+	switch(port) {
+	case 0:
+		mem_writew(BIOS_ADDRESS_LPT1,baseaddr);
+		mem_writeb(BIOS_LPT1_TIMEOUT, 10);
+		break;
+	case 1:
+		mem_writew(BIOS_ADDRESS_LPT2,baseaddr);
+		mem_writeb(BIOS_LPT2_TIMEOUT, 10);
+		break;
+	case 2:
+		mem_writew(BIOS_ADDRESS_LPT3,baseaddr);
+		mem_writeb(BIOS_LPT3_TIMEOUT, 10);
+		break;
+	}
+
+	// set equipment word: count ports
+	Bit16u portcount=0;
+	if(mem_readw(BIOS_ADDRESS_LPT1) != 0) portcount++;
+	if(mem_readw(BIOS_ADDRESS_LPT2) != 0) portcount++;
+	if(mem_readw(BIOS_ADDRESS_LPT3) != 0) portcount++;
+	
+	Bit16u equipmentword = mem_readw(BIOS_CONFIGURATION);
+	equipmentword &= (~0xC000);
+	equipmentword |= (portcount << 14);
+	mem_writew(BIOS_CONFIGURATION,equipmentword);
+}
+
 void BIOS_PnP_ComPortRegister(Bitu port,Bitu irq) {
 	/* add to PnP BIOS */
 	if (ISAPNPBIOS) {
@@ -2285,11 +2647,11 @@ void BIOS_PnP_ComPortRegister(Bitu port,Bitu irq) {
 		tmp[i+1] = 0x00;
 		i += 2;
 
-		if (!ISAPNP_RegisterSysDev(tmp,i))
-			fprintf(stderr,"ISAPNP register failed\n");
+		if (!ISAPNP_RegisterSysDev(tmp,i)) {
+			//fprintf(stderr,"ISAPNP register failed\n");
+		}
 	}
 }
-
 
 static BIOS* test;
 

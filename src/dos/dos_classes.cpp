@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: dos_classes.cpp,v 1.58 2009-07-09 20:06:57 c2woody Exp $ */
 
 #include <string.h>
 #include <stdlib.h>
@@ -301,6 +300,9 @@ void DOS_PSP::SetFCB2(RealPt src) {
 }
 
 bool DOS_PSP::SetNumFiles(Bit16u fileNum) {
+	//20 minimum. clipper program.
+	if (fileNum < 20) fileNum = 20;
+	 
 	if (fileNum>20) {
 		// Allocate needed paragraphs
 		fileNum+=2;	// Add a few more files for safety
@@ -490,6 +492,10 @@ void DOS_FCB::GetAttr(Bit8u& attr) {
 
 void DOS_FCB::SetAttr(Bit8u attr) {
 	if(extended) mem_writeb(pt - 1,attr);
+}
+
+void DOS_FCB::SetResultAttr(Bit8u attr) {
+	mem_writeb(pt + 12,attr);
 }
 
 void DOS_SDA::Init() {

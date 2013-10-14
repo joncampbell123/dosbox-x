@@ -1,4 +1,4 @@
-#define VERSION "0.74"
+#define VERSION "SVN-Daum"
 
 /* Define to 1 to enable internal debugger, requires libcurses */
 #define C_DEBUG 0
@@ -10,10 +10,10 @@
 #define C_OPENGL 1
 
 /* Define to 1 to enable internal modem support, requires SDL_net */
-#define C_MODEM 0
+#define C_MODEM 1
 
 /* Define to 1 to enable IPX networking support, requires SDL_net */
-#define C_IPX 0
+#define C_IPX 1
 
 /* Enable some heavy debugging options */
 #define C_HEAVY_DEBUG 0
@@ -29,7 +29,7 @@
 #define C_DYNREC 0
 
 /* Enable memory function inlining in */
-#define C_CORE_INLINE 0
+#define C_CORE_INLINE 1
 
 /* Enable the FPU module, still only for beta testing */
 #define C_FPU 1
@@ -49,8 +49,26 @@
 /* Define to 1 if you have the <ddraw.h> header file. */
 #define HAVE_DDRAW_H 1
 
+/* Define to 1 if you have the <d3d9.h> header file. */
+#define HAVE_D3D9_H 1
+
+/* Define to 1 to use Direct3D shaders, requires d3d9.h and libd3dx9 */
+#define C_D3DSHADERS 1
+
 /* Define to 1 if you want serial passthrough support (Win32 only). */
 #define C_DIRECTSERIAL 1
+
+/* My defines */
+#define C_LIBPNG 1
+#define C_PRINTER 1
+#define C_NE2000 1
+#define C_DIRECTLPT 1
+#define C_HAVE_PHYSFS 1
+#define C_FLUIDSYNTH 1
+#define C_SDL_SOUND 1
+#define __WIN32__ 1
+#define WIN32 1
+#define __SSE__ 1
 
 #define GCC_ATTRIBUTE(x) /* attribute not supported */
 #define GCC_UNLIKELY(x) (x)

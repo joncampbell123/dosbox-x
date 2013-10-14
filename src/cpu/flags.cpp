@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@
 #include "cpu.h"
 #include "lazyflags.h"
 #include "pic.h"
+#include "../save_state.h"
 
 LazyFlags lflags;
 
@@ -1186,3 +1187,41 @@ void DestroyConditionFlags(void) {
 }
 
 #endif
+
+
+
+// save state support
+void POD_Save_CPU_Flags( std::ostream& stream )
+{
+	// - pure data
+	WRITE_POD( &lflags, lflags );
+}
+
+
+void POD_Load_CPU_Flags( std::istream& stream )
+{
+	// - pure data
+	READ_POD( &lflags, lflags );
+}
+
+
+/*
+ykhwong svn-daum 2012-02-20
+
+
+static globals:
+
+
+struct LazyFlags lflags;
+	// - pure data
+	GenReg32 var1,var2,res;
+		union GenReg32 {
+			Bit32u dword[1];
+			Bit16u word[2];
+			Bit8u byte[4];
+		};
+
+	Bitu type;
+	Bitu prev_type;
+	Bitu oldcf;
+*/

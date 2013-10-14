@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: video.h,v 1.26 2009-05-27 09:15:41 qbix79 Exp $ */
 
 #ifndef DOSBOX_VIDEO_H
 #define DOSBOX_VIDEO_H
@@ -60,8 +59,10 @@ void GFX_SetPalette(Bitu start,Bitu count,GFX_PalEntry * entries);
 Bitu GFX_GetBestMode(Bitu flags);
 Bitu GFX_GetRGB(Bit8u red,Bit8u green,Bit8u blue);
 Bitu GFX_SetSize(Bitu width,Bitu height,Bitu flags,double scalex,double scaley,GFX_CallBack_t cb);
+void GFX_TearDown(void);
 
 void GFX_ResetScreen(void);
+void GFX_RestoreMode(void);
 void GFX_Start(void);
 void GFX_Stop(void);
 void GFX_SwitchFullScreen(void);
@@ -69,6 +70,13 @@ bool GFX_StartUpdate(Bit8u * & pixels,Bitu & pitch);
 void GFX_EndUpdate( const Bit16u *changedLines );
 void GFX_GetSize(int &width, int &height, bool &fullscreen);
 void GFX_LosingFocus(void);
+
+bool GFX_IsFullscreen(void);
+void GFX_SwitchLazyFullscreen(bool lazy);
+bool GFX_LazyFullscreenRequested(void);
+void GFX_SwitchFullscreenNoReset(void);
+void GFX_RestoreMode(void);
+void GFX_UpdateSDLCaptureState(void);
 
 #if defined (WIN32)
 bool GFX_SDLUsingWinDIB(void);

@@ -1,3 +1,21 @@
+/*
+ *  Copyright (C) 2002-2013  The DOSBox Team
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
 {
 	EAPoint si_base,di_base;
 	Bitu	si_index,di_index;
@@ -67,6 +85,13 @@
 		add_index<<=1;
 		for (;count>0;count--) {
 			SaveMw(di_base+di_index,IO_ReadW(reg_dx));
+			di_index=(di_index+add_index) & add_mask;
+		}
+		break;
+	case R_INSD:
+		add_index<<=2;
+		for (;count>0;count--) {
+			SaveMd(di_base+di_index,IO_ReadD(reg_dx));
 			di_index=(di_index+add_index) & add_mask;
 		}
 		break;

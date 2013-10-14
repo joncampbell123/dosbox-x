@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: int10_misc.cpp,v 1.21 2009-05-27 09:15:42 qbix79 Exp $ */
 
 #include "dosbox.h"
 #include "mem.h"
@@ -73,6 +72,44 @@ struct Dynamic_Functionality {
 } GCC_ATTRIBUTE(packed);
 #pragma pack()
 
+void INT10_DisplayCombinationCode(Bit16u * dcc,bool set) {
+	Bit8u index=0xff;
+	Bit16u dccentry=0xffff;
+	// walk the tables...
+	RealPt vsavept=real_readd(BIOSMEM_SEG,BIOSMEM_VS_POINTER);
+	RealPt svstable=real_readd(RealSeg(vsavept),RealOff(vsavept)+0x10);
+	if (svstable) {
+		RealPt dcctable=real_readd(RealSeg(svstable),RealOff(svstable)+0x02);
+		Bit8u entries=real_readb(RealSeg(dcctable),RealOff(dcctable)+0x00);
+		if (set) {
+			if (entries) {
+				Bit16u swap=(*dcc<<8)|(*dcc>>8);
+				// search for the index in the dcc table
+				for (Bit8u entry=0; entry<entries; entry++) {
+					dccentry=real_readw(RealSeg(dcctable),RealOff(dcctable)+0x04+entry*2);
+					if ((dccentry==*dcc) || (dccentry==swap)) {
+						index=entry;
+						break;
+					}
+				}
+			}
+		} else {
+			index=real_readb(BIOSMEM_SEG,BIOSMEM_DCC_INDEX);
+			// check if index within range
+			if (index<entries) {
+				dccentry=real_readw(RealSeg(dcctable),RealOff(dcctable)+0x04+index*2);
+				if ((dccentry&0xff)==0) dccentry>>=8;
+				else if (dccentry>>8) {
+					Bit16u cfg_mono=((real_readw(BIOSMEM_SEG,BIOSMEM_INITIAL_MODE)&0x30)==0x30)?1:0;
+					if (cfg_mono^(dccentry&1)) dccentry=(dccentry<<8)|(dccentry>>8);
+				}
+			}
+		}
+	}
+	if (set) real_writeb(BIOSMEM_SEG,BIOSMEM_DCC_INDEX,index);
+	else *dcc=dccentry;
+}
+
 void INT10_GetFuncStateInformation(PhysPt save) {
 	/* set static state pointer */
 	mem_writed(save,int10.rom.static_state);
@@ -91,22 +128,9 @@ void INT10_GetFuncStateInformation(PhysPt save) {
 	/* Zero out rest of block */
 	for (i=0x25;i<0x40;i++) mem_writeb(save+i,0);
 	/* DCC */
-//	mem_writeb(save+0x25,real_readb(BIOSMEM_SEG,BIOSMEM_DCC_INDEX));
-	Bit8u dccode = 0x00;
-	RealPt vsavept=real_readd(BIOSMEM_SEG,BIOSMEM_VS_POINTER);
-	RealPt svstable=real_readd(RealSeg(vsavept),RealOff(vsavept)+0x10);
-	if (svstable) {
-		RealPt dcctable=real_readd(RealSeg(svstable),RealOff(svstable)+0x02);
-		Bit8u entries=real_readb(RealSeg(dcctable),RealOff(dcctable)+0x00);
-		Bit8u idx=real_readb(BIOSMEM_SEG,BIOSMEM_DCC_INDEX);
-		// check if index within range
-		if (idx<entries) {
-			Bit16u dccentry=real_readw(RealSeg(dcctable),RealOff(dcctable)+0x04+idx*2);
-			if ((dccentry&0xff)==0) dccode=(Bit8u)((dccentry>>8)&0xff);
-			else dccode=(Bit8u)(dccentry&0xff);
-		}
-	}
-	mem_writeb(save+0x25,dccode);
+	Bit16u dcc=0;
+	INT10_DisplayCombinationCode(&dcc,false);
+	mem_writew(save+0x25,dcc);
 
 	Bit16u col_count=0;
 	switch (CurMode->type) {

@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2010  The DOSBox Team
+ *  Copyright (C) 2002-2013  The DOSBox Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-/* $Id: dos_misc.cpp,v 1.24 2009-09-25 20:51:21 qbix79 Exp $ */
 
 #include "dosbox.h"
 #include "callback.h"
@@ -59,6 +58,10 @@ static Bitu INT2A_Handler(void) {
 
 static bool DOS_MultiplexFunctions(void) {
 	switch (reg_ax) {
+	/* ert, 20100711: Locking extensions */
+	case 0x1000:	/* SHARE.EXE installation check */
+		reg_ax=0xffff; /* Pretend that share.exe is installed.. Of course it's a bloody LIE! */
+		break;
 	case 0x1216:	/* GET ADDRESS OF SYSTEM FILE TABLE ENTRY */
 		// reg_bx is a system file table entry, should coincide with
 		// the file handle so just use that
