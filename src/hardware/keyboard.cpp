@@ -138,8 +138,6 @@ void KEYBOARD_AUX_Event(float x,float y,Bitu buttons) {
 	keyb.ps2mouse.r = (buttons & 2)>0;
 	keyb.ps2mouse.m = (buttons & 4)>0;
 
-	fprintf(stderr,"AUX event\n");
-
 	if (keyb.ps2mouse.reporting && keyb.ps2mouse.mode == MM_STREAM) {
 		if ((keyb.used+4) < KEYBUFSIZE) {
 			int x,y;
