@@ -24,7 +24,6 @@
 #include "inout.h"
 #include "int10.h"
 #include "setup.h"
-#include "../save_state.h"
 
 Int10Data int10;
 static Bitu call_10;
@@ -731,26 +730,3 @@ void INT10_Init(Section* /*sec*/) {
 	INT10_SetVideoMode(0x3);
 }
 
-
-
-
-//save state support
-namespace
-{
-class SerializeInt10 : public SerializeGlobalPOD
-{
-public:
-    SerializeInt10() : SerializeGlobalPOD("Int10")
-    {
-        registerPOD(int10);
-        //registerPOD(CurMode);
-        //registerPOD(call_10);
-        //registerPOD(warned_ff);
-    }
-
-	 //   virtual void setBytes(std::istream& stream)
-    //{
-      //  SerializeGlobalPOD::setBytes(stream);
-		//}
-} dummy;
-}

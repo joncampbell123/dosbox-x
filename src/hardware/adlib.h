@@ -104,9 +104,6 @@ public:
 	//Initialize at a specific sample rate and mode
 	virtual void Init( Bitu rate ) = 0;
 
-	virtual void SaveState( std::ostream& stream ) {}
-	virtual void LoadState( std::istream& stream ) {}
-
 	virtual ~Handler() {
 	}
 };
@@ -145,9 +142,6 @@ public:
 	void PortWrite( Bitu port, Bitu val, Bitu iolen );
 	Bitu PortRead( Bitu port, Bitu iolen );
 	void Init( Mode m );
-
-	virtual void SaveState( std::ostream& stream );
-	virtual void LoadState( std::istream& stream );
 
 	Module( Section* configuration); 
 	~Module();

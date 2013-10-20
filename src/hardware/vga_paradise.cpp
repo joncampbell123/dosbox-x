@@ -22,7 +22,6 @@
 #include "vga.h"
 #include "inout.h"
 #include "mem.h"
-#include "../save_state.h"
 
 typedef struct {
 	Bitu PR0A;
@@ -243,48 +242,3 @@ void SVGA_Setup_ParadisePVGA1A(void) {
 	IO_Write(0x3cf, 0x05); // Enable!
 }
 
-
-
-// save state support
-
-void POD_Save_VGA_Paradise( std::ostream& stream )
-{
-	// static globals
-
-
-	// - pure struct data
-	WRITE_POD( &pvga1a, pvga1a );
-}
-
-
-void POD_Load_VGA_Paradise( std::istream& stream )
-{
-	// static globals
-
-
-	// - pure struct data
-	READ_POD( &pvga1a, pvga1a );
-}
-
-
-/*
-ykhwong svn-daum 2012-02-20
-
-static globals:
-
-static SVGA_PVGA1A_DATA pvga1a;
-
-// - pure data
-	Bitu PR0A;
-	Bitu PR0B;
-	Bitu PR1;
-	Bitu PR2;
-	Bitu PR3;
-	Bitu PR4;
-	Bitu PR5;
-
-	inline bool locked() { return (PR5&7)!=5; }
-
-	Bitu clockFreq[4];
-	Bitu biosMode;
-*/

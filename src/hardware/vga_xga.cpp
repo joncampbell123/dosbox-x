@@ -25,7 +25,6 @@
 #include <stdio.h>
 #include "callback.h"
 #include "cpu.h"		// for 0x3da delay
-#include "../save_state.h"
 
 #define XGA_SCREEN_WIDTH	vga.s3.xga_screen_width
 #define XGA_COLOR_MODE		vga.s3.xga_color_mode
@@ -1320,69 +1319,3 @@ void VGA_SetupXGA(void) {
 	IO_RegisterReadHandler(0xe2ea,&XGA_Read,IO_MB | IO_MW | IO_MD);
 }
 
-
-
-// save state support
-
-void POD_Save_VGA_XGA( std::ostream& stream )
-{
-	// static globals
-
-
-	// - pure struct data
-	WRITE_POD( &xga, xga );
-}
-
-
-void POD_Load_VGA_XGA( std::istream& stream )
-{
-	// static globals
-
-
-	// - pure struct data
-	READ_POD( &xga, xga );
-}
-
-
-/*
-ykhwong svn-daum 2012-02-20
-
-static globals:
-
-
-struct XGAStatus xga;
-
-
-// - pure struct data
-- struct scissorreg scissors
-  - Bit16u x1, y1, x2, y2;
-
-// - pure data
-- Bit32u readmask;
-- Bit32u writemask;
-- Bit32u forecolor;
-- Bit32u backcolor;
-- Bitu curcommand;
-- Bit16u foremix;
-- Bit16u backmix;
-- Bit16u curx, cury;
-- Bit16u destx, desty;
-- Bit16u ErrTerm;
-- Bit16u MIPcount;
-- Bit16u MAPcount;
-- Bit16u pix_cntl;
-- Bit16u control1;
-- Bit16u control2;
-- Bit16u read_sel;
-
-// - pure struct data
-- struct XGA_WaitCmd {
-	- bool newline;
-	- bool wait;
-	- Bit16u cmd;
-	- Bit16u curx, cury;
-	- Bit16u x1, y1, x2, y2, sizex, sizey;
-	- Bit32u data;
-	- Bitu datasize;
-	- Bitu buswidth;
-*/
