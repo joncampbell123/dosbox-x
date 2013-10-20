@@ -285,30 +285,6 @@ else
   fi
 fi
 
-AH_TEMPLATE(C_DYNREC,[Define to 1 to use recompiling cpu core. Can not be used together with the dynamic-x86 core])
-AC_ARG_ENABLE(dynrec,AC_HELP_STRING([--disable-dynrec],[Disable recompiling cpu core]),,enable_dynrec=yes)
-AC_MSG_CHECKING(whether recompiling cpu core will be enabled) 
-if test x$enable_dynrec = xno -o x$enable_dynamic_core = xno; then 
-   AC_MSG_RESULT(no)
-else
-dnl x86 only enable it if dynamic-x86 is disabled.
-  if test x$c_targetcpu = xx86 ; then
-    if test x$enable_dynamic_x86 = xno ; then
-        AC_DEFINE(C_DYNREC,1)
-        AC_MSG_RESULT(yes)
-    else
-        AC_MSG_RESULT([no, using dynamic-x86])
-    fi
-  else 
-    if test x$c_targetcpu = xx86_64 ; then
-        AC_DEFINE(C_DYNREC,1)
-        AC_MSG_RESULT(yes)
-    else      
-      AC_MSG_RESULT(no)
-    fi
-  fi
-fi
-
 AH_TEMPLATE(C_FPU,[Define to 1 to enable floating point emulation])
 AC_ARG_ENABLE(fpu,AC_HELP_STRING([--disable-fpu],[Disable fpu support]),,enable_fpu=yes)
 AC_MSG_CHECKING(whether fpu emulation will be enabled) 
@@ -528,7 +504,6 @@ src/cpu/Makefile
 src/cpu/core_full/Makefile
 src/cpu/core_normal/Makefile
 src/cpu/core_dyn_x86/Makefile
-src/cpu/core_dynrec/Makefile
 src/debug/Makefile
 src/dos/Makefile
 src/fpu/Makefile

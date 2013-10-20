@@ -707,7 +707,7 @@ void DOSBOX_Init(void) {
 
 	secprop=control->AddSection_prop("cpu",&CPU_Init,true);//done
 	const char* cores[] = { "auto",
-#if (C_DYNAMIC_X86) || (C_DYNREC)
+#if (C_DYNAMIC_X86)
 		"dynamic",
 #endif
 		"normal", "full", "simple", 0 };

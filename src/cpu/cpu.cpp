@@ -81,10 +81,6 @@ void CPU_Core_Dyn_X86_Init(void);
 void CPU_Core_Dyn_X86_Cache_Init(bool enable_cache);
 void CPU_Core_Dyn_X86_Cache_Close(void);
 void CPU_Core_Dyn_X86_SetFPUMode(bool dh_fpu);
-#elif (C_DYNREC)
-void CPU_Core_Dynrec_Init(void);
-void CPU_Core_Dynrec_Cache_Init(bool enable_cache);
-void CPU_Core_Dynrec_Cache_Close(void);
 #endif
 
 /* In debug mode exceptions are tested and dosbox exits when 
@@ -1602,11 +1598,6 @@ void CPU_SET_CRX(Bitu cr,Bitu value) {
 					cpudecoder=&CPU_Core_Dyn_X86_Run;
 					strcpy(core_mode, "dynamic");
 				}
-#elif (C_DYNREC)
-				if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CORE) {
-					CPU_Core_Dynrec_Cache_Init(true);
-					cpudecoder=&CPU_Core_Dynrec_Run;
-				}
 #endif
 				CPU_AutoDetermineMode<<=CPU_AUTODETERMINE_SHIFT;
 			} else {
@@ -2231,7 +2222,7 @@ static void CPU_ToggleNormalCore(bool pressed) {
     }
 }
 
-#if ((C_DYNAMIC_X86) || (C_DYNREC))
+#if (C_DYNAMIC_X86)
 static void CPU_ToggleDynamicCore(bool pressed) {
     if (!pressed)
 	return;
@@ -2335,15 +2326,13 @@ public:
 		CPU_Core_Full_Init();
 #if (C_DYNAMIC_X86)
 		CPU_Core_Dyn_X86_Init();
-#elif (C_DYNREC)
-		CPU_Core_Dynrec_Init();
 #endif
 		MAPPER_AddHandler(CPU_CycleDecrease,MK_f11,MMOD1,"cycledown","Dec Cycles");
 		MAPPER_AddHandler(CPU_CycleIncrease,MK_f12,MMOD1,"cycleup"  ,"Inc Cycles");
 		MAPPER_AddHandler(CPU_ToggleAutoCycles,MK_equals,MMOD1,"cycauto","Tog. Cycles Auto");
 		MAPPER_AddHandler(CPU_ToggleNormalCore,MK_1,MMOD1,"normal"  ,"Tog. Normal Core");
 		MAPPER_AddHandler(CPU_ToggleFullCore,MK_2,MMOD1,"full","Tog. Full Core");
-#if ((C_DYNAMIC_X86) || (C_DYNREC))
+#if (C_DYNAMIC_X86)
 		MAPPER_AddHandler(CPU_ToggleDynamicCore,MK_3,MMOD1,"dynamic","Tog. Dynamic Core");
 #endif
 		MAPPER_AddHandler(CPU_ToggleSimpleCore,MK_4,MMOD1,"simple","Tog. Simple Core");
@@ -2457,13 +2446,7 @@ public:
 		} else if (core == "dynamic_nodhfpu") {
 			cpudecoder=&CPU_Core_Dyn_X86_Run;
 			CPU_Core_Dyn_X86_SetFPUMode(false);
-#elif (C_DYNREC)
-			CPU_AutoDetermineMode|=CPU_AUTODETERMINE_CORE;
-		}
-		else if (core == "dynamic") {
-			cpudecoder=&CPU_Core_Dynrec_Run;
 #else
-
 #endif
 		} else {
 			strcpy(core_mode,"normal");
@@ -2473,8 +2456,6 @@ public:
 
 #if (C_DYNAMIC_X86)
 		CPU_Core_Dyn_X86_Cache_Init((core == "dynamic") || (core == "dynamic_nodhfpu"));
-#elif (C_DYNREC)
-		CPU_Core_Dynrec_Cache_Init( core == "dynamic" );
 #endif
 
 		CPU_ArchitectureType = CPU_ARCHTYPE_MIXED;
@@ -2535,8 +2516,6 @@ static CPU * test;
 void CPU_ShutDown(Section* sec) {
 #if (C_DYNAMIC_X86)
 	CPU_Core_Dyn_X86_Cache_Close();
-#elif (C_DYNREC)
-	CPU_Core_Dynrec_Cache_Close();
 #endif
 	delete test;
 }
@@ -2622,15 +2601,9 @@ Bit16u CPU_FindDecoderType( CPU_Decoder *decoder )
 	else if( cpudecoder == &CPU_Core_Simple_Run ) decoder_idx = 2;
 	else if( cpudecoder == &CPU_Core_Full_Run ) decoder_idx = 3;
 	else if( cpudecoder == &CPU_Core_Dyn_X86_Run ) decoder_idx = 4;
-#if (C_DYNREC)
-	else if( cpudecoder == &CPU_Core_Dynrec_Run ) decoder_idx = 5;
-#endif
 
 	else if( cpudecoder == &CPU_Core_Normal_Trap_Run ) decoder_idx = 100;
 	else if( cpudecoder == &CPU_Core_Dyn_X86_Trap_Run ) decoder_idx = 101;
-#if(C_DYNREC)
-	else if( cpudecoder == &CPU_Core_Dynrec_Trap_Run ) decoder_idx = 102;
-#endif
 
 	else if( cpudecoder == &HLT_Decode ) decoder_idx = 200;
 
@@ -2651,15 +2624,9 @@ CPU_Decoder *CPU_IndexDecoderType( Bit16u decoder_idx )
 		case 2: cpudecoder = &CPU_Core_Simple_Run; break;
 		case 3: cpudecoder = &CPU_Core_Full_Run; break;
 		case 4: cpudecoder = &CPU_Core_Dyn_X86_Run; break;
-#if (C_DYNREC)
-		case 5: cpudecoder = &CPU_Core_Dynrec_Run; break;
-#endif
 
 		case 100: cpudecoder = &CPU_Core_Normal_Trap_Run; break;
 		case 101: cpudecoder = &CPU_Core_Dyn_X86_Trap_Run; break;
-#if (C_DYNREC)
-		case 102: cpudecoder = &CPU_Core_Dynrec_Trap_Run; break;
-#endif
 
 		case 200: cpudecoder = &HLT_Decode; break;
 	}
