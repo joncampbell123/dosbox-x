@@ -58,11 +58,6 @@ public:
 			emulation_type=0;
 		}
 
-		Section_prop * sec=static_cast<Section_prop *>(control->GetSection("glide"));
-		if(strcmp(sec->Get_string("glide"),"emu")) emulation_type=0;
-		if (emulation_type<=0) return;
-
-
 		Bits card_type = 1;
 		bool max_voodoomem = true;
 
