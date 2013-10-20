@@ -837,92 +837,6 @@ void ToggleMenu(bool pressed) {
 	}
 }
 
-extern void SaveGameState_Run(void);
-extern void SetGameState_Run(int value);
-extern void LoadGameState_Run(void);
-
-void MENU_SaveState(int value) {
-	SetGameState_Run(value-1);
-	SaveGameState_Run();
-}
-
-void MENU_LoadState(int value) {
-	SetGameState_Run(value-1);
-	LoadGameState_Run();
-}
-
-void MENU_RemoveState(std::string value) {
-	std::string save_dir;
-	bool Get_Custom_SaveDir(std::string& savedir);
-	if (Get_Custom_SaveDir(save_dir)) {
-		save_dir += CROSS_FILESPLIT;
-	}
-	else {
-		// check if save directory exists in current directory
-		extern std::string capturedir;
-		const size_t last_slash_idx = capturedir.find_last_of("\\/");
-		if (std::string::npos != last_slash_idx) {
-			save_dir = capturedir.substr(0, last_slash_idx);
-		}
-		else {
-			save_dir = ".";
-		}
-		save_dir += CROSS_FILESPLIT;
-		save_dir += "save";
-		save_dir += CROSS_FILESPLIT;
-	}
-
-	save_dir += value+".sav";
-	remove(save_dir.c_str());
-}
-
-void MENU_RemoveState_All() {
-	std::string save_dir;
-	bool Get_Custom_SaveDir(std::string& savedir);
-	if (Get_Custom_SaveDir(save_dir)) {
-		save_dir += CROSS_FILESPLIT;
-	}
-	else {
-		// check if save directory exists in current directory
-		extern std::string capturedir;
-		//std::string save_dir;
-		const size_t last_slash_idx = capturedir.find_last_of("\\/");
-		if (std::string::npos != last_slash_idx) {
-			save_dir = capturedir.substr(0, last_slash_idx);
-		}
-		else {
-			save_dir = ".";
-		}
-		save_dir += CROSS_FILESPLIT;
-		save_dir += "save";
-		save_dir += CROSS_FILESPLIT;
-	}
-	std::string save_dir2;
-	for (int i=1; i<=10; i++) {
-		save_dir2 = save_dir + static_cast<std::ostringstream*>( &(std::ostringstream() << i) )->str() + ".sav";
-		remove(save_dir2.c_str());
-	}
-}
-
-void MENU_Check_SaveState(HMENU handle, std::string real_path, int load_state, int save_state, int remove_state) {
-	std::ifstream check_title;
-	check_title.open(real_path.c_str(), std::ifstream::in);
-	if (check_title.fail()) {
-		EnableMenuItem(handle, load_state, MF_GRAYED);
-		CheckMenuItem(handle, load_state, MF_STRING);
-		CheckMenuItem(handle, save_state, MF_STRING);
-		EnableMenuItem(handle, remove_state, MF_GRAYED);
-		CheckMenuItem(handle, remove_state, MF_STRING);
-	} else {
-		EnableMenuItem(handle, load_state, MF_ENABLED);
-		CheckMenuItem(handle, load_state, MF_CHECKED);
-		CheckMenuItem(handle, save_state, MF_CHECKED);
-		EnableMenuItem(handle, remove_state, MF_ENABLED);
-		CheckMenuItem(handle, remove_state, MF_CHECKED);
-	}
-	check_title.close();
-}
-
 void MENU_Check_Drive(HMENU handle, int cdrom, int floppy, int local, int image, int automount, int umount, char drive) {
 	std::string full_drive(1, drive);
 	Section_prop * sec = static_cast<Section_prop *>(control->GetSection("dos"));
@@ -1119,16 +1033,6 @@ int Reflect_Menu(void) {
 		path += "save";
 		path += CROSS_FILESPLIT;
 	}
-	MENU_Check_SaveState(m_handle, path + "1.sav", ID_LOADSTATE_1, ID_SAVESTATE_1, ID_REMOVE_STATE_1);
-	MENU_Check_SaveState(m_handle, path + "2.sav", ID_LOADSTATE_2, ID_SAVESTATE_2, ID_REMOVE_STATE_2);
-	MENU_Check_SaveState(m_handle, path + "3.sav", ID_LOADSTATE_3, ID_SAVESTATE_3, ID_REMOVE_STATE_3);
-	MENU_Check_SaveState(m_handle, path + "4.sav", ID_LOADSTATE_4, ID_SAVESTATE_4, ID_REMOVE_STATE_4);
-	MENU_Check_SaveState(m_handle, path + "5.sav", ID_LOADSTATE_5, ID_SAVESTATE_5, ID_REMOVE_STATE_5);
-	MENU_Check_SaveState(m_handle, path + "6.sav", ID_LOADSTATE_6, ID_SAVESTATE_6, ID_REMOVE_STATE_6);
-	MENU_Check_SaveState(m_handle, path + "7.sav", ID_LOADSTATE_7, ID_SAVESTATE_7, ID_REMOVE_STATE_7);
-	MENU_Check_SaveState(m_handle, path + "8.sav", ID_LOADSTATE_8, ID_SAVESTATE_8, ID_REMOVE_STATE_8);
-	MENU_Check_SaveState(m_handle, path + "9.sav", ID_LOADSTATE_9, ID_SAVESTATE_9, ID_REMOVE_STATE_9);
-	MENU_Check_SaveState(m_handle, path + "10.sav", ID_LOADSTATE_10, ID_SAVESTATE_10, ID_REMOVE_STATE_10);
 
 	sec = static_cast<Section_prop *>(control->GetSection("printer"));
 	if (sec) CheckMenuItem(m_handle, ID_PRINTER_SECTION, sec->Get_bool("printer") ? MF_CHECKED : MF_STRING);
@@ -1630,37 +1534,6 @@ void MSG_Loop(void) {
 			case ID_QUIT: throw(0); break;
 			case ID_OPENFILE: OpenFileDialog(0); break;
 			case ID_PAUSE: void PauseDOSBox(bool pressed); PauseDOSBox(1); break;
-			case ID_SAVESTATE_1: MENU_SaveState(1); break;
-			case ID_SAVESTATE_2: MENU_SaveState(2); break;
-			case ID_SAVESTATE_3: MENU_SaveState(3); break;
-			case ID_SAVESTATE_4: MENU_SaveState(4); break;
-			case ID_SAVESTATE_5: MENU_SaveState(5); break;
-			case ID_SAVESTATE_6: MENU_SaveState(6); break;
-			case ID_SAVESTATE_7: MENU_SaveState(7); break;
-			case ID_SAVESTATE_8: MENU_SaveState(8); break;
-			case ID_SAVESTATE_9: MENU_SaveState(9); break;
-			case ID_SAVESTATE_10: MENU_SaveState(10); break;
-			case ID_LOADSTATE_1: MENU_LoadState(1); break;
-			case ID_LOADSTATE_2: MENU_LoadState(2); break;
-			case ID_LOADSTATE_3: MENU_LoadState(3); break;
-			case ID_LOADSTATE_4: MENU_LoadState(4); break;
-			case ID_LOADSTATE_5: MENU_LoadState(5); break;
-			case ID_LOADSTATE_6: MENU_LoadState(6); break;
-			case ID_LOADSTATE_7: MENU_LoadState(7); break;
-			case ID_LOADSTATE_8: MENU_LoadState(8); break;
-			case ID_LOADSTATE_9: MENU_LoadState(9); break;
-			case ID_LOADSTATE_10: MENU_LoadState(10); break;
-			case ID_REMOVE_STATE_1: MENU_RemoveState("1"); break;
-			case ID_REMOVE_STATE_2: MENU_RemoveState("2"); break;
-			case ID_REMOVE_STATE_3: MENU_RemoveState("3"); break;
-			case ID_REMOVE_STATE_4: MENU_RemoveState("4"); break;
-			case ID_REMOVE_STATE_5: MENU_RemoveState("5"); break;
-			case ID_REMOVE_STATE_6: MENU_RemoveState("6"); break;
-			case ID_REMOVE_STATE_7: MENU_RemoveState("7"); break;
-			case ID_REMOVE_STATE_8: MENU_RemoveState("8"); break;
-			case ID_REMOVE_STATE_9: MENU_RemoveState("9"); break;
-			case ID_REMOVE_STATE_10: MENU_RemoveState("10"); break;
-			case ID_REMOVE_STATE_ALL: MENU_RemoveState_All(); break;
 			case ID_NORMAL:
 				if (strcasecmp(core_mode, "normal") == 0) break;
 				SetVal("cpu", "core", "normal");
