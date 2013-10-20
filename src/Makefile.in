@@ -66,13 +66,10 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am__dosbox_SOURCES_DIST = dosbox.cpp save_state.cpp save_state.h \
-	miniunz.c minizip.c unzip.c zip.c iowin32.c ioapi.c mztools.c \
-	winres.rc
+	miniunz.c minizip.c winres.rc
 @HAVE_WINDRES_TRUE@am__objects_1 = winres.$(OBJEXT)
 am_dosbox_OBJECTS = dosbox.$(OBJEXT) save_state.$(OBJEXT) \
-	miniunz.$(OBJEXT) minizip.$(OBJEXT) unzip.$(OBJEXT) \
-	zip.$(OBJEXT) iowin32.$(OBJEXT) ioapi.$(OBJEXT) \
-	mztools.$(OBJEXT) $(am__objects_1)
+	miniunz.$(OBJEXT) minizip.$(OBJEXT) $(am__objects_1)
 dosbox_OBJECTS = $(am_dosbox_OBJECTS)
 dosbox_DEPENDENCIES = cpu/libcpu.a debug/libdebug.a dos/libdos.a \
 	fpu/libfpu.a hardware/libhardware.a shell/libshell.a \
@@ -300,7 +297,7 @@ top_srcdir = @top_srcdir@
 AM_CPPFLAGS = -I$(top_srcdir)/include
 SUBDIRS = cpu debug dos fpu gui hardware libs ints misc shell platform 
 @HAVE_WINDRES_TRUE@ico_stuff = winres.rc
-dosbox_SOURCES = dosbox.cpp save_state.cpp save_state.h miniunz.c minizip.c unzip.c zip.c iowin32.c ioapi.c mztools.c $(ico_stuff)
+dosbox_SOURCES = dosbox.cpp save_state.cpp save_state.h miniunz.c minizip.c $(ico_stuff)
 dosbox_LDADD = cpu/libcpu.a debug/libdebug.a dos/libdos.a fpu/libfpu.a hardware/libhardware.a shell/libshell.a gui/libgui.a \
                ints/libints.a misc/libmisc.a hardware/serialport/libserial.a hardware/parport/libparallel.a \
                libs/gui_tk/libgui_tk.a libs/porttalk/libporttalk.a \
@@ -394,14 +391,9 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dosbox.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ioapi.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/iowin32.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/miniunz.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/minizip.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mztools.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/save_state.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/unzip.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zip.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
