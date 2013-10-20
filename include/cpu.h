@@ -379,8 +379,6 @@ public:
 		return true;
 	}
 
-	virtual void SaveState( std::ostream& stream );
-	virtual void LoadState( std::istream& stream );
 protected:
 	PhysPt table_base;
 	Bitu table_limit;
@@ -432,8 +430,6 @@ public:
 		return true;
 	}
 
-	virtual void SaveState( std::ostream& stream );
-	virtual void LoadState( std::istream& stream );
 private:
 	PhysPt ldt_base;
 	Bitu ldt_limit;

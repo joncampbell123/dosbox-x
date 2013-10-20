@@ -29,7 +29,6 @@
 #include "drives.h" //Wildcmp
 /* Include all the devices */
 
-#include "../save_state.h"
 #include "dev_con.h"
 
 
@@ -223,18 +222,3 @@ void DOS_SetupDevices(void) {
 	DOS_AddDevice(newdev3);
 }
 
-
-
-// save state support
-void POD_Save_DOS_Devices( std::ostream& stream )
-{
-	if( strcmp( Devices[2]->GetName(), "CON" ) == 0 )
-		Devices[2]->SaveState(stream);
-}
-
-
-void POD_Load_DOS_Devices( std::istream& stream )
-{
-	if( strcmp( Devices[2]->GetName(), "CON" ) == 0 )
-		Devices[2]->LoadState(stream);
-}

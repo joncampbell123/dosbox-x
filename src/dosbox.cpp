@@ -45,7 +45,6 @@
 #include "render.h"
 #include "pci_bus.h"
 #include "parport.h"
-#include "save_state.h"
 
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -386,36 +385,6 @@ std::string getTime()
     return buffer;
 }
 
-class SlotPos
-{
-public:
-    SlotPos() : slot(0) {}
-
-    void next()
-    {
-        ++slot;
-        slot %= SaveState::SLOT_COUNT;
-    }
-
-    void previous()
-    {
-        slot += SaveState::SLOT_COUNT - 1;
-        slot %= SaveState::SLOT_COUNT;
-    }
-
-    void set(int value)
-    {
-        slot = value;
-    }
-
-    operator size_t() const
-    {
-        return slot;
-    }
-private:
-    size_t slot;
-} currentSlot;
-
 void notifyError(const std::string& message)
 {
 #ifdef WIN32
@@ -425,59 +394,18 @@ void notifyError(const std::string& message)
 }
 
 void SetGameState(int value) {
-    currentSlot.set(value);
 }
 
 void SaveGameState(bool pressed) {
-    if (!pressed) return;
-
-    try
-    {
-        SaveState::instance().save(currentSlot);
-        //LOG_MSG("[%s]: State %d saved!", getTime().c_str(), currentSlot + 1);
-    }
-    catch (const SaveState::Error& err)
-    {
-        notifyError(err);
-    }
 }
 
 void LoadGameState(bool pressed) {
-    if (!pressed) return;
-
-//    if (SaveState::instance().isEmpty(currentSlot))
-//    {
-//        LOG_MSG("[%s]: State %d is empty!", getTime().c_str(), currentSlot + 1);
-//        return;
-//    }
-    try
-    {
-        SaveState::instance().load(currentSlot);
-        //LOG_MSG("[%s]: State %d loaded!", getTime().c_str(), currentSlot + 1);
-    }
-    catch (const SaveState::Error& err)
-    {
-        notifyError(err);
-    }
 }
 
 void NextSaveSlot(bool pressed) {
-    if (!pressed) return;
-
-    currentSlot.next();
-
-    const bool emptySlot = SaveState::instance().isEmpty(currentSlot);
-    LOG_MSG("Active save slot: %d %s", currentSlot + 1,  emptySlot ? "[Empty]" : "");
 }
 
-
 void PreviousSaveSlot(bool pressed) {
-    if (!pressed) return;
-
-    currentSlot.previous();
-
-    const bool emptySlot = SaveState::instance().isEmpty(currentSlot);
-    LOG_MSG("Active save slot: %d %s", currentSlot + 1, emptySlot ? "[Empty]" : "");
 }
 }
 void SetGameState_Run(int value) { SetGameState(value); }

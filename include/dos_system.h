@@ -84,9 +84,6 @@ public:
 	void SetDrive(Bit8u drv) { hdrive=drv;}
 	Bit8u GetDrive(void) { return hdrive;}
 
-	virtual void SaveState( std::ostream& stream );
-	virtual void LoadState( std::istream& stream );
-
 	char* name;
 	Bit8u drive;
 	Bit32u flags;
@@ -122,8 +119,6 @@ public:
 	virtual Bit16u	GetInformation(void);
 	virtual bool	ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode);
 	virtual bool	WriteToControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode);
-	virtual void SaveState( std::ostream& stream ) {}
-	virtual void LoadState( std::istream& stream ) {}
 	void SetDeviceNumber(Bitu num) { devnum=num;}
 private:
 	Bitu devnum;
@@ -268,9 +263,6 @@ public:
 	virtual void EmptyCache() {};
 	// disk cycling functionality (request resources)
 	virtual void Activate(void) {};
-
-	virtual void SaveState( std::ostream& stream );
-	virtual void LoadState( std::istream& stream );
 };
 
 enum { OPEN_READ=0, OPEN_WRITE=1, OPEN_READWRITE=2, OPEN_READ_NO_MOD=4, DOS_NOT_INHERIT=128};

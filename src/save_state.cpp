@@ -1,8 +1,4 @@
 #include "save_state.h"
-#include "zlib.h"
-#ifdef WIN32
-#include "direct.h"
-#endif
 #include "cross.h"
 #include "logging.h"
 #include <malloc.h>

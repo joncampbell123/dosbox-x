@@ -23,7 +23,6 @@
 #include "mmx.h"
 #include "cpu.h"
 #include "fpu.h"
-#include "../save_state.h"
 
 MMX_reg reg_mmx[8];
 
@@ -101,58 +100,3 @@ void setFPU(Bit16u tag) {
 	FPU_SetTag(tag);
 }
 
-
-
-// save state support
-void POD_Save_CPU_MMX( std::ostream& stream )
-{
-	// - pure data
-	WRITE_POD( &reg_mmx, reg_mmx );
-}
-
-
-void POD_Load_CPU_MMX( std::istream& stream )
-{
-	// - pure data
-	READ_POD( &reg_mmx, reg_mmx );
-}
-
-
-/*
-ykhwong svn-daum 2012-02-20
-
-
-static globals:
-
-
-struct MMX_reg reg_mmx[8];
-	// - pure data
-	typedef union {
-
-		Bit64u q;
-
-	#ifndef WORDS_BIGENDIAN
-		struct {
-			Bit32u d0,d1;
-		} ud;
-
-		struct {
-			Bit32s d0,d1;
-		} sd;
-
-		struct {
-			Bit16u w0,w1,w2,w3;
-		} uw;
-
-		struct {
-			Bit16s w0,w1,w2,w3;
-		} sw;
-
-		struct {
-			Bit8u b0,b1,b2,b3,b4,b5,b6,b7;
-		} ub;
-
-		struct {
-			Bit8s b0,b1,b2,b3,b4,b5,b6,b7;
-		} sb;
-*/

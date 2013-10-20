@@ -36,9 +36,6 @@ public:
 	Bit16u GetInformation(void);
 	bool ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode){return false;}
 	bool WriteToControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retcode){return false;}
-
-	virtual void SaveState( std::ostream& stream );
-	virtual void LoadState( std::istream& stream );
 private:
 	Bit8u readcache;
 	Bit8u lastwrite;
@@ -558,45 +555,3 @@ void device_CON::ClearAnsi(void){
 	ansi.numberofarg=0;
 }
 
-
-// save state support
-void device_CON::SaveState( std::ostream& stream )
-{
-	// - pure data
-	WRITE_POD( &readcache, readcache );
-	WRITE_POD( &lastwrite, lastwrite );
-
-	WRITE_POD( &ansi, ansi );
-}
-
-
-void device_CON::LoadState( std::istream& stream )
-{
-	// - pure data
-	READ_POD( &readcache, readcache );
-	READ_POD( &lastwrite, lastwrite );
-
-	READ_POD( &ansi, ansi );
-}
-
-
-
-/*
-ykhwong svn-daum 2012-05-21
-
-	// - pure data
-	Bit8u readcache;
-	Bit8u lastwrite;
-	struct ansi
-		bool esc;
-		bool sci;
-		bool enabled;
-		Bit8u attr;
-		Bit8u data[NUMBER_ANSI_DATA];
-		Bit8u numberofarg;
-		Bit16u nrows;
-		Bit16u ncols;
-		Bit8s savecol;
-		Bit8s saverow;
-		bool warned;
-*/

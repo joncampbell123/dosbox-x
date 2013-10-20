@@ -107,12 +107,6 @@ public:
 
 	// This function writes mono sample output to the provided buffer, and returns the number of samples written
 	unsigned long generateSamples(Bit16s *partialBuf, unsigned long length);
-
-	void saveState( std::ostream &stream );
-	void loadState( std::istream &stream );
-
-	// savestate debugging
-	void rawVerifyState( char *name, Synth *synth );
 };
 
 }

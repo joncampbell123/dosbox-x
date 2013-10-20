@@ -21,7 +21,6 @@
 #include "mem.h"
 #include "dos_inc.h"
 #include "callback.h"
-#include "../save_state.h"
 
 #ifdef _MSC_VER
 #pragma pack(1)
@@ -175,46 +174,3 @@ void DOS_SetupTables(void) {
 	dos.tables.country=country_info;
 }
 
-
-
-// save state support
-void POD_Save_DOS_Tables( std::ostream& stream )
-{
-	// - pure data
-	WRITE_POD( &DOS_TableUpCase, DOS_TableUpCase );
-	WRITE_POD( &DOS_TableLowCase, DOS_TableLowCase );
-
-	WRITE_POD( &dos_memseg, dos_memseg );
-}
-
-
-void POD_Load_DOS_Tables( std::istream& stream )
-{
-	// - pure data
-	READ_POD( &DOS_TableUpCase, DOS_TableUpCase );
-	READ_POD( &DOS_TableLowCase, DOS_TableLowCase );
-
-	READ_POD( &dos_memseg, dos_memseg );
-}
-
-
-/*
-ykhwong svn-daum 2012-05-21
-
-
-// - pure data
-struct DOS_TableCase
-	Bit16u size;
-	Bit8u chars[256];
-
-RealPt DOS_TableUpCase;
-RealPt DOS_TableLowCase;
-
-
-// - assume static func ptr
-static Bitu call_casemap;
-
-
-// - pure data
-static Bit16u dos_memseg;
-*/

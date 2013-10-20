@@ -467,19 +467,6 @@ public:
 	Poly *indexPoly( Bit16u index1, Bit16u index2 );
 	MemParams::RhythmTemp *indexRhythmTemp( Bit8u index );
 	TimbreParam *indexTimbreParam( Bit8u index );
-
-	void savePatchCache( std::ostream &stream, PatchCache *patchCache );
-	void loadPatchCache( std::istream &stream, PatchCache *patchCache );
-
-	void saveState( std::ostream &stream );
-	void loadState( std::istream &stream );
-
-	// savestate debugging
-	Bit16u rawDumpNo;
-	void rawDumpState( char *name, void *ptr, Bit32u size );
-	void rawLoadState( char *name, void *ptr, Bit32u size );
-	void rawVerifyState( char *name, Synth *synth );
-	void rawVerifyPatchCache( PatchCache *ptr1, PatchCache *ptr2 );
 };
 
 

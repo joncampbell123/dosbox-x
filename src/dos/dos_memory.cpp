@@ -21,7 +21,6 @@
 #include "mem.h"
 #include "dos_inc.h"
 #include "callback.h"
-#include "../save_state.h"
 
 #define UMB_START_SEG 0x9fff
 
@@ -486,29 +485,3 @@ void DOS_SetupMemory(void) {
 	dos_infoblock.SetFirstMCB(DOS_MEM_START);
 }
 
-
-void POD_Save_DOS_Memory( std::ostream& stream )
-{
-	// - pure data
-	WRITE_POD( &memAllocStrategy, memAllocStrategy );
-}
-
-
-void POD_Load_DOS_Memory( std::istream& stream )
-{
-	// - pure data
-	READ_POD( &memAllocStrategy, memAllocStrategy );
-}
-
-
-/*
-ykhwong svn-daum 2012-05-21
-
-
-// - pure data
-static Bit16u memAllocStrategy;
-
-
-// - static class data
-static CALLBACK_HandlerObject callbackhandler;
-*/
