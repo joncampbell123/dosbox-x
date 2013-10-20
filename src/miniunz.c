@@ -466,7 +466,7 @@ int my_miniunz(
 		opt_overwrite=1;
 		opt_extractdir=1;
 		dirname=savedir;
-        zipfilename = savefile;
+        zipfilename = (const char*)savefile;
         filename_to_extract = savefile2;
 
     if (zipfilename!=NULL)
