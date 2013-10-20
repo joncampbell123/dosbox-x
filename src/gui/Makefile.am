@@ -7,7 +7,7 @@ libgui_a_SOURCES = sdlmain.cpp sdl_mapper.cpp dosbox_logo.h \
 	render_templates_sai.h render_templates_hq.h \
 	render_templates_hq2x.h render_templates_hq3x.h \
 	midi.cpp midi_win32.h midi_oss.h midi_coreaudio.h midi_alsa.h \
-	direct3d.cpp direct3d.h ScalingEffect.cpp ScalingEffect.h \
+	direct3d.cpp direct3d.h \
 	hq2x_d3d.cpp hq2x_d3d.h \
 	midi_coremidi.h sdl_gui.cpp dosbox_splash.h menu.cpp \
 	DelayReverb.cpp DelayReverb.h File.cpp File.h \
@@ -20,5 +20,4 @@ libgui_a_SOURCES = sdlmain.cpp sdl_mapper.cpp dosbox_logo.h \
 	./freeverb/allpass.cpp ./freeverb/allpass.h ./freeverb/comb.cpp \
 	./freeverb/comb.h ./freeverb/denormals.h ./freeverb/revmodel.cpp \
 	./freeverb/revmodel.h ./freeverb/tuning.h midi_mt32.h \
-	./sha1/sha1.cpp ./sha1/sha1.h ROMInfo.cpp ROMInfo.h display2.cpp \
-	./xBRZ/config.h ./xBRZ/xbrz.cpp ./xBRZ/xbrz.h
+	./sha1/sha1.cpp ./sha1/sha1.h ROMInfo.cpp ROMInfo.h display2.cpp

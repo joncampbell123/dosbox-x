@@ -73,17 +73,16 @@ libgui_a_AR = $(AR) $(ARFLAGS)
 libgui_a_LIBADD =
 am_libgui_a_OBJECTS = sdlmain.$(OBJEXT) sdl_mapper.$(OBJEXT) \
 	render.$(OBJEXT) render_scalers.$(OBJEXT) midi.$(OBJEXT) \
-	direct3d.$(OBJEXT) ScalingEffect.$(OBJEXT) hq2x_d3d.$(OBJEXT) \
-	sdl_gui.$(OBJEXT) menu.$(OBJEXT) DelayReverb.$(OBJEXT) \
-	File.$(OBJEXT) FreeverbModel.$(OBJEXT) BReverbModel.$(OBJEXT) \
-	Part.$(OBJEXT) Partial.$(OBJEXT) PartialManager.$(OBJEXT) \
-	Poly.$(OBJEXT) Synth.$(OBJEXT) FileStream.$(OBJEXT) \
-	Tables.$(OBJEXT) TVA.$(OBJEXT) TVF.$(OBJEXT) TVP.$(OBJEXT) \
-	LA32Ramp.$(OBJEXT) AReverbModel.$(OBJEXT) \
-	LA32WaveGenerator.$(OBJEXT) LegacyWaveGenerator.$(OBJEXT) \
-	allpass.$(OBJEXT) comb.$(OBJEXT) revmodel.$(OBJEXT) \
-	sha1.$(OBJEXT) ROMInfo.$(OBJEXT) display2.$(OBJEXT) \
-	xbrz.$(OBJEXT)
+	direct3d.$(OBJEXT) hq2x_d3d.$(OBJEXT) sdl_gui.$(OBJEXT) \
+	menu.$(OBJEXT) DelayReverb.$(OBJEXT) File.$(OBJEXT) \
+	FreeverbModel.$(OBJEXT) BReverbModel.$(OBJEXT) Part.$(OBJEXT) \
+	Partial.$(OBJEXT) PartialManager.$(OBJEXT) Poly.$(OBJEXT) \
+	Synth.$(OBJEXT) FileStream.$(OBJEXT) Tables.$(OBJEXT) \
+	TVA.$(OBJEXT) TVF.$(OBJEXT) TVP.$(OBJEXT) LA32Ramp.$(OBJEXT) \
+	AReverbModel.$(OBJEXT) LA32WaveGenerator.$(OBJEXT) \
+	LegacyWaveGenerator.$(OBJEXT) allpass.$(OBJEXT) comb.$(OBJEXT) \
+	revmodel.$(OBJEXT) sha1.$(OBJEXT) ROMInfo.$(OBJEXT) \
+	display2.$(OBJEXT)
 libgui_a_OBJECTS = $(am_libgui_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -272,7 +271,7 @@ libgui_a_SOURCES = sdlmain.cpp sdl_mapper.cpp dosbox_logo.h \
 	render_templates_sai.h render_templates_hq.h \
 	render_templates_hq2x.h render_templates_hq3x.h \
 	midi.cpp midi_win32.h midi_oss.h midi_coreaudio.h midi_alsa.h \
-	direct3d.cpp direct3d.h ScalingEffect.cpp ScalingEffect.h \
+	direct3d.cpp direct3d.h \
 	hq2x_d3d.cpp hq2x_d3d.h \
 	midi_coremidi.h sdl_gui.cpp dosbox_splash.h menu.cpp \
 	DelayReverb.cpp DelayReverb.h File.cpp File.h \
@@ -285,8 +284,7 @@ libgui_a_SOURCES = sdlmain.cpp sdl_mapper.cpp dosbox_logo.h \
 	./freeverb/allpass.cpp ./freeverb/allpass.h ./freeverb/comb.cpp \
 	./freeverb/comb.h ./freeverb/denormals.h ./freeverb/revmodel.cpp \
 	./freeverb/revmodel.h ./freeverb/tuning.h midi_mt32.h \
-	./sha1/sha1.cpp ./sha1/sha1.h ROMInfo.cpp ROMInfo.h display2.cpp \
-	./xBRZ/config.h ./xBRZ/xbrz.cpp ./xBRZ/xbrz.h
+	./sha1/sha1.cpp ./sha1/sha1.h ROMInfo.cpp ROMInfo.h display2.cpp
 
 all: all-am
 
@@ -350,7 +348,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PartialManager.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Poly.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ROMInfo.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ScalingEffect.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Synth.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TVA.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TVF.Po@am__quote@
@@ -370,7 +367,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sdl_mapper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sdlmain.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sha1.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xbrz.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -441,20 +437,6 @@ sha1.obj: ./sha1/sha1.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='./sha1/sha1.cpp' object='sha1.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sha1.obj `if test -f './sha1/sha1.cpp'; then $(CYGPATH_W) './sha1/sha1.cpp'; else $(CYGPATH_W) '$(srcdir)/./sha1/sha1.cpp'; fi`
-
-xbrz.o: ./xBRZ/xbrz.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT xbrz.o -MD -MP -MF $(DEPDIR)/xbrz.Tpo -c -o xbrz.o `test -f './xBRZ/xbrz.cpp' || echo '$(srcdir)/'`./xBRZ/xbrz.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/xbrz.Tpo $(DEPDIR)/xbrz.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='./xBRZ/xbrz.cpp' object='xbrz.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o xbrz.o `test -f './xBRZ/xbrz.cpp' || echo '$(srcdir)/'`./xBRZ/xbrz.cpp
-
-xbrz.obj: ./xBRZ/xbrz.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT xbrz.obj -MD -MP -MF $(DEPDIR)/xbrz.Tpo -c -o xbrz.obj `if test -f './xBRZ/xbrz.cpp'; then $(CYGPATH_W) './xBRZ/xbrz.cpp'; else $(CYGPATH_W) '$(srcdir)/./xBRZ/xbrz.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/xbrz.Tpo $(DEPDIR)/xbrz.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='./xBRZ/xbrz.cpp' object='xbrz.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o xbrz.obj `if test -f './xBRZ/xbrz.cpp'; then $(CYGPATH_W) './xBRZ/xbrz.cpp'; else $(CYGPATH_W) '$(srcdir)/./xBRZ/xbrz.cpp'; fi`
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique
