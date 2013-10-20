@@ -25,7 +25,6 @@
 #include "mixer.h"
 #include "timer.h"
 #include "setup.h"
-#include "../save_state.h"
 
 static INLINE void BIN2BCD(Bit16u& val) {
 	Bit16u temp=val%10 + (((val/10)%10)<<4)+ (((val/100)%10)<<8) + (((val/1000)%10)<<12);
@@ -484,18 +483,3 @@ void TIMER_Init(Section* sec) {
 //save state support
 void *PIT0_Event_PIC_Event = (void*)PIT0_Event;
 
-
-namespace
-{
-class SerializeTimer : public SerializeGlobalPOD
-{
-public:
-    SerializeTimer() : SerializeGlobalPOD("IntTimer10")
-    {
-        registerPOD(pit);
-        registerPOD(gate2);
-        registerPOD(latched_timerstatus);
-		registerPOD(latched_timerstatus_locked);
-    }
-} dummy;
-}

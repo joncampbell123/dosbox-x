@@ -20,7 +20,6 @@
 #include "inout.h"
 #include "render.h"
 #include "vga.h"
-#include "../save_state.h"
 
 /*
 3C6h (R/W):  PEL Mask
@@ -237,50 +236,3 @@ void VGA_SetupDAC(void) {
 	}
 }
 
-
-
-// save state support
-
-void POD_Save_VGA_Dac( std::ostream& stream )
-{
-	// - pure struct data
-	WRITE_POD( &vga.dac, vga.dac );
-
-
-	// no static globals found
-}
-
-
-void POD_Load_VGA_Dac( std::istream& stream )
-{
-	// - pure struct data
-	READ_POD( &vga.dac, vga.dac );
-
-
-	// no static globals found
-}
-
-
-/*
-ykhwong svn-daum 2012-02-20
-
-static globals: none
-
-
-struct VGA_Dac:
-
-// - pure data
-typedef struct {
-	Bit8u bits;
-	Bit8u pel_mask;
-	Bit8u pel_index;	
-	Bit8u state;
-	Bit8u write_index;
-	Bit8u read_index;
-	Bitu first_changed;
-	Bit8u combine[16];
-	RGBEntry rgb[0x100];
-	Bit16u xlat16[256];
-	Bit8u hidac_counter;
-	Bit8u reg02;
-*/

@@ -20,7 +20,6 @@
 #include "dosbox.h"
 #include "inout.h"
 #include "vga.h"
-#include "../save_state.h"
 
 #define seq(blah) vga.seq.blah
 
@@ -164,43 +163,3 @@ void VGA_SetupSEQ(void) {
 	}
 }
 
-
-
-// save state support
-
-void POD_Save_VGA_Seq( std::ostream& stream )
-{
-	// - pure struct data
-	WRITE_POD( &vga.seq, vga.seq );
-
-
-	// no static globals found
-}
-
-
-void POD_Load_VGA_Seq( std::istream& stream )
-{
-	// - pure struct data
-	READ_POD( &vga.seq, vga.seq );
-
-
-	// no static globals found
-}
-
-
-/*
-ykhwong svn-daum 2012-02-20
-
-static globals: none
-
-
-struct VGA_Seq:
-
-// - pure data
-	Bit8u index;
-	Bit8u reset;
-	Bit8u clocking_mode;
-	Bit8u map_mask;
-	Bit8u character_map_select;
-	Bit8u memory_mode;
-*/

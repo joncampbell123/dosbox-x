@@ -25,7 +25,6 @@
 #include "cpu.h"
 #include "video.h"
 #include "pic.h"
-#include "../save_state.h"
 
 #define crtc(blah) vga.crtc.blah
 
@@ -435,66 +434,3 @@ Bitu vga_read_p3d5x(Bitu port,Bitu iolen) {
 	}
 }
 
-
-
-// save state support
-
-void POD_Save_VGA_Crtc( std::ostream& stream )
-{
-	// - pure struct data
-	WRITE_POD( &vga.crtc, vga.crtc );
-
-
-	// no static globals found
-}
-
-
-void POD_Load_VGA_Crtc( std::istream& stream )
-{
-	// - pure struct data
-	READ_POD( &vga.crtc, vga.crtc );
-
-
-	// no static globals found
-}
-
-
-/*
-ykhwong svn-daum 2012-02-20
-
-static globals: none
-
-
-struct VGA_Crtc:
-
-// - pure data
-typedef struct {
-	Bit8u horizontal_total;
-	Bit8u horizontal_display_end;
-	Bit8u start_horizontal_blanking;
-	Bit8u end_horizontal_blanking;
-	Bit8u start_horizontal_retrace;
-	Bit8u end_horizontal_retrace;
-	Bit8u vertical_total;
-	Bit8u overflow;
-	Bit8u preset_row_scan;
-	Bit8u maximum_scan_line;
-	Bit8u cursor_start;
-	Bit8u cursor_end;
-	Bit8u start_address_high;
-	Bit8u start_address_low;
-	Bit8u cursor_location_high;
-	Bit8u cursor_location_low;
-	Bit8u vertical_retrace_start;
-	Bit8u vertical_retrace_end;
-	Bit8u vertical_display_end;
-	Bit8u offset;
-	Bit8u underline_location;
-	Bit8u start_vertical_blanking;
-	Bit8u end_vertical_blanking;
-	Bit8u mode_control;
-	Bit8u line_compare;
-
-	Bit8u index;
-	bool read_only;
-*/

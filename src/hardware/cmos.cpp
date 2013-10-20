@@ -28,7 +28,6 @@
 #include "bios_disk.h"
 #include "setup.h"
 #include "cross.h" //fmod on certain platforms
-#include "../save_state.h"
 #include "control.h"
 bool date_host_forced=false;
 #if defined (WIN32)
@@ -594,24 +593,3 @@ void CMOS_Init(Section* sec) {
 // save state support
 void *cmos_timerevent_PIC_Event = (void*)cmos_timerevent;
 
-namespace
-{
-class SerializeCmos : public SerializeGlobalPOD
-{
-public:
-    SerializeCmos() : SerializeGlobalPOD("CMOS")
-    {
-        registerPOD(cmos.regs);
-        registerPOD(cmos.nmi);
-        registerPOD(cmos.reg);
-        registerPOD(cmos.timer.enabled);
-        registerPOD(cmos.timer.div);
-        registerPOD(cmos.timer.delay);
-        registerPOD(cmos.timer.acknowledged);
-        registerPOD(cmos.last.timer);
-        registerPOD(cmos.last.ended);
-        registerPOD(cmos.last.alarm);
-        registerPOD(cmos.update_ended);
-    }
-} dummy;
-}

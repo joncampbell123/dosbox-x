@@ -28,7 +28,6 @@
 #include "mixer.h"
 #include "timer.h"
 #include <math.h>
-#include "../save_state.h"
 
 #define KEYBUFSIZE 32*3
 #define RESETDELAY 400
@@ -1298,29 +1297,3 @@ void KEYBOARD_Reset() {
 void *KEYBOARD_TransferBuffer_PIC_Event = (void*)KEYBOARD_TransferBuffer;
 void *KEYBOARD_TickHandler_PIC_Timer = (void*)KEYBOARD_TickHandler;
 
-namespace
-{
-class SerializeKeyboard : public SerializeGlobalPOD
-{
-public:
-    SerializeKeyboard() : SerializeGlobalPOD("Keyboard")
-    {
-        registerPOD(keyb.buffer);
-        registerPOD(keyb.used); 
-        registerPOD(keyb.pos); 
-        registerPOD(keyb.repeat.key); 
-        registerPOD(keyb.repeat.wait); 
-        registerPOD(keyb.repeat.pause); 
-        registerPOD(keyb.repeat.rate); 
-        registerPOD(keyb.command); 
-        registerPOD(keyb.p60data); 
-        registerPOD(keyb.p60changed); 
-        registerPOD(keyb.active); 
-        registerPOD(keyb.scanning); 
-        registerPOD(keyb.scheduled);
-        registerPOD(keyb.leftctrl_pressed);
-        registerPOD(keyb.rightctrl_pressed);
-        registerPOD(port_61_data);
-    }
-} dummy;
-}

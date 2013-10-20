@@ -19,7 +19,6 @@
 
 #define __VOICE_CC__
 #include "voice.h"
-#include "../../save_state.h"
 
 // ----------------------------------------------------------------------------
 // Constructor.
@@ -132,47 +131,3 @@ void Voice::reset()
   envelope.reset();
 }
 
-
-
-// save state support
-
-void Voice::SaveState( std::ostream& stream )
-{
-	// - pure data
-	WRITE_POD( &wave_zero, wave_zero );
-	WRITE_POD( &voice_DC, voice_DC );
-
-
-	wave.SaveState(stream);
-	envelope.SaveState(stream);
-}
-
-
-void Voice::LoadState( std::istream& stream )
-{
-	// - pure data
-	READ_POD( &wave_zero, wave_zero );
-	READ_POD( &voice_DC, voice_DC );
-
-
-	wave.LoadState(stream);
-	envelope.LoadState(stream);
-}
-
-
-
-/*
-ykhwong svn-daum 2012-05-21
-
-
-class Voice
-
-	// - class data
-  WaveformGenerator wave;
-  EnvelopeGenerator envelope;
-
-
-  // - pure data
-  sound_sample wave_zero;
-  sound_sample voice_DC;
-*/

@@ -24,7 +24,6 @@
 #include "joystick.h"
 #include "pic.h"
 #include "support.h"
-#include "../save_state.h"
 
 #define RANGE 64
 #define TIMEOUT 10
@@ -230,23 +229,3 @@ void JOYSTICK_Init(Section* sec) {
 	sec->AddDestroyFunction(&JOYSTICK_Destroy,true); 
 }
 
-
-
-//save state support
-namespace
-{
-class SerializeStick : public SerializeGlobalPOD
-{
-public:
-    SerializeStick() : SerializeGlobalPOD("Joystick")
-    {
-        registerPOD(joytype);
-        registerPOD(stick);
-        registerPOD(last_write);
-        registerPOD(write_active);
-        registerPOD(swap34);
-        registerPOD(button_wrapping_enabled);
-        registerPOD(autofire);
-    }
-} dummy;
-}

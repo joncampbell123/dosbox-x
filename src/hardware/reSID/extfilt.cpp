@@ -19,7 +19,6 @@
 
 #define __EXTFILT_CC__
 #include "extfilt.h"
-#include "../../save_state.h"
 
 
 // ----------------------------------------------------------------------------
@@ -79,56 +78,3 @@ void ExternalFilter::reset()
   Vo = 0;
 }
 
-
-
-// save state support
-
-void ExternalFilter::SaveState( std::ostream& stream )
-{
-	// - pure data
-	WRITE_POD( &enabled, enabled );
-	WRITE_POD( &mixer_DC, mixer_DC );
-
-	WRITE_POD( &Vlp, Vlp );
-	WRITE_POD( &Vhp, Vhp );
-	WRITE_POD( &Vo, Vo );
-
-	WRITE_POD( &w0lp, w0lp );
-	WRITE_POD( &w0hp, w0hp );
-}
-
-
-void ExternalFilter::LoadState( std::istream& stream )
-{
-	// - pure data
-	READ_POD( &enabled, enabled );
-	READ_POD( &mixer_DC, mixer_DC );
-
-	READ_POD( &Vlp, Vlp );
-	READ_POD( &Vhp, Vhp );
-	READ_POD( &Vo, Vo );
-
-	READ_POD( &w0lp, w0lp );
-	READ_POD( &w0hp, w0hp );
-}
-
-
-
-/*
-ykhwong svn-daum 2012-05-21
-
-
-class ExternalFilter
-
-	// - pure data
-  bool enabled;
-
-  sound_sample mixer_DC;
-
-  sound_sample Vlp;
-  sound_sample Vhp;
-  sound_sample Vo;
-
-  sound_sample w0lp;
-  sound_sample w0hp;
-*/

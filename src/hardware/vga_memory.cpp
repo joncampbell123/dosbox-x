@@ -29,7 +29,6 @@
 #include "inout.h"
 #include "setup.h"
 #include "cpu.h"
-#include "../save_state.h"
 
 #ifndef C_VGARAM_CHECKED
 #define C_VGARAM_CHECKED 1
@@ -1225,95 +1224,3 @@ void *VGA_PageHandler_Func[16] =
 	(void *) &vgaph.empty,
 };
 
-
-void POD_Save_VGA_Memory( std::ostream& stream )
-{
-	// - static ptrs
-	//Bit8u* linear;
-	//Bit8u* linear_orgptr;
-
-
-	// - pure data
-	WRITE_POD_SIZE( vga.mem.linear_orgptr, sizeof(Bit8u) * (std::max<Bit32u>(vga.vmemsize, 512 * 1024U) + 4096*4 + 16) );
-
-	//***************************************************
-	//***************************************************
-
-	// static globals
-
-	// - pure struct data
-	WRITE_POD( &vgapages, vgapages );
-
-	// - static classes
-	//WRITE_POD( &vgaph, vgaph );
-}
-
-
-void POD_Load_VGA_Memory( std::istream& stream )
-{
-	// - static ptrs
-	//Bit8u* linear;
-	//Bit8u* linear_orgptr;
-
-
-	// - pure data
-	READ_POD_SIZE( vga.mem.linear_orgptr, sizeof(Bit8u) * (std::max<Bit32u>(vga.vmemsize, 512 * 1024U) + 4096*4 + 16) );
-
-	//***************************************************
-	//***************************************************
-
-	// static globals
-
-	// - pure struct data
-	READ_POD( &vgapages, vgapages );
-
-	// - static classes
-	//READ_POD( &vgaph, vgaph );
-}
-
-
-/*
-ykhwong svn-daum 2012-02-20
-
-static globals:
-
-// - pure struct data
-static struct {
-	Bitu base, mask;
-} vgapages;
-
-
-// - static classes
-static struct vg {
-	VGA_Map_Handler				map;
-	VGA_Slow_CGA_Handler			slow;
-	VGA_Changes_Handler			changes;
-	VGA_TEXT_PageHandler			text;
-	VGA_TANDY_PageHandler			tandy;
-	VGA_ChainedEGA_Handler			cega;
-	VGA_ChainedVGA_Handler			cvga;
-	VGA_UnchainedEGA_Handler		uega;
-	VGA_UnchainedVGA_Handler		uvga;
-	VGA_PCJR_Handler			pcjr;
-	VGA_LIN4_Handler			lin4;
-	VGA_LFB_Handler				lfb;
-	VGA_LFBChanges_Handler			lfbchanges;
-	VGA_MMIO_Handler			mmio;
-	VGA_AMS_Handler				ams;
-	VGA_Empty_Handler			empty;
-} vgaph;
-
-
-- class PageHandler
-
-  // - static data (for vgaph)
-  - Bitu flags;
-
-
-
-struct VGA_Memory:
-
-// - static ptrs + 'new' data
-	Bit8u* linear;
-	Bit8u* linear_orgptr;
-*/
