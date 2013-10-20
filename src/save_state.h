@@ -84,31 +84,26 @@ void readPOD(std::istream& stream, T& data);
 void writeString(std::ostream& stream, const std::string& data);
 void readString(std::istream& stream, std::string& data);
 
-
 //Implementation of SaveState::Component for saving POD types only
 class SerializeGlobalPOD : public SaveState::Component
 {
 public:
     SerializeGlobalPOD(const std::string& compName)
     {
-        SaveState::instance().registerComponent(compName, *this);
     }
 
     template <class T>
     void registerPOD(T& pod) //register POD for serializatioin
     {
-        podRef.push_back(POD(pod));
     }
 
 protected:
     virtual void getBytes(std::ostream& stream)
     {
-        std::for_each(podRef.begin(), podRef.end(), std::bind1st(WriteGlobalPOD(), &stream));
     }
 
     virtual void setBytes(std::istream& stream)
     {
-        std::for_each(podRef.begin(), podRef.end(), std::bind1st(ReadGlobalPOD(), &stream));
     }
 
 private:
@@ -124,7 +119,6 @@ private:
     {
         void operator()(std::ostream* stream, const POD& data) const
         {
-            stream->write(static_cast<const char*>(data.address), data.size);
         }
     };
 
@@ -132,7 +126,6 @@ private:
     {
         void operator()(std::istream* stream, const POD& data) const
         {
-            stream->read(static_cast<char*>(data.address), data.size);
         }
     };
 
@@ -144,34 +137,22 @@ template <class T>
 inline
 void writePOD(std::ostream& stream, const T& data)
 {
-    stream.write(reinterpret_cast<const char*>(&data), sizeof(T));
 }
-
 
 template <class T>
 inline
 void readPOD(std::istream& stream, T& data)
 {
-    stream.read(reinterpret_cast<char*>(&data), sizeof(T));
 }
-
 
 inline
 void writeString(std::ostream& stream, const std::string& data)
 {
-    const size_t stringSize = data.size();
-    writePOD(stream, stringSize);
-    stream.write(data.c_str(), stringSize * sizeof(std::string::value_type));
 }
-
 
 inline
 void readString(std::istream& stream, std::string& data)
 {
-    size_t stringSize = 0;
-    readPOD(stream, stringSize);
-    data.resize(stringSize);
-    stream.read(&data[0], stringSize * sizeof(std::string::value_type));
 }
 
 #endif //SAVE_STATE_H_INCLUDED
