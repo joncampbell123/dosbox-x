@@ -264,10 +264,6 @@ public:
 	
 	PARPORTS (Section * configuration):Module_base (configuration) {
 
-#if C_PRINTER
-		bool printer_used = false;
-#endif
-
 		// default ports & interrupts
 		Bit8u defaultirq[] = { 7, 5, 12};
 		Section_prop *section = static_cast <Section_prop*>(configuration);
@@ -302,22 +298,6 @@ public:
 				}
 			}
 			else 
-#if C_PRINTER
-			if(str=="printer") {
-				if(printer_used) {
-					
-				}; // only one parallel port with printer
-				CPrinterRedir* cprd = new CPrinterRedir(i,defaultirq[i],&cmd);
-				if(cprd->InstallationSuccessful) {
-					parallelPortObjects[i]=cprd;
-					printer_used=true;
-				} else {
-					LOG_MSG("Error: printer is not enabled.");
-					delete cprd;
-					parallelPortObjects[i]=0;
-				}
-			} else
-#endif				
 			if(str=="disabled") {
 				parallelPortObjects[i] = 0;
 			} else {

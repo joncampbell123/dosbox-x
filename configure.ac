@@ -359,17 +359,6 @@ else
   AC_MSG_WARN([Can't find libpng, screenshot support disabled])
 fi
 
-AH_TEMPLATE(C_PRINTER,[Define to 1 to use printer support])
-AC_ARG_ENABLE(printer,AC_HELP_STRING([--disable-printer],[Disable printer support]),,enable_printer=yes)
-AC_PATH_PROG(FREETYPE_CONFIG, freetype-config, no)
-if test "$FREETYPE_CONFIG" = "no" ; then
-   AC_MSG_WARN([Can't find FreeType2, printer disabled])
-else
-    AC_DEFINE(C_PRINTER,1)
-    CXXFLAGS="$CXXFLAGS `$FREETYPE_CONFIG --cflags`"
-    LIBS="$LIBS `$FREETYPE_CONFIG --libs`"
-fi
-
 AH_TEMPLATE(C_NE2000,[Define to 1 to enable NE2000 ethernet passthrough, requires libpcap])
 AC_CHECK_HEADER(pcap.h,have_pcap_h=yes,)
 AC_CHECK_LIB(pcap, pcap_open_live, have_pcap_lib=yes, ,-lz)
