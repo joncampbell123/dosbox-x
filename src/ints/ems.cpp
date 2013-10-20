@@ -31,7 +31,6 @@
 #include "setup.h"
 #include "support.h"
 #include "cpu.h"
-#include "../save_state.h"
 #include "dma.h"
 
 #define EMM_PAGEFRAME	0xE000
@@ -1471,26 +1470,3 @@ void EMS_Init(Section* sec) {
 //Initialize static members
 Bit16u EMS::ems_baseseg = 0;
 
-
-
-//save state support
-namespace
-{
-class SerializeEMS : public SerializeGlobalPOD
-{
-public:
-    SerializeEMS() : SerializeGlobalPOD("EMS")
-    {
-        registerPOD(emm_handles);
-        registerPOD(emm_mappings);
-        registerPOD(emm_segmentmappings);
-        registerPOD(GEMMIS_seg);
-        registerPOD(vcpi.enabled);
-        registerPOD(vcpi.ems_handle);
-        registerPOD(vcpi.pm_interface);
-        registerPOD(vcpi.private_area);
-        registerPOD(vcpi.pic1_remapping);
-        registerPOD(vcpi.pic2_remapping);
-    }
-} dummy;
-}
