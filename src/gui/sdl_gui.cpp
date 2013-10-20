@@ -165,9 +165,9 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 	if (sdlscreen == NULL) E_Exit("Could not initialize video mode %ix%ix32 for UI: %s", w, h, SDL_GetError());
 
 	// fade out
-#ifndef WIN32 
+	// Jonathan C: do it FASTER!
 	SDL_Event event; 
-	for (int i = 0xff; i > 0; i -= 0x11) { 
+	for (int i = 0xff; i > 0; i -= 0x30) { 
 		SDL_SetAlpha(screenshot, SDL_SRCALPHA, i); 
 		SDL_BlitSurface(background, NULL, sdlscreen, NULL); 
 		SDL_BlitSurface(screenshot, NULL, sdlscreen, NULL); 
@@ -175,7 +175,6 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 		while (SDL_PollEvent(&event)); 
 		SDL_Delay(40); 
 	} 
-#endif 
  
 	SDL_BlitSurface(background, NULL, sdlscreen, NULL);
 	SDL_UpdateRect(sdlscreen, 0, 0, 0, 0);
@@ -195,9 +194,9 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
 	render.src.bpp = saved_bpp;
 
 	// fade in
-#ifndef WIN32
+	// Jonathan C: do it FASTER!
 	SDL_Event event;
-	for (int i = 0x00; i < 0xff; i += 0x11) {
+	for (int i = 0x00; i < 0xff; i += 0x30) {
 		SDL_SetAlpha(screenshot, SDL_SRCALPHA, i);
 		SDL_BlitSurface(background, NULL, sdlscreen, NULL);
 		SDL_BlitSurface(screenshot, NULL, sdlscreen, NULL);
@@ -205,7 +204,6 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
 		while (SDL_PollEvent(&event)) {};
 		SDL_Delay(40); 
 	}
-#endif
 
 	// clean up
 	if (mousetoggle) GFX_CaptureMouse();
