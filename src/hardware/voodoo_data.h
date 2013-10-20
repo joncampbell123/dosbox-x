@@ -791,8 +791,6 @@ struct _voodoo_state
 	bool				send_config;
 	UINT32				tmu_config;
 
-	bool				ogl;
-	bool				ogl_dimchange;
 	bool				clock_enabled;
 	bool				output_on;
 	bool				active;

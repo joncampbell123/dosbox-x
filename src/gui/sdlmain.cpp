@@ -74,43 +74,6 @@
 #define MAPPERFILE "mapper-" VERSION ".map"
 //#define DISABLE_JOYSTICK
 
-#if C_OPENGL
-#include "SDL_opengl.h"
-
-#ifndef APIENTRY
-#define APIENTRY
-#endif
-#ifndef APIENTRYP
-#define APIENTRYP APIENTRY *
-#endif
-
-#ifndef GL_ARB_pixel_buffer_object
-#define GL_ARB_pixel_buffer_object 1
-#define GL_PIXEL_PACK_BUFFER_ARB           0x88EB
-#define GL_PIXEL_UNPACK_BUFFER_ARB         0x88EC
-#define GL_PIXEL_PACK_BUFFER_BINDING_ARB   0x88ED
-#define GL_PIXEL_UNPACK_BUFFER_BINDING_ARB 0x88EF
-#endif
-
-#ifndef GL_ARB_vertex_buffer_object
-#define GL_ARB_vertex_buffer_object 1
-typedef void (APIENTRYP PFNGLGENBUFFERSARBPROC) (GLsizei n, GLuint *buffers);
-typedef void (APIENTRYP PFNGLBINDBUFFERARBPROC) (GLenum target, GLuint buffer);
-typedef void (APIENTRYP PFNGLDELETEBUFFERSARBPROC) (GLsizei n, const GLuint *buffers);
-typedef void (APIENTRYP PFNGLBUFFERDATAARBPROC) (GLenum target, GLsizeiptr size, const GLvoid *data, GLenum usage);
-typedef GLvoid* (APIENTRYP PFNGLMAPBUFFERARBPROC) (GLenum target, GLenum access);
-typedef GLboolean (APIENTRYP PFNGLUNMAPBUFFERARBPROC) (GLenum target);
-#endif
-
-PFNGLGENBUFFERSARBPROC glGenBuffersARB = NULL;
-PFNGLBINDBUFFERARBPROC glBindBufferARB = NULL;
-PFNGLDELETEBUFFERSARBPROC glDeleteBuffersARB = NULL;
-PFNGLBUFFERDATAARBPROC glBufferDataARB = NULL;
-PFNGLMAPBUFFERARBPROC glMapBufferARB = NULL;
-PFNGLUNMAPBUFFERARBPROC glUnmapBufferARB = NULL;
-
-#endif //C_OPENGL
-
 extern void UI_Init();
 extern void UI_Run(bool);
 
@@ -206,20 +169,6 @@ struct SDL_Block {
 		SCREEN_TYPES type;
 		SCREEN_TYPES want_type;
 	} desktop;
-#if C_OPENGL
-	struct {
-		Bitu pitch;
-		void * framebuf;
-		GLuint buffer;
-		GLuint texture;
-		GLuint displaylist;
-		GLint max_texsize;
-		bool bilinear;
-		bool packed_pixel;
-		bool paletted_texture;
-		bool pixel_buffer_object;
-	} opengl;
-#endif
 	struct {
 		SDL_Surface * surface;
 #if (HAVE_DDRAW_H) && defined(WIN32)
@@ -531,13 +480,6 @@ check_gotbpp:
 		flags|=GFX_SCALING;
 		flags&=~(GFX_CAN_8|GFX_CAN_15|GFX_CAN_16);
 		break;
-#if C_OPENGL
-	case SCREEN_OPENGL:
-		if (flags & GFX_RGBONLY || !(flags&GFX_CAN_32)) goto check_surface;
-		flags|=GFX_SCALING;
-		flags&=~(GFX_CAN_8|GFX_CAN_15|GFX_CAN_16);
-		break;
-#endif
 #if (HAVE_D3D9_H) && defined(WIN32)
 	case SCREEN_DIRECT3D:
 		flags|=GFX_SCALING;
@@ -905,101 +847,6 @@ dosurface:
 		retFlags = GFX_CAN_32 | GFX_SCALING | GFX_HARDWARE;
 		break;
     }
-#if C_OPENGL
-	case SCREEN_OPENGL:
-	{
-		GFX_ResetSDL();
-		if (sdl.opengl.pixel_buffer_object) {
-			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
-			if (sdl.opengl.buffer) glDeleteBuffersARB(1, &sdl.opengl.buffer);
-		} else if (sdl.opengl.framebuf) {
-			free(sdl.opengl.framebuf);
-		}
-		sdl.opengl.framebuf=0;
-		if (!(flags&GFX_CAN_32) || (flags & GFX_RGBONLY)) goto dosurface;
-		// SDLScreen_Reset();
-		int texsize=2 << int_log2(width > height ? width : height);
-		if (texsize>sdl.opengl.max_texsize) {
-			LOG_MSG("SDL:OPENGL:No support for texturesize of %d, falling back to surface",texsize);
-			goto dosurface;
-		}
-		SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
-#if SDL_VERSION_ATLEAST(1, 2, 11)
-		Section_prop * sec=static_cast<Section_prop *>(control->GetSection("vsync"));
-		if(sec) {
-			SDL_GL_SetAttribute( SDL_GL_SWAP_CONTROL, (!strcmp(sec->Get_string("vsyncmode"),"host"))?1:0 );
-		}
-#endif
-		GFX_SetupSurfaceScaled(SDL_OPENGL|SDL_RESIZABLE,0);
-		if (!sdl.surface || sdl.surface->format->BitsPerPixel<15) {
-			LOG_MSG("SDL:OPENGL:Can't open drawing surface, are you running in 16bpp(or higher) mode?");
-			goto dosurface;
-		}
-		/* Create the texture and display list */
-		if (sdl.opengl.pixel_buffer_object) {
-			glGenBuffersARB(1, &sdl.opengl.buffer);
-			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, sdl.opengl.buffer);
-			glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_EXT, width*height*4, NULL, GL_STREAM_DRAW_ARB);
-			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
-		} else {
-			sdl.opengl.framebuf=malloc(width*height*4);		//32 bit color
-		}
-		sdl.opengl.pitch=width*4;
-		glViewport(sdl.clip.x,sdl.clip.y,sdl.clip.w,sdl.clip.h);
-		glMatrixMode (GL_PROJECTION);
-		glDeleteTextures(1,&sdl.opengl.texture);
- 		glGenTextures(1,&sdl.opengl.texture);
-		glBindTexture(GL_TEXTURE_2D,sdl.opengl.texture);
-		// No borders
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-		if (sdl.opengl.bilinear) {
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		} else {
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		}
-
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texsize, texsize, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, 0);
-
-		glClearColor (0.0, 0.0, 0.0, 1.0);
-		glClear(GL_COLOR_BUFFER_BIT);
-		SDL_GL_SwapBuffers();
-		glClear(GL_COLOR_BUFFER_BIT);
-		glShadeModel (GL_FLAT);
-		glDisable (GL_DEPTH_TEST);
-		glDisable (GL_LIGHTING);
-		glDisable(GL_CULL_FACE);
-		glEnable(GL_TEXTURE_2D);
-		glMatrixMode (GL_MODELVIEW);
-		glLoadIdentity ();
-
-		GLfloat tex_width=((GLfloat)(width)/(GLfloat)texsize);
-		GLfloat tex_height=((GLfloat)(height)/(GLfloat)texsize);
-
-		if (glIsList(sdl.opengl.displaylist)) glDeleteLists(sdl.opengl.displaylist, 1);
-		sdl.opengl.displaylist = glGenLists(1);
-		glNewList(sdl.opengl.displaylist, GL_COMPILE);
-		glBindTexture(GL_TEXTURE_2D, sdl.opengl.texture);
-		glBegin(GL_QUADS);
-		// lower left
-		glTexCoord2f(0,tex_height); glVertex2f(-1.0f,-1.0f);
-		// lower right
-		glTexCoord2f(tex_width,tex_height); glVertex2f(1.0f, -1.0f);
-		// upper right
-		glTexCoord2f(tex_width,0); glVertex2f(1.0f, 1.0f);
-		// upper left
-		glTexCoord2f(0,0); glVertex2f(-1.0f, 1.0f);
-		glEnd();
-		glEndList();
-		sdl.desktop.type=SCREEN_OPENGL;
-		retFlags = GFX_CAN_32 | GFX_SCALING;
-		if (sdl.opengl.pixel_buffer_object)
-			retFlags |= GFX_HARDWARE;
-	break;
-		}//OPENGL
-#endif	//C_OPENGL
 #if (HAVE_D3D9_H) && defined(WIN32)
 	    case SCREEN_DIRECT3D: {
 		// Calculate texture size
@@ -1518,17 +1365,6 @@ bool GFX_StartUpdate(Bit8u * & pixels,Bitu & pitch) {
 		pitch=*(sdl.overlay->pitches);
 		sdl.updating=true;
 		return true;
-#if C_OPENGL
-	case SCREEN_OPENGL:
-		if(sdl.opengl.pixel_buffer_object) {
-		    glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, sdl.opengl.buffer);
-		    pixels=(Bit8u *)glMapBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, GL_WRITE_ONLY);
-		} else
-		    pixels=(Bit8u *)sdl.opengl.framebuf;
-		pitch=sdl.opengl.pitch;
-		sdl.updating=true;
-		return true;
-#endif
 #if (HAVE_D3D9_H) && defined(WIN32)
 	case SCREEN_DIRECT3D:
 		sdl.updating=d3d->LockTexture(pixels, pitch);
@@ -1624,43 +1460,6 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
 		if(!menu.hidecycles && !sdl.desktop.fullscreen) frames++; 
 		SDL_DisplayYUVOverlay(sdl.overlay,&sdl.clip);
 		break;
-#if C_OPENGL
-	case SCREEN_OPENGL:
-		if (sdl.opengl.pixel_buffer_object) {
-			if(changedLines && (changedLines[0] == sdl.draw.height)) 
-			return; 
-			glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT);
-			glBindTexture(GL_TEXTURE_2D, sdl.opengl.texture);
-			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
-					sdl.draw.width, sdl.draw.height, GL_BGRA_EXT,
-					GL_UNSIGNED_INT_8_8_8_8_REV, 0);
-			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
-			glCallList(sdl.opengl.displaylist);
-			SDL_GL_SwapBuffers();
-		} else if (changedLines) {
-			if(changedLines[0] == sdl.draw.height) 
-			return;
-			Bitu y = 0, index = 0;
-			glBindTexture(GL_TEXTURE_2D, sdl.opengl.texture);
-			while (y < sdl.draw.height) {
-				if (!(index & 1)) {
-					y += changedLines[index];
-				} else {
-					Bit8u *pixels = (Bit8u *)sdl.opengl.framebuf + y * sdl.opengl.pitch;
-					Bitu height = changedLines[index];
-					glTexSubImage2D(GL_TEXTURE_2D, 0, 0, y,
-						sdl.draw.width, height, GL_BGRA_EXT,
-						GL_UNSIGNED_INT_8_8_8_8_REV, pixels );
-					y += height;
-				}
-				index++;
-			}
-			glCallList(sdl.opengl.displaylist);
-		}
-		if(!menu.hidecycles && !sdl.desktop.fullscreen) frames++; 
-		SDL_GL_SwapBuffers();
-		break;
-#endif
 #if (HAVE_D3D9_H) && defined(WIN32)
 	case SCREEN_DIRECT3D:
 		if(!menu.hidecycles) frames++; //implemented
@@ -2013,14 +1812,6 @@ static void GUI_StartUp(Section * sec) {
 #endif
 	} else if (output == "overlay") {
 		sdl.desktop.want_type=SCREEN_OVERLAY;
-#if C_OPENGL
-	} else if (output == "opengl") {
-		sdl.desktop.want_type=SCREEN_OPENGL;
-		sdl.opengl.bilinear=true;
-	} else if (output == "openglnb") {
-		sdl.desktop.want_type=SCREEN_OPENGL;
-		sdl.opengl.bilinear=false;
-#endif
 #if (HAVE_D3D9_H) && defined(WIN32)
 	} else if (output == "direct3d") {
 		sdl.desktop.want_type=SCREEN_DIRECT3D;
@@ -2052,39 +1843,6 @@ static void GUI_StartUp(Section * sec) {
 //	sdl.overscan_color=section->Get_int("overscancolor");
 
 	sdl.overlay=0;
-#if C_OPENGL
-   if(sdl.desktop.want_type==SCREEN_OPENGL){ /* OPENGL is requested */
-	sdl.surface=SDL_SetVideoMode(640,400,0,SDL_OPENGL);
-	if (sdl.surface == NULL) {
-		LOG_MSG("Could not initialize OpenGL, switching back to surface");
-		sdl.desktop.want_type=SCREEN_SURFACE;
-	} else {
-	sdl.opengl.buffer=0;
-	sdl.opengl.framebuf=0;
-	sdl.opengl.texture=0;
-	sdl.opengl.displaylist=0;
-	glGetIntegerv (GL_MAX_TEXTURE_SIZE, &sdl.opengl.max_texsize);
-	glGenBuffersARB = (PFNGLGENBUFFERSARBPROC)SDL_GL_GetProcAddress("glGenBuffersARB");
-	glBindBufferARB = (PFNGLBINDBUFFERARBPROC)SDL_GL_GetProcAddress("glBindBufferARB");
-	glDeleteBuffersARB = (PFNGLDELETEBUFFERSARBPROC)SDL_GL_GetProcAddress("glDeleteBuffersARB");
-	glBufferDataARB = (PFNGLBUFFERDATAARBPROC)SDL_GL_GetProcAddress("glBufferDataARB");
-	glMapBufferARB = (PFNGLMAPBUFFERARBPROC)SDL_GL_GetProcAddress("glMapBufferARB");
-	glUnmapBufferARB = (PFNGLUNMAPBUFFERARBPROC)SDL_GL_GetProcAddress("glUnmapBufferARB");
-	const char * gl_ext = (const char *)glGetString (GL_EXTENSIONS);
-	if(gl_ext && *gl_ext){
-		sdl.opengl.packed_pixel=(strstr(gl_ext,"EXT_packed_pixels") > 0);
-		sdl.opengl.paletted_texture=(strstr(gl_ext,"EXT_paletted_texture") > 0);
-		sdl.opengl.pixel_buffer_object=false;
-		//sdl.opengl.pixel_buffer_object=(strstr(gl_ext,"GL_ARB_pixel_buffer_object") >0 ) &&
-		//    glGenBuffersARB && glBindBufferARB && glDeleteBuffersARB && glBufferDataARB &&
-		//    glMapBufferARB && glUnmapBufferARB;
-    	} else {
-		sdl.opengl.packed_pixel=sdl.opengl.paletted_texture=false;
-	}
-	}
-	} /* OPENGL is requested end */
-
-#endif	//OPENGL
 	/* Initialize screen for first time */
 	sdl.surface=SDL_SetVideoMode(640,400,0,SDL_RESIZABLE);
 	if (sdl.surface == NULL) E_Exit("Could not initialize video: %s",SDL_GetError());
@@ -2769,36 +2527,6 @@ void* GetSetSDLValue(int isget, std::string target, void* setval) {
 	} else if (target == "desktop.want_type") {
 		if (isget) return (void*) sdl.desktop.want_type;
 		else sdl.desktop.want_type = *static_cast<SCREEN_TYPES*>(setval);
-#if C_OPENGL
-/*
-	} else if (target == "opengl.framebuf") {
-		if (isget) return (void*) sdl.opengl.framebuf;
-		else sdl.opengl.framebuf = setval;
-	} else if (target == "opengl.buffer") {
-		if (isget) return (void*) sdl.opengl.buffer;
-		else sdl.opengl.buffer = *static_cast<GLuint*>(setval);
-	} else if (target == "opengl.texture") {
-		if (isget) return (void*) sdl.opengl.texture;
-		else sdl.opengl.texture = *static_cast<GLuint*>(setval);
-	} else if (target == "opengl.max_texsize") {
-		if (isget) return (void*) sdl.opengl.max_texsize;
-		else sdl.opengl.max_texsize = *static_cast<GLint*>(setval);
-*/
-	} else if (target == "opengl.bilinear") {
-		if (isget) return (void*) sdl.opengl.bilinear;
-		else sdl.opengl.bilinear = setval;
-/*
-	} else if (target == "opengl.packed_pixel") {
-		if (isget) return (void*) sdl.opengl.packed_pixel;
-		else sdl.opengl.packed_pixel = setval;
-	} else if (target == "opengl.paletted_texture") {
-		if (isget) return (void*) sdl.opengl.paletted_texture;
-		else sdl.opengl.paletted_texture = setval;
-	} else if (target == "opengl.pixel_buffer_object") {
-		if (isget) return (void*) sdl.opengl.pixel_buffer_object;
-		else sdl.opengl.pixel_buffer_object = setval;
-*/
-#endif
 /*
 	} else if (target == "surface") {
 		if (isget) return (void*) sdl.surface;
@@ -3042,9 +2770,6 @@ void Config_Add_SDL() {
 
 	const char* outputs[] = {
 		"surface", "overlay",
-#if C_OPENGL
-		"opengl", "openglnb", "openglhq",
-#endif
 #if (HAVE_DDRAW_H) && defined(WIN32)
 		"ddraw",
 #endif
@@ -3828,22 +3553,6 @@ struct SDL_Block sdl
 		SCREEN_TYPES type;
 		SCREEN_TYPES want_type;
 	} desktop;
-#if C_OPENGL
-	// - struct system data
-	struct {
-		Bitu pitch;
-		void * framebuf;
-		GLuint texture;
-		GLuint displaylist;
-		GLint max_texsize;
-		bool bilinear;
-		bool packed_pixel;
-		bool paletted_texture;
-#if defined(NVIDIA_PixelDataRange)
-		bool pixel_data_range;
-#endif
-	} opengl;
-#endif
 
 	// - struct system data
 	struct {

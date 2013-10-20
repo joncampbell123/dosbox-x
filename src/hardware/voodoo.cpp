@@ -52,13 +52,8 @@ public:
 			emulation_type=0;
 		} else if (voodoo_type_str=="software") {
 			emulation_type=1;
-#if C_OPENGL
-		} else if ((voodoo_type_str=="opengl") || (voodoo_type_str=="auto")) {
-			emulation_type=2;
-#else
 		} else if (voodoo_type_str=="auto") {
 			emulation_type=1;
-#endif
 		} else {
 			emulation_type=0;
 		}
