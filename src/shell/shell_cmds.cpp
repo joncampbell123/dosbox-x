@@ -204,7 +204,7 @@ void DOS_Shell::CMD_DELETE(char * args) {
 	ScanCMDBool(args,"AA");
 
 	StripSpaces(args);
-	if (!strcasecmp(args,"*")) args="*.*"; // 'del *' should be 'del *.*'?
+	if (!strcasecmp(args,"*")) args=(char*)("*.*"); // 'del *' should be 'del *.*'?
 	if (!strcasecmp(args,"*.*")) {
 		if (!optQ1) {
 first_1:
@@ -657,7 +657,7 @@ struct copysource {
 
 void DOS_Shell::CMD_COPY(char * args) {
 	extern Bitu ZDRIVE_NUM;
-	char root[4] = {'A'+ZDRIVE_NUM,':','\\',0};
+	const char root[4] = {(char)('A'+ZDRIVE_NUM),':','\\',0};
 	char cmd[20];
 	strcpy(cmd,root);
 	strcat(cmd,"COPY.EXE");
@@ -1257,7 +1257,7 @@ void DOS_Shell::CMD_DATE(char * args) {
 		int week = ((13 * hostm - 1) / 5 + hostd + y + y/4 + century/4 - 2*century) % 7;
 		if (week < 0) week = (week + 7) % 7;
 
-		char* my_week[7]={"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+		const char* my_week[7]={"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 		WriteOut("%s %s\n",my_week[week],buffer);
 	} else
 	WriteOut("%s %s\n",day, buffer);

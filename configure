@@ -7619,56 +7619,6 @@ fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PHYSFS_init in -lphysfs" >&5
-$as_echo_n "checking for PHYSFS_init in -lphysfs... " >&6; }
-if ${ac_cv_lib_physfs_PHYSFS_init+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lphysfs  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char PHYSFS_init ();
-int
-main ()
-{
-return PHYSFS_init ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_physfs_PHYSFS_init=yes
-else
-  ac_cv_lib_physfs_PHYSFS_init=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_physfs_PHYSFS_init" >&5
-$as_echo "$ac_cv_lib_physfs_PHYSFS_init" >&6; }
-if test "x$ac_cv_lib_physfs_PHYSFS_init" = xyes; then :
-  have_PHYSFS_init=yes
-fi
-
-if test x$have_PHYSFS_init = xyes ; then
-    $as_echo "#define C_HAVE_PHYSFS 1" >>confdefs.h
-
-    LIBS="$LIBS -lphysfs -lz"
-else
-    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Can't find PHYSFS_init" >&5
-$as_echo "$as_me: WARNING: Can't find PHYSFS_init" >&2;}
-fi
-
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
        LIBS="$LIBS -lwinmm"

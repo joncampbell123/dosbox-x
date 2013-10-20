@@ -2808,9 +2808,6 @@ search:
 				Mount_Img(drive,path);
 		} else if(!strcmp(ext,".ima")) {
 			Mount_Img_Floppy(drive,path);
-		} else if(!strcmp(ext,".zip") || (!strcmp(ext,".7z"))) {
-			SetCurrentDirectory( Temp_CurrentDir );
-			Mount_Zip(drive,path);
 		} else
 			LOG_MSG("GUI: Unsupported filename extension.");
 	}

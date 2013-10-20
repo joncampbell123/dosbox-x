@@ -30,7 +30,6 @@ void BrowseFolder( char drive , std::string drive_type );
 void Mount_Img(char drive, std::string realpath);
 void Mount_Img_Floppy(char drive, std::string realpath);
 void Mount_Img_HDD(char drive, std::string realpath);
-void Mount_Zip(char drive, std::string temp_line);
 void DOSBox_SetMenu(void);
 void DOSBox_NoMenu(void);
 void DOSBox_RefreshMenu(void);

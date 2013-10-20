@@ -489,15 +489,6 @@ int main(int argc,char * argv[]) {
 };
 ])],AC_MSG_RESULT(yes);AC_DEFINE(C_SET_PRIORITY,1),AC_MSG_RESULT(no))
 
-AH_TEMPLATE(C_HAVE_PHYSFS,[Define to 1 if you have physfs library])
-AC_CHECK_LIB(physfs, PHYSFS_init, have_PHYSFS_init=yes,,)
-if test x$have_PHYSFS_init = xyes ; then
-    AC_DEFINE(C_HAVE_PHYSFS,1)
-    LIBS="$LIBS -lphysfs -lz"
-else
-    AC_MSG_WARN([Can't find PHYSFS_init])
-fi
-
 dnl Some target detection and actions for them
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)

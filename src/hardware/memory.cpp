@@ -780,7 +780,7 @@ extern void* VGA_PageHandler_Func[16];
 
 Bit32u Memory_PageHandler_table[] = 
 {
-	NULL,
+	(Bit32u) NULL,
 	(Bit32u) &ram_page_handler,
 	(Bit32u) &rom_page_handler,
 

@@ -309,7 +309,6 @@ void VGA_Init(Section* sec) {
 
 	vga_force_refresh_rate = -1;
 	str=section->Get_string("forcerate");
-	LOG_MSG("forcerate I got '%s'\n",str.c_str());
 	if (str == "ntsc")
 		vga_force_refresh_rate = 60000.0 / 1001;
 	else if (str == "pal")

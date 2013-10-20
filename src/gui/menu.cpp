@@ -351,48 +351,6 @@ void MountDrive(char drive, const char drive2[DOS_PATHLENGTH]) {
     }
 }
 
-void Mount_Zip(char drive, std::string temp_line) {
-	DOS_Drive * newdrive;
-	std::string str_size;
-	Bit16u sizes[4];
-	Bit8u mediaid;
-	mediaid=0xF8;
-
-	GetDefaultSize();
-	str_size=hdd_size;
-
-	char number[20];const char * scan=str_size.c_str();
-	Bitu index=0;Bitu count=0;
-	/* Parse the str_size string */
-	while (*scan) {
-		if (*scan==',') {
-			number[index]=0;sizes[count++]=atoi(number);
-			index=0;
-		} else number[index++]=*scan;
-		scan++;
-	}
-	number[index]=0;sizes[count++]=atoi(number);
-
-	temp_line.insert(0, 1, ':');
-	temp_line += CROSS_FILESPLIT;
-	if (temp_line.size() > 3 && temp_line[temp_line.size()-1]=='\\') temp_line.erase(temp_line.size()-1,1);
-	if (temp_line[temp_line.size()-1]!=CROSS_FILESPLIT) temp_line+=CROSS_FILESPLIT;
-	Bit8u bit8size=(Bit8u) sizes[1];
-
-#if C_HAVE_PHYSFS
-	newdrive=new physfsDrive(temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid);
-#else
-	newdrive = 0;
-	LOG_MSG("ERROR:This build does not support physfs");
-#endif
-
-	if (!newdrive) E_Exit("DOS:Can't create drive");
-	Drives[drive-'A']=newdrive;
-	mem_writeb(Real2Phys(dos.tables.mediaid)+(drive-'A')*2,newdrive->GetMediaByte());
-	LOG_MSG("%s",newdrive->GetInfo());
-	LOG_MSG("Drive %c is mounted as PHYSFS directory",drive);
-}
-
 void Mount_Img_Floppy(char drive, std::string realpath) {
 	DOS_Drive * newdrive = NULL;
 	imageDisk * newImage = NULL;

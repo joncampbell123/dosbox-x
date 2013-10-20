@@ -38,13 +38,13 @@ void DOS_Shell::ShowPrompt(void) {
 	dir[0] = 0; //DOS_GetCurrentDir doesn't always return something. (if drive is messed up)
 	DOS_GetCurrentDir(0,dir);
 	std::string line;
-	char * promptstr = "\0";
+	const char * promptstr = "\0";
 
 	if(GetEnvStr("PROMPT",line)) {
 		std::string::size_type idx = line.find('=');
 		std::string value=line.substr(idx +1 , std::string::npos);
 		line = std::string(promptstr) + value;
-		promptstr=const_cast<char*>(line.c_str());
+		promptstr = line.c_str();
 	}
 
 	while (*promptstr) {

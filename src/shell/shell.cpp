@@ -422,15 +422,6 @@ public:
 				*name++ = 0;
 				if (access(buffer,F_OK)) goto nomount;
 				upcase(name);
-				if((strstr(name,".ZIP") != 0) || (strstr(name,".7Z") != 0)) {
-					//TODO:Add more extensions?
-					LOG_MSG("Mouting %s as PHYSFS write directory", buffer);
-					autoexec[12].Install(std::string("MOUNT C \"") + buffer + std::string(":") + name
-						+ std::string(":\""));
-					autoexec[13].Install("C:");
-					if(secure) autoexec[14].Install("z:\\config.com -securemode");
-					goto nomount;
-				}
 				autoexec[12].Install(std::string("MOUNT C \"") + buffer + "\"");
 				autoexec[13].Install("C:");
 				/* Save the non-modified filename (so boot and imgmount can use it (long filenames, case sensivitive)) */

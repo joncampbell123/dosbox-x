@@ -356,24 +356,12 @@ public:
 					OPEN_FLAGS_DASD | OPEN_SHARE_DENYNONE | OPEN_ACCESS_READONLY, 0L);
 				DosClose(cdrom_fd);
 				if (rc != NO_ERROR && rc != ERROR_NOT_READY) {
-#if C_HAVE_PHYSFS
-				// Make it a physfs then...
-				is_physfs = true;
-				temp_line.insert(0, 1, ':');
-#else
 				WriteOut(MSG_Get("PROGRAM_MOUNT_ERROR_2"),temp_line.c_str());
 				return;
-#endif
 			}
 #else
-#if C_HAVE_PHYSFS
-				// Make it a physfs then...
-				is_physfs = true;
-				temp_line.insert(0, 1, ':');
-#else
 				WriteOut(MSG_Get("PROGRAM_MOUNT_ERROR_2"),temp_line.c_str());
 				return;
-#endif
 #endif
 
 			}
@@ -413,11 +401,7 @@ public:
 #endif
 				}
 				if (is_physfs) {
-#if C_HAVE_PHYSFS
-					newdrive  = new physfscdromDrive(drive,temp_line.c_str(),sizes[0],bit8size,sizes[2],0,mediaid,error);
-#else
 					LOG_MSG("ERROR:This build does not support physfs");
-#endif
 				} else {
 					newdrive  = new cdromDrive(drive,temp_line.c_str(),sizes[0],bit8size,sizes[2],0,mediaid,error);
 				}
@@ -445,11 +429,7 @@ public:
 				if(temp_line == "/") WriteOut(MSG_Get("PROGRAM_MOUNT_WARNING_OTHER"));
 #endif
 				if (is_physfs) {
-#if C_HAVE_PHYSFS
-					newdrive=new physfsDrive(temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid);
-#else
 					LOG_MSG("ERROR:This build does not support physfs");
-#endif
 				} else {
 					newdrive=new localDrive(temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid);
 				}

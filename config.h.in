@@ -74,9 +74,6 @@
 /* Define to 1 if you have the mprotect function */
 #undef C_HAVE_MPROTECT
 
-/* Define to 1 if you have physfs library */
-#undef C_HAVE_PHYSFS
-
 /* Define to 1 to enable heavy debugging, also have to enable C_DEBUG */
 #undef C_HEAVY_DEBUG
 

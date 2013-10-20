@@ -63,7 +63,6 @@
 #define C_PRINTER 1
 #define C_NE2000 1
 #define C_DIRECTLPT 1
-#define C_HAVE_PHYSFS 1
 #define C_FLUIDSYNTH 1
 #define C_SDL_SOUND 1
 #define __WIN32__ 1
