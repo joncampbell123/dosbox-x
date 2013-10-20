@@ -79,7 +79,6 @@ iterated W    = 18.32 [48 bits]
 #include "cross.h"
 
 #include "voodoo_emu.h"
-#include "voodoo_opengl.h"
 
 #include "voodoo_def.h"
 
