@@ -72,8 +72,8 @@ am__v_AR_1 =
 libparallel_a_AR = $(AR) $(ARFLAGS)
 libparallel_a_LIBADD =
 am_libparallel_a_OBJECTS = parport.$(OBJEXT) directlpt_win32.$(OBJEXT) \
-	directlpt_linux.$(OBJEXT) printer_redir.$(OBJEXT) \
-	printer.$(OBJEXT) printer_charmaps.$(OBJEXT) filelpt.$(OBJEXT)
+	directlpt_linux.$(OBJEXT) printer.$(OBJEXT) \
+	printer_charmaps.$(OBJEXT) filelpt.$(OBJEXT)
 libparallel_a_OBJECTS = $(am_libparallel_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -255,7 +255,7 @@ noinst_LIBRARIES = libparallel.a
 libparallel_a_SOURCES = parport.cpp \
 			directlpt_win32.cpp directlpt_win32.h \
 			directlpt_linux.cpp directlpt_linux.h \
-			printer_redir.cpp printer_redir.h printer_if.h \
+			printer_redir.h printer_if.h \
 			printer.cpp printer.h \
 			printer_charmaps.cpp printer_charmaps.h \
 			filelpt.cpp filelpt.h
@@ -314,7 +314,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parport.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/printer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/printer_charmaps.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/printer_redir.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
