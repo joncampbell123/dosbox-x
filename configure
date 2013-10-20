@@ -748,7 +748,6 @@ enable_debug
 enable_core_inline
 enable_dynamic_core
 enable_fpu
-enable_fpu_x86
 enable_unaligned_memory
 with_dx_headers
 with_dx_libs
@@ -1398,7 +1397,6 @@ Optional Features:
   --enable-core-inline    Enable inlined memory handling in CPU Core
   --disable-dynamic-core  Disable all dynamic cores
   --disable-fpu           Disable fpu support
-  --disable-fpu-x86       Disable x86 assembly fpu core
   --disable-unaligned-memory
                           Disable unaligned memory access
   --disable-shaders       Disable d3d pixelshader support (which requires
@@ -6817,36 +6815,6 @@ $as_echo "yes" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-fi
-
-
-# Check whether --enable-fpu-x86 was given.
-if test "${enable_fpu_x86+set}" = set; then :
-  enableval=$enable_fpu_x86;
-else
-  enable_fpu_x86=yes
-fi
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether x86 assembly fpu core will be enabled" >&5
-$as_echo_n "checking whether x86 assembly fpu core will be enabled... " >&6; }
-if test x$enable_fpu_x86 = xno ; then
-   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-else
-  if test x$enable_fpu = xyes; then
-    if test x$c_targetcpu = xx86 ; then
-        $as_echo "#define C_FPU_X86 1" >>confdefs.h
-
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-    else
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-    fi
-  else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-  fi
 fi
 
 

@@ -54,9 +54,6 @@
 /* Define to 1 to enable floating point emulation */
 #undef C_FPU
 
-/* Define to 1 to use a x86 assembly fpu core */
-#undef C_FPU_X86
-
 /* Determines if the compilers supports attributes for structures. */
 #undef C_HAS_ATTRIBUTE
 
