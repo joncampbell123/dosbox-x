@@ -546,6 +546,5 @@ src/misc/Makefile
 src/shell/Makefile
 src/platform/Makefile
 include/Makefile
-docs/Makefile
 ])
 AC_OUTPUT
