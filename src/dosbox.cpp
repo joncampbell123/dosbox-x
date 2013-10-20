@@ -706,11 +706,7 @@ void DOSBOX_Init(void) {
 	Pstring->Set_help("Vsync rate used if vsync is enabled. Ignored if vsyncmode is set to host (win32).");
 
 	secprop=control->AddSection_prop("cpu",&CPU_Init,true);//done
-	const char* cores[] = { "auto",
-#if (C_DYNAMIC_X86)
-		"dynamic",
-#endif
-		"normal", "full", "simple", 0 };
+	const char* cores[] = { "auto", "normal", "full", "simple", 0 };
 	Pstring = secprop->Add_string("core",Property::Changeable::WhenIdle,"auto");
 	Pstring->Set_values(cores);
 	Pstring->Set_help("CPU Core used in emulation. auto will switch to dynamic if available and\n"

@@ -747,7 +747,6 @@ enable_alsatest
 enable_debug
 enable_core_inline
 enable_dynamic_core
-enable_dynamic_x86
 enable_fpu
 enable_fpu_x86
 enable_unaligned_memory
@@ -1398,7 +1397,6 @@ Optional Features:
   --enable-debug          Enable debug mode
   --enable-core-inline    Enable inlined memory handling in CPU Core
   --disable-dynamic-core  Disable all dynamic cores
-  --disable-dynamic-x86   Disable x86 dynamic cpu core
   --disable-fpu           Disable fpu support
   --disable-fpu-x86       Disable x86 assembly fpu core
   --disable-unaligned-memory
@@ -6802,31 +6800,6 @@ fi
 
 
 
-# Check whether --enable-dynamic-x86 was given.
-if test "${enable_dynamic_x86+set}" = set; then :
-  enableval=$enable_dynamic_x86;
-else
-  enable_dynamic_x86=yes
-fi
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether x86 dynamic cpu core will be enabled" >&5
-$as_echo_n "checking whether x86 dynamic cpu core will be enabled... " >&6; }
-if test x$enable_dynamic_x86 = xno -o x$enable_dynamic_core = xno; then
-   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-else
-  if test x$c_targetcpu = xx86 ; then
-      $as_echo "#define C_DYNAMIC_X86 1" >>confdefs.h
-
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-  else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-  fi
-fi
-
-
 # Check whether --enable-fpu was given.
 if test "${enable_fpu+set}" = set; then :
   enableval=$enable_fpu;
@@ -7654,7 +7627,7 @@ fi
 
 
 
-ac_config_files="$ac_config_files Makefile src/Makefile src/cpu/Makefile src/cpu/core_full/Makefile src/cpu/core_normal/Makefile src/cpu/core_dyn_x86/Makefile src/debug/Makefile src/dos/Makefile src/fpu/Makefile src/gui/Makefile src/hardware/Makefile src/hardware/serialport/Makefile src/hardware/reSID/Makefile src/hardware/parport/Makefile src/ints/Makefile src/libs/Makefile src/libs/zmbv/Makefile src/libs/gui_tk/Makefile src/libs/porttalk/Makefile src/misc/Makefile src/shell/Makefile src/platform/Makefile include/Makefile"
+ac_config_files="$ac_config_files Makefile src/Makefile src/cpu/Makefile src/cpu/core_full/Makefile src/cpu/core_normal/Makefile src/debug/Makefile src/dos/Makefile src/fpu/Makefile src/gui/Makefile src/hardware/Makefile src/hardware/serialport/Makefile src/hardware/reSID/Makefile src/hardware/parport/Makefile src/ints/Makefile src/libs/Makefile src/libs/zmbv/Makefile src/libs/gui_tk/Makefile src/libs/porttalk/Makefile src/misc/Makefile src/shell/Makefile src/platform/Makefile include/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -8397,7 +8370,6 @@ do
     "src/cpu/Makefile") CONFIG_FILES="$CONFIG_FILES src/cpu/Makefile" ;;
     "src/cpu/core_full/Makefile") CONFIG_FILES="$CONFIG_FILES src/cpu/core_full/Makefile" ;;
     "src/cpu/core_normal/Makefile") CONFIG_FILES="$CONFIG_FILES src/cpu/core_normal/Makefile" ;;
-    "src/cpu/core_dyn_x86/Makefile") CONFIG_FILES="$CONFIG_FILES src/cpu/core_dyn_x86/Makefile" ;;
     "src/debug/Makefile") CONFIG_FILES="$CONFIG_FILES src/debug/Makefile" ;;
     "src/dos/Makefile") CONFIG_FILES="$CONFIG_FILES src/dos/Makefile" ;;
     "src/fpu/Makefile") CONFIG_FILES="$CONFIG_FILES src/fpu/Makefile" ;;
