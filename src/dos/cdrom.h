@@ -34,10 +34,6 @@
 #include "SDL.h"
 #include "SDL_thread.h"
 
-#if defined(C_SDL_SOUND)
-#include "SDL_sound.h"
-#endif
-
 #define RAW_SECTOR_SIZE		2352
 #define COOKED_SECTOR_SIZE	2048
 
@@ -159,22 +155,7 @@ private:
 		BinaryFile();
 		std::ifstream *file;
 	};
-	
-	#if defined(C_SDL_SOUND)
-	class AudioFile : public TrackFile {
-	public:
-		AudioFile(const char *filename, bool &error);
-		~AudioFile();
-		bool read(Bit8u *buffer, int seek, int count);
-		int getLength();
-	private:
-		AudioFile();
-		Sound_Sample *sample;
-		int lastCount;
-		int lastSeek;
-	};
-	#endif
-	
+
 	struct Track {
 		int number;
 		int attr;

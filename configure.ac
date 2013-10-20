@@ -443,22 +443,6 @@ else
   AC_MSG_WARN([fluidsynth MIDI synthesis not available])
 fi
 
-AH_TEMPLATE(C_SDL_SOUND,[Define to 1 to enable SDL_sound support])
-AC_CHECK_HEADER(SDL_sound.h,have_SDL_sound_h=yes,)
-AC_CHECK_LIB(SDL_sound, Sound_Init, have_SDL_sound_init=yes,,)
-AC_CHECK_LIB(SDL_sound, Sound_Seek, have_SDL_sound_seek=yes,,)
-AC_CHECK_LIB(SDL_sound, Sound_GetDuration, have_SDL_sound_getduration=yes,,)
-if test x$have_SDL_sound_h = xyes -a x$have_SDL_sound_init = xyes -a x$have_SDL_sound_getduration = xyes ; then
-  if test x$have_SDL_sound_seek = xyes ; then
-    LIBS="-lSDL_sound $LIBS"
-    AC_DEFINE(C_SDL_SOUND,1)
-   else 
-     AC_MSG_WARN([Can't find SoundSeek in libSDL_Sound, libSDL_sound support disabled])
-   fi
-else
-  AC_MSG_WARN([Can't find libSDL_sound, libSDL_sound support disabled])
-fi
-
 dnl Check for mprotect. Needed for 64 bits linux 
 AH_TEMPLATE(C_HAVE_MPROTECT,[Define to 1 if you have the mprotect function])
 AC_CHECK_HEADER([sys/mman.h], [
