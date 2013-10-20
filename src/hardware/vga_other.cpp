@@ -311,9 +311,9 @@ static void update_cga16_color(void) {
 	}
 	Bitu CGApal[4] = {
 		overscan,
-		2 + (color_sel||bw ? 1 : 0) + (background_i ? 8 : 0),
-		4 + (color_sel&&!bw? 1 : 0) + (background_i ? 8 : 0),
-		6 + (color_sel||bw ? 1 : 0) + (background_i ? 8 : 0)
+		(Bitu)(2 + (color_sel||bw ? 1 : 0) + (background_i ? 8 : 0)),
+		(Bitu)(4 + (color_sel&&!bw? 1 : 0) + (background_i ? 8 : 0)),
+		(Bitu)(6 + (color_sel||bw ? 1 : 0) + (background_i ? 8 : 0))
 	};
 	for (Bit8u x=0; x<4; x++) {	 // Position of pixel in question
 		bool even = (x & 1) == 0;
