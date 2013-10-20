@@ -276,7 +276,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 EXTRA_DIST = autogen.sh
-SUBDIRS = src include docs visualc_net
+SUBDIRS = src include docs
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 

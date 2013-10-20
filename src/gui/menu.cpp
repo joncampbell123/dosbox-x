@@ -1155,12 +1155,7 @@ int Reflect_Menu(void) {
 			safe_strncpy(res, windowresolution, sizeof(res));
 			windowresolution = lowcase(res);//so x and X are allowed
 			CheckMenuItem(m_handle, ID_USESCANCODES, (sec->Get_bool("usescancodes")) ? MF_CHECKED : MF_STRING);
-#if defined (xBRZ_w_TBB)
-			CheckMenuItem(m_handle, ID_NONE, !render.xbrz_using && SCALER_SW_2(scalerOpNormal, 1) ? MF_CHECKED : MF_STRING);
-			CheckMenuItem(m_handle, ID_XBRZ, render.xbrz_using && SCALER_SW_2(scalerOpNormal, 1) ? MF_CHECKED : MF_STRING);
-#else
 			CheckMenuItem(m_handle, ID_NONE, SCALER_SW_2(scalerOpNormal, 1) ? MF_CHECKED : MF_STRING);
-#endif
 			CheckMenuItem(m_handle, ID_NORMAL2X, SCALER_SW_2(scalerOpNormal, 2) ? MF_CHECKED : MF_STRING);
 			CheckMenuItem(m_handle, ID_NORMAL3X, SCALER_SW_2(scalerOpNormal, 3) ? MF_CHECKED : MF_STRING);
 			CheckMenuItem(m_handle, ID_NORMAL4X, SCALER_SW_2(scalerOpNormal, 4) ? MF_CHECKED : MF_STRING);
@@ -1702,12 +1697,7 @@ void MSG_Loop(void) {
 				GFX_SetTitle(CPU_CycleMax, -1, -1, false);
 				break;
 			case ID_TOGGLE: ToggleMenu(true); break;
-#if defined (xBRZ_w_TBB)
-			case ID_XBRZ: if (render.xbrz_using) break; SetVal("render", "scaler", !render.scale.forced ? "xbrz" : "xbrz forced"); break;
-			case ID_NONE: if (((render.scale.op == scalerOpNormal) && (render.scale.size == 1)) && !render.xbrz_using && !render.scale.hardware) break; SetVal("render", "scaler", !render.scale.forced ? "none" : "none forced"); break;
-#else
 			case ID_NONE: SCALER_SW(scalerOpNormal, 1) break; SetVal("render", "scaler", !render.scale.forced ? "none" : "none forced"); break;
-#endif
 			case ID_NORMAL2X: SCALER_SW(scalerOpNormal, 2) break; SetVal("render", "scaler", !render.scale.forced ? "normal2x" : "normal2x forced"); break;
 			case ID_NORMAL3X: SCALER_SW(scalerOpNormal, 3) break; SetVal("render", "scaler", !render.scale.forced ? "normal3x" : "normal3x forced"); break;
 			case ID_NORMAL4X: SCALER_SW(scalerOpNormal, 4) break; SetVal("render", "scaler", !render.scale.forced ? "normal4x" : "normal4x forced"); break;

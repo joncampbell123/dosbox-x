@@ -25,9 +25,6 @@ CXXFLAGS="$CXXFLAGS -std=gnu++11"
 dnl Scalars in the code use MMX/SSE intrinsics
 CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
 
-dnl this uses Thread Building Blocks, apparently
-LDFLAGS="$LDFLAGS -ltbb"
-
 dnl Some needed libaries for OS2
 dnl perharps join this with the other target depended checks. move them upwards
 if test x$host = xi386-pc-os2-emx ; then
@@ -604,8 +601,6 @@ src/libs/porttalk/Makefile
 src/misc/Makefile
 src/shell/Makefile
 src/platform/Makefile
-src/platform/visualc/Makefile
-visualc_net/Makefile
 include/Makefile
 docs/Makefile
 ])

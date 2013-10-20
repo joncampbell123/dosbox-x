@@ -723,17 +723,7 @@ void RENDER_Init(Section * sec) {
 	render.scale.forced = false;
 	if(f == "forced") render.scale.forced = true;
    
-#if defined (xBRZ_w_TBB)
-	render.xbrz_using=false;
-#endif
 	if (scaler == "none") { render.scale.op = scalerOpNormal; render.scale.size = 1; render.scale.hardware=false; }
-#if defined (xBRZ_w_TBB)
-	else if (scaler == "xbrz") {
-		render.xbrz_using=true;
-		render.scale.op = scalerOpNormal;render.scale.size = 1;
-		LOG_MSG("To enable xBRZ scaler, set output to surface and fullscreen to true.");
-	}
-#endif
 	else if (scaler == "normal2x") { render.scale.op = scalerOpNormal; render.scale.size = 2; render.scale.hardware=false; }
 	else if (scaler == "normal3x") { render.scale.op = scalerOpNormal; render.scale.size = 3; render.scale.hardware=false; }
 	else if (scaler == "normal4x") { render.scale.op = scalerOpNormal; render.scale.size = 4; render.scale.hardware=false; }

@@ -687,9 +687,6 @@ void DOSBOX_Init(void) {
 		"tv2x", "tv3x", "rgb2x", "rgb3x", "scan2x", "scan3x",
 #endif
 		"hardware_none", "hardware2x", "hardware3x", "hardware4x", "hardware5x",
-#if defined (xBRZ_w_TBB)
-		"xbrz",
-#endif
 		0 };
 	Pstring->Set_values(scalers);
 

@@ -4931,8 +4931,6 @@ CXXFLAGS="$CXXFLAGS -std=gnu++11"
 
 CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
 
-LDFLAGS="$LDFLAGS -ltbb"
-
 if test x$host = xi386-pc-os2-emx ; then
     CXXFLAGS="$CXXFLAGS -Zmt"
     LDFLAGS="$LDFLAGS -Zomf -Zmt"
@@ -8020,7 +8018,7 @@ fi
 
 
 
-ac_config_files="$ac_config_files Makefile src/Makefile src/cpu/Makefile src/cpu/core_full/Makefile src/cpu/core_normal/Makefile src/cpu/core_dyn_x86/Makefile src/cpu/core_dynrec/Makefile src/debug/Makefile src/dos/Makefile src/fpu/Makefile src/gui/Makefile src/hardware/Makefile src/hardware/serialport/Makefile src/hardware/reSID/Makefile src/hardware/parport/Makefile src/ints/Makefile src/libs/Makefile src/libs/zmbv/Makefile src/libs/gui_tk/Makefile src/libs/porttalk/Makefile src/misc/Makefile src/shell/Makefile src/platform/Makefile src/platform/visualc/Makefile visualc_net/Makefile include/Makefile docs/Makefile"
+ac_config_files="$ac_config_files Makefile src/Makefile src/cpu/Makefile src/cpu/core_full/Makefile src/cpu/core_normal/Makefile src/cpu/core_dyn_x86/Makefile src/cpu/core_dynrec/Makefile src/debug/Makefile src/dos/Makefile src/fpu/Makefile src/gui/Makefile src/hardware/Makefile src/hardware/serialport/Makefile src/hardware/reSID/Makefile src/hardware/parport/Makefile src/ints/Makefile src/libs/Makefile src/libs/zmbv/Makefile src/libs/gui_tk/Makefile src/libs/porttalk/Makefile src/misc/Makefile src/shell/Makefile src/platform/Makefile include/Makefile docs/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -8781,8 +8779,6 @@ do
     "src/misc/Makefile") CONFIG_FILES="$CONFIG_FILES src/misc/Makefile" ;;
     "src/shell/Makefile") CONFIG_FILES="$CONFIG_FILES src/shell/Makefile" ;;
     "src/platform/Makefile") CONFIG_FILES="$CONFIG_FILES src/platform/Makefile" ;;
-    "src/platform/visualc/Makefile") CONFIG_FILES="$CONFIG_FILES src/platform/visualc/Makefile" ;;
-    "visualc_net/Makefile") CONFIG_FILES="$CONFIG_FILES visualc_net/Makefile" ;;
     "include/Makefile") CONFIG_FILES="$CONFIG_FILES include/Makefile" ;;
     "docs/Makefile") CONFIG_FILES="$CONFIG_FILES docs/Makefile" ;;
 
