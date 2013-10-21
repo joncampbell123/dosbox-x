@@ -50,6 +50,8 @@ public:
 	Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data);
 	Bit8u Write_AbsoluteSector(Bit32u sectnum, void * data);
 
+	void Set_Reserved_Cylinders(Bitu resCyl);
+	Bit32u Get_Reserved_Cylinders();
 	void Set_Geometry(Bit32u setHeads, Bit32u setCyl, Bit32u setSect, Bit32u setSectSize);
 	void Get_Geometry(Bit32u * getHeads, Bit32u *getCyl, Bit32u *getSect, Bit32u *getSectSize);
 	Bit8u GetBiosType(void);
@@ -65,6 +67,7 @@ public:
 
 	Bit32u sector_size;
 	Bit32u heads,cylinders,sectors;
+	Bit32u reserved_cylinders;
 	Bit64u current_fpos;
 };
 

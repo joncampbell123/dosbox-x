@@ -1935,9 +1935,17 @@ public:
 		if (type=="floppy" || type=="hdd" || type=="iso") {
 			Bit16u sizes[4];
 			bool imgsizedetect=false;
-			
+			int reserved_cylinders=0;
+			std::string reservecyl;
 			std::string str_size;
 			mediaid=0xF8;
+
+			/* DOSBox-X: to please certain 32-bit drivers like Windows 3.1 WDCTRL, or to emulate older h/w configurations,
+			 *           we allow the user or script to specify the number of reserved cylinders. older BIOSes were known
+			 *           to subtract 1 or 2 additional cylinders from the total in the fixed disk param table. the -reservecyl
+			 *           option allows the number we subtract from the total in INT 13H to be set */
+			cmd->FindString("-reservecyl",reservecyl,true);
+			if (reservecyl != "") reserved_cylinders = atoi(reservecyl.c_str());
 
 			/* DOSBox-X: we allow "-ide" to allow controlling which IDE controller and slot to attach the hard disk/CD-ROM to */
 			cmd->FindString("-ide",ideattach,true);
@@ -2306,6 +2314,7 @@ public:
 
 				newImage = new imageDisk(newDisk, (Bit8u *)temp_line.c_str(), imagesize, (imagesize > 2880));
 				if(imagesize>2880) newImage->Set_Geometry(sizes[2],sizes[3],sizes[1],sizes[0]);
+				if (reserved_cylinders > 0) newImage->Set_Reserved_Cylinders(reserved_cylinders);
 			}
 		} else {
 			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_TYPE_UNSUPPORTED"),type.c_str());

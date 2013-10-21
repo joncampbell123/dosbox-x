@@ -201,11 +201,20 @@ Bit8u imageDisk::Write_AbsoluteSector(Bit32u sectnum, void *data) {
 
 }
 
+void imageDisk::Set_Reserved_Cylinders(Bitu resCyl) {
+	reserved_cylinders = resCyl;
+}
+
+Bit32u imageDisk::Get_Reserved_Cylinders() {
+	return reserved_cylinders;
+}
+
 imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk) {
 	heads = 0;
 	cylinders = 0;
 	sectors = 0;
 	sector_size = 512;
+	reserved_cylinders = 0;
 	diskimg = imgFile;
 	
 	memset(diskname,0,512);
@@ -519,6 +528,15 @@ static Bitu INT13_DiskHandler(void) {
 		else tmpcyl--;		// cylinder count -> max cylinder
 		if (tmpheads==0) LOG(LOG_BIOS,LOG_ERROR)("INT13 DrivParm: head count zero!");
 		else tmpheads--;	// head count -> max head
+
+		/* older BIOSes were known to subtract 1 or 2 additional "reserved" cylinders.
+		 * some code, such as Windows 3.1 WDCTRL, might assume that fact. emulate that here */
+		{
+			Bit32u reserv = imageDiskList[drivenum]->Get_Reserved_Cylinders();
+			if (tmpcyl > reserv) tmpcyl -= reserv;
+			else tmpcyl = 0;
+		}
+
 		reg_ch = (Bit8u)(tmpcyl & 0xff);
 		reg_cl = (Bit8u)(((tmpcyl >> 2) & 0xc0) | (tmpsect & 0x3f)); 
 		reg_dh = (Bit8u)tmpheads;
