@@ -531,8 +531,8 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_SUBST_FAILURE","SUBST failed. You either made an error in your commandline or the target drive is already used.\nIt's only possible to use SUBST on Local drives\n");
 
 	MSG_Add("SHELL_STARTUP_BEGIN",
-		"\033[35;1m DOSBox SVN-Daum [http://ykhwong.x-y.net]\033[37m\n"
-		"\033[33m UPDATED: JULY 25, 2013\033[37m\n"
+		"\033[35;1m DOSBox-X\033[37m\n"
+		"\033[33m UPDATED: October 20, 2013\033[37m\n"
 		"\033[44;1m\xC9\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
 		"\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
 		"\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBB\n"
