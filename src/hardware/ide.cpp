@@ -1478,6 +1478,8 @@ void IDEATADevice::writecommand(uint8_t cmd) {
 		return;
 	}
 
+	fprintf(stderr,"IDE ATA command %02x dh=0x%02x count=0x%02x lba/chs=%02x/%02x%02x\n",cmd,
+		drivehead,count,lba[0],lba[1],lba[2]);
 	LOG(LOG_SB,LOG_NORMAL)("IDE ATA command %02x",cmd);
 
 	/* if the drive is asleep, then writing a command wakes it up */
@@ -1511,7 +1513,7 @@ void IDEATADevice::writecommand(uint8_t cmd) {
 			PIC_AddEvent(IDE_DelayedCommand,ide_identify_command_delay,controller->interface_index);
 			break;
 		default:
-			//fprintf(stderr,"Unknown IDE/ATA command %02X\n",cmd);
+			fprintf(stderr,"Unknown IDE/ATA command %02X\n",cmd);
 			abort_error();
 			allow_writing = true;
 			controller->raise_irq();
@@ -1800,6 +1802,11 @@ static void IDE_Init(Section* sec,unsigned char interface) {
 
 	ide = idecontroller[interface] = new IDEController(sec,interface);
 	ide->install_io_port();
+
+	if (interface == 0)
+		PIC_SetIRQMask(14,false);
+	else if (interface == 1)
+		PIC_SetIRQMask(15,false);
 }
 
 void IDE_Primary_Init(Section *sec) {
