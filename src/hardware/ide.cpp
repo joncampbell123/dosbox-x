@@ -282,13 +282,7 @@ public:
 static IDEController* idecontroller[MAX_IDE_CONTROLLERS]={NULL,NULL,NULL,NULL};
 
 static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/);
-/*
-#if C_DEBUG
-#define fprintf silent_fprintf
-static size_t silent_fprintf(FILE *f,const char *fmt,...) {
-}
-#endif
-*/
+
 /* when the ATAPI command has been accepted, and the timeout has passed */
 void IDEATAPICDROMDevice::on_atapi_busy_time() {
 	//fprintf(stderr,"ATAPI busy time %02X\n",atapi_cmd[0]);
