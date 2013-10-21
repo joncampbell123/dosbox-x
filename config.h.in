@@ -48,6 +48,9 @@
    */
 #undef C_DIRECTSERIAL
 
+/* Define to 1 to use x86 dynamic cpu core */
+#undef C_DYNAMIC_X86
+
 /* Define to 1 to enable fluidsynth MIDI synthesis */
 #undef C_FLUIDSYNTH
 

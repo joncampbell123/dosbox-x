@@ -148,6 +148,13 @@ void DOS_Terminate(Bit16u pspseg,bool tsr,Bit8u exitcode) {
 	} else {
 		GFX_SetTitle(-1,-1,-1,false);
 	}
+#if (C_DYNAMIC_X86)
+	if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CORE) {
+		cpudecoder=&CPU_Core_Normal_Run;
+		CPU_CycleLeft=0;
+		CPU_Cycles=0;
+	}
+#endif
 
 	return;
 }

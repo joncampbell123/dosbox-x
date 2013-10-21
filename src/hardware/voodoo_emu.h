@@ -51,4 +51,8 @@ extern bool Voodoo_GetRetrace();
 extern double Voodoo_GetVRetracePosition();
 extern double Voodoo_GetHRetracePosition();
 
+
+extern void CPU_Core_Dyn_X86_SaveDHFPUState(void);
+extern void CPU_Core_Dyn_X86_RestoreDHFPUState(void);
+
 #endif

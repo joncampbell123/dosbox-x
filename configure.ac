@@ -271,6 +271,20 @@ esac
 
 AC_ARG_ENABLE(dynamic-core,AC_HELP_STRING([--disable-dynamic-core],[Disable all dynamic cores]),,enable_dynamic_core=yes)
 
+AH_TEMPLATE(C_DYNAMIC_X86,[Define to 1 to use x86 dynamic cpu core])
+AC_ARG_ENABLE(dynamic-x86,AC_HELP_STRING([--disable-dynamic-x86],[Disable x86 dynamic cpu core]),,enable_dynamic_x86=yes)
+AC_MSG_CHECKING(whether x86 dynamic cpu core will be enabled) 
+if test x$enable_dynamic_x86 = xno -o x$enable_dynamic_core = xno; then 
+   AC_MSG_RESULT(no)
+else
+  if test x$c_targetcpu = xx86 ; then
+      AC_DEFINE(C_DYNAMIC_X86,1)
+      AC_MSG_RESULT(yes)
+  else
+      AC_MSG_RESULT(no)
+  fi
+fi
+
 AH_TEMPLATE(C_FPU,[Define to 1 to enable floating point emulation])
 AC_ARG_ENABLE(fpu,AC_HELP_STRING([--disable-fpu],[Disable fpu support]),,enable_fpu=yes)
 AC_MSG_CHECKING(whether fpu emulation will be enabled) 
@@ -471,6 +485,7 @@ src/Makefile
 src/cpu/Makefile
 src/cpu/core_full/Makefile
 src/cpu/core_normal/Makefile
+src/cpu/core_dyn_x86/Makefile
 src/debug/Makefile
 src/dos/Makefile
 src/fpu/Makefile
