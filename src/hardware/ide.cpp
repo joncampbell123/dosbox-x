@@ -583,13 +583,13 @@ void IDEATADevice::io_completion() {
 			/* cause another delay, another sector read */
 			state = IDE_DEV_BUSY;
 			status = IDE_STATUS_BUSY;
-			PIC_AddEvent(IDE_DelayedCommand,1/*ms*/,controller->interface_index);
+			PIC_AddEvent(IDE_DelayedCommand,0.1/*ms*/,controller->interface_index);
 			break;
 		case 0x30:/* WRITE SECTOR */
 			/* this is where the drive has accepted the sector, lowers DRQ, and begins executing the command */
 			state = IDE_DEV_BUSY;
 			status = IDE_STATUS_BUSY;
-			PIC_AddEvent(IDE_DelayedCommand,1/*ms*/,controller->interface_index);
+			PIC_AddEvent(IDE_DelayedCommand,0.15/*ms*/,controller->interface_index);
 			break;
 		default: /* most commands: signal drive ready, return to ready state */
 			/* NTS: Some MS-DOS CD-ROM drivers will loop endlessly if we never set "drive seek complete"
@@ -1754,7 +1754,7 @@ void IDEATADevice::writecommand(uint8_t cmd) {
 		case 0x20: /* READ SECTOR */
 			state = IDE_DEV_BUSY;
 			status = IDE_STATUS_BUSY;
-			PIC_AddEvent(IDE_DelayedCommand,1/*ms*/,controller->interface_index);
+			PIC_AddEvent(IDE_DelayedCommand,0.1/*ms*/,controller->interface_index);
 			break;
 		case 0x30: /* WRITE SECTOR */
 			/* the drive does NOT signal an interrupt. it sets DRQ and waits for a sector
