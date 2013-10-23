@@ -349,6 +349,8 @@ static void readDAP(Bit16u seg, Bit16u off) {
 	}
 }
 
+void IDE_ResetDiskByBIOS(unsigned char disk);
+
 static Bitu INT13_DiskHandler(void) {
 	Bit16u segat, bufptr;
 	Bit8u sectbuf[512];
@@ -386,6 +388,7 @@ static Bitu INT13_DiskHandler(void) {
 				return CBRET_NONE;
 			}
 			if (machine!=MCH_PCJR && reg_dl<0x80) reg_ip++;
+			if (reg_dl >= 0x80) IDE_ResetDiskByBIOS(reg_dl);
 			last_status = 0x00;
 			CALLBACK_SCF(false);
 		}

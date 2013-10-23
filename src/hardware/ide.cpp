@@ -1144,6 +1144,53 @@ static IDEDevice* GetIDESelectedDevice(IDEController *ide) {
 	return ide->device[ide->select];
 }
 
+static void ide_baseio_w(Bitu port,Bitu val,Bitu iolen);
+
+/* this is called by src/ints/bios_disk.cpp whenever INT 13h AH=0x00 is called on a hard disk.
+ * this gives us a chance to update IDE state as if the BIOS had gone through with a full disk reset as requested. */
+void IDE_ResetDiskByBIOS(unsigned char disk) {
+	IDEController *ide;
+	IDEDevice *dev;
+	Bitu idx,ms;
+
+	if (disk < 0x80) return;
+
+	for (idx=0;idx < MAX_IDE_CONTROLLERS;idx++) {
+		ide = GetIDEController(idx);
+		if (ide == NULL) continue;
+
+		/* TODO: Print a warning message if the IDE controller is busy (debug/warning message) */
+
+		/* for master/slave device... */
+		for (ms=0;ms < 2;ms++) {
+			dev = ide->device[ms];
+			if (dev == NULL) continue;
+
+			/* TODO: Print a warning message if the IDE device is busy or in the middle of a command */
+
+			/* TODO: Forcibly device-reset the IDE device */
+
+			ide_baseio_w(ide->base_io+6,0x00+(ms<<4),1); /* re-use our I/O handler to select IDE device */
+
+			if (dev->type == IDE_TYPE_HDD) {
+				IDEATADevice *ata = (IDEATADevice*)dev;
+
+				if ((ata->bios_disk_index-2) == (disk-0x80)) {
+					fprintf(stderr,"IDE %d%c reset by BIOS disk 0x%02x\n",
+						idx+1,ms?'s':'m',
+						disk);
+
+					/* issue the DEVICE RESET command */
+					dev->writecommand(0x08);
+
+					/* and then immediately clear the IRQ */
+					ide->lower_irq();
+				}
+			}
+		}
+	}
+}
+
 static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 	IDEDevice *dev = GetIDESelectedDevice(GetIDEController(idx));
 	if (dev == NULL) return;
@@ -1349,7 +1396,7 @@ void IDEDevice::abort_error() {
 	state = IDE_DEV_READY;
 	allow_writing = true;
 	command = 0x00;
-	status = IDE_STATUS_ERROR | IDE_STATUS_DRIVE_READY/* | IDE_STATUS_DRIVE_SEEK_COMPLETE*/;
+	status = IDE_STATUS_ERROR | IDE_STATUS_DRIVE_READY | IDE_STATUS_DRIVE_SEEK_COMPLETE;
 }
 
 void IDEDevice::interface_wakeup() {
@@ -1491,11 +1538,9 @@ void IDEATADevice::writecommand(uint8_t cmd) {
 	command = cmd;
 	switch (cmd) {
 		case 0x08: /* DEVICE RESET */
-			/* magical incantation taken from QEMU source code.
-			   NOTE to ATA standards body: Your documentation sucks */
-			status = IDE_STATUS_DRIVE_READY|IDE_STATUS_ERROR;
+			status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
 			drivehead &= 0xF0; controller->drivehead = drivehead;
-			count = 0x01; lba[0] = 0x01;
+			count = 0x01; lba[0] = 0x01; feature = 0x00;
 			lba[1] = lba[2] = 0;
 			/* NTS: Testing suggests that ATA hard drives DO fire an IRQ at this stage.
 			        In fact, Windows 95 won't detect hard drives that don't fire an IRQ in desponse */
