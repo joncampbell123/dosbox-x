@@ -350,6 +350,7 @@ static void readDAP(Bit16u seg, Bit16u off) {
 }
 
 void IDE_ResetDiskByBIOS(unsigned char disk);
+void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int head,unsigned sect);
 
 static Bitu INT13_DiskHandler(void) {
 	Bit16u segat, bufptr;
@@ -427,6 +428,10 @@ static Bitu INT13_DiskHandler(void) {
 		bufptr = reg_bx;
 		for(i=0;i<reg_al;i++) {
 			last_status = imageDiskList[drivenum]->Read_Sector((Bit32u)reg_dh, (Bit32u)(reg_ch | ((reg_cl & 0xc0)<< 2)), (Bit32u)((reg_cl & 63)+i), sectbuf);
+
+			/* IDE emulation: simulate change of IDE state that would occur on a real machine after INT 13h */
+			IDE_EmuINT13DiskReadByBIOS(reg_dl, (Bit32u)(reg_ch | ((reg_cl & 0xc0)<< 2)), (Bit32u)reg_dh, (Bit32u)((reg_cl & 63)+i));
+
 			if((last_status != 0x00) || (killRead)) {
 				LOG_MSG("Error in disk read");
 				killRead = false;

@@ -528,6 +528,19 @@ void IDEATADevice::io_completion() {
 	/* depending on the command, either continue it or finish up */
 	switch (command) {
 		case 0x20:/* READ SECTOR */
+			/* OK, decrement count, increment address */
+			/* NTS: Remember that count == 0 means the host wanted to transfer 256 sectors */
+			if ((count&0xFF) == 0) count = 255;
+			else if ((count&0xFF) == 1) {
+				/* end of the transfer */
+				count = 0;
+				status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+				state = IDE_DEV_READY;
+				allow_writing = true;
+				return;
+			}
+			else count--;
+
 			/* having read the sector, increment the disk address. we do it in a way
 			   the host will read back the "current" position.
 
@@ -570,19 +583,6 @@ void IDEATADevice::io_completion() {
 					}
 				}
 			}
-
-			/* OK, decrement count, increment address */
-			/* NTS: Remember that count == 0 means the host wanted to transfer 256 sectors */
-			if ((count&0xFF) == 0) count = 255;
-			else if ((count&0xFF) == 1) {
-				/* end of the transfer */
-				count = 0;
-				status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-				state = IDE_DEV_READY;
-				allow_writing = true;
-				return;
-			}
-			else count--;
 
 			/* cause another delay, another sector read */
 			state = IDE_DEV_BUSY;
@@ -1146,6 +1146,55 @@ static IDEDevice* GetIDESelectedDevice(IDEController *ide) {
 
 static void ide_baseio_w(Bitu port,Bitu val,Bitu iolen);
 
+/* this is called after INT 13h AH=0x02 READ DISK to change IDE state to simulate the BIOS in action.
+ * this is needed for old "32-bit disk drivers" like WDCTRL in Windows 3.11 Windows for Workgroups,
+ * which issues INT 13h to read-test and then reads IDE registers to see if they match expectations */
+void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int head,unsigned sect) {
+	IDEController *ide;
+	IDEDevice *dev;
+	Bitu idx,ms;
+
+	if (disk < 0x80) return;
+
+	for (idx=0;idx < MAX_IDE_CONTROLLERS;idx++) {
+		ide = GetIDEController(idx);
+		if (ide == NULL) continue;
+
+		/* TODO: Print a warning message if the IDE controller is busy (debug/warning message) */
+
+		/* for master/slave device... */
+		for (ms=0;ms < 2;ms++) {
+			dev = ide->device[ms];
+			if (dev == NULL) continue;
+
+			/* TODO: Print a warning message if the IDE device is busy or in the middle of a command */
+
+			/* TODO: Forcibly device-reset the IDE device */
+
+			ide_baseio_w(ide->base_io+6,0x00+(ms<<4),1); /* re-use our I/O handler to select IDE device */
+
+			if (dev->type == IDE_TYPE_HDD) {
+				IDEATADevice *ata = (IDEATADevice*)dev;
+
+				if ((ata->bios_disk_index-2) == (disk-0x80)) {
+					/* hack IDE state as if a BIOS executing IDE disk routines.
+					 * This is required if we want IDE emulation to work with Windows 3.11 Windows for Workgroups 32-bit disk access (WDCTRL),
+					 * because the driver "tests" the controller by issuing INT 13h calls then reading back IDE registers to see if
+					 * they match the C/H/S it requested */
+					dev->feature = 0x00;		/* clear error (WDCTRL test phase 5/C/13) */
+					dev->count = 0x00;		/* clear sector count (WDCTRL test phase 6/D/14) */
+					dev->lba[0] = sect;		/* leave sector number the same (WDCTRL test phase 7/E/15) */
+					dev->lba[1] = cyl;		/* leave cylinder the same (WDCTRL test phase 8/F/16) */
+					dev->lba[2] = cyl >> 8;		/* ...ditto */
+					ide->drivehead = dev->drivehead = 0xA0 | (ms<<4) | head; /* drive head and master/slave (WDCTRL test phase 9/10/17) */
+					dev->status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE; /* status (WDCTRL test phase A/11/18) */
+					dev->allow_writing = true;
+				}
+			}
+		}
+	}
+}
+
 /* this is called by src/ints/bios_disk.cpp whenever INT 13h AH=0x00 is called on a hard disk.
  * this gives us a chance to update IDE state as if the BIOS had gone through with a full disk reset as requested. */
 void IDE_ResetDiskByBIOS(unsigned char disk) {
@@ -1525,8 +1574,8 @@ void IDEATADevice::writecommand(uint8_t cmd) {
 		return;
 	}
 
-	fprintf(stderr,"IDE ATA command %02x dh=0x%02x count=0x%02x lba/chs=%02x/%02x%02x\n",cmd,
-		drivehead,count,lba[0],lba[1],lba[2]);
+	fprintf(stderr,"IDE ATA command %02x dh=0x%02x count=0x%02x chs=%02x/%02x/%02x\n",cmd,
+		drivehead,count,lba[2],lba[1],lba[0]);
 	LOG(LOG_SB,LOG_NORMAL)("IDE ATA command %02x",cmd);
 
 	/* if the drive is asleep, then writing a command wakes it up */
@@ -1735,7 +1784,7 @@ static Bitu _ide_baseio_r(Bitu port,Bitu iolen) {
 
 static Bitu ide_baseio_r(Bitu port,Bitu iolen) {
 	Bitu r = _ide_baseio_r(port,iolen);
-//	fprintf(stderr," > %02X\n",r);
+//	fprintf(stderr,"IDE base[0x%03x] > %02X\n",port,r);
 	return r;
 }
 
