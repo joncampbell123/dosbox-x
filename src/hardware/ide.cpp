@@ -214,6 +214,7 @@ public:
 	virtual void data_write(Bitu v,Bitu iolen);/* write to 1F0h data port to IDE device */
 	virtual void generate_identify_device();
 	virtual void prepare_read(Bitu offset,Bitu size);
+	virtual void prepare_write(Bitu offset,Bitu size);
 	virtual void io_completion();
 public:
 	Bitu heads,sects,cyls;
@@ -530,8 +531,7 @@ void IDEATADevice::io_completion() {
 		case 0x20:/* READ SECTOR */
 			/* OK, decrement count, increment address */
 			/* NTS: Remember that count == 0 means the host wanted to transfer 256 sectors */
-			if ((count&0xFF) == 0) count = 255;
-			else if ((count&0xFF) == 1) {
+			if ((count&0xFF) == 1) {
 				/* end of the transfer */
 				count = 0;
 				status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
@@ -539,16 +539,10 @@ void IDEATADevice::io_completion() {
 				allow_writing = true;
 				return;
 			}
+			else if ((count&0xFF) == 0) count = 255;
 			else count--;
 
-			/* having read the sector, increment the disk address. we do it in a way
-			   the host will read back the "current" position.
-
-			   believe it or not, Windows 95 expects this behavior, and will flag our
-			   ATA emulation as faulty if it doesn't see it, making this our form of
-			   sucking Microsoft cock. It also fits in with this link:
-
-			   http://www.os2museum.com/wp/?p=935 */
+			/* ATA-1 behavior: increment the LBA address or the C/H/S address */
 			if (drivehead_is_lba(drivehead)) {
 				if (((++lba[0])&0xFF) == 0) {/* increment. carry? */
 					if (((++lba[1])&0xFF) == 0) {/*increment, carry? */
@@ -557,6 +551,7 @@ void IDEATADevice::io_completion() {
 								drivehead++;
 							}
 							else {
+								fprintf(stderr,"READ LBA advance error\n");
 								abort_error();
 								return;
 							}
@@ -573,6 +568,7 @@ void IDEATADevice::io_completion() {
 						drivehead &= 0xF0;
 						if (((++lba[1])&0xFF) == 0) { /* if 7:0 carry then incrment 15:8 */
 							if (((++lba[2])&0xFF) == 0) {
+								fprintf(stderr,"READ C/H/S advance error\n");
 								abort_error();
 								return;
 							}
@@ -587,7 +583,13 @@ void IDEATADevice::io_completion() {
 			/* cause another delay, another sector read */
 			state = IDE_DEV_BUSY;
 			status = IDE_STATUS_BUSY;
-			PIC_AddEvent(IDE_DelayedCommand,2/*ms*/,controller->interface_index);
+			PIC_AddEvent(IDE_DelayedCommand,1/*ms*/,controller->interface_index);
+			break;
+		case 0x30:/* WRITE SECTOR */
+			/* this is where the drive has accepted the sector, lowers DRQ, and begins executing the command */
+			state = IDE_DEV_BUSY;
+			status = IDE_STATUS_BUSY;
+			PIC_AddEvent(IDE_DelayedCommand,1/*ms*/,controller->interface_index);
 			break;
 		default: /* most commands: signal drive ready, return to ready state */
 			/* NTS: Some MS-DOS CD-ROM drivers will loop endlessly if we never set "drive seek complete"
@@ -794,8 +796,7 @@ Bitu IDEATADevice::data_read(Bitu iolen) {
 
 //	fprintf(stderr,"READ %u/%u len=%u\n",sector_i,sector_total,iolen);
 
-	/* TODO: The MS-DOS CD-ROM driver I'm testing against uses byte-wide I/O during identification?!? REALLY?!?
-		 I thought you weren't supposed to do that! */
+	/* NTS: Some MS-DOS CD-ROM drivers like OAKCDROM.SYS use byte-wide I/O for the initial identification */
 	if (iolen >= 2) {
 		w = host_readw(sector+sector_i);
 		sector_i += 2;
@@ -811,9 +812,43 @@ Bitu IDEATADevice::data_read(Bitu iolen) {
 }
 
 void IDEATADevice::data_write(Bitu v,Bitu iolen) {
+	if (state != IDE_DEV_DATA_WRITE) {
+		fprintf(stderr,"IDE ATA warning: data write when device not in DATA_WRITE state\n");
+		return;
+	}
+	if (!(status & IDE_STATUS_DRQ)) {
+		fprintf(stderr,"IDE ATA warning: data write with DRQ=0\n");
+		return;
+	}
+	if (sector_i >= sector_total) {
+		fprintf(stderr,"IDE ATA warning: sector already full\n");
+		return;
+	}
+
+	if (iolen >= 2) {
+		host_writew(sector+sector_i,v);
+		sector_i += 2;
+	}
+	else if (iolen == 1) {
+		sector[sector_i++] = v;
+	}
+
+	if (sector_i >= sector_total)
+		io_completion();
 }
 		
 void IDEATAPICDROMDevice::prepare_read(Bitu offset,Bitu size) {
+	/* I/O must be WORD ALIGNED */
+	assert((offset&1) == 0);
+	assert((size&1) == 0);
+
+	sector_i = offset;
+	sector_total = size;
+	assert(sector_i <= sector_total);
+	assert(sector_total <= sizeof(sector));
+}
+
+void IDEATADevice::prepare_write(Bitu offset,Bitu size) {
 	/* I/O must be WORD ALIGNED */
 	assert((offset&1) == 0);
 	assert((size&1) == 0);
@@ -1252,10 +1287,120 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 		int i;
 
 		switch (dev->command) {
+			case 0x30:/* WRITE SECTOR */
+				disk = ata->getBIOSdisk();
+				if (disk == NULL) {
+					fprintf(stderr,"ATA READ fail, bios disk N/A\n");
+					ata->abort_error();
+					dev->controller->raise_irq();
+					return;
+				}
+
+				sectcount = ata->count & 0xFF;
+				if (sectcount == 0) sectcount = 256;
+				if (drivehead_is_lba(ata->drivehead)) {
+					/* LBA */
+					sectorn = ((ata->drivehead & 0xF) << 24) | ata->lba[0] |
+						(ata->lba[1] << 8) |
+						(ata->lba[2] << 16);
+				}
+				else {
+					/* C/H/S */
+					if (ata->lba[0] == 0) {
+						fprintf(stderr,"ATA sector 0 does not exist\n");
+						ata->abort_error();
+						dev->controller->raise_irq();
+						return;
+					}
+					else if ((ata->drivehead & 0xF) >= ata->heads ||
+						ata->lba[0] > ata->sects ||
+						(ata->lba[1] | (ata->lba[2] << 8)) >= ata->cyls) {
+						ata->abort_error();
+						dev->controller->raise_irq();
+						return;
+					}
+
+					sectorn = ((ata->drivehead & 0xF) * ata->sects) +
+						((ata->lba[1] | (ata->lba[2] << 8)) * ata->sects * ata->heads) +
+						(ata->lba[0] - 1);
+#if 0
+					fprintf(stderr,"ATA WRITE C/H/S (%u/%u/%u) sector %lu count %lu\n",
+						ata->lba[1] | (ata->lba[2] << 8),
+						(ata->drivehead & 0xF),ata->lba[0],
+						(unsigned long)sectorn,(unsigned long)sectcount);
+#endif
+				}
+
+				if (disk->Write_AbsoluteSector(sectorn, ata->sector) != 0) {
+					fprintf(stderr,"Failed to write sector\n");
+					ata->abort_error();
+					dev->controller->raise_irq();
+					return;
+				}
+
+				/* NTS: the way this command works is that the drive writes ONE sector, then fires the IRQ
+				        and lets the host read it, then reads another sector, fires the IRQ, etc. One
+					IRQ signal per sector. We emulate that here by adding another event to trigger this
+					call unless the sector count has just dwindled to zero, then we let it stop. */
+				if ((ata->count&0xFF) == 1) {
+					/* end of the transfer */
+					ata->count = 0;
+					ata->status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+					dev->controller->raise_irq();
+					ata->state = IDE_DEV_READY;
+					ata->allow_writing = true;
+					return;
+				}
+				else if ((ata->count&0xFF) == 0) ata->count = 255;
+				else ata->count--;
+
+				/* ATA-1 behavior: increment the LBA address or the C/H/S address */
+				if (drivehead_is_lba(ata->drivehead)) {
+					if (((++ata->lba[0])&0xFF) == 0) {/* increment. carry? */
+						if (((++ata->lba[1])&0xFF) == 0) {/*increment, carry? */
+							if (((++ata->lba[2])&0xFF) == 0) {/* increment, carry? */
+								if ((ata->drivehead&0xF) != 0xF) {/*bits 27:24 in drive/head */
+									ata->drivehead++;
+								}
+								else {
+									ata->abort_error();
+									return;
+								}
+							}
+						}
+					}
+				}
+				else {
+					/* Oh, joy. Address incrementation C/H/S style */
+					if (((++ata->lba[0])&0xFF) > ata->sects) { /* increment sector */
+						ata->lba[0] = 1;
+						/* if sector carry, increment head */
+						if ((ata->drivehead&0xF) == 0xF) {	/* if head carry, increment 7:0 of track */
+							ata->drivehead &= 0xF0;
+							if (((++ata->lba[1])&0xFF) == 0) { /* if 7:0 carry then incrment 15:8 */
+								if (((++ata->lba[2])&0xFF) == 0) {
+									ata->abort_error();
+									return;
+								}
+							}
+						}
+						else {
+							ata->drivehead++;
+						}
+					}
+				}
+
+				/* begin another sector */
+				dev->state = IDE_DEV_DATA_WRITE;
+				dev->status = IDE_STATUS_DRQ|IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+				ata->prepare_write(0,512);
+				dev->controller->raise_irq();
+				break;
+
 			case 0x20:/* READ SECTOR */
 				disk = ata->getBIOSdisk();
 				if (disk == NULL) {
-					//fprintf(stderr,"ATA READ fail, bios disk N/A\n");
+					fprintf(stderr,"ATA READ fail, bios disk N/A\n");
 					ata->abort_error();
 					dev->controller->raise_irq();
 					return;
@@ -1275,7 +1420,7 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 				else {
 					/* C/H/S */
 					if (ata->lba[0] == 0) {
-						//fprintf(stderr,"WARNING C/H/S access mode and sector==0\n");
+						fprintf(stderr,"WARNING C/H/S access mode and sector==0\n");
 						ata->abort_error();
 						dev->controller->raise_irq();
 						return;
@@ -1283,7 +1428,13 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 					else if ((ata->drivehead & 0xF) >= ata->heads ||
 						ata->lba[0] > ata->sects ||
 						(ata->lba[1] | (ata->lba[2] << 8)) >= ata->cyls) {
-						//fprintf(stderr,"C/H/S out of bounds\n");
+						fprintf(stderr,"C/H/S %u/%u/%u out of bounds %u/%u/%u\n",
+							ata->lba[1] | (ata->lba[2] << 8),
+							ata->drivehead&0xF,
+							ata->lba[0],
+							ata->cyls,
+							ata->heads,
+							ata->sects);
 						ata->abort_error();
 						dev->controller->raise_irq();
 						return;
@@ -1300,7 +1451,7 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 				}
 
 				if (disk->Read_AbsoluteSector(sectorn, ata->sector) != 0) {
-					//fprintf(stderr,"ATA read failed\n");
+					fprintf(stderr,"ATA read failed\n");
 					ata->abort_error();
 					dev->controller->raise_irq();
 					return;
@@ -1441,6 +1592,8 @@ IDEDevice::~IDEDevice() {
 }
 
 void IDEDevice::abort_error() {
+	fprintf(stderr,"IDE abort with error\n");
+
 	/* a command was written while another is in progress */
 	state = IDE_DEV_READY;
 	allow_writing = true;
@@ -1457,7 +1610,7 @@ void IDEDevice::interface_wakeup() {
 
 void IDEDevice::writecommand(uint8_t cmd) {
 	if (state != IDE_DEV_READY) {
-		//fprintf(stderr,"Command %02x written while another (%02x) is in progress (state=%u). Aborting current command\n",cmd,command,state);
+		fprintf(stderr,"Command %02x written while another (%02x) is in progress (state=%u). Aborting current command\n",cmd,command,state);
 		abort_error();
 		return;
 	}
@@ -1476,7 +1629,7 @@ void IDEDevice::writecommand(uint8_t cmd) {
 
 void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
 	if (state != IDE_DEV_READY) {
-		//fprintf(stderr,"Command %02x written while another (%02x) is in progress (state=%u). Aborting current command\n",cmd,command,state);
+		fprintf(stderr,"Command %02x written while another (%02x) is in progress (state=%u). Aborting current command\n",cmd,command,state);
 		abort_error();
 		return;
 	}
@@ -1569,17 +1722,19 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
 
 void IDEATADevice::writecommand(uint8_t cmd) {
 	if (state != IDE_DEV_READY) {
-		//fprintf(stderr,"Command %02x written while another (%02x) is in progress. Aborting current command\n",cmd,command);
+		fprintf(stderr,"Command %02x written while another (%02x) is in progress. Aborting current command\n",cmd,command);
 		abort_error();
 		return;
 	}
 
 	fprintf(stderr,"IDE ATA command %02x dh=0x%02x count=0x%02x chs=%02x/%02x/%02x\n",cmd,
-		drivehead,count,lba[2],lba[1],lba[0]);
+		drivehead,count,(lba[2]<<8)+lba[1],drivehead&0xF,lba[0]);
 	LOG(LOG_SB,LOG_NORMAL)("IDE ATA command %02x",cmd);
 
 	/* if the drive is asleep, then writing a command wakes it up */
 	interface_wakeup();
+
+	/* FIXME: OAKCDROM.SYS is sending the hard disk command 0xA0 (ATAPI packet) for some reason. Why? */
 
 	/* drive is ready to accept command */
 	//fprintf(stderr,"ATA Command %02x\n",cmd);
@@ -1599,7 +1754,14 @@ void IDEATADevice::writecommand(uint8_t cmd) {
 		case 0x20: /* READ SECTOR */
 			state = IDE_DEV_BUSY;
 			status = IDE_STATUS_BUSY;
-			PIC_AddEvent(IDE_DelayedCommand,2/*ms*/,controller->interface_index);
+			PIC_AddEvent(IDE_DelayedCommand,1/*ms*/,controller->interface_index);
+			break;
+		case 0x30: /* WRITE SECTOR */
+			/* the drive does NOT signal an interrupt. it sets DRQ and waits for a sector
+			 * to be transferred to it before executing the command */
+			state = IDE_DEV_DATA_WRITE;
+			status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ;
+			prepare_write(0,512);
 			break;
 		case 0xEC: /* IDENTIFY DEVICE */
 			state = IDE_DEV_BUSY;
@@ -1784,7 +1946,12 @@ static Bitu _ide_baseio_r(Bitu port,Bitu iolen) {
 
 static Bitu ide_baseio_r(Bitu port,Bitu iolen) {
 	Bitu r = _ide_baseio_r(port,iolen);
-//	fprintf(stderr,"IDE base[0x%03x] > %02X\n",port,r);
+
+#if 0
+	if ((port&7) != 0x00)
+		fprintf(stderr,"IDE base[0x%03x] > %02X\n",port,r);
+#endif
+
 	return r;
 }
 
