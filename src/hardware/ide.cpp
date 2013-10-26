@@ -1005,10 +1005,16 @@ void IDEATADevice::update_from_biosdisk() {
 	   translation (such as C/H/S 1024/64/63) which is impossible given that the IDE
 	   standard only allows up to 16 heads. So we have to translate the geometry. */
 	while (heads > 16 && (heads & 1) == 0) {
-		cyls <<= 2;
-		heads >>= 1UL;
+		cyls <<= 1U;
+		heads >>= 1U;
 		headshr++;
 	}
+
+	fprintf(stderr,"Mapping BIOS DISK C/H/S %u/%u/%u as IDE %u/%u/%u\n",
+		dsk->cylinders,dsk->heads,dsk->sectors,
+		cyls,heads,sects);
+
+	if (heads > 16) fprintf(stderr,"ERROR: Heads > 16 with no translation available\n");
 }
 
 void IDE_Auto(signed char &index,bool &slave) {
@@ -1162,6 +1168,25 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
 				bool vm86 = IDE_CPU_Is_Vm86();
 
 				if ((ata->bios_disk_index-2) == (disk-0x80)) {
+					if (ata->headshr != 0)
+						fprintf(stderr,"FIXME: Untested BIOS geometry translation with IDE hack\n");
+
+					/* translate BIOS INT 13h geometry to IDE geometry */
+					if (ata->headshr != 0) {
+						unsigned long lba;
+
+						fprintf(stderr,"xlate %u/%u/%u to ",cyl,head,sect);
+
+						imageDisk *dsk = ata->getBIOSdisk();
+						if (dsk == NULL) return;
+						lba = (head * dsk->sectors) + (cyl * dsk->sectors * dsk->heads) + sect - 1;
+						sect = (lba % ata->sects) + 1;
+						head = (lba / ata->sects) % ata->heads;
+						cyl = (lba / ata->sects / ata->heads);
+
+						fprintf(stderr,"%u/%u/%u\n",cyl,head,sect);
+					}
+
 					if (ide->int13fakev86io && vm86) {
 						/* we MUST clear interrupts.
 						 * leaving them enabled causes Win95 (or DOSBox?) to recursively
@@ -1291,7 +1316,7 @@ void IDE_ResetDiskByBIOS(unsigned char disk) {
 					else {
 						/* Windows 3.1 WDCTRL needs this, or else, it will read the
 						 * status register and see something other than DRIVE_READY|SEEK_COMPLETE */
-						dev->writecommand(0x80);
+						dev->writecommand(0x08);
 
 						/* and then immediately clear the IRQ */
 						ide->lower_irq();
