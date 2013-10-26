@@ -1801,6 +1801,17 @@ void IDEATADevice::writecommand(uint8_t cmd) {
 			status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ;
 			prepare_write(0,512);
 			break;
+		case 0x91: /* INITIALIZE DEVICE PARAMETERS */
+			if (count != sects || ((drivehead&0xF)+1) != heads) {
+				fprintf(stderr,"IDE warning: changing sectors/track with command 0x91 not supported\n");
+				fprintf(stderr,"             Attempted to change H/S %u/%u to %u/%u\n",heads,sects,count,(drivehead&0xF)+1);
+				abort_error();
+			}
+			else {
+				status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+			}
+			allow_writing = true;
+			break;
 		case 0xEC: /* IDENTIFY DEVICE */
 			state = IDE_DEV_BUSY;
 			status = IDE_STATUS_BUSY;
