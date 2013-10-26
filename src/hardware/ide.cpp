@@ -262,6 +262,7 @@ public:
 class IDEController:public Module_base{
 public:
 	int IRQ;
+	bool int13fakeio;
 	unsigned short alt_io;
 	unsigned short base_io;
 	unsigned char interface_index;
@@ -1195,6 +1196,7 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
 	for (idx=0;idx < MAX_IDE_CONTROLLERS;idx++) {
 		ide = GetIDEController(idx);
 		if (ide == NULL) continue;
+		if (!ide->int13fakeio) continue;
 
 		/* TODO: Print a warning message if the IDE controller is busy (debug/warning message) */
 
@@ -1243,6 +1245,7 @@ void IDE_ResetDiskByBIOS(unsigned char disk) {
 	for (idx=0;idx < MAX_IDE_CONTROLLERS;idx++) {
 		ide = GetIDEController(idx);
 		if (ide == NULL) continue;
+		if (!ide->int13fakeio) continue;
 
 		/* TODO: Print a warning message if the IDE controller is busy (debug/warning message) */
 
@@ -1802,6 +1805,8 @@ void IDEDevice::select(uint8_t ndh,bool switched_to) {
 
 IDEController::IDEController(Section* configuration,unsigned char index):Module_base(configuration){
 	Section_prop * section=static_cast<Section_prop *>(configuration);
+
+	int13fakeio = section->Get_bool("int13fakeio");
 
 	status = 0x00;
 	host_reset = false;
