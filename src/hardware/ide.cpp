@@ -104,6 +104,7 @@ public:
 	uint16_t feature,count,lba[3];
 	uint8_t command,drivehead,status;
 	enum IDEDeviceType type;
+	bool faked_command;	/* if set, DOSBox is sending commands to itself */
 	bool allow_writing;
 	bool motor_on;
 	bool asleep;
@@ -1159,8 +1160,10 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
 			/* TODO: Forcibly device-reset the IDE device */
 
 			/* Issue I/O to ourself to select drive */
+			dev->faked_command = true;
 			IDE_SelfIO_In(ide,ide->base_io+7,1);
 			IDE_SelfIO_Out(ide,ide->base_io+6,0x00+(ms<<4),1);
+			dev->faked_command = false;
 
 			if (dev->type == IDE_TYPE_HDD) {
 				IDEATADevice *ata = (IDEATADevice*)dev;
@@ -1181,6 +1184,8 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
 					}
 
 					if (ide->int13fakev86io && vm86) {
+						dev->faked_command = true;
+
 						/* we MUST clear interrupts.
 						 * leaving them enabled causes Win95 (or DOSBox?) to recursively
 						 * pagefault and DOSBox to crash. In any case it seems Win95's
@@ -1224,6 +1229,8 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
 
 						/* assume IRQ 14 happened and clear it */
 						IDE_SelfIO_Out(ide,0xA0,0x66,1);		/* specific EOI IRQ 14 */
+
+						dev->faked_command = false;
 					}
 					else {
 						/* hack IDE state as if a BIOS executing IDE disk routines.
@@ -1609,6 +1616,7 @@ IDEDevice::IDEDevice(IDEController *c) {
 	state = IDE_DEV_READY;
 	feature = count = lba[0] = lba[1] = lba[2] = command = drivehead = 0;
 
+	faked_command = false;
 	ide_select_delay = 0.5; /* 500us */
 	ide_spinup_delay = 3000; /* 3 seconds */
 	ide_spindown_delay = 1000; /* 1 second */
@@ -1766,9 +1774,11 @@ void IDEATADevice::writecommand(uint8_t cmd) {
 		return;
 	}
 
-	fprintf(stderr,"IDE ATA command %02x dh=0x%02x count=0x%02x chs=%02x/%02x/%02x\n",cmd,
-		drivehead,count,(lba[2]<<8)+lba[1],drivehead&0xF,lba[0]);
-	LOG(LOG_SB,LOG_NORMAL)("IDE ATA command %02x",cmd);
+	if (!faked_command) {
+		fprintf(stderr,"IDE ATA command %02x dh=0x%02x count=0x%02x chs=%02x/%02x/%02x\n",cmd,
+			drivehead,count,(lba[2]<<8)+lba[1],drivehead&0xF,lba[0]);
+		LOG(LOG_SB,LOG_NORMAL)("IDE ATA command %02x",cmd);
+	}
 
 	/* if the drive is asleep, then writing a command wakes it up */
 	interface_wakeup();
