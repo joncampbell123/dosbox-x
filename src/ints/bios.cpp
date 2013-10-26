@@ -2045,6 +2045,16 @@ static Bitu INT15_Handler(void) {
 
 void restart_program(std::vector<std::string> & parameters);
 
+static Bitu IRQ14_Dummy(void) {
+	/* FIXME: That's it? Don't I EOI the PIC? */
+	return CBRET_NONE;
+}
+
+static Bitu IRQ15_Dummy(void) {
+	/* FIXME: That's it? Don't I EOI the PIC? */
+	return CBRET_NONE;
+}
+
 static Bitu Reboot_Handler(void) {
 	// switch to text mode, notify user (let's hope INT10 still works)
 	const char* const text = "\n\n   Restart requested by application.";
@@ -2101,7 +2111,7 @@ static unsigned char do_isapnp_chksum(unsigned char *d,int i) {
 
 class BIOS:public Module_base{
 private:
-	CALLBACK_HandlerObject callback[11];
+	CALLBACK_HandlerObject callback[13];
 public:
 	BIOS(Section* configuration):Module_base(configuration){
 		/* tandy DAC can be requested in tandy_sound.cpp by initializing this field */
@@ -2195,6 +2205,26 @@ public:
 		// This is not a complete reboot as it happens after the POST
 		// We don't handle it, so use the reboot function as exit.
 		RealSetVec(0x19,rptr);
+
+		// INT 7Eh: IDE IRQ 14
+		// This is just a dummy IRQ handler to prevent crashes when
+		// IDE emulation fires the IRQ and OS's like Win95 expect
+		// the BIOS to handle the interrupt.
+		callback[11].Install(&IRQ14_Dummy,CB_IRET,"irq 14 ide");
+		callback[11].Set_RealVec(0x7E);
+		rptr = callback[11].Get_RealPointer();
+		phys_writeb(((rptr>>16)<<4)+(rptr&0xFFFF),0xCF); /* IRET */
+
+		// INT 7Fh: IDE IRQ 15
+		// This is just a dummy IRQ handler to prevent crashes when
+		// IDE emulation fires the IRQ and OS's like Win95 expect
+		// the BIOS to handle the interrupt.
+		callback[12].Install(&IRQ15_Dummy,CB_IRET,"irq 15 ide");
+		callback[12].Set_RealVec(0x7F);
+		rptr = callback[12].Get_RealPointer();
+		phys_writeb(((rptr>>16)<<4)+(rptr&0xFFFF),0xCF); /* IRET */
+
+		init_vm86_fake_io();
 
 		// The farjump at the processor reset entry point (jumps to POST routine)
 		phys_writeb(0xFFFF0,0xEA);		// FARJMP

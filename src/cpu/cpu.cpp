@@ -2580,7 +2580,7 @@ static Bitu vm86_fake_io_seg = 0xF000;	/* unused area in BIOS for IO instruction
 static Bitu vm86_fake_io_off = 0x0700;
 static Bitu vm86_fake_io_offs[3*2]={0};	/* offsets from base off because of dynamic core cache */
 
-static void init_vm86_fake_io() {
+void init_vm86_fake_io() {
 	Bitu phys = (vm86_fake_io_seg << 4) + vm86_fake_io_off;
 	Bitu wo = 0;
 
@@ -2628,8 +2628,6 @@ Bitu CPU_ForceV86FakeIO_In(Bitu port,Bitu len) {
 	static const char suffix[4] = {'B','W','?','D'};
 	Bitu old_ax,old_dx,ret;
 
-	init_vm86_fake_io();
-
 	/* save EAX:EDX and setup DX for IN instruction */
 	old_ax = reg_eax;
 	old_dx = reg_edx;
@@ -2637,8 +2635,8 @@ Bitu CPU_ForceV86FakeIO_In(Bitu port,Bitu len) {
 	reg_edx = port;
 
 	/* DEBUG */
-	fprintf(stderr,"CPU virtual 8086 mode: Forcing CPU to execute 'IN%c 0x%04x so OS can trap it. ",suffix[len-1],port);
-	fflush(stderr);
+//	fprintf(stderr,"CPU virtual 8086 mode: Forcing CPU to execute 'IN%c 0x%04x so OS can trap it. ",suffix[len-1],port);
+//	fflush(stderr);
 
 	/* make the CPU execute that instruction */
 	CALLBACK_RunRealFar(vm86_fake_io_seg,vm86_fake_io_offs[(len==4?2:(len-1))+0]);
@@ -2647,7 +2645,7 @@ Bitu CPU_ForceV86FakeIO_In(Bitu port,Bitu len) {
 	ret = reg_eax;
 	if (len == 1) ret &= 0xFF;
 	else if (len == 2) ret &= 0xFFFF;
-	fprintf(stderr," => v86 result 0x%02x\n",ret);
+//	fprintf(stderr," => v86 result 0x%02x\n",ret);
 
 	/* then restore EAX:EDX */
 	reg_eax = old_ax;
@@ -2660,8 +2658,6 @@ void CPU_ForceV86FakeIO_Out(Bitu port,Bitu val,Bitu len) {
 	static const char suffix[4] = {'B','W','?','D'};
 	Bitu old_ax,old_dx;
 
-	init_vm86_fake_io();
-
 	/* save EAX:EDX and setup DX/AX for OUT instruction */
 	old_ax = reg_eax;
 	old_dx = reg_edx;
@@ -2670,7 +2666,7 @@ void CPU_ForceV86FakeIO_Out(Bitu port,Bitu val,Bitu len) {
 	reg_eax = val;
 
 	/* DEBUG */
-	fprintf(stderr,"CPU virtual 8086 mode: Forcing CPU to execute 'OUT%c 0x%04x,0x%02x so OS can trap it.\n",suffix[len-1],port,val);
+//	fprintf(stderr,"CPU virtual 8086 mode: Forcing CPU to execute 'OUT%c 0x%04x,0x%02x so OS can trap it.\n",suffix[len-1],port,val);
 
 	/* make the CPU execute that instruction */
 	CALLBACK_RunRealFar(vm86_fake_io_seg,vm86_fake_io_offs[(len==4?2:(len-1))+3]);

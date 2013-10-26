@@ -140,6 +140,7 @@ bool CPU_IO_Exception(Bitu port,Bitu size);
 void CPU_RunException(void);
 
 void CPU_ENTER(bool use32,Bitu bytes,Bitu level);
+void init_vm86_fake_io();
 
 #define CPU_INT_SOFTWARE		0x1
 #define CPU_INT_EXCEPTION		0x2
