@@ -430,6 +430,7 @@ static Bitu INT13_DiskHandler(void) {
 			last_status = imageDiskList[drivenum]->Read_Sector((Bit32u)reg_dh, (Bit32u)(reg_ch | ((reg_cl & 0xc0)<< 2)), (Bit32u)((reg_cl & 63)+i), sectbuf);
 
 			/* IDE emulation: simulate change of IDE state that would occur on a real machine after INT 13h */
+			/* FIXME: What about geometry translation??? */
 			IDE_EmuINT13DiskReadByBIOS(reg_dl, (Bit32u)(reg_ch | ((reg_cl & 0xc0)<< 2)), (Bit32u)reg_dh, (Bit32u)((reg_cl & 63)+i));
 
 			if((last_status != 0x00) || (killRead)) {
