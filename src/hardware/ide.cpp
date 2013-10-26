@@ -1005,7 +1005,7 @@ void IDEATADevice::update_from_biosdisk() {
 	   translation (such as C/H/S 1024/64/63) which is impossible given that the IDE
 	   standard only allows up to 16 heads. So we have to translate the geometry. */
 	while (heads > 16 && (heads & 1) == 0) {
-		cyls *= 2;
+		cyls <<= 2;
 		heads >>= 1UL;
 		headshr++;
 	}
@@ -1157,58 +1157,57 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
 			IDE_SelfIO_Out(ide,ide->base_io+6,0x00+(ms<<4),1);
 
 			if (dev->type == IDE_TYPE_HDD) {
+				IDEATADevice *ata = (IDEATADevice*)dev;
+				static bool vm86_warned = false;
 				bool vm86 = IDE_CPU_Is_Vm86();
 
-				if (ide->int13fakev86io && vm86) {
-					/* we MUST clear interrupts.
-					 * leaving them enabled causes Win95 (or DOSBox?) to recursively
-					 * pagefault and DOSBox to crash. In any case it seems Win95's
-					 * IDE driver assumes the BIOS INT 13h code will do this since
-					 * it's customary for the BIOS to do it at some point, usually
-					 * just before reading the sector data. */
-					CPU_CLI();
+				if ((ata->bios_disk_index-2) == (disk-0x80)) {
+					if (ide->int13fakev86io && vm86) {
+						/* we MUST clear interrupts.
+						 * leaving them enabled causes Win95 (or DOSBox?) to recursively
+						 * pagefault and DOSBox to crash. In any case it seems Win95's
+						 * IDE driver assumes the BIOS INT 13h code will do this since
+						 * it's customary for the BIOS to do it at some point, usually
+						 * just before reading the sector data. */
+						CPU_CLI();
 
-					/* We're in virtual 8086 mode and we're asked to fake I/O as if
-					 * executing a BIOS subroutine. Some OS's like Windows 95 rely on
-					 * executing INT 13h in virtual 8086 mode: on startup, the ESDI
-					 * driver traps IDE ports and then executes INT 13h to watch what
-					 * I/O ports it uses. It then uses that information to decide
-					 * what IDE hard disk and controller corresponds to what DOS
-					 * drive. So to get 32-bit disk access to work in Windows 95,
-					 * we have to put on a good show to convince Windows 95 we're
-					 * a legitimate BIOS INT 13h call doing it's job. */
-					IDE_SelfIO_In(ide,ide->base_io+7,1);		/* dum de dum reading status */
-					IDE_SelfIO_Out(ide,ide->base_io+6,(ms<<4)+0xA0+head,1); /* drive and head */
-					IDE_SelfIO_In(ide,ide->base_io+7,1);		/* dum de dum reading status */
-					IDE_SelfIO_Out(ide,ide->base_io+2,0x01,1);	/* sector count */
-					IDE_SelfIO_Out(ide,ide->base_io+3,sect,1);	/* sector number */
-					IDE_SelfIO_Out(ide,ide->base_io+4,cyl&0xFF,1);	/* cylinder lo */
-					IDE_SelfIO_Out(ide,ide->base_io+5,(cyl>>8)&0xFF,1); /* cylinder hi */
-					IDE_SelfIO_Out(ide,ide->base_io+6,(ms<<4)+0xA0+head,1); /* drive and head */
-					IDE_SelfIO_In(ide,ide->base_io+7,1);		/* dum de dum reading status */
-					IDE_SelfIO_Out(ide,ide->base_io+7,0x20,1);	/* issue READ */
+						/* We're in virtual 8086 mode and we're asked to fake I/O as if
+						 * executing a BIOS subroutine. Some OS's like Windows 95 rely on
+						 * executing INT 13h in virtual 8086 mode: on startup, the ESDI
+						 * driver traps IDE ports and then executes INT 13h to watch what
+						 * I/O ports it uses. It then uses that information to decide
+						 * what IDE hard disk and controller corresponds to what DOS
+						 * drive. So to get 32-bit disk access to work in Windows 95,
+						 * we have to put on a good show to convince Windows 95 we're
+						 * a legitimate BIOS INT 13h call doing it's job. */
+						IDE_SelfIO_In(ide,ide->base_io+7,1);		/* dum de dum reading status */
+						IDE_SelfIO_Out(ide,ide->base_io+6,(ms<<4)+0xA0+head,1); /* drive and head */
+						IDE_SelfIO_In(ide,ide->base_io+7,1);		/* dum de dum reading status */
+						IDE_SelfIO_Out(ide,ide->base_io+2,0x01,1);	/* sector count */
+						IDE_SelfIO_Out(ide,ide->base_io+3,sect,1);	/* sector number */
+						IDE_SelfIO_Out(ide,ide->base_io+4,cyl&0xFF,1);	/* cylinder lo */
+						IDE_SelfIO_Out(ide,ide->base_io+5,(cyl>>8)&0xFF,1); /* cylinder hi */
+						IDE_SelfIO_Out(ide,ide->base_io+6,(ms<<4)+0xA0+head,1); /* drive and head */
+						IDE_SelfIO_In(ide,ide->base_io+7,1);		/* dum de dum reading status */
+						IDE_SelfIO_Out(ide,ide->base_io+7,0x20,1);	/* issue READ */
 
-					do {
-						/* TODO: Timeout needed */
-						unsigned int i = IDE_SelfIO_In(ide,ide->base_io+7,1);
-						if ((i&0x80) == 0) break;
-					} while (1);
+						do {
+							/* TODO: Timeout needed */
+							unsigned int i = IDE_SelfIO_In(ide,ide->base_io+7,1);
+							if ((i&0x80) == 0) break;
+						} while (1);
 
-					/* for brevity assume it worked. we're here to bullshit Windows 95 after all */
-					for (unsigned int i=0;i < 256;i++)
-						IDE_SelfIO_In(ide,ide->base_io+0,2); /* 16-bit IDE data read */
+						/* for brevity assume it worked. we're here to bullshit Windows 95 after all */
+						for (unsigned int i=0;i < 256;i++)
+							IDE_SelfIO_In(ide,ide->base_io+0,2); /* 16-bit IDE data read */
 
-					/* one more */
-					IDE_SelfIO_In(ide,ide->base_io+7,1);		/* dum de dum reading status */
+						/* one more */
+						IDE_SelfIO_In(ide,ide->base_io+7,1);		/* dum de dum reading status */
 
-					/* assume IRQ 14 happened and clear it */
-					IDE_SelfIO_Out(ide,0xA0,0x66,1);		/* specific EOI IRQ 14 */
-				}
-				else {
-					IDEATADevice *ata = (IDEATADevice*)dev;
-					static bool vm86_warned = false;
-
-					if ((ata->bios_disk_index-2) == (disk-0x80)) {
+						/* assume IRQ 14 happened and clear it */
+						IDE_SelfIO_Out(ide,0xA0,0x66,1);		/* specific EOI IRQ 14 */
+					}
+					else {
 						/* hack IDE state as if a BIOS executing IDE disk routines.
 						 * This is required if we want IDE emulation to work with Windows 3.11 Windows for Workgroups 32-bit disk access (WDCTRL),
 						 * because the driver "tests" the controller by issuing INT 13h calls then reading back IDE registers to see if
@@ -1228,6 +1227,10 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
 							vm86_warned = true;
 						}
 					}
+
+					/* break out, we're done */
+					idx = MAX_IDE_CONTROLLERS;
+					break;
 				}
 			}
 		}
