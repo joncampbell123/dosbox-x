@@ -1145,6 +1145,11 @@ void DOSBOX_Init(void) {
 			"If you are running Windows 3.11 or Windows 3.11 Windows for Workgroups\n"
 			"you must enable this option (and use -reservecyl 1) if you want 32-bit\n"
 			"disk access to work correctly in DOSBox.");
+	Pbool = secprop->Add_bool("int13fakev86io",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("If set, and int13fakeio is set, certain INT 13h commands will\n"
+			"cause IDE emulation to issue fake CPU I/O traps (GPF) in\n"
+			"virtual 8086 mode and a fake IRQ signal. you must enable this option\n"
+			"if you want 32-bit disk access in Windows 95 to work with DOSBox.");
 
 	secprop=control->AddSection_prop("ide, secondary",&IDE_Secondary_Init,false);//done
 	Pbool = secprop->Add_bool("enable",Property::Changeable::OnlyAtStart,true);
