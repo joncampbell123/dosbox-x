@@ -166,7 +166,7 @@ public:
 	virtual void prepare_write(Bitu offset,Bitu size);
 	virtual void io_completion();
 public:
-	Bitu heads,sects,cyls;
+	Bitu heads,sects,cyls,headshr;
 	unsigned char sector[512*128];
 	Bitu sector_i,sector_total;
 };
@@ -237,7 +237,6 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/);
 
 /* when the ATAPI command has been accepted, and the timeout has passed */
 void IDEATAPICDROMDevice::on_atapi_busy_time() {
-	//fprintf(stderr,"ATAPI busy time %02X\n",atapi_cmd[0]);
 	switch (atapi_cmd[0]) {
 		case 0x03: /* REQUEST SENSE */
 			prepare_read(0,MIN((unsigned int)18,(unsigned int)host_maximum_byte_count));
@@ -431,9 +430,6 @@ IDEATAPICDROMDevice::~IDEATAPICDROMDevice() {
 }
 
 void IDEATAPICDROMDevice::atapi_io_completion() {
-	//fprintf(stderr,"ATAPI PACKET: IO complete (%lu/%lu)\n",
-	//	(unsigned long)sector_i,(unsigned long)sector_total);
-
 	/* for most ATAPI PACKET commands, the transfer is done and we need to clear
 	   all indication of a possible data transfer */
 
@@ -448,9 +444,6 @@ void IDEATAPICDROMDevice::atapi_io_completion() {
 }
 	
 void IDEATAPICDROMDevice::io_completion() {
-	//fprintf(stderr,"ATAPI: IO complete (%lu/%lu)\n",
-	//	(unsigned long)sector_i,(unsigned long)sector_total);
-
 	/* lower DRQ */
 	status &= ~IDE_STATUS_DRQ;
 
@@ -471,9 +464,6 @@ void IDEATAPICDROMDevice::io_completion() {
 }
 
 void IDEATADevice::io_completion() {
-//	fprintf(stderr,"HDD: IO complete (%lu/%lu)\n",
-//		(unsigned long)sector_i,(unsigned long)sector_total);
-
 	/* lower DRQ */
 	status &= ~IDE_STATUS_DRQ;
 
@@ -560,21 +550,16 @@ void IDEATADevice::io_completion() {
 Bitu IDEATAPICDROMDevice::data_read(Bitu iolen) {
 	Bitu w;
 
-	if (state != IDE_DEV_DATA_READ) {
-		//fprintf(stderr,"IDE: Data read when not expecting it\n");
+	if (state != IDE_DEV_DATA_READ)
 		return 0xFFFFUL;
-	}
+
 	if (!(status & IDE_STATUS_DRQ)) {
-		//fprintf(stderr,"IDE: Data read when DRQ=0\n");
+		fprintf(stderr,"IDE: Data read when DRQ=0\n");
 		return 0xFFFFUL;
 	}
 
-	if (sector_i >= sector_total) {
-		//fprintf(stderr,"Sector read ptr beyond total\n");
+	if (sector_i >= sector_total)
 		return 0xFFFFUL;
-	}
-
-//	fprintf(stderr,"READ %u/%u\n",sector_i,sector_total);
 
 	/* TODO: The MS-DOS CD-ROM driver I'm testing against uses byte-wide I/O during identification?!? REALLY?!?
 		 I thought you weren't supposed to do that! */
@@ -644,7 +629,6 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 			if ((TransferLength*2048) > sizeof(sector))
 				TransferLength = sizeof(sector)/2048;
 
-			//fprintf(stderr,"Read(12) sector %lu len=%lu\n",(unsigned long)LBA,(unsigned long)TransferLength);
 			count = 0x02;
 			state = IDE_DEV_ATAPI_BUSY;
 			status = IDE_STATUS_BUSY;
@@ -672,7 +656,6 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 			if ((TransferLength*2048) > sizeof(sector))
 				TransferLength = sizeof(sector)/2048;
 
-			//fprintf(stderr,"Read(10) sector %lu len=%lu\n",(unsigned long)LBA,(unsigned long)TransferLength);
 			count = 0x02;
 			state = IDE_DEV_ATAPI_BUSY;
 			status = IDE_STATUS_BUSY;
@@ -698,14 +681,11 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 			PIC_AddEvent(IDE_DelayedCommand,1/*ms*/,controller->interface_index);
 			break;
 		default:
-#if 1
-			//fprintf(stderr,"---UNKNOWN\n");
-#else
 			/* we don't know the command, immediately return an error */
 			fprintf(stderr,"Unknown ATAPI command %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
 				atapi_cmd[ 0],atapi_cmd[ 1],atapi_cmd[ 2],atapi_cmd[ 3],atapi_cmd[ 4],atapi_cmd[ 5],
 				atapi_cmd[ 6],atapi_cmd[ 7],atapi_cmd[ 8],atapi_cmd[ 9],atapi_cmd[10],atapi_cmd[11]);
-#endif
+
 			abort_error();
 			count = 0x03; /* no more data (command/data=1, input/output=1) */
 			feature = 0xF4;
@@ -731,21 +711,16 @@ void IDEATAPICDROMDevice::data_write(Bitu v,Bitu iolen) {
 Bitu IDEATADevice::data_read(Bitu iolen) {
 	Bitu w;
 
-	if (state != IDE_DEV_DATA_READ) {
-		//fprintf(stderr,"IDE: Data read when not expecting it\n");
+	if (state != IDE_DEV_DATA_READ)
 		return 0xFFFFUL;
-	}
+
 	if (!(status & IDE_STATUS_DRQ)) {
-		//fprintf(stderr,"IDE: Data read when DRQ=0\n");
+		fprintf(stderr,"IDE: Data read when DRQ=0\n");
 		return 0xFFFFUL;
 	}
 
-	if (sector_i >= sector_total) {
-		//fprintf(stderr,"Sector read ptr beyond total\n");
+	if (sector_i >= sector_total)
 		return 0xFFFFUL;
-	}
-
-//	fprintf(stderr,"READ %u/%u len=%u\n",sector_i,sector_total,iolen);
 
 	/* NTS: Some MS-DOS CD-ROM drivers like OAKCDROM.SYS use byte-wide I/O for the initial identification */
 	if (iolen >= 2) {
@@ -982,10 +957,11 @@ IDEATADevice::IDEATADevice(IDEController *c,unsigned char bios_disk_index) : IDE
 	this->bios_disk_index = bios_disk_index;
 	sector_i = sector_total = 0;
 
+	headshr = 0;
 	type = IDE_TYPE_HDD;
-	id_serial = "666";
-	id_firmware_rev = "666";
-	id_model = "Fuck Windows 95";
+	id_serial = "8086";
+	id_firmware_rev = "8086";
+	id_model = "DOSBox IDE disk";
 }
 
 IDEATADevice::~IDEATADevice() {
@@ -1008,26 +984,22 @@ CDROM_Interface *IDEATAPICDROMDevice::getMSCDEXDrive() {
 void IDEATAPICDROMDevice::update_from_cdrom() {
 	CDROM_Interface *cdrom = getMSCDEXDrive();
 	if (cdrom == NULL) {
-		//fprintf(stderr,"WARNING: IDE update from CD-ROM failed, disk not available\n");
+		fprintf(stderr,"WARNING: IDE update from CD-ROM failed, disk not available\n");
 		return;
 	}
-
-	//fprintf(stderr,"IDE: update from cdrom complete\n");
 }
 
 void IDEATADevice::update_from_biosdisk() {
 	imageDisk *dsk = getBIOSdisk();
 	if (dsk == NULL) {
-		//fprintf(stderr,"WARNING: IDE update from BIOS disk failed, disk not available\n");
+		fprintf(stderr,"WARNING: IDE update from BIOS disk failed, disk not available\n");
 		return;
 	}
 
+	headshr = 0;
 	cyls = dsk->cylinders;
 	heads = dsk->heads;
 	sects = dsk->sectors;
-
-	//fprintf(stderr,"IDE: update from disk geometry: C/H/S %u/%u/%u\n",
-	//	cyls,heads,sects);
 
 	/* One additional correction: The disk image is probably using BIOS-style geometry
 	   translation (such as C/H/S 1024/64/63) which is impossible given that the IDE
@@ -1035,17 +1007,8 @@ void IDEATADevice::update_from_biosdisk() {
 	while (heads > 16 && (heads & 1) == 0) {
 		cyls *= 2;
 		heads >>= 1UL;
+		headshr++;
 	}
-	while (heads > 16 && (heads % 3) == 0) {
-		cyls *= 3;
-		heads /= 3UL;
-	}
-
-	//if (heads > 16)
-	//	fprintf(stderr,"IDE WARNING: Translating geometry to keep headcount at 16 or below is impossible. Expect problems.\n");
-
-	//fprintf(stderr,"IDE: final translated geometry: C/H/S %u/%u/%u\n",
-	//	cyls,heads,sects);
 }
 
 void IDE_Auto(signed char &index,bool &slave) {
@@ -1079,16 +1042,15 @@ void IDE_CDROM_Attach(signed char index,bool slave,unsigned char drive_index) {
 	if (c == NULL) return;
 
 	if (c->device[slave?1:0] != NULL) {
-		//fprintf(stderr,"IDE: Controller %u %s already taken\n",index,slave?"slave":"master");
+		fprintf(stderr,"IDE: Controller %u %s already taken\n",index,slave?"slave":"master");
 		return;
 	}
 
 	if (!GetMSCDEXDrive(drive_index,NULL)) {
-		//fprintf(stderr,"IDE: Asked to attach CD-ROM that does not exist\n");
+		fprintf(stderr,"IDE: Asked to attach CD-ROM that does not exist\n");
 		return;
 	}
 
-	//fprintf(stderr,"Adding IDE CD-ROM\n");
 	dev = new IDEATAPICDROMDevice(c,drive_index);
 	if (dev == NULL) return;
 	dev->update_from_cdrom();
@@ -1105,12 +1067,12 @@ void IDE_Hard_Disk_Attach(signed char index,bool slave,unsigned char bios_disk_i
 	if (c == NULL) return;
 
 	if (c->device[slave?1:0] != NULL) {
-		//fprintf(stderr,"IDE: Controller %u %s already taken\n",index,slave?"slave":"master");
+		fprintf(stderr,"IDE: Controller %u %s already taken\n",index,slave?"slave":"master");
 		return;
 	}
 
 	if (imageDiskList[bios_disk_index] == NULL) {
-		//fprintf(stderr,"IDE: Asked to attach bios disk that does not exist\n");
+		fprintf(stderr,"IDE: Asked to attach bios disk that does not exist\n");
 		return;
 	}
 
@@ -1475,9 +1437,6 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 					sectorn = ((ata->drivehead & 0xF) << 24) | ata->lba[0] |
 						(ata->lba[1] << 8) |
 						(ata->lba[2] << 16);
-
-					//fprintf(stderr,"ATA READ LBA sector %lu count %lu\n",
-					//	(unsigned long)sectorn,(unsigned long)sectcount);
 				}
 				else {
 					/* C/H/S */
@@ -1505,11 +1464,6 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 					sectorn = ((ata->drivehead & 0xF) * ata->sects) +
 						((ata->lba[1] | (ata->lba[2] << 8)) * ata->sects * ata->heads) +
 						(ata->lba[0] - 1);
-
-					//fprintf(stderr,"ATA READ C/H/S (%u/%u/%u) sector %lu count %lu\n",
-					//	ata->lba[1] | (ata->lba[2] << 8),
-					//	(ata->drivehead & 0xF),ata->lba[0],
-					//	(unsigned long)sectorn,(unsigned long)sectcount);
 				}
 
 				if (disk->Read_AbsoluteSector(sectorn, ata->sector) != 0) {
@@ -1595,13 +1549,11 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 }
 
 void IDEController::raise_irq() {
-	//fprintf(stderr,"Fire IRQ en=%u\n",interrupt_enable);
 	irq_pending = true;
 	if (IRQ >= 0 && interrupt_enable) PIC_ActivateIRQ(IRQ);
 }
 
 void IDEController::lower_irq() {
-	//if (irq_pending) fprintf(stderr,"Clear IRQ\n");
 	irq_pending = false;
 	if (IRQ >= 0) PIC_DeActivateIRQ(IRQ);
 }
@@ -1674,7 +1626,6 @@ void IDEDevice::abort_normal() {
 
 void IDEDevice::interface_wakeup() {
 	if (asleep) {
-		//fprintf(stderr,"IDE device interface awoken\n");
 		asleep = false;
 	}
 }
@@ -1711,7 +1662,6 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
 	interface_wakeup();
 
 	/* drive is ready to accept command */
-	//fprintf(stderr,"ATAPI Command %02x\n",cmd);
 	allow_writing = false;
 	command = cmd;
 	switch (cmd) {
@@ -1753,7 +1703,6 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
 				atapi_to_host = (feature >> 2) & 1;	/* 0=to device 1=to host */
 				host_maximum_byte_count = (lba[2] << 8) + lba[1]; /* LBA field bits 23:8 are byte count */
 				if (host_maximum_byte_count == 0) host_maximum_byte_count = 0x10000UL;
-				//fprintf(stderr,"ATAPI PACKET start. ToHost=%u max=%u\n",atapi_to_host,host_maximum_byte_count);
 				PIC_AddEvent(IDE_DelayedCommand,0.25/*ms*/,controller->interface_index);
 			}
 			break;
@@ -1806,7 +1755,6 @@ void IDEATADevice::writecommand(uint8_t cmd) {
 	/* FIXME: OAKCDROM.SYS is sending the hard disk command 0xA0 (ATAPI packet) for some reason. Why? */
 
 	/* drive is ready to accept command */
-	//fprintf(stderr,"ATA Command %02x\n",cmd);
 	allow_writing = false;
 	command = cmd;
 	switch (cmd) {
@@ -1883,11 +1831,6 @@ IDEController::IDEController(Section* configuration,unsigned char index):Module_
 		alt_io = IDE_default_alts[index];
 		IRQ = IDE_default_IRQs[index];
 	}
-
-	if (base_io != 0 || alt_io != 0 || IRQ >= 0) {
-		//fprintf(stderr,"IDE: Adding IDE controller to port %03x/%03x IRQ %d\n",
-		//		base_io,alt_io,IRQ);
-	}
 }
 
 void IDEController::install_io_port(){
@@ -1915,11 +1858,9 @@ IDEController::~IDEController(){
 static void ide_altio_w(Bitu port,Bitu val,Bitu iolen) {
 	IDEController *ide = match_ide_controller(port);
 	if (ide == NULL) {
-		//fprintf(stderr,"WARNING: port read from I/O port not registered to IDE, yet callback triggered\n");
+		fprintf(stderr,"WARNING: port read from I/O port not registered to IDE, yet callback triggered\n");
 		return;
 	}
-
-//	fprintf(stderr,"W-%03X %02X\n",port,val);
 
 	port &= 1;
 	if (port == 0) {/*3F6*/
@@ -1932,7 +1873,6 @@ static void ide_altio_w(Bitu port,Bitu val,Bitu iolen) {
 		}
 
 		if ((val&4) && !ide->host_reset) {
-			//fprintf(stderr,"IDE: Host reset initiated\n");
 			if (ide->device[0]) ide->device[0]->host_reset();
 			if (ide->device[1]) ide->device[1]->host_reset();
 			ide->host_reset=1;
@@ -1943,46 +1883,35 @@ static void ide_altio_w(Bitu port,Bitu val,Bitu iolen) {
 	}
 }
 
-static Bitu _ide_altio_r(Bitu port,Bitu iolen) {
+static Bitu ide_altio_r(Bitu port,Bitu iolen) {
 	IDEController *ide = match_ide_controller(port);
 	IDEDevice *dev;
 
 	if (ide == NULL) {
-		//fprintf(stderr,"WARNING: port read from I/O port not registered to IDE, yet callback triggered\n");
+		fprintf(stderr,"WARNING: port read from I/O port not registered to IDE, yet callback triggered\n");
 		return ~(0UL);
 	}
 	dev = ide->device[ide->select];
-
-//	fprintf(stderr,"R-%03X\n",port);
 
 	port &= 1;
 	if (port == 0)/*3F6(R) status, does NOT clear interrupt*/
 		return (dev != NULL) ? dev->status : ide->status;
 	else /*3F7(R) Drive Address Register*/
-		return 0x00;
-//		return 0x80|(ide->select==0?0:1)|(ide->select==1?0:2)|
-//			((dev != NULL) ? (((dev->drivehead&0xF)^0xF) << 2) : 0x3C);
+		return 0x80|(ide->select==0?0:1)|(ide->select==1?0:2)|
+			((dev != NULL) ? (((dev->drivehead&0xF)^0xF) << 2) : 0x3C);
 
 	return ~(0UL);
 }
 
-static Bitu ide_altio_r(Bitu port,Bitu iolen) {
-	Bitu r = _ide_altio_r(port,iolen);
-//	fprintf(stderr," > %02X\n",r);
-	return r;
-}
-
-static Bitu _ide_baseio_r(Bitu port,Bitu iolen) {
+static Bitu ide_baseio_r(Bitu port,Bitu iolen) {
 	IDEController *ide = match_ide_controller(port);
 	IDEDevice *dev;
 
 	if (ide == NULL) {
-		//fprintf(stderr,"WARNING: port read from I/O port not registered to IDE, yet callback triggered\n");
+		fprintf(stderr,"WARNING: port read from I/O port not registered to IDE, yet callback triggered\n");
 		return ~(0UL);
 	}
 	dev = ide->device[ide->select];
-
-//	fprintf(stderr,"R-%03X len=%u\n",port,iolen);
 
 	port &= 7;
 	switch (port) {
@@ -2016,20 +1945,12 @@ static Bitu _ide_baseio_r(Bitu port,Bitu iolen) {
 	return ~(0UL);
 }
 
-static Bitu ide_baseio_r(Bitu port,Bitu iolen) {
-	Bitu r = _ide_baseio_r(port,iolen);
-
-//	fprintf(stderr,"IDE base[0x%03x] > %02X\n",port,r);
-
-	return r;
-}
-
 static void ide_baseio_w(Bitu port,Bitu val,Bitu iolen) {
 	IDEController *ide = match_ide_controller(port);
 	IDEDevice *dev;
 
 	if (ide == NULL) {
-		//fprintf(stderr,"WARNING: port read from I/O port not registered to IDE, yet callback triggered\n");
+		fprintf(stderr,"WARNING: port read from I/O port not registered to IDE, yet callback triggered\n");
 		return;
 	}
 	dev = ide->device[ide->select];
@@ -2045,8 +1966,6 @@ static void ide_baseio_w(Bitu port,Bitu val,Bitu iolen) {
 		fprintf(stderr,"W-%03X %02X BUSY DROP\n",port,val);
 		return;
 	}
-
-//	fprintf(stderr,"IDE base[0x%03x] < %02X\n",port,val);
 
 	port &= 7;
 	switch (port) {
