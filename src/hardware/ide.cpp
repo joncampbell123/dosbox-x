@@ -192,6 +192,7 @@ public:
 	virtual void select(uint8_t ndh,bool switched_to);
 	virtual void deselect();
 	virtual void abort_error();
+	virtual void abort_normal();
 	virtual void interface_wakeup();
 	virtual void writecommand(uint8_t cmd);
 	virtual Bitu data_read(Bitu iolen);	/* read from 1F0h data port from IDE device */
@@ -445,7 +446,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			controller->raise_irq();
 			break;
 		default:
-			//fprintf(stderr,"Unknown ATAPI command after busy wait. Why?\n");
+			fprintf(stderr,"Unknown ATAPI command after busy wait. Why?\n");
 			abort_error();
 			controller->raise_irq();
 			break;
@@ -1480,7 +1481,7 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 				dev->controller->raise_irq();
 				break;
 			default:
-				//fprintf(stderr,"Unknown delayed IDE/ATA command\n");
+				fprintf(stderr,"Unknown delayed IDE/ATA command\n");
 				dev->abort_error();
 				dev->controller->raise_irq();
 				break;
@@ -1495,7 +1496,7 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 					atapi->on_atapi_busy_time();
 					break;
 				default:
-					//fprintf(stderr,"Unknown delayed IDE/ATAPI busy wait command\n");
+					fprintf(stderr,"Unknown delayed IDE/ATAPI busy wait command\n");
 					dev->abort_error();
 					dev->controller->raise_irq();
 					break;
@@ -1518,7 +1519,7 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 					dev->controller->raise_irq();
 					break;
 				default:
-					//fprintf(stderr,"Unknown delayed IDE/ATAPI command\n");
+					fprintf(stderr,"Unknown delayed IDE/ATAPI command\n");
 					dev->abort_error();
 					dev->controller->raise_irq();
 					break;
@@ -1526,7 +1527,7 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 		}
 	}
 	else {
-		//fprintf(stderr,"Unknown delayed command\n");
+		fprintf(stderr,"Unknown delayed command\n");
 		dev->abort_error();
 		dev->controller->raise_irq();
 	}
@@ -1592,13 +1593,22 @@ IDEDevice::~IDEDevice() {
 }
 
 void IDEDevice::abort_error() {
-	fprintf(stderr,"IDE abort with error\n");
+	assert(controller != NULL);
+	fprintf(stderr,"IDE abort dh=0x%02x with error on 0x%03x\n",drivehead,controller->base_io);
 
 	/* a command was written while another is in progress */
 	state = IDE_DEV_READY;
 	allow_writing = true;
 	command = 0x00;
 	status = IDE_STATUS_ERROR | IDE_STATUS_DRIVE_READY | IDE_STATUS_DRIVE_SEEK_COMPLETE;
+}
+
+void IDEDevice::abort_normal() {
+	/* a command was written while another is in progress */
+	state = IDE_DEV_READY;
+	allow_writing = true;
+	command = 0x00;
+	status = IDE_STATUS_DRIVE_READY | IDE_STATUS_DRIVE_SEEK_COMPLETE;
 }
 
 void IDEDevice::interface_wakeup() {
@@ -1621,7 +1631,7 @@ void IDEDevice::writecommand(uint8_t cmd) {
 	/* drive is ready to accept command */
 	switch (cmd) {
 		default:
-			//fprintf(stderr,"Unknown IDE command %02X\n",cmd);
+			fprintf(stderr,"Unknown IDE command %02X\n",cmd);
 			abort_error();
 			break;
 	}
@@ -1645,8 +1655,7 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
 	command = cmd;
 	switch (cmd) {
 		case 0x08: /* DEVICE RESET */
-			/* magical incantation taken from QEMU source code.
-			   NOTE to ATA standards body: Your documentation sucks */
+			/* magical incantation taken from QEMU source code. */
 			status = 0x00;
 			drivehead &= 0x30; controller->drivehead = drivehead;
 			count = 0x01;
@@ -1658,7 +1667,7 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
 			allow_writing = true;
 			break;
 		case 0x20: /* READ SECTOR */
-			abort_error();
+			abort_normal();
 			status = IDE_STATUS_ERROR|IDE_STATUS_DRIVE_READY;
 			drivehead &= 0x30; controller->drivehead = drivehead;
 			count = 0x01;
@@ -1672,7 +1681,7 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
 		case 0xA0: /* ATAPI PACKET */
 			if (feature & 1) {
 				/* this code does not support DMA packet commands */
-				//fprintf(stderr,"Attempted DMA transfer\n");
+				fprintf(stderr,"Attempted DMA transfer\n");
 				abort_error();
 				count = 0x03; /* no more data (command/data=1, input/output=1) */
 				feature = 0xF4;
@@ -1698,7 +1707,7 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
 			   set in the appropriate fields". We have to do this. Unlike OAKCDROM.SYS Windows 95 appears to autodetect
 			   IDE devices by what they do when they're sent command 0xEC out of the blue---Microsoft didn't write their
 			   IDE drivers to use command 0x08 DEVICE RESET. */
-			abort_error();
+			abort_normal();
 			status = IDE_STATUS_ERROR|IDE_STATUS_DRIVE_READY;
 			drivehead &= 0x30; controller->drivehead = drivehead;
 			count = 0x01;
@@ -1710,7 +1719,7 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
 			allow_writing = true;
 			break;
 		default:
-			//fprintf(stderr,"Unknown IDE/ATAPI command %02X\n",cmd);
+			fprintf(stderr,"Unknown IDE/ATAPI command %02X\n",cmd);
 			abort_error();
 			allow_writing = true;
 			count = 0x03; /* no more data (command/data=1, input/output=1) */
