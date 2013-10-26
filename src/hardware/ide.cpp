@@ -7,70 +7,18 @@
 
 /* $Id: ide.cpp,v 1.49 2009-04-10 09:53:04 c2woody Exp $ */
 
-/* TODO: Figure out what brand of crack cocaine the Windows 95 devs were smoking and then adjust
-	 ATA emulation so Windows 95 is able to make use of the IDE controller for the C: drive.
-
-	 What do you mean, crack cocaine? Well, I wasted half a Sunday trying to get Windows 95
-	 to talk to our ATA emulation, and here is what I found:
-
-            * Windows 95 enumerates the IDE bus by issuing DEVICE RESET to everyone. It successfully
-	      detects our ATAPI CD-ROM emulation this way, BTW, and it seems to note which ones
-	      respond as normal hard drives.
-
-	    * BUT----rather than act on those findings, it instead reads CMOS non-volatile RAM and
-	      lets that determine whether or not it even attempts to query the hard disk. If byte
-	      0x12 says that the BIOS found a primary drive, then it will blindly no-questions-asked
-	      issue a READ to the primary interface. If the byte says a secondary is present, it
-	      will blindly issue a READ to the secondary interface. Prior to fixing CMOS emulation,
-	      i would see Windows 95 issue IDENTIFY DEVICE to the primary master but then turn right
-	      around and issue a READ to the non-existent primary slave (WTF?!?!?!).
-
-            * NOW: If Windows 95 determines the drive is there by CMOS, then it issues a C/H/S read
-	      of the boot sector, then it turns around and flags the IDE controller (!?!?!) as faulty
-	      and falls back to MS-DOS compatibility mode. It doesn't even bother to ask the drive
-	      for identification. It doesn't matter that it got a valid sector read from us.
-
-	      You will lose CD-ROM functionality as well if you attached the virtual CD-ROM drive to
-	      the same controller.
-
-	    * If Windows 95 does NOT use the CMOS byte to determine the hard disk, then we will see
-	      Windows 95 come around and issue IDENTIFY DEVICE, then move on and completely ignore
-	      the hard disk and use MS-DOS compatibility mode. It doesn't matter what we return for
-	      IDENTIFY DEVICE. I spent all fucking morning tweaking and twiddling and then finally
-	      outright copying an actual hard drive's response to no avail. So tell me Microsoft---
-	      if you see a hard disk is there and you're bothering to ask for device details, why the
-	      fucking hell aren't you then going out and USING the drive?!??
-
-	 Damned if you do, damned if you don't.
-
-	 What do you expect from a company that was also mostly responsible for the ACPI BIOS standard?
-	 A *SANE* industry standard implementation? HAH!
-
-	 It's true at this point I only implemented the READ SECTOR command, but that should not be the
-	 reason for such failure since I have yet to see Windows 95 actually put some effort into talking
-	 to our ATA emulation. I would exepct to see it at least READ from us and then try to WRITE at
-	 some point! Frankly right now I don't fucking care and so Windows 95 is just going to have to
-	 use INT 13h and deal with it because I have better things to do than waste my fucking time over
-	 whatever stupid minute detail Windows 95 is fussing about.
-
-	 In the mean time I recommend not attaching hard disk images to the IDE emulation.
-
-         ATAPI CD-ROM read delays: spin-up/spin-down and lengthening of delay based on sector count
-
-   Finally: This code is enough to satisfy MSCDEX.EXE and Windows 95 install, but for whatever
-   reason Windows 95 appears to issue IDENTIFY COMMAND to each device (including ATAPI CD-ROM)
-   and then completely ignore the IDE bus and use "MS-DOS compatibility mode". Why? */
-
 #include <math.h>
 #include <assert.h>
 #include "dosbox.h"
 #include "inout.h"
 #include "pic.h"
 #include "mem.h"
+#include "cpu.h"
 #include "ide.h"
 #include "mixer.h"
 #include "timer.h"
 #include "setup.h"
+#include "callback.h"
 #include "bios_disk.h"
 #include "../src/dos/cdrom.h"
 
@@ -262,7 +210,8 @@ public:
 class IDEController:public Module_base{
 public:
 	int IRQ;
-	bool int13fakeio;
+	bool int13fakeio;		/* on certain INT 13h calls, force IDE state as if BIOS had carried them out */
+	bool int13fakev86io;		/* on certain INT 13h calls in virtual 8086 mode, trigger fake CPU I/O traps */
 	unsigned short alt_io;
 	unsigned short base_io;
 	unsigned char interface_index;
@@ -1181,7 +1130,37 @@ static IDEDevice* GetIDESelectedDevice(IDEController *ide) {
 	return ide->device[ide->select];
 }
 
+static bool IDE_CPU_Is_Vm86() {
+	return (cpu.pmode && ((GETFLAG_IOPL<cpu.cpl) || GETFLAG(VM)));
+}
+
 static void ide_baseio_w(Bitu port,Bitu val,Bitu iolen);
+
+static Bitu IDE_SelfIO_In(IDEController *ide,Bitu port,Bitu len) {
+	if (ide->int13fakev86io && IDE_CPU_Is_Vm86()) {
+		/* Trigger I/O in virtual 8086 mode, where the OS can trap it and act on it.
+		 * Windows 95 uses V86 traps to help "autodetect" what IDE drive and port the
+		 * BIOS uses on INT 13h so that it's internal IDE driver can take over, which
+		 * is the whole reason for this hack. */
+		return CPU_ForceV86FakeIO_In(port,len);
+	}
+	else {
+		return ide_baseio_r(port,len);
+	}
+}
+
+static void IDE_SelfIO_Out(IDEController *ide,Bitu port,Bitu val,Bitu len) {
+	if (ide->int13fakev86io && IDE_CPU_Is_Vm86()) {
+		/* Trigger I/O in virtual 8086 mode, where the OS can trap it and act on it.
+		 * Windows 95 uses V86 traps to help "autodetect" what IDE drive and port the
+		 * BIOS uses on INT 13h so that it's internal IDE driver can take over, which
+		 * is the whole reason for this hack. */
+		CPU_ForceV86FakeIO_Out(port,val,len);
+	}
+	else {
+		ide_baseio_w(port,val,len);
+	}
+}
 
 /* this is called after INT 13h AH=0x02 READ DISK to change IDE state to simulate the BIOS in action.
  * this is needed for old "32-bit disk drivers" like WDCTRL in Windows 3.11 Windows for Workgroups,
@@ -1200,6 +1179,8 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
 
 		/* TODO: Print a warning message if the IDE controller is busy (debug/warning message) */
 
+		/* TODO: Force IDE state to readiness, abort command, etc. */
+
 		/* for master/slave device... */
 		for (ms=0;ms < 2;ms++) {
 			dev = ide->device[ms];
@@ -1209,24 +1190,82 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
 
 			/* TODO: Forcibly device-reset the IDE device */
 
-			ide_baseio_w(ide->base_io+6,0x00+(ms<<4),1); /* re-use our I/O handler to select IDE device */
+			/* Issue I/O to ourself to select drive */
+			IDE_SelfIO_In(ide,ide->base_io+7,1);
+			IDE_SelfIO_Out(ide,ide->base_io+6,0x00+(ms<<4),1);
 
 			if (dev->type == IDE_TYPE_HDD) {
-				IDEATADevice *ata = (IDEATADevice*)dev;
+				bool vm86 = IDE_CPU_Is_Vm86();
 
-				if ((ata->bios_disk_index-2) == (disk-0x80)) {
-					/* hack IDE state as if a BIOS executing IDE disk routines.
-					 * This is required if we want IDE emulation to work with Windows 3.11 Windows for Workgroups 32-bit disk access (WDCTRL),
-					 * because the driver "tests" the controller by issuing INT 13h calls then reading back IDE registers to see if
-					 * they match the C/H/S it requested */
-					dev->feature = 0x00;		/* clear error (WDCTRL test phase 5/C/13) */
-					dev->count = 0x00;		/* clear sector count (WDCTRL test phase 6/D/14) */
-					dev->lba[0] = sect;		/* leave sector number the same (WDCTRL test phase 7/E/15) */
-					dev->lba[1] = cyl;		/* leave cylinder the same (WDCTRL test phase 8/F/16) */
-					dev->lba[2] = cyl >> 8;		/* ...ditto */
-					ide->drivehead = dev->drivehead = 0xA0 | (ms<<4) | head; /* drive head and master/slave (WDCTRL test phase 9/10/17) */
-					dev->status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE; /* status (WDCTRL test phase A/11/18) */
-					dev->allow_writing = true;
+				if (ide->int13fakev86io && vm86) {
+					/* we MUST clear interrupts.
+					 * leaving them enabled causes Win95 (or DOSBox?) to recursively
+					 * pagefault and DOSBox to crash. In any case it seems Win95's
+					 * IDE driver assumes the BIOS INT 13h code will do this since
+					 * it's customary for the BIOS to do it at some point, usually
+					 * just before reading the sector data. */
+					CPU_CLI();
+
+					/* We're in virtual 8086 mode and we're asked to fake I/O as if
+					 * executing a BIOS subroutine. Some OS's like Windows 95 rely on
+					 * executing INT 13h in virtual 8086 mode: on startup, the ESDI
+					 * driver traps IDE ports and then executes INT 13h to watch what
+					 * I/O ports it uses. It then uses that information to decide
+					 * what IDE hard disk and controller corresponds to what DOS
+					 * drive. So to get 32-bit disk access to work in Windows 95,
+					 * we have to put on a good show to convince Windows 95 we're
+					 * a legitimate BIOS INT 13h call doing it's job. */
+					IDE_SelfIO_In(ide,ide->base_io+7,1);		/* dum de dum reading status */
+					IDE_SelfIO_Out(ide,ide->base_io+6,(ms<<4)+0xA0+head,1); /* drive and head */
+					IDE_SelfIO_In(ide,ide->base_io+7,1);		/* dum de dum reading status */
+					IDE_SelfIO_Out(ide,ide->base_io+2,0x01,1);	/* sector count */
+					IDE_SelfIO_Out(ide,ide->base_io+3,sect,1);	/* sector number */
+					IDE_SelfIO_Out(ide,ide->base_io+4,cyl&0xFF,1);	/* cylinder lo */
+					IDE_SelfIO_Out(ide,ide->base_io+5,(cyl>>8)&0xFF,1); /* cylinder hi */
+					IDE_SelfIO_Out(ide,ide->base_io+6,(ms<<4)+0xA0+head,1); /* drive and head */
+					IDE_SelfIO_In(ide,ide->base_io+7,1);		/* dum de dum reading status */
+					IDE_SelfIO_Out(ide,ide->base_io+7,0x20,1);	/* issue READ */
+
+					do {
+						/* TODO: Timeout needed */
+						unsigned int i = IDE_SelfIO_In(ide,ide->base_io+7,1);
+						if ((i&0x80) == 0) break;
+					} while (1);
+
+					/* for brevity assume it worked. we're here to bullshit Windows 95 after all */
+					for (unsigned int i=0;i < 256;i++)
+						IDE_SelfIO_In(ide,ide->base_io+0,2); /* 16-bit IDE data read */
+
+					/* one more */
+					IDE_SelfIO_In(ide,ide->base_io+7,1);		/* dum de dum reading status */
+
+					/* assume IRQ 14 happened and clear it */
+					IDE_SelfIO_Out(ide,0xA0,0x66,1);		/* specific EOI IRQ 14 */
+				}
+				else {
+					IDEATADevice *ata = (IDEATADevice*)dev;
+					static bool vm86_warned = false;
+
+					if ((ata->bios_disk_index-2) == (disk-0x80)) {
+						/* hack IDE state as if a BIOS executing IDE disk routines.
+						 * This is required if we want IDE emulation to work with Windows 3.11 Windows for Workgroups 32-bit disk access (WDCTRL),
+						 * because the driver "tests" the controller by issuing INT 13h calls then reading back IDE registers to see if
+						 * they match the C/H/S it requested */
+						dev->feature = 0x00;		/* clear error (WDCTRL test phase 5/C/13) */
+						dev->count = 0x00;		/* clear sector count (WDCTRL test phase 6/D/14) */
+						dev->lba[0] = sect;		/* leave sector number the same (WDCTRL test phase 7/E/15) */
+						dev->lba[1] = cyl;		/* leave cylinder the same (WDCTRL test phase 8/F/16) */
+						dev->lba[2] = cyl >> 8;		/* ...ditto */
+						ide->drivehead = dev->drivehead = 0xA0 | (ms<<4) | head; /* drive head and master/slave (WDCTRL test phase 9/10/17) */
+						dev->status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE; /* status (WDCTRL test phase A/11/18) */
+						dev->allow_writing = true;
+
+						if (vm86 && !vm86_warned) {
+							fprintf(stderr,"IDE warning: INT 13h read from virtual 8086 mode.\n");
+							fprintf(stderr,"             If using Windows 95, please set int13fakev86io=true for proper 32-bit disk access\n");
+							vm86_warned = true;
+						}
+					}
 				}
 			}
 		}
@@ -1249,6 +1288,8 @@ void IDE_ResetDiskByBIOS(unsigned char disk) {
 
 		/* TODO: Print a warning message if the IDE controller is busy (debug/warning message) */
 
+		/* TODO: Force IDE state to readiness, abort command, etc. */
+
 		/* for master/slave device... */
 		for (ms=0;ms < 2;ms++) {
 			dev = ide->device[ms];
@@ -1258,7 +1299,11 @@ void IDE_ResetDiskByBIOS(unsigned char disk) {
 
 			/* TODO: Forcibly device-reset the IDE device */
 
-			ide_baseio_w(ide->base_io+6,0x00+(ms<<4),1); /* re-use our I/O handler to select IDE device */
+			/* Issue I/O to ourself to select drive */
+			IDE_SelfIO_In(ide,ide->base_io+7,1);
+			IDE_SelfIO_Out(ide,ide->base_io+6,0x00+(ms<<4),1);
+
+			/* TODO: Forcibly device-reset the IDE device */
 
 			if (dev->type == IDE_TYPE_HDD) {
 				IDEATADevice *ata = (IDEATADevice*)dev;
@@ -1268,11 +1313,24 @@ void IDE_ResetDiskByBIOS(unsigned char disk) {
 						idx+1,ms?'s':'m',
 						disk);
 
-					/* issue the DEVICE RESET command */
-					dev->writecommand(0x08);
+					if (ide->int13fakev86io && IDE_CPU_Is_Vm86()) {
+						/* issue the DEVICE RESET command */
+						IDE_SelfIO_In(ide,ide->base_io+7,1);
+						IDE_SelfIO_Out(ide,ide->base_io+7,0x08,1);
 
-					/* and then immediately clear the IRQ */
-					ide->lower_irq();
+						IDE_SelfIO_In(ide,ide->base_io+7,1);
+
+						/* assume IRQ 14 happened and clear it */
+						IDE_SelfIO_Out(ide,0xA0,0x66,1);		/* specific EOI IRQ 14 */
+					}
+					else {
+						/* Windows 3.1 WDCTRL needs this, or else, it will read the
+						 * status register and see something other than DRIVE_READY|SEEK_COMPLETE */
+						dev->writecommand(0x80);
+
+						/* and then immediately clear the IRQ */
+						ide->lower_irq();
+					}
 				}
 			}
 		}
@@ -1658,7 +1716,6 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
 	command = cmd;
 	switch (cmd) {
 		case 0x08: /* DEVICE RESET */
-			/* magical incantation taken from QEMU source code. */
 			status = 0x00;
 			drivehead &= 0x30; controller->drivehead = drivehead;
 			count = 0x01;
@@ -1807,6 +1864,7 @@ IDEController::IDEController(Section* configuration,unsigned char index):Module_
 	Section_prop * section=static_cast<Section_prop *>(configuration);
 
 	int13fakeio = section->Get_bool("int13fakeio");
+	int13fakev86io = section->Get_bool("int13fakev86io");
 
 	status = 0x00;
 	host_reset = false;
@@ -1961,10 +2019,7 @@ static Bitu _ide_baseio_r(Bitu port,Bitu iolen) {
 static Bitu ide_baseio_r(Bitu port,Bitu iolen) {
 	Bitu r = _ide_baseio_r(port,iolen);
 
-#if 0
-	if ((port&7) != 0x00)
-		fprintf(stderr,"IDE base[0x%03x] > %02X\n",port,r);
-#endif
+//	fprintf(stderr,"IDE base[0x%03x] > %02X\n",port,r);
 
 	return r;
 }
@@ -1982,16 +2037,16 @@ static void ide_baseio_w(Bitu port,Bitu val,Bitu iolen) {
 	/* ignore I/O writes if the controller is busy */
 	if (dev) {
 		if (dev->status & IDE_STATUS_BUSY) {
-			//fprintf(stderr,"W-%03X %02X BUSY DROP\n",port,val);
+			fprintf(stderr,"W-%03X %02X BUSY DROP\n",port,val);
 			return;
 		}
 	}
 	else if (ide->status & IDE_STATUS_BUSY) {
-		//fprintf(stderr,"W-%03X %02X BUSY DROP\n",port,val);
+		fprintf(stderr,"W-%03X %02X BUSY DROP\n",port,val);
 		return;
 	}
 
-//	fprintf(stderr,"W-%03X %02X\n",port,val);
+//	fprintf(stderr,"IDE base[0x%03x] < %02X\n",port,val);
 
 	port &= 7;
 	switch (port) {
@@ -2001,32 +2056,22 @@ static void ide_baseio_w(Bitu port,Bitu val,Bitu iolen) {
 		case 1:	/* 1F1 */
 			if (dev && dev->allow_writing) /* TODO: LBA48 16-bit wide register */
 				dev->feature = val;
-			//else
-			//	fprintf(stderr,"IDE: xx1 write ignored\n");
 			break;
 		case 2:	/* 1F2 */
 			if (dev && dev->allow_writing) /* TODO: LBA48 16-bit wide register */
 				dev->count = val;
-			//else
-			//	fprintf(stderr,"IDE: xx1 write ignored\n");
 			break;
 		case 3:	/* 1F3 */
 			if (dev && dev->allow_writing) /* TODO: LBA48 16-bit wide register */
 				dev->lba[0] = val;
-			//else
-			//	fprintf(stderr,"IDE: xx1 write ignored\n");
 			break;
 		case 4:	/* 1F4 */
 			if (dev && dev->allow_writing) /* TODO: LBA48 16-bit wide register */
 				dev->lba[1] = val;
-			//else
-			//	fprintf(stderr,"IDE: xx1 write ignored\n");
 			break;
 		case 5:	/* 1F5 */
 			if (dev && dev->allow_writing) /* TODO: LBA48 16-bit wide register */
 				dev->lba[2] = val;
-			//else
-			//	fprintf(stderr,"IDE: xx1 write ignored\n");
 			break;
 		case 6:	/* 1F6 */
 			if (((val>>4)&1) != ide->select) {
