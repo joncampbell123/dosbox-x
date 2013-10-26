@@ -499,5 +499,7 @@ static INLINE void CPU_SetFlagsw(Bitu word) {
 	CPU_SetFlags(word,mask);
 }
 
+Bitu CPU_ForceV86FakeIO_In(Bitu port,Bitu len);
+void CPU_ForceV86FakeIO_Out(Bitu port,Bitu val,Bitu len);
 
 #endif

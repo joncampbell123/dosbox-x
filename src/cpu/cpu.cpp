@@ -28,6 +28,7 @@
 #include "setup.h"
 #include "programs.h"
 #include "paging.h"
+#include "callback.h"
 #include "lazyflags.h"
 #include "support.h"
 #include "control.h"
@@ -2573,5 +2574,102 @@ CPU_Decoder *CPU_IndexDecoderType( Bit16u decoder_idx )
 
 
 	return cpudecoder;
+}
+
+static Bitu vm86_fake_io_seg = 0xF000;	/* unused area in BIOS for IO instruction */
+static Bitu vm86_fake_io_off = 0x0700;
+
+Bitu CPU_ForceV86FakeIO_In(Bitu port,Bitu len) {
+	static const char suffix[4] = {'B','W','?','D'};
+	Bitu phys = (vm86_fake_io_seg << 4) + vm86_fake_io_off;
+	Bitu old_ax,old_dx,ret;
+
+	/* argh */
+	CPU_Core_Dyn_X86_Cache_Reset();
+
+	/* save EAX:EDX and setup DX for IN instruction */
+	old_ax = reg_eax;
+	old_dx = reg_edx;
+
+	reg_edx = port;
+
+	if (len == 1) {
+		phys_writeb(phys+0x00,(Bit8u)0xEC);	/* IN AL,DX */
+		phys_writeb(phys+0x01,(Bit8u)0xCB);	/* RETF */
+	}
+	else if (len == 2) {
+		phys_writeb(phys+0x00,(Bit8u)0xED);	/* IN AX,DX */
+		phys_writeb(phys+0x01,(Bit8u)0xCB);	/* RETF */
+	}
+	else if (len == 4) {
+		phys_writeb(phys+0x00,(Bit8u)0x66);	/* IN EAX,DX */
+		phys_writeb(phys+0x01,(Bit8u)0xED);
+		phys_writeb(phys+0x02,(Bit8u)0xCB);	/* RETF */
+	}
+	else {
+		abort();
+	}
+
+	/* DEBUG */
+	fprintf(stderr,"CPU virtual 8086 mode: Forcing CPU to execute 'IN%c 0x%04x so OS can trap it. ",suffix[len-1],port);
+	fflush(stderr);
+
+	/* make the CPU execute that instruction */
+	CALLBACK_RunRealFar(vm86_fake_io_seg,vm86_fake_io_off);
+
+	/* take whatever the CPU or OS v86 trap left in EAX and return it */
+	ret = reg_eax;
+	if (len == 1) ret &= 0xFF;
+	else if (len == 2) ret &= 0xFFFF;
+	fprintf(stderr," => v86 result 0x%02x\n",ret);
+
+	/* then restore EAX:EDX */
+	reg_eax = old_ax;
+	reg_edx = old_dx;
+
+	return ret;
+}
+
+void CPU_ForceV86FakeIO_Out(Bitu port,Bitu val,Bitu len) {
+	static const char suffix[4] = {'B','W','?','D'};
+	Bitu phys = (vm86_fake_io_seg << 4) + vm86_fake_io_off;
+	Bitu old_ax,old_dx;
+
+	/* argh */
+	CPU_Core_Dyn_X86_Cache_Reset();
+
+	/* save EAX:EDX and setup DX/AX for OUT instruction */
+	old_ax = reg_eax;
+	old_dx = reg_edx;
+
+	reg_edx = port;
+	reg_eax = val;
+
+	if (len == 1) {
+		phys_writeb(phys+0x00,(Bit8u)0xEE);	/* OUT DX,AL */
+		phys_writeb(phys+0x01,(Bit8u)0xCB);	/* RETF */
+	}
+	else if (len == 2) {
+		phys_writeb(phys+0x00,(Bit8u)0xEF);	/* OUT DX,AX */
+		phys_writeb(phys+0x01,(Bit8u)0xCB);	/* RETF */
+	}
+	else if (len == 4) {
+		phys_writeb(phys+0x00,(Bit8u)0x66);	/* OUT DX,EAX */
+		phys_writeb(phys+0x01,(Bit8u)0xEF);
+		phys_writeb(phys+0x02,(Bit8u)0xCB);	/* RETF */
+	}
+	else {
+		abort();
+	}
+
+	/* DEBUG */
+	fprintf(stderr,"CPU virtual 8086 mode: Forcing CPU to execute 'OUT%c 0x%04x,0x%02x so OS can trap it.\n",suffix[len-1],port,val);
+
+	/* make the CPU execute that instruction */
+	CALLBACK_RunRealFar(vm86_fake_io_seg,vm86_fake_io_off);
+
+	/* then restore EAX:EDX */
+	reg_eax = old_ax;
+	reg_edx = old_dx;
 }
 
