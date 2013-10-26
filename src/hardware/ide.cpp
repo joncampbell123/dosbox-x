@@ -1168,14 +1168,9 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
 				bool vm86 = IDE_CPU_Is_Vm86();
 
 				if ((ata->bios_disk_index-2) == (disk-0x80)) {
-					if (ata->headshr != 0)
-						fprintf(stderr,"FIXME: Untested BIOS geometry translation with IDE hack\n");
-
 					/* translate BIOS INT 13h geometry to IDE geometry */
 					if (ata->headshr != 0) {
 						unsigned long lba;
-
-						fprintf(stderr,"xlate %u/%u/%u to ",cyl,head,sect);
 
 						imageDisk *dsk = ata->getBIOSdisk();
 						if (dsk == NULL) return;
@@ -1183,8 +1178,6 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
 						sect = (lba % ata->sects) + 1;
 						head = (lba / ata->sects) % ata->heads;
 						cyl = (lba / ata->sects / ata->heads);
-
-						fprintf(stderr,"%u/%u/%u\n",cyl,head,sect);
 					}
 
 					if (ide->int13fakev86io && vm86) {
