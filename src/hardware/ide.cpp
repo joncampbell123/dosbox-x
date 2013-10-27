@@ -912,35 +912,43 @@ void IDEATADevice::generate_identify_device() {
 		sector[(i^1)+(27*2)] = ' ';
 
 	host_writew(sector+(47*2),0x8080);	/* <- READ/WRITE MULTIPLE MAX SECTORS */
-	host_writew(sector+(48*2),0x0001);
-	host_writew(sector+(49*2),0x0B00);
-	host_writew(sector+(50*2),0x4000);
+	host_writew(sector+(48*2),0x0001);	/* FIXME: ??? */
+	host_writew(sector+(49*2),0x0A00);	/* :13 0=Standby timer values managed by device */
+						/* :11 1=IORDY supported */
+						/* :10 0=IORDY not disabled */
+						/* :9  1=LBA supported */
+						/* :8  0=DMA not supported */
+	host_writew(sector+(50*2),0x4000);	/* FIXME: ??? */
 	host_writew(sector+(51*2),0x00F0);	/* PIO data transfer cycle timing mode */
 	host_writew(sector+(52*2),0x00F0);	/* DMA data transfer cycle timing mode */
-	host_writew(sector+(53*2),0x0007);
+	host_writew(sector+(53*2),0x0007);	/* :2  1=the fields in word 88 are valid */
+						/* :1  1=the fields in word (70:64) are valid */
+						/* :0  1= ??? */
 	host_writew(sector+(54*2),cyls);	/* current cylinders */
 	host_writew(sector+(55*2),heads);	/* current heads */
 	host_writew(sector+(56*2),sects);	/* current sectors per track */
 	host_writed(sector+(57*2),total);	/* current capacity in sectors */
-	host_writew(sector+(59*2),0x0101);	/* CURRENT READ/WRITE MULTIPLE SECTOR SETTING with valid=1 */
+	host_writew(sector+(59*2),0x0101);	/* :8  multiple sector setting is valid */
+						/* 7:0 current setting for number of log. sectors per DRQ of READ/WRITE MULTIPLE */
 	host_writed(sector+(60*2),total);	/* total user addressable sectors (LBA) */
-//	host_writew(sector+(62*2),0x0007);
-//	host_writew(sector+(63*2),0x0007);
-//	host_writew(sector+(64*2),0x0003);
-//	host_writew(sector+(65*2),0x0078);
-//	host_writew(sector+(66*2),0x0078);
-//	host_writew(sector+(67*2),0x0078);
-//	host_writew(sector+(68*2),0x0078);
-//	host_writew(sector+(80*2),0x007E);
-//	host_writew(sector+(81*2),0x0022);
-//	host_writew(sector+(82*2),0x0068);
-//	host_writew(sector+(83*2),0x5000);
-//	host_writew(sector+(84*2),0x4000);
-//	host_writew(sector+(85*2),0x0068);
-//	host_writew(sector+(86*2),0x1000);
-//	host_writew(sector+(87*2),0x4000);
-//	host_writew(sector+(88*2),0x047F);
-//	host_writew(sector+(93*3),0x6003);
+	host_writew(sector+(62*2),0x0000);	/* FIXME: ??? */
+	host_writew(sector+(63*2),0x0000);	/* :10 0=Multiword DMA mode 2 not selected */
+						/* TODO: Basically, we don't do DMA. Fill out this comment */
+	host_writew(sector+(64*2),0x0003);	/* 7:0 PIO modes supported (FIXME ???) */
+	host_writew(sector+(65*2),0x0000);	/* FIXME: ??? */
+	host_writew(sector+(66*2),0x0000);	/* FIXME: ??? */
+	host_writew(sector+(67*2),0x0078);	/* FIXME: ??? */
+	host_writew(sector+(68*2),0x0078);	/* FIXME: ??? */
+	host_writew(sector+(80*2),0x001E);	/* Supports ATA-1/2/3/4 */
+	host_writew(sector+(81*2),0x0022);	/* FIXME: ??? */
+	host_writew(sector+(82*2),0x0200);	/* FIXME: ??? */
+	host_writew(sector+(83*2),0x4000);	/* FIXME: ??? */
+	host_writew(sector+(84*2),0x4000);	/* FIXME: ??? */
+	host_writew(sector+(85*2),0x0200);	/* FIXME: ??? */
+	host_writew(sector+(86*2),0x0000);	/* FIXME: ??? */
+	host_writew(sector+(87*2),0x4000);	/* FIXME: ??? */
+	host_writew(sector+(88*2),0x0000);	/* FIXME: ??? */
+	host_writew(sector+(93*3),0x0000);	/* FIXME: ??? */
 
 	/* ATA-8 integrity checksum */
 	sector[510] = 0xA5;
