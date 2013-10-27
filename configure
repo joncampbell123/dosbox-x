@@ -4920,7 +4920,7 @@ fi
 
 CXXFLAGS="$CXXFLAGS -std=gnu++11"
 
-CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
+CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2 -D_FILE_OFFSET_BITS=64"
 
 if test x$host = xi386-pc-os2-emx ; then
     CXXFLAGS="$CXXFLAGS -Zmt"

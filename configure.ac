@@ -23,7 +23,7 @@ dnl Need GCC to know this code is using C++ lamda functions
 CXXFLAGS="$CXXFLAGS -std=gnu++11"
 
 dnl Scalars in the code use MMX/SSE intrinsics
-CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
+CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2 -D_FILE_OFFSET_BITS=64"
 
 dnl Some needed libaries for OS2
 dnl perharps join this with the other target depended checks. move them upwards
