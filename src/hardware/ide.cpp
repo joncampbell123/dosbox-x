@@ -1005,16 +1005,25 @@ void IDEATADevice::update_from_biosdisk() {
 		headshr++;
 	}
 
-	/* well, we can't do 256 heads because DOS/Windows cannot handle that.
-	 * but we can do 255 and map the best we can anyway */
+	/* If we can't divide the heads down, then pick a LBA-like mapping that is good enough.
+	 * Note that if what we pick does not evenly map to the INT 13h geometry, and the partition
+	 * contained within is not an LBA type FAT16/FAT32 partition, then Windows 95's IDE driver
+	 * will ignore this device and fall back to using INT 13h. For user convenience we will
+	 * print a warning to reminder the user of exactly that. */
 	if (heads > 16) {
 		unsigned long tmp;
 
 		tmp = heads * cyls * sects;
 		sects = 63;
-		heads = 255;
-		cyls = tmp / 63 / 255;
-		fprintf(stderr,"Mapping BIOS DISK C/H/S %u/%u/%u as IDE %u/%u/%u (ECHS-type mapping)\n",
+		heads = 16;
+		cyls = (tmp + ((63 * 16) - 1)) / (63 * 16);
+		fprintf(stderr,"WARNING: Unable to reduce heads to 16 and below\n");
+		fprintf(stderr,"If at all possible, please consider using INT 13h geometry with a head\n");
+		fprintf(stderr,"cound that is easier to map to the BIOS, like 240 heads or 128 heads/track.\n");
+		fprintf(stderr,"Some OSes, such as Windows 95, will not enable their 32-bit IDE driver if\n");
+		fprintf(stderr,"a clean mapping does not exist between IDE and BIOS geometry and the partition\n");
+		fprintf(stderr,"is not marked for LBA access.\n");
+		fprintf(stderr,"Mapping BIOS DISK C/H/S %u/%u/%u as IDE %u/%u/%u (non-straightforward mapping)\n",
 			dsk->cylinders,dsk->heads,dsk->sectors,
 			cyls,heads,sects);
 	}
