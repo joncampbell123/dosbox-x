@@ -167,7 +167,7 @@ public:
 	virtual void prepare_write(Bitu offset,Bitu size);
 	virtual void io_completion();
 public:
-	Bitu heads,sects,cyls,headshr;
+	Bitu heads,sects,cyls,headshr,progress_count;
 	unsigned char sector[512*128];
 	Bitu sector_i,sector_total;
 };
@@ -467,6 +467,7 @@ void IDEATADevice::io_completion() {
 		case 0x20:/* READ SECTOR */
 			/* OK, decrement count, increment address */
 			/* NTS: Remember that count == 0 means the host wanted to transfer 256 sectors */
+			progress_count++;
 			if ((count&0xFF) == 1) {
 				/* end of the transfer */
 				count = 0;
@@ -519,13 +520,13 @@ void IDEATADevice::io_completion() {
 			/* cause another delay, another sector read */
 			state = IDE_DEV_BUSY;
 			status = IDE_STATUS_BUSY;
-			PIC_AddEvent(IDE_DelayedCommand,0.1/*ms*/,controller->interface_index);
+			PIC_AddEvent(IDE_DelayedCommand,0.00001/*ms*/,controller->interface_index);
 			break;
 		case 0x30:/* WRITE SECTOR */
 			/* this is where the drive has accepted the sector, lowers DRQ, and begins executing the command */
 			state = IDE_DEV_BUSY;
 			status = IDE_STATUS_BUSY;
-			PIC_AddEvent(IDE_DelayedCommand,0.15/*ms*/,controller->interface_index);
+			PIC_AddEvent(IDE_DelayedCommand,(progress_count == 0 ? 0.15 : 0.0001)/*ms*/,controller->interface_index);
 			break;
 		default: /* most commands: signal drive ready, return to ready state */
 			/* NTS: Some MS-DOS CD-ROM drivers will loop endlessly if we never set "drive seek complete"
@@ -1566,6 +1567,7 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 				}
 				else if ((ata->count&0xFF) == 0) ata->count = 255;
 				else ata->count--;
+				ata->progress_count++;
 
 				/* ATA-1 behavior: increment the LBA address or the C/H/S address */
 				if (drivehead_is_lba(ata->drivehead)) {
@@ -1961,6 +1963,7 @@ void IDEATADevice::writecommand(uint8_t cmd) {
 			allow_writing = true;
 			break;
 		case 0x20: /* READ SECTOR */
+			progress_count = 0;
 			state = IDE_DEV_BUSY;
 			status = IDE_STATUS_BUSY;
 			PIC_AddEvent(IDE_DelayedCommand,0.1/*ms*/,controller->interface_index);
@@ -1968,6 +1971,7 @@ void IDEATADevice::writecommand(uint8_t cmd) {
 		case 0x30: /* WRITE SECTOR */
 			/* the drive does NOT signal an interrupt. it sets DRQ and waits for a sector
 			 * to be transferred to it before executing the command */
+			progress_count = 0;
 			state = IDE_DEV_DATA_WRITE;
 			status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ;
 			prepare_write(0,512);
