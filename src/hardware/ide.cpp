@@ -1021,8 +1021,7 @@ void IDEATADevice::update_from_biosdisk() {
 		fprintf(stderr,"If at all possible, please consider using INT 13h geometry with a head\n");
 		fprintf(stderr,"cound that is easier to map to the BIOS, like 240 heads or 128 heads/track.\n");
 		fprintf(stderr,"Some OSes, such as Windows 95, will not enable their 32-bit IDE driver if\n");
-		fprintf(stderr,"a clean mapping does not exist between IDE and BIOS geometry and the partition\n");
-		fprintf(stderr,"is not marked for LBA access.\n");
+		fprintf(stderr,"a clean mapping does not exist between IDE and BIOS geometry.\n");
 		fprintf(stderr,"Mapping BIOS DISK C/H/S %u/%u/%u as IDE %u/%u/%u (non-straightforward mapping)\n",
 			dsk->cylinders,dsk->heads,dsk->sectors,
 			cyls,heads,sects);
@@ -1144,6 +1143,127 @@ static void IDE_SelfIO_Out(IDEController *ide,Bitu port,Bitu val,Bitu len) {
 	}
 	else {
 		ide_baseio_w(port,val,len);
+	}
+}
+
+/* INT 13h extensions */
+void IDE_EmuINT13DiskReadByBIOS_LBA(unsigned char disk,uint64_t lba) {
+	IDEController *ide;
+	IDEDevice *dev;
+	Bitu idx,ms;
+
+	if (disk < 0x80) return;
+	if (lba >= (1ULL << 28ULL)) return; /* this code does not support LBA48 */
+
+	for (idx=0;idx < MAX_IDE_CONTROLLERS;idx++) {
+		ide = GetIDEController(idx);
+		if (ide == NULL) continue;
+		if (!ide->int13fakeio) continue;
+
+		/* TODO: Print a warning message if the IDE controller is busy (debug/warning message) */
+
+		/* TODO: Force IDE state to readiness, abort command, etc. */
+
+		/* for master/slave device... */
+		for (ms=0;ms < 2;ms++) {
+			dev = ide->device[ms];
+			if (dev == NULL) continue;
+
+			/* TODO: Print a warning message if the IDE device is busy or in the middle of a command */
+
+			/* TODO: Forcibly device-reset the IDE device */
+
+			/* Issue I/O to ourself to select drive */
+			dev->faked_command = true;
+			IDE_SelfIO_In(ide,ide->base_io+7,1);
+			IDE_SelfIO_Out(ide,ide->base_io+6,0x00+(ms<<4),1);
+			dev->faked_command = false;
+
+			if (dev->type == IDE_TYPE_HDD) {
+				IDEATADevice *ata = (IDEATADevice*)dev;
+				static bool vm86_warned = false;
+				static bool int13_fix_wrap_warned = false;
+				bool vm86 = IDE_CPU_Is_Vm86();
+
+				if ((ata->bios_disk_index-2) == (disk-0x80)) {
+					imageDisk *dsk = ata->getBIOSdisk();
+
+					if (ide->int13fakev86io && vm86) {
+						dev->faked_command = true;
+
+						/* we MUST clear interrupts.
+						 * leaving them enabled causes Win95 (or DOSBox?) to recursively
+						 * pagefault and DOSBox to crash. In any case it seems Win95's
+						 * IDE driver assumes the BIOS INT 13h code will do this since
+						 * it's customary for the BIOS to do it at some point, usually
+						 * just before reading the sector data. */
+						CPU_CLI();
+
+						/* We're in virtual 8086 mode and we're asked to fake I/O as if
+						 * executing a BIOS subroutine. Some OS's like Windows 95 rely on
+						 * executing INT 13h in virtual 8086 mode: on startup, the ESDI
+						 * driver traps IDE ports and then executes INT 13h to watch what
+						 * I/O ports it uses. It then uses that information to decide
+						 * what IDE hard disk and controller corresponds to what DOS
+						 * drive. So to get 32-bit disk access to work in Windows 95,
+						 * we have to put on a good show to convince Windows 95 we're
+						 * a legitimate BIOS INT 13h call doing it's job. */
+						IDE_SelfIO_In(ide,ide->base_io+7,1);		/* dum de dum reading status */
+						IDE_SelfIO_Out(ide,ide->base_io+6,(ms<<4)+0xE0+(lba>>24),1); /* drive and head */
+						IDE_SelfIO_In(ide,ide->base_io+7,1);		/* dum de dum reading status */
+						IDE_SelfIO_Out(ide,ide->base_io+2,0x01,1);	/* sector count */
+						IDE_SelfIO_Out(ide,ide->base_io+3,lba&0xFF,1);	/* sector number */
+						IDE_SelfIO_Out(ide,ide->base_io+4,(lba>>8)&0xFF,1);	/* cylinder lo */
+						IDE_SelfIO_Out(ide,ide->base_io+5,(lba>>16)&0xFF,1); /* cylinder hi */
+						IDE_SelfIO_Out(ide,ide->base_io+6,(ms<<4)+0xE0+(lba>>24),1); /* drive and head */
+						IDE_SelfIO_In(ide,ide->base_io+7,1);		/* dum de dum reading status */
+						IDE_SelfIO_Out(ide,ide->base_io+7,0x20,1);	/* issue READ */
+
+						do {
+							/* TODO: Timeout needed */
+							unsigned int i = IDE_SelfIO_In(ide,ide->base_io+7,1);
+							if ((i&0x80) == 0) break;
+						} while (1);
+
+						/* for brevity assume it worked. we're here to bullshit Windows 95 after all */
+						for (unsigned int i=0;i < 256;i++)
+							IDE_SelfIO_In(ide,ide->base_io+0,2); /* 16-bit IDE data read */
+
+						/* one more */
+						IDE_SelfIO_In(ide,ide->base_io+7,1);		/* dum de dum reading status */
+
+						/* assume IRQ 14 happened and clear it */
+						IDE_SelfIO_Out(ide,0xA0,0x66,1);		/* specific EOI IRQ 14 */
+
+						dev->faked_command = false;
+					}
+					else {
+						/* hack IDE state as if a BIOS executing IDE disk routines.
+						 * This is required if we want IDE emulation to work with Windows 3.11 Windows for Workgroups 32-bit disk access (WDCTRL),
+						 * because the driver "tests" the controller by issuing INT 13h calls then reading back IDE registers to see if
+						 * they match the C/H/S it requested */
+						dev->feature = 0x00;		/* clear error (WDCTRL test phase 5/C/13) */
+						dev->count = 0x00;		/* clear sector count (WDCTRL test phase 6/D/14) */
+						dev->lba[0] = lba&0xFF;		/* leave sector number the same (WDCTRL test phase 7/E/15) */
+						dev->lba[1] = (lba>>8)&0xFF;	/* leave cylinder the same (WDCTRL test phase 8/F/16) */
+						dev->lba[2] = (lba>>16)&0xFF;	/* ...ditto */
+						ide->drivehead = dev->drivehead = 0xE0 | (ms<<4) | (lba>>24); /* drive head and master/slave (WDCTRL test phase 9/10/17) */
+						dev->status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE; /* status (WDCTRL test phase A/11/18) */
+						dev->allow_writing = true;
+
+						if (vm86 && !vm86_warned) {
+							fprintf(stderr,"IDE warning: INT 13h extensions read from virtual 8086 mode.\n");
+							fprintf(stderr,"             If using Windows 95 OSR2, please set int13fakev86io=true for proper 32-bit disk access\n");
+							vm86_warned = true;
+						}
+					}
+
+					/* break out, we're done */
+					idx = MAX_IDE_CONTROLLERS;
+					break;
+				}
+			}
+		}
 	}
 }
 

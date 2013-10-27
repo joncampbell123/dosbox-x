@@ -362,6 +362,7 @@ static void readDAP(Bit16u seg, Bit16u off) {
 
 void IDE_ResetDiskByBIOS(unsigned char disk);
 void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int head,unsigned sect);
+void IDE_EmuINT13DiskReadByBIOS_LBA(unsigned char disk,uint64_t lba);
 
 static Bitu INT13_DiskHandler(void) {
 	Bit16u segat, bufptr;
@@ -620,6 +621,9 @@ static Bitu INT13_DiskHandler(void) {
 		bufptr = dap.off;
 		for(i=0;i<dap.num;i++) {
 			last_status = imageDiskList[drivenum]->Read_AbsoluteSector(dap.sector+i, sectbuf);
+
+			IDE_EmuINT13DiskReadByBIOS_LBA(reg_dl,dap.sector+i);
+
 			if((last_status != 0x00) || (killRead)) {
 				LOG_MSG("Error in disk read");
 				killRead = false;
