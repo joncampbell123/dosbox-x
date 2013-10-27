@@ -1168,14 +1168,43 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
 			if (dev->type == IDE_TYPE_HDD) {
 				IDEATADevice *ata = (IDEATADevice*)dev;
 				static bool vm86_warned = false;
+				static bool int13_fix_wrap_warned = false;
 				bool vm86 = IDE_CPU_Is_Vm86();
 
 				if ((ata->bios_disk_index-2) == (disk-0x80)) {
+					imageDisk *dsk = ata->getBIOSdisk();
+
+					/* HACK: src/ints/bios_disk.cpp implementation doesn't correctly
+					 *       wrap sector numbers across tracks. it fullfills the read
+					 *       by counting sectors and reading from C,H,S+i which means
+					 *       that if the OS assumes the ability to read across track
+					 *       boundaries (as Windows 95 does) we will get invalid
+					 *       sector numbers, which in turn fouls up our emulation.
+					 *
+					 *       Windows 95 OSR2 for example, will happily ask for 63
+					 *       sectors starting at C/H/S 30/9/42 without regard for
+					 *       track boundaries. */
+					if (sect > dsk->sectors) {
+						if (!int13_fix_wrap_warned) {
+							fprintf(stderr,"INT 13h implementation warning: we were given over-large sector number.\n");
+							fprintf(stderr,"This is normally the fault of DOSBox INT 13h emulation that counts sectors\n");
+							fprintf(stderr,"without consideration of track boundaries\n");
+							int13_fix_wrap_warned = true;
+						}
+
+						do {
+							sect -= dsk->sectors;
+							if ((++head) >= dsk->heads) {
+								head -= dsk->heads;
+								cyl++;
+							}
+						} while (sect > dsk->sectors);
+					}
+
 					/* translate BIOS INT 13h geometry to IDE geometry */
 					if (ata->headshr != 0) {
 						unsigned long lba;
 
-						imageDisk *dsk = ata->getBIOSdisk();
 						if (dsk == NULL) return;
 						lba = (head * dsk->sectors) + (cyl * dsk->sectors * dsk->heads) + sect - 1;
 						sect = (lba % ata->sects) + 1;
