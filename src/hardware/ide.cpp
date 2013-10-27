@@ -501,7 +501,7 @@ void IDEATADevice::io_completion() {
 				if (((++lba[0])&0xFF) > sects) { /* increment sector */
 					lba[0] = 1;
 					/* if sector carry, increment head */
-					if ((drivehead&0xF) == 0xF) {	/* if head carry, increment 7:0 of track */
+					if (((drivehead&0xF)+1) == heads) { /* if head carry, increment 7:0 of track */
 						drivehead &= 0xF0;
 						if (((++lba[1])&0xFF) == 0) { /* if 7:0 carry then incrment 15:8 */
 							if (((++lba[2])&0xFF) == 0) {
@@ -1597,7 +1597,7 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 					if (((++ata->lba[0])&0xFF) > ata->sects) { /* increment sector */
 						ata->lba[0] = 1;
 						/* if sector carry, increment head */
-						if ((ata->drivehead&0xF) == 0xF) {	/* if head carry, increment 7:0 of track */
+						if (((ata->drivehead&0xF)+1) == ata->heads) { /* if head carry, increment 7:0 of track */
 							ata->drivehead &= 0xF0;
 							if (((++ata->lba[1])&0xFF) == 0) { /* if 7:0 carry then incrment 15:8 */
 								if (((++ata->lba[2])&0xFF) == 0) {
