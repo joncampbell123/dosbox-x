@@ -526,7 +526,7 @@ void IDEATADevice::io_completion() {
 			/* this is where the drive has accepted the sector, lowers DRQ, and begins executing the command */
 			state = IDE_DEV_BUSY;
 			status = IDE_STATUS_BUSY;
-			PIC_AddEvent(IDE_DelayedCommand,(progress_count == 0 ? 0.15 : 0.0001)/*ms*/,controller->interface_index);
+			PIC_AddEvent(IDE_DelayedCommand,((progress_count == 0 && !faked_command) ? 0.1 : 0.00001)/*ms*/,controller->interface_index);
 			break;
 		default: /* most commands: signal drive ready, return to ready state */
 			/* NTS: Some MS-DOS CD-ROM drivers will loop endlessly if we never set "drive seek complete"
@@ -588,13 +588,13 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 			count = 0x02;
 			state = IDE_DEV_ATAPI_BUSY;
 			status = IDE_STATUS_BUSY;
-			PIC_AddEvent(IDE_DelayedCommand,1/*ms*/,controller->interface_index);
+			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
 			break;
 		case 0x12: /* INQUIRY */
 			count = 0x02;
 			state = IDE_DEV_ATAPI_BUSY;
 			status = IDE_STATUS_BUSY;
-			PIC_AddEvent(IDE_DelayedCommand,1/*ms*/,controller->interface_index);
+			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
 			break;
 		case 0xA8: /* READ(12) */
 			/* FIXME: MSCDEX.EXE appears to test the drive by issuing READ(10) with transfer length == 0.
@@ -623,7 +623,7 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 			state = IDE_DEV_ATAPI_BUSY;
 			status = IDE_STATUS_BUSY;
 			/* TODO: Emulate CD-ROM spin-up delay, and seek delay */
-			PIC_AddEvent(IDE_DelayedCommand,3/*ms*/,controller->interface_index);
+			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 3)/*ms*/,controller->interface_index);
 			break;
 		case 0x28: /* READ(10) */
 			/* FIXME: MSCDEX.EXE appears to test the drive by issuing READ(10) with transfer length == 0.
@@ -650,25 +650,25 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 			state = IDE_DEV_ATAPI_BUSY;
 			status = IDE_STATUS_BUSY;
 			/* TODO: Emulate CD-ROM spin-up delay, and seek delay */
-			PIC_AddEvent(IDE_DelayedCommand,3/*ms*/,controller->interface_index);
+			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 3)/*ms*/,controller->interface_index);
 			break;
 		case 0x42: /* READ SUB-CHANNEL */
 			count = 0x02;
 			state = IDE_DEV_ATAPI_BUSY;
 			status = IDE_STATUS_BUSY;
-			PIC_AddEvent(IDE_DelayedCommand,1/*ms*/,controller->interface_index);
+			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
 			break;
 		case 0x43: /* READ TOC */
 			count = 0x02;
 			state = IDE_DEV_ATAPI_BUSY;
 			status = IDE_STATUS_BUSY;
-			PIC_AddEvent(IDE_DelayedCommand,1/*ms*/,controller->interface_index);
+			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
 			break;
 		case 0x5A: /* MODE SENSE(10) */
 			count = 0x02;
 			state = IDE_DEV_ATAPI_BUSY;
 			status = IDE_STATUS_BUSY;
-			PIC_AddEvent(IDE_DelayedCommand,1/*ms*/,controller->interface_index);
+			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
 			break;
 		default:
 			/* we don't know the command, immediately return an error */
@@ -1535,6 +1535,13 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 					else if ((ata->drivehead & 0xF) >= ata->heads ||
 						ata->lba[0] > ata->sects ||
 						(ata->lba[1] | (ata->lba[2] << 8)) >= ata->cyls) {
+						fprintf(stderr,"C/H/S %u/%u/%u out of bounds %u/%u/%u\n",
+							ata->lba[1] | (ata->lba[2] << 8),
+							ata->drivehead&0xF,
+							ata->lba[0],
+							ata->cyls,
+							ata->heads,
+							ata->sects);
 						ata->abort_error();
 						dev->controller->raise_irq();
 						return;
@@ -1895,13 +1902,13 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
 				atapi_to_host = (feature >> 2) & 1;	/* 0=to device 1=to host */
 				host_maximum_byte_count = (lba[2] << 8) + lba[1]; /* LBA field bits 23:8 are byte count */
 				if (host_maximum_byte_count == 0) host_maximum_byte_count = 0x10000UL;
-				PIC_AddEvent(IDE_DelayedCommand,0.25/*ms*/,controller->interface_index);
+				PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 0.25)/*ms*/,controller->interface_index);
 			}
 			break;
 		case 0xA1: /* IDENTIFY PACKET DEVICE */
 			state = IDE_DEV_BUSY;
 			status = IDE_STATUS_BUSY;
-			PIC_AddEvent(IDE_DelayedCommand,ide_identify_command_delay,controller->interface_index);
+			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : ide_identify_command_delay),controller->interface_index);
 			break;
 		case 0xEC: /* IDENTIFY DEVICE */
 			/* "devices that implement the PACKET command set shall post command aborted and place PACKET command feature
@@ -1966,7 +1973,7 @@ void IDEATADevice::writecommand(uint8_t cmd) {
 			progress_count = 0;
 			state = IDE_DEV_BUSY;
 			status = IDE_STATUS_BUSY;
-			PIC_AddEvent(IDE_DelayedCommand,0.1/*ms*/,controller->interface_index);
+			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 0.1)/*ms*/,controller->interface_index);
 			break;
 		case 0x30: /* WRITE SECTOR */
 			/* the drive does NOT signal an interrupt. it sets DRQ and waits for a sector
@@ -1990,7 +1997,7 @@ void IDEATADevice::writecommand(uint8_t cmd) {
 		case 0xEC: /* IDENTIFY DEVICE */
 			state = IDE_DEV_BUSY;
 			status = IDE_STATUS_BUSY;
-			PIC_AddEvent(IDE_DelayedCommand,ide_identify_command_delay,controller->interface_index);
+			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : ide_identify_command_delay),controller->interface_index);
 			break;
 		default:
 			fprintf(stderr,"Unknown IDE/ATA command %02X\n",cmd);
