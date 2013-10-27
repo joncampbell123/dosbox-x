@@ -1005,11 +1005,24 @@ void IDEATADevice::update_from_biosdisk() {
 		headshr++;
 	}
 
-	fprintf(stderr,"Mapping BIOS DISK C/H/S %u/%u/%u as IDE %u/%u/%u\n",
-		dsk->cylinders,dsk->heads,dsk->sectors,
-		cyls,heads,sects);
+	/* well, we can't do 256 heads because DOS/Windows cannot handle that.
+	 * but we can do 255 and map the best we can anyway */
+	if (heads > 16) {
+		unsigned long tmp;
 
-	if (heads > 16) fprintf(stderr,"ERROR: Heads > 16 with no translation available\n");
+		tmp = heads * cyls * sects;
+		sects = 63;
+		heads = 255;
+		cyls = tmp / 63 / 255;
+		fprintf(stderr,"Mapping BIOS DISK C/H/S %u/%u/%u as IDE %u/%u/%u (ECHS-type mapping)\n",
+			dsk->cylinders,dsk->heads,dsk->sectors,
+			cyls,heads,sects);
+	}
+	else {
+		fprintf(stderr,"Mapping BIOS DISK C/H/S %u/%u/%u as IDE %u/%u/%u\n",
+			dsk->cylinders,dsk->heads,dsk->sectors,
+			cyls,heads,sects);
+	}
 }
 
 void IDE_Auto(signed char &index,bool &slave) {
