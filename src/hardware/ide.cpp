@@ -575,12 +575,6 @@ Bitu IDEATAPICDROMDevice::data_read(Bitu iolen) {
 /* TODO: Your code should also be paying attention to the "transfer length" field
          in many of the commands here. Right now it doesn't matter. */
 void IDEATAPICDROMDevice::atapi_cmd_completion() {
-#if 0
-	fprintf(stderr,"ATAPI command %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
-		atapi_cmd[ 0],atapi_cmd[ 1],atapi_cmd[ 2],atapi_cmd[ 3],atapi_cmd[ 4],atapi_cmd[ 5],
-		atapi_cmd[ 6],atapi_cmd[ 7],atapi_cmd[ 8],atapi_cmd[ 9],atapi_cmd[10],atapi_cmd[11]);
-#endif
-
 	switch (atapi_cmd[0]) {
 		case 0x00: /* TEST UNIT READY */
 			count = 0x03;
@@ -1548,12 +1542,6 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 					sectorn = ((ata->drivehead & 0xF) * ata->sects) +
 						((ata->lba[1] | (ata->lba[2] << 8)) * ata->sects * ata->heads) +
 						(ata->lba[0] - 1);
-#if 0
-					fprintf(stderr,"ATA WRITE C/H/S (%u/%u/%u) sector %lu count %lu\n",
-						ata->lba[1] | (ata->lba[2] << 8),
-						(ata->drivehead & 0xF),ata->lba[0],
-						(unsigned long)sectorn,(unsigned long)sectcount);
-#endif
 				}
 
 				if (disk->Write_AbsoluteSector(sectorn, ata->sector) != 0) {
