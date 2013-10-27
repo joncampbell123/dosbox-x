@@ -173,7 +173,15 @@ Bit8u imageDisk::Read_AbsoluteSector(Bit32u sectnum, void * data) {
 	//LOG_MSG("Reading sectors %ld at bytenum %I64d", sectnum, bytenum);
 
 	fseeko64(diskimg,bytenum,SEEK_SET);
-	fread(data, 1, sector_size, diskimg);
+	if (ftello64(diskimg) != bytenum) {
+		fprintf(stderr,"fseek() failed in Read_AbsoluteSector for sector %lu\n",sectnum);
+		return 0x05;
+	}
+
+	if (fread(data, 1, sector_size, diskimg) != sector_size) {
+		fprintf(stderr,"fread() failed in Read_AbsoluteSector for sectur %lu\n",sectnum);
+		return 0x05;
+	}
 
 	return 0x00;
 }
@@ -195,6 +203,9 @@ Bit8u imageDisk::Write_AbsoluteSector(Bit32u sectnum, void *data) {
 	//LOG_MSG("Writing sectors to %ld at bytenum %d", sectnum, bytenum);
 
 	fseeko64(diskimg,bytenum,SEEK_SET);
+	if (ftello64(diskimg) != bytenum)
+		fprintf(stderr,"WARNING: fseek() failed in Read_AbsoluteSector for sector %lu\n",sectnum);
+
 	size_t ret=fwrite(data, sector_size, 1, diskimg);
 
 	return ((ret>0)?0x00:0x05);
@@ -430,7 +441,6 @@ static Bitu INT13_DiskHandler(void) {
 			last_status = imageDiskList[drivenum]->Read_Sector((Bit32u)reg_dh, (Bit32u)(reg_ch | ((reg_cl & 0xc0)<< 2)), (Bit32u)((reg_cl & 63)+i), sectbuf);
 
 			/* IDE emulation: simulate change of IDE state that would occur on a real machine after INT 13h */
-			/* FIXME: What about geometry translation??? */
 			IDE_EmuINT13DiskReadByBIOS(reg_dl, (Bit32u)(reg_ch | ((reg_cl & 0xc0)<< 2)), (Bit32u)reg_dh, (Bit32u)((reg_cl & 63)+i));
 
 			if((last_status != 0x00) || (killRead)) {

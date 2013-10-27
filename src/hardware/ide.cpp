@@ -419,12 +419,6 @@ IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_in
 	id_mmc_vendor_id = "DOSBox";
 	id_mmc_product_id = "Virtual CD-ROM";
 	id_mmc_product_rev = "0.74-X";
-
-#if 0
-	id_mmc_vendor_id = "VBOX";
-	id_mmc_product_id = "CD-ROM";
-	id_mmc_product_rev = "1.0";
-#endif
 }
 
 IDEATAPICDROMDevice::~IDEATAPICDROMDevice() {
