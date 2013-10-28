@@ -166,6 +166,7 @@ public:
 	virtual void prepare_read(Bitu offset,Bitu size);
 	virtual void prepare_write(Bitu offset,Bitu size);
 	virtual void io_completion();
+	virtual bool increment_current_address(Bitu count=1);
 public:
 	Bitu heads,sects,cyls,headshr,progress_count;
 	unsigned char sector[512*128];
@@ -458,6 +459,53 @@ void IDEATAPICDROMDevice::io_completion() {
 	}
 }
 
+bool IDEATADevice::increment_current_address(Bitu count) {
+	if (count == 0) return false;
+
+	if (drivehead_is_lba(drivehead)) {
+		/* 28-bit LBA:
+		 *    drivehead: 27:24
+		 *    lba[2]:    23:16
+		 *    lba[1]:    15:8
+		 *    lba[0]:    7:0 */
+		do {
+			if (((++lba[0])&0xFF) == 0x00) {
+				if (((++lba[1])&0xFF) == 0x00) {
+					if (((++lba[2])&0xFF) == 0x00) {
+						if (((++drivehead)&0xF) == 0) {
+							drivehead -= 0x10;
+							return false;
+						}
+					}
+				}
+			}
+		} while ((--count) != 0);
+	}
+	else {
+		/* C/H/S increment with rollover */
+		do {
+			/* increment sector */
+			if (((++lba[0])&0xFF) == ((sects+1)&0xFF)) {
+				lba[0] = 1;
+				/* increment head */
+				if (((++drivehead)&0xF) == (heads&0xF)) {
+					drivehead &= 0xF0;
+					if (heads == 16) drivehead -= 0x10;
+					/* increment cylinder */
+					if (((++lba[1])&0xFF) == 0x00) {
+						if (((++lba[2])&0xFF) == 0x00) {
+							return false;
+						}
+					}
+				}
+
+			}
+		} while ((--count) != 0);
+	}
+
+	return true;
+}
+
 void IDEATADevice::io_completion() {
 	/* lower DRQ */
 	status &= ~IDE_STATUS_DRQ;
@@ -479,42 +527,10 @@ void IDEATADevice::io_completion() {
 			else if ((count&0xFF) == 0) count = 255;
 			else count--;
 
-			/* ATA-1 behavior: increment the LBA address or the C/H/S address */
-			if (drivehead_is_lba(drivehead)) {
-				if (((++lba[0])&0xFF) == 0) {/* increment. carry? */
-					if (((++lba[1])&0xFF) == 0) {/*increment, carry? */
-						if (((++lba[2])&0xFF) == 0) {/* increment, carry? */
-							if ((drivehead&0xF) != 0xF) {/*bits 27:24 in drive/head */
-								drivehead++;
-							}
-							else {
-								fprintf(stderr,"READ LBA advance error\n");
-								abort_error();
-								return;
-							}
-						}
-					}
-				}
-			}
-			else {
-				/* Oh, joy. Address incrementation C/H/S style */
-				if (((++lba[0])&0xFF) > sects) { /* increment sector */
-					lba[0] = 1;
-					/* if sector carry, increment head */
-					if (((drivehead&0xF)+1) == heads) { /* if head carry, increment 7:0 of track */
-						drivehead &= 0xF0;
-						if (((++lba[1])&0xFF) == 0) { /* if 7:0 carry then incrment 15:8 */
-							if (((++lba[2])&0xFF) == 0) {
-								fprintf(stderr,"READ C/H/S advance error\n");
-								abort_error();
-								return;
-							}
-						}
-					}
-					else {
-						drivehead++;
-					}
-				}
+			if (!increment_current_address()) {
+				fprintf(stderr,"READ advance error\n");
+				abort_error();
+				return;
 			}
 
 			/* cause another delay, another sector read */
@@ -1576,40 +1592,10 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 				else ata->count--;
 				ata->progress_count++;
 
-				/* ATA-1 behavior: increment the LBA address or the C/H/S address */
-				if (drivehead_is_lba(ata->drivehead)) {
-					if (((++ata->lba[0])&0xFF) == 0) {/* increment. carry? */
-						if (((++ata->lba[1])&0xFF) == 0) {/*increment, carry? */
-							if (((++ata->lba[2])&0xFF) == 0) {/* increment, carry? */
-								if ((ata->drivehead&0xF) != 0xF) {/*bits 27:24 in drive/head */
-									ata->drivehead++;
-								}
-								else {
-									ata->abort_error();
-									return;
-								}
-							}
-						}
-					}
-				}
-				else {
-					/* Oh, joy. Address incrementation C/H/S style */
-					if (((++ata->lba[0])&0xFF) > ata->sects) { /* increment sector */
-						ata->lba[0] = 1;
-						/* if sector carry, increment head */
-						if (((ata->drivehead&0xF)+1) == ata->heads) { /* if head carry, increment 7:0 of track */
-							ata->drivehead &= 0xF0;
-							if (((++ata->lba[1])&0xFF) == 0) { /* if 7:0 carry then incrment 15:8 */
-								if (((++ata->lba[2])&0xFF) == 0) {
-									ata->abort_error();
-									return;
-								}
-							}
-						}
-						else {
-							ata->drivehead++;
-						}
-					}
+				if (!ata->increment_current_address()) {
+					fprintf(stderr,"READ advance error\n");
+					ata->abort_error();
+					return;
 				}
 
 				/* begin another sector */
