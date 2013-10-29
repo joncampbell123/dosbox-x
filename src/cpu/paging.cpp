@@ -101,7 +101,7 @@ struct PF_Entry {
 	Bitu mpl;
 };
 
-#define PF_QUEUESIZE 16
+#define PF_QUEUESIZE 80
 static struct {
 	Bitu used;
 	PF_Entry entries[PF_QUEUESIZE];
@@ -285,7 +285,7 @@ static void PAGING_NewPageFault(PhysPt lin_addr, Bitu page_addr,
 	CPU_Decoder * old_cpudecoder;
 	old_cpudecoder=cpudecoder;
 	cpudecoder=&PageFaultCore;
-		//if (pf_queue.used >= PF_QUEUESIZE) E_Exit("PF queue overrun.");
+	if (pf_queue.used >= PF_QUEUESIZE) E_Exit("PF queue overrun.");
 	PF_Entry * entry=&pf_queue.entries[pf_queue.used++];
 	entry->cs=SegValue(cs);
 	entry->eip=reg_eip;
@@ -293,15 +293,11 @@ static void PAGING_NewPageFault(PhysPt lin_addr, Bitu page_addr,
 	entry->mpl=cpu.mpl;
 	cpu.mpl=3;
 	CPU_Exception(EXCEPTION_PF,faultcode);
-#if C_DEBUG
-//	DEBUG_EnableDebugger();
-#endif
 	DOSBOX_RunMachine();
 	pf_queue.used--;
 	LOG(LOG_PAGING,LOG_NORMAL)("Left PageFault for %x queue %d",lin_addr,pf_queue.used);
 	memcpy(&lflags,&old_lflags,sizeof(LazyFlags));
 	cpudecoder=old_cpudecoder;
-		//LOG_MSG("FAULT exit");
 		}
 	}
 
