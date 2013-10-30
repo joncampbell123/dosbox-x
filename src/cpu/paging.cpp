@@ -286,6 +286,7 @@ static void PAGING_NewPageFault(PhysPt lin_addr, Bitu page_addr,
 	old_cpudecoder=cpudecoder;
 	cpudecoder=&PageFaultCore;
 	if (pf_queue.used >= PF_QUEUESIZE) E_Exit("PF queue overrun.");
+	if (pf_queue.used != 0) fprintf(stderr,"Warning: PAGING_NewPageFault() more than one level, now using level %d\n",pf_queue.used+1);
 	PF_Entry * entry=&pf_queue.entries[pf_queue.used++];
 	entry->cs=SegValue(cs);
 	entry->eip=reg_eip;
