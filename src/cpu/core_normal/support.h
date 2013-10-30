@@ -52,41 +52,48 @@ static INLINE Bit32s Fetchds() {
 		continue;											\
 	}
 
+/* NTS: At first glance, this looks like code that will only fetch the delta for conditional jumps
+ *      if the condition is true. Further examination shows that DOSBox's core has two different
+ *      CS:IP variables, reg_ip and core.cseip which Fetchb() modifies. */
 //TODO Could probably make all byte operands fast?
 #define JumpCond16_b(COND) {						\
-	SAVEIP;											\
-	if (COND) reg_ip+=Fetchbs();					\
-	reg_ip+=1;										\
-	continue;										\
+	SAVEIP;								\
+	Bit8s adj=Fetchbs();						\
+	if (COND) reg_ip+=adj;						\
+	reg_ip+=1;							\
+	continue;							\
 }
 
 #define JumpCond16_w(COND) {						\
-	SAVEIP;											\
-	if (COND) reg_ip+=Fetchws();					\
-	reg_ip+=2;										\
-	continue;										\
+	SAVEIP;								\
+	Bit16s adj=Fetchws();						\
+	if (COND) reg_ip+=adj;						\
+	reg_ip+=2;							\
+	continue;							\
 }
 
 #define JumpCond32_b(COND) {						\
-	SAVEIP;											\
-	if (COND) reg_eip+=Fetchbs();					\
-	reg_eip+=1;										\
-	continue;										\
+	SAVEIP;								\
+	Bit8s adj=Fetchbs();						\
+	if (COND) reg_eip+=adj;						\
+	reg_eip+=1;							\
+	continue;							\
 }
 
 #define JumpCond32_d(COND) {						\
-	SAVEIP;											\
-	if (COND) reg_eip+=Fetchds();					\
-	reg_eip+=4;										\
-	continue;										\
+	SAVEIP;								\
+	Bit32s adj=Fetchds();						\
+	if (COND) reg_eip+=adj;						\
+	reg_eip+=4;							\
+	continue;							\
 }
 
 
-#define SETcc(cc)											\
-	{														\
-		GetRM;												\
+#define SETcc(cc)							\
+	{								\
+		GetRM;							\
 		if (rm >= 0xc0 ) {GetEArb;*earb=(cc) ? 1 : 0;}		\
-		else {GetEAa;SaveMb(eaa,(cc) ? 1 : 0);}				\
+		else {GetEAa;SaveMb(eaa,(cc) ? 1 : 0);}			\
 	}
 
 #include "helpers.h"
