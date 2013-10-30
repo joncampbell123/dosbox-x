@@ -2587,8 +2587,6 @@ void init_vm86_fake_io() {
 	if (vm86_fake_io_offs[0] != 0)
 		return;
 
-	fprintf(stderr,"Initializing vm86 fake I/O\n");
-
 	/* read */
 	vm86_fake_io_offs[0] = vm86_fake_io_off + wo;
 	phys_writeb(phys+wo+0x00,(Bit8u)0xEC);	/* IN AL,DX */
