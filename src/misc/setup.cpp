@@ -672,23 +672,26 @@ bool Config::PrintConfig(char const * const configfilename) const {
 				while ((pos = help.find("\n", pos+1)) != std::string::npos) {
 					help.replace(pos, 1, prefix);
 				}
-		     
-				fprintf(outfile, "# %*s: %s", (int)maxwidth, p->propname.c_str(), help.c_str());
 
 				std::vector<Value> values = p->GetValues();
-				if (!values.empty()) {
-					fprintf(outfile, "%s%s:", prefix, MSG_Get("CONFIG_SUGGESTED_VALUES"));
-					std::vector<Value>::iterator it = values.begin();
-					while (it != values.end()) {
-						if((*it).ToString() != "%u") { //Hack hack hack. else we need to modify GetValues, but that one is const...
-							if (it != values.begin()) fputs(",", outfile);
-							fprintf(outfile, " %s", (*it).ToString().c_str());
+
+				if (help != "" || !values.empty()) {
+					fprintf(outfile, "# %*s: %s", (int)maxwidth, p->propname.c_str(), help.c_str());
+
+					if (!values.empty()) {
+						fprintf(outfile, "%s%s:", prefix, MSG_Get("CONFIG_SUGGESTED_VALUES"));
+						std::vector<Value>::iterator it = values.begin();
+						while (it != values.end()) {
+							if((*it).ToString() != "%u") { //Hack hack hack. else we need to modify GetValues, but that one is const...
+								if (it != values.begin()) fputs(",", outfile);
+								fprintf(outfile, " %s", (*it).ToString().c_str());
+							}
+							++it;
 						}
-						++it;
+						fprintf(outfile,".");
 					}
-					fprintf(outfile,".");
+					fprintf(outfile, "\n");
 				}
-			fprintf(outfile, "\n");
 			}
 		} else {
 			upcase(temp);
@@ -706,7 +709,6 @@ bool Config::PrintConfig(char const * const configfilename) const {
 			}
 		}
 	   
-		fprintf(outfile,"\n");
 		(*tel)->PrintData(outfile);
 		fprintf(outfile,"\n");		/* Always an empty line between sections */
 	}
