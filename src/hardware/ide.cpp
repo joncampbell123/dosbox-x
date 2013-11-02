@@ -923,7 +923,7 @@ void IDEATADevice::generate_identify_device() {
 		sector[(i^1)+(27*2)] = ' ';
 
 	host_writew(sector+(47*2),0x8080);	/* <- READ/WRITE MULTIPLE MAX SECTORS */
-	host_writew(sector+(48*2),0x0001);	/* FIXME: ??? */
+	host_writew(sector+(48*2),0x0000);	/* :0  0=we do not support doubleword (32-bit) PIO */
 	host_writew(sector+(49*2),0x0A00);	/* :13 0=Standby timer values managed by device */
 						/* :11 1=IORDY supported */
 						/* :10 0=IORDY not disabled */
