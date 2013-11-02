@@ -137,7 +137,8 @@ public:
 public:
 	IDEDevice(IDEController *c);
 	virtual ~IDEDevice();
-	virtual void host_reset();	/* IDE controller -> upon writing bit 2 of alt (0x3F6) */
+	virtual void host_reset_begin();	/* IDE controller -> upon setting bit 2 of alt (0x3F6) */
+	virtual void host_reset_complete();	/* IDE controller -> upon setting bit 2 of alt (0x3F6) */
 	virtual void select(uint8_t ndh,bool switched_to);
 	virtual void deselect();
 	virtual void abort_error();
@@ -1780,11 +1781,18 @@ IDEDevice::IDEDevice(IDEController *c) {
 }
 
 /* IDE controller -> upon writing bit 2 of alt (0x3F6) */
-void IDEDevice::host_reset() {
+void IDEDevice::host_reset_complete() {
 	status = 0x00;
 	asleep = false;
 	allow_writing = true;
 	state = IDE_DEV_READY;
+}
+
+void IDEDevice::host_reset_begin() {
+	status = 0xFF;
+	asleep = false;
+	allow_writing = true;
+	state = IDE_DEV_BUSY;
 }
 
 IDEDevice::~IDEDevice() {
@@ -2073,11 +2081,13 @@ static void ide_altio_w(Bitu port,Bitu val,Bitu iolen) {
 		}
 
 		if ((val&4) && !ide->host_reset) {
-			if (ide->device[0]) ide->device[0]->host_reset();
-			if (ide->device[1]) ide->device[1]->host_reset();
+			if (ide->device[0]) ide->device[0]->host_reset_begin();
+			if (ide->device[1]) ide->device[1]->host_reset_begin();
 			ide->host_reset=1;
 		}
-		else if (!(val&4)) {
+		else if (!(val&4) && ide->host_reset) {
+			if (ide->device[0]) ide->device[0]->host_reset_complete();
+			if (ide->device[1]) ide->device[1]->host_reset_complete();
 			ide->host_reset=0;
 		}
 	}
