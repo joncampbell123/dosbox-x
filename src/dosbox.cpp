@@ -1135,33 +1135,34 @@ void DOSBOX_Init(void) {
 //	secprop->AddInitFunction(&CREDITS_Init);
 
 	/* IDE emulation options and setup */
-	/* FIXME: Why is DOSBox assigning our IDE primary help strings and defaults to ALL IDE sections?!? */
-	secprop=control->AddSection_prop("ide, primary",&IDE_Primary_Init,false);//done
-	Pbool = secprop->Add_bool("enable",Property::Changeable::OnlyAtStart,true);
-	Pbool->Set_help("Enable IDE interface");
-	Pbool = secprop->Add_bool("int13fakeio",Property::Changeable::WhenIdle,false);
-	Pbool->Set_help("If set, force IDE state change on certain INT 13h commands.\n"
-			"IDE registers will be changed as if BIOS had carried out the action.\n"
-			"If you are running Windows 3.11 or Windows 3.11 Windows for Workgroups\n"
-			"you must enable this option (and use -reservecyl 1) if you want 32-bit\n"
-			"disk access to work correctly in DOSBox.");
-	Pbool = secprop->Add_bool("int13fakev86io",Property::Changeable::WhenIdle,false);
-	Pbool->Set_help("If set, and int13fakeio is set, certain INT 13h commands will\n"
-			"cause IDE emulation to issue fake CPU I/O traps (GPF) in\n"
-			"virtual 8086 mode and a fake IRQ signal. you must enable this option\n"
-			"if you want 32-bit disk access in Windows 95 to work with DOSBox.");
+	const char *ide_names[4] = {"ide, primary","ide, secondary","ide, tertiary","ide, quaternary"};
+	void (*ide_inits[4])(Section *) = {
+		&IDE_Primary_Init,
+		&IDE_Secondary_Init,
+		&IDE_Tertiary_Init,
+		&IDE_Quaternary_Init
+	};
+	for (size_t i=0;i < 4;i++) {
+		secprop=control->AddSection_prop(ide_names[i],ide_inits[i],false);//done
 
-	secprop=control->AddSection_prop("ide, secondary",&IDE_Secondary_Init,false);//done
-	Pbool = secprop->Add_bool("enable",Property::Changeable::OnlyAtStart,true);
-	Pbool = secprop->Add_bool("int13fakeio",Property::Changeable::WhenIdle,false);
+		Pbool = secprop->Add_bool("enable",Property::Changeable::OnlyAtStart,true);
+		if (i == 0) Pbool->Set_help("Enable IDE interface");
 
-	secprop=control->AddSection_prop("ide, tertiary",&IDE_Tertiary_Init,false);//done
-	Pbool = secprop->Add_bool("enable",Property::Changeable::OnlyAtStart,false);
-	Pbool = secprop->Add_bool("int13fakeio",Property::Changeable::WhenIdle,false);
+		Pbool = secprop->Add_bool("int13fakeio",Property::Changeable::WhenIdle,false);
+		if (i == 0) Pbool->Set_help(
+				"If set, force IDE state change on certain INT 13h commands.\n"
+				"IDE registers will be changed as if BIOS had carried out the action.\n"
+				"If you are running Windows 3.11 or Windows 3.11 Windows for Workgroups\n"
+				"you must enable this option (and use -reservecyl 1) if you want 32-bit\n"
+				"disk access to work correctly in DOSBox.");
 
-	secprop=control->AddSection_prop("ide, quaternary",&IDE_Quaternary_Init,false);//done
-	Pbool = secprop->Add_bool("enable",Property::Changeable::OnlyAtStart,false);
-	Pbool = secprop->Add_bool("int13fakeio",Property::Changeable::WhenIdle,false);
+		Pbool = secprop->Add_bool("int13fakev86io",Property::Changeable::WhenIdle,false);
+		if (i == 0) Pbool->Set_help(
+				"If set, and int13fakeio is set, certain INT 13h commands will\n"
+				"cause IDE emulation to issue fake CPU I/O traps (GPF) in\n"
+				"virtual 8086 mode and a fake IRQ signal. you must enable this option\n"
+				"if you want 32-bit disk access in Windows 95 to work with DOSBox.");
+	}
 
 	//TODO ?
 	secline=control->AddSection_line("autoexec",&AUTOEXEC_Init);

@@ -122,7 +122,7 @@ public:
 	struct Changeable { enum Value {Always, WhenIdle,OnlyAtStart};};
 	const std::string propname;
 
-	Property(std::string const& _propname, Changeable::Value when):propname(_propname),change(when) { }
+	Property(std::string const& _propname, Changeable::Value when):propname(_propname),change(when) { use_global_config_str=false; }
 	void Set_values(const char * const * in);
 	void Set_help(std::string const& str);
 	char const* Get_help();
@@ -147,6 +147,8 @@ protected:
 	typedef std::vector<Value>::iterator iter;
 	Value default_value;
 	const Changeable::Value change;
+	bool use_global_config_str;
+	std::string help_string;
 };
 
 class Prop_int:public Property {

@@ -231,16 +231,30 @@ bool Property::CheckValue(Value const& in, bool warn){
 	return false;
 }
 
+/* There are too many reasons I can think of to have similar property names per section
+ * without tying them together by name. Sticking them in MSG_Add as CONFIG_ + propname
+ * for help strings is just plain dumb. But... in the event that is still useful, I at
+ * least left the code conditionally enabled if any part of the code still wants to do
+ * that. --J.C */
 void Property::Set_help(string const& in) {
-	string result = string("CONFIG_") + propname;
-	upcase(result);
-	MSG_Add(result.c_str(),in.c_str());
+	if (use_global_config_str) {
+		string result = string("CONFIG_") + propname;
+		upcase(result);
+		MSG_Add(result.c_str(),in.c_str());
+	}
+	else {
+		help_string = in;
+	}
 }
 
 char const* Property::Get_help() {
-	string result = string("CONFIG_") + propname;
-	upcase(result);
-	return MSG_Get(result.c_str());
+	if (use_global_config_str) {
+		string result = string("CONFIG_") + propname;
+		upcase(result);
+		return MSG_Get(result.c_str());
+	}
+
+	return help_string.c_str();
 }
 
 
