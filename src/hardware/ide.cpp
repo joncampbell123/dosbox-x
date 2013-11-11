@@ -1777,7 +1777,7 @@ IDEDevice::IDEDevice(IDEController *c) {
 	ide_select_delay = 0.5; /* 500us */
 	ide_spinup_delay = 3000; /* 3 seconds */
 	ide_spindown_delay = 1000; /* 1 second */
-	ide_identify_command_delay = 1; /* 1ms */
+	ide_identify_command_delay = 0.01; /* 10us */
 }
 
 /* IDE controller -> upon writing bit 2 of alt (0x3F6) */
