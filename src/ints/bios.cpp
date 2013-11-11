@@ -2206,23 +2206,21 @@ public:
 		// We don't handle it, so use the reboot function as exit.
 		RealSetVec(0x19,rptr);
 
-		// INT 7Eh: IDE IRQ 14
+		// INT 76h: IDE IRQ 14
 		// This is just a dummy IRQ handler to prevent crashes when
 		// IDE emulation fires the IRQ and OS's like Win95 expect
 		// the BIOS to handle the interrupt.
+		// FIXME: Shouldn't the IRQ send an ACK to the PIC as well?!?
 		callback[11].Install(&IRQ14_Dummy,CB_IRET,"irq 14 ide");
-		callback[11].Set_RealVec(0x7E);
-		rptr = callback[11].Get_RealPointer();
-		phys_writeb(((rptr>>16)<<4)+(rptr&0xFFFF),0xCF); /* IRET */
+		callback[11].Set_RealVec(0x76);
 
-		// INT 7Fh: IDE IRQ 15
+		// INT 77h: IDE IRQ 15
 		// This is just a dummy IRQ handler to prevent crashes when
 		// IDE emulation fires the IRQ and OS's like Win95 expect
 		// the BIOS to handle the interrupt.
+		// FIXME: Shouldn't the IRQ send an ACK to the PIC as well?!?
 		callback[12].Install(&IRQ15_Dummy,CB_IRET,"irq 15 ide");
-		callback[12].Set_RealVec(0x7F);
-		rptr = callback[12].Get_RealPointer();
-		phys_writeb(((rptr>>16)<<4)+(rptr&0xFFFF),0xCF); /* IRET */
+		callback[12].Set_RealVec(0x77);
 
 		init_vm86_fake_io();
 
