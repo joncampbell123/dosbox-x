@@ -951,13 +951,13 @@ void IDEATADevice::generate_identify_device() {
 	host_writew(sector+(66*2),0x0000);	/* FIXME: ??? */
 	host_writew(sector+(67*2),0x0078);	/* FIXME: ??? */
 	host_writew(sector+(68*2),0x0078);	/* FIXME: ??? */
-	host_writew(sector+(80*2),0x001E);	/* Supports ATA-1/2/3/4 */
-	host_writew(sector+(81*2),0x0022);	/* FIXME: ??? */
-	host_writew(sector+(82*2),0x0200);	/* FIXME: ??? */
-	host_writew(sector+(83*2),0x4000);	/* FIXME: ??? */
+	host_writew(sector+(80*2),0x007E);	/* major version number. Here we say we support ATA-1 through ATA-8 */
+	host_writew(sector+(81*2),0x0022);	/* minor version */
+	host_writew(sector+(82*2),0x4208);	/* command set: NOP, DEVICE RESET[XXXXX], POWER MANAGEMENT */
+	host_writew(sector+(83*2),0x4000);	/* command set: LBA48[XXXX] */
 	host_writew(sector+(84*2),0x4000);	/* FIXME: ??? */
-	host_writew(sector+(85*2),0x0200);	/* FIXME: ??? */
-	host_writew(sector+(86*2),0x0000);	/* FIXME: ??? */
+	host_writew(sector+(85*2),0x4208);	/* commands in 82 enabled */
+	host_writew(sector+(86*2),0x4000);	/* commands in 83 enabled */
 	host_writew(sector+(87*2),0x4000);	/* FIXME: ??? */
 	host_writew(sector+(88*2),0x0000);	/* FIXME: ??? */
 	host_writew(sector+(93*3),0x0000);	/* FIXME: ??? */
