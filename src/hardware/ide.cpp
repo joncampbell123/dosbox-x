@@ -1860,7 +1860,7 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
 	switch (cmd) {
 		case 0x08: /* DEVICE RESET */
 			status = 0x00;
-			drivehead &= 0x30; controller->drivehead = drivehead;
+			drivehead &= 0x10; controller->drivehead = drivehead;
 			count = 0x01;
 			lba[0] = 0x01;
 			feature = 0x01;
@@ -1953,9 +1953,15 @@ void IDEATADevice::writecommand(uint8_t cmd) {
 	allow_writing = false;
 	command = cmd;
 	switch (cmd) {
+		case 0x00: /* NOP */
+			feature = 0x04;
+			status = IDE_STATUS_DRIVE_READY|IDE_STATUS_ERROR;
+			controller->raise_irq();
+			allow_writing = true;
+			break;
 		case 0x08: /* DEVICE RESET */
 			status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-			drivehead &= 0xF0; controller->drivehead = drivehead;
+			drivehead &= 0x10; controller->drivehead = drivehead;
 			count = 0x01; lba[0] = 0x01; feature = 0x00;
 			lba[1] = lba[2] = 0;
 			/* NTS: Testing suggests that ATA hard drives DO fire an IRQ at this stage.
