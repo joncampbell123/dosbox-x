@@ -1969,6 +1969,19 @@ void IDEATADevice::writecommand(uint8_t cmd) {
 			controller->raise_irq();
 			allow_writing = true;
 			break;
+		case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15: case 0x16: case 0x17: /* RECALIBRATE (1xh) */
+		case 0x18: case 0x19: case 0x1A: case 0x1B: case 0x1C: case 0x1D: case 0x1E: case 0x1F:
+			status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+			/* "if the command is executed in CHS mode, then ... sector number register shall be 1.
+			 *  if executed in LAB mode, then ... sector number register shall be 0" */
+			if (drivehead_is_lba(drivehead)) lba[0] = 0x00;
+			else lba[0] = 0x01;
+			drivehead &= 0x10; controller->drivehead = drivehead;
+			lba[1] = lba[2] = 0;
+			feature = 0x00;
+			controller->raise_irq();
+			allow_writing = true;
+			break;
 		case 0x20: /* READ SECTOR */
 			progress_count = 0;
 			state = IDE_DEV_BUSY;
