@@ -1668,6 +1668,84 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 				ata->prepare_read(0,512);
 				dev->controller->raise_irq();
 				break;
+
+			case 0x40:/* READ SECTOR VERIFY WITH RETRY */
+			case 0x41: /* READ SECTOR VERIFY WITHOUT RETRY */
+				disk = ata->getBIOSdisk();
+				if (disk == NULL) {
+					fprintf(stderr,"ATA READ fail, bios disk N/A\n");
+					ata->abort_error();
+					dev->controller->raise_irq();
+					return;
+				}
+
+				sectcount = ata->count & 0xFF;
+				if (sectcount == 0) sectcount = 256;
+				if (drivehead_is_lba(ata->drivehead)) {
+					/* LBA */
+					sectorn = ((ata->drivehead & 0xF) << 24) | ata->lba[0] |
+						(ata->lba[1] << 8) |
+						(ata->lba[2] << 16);
+				}
+				else {
+					/* C/H/S */
+					if (ata->lba[0] == 0) {
+						fprintf(stderr,"WARNING C/H/S access mode and sector==0\n");
+						ata->abort_error();
+						dev->controller->raise_irq();
+						return;
+					}
+					else if ((ata->drivehead & 0xF) >= ata->heads ||
+						ata->lba[0] > ata->sects ||
+						(ata->lba[1] | (ata->lba[2] << 8)) >= ata->cyls) {
+						fprintf(stderr,"C/H/S %u/%u/%u out of bounds %u/%u/%u\n",
+							ata->lba[1] | (ata->lba[2] << 8),
+							ata->drivehead&0xF,
+							ata->lba[0],
+							ata->cyls,
+							ata->heads,
+							ata->sects);
+						ata->abort_error();
+						dev->controller->raise_irq();
+						return;
+					}
+
+					sectorn = ((ata->drivehead & 0xF) * ata->sects) +
+						((ata->lba[1] | (ata->lba[2] << 8)) * ata->sects * ata->heads) +
+						(ata->lba[0] - 1);
+				}
+
+				if (disk->Read_AbsoluteSector(sectorn, ata->sector) != 0) {
+					fprintf(stderr,"ATA read failed\n");
+					ata->abort_error();
+					dev->controller->raise_irq();
+					return;
+				}
+
+				if ((ata->count&0xFF) == 1) {
+					/* end of the transfer */
+					ata->count = 0;
+					ata->status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+					dev->controller->raise_irq();
+					ata->state = IDE_DEV_READY;
+					ata->allow_writing = true;
+					return;
+				}
+				else if ((ata->count&0xFF) == 0) ata->count = 255;
+				else ata->count--;
+				ata->progress_count++;
+
+				if (!ata->increment_current_address()) {
+					fprintf(stderr,"READ advance error\n");
+					ata->abort_error();
+					return;
+				}
+
+				ata->state = IDE_DEV_BUSY;
+				ata->status = IDE_STATUS_BUSY;
+				PIC_AddEvent(IDE_DelayedCommand,0.00001/*ms*/,dev->controller->interface_index);
+				break;
+
 			case 0xEC:/*IDENTIFY DEVICE (CONTINUED) */
 				dev->state = IDE_DEV_DATA_READ;
 				dev->status = IDE_STATUS_DRQ|IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
@@ -1995,6 +2073,13 @@ void IDEATADevice::writecommand(uint8_t cmd) {
 			state = IDE_DEV_DATA_WRITE;
 			status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ;
 			prepare_write(0,512);
+			break;
+		case 0x40: /* READ SECTOR VERIFY WITH RETRY */
+		case 0x41: /* READ SECTOR VERIFY WITHOUT RETRY */
+			progress_count = 0;
+			state = IDE_DEV_BUSY;
+			status = IDE_STATUS_BUSY;
+			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 0.1)/*ms*/,controller->interface_index);
 			break;
 		case 0x91: /* INITIALIZE DEVICE PARAMETERS */
 			if (count != sects || ((drivehead&0xF)+1) != heads) {
