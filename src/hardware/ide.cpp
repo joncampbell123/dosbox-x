@@ -1252,8 +1252,11 @@ void IDE_EmuINT13DiskReadByBIOS_LBA(unsigned char disk,uint64_t lba) {
 						/* one more */
 						IDE_SelfIO_In(ide,ide->base_io+7,1);		/* dum de dum reading status */
 
-						/* assume IRQ 14 happened and clear it */
-						IDE_SelfIO_Out(ide,0xA0,0x66,1);		/* specific EOI IRQ 14 */
+						/* assume IRQ happened and clear it */
+						if (ide->IRQ >= 8)
+							IDE_SelfIO_Out(ide,0xA0,0x60+ide->IRQ-8,1);		/* specific EOI */
+						else
+							IDE_SelfIO_Out(ide,0x20,0x60+ide->IRQ,1);		/* specific EOI */
 
 						dev->faked_command = false;
 					}
@@ -1412,8 +1415,11 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
 						/* one more */
 						IDE_SelfIO_In(ide,ide->base_io+7,1);		/* dum de dum reading status */
 
-						/* assume IRQ 14 happened and clear it */
-						IDE_SelfIO_Out(ide,0xA0,0x66,1);		/* specific EOI IRQ 14 */
+						/* assume IRQ happened and clear it */
+						if (ide->IRQ >= 8)
+							IDE_SelfIO_Out(ide,0xA0,0x60+ide->IRQ-8,1);		/* specific EOI */
+						else
+							IDE_SelfIO_Out(ide,0x20,0x60+ide->IRQ,1);		/* specific EOI */
 
 						dev->faked_command = false;
 					}
@@ -1495,8 +1501,11 @@ void IDE_ResetDiskByBIOS(unsigned char disk) {
 
 						IDE_SelfIO_In(ide,ide->base_io+7,1);
 
-						/* assume IRQ 14 happened and clear it */
-						IDE_SelfIO_Out(ide,0xA0,0x66,1);		/* specific EOI IRQ 14 */
+						/* assume IRQ happened and clear it */
+						if (ide->IRQ >= 8)
+							IDE_SelfIO_Out(ide,0xA0,0x60+ide->IRQ-8,1);		/* specific EOI */
+						else
+							IDE_SelfIO_Out(ide,0x20,0x60+ide->IRQ,1);		/* specific EOI */
 					}
 					else {
 						/* Windows 3.1 WDCTRL needs this, or else, it will read the
