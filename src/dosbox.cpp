@@ -676,6 +676,10 @@ void DOSBOX_Init(void) {
 	Pint->SetMinMax(1,1000000);
 	Pint->Set_help("Setting it lower than 100 will be a percentage.");
 
+	Pbool = secprop->Add_bool("apmbios",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("Emulate Advanced Power Management BIOS calls.\n"
+		"Do not enable if you are running Windows ME.");
+
 	Pbool = secprop->Add_bool("isapnpbios",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Emulate ISA Plug & Play BIOS. Enable if using DOSBox to run a PnP aware DOS program or if booting Windows 9x.\n"
 			"Do not disable if Windows 9x is configured around PnP devices, you will likely confuse it.");
@@ -689,7 +693,8 @@ void DOSBOX_Init(void) {
 
 	secprop=control->AddSection_prop("keyboard",&KEYBOARD_Init);
 	Pbool = secprop->Add_bool("aux",Property::Changeable::OnlyAtStart,false);
-	Pbool->Set_help("Enable emulation of the 8042 auxiliary port. PS/2 mouse emulation requires this to be enabled");
+	Pbool->Set_help("Enable emulation of the 8042 auxiliary port. PS/2 mouse emulation requires this to be enabled.\n"
+			"You should enable this if you will be running Windows ME or any other OS that does not use the BIOS to receive mouse events.");
 
 	const char *auxdevices[] = {"none","2button","3button","intellimouse","intellimouse45",0};
 	Pstring = secprop->Add_string("auxdevice",Property::Changeable::OnlyAtStart,"intellimouse");

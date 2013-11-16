@@ -71,6 +71,7 @@ static Bits other_memsystems=0;
 static bool apm_realmode_connected = false;
 void CMOS_SetRegister(Bitu regNr, Bit8u val); //For setting equipment word
 bool ISAPNPBIOS=false;
+bool APMBIOS=false;
 
 ISAPnPDevice::ISAPnPDevice() {
 	CSN = 0;
@@ -302,6 +303,7 @@ static void isapnp_write_port(Bitu port,Bitu val,Bitu /*iolen*/) {
 void ISAPNP_Cfg_Init(Section *s) {
 	Section_prop * section=static_cast<Section_prop *>(s);
 	ISAPNPBIOS = section->Get_bool("isapnpbios");
+	APMBIOS = section->Get_bool("apmbios");
 }
 
 /* the PnP callback registered two entry points. One for real, one for protected mode. */
@@ -1854,116 +1856,127 @@ static Bitu INT15_Handler(void) {
 		CALLBACK_SCF(true);
 		break;
 	case 0x53: // APM BIOS
-		switch(reg_al) {
-		case 0x00: // installation check
-			reg_ah = 1;			// APM 1.2
-			reg_al = 2;
-			reg_bx = 0x504d;	// 'PM'
-			reg_cx = 0;			// about no capabilities 
-			// 32-bit interface seems to be needed for standby in win95
-			break;
-		case 0x01: // connect real mode interface
-			if(reg_bx != 0x0) {
-				reg_ah = 0x09;	// unrecognized device ID
-				CALLBACK_SCF(true);			
-				break;
+		if (APMBIOS) {
+			switch(reg_al) {
+				case 0x00: // installation check
+					reg_ah = 1;			// APM 1.2
+					reg_al = 2;
+					reg_bx = 0x504d;	// 'PM'
+					reg_cx = 0;			// about no capabilities 
+					// 32-bit interface seems to be needed for standby in win95
+					break;
+				case 0x01: // connect real mode interface
+					if(reg_bx != 0x0) {
+						reg_ah = 0x09;	// unrecognized device ID
+						CALLBACK_SCF(true);			
+						break;
+					}
+					if(!apm_realmode_connected) { // not yet connected
+						CALLBACK_SCF(false);
+						apm_realmode_connected=true;
+					} else {
+						reg_ah = 0x02;	// interface connection already in effect
+						CALLBACK_SCF(true);			
+					}
+					break;
+				case 0x04: // DISCONNECT INTERFACE
+					if(reg_bx != 0x0) {
+						reg_ah = 0x09;	// unrecognized device ID
+						CALLBACK_SCF(true);			
+						break;
+					}
+					if(apm_realmode_connected) {
+						CALLBACK_SCF(false);
+						apm_realmode_connected=false;
+					} else {
+						reg_ah = 0x03;	// interface not connected
+						CALLBACK_SCF(true);			
+					}
+					break;
+				case 0x07:
+					if(reg_bx != 0x1) {
+						reg_ah = 0x09;	// wrong device ID
+						CALLBACK_SCF(true);			
+						break;
+					}
+					if(!apm_realmode_connected) {
+						reg_ah = 0x03;
+						CALLBACK_SCF(true);
+						break;
+					}
+					switch(reg_cx) {
+						case 0x3: // power off
+							throw(0);
+							break;
+						default:
+							reg_ah = 0x0A; // invalid parameter value in CX
+							CALLBACK_SCF(true);
+							break;
+					}
+					break;
+				case 0x08: // ENABLE/DISABLE POWER MANAGEMENT
+					if(reg_bx != 0x0 && reg_bx != 0x1) {
+						reg_ah = 0x09;	// unrecognized device ID
+						CALLBACK_SCF(true);			
+						break;
+					} else if(!apm_realmode_connected) {
+						reg_ah = 0x03;
+						CALLBACK_SCF(true);
+						break;
+					}
+					if(reg_cx==0x0) LOG_MSG("disable APM for device %4x",reg_bx);
+					else if(reg_cx==0x1) LOG_MSG("enable APM for device %4x",reg_bx);
+					else {
+						reg_ah = 0x0A; // invalid parameter value in CX
+						CALLBACK_SCF(true);
+					}
+					break;
+				case 0x0e:
+					if(reg_bx != 0x0) {
+						reg_ah = 0x09;	// unrecognized device ID
+						CALLBACK_SCF(true);			
+						break;
+					} else if(!apm_realmode_connected) {
+						reg_ah = 0x03;	// interface not connected
+						CALLBACK_SCF(true);
+						break;
+					}
+					if(reg_ah < 1) reg_ah = 1;
+					if(reg_al < 2) reg_al = 2;
+					CALLBACK_SCF(false);
+					break;
+				case 0x0f:
+					if(reg_bx != 0x0 && reg_bx != 0x1) {
+						reg_ah = 0x09;	// unrecognized device ID
+						CALLBACK_SCF(true);			
+						break;
+					} else if(!apm_realmode_connected) {
+						reg_ah = 0x03;
+						CALLBACK_SCF(true);
+						break;
+					}
+					if(reg_cx==0x0) LOG_MSG("disengage APM for device %4x",reg_bx);
+					else if(reg_cx==0x1) LOG_MSG("engage APM for device %4x",reg_bx);
+					else {
+						reg_ah = 0x0A; // invalid parameter value in CX
+						CALLBACK_SCF(true);
+					}
+					break;
+				default:
+					LOG(LOG_BIOS,LOG_NORMAL)("unknown APM BIOS call %x",reg_ax);
+					break;
 			}
-			if(!apm_realmode_connected) { // not yet connected
-				CALLBACK_SCF(false);
-				apm_realmode_connected=true;
-			} else {
-				reg_ah = 0x02;	// interface connection already in effect
-				CALLBACK_SCF(true);			
-			}
-			break;
-		case 0x04: // DISCONNECT INTERFACE
-			if(reg_bx != 0x0) {
-				reg_ah = 0x09;	// unrecognized device ID
-				CALLBACK_SCF(true);			
-				break;
-			}
-			if(apm_realmode_connected) {
-				CALLBACK_SCF(false);
-				apm_realmode_connected=false;
-			} else {
-				reg_ah = 0x03;	// interface not connected
-				CALLBACK_SCF(true);			
-			}
-			break;
-		case 0x07:
-			if(reg_bx != 0x1) {
-				reg_ah = 0x09;	// wrong device ID
-				CALLBACK_SCF(true);			
-				break;
-			}
-			if(!apm_realmode_connected) {
-				reg_ah = 0x03;
-				CALLBACK_SCF(true);
-				break;
-			}
-			switch(reg_cx) {
-			case 0x3: // power off
-				throw(0);
-				break;
-			default:
-				reg_ah = 0x0A; // invalid parameter value in CX
-				CALLBACK_SCF(true);
-				break;
-			}
-			break;
-		case 0x08: // ENABLE/DISABLE POWER MANAGEMENT
-			if(reg_bx != 0x0 && reg_bx != 0x1) {
-				reg_ah = 0x09;	// unrecognized device ID
-				CALLBACK_SCF(true);			
-				break;
-			} else if(!apm_realmode_connected) {
-				reg_ah = 0x03;
-				CALLBACK_SCF(true);
-				break;
-			}
-			if(reg_cx==0x0) LOG_MSG("disable APM for device %4x",reg_bx);
-			else if(reg_cx==0x1) LOG_MSG("enable APM for device %4x",reg_bx);
-			else {
-				reg_ah = 0x0A; // invalid parameter value in CX
-				CALLBACK_SCF(true);
-			}
-			break;
-		case 0x0e:
-			if(reg_bx != 0x0) {
-				reg_ah = 0x09;	// unrecognized device ID
-				CALLBACK_SCF(true);			
-				break;
-			} else if(!apm_realmode_connected) {
-				reg_ah = 0x03;	// interface not connected
-				CALLBACK_SCF(true);
-				break;
-			}
-			if(reg_ah < 1) reg_ah = 1;
-			if(reg_al < 2) reg_al = 2;
 			CALLBACK_SCF(false);
-			break;
-		case 0x0f:
-			if(reg_bx != 0x0 && reg_bx != 0x1) {
-				reg_ah = 0x09;	// unrecognized device ID
-				CALLBACK_SCF(true);			
-				break;
-			} else if(!apm_realmode_connected) {
-				reg_ah = 0x03;
-				CALLBACK_SCF(true);
-				break;
-			}
-			if(reg_cx==0x0) LOG_MSG("disengage APM for device %4x",reg_bx);
-			else if(reg_cx==0x1) LOG_MSG("engage APM for device %4x",reg_bx);
-			else {
-				reg_ah = 0x0A; // invalid parameter value in CX
-				CALLBACK_SCF(true);
-			}
-			break;
-		default:
-			LOG(LOG_BIOS,LOG_NORMAL)("unknown APM BIOS call %x",reg_ax);
-			break;
 		}
-		CALLBACK_SCF(false);
+		else {
+			reg_ah=0x86;
+			CALLBACK_SCF(true);
+			fprintf(stderr,"APM BIOS call attempted. set apmbios=1 if you want power management\n");
+			if ((IS_EGAVGA_ARCH) || (machine==MCH_CGA) || (machine==MCH_AMSTRAD)) {
+				/* relict from comparisons, as int15 exits with a retf2 instead of an iret */
+				CALLBACK_SZF(false);
+			}
+		}
 		break;
 	case 0xe8:
 		switch (reg_al) {
