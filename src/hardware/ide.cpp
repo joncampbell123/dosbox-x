@@ -170,6 +170,7 @@ public:
 	virtual bool increment_current_address(Bitu count=1);
 public:
 	Bitu heads,sects,cyls,headshr,progress_count;
+	Bitu phys_heads,phys_sects,phys_cyls;
 	unsigned char sector[512*128];
 	Bitu sector_i,sector_total;
 };
@@ -899,11 +900,11 @@ void IDEATADevice::generate_identify_device() {
 	total = sects * cyls * heads;
 
 	host_writew(sector+(0*2),0x0040);	/* bit 6: 1=fixed disk */
-	host_writew(sector+(1*2),cyls);
-	host_writew(sector+(3*2),heads);
-	host_writew(sector+(4*2),sects * 512);	/* unformatted bytes per track */
+	host_writew(sector+(1*2),phys_cyls);
+	host_writew(sector+(3*2),phys_heads);
+	host_writew(sector+(4*2),phys_sects * 512);	/* unformatted bytes per track */
 	host_writew(sector+(5*2),512);		/* unformatted bytes per sector */
-	host_writew(sector+(6*2),sects);
+	host_writew(sector+(6*2),phys_sects);
 
 	for (i=0;i < 20 && i < id_serial.length();i++)
 		sector[(i^1)+(10*2)] = id_serial[i];
@@ -1051,6 +1052,10 @@ void IDEATADevice::update_from_biosdisk() {
 			dsk->cylinders,dsk->heads,dsk->sectors,
 			cyls,heads,sects);
 	}
+
+	phys_heads = heads;
+	phys_sects = sects;
+	phys_cyls = cyls;
 }
 
 void IDE_Auto(signed char &index,bool &slave) {
@@ -1332,6 +1337,10 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
 
 				if ((ata->bios_disk_index-2) == (disk-0x80)) {
 					imageDisk *dsk = ata->getBIOSdisk();
+
+					/* print warning if INT 13h is being called after the OS changed logical geometry */
+					if (ata->sects != ata->phys_sects || ata->heads != ata->phys_heads || ata->cyls != ata->phys_cyls)
+						fprintf(stderr,"INT 13 WARNING: I/O issued on drive attached to IDE emulation with changed logical geometry!\n");
 
 					/* HACK: src/ints/bios_disk.cpp implementation doesn't correctly
 					 *       wrap sector numbers across tracks. it fullfills the read
@@ -2092,13 +2101,33 @@ void IDEATADevice::writecommand(uint8_t cmd) {
 			break;
 		case 0x91: /* INITIALIZE DEVICE PARAMETERS */
 			if (count != sects || ((drivehead&0xF)+1) != heads) {
-				fprintf(stderr,"IDE warning: changing sectors/track with command 0x91 not supported\n");
-				fprintf(stderr,"             Attempted to change H/S %u/%u to %u/%u\n",heads,sects,count,(drivehead&0xF)+1);
-				abort_error();
+				if (count == 0) {
+					fprintf(stderr,"IDE warning: OS attempted to change geometry to invalid H/S %u/%u\n",
+						count,(drivehead&0xF)+1);
+					abort_error();
+					allow_writing = true;
+					return;
+				}
+				else {
+					unsigned int ncyls;
+
+					ncyls = (phys_cyls * phys_heads * phys_sects);
+					ncyls += (count * ((drivehead&0xF)+1)) - 1;
+					ncyls /= count * ((drivehead&0xF)+1);
+
+					/* the OS is changing logical disk geometry, so update our head/sector count (needed for Windows ME) */
+					fprintf(stderr,"IDE warning: OS is changing logical geometry from C/H/S %u/%u/%u to logical H/S %u/%u/%u\n",
+						cyls,heads,sects,
+						ncyls,(drivehead&0xF)+1,count);
+					fprintf(stderr,"             Compatibility issues may occur if the OS tries to use INT 13 at the same time!\n");
+
+					cyls = ncyls;
+					sects = count;
+					heads = (drivehead&0xF)+1;
+				}
 			}
-			else {
-				status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-			}
+
+			status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
 			allow_writing = true;
 			break;
 		case 0xEC: /* IDENTIFY DEVICE */
