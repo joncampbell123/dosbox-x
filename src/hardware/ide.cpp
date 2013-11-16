@@ -472,8 +472,11 @@ bool IDEATADevice::increment_current_address(Bitu count) {
 		 *    lba[0]:    7:0 */
 		do {
 			if (((++lba[0])&0xFF) == 0x00) {
+				lba[0] = 0x00;
 				if (((++lba[1])&0xFF) == 0x00) {
+					lba[1] = 0x00;
 					if (((++lba[2])&0xFF) == 0x00) {
+						lba[2] = 0x00;
 						if (((++drivehead)&0xF) == 0) {
 							drivehead -= 0x10;
 							return false;
@@ -2037,8 +2040,19 @@ void IDEATADevice::writecommand(uint8_t cmd) {
 	}
 
 	if (!faked_command) {
-		fprintf(stderr,"IDE ATA command %02x dh=0x%02x count=0x%02x chs=%02x/%02x/%02x\n",cmd,
-			drivehead,count,(lba[2]<<8)+lba[1],drivehead&0xF,lba[0]);
+		if (drivehead_is_lba(drivehead)) {
+			uint64_t n;
+
+			n = ((drivehead&0xF)<<24)+(lba[2]<<16)+(lba[1]<<8)+lba[0];
+			fprintf(stderr,"IDE ATA command %02x dh=0x%02x count=0x%02x lba=%07llx/%07llx\n",cmd,
+				drivehead,count,(unsigned long long)n,
+				(unsigned long long)(phys_sects * phys_cyls * phys_heads));
+		}
+		else {
+			fprintf(stderr,"IDE ATA command %02x dh=0x%02x count=0x%02x chs=%02x/%02x/%02x\n",cmd,
+				drivehead,count,(lba[2]<<8)+lba[1],drivehead&0xF,lba[0]);
+		}
+
 		LOG(LOG_SB,LOG_NORMAL)("IDE ATA command %02x",cmd);
 	}
 
