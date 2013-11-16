@@ -889,6 +889,7 @@ void IDEATAPICDROMDevice::generate_identify_device() {
 void IDEATADevice::generate_identify_device() {
 	imageDisk *disk = getBIOSdisk();
 	unsigned char csum;
+	uint64_t ptotal;
 	uint64_t total;
 	Bitu i;
 
@@ -898,6 +899,7 @@ void IDEATADevice::generate_identify_device() {
 
 	/* total disk capacity in sectors */
 	total = sects * cyls * heads;
+	ptotal = phys_sects * phys_cyls * phys_heads;
 
 	host_writew(sector+(0*2),0x0040);	/* bit 6: 1=fixed disk */
 	host_writew(sector+(1*2),phys_cyls);
@@ -943,7 +945,7 @@ void IDEATADevice::generate_identify_device() {
 	host_writed(sector+(57*2),total);	/* current capacity in sectors */
 	host_writew(sector+(59*2),0x0101);	/* :8  multiple sector setting is valid */
 						/* 7:0 current setting for number of log. sectors per DRQ of READ/WRITE MULTIPLE */
-	host_writed(sector+(60*2),total);	/* total user addressable sectors (LBA) */
+	host_writed(sector+(60*2),ptotal);	/* total user addressable sectors (LBA) */
 	host_writew(sector+(62*2),0x0000);	/* FIXME: ??? */
 	host_writew(sector+(63*2),0x0000);	/* :10 0=Multiword DMA mode 2 not selected */
 						/* TODO: Basically, we don't do DMA. Fill out this comment */
