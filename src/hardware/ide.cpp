@@ -196,6 +196,8 @@ public:
 	virtual void io_completion();
 	virtual void atapi_cmd_completion();
 	virtual void on_atapi_busy_time();
+	virtual void read_subchannel();
+	virtual void read_toc();
 public:
 	bool atapi_to_host;			/* if set, PACKET data transfer is to be read by host */
 	Bitu host_maximum_byte_count;		/* host maximum byte count during PACKET transfer */
@@ -238,6 +240,54 @@ public:
 static IDEController* idecontroller[MAX_IDE_CONTROLLERS]={NULL,NULL,NULL,NULL};
 
 static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/);
+
+void IDEATAPICDROMDevice::read_subchannel() {
+	/* TODO: Flesh this code out, so far it's here to satisfy the testing code of MS-DOS CD-ROM drivers */
+	/* TODO: Use track number in byte 6 */
+	prepare_read(0,MIN((unsigned int)4,(unsigned int)host_maximum_byte_count));
+	sector[0] = 0x00;/*RESERVED*/
+	sector[1] = 0x15;/*AUDIO STATUS*/
+	sector[2] = 0x00;/*LENGTH*/
+	sector[3] = 0x00;/*LENGTH*/
+}
+
+void IDEATAPICDROMDevice::read_toc() {
+	/* TODO: Flesh this code out, so far it's here to satisfy the testing code of MS-DOS CD-ROM drivers */
+	/* TODO: Use track number in byte 6, format field [3:0] byte 2, LBA mode (TIME=0) by bit 1 byte 1 */
+	/* FIXME: The OAK CD-ROM driver I'm testing against uses this command when you read from CD-ROM.
+	   what we're returning now causes it to say "the CD-ROM drive is not ready". Why?
+	   what am I doing wrong? */
+	bool leadout = !(atapi_cmd[9] & 0x40);
+
+	prepare_read(0,MIN((unsigned int)(4+8+(leadout?8:0)),(unsigned int)host_maximum_byte_count));
+	sector[0] = 0x00;/*DATA LENGTH*/
+	sector[1] = 10+(leadout?8:0);/*DATA LENGTH LSB*/
+	sector[2] = 0x01;/*FIRST TRACK*/
+	sector[3] = 0x01;/*LAST TRACK*/
+
+	sector[4+0] = 0x00;/*RESERVED*/
+	sector[4+1] = (1 << 4) | 4; /*ADR=1 CONTROL=4 (DATA)*/
+	sector[4+2] = 1;/*TRACK*/
+	sector[4+3] = 0x00;/*?*/
+	sector[4+4] = 0x00;/*x*/
+	sector[4+5] = 0;/*M*/
+	sector[4+6] = 2;/*S*/
+	sector[4+7] = 0;/*F*/
+
+	if (leadout) {
+		/* FIXME: Actually read the size of the ISO or get M:S:F of leadout */
+		/* For now, we fabricate the leadout to make Windows 95 happy, because Win95
+		   relies on this command to detect the total size of the CD-ROM  */
+		sector[4+8+0] = 0x00;/*RESERVED*/
+		sector[4+8+1] = (1 << 4) | 4; /*ADR=1 CONTROL=4 (DATA)*/
+		sector[4+8+2] = 0xAA;/*TRACK*/
+		sector[4+8+3] = 0x00;/*?*/
+		sector[4+8+4] = 0x00;/*x*/
+		sector[4+8+5] = 79;/*M*/
+		sector[4+8+6] = 59;/*S*/
+		sector[4+8+7] = 59;/*F*/
+	}
+}
 
 /* when the ATAPI command has been accepted, and the timeout has passed */
 void IDEATAPICDROMDevice::on_atapi_busy_time() {
@@ -314,15 +364,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			controller->raise_irq();
 			break;
 		case 0x42: /* READ SUB-CHANNEL */
-			/* TODO: Flesh this code out, so far it's here to satisfy the testing code of MS-DOS CD-ROM drivers */
-			/* TODO: Use track number in byte 6 */
-			if (atapi_cmd[3] == 1 || 1) {
-				prepare_read(0,MIN((unsigned int)4,(unsigned int)host_maximum_byte_count));
-				sector[0] = 0x00;/*RESERVED*/
-				sector[1] = 0x15;/*AUDIO STATUS*/
-				sector[2] = 0x00;/*LENGTH*/
-				sector[3] = 0x00;/*LENGTH*/
-			}
+			read_subchannel();
 
 			feature = 0x00;
 			state = IDE_DEV_DATA_READ;
@@ -335,43 +377,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			controller->raise_irq();
 			break;
 		case 0x43: /* READ TOC */
-			/* TODO: Flesh this code out, so far it's here to satisfy the testing code of MS-DOS CD-ROM drivers */
-			/* TODO: Use track number in byte 6, format field [3:0] byte 2, LBA mode (TIME=0) by bit 1 byte 1 */
-			/* FIXME: The OAK CD-ROM driver I'm testing against uses this command when you read from CD-ROM.
-				  what we're returning now causes it to say "the CD-ROM drive is not ready". Why?
-				  what am I doing wrong? */
-			if (atapi_cmd[3] == 1 || 1) {
-				bool leadout = !(atapi_cmd[9] & 0x40);
-
-				prepare_read(0,MIN((unsigned int)(4+8+(leadout?8:0)),(unsigned int)host_maximum_byte_count));
-				sector[0] = 0x00;/*DATA LENGTH*/
-				sector[1] = 10+(leadout?8:0);/*DATA LENGTH LSB*/
-				sector[2] = 0x01;/*FIRST TRACK*/
-				sector[3] = 0x01;/*LAST TRACK*/
-
-				sector[4+0] = 0x00;/*RESERVED*/
-				sector[4+1] = (1 << 4) | 4; /*ADR=1 CONTROL=4 (DATA)*/
-				sector[4+2] = 1;/*TRACK*/
-				sector[4+3] = 0x00;/*?*/
-				sector[4+4] = 0x00;/*x*/
-				sector[4+5] = 0;/*M*/
-				sector[4+6] = 2;/*S*/
-				sector[4+7] = 0;/*F*/
-
-				if (leadout) {
-					/* FIXME: Actually read the size of the ISO or get M:S:F of leadout */
-					/* For now, we fabricate the leadout to make Windows 95 happy, because Win95
-					   relies on this command to detect the total size of the CD-ROM  */
-					sector[4+8+0] = 0x00;/*RESERVED*/
-					sector[4+8+1] = (1 << 4) | 4; /*ADR=1 CONTROL=4 (DATA)*/
-					sector[4+8+2] = 0xAA;/*TRACK*/
-					sector[4+8+3] = 0x00;/*?*/
-					sector[4+8+4] = 0x00;/*x*/
-					sector[4+8+5] = 79;/*M*/
-					sector[4+8+6] = 59;/*S*/
-					sector[4+8+7] = 59;/*F*/
-				}
-			}
+			read_toc();
 
 			feature = 0x00;
 			state = IDE_DEV_DATA_READ;
