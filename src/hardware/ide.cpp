@@ -357,10 +357,35 @@ void IDEATAPICDROMDevice::mode_sense() {
 	unsigned int x;
 
 	write = sector;
-	*write++ = 0x2A;	/* page code */
+	*write++ = PAGE;	/* page code */
 	*write++ = 0x00;	/* page length (fill in later) */
 	switch (PAGE) {
-		case 0x2A:
+		case 0x01: /* Read error recovery */
+			*write++ = 0x00;	/* maximum error correction */
+			*write++ = 3;		/* read retry count */
+			*write++ = 0x00;
+			*write++ = 0x00;
+			*write++ = 0x00;
+			*write++ = 0x00;
+			break;
+		case 0x0E: /* CD-ROM audio control */
+			*write++ = 0x04;	/* ?? */
+			*write++ = 0x00;	/* reserved @+3 */
+			*write++ = 0x00;	/* reserved @+4 */
+			*write++ = 0x00;	/* reserved @+5 */
+			*write++ = 0x00;
+			*write++ = 75;		/* logical blocks per second */
+
+			*write++ = 0x01;	/* output port 0 selection */
+			*write++ = 0xD8;	/* output port 0 volume (?) */
+			*write++ = 0x02;	/* output port 1 selection */
+			*write++ = 0xD8;	/* output port 1 volume (?) */
+			*write++ = 0x00;	/* output port 2 selection */
+			*write++ = 0x00;	/* output port 2 volume (?) */
+			*write++ = 0x00;	/* output port 3 selection */
+			*write++ = 0x00;	/* output port 3 volume (?) */
+			break;
+		case 0x2A: /* CD-ROM mechanical status */
 			*write++ = 0x00;	/* reserved @+2 */
 			*write++ = 0x00;	/* reserved @+3 */
 			*write++ = 0x31;	/* multisession=0 mode2form2=1 mode2form=1 audioplay=1 */
