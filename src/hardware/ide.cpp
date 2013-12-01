@@ -192,6 +192,8 @@ public:
 	virtual void generate_identify_device();
 	virtual void generate_mmc_inquiry();
 	virtual void prepare_read(Bitu offset,Bitu size);
+	virtual void prepare_write(Bitu offset,Bitu size);
+	virtual void on_mode_select_io_complete();
 	virtual void atapi_io_completion();
 	virtual void io_completion();
 	virtual void atapi_cmd_completion();
@@ -344,9 +346,11 @@ void IDEATAPICDROMDevice::read_subchannel() {
 	}
 
 	prepare_read(0,MIN((unsigned int)(write-sector),(unsigned int)host_maximum_byte_count));
+#if 0
 	printf("SUBCH ");
 	for (size_t i=0;i < sector_total;i++) printf("%02x ",sector[i]);
 	printf("\n");
+#endif
 }
 
 void IDEATAPICDROMDevice::mode_sense() {
@@ -419,9 +423,11 @@ void IDEATAPICDROMDevice::mode_sense() {
 	sector[1] = (unsigned int)(write-sector) - 2;
 
 	prepare_read(0,MIN((unsigned int)(write-sector),(unsigned int)host_maximum_byte_count));
+#if 0
 	printf("SENSE ");
 	for (size_t i=0;i < sector_total;i++) printf("%02x ",sector[i]);
 	printf("\n");
+#endif
 }
 
 void IDEATAPICDROMDevice::pause_resume() {
@@ -624,9 +630,11 @@ void IDEATAPICDROMDevice::read_toc() {
 	}
 
 	prepare_read(0,MIN(MIN((unsigned int)(write-sector),(unsigned int)host_maximum_byte_count),AllocationLength));
+#if 0
 	printf("TOC ");
 	for (size_t i=0;i < sector_total;i++) printf("%02x ",sector[i]);
 	printf("\n");
+#endif
 }
 
 /* when the ATAPI command has been accepted, and the timeout has passed */
@@ -805,6 +813,28 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 
 			controller->raise_irq();
 			break;
+		case 0x55: /* MODE SELECT(10) */
+			/* we need the data written first, will act in I/O completion routine */
+			{
+				unsigned int x;
+
+				x = lba[1] + (lba[2] << 8);
+
+				/* Windows 95 likes to set 0xFFFF here for whatever reason.
+				 * Negotiate it down to a maximum of 512 for sanity's sake */
+				if (x > 512) x = 512;
+				lba[2] = x >> 8;
+				lba[1] = x;
+
+//				fprintf(stderr,"MODE SELECT expecting %u bytes\n",x);
+				prepare_write(0,(x+1)&(~1));
+			}
+
+			feature = 0x00;
+			state = IDE_DEV_DATA_WRITE;
+			status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+			controller->raise_irq();
+			break;
 		case 0x5A: /* MODE SENSE(10) */
 			mode_sense();
 
@@ -847,9 +877,50 @@ IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_in
 IDEATAPICDROMDevice::~IDEATAPICDROMDevice() {
 }
 
+void IDEATAPICDROMDevice::on_mode_select_io_complete() {
+	unsigned int AllocationLength = ((unsigned int)atapi_cmd[7] << 8) + atapi_cmd[8];
+	unsigned char *scan,*fence;
+	size_t i;
+
+	/* the first 8 bytes are a mode parameter header.
+	 * It's supposed to provide length, density, etc. or whatever the hell
+	 * it means. Windows 95 seems to send all zeros there, so ignore it.
+	 *
+	 * we care about the bytes following it, which contain page_0 mode
+	 * pages */
+
+	scan = sector + 8;
+	fence = sector + MIN(sector_total,AllocationLength);
+
+	while ((scan+2) < fence) {
+		unsigned char PAGE = *scan++;
+		unsigned int LEN = (unsigned int)(*scan++);
+
+		if ((scan+LEN) > fence) {
+			fprintf(stderr,"ATAPI MODE SELECT warning, page_0 length extends %u bytes past buffer\n",(unsigned int)(scan+LEN-fence));
+			break;
+		}
+
+		fprintf(stderr,"ATAPI MODE SELECT, PAGE 0x%02x len=%u\n",PAGE,LEN);
+		fprintf(stderr,"  ");
+		for (i=0;i < LEN;i++) fprintf(stderr,"%02x ",scan[i]);
+		fprintf(stderr,"\n");
+
+		scan += LEN;
+	}
+}
+
 void IDEATAPICDROMDevice::atapi_io_completion() {
 	/* for most ATAPI PACKET commands, the transfer is done and we need to clear
 	   all indication of a possible data transfer */
+
+	if (count == 0x00) { /* the command was expecting data. now it can act on it */
+		switch (atapi_cmd[0]) {
+			case 0x55: /* MODE SELECT(10) */
+				on_mode_select_io_complete();
+				break;
+		};
+	}
 
 	count = 0x03; /* no more data (command/data=1, input/output=1) */
 	status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
@@ -1017,7 +1088,7 @@ Bitu IDEATAPICDROMDevice::data_read(Bitu iolen) {
 /* TODO: Your code should also be paying attention to the "transfer length" field
          in many of the commands here. Right now it doesn't matter. */
 void IDEATAPICDROMDevice::atapi_cmd_completion() {
-#if 1
+#if 0
 	fprintf(stderr,"ATAPI command %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x to_host=%u\n",
 		atapi_cmd[ 0],atapi_cmd[ 1],atapi_cmd[ 2],atapi_cmd[ 3],atapi_cmd[ 4],atapi_cmd[ 5],
 		atapi_cmd[ 6],atapi_cmd[ 7],atapi_cmd[ 8],atapi_cmd[ 9],atapi_cmd[10],atapi_cmd[11],
@@ -1132,6 +1203,12 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 			status = IDE_STATUS_BUSY;
 			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
 			break;
+		case 0x55: /* MODE SELECT(10) */
+			count = 0x00;	/* we will be accepting data */
+			state = IDE_DEV_ATAPI_BUSY;
+			status = IDE_STATUS_BUSY;
+			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
+			break;
 		case 0x5A: /* MODE SENSE(10) */
 			count = 0x02;
 			state = IDE_DEV_ATAPI_BUSY;
@@ -1163,6 +1240,29 @@ void IDEATAPICDROMDevice::data_write(Bitu v,Bitu iolen) {
 			atapi_cmd_completion();
 	}
 	else {
+		if (state != IDE_DEV_DATA_WRITE) {
+			fprintf(stderr,"ide atapi warning: data write when device not in data_write state\n");
+			return;
+		}
+		if (!(status & IDE_STATUS_DRQ)) {
+			fprintf(stderr,"ide atapi warning: data write with drq=0\n");
+			return;
+		}
+		if (sector_i >= sector_total) {
+			fprintf(stderr,"ide atapi warning: sector already full\n");
+			return;
+		}
+
+		if (iolen >= 2) {
+			host_writew(sector+sector_i,v);
+			sector_i += 2;
+		}
+		else if (iolen == 1) {
+			sector[sector_i++] = v;
+		}
+
+		if (sector_i >= sector_total)
+			io_completion();
 	}
 }
 
@@ -1197,15 +1297,15 @@ Bitu IDEATADevice::data_read(Bitu iolen) {
 
 void IDEATADevice::data_write(Bitu v,Bitu iolen) {
 	if (state != IDE_DEV_DATA_WRITE) {
-		fprintf(stderr,"IDE ATA warning: data write when device not in DATA_WRITE state\n");
+		fprintf(stderr,"ide ata warning: data write when device not in data_write state\n");
 		return;
 	}
 	if (!(status & IDE_STATUS_DRQ)) {
-		fprintf(stderr,"IDE ATA warning: data write with DRQ=0\n");
+		fprintf(stderr,"ide ata warning: data write with drq=0\n");
 		return;
 	}
 	if (sector_i >= sector_total) {
-		fprintf(stderr,"IDE ATA warning: sector already full\n");
+		fprintf(stderr,"ide ata warning: sector already full\n");
 		return;
 	}
 
@@ -1222,6 +1322,17 @@ void IDEATADevice::data_write(Bitu v,Bitu iolen) {
 }
 		
 void IDEATAPICDROMDevice::prepare_read(Bitu offset,Bitu size) {
+	/* I/O must be WORD ALIGNED */
+	assert((offset&1) == 0);
+	assert((size&1) == 0);
+
+	sector_i = offset;
+	sector_total = size;
+	assert(sector_i <= sector_total);
+	assert(sector_total <= sizeof(sector));
+}
+
+void IDEATAPICDROMDevice::prepare_write(Bitu offset,Bitu size) {
 	/* I/O must be WORD ALIGNED */
 	assert((offset&1) == 0);
 	assert((size&1) == 0);
