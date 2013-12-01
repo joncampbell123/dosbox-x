@@ -265,6 +265,18 @@ bool CDROM_Interface_Image::ReadSector(Bit8u *buffer, bool raw, unsigned long se
 	if (track < 0) return false;
 
 	if (tracks[track].sectorSize != RAW_SECTOR_SIZE && raw) return false;
+
+	/* we must reject non-raw reads against CD audio sectors.
+	 * not just for correctness, but also to avoid a weird bug in MSCDEX.EXE
+	 * that reads the non-data sectors one-by-one looking for a volume label
+	 * that doesn't exist on pure CD audio emulated images */
+	if (tracks[track].sectorSize == RAW_SECTOR_SIZE && !raw) {
+		if ((tracks[track].attr&0x40) == 0x00) {
+			fprintf(stderr,"Rejecting cooked read from raw audio CD sector\n");
+			return false;
+		}
+	}
+
 	int length = (raw ? RAW_SECTOR_SIZE : COOKED_SECTOR_SIZE);
 
 	if (sector >= (unsigned long)(tracks[track].start + tracks[track].length)) {

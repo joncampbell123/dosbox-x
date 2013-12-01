@@ -354,6 +354,9 @@ void IDEATAPICDROMDevice::read_subchannel() {
 }
 
 void IDEATAPICDROMDevice::mode_sense() {
+	/* FIXME: MS-DOS based CD player programs do a MODE SENSE and then outright
+	 *        refuse to do CD audio playback EVEN THOUGH WE FUCKING SET ALL THE MAGIC
+	 *        BITS SAYING WE SUPPORT FUCKING AUDIO CD PLAYBACK!!! What the fuck? */
 	unsigned int AllocationLength = ((unsigned int)atapi_cmd[7] << 8) + atapi_cmd[8];
 	unsigned char PAGE = atapi_cmd[2] & 0x3F;
 	unsigned char SUBPAGE = atapi_cmd[3];
@@ -390,10 +393,10 @@ void IDEATAPICDROMDevice::mode_sense() {
 			*write++ = 0x00;	/* output port 3 volume (?) */
 			break;
 		case 0x2A: /* CD-ROM mechanical status */
-			*write++ = 0x00;	/* reserved @+2 */
-			*write++ = 0x00;	/* reserved @+3 */
-			*write++ = 0x31;	/* multisession=0 mode2form2=1 mode2form=1 audioplay=1 */
-			*write++ = 0x7F;	/* ISRC=1 UPC=1 C2=1 RWDeinterleave=1 RWSupported=1 CDDAAccurate=1 CDDASupported=1 */
+			*write++ = 0x00;	/* reserved @+2 ?? */
+			*write++ = 0x00;	/* reserved @+3 ?? */
+			*write++ = 0xF1;	/* multisession=0 mode2form2=1 mode2form=1 audioplay=1 */
+			*write++ = 0xFF;	/* ISRC=1 UPC=1 C2=1 RWDeinterleave=1 RWSupported=1 CDDAAccurate=1 CDDASupported=1 */
 			*write++ = 0x29;	/* loading mechanism type=tray  eject=1  prevent jumper=0  lockstate=0  lock=1 */
 			*write++ = 0x03;	/* separate channel mute=1 separate channel volume levels=1 */
 
