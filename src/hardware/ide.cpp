@@ -197,6 +197,7 @@ public:
 	virtual void atapi_cmd_completion();
 	virtual void on_atapi_busy_time();
 	virtual void read_subchannel();
+	virtual void play_audio10();
 	virtual void read_toc();
 public:
 	bool atapi_to_host;			/* if set, PACKET data transfer is to be read by host */
@@ -242,13 +243,140 @@ static IDEController* idecontroller[MAX_IDE_CONTROLLERS]={NULL,NULL,NULL,NULL};
 static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/);
 
 void IDEATAPICDROMDevice::read_subchannel() {
-	/* TODO: Flesh this code out, so far it's here to satisfy the testing code of MS-DOS CD-ROM drivers */
-	/* TODO: Use track number in byte 6 */
-	prepare_read(0,MIN((unsigned int)4,(unsigned int)host_maximum_byte_count));
-	sector[0] = 0x00;/*RESERVED*/
-	sector[1] = 0x15;/*AUDIO STATUS*/
-	sector[2] = 0x00;/*LENGTH*/
-	sector[3] = 0x00;/*LENGTH*/
+	unsigned int AllocationLength = ((unsigned int)atapi_cmd[7] << 8) + atapi_cmd[8];
+	unsigned char Format = atapi_cmd[2] & 0xF;
+	unsigned char Track = atapi_cmd[6];
+	unsigned char paramList = atapi_cmd[3];
+	unsigned char attr,track,index;
+	bool SUBQ = !!(atapi_cmd[2] & 0x40);
+	bool TIME = !!(atapi_cmd[1] & 2);
+	unsigned char *write;
+	unsigned char astat;
+	bool playing,pause;
+	TMSF rel,abs;
+
+	CDROM_Interface *cdrom = getMSCDEXDrive();
+	if (cdrom == NULL) {
+		fprintf(stderr,"WARNING: ATAPI READ TOC unable to get CDROM drive\n");
+		prepare_read(0,8);
+		return;
+	}
+
+	if (paramList == 0 || paramList > 3) {
+		fprintf(stderr,"ATAPI READ SUBCHANNEL unknown param list\n");
+		prepare_read(0,8);
+		return;
+	}
+	else if (paramList == 2) {
+		fprintf(stderr,"ATAPI READ SUBCHANNEL Media Catalog Number not supported\n");
+		prepare_read(0,8);
+		return;
+	}
+	else if (paramList == 3) {
+		fprintf(stderr,"ATAPI READ SUBCHANNEL ISRC not supported\n");
+		prepare_read(0,8);
+		return;
+	}
+
+	/* get current subchannel position */
+	if (!cdrom->GetAudioSub(attr,track,index,rel,abs)) {
+		fprintf(stderr,"ATAPI READ SUBCHANNEL unable to read current pos\n");
+		prepare_read(0,8);
+		return;
+	}
+
+	if (!cdrom->GetAudioStatus(playing,pause))
+		playing = pause = false;
+
+	if (playing || pause)
+		astat = 0x12;
+	else if (playing)
+		astat = 0x11;
+	else
+		astat = 0x13;
+
+	memset(sector,0,8);
+	write = sector;
+	*write++ = 0x00;
+	*write++ = astat;/* AUDIO STATUS */
+	*write++ = 0x00;/* SUBCHANNEL DATA LENGTH */
+	*write++ = 0x00;
+
+	if (SUBQ) {
+		*write++ = 0x01;	/* subchannel data format code */
+		*write++ = attr;	/* ADR/CONTROL */
+		*write++ = track;
+		*write++ = index;
+		if (TIME) {
+			*write++ = 0x00;
+			*write++ = abs.min;
+			*write++ = abs.sec;
+			*write++ = abs.fr;
+			*write++ = 0x00;
+			*write++ = rel.min;
+			*write++ = rel.sec;
+			*write++ = rel.fr;
+		}
+		else {
+			uint32_t sec;
+
+			sec = (abs.min*60*75)+(abs.sec*75)+abs.fr - 150;
+			*write++ = (unsigned char)(sec >> 24);
+			*write++ = (unsigned char)(sec >> 16);
+			*write++ = (unsigned char)(sec >> 8);
+			*write++ = (unsigned char)(sec >> 0);
+
+			sec = (rel.min*60*75)+(rel.sec*75)+rel.fr - 150;
+			*write++ = (unsigned char)(sec >> 24);
+			*write++ = (unsigned char)(sec >> 16);
+			*write++ = (unsigned char)(sec >> 8);
+			*write++ = (unsigned char)(sec >> 0);
+		}
+	}
+
+	{
+		unsigned int x = (unsigned int)(write-sector) - 4;
+		sector[2] = x >> 8;
+		sector[3] = x;
+	}
+
+	prepare_read(0,MIN((unsigned int)(write-sector),(unsigned int)host_maximum_byte_count));
+}
+
+void IDEATAPICDROMDevice::play_audio10() {
+	uint16_t play_length;
+	uint32_t start_lba;
+
+	CDROM_Interface *cdrom = getMSCDEXDrive();
+	if (cdrom == NULL) {
+		fprintf(stderr,"WARNING: ATAPI READ TOC unable to get CDROM drive\n");
+		sector_total = 0;
+		return;
+	}
+
+	start_lba = ((uint32_t)atapi_cmd[2] << 24) +
+		((uint32_t)atapi_cmd[3] << 16) +
+		((uint32_t)atapi_cmd[4] << 8) +
+		((uint32_t)atapi_cmd[5] << 0);
+
+	play_length = ((uint16_t)atapi_cmd[7] << 8) +
+		((uint16_t)atapi_cmd[8] << 0);
+
+	if (play_length == 0) {
+		/* The play length field specifies the number of contiguous logical blocks that shall
+		 * be played. A play length of zero indicates that no audio operation shall occur.
+		 * This condition is not an error. */
+		cdrom->PauseAudio(true);
+		sector_total = 0;
+		return;
+	}
+
+	if (start_lba != 0xFFFFFFFF)
+		cdrom->PlayAudioSector(start_lba,play_length);
+	else
+		cdrom->PauseAudio(false);
+
+	sector_total = 0;
 }
 
 void IDEATAPICDROMDevice::read_toc() {
@@ -257,36 +385,100 @@ void IDEATAPICDROMDevice::read_toc() {
 	/* FIXME: The OAK CD-ROM driver I'm testing against uses this command when you read from CD-ROM.
 	   what we're returning now causes it to say "the CD-ROM drive is not ready". Why?
 	   what am I doing wrong? */
+	unsigned int AllocationLength = ((unsigned int)atapi_cmd[7] << 8) + atapi_cmd[8];
+	unsigned char Format = atapi_cmd[2] & 0xF;
+	unsigned char Track = atapi_cmd[6];
 	bool leadout = !(atapi_cmd[9] & 0x40);
+	bool TIME = !!(atapi_cmd[1] & 2);
+	int first,last,track;
+	unsigned char *write;
+	TMSF leadOut;
 
-	prepare_read(0,MIN((unsigned int)(4+8+(leadout?8:0)),(unsigned int)host_maximum_byte_count));
-	sector[0] = 0x00;/*DATA LENGTH*/
-	sector[1] = 10+(leadout?8:0);/*DATA LENGTH LSB*/
-	sector[2] = 0x01;/*FIRST TRACK*/
-	sector[3] = 0x01;/*LAST TRACK*/
+	CDROM_Interface *cdrom = getMSCDEXDrive();
+	if (cdrom == NULL) {
+		fprintf(stderr,"WARNING: ATAPI READ TOC unable to get CDROM drive\n");
+		prepare_read(0,8);
+		return;
+	}
 
-	sector[4+0] = 0x00;/*RESERVED*/
-	sector[4+1] = (1 << 4) | 4; /*ADR=1 CONTROL=4 (DATA)*/
-	sector[4+2] = 1;/*TRACK*/
-	sector[4+3] = 0x00;/*?*/
-	sector[4+4] = 0x00;/*x*/
-	sector[4+5] = 0;/*M*/
-	sector[4+6] = 2;/*S*/
-	sector[4+7] = 0;/*F*/
+	memset(sector,0,8);
+
+	if (Format != 0) {
+		fprintf(stderr,"WARNING: ATAPI READ TOC Format=%u not supported\n",Format);
+		prepare_read(0,8);
+		return;
+	}
+
+	if (!cdrom->GetAudioTracks(first,last,leadOut)) {
+		fprintf(stderr,"WARNING: ATAPI READ TOC failed to get track info\n");
+		prepare_read(0,8);
+		return;
+	}
+
+	/* start 2 bytes out. we'll fill in the data length later */
+	write = sector + 2;
+	*write++ = (unsigned char)first;	/* @+2 */
+	*write++ = (unsigned char)last;		/* @+3 */
+
+	for (track=first;track <= last;track++) {
+		unsigned char attr;
+		TMSF start;
+
+		if (!cdrom->GetAudioTrackInfo(track,start,attr)) {
+			fprintf(stderr,"WARNING: ATAPI READ TOC unable to read track %u information\n",track);
+			attr = 0x14; /* ADR=1 CONTROL=4 */
+			start.min = 0;
+			start.sec = 0;
+			start.fr = 0;
+		}
+
+		*write++ = 0x00;		/* entry+0 RESERVED */
+		*write++ = attr;		/* entry+1 ADR=1 CONTROL=4 (DATA) */
+		*write++ = (unsigned char)track;/* entry+2 TRACK */
+		*write++ = 0x00;		/* entry+3 RESERVED */
+		if (TIME) {
+			*write++ = 0x00;
+			*write++ = start.min;
+			*write++ = start.sec;
+			*write++ = start.fr;
+		}
+		else {
+			uint32_t sec = (start.min*60*75)+(start.sec*75)+start.fr - 150;
+			*write++ = (unsigned char)(sec >> 24);
+			*write++ = (unsigned char)(sec >> 16);
+			*write++ = (unsigned char)(sec >> 8);
+			*write++ = (unsigned char)(sec >> 0);
+		}
+	}
 
 	if (leadout) {
-		/* FIXME: Actually read the size of the ISO or get M:S:F of leadout */
-		/* For now, we fabricate the leadout to make Windows 95 happy, because Win95
-		   relies on this command to detect the total size of the CD-ROM  */
-		sector[4+8+0] = 0x00;/*RESERVED*/
-		sector[4+8+1] = (1 << 4) | 4; /*ADR=1 CONTROL=4 (DATA)*/
-		sector[4+8+2] = 0xAA;/*TRACK*/
-		sector[4+8+3] = 0x00;/*?*/
-		sector[4+8+4] = 0x00;/*x*/
-		sector[4+8+5] = 79;/*M*/
-		sector[4+8+6] = 59;/*S*/
-		sector[4+8+7] = 59;/*F*/
+		*write++ = 0x00;
+		*write++ = 0x14;
+		*write++ = 0xAA;/*TRACK*/
+		*write++ = 0x00;
+		if (TIME) {
+			*write++ = 0x00;
+			*write++ = leadOut.min;
+			*write++ = leadOut.sec;
+			*write++ = leadOut.fr;
+		}
+		else {
+			uint32_t sec = (leadOut.min*60*75)+(leadOut.sec*75)+leadOut.fr - 150;
+			*write++ = (unsigned char)(sec >> 24);
+			*write++ = (unsigned char)(sec >> 16);
+			*write++ = (unsigned char)(sec >> 8);
+			*write++ = (unsigned char)(sec >> 0);
+		}
 	}
+
+	/* update the TOC data length field */
+	{
+		unsigned int x = (unsigned int)(write-sector) - 4;
+		sector[0] = x >> 8;
+		sector[1] = x & 0xFF;
+	}
+
+	prepare_read(0,MIN(MIN((unsigned int)(write-sector),(unsigned int)host_maximum_byte_count),AllocationLength));
 }
 
 /* when the ATAPI command has been accepted, and the timeout has passed */
@@ -303,6 +495,36 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			feature = 0x00;
 			state = IDE_DEV_DATA_READ;
 			status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+
+			/* ATAPI protocol also says we write back into LBA 23:8 what we're going to transfer in the block */
+			lba[2] = sector_total >> 8;
+			lba[1] = sector_total;
+
+			controller->raise_irq();
+			break;
+		case 0x1E: /* PREVENT ALLOW MEDIUM REMOVAL */
+			count = 0x03;
+			feature = 0x00;
+			sector_total = 0x00;
+			state = IDE_DEV_DATA_READ;
+			status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+
+			/* Don't care. Do nothing. */
+
+			/* ATAPI protocol also says we write back into LBA 23:8 what we're going to transfer in the block */
+			lba[2] = sector_total >> 8;
+			lba[1] = sector_total;
+
+			controller->raise_irq();
+			break;
+		case 0x2B: /* SEEK */
+			count = 0x03;
+			feature = 0x00;
+			sector_total = 0x00;
+			state = IDE_DEV_DATA_READ;
+			status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+
+			/* Don't care. Do nothing. */
 
 			/* ATAPI protocol also says we write back into LBA 23:8 what we're going to transfer in the block */
 			lba[2] = sector_total >> 8;
@@ -382,6 +604,21 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			feature = 0x00;
 			state = IDE_DEV_DATA_READ;
 			status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+
+			/* ATAPI protocol also says we write back into LBA 23:8 what we're going to transfer in the block */
+			lba[2] = sector_total >> 8;
+			lba[1] = sector_total;
+
+			controller->raise_irq();
+			break;
+		case 0x45: /* PLAY AUDIO(10) */
+			play_audio10();
+
+			count = 0x03;
+			feature = 0x00;
+			sector_total = 0x00;
+			state = IDE_DEV_DATA_READ;
+			status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
 
 			/* ATAPI protocol also says we write back into LBA 23:8 what we're going to transfer in the block */
 			lba[2] = sector_total >> 8;
@@ -617,6 +854,18 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 			status = IDE_STATUS_BUSY;
 			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
 			break;
+		case 0x1E: /* PREVENT ALLOW MEDIUM REMOVAL */
+			count = 0x02;
+			state = IDE_DEV_ATAPI_BUSY;
+			status = IDE_STATUS_BUSY;
+			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
+			break;
+		case 0x2B: /* SEEK */
+			count = 0x02;
+			state = IDE_DEV_ATAPI_BUSY;
+			status = IDE_STATUS_BUSY;
+			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
+			break;
 		case 0x12: /* INQUIRY */
 			count = 0x02;
 			state = IDE_DEV_ATAPI_BUSY;
@@ -686,6 +935,12 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
 			break;
 		case 0x43: /* READ TOC */
+			count = 0x02;
+			state = IDE_DEV_ATAPI_BUSY;
+			status = IDE_STATUS_BUSY;
+			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
+			break;
+		case 0x45: /* PLAY AUDIO (1) */
 			count = 0x02;
 			state = IDE_DEV_ATAPI_BUSY;
 			status = IDE_STATUS_BUSY;
