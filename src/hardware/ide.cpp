@@ -471,11 +471,13 @@ void IDEATAPICDROMDevice::play_audio_msf() {
 		/* The play length field specifies the number of contiguous logical blocks that shall
 		 * be played. A play length of zero indicates that no audio operation shall occur.
 		 * This condition is not an error. */
-		cdrom->PauseAudio(false);
+		/* TODO: How do we interpret that? Does that mean audio playback stops? Or does it
+		 * mean we do nothing to the state of audio playback? */
 		sector_total = 0;
 		return;
 	}
 
+	/* LBA 0xFFFFFFFF means start playing wherever the optics of the CD sit */
 	if (start_lba != 0xFFFFFFFF)
 		cdrom->PlayAudioSector(start_lba,end_lba - start_lba);
 	else
@@ -507,11 +509,13 @@ void IDEATAPICDROMDevice::play_audio10() {
 		/* The play length field specifies the number of contiguous logical blocks that shall
 		 * be played. A play length of zero indicates that no audio operation shall occur.
 		 * This condition is not an error. */
-		cdrom->PauseAudio(false);
+		/* TODO: How do we interpret that? Does that mean audio playback stops? Or does it
+		 * mean we do nothing to the state of audio playback? */
 		sector_total = 0;
 		return;
 	}
 
+	/* LBA 0xFFFFFFFF means start playing wherever the optics of the CD sit */
 	if (start_lba != 0xFFFFFFFF)
 		cdrom->PlayAudioSector(start_lba,play_length);
 	else
@@ -681,6 +685,24 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
 
 			/* Don't care. Do nothing. */
+
+			/* Except... Windows 95's CD player expects the SEEK command to interrupt CD audio playback.
+			 * In fact it depends on it to the exclusion of commands explicitly standardized to... you know...
+			 * stop or pause playback. Oh Microsoft, you twits... */
+			{
+				CDROM_Interface *cdrom = getMSCDEXDrive();
+				if (cdrom) {
+					bool playing,pause;
+
+					if (!cdrom->GetAudioStatus(playing,pause))
+						playing = true;
+
+					if (playing) {
+						fprintf(stderr,"ATAPI: Interrupting CD audio playback due to SEEK\n");
+						cdrom->StopAudio();
+					}
+				}
+			}
 
 			/* ATAPI protocol also says we write back into LBA 23:8 what we're going to transfer in the block */
 			lba[2] = sector_total >> 8;
