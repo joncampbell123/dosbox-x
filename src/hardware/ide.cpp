@@ -346,7 +346,7 @@ void IDEATAPICDROMDevice::read_subchannel() {
 	}
 
 	prepare_read(0,MIN((unsigned int)(write-sector),(unsigned int)host_maximum_byte_count));
-#if 0
+#if 1
 	printf("SUBCH ");
 	for (size_t i=0;i < sector_total;i++) printf("%02x ",sector[i]);
 	printf("\n");
@@ -364,6 +364,17 @@ void IDEATAPICDROMDevice::mode_sense() {
 	unsigned int x;
 
 	write = sector;
+
+	/* some header. not well documented */
+	*write++ = 0x00;	/* ?? */
+	*write++ = 0x00;	/* length */
+	*write++ = 0x00;	/* ?? */
+	*write++ = 0x00;
+	*write++ = 0x00;
+	*write++ = 0x00;
+	*write++ = 0x00;
+	*write++ = 0x00;
+
 	*write++ = PAGE;	/* page code */
 	*write++ = 0x00;	/* page length (fill in later) */
 	switch (PAGE) {
@@ -424,9 +435,10 @@ void IDEATAPICDROMDevice::mode_sense() {
 
 	/* fill in page length */
 	sector[1] = (unsigned int)(write-sector) - 2;
+	sector[8+1] = (unsigned int)(write-sector) - 2 - 8;
 
 	prepare_read(0,MIN((unsigned int)(write-sector),(unsigned int)host_maximum_byte_count));
-#if 0
+#if 1
 	printf("SENSE ");
 	for (size_t i=0;i < sector_total;i++) printf("%02x ",sector[i]);
 	printf("\n");
@@ -590,6 +602,8 @@ void IDEATAPICDROMDevice::read_toc() {
 		if ((write+8) > (sector+AllocationLength))
 			break;
 
+		fprintf(stderr,"Track %u attr=0x%02x\n",track,attr);
+
 		*write++ = 0x00;		/* entry+0 RESERVED */
 		*write++ = (attr >> 4) | 0x10; /* entry+1 ADR=1 CONTROL=4 (DATA) */
 		*write++ = (unsigned char)track;/* entry+2 TRACK */
@@ -637,7 +651,7 @@ void IDEATAPICDROMDevice::read_toc() {
 	}
 
 	prepare_read(0,MIN(MIN((unsigned int)(write-sector),(unsigned int)host_maximum_byte_count),AllocationLength));
-#if 0
+#if 1
 	printf("TOC ");
 	for (size_t i=0;i < sector_total;i++) printf("%02x ",sector[i]);
 	printf("\n");
@@ -1113,7 +1127,7 @@ Bitu IDEATAPICDROMDevice::data_read(Bitu iolen) {
 /* TODO: Your code should also be paying attention to the "transfer length" field
          in many of the commands here. Right now it doesn't matter. */
 void IDEATAPICDROMDevice::atapi_cmd_completion() {
-#if 0
+#if 1
 	fprintf(stderr,"ATAPI command %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x to_host=%u\n",
 		atapi_cmd[ 0],atapi_cmd[ 1],atapi_cmd[ 2],atapi_cmd[ 3],atapi_cmd[ 4],atapi_cmd[ 5],
 		atapi_cmd[ 6],atapi_cmd[ 7],atapi_cmd[ 8],atapi_cmd[ 9],atapi_cmd[10],atapi_cmd[11],
