@@ -346,7 +346,7 @@ void IDEATAPICDROMDevice::read_subchannel() {
 	}
 
 	prepare_read(0,MIN((unsigned int)(write-sector),(unsigned int)host_maximum_byte_count));
-#if 1
+#if 0
 	printf("SUBCH ");
 	for (size_t i=0;i < sector_total;i++) printf("%02x ",sector[i]);
 	printf("\n");
@@ -438,7 +438,7 @@ void IDEATAPICDROMDevice::mode_sense() {
 	sector[8+1] = (unsigned int)(write-sector) - 2 - 8;
 
 	prepare_read(0,MIN((unsigned int)(write-sector),(unsigned int)host_maximum_byte_count));
-#if 1
+#if 0
 	printf("SENSE ");
 	for (size_t i=0;i < sector_total;i++) printf("%02x ",sector[i]);
 	printf("\n");
@@ -651,7 +651,7 @@ void IDEATAPICDROMDevice::read_toc() {
 	}
 
 	prepare_read(0,MIN(MIN((unsigned int)(write-sector),(unsigned int)host_maximum_byte_count),AllocationLength));
-#if 1
+#if 0
 	printf("TOC ");
 	for (size_t i=0;i < sector_total;i++) printf("%02x ",sector[i]);
 	printf("\n");
@@ -1127,7 +1127,7 @@ Bitu IDEATAPICDROMDevice::data_read(Bitu iolen) {
 /* TODO: Your code should also be paying attention to the "transfer length" field
          in many of the commands here. Right now it doesn't matter. */
 void IDEATAPICDROMDevice::atapi_cmd_completion() {
-#if 1
+#if 0
 	fprintf(stderr,"ATAPI command %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x to_host=%u\n",
 		atapi_cmd[ 0],atapi_cmd[ 1],atapi_cmd[ 2],atapi_cmd[ 3],atapi_cmd[ 4],atapi_cmd[ 5],
 		atapi_cmd[ 6],atapi_cmd[ 7],atapi_cmd[ 8],atapi_cmd[ 9],atapi_cmd[10],atapi_cmd[11],
