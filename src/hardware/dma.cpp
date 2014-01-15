@@ -422,24 +422,3 @@ const void *dma_state_callback_table[] = {
 	TandyDAC_DMA_CallBack_Func
 };
 
-
-Bit8u POD_State_Find_DMA_Callback( Bit32u addr )
-{
-	Bit8u size;
-
-	size = sizeof(dma_state_callback_table) / sizeof(Bit32u);
-	for( int lcv=0; lcv<size; lcv++ ) {
-		if( (Bit32u) dma_state_callback_table[lcv] == addr ) return lcv;
-	}
-
-
-	// ERROR! Set debug breakpoint
-	return 0xff;
-}
-
-
-Bit32u POD_State_Index_DMA_Callback( Bit8u index )
-{
-	return (Bit32u) dma_state_callback_table[index];
-}
-
