@@ -403,22 +403,3 @@ void DMA_Init(Section* sec) {
 	}
 }
 
-
-
-//save state support
-extern void *GUS_DMA_Callback_Func;
-extern void *SB_DSP_DMA_CallBack_Func;
-extern void *SB_DSP_ADC_CallBack_Func;
-extern void *SB_DSP_E2_DMA_CallBack_Func;
-extern void *TandyDAC_DMA_CallBack_Func;
-
-
-const void *dma_state_callback_table[] = {
-	NULL,
-	GUS_DMA_Callback_Func,
-	SB_DSP_DMA_CallBack_Func,
-	SB_DSP_ADC_CallBack_Func,
-	SB_DSP_E2_DMA_CallBack_Func,
-	TandyDAC_DMA_CallBack_Func
-};
-
