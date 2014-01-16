@@ -695,10 +695,15 @@ public:
 		if (memory.reported_pages < memory.pages)
 			memset((char*)MemBase+(memory.reported_pages*4096),0xFF,
 				(memory.pages - memory.reported_pages)*4096);
+		/* adapter ROM */
+		memset((char*)MemBase+0xA0000,0xFF,0x60000);
 		/* except for 0xF0000-0xFFFFF */
 		memset((char*)MemBase+0xF0000,0x00,0x10000);
-		/* and 0xC0000-0xD0000 */
-		memset((char*)MemBase+0xC0000,0x00,0x10000);
+		/* and 0xC0000-0xC7FFF for VGA BIOS */
+		memset((char*)MemBase+0xC0000,0x00,0x8000);
+		/* and 0xC8000-0xCFFFF for DOSBox private data area */
+		memset((char*)MemBase+0xC8000,0x00,0x8000);
+		/* FIXME: Wait----why is DOSBox-X loading DOS programs into 0xD000:0x0000?? */
 		/* Allocate the data for the different page information blocks */
 
 		PageHandler *ram_ptr =

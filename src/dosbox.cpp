@@ -596,10 +596,10 @@ void DOSBOX_Init(void) {
 	Pbool->Set_help("Set this value to true to allow zooming gfx effects used in demos. It will disable several options such as scalers though.");
 
 	Pmulti = secprop->Add_multi("scaler",Property::Changeable::Always," ");
-	Pmulti->SetValue("hardware2x");
+	Pmulti->SetValue("normal2x");
 	Pmulti->Set_help("Scaler used to enlarge/enhance low resolution modes. If 'forced' is appended,\n"
 	                 "then the scaler will be used even if the result might not be desired.");
-	Pstring = Pmulti->GetSection()->Add_string("type",Property::Changeable::Always,"hardware2x");
+	Pstring = Pmulti->GetSection()->Add_string("type",Property::Changeable::Always,"normal2x");
 
 	const char *scalers[] = { 
 		"none", "normal2x", "normal3x", "normal4x", "normal5x",
