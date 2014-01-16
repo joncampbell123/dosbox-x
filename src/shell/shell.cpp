@@ -49624,7 +49624,7 @@ static unsigned char hexmem32_exe[] = {
 	VFILE_Register("DOS4GW.EXE",some_data_dos4gw,353668);
 	VFILE_Register("HEXMEM16.EXE",hexmem16_exe,sizeof(hexmem16_exe));
 	VFILE_Register("HEXMEM32.EXE",hexmem32_exe,sizeof(hexmem32_exe));
-	VFILE_Register("DEBUG.COM",DEBUG_COM_binary,sizeof(DEBUG_COM_binary));
+	VFILE_Register("DEBUGX.EXE",DEBUG_COM_binary,sizeof(DEBUG_COM_binary));
 	VFILE_Register("DOSIDLE.EXE",some_data_dosidle,7052);
 	VFILE_Register("FIND.EXE",some_data_find,7714);
 	VFILE_Register("MEM.COM",some_data_mem,15137);
