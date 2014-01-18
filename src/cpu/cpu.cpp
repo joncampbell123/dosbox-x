@@ -68,13 +68,9 @@ Segments Segs;
  * jumping back to real mode without reloading the segment registers, knowing
  * that Intel processors will not update the shadow part of the segment register
  * in real mode. I'm guessing that what Project Angel is doing, is using the same
- * abuse of protected mode to also set the B (big) bit in the code segment to
- * effectively execute full 32-bit code in real mode, which apparently happens to
- * work on Intel 486 processors. Such a hack of course is not very reliable, all
- * it takes is something that snaps the CPU back into 16-bit real mode, and your
- * code no longer runs correctly, which is probably why people have such a hard
- * time running the demo at all, and why this abuse of the B bit was hardly ever
- * used by DOS demos! --J.C.
+ * abuse of protected mode to also set the B (big) bit in the code segment so that
+ * it's code segment can extend past 64KB (huge unreal mode), which works until
+ * something like an interrupt chops off the top 16 bits of the instruction pointer.
  *
  * I want to clarify that realbig16 is an OPTION that is off by default, because
  * I am uncertain at this time whether or not the patch breaks any DOS games or

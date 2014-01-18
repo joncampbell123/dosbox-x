@@ -191,6 +191,7 @@ bool DOS_AllocateMemory(Bit16u * segment,Bit16u * blocks);
 bool DOS_ResizeMemory(Bit16u segment,Bit16u * blocks);
 bool DOS_FreeMemory(Bit16u segment);
 void DOS_FreeProcessMemory(Bit16u pspseg);
+Bit16u BIOS_GetMemory(Bit16u pages);
 Bit16u DOS_GetMemory(Bit16u pages);
 bool DOS_SetMemAllocStrategy(Bit16u strat);
 Bit16u DOS_GetMemAllocStrategy(void);

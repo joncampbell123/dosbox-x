@@ -1603,36 +1603,36 @@ static Bitu INT15_Handler(void) {
 		break;
 	case 0xC0:	/* Get Configuration*/
 		{
-			if (biosConfigSeg==0) biosConfigSeg = DOS_GetMemory(1); //We have 16 bytes
+			if (biosConfigSeg==0) biosConfigSeg = BIOS_GetMemory(1); //We have 16 bytes
 			PhysPt data	= PhysMake(biosConfigSeg,0);
-			mem_writew(data,8);						// 8 Bytes following
+			phys_writew(data,8);						// 8 Bytes following
 			if (IS_TANDY_ARCH) {
 				if (machine==MCH_TANDY) {
 					// Model ID (Tandy)
-					mem_writeb(data+2,0xFF);
+					phys_writeb(data+2,0xFF);
 				} else {
 					// Model ID (PCJR)
-					mem_writeb(data+2,0xFD);
+					phys_writeb(data+2,0xFD);
 				}
-				mem_writeb(data+3,0x0A);					// Submodel ID
-				mem_writeb(data+4,0x10);					// Bios Revision
+				phys_writeb(data+3,0x0A);					// Submodel ID
+				phys_writeb(data+4,0x10);					// Bios Revision
 				/* Tandy doesn't have a 2nd PIC, left as is for now */
-				mem_writeb(data+5,(1<<6)|(1<<5)|(1<<4));	// Feature Byte 1
+				phys_writeb(data+5,(1<<6)|(1<<5)|(1<<4));	// Feature Byte 1
 			} else {
 				if( PS1AudioCard ) {
-					mem_writeb(data+2,0xFC);					// Model ID (PC)
-					mem_writeb(data+3,0x0B);					// Submodel ID (PS/1).
+					phys_writeb(data+2,0xFC);					// Model ID (PC)
+					phys_writeb(data+3,0x0B);					// Submodel ID (PS/1).
 				} else {
-					mem_writeb(data+2,0xFC);					// Model ID (PC)
-					mem_writeb(data+3,0x00);					// Submodel ID
+					phys_writeb(data+2,0xFC);					// Model ID (PC)
+					phys_writeb(data+3,0x00);					// Submodel ID
 				}
-				mem_writeb(data+4,0x01);					// Bios Revision
-				mem_writeb(data+5,(1<<6)|(1<<5)|(1<<4));	// Feature Byte 1
+				phys_writeb(data+4,0x01);					// Bios Revision
+				phys_writeb(data+5,(1<<6)|(1<<5)|(1<<4));	// Feature Byte 1
 			}
-			mem_writeb(data+6,(1<<6));				// Feature Byte 2
-			mem_writeb(data+7,0);					// Feature Byte 3
-			mem_writeb(data+8,0);					// Feature Byte 4
-			mem_writeb(data+9,0);					// Feature Byte 5
+			phys_writeb(data+6,(1<<6));				// Feature Byte 2
+			phys_writeb(data+7,0);					// Feature Byte 3
+			phys_writeb(data+8,0);					// Feature Byte 4
+			phys_writeb(data+9,0);					// Feature Byte 5
 			CPU_SetSegGeneral(es,biosConfigSeg);
 			reg_bx = 0;
 			reg_ah = 0;
