@@ -41,6 +41,14 @@
 #define LFB_PAGES	512
 #define MAX_LINKS	((MAX_MEMORY*1024/4)+4096)		//Hopefully enough
 
+/* if set: mainline DOSBox behavior where adapter ROM (0xA0000-0xFFFFF) except for
+ * areas explicitly mapped to the ROM handler, are mapped the same as system RAM.
+ *
+ * if clear: associate any adapter ROM region not used by the BIOS, VGA BIOS, or
+ * VGA, with the Illegal handler (not mapped). Actual RAM behind the storage does
+ * not show up and reads return 0xFF, just like real hardware. */
+bool adapter_rom_is_ram = false;
+
 struct LinkBlock {
 	Bitu used;
 	Bit32u pages[MAX_LINKS];
@@ -631,6 +639,8 @@ public:
 		Bitu memsizekb=section->Get_int("memsizekb");
 		Bitu address_bits=section->Get_int("memalias");
 
+		adapter_rom_is_ram = section->Get_bool("adapter rom is ram");
+
 		if (address_bits == 0)
 			address_bits = 32;
 		else if (address_bits < 20)
@@ -721,18 +731,20 @@ public:
 			memory.phandlers[i] = &illegal_page_handler;
 			memory.mhandles[i] = 0;				//Set to 0 for memory allocation
 		}
-		/* apparently vital areas for DOS */
-		for (i=0xc8;i<0xd0;i++) {
-			memory.phandlers[i] = ram_ptr;
+		if (!adapter_rom_is_ram) {
+			for (i=0xa0;i<0x100;i++) { /* we want to make sure adapter ROM is unmapped entirely! */
+				memory.phandlers[i] = &illegal_page_handler;
+				memory.mhandles[i] = 0;
+			}
+		}
+		/* except for a 32KB region C800:0000 which is used as a private area for DOSBox (mainline DOSBox behavior),
+		 * and D000:0000 which is apparently required for the BIOS emulation to function??
+		 *
+		 * FIXME: What the hell is DOSBox doing at D000:0000 anyway?? */
+		for (i=0xc8;i<0xd1;i++) {
+			memory.phandlers[i] = ram_ptr; /* <- NTS: Must be RAM. Mapping as ROM only causes an infinite loop */
 			memory.mhandles[i] = 0;				//Set to 0 for memory allocation
 		}
-#if 0
-		/* FIXME: Same with the 0x9fff segment */
-		for (i=0x9f;i<0xa0;i++) {
-			memory.phandlers[i] = ram_ptr;
-			memory.mhandles[i] = 0;				//Set to 0 for memory allocation
-		}
-#endif
 		/* Setup rom at 0xc0000-0xc8000 */
 		for (i=0xc0;i<0xc8;i++) {
 			memory.phandlers[i] = &rom_page_handler;

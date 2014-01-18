@@ -526,6 +526,9 @@ void DOSBOX_Init(void) {
 	Pstring = secprop->Add_path("captures",Property::Changeable::Always,"capture");
 	Pstring->Set_help("Directory where things like wave, midi, screenshot get captured.");
 
+	Pbool = secprop->Add_bool("adapter rom is ram",Property::Changeable::OnlyAtStart,false);
+	Pbool->Set_help("Map adapter ROM as RAM (mainline DOSBox 0.74 behavior). When clear, unused adapter ROM is mapped out");
+
 #if C_DEBUG	
 	LOG_StartUp();
 #endif
@@ -685,7 +688,8 @@ void DOSBOX_Init(void) {
 			"Do not disable if Windows 9x is configured around PnP devices, you will likely confuse it.");
 
 	Pbool = secprop->Add_bool("realbig16",Property::Changeable::WhenIdle,false);
-	Pbool->Set_help("Allow the B (big) bit in real mode. If set, allow the DOS program to set the B bit then jump to realmode with B still set. Needed for Project Angel.");
+	Pbool->Set_help("Allow the B (big) bit in real mode. If set, allow the DOS program to set the B bit,\n"
+		"then jump to realmode with B still set (in other words: execute 32-bit flat real mode code). Needed for Project Angel.");
 
 #if C_FPU
 	secprop->AddInitFunction(&FPU_Init);
