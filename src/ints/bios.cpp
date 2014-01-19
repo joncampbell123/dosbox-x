@@ -16,7 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-
+#include <assert.h>
 #include "dosbox.h"
 #include "mem.h"
 #include "cpu.h"
@@ -2002,6 +2002,8 @@ static Bitu INT15_Handler(void) {
 						if (reg_ebx < 3) {
 							uint32_t base,len,type;
 							Bitu seg = SegValue(es);
+
+							assert((MEM_TotalPages()*4096) >= 0x100000);
 
 							switch (reg_ebx) {
 								case 0:	base=0x000000; len=0x09F000; type=1; break;
