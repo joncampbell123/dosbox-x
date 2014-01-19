@@ -414,6 +414,10 @@ void LoadGameState_Run(void) { LoadGameState(true); }
 void NextSaveSlot_Run(void) { NextSaveSlot(true); }
 void PreviousSaveSlot_Run(void) { PreviousSaveSlot(true); }
 
+bool mainline_compatible_mapping = true;
+
+extern Bitu DOS_PRIVATE_SEGMENT_Size;
+
 static void DOSBOX_RealInit(Section * sec) {
 	Section_prop * section=static_cast<Section_prop *>(sec);
 	/* Initialize some dosbox internals */
@@ -423,6 +427,12 @@ static void DOSBOX_RealInit(Section * sec) {
 	ticksLocked = false;
 	DOSBOX_SetLoop(&Normal_Loop);
 	MSG_Init(section);
+
+	mainline_compatible_mapping = section->Get_bool("mainline compatible mapping");
+
+	DOS_PRIVATE_SEGMENT_Size = section->Get_int("private area size");
+	DOS_PRIVATE_SEGMENT_Size += 8;
+	DOS_PRIVATE_SEGMENT_Size >>= 4;
 
 	MAPPER_AddHandler(DOSBOX_UnlockSpeed, MK_f12, MMOD2,"speedlock","Speedlock");
 	MAPPER_AddHandler(DOSBOX_UnlockSpeed2, MK_f11, MMOD2,"speedlock2","Speedlock2");
@@ -526,8 +536,17 @@ void DOSBOX_Init(void) {
 	Pstring = secprop->Add_path("captures",Property::Changeable::Always,"capture");
 	Pstring->Set_help("Directory where things like wave, midi, screenshot get captured.");
 
+	Pbool = secprop->Add_bool("mainline compatible mapping",Property::Changeable::OnlyAtStart,true);
+	Pbool->Set_help("If set, arrange private areas, UMBs, and DOS kernel structures by default in the same way the mainline branch would do it.\n"
+			"If cleared, these areas are allocated dynamically which may improve available memory and emulation accuracy.\n"
+			"If your DOS game breaks under DOSBox-X but works with mainline DOSBox setting this option may help.");
+
 	Pbool = secprop->Add_bool("adapter rom is ram",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("Map adapter ROM as RAM (mainline DOSBox 0.74 behavior). When clear, unused adapter ROM is mapped out");
+
+	Pint = secprop->Add_int("private area size",Property::Changeable::OnlyAtStart,32768); // DOSBox mainline compatible 32KB region
+	Pint->SetMinMax(16,128*1024);
+	Pint->Set_help("Set DOSBox-X private memory area size. This area contains private memory structures used by the DOS kernel. It is discarded when you boot into another OS.");
 
 #if C_DEBUG	
 	LOG_StartUp();
@@ -1077,10 +1096,10 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("umb",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Enable UMB support.");
 
-	Phex = secprop->Add_hex("umb start",Property::Changeable::OnlyAtStart,0xD000); /* <- 0xD000 is mainline DOSBox compatible behavior */
+	Phex = secprop->Add_hex("umb start",Property::Changeable::OnlyAtStart,0); /* <- (0=auto) 0xD000 is mainline DOSBox compatible behavior */
 	Phex->Set_help("UMB region starting segment");
 
-	Phex = secprop->Add_hex("umb end",Property::Changeable::OnlyAtStart,0xEFFF); /* <- 0xEFFF is mainline DOSBox compatible (where base=0xD000 and size=0x2000) */
+	Phex = secprop->Add_hex("umb end",Property::Changeable::OnlyAtStart,0); /* <- (0=auto) 0xEFFF is mainline DOSBox compatible (where base=0xD000 and size=0x2000) */
 	Phex->Set_help("UMB region last segment");
 
 	Pbool = secprop->Add_bool("automount",Property::Changeable::WhenIdle,true);

@@ -18,7 +18,9 @@
 
 
 #include <stdint.h>
+#include <assert.h>
 #include "dosbox.h"
+#include "dos_inc.h"
 #include "mem.h"
 #include "inout.h"
 #include "setup.h"
@@ -663,6 +665,8 @@ bool MEM_map_RAM_physmem(Bitu start,Bitu end) {
 
 HostPt GetMemBase(void) { return MemBase; }
 
+void DOS_GetMemory_Choose();
+
 class MEMORY:public Module_base{
 private:
 	IO_ReadHandleObject ReadHandler;
@@ -749,10 +753,6 @@ public:
 		memset((char*)MemBase+0xF0000,0x00,0x10000);
 		/* and 0xC0000-0xC7FFF for VGA BIOS */
 		memset((char*)MemBase+0xC0000,0x00,0x8000);
-		/* and 0xC8000-0xCFFFF for DOSBox private data area */
-		memset((char*)MemBase+0xC8000,0x00,0x8000);
-		/* FIXME: Wait----why is DOSBox-X loading DOS programs into 0xD000:0x0000?? */
-		/* Allocate the data for the different page information blocks */
 
 		PageHandler *ram_ptr =
 			memory.mem_alias_pagemask == (Bit32u)(~0UL)
@@ -778,12 +778,6 @@ public:
 				memory.mhandles[i] = 0;
 			}
 		}
-		/* except for a 32KB region C800:0000 which is used as a private area for DOSBox (mainline DOSBox behavior), */
-		/* NTS: The DOS XMS emulation will later modify this memory map to enable the UMB region if umb=true */
-		for (i=0xc8;i<0xd0;i++) {
-			memory.phandlers[i] = ram_ptr; /* <- NTS: Must be RAM. Mapping as ROM only causes an infinite loop */
-			memory.mhandles[i] = 0;				//Set to 0 for memory allocation
-		}
 		/* Setup rom at 0xc0000-0xc8000 */
 		for (i=0xc0;i<0xc8;i++) {
 			memory.phandlers[i] = &rom_page_handler;
@@ -791,6 +785,17 @@ public:
 		/* Setup rom at 0xf0000-0x100000 */
 		for (i=0xf0;i<0x100;i++) {
 			memory.phandlers[i] = &rom_page_handler;
+		}
+		/* except for a 32KB region C800:0000 which is used as a private area for DOSBox (mainline DOSBox behavior), */
+		/* NTS: The DOS XMS emulation will later modify this memory map to enable the UMB region if umb=true */
+		DOS_GetMemory_Choose();
+		if (DOS_PRIVATE_SEGMENT >= 0xA000) {
+			assert(DOS_PRIVATE_SEGMENT < DOS_PRIVATE_SEGMENT_END);
+			memset((char*)MemBase+(DOS_PRIVATE_SEGMENT<<4),0x00,(DOS_PRIVATE_SEGMENT_END-DOS_PRIVATE_SEGMENT)<<4);
+			for (i=(DOS_PRIVATE_SEGMENT>>8);i<((DOS_PRIVATE_SEGMENT_END+0xFF)>>8);i++) {
+				memory.phandlers[i] = ram_ptr; /* <- NTS: Must be RAM. Mapping as ROM only causes an infinite loop */
+				memory.mhandles[i] = 0;				//Set to 0 for memory allocation
+			}
 		}
 		if (machine==MCH_PCJR) {
 			/* Setup cartridge rom at 0xe0000-0xf0000 */

@@ -21,6 +21,9 @@
 #include "mem.h"
 #include "dos_inc.h"
 #include "callback.h"
+#include <assert.h>
+
+extern Bitu DOS_PRIVATE_SEGMENT_Size;
 
 #ifdef _MSC_VER
 #pragma pack(1)
@@ -41,9 +44,11 @@ GCC_ATTRIBUTE (packed);
 RealPt DOS_TableUpCase;
 RealPt DOS_TableLowCase;
 
+extern bool mainline_compatible_mapping;
+
 static Bitu call_casemap;
 
-static Bit16u dos_memseg=DOS_PRIVATE_SEGMENT;
+static Bit16u dos_memseg=0;//DOS_PRIVATE_SEGMENT;
 static Bit16u bios_memseg=BIOS_PRIVATE_SEGMENT;
 
 Bit16u BIOS_GetMemory(Bit16u pages) {
@@ -55,7 +60,28 @@ Bit16u BIOS_GetMemory(Bit16u pages) {
 	return page;
 }
 
+void DOS_GetMemory_Choose() {
+	if (DOS_PRIVATE_SEGMENT == 0) {
+		if (mainline_compatible_mapping) {
+			DOS_PRIVATE_SEGMENT=0xc800;
+			DOS_PRIVATE_SEGMENT_END=0xc800 + DOS_PRIVATE_SEGMENT_Size;
+		}
+		else {
+			DOS_PRIVATE_SEGMENT=0xc800;
+			DOS_PRIVATE_SEGMENT_END=0xc800 + DOS_PRIVATE_SEGMENT_Size;
+		}
+
+		fprintf(stderr,"DOS private segment set to 0x%04x-0x%04x\n",DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
+	}
+}
+
 Bit16u DOS_GetMemory(Bit16u pages) {
+	if (dos_memseg == 0) {
+		if (DOS_PRIVATE_SEGMENT == 0) DOS_GetMemory_Choose();
+		dos_memseg = DOS_PRIVATE_SEGMENT;
+		if (dos_memseg == 0) E_Exit("DOS:DOS_GetMemory() before private area has been initialized");
+	}
+
 	if (((Bitu)pages+(Bitu)dos_memseg) > DOS_PRIVATE_SEGMENT_END) {
 		E_Exit("DOS:Not enough memory for internal tables");
 	}

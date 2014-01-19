@@ -41,8 +41,10 @@ Bit16u DOS_CDS_SEG=0x108;
 Bit16u DOS_FIRST_SHELL=0x118;
 Bit16u DOS_MEM_START=0x158;	 // regression to r3437 fixes nascar 2 colors
 
-Bit16u DOS_PRIVATE_SEGMENT=0xc800;
-Bit16u DOS_PRIVATE_SEGMENT_END=0xd000;
+Bit16u DOS_PRIVATE_SEGMENT=0;//0xc800;
+Bit16u DOS_PRIVATE_SEGMENT_END=0;//0xd000;
+
+Bitu DOS_PRIVATE_SEGMENT_Size=0x800;	// 32KB (0x800 pages), mainline DOSBox behavior
 
 DOS_Block dos;
 DOS_InfoBlock dos_infoblock;
