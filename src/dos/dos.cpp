@@ -1396,6 +1396,8 @@ bool keep_private_area_on_boot = false;
 bool dynamic_dos_kernel_alloc = false;
 bool private_segment_in_umb = true;
 
+void DOS_GetMemory_reset();
+
 #include <assert.h>
 
 class DOS:public Module_base{
@@ -1436,7 +1438,24 @@ public:
 			DOS_SDA_OFS = 0;
 			DOS_CDS_SEG = 0x108;
 			DOS_FIRST_SHELL = 0x118;
-			/* defer DOS_MEM_START until right before SetupMemory */
+			DOS_MEM_START = 0x158;	 // regression to r3437 fixes nascar 2 colors
+
+			if (!private_segment_in_umb) {
+				/* If private segment is not being placed in UMB, then it must follow the DOS kernel. */
+				unsigned int seg;
+				unsigned int segend;
+
+				seg = DOS_MEM_START;
+				DOS_MEM_START += DOS_PRIVATE_SEGMENT_Size;
+				segend = DOS_MEM_START;
+
+				DOS_PRIVATE_SEGMENT = seg;
+				DOS_PRIVATE_SEGMENT_END = segend;
+				DOS_MEM_START = DOS_PRIVATE_SEGMENT_END;
+				DOS_GetMemory_reset();
+				fprintf(stderr,"Private area, not stored in UMB on request, occupies 0x%04x-0x%04x\n",
+					DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
+			}
 		}
 
 		fprintf(stderr,"DOS kernel alloc:\n");
@@ -1488,33 +1507,32 @@ public:
 		 * of memory. the DOS_SetupMemory() function will finalize it into the first MCB. Having done that,
 		 * we then need to move the DOS private segment somewere else so that additional allocations do not
 		 * corrupt the MCB chain */
-		if (dynamic_dos_kernel_alloc) {
+		if (dynamic_dos_kernel_alloc)
 			DOS_MEM_START = DOS_GetMemory(0);		// was 0x158 (pass 0 to alloc nothing, get the pointer)
-		}
-		else {
-			DOS_MEM_START = 0x158;	 // regression to r3437 fixes nascar 2 colors
-		}
-
-		void DOS_GetMemory_reset();
 
 		/* move the private segment elsewhere to avoid conflict with the MCB structure.
 		 * either set to 0 to cause the decision making to choose an upper memory address,
 		 * or allocate an additional private area and start the MCB just after that */
-		if (!private_segment_in_umb) {
-			/* If private segment is not being placed in UMB, then it must follow the DOS kernel. */
-			unsigned int seg = DOS_GetMemory(DOS_PRIVATE_SEGMENT_Size);
-			unsigned int segend = DOS_GetMemory(0);
-			DOS_PRIVATE_SEGMENT = seg;
-			DOS_PRIVATE_SEGMENT_END = segend;
-			DOS_MEM_START = DOS_PRIVATE_SEGMENT_END;
-			DOS_GetMemory_reset();
-			fprintf(stderr,"Private area, not stored in UMB on request, occupies 0x%04x-0x%04x\n",
-				DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
-		}
-		else if (dynamic_dos_kernel_alloc) {
+		if (dynamic_dos_kernel_alloc) {
 			DOS_GetMemory_reset();
 			DOS_PRIVATE_SEGMENT = 0;
 			DOS_PRIVATE_SEGMENT_END = 0;
+			if (!private_segment_in_umb) {
+				/* If private segment is not being placed in UMB, then it must follow the DOS kernel. */
+				unsigned int seg;
+				unsigned int segend;
+
+				seg = DOS_MEM_START;
+				DOS_MEM_START += DOS_PRIVATE_SEGMENT_Size;
+				segend = DOS_MEM_START;
+
+				DOS_PRIVATE_SEGMENT = seg;
+				DOS_PRIVATE_SEGMENT_END = segend;
+				DOS_MEM_START = DOS_PRIVATE_SEGMENT_END;
+				DOS_GetMemory_reset();
+				fprintf(stderr,"Private area, not stored in UMB on request, occupies 0x%04x-0x%04x\n",
+					DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
+			}
 		}
 		fprintf(stderr,"   mem start:    seg 0x%04x\n",DOS_MEM_START);
 

@@ -869,7 +869,13 @@ public:
 			if (!keep_umb_on_boot) RemoveUMBBlock();
 
 			void DOS_GetMemory_unmap();
-			if (!keep_private_area_on_boot) DOS_GetMemory_unmap();
+			if (!keep_private_area_on_boot)
+				DOS_GetMemory_unmap();
+			else if (DOS_PRIVATE_SEGMENT < 0xA000) {
+				fprintf(stderr,"WARNING: Unmapping DOS private segment even though configuration says otherwise, because\n"
+						"private segment exists below 640KB boundary and will be trampled on by the OS you are booting.\n");
+				DOS_GetMemory_unmap();
+			}
 
 			/* revector some dos-allocated interrupts */
 			real_writed(0,0x01*4,0xf000ff53);

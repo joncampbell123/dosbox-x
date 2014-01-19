@@ -61,6 +61,7 @@ Bit16u BIOS_GetMemory(Bit16u pages) {
 }
 
 extern Bitu VGA_BIOS_SEG_END;
+bool DOS_GetMemory_unmapped = false;
 
 void DOS_GetMemory_reset() {
 	dos_memseg = 0;
@@ -69,9 +70,11 @@ void DOS_GetMemory_reset() {
 void DOS_GetMemory_unmap() {
 	if (DOS_PRIVATE_SEGMENT != 0) {
 		fprintf(stderr,"Unmapping DOS private segment 0x%04x-0x%04x\n",DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
-		MEM_unmap_physmem(DOS_PRIVATE_SEGMENT<<4,(DOS_PRIVATE_SEGMENT_END<<4)-1);
+		if (DOS_PRIVATE_SEGMENT >= 0xA000) MEM_unmap_physmem(DOS_PRIVATE_SEGMENT<<4,(DOS_PRIVATE_SEGMENT_END<<4)-1);
+		DOS_GetMemory_unmapped = true;
 		DOS_PRIVATE_SEGMENT_END = 0;
 		DOS_PRIVATE_SEGMENT = 0;
+		dos_memseg = 0;
 	}
 }
 
@@ -100,12 +103,15 @@ void DOS_GetMemory_Choose() {
 
 Bit16u DOS_GetMemory(Bit16u pages) {
 	if (dos_memseg == 0) {
+		if (DOS_GetMemory_unmapped) E_Exit("DOS:Attempt to use DOS_GetMemory() when private area was unmapped by BOOT\n");
 		if (DOS_PRIVATE_SEGMENT == 0) DOS_GetMemory_Choose();
 		dos_memseg = DOS_PRIVATE_SEGMENT;
 		if (dos_memseg == 0) E_Exit("DOS:DOS_GetMemory() before private area has been initialized");
 	}
 
 	if (((Bitu)pages+(Bitu)dos_memseg) > DOS_PRIVATE_SEGMENT_END) {
+		fprintf(stderr,"DOS_GetMemory(%u) failed (alloc=0x%04x segment=0x%04x end=0x%04x)\n",
+			pages,dos_memseg,DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END);
 		E_Exit("DOS:Not enough memory for internal tables");
 	}
 	Bit16u page=dos_memseg;
