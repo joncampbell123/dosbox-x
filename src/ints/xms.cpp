@@ -467,10 +467,10 @@ public:
 		}
 		if (first_umb_size == 0) first_umb_size = 0xEFFF;
 
-		if (first_umb_seg < 0xC800 || first_umb_seg < DOS_PRIVATE_SEGMENT_END) {
+		if (first_umb_seg < 0xC000 || first_umb_seg < DOS_PRIVATE_SEGMENT_END) {
 			fprintf(stderr,"UMB warning: UMB blocks before 0xD000 conflict with VGA (0xA000-0xBFFF), VGA BIOS (0xC000-0xC7FF) and DOSBox private area (0x%04x-0x%04x)\n",
 				DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
-			first_umb_seg = std::max((Bitu)0xC800,(Bitu)DOS_PRIVATE_SEGMENT_END);
+			first_umb_seg = std::max((Bitu)0xC000,(Bitu)DOS_PRIVATE_SEGMENT_END);
 		}
 		if (first_umb_seg >= 0xF000) {
 			fprintf(stderr,"UMB starting segment conflict with BIOS at 0xF000. Disabling UMBs\n");

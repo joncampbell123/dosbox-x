@@ -715,6 +715,12 @@ static void SetupTandyBios(void) {
 	}
 }
 
+bool MEM_map_ROM_physmem(Bitu start,Bitu end);
+
+extern Bitu VGA_BIOS_Size;
+extern Bitu VGA_BIOS_SEG;
+extern Bitu VGA_BIOS_SEG_END;
+
 void INT10_Init(Section* /*sec*/) {
 	INT10_InitVGA();
 	if (IS_TANDY_ARCH) SetupTandyBios();
@@ -727,6 +733,14 @@ void INT10_Init(Section* /*sec*/) {
 	INT10_Seg40Init();
 	INT10_SetupVESA();
 	INT10_SetupRomMemoryChecksum();//SetupVesa modifies the rom as well.
+
+	if (int10.rom.used > VGA_BIOS_Size)
+		E_Exit("VGA BIOS size too small");
+
+	fprintf(stderr,"VGA BIOS occupies segment 0x%04x-0x%04x\n",VGA_BIOS_SEG,VGA_BIOS_SEG_END-1);
+	if (!MEM_map_ROM_physmem(0xC0000,0xC0000+VGA_BIOS_Size-1))
+		fprintf(stderr,"INT 10 video: unable to map BIOS\n");
+
 	INT10_SetVideoMode(0x3);
 }
 

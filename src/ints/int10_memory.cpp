@@ -100,6 +100,7 @@ void INT10_ReloadFont(void) {
 	}
 }
 
+extern Bitu VGA_BIOS_Size;
 
 void INT10_SetupRomMemory(void) {
 /* This should fill up certain structures inside the Video Bios Rom Area */
@@ -109,7 +110,7 @@ void INT10_SetupRomMemory(void) {
 	if (IS_EGAVGA_ARCH) {
 		// set up the start of the ROM
 		phys_writew(rom_base+0,0xaa55);
-		phys_writeb(rom_base+2,0x40);		// Size of ROM: 64 512-blocks = 32KB
+		phys_writeb(rom_base+2,VGA_BIOS_Size >> 9);
 		if (IS_VGA_ARCH) phys_writes(rom_base+0x1e, "IBM compatible VGA BIOS", 24);
 		else phys_writes(rom_base+0x1e, "IBM compatible EGA BIOS", 24);
 		int10.rom.used=0x100;
@@ -237,7 +238,7 @@ void INT10_SetupRomMemoryChecksum(void) {
 		/* Sum of all bytes in rom module 256 should be 0 */
 		Bit8u sum = 0;
 		PhysPt rom_base = PhysMake(0xc000,0);
-		Bitu last_rombyte = 32*1024 - 1;		//32 KB romsize
+		Bitu last_rombyte = VGA_BIOS_Size - 1;		//32 KB romsize
 		for (Bitu i = 0;i < last_rombyte;i++)
 			sum += phys_readb(rom_base + i);	//OVERFLOW IS OKAY
 		sum = (Bit8u)((256 - (Bitu)sum)&0xff);

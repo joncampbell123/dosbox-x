@@ -685,7 +685,12 @@ bool MEM_map_ROM_physmem(Bitu start,Bitu end) {
 
 HostPt GetMemBase(void) { return MemBase; }
 
-void DOS_GetMemory_Choose();
+Bitu VGA_BIOS_SEG = 0xC000;
+Bitu VGA_BIOS_SEG_END = 0xC800;
+Bitu VGA_BIOS_Size = 0x8000;
+
+extern Bitu VGA_BIOS_Size_override;
+extern bool mainline_compatible_mapping;
 
 class MEMORY:public Module_base{
 private:
@@ -702,6 +707,15 @@ public:
 		Bitu address_bits=section->Get_int("memalias");
 
 		adapter_rom_is_ram = section->Get_bool("adapter rom is ram");
+
+		/* FIXME: This belongs elsewhere! */
+		if (VGA_BIOS_Size_override >= 512 && VGA_BIOS_Size_override <= 65536)
+			VGA_BIOS_Size = (VGA_BIOS_Size_override + 0x7FF) & (~0xFFF);
+		else
+			VGA_BIOS_Size = mainline_compatible_mapping ? 0x8000 : 0x3000; /* <- Experimentation shows the S3 emulation can fit in 12KB, doesn't need all 32KB */
+		VGA_BIOS_SEG = 0xC000;
+		VGA_BIOS_SEG_END = (VGA_BIOS_SEG + (VGA_BIOS_Size >> 4));
+		/* END FIXME */
 
 		if (address_bits == 0)
 			address_bits = 32;
@@ -771,8 +785,8 @@ public:
 		memset((char*)MemBase+0xA0000,0xFF,0x60000);
 		/* except for 0xF0000-0xFFFFF */
 		memset((char*)MemBase+0xF0000,0x00,0x10000);
-		/* and 0xC0000-0xC7FFF for VGA BIOS */
-		memset((char*)MemBase+0xC0000,0x00,0x8000);
+		/* VGA BIOS (FIXME: Why does Project Angel like our BIOS when we memset() here, but don't like it if we memset() in the INT 10 ROM setup routine?) */
+		memset((char*)MemBase+0xC0000,0x00,VGA_BIOS_Size);
 
 		PageHandler *ram_ptr =
 			memory.mem_alias_pagemask == (Bit32u)(~0UL)
@@ -797,10 +811,6 @@ public:
 				memory.phandlers[i] = &illegal_page_handler;
 				memory.mhandles[i] = 0;
 			}
-		}
-		/* Setup rom at 0xc0000-0xc8000 */
-		for (i=0xc0;i<0xc8;i++) {
-			memory.phandlers[i] = &rom_page_handler;
 		}
 		/* Setup rom at 0xf0000-0x100000 */
 		for (i=0xf0;i<0x100;i++) {

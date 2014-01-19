@@ -415,6 +415,7 @@ void NextSaveSlot_Run(void) { NextSaveSlot(true); }
 void PreviousSaveSlot_Run(void) { PreviousSaveSlot(true); }
 
 bool mainline_compatible_mapping = true;
+Bitu VGA_BIOS_Size_override = 0;
 
 extern Bitu DOS_PRIVATE_SEGMENT_Size;
 
@@ -429,6 +430,8 @@ static void DOSBOX_RealInit(Section * sec) {
 	MSG_Init(section);
 
 	mainline_compatible_mapping = section->Get_bool("mainline compatible mapping");
+	VGA_BIOS_Size_override = section->Get_int("vga bios size override");
+	if (VGA_BIOS_Size_override > 0) VGA_BIOS_Size_override = (VGA_BIOS_Size_override+0x7FF)&(~0xFFF);
 
 	DOS_PRIVATE_SEGMENT_Size = section->Get_int("private area size");
 	DOS_PRIVATE_SEGMENT_Size += 8;
@@ -546,7 +549,10 @@ void DOSBOX_Init(void) {
 
 	Pint = secprop->Add_int("private area size",Property::Changeable::OnlyAtStart,32768); // DOSBox mainline compatible 32KB region
 	Pint->SetMinMax(16,128*1024);
-	Pint->Set_help("Set DOSBox-X private memory area size. This area contains private memory structures used by the DOS kernel. It is discarded when you boot into another OS.");
+	Pint->Set_help("Set DOSBox-X private memory area size. This area contains private memory structures used by the DOS kernel.\n"
+			"It is discarded when you boot into another OS. Mainline DOSBox uses 32KB. Testing shows that it is possible\n"
+			"to run DOSBox with as little as 4KB. If DOSBox-X aborts with error \"not enough memory for internal tables\"\n"
+			"then you need to increase this value.");
 
 #if C_DEBUG	
 	LOG_StartUp();
@@ -586,6 +592,10 @@ void DOSBOX_Init(void) {
 		"    24: 16MB aliasing. Common on 386SX systems (CPU had 24 external address bits)\n"
 		"        or 386DX and 486 systems where the CPU communicated directly with the ISA bus (A24-A31 tied off)\n"
 		"    26: 64MB aliasing. Some 486s had only 26 external address bits, some motherboards tied off A26-A31\n");
+
+	Pint = secprop->Add_int("vga bios size override", Property::Changeable::WhenIdle,0);
+	Pint->SetMinMax(512,65536);
+	Pint->Set_help("VGA BIOS size override. Override the size of the VGA BIOS (normally 32KB in compatible or 12KB in non-compatible).");
 
 	Pstring = secprop->Add_string("forcerate",Property::Changeable::Always,"");
 	Pstring->Set_help("Force the VGA framerate to a specific value(ntsc, pal, or specific hz), no matter what");
