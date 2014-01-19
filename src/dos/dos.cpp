@@ -1393,12 +1393,58 @@ static Bitu DOS_26Handler(void) {
 }
 
 bool keep_private_area_on_boot = false;
+bool dynamic_dos_kernel_alloc = false;
+
+#include <assert.h>
 
 class DOS:public Module_base{
 private:
 	CALLBACK_HandlerObject callback[7];
 public:
 	DOS(Section* configuration):Module_base(configuration){
+		Section_prop * section=static_cast<Section_prop *>(configuration);
+
+		dynamic_dos_kernel_alloc = section->Get_bool("dynamic kernel allocation");
+
+		if (dynamic_dos_kernel_alloc) {
+			/* we make use of the DOS_GetMemory() function for the dynamic allocation */
+			DOS_PRIVATE_SEGMENT = 0x80;
+			if (MEM_TotalPages() > 0x9C)
+				DOS_PRIVATE_SEGMENT_END = 0x9C00;
+			else
+				DOS_PRIVATE_SEGMENT_END = MEM_TotalPages() << (12 - 4);
+
+			fprintf(stderr,"Dynamic DOS kernel mode, structures will be allocated from pool 0x%04x-0x%04x\n",
+				DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
+
+			DOS_INFOBLOCK_SEG = DOS_GetMemory(0x20);	// was 0x80
+			DOS_CONDRV_SEG = DOS_GetMemory(0x08);		// was 0xA0
+			DOS_CONSTRING_SEG = DOS_GetMemory(0x0A);	// was 0xA8
+			DOS_SDA_SEG = DOS_GetMemory(0x56);		// was 0xB2  (0xB2 + 0x56 = 0x108)
+			DOS_SDA_OFS = 0;
+			DOS_CDS_SEG = DOS_GetMemory(0x10);		// was 0x108
+			DOS_FIRST_SHELL = DOS_GetMemory(0x40);		// was 0x118
+			/* defer DOS_MEM_START until right before SetupMemory */
+		}
+		else {
+			DOS_INFOBLOCK_SEG = 0x80;	// sysvars (list of lists)
+			DOS_CONDRV_SEG = 0xa0;
+			DOS_CONSTRING_SEG = 0xa8;
+			DOS_SDA_SEG = 0xb2;		// dos swappable area
+			DOS_SDA_OFS = 0;
+			DOS_CDS_SEG = 0x108;
+			DOS_FIRST_SHELL = 0x118;
+			/* defer DOS_MEM_START until right before SetupMemory */
+		}
+
+		fprintf(stderr,"DOS kernel alloc:\n");
+		fprintf(stderr,"   infoblock:    seg 0x%04x\n",DOS_INFOBLOCK_SEG);
+		fprintf(stderr,"   condrv:       seg 0x%04x\n",DOS_CONDRV_SEG);
+		fprintf(stderr,"   constring:    seg 0x%04x\n",DOS_CONSTRING_SEG);
+		fprintf(stderr,"   SDA:          seg 0x%04x:0x%04x\n",DOS_SDA_SEG,DOS_SDA_OFS);
+		fprintf(stderr,"   CDS:          seg 0x%04x\n",DOS_CDS_SEG);
+		fprintf(stderr,"   first shell:  seg 0x%04x\n",DOS_FIRST_SHELL);
+
 		callback[0].Install(DOS_20Handler,CB_IRET,"DOS Int 20");
 		callback[0].Set_RealVec(0x20);
 
@@ -1431,11 +1477,34 @@ public:
 		//	pop ax
 		//	iret
 
-		Section_prop * section=static_cast<Section_prop *>(configuration);
 		DOS_FILES = section->Get_int("files");
 		DOS_SetupFiles();								/* Setup system File tables */
 		DOS_SetupDevices();							/* Setup dos devices */
 		DOS_SetupTables();
+
+		/* having allowed the setup functions so far to alloc private space, set the pointer as the base
+		 * of memory. the DOS_SetupMemory() function will finalize it into the first MCB. Having done that,
+		 * we then need to move the DOS private segment somewere else so that additional allocations do not
+		 * corrupt the MCB chain */
+		if (dynamic_dos_kernel_alloc) {
+			DOS_MEM_START = DOS_GetMemory(0);		// was 0x158 (pass 0 to alloc nothing, get the pointer)
+		}
+		else {
+			DOS_MEM_START = 0x158;	 // regression to r3437 fixes nascar 2 colors
+		}
+		fprintf(stderr,"   mem start:    seg 0x%04x\n",DOS_MEM_START);
+
+		/* move the private segment elsewhere to avoid conflict with the MCB structure.
+		 * either set to 0 to cause the decision making to choose an upper memory address,
+		 * or allocate an additional private area and start the MCB just after that */
+		if (dynamic_dos_kernel_alloc) { /* TODO: If dynamic or private region not stored in UMB */
+			void DOS_GetMemory_reset();
+			DOS_GetMemory_reset();
+			DOS_PRIVATE_SEGMENT = 0;
+			DOS_PRIVATE_SEGMENT_END = 0;
+		}
+
+		/* carry on setup */
 		DOS_SetupMemory();								/* Setup first MCB */
 		DOS_SetupPrograms();
 		DOS_SetupMisc();							/* Some additional dos interrupts */

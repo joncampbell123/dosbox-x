@@ -62,6 +62,10 @@ Bit16u BIOS_GetMemory(Bit16u pages) {
 
 extern Bitu VGA_BIOS_SEG_END;
 
+void DOS_GetMemory_reset() {
+	dos_memseg = 0;
+}
+
 void DOS_GetMemory_unmap() {
 	if (DOS_PRIVATE_SEGMENT != 0) {
 		fprintf(stderr,"Unmapping DOS private segment 0x%04x-0x%04x\n",DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);

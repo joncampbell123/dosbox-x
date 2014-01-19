@@ -418,6 +418,7 @@ bool ignore_opcode_63 = true;
 bool mainline_compatible_mapping = true;
 Bitu VGA_BIOS_Size_override = 0;
 
+extern bool dynamic_dos_kernel_alloc;
 extern Bitu DOS_PRIVATE_SEGMENT_Size;
 
 static void DOSBOX_RealInit(Section * sec) {
@@ -1116,6 +1117,9 @@ void DOSBOX_Init(void) {
 
 	Phex = secprop->Add_hex("umb end",Property::Changeable::OnlyAtStart,0); /* <- (0=auto) 0xEFFF is mainline DOSBox compatible (where base=0xD000 and size=0x2000) */
 	Phex->Set_help("UMB region last segment");
+
+	Pbool = secprop->Add_bool("dynamic kernel allocation",Property::Changeable::OnlyAtStart,false);
+	Pbool->Set_help("If set, DOS kernel structures are allocated dynamically. If clear, DOS kernel structures are fixed at specific segments (mainline DOSBox behavior)");
 
 	Pbool = secprop->Add_bool("keep umb on boot",Property::Changeable::OnlyAtStart,0);
 	Pbool->Set_help("If emulating UMBs, keep the UMB around after boot (Mainline DOSBox behavior). If clear, UMB is unmapped when you boot an operating system.");

@@ -420,6 +420,10 @@ Bitu XMS_Handler(void) {
 
 bool keep_umb_on_boot;
 
+extern Bitu VGA_BIOS_SEG;
+extern Bitu VGA_BIOS_SEG_END;
+extern Bitu VGA_BIOS_Size;
+
 extern bool mainline_compatible_mapping;
 
 Bitu GetEMSType(Section_prop * section);
@@ -479,6 +483,8 @@ public:
 			first_umb_seg = DOS_PRIVATE_SEGMENT_END;
 			if (mainline_compatible_mapping && first_umb_seg < 0xD000)
 				first_umb_seg = 0xD000; /* Mainline DOSBox assumes a 128KB UMB region starting at 0xD000 */
+			else if (first_umb_seg < VGA_BIOS_SEG_END)
+				first_umb_seg = VGA_BIOS_SEG_END;
 		}
 		if (first_umb_size == 0) first_umb_size = 0xEFFF;
 
