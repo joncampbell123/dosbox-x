@@ -401,6 +401,10 @@ static Bitu DOS_default_handler(void) {
 	return CBRET_NONE;
 }
 
+#include <assert.h>
+
+extern Bit16u DOS_IHSEG;
+
 static	CALLBACK_HandlerObject callbackhandler;
 void DOS_SetupMemory(void) {
 	unsigned int seg_limit = MEM_TotalPages()*256;
@@ -410,8 +414,13 @@ void DOS_SetupMemory(void) {
 	 * buggy games, which compare against the interrupt table. (probably a 
 	 * broken linked list implementation) */
 	callbackhandler.Allocate(&DOS_default_handler,"DOS default int");
-	Bit16u ihseg = 0x70;
-	Bit16u ihofs = 0x08;
+	Bit16u ihseg;
+	Bit16u ihofs;
+
+	assert(DOS_IHSEG != 0);
+	ihseg = DOS_IHSEG;
+	ihofs = 0x08;
+
 	real_writeb(ihseg,ihofs+0x00,(Bit8u)0xFE);	//GRP 4
 	real_writeb(ihseg,ihofs+0x01,(Bit8u)0x38);	//Extra Callback instruction
 	real_writew(ihseg,ihofs+0x02,callbackhandler.Get_callback());  //The immediate word

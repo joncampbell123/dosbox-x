@@ -1392,9 +1392,11 @@ static Bitu DOS_26Handler(void) {
     return CBRET_NONE;
 }
 
+extern bool mainline_compatible_mapping;
 bool keep_private_area_on_boot = false;
 bool dynamic_dos_kernel_alloc = false;
 bool private_segment_in_umb = true;
+Bit16u DOS_IHSEG = 0;
 
 void DOS_GetMemory_reset();
 
@@ -1412,7 +1414,14 @@ public:
 
 		if (dynamic_dos_kernel_alloc) {
 			/* we make use of the DOS_GetMemory() function for the dynamic allocation */
-			DOS_PRIVATE_SEGMENT = 0x80;
+			if (mainline_compatible_mapping) {
+				DOS_IHSEG = 0x70;
+				DOS_PRIVATE_SEGMENT = 0x80;
+			}
+			else {
+				DOS_PRIVATE_SEGMENT = 0x50; /* NTS: The first paragraph overlaps the PRINT SCREEN BYTE but DOSBox's kernel does not use that byte anyway */
+			}
+
 			if (MEM_TotalPages() > 0x9C)
 				DOS_PRIVATE_SEGMENT_END = 0x9C00;
 			else
@@ -1421,6 +1430,7 @@ public:
 			fprintf(stderr,"Dynamic DOS kernel mode, structures will be allocated from pool 0x%04x-0x%04x\n",
 				DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
 
+			if (!mainline_compatible_mapping) DOS_IHSEG = DOS_GetMemory(1);
 			DOS_INFOBLOCK_SEG = DOS_GetMemory(0x20);	// was 0x80
 			DOS_CONDRV_SEG = DOS_GetMemory(0x08);		// was 0xA0
 			DOS_CONSTRING_SEG = DOS_GetMemory(0x0A);	// was 0xA8
@@ -1431,6 +1441,7 @@ public:
 			/* defer DOS_MEM_START until right before SetupMemory */
 		}
 		else {
+			DOS_IHSEG = 0x70;
 			DOS_INFOBLOCK_SEG = 0x80;	// sysvars (list of lists)
 			DOS_CONDRV_SEG = 0xa0;
 			DOS_CONSTRING_SEG = 0xa8;
@@ -1459,6 +1470,7 @@ public:
 		}
 
 		fprintf(stderr,"DOS kernel alloc:\n");
+		fprintf(stderr,"   IHSEG:        seg 0x%04x\n",DOS_IHSEG);
 		fprintf(stderr,"   infoblock:    seg 0x%04x\n",DOS_INFOBLOCK_SEG);
 		fprintf(stderr,"   condrv:       seg 0x%04x\n",DOS_CONDRV_SEG);
 		fprintf(stderr,"   constring:    seg 0x%04x\n",DOS_CONSTRING_SEG);
@@ -1530,7 +1542,7 @@ public:
 				DOS_PRIVATE_SEGMENT_END = segend;
 				DOS_MEM_START = DOS_PRIVATE_SEGMENT_END;
 				DOS_GetMemory_reset();
-				fprintf(stderr,"Private area, not stored in UMB on request, occupies 0x%04x-0x%04x\n",
+				fprintf(stderr,"Private area, not stored in UMB on request, occupies 0x%04x-0x%04x [dynamic]\n",
 					DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
 			}
 		}
