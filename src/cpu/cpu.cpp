@@ -33,6 +33,8 @@
 #include "support.h"
 #include "control.h"
 
+extern bool ignore_opcode_63;
+
 Bitu DEBUG_EnableDebugger(void);
 extern void GFX_SetTitle(Bit32s cycles, Bits frameskip, Bits timing, bool paused);
 
@@ -2403,6 +2405,8 @@ public:
 		//CPU_CycleLeft=0;//needed ?
 		CPU_Cycles=0;
 		CPU_SkipCycleAutoAdjust=false;
+
+		ignore_opcode_63 = section->Get_bool("ignore opcode 63");
 
 		cpu_allow_big16 = section->Get_bool("realbig16");
 		if (cpu_allow_big16) fprintf(stderr,"WARNING: B (big) bit allowed in real mode\n");

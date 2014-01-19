@@ -28,6 +28,8 @@
 #include "fpu.h"
 #include "mmx.h"
 
+extern bool ignore_opcode_63;
+
 #if C_DEBUG
 #include "debug.h"
 #endif
@@ -162,19 +164,6 @@ restart_opcode:
 		#include "core_normal/prefix_66_0f.h"
 		default:
 		illegal_opcode:
-#if C_DEBUG	
-			{
-				Bitu len=(GETIP-reg_eip);
-				LOADIP;
-				if (len>16) len=16;
-				char tempcode[16*2+1];char * writecode=tempcode;
-				for (;len>0;len--) {
-//					sprintf(writecode,"%X",mem_readb(core.cseip++));
-					writecode+=2;
-				}
-				LOG(LOG_CPU,LOG_NORMAL)("Illegal/Unhandled opcode %s",tempcode);
-			}
-#endif
 			CPU_Exception(6,0);
 			continue;
 		}

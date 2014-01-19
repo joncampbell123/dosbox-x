@@ -29,6 +29,8 @@
 #include "paging.h"
 #include "mmx.h"
 
+extern bool ignore_opcode_63;
+
 #if C_DEBUG
 #include "debug.h"
 #endif
@@ -169,15 +171,19 @@ restart_opcode:
 		illegal_opcode:
 #if C_DEBUG	
 			{
+				bool ignore=false;
 				Bitu len=(GETIP-reg_eip);
 				LOADIP;
 				if (len>16) len=16;
 				char tempcode[16*2+1];char * writecode=tempcode;
+				if (ignore_opcode_63 && mem_readb(core.cseip) == 0x63)
+					ignore = true;
 				for (;len>0;len--) {
 					sprintf(writecode,"%02X",mem_readb(core.cseip++));
 					writecode+=2;
 				}
-				LOG(LOG_CPU,LOG_NORMAL)("Illegal/Unhandled opcode %s",tempcode);
+				if (!ignore)
+					LOG(LOG_CPU,LOG_NORMAL)("Illegal/Unhandled opcode %s",tempcode);
 			}
 #endif
 			CPU_Exception(6,0);

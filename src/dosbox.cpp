@@ -414,6 +414,7 @@ void LoadGameState_Run(void) { LoadGameState(true); }
 void NextSaveSlot_Run(void) { NextSaveSlot(true); }
 void PreviousSaveSlot_Run(void) { PreviousSaveSlot(true); }
 
+bool ignore_opcode_63 = true;
 bool mainline_compatible_mapping = true;
 Bitu VGA_BIOS_Size_override = 0;
 
@@ -707,6 +708,10 @@ void DOSBOX_Init(void) {
 	Pint = secprop->Add_int("cycledown",Property::Changeable::Always,20);
 	Pint->SetMinMax(1,1000000);
 	Pint->Set_help("Setting it lower than 100 will be a percentage.");
+
+	Pbool = secprop->Add_bool("ignore opcode 63",Property::Changeable::Always,true);
+	Pbool->Set_help("When debugging, do not report illegal opcode 0x63.\n"
+			"Enable this option to ignore spurious errors while debugging from within Windows 3.1/9x/ME");
 
 	Pbool = secprop->Add_bool("apmbios",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("Emulate Advanced Power Management BIOS calls.\n"
