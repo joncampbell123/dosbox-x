@@ -823,7 +823,7 @@ public:
 			 *        what we want however is for the VGA emulation to assign illegal_page_handler for
 			 *        address ranges it is not responding to when mapping changes. */
 			for (i=0xa0;i<0x100;i++) { /* we want to make sure adapter ROM is unmapped entirely! */
-				memory.phandlers[i] = &illegal_page_handler;
+				memory.phandlers[i] = &unmapped_page_handler;
 				memory.mhandles[i] = 0;
 			}
 		}
