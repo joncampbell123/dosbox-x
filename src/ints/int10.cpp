@@ -734,7 +734,7 @@ void INT10_Init(Section* /*sec*/) {
 	INT10_SetupVESA();
 	INT10_SetupRomMemoryChecksum();//SetupVesa modifies the rom as well.
 
-	if (int10.rom.used > VGA_BIOS_Size)
+	if (int10.rom.used > VGA_BIOS_Size) /* <- this is fatal, it means the Setup() functions scrozzled over the adjacent ROM or RAM area */
 		E_Exit("VGA BIOS size too small");
 
 	fprintf(stderr,"VGA BIOS occupies segment 0x%04x-0x%04x\n",VGA_BIOS_SEG,VGA_BIOS_SEG_END-1);
