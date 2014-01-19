@@ -862,10 +862,14 @@ public:
 			for(i=0;i<512;i++) real_writeb(0, 0x7c00 + i, bootarea.rawdata[i]);
 
 			extern bool keep_umb_on_boot;
+			extern bool keep_private_area_on_boot;
 
 			/* remove UMB block */
 			void RemoveUMBBlock();
 			if (!keep_umb_on_boot) RemoveUMBBlock();
+
+			void DOS_GetMemory_unmap();
+			if (!keep_private_area_on_boot) DOS_GetMemory_unmap();
 
 			/* revector some dos-allocated interrupts */
 			real_writed(0,0x01*4,0xf000ff53);

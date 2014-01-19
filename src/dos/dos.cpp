@@ -1392,6 +1392,7 @@ static Bitu DOS_26Handler(void) {
     return CBRET_NONE;
 }
 
+bool keep_private_area_on_boot = false;
 
 class DOS:public Module_base{
 private:
@@ -1440,6 +1441,8 @@ public:
 		DOS_SetupMisc();							/* Some additional dos interrupts */
 		DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).SetDrive(25); /* Else the next call gives a warning. */
 		DOS_SetDefaultDrive(25);
+
+		keep_private_area_on_boot = section->Get_bool("keep private area on boot");
 	
 		dos.version.major=5;
 		dos.version.minor=0;

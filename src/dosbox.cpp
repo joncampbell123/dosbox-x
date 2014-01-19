@@ -1115,6 +1115,9 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("keep umb on boot",Property::Changeable::OnlyAtStart,0);
 	Pbool->Set_help("If emulating UMBs, keep the UMB around after boot (Mainline DOSBox behavior). If clear, UMB is unmapped when you boot an operating system.");
 
+	Pbool = secprop->Add_bool("keep private area on boot",Property::Changeable::OnlyAtStart,0);
+	Pbool->Set_help("If set, keep the DOSBox private area around after boot (Mainline DOSBox behavior). If clear, unmap and discard the private area when you boot an operating system.");
+
 	Pbool = secprop->Add_bool("automount",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Enable automatic mount.");
 

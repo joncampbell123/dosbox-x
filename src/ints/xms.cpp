@@ -430,7 +430,7 @@ bool MEM_unmap_physmem(Bitu start,Bitu end);
 void RemoveUMBBlock() {
 	/* FIXME: Um... why is umb_available == false even when set to true below? */
 	if (umb_init) {
-		fprintf(stderr,"Removing UMB block %04x-%04x\n",first_umb_seg,first_umb_seg+first_umb_size-1);
+		fprintf(stderr,"Removing UMB block 0x%04x-0x%04x\n",first_umb_seg,first_umb_seg+first_umb_size-1);
 		MEM_unmap_physmem(first_umb_seg<<4,((first_umb_seg+first_umb_size)<<4)-1);
 		umb_init = false;
 	}

@@ -637,6 +637,8 @@ bool MEM_unmap_physmem(Bitu start,Bitu end) {
 
 	for (p=start;p <= end;p++)
 		memory.phandlers[p] = &illegal_page_handler;
+
+	PAGING_ClearTLB();
 }
 
 bool MEM_map_RAM_physmem(Bitu start,Bitu end) {
@@ -660,6 +662,7 @@ bool MEM_map_RAM_physmem(Bitu start,Bitu end) {
 	for (p=start;p <= end;p++)
 		memory.phandlers[p] = ram_ptr;
 
+	PAGING_ClearTLB();
 	return true;
 }
 
@@ -680,6 +683,7 @@ bool MEM_map_ROM_physmem(Bitu start,Bitu end) {
 	for (p=start;p <= end;p++)
 		memory.phandlers[p] = &rom_page_handler;
 
+	PAGING_ClearTLB();
 	return true;
 }
 
