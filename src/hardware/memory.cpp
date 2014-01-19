@@ -771,6 +771,8 @@ public:
 		memset((char*)MemBase+0xA0000,0xFF,0x60000);
 		/* except for 0xF0000-0xFFFFF */
 		memset((char*)MemBase+0xF0000,0x00,0x10000);
+		/* and 0xC0000-0xC7FFF for VGA BIOS */
+		memset((char*)MemBase+0xC0000,0x00,0x8000);
 
 		PageHandler *ram_ptr =
 			memory.mem_alias_pagemask == (Bit32u)(~0UL)
@@ -795,6 +797,10 @@ public:
 				memory.phandlers[i] = &illegal_page_handler;
 				memory.mhandles[i] = 0;
 			}
+		}
+		/* Setup rom at 0xc0000-0xc8000 */
+		for (i=0xc0;i<0xc8;i++) {
+			memory.phandlers[i] = &rom_page_handler;
 		}
 		/* Setup rom at 0xf0000-0x100000 */
 		for (i=0xf0;i<0x100;i++) {

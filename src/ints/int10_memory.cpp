@@ -21,8 +21,7 @@
 #include "mem.h"
 #include "inout.h"
 #include "int10.h"
-#include <string.h>
-#include <stdlib.h>
+
 
 static Bit8u static_functionality[0x10]=
 {
@@ -101,23 +100,16 @@ void INT10_ReloadFont(void) {
 	}
 }
 
-extern bool mainline_compatible_mapping;
-
-Bitu INT10_VGA_BIOS_Size = 0;
-Bitu INT10_VGA_BIOS_SEG = 0;
-Bitu INT10_VGA_BIOS_SEG_END = 0;
-
-bool MEM_map_ROM_physmem(Bitu start,Bitu end);
 
 void INT10_SetupRomMemory(void) {
 /* This should fill up certain structures inside the Video Bios Rom Area */
 	PhysPt rom_base=PhysMake(0xc000,0);
 	Bitu i;
 	int10.rom.used=3;
-
 	if (IS_EGAVGA_ARCH) {
 		// set up the start of the ROM
 		phys_writew(rom_base+0,0xaa55);
+		phys_writeb(rom_base+2,0x40);		// Size of ROM: 64 512-blocks = 32KB
 		if (IS_VGA_ARCH) phys_writes(rom_base+0x1e, "IBM compatible VGA BIOS", 24);
 		else phys_writes(rom_base+0x1e, "IBM compatible EGA BIOS", 24);
 		int10.rom.used=0x100;
@@ -241,15 +233,11 @@ void INT10_ReloadRomFonts(void) {
 }
 
 void INT10_SetupRomMemoryChecksum(void) {
-	phys_writeb(0xC0000+2,INT10_VGA_BIOS_Size >> 9);
-	if (!MEM_map_ROM_physmem(0xC0000,0xC0000+INT10_VGA_BIOS_Size-1))
-		fprintf(stderr,"WARNING: Failed to map VGA BIOS\n");
-
 	if (IS_EGAVGA_ARCH) { //EGA/VGA. Just to be safe
 		/* Sum of all bytes in rom module 256 should be 0 */
 		Bit8u sum = 0;
 		PhysPt rom_base = PhysMake(0xc000,0);
-		Bitu last_rombyte = INT10_VGA_BIOS_Size - 1;
+		Bitu last_rombyte = 32*1024 - 1;		//32 KB romsize
 		for (Bitu i = 0;i < last_rombyte;i++)
 			sum += phys_readb(rom_base + i);	//OVERFLOW IS OKAY
 		sum = (Bit8u)((256 - (Bitu)sum)&0xff);
