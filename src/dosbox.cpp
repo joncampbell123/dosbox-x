@@ -971,9 +971,9 @@ void DOSBOX_Init(void) {
 	Pint->Set_values(rates);
 	Pint->Set_help("Sample rate of the PS1 audio emulation.");
 
-	secprop=control->AddSection_prop("joystick",&BIOS_Init,false);//done
+	secprop=control->AddSection_prop("joystick",&JOYSTICK_Init,false);//done
+	secprop->AddInitFunction(&BIOS_Init);	// <- FIXME: BIOS was moved here to take precedence over DOS kernel init. Did we break anything by doing this?
 	secprop->AddInitFunction(&INT10_Init);
-	secprop->AddInitFunction(&JOYSTICK_Init);
 	const char* joytypes[] = { "auto", "2axis", "4axis", "4axis_2", "fcs", "ch", "none",0};
 	Pstring = secprop->Add_string("joysticktype",Property::Changeable::WhenIdle,"auto");
 	Pstring->Set_values(joytypes);

@@ -419,6 +419,10 @@ Bitu XMS_Handler(void) {
 
 extern bool mainline_compatible_mapping;
 
+extern Bitu INT10_VGA_BIOS_Size;
+extern Bitu INT10_VGA_BIOS_SEG;
+extern Bitu INT10_VGA_BIOS_SEG_END;
+
 Bitu GetEMSType(Section_prop * section);
 void DOS_GetMemory_Choose();
 
@@ -467,8 +471,10 @@ public:
 		}
 		if (first_umb_size == 0) first_umb_size = 0xEFFF;
 
-		if (first_umb_seg < 0xC800 || first_umb_seg < DOS_PRIVATE_SEGMENT_END) {
-			fprintf(stderr,"UMB warning: UMB blocks before 0xD000 conflict with VGA (0xA000-0xBFFF), VGA BIOS (0xC000-0xC7FF) and DOSBox private area (0x%04x-0x%04x)\n",
+		if (first_umb_seg < 0xC000 || first_umb_seg < DOS_PRIVATE_SEGMENT_END) {
+			fprintf(stderr,"UMB warning: UMB blocks before 0xD000 conflict with VGA (0xA000-0xBFFF), "
+					"VGA BIOS (0x%04x-0x%04x) and DOSBox private area (0x%04x-0x%04x)\n",
+				INT10_VGA_BIOS_SEG,INT10_VGA_BIOS_SEG_END-1,
 				DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
 			first_umb_seg = std::max((Bitu)0xC800,(Bitu)DOS_PRIVATE_SEGMENT_END);
 		}

@@ -800,17 +800,6 @@ public:
 		for (i=0xf0;i<0x100;i++) {
 			memory.phandlers[i] = &rom_page_handler;
 		}
-		/* except for a 32KB region C800:0000 which is used as a private area for DOSBox (mainline DOSBox behavior), */
-		/* NTS: The DOS XMS emulation will later modify this memory map to enable the UMB region if umb=true */
-		DOS_GetMemory_Choose();
-		if (DOS_PRIVATE_SEGMENT >= 0xA000) {
-			assert(DOS_PRIVATE_SEGMENT < DOS_PRIVATE_SEGMENT_END);
-			memset((char*)MemBase+(DOS_PRIVATE_SEGMENT<<4),0x00,(DOS_PRIVATE_SEGMENT_END-DOS_PRIVATE_SEGMENT)<<4);
-			for (i=(DOS_PRIVATE_SEGMENT>>8);i<((DOS_PRIVATE_SEGMENT_END+0xFF)>>8);i++) {
-				memory.phandlers[i] = ram_ptr; /* <- NTS: Must be RAM. Mapping as ROM only causes an infinite loop */
-				memory.mhandles[i] = 0;				//Set to 0 for memory allocation
-			}
-		}
 		if (machine==MCH_PCJR) {
 			/* Setup cartridge rom at 0xe0000-0xf0000 */
 			for (i=0xe0;i<0xf0;i++) {

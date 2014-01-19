@@ -46,6 +46,10 @@ RealPt DOS_TableLowCase;
 
 extern bool mainline_compatible_mapping;
 
+extern Bitu INT10_VGA_BIOS_Size;
+extern Bitu INT10_VGA_BIOS_SEG;
+extern Bitu INT10_VGA_BIOS_SEG_END;
+
 static Bitu call_casemap;
 
 static Bit16u dos_memseg=0;//DOS_PRIVATE_SEGMENT;
@@ -66,9 +70,20 @@ void DOS_GetMemory_Choose() {
 			DOS_PRIVATE_SEGMENT=0xc800;
 			DOS_PRIVATE_SEGMENT_END=0xc800 + DOS_PRIVATE_SEGMENT_Size;
 		}
-		else {
+		else if (INT10_VGA_BIOS_SEG_END == 0) {
+			fprintf(stderr,"WARNING: VGA ROM BIOS not initialized, assuming default\n");
 			DOS_PRIVATE_SEGMENT=0xc800;
 			DOS_PRIVATE_SEGMENT_END=0xc800 + DOS_PRIVATE_SEGMENT_Size;
+		}
+		else {
+			/* automatically position ourself just past the VGA BIOS */
+			DOS_PRIVATE_SEGMENT=INT10_VGA_BIOS_SEG_END;
+			DOS_PRIVATE_SEGMENT_END=INT10_VGA_BIOS_SEG_END + DOS_PRIVATE_SEGMENT_Size;
+		}
+
+		if (DOS_PRIVATE_SEGMENT >= 0xA000) {
+			memset((char*)MemBase+(DOS_PRIVATE_SEGMENT<<4),0x00,(DOS_PRIVATE_SEGMENT_END-DOS_PRIVATE_SEGMENT)<<4);
+			MEM_map_RAM_physmem(DOS_PRIVATE_SEGMENT<<4,(DOS_PRIVATE_SEGMENT_END<<4)-1);
 		}
 
 		fprintf(stderr,"DOS private segment set to 0x%04x-0x%04x\n",DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
