@@ -84,6 +84,16 @@ size_t memorySize;
 }
 
 
+class UnmappedPageHandler : public PageHandler {
+public:
+	UnmappedPageHandler() : PageHandler(PFLAG_INIT|PFLAG_NOCODE) {}
+	Bitu readb(PhysPt addr) {
+		return 0xFF; /* Real hardware returns 0xFF not 0x00 */
+	} 
+	void writeb(PhysPt addr,Bitu val) {
+	}
+};
+
 class IllegalPageHandler : public PageHandler {
 public:
 	IllegalPageHandler() : PageHandler(PFLAG_INIT|PFLAG_NOCODE) {}
@@ -155,6 +165,7 @@ public:
 
 
 
+static UnmappedPageHandler unmapped_page_handler;
 static IllegalPageHandler illegal_page_handler;
 static RAMAliasPageHandler ram_alias_page_handler;
 static RAMPageHandler ram_page_handler;
@@ -636,7 +647,7 @@ bool MEM_unmap_physmem(Bitu start,Bitu end) {
 	start >>= 12; end >>= 12;
 
 	for (p=start;p <= end;p++)
-		memory.phandlers[p] = &illegal_page_handler;
+		memory.phandlers[p] = &unmapped_page_handler;
 
 	PAGING_ClearTLB();
 }
@@ -655,7 +666,7 @@ bool MEM_map_RAM_physmem(Bitu start,Bitu end) {
 	start >>= 12; end >>= 12;
 
 	for (p=start;p <= end;p++) {
-		if (memory.phandlers[p] != &illegal_page_handler)
+		if (memory.phandlers[p] != &illegal_page_handler && memory.phandlers[p] != &unmapped_page_handler)
 			return false;
 	}
 
@@ -676,7 +687,7 @@ bool MEM_map_ROM_physmem(Bitu start,Bitu end) {
 	start >>= 12; end >>= 12;
 
 	for (p=start;p <= end;p++) {
-		if (memory.phandlers[p] != &illegal_page_handler)
+		if (memory.phandlers[p] != &illegal_page_handler && memory.phandlers[p] != &unmapped_page_handler)
 			return false;
 	}
 
