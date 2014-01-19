@@ -2162,14 +2162,17 @@ public:
 		/* INT 12 Memory Size default at 640 kb */
 		callback[2].Install(&INT12_Handler,CB_IRET,"Int 12 Memory");
 		callback[2].Set_RealVec(0x12);
+
+		Bitu t_conv = MEM_TotalPages() << 2; /* convert 4096/byte pages -> 1024/byte KB units */
+		if (t_conv > 640) t_conv = 640;
+
 		if (IS_TANDY_ARCH) {
 			/* reduce reported memory size for the Tandy (32k graphics memory
 			   at the end of the conventional 640k) */
-			if (machine==MCH_TANDY) mem_writew(BIOS_MEMORY_SIZE,624);
-			else mem_writew(BIOS_MEMORY_SIZE,640);
-			mem_writew(BIOS_TRUE_MEMORY_SIZE,640);
-		} else mem_writew(BIOS_MEMORY_SIZE,640);
-		
+			if (machine==MCH_TANDY && t_conv > 624) t_conv = 624;
+		}
+		mem_writew(BIOS_MEMORY_SIZE,t_conv);
+
 		/* INT 13 Bios Disk Support */
 		BIOS_SetupDisks();
 
