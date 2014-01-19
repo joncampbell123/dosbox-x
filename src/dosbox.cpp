@@ -1127,6 +1127,10 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("keep private area on boot",Property::Changeable::OnlyAtStart,0);
 	Pbool->Set_help("If set, keep the DOSBox private area around after boot (Mainline DOSBox behavior). If clear, unmap and discard the private area when you boot an operating system.");
 
+	Pbool = secprop->Add_bool("private area in umb",Property::Changeable::WhenIdle,true);
+	Pbool->Set_help("If set, keep private DOS segment in upper memory block, usually segment 0xC800 (Mainline DOSBox behavior)\n"
+			"If clear, place private DOS segment at the base of system memory (just below the MCB)");
+
 	Pbool = secprop->Add_bool("automount",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Enable automatic mount.");
 

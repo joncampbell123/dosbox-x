@@ -1394,6 +1394,7 @@ static Bitu DOS_26Handler(void) {
 
 bool keep_private_area_on_boot = false;
 bool dynamic_dos_kernel_alloc = false;
+bool private_segment_in_umb = true;
 
 #include <assert.h>
 
@@ -1404,6 +1405,7 @@ public:
 	DOS(Section* configuration):Module_base(configuration){
 		Section_prop * section=static_cast<Section_prop *>(configuration);
 
+		private_segment_in_umb = section->Get_bool("private area in umb");
 		dynamic_dos_kernel_alloc = section->Get_bool("dynamic kernel allocation");
 
 		if (dynamic_dos_kernel_alloc) {
@@ -1492,17 +1494,29 @@ public:
 		else {
 			DOS_MEM_START = 0x158;	 // regression to r3437 fixes nascar 2 colors
 		}
-		fprintf(stderr,"   mem start:    seg 0x%04x\n",DOS_MEM_START);
+
+		void DOS_GetMemory_reset();
 
 		/* move the private segment elsewhere to avoid conflict with the MCB structure.
 		 * either set to 0 to cause the decision making to choose an upper memory address,
 		 * or allocate an additional private area and start the MCB just after that */
-		if (dynamic_dos_kernel_alloc) { /* TODO: If dynamic or private region not stored in UMB */
-			void DOS_GetMemory_reset();
+		if (!private_segment_in_umb) {
+			/* If private segment is not being placed in UMB, then it must follow the DOS kernel. */
+			unsigned int seg = DOS_GetMemory(DOS_PRIVATE_SEGMENT_Size);
+			unsigned int segend = DOS_GetMemory(0);
+			DOS_PRIVATE_SEGMENT = seg;
+			DOS_PRIVATE_SEGMENT_END = segend;
+			DOS_MEM_START = DOS_PRIVATE_SEGMENT_END;
+			DOS_GetMemory_reset();
+			fprintf(stderr,"Private area, not stored in UMB on request, occupies 0x%04x-0x%04x\n",
+				DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
+		}
+		else if (dynamic_dos_kernel_alloc) {
 			DOS_GetMemory_reset();
 			DOS_PRIVATE_SEGMENT = 0;
 			DOS_PRIVATE_SEGMENT_END = 0;
 		}
+		fprintf(stderr,"   mem start:    seg 0x%04x\n",DOS_MEM_START);
 
 		/* carry on setup */
 		DOS_SetupMemory();								/* Setup first MCB */
