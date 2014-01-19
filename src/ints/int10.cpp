@@ -24,6 +24,8 @@
 #include "inout.h"
 #include "int10.h"
 #include "setup.h"
+#include <string.h>
+#include <stdlib.h>
 
 Int10Data int10;
 static Bitu call_10;
@@ -715,6 +717,11 @@ static void SetupTandyBios(void) {
 	}
 }
 
+extern Bitu INT10_VGA_BIOS_Size;
+extern Bitu INT10_VGA_BIOS_SEG;
+extern Bitu INT10_VGA_BIOS_SEG_END;
+extern bool mainline_compatible_mapping;
+
 void INT10_Init(Section* /*sec*/) {
 	INT10_InitVGA();
 	if (IS_TANDY_ARCH) SetupTandyBios();
@@ -722,11 +729,27 @@ void INT10_Init(Section* /*sec*/) {
 	call_10=CALLBACK_Allocate();	
 	CALLBACK_Setup(call_10,&INT10_Handler,CB_IRET,"Int 10 video");
 	RealSetVec(0x10,CALLBACK_RealPointer(call_10));
+
+	/* pre-erase area */
+	INT10_VGA_BIOS_SEG = 0xC000;
+	memset(GetMemBase()+0xC0000,0x00,mainline_compatible_mapping ? 0x8000 : 0x4000);
+
 	//Init the 0x40 segment and init the datastructures in the the video rom area
 	INT10_SetupRomMemory();
 	INT10_Seg40Init();
 	INT10_SetupVESA();
+
+	if (mainline_compatible_mapping)
+		INT10_VGA_BIOS_Size = 0x8000;	/* mainline DOSBox maps VGA BIOS as 32KB large, ALWAYS */
+	else
+		INT10_VGA_BIOS_Size = (int10.rom.used + 0xFFF) & (~0xFFF);
+
 	INT10_SetupRomMemoryChecksum();//SetupVesa modifies the rom as well.
+
+	INT10_VGA_BIOS_SEG = 0xC000;
+	INT10_VGA_BIOS_SEG_END = 0xC000 + (INT10_VGA_BIOS_Size >> 4);
+	fprintf(stderr,"VGA bios occupies 0x%04x-0x%04x\n",INT10_VGA_BIOS_SEG,INT10_VGA_BIOS_SEG_END-1);
+
 	INT10_SetVideoMode(0x3);
 }
 

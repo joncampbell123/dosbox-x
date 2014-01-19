@@ -663,6 +663,26 @@ bool MEM_map_RAM_physmem(Bitu start,Bitu end) {
 	return true;
 }
 
+bool MEM_map_ROM_physmem(Bitu start,Bitu end) {
+	Bitu p;
+
+	if (start & 0xFFF)
+		fprintf(stderr,"WARNING: unmap_physmem() start not page aligned.\n");
+	if ((end & 0xFFF) != 0xFFF)
+		fprintf(stderr,"WARNING: unmap_physmem() end not page aligned.\n");
+	start >>= 12; end >>= 12;
+
+	for (p=start;p <= end;p++) {
+		if (memory.phandlers[p] != &illegal_page_handler)
+			return false;
+	}
+
+	for (p=start;p <= end;p++)
+		memory.phandlers[p] = &rom_page_handler;
+
+	return true;
+}
+
 HostPt GetMemBase(void) { return MemBase; }
 
 void DOS_GetMemory_Choose();
@@ -751,8 +771,6 @@ public:
 		memset((char*)MemBase+0xA0000,0xFF,0x60000);
 		/* except for 0xF0000-0xFFFFF */
 		memset((char*)MemBase+0xF0000,0x00,0x10000);
-		/* and 0xC0000-0xC7FFF for VGA BIOS */
-		memset((char*)MemBase+0xC0000,0x00,0x8000);
 
 		PageHandler *ram_ptr =
 			memory.mem_alias_pagemask == (Bit32u)(~0UL)
@@ -777,10 +795,6 @@ public:
 				memory.phandlers[i] = &illegal_page_handler;
 				memory.mhandles[i] = 0;
 			}
-		}
-		/* Setup rom at 0xc0000-0xc8000 */
-		for (i=0xc0;i<0xc8;i++) {
-			memory.phandlers[i] = &rom_page_handler;
 		}
 		/* Setup rom at 0xf0000-0x100000 */
 		for (i=0xf0;i<0x100;i++) {
