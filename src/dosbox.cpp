@@ -1112,6 +1112,9 @@ void DOSBOX_Init(void) {
 	Phex = secprop->Add_hex("umb end",Property::Changeable::OnlyAtStart,0); /* <- (0=auto) 0xEFFF is mainline DOSBox compatible (where base=0xD000 and size=0x2000) */
 	Phex->Set_help("UMB region last segment");
 
+	Pbool = secprop->Add_bool("keep umb on boot",Property::Changeable::OnlyAtStart,0);
+	Pbool->Set_help("If emulating UMBs, keep the UMB around after boot (Mainline DOSBox behavior). If clear, UMB is unmapped when you boot an operating system.");
+
 	Pbool = secprop->Add_bool("automount",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Enable automatic mount.");
 

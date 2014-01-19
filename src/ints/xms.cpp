@@ -117,7 +117,8 @@ Bitu XMS_GetEnabledA20(void) {
 }
 
 static RealPt xms_callback;
-static bool umb_available;
+static bool umb_available = false;
+static bool umb_init = false;
 
 static XMS_Block xms_handles[XMS_HANDLES];
 
@@ -417,10 +418,23 @@ Bitu XMS_Handler(void) {
 	return CBRET_NONE;
 }
 
+bool keep_umb_on_boot;
+
 extern bool mainline_compatible_mapping;
 
 Bitu GetEMSType(Section_prop * section);
 void DOS_GetMemory_Choose();
+
+bool MEM_unmap_physmem(Bitu start,Bitu end);
+
+void RemoveUMBBlock() {
+	/* FIXME: Um... why is umb_available == false even when set to true below? */
+	if (umb_init) {
+		fprintf(stderr,"Removing UMB block %04x-%04x\n",first_umb_seg,first_umb_seg+first_umb_size-1);
+		MEM_unmap_physmem(first_umb_seg<<4,((first_umb_seg+first_umb_size)<<4)-1);
+		umb_init = false;
+	}
+}
 
 class XMS: public Module_base {
 private:
@@ -454,6 +468,7 @@ public:
 		xms_handles[0].free	= false;
 
 		/* Set up UMB chain */
+		keep_umb_on_boot=section->Get_bool("keep umb on boot");
 		umb_available=section->Get_bool("umb");
 		first_umb_seg=section->Get_hex("umb start");
 		first_umb_size=section->Get_hex("umb end");
@@ -499,6 +514,7 @@ public:
 
 		bool ems_available = GetEMSType(section)>0;
 		DOS_BuildUMBChain(umb_available,ems_available);
+		umb_init = true;
 	}
 
 	~XMS(){

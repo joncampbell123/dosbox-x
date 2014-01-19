@@ -861,6 +861,12 @@ public:
 			WriteOut(MSG_Get("PROGRAM_BOOT_BOOT"), drive);
 			for(i=0;i<512;i++) real_writeb(0, 0x7c00 + i, bootarea.rawdata[i]);
 
+			extern bool keep_umb_on_boot;
+
+			/* remove UMB block */
+			void RemoveUMBBlock();
+			if (!keep_umb_on_boot) RemoveUMBBlock();
+
 			/* revector some dos-allocated interrupts */
 			real_writed(0,0x01*4,0xf000ff53);
 			real_writed(0,0x03*4,0xf000ff53);
