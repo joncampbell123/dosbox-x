@@ -42,6 +42,12 @@ struct CommandTail{
 #pragma pack ()
 #endif
 
+extern Bit16u first_umb_seg;
+extern Bit16u first_umb_size;
+
+bool MEM_unmap_physmem(Bitu start,Bitu end);
+bool MEM_map_RAM_physmem(Bitu start,Bitu end);
+
 struct DOS_Date {
 	Bit16u year;
 	Bit8u month;

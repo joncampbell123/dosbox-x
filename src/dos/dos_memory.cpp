@@ -24,6 +24,9 @@
 
 #define UMB_START_SEG 0x9fff
 
+Bit16u first_umb_seg = 0xd000;
+Bit16u first_umb_size = 0x2000;
+
 static Bit16u memAllocStrategy = 0x00;
 
 static void DOS_CompressMemory(void) {
@@ -313,8 +316,6 @@ void DOS_BuildUMBChain(bool umb_active,bool ems_active) {
 
 	/* UMBs are only possible if the machine has 1MB+64KB of RAM */
 	if (umb_active && (machine!=MCH_TANDY) && seg_limit >= (0x10000+0x1000-1)) {
-		Bit16u first_umb_seg = 0xd000;
-		Bit16u first_umb_size = 0x2000;
 		if(ems_active || (machine == MCH_PCJR)) first_umb_size = 0x1000;
 
 		dos_infoblock.SetStartOfUMBChain(UMB_START_SEG);

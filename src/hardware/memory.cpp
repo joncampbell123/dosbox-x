@@ -623,6 +623,44 @@ void PreparePCJRCartRom(void) {
 	}
 }
 
+/* how to use: unmap_physmem(0xA0000,0xBFFFF) to unmap 0xA0000 to 0xBFFFF */
+bool MEM_unmap_physmem(Bitu start,Bitu end) {
+	Bitu p;
+
+	if (start & 0xFFF)
+		fprintf(stderr,"WARNING: unmap_physmem() start not page aligned.\n");
+	if ((end & 0xFFF) != 0xFFF)
+		fprintf(stderr,"WARNING: unmap_physmem() end not page aligned.\n");
+	start >>= 12; end >>= 12;
+
+	for (p=start;p <= end;p++)
+		memory.phandlers[p] = &illegal_page_handler;
+}
+
+bool MEM_map_RAM_physmem(Bitu start,Bitu end) {
+	Bitu p;
+	PageHandler *ram_ptr =
+		memory.mem_alias_pagemask == (Bit32u)(~0UL)
+		? (PageHandler*)(&ram_page_handler) /* no aliasing */
+		: (PageHandler*)(&ram_alias_page_handler); /* aliasing */
+
+	if (start & 0xFFF)
+		fprintf(stderr,"WARNING: unmap_physmem() start not page aligned.\n");
+	if ((end & 0xFFF) != 0xFFF)
+		fprintf(stderr,"WARNING: unmap_physmem() end not page aligned.\n");
+	start >>= 12; end >>= 12;
+
+	for (p=start;p <= end;p++) {
+		if (memory.phandlers[p] != &illegal_page_handler)
+			return false;
+	}
+
+	for (p=start;p <= end;p++)
+		memory.phandlers[p] = ram_ptr;
+
+	return true;
+}
+
 HostPt GetMemBase(void) { return MemBase; }
 
 class MEMORY:public Module_base{
@@ -732,16 +770,17 @@ public:
 			memory.mhandles[i] = 0;				//Set to 0 for memory allocation
 		}
 		if (!adapter_rom_is_ram) {
+			/* FIXME: VGA emulation will selectively respond to 0xA0000-0xBFFFF according to the video mode,
+			 *        what we want however is for the VGA emulation to assign illegal_page_handler for
+			 *        address ranges it is not responding to when mapping changes. */
 			for (i=0xa0;i<0x100;i++) { /* we want to make sure adapter ROM is unmapped entirely! */
 				memory.phandlers[i] = &illegal_page_handler;
 				memory.mhandles[i] = 0;
 			}
 		}
-		/* except for a 32KB region C800:0000 which is used as a private area for DOSBox (mainline DOSBox behavior),
-		 * and D000:0000 which is apparently required for the BIOS emulation to function??
-		 *
-		 * FIXME: What the hell is DOSBox doing at D000:0000 anyway?? */
-		for (i=0xc8;i<0xd1;i++) {
+		/* except for a 32KB region C800:0000 which is used as a private area for DOSBox (mainline DOSBox behavior), */
+		/* NTS: The DOS XMS emulation will later modify this memory map to enable the UMB region if umb=true */
+		for (i=0xc8;i<0xd0;i++) {
 			memory.phandlers[i] = ram_ptr; /* <- NTS: Must be RAM. Mapping as ROM only causes an infinite loop */
 			memory.mhandles[i] = 0;				//Set to 0 for memory allocation
 		}

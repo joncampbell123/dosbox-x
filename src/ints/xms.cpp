@@ -450,8 +450,39 @@ public:
 
 		/* Set up UMB chain */
 		umb_available=section->Get_bool("umb");
+		first_umb_seg=section->Get_hex("umb start");
+		first_umb_size=section->Get_hex("umb end");
+		if (first_umb_seg < 0xD000) {
+			fprintf(stderr,"UMB warning: UMB blocks before 0xD000 conflict with VGA (0xA000-0xBFFF), VGA BIOS (0xC000-0xC7FF) and DOSBox private area (0xC800-0xCFFF)\n");
+			first_umb_seg = 0xD000;
+		}
+		if (first_umb_seg >= 0xF000) {
+			fprintf(stderr,"UMB starting segment conflict with BIOS at 0xF000. Disabling UMBs\n");
+			umb_available = false;
+		}
+		if (first_umb_size >= 0xF000) {
+			fprintf(stderr,"UMB ending segment conflicts with BIOS at 0xF000, truncating region\n");
+			first_umb_size = 0xEFFF;
+		}
+		if (first_umb_size < first_umb_seg) {
+			fprintf(stderr,"UMB end segment below UMB start. I'll just assume you mean to disable UMBs then.\n");
+			first_umb_size = first_umb_seg - 1;
+			umb_available = false;
+		}
+		first_umb_size = (first_umb_size + 1 - first_umb_seg);
+		if (umb_available) {
+			fprintf(stderr,"UMB assigned region is 0x%04x-0x%04x\n",first_umb_seg,first_umb_seg+first_umb_size-1);
+			if (MEM_map_RAM_physmem(first_umb_seg<<4,((first_umb_seg+first_umb_size)<<4)-1)) {
+				memset(GetMemBase()+(first_umb_seg<<4),0x00,first_umb_size<<4);
+			}
+			else {
+				fprintf(stderr,"Unable to claim UMB region (perhaps adapter ROM is in the way). Disabling UMB\n");
+				umb_available = false;
+			}
+		}
+
 		bool ems_available = GetEMSType(section)>0;
-		DOS_BuildUMBChain(section->Get_bool("umb"),ems_available);
+		DOS_BuildUMBChain(umb_available,ems_available);
 	}
 
 	~XMS(){
