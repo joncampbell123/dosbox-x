@@ -32,6 +32,18 @@
 #include "serialport.h"
 #include "dos_network.h"
 
+Bit16u DOS_INFOBLOCK_SEG=0x80;	// sysvars (list of lists)
+Bit16u DOS_CONDRV_SEG=0xa0;
+Bit16u DOS_CONSTRING_SEG=0xa8;
+Bit16u DOS_SDA_SEG=0xb2;		// dos swappable area
+Bit16u DOS_SDA_OFS=0;
+Bit16u DOS_CDS_SEG=0x108;
+Bit16u DOS_FIRST_SHELL=0x118;
+Bit16u DOS_MEM_START=0x158;	 // regression to r3437 fixes nascar 2 colors
+
+Bit16u DOS_PRIVATE_SEGMENT=0xc800;
+Bit16u DOS_PRIVATE_SEGMENT_END=0xd000;
+
 DOS_Block dos;
 DOS_InfoBlock dos_infoblock;
 

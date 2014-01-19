@@ -108,6 +108,7 @@ extern Bitu DOS_FILES;
 #define DOS_DEVICES 10
 
 
+#if 0 /* ORIGINAL DEFINES FOR REFERENCE */
 // dos swappable area is 0x320 bytes beyond the sysvars table
 // device driver chain is inside sysvars
 #define DOS_INFOBLOCK_SEG 0x80	// sysvars (list of lists)
@@ -122,6 +123,21 @@ extern Bitu DOS_FILES;
 
 #define DOS_PRIVATE_SEGMENT 0xc800
 #define DOS_PRIVATE_SEGMENT_END 0xd000
+#endif
+
+// dos swappable area is 0x320 bytes beyond the sysvars table
+// device driver chain is inside sysvars
+extern Bit16u DOS_INFOBLOCK_SEG;// 0x80	// sysvars (list of lists)
+extern Bit16u DOS_CONDRV_SEG;// 0xa0
+extern Bit16u DOS_CONSTRING_SEG;// 0xa8
+extern Bit16u DOS_SDA_SEG;// 0xb2		// dos swappable area
+extern Bit16u DOS_SDA_OFS;// 0
+extern Bit16u DOS_CDS_SEG;// 0x108
+extern Bit16u DOS_FIRST_SHELL;// 0x118
+extern Bit16u DOS_MEM_START;// 0x158	 // regression to r3437 fixes nascar 2 colors
+
+extern Bit16u DOS_PRIVATE_SEGMENT;// 0xc800
+extern Bit16u DOS_PRIVATE_SEGMENT_END;// 0xd000
 
 /* internal Dos Tables */
 
