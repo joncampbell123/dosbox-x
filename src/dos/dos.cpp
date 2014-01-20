@@ -32,6 +32,8 @@
 #include "serialport.h"
 #include "dos_network.h"
 
+bool enable_dbcs_tables = true;
+
 Bit16u DOS_INFOBLOCK_SEG=0x80;	// sysvars (list of lists)
 Bit16u DOS_CONDRV_SEG=0xa0;
 Bit16u DOS_CONSTRING_SEG=0xa8;
@@ -1189,7 +1191,7 @@ static Bitu DOS_21Handler(void) {
 		reg_bx=dos.psp();
 		break;
 	case 0x63:					/* DOUBLE BYTE CHARACTER SET */
-		if(reg_al == 0) {
+		if(reg_al == 0 && dos.tables.dbcs != 0) {
 			SegSet16(ds,RealSeg(dos.tables.dbcs));
 			reg_si=RealOff(dos.tables.dbcs);		
 			reg_al = 0;
@@ -1409,6 +1411,7 @@ public:
 	DOS(Section* configuration):Module_base(configuration){
 		Section_prop * section=static_cast<Section_prop *>(configuration);
 
+		enable_dbcs_tables = section->Get_bool("dbcs");
 		private_segment_in_umb = section->Get_bool("private area in umb");
 		dynamic_dos_kernel_alloc = section->Get_bool("dynamic kernel allocation");
 

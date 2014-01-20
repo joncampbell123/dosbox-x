@@ -140,6 +140,8 @@ static Bit8u country_info[0x22] = {
 /* Reservered 5     */  0x00, 0x00, 0x00, 0x00, 0x00
 };
 
+extern bool enable_dbcs_tables;
+
 void DOS_SetupTables(void) {
 	Bit16u seg;Bitu i;
 	dos.tables.mediaid=RealMake(DOS_GetMemory(4),0);
@@ -175,8 +177,13 @@ void DOS_SetupTables(void) {
 
 
 	/* Allocate DCBS DOUBLE BYTE CHARACTER SET LEAD-BYTE TABLE */
-	dos.tables.dbcs=RealMake(DOS_GetMemory(12),0);
-	mem_writed(Real2Phys(dos.tables.dbcs),0); //empty table
+	if (enable_dbcs_tables) {
+		dos.tables.dbcs=RealMake(DOS_GetMemory(12),0);
+		mem_writed(Real2Phys(dos.tables.dbcs),0); //empty table
+	}
+	else {
+		dos.tables.dbcs=0;
+	}
 	/* FILENAME CHARACTER TABLE */
 	dos.tables.filenamechar=RealMake(DOS_GetMemory(2),0);
 	mem_writew(Real2Phys(dos.tables.filenamechar)+0x00,0x16);
