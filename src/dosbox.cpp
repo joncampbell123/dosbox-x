@@ -612,6 +612,20 @@ void DOSBOX_Init(void) {
 	secprop->AddInitFunction(&CMOS_Init);//done
 	secprop->AddInitFunction(&VGA_Init);
 
+	Pmulti_remain = secprop->Add_multiremain("pit hack",Property::Changeable::Always,"");
+	Pmulti_remain->Set_help(
+		"If set, demo/game-specific hacks are applied to PIT timer emulation to help\n"
+		"stabilize the demo and run more reliably. Valid values are:\n"
+		"  'project_angel_demo'            If you intend to run the Project Angel demo, use this\n"
+		"                                  setting. The PIT timer is forced to one of two values\n"
+		"                                  to resolve hangups, timing issues, music skipping on\n"
+		"                                  video mode changes, and VGA tearlines.\n");
+
+	const char* pit_hax[] = { "","project_angel_demo", 0 };
+	Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::Always,"");
+	Pmulti_remain->SetValue("");
+	Pstring->Set_values(pit_hax);
+
 	secprop=control->AddSection_prop("render",&RENDER_Init,true);
 	Pint = secprop->Add_int("frameskip",Property::Changeable::Always,0);
 	Pint->SetMinMax(0,10);

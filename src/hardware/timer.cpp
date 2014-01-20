@@ -26,6 +26,14 @@
 #include "timer.h"
 #include "setup.h"
 
+enum {
+	PIT_HACK_NONE=0,
+
+	PIT_HACK_PROJECT_ANGEL_DEMO
+};
+
+static int pit_hack_mode = PIT_HACK_NONE;
+
 static INLINE void BIN2BCD(Bit16u& val) {
 	Bit16u temp=val%10 + (((val/10)%10)<<4)+ (((val/100)%10)<<8) + (((val/1000)%10)<<12);
 	val=temp;
@@ -221,6 +229,8 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 	}
 	if (p->bcd==true) BCD2BIN(p->write_latch);
    	if (p->write_state != 0) {
+		Bitu prev_cntr = p->cntr;
+
 		if (p->write_latch == 0) {
 			if (p->bcd == false) p->cntr = 0x10000;
 			else p->cntr=9999;
@@ -235,6 +245,41 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 		}
 		p->start=PIC_FullIndex();
 		p->delay=(1000.0f/((float)PIT_TICK_RATE/(float)p->cntr));
+
+		switch (pit_hack_mode) {
+			case PIT_HACK_PROJECT_ANGEL_DEMO:
+				if (counter == 0) {
+					/* Project Angel PIT hack. The demo is constantly fiddling around with
+					 * the counter value in ways that can sometimes cause the demo to hang,
+					 * or in ways that prevent the demo from starting or can cause the demo
+					 * to run at half speed.
+					 *
+					 * Perhaps the programmers learned the hard way that switching the counter
+					 * rapidly between 18Hz and 421Hz is not a good way to run a demo.
+					 *
+					 * We force the counter value to one of two values to forcibly stabilize
+					 * the demo's timing. Doing this also fixes the VGA tearline that is
+					 * visible in the demo's Mode-X parts.
+					 *
+					 * I also noticed that without this hack, the music in the demo is prone
+					 * to skip forward suddenly during BIOS video mode changes, which this
+					 * hack also resolves.
+					 *
+					 * NTS: We do not modify the counter value, because that breaks the demo
+					 * too when it reads back a different value than it wrote. Instead, we
+					 * ignore the counter value it wrote and force a delay value. */
+					/* NTS: We also force the higher rate if we detect that it wrote 18.2Hz
+					 * more than once, as that is a sign it hung at startup */
+					if (p->cntr > 64000 && prev_cntr > 64000)
+						fprintf(stderr,"PIT hack for Project Angel: 18.2Hz was written twice---did the demo hang? Forcing timer to higher rate.\n");
+
+					if (p->cntr > 64000 && prev_cntr <= 64000)
+						p->delay=(1000.0f/((float)PIT_TICK_RATE/(float)65536));
+					else
+						p->delay=(1000.0f/((float)PIT_TICK_RATE/(float)2834));
+				}
+				break;
+		}
 
 		switch (counter) {
 		case 0x00:			/* Timer hooked to IRQ 0 */
@@ -418,6 +463,8 @@ private:
 	IO_WriteHandleObject WriteHandler[4];
 public:
 	TIMER(Section* configuration):Module_base(configuration){
+		Section_prop * section=static_cast<Section_prop *>(configuration);
+
 		WriteHandler[0].Install(0x40,write_latch,IO_MB);
 	//	WriteHandler[1].Install(0x41,write_latch,IO_MB);
 		WriteHandler[2].Install(0x42,write_latch,IO_MB);
@@ -459,6 +506,16 @@ public:
 		pit[0].delay=(1000.0f/((float)PIT_TICK_RATE/(float)pit[0].cntr));
 		pit[1].delay=(1000.0f/((float)PIT_TICK_RATE/(float)pit[1].cntr));
 		pit[2].delay=(1000.0f/((float)PIT_TICK_RATE/(float)pit[2].cntr));
+
+		Prop_multival* p = section->Get_multival("pit hack");
+		std::string type = p->GetSection()->Get_string("type");
+
+		if (type == "project_angel_demo") {
+			pit_hack_mode = PIT_HACK_PROJECT_ANGEL_DEMO;
+			fprintf(stderr,"PIT: Hacking PIT emulation to stabilize Project Angel demo\n");
+		}
+		else
+			pit_hack_mode = PIT_HACK_NONE;
 
 		latched_timerstatus_locked=false;
 		gate2 = false;
