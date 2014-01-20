@@ -33,6 +33,7 @@
 #include "dos_network.h"
 
 bool enable_dbcs_tables = true;
+bool enable_filenamechar = true;
 
 Bit16u DOS_INFOBLOCK_SEG=0x80;	// sysvars (list of lists)
 Bit16u DOS_CONDRV_SEG=0xa0;
@@ -1412,6 +1413,7 @@ public:
 		Section_prop * section=static_cast<Section_prop *>(configuration);
 
 		enable_dbcs_tables = section->Get_bool("dbcs");
+		enable_filenamechar = section->Get_bool("filenamechar");
 		private_segment_in_umb = section->Get_bool("private area in umb");
 		dynamic_dos_kernel_alloc = section->Get_bool("dynamic kernel allocation");
 
