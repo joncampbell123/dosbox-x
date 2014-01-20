@@ -7,7 +7,7 @@ Requirements:
  - realbig16=true (the demo apparently uses Flat Huge Real Mode i.e. jumping to real mode with B (big) set in code segment)
  - at least cycles count 12000
  - gus=true
- - machine=svga_s3 (will not start with machine=vgaonly)
+ - machine=svga_s3 or machine=svga_et4000 (will not start with machine=vgaonly)
  - pit hack=project_angel_demo (this setting forces the PIT to fixed values that forces the demo to run and keep time properly)
 
 Note that the comments below apply to the demo when run without the PIT hack. The PIT hack forces the timer to tick

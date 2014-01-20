@@ -1,0 +1,12 @@
+"Dope" demo notes
+ - PIT 0 timer runs at a constant 72.503Hz. Hacking it to run faster (421Hz for example)
+   however actually makes the demo run slower!
+ - The demo appears to use an alternate time source for it's music, perhaps interrupts
+   from the GUS?
+
+"Dope" demo bugs (not DOSBox's fault)
+ - Hitting spacebar during the blue-greenish rotating blob just after the spinning "C"
+   logo part does NOT cause the demo to exit. It causes the demo to jump immediately
+   to the fire clouds section, render a glitchy cross-fade between what was on the
+   screen and the clouds, then, once the fire clouds complete, the demo exits. Weird.
+
