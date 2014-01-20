@@ -1,0 +1,107 @@
+Project Angel
+
+Requirements:
+ - xms=false (the demo will not start if HIMEM.SYS is present)
+ - emm=false (the demo will not start if EMM386.EXE is present)
+ - extended memory
+ - realbig16=true (the demo apparently uses Flat Huge Real Mode i.e. jumping to real mode with B (big) set in code segment)
+ - at least cycles count 12000
+ - gus=true
+ - machine=svga_s3 (will not start with machine=vgaonly)
+
+Demo comments:
+ - This demo is very picky about timing. In fact, when you run the
+   demo, one of three things will happen.
+
+   1) The demo will hang
+
+   2) The demo animations and music will play at 1/2 speed
+
+   3) The demo will actually run at normal speed
+
+   If it does manage to run at full speed, there is a chance that
+   the demo will lose timing and suddenly run slow, or stop entirely.
+
+   To put it another way, the reason this demo is so hard to run
+   (besides the Huge Flat Real Mode hack) is that it is very picky
+   with the PIT 0 system timer. If DOSBox's debug messages are
+   correct, the demo is *constantly* fiddling with the PIT timer
+   and flitting rapidly between 18.2Hz and about 400-520Hz. It seems
+   to auto-adjust, to what exactly I don't know.
+
+   You can discern from the PIT timer what happened to the demo:
+
+   1) The demo will hang
+
+      If DOSBox debug messages are compiled in, you will see:
+
+      976659850: PIT:PIT 0 Timer at 18.2065 Hz mode 3
+
+      976747898: PIT:PIT 0 Timer at 22095.9628 Hz mode 3
+
+      976775657: PIT:PIT 0 Timer at 18.2065 Hz mode 3
+
+      977921776: PIT:PIT 0 Timer at 7747.9351 Hz mode 3
+
+      977994511: PIT:PIT 0 Timer at 18.2065 Hz mode 3
+
+      978082575: PIT:PIT 0 Timer at 22095.9628 Hz mode 3
+
+      978110385: PIT:PIT 0 Timer at 18.2065 Hz mode 3
+
+   2) The demo animations and music will play at 1/2 speed
+
+      Again, DOSBox debug messages will show:
+
+      353328489: PIT:PIT 0 Timer at 284.0233 Hz mode 3
+
+      355019387: PIT:PIT 0 Timer at 18.2065 Hz mode 3
+
+      355022154: PIT:PIT 0 Timer at 277.4197 Hz mode 3
+
+      356752840: PIT:PIT 0 Timer at 18.2065 Hz mode 3
+
+      356752840: PIT:PIT 0 Timer at 284.0233 Hz mode 3
+
+      358443738: PIT:PIT 0 Timer at 18.2065 Hz mode 3
+
+      358446505: PIT:PIT 0 Timer at 277.4197 Hz mode 3
+
+   3) The demo will actually run at normal speed
+
+      Again, DOSBox debug messages will show:
+
+      98621248: PIT:PIT 0 Timer at 527.4898 Hz mode 3
+
+      99683536: PIT:PIT 0 Timer at 18.2065 Hz mode 3
+
+      99771158: PIT:PIT 0 Timer at 551.8881 Hz mode 3
+
+      100788381: PIT:PIT 0 Timer at 18.2065 Hz mode 3
+
+      101290855: PIT:PIT 0 Timer at 527.4898 Hz mode 3
+
+      102353108: PIT:PIT 0 Timer at 18.2065 Hz mode 3
+
+      102440734: PIT:PIT 0 Timer at 551.8881 Hz mode 3
+
+      For some scenes, the demo will converge on 421Hz,
+      and for other scenes, will rapidly alternate
+      between 527.48Hz and 551.881Hz.
+
+      It is possible at any time, if timing bugs happen
+      to line up, for the demo to run normally, then suddenly
+      lose control of the timer and slow to a crawl or
+      stop.
+
+      Also noteworthy is that compiling DOSBox in debug
+      mode (C_DEBUG) increases the chances of the demo
+      running normally. Non-debug builds are much more
+      likely to fall into the 1/2-speed situation.
+
+ - VGA mode-change glitches.
+
+   I also noticed that the music will audibly skip or
+   miss a beat when one scene transitions to another and
+   a mode change is involved.
+
