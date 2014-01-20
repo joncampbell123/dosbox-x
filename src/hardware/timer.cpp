@@ -456,6 +456,31 @@ bool TIMER_GetOutput2() {
 	return counter_output(2);
 }
 
+#include "programs.h"
+
+void PIT_HACK_Set_type(std::string type) {
+	if (type == "project_angel_demo") {
+		pit_hack_mode = PIT_HACK_PROJECT_ANGEL_DEMO;
+		fprintf(stderr,"PIT: Hacking PIT emulation to stabilize Project Angel demo\n");
+	}
+	else {
+		pit_hack_mode = PIT_HACK_NONE;
+		fprintf(stderr,"PIT: Hacks disabled\n");
+	}
+}
+
+class PITHACK_Program : public Program {
+public:
+	void Run(void) {
+		if (cmd->FindString("SET",temp_line,false)) {
+			PIT_HACK_Set_type(temp_line);
+		}
+	}
+};
+
+static void PITHACK_ProgramStart(Program * * make) {
+	*make=new PITHACK_Program;
+}
 
 class TIMER:public Module_base{
 private:
@@ -510,12 +535,8 @@ public:
 		Prop_multival* p = section->Get_multival("pit hack");
 		std::string type = p->GetSection()->Get_string("type");
 
-		if (type == "project_angel_demo") {
-			pit_hack_mode = PIT_HACK_PROJECT_ANGEL_DEMO;
-			fprintf(stderr,"PIT: Hacking PIT emulation to stabilize Project Angel demo\n");
-		}
-		else
-			pit_hack_mode = PIT_HACK_NONE;
+		PIT_HACK_Set_type(type);
+		PROGRAMS_MakeFile("PITHACK.COM",PITHACK_ProgramStart);
 
 		latched_timerstatus_locked=false;
 		gate2 = false;
