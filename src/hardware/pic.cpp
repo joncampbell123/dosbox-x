@@ -657,15 +657,7 @@ extern void *Serial_EventHandler_PIC_Event;				// Serialport.cpp
 extern void *delayed_press_PIC_Event;							// Shell_cmds.cpp
 extern void *delayed_release_PIC_Event;
 extern void *PIT0_Event_PIC_Event;								// Timer.cpp
-extern void *VGA_DisplayStartLatch_PIC_Event;			// Vga.cpp
-extern void *VGA_DrawEGASingleLine_PIC_Event;
-extern void *VGA_DrawPart_PIC_Event;
-extern void *VGA_DrawSingleLine_PIC_Event;
-extern void *VGA_Other_VertInterrupt_PIC_Event;
-extern void *VGA_PanningLatch_PIC_Event;
 extern void *VGA_SetupDrawing_PIC_Event;
-extern void *VGA_VertInterrupt_PIC_Event;
-extern void *VGA_VerticalTimer_PIC_Event;
 extern void *Voodoo_UpdateScreen_PIC_Event;				// Voodoo_main.cpp
 extern void *Voodoo_VerticalTimer_PIC_Event;
 
@@ -706,15 +698,7 @@ const void *pic_state_event_table[] = {
 	delayed_press_PIC_Event,
 	delayed_release_PIC_Event,
 	PIT0_Event_PIC_Event,
-	VGA_DisplayStartLatch_PIC_Event,
-	VGA_DrawEGASingleLine_PIC_Event,
-	VGA_DrawPart_PIC_Event,
-	VGA_DrawSingleLine_PIC_Event,
-	VGA_Other_VertInterrupt_PIC_Event,
-	VGA_PanningLatch_PIC_Event,
 	VGA_SetupDrawing_PIC_Event,
-	VGA_VertInterrupt_PIC_Event,
-	VGA_VerticalTimer_PIC_Event,
 	Voodoo_UpdateScreen_PIC_Event,
 	Voodoo_VerticalTimer_PIC_Event,
 
