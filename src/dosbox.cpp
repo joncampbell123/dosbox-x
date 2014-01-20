@@ -620,10 +620,10 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("aspect",Property::Changeable::Always,false);
 	Pbool->Set_help("Do aspect correction, if your output method doesn't support scaling this can slow things down!.");
 
-	Pbool = secprop->Add_bool("linewise",Property::Changeable::Always,false);
+	Pbool = secprop->Add_bool("linewise",Property::Changeable::Always,true);
 	Pbool->Set_help("Draw the display line by line. Needed for certain special graphics effects in games and demos. Can be changed at runtime but will be put in effect at the next mode switch.");
 
-	Pbool = secprop->Add_bool("char9",Property::Changeable::Always,false);
+	Pbool = secprop->Add_bool("char9",Property::Changeable::Always,true);
 	Pbool->Set_help("Allow 9-pixel wide text mode fonts.");
 
 	Pbool = secprop->Add_bool("multiscan",Property::Changeable::Always,false);
