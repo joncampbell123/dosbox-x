@@ -1,0 +1,27 @@
+VGA BUG: Color palette error, last color of the palette, usually if it's white,
+         instead usually comes out black.
+
+ - Surprise! productions, The Good, The Bad, & The Ugly
+     - Happens at the demo part with the gargoyle demon art thing that warps
+       vertially: the failure appears as black splotches on his wings that SHOULD
+       be white.
+
+
+VGA BUG: Exotic VRAM clearing tricks do not work, leaving "garbage" on the screen
+
+ - Surprise! productions, The Good, The Bad, & The Ugly
+     - There are two parts with rotating wireframe meshes that make use of VGA
+       palette trickry to create "motion blur". Failure to clear the screen results
+       in a wireframe mesh with a border of garbage pixels that flicker.
+
+ - Optic Nerve (demo)
+     - At the start of each demo part, when displaying the title of that part, the
+       demo fails to clear the screen. Result: demo title with contents of the
+       previous screen or title screen around it, garbled due to palette mismatch.
+
+ - Abaddon: Cycling!
+     - Failure to clear the screen is visible when the VGA split-screen pans upward.
+       The "loading" graphic and other garbage contents are visible below the
+       animated VU meters where on real hardware that part of the screen would be
+       blank.
+
