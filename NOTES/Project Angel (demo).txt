@@ -8,6 +8,12 @@ Requirements:
  - at least cycles count 12000
  - gus=true
  - machine=svga_s3 (will not start with machine=vgaonly)
+ - pit hack=project_angel_demo (this setting forces the PIT to fixed values that forces the demo to run and keep time properly)
+
+Note that the comments below apply to the demo when run without the PIT hack. The PIT hack forces the timer to tick
+at one of two time intervals in a way that forces the demo to run at the correct rate and helps prevent the demo
+from hanging at startup. For whatever reason, the PIT hack also resolves issues with music skipping forward during
+VGA mode changes, and eliminates the visible VGA tearline in the Mode-X parts.
 
 Demo comments:
  - This demo is very picky about timing. In fact, when you run the

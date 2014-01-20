@@ -1,3 +1,1 @@
-Project Angel (demo):
- - Tearline in VGA Mode-X sections of the demo (when demo matches refresh rate)
 
