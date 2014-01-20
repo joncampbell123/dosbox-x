@@ -1168,6 +1168,9 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("filenamechar",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Enable filename char table");
 
+	Pbool = secprop->Add_bool("collating and uppercase",Property::Changeable::WhenIdle,true);
+	Pbool->Set_help("Enable collating and uppercase table");
+
 	Pint = secprop->Add_int("files",Property::Changeable::OnlyAtStart,127);
 	Pint->Set_help("Number of file handles available to DOS programs. (equivalent to \"files=\" in config.sys)");
 

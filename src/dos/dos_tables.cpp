@@ -142,6 +142,7 @@ static Bit8u country_info[0x22] = {
 
 extern bool enable_dbcs_tables;
 extern bool enable_filenamechar;
+extern bool enable_collating_uppercase;
 
 void DOS_SetupTables(void) {
 	Bit16u seg;Bitu i;
@@ -217,13 +218,18 @@ void DOS_SetupTables(void) {
 	}
 	/* COLLATING SEQUENCE TABLE + UPCASE TABLE*/
 	// 256 bytes for col table, 128 for upcase, 4 for number of entries
-	dos.tables.collatingseq=RealMake(DOS_GetMemory(25),0);
-	mem_writew(Real2Phys(dos.tables.collatingseq),0x100);
-	for (i=0; i<256; i++) mem_writeb(Real2Phys(dos.tables.collatingseq)+i+2,i);
-	dos.tables.upcase=dos.tables.collatingseq+258;
-	mem_writew(Real2Phys(dos.tables.upcase),0x80);
-	for (i=0; i<128; i++) mem_writeb(Real2Phys(dos.tables.upcase)+i+2,0x80+i);
- 
+	if (enable_collating_uppercase) {
+		dos.tables.collatingseq=RealMake(DOS_GetMemory(25),0);
+		mem_writew(Real2Phys(dos.tables.collatingseq),0x100);
+		for (i=0; i<256; i++) mem_writeb(Real2Phys(dos.tables.collatingseq)+i+2,i);
+		dos.tables.upcase=dos.tables.collatingseq+258;
+		mem_writew(Real2Phys(dos.tables.upcase),0x80);
+		for (i=0; i<128; i++) mem_writeb(Real2Phys(dos.tables.upcase)+i+2,0x80+i);
+	}
+	else {
+		dos.tables.collatingseq = 0;
+		dos.tables.upcase = 0;
+	}
 
 	/* Create a fake FCB SFT */
 	seg=DOS_GetMemory(4);

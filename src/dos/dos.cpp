@@ -1396,6 +1396,7 @@ static Bitu DOS_26Handler(void) {
 }
 
 extern bool mainline_compatible_mapping;
+bool enable_collating_uppercase = true;
 bool keep_private_area_on_boot = false;
 bool dynamic_dos_kernel_alloc = false;
 bool private_segment_in_umb = true;
@@ -1415,6 +1416,7 @@ public:
 		enable_dbcs_tables = section->Get_bool("dbcs");
 		enable_filenamechar = section->Get_bool("filenamechar");
 		private_segment_in_umb = section->Get_bool("private area in umb");
+		enable_collating_uppercase = section->Get_bool("collating and uppercase");
 		dynamic_dos_kernel_alloc = section->Get_bool("dynamic kernel allocation");
 
 		if (dynamic_dos_kernel_alloc) {
