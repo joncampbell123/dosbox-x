@@ -1162,13 +1162,13 @@ void DOSBOX_Init(void) {
 	Pstring = secprop->Add_string("keyboardlayout",Property::Changeable::WhenIdle, "auto");
 	Pstring->Set_help("Language code of the keyboard layout (or none).");
 
-	Pbool = secprop->Add_bool("dbcs",Property::Changeable::WhenIdle,true);
+	Pbool = secprop->Add_bool("dbcs",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("Enable DBCS table");
 
-	Pbool = secprop->Add_bool("filenamechar",Property::Changeable::WhenIdle,true);
+	Pbool = secprop->Add_bool("filenamechar",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("Enable filename char table");
 
-	Pbool = secprop->Add_bool("collating and uppercase",Property::Changeable::WhenIdle,true);
+	Pbool = secprop->Add_bool("collating and uppercase",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("Enable collating and uppercase table");
 
 	Pint = secprop->Add_int("files",Property::Changeable::OnlyAtStart,127);
