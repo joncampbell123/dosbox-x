@@ -1,0 +1,4 @@
+Drums & Pipes (musicdisk)
+
+- DMA-based Sound Blaster support is buggy. For best results use Non-DMA Sound Blaster.
+
