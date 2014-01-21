@@ -25,3 +25,25 @@ VGA BUG: Exotic VRAM clearing tricks do not work, leaving "garbage" on the scree
        animated VU meters where on real hardware that part of the screen would be
        blank.
 
+VGA BUG: Failure to save and restore VGA text screen contents
+
+ - Microsoft Windows 95 boot logo
+     - Windows 95 is able to show the boot logo, but when restoring the VGA text
+       console, the contents are all messed up. Why?
+
+ - Microsoft Windows 3.0/3.1/95/98
+     - Running the DOS prompt in a window works, until you move the mouse cursor
+       over or near the DOS window. If you go back to fullscreen, the extended
+       character set is missing. If you go back and forth 2 or more times, the
+       character font is missing entirely.
+     - If any DOS program writes to the screen the contents appear as garbage at
+       the top of the Windows desktop. Whatever normally prevents the DOS program
+       from affecting the screen by Windows is not triggering in DOSBox and it
+       may be the source of corrupted VGA states.
+     - Weird crashes when you move the mouse cursor over the window do NOT happen
+       in Windows 3.11 Windows for Workgroups if 32-bit disk and file access is
+       enabled.
+
+VGA BUG: Switching to the DOSBox keymapper, then back, results in failure to redraw
+         emulated VGA output.
+
