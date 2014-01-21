@@ -25,6 +25,10 @@ VGA BUG: Exotic VRAM clearing tricks do not work, leaving "garbage" on the scree
        animated VU meters where on real hardware that part of the screen would be
        blank.
 
+ - Impact Studios: Legend
+     - Failure to clear the screen causes 3D dot fields to overdraw into an orange
+       flickering ball.
+
 VGA BUG: Failure to save and restore VGA text screen contents
 
  - Microsoft Windows 95 boot logo
