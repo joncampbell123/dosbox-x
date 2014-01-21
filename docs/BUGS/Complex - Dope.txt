@@ -20,3 +20,7 @@ BUG: You can only run the demo once. Additional attempts log "illegal instructio
    Warning: Illegal read from b66b1da, CS:IP 8: b66700a
    Warning: Illegal read from b66b1db, CS:IP 8: b66700a
 
+ - This apparently only happens if "private area size" is less than 16384, regardless of
+   "mainline compatible mapping" and "private area in umb" settings. Hm... is DOSBox
+   writing things beyond the block of private space it just allocated?
+
