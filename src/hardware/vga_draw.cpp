@@ -1422,8 +1422,8 @@ void VGA_SetupDrawing(Bitu /*val*/) {
     vga.draw.linewise_effect = vga.draw.linewise_set;
 
 	if (vga.draw.linewise_effect) {
-		vga.draw.multiscan_effect = vga.draw.multiscan_set;
-	} else vga.draw.multiscan_effect = false;
+		vga.draw.doublescan_effect = vga.draw.doublescan_set;
+	} else vga.draw.doublescan_effect = false;
 
 	// set the drawing mode
 	switch (machine) {
@@ -1761,7 +1761,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 			}
 			break;
 		default:
-			if (vga.draw.multiscan_effect) {
+			if (vga.draw.doublescan_effect) {
 				// don't merge doublescanned lines
 				if (vga.crtc.maximum_scan_line&0x80) {
 					// double scan method 1

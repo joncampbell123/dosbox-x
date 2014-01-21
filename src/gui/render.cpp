@@ -691,7 +691,7 @@ void RENDER_Init(Section * sec) {
 
 	// line-by-line emulation
 	vga.draw.linewise_set=section->Get_bool("linewise");
-	vga.draw.multiscan_set=section->Get_bool("multiscan");
+	vga.draw.doublescan_set=section->Get_bool("doublescan");
 	vga.draw.char9_set=section->Get_bool("char9");
 
 	//For restarting the renderer.

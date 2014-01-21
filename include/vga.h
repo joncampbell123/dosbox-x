@@ -170,8 +170,8 @@ typedef struct {
 	bool vga_override;
 	bool linewise_set;
 	bool linewise_effect;
-	bool multiscan_set;
-	bool multiscan_effect;
+	bool doublescan_set;
+	bool doublescan_effect;
 	bool char9_set;
 	Bitu bpp;
 	double clock;

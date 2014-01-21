@@ -640,8 +640,13 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("char9",Property::Changeable::Always,true);
 	Pbool->Set_help("Allow 9-pixel wide text mode fonts.");
 
-	Pbool = secprop->Add_bool("multiscan",Property::Changeable::Always,false);
-	Pbool->Set_help("Set this value to true to allow zooming gfx effects used in demos. It will disable several options such as scalers though.");
+	/* NTS: In the original code borrowed from yhkong, this was named "multiscan". All it really does is disable
+	 *      the doublescan down-rezzing DOSBox normally does with 320x240 graphics so that you get the full rendition of what a VGA output would emit. */
+	Pbool = secprop->Add_bool("doublescan",Property::Changeable::Always,true);
+	Pbool->Set_help("If set, doublescanned output emits two scanlines for each source line, in the\n"
+			"same manner as the actual VGA output (320x200 is rendered as 640x400 for example).\n"
+			"If clear, doublescanned output is rendered at the native source resolution (320x200 as 320x200).\n"
+			"This affects the raster PRIOR to the software or hardware scalers. Choose wisely.\n");
 
 	Pmulti = secprop->Add_multi("scaler",Property::Changeable::Always," ");
 	Pmulti->SetValue("normal2x");
