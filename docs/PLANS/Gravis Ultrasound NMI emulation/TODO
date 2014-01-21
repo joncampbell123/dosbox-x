@@ -1,0 +1,31 @@
+Everything about the GUS so far is about 99% accurately emulated in DOSBox!
+There are some things missing though and some inaccuracies that need to be
+addressed:
+
+ - Start/end looping registers---when exactly does the chip stop and compare
+   the start/end values to loop? DOSBox I think does it differently from an
+   actual GUS.
+
+ - NMI emulation. This is the one area DOSBox does not do. When enabled on
+   the GUS by SBOS or MEGAEM, accessing certain ports triggers a NMI
+   interrupt. The question to ask is: how does the NMI interrupt system
+   work?
+
+   When the card signals NMI, does the CPU immediately stop what it's
+   doing and execute NMI? Is the signal that fast even on PCI-ISA motherboards?
+
+   Does the handler then read the I/O port being accessed from DX or does the
+   GUS have some way to convey what I/O port was accessed and how?
+
+   Does the NMI handler have to clear or acknowledge anything to the GUS?
+
+   How do you enable this NMI function on the GUS? What registers do you
+   write?
+
+   Ideally, I'd like to implement this to the extent that DOSBox-X's NMI
+   emulation is an accurate reproduction of the NMI interrupt from a GUS
+   on actual hardware, to the point that Gravis's own DOS drivers can
+   work with it. Yes, that would also allow DOSBox to run SBOS and the
+   ungodly abomination known as MEGA-EM, so that future generations can
+   know what it was like.
+

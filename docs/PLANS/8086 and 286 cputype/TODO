@@ -1,0 +1,23 @@
+DOSBox/DOSBox-X has an excellement implementation
+of a 386, 486, and pentium core.
+
+What would help make the emulation complete are
+additional cputype settings for DOS games or
+programs that were too reliant on early processors.
+
+cputype=8086                  Intel 8088/8086 emulation (no Invalid Opcode, no 186/286 instructions)
+cputype=286                   Intel 286 emulation (no 32-bit instructions, no 32-bit protected mode, supports 286 LOADALL instruction)
+
+Additional changes to the current DOSBox cores:
+
+Configuration option to enable/disable FPU emulation. If you want to
+emulate an early 386 with no 387 (which was common), then you can
+disable FPU emulation to do that.
+
+For cputype=386:
+ - 386 LOADALL emulation
+ - 386 floating point exception emulation (if not already there)
+ - Make sure you can't toggle the AC bit. Mainline DOSBox had a bug where cputype=386 did not
+   disable the AC bit and millions of DOS games and Windows 3.1 still thought they were running
+   on a 486.
+
