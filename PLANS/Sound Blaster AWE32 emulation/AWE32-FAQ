@@ -1,0 +1,1267 @@
+                    Frequently Asked Questions for SB AWE32
+                    =======================================
+
+This is a frequently asked question document for the Creative SB AWE32 sound
+card. This document summarizes many frequently asked questions and answers
+about the SB AWE32. If you have a question, please check this file before
+calling Creative Technical Support as you may find the answer contained in
+this document.
+
+This FAQ is organized into the following sections:
+
+     [A]     SB AWE32 in General
+     [B]     Editing Tools
+     [C]     Programming Information
+     [D]     SoundFont(TM) Banks
+     [E]     Introduction to the EMU8000 chip
+     [F]     How do I ...
+     [G]     References
+     [H]     NRPN Table
+
+Before you continue ...
+
+This document assumes you have a basic understanding of how MIDI works, the
+different MIDI messages, and how your MIDI sequencer works. If you are not
+familiar with these topics, please consider consulting a friend who has
+experience with MIDI, or consulting books on MIDI. A list of recommended
+reading on MIDI can be found in section G of this document.
+
+Contents
+========
+
+SECTION A - SB AWE32 IN GENERAL
+
+1.  What is the SB AWE32? How does it differ from the SB16?
+2.  How much memory is shipped with the SB AWE32 card?
+3.  What is the recommended SIMM memory access speed?
+4.  How do I upgrade the memory on the card?
+5.  What are the uses of the 512 KB DRAM on the SB AWE32?
+6.  Would adding DRAM to the SB AWE32 increase the performance of WAVE
+    file editing or manipulation?
+7.  Is it possible to use AWE32 sounds (16 channels) together with FM
+    sounds from the OPL-3 chip (16 channels) in CakeWalk?
+8.  How many MIDI channels can the SB AWE32 handle in Windows?
+9.  What MIDI sequencers will work with the SB AWE32? Are special drivers
+    required?
+10. Are there any plans for OS/2 and Windows NT SB AWE32 drivers?
+11. What I/O port addresses are used by the EMU8000?
+12. Why doesn't the EMU8000 have a built in MIDI interpreter?
+13. Does the SB AWE32 support MIDI Sample Dump to transfer samples to the
+    EMU8000?
+14. What is "CC0" documented in Appendix G-4 and G-5 of the SB AWE32
+    Getting Started Manual? How are these variation tones accessed?
+15. What "drum kits" are available in GS mode?
+16. Does the SB AWE32 respond to MIDI aftertouch?
+17. My PC system does not have a working NMI. What can I do to use AWEUTIL?
+18. Is there a WaveBlaster upgrade option on the SB AWE32?
+19. What is the benefit of adding a WaveBlaster to the SB AWE32?
+20. Is it possible to load AWEUTIL into high memory?
+21. Does AWEUTIL have to stay memory resident?
+22. What are the long term plans to solve the problem with DOS extender games?
+23. Will software written for the SB16 work with the SB AWE32?
+24. Does Creative have any plans for a SCSI version of the SB AWE32?
+25. What CD-ROM drives does the SB AWE32 support?
+26. What are the different reverb and chorus variations available on the
+    SB AWE32?
+27. What are the undocumented "JP6," "JP8" and "JP9" jumpers on the card?
+
+SECTION B - EDITING TOOL
+
+1.  Will there be a preset editor for the SB AWE32?
+2.  Will it be possible to patch multiple sounds across different keys,
+    such as a drum kit?
+3.  How are new instruments created on the SB AWE32?
+4.  What functionality will the preset editor offer?
+5.  What is SoundFont Bank Maker for SB AWE32? How do I get this
+    application?
+6.  Will the bank editing software load samples from other systems e.g.
+    Akai S1000 or Yamaha TG55?
+
+SECTION C - PROGRAMMING INFORMATION
+
+1.  Is programming information available for the SB AWE32?
+2.  Is the effect engine on the SB AWE32 programmable?
+3.  When will the developer kit become available? What will be the cost of
+    the developer kit?
+
+SECTION D - SOUNDFONT BANK
+
+1.  What are SoundFont Collections?
+2.  How do SoundFont Banks work?
+3.  When will SoundFont Banks become available?
+4.  What can I do with SoundFont Banks?
+5.  Will having 28 MB on the SB AWE32 improve the sound quality over a
+    standard 512 KB SB AWE32?
+
+SECTION E - INTRODUCTION TO THE EMU8000 CHIP
+
+SECTION F - HOW DO I ...
+
+1.  How do I make use of RPN documented in the SB AWE32 MIDI Implementation
+    chart?
+2.  How do I change an instrument's sound parameter in real time?
+3.  How do I select the SB AWE32's reverb and chorus variation type through
+    MIDI?
+4.  How can I maximize my system's memory so that I still have plenty of
+    room to run games after installing the SB AWE32?
+5.  How do I load a SoundFont Bank?
+6.  How do I get the latest drivers for the SB AWE32?
+
+SECTION G - REFERENCES
+
+SECTION H - SB AWE32 NRPN IMPLEMENTATION
+
+-----===-----===-----===-----===-----===-----===-----===-----===-----===-----
+
+    Section A - SB AWE32
+
+1.  What is the SB AWE32? How does it differ from the SB16?
+
+    The SB AWE32 is a standard SB16 MultiCD with the EMU 8000 Enhanced
+    WavEffect music synthesizer chip. The card includes all the standard
+    SB16 features. Additionally, the SB AWE32 includes the Advanced Signal
+    Processor and multiple interfaces supporting Creative, Mitsumi and Sony
+    CD-ROM drives.
+
+    The EMU8000 is a sub-system offering high quality music synthesis using
+    advanced wave effects technology. It comes with an onboard dedicated
+    effect engine. The effect engine provides high quality effects like
+    reverb and chorus to MIDI playback. The EMU8000 supports up to 32
+    voices, and the effect amount for each voice can be controlled via MIDI.
+    The EMU8000 comes integrated with 1MB of General MIDI samples and 512KB
+    of DRAM for additional sample downloading. It can address up to 28 MB of
+    external DRAM memory. There are two SIMM sockets on board for DRAM
+    expansion. The SB AWE32 supports General MIDI, Roland GS and Sound
+    Canvas MT-32 emulation.
+
+    Note: MT-32 Emulation on the SB AWE32 is similar to that of the Sound
+          Canvas; e.g., MT-32 sysex is not supported.
+
+2.  How much memory is shipped with the SB AWE32 card?
+
+    The card ships with 1 MB of General MIDI ROM samples and 512 KB of DRAM
+    for user sample downloading. There is a pair of SIMM sockets for DRAM
+    upgrades.
+
+3.  What is the recommended SIMM memory access speed?
+
+    Hardware specifications call for SIMM modules with 80 nanosecond or
+    better access times.
+
+4.  How do I upgrade the memory on the card?
+
+    To upgrade the memory, you can purchase standard SIMM modules and insert
+    them into the SIMM sockets provided on the SB AWE32. (If you are not
+    familiar with inserting SIMM modules, check with a technician where you
+    purchased the SIMM's. They should be able to help). You will also need
+    to reconfigure the memory selector jumper on the SB AWE32 card.
+    The SIMM socket on the SB AWE32 were designed to accommodate industry
+    standard 30-pin SIMM modules. You will need to insert two SIMMs of the
+    same memory size into both of the sockets. The available memory options
+    are:
+
+          2  MB (using 2 1 MB SIMMs)
+          8  MB (using 2 4 MB SIMMs)
+          32 MB   (using 2 16 MB SIMMs)
+
+    Note that you cannot mix different size (that is, 2 MB and 8 MB) SIMM
+    modules together on a single SB AWE32 card.
+
+    There are also 72 pins SIMM modules on the market. Such SIMMs can be
+    found on motherboards that use 8 or 16 megabit SIMMs or as cache RAM.
+    They are incompatible with the SIMM sockets on the SB AWE32 card.
+    The EMU8000 treats the first 4 MB of its DRAM address space as ROM
+    memory. As a result, when you insert two 16 MB SIMMs onto the SB AWE32,
+    only 28 MB will be addressable.
+
+5.  What are the uses of the 512 KB DRAM on the SB AWE32?
+
+    The on-board 512 KB of memory is used to hold user samples. In GS
+    synthesizer mode, this 512 KB is used to hold the sound effects of GS.
+    In GM synthesizer mode, the 512 KB DRAM is free, so it can hold
+    SoundFont banks containing samples.
+
+    MT-32 Synthesizer mode uses a small portion of the 512 KB of memory,
+    therefore you can still load your own SoundFont bank samples into the
+    rest of the free RAM space.
+
+6.  Would adding DRAM to the SB AWE32 increase the performance of WAVE
+    file editing or manipulation?
+
+    Addition of SIMM DRAM to the SB AWE32 will allow you to accommodate more
+    SoundFont bank data. This, however, will not increase the performance of
+    WAVE file editing or manipulation as the latter does not make use of the
+    SIMM DRAM on the SB AWE32.
+
+7.  Is it possible to use AWE32 sounds (16 channels) together with FM sounds
+    from the OPL-3 chip (16 channels) in CakeWalk?
+
+    You can use both the AWE32 sounds AND the OPL-3 FM sounds together in
+    CakeWalk. As both the AWE32 and OPL-3 appear under Microsoft Windows as
+    two separate MIDI devices, you can play both devices simultaneously. The
+    following is a step-by-step guide:
+
+    1.  Startup CakeWalk.
+    2.  Select "Settings", then "MIDI Devices"
+    3.  You will see a dialog box with MIDI IN devices on the left, and
+        MIDI OUT devices on the right. Click on both "Sound Blaster AWE32
+        MIDI Synth" and "Voyetra Super Sapi FM Driver."
+    4.  Select "OK"
+    5.  Activate the "Track/Measure" Window.
+    6.  Locate the "Port" column in the Track/Measure Windows.
+    7.  If you want a track to be playing back using AWE32, double click
+        on the track's "Port" section, and select "1:Sound Blaster AWE32
+        MIDI Synth." On the other hand if you want the track to be playing
+        back using the OPL-3 then select "2:Voyetra Super Sapi FM Driver."
+
+    You can repeat steps 6 and 7 on other CakeWalk tracks to assign the
+    output port as desired.
+
+8.  How many MIDI channels can the SB AWE32 handle in Windows?
+
+    Under Windows, the SB AWE32 has two MIDI synthesizer devices, "EMU8000"
+    and "OPL3". Each MIDI device is capable of supporting 16 MIDI channels,
+    with 15 being melodic, and one channel (MIDI channel 10) being percussive.
+
+9.  What MIDI sequencers will work with SB AWE32? Are special drivers
+    required?
+
+    The SB AWE32 package ships with a Windows SB AWE32 MIDI driver.
+    Therefore, the SB AWE32 can be used with any Windows based MIDI sequencer
+    software. For DOS, the sequencer software needs to have native   SB AWE32
+    support.
+
+10. Are there any plans for OS/2 and Windows NT SB AWE32 drivers?
+
+    The SB AWE32 OS/2 driver is currently in beta stage. The Windows NT
+    driver is currently in development.
+
+11. What I/O port addresses are used by the EMU8000?
+
+    The addresses used by the EMU8000 are relative to the base I/O address
+    of the SB16. EMU8000 Addresses are at 6xxH, AxxH and ExxH. It occupies
+    the first four addresses at each location. For example, if the SB16 base
+    I/O address is 220H, the EMU8000 addresses are 620H-623H, A20H-A23H and
+    E20H-E23H.
+
+12. Why doesn't the EMU8000 have a built in MIDI interpreter?
+
+    One of the design goal of the SB AWE32 is to offer high quality music at
+    an affordable price. The EMU8000 is just like any other synthesizer chip
+    such as OPL2, OPL3 or OPL4. It does not have the capability to interpret
+    MIDI commands. For it to understand MIDI commands, a MIDI interpreter is
+    required, and this will involve adding an additional processor to handle
+    MIDI commands and other components adding to the cost of the product.
+
+    After our analysis of price and performance, we decided that our current
+    implementation offers the best in terms of price as well as performance.
+
+    To support existing games that use MPU-401, we provide a feature known
+    as MIDI feedback using NMI (non-maskable-interrupt) which installs a small
+    TSR program, AWEUTIL. AWEUTIL works by trapping data going out to the
+    MPU-401 port and re-directs it back to the SB AWE32. AWEUTIL provides
+    compatibility with many games that support the MPU-401 interface, but
+    will not always work with protected mode games due to the complicated
+    ways in which DOS extenders handle NMI. Note that you can still continue
+    to play your favorite DOS protected mode game with the on-board OPL3 FM
+    chip.
+
+    We are working closely with the game developer community to port their
+    MIDI driver to support the SB AWE32. We have a porting laboratory at
+    Creative Labs, Inc., where we invite developers to port their drivers
+    to natively support the SB AWE32. We believe that in the near future the
+    SB AWE32 will be widely supported. Currently, we already have support
+    from several major audio driver developers for the SB AWE32 platform.
+
+13. Does the SB AWE32 support MIDI Sample Dump to transfer samples to the
+    EMU8000?
+
+    No. The sample transfer between PC and SB AWE32 is through the PC bus,
+    and does not dump via the SB AWE32 MIDI port.
+
+14. What is "CC0" documented in Appendix G-4 and G-5 of the SB AWE32 Getting
+    Started Manual? How are these variation tones accessed?
+
+    CC0 is short form for Continuous Controller 0 (zero), which is MIDI Bank
+    Change.
+
+    The SB AWE32 offers Sound Canvas compatibility by including the user bank
+    instruments found on the Sound Canvas. User bank instruments are simply
+    instruments of a similar class or variation. For example, General MIDI
+    instrument number 25 is the Steel Acoustic Guitar, and its variation is
+    the Ukulele.
+
+    A user bank tone is just like any other General MIDI instrument. Take for
+    example the Ukulele variation tone. Lets assume you are currently doing
+    MIDI editing under CakeWalk Apprentice, and you sequenced a track that
+    uses Steel Acoustic Guitar. You play the track back, and feel that the
+    Steel Acoustic Guitar does not quite cut it, so you decide to give Ukulele
+    a try. What you would need to do is to insert a MIDI bank change of value
+    8 (the user bank for Ukulele) in that track, follow immediately by a
+    program change of Acoustic Value to select the user bank tone.  What you
+    have just accomplished is to set the MIDI channel in which the Steel
+    Acoustic Guitar instrument is playing to the user bank instrument
+    "Ukulele."
+
+    Note that the user bank instruments are available only in the "GS" mode
+    of the SB AWE32. You can switch to "GS" mode via the Windows AWE Control
+    Panel applet.
+
+15. What "drum kits" are available in GS mode?
+
+    A drum kit is a collection of percussive instruments (snare drum, bass
+    drum, hi-hats, etc.) laid across the entire MIDI keyboard. Under General
+    MIDI, MIDI channel 10 is reserved for percussion instruments. General
+    MIDI defines only one drum kit, which is the Standard Kit. Under the
+    "GM" synth mode of the SB AWE32, channel 10 automatically uses the
+    "Standard Kit". MIDI music would be very boring if everybody used the
+    same drum kit in every MIDI song. Imagine all MIDI songs using the same
+    snare drum and the same bass drum, and you will have an idea of how
+    similar every MIDI song will sound.
+
+    Under the "GS" synth mode of the SB AWE32 there are 11 (including the
+    Standard Drum Kit) different drum kits you can use on MIDI Channel 10.
+    These drum kits are:
+
+    Name                    Program No.     Description
+
+    Standard/Jazz           1 or 33         Standard General MIDI drum kit.
+                                            Jazz is similar to the Standard
+                                            drum kit.
+
+    Room                    9               Similar to that of the Standard
+                                            kit except that it has more room
+                                            ambiance.
+
+    Power                   17              Again similar to that of the
+                                            Standard kit, but with more power
+                                            kick and snare drums.
+
+    Electronic              25              Electronic drum kit. Most of the
+                                            percussion instruments in this
+                                            drum kit are reminiscence of old
+                                            analogue and digital rhythm
+                                            machines (such as the Roland
+                                            TR-707 and TR-909 rhythm machine)
+
+    TR-808                  26              Electronic drum kit, reminiscence
+                                            of the Roland TR-808 rhythm
+                                            machine.
+
+    Brush                   41              Similar to the Standard kit except
+                                            that brushes have been added. This
+                                            kit is mostly used for Jazz MIDI
+                                            pieces.
+
+    Orchestra               49              An immense collection of concert
+                                            drums and timpani.
+
+    SFX                     57              A collection of Sound Effects.
+
+    CM-64/32L               127             Same as the Roland MT-32 drum kit.
+                                            This drum kit contains standard
+                                            percussion at the lower range of
+                                            the keyboard, and sound effects
+                                            at the higher range of the
+                                            keyboard.
+
+    Drum kits are very easy to access under MIDI. Each drum kit is essentially
+    an instrument and you select a drum kit by selecting an instrument, just
+    as if you would select a melodic instrument. For example, if you want to
+    select the TR-808, all you have to do is to perform a program change to 25
+    on MIDI channel 10. After the program change, all percussion sounds will
+    be played back through the TR-808 drum kit.
+
+16. Does the SB AWE32 respond to MIDI aftertouch?
+
+    The SB AWE32 Windows MIDI driver prior to version 1.03 does not support
+    MIDI aftertouch. The current SB AWE32 driver supports aftertouch AND
+    MIDI controller 11 (expression).
+
+    See the item "How do I get the latest drivers for the SB AWE32?" in
+    section F for further information.
+
+17. My PC system does not have a working NMI. What can I do to use AWEUTIL?
+
+    One of the most common causes of a system not having a working NMI is
+    that the system's memory parity checking has been turned off. You can
+    check your system's memory parity checking status by activating your
+    system's BIOS setup. Consult your system's user manual on how to activate
+    BIOS/CMOS setup and memory parity checking.
+
+    If your system does not have a working NMI or you have a DOS protected
+    mode game, then you can only play games using FM music.  Note that this
+    NMI problem only applies to DOS games or applications, not to Windows
+    games or applications. Under Windows, all applications   play music and
+    sound effects through the standard SB AWE32 Windows drivers.
+
+    As more developers include native SB AWE32 support, this NMI problem
+    will gradually disappear.
+
+    Some of the protected mode games already have SB AWE32 support via
+    special drivers (such as Miles Design Inc's AIL drivers).  You can
+    obtain more information on these drivers in the Sound Blaster forum
+    on CompuServe, or on Creative's BBS. See the item "How do I get the
+    latest drivers for the SB AWE32?" in Section F.
+
+18. Is there a WaveBlaster upgrade option on the SB AWE32?
+
+    Yes. Each SB AWE32 features a WaveBlaster connector.
+
+19. What is the benefit of adding a WaveBlaster to the SB AWE32?
+
+    The WaveBlaster connector was included on the SB AWE32 to provide users
+    an alternative wave-sample synthesis method other than the EMU8000 on
+    the SB AWE32. By incorporating a WaveBlaster onto the SB AWE32, the total
+    polyphony of this combination will be increased to 64, the total number
+    of timbres expanded to 32, and you will have access to a secondary
+    palette of sampled sounds.
+
+20. Is it possible to load AWEUTIL into high memory?
+
+    AWEUTIL automatically searches for high memory and will attempt to load
+    itself high if enough high memory is available.
+
+21. Does AWEUTIL have to stay memory resident?
+
+    AWEUTIL serves two purposes; to initialize and control the reverb and
+    chorus effects of the FM hardware on the SB AWE32 card, and to provide
+    NMI MIDI Feedback.
+
+          AWEUTIL /S
+
+    will initialize and set the reverb and chorus effect of the FM hardware,
+    and then terminate. It will not stay resident in memory.
+
+    If you want to activate NMI MIDI Feedback, then run
+
+          AWEUTIL /EM:XX  (XX = GM, GS or MT32)
+
+    before starting your game.
+
+    When you finish the game, remember to run
+
+          AWEUTIL /U
+
+    to unload AWEUTIL from memory.
+
+22. What are the long term plans to solve the problem with DOS extender
+    games?
+
+    We are currently getting developers to natively support the SB AWE32. So
+    far we have had good support from John Miles Inc. with their SB AWE32
+    Miles (real and protected mode) drivers, from Accolade, from HMI and
+    from John Ratcliff with his MIDPAK drivers. As more and more developers
+    support the SB AWE32, the DOS extended game's problem will gradually
+    disappear.
+
+23. Will software written for the SB16 work with the SB AWE32?
+
+    Definitely. The SB AWE32 uses the same base system as the SB16, so it is
+    fully compatible.
+
+
+24. Does Creative have any plans for a SCSI version of the SB AWE32?
+
+    We will deliver a SCSI version of the SB AWE32 when there is sufficient
+    demand.
+
+25. What CD-ROM drives does the SB AWE32 support?
+
+    The SB AWE32 supports Creative, Sony and Mitsumi CD-ROM drives.
+
+26. What are the different reverb and chorus variations available on the SB
+    AWE32?
+
+    Reverb and chorus effects add warmth and movement to MIDI playback.
+    There are eight reverb types and eight chorus types available on the SB
+    AWE32.
+
+    Room 1-3,        This group of reverb variation simulates the natural
+                     ambiance of a room. Room 1 simulates a small room, Room
+                     2 simulates a slightly bigger room, and Room 3 simulates
+                     a big room.
+
+    Hall 1-2,        This group of reverb variation simulates the natural
+                     ambiance of a concert hall. It has greater depth than
+                     the room variations. Again, Hall 1 simulates a small
+                     hall, and Hall 2 simulates a larger hall.
+
+    Plate,           Back in the old days, reverb effects were sometimes
+                     produced using a metal plate, and this type of reverb
+                     produces a metallic echo. The SB AWE32's Plate variation
+                     simulates this form of reverb.
+
+    Delay,           This reverb produces a delay, that is, echo effect.
+
+    Panning Delay,   This reverb variation produces a delay effect that is
+                     continuously panned left and right.
+
+    Chorus 1-4,      Chorus produces a "beating" effect. The chorus effects
+                     are more prominent going from chorus 1 to chorus 4.
+
+    Feedback Chorus, This chorus variation simulates a soft "swishing" effect.
+
+    Flanger,         This chorus variation produces a more prominent feedback
+                     chorus effect.
+
+    Short Delay,     This chorus variation simulates a delay repeated in a
+                     short time.
+
+    Short Delay,     This chorus variation simulates a short delay repeated
+    (feedback)       (feedback) many times.
+
+    These effect variations can be selected by the following sysex messages:
+
+    Reverb sysex macro
+
+    F0 41 10 42 12 40 01 30 XX CS F7
+
+    where XX denotes the reverb variation to be selected, and CS denote a
+    checksum value that is ignored. The valid values for XX are:
+
+            0 - Room 1
+            1 - Room 2
+            2 - Room 3
+            3 - Hall 1
+            4 - Hall 2
+            5 - Plate
+            6 - Delay
+            7 - Panning Delay
+
+    Chorus sysex macro
+
+    F0 41 10 42 12 40 01 38 XX CS F7
+
+    again, XX denotes the chorus variation to be selected, and CS notes a
+    checksum value that is ignored. The valid values for XX are:
+
+            0 - Chorus 1
+            1 - Chorus 2
+            2 - Chorus 3
+            3 - Chorus 4
+            4 - Feedback chorus
+            5 - Flanger
+            6 - Short Delay
+            7 - Short delay (FB)
+
+27. What are the undocumented "JP6," "JP8" and "JP9" jumpers on the card?
+
+    JP8 Is a digital (SPDIF) out from the EMU8000.
+
+    Pin definition:         0 - signal,
+                            1 - signal ground.
+
+    JP6 and JP9 are meant for manufacture diagnostic purpose, and should not
+    be used by end user.
+
+-----===-----===-----===-----===-----===-----===-----===-----===-----===-----
+
+    Section B - Editing Tool
+
+1.  Will there be a preset editor for the SB AWE32?
+
+    We are currently working on a preset editor for the SB AWE32, code-named
+    "Vienna." Vienna will allow you to create and customize your own SoundFont
+    bank files. You can create WAVE files to import into Vienna to create your
+    own instruments. Vienna also allows you to program you own presets
+    (tweaking the envelopes' generators, the LFOs and such).
+
+2.  Will it be possible to patch multiple sounds across different keys, such
+    as a drum kit?
+
+    Yes, Vienna was designed for making drum kits as well.
+
+3.  How are new instruments on the SB AWE32 created?
+
+    As mentioned above, you can create your own samples (using WaveStudio)
+    to import into Vienna. As an example, let's say you have a Steinway piano
+    you would like to sample it and use the Steinway sound on your SB AWE32.
+    What you need to do is sample your Steinway in 16 bit mono WAVE files.
+    Then you can use Vienna to edit its preset and save it as a SoundFont
+    bank file and load it as a user bank into your SB AWE32 to play just like
+    any normal MIDI instrument.
+
+4.  What functionality will the preset editor offer?
+
+    Here is what you will be able to do with Vienna:
+
+    -   Multi-sample arrangement
+
+        Multi-sampling is the technique of sampling a musical instrument at
+        different musical intervals, arranging the samples across a MIDI
+        keyboard and assigning key ranges (for example, from key C3 to C4)
+        to these samples. Vienna allows you to visually assign samples to key
+        ranges.
+
+    -   Preset editing
+
+        Once you arrange your samples across the keyboard, you can then start
+        to program the instrument's envelopes and LFOs to your liking. Refer
+        to the section on "Introduction to EMU8000" for information on
+        envelopes and LFOs.
+
+    -   Loop point selection
+
+        Vienna allows you to visually select the loop points of a sample.
+
+    -   Drum kit arrangement
+
+        Vienna is not limited to just creating musical instruments; you
+        can also layout and save a drum kit using any samples you desire.
+
+5.  What is SoundFont Bank Maker for SB AWE32? How do I get this application?
+
+    SoundFont bank Maker for SB AWE32 is a simple utility for you to
+    experiment with SB AWE32 sample downloading capability. It is not a
+    substitute for Vienna.  Refer to the section "How do I..." for more
+    information on obtaining this utility.
+
+6.  Will the bank editing software load samples for other systems e.g. Akai
+    S1000 or Yamaha TG55?
+
+    There is no plans at this time.
+
+-----===-----===-----===-----===-----===-----===-----===-----===-----===-----
+
+    Section C - Programming Information
+
+1.  Is programming information available for the SB AWE32?
+
+    We are working on a SB AWE32 Developer Information Pack, which will
+    contain both Windows and DOS programming information.  For DOS
+    environments, we have created library functions based on common MIDI
+    commands such as NoteOn, NoteOff, ProgramChange, etc. Special care has
+    been taken to ensure that the library can be used for building TSR
+    drivers or embedded MIDI drivers in an application.
+
+
+    For Windows environments, we will provide the API for sample downloading
+    and effect control.
+
+2.  Is the effect engine on the SB AWE32 programmable?
+
+    The effect engine on the SB AWE32 is dedicated to produce reverb, chorus
+    and QSound effect, and is not intended to be programmable. You can,
+    however, select different reverb or chorus variations using sysex. Refer
+    to the section "What are the different reverb and chorus variations
+    available on the SB AWE32?" for more information.
+
+
+3.  When will the developer kit become available? What sort of prices will
+    the developer kit be?
+
+    There will not be a SB AWE32 developer kit available for sale. Once the
+    Developer Information Pack is ready, we will make it publicly available
+    for free.  Keep a look out in Compuserve and Creative BBS for SB AWE32
+    developer kit announcement.
+
+-----===-----===-----===-----===-----===-----===-----===-----===-----===-----
+
+    Section D - SoundFont Bank
+
+1.  What are SoundFont Collections?
+
+    E-mu SoundFont Collections are CD-ROMs that contains SoundFont Banks of
+    varying sizes (0.5 MB to 8 MB). E-mu's SoundFont Banks will include both
+    instruments and sound effects. Many of E-mu's traditional instrument
+    sounds will be included (for example Proteus 1-3) as well as some new
+    sounds.
+
+2.  How do SoundFont Bank work?
+
+    SoundFont Banks can be loaded into RAM on the SB AWE32. They can then be
+    used in conjunction with a MIDI sequencer to create soundtracks or other
+    kinds of audio creations.
+
+3.  When will SoundFont Bank be available?
+
+    SoundFont Banks will be available this summer. SoundFont catalogs should
+    be available in June, and E-mu will start taking orders once the catalog
+    is available.
+
+4.  What can I do with SoundFont Banks?
+
+    You can:
+
+    a.  Load SoundFont banks of your choice into the RAM of your SB AWE32 and
+        use this set of sounds as you compose with a MIDI sequencer.
+
+    b.  Create your own SoundFont Bank with SoundFont Objects from various
+        SoundFont Banks you already have using E-mu's SoundFont Editor
+        software.
+
+    c.  Edit individual SoundFont parameters with E-mu's SoundFont Editor to
+        create your own version of the sounds and then assemble your own
+        SoundFont Objects into a SoundFont Bank. Creating your own SoundFont
+        Objects and Banks gives you the freedom to create your own unique
+        instruments and sound effects to differentiate your soundtracks.
+
+5.  Will having 28 MB on the SB AWE32 improve the sound quality over a
+    standard 512 KB SB AWE32?
+
+    Absolutely! The more RAM memory on your SB AWE32 the larger and fuller
+    the sound samples you can include in your SoundFont Banks. E-mu will be
+    providing 8 MB of SoundFont Banks in our collection that will be of
+    interest to serious musicians.
+
+-----===-----===-----===-----===-----===-----===-----===-----===-----===-----
+
+    Section E - Introduction to the EMU8000 Chip
+
+    The EMU8000 has its roots in E-mu's Proteus sample playback modules and
+    their renowned Emulator sampler. The EMU8000 has 32 individual
+    oscillators, each playing back at 44.1 kHz. By incorporating sophisticated
+    sample interpolation algorithms and digital filtering, the EMU8000 is
+    capable of producing high fidelity sample playback.
+
+    The EMU8000 has an extensive modulation capability using two sine-wave
+    LFO's (Low Frequency Oscillator) and two multi-stage envelope generators.
+
+1.  What exactly does modulation mean?
+
+    Modulation means to dynamically change a parameter of an audio signal,
+    whether it be the volume (amplitude modulation, or tremolo), pitch
+    (frequency modulation, or vibrato) or filter cutoff frequency (filter
+    modulation, or wah-wah).  To modulate something we would require a
+    modulation source, and a modulation destination. In the EMU8000, the
+    modulation sources are the LFOs and the envelope generators, and the
+    modulation destinations can be the pitch, the volume or the filter
+    cutoff frequency.
+
+    The EMU8000's LFOs and envelope generators provide a complex modulation
+    environment. Each sound producing element of the EMU8000 consists of a
+    resonant low-pass filter, two LFOs, in which one modulates the pitch
+    (LFO2), and the other modulates pitch, filter cutoff and volume (LFO1)
+    simultaneously. There are two envelope generators; envelope 1 contours
+    both pitch and filter cutoff simultaneously, and envelope 2 contours
+    volume. The output stage consists of an effects engine that mixes the
+    dry signals with the Reverb/chorus level signals to produce the final
+    mix.
+
+2.  What are the EMU8000 sound elements?
+
+    Each of the sound elements in an EMU8000 consists of the following:
+
+    Oscillator
+        An oscillator is the source of an audio signal.
+
+    Low Pass Filter
+        The low pass filter is responsible for modifying the timbres of an
+        instrument. The low pass filter's filter cutoff values can be varied
+        from 100 Hz to 8000 Hz. By changing the values of the filter cutoff,
+        a myriad of analogue sounding filter sweeps can be achieved. An
+        example of a GM instrument that makes use of filter sweep is
+        instrument number 87, Lead 7 (fifths).
+
+    Amplifier
+        The amplifier determines the loudness of an audio signal.
+
+    LFO1
+        An LFO, or Low Frequency Oscillator, is normally used to periodically
+        modulate, that is, change a sound parameter, whether it be volume
+        (amplitude modulation), pitch (frequency modulation) or filter cutoff
+        (filter modulation). It operates at sub-audio frequency from 0.042 Hz
+        to 10.71 Hz.  The LFO1 in the EMU8000 modulates the pitch, volume and
+        filter cutoff simultaneously.
+
+    LFO2
+        The LFO2 is similar to the LFO1, except that it modulates the pitch
+        of the audio signal only.
+
+    Resonance
+        A filter alone would be like an equalizer, making a bright audio
+        signal duller, but the addition of resonance greatly increases the
+        creative potential of a filter. Increasing the resonance of a filter
+        makes it emphasize signals at the cutoff frequency, giving the audio
+        signal a subtle "wah-wah," that is, imagine a siren sound going from
+        bright to dull to bright again periodically.
+
+    LFO1 to Volume (Tremolo)
+        The LFO1's output is routed to the amplifier, with the depth of
+        oscillation determined by LFO1 to Volume. LFO1 to Volume produces
+        tremolo, which is a periodic fluctuation of volume. Lets say you are
+        listening to a piece of music on your home stereo system. When you
+        rapidly increase and decrease the playback volume, you are creating
+        tremolo effect, and the speed in which you increases and decreases
+        the volume is the tremolo rate (which corresponds to the speed at
+        which the LFO is oscillating). An example of a GM instrument that
+        makes use of LFO1 to Volume is instrument number 45, Tremolo Strings.
+
+    LFO1 to Filter Cutoff (Wah-Wah)
+        The LFO1's output is routed to the filter, with the depth of
+        oscillation determined by LFO1 to Filter. LFO1 to Filter produces a
+        periodic fluctuation in the filter cutoff frequency, producing an
+        effect very similar to that of a wah-wah guitar (see resonance for a
+        description of "wah-wah") An example of a GM instrument that makes
+        use of LFO1 to Filter Cutoff is instrument number 19, Rock Organ.
+
+    LFO1 to Pitch (Vibrato)
+        The LFO1's output is routed to the oscillator, with the depth of
+        oscillation determined by LFO1 to Pitch. LFO1 to Pitch produces a
+        periodic fluctuation in the pitch of the oscillator, producing a
+        vibrato effect. An example of a GM instrument that makes use of LFO1
+        to Pitch is instrument number 57, Trumpet.
+
+    LFO2 to Pitch (Vibrato)
+        The LFO1 in the EMU8000 can simultaneously modulate pitch, volume
+        and filter. LFO2, on the other hand, modulates only the pitch, with
+        the depth of modulation determined by LFO2 to Pitch. LFO2 to Pitch
+        produces a periodic fluctuation in the pitch of the oscillator,
+        producing a vibrato effect.  When this is coupled with LFO1 to Pitch,
+        a complex vibrato effect can be achieved.
+
+    Volume Envelope
+        The character of a musical instrument is largely determined by its
+        volume envelope, the way in which the level of the sound changes with
+        time.  For example, percussive sounds usually start suddenly and then
+        die away, whereas a bowed sound might take quite some time to start
+        and then sustain at a more or less fixed level.
+
+        A six-stage envelope makes up the volume envelope of the EMU8000. The
+        six stages are delay, attack, hold, decay, sustain and release. The
+        stages can be described as follows:
+
+        Delay,   The time between when a key is played and when the attack
+                 phase begins.
+
+        Attack,  The time it takes to go from zero to the peak (full) level.
+
+        Hold,    The time the envelope will stay at the peak level before
+                 starting the decay phase.
+
+        Decay,   The time it takes the envelope to go from the peak level
+                 to the sustain level.
+
+        Sustain, The level at which the envelope remains as long as a key
+                 is held down.
+
+        Release, The time it takes the envelope to fall to the zero level
+                 after the key is released.
+
+        Using these six parameters can yield very realistic reproduction of
+        the volume envelope characteristics of many musical instruments.
+
+    Pitch and Filter Envelope
+        The pitch and filter envelope is similar to the volume envelope in
+        that it has the same envelope stages. The difference between them is
+        that whereas the volume envelope contours the volume of the
+        instrument over time, the pitch and filter envelope contours the
+        pitch and filter values of the instrument over time. The pitch
+        envelope is particularly useful in putting the finishing touches in
+        simulating a natural instrument. For example, some wind instruments
+        tend to go slightly sharp when they are first blown, and this
+        characteristic can be simulated by setting up a pitch envelope
+        with a fairly fast attack and decay. The filter envelope, on the
+        other hand, is useful in creating synthetic sci-fi sound textures.
+        An example of a GM instrument that makes use of the filter envelope
+        is instrument number 86, Pad 8 (Sweep).
+
+    Pitch/Filter Envelope Modulation
+        These two parameters determine the modulation depth of the pitch and
+        filter envelope. In the wind instrument example above, a small amount
+        of pitch envelope modulation is desirable to simulate its natural
+        pitch characteristics.
+
+    This rich modulation capability of the EMU8000 is fully exploited by the
+    SB AWE32 MIDI drivers. The driver also provides you with a means to change
+    these parameters over MIDI in real time. Refer to the section "How do I
+    change an instrument's sound parameter in real time" for more information.
+
+-----===-----===-----===-----===-----===-----===-----===-----===-----===-----
+
+    Section F - How Do I ...
+
+1.  How do I make use of RPN documented in the SB AWE32 MIDI
+    Implementation chart?
+
+    RPN is a short form for "Registered Parameter Number." Registered
+    Parameter Numbers are used to represent sound or performance parameters.
+    MIDI 1.0 specified three RPNs: RPN 0 for Pitch Bend Sensitivity, RPN 1
+    for Coarse Tune and RPN 2 for Fine Tune. The SB AWE32 implements only
+    RPN 0, Pitch Bend Sensitivity.
+
+    Before going into how to set pitch bend sensitivity, let's go into how
+    pitch bending is used in MIDI. Pitch Bending is normally used to pitch
+    shift (that is, make the pitch go higher or lower) a sustained note to
+    achieve a "pitch gliding" effect.  The default pitch bend sensitivity of
+    the SB AWE32 is +/- 2 semitones, that is, you can go high or low of the
+    current note by 2 semitones when using the pitch bend wheel. If you
+    desire a more dramatic pitch bending effect, then you would need to
+    change the pitch bend sensitivity to a higher value.
+
+    Following are step-by-step instructions to set a pitch bend sensitivity
+    value other than the default 2 semitones. CakeWalk Apprentice will be
+    used as an example.
+
+    1.  Bring up the "Event List" window for the track you want to set pitch
+        bend sensitivity.
+
+    2.  Go to the top of the event list (page up) and insert a MIDI controller
+        event, with controller number 101 and a controller value of 0.
+
+    3.  Insert another MIDI Controller event immediately, with controller
+        number 100 and controller value of 0.
+
+    4.  Insert another MIDI controller event immediately, with controller
+        number 6, and set the controller value to the desired pitch bend
+        sensitivity in semitones.
+
+2.  How do I change an instrument's sound parameter in real time?
+
+    You can change an instrument's SoundFont parameters (for example, LFO
+    depth and speed, envelope contour) through MIDI in real time via NRPN,
+    or Non Registered Parameter Number control.
+
+    NRPN is identical to that of RPN, except that Registered Parameter
+    Numbers are agreed upon by the MMA (MIDI Manufacturers Association) and
+    JMSC (Japan MIDI Standards Committee), and Non Registered Parameter
+    Number may be assigned as needed by individual manufacturers.
+
+    NRPN consists of:
+
+          NRPN MSB        MIDI Controller 99
+          NRPN LSB        MIDI Controller 98
+
+    NRPN MSB and LSB form a value that indicates the desired sound parameter.
+    After sending NRPN MSB and LSB, MIDI controllers 6 (Data Entry MSB) and
+    38 (Data Entry LSB) are sent to pass in the value for the sound parameter.
+
+    To send a NRPN message, the following steps are required:
+
+          send NRPN MSB with MSB of sound parameter
+          send NRPN LSB with LSB of sound parameter
+          send Data Entry MSB with MSB of sound parameter value
+          send Data Entry LSB with LSB of sound parameter value
+
+    As NRPN and Data Entry messages are MIDI controller messages, any MIDI
+    sequencer software that supports editing of controller message (such as
+    CakeWalk, MasterTracks Pro) is capable of sending them.
+
+    For SB AWE32 NRPN to be functional, NRPN MSB has to be 127, and NRPN LSB
+    set to the desired parameter to be controlled (refer to the section "SB
+    AWE32 NRPN Implementation" for a list of NRPN implemented on the SB AWE32.)
+
+    Data entry MSB with Data entry LSB together forms a 14bit number. The
+    middle value 8192 (0x2000, Data MSB = 64 and Data LSB = 0) is taken as
+    value 0. To convert from MSB and LSB to actual value, here is the
+    equation:
+
+          Actual value = (MSB * 128 + LSB) - 8192
+
+    To convert an actual value into MSB and LSB, here are the steps:
+
+          MSB     = (actual value + 8192) / 128
+          LSB     = (actual value + 8192) % 128
+
+    A "Reset All Controllers" message (MIDI controller 121) restores the
+    instrument's original SoundFont parameters.
+
+    Refer to section [H] for a table of NRPN implementation.
+
+3.  How do I select the SB AWE32's reverb and chorus variation type through
+    MIDI?
+
+    You can select the reverb and chorus variation via sysex. The SB AWE32
+    Windows (not DOS) driver recognizes two strings of sysex; one for
+    selecting reverb variation, and the other for selecting chorus variation.
+
+    Reverb sysex string:
+
+    F0 41 10 42 12 40 01 30 XX CS F7
+
+    Where XX indicates the reverb variations (from 0 to 7), and CS indicate a
+    checksum for this sysex string. CS is ignored by the MIDI driver.
+
+    Chorus sysex string:
+
+    F0 41 10 42 12 40 01 38 XX CS F7
+
+    Where XX indicates the chorus variation (from 0 to 7), and CS indicate a
+    checksum for this sysex string. CS is ignored by the MIDI driver.
+
+4.  How can I maximize my system's memory so that I still have plenty of room
+    to run games after installing the SB AWE32?
+
+    There are two drivers (CTMMSYS.SYS and CTSB16.SYS) you can remove from
+    CONFIG.SYS. These two drivers provide digital playback and recording
+    interface under DOS. They are not used by the EMU8000 subsystem.
+
+    By removing these two drivers, you will not be able to run PLAY.EXE,
+    RECORD.EXE and SB16SET.EXE under DOS, but you will gain approximately
+    30K of memory.
+
+5.  How do I load a SoundFont Bank?
+
+    Loading SoundFont Banks is easy. Just use the SB AWE32 Windows Control
+    Panel Applet, AWECP.EXE, as follows:
+
+    a.  Use the up or down arrow keys next to the user bank number to select
+        the desired bank. A dialog box appears.
+
+    b.  Select the directory that contains the *.SBK files.
+
+    c.  Double-click the desired file to load it into the particular user
+        bank.
+
+6.  How do I get the latest drivers for the SB AWE32?
+
+    The latest SB AWE32 drivers, utilities and game compatibility list can
+    be found at the following sites:
+
+            Inside U.S.A., Canada and South America
+            Creative Labs, Inc BBS : (405)742-6660
+
+            Inside Europe
+            UK BBS  : (44)743-360287
+            Germany BBS : (49)2131-919820
+
+            Inside Asia
+            Creative Technology BBS : (65)776-2423
+
+            CompuServe
+            type GO BLASTER to enter the Creative Labs Forum
+
+-----===-----===-----===-----===-----===-----===-----===-----===-----===-----
+
+    Section G - References
+
+The definitive guide to MIDI would be "MIDI 1.0 Detailed Specification",
+published and distributed exclusively by :
+
+     International MIDI Association
+     23634 Emelita Street
+     Woodland Hills, CA  91367
+     USA
+
+Other MIDI related publications are :
+
+     Music Through MIDI
+     Using MIDI to create your own electronic music system  by Michael Boom
+     published by Microsoft Press
+     Catalog number : ISBN 1-55615-0260-1
+
+     The MIDI Manual
+     by David Miles Huber
+     published by SAM
+     Catalog number : ISBN 0-672-22755-6
+
+-----===-----===-----===-----===-----===-----===-----===-----===-----===-----
+
+    Section H - SB AWE32 NRPN Implementation
+
+NRPN LSB 0 (Delay before LFO1 starts)
+Realtime        : No
+Range           : [0, 5900]
+Unit            : 4 milliseconds
+Delay from 0 to 22 seconds.
+
+NRPN LSB 1 (LFO1 Frequency)
+Realtime        : Yes
+Range           : [0, 127]
+Unit            : 0.084Hz
+LFO1 frequency from 0Hz to 10.72 Hz.
+
+NRPN LSB 2 (Delay before LFO2 starts)
+Realtime        : No
+Range           : [0, 5900]
+Unit            : 4 milliseconds
+Delay from 0 to 22 seconds.
+
+NRPN LSB 3 (LFO2 Frequency)
+Realtime        : Yes
+Range           : [0, 127]
+Unit            : 0.084Hz
+LFO2 frequency from 0Hz to 10.72 Hz.
+
+NRPN LSB 4 (Envelope 1 delay time)
+Realtime        : No
+Range           : [0, 5900]
+Unit            : 4 milliseconds
+Envelope 1 Delay from 0 to 22 seconds.
+
+NRPN LSB 5 (Envelope 1 attack time)
+Realtime        : No
+Range           : [0, 5940]
+Unit            : Milliseconds
+Envelope 1 attack time from 0 to 5.9 seconds.
+
+NRPN LSB 6 (Envelope 1 hold time)
+Realtime        : No
+Range           : [0, 8191]
+Unit            : Milliseconds
+Envelope 1 hold time from 0 to 8 seconds.
+
+NRPN LSB 7 (Envelope 1 decay time)
+Realtime        : No
+Range           : [0, 5940]
+Unit            : 4 Milliseconds
+Envelope 1 decay time from 0.023 to 23.7 seconds.
+
+NRPN LSB 8 (Envelope 1 sustain level)
+Realtime        : No
+Range           : [0, 127]
+Unit            : 0.75dB
+Envelope 1 sustain level from full level down to off (0.75 dB step).
+
+NRPN LSB 9 (Envelope 1 release time)
+Realtime        : No
+Range           : [0, 5940]
+Unit            : 4 milliseconds
+Envelope 1 release time from 0.023 to 23.7 seconds.
+
+NRPN LSB 10 (Envelope 2 delay time)
+Realtime        : No
+Range           : [0, 5900]
+Unit            : 4 milliseconds
+Envelope 2 Delay from 0 to 22 seconds.
+
+NRPN LSB 11 (Envelope 2 attack time)
+Realtime        : No
+Range           : [0, 5940]
+Unit            : Milliseconds
+Envelope 2 attack time from 0 to 5.9 seconds.
+
+NRPN LSB 12 (Envelope 2 hold time)
+Realtime        : No
+Range           : [0, 8191]
+Unit            : Millisecond
+Envelope 2 hold time from 0 to 8 seconds.
+
+NRPN LSB 13 (Envelope 2 decay time)
+Realtime        : No
+Range           : [0, 5940]
+Unit            : 4 milliseconds
+Envelope 2 decay time from 0.023 to 23.7 seconds.
+
+NRPN LSB 14 (Envelope 2 sustain level)
+Realtime        : No
+Range           : [0, 127]
+Unit            : 0.75dB
+Envelope 2 sustain level from full level down to off.
+
+NRPN LSB 15 (Envelope 2 release time)
+Realtime        : No
+Range           : [0, 5940]
+Unit            : 4 milliseconds
+Envelope 2 release time from 0.023 to 23.7 seconds.
+
+NRPN LSB 16 (Initial Pitch)
+Realtime        : Yes
+Range           : [-8192, 8191]
+Unit            : cents
+Pitch tuning between -8192 and 8191 cents.
+
+NRPN LSB 17 (LFO1 to Pitch)
+Realtime        : Yes
+Range           : [-127, 127]
+Unit            : 9.375 cents
+
+If data value is greater than 0, this will cause a positive (from 0 to
+maximum) 1 octave shift at LFO peak. On the other hand, if data value
+is smaller than 0, this will cause a negative (from 0 to minimum) 1
+octave shift at LFO peak.
+
+NRPN LSB 18 (LFO2 to Pitch)
+Realtime        : Yes
+Description     :
+Range           : [-127, 127]
+Unit            : 9.375 cents
+
+If data value is greater than 0, this will cause a positive (from 0 to
+maximum) 1 octave shift at LFO peak. On the other hand, if data value
+is smaller than 0, this will cause a negative (from 0 to minimum) 1 octave
+shift at LFO peak.
+
+NRPN LSB 19 (Envelope 1 to Pitch)
+Realtime        : No
+Range           : [-127, 127]
+Unit            : 9.375 cents
+
+If data value is greater than 0, this will cause a positive (from 0 to  maximum) 1
+octave shift at envelope peak. On the other hand, if data  value is smaller than 0, this
+will cause a negative (from 0 to minimum)  1 octave shift at envelope peak.
+
+NRPN LSB 20 (LFO1 to Volume)
+Realtime        : Yes
+Range           : [0, 127]
+Unit            : 0.1875 dB
+
+Data values smaller than 64 causes a positive phase (from 0 to maximum)
+volume modulation via LFO1 with magnitude of 12 dB at LFO peak. On the
+other hand, data values greater than or equal to 64 causes a negative
+phase (from 0 to minimum) volume modulation via LFO1 with magnitude of
+12 dB at LFO peak.
+
+NRPN LSB 21 (Initial Filter Cutoff)
+Realtime        : Yes
+Range           : [0, 127]
+Unit            : 62Hz
+Filter cutoff from 100Hz to 8000Hz
+
+NRPN LSB 22 (Initial Filter Resonance Coefficient)
+Realtime        : No
+Range           : [0, 127]
+
+The EMU8000 has a built in resonance coefficient table comprising 16 entries.
+Values 0-7 will select the first (0) entry, values 8-15 selects the second (1)
+entry and so on.
+
+Coeff   Low Fc(Hz)   Low Q(dB)   High Fc(kHz)   High Q(dB)   DC Attenuation(dB)
+0          92            5           Flat          Flat           - 0.0
+1          93            6            8.5           0.5           - 0.5
+2          94            8            8.3           1             - 1.2
+3          95           10            8.2           2             - 1.8
+4          96           11            8.1           3             - 2.5
+5          97           13            8.0           4             - 3.3
+6          98           14            7.9           5             - 4.1
+7          99           16            7.8           6             - 5.5
+8         100           17            7.7           7             - 6.0
+9         100           19            7.5           9             - 6.6
+10        100           20            7.4           10            - 7.2
+11        100           22            7.3           11            - 7.9
+12        100           23            7.2           13            - 8.5
+13        100           25            7.1           15            - 9.3
+14        100           26            7.1           16            - 10.1
+15        100           28            7.0           18            - 11.0
+
+NRPN LSB 23 (LFO1 to Filter Cutoff)
+Realtime        : Yes
+Description     :
+Range           : [0, 127]
+Unit            : 56.25 cents
+
+Data values smaller than 64 causes a positive phase (from 0 to maximum)
+filter modulation via LFO1 with magnitude of 3 octaves at LFO peak. On
+the other hand, data values greater than or equal to 64 causes a  negative
+phase (from 0 to minimum) filter modulation via LFO1 with  magnitude of 3
+octaves at LFO peak.
+
+NRPN LSB 24 (Envelope 1 to Filter Cutoff)
+Realtime        : No
+Description     :
+Range           : [-127, 127]
+Unit            : 56.25 cents
+
+Data values greater than 0 cause a positive phase (from 0 to maximum)
+filter modulation via Envelope 1 with magnitude of 6 octaves at envelope
+peak. On the other hand, values smaller than 0 cause a negative phase
+(from 0 to minimum) filter modulation via Envelope 1 with magnitude of 6
+octaves at envelope peak.
+
+NRPN LSB 25 (Chorus Effects Send)
+Realtime        : No
+Range           : [0, 255]
+
+Chorus send, with 0 being the driest (no chorus effects processing), and
+255 being the wettest (full chorus effect processing).
+
+NRPN LSB 26 (Reverb Effects Send)
+Realtime        : No
+Range           : [0, 255]
+
+Reverb send, with 0 being the driest (no reverb effects processing), and
+255 being the wettest (full reverb effect processing).
+
+-----===-----===-----===-----===-----===-----===-----===-----===-----===-----
+100694/FG-R1

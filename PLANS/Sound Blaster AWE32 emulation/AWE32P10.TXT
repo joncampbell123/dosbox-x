@@ -1,0 +1,1368 @@
+        
+       =========================================================
+      || The Un-official Sound Blaster AWE32 Programming Guide ||
+      ||                                                       ||
+      ||             by Vince Vu a.k.a. Judge Dredd            ||
+      ||                                                       ||
+      ||             V.1.0 September 28, 1995                  ||
+       =========================================================
+
+
+Table of Contents
+-----------------
+
+1.    Last minute notes
+
+I.    Introduction
+
+II.   Understanding the registers
+
+III.  Detection
+
+IV.   Initialization
+
+V.    Sample uploading/downloading
+
+VI.   Playing a sample
+
+VII.  The registers        
+
+VIII. Effects Engine data.
+
+IX.   Other documents you should refer to.
+
+
+
+1.    Last minute notes
+-----------------------
+
+Yes, I know most of this is poorly written.  (Thoughts not carefully
+organized).  But if you have any questions, of misunderstandings, or
+difficulties, *mail me*.
+
+I like getting mail.  It helps feed my ego ;)
+
+BTW Don't believe any of the b.s. Creative Labs says about the effects
+engine on the EMU8000 not being programmable, because it is.  Please
+pester them to release info on the effects engine.
+
+Greets:
+
+        Morbius         My homie.
+        Thor            Cool Hungarian dude that wrote AWEPlay
+        BLR             BlazeRuner, long time no see.
+        Darron Myrick   Here's the whole enchilada.
+        Mathias Hjelt   Now, you can tweak your AWE32 to perfection.
+                        Maybe...
+
+        And...
+
+        All the other guys, gals, neuters, etc... not mentioned.
+
+
+I.    Introduction
+------------------
+
+Mail all questions, comments, etc... to jdredd@netcom.com
+
+Well, a month overdue, but its finally here.  This guide will attempt to 
+describe in detail how to program the EMU8000 chip on the Sound Blaster AWE32,
+directly.  This past summer, I spent nearly a month, figuring out how to
+program the EMU8000 on a low-level.  And I succeeded.  This is a compilation 
+of all that I figured out, and please, if you use this information in any
+production, program, etc..., acknowledge me.
+
+Why am I writing down and distributing my hard-earned knowledge?  Well, after
+reading an AWE32 in demos thread on comp.sys.ibm.pc.demos, I realized that the 
+best way to improve the AWE32's status would be to release a programming
+guide.
+
+This document will not cover Sound Blaster basics, only the EMU8000 sub-system
+on the SBAWE32 card.  If you need info on programming the OPL3, the DAC/ADC,
+or the mixer then you need to refer to a SB16 programming guide.
+
+Umm... please refer to the register list in section VII, when reading this
+document, in case you have trouble with recognizing what register 0x5400 or
+something else is.
+
+The EMU8000 Specs:
+
+32 Oscillators of 16-Bit, 44100Hz sound.
+32 Megabytes of address space.  The first 4 or reserved for ROM, and the last
+   28 are for RAM.  Internally the EMU8000 only has 24-Bit address space.  So
+   only 16-bit samples can be used.
+3  Point sample interpolation.
+1  Onboard Digital Effects Processor.
+2  Low Frequency Oscillators' per oscillator.
+2  DAHDSR Envelope Generators' per oscillator.
+1  Resonant Filter per oscillator.
+32 Independant reverb send levels for each oscillator.
+32 Independant chorus send levels for each oscillator.
+1  SP/DIF Digital Output.
+
+Glossary:
+
+EG1     Envelope Generator 1 (Filter/Pitch)
+EG2     Envelope Generator 2 (Volume)
+LFO1    Low Frequency Oscillator 1 (Pitch/Volume/Filter)
+LFO2    Low Frequency Oscillator 2 (Pitch)
+FilterQ Filter Resonance
+
+Explaination of EG's:
+
+Delay:  The time before the attack, during which the envelope's
+        level stays at 0.
+Attack: The time during which the envelope's level fades from
+        0 to peak.
+Hold:   The time before the decay, during which the envelope's
+        level stays at peak.
+Decay:  The time during which the envelope's level fades from peak
+        to the sustain level.
+Sustain:The level at which the envelope stays before release.
+Release:The time during which the envelope's level fades from sustain
+        to 0.
+
+        _
+      /   \ __
+____/          \
+
+^    ^  ^^  ^  ^
+|    |  ||  |  |
+|    |  ||  |   - Release Time
+|    |  ||   ---- Sustain Level
+|    |  | ------- Decay Time
+|    |    ------- Hold Time
+|     ----------- Attack Time
+ ---------------- Delay Time
+
+
+II.   Understanding the registers
+---------------------------------
+
+Here are the ports that are mapped to the EMU8000 (they are all word ports):
+
+        0x620   Data Read/Write
+        0x622   Data Read/Write
+        0xA20   Data Read/Write
+        0xA22   Data Read/Write
+        0xE20   Data Read/Write
+        0xE22   Index
+
+Simply replace the middle digit of the port with the proper base.  e.g. 0xE30
+if the SBAWE32's base port is 0x230.  The rest of this document will refer to 
+the ports as 0x620, 0xE20, etc...  But remember to replace the middle digit.
+       
+In order to write or read from a register, one would first have to select the 
+proper index (if not already selected) by writing the index to the index port,
+0xE22.
+
+Example:
+
+        outpw(0xE22, 0);
+
+That's it.  Now that you have selected the proper index you can now write/read
+the data from the anyone of the registers that uses that index, by
+reading/writing the correct port.
+
+Example:
+
+        outpw(0xE20, 57344);    //Port 0xE20, Index 0, is the pitch register
+                                //for oscillator 0.
+
+Some registers, however, maybe 32-bits (double word), writing to them is
+almost the same as writing to a 16-bit register as above.
+
+Example:
+
+        outpw(0xA20, 0x0000);   //Port 0xA20, Index 0 is the 
+                                //FilterQ/DramControl/PlayPosition register
+        outpw(0xA22, 0x0002);   //for oscillator 0.  What we just did is write
+                                //the low word to
+                                //0xA20, and then write the high word to
+                                //0xA22.
+
+Reading from a register is exactly the same as writing, except you read (in)
+from that port instead of write.
+
+
+IMPORTANT!!!  MUST READ!!!
+
+For the rest of this document I will refer to registers the following way:
+
+        0x141d
+          ^^^^
+          || |
+          ||  - The oscillator number in hex.  Here it is 0x1d or 29 in
+          ||    decimal.
+          ||
+          | --- The port. 0=0x620, 2=0x622, 4=0xA20, 6=0xA22, 8=0xE20.  Here it
+          |     is 4, 0xA20.
+          |
+           ---- The base index.  Multiply by 32 and add the oscillator number to
+                get the real index, to write to 0xE22.  Here it is 1, so the base
+                index is 32.
+
+III.  Detection
+---------------
+
+There are several methods for detecting the presence of the EMU8000.  But I
+will only show one way.  Here's a simple detection routine in Ansi C:
+
+int awe32Detect(unsigned baseport) {
+
+        int scratch;
+
+        outpw(0xc02+baseport, 224);     //Select index 224 by writing to 0xe22
+        inpw(0xc00+baseport);           //Read from port 0xe20
+        scratch = inpw(0xc00+baseport); //Read from port 0xe20 again
+
+        if((scratch&0xf) != 0xc)
+                return 1;               //Not detected
+
+        outpw(0xc02+baseport, 51);      //Select index 51 (base index 32,
+                                        //oscillator 29)
+        scratch = inpw(0x800+baseport); //Read from port 0xa20
+
+        if((scratch&0x7e) != 0x58)
+                return 1;               //Not detected
+
+        outpw(0xc02+baseport, 52);      //Select index 52 (base index 32, 
+                                        //oscillator 30)
+        scratch = inpw(0x800+baseport); //Read from port 0xa20
+
+        if((scratch&0x03) != 0x03)
+                return  1;              //Not detected
+
+        return 0;                       //Woo-hoo! Detected!
+
+}
+
+
+
+IV.   Initialization
+--------------------
+
+The most complex part of programming the EMU8000 is probably initialization.
+There are several things you can initialize, but you do not have to.  You 
+should initialize the effects engine.  You should initialize OPL3/FM pass-
+through, which also enables DRAM refresh.  And you should detect the ammount
+of DRAM.  oh, and you should also stop all oscillators from playing, just in
+case they are.
+
+You should do those things in this order:
+
+Stop the oscillators from playing, just in case.
+Initialize the Effects Engine.
+Initialize the FM Passthrough (You don't need to if you use only ROM sounds)
+Detect the DRAM
+
+Initializing the effects engine:
+
+Registers 0x2400 through 0x361f are entirely devoted to effects engine data.
+In order to initialize the effects engine, here's C code to intialize the
+engine to Reverb&Chorus:
+
+-------------------------------------------------------------------------------
+
+unsigned Reset_FX[128] = {...}          //The real data is in section VIII. of
+                                        //this document.
+unsigned Reverb&Chorus_FX[128] = {...}  //The real data is in section VIII. of
+                                        //this document.
+unsigned clock_wait;
+
+outpw(0xE22, 32+20);                    //Select base index 32+oscillator 20
+outpw(0xA20, 0);
+
+outpw(0xE22, 32+21);                    //Select base index 32+oscillator 21
+outpw(0xA20, 0);
+
+outpw(0xE22, 32+22);                    //Select base index 32+oscillator 22
+outpw(0xA20, 0);
+
+outpw(0xE22, 32+23);                    //Select base index 32+oscillator 23
+outpw(0xA20, 0);
+
+outpw(0xE22, 32+21);                    //Select base index 32+oscillator 21
+outpw(0xA20, 0);
+
+
+for(i=0; i<32; i++) {
+        outpw(0xE22, 96+i);             //Select base index 96+oscillator
+                                        //number
+        outpw(0xA22, Reset_FX[i]);
+}
+for(i=0; i<32; i++) {
+        outpw(0xE22, 96+i);             //Select base index 96+oscillator
+                                        //number
+        outpw(0xA20, Reset_FX[32+i]);
+}
+for(i=0; i<32; i++) {
+        outpw(0xE22, 64+(i/32));        //Select base index 64+oscillator
+                                        //number
+        outpw(0xA22, Reset_FX[64+i]);
+}
+for(i=0; i<32; i++) {
+        outpw(0xE22, 64+(i/32));        //Select base index 64+oscillator
+                                        //number
+        outpw(0xA20, Reset_FX[96+i]);
+}
+
+outpw(0xE22, 32+27);                    //Select base index 32+oscillator 27
+clock = inpw(0xA22);                    //This is the 44100Hz clock counter.
+clock += 0x400;                         //Add 1024 to the counter.
+
+if((clock-0x400)<clock)                 //Do this just in case clock
+                                        //overflowed
+        while(inpw(0xA22)>clock);       //i.e. clock went past 65535
+while(inpw(0xA22)<clock);               //Wait 1024*1/44100 seconds
+
+for(i=0; i<20; i++) {
+        outpw(0xE22, 32+i);             //Select base index 32+oscillator
+                                        //number
+        outpw(0xA20, 0);                //These are 32-bit registers
+        outpw(0xA22, 0);
+}
+
+for(i=0; i<32; i++) {
+        outpw(0xE22, 96+i);             //Select base index 96+oscillator
+                                        //number
+        outpw(0xA22, Reset_FX[i]);
+}
+
+
+for(i=0; i<32; i++) {
+        outpw(0xE22, 96+i);             //Select base index 96+oscillator
+                                        //number
+        if(i&1)
+                outpw(0xA20, 0x8000|Reset_FX[i]);
+        else
+                outpw(0xA20, Reset_FX[i]
+}
+for(i=0; i<32; i++) {
+        outpw(0xE22, 96+i);             //Select base index 96+oscillator
+                                        //number
+        if(i&1)
+                outpw(0xA20, 0x8000|Reset_FX[32+i]);
+        else
+                outpw(0xA20, Reset_FX[32+i]
+}
+for(i=0; i<32; i++) {
+        outpw(0xE22, 64+(i/32));        //Select base index 64+oscillator
+                                        //number
+        if(i&1)
+                outpw(0xA20, 0x8000|Reset_FX[64+i]);
+        else
+                outpw(0xA20, Reset_FX[64+i]
+}
+for(i=0; i<32; i++) {
+        outpw(0xE22, 64+(i/32));        //Select base index 64+oscillator
+                                        //number
+        if(i&1)
+                outpw(0xA20, 0x8000|Reset_FX[96+i]);
+        else
+                outpw(0xA20, Reset_FX[96+i]
+}
+
+
+/* Upload the Reverb&Chorus Algorithm */
+for(i=0; i<32; i++) {
+        outpw(0xE22, 96+i);             //Select base index 96+oscillator
+                                        //number
+        if(i&1)
+                outpw(0xA20, 0x8000|Reverb&Chorus_FX[i]);
+        else
+                outpw(0xA20, Reverb&Chorus_FX[i]
+}
+for(i=0; i<32; i++) {
+        outpw(0xE22, 96+i);             //Select base index 96+oscillator
+                                        //number
+        if(i&1)
+                outpw(0xA20, 0x8000|Reverb&Chorus_FX[32+i]);
+        else
+                outpw(0xA20, Reverb&Chorus_FX[32+i]
+}
+for(i=0; i<32; i++) {
+        outpw(0xE22, 64+(i/32));        //Select base index 64+oscillator
+                                        //number
+        if(i&1)
+                outpw(0xA20, 0x8000|Reverb&Chorus_FX[64+i]);
+        else
+                outpw(0xA20, Reverb&Chorus_FX[64+i]
+}
+for(i=0; i<32; i++) {
+        outpw(0xE22, 64+(i/32));        //Select base index 64+oscillator
+                                        //number
+        if(i&1)
+                outpw(0xA20, 0x8000|Reverb&Chorus_FX[96+i]);
+        else
+                outpw(0xA20, Reverb&Chorus_FX[96+i]
+}
+
+outpw(0xE22, 32+9);                     //Select base index 32+oscillator 9
+outpw(0xA20, 0);                        //This register holds an unknown chorus
+                                        //parameter
+outpw(0xA22, 0);                        //for the Reverb&Chorus Algorithm
+
+outpw(0xE22, 32+10);                    //Select base index 32+oscillator 10
+outpw(0xA20, 0x83);                     //This register holds the chorus
+outpw(0xA22, 0x00);                     //parameter for chorus modulation
+                                        //frequency
+
+outpw(0xE22, 32+13);                    //Select base index 32+oscillator 13
+outpw(0xA20, 0);                        //This register holds an unknown chorus
+outpw(0xA22, 80);                       //parameter for the Reverb&Chorus 
+                                        //Algorithm
+
+outpw(0xE22, 32+14);                    //Select base index 32+oscillator 13
+outpw(0xA20, 0);                        //This register holds an unknown chorus
+outpw(0xA22, 0);                        //parameter for the Reverb&Chorus
+                                        //Algorithm
+
+for(i=0; i<32; i++) {
+        outpw(0xE22, 96+i);             //Select base index 96+oscillator
+                                        //number
+        outpw(0xA20, Reverb&Chorus_FX[i]
+}
+for(i=0; i<32; i++) {
+        outpw(0xE22, 96+i);             //Select base index 96+oscillator
+                                        //number
+        outpw(0xA20, Reverb&Chorus_FX[32+i]
+}
+for(i=0; i<32; i++) {
+        outpw(0xE22, 64+(i/32));        //Select base index 64+oscillator
+                                        //number
+        outpw(0xA20, Reverb&Chorus_FX[64+i]
+}
+for(i=0; i<32; i++) {
+        outpw(0xE22, 64+(i/32));        //Select base index 64+oscillator
+                                        //number
+        outpw(0xA20, Reverb&Chorus_FX[96+i]
+}
+        
+return;
+
+--------------------------------------------------------------------------------
+
+Wowie, that's it!  Obviously, this code is not optimized.  Some of the 
+outpw's to select the index, are redundant.  But speed is not crucial, because
+this is an initialization routine.
+
+Initializing FM Passthrough:
+
+This routine is uses a timing loop to synchronize the oscillator with the
+refreshing of the DRAM.  Which also enables OPL3 passthrough.
+
+Here's a list of what to do:
+
+    Write 0x0080 to 0x541E (16-bit), the EG2 volume ramp register for
+    oscillator 30.  This disables EG2, from affecting volume.
+
+    Write 0xFFFFFFE0 to 0x601E (32-bit), the loopstart/pan register.
+    This sets the pan to 0xFF (full left), and the loopstart to
+    0xFFFFE0 for oscillator 30.  Of course you can set the pan to whatever
+    you like.
+
+    Write 0x00FFFFE8 to 0x701E (32-bit), the loopend/chorus send register.
+    This sets the chorus send to 0x00 (no send), and the loopend to
+    0xFFFFE8 for oscillator 30.  Of course, you can set the chorus send to
+    whatever you like.
+
+    Write 0x00000000 to 0x101E (32-bit), the ??/reverb send/?? register.
+    This sets the reverb send to 0x00 (no send), the oscillator frequency
+    to 0x0000 Hz, and other things I don't know.  Yes, you can change the
+    reverb send to your liking.
+    
+    Write 0x00000000 to 0x001E (32-Bit,  I have no idea what this does, but
+    it is for oscillator 30 (duh.).
+
+    Write 0x00FFFFE3 to 0x041E (32-Bit, the FilterQ/DramControl/PlayPosition
+    This sets the FilterQ to 0, DramControl to normal, and PlayPosition to
+    0xFFFFE3.  Yes you can set the FilterQ to your liking.
+
+    Write 0x0080 to 0x541F (16-bit), the EG2 volume ramp register for
+    oscillator 31.  This disables EG2, from affecting volume.
+
+    Write 0x00FFFFF0 to 0x601F (32-bit), the loopstart/pan register.
+    This sets the pan to 0xFF (full right), and the loopstart to
+    0xFFFFF0 for oscillator 31.  Of course you can set the pan to whatever
+    you like.
+
+    Write 0x00FFFFF8 to 0x701F (32-bit), the loopend/chorus send register.
+    This sets the chorus send to 0x00 (no send), and the loopend to
+    0xFFFFF8 for oscillator 31.  Of course, you can set the chorus send to
+    whatever you like.
+
+    Write 0x000000FF to 0x101F (32-bit), the ??/reverb send/?? register.
+    This sets the reverb send to 0x00 (no send), the oscillator frequency
+    to 0x0000 Hz, and other things I don't know.  Yes, you can change the
+    reverb send to your liking.
+    
+    Write 0x00000000 to 0x001F (32-Bit,  I have no idea what this does, but
+    it is for oscillator 31 (duh.).
+
+    Write 0x00FFFFF3 to 0x041F (32-Bit, the FilterQ/DramControl/PlayPosition
+    This sets the FilterQ to 0, DramControl to normal, and PlayPosition to
+    0xFFFFF3.  Yes you can set the FilterQ to your liking.
+
+    Okay, this is the crucial timing loop, ill have to show it in C:
+
+--------------------------------------------------------------------------------
+    outpw(0xE22, 32+30);                //Select index
+    outpw(0x620, 0);                    //Register 0x101E
+                                        //Recall that 0x101E is 32-Bit
+                                        //But do not write to the high word
+
+    while(!(inpw(0xE22)&0x1000));       //Wait for that bit to set
+    while(inpw(0xE22)&0x1000);          //Wait for that bit to clear
+
+    outpw(0x622, 0x4828);               //Okay, now write the high word
+                                        //This sets the frequency for
+                                        //oscillator 30 to ???
+
+    outpw(0xE22, 32+28);                //Select index
+    outpw(0xA20, 0);                    //Register 0x141C
+
+    outpw(0xE22, 96+30);                //Select index 96, oscillator 30
+    outpw(0x620, 0xFFFF);               //Register 0x301E (32-Bit)
+    outpw(0x622, 0xFFFF);               //This sets the overall volume (after
+                                        //EG2
+                                        //and LFO1) to 0xFFFF, and the overall
+                                        //filter to 0xFFFF(after LFO1 and EG1)
+    outpw(0xE22, 96+31);                //Same as above except for oscillator
+    outpw(0x620, 0xFFFF);               //31
+    outpw(0x622, 0xFFFF);
+
+--------------------------------------------------------------------------------
+
+Detecting DRAM:
+
+Basically, to detect the ammount of DRAM, you write a sample to an offset in
+the memory, and then read from that offset to check if it was actually
+written, and make sure the actual write offset did not wrap around.  
+
+Here's a detection routine in C:
+
+-------------------------------------------------------------------------------
+
+        unsigned long dramsize;
+        unsigned i;
+
+/* Setup 15 Oscillators for DRAM writing, and 15 for read */
+
+        for(i=0; i<30; i++) {
+        
+        outpw(0xE22, 160+i);            //Select Index (i won't comment these
+                                        //anymore)
+        outpw(0xA20, 0x80);             //Disable EG2, register 0x5400|i
+
+        outpw(0xE22, 96+i);
+        outpw(0x620, 0x0000);           //Register 0x3000+i
+        outpw(0x622, 0x0000);           //Set RawFilter/Raw Volume to 0
+
+        outpw(0xE22, 64+i);
+        outpw(0x620, 0x0000);           //Register 0x2000+i
+        outpw(0x622, 0x0000);           //I don't know what this does
+
+        outpw(0xE22, 192+i);
+        outpw(0x620, 0x0000);           //Register 0x6000+i
+        outpw(0x622, 0x0000);           //Set pan, and loopstart to 0
+        
+        outpw(0xE22, 224+i);
+        outpw(0x620, 0x0000);           //Register 0x7000+i
+        outpw(0x622, 0x0000);           //Set chorus send, and loopend to 0
+
+        outpw(0xE22, 32+i);
+        outpw(0x620, 0x0000);           //Register 0x1000+i
+        outpw(0x622, 0x4000);           //Set frequency to ???
+
+        outpw(0xE22, 0+i);
+        outpw(0x620, 0x0000);           //Register 0x0000+i
+        outpw(0x622, 0x4000);           //I don't know what this does
+
+        outpw(0xE22, 0+i);
+        outpw(0xA20, 0x0000);           //Register 0x0400+i
+        if(i&1)
+                outpw(0xA22, 0x0600);   //Write mode
+        else
+                outpw(0xA22, 0x0400);   //Read mode
+        
+        }
+
+        outpw(0xE22, 32+22);            //Register 0x1416
+        outpw(0xA20, 0x0000);           //Set write offset to 0x200000
+        outpw(0xA22, 0x0020);           //(the beginning of DRAM)
+
+        outpw(0xE22, 32+26);            //Index for register 0x141A
+                                        //this register is the read/write
+                                        //data register.
+        
+        outpw(0xA20, 0xFFFF);           //Write 0xFFFF to offset 0x200000
+                                        //0x1416 (write offset register)
+                                        //is automatically incremented by
+                                        //one every write.
+        outpw(0xA20, 0xAAAA);           //Write 0xAAAA to offset 0x200001
+        outpw(0xA20, 0x5555);           //Write 0x5555 to offset 0x200002
+
+        outpw(0xE22, 32+20);            //Register 0x1414
+        outpw(0xA20, 0x0000);           //Set read offset to 0x200000
+        outpw(0xA22, 0x0020);
+
+        outpw(0xE22, 32+26);            //Set index for register 0x141A
+
+        inpw(0xA20);                    //Ignore the first read.
+
+        if(inpw(0xA20) != 0xFFFF)
+                return 0;               //No DRAM Detected
+        if(inpw(0xA20) != 0xAAAA)
+                return 0;               //No DRAM Detected
+        if(inpw(0xA20) != 0x5555)
+                return 0;               //No DRAM Detected
+
+        dramsize = 0;
+
+while(dramsize<0xdf8000) {
+
+        dramsize += 0x20000;            //Everything checks out
+                                        //so add 0x20000 to dramsize
+        
+        outpw(0xE22, 32+22);            //Set the write offset
+        outpw(0xA20, (dramsize+0x200000)&0xFFFF);
+        outpw(0xA22, (dramsize+0x200000)>>16);
+
+        outpw(0xE22, 32+26);            //Select register 0x141A
+        
+        outpw(0xA20, 0x1234);           //Write 0x1234 to memory
+        outpw(0xA20, 0x1234);           //Write it to the next offset.
+        outpw(0xA20, 0x1234);           //Write it to the next offset.
+
+        outpw(0xE22, 32+20);            //Register 0x1414
+        outpw(0xA20, 0x0000);           //Set the read offset to begginning
+        outpw(0xA20, 0x0020);           //of DRAM
+
+        /* Check for wrap around */
+
+        outpw(0xE22, 32+26);            //Set index for register 0x141A
+        inpw(0xA20);                    //Ignore the first read.
+        if(inpw(0xA20) != 0xFFFF)
+                return dramsize;        //Write wrapped around
+        
+        /* Check to make sure it was written */
+        
+        outpw(0xE22, 32+20);            //Register 0x1414 (read offset)
+        outpw(0xA20, (dramsize+0x200000)&0xFFFF);
+        outpw(0xA22, (dramsize+0x200000)>>16);
+
+        outpw(0xE22, 32+26);            //Set index for register 0x141A
+        inpw(0xA20);                    //Ignore the first read.
+        if(inpw(0xA20) != 0x1234)
+                return dramsize;        //Did not write!
+        if(inpw(0xA20) != 0x1234)
+                return dramsize;        //Did not write!
+        if(inpw(0xA20) != 0x1234)
+                return dramsize;        //Did not write!
+
+}
+
+        /* Reset the oscillators */
+        for(i=0; i<30; i++) {
+                outpw(0xE22, 0+i);
+                outpw(0xA20, 0x0000);
+                outpw(0xA22, 0x0000);
+                
+                outpw(0xE22, 160+i);
+                outpw(0xA20, 0x807F);
+        }
+
+        return dramsize;
+        
+--------------------------------------------------------------------------------
+
+The dramsize is returned in words, so you need to multiply by 2 to get the
+number of bytes.
+
+
+V.    Sample Uploading/Downloading
+----------------------------------
+
+When I say uploading, I mean transferring samples from your computer to
+the EMU8000's memory.  And downloading is transferring samples from the
+EMU8000's memory (ROM included) to your computer.
+
+All transfers are done through I/O ports, and not DMA.
+
+This is the simplest part of programming the EMU8000.  Here's C code
+to setup the oscillators for transfering:
+
+-------------------------------------------------------------------------------
+/* i is the oscillator number (0-31) */
+
+        outpw(0xE22, 160+i);            //Select Index (i won't comment these
+                                        //anymore)
+        outpw(0xA20, 0x80);             //Disable EG2, register 0x5400|i
+
+        outpw(0xE22, 96+i);
+        outpw(0x620, 0x0000);           //Register 0x3000+i
+        outpw(0x622, 0x0000);           //Set RawFilter/Raw Volume to 0
+
+        outpw(0xE22, 64+i);
+        outpw(0x620, 0x0000);           //Register 0x2000+i
+        outpw(0x622, 0x0000);           //I don't know what this does
+
+        outpw(0xE22, 192+i);
+        outpw(0x620, 0x0000);           //Register 0x6000+i
+        outpw(0x622, 0x0000);           //Set pan, and loopstart to 0
+        
+        outpw(0xE22, 224+i);
+        outpw(0x620, 0x0000);           //Register 0x7000+i
+        outpw(0x622, 0x0000);           //Set chorus send, and loopend to 0
+
+        outpw(0xE22, 32+i);
+        outpw(0x620, 0x0000);           //Register 0x1000+i
+        outpw(0x622, 0x4000);           //Set frequency to ???
+
+        outpw(0xE22, 0+i);
+        outpw(0x620, 0x0000);           //Register 0x0000+i
+        outpw(0x622, 0x4000);           //I don't know what this does
+
+        outpw(0xE22, 0+i);
+        outpw(0xA20, 0x0000);           //Register 0x0400+i
+        outpw(0xA22, 0x0600);           //Write mode
+                                        //replace 0x0600 with 0x0400
+
+-------------------------------------------------------------------------------
+
+You can setup as many oscillators as you want for transferring.  You can setup
+as little as 1 and as many as 32.  But if you setup 32, remember to
+reinitialize fm passthrough.  The more oscillators you use the faster the
+transfers.  You do not have to setup a block of oscillators for transfers.
+You can setup say, for example oscillators: 0, 3, 7, and 12.  That is
+perfectly fine, and you can transfer samples, while still playing.  Just as 
+long as the oscillator you setup for transfer is not in use (playing, or
+transferring).
+
+Here's pseudo-c code to upload (assuming the oscillators are setup already):
+
+        outpw(0xE22, 32+22);
+        outpw(0xA20, write_offset&0xFFFF);
+        outpw(0xA22, write_offset>>16);
+
+        outpw(0xE22, 32+26);
+        for(i=0; i<no_samples; i++)
+                outpw(0xA20, sample[i]);        //Samples should be 16-Bit
+                                                //Intel, Signed, PCM
+
+That's it.  After you are done with the transfers, reset the oscillators
+that you used.  Here's how to reset the oscillator:
+
+        outpw(0xE22, 0+i);
+        outpw(0xA20, 0x0000);
+        outpw(0xA22, 0x0000);
+                
+        outpw(0xE22, 160+i);
+        outpw(0xA20, 0x807F);
+
+i is the oscillator number.
+
+Uploading is exactly the same as downloading:
+
+        outpw(0xE22, 32+22);
+        outpw(0xA20, write_offset&0xFFFF);
+        outpw(0xA22, write_offset>>16);
+
+        outpw(0xE22, 32+26);
+        inpw(0xA20);                    //Discard the first read
+                                        //I don't know why, but do it.
+        for(i=0; i<no_samples; i++)
+                sample[i] = inppw(0xA20);
+
+Wow!  That was simple huh?  
+
+VI.   Playing a sample
+----------------------
+
+You should keep in mind that the EMU8000 does not have a sample length 
+register.  So it is always constantly playing.  So how do you keep it from 
+playing beyond the end of a sample, if the sample is not looped?
+
+You setup a silence loop at the end of the sample.  So for example, you have
+a sample that is 26000 samples long, and it is not looped. What you would do
+is add 4 or more samples of silence (0) to the end of that sample when
+uploading, and set the loopstart, and loopend when playing that sample to
+the silence padding at the end of the sample.  Understand?
+
+The EMU8000 does not keep track of instruments, and samples.  That is up to
+the software.  The EMU8000 only knows playposition, loopstart, and loopend.
+and that is for each oscillator.
+
+Let's say you wanted to play a sample that was located at offset 0x1000,
+which is in the ROM.  And you want to use envelopes and lfo's and you want
+it looped.  How would you do that?
+
+First you need to allocate an oscillator for playback.  How do you do that?
+You can either keep track of the oscillators yourself, or you can go through
+all 30/32 (depending if you use ram or not), and check for the one with the
+lowest *overall* volume.  The overall volume or overall volume is located in 
+register 0x3000+oscillator_no.  0x3000 is a 32bit register, and the overall
+volume is located at the high word.  You need to read all 32bits, and then
+store only the high word.  After you have found the oscillator, remember its
+number (so that when you want to turn off the sample, you know which
+oscillator its on).
+
+Once you have an oscillator, you can now setup it's parameters.  You do not
+need to rewrite any of the parameters for the oscillator unless you know it
+has changed or if the parameter is playposition.
+
+The first thing you do with that oscillator is disable the volume envelope,
+and turn off the volume.  You can disable the volume envelope by writing 0x80 
+to the 16-bit register 0x5400. And then you can write 0x0000FFFF to the 32bit
+register 0x3000, which sets the overall volume to 0, and the overall filter to
+0xFFFF.  Of course you can set any other filter but, it doesn't matter,
+because, the filter envelope hasn't been disabled (EG1).
+
+Now, you can set the parameters to your liking without getting clicks, or
+twirps, or other strange noises.  You should save play-position for last.
+Because, remember, the EMU8000 is always constantly playing.
+
+Once you have set all the parameters you can, now enable EG2 (volume eg), by
+writing the appropriate value to 0x5400.  (for a full explaination of
+0x5400, refer to section VII.
+
+Okay, how do you release or turn off the sample?
+
+You write the appropriate values to 0x5400 and 0x7400.  (refer to section VII)
+
+
+
+VII.  The registers
+-------------------
+
+NOTE!!!
+
+The scales in this list, may or may not be 100% correct.
+
+Format of this list:
+
+Register Number         U/O     Base Index      Base Port       W/D
+Name
+
+Description
+
+U/O = Unique/Applies to all oscillators.  If it applies to all oscillators
+      you can access the register for any particular oscillator by adding
+      the oscillator number to the base index.
+
+W/D = The size of the register.  16-bit or 32-bit.  All 16-bits of a 16-bit
+      register must be read/write.  And all 32-bits of a 32-bit register
+      must be read/write.
+
+Unlisted registers are unknown.
+
+Registers 0x2400-0x3600 contain effects engine data, and will not be listed.
+
+-------------------
+0x0400  O 000 A20 D
+FilterQ/DramControl/PlayPosition
+
+The upper 4 bits of this register contain the filter resonance coefficient.
+Refer to the NRPN LSB 22 in the awe32faq for the coefficient table.
+
+The middle 4 bits of this register contain the control nibble of the
+oscillator.  0=Normal, 4=Read, 6=Write.  All other values are unknown.
+
+The lower 24 bits of this register contain the play position for the
+oscillator.  This is the currently playing offset for the oscillator.  It
+can be changed on the fly, and is updated continuously, by the EMU8000.
+
+Notes!!!
+
+Setting the PlayPosition greater than the Loop End Offset, will cause
+the oscillator to play in reverse, back to the Loop End Offset.  It's
+pretty neat, but appears to be uncontrollable (the rate at which the
+samples are played in reverse).
+
+-------------------
+0x0800  O 000 E20 W
+Initial Pitch
+
+The scale for the pitch register is logarithmic.  57344 is Middle C, or
+44100Hz.  Every 4096 is one octave, or double the frequency of the previous
+4096.  Example:  57344-4096 = 22050Hz.  4096/12 is one semitone.  57344+341=
+C# or Db (D-Flat).  This register is the initial pitch of the oscillator.
+
+-------------------
+0x1000  O 032 620 D
+Unknown/ReverbSend/Unknown
+16Bit/8Bit/8bit
+
+The purpose of the upper 16bits of this register is unknown.  The upper byte
+of the lower word contains the reverb send level.  The range for the 
+reverb send level is 0-255 0 is no send, and 255 is full send.  The lower
+byte is also unknown.
+
+-------------------
+0x1409  U 041 A20 D
+Effects Engine Parameter
+
+Under the Reverb&Chorus Algorithm this register holds an unknown parameter
+for the chorus effect.
+
+-------------------
+0x140A  U 042 A20 D
+Effects Engine Parameter
+
+Under the Reverb&Chorus Algorithm this register holds the modulation
+frequency parameter for the chorus effect.
+
+-------------------
+0x140D  U 045 A20 D
+Effects Engine Parameter
+
+Under the Reverb&Chorus Algorithm this register holds an unknown parameter
+for the chorus effect.
+
+-------------------
+0x140E  U 046 A20 D
+Effects Engine Parameter
+
+Under the Reverb&Chorus Algorithm this register holds an unknown parameter
+for the chorus effect.
+
+-------------------
+0x1414  U 052 A20 D
+Memory Read Offset
+
+This register holds the offset of the data that will be read from the memory
+by reading register 0x141A.  This register is automatically incremented each
+read.
+
+-------------------
+0x1416  U 054 A20 D
+Memory Write Offset
+
+This register holds the offset of the data that will be write from the memory
+by writing register 0x141A.  This register is automatically incremented each
+write.
+
+-------------------
+0x141A  U 058 A20 W
+Memory Read/Write Data
+
+This register writes to memory at the offset found in 0x1416, each time this 
+register is written to.  This register reads from memory at the offset found
+in 0x1414, each time this register is read from.
+
+-------------------
+0x161B  U 059 A22 W
+44100Hz Counter
+
+This register is incremented every 1/44100th of a second.  When it reaches
+65536, it rolls back to 0.
+
+-------------------
+0x1800  O 000 E20 W
+Initial Filter/Initial Volume
+
+The upper byte of this register contains the initial filter cutoff for that
+register.  Zero sets the cutoff at 100Hz, and 255 sets the cutoff at
+8068.75Hz.  The formula for the initial filter cutoff is as follows:
+
+InitialFilterCutoff = RegisterValue*31.25Hz+100Hz
+
+The lower byte ofthis registers holds the initial volume.  The EMU8000
+uses a logarithmic volume scale, with 96dB as the max. volume, and -oo
+(infinity), the minimum. A register value of 0 sets the initial volume
+of that oscillator to 96dB above silence (-oo dB).  A value of 255 sets
+the initial volume to -oo dB.
+
+dB to register value:
+
+InitialVolume (dB above silence) = 96dB - RegisterValue/16*6dB
+
+Linear scale to register vale (if LinearVolume = 0, then register
+value = 255):
+
+RegisterValue = 20*log(LinearVolume/MaxLinearVolume)*16/6
+
+How to understand the decibel system (dB):  12dB is twice as loud as
+6dB.  18dB is twice as loud as 12dB, and four times as loud as 6dB.
+
+-------------------
+0x2800  O 064 E20 W
+EG1 to Pitch/EG1 to Filter Cutoff
+
+The upper byte of this register, contains the ammount the pitch of the
+oscillator will be changed by, at the peak of EG1.  This byte is a
+signed byte.  The pitch of the oscillator will be doubled at peak, if
+this byte is set to 127 (0x7F), if the byte is set to -127 (0x80), then
+the pitch will be halved at peak.  Each unit changes the pitch by
+9.375 cents (divide by 100 to get the number of semitones).
+
+The lower byte of this register, contains the ammount the filter cutoff
+of the oscillator will be changed by, at the peak of EG1.  This byte is
+a signed byte.  The  filter cutoff of the oscillator will be multiplied 
+by 8 at peak, if this byte is set to 127 (0x7F), if the byte is set to -127 
+(0x80), then the filter cutoff will be divided by 8 at peak.  Each unit
+changes the filter cutoff by 28.125 cents.
+
+-------------------
+0x3000  O 096 620 D
+Overall Volume/Overall Filter Cutoff
+
+The upper word of this register contains the overall volume of the 
+oscillator.  The overall volume, is the total volume of the oscillator,
+after initial volume, EG2, and possibly LFO1 (i'm not sure).
+
+The lower word of this reigster contains the overall filter cutoff of
+the oscillator.  The overall volume is the total filter cutoff of the
+oscillator after initial filter cutoff, EG1, and possibly LFO1 (i'm not
+sure).
+
+-------------------
+0x3800  O 096 E20 W
+LFO1 to Pitch/LFO1 to Filter Cutoff
+
+This register is exactly the same as register 0x2800, except it controls
+the LFO1 instead of EG1.
+
+-------------------
+0x4400  O 128 A20 W
+EG2 Delay Time
+
+This register controls the time EG2 will wait before beginning the
+attack.
+
+RegisterValue = 32768-(DelayTime_ms*1000/725)
+
+The range for DelayTime is [0ms -> 23756.8ms]
+
+-------------------
+0x4600  O 128 A22 W
+EG2 Hold Time/EG2 Attack Time
+
+The upper byte of the register contains the time at which EG2 will
+stay at peak before beginning the decay.
+
+RegisterValue = 127-(HoldTime_ms/92)
+
+The range for HoldTime is [0ms -> 11684ms]
+
+The lower byte of the register contains the attack, the time during
+which EG2 fades from 0 to peak.
+
+        if AttackTime_ms >= 360ms:
+
+        RegisterValue = 11878/AttackTime_ms - 1
+
+        if AttackTime_ms < 360ms and AttackTime != 0:
+
+        RegisterValue = 32 + [16/log(1/2)] * log(360_ms/AttackTime_ms)
+
+        if AttackTime_ms == 0
+
+        RegisterValue = 0x7F
+
+The range for attack time is [0ms -> 11878ms]
+
+-------------------
+0x4800  O 128 E20 W
+LFO1 to Volume/LFO1 Frequency
+
+The upper byte contains the the ammount the volume of the oscillator
+will be changed by at the peak of LFO1.  This byte is signed.
+
+RegisterValue = Volume_dB * 12/128
+
+The range for Volume_dB is [-12dB -> 12dB]
+
+The lower byte contains the frequency at which LFO1 oscillates.
+
+RegisterValue = Frequency_Hz * 21.44/256
+
+-------------------
+0x5400  O 160 A20 W
+EG2 Override/EG2 Sustain/EG2 Decay, Release or EG2 Ramper
+
+If the MSB (most significant bit or bit 15) of this register is set,
+the Decay/Release will begin immediately, overriding the Delay, Attack,
+and Hold.  Otherwise the Decay/Release will wait until the Delay, Attack,
+and Hold are finished.  If you set the MSB of this register, you can use
+it as a volume ramper, as on the GUS.  The upper byte (except the MSB),
+contains the destination volume, and the lower byte contains the ramp time.
+
+Sustain Portion:
+
+RegisterValue = SustainLevel_dB*4/3
+
+Decay/Release Portion:
+
+RegisterValue = 2*log(1/2)*log(23756_ms/DecayTime_ms)
+
+range: [0ms, 23756ms], obviously at 0ms, the register value is 127.
+
+Notes!!!
+
+Setting the sustain of this register above zero, turns on the volume.
+Basically, setting this register with proper decay, and sustain time
+(any value other than zero), will start the _audible_ playing of the
+sample.  (remember: the emu is always constantly playing).
+
+Setting the sustain to zero, and the decay to appropriate time, will
+start the release of the sample.  Thus turning off the sample,
+_audibly_.
+
+What I did in my modplayer (AWEMod), is each time I turned the note on,
+I set the upper byte to 0xFF, which sets the upper byte, and sets the
+sustain level to 96dB, and set the decay time to 0x7F (0 ms).  This
+gave me the sharpest attacks, because EG2, skips the delay, attack,
+hold, and goes straight to sustain.
+
+-------------------
+0x5600  O 160 A22 W
+LFO1 Delay Time
+
+This is exactly the same as EG1 Delay Time, register 0x4400.
+
+-------------------
+0x5800  O 160 E20 W
+LFO2 to Pitch/LFO2 Frequency
+
+The format of the upper byte (LFO2 to Pitch) is exactly the same as for
+EG1 (register 0x2800), and the format of the lower byte is exactly the
+same as for register 0x4800 (LFO1 Frequency).
+
+-------------------
+0x6000  O 192 620 D
+Pan Level/Loop Start Offset
+
+The highest byte contains the pan level.  Zero is full right, 128 is
+dead center, and 255 is full left.  Simple.
+
+The last 3 bytes are the Loop Start Offset.
+
+-------------------
+0x6400  O 192 A20 W
+EG1 Delay Time
+
+Same as EG2 Delay Time, register 0x4400.
+
+-------------------
+0x6600  O 192 A22 W
+EG1 Hold Time/EG1 Attack Time
+
+Same as EG2 Hold/EG2 Attack, register 0x4600.
+
+-------------------
+0x7000  O 224 620 D
+Chorus Send/Loop End Offset
+
+The highest byte contains the Chorus Send level.  Zero is none, and
+255 is full.  The last 3 bytes contain the Loop End Offset.
+
+Notes!!!
+
+Setting the Loop Start Offset and the Loop End Offset to the same
+value, will cause the oscillator to loop the entire memory.
+
+-------------------
+0x7400  O 224 A20 W
+EG1 Override/EG1 Sustain/EG1 Decay, Release or EG1 Ramper
+
+This is exactly the same as register 0x5400.  Except it controls the
+filter cutoff, and pitch of the oscillator.
+
+-------------------
+0x7600  O 224 A22 W
+LFO2 Delay
+
+Same as LFO1 Delay, register 0x5600.
+
+
+VIII. Effects Engine Data
+-------------------------
+
+Data to reset/clear the engine, not quite sure what it does (128 Words):
+
+0x3FF,0x30,0x7FF,0x130,0xBFF,0x230,0xFFF,0x330,0x13FF,0x430,0x17FF,0x530,
+0x1BFF,0x630,0x1FFF,0x730,0x23FF,0x830,0x27FF,0x930,0x2BFF,0xA30,0x2FFF,0xB30,
+0x33FF,0xC30,0x37FF,0xD30,0x3BFF,0xE30,0x3FFF,0xF30,0x43FF,0x030,0x47FF,0x130,
+0x4BFF,0x230,0x4FFF,0x330,0x53FF,0x430,0x57FF,0x530,0x5BFF,0x630,0x5FFF,0x730,
+0x63FF,0x830,0x67FF,0x930,0x6BFF,0xA30,0x6FFF,0xB30,0x73FF,0xC30,0x77FF,0xD30,
+0x7BFF,0xE30,0x7FFF,0xF30,0x83FF,0x030,0x87FF,0x130,0x8BFF,0x230,0x8FFF,0x330,
+0x93FF,0x430,0x97FF,0x530,0x9BFF,0x630,0x9FFF,0x730,0xA3FF,0x830,0xA7FF,0x930,
+0xABFF,0xA30,0xAFFF,0xB30,0xB3FF,0xC30,0xB7FF,0xD30,0xBBFF,0xE30,0xBFFF,0xF30,
+0xC3FF,0x030,0xC7FF,0x130,0xCBFF,0x230,0xCFFF,0x330,0xD3FF,0x430,0xD7FF,0x530,
+0xDBFF,0x630,0xDFFF,0x730,0xE3FF,0x830,0xE7FF,0x930,0xEBFF,0xA30,0xEFFF,0xB30,
+0xF3FF,0xC30,0xF7FF,0xD30,0xFBFF,0xE30,0xFFFF,0xF30
+
+Reverb&Chorus Algorithm Data [Hall 2, Chorus 3] (128 Words):
+
+0x0C10,0x8470,0x14FE,0xB488,0x167F,0xA470,0x18E7,0x84B5,0x1B6E,0x842A,0x1F1D,
+0x852A,0x0DA3,0x0F7C,0x167E,0x7254,0x0000,0x842A,0x0001,0x852A,0x18E6,0x0BAA,
+0x1B6D,0x7234,0x229F,0x8429,0x2746,0x8529,0x1F1C,0x6E7,0x229E,0x7224,0x0DA4,
+0x8429,0x2C29,0x8529,0x2745,0x7F6,0x2C28,0x7254,0x383B,0x8428,0x320F,0x8528,
+0x320E,0xF02,0x1341,0x7264,0x3EB6,0x8428,0x3EB9,0x8528,0x383A,0xFA9,0x3EB5,
+0x7294,0x3EB7,0x8474,0x3EBA,0x8575,0x3EB8,0x44C3,0x3EBB,0x45C3,0x0000,0xA404,
+0x0001,0xA504,0x141F,0x671,0x14FD,0x287,0x3EBC,0xE610,0x3EC8,0xC7B,0x031A,
+0x07E6,0x3EC8,0x86F7,0x3EC0,0x821E,0x3EBE,0xD280,0x3EBD,0x21F,0x3ECA,0x0386,
+0x3EC1,0xC03,0x3EC9,0x31E,0x3ECA,0x8C4C,0x3EBF,0xC55,0x3EC9,0xC280,0x3EC4,
+0xBC84,0x3EC8,0xEAD,0x3EC8,0xD380,0x3EC2,0x8F7E,0x3ECB,0x219,0x3ECB,0xD2E6,
+0x3EC5,0x31F,0x3EC6,0xC380,0x3EC3,0x327F,0x3EC9,0x265,0x3EC9,0x8319,0x1342,
+0xD3E6,0x3EC7,0x337F,0x0000,0x8365,0x1420,0x9570
+
+Modifications to effects engine data registers to get other reverb&chorus
+variations (also stuff about custom effects), and different EQ's:
+
+Registers to write the Chorus Parameters to (all are 16-bit, unless noted):
+
+0x3409
+0x340C
+0x3603
+0x1409 (32-Bit)
+0x140A (32-Bit)
+then write 0x8000 to 0x140D (32-Bit)
+and then 0x0000 to 0x140E (32-Bit)
+
+Chorus Parameters:
+
+Chorus 1  Chorus 2  Chorus 3  Chorus 4  Feedback  Flanger
+
+0xE600    0xE608    0xE610    0xE620    0xE680    0xE6E0
+0x03F6    0x031A    0x031A    0x0269    0x04D3    0x044E
+0xBC2C    0xBC6E    0xBC84    0xBC6E    0xBCA6    0xBC37
+0x0000    0x0000    0x0000    0x0000    0x0000    0x0000
+0x006D    0x017C    0x0083    0x017C    0x005B    0x0026
+
+Short Delay         Short Delay + Feedback
+
+0xE600              0xE6C0
+0x0B06              0x0B06
+0xBC00              0xBC00
+0xE000              0xE000
+0x0083              0x0083
+
+Registers to write the Reverb Parameters to (they are all 16-bit):
+
+0x2403,0x2405,0x361F,0x2407,0x2614,0x2616,0x240F,0x2417,
+0x241F,0x2607,0x260F,0x2617,0x261D,0x261F,0x3401,0x3403,
+0x2409,0x240B,0x2411,0x2413,0x2419,0x241B,0x2601,0x2603,
+0x2609,0x260B,0x2611,0x2613
+
+Reverb Parameters:
+
+Room 1:
+
+0xB488,0xA450,0x9550,0x84B5,0x383A,0x3EB5,0x72F4,0x72A4,
+0x7254,0x7204,0x7204,0x7204,0x4416,0x4516,0xA490,0xA590,
+0x842A,0x852A,0x842A,0x852A,0x8429,0x8529,0x8429,0x8529,
+0x8428,0x8528,0x8428,0x8528
+
+Room 2:
+
+0xB488,0xA458,0x9558,0x84B5,0x383A,0x3EB5,0x7284,0x7254,
+0x7224,0x7224,0x7254,0x7284,0x4448,0x4548,0xA440,0xA540,
+0x842A,0x852A,0x842A,0x852A,0x8429,0x8529,0x8429,0x8529,
+0x8428,0x8528,0x8428,0x8528
+
+Room 3:
+
+0xB488,0xA460,0x9560,0x84B5,0x383A,0x3EB5,0x7284,0x7254,
+0x7224,0x7224,0x7254,0x7284,0x4416,0x4516,0xA490,0xA590,
+0x842C,0x852C,0x842C,0x852C,0x842B,0x852B,0x842B,0x852B,
+0x842A,0x852A,0x842A,0x852A
+
+Hall 1:
+
+0xB488,0xA470,0x9570,0x84B5,0x383A,0x3EB5,0x7284,0x7254,
+0x7224,0x7224,0x7254,0x7284,0x4448,0x4548,0xA440,0xA540,
+0x842B,0x852B,0x842B,0x852B,0x842A,0x852A,0x842A,0x852A,
+0x8429,0x8529,0x8429,0x8529
+                           
+Hall 2:
+                                     
+0xB488,0xA470,0x9570,0x84B5,0x383A,0x3EB5,0x7254,0x7234,
+0x7224,0x7254,0x7264,0x7294,0x44C3,0x45C3,0xA404,0xA504,
+0x842A,0x852A,0x842A,0x852A,0x8429,0x8529,0x8429,0x8529,
+0x8428,0x8528,0x8428,0x8528 
+
+Plate:
+     
+0xB4FF,0xA470,0x9570,0x84B5,0x383A,0x3EB5,0x7234,0x7234,
+0x7234,0x7234,0x7234,0x7234,0x4448,0x4548,0xA440,0xA540,
+0x842A,0x852A,0x842A,0x852A,0x8429,0x8529,0x8429,0x8529,
+0x8428,0x8528,0x8428,0x8528
+
+Delay:
+
+0xB4FF,0xA470,0x9500,0x84B5,0x333A,0x39B5,0x7204,0x7204,
+0x7204,0x7204,0x7204,0x72F4,0x4400,0x4500,0xA4FF,0xA5FF,
+0x8420,0x8520,0x8420,0x8520,0x8420,0x8520,0x8420,0x8520,
+0x8420,0x8520,0x8420,0x8520
+
+Panning Delay:
+
+0xB4FF,0xA490,0x9590,0x8474,0x333A,0x39B5,0x7204,0x7204,
+0x7204,0x7204,0x7204,0x72F4,0x4400,0x4500,0xA4FF,0xA5FF,
+0x8420,0x8520,0x8420,0x8520,0x8420,0x8520,0x8420,0x8520,
+0x8420,0x8520,0x8420,0x8520
+
+Registers to write the EQ Parameters to (16-Bit):
+
+Bass:
+
+0x3601
+0x3611
+
+Treble:
+
+0x3411
+0x3413
+0x341B
+0x3607
+0x360B
+0x360D
+0x3617
+0x3619
+
+Total:
+
+write the 0x0263 + 3rd parameter of the Bass EQ + 9th parameter of Treble EQ to 0x3615.
+write the 0x8363 + 3rd parameter of the Bass EQ + 9th parameter of Treble EQ to 0x3615.
+
+
+Bass Parameters:
+
+0:      1:      2:      3:      4:      5:      6:      7:      8:      9:      10:     11:
+
+0xD26A  0xD25B  0xD24C  0xD23D  0xD21F  0xC208  0xC219  0xC22A  0xC24C  0xC26E  0xC248  0xC26A
+0xD36A  0xD35B  0xD34C  0xD33D  0xC31F  0xC308  0xC308  0xC32A  0xC34C  0xC36E  0xC384  0xC36A
+0x0000  0x0000  0x0000  0x0000  0x0000  0x0001  0x0001  0x0001  0x0001  0x0001  0x0002  0x0002
+
+Treble Parameters:
+
+0:      1:      2:      3:      4:      5:      6:      7:      8:      9:      10:     11:
+0x821E  0x821E  0x821E  0x821E  0x821E  0x821E  0x821E  0x821E  0x821E  0x821E  0x821D  0x821C
+0xC26A  0xC25B  0xC24C  0xC23D  0xC21F  0xD208  0xD208  0xD208  0xD208  0xD208  0xD219  0xD22A
+0x031E  0x031E  0x031E  0x031E  0x031E  0x031E  0x031E  0x031E  0x031E  0x031E  0x031D  0x031C
+0xC36A  0xC35B  0xC34C  0xC33D  0xC31F  0xD308  0xD308  0xD308  0xD308  0xD308  0xD319  0xD32A
+0x021E  0x021E  0x021E  0x021E  0x021E  0x021E  0x021D  0x021C  0x021A  0x0219  0x0219  0x0219
+0xD208  0xD208  0xD208  0xD208  0xD208  0xD208  0xD219  0xD22A  0xD24C  0xD26E  0xD26E  0xD26E
+0x831E  0x831E  0x831E  0x831E  0x831E  0x831E  0x831D  0x831C  0x831A  0x8319  0x8319  0x8319
+0xD308  0xD308  0xD308  0xD308  0xD308  0xD308  0xD3019 0xD32A  0xD34C  0xD36E  0xD36E  0xD36E
+0x0001  0x0001  0x0001  0x0001  0x0001  0x0002  0x0002  0x0002  0x0002  0x0002  0x0002  0x0002
+
+
+To see what the parameters do, use the program FXTweak, which I wrote and included with the
+programming guide.
+
+IX.   Other documents you should refer to
+-----------------------------------------
+
+ftp.cdrom.com:/pub/demos/music/programs/players/omega06.zip
+
+This is the only modplayer for the AWE32 that comes with source code.
+Although the source, isn't very helpful, but it's working code.
+
+ftp.creaf.com:/pub/creative/files/awe/awe32faq.exe
+
+Great resource.  Refer to NRPN 22, in this faq, for a description of
+the resonance coefficients.
