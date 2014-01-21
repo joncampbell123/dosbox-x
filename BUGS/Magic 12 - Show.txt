@@ -1,0 +1,14 @@
+Magic 12 - Show bug report
+
+VGA raster bugs:
+ - 18-bit RGB highcolor hacked modes work except for minor errors
+   in linewise rendering that cause visible "stripes" in the output
+   (but only if the cycles count is greater than about 9000).
+
+Memory corruption bugs:
+ - DOSBox complains upon demo exit that the MCB (memory allocation
+   chain) is corrupted IF "private area in umb=false" and
+   "private area size=4096", or "private area in umb=false"
+   and "mainline compatible mapping=false" and "private area size"
+   is less than 32768.
+
