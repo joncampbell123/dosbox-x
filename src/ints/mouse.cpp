@@ -1143,7 +1143,7 @@ void MOUSE_Init(Section* sec) {
 		// Callback for mouse interrupt 0x33
 		call_int33=CALLBACK_Allocate();
 		// i33loc=RealMake(CB_SEG+1,(call_int33*CB_SIZE)-0x10);
-		i33loc=RealMake(DOS_GetMemory(0x1)-1,0x10);
+		i33loc=RealMake(DOS_GetMemory(0x1,"i33loc")-1,0x10);
 		CALLBACK_Setup(call_int33,&INT33_Handler,CB_MOUSE,Real2Phys(i33loc),"Mouse");
 		// Wasteland needs low(seg(int33))!=0 and low(ofs(int33))!=0
 		real_writed(0,0x33<<2,i33loc);

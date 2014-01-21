@@ -51,11 +51,13 @@ static Bitu call_casemap;
 static Bit16u dos_memseg=0;//DOS_PRIVATE_SEGMENT;
 static Bit16u bios_memseg=BIOS_PRIVATE_SEGMENT;
 
-Bit16u BIOS_GetMemory(Bit16u pages) {
+Bit16u BIOS_GetMemory(Bit16u pages,const char *who) {
+	if (who == NULL) who = "";
 	if (((Bitu)pages+(Bitu)bios_memseg) > BIOS_PRIVATE_SEGMENT_END) {
 		E_Exit("BIOS:Not enough memory for internal tables");
 	}
 	Bit16u page=bios_memseg;
+	fprintf(stderr,"BIOS_GetMemory(0x%04x pages,\"%s\") = 0x%04x\n",pages,who,page);
 	bios_memseg+=pages;
 	return page;
 }
@@ -101,7 +103,8 @@ void DOS_GetMemory_Choose() {
 	}
 }
 
-Bit16u DOS_GetMemory(Bit16u pages) {
+Bit16u DOS_GetMemory(Bit16u pages,const char *who) {
+	if (who == NULL) who = "";
 	if (dos_memseg == 0) {
 		if (DOS_GetMemory_unmapped) E_Exit("DOS:Attempt to use DOS_GetMemory() when private area was unmapped by BOOT\n");
 		if (DOS_PRIVATE_SEGMENT == 0) DOS_GetMemory_Choose();
@@ -115,6 +118,7 @@ Bit16u DOS_GetMemory(Bit16u pages) {
 		E_Exit("DOS:Not enough memory for internal tables");
 	}
 	Bit16u page=dos_memseg;
+	fprintf(stderr,"DOS_GetMemory(0x%04x pages,\"%s\") = 0x%04x\n",pages,who,page);
 	dos_memseg+=pages;
 	return page;
 }
@@ -146,9 +150,9 @@ extern bool enable_collating_uppercase;
 
 void DOS_SetupTables(void) {
 	Bit16u seg;Bitu i;
-	dos.tables.mediaid=RealMake(DOS_GetMemory(4),0);
-	dos.tables.tempdta=RealMake(DOS_GetMemory(4),0);
-	dos.tables.tempdta_fcbdelete=RealMake(DOS_GetMemory(4),0);
+	dos.tables.mediaid=RealMake(DOS_GetMemory(4,"dos.tables.mediaid"),0);
+	dos.tables.tempdta=RealMake(DOS_GetMemory(4,"dos.tables.tempdta"),0);
+	dos.tables.tempdta_fcbdelete=RealMake(DOS_GetMemory(4,"dos.tables.fcbdelete"),0);
 	for (i=0;i<DOS_DRIVES;i++) mem_writew(Real2Phys(dos.tables.mediaid)+i*2,0);
 	/* Create the DOS Info Block */
 	dos_infoblock.SetLocation(DOS_INFOBLOCK_SEG); //c2woody
@@ -180,7 +184,7 @@ void DOS_SetupTables(void) {
 
 	/* Allocate DCBS DOUBLE BYTE CHARACTER SET LEAD-BYTE TABLE */
 	if (enable_dbcs_tables) {
-		dos.tables.dbcs=RealMake(DOS_GetMemory(12),0);
+		dos.tables.dbcs=RealMake(DOS_GetMemory(12,"dos.tables.dbcs"),0);
 		mem_writed(Real2Phys(dos.tables.dbcs),0); //empty table
 	}
 	else {
@@ -188,7 +192,7 @@ void DOS_SetupTables(void) {
 	}
 	/* FILENAME CHARACTER TABLE */
 	if (enable_filenamechar) {
-		dos.tables.filenamechar=RealMake(DOS_GetMemory(2),0);
+		dos.tables.filenamechar=RealMake(DOS_GetMemory(2,"dos.tables.filenamechar"),0);
 		mem_writew(Real2Phys(dos.tables.filenamechar)+0x00,0x16);
 		mem_writeb(Real2Phys(dos.tables.filenamechar)+0x02,0x01);
 		mem_writeb(Real2Phys(dos.tables.filenamechar)+0x03,0x00);	// allowed chars from
@@ -219,7 +223,7 @@ void DOS_SetupTables(void) {
 	/* COLLATING SEQUENCE TABLE + UPCASE TABLE*/
 	// 256 bytes for col table, 128 for upcase, 4 for number of entries
 	if (enable_collating_uppercase) {
-		dos.tables.collatingseq=RealMake(DOS_GetMemory(25),0);
+		dos.tables.collatingseq=RealMake(DOS_GetMemory(25,"dos.tables.collatingseq"),0);
 		mem_writew(Real2Phys(dos.tables.collatingseq),0x100);
 		for (i=0; i<256; i++) mem_writeb(Real2Phys(dos.tables.collatingseq)+i+2,i);
 		dos.tables.upcase=dos.tables.collatingseq+258;
@@ -232,17 +236,17 @@ void DOS_SetupTables(void) {
 	}
 
 	/* Create a fake FCB SFT */
-	seg=DOS_GetMemory(4);
+	seg=DOS_GetMemory(4,"Fake FCB SFT");
 	real_writed(seg,0,0xffffffff);		//Last File Table
 	real_writew(seg,4,100);				//File Table supports 100 files
 	dos_infoblock.SetFCBTable(RealMake(seg,0));
 
 	/* Create a fake DPB */
-	dos.tables.dpb=DOS_GetMemory(2);
+	dos.tables.dpb=DOS_GetMemory(2,"dos.tables.dpb");
 	for(Bitu d=0;d<26;d++) real_writeb(dos.tables.dpb,d,d);
 
 	/* Create a fake disk buffer head */
-	seg=DOS_GetMemory(6);
+	seg=DOS_GetMemory(6,"Fake disk buffer head");
 	for (Bitu ct=0; ct<0x20; ct++) real_writeb(seg,ct,0);
 	real_writew(seg,0x00,0xffff);		// forward ptr
 	real_writew(seg,0x02,0xffff);		// backward ptr

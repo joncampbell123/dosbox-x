@@ -715,7 +715,7 @@ void SHELL_Init() {
 	/* Now call up the shell for the first time */
 	Bit16u psp_seg=DOS_FIRST_SHELL;
 	Bit16u env_seg=DOS_FIRST_SHELL+19; //DOS_GetMemory(1+(4096/16))+1;
-	Bit16u stack_seg=DOS_GetMemory(2048/16);
+	Bit16u stack_seg=DOS_GetMemory(2048/16,"COMMAND.COM stack");
 	SegSet16(ss,stack_seg);
 	reg_sp=2046;
 

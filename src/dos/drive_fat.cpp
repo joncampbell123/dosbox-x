@@ -640,7 +640,7 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
 	struct partTable mbrData;
 	
 	if(imgDTASeg == 0) {
-		imgDTASeg = DOS_GetMemory(2);
+		imgDTASeg = DOS_GetMemory(2,"imgDTASeg");
 		imgDTAPtr = RealMake(imgDTASeg, 0);
 		imgDTA    = new DOS_DTA(imgDTAPtr);
 	}

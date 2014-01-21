@@ -1119,7 +1119,7 @@ public:
 		callback_esr.Allocate(&IPX_ESRHandler,"IPX_ESR");
 		Bit16u call_ipxesr1 = callback_esr.Get_callback();
 
-		if(!dospage) dospage = DOS_GetMemory(2); // can not be freed yet
+		if(!dospage) dospage = DOS_GetMemory(2,"IPX dospage"); // can not be freed yet
 
 		PhysPt phyDospage = PhysMake(dospage,0);
 

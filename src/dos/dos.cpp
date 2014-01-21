@@ -1437,14 +1437,14 @@ public:
 			fprintf(stderr,"Dynamic DOS kernel mode, structures will be allocated from pool 0x%04x-0x%04x\n",
 				DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
 
-			if (!mainline_compatible_mapping) DOS_IHSEG = DOS_GetMemory(1);
-			DOS_INFOBLOCK_SEG = DOS_GetMemory(0x20);	// was 0x80
-			DOS_CONDRV_SEG = DOS_GetMemory(0x08);		// was 0xA0
-			DOS_CONSTRING_SEG = DOS_GetMemory(0x0A);	// was 0xA8
-			DOS_SDA_SEG = DOS_GetMemory(0x56);		// was 0xB2  (0xB2 + 0x56 = 0x108)
+			if (!mainline_compatible_mapping) DOS_IHSEG = DOS_GetMemory(1,"DOS_IHSEG");
+			DOS_INFOBLOCK_SEG = DOS_GetMemory(0x20,"DOS_INFOBLOCK_SEG");	// was 0x80
+			DOS_CONDRV_SEG = DOS_GetMemory(0x08,"DOS_CONDRV_SEG");		// was 0xA0
+			DOS_CONSTRING_SEG = DOS_GetMemory(0x0A,"DOS_CONSTRING_SEG");	// was 0xA8
+			DOS_SDA_SEG = DOS_GetMemory(0x56,"DOS_SDA_SEG");		// was 0xB2  (0xB2 + 0x56 = 0x108)
 			DOS_SDA_OFS = 0;
-			DOS_CDS_SEG = DOS_GetMemory(0x10);		// was 0x108
-			DOS_FIRST_SHELL = DOS_GetMemory(0x40);		// was 0x118
+			DOS_CDS_SEG = DOS_GetMemory(0x10,"DOS_CDA_SEG");		// was 0x108
+			DOS_FIRST_SHELL = DOS_GetMemory(0x40,"DOS_FIRST_SHELL");	// was 0x118
 			/* defer DOS_MEM_START until right before SetupMemory */
 		}
 		else {
@@ -1527,7 +1527,7 @@ public:
 		 * we then need to move the DOS private segment somewere else so that additional allocations do not
 		 * corrupt the MCB chain */
 		if (dynamic_dos_kernel_alloc)
-			DOS_MEM_START = DOS_GetMemory(0);		// was 0x158 (pass 0 to alloc nothing, get the pointer)
+			DOS_MEM_START = DOS_GetMemory(0,"DOS_MEM_START");		// was 0x158 (pass 0 to alloc nothing, get the pointer)
 
 		/* move the private segment elsewhere to avoid conflict with the MCB structure.
 		 * either set to 0 to cause the decision making to choose an upper memory address,

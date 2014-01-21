@@ -131,7 +131,7 @@ bool device_EMM::ReadFromControlChannel(PhysPt bufptr,Bit16u size,Bit16u * retco
 		case 0x01: {
 			if (!is_emm386) return false;
 			if (size!=6) return false;
-			if (GEMMIS_seg==0) GEMMIS_seg=DOS_GetMemory(0x20);
+			if (GEMMIS_seg==0) GEMMIS_seg=DOS_GetMemory(0x20,"GEMMIS_seg");
 			PhysPt GEMMIS_addr=PhysMake(GEMMIS_seg,0);
 
 			mem_writew(GEMMIS_addr+0x00,0x0004);			// flags
@@ -1334,7 +1334,7 @@ public:
 		}
 		BIOS_ZeroExtendedSize(true);
 
-		if (!ems_baseseg) ems_baseseg=DOS_GetMemory(2);	//We have 32 bytes
+		if (!ems_baseseg) ems_baseseg=DOS_GetMemory(2,"ems_baseseg");	//We have 32 bytes
 
 		/* Add a little hack so it appears that there is an actual ems device installed */
 		char const* emsname="EMMXXXX0";

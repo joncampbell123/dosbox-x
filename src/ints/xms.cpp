@@ -453,7 +453,7 @@ public:
 		DOS_AddMultiplexHandler(multiplex_xms);
 
 		/* place hookable callback in writable memory area */
-		xms_callback=RealMake(DOS_GetMemory(0x1)-1,0x10);
+		xms_callback=RealMake(DOS_GetMemory(0x1,"xms_callback")-1,0x10);
 		callbackhandler.Install(&XMS_Handler,CB_HOOKABLE,Real2Phys(xms_callback),"XMS Handler");
 		// pseudocode for CB_HOOKABLE:
 		//	jump near skip

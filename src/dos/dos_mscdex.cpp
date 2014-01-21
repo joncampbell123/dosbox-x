@@ -323,7 +323,7 @@ int CMscdex::AddDrive(Bit16u _drive, char* physicalPath, Bit8u& subUnit)
 		Bit16u driverSize = sizeof(DOS_DeviceHeader::sDeviceHeader) + 10; // 10 = Bytes for 3 callbacks
 		
 		// Create Device Header
-		Bit16u seg = DOS_GetMemory(driverSize/16+((driverSize%16)>0));
+		Bit16u seg = DOS_GetMemory(driverSize/16+((driverSize%16)>0),"MSCDEX device header");
 		DOS_DeviceHeader devHeader(PhysMake(seg,0));
 		devHeader.SetNextDeviceHeader	(0xFFFFFFFF);
 		devHeader.SetAttribute(0xc800);
@@ -418,7 +418,7 @@ void CMscdex::ReplaceDrive(CDROM_Interface* newCdrom, Bit8u subUnit) {
 PhysPt CMscdex::GetDefaultBuffer(void) {
 	if (defaultBufSeg==0) {
 		Bit16u size = (2352*2+15)/16;
-		defaultBufSeg = DOS_GetMemory(size);
+		defaultBufSeg = DOS_GetMemory(size,"MSCDEX default buffer");
 	};
 	return PhysMake(defaultBufSeg,2352);
 }
@@ -426,7 +426,7 @@ PhysPt CMscdex::GetDefaultBuffer(void) {
 PhysPt CMscdex::GetTempBuffer(void) {
 	if (defaultBufSeg==0) {
 		Bit16u size = (2352*2+15)/16;
-		defaultBufSeg = DOS_GetMemory(size);
+		defaultBufSeg = DOS_GetMemory(size,"MSCDEX temp buffer");
 	};
 	return PhysMake(defaultBufSeg,0);
 }
