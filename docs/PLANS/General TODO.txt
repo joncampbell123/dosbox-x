@@ -1,9 +1,6 @@
-Some plans for future DOSBox-X developments
-===========================================
-
 * Clock domains
 
-  - Current DOSBox-X emulation is CPU-centric, which is OK, I guess,
+  - Current DOSBox emulation is CPU-centric, which is OK, I guess,
     but not ideal for much of the emulation.
   - Many delays and timing are based on floating point values in milliseconds.
     If clock domains were implemented, devices could count very accurately
@@ -56,8 +53,8 @@ Some plans for future DOSBox-X developments
 
 * Support for loading BIOS images and mapping them into adapter ROM
 
-  - We could test various VGA BIOSes in DOSBox-X that way
-  - We could also run old motherboard BIOSes in DOSBox-X that way
+  - We could test various VGA BIOSes in DOSBox that way
+  - We could also run old motherboard BIOSes in DOSBox that way
 
 * Convert I/O and memory handler callback system to on-demand bus mapping and
   tracing design
@@ -92,7 +89,7 @@ Some plans for future DOSBox-X developments
     changes, the emulator has to invalidate all I/O and memory callbacks
     to allow the "slow" path to do it's work again.
   - The reason we don't do bus lookup every time is one of performance.
-    DOSBox-X already has an array of IO handlers and memory page handlers,
+    DOSBox already has an array of IO handlers and memory page handlers,
     so why not make use of it as a cache for callbacks once the slow path
     has been taken? Doing it this way should have almost no impact on
     emulator performance.
@@ -121,33 +118,14 @@ Some plans for future DOSBox-X developments
   - IDE/ATAPI emulation needs to support the mode select or whatever commands
     used by DOS programs to change CD audio volume.
 
-* Full Intellimouse scrollwheel emulation
-
-  - Apparently it's possible to respond to scrollwheel events via SDL, so
-    add code to receive them.
-  - Add code to store scroll wheel deltas in mouse event queue.
-  - Add code to take overall scrollwheel delta and transmit as 4th byte
-    in Intellimouse mouse on AUX.
-  - And toughest of them all: Figure out how the hell Windows 98 is able
-    to use scrollwheel data when it is still reliant on the INT 15h
-    device callback that's documented only to carry the X, Y, and button
-    state data. If VirtualBox can do it, so can I! The ONLY documentation
-    I have on this are snippets of code from CuteMouse that is apparently
-    able to turn on PS/2 BIOS scroll wheel capture for DOS. In any case
-    perhaps the best course of action is to write a program in DOSLIB that
-    hooks the device callback and records the values on the stack during
-    the call, with and without the Intellimouse knock sequence in effect.
-
 * Multiple DOS kernel emulation
 
-  - Instead of only emulating a general mishmash of MS-DOS 5.0 to 6.x syscalls,
-    allow dosbox-x.conf setting (and command line at runtime) to choose that
+  - Instead of only emulating a general mishmash of MS-DOS 5.0 to 6.22 syscalls,
+    allow dosbox.conf setting (and command line at runtime) to choose that
     a particular brand and version is emulated. For example, if you say that
-    you want DOSBox-X to emulate MS-DOS 3.3, then it will return values and act
+    you want DOSBox to emulate MS-DOS 3.3, then it will return values and act
     like MS-DOS 3.3 (including the shorter form of the disk parameter table
-    prior to MS-DOS 4.0). With the current code, if you say that you want
-    DOSBox-X to emulate MS-DOS 7.1, then it tries to return values and act
-    like MS-DOS 7.1 (including support for FAT32 drives and long filenames).
+    prior to MS-DOS 4.0.
 
 * Misc
 
@@ -191,38 +169,4 @@ Some plans for future DOSBox-X developments
   - IDE/ATA emulation: What exactly is triggering the debugger when
     you boot MS-DOS 6.22 using the OAK CD-ROM driver? It needs to be removed,
     it makes using MS-DOS 6.22 with debugger builds annoying.
-  - VGA Linewise rendering is currently hardcoded for 16bpp RGB. Why?
-    Add option to allow the user to choose 32bpp RGBA linewise rendering.
-  - VGA output: add optional scalar or post-processing that can auto-detect
-    fake high-color VGA modes in demos, and process the scanlines such that
-    the RGB spreads vertically to mask the raster scanline effect (so that
-    the picture is presentable even if rescaled later)
-  - VGA output: Add support for VESA 24bpp modes (DOSBox's scalers are
-    currently hard-coded for 8/16/32bpp). There are some demos (a 1997
-    Coma demo comes to mind) where if a 24/32bpp mode is chosen the demo
-    assumes 24bpp RGB arrangement.
-  - VGA debugging function: Add code that, if triggered, allows DOSBox to
-    pause emulation and allow you to examine/play with the VGA palette, DAC, 
-    registers, screen bytes, etc. The reason I want to do this is that there
-    are some demos (listed elsewhere in the BUGS section) where for whatever
-    reason there are VGA palette errors, some entries remain black despite
-    palette animation. The "debugger" would overlay the VGA screen, of course.
-  - VGA "fixed output" mode. A scalar would be invoked if enabled that
-    upscales all VGA raster output to a specific resolution and frame rate
-    (the frame rate would be 250Hz, 300Hz, or 1000Hz so that refresh rate
-    changes are better represented accurately). This would be one way to
-    capture demos that change VGA modes once per section in one AVI file.
-    Scalar would include common VGA resolutions like 640x400, 640x480,
-    800x600, and 1024x768. The scalar could also distort the picture if
-    the CRT timing is known to cause older VGA monitors to squeeze the
-    picture (such as some older DOS demos that speed up vertical retrace
-    knowing it would cause older VGA monitors to focus the raster beam
-    in the center for a "widescreen" effect).
-  - VGA overscan border rendering. Update/rewrite the raster linewise
-    renderers to include overscan border in output if asked to.
-  - ODML AVI capture. The current code works great until you hit 2GB, then
-    falls apart. I would be willing to throw in code I've written for other
-    professional projects to write AVI files that are ODML compliant to
-    enable longer captures >= 2GB (contain both the AVIOLDINDEX and ODML
-    AVI index).
 
