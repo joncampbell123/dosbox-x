@@ -29,7 +29,8 @@
 enum {
 	PIT_HACK_NONE=0,
 
-	PIT_HACK_PROJECT_ANGEL_DEMO
+	PIT_HACK_PROJECT_ANGEL_DEMO,
+	PIT_HACK_PC_SPEAKER_AS_TIMER
 };
 
 static int pit_hack_mode = PIT_HACK_NONE;
@@ -160,14 +161,28 @@ static void counter_latch(Bitu counter) {
 	switch (p->mode) {
 	case 4:		/* Software Triggered Strobe */
 	case 0:		/* Interrupt on Terminal Count */
-		/* Counter keeps on counting after passing terminal count */
-		index = fmod(index,p->delay);
-		if(p->bcd) {
-			index = fmod(index,(1000.0/PIT_TICK_RATE)*10000.0);
-			p->read_latch = (Bit16u)(9999-index*(PIT_TICK_RATE/1000.0));
-		} else {
-			index = fmod(index,(1000.0/PIT_TICK_RATE)*(double)0x10000);
-			p->read_latch = (Bit16u)(0xffff-index*(PIT_TICK_RATE/1000.0));
+		if (counter == 2 && pit_hack_mode == PIT_HACK_PC_SPEAKER_AS_TIMER) {
+			/* Needed for Impact Studios "Legend". Perhaps the need for this hack is
+			 * a sign that some parts of DOSBox's PIT emulation still needs work. */
+			double f;
+
+			index *= 4; /* <- FIXME: Why does this work? Seems best setting when cycles=10000 */
+			/* ^ NTS: Setting too high makes the ball bounce TOO fast, and some parts
+			 *        sporadically fast-forward. */
+
+			f = index*(PIT_TICK_RATE/1000.0);
+			if (f > p->cntr) f = p->cntr;
+			p->read_latch = p->cntr - (Bit16u)f;
+		}
+		else {
+			/* Counter keeps on counting after passing terminal count */
+			if(p->bcd) {
+				index = fmod(index,(1000.0/PIT_TICK_RATE)*10000.0);
+				p->read_latch = (Bit16u)(((unsigned long)(p->cntr-index*(PIT_TICK_RATE/1000.0))) % 10000UL);
+			} else {
+				index = fmod(index,(1000.0/PIT_TICK_RATE)*(double)0x10000);
+				p->read_latch = (Bit16u)(p->cntr-index*(PIT_TICK_RATE/1000.0));
+			}
 		}
 		break;
 	case 1: // countdown
@@ -274,6 +289,8 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 					else
 						p->delay=(1000.0f/((float)PIT_TICK_RATE/(float)2834));
 				}
+				break;
+			case PIT_HACK_PC_SPEAKER_AS_TIMER:
 				break;
 		}
 
@@ -457,6 +474,10 @@ void PIT_HACK_Set_type(std::string type) {
 	if (type == "project_angel_demo") {
 		pit_hack_mode = PIT_HACK_PROJECT_ANGEL_DEMO;
 		fprintf(stderr,"PIT: Hacking PIT emulation to stabilize Project Angel demo\n");
+	}
+	else if (type == "pc_speaker_as_timer") {
+		pit_hack_mode = PIT_HACK_PC_SPEAKER_AS_TIMER;
+		fprintf(stderr,"PIT: Hacking PIT emulation to double PIT 2 countdown value\n");
 	}
 	else {
 		pit_hack_mode = PIT_HACK_NONE;

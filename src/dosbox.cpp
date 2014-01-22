@@ -619,9 +619,15 @@ void DOSBOX_Init(void) {
 		"  'project_angel_demo'            If you intend to run the Project Angel demo, use this\n"
 		"                                  setting. The PIT timer is forced to one of two values\n"
 		"                                  to resolve hangups, timing issues, music skipping on\n"
-		"                                  video mode changes, and VGA tearlines.\n");
+		"                                  video mode changes, and VGA tearlines.\n"
+		"  'pc_speaker_as_timer'           A few early DOS demos apparently like to use PIT 2 as\n"
+		"                                  a timer source (where normally PIT 2 is used to generate\n"
+		"                                  a square wave to drive the PC speaker). If the demo you\n"
+		"                                  are running seems to run at half the normal speed for no\n"
+		"                                  logical reason, try this hack. Demos that need this hack:\n"
+		"                                     - Impact Studios, Legend");
 
-	const char* pit_hax[] = { "","project_angel_demo", 0 };
+	const char* pit_hax[] = { "","project_angel_demo", "pc_speaker_as_timer", 0 };
 	Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::Always,"");
 	Pmulti_remain->SetValue("");
 	Pstring->Set_values(pit_hax);
