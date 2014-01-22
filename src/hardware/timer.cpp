@@ -290,7 +290,6 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 			LOG(LOG_PIT,LOG_NORMAL)("PIT 0 Timer at %.4f Hz mode %d",1000.0/p->delay,p->mode);
 			break;
 		case 0x02:			/* Timer hooked to PC-Speaker */
-//			LOG(LOG_PIT,"PIT 2 Timer at %.3g Hz mode %d",PIT_TICK_RATE/(double)p->cntr,p->mode);
 			PCSPEAKER_SetCounter(p->cntr,p->mode);
 			break;
 		default:
