@@ -171,4 +171,36 @@
     it makes using MS-DOS 6.22 with debugger builds annoying.
   - VGA Linewise rendering is currently hardcoded for 16bpp RGB. Why?
     Add option to allow the user to choose 32bpp RGBA linewise rendering.
+  - VGA output: add optional scalar or post-processing that can auto-detect
+    fake high-color VGA modes in demos, and process the scanlines such that
+    the RGB spreads vertically to mask the raster scanline effect (so that
+    the picture is presentable even if rescaled later)
+  - VGA output: Add support for VESA 24bpp modes (DOSBox's scalers are
+    currently hard-coded for 8/16/32bpp). There are some demos (a 1997
+    Coma demo comes to mind) where if a 24/32bpp mode is chosen the demo
+    assumes 24bpp RGB arrangement.
+  - VGA debugging function: Add code that, if triggered, allows DOSBox to
+    pause emulation and allow you to examine/play with the VGA palette, DAC, 
+    registers, screen bytes, etc. The reason I want to do this is that there
+    are some demos (listed elsewhere in the BUGS section) where for whatever
+    reason there are VGA palette errors, some entries remain black despite
+    palette animation. The "debugger" would overlay the VGA screen, of course.
+  - VGA "fixed output" mode. A scalar would be invoked if enabled that
+    upscales all VGA raster output to a specific resolution and frame rate
+    (the frame rate would be 250Hz, 300Hz, or 1000Hz so that refresh rate
+    changes are better represented accurately). This would be one way to
+    capture demos that change VGA modes once per section in one AVI file.
+    Scalar would include common VGA resolutions like 640x400, 640x480,
+    800x600, and 1024x768. The scalar could also distort the picture if
+    the CRT timing is known to cause older VGA monitors to squeeze the
+    picture (such as some older DOS demos that speed up vertical retrace
+    knowing it would cause older VGA monitors to focus the raster beam
+    in the center for a "widescreen" effect).
+  - VGA overscan border rendering. Update/rewrite the raster linewise
+    renderers to include overscan border in output if asked to.
+  - ODML AVI capture. The current code works great until you hit 2GB, then
+    falls apart. I would be willing to throw in code I've written for other
+    professional projects to write AVI files that are ODML compliant to
+    enable longer captures >= 2GB (contain both the AVIOLDINDEX and ODML
+    AVI index).
 
