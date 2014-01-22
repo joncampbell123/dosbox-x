@@ -161,17 +161,13 @@ static void counter_latch(Bitu counter) {
 	case 4:		/* Software Triggered Strobe */
 	case 0:		/* Interrupt on Terminal Count */
 		/* Counter keeps on counting after passing terminal count */
-		if (index>p->delay) {
-			index-=p->delay;
-			if(p->bcd) {
-				index = fmod(index,(1000.0/PIT_TICK_RATE)*10000.0);
-				p->read_latch = (Bit16u)(9999-index*(PIT_TICK_RATE/1000.0));
-			} else {
-				index = fmod(index,(1000.0/PIT_TICK_RATE)*(double)0x10000);
-				p->read_latch = (Bit16u)(0xffff-index*(PIT_TICK_RATE/1000.0));
-			}
+		index = fmod(index,p->delay);
+		if(p->bcd) {
+			index = fmod(index,(1000.0/PIT_TICK_RATE)*10000.0);
+			p->read_latch = (Bit16u)(9999-index*(PIT_TICK_RATE/1000.0));
 		} else {
-			p->read_latch=(Bit16u)(p->cntr-index*(PIT_TICK_RATE/1000.0));
+			index = fmod(index,(1000.0/PIT_TICK_RATE)*(double)0x10000);
+			p->read_latch = (Bit16u)(0xffff-index*(PIT_TICK_RATE/1000.0));
 		}
 		break;
 	case 1: // countdown
