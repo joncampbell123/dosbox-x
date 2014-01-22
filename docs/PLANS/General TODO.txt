@@ -169,4 +169,6 @@
   - IDE/ATA emulation: What exactly is triggering the debugger when
     you boot MS-DOS 6.22 using the OAK CD-ROM driver? It needs to be removed,
     it makes using MS-DOS 6.22 with debugger builds annoying.
+  - VGA Linewise rendering is currently hardcoded for 16bpp RGB. Why?
+    Add option to allow the user to choose 32bpp RGBA linewise rendering.
 
