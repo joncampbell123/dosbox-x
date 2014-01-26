@@ -48,7 +48,7 @@ static void W32_ConfDir(std::string& in,bool create) {
 		char const* appdata = "\\Application Data";
 		size_t len = strlen(result);
 		if(len + strlen(appdata) < MAX_PATH) strcat(result,appdata);
-		if(create) mkdir(result);
+		if(create) _mkdir(result);
 	}
 	in = result;
 }
@@ -83,7 +83,7 @@ void Cross::CreatePlatformConfigDir(std::string& in) {
 #ifdef WIN32
 	W32_ConfDir(in,true);
 	in += "\\DOSBox";
-	mkdir(in.c_str());
+	_mkdir(in.c_str());
 #elif defined(MACOSX)
 	in = "~/Library/Preferences/";
 	ResolveHomedir(in);
@@ -115,7 +115,7 @@ void Cross::ResolveHomedir(std::string & temp_line) {
 
 void Cross::CreateDir(std::string const& in) {
 #ifdef WIN32
-	mkdir(in.c_str());
+	_mkdir(in.c_str());
 #else
 	mkdir(in.c_str(),0700);
 #endif
@@ -151,7 +151,7 @@ dir_information* open_directory(const char* dirname) {
 
 	dir.handle = INVALID_HANDLE_VALUE;
 
-	return (access(dirname,0) ? NULL : &dir);
+	return (_access(dirname,0) ? NULL : &dir);
 }
 
 bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_directory) {

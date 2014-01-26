@@ -740,12 +740,8 @@ void DOSBox_SetMenu(void) {
 	SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
 	DrawMenuBar (GetHWND());
 
-	if (glide.enabled)
-		GLIDE_ResetScreen();
-	else {
-		if(menu.startup) {
-			RENDER_CallBack( GFX_CallBackReset );
-		}
+	if(menu.startup) {
+		RENDER_CallBack( GFX_CallBackReset );
 	}
 }
 
@@ -754,10 +750,7 @@ void DOSBox_NoMenu(void) {
 	menu.toggle=false;
 	SetMenu(GetHWND(), NULL);
 	DrawMenuBar(GetHWND());
-	if (glide.enabled)
-		GLIDE_ResetScreen();
-	else
-		RENDER_CallBack( GFX_CallBackReset );
+	RENDER_CallBack( GFX_CallBackReset );
 }
 
 void DOSBox_CheckOS(int &id, int &major, int &minor) {
@@ -786,7 +779,7 @@ void DOSBox_RefreshMenu(void) {
     SDL_Prepare();
     if(!menu.gui) return;
 
-    if(fullscreen && !glide.enabled) {
+    if(fullscreen) {
     	SetMenu(GetHWND(), NULL);
     	DrawMenuBar(GetHWND());
         return;
@@ -806,7 +799,7 @@ void DOSBox_RefreshMenu2(void) {
     SDL_Prepare();
     if(!menu.gui) return;
 
-    if(fullscreen && !glide.enabled) {
+    if(fullscreen) {
     	SetMenu(GetHWND(), NULL);
     	DrawMenuBar(GetHWND());
         return;
@@ -1799,8 +1792,8 @@ void MSG_Loop(void) {
 			case ID_MOUNT_IMAGE_X: OpenFileDialog_Img('X'); break;
 			case ID_MOUNT_IMAGE_Y: OpenFileDialog_Img('Y'); break;
 			case ID_MOUNT_IMAGE_Z: OpenFileDialog_Img('Z'); break;
-			case ID_SSHOT: void CAPTURE_ScreenShotEvent(bool pressed); CAPTURE_ScreenShotEvent(true); break;
-			case ID_MOVIE: void CAPTURE_VideoEvent(bool pressed); CAPTURE_VideoEvent(true); break;
+//			case ID_SSHOT: void CAPTURE_ScreenShotEvent(bool pressed); CAPTURE_ScreenShotEvent(true); break;
+//			case ID_MOVIE: void CAPTURE_VideoEvent(bool pressed); CAPTURE_VideoEvent(true); break;
 			case ID_WAVE: void CAPTURE_WaveEvent(bool pressed); CAPTURE_WaveEvent(true); break;
 			case ID_OPL: void OPL_SaveRawEvent(bool pressed); OPL_SaveRawEvent(true); break;
 			case ID_MIDI: void CAPTURE_MidiEvent(bool pressed); CAPTURE_MidiEvent(true); break;

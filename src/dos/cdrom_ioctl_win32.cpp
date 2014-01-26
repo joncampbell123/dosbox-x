@@ -17,7 +17,7 @@
  */
 
 
-#if defined (WIN32)
+#if defined (WIN32) && 0
 
 // *****************************************************************
 // Windows IOCTL functions (not suitable for 95/98/Me)
@@ -27,7 +27,7 @@
 #include <io.h>
 
 #if defined (_MSC_VER)
-#include <ntddcdrm.h>			// Ioctl stuff
+//#include <ntddcdrm.h>			// Ioctl stuff
 #include <winioctl.h>			// Ioctl stuff
 #else 
 #include "ddk/ntddcdrm.h"		// Ioctl stuff

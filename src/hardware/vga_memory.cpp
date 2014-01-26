@@ -990,7 +990,7 @@ void VGA_ChangedBank(void) {
 	VGA_SetupHandlers();
 }
 
-#if defined(WIN32) && !(C_DEBUG)
+#if defined(WIN32) && !(C_DEBUG) && 0
 extern void DISP2_SetPageHandler(void);
 #endif
 void VGA_SetupHandlers(void) {
@@ -1135,7 +1135,7 @@ void VGA_SetupHandlers(void) {
 	if(svgaCard == SVGA_S3Trio && (vga.s3.ext_mem_ctrl & 0x10))
 		MEM_SetPageHandler(VGA_PAGE_A0, 16, &vgaph.mmio);
 range_done:
-#if defined(WIN32) && !(C_DEBUG)
+#if defined(WIN32) && !(C_DEBUG) && 0
 	DISP2_SetPageHandler();
 #endif
 	PAGING_ClearTLB();

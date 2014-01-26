@@ -126,7 +126,10 @@ static struct {
 #if C_FLUIDSYNTH
 #include "midi_synth.h"
 #endif
-#include "midi_timidity.h"
+
+#if !defined(WIN32)
+# include "midi_timidity.h"
+#endif
 
 #if defined(MACOSX)
 

@@ -21,7 +21,7 @@ August 8 2005		cyberwalker
 #include <string.h>
 #include <time.h>
 #include <errno.h>
-#include <dirent.h>
+//#include <dirent.h>
 
 #include "config.h"
 #include "dosbox.h"

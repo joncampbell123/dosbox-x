@@ -60,6 +60,10 @@ struct FileStat_Block {
 
 class DOS_DTA;
 
+#ifdef WIN32 /* Shaddup MSVC! */
+# define stricmp _stricmp
+#endif
+
 class DOS_File {
 public:
 	DOS_File():flags(0)		{ name=0; refCtr = 0; hdrive=0xff; newtime=false;};

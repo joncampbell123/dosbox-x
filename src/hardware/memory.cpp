@@ -650,6 +650,7 @@ bool MEM_unmap_physmem(Bitu start,Bitu end) {
 		memory.phandlers[p] = &unmapped_page_handler;
 
 	PAGING_ClearTLB();
+	return true;
 }
 
 bool MEM_map_RAM_physmem(Bitu start,Bitu end) {

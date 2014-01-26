@@ -9,7 +9,7 @@
 #endif
 #include <stdio.h>
 
-#if defined (WIN32) //|| defined (LINUX)
+#if defined (WIN32) && 0 //|| defined (LINUX)
 
 /* prototype (function typedef) for DLL function Inp32: */
 

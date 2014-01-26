@@ -29,7 +29,7 @@ public:
 
 	Bit32u get() {
 		if (startpos == endpos) return 0;
-		Bit32u data = ringBuffer[startpos];
+		Bit32u data = (Bit32u)ringBuffer[startpos]; /* <- FIXME: Um.... really? */
 		startpos++;
 		if (startpos == bufferSize) startpos = 0;
 		return data;

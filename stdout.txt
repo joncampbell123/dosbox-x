@@ -1,0 +1,9 @@
+DOSBox version DOSBox-X
+Copyright 2002-2013 DOSBox Team, published under GNU GPL.
+---
+CONFIG:Loading primary settings from config file C:\Users\hax\AppData\Local\DOSBox\dosbox-DOSBox-X.conf
+"direct3d" is not a valid value for variable: output.
+It might now be reset to the default value: direct3d
+SDL:Unsupported output device direct3d, switching back to surface
+MIDI:Opened device:win32
+ISA Plug & Play BIOS enabled

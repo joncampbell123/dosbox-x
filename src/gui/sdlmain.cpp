@@ -53,7 +53,7 @@
 #include <malloc.h>
 #include "Commdlg.h"
 #include "windows.h"
-#include <dirent.h>
+//#include <dirent.h>
 #include "Shellapi.h"
 #include "shell.h"
 #include "SDL_syswm.h"
@@ -1005,6 +1005,9 @@ void sticky_keys(bool restore){
 
 #ifdef __WIN32__
 static void d3d_init(void) {
+#if 1
+	E_Exit("D3D not supported");
+#else
 	void change_output(int output);
 	change_output(2);
 	sdl.desktop.want_type=SCREEN_DIRECT3D;
@@ -1039,6 +1042,7 @@ static void d3d_init(void) {
 			sdl.desktop.want_type=SCREEN_SURFACE;
 		}
 	}
+#endif
 }
 #endif
 
@@ -3100,7 +3104,7 @@ void SetNumLock( void ) {
 #endif
 }
 
-#if defined(WIN32) && !(C_DEBUG)
+#if defined(WIN32) && !(C_DEBUG) && 0
 void DISP2_Init(Bit8u color);
 #endif
 //extern void UI_Init(void);
@@ -3130,7 +3134,7 @@ int main(int argc, char* argv[]) {
 		if(control->cmdline->FindExist("-resetmapper")) erasemapperfile();
 		
 		/* Can't disable the console with debugger enabled */
-#if defined(WIN32) && !(C_DEBUG)
+#if defined(WIN32) && !(C_DEBUG) && 0
 		Bit8u disp2_color=0;
 		std::string disp2_opt;
 		if (control->cmdline->FindExist("-noconsole")) {
@@ -3375,7 +3379,7 @@ int main(int argc, char* argv[]) {
 		if(sdl.desktop.want_type==SCREEN_OPENGL && sdl.using_windib) {
 			SDL_QuitSubSystem(SDL_INIT_VIDEO);
 			if (SDL_InitSubSystem(SDL_INIT_VIDEO)<0) E_Exit("Can't init SDL Video %s",SDL_GetError());
-			if(sdl.opengl.bilinear) change_output(3); else change_output(4);
+			change_output(4);
 			GFX_SetIcon();
 			SDL_Prepare();
 			if (menu.gui && !control->cmdline->FindExist("-nomenu")) {

@@ -17,7 +17,7 @@
  */
 
 
-#if defined (WIN32)
+#if defined (WIN32) && 0
 
 #include <ctype.h>
 
