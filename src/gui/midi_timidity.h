@@ -13,7 +13,7 @@
 //#ifdef C_TIMIDITY
 
 #include "SDL.h"
-//#include "SDL_net.h"
+#include "SDL_net.h"
 
 #define SEQ_MIDIPUTC 5
 
