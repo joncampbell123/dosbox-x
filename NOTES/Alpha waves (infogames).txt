@@ -1,0 +1,6 @@
+Alpha Waves (infogames)
+
+Bugs:
+ - VGA/EGA flickering at the bottom of the screen
+ - Music seems to alternate every so often between two speeds, normal, and twice as fast (does it do this on real hardware?)
+
