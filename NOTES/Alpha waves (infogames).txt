@@ -5,4 +5,6 @@ Bugs:
  - Music seems to alternate every so often between two speeds, normal, and twice as fast (does it do this on real hardware?)
  - OPL2/OPL3 emulation bug? Sound effects (such as bouncing off the ground, or hitting a wall) cause a VERY noticeable
    change in how the cymbals, drums, etc. sound in the music. (does it do this on real hardware?)
+   A *REAL* good example of this: Find a room where you bounce on a platform that's close to the ceiling. You'll notice the
+   sound change when you bounce, and again when you hit the ceiling.
 
