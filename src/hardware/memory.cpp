@@ -25,6 +25,7 @@
 #include "inout.h"
 #include "setup.h"
 #include "paging.h"
+#include "programs.h"
 #include "regs.h"
 #ifndef WIN32
 # include <stdlib.h>
@@ -720,6 +721,109 @@ Bitu VGA_BIOS_Size = 0x8000;
 
 extern Bitu VGA_BIOS_Size_override;
 extern bool mainline_compatible_mapping;
+
+static void RAM_remap_64KBat1MB_A20fast(bool enable/*if set, we're transitioning to fast remap, else to full mask*/) {
+	PageHandler *oldp,*newp;
+	Bitu c=0;
+
+	/* undo the fast remap at 1MB */
+	for (Bitu i=0;i<16;i++) PAGING_MapPage((1024/4)+i,(1024/4)+i);
+
+	/* run through the page array, change ram_handler to ram_alias_handler
+	 * (or the other way depending on enable) */
+	newp =   enable  ? (PageHandler*)(&ram_page_handler) : (PageHandler*)(&ram_alias_page_handler);
+	oldp = (!enable) ? (PageHandler*)(&ram_page_handler) : (PageHandler*)(&ram_alias_page_handler);
+	for (Bitu i=0;i < memory.reported_pages;i++) {
+		if (memory.phandlers[i] == oldp) {
+			memory.phandlers[i] = newp;
+			c++;
+		}
+	}
+
+	fprintf(stderr,"A20gate mode change: %u pages modified (fast enable=%d)\n",c,enable);
+}
+
+class A20GATE : public Program {
+public:
+	void Run(void) {
+		if (cmd->FindString("SET",temp_line,false)) {
+			char *x = (char*)temp_line.c_str();
+
+			a20_fake_changeable = false;
+			a20_guest_changeable = true;
+			MEM_A20_Enable(true);
+
+			if (!strncasecmp(x,"off_fake",8)) {
+				if (!a20_full_masking) RAM_remap_64KBat1MB_A20fast(false);
+				a20_full_masking = true;
+				MEM_A20_Enable(false);
+				a20_guest_changeable = false;
+				a20_fake_changeable = true;
+				WriteOut("A20 gate now off_fake mode\n");
+			}
+			else if (!strncasecmp(x,"off",3)) {
+				if (!a20_full_masking) RAM_remap_64KBat1MB_A20fast(false);
+				a20_full_masking = true;
+				MEM_A20_Enable(false);
+				a20_guest_changeable = false;
+				a20_fake_changeable = false;
+				WriteOut("A20 gate now off mode\n");
+			}
+			else if (!strncasecmp(x,"on_fake",7)) {
+				if (!a20_full_masking) RAM_remap_64KBat1MB_A20fast(false);
+				a20_full_masking = true;
+				MEM_A20_Enable(true);
+				a20_guest_changeable = false;
+				a20_fake_changeable = true;
+				WriteOut("A20 gate now on_fake mode\n");
+			}
+			else if (!strncasecmp(x,"on",2)) {
+				if (!a20_full_masking) RAM_remap_64KBat1MB_A20fast(false);
+				a20_full_masking = true;
+				MEM_A20_Enable(true);
+				a20_guest_changeable = false;
+				a20_fake_changeable = false;
+				WriteOut("A20 gate now on mode\n");
+			}
+			else if (!strncasecmp(x,"mask",4)) {
+				if (!a20_full_masking) RAM_remap_64KBat1MB_A20fast(false);
+				a20_full_masking = true;
+				MEM_A20_Enable(false);
+				a20_guest_changeable = true;
+				a20_fake_changeable = false;
+				memory.a20.enabled = 0;
+				WriteOut("A20 gate now mask mode\n");
+			}
+			else if (!strncasecmp(x,"fast",4)) {
+				if (!a20_full_masking) RAM_remap_64KBat1MB_A20fast(true);
+				a20_full_masking = false;
+				MEM_A20_Enable(false);
+				a20_guest_changeable = true;
+				a20_fake_changeable = false;
+				WriteOut("A20 gate now fast mode\n");
+			}
+			else {
+				WriteOut("Unknown setting\n");
+			}
+		}
+		else if (cmd->FindExist("ON")) {
+			MEM_A20_Enable(true);
+			WriteOut("Enabling A20 gate\n");
+		}
+		else if (cmd->FindExist("OFF")) {
+			MEM_A20_Enable(false);
+			WriteOut("Disabling A20 gate\n");
+		}
+		else {
+			WriteOut("A20GATE SET [off | off_fake | on | on_fake | mask | fast]\n");
+			WriteOut("A20GATE [ON | OFF]\n");
+		}
+	}
+};
+
+void A20GATE_ProgramStart(Program * * make) {
+	*make=new A20GATE;
+}
 
 class MEMORY:public Module_base{
 private:

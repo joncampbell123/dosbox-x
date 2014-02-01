@@ -208,9 +208,6 @@ void VGA_SetCGA4Table(Bit8u val0,Bit8u val1,Bit8u val2,Bit8u val3) {
 	}	
 }
 
-static void VFRCRATE_Stop(Section* sec) {
-}
-
 class VFRCRATE : public Program {
 public:
 	void Run(void) {
@@ -252,9 +249,6 @@ public:
 
 static void VFRCRATE_ProgramStart(Program * * make) {
 	*make=new VFRCRATE;
-}
-
-static void CGASNOW_Stop(Section* sec) {
 }
 
 class CGASNOW : public Program {
@@ -382,12 +376,7 @@ void VGA_Init(Section* sec) {
 		}
 	}
 
-	if (machine == MCH_CGA) {
-		sec->AddDestroyFunction(&CGASNOW_Stop);
-		PROGRAMS_MakeFile("CGASNOW.COM",CGASNOW_ProgramStart);
-	}
-
-	sec->AddDestroyFunction(&VFRCRATE_Stop);
+	if (machine == MCH_CGA) PROGRAMS_MakeFile("CGASNOW.COM",CGASNOW_ProgramStart);
 	PROGRAMS_MakeFile("VFRCRATE.COM",VFRCRATE_ProgramStart);
 }
 

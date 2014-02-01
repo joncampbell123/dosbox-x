@@ -2539,6 +2539,8 @@ static void MORE_ProgramStart(Program * * make) {
 }
 */
 
+void A20GATE_ProgramStart(Program * * make);
+
 void DOS_SetupPrograms(void) {
 	/*Add Messages */
 
@@ -2876,4 +2878,5 @@ void DOS_SetupPrograms(void) {
 	PROGRAMS_MakeFile("25.COM", LINE25_ProgramStart);
 	PROGRAMS_MakeFile("KEYB.COM", KEYB_ProgramStart);
 	PROGRAMS_MakeFile("MOUSE.COM", MOUSE_ProgramStart);
+	PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart);
 }
