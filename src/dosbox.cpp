@@ -556,6 +556,13 @@ void DOSBOX_Init(void) {
 			"to run DOSBox with as little as 4KB. If DOSBox-X aborts with error \"not enough memory for internal tables\"\n"
 			"then you need to increase this value.");
 
+	Pstring = secprop->Add_string("a20",Property::Changeable::WhenIdle,"mask");
+	Pstring->Set_help("A20 gate emulation mode\n"
+			  "  fast                         Emulate A20 gating by remapping the first 64KB @ 1MB boundary (fast, mainline DOSBox behavior)\n"
+			  "  mask                         Emulate A20 gating by masking memory I/O address (accurate, DOSBox-X default)\n"
+			  "  off                          Lock A20 gate off (Software/OS cannot enable A20)\n"
+			  "  on                           Lock A20 gate on (Software/OS cannot disable A20)");
+
 #if C_DEBUG	
 	LOG_StartUp();
 #endif

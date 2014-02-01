@@ -36,6 +36,9 @@
 
 #include <string.h>
 
+bool a20_guest_changeable = true;
+bool a20_full_masking = false;
+
 #define PAGES_IN_BLOCK	((1024*1024)/MEM_PAGE_SIZE)
 #define SAFE_MEMORY	32
 #define MAX_MEMORY	512
@@ -187,7 +190,7 @@ PageHandler * MEM_GetPageHandler(Bitu phys_page) {
 	} else if ((phys_page>=memory.lfb.start_page) && (phys_page<memory.lfb.end_page)) {
 		return memory.lfb.handler;
 	} else if ((phys_page>=memory.lfb.start_page+0x01000000/4096) &&
-				(phys_page<memory.lfb.start_page+0x01000000/4096+16)) {
+		(phys_page<memory.lfb.start_page+0x01000000/4096+16)) {
 		return memory.lfb.mmiohandler;
 	} else if (VOODOO_PCI_CheckLFBPage(phys_page)) {
 		return VOODOO_GetPageHandler();
@@ -204,7 +207,7 @@ void MEM_SetPageHandler(Bitu phys_page,Bitu pages,PageHandler * handler) {
 
 void MEM_ResetPageHandler(Bitu phys_page, Bitu pages) {
 	PageHandler *ram_ptr =
-		memory.mem_alias_pagemask == (Bit32u)(~0UL)
+		(memory.mem_alias_pagemask == (Bit32u)(~0UL) && !a20_full_masking)
 		? (PageHandler*)(&ram_page_handler) /* no aliasing */
 		: (PageHandler*)(&ram_alias_page_handler); /* aliasing */
 	for (;pages>0;pages--) {
@@ -516,9 +519,18 @@ bool MEM_A20_Enabled(void) {
 }
 
 void MEM_A20_Enable(bool enabled) {
-	Bitu phys_base=enabled ? (1024/4) : 0;
-	for (Bitu i=0;i<16;i++) PAGING_MapPage((1024/4)+i,phys_base+i);
-	memory.a20.enabled=enabled;
+	if (a20_guest_changeable)
+		memory.a20.enabled = enabled;
+
+	if (!a20_full_masking) {
+		Bitu phys_base=memory.a20.enabled ? (1024/4) : 0;
+		for (Bitu i=0;i<16;i++) PAGING_MapPage((1024/4)+i,phys_base+i);
+	}
+	else {
+		if (memory.a20.enabled) memory.mem_alias_pagemask |= 0x100;
+		else memory.mem_alias_pagemask &= ~0x100;
+		PAGING_ClearTLB();
+	}
 }
 
 
@@ -656,7 +668,7 @@ bool MEM_unmap_physmem(Bitu start,Bitu end) {
 bool MEM_map_RAM_physmem(Bitu start,Bitu end) {
 	Bitu p;
 	PageHandler *ram_ptr =
-		memory.mem_alias_pagemask == (Bit32u)(~0UL)
+		(memory.mem_alias_pagemask == (Bit32u)(~0UL) && !a20_full_masking)
 		? (PageHandler*)(&ram_page_handler) /* no aliasing */
 		: (PageHandler*)(&ram_alias_page_handler); /* aliasing */
 
@@ -716,7 +728,33 @@ public:
 	MEMORY(Section* configuration):Module_base(configuration){
 		Bitu i;
 		Section_prop * section=static_cast<Section_prop *>(configuration);
-	
+
+		memory.a20.enabled = 0;
+
+		std::string ss = section->Get_string("a20");
+		if (ss == "mask" || ss == "") {
+			fprintf(stderr,"A20: masking emulation\n");
+			a20_guest_changeable = true;
+			a20_full_masking = true;
+		}
+		else if (ss == "on") {
+			fprintf(stderr,"A20: locked on\n");
+			a20_guest_changeable = false;
+			a20_full_masking = true;
+			memory.a20.enabled = 1;
+		}
+		else if (ss == "off") {
+			fprintf(stderr,"A20: locked off\n");
+			a20_guest_changeable = false;
+			a20_full_masking = true;
+			memory.a20.enabled = 0;
+		}
+		else { /* "" or "fast" */
+			fprintf(stderr,"A20: fast remapping (64KB+1MB) DOSBox style\n");
+			a20_guest_changeable = true;
+			a20_full_masking = false;
+		}
+
 		/* Setup the Physical Page Links */
 		Bitu memsize=section->Get_int("memsize");	
 		Bitu memsizekb=section->Get_int("memsizekb");
@@ -805,7 +843,7 @@ public:
 		memset((char*)MemBase+0xC0000,0x00,VGA_BIOS_Size);
 
 		PageHandler *ram_ptr =
-			memory.mem_alias_pagemask == (Bit32u)(~0UL)
+			(memory.mem_alias_pagemask == (Bit32u)(~0UL) && !a20_full_masking)
 			? (PageHandler*)(&ram_page_handler) /* no aliasing */
 			: (PageHandler*)(&ram_alias_page_handler); /* aliasing */
 
