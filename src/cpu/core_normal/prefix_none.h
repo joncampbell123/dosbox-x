@@ -935,12 +935,6 @@
 	CASE_B(0xec)												/* IN AL,DX */
 		if (CPU_IO_Exception(reg_dx,1)) RUNEXCEPTION();
 		reg_al=IO_ReadB(reg_dx);
-#if C_DEBUG
-		if (reg_dx == 0x1F7) {
-			reg_eip++;
-			return debugCallback;
-		}
-#endif
 		break;
 	CASE_W(0xed)												/* IN AX,DX */
 		if (CPU_IO_Exception(reg_dx,2)) RUNEXCEPTION();
