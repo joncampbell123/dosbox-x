@@ -247,21 +247,6 @@ public:
 			WriteOut("Video refresh rate locked to %.3ffps\n",vga_force_refresh_rate);
 		else
 			WriteOut("Video refresh rate unlocked\n");
-
-#if 0
-		if(cmd->FindExist("ON")) {
-			WriteOut("CGA snow enabled\n");
-			enableCGASnow = 1;
-		}
-		else if(cmd->FindExist("OFF")) {
-			WriteOut("CGA snow disabled\n");
-			enableCGASnow = 0;
-		}
-		else {
-			WriteOut("CGA snow currently %s\n",
-				enableCGASnow ? "enabled" : "disabled");
-		}
-#endif
 	}
 };
 
