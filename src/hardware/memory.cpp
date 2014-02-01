@@ -38,6 +38,7 @@
 
 bool a20_guest_changeable = true;
 bool a20_full_masking = false;
+bool a20_fake_changeable = false;
 
 #define PAGES_IN_BLOCK	((1024*1024)/MEM_PAGE_SIZE)
 #define SAFE_MEMORY	32
@@ -519,14 +520,14 @@ bool MEM_A20_Enabled(void) {
 }
 
 void MEM_A20_Enable(bool enabled) {
-	if (a20_guest_changeable)
+	if (a20_guest_changeable || a20_fake_changeable)
 		memory.a20.enabled = enabled;
 
 	if (!a20_full_masking) {
 		Bitu phys_base=memory.a20.enabled ? (1024/4) : 0;
 		for (Bitu i=0;i<16;i++) PAGING_MapPage((1024/4)+i,phys_base+i);
 	}
-	else {
+	else if (!a20_fake_changeable) {
 		if (memory.a20.enabled) memory.mem_alias_pagemask |= 0x100;
 		else memory.mem_alias_pagemask &= ~0x100;
 		PAGING_ClearTLB();
@@ -730,6 +731,7 @@ public:
 		Section_prop * section=static_cast<Section_prop *>(configuration);
 
 		memory.a20.enabled = 0;
+		a20_fake_changeable = false;
 
 		std::string ss = section->Get_string("a20");
 		if (ss == "mask" || ss == "") {
@@ -743,9 +745,23 @@ public:
 			a20_full_masking = true;
 			memory.a20.enabled = 1;
 		}
+		else if (ss == "on_fake") {
+			fprintf(stderr,"A20: locked on (but will fake control bit)\n");
+			a20_guest_changeable = false;
+			a20_fake_changeable = true;
+			a20_full_masking = true;
+			memory.a20.enabled = 1;
+		}
 		else if (ss == "off") {
 			fprintf(stderr,"A20: locked off\n");
 			a20_guest_changeable = false;
+			a20_full_masking = true;
+			memory.a20.enabled = 0;
+		}
+		else if (ss == "off_fake") {
+			fprintf(stderr,"A20: locked off (but will fake control bit)\n");
+			a20_guest_changeable = false;
+			a20_fake_changeable = true;
 			a20_full_masking = true;
 			memory.a20.enabled = 0;
 		}
@@ -793,6 +809,9 @@ public:
 			//	(unsigned long)memory.mem_alias_pagemask);
 			abort();
 		}
+
+		if (a20_fake_changeable && a20_full_masking && !memory.a20.enabled)
+			memory.mem_alias_pagemask &= ~0x100;
 
 		/* we can't have more memory than the memory aliasing allows */
 		if (address_bits < 32 && ((memsize*256)+(memsizekb/4)) > (memory.mem_alias_pagemask+1)) {

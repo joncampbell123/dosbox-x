@@ -556,12 +556,23 @@ void DOSBOX_Init(void) {
 			"to run DOSBox with as little as 4KB. If DOSBox-X aborts with error \"not enough memory for internal tables\"\n"
 			"then you need to increase this value.");
 
+	/* TODO: When src/hardware/memory.cpp is refactored properly, change this to Changeable::WhenIdle and add a
+	 *       DOSBox shell command to allow runtime changing this parameter. The reason it is not that way now is
+	 *       that the non-fast A20 gating emulation relies on an alternative code path that assigns an alternative
+	 *       RAM handler designed to emulate aliasing. Changing between "fast" and the other options is dependent
+	 *       on re-assigning all RAM page handlers from aliased version to non-aliased version. */
 	Pstring = secprop->Add_string("a20",Property::Changeable::OnlyAtStart,"fast");
-	Pstring->Set_help("A20 gate emulation mode\n"
+	Pstring->Set_help("A20 gate emulation mode.\n"
+			  "The on/off/on_fake/off_fake options are intended for testing and debugging DOS development,\n"
+			  "or to emulate obscure hardware, or to work around potential extended memory problems with DOS programs.\n"
+			  "on_fake/off_fake are intended to test whether a program carries out a memory test to ensure the A20\n"
+			  "gate is set as intended (as HIMEM.SYS does). If it goes by the gate bit alone, it WILL crash.\n"
 			  "  fast                         Emulate A20 gating by remapping the first 64KB @ 1MB boundary (fast, mainline DOSBox behavior)\n"
 			  "  mask                         Emulate A20 gating by masking memory I/O address (accurate, DOSBox-X default)\n"
-			  "  off                          Lock A20 gate off (Software/OS cannot enable A20)\n"
-			  "  on                           Lock A20 gate on (Software/OS cannot disable A20)");
+			  "  off                          Lock A20 gate off (Software/OS cannot enable A20).\n"
+			  "  on                           Lock A20 gate on (Software/OS cannot disable A20)\n"
+			  "  off_fake                     Lock A20 gate off but allow bit to toggle\n"
+			  "  on_fake                      Lock A20 gate on but allow bit to toggle");
 
 #if C_DEBUG	
 	LOG_StartUp();
