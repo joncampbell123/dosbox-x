@@ -1,0 +1,38 @@
+Optic Nerve
+
+Requirements:
+ - xms=false (the demo will not start if HIMEM.SYS is present)
+ - extended memory (4MB at least)
+ - at least cycles count 12000
+ - Sound Blaster sound card
+
+Demo comments:
+ - As commented widely on Pouet.net, this demo is very hard to run on real
+   hardware.
+
+ - MS-DOS 6.x and higher tend to force HIMEM.SYS into memory. To run the demo,
+   you will need to hit F8 on boot. MS-DOS 6.22 will confirm every action it
+   will take, and Windows 95 will show the boot menu where you will select
+   "confirm each action". Answer "N" to each question, and you will get a
+   minimal MS-DOS environment without HIMEM.SYS.
+
+ - Whether or not the demo works seems to vary widely depending on what
+   version of MS-DOS you are running.
+
+   DOSBox/DOSBox-X native shell:      Runs all the way through.
+                                      Demo has issues clearing the screen between parts, VGA emulation bug?
+                                      Some transitions cause the music to skip forward.
+
+   MS-DOS 7.0:                        Does not run at all, hangs at black screen
+
+   MS-DOS 7.1:                        Does not run at all. On a Compaq 486 with Win98 DOS, demo causes laptop to immediately reboot.
+
+   MS-DOS 6.22:                       Runs fine. VGA emulation is even able to clear the screen properly.
+                                      One transition (from the rotating gourad face) causes the music to skip forward.
+                                      The rotating gourad face also fails to capture a "screenshot".
+
+   MS-DOS 5.0:                        Runs fine. VGA emulation is even able to clear the screen properly.
+                                      The rotating gourad face also fails to capture a "screenshot".
+                                      No music skipping observed. Music and video seem to run slightly at a
+                                      slightly slower rate (or is that just me?)
+
