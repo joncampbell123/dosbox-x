@@ -45,6 +45,36 @@
 #include "render.h"
 #include "pci_bus.h"
 #include "parport.h"
+#include "clockdomain.h"
+
+#include <list>
+
+extern ClockDomain		clockdom_8254_PIT;
+
+class ClockDomainISAOSC : public ClockDomain {
+public:
+	ClockDomainISAOSC(unsigned long long freqb) : ClockDomain(freqb) { /* 14.31818MHz / 1 */
+	}
+	virtual void notify_advance(unsigned long long wc) {
+		clockdom_8254_PIT.advance(wc);		/* ISA OSC / 12 -> PIT clock */
+	}
+	virtual void notify_rebase() { /* override me! */
+		clockdom_8254_PIT.notify_rebase(); /* <- FIXME */
+	}
+public:
+};
+
+/* ISA bus OSC clock (14.31818MHz) */
+/*  +---- / 12 = PIT timer clock 1.1931816666... MHz */
+ClockDomainISAOSC	clockdom_ISA_OSC(14318180);		/* MASTER 14.31818MHz */
+ClockDomain		clockdom_8254_PIT(14318180,12);		/* SLAVE  14.31818MHz / 12 = 1.1931816666666.... MHz */
+
+/* ISA bus BCLK clock (8.3333MHz) */
+ClockDomain		clockdom_ISA_BCLK(25000000,3);		/* MASTER 25000000Hz / 3 = 8.333333MHz */
+
+/* Clocks to be updated by Normal loop */
+std::list<ClockDomain*>	clockdom_top_update;
+std::list<ClockDomain*>	clockdom_active;
 
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -185,6 +215,26 @@ bool sse2_available = false;
 #endif
 #endif
 
+class CLOCKDOM : public Program {
+public:
+	void Run(void) {
+		char tmp[256];
+
+		WriteOut("%zu clock domains\n",clockdom_active.size());
+		for (std::list<ClockDomain*>::iterator i=clockdom_active.begin();i!=clockdom_active.end();i++) {
+			WriteOut(" %c  %-15s freq=%llu/%llu count=%llu\n",
+				(*i)->master ? 'M' : 'S',
+				(*i)->name.c_str(),
+				(*i)->freq,(*i)->freq_div,
+				(*i)->counter_whole);
+		}
+	}
+};
+
+void CLOCKDOM_ProgramStart(Program * * make) {
+	*make=new CLOCKDOM;
+}
+
 void CheckSSESupport()
 {
 #if defined (__APPLE__)
@@ -209,6 +259,11 @@ void CheckSSESupport()
 static Bitu Normal_Loop(void) {
 	Bits ret;
 	while (1) {
+		{
+			double f = PIC_FullIndex() / 1000;
+			for (std::list<ClockDomain*>::iterator i=clockdom_top_update.begin();i!=clockdom_top_update.end();i++) (*i)->set_time(f);
+		}
+
 		if (PIC_RunQueue()) {
 			Bit32u ticksNew;
 			ticksNew=GetTicks();
@@ -479,6 +534,20 @@ static void DOSBOX_RealInit(Section * sec) {
 	else E_Exit("DOSBOX:Unknown machine type %s",mtype.c_str());
 	// Hack!
 	//mtype=MCH_AMSTRAD;
+
+	/* MASTER: ISA OSC (14.31818MHz) */
+	clockdom_ISA_OSC.set_name("ISA OSC");
+	clockdom_active.push_back(&clockdom_ISA_OSC);
+	clockdom_top_update.push_back(&clockdom_ISA_OSC);
+	/* SLAVE: PIT clock */
+	clockdom_8254_PIT.set_name("8254 PIT");
+	clockdom_8254_PIT.master = false;
+	clockdom_active.push_back(&clockdom_8254_PIT);
+
+	/* MASTER: ISA BCLK (bus clock) (8.333333MHz) */
+	clockdom_ISA_BCLK.set_name("ISA BCLK");
+	clockdom_active.push_back(&clockdom_ISA_BCLK);
+	clockdom_top_update.push_back(&clockdom_ISA_BCLK);
 }
 
 

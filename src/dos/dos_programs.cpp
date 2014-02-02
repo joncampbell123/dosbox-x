@@ -2539,6 +2539,7 @@ static void MORE_ProgramStart(Program * * make) {
 }
 */
 
+void CLOCKDOM_ProgramStart(Program * * make);
 void A20GATE_ProgramStart(Program * * make);
 
 void DOS_SetupPrograms(void) {
@@ -2879,4 +2880,5 @@ void DOS_SetupPrograms(void) {
 	PROGRAMS_MakeFile("KEYB.COM", KEYB_ProgramStart);
 	PROGRAMS_MakeFile("MOUSE.COM", MOUSE_ProgramStart);
 	PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart);
+	PROGRAMS_MakeFile("CLOCKDOM.COM",CLOCKDOM_ProgramStart);
 }
