@@ -60,7 +60,7 @@ ClockDomain		clockdom_8254_PIT(14318180,12);		/* SLAVE  14.31818MHz / 12 = 1.193
 ClockDomain		clockdom_ISA_BCLK(25000000,3);		/* MASTER 25000000Hz / 3 = 8.333333MHz */
 
 /* Clocks to be updated by Normal loop */
-std::list<ClockDomain*>	clockdom_top_update;
+std::list<ClockDomain*>	clockdom_top_update;			/* list of master clocks at the top of the clock tree */
 
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
@@ -253,14 +253,43 @@ void CheckSSESupport()
 }
 #endif
 
+void run_hw() {
+	double f = PIC_FullIndex() / 1000,next_f,p_next_f=0;
+	unsigned long long t_next;
+	unsigned long long t_clk;
+	int patience = 1000;
+	bool again;
+
+	do {
+		again=false;
+		next_f=f;
+
+		for (std::list<ClockDomain*>::iterator i=clockdom_top_update.begin();i!=clockdom_top_update.end();i++) {
+			t_clk = (*i)->time_to_clocks(next_f);
+			if ((*i)->next_event_time(/*&*/t_next) && t_clk > t_next)
+				next_f = (*i)->clocks_to_time(t_next);
+		}
+
+		/* in case floating point errors cause next_f to NOT QUITE REACH the next event, be prepared to give it a nudge */
+		if (next_f == p_next_f) next_f += (2.0 * clockdom_ISA_BCLK.freq_div) / clockdom_ISA_BCLK.freq;
+
+		for (std::list<ClockDomain*>::iterator i=clockdom_top_update.begin();i!=clockdom_top_update.end();i++) {
+			t_clk = (*i)->time_to_clocks(next_f);
+			if (t_clk > (*i)->counter) (*i)->advance(t_clk - (*i)->counter);
+			(*i)->fire_events();
+		}
+
+		p_next_f = next_f;
+	} while (again && --patience > 0);
+
+	if (patience <= 0)
+		fprintf(stderr,"WARNING: run_hw() one or more clock events are stuck?\n");
+}
+
 static Bitu Normal_Loop(void) {
 	Bits ret;
 	while (1) {
-		{
-			double f = PIC_FullIndex() / 1000;
-			for (std::list<ClockDomain*>::iterator i=clockdom_top_update.begin();i!=clockdom_top_update.end();i++) (*i)->set_time(f);
-		}
-
+		run_hw();
 		if (PIC_RunQueue()) {
 			Bit32u ticksNew;
 			ticksNew=GetTicks();
@@ -473,6 +502,15 @@ Bitu VGA_BIOS_Size_override = 0;
 extern bool dynamic_dos_kernel_alloc;
 extern Bitu DOS_PRIVATE_SEGMENT_Size;
 
+/* tied to ISA BCLK clock. test callback */
+void ISA_BCLK_test_event(ClockDomainEvent *e) {
+	fprintf(stderr,"%s test, counter=%llu %lld clocks*div late\n",
+		e->domain->name.c_str(),e->domain->counter,
+		(signed long long)(e->domain->counter - e->t_clock));
+
+	e->domain->add_event_rel(ISA_BCLK_test_event,e->domain->freq);
+}
+
 static void DOSBOX_RealInit(Section * sec) {
 	Section_prop * section=static_cast<Section_prop *>(sec);
 	/* Initialize some dosbox internals */
@@ -534,7 +572,7 @@ static void DOSBOX_RealInit(Section * sec) {
 
 	std::string isabclk = section->Get_string("isa bus clock");
 	if (isabclk == "std8.3")
-		clockdom_ISA_BCLK.set_frequency(25000000,3);	/* 25MHz / 3 = 8.333MHz, early 386 systems did this */
+		clockdom_ISA_BCLK.set_frequency(25000000,3);	/* 25MHz / 3 = 8.333MHz, early 386 systems did this, became an industry standard "norm" afterwards */
 	else if (isabclk == "std8")
 		clockdom_ISA_BCLK.set_frequency(8000000,1);	/* 8Mhz */
 	else if (isabclk == "std6")
@@ -598,6 +636,12 @@ static void DOSBOX_RealInit(Section * sec) {
 	/* MASTER: ISA BCLK (bus clock) (8.333333MHz) */
 	clockdom_ISA_BCLK.set_name("ISA BCLK");
 	clockdom_top_update.push_back(&clockdom_ISA_BCLK);
+
+	/* MASTER event dispatch testing */
+	clockdom_ISA_BCLK.add_event_rel(ISA_BCLK_test_event,clockdom_ISA_BCLK.freq);
+	clockdom_ISA_OSC.add_event_rel(ISA_BCLK_test_event,clockdom_ISA_OSC.freq);
+	/* SLAVE event dispatch testing */
+	clockdom_8254_PIT.add_event_rel(ISA_BCLK_test_event,clockdom_8254_PIT.freq);
 }
 
 
