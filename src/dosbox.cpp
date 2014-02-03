@@ -257,7 +257,7 @@ void CheckSSESupport()
 #endif
 
 void run_hw() {
-	double f = PIC_FullIndex() / 1000,next_f,p_next_f=0;
+	double f = PIC_FullIndex() / 1000,next_f,p_next_f=0,nudge=0;
 	unsigned long long t_next;
 	unsigned long long t_clk;
 	int patience = 1000;
@@ -269,15 +269,18 @@ void run_hw() {
 
 		for (std::list<ClockDomain*>::iterator i=clockdom_top_update.begin();i!=clockdom_top_update.end();i++) {
 			t_clk = (*i)->time_to_clocks(next_f);
-			if ((*i)->next_event_time(/*&*/t_next) && t_clk > t_next)
+			if (t_clk < (*i)->counter) t_clk = (*i)->counter;
+			if ((*i)->next_event_time(/*&*/t_next) && t_clk > t_next) {
 				next_f = (*i)->clocks_to_time(t_next);
+				again = true;
+			}
 		}
 
 		/* in case floating point errors cause next_f to NOT QUITE REACH the next event, be prepared to give it a nudge */
-		if (next_f == p_next_f) next_f += (2.0 * clockdom_ISA_BCLK.freq_div) / clockdom_ISA_BCLK.freq;
+		if (next_f == p_next_f) nudge += 1.0 / 100000000;
 
 		for (std::list<ClockDomain*>::iterator i=clockdom_top_update.begin();i!=clockdom_top_update.end();i++) {
-			t_clk = (*i)->time_to_clocks(next_f);
+			t_clk = (*i)->time_to_clocks(next_f+nudge);
 			if (t_clk > (*i)->counter) (*i)->advance(t_clk - (*i)->counter);
 			(*i)->fire_events();
 		}
