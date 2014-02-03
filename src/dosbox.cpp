@@ -209,18 +209,20 @@ public:
 
 		WriteOut("%zu clock domains\n",clockdom_top_update.size());
 		for (std::list<ClockDomain*>::iterator i=clockdom_top_update.begin();i!=clockdom_top_update.end();i++) {
-			WriteOut(" %c  %-15s freq=%llu/%llu count=%llu\n",
+			WriteOut(" %c  %-15s count=%llu freq=%.1fHz (%llu/%llu)\n",
 				(*i)->master ? 'M' : 'S',
 				(*i)->name.c_str(),
-				(*i)->freq,(*i)->freq_div,
-				(*i)->counter_whole_snapshot);
+				(*i)->counter_whole_snapshot,
+				((double)(*i)->freq) / (*i)->freq_div,
+				(*i)->freq,(*i)->freq_div);
 
 			for (std::vector<ClockDomain*>::iterator j=(*i)->slaves.begin();j!=(*i)->slaves.end();j++) {
-				WriteOut(" +-%c  %-15s freq=%llu/%llu count=%llu\n",
+				WriteOut(" +%c %-15s count=%llu freq=%.1fHz (%llu/%llu)\n",
 					(*j)->master ? 'M' : 'S',
 					(*j)->name.c_str(),
-					(*j)->freq,(*j)->freq_div,
-					(*j)->counter_whole_snapshot);
+					(*j)->counter_whole_snapshot,
+					((double)(*j)->freq) / (*j)->freq_div,
+					(*j)->freq,(*j)->freq_div);
 			}
 		}
 	}
@@ -530,6 +532,62 @@ static void DOSBOX_RealInit(Section * sec) {
 	// Hack!
 	//mtype=MCH_AMSTRAD;
 
+	std::string isabclk = section->Get_string("isa bus clock");
+	if (isabclk == "std8.3")
+		clockdom_ISA_BCLK.set_frequency(25000000,3);	/* 25MHz / 3 = 8.333MHz, early 386 systems did this */
+	else if (isabclk == "std8")
+		clockdom_ISA_BCLK.set_frequency(8000000,1);	/* 8Mhz */
+	else if (isabclk == "std6")
+		clockdom_ISA_BCLK.set_frequency(6000000,1);	/* 6MHz */
+	else if (isabclk == "std4.77")
+		clockdom_ISA_BCLK.set_frequency(clockdom_ISA_OSC.freq,3); /* 14.31818MHz / 3 = 4.77MHz */
+	else if (isabclk == "oc10")
+		clockdom_ISA_BCLK.set_frequency(10000000,1);	/* 10MHz */
+	else if (isabclk == "oc12")
+		clockdom_ISA_BCLK.set_frequency(12000000,1);	/* 12MHz */
+	else if (isabclk == "oc15")
+		clockdom_ISA_BCLK.set_frequency(15000000,1);	/* 15MHz */
+	else if (isabclk == "oc16")
+		clockdom_ISA_BCLK.set_frequency(16000000,1);	/* 16MHz */
+	else {
+		const char *s = isabclk.c_str(),*d;
+
+		/* we're expecting an integer, a float, or an integer ratio */
+		d = strchr(s,'/');
+		if (d != NULL) { /* it has a slash therefore an integer ratio */
+			unsigned long long num,den;
+
+			while (*d == ' ' || *d == '/') d++;
+			num = strtoull(s,NULL,0);
+			den = strtoull(d,NULL,0);
+			if (num >= 1ULL && den >= 1ULL) clockdom_ISA_BCLK.set_frequency(num,den);
+		}
+		else {
+			d = strchr(s,'.');
+			if (d != NULL) { /* it has a dot, floating point */
+				double f = atof(s);
+				unsigned long long fi = (unsigned long long)floor((f*1000000)+0.5);
+				unsigned long long den = 1000000;
+
+				while (den > 1ULL) {
+					if ((fi%10ULL) == 0) {
+						den /= 10ULL;
+						fi /= 10ULL;
+					}
+					else {
+						break;
+					}
+				}
+
+				if (fi >= 1ULL) clockdom_ISA_BCLK.set_frequency(fi,den);
+			}
+			else {
+				unsigned long long f = strtoull(s,NULL,10);
+				if (f >= 1ULL) clockdom_ISA_BCLK.set_frequency(f,1);
+			}
+		}
+	}
+
 	/* MASTER: ISA OSC (14.31818MHz) */
 	clockdom_ISA_OSC.set_name("ISA OSC");
 	clockdom_top_update.push_back(&clockdom_ISA_OSC);
@@ -625,11 +683,25 @@ void DOSBOX_Init(void) {
 			  "gate is set as intended (as HIMEM.SYS does). If it goes by the gate bit alone, it WILL crash.\n"
 			  "This parameter is also changeable from the builtin A20GATE command.\n"
 			  "  fast                         Emulate A20 gating by remapping the first 64KB @ 1MB boundary (fast, mainline DOSBox behavior)\n"
-			  "  mask                         Emulate A20 gating by masking memory I/O address (accurate, DOSBox-X default)\n"
-			  "  off                          Lock A20 gate off (Software/OS cannot enable A20).\n"
+			  "  mask                         Emulate A20 gating by masking memory I/O address (accurate)\n"
+			  "  off                          Lock A20 gate off (Software/OS cannot enable A20)\n"
 			  "  on                           Lock A20 gate on (Software/OS cannot disable A20)\n"
-			  "  off_fake                     Lock A20 gate off but allow bit to toggle\n"
+			  "  off_fake                     Lock A20 gate off but allow bit to toggle (hope your DOS game tests the HMA!)\n"
 			  "  on_fake                      Lock A20 gate on but allow bit to toggle");
+
+	Pstring = secprop->Add_string("isa bus clock",Property::Changeable::WhenIdle,"std8.3");
+	Pstring->Set_help("ISA BCLK frequency.\n"
+			  "WARNING: In future revisions, PCI/motherboard chipset emulation will allow the guest OS/program to alter this value at runtime.\n"
+			  "  std8.3                       8.333MHz (typical 386-class or higher)\n"
+			  "  std8                         8MHz\n"
+			  "  std6                         6MHz\n"
+			  "  std4.77                      4.77MHz (precisely 1/3 x 14.31818MHz). Bus frequency of older PC/XT systems.\n"
+			  "  oc10                         10MHz\n"
+			  "  oc12                         12MHz\n"
+			  "  oc15                         15MHz\n"
+			  "  oc16                         16MHz\n"
+			  "  <integer or float>           Any integer or floating point value will be used as the clock frequency in Hz\n"
+			  "  <integer/integer ratio>      If a ratio is given (num/den), the ratio will be used as the clock frequency");
 
 #if C_DEBUG	
 	LOG_StartUp();
