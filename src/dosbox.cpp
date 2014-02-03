@@ -59,6 +59,9 @@ ClockDomain		clockdom_8254_PIT(14318180,12);		/* SLAVE  14.31818MHz / 12 = 1.193
 /* ISA bus BCLK clock (8.3333MHz) */
 ClockDomain		clockdom_ISA_BCLK(25000000,3);		/* MASTER 25000000Hz / 3 = 8.333333MHz */
 
+/* PCI bus clock (33.3333MHz) */
+ClockDomain		clockdom_PCI_BCLK(100000000,3);		/* MASTER 100MHz / 3 = 33.33333MHz */
+
 /* Clocks to be updated by Normal loop */
 std::list<ClockDomain*>	clockdom_top_update;			/* list of master clocks at the top of the clock tree */
 
@@ -502,9 +505,48 @@ Bitu VGA_BIOS_Size_override = 0;
 extern bool dynamic_dos_kernel_alloc;
 extern Bitu DOS_PRIVATE_SEGMENT_Size;
 
+void parse_setting_str(ClockDomain *cd,const char *s) {
+	const char *d;
+
+	/* we're expecting an integer, a float, or an integer ratio */
+	d = strchr(s,'/');
+	if (d != NULL) { /* it has a slash therefore an integer ratio */
+		unsigned long long num,den;
+
+		while (*d == ' ' || *d == '/') d++;
+		num = strtoull(s,NULL,0);
+		den = strtoull(d,NULL,0);
+		if (num >= 1ULL && den >= 1ULL) cd->set_frequency(num,den);
+	}
+	else {
+		d = strchr(s,'.');
+		if (d != NULL) { /* it has a dot, floating point */
+			double f = atof(s);
+			unsigned long long fi = (unsigned long long)floor((f*1000000)+0.5);
+			unsigned long long den = 1000000;
+
+			while (den > 1ULL) {
+				if ((fi%10ULL) == 0) {
+					den /= 10ULL;
+					fi /= 10ULL;
+				}
+				else {
+					break;
+				}
+			}
+
+			if (fi >= 1ULL) cd->set_frequency(fi,den);
+		}
+		else {
+			unsigned long long f = strtoull(s,NULL,10);
+			if (f >= 1ULL) cd->set_frequency(f,1);
+		}
+	}
+}
+
 /* tied to ISA BCLK clock. test callback */
 void ISA_BCLK_test_event(ClockDomainEvent *e) {
-	fprintf(stderr,"%s test, counter=%llu %lld clocks*div late\n",
+	fprintf(stderr,"%s test event, counter=%llu %lld clocks*div late\n",
 		e->domain->name.c_str(),e->domain->counter,
 		(signed long long)(e->domain->counter - e->t_clock));
 
@@ -587,44 +629,18 @@ static void DOSBOX_RealInit(Section * sec) {
 		clockdom_ISA_BCLK.set_frequency(15000000,1);	/* 15MHz */
 	else if (isabclk == "oc16")
 		clockdom_ISA_BCLK.set_frequency(16000000,1);	/* 16MHz */
-	else {
-		const char *s = isabclk.c_str(),*d;
+	else
+		parse_setting_str(&clockdom_ISA_BCLK,isabclk.c_str());
 
-		/* we're expecting an integer, a float, or an integer ratio */
-		d = strchr(s,'/');
-		if (d != NULL) { /* it has a slash therefore an integer ratio */
-			unsigned long long num,den;
-
-			while (*d == ' ' || *d == '/') d++;
-			num = strtoull(s,NULL,0);
-			den = strtoull(d,NULL,0);
-			if (num >= 1ULL && den >= 1ULL) clockdom_ISA_BCLK.set_frequency(num,den);
-		}
-		else {
-			d = strchr(s,'.');
-			if (d != NULL) { /* it has a dot, floating point */
-				double f = atof(s);
-				unsigned long long fi = (unsigned long long)floor((f*1000000)+0.5);
-				unsigned long long den = 1000000;
-
-				while (den > 1ULL) {
-					if ((fi%10ULL) == 0) {
-						den /= 10ULL;
-						fi /= 10ULL;
-					}
-					else {
-						break;
-					}
-				}
-
-				if (fi >= 1ULL) clockdom_ISA_BCLK.set_frequency(fi,den);
-			}
-			else {
-				unsigned long long f = strtoull(s,NULL,10);
-				if (f >= 1ULL) clockdom_ISA_BCLK.set_frequency(f,1);
-			}
-		}
-	}
+	std::string pcibclk = section->Get_string("pci bus clock");
+	if (pcibclk == "std33.3")
+		clockdom_PCI_BCLK.set_frequency(100000000,3);	/* 100MHz / 3 = 33.333MHz, VERY common PCI speed */
+	else if (pcibclk == "std30")
+		clockdom_PCI_BCLK.set_frequency(30000000,1);	/* 30Mhz */
+	else if (pcibclk == "std25")
+		clockdom_PCI_BCLK.set_frequency(25000000,1);	/* 25MHz */
+	else
+		parse_setting_str(&clockdom_PCI_BCLK,pcibclk.c_str());
 
 	/* MASTER: ISA OSC (14.31818MHz) */
 	clockdom_ISA_OSC.set_name("ISA OSC");
@@ -637,7 +653,12 @@ static void DOSBOX_RealInit(Section * sec) {
 	clockdom_ISA_BCLK.set_name("ISA BCLK");
 	clockdom_top_update.push_back(&clockdom_ISA_BCLK);
 
+	/* MASTER: PCI BCLK (bus clock) (33.333333MHz) FIXME: Only add this clock IF emulating a PCI-based motherboard */
+	clockdom_PCI_BCLK.set_name("PCI BCLK");
+	clockdom_top_update.push_back(&clockdom_PCI_BCLK);
+
 	/* MASTER event dispatch testing */
+	clockdom_PCI_BCLK.add_event_rel(ISA_BCLK_test_event,clockdom_PCI_BCLK.freq);
 	clockdom_ISA_BCLK.add_event_rel(ISA_BCLK_test_event,clockdom_ISA_BCLK.freq);
 	clockdom_ISA_OSC.add_event_rel(ISA_BCLK_test_event,clockdom_ISA_OSC.freq);
 	/* SLAVE event dispatch testing */
@@ -744,6 +765,15 @@ void DOSBOX_Init(void) {
 			  "  oc12                         12MHz\n"
 			  "  oc15                         15MHz\n"
 			  "  oc16                         16MHz\n"
+			  "  <integer or float>           Any integer or floating point value will be used as the clock frequency in Hz\n"
+			  "  <integer/integer ratio>      If a ratio is given (num/den), the ratio will be used as the clock frequency");
+
+	Pstring = secprop->Add_string("pci bus clock",Property::Changeable::WhenIdle,"std33.3");
+	Pstring->Set_help("PCI bus frequency.\n"
+			  "WARNING: In future revisions, PCI/motherboard chipset emulation will allow the guest OS/program to alter this value at runtime.\n"
+			  "  std33.3                      33.333MHz (very common setting on motherboards)\n"
+			  "  std30                        30MHz (some older mid-1990's Pentium systems)\n"
+			  "  std25                        25MHz\n"
 			  "  <integer or float>           Any integer or floating point value will be used as the clock frequency in Hz\n"
 			  "  <integer/integer ratio>      If a ratio is given (num/den), the ratio will be used as the clock frequency");
 
