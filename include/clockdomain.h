@@ -71,9 +71,10 @@ public:
 		if (c >= counter) {
 			advance(c - counter);
 		}
-		else if ((c+(freq/10ULL)) >= counter) { /* FIXME: Minor errors in PIC_FullIndex() will cause time to minutely jump backwards.
-						          Well.. no wonder DOSBox's VGA emulation has issues with time-sensitive demos
-							  like "The Good, The Bad, The Ugly" */
+		else if ((c+(freq/10ULL)) >= counter) { /* FIXME: Minor errors in PIC_FullIndex() will cause time to jump backwards
+							          slightly.. which probably explains why truly time-sensitive stuff
+								  like the warping FX and raster hacks in "The Good, The Bad, The Ugly"
+								  has minor timing errors in DOSBox. */
 			static bool jwarn=false;
 
 			if (!jwarn) {
