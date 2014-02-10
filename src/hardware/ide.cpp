@@ -295,10 +295,8 @@ void IDEATAPICDROMDevice::read_subchannel() {
 	if (!cdrom->GetAudioStatus(playing,pause))
 		playing = pause = false;
 
-	if (pause)
-		astat = 0x12;
-	else if (playing)
-		astat = 0x11;
+	if (playing)
+		astat = pause ? 0x12 : 0x11;
 	else
 		astat = 0x13;
 
@@ -472,17 +470,25 @@ void IDEATAPICDROMDevice::play_audio_msf() {
 
 	if (atapi_cmd[3] == 0xFF && atapi_cmd[4] == 0xFF && atapi_cmd[5] == 0xFF)
 		start_lba = 0xFFFFFFFF;
-	else
+	else {
 		start_lba = (atapi_cmd[3] * 60 * 75) +
 			(atapi_cmd[4] * 75) +
 			atapi_cmd[5];
 
+		if (start_lba >= 150) start_lba -= 150;	/* LBA sector 0 == M:S:F sector 0:2:0 */
+		else end_lba = 0;
+	}
+
 	if (atapi_cmd[6] == 0xFF && atapi_cmd[7] == 0xFF && atapi_cmd[8] == 0xFF)
 		end_lba = 0xFFFFFFFF;
-	else
+	else {
 		end_lba = (atapi_cmd[6] * 60 * 75) +
 			(atapi_cmd[7] * 75) +
 			atapi_cmd[8];
+
+		if (end_lba >= 150) end_lba -= 150;	/* LBA sector 0 == M:S:F sector 0:2:0 */
+		else end_lba = 0;
+	}
 
 	if (start_lba == end_lba) {
 		/* The play length field specifies the number of contiguous logical blocks that shall
