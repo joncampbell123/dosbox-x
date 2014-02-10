@@ -366,21 +366,26 @@ void IDEATAPICDROMDevice::mode_sense() {
 	write = sector;
 
 	/* some header. not well documented */
-	*write++ = 0x00;	/* ?? */
 	*write++ = 0x00;	/* length */
-	*write++ = 0x00;	/* ?? */
+	*write++ = 0x00;	/* length */
+	*write++ = 0x41;	/* ??? */
 	*write++ = 0x00;
 	*write++ = 0x00;
 	*write++ = 0x00;
-	*write++ = 0x00;
-	*write++ = 0x00;
+	*write++ = 0x00;	/* block descriptor length == 0 */
+	*write++ = 0x00;	/* ^ same */
 
+	/* sector+8 */
 	*write++ = PAGE;	/* page code */
 	*write++ = 0x00;	/* page length (fill in later) */
 	switch (PAGE) {
 		case 0x01: /* Read error recovery */
-			*write++ = 0x00;	/* maximum error correction */
-			*write++ = 3;		/* read retry count */
+			*write++ = 0x80;	/* ? */
+			*write++ = 0x1E;	/* read retry count */
+			*write++ = 0x00;
+			*write++ = 0x00;
+			*write++ = 0x00;
+			*write++ = 0x00;
 			*write++ = 0x00;
 			*write++ = 0x00;
 			*write++ = 0x00;
@@ -392,40 +397,63 @@ void IDEATAPICDROMDevice::mode_sense() {
 			*write++ = 0x00;	/* reserved @+4 */
 			*write++ = 0x00;	/* reserved @+5 */
 			*write++ = 0x00;
-			*write++ = 75;		/* logical blocks per second */
+			*write++ = 0x00;
 
 			*write++ = 0x01;	/* output port 0 selection */
-			*write++ = 0xD8;	/* output port 0 volume (?) */
+			*write++ = 0xFF;	/* output port 0 volume (?) */
 			*write++ = 0x02;	/* output port 1 selection */
-			*write++ = 0xD8;	/* output port 1 volume (?) */
+			*write++ = 0xFF;	/* output port 1 volume (?) */
 			*write++ = 0x00;	/* output port 2 selection */
 			*write++ = 0x00;	/* output port 2 volume (?) */
 			*write++ = 0x00;	/* output port 3 selection */
 			*write++ = 0x00;	/* output port 3 volume (?) */
 			break;
 		case 0x2A: /* CD-ROM mechanical status */
-			*write++ = 0x00;	/* reserved @+2 ?? */
-			*write++ = 0x00;	/* reserved @+3 ?? */
+			*write++ = 0x3F;	/* reserved @+2 ?? */
+			*write++ = 0x37;	/* reserved @+3 ?? */
 			*write++ = 0xF1;	/* multisession=0 mode2form2=1 mode2form=1 audioplay=1 */
-			*write++ = 0xFF;	/* ISRC=1 UPC=1 C2=1 RWDeinterleave=1 RWSupported=1 CDDAAccurate=1 CDDASupported=1 */
-			*write++ = 0x29;	/* loading mechanism type=tray  eject=1  prevent jumper=0  lockstate=0  lock=1 */
-			*write++ = 0x03;	/* separate channel mute=1 separate channel volume levels=1 */
-
-			x = 176 * 8;		/* maximum speed supported: 8X */
-			*write++ = x>>8;
-			*write++ = x;
-
-			x = 256;		/* (?) */
-			*write++ = x>>8;
-			*write++ = x;
-
-			x = 6 * 256;		/* (?) */
-			*write++ = x>>8;
-			*write++ = x;
-
-			x = 176 * 8;		/* current speed supported: 8X */
-			*write++ = x>>8;
-			*write++ = x;
+			*write++ = 0x73;	/* ISRC=1 UPC=1 C2=1 RWDeinterleave=1 RWSupported=1 CDDAAccurate=1 CDDASupported=1 */
+			*write++ = 0x2B;	/* loading mechanism type=tray  eject=1  prevent jumper=0  lockstate=0  lock=1 */
+			*write++ = 0x23;	/* separate channel mute=1 separate channel volume levels=1 */
+			*write++ = 0x2B;
+			*write++ = 0x48;
+			*write++ = 0x00;
+			*write++ = 0xFF;
+			*write++ = 0x80;
+			*write++ = 0x00;
+			*write++ = 0x2B;
+			*write++ = 0x48;
+			*write++ = 0x00;
+			*write++ = 0x00;
+			*write++ = 0x10;
+			*write++ = 0x8A;
+			*write++ = 0x10;
+			*write++ = 0x8A;
+			*write++ = 0x00;
+			*write++ = 0x01;
+			*write++ = 0x00;
+			*write++ = 0x00;
+			*write++ = 0x00;
+			*write++ = 0x00;
+			*write++ = 0x10;
+			*write++ = 0x8A;
+			*write++ = 0x00;
+			*write++ = 0x01;
+			*write++ = 0x00;
+			*write++ = 0x00;
+			*write++ = 0x10;
+			*write++ = 0x8A;
+			*write++ = 0x00;
+			*write++ = 0x00;
+			*write++ = 0x00;
+			*write++ = 0x00;
+			*write++ = 0x00;
+			*write++ = 0x00;
+			*write++ = 0x00;
+			*write++ = 0x00;
+			*write++ = 0x00;
+			*write++ = 0x00;
+			*write++ = 0x00;
 			break;
 		default:
 			memset(write,0,6); write += 6;
@@ -433,11 +461,16 @@ void IDEATAPICDROMDevice::mode_sense() {
 			break;
 	};
 
+	x = (unsigned int)(write-sector);
 	/* fill in page length */
-	sector[1] = (unsigned int)(write-sector) - 2;
-	sector[8+1] = (unsigned int)(write-sector) - 2 - 8;
+	sector[0] = (x - 2) >> 8;
+	sector[1] = (x - 2);
+	/* page length */
+	sector[8+1] = x - 8 - 2;
 
-	prepare_read(0,MIN((unsigned int)(write-sector),(unsigned int)host_maximum_byte_count));
+	x = MIN((unsigned int)(write-sector),(unsigned int)host_maximum_byte_count);
+	if (x < 10) x = 10;
+	prepare_read(0,x);
 #if 0
 	printf("SENSE ");
 	for (size_t i=0;i < sector_total;i++) printf("%02x ",sector[i]);
