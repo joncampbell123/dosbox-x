@@ -101,8 +101,8 @@ static inline bool drivehead_is_chs(uint8_t val) {
 class IDEDevice {
 public:
 	IDEController *controller;
-	uint16_t feature,count,lba[3];
-	uint8_t command,drivehead,status;
+	uint16_t feature,count,lba[3];	/* feature = BASE+1  count = BASE+2   lba[3] = BASE+3,+4,+5 */
+	uint8_t command,drivehead,status; /* command/status = BASE+7  drivehead = BASE+6 */
 	enum IDEDeviceType type;
 	bool faked_command;	/* if set, DOSBox is sending commands to itself */
 	bool allow_writing;
