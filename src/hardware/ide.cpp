@@ -903,6 +903,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 void IDEATAPICDROMDevice::set_sense(unsigned char SK,unsigned char ASC,unsigned char ASCQ,unsigned int len) {
 	if (len < 18) len = 18;
 	memset(sense,0,len);
+	sense_length = len;
 
 	sense[0] = 0x70;	/* RESPONSE CODE */
 	sense[2] = SK&0xF;	/* SENSE KEY */
