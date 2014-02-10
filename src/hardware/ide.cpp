@@ -193,6 +193,7 @@ public:
 	virtual void generate_mmc_inquiry();
 	virtual void prepare_read(Bitu offset,Bitu size);
 	virtual void prepare_write(Bitu offset,Bitu size);
+	virtual void set_sense(unsigned char SK,unsigned char ASC=0,unsigned char ASCQ=0,unsigned int len=0);
 	virtual void on_mode_select_io_complete();
 	virtual void atapi_io_completion();
 	virtual void io_completion();
@@ -213,6 +214,7 @@ public:
 	Bitu LBA,TransferLength;
 public:
 	unsigned char sense[256];
+	Bitu sense_length;
 	unsigned char atapi_cmd[12];
 	unsigned char atapi_cmd_i,atapi_cmd_total;
 	unsigned char sector[512*128];
@@ -662,12 +664,8 @@ void IDEATAPICDROMDevice::read_toc() {
 void IDEATAPICDROMDevice::on_atapi_busy_time() {
 	switch (atapi_cmd[0]) {
 		case 0x03: /* REQUEST SENSE */
-			prepare_read(0,MIN((unsigned int)18,(unsigned int)host_maximum_byte_count));
-			sense[0] = 0x70;/*RESPONSE CODE*/
-			sense[2] = 0x00;/*SENSE KEY*/
-			sense[7] = 10;
-			sense[12] = 0;
-			memcpy(sector,sense,18);
+			prepare_read(0,MIN((unsigned int)sense_length,(unsigned int)host_maximum_byte_count));
+			memcpy(sector,sense,sense_length);
 
 			feature = 0x00;
 			state = IDE_DEV_DATA_READ;
@@ -896,11 +894,23 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 
 }
 
+void IDEATAPICDROMDevice::set_sense(unsigned char SK,unsigned char ASC,unsigned char ASCQ,unsigned int len) {
+	if (len < 18) len = 18;
+	memset(sense,0,len);
+
+	sense[0] = 0x70;	/* RESPONSE CODE */
+	sense[2] = SK&0xF;	/* SENSE KEY */
+	sense[7] = len - 18;	/* additional sense length */
+	sense[12] = ASC;
+	sense[13] = ASCQ;
+}
+
 IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_index) : IDEDevice(c) {
 	this->drive_index = drive_index;
 	sector_i = sector_total = 0;
 
 	memset(sense,0,sizeof(sense));
+	set_sense(/*SK=*/0);
 
 	type = IDE_TYPE_CDROM;
 	id_serial = "123456789";
