@@ -347,16 +347,13 @@ void IDEATAPICDROMDevice::read_subchannel() {
 
 	prepare_read(0,MIN((unsigned int)(write-sector),(unsigned int)host_maximum_byte_count));
 #if 0
-	printf("SUBCH ");
-	for (size_t i=0;i < sector_total;i++) printf("%02x ",sector[i]);
-	printf("\n");
+	fprintf(stderr,"SUBCH ");
+	for (size_t i=0;i < sector_total;i++) fprintf(stderr,"%02x ",sector[i]);
+	fprintf(stderr,"\n");
 #endif
 }
 
 void IDEATAPICDROMDevice::mode_sense() {
-	/* FIXME: MS-DOS based CD player programs do a MODE SENSE and then outright
-	 *        refuse to do CD audio playback EVEN THOUGH WE FUCKING SET ALL THE MAGIC
-	 *        BITS SAYING WE SUPPORT FUCKING AUDIO CD PLAYBACK!!! What the fuck? */
 	unsigned int AllocationLength = ((unsigned int)atapi_cmd[7] << 8) + atapi_cmd[8];
 	unsigned char PAGE = atapi_cmd[2] & 0x3F;
 	unsigned char SUBPAGE = atapi_cmd[3];
@@ -1153,6 +1150,9 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 
 	switch (atapi_cmd[0]) {
 		case 0x00: /* TEST UNIT READY */
+			/* TODO: Need to return "Medium not present" or "Medium is loading" messages if
+			 *       CD-ROM ISO change is triggered */
+			set_sense(0); /* <- nothing wrong */
 			count = 0x03;
 			feature = 0x00;
 			state = IDE_DEV_READY;
