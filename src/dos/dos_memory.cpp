@@ -483,8 +483,8 @@ void DOS_SetupMemory(void) {
 		mcb.SetSize(0x1800 - DOS_MEM_START - (2+mcb_sizes));
 		mcb.SetType(0x4d);
 	} else {
-		if (seg_limit < ((192*1024)/16))
-			E_Exit("DOS requires at least 192K");
+		if (seg_limit < ((72*1024)/16))
+			E_Exit("Emulation requires at least 72K");
 
 		/* complete memory up to 640k available */
 		/* last paragraph used to add UMB chain to low-memory MCB chain */
