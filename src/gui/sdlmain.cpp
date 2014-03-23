@@ -75,7 +75,7 @@
 extern void UI_Init();
 extern void UI_Run(bool);
 
-bool dos_kernel_disabled = true;
+bool dos_kernel_disabled = false;
 
 #if !(ENVIRON_INCLUDED)
 extern char** environ;
