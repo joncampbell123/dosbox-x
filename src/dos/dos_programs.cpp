@@ -489,7 +489,7 @@ static void MOUNT_ProgramStart(Program * * make) {
 }
 
 extern Bit32u floppytype;
-
+extern bool dos_kernel_disabled;
 
 class BOOT : public Program {
 private:
@@ -880,6 +880,11 @@ public:
 			/* revector some dos-allocated interrupts */
 			real_writed(0,0x01*4,0xf000ff53);
 			real_writed(0,0x03*4,0xf000ff53);
+
+			/* set the "disable DOS kernel" flag so other parts of this program
+			 * do not attempt to manipulate now-defunct parts of the kernel
+			 * such as the environment block */
+			dos_kernel_disabled = true;
 
 			SegSet16(cs, 0);
 			reg_ip = 0x7c00;

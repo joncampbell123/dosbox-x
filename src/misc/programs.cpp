@@ -34,6 +34,8 @@
 
 Bitu call_program;
 
+extern bool dos_kernel_disabled;
+
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
 static Bit8u exe_block[]={
@@ -167,6 +169,11 @@ void Program::WriteOut_NoParsing(const char * format) {
 
 
 bool Program::GetEnvStr(const char * entry,std::string & result) {
+	if (dos_kernel_disabled) {
+		fprintf(stderr,"BUG: Program::GetEnvStr() called with DOS kernel disabled (such as OS boot).\n");
+		return false;
+	}
+
 	/* Walk through the internal environment and see for a match */
 	PhysPt env_read=PhysMake(psp->GetEnvironment(),0);
 
@@ -192,6 +199,11 @@ bool Program::GetEnvStr(const char * entry,std::string & result) {
 }
 
 bool Program::GetEnvNum(Bitu num,std::string & result) {
+	if (dos_kernel_disabled) {
+		fprintf(stderr,"BUG: Program::GetEnvNum() called with DOS kernel disabled (such as OS boot).\n");
+		return false;
+	}
+
 	char env_string[1024+1];
 	PhysPt env_read=PhysMake(psp->GetEnvironment(),0);
 	do 	{
@@ -205,6 +217,11 @@ bool Program::GetEnvNum(Bitu num,std::string & result) {
 }
 
 Bitu Program::GetEnvCount(void) {
+	if (dos_kernel_disabled) {
+		fprintf(stderr,"BUG: Program::GetEnvCount() called with DOS kernel disabled (such as OS boot).\n");
+		return 0;
+	}
+
 	PhysPt env_read=PhysMake(psp->GetEnvironment(),0);
 	Bitu num=0;
 	while (mem_readb(env_read)!=0) {
@@ -216,6 +233,11 @@ Bitu Program::GetEnvCount(void) {
 }
 
 bool Program::SetEnv(const char * entry,const char * new_string) {
+	if (dos_kernel_disabled) {
+		fprintf(stderr,"BUG: Program::SetEnv() called with DOS kernel disabled (such as OS boot).\n");
+		return false;
+	}
+
 	PhysPt env_read=PhysMake(psp->GetEnvironment(),0);
 	PhysPt env_write=env_read;
 	char env_string[1024+1];
