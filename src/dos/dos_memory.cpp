@@ -483,6 +483,7 @@ void DOS_SetupMemory(void) {
 		mcb.SetSize(0x1800 - DOS_MEM_START - (2+mcb_sizes));
 		mcb.SetType(0x4d);
 	} else {
+		/* FIXME: A lot in DOSBox seems to become unstable below 72KB, including booting a guest OS */
 		if (seg_limit < ((72*1024)/16))
 			E_Exit("Emulation requires at least 72K");
 
