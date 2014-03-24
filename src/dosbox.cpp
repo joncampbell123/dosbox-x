@@ -1367,6 +1367,9 @@ void DOSBOX_Init(void) {
 	Phex = secprop->Add_hex("umb end",Property::Changeable::OnlyAtStart,0); /* <- (0=auto) 0xEFFF is mainline DOSBox compatible (where base=0xD000 and size=0x2000) */
 	Phex->Set_help("UMB region last segment");
 
+	Pbool = secprop->Add_bool("kernel allocation in umb",Property::Changeable::OnlyAtStart,false);
+	Pbool->Set_help("If set, dynamic kernel allocation=1, and private area in umb=1, all kernel structures will be allocated from the private area in UMB.");
+
 	Pbool = secprop->Add_bool("dynamic kernel allocation",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("If set, DOS kernel structures are allocated dynamically. If clear, DOS kernel structures are fixed at specific segments (mainline DOSBox behavior)");
 

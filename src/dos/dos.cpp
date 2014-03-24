@@ -1399,10 +1399,12 @@ extern bool mainline_compatible_mapping;
 bool enable_collating_uppercase = true;
 bool keep_private_area_on_boot = false;
 bool dynamic_dos_kernel_alloc = false;
+bool private_always_from_umb = false;
 bool private_segment_in_umb = true;
 Bit16u DOS_IHSEG = 0;
 
 void DOS_GetMemory_reset();
+void DOS_GetMemory_Choose();
 
 #include <assert.h>
 
@@ -1418,6 +1420,12 @@ public:
 		private_segment_in_umb = section->Get_bool("private area in umb");
 		enable_collating_uppercase = section->Get_bool("collating and uppercase");
 		dynamic_dos_kernel_alloc = section->Get_bool("dynamic kernel allocation");
+		private_always_from_umb = section->Get_bool("kernel allocation in umb");
+
+		if (!dynamic_dos_kernel_alloc || mainline_compatible_mapping) {
+			fprintf(stderr,"kernel allocation in umb option incompatible with other settings, disabling.\n");
+			private_always_from_umb = false;
+		}
 
 		if (dynamic_dos_kernel_alloc) {
 			/* we make use of the DOS_GetMemory() function for the dynamic allocation */
@@ -1425,14 +1433,20 @@ public:
 				DOS_IHSEG = 0x70;
 				DOS_PRIVATE_SEGMENT = 0x80;
 			}
+			else if (private_always_from_umb) {
+				DOS_GetMemory_Choose(); /* the pool starts in UMB */
+				DOS_MEM_START = 0x51; /* and we allow allocation from down below where the DOS kernel *would* reside */
+			}
 			else {
 				DOS_PRIVATE_SEGMENT = 0x50; /* NTS: The first paragraph overlaps the PRINT SCREEN BYTE but DOSBox's kernel does not use that byte anyway */
 			}
 
-			if (MEM_TotalPages() > 0x9C)
-				DOS_PRIVATE_SEGMENT_END = 0x9C00;
-			else
-				DOS_PRIVATE_SEGMENT_END = (MEM_TotalPages() << (12 - 4)) - 1; /* NTS: Remember DOSBox's implementation reuses the last paragraph for UMB linkage */
+			if (!private_always_from_umb) {
+				if (MEM_TotalPages() > 0x9C)
+					DOS_PRIVATE_SEGMENT_END = 0x9C00;
+				else
+					DOS_PRIVATE_SEGMENT_END = (MEM_TotalPages() << (12 - 4)) - 1; /* NTS: Remember DOSBox's implementation reuses the last paragraph for UMB linkage */
+			}
 
 			fprintf(stderr,"Dynamic DOS kernel mode, structures will be allocated from pool 0x%04x-0x%04x\n",
 				DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
@@ -1448,6 +1462,8 @@ public:
 			/* defer DOS_MEM_START until right before SetupMemory */
 		}
 		else {
+			if (MEM_TotalPages() < 2) E_Exit("Not enough RAM for mainline compatible fixed kernel mapping");
+
 			DOS_IHSEG = 0x70;
 			DOS_INFOBLOCK_SEG = 0x80;	// sysvars (list of lists)
 			DOS_CONDRV_SEG = 0xa0;
@@ -1532,13 +1548,13 @@ public:
 		 * of memory. the DOS_SetupMemory() function will finalize it into the first MCB. Having done that,
 		 * we then need to move the DOS private segment somewere else so that additional allocations do not
 		 * corrupt the MCB chain */
-		if (dynamic_dos_kernel_alloc)
+		if (dynamic_dos_kernel_alloc && !private_always_from_umb)
 			DOS_MEM_START = DOS_GetMemory(0,"DOS_MEM_START");		// was 0x158 (pass 0 to alloc nothing, get the pointer)
 
 		/* move the private segment elsewhere to avoid conflict with the MCB structure.
 		 * either set to 0 to cause the decision making to choose an upper memory address,
 		 * or allocate an additional private area and start the MCB just after that */
-		if (dynamic_dos_kernel_alloc) {
+		if (dynamic_dos_kernel_alloc && !private_always_from_umb) {
 			DOS_GetMemory_reset();
 			DOS_PRIVATE_SEGMENT = 0;
 			DOS_PRIVATE_SEGMENT_END = 0;
