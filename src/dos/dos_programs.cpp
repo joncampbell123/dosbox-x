@@ -868,6 +868,20 @@ public:
 				return;
 			}
 
+			/* Other versions of MS-DOS/PC-DOS have their own requirements about memory:
+			 *    - IBM PC-DOS 1.0/1.1: not too picky, will boot with as little as 32KB even though
+			 *                          it was intended for the average model with 64KB of RAM.
+			 *
+			 *    - IBM PC-DOS 2.1: requires at least 44KB of RAM. will crash on boot otherwise.
+			 *
+			 *    - MS-DOS 3.2: requires at least 64KB to boot without crashing, 80KB to make it
+			 *                  to the command line without halting at "configuration too big for
+			 *                  memory"*/
+
+			/* TODO: Need a configuration option or a BOOT command option where the user can
+			 *       dictate where we put the stack: if we put it at 0x7000 or top of memory
+			 *       (default) or just below the boot sector, or... */
+
 			if((bootarea.rawdata[0]==0) && (bootarea.rawdata[1]==0)) {
 				WriteOut_NoParsing("PROGRAM_BOOT_UNABLE");
 				return;
