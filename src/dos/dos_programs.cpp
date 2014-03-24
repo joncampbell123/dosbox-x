@@ -851,6 +851,16 @@ public:
 				}
 			}
 		} else {
+			Bitu stack_seg=0x7000,max_seg;
+
+			if (MEM_TotalPages() > 0x9C)
+				max_seg = 0x9C00;
+			else
+				max_seg = MEM_TotalPages() << (12 - 4);
+
+			if ((stack_seg+0x20) > max_seg)
+				stack_seg = max_seg - 0x20;
+
 			if((bootarea.rawdata[0]==0) && (bootarea.rawdata[1]==0)) {
 				WriteOut_NoParsing("PROGRAM_BOOT_UNABLE");
 				return;
@@ -886,12 +896,15 @@ public:
 			 * such as the environment block */
 			dos_kernel_disabled = true;
 
+			/* debug */
+			fprintf(stderr,"Booting guest OS stack_seg=0x%04x\n",stack_seg);
+
 			SegSet16(cs, 0);
 			reg_ip = 0x7c00;
 			SegSet16(ds, 0);
 			SegSet16(es, 0);
 			/* set up stack at a safe place */
-			SegSet16(ss, 0x7000);
+			SegSet16(ss, stack_seg);
 			reg_esp = 0x100;
 			reg_esi = 0;
 			reg_ecx = 1;
