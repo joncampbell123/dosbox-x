@@ -514,12 +514,12 @@ void DOS_SetupMemory(void) {
 		mcb.SetType(0x4d);
 	} else {
 #ifndef DEBUG_ALLOC
-		/* NTS: Testing suggests we can push as low as 8KB. However, Wikipedia and
+		/* NTS: Testing suggests we can push as low as 4KB. However, Wikipedia and
 		 *      other sites suggest that the IBM PC only went as low as 16KB when
 		 *      it first sold, and even that wasn't too typical. But what the hell,
-		 *      we'll allow 8KB. */
-		if (seg_limit < ((8*1024)/16))
-			E_Exit("Standard PC requires at least 8K");
+		 *      we'll allow as little as 4KB if not for fun DOS hacking. */
+		if (seg_limit < ((4*1024)/16))
+			E_Exit("Standard PC requires at least 4K");
 #endif
 
 		/* complete memory up to 640k available */
