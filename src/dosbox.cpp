@@ -549,9 +549,11 @@ void parse_setting_str(ClockDomain *cd,const char *s) {
 
 /* tied to ISA BCLK clock. test callback */
 void ISA_BCLK_test_event(ClockDomainEvent *e) {
-	fprintf(stderr,"%s test event, counter=%llu %lld clocks*div late\n",
-		e->domain->name.c_str(),e->domain->counter,
-		(signed long long)(e->domain->counter - e->t_clock));
+	if (e->domain->counter != e->t_clock) {
+		fprintf(stderr,"%s test event, counter=%llu %lld clocks*div late\n",
+			e->domain->name.c_str(),e->domain->counter,
+			(signed long long)(e->domain->counter - e->t_clock));
+	}
 
 	e->domain->add_event_rel(ISA_BCLK_test_event,e->domain->freq);
 }
