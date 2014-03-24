@@ -22,6 +22,11 @@
 #include "dos_inc.h"
 #include "callback.h"
 
+// uncomment for alloc/free debug messages
+#define DEBUG_ALLOC
+
+/* FIXME: This should be a variable that reflects the last RAM segment.
+ *        That means 0x9FFF if 640KB or more, or a lesser value if less than 640KB */
 #define UMB_START_SEG 0x9fff
 
 Bit16u first_umb_seg = 0xd000;
@@ -131,6 +136,10 @@ bool DOS_AllocateMemory(Bit16u * segment,Bit16u * blocks) {
 				/* MCB fits precisely, use it if search strategy is firstfit or bestfit */
 				mcb.SetPSPSeg(dos.psp());
 				*segment=mcb_segment+1;
+
+#ifdef DEBUG_ALLOC
+				fprintf(stderr,"DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x\n",*blocks,*segment,*segment+*blocks-1);
+#endif
 				return true;
 			} else {
 				switch (mem_strat & 0x3f) {
@@ -145,6 +154,10 @@ bool DOS_AllocateMemory(Bit16u * segment,Bit16u * blocks) {
 						mcb.SetFileName(psp_name);
 						//TODO Filename
 						*segment=mcb_segment+1;
+
+#ifdef DEBUG_ALLOC
+						fprintf(stderr,"DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x\n",*blocks,*segment,*segment+*blocks-1);
+#endif
 						return true;
 					case 1: /* bestfit */
 						if ((found_seg_size==0) || (block_size<found_seg_size)) {
@@ -195,6 +208,10 @@ bool DOS_AllocateMemory(Bit16u * segment,Bit16u * blocks) {
 							//Not consistent with line 124. But how many application will use this information ?
 							mcb.SetFileName(psp_name);
 							*segment = found_seg+1;
+
+#ifdef DEBUG_ALLOC
+							fprintf(stderr,"DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x\n",*blocks,*segment,*segment+*blocks-1);
+#endif
 							return true;
 						}
 						*segment = found_seg+1+found_seg_size - *blocks;
@@ -208,6 +225,10 @@ bool DOS_AllocateMemory(Bit16u * segment,Bit16u * blocks) {
 						mcb.SetPSPSeg(MCB_FREE);
 						mcb.SetType(0x4D);
 					}
+
+#ifdef DEBUG_ALLOC
+					fprintf(stderr,"DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x\n",*blocks,*segment,*segment+*blocks-1);
+#endif
 					return true;
 				}
 				/* no fitting MCB found, return size of largest block */
@@ -217,6 +238,10 @@ bool DOS_AllocateMemory(Bit16u * segment,Bit16u * blocks) {
 			}
 		} else mcb_segment+=mcb.GetSize()+1;
 	}
+
+#ifdef DEBUG_ALLOC
+	fprintf(stderr,"DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x\n",*blocks,*segment,*segment+*blocks-1);
+#endif
 	return false;
 }
 
@@ -305,6 +330,11 @@ bool DOS_FreeMemory(Bit16u segment) {
 		DOS_SetError(DOSERR_MB_ADDRESS_INVALID);
 		return false;
 	}
+
+#ifdef DEBUG_ALLOC
+	fprintf(stderr,"DOS_FreeMemory(seg=0x%04x)\n",segment);
+#endif
+
 	mcb.SetPSPSeg(MCB_FREE);
 //	DOS_CompressMemory();
 	return true;
@@ -483,9 +513,11 @@ void DOS_SetupMemory(void) {
 		mcb.SetSize(0x1800 - DOS_MEM_START - (2+mcb_sizes));
 		mcb.SetType(0x4d);
 	} else {
+#ifndef DEBUG_ALLOC
 		/* FIXME: A lot in DOSBox seems to become unstable below 72KB, including booting a guest OS */
 		if (seg_limit < ((72*1024)/16))
 			E_Exit("Emulation requires at least 72K");
+#endif
 
 		/* complete memory up to 640k available */
 		/* last paragraph used to add UMB chain to low-memory MCB chain */
