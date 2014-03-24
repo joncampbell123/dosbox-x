@@ -204,6 +204,27 @@ bool sse2_available = false;
 #endif
 #endif
 
+void CheckSSESupport()
+{
+#if defined (__APPLE__)
+#elif defined (__GNUC__) || (_MSC_VER)
+	Bitu a, b, c, d;
+	cpuid(1, a, b, c, d);
+	if((d >> 26) & 1) {
+		sse1_available = true;
+		sse2_available = true;
+		//LOG_MSG("SSE2 available");
+	} else if((d >> 25) & 1) {
+		sse1_available = true;
+		sse2_available = false;
+		//LOG_MSG("SSE1 available");
+	}
+#else
+	//LOG_MSG("Can't check if SSE is available... sorry.");
+#endif
+}
+#endif
+
 class CLOCKDOM : public Program {
 public:
 	void Run(void) {
@@ -234,27 +255,6 @@ public:
 void CLOCKDOM_ProgramStart(Program * * make) {
 	*make=new CLOCKDOM;
 }
-
-void CheckSSESupport()
-{
-#if defined (__APPLE__)
-#elif defined (__GNUC__) || (_MSC_VER)
-	Bitu a, b, c, d;
-	cpuid(1, a, b, c, d);
-	if((d >> 26) & 1) {
-		sse1_available = true;
-		sse2_available = true;
-		//LOG_MSG("SSE2 available");
-	} else if((d >> 25) & 1) {
-		sse1_available = true;
-		sse2_available = false;
-		//LOG_MSG("SSE1 available");
-	}
-#else
-	//LOG_MSG("Can't check if SSE is available... sorry.");
-#endif
-}
-#endif
 
 void run_hw() {
 	double f = PIC_FullIndex() / 1000,next_f,p_next_f=0,nudge=0;
@@ -507,6 +507,12 @@ Bitu VGA_BIOS_Size_override = 0;
 
 extern bool dynamic_dos_kernel_alloc;
 extern Bitu DOS_PRIVATE_SEGMENT_Size;
+
+#ifdef _MSC_VER /* Microsoft C++ does not have strtoull */
+unsigned long long strtoull(const char *s,char **endptr,int base) {
+	return _strtoui64(s,endptr,base); /* pfff... whatever Microsoft */
+}
+#endif
 
 void parse_setting_str(ClockDomain *cd,const char *s) {
 	const char *d;
