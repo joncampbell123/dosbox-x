@@ -1432,7 +1432,7 @@ public:
 			if (MEM_TotalPages() > 0x9C)
 				DOS_PRIVATE_SEGMENT_END = 0x9C00;
 			else
-				DOS_PRIVATE_SEGMENT_END = MEM_TotalPages() << (12 - 4);
+				DOS_PRIVATE_SEGMENT_END = (MEM_TotalPages() - 1) << (12 - 4); /* NTS: Remember DOSBox's implementation reuses the last paragraph for UMB linkage */
 
 			fprintf(stderr,"Dynamic DOS kernel mode, structures will be allocated from pool 0x%04x-0x%04x\n",
 				DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
@@ -1467,6 +1467,9 @@ public:
 				DOS_MEM_START += DOS_PRIVATE_SEGMENT_Size;
 				segend = DOS_MEM_START;
 
+				if (segend >= (MEM_TotalPages() << (12 - 4)))
+					E_Exit("Insufficient room for private area");
+
 				DOS_PRIVATE_SEGMENT = seg;
 				DOS_PRIVATE_SEGMENT_END = segend;
 				DOS_MEM_START = DOS_PRIVATE_SEGMENT_END;
@@ -1484,6 +1487,9 @@ public:
 		fprintf(stderr,"   SDA:          seg 0x%04x:0x%04x\n",DOS_SDA_SEG,DOS_SDA_OFS);
 		fprintf(stderr,"   CDS:          seg 0x%04x\n",DOS_CDS_SEG);
 		fprintf(stderr,"   first shell:  seg 0x%04x\n",DOS_FIRST_SHELL);
+		fprintf(stderr,"[private segment @ this point 0x%04x-0x%04x mem=0x%04x]\n",
+			DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END,
+			MEM_TotalPages() << (12 - 4));
 
 		callback[0].Install(DOS_20Handler,CB_IRET,"DOS Int 20");
 		callback[0].Set_RealVec(0x20);
