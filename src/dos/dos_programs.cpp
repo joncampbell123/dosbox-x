@@ -851,7 +851,7 @@ public:
 				}
 			}
 		} else {
-			Bitu stack_seg=0x7000,max_seg;
+			Bitu stack_seg=0x7000,max_seg,load_seg=0x07C0;
 
 			if (MEM_TotalPages() > 0x9C)
 				max_seg = 0x9C00;
@@ -861,6 +861,13 @@ public:
 			if ((stack_seg+0x20) > max_seg)
 				stack_seg = max_seg - 0x20;
 
+			if (max_seg < 0x0800) {
+				/* TODO: For the adventerous, add a configuration option or command line switch to "BOOT"
+				 *       that allows us to boot the guest OS anyway in a manner that is non-standard. */
+				WriteOut("32KB of RAM is required to boot a guest OS\n");
+				return;
+			}
+
 			if((bootarea.rawdata[0]==0) && (bootarea.rawdata[1]==0)) {
 				WriteOut_NoParsing("PROGRAM_BOOT_UNABLE");
 				return;
@@ -869,7 +876,7 @@ public:
 			void RemoveEMSPageFrame(void);
 			RemoveEMSPageFrame();
 			WriteOut(MSG_Get("PROGRAM_BOOT_BOOT"), drive);
-			for(i=0;i<512;i++) real_writeb(0, 0x7c00 + i, bootarea.rawdata[i]);
+			for(i=0;i<512;i++) real_writeb(0, (load_seg<<4) + i, bootarea.rawdata[i]);
 
 			extern bool keep_umb_on_boot;
 			extern bool keep_private_area_on_boot;
@@ -897,21 +904,22 @@ public:
 			dos_kernel_disabled = true;
 
 			/* debug */
-			fprintf(stderr,"Booting guest OS stack_seg=0x%04x\n",stack_seg);
+			fprintf(stderr,"Booting guest OS stack_seg=0x%04x load_seg=0x%04x\n",stack_seg,load_seg);
 
+			/* standard method */
 			SegSet16(cs, 0);
-			reg_ip = 0x7c00;
 			SegSet16(ds, 0);
 			SegSet16(es, 0);
+			reg_ip = load_seg<<4;
+			reg_ebx = load_seg<<4; //Real code probably uses bx to load the image
+			reg_esp = 0x100;
 			/* set up stack at a safe place */
 			SegSet16(ss, stack_seg);
-			reg_esp = 0x100;
 			reg_esi = 0;
 			reg_ecx = 1;
 			reg_ebp = 0;
 			reg_eax = 0;
 			reg_edx = 0; //Head 0 drive 0
-			reg_ebx= 0x7c00; //Real code probably uses bx to load the image
 #ifdef __WIN32__
 			// let menu know it boots
 			menu.boot=true;
