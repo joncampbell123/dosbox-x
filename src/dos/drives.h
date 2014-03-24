@@ -80,6 +80,7 @@ public:
 	virtual bool read_directory_next(void *handle, char* entry_name, bool& is_directory);
 
 	virtual void EmptyCache(void) { dirCache.EmptyCache(); };
+	virtual void MediaChange() {};
 
 protected:
 	DOS_Drive_Cache dirCache;
@@ -393,6 +394,7 @@ public:
    	virtual bool FileStat(const char *name, FileStat_Block *const stat_block);
 	virtual Bit8u GetMediaByte(void);
 	virtual void EmptyCache(void){}
+	virtual void MediaChange();
 	virtual bool isRemote(void);
 	virtual bool isRemovable(void);
 	virtual Bits UnMount(void);
@@ -453,6 +455,7 @@ public:
 	bool AllocationInfo(Bit16u * _bytes_sector,Bit8u * _sectors_cluster,Bit16u * _total_clusters,Bit16u * _free_clusters);
 	bool FileExists(const char* name);
 	bool FileStat(const char* name, FileStat_Block* const stat_block);
+	virtual void MediaChange() {}
 	Bit8u GetMediaByte(void);
 	void EmptyCache(void){}
 	bool isRemote(void);

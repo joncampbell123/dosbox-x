@@ -551,3 +551,10 @@ bool isoDrive :: lookup(isoDirEntry *de, const char *path) {
 	}
 	return true;
 }
+
+void IDE_ATAPI_MediaChangeNotify(unsigned char drive_index);
+
+void isoDrive :: MediaChange() {
+	IDE_ATAPI_MediaChangeNotify(toupper(driveLetter) - 'A'); /* ewwww */
+}
+

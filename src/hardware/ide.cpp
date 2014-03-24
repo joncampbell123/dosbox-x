@@ -177,6 +177,7 @@ public:
 
 enum {
 	LOAD_NO_DISC=0,
+	LOAD_INSERT_CD,			/* user is "inserting" the CD */
 	LOAD_IDLE,			/* disc is stationary, not spinning */
 	LOAD_DISC_LOADING,		/* disc is "spinning up" */
 	LOAD_DISC_READIED,		/* disc just "became ready" */
@@ -202,8 +203,7 @@ public:
 	virtual void prepare_read(Bitu offset,Bitu size);
 	virtual void prepare_write(Bitu offset,Bitu size);
 	virtual void set_sense(unsigned char SK,unsigned char ASC=0,unsigned char ASCQ=0,unsigned int len=0);
-	virtual bool common_spinup_response(bool trigger);
-	virtual bool common_spinup_proceed(bool trigger);
+	virtual bool common_spinup_response(bool trigger,bool wait);
 	virtual void on_mode_select_io_complete();
 	virtual void atapi_io_completion();
 	virtual void io_completion();
@@ -219,6 +219,7 @@ public:
 	bool atapi_to_host;			/* if set, PACKET data transfer is to be read by host */
 	double spinup_time;
 	double spindown_timeout;
+	double cd_insertion_time;
 	Bitu host_maximum_byte_count;		/* host maximum byte count during PACKET transfer */
 	std::string id_mmc_vendor_id;
 	std::string id_mmc_product_id;
@@ -288,6 +289,35 @@ static void IDE_ATAPI_SpinDown(Bitu idx/*which IDE controller*/) {
 	}
 }
 
+static void IDE_ATAPI_SpinUpComplete(Bitu idx/*which IDE controller*/);
+
+static void IDE_ATAPI_CDInsertion(Bitu idx/*which IDE controller*/) {
+	IDEController *ctrl = GetIDEController(idx);
+	if (ctrl == NULL) return;
+
+	for (unsigned int i=0;i < 2;i++) {
+		IDEDevice *dev = ctrl->device[0];
+		if (dev == NULL) continue;
+
+		if (dev->type == IDE_TYPE_HDD) {
+		}
+		else if (dev->type == IDE_TYPE_CDROM) {
+			IDEATAPICDROMDevice *atapi = (IDEATAPICDROMDevice*)dev;
+
+			if (atapi->loading_mode == LOAD_INSERT_CD) {
+				atapi->loading_mode = LOAD_DISC_LOADING;
+				fprintf(stderr,"ATAPI CD-ROM: insert CD to loading\n");
+				PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,idx);
+				PIC_RemoveSpecificEvents(IDE_ATAPI_CDInsertion,idx);
+				PIC_AddEvent(IDE_ATAPI_SpinUpComplete,atapi->spinup_time/*ms*/,idx);
+			}
+		}
+		else {
+			fprintf(stderr,"Unknown ATAPI spinup callback\n");
+		}
+	}
+}
+
 static void IDE_ATAPI_SpinUpComplete(Bitu idx/*which IDE controller*/) {
 	IDEController *ctrl = GetIDEController(idx);
 	if (ctrl == NULL) return;
@@ -305,6 +335,7 @@ static void IDE_ATAPI_SpinUpComplete(Bitu idx/*which IDE controller*/) {
 				atapi->loading_mode = LOAD_DISC_READIED;
 				fprintf(stderr,"ATAPI CD-ROM: spinup complete\n");
 				PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,idx);
+				PIC_RemoveSpecificEvents(IDE_ATAPI_CDInsertion,idx);
 				PIC_AddEvent(IDE_ATAPI_SpinDown,atapi->spindown_timeout/*ms*/,idx);
 			}
 		}
@@ -314,57 +345,33 @@ static void IDE_ATAPI_SpinUpComplete(Bitu idx/*which IDE controller*/) {
 	}
 }
 
-bool IDEATAPICDROMDevice::common_spinup_proceed(bool trigger) {
-	if (loading_mode == LOAD_IDLE) {
-		if (trigger) {
-			fprintf(stderr,"ATAPI CD-ROM: triggered to spin up from idle\n");
-			loading_mode = LOAD_DISC_LOADING;
-			PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,controller->interface_index);
-			PIC_AddEvent(IDE_ATAPI_SpinUpComplete,spinup_time/*ms*/,controller->interface_index);
-		}
-	}
-
-	switch (loading_mode) {
-		case LOAD_NO_DISC:
-			return false;
-		case LOAD_DISC_LOADING:
-			return false;
-		case LOAD_DISC_READIED:
-			return false;
-		case LOAD_IDLE:
-		case LOAD_READY:
-			break;
-		default:
-			abort();
-	};
-
-	return true;
-}
-
 /* returns "true" if command should proceed as normal, "false" if sense data was set and command should not proceed.
  * this function helps to enforce virtual "spin up" and "ready" delays. */
-bool IDEATAPICDROMDevice::common_spinup_response(bool trigger) {
+bool IDEATAPICDROMDevice::common_spinup_response(bool trigger,bool wait) {
 	if (loading_mode == LOAD_IDLE) {
 		if (trigger) {
 			fprintf(stderr,"ATAPI CD-ROM: triggered to spin up from idle\n");
 			loading_mode = LOAD_DISC_LOADING;
 			PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,controller->interface_index);
+			PIC_RemoveSpecificEvents(IDE_ATAPI_CDInsertion,controller->interface_index);
 			PIC_AddEvent(IDE_ATAPI_SpinUpComplete,spinup_time/*ms*/,controller->interface_index);
 		}
 	}
 	else if (loading_mode == LOAD_READY) {
 		if (trigger) {
 			PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,controller->interface_index);
+			PIC_RemoveSpecificEvents(IDE_ATAPI_CDInsertion,controller->interface_index);
 			PIC_AddEvent(IDE_ATAPI_SpinDown,spindown_timeout/*ms*/,controller->interface_index);
 		}
 	}
 
 	switch (loading_mode) {
 		case LOAD_NO_DISC:
+		case LOAD_INSERT_CD:
 			set_sense(/*SK=*/0x02,/*ASC=*/0x3A); /* Medium Not Present */
 			return false;
 		case LOAD_DISC_LOADING:
-			if (has_changed) {
+			if (has_changed && !wait/*if command will block until LOADING complete*/) {
 				set_sense(/*SK=*/0x02,/*ASC=*/0x04,/*ASCQ=*/0x01); /* Medium is becoming available */
 				return false;
 			}
@@ -372,7 +379,7 @@ bool IDEATAPICDROMDevice::common_spinup_response(bool trigger) {
 		case LOAD_DISC_READIED:
 			loading_mode = LOAD_READY;
 			if (has_changed) {
-				has_changed = false;
+				if (trigger) has_changed = false;
 				set_sense(/*SK=*/0x02,/*ASC=*/0x28,/*ASCQ=*/0x00); /* Medium is ready (has changed) */
 				return false;
 			}
@@ -805,19 +812,37 @@ void IDEATAPICDROMDevice::read_toc() {
 void IDEATAPICDROMDevice::on_atapi_busy_time() {
 	/* if the drive is spinning up, then the command waits */
 	if (loading_mode == LOAD_DISC_LOADING) {
-		PIC_AddEvent(IDE_DelayedCommand,100/*ms*/,controller->interface_index);
-		return;
+		switch (atapi_cmd[0]) {
+			case 0x00: /* TEST UNIT READY */
+			case 0x03: /* REQUEST SENSE */
+				break; /* do not delay */
+			default:
+				PIC_AddEvent(IDE_DelayedCommand,100/*ms*/,controller->interface_index);
+				return;
+		}
+	}
+	else if (loading_mode == LOAD_DISC_READIED) {
+		switch (atapi_cmd[0]) {
+			case 0x00: /* TEST UNIT READY */
+			case 0x03: /* REQUEST SENSE */
+				break; /* do not delay */
+			default:
+				if (!common_spinup_response(/*spin up*/true,/*wait*/false)) {
+					count = 0x03;
+					state = IDE_DEV_READY;
+					feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
+					status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
+					controller->raise_irq();
+					return;
+				}
+				break;
+		}
 	}
 
 	switch (atapi_cmd[0]) {
 		case 0x03: /* REQUEST SENSE */
-			fprintf(stderr,"Requested sense\n");
-
 			prepare_read(0,MIN((unsigned int)sense_length,(unsigned int)host_maximum_byte_count));
 			memcpy(sector,sense,sense_length);
-
-			fprintf(stderr,"SK=0x%02x ASC=0x%02x ASCQ=0x%02x\n",
-				sense[2],sense[12],sense[13]);
 
 			feature = 0x00;
 			state = IDE_DEV_DATA_READ;
@@ -1067,6 +1092,7 @@ IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_in
 
 	/* FIXME: Spinup/down times should be dosbox.conf configurable, if the DOSBox gamers
 	 *        care more about loading times than emulation accuracy. */
+	cd_insertion_time = 1000; /* a quick user that can switch CDs in 1 second */
 	spinup_time = 1500; /* drive takes 1.5 seconds to spin up from idle */
 	spindown_timeout = 10000; /* drive spins down automatically after 10 seconds */
 	loading_mode = LOAD_IDLE;
@@ -1306,7 +1332,7 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 
 	switch (atapi_cmd[0]) {
 		case 0x00: /* TEST UNIT READY */
-			if (common_spinup_response(/*spin up*/false))
+			if (common_spinup_response(/*spin up*/false,/*wait*/false))
 				set_sense(0); /* <- nothing wrong */
 
 			count = 0x03;
@@ -1328,7 +1354,7 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
 			break;
 		case 0x2B: /* SEEK */
-			if (common_spinup_response(/*spin up*/true)) {
+			if (common_spinup_response(/*spin up*/true,/*wait*/true)) {
 				set_sense(0); /* <- nothing wrong */
 				count = 0x02;
 				state = IDE_DEV_ATAPI_BUSY;
@@ -1350,7 +1376,7 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
 			break;
 		case 0xA8: /* READ(12) */
-			if (common_spinup_response(/*spin up*/true)) {
+			if (common_spinup_response(/*spin up*/true,/*wait*/true)) {
 				set_sense(0); /* <- nothing wrong */
 
 				/* FIXME: MSCDEX.EXE appears to test the drive by issuing READ(10) with transfer length == 0.
@@ -1390,7 +1416,7 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 			}
 			break;
 		case 0x28: /* READ(10) */
-			if (common_spinup_response(/*spin up*/true)) {
+			if (common_spinup_response(/*spin up*/true,/*wait*/true)) {
 				set_sense(0); /* <- nothing wrong */
 
 				/* FIXME: MSCDEX.EXE appears to test the drive by issuing READ(10) with transfer length == 0.
@@ -1428,7 +1454,7 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 			}
 			break;
 		case 0x42: /* READ SUB-CHANNEL */
-			if (common_spinup_response(/*spin up*/true)) {
+			if (common_spinup_response(/*spin up*/true,/*wait*/true)) {
 				set_sense(0); /* <- nothing wrong */
 
 				count = 0x02;
@@ -1445,7 +1471,7 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 			}
 			break;
 		case 0x43: /* READ TOC */
-			if (common_spinup_response(/*spin up*/true)) {
+			if (common_spinup_response(/*spin up*/true,/*wait*/true)) {
 				set_sense(0); /* <- nothing wrong */
 
 				count = 0x02;
@@ -1464,7 +1490,7 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 		case 0x45: /* PLAY AUDIO (1) */
 		case 0x47: /* PLAY AUDIO MSF */
 		case 0x4B: /* PAUSE/RESUME */
-			if (common_spinup_response(/*spin up*/true)) {
+			if (common_spinup_response(/*spin up*/true,/*wait*/true)) {
 				set_sense(0); /* <- nothing wrong */
 
 				count = 0x02;
@@ -1915,6 +1941,30 @@ void IDE_Auto(signed char &index,bool &slave) {
 		if (c->device[1] == NULL) {
 			slave = true;
 			break;
+		}
+	}
+}
+
+/* drive_index = drive letter 0...A to 25...Z */
+void IDE_ATAPI_MediaChangeNotify(unsigned char drive_index) {
+	for (unsigned int ide=0;ide < MAX_IDE_CONTROLLERS;ide++) {
+		IDEController *c = idecontroller[ide];
+		if (c == NULL) continue;
+		for (unsigned int ms=0;ms < 2;ms++) {
+			IDEDevice *dev = c->device[ms];
+			if (dev == NULL) continue;
+			if (dev->type == IDE_TYPE_CDROM) {
+				IDEATAPICDROMDevice *atapi = (IDEATAPICDROMDevice*)dev;
+				if (drive_index == atapi->drive_index) {
+					fprintf(stderr,"IDE ATAPI acknowledge media change for drive %c\n",drive_index+'A');
+					atapi->has_changed = true;
+					atapi->loading_mode = LOAD_INSERT_CD;
+					PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,c->interface_index);
+					PIC_RemoveSpecificEvents(IDE_ATAPI_SpinUpComplete,c->interface_index);
+					PIC_RemoveSpecificEvents(IDE_ATAPI_CDInsertion,c->interface_index);
+					PIC_AddEvent(IDE_ATAPI_CDInsertion,atapi->cd_insertion_time/*ms*/,c->interface_index);
+				}
+			}
 		}
 	}
 }

@@ -160,6 +160,7 @@ public:
 	void		DeleteEntry			(const char* path, bool ignoreLastDir = false);
 
 	void		EmptyCache			(void);
+	void		MediaChange			(void);
 	void		SetLabel			(const char* name,bool cdrom,bool allowupdate);
 	char*		GetLabel			(void) { return label; };
 
@@ -265,6 +266,7 @@ public:
 	virtual char const * GetLabel() {return "NOLABEL";}; 
 	virtual void SetLabel(const char *label, bool iscdrom, bool updatable) {}; 
 	virtual void EmptyCache() {};
+	virtual void MediaChange() {};
 	// disk cycling functionality (request resources)
 	virtual void Activate(void) {};
 };
