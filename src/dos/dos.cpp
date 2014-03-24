@@ -1551,6 +1551,9 @@ public:
 				DOS_MEM_START += DOS_PRIVATE_SEGMENT_Size;
 				segend = DOS_MEM_START;
 
+				if (segend >= (MEM_TotalPages() << (12 - 4)))
+					E_Exit("Insufficient room for private area");
+
 				DOS_PRIVATE_SEGMENT = seg;
 				DOS_PRIVATE_SEGMENT_END = segend;
 				DOS_MEM_START = DOS_PRIVATE_SEGMENT_END;
