@@ -175,6 +175,14 @@ public:
 	Bitu sector_i,sector_total;
 };
 
+enum {
+	LOAD_NO_DISC=0,
+	LOAD_IDLE,			/* disc is stationary, not spinning */
+	LOAD_DISC_LOADING,		/* disc is "spinning up" */
+	LOAD_DISC_READIED,		/* disc just "became ready" */
+	LOAD_READY
+};
+
 class IDEATAPICDROMDevice:public IDEDevice {
 public:
 	IDEATAPICDROMDevice(IDEController *c,unsigned char drive_index);
@@ -194,6 +202,8 @@ public:
 	virtual void prepare_read(Bitu offset,Bitu size);
 	virtual void prepare_write(Bitu offset,Bitu size);
 	virtual void set_sense(unsigned char SK,unsigned char ASC=0,unsigned char ASCQ=0,unsigned int len=0);
+	virtual bool common_spinup_response(bool trigger);
+	virtual bool common_spinup_proceed(bool trigger);
 	virtual void on_mode_select_io_complete();
 	virtual void atapi_io_completion();
 	virtual void io_completion();
@@ -207,11 +217,15 @@ public:
 	virtual void read_toc();
 public:
 	bool atapi_to_host;			/* if set, PACKET data transfer is to be read by host */
+	double spinup_time;
+	double spindown_timeout;
 	Bitu host_maximum_byte_count;		/* host maximum byte count during PACKET transfer */
 	std::string id_mmc_vendor_id;
 	std::string id_mmc_product_id;
 	std::string id_mmc_product_rev;
 	Bitu LBA,TransferLength;
+	int loading_mode;
+	bool has_changed;
 public:
 	unsigned char sense[256];
 	Bitu sense_length;
@@ -248,6 +262,130 @@ public:
 static IDEController* idecontroller[MAX_IDE_CONTROLLERS]={NULL,NULL,NULL,NULL};
 
 static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/);
+static IDEController* GetIDEController(Bitu idx);
+
+static void IDE_ATAPI_SpinDown(Bitu idx/*which IDE controller*/) {
+	IDEController *ctrl = GetIDEController(idx);
+	if (ctrl == NULL) return;
+
+	for (unsigned int i=0;i < 2;i++) {
+		IDEDevice *dev = ctrl->device[0];
+		if (dev == NULL) continue;
+
+		if (dev->type == IDE_TYPE_HDD) {
+		}
+		else if (dev->type == IDE_TYPE_CDROM) {
+			IDEATAPICDROMDevice *atapi = (IDEATAPICDROMDevice*)dev;
+
+			if (atapi->loading_mode == LOAD_DISC_READIED || atapi->loading_mode == LOAD_READY) {
+				atapi->loading_mode = LOAD_IDLE;
+				fprintf(stderr,"ATAPI CD-ROM: spinning down\n");
+			}
+		}
+		else {
+			fprintf(stderr,"Unknown ATAPI spinup callback\n");
+		}
+	}
+}
+
+static void IDE_ATAPI_SpinUpComplete(Bitu idx/*which IDE controller*/) {
+	IDEController *ctrl = GetIDEController(idx);
+	if (ctrl == NULL) return;
+
+	for (unsigned int i=0;i < 2;i++) {
+		IDEDevice *dev = ctrl->device[0];
+		if (dev == NULL) continue;
+
+		if (dev->type == IDE_TYPE_HDD) {
+		}
+		else if (dev->type == IDE_TYPE_CDROM) {
+			IDEATAPICDROMDevice *atapi = (IDEATAPICDROMDevice*)dev;
+
+			if (atapi->loading_mode == LOAD_DISC_LOADING) {
+				atapi->loading_mode = LOAD_DISC_READIED;
+				fprintf(stderr,"ATAPI CD-ROM: spinup complete\n");
+				PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,idx);
+				PIC_AddEvent(IDE_ATAPI_SpinDown,atapi->spindown_timeout/*ms*/,idx);
+			}
+		}
+		else {
+			fprintf(stderr,"Unknown ATAPI spinup callback\n");
+		}
+	}
+}
+
+bool IDEATAPICDROMDevice::common_spinup_proceed(bool trigger) {
+	if (loading_mode == LOAD_IDLE) {
+		if (trigger) {
+			fprintf(stderr,"ATAPI CD-ROM: triggered to spin up from idle\n");
+			loading_mode = LOAD_DISC_LOADING;
+			PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,controller->interface_index);
+			PIC_AddEvent(IDE_ATAPI_SpinUpComplete,spinup_time/*ms*/,controller->interface_index);
+		}
+	}
+
+	switch (loading_mode) {
+		case LOAD_NO_DISC:
+			return false;
+		case LOAD_DISC_LOADING:
+			return false;
+		case LOAD_DISC_READIED:
+			return false;
+		case LOAD_IDLE:
+		case LOAD_READY:
+			break;
+		default:
+			abort();
+	};
+
+	return true;
+}
+
+/* returns "true" if command should proceed as normal, "false" if sense data was set and command should not proceed.
+ * this function helps to enforce virtual "spin up" and "ready" delays. */
+bool IDEATAPICDROMDevice::common_spinup_response(bool trigger) {
+	if (loading_mode == LOAD_IDLE) {
+		if (trigger) {
+			fprintf(stderr,"ATAPI CD-ROM: triggered to spin up from idle\n");
+			loading_mode = LOAD_DISC_LOADING;
+			PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,controller->interface_index);
+			PIC_AddEvent(IDE_ATAPI_SpinUpComplete,spinup_time/*ms*/,controller->interface_index);
+		}
+	}
+	else if (loading_mode == LOAD_READY) {
+		if (trigger) {
+			PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,controller->interface_index);
+			PIC_AddEvent(IDE_ATAPI_SpinDown,spindown_timeout/*ms*/,controller->interface_index);
+		}
+	}
+
+	switch (loading_mode) {
+		case LOAD_NO_DISC:
+			set_sense(/*SK=*/0x02,/*ASC=*/0x3A); /* Medium Not Present */
+			return false;
+		case LOAD_DISC_LOADING:
+			if (has_changed) {
+				set_sense(/*SK=*/0x02,/*ASC=*/0x04,/*ASCQ=*/0x01); /* Medium is becoming available */
+				return false;
+			}
+			break;
+		case LOAD_DISC_READIED:
+			loading_mode = LOAD_READY;
+			if (has_changed) {
+				has_changed = false;
+				set_sense(/*SK=*/0x02,/*ASC=*/0x28,/*ASCQ=*/0x00); /* Medium is ready (has changed) */
+				return false;
+			}
+			break;
+		case LOAD_IDLE:
+		case LOAD_READY:
+			break;
+		default:
+			abort();
+	};
+
+	return true;
+}
 
 void IDEATAPICDROMDevice::read_subchannel() {
 	unsigned int AllocationLength = ((unsigned int)atapi_cmd[7] << 8) + atapi_cmd[8];
@@ -665,10 +803,21 @@ void IDEATAPICDROMDevice::read_toc() {
 
 /* when the ATAPI command has been accepted, and the timeout has passed */
 void IDEATAPICDROMDevice::on_atapi_busy_time() {
+	/* if the drive is spinning up, then the command waits */
+	if (loading_mode == LOAD_DISC_LOADING) {
+		PIC_AddEvent(IDE_DelayedCommand,100/*ms*/,controller->interface_index);
+		return;
+	}
+
 	switch (atapi_cmd[0]) {
 		case 0x03: /* REQUEST SENSE */
+			fprintf(stderr,"Requested sense\n");
+
 			prepare_read(0,MIN((unsigned int)sense_length,(unsigned int)host_maximum_byte_count));
 			memcpy(sector,sense,sense_length);
+
+			fprintf(stderr,"SK=0x%02x ASC=0x%02x ASCQ=0x%02x\n",
+				sense[2],sense[12],sense[13]);
 
 			feature = 0x00;
 			state = IDE_DEV_DATA_READ;
@@ -916,6 +1065,13 @@ IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_in
 	memset(sense,0,sizeof(sense));
 	set_sense(/*SK=*/0);
 
+	/* FIXME: Spinup/down times should be dosbox.conf configurable, if the DOSBox gamers
+	 *        care more about loading times than emulation accuracy. */
+	spinup_time = 1500; /* drive takes 1.5 seconds to spin up from idle */
+	spindown_timeout = 10000; /* drive spins down automatically after 10 seconds */
+	loading_mode = LOAD_IDLE;
+	has_changed = false;
+
 	type = IDE_TYPE_CDROM;
 	id_serial = "123456789";
 	id_firmware_rev = "0.74-X";
@@ -1150,13 +1306,13 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 
 	switch (atapi_cmd[0]) {
 		case 0x00: /* TEST UNIT READY */
-			/* TODO: Need to return "Medium not present" or "Medium is loading" messages if
-			 *       CD-ROM ISO change is triggered */
-			set_sense(0); /* <- nothing wrong */
+			if (common_spinup_response(/*spin up*/false))
+				set_sense(0); /* <- nothing wrong */
+
 			count = 0x03;
-			feature = 0x00;
 			state = IDE_DEV_READY;
-			status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+			feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
+			status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
 			controller->raise_irq();
 			break;
 		case 0x03: /* REQUEST SENSE */
@@ -1172,10 +1328,20 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
 			break;
 		case 0x2B: /* SEEK */
-			count = 0x02;
-			state = IDE_DEV_ATAPI_BUSY;
-			status = IDE_STATUS_BUSY;
-			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
+			if (common_spinup_response(/*spin up*/true)) {
+				set_sense(0); /* <- nothing wrong */
+				count = 0x02;
+				state = IDE_DEV_ATAPI_BUSY;
+				status = IDE_STATUS_BUSY;
+				PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
+			}
+			else {
+				count = 0x03;
+				state = IDE_DEV_READY;
+				feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
+				status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
+				controller->raise_irq();
+			}
 			break;
 		case 0x12: /* INQUIRY */
 			count = 0x02;
@@ -1184,80 +1350,135 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
 			break;
 		case 0xA8: /* READ(12) */
-			/* FIXME: MSCDEX.EXE appears to test the drive by issuing READ(10) with transfer length == 0.
-			          This is all well and good but our response seems to cause a temporary 2-3 second
-				  pause for each attempt. Why? */
-			LBA = ((Bitu)atapi_cmd[2] << 24UL) |
-				((Bitu)atapi_cmd[3] << 16UL) |
-				((Bitu)atapi_cmd[4] << 8UL) |
-				((Bitu)atapi_cmd[5] << 0UL);
-			TransferLength = ((Bitu)atapi_cmd[6] << 24UL) |
-				((Bitu)atapi_cmd[7] << 16UL) |
-				((Bitu)atapi_cmd[8] << 8UL) |
-				((Bitu)atapi_cmd[9]);
+			if (common_spinup_response(/*spin up*/true)) {
+				set_sense(0); /* <- nothing wrong */
 
-			/* FIXME: We actually should NOT be capping the transfer length, but instead should
-				  be breaking the larger transfer into smaller DRQ block transfers like
-				  most IDE ATAPI drives do. Writing the test IDE code taught me that if you
-				  go to most drives and request a transfer length of 0xFFFE the drive will
-				  happily set itself up to transfer that many sectors in one IDE command! */
-			/* NTS: In case you're wondering, it's legal to issue READ(10) with transfer length == 0.
-				MSCDEX.EXE does it when starting up, for example */
-			if ((TransferLength*2048) > sizeof(sector))
-				TransferLength = sizeof(sector)/2048;
+				/* FIXME: MSCDEX.EXE appears to test the drive by issuing READ(10) with transfer length == 0.
+				   This is all well and good but our response seems to cause a temporary 2-3 second
+				   pause for each attempt. Why? */
+				LBA = ((Bitu)atapi_cmd[2] << 24UL) |
+					((Bitu)atapi_cmd[3] << 16UL) |
+					((Bitu)atapi_cmd[4] << 8UL) |
+					((Bitu)atapi_cmd[5] << 0UL);
+				TransferLength = ((Bitu)atapi_cmd[6] << 24UL) |
+					((Bitu)atapi_cmd[7] << 16UL) |
+					((Bitu)atapi_cmd[8] << 8UL) |
+					((Bitu)atapi_cmd[9]);
 
-			count = 0x02;
-			state = IDE_DEV_ATAPI_BUSY;
-			status = IDE_STATUS_BUSY;
-			/* TODO: Emulate CD-ROM spin-up delay, and seek delay */
-			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 3)/*ms*/,controller->interface_index);
+				/* FIXME: We actually should NOT be capping the transfer length, but instead should
+				   be breaking the larger transfer into smaller DRQ block transfers like
+				   most IDE ATAPI drives do. Writing the test IDE code taught me that if you
+				   go to most drives and request a transfer length of 0xFFFE the drive will
+				   happily set itself up to transfer that many sectors in one IDE command! */
+				/* NTS: In case you're wondering, it's legal to issue READ(10) with transfer length == 0.
+				   MSCDEX.EXE does it when starting up, for example */
+				if ((TransferLength*2048) > sizeof(sector))
+					TransferLength = sizeof(sector)/2048;
+
+				count = 0x02;
+				state = IDE_DEV_ATAPI_BUSY;
+				status = IDE_STATUS_BUSY;
+				/* TODO: Emulate CD-ROM spin-up delay, and seek delay */
+				PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 3)/*ms*/,controller->interface_index);
+			}
+			else {
+				count = 0x03;
+				state = IDE_DEV_READY;
+				feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
+				status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
+				controller->raise_irq();
+			}
 			break;
 		case 0x28: /* READ(10) */
-			/* FIXME: MSCDEX.EXE appears to test the drive by issuing READ(10) with transfer length == 0.
-			          This is all well and good but our response seems to cause a temporary 2-3 second
-				  pause for each attempt. Why? */
-			LBA = ((Bitu)atapi_cmd[2] << 24UL) |
-				((Bitu)atapi_cmd[3] << 16UL) |
-				((Bitu)atapi_cmd[4] << 8UL) |
-				((Bitu)atapi_cmd[5] << 0UL);
-			TransferLength = ((Bitu)atapi_cmd[7] << 8) |
-				((Bitu)atapi_cmd[8]);
+			if (common_spinup_response(/*spin up*/true)) {
+				set_sense(0); /* <- nothing wrong */
 
-			/* FIXME: We actually should NOT be capping the transfer length, but instead should
-				  be breaking the larger transfer into smaller DRQ block transfers like
-				  most IDE ATAPI drives do. Writing the test IDE code taught me that if you
-				  go to most drives and request a transfer length of 0xFFFE the drive will
-				  happily set itself up to transfer that many sectors in one IDE command! */
-			/* NTS: In case you're wondering, it's legal to issue READ(10) with transfer length == 0.
-				MSCDEX.EXE does it when starting up, for example */
-			if ((TransferLength*2048) > sizeof(sector))
-				TransferLength = sizeof(sector)/2048;
+				/* FIXME: MSCDEX.EXE appears to test the drive by issuing READ(10) with transfer length == 0.
+				   This is all well and good but our response seems to cause a temporary 2-3 second
+				   pause for each attempt. Why? */
+				LBA = ((Bitu)atapi_cmd[2] << 24UL) |
+					((Bitu)atapi_cmd[3] << 16UL) |
+					((Bitu)atapi_cmd[4] << 8UL) |
+					((Bitu)atapi_cmd[5] << 0UL);
+				TransferLength = ((Bitu)atapi_cmd[7] << 8) |
+					((Bitu)atapi_cmd[8]);
 
-			count = 0x02;
-			state = IDE_DEV_ATAPI_BUSY;
-			status = IDE_STATUS_BUSY;
-			/* TODO: Emulate CD-ROM spin-up delay, and seek delay */
-			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 3)/*ms*/,controller->interface_index);
+				/* FIXME: We actually should NOT be capping the transfer length, but instead should
+				   be breaking the larger transfer into smaller DRQ block transfers like
+				   most IDE ATAPI drives do. Writing the test IDE code taught me that if you
+				   go to most drives and request a transfer length of 0xFFFE the drive will
+				   happily set itself up to transfer that many sectors in one IDE command! */
+				/* NTS: In case you're wondering, it's legal to issue READ(10) with transfer length == 0.
+				   MSCDEX.EXE does it when starting up, for example */
+				if ((TransferLength*2048) > sizeof(sector))
+					TransferLength = sizeof(sector)/2048;
+
+				count = 0x02;
+				state = IDE_DEV_ATAPI_BUSY;
+				status = IDE_STATUS_BUSY;
+				/* TODO: Emulate CD-ROM spin-up delay, and seek delay */
+				PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 3)/*ms*/,controller->interface_index);
+			}
+			else {
+				count = 0x03;
+				state = IDE_DEV_READY;
+				feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
+				status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
+				controller->raise_irq();
+			}
 			break;
 		case 0x42: /* READ SUB-CHANNEL */
-			count = 0x02;
-			state = IDE_DEV_ATAPI_BUSY;
-			status = IDE_STATUS_BUSY;
-			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
+			if (common_spinup_response(/*spin up*/true)) {
+				set_sense(0); /* <- nothing wrong */
+
+				count = 0x02;
+				state = IDE_DEV_ATAPI_BUSY;
+				status = IDE_STATUS_BUSY;
+				PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
+			}
+			else {
+				count = 0x03;
+				state = IDE_DEV_READY;
+				feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
+				status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
+				controller->raise_irq();
+			}
 			break;
 		case 0x43: /* READ TOC */
-			count = 0x02;
-			state = IDE_DEV_ATAPI_BUSY;
-			status = IDE_STATUS_BUSY;
-			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
+			if (common_spinup_response(/*spin up*/true)) {
+				set_sense(0); /* <- nothing wrong */
+
+				count = 0x02;
+				state = IDE_DEV_ATAPI_BUSY;
+				status = IDE_STATUS_BUSY;
+				PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
+			}
+			else {
+				count = 0x03;
+				state = IDE_DEV_READY;
+				feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
+				status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
+				controller->raise_irq();
+			}
 			break;
 		case 0x45: /* PLAY AUDIO (1) */
 		case 0x47: /* PLAY AUDIO MSF */
 		case 0x4B: /* PAUSE/RESUME */
-			count = 0x02;
-			state = IDE_DEV_ATAPI_BUSY;
-			status = IDE_STATUS_BUSY;
-			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
+			if (common_spinup_response(/*spin up*/true)) {
+				set_sense(0); /* <- nothing wrong */
+
+				count = 0x02;
+				state = IDE_DEV_ATAPI_BUSY;
+				status = IDE_STATUS_BUSY;
+				PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
+			}
+			else {
+				count = 0x03;
+				state = IDE_DEV_READY;
+				feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
+				status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
+				controller->raise_irq();
+			}
 			break;
 		case 0x55: /* MODE SELECT(10) */
 			count = 0x00;	/* we will be accepting data */
