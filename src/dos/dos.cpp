@@ -1432,7 +1432,7 @@ public:
 			if (MEM_TotalPages() > 0x9C)
 				DOS_PRIVATE_SEGMENT_END = 0x9C00;
 			else
-				DOS_PRIVATE_SEGMENT_END = (MEM_TotalPages() - 1) << (12 - 4); /* NTS: Remember DOSBox's implementation reuses the last paragraph for UMB linkage */
+				DOS_PRIVATE_SEGMENT_END = (MEM_TotalPages() << (12 - 4)) - 1; /* NTS: Remember DOSBox's implementation reuses the last paragraph for UMB linkage */
 
 			fprintf(stderr,"Dynamic DOS kernel mode, structures will be allocated from pool 0x%04x-0x%04x\n",
 				DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
