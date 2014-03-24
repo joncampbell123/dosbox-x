@@ -516,10 +516,10 @@ void DOS_SetupMemory(void) {
 #ifndef DEBUG_ALLOC
 		/* NTS: Testing suggests we can push as low as 8KB. However, Wikipedia and
 		 *      other sites suggest that the IBM PC only went as low as 16KB when
-		 *      it first sold, and even that wasn't too typical. So we'll enforce
-		 *      16KB or higher for emulation accuracy. */
-		if (seg_limit < ((16*1024)/16))
-			E_Exit("Standard PC requires at least 16K");
+		 *      it first sold, and even that wasn't too typical. But what the hell,
+		 *      we'll allow 8KB. */
+		if (seg_limit < ((8*1024)/16))
+			E_Exit("Standard PC requires at least 8K");
 #endif
 
 		/* complete memory up to 640k available */
