@@ -514,9 +514,12 @@ void DOS_SetupMemory(void) {
 		mcb.SetType(0x4d);
 	} else {
 #ifndef DEBUG_ALLOC
-		/* FIXME: A lot in DOSBox seems to become unstable below 72KB, including booting a guest OS */
-		if (seg_limit < ((72*1024)/16))
-			E_Exit("Emulation requires at least 72K");
+		/* NTS: Testing suggests we can push as low as 8KB. However, Wikipedia and
+		 *      other sites suggest that the IBM PC only went as low as 16KB when
+		 *      it first sold, and even that wasn't too typical. So we'll enforce
+		 *      16KB or higher for emulation accuracy. */
+		if (seg_limit < ((16*1024)/16))
+			E_Exit("Standard PC requires at least 16K");
 #endif
 
 		/* complete memory up to 640k available */

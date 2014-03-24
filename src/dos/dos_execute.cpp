@@ -251,10 +251,18 @@ static void SetupCMDLine(Bit16u pspseg,DOS_ParamBlock & block) {
 	psp.SetCommandTail(block.exec.cmdtail);
 }
 
+/* FIXME: This code (or the shell perhaps) isn't very good at returning or
+ *        printing an error message when it is unable to load and run an
+ *        executable for whatever reason. Worst offense is that if it can't
+ *        run an EXE due to lack of memory, it silently returns to the
+ *        shell without any error message. The least we could do is return
+ *        an error code so that the INT 21h EXEC call can print an informative
+ *        error message! --J.C. */
 bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags) {
 	EXE_Header head;Bitu i;
 	Bit16u fhandle;Bit16u len;Bit32u pos;
-	Bit16u pspseg,envseg,loadseg,memsize,readsize;
+	Bit16u pspseg,envseg,loadseg,memsize=0xffff,readsize;
+	Bit16u minsize,maxsize,maxfree=0xffff;
 	PhysPt loadaddress;RealPt relocpt;
 	Bitu headersize=0,imagesize=0;
 	DOS_ParamBlock block(block_pt);
@@ -314,7 +322,7 @@ bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags) {
 			return false;
 		}
 		/* Get Memory */		
-		Bit16u minsize,maxsize;Bit16u maxfree=0xffff;DOS_AllocateMemory(&pspseg,&maxfree);
+		DOS_AllocateMemory(&pspseg,&maxfree);
 		if (iscom) {
 			minsize=0x1000;maxsize=0xffff;
 			if (machine==MCH_PCJR) {
@@ -372,11 +380,18 @@ bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags) {
 	loadaddress=PhysMake(loadseg,0);
 
 	if (iscom) {	/* COM Load 64k - 256 bytes max */
+		/* how big is the COM image? make sure it fits */
+		pos=0;DOS_SeekFile(fhandle,&pos,DOS_SEEK_END);
+		readsize = pos;
+		if (readsize > (0xffff-256)) readsize = 0xffff-256;
+		pos += 256; /* plus stack */
+		if (pos > (memsize*0x10)) E_Exit("DOS:Not enough memory for COM executable");
+
 		pos=0;DOS_SeekFile(fhandle,&pos,DOS_SEEK_SET);	
-		readsize=0xffff-256;
 		DOS_ReadFile(fhandle,loadbuf,&readsize);
 		MEM_BlockWrite(loadaddress,loadbuf,readsize);
 	} else {	/* EXE Load in 32kb blocks and then relocate */
+		if (imagesize > (memsize*0x10)) E_Exit("DOS:Not enough memory for EXE image");
 		pos=headersize;DOS_SeekFile(fhandle,&pos,DOS_SEEK_SET);	
 		while (imagesize>0x7FFF) {
 			readsize=0x8000;DOS_ReadFile(fhandle,loadbuf,&readsize);
@@ -414,12 +429,27 @@ bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags) {
 	if (flags==OVERLAY) return true;			/* Everything done for overlays */
 	RealPt csip,sssp;
 	if (iscom) {
+		unsigned int stack_sp = 0xfffe;
+
+		/* On most DOS systems the stack pointer is set to 0xFFFE.
+		 * Limiting the stack pointer to stay within the memory block
+		 * enables COM images to run correctly in less than 72KB of RAM.
+		 * Doing this resolves the random crashes observed with DOSBox's
+		 * builtin commands when less than 72KB of RAM is assigned.
+		 *
+		 * At some point I need to boot MS-DOS/PC-DOS 1.x and 2.x in small
+		 * amounts of RAM to verify that's what actually happens. --J.C. */
+		if (stack_sp >= (memsize*0x10))
+			stack_sp = (memsize*0x10)-2;
+
 		csip=RealMake(pspseg,0x100);
-		sssp=RealMake(pspseg,0xfffe);
-		mem_writew(PhysMake(pspseg,0xfffe),0);
+		sssp=RealMake(pspseg,stack_sp);
+		mem_writew(PhysMake(pspseg,stack_sp),0);
 	} else {
 		csip=RealMake(loadseg+head.initCS,head.initIP);
 		sssp=RealMake(loadseg+head.initSS,head.initSP);
+		if (sssp >= RealMake(loadseg+memsize,0)) E_Exit("DOS:Initial SS:IP beyond allocated memory block for EXE image");
+		if (csip >= RealMake(loadseg+memsize,0)) E_Exit("DOS:Initial CS:IP beyond allocated memory block for EXE image");
 		if (head.initSP<4) LOG(LOG_EXEC,LOG_ERROR)("stack underflow/wrap at EXEC");
 	}
 
