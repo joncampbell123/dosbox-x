@@ -29,6 +29,7 @@
 #include "setup.h"
 #include "control.h"
 #include "shell.h"
+#include "cpu.h"
 
 #include <iostream>
 #include <sstream>
@@ -37,17 +38,31 @@
 #include <cctype>
 #include <assert.h>
 
-extern Bit8u int10_font_14[256 * 14];
-extern Program * first_shell;
-extern bool MSG_Write(const char *);
-extern void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused);
+/* helper class for command execution */
+class VirtualBatch : public BatchFile {
+public:
+					VirtualBatch(DOS_Shell *host, const std::string& cmds);
+	bool				ReadLine(char *line);
+protected:
+	std::istringstream		lines;
+};
 
-static int cursor, saved_bpp;
-static int old_unicode;
-static bool mousetoggle, running, shell_idle;
-static bool shortcut=false;
+extern Bit8u			int10_font_14[256 * 14];
+extern Program*			first_shell;
 
-static SDL_Surface *screenshot, *background;
+extern bool			MSG_Write(const char *);
+extern void			LoadMessageFile(const char * fname);
+extern void			GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused);
+
+static int			cursor;
+static bool			running;
+static int			saved_bpp;
+static bool			shell_idle;
+static int			old_unicode;
+static bool			mousetoggle;
+static bool			shortcut=false;
+static SDL_Surface*		screenshot;
+static SDL_Surface*		background;
 
 /* Prepare screen for UI */
 void UI_Init(void) {
@@ -90,8 +105,6 @@ static void getPixel(Bits x, Bits y, int &r, int &g, int &b, int shift)
 		break;
 	}
 }
-
-extern void LoadMessageFile(const char * fname);
 
 static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 	GFX_EndUpdate(0);
@@ -229,24 +242,6 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
 	GFX_SetTitle(-1,-1,-1,false);
 }
 
-/* helper class for command execution */
-class VirtualBatch : public BatchFile {
-protected:
-	std::istringstream lines;
-public:
-	VirtualBatch(DOS_Shell *host, const std::string& cmds) : BatchFile(host, "CON", "", ""), lines(cmds) {
-	}
-	bool ReadLine(char *line) {
-		std::string l;
-		if (!std::getline(lines,l)) {
-			delete this;
-			return false;
-		}
-		strcpy(line,l.c_str());
-		return true;
-	}
-};
-
 static void UI_RunCommands(GUI::ScreenSDL *s, const std::string &cmds) {
 	DOS_Shell temp;
 	temp.call = true;
@@ -259,6 +254,20 @@ static void UI_RunCommands(GUI::ScreenSDL *s, const std::string &cmds) {
 	UI_Startup(s);
 }
 
+VirtualBatch::VirtualBatch(DOS_Shell *host, const std::string& cmds) : BatchFile(host, "CON", "", ""), lines(cmds) {
+}
+
+bool VirtualBatch::ReadLine(char *line) {
+	std::string l;
+
+	if (!std::getline(lines,l)) {
+		delete this;
+		return false;
+	}
+
+	strcpy(line,l.c_str());
+	return true;
+}
 
 /* stringification and conversion from the c++ FAQ */
 class BadConversion : public std::runtime_error {
@@ -561,8 +570,6 @@ public:
 	}
 };
 
-#include "cpu.h"
-
 class SetCycles : public GUI::ToplevelWindow {
 protected:
 	GUI::Input *name;
@@ -764,40 +771,20 @@ public:
 /* UI control functions */
 
 static void UI_Execute(GUI::ScreenSDL *screen) {
+	SDL_Surface *sdlscreen;
 	SDL_Event event;
-#if 0
-	bool fake_running=true;
-	while (fake_running) {
-		SDL_WaitEvent(&event); SDL_Delay(200);
-		while (SDL_PollEvent(&event)) {
-			if (!screen->event(event)) {
-				switch (event.type) {
-				case SDL_MOUSEBUTTONDOWN:
-				case SDL_MOUSEBUTTONUP:
-				case SDL_MOUSEMOTION:
-				case SDL_QUIT:
-					fake_running=false; break;
-				case SDL_KEYDOWN:   // Must use Pause/Break Key to resume.   
-				case SDL_KEYUP:
-					if((event.key.keysym.sym==SDLK_RALT) || (event.key.keysym.sym==SDLK_LALT)) break;
-					if(event.key.keysym.sym==SDLK_PAUSE) running=false;
-					fake_running=false;
-				}
-			}
-		}
-	}
-#endif
-	SDL_Surface *sdlscreen = screen->getSurface();
+
+	sdlscreen = screen->getSurface();
 	new ConfigurationWindow(screen, 30, 30, "DOSBox Configuration");
 
 	// event loop
-//	SDL_Event event;
 	while (running) {
 		while (SDL_PollEvent(&event)) {
 			if (!screen->event(event)) {
 				if (event.type == SDL_QUIT) running = false;
 			}
 		}
+
 		//Selecting keyboard will create a new surface.
 		sdlscreen = screen->getSurface();
 		SDL_BlitSurface(background, NULL, sdlscreen, NULL);
@@ -810,82 +797,86 @@ static void UI_Execute(GUI::ScreenSDL *screen) {
 
 #ifdef WIN32
 static void UI_Select(GUI::ScreenSDL *screen, int select) {
-	SDL_Surface *sdlscreen = screen->getSurface();
-	Section* sec=0; Section_prop * section=0;
-	Section_line * section2=0;
-    switch (select) {
+	SDL_Surface *sdlscreen = NULL;
+	Section_line *section2 = NULL;
+	Section_prop *section = NULL;
+	Section *sec = NULL;
+	SDL_Event event;
+
+	sdlscreen = screen->getSurface();
+	switch (select) {
 		case 0:
 			new GUI::MessageBox2(screen, 200, 150, 280, "", "");
 			running=false;
 			break;
-        case 1:
-    		new SaveDialog(screen, 90, 100, "Save Configuration...");
-            break;
-        case 2:
-    		sec = control->GetSection("sdl");
-         	section=static_cast<Section_prop *>(sec); 
-         	new SectionEditor(screen,50,30,section);
-            break;
-        case 3:
-    		sec = control->GetSection("dosbox");
-         	section=static_cast<Section_prop *>(sec); 
-         	new SectionEditor(screen,50,30,section);
-            break;
-        case 4:
-    		sec = control->GetSection("mixer");
-         	section=static_cast<Section_prop *>(sec); 
-         	new SectionEditor(screen,50,30,section);
-            break;
-        case 5:
-    		sec = control->GetSection("serial");
-         	section=static_cast<Section_prop *>(sec); 
-         	new SectionEditor(screen,50,30,section);
-            break;
-        case 6:
-    		sec = control->GetSection("ne2000");
-         	section=static_cast<Section_prop *>(sec); 
-         	new SectionEditor(screen,50,30,section);
-            break;
-        case 7:
-            section2 = static_cast<Section_line *>(control->GetSection("autoexec"));
-            new AutoexecEditor(screen, 50, 30, section2);
-            break;
-        case 8:
-    		sec = control->GetSection("glide");
-         	section=static_cast<Section_prop *>(sec); 
-         	new SectionEditor(screen,50,30,section);
-            break;
-        case 9:
-   			new SaveLangDialog(screen, 90, 100, "Save Language File...");
-            break;
-        case 10:
-            new ConfigurationWindow(screen, 30, 30, "DOSBox Configuration");
-            break;
-        case 11:
-    		sec = control->GetSection("parallel");
-         	section=static_cast<Section_prop *>(sec);
-         	new SectionEditor(screen,50,30,section);
-            break;
-        case 12:
-    		sec = control->GetSection("printer");
-         	section=static_cast<Section_prop *>(sec);
-         	new SectionEditor(screen,50,30,section);
-            break;
-        case 13:
-    		sec = control->GetSection("cpu");
-         	section=static_cast<Section_prop *>(sec);
-         	new SectionEditor(screen,50,30,section);
-            break;
-        case 14:
-    		sec = control->GetSection("dos");
-         	section=static_cast<Section_prop *>(sec);
-         	new SectionEditor(screen,50,30,section);
-            break;
-        case 15:
-    		sec = control->GetSection("midi");
-         	section=static_cast<Section_prop *>(sec);
-         	new SectionEditor(screen,50,30,section);
-            break;
+		case 1:
+			new SaveDialog(screen, 90, 100, "Save Configuration...");
+			break;
+		case 2:
+			sec = control->GetSection("sdl");
+			section=static_cast<Section_prop *>(sec); 
+			new SectionEditor(screen,50,30,section);
+			break;
+		case 3:
+			sec = control->GetSection("dosbox");
+			section=static_cast<Section_prop *>(sec); 
+			new SectionEditor(screen,50,30,section);
+			break;
+		case 4:
+			sec = control->GetSection("mixer");
+			section=static_cast<Section_prop *>(sec); 
+			new SectionEditor(screen,50,30,section);
+			break;
+		case 5:
+			sec = control->GetSection("serial");
+			section=static_cast<Section_prop *>(sec); 
+			new SectionEditor(screen,50,30,section);
+			break;
+		case 6:
+			sec = control->GetSection("ne2000");
+			section=static_cast<Section_prop *>(sec); 
+			new SectionEditor(screen,50,30,section);
+			break;
+		case 7:
+			section2 = static_cast<Section_line *>(control->GetSection("autoexec"));
+			new AutoexecEditor(screen, 50, 30, section2);
+			break;
+		case 8:
+			sec = control->GetSection("glide");
+			section=static_cast<Section_prop *>(sec); 
+			new SectionEditor(screen,50,30,section);
+			break;
+		case 9:
+			new SaveLangDialog(screen, 90, 100, "Save Language File...");
+			break;
+		case 10:
+			new ConfigurationWindow(screen, 30, 30, "DOSBox Configuration");
+			break;
+		case 11:
+			sec = control->GetSection("parallel");
+			section=static_cast<Section_prop *>(sec);
+			new SectionEditor(screen,50,30,section);
+			break;
+		case 12:
+			sec = control->GetSection("printer");
+			section=static_cast<Section_prop *>(sec);
+			new SectionEditor(screen,50,30,section);
+			break;
+		case 13:
+			sec = control->GetSection("cpu");
+			section=static_cast<Section_prop *>(sec);
+			new SectionEditor(screen,50,30,section);
+			break;
+		case 14:
+			sec = control->GetSection("dos");
+			section=static_cast<Section_prop *>(sec);
+			new SectionEditor(screen,50,30,section);
+			break;
+		case 15:
+			sec = control->GetSection("midi");
+			section=static_cast<Section_prop *>(sec);
+			new SectionEditor(screen,50,30,section);
+			break;
 		case 16:
 			new SetCycles(screen, 90, 100, "Set CPU Cycles...");
 			break;
@@ -895,13 +886,11 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
 		case 18:
 			new SetLocalSize(screen, 90, 100, "Set Default Local Freesize...");
 			break;
-        default:
-            break;
-    }
+		default:
+			break;
+	}
 
 	// event loop
-	SDL_Event event;
-	const GUI::String arg;
 	while (running) {
 		while (SDL_PollEvent(&event)) {
 			if (!screen->event(event)) {
