@@ -47,184 +47,156 @@
 #include "parport.h"
 #include "clockdomain.h"
 
-#include <list>
-
-extern ClockDomain		clockdom_8254_PIT;
-
-/* ISA bus OSC clock (14.31818MHz) */
-/*  +---- / 12 = PIT timer clock 1.1931816666... MHz */
-ClockDomain		clockdom_ISA_OSC(14318180);		/* MASTER 14.31818MHz */
-ClockDomain		clockdom_8254_PIT(14318180,12);		/* SLAVE  14.31818MHz / 12 = 1.1931816666666.... MHz */
-
-/* ISA bus BCLK clock (8.3333MHz) */
-ClockDomain		clockdom_ISA_BCLK(25000000,3);		/* MASTER 25000000Hz / 3 = 8.333333MHz */
-
-/* PCI bus clock (33.3333MHz) */
-ClockDomain		clockdom_PCI_BCLK(100000000,3);		/* MASTER 100MHz / 3 = 33.33333MHz */
-
-/* Clocks to be updated by Normal loop */
-std::list<ClockDomain*>	clockdom_top_update;			/* list of master clocks at the top of the clock tree */
-
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #endif
 
-#if C_NE2000
-//#include "ne2000.h"
-void NE2K_Init(Section* sec);
-#endif
+#include <list>
 
-Config * control;
-MachineType machine;
-bool PS1AudioCard;		// Perhaps have PS1 as a machine type...?
-SVGACards svgaCard;
-
-/* The whole load of startups for all the subfunctions */
-void MSG_Init(Section_prop *);
-void LOG_StartUp(void);
-void MEM_Init(Section *);
-void PAGING_Init(Section *);
-void ISAPNP_Cfg_Init(Section *);
-void IO_Init(Section * );
-void CALLBACK_Init(Section*);
-void PROGRAMS_Init(Section*);
-//void CREDITS_Init(Section*);
-void RENDER_Init(Section*);
-void VGA_VsyncInit(Section*);
-void VGA_Init(Section*);
-
-void DOS_Init(Section*);
-
-
-void CPU_Init(Section*);
-
-#if C_FPU
-void FPU_Init(Section*);
-#endif
-
-void DMA_Init(Section*);
-
-void MIXER_Init(Section*);
-void MIDI_Init(Section*);
-void HARDWARE_Init(Section*);
-
-#if defined(PCI_FUNCTIONALITY_ENABLED)
-void PCI_Init(Section*);
-void VOODOO_Init(Section*);
-#endif
-
-
-void IDE_Primary_Init(Section*);
-void IDE_Secondary_Init(Section*);
-void IDE_Tertiary_Init(Section*);
-void IDE_Quaternary_Init(Section*);
-
-void KEYBOARD_Init(Section*);	//TODO This should setup INT 16 too but ok ;)
-void JOYSTICK_Init(Section*);
-void MOUSE_Init(Section*);
-void SBLASTER_Init(Section*);
-void GUS_Init(Section*);
-void MPU401_Init(Section*);
-void PCSPEAKER_Init(Section*);
-void TANDYSOUND_Init(Section*);
-void DISNEY_Init(Section*);
-void PS1SOUND_Init(Section*);
-void INNOVA_Init(Section*);
-void SERIAL_Init(Section*); 
-void DONGLE_Init(Section*);
-
-#if C_IPX
-void IPX_Init(Section*);
-#endif
-
-void SID_Init(Section* sec);
-
-void PIC_Init(Section*);
-void TIMER_Init(Section*);
-void BIOS_Init(Section*);
-void DEBUG_Init(Section*);
-void CMOS_Init(Section*);
-
-void MSCDEX_Init(Section*);
-void DRIVES_Init(Section*);
-void CDROM_Image_Init(Section*);
-
-/* Dos Internal mostly */
-void EMS_Init(Section*);
-void XMS_Init(Section*);
-
-void DOS_KeyboardLayout_Init(Section*);
-
-void AUTOEXEC_Init(Section*);
-void SHELL_Init(void);
-
-void INT10_Init(Section*);
-
-static LoopHandler * loop;
-
-bool SDLNetInited;
-
-#ifdef __WIN32__
-void MSG_Loop(void);
-#endif
-
-static Bit32u ticksRemain;
-static Bit32u ticksLast;
-static Bit32u ticksAdded;
-Bit32s ticksDone;
-Bit32u ticksScheduled;
-bool ticksLocked;
-bool mono_cga=false;
-
-static Bit32u Ticks = 0;
-
-extern void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused);
-extern Bitu cycle_count;
-extern Bitu frames;
-
+/*===================================TODO: Move to it's own file==============================*/
 #ifdef __SSE__
-bool sse1_available = false;
 bool sse2_available = false;
 
-#if !defined (__APPLE__)
-#ifdef __GNUC__
-#define cpuid(func,ax,bx,cx,dx)\
+#if !defined(__APPLE__)
+# ifdef __GNUC__
+#  define cpuid(func,ax,bx,cx,dx)\
 	__asm__ __volatile__ ("cpuid":\
 	"=a" (ax), "=b" (bx), "=c" (cx), "=d" (dx) : "a" (func));
-#endif
-#if defined(_MSC_VER)
-#define cpuid(func,a,b,c,d)\
-    __asm mov eax, func\
-    __asm cpuid\
-    __asm mov a, eax\
-    __asm mov b, ebx\
-    __asm mov c, ecx\
-    __asm mov d, edx
-#endif
-#endif
+# endif /* __GNUC__ */
+
+# if defined(_MSC_VER)
+#  define cpuid(func,a,b,c,d)\
+	__asm mov eax, func\
+	__asm cpuid\
+	__asm mov a, eax\
+	__asm mov b, ebx\
+	__asm mov c, ecx\
+	__asm mov d, edx
+# endif /* _MSC_VER */
+#endif /* !defined(__APPLE) */
 
 void CheckSSESupport()
 {
-#if defined (__APPLE__)
-#elif defined (__GNUC__) || (_MSC_VER)
+#if defined (__GNUC__) || (_MSC_VER)
 	Bitu a, b, c, d;
 	cpuid(1, a, b, c, d);
-	if((d >> 26) & 1) {
-		sse1_available = true;
-		sse2_available = true;
-		//LOG_MSG("SSE2 available");
-	} else if((d >> 25) & 1) {
-		sse1_available = true;
-		sse2_available = false;
-		//LOG_MSG("SSE1 available");
-	}
-#else
-	//LOG_MSG("Can't check if SSE is available... sorry.");
+	sse2_available = ((d >> 26) & 1)?true:false;
 #endif
 }
 #endif
+/*=============================================================================*/
 
+extern void			GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused);
+
+extern Bitu			frames;
+extern Bitu			cycle_count;
+extern bool			sse2_available;
+extern ClockDomain		clockdom_8254_PIT;
+extern bool			dynamic_dos_kernel_alloc;
+extern Bitu			DOS_PRIVATE_SEGMENT_Size;
+
+/* ISA bus OSC clock (14.31818MHz) */
+/*  +---- / 12 = PIT timer clock 1.1931816666... MHz */
+ClockDomain			clockdom_ISA_OSC(14318180);		/* MASTER 14.31818MHz */
+ClockDomain			clockdom_8254_PIT(14318180,12);		/* SLAVE  14.31818MHz / 12 = 1.1931816666666.... MHz */
+
+/* ISA bus BCLK clock (8.3333MHz) */
+ClockDomain			clockdom_ISA_BCLK(25000000,3);		/* MASTER 25000000Hz / 3 = 8.333333MHz */
+
+/* PCI bus clock (33.3333MHz) */
+ClockDomain			clockdom_PCI_BCLK(100000000,3);		/* MASTER 100MHz / 3 = 33.33333MHz */
+
+/* Clocks to be updated by Normal loop */
+std::list<ClockDomain*>		clockdom_top_update;			/* list of master clocks at the top of the clock tree */
+
+Config*				control;
+MachineType			machine;
+bool				PS1AudioCard;		// Perhaps have PS1 as a machine type...?
+SVGACards			svgaCard;
+bool				SDLNetInited;
+Bit32s				ticksDone;
+Bit32u				ticksScheduled;
+bool				ticksLocked;
+bool				mono_cga=false;
+bool				ignore_opcode_63 = true;
+bool				mainline_compatible_mapping = true;
+Bitu				VGA_BIOS_Size_override = 0;
+
+static Bit32u			ticksRemain;
+static Bit32u			ticksLast;
+static Bit32u			ticksAdded;
+static Bit32u			Ticks = 0;
+static LoopHandler*		loop;
+
+/* The whole load of startups for all the subfunctions */
+void				MSG_Init(Section_prop *);
+void				LOG_StartUp(void);
+void				MEM_Init(Section *);
+void				PAGING_Init(Section *);
+void				ISAPNP_Cfg_Init(Section *);
+void				IO_Init(Section *);
+void				CALLBACK_Init(Section*);
+void				PROGRAMS_Init(Section*);
+void				RENDER_Init(Section*);
+void				VGA_VsyncInit(Section*);
+void				VGA_Init(Section*);
+void				DOS_Init(Section*);
+void				CPU_Init(Section*);
+#if C_FPU
+void				FPU_Init(Section*);
+#endif
+void				DMA_Init(Section*);
+void				MIXER_Init(Section*);
+void				MIDI_Init(Section*);
+void				HARDWARE_Init(Section*);
+#if defined(PCI_FUNCTIONALITY_ENABLED)
+void				PCI_Init(Section*);
+void				VOODOO_Init(Section*);
+#endif
+void				IDE_Primary_Init(Section*);
+void				IDE_Secondary_Init(Section*);
+void				IDE_Tertiary_Init(Section*);
+void				IDE_Quaternary_Init(Section*);
+void				KEYBOARD_Init(Section*);	//TODO This should setup INT 16 too but ok ;)
+void				JOYSTICK_Init(Section*);
+void				MOUSE_Init(Section*);
+void				SBLASTER_Init(Section*);
+void				GUS_Init(Section*);
+void				MPU401_Init(Section*);
+void				PCSPEAKER_Init(Section*);
+void				TANDYSOUND_Init(Section*);
+void				DISNEY_Init(Section*);
+void				PS1SOUND_Init(Section*);
+void				INNOVA_Init(Section*);
+void				SERIAL_Init(Section*); 
+void				DONGLE_Init(Section*);
+#if C_IPX
+void				IPX_Init(Section*);
+#endif
+void				SID_Init(Section* sec);
+void				PIC_Init(Section*);
+void				TIMER_Init(Section*);
+void				BIOS_Init(Section*);
+void				DEBUG_Init(Section*);
+void				CMOS_Init(Section*);
+void				MSCDEX_Init(Section*);
+void				DRIVES_Init(Section*);
+void				CDROM_Image_Init(Section*);
+void				EMS_Init(Section*);
+void				XMS_Init(Section*);
+void				DOS_KeyboardLayout_Init(Section*);
+void				AUTOEXEC_Init(Section*);
+void				SHELL_Init(void);
+void				INT10_Init(Section*);
+#if C_NE2000
+void				NE2K_Init(Section* sec);
+#endif
+#ifdef __WIN32__
+void				MSG_Loop(void);
+#endif
+
+/*================================================ move to it's own source file =============================================*/
 class CLOCKDOM : public Program {
 public:
 	void Run(void) {
@@ -255,6 +227,7 @@ public:
 void CLOCKDOM_ProgramStart(Program * * make) {
 	*make=new CLOCKDOM;
 }
+/*=============================================================================================================================*/
 
 void run_hw() {
 	double f = PIC_FullIndex() / 1000,next_f,p_next_f=0,nudge=0;
@@ -460,18 +433,6 @@ void DOSBOX_UnlockSpeed2( bool pressed ) {
 	}
 }
 
-namespace
-{
-std::string getTime()
-{
-    const time_t current = time(NULL);
-    tm* timeinfo;
-    timeinfo = localtime(&current); //convert to local time
-    char buffer[50];
-    ::strftime(buffer, 50, "%H:%M:%S", timeinfo);
-    return buffer;
-}
-
 void notifyError(const std::string& message)
 {
 #ifdef WIN32
@@ -480,41 +441,15 @@ void notifyError(const std::string& message)
     LOG_MSG(message.c_str());
 }
 
-void SetGameState(int value) {
-}
-
-void SaveGameState(bool pressed) {
-}
-
-void LoadGameState(bool pressed) {
-}
-
-void NextSaveSlot(bool pressed) {
-}
-
-void PreviousSaveSlot(bool pressed) {
-}
-}
-void SetGameState_Run(int value) { SetGameState(value); }
-void SaveGameState_Run(void) { SaveGameState(true); }
-void LoadGameState_Run(void) { LoadGameState(true); }
-void NextSaveSlot_Run(void) { NextSaveSlot(true); }
-void PreviousSaveSlot_Run(void) { PreviousSaveSlot(true); }
-
-bool ignore_opcode_63 = true;
-bool mainline_compatible_mapping = true;
-Bitu VGA_BIOS_Size_override = 0;
-
-extern bool dynamic_dos_kernel_alloc;
-extern Bitu DOS_PRIVATE_SEGMENT_Size;
-
+/* TODO: move to utility header */
 #ifdef _MSC_VER /* Microsoft C++ does not have strtoull */
 unsigned long long strtoull(const char *s,char **endptr,int base) {
 	return _strtoui64(s,endptr,base); /* pfff... whatever Microsoft */
 }
 #endif
 
-void parse_setting_str(ClockDomain *cd,const char *s) {
+/* utility function. rename as appropriate and move to utility collection */
+void parse_busclk_setting_str(ClockDomain *cd,const char *s) {
 	const char *d;
 
 	/* we're expecting an integer, a float, or an integer ratio */
@@ -590,38 +525,26 @@ static void DOSBOX_RealInit(Section * sec) {
 		section->HandleInputline(std::string("machine=") + cmd_machine);
 	}
 
-//#pragma message("WARNING: adapt keys!!!!")
-
-    //add support for loading/saving game states
-    MAPPER_AddHandler(SaveGameState, MK_f5, MMOD2,"savestate","Save State");
-    MAPPER_AddHandler(LoadGameState, MK_f9, MMOD2,"loadstate","Load State");
-    MAPPER_AddHandler(PreviousSaveSlot, MK_f6, MMOD2,"prevslot","Prev. Slot");
-    MAPPER_AddHandler(NextSaveSlot, MK_f7, MMOD2,"nextslot","Next Slot");
-
 	std::string mtype(section->Get_string("machine"));
 	svgaCard = SVGA_None; 
 	machine = MCH_VGA;
 	int10.vesa_nolfb = false;
 	int10.vesa_oldvbe = false;
-	if      (mtype == "cga")      { machine = MCH_CGA; mono_cga = false; }
-	else if (mtype == "cga_mono") { machine = MCH_CGA; mono_cga = true; }
-	else if (mtype == "tandy")    { machine = MCH_TANDY; }
-	else if (mtype == "pcjr")     { machine = MCH_PCJR; }
-	else if (mtype == "hercules") { machine = MCH_HERC; }
-	else if (mtype == "ega")      { machine = MCH_EGA; }
-//	else if (mtype == "vga")          { svgaCard = SVGA_S3Trio; }
+	if      (mtype == "cga")           { machine = MCH_CGA; mono_cga = false; }
+	else if (mtype == "cga_mono")      { machine = MCH_CGA; mono_cga = true; }
+	else if (mtype == "tandy")         { machine = MCH_TANDY; }
+	else if (mtype == "pcjr")          { machine = MCH_PCJR; }
+	else if (mtype == "hercules")      { machine = MCH_HERC; }
+	else if (mtype == "ega")           { machine = MCH_EGA; }
 	else if (mtype == "svga_s3")       { svgaCard = SVGA_S3Trio; }
-	else if (mtype == "vesa_nolfb")   { svgaCard = SVGA_S3Trio; int10.vesa_nolfb = true;}
+	else if (mtype == "vesa_nolfb")    { svgaCard = SVGA_S3Trio; int10.vesa_nolfb = true;}
 	else if (mtype == "vesa_oldvbe")   { svgaCard = SVGA_S3Trio; int10.vesa_oldvbe = true;}
 	else if (mtype == "svga_et4000")   { svgaCard = SVGA_TsengET4K; }
 	else if (mtype == "svga_et3000")   { svgaCard = SVGA_TsengET3K; }
-//	else if (mtype == "vga_pvga1a")   { svgaCard = SVGA_ParadisePVGA1A; }
 	else if (mtype == "svga_paradise") { svgaCard = SVGA_ParadisePVGA1A; }
-	else if (mtype == "vgaonly")      { svgaCard = SVGA_None; }
-	else if (mtype == "amstrad")      { machine = MCH_AMSTRAD; }
+	else if (mtype == "vgaonly")       { svgaCard = SVGA_None; }
+	else if (mtype == "amstrad")       { machine = MCH_AMSTRAD; }
 	else E_Exit("DOSBOX:Unknown machine type %s",mtype.c_str());
-	// Hack!
-	//mtype=MCH_AMSTRAD;
 
 	std::string isabclk = section->Get_string("isa bus clock");
 	if (isabclk == "std8.3")
@@ -641,7 +564,7 @@ static void DOSBOX_RealInit(Section * sec) {
 	else if (isabclk == "oc16")
 		clockdom_ISA_BCLK.set_frequency(16000000,1);	/* 16MHz */
 	else
-		parse_setting_str(&clockdom_ISA_BCLK,isabclk.c_str());
+		parse_busclk_setting_str(&clockdom_ISA_BCLK,isabclk.c_str());
 
 	std::string pcibclk = section->Get_string("pci bus clock");
 	if (pcibclk == "std33.3")
@@ -651,7 +574,7 @@ static void DOSBOX_RealInit(Section * sec) {
 	else if (pcibclk == "std25")
 		clockdom_PCI_BCLK.set_frequency(25000000,1);	/* 25MHz */
 	else
-		parse_setting_str(&clockdom_PCI_BCLK,pcibclk.c_str());
+		parse_busclk_setting_str(&clockdom_PCI_BCLK,pcibclk.c_str());
 
 	/* MASTER: ISA OSC (14.31818MHz) */
 	clockdom_ISA_OSC.set_name("ISA OSC");
@@ -676,40 +599,88 @@ static void DOSBOX_RealInit(Section * sec) {
 	clockdom_8254_PIT.add_event_rel(ISA_BCLK_test_event,clockdom_8254_PIT.freq);
 }
 
-
 void DOSBOX_Init(void) {
-
-#ifdef __SSE__
-	CheckSSESupport();
-#endif
-
-	Section_prop * secprop;
-	Section_line * secline;
 	Prop_int* Pint;
 	Prop_hex* Phex;
-	Prop_string* Pstring;
 	Prop_bool* Pbool;
+	Prop_string* Pstring;
 	Prop_multival* Pmulti;
+	Section_prop * secprop;
+	Section_line * secline;
 	Prop_multival_remain* Pmulti_remain;
 
-	SDLNetInited = false;
-
 	// Some frequently used option sets
-	const char *rates[] = {  "44100", "48000", "32000","22050", "16000", "11025", "8000", "49716", 0 };
-	const char *oplrates[] = {   "44100", "49716", "48000", "32000","22050", "16000", "11025", "8000", 0 };
-	const char *ios[] = { "220", "240", "260", "280", "2a0", "2c0", "2e0", "300", 0 };
-	const char *irqssb[] = { "7", "5", "3", "9", "10", "11", "12", 0 };
-	const char *dmassb[] = { "1", "5", "0", "3", "6", "7", 0 };
-	const char *iosgus[] = { "240", "220", "260", "280", "2a0", "2c0", "2e0", "300", 0 };
-	const char *irqsgus[] = { "5", "3", "7", "9", "10", "11", "12", 0 };
-	const char *dmasgus[] = { "3", "0", "1", "5", "6", "7", 0 };
-
+	const char* vsyncrate[] = { "%u", 0 };
+	const char* force[] = { "", "forced", 0 };
+	const char* cyclest[] = { "auto","fixed","max","%u",0 };
+	const char* mputypes[] = { "intelligent", "uart", "none", 0 };
+	const char* vsyncmode[] = { "off", "on" ,"force", "host", 0 };
+	const char* blocksizes[] = {"1024", "2048", "4096", "8192", "512", "256", 0};
+	const char* auxdevices[] = {"none","2button","3button","intellimouse","intellimouse45",0};
+	const char* cputype_values[] = {"auto", "386", "486", "pentium", "386_prefetch", "pentium_mmx", 0};
+	const char* rates[] = {  "44100", "48000", "32000","22050", "16000", "11025", "8000", "49716", 0 };
+	const char* oplrates[] = {   "44100", "49716", "48000", "32000","22050", "16000", "11025", "8000", 0 };
+	const char* devices[] = { "default", "win32", "alsa", "oss", "coreaudio", "coremidi", "mt32", "synth", "timidity", "none", 0}; // FIXME: add some way to offer the actually available choices.
+	const char *mt32log[] = {"off", "on",0};
+	const char *mt32thread[] = {"off", "on",0};
+	const char *mt32ReverseStereo[] = {"off", "on",0};
+	const char *mt32DACModes[] = {"0", "1", "2", "3", "auto",0};
+	const char *mt32reverbModes[] = {"0", "1", "2", "3", "auto",0};
+	const char *mt32reverbTimes[] = {"0", "1", "2", "3", "4", "5", "6", "7",0};
+	const char *mt32reverbLevels[] = {"0", "1", "2", "3", "4", "5", "6", "7",0};
+	const char* sbtypes[] = { "sb1", "sb2", "sbpro1", "sbpro2", "sb16", "sb16vibra", "gb", "none", 0 };
+	const char* oplmodes[]={ "auto", "cms", "opl2", "dualopl2", "opl3", "none", "hardware", "hardwaregb", 0};
+	const char* serials[] = { "dummy", "disabled", "modem", "nullmodem", "serialmouse", "directserial",0 };
+	const char *sidbaseno[] = { "240", "220", "260", "280", "2a0", "2c0", "2e0", "300", 0 };
+	const char* joytypes[] = { "auto", "2axis", "4axis", "4axis_2", "fcs", "ch", "none",0};
+	const char* iosgus[] = { "240", "220", "260", "280", "2a0", "2c0", "2e0", "300", 0 };
+	const char* ios[] = { "220", "240", "260", "280", "2a0", "2c0", "2e0", "300", 0 };
+	const char* pit_hax[] = { "","project_angel_demo", "pc_speaker_as_timer", 0 };
+	const char* ems_settings[] = { "true", "emsboard", "emm386", "false", 0};
+	const char* irqsgus[] = { "5", "3", "7", "9", "10", "11", "12", 0 };
+	const char* irqssb[] = { "7", "5", "3", "9", "10", "11", "12", 0 };
+	const char* dmasgus[] = { "3", "0", "1", "5", "6", "7", 0 };
+	const char* dmassb[] = { "1", "5", "0", "3", "6", "7", 0 };
+	const char* oplemus[]={ "default", "compat", "fast", 0};
+	const char *qualityno[] = { "0", "1", "2", "3", 0 };
+	const char* tandys[] = { "auto", "on", "off", 0};
+	const char* ps1opt[] = { "on", "off", 0};
 
 	/* Setup all the different modules making up DOSBox */
 	const char* machines[] = {
 		"hercules", "cga", "cga_mono", "tandy", "pcjr", "ega",
 		"vgaonly", "svga_s3", "svga_et3000", "svga_et4000",
 		"svga_paradise", "vesa_nolfb", "vesa_oldvbe", "amstrad", 0 };
+
+	const char* scalers[] = { 
+		"none", "normal2x", "normal3x", "normal4x", "normal5x",
+#if RENDER_USE_ADVANCED_SCALERS>2
+		"advmame2x", "advmame3x", "advinterp2x", "advinterp3x", "hq2x", "hq3x", "2xsai", "super2xsai", "supereagle",
+#endif
+#if RENDER_USE_ADVANCED_SCALERS>0
+		"tv2x", "tv3x", "rgb2x", "rgb3x", "scan2x", "scan3x",
+#endif
+		"hardware_none", "hardware2x", "hardware3x", "hardware4x", "hardware5x",
+		0 };
+
+	const char* cores[] = { "auto",
+#if (C_DYNAMIC_X86)
+		"dynamic",
+#endif
+		"normal", "full", "simple", 0 };
+
+	const char* voodoo_settings[] = {
+		"false",
+		"software",
+		"auto",
+		0
+	};
+
+#ifdef __SSE__
+	CheckSSESupport();
+#endif
+	SDLNetInited = false;
+
 	secprop=control->AddSection_prop("dosbox",&DOSBOX_RealInit);
 	Pstring = secprop->Add_path("language",Property::Changeable::Always,"");
 	Pstring->Set_help("Select another language file.");
@@ -859,7 +830,6 @@ void DOSBOX_Init(void) {
 		"                                  logical reason, try this hack. Demos that need this hack:\n"
 		"                                     - Impact Studios, Legend");
 
-	const char* pit_hax[] = { "","project_angel_demo", "pc_speaker_as_timer", 0 };
 	Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::Always,"");
 	Pmulti_remain->SetValue("");
 	Pstring->Set_values(pit_hax);
@@ -891,20 +861,8 @@ void DOSBOX_Init(void) {
 	Pmulti->Set_help("Scaler used to enlarge/enhance low resolution modes. If 'forced' is appended,\n"
 	                 "then the scaler will be used even if the result might not be desired.");
 	Pstring = Pmulti->GetSection()->Add_string("type",Property::Changeable::Always,"normal2x");
-
-	const char *scalers[] = { 
-		"none", "normal2x", "normal3x", "normal4x", "normal5x",
-#if RENDER_USE_ADVANCED_SCALERS>2
-		"advmame2x", "advmame3x", "advinterp2x", "advinterp3x", "hq2x", "hq3x", "2xsai", "super2xsai", "supereagle",
-#endif
-#if RENDER_USE_ADVANCED_SCALERS>0
-		"tv2x", "tv3x", "rgb2x", "rgb3x", "scan2x", "scan3x",
-#endif
-		"hardware_none", "hardware2x", "hardware3x", "hardware4x", "hardware5x",
-		0 };
 	Pstring->Set_values(scalers);
 
-	const char* force[] = { "", "forced", 0 };
 	Pstring = Pmulti->GetSection()->Add_string("force",Property::Changeable::Always,"");
 	Pstring->Set_values(force);
 
@@ -915,27 +873,20 @@ void DOSBOX_Init(void) {
 
 
 	secprop=control->AddSection_prop("vsync",&VGA_VsyncInit,true);//done
-	const char* vsyncmode[] = { "off", "on" ,"force", "host", 0 };
+
 	Pstring = secprop->Add_string("vsyncmode",Property::Changeable::WhenIdle,"off");
 	Pstring->Set_values(vsyncmode);
 	Pstring->Set_help("Synchronize vsync timing to the host display. Requires calibration within dosbox.");
-	const char* vsyncrate[] = { "%u", 0 };
 	Pstring = secprop->Add_string("vsyncrate",Property::Changeable::WhenIdle,"75");
 	Pstring->Set_values(vsyncrate);
 	Pstring->Set_help("Vsync rate used if vsync is enabled. Ignored if vsyncmode is set to host (win32).");
 
 	secprop=control->AddSection_prop("cpu",&CPU_Init,true);//done
-	const char* cores[] = { "auto",
-#if (C_DYNAMIC_X86)
-		"dynamic",
-#endif
-		"normal", "full", "simple", 0 };
 	Pstring = secprop->Add_string("core",Property::Changeable::WhenIdle,"auto");
 	Pstring->Set_values(cores);
 	Pstring->Set_help("CPU Core used in emulation. auto will switch to dynamic if available and\n"
 		"appropriate.");
 
-	const char* cputype_values[] = {"auto", "386", "486", "pentium", "386_prefetch", "pentium_mmx", 0};
 	Pstring = secprop->Add_string("cputype",Property::Changeable::Always,"auto");
 	Pstring->Set_values(cputype_values);
 	Pstring->Set_help("CPU Type used in emulation. auto emulates a 486 which tolerates Pentium instructions.");
@@ -952,7 +903,6 @@ void DOSBOX_Init(void) {
 		"  'max'           will allocate as much cycles as your computer is able to\n"
 		"                  handle.");
 
-	const char* cyclest[] = { "auto","fixed","max","%u",0 };
 	Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::Always,"auto");
 	Pmulti_remain->SetValue("auto");
 	Pstring->Set_values(cyclest);
@@ -987,7 +937,6 @@ void DOSBOX_Init(void) {
 	secprop->AddInitFunction(&FPU_Init);
 #endif
 	secprop->AddInitFunction(&DMA_Init);//done
-	//secprop->AddInitFunction(&KEYBOARD_Init);
 	secprop->AddInitFunction(&ISAPNP_Cfg_Init);
 
 	secprop=control->AddSection_prop("keyboard",&KEYBOARD_Init);
@@ -995,7 +944,6 @@ void DOSBOX_Init(void) {
 	Pbool->Set_help("Enable emulation of the 8042 auxiliary port. PS/2 mouse emulation requires this to be enabled.\n"
 			"You should enable this if you will be running Windows ME or any other OS that does not use the BIOS to receive mouse events.");
 
-	const char *auxdevices[] = {"none","2button","3button","intellimouse","intellimouse45",0};
 	Pstring = secprop->Add_string("auxdevice",Property::Changeable::OnlyAtStart,"intellimouse");
 	Pstring->Set_values(auxdevices);
 	Pstring->Set_help("Type of PS/2 mouse attached to the AUX port");
@@ -1004,12 +952,6 @@ void DOSBOX_Init(void) {
 	secprop=control->AddSection_prop("pci",&PCI_Init,false); //PCI bus
 
 	secprop->AddInitFunction(&VOODOO_Init,true);
-	const char* voodoo_settings[] = {
-		"false",
-		"software",
-		"auto",
-		0
-	};
 	Pstring = secprop->Add_string("voodoo",Property::Changeable::WhenIdle,"auto");
 	Pstring->Set_values(voodoo_settings);
 	Pstring->Set_help("Enable VOODOO support.");
@@ -1020,15 +962,13 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("nosound",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("Enable silent mode, sound is still emulated though.");
 
-   Pbool = secprop->Add_bool("swapstereo",Property::Changeable::OnlyAtStart,false); 
-   Pbool->Set_help("Swaps the left and right stereo channels."); 
+	Pbool = secprop->Add_bool("swapstereo",Property::Changeable::OnlyAtStart,false); 
+	Pbool->Set_help("Swaps the left and right stereo channels."); 
 
 	Pint = secprop->Add_int("rate",Property::Changeable::OnlyAtStart,44100);
 	Pint->Set_values(rates);
 	Pint->Set_help("Mixer sample rate, setting any device's rate higher than this will probably lower their sound quality.");
 
-	const char *blocksizes[] = {
-		 "1024", "2048", "4096", "8192", "512", "256", 0};
 	Pint = secprop->Add_int("blocksize",Property::Changeable::OnlyAtStart,1024);
 	Pint->Set_values(blocksizes);
 	Pint->Set_help("Mixer block size, larger blocks might help sound stuttering but sound will also be more lagged.");
@@ -1040,9 +980,6 @@ void DOSBOX_Init(void) {
 	secprop=control->AddSection_prop("midi",&MIDI_Init,true);//done
 	secprop->AddInitFunction(&MPU401_Init,true);//done
 	
-	const char* mputypes[] = { "intelligent", "uart", "none",0};
-	// FIXME: add some way to offer the actually available choices.
-	const char *devices[] = { "default", "win32", "alsa", "oss", "coreaudio", "coremidi", "mt32", "synth", "timidity", "none", 0};
 	Pstring = secprop->Add_string("mpu401",Property::Changeable::WhenIdle,"intelligent");
 	Pstring->Set_values(mputypes);
 	Pstring->Set_help("Type of MPU-401 to emulate.");
@@ -1058,22 +995,18 @@ void DOSBOX_Init(void) {
 	                  "  In that case, add 'delaysysex', for example: midiconfig=2 delaysysex\n"
 	                  "  See the README/Manual for more details.");
 
-	const char *mt32ReverseStereo[] = {"off", "on",0};
 	Pstring = secprop->Add_string("mt32.reverse.stereo",Property::Changeable::WhenIdle,"off");
 	Pstring->Set_values(mt32ReverseStereo);
 	Pstring->Set_help("Reverse stereo channels for MT-32 output");
 
-	const char *mt32log[] = {"off", "on",0};
 	Pstring = secprop->Add_string("mt32.verbose",Property::Changeable::WhenIdle,"off");
 	Pstring->Set_values(mt32log);
 	Pstring->Set_help("MT-32 debug logging");
 
-	const char *mt32thread[] = {"off", "on",0};
 	Pstring = secprop->Add_string("mt32.thread",Property::Changeable::WhenIdle,"off");
 	Pstring->Set_values(mt32thread);
 	Pstring->Set_help("MT-32 rendering in separate thread");
 
-	const char *mt32DACModes[] = {"0", "1", "2", "3", "auto",0};
 	Pstring = secprop->Add_string("mt32.dac",Property::Changeable::WhenIdle,"auto");
 	Pstring->Set_values(mt32DACModes);
 	Pstring->Set_help("MT-32 DAC input emulation mode\n"
@@ -1099,17 +1032,14 @@ void DOSBOX_Init(void) {
 		"Bit order at DAC (where each number represents the original LA32 output bit number):\n"
 		"15 13 12 11 10 09 08 07 06 05 04 03 02 01 00 14\n");
 
-	const char *mt32reverbModes[] = {"0", "1", "2", "3", "auto",0};
 	Pstring = secprop->Add_string("mt32.reverb.mode",Property::Changeable::WhenIdle,"auto");
 	Pstring->Set_values(mt32reverbModes);
 	Pstring->Set_help("MT-32 reverb mode");
 
-	const char *mt32reverbTimes[] = {"0", "1", "2", "3", "4", "5", "6", "7",0};
 	Pint = secprop->Add_int("mt32.reverb.time",Property::Changeable::WhenIdle,5);
 	Pint->Set_values(mt32reverbTimes);
 	Pint->Set_help("MT-32 reverb decaying time"); 
 
-	const char *mt32reverbLevels[] = {"0", "1", "2", "3", "4", "5", "6", "7",0};
 	Pint = secprop->Add_int("mt32.reverb.level",Property::Changeable::WhenIdle,3);
 	Pint->Set_values(mt32reverbLevels);
 	Pint->Set_help("MT-32 reverb level");
@@ -1124,7 +1054,6 @@ void DOSBOX_Init(void) {
 
 	secprop=control->AddSection_prop("sblaster",&SBLASTER_Init,true);//done
 	
-	const char* sbtypes[] = { "sb1", "sb2", "sbpro1", "sbpro2", "sb16", "sb16vibra", "gb", "none", 0 };
 	Pstring = secprop->Add_string("sbtype",Property::Changeable::WhenIdle,"sb16");
 	Pstring->Set_values(sbtypes);
 	Pstring->Set_help("Type of Soundblaster to emulate. gb is Gameblaster.");
@@ -1148,14 +1077,12 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("sbmixer",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Allow the soundblaster mixer to modify the DOSBox mixer.");
 
-	const char* oplmodes[]={ "auto", "cms", "opl2", "dualopl2", "opl3", "none", "hardware", "hardwaregb", 0};
 	Pstring = secprop->Add_string("oplmode",Property::Changeable::WhenIdle,"auto");
 	Pstring->Set_values(oplmodes);
 	Pstring->Set_help("Type of OPL emulation. On 'auto' the mode is determined by sblaster type.\n"
 		"All OPL modes are Adlib-compatible, except for 'cms'. sbtype=none\n"
 		"together with oplmode=cms will emulate a Gameblaster.");
 
-	const char* oplemus[]={ "default", "compat", "fast", 0};
 	Pstring = secprop->Add_string("oplemu",Property::Changeable::WhenIdle,"default");
 	Pstring->Set_values(oplemus);
 	Pstring->Set_help("Provider for the OPL emulation. compat might provide better quality (see oplrate as well).");
@@ -1197,9 +1124,6 @@ void DOSBOX_Init(void) {
 		"the patch files for GUS playback. Patch sets used\n"
 		"with Timidity should work fine.");
 
-	const char *sidbaseno[] = { "240", "220", "260", "280", "2a0", "2c0", "2e0", "300", 0 };
-	const char *qualityno[] = { "0", "1", "2", "3", 0 };
-
 	secprop = control->AddSection_prop("innova",&INNOVA_Init,true);//done
 	Pbool = secprop->Add_bool("innova",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("Enable the Innovation SSI-2001 emulation.");
@@ -1222,7 +1146,6 @@ void DOSBOX_Init(void) {
 	Pint->Set_help("Sample rate of the PC-Speaker sound generation.");
 
 	secprop->AddInitFunction(&TANDYSOUND_Init,true);//done
-	const char* tandys[] = { "auto", "on", "off", 0};
 	Pstring = secprop->Add_string("tandy",Property::Changeable::WhenIdle,"auto");
 	Pstring->Set_values(tandys);
 	Pstring->Set_help("Enable Tandy Sound System emulation. For 'auto', emulation is present only if machine is set to 'tandy'.");
@@ -1235,7 +1158,6 @@ void DOSBOX_Init(void) {
 	
 	Pbool = secprop->Add_bool("disney",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("Enable Disney Sound Source emulation. (Covox Voice Master and Speech Thing compatible).");
-	const char* ps1opt[] = { "on", "off", 0};
 	secprop->AddInitFunction(&PS1SOUND_Init,true);//done
 	Pstring = secprop->Add_string("ps1audio",Property::Changeable::WhenIdle,"off");
 	Pstring->Set_values(ps1opt);
@@ -1247,7 +1169,6 @@ void DOSBOX_Init(void) {
 	secprop=control->AddSection_prop("joystick",&BIOS_Init,false);//done
 	secprop->AddInitFunction(&INT10_Init);
 	secprop->AddInitFunction(&JOYSTICK_Init);
-	const char* joytypes[] = { "auto", "2axis", "4axis", "4axis_2", "fcs", "ch", "none",0};
 	Pstring = secprop->Add_string("joysticktype",Property::Changeable::WhenIdle,"auto");
 	Pstring->Set_values(joytypes);
 	Pstring->Set_help(
@@ -1273,8 +1194,6 @@ void DOSBOX_Init(void) {
 	Pbool->Set_help("enable button wrapping at the number of emulated buttons.");
 
 	secprop=control->AddSection_prop("serial",&SERIAL_Init,true);
-	const char* serials[] = { "dummy", "disabled", "modem", "nullmodem", "serialmouse",
-	                          "directserial",0 };
    
 	Pmulti_remain = secprop->Add_multiremain("serial1",Property::Changeable::WhenIdle," ");
 	Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::WhenIdle,"dummy");
@@ -1358,7 +1277,6 @@ void DOSBOX_Init(void) {
 	Pbool->Set_help("Enable XMS support.");
 
 	secprop->AddInitFunction(&EMS_Init,true);//done
-	const char* ems_settings[] = { "true", "emsboard", "emm386", "false", 0};
 	Pstring = secprop->Add_string("ems",Property::Changeable::WhenIdle,"true");
 	Pstring->Set_values(ems_settings);
 	Pstring->Set_help("Enable EMS support. The default (=true) provides the best\n"
@@ -1468,7 +1386,6 @@ void DOSBOX_Init(void) {
 		"interface number (2 or something) or a part of your adapters\n"
 		"name, e.g. VIA here.");
 #endif // C_NE2000
-//	secprop->AddInitFunction(&CREDITS_Init);
 
 	/* IDE emulation options and setup */
 	const char *ide_names[4] = {"ide, primary","ide, secondary","ide, tertiary","ide, quaternary"};
