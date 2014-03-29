@@ -446,10 +446,12 @@ bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags) {
 		sssp=RealMake(pspseg,stack_sp);
 		mem_writew(PhysMake(pspseg,stack_sp),0);
 	} else {
+		/* FIXME: I've heard of EXE files with entry points like FFFF:0100 or something (COM images turned EXE if I recall).
+		 *        Does this check validate those too? */
 		csip=RealMake(loadseg+head.initCS,head.initIP);
 		sssp=RealMake(loadseg+head.initSS,head.initSP);
-		if (sssp >= RealMake(loadseg+memsize,0)) E_Exit("DOS:Initial SS:IP beyond allocated memory block for EXE image");
-		if (csip >= RealMake(loadseg+memsize,0)) E_Exit("DOS:Initial CS:IP beyond allocated memory block for EXE image");
+		if (sssp >= RealMake(pspseg+memsize,0)) E_Exit("DOS:Initial SS:IP beyond allocated memory block for EXE image");
+		if (csip >= RealMake(pspseg+memsize,0)) E_Exit("DOS:Initial CS:IP beyond allocated memory block for EXE image");
 		if (head.initSP<4) LOG(LOG_EXEC,LOG_ERROR)("stack underflow/wrap at EXEC");
 	}
 
