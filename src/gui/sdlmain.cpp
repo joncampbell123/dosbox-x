@@ -16,9 +16,19 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#ifdef WIN32
+# ifndef WIN32_LEAN_AND_MEAN
+#  define WIN32_LEAN_AND_MEAN
+# endif
+#endif
+
+#ifdef OS2
+# define INCL_DOS
+# define INCL_WIN
+#endif
 
 #ifndef _GNU_SOURCE
-#define _GNU_SOURCE
+# define _GNU_SOURCE
 #endif
 
 #include <stdlib.h>
@@ -28,8 +38,8 @@
 #include <stdarg.h>
 #include <sys/types.h>
 #ifdef WIN32
-#include <signal.h>
-#include <process.h>
+# include <signal.h>
+# include <process.h>
 #endif
 
 #include "cross.h"
@@ -48,18 +58,17 @@
 #include "SDL_video.h"
 
 #ifdef __WIN32__
-#include "callback.h"
-#include "dos_inc.h"
-#include <malloc.h>
-#include "Commdlg.h"
-#include "windows.h"
-//#include <dirent.h>
-#include "Shellapi.h"
-#include "shell.h"
-#include "SDL_syswm.h"
-#include <cstring>
-#include <fstream>
-#include <sstream>
+# include "callback.h"
+# include "dos_inc.h"
+# include <malloc.h>
+# include "Commdlg.h"
+# include "windows.h"
+# include "Shellapi.h"
+# include "shell.h"
+# include "SDL_syswm.h"
+# include <cstring>
+# include <fstream>
+# include <sstream>
 #endif // WIN32
 
 #include "mapper.h"
@@ -69,58 +78,7 @@
 #include "cross.h"
 #include "control.h"
 
-#define MAPPERFILE "mapper-" VERSION ".map"
-//#define DISABLE_JOYSTICK
-
-extern void UI_Init();
-extern void UI_Run(bool);
-
-bool dos_kernel_disabled = false;
-
-#if !(ENVIRON_INCLUDED)
-extern char** environ;
-#endif
-
-#ifdef WIN32
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#include <windows.h>
-#if (HAVE_DDRAW_H)
-#include <ddraw.h>
-struct private_hwdata {
-	LPDIRECTDRAWSURFACE3 dd_surface;
-	LPDIRECTDRAWSURFACE3 dd_writebuf;
-};
-#endif
-
-#if (HAVE_D3D9_H)
-#include "direct3d.h"
-
-CDirect3D* d3d = NULL;
-#endif
-
-#define STDOUT_FILE	TEXT("stdout.txt")
-#define STDERR_FILE	TEXT("stderr.txt")
-#define DEFAULT_CONFIG_FILE "/dosbox.conf"
-#elif defined(MACOSX)
-#define DEFAULT_CONFIG_FILE "/Library/Preferences/DOSBox Preferences"
-#else /*linux freebsd*/
-#define DEFAULT_CONFIG_FILE "/.dosboxrc"
-#endif
-
-#if C_SET_PRIORITY
-#include <sys/resource.h>
-#define PRIO_TOTAL (PRIO_MAX-PRIO_MIN)
-#endif
-
-#ifdef OS2
-#define INCL_DOS
-#define INCL_WIN
-#include <os2.h>
-#endif
-
-enum SCREEN_TYPES	{
+enum SCREEN_TYPES {
 	SCREEN_OPENGLHQ,
 	SCREEN_SURFACE,
 	SCREEN_SURFACE_DDRAW,
@@ -138,7 +96,68 @@ enum PRIORITY_LEVELS {
 	PRIORITY_LEVEL_HIGHEST
 };
 
-bool load_videodrv=true;
+#define MAPPERFILE				"mapper-" VERSION ".map"
+
+void						UI_Init();
+void						UI_Run(bool);
+void						EndSplashScreen();
+void						Restart(bool pressed);
+bool						RENDER_GetAspect(void);
+bool						RENDER_GetAutofit(void);
+
+extern const char*				RunningProgram;
+extern bool					CPU_CycleAutoAdjust;
+#if !(ENVIRON_INCLUDED)
+extern char**					environ;
+#endif
+
+Bitu						frames = 0;
+bool						emu_paused = false;
+bool						mouselocked = false; //Global variable for mapper
+bool						load_videodrv = true;
+bool						fullscreen_switch = true;
+bool						dos_kernel_disabled = false;
+bool						startup_state_numlock = false; // Global for keyboard initialisation
+bool						startup_state_capslock = false; // Global for keyboard initialisation
+
+#ifdef WIN32
+# include <windows.h>
+#endif
+
+#if (HAVE_DDRAW_H)
+# include <ddraw.h>
+struct private_hwdata {
+	LPDIRECTDRAWSURFACE3			dd_surface;
+	LPDIRECTDRAWSURFACE3			dd_writebuf;
+};
+#endif
+
+#if (HAVE_D3D9_H)
+# include "direct3d.h"
+#endif
+
+#if (HAVE_D3D9_H)
+CDirect3D*					d3d = NULL;
+#endif
+
+#ifdef WIN32
+# define STDOUT_FILE				TEXT("stdout.txt")
+# define STDERR_FILE				TEXT("stderr.txt")
+# define DEFAULT_CONFIG_FILE			"/dosbox.conf"
+#elif defined(MACOSX)
+# define DEFAULT_CONFIG_FILE			"/Library/Preferences/DOSBox Preferences"
+#else /*linux freebsd*/
+# define DEFAULT_CONFIG_FILE			"/.dosboxrc"
+#endif
+
+#if C_SET_PRIORITY
+# include <sys/resource.h>
+# define PRIO_TOTAL				(PRIO_MAX-PRIO_MIN)
+#endif
+
+#ifdef OS2
+# include <os2.h>
+#endif
 
 struct SDL_Block {
 	bool inited;
@@ -204,78 +223,92 @@ struct SDL_Block {
 
 static SDL_Block sdl;
 
-extern const char* RunningProgram;
-extern bool CPU_CycleAutoAdjust;
-//Globals for keyboard initialisation
-bool startup_state_numlock=false;
-bool startup_state_capslock=false;
-
-Bitu frames = 0;
-#include "cpu.h"
-
-void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
-	char title[200]={0};
-
-	static Bit32s internal_cycles=0;
-	static Bits internal_frameskip=0;
-	static Bits internal_timing=0;
-	if(cycles != -1) internal_cycles = cycles;
-	if(frameskip != -1) internal_frameskip = frameskip;
-	if(timing != -1) internal_timing = timing;
-if (!menu_startup) { sprintf(title,"DOSBox %s, CPU speed: %8d cycles, Frameskip %2d, %8s",VERSION,internal_cycles,internal_frameskip,RunningProgram); SDL_WM_SetCaption(title,VERSION); return; }
-if (menu.hidecycles) {
-		if(CPU_CycleAutoAdjust) {
-			sprintf(title,"DOSBox %s, CPU speed: max %3d%% cycles, Frameskip %2d, %8s",VERSION,CPU_CyclePercUsed,internal_frameskip,RunningProgram);
-		} else {
-			sprintf(title,"DOSBox %s, CPU speed: %8d cycles, Frameskip %2d, %8s",VERSION,internal_cycles,internal_frameskip,RunningProgram);
-		}
-	} else
-	if(CPU_CycleAutoAdjust) {
-		sprintf(title,"DOSBox %s, CPU : %s %8d%% = max %3d, %d FPS - %2d %8s %i.%i%%",VERSION,core_mode,CPU_CyclePercUsed,internal_cycles,frames,internal_frameskip,RunningProgram,internal_timing/100,internal_timing%100/10);
-	} else {
-		sprintf(title,"DOSBox %s, CPU : %s %8d = %8d, %d FPS - %2d %8s %i.%i%%",VERSION,core_mode,CPU_CyclesCur,internal_cycles,frames,internal_frameskip,RunningProgram,internal_timing/100,internal_timing%100/10);
-	}
-
-	if(paused) strcat(title," PAUSED");
-	SDL_WM_SetCaption(title,VERSION);
-}
-
+/* TODO: should move to it's own file ================================================ */
 static unsigned char logo[32*32*4]= {
 #include "dosbox_logo.h"
 };
+
 static void DOSBox_SetOriginalIcon(void) {
 #if !defined(MACOSX)
+	SDL_Surface *logos;
+
 #if WORDS_BIGENDIAN
-    	SDL_Surface* logos= SDL_CreateRGBSurfaceFrom((void*)logo,32,32,32,128,0xff000000,0x00ff0000,0x0000ff00,0);
+    	logos = SDL_CreateRGBSurfaceFrom((void*)logo,32,32,32,128,0xff000000,0x00ff0000,0x0000ff00,0);
 #else
-    	SDL_Surface* logos= SDL_CreateRGBSurfaceFrom((void*)logo,32,32,32,128,0x000000ff,0x0000ff00,0x00ff0000,0);
+    	logos = SDL_CreateRGBSurfaceFrom((void*)logo,32,32,32,128,0x000000ff,0x0000ff00,0x00ff0000,0);
 #endif
+
     	SDL_WM_SetIcon(logos,NULL);
 #endif
 }
+/* =================================================================================== */
+
+#if defined (WIN32)
+bool GFX_SDLUsingWinDIB(void) {
+	return sdl.using_windib;
+}
+#endif
 
 void GFX_SetIcon(void) {
 #if !defined(MACOSX)
 	/* Set Icon (must be done before any sdl_setvideomode call) */
 	/* But don't set it on OS X, as we use a nicer external icon there. */
 	/* Made into a separate call, so it can be called again when we restart the graphics output on win32 */
-    if(menu_compatible) { DOSBox_SetOriginalIcon(); return; }
+	if (menu_compatible) { DOSBox_SetOriginalIcon(); return; }
 #endif
 
 #ifdef WIN32
-    HICON hIcon1;
-    hIcon1 = (HICON) LoadImage( GetModuleHandle(NULL), MAKEINTRESOURCE(dosbox_ico), IMAGE_ICON,
-    16,
-    16,
-    LR_DEFAULTSIZE);
-    SendMessage(GetHWND(), WM_SETICON, ICON_SMALL, (LPARAM) hIcon1 ); 
+	HICON hIcon1;
+
+	hIcon1 = (HICON) LoadImage( GetModuleHandle(NULL), MAKEINTRESOURCE(dosbox_ico), IMAGE_ICON,
+		16,16,LR_DEFAULTSIZE);
+
+	SendMessage(GetHWND(), WM_SETICON, ICON_SMALL, (LPARAM) hIcon1 ); 
 #endif
 }
 
-static void KillSwitch(bool pressed) {
-	if (!pressed)
+void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
+	static Bits internal_frameskip=0;
+	static Bit32s internal_cycles=0;
+	static Bits internal_timing=0;
+	char title[200] = {0};
+
+	if (cycles != -1) internal_cycles = cycles;
+	if (timing != -1) internal_timing = timing;
+	if (frameskip != -1) internal_frameskip = frameskip;
+
+	if (!menu_startup) {
+		sprintf(title,"DOSBox %s, CPU speed: %8d cycles, Frameskip %2d, %8s",VERSION,
+			internal_cycles,internal_frameskip,RunningProgram);
+		SDL_WM_SetCaption(title,VERSION);
 		return;
-    if(sdl.desktop.fullscreen) GFX_SwitchFullScreen();
+	}
+	if (menu.hidecycles) {
+		if (CPU_CycleAutoAdjust) {
+			sprintf(title,"DOSBox %s, CPU speed: max %3d%% cycles, Frameskip %2d, %8s",
+				VERSION,CPU_CyclePercUsed,internal_frameskip,RunningProgram);
+		}
+		else {
+			sprintf(title,"DOSBox %s, CPU speed: %8d cycles, Frameskip %2d, %8s",
+				VERSION,internal_cycles,internal_frameskip,RunningProgram);
+		}
+	} else if (CPU_CycleAutoAdjust) {
+		sprintf(title,"DOSBox %s, CPU : %s %8d%% = max %3d, %d FPS - %2d %8s %i.%i%%",
+			VERSION,core_mode,CPU_CyclePercUsed,internal_cycles,frames,
+			internal_frameskip,RunningProgram,internal_timing/100,internal_timing%100/10);
+	} else {
+		sprintf(title,"DOSBox %s, CPU : %s %8d = %8d, %d FPS - %2d %8s %i.%i%%",
+			VERSION,core_mode,CPU_CyclesCur,internal_cycles,frames,internal_frameskip,
+			RunningProgram,internal_timing/100,internal_timing%100/10);
+	}
+
+	if (paused) strcat(title," PAUSED");
+	SDL_WM_SetCaption(title,VERSION);
+}
+
+static void KillSwitch(bool pressed) {
+	if (!pressed) return;
+	if (sdl.desktop.fullscreen) GFX_SwitchFullScreen();
 	throw 1;
 }
 
@@ -323,37 +356,16 @@ static void SDL_Overscan(void) {
 	}
 }
 
-
-static bool emu_paused;
 bool DOSBox_Paused()
 {
 	return emu_paused;
 }
 
-
 void PauseDOSBox(bool pressed) {
-	if (!pressed)
-		return;
-
-#if 0
-	GFX_SetTitle(-1,-1,-1,true);
-
-
-	emu_paused = !emu_paused;
-
-	if( emu_paused == 0 ) {
-		// restore mouse state
-		void GFX_UpdateSDLCaptureState();
-		GFX_UpdateSDLCaptureState();
-	}
-	else {
-		// give mouse to win32 (ex. alt-tab)
-		SDL_WM_GrabInput(SDL_GRAB_OFF);
-	}
-	return;
-#else
-	GFX_SetTitle(-1,-1,-1,true);
 	bool paused = true;
+
+	if (!pressed) return;
+	GFX_SetTitle(-1,-1,-1,true);
 	KEYBOARD_ClrBuffer();
 	SDL_Delay(500);
 	SDL_Event event;
@@ -361,18 +373,16 @@ void PauseDOSBox(bool pressed) {
 		// flush event queue.
 	}
 
-	
 	// give mouse to win32 (ex. alt-tab)
 	SDL_WM_GrabInput(SDL_GRAB_OFF);
-
 
 	while (paused) {
 		SDL_WaitEvent(&event);    // since we're not polling, cpu usage drops to 0.
 #ifdef __WIN32__
-		if(event.type==SDL_SYSWMEVENT && event.syswm.msg->msg==WM_COMMAND && event.syswm.msg->wParam==ID_PAUSE) {
-				paused=false;
-				GFX_SetTitle(-1,-1,-1,false);	
-				break;
+		if (event.type==SDL_SYSWMEVENT && event.syswm.msg->msg==WM_COMMAND && event.syswm.msg->wParam==ID_PAUSE) {
+			paused=false;
+			GFX_SetTitle(-1,-1,-1,false);	
+			break;
 		}
 #endif
 		switch (event.type) {
@@ -403,28 +413,19 @@ void PauseDOSBox(bool pressed) {
 
 	// redraw screen (ex. fullscreen - pause - alt+tab x2 - unpause)
 	if (sdl.draw.callback) (sdl.draw.callback)( GFX_CallBackReset );
-#endif
 }
 
-#if defined (WIN32)
-bool GFX_SDLUsingWinDIB(void) {
-	return sdl.using_windib;
-}
-#endif
-
-static bool fullscreen_switch=true;
 static void SDLScreen_Reset(void) {
 	char* sdl_videodrv = getenv("SDL_VIDEODRIVER");
 	if ((sdl_videodrv && !strcmp(sdl_videodrv,"windib")) || sdl.desktop.fullscreen || fullscreen_switch || sdl.desktop.want_type==SCREEN_OPENGLHQ || menu_compatible) return;
-    int id, major, minor;
-    DOSBox_CheckOS(id, major, minor);
-    if((id==VER_PLATFORM_WIN32_NT) && (major<6) || sdl.desktop.want_type==SCREEN_DIRECT3D) return;
+	int id, major, minor;
+	DOSBox_CheckOS(id, major, minor);
+	if((id==VER_PLATFORM_WIN32_NT) && (major<6) || sdl.desktop.want_type==SCREEN_DIRECT3D) return;
 
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);	SDL_Delay(500);
 	SDL_InitSubSystem(SDL_INIT_VIDEO);
 	GFX_SetIcon();
 	GFX_SetTitle(-1,-1,-1,false);
-	//GFX_LosingFocus();
 }
 
 /* Reset the screen with current values in the sdl structure */
@@ -497,9 +498,9 @@ check_gotbpp:
 }
 
 void SDL_Prepare(void) {
-    if(menu_compatible) return;
-    SDL_PumpEvents(); SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
-    DragAcceptFiles(GetHWND(), TRUE);
+	if(menu_compatible) return;
+	SDL_PumpEvents(); SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
+	DragAcceptFiles(GetHWND(), TRUE);
 }
 
 void GFX_ResetScreen(void) {
@@ -510,13 +511,12 @@ void GFX_ResetScreen(void) {
 	GFX_Start();
 	CPU_Reset_AutoAdjust();
 	fullscreen_switch=true;
-    if (!sdl.desktop.want_type==SCREEN_OPENGLHQ && !sdl.desktop.fullscreen && GetMenu(GetHWND()) == NULL)
-	DOSBox_RefreshMenu(); // for menu
+	if (!sdl.desktop.want_type==SCREEN_OPENGLHQ && !sdl.desktop.fullscreen && GetMenu(GetHWND()) == NULL)
+		DOSBox_RefreshMenu(); // for menu
 }
 
 void GFX_ForceFullscreenExit(void) {
 	if (sdl.desktop.lazy_fullscreen) {
-//		sdl.desktop.lazy_fullscreen_req=true;
 		LOG_MSG("GFX LF: invalid screen change");
 	} else {
 		sdl.desktop.fullscreen=false;
@@ -524,13 +524,12 @@ void GFX_ForceFullscreenExit(void) {
 	}
 }
 
-static int int_log2 (int val) {
-    int log = 0;
-    while ((val >>= 1) != 0)
-	log++;
-    return log;
+/* TODO: this belongs in a general "utility" library */
+static int int_log2(int val) {
+	int log = 0;
+	while ((val >>= 1) != 0) log++;
+	return log;
 }
-
 
 static SDL_Surface * GFX_SetupSurfaceScaled(Bit32u sdl_flags, Bit32u bpp) {
 	Bit16u fixedWidth;
@@ -585,11 +584,6 @@ void GFX_TearDown(void) {
 		sdl.blit.surface=0;
 	}
 }
-
-static void EndSplashScreen();
-
-extern bool RENDER_GetAspect(void);
-extern bool RENDER_GetAutofit(void);
 
 static void GFX_ResetSDL() {
 #ifdef WIN32
@@ -974,7 +968,6 @@ void GFX_UpdateSDLCaptureState(void) {
 	GFX_SetTitle(-1,-1,-1,false);
 }
 
-bool mouselocked; //Global variable for mapper
 static void CaptureMouse(bool pressed) {
 	if (!pressed)
 		return;
@@ -1119,9 +1112,6 @@ void res_init(void) {
 	sdl.desktop.doublebuf=section->Get_bool("fulldouble");
 
 	int width=1024, height=768;
-#if 0 /* doesn't work on my system */
-	SDL_GetDesktopMode(&width, &height);
-#endif
 	if (!sdl.desktop.full.width) {
 		sdl.desktop.full.width=width;
 	}
@@ -1404,11 +1394,6 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
 					rect->y = sdl.clip.y + y;
 					rect->w = (Bit16u)sdl.draw.width;
 					rect->h = changedLines[index];
-#if 0
-					if (rect->h + rect->y > sdl.surface->h) {
-						LOG_MSG("WTF %d +  %d  >%d",rect->h,rect->y,sdl.surface->h);
-					}
-#endif
 					y += changedLines[index];
 				}
 				index++;
@@ -1653,7 +1638,7 @@ static void ShowSplashScreen() {
 	}
 }
 
-static void EndSplashScreen() {
+void EndSplashScreen() {
 	if(!splash_active) return;
 	//SDL_FillRect(splash_surf, NULL, SDL_MapRGB(sdl.surface->format, 0, 0, 0));
 	//SDL_BlitSurface(splash_surf, NULL, sdl.surface, NULL);
@@ -1667,8 +1652,10 @@ static void EndSplashScreen() {
 }
 
 #if (HAVE_D3D9_H) && defined(WIN32)
-#include "SDL_syswm.h"
+# include "SDL_syswm.h"
+#endif
 
+#if (HAVE_D3D9_H) && defined(WIN32)
 static void D3D_reconfigure(Section * sec) {
 	if (d3d) {
 		Section_prop *section=static_cast<Section_prop *>(sec);
@@ -1679,9 +1666,6 @@ static void D3D_reconfigure(Section * sec) {
 	}
 }
 #endif
-
-//extern void UI_Run(bool);
-void Restart(bool pressed);
 
 static void GUI_StartUp(Section * sec) {
 	sec->AddDestroyFunction(&GUI_ShutDown);
@@ -1773,9 +1757,6 @@ static void GUI_StartUp(Section * sec) {
 #endif
 
 	int width=1024; int height=768;
-#if 0 /* doesn't work on my system */
-	SDL_GetDesktopMode(&width, &height);
-#endif
 	if (!sdl.desktop.full.width) {
 		sdl.desktop.full.width=width;
 	}
@@ -3250,11 +3231,9 @@ int main(int argc, char* argv[]) {
     }
     SDL_Prepare();
 
-#ifndef DISABLE_JOYSTICK
 	//Initialise Joystick seperately. This way we can warn when it fails instead
 	//of exiting the application
 	if( SDL_InitSubSystem(SDL_INIT_JOYSTICK) < 0 ) LOG_MSG("Failed to init joystick support");
-#endif
 
 	sdl.laltstate = SDL_KEYUP;
 	sdl.raltstate = SDL_KEYUP;
