@@ -35,30 +35,20 @@
 namespace GUI {
 
 namespace Color {
-
-RGB Background3D = 0xffc0c0c0;
-
-RGB Light3D = 0xfffcfcfc;
-
-RGB Shadow3D = 0xff808080;
-
-RGB Border = 0xff000000;
-
-RGB Text = 0xff000000;
-
-RGB Background = 0xffc0c0c0;
-
-RGB SelectionBackground = 0xff000080;
-
-RGB SelectionForeground = 0xffffffff;
-
-RGB EditableBackground = 0xffffffff;
-
-RGB Titlebar = 0xff000080;
-
-RGB TitlebarText = 0xffffffff;
-
+	RGB Background3D =		0xffc0c0c0;
+	RGB Light3D =			0xfffcfcfc;
+	RGB Shadow3D =			0xff808080;
+	RGB Border =			0xff000000;
+	RGB Text =			0xff000000;
+	RGB Background =		0xffc0c0c0;
+	RGB SelectionBackground =	0xff000080;
+	RGB SelectionForeground =	0xffffffff;
+	RGB EditableBackground =	0xffffffff;
+	RGB Titlebar =			0xff000080;
+	RGB TitlebarText =		0xffffffff;
 }
+
+std::map<const char *,Font *,Font::ltstr> Font::registry;
 
 void Drawable::drawText(const String& text, bool interpret, Size start, Size len) {
 	if (interpret) {
@@ -414,8 +404,8 @@ void Drawable::drawText(const Char c, bool interpret)
 	font->drawChar(this,c);
 }
 
-#define move(x) (ptr += ((x)+bit)/8-(((x)+bit)<0), bit = ((x)+bit+(((x)+bit)<0?8:0))%8)
 void BitmapFont::drawChar(Drawable *d, const Char c) const {
+#define move(x) (ptr += ((x)+bit)/8-(((x)+bit)<0), bit = ((x)+bit+(((x)+bit)<0?8:0))%8)
 	const unsigned char *ptr = bitmap;
 	int bit = 0;
 
@@ -444,10 +434,8 @@ void BitmapFont::drawChar(Drawable *d, const Char c) const {
 		}
 	}
 	d->gotoXY(d->getX()+w,d->getY());
-}
 #undef move
-
-std::map<const char *,Font *,Font::ltstr> Font::registry;
+}
 
 void Timer::check(unsigned int ticks)
 {
@@ -1524,9 +1512,7 @@ bool ScreenSDL::event(const SDL_Event &event) {
 	return false;
 }
 
-}
-
-
+} /* end namespace GUI */
 
 #ifdef TESTING
 #include <stdio.h>
