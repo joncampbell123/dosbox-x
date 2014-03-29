@@ -488,6 +488,19 @@ static void MOUNT_ProgramStart(Program * * make) {
 	*make=new MOUNT;
 }
 
+void UI_Run(bool pressed);
+
+class SHOWGUI : public Program {
+public:
+	void Run(void) {
+		UI_Run(false); /* So that I don't have to run the keymapper on every setup of mine just to get the GUI --J.C */
+	}
+};
+
+static void SHOWGUI_ProgramStart(Program * * make) {
+	*make=new SHOWGUI;
+}
+
 extern Bit32u floppytype;
 extern bool dos_kernel_disabled;
 
@@ -2921,4 +2934,5 @@ void DOS_SetupPrograms(void) {
 	PROGRAMS_MakeFile("MOUSE.COM", MOUSE_ProgramStart);
 	PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart);
 	PROGRAMS_MakeFile("CLOCKDOM.COM",CLOCKDOM_ProgramStart);
+	PROGRAMS_MakeFile("SHOWGUI.COM",SHOWGUI_ProgramStart);
 }
