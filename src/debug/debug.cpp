@@ -2140,7 +2140,7 @@ void DEBUG_Init(Section* sec) {
 	/* Reset code overview and input line */
 	memset((void*)&codeViewData,0,sizeof(codeViewData));
 	/* setup debug.com */
-	PROGRAMS_MakeFile("DEBUG.COM",DEBUG_ProgramStart);
+	PROGRAMS_MakeFile("DEBUGBOX.COM",DEBUG_ProgramStart);
 	/* Setup callback */
 	debugCallback=CALLBACK_Allocate();
 	CALLBACK_Setup(debugCallback,DEBUG_EnableDebugger,CB_RETF,"debugger");
