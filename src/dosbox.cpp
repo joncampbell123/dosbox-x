@@ -513,9 +513,8 @@ static void DOSBOX_RealInit(Section * sec) {
 	VGA_BIOS_Size_override = section->Get_int("vga bios size override");
 	if (VGA_BIOS_Size_override > 0) VGA_BIOS_Size_override = (VGA_BIOS_Size_override+0x7FF)&(~0xFFF);
 
-	DOS_PRIVATE_SEGMENT_Size = section->Get_int("private area size");
-	DOS_PRIVATE_SEGMENT_Size += 8;
-	DOS_PRIVATE_SEGMENT_Size >>= 4;
+	/* private area size param in bytes. round up to nearest paragraph */
+	DOS_PRIVATE_SEGMENT_Size = (section->Get_int("private area size") + 8) / 16;
 
 	MAPPER_AddHandler(DOSBOX_UnlockSpeed, MK_f12, MMOD2,"speedlock","Speedlock");
 	MAPPER_AddHandler(DOSBOX_UnlockSpeed2, MK_f11, MMOD2,"speedlock2","Speedlock2");
