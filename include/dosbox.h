@@ -22,28 +22,8 @@
 
 #include "config.h"
 
-GCC_ATTRIBUTE(noreturn) void E_Exit(const char * message,...) GCC_ATTRIBUTE( __format__(__printf__, 1, 2));
-
-void MSG_Add(const char*,const char*); //add messages to the internal languagefile
-const char* MSG_Get(char const *);     //get messages from the internal languagefile
-
-class Section;
-
-typedef Bitu (LoopHandler)(void);
-
-void DOSBOX_RunMachine();
-void DOSBOX_SetLoop(LoopHandler * handler);
-void DOSBOX_SetNormalLoop();
-
-void DOSBOX_Init(void);
-
-#ifdef __SSE__
-extern bool sse1_available;
-extern bool sse2_available;
-#endif
-
 class Config;
-extern Config * control;
+class Section;
 
 enum MachineType {
 	MCH_HERC,
@@ -61,19 +41,40 @@ enum SVGACards {
 	SVGA_TsengET4K,
 	SVGA_TsengET3K,
 	SVGA_ParadisePVGA1A
-}; 
+};
 
-extern SVGACards svgaCard;
-extern MachineType machine;
-extern bool SDLNetInited;
-extern bool mono_cga;
+typedef Bitu				(LoopHandler)(void);
 
-#define IS_TANDY_ARCH ((machine==MCH_TANDY) || (machine==MCH_PCJR))
-#define IS_EGAVGA_ARCH ((machine==MCH_EGA) || (machine==MCH_VGA))
-#define IS_VGA_ARCH (machine==MCH_VGA)
-#define TANDY_ARCH_CASE MCH_TANDY: case MCH_PCJR
-#define EGAVGA_ARCH_CASE MCH_EGA: case MCH_VGA
-#define VGA_ARCH_CASE MCH_VGA
+extern Config*				control;
+extern SVGACards			svgaCard;
+extern MachineType			machine;
+extern bool				SDLNetInited;
+extern bool				mono_cga;
+
+#ifdef __SSE__
+extern bool				sse1_available;
+extern bool				sse2_available;
+#endif
+
+GCC_ATTRIBUTE(noreturn) void		E_Exit(const char * message,...) GCC_ATTRIBUTE( __format__(__printf__, 1, 2));
+
+void					MSG_Add(const char*,const char*); //add messages to the internal languagefile
+const char*				MSG_Get(char const *);     //get messages from the internal languagefile
+
+void					DOSBOX_RunMachine();
+void					DOSBOX_SetLoop(LoopHandler * handler);
+void					DOSBOX_SetNormalLoop();
+void					DOSBOX_Init(void);
+
+/* machine tests for use with if() statements */
+#define IS_TANDY_ARCH			((machine==MCH_TANDY) || (machine==MCH_PCJR))
+#define IS_EGAVGA_ARCH			((machine==MCH_EGA) || (machine==MCH_VGA))
+#define IS_VGA_ARCH			(machine==MCH_VGA)
+
+/* machine tests for use with switch() statements */
+#define TANDY_ARCH_CASE			MCH_TANDY: case MCH_PCJR
+#define EGAVGA_ARCH_CASE		MCH_EGA: case MCH_VGA
+#define VGA_ARCH_CASE			MCH_VGA
 
 #ifndef DOSBOX_LOGGING_H
 #include "logging.h"
