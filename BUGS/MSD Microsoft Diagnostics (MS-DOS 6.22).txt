@@ -1,0 +1,7 @@
+If no floppies are mounted, MSD.EXE reports two 5.25" 360KB floppy drives (wrong!).
+If at least one floppy drive is mounted, MSD.EXE correctly reports the floppy drives in the system.
+
+If running MSD.EXE from DOSBox's internal command prompt, MSD.EXE reports a 360KB floppy drive with
+wildly incorrect geometry (264 tracks and 40 heads!) and DOSBox prints a debug message stating that
+an unsupported IOCTL was issued. Hm...
+
