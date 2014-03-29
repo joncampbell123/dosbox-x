@@ -252,6 +252,10 @@ public:
 	bool interrupt_enable;		/* bit 1 of alt (0x3F6) */
 	bool host_reset;		/* bit 2 of alt */
 	bool irq_pending;
+	/* defaults for CD-ROM emulation */
+	double spinup_time;
+	double spindown_timeout;
+	double cd_insertion_time;
 public:
 	IDEController(Section* configuration,unsigned char index);
 	void install_io_port();
@@ -1093,8 +1097,14 @@ IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_in
 	/* FIXME: Spinup/down times should be dosbox.conf configurable, if the DOSBox gamers
 	 *        care more about loading times than emulation accuracy. */
 	cd_insertion_time = 4000; /* a quick user that can switch CDs in 4 seconds */
+	if (c->cd_insertion_time > 0) cd_insertion_time = c->cd_insertion_time;
+
 	spinup_time = 1000; /* drive takes 1 second to spin up from idle */
+	if (c->spinup_time > 0) spinup_time = c->spinup_time;
+
 	spindown_timeout = 10000; /* drive spins down automatically after 10 seconds */
+	if (c->spindown_timeout > 0) spindown_timeout = c->spindown_timeout;
+
 	loading_mode = LOAD_IDLE;
 	has_changed = false;
 
@@ -3064,6 +3074,9 @@ IDEController::IDEController(Section* configuration,unsigned char index):Module_
 
 	int13fakeio = section->Get_bool("int13fakeio");
 	int13fakev86io = section->Get_bool("int13fakev86io");
+	spinup_time = section->Get_int("cd-rom spinup time");
+	spindown_timeout = section->Get_int("cd-rom spindown timeout");
+	cd_insertion_time = section->Get_int("cd-rom insertion delay");
 
 	status = 0x00;
 	host_reset = false;

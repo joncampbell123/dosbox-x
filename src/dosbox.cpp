@@ -1414,6 +1414,22 @@ void DOSBOX_Init(void) {
 				"cause IDE emulation to issue fake CPU I/O traps (GPF) in\n"
 				"virtual 8086 mode and a fake IRQ signal. you must enable this option\n"
 				"if you want 32-bit disk access in Windows 95 to work with DOSBox.");
+
+		Pint = secprop->Add_int("cd-rom spinup time",Property::Changeable::WhenIdle,0/*use IDE or CD-ROM default*/);
+		if (i == 0) Pint->Set_help("Emulated CD-ROM time in ms to spin up if CD is stationary.\n"
+				"Set to 0 to use controller or CD-ROM drive-specific default.");
+
+		Pint = secprop->Add_int("cd-rom spindown timeout",Property::Changeable::WhenIdle,0/*use IDE or CD-ROM default*/);
+		if (i == 0) Pint->Set_help("Emulated CD-ROM time in ms that drive will spin down automatically when not in use\n"
+				"Set to 0 to use controller or CD-ROM drive-specific default.");
+
+		Pint = secprop->Add_int("cd-rom insertion delay",Property::Changeable::WhenIdle,0/*use IDE or CD-ROM default*/);
+		if (i == 0) Pint->Set_help("Emulated CD-ROM time in ms that drive will report \"medium not present\"\n"
+				"to emulate the time it takes for someone to take out a CD and insert a new one when\n"
+				"DOSBox is instructed to swap or change CDs.\n"
+				"When running Windows 95 or higher a delay of 4000ms is recommended to ensure that\n"
+				"auto-insert notification triggers properly.\n"
+				"Set to 0 to use controller or CD-ROM drive-specific default.");
 	}
 
 	//TODO ?
