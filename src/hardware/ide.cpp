@@ -1092,8 +1092,8 @@ IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_in
 
 	/* FIXME: Spinup/down times should be dosbox.conf configurable, if the DOSBox gamers
 	 *        care more about loading times than emulation accuracy. */
-	cd_insertion_time = 1000; /* a quick user that can switch CDs in 1 second */
-	spinup_time = 1500; /* drive takes 1.5 seconds to spin up from idle */
+	cd_insertion_time = 4000; /* a quick user that can switch CDs in 4 seconds */
+	spinup_time = 1000; /* drive takes 1 second to spin up from idle */
 	spindown_timeout = 10000; /* drive spins down automatically after 10 seconds */
 	loading_mode = LOAD_IDLE;
 	has_changed = false;
