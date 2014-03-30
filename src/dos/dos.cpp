@@ -136,11 +136,21 @@ void CALLBACK_RunRealInt_retcsip(Bit8u intnum,Bitu &cs,Bitu &ip);
 
 bool DOS_BreakINT23InProgress = false;
 
+void DOS_PrintCBreak() {
+	/* print ^C <newline> */
+	Bit16u n = 4;
+	const char *nl = "^C\r\n";
+	DOS_WriteFile(STDOUT,(Bit8u*)nl,&n);
+}
+
 bool DOS_BreakTest() {
 	if (DOS_BreakFlag) {
 		bool terminate = true;
 		bool terminint23 = false;
 		Bitu segv,offv;
+
+		/* print ^C on the console */
+		DOS_PrintCBreak();
 
 		DOS_BreakFlag = false;
 
@@ -209,15 +219,7 @@ bool DOS_BreakTest() {
 	return true;
 }
 
-void DOS_PrintCBreak() {
-	/* print ^C <newline> */
-	Bit16u n = 4;
-	const char *nl = "^C\r\n";
-	DOS_WriteFile(STDOUT,(Bit8u*)nl,&n);
-}
-
 void DOS_BreakAction() {
-	DOS_PrintCBreak();
 	DOS_BreakFlag = true;
 }
 
