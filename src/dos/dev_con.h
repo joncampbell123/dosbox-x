@@ -25,6 +25,8 @@
 
 #define NUMBER_ANSI_DATA 10
 
+extern bool DOS_BreakFlag;
+
 class device_CON : public DOS_Device {
 public:
 	device_CON();

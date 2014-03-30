@@ -32,6 +32,7 @@
 #include "serialport.h"
 #include "dos_network.h"
 
+bool DOS_BreakFlag = false;
 bool enable_dbcs_tables = true;
 bool enable_filenamechar = true;
 
@@ -129,8 +130,67 @@ static inline void overhead() {
 #define BIN2BCD(x)	((((x) / 10) << 4) + (x) % 10)
 extern bool date_host_forced;
 
+bool DOS_BreakTest() {
+	if (DOS_BreakFlag) {
+		bool terminate = true;
+		Bitu segv,offv;
+
+		DOS_BreakFlag = false;
+
+		offv = mem_readw((0x23*4)+0);
+		segv = mem_readw((0x23*4)+2);
+		if (offv != 0 && segv != 0) { /* HACK: DOSBox's shell currently does not assign INT 23h */
+			/* NTS: DOS calls are allowed within INT 23h! */
+			Bitu save_flags = reg_flags;
+			Bitu save_sp = reg_sp;
+
+			/* set carry flag */
+			reg_flags |= 1;
+
+			/* invoke iNT 23h */
+			CALLBACK_RunRealInt(0x23);
+
+			/* if the stack pointer is the same, program wants to continue.
+			 * it must have used IRET to return, or RETF 2 */
+			if (reg_sp == save_sp) {
+				terminate = false;
+				fprintf(stderr,"Note: DOS handler does not wish to terminate\n");
+			}
+			else {
+				/* program does not wish to continue. it used RETF. pop the remaining flags off */
+				reg_sp += 2;
+				fprintf(stderr,"Note: DOS handler does wish to terminate\n");
+			}
+		}
+
+		if (terminate) {
+			fprintf(stderr,"Note: DOS break terminating program\n");
+
+			/* cause exit */
+			DOS_Terminate(dos.psp(),false,0xFF/*FIXME what's the correct return code?*/);
+			return false;
+		}
+	}
+
+	return true;
+}
+
+void DOS_PrintCBreak() {
+	/* print ^C <newline> */
+	Bit16u n = 4;
+	const char *nl = "^C\r\n";
+	DOS_WriteFile(STDOUT,(Bit8u*)nl,&n);
+}
+
+void DOS_BreakAction() {
+	DOS_PrintCBreak();
+	DOS_BreakFlag = true;
+}
+
 #define DOSNAMEBUF 256
 static Bitu DOS_21Handler(void) {
+	if (!DOS_BreakTest()) return CBRET_NONE;
+
 	if (((reg_ah != 0x50) && (reg_ah != 0x51) && (reg_ah != 0x62) && (reg_ah != 0x64)) && (reg_ah<0x6c)) {
 		DOS_PSP psp(dos.psp());
 		psp.SetStack(RealMake(SegValue(ss),reg_sp-18));
@@ -150,6 +210,7 @@ static Bitu DOS_21Handler(void) {
 			Bit8u c;Bit16u n=1;
 			dos.echo=true;
 			DOS_ReadFile(STDIN,&c,&n);
+			if (c == 3) DOS_BreakAction();
 			reg_al=c;
 			dos.echo=false;
 		}
@@ -235,6 +296,7 @@ static Bitu DOS_21Handler(void) {
 		{
 				Bit8u c;Bit16u n=1;
 				DOS_ReadFile (STDIN,&c,&n);
+				if (c == 3) DOS_BreakAction();
 				reg_al=c;
 				break;
 		};
@@ -256,6 +318,7 @@ static Bitu DOS_21Handler(void) {
 			if (!free) break;
 			free--;
 			for(;;) {
+				if (!DOS_BreakTest()) return CBRET_NONE;
 				DOS_ReadFile(STDIN,&c,&n);
 				if (c == 8) {			// Backspace
 					if (read) {	//Something to backspace.
@@ -266,6 +329,10 @@ static Bitu DOS_21Handler(void) {
 						--read;
 					}
 					continue;
+				}
+				if (c == 3) {	// CTRL+C
+					DOS_BreakAction();
+					if (!DOS_BreakTest()) return CBRET_NONE;
 				}
 				if (read == free && c != 13) {		// Keyboard buffer full
 					Bit8u bell = 7;
@@ -1350,9 +1417,19 @@ static Bitu DOS_21Handler(void) {
 		reg_al=0x00; /* default value */
 		break;
 	};
+
 	return CBRET_NONE;
 }
 
+
+static Bitu BIOS_1BHandler(void) {
+	/* take note (set flag) and return */
+	/* FIXME: Don't forget that on "BOOT" this handler should be unassigned, though having it assigned
+	 *        to the guest OS causes no harm. */
+	fprintf(stderr,"Note: default 1Bh handler invoked\n");
+	DOS_BreakFlag = true;
+	return CBRET_NONE;
+}
 
 static Bitu DOS_20Handler(void) {
 	reg_ah=0x00;
@@ -1410,7 +1487,7 @@ void DOS_GetMemory_Choose();
 
 class DOS:public Module_base{
 private:
-	CALLBACK_HandlerObject callback[7];
+	CALLBACK_HandlerObject callback[8];
 public:
 	DOS(Section* configuration):Module_base(configuration){
 		Section_prop * section=static_cast<Section_prop *>(configuration);
@@ -1538,6 +1615,10 @@ public:
 		//	int 0x10
 		//	pop ax
 		//	iret
+
+		/* DOS installs a handler for INT 1Bh */
+		callback[7].Install(BIOS_1BHandler,CB_IRET,"BIOS 1Bh");
+		callback[7].Set_RealVec(0x1B);
 
 		DOS_FILES = section->Get_int("files");
 		DOS_SetupFiles();								/* Setup system File tables */
