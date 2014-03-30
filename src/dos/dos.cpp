@@ -170,6 +170,7 @@ bool DOS_BreakTest() {
 			}
 			catch (int x) {
 				if (x == 0) {
+					DOS_BreakINT23InProgress = false;
 					terminint23 = true;
 				}
 				else {
