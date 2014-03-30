@@ -1326,7 +1326,8 @@ void DOSBOX_Init(void) {
 	Pstring->Set_help("Language code of the keyboard layout (or none).");
 
 	Pbool = secprop->Add_bool("dbcs",Property::Changeable::OnlyAtStart,true);
-	Pbool->Set_help("Enable DBCS table");
+	Pbool->Set_help("Enable DBCS table.\n"
+			"CAUTION: Some software will crash without the DBCS table, including the Open Watcom installer.\n");
 
 	Pbool = secprop->Add_bool("filenamechar",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("Enable filename char table");
