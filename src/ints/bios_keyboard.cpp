@@ -362,6 +362,7 @@ static Bitu IRQ1_Handler(void) {
 			mem_writeb(BIOS_KEYBOARD_FLAGS3,flags3);
 			mem_writeb(BIOS_CTRL_BREAK_FLAG,0x80);
 			empty_keyboard_buffer();
+			BIOS_AddKeyToBuffer(0);
 			SegSet16(cs, RealSeg(CALLBACK_RealPointer(irq1_ret_ctrlbreak_callback)));
 			reg_ip = RealOff(CALLBACK_RealPointer(irq1_ret_ctrlbreak_callback));
 			return CBRET_NONE;

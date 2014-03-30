@@ -1423,6 +1423,8 @@ static Bitu DOS_21Handler(void) {
 
 
 static Bitu BIOS_1BHandler(void) {
+	mem_writeb(BIOS_CTRL_BREAK_FLAG,0x00);
+
 	/* take note (set flag) and return */
 	/* FIXME: Don't forget that on "BOOT" this handler should be unassigned, though having it assigned
 	 *        to the guest OS causes no harm. */
