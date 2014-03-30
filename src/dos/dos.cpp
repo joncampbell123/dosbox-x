@@ -1313,10 +1313,12 @@ static Bitu DOS_21Handler(void) {
 			case 0x03: // Get pointer to lowercase table
 			case 0x04: // Get pointer to filename uppercase table
 			case 0x07: // Get pointer to double byte char set table
-				mem_writeb(data + 0x00, reg_al);
-				mem_writed(data + 0x01, dos.tables.dbcs); //used to be 0
-				reg_cx = 5;
-				CALLBACK_SCF(false);
+				if (dos.tables.dbcs != 0) {
+					mem_writeb(data + 0x00, reg_al);
+					mem_writed(data + 0x01, dos.tables.dbcs); //used to be 0
+					reg_cx = 5;
+					CALLBACK_SCF(false);
+				}
 				break;
 			case 0x20: /* Capitalize Character */
 				{
