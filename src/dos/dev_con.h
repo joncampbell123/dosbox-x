@@ -196,12 +196,6 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
 		readcache=0;
 	}
 	while (*size>count) {
-	/*	while (true) {
-			reg_ah=0x1; // check for keystroke
-			CALLBACK_RunRealInt(0x16);
-			if (!GETFLAG(ZF)) break;
-			CALLBACK_RunRealInt(0x28);
-		}; */ //DOSIdle
 		reg_ah=(IS_EGAVGA_ARCH)?0x10:0x0;
 		CALLBACK_RunRealInt(0x16);
 		switch(reg_al) {
@@ -245,6 +239,7 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
 			break;
 		}
 		if(dos.echo) { //what to do if *size==1 and character is BS ?????
+			// TODO: If CTRL+C checking is applicable do not echo (reg_al == 3)
 			Real_INT10_TeletypeOutput(reg_al,7);
 		}
 	}

@@ -130,9 +130,16 @@ static inline void overhead() {
 #define BIN2BCD(x)	((((x) / 10) << 4) + (x) % 10)
 extern bool date_host_forced;
 
+static Bitu DOS_21Handler(void);
+Bitu DEBUG_EnableDebugger(void);
+void CALLBACK_RunRealInt_retcsip(Bit8u intnum,Bitu &cs,Bitu &ip);
+
+bool DOS_BreakINT23InProgress = false;
+
 bool DOS_BreakTest() {
 	if (DOS_BreakFlag) {
 		bool terminate = true;
+		bool terminint23 = false;
 		Bitu segv,offv;
 
 		DOS_BreakFlag = false;
@@ -147,27 +154,53 @@ bool DOS_BreakTest() {
 			/* set carry flag */
 			reg_flags |= 1;
 
-			/* invoke iNT 23h */
-			CALLBACK_RunRealInt(0x23);
-
-			/* if the stack pointer is the same, program wants to continue.
-			 * it must have used IRET to return, or RETF 2 */
-			if (reg_sp == save_sp) {
-				terminate = false;
-				fprintf(stderr,"Note: DOS handler does not wish to terminate\n");
+			/* invoke INT 23h */
+			/* NTS: Some DOS programs provide their own INT 23h which then calls INT 21h AH=0x4C
+			 *      inside the handler! Set a flag so that if that happens, the termination
+			 *      handler will throw us an exception to force our way back here after
+			 *      termination completes!
+			 *
+			 *      This fixes: PC Mix compiler PCL.EXE
+			 *
+			 *      FIXME: This is an ugly hack! */
+			try {
+				DOS_BreakINT23InProgress = true;
+				CALLBACK_RunRealInt(0x23);
+				DOS_BreakINT23InProgress = false;
 			}
-			else {
-				/* program does not wish to continue. it used RETF. pop the remaining flags off */
-				reg_sp += 2;
-				fprintf(stderr,"Note: DOS handler does wish to terminate\n");
+			catch (int x) {
+				if (x == 0) {
+					terminint23 = true;
+				}
+				else {
+					fprintf(stderr,"Unexpected code in INT 23h termination exception\n");
+					abort();
+				}
+			}
+
+			/* if the INT 23h handler did not already terminate itself... */
+			if (!terminint23) {
+				/* if it returned with IRET, or with RETF and CF=0, don't terminate */
+				if (reg_sp == save_sp || (reg_flags & 1) == 0) {
+					terminate = false;
+					fprintf(stderr,"Note: DOS handler does not wish to terminate\n");
+				}
+				else {
+					/* program does not wish to continue. it used RETF. pop the remaining flags off */
+					fprintf(stderr,"Note: DOS handler does wish to terminate\n");
+				}
+
+				if (reg_sp != save_sp) reg_sp += 2;
 			}
 		}
 
 		if (terminate) {
 			fprintf(stderr,"Note: DOS break terminating program\n");
-
-			/* cause exit */
-			DOS_Terminate(dos.psp(),false,0xFF/*FIXME what's the correct return code?*/);
+			DOS_Terminate(dos.psp(),false,0);
+			return false;
+		}
+		else if (terminint23) {
+			fprintf(stderr,"Note: DOS break handler terminated program for us.\n");
 			return false;
 		}
 	}
@@ -189,12 +222,12 @@ void DOS_BreakAction() {
 
 #define DOSNAMEBUF 256
 static Bitu DOS_21Handler(void) {
-	if (!DOS_BreakTest()) return CBRET_NONE;
-
 	if (((reg_ah != 0x50) && (reg_ah != 0x51) && (reg_ah != 0x62) && (reg_ah != 0x64)) && (reg_ah<0x6c)) {
 		DOS_PSP psp(dos.psp());
 		psp.SetStack(RealMake(SegValue(ss),reg_sp-18));
 	}
+
+	if (((reg_ah >= 0x01 && reg_ah <= 0x0C) || (reg_ah != 0 && reg_ah != 0x4C && reg_ah != 0x31 && dos.breakcheck)) && !DOS_BreakTest()) return CBRET_NONE;
 
 	char name1[DOSNAMEBUF+2+DOS_NAMELENGTH_ASCII];
 	char name2[DOSNAMEBUF+2+DOS_NAMELENGTH_ASCII];
@@ -204,6 +237,7 @@ static Bitu DOS_21Handler(void) {
 	switch (reg_ah) {
 	case 0x00:		/* Terminate Program */
 		DOS_Terminate(mem_readw(SegPhys(ss)+reg_sp+2),false,0);
+		if (DOS_BreakINT23InProgress) throw int(0); /* HACK: Ick */
 		break;
 	case 0x01:		/* Read character from STDIN, with echo */
 		{	
@@ -696,6 +730,7 @@ static Bitu DOS_21Handler(void) {
 		// Important: This service does not set the carry flag!
 		DOS_ResizeMemory(dos.psp(),&reg_dx);
 		DOS_Terminate(dos.psp(),true,reg_al);
+		if (DOS_BreakINT23InProgress) throw int(0); /* HACK: Ick */
 		break;
 	case 0x1f: /* Get drive parameter block for default drive */
 	case 0x32: /* Get drive parameter block for specific drive */
@@ -853,6 +888,7 @@ static Bitu DOS_21Handler(void) {
 		}
 		break;
 	case 0x3f:		/* READ Read from file or device */
+		/* TODO: If handle is STDIN and not binary do CTRL+C checking */
 		{ 
 			Bit16u toread=reg_cx;
 			dos.echo=true;
@@ -1019,6 +1055,7 @@ static Bitu DOS_21Handler(void) {
 //TODO Check for use of execution state AL=5
 	case 0x4c:					/* EXIT Terminate with return code */
 		DOS_Terminate(dos.psp(),false,reg_al);
+		if (DOS_BreakINT23InProgress) throw int(0); /* HACK: Ick */
 		break;
 	case 0x4d:					/* Get Return code */
 		reg_al=dos.return_code;/* Officially read from SDA and clear when read */
@@ -1445,7 +1482,10 @@ static Bitu DOS_27Handler(void) {
 	// Terminate & stay resident
 	Bit16u para = (reg_dx/16)+((reg_dx % 16)>0);
 	Bit16u psp = dos.psp(); //mem_readw(SegPhys(ss)+reg_sp+2);
-	if (DOS_ResizeMemory(psp,&para)) DOS_Terminate(psp,true,0);
+	if (DOS_ResizeMemory(psp,&para)) {
+		DOS_Terminate(psp,true,0);
+		if (DOS_BreakINT23InProgress) throw int(0); /* HACK: Ick */
+	}
 	return CBRET_NONE;
 }
 
