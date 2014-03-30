@@ -521,18 +521,54 @@ bool device_CON::Close() {
 }
 
 Bit16u device_CON::GetInformation(void) {
-	Bit16u head=mem_readw(BIOS_KEYBOARD_BUFFER_HEAD);
-	Bit16u tail=mem_readw(BIOS_KEYBOARD_BUFFER_TAIL);
+	if (true/*FIXME: make an option*/) {
+		Bit16u ret = 0x80D3; /* No Key Available */
 
-	if ((head==tail) && !readcache) return 0x80D3;	/* No Key Available */
-	if (readcache || real_readw(0x40,head)) return 0x8093;		/* Key Available */
+		/* DOSBox-X behavior: Use INT 16h AH=0x11 Query keyboard status/preview key.
+		 * The reason we do this is some DOS programs actually rely on hooking INT 16h
+		 * to manipulate, hide, or transform what the DOS CON driver sees as well as
+		 * itself. Perhaps the most disgusting example of this behavior would be the
+		 * SCANDISK.EXE utility in Microsoft MS-DOS 6.22, which apparently relies on
+		 * hooking INT 16h in this way to catch the Escape, CTRL+C, and some other
+		 * scan codes in order to "eat" the scan codes before they get back to DOS.
+		 * The reason they can get away with it apparently and still respond properly
+		 * to those keys, is because the MS-DOS 6.22 CON driver always calls INT 16h
+		 * AH=0x11 first before calling INT 16h AH=0x10 to fetch the scan code.
+		 *
+		 * Without this fix, SCANDISK.EXE does not respond properly to Escape and
+		 * a few other keys. Pressing Escape will do nothing until you hit any other
+		 * key, at which point it suddenly acts upon the Escape key.
+		 *
+		 * Since Scandisk is using INT 21h AH=0x0B to query STDIN during this time,
+		 * this implementation is a good "halfway" compromise in that this call
+		 * will trigger the INT 16h AH=0x11 hook it relies on. */
+		Bitu saved_ax = reg_ax;
 
-	/* remove the zero from keyboard buffer */
-	Bit16u start=mem_readw(BIOS_KEYBOARD_BUFFER_START);
-	Bit16u end	=mem_readw(BIOS_KEYBOARD_BUFFER_END);
-	head+=2;
-	if (head>=end) head=start;
-	mem_writew(BIOS_KEYBOARD_BUFFER_HEAD,head);
+		reg_ah = (IS_EGAVGA_ARCH)?0x11:0x1; // check for keystroke
+		CALLBACK_RunRealInt(0x16);
+		if (!GETFLAG(ZF)) { /* key is present, waiting to be returned on AH=0x10 or AH=0x00 */
+			ret = 0x8093; /* Key Available */
+		}
+
+		reg_ax = saved_ax;
+		return ret;
+	}
+	else {
+		/* DOSBox mainline behavior: alternate "fast" way through direct manipulation of keyboard scan buffer */
+		Bit16u head=mem_readw(BIOS_KEYBOARD_BUFFER_HEAD);
+		Bit16u tail=mem_readw(BIOS_KEYBOARD_BUFFER_TAIL);
+
+		if ((head==tail) && !readcache) return 0x80D3;	/* No Key Available */
+		if (readcache || real_readw(0x40,head)) return 0x8093;		/* Key Available */
+
+		/* remove the zero from keyboard buffer */
+		Bit16u start=mem_readw(BIOS_KEYBOARD_BUFFER_START);
+		Bit16u end	=mem_readw(BIOS_KEYBOARD_BUFFER_END);
+		head+=2;
+		if (head>=end) head=start;
+		mem_writew(BIOS_KEYBOARD_BUFFER_HEAD,head);
+	}
+
 	return 0x80D3; /* No Key Available */
 }
 
