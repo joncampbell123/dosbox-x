@@ -245,7 +245,10 @@ static Bitu DOS_21Handler(void) {
 			Bit8u c;Bit16u n=1;
 			dos.echo=true;
 			DOS_ReadFile(STDIN,&c,&n);
-			if (c == 3) DOS_BreakAction();
+			if (c == 3) {
+				DOS_BreakAction();
+				if (!DOS_BreakTest()) return CBRET_NONE;
+			}
 			reg_al=c;
 			dos.echo=false;
 		}
@@ -331,7 +334,10 @@ static Bitu DOS_21Handler(void) {
 		{
 				Bit8u c;Bit16u n=1;
 				DOS_ReadFile (STDIN,&c,&n);
-				if (c == 3) DOS_BreakAction();
+				if (c == 3) {
+					DOS_BreakAction();
+					if (!DOS_BreakTest()) return CBRET_NONE;
+				}
 				reg_al=c;
 				break;
 		};
