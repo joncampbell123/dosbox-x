@@ -372,8 +372,13 @@ bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags) {
 		loadseg=pspseg+16;
 		if (!iscom) {
 			/* Check if requested to load program into upper part of allocated memory */
-			if ((head.minmemory == 0) && (head.maxmemory == 0))
-				loadseg = (Bit16u)(((pspseg+memsize)*0x10-imagesize)/0x10);
+			if ((head.minmemory == 0) && (head.maxmemory == 0)) {
+				loadseg = (pspseg+memsize);
+				loadseg -= (imagesize+0xF)/0x10;
+				if (loadseg < (pspseg+16)) loadseg = pspseg+16;
+				if ((loadseg+((imagesize+0xF)/0x10)) > (pspseg+memsize))
+					E_Exit("EXE loading error, unable to load to top of block, nor able to fit into block");
+			}
 		}
 	} else loadseg=block.overlay.loadseg;
 	/* Load the executable */
