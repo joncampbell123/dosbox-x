@@ -418,7 +418,9 @@ bool DOS_LinkUMBsToMemChain(Bit16u linkstate) {
 			}
 			break;
 		default:
-			LOG_MSG("Invalid link state %x when reconfiguring MCB chain",linkstate);
+			/* NTS: Some programs apparently call this function incorrectly.
+			 *      The CauseWay extender in Open Watcom 1.9's installer for example
+			 *      calls this function with AX=0x5803 BX=0x58 */
 			return false;
 	}
 
