@@ -1,0 +1,23 @@
+Apparently it's possible to install Windows NT 3.1 in DOSBox and get it to run!
+Here's how:
+
+1. Install MS-DOS 6.22 first.
+
+2. Use MS-DOS to run the NT installer.
+
+3. Shutdown DOSBox-X
+
+4. Go into src/cpu/cpu.cpp and modify the top as follows:
+
+#define CPU_CHECK_EXCEPT 1
+// #define CPU_CHECK_IGNORE 1
+
+   The NT kernel apparently requires exception handling to work properly
+   before it will boot in DOSBox.
+
+5. Startup DOSBox-X and let NT boot. It should make it to the graphical
+   desktop.
+
+   NOTE: As of 2014/04/13 do NOT use or move the mouse! There is an incompatibility
+         of some kind between mouse emulation and NT that causes NT to crash.
+

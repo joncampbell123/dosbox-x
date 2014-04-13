@@ -151,6 +151,9 @@ void CPU_Core_Dyn_X86_Cache_Reset(void);
  * In non-debug mode dosbox doesn't do detection (and hence doesn't crash at
  * that point). (game might crash later due to the unhandled exception) */
 
+#define CPU_CHECK_EXCEPT 1
+// #define CPU_CHECK_IGNORE 1
+
 #if C_DEBUG
 // #define CPU_CHECK_EXCEPT 1
 // #define CPU_CHECK_IGNORE 1
@@ -158,7 +161,7 @@ void CPU_Core_Dyn_X86_Cache_Reset(void);
  * needed that isn't enabled by default.*/
 #else
 /* NORMAL NO CHECKING => More Speed */
-#define CPU_CHECK_IGNORE 1
+//#define CPU_CHECK_IGNORE 1
 #endif /* C_DEBUG */
 
 #if defined(CPU_CHECK_IGNORE)
