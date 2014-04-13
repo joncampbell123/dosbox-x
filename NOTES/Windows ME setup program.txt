@@ -1,0 +1,10 @@
+The most likely reason Windows ME setup will crash in DOSBox-X
+is that the Setup program wants to initialize the shell and
+system configuration on startup. It will always crash (so far).
+
+One way around that is to boot into Safe Mode, wait for the
+shell to appear, and then pull up RegEdit.
+
+Locate the HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce
+key, then look for the string value InitShell. Delete the string value. Reboot.
+
