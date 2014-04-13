@@ -283,6 +283,26 @@ static void PAGING_NewPageFault(PhysPt lin_addr, Bitu page_addr, bool prepare_on
 		cpu.exception.error = faultcode;
 	} else if (dosbox_enable_nonrecursive_page_fault && dosbox_allow_nonrecursive_page_fault &&
 		dosbox_check_nonrecursive_pf_cs == SegValue(cs) && dosbox_check_nonrecursive_pf_eip == reg_eip) {
+		/* FIXME: Apparently, if Window 98/ME executes a floating point instruction that triggers a page
+		 *        fault and DOSBox is running the dynamic core, this code will throw the exception and
+		 *        the Normal_Loop() function farther up the call chain will not receive the exception,
+		 *        but the main function in sdlmain.cpp will, and DOSBox will crash and exit.
+		 *        If I disable the nonrecursive mode (let it go to the code below that uses RunMachine),
+		 *        then it causes a segfault in DOSBox.
+		 *
+		 *        There seem to be two known methods to reliably trigger this bug:
+		 *        - Microsoft Windows 98: Click on the "satellite dish" in the quicklaunch area next to
+		 *          the start button to bring up "channels". Note that DOSBox fails to catch the exception,
+		 *          and the stack trace points the blame at FST_FPU_32 who triggered the page fault.
+		 *
+		 *        - Microsoft Windows ME: During the "system configuration" stage of the setup process,
+		 *          Windows ME apparently executes the 64-bit wide version of FST which triggers
+		 *          FPU_FST_64 and the same problem.
+		 *
+		 *        Fixing this bug would allow the channel guide in Win98, the setup process in WinME,
+		 *        and anything else reliant on floating point that can trigger page faults, to run
+		 *        properly in DOSBox.
+		 */
 		/* NTS: The reason we check against CS:EIP for changes is that blindly doing this method causes
 		 *      far more crashes and instability within DOSBox than taking careful steps. Interestingly,
 		 *      the crashes are more severe with core=normal or core=full than with the more subtle crashes
