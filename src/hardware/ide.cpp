@@ -1637,7 +1637,7 @@ void IDEATADevice::data_write(Bitu v,Bitu iolen) {
 void IDEATAPICDROMDevice::prepare_read(Bitu offset,Bitu size) {
 	/* I/O must be WORD ALIGNED */
 	assert((offset&1) == 0);
-	assert((size&1) == 0);
+//	assert((size&1) == 0);
 
 	sector_i = offset;
 	sector_total = size;
@@ -1648,7 +1648,7 @@ void IDEATAPICDROMDevice::prepare_read(Bitu offset,Bitu size) {
 void IDEATAPICDROMDevice::prepare_write(Bitu offset,Bitu size) {
 	/* I/O must be WORD ALIGNED */
 	assert((offset&1) == 0);
-	assert((size&1) == 0);
+//	assert((size&1) == 0);
 
 	sector_i = offset;
 	sector_total = size;
@@ -1659,7 +1659,7 @@ void IDEATAPICDROMDevice::prepare_write(Bitu offset,Bitu size) {
 void IDEATADevice::prepare_write(Bitu offset,Bitu size) {
 	/* I/O must be WORD ALIGNED */
 	assert((offset&1) == 0);
-	assert((size&1) == 0);
+//	assert((size&1) == 0);
 
 	sector_i = offset;
 	sector_total = size;
@@ -1670,7 +1670,7 @@ void IDEATADevice::prepare_write(Bitu offset,Bitu size) {
 void IDEATADevice::prepare_read(Bitu offset,Bitu size) {
 	/* I/O must be WORD ALIGNED */
 	assert((offset&1) == 0);
-	assert((size&1) == 0);
+//	assert((size&1) == 0);
 
 	sector_i = offset;
 	sector_total = size;
