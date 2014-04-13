@@ -1135,7 +1135,7 @@ void IDEATAPICDROMDevice::on_mode_select_io_complete() {
 	 * pages */
 
 	scan = sector + 8;
-	fence = sector + MIN(sector_total,AllocationLength);
+	fence = sector + MIN((unsigned int)sector_total,(unsigned int)AllocationLength);
 
 	while ((scan+2) < fence) {
 		unsigned char PAGE = *scan++;

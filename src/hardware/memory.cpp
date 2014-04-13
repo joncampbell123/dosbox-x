@@ -1026,32 +1026,3 @@ void MEM_Init(Section * sec) {
 	sec->AddDestroyFunction(&MEM_ShutDown);
 }
 
-
-
-//save state support
-extern void* VGA_PageHandler_Func[16];
-
-Bit32u Memory_PageHandler_table[] = 
-{
-	(Bit32u) NULL,
-	(Bit32u) &ram_page_handler,
-	(Bit32u) &rom_page_handler,
-
-	(Bit32u) VGA_PageHandler_Func[0],
-	(Bit32u) VGA_PageHandler_Func[1],
-	(Bit32u) VGA_PageHandler_Func[2],
-	(Bit32u) VGA_PageHandler_Func[3],
-	(Bit32u) VGA_PageHandler_Func[4],
-	(Bit32u) VGA_PageHandler_Func[5],
-	(Bit32u) VGA_PageHandler_Func[6],
-	(Bit32u) VGA_PageHandler_Func[7],
-	(Bit32u) VGA_PageHandler_Func[8],
-	(Bit32u) VGA_PageHandler_Func[9],
-	(Bit32u) VGA_PageHandler_Func[10],
-	(Bit32u) VGA_PageHandler_Func[11],
-	(Bit32u) VGA_PageHandler_Func[12],
-	(Bit32u) VGA_PageHandler_Func[13],
-	(Bit32u) VGA_PageHandler_Func[14],
-	(Bit32u) VGA_PageHandler_Func[15],
-};
-

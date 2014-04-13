@@ -287,9 +287,13 @@ void Voodoo_PCI_InitEnable(Bitu val) {
 
 void Voodoo_PCI_Enable(bool enable) {
 	v->clock_enabled = enable;
+#if C_DYNAMIC_X86
 	CPU_Core_Dyn_X86_SaveDHFPUState();
+#endif
 	Voodoo_UpdateScreenStart();
+#if C_DYNAMIC_X86
 	CPU_Core_Dyn_X86_RestoreDHFPUState();
+#endif
 }
 
 PageHandler* Voodoo_GetPageHandler() {
