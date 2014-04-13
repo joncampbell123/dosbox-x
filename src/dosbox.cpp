@@ -265,6 +265,11 @@ void run_hw() {
 		fprintf(stderr,"WARNING: run_hw() one or more clock events are stuck?\n");
 }
 
+#include "paging.h"
+
+extern Bitu dosbox_check_nonrecursive_pf_cs;
+extern Bitu dosbox_check_nonrecursive_pf_eip;
+
 static Bitu Normal_Loop(void) {
 	Bits ret;
 	while (1) {
@@ -272,24 +277,59 @@ static Bitu Normal_Loop(void) {
 		if (PIC_RunQueue()) {
 			Bit32u ticksNew;
 			ticksNew=GetTicks();
-		    if(ticksNew>=Ticks) {
+			if(ticksNew>=Ticks) {
 				CPU_CyclesCur=(cycle_count-CPU_CyclesCur) >> 9;
 				Ticks=ticksNew + 512;		// next update in 512ms
 				frames*=1.953;			// compensate for 512ms interval
 				if(!menu.hidecycles) GFX_SetTitle(CPU_CycleMax,-1,-1,false);
 				CPU_CyclesCur=cycle_count;
 				frames=0;
-		    }
-			ret = (*cpudecoder)();
-			if (GCC_UNLIKELY(ret<0)) return 1;
+			}
+
+			/* FIXME: we check some registers to make sure page fault handling doesn't trip up */
+			Bitu orig_eip = reg_eip;
+			Bitu orig_cs = SegValue(cs);
+			bool saved_allow = dosbox_allow_nonrecursive_page_fault;
+
+			dosbox_check_nonrecursive_pf_cs = orig_cs;
+			dosbox_check_nonrecursive_pf_eip = orig_eip;
+			dosbox_allow_nonrecursive_page_fault = true;
+			try {
+				ret = (*cpudecoder)();
+				dosbox_allow_nonrecursive_page_fault = false;
+			}
+			catch (GuestPageFaultException &pf) {
+				ret = 0;
+				dosbox_allow_nonrecursive_page_fault = false;
+				fprintf(stderr,"Guest page fault exception! Alternate method will be used. Wish me luck.\n");
+				if (reg_eip != orig_eip) fprintf(stderr,"WARNING: eip changed up to page fault (0x%x != 0x%x)\n",reg_eip,orig_eip);
+				if (orig_cs != SegValue(cs)) fprintf(stderr,"WARNING: cs changed up to page fault (0x%x != 0x%x)\n",SegValue(cs),orig_cs);
+				if (orig_cs == SegValue(cs)) reg_eip = orig_eip; /* HACK: may have changed slightly */
+				CPU_Exception(EXCEPTION_PF,pf.faultcode);
+			}
+
+			if (GCC_UNLIKELY(ret<0)) {
+				dosbox_allow_nonrecursive_page_fault = saved_allow;
+				return 1;
+			}
 			if (ret>0) {
-				if (GCC_UNLIKELY(ret >= CB_MAX)) return 0;
+				if (GCC_UNLIKELY(ret >= CB_MAX)) {
+					dosbox_allow_nonrecursive_page_fault = saved_allow;
+					return 0;
+				}
 				Bitu blah = (*CallBack_Handlers[ret])();
-				if (GCC_UNLIKELY(blah)) return blah;
+				if (GCC_UNLIKELY(blah)) {
+					dosbox_allow_nonrecursive_page_fault = saved_allow;
+					return blah;
+				}
 			}
 #if C_DEBUG
-			if (DEBUG_ExitLoop()) return 0;
+			if (DEBUG_ExitLoop()) {
+				dosbox_allow_nonrecursive_page_fault = saved_allow;
+				return 0;
+			}
 #endif
+			dosbox_allow_nonrecursive_page_fault = saved_allow;
 		} else {
 #ifdef __WIN32__
 			MSG_Loop();
@@ -915,6 +955,13 @@ void DOSBOX_Init(void) {
 	Pint = secprop->Add_int("cycledown",Property::Changeable::Always,20);
 	Pint->SetMinMax(1,1000000);
 	Pint->Set_help("Setting it lower than 100 will be a percentage.");
+
+	Pbool = secprop->Add_bool("non-recursive page fault",Property::Changeable::Always,true);
+	Pbool->Set_help("Determines whether CPU emulation attempts to use a non-recursive method to emulate guest OS page fault exceptions.\n"
+			"If false (mainline DOSBox compatible), page faults are emulated using a recursive method, which is fine\n"
+			"for MS-DOS and Windows 3.1 emulation scenarios where the exception handler will always return directly to the fault location.\n"
+			"However, that assumption is not necessarily true for preemptive multitasking operating systems like Windows 95, for which\n"
+			"this setting should be enabled to help avoid recursion issues in DOSBox.");
 
 	Pbool = secprop->Add_bool("ignore opcode 63",Property::Changeable::Always,true);
 	Pbool->Set_help("When debugging, do not report illegal opcode 0x63.\n"

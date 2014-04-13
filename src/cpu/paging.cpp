@@ -266,11 +266,14 @@ void PrintPageInfo(const char* string, PhysPt lin_addr, bool writing, bool prepa
 }
 */
 
+bool dosbox_enable_nonrecursive_page_fault = true;	/* user option */
+bool dosbox_allow_nonrecursive_page_fault = false;	/* when set, do nonrecursive mode (when executing instruction) */
+Bitu dosbox_check_nonrecursive_pf_cs,dosbox_check_nonrecursive_pf_eip;
+
 // PAGING_NewPageFault
 // lin_addr, page_addr: the linear and page address the fault happened at
 // prepare_only: true in case the calling core handles the fault, else the PageFaultCore does
-static void PAGING_NewPageFault(PhysPt lin_addr, Bitu page_addr, 
-								bool prepare_only, Bitu faultcode) {
+static void PAGING_NewPageFault(PhysPt lin_addr, Bitu page_addr, bool prepare_only, Bitu faultcode) {
 	paging.cr2=lin_addr;
 	//LOG_MSG("FAULT q%d, code %x",  pf_queue.used, faultcode);
 	//PrintPageInfo("FA+",lin_addr,faultcode, prepare_only);
@@ -278,29 +281,45 @@ static void PAGING_NewPageFault(PhysPt lin_addr, Bitu page_addr,
 	if (prepare_only) {
 		cpu.exception.which = EXCEPTION_PF;
 		cpu.exception.error = faultcode;
+	} else if (dosbox_enable_nonrecursive_page_fault && dosbox_allow_nonrecursive_page_fault &&
+		dosbox_check_nonrecursive_pf_cs == SegValue(cs) && dosbox_check_nonrecursive_pf_eip == reg_eip) {
+		/* NTS: The reason we check against CS:EIP for changes is that blindly doing this method causes
+		 *      far more crashes and instability within DOSBox than taking careful steps. Interestingly,
+		 *      the crashes are more severe with core=normal or core=full than with the more subtle crashes
+		 *      with core=dynamic. Checking this way avoids the crashes.
+		 *
+		 *      Other ways that blindly doing the method causes crashes:
+		 *
+		 *      Windows 3.1: With core=dynamic, everything seems OK until eventually the dynamic core
+		 *                   reports an anomaly in it's cache, and then segfaults. core=normal may work,
+		 *                   but is guaranteed to crash if you're in Windows 3.1 and you enter the DOS
+		 *                   box. */
+		fprintf(stderr,"DEBUG: Using non-recursive page fault for lin=0x%08x page=0x%08x faultcode=%u. Wish me luck.\n",
+			lin_addr,page_addr,faultcode);
+		throw GuestPageFaultException(lin_addr,page_addr,faultcode);
 	} else {
 		// Save the state of the cpu cores
-	LazyFlags old_lflags;
-	memcpy(&old_lflags,&lflags,sizeof(LazyFlags));
-	CPU_Decoder * old_cpudecoder;
-	old_cpudecoder=cpudecoder;
-	cpudecoder=&PageFaultCore;
-	if (pf_queue.used >= PF_QUEUESIZE) E_Exit("PF queue overrun.");
-	if (pf_queue.used != 0) fprintf(stderr,"Warning: PAGING_NewPageFault() more than one level, now using level %d\n",pf_queue.used+1);
-	PF_Entry * entry=&pf_queue.entries[pf_queue.used++];
-	entry->cs=SegValue(cs);
-	entry->eip=reg_eip;
-	entry->page_addr=page_addr;
-	entry->mpl=cpu.mpl;
-	cpu.mpl=3;
-	CPU_Exception(EXCEPTION_PF,faultcode);
-	DOSBOX_RunMachine();
-	pf_queue.used--;
-	LOG(LOG_PAGING,LOG_NORMAL)("Left PageFault for %x queue %d",lin_addr,pf_queue.used);
-	memcpy(&lflags,&old_lflags,sizeof(LazyFlags));
-	cpudecoder=old_cpudecoder;
-		}
+		LazyFlags old_lflags;
+		memcpy(&old_lflags,&lflags,sizeof(LazyFlags));
+		CPU_Decoder * old_cpudecoder;
+		old_cpudecoder=cpudecoder;
+		cpudecoder=&PageFaultCore;
+		if (pf_queue.used >= PF_QUEUESIZE) E_Exit("PF queue overrun.");
+		if (pf_queue.used != 0) fprintf(stderr,"Warning: PAGING_NewPageFault() more than one level, now using level %d\n",pf_queue.used+1);
+		PF_Entry * entry=&pf_queue.entries[pf_queue.used++];
+		entry->cs=SegValue(cs);
+		entry->eip=reg_eip;
+		entry->page_addr=page_addr;
+		entry->mpl=cpu.mpl;
+		cpu.mpl=3;
+		CPU_Exception(EXCEPTION_PF,faultcode);
+		DOSBOX_RunMachine();
+		pf_queue.used--;
+		LOG(LOG_PAGING,LOG_NORMAL)("Left PageFault for %x queue %d",lin_addr,pf_queue.used);
+		memcpy(&lflags,&old_lflags,sizeof(LazyFlags));
+		cpudecoder=old_cpudecoder;
 	}
+}
 
 class PageFoilHandler : public PageHandler {
 private:

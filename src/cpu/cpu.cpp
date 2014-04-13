@@ -2406,6 +2406,9 @@ public:
 		CPU_Cycles=0;
 		CPU_SkipCycleAutoAdjust=false;
 
+		dosbox_enable_nonrecursive_page_fault = section->Get_bool("non-recursive page fault");
+		if (dosbox_enable_nonrecursive_page_fault) fprintf(stderr,"WARNING: experimental non-recursive page fault mode enabled. If this causes problems, add 'non-recursive page fault=0' to your dosbox.conf\n");
+
 		ignore_opcode_63 = section->Get_bool("ignore opcode 63");
 
 		cpu_allow_big16 = section->Get_bool("realbig16");

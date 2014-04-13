@@ -390,5 +390,25 @@ static INLINE bool mem_writed_checked(PhysPt address,Bit32u val) {
 	} else return mem_unalignedwrited_checked(address,val);
 }
 
+extern bool dosbox_enable_nonrecursive_page_fault;	/* user option */
+extern bool dosbox_allow_nonrecursive_page_fault;	/* when set, do nonrecursive mode (when executing instruction) */
+
+#include <exception>
+
+class GuestPageFaultException : public std::exception {
+public:
+	virtual const char *what() const throw() {
+		return "Guest page fault exception";
+	}
+	GuestPageFaultException(PhysPt n_lin_addr, Bitu n_page_addr, Bitu n_faultcode) {
+		lin_addr = n_lin_addr;
+		page_addr = n_page_addr;
+		faultcode = n_faultcode;
+	}
+public:
+	PhysPt lin_addr;
+	Bitu page_addr;
+	Bitu faultcode;
+};
 
 #endif
