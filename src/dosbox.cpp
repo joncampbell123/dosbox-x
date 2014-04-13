@@ -269,6 +269,7 @@ void run_hw() {
 
 extern Bitu dosbox_check_nonrecursive_pf_cs;
 extern Bitu dosbox_check_nonrecursive_pf_eip;
+extern bool allow_port_92_reset;
 extern bool allow_keyb_reset;
 
 static Bitu Normal_Loop(void) {
@@ -556,6 +557,8 @@ static void DOSBOX_RealInit(Section * sec) {
 
 	/* private area size param in bytes. round up to nearest paragraph */
 	DOS_PRIVATE_SEGMENT_Size = (section->Get_int("private area size") + 8) / 16;
+
+	allow_port_92_reset = section->Get_bool("allow port 92 reset");
 
 	MAPPER_AddHandler(DOSBOX_UnlockSpeed, MK_f12, MMOD2,"speedlock","Speedlock");
 	MAPPER_AddHandler(DOSBOX_UnlockSpeed2, MK_f11, MMOD2,"speedlock2","Speedlock2");
@@ -847,6 +850,9 @@ void DOSBOX_Init(void) {
 
 	Pbool = secprop->Add_bool("cgasnow",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("When machine=cga, determines whether or not to emulate CGA snow");
+
+	Pbool = secprop->Add_bool("allow port 92 reset",Property::Changeable::OnlyAtStart,true);
+	Pbool->Set_help("If set (default), allow the application to reset the CPU through port 92h");
 
 	secprop->AddInitFunction(&CALLBACK_Init);
 	secprop->AddInitFunction(&PIC_Init);//done

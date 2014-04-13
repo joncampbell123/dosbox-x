@@ -625,9 +625,26 @@ void phys_writes(PhysPt addr, const char* string, Bitu length) {
 	for(Bitu i = 0; i < length; i++) host_writeb(MemBase+addr+i,string[i]);
 }
 
+#include "control.h"
+
+void restart_program(std::vector<std::string> & parameters);
+
+bool allow_port_92_reset = true;
+
 static void write_p92(Bitu port,Bitu val,Bitu iolen) {	
 	// Bit 0 = system reset (switch back to real mode)
-	if (val&1) E_Exit("XMS: CPU reset via port 0x92 not supported.");
+	if (val & 1) {
+		if (allow_port_92_reset) {
+			fprintf(stderr,"Restart by port 92h requested\n");
+			control->startup_params.insert(control->startup_params.begin(),control->cmdline->GetFileName());
+			restart_program(control->startup_params);
+			/* does not return */
+		}
+		else {
+			fprintf(stderr,"WARNING: port 92h written with bit 0 set. Is the guest OS or application attempting to reset the system?\n");
+		}
+	}
+
 	memory.a20.controlport = val & ~2;
 	MEM_A20_Enable((val & 2)>0);
 }
