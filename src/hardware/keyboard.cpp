@@ -414,6 +414,12 @@ static void KEYBOARD_AUX_Write(Bitu val) {
 	};
 }
 
+#include "control.h"
+
+bool allow_keyb_reset = true;
+
+void restart_program(std::vector<std::string> & parameters);
+
 static void write_p60(Bitu port,Bitu val,Bitu iolen) {
 	switch (keyb.command) {
 	case CMD_NONE:	/* None */
@@ -508,6 +514,17 @@ static void write_p60(Bitu port,Bitu val,Bitu iolen) {
 		break;
 	case CMD_SETOUTPORT:
 		/* FIXME: if (val & 1 == 0) then reset the computer */
+		if (!(val & 1)) {
+			if (allow_keyb_reset) {
+				fprintf(stderr,"Restart by keyboard controller requested\n");
+				control->startup_params.insert(control->startup_params.begin(),control->cmdline->GetFileName());
+				restart_program(control->startup_params);
+				/* does not return */
+			}
+			else {
+				fprintf(stderr,"WARNING: Keyboard output port written with bit 1 clear. Is the guest OS or application attempting to reset the system?\n");
+			}
+		}
 		MEM_A20_Enable((val & 2)>0);
 		keyb.command = CMD_NONE;
 		break;
@@ -655,7 +672,17 @@ static void write_p64(Bitu port,Bitu val,Bitu iolen) {
 	case 0xf0: case 0xf1: case 0xf2: case 0xf3: case 0xf4: case 0xf5: case 0xf6: case 0xf7:
 	case 0xf8: case 0xf9: case 0xfa: case 0xfb: case 0xfc: case 0xfd: case 0xfe: case 0xff:
 		/* pulse output register */
-		/* TODO: If bit 0 == 0, trigger system reset */
+		if (!(val & 1)) {
+			if (allow_keyb_reset) {
+				fprintf(stderr,"Restart by keyboard controller requested\n");
+				control->startup_params.insert(control->startup_params.begin(),control->cmdline->GetFileName());
+				restart_program(control->startup_params);
+				/* does not return */
+			}
+			else {
+				fprintf(stderr,"WARNING: Keyboard output port written (pulsed) with bit 1 clear. Is the guest OS or application attempting to reset the system?\n");
+			}
+		}
 		break;
 	default:
 		LOG(LOG_KEYBOARD,LOG_ERROR)("Port 64 write with val %d",val);
@@ -1205,6 +1232,8 @@ void KEYBOARD_Init(Section* sec) {
 	if (keyb.enable_aux=section->Get_bool("aux")) {
 		LOG(LOG_KEYBOARD,LOG_NORMAL)("Keyboard AUX emulation enabled");
 	}
+
+	allow_keyb_reset = section->Get_bool("allow output port reset");
 
 	keyb.ps2mouse.int33_taken = 0;
 

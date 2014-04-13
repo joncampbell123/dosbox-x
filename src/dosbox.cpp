@@ -269,6 +269,7 @@ void run_hw() {
 
 extern Bitu dosbox_check_nonrecursive_pf_cs;
 extern Bitu dosbox_check_nonrecursive_pf_eip;
+extern bool allow_keyb_reset;
 
 static Bitu Normal_Loop(void) {
 	Bits ret;
@@ -990,6 +991,11 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("aux",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("Enable emulation of the 8042 auxiliary port. PS/2 mouse emulation requires this to be enabled.\n"
 			"You should enable this if you will be running Windows ME or any other OS that does not use the BIOS to receive mouse events.");
+
+	Pbool = secprop->Add_bool("allow output port reset",Property::Changeable::OnlyAtStart,true);
+	Pbool->Set_help("If set (default), allow the application to reset the CPU through the keyboard controller.\n"
+			"This option is required to allow Windows ME to reboot properly, whereas Windows 9x and earlier\n"
+			"will reboot without this option using INT 19h");
 
 	Pstring = secprop->Add_string("auxdevice",Property::Changeable::OnlyAtStart,"intellimouse");
 	Pstring->Set_values(auxdevices);
