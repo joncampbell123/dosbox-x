@@ -1,0 +1,9 @@
+Microsoft Windows Millenium Edition
+
+System reboot doesn't work with DOSBox:
+ - I think it has to do with the fact that the keyboard controller
+   emulation correctly emulates the A20 gate for the output port
+   but not the reset line. Perhaps Windows 95/98 happens to work
+   because they also try port 0x92, while Windows ME for some reason
+   doesn't try port 0x92.
+

@@ -1,0 +1,111 @@
+As happy as I am with doing this project, there are some
+major issues I wish to resolve:
+
+1. core=dynamic is REQUIRED to run Windows 95/98/ME reliably.
+   it seems to be the ONLY core capable of running them at all.
+   running under other cores causes random erratic crashes.
+
+   how to fix? I'm still convinced it has to do with DOSBox's
+   codebase allowing the CPU cores to call memread which in turn
+   can take the page fault codepath if the page is not present,
+   AT ANY TIME, and it may have something to do with parts of
+   the CPU core that aren't prepared to deal with interruption
+   like that.
+
+   to put it another way, I think the normal, simple, and full
+   cores have issues with page fault emulation that need to be
+   resolved.
+
+2. PAGING_NewPageFault() recursion issue.
+
+   The PF queue builds up over time in Windows 9x/ME and I think
+   it has to do with preemption involving the page fault exception.
+   What that means is that in Win9x/ME a page fault doesn't
+   necessarily return to the fault location. It could process the
+   pagefault instead but then task switch to another process.
+   It could do that in a order that is different from the order
+   that page faults occurred in. Because of the way that the
+   "page fault core" is written, the case to exit out and drain
+   the PF queue never happens. Worst case scenario, the PF queue
+   runs out and DOSBox crashes.
+
+   I'm also willing to assume the possibility that Windows 9x/ME
+   might eventually return to the task that page faulted, but with
+   a different segment value (if 16-bit, probably less likely for
+   32-bit).
+
+3. Possible recursion issues with the dynamic core.
+
+   What does the dynamic core generator do about the recursive
+   page fault case when it does the function calls to do so, and
+   the deeper function calls in turn call more code, which in
+   turn could cause blocks to flush and possibly invalidate
+   the dynamically generated code that the stack still refers
+   to?
+
+4. Code organization in general.
+
+   The code is a mess. This won't be instant, but over time, the
+   code needs to be properly organized to ensure that maintaining
+   it will not turn into a nightmare. There are some important
+   organizational changes I wish to make to the code that require
+   it to be cleaned up, to better support:
+
+   - run-time configurable busses (changing resources via PCI
+     configuration space)
+   - PCI to ISA bridge emulation
+   - PCI IRQ routing emulation
+   - ISA devices that can change I/O resources (such as PnP).
+     The current DOSBox codebase assumes IO ports never change.
+   - General i440FX chipset emulation
+   - multiple PCI video cards (and possibly ISA alongside it)
+   - the option for no video card whatsoever
+
+5. Rewrite of the DOSBox debugger.
+
+   It sucks. Well, it's OK at pointing out where the code is,
+   and it's fine at single-stepping and basic breakpoints, but
+   the way it's implemented sucks. For one... why use the
+   terminal? If the other add-on GUIs of DOSBox show anything
+   the debugger could be implemented as a subroutine of DOSBox
+   that changes the screen over, or perhaps even overlay on
+   top of the existing screen with no mode change whatsoever.
+
+   I would also like to see added:
+     - more intuitive register examination code
+     - commands to dump floating point registers
+     - breakpoint on I/O port
+
+6. DOSBox's heavy reliance on scheduling events using the PIC timer,
+   and PIC timer inaccuracies in general.
+
+   I noticed that if you request a time value from the PIC core
+   as a float, there is a slight discontinuity that can happen that
+   can affect some games or OSes timing.
+
+   I also noticed that some parts of the PIC emulation are off
+   timing-wise, such as the PC speaker when used as a timer.
+
+   To help improve device timing and emulation accuracy, a parallel
+   framework of clocks has been added. By these clocks, events can
+   be scheduled in clock ticks rather than floating point delays.
+   The clock ticks also represent time very accurately in terms of
+   the emulated bus's clock.
+
+   Built-in default clocks:
+    - ISA 14MHz OSC clock
+    - ISA 8.33MHz bus clock (user-changeable to other frequencies
+      such as 4.77MHz when emulating an XT)
+    - PCI 33.333MHz bus clock (if PCI emulation is enabled, and
+      user changeable to other less common frequencies like 30MHz
+      and 25MHz)
+
+   It is hoped that eventually all code is transitioned to using
+   these clock delays and timeouts and the PIC_AddEvent() type
+   functions are deprecated and removed. Some parts like VGA
+   emulation could definitely benefit from a clock-domain type
+   time emulation by maintaining their own clock domain representing
+   the pixel clock, and then emulating HSYNC and VSYNC from that.
+   The current VGA emulation is accurate enough, but has inaccuracies
+   that cause problems for DOS programs that do raster VGA trickery.
+
