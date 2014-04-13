@@ -956,12 +956,13 @@ void DOSBOX_Init(void) {
 	Pint->SetMinMax(1,1000000);
 	Pint->Set_help("Setting it lower than 100 will be a percentage.");
 
-	Pbool = secprop->Add_bool("non-recursive page fault",Property::Changeable::Always,true);
+	Pbool = secprop->Add_bool("non-recursive page fault",Property::Changeable::Always,false);
 	Pbool->Set_help("Determines whether CPU emulation attempts to use a non-recursive method to emulate guest OS page fault exceptions.\n"
 			"If false (mainline DOSBox compatible), page faults are emulated using a recursive method, which is fine\n"
 			"for MS-DOS and Windows 3.1 emulation scenarios where the exception handler will always return directly to the fault location.\n"
 			"However, that assumption is not necessarily true for preemptive multitasking operating systems like Windows 95, for which\n"
-			"this setting should be enabled to help avoid recursion issues in DOSBox.");
+			"this setting should be enabled to help avoid recursion issues in DOSBox.\n"
+			"WARNING: this feature is not entirely stable yet especially if the dynamic core is involved.");
 
 	Pbool = secprop->Add_bool("ignore opcode 63",Property::Changeable::Always,true);
 	Pbool->Set_help("When debugging, do not report illegal opcode 0x63.\n"
