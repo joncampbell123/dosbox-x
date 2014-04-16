@@ -5,13 +5,7 @@
    The floppy-based install will not work with NT, because DOSBox-X
    does not yet emulate the floppy controller.
 
-3. Let DOSBox-X restart
-
-4. Let NT Boot.
-
-   NOTE: At this time, NT is unable to get past the boot screen and
-   displays a crash dump with INACCESSIBLE_BOOT_DEVICE. debug information
-   seems to imply that NT's IDE driver is having difficulty issuing
-   a sector read---debug info shows IDE command 20h is issued... long
-   pause... another one is issued... eventually NT gives up.
+NOTE: The installer goes as far as copying some base files, then appears
+      to hang, or spit out a spurious error message. I'm not sure what's
+      wrong.
 
