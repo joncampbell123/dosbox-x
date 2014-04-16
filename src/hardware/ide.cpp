@@ -274,7 +274,7 @@ static void IDE_ATAPI_SpinDown(Bitu idx/*which IDE controller*/) {
 	if (ctrl == NULL) return;
 
 	for (unsigned int i=0;i < 2;i++) {
-		IDEDevice *dev = ctrl->device[0];
+		IDEDevice *dev = ctrl->device[i];
 		if (dev == NULL) continue;
 
 		if (dev->type == IDE_TYPE_HDD) {
@@ -300,7 +300,7 @@ static void IDE_ATAPI_CDInsertion(Bitu idx/*which IDE controller*/) {
 	if (ctrl == NULL) return;
 
 	for (unsigned int i=0;i < 2;i++) {
-		IDEDevice *dev = ctrl->device[0];
+		IDEDevice *dev = ctrl->device[i];
 		if (dev == NULL) continue;
 
 		if (dev->type == IDE_TYPE_HDD) {
@@ -327,7 +327,7 @@ static void IDE_ATAPI_SpinUpComplete(Bitu idx/*which IDE controller*/) {
 	if (ctrl == NULL) return;
 
 	for (unsigned int i=0;i < 2;i++) {
-		IDEDevice *dev = ctrl->device[0];
+		IDEDevice *dev = ctrl->device[i];
 		if (dev == NULL) continue;
 
 		if (dev->type == IDE_TYPE_HDD) {
