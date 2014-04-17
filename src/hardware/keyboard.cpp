@@ -283,9 +283,19 @@ static Bitu read_p60(Bitu port,Bitu iolen) {
 		PIC_AddEvent(KEYBOARD_TransferBuffer,KEYDELAY);
 	}
 	return keyb.p60data;
-}	
+}
 
-static void KEYBOARD_AUX_Write(Bitu val) {
+unsigned char KEYBOARD_AUX_GetType() {
+	/* and then the ID */
+	if (keyb.ps2mouse.intellimouse_btn45)
+		return 0x04;
+	else if (keyb.ps2mouse.intellimouse_mode)
+		return 0x03;
+	else
+		return 0x00;
+}
+
+void KEYBOARD_AUX_Write(Bitu val) {
 	if (keyb.ps2mouse.type == MOUSE_NONE)
 		return;
 

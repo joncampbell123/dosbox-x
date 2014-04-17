@@ -1542,6 +1542,10 @@ static Bitu INT14_Handler(void) {
 	return CBRET_NONE;
 }
 
+void KEYBOARD_AUX_Write(Bitu val);
+unsigned char KEYBOARD_AUX_GetType();
+void KEYBOARD_ClrBuffer(void);
+
 static Bitu INT15_Handler(void) {
 	static Bit16u biosConfigSeg=0;
 
@@ -1784,15 +1788,19 @@ static Bitu INT15_Handler(void) {
 			switch (reg_al) {
 				case 0x00:		// enable/disable
 					if (reg_bh==0) {	// disable
+						KEYBOARD_AUX_Write(0xF5);
 						Mouse_SetPS2State(false);
 						reg_ah=0;
 						CALLBACK_SCF(false);
+						KEYBOARD_ClrBuffer();
 					} else if (reg_bh==0x01) {	//enable
 						if (!Mouse_SetPS2State(true)) {
 							reg_ah=5;
 							CALLBACK_SCF(true);
 							break;
 						}
+						KEYBOARD_AUX_Write(0xF4);
+						KEYBOARD_ClrBuffer();
 						reg_ah=0;
 						CALLBACK_SCF(false);
 					} else {
@@ -1801,20 +1809,38 @@ static Bitu INT15_Handler(void) {
 					}
 					break;
 				case 0x01:		// reset
+					KEYBOARD_AUX_Write(0xFF);
+					KEYBOARD_ClrBuffer();
 					reg_bx=0x00aa;	// mouse
 					// fall through
 				case 0x05:		// initialize
+					KEYBOARD_AUX_Write(0xFF);
+					KEYBOARD_AUX_Write(0xF5);
 					Mouse_SetPS2State(false);
+					KEYBOARD_ClrBuffer();
 					CALLBACK_SCF(false);
 					reg_ah=0;
 					break;
-				case 0x02:		// set sampling rate
+				case 0x02: {		// set sampling rate
+					static const unsigned char tbl[7] = {10,20,40,60,80,100,200};
+					KEYBOARD_AUX_Write(0xF3);
+					if (reg_bl > 6) reg_bl = 6;
+					KEYBOARD_AUX_Write(tbl[reg_bh]);
+					KEYBOARD_ClrBuffer();
+					CALLBACK_SCF(false);
+					reg_ah=0;
+					} break;
 				case 0x03:		// set resolution
+					KEYBOARD_AUX_Write(0xE8);
+					KEYBOARD_AUX_Write(reg_bh);
+					KEYBOARD_ClrBuffer();
 					CALLBACK_SCF(false);
 					reg_ah=0;
 					break;
 				case 0x04:		// get type
-					reg_bh=0;	// ID
+					reg_bh=KEYBOARD_AUX_GetType();	// ID
+//					fprintf(stderr,"INT 15h reporting mouse device ID 0x%02x\n",reg_bh);
+					KEYBOARD_ClrBuffer();
 					CALLBACK_SCF(false);
 					reg_ah=0;
 					break;
