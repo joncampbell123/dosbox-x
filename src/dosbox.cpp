@@ -1007,6 +1007,14 @@ void DOSBOX_Init(void) {
 	Pstring->Set_values(auxdevices);
 	Pstring->Set_help("Type of PS/2 mouse attached to the AUX port");
 
+	Pbool = secprop->Add_bool("aux default reporting mode streaming",Property::Changeable::OnlyAtStart,false);
+	Pbool->Set_help("Controls the default reporting mode PS/2 mice are set to on device reset. If set,\n"
+			"default reporting mode is streaming. If clear, default reporting mode is remote\n"
+			"(which is default PS/2 mouse behavior in the wild). Option is off by default.\n"
+			"This option is needed to enable PS/2 aka Bus Mouse support in Windows NT 3.1 because\n"
+			"Windows NT 3.1 does not send a command to change reporting mode on initialization.\n"
+			"If you boot NT 3.1 and the mouse does not work (but the cursor is visible), set this option.");
+
 #if defined(PCI_FUNCTIONALITY_ENABLED)
 	secprop=control->AddSection_prop("pci",&PCI_Init,false); //PCI bus
 

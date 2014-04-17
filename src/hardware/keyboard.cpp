@@ -78,6 +78,7 @@ enum MouseType {
 struct ps2mouse {
 	MouseType	type;			/* what kind of mouse we are emulating */
 	MouseMode	mode;			/* current mode */
+	MouseMode	reset_mode;		/* mode to change to on reset */
 	Bit8u		samplerate;		/* current sample rate */
 	Bit8u		resolution;		/* current resolution */
 	Bit8u		last_srate[3];		/* last 3 "set sample rate" values */
@@ -1236,6 +1237,9 @@ void KEYBOARD_Init(Section* sec) {
 	allow_keyb_reset = section->Get_bool("allow output port reset");
 
 	keyb.ps2mouse.int33_taken = 0;
+	keyb.ps2mouse.reset_mode = MM_REMOTE; /* In the real world, PS/2 mice reset to remote mode */
+	if (section->Get_bool("aux default reporting mode streaming"))
+		keyb.ps2mouse.reset_mode = MM_STREAM; /* Windows NT 3.1 apparently goes through the correct steps EXCEPT for setting the streaming mode! */
 
 	const char * sbtype=section->Get_string("auxdevice");
 	keyb.ps2mouse.type = MOUSE_NONE;
@@ -1269,7 +1273,7 @@ void KEYBOARD_Init(Section* sec) {
 }
 
 void AUX_Reset() {
-	keyb.ps2mouse.mode = MM_REMOTE;
+	keyb.ps2mouse.mode = keyb.ps2mouse.reset_mode;
 	keyb.ps2mouse.acx = 0;
 	keyb.ps2mouse.acy = 0;
 	keyb.ps2mouse.samplerate = 80;
