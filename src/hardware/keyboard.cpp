@@ -130,6 +130,10 @@ static struct {
 	bool rightctrl_pressed;
 } keyb;
 
+bool MouseTypeNone() {
+	return (keyb.ps2mouse.type == MOUSE_NONE);
+}
+
 /* NTS: INT33H emulation is coded to call this ONLY if it hasn't taken over the role of mouse input */
 void KEYBOARD_AUX_Event(float x,float y,Bitu buttons) {
 	keyb.ps2mouse.acx += x;
