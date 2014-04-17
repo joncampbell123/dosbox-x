@@ -873,6 +873,39 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 
 			controller->raise_irq();
 			break;
+		case 0x25: /* READ CAPACITY */ {
+			const unsigned int secsize = 2048;
+			int first,last;
+			TMSF leadOut;
+
+			CDROM_Interface *cdrom = getMSCDEXDrive();
+
+			if (!cdrom->GetAudioTracks(first,last,leadOut))
+				fprintf(stderr,"WARNING: ATAPI READ TOC failed to get track info\n");
+
+			uint32_t sec = (leadOut.min*60*75)+(leadOut.sec*75)+leadOut.fr - 150;
+
+			prepare_read(0,MIN((unsigned int)8,(unsigned int)host_maximum_byte_count));
+			sector[0] = sec >> 24;
+			sector[1] = sec >> 16;
+			sector[2] = sec >> 8;
+			sector[3] = sec & 0xFF;
+			sector[4] = secsize >> 24;
+			sector[5] = secsize >> 16;
+			sector[6] = secsize >> 8;
+			sector[7] = secsize & 0xFF;
+//			fprintf(stderr,"sec=%lu secsize=%lu\n",sec,secsize);
+
+			feature = 0x00;
+			state = IDE_DEV_DATA_READ;
+			status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+
+			/* ATAPI protocol also says we write back into LBA 23:8 what we're going to transfer in the block */
+			lba[2] = sector_total >> 8;
+			lba[1] = sector_total;
+
+			controller->raise_irq();
+			} break;
 		case 0x2B: /* SEEK */
 			count = 0x03;
 			feature = 0x00;
@@ -1358,6 +1391,12 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
 			break;
 		case 0x1E: /* PREVENT ALLOW MEDIUM REMOVAL */
+			count = 0x02;
+			state = IDE_DEV_ATAPI_BUSY;
+			status = IDE_STATUS_BUSY;
+			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
+			break;
+		case 0x25: /* READ CAPACITY */
 			count = 0x02;
 			state = IDE_DEV_ATAPI_BUSY;
 			status = IDE_STATUS_BUSY;
