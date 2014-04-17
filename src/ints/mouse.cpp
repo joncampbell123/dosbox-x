@@ -46,6 +46,13 @@ void KEYBOARD_AUX_Event(float x,float y,Bitu buttons);
 bool en_int33=false;
 bool en_bios_ps2mouse=false;
 
+void DisableINT33() {
+	if (en_int33) {
+		en_int33 = false;
+		/* TODO: Also unregister INT 33h handler */
+	}
+}
+
 static Bitu call_int33,call_int74,int74_ret_callback,call_mouse_bd;
 static Bit16u ps2cbseg,ps2cbofs;
 static bool useps2callback,ps2callbackinit;
@@ -462,8 +469,8 @@ void DrawCursor() {
 	RestoreVgaRegisters();
 }
 
+/* FIXME: Re-test this code */
 void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
-	INT10_SetCurMode();
 	extern bool Mouse_Vertical;
 	float dx = xrel * mouse.pixelPerMickey_x;
 	float dy = (Mouse_Vertical?-yrel:yrel) * mouse.pixelPerMickey_y;
@@ -477,15 +484,28 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
 	if((fabs(yrel) > 1.0) || (mouse.senv_y < 1.0)) dy *= mouse.senv_y;
 	if (useps2callback) dy *= 2;	
 
-	mouse.mickey_x += (dx * mouse.mickeysPerPixel_x);
-	mouse.mickey_y += (dy * mouse.mickeysPerPixel_y);
-	if (mouse.mickey_x >= 32768.0) mouse.mickey_x -= 65536.0;
-	else if (mouse.mickey_x <= -32769.0) mouse.mickey_x += 65536.0;
-	if (mouse.mickey_y >= 32768.0) mouse.mickey_y -= 65536.0;
-	else if (mouse.mickey_y <= -32769.0) mouse.mickey_y += 65536.0;
+	/* serial mouse, if connected, also wants to know about it */
+	on_mouse_event_for_serial((int)(dx),(int)(dy),mouse.buttons);
+
+	if (en_int33) {
+		/* NTS: This part only cares about the BIOS mode when emulating INT 33h mouse services.
+		 *      In other cases, having this enabled causes crashes in certain 32-bit environments like Windows NT
+		 *      because INT10_SetCurMode() uses real_readb() which triggers a page fault. */
+		INT10_SetCurMode();
+		mouse.mickey_x += (dx * mouse.mickeysPerPixel_x);
+		mouse.mickey_y += (dy * mouse.mickeysPerPixel_y);
+		if (mouse.mickey_x >= 32768.0) mouse.mickey_x -= 65536.0;
+		else if (mouse.mickey_x <= -32769.0) mouse.mickey_x += 65536.0;
+		if (mouse.mickey_y >= 32768.0) mouse.mickey_y -= 65536.0;
+		else if (mouse.mickey_y <= -32769.0) mouse.mickey_y += 65536.0;
+	}
+
 	if (emulate) {
 		mouse.x += dx;
 		mouse.y += dy;
+	} else if (!en_int33) {
+		mouse.x += xrel;
+		mouse.y += yrel;
 	} else {
 		if (CurMode->type == M_TEXT) {
 			mouse.x = x*CurMode->swidth;
@@ -503,9 +523,6 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
 			mouse.y += yrel;
 		}
 	}
-
-	/* serial mouse, if connected, also wants to know about it */
-	on_mouse_event_for_serial((int)(dx),(int)(dy),mouse.buttons);
 
 	/* ignore constraints if using PS2 mouse callback in the bios */
 

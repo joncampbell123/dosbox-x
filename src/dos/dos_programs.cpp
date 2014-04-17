@@ -504,6 +504,8 @@ static void SHOWGUI_ProgramStart(Program * * make) {
 extern Bit32u floppytype;
 extern bool dos_kernel_disabled;
 
+void DisableINT33();
+
 class BOOT : public Program {
 private:
    
@@ -911,6 +913,12 @@ public:
 			/* remove UMB block */
 			void RemoveUMBBlock();
 			if (!keep_umb_on_boot) RemoveUMBBlock();
+
+			/* disable INT 33h mouse services */
+			/* NTS: If you want to run Windows NT 3.1 or ME this is vital because DOSBox's
+			 *      INT 33h emulation involves memory I/O that serves only to cause page
+			 *      fault issues with 32-bit OSes */
+			DisableINT33();
 
 			void DOS_GetMemory_unmap();
 			if (!keep_private_area_on_boot)
