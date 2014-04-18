@@ -1814,12 +1814,18 @@ static Bitu INT15_Handler(void) {
 					reg_bx=0x00aa;	// mouse
 					// fall through
 				case 0x05:		// initialize
-					KEYBOARD_AUX_Write(0xFF);
-					KEYBOARD_AUX_Write(0xF5);
-					Mouse_SetPS2State(false);
-					KEYBOARD_ClrBuffer();
-					CALLBACK_SCF(false);
-					reg_ah=0;
+					if (reg_bh >= 3 && reg_bh <= 4) {
+						fprintf(stderr,"INT 15h mouse initialized to %u-byte protocol\n",reg_bh);
+						KEYBOARD_AUX_Write(0xFF);
+						Mouse_SetPS2State(false);
+						KEYBOARD_ClrBuffer();
+						CALLBACK_SCF(false);
+						reg_ah=0;
+					}
+					else {
+						CALLBACK_SCF(false);
+						reg_ah=0x02; /* invalid input */
+					}
 					break;
 				case 0x02: {		// set sampling rate
 					static const unsigned char tbl[7] = {10,20,40,60,80,100,200};
@@ -1839,7 +1845,7 @@ static Bitu INT15_Handler(void) {
 					break;
 				case 0x04:		// get type
 					reg_bh=KEYBOARD_AUX_GetType();	// ID
-//					fprintf(stderr,"INT 15h reporting mouse device ID 0x%02x\n",reg_bh);
+					fprintf(stderr,"INT 15h reporting mouse device ID 0x%02x\n",reg_bh);
 					KEYBOARD_ClrBuffer();
 					CALLBACK_SCF(false);
 					reg_ah=0;
@@ -1859,6 +1865,7 @@ static Bitu INT15_Handler(void) {
 					reg_ah=0;
 					break;
 				default:
+					fprintf(stderr,"INT 15h unknown mouse call AX=%04x\n",reg_ax);
 					CALLBACK_SCF(true);
 					reg_ah=1;
 					break;
