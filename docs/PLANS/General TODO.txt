@@ -118,6 +118,23 @@
   - IDE/ATAPI emulation needs to support the mode select or whatever commands
     used by DOS programs to change CD audio volume.
 
+* Full Intellimouse scrollwheel emulation
+
+  - Apparently it's possible to respond to scrollwheel events via SDL, so
+    add code to receive them.
+  - Add code to store scroll wheel deltas in mouse event queue.
+  - Add code to take overall scrollwheel delta and transmit as 4th byte
+    in Intellimouse mouse on AUX
+  - And toughest of them all: Figure out how the hell Windows 98 is able
+    to use scrollwheel data when it is still reliant on the INT 15h
+    device callback that's documented only to carry the X, Y, and button
+    state data. If VirtualBox can do it, so can I! The ONLY documentation
+    I have on this are snippets of code from CuteMouse that is apparently
+    able to turn on PS/2 BIOS scroll wheel capture for DOS. In any case
+    perhaps the best course of action is to write a program in DOSLIB that
+    hooks the device callback and records the values on the stack during
+    the call, with and without the Intellimouse knock sequence in effect.
+
 * Multiple DOS kernel emulation
 
   - Instead of only emulating a general mishmash of MS-DOS 5.0 to 6.22 syscalls,
