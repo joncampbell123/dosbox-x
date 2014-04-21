@@ -282,6 +282,7 @@ static Bitu read_p60(Bitu port,Bitu iolen) {
 		keyb.scheduled=true;
 		PIC_AddEvent(KEYBOARD_TransferBuffer,KEYDELAY);
 	}
+	fprintf(stderr,"Keyboard read60=0x%02x\n",keyb.p60data);
 	return keyb.p60data;
 }
 
@@ -293,6 +294,23 @@ unsigned char KEYBOARD_AUX_GetType() {
 		return 0x03;
 	else
 		return 0x00;
+}
+
+unsigned char KEYBOARD_AUX_DevStatus() {
+	return	(keyb.ps2mouse.mode == MM_REMOTE ? 0x40 : 0x00)|
+		(keyb.ps2mouse.reporting << 5)|
+		(keyb.ps2mouse.scale21 << 4)|
+		(keyb.ps2mouse.m << 2)|
+		(keyb.ps2mouse.r << 1)|
+		(keyb.ps2mouse.l << 0);
+}
+
+unsigned char KEYBOARD_AUX_Resolution() {
+	return keyb.ps2mouse.resolution;
+}
+
+unsigned char KEYBOARD_AUX_SampleRate() {
+	return keyb.ps2mouse.samplerate;
 }
 
 void KEYBOARD_AUX_Write(Bitu val) {
@@ -372,13 +390,7 @@ void KEYBOARD_AUX_Write(Bitu val) {
 					break;
 				case 0xe9:	/* status request */
 					KEYBOARD_AddBuffer(AUX|0xfa);	/* ack */
-					KEYBOARD_AddBuffer(AUX|
-						(keyb.ps2mouse.mode == MM_REMOTE ? 0x40 : 0x00)|
-						(keyb.ps2mouse.reporting << 5)|
-						(keyb.ps2mouse.scale21 << 4)|
-						(keyb.ps2mouse.m << 2)|
-						(keyb.ps2mouse.r << 1)|
-						(keyb.ps2mouse.l << 0));
+					KEYBOARD_AddBuffer(AUX|KEYBOARD_AUX_DevStatus());
 					KEYBOARD_AddBuffer(AUX|keyb.ps2mouse.resolution);
 					KEYBOARD_AddBuffer(AUX|keyb.ps2mouse.samplerate);
 					break;
@@ -438,6 +450,8 @@ bool allow_keyb_reset = true;
 void restart_program(std::vector<std::string> & parameters);
 
 static void write_p60(Bitu port,Bitu val,Bitu iolen) {
+	fprintf(stderr,"Keyboard command60=0x%02x mode=%u\n",val,keyb.command);
+
 	switch (keyb.command) {
 	case CMD_NONE:	/* None */
 		if (keyb.reset)
@@ -588,10 +602,13 @@ static void write_p60(Bitu port,Bitu val,Bitu iolen) {
 static Bit8u port_61_data = 0;
 
 static Bitu read_p61(Bitu, Bitu) {
-	return	(port_61_data & 0xF) |
+	unsigned char dbg;
+	dbg = ((port_61_data & 0xF) |
 			(TIMER_GetOutput2()? 0x20:0) |
-			((fmod(PIC_FullIndex(),0.030) > 0.015)? 0x10:0);
-	}
+			((fmod(PIC_FullIndex(),0.030) > 0.015)? 0x10:0));
+	fprintf(stderr,"Keyboard read61=0x%02x\n",dbg);
+	return dbg;
+}
 
 static void write_p61(Bitu, Bitu val, Bitu) {
 	Bit8u diff = port_61_data ^ (Bit8u)val;
@@ -607,6 +624,8 @@ static void write_p61(Bitu, Bitu val, Bitu) {
 static void write_p64(Bitu port,Bitu val,Bitu iolen) {
 	if (keyb.reset)
 		return;
+
+	fprintf(stderr,"Keyboard command64=0x%02x mode=%u\n",val,keyb.command);
 
 	switch (val) {
 	case 0x20:		/* read command byte */

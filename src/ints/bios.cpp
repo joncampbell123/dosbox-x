@@ -1544,6 +1544,9 @@ static Bitu INT14_Handler(void) {
 
 void KEYBOARD_AUX_Write(Bitu val);
 unsigned char KEYBOARD_AUX_GetType();
+unsigned char KEYBOARD_AUX_DevStatus();
+unsigned char KEYBOARD_AUX_Resolution();
+unsigned char KEYBOARD_AUX_SampleRate();
 void KEYBOARD_ClrBuffer(void);
 
 static Bitu INT15_Handler(void) {
@@ -1852,10 +1855,20 @@ static Bitu INT15_Handler(void) {
 					reg_ah=0;
 					break;
 				case 0x06:		// extended commands
-					/* TODO: Windows NT 3.1 on boot up will call INT 15h AX=0xC206 BH=0x00 to read back status.
-					 *       Windows 98 however does not use BH=0x00 */
-					if ((reg_bh==0x01) || (reg_bh==0x02)) { /* set scaling */
+					if (reg_bh == 0x00) {
+						/* Read device status and info.
+						 * Windows 9x does not appear to use this, but Windows NT 3.1 does (prior to entering
+						 * full 32-bit protected mode) */
+						CALLBACK_SCF(false);
+						reg_bx=KEYBOARD_AUX_DevStatus();
+						reg_cx=KEYBOARD_AUX_Resolution();
+						reg_dx=KEYBOARD_AUX_SampleRate();
+						KEYBOARD_ClrBuffer();
+						reg_ah=0;
+					}
+					else if ((reg_bh==0x01) || (reg_bh==0x02)) { /* set scaling */
 						KEYBOARD_AUX_Write(0xE6+reg_bh-1); /* 0xE6 1:1   or 0xE7 2:1 */
+						KEYBOARD_ClrBuffer();
 						CALLBACK_SCF(false); 
 						reg_ah=0;
 					} else {

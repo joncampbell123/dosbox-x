@@ -34,3 +34,40 @@ mode).
 6. Startup DOSBox-X and let NT boot. It should make it to the graphical
    desktop.
 
+----------------------------------------------------------------------
+
+Observations about Windows NT and the keyboard controller:
+
+- NT uses INT 15h AH=0xC2 functions initially at boot up to detect PS/2
+  mice, but during the full 32-bit OS, uses I/O ports 0x60 and 0x64
+  exclusively.
+
+- NT calls INT 15h AX=0xC206 BH=0x00 (extended/read device status).
+  I'm not sure what it does with it, since regardless of the return value
+  it eventually asserts control of the AUX port and issues PS/2 mouse
+  reset, set sample rate/resolution commands, and enable reporting anyway.
+
+- If the INT 15h call fails to eat the acknowledgement of commands
+  (the 0xFA byte returning from the mouse or keyboard), NT's keyboard
+  and mouse driver is liable to get some commands screwed up. In my case,
+  it caused Windows NT to issue a command to read the 8042 command byte,
+  then read back the ACK instead, modify it, and write THAT back to the
+  command byte instead of the proper command byte value. The end result
+  of course was that both keyboard and mouse did not work after that.
+
+- Windows NT modifies the 8042 command byte on startup to a value like
+  0x64, which curiously enough means to leave PS/2 port translation
+  enabled, as well as leaving IRQ1 and IRQ12 disabled (from the 8042
+  controller's point of view). Yes, that's right: Windows NT doesn't
+  use the keyboard controller's interrupt mode to receive data from
+  the controller. I guess that's a positive in a way because it ensures
+  that NT can continue reading the keyboard in case it does something
+  stupid to get the controller wedged, but still...
+
+  Oh, and according to debug dumps of the IO to the 8042 controller,
+  Windows NT apparently doesn't bother to wait for the controller to
+  signal the buffer is empty either. I guess the programmer assumed
+  that, if it didn't use interrupts, and simply had the OS write data
+  on a timer interval or something, that the interval would be long
+  enough for the 8042 to drain it's buffers.
+
