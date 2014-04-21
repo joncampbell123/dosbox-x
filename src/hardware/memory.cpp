@@ -609,15 +609,23 @@ Bit32u mem_readd(PhysPt address) {
 	return mem_readd_inline(address);
 }
 
+#include "cpu.h"
+
+extern bool warn_on_mem_write;
+extern CPUBlock cpu;
+
 void mem_writeb(PhysPt address,Bit8u val) {
+//	if (warn_on_mem_write && cpu.pmode) fprintf(stderr,"WARNING: post-killswitch memory write to 0x%08x = 0x%02x\n",address,val);
 	mem_writeb_inline(address,val);
 }
 
 void mem_writew(PhysPt address,Bit16u val) {
+//	if (warn_on_mem_write && cpu.pmode) fprintf(stderr,"WARNING: post-killswitch memory write to 0x%08x = 0x%04x\n",address,val);
 	mem_writew_inline(address,val);
 }
 
 void mem_writed(PhysPt address,Bit32u val) {
+//	if (warn_on_mem_write && cpu.pmode) fprintf(stderr,"WARNING: post-killswitch memory write to 0x%08x = 0x%08x\n",address,val);
 	mem_writed_inline(address,val);
 }
 

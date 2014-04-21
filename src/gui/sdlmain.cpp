@@ -306,6 +306,8 @@ void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
 	SDL_WM_SetCaption(title,VERSION);
 }
 
+bool warn_on_mem_write = false;
+
 void CPU_Snap_Back_To_Real_Mode();
 
 static void KillSwitch(bool pressed) {
@@ -320,6 +322,7 @@ static void KillSwitch(bool pressed) {
 	 * code has a chance, we force the CPU back into real mode so that the code doesn't trigger funny page faults and DOSBox
 	 * shuts down properly. */
 #endif
+	warn_on_mem_write = true;
 	throw 1;
 }
 
