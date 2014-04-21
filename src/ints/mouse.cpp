@@ -179,7 +179,7 @@ void Mouse_ChangePS2Callback(Bit16u pseg, Bit16u pofs) {
 }
 
 void DoPS2Callback(Bit16u data, Bit16s mouseX, Bit16s mouseY) {
-	if (useps2callback) {
+	if (useps2callback && ps2cbseg != 0 && ps2cbofs != 0) {
 		Bit16u mdat = (data & 0x03) | 0x08;
 		Bit16s xdiff = mouseX-oldmouseX;
 		Bit16s ydiff = oldmouseY-mouseY;

@@ -1847,6 +1847,7 @@ static Bitu INT15_Handler(void) {
 					break;
 				case 0x01:		// reset
 					KEYBOARD_AUX_Write(0xFF);
+					Mouse_SetPS2State(false);
 					KEYBOARD_ClrBuffer();
 					reg_bx=0x00aa;	// mouse
 					// fall through
