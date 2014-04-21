@@ -1622,6 +1622,11 @@ Bitu CPU_SIDT_limit(void) {
 	return cpu.idt.GetLimit();
 }
 
+static bool snap_cpu_snapped=false;
+static Bit32u snap_cpu_saved_cr0;
+static Bit32u snap_cpu_saved_cr2;
+static Bit32u snap_cpu_saved_cr3;
+
 /* On shutdown, DOSBox needs to snap back to real mode
  * so that it's shutdown code doesn't cause page faults
  * trying to clean up DOS structures when we've booted
@@ -1630,10 +1635,29 @@ Bitu CPU_SIDT_limit(void) {
  * by the guest OS, but that's something we'll clean up
  * later. */
 void CPU_Snap_Back_To_Real_Mode() {
+	if (snap_cpu_snapped) return;
+
 	SETFLAGBIT(IF,false);	/* forcibly clear interrupt flag */
+
+	snap_cpu_saved_cr0 = cpu.cr0;
+	snap_cpu_saved_cr2 = paging.cr2;
+	snap_cpu_saved_cr3 = paging.cr3;
+
 	CPU_SET_CRX(0,0);	/* force CPU to real mode */
 	CPU_SET_CRX(2,0);	/* disable paging */
 	CPU_SET_CRX(3,0);	/* clear the page table dir */
+
+	snap_cpu_snapped = true;
+}
+
+void CPU_Snap_Back_Restore() {
+	if (!snap_cpu_snapped) return;
+
+	CPU_SET_CRX(0,snap_cpu_saved_cr0);
+	CPU_SET_CRX(2,snap_cpu_saved_cr2);
+	CPU_SET_CRX(3,snap_cpu_saved_cr3);
+
+	snap_cpu_snapped = false;
 }
 
 static bool printed_cycles_auto_info = false;
