@@ -147,6 +147,7 @@ public:
 	AutoexecObject():installed(false){ };
 	void Install(std::string const &in);
 	void InstallBefore(std::string const &in);
+	void Uninstall();
 	~AutoexecObject();
 private:
 	void CreateAutoexec(void);
