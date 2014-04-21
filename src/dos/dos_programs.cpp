@@ -505,6 +505,11 @@ extern Bit32u floppytype;
 extern bool dos_kernel_disabled;
 
 void DisableINT33();
+void EMS_DoShutDown();
+void XMS_DoShutDown();
+void DOS_DoShutDown();
+void GUS_DOS_Shutdown();
+void SBLASTER_DOS_Shutdown();
 
 class BOOT : public Program {
 private:
@@ -932,6 +937,16 @@ public:
 			/* revector some dos-allocated interrupts */
 			real_writed(0,0x01*4,0xf000ff53);
 			real_writed(0,0x03*4,0xf000ff53);
+
+			/* remove environment variables for some components */
+			SBLASTER_DOS_Shutdown();
+			GUS_DOS_Shutdown();
+			/* disable Expanded Memory. EMM is a DOS API, not an OS API */
+			EMS_DoShutDown();
+			/* and XMS, also a DOS API */
+			XMS_DoShutDown();
+			/* and the DOS API in general */
+			DOS_DoShutDown();
 
 			/* set the "disable DOS kernel" flag so other parts of this program
 			 * do not attempt to manipulate now-defunct parts of the kernel

@@ -2227,6 +2227,9 @@ static unsigned char do_isapnp_chksum(unsigned char *d,int i) {
 	return (0x100 - sum) & 0xFF;
 }
 
+void CPU_Snap_Back_To_Real_Mode();
+void CPU_Snap_Back_Restore();
+
 class BIOS:public Module_base{
 private:
 	CALLBACK_HandlerObject callback[13];
@@ -2676,6 +2679,11 @@ public:
 		}
 	}
 	~BIOS(){
+		/* snap the CPU back to real mode. this code thinks in terms of 16-bit real mode
+		 * and if allowed to do it's thing in a 32-bit guest OS like WinNT, will trigger
+		 * a page fault. */
+		CPU_Snap_Back_To_Real_Mode();
+
 		/* abort DAC playing */
 		if (tandy_sb.port) {
 			IO_Write(tandy_sb.port+0xc,0xd3);
@@ -2701,6 +2709,13 @@ public:
 			tandy_DAC_callback[0]=NULL;
 			tandy_DAC_callback[1]=NULL;
 		}
+
+		/* encourage the callback objects to uninstall HERE while we're in real mode, NOT during the
+		 * destructor stage where we're back in protected mode */
+		for (unsigned int i=0;i < 13;i++) callback[i].Uninstall();
+
+		/* done */
+		CPU_Snap_Back_Restore();
 	}
 };
 
@@ -2810,7 +2825,10 @@ void BIOS_Destroy(Section* /*sec*/){
 		if (ISAPNP_SysDevNodes[i] != NULL) delete ISAPNP_SysDevNodes[i];
 		ISAPNP_SysDevNodes[i] = NULL;
 	}
-	delete test;
+	if (test != NULL) {
+		delete test;
+		test = NULL;
+	}
 }
 
 void BIOS_Init(Section* sec) {

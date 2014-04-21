@@ -2006,6 +2006,10 @@ public:
 		if (!MIDI_Available()) sb.midi = false;
 		else sb.midi = true;
 	}	
+
+	void DOS_Shutdown() { /* very likely, we're booting into a guest OS where our environment variable has no meaning anymore */
+		autoexecline.Uninstall();
+	}
 	
 	~SBLASTER() {
 		switch (oplmode) {
@@ -2029,10 +2033,18 @@ public:
 
 extern void HWOPL_Cleanup();
 
-static SBLASTER* test;
+static SBLASTER* test = NULL;
+
+void SBLASTER_DOS_Shutdown() {
+	if (test != NULL) test->DOS_Shutdown();
+}
+
 void SBLASTER_ShutDown(Section* /*sec*/) {
 	HWOPL_Cleanup();
-	delete test;	
+	if (test != NULL) {
+		delete test;	
+		test = NULL;
+	}
 }
 
 void SBLASTER_Init(Section* sec) {

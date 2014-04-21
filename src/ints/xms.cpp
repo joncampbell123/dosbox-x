@@ -546,10 +546,17 @@ public:
 	}
 
 };
-static XMS* test;
+static XMS* test = NULL;
+
+void XMS_DoShutDown() {
+	if (test != NULL) {
+		delete test;	
+		test = NULL;
+	}
+}
 
 void XMS_ShutDown(Section* /*sec*/) {
-	delete test;	
+	XMS_DoShutDown();
 }
 
 void XMS_Init(Section* sec) {

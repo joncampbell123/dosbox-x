@@ -16,7 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-
+#include <assert.h>
 #include <string.h>
 #include <stdlib.h>
 #include "dosbox.h"
@@ -1456,13 +1456,21 @@ public:
 	}
 };
 		
-static EMS* test;
+static EMS* test = NULL;
+
+void EMS_DoShutDown() {
+	if (test != NULL) {
+		delete test;
+		test = NULL;
+	}
+}
 
 void EMS_ShutDown(Section* /*sec*/) {
-	delete test;	
+	EMS_DoShutDown();
 }
 
 void EMS_Init(Section* sec) {
+	assert(test == NULL);
 	test = new EMS(sec);
 	sec->AddDestroyFunction(&EMS_ShutDown,true);
 }

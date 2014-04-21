@@ -879,6 +879,10 @@ public:
 		autoexecline[1].Install(std::string("SET ULTRADIR=") + section->Get_string("ultradir"));
 	}
 
+	void DOS_Shutdown() { /* very likely, we're booting into a guest OS where our environment variable has no meaning anymore */
+		autoexecline[0].Uninstall();
+		autoexecline[1].Uninstall();
+	}
 
 	~GUS() {
 		if(!IS_EGAVGA_ARCH) return;
@@ -898,10 +902,17 @@ public:
 		}
 };
 
-static GUS* test;
+static GUS* test = NULL;
+
+void GUS_DOS_Shutdown() {
+	if (test != NULL) test->DOS_Shutdown();
+}
 
 void GUS_ShutDown(Section* /*sec*/) {
-	delete test;	
+	if (test != NULL) {
+		delete test;	
+		test = NULL;
+	}
 }
 
 void GUS_Init(Section* sec) {

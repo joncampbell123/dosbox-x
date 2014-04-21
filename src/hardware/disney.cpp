@@ -360,6 +360,9 @@ static void DISNEY_CallBack(Bitu len) {
 	}
 }
 
+void CPU_Snap_Back_To_Real_Mode();
+void CPU_Snap_Back_Restore();
+
 class DISNEY: public Module_base {
 private:
 	IO_ReadHandleObject ReadHandler;
@@ -388,10 +391,14 @@ public:
 
 	}
 	~DISNEY(){
+		CPU_Snap_Back_To_Real_Mode();
+
 		BIOS_SetLPTPort(0,0);
 		DISNEY_disable(0);
 		if (disney.mo)
 			delete disney.mo;
+
+		CPU_Snap_Back_Restore();
 	}
 };
 

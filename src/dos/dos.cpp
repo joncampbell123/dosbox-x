@@ -1732,10 +1732,17 @@ public:
 	}
 };
 
-static DOS* test;
+static DOS* test = NULL;
+
+void DOS_DoShutDown() {
+	if (test != NULL) {
+		delete test;
+		test = NULL;
+	}
+}
 
 void DOS_ShutDown(Section* /*sec*/) {
-	delete test;
+	DOS_DoShutDown();
 }
 
 void DOS_Init(Section* sec) {
