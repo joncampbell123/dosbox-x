@@ -607,7 +607,7 @@ static Bitu read_p61(Bitu, Bitu) {
 	dbg = ((port_61_data & 0xF) |
 			(TIMER_GetOutput2()? 0x20:0) |
 			((fmod(PIC_FullIndex(),0.030) > 0.015)? 0x10:0));
-	fprintf(stderr,"Keyboard read61=0x%02x\n",dbg);
+//	fprintf(stderr,"Keyboard read61=0x%02x\n",dbg);
 	return dbg;
 }
 
