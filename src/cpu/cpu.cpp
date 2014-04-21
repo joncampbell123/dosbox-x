@@ -1622,6 +1622,20 @@ Bitu CPU_SIDT_limit(void) {
 	return cpu.idt.GetLimit();
 }
 
+/* On shutdown, DOSBox needs to snap back to real mode
+ * so that it's shutdown code doesn't cause page faults
+ * trying to clean up DOS structures when we've booted
+ * a 32-bit OS. It shouldn't be cleaning up DOS structures
+ * anyway in that case considering they're likely obliterated
+ * by the guest OS, but that's something we'll clean up
+ * later. */
+void CPU_Snap_Back_To_Real_Mode() {
+	SETFLAGBIT(IF,false);	/* forcibly clear interrupt flag */
+	CPU_SET_CRX(0,0);	/* force CPU to real mode */
+	CPU_SET_CRX(2,0);	/* disable paging */
+	CPU_SET_CRX(3,0);	/* clear the page table dir */
+}
+
 static bool printed_cycles_auto_info = false;
 void CPU_SET_CRX(Bitu cr,Bitu value) {
 	switch (cr) {

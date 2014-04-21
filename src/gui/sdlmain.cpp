@@ -306,9 +306,18 @@ void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
 	SDL_WM_SetCaption(title,VERSION);
 }
 
+void CPU_Snap_Back_To_Real_Mode();
+
 static void KillSwitch(bool pressed) {
 	if (!pressed) return;
 	if (sdl.desktop.fullscreen) GFX_SwitchFullScreen();
+	CPU_Snap_Back_To_Real_Mode(); /* TEMPORARY HACK. There are portions of DOSBox that write to memory as if still running DOS. */
+	/* ^ Without this hack, when running Windows NT 3.1 this Kill Switch effectively becomes the Instant Page Fault BSOD switch
+	 * because the DOSBox code attempting to write to real mode memory causes a page fault (though hitting the kill switch a
+	 * second time shuts DOSBox down properly). It's sort of the same issue behind the INT 33h emulation causing instant BSOD
+	 * in Windows NT the instant you moved or clicked the mouse. The purpose of this hack is that, before any of that DOSBox
+	 * code has a chance, we force the CPU back into real mode so that the code doesn't trigger funny page faults and DOSBox
+	 * shuts down properly. */
 	throw 1;
 }
 
