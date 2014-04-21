@@ -16,6 +16,9 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+/* TODO: If biosps2=true and aux=false, also allow an option (default disabled)
+ *       where if set, we don't bother to fire IRQ 12 at all but simply call the
+ *       device callback directly. */
 
 #include <string.h>
 #include <math.h>

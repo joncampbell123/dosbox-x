@@ -282,7 +282,7 @@ static Bitu read_p60(Bitu port,Bitu iolen) {
 		keyb.scheduled=true;
 		PIC_AddEvent(KEYBOARD_TransferBuffer,KEYDELAY);
 	}
-	fprintf(stderr,"Keyboard read60=0x%02x\n",keyb.p60data);
+//	fprintf(stderr,"Keyboard read60=0x%02x\n",keyb.p60data);
 	return keyb.p60data;
 }
 
@@ -324,7 +324,7 @@ void KEYBOARD_AUX_Write(Bitu val) {
 		}
 	}
 
-	fprintf(stderr,"AUX write 0x%02x mode=%u\n",val,keyb.aux_command);
+//	fprintf(stderr,"AUX write 0x%02x mode=%u\n",val,keyb.aux_command);
 
 	switch (keyb.aux_command) {
 		case ACMD_NONE:
@@ -450,7 +450,7 @@ bool allow_keyb_reset = true;
 void restart_program(std::vector<std::string> & parameters);
 
 static void write_p60(Bitu port,Bitu val,Bitu iolen) {
-	fprintf(stderr,"Keyboard command60=0x%02x mode=%u\n",val,keyb.command);
+//	fprintf(stderr,"Keyboard command60=0x%02x mode=%u\n",val,keyb.command);
 
 	switch (keyb.command) {
 	case CMD_NONE:	/* None */
@@ -584,6 +584,7 @@ static void write_p60(Bitu port,Bitu val,Bitu iolen) {
 		KEYBOARD_SetLEDs(val&7);
 		break;
 	case CMD_SETCOMMAND: /* 8042 command, not keyboard */
+		/* TODO: If biosps2=true and aux=false, disallow the guest OS from changing AUX port parameters including IRQ */
 		keyb.command=CMD_NONE;
 		keyb.cb_xlat = (val >> 6) & 1;
 		keyb.auxactive = !((val >> 5) & 1);
@@ -625,10 +626,11 @@ static void write_p64(Bitu port,Bitu val,Bitu iolen) {
 	if (keyb.reset)
 		return;
 
-	fprintf(stderr,"Keyboard command64=0x%02x mode=%u\n",val,keyb.command);
+//	fprintf(stderr,"Keyboard command64=0x%02x mode=%u\n",val,keyb.command);
 
 	switch (val) {
 	case 0x20:		/* read command byte */
+		/* TODO: If biosps2=true and aux=false, mask AUX port bits as if AUX isn't there */
 		KEYBOARD_Add8042Response(
 			(keyb.cb_xlat << 6)      | ((!keyb.auxactive) << 5) |
 			((!keyb.active) << 4)    | (keyb.cb_sys << 2) |
@@ -642,12 +644,14 @@ static void write_p64(Bitu port,Bitu val,Bitu iolen) {
 		/* TODO: If bit 0 == 0, trigger system reset */
 		break;
 	case 0xa7:		/* disable aux */
+		/* TODO: If biosps2=true and aux=false do not respond */
 		if (keyb.enable_aux) {
 			//keyb.auxactive=false;
 			//LOG(LOG_KEYBOARD,LOG_NORMAL)("AUX De-Activated");
 		}
 		break;
 	case 0xa8:		/* enable aux */
+		/* TODO: If biosps2=true and aux=false do not respond */
 		if (keyb.enable_aux) {
 			keyb.auxactive=true;
 			if (keyb.used && !keyb.scheduled && !keyb.p60changed) {
@@ -658,6 +662,7 @@ static void write_p64(Bitu port,Bitu val,Bitu iolen) {
 		}
 		break;
 	case 0xa9:		/* mouse interface test */
+		/* TODO: If biosps2=true and aux=false do not respond */
 		KEYBOARD_Add8042Response(0x00); /* OK */
 		break;
 	case 0xaa:		/* Self test */
@@ -701,6 +706,8 @@ static void write_p64(Bitu port,Bitu val,Bitu iolen) {
 	case 0xd4:		/* send byte to AUX */
 		if (keyb.enable_aux)
 			keyb.command=CMD_WRITEAUX;
+		else if (aux_warning++ == 0)
+			LOG(LOG_KEYBOARD,LOG_ERROR)("Program is writing 8042 AUX. If you intend to use PS/2 mouse emulation you may consider adding aux=1 to your dosbox.conf");
 		break;
 	case 0xe0:		/* read test port */
 		KEYBOARD_Add8042Response(0x00);

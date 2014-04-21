@@ -1787,8 +1787,41 @@ static Bitu INT15_Handler(void) {
 		reg_ah=0;
 		break;
 	case 0xc2:	/* BIOS PS2 Pointing Device Support */
+			/* TODO: Our reliance on AUX emulation means that at some point, AUX emulation
+			 *       must always be enabled if BIOS PS/2 emulation is enabled. Future planned change:
+			 *
+			 *       If biosps2=true and aux=true, carry on what we're already doing now: emulate INT 15h by
+			 *         directly writing to the AUX port of the keyboard controller.
+			 *
+			 *       If biosps2=false, the aux= setting enables/disables AUX emulation as it already does now.
+			 *         biosps2=false implies that we're emulating a keyboard controller with AUX but no BIOS
+			 *         support for it (however rare that might be). This gives the user of DOSBox-X the means
+			 *         to test that scenario especially in case he/she is developing a homebrew OS and needs
+			 *         to ensure their code can handle cases like that gracefully.
+			 *
+			 *       If biosps2=true and aux=false, AUX emulation is enabled anyway, but the keyboard emulation
+			 *         must act as if the AUX port is not there so the guest OS cannot control it. Again, not
+			 *         likely on real hardware, but a useful test case for homebrew OS developers.
+			 *
+			 *       If you the user set aux=false, then you obviously want to test a system configuration
+			 *       where the keyboard controller has no AUX port. If you set biosps2=true, then you want to
+			 *       test an OS that uses BIOS functions to setup the "pointing device" but you do not want the
+			 *       guest OS to talk directly to the AUX port on the keyboard controller.
+			 *
+			 *       Logically that's not likely to happen on real hardware, but we like giving the end-user
+			 *       options to play with, so instead, if aux=false and biosps2=true, DOSBox-X should print
+			 *       a warning stating that INT 15h mouse emulation with a PS/2 port is nonstandard and may
+			 *       cause problems with OSes that need to talk directly to hardware.
+			 *
+			 *       It is noteworthy that PS/2 mouse support in MS-DOS mouse drivers as well as Windows 3.x,
+			 *       Windows 95, and Windows 98, is carried out NOT by talking directly to the AUX port but
+			 *       instead by relying on the BIOS INT 15h functions here to do the dirty work. For those
+			 *       scenarios, biosps2=true and aux=false is perfectly safe and does not cause issues.
+			 *
+			 *       OSes that communicate directly with the AUX port however (Linux, Windows NT) will not work
+			 *       unless aux=true. */
 		if (en_bios_ps2mouse) {
-			fprintf(stderr,"INT 15h AX=%04x BX=%04x\n",reg_ax,reg_bx);
+//			fprintf(stderr,"INT 15h AX=%04x BX=%04x\n",reg_ax,reg_bx);
 			switch (reg_al) {
 				case 0x00:		// enable/disable
 					if (reg_bh==0) {	// disable
@@ -1819,6 +1852,26 @@ static Bitu INT15_Handler(void) {
 					// fall through
 				case 0x05:		// initialize
 					if (reg_bh >= 3 && reg_bh <= 4) {
+						/* TODO: BIOSes remember this value as the number of bytes to store before
+						 *       calling the device callback. Setting this value to "1" is perfectly
+						 *       valid if you want a byte-stream like mode (at the cost of one
+						 *       interrupt per byte!). Most OSes will call this with BH=3 for standard
+						 *       PS/2 mouse protocol. You can also call this with BH=4 for Intellimouse
+						 *       protocol support, though testing (so far with VirtualBox) shows the
+						 *       device callback still only gets the first three bytes on the stack.
+						 *       Contrary to what you might think, the BIOS does not interpret the
+						 *       bytes at all.
+						 *
+						 *       The source code of CuteMouse 1.9 seems to suggest some BIOSes take
+						 *       pains to repack the 4th byte in the upper 8 bits of one of the WORDs
+						 *       on the stack in Intellimouse mode at the cost of shifting the W and X
+						 *       fields around. I can't seem to find any source on who does that or
+						 *       if it's even true, so I disregard the example at this time.
+						 *
+						 *       Anyway, you need to store off this value somewhere and make use of
+						 *       it in src/ints/mouse.cpp device callback emulation to reframe the
+						 *       PS/2 mouse bytes coming from AUX (if aux=true) or emulate the
+						 *       re-framing if aux=false to emulate this protocol fully. */
 						fprintf(stderr,"INT 15h mouse initialized to %u-byte protocol\n",reg_bh);
 						KEYBOARD_AUX_Write(0xF6); /* set defaults */
 						Mouse_SetPS2State(false);
