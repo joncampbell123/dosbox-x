@@ -306,6 +306,8 @@ void KEYBOARD_AUX_Write(Bitu val) {
 		}
 	}
 
+	fprintf(stderr,"AUX write 0x%02x mode=%u\n",val,keyb.aux_command);
+
 	switch (keyb.aux_command) {
 		case ACMD_NONE:
 			switch (val) {
@@ -1251,9 +1253,7 @@ void KEYBOARD_Init(Section* sec) {
 	allow_keyb_reset = section->Get_bool("allow output port reset");
 
 	keyb.ps2mouse.int33_taken = 0;
-	keyb.ps2mouse.reset_mode = MM_REMOTE; /* In the real world, PS/2 mice reset to remote mode */
-	if (section->Get_bool("aux default reporting mode streaming"))
-		keyb.ps2mouse.reset_mode = MM_STREAM; /* Windows NT 3.1 apparently goes through the correct steps EXCEPT for setting the streaming mode! */
+	keyb.ps2mouse.reset_mode = MM_STREAM; /* NTS: I was wrong: PS/2 mice default to streaming after reset */
 
 	const char * sbtype=section->Get_string("auxdevice");
 	keyb.ps2mouse.type = MOUSE_NONE;

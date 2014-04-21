@@ -1785,6 +1785,7 @@ static Bitu INT15_Handler(void) {
 		break;
 	case 0xc2:	/* BIOS PS2 Pointing Device Support */
 		if (en_bios_ps2mouse) {
+			fprintf(stderr,"INT 15h AX=%04x BX=%04x\n",reg_ax,reg_bx);
 			switch (reg_al) {
 				case 0x00:		// enable/disable
 					if (reg_bh==0) {	// disable
@@ -1816,7 +1817,7 @@ static Bitu INT15_Handler(void) {
 				case 0x05:		// initialize
 					if (reg_bh >= 3 && reg_bh <= 4) {
 						fprintf(stderr,"INT 15h mouse initialized to %u-byte protocol\n",reg_bh);
-						KEYBOARD_AUX_Write(0xFF);
+						KEYBOARD_AUX_Write(0xF6); /* set defaults */
 						Mouse_SetPS2State(false);
 						KEYBOARD_ClrBuffer();
 						CALLBACK_SCF(false);
@@ -1838,7 +1839,7 @@ static Bitu INT15_Handler(void) {
 					} break;
 				case 0x03:		// set resolution
 					KEYBOARD_AUX_Write(0xE8);
-					KEYBOARD_AUX_Write(reg_bh);
+					KEYBOARD_AUX_Write(reg_bh&3);
 					KEYBOARD_ClrBuffer();
 					CALLBACK_SCF(false);
 					reg_ah=0;
@@ -1851,7 +1852,10 @@ static Bitu INT15_Handler(void) {
 					reg_ah=0;
 					break;
 				case 0x06:		// extended commands
-					if ((reg_bh==0x01) || (reg_bh==0x02)) {
+					/* TODO: Windows NT 3.1 on boot up will call INT 15h AX=0xC206 BH=0x00 to read back status.
+					 *       Windows 98 however does not use BH=0x00 */
+					if ((reg_bh==0x01) || (reg_bh==0x02)) { /* set scaling */
+						KEYBOARD_AUX_Write(0xE6+reg_bh-1); /* 0xE6 1:1   or 0xE7 2:1 */
 						CALLBACK_SCF(false); 
 						reg_ah=0;
 					} else {
