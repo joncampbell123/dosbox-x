@@ -101,7 +101,7 @@ void AutoexecObject::CreateAutoexec(void) {
 	if(first_shell) VFILE_Register("AUTOEXEC.BAT",(Bit8u *)autoexec_data,(Bit32u)strlen(autoexec_data));
 }
 
-AutoexecObject::~AutoexecObject(){
+void AutoexecObject::Uninstall() {
 	if(!installed) return;
 
 	// Remove the line from the autoexecbuffer and update environment
@@ -123,7 +123,12 @@ AutoexecObject::~AutoexecObject(){
 			delete [] buf2;
 		} else it++;
 	}
+	installed=false;
 	this->CreateAutoexec();
+}
+
+AutoexecObject::~AutoexecObject(){
+	Uninstall();
 }
 
 DOS_Shell::DOS_Shell():Program(){
