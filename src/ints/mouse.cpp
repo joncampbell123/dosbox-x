@@ -116,6 +116,7 @@ static struct {
 	Bit16s min_x,max_x,min_y,max_y;
 	float mickey_x,mickey_y;
 	float x,y;
+	float ps2x,ps2y;
 	button_event event_queue[QUEUE_SIZE];
 	Bit8u events;//Increase if QUEUE_SIZE >255 (currently 32)
 	Bit16u sub_seg,sub_ofs;
@@ -513,9 +514,6 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
 	if (emulate) {
 		mouse.x += dx;
 		mouse.y += dy;
-	} else if (!en_int33) {
-		mouse.x += xrel;
-		mouse.y += yrel;
 	} else {
 		if (CurMode->type == M_TEXT) {
 			mouse.x = x*CurMode->swidth;
@@ -536,17 +534,18 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
 
 	/* ignore constraints if using PS2 mouse callback in the bios */
 
-	if (!useps2callback) {		
-		if (mouse.x > mouse.max_x) mouse.x = mouse.max_x;
-		if (mouse.x < mouse.min_x) mouse.x = mouse.min_x;
-		if (mouse.y > mouse.max_y) mouse.y = mouse.max_y;
-		if (mouse.y < mouse.min_y) mouse.y = mouse.min_y;
-	} else {
-		if (mouse.x >= 32768.0) mouse.x -= 65536.0;
-		else if (mouse.x <= -32769.0) mouse.x += 65536.0;
-		if (mouse.y >= 32768.0) mouse.y -= 65536.0;
-		else if (mouse.y <= -32769.0) mouse.y += 65536.0;
-	}
+	if (mouse.x > mouse.max_x) mouse.x = mouse.max_x;
+	if (mouse.x < mouse.min_x) mouse.x = mouse.min_x;
+	if (mouse.y > mouse.max_y) mouse.y = mouse.max_y;
+	if (mouse.y < mouse.min_y) mouse.y = mouse.min_y;
+
+	mouse.ps2x += xrel;
+	mouse.ps2y += yrel;
+	if (mouse.ps2x >= 32768.0)       mouse.ps2x -= 65536.0;
+	else if (mouse.ps2x <= -32769.0) mouse.ps2x += 65536.0;
+	if (mouse.ps2y >= 32768.0)       mouse.ps2y -= 65536.0;
+	else if (mouse.ps2y <= -32769.0) mouse.ps2y += 65536.0;
+
 	Mouse_AddEvent(MOUSE_HAS_MOVED);
 }
 
@@ -753,11 +752,6 @@ void Mouse_NewVideoMode(void) {
 	mouse.cursorType = 0;
 	mouse.enabled=true;
 	mouse.oldhidden=1;
-
-	oldmouseX = static_cast<Bit16s>(mouse.x);
-	oldmouseY = static_cast<Bit16s>(mouse.y);
-
-
 }
 
 //Much too empty, Mouse_NewVideoMode contains stuff that should be in here
@@ -1132,7 +1126,7 @@ static Bitu INT74_Handler(void) {
 		} else if (useps2callback) {
 			CPU_Push16(RealSeg(CALLBACK_RealPointer(int74_ret_callback)));
 			CPU_Push16(RealOff(CALLBACK_RealPointer(int74_ret_callback)));
-			DoPS2Callback(mouse.event_queue[mouse.events].buttons, static_cast<Bit16s>(mouse.x), static_cast<Bit16s>(mouse.y));
+			DoPS2Callback(mouse.event_queue[mouse.events].buttons, static_cast<Bit16s>(mouse.ps2x), static_cast<Bit16s>(mouse.ps2y));
 		} else {
 			SegSet16(cs, RealSeg(CALLBACK_RealPointer(int74_ret_callback)));
 			reg_ip = RealOff(CALLBACK_RealPointer(int74_ret_callback));
@@ -1245,6 +1239,9 @@ void MOUSE_Init(Section* sec) {
    	mouse.sub_mask=0;
 	mouse.sub_seg=0x6362;	// magic value
 	mouse.sub_ofs=0;
+
+	oldmouseX = oldmouseY = 0;
+	mouse.ps2x = mouse.ps2y = 0;
 
 	Mouse_ResetHardware();
 	Mouse_Reset();
