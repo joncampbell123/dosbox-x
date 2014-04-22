@@ -488,7 +488,7 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
 	if (useps2callback) dy *= 2;	
 
 	/* serial mouse, if connected, also wants to know about it */
-	on_mouse_event_for_serial((int)(dx),(int)(dy),mouse.buttons);
+	on_mouse_event_for_serial((int)(dx),(int)(dy*2),mouse.buttons);
 
 	if (en_int33) {
 		/* NTS: This part only cares about the BIOS mode when emulating INT 33h mouse services.
