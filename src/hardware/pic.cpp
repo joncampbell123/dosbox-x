@@ -508,12 +508,27 @@ bool PIC_RunQueue(void) {
 
 /* The TIMER Part */
 struct TickerBlock {
+	/* TODO: carry const char * field for name! */
 	TIMER_TickHandler handler;
 	TickerBlock * next;
 };
 
 static TickerBlock * firstticker=0;
 
+void TIMER_ShutdownTickHandlers() {
+	unsigned int leftovers = 0;
+
+	/* pull in the singly linked list from the front, hand over hand */
+	while (firstticker != NULL) {
+		TickerBlock *n = firstticker->next;
+		delete firstticker;
+		firstticker = n;
+		leftovers++;
+	}
+
+	if (leftovers != 0)
+		fprintf(stderr,"TIMER: %u leftover handlers (clean up!).\n",leftovers);
+}
 
 void TIMER_DelTickHandler(TIMER_TickHandler handler) {
 	TickerBlock * ticker=firstticker;
@@ -623,6 +638,7 @@ public:
 	}
 
 	~PIC_8259A(){
+		TIMER_ShutdownTickHandlers();
 	}
 };
 

@@ -1269,9 +1269,16 @@ void KEYBOARD_AddKey(KBD_KEYS keytype,bool pressed) {
 		}
 	};
 }
+	
+static void KEYBOARD_ShutDown(Section * sec) {
+	TIMER_DelTickHandler(&KEYBOARD_TickHandler);
+}
 
 void KEYBOARD_Init(Section* sec) {
 	Section_prop *section=static_cast<Section_prop *>(sec);
+
+	sec->AddDestroyFunction(&KEYBOARD_ShutDown);
+
 	if (keyb.enable_aux=section->Get_bool("aux")) {
 		LOG(LOG_KEYBOARD,LOG_NORMAL)("Keyboard AUX emulation enabled");
 	}

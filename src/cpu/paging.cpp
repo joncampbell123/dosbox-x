@@ -1234,7 +1234,13 @@ public:
 };
 
 static PAGING* test;
+	
+static void PAGING_ShutDown(Section * sec) {
+	delete test;
+}
+
 void PAGING_Init(Section * sec) {
 	test = new PAGING(sec);
+	sec->AddDestroyFunction(&PAGING_ShutDown);
 }
 
