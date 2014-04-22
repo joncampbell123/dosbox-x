@@ -30,8 +30,8 @@
    far return or and IRET
 */
 
-CallBack_Handler CallBack_Handlers[CB_MAX];
-char* CallBack_Description[CB_MAX];
+CallBack_Handler CallBack_Handlers[CB_MAX] = {NULL};
+char* CallBack_Description[CB_MAX] = {NULL};
 
 static Bitu call_stop,call_idle,call_default,call_default2;
 Bitu call_priv_io;
@@ -41,9 +41,19 @@ static Bitu illegal_handler(void) {
 	return 1;
 }
 
+void CALLBACK_SetDescription(Bitu nr, const char* descr);
+
+void CALLBACK_Shutdown(void) {
+	for (Bitu i=1;(i<CB_MAX);i++) {
+		CallBack_Handlers[i] = &illegal_handler;
+		CALLBACK_SetDescription(i,NULL);
+	}
+}
+
 Bitu CALLBACK_Allocate(void) {
 	for (Bitu i=1;(i<CB_MAX);i++) {
 		if (CallBack_Handlers[i]==&illegal_handler) {
+			if (CallBack_Description[i] != NULL) fprintf(stderr,"CALLBACK_Allocate() warning: empty slot still has description string!\n");
 			CallBack_Handlers[i]=0;
 			return i;
 		}
@@ -54,6 +64,7 @@ Bitu CALLBACK_Allocate(void) {
 
 void CALLBACK_DeAllocate(Bitu in) {
 	CallBack_Handlers[in]=&illegal_handler;
+	CALLBACK_SetDescription(in,NULL);
 }
 
 
@@ -141,11 +152,13 @@ void CALLBACK_SIF(bool val) {
 }
 
 void CALLBACK_SetDescription(Bitu nr, const char* descr) {
-	if (descr) {
+	if (CallBack_Description[nr]) delete[] CallBack_Description[nr];
+	CallBack_Description[nr] = 0;
+
+	if (descr != NULL) {
 		CallBack_Description[nr] = new char[strlen(descr)+1];
 		strcpy(CallBack_Description[nr],descr);
-	} else
-		CallBack_Description[nr] = 0;
+	}
 }
 
 const char* CALLBACK_GetDescription(Bitu nr) {
@@ -593,6 +606,7 @@ void CALLBACK_Init(Section* /*sec*/) {
 	Bitu i;
 	for (i=0;i<CB_MAX;i++) {
 		CallBack_Handlers[i]=&illegal_handler;
+		CallBack_Description[i]=NULL;
 	}
 
 	/* Setup the Stop Handler */
