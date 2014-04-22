@@ -1,0 +1,16 @@
+Windows 2.10 can be run from DOSBox's native DOS environment,
+but some version number trickery must happen first.
+
+Windows 2.10 has the same problem as Windows 1.0, you see,
+where if you run WIN.COM on MS-DOS 5.0 or higher, the boot
+screen appears but then it spews a screenful of garbage and
+crashes. This does not happen under MS-DOS 4.0 and earlier.
+
+To avoid the screenful of garbage, you must type at the
+command line before running WIN.COM:
+
+ver set 3 3
+
+This tells DOSBox to report itself as MS-DOS 3.3, which
+makes Windows 2.10 happy.
+
