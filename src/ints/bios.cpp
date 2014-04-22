@@ -2638,8 +2638,8 @@ public:
 			}
 
 			/* register parallel ports */
-			for (port=0;port < 3;port++) {
-				Bitu port = mem_readw(BIOS_ADDRESS_LPT1+(port*2));
+			for (Bitu portn=0;portn < 3;portn++) {
+				Bitu port = mem_readw(BIOS_ADDRESS_LPT1+(portn*2));
 				if (port != 0) {
 					const unsigned char h1[9] = {
 						ISAPNP_SYSDEV_HEADER(
