@@ -1730,6 +1730,8 @@ public:
 		/* NTS: We do NOT free the drives! The OS may use them later! */
 		void DOS_ShutdownFiles();
 		DOS_ShutdownFiles();
+		void DOS_ShutdownDevices(void);
+		DOS_ShutdownDevices();
 	}
 };
 

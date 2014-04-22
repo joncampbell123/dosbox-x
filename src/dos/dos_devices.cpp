@@ -210,7 +210,18 @@ void DOS_DelDevice(DOS_Device * dev) {
 	}
 }
 
+void DOS_ShutdownDevices(void) {
+	for (Bitu i=0;i < DOS_DEVICES;i++) {
+		if (Devices[i] != NULL) {
+			delete Devices[i];
+			Devices[i] = NULL;
+		}
+	}
+}
+
 void DOS_SetupDevices(void) {
+	for (Bitu i=0;i < DOS_DEVICES;i++) Devices[i] = NULL;
+
 	DOS_Device * newdev;
 	newdev=new device_CON();
 	DOS_AddDevice(newdev);
