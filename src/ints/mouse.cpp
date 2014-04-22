@@ -557,12 +557,6 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
 	DrawCursor();
 }
 
-void Mouse_CursorSet(float x,float y) {
-	mouse.x=x;
-	mouse.y=y;
-	DrawCursor();
-}
-
 void Mouse_ButtonPressed(Bit8u button) {
 	if (KEYBOARD_AUX_Active()) {
 		switch (button) {
