@@ -1380,6 +1380,10 @@ void DOSBOX_Init(void) {
 		"probe the AUX port directly and depend on this BIOS interface exclusively\n"
 		"for PS/2 mouse support. In other cases there is no harm in leaving this enabled");
 
+	Pbool = secprop->Add_bool("int15 mouse callback does not preserve registers",Property::Changeable::OnlyAtStart,false);
+	Pbool->Set_help("Set to true if the guest OS or DOS program assigns an INT 15h mouse callback,\n"
+			"but does not properly preserve CPU registers. Diagnostic function only (default off).");
+
 	secprop->AddInitFunction(&MOUSE_Init); //Must be after int10 as it uses CurMode
 	secprop->AddInitFunction(&DOS_KeyboardLayout_Init,true);
 	Pstring = secprop->Add_string("keyboardlayout",Property::Changeable::WhenIdle, "auto");
