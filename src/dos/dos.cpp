@@ -1728,11 +1728,25 @@ public:
 	}
 	~DOS(){
 		/* NTS: We do NOT free the drives! The OS may use them later! */
-		delete [] Files;
+		void DOS_ShutdownFiles();
+		DOS_ShutdownFiles();
 	}
 };
 
 static DOS* test = NULL;
+
+void DOS_ShutdownFiles() {
+	if (Files != NULL) {
+		for (Bitu i=0;i<DOS_FILES;i++) {
+			if (Files[i] != NULL) {
+				delete Files[i];
+				Files[i] = NULL;
+			}
+		}
+		delete[] Files;
+		Files = NULL;
+	}
+}
 
 void DOS_ShutdownDrives() {
 	for (Bit16u i=0;i<DOS_DRIVES;i++) {

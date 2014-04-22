@@ -3440,6 +3440,9 @@ int main(int argc, char* argv[]) {
 	void DOS_ShutdownDrives();
 	DOS_ShutdownDrives();
 
+	void DOS_ShutdownFiles();
+	DOS_ShutdownFiles();
+
 	sticky_keys(true); //Might not be needed if the shutdown function switches to windowed mode, but it doesn't hurt
 
 	//Force visible mouse to end user. Somehow this sometimes doesn't happen

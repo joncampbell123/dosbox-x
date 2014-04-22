@@ -41,7 +41,7 @@
 #define FCB_ERR_WRITE   1
 
 Bitu DOS_FILES = 127;
-DOS_File ** Files;
+DOS_File ** Files = NULL;
 DOS_Drive * Drives[DOS_DRIVES] = {NULL};
 
 Bit8u DOS_GetDefaultDrive(void) {
