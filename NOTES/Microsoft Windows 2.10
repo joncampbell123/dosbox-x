@@ -9,8 +9,8 @@ crashes. This does not happen under MS-DOS 4.0 and earlier.
 To avoid the screenful of garbage, you must type at the
 command line before running WIN.COM:
 
-ver set 3 3
+ver set 3 30
 
-This tells DOSBox to report itself as MS-DOS 3.3, which
+This tells DOSBox to report itself as MS-DOS 3.30, which
 makes Windows 2.10 happy.
 
