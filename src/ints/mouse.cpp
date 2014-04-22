@@ -503,18 +503,12 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
 	/* serial mouse, if connected, also wants to know about it */
 	on_mouse_event_for_serial((int)(dx),(int)(dy*2),mouse.buttons);
 
-	if (en_int33) {
-		/* NTS: This part only cares about the BIOS mode when emulating INT 33h mouse services.
-		 *      In other cases, having this enabled causes crashes in certain 32-bit environments like Windows NT
-		 *      because INT10_SetCurMode() uses real_readb() which triggers a page fault. */
-		INT10_SetCurMode();
-		mouse.mickey_x += (dx * mouse.mickeysPerPixel_x);
-		mouse.mickey_y += (dy * mouse.mickeysPerPixel_y);
-		if (mouse.mickey_x >= 32768.0) mouse.mickey_x -= 65536.0;
-		else if (mouse.mickey_x <= -32769.0) mouse.mickey_x += 65536.0;
-		if (mouse.mickey_y >= 32768.0) mouse.mickey_y -= 65536.0;
-		else if (mouse.mickey_y <= -32769.0) mouse.mickey_y += 65536.0;
-	}
+	mouse.mickey_x += (dx * mouse.mickeysPerPixel_x);
+	mouse.mickey_y += (dy * mouse.mickeysPerPixel_y);
+	if (mouse.mickey_x >= 32768.0) mouse.mickey_x -= 65536.0;
+	else if (mouse.mickey_x <= -32769.0) mouse.mickey_x += 65536.0;
+	if (mouse.mickey_y >= 32768.0) mouse.mickey_y -= 65536.0;
+	else if (mouse.mickey_y <= -32769.0) mouse.mickey_y += 65536.0;
 
 	if (emulate) {
 		mouse.x += dx;
@@ -554,7 +548,6 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
 		else if (mouse.y <= -32769.0) mouse.y += 65536.0;
 	}
 	Mouse_AddEvent(MOUSE_HAS_MOVED);
-	DrawCursor();
 }
 
 void Mouse_ButtonPressed(Bit8u button) {
@@ -1113,6 +1106,15 @@ static Bitu MOUSE_BD_Handler(void) {
 static Bitu INT74_Handler(void) {
 	if (mouse.events>0) {
 		mouse.events--;
+
+		/* INT 33h emulation: HERE within the IRQ 12 handler is the appropriate place to
+		 * redraw the cursor. OSes like Windows 3.1 expect real-mode code to do it in
+		 * response to IRQ 12, not "out of the blue" from the SDL event handler like
+		 * the original DOSBox code did it. Doing this allows the INT 33h emulation
+		 * to draw the cursor while not causing Windows 3.1 to crash or behave
+		 * erratically. */
+		if (en_int33) DrawCursor();
+
 		/* Check for an active Interrupt Handler that will get called */
 		if (mouse.sub_mask & mouse.event_queue[mouse.events].type) {
 			reg_ax=mouse.event_queue[mouse.events].type;
