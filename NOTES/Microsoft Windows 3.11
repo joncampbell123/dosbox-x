@@ -1,0 +1,49 @@
+Windows 3.1 and 3.11 can be run from DOSBox's native prompt.
+However, there is one serious incompatability regarding mouse
+emulation that you need to know about:
+
+INT 33h emulation
+
+Because of the way INT 33h emulation is written, the code will
+(correctly) defer mouse event notification until IRQ 12 is
+activated, BUT, it does the on-screen cursor update directly
+from the Mouse event handler.
+
+Unfortunately, this means that if you are running a protected
+mode environment like Windows 3.1, the BIOS data area reads
+and direct access to video RAM will happen at a time that the
+Windows 3.1 is not likely to expect it, and you will get
+random crashes and general instability.
+
+The solution to this problem is to code the software cursor
+redraw to happen from within IRQ 12 (where Windows and DOS
+programs expect it to happen), and where Windows is likely
+to virtualize IRQ 12 into virtual 8086 mode and allow the
+INT 33h driver's real-mode code to do it's work properly.
+
+Until I have this solution completed in the code, a workaround
+is available if you do not intend to use DOS games in the same
+virtual setup as your Windows 3.1 installation:
+
+Open your dosbox.conf, and set int33=false (disable INT 33h
+emulation). If the line doesn't exist, add int33=false under
+the [dos] section of your dosbox.conf.
+
+Disabling INT 33h emulation will resolve this conflict between
+DOSBox real-mode INT 33h emulation and Windows 3.1.
+
+--------------------------------------------------------------
+
+Another noted problem with the PS/2 mouse and DOS "boxes" in
+Windows 3.1 is that, when a DOS "box" is run in a Window,
+rather than in fullscreen mode, the cursor will become very
+jumpy, and in DOSBox, will likely stop responding to your
+mouse input entirely until you switch away. Apparently, this
+is... normal. Windows 3.1 is not very good at virtualizing
+the PS/2 mouse while sharing it with the DOS "box".
+
+If the cursor stops responding, you can try ALT+Tab to
+switch away (and restore cursor responsiveness) or ALT+Space
+to bring up the DOS box's system menu (taking focus away from
+the DOS session restores proper mouse pointer responsiveness).
+
