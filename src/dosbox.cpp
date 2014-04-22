@@ -1427,7 +1427,7 @@ void DOSBOX_Init(void) {
 
 	);
 
-	Pbool = secprop->Add_bool("ne2000", Property::Changeable::WhenIdle, true);
+	Pbool = secprop->Add_bool("ne2000", Property::Changeable::WhenIdle, false);
 	Pbool->Set_help("Enable Ethernet passthrough. Requires [Win]Pcap.");
 
 	Phex = secprop->Add_hex("nicbase", Property::Changeable::WhenIdle, 0x300);
