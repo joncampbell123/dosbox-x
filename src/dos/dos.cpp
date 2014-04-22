@@ -1727,15 +1727,19 @@ public:
 		dos.version.minor=0;
 	}
 	~DOS(){
-		for (Bit16u i=0;i<DOS_DRIVES;i++) {
-			delete Drives[i];
-			Drives[i] = NULL;
-		}
+		/* NTS: We do NOT free the drives! The OS may use them later! */
 		delete [] Files;
 	}
 };
 
 static DOS* test = NULL;
+
+void DOS_ShutdownDrives() {
+	for (Bit16u i=0;i<DOS_DRIVES;i++) {
+		delete Drives[i];
+		Drives[i] = NULL;
+	}
+}
 
 void DOS_DoShutDown() {
 	if (test != NULL) {

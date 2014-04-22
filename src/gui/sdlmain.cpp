@@ -3437,6 +3437,9 @@ int main(int argc, char* argv[]) {
 		throw;//dunno what happened. rethrow for sdl to catch
 	}
 
+	void DOS_ShutdownDrives();
+	DOS_ShutdownDrives();
+
 	sticky_keys(true); //Might not be needed if the shutdown function switches to windowed mode, but it doesn't hurt
 
 	//Force visible mouse to end user. Somehow this sometimes doesn't happen
