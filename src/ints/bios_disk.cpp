@@ -148,7 +148,7 @@ void swapInNextDisk(bool pressed) {
 	/* Hack/feature: rescan all disks as well */
 	LOG_MSG("Diskcaching reset for normal mounted drives.");
 	for(Bitu i=0;i<DOS_DRIVES;i++) {
-		if (Drives[i]) {
+		if (Drives[i] != NULL) {
 			Drives[i]->EmptyCache();
 			Drives[i]->MediaChange();
 		}

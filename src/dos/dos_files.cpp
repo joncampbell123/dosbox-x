@@ -42,7 +42,7 @@
 
 Bitu DOS_FILES = 127;
 DOS_File ** Files;
-DOS_Drive * Drives[DOS_DRIVES];
+DOS_Drive * Drives[DOS_DRIVES] = {NULL};
 
 Bit8u DOS_GetDefaultDrive(void) {
 //	return DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).GetDrive();
