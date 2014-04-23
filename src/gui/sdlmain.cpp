@@ -3454,8 +3454,10 @@ int main(int argc, char* argv[]) {
 	void CALLBACK_Shutdown(void);
 	CALLBACK_Shutdown();
 
+#if C_DYNAMIC_X86
 	void CPU_Core_Dyn_X86_Shutdown(void);
 	CPU_Core_Dyn_X86_Shutdown();
+#endif
 
 	void MAPPER_Shutdown();
 	MAPPER_Shutdown();
