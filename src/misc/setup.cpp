@@ -774,10 +774,12 @@ void Section::ExecuteDestroy(bool destroyall) {
 }
 
 Config::~Config() {
-	reverse_it cnt=sectionlist.rbegin();
-	while (cnt!=sectionlist.rend()) {
-		delete (*cnt);
-		cnt++;
+	std::list<Section*>::iterator it;
+
+	while ((it=sectionlist.end()) != sectionlist.begin()) {
+		it--;
+		delete (*it);
+		sectionlist.erase(it);
 	}
 }
 
