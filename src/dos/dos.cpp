@@ -43,6 +43,7 @@ Bit16u DOS_SDA_SEG=0xb2;		// dos swappable area
 Bit16u DOS_SDA_OFS=0;
 Bit16u DOS_CDS_SEG=0x108;
 Bit16u DOS_FIRST_SHELL=0x118;
+Bit16u DOS_FIRST_SHELL_END=0x158;
 Bit16u DOS_MEM_START=0x158;	 // regression to r3437 fixes nascar 2 colors
 
 Bit16u DOS_PRIVATE_SEGMENT=0;//0xc800;
@@ -1589,6 +1590,7 @@ public:
 			DOS_SDA_OFS = 0;
 			DOS_CDS_SEG = DOS_GetMemory(0x10,"DOS_CDA_SEG");		// was 0x108
 			DOS_FIRST_SHELL = DOS_GetMemory(0x40,"DOS_FIRST_SHELL");	// was 0x118
+			DOS_FIRST_SHELL_END = DOS_FIRST_SHELL + 0x40;
 			/* defer DOS_MEM_START until right before SetupMemory */
 		}
 		else {
@@ -1602,7 +1604,7 @@ public:
 			DOS_SDA_OFS = 0;
 			DOS_CDS_SEG = 0x108;
 			DOS_FIRST_SHELL = 0x118;
-			DOS_MEM_START = 0x158;	 // regression to r3437 fixes nascar 2 colors
+			DOS_FIRST_SHELL_END = DOS_MEM_START = 0x158;	 // regression to r3437 fixes nascar 2 colors
 
 			if (!private_segment_in_umb) {
 				/* If private segment is not being placed in UMB, then it must follow the DOS kernel. */
