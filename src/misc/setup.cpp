@@ -728,8 +728,8 @@ Section_prop::~Section_prop() {
 //ExecuteDestroy should be here else the destroy functions use destroyed properties
 	ExecuteDestroy(true);
 	/* Delete properties themself (properties stores the pointer of a prop */
-	for(it prop = properties.begin(); prop != properties.end(); prop++)
-		delete (*prop);
+	for(it prop = properties.begin(); prop != properties.end(); prop++) delete (*prop);
+	properties.clear();
 }
 
 
@@ -842,7 +842,7 @@ bool Config::ParseConfigFile(char const * const configfilename){
 			if(loc == string::npos) continue;
 			gegevens.erase(loc);
 			testsec = GetSection(gegevens.substr(1));
-			if(testsec != NULL ) currentsection = testsec;
+			currentsection = testsec; /* NTS: If we don't recognize the section we WANT currentsection == NULL so it has no effect */
 			testsec = NULL;
 		}
 			break;
