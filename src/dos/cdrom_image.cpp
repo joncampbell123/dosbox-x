@@ -80,9 +80,8 @@ CDROM_Interface_Image::CDROM_Interface_Image(Bit8u subUnit)
 	images[subUnit] = this;
 	if (refCount == 0) {
 		player.mutex = SDL_CreateMutex();
-		if (!player.channel) {
+		if (player.channel == NULL)
 			player.channel = MIXER_AddChannel(&CDAudioCallBack, 44100, "CDAUDIO");
-		}
 		player.channel->Enable(true);
 	}
 	refCount++;
@@ -95,7 +94,11 @@ CDROM_Interface_Image::~CDROM_Interface_Image()
 	ClearTracks();
 	if (refCount == 0) {
 		SDL_DestroyMutex(player.mutex);
-		player.channel->Enable(false);
+		if (player.channel) {
+			player.channel->Enable(false);
+			MIXER_DelChannel(player.channel);
+			player.channel = NULL;
+		}
 	}
 }
 
