@@ -568,6 +568,8 @@ void ISA_BCLK_test_event(ClockDomainEvent *e) {
 	e->domain->add_event_rel(ISA_BCLK_test_event,e->domain->freq);
 }
 
+unsigned int dosbox_shell_env_size = 0;
+
 static void DOSBOX_RealInit(Section * sec) {
 	Section_prop * section=static_cast<Section_prop *>(sec);
 	/* Initialize some dosbox internals */
@@ -577,6 +579,8 @@ static void DOSBOX_RealInit(Section * sec) {
 	ticksLocked = false;
 	DOSBOX_SetLoop(&Normal_Loop);
 	MSG_Init(section);
+
+	dosbox_shell_env_size = section->Get_int("shell environment size");
 
 	mainline_compatible_mapping = section->Get_bool("mainline compatible mapping");
 	VGA_BIOS_Size_override = section->Get_int("vga bios size override");
@@ -784,6 +788,10 @@ void DOSBOX_Init(void) {
 
 	Pbool = secprop->Add_bool("adapter rom is ram",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("Map adapter ROM as RAM (mainline DOSBox 0.74 behavior). When clear, unused adapter ROM is mapped out");
+
+	Pint = secprop->Add_int("shell environment size",Property::Changeable::OnlyAtStart,0);
+	Pint->SetMinMax(512,65280);
+	Pint->Set_help("Size of the DOSBox shell environment block, in bytes");
 
 	Pint = secprop->Add_int("private area size",Property::Changeable::OnlyAtStart,32768); // DOSBox mainline compatible 32KB region
 	Pint->SetMinMax(16,128*1024);

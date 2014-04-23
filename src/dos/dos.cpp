@@ -1539,6 +1539,8 @@ void DOS_GetMemory_Choose();
 
 #include <assert.h>
 
+extern unsigned int dosbox_shell_env_size;
+
 class DOS:public Module_base{
 private:
 	CALLBACK_HandlerObject callback[8];
@@ -1558,7 +1560,14 @@ public:
 			private_always_from_umb = false;
 		}
 
+		unsigned int DOS_FIRST_SHELL_SIZE;
+
 		if (dynamic_dos_kernel_alloc) {
+			if (dosbox_shell_env_size == 0)
+				dosbox_shell_env_size = (0x158 - (0x118 + 19)) << 4; /* equivalent to mainline DOSBox */
+			else
+				dosbox_shell_env_size = (dosbox_shell_env_size+15)&(~15); /* round up to paragraph */
+
 			/* we make use of the DOS_GetMemory() function for the dynamic allocation */
 			if (mainline_compatible_mapping) {
 				DOS_IHSEG = 0x70;
@@ -1582,6 +1591,8 @@ public:
 			fprintf(stderr,"Dynamic DOS kernel mode, structures will be allocated from pool 0x%04x-0x%04x\n",
 				DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
 
+			DOS_FIRST_SHELL_SIZE = 19 + (dosbox_shell_env_size >> 4);
+
 			if (!mainline_compatible_mapping) DOS_IHSEG = DOS_GetMemory(1,"DOS_IHSEG");
 			DOS_INFOBLOCK_SEG = DOS_GetMemory(0x20,"DOS_INFOBLOCK_SEG");	// was 0x80
 			DOS_CONDRV_SEG = DOS_GetMemory(0x08,"DOS_CONDRV_SEG");		// was 0xA0
@@ -1589,8 +1600,9 @@ public:
 			DOS_SDA_SEG = DOS_GetMemory(0x56,"DOS_SDA_SEG");		// was 0xB2  (0xB2 + 0x56 = 0x108)
 			DOS_SDA_OFS = 0;
 			DOS_CDS_SEG = DOS_GetMemory(0x10,"DOS_CDA_SEG");		// was 0x108
-			DOS_FIRST_SHELL = DOS_GetMemory(0x40,"DOS_FIRST_SHELL");	// was 0x118
-			DOS_FIRST_SHELL_END = DOS_FIRST_SHELL + 0x40;
+			DOS_FIRST_SHELL = DOS_GetMemory(DOS_FIRST_SHELL_SIZE,"DOS_FIRST_SHELL");	// was 0x118
+			/* TODO: We should decide the shell's environment block segment here too */
+			DOS_FIRST_SHELL_END = DOS_FIRST_SHELL + DOS_FIRST_SHELL_SIZE; /* see src/shell/shell.cpp line 722 for more information */
 			/* defer DOS_MEM_START until right before SetupMemory */
 		}
 		else {
@@ -1604,7 +1616,13 @@ public:
 			DOS_SDA_OFS = 0;
 			DOS_CDS_SEG = 0x108;
 			DOS_FIRST_SHELL = 0x118;
+			DOS_FIRST_SHELL_SIZE = 0x40;
 			DOS_FIRST_SHELL_END = DOS_MEM_START = 0x158;	 // regression to r3437 fixes nascar 2 colors
+
+			if (dosbox_shell_env_size != 0) {
+				fprintf(stderr,"WARNING: Shell environment block size setting is only available when dynamic dos kernel allocation is enabled\n");
+				dosbox_shell_env_size = (DOS_FIRST_SHELL_END - (DOS_FIRST_SHELL+19)) << 4; /* see src/shell/shell.cpp line 722 for more information */
+			}
 
 			if (!private_segment_in_umb) {
 				/* If private segment is not being placed in UMB, then it must follow the DOS kernel. */
@@ -1634,7 +1652,7 @@ public:
 		fprintf(stderr,"   constring:    seg 0x%04x\n",DOS_CONSTRING_SEG);
 		fprintf(stderr,"   SDA:          seg 0x%04x:0x%04x\n",DOS_SDA_SEG,DOS_SDA_OFS);
 		fprintf(stderr,"   CDS:          seg 0x%04x\n",DOS_CDS_SEG);
-		fprintf(stderr,"   first shell:  seg 0x%04x\n",DOS_FIRST_SHELL);
+		fprintf(stderr,"   first shell:  seg 0x%04x-0x%04x\n",DOS_FIRST_SHELL,DOS_FIRST_SHELL_END-1);
 		fprintf(stderr,"[private segment @ this point 0x%04x-0x%04x mem=0x%04x]\n",
 			DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END,
 			MEM_TotalPages() << (12 - 4));

@@ -471,6 +471,8 @@ static char const * const prompt_string="PROMPT=$P$G";
 static char const * const full_name="Z:\\COMMAND.COM";
 static char const * const init_line="/INIT AUTOEXEC.BAT";
 
+extern unsigned int dosbox_shell_env_size;
+
 void SHELL_Init() {
 	/* Add messages */
 	MSG_Add("SHELL_CMD_VOL_DRIVE","\n Volume in drive %c ");
@@ -735,6 +737,9 @@ void SHELL_Init() {
 	/* sanity check */
 	assert(DOS_FIRST_SHELL_END <= DOS_MEM_START);
 	assert(DOS_FIRST_SHELL_END > env_seg);
+
+	if ((env_seg+(dosbox_shell_env_size>>4)) > DOS_FIRST_SHELL_END)
+		E_Exit("env_seg + env_size > SHELL_END programming mistake");
 
 	/* Setup MCBs */
 	DOS_MCB pspmcb((Bit16u)(psp_seg-1));
