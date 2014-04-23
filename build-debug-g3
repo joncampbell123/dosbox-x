@@ -1,8 +1,8 @@
 #!/bin/bash
 chmod +x configure
 
-export CFLAGS="$CFLAGS -g3 -O0"
-export CXXFLAGS="$CXXFLAGS -g3 -O0"
+export CFLAGS="$CFLAGS -g3 -O0 -fno-inline -fno-omit-frame-pointer"
+export CXXFLAGS="$CXXFLAGS -g3 -O0 -fno-inline -fno-omit-frame-pointer"
 
 ./configure --enable-core-inline --enable-debug=heavy --prefix=/usr || exit 1
 make -j3 || exit 1
