@@ -379,6 +379,10 @@ Bits CPU_Core_Dyn_X86_Trap_Run(void) {
 	return ret;
 }
 
+void CPU_Core_Dyn_X86_Shutdown(void) {
+	gen_free();
+}
+
 void CPU_Core_Dyn_X86_Init(void) {
 	Bits i;
 	/* Setup the global registers and their flags */

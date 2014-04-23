@@ -1068,4 +1068,34 @@ static void gen_init(void) {
 	x86gen.regs[X86_REG_EDI]=new GenReg(7);
 }
 
+static void gen_free(void) {
+	if (x86gen.regs[X86_REG_EAX]) {
+		delete x86gen.regs[X86_REG_EAX];
+		x86gen.regs[X86_REG_EAX] = NULL;
+	}
+	if (x86gen.regs[X86_REG_ECX]) {
+		delete x86gen.regs[X86_REG_ECX];
+		x86gen.regs[X86_REG_ECX] = NULL;
+	}
+	if (x86gen.regs[X86_REG_EDX]) {
+		delete x86gen.regs[X86_REG_EDX];
+		x86gen.regs[X86_REG_EDX] = NULL;
+	}
+	if (x86gen.regs[X86_REG_EBX]) {
+		delete x86gen.regs[X86_REG_EBX];
+		x86gen.regs[X86_REG_EBX] = NULL;
+	}
+	if (x86gen.regs[X86_REG_EBP]) {
+		delete x86gen.regs[X86_REG_EBP];
+		x86gen.regs[X86_REG_EBP] = NULL;
+	}
+	if (x86gen.regs[X86_REG_ESI]) {
+		delete x86gen.regs[X86_REG_ESI];
+		x86gen.regs[X86_REG_ESI] = NULL;
+	}
+	if (x86gen.regs[X86_REG_EDI]) {
+		delete x86gen.regs[X86_REG_EDI];
+		x86gen.regs[X86_REG_EDI] = NULL;
+	}
+}
 
