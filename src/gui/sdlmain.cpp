@@ -3455,6 +3455,9 @@ int main(int argc, char* argv[]) {
 	void MAPPER_Shutdown();
 	MAPPER_Shutdown();
 
+	void VFILE_Shutdown(void);
+	VFILE_Shutdown();
+
 	sticky_keys(true); //Might not be needed if the shutdown function switches to windowed mode, but it doesn't hurt
 
 	//Force visible mouse to end user. Somehow this sometimes doesn't happen
