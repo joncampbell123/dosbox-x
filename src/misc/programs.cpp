@@ -301,7 +301,7 @@ int EnvPhys_StrCmp(PhysPt es,PhysPt ef,const char *ls) {
 /* NTS: "entry" string must have already been converted to uppercase */
 bool Program::SetEnv(const char * entry,const char * new_string) {
 	PhysPt env_base,env_fence,env_scan;
-	size_t nsl = 0,el = 0;
+	size_t nsl = 0,el = 0,needs;
 
 	if (dos_kernel_disabled) {
 		fprintf(stderr,"BUG: Program::SetEnv() called with DOS kernel disabled (such as OS boot).\n");
@@ -315,6 +315,7 @@ bool Program::SetEnv(const char * entry,const char * new_string) {
 
 	el = strlen(entry);
 	if (*new_string != 0) nsl = strlen(new_string);
+	needs = nsl+1+el+1+1; /* entry + '=' + new_string + '\0' */
 
 	/* look for the variable in the block. break the loop if found */
 	env_scan = env_base;
@@ -328,7 +329,7 @@ bool Program::SetEnv(const char * entry,const char * new_string) {
 
 			/* before we remove it: is there room for the new value? */
 			if (nsl != 0) {
-				if ((env_scan+nsl+1+el+1) > env_fence) { /* entry + '=' + new_string + '\0' */
+				if ((env_scan+needs) > env_fence) {
 					fprintf(stderr,"Program::SetEnv() error, insufficient room for environment variable %s=%s\n",entry,new_string);
 					return false;
 				}
@@ -358,7 +359,7 @@ bool Program::SetEnv(const char * entry,const char * new_string) {
 	/* At this point, env_scan points to the first byte beyond the block */
 	/* add the string to the end of the block */
 	if (*new_string != 0) {
-		if ((env_scan+nsl+1+el+1) > env_fence) { /* entry + '=' + new_string + '\0' */
+		if ((env_scan+needs) > env_fence) {
 			fprintf(stderr,"Program::SetEnv() error, insufficient room for environment variable %s=%s\n",entry,new_string);
 			return false;
 		}
