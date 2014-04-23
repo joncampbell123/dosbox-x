@@ -2818,7 +2818,7 @@ void BIOS_PnP_ComPortRegister(Bitu port,Bitu irq) {
 	}
 }
 
-static BIOS* test;
+static BIOS* test = NULL;
 
 void BIOS_Destroy(Section* /*sec*/){
 	int i;
