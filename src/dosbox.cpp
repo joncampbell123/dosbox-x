@@ -16,6 +16,33 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+/* NTS: Valgrind hunting shows memory leak from C++ new operator somewhere
+ *      with the JACK library indirectly invoked by SDL audio. Can we resolve
+ *      that too eventually? */
+
+/* NTS: Valgrind hunting also shows one of the section INIT functions (I can't
+ *      yet tell which one because the stack trace doesn't show it) is allocating
+ *      something and is not freeing it. */
+
+/* NTS: Valgrind hunting has a moderate to high signal-to-noise ratio because
+ *      of memory leaks (lazy memory allocation) from other libraries in the
+ *      system, including:
+ *
+ *         ncurses
+ *         libSDL
+ *         libX11 and libXCB
+ *         libasound (ALSA sound library)
+ *         PulseAudio library calls
+ *         JACK library calls
+ *         libdl (the dlopen/dlclose functions allocate something and never free it)
+ *         and a whole bunch of unidentified malloc calls without a matching free.
+ *
+ *      On my dev system, a reported leak of 450KB (77KB possibly lost + 384KB still reachable
+ *      according to Valgrind) is normal.
+ *
+ *      Now you ask: why do I care so much about Valgrind, memory leaks, and cleaning
+ *      up the code? The less spurious memory leaks, the easier it is to identify
+ *      actual leaks among the noise and to patch them up. Thus, "valgrind hunting" --J.C. */
 
 #include <stdlib.h>
 #include <stdarg.h>

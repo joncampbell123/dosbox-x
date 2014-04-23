@@ -627,6 +627,11 @@ string Section_prop::GetPropValue(string const& _property) const{
 	return NO_SUCH_PROPERTY;
 }
 
+/* NTS: For whatever reason, this string concatenation is reported by Valgrind as a memory
+ *      leak because std::string's destructor is never given a chance to clear it, or something...
+ *      I can't quite pinpoint why. Not enough information is provided so far in stack traces.
+ *      It SHOULD be freed, because Section_line is derived from Section, the constructors are
+ *      virtual, and therefore std::string should get a chance to free it's memory. */
 bool Section_line::HandleInputline(string const& line){ 
 	data+=line;
 	data+="\n";
