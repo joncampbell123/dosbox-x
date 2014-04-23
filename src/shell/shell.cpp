@@ -316,22 +316,22 @@ void DOS_Shell::Run(void) {
 	}
 	do {
 		/* Get command once a line */
-		if (bf){
-			if(bf->ReadLine(input_line)) {
-					if (echo) {
-						if (input_line[0]!='@') {
-							ShowPrompt();
-							WriteOut_NoParsing(input_line);
-							WriteOut_NoParsing("\n");
-						};
+		if (bf) {
+			if (bf->ReadLine(input_line)) {
+				if (echo) {
+					if (input_line[0]!='@') {
+						ShowPrompt();
+						WriteOut_NoParsing(input_line);
+						WriteOut_NoParsing("\n");
 					};
-				} else input_line[0]='\0';
+				};
+			} else input_line[0]='\0';
 		} else {
-				if (echo) ShowPrompt();
-				InputCommand(input_line);
-				if (echo) WriteOut("\n");
-			}
-			
+			if (echo) ShowPrompt();
+			InputCommand(input_line);
+			if (echo) WriteOut("\n");
+		}
+
 		/* do it */
 		if(strlen(input_line)!=0) {
 			ParseLine(input_line);
