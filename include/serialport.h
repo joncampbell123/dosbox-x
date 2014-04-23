@@ -57,7 +57,10 @@ public:
 		data=new Bit8u[size];
 	}
 	~MyFifo() {
-		delete[] data;
+		if (data != NULL) {
+			delete[] data;
+			data = NULL;
+		}
 	}
 	INLINE Bitu getFree(void) {
 		return size-used;
@@ -434,7 +437,7 @@ class device_COM : public DOS_Device {
 public:
 	// Creates a COM device that communicates with the num-th parallel port, i.e. is LPTnum
 	device_COM(class CSerial* sc);
-	~device_COM();
+	virtual ~device_COM();
 	bool Read(Bit8u * data,Bit16u * size);
 	bool Write(Bit8u * data,Bit16u * size);
 	bool Seek(Bit32u * pos,Bit32u type);

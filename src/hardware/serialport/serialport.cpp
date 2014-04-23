@@ -1143,10 +1143,28 @@ bool CSerial::getBituSubstring(const char* name,Bitu* data, CommandLine* cmd) {
 }
 
 CSerial::~CSerial(void) {
-	DOS_DelDevice(mydosdevice);
+	if (mydosdevice != NULL) {
+		DOS_DelDevice(mydosdevice);
+		delete mydosdevice;
+		mydosdevice = NULL;
+	}
 	for(Bitu i = 0; i <= SERIAL_BASE_EVENT_COUNT; i++)
 		removeEvent(i);
+
+	if (rxfifo != NULL) {
+		delete rxfifo;
+		rxfifo = NULL;
+	}
+	if (txfifo != NULL) {
+		delete txfifo;
+		txfifo = NULL;
+	}
+	if (errorfifo != NULL) {
+		delete errorfifo;
+		errorfifo = NULL;
+	}
 };
+
 bool CSerial::Getchar(Bit8u* data, Bit8u* lsr, bool wait_dsr, Bitu timeout) {
 	double starttime=PIC_FullIndex();
 	// wait for DSR on

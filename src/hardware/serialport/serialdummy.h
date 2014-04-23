@@ -27,7 +27,7 @@
 class CSerialDummy : public CSerial {
 public:
 	CSerialDummy(Bitu id, CommandLine* cmd);
-	~CSerialDummy();
+	virtual ~CSerialDummy();
 
 	void setRTSDTR(bool rts, bool dtr);
 	void setRTS(bool val);

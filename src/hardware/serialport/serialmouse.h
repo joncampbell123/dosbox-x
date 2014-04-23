@@ -28,7 +28,7 @@
 class CSerialMouse : public CSerial {
 public:
 	CSerialMouse(Bitu id, CommandLine* cmd);
-	~CSerialMouse();
+	virtual ~CSerialMouse();
 
 	void setRTSDTR(bool rts, bool dtr);
 	void setRTS(bool val);
