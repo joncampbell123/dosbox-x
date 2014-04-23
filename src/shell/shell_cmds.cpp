@@ -905,53 +905,49 @@ void DOS_Shell::CMD_COPY(char * args) {
 	dos.dta(save_dta);
 }
 
+/* NTS: WARNING, this function modifies the buffer pointed to by char *args */
 void DOS_Shell::CMD_SET(char * args) {
+	std::string line;
+
 	HELP("SET");
 	StripSpaces(args);
-	std::string line;
-	if (!*args) {
-		/* No command line show all environment lines */	
-		Bitu count=GetEnvCount();
-		for (Bitu a=0;a<count;a++) {
-			if (GetEnvNum(a,line)) WriteOut("%s\n",line.c_str());			
-		}
-		return;
-	}
-	//There are args:
-	char * pcheck = args;
-	while ( *pcheck && (*pcheck == ' ' || *pcheck == '\t')) pcheck++;
-	if (*pcheck && strlen(pcheck) >3 && (strncasecmp(pcheck,"/p ",3) == 0)) E_Exit("Set /P is not supported. Use Choice!");
 
-	char * p=strpbrk(args, "=");
-	if (!p) {
-		if (!GetEnvStr(args,line)) WriteOut(MSG_Get("SHELL_CMD_SET_NOT_SET"),args);
-		WriteOut("%s\n",line.c_str());
-	} else {
-		*p++=0;
-		/* parse p for envirionment variables */
-		char parsed[CMD_MAXLINE];
-		char* p_parsed = parsed;
-		while(*p) {
-			if(*p != '%') *p_parsed++ = *p++; //Just add it (most likely path)
-			else if( *(p+1) == '%') {
-				*p_parsed++ = '%'; p += 2; //%% => % 
-			} else {
-				char * second = strchr(++p,'%');
-				if(!second) continue; *second++ = 0;
-				std::string temp;
-				if (GetEnvStr(p,temp)) {
-					std::string::size_type equals = temp.find('=');
-					if (equals == std::string::npos) continue;
-					strcpy(p_parsed,temp.substr(equals+1).c_str());
-					p_parsed += strlen(p_parsed);
-				}
-				p = second;
-			}
+	if (*args == 0) { /* "SET" by itself means to show the environment block */
+		Bitu count = GetEnvCount();
+
+		for (Bitu a = 0;a < count;a++) {
+			if (GetEnvNum(a,line))
+				WriteOut("%s\n",line.c_str());			
 		}
-		*p_parsed = 0;
-		/* Try setting the variable */
-		if (!SetEnv(args,parsed)) {
-			WriteOut(MSG_Get("SHELL_CMD_SET_OUT_OF_SPACE"));
+
+	}
+	else {
+		char *p;
+
+		{ /* parse arguments at the start */
+			char *pcheck = args;
+
+			while (*pcheck != 0 && (*pcheck == ' ' || *pcheck == '\t')) pcheck++;
+			if (*pcheck != 0 && strlen(pcheck) > 3 && (strncasecmp(pcheck,"/p ",3) == 0))
+				E_Exit("Set /P is not supported. Use Choice!"); /* TODO: What is SET /P supposed to do? */
+		}
+
+		/* Most SET commands take the form NAME=VALUE */
+		p = strchr(args,'=');
+		if (p == NULL) {
+			/* SET <variable> without assignment prints the variable instead */
+			if (!GetEnvStr(args,line)) WriteOut(MSG_Get("SHELL_CMD_SET_NOT_SET"),args);
+			WriteOut("%s\n",line.c_str());
+		} else {
+			/* ASCIIZ snip the args string in two, so that args is C-string name of the variable,
+			 * and "p" is C-string value of the variable */
+			*p++ = 0;
+
+			/* No parsing is needed. The command interpreter does the variable substitution for us */
+			if (!SetEnv(args,p)) {
+				/* NTS: If Win95 is any example, the command interpreter expands the variables for us */
+				WriteOut(MSG_Get("SHELL_CMD_SET_OUT_OF_SPACE"));
+			}
 		}
 	}
 }
