@@ -105,7 +105,7 @@ void LOG::operator() (char const* format, ...){
 	char buf[512];
 	va_list msg;
 	va_start(msg,format);
-	vsprintf(buf,format,msg);
+	vsnprintf(buf,sizeof(buf)-1,format,msg);
 	va_end(msg);
 
 	if (d_type>=LOG_MAX) return;
