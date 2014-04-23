@@ -168,7 +168,7 @@ public:
 	int getMax() { return max;}
 	void SetMinMax(Value const& min,Value const& max) {this->min = min; this->max=max;}
 	bool SetValue(std::string const& in);
-	~Prop_int(){ }
+	virtual ~Prop_int(){ }
 	virtual bool CheckValue(Value const& in, bool warn);
 private:
 	Value min,max;
@@ -181,7 +181,7 @@ public:
 		default_value = value = _value;
 	}
 	bool SetValue(std::string const& input);
-	~Prop_double(){ }
+	virtual ~Prop_double(){ }
 };
 
 class Prop_bool:public Property {
@@ -191,7 +191,7 @@ public:
 		default_value = value = _value;
 	}
 	bool SetValue(std::string const& in);
-	~Prop_bool(){ }
+	virtual ~Prop_bool(){ }
 };
 
 class Prop_string:public Property{
@@ -202,7 +202,7 @@ public:
 	}
 	bool SetValue(std::string const& in);
 	virtual bool CheckValue(Value const& in, bool warn);
-	~Prop_string(){ }
+	virtual ~Prop_string(){ }
 };
 class Prop_path:public Prop_string{
 public:
@@ -213,7 +213,7 @@ public:
 		realpath = _value;
 	}
 	bool SetValue(std::string const& in);
-	~Prop_path(){ }
+	virtual ~Prop_path(){ }
 };
 
 class Prop_hex:public Property {
@@ -223,7 +223,7 @@ public:
 		default_value = value = _value;
 	}
 	bool SetValue(std::string const& in);
-	~Prop_hex(){ }
+	virtual ~Prop_hex(){ }
 };
 
 #define NO_SUCH_PROPERTY "PROP_NOT_EXIST"
@@ -306,7 +306,7 @@ public:
 	const Section_prop *GetSection() const { return section; }
 	virtual bool SetValue(std::string const& input);
 	virtual const std::vector<Value>& GetValues() const;
-	~Prop_multival() { delete section; }
+	virtual ~Prop_multival() { delete section; }
 }; //value bevat totale string. setvalue zet elk van de sub properties en checked die.
 
 class Prop_multival_remain:public Prop_multival{
@@ -320,7 +320,7 @@ public:
 class Section_line: public Section{
 public:
 	Section_line(std::string const& _sectionname):Section(_sectionname){}
-	~Section_line(){ExecuteDestroy(true);}
+	virtual ~Section_line(){ExecuteDestroy(true);}
 	bool HandleInputline(std::string const& gegevens);
 	void PrintData(FILE* outfile) const;
 	virtual std::string GetPropValue(std::string const& _property) const;
