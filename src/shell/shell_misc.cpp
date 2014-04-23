@@ -16,7 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <algorithm> //std::copy
@@ -93,6 +93,7 @@ static void outc(Bit8u c) {
 	DOS_WriteFile(STDOUT,&c,&n);
 }
 
+/* NTS: buffer pointed to by "line" must be at least CMD_MAXLINE+1 large */
 void DOS_Shell::InputCommand(char * line) {
 	Bitu size=CMD_MAXLINE-2; //lastcharacter+0
 	Bit8u c;Bit16u n=1;
@@ -428,53 +429,148 @@ void DOS_Shell::InputCommand(char * line) {
 		l_history.pop_front();
 	}
 
-	/* Now parse the line for % stuff */
-	char * percentfirst=strchr(line,'%');
-	char * percentlast=strrchr(line,'%');
-	if(percentfirst<percentlast && percentfirst!=NULL && percentlast!=NULL)
-		ProcessCmdLineEnvVarStitution(line);
-
-	// add command line to history
+	// add command line to history. Win95 behavior with DOSKey suggests
+	// that the original string is preserved, not the expanded string.
 	l_history.push_front(line); it_history = l_history.begin();
 	if (l_completion.size()) l_completion.clear();
 
+	/* DOS %variable% substitution */
+	ProcessCmdLineEnvVarStitution(line);
 }
 
 
-/*Make sure that 'line' contains string(s) in %xxx% format before calling it*/
-void DOS_Shell::ProcessCmdLineEnvVarStitution(char * line) {
-	char temp[CMD_MAXLINE];
-	strcpy(temp,line);
-	
-	char * cmd_write=line;
-	char * cmd_read=temp;
+/* WARNING: Substitution is carried out in-place!
+ * Buffer pointed to by "line" must be at least CMD_MAXLINE+1 bytes long! */
+void DOS_Shell::ProcessCmdLineEnvVarStitution(char *line) {
+	char temp[CMD_MAXLINE]; /* <- NTS: Currently 4096 which is very generous indeed! */
+	char *w=temp,*wf=temp+sizeof(temp)-1;
+	char *r=line;
 
-	char env_name[256];char * env_write;
-	while (*cmd_read) {
-		env_write=env_name;
-		if (*cmd_read=='%') {
-			cmd_read++;
-			
-			/* try to get the environment */
-			char * first=strchr(cmd_read,'%');
-			if (!first) 
-				continue; 
-			*first++=0;
-			std::string temp;
-			if (GetEnvStr(cmd_read,temp)) {
-					const char * equals=strchr(temp.c_str(),'=');
-					if (!equals) continue;
-					equals++;
-					strcpy(cmd_write,equals);
-					cmd_write+=strlen(equals);
-			
-			cmd_read=first;
+	/* initial scan: is there anything to substitute? */
+	/* if not, then return without modifying "line" */
+	while (*r != 0 && *r != '%') r++;
+	if (*r != '%') return;
+
+	/* if the incoming string is already too long, then that's a problem too! */
+	if (((size_t)(r+1-line)) >= CMD_MAXLINE) {
+		fprintf(stderr,"DOS_Shell::ProcessCmdLineEnvVarStitution WARNING incoming string to substitute is already too long!\n");
+		goto overflow;
+	}
+
+	/* copy the string down up to that point */
+	for (char *c=line;c < r;) {
+		assert(w < wf);
+		*w++ = *c++;
+	}
+
+	/* begin substitution process */
+	while (*r != 0) {
+		if (*r == '%') {
+			r++;
+			if (*r == '%' || *r == 0) {
+				/* %% or leaving a trailing % at the end (Win95 behavior) becomes a single '%' */
+				if (w >= wf) goto overflow;
+				*w++ = '%';
+				if (*r != 0) r++;
+				else break;
 			}
-		} else {
-			*cmd_write++=*cmd_read++;
+			else {
+				char *name = r; /* store pointer, 'r' is first char of the name following '%' */
+				int spaces = 0,chars = 0;
+
+				/* continue scanning for the ending '%'. variable names are apparently meant to be
+				 * alphanumeric, start with a letter, without spaces (if Windows 95 COMMAND.COM is
+				 * any good example). If it doesn't end in '%' or is broken by space or starts with
+				 * a number, substitution is not carried out. In the middle of the variable name
+				 * it seems to be acceptable to use hyphens.
+				 *
+				 * since spaces break up a variable name to prevent substitution, these commands
+				 * act differently from one another:
+				 *
+				 * C:\>echo %PATH%
+				 * C:\DOS;C:\WINDOWS
+				 *
+				 * C:\>echo %PATH %
+				 * %PATH % */
+				if (isalpha(*r) || *r == ' ') { /* must start with a letter. space is apparently valid too. (Win95) */
+					if (*r == ' ') spaces++;
+					else if (isalpha(*r)) chars++;
+
+					r++;
+					while (*r != 0 && *r != '%') {
+						if (*r == ' ') spaces++;
+						else chars++;
+						r++;
+					}
+				}
+
+				/* Win95 testing:
+				 *
+				 * "%" = "%"
+				 * "%%" = "%"
+				 * "% %" = ""
+				 * "%  %" = ""
+				 * "% % %" = " %"
+				 *
+				 * ^ WTF?
+				 *
+				 * So the below code has funny conditions to match Win95's weird rules on what
+				 * consitutes valid or invalid %variable% names. */
+				if (*r == '%' && ((spaces > 0 && chars == 0) || (spaces == 0 && chars > 0))) {
+					std::string temp;
+
+					/* valid name found. substitute */
+					*r++ = 0; /* ASCIIZ snip */
+					if (GetEnvStr(name,temp)) {
+						size_t equ_pos = temp.find_first_of('=');
+						if (equ_pos != std::string::npos) {
+							const char *base = temp.c_str();
+							const char *value = base + equ_pos + 1;
+							const char *fence = base + temp.length();
+							assert(value >= base && value <= fence);
+							size_t len = (size_t)(fence-value);
+
+							if ((w+len) > wf) goto overflow;
+							memcpy(w,value,len);
+							w += len;
+						}
+					}
+				}
+				else {
+					/* nope. didn't find a valid name */
+
+					while (*r != 0 && *r == ' ') r++; /* skip spaces */
+					name--; /* step "name" back to cover the first '%' we found */
+
+					for (char *c=name;c < r;) {
+						if (w >= wf) goto overflow;
+						*w++ = *c++;
+					}
+				}
+			}
+		}
+		else {
+			if (w >= wf) goto overflow;
+			*w++ = *r++;
 		}
 	}
-	*cmd_write=0;
+
+	/* complete the C-string */
+	assert(w <= wf);
+	*w = 0;
+
+	/* copy the string back over the buffer pointed to by line */
+	{
+		size_t out_len = (size_t)(w+1-temp); /* length counting the NUL too */
+		assert(out_len <= CMD_MAXLINE);
+		memcpy(line,temp,out_len);
+	}
+
+	/* success */
+	return;
+overflow:
+	*line = 0; /* clear string (C-string chop with NUL) */
+	WriteOut("Command input error: string expansion overflow\n");
 }
 
 std::string full_arguments = "";
