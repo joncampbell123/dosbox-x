@@ -34,6 +34,30 @@ Bit16u first_umb_size = 0x2000;
 
 static Bit16u memAllocStrategy = 0x00;
 
+static void DOS_Mem_E_Exit(const char *msg) {
+	Bit16u mcb_segment=dos.firstMCB;
+	DOS_MCB mcb(mcb_segment);
+	DOS_MCB mcb_next(0);
+	Bitu counter=0;
+	
+	fprintf(stderr,"DOS MCB dump:\n");
+	while (mcb.GetType()!='Z') {
+		if (counter++ > 10000) break;
+		fprintf(stderr," Type=0x%02x(%c) Seg=0x%04x size=0x%04x\n",
+			mcb.GetType(),mcb.GetType(),
+			mcb_segment+1,mcb.GetSize());
+		mcb_next.SetPt((Bit16u)(mcb_segment+mcb.GetSize()+1));
+		mcb_segment+=mcb.GetSize()+1;
+		mcb.SetPt(mcb_segment);
+	}
+	fprintf(stderr,"FINAL: Type=0x%02x(%c) Seg=0x%04x size=0x%04x\n",
+			mcb.GetType(),mcb.GetType(),
+			mcb_segment+1,mcb.GetSize());
+	fprintf(stderr,"End dump\n");
+
+	E_Exit(msg);
+}
+
 static void DOS_CompressMemory(void) {
 	Bit16u mcb_segment=dos.firstMCB;
 	DOS_MCB mcb(mcb_segment);
@@ -41,7 +65,7 @@ static void DOS_CompressMemory(void) {
 	Bitu counter=0;
 
 	while (mcb.GetType()!='Z') {
-		if(counter++ > 10000000) E_Exit("DOS MCB list corrupted.");
+		if(counter++ > 10000000) DOS_Mem_E_Exit("DOS_CompressMemory: DOS MCB list corrupted.");
 		mcb_next.SetPt((Bit16u)(mcb_segment+mcb.GetSize()+1));
 		if ((mcb.GetPSPSeg()==0) && (mcb_next.GetPSPSeg()==0)) {
 			mcb.SetSize(mcb.GetSize()+mcb_next.GetSize()+1);
@@ -57,8 +81,9 @@ void DOS_FreeProcessMemory(Bit16u pspseg) {
 	Bit16u mcb_segment=dos.firstMCB;
 	DOS_MCB mcb(mcb_segment);
 	Bitu counter = 0;
+
 	for (;;) {
-		if(counter++ > 10000000) E_Exit("DOS MCB list corrupted.");
+		if(counter++ > 10000000) DOS_Mem_E_Exit("DOS_FreeProcessMemory: DOS MCB list corrupted.");
 		if (mcb.GetPSPSeg()==pspseg) {
 			mcb.SetPSPSeg(MCB_FREE);
 		}
