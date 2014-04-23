@@ -1147,6 +1147,16 @@ public:
 		return (*i).second;
 	}
 
+	static void registry_freeall() {
+		std::map<const char *,Font *,ltstr>::iterator it;
+
+		while ((it=registry.begin()) != registry.end()) {
+			delete it->second;
+			it->second = NULL;
+			registry.erase(it);
+		}
+	}
+
 	/// Add a font with a given name.
 	/** Don't delete this font once added. This class will do that for you.
 	 *  If a font with that name already exists, it will be replaced. */

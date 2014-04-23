@@ -57,6 +57,8 @@
 #include "menu.h"
 #include "SDL_video.h"
 
+#include "../src/libs/gui_tk/gui_tk.h"
+
 #ifdef __WIN32__
 # include "callback.h"
 # include "dos_inc.h"
@@ -3436,6 +3438,9 @@ int main(int argc, char* argv[]) {
 		SDL_ShowCursor(SDL_ENABLE);
 		throw;//dunno what happened. rethrow for sdl to catch
 	}
+
+	/* GUI font registry shutdown */
+	GUI::Font::registry_freeall();
 
 	void DOS_ShutdownDrives();
 	DOS_ShutdownDrives();
