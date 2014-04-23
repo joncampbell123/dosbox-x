@@ -610,7 +610,7 @@ bool Section_prop::HandleInputline(string const& gegevens){
 	return false;
 }
 
-void Section_prop::PrintData(FILE* outfile) const {
+void Section_prop::PrintData(FILE* outfile) {
 	/* Now print out the individual section entries */
 	for(const_it tel=properties.begin();tel!=properties.end();tel++){
 		fprintf(outfile,"%s=%s\n",(*tel)->propname.c_str(),(*tel)->GetValue().ToString().c_str());
@@ -633,7 +633,7 @@ bool Section_line::HandleInputline(string const& line){
 	return true;
 }
 
-void Section_line::PrintData(FILE* outfile) const {
+void Section_line::PrintData(FILE* outfile) {
 	fprintf(outfile,"%s",data.c_str());
 }
 
