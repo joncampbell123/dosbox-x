@@ -20,6 +20,7 @@
 #include <vector>
 #include <sstream>
 #include <ctype.h>
+#include <assert.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -270,37 +271,107 @@ Bitu Program::GetEnvCount(void) {
 	return num;
 }
 
+static bool LocateEnvironmentBlock(PhysPt &env_base,PhysPt &env_fence,Bitu env_seg) {
+	if (env_seg == 0) {
+		/* The DOS program might have freed it's environment block perhaps. */
+		return false;
+	}
+
+	DOS_MCB env_mcb(env_seg-1); /* read the environment block's MCB to determine how large it is */
+	env_base = PhysMake(env_seg,0);
+	env_fence = env_base + (env_mcb.GetSize() << 4);
+	return true;
+}
+
+int EnvPhys_StrCmp(PhysPt es,PhysPt ef,const char *ls) {
+	unsigned char a,b;
+
+	while (1) {
+		a = mem_readb(es++);
+		b = (unsigned char)(*ls++);
+		if (a == '=') a = 0;
+		if (a == 0 && b == 0) break;
+		if (a == b) continue;
+		return (int)a - (int)b;
+	}
+
+	return 0;
+}
+
+/* NTS: "entry" string must have already been converted to uppercase */
 bool Program::SetEnv(const char * entry,const char * new_string) {
+	PhysPt env_base,env_fence,env_scan;
+
 	if (dos_kernel_disabled) {
 		fprintf(stderr,"BUG: Program::SetEnv() called with DOS kernel disabled (such as OS boot).\n");
 		return false;
 	}
 
-	PhysPt env_read=PhysMake(psp->GetEnvironment(),0);
-	PhysPt env_write=env_read;
-	char env_string[1024+1];
-	do 	{
-		MEM_StrCopy(env_read,env_string,1024);
-		if (!env_string[0]) break;
-		env_read += (PhysPt)(strlen(env_string)+1);
-		if (!strchr(env_string,'=')) continue;		/* Remove corrupt entry? */
-		if ((strncasecmp(entry,env_string,strlen(entry))==0) && 
-			env_string[strlen(entry)]=='=') continue;
-		MEM_BlockWrite(env_write,env_string,(Bitu)(strlen(env_string)+1));
-		env_write += (PhysPt)(strlen(env_string)+1);
-	} while (1);
-/* TODO Maybe save the program name sometime. not really needed though */
-	/* Save the new entry */
-	if (new_string[0]) {
-		std::string bigentry(entry);
-		for (std::string::iterator it = bigentry.begin(); it != bigentry.end(); ++it) *it = toupper(*it);
-		sprintf(env_string,"%s=%s",bigentry.c_str(),new_string); 
-//		sprintf(env_string,"%s=%s",entry,new_string); //oldcode
-		MEM_BlockWrite(env_write,env_string,(Bitu)(strlen(env_string)+1));
-		env_write += (PhysPt)(strlen(env_string)+1);
+	if (!LocateEnvironmentBlock(env_base,env_fence,psp->GetEnvironment())) {
+		fprintf(stderr,"Warning: SetEnv() was not able to locate the program's environment block\n");
+		return false;
 	}
-	/* Clear out the final piece of the environment */
-	mem_writed(env_write,0);
+
+	/* look for the variable in the block. break the loop if found */
+	env_scan = env_base;
+	while (env_scan < env_fence) {
+		if (mem_readb(env_scan) == 0) break;
+
+		if (EnvPhys_StrCmp(env_scan,env_fence,entry) == 0) {
+			/* found it. remove by shifting the rest of the environment block over */
+			int zeroes=0;
+			PhysPt s,d;
+			
+			s = env_scan; d = env_scan;
+			while (s < env_fence && mem_readb(s) != 0) s++;
+			if (s < env_fence && mem_readb(s) == 0) s++;
+
+			while (s < env_fence) {
+				unsigned char b = mem_readb(s++);
+
+				if (b == 0) zeroes++;
+				else zeroes=0;
+
+				mem_writeb(d++,b);
+				if (zeroes >= 2) break; /* two consecutive zeros means the end of the block */
+			}
+		}
+		else {
+			/* scan to next string */
+			while (env_scan < env_fence && mem_readb(env_scan) != 0) env_scan++;
+			if (env_scan < env_fence && mem_readb(env_scan) == 0) env_scan++;
+		}
+	}
+
+	/* At this point, env_scan points to the first byte beyond the block */
+
+	/* add the string to the end of the block */
+	if (*new_string != 0) {
+		size_t nsl = strlen(new_string);
+		size_t el = strlen(entry);
+
+		if ((env_scan+nsl+1+el+1) > env_fence) { /* entry + '=' + new_string + '\0' */
+			fprintf(stderr,"Program::SetEnv() error, insufficient room for environment variable %s=%s\n",entry,new_string);
+			return false;
+		}
+
+		for (const char *s=entry;*s != 0;) {
+			assert(env_scan < env_fence);
+			mem_writeb(env_scan++,*s++);
+		}
+		assert(env_scan < env_fence);
+		mem_writeb(env_scan++,'=');
+
+		for (const char *s=new_string;*s != 0;) {
+			assert(env_scan < env_fence);
+			mem_writeb(env_scan++,*s++);
+		}
+		assert(env_scan < env_fence);
+		mem_writeb(env_scan++,0);
+		assert(env_scan < env_fence);
+		mem_writeb(env_scan++,0);
+	}
+
 	return true;
 }
 

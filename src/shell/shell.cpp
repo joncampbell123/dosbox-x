@@ -16,7 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-
+#include <assert.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
@@ -732,6 +732,10 @@ void SHELL_Init() {
 	/* Set up int 23 to "int 20" in the psp. Fixes what.exe */
 	real_writed(0,0x23*4,((Bit32u)psp_seg<<16));
 
+	/* sanity check */
+	assert(DOS_FIRST_SHELL_END <= DOS_MEM_START);
+	assert(DOS_FIRST_SHELL_END > env_seg);
+
 	/* Setup MCBs */
 	DOS_MCB pspmcb((Bit16u)(psp_seg-1));
 	pspmcb.SetPSPSeg(psp_seg);	// MCB of the command shell psp
@@ -739,8 +743,11 @@ void SHELL_Init() {
 	pspmcb.SetType(0x4d);
 	DOS_MCB envmcb((Bit16u)(env_seg-1));
 	envmcb.SetPSPSeg(psp_seg);	// MCB of the command shell environment
-	envmcb.SetSize(DOS_MEM_START-env_seg);
+	envmcb.SetSize(DOS_FIRST_SHELL_END-env_seg);
 	envmcb.SetType(0x4d);
+
+	fprintf(stderr,"SHELL: psp_seg 0x%04x\n",psp_seg);
+	fprintf(stderr,"SHELL: env_seg 0x%04x\n",env_seg);
 	
 	/* Setup environment */
 	PhysPt env_write=PhysMake(env_seg,0);
