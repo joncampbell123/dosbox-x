@@ -2685,6 +2685,19 @@ public:
 		 * a page fault. */
 		CPU_Snap_Back_To_Real_Mode();
 
+		if (ISAPNP_PNP_ADDRESS_PORT) {
+			delete ISAPNP_PNP_ADDRESS_PORT;
+			ISAPNP_PNP_ADDRESS_PORT=NULL;
+		}
+		if (ISAPNP_PNP_DATA_PORT) {
+			delete ISAPNP_PNP_DATA_PORT;
+			ISAPNP_PNP_DATA_PORT=NULL;
+		}
+		if (ISAPNP_PNP_READ_PORT) {
+			delete ISAPNP_PNP_READ_PORT;
+			ISAPNP_PNP_READ_PORT=NULL;
+		}
+
 		/* abort DAC playing */
 		if (tandy_sb.port) {
 			IO_Write(tandy_sb.port+0xc,0xd3);
