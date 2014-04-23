@@ -106,7 +106,7 @@ public:
 		current_value=0;
 	}
 	void AddBind(CBind * bind);
-	virtual ~CEvent() {}
+	virtual ~CEvent();
 	virtual void Active(bool yesno)=0;
 	virtual void ActivateEvent(bool ev_trigger,bool skip_action)=0;
 	virtual void DeActivateEvent(bool ev_trigger)=0;
@@ -194,7 +194,6 @@ class CBind {
 public:
 	virtual ~CBind () {
 		list->remove(this);
-//		event->bindlist.remove(this);
 	}
 	CBind(CBindList * _list) {
 		list=_list;
@@ -269,6 +268,14 @@ public:
 	bool active,holding;
 };
 
+CEvent::~CEvent() {
+	CBindList_it it;
+
+	while ((it=bindlist.begin()) != bindlist.end()) {
+		delete (*it);
+		bindlist.erase(it);
+	}
+}
 
 void CEvent::AddBind(CBind * bind) {
 	bindlist.push_front(bind);
