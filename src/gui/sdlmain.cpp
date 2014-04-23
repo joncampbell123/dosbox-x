@@ -3452,6 +3452,9 @@ int main(int argc, char* argv[]) {
 	void CPU_Core_Dyn_X86_Shutdown(void);
 	CPU_Core_Dyn_X86_Shutdown();
 
+	void MAPPER_Shutdown();
+	MAPPER_Shutdown();
+
 	sticky_keys(true); //Might not be needed if the shutdown function switches to windowed mode, but it doesn't hurt
 
 	//Force visible mouse to end user. Somehow this sometimes doesn't happen

@@ -96,7 +96,6 @@ typedef std::vector<CBindGroup *>::iterator CBindGroup_it;
 
 static CBindList holdlist;
 
-
 class CEvent {
 public:
 	CEvent(char const * const _entry) {
@@ -131,6 +130,7 @@ protected:
 class CTriggeredEvent : public CEvent {
 public:
 	CTriggeredEvent(char const * const _entry) : CEvent(_entry) {}
+	virtual ~CTriggeredEvent() {}
 	virtual bool IsTrigger(void) {
 		return true;
 	}
@@ -157,6 +157,7 @@ public:
 class CContinuousEvent : public CEvent {
 public:
 	CContinuousEvent(char const * const _entry) : CEvent(_entry) {}
+	virtual ~CContinuousEvent() {}
 	virtual bool IsTrigger(void) {
 		return false;
 	}
@@ -286,6 +287,7 @@ public:
 	CBindGroup() {
 		bindgroups.push_back(this);
 	}
+	virtual ~CBindGroup (void) { }
 	void ActivateBindList(CBindList * list,Bits value,bool ev_trigger);
 	void DeactivateBindList(CBindList * list,bool ev_trigger);
 	virtual CBind * CreateConfigBind(char *&buf)=0;
@@ -294,7 +296,6 @@ public:
 	virtual bool CheckEvent(SDL_Event * event)=0;
 	virtual const char * ConfigStart(void)=0;
 	virtual const char * BindStart(void)=0;
-	virtual ~CBindGroup (void) { }
 
 protected:
 
@@ -463,6 +464,7 @@ public:
 	CKeyBind(CBindList * _list,SDLKey _key) : CBind(_list) {
 		key = _key;
 	}
+	virtual ~CKeyBind() {}
 	void BindName(char * buf) {
 		sprintf(buf,"Key %s",SDL_GetKeyName(MapSDLCode((Bitu)key)));
 	}
@@ -481,7 +483,7 @@ public:
 		keys=_keys;
 		configname="key";
 	}
-	~CKeyBindGroup() { delete[] lists; }
+	virtual ~CKeyBindGroup() { delete[] lists; }
 	CBind * CreateConfigBind(char *& buf) {
 		if (strncasecmp(buf,configname,strlen(configname))) return 0;
 		StripWord(buf);char * num=StripWord(buf);
@@ -544,6 +546,7 @@ public:
 		axis = _axis;
 		positive = _positive;
 	}
+	virtual ~CJAxisBind() {}
 	void ConfigName(char * buf) {
 		sprintf(buf,"%s axis %d %d",group->ConfigStart(),axis,positive ? 1 : 0);
 	}
@@ -562,6 +565,7 @@ public:
 		group = _group;
 		button=_button;
 	}
+	virtual ~CJButtonBind() {}
 	void ConfigName(char * buf) {
 		sprintf(buf,"%s button %d",group->ConfigStart(),button);
 	}
@@ -586,6 +590,7 @@ public:
 		else if (dir&SDL_HAT_LEFT) dir=SDL_HAT_LEFT;
 		else E_Exit("MAPPER:JOYSTICK:Invalid hat position");
 	}
+	virtual ~CJHatBind() {}
 	void ConfigName(char * buf) {
 		sprintf(buf,"%s hat %d %d",group->ConfigStart(),hat,dir);
 	}
@@ -667,7 +672,7 @@ public:
 
 		LOG_MSG("Using joystick %s with %d axes, %d buttons and %d hat(s)",SDL_JoystickName(stick),axes,buttons,hats);
 	}
-	~CStickBindGroup() {
+	virtual ~CStickBindGroup() {
 		SDL_JoystickClose(sdl_joystick);
 		delete[] pos_axis_lists;
 		delete[] neg_axis_lists;
@@ -906,6 +911,7 @@ public:
 
 		JOYSTICK_Enable(1,true);
 	}
+	virtual ~C4AxisBindGroup() {}
 
 	bool CheckEvent(SDL_Event * event) {
 		SDL_JoyAxisEvent * jaxis = NULL;
@@ -979,6 +985,7 @@ public:
 		JOYSTICK_Enable(1,true);
 		JOYSTICK_Move_Y(1,1.0);
 	}
+	virtual ~CFCSBindGroup() {}
 
 	bool CheckEvent(SDL_Event * event) {
 		SDL_JoyAxisEvent * jaxis = NULL;
@@ -1115,6 +1122,7 @@ public:
 		JOYSTICK_Enable(1,true);
 		button_state=0;
 	}
+	virtual ~CCHBindGroup() {}
 
 	bool CheckEvent(SDL_Event * event) {
 		SDL_JoyAxisEvent * jaxis = NULL;
@@ -1324,6 +1332,7 @@ protected:
 class CTextButton : public CButton {
 public:
 	CTextButton(Bitu _x,Bitu _y,Bitu _dx,Bitu _dy,const char * _text) : CButton(_x,_y,_dx,_dy) { text=_text;}
+	virtual ~CTextButton() {}
 	void Draw(void) {
 		if (!enabled) return;
 		CButton::Draw();
@@ -1342,6 +1351,7 @@ public:
 	: CTextButton(_x,_y,_dx,_dy,_text) 	{ 
 		event=_event;	
 	}
+	virtual ~CEventButton() {}
 	void Click(void) {
 		if (last_clicked) last_clicked->SetColor(CLR_WHITE);
 		this->SetColor(CLR_GREEN);
@@ -1357,6 +1367,7 @@ public:
 	CCaptionButton(Bitu _x,Bitu _y,Bitu _dx,Bitu _dy) : CButton(_x,_y,_dx,_dy){
 		caption[0]=0;
 	}
+	virtual ~CCaptionButton() {}
 	void Change(const char * format,...) GCC_ATTRIBUTE(__format__(__printf__,2,3));
 
 	void Draw(void) {
@@ -1384,6 +1395,7 @@ public:
 	: CTextButton(_x,_y,_dx,_dy,_text) 	{ 
 		type=_type;
 	}
+	virtual ~CBindButton() {}
 	void Click(void) {
 		switch (type) {
 		case BB_Add: 
@@ -1426,6 +1438,7 @@ public:
 	: CTextButton(_x,_y,_dx,_dy,_text) 	{ 
 		type=_type;
 	}
+	virtual ~CCheckButton() {}
 	void Draw(void) {
 		if (!enabled) return;
 		bool checked=false;
@@ -1478,6 +1491,7 @@ public:
 	CKeyEvent(char const * const _entry,KBD_KEYS _key) : CTriggeredEvent(_entry) {
 		key=_key;
 	}
+	virtual ~CKeyEvent() {}
 	void Active(bool yesno) {
 		KEYBOARD_AddKey(key,yesno);
 	};
@@ -1495,6 +1509,7 @@ public:
 			_opposite_axis->SetOppositeAxis(this);
 		}
 	}
+	virtual ~CJAxisEvent() {}
 	void Active(bool /*moved*/) {
 		virtual_joysticks[stick].axis_pos[axis]=(Bit16s)(GetValue()*(positive?1:-1));
 	}
@@ -1520,6 +1535,7 @@ public:
 		stick=_stick;
 		button=_button;
 	}
+	virtual ~CJButtonEvent() {}
 	void Active(bool pressed) {
 		virtual_joysticks[stick].button_pressed[button]=pressed;
 	}
@@ -1534,6 +1550,7 @@ public:
 		hat=_hat;
 		dir=_dir;
 	}
+	virtual ~CJHatEvent() {}
 	void Active(bool pressed) {
 		virtual_joysticks[stick].hat_pressed[(hat<<2)+dir]=pressed;
 	}
@@ -1547,6 +1564,7 @@ public:
 	CModEvent(char const * const _entry,Bitu _wmod) : CTriggeredEvent(_entry) {
 		wmod=_wmod;
 	}
+	virtual ~CModEvent() {}
 	void Active(bool yesno) {
 		if (yesno) mapper.mods|=(1 << (wmod-1));
 		else mapper.mods&=~(1 << (wmod-1));
@@ -1564,6 +1582,7 @@ public:
 		buttonname=_buttonname;
 		handlergroup.push_back(this);
 	}
+	virtual ~CHandlerEvent() {}
 	void Active(bool yesno) {
 		(*handler)(yesno);
 	};
@@ -2577,6 +2596,41 @@ void MAPPER_StartUp(Section * sec) {
 	MAPPER_AddHandler(&MAPPER_Run,MK_f1,MMOD1,"mapper","Mapper");
 }
 
+void MAPPER_Shutdown() {
+	for (size_t i=0;i < events.size();i++) {
+		if (events[i] != NULL) {
+			delete events[i];
+			events[i] = NULL;
+		}
+	}
+	events.clear();
+
+	for (size_t i=0;i < buttons.size();i++) {
+		if (buttons[i] != NULL) {
+			delete buttons[i];
+			buttons[i] = NULL;
+		}
+	}
+	buttons.clear();
+
+	for (size_t i=0;i < bindgroups.size();i++) {
+		if (bindgroups[i] != NULL) {
+			delete bindgroups[i];
+			bindgroups[i] = NULL;
+		}
+	}
+	bindgroups.clear();
+
+	for (size_t i=0;i < handlergroup.size();i++) {
+		if (handlergroup[i] != NULL) {
+#if 0 /* FIXME: Is this list simply another copy of other pointers? Allowing this delete[] to commence triggers double-free warnings */
+			delete handlergroup[i];
+#endif
+			handlergroup[i] = NULL;
+		}
+	}
+	handlergroup.clear();
+}
 
 // save state support
 void *MAPPER_RunEvent_PIC_Event = (void*)MAPPER_RunEvent;
