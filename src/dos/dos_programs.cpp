@@ -938,6 +938,14 @@ public:
 			real_writed(0,0x01*4,0xf000ff53);
 			real_writed(0,0x03*4,0xf000ff53);
 
+			/* shutdown DOSBox's virtual drive Z */
+			void VFILE_Shutdown(void);
+			VFILE_Shutdown();
+
+			/* shutdown the programs */
+			void PROGRAMS_Shutdown(void);
+			PROGRAMS_Shutdown();		/* FIXME: Is this safe? Or will this cause use-after-free bug? */
+
 			/* remove environment variables for some components */
 			SBLASTER_DOS_Shutdown();
 			GUS_DOS_Shutdown();

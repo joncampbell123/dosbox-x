@@ -51,25 +51,62 @@ static Bit8u exe_block[]={
 
 #define CB_POS 12
 
-static std::vector<PROGRAMS_Main*> internal_progs;
+class InternalProgramEntry {
+public:
+	InternalProgramEntry() {
+		main = NULL;
+		comsize = 0;
+		comdata = NULL;
+	}
+	~InternalProgramEntry() {
+		if (comdata != NULL) free(comdata);
+		comdata = NULL;
+		comsize = 0;
+		main = NULL;
+	}
+public:
+	std::string	name;
+	Bit8u*		comdata;
+	Bit32u		comsize;
+	PROGRAMS_Main*	main;
+};
+
+static std::vector<InternalProgramEntry*> internal_progs;
+
+void PROGRAMS_Shutdown(void) {
+	for (size_t i=0;i < internal_progs.size();i++) {
+		if (internal_progs[i] != NULL) {
+			delete internal_progs[i];
+			internal_progs[i] = NULL;
+		}
+	}
+	internal_progs.clear();
+}
 
 void PROGRAMS_MakeFile(char const * const name,PROGRAMS_Main * main) {
-	Bit8u * comdata=(Bit8u *)malloc(32); //MEM LEAK
-	memcpy(comdata,&exe_block,sizeof(exe_block));
-	comdata[CB_POS]=(Bit8u)(call_program&0xff);
-	comdata[CB_POS+1]=(Bit8u)((call_program>>8)&0xff);
+	Bit32u size=sizeof(exe_block)+sizeof(Bit8u);
+	InternalProgramEntry *ipe;
+	Bit8u *comdata;
+	Bit8u index;
 
 	/* Copy save the pointer in the vector and save it's index */
 	if (internal_progs.size()>255) E_Exit("PROGRAMS_MakeFile program size too large (%d)",static_cast<int>(internal_progs.size()));
-	Bit8u index = (Bit8u)internal_progs.size();
-	internal_progs.push_back(main);
 
+	index = (Bit8u)internal_progs.size();
+	comdata = (Bit8u *)malloc(32); //MEM LEAK
+	memcpy(comdata,&exe_block,sizeof(exe_block));
 	memcpy(&comdata[sizeof(exe_block)],&index,sizeof(index));
-	Bit32u size=sizeof(exe_block)+sizeof(index);	
-	VFILE_Register(name,comdata,size);	
+	comdata[CB_POS]=(Bit8u)(call_program&0xff);
+	comdata[CB_POS+1]=(Bit8u)((call_program>>8)&0xff);
+
+	ipe = new InternalProgramEntry();
+	ipe->main = main;
+	ipe->name = name;
+	ipe->comsize = size;
+	ipe->comdata = comdata;
+	internal_progs.push_back(ipe);
+	VFILE_Register(name,ipe->comdata,ipe->comsize);
 }
-
-
 
 static Bitu PROGRAMS_Handler(void) {
 	/* This sets up everything for a program start up call */
@@ -81,16 +118,17 @@ static Bitu PROGRAMS_Handler(void) {
 	for (;size>0;size--) *writer++=mem_readb(reader++);
 	Program * new_program;
 	if (index > internal_progs.size()) E_Exit("something is messing with the memory");
-	PROGRAMS_Main * handler = internal_progs[index];
+	InternalProgramEntry *ipe = internal_progs[index];
+	if (ipe == NULL) E_Exit("Attempt to run internal program slot with nothing allocated");
+	if (ipe->main == NULL) return CBRET_NONE;
+	PROGRAMS_Main * handler = internal_progs[index]->main;
 	(*handler)(&new_program);
 	new_program->Run();
 	delete new_program;
 	return CBRET_NONE;
 }
 
-
 /* Main functions used in all program */
-
 
 Program::Program() {
 	/* Find the command line and setup the PSP */
