@@ -1171,11 +1171,12 @@ void VGA_SetupMemory(Section* sec) {
 	vga_allocsize += 4096 * 4;	// We reserve an extra scan line (max S3 scanline 4096)
 	vga_allocsize += 16;		// for memory alignment	
 
-	vga.mem.linear_orgptr = new Bit8u[vga_allocsize];
+	vga.mem.linear_orgptr = new Bit8u[vga_allocsize+32];
+	memset(vga.mem.linear_orgptr,0,vga_allocsize+32);
 	vga.mem.linear=(Bit8u*)(((Bitu)vga.mem.linear_orgptr + 16-1) & ~(16-1));
-	memset(vga.mem.linear,0,vga_allocsize);
 
-	vga.fastmem_orgptr = new Bit8u[(vga.vmemsize<<1)+4096+16];
+	vga.fastmem_orgptr = new Bit8u[(vga.vmemsize<<1)+4096+32];
+	memset(vga.fastmem_orgptr,0,(vga.vmemsize<<1)+4096+32);
 	vga.fastmem=(Bit8u*)(((Bitu)vga.fastmem_orgptr + 16-1) & ~(16-1));
 
 	// In most cases these values stay the same. Assumptions: vmemwrap is power of 2,
