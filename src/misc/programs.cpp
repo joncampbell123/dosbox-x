@@ -206,71 +206,6 @@ void Program::WriteOut_NoParsing(const char * format) {
 //	DOS_WriteFile(STDOUT,(Bit8u *)format,&size);
 }
 
-
-bool Program::GetEnvStr(const char * entry,std::string & result) {
-	if (dos_kernel_disabled) {
-		fprintf(stderr,"BUG: Program::GetEnvStr() called with DOS kernel disabled (such as OS boot).\n");
-		return false;
-	}
-
-	/* Walk through the internal environment and see for a match */
-	PhysPt env_read=PhysMake(psp->GetEnvironment(),0);
-
-	char env_string[1024+1];
-	result.erase();
-	if (!entry[0]) return false;
-	do 	{
-		MEM_StrCopy(env_read,env_string,1024);
-		if (!env_string[0]) return false;
-		env_read += (PhysPt)(strlen(env_string)+1);
-		char* equal = strchr(env_string,'=');
-		if (!equal) continue;
-		/* replace the = with \0 to get the length */
-		*equal = 0;
-		if (strlen(env_string) != strlen(entry)) continue;
-		if (strcasecmp(entry,env_string)!=0) continue;
-		/* restore the = to get the original result */
-		*equal = '=';
-		result = env_string;
-		return true;
-	} while (1);
-	return false;
-}
-
-bool Program::GetEnvNum(Bitu num,std::string & result) {
-	if (dos_kernel_disabled) {
-		fprintf(stderr,"BUG: Program::GetEnvNum() called with DOS kernel disabled (such as OS boot).\n");
-		return false;
-	}
-
-	char env_string[1024+1];
-	PhysPt env_read=PhysMake(psp->GetEnvironment(),0);
-	do 	{
-		MEM_StrCopy(env_read,env_string,1024);
-		if (!env_string[0]) break;
-		if (!num) { result=env_string;return true;}
-		env_read += (PhysPt)(strlen(env_string)+1);
-		num--;
-	} while (1);
-	return false;
-}
-
-Bitu Program::GetEnvCount(void) {
-	if (dos_kernel_disabled) {
-		fprintf(stderr,"BUG: Program::GetEnvCount() called with DOS kernel disabled (such as OS boot).\n");
-		return 0;
-	}
-
-	PhysPt env_read=PhysMake(psp->GetEnvironment(),0);
-	Bitu num=0;
-	while (mem_readb(env_read)!=0) {
-		for (;mem_readb(env_read);env_read++) {};
-		env_read++;
-		num++;
-	}
-	return num;
-}
-
 static bool LocateEnvironmentBlock(PhysPt &env_base,PhysPt &env_fence,Bitu env_seg) {
 	if (env_seg == 0) {
 		/* The DOS program might have freed it's environment block perhaps. */
@@ -298,6 +233,137 @@ int EnvPhys_StrCmp(PhysPt es,PhysPt ef,const char *ls) {
 	return 0;
 }
 
+void EnvPhys_StrCpyToCPPString(std::string &result,PhysPt &env_scan,PhysPt env_fence) {
+	char tmp[512],*w=tmp,*wf=tmp+sizeof(tmp)-1,c;
+
+	result.clear();
+	while (env_scan < env_fence) {
+		if ((c=(char)mem_readb(env_scan++)) == 0) break;
+
+		if (w >= wf) {
+			*w = 0;
+			result += tmp;
+			w = tmp;
+		}
+
+		assert(w < wf);
+		*w++ = c;
+	}
+	if (w != tmp) {
+		*w = 0;
+		result += tmp;
+	}
+}
+
+bool EnvPhys_ScanUntilNextString(PhysPt &env_scan,PhysPt env_fence) {
+	/* scan until end of block or NUL */
+	while (env_scan < env_fence && mem_readb(env_scan) != 0) env_scan++;
+
+	/* if we hit the fence, that's something to warn about. */
+	if (env_scan >= env_fence) {
+		fprintf(stderr,"Warning: environment string scan hit the end of the environment block without terminating NUL\n");
+		return false;
+	}
+
+	/* if we stopped at anything other than a NUL, that's something to warn about */
+	if (mem_readb(env_scan) != 0) {
+		fprintf(stderr,"Warning: environment string scan scan stopped without hitting NUL\n");
+		return false;
+	}
+
+	env_scan++; /* skip NUL */
+	return true;
+}
+
+bool Program::GetEnvStr(const char * entry,std::string & result) {
+	PhysPt env_base,env_fence,env_scan;
+
+	if (dos_kernel_disabled) {
+		fprintf(stderr,"BUG: Program::GetEnvNum() called with DOS kernel disabled (such as OS boot).\n");
+		return false;
+	}
+
+	if (!LocateEnvironmentBlock(env_base,env_fence,psp->GetEnvironment())) {
+		fprintf(stderr,"Warning: GetEnvCount() was not able to locate the program's environment block\n");
+		return false;
+	}
+
+	env_scan = env_base;
+	while (env_scan < env_fence) {
+		/* "NAME" + "=" + "VALUE" + "\0" */
+		/* end of the block is a NULL string meaning a \0 follows the last string's \0 */
+		if (mem_readb(env_scan) == 0) break; /* normal end of block */
+
+		if (EnvPhys_StrCmp(env_scan,env_fence,entry) == 0) {
+			EnvPhys_StrCpyToCPPString(result,env_scan,env_fence);
+			return true;
+		}
+
+		if (!EnvPhys_ScanUntilNextString(env_scan,env_fence)) break;
+	}
+
+	return false;
+}
+
+bool Program::GetEnvNum(Bitu want_num,std::string & result) {
+	PhysPt env_base,env_fence,env_scan;
+	Bitu num = 0;
+
+	if (dos_kernel_disabled) {
+		fprintf(stderr,"BUG: Program::GetEnvNum() called with DOS kernel disabled (such as OS boot).\n");
+		return false;
+	}
+
+	if (!LocateEnvironmentBlock(env_base,env_fence,psp->GetEnvironment())) {
+		fprintf(stderr,"Warning: GetEnvCount() was not able to locate the program's environment block\n");
+		return false;
+	}
+
+	result.clear();
+	env_scan = env_base;
+	while (env_scan < env_fence) {
+		/* "NAME" + "=" + "VALUE" + "\0" */
+		/* end of the block is a NULL string meaning a \0 follows the last string's \0 */
+		if (mem_readb(env_scan) == 0) break; /* normal end of block */
+
+		if (num == want_num) {
+			EnvPhys_StrCpyToCPPString(result,env_scan,env_fence);
+			return true;
+		}
+
+		num++;
+		if (!EnvPhys_ScanUntilNextString(env_scan,env_fence)) break;
+	}
+
+	return false;
+}
+
+Bitu Program::GetEnvCount(void) {
+	PhysPt env_base,env_fence,env_scan;
+	Bitu num = 0;
+
+	if (dos_kernel_disabled) {
+		fprintf(stderr,"BUG: Program::GetEnvCount() called with DOS kernel disabled (such as OS boot).\n");
+		return 0;
+	}
+
+	if (!LocateEnvironmentBlock(env_base,env_fence,psp->GetEnvironment())) {
+		fprintf(stderr,"Warning: GetEnvCount() was not able to locate the program's environment block\n");
+		return false;
+	}
+
+	env_scan = env_base;
+	while (env_scan < env_fence) {
+		/* "NAME" + "=" + "VALUE" + "\0" */
+		/* end of the block is a NULL string meaning a \0 follows the last string's \0 */
+		if (mem_readb(env_scan++) == 0) break; /* normal end of block */
+		num++;
+		if (!EnvPhys_ScanUntilNextString(env_scan,env_fence)) break;
+	}
+
+	return num;
+}
+
 /* NTS: "entry" string must have already been converted to uppercase */
 bool Program::SetEnv(const char * entry,const char * new_string) {
 	PhysPt env_base,env_fence,env_scan;
@@ -315,7 +381,7 @@ bool Program::SetEnv(const char * entry,const char * new_string) {
 
 	el = strlen(entry);
 	if (*new_string != 0) nsl = strlen(new_string);
-	needs = nsl+1+el+1+1; /* entry + '=' + new_string + '\0' */
+	needs = nsl+1+el+1+1; /* entry + '=' + new_string + '\0' + '\0' */
 
 	/* look for the variable in the block. break the loop if found */
 	env_scan = env_base;
@@ -351,8 +417,7 @@ bool Program::SetEnv(const char * entry,const char * new_string) {
 		}
 		else {
 			/* scan to next string */
-			while (env_scan < env_fence && mem_readb(env_scan) != 0) env_scan++;
-			if (env_scan < env_fence && mem_readb(env_scan) == 0) env_scan++;
+			if (!EnvPhys_ScanUntilNextString(env_scan,env_fence)) break;
 		}
 	}
 
@@ -364,21 +429,16 @@ bool Program::SetEnv(const char * entry,const char * new_string) {
 			return false;
 		}
 
-		for (const char *s=entry;*s != 0;) {
-			assert(env_scan < env_fence);
-			mem_writeb(env_scan++,*s++);
-		}
 		assert(env_scan < env_fence);
+		for (const char *s=entry;*s != 0;) mem_writeb(env_scan++,*s++);
 		mem_writeb(env_scan++,'=');
 
-		for (const char *s=new_string;*s != 0;) {
-			assert(env_scan < env_fence);
-			mem_writeb(env_scan++,*s++);
-		}
 		assert(env_scan < env_fence);
+		for (const char *s=new_string;*s != 0;) mem_writeb(env_scan++,*s++);
 		mem_writeb(env_scan++,0);
+		mem_writeb(env_scan++,0);
+
 		assert(env_scan < env_fence);
-		mem_writeb(env_scan++,0);
 	}
 
 	return true;
