@@ -946,6 +946,9 @@ public:
 			void PROGRAMS_Shutdown(void);
 			PROGRAMS_Shutdown();		/* FIXME: Is this safe? Or will this cause use-after-free bug? */
 
+			void DOS_UninstallMisc(void);
+			DOS_UninstallMisc();
+
 			/* remove environment variables for some components */
 			SBLASTER_DOS_Shutdown();
 			GUS_DOS_Shutdown();

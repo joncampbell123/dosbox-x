@@ -289,3 +289,20 @@ void DOS_SetupMisc(void) {
 	CALLBACK_Setup(call_int2a,&INT2A_Handler,CB_IRET,"DOS Int 2a");
 	RealSetVec(0x2A,CALLBACK_RealPointer(call_int2a));
 }
+
+void CALLBACK_DeAllocate(Bitu in);
+
+void DOS_UninstallMisc(void) {
+	/* these vectors shouldn't exist when booting a guest OS */
+	if (call_int2a) {
+		RealSetVec(0x2a,0);
+		CALLBACK_DeAllocate(call_int2a);
+		call_int2a=0;
+	}
+	if (call_int2f) {
+		RealSetVec(0x2f,0);
+		CALLBACK_DeAllocate(call_int2f);
+		call_int2f=0;
+	}
+}
+
