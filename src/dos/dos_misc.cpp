@@ -175,10 +175,11 @@ static bool DOS_MultiplexFunctions(void) {
 	case 0x1605:	/* Windows init broadcast */
 		/* TODO: Maybe future parts of DOSBox-X will do something with this */
 		/* TODO: Don't show this by default. Show if the user wants it by a) setting something to "true" in dosbox.conf or b) running a builtin command in Z:\ */
-		fprintf(stderr,"DEBUG: INT 2Fh Windows 286/386 DOSX init broadcast issued (ES:BX=%04x:%04x DS:SI=0x%04x:%04x CX=0x%04x DX=0x%04x)",
+		fprintf(stderr,"DEBUG: INT 2Fh Windows 286/386 DOSX init broadcast issued (ES:BX=%04x:%04x DS:SI=0x%04x:%04x CX=0x%04x DX=0x%04x DI=0x%04x(aka version %u.%u))",
 			SegValue(es),reg_bx,
 			SegValue(ds),reg_si,
-			reg_cx,reg_dx);
+			reg_cx,reg_dx,reg_di,
+			reg_di>>8,reg_di&0xFF);
 		if (reg_dx & 0x0001)
 			fprintf(stderr," [286 DOS extender]");
 		else

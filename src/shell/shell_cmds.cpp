@@ -79,6 +79,7 @@ static SHELL_Cmd cmd_list[]={
 {	"LABEL",	0,			&DOS_Shell::CMD_LABEL,		"SHELL_CMD_LABEL_HELP"},
 {	"MORE",	1,			&DOS_Shell::CMD_MORE,		"SHELL_CMD_MORE_HELP"},
 {	"FOR",	1,			&DOS_Shell::CMD_FOR,		"SHELL_CMD_FOR_HELP"},
+{	"INT2FDBG",	1,			&DOS_Shell::CMD_INT2FDBG,	"Hook INT 2Fh for debugging purposes"},
 {0,0,0,0}
 }; 
 
@@ -180,6 +181,136 @@ void DOS_Shell::DoCommand(char * line) {
 		else WriteOut(command "\n"); \
 		return; \
 	}
+
+Bitu int2fdbg_hook_callback = 0;
+
+static Bitu INT2FDBG_Handler(void) {
+	if (reg_ax == 0x1605) { /* Windows init broadcast */
+		int patience = 500;
+		Bitu st_seg,st_ofs;
+
+		fprintf(stderr,"INT 2Fh debug hook: Caught Windows init broadcast results (ES:BX=%04x:%04x DS:SI=%04x:%04x CX=%04x DX=%04x DI=%04x)\n",
+			SegValue(es),reg_bx,
+			SegValue(ds),reg_si,
+			reg_cx,reg_dx,reg_di);
+
+		st_seg = SegValue(es);
+		st_ofs = reg_bx;
+		while (st_seg != 0 || st_ofs != 0) {
+			unsigned char v_major,v_minor;
+			Bitu st_seg_next,st_ofs_next;
+			Bitu idrc_seg,idrc_ofs;
+			Bitu vdev_seg,vdev_ofs;
+			Bitu name_seg,name_ofs;
+			char devname[64];
+			PhysPt st_o;
+
+			if (--patience <= 0) {
+				fprintf(stderr,"**WARNING: Chain is too long. Something might have gotten corrupted\n");
+				break;
+			}
+
+			st_o = PhysMake(st_seg,st_ofs);
+			/* +0x00: Major, minor version of info structure
+			 * +0x02: pointer to next startup info structure or 0000:0000
+			 * +0x06: pointer to ASCIIZ name of virtual device or 0000:0000
+			 * +0x0A: virtual device ref data (pointer to?? or actual data??) or 0000:0000
+			 * +0x0E: pointer to instance data records or 0000:0000
+			 * Windows 95 or later (v4.0+):
+			 * +0x12: pointer to optionally-instanced data records or 0000:0000 */
+			v_major = mem_readb(st_o+0x00);
+			v_minor = mem_readb(st_o+0x01);
+			st_seg_next = mem_readw(st_o+0x02+2);
+			st_ofs_next = mem_readw(st_o+0x02+0);
+			name_ofs = mem_readw(st_o+0x06+0);
+			name_seg = mem_readw(st_o+0x06+2);
+			vdev_ofs = mem_readw(st_o+0x0A+0);
+			vdev_seg = mem_readw(st_o+0x0A+2);
+			idrc_ofs = mem_readw(st_o+0x0A+4);	/* FIXME: 0x0E+0 and 0x0E+2 generates weird compiler error WTF?? */
+			idrc_seg = mem_readw(st_o+0x0A+6);
+
+			{
+				devname[0] = 0;
+				if (name_seg != 0 || name_ofs != 0) {
+					unsigned int i;
+					PhysPt scan;
+					char c;
+
+					scan = PhysMake(name_seg,name_ofs);
+					for (i=0;i < 63 && (c=mem_readb(scan++)) != 0;) devname[i++] = c;
+					devname[i] = 0;
+				}
+			}
+
+			fprintf(stderr," >> Version %u.%u\n",v_major,v_minor);
+			fprintf(stderr,"    Next entry at %04x:%04x\n",st_seg_next,st_ofs_next);
+			fprintf(stderr,"    Virtual device name: %04x:%04x '%s'\n",name_seg,name_ofs,devname);
+			fprintf(stderr,"    Virtual dev ref data: %04x:%04x\n",vdev_seg,vdev_ofs);
+			fprintf(stderr,"    Instance data records: %04x:%04x\n",idrc_seg,idrc_ofs);
+
+			st_seg = st_seg_next;
+			st_ofs = st_ofs_next;
+		}
+
+		fprintf(stderr,"----END CHAIN\n");
+	}
+
+	return CBRET_NONE;
+}
+
+/* NTS: I know I could just modify the DOS kernel's INT 2Fh code to receive the init call,
+ *      the problem is that at that point, the registers do not yet contain anything interesting.
+ *      all the interesting results of the call are added by TSRs on the way back UP the call
+ *      chain. The purpose of this program therefore is to hook INT 2Fh on the other end
+ *      of the call chain so that we can see the results just before returning INT 2Fh back
+ *      to WIN.COM */
+void DOS_Shell::CMD_INT2FDBG(char * args) {
+	/* TODO: Allow /U to remove INT 2Fh hook */
+
+	if (ScanCMDBool(args,"I")) {
+		if (int2fdbg_hook_callback == 0) {
+			Bit32u old_int2Fh;
+			PhysPt w;
+
+			int2fdbg_hook_callback = CALLBACK_Allocate();
+			CALLBACK_Setup(int2fdbg_hook_callback,&INT2FDBG_Handler,CB_IRET,"INT 2Fh DBG callback");
+
+			/* record old vector, set our new vector */
+			old_int2Fh = RealGetVec(0x2f);
+			w = CALLBACK_PhysPointer(int2fdbg_hook_callback);
+			RealSetVec(0x2f,CALLBACK_RealPointer(int2fdbg_hook_callback));
+
+			/* overwrite the callback with code to chain the call down, then invoke our callback on the way back up: */
+
+			/* first, chain to the previous INT 15h handler */
+			phys_writeb(w++,(Bit8u)0x9C);					//PUSHF
+			phys_writeb(w++,(Bit8u)0x9A);					//CALL FAR <address>
+			phys_writew(w,(Bit16u)(old_int2Fh&0xFFFF)); w += 2;		//offset
+			phys_writew(w,(Bit16u)((old_int2Fh>>16)&0xFFFF)); w += 2;	//seg
+
+			/* then, having returned from it, invoke our callback */
+			phys_writeb(w++,(Bit8u)0xFE);					//GRP 4
+			phys_writeb(w++,(Bit8u)0x38);					//Extra Callback instruction
+			phys_writew(w,(Bit16u)int2fdbg_hook_callback); w += 2;		//The immediate word
+
+			/* return */
+			phys_writeb(w++,(Bit8u)0xCF);					//IRET
+
+			fprintf(stderr,"INT 2Fh debugging hook set\n");
+			WriteOut("INT 2Fh hook set\n");
+		}
+		else {
+			WriteOut("INT 2Fh hook already setup\n");
+		}
+	}
+	else {
+		WriteOut("INT2FDBG [switches]\n");
+		WriteOut("INT2FDBG.COM Int 2Fh debugging hook.\n");
+		WriteOut("  /I      Install hook\n");
+		WriteOut("\n");
+		WriteOut("Hooks INT 2Fh at the top of the call chain for debugging information.\n");
+	}
+}
 
 void DOS_Shell::CMD_CLS(char * args) {
 	HELP("CLS");

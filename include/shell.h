@@ -87,6 +87,7 @@ public:
 /* Some internal used functions */
 	char * Which(char * name);
 /* Some supported commands */
+	void CMD_INT2FDBG(char * args);
 	void CMD_HELP(char * args);
 	void CMD_CLS(char * args);
 	void CMD_COPY(char * args);
