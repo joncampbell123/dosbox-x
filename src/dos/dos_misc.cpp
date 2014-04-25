@@ -30,6 +30,28 @@ static Bitu call_int2f,call_int2a;
 static std::list<MultiplexHandler*> Multiplex;
 typedef std::list<MultiplexHandler*>::iterator Multiplex_it;
 
+const char *Win_NameThatVXD(Bit16u devid) {
+	switch (devid) {
+		case 0x0006:	return "V86MMGR";
+		case 0x000C:	return "VMD";
+		case 0x000D:	return "VKD";
+		case 0x0010:	return "BLOCKDEV";
+		case 0x0014:	return "VNETBIOS";
+		case 0x0015:	return "DOSMGR";
+		case 0x0018:	return "VMPOLL";
+		case 0x0021:	return "PAGEFILE";
+		case 0x002D:	return "W32S";
+		case 0x0040:	return "IFSMGR";
+		case 0x0446:	return "VADLIBD";
+		case 0x0484:	return "IFSMGR";
+		case 0x0487:	return "NWSUP";
+		case 0x28A1:	return "PHARLAP";
+		case 0x7A5F:	return "SIWVID";
+	};
+
+	return NULL;
+}
+
 void DOS_AddMultiplexHandler(MultiplexHandler * handler) {
 	Multiplex.push_front(handler);
 }
@@ -150,8 +172,57 @@ static bool DOS_MultiplexFunctions(void) {
 
 		}
 		return true;
+	case 0x1605:	/* Windows init broadcast */
+		/* TODO: Maybe future parts of DOSBox-X will do something with this */
+		/* TODO: Don't show this by default. Show if the user wants it by a) setting something to "true" in dosbox.conf or b) running a builtin command in Z:\ */
+		fprintf(stderr,"DEBUG: INT 2Fh Windows 286/386 DOSX init broadcast issued (ES:BX=%04x:%04x DS:SI=0x%04x:%04x CX=0x%04x DX=0x%04x)",
+			SegValue(es),reg_bx,
+			SegValue(ds),reg_si,
+			reg_cx,reg_dx);
+		if (reg_dx & 0x0001)
+			fprintf(stderr," [286 DOS extender]");
+		else
+			fprintf(stderr," [Enhanced mode]");
+		fprintf(stderr,"\n");
+
+		/* NTS: The way this protocol works, is that when you (the program hooking this call) receive it,
+		 *      you first pass the call down to the previous INT 2Fh handler with registers unmodified,
+		 *      and then when the call unwinds back up the chain, THEN you modify the results to notify
+		 *      yourself to Windows. So logically, since we're the DOS kernel at the end of the chain,
+		 *      we should still see ES:BX=0000:0000 and DS:SI=0000:0000 and CX=0000 unmodified from the
+		 *      way the Windows kernel issued the call. If that's not the case, then we need to issue
+		 *      a warning because some bastard on the call chain is ruining it for all of us. */
+		if (SegValue(es) != 0 || reg_bx != 0 || SegValue(ds) != 0 || reg_si != 0 || reg_cx != 0) {
+			fprintf(stderr,"WARNING: Some registers at this point (the top of the call chain) are nonzero.\n");
+			fprintf(stderr,"         That means a TSR or other entity has modified registers on the way down\n");
+			fprintf(stderr,"         the call chain. The Windows init broadcast is supposed to be handled\n");
+			fprintf(stderr,"         going down the chain by calling the previous INT 2Fh handler with registers\n");
+			fprintf(stderr,"         unmodified, and only modify registers on the way back up the chain!\n");
+		}
+
+		return false; /* pass it on to other INT 2F handlers */
+	case 0x1606:	/* Windows exit broadcast */
+		/* TODO: Maybe future parts of DOSBox-X will do something with this */
+		/* TODO: Don't show this by default. Show if the user wants it by a) setting something to "true" in dosbox.conf or b) running a builtin command in Z:\ */
+		fprintf(stderr,"DEBUG: INT 2Fh Windows 286/386 DOSX exit broadcast issued (DX=0x%04x)",reg_dx);
+		if (reg_dx & 0x0001)
+			fprintf(stderr," [286 DOS extender]");
+		else
+			fprintf(stderr," [Enhanced mode]");
+		fprintf(stderr,"\n");
+		return false; /* pass it on to other INT 2F handlers */
 	case 0x1607:
-		if (reg_bx == 0x15) {
+		/* TODO: Don't show this by default. Show if the user wants it by a) setting something to "true" in dosbox.conf or b) running a builtin command in Z:\
+		 *       Additionally, if the user WANTS to see every invocation of the IDLE call, then allow them to enable that too */
+		if (reg_bx != 0x18) { /* don't show the idle call. it's used too often */
+			const char *str = Win_NameThatVXD(reg_bx);
+
+			if (str == NULL) str = "??";
+			fprintf(stderr,"DEBUG: INT 2Fh Windows virtual device '%s' callout (BX(deviceID)=0x%04x CX(function)=0x%04x)\n",
+				str,reg_bx,reg_cx);
+		}
+
+		if (reg_bx == 0x15) { /* DOSMGR */
 			switch (reg_cx) {
 				case 0x0000:		// query instance
 					reg_cx = 0x0001;
@@ -183,7 +254,9 @@ static bool DOS_MultiplexFunctions(void) {
 					return false;
 			}
 		}
-		else if (reg_bx == 0x18) return true;	// idle callout
+		else if (reg_bx == 0x18) { /* VMPoll (idle) */
+			return true;
+		}
 		else return false;
 	case 0x1680:	/*  RELEASE CURRENT VIRTUAL MACHINE TIME-SLICE */
 		//TODO Maybe do some idling but could screw up other systems :)
