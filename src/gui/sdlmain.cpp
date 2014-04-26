@@ -80,6 +80,13 @@
 #include "cross.h"
 #include "control.h"
 
+/* TODO: move to general header */
+static inline int int_log2(int val) {
+	int log = 0;
+	while ((val >>= 1) != 0) log++;
+	return log;
+}
+
 enum SCREEN_TYPES {
 	SCREEN_OPENGLHQ,
 	SCREEN_SURFACE,
@@ -547,13 +554,6 @@ void GFX_ForceFullscreenExit(void) {
 	}
 }
 
-/* TODO: this belongs in a general "utility" library */
-static int int_log2(int val) {
-	int log = 0;
-	while ((val >>= 1) != 0) log++;
-	return log;
-}
-
 static SDL_Surface * GFX_SetupSurfaceScaled(Bit32u sdl_flags, Bit32u bpp) {
 	Bit16u fixedWidth;
 	Bit16u fixedHeight;
@@ -715,7 +715,7 @@ dosurface:
 		sdl.clip.h=height;
 		SDLScreen_Reset();
 		if (sdl.desktop.fullscreen) {
-			Uint32 flags = SDL_FULLSCREEN | SDL_HWPALETTE |
+			Uint32 wflags = SDL_FULLSCREEN | SDL_HWPALETTE |
 				((flags & GFX_CAN_RANDOM) ? SDL_SWSURFACE : SDL_HWSURFACE) |
 				(sdl.desktop.doublebuf ? SDL_DOUBLEBUF|SDL_ASYNCBLIT : 0);
 			if (sdl.desktop.full.fixed
@@ -723,10 +723,10 @@ dosurface:
 				sdl.clip.x=(Sint16)((sdl.desktop.full.width-width)/2);
 				sdl.clip.y=(Sint16)((sdl.desktop.full.height-height)/2);
 				sdl.surface=SDL_SetVideoMode(sdl.desktop.full.width,
-					sdl.desktop.full.height, bpp, flags);
+					sdl.desktop.full.height, bpp, wflags);
 			} else {
 				sdl.clip.x=0;sdl.clip.y=0;
-				sdl.surface=SDL_SetVideoMode(width, height, bpp, flags);
+				sdl.surface=SDL_SetVideoMode(width, height, bpp, wflags);
 			}
 			if (sdl.surface == NULL) {
 				LOG_MSG("Fullscreen not supported: %s", SDL_GetError());
