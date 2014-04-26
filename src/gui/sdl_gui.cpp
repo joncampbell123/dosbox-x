@@ -418,6 +418,11 @@ class HelpWindow : public GUI::MessageBox2 {
 public:
 	HelpWindow(GUI::Screen *parent, int x, int y, Section *section) :
 		MessageBox2(parent, x, y, 580, "", "") { // 740
+		if (section == NULL) {
+			fprintf(stderr,"BUG: HelpWindow constructor called with section == NULL\n");
+			return;
+		}
+
 		std::string title(section->GetName());
 		title.at(0) = std::toupper(title.at(0));
 		setTitle("Help for "+title);
@@ -446,6 +451,10 @@ class SectionEditor : public GUI::ToplevelWindow {
 public:
 	SectionEditor(GUI::Screen *parent, int x, int y, Section_prop *section) :
 		ToplevelWindow(parent, x, y, 510, 300, ""), section(section) {
+		if (section == NULL) {
+			fprintf(stderr,"BUG: SectionEditor constructor called with section == NULL\n");
+			return;
+		}
 		std::string title(section->GetName());
 		title[0] = std::toupper(title[0]);
 		setTitle("Configuration for "+title);
@@ -494,6 +503,11 @@ class AutoexecEditor : public GUI::ToplevelWindow {
 public:
 	AutoexecEditor(GUI::Screen *parent, int x, int y, Section_line *section) :
 		ToplevelWindow(parent, x, y, 450, 300, ""), section(section) {
+		if (section == NULL) {
+			fprintf(stderr,"BUG: AutoexecEditor constructor called with section == NULL\n");
+			return;
+		}
+
 		std::string title(section->GetName());
 		title[0] = std::toupper(title[0]);
 		setTitle("Edit "+title);
