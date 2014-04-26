@@ -680,7 +680,6 @@ void DOSBOX_Init(void) {
 	Prop_string* Pstring;
 	Prop_multival* Pmulti;
 	Section_prop * secprop;
-	Section_line * secline;
 	Prop_multival_remain* Pmulti_remain;
 
 	// Some frequently used option sets
@@ -1533,7 +1532,7 @@ void DOSBOX_Init(void) {
 	}
 
 	//TODO ?
-	secline=control->AddSection_line("autoexec",&AUTOEXEC_Init);
+	control->AddSection_line("autoexec",&AUTOEXEC_Init);
 	MSG_Add("AUTOEXEC_CONFIGFILE_HELP",
 		"Lines in this section will be run at startup.\n"
 		"You can put your MOUNT lines here.\n"
