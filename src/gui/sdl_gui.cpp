@@ -240,6 +240,9 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
 	SDL_EnableUNICODE(old_unicode);
 	SDL_EnableKeyRepeat(0,0);
 	GFX_SetTitle(-1,-1,-1,false);
+
+	void GFX_ForceRedrawScreen(void);
+	GFX_ForceRedrawScreen();
 }
 
 static void UI_RunCommands(GUI::ScreenSDL *s, const std::string &cmds) {
