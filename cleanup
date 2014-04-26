@@ -4,7 +4,7 @@ make distclean 2>/dev/null
 find -name \*~ -delete
 find -name BuildLog.htm -delete
 rm -Rfv autom4te.cache stderr.txt stdout.txt
-for i in DOSBox.exe DOSBox.map SDL.dll SDL.lib SDL_net.dll SDL_net.lib SDLmain.lib zlib.lib libpng.lib libpng16.lib libpng16.exp libpng16d.lib libpng16d.exp vc90.pdb; do rm -v $i >/dev/null 2>&1; done
+for i in DOSBox.exe DOSBox.map zlibstat.lib SDL.dll SDL.lib SDL_net.dll SDL_net.lib SDLmain.lib zlib.lib libpng.lib libpng16.lib libpng16.exp libpng16d.lib libpng16d.exp vc90.pdb; do rm -v $i >/dev/null 2>&1; done
 for ext in intermediate.manifest res dep aps pdb bsc exp obj ncb opt plg idb pch; do find -name \*.$ext -exec rm -v {} +; done
 rm -Rfv visualc_net/Debug
 rm -Rfv visualc_net/Release

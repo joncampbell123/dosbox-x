@@ -26,7 +26,7 @@
 			OutputDirectory="$(SolutionDir)/.."
 			IntermediateDirectory="x86\ZlibStat$(ConfigurationName)\Tmp"
 			ConfigurationType="4"
-			InheritedPropertySheets="..\..\..\..\..\..\..\Program Files (x86)\Microsoft Visual Studio 9.0\VC\VCProjectDefaults\UpgradeFromVC70.vsprops"
+			InheritedPropertySheets="C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\VCProjectDefaults\UpgradeFromVC70.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			>
@@ -99,7 +99,7 @@
 			OutputDirectory="x64\ZlibStat$(ConfigurationName)"
 			IntermediateDirectory="x64\ZlibStat$(ConfigurationName)\Tmp"
 			ConfigurationType="4"
-			InheritedPropertySheets="..\..\..\..\..\..\..\Program Files (x86)\Microsoft Visual Studio 9.0\VC\VCProjectDefaults\UpgradeFromVC70.vsprops"
+			InheritedPropertySheets="C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\VCProjectDefaults\UpgradeFromVC70.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			>
@@ -173,7 +173,7 @@
 			OutputDirectory="$(SolutionDir)/.."
 			IntermediateDirectory="x86\ZlibStat$(ConfigurationName)\Tmp"
 			ConfigurationType="4"
-			InheritedPropertySheets="..\..\..\..\..\..\..\Program Files (x86)\Microsoft Visual Studio 9.0\VC\VCProjectDefaults\UpgradeFromVC70.vsprops"
+			InheritedPropertySheets="C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\VCProjectDefaults\UpgradeFromVC70.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			>
@@ -247,7 +247,7 @@
 			OutputDirectory="x64\ZlibStat$(ConfigurationName)"
 			IntermediateDirectory="x64\ZlibStat$(ConfigurationName)\Tmp"
 			ConfigurationType="4"
-			InheritedPropertySheets="..\..\..\..\..\..\..\Program Files (x86)\Microsoft Visual Studio 9.0\VC\VCProjectDefaults\UpgradeFromVC70.vsprops"
+			InheritedPropertySheets="C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\VCProjectDefaults\UpgradeFromVC70.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			>
@@ -322,7 +322,7 @@
 			OutputDirectory="$(SolutionDir)/.."
 			IntermediateDirectory="x86\ZlibStat$(ConfigurationName)\Tmp"
 			ConfigurationType="4"
-			InheritedPropertySheets="..\..\..\..\..\..\..\Program Files (x86)\Microsoft Visual Studio 9.0\VC\VCProjectDefaults\UpgradeFromVC70.vsprops"
+			InheritedPropertySheets="C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\VCProjectDefaults\UpgradeFromVC70.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			>
@@ -395,7 +395,7 @@
 			OutputDirectory="x64\ZlibStat$(ConfigurationName)"
 			IntermediateDirectory="x64\ZlibStat$(ConfigurationName)\Tmp"
 			ConfigurationType="4"
-			InheritedPropertySheets="..\..\..\..\..\..\..\Program Files (x86)\Microsoft Visual Studio 9.0\VC\VCProjectDefaults\UpgradeFromVC70.vsprops"
+			InheritedPropertySheets="C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\VCProjectDefaults\UpgradeFromVC70.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			>
@@ -746,23 +746,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\minizip\ioapi.c"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\trees.c"
 				>
 			</File>
 			<File
 				RelativePath="..\..\..\uncompr.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\minizip\unzip.c"
-				>
-			</File>
-			<File
-				RelativePath="..\..\minizip\zip.c"
 				>
 			</File>
 			<File
