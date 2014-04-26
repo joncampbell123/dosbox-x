@@ -2736,7 +2736,6 @@ void init_vm86_fake_io() {
 }
 
 Bitu CPU_ForceV86FakeIO_In(Bitu port,Bitu len) {
-	static const char suffix[4] = {'B','W','?','D'};
 	Bitu old_ax,old_dx,ret;
 
 	/* save EAX:EDX and setup DX for IN instruction */
@@ -2745,10 +2744,6 @@ Bitu CPU_ForceV86FakeIO_In(Bitu port,Bitu len) {
 
 	reg_edx = port;
 
-	/* DEBUG */
-//	fprintf(stderr,"CPU virtual 8086 mode: Forcing CPU to execute 'IN%c 0x%04x so OS can trap it. ",suffix[len-1],port);
-//	fflush(stderr);
-
 	/* make the CPU execute that instruction */
 	CALLBACK_RunRealFar(vm86_fake_io_seg,vm86_fake_io_offs[(len==4?2:(len-1))+0]);
 
@@ -2756,7 +2751,6 @@ Bitu CPU_ForceV86FakeIO_In(Bitu port,Bitu len) {
 	ret = reg_eax;
 	if (len == 1) ret &= 0xFF;
 	else if (len == 2) ret &= 0xFFFF;
-//	fprintf(stderr," => v86 result 0x%02x\n",ret);
 
 	/* then restore EAX:EDX */
 	reg_eax = old_ax;
@@ -2766,7 +2760,6 @@ Bitu CPU_ForceV86FakeIO_In(Bitu port,Bitu len) {
 }
 
 void CPU_ForceV86FakeIO_Out(Bitu port,Bitu val,Bitu len) {
-	static const char suffix[4] = {'B','W','?','D'};
 	Bitu old_ax,old_dx;
 
 	/* save EAX:EDX and setup DX/AX for OUT instruction */
@@ -2775,9 +2768,6 @@ void CPU_ForceV86FakeIO_Out(Bitu port,Bitu val,Bitu len) {
 
 	reg_edx = port;
 	reg_eax = val;
-
-	/* DEBUG */
-//	fprintf(stderr,"CPU virtual 8086 mode: Forcing CPU to execute 'OUT%c 0x%04x,0x%02x so OS can trap it.\n",suffix[len-1],port,val);
 
 	/* make the CPU execute that instruction */
 	CALLBACK_RunRealFar(vm86_fake_io_seg,vm86_fake_io_offs[(len==4?2:(len-1))+3]);
