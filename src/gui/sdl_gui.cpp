@@ -106,6 +106,8 @@ static void getPixel(Bits x, Bits y, int &r, int &g, int &b, int shift)
 	}
 }
 
+extern bool dos_kernel_disabled;
+
 static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 	GFX_EndUpdate(0);
 	GFX_SetTitle(-1,-1,-1,true);
@@ -118,7 +120,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 	LoadMessageFile(static_cast<Section_prop*>(control->GetSection("dosbox"))->Get_string("language"));
 
 	// Comparable to the code of intro.com, but not the same! (the code of intro.com is called from within a com file)
-	shell_idle = first_shell && (DOS_PSP(dos.psp()).GetSegment() == DOS_PSP(dos.psp()).GetParent());
+	shell_idle = !dos_kernel_disabled && first_shell && (DOS_PSP(dos.psp()).GetSegment() == DOS_PSP(dos.psp()).GetParent());
 
 	int w, h;
 	bool fs;
