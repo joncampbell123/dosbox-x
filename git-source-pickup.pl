@@ -65,3 +65,17 @@ if (!( -f "$filename.xz" )) {
 	die unless $x == 0;
 }
 
+#my $filename = $project."-rev-".sprintf("%08u",$lcrev)."-src.tar.bz2";
+my $pwd = `pwd`; chomp $pwd;
+my $filename = "../".($as ne "" ? $as : $project)."-$lcdate-commit-$lcommit-src-nogit.tar";
+if (!( -f "$filename.xz" )) {
+	print "Packing source (all build files except LIB,OBJ,etc.)\n";
+	print "  to: $filename\n";
+
+	$x = system("tar --exclude=.git -C .. -cvf $filename $project"); # --exclude=.git
+	die unless $x == 0;
+	print "Packing to XZ\n";
+	$x = system("xz -6e $filename");
+	die unless $x == 0;
+}
+
