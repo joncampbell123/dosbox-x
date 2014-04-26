@@ -54,6 +54,44 @@ Bitu DOS_PRIVATE_SEGMENT_Size=0x800;	// 32KB (0x800 pages), mainline DOSBox beha
 DOS_Block dos;
 DOS_InfoBlock dos_infoblock;
 
+extern bool dos_kernel_disabled;
+
+Bit16u DOS_Block::psp() {
+	if (dos_kernel_disabled) {
+		fprintf(stderr,"BUG: DOS kernel is disabled (booting a guest OS), and yet somebody is still asking for DOS's current PSP segment\n");
+		return 0x0000;
+	}
+
+	return DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).GetPSP();
+}
+
+void DOS_Block::psp(Bit16u _seg) {
+	if (dos_kernel_disabled) {
+		fprintf(stderr,"BUG: DOS kernel is disabled (booting a guest OS), and yet somebody is still attempting to change DOS's current PSP segment\n");
+		return;
+	}
+
+	DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).SetPSP(_seg);
+}
+
+RealPt DOS_Block::dta() {
+	if (dos_kernel_disabled) {
+		fprintf(stderr,"BUG: DOS kernel is disabled (booting a guest OS), and yet somebody is still asking for DOS's DTA (disk transfer address)\n");
+		return 0;
+	}
+
+	return DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).GetDTA();
+}
+
+void DOS_Block::dta(RealPt _dta) {
+	if (dos_kernel_disabled) {
+		fprintf(stderr,"BUG: DOS kernel is disabled (booting a guest OS), and yet somebody is still attempting to change DOS's DTA (disk transfer address)\n");
+		return;
+	}
+
+	DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).SetDTA(_dta);
+}
+
 #define DOS_COPYBUFSIZE 0x10000
 Bit8u dos_copybuf[DOS_COPYBUFSIZE];
 #ifdef WIN32
