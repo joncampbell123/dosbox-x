@@ -29,6 +29,8 @@
 #include "keyboard.h"
 #include "inout.h"
 
+extern bool dos_kernel_disabled;
+
 static std::string MSCDEX_Output(int num) {
 	std::string MSCDEX_MSG = "GUI: MSCDEX ";
 	std::string MSCDEX_MSG_Failure = "Failure: ";
@@ -47,6 +49,9 @@ static std::string MSCDEX_Output(int num) {
 static std::string not_recommended = "Mounting C:\\ is NOT recommended.\nDo you want to continue?";
 
 void SetVal(const std::string secname, std::string preval, const std::string val) {
+	if (dos_kernel_disabled)
+		return;
+
 	if(preval=="keyboardlayout") {
 		DOS_MCB mcb(dos.psp()-1);
 		static char name[9];
@@ -157,6 +162,9 @@ void mem_conf(std::string memtype, int option) {
 }
 
 void UnMount(int i_drive) {
+	if (dos_kernel_disabled)
+		return;
+
 	i_drive = toupper(i_drive);
 	if(i_drive-'A' == DOS_GetDefaultDrive()) {
 		DOS_MCB mcb(dos.psp()-1);
@@ -864,13 +872,21 @@ enum SCREEN_TYPES	{
 extern bool load_videodrv;
 
 int Reflect_Menu(void) {
+	extern bool Mouse_Drv;
+	static char name[9];
+
 	if (!menu.gui) return 0;
 	HMENU m_handle = GetMenu(GetHWND());
 	if (!m_handle) return 0;
-	extern bool Mouse_Drv;
-	DOS_MCB mcb(dos.psp() - 1);
-	static char name[9];
-	mcb.GetFileName(name);
+
+	if (!dos_kernel_disabled) {
+		DOS_MCB mcb(dos.psp() - 1);
+		mcb.GetFileName(name);
+	}
+	else {
+		name[0] = 0;
+	}
+
 	CheckMenuItem(m_handle, ID_WAITONERR, GetSetSDLValue(1, "wait_on_error", 0) ? MF_CHECKED : MF_STRING);
 	EnableMenuItem(m_handle, ID_OPENFILE, (strlen(name) || menu.boot) ? MF_GRAYED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_GLIDE_TRUE, (strlen(name) || menu.boot) ? MF_GRAYED : MF_ENABLED);
