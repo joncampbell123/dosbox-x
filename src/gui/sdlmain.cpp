@@ -3103,9 +3103,6 @@ void SetNumLock( void ) {
 #endif
 }
 
-#if defined(WIN32) && !(C_DEBUG) && 0
-void DISP2_Init(Bit8u color);
-#endif
 //extern void UI_Init(void);
 int main(int argc, char* argv[]) {
 	try {
@@ -3133,37 +3130,6 @@ int main(int argc, char* argv[]) {
 		if(control->cmdline->FindExist("-resetmapper")) erasemapperfile();
 		
 		/* Can't disable the console with debugger enabled */
-#if defined(WIN32) && !(C_DEBUG) && 0
-		Bit8u disp2_color=0;
-		std::string disp2_opt;
-		if (control->cmdline->FindExist("-noconsole")) {
-			ShowWindow( GetConsoleWindow(), SW_HIDE ); DestroyWindow(GetConsoleWindow());
-			/* Redirect standard input and standard output */
-			if (!control->cmdline->FindExist("-nolog")) {
-			if(freopen(STDOUT_FILE, "w", stdout) == NULL)
-				no_stdout = true; // No stdout so don't write messages
-			freopen(STDERR_FILE, "w", stderr);
-			setvbuf(stdout, NULL, _IOLBF, BUFSIZ);	/* Line buffered */
-			setbuf(stderr, NULL);					/* No buffering */
-			}
-		} else if (control->cmdline->FindString("-display2",disp2_opt,false)) {
-			if (strcasecmp(disp2_opt.c_str(),"amber")==0) disp2_color=1;
-			else if (strcasecmp(disp2_opt.c_str(),"green")==0) disp2_color=2;
-			DISP2_Init(disp2_color);
-		} else {
-			if (AllocConsole()) {
-				if (!control->cmdline->FindExist("-nolog")) {
-				fclose(stdin);
-				fclose(stdout);
-				fclose(stderr);
-				freopen("CONIN$","r",stdin);
-				freopen("CONOUT$","w",stdout);
-				freopen("CONOUT$","w",stderr);
-				}
-			}
-			SetConsoleTitle("DOSBox Status Window");
-		}
-#endif  //defined(WIN32) && !(C_DEBUG)
 		if (control->cmdline->FindExist("-version") ||
 		    control->cmdline->FindExist("--version") ) {
 			printf("\nDOSBox version %s, copyright 2002-2013 DOSBox Team.\n\n",VERSION);
