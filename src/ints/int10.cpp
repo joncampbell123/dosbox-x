@@ -665,9 +665,6 @@ graphics_chars:
 	return CBRET_NONE;
 }
 
-#if defined(WIN32) && !(C_DEBUG) && 0
-bool DISP2_Active(void);
-#endif
 static void INT10_Seg40Init(void) {
 	// the default char height
 	real_writeb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT,16);
@@ -676,15 +673,10 @@ static void INT10_Seg40Init(void) {
 	// Set the basic screen we have
 	real_writeb(BIOSMEM_SEG,BIOSMEM_SWITCHES,0xF9);
 	// Set the basic modeset options
-#if defined(WIN32) && !(C_DEBUG) && 0
-	real_writeb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL,0x10|(DISP2_Active()?0:1));
-#else
 	real_writeb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL,0x51); // why is display switching enabled (bit 6) ?
-#endif
 	// Set the  default MSR
 	real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,0x09);
 }
-
 
 static void INT10_InitVGA(void) {
 /* switch to color mode and enable CPU access 480 lines */
