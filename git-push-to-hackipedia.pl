@@ -51,7 +51,7 @@ close(S);
 my $pwd = `pwd`; chomp $pwd;
 my $what = '';
 
-my $filename = "../".($as ne "" ? $as : $project)."-$lcdate-commit-$lcommit-src.tar";
+my $filename = "../".($as ne "" ? $as : $project)."-$lcdate-commit-$lcommit-src-nogit.tar";
 die unless -f "$filename.xz";
 $what .= "$filename.xz ";
 
