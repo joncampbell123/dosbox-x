@@ -312,10 +312,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\gui\display2.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\src\hardware\dma.cpp"
 				>
 			</File>

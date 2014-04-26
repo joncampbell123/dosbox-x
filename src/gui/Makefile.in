@@ -81,8 +81,7 @@ am_libgui_a_OBJECTS = sdlmain.$(OBJEXT) sdl_mapper.$(OBJEXT) \
 	TVA.$(OBJEXT) TVF.$(OBJEXT) TVP.$(OBJEXT) LA32Ramp.$(OBJEXT) \
 	AReverbModel.$(OBJEXT) LA32WaveGenerator.$(OBJEXT) \
 	LegacyWaveGenerator.$(OBJEXT) allpass.$(OBJEXT) comb.$(OBJEXT) \
-	revmodel.$(OBJEXT) sha1.$(OBJEXT) ROMInfo.$(OBJEXT) \
-	display2.$(OBJEXT)
+	revmodel.$(OBJEXT) sha1.$(OBJEXT) ROMInfo.$(OBJEXT)
 libgui_a_OBJECTS = $(am_libgui_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -284,7 +283,7 @@ libgui_a_SOURCES = sdlmain.cpp sdl_mapper.cpp dosbox_logo.h \
 	./freeverb/allpass.cpp ./freeverb/allpass.h ./freeverb/comb.cpp \
 	./freeverb/comb.h ./freeverb/denormals.h ./freeverb/revmodel.cpp \
 	./freeverb/revmodel.h ./freeverb/tuning.h midi_mt32.h \
-	./sha1/sha1.cpp ./sha1/sha1.h ROMInfo.cpp ROMInfo.h display2.cpp
+	./sha1/sha1.cpp ./sha1/sha1.h ROMInfo.cpp ROMInfo.h
 
 all: all-am
 
@@ -356,7 +355,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/allpass.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/comb.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/direct3d.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/display2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hq2x_d3d.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/menu.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/midi.Po@am__quote@

@@ -20,4 +20,4 @@ libgui_a_SOURCES = sdlmain.cpp sdl_mapper.cpp dosbox_logo.h \
 	./freeverb/allpass.cpp ./freeverb/allpass.h ./freeverb/comb.cpp \
 	./freeverb/comb.h ./freeverb/denormals.h ./freeverb/revmodel.cpp \
 	./freeverb/revmodel.h ./freeverb/tuning.h midi_mt32.h \
-	./sha1/sha1.cpp ./sha1/sha1.h ROMInfo.cpp ROMInfo.h display2.cpp
+	./sha1/sha1.cpp ./sha1/sha1.h ROMInfo.cpp ROMInfo.h
