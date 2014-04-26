@@ -519,6 +519,13 @@ void SDL_Prepare(void) {
 	DragAcceptFiles(GetHWND(), TRUE);
 }
 
+void GFX_ForceRedrawScreen(void) {
+	GFX_Stop();
+	if (sdl.draw.callback)
+		(sdl.draw.callback)( GFX_CallBackReset );
+	GFX_Start();
+}
+
 void GFX_ResetScreen(void) {
 	fullscreen_switch=false; 
 	GFX_Stop();

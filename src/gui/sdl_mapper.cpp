@@ -2438,6 +2438,9 @@ void MAPPER_RunInternal() {
 #endif
 	KEYBOARD_ClrBuffer();
 	GFX_LosingFocus();
+
+	void GFX_ForceRedrawScreen(void);
+	GFX_ForceRedrawScreen();
 }
 
 void MAPPER_Init(void) {
