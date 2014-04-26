@@ -20,7 +20,7 @@ AC_PROG_INSTALL
 AC_PROG_RANLIB
 
 dnl Need GCC to know this code is using C++ lamda functions
-CXXFLAGS="$CXXFLAGS -std=gnu++11"
+CXXFLAGS="$CXXFLAGS -std=gnu++11 -Wall"
 
 dnl Scalars in the code use MMX/SSE intrinsics
 CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2 -D_FILE_OFFSET_BITS=64"
