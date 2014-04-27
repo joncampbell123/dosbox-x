@@ -491,7 +491,7 @@ public:
 		b->addActionHandler(this);
 	}
 	void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
-		if (arg == "OK" || arg == "Cancel") { close(); if(shortcut) running=false; }
+		if (arg == "OK" || arg == "Cancel" || arg == "Close") { close(); if(shortcut) running=false; }
 		else if (arg == "Help") new HelpWindow(static_cast<GUI::Screen*>(parent), getX()-10, getY()-10, section);
 		else ToplevelWindow::actionExecuted(b, arg);
 	}
@@ -522,7 +522,7 @@ public:
 
 	void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
 		if (arg == "OK") section->data = *(std::string*)content->getText();
-		if (arg == "OK" || arg == "Cancel") { close(); if(shortcut) running=false; }
+		if (arg == "OK" || arg == "Cancel" || arg == "Close") { close(); if(shortcut) running=false; }
 		else if (arg == "Append Shell Commands") {
 			DOS_Shell *s = static_cast<DOS_Shell *>(first_shell);
 			std::list<std::string>::reverse_iterator i = s->l_history.rbegin();
@@ -746,7 +746,7 @@ public:
 		GUI::String sname = arg;
 		sname.at(0) = std::tolower(sname.at(0));
 		Section *sec;
-		if (arg == "Close" || arg == "Cancel") {
+		if (arg == "Close" || arg == "Cancel" || arg == "Close") {
 			running = false;
 		} else if (arg == "Keyboard") {
 			UI_Shutdown(dynamic_cast<GUI::ScreenSDL*>(getScreen()));
