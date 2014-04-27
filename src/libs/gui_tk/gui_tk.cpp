@@ -446,9 +446,16 @@ void BitmapFont::drawChar(Drawable *d, const Char c) const {
 #undef move
 }
 
+void Timer::check_to(unsigned int ticks) {
+	if (ticks >= Timer::ticks) check(ticks - Timer::ticks);
+}
+
 void Timer::check(unsigned int ticks)
 {
-	if (timers.empty()) return;
+	if (timers.empty()) {
+		Timer::ticks += ticks;
+		return;
+	}
 
 	if (Timer::ticks > (Timer::ticks+ticks)) {
 		ticks -= -1-Timer::ticks;
@@ -642,21 +649,22 @@ bool Window::mouseDragged(int x, int y, MouseButton button)
 
 bool Window::mouseDown(int x, int y, MouseButton button)
 {
-	Window *last = NULL;
 	std::list<Window *>::reverse_iterator i = children.rbegin();
-	bool end = (i == children.rend());
-	while (!end) {
+	Window *last = NULL;
+
+	while (i != children.rend()) {
 		Window *w = *i;
-		i++;
-		end = (i == children.rend());
-		if (w->visible && x >= w->x && x <= w->x+w->width
-			&& y >= w->y && y <= w->y+w->height
-			&& (mouseChild = last = w)
-			&& w->mouseDown(x-w->x, y-w->y, button)
-			&& w->raise()) {
-			return true;
+
+		if (w->visible && x >= w->x && x <= w->x+w->width && y >= w->y && y <= w->y+w->height) {
+			mouseChild = last = w;
+			if (w->mouseDown(x-w->x, y-w->y, button) && w->raise()) {
+				return true;
+			}
 		}
+
+		i++;
 	}
+
 	mouseChild = NULL;
 	if (last != NULL) last->raise();
 	return false;
@@ -1261,8 +1269,6 @@ void Screen::paint(Drawable &d) const
 
 unsigned int Screen::update(void *surface, unsigned int ticks)
 {
-	Timer::check(ticks);
-
 	paintAll(*buffer);
 	RGB *buf = buffer->buffer;
 	for (y = 0; y < height; y++) {
@@ -1444,16 +1450,23 @@ public:
 	}
 };
 
-ScreenSDL::ScreenSDL(SDL_Surface *surface) : Screen(new SDL_Drawable(surface->w, surface->h)), surface(surface), downx(0), downy(0), lastclick(0) {}
+ScreenSDL::ScreenSDL(SDL_Surface *surface) : Screen(new SDL_Drawable(surface->w, surface->h)), surface(surface), downx(0), downy(0), lastclick(0), lastdown(0) {
+	current_abs_time = start_abs_time = SDL_GetTicks();
+	current_time = 0;
+}
 
 Ticks ScreenSDL::update(Ticks ticks)
 {
-	Timer::check(ticks);
-
+	Timer::check_to(ticks);
 	paintAll(*buffer);
 	static_cast<SDL_Drawable*>(buffer)->update(surface);
 
 	return Timer::next();
+}
+
+void ScreenSDL::watchTime() {
+	current_abs_time = SDL_GetTicks();
+	current_time = current_abs_time - start_abs_time;
 }
 
 void ScreenSDL::paint(Drawable &d) const {
@@ -1498,12 +1511,13 @@ bool ScreenSDL::event(const SDL_Event &event) {
 		rc = mouseDown(event.button.x, event.button.y, SDL_to_GUI(event.button.button));
 		if (abs(event.button.x-downx) > 10 || abs(event.button.y-downy) > 10) lastclick = 0;
 		downx = event.button.x; downy = event.button.y;
+		lastdown = GUI::Timer::now();
 		return rc;
 
 	case SDL_MOUSEBUTTONUP:
 		rc = mouseUp(event.button.x, event.button.y, SDL_to_GUI(event.button.button));
-		if (abs(event.button.x-downx) < 10 && abs(event.button.y-downy) < 10) {
-			if (lastclick == 0 || (GUI::Timer::now()-lastclick) > 20) {
+		if (lastdown != 0 && abs(event.button.x-downx) < 10 && abs(event.button.y-downy) < 10) {
+			if (lastclick == 0 || (GUI::Timer::now()-lastclick) > 200) {
 				lastclick = GUI::Timer::now();
 				rc |= mouseClicked(downx, downy, SDL_to_GUI(event.button.button));
 			} else if (lastclick != 0) {
@@ -1515,6 +1529,7 @@ bool ScreenSDL::event(const SDL_Event &event) {
 		} else {
 			lastclick = 0;
 		}
+		lastdown = 0;
 		return rc;
 	}
 
@@ -1523,176 +1538,3 @@ bool ScreenSDL::event(const SDL_Event &event) {
 
 } /* end namespace GUI */
 
-#ifdef TESTING
-#include <stdio.h>
-
-/** \brief A test program that serves as an example for all GUI elements.
- *
- * Note that you need SDL installed and a file "testfont.h" for this
- * to compile, which must contain a bitmap font declared as
- *
- * \code
- * static const unsigned char testfont[256 * 14] = { ... };
- * \endcode
- *
- * (256 chars, 8x14 fixed-width font, for example the IBM PC VGA 14-line font,
- * you can get it from DOSBox)
- *
- * To compile it, use a command line like this:
- *
- * \code
- * g++ -DTESTING `sdl-config --cflags` `sdl-config --libs` gui_tk.cpp -o testgui_tk
- * \endcode
- *
- */
-
-int main(int argc, char *argv[])
-{
-	printf("GUI:: test program\n");
-
-	SDL_Surface *screen;
-
-	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-		fprintf(stderr, "Couldn't initialize SDL: %s\n", SDL_GetError());
-		exit(1);
-	}
-
-	atexit(SDL_Quit);
-
-	screen = SDL_SetVideoMode(640, 480, 32, SDL_SWSURFACE);
-	if (screen == NULL) {
-		fprintf(stderr, "Couldn't set 640x480x32 video mode: %s\n", SDL_GetError());
-		exit(1);
-	}
-	printf("GUI:: color depth %i\n",screen->format->BitsPerPixel);
-
-	SDL_EnableUNICODE(true);
-	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY,SDL_DEFAULT_REPEAT_INTERVAL);
-
-	#include "testfont.h"
-	GUI::Font::addFont("default",new GUI::BitmapFont(testfont,14,10));
-
-	GUI::ScreenSDL guiscreen(screen);
-	GUI::ToplevelWindow *frame = new GUI::ToplevelWindow(&guiscreen,205,100,380,250,"GUI::Frame");
-	static struct delwin : public GUI::ActionEventSource_Callback {
-		void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
-			dynamic_cast<GUI::ToplevelWindow *>(dynamic_cast<GUI::Button*>(b)->getParent())->close();
-		}
-	} dw;
-	struct newwin : public GUI::ActionEventSource_Callback {
-		GUI::Screen *screen;
-		int n;
-		void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
-			char title[256];
-			sprintf(title,"Window %i",++n);
-			GUI::ToplevelWindow *w = new GUI::ToplevelWindow(screen,405,100,120,150,title);
-			GUI::Button *close = new GUI::Button(w,5,5,"Close");
-			close->addActionHandler(&dw);
-		}
-	} nw;
-	nw.screen = &guiscreen;
-	nw.n = 0;
-	struct quit : public GUI::ActionEventSource_Callback {
-		GUI::ToplevelWindow *frame;
-		void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
-			if (arg == "Quit" && b->getName() != "GUI::Input") exit(0);
-			frame->setTitle(arg);
-		}
-	} ex;
-	ex.frame = frame;
-
-	GUI::Button *b = new GUI::Button(frame,8,20,"Open a new Window");
-	b->addActionHandler(&nw);
-	(new GUI::Button(frame,200,20,"1"))->addActionHandler(&ex);
-	(new GUI::Button(frame,235,20,"2"))->addActionHandler(&ex);
-	b = new GUI::Button(frame,270,20,"Quit");
-	b->addActionHandler(&ex);
-	(new GUI::Input(frame,16,55,150))->addActionHandler(&ex);
-
-	printf("Title: %s\n",(const char*)frame->getTitle());
-
-	struct movewin : public GUI::Timer_Callback, public GUI::ToplevelWindow_Callback {
-	public:
-		GUI::ToplevelWindow *frame;
-		GUI::Checkbox *cb1, *cb2;
-		int x, y;
-		virtual unsigned int timerExpired(unsigned int t) {
-			if (cb2->isChecked()) frame->move(frame->getX()+x,frame->getY()+y);
-			if (frame->getX() <= -frame->getWidth()) x = 1;
-			if (frame->getX() >= 640) x = -1;
-			if (frame->getY() <= -frame->getHeight()) y = 1;
-			if (frame->getY() >= 480) y = -1;
-			return 10;
-		}
-		virtual bool windowClosing(GUI::ToplevelWindow *win) {
-			if (!cb1->isChecked()) return false;
-			return true;
-		}
-		virtual void windowClosed(GUI::ToplevelWindow *win) {
-			GUI::Timer::remove(this);
-		}
-	} mw;
-	mw.frame = frame;
-	mw.x = -1;
-	mw.y = 1;
-	GUI::Frame *box = new GUI::Frame(frame,16,80,300,50);
-	mw.cb1 = new GUI::Checkbox(box,0,0,"Allow to close this window");
-	mw.cb2 = new GUI::Checkbox(box,0,20,"Move this window");
-	box = new GUI::Frame(frame,16,130,300,80,"Radio Buttons");
-	(new GUI::Radiobox(box,0,0,"Normal"))->setChecked(true);
-	new GUI::Radiobox(box,0,20,"Dynamic");
-	new GUI::Radiobox(box,0,40,"Simple");
-	box->addActionHandler(&ex);
-	GUI::Timer::add(&mw,10);
-	frame->addWindowHandler(&mw);
-	GUI::Menubar *bar = new GUI::Menubar(frame,0,0,frame->getWidth());
-	bar->addMenu("File");
-	bar->addItem(0,"New...");
-	bar->addItem(0,"Open...");
-	bar->addItem(0,"");
-	bar->addItem(0,"Save");
-	bar->addItem(0,"Save as...");
-	bar->addItem(0,"");
-	bar->addItem(0,"Close");
-	bar->addItem(0,"Quit");
-	bar->addMenu("Edit");
-	bar->addItem(1,"Undo");
-	bar->addItem(1,"Redo");
-	bar->addItem(1,"");
-	bar->addItem(1,"Cut");
-	bar->addItem(1,"Copy");
-	bar->addItem(1,"Paste");
-	bar->addItem(1,"");
-	bar->addItem(1,"Select all");
-	bar->addItem(1,"Select none");
-	bar->addMenu("View");
-	bar->addItem(2,"Zoom...");
-	bar->addItem(2,"Zoom in");
-	bar->addItem(2,"Zoom out");
-	bar->addMenu("?");
-	bar->addItem(3,"Manual");
-	bar->addItem(3,"Search...");
-	bar->addItem(3,"");
-	bar->addItem(3,"About");
-	bar->addActionHandler(&ex);
-
-	SDL_Event event;
-	while (1) {
-		while (SDL_PollEvent(&event)) {
-			if (!guiscreen.event(event)) {
-				if (event.type == SDL_QUIT) exit(0);
-			}
-		}
-
-		if (SDL_MUSTLOCK(screen)) SDL_LockSurface(screen);
-		memset(screen->pixels,0xff,4*640*15);
-		memset(((char *)screen->pixels)+4*640*15,0x00,4*640*450);
-		memset(((char *)screen->pixels)+4*640*465,0xff,4*640*15);
-		if (SDL_MUSTLOCK(screen)) SDL_UnlockSurface(screen);
-		guiscreen.update(4);
-		SDL_UpdateRect(screen, 0, 0, screen->w, screen->h);
-
-		SDL_Delay(40);
-	}
-}
-#endif

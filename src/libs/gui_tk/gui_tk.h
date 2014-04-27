@@ -787,6 +787,7 @@ protected:
 public:
 	/// Advance time and check for expired timers.
 	static void check(Ticks ticks);
+	static void check_to(Ticks ticks);
 
 	/// Add a timed callback. \p ticks is a value relative to now().
 	/** \p cb is not copied. */
@@ -846,12 +847,13 @@ protected:
 
 	/// The SDL surface being drawn to.
 	SDL_Surface *surface;
+	Uint32 start_abs_time,current_abs_time,current_time;
 
 	/// Position of last mouse down.
 	int downx, downy;
 
 	/// time of last click for double-click detection.
-	Ticks lastclick;
+	Ticks lastclick,lastdown;
 
 public:
 
@@ -882,6 +884,8 @@ public:
 	/// Process an SDL event. Returns \c true if event was handled.
 	bool event(const SDL_Event *ev) { return event(*ev); }
 
+	void watchTime();
+	Uint32 getTime() { return current_time; }
 
 	/// Process an SDL event. Returns \c true if event was handled.
 	bool event(const SDL_Event& ev);

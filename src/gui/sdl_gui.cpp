@@ -805,9 +805,10 @@ static void UI_Execute(GUI::ScreenSDL *screen) {
 		}
 
 		//Selecting keyboard will create a new surface.
+		screen->watchTime();
 		sdlscreen = screen->getSurface();
 		SDL_BlitSurface(background, NULL, sdlscreen, NULL);
-		screen->update(4);
+		screen->update(screen->getTime());
 		SDL_UpdateRect(sdlscreen, 0, 0, 0, 0);
 
 		SDL_Delay(40);
