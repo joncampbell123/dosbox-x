@@ -1923,15 +1923,19 @@ public:
 
 	/// Press button.
 	virtual bool mouseDown(int x, int y, MouseButton button) {
-		border_left = 7; border_right = 5; border_top = 7; border_bottom = 3;
-		pressed = true;
+		if (button == Left) {
+			border_left = 7; border_right = 5; border_top = 7; border_bottom = 3;
+			pressed = true;
+		}
 		return true;
 	}
 
 	/// Release button.
 	virtual bool mouseUp(int x, int y, MouseButton button)  {
-		border_left = 6; border_right = 6; border_top = 5; border_bottom = 5;
-		pressed = false;
+		if (button == Left) {
+			border_left = 6; border_right = 6; border_top = 5; border_bottom = 5;
+			pressed = false;
+		}
 		return true;
 	}
 
