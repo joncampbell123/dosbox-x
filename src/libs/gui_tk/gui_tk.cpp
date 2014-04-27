@@ -50,6 +50,15 @@ namespace Color {
 
 std::map<const char *,Font *,Font::ltstr> Font::registry;
 
+bool ToplevelWindow::mouseDoubleClicked(int x, int y, MouseButton button) {
+	if (button == Left && x < 32 && x > 6 && y > 4 && y < 31) {
+		systemMenu->executeAction("Close");
+		return true;
+	}
+	BorderedWindow::mouseClicked(x,y,button);
+	return true;
+}
+
 void Drawable::drawText(const String& text, bool interpret, Size start, Size len) {
 	if (interpret) {
 		if (len > text.size()-start) len = (Size)(text.size()-start);

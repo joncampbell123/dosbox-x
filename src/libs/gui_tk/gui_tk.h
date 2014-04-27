@@ -1608,14 +1608,7 @@ public:
 
 	virtual void paint(Drawable &d) const;
 	virtual bool mouseDown(int x, int y, MouseButton button);
-	virtual bool mouseDoubleClicked(int x, int y, MouseButton button) {
-		if (button == Left && x < 32 && x > 6 && y > 4 && y < 31) {
-			close();
-			return true;
-		}
-		BorderedWindow::mouseClicked(x,y,button);
-		return true;
-	}
+	virtual bool mouseDoubleClicked(int x, int y, MouseButton button);
 	virtual bool mouseUp(int x, int y, MouseButton button) {
 		if (button == Left && dragx >= 0 && dragy >= 0) {
 			dragx = dragy = -1;
