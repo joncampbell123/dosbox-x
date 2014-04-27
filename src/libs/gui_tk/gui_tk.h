@@ -2186,6 +2186,8 @@ public:
 template <typename STR> ToplevelWindow::ToplevelWindow(Screen *parent, int x, int y, int w, int h, const STR title) :
 	BorderedWindow(parent, x, y, w, h, 6, 33, 6, 3), title(title),
 	dragx(-1), dragy(-1), closehandlers(), systemMenu(new Menu(this,-1,-2,"System Menu")) {
+/* If these commands don't do anything, then why have them there?? --J.C. */
+#if 0 /* TODO: Allow selective enabling these if the Window object wants us to */
 	systemMenu->addItem("Move");
 	systemMenu->addItem("Resize");
 	systemMenu->addItem("");
@@ -2193,6 +2195,7 @@ template <typename STR> ToplevelWindow::ToplevelWindow(Screen *parent, int x, in
 	systemMenu->addItem("Maximize");
 	systemMenu->addItem("Restore");
 	systemMenu->addItem("");
+#endif
 	systemMenu->addItem("Close");
 	systemMenu->addActionHandler(this);
 }
