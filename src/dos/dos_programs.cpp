@@ -980,7 +980,11 @@ public:
 			reg_ecx = 1;
 			reg_ebp = 0;
 			reg_eax = 0;
-			reg_edx = 0; //Head 0 drive 0
+			reg_edx = 0; //Head 0
+			if (drive >= 'A' && drive <= 'B')
+				reg_edx += (drive-'A');
+			else if (drive >= 'C' && drive <= 'Z')
+				reg_edx += 0x80+(drive-'C');
 #ifdef __WIN32__
 			// let menu know it boots
 			menu.boot=true;
