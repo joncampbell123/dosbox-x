@@ -705,6 +705,11 @@ void RENDER_Init(Section * sec) {
 	render.pal.last=255;
 	render.aspect=section->Get_bool("aspect");
 	render.frameskip.max=section->Get_int("frameskip");
+
+	/* BUG FIX: Some people's dosbox.conf files have frameskip=-1 WTF?? */
+	/* without this fix, nothing displays, EVER */
+	if ((int)render.frameskip.max < 0) render.frameskip.max = 0;
+								
 	render.frameskip.count=0;
 	render.forceUpdate=false;
 	std::string cline;
