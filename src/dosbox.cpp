@@ -512,9 +512,11 @@ void notifyError(const std::string& message)
 
 /* TODO: move to utility header */
 #ifdef _MSC_VER /* Microsoft C++ does not have strtoull */
+# if _MSC_VER < 1800 /* But Visual Studio 2013 apparently does (http://www.vogons.org/viewtopic.php?f=41&t=31881&sid=49ff69ebc0459ed6523f5a250daa4d8c&start=400#p355770) */
 unsigned long long strtoull(const char *s,char **endptr,int base) {
 	return _strtoui64(s,endptr,base); /* pfff... whatever Microsoft */
 }
+# endif
 #endif
 
 /* utility function. rename as appropriate and move to utility collection */
