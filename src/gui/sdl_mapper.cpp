@@ -626,6 +626,8 @@ public:
 		button_wrap=0;
 		button_cap=0; axes_cap=0; hats_cap=0;
 		emulated_buttons=0; emulated_axes=0; emulated_hats=0;
+		pos_axis_lists = neg_axis_lists = NULL; /* <- Initialize the pointers to NULL. The C++ compiler won't do it for us. */
+		button_lists = hat_lists = NULL;
 
 		is_dummy=_dummy;
 		if (_dummy) return;
@@ -681,10 +683,10 @@ public:
 	}
 	virtual ~CStickBindGroup() {
 		SDL_JoystickClose(sdl_joystick);
-		delete[] pos_axis_lists;
-		delete[] neg_axis_lists;
-		delete[] button_lists;
-		delete[] hat_lists;
+		if (pos_axis_lists != NULL) delete[] pos_axis_lists;
+		if (neg_axis_lists != NULL) delete[] neg_axis_lists;
+		if (button_lists != NULL) delete[] button_lists;
+		if (hat_lists != NULL) delete[] hat_lists;
 	}
 
 	CBind * CreateConfigBind(char *& buf) {
