@@ -9,5 +9,17 @@ Plans for next modifications to DOSBox:
 
 - El Torito bootable CD-ROM emulation. Someone on the forums
   wants to run ReactOS in DOSBox and booting from CD seems to
-  be the only way to install ReactOS.
+  be the only way to install ReactOS. Booting "floppy" and
+  "no emulation" modes are the highest priority.
+
+- Begin working on floppy controller emulation (Intel 8272A/NEC uPD765
+  controller emulation). Make it an option in dosbox.conf whether
+  or not I/O port emulation is enabled. Make sure that it coexists
+  with INT 13h emulation of the floppy drive. If the emulation is
+  successful, Win95 will be able to talk to it directly without
+  "MS-DOS compatability mode enabled for Drive A:" and Windows NT
+  will be able to use the floppy drive. Make sure the emulation
+  can correctly emulate both 3.5" and 5.25" floppy drives and
+  all common formats (360KB/720KB/1.2MB/1.44MB) including single
+  density and double density.
 
