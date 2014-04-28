@@ -1,0 +1,13 @@
+Plans for next modifications to DOSBox:
+
+- Cleanup "new" allocator memory leaks visible in IDE and other
+  DOSBox INIT functions. Probably another case of not freeing
+  the "test" object
+
+- Add option to dosbox.conf to allow enabling/disabling INT 13h
+  extensions (AH=0x40 through AH=0x48).
+
+- El Torito bootable CD-ROM emulation. Someone on the forums
+  wants to run ReactOS in DOSBox and booting from CD seems to
+  be the only way to install ReactOS.
+
