@@ -667,6 +667,40 @@ static Bitu INT13_DiskHandler(void) {
 		reg_ah = 0x00;
 		CALLBACK_SCF(false);
 		break;
+	case 0x48: { /* get drive parameters */
+		uint16_t bufsz;
+
+		if(driveInactive(drivenum)) {
+			reg_ah = 0xff;
+			CALLBACK_SCF(true);
+			return CBRET_NONE;
+		}
+
+		segat = SegValue(ds);
+		bufptr = reg_si;
+		bufsz = real_readw(segat,bufptr+0);
+		if (bufsz < 0x1A) {
+			reg_ah = 0xff;
+			CALLBACK_SCF(true);
+			return CBRET_NONE;
+		}
+		bufsz = 0x1A;
+
+		Bit32u tmpheads, tmpcyl, tmpsect, tmpsize;
+		imageDiskList[drivenum]->Get_Geometry(&tmpheads, &tmpcyl, &tmpsect, &tmpsize);
+
+		real_writew(segat,bufptr+0x00,bufsz);
+		real_writew(segat,bufptr+0x02,0x0003);	/* C/H/S valid, DMA boundary errors handled */
+		real_writed(segat,bufptr+0x04,tmpcyl);
+		real_writed(segat,bufptr+0x08,tmpheads);
+		real_writed(segat,bufptr+0x0C,tmpsect);
+		real_writed(segat,bufptr+0x10,tmpsize);
+		real_writed(segat,bufptr+0x14,0);
+		real_writew(segat,bufptr+0x18,512);
+
+		reg_ah = 0x00;
+		CALLBACK_SCF(false);
+		} break;
 	default:
 		LOG(LOG_BIOS,LOG_ERROR)("INT13: Function %x called on drive %x (dos drive %d)", reg_ah,  reg_dl, drivenum);
 		reg_ah=0xff;
