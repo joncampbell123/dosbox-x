@@ -29,6 +29,8 @@
 
 #define MAX_DISK_IMAGES 4
 
+extern bool int13_extensions_enable;
+
 diskGeo DiskGeometryList[] = {
 	{ 160,  8, 1, 40, 0},
 	{ 180,  9, 1, 40, 0},
@@ -381,6 +383,14 @@ static Bitu INT13_DiskHandler(void) {
 
 	// unconditionally enable the interrupt flag
 	CALLBACK_SIF(true);
+
+	/* map out functions 0x40-0x48 if not emulating INT 13h extensions */
+	if (!int13_extensions_enable && reg_ah >= 0x40 && reg_ah <= 0x48) {
+		fprintf(stderr,"Warning: Guest is attempting to use INT 13h extensions (AH=0x%02X). Set 'int 13 extensions=1' if you want to enable them.\n",reg_ah);
+		reg_ah=0xff;
+		CALLBACK_SCF(true);
+		return CBRET_NONE;
+	}
 
 	//drivenum = 0;
 	//LOG_MSG("INT13: Function %x called on drive %x (dos drive %d)", reg_ah,  reg_dl, drivenum);

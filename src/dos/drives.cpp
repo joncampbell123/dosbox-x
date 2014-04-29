@@ -20,6 +20,7 @@
 #include "dosbox.h"
 #include "dos_system.h"
 #include "drives.h"
+#include "setup.h"
 #include "mapper.h"
 #include "support.h"
 
@@ -211,7 +212,12 @@ int DriveManager::UnmountDrive(int drive) {
 	return result;
 }
 
-void DriveManager::Init(Section* /* sec */) {
+bool int13_extensions_enable = true;
+
+void DriveManager::Init(Section* s) {
+	Section_prop * section=static_cast<Section_prop *>(s);
+
+	int13_extensions_enable = section->Get_bool("int 13 extensions");
 	
 	// setup driveInfos structure
 	currentDrive = 0;

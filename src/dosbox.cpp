@@ -1410,6 +1410,9 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("int33",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Enable INT 33H (mouse) support.");
 
+	Pbool = secprop->Add_bool("int 13 extensions",Property::Changeable::WhenIdle,true);
+	Pbool->Set_help("Enable INT 13h extensions (functions 0x40-0x48). You will need this enabled if the virtual hard drive image is 8.4GB or larger.");
+
 	Pbool = secprop->Add_bool("biosps2",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("Emulate BIOS INT 15h PS/2 mouse services\n"
 		"Note that some OS's like Microsoft Windows neither use INT 33h nor\n"
