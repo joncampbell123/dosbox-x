@@ -232,6 +232,7 @@ imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHard
 	sector_size = 512;
 	reserved_cylinders = 0;
 	diskimg = imgFile;
+	class_id = ID_BASE;
 	
 	memset(diskname,0,512);
 	if(strlen((const char *)imgName) > 511) {

@@ -43,7 +43,11 @@ struct diskGeo {
 };
 extern diskGeo DiskGeometryList[];
 
-class imageDisk  {
+class imageDisk {
+public:
+	enum {
+		ID_BASE=0
+	};
 public:
 	virtual Bit8u Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data);
 	virtual Bit8u Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data);
@@ -58,6 +62,8 @@ public:
 	virtual Bit32u getSectSize(void);
 	imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk);
 	virtual ~imageDisk() { if(diskimg != NULL) { fclose(diskimg); }	};
+
+	int class_id;
 
 	bool hardDrive;
 	bool active;
