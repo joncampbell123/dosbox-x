@@ -459,10 +459,18 @@ nomount:
 	}
 };
 
-static AUTOEXEC* test;
+static AUTOEXEC* test = NULL;
+	
+static void AUTOEXEC_ShutDown(Section * sec) {
+	if (test != NULL) {
+		delete test;
+		test = NULL;
+	}
+}
 
 void AUTOEXEC_Init(Section * sec) {
 	test = new AUTOEXEC(sec);
+	sec->AddDestroyFunction(&AUTOEXEC_ShutDown);
 }
 
 static char const * const path_string="PATH=Z:\\";

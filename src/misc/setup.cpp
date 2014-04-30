@@ -35,6 +35,7 @@ using namespace std;
 static std::string current_config_dir; // Set by parseconfigfile so Prop_path can use it to construct the realpath
 void Value::destroy() throw(){
 	if (type == V_STRING) delete _string;
+	_string = NULL;
 }
 
 Value& Value::copy(Value const& in) throw(WrongType) {
