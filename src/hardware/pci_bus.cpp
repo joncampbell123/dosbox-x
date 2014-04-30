@@ -36,7 +36,7 @@ static Bit32u pci_caddress=0;			// current PCI addressing
 static Bitu pci_devices_installed=0;	// number of registered PCI devices
 
 static Bit8u pci_cfg_data[PCI_MAX_PCIDEVICES][PCI_MAX_PCIFUNCTIONS][256];		// PCI configuration data
-static PCI_Device* pci_devices[PCI_MAX_PCIDEVICES];		// registered PCI devices
+static PCI_Device* pci_devices[PCI_MAX_PCIDEVICES]={NULL};		// registered PCI devices
 
 
 // PCI address
@@ -410,7 +410,16 @@ public:
 		}
 	}
 
-	~PCI(){
+	~PCI() {
+		unsigned int i;
+
+		for (i=0;i < PCI_MAX_PCIDEVICES;i++) {
+			if (pci_devices[i] != NULL) {
+				delete pci_devices[i];
+				pci_devices[i] = NULL;
+			}
+		}
+
 		initialized=false;
 		pci_devices_installed=0;
 		num_rqueued_devices=0;
