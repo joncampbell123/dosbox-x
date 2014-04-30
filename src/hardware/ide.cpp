@@ -3155,7 +3155,15 @@ void IDEController::install_io_port(){
 	}
 }
 
-IDEController::~IDEController(){
+IDEController::~IDEController() {
+	unsigned int i;
+
+	for (i=0;i < 2;i++) {
+		if (device[i] != NULL) {
+			delete device[i];
+			device[i] = NULL;
+		}
+	}
 }
 
 static void ide_altio_w(Bitu port,Bitu val,Bitu iolen) {
@@ -3324,10 +3332,14 @@ static void ide_baseio_w(Bitu port,Bitu val,Bitu iolen) {
 }
 
 static void IDE_Destroy(Section* sec) {
-	if (init_ide) {
-		/* TODO: Free each IDE object */
-		init_ide = 0;
+	for (unsigned int i=0;i < MAX_IDE_CONTROLLERS;i++) {
+		if (idecontroller[i] != NULL) {
+			delete idecontroller[i];
+			idecontroller[i] = NULL;
+		}
 	}
+
+	init_ide = 0;
 }
 
 static void IDE_Init(Section* sec,unsigned char interface) {
