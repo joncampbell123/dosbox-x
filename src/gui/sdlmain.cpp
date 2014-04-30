@@ -3432,6 +3432,9 @@ int main(int argc, char* argv[]) {
 	CPU_Core_Dyn_X86_Shutdown();
 #endif
 
+	void FreeBIOSDiskList();
+	FreeBIOSDiskList();
+
 	void MAPPER_Shutdown();
 	MAPPER_Shutdown();
 

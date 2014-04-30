@@ -68,7 +68,7 @@ public:
 	bool hardDrive;
 	bool active;
 	FILE *diskimg;
-	Bit8u diskname[512];
+	std::string diskname;
 	Bit8u floppytype;
 
 	Bit32u sector_size;

@@ -58,8 +58,8 @@ static bool swapping_requested;
 void CMOS_SetRegister(Bitu regNr, Bit8u val); //For setting equipment word
 
 /* 2 floppys and 2 harddrives, max */
-imageDisk *imageDiskList[MAX_DISK_IMAGES];
-imageDisk *diskSwap[MAX_SWAPPABLE_DISKS];
+imageDisk *imageDiskList[MAX_DISK_IMAGES]={NULL};
+imageDisk *diskSwap[MAX_SWAPPABLE_DISKS]={NULL};
 Bits swapPosition;
 
 imageDisk *GetINT13HardDrive(unsigned char drv) {
@@ -67,6 +67,29 @@ imageDisk *GetINT13HardDrive(unsigned char drv) {
 		return NULL;
 
 	return imageDiskList[drv-0x80];
+}
+
+void FreeBIOSDiskList() {
+	for (int i=0;i < MAX_DISK_IMAGES;i++) {
+		if (imageDiskList[i] != NULL) {
+
+			/* diskSwap[] and imageDiskList[] are intertwined because of pointer assign */
+			for (int j=0;j < MAX_SWAPPABLE_DISKS;j++) {
+				if (diskSwap[j] == imageDiskList[i])
+					diskSwap[j] = NULL;
+			}
+
+			delete imageDiskList[i];
+			imageDiskList[i] = NULL;
+		}
+	}
+
+	for (int j=0;j < MAX_SWAPPABLE_DISKS;j++) {
+		if (diskSwap[j] != NULL) {
+			delete diskSwap[j];
+			diskSwap[j] = NULL;
+		}
+	}
 }
 
 void updateDPT(void) {
@@ -128,7 +151,7 @@ void swapInDisks(void) {
 	/* If only one disk is loaded, this loop will load the same disk in dive A and drive B */
 	while(diskcount<2) {
 		if(diskSwap[swapPos] != NULL) {
-			LOG_MSG("Loaded disk %d from swaplist position %d - \"%s\"", diskcount, swapPos, diskSwap[swapPos]->diskname);
+			LOG_MSG("Loaded disk %d from swaplist position %d - \"%s\"", diskcount, swapPos, diskSwap[swapPos]->diskname.c_str());
 			imageDiskList[diskcount] = diskSwap[swapPos];
 			diskcount++;
 		}
@@ -233,13 +256,9 @@ imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHard
 	reserved_cylinders = 0;
 	diskimg = imgFile;
 	class_id = ID_BASE;
-	
-	memset(diskname,0,512);
-	if(strlen((const char *)imgName) > 511) {
-		memcpy(diskname, imgName, 511);
-	} else {
-		strcpy((char *)diskname, (const char *)imgName);
-	}
+
+	if (imgName != NULL)
+		diskname = (const char*)imgName;
 
 	active = false;
 	hardDrive = isHardDisk;
@@ -722,18 +741,17 @@ static Bitu INT13_DiskHandler(void) {
 
 
 void BIOS_SetupDisks(void) {
+	int i;
+
 /* TODO Start the time correctly */
 	call_int13=CALLBACK_Allocate();	
 	CALLBACK_Setup(call_int13,&INT13_DiskHandler,CB_INT13,"Int 13 Bios disk");
 	RealSetVec(0x13,CALLBACK_RealPointer(call_int13));
-	int i;
-	for(i=0;i<4;i++) {
-		imageDiskList[i] = NULL;
-	}
 
-	for(i=0;i<MAX_SWAPPABLE_DISKS;i++) {
+	for(i=0;i<4;i++)
+		imageDiskList[i] = NULL;
+	for(i=0;i<MAX_SWAPPABLE_DISKS;i++)
 		diskSwap[i] = NULL;
-	}
 
 	diskparm0 = CALLBACK_Allocate();
 	diskparm1 = CALLBACK_Allocate();
