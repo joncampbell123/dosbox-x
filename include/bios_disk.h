@@ -45,19 +45,19 @@ extern diskGeo DiskGeometryList[];
 
 class imageDisk  {
 public:
-	Bit8u Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data);
-	Bit8u Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data);
-	Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data);
-	Bit8u Write_AbsoluteSector(Bit32u sectnum, void * data);
+	virtual Bit8u Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data);
+	virtual Bit8u Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data);
+	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data);
+	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, void * data);
 
-	void Set_Reserved_Cylinders(Bitu resCyl);
-	Bit32u Get_Reserved_Cylinders();
-	void Set_Geometry(Bit32u setHeads, Bit32u setCyl, Bit32u setSect, Bit32u setSectSize);
-	void Get_Geometry(Bit32u * getHeads, Bit32u *getCyl, Bit32u *getSect, Bit32u *getSectSize);
-	Bit8u GetBiosType(void);
-	Bit32u getSectSize(void);
+	virtual void Set_Reserved_Cylinders(Bitu resCyl);
+	virtual Bit32u Get_Reserved_Cylinders();
+	virtual void Set_Geometry(Bit32u setHeads, Bit32u setCyl, Bit32u setSect, Bit32u setSectSize);
+	virtual void Get_Geometry(Bit32u * getHeads, Bit32u *getCyl, Bit32u *getSect, Bit32u *getSectSize);
+	virtual Bit8u GetBiosType(void);
+	virtual Bit32u getSectSize(void);
 	imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk);
-	~imageDisk() { if(diskimg != NULL) { fclose(diskimg); }	};
+	virtual ~imageDisk() { if(diskimg != NULL) { fclose(diskimg); }	};
 
 	bool hardDrive;
 	bool active;
