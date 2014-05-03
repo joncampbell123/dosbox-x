@@ -33,7 +33,6 @@
 #endif 
 
 void DOS_Shell::ShowPrompt(void) {
-	Bit8u drive=DOS_GetDefaultDrive()+'A';
 	char dir[DOS_PATHLENGTH];
 	dir[0] = 0; //DOS_GetCurrentDir doesn't always return something. (if drive is messed up)
 	DOS_GetCurrentDir(0,dir);
@@ -285,7 +284,7 @@ void DOS_Shell::InputCommand(char * line) {
 			size = 0;       // stop the next loop
 			str_len = 0;    // prevent multiple adds of the same line
 			break;
-		case 0x0d:				/* /* Don't care, and return */
+		case 0x0d:				/* Don't care, and return */
 			if(!echo) outc('\n');
 			size=0;			//Kill the while loop
 			break;
