@@ -324,9 +324,9 @@ void DOS_Shell::CMD_CLS(char * args) {
 void DOS_Shell::CMD_DELETE(char * args) {
 	HELP("DELETE");
 	bool optQ1=ScanCMDBool(args,"Q");
-	bool optP=ScanCMDBool(args,"P");
 
-	// ignore /f, /s, /ar, /as, /ah and /aa switches for compatibility
+	// ignore /p /f, /s, /ar, /as, /ah and /aa switches for compatibility
+	ScanCMDBool(args,"P");
 	ScanCMDBool(args,"F");
 	ScanCMDBool(args,"S");
 	ScanCMDBool(args,"AR");
@@ -1199,8 +1199,9 @@ void DOS_Shell::CMD_SHIFT(char * args ) {
 
 void DOS_Shell::CMD_TYPE(char * args) {
 	HELP("TYPE");
-	bool optP=ScanCMDBool(args,"P");
-	// ignore /h and /t for compatibility
+		
+	// ignore /p /h and /t for compatibility
+	ScanCMDBool(args,"P");
 	ScanCMDBool(args,"H");
 	ScanCMDBool(args,"T");
 	StripSpaces(args);
@@ -1682,7 +1683,7 @@ void DOS_Shell::CMD_ADDKEY(char * args){
 
 	while (*args) {
 		word=StripWord(args);
-		KBD_KEYS scankey;
+		KBD_KEYS scankey = (KBD_KEYS)0;
 		char *tail;
 		bool alt = false, control = false, shift = false;
 		while (word[1] == '-') {
