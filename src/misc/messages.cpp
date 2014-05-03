@@ -85,13 +85,15 @@ void LoadMessageFile(const char * fname) {
 		/* First remove characters 10 and 13 from the line */
 		char * parser=linein;
 		char * writer=linein;
+
 		while (*parser) {
-			if (*parser!=10 && *parser!=13) {
-				*writer++=*parser;
-			}
-			*parser++;
+			if (*parser != 10 && *parser != 13)
+				*writer++ = *parser;
+
+			parser++;
 		}
 		*writer=0;
+
 		/* New string name */
 		if (linein[0]==':') {
 			string[0]=0;
