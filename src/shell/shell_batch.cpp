@@ -85,9 +85,7 @@ emptyline:
 	/* Now parse the line read from the bat file for % stuff */
 	cmd_write=line;
 	char * cmd_read=temp;
-	char env_name[256];char * env_write;
 	while (*cmd_read) {
-		env_write=env_name;
 		if (*cmd_read=='%') {
 			cmd_read++;
 			if (cmd_read[0] == '%') {
