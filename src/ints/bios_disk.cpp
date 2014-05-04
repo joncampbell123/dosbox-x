@@ -78,6 +78,16 @@ void FreeBIOSDiskList() {
 					diskSwap[j] = NULL;
 			}
 
+			/* and apparently, the same pointer exists elsewhere in the array...
+			 * again, VERY sloppy on DOSBox developer's part. If you ask me,
+			 * this loosey-goosey passing pointers around means that imageDisk
+			 * might want to consider a COM/OLE design with Addref() and Release()
+			 * so that this hack is no longer necessary --J.C. */
+			for (int j=i+1;j < MAX_DISK_IMAGES;j++) {
+				if (imageDiskList[j] == imageDiskList[i])
+					imageDiskList[j] = NULL;
+			}
+
 			delete imageDiskList[i];
 			imageDiskList[i] = NULL;
 		}
