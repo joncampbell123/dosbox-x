@@ -141,10 +141,11 @@ public:
 	}
 
 	void Run(void) {
-		DOS_Drive * newdrive;char drive;
+		DOS_Drive *newdrive = NULL;
 		std::string label;
 		std::string umount;
 		std::string newz;
+		char drive;
 
 		//Hack To allow long commandlines
 		ChangeToLongCmd();
@@ -622,11 +623,20 @@ public:
 		FILE *usefile_1=NULL;
 		FILE *usefile_2=NULL;
 		Bitu i=0; 
-		Bit32u floppysize;
+		Bit32u floppysize=0;
 		Bit32u rombytesize_1=0;
 		Bit32u rombytesize_2=0;
 		Bit8u drive = 'A';
 		std::string cart_cmd="";
+		Bitu stack_seg=0x7000,max_seg,load_seg=0x07C0;
+
+		if (MEM_TotalPages() > 0x9C)
+			max_seg = 0x9C00;
+		else
+			max_seg = MEM_TotalPages() << (12 - 4);
+
+		if ((stack_seg+0x20) > max_seg)
+			stack_seg = max_seg - 0x20;
 
 		if(!cmd->GetCount()) {
 			printError();
@@ -666,8 +676,8 @@ public:
 					continue;
 				}
 
+				Bit32u rombytesize=0;
 				WriteOut(MSG_Get("PROGRAM_BOOT_IMAGE_OPEN"), temp_line.c_str());
-				Bit32u rombytesize;
 				FILE *usefile = getFSFile(temp_line.c_str(), &floppysize, &rombytesize);
 				if(usefile != NULL) {
 					if(diskSwap[i] != NULL) delete diskSwap[i];
@@ -803,9 +813,10 @@ public:
 				}
 
 				if (usefile_2!=NULL) {
+					unsigned int romseg_pt=0;
+
 					fseek(usefile_2, 0x0L, SEEK_SET);
 					fread(rombuf, 1, pcjr_hdr_length, usefile_2);
-					Bit16u romseg_pt;
 					if (pcjr_hdr_type == 1) {
 						romseg_pt=host_readw(&rombuf[0x1ce]);
 					} else {
@@ -821,9 +832,10 @@ public:
 					for(i=0;i<rombytesize_2-pcjr_hdr_length;i++) phys_writeb((romseg_pt<<4)+i,rombuf[i]);
 				}
 
+				unsigned int romseg=0;
+
 				fseek(usefile_1, 0x0L, SEEK_SET);
 				fread(rombuf, 1, pcjr_hdr_length, usefile_1);
-				Bit16u romseg;
 				if (pcjr_hdr_type == 1) {
 					romseg=host_readw(&rombuf[0x1ce]);
 				} else {
@@ -871,16 +883,6 @@ public:
 				}
 			}
 		} else {
-			Bitu stack_seg=0x7000,max_seg,load_seg=0x07C0;
-
-			if (MEM_TotalPages() > 0x9C)
-				max_seg = 0x9C00;
-			else
-				max_seg = MEM_TotalPages() << (12 - 4);
-
-			if ((stack_seg+0x20) > max_seg)
-				stack_seg = max_seg - 0x20;
-
 			if (max_seg < 0x0800) {
 				/* TODO: For the adventerous, add a configuration option or command line switch to "BOOT"
 				 *       that allows us to boot the guest OS anyway in a manner that is non-standard. */
@@ -2208,7 +2210,7 @@ public:
 					}
 					// check MBR partition entry 1
 					Bitu starthead = buf[0x1bf];
-					Bitu startsect = buf[0x1c0]&0x3f-1;
+					Bitu startsect = (buf[0x1c0]&0x3f)-1;
 					Bitu startcyl = buf[0x1c1]|((buf[0x1c0]&0xc0)<<2);
 					Bitu endcyl = buf[0x1c5]|((buf[0x1c4]&0xc0)<<2);
 					
@@ -2544,7 +2546,7 @@ void MODE::Run(void) {
 	else if (strcasecmp(temp_line.c_str(),"co40")==0) mode=1;
 	else if (strcasecmp(temp_line.c_str(),"bw40")==0) mode=0;
 	else goto modeparam;
-	mem_writeb(BIOS_CONFIGURATION,mem_readb(BIOS_CONFIGURATION)&0xcf|((mode==7)?0x30:0x20));
+	mem_writeb(BIOS_CONFIGURATION,(mem_readb(BIOS_CONFIGURATION)&0xcf)|((mode==7)?0x30:0x20));
 	reg_ax=mode;
 	CALLBACK_RunRealInt(0x10);
 	return;
