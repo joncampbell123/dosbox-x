@@ -1937,6 +1937,18 @@ quit:
 	}	
 };
 
+bool ElTorito_ChecksumRecord(unsigned char *entry/*32 bytes*/) {
+	unsigned int word,chk=0,i;
+
+	for (i=0;i < 16;i++) {
+		word = ((unsigned int)entry[0]) + ((unsigned int)entry[1] << 8);
+		chk += word;
+		entry += 2;
+	}
+	chk &= 0xFFFF;
+	return (chk == 0);
+}
+
 static void INTRO_ProgramStart(Program * * make) {
 	*make=new INTRO;
 }
@@ -1967,6 +1979,80 @@ bool ElTorito_ScanForBootRecord(CDROM_Interface *drv,unsigned long &boot_record,
 
 	return false;
 }
+
+
+/* C++ class implementing El Torito floppy emulation */
+class imageDiskElToritoFloppy : public imageDisk {
+public:
+	/* Read_Sector and Write_Sector take care of geometry translation for us,
+	 * then call the absolute versions. So, we override the absolute versions only */
+	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data) {
+		unsigned char buffer[2048];
+
+		bool GetMSCDEXDrive(unsigned char drive_letter,CDROM_Interface **_cdrom);
+
+		CDROM_Interface *src_drive=NULL;
+		if (!GetMSCDEXDrive(CDROM_drive-'A',&src_drive)) return 0x05;
+
+		if (!src_drive->ReadSectorsHost(buffer,false,cdrom_sector_offset+(sectnum>>2)/*512 byte/sector to 2048 byte/sector conversion*/,1))
+			return 0x05;
+
+		memcpy(data,buffer+((sectnum&3)*512),512);
+		return 0x00;
+	}
+	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, void * data) {
+		return 0x05; /* fail, read only */
+	}
+	imageDiskElToritoFloppy(unsigned char new_CDROM_drive,unsigned long new_cdrom_sector_offset,unsigned char floppy_emu_type) : imageDisk(NULL,NULL,0,false) {
+		diskimg = NULL;
+		sector_size = 512;
+		CDROM_drive = new_CDROM_drive;
+		cdrom_sector_offset = new_cdrom_sector_offset;
+		class_id = ID_EL_TORITO_FLOPPY;
+
+		if (floppy_emu_type == 1) { /* 1.2MB */
+			heads = 2;
+			cylinders = 80;
+			sectors = 15;
+		}
+		else if (floppy_emu_type == 2) { /* 1.44MB */
+			heads = 2;
+			cylinders = 80;
+			sectors = 18;
+		}
+		else if (floppy_emu_type == 3) { /* 2.88MB */
+			heads = 2;
+			cylinders = 80;
+			sectors = 36; /* FIXME: right? */
+		}
+		else {
+			heads = 2;
+			cylinders = 69;
+			sectors = 14;
+			fprintf(stderr,"BUG! unsupported floppy_emu_type in El Torito floppy object\n");
+		}
+
+		active = true;
+	}
+	virtual ~imageDiskElToritoFloppy() {
+	}
+
+	unsigned long cdrom_sector_offset;
+	unsigned char CDROM_drive;
+/*
+	int class_id;
+
+	bool hardDrive;
+	bool active;
+	FILE *diskimg;
+	std::string diskname;
+	Bit8u floppytype;
+
+	Bit32u sector_size;
+	Bit32u heads,cylinders,sectors;
+	Bit32u reserved_cylinders;
+	Bit64u current_fpos; */
+};
 
 class IMGMOUNT : public Program {
 public:
@@ -2021,6 +2107,8 @@ public:
 			return;
 		}
 
+		unsigned long el_torito_floppy_base=~0UL;
+		unsigned char el_torito_floppy_type=0xFF;
 		bool ide_slave = false;
 		signed char ide_index = -1;
 		char el_torito_cd_drive = 0;
@@ -2038,6 +2126,11 @@ public:
 
 		cmd->FindString("-el-torito",el_torito,true);
 		if (el_torito != "") {
+			unsigned char entries[2048],*entry,ent_num=0;
+			int header_platform = -1,header_count=0;
+			bool header_final = false;
+			int header_more = -1;
+
 			el_torito_cd_drive = toupper(el_torito[0]);
 
 			/* must be valid drive letter, C to Z */
@@ -2077,6 +2170,117 @@ public:
 
 			fprintf(stderr,"El Torito emulation: Found ISO 9660 Boot Record in sector %lu, pointing to sector %lu\n",
 				boot_record_sector,el_torito_base);
+
+			/* Step #2: Parse the records. Each one is 32 bytes long */
+			if (!src_drive->ReadSectorsHost(entries,false,el_torito_base,1)) {
+				WriteOut("El Torito entries unreadable\n");
+				return;
+			}
+
+			/* for more information about what this loop is doing, read:
+			 * http://download.intel.com/support/motherboards/desktop/sb/specscdrom.pdf
+			 */
+			/* FIXME: Somebody find me an example of a CD-ROM with bootable code for both x86, PowerPC, and Macintosh.
+			 *        I need an example of such a CD since El Torito allows multiple "headers" */
+			/* TODO: Is it possible for this record list to span multiple sectors? */
+			for (ent_num=0;ent_num < (2048/0x20);ent_num++) {
+				entry = entries + (ent_num*0x20);
+
+				if (memcmp(entry,"\0\0\0\0""\0\0\0\0""\0\0\0\0""\0\0\0\0""\0\0\0\0""\0\0\0\0""\0\0\0\0""\0\0\0\0",32) == 0)
+					break;
+
+				if (entry[0] == 0x01/*header*/) {
+					if (!ElTorito_ChecksumRecord(entry)) {
+						fprintf(stderr,"Warning: El Torito checksum error in header(0x01) entry\n");
+						continue;
+					}
+
+					if (header_count != 0) {
+						fprintf(stderr,"Warning: El Torito has more than one Header/validation entry\n");
+						continue;
+					}
+
+					if (header_final) {
+						fprintf(stderr,"Warning: El Torito has an additional header past the final header\n");
+						continue;
+					}
+
+					header_more = -1;
+					header_platform = entry[1];
+					fprintf(stderr,"El Torito entry: first header platform=0x%02x\n",header_platform);
+					header_count++;
+				}
+				else if (entry[0] == 0x90/*header, more follows*/ || entry[0] == 0x91/*final header*/) {
+					if (header_final) {
+						fprintf(stderr,"Warning: El Torito has an additional header past the final header\n");
+						continue;
+					}
+
+					header_final = (entry[0] == 0x91);
+					header_more = ((unsigned int)entry[2]) + (((unsigned int)entry[3]) << 8);
+					header_platform = entry[1];
+					fprintf(stderr,"El Torito entry: first header platform=0x%02x more=%u final=%u\n",header_platform,header_more,header_final);
+					header_count++;
+				}
+				else {
+					if (header_more == 0) {
+						fprintf(stderr,"El Torito entry: Non-header entry count expired, ignoring record 0x%02x\n",entry[0]);
+						continue;
+					}
+					else if (header_more > 0) {
+						header_more--;
+					}
+
+					if (entry[0] == 0x44) {
+						fprintf(stderr,"El Torito entry: ignoring extension record\n");
+					}
+					else if (entry[0] == 0x00/*non-bootable*/) {
+						fprintf(stderr,"El Torito entry: ignoring non-bootable record\n");
+					}
+					else if (entry[0] == 0x88/*bootable*/) {
+						if (header_platform == 0x00/*x86*/) {
+							unsigned char mediatype = entry[1]&0xF;
+							unsigned short load_segment = ((unsigned int)entry[2]) + (((unsigned int)entry[3]) << 8);
+							unsigned char system_type = entry[4];
+							unsigned short sector_count = ((unsigned int)entry[6]) + (((unsigned int)entry[7]) << 8);
+							unsigned long load_rba = ((unsigned int)entry[8]) + (((unsigned int)entry[9]) << 8) +
+								(((unsigned int)entry[10]) << 16) + (((unsigned int)entry[11]) << 24);
+
+							fprintf(stderr,"El Torito entry: bootable x86 record mediatype=%u load_segment=0x%04x "
+								"system_type=0x%02x sector_count=%u load_rba=%lu\n",
+								mediatype,load_segment,system_type,sector_count,load_rba);
+
+							/* already chose one, ignore */
+							if (el_torito_floppy_base != ~0UL)
+								continue;
+
+							if (load_segment != 0 && load_segment != 0x7C0)
+								fprintf(stderr,"El Torito boot warning: load segments other than 0x7C0 not supported yet\n");
+							if (sector_count != 1)
+								fprintf(stderr,"El Torito boot warning: sector counts other than 1 are not supported yet\n");
+
+							if (mediatype < 1 || mediatype > 3) {
+								fprintf(stderr,"El Torito boot entry: media types other than floppy emulation not supported yet\n");
+								continue;
+							}
+
+							el_torito_floppy_base = load_rba;
+							el_torito_floppy_type = mediatype;
+						}
+						else {
+							fprintf(stderr,"El Torito entry: ignoring bootable non-x86 (platform_id=0x%02x) record\n",header_platform);
+						}
+					}
+					else {
+						fprintf(stderr,"El Torito entry: ignoring unknown record ID %02x\n",entry[0]);
+					}
+				}
+			}
+
+			if (el_torito_floppy_type == 0xFF || el_torito_floppy_base == ~0UL) {
+				WriteOut("El Torito bootable floppy not found\n");
+				return;
+			}
 		}
 
 		std::string fstype="fat";
@@ -2476,7 +2680,8 @@ public:
 					tmp += "; " + paths[i];
 				}
 				WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, tmp.c_str());
-
+			} else if (el_torito != "") {
+				newImage = new imageDiskElToritoFloppy(el_torito_cd_drive,el_torito_floppy_base,el_torito_floppy_type);
 			} else {
 				if (el_torito != "") {
 					WriteOut("El Torito bootable CD: -fs none unexpected path (BUG)\n");

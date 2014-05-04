@@ -46,7 +46,8 @@ extern diskGeo DiskGeometryList[];
 class imageDisk {
 public:
 	enum {
-		ID_BASE=0
+		ID_BASE=0,
+		ID_EL_TORITO_FLOPPY
 	};
 public:
 	virtual Bit8u Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data);
