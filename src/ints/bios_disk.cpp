@@ -72,8 +72,7 @@ imageDisk *GetINT13HardDrive(unsigned char drv) {
 void FreeBIOSDiskList() {
 	for (int i=0;i < MAX_DISK_IMAGES;i++) {
 		if (imageDiskList[i] != NULL) {
-
-			/* diskSwap[] and imageDiskList[] are intertwined because of pointer assign */
+			/* diskSwap[] and imageDiskList[] are intertwined because of pointer assign... pretty damn sloppy if you ask me --J.C. */
 			for (int j=0;j < MAX_SWAPPABLE_DISKS;j++) {
 				if (diskSwap[j] == imageDiskList[i])
 					diskSwap[j] = NULL;
@@ -201,13 +200,13 @@ Bit8u imageDisk::Read_AbsoluteSector(Bit32u sectnum, void * data) {
 	//LOG_MSG("Reading sectors %ld at bytenum %I64d", sectnum, bytenum);
 
 	fseeko64(diskimg,bytenum,SEEK_SET);
-	if (ftello64(diskimg) != bytenum) {
-		fprintf(stderr,"fseek() failed in Read_AbsoluteSector for sector %lu\n",sectnum);
+	if ((Bit64u)ftello64(diskimg) != bytenum) {
+		fprintf(stderr,"fseek() failed in Read_AbsoluteSector for sector %lu\n",(unsigned long)sectnum);
 		return 0x05;
 	}
 
 	if (fread(data, 1, sector_size, diskimg) != sector_size) {
-		fprintf(stderr,"fread() failed in Read_AbsoluteSector for sectur %lu\n",sectnum);
+		fprintf(stderr,"fread() failed in Read_AbsoluteSector for sectur %lu\n",(unsigned long)sectnum);
 		return 0x05;
 	}
 
@@ -231,8 +230,8 @@ Bit8u imageDisk::Write_AbsoluteSector(Bit32u sectnum, void *data) {
 	//LOG_MSG("Writing sectors to %ld at bytenum %d", sectnum, bytenum);
 
 	fseeko64(diskimg,bytenum,SEEK_SET);
-	if (ftello64(diskimg) != bytenum)
-		fprintf(stderr,"WARNING: fseek() failed in Read_AbsoluteSector for sector %lu\n",sectnum);
+	if ((Bit64u)ftello64(diskimg) != bytenum)
+		fprintf(stderr,"WARNING: fseek() failed in Read_AbsoluteSector for sector %lu\n",(unsigned long)sectnum);
 
 	size_t ret=fwrite(data, sector_size, 1, diskimg);
 
