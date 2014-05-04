@@ -2885,8 +2885,6 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
 		return;
 	}
 
-	LOG(LOG_SB,LOG_NORMAL)("IDE ATAPI command %02x",cmd);
-
 	/* if the drive is asleep, then writing a command wakes it up */
 	interface_wakeup();
 
@@ -3103,10 +3101,10 @@ void IDEDevice::deselect() {
 void IDEDevice::select(uint8_t ndh,bool switched_to) {
 	/* NTS: I thought there was some delay between selecting a drive and sending a command.
 		Apparently I was wrong. */
-	drivehead = ndh;
+	if (allow_writing) drivehead = ndh;
 //	status = (!asleep)?(IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE):0;
-	allow_writing = !asleep;
-	state = IDE_DEV_READY;
+//	allow_writing = !asleep;
+//	state = IDE_DEV_READY;
 }
 
 IDEController::IDEController(Section* configuration,unsigned char index):Module_base(configuration){
@@ -3220,6 +3218,7 @@ static Bitu ide_altio_r(Bitu port,Bitu iolen) {
 static Bitu ide_baseio_r(Bitu port,Bitu iolen) {
 	IDEController *ide = match_ide_controller(port);
 	IDEDevice *dev;
+	Bitu ret = ~0;
 
 	if (ide == NULL) {
 		fprintf(stderr,"WARNING: port read from I/O port not registered to IDE, yet callback triggered\n");
@@ -3230,19 +3229,26 @@ static Bitu ide_baseio_r(Bitu port,Bitu iolen) {
 	port &= 7;
 	switch (port) {
 		case 0:	/* 1F0 */
-			return (dev != NULL) ? dev->data_read(iolen) : 0xFFFFFFFFUL;
+			ret = (dev != NULL) ? dev->data_read(iolen) : 0xFFFFFFFFUL;
+			break;
 		case 1:	/* 1F1 */
-			return (dev != NULL) ? dev->feature : 0x00;
+			ret = (dev != NULL) ? dev->feature : 0x00;
+			break;
 		case 2:	/* 1F2 */
-			return (dev != NULL) ? dev->count : 0x00;
+			ret = (dev != NULL) ? dev->count : 0x00;
+			break;
 		case 3:	/* 1F3 */
-			return (dev != NULL) ? dev->lba[0] : 0x00;
+			ret = (dev != NULL) ? dev->lba[0] : 0x00;
+			break;
 		case 4:	/* 1F4 */
-			return (dev != NULL) ? dev->lba[1] : 0x00;
+			ret = (dev != NULL) ? dev->lba[1] : 0x00;
+			break;
 		case 5:	/* 1F5 */
-			return (dev != NULL) ? dev->lba[2] : 0x00;
+			ret = (dev != NULL) ? dev->lba[2] : 0x00;
+			break;
 		case 6:	/* 1F6 */
-			return ide->drivehead;
+			ret = ide->drivehead;
+			break;
 		case 7:	/* 1F7 */
 			/* if an IDE device exists at selection return it's status, else return our status */
 			if (dev && dev->status & IDE_STATUS_BUSY) {
@@ -3253,10 +3259,11 @@ static Bitu ide_baseio_r(Bitu port,Bitu iolen) {
 				ide->lower_irq();
 			}
 
-			return (dev != NULL) ? dev->status : ide->status;
+			ret = (dev != NULL) ? dev->status : ide->status;
+			break;
 	}
 
-	return ~(0UL);
+	return ret;
 }
 
 static void ide_baseio_w(Bitu port,Bitu val,Bitu iolen) {
@@ -3268,20 +3275,32 @@ static void ide_baseio_w(Bitu port,Bitu val,Bitu iolen) {
 		return;
 	}
 	dev = ide->device[ide->select];
+	port &= 7;
 
 	/* ignore I/O writes if the controller is busy */
 	if (dev) {
 		if (dev->status & IDE_STATUS_BUSY) {
-			fprintf(stderr,"W-%03X %02X BUSY DROP [DEV]\n",port,val);
-			return;
+			if (port == 6 && ((val>>4)&1) == ide->select) {
+				/* some MS-DOS drivers like ATAPICD.SYS are just very pedantic about writing to port +6 to ensure the right drive is selected */
+				return;
+			}
+			else {
+				fprintf(stderr,"W-%03X %02X BUSY DROP [DEV]\n",port+ide->base_io,val);
+				return;
+			}
 		}
 	}
 	else if (ide->status & IDE_STATUS_BUSY) {
-		fprintf(stderr,"W-%03X %02X BUSY DROP [IDE]\n",port,val);
-		return;
+		if (port == 6 && ((val>>4)&1) == ide->select) {
+			/* some MS-DOS drivers like ATAPICD.SYS are just very pedantic about writing to port +6 to ensure the right drive is selected */
+			return;
+		}
+		else {
+			fprintf(stderr,"W-%03X %02X BUSY DROP [IDE]\n",port+ide->base_io,val);
+			return;
+		}
 	}
 
-	port &= 7;
 	switch (port) {
 		case 0:	/* 1F0 */
 			if (dev) dev->data_write(val,iolen); /* <- TODO: what about 32-bit PIO modes? */
