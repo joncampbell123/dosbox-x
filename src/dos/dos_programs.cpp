@@ -1941,6 +1941,33 @@ static void INTRO_ProgramStart(Program * * make) {
 	*make=new INTRO;
 }
 
+bool ElTorito_ScanForBootRecord(CDROM_Interface *drv,unsigned long &boot_record,unsigned long &el_torito_base) {
+	char buffer[2048];
+	unsigned int sec;
+
+	for (sec=16;sec < 32;sec++) {
+		if (!drv->ReadSectorsHost(buffer,false,sec,1))
+			break;
+
+		/* stop at terminating volume record */
+		if (buffer[0] == 0xFF) break;
+
+		/* match boot record and whether it conforms to El Torito */
+		if (buffer[0] == 0x00 && memcmp(buffer+1,"CD001",5) == 0 && buffer[6] == 0x01 &&
+			memcmp(buffer+7,"EL TORITO SPECIFICATION\0\0\0\0\0\0\0\0\0",32) == 0) {
+			boot_record = sec;
+			el_torito_base = (unsigned long)buffer[71] +
+					((unsigned long)buffer[72] << 8UL) +
+					((unsigned long)buffer[73] << 16UL) +
+					((unsigned long)buffer[74] << 24UL);
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
 class IMGMOUNT : public Program {
 public:
 	void Run(void) {
@@ -1996,6 +2023,8 @@ public:
 
 		bool ide_slave = false;
 		signed char ide_index = -1;
+		char el_torito_cd_drive = 0;
+		std::string el_torito;
 		std::string ideattach="auto";
 		std::string type="hdd";
 		// default to floppy for drive letters A and B and numbers 0 and 1
@@ -2005,6 +2034,49 @@ public:
 		} else {
 			Bit8u tdr = toupper(temp_line[0]);
 			if(tdr=='A'||tdr=='B'||tdr=='0'||tdr=='1') type="floppy";
+		}
+
+		cmd->FindString("-el-torito",el_torito,true);
+		if (el_torito != "") {
+			el_torito_cd_drive = toupper(el_torito[0]);
+
+			/* must be valid drive letter, C to Z */
+			if (!isalpha(el_torito_cd_drive) || el_torito_cd_drive < 'C') {
+				WriteOut("-el-torito requires a proper drive letter corresponding to your CD-ROM drive\n");
+				return;
+			}
+
+			/* drive must not exist (as a hard drive) */
+			if (imageDiskList[el_torito_cd_drive-'C'] != NULL) {
+				WriteOut("-el-torito CD-ROM drive specified already exists as a non-CD-ROM device\n");
+				return;
+			}
+
+			bool GetMSCDEXDrive(unsigned char drive_letter,CDROM_Interface **_cdrom);
+
+			/* get the CD-ROM drive */
+			CDROM_Interface *src_drive=NULL;
+			if (!GetMSCDEXDrive(el_torito_cd_drive-'A',&src_drive)) {
+				WriteOut("-el-torito CD-ROM drive specified is not actually a CD-ROM drive\n");
+				return;
+			}
+
+			/* FIXME: We only support the floppy emulation mode at this time.
+			 *        "Superfloppy" or hard disk emulation modes are not yet implemented */
+			if (type != "floppy") {
+				WriteOut("-el-torito must be used with -t floppy at this time\n");
+				return;
+			}
+
+			/* Okay. Step #1: Scan the volume descriptors for the Boot Record. */
+			unsigned long el_torito_base = 0,boot_record_sector = 0;
+			if (!ElTorito_ScanForBootRecord(src_drive,boot_record_sector,el_torito_base)) {
+				WriteOut("El Torito boot record not found\n");
+				return;
+			}
+
+			fprintf(stderr,"El Torito emulation: Found ISO 9660 Boot Record in sector %lu, pointing to sector %lu\n",
+				boot_record_sector,el_torito_base);
 		}
 
 		std::string fstype="fat";
@@ -2140,14 +2212,28 @@ public:
 				}
 				paths.push_back(temp_line);
 			}
-			if (paths.size() == 0) {
-				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY_FILE"));
-				return;	
+
+			if (el_torito != "") {
+				if (paths.size() != 0) {
+					WriteOut("Do not specify files when mounting virtual floppy disk images from El Torito bootable CDs\n");
+					return;
+				}
 			}
-			if (paths.size() == 1)
-				temp_line = paths[0];
+			else {
+				if (paths.size() == 0) {
+					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY_FILE"));
+					return;	
+				}
+				if (paths.size() == 1)
+					temp_line = paths[0];
+			}
 
 			if(fstype=="fat") {
+				if (el_torito != "") {
+					WriteOut("El Torito bootable CD: -fs fat mounting not supported\n"); /* <- NTS: Someday!! */
+					return;
+				}
+
 				if (imgsizedetect) {
 					bool yet_detected = false;
 					FILE * diskfile = fopen64(temp_line.c_str(), "rb+");
@@ -2335,6 +2421,10 @@ public:
 					}
 				}
 			} else if (fstype=="iso") {
+				if (el_torito != "") {
+					WriteOut("El Torito bootable CD: -fs iso mounting not supported\n"); /* <- NTS: Will never implement, either */
+					return;
+				}
 
 				if (Drives[drive-'A']) {
 					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_ALREADY_MOUNTED"));
@@ -2388,6 +2478,11 @@ public:
 				WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, tmp.c_str());
 
 			} else {
+				if (el_torito != "") {
+					WriteOut("El Torito bootable CD: -fs none unexpected path (BUG)\n");
+					return;
+				}
+
 				FILE *newDisk = fopen64(temp_line.c_str(), "rb+");
 				fseeko64(newDisk,0L, SEEK_END);
 				imagesize = (Bit32u)(ftello64(newDisk) / 1024);
