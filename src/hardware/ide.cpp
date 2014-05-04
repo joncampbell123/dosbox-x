@@ -399,9 +399,8 @@ bool IDEATAPICDROMDevice::common_spinup_response(bool trigger,bool wait) {
 }
 
 void IDEATAPICDROMDevice::read_subchannel() {
-	unsigned int AllocationLength = ((unsigned int)atapi_cmd[7] << 8) + atapi_cmd[8];
-	unsigned char Format = atapi_cmd[2] & 0xF;
-	unsigned char Track = atapi_cmd[6];
+//	unsigned char Format = atapi_cmd[2] & 0xF;
+//	unsigned char Track = atapi_cmd[6];
 	unsigned char paramList = atapi_cmd[3];
 	unsigned char attr,track,index;
 	bool SUBQ = !!(atapi_cmd[2] & 0x40);
@@ -503,9 +502,8 @@ void IDEATAPICDROMDevice::read_subchannel() {
 }
 
 void IDEATAPICDROMDevice::mode_sense() {
-	unsigned int AllocationLength = ((unsigned int)atapi_cmd[7] << 8) + atapi_cmd[8];
 	unsigned char PAGE = atapi_cmd[2] & 0x3F;
-	unsigned char SUBPAGE = atapi_cmd[3];
+//	unsigned char SUBPAGE = atapi_cmd[3];
 	unsigned char *write;
 	unsigned int x;
 
@@ -693,9 +691,11 @@ void IDEATAPICDROMDevice::play_audio10() {
 	sector_total = 0;
 }
 
+#if 0 /* TODO move to library */
 static unsigned char dec2bcd(unsigned char c) {
 	return ((c / 10) << 4) + (c % 10);
 }
+#endif
 
 void IDEATAPICDROMDevice::read_toc() {
 	/* NTS: The SCSI MMC standards say we're allowed to indicate the return data
@@ -982,7 +982,8 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 					sector_total = 0;/*nothing to transfer */
 					state = IDE_DEV_READY;
 					status = IDE_STATUS_DRIVE_READY|IDE_STATUS_ERROR;
-					fprintf(stderr,"ATAPI: Failed to read %lu sectors at %lu\n",TransferLength,LBA);
+					fprintf(stderr,"ATAPI: Failed to read %lu sectors at %lu\n",
+						(unsigned long)TransferLength,(unsigned long)LBA);
 					/* TODO: write sense data */
 				}
 			}
@@ -1334,7 +1335,7 @@ void IDEATADevice::io_completion() {
 }
 
 Bitu IDEATAPICDROMDevice::data_read(Bitu iolen) {
-	Bitu w;
+	Bitu w = ~0;
 
 	if (state != IDE_DEV_DATA_READ)
 		return 0xFFFFUL;
@@ -1619,7 +1620,7 @@ void IDEATAPICDROMDevice::data_write(Bitu v,Bitu iolen) {
 }
 
 Bitu IDEATADevice::data_read(Bitu iolen) {
-	Bitu w;
+	Bitu w = ~0;
 
 	if (state != IDE_DEV_DATA_READ)
 		return 0xFFFFUL;
@@ -1800,7 +1801,7 @@ void IDEATAPICDROMDevice::generate_identify_device() {
 }
 
 void IDEATADevice::generate_identify_device() {
-	imageDisk *disk = getBIOSdisk();
+//	imageDisk *disk = getBIOSdisk();
 	unsigned char csum;
 	uint64_t ptotal;
 	uint64_t total;
@@ -2146,11 +2147,11 @@ void IDE_EmuINT13DiskReadByBIOS_LBA(unsigned char disk,uint64_t lba) {
 			if (dev->type == IDE_TYPE_HDD) {
 				IDEATADevice *ata = (IDEATADevice*)dev;
 				static bool vm86_warned = false;
-				static bool int13_fix_wrap_warned = false;
+//				static bool int13_fix_wrap_warned = false;
 				bool vm86 = IDE_CPU_Is_Vm86();
 
 				if ((ata->bios_disk_index-2) == (disk-0x80)) {
-					imageDisk *dsk = ata->getBIOSdisk();
+//					imageDisk *dsk = ata->getBIOSdisk();
 
 					if (ide->int13fakev86io && vm86) {
 						dev->faked_command = true;
@@ -2478,7 +2479,7 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 		uint32_t sectorn = 0;/* FIXME: expand to uint64_t when adding LBA48 emulation */
 		unsigned int sectcount;
 		imageDisk *disk;
-		int i;
+//		int i;
 
 		switch (dev->command) {
 			case 0x30:/* WRITE SECTOR */
@@ -2506,9 +2507,9 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 						dev->controller->raise_irq();
 						return;
 					}
-					else if ((ata->drivehead & 0xF) >= ata->heads ||
-						ata->lba[0] > ata->sects ||
-						(ata->lba[1] | (ata->lba[2] << 8)) >= ata->cyls) {
+					else if ((unsigned int)(ata->drivehead & 0xF) >= (unsigned int)ata->heads ||
+						(unsigned int)ata->lba[0] > (unsigned int)ata->sects ||
+						(unsigned int)(ata->lba[1] | (ata->lba[2] << 8)) >= (unsigned int)ata->cyls) {
 						fprintf(stderr,"C/H/S %u/%u/%u out of bounds %u/%u/%u\n",
 							ata->lba[1] | (ata->lba[2] << 8),
 							ata->drivehead&0xF,
@@ -2588,9 +2589,9 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 						dev->controller->raise_irq();
 						return;
 					}
-					else if ((ata->drivehead & 0xF) >= ata->heads ||
-						ata->lba[0] > ata->sects ||
-						(ata->lba[1] | (ata->lba[2] << 8)) >= ata->cyls) {
+					else if ((unsigned int)(ata->drivehead & 0xF) >= (unsigned int)ata->heads ||
+						(unsigned int)ata->lba[0] > (unsigned int)ata->sects ||
+						(unsigned int)(ata->lba[1] | (ata->lba[2] << 8)) >= (unsigned int)ata->cyls) {
 						fprintf(stderr,"C/H/S %u/%u/%u out of bounds %u/%u/%u\n",
 							ata->lba[1] | (ata->lba[2] << 8),
 							ata->drivehead&0xF,
@@ -2652,9 +2653,9 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 						dev->controller->raise_irq();
 						return;
 					}
-					else if ((ata->drivehead & 0xF) >= ata->heads ||
-						ata->lba[0] > ata->sects ||
-						(ata->lba[1] | (ata->lba[2] << 8)) >= ata->cyls) {
+					else if ((unsigned int)(ata->drivehead & 0xF) >= (unsigned int)ata->heads ||
+						(unsigned int)ata->lba[0] > (unsigned int)ata->sects ||
+						(unsigned int)(ata->lba[1] | (ata->lba[2] << 8)) >= (unsigned int)ata->cyls) {
 						fprintf(stderr,"C/H/S %u/%u/%u out of bounds %u/%u/%u\n",
 							ata->lba[1] | (ata->lba[2] << 8),
 							ata->drivehead&0xF,
@@ -3050,7 +3051,7 @@ void IDEATADevice::writecommand(uint8_t cmd) {
 			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 0.1)/*ms*/,controller->interface_index);
 			break;
 		case 0x91: /* INITIALIZE DEVICE PARAMETERS */
-			if (count != sects || ((drivehead&0xF)+1) != heads) {
+			if ((unsigned int)count != (unsigned int)sects || (unsigned int)((drivehead&0xF)+1) != (unsigned int)heads) {
 				if (count == 0) {
 					fprintf(stderr,"IDE warning: OS attempted to change geometry to invalid H/S %u/%u\n",
 						count,(drivehead&0xF)+1);
@@ -3271,12 +3272,12 @@ static void ide_baseio_w(Bitu port,Bitu val,Bitu iolen) {
 	/* ignore I/O writes if the controller is busy */
 	if (dev) {
 		if (dev->status & IDE_STATUS_BUSY) {
-			fprintf(stderr,"W-%03X %02X BUSY DROP\n",port,val);
+			fprintf(stderr,"W-%03X %02X BUSY DROP [DEV]\n",port,val);
 			return;
 		}
 	}
 	else if (ide->status & IDE_STATUS_BUSY) {
-		fprintf(stderr,"W-%03X %02X BUSY DROP\n",port,val);
+		fprintf(stderr,"W-%03X %02X BUSY DROP [IDE]\n",port,val);
 		return;
 	}
 
