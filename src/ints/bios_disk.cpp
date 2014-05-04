@@ -723,7 +723,8 @@ static Bitu INT13_DiskHandler(void) {
 			CALLBACK_SCF(true);
 			return CBRET_NONE;
 		}
-		bufsz = 0x1A;
+		if (bufsz > 0x1E) bufsz = 0x1E;
+		else bufsz = 0x1A;
 
 		Bit32u tmpheads, tmpcyl, tmpsect, tmpsize;
 		imageDiskList[drivenum]->Get_Geometry(&tmpheads, &tmpcyl, &tmpsect, &tmpsize);
@@ -733,9 +734,11 @@ static Bitu INT13_DiskHandler(void) {
 		real_writed(segat,bufptr+0x04,tmpcyl);
 		real_writed(segat,bufptr+0x08,tmpheads);
 		real_writed(segat,bufptr+0x0C,tmpsect);
-		real_writed(segat,bufptr+0x10,tmpsize);
+		real_writed(segat,bufptr+0x10,tmpcyl*tmpheads*tmpsect);
 		real_writed(segat,bufptr+0x14,0);
 		real_writew(segat,bufptr+0x18,512);
+		if (bufsz >= 0x1E)
+			real_writed(segat,bufptr+0x1A,0xFFFFFFFF); /* no EDD information available */
 
 		reg_ah = 0x00;
 		CALLBACK_SCF(false);
