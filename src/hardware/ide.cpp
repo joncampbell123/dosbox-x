@@ -2967,7 +2967,7 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
 
 void IDEATADevice::writecommand(uint8_t cmd) {
 	if (state != IDE_DEV_READY) {
-		fprintf(stderr,"Command %02x written while another (%02x) is in progress. Aborting current command\n",cmd,command);
+		fprintf(stderr,"Command %02x written while another (%02x) is in progress (state=%u). Aborting current command\n",cmd,command,state);
 		abort_error();
 		return;
 	}
