@@ -147,6 +147,8 @@ public:
 	virtual void writecommand(uint8_t cmd);
 	virtual Bitu data_read(Bitu iolen);	/* read from 1F0h data port from IDE device */
 	virtual void data_write(Bitu v,Bitu iolen);/* write to 1F0h data port to IDE device */
+	virtual bool command_interruption_ok(uint8_t cmd);
+	virtual void abort_silent();
 };
 
 class IDEATADevice:public IDEDevice {
@@ -2834,6 +2836,16 @@ void IDEDevice::host_reset_begin() {
 IDEDevice::~IDEDevice() {
 }
 
+void IDEDevice::abort_silent() {
+	assert(controller != NULL);
+
+	/* a command was written while another is in progress */
+	state = IDE_DEV_READY;
+	allow_writing = true;
+	command = 0x00;
+	status = IDE_STATUS_ERROR | IDE_STATUS_DRIVE_READY | IDE_STATUS_DRIVE_SEEK_COMPLETE;
+}
+
 void IDEDevice::abort_error() {
 	assert(controller != NULL);
 	fprintf(stderr,"IDE abort dh=0x%02x with error on 0x%03x\n",drivehead,controller->base_io);
@@ -2859,12 +2871,29 @@ void IDEDevice::interface_wakeup() {
 	}
 }
 
-void IDEDevice::writecommand(uint8_t cmd) {
+bool IDEDevice::command_interruption_ok(uint8_t cmd) {
+	/* apparently this is OK, if the Linux kernel is doing it:
+	 * writing the same command byte as the one in progress, OR, issuing
+	 * Device Reset while another command is waiting for data read/write */
+	if (cmd == command) return true;
+	if (state != IDE_DEV_READY && state != IDE_DEV_BUSY && cmd == 0x08) {
+		fprintf(stderr,"Device reset while another (%02x) is in progress (state=%u). Aborting current command to begin another\n",command,state);
+		abort_silent();
+		return true;
+	}
+
 	if (state != IDE_DEV_READY) {
 		fprintf(stderr,"Command %02x written while another (%02x) is in progress (state=%u). Aborting current command\n",cmd,command,state);
 		abort_error();
-		return;
+		return false;
 	}
+
+	return true;
+}
+
+void IDEDevice::writecommand(uint8_t cmd) {
+	if (!command_interruption_ok(cmd))
+		return;
 
 	/* if the drive is asleep, then writing a command wakes it up */
 	interface_wakeup();
@@ -2879,11 +2908,8 @@ void IDEDevice::writecommand(uint8_t cmd) {
 }
 
 void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
-	if (state != IDE_DEV_READY) {
-		fprintf(stderr,"Command %02x written while another (%02x) is in progress (state=%u). Aborting current command\n",cmd,command,state);
-		abort_error();
+	if (!command_interruption_ok(cmd))
 		return;
-	}
 
 	/* if the drive is asleep, then writing a command wakes it up */
 	interface_wakeup();
@@ -2966,11 +2992,8 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
 }
 
 void IDEATADevice::writecommand(uint8_t cmd) {
-	if (state != IDE_DEV_READY) {
-		fprintf(stderr,"Command %02x written while another (%02x) is in progress (state=%u). Aborting current command\n",cmd,command,state);
-		abort_error();
+	if (!command_interruption_ok(cmd))
 		return;
-	}
 
 	if (!faked_command) {
 		if (drivehead_is_lba(drivehead)) {
