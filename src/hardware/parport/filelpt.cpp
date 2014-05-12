@@ -144,7 +144,7 @@ Bitu CFileLPT::Read_PR() {
 	return datareg;
 }
 Bitu CFileLPT::Read_COM() {
-	return 0;
+	return controlreg;
 }
 Bitu CFileLPT::Read_SR() {
 	Bit8u status =0x9f;
@@ -167,7 +167,7 @@ void CFileLPT::Write_CON(Bitu val) {
 		if(autofeed && (datareg==0xd)) Putchar(0xa);
 		ack = true;
 	}
-	controlreg=val;
+	controlreg=val&0xF; /* do NOT store bit 5, we do not emulate bidirectional LPT ports, yet */
 }
 void CFileLPT::Write_IOSEL(Bitu val) {
 	// not needed for file printing functionality
