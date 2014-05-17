@@ -261,7 +261,7 @@ void CParallel::initialize()
 
 
 
-CParallel* parallelPortObjects[3];
+CParallel* parallelPortObjects[3]={NULL,NULL,NULL};
 class PARPORTS:public Module_base {
 public:
 	
