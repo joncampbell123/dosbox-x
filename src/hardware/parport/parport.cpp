@@ -207,7 +207,10 @@ CParallel::CParallel(CommandLine* cmd, Bitu portnr, Bit8u initirq) {
 	LOG_MSG("Parallel%d: BASE %xh",portnr+1,base);
 
 	for (Bitu i = 0; i < 3; i++) {
-		WriteHandler[i].Install (i + base, PARALLEL_Write, IO_MB);
+		/* bugfix: do not register I/O write handler for the status port. it's a *status* port.
+		 *         also, this is needed for ISA PnP emulation to work properly even if DOSBox
+		 *         is emulating more than one parallel port. */
+		if (i != 1) WriteHandler[i].Install (i + base, PARALLEL_Write, IO_MB);
 		ReadHandler[i].Install (i + base, PARALLEL_Read, IO_MB);
 	}
 	BIOS_SetLPTPort(portnr,base);
