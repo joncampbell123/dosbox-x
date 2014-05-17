@@ -138,7 +138,7 @@ private:
 	void Real_INT10_TeletypeOutputAttr(Bit8u chr,Bit8u attr,bool useattr) {
 		//TODO Check if this page thing is correct
 		Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-		BIOS_NCOLS;BIOS_NROWS;
+//		BIOS_NCOLS;BIOS_NROWS;
 		Bit8u cur_row=CURSOR_POS_ROW(page);
 		Bit8u cur_col=CURSOR_POS_COL(page);
 		switch (chr) 
