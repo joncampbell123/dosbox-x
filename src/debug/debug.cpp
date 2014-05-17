@@ -334,11 +334,7 @@ public:
 	static CBreakpoint*				ignoreOnce;
 };
 
-CBreakpoint::CBreakpoint(void):
-location(0),
-active(false),once(false),
-segment(0),offset(0),intNr(0),ahValue(0),
-type(BKPNT_UNKNOWN) { };
+CBreakpoint::CBreakpoint(void):type(BKPNT_UNKNOWN),location(0),segment(0),offset(0),intNr(0),ahValue(0),active(false),once(false) { };
 
 void CBreakpoint::Activate(bool _active)
 {
