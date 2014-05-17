@@ -111,7 +111,7 @@ static void RENDER_StartLineHandler(const void * s) {
 #define SIZEOF_INT_P 4
 #endif
 			static const Bitu simd_inc = 16/SIZEOF_INT_P;
-			while (count >= simd_inc) {
+			while (count >= (Bits)simd_inc) {
 				__m128i v = _mm_loadu_si128((const __m128i*)src);
 				__m128i c = _mm_loadu_si128((const __m128i*)cache);
 				__m128i cmp = _mm_cmpeq_epi32(v, c);
@@ -127,7 +127,7 @@ static void RENDER_StartLineHandler(const void * s) {
 			count--; src++; cache++;
 		}
 	}
-cacheHit:
+/* cacheHit */
 	render.scale.cacheRead += render.scale.cachePitch;
 	Scaler_ChangedLines[0] += Scaler_Aspect[ render.scale.inLine ];
 	render.scale.inLine++;
