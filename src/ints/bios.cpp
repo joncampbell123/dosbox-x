@@ -45,7 +45,7 @@ extern bool en_bios_ps2mouse;
  * counter using the BIOS_ZeroExtendedSize call */
 static Bit16u size_extended;
 static unsigned int ISA_PNP_WPORT = 0x20B;
-static unsigned int ISA_PNP_WPORT_BIOS = 0x20B;
+static unsigned int ISA_PNP_WPORT_BIOS = 0;
 static IO_ReadHandleObject *ISAPNP_PNP_READ_PORT = NULL;		/* 0x200-0x3FF range */
 static IO_WriteHandleObject *ISAPNP_PNP_ADDRESS_PORT = NULL;		/* 0x279 */
 static IO_WriteHandleObject *ISAPNP_PNP_DATA_PORT = NULL;		/* 0xA79 */
@@ -123,7 +123,7 @@ void ISAPnPDevice::write(Bitu addr,Bitu val) {
 #define MAX_ISA_PNP_DEVICES	64
 
 static ISAPnPDevice *ISA_PNP_selected = NULL;
-static ISAPnPDevice *ISA_PNP_devs[MAX_ISA_PNP_DEVICES] = {NULL};
+static ISAPnPDevice *ISA_PNP_devs[MAX_ISA_PNP_DEVICES] = {NULL}; /* FIXME: free objects on shutdown */
 static Bitu ISA_PNP_devnext = 0;
 
 static const unsigned char ISAPnPTestDevice_sysdev[] = {
@@ -131,9 +131,6 @@ static const unsigned char ISAPnPTestDevice_sysdev[] = {
 			0x01,					/* decodes 16-bit ISA addr */
 			0x28,0x28,				/* min-max range I/O port */
 			0x04,0x04),				/* align=4 length=4 */
-	ISAPNP_IRQ_SINGLE(
-			8,					/* IRQ 8 */
-			0x09),					/* HTE=1 LTL=1 */
 	ISAPNP_END
 };
 
@@ -143,21 +140,18 @@ class ISAPnPTestDevice : public ISAPnPDevice {
 			resource_ident = 0;
 			resource_data = (unsigned char*)ISAPnPTestDevice_sysdev;
 			resource_data_len = sizeof(ISAPnPTestDevice_sysdev);
-			*((uint32_t*)(ident+0)) = ISAPNP_ID('D','O','S',0x1,0x2,0x3,0x4);
-			*((uint32_t*)(ident+4)) = 0xFFFFFFFFUL;
+			host_writed(ident+0,ISAPNP_ID('D','O','S',0x1,0x2,0x3,0x4)); /* DOS1234 test device */
+			host_writed(ident+4,0xFFFFFFFFUL);
 			checksum_ident();
 		}
 };
 
-//static ISAPnPTestDevice *isapnp_test = NULL;
-
 void ISA_PNP_devreg(ISAPnPDevice *x) {
 	if (ISA_PNP_devnext < MAX_ISA_PNP_DEVICES) {
+		if (ISA_PNP_WPORT_BIOS == 0) ISA_PNP_WPORT_BIOS = ISA_PNP_WPORT;
 		ISA_PNP_devs[ISA_PNP_devnext++] = x;
 		x->CSN = ISA_PNP_devnext;
 	}
-	//else
-	//	fprintf(stderr,"WARNING: ignored PnP device registration\n");
 }
 
 static Bitu isapnp_read_port(Bitu port,Bitu /*iolen*/) {
@@ -211,7 +205,7 @@ static Bitu isapnp_read_port(Bitu port,Bitu /*iolen*/) {
 	return ret;
 }
 
-static void isapnp_write_port(Bitu port,Bitu val,Bitu /*iolen*/) {
+void isapnp_write_port(Bitu port,Bitu val,Bitu /*iolen*/) {
 	Bitu i;
 
 	if (port == 0x279) {
@@ -240,12 +234,24 @@ static void isapnp_write_port(Bitu port,Bitu val,Bitu /*iolen*/) {
 			case 0x00: {	/* RD_DATA */
 				unsigned int np = ((val & 0xFF) << 2) | 3;
 				if (np != ISA_PNP_WPORT) {
-//					unsigned int old = ISA_PNP_WPORT;
-					ISA_PNP_WPORT = np;
-					delete ISAPNP_PNP_READ_PORT;
-					ISAPNP_PNP_READ_PORT = new IO_ReadHandleObject;
-					//fprintf(stderr,"PNP OS changed I/O read port to 0x%03X (from 0x%03X)\n",ISA_PNP_WPORT,old);
-					ISAPNP_PNP_READ_PORT->Install(ISA_PNP_WPORT,isapnp_read_port,IO_MB);
+					if (ISAPNP_PNP_READ_PORT != NULL) {
+						ISAPNP_PNP_READ_PORT = NULL;
+						delete ISAPNP_PNP_READ_PORT;
+					}
+
+					if (np >= 0x200 && np <= 0x3FF) { /* allowable port I/O range according to spec */
+						fprintf(stderr,"PNP OS changed I/O read port to 0x%03X (from 0x%03X)\n",np,ISA_PNP_WPORT);
+
+						ISA_PNP_WPORT = np;
+						ISAPNP_PNP_READ_PORT = new IO_ReadHandleObject;
+						ISAPNP_PNP_READ_PORT->Install(ISA_PNP_WPORT,isapnp_read_port,IO_MB);
+					}
+					else {
+						fprintf(stderr,"PNP OS I/O read port disabled\n");
+
+						ISA_PNP_WPORT = 0;
+					}
+
 					if (ISA_PNP_selected != NULL) {
 						ISA_PNP_selected->ident_bp = 0;
 						ISA_PNP_selected->ident_2nd = 0;
@@ -748,7 +754,7 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
 			if (struct_ptr != 0) {
 				Bitu ph = ISAPNP_xlate_address(struct_ptr);
 				mem_writeb(ph+0,0x01);		/* ->revision = 0x01 */
-				mem_writeb(ph+1,ISA_PNP_devnext); /* ->total_csn (FIXME) */
+				mem_writeb(ph+1,ISA_PNP_devnext); /* ->total_csn */
 				mem_writew(ph+2,ISA_PNP_WPORT_BIOS);	/* ->isa_pnp_port */
 				mem_writew(ph+4,0);		/* ->reserved */
 			}
@@ -2472,8 +2478,13 @@ public:
 			ISAPNP_PNP_DATA_PORT->Install(0xA79,isapnp_write_port,IO_MB);
 			ISAPNP_PNP_READ_PORT = new IO_ReadHandleObject;
 			ISAPNP_PNP_READ_PORT->Install(ISA_PNP_WPORT,isapnp_read_port,IO_MB);
+			fprintf(stderr,"Registered ISA PnP read port at 0x%03x\n",ISA_PNP_WPORT);
 
-//			ISA_PNP_devreg((isapnp_test = new ISAPnPTestDevice()));
+			/* debug: test PnP device. FIXME: Make this an optional device for debugging and testing!
+			 * The intent of this test device is to give PnP emulation something to pickup. The only
+			 * other way to test PnP enumeration is to enable Sound Blaster emulation and set
+			 * sbtype=sb16vibra. */
+			ISA_PNP_devreg(new ISAPnPTestDevice);
 		}
 
 		// ISA Plug & Play BIOS entrypoint
@@ -2506,7 +2517,7 @@ public:
 			phys_writed(base+0xD,call_pnp_rp);	/* Real-mode entry point */
 			phys_writew(base+0x11,call_pnp_pp&0xFFFF); /* Protected mode offset */
 			phys_writed(base+0x13,(call_pnp_pp >> 12) & 0xFFFF0); /* Protected mode code segment base */
-			phys_writed(base+0x17,ISAPNP_ID('D','O','S',0,7,4,0));		/* OEM device identifier (TODO) */
+			phys_writed(base+0x17,ISAPNP_ID('D','O','S',0,7,4,0));		/* OEM device identifier (DOSBox 0.740, get it?) */
 			phys_writew(base+0x1B,0xF000);		/* real-mode data segment */
 			phys_writed(base+0x1D,0xF0000);		/* protected mode data segment address */
 			/* run checksum */
