@@ -137,7 +137,7 @@ void INT10_ReloadRomFonts();
 void BIOS_SetComPorts (Bit16u baseaddr[]);
 void BIOS_SetLPTPort (Bitu port, Bit16u baseaddr);
 
-bool ISAPNP_RegisterSysDev(const unsigned char *raw,int len,bool already=false);
+bool ISAPNP_RegisterSysDev(const unsigned char *raw,Bitu len,bool already=false);
 
 class ISAPnPDevice {
 public:

@@ -49,7 +49,7 @@ static unsigned int ISA_PNP_WPORT_BIOS = 0x20B;
 static IO_ReadHandleObject *ISAPNP_PNP_READ_PORT = NULL;		/* 0x200-0x3FF range */
 static IO_WriteHandleObject *ISAPNP_PNP_ADDRESS_PORT = NULL;		/* 0x279 */
 static IO_WriteHandleObject *ISAPNP_PNP_DATA_PORT = NULL;		/* 0xA79 */
-static unsigned char ISA_PNP_CUR_CSN = 0;
+//static unsigned char ISA_PNP_CUR_CSN = 0;
 static unsigned char ISA_PNP_CUR_ADDR = 0;
 static unsigned char ISA_PNP_CUR_STATE = 0;
 enum {
@@ -149,7 +149,7 @@ class ISAPnPTestDevice : public ISAPnPDevice {
 		}
 };
 
-static ISAPnPTestDevice *isapnp_test = NULL;
+//static ISAPnPTestDevice *isapnp_test = NULL;
 
 void ISA_PNP_devreg(ISAPnPDevice *x) {
 	if (ISA_PNP_devnext < MAX_ISA_PNP_DEVICES) {
@@ -240,7 +240,7 @@ static void isapnp_write_port(Bitu port,Bitu val,Bitu /*iolen*/) {
 			case 0x00: {	/* RD_DATA */
 				unsigned int np = ((val & 0xFF) << 2) | 3;
 				if (np != ISA_PNP_WPORT) {
-					unsigned int old = ISA_PNP_WPORT;
+//					unsigned int old = ISA_PNP_WPORT;
 					ISA_PNP_WPORT = np;
 					delete ISAPNP_PNP_READ_PORT;
 					ISAPNP_PNP_READ_PORT = new IO_ReadHandleObject;
@@ -572,7 +572,7 @@ static ISAPNP_SysDevNode*	ISAPNP_SysDevNodes[256];
 static Bitu			ISAPNP_SysDevNodeCount=0;
 static Bitu			ISAPNP_SysDevNodeLargest=0;
 
-bool ISAPNP_RegisterSysDev(const unsigned char *raw,int len,bool already) {
+bool ISAPNP_RegisterSysDev(const unsigned char *raw,Bitu len,bool already) {
 	if (ISAPNP_SysDevNodeCount >= 0xFF)
 		return false;
 
@@ -625,9 +625,11 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
 		return 0;
 	}
 
-	//fprintf(stderr,"PnP prot=%u DS=%04x (base=0x%08lx) SS:ESP=%04x:%04x (base=0x%08lx phys=0x%08lx)\n",protmode,
-	//	SegValue(ds),SegPhys(ds),
-	//	SegValue(ss),reg_esp,SegPhys(ss),arg);
+	func = mem_readw(arg);
+	fprintf(stderr,"PnP prot=%u DS=%04x (base=0x%08lx) SS:ESP=%04x:%04x (base=0x%08lx phys=0x%08lx) function=0x%04x\n",
+		(unsigned int)protmode,(unsigned int)SegValue(ds),(unsigned long)SegPhys(ds),
+		(unsigned int)SegValue(ss),(unsigned int)reg_esp,(unsigned long)SegPhys(ss),
+		(unsigned long)arg,(unsigned int)func);
 
 	/* every function takes the form
 	 *
@@ -639,7 +641,6 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
 	 *    sizeof(int) == 16 bits
 	 *    sizeof(long) == 32 bits
 	 */    
-	func = mem_readw(arg);
 	switch (func) {
 		case 0: {		/* Get Number of System Nodes */
 			/* int __cdecl FAR (*entrypoint)(int Function,unsigned char FAR *NumNodes,unsigned int FAR *NodeSize,unsigned int BiosSelector);
@@ -664,34 +665,35 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
 			Bitu Control = mem_readw(arg+10);
 			BiosSelector = mem_readw(arg+12);
 			unsigned char Node;
-			Bitu i;
+			Bitu i=0;
 
 			if (!ISAPNP_Verify_BiosSelector(BiosSelector))
 				goto badBiosSelector;
 
 			/* control bits 0-1 must be '01' or '10' but not '00' or '11' */
 			if (Control == 0 || (Control&3) == 3) {
+				fprintf(stderr,"ISAPNP Get System Device Node: Invalid Control value 0x%04x\n",Control);
 				reg_ax = 0x84;/* BAD_PARAMETER */
 				break;
 			}
 
-			//fprintf(stderr,"devNodePtr = 0x%08lx\n",devNodeBuffer_ptr);
 			devNodeBuffer_ptr = ISAPNP_xlate_address(devNodeBuffer_ptr);
-			//fprintf(stderr,"        to = 0x%08lx\n",devNodeBuffer_ptr);
-
 			Node_ptr = ISAPNP_xlate_address(Node_ptr);
 			Node = mem_readb(Node_ptr);
 			if (Node >= ISAPNP_SysDevNodeCount) {
+				fprintf(stderr,"ISAPNP Get System Device Node: Invalid Node 0x%02x (max 0x%04x)\n",Node,ISAPNP_SysDevNodeCount);
 				reg_ax = 0x84;/* BAD_PARAMETER */
 				break;
 			}
 
 			ISAPNP_SysDevNode *nd = ISAPNP_SysDevNodes[Node];
 
-			mem_writew(devNodeBuffer_ptr+i+0,nd->raw_len+3); /* Length */
-			mem_writeb(devNodeBuffer_ptr+i+2,Node); /* on most PnP BIOS implementations I've seen "handle" is set to the same value as Node */
-			for (i=0;i < nd->raw_len;i++)
+			mem_writew(devNodeBuffer_ptr+0,nd->raw_len+3); /* Length */
+			mem_writeb(devNodeBuffer_ptr+2,Node); /* on most PnP BIOS implementations I've seen "handle" is set to the same value as Node */
+			for (i=0;i < (Bitu)nd->raw_len;i++)
 				mem_writeb(devNodeBuffer_ptr+i+3,nd->raw[i]);
+
+			fprintf(stderr,"ISAPNP OS asked for Node 0x%02x\n",Node);
 
 			if (++Node >= ISAPNP_SysDevNodeCount) Node = 0xFF; /* no more nodes */
 			mem_writeb(Node_ptr,Node);
@@ -709,20 +711,20 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
 
 			switch (Message) {
 				case 0x41:	/* POWER_OFF */
-					//fprintf(stderr,"Plug & Play OS requested power off.\n");
+					fprintf(stderr,"Plug & Play OS requested power off.\n");
 					throw 1;	/* NTS: Based on the Reboot handler code, causes DOSBox to cleanly shutdown and exit */
 					reg_ax = 0;
 					break;
 				case 0x42:	/* PNP_OS_ACTIVE */
-					//fprintf(stderr,"Plug & Play OS reports itself active\n");
+					fprintf(stderr,"Plug & Play OS reports itself active\n");
 					reg_ax = 0;
 					break;
 				case 0x43:	/* PNP_OS_INACTIVE */
-					//fprintf(stderr,"Plug & Play OS reports itself inactive\n");
+					fprintf(stderr,"Plug & Play OS reports itself inactive\n");
 					reg_ax = 0;
 					break;
 				default:
-					//fprintf(stderr,"Unknown ISA PnP message 0x%04x\n",Message);
+					fprintf(stderr,"Unknown ISA PnP message 0x%04x\n",Message);
 					reg_ax = 0x82;/* FUNCTION_NOT_SUPPORTED */
 					break;
 			}
@@ -763,25 +765,10 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
 badBiosSelector:
 	/* return an error. remind the user (possible developer) how lucky he is, a real
 	 * BIOS implementation would CRASH when misused like this */
-	//fprintf(stderr,"ISA PnP function 0x%04x called with incorrect BiosSelector parameter 0x%04x\n",func,BiosSelector);
-	//fprintf(stderr," > STACK %04X %04X %04X %04X %04X %04X %04X %04X\n",
-	//	mem_readw(arg),
-	//	mem_readw(arg+2),
-	//	mem_readw(arg+4),
-	//	mem_readw(arg+6),
-	//	mem_readw(arg+8),
-	//	mem_readw(arg+10),
-	//	mem_readw(arg+12),
-	//	mem_readw(arg+14));
-
-	if (cpu.pmode && !(reg_flags & FLAG_VM) && BiosSelector != 0) {
-		Descriptor desc;
-		if (cpu.gdt.GetDescriptor(BiosSelector,desc)) {
-		//	fprintf(stderr," > BiosSelector base=0x%08lx\n",(unsigned long)desc.GetBase());
-		} else {
-		//	fprintf(stderr," > BiosSelector N/A\n");
-		}
-	}
+	fprintf(stderr,"ISA PnP function 0x%04x called with incorrect BiosSelector parameter 0x%04x\n",func,BiosSelector);
+	fprintf(stderr," > STACK %04X %04X %04X %04X %04X %04X %04X %04X\n",
+		mem_readw(arg),		mem_readw(arg+2),	mem_readw(arg+4),	mem_readw(arg+6),
+		mem_readw(arg+8),	mem_readw(arg+10),	mem_readw(arg+12),	mem_readw(arg+14));
 
 	reg_ax = 0x84;/* BAD_PARAMETER */
 	return 0;
@@ -2162,6 +2149,11 @@ static Bitu INT15_Handler(void) {
 	return CBRET_NONE;
 }
 
+void BIOS_SetupKeyboard(void);
+void BIOS_SetupDisks(void);
+void CPU_Snap_Back_To_Real_Mode();
+void CPU_Snap_Back_Restore();
+
 void restart_program(std::vector<std::string> & parameters);
 
 static Bitu IRQ14_Dummy(void) {
@@ -2204,22 +2196,7 @@ void BIOS_ZeroExtendedSize(bool in) {
 	if(other_memsystems < 0) other_memsystems=0;
 }
 
-void BIOS_SetupKeyboard(void);
-void BIOS_SetupDisks(void);
-
-static void b_writew(unsigned char *d,Bitu v) {
-	d[0] = v;
-	d[1] = v >> 8;
-}
-
-static void b_writed(unsigned char *d,Bitu v) {
-	d[0] = v;
-	d[1] = v >> 8;
-	d[2] = v >> 16;
-	d[3] = v >> 24;
-}
-
-static unsigned char do_isapnp_chksum(unsigned char *d,int i) {
+unsigned char do_isapnp_chksum(unsigned char *d,int i) {
 	unsigned char sum = 0;
 
 	while (i-- > 0)
@@ -2227,9 +2204,6 @@ static unsigned char do_isapnp_chksum(unsigned char *d,int i) {
 
 	return (0x100 - sum) & 0xFF;
 }
-
-void CPU_Snap_Back_To_Real_Mode();
-void CPU_Snap_Back_Restore();
 
 class BIOS:public Module_base{
 private:
@@ -2504,7 +2478,7 @@ public:
 
 		// ISA Plug & Play BIOS entrypoint
 		if (ISAPNPBIOS) {
-			int i,port;
+			int i;
 			unsigned char c,tmp[256];
 			Bitu base = 0xfe100; /* take the unused space just after the fake BIOS signature */
 
