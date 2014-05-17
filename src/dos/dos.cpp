@@ -197,7 +197,6 @@ bool DOS_BreakTest() {
 		segv = mem_readw((0x23*4)+2);
 		if (offv != 0 && segv != 0) { /* HACK: DOSBox's shell currently does not assign INT 23h */
 			/* NTS: DOS calls are allowed within INT 23h! */
-			Bitu save_flags = reg_flags;
 			Bitu save_sp = reg_sp;
 
 			/* set carry flag */
