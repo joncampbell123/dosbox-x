@@ -314,8 +314,6 @@ static void dh_fpu_esc3(){
 
 static void dh_fpu_esc4(){
 	dyn_get_modrm();  
-	Bitu group=(decode.modrm.val >> 3) & 7;
-	Bitu sub=(decode.modrm.val & 7);
 	if (decode.modrm.val >= 0xc0) { 
 		cache_addb(0xdc);
 		cache_addb(decode.modrm.val);
@@ -387,8 +385,6 @@ static void dh_fpu_esc5(){
 
 static void dh_fpu_esc6(){
 	dyn_get_modrm();  
-	Bitu group=(decode.modrm.val >> 3) & 7;
-	Bitu sub=(decode.modrm.val & 7);
 	if (decode.modrm.val >= 0xc0) { 
 		cache_addb(0xde);
 		cache_addb(decode.modrm.val);

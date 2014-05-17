@@ -79,7 +79,7 @@ static void dyn_string(STRING_OP op) {
 	DynState rep_state;
 	dyn_savestate(&rep_state);
 	Bit8u * rep_start=cache.pos;
-	Bit8u * rep_ecx_jmp;
+	Bit8u * rep_ecx_jmp=NULL;
 	/* Check if ECX!=zero */
 	if (decode.rep) {
 		gen_dop_word(DOP_OR,decode.big_addr,DREG(ECX),DREG(ECX));
@@ -93,17 +93,19 @@ static void dyn_string(STRING_OP op) {
 			gen_lea(DREG(EA),si_base,DREG(ESI),0,0);
 		}
 		switch (op&3) {
-		case 0:dyn_read_byte(DREG(EA),tmp_reg,false);break;
-		case 1:dyn_read_word(DREG(EA),tmp_reg,false);break;
-		case 2:dyn_read_word(DREG(EA),tmp_reg,true);break;
+			case 0:dyn_read_byte(DREG(EA),tmp_reg,false);break;
+			case 1:dyn_read_word(DREG(EA),tmp_reg,false);break;
+			case 2:dyn_read_word(DREG(EA),tmp_reg,true);break;
 		}
 		switch (op) {
-		case STR_OUTSB:
-			gen_call_function((void*)&IO_WriteB,"%Id%Dl",DREG(EDX),tmp_reg);break;
-		case STR_OUTSW:
-			gen_call_function((void*)&IO_WriteW,"%Id%Dw",DREG(EDX),tmp_reg);break;
-		case STR_OUTSD:
-			gen_call_function((void*)&IO_WriteD,"%Id%Dd",DREG(EDX),tmp_reg);break;
+			case STR_OUTSB:
+				gen_call_function((void*)&IO_WriteB,"%Id%Dl",DREG(EDX),tmp_reg);break;
+			case STR_OUTSW:
+				gen_call_function((void*)&IO_WriteW,"%Id%Dw",DREG(EDX),tmp_reg);break;
+			case STR_OUTSD:
+				gen_call_function((void*)&IO_WriteD,"%Id%Dd",DREG(EDX),tmp_reg);break;
+			default:
+				break;
 		}
 	}
 	if (usedi) {

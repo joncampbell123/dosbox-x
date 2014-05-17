@@ -136,7 +136,7 @@ public:
 		addr&=4095;
 		if (host_readw(hostmem+addr)==(Bit16u)val) return;
 		host_writew(hostmem+addr,val);
-		if (!*(Bit16u*)&write_map[addr]) {
+		if ((*(Bit16u*)&write_map[addr]) == 0) {
 			if (active_blocks) return;
 			active_count--;
 			if (!active_count) Release();
@@ -156,7 +156,7 @@ public:
 		addr&=4095;
 		if (host_readd(hostmem+addr)==(Bit32u)val) return;
 		host_writed(hostmem+addr,val);
-		if (!*(Bit32u*)&write_map[addr]) {
+		if ((*(Bit32u*)&write_map[addr]) == 0) {
 			if (active_blocks) return;
 			active_count--;
 			if (!active_count) Release();
@@ -201,7 +201,7 @@ public:
 		}
 		addr&=4095;
 		if (host_readw(hostmem+addr)==(Bit16u)val) return false;
-		if (!*(Bit16u*)&write_map[addr]) {
+		if ((*(Bit16u*)&write_map[addr]) == 0) {
 			if (!active_blocks) {
 				active_count--;
 				if (!active_count) Release();
@@ -227,7 +227,7 @@ public:
 		}
 		addr&=4095;
 		if (host_readd(hostmem+addr)==(Bit32u)val) return false;
-		if (!*(Bit32u*)&write_map[addr]) {
+		if ((*(Bit32u*)&write_map[addr]) == 0) {
 			if (!active_blocks) {
 				active_count--;
 				if (!active_count) Release();

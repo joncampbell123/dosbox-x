@@ -955,9 +955,9 @@ static void dyn_fill_ea(bool addseg=true, DynReg * reg_ea=DREG(EA)) {
 	if (!decode.big_addr) {
 		Bits imm;
 		switch (decode.modrm.mod) {
-		case 0:imm=0;break;
-		case 1:imm=(Bit8s)decode_fetchb();break;
-		case 2:imm=(Bit16s)decode_fetchw();break;
+			case 1:imm=(Bit8s)decode_fetchb();break;
+			case 2:imm=(Bit16s)decode_fetchw();break;
+			default:imm=0;break;
 		}
 		DynReg * extend_src=reg_ea;
 		switch (decode.modrm.rm) {
@@ -1763,15 +1763,6 @@ static void dyn_closeblock(void) {
 	cache_closeblock();
 }
 
-static void dyn_normal_exit(BlockReturn code) {
-	gen_protectflags();
-	dyn_reduce_cycles();
-	dyn_set_eip_last();
-	dyn_save_critical_regs();
-	gen_return(code);
-	dyn_closeblock();
-}
-
 static void dyn_exit_link(Bits eip_change) {
 	gen_protectflags();
 	gen_dop_word_imm(DOP_ADD,decode.big_op,DREG(EIP),(decode.code-decode.code_start)+eip_change);
@@ -1826,29 +1817,33 @@ static void dyn_loop(LoopTypes type) {
 	Bit8u * branch1=0;Bit8u * branch2=0;
 	dyn_save_critical_regs();
 	switch (type) {
-	case LOOP_E:
-		gen_needflags();
-		branch1=gen_create_branch(BR_NZ);
-		break;
-	case LOOP_NE:
-		gen_needflags();
-		branch1=gen_create_branch(BR_Z);
-		break;
+		case LOOP_E:
+			gen_needflags();
+			branch1=gen_create_branch(BR_NZ);
+			break;
+		case LOOP_NE:
+			gen_needflags();
+			branch1=gen_create_branch(BR_Z);
+			break;
+		default:
+			break;
 	}
 	gen_protectflags();
 	switch (type) {
-	case LOOP_E:
-	case LOOP_NE:
-	case LOOP_NONE:
-		gen_sop_word(SOP_DEC,decode.big_addr,DREG(ECX));
-		gen_releasereg(DREG(ECX));
-		branch2=gen_create_branch(BR_Z);
-		break;
-	case LOOP_JCXZ:
-		gen_dop_word(DOP_OR,decode.big_addr,DREG(ECX),DREG(ECX));
-		gen_releasereg(DREG(ECX));
-		branch2=gen_create_branch(BR_NZ);
-		break;
+		case LOOP_E:
+		case LOOP_NE:
+		case LOOP_NONE:
+			gen_sop_word(SOP_DEC,decode.big_addr,DREG(ECX));
+			gen_releasereg(DREG(ECX));
+			branch2=gen_create_branch(BR_Z);
+			break;
+		case LOOP_JCXZ:
+			gen_dop_word(DOP_OR,decode.big_addr,DREG(ECX),DREG(ECX));
+			gen_releasereg(DREG(ECX));
+			branch2=gen_create_branch(BR_NZ);
+			break;
+		default:
+			break;
 	}
 	gen_lea(DREG(EIP),DREG(EIP),0,0,eip_base+eip_add);
 	gen_releasereg(DREG(EIP));
@@ -1940,17 +1935,6 @@ static void dyn_iret(void) {
 	dyn_closeblock();
 }
 
-static void dyn_interrupt(Bitu num) {
-	gen_protectflags();
-	dyn_flags_gen_to_host();
-	dyn_reduce_cycles();
-	dyn_set_eip_last_end(DREG(TMPW));
-	dyn_save_critical_regs();
-	gen_call_function((void*)&CPU_Interrupt,"%Id%Id%Drd",num,CPU_INT_SOFTWARE,DREG(TMPW));
-	gen_return_fast(BR_Normal);
-	dyn_closeblock();
-}
-
 static void dyn_add_iocheck(Bitu access_size) {
 	gen_call_function((void *)&CPU_IO_Exception,"%Dw%Id",DREG(EDX),access_size);
 	dyn_check_bool_exception_al();
@@ -1983,7 +1967,6 @@ static CacheBlock * CreateCacheBlock(CodePageHandler * codepage,PhysPt start,Bit
 /* Init a load of variables */
 	decode.code_start=start;
 	decode.code=start;
-	Bitu cycles=0;
 	decode.page.code=codepage;
 	decode.page.index=start&4095;
 	decode.page.wmap=codepage->write_map;
@@ -2360,8 +2343,6 @@ restart_prefix:
 		//RET far Iw / Ret
 		case 0xca:dyn_ret_far(decode_fetchw());goto finish_block;
 		case 0xcb:dyn_ret_far(0);goto finish_block;
-		/* Interrupt */
-//		case 0xcd:dyn_interrupt(decode_fetchb());goto finish_block;
 		/* IRET */
 		case 0xcf:dyn_iret();goto finish_block;
 

@@ -979,7 +979,7 @@ static Bit8u * gen_create_branch_long(BranchTypes type) {
 }
 
 static void gen_fill_branch_long(Bit8u * data,Bit8u * from=cache.pos) {
-	*(Bit32u*)data=(from-data-4);
+	*((Bit32u*)data) = (from-data-4);
 }
 
 static Bit8u * gen_create_jump(Bit8u * to=0) {
