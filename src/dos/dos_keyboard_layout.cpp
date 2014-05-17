@@ -894,9 +894,9 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, Bit32s 
 		if ((device_type==0x0001) && (font_type==0x0001) && (font_codepage==codepage_id)) {
 			// valid/matching codepage found
 
-			Bit16u number_of_fonts,font_data_length;
+			Bit16u number_of_fonts;//,font_data_length;
 			number_of_fonts=host_readw(&cpi_buf[font_data_header_pt+0x02]);
-			font_data_length=host_readw(&cpi_buf[font_data_header_pt+0x04]);
+//			font_data_length=host_readw(&cpi_buf[font_data_header_pt+0x04]);
 
 			bool font_changed=false;
 			Bit32u font_data_start=font_data_header_pt+0x06;
