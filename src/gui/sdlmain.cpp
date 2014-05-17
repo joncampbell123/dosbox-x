@@ -3359,8 +3359,8 @@ int main(int argc, char* argv[]) {
 			}
 		}
 #endif
-		Section_prop *sec=static_cast<Section_prop *>(control->GetSection("sdl"));
 #ifdef WIN32
+		Section_prop *sec=static_cast<Section_prop *>(control->GetSection("sdl"));
 		if(!strcmp(sec->Get_string("output"),"ddraw") && sdl.using_windib) {
 			SDL_QuitSubSystem(SDL_INIT_VIDEO);
 			putenv("SDL_VIDEODRIVER=directx");
