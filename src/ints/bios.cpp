@@ -2004,7 +2004,7 @@ static Bitu INT15_Handler(void) {
 //			fprintf(stderr,"APM BIOS call AX=%04x BX=0x%04x CX=0x%04x\n",reg_ax,reg_bx,reg_cx);
 			switch(reg_al) {
 				case 0x00: // installation check
-					reg_ah = 1;			// APM 1.2
+					reg_ah = 1;			// APM 1.2	<- TODO: Make dosbox.conf option what version APM interface we emulate
 					reg_al = 2;
 					reg_bx = 0x504d;	// 'PM'
 					reg_cx = (APMBIOS_allow_prot16?0x01:0x00) + (APMBIOS_allow_prot32?0x02:0x00);
@@ -2119,7 +2119,17 @@ static Bitu INT15_Handler(void) {
 						reg_ah = 0x03;
 						CALLBACK_SCF(true);
 						break;
-					}				
+					}
+
+					// Trigger CPU HLT instruction.
+					// NTS: For whatever weird reason, NOT emulating HLT makes Windows 95
+					//      crashy when the APM driver is active! There's something within
+					//      the Win95 kernel that apparently screws up really badly if
+					//      the APM IDLE call returns immediately.
+					// TODO: Make this a dosbox.conf configuration option: what do we do
+					//       on APM idle calls? Allow selection between "nothing" "hlt"
+					//       and "software delay".
+					CPU_HLT(reg_eip);
 					CALLBACK_SCF(false);
 					break;
 				case 0x07:
