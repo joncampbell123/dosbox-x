@@ -621,6 +621,71 @@ static const unsigned char ISAPNP_sysdev_System_Board[] = {
 	ISAPNP_END
 };
 
+/* NTS: If some of my late 1990's laptops are any indication, this resource list can be used
+ *      as a hint that the motherboard supports Intel EISA/PCI controller DMA registers that
+ *      allow ISA DMA to extend to 32-bit addresses instead of being limited to 24-bit */
+static const unsigned char ISAPNP_sysdev_General_ISAPNP[] = {
+	ISAPNP_SYSDEV_HEADER(
+			ISAPNP_ID('P','N','P',0x0,0xC,0x0,0x2), /* PNP0C02 General ID for reserving resources */
+			ISAPNP_TYPE(0x08,0x80,0x00),		/* type: System peripheral, Other */
+			0x0001 | 0x0002),			/* can't disable, can't configure */
+	/*----------allocated--------*/
+	ISAPNP_IO_RANGE(
+			0x01,					/* decodes 16-bit ISA addr */
+			0x208,0x208,				/* min-max range I/O port */
+			0x04,0x04),				/* align=4 length=4 */
+	ISAPNP_END,
+	/*----------possible--------*/
+	ISAPNP_END,
+	/*----------compatible--------*/
+	ISAPNP_END
+};
+
+/* PnP system entry to tell Windows 95 the obvious: That there's an ISA bus present */
+/* NTS: Examination of some old laptops of mine shows that these devices do not list any resources,
+ *      or at least, an old Toshiba of mine lists the PCI registers 0xCF8-0xCFF as motherboard resources
+ *      and defines no resources for the PCI Bus PnP device. */
+static const unsigned char ISAPNP_sysdev_ISA_BUS[] = {
+	ISAPNP_SYSDEV_HEADER(
+			ISAPNP_ID('P','N','P',0x0,0xA,0x0,0x0), /* PNP0A00 ISA Bus */
+			ISAPNP_TYPE(0x06,0x04,0x00),		/* type: System device, peripheral bus */
+			0x0001 | 0x0002),			/* can't disable, can't configure */
+	/*----------allocated--------*/
+	ISAPNP_END,
+	/*----------possible--------*/
+	ISAPNP_END,
+	/*----------compatible--------*/
+	ISAPNP_END
+};
+
+/* PnP system entry to tell Windows 95 the obvious: That there's a PCI bus present */
+static const unsigned char ISAPNP_sysdev_PCI_BUS[] = {
+	ISAPNP_SYSDEV_HEADER(
+			ISAPNP_ID('P','N','P',0x0,0xA,0x0,0x3), /* PNP0A03 PCI Bus */
+			ISAPNP_TYPE(0x06,0x04,0x00),		/* type: System device, peripheral bus */
+			0x0001 | 0x0002),			/* can't disable, can't configure */
+	/*----------allocated--------*/
+	ISAPNP_END,
+	/*----------possible--------*/
+	ISAPNP_END,
+	/*----------compatible--------*/
+	ISAPNP_END
+};
+
+/* to help convince Windows 95 that the APM BIOS is present */
+static const unsigned char ISAPNP_sysdev_APM_BIOS[] = {
+	ISAPNP_SYSDEV_HEADER(
+			ISAPNP_ID('P','N','P',0x0,0xC,0x0,0x5), /* PNP0C05 APM BIOS */
+			ISAPNP_TYPE(0x08,0x80,0x00),		/* type: FIXME is this right?? I can't find any examples or documentation */
+			0x0001 | 0x0002),			/* can't disable, can't configure */
+	/*----------allocated--------*/
+	ISAPNP_END,
+	/*----------possible--------*/
+	ISAPNP_END,
+	/*----------compatible--------*/
+	ISAPNP_END
+};
+
 static ISAPNP_SysDevNode*	ISAPNP_SysDevNodes[256];
 static Bitu			ISAPNP_SysDevNodeCount=0;
 static Bitu			ISAPNP_SysDevNodeLargest=0;
@@ -2738,6 +2803,28 @@ public:
 			/* System board */
 			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_System_Board,sizeof(ISAPNP_sysdev_System_Board),true))
 				fprintf(stderr,"ISAPNP register failed\n");
+
+			/* Motherboard PNP resources and general */
+			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_General_ISAPNP,sizeof(ISAPNP_sysdev_General_ISAPNP),true))
+				fprintf(stderr,"ISAPNP register failed\n");
+
+			/* ISA bus, meaning, a computer with ISA slots.
+			 * The purpose of this device is to convince Windows 95 to automatically install it's
+			 * "ISA Plug and Play bus" so that PnP devices are recognized automatically */
+			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_ISA_BUS,sizeof(ISAPNP_sysdev_ISA_BUS),true))
+				fprintf(stderr,"ISAPNP register failed\n");
+
+			/* PCI bus, meaning, a computer with PCI slots.
+			 * The purpose of this device is to tell Windows 95 that a PCI bus is present. Without
+			 * this entry, PCI devices will not be recognized until you manually install the PCI driver. */
+			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_PCI_BUS,sizeof(ISAPNP_sysdev_PCI_BUS),true))
+				fprintf(stderr,"ISAPNP register failed\n");
+
+			/* APM BIOS device. To help Windows 95 see our APM BIOS. */
+			if (APMBIOS) {
+				if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_APM_BIOS,sizeof(ISAPNP_sysdev_APM_BIOS),true))
+					fprintf(stderr,"ISAPNP register failed\n");
+			}
 
 #if (C_FPU)
 			/* Numeric Coprocessor */
