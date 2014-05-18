@@ -2040,8 +2040,10 @@ static Bitu INT15_Handler(void) {
 						CALLBACK_SCF(true);
 						break;
 					}
-					if(reg_ah < 1) reg_ah = 1;
-					if(reg_al < 2) reg_al = 2;
+					reg_ah = reg_ch; /* we are called with desired version in CH,CL, return actual version in AH,AL */
+					reg_al = reg_cl;
+					if(reg_ah != 1) reg_ah = 1;	/* major version must be 1 */
+					if(reg_al > 2) reg_al = 2;	/* minor version must be 0, 1, or 2 */
 					CALLBACK_SCF(false);
 					break;
 				case 0x0f:
