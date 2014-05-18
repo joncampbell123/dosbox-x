@@ -2114,6 +2114,14 @@ static Bitu INT15_Handler(void) {
 						CALLBACK_SCF(true);			
 					}
 					break;
+				case 0x05: // CPU IDLE
+					if(!apm_realmode_connected) {
+						reg_ah = 0x03;
+						CALLBACK_SCF(true);
+						break;
+					}				
+					CALLBACK_SCF(false);
+					break;
 				case 0x07:
 					if(reg_bx != 0x1) {
 						reg_ah = 0x09;	// wrong device ID
@@ -2151,6 +2159,15 @@ static Bitu INT15_Handler(void) {
 						reg_ah = 0x0A; // invalid parameter value in CX
 						CALLBACK_SCF(true);
 					}
+					break;
+				case 0x0b: // GET PM EVENT
+					if (!apm_realmode_connected) {
+						reg_ah = 0x03;	// interface not connected
+						CALLBACK_SCF(true);
+						break;
+					}
+					reg_ah = 0x80; // no power management events pending
+					CALLBACK_SCF(true);
 					break;
 				case 0x0e:
 					if(reg_bx != 0x0) {
