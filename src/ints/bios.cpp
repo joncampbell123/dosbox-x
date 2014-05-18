@@ -66,12 +66,33 @@ const unsigned char isa_pnp_init_keystring[32] = {
 	0xE8,0x74,0x3A,0x9D,0xCE,0xE7,0x73,0x39
 };
 
+static RealPt INT15_apm_pmentry=0;
 static unsigned char ISA_PNP_KEYMATCH=0;
 static Bits other_memsystems=0;
 static bool apm_realmode_connected = false;
 void CMOS_SetRegister(Bitu regNr, Bit8u val); //For setting equipment word
 bool ISAPNPBIOS=false;
 bool APMBIOS=false;
+bool APMBIOS_allow_realmode=false;
+bool APMBIOS_allow_prot16=false;
+bool APMBIOS_allow_prot32=false;
+int APMBIOS_connect_mode=0;
+
+enum {
+	APMBIOS_CONNECT_REAL=0,
+	APMBIOS_CONNECT_PROT16,
+	APMBIOS_CONNECT_PROT32
+};
+
+unsigned int APMBIOS_connected_already_err() {
+	switch (APMBIOS_connect_mode) {
+		case APMBIOS_CONNECT_REAL:	return 0x02;
+		case APMBIOS_CONNECT_PROT16:	return 0x05;
+		case APMBIOS_CONNECT_PROT32:	return 0x07;
+	}
+
+	return 0x00;
+}
 
 ISAPnPDevice::ISAPnPDevice() {
 	CSN = 0;
@@ -306,10 +327,36 @@ void isapnp_write_port(Bitu port,Bitu val,Bitu /*iolen*/) {
 	}
 }
 
+static Bitu INT15_Handler(void);
+
 void ISAPNP_Cfg_Init(Section *s) {
 	Section_prop * section=static_cast<Section_prop *>(s);
 	ISAPNPBIOS = section->Get_bool("isapnpbios");
 	APMBIOS = section->Get_bool("apmbios");
+	APMBIOS_allow_realmode = section->Get_bool("apmbios allow realmode");
+	APMBIOS_allow_prot16 = section->Get_bool("apmbios allow 16-bit protected mode");
+	APMBIOS_allow_prot32 = section->Get_bool("apmbios allow 32-bit protected mode");
+	fprintf(stderr,"APM BIOS allow: real=%u pm16=%u pm32=%u\n",
+		APMBIOS_allow_realmode,
+		APMBIOS_allow_prot16,
+		APMBIOS_allow_prot32);
+
+	if (APMBIOS && (APMBIOS_allow_prot16 || APMBIOS_allow_prot32) && INT15_apm_pmentry == 0) {
+		Bitu cb;
+
+		/* NTS: This is... kind of a terrible hack. It basically tricks Windows into executing our
+		 *      INT 15h handler as if the APM entry point. Except that instead of an actual INT 15h
+		 *      triggering the callback, a FAR CALL triggers the callback instead (CB_RETF not CB_IRET). */
+		/* TODO: We should really consider moving the APM BIOS code in INT15_Handler() out into it's
+		 *       own function, then having the INT15_Handler() call it as well as directing this callback
+		 *       directly to it. If you think about it, this hack also lets the "APM entry point" invoke
+		 *       other arbitrary INT 15h calls which is not valid. */
+
+		cb = CALLBACK_Allocate();
+		INT15_apm_pmentry = CALLBACK_RealPointer(cb);
+		fprintf(stderr,"Allocated APM BIOS pm entry point at %04x:%04x\n",INT15_apm_pmentry>>16,INT15_apm_pmentry&0xFFFF);
+		CALLBACK_Setup(cb,INT15_Handler,CB_RETF,"APM BIOS protected mode entry point");
+	}
 }
 
 /* the PnP callback registered two entry points. One for real, one for protected mode. */
@@ -632,10 +679,10 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
 	}
 
 	func = mem_readw(arg);
-	fprintf(stderr,"PnP prot=%u DS=%04x (base=0x%08lx) SS:ESP=%04x:%04x (base=0x%08lx phys=0x%08lx) function=0x%04x\n",
-		(unsigned int)protmode,(unsigned int)SegValue(ds),(unsigned long)SegPhys(ds),
-		(unsigned int)SegValue(ss),(unsigned int)reg_esp,(unsigned long)SegPhys(ss),
-		(unsigned long)arg,(unsigned int)func);
+//	fprintf(stderr,"PnP prot=%u DS=%04x (base=0x%08lx) SS:ESP=%04x:%04x (base=0x%08lx phys=0x%08lx) function=0x%04x\n",
+//		(unsigned int)protmode,(unsigned int)SegValue(ds),(unsigned long)SegPhys(ds),
+//		(unsigned int)SegValue(ss),(unsigned int)reg_esp,(unsigned long)SegPhys(ss),
+//		(unsigned long)arg,(unsigned int)func);
 
 	/* every function takes the form
 	 *
@@ -699,7 +746,7 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
 			for (i=0;i < (Bitu)nd->raw_len;i++)
 				mem_writeb(devNodeBuffer_ptr+i+3,nd->raw[i]);
 
-			fprintf(stderr,"ISAPNP OS asked for Node 0x%02x\n",Node);
+//			fprintf(stderr,"ISAPNP OS asked for Node 0x%02x\n",Node);
 
 			if (++Node >= ISAPNP_SysDevNodeCount) Node = 0xFF; /* no more nodes */
 			mem_writeb(Node_ptr,Node);
@@ -1960,21 +2007,95 @@ static Bitu INT15_Handler(void) {
 					reg_ah = 1;			// APM 1.2
 					reg_al = 2;
 					reg_bx = 0x504d;	// 'PM'
-					reg_cx = 0;			// about no capabilities 
+					reg_cx = (APMBIOS_allow_prot16?0x01:0x00) + (APMBIOS_allow_prot32?0x02:0x00);
 					// 32-bit interface seems to be needed for standby in win95
 					CALLBACK_SCF(false);
 					break;
 				case 0x01: // connect real mode interface
+					if(!APMBIOS_allow_realmode) {
+						fprintf(stderr,"APM BIOS: OS attemped real-mode connection, which is disabled in your dosbox.conf\n");
+						reg_ah = 0x86;	// APM not present
+						CALLBACK_SCF(true);			
+						break;
+					}
 					if(reg_bx != 0x0) {
 						reg_ah = 0x09;	// unrecognized device ID
 						CALLBACK_SCF(true);			
 						break;
 					}
 					if(!apm_realmode_connected) { // not yet connected
+						fprintf(stderr,"APM BIOS: Connected to real-mode interface\n");
 						CALLBACK_SCF(false);
+						APMBIOS_connect_mode = APMBIOS_CONNECT_REAL;
 						apm_realmode_connected=true;
 					} else {
-						reg_ah = 0x02;	// interface connection already in effect
+						fprintf(stderr,"APM BIOS: OS attempted to connect to real-mode interface when already connected\n");
+						reg_ah = APMBIOS_connected_already_err(); // interface connection already in effect
+						CALLBACK_SCF(true);			
+					}
+					break;
+				case 0x02: // connect 16-bit protected mode interface
+					if(!APMBIOS_allow_prot16) {
+						fprintf(stderr,"APM BIOS: OS attemped 16-bit protected mode connection, which is disabled in your dosbox.conf\n");
+						reg_ah = 0x06;	// not supported
+						CALLBACK_SCF(true);			
+						break;
+					}
+					if(reg_bx != 0x0) {
+						reg_ah = 0x09;	// unrecognized device ID
+						CALLBACK_SCF(true);			
+						break;
+					}
+					if(!apm_realmode_connected) { // not yet connected
+						/* NTS: We use the same callback address for both 16-bit and 32-bit
+						 *      because only the DOS callback and RETF instructions are involved,
+						 *      which can be executed as either 16-bit or 32-bit code without problems. */
+						fprintf(stderr,"APM BIOS: Connected to 16-bit protected mode interface\n");
+						CALLBACK_SCF(false);
+						reg_ax = INT15_apm_pmentry >> 16;	// AX = 16-bit code segment (real mode base)
+						reg_bx = INT15_apm_pmentry & 0xFFFF;	// BX = offset of entry point
+						reg_cx = INT15_apm_pmentry >> 16;	// CX = 16-bit data segment (NTS: doesn't really matter)
+						reg_si = 0xFFFF;			// SI = code segment length
+						reg_di = 0xFFFF;			// DI = data segment length
+						APMBIOS_connect_mode = APMBIOS_CONNECT_PROT16;
+						apm_realmode_connected=true;
+					} else {
+						fprintf(stderr,"APM BIOS: OS attempted to connect to 16-bit protected mode interface when already connected\n");
+						reg_ah = APMBIOS_connected_already_err(); // interface connection already in effect
+						CALLBACK_SCF(true);			
+					}
+					break;
+				case 0x03: // connect 32-bit protected mode interface
+					// Note that Windows 98 will NOT talk to the APM BIOS unless the 32-bit protected mode connection is available.
+					// And if you lie about it in function 0x00 and then fail, Windows 98 will fail with a "Windows protection error".
+					if(!APMBIOS_allow_prot32) {
+						fprintf(stderr,"APM BIOS: OS attemped 32-bit protected mode connection, which is disabled in your dosbox.conf\n");
+						reg_ah = 0x08;	// not supported
+						CALLBACK_SCF(true);			
+						break;
+					}
+					if(reg_bx != 0x0) {
+						reg_ah = 0x09;	// unrecognized device ID
+						CALLBACK_SCF(true);			
+						break;
+					}
+					if(!apm_realmode_connected) { // not yet connected
+						fprintf(stderr,"APM BIOS: Connected to 32-bit protected mode interface\n");
+						CALLBACK_SCF(false);
+						/* NTS: We use the same callback address for both 16-bit and 32-bit
+						 *      because only the DOS callback and RETF instructions are involved,
+						 *      which can be executed as either 16-bit or 32-bit code without problems. */
+						reg_ax = INT15_apm_pmentry >> 16;	// AX = 32-bit code segment (real mode base)
+						reg_ebx = INT15_apm_pmentry & 0xFFFF;	// EBX = offset of entry point
+						reg_cx = INT15_apm_pmentry >> 16;	// CX = 16-bit code segment (real mode base)
+						reg_dx = INT15_apm_pmentry >> 16;	// DX = data segment (real mode base) (?? what size?)
+						reg_esi = 0xFFFFFFFF;			// ESI = upper word: 16-bit code segment len  lower word: 32-bit code segment length
+						reg_di = 0xFFFF;			// DI = data segment length
+						APMBIOS_connect_mode = APMBIOS_CONNECT_PROT32;
+						apm_realmode_connected=true;
+					} else {
+						fprintf(stderr,"APM BIOS: OS attempted to connect to 32-bit protected mode interface when already connected\n");
+						reg_ah = APMBIOS_connected_already_err(); // interface connection already in effect
 						CALLBACK_SCF(true);			
 					}
 					break;
@@ -1985,6 +2106,7 @@ static Bitu INT15_Handler(void) {
 						break;
 					}
 					if(apm_realmode_connected) {
+						fprintf(stderr,"APM BIOS: OS disconnected\n");
 						CALLBACK_SCF(false);
 						apm_realmode_connected=false;
 					} else {

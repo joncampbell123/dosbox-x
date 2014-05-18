@@ -1015,6 +1015,17 @@ void DOSBOX_Init(void) {
 	Pbool->Set_help("Emulate Advanced Power Management BIOS calls.\n"
 		"Do not enable if you are running Windows ME.");
 
+	Pbool = secprop->Add_bool("apmbios allow realmode",Property::Changeable::WhenIdle,true);
+	Pbool->Set_help("Allow guest OS to connect from real mode.");
+
+	Pbool = secprop->Add_bool("apmbios allow 16-bit protected mode",Property::Changeable::WhenIdle,true);
+	Pbool->Set_help("Allow guest OS to connect from 16-bit protected mode.");
+
+	Pbool = secprop->Add_bool("apmbios allow 32-bit protected mode",Property::Changeable::WhenIdle,true);
+	Pbool->Set_help("Allow guest OS to connect from 32-bit protected mode.\n"
+			"If you want power management in Windows 98/ME (beyond using the APM to shutdown the computer) you MUST enable this option,\n"
+			"else Windows 98 will ignore the APM BIOS and complain that it's \"not working properly\".");
+
 	Pbool = secprop->Add_bool("isapnpbios",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Emulate ISA Plug & Play BIOS. Enable if using DOSBox to run a PnP aware DOS program or if booting Windows 9x.\n"
 			"Do not disable if Windows 9x is configured around PnP devices, you will likely confuse it.");
