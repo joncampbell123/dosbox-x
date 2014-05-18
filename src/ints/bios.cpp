@@ -1954,6 +1954,7 @@ static Bitu INT15_Handler(void) {
 		break;
 	case 0x53: // APM BIOS
 		if (APMBIOS) {
+//			fprintf(stderr,"APM BIOS call AX=%04x BX=0x%04x CX=0x%04x\n",reg_ax,reg_bx,reg_cx);
 			switch(reg_al) {
 				case 0x00: // installation check
 					reg_ah = 1;			// APM 1.2
@@ -1961,6 +1962,7 @@ static Bitu INT15_Handler(void) {
 					reg_bx = 0x504d;	// 'PM'
 					reg_cx = 0;			// about no capabilities 
 					// 32-bit interface seems to be needed for standby in win95
+					CALLBACK_SCF(false);
 					break;
 				case 0x01: // connect real mode interface
 					if(reg_bx != 0x0) {
@@ -2060,10 +2062,11 @@ static Bitu INT15_Handler(void) {
 					}
 					break;
 				default:
-					LOG(LOG_BIOS,LOG_NORMAL)("unknown APM BIOS call %x",reg_ax);
+					fprintf(stderr,"Unknown APM BIOS call AX=%04x\n",reg_ax);
+					reg_ah = 0x0C; // function not supported
+					CALLBACK_SCF(false);
 					break;
 			}
-			CALLBACK_SCF(false);
 		}
 		else {
 			reg_ah=0x86;
