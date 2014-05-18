@@ -2125,7 +2125,7 @@ void IDE_EmuINT13DiskReadByBIOS_LBA(unsigned char disk,uint64_t lba) {
 	for (idx=0;idx < MAX_IDE_CONTROLLERS;idx++) {
 		ide = GetIDEController(idx);
 		if (ide == NULL) continue;
-		if (!ide->int13fakeio) continue;
+		if (!ide->int13fakeio && !ide->int13fakev86io) continue;
 
 		/* TODO: Print a warning message if the IDE controller is busy (debug/warning message) */
 
@@ -2250,7 +2250,7 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
 	for (idx=0;idx < MAX_IDE_CONTROLLERS;idx++) {
 		ide = GetIDEController(idx);
 		if (ide == NULL) continue;
-		if (!ide->int13fakeio) continue;
+		if (!ide->int13fakeio && !ide->int13fakev86io) continue;
 
 		/* TODO: Print a warning message if the IDE controller is busy (debug/warning message) */
 
@@ -2416,7 +2416,7 @@ void IDE_ResetDiskByBIOS(unsigned char disk) {
 	for (idx=0;idx < MAX_IDE_CONTROLLERS;idx++) {
 		ide = GetIDEController(idx);
 		if (ide == NULL) continue;
-		if (!ide->int13fakeio) continue;
+		if (!ide->int13fakeio && !ide->int13fakev86io) continue;
 
 		/* TODO: Print a warning message if the IDE controller is busy (debug/warning message) */
 
