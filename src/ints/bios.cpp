@@ -2746,6 +2746,8 @@ public:
 #endif
 
 			/* RAM resources. we have to construct it */
+			/* NTS: We don't do this here, but I have an old Toshiba laptop who's PnP BIOS uses
+			 *      this device ID to report both RAM and ROM regions. */
 			{
 				Bitu max = MEM_TotalPages() * 4096;
 				const unsigned char h1[9] = {
@@ -2765,16 +2767,6 @@ public:
 				host_writed(tmp+i+4,0x00000);			/* base */
 				host_writed(tmp+i+8,max > 0xA0000 ? 0xA0000 : 0x00000); /* length */
 				i += 9+3;
-
-#if 0
-				tmp[i+0] = 0x80 | 6;				/* 32-bit memory range */
-				tmp[i+1] = 9;					/* length=9 */
-				tmp[i+2] = 0;
-				tmp[i+3] = 0x40;				/* read only, ROM, no cache, 8-bit, not shadowable */
-				host_writed(tmp+i+4,0xF0000);			/* base */
-				host_writed(tmp+i+8,0x10000);			/* length */
-				i += 9+3;
-#endif
 
 				if (max > 0x100000) {
 					tmp[i+0] = 0x80 | 6;				/* 32-bit memory range */
