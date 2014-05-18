@@ -613,7 +613,7 @@ static const unsigned char ISAPNP_sysdev_System_Board[] = {
 	ISAPNP_IO_RANGE(
 			0x01,					/* decodes 16-bit ISA addr */
 			0x24,0x24,				/* min-max range I/O port */
-			0x01,0x0C),				/* align=1 length=12 */
+			0x04,0x04),				/* align=4 length=4 */
 	ISAPNP_END,
 	/*----------possible--------*/
 	ISAPNP_END,
