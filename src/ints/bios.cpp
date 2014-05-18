@@ -2160,6 +2160,27 @@ static Bitu INT15_Handler(void) {
 						CALLBACK_SCF(true);
 					}
 					break;
+				case 0x0a: // GET POWER STATUS
+					if (!apm_realmode_connected) {
+						reg_ah = 0x03;	// interface not connected
+						CALLBACK_SCF(true);
+						break;
+					}
+					if (reg_bx != 0x0001 && reg_bx != 0x8001) {
+						reg_ah = 0x09;	// unrecognized device ID
+						CALLBACK_SCF(true);			
+						break;
+					}
+					/* FIXME: Allow configuration and shell commands to dictate whether or
+					 *        not we emulate a laptop with a battery */
+					reg_bh = 0x01;		// AC line status (1=on-line)
+					reg_bl = 0xFF;		// Battery status (unknown)
+					reg_ch = 0xC0;		// Battery flag (selected battery not present, no system battery)
+					reg_cl = 0xFF;		// Remaining battery charge (unknown)
+					reg_dx = 0xFFFF;	// Remaining battery life (unknown)
+					reg_si = 0;		// Number of battery units (if called with reg_bx == 0x8001)
+					CALLBACK_SCF(false);
+					break;
 				case 0x0b: // GET PM EVENT
 					if (!apm_realmode_connected) {
 						reg_ah = 0x03;	// interface not connected
