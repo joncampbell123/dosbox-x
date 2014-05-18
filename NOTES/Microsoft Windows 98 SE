@@ -1,0 +1,11 @@
+
+* When installing Windows 98 or 98SE in DOSBox:
+
+  Use core=dynamic for a faster install.
+
+  Turn OFF the "non-recursive page fault" option during
+  the install phase. Leaving it on guarantees that DOSBox
+  (with core=dynamic) will segfault after the 2nd reboot.
+  I have no idea at this time what the segfault is about.
+  You can turn the non-recursive page fault back on later.
+
