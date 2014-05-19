@@ -1647,6 +1647,7 @@ static Bitu INT14_Handler(void) {
 	return CBRET_NONE;
 }
 
+Bits HLT_Decode(void);
 void KEYBOARD_AUX_Write(Bitu val);
 unsigned char KEYBOARD_AUX_GetType();
 unsigned char KEYBOARD_AUX_DevStatus();
@@ -2200,10 +2201,15 @@ static Bitu INT15_Handler(void) {
 					// TODO: Make this a dosbox.conf configuration option: what do we do
 					//       on APM idle calls? Allow selection between "nothing" "hlt"
 					//       and "software delay".
-					CPU_Cycles = 0;
-					CPU_HLT(reg_eip);
-					CPU_Cycles = 0;
-					CALLBACK_SCF(false);
+					for (unsigned int c=0;c < 2;c++) {
+						CPU_Cycles = 0;
+						if (reg_flags&0x200) { /* do not execute HLT if interrupts disabled! */
+							if (cpudecoder != &HLT_Decode) { /* do not re-execute HLT */
+								CPU_HLT(reg_eip);
+								CPU_Cycles = 0;
+							}
+						}
+					}
 					break;
 				case 0x07:
 					if(reg_bx != 0x1) {

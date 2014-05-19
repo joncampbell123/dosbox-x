@@ -2167,7 +2167,7 @@ bool CPU_CPUID(void) {
 	return true;
 }
 
-static Bits HLT_Decode(void) {
+Bits HLT_Decode(void) {
 	/* Once an interrupt occurs, it should change cpu core */
 	if (reg_eip!=cpu.hlt.eip || SegValue(cs) != cpu.hlt.cs) {
 		cpudecoder=cpu.hlt.old_decoder;
