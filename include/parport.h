@@ -36,7 +36,7 @@ class device_LPT : public DOS_Device {
 public:
 	// Creates a LPT device that communicates with the num-th parallel port, i.e. is LPTnum
 	device_LPT(Bit8u num, class CParallel* pp);
-	~device_LPT();
+	virtual ~device_LPT();
 	bool Read(Bit8u * data,Bit16u * size);
 	bool Write(Bit8u * data,Bit16u * size);
 	bool Seek(Bit32u * pos,Bit32u type);
@@ -92,12 +92,8 @@ public:
 	bool Putchar_default(Bit8u);
 	Bit8u getPrinterStatus();
 	void initialize();
-	
 
-
-private:
-	 DOS_Device* mydosdevice;
-		
+	DOS_Device* mydosdevice;
 };
 
 extern CParallel* parallelPortObjects[];

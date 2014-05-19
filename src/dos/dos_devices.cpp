@@ -32,7 +32,7 @@
 #include "dev_con.h"
 
 
-DOS_Device * Devices[DOS_DEVICES];
+DOS_Device * Devices[DOS_DEVICES] = {NULL};
 
 class device_NUL : public DOS_Device {
 public:
@@ -188,8 +188,10 @@ Bit8u DOS_FindDevice(char const * name) {
 void DOS_AddDevice(DOS_Device * adddev) {
 //Caller creates the device. We store a pointer to it
 //TODO Give the Device a real handler in low memory that responds to calls
+	if (adddev == NULL) E_Exit("DOS_AddDevice with null ptr");
 	for(Bitu i = 0; i < DOS_DEVICES;i++) {
-		if(!Devices[i]){
+		if (Devices[i] == NULL){
+//			fprintf(stderr,"DOS_AddDevice %s (%p)\n",adddev->name,(void*)adddev);
 			Devices[i] = adddev;
 			Devices[i]->SetDeviceNumber(i);
 			return;
@@ -201,18 +203,26 @@ void DOS_AddDevice(DOS_Device * adddev) {
 void DOS_DelDevice(DOS_Device * dev) {
 // We will destroy the device if we find it in our list.
 // TODO:The file table is not checked to see the device is opened somewhere!
+	if (dev == NULL) E_Exit("DOS_DelDevice with null ptr");
 	for (Bitu i = 0; i <DOS_DEVICES;i++) {
-		if(Devices[i] && !strcasecmp(Devices[i]->name,dev->name)){
+		if (Devices[i] == dev) { /* NTS: The mainline code deleted by matching names??? Why? */
+//			fprintf(stderr,"DOS_DelDevice %s (%p)\n",dev->name,(void*)dev);
 			delete Devices[i];
 			Devices[i] = 0;
 			return;
 		}
 	}
+
+	/* hm. unfortunately, too much code in DOSBox assumes that we delete the object.
+	 * prior to this fix, failure to delete caused a memory leak */
+	fprintf(stderr,"WARNING: DOS_DelDevice() failed to match device object '%s' (%p). Deleting anyway\n",dev->name,(void*)dev);
+	delete dev;
 }
 
 void DOS_ShutdownDevices(void) {
 	for (Bitu i=0;i < DOS_DEVICES;i++) {
 		if (Devices[i] != NULL) {
+//			fprintf(stderr,"DOS: Shutting down device %s (%p)\n",Devices[i]->name,(void*)Devices[i]);
 			delete Devices[i];
 			Devices[i] = NULL;
 		}
@@ -220,8 +230,6 @@ void DOS_ShutdownDevices(void) {
 }
 
 void DOS_SetupDevices(void) {
-	for (Bitu i=0;i < DOS_DEVICES;i++) Devices[i] = NULL;
-
 	DOS_Device * newdev;
 	newdev=new device_CON();
 	DOS_AddDevice(newdev);

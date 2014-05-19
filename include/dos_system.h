@@ -116,6 +116,7 @@ public:
 		return *this;
 	}
 	DOS_Device():DOS_File(),devnum(0){};
+	virtual ~DOS_Device() {};
 	virtual bool	Read(Bit8u * data,Bit16u * size);
 	virtual bool	Write(Bit8u * data,Bit16u * size);
 	virtual bool	Seek(Bit32u * pos,Bit32u type);

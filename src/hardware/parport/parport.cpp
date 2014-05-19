@@ -71,6 +71,11 @@ device_LPT::device_LPT(Bit8u num, class CParallel* pp) {
 }
 
 device_LPT::~device_LPT() {
+	/* clear reference to myself so that CParallel does not attempt to free me or ask DOS to delete me */
+	if (pportclass != NULL && pportclass->mydosdevice == this)
+		pportclass->mydosdevice = NULL;
+
+//	fprintf(stderr,"~device_LPT\n");
 	//LOG_MSG("del");
 }
 
@@ -219,8 +224,13 @@ CParallel::CParallel(CommandLine* cmd, Bitu portnr, Bit8u initirq) {
 };
 
 CParallel::~CParallel(void) {
+//	fprintf(stderr,"~CParallel mydosdevice=%p\n",(void*)mydosdevice);
 	BIOS_SetLPTPort(port_nr,0);
-	if(mydosdevice) DOS_DelDevice(mydosdevice);
+	if (mydosdevice != NULL) {
+//		fprintf(stderr,"~CParallel DOS_Device free\n");
+		DOS_DelDevice(mydosdevice);
+		mydosdevice=NULL;
+	}
 };
 
 Bit8u CParallel::getPrinterStatus()
@@ -311,15 +321,17 @@ public:
 	}
 
 	~PARPORTS () {
-		for (Bitu i = 0; i < 3; i++)
+//		fprintf(stderr,"Parports destructor\n");
+		for (Bitu i = 0; i < 3; i++) {
 			if (parallelPortObjects[i]) {
 				delete parallelPortObjects[i];
 				parallelPortObjects[i] = 0;
 			}
+		}
 	}
 };
 
-static PARPORTS *testParallelPortsBaseclass;
+static PARPORTS *testParallelPortsBaseclass = NULL;
 
 void PARALLEL_Destroy (Section * sec) {
 	delete testParallelPortsBaseclass;

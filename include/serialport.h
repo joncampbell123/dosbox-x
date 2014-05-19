@@ -251,10 +251,9 @@ public:
 	bool Putchar(Bit8u data, bool wait_dtr, bool wait_rts, Bitu timeout);
 	bool Getchar(Bit8u* data, Bit8u* lsr, bool wait_dsr, Bitu timeout);
 
+	DOS_Device* mydosdevice;
 
 private:
-
-	DOS_Device* mydosdevice;
 
 	// I used this spec: st16c450v420.pdf
 

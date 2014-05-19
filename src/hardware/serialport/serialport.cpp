@@ -89,6 +89,9 @@ device_COM::device_COM(class CSerial* sc) {
 }
 
 device_COM::~device_COM() {
+	/* clear reference to myself so that we're not deleted twice (once by DOS_DelDevice the other by CSerial) */
+	if (sclass != NULL && sclass->mydosdevice == this)
+		sclass->mydosdevice = NULL;
 }
 
 
@@ -1145,7 +1148,6 @@ bool CSerial::getBituSubstring(const char* name,Bitu* data, CommandLine* cmd) {
 CSerial::~CSerial(void) {
 	if (mydosdevice != NULL) {
 		DOS_DelDevice(mydosdevice);
-		delete mydosdevice;
 		mydosdevice = NULL;
 	}
 	for(Bitu i = 0; i <= SERIAL_BASE_EVENT_COUNT; i++)
