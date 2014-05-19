@@ -2446,19 +2446,7 @@ static Bitu IRQ15_Dummy(void) {
 }
 
 static Bitu Reboot_Handler(void) {
-	// switch to text mode, notify user (let's hope INT10 still works)
-	const char* const text = "\n\n   Restart requested by application.";
-	reg_ax = 0;
-	CALLBACK_RunRealInt(0x10);
-	reg_ah = 0xe;
-	reg_bx = 0;
-	for(Bitu i = 0; i < strlen(text);i++) {
-		reg_al = text[i];
-		CALLBACK_RunRealInt(0x10);
-	}
-	LOG_MSG(text);
-	double start = PIC_FullIndex();
-	while((PIC_FullIndex()-start)<3000) CALLBACK_Idle();
+	LOG_MSG("Restart by INT 19h requested\n");
 	control->startup_params.insert(control->startup_params.begin(),control->cmdline->GetFileName());
 	restart_program(control->startup_params);
 	return CBRET_NONE;
