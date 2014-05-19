@@ -2179,6 +2179,11 @@ Bits HLT_Decode(void) {
 }
 
 void CPU_HLT(Bitu oldeip) {
+	/* Since cpu.hlt.old_decoder assigns the current decoder to old, and relies on restoring
+	 * it back when finished, setting cpudecoder to HLT_Decode while already HLT_Decode effectively
+	 * hangs DOSBox and makes it complete unresponsive. Don't want that! */
+	if (cpudecoder == &HLT_Decode) E_Exit("CPU_HLT attempted to set HLT_Decode while CPU decoder already HLT_Decode");
+
 	reg_eip=oldeip;
 	CPU_IODelayRemoved += CPU_Cycles;
 	CPU_Cycles=0;
