@@ -2040,11 +2040,11 @@ void SBLASTER_DOS_Shutdown() {
 }
 
 void SBLASTER_ShutDown(Section* /*sec*/) {
-	HWOPL_Cleanup();
 	if (test != NULL) {
 		delete test;	
 		test = NULL;
 	}
+	HWOPL_Cleanup();
 }
 
 void SBLASTER_Init(Section* sec) {
