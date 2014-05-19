@@ -32,7 +32,7 @@ CFileLPT::CFileLPT (Bitu nr, Bit8u initIrq, CommandLine* cmd)
                               :CParallel (cmd, nr,initIrq) {
 	InstallationSuccessful = false;
 	fileOpen = false;
-
+	controlreg = 0;
 	std::string str;
 
 	// add a formfeed when closing?
