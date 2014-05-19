@@ -3485,9 +3485,17 @@ int main(int argc, char* argv[]) {
 				SegValue(ss),reg_sp,
 				reg_ax,reg_bx,reg_cx,reg_dx);
 
-			/* go! */
-			while (1/*execute until some other part of DOSBox throws exception*/)
-				DOSBOX_RunMachine();
+			try {
+				/* go! */
+				while (1/*execute until some other part of DOSBox throws exception*/)
+					DOSBOX_RunMachine();
+			}
+			catch (int x) {
+				// kill switch (see instances of throw(0) and throw(1) elsewhere in DOSBox)
+			}
+			catch (...) {
+				throw;
+			}
 		}
 
 		/* and then shutdown */
