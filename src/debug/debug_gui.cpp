@@ -17,25 +17,26 @@
  */
 
 
-#include "dosbox.h"
-
-#if C_DEBUG
-#include "control.h"
 #include <stdlib.h>
 #include <stdarg.h>
-#include <stdio.h>
-#include <curses.h>
 #include <string.h>
+#include <stdio.h>
 
+#include "dosbox.h"
+#include "logging.h"
 #include "support.h"
+#include "control.h"
+
+_LogGroup loggrp[LOG_MAX]={{"",true},{0,false}};
+FILE* debuglog = NULL;
+
+#if C_DEBUG
+#include <curses.h>
+
 #include "regs.h"
 #include "debug.h"
 #include "debug_inc.h"
 
-struct _LogGroup {
-	char const* front;
-	bool enabled;
-};
 #include <list>
 #include <string>
 using namespace std;
@@ -44,41 +45,7 @@ using namespace std;
 static list<string> logBuff;
 static list<string>::iterator logBuffPos = logBuff.end();
 
-static _LogGroup loggrp[LOG_MAX]={{"",true},{0,false}};
-static FILE* debuglog = NULL;
-
 extern int old_cursor_state;
-
-
-
-void DEBUG_ShowMsg(char const* format,...) {
-	char buf[512];
-	va_list msg;
-	size_t len;
-
-	va_start(msg,format);
-	len = vsnprintf(buf,sizeof(buf)-2,format,msg); /* <- NTS: Did you know sprintf/vsnprintf returns number of chars written? */
-	va_end(msg);
-
-	/* Add newline if not present */
-	if (len > 0 && buf[len-1] != '\n') buf[len++] = '\n';
-	buf[len] = 0;
-
-	if (debuglog) fprintf(debuglog,"%s",buf);
-
-	if (logBuffPos!=logBuff.end()) {
-		logBuffPos=logBuff.end();
-		DEBUG_RefreshPage(0);
-//		mvwprintw(dbg.win_out,dbg.win_out->_maxy-1, 0, "");
-	}
-	logBuff.push_back(buf);
-	if (logBuff.size() > MAX_LOG_BUFFER)
-		logBuff.pop_front();
-
-	logBuffPos = logBuff.end();
-	wprintw(dbg.win_out,"%s",buf);
-	wrefresh(dbg.win_out);
-}
 
 void DEBUG_RefreshPage(char scroll) {
 	if (scroll==-1 && logBuffPos!=logBuff.begin()) logBuffPos--;
@@ -196,8 +163,73 @@ static void MakePairs(void) {
 	init_pair(PAIR_BLACK_GREY, COLOR_BLACK /*| FOREGROUND_INTENSITY */, COLOR_WHITE);
 	init_pair(PAIR_GREY_RED, COLOR_WHITE/*| FOREGROUND_INTENSITY */, COLOR_RED);
 }
-static void LOG_Destroy(Section*) {
-	if(debuglog) fclose(debuglog);
+
+void DBGUI_StartUp(void) {
+	/* Start the main window */
+	dbg.win_main=initscr();
+	cbreak();       /* take input chars one at a time, no wait for \n */
+	noecho();       /* don't echo input */
+	nodelay(dbg.win_main,true);
+	keypad(dbg.win_main,true);
+	#ifndef WIN32
+	printf("\e[8;50;80t");
+	fflush(NULL);
+	resizeterm(50,80);
+	touchwin(dbg.win_main);
+	#endif
+	old_cursor_state = curs_set(0);
+	start_color();
+	cycle_count=0;
+	MakePairs();
+	MakeSubWindows();
+
+}
+
+#endif
+
+void DEBUG_ShowMsg(char const* format,...) {
+	char buf[512];
+	va_list msg;
+	size_t len;
+
+	va_start(msg,format);
+	len = vsnprintf(buf,sizeof(buf)-2,format,msg); /* <- NTS: Did you know sprintf/vsnprintf returns number of chars written? */
+	va_end(msg);
+
+	/* Add newline if not present */
+	if (len > 0 && buf[len-1] != '\n') buf[len++] = '\n';
+	buf[len] = 0;
+
+	if (debuglog != NULL) {
+		fprintf(debuglog,"%s",buf);
+	}
+#if !C_DEBUG
+	else {
+		fprintf(stderr,"DOSBox LOG: %s",buf);
+	}
+#endif
+
+#if C_DEBUG
+	if (logBuffPos!=logBuff.end()) {
+		logBuffPos=logBuff.end();
+		DEBUG_RefreshPage(0);
+//		mvwprintw(dbg.win_out,dbg.win_out->_maxy-1, 0, "");
+	}
+	logBuff.push_back(buf);
+	if (logBuff.size() > MAX_LOG_BUFFER)
+		logBuff.pop_front();
+
+	logBuffPos = logBuff.end();
+	wprintw(dbg.win_out,"%s",buf);
+	wrefresh(dbg.win_out);
+#endif
+}
+
+void LOG_Destroy(Section*) {
+	if (debuglog != NULL) {
+		fclose(debuglog);
+		debuglog = NULL;
+	}
 }
 
 static void LOG_Init(Section * sec) {
@@ -218,7 +250,6 @@ static void LOG_Init(Section * sec) {
 		loggrp[i].enabled=sect->Get_bool(buf);
 	}
 }
-
 
 void LOG_StartUp(void) {
 	/* Setup logging groups */
@@ -268,28 +299,3 @@ void LOG_StartUp(void) {
 //	MSG_Add("LOG_CONFIGFILE_HELP","Logging related options for the debugger.\n");
 }
 
-
-
-
-void DBGUI_StartUp(void) {
-	/* Start the main window */
-	dbg.win_main=initscr();
-	cbreak();       /* take input chars one at a time, no wait for \n */
-	noecho();       /* don't echo input */
-	nodelay(dbg.win_main,true);
-	keypad(dbg.win_main,true);
-	#ifndef WIN32
-	printf("\e[8;50;80t");
-	fflush(NULL);
-	resizeterm(50,80);
-	touchwin(dbg.win_main);
-	#endif
-	old_cursor_state = curs_set(0);
-	start_color();
-	cycle_count=0;
-	MakePairs();
-	MakeSubWindows();
-
-}
-
-#endif

@@ -19,6 +19,9 @@
 #ifndef DOSBOX_LOGGING_H
 #define DOSBOX_LOGGING_H
 
+#include <stdio.h>
+#include "setup.h"
+
 enum LOG_TYPES {
 	LOG_ALL,
 	LOG_VGA, LOG_VGAGFX,LOG_VGAMISC,LOG_INT10,
@@ -39,6 +42,17 @@ enum LOG_SEVERITIES {
 	LOG_ERROR
 };
 
+struct _LogGroup {
+	char const* front;
+	bool enabled;
+};
+
+extern _LogGroup loggrp[LOG_MAX];
+extern FILE* debuglog;
+
+void LOG_Destroy(Section*);
+void LOG_StartUp(void);
+
 #if C_DEBUG
 
 class LOG 
@@ -54,10 +68,6 @@ public:
 
 	void operator() (char const* buf, ...) GCC_ATTRIBUTE(__format__(__printf__, 2, 3));  //../src/debug/debug_gui.cpp
 };
-
-void					DEBUG_ShowMsg(char const* format,...) GCC_ATTRIBUTE(__format__(__printf__, 1, 2));
-
-#define LOG_MSG				DEBUG_ShowMsg
 
 #else  //C_DEBUG
 
@@ -86,11 +96,11 @@ struct LOG
 }; //add missing operators to here
 //try to avoid anything smaller than bit32...
 
-void					GFX_ShowMsg(char const* format,...) GCC_ATTRIBUTE(__format__(__printf__, 1, 2));
-
-#define LOG_MSG				GFX_ShowMsg
-
 #endif //C_DEBUG
+
+void					DEBUG_ShowMsg(char const* format,...) GCC_ATTRIBUTE(__format__(__printf__, 1, 2));
+
+#define LOG_MSG				DEBUG_ShowMsg
 
 #endif //DOSBOX_LOGGING_H
 

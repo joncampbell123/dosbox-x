@@ -838,9 +838,7 @@ void DOSBOX_Init(void) {
 			  "  <integer or float>           Any integer or floating point value will be used as the clock frequency in Hz\n"
 			  "  <integer/integer ratio>      If a ratio is given (num/den), the ratio will be used as the clock frequency");
 
-#if C_DEBUG	
 	LOG_StartUp();
-#endif
 	
 	secprop->AddInitFunction(&IO_Init);//done
 	secprop->AddInitFunction(&PAGING_Init);//done

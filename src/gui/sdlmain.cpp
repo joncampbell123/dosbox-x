@@ -2714,25 +2714,6 @@ static BOOL WINAPI ConsoleEventHandler(DWORD event) {
 }
 #endif
 
-
-/* static variable to show wether there is not a valid stdout.
- * Fixes some bugs when -noconsole is used in a read only directory */
-bool no_stdout = false;
-void GFX_ShowMsg(char const* format,...) {
-	char buf[512];
-	va_list msg;
-	size_t len;
-
-	va_start(msg,format);
-	len = vsnprintf(buf,sizeof(buf)-2,format,msg);
-	buf[len++] = '\n';
-	buf[len] = 0;
-	va_end(msg);
-
-	if(!no_stdout) printf("%s",buf); //Else buf is parsed again.
-}
-
-
 void Config_Add_SDL() {
 	Section_prop * sdl_sec=control->AddSection_prop("sdl",&GUI_StartUp);
 	sdl_sec->AddInitFunction(&MAPPER_StartUp);
@@ -3509,12 +3490,12 @@ int main(int argc, char* argv[]) {
 #if defined (WIN32)
 		sticky_keys(true);
 #endif
-		GFX_ShowMsg("Exit to error: %s",error);
+		LOG_MSG("Exit to error: %s",error);
 		fflush(NULL);
 		if(sdl.wait_on_error) {
 			//TODO Maybe look for some way to show message in linux?
 #if (C_DEBUG)
-			GFX_ShowMsg("Press enter to continue");
+			LOG_MSG("Press enter to continue");
 			fflush(NULL);
 			fgetc(stdin);
 #elif defined(WIN32)
