@@ -142,6 +142,7 @@ bool ISAPNP_RegisterSysDev(const unsigned char *raw,Bitu len,bool already=false)
 class ISAPnPDevice {
 public:
 	ISAPnPDevice();
+	virtual ~ISAPnPDevice();
 public:
 	void checksum_ident();
 public:

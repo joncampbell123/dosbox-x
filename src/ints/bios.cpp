@@ -103,6 +103,9 @@ ISAPnPDevice::ISAPnPDevice() {
 	resource_data_pos = 0;
 }
 
+ISAPnPDevice::~ISAPnPDevice() {
+}
+
 void ISAPnPDevice::config(Bitu val) {
 }
 
@@ -141,7 +144,8 @@ uint8_t ISAPnPDevice::read(Bitu addr) {
 void ISAPnPDevice::write(Bitu addr,Bitu val) {
 }
 
-#define MAX_ISA_PNP_DEVICES	64
+#define MAX_ISA_PNP_DEVICES		64
+#define MAX_ISA_PNP_SYSDEVNODES		256
 
 static ISAPnPDevice *ISA_PNP_selected = NULL;
 static ISAPnPDevice *ISA_PNP_devs[MAX_ISA_PNP_DEVICES] = {NULL}; /* FIXME: free objects on shutdown */
@@ -166,6 +170,52 @@ class ISAPnPTestDevice : public ISAPnPDevice {
 			checksum_ident();
 		}
 };
+
+class ISAPNP_SysDevNode {
+public:
+	ISAPNP_SysDevNode(const unsigned char *ir,int len,bool already_alloc=false) {
+		if (already_alloc) {
+			raw = (unsigned char*)ir;
+			raw_len = len;
+			own = false;
+		}
+		else {
+			if (len > 65535) E_Exit("ISAPNP_SysDevNode data too long");
+			raw = new unsigned char[len+1];
+			if (ir == NULL) E_Exit("ISAPNP_SysDevNode cannot allocate buffer");
+			memcpy(raw,ir,len);
+			raw_len = len;
+			raw[len] = 0;
+			own = true;
+		}
+	}
+	virtual ~ISAPNP_SysDevNode() {
+		if (own) delete[] raw;
+	}
+public:
+	unsigned char*		raw;
+	int			raw_len;
+	bool			own;
+};
+
+static ISAPNP_SysDevNode*	ISAPNP_SysDevNodes[MAX_ISA_PNP_SYSDEVNODES];
+static Bitu			ISAPNP_SysDevNodeCount=0;
+static Bitu			ISAPNP_SysDevNodeLargest=0;
+
+void ISA_PNP_FreeAllDevs() {
+	Bitu i;
+
+	for (i=0;i < MAX_ISA_PNP_DEVICES;i++) {
+		if (ISA_PNP_devs[i] != NULL) {
+			delete ISA_PNP_devs[i];
+			ISA_PNP_devs[i] = NULL;
+		}
+	}
+	for (i=0;i < MAX_ISA_PNP_SYSDEVNODES;i++) {
+		if (ISAPNP_SysDevNodes[i] != NULL) delete ISAPNP_SysDevNodes[i];
+		ISAPNP_SysDevNodes[i] = NULL;
+	}
+}
 
 void ISA_PNP_devreg(ISAPnPDevice *x) {
 	if (ISA_PNP_devnext < MAX_ISA_PNP_DEVICES) {
@@ -404,36 +454,6 @@ static Bitu ISAPNP_xlate_address(Bitu far_ptr) {
 		return (desc.GetBase() + (far_ptr & 0xFFFF));
 	}
 }
-
-/* TODO: ISA PnP BIOS emulation complete. Now what we need is ISA PnP I/O port emulation. That means catching
- *       writes to 0x279 (ADDRESS), 0xA79 (WRITE_DATA), and emulating a moveable I/O port (READ_DATA) */
-
-class ISAPNP_SysDevNode {
-public:
-	ISAPNP_SysDevNode(const unsigned char *ir,int len,bool already_alloc=false) {
-		if (already_alloc) {
-			raw = (unsigned char*)ir;
-			raw_len = len;
-			own = false;
-		}
-		else {
-			if (len > 65535) E_Exit("ISAPNP_SysDevNode data too long");
-			raw = new unsigned char[len+1];
-			if (ir == NULL) E_Exit("ISAPNP_SysDevNode cannot allocate buffer");
-			memcpy(raw,ir,len);
-			raw_len = len;
-			raw[len] = 0;
-			own = true;
-		}
-	}
-	~ISAPNP_SysDevNode() {
-		if (own) delete[] raw;
-	}
-public:
-	unsigned char*		raw;
-	int			raw_len;
-	bool			own;
-};
 
 static const unsigned char ISAPNP_sysdev_Keyboard[] = {
 	ISAPNP_SYSDEV_HEADER(
@@ -686,12 +706,8 @@ static const unsigned char ISAPNP_sysdev_APM_BIOS[] = {
 	ISAPNP_END
 };
 
-static ISAPNP_SysDevNode*	ISAPNP_SysDevNodes[256];
-static Bitu			ISAPNP_SysDevNodeCount=0;
-static Bitu			ISAPNP_SysDevNodeLargest=0;
-
 bool ISAPNP_RegisterSysDev(const unsigned char *raw,Bitu len,bool already) {
-	if (ISAPNP_SysDevNodeCount >= 0xFF)
+	if (ISAPNP_SysDevNodeCount >= MAX_ISA_PNP_SYSDEVNODES)
 		return false;
 
 	ISAPNP_SysDevNodes[ISAPNP_SysDevNodeCount] = new ISAPNP_SysDevNode(raw,len,already);
@@ -3090,11 +3106,7 @@ void BIOS_PnP_ComPortRegister(Bitu port,Bitu irq) {
 static BIOS* test = NULL;
 
 void BIOS_Destroy(Section* /*sec*/){
-	int i;
-	for (i=0;i < 0x100;i++) {
-		if (ISAPNP_SysDevNodes[i] != NULL) delete ISAPNP_SysDevNodes[i];
-		ISAPNP_SysDevNodes[i] = NULL;
-	}
+	ISA_PNP_FreeAllDevs();
 	if (test != NULL) {
 		delete test;
 		test = NULL;
