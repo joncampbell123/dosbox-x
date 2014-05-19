@@ -124,8 +124,16 @@ static Bitu PROGRAMS_Handler(void) {
 	if (ipe->main == NULL) return CBRET_NONE;
 	PROGRAMS_Main * handler = internal_progs[index]->main;
 	(*handler)(&new_program);
-	new_program->Run();
-	delete new_program;
+
+	try { /* "BOOT" can throw an exception (int(2)) */
+		new_program->Run();
+		delete new_program;
+	}
+	catch (...) { /* well if it happened, free the program anyway to avert memory leaks */
+		delete new_program;
+		throw; /* pass it on */
+	}
+
 	return CBRET_NONE;
 }
 
