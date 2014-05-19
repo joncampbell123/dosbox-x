@@ -69,8 +69,8 @@ class Program {
 public:
 	Program();
 	virtual ~Program(){
-		delete cmd;
-		delete psp;
+		if (cmd != NULL) delete cmd;
+		if (psp != NULL) delete psp;
 	}
 	std::string temp_line;
 	CommandLine * cmd;
