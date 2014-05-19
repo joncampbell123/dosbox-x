@@ -63,7 +63,6 @@ private:
 	friend class AutoexecEditor;
 	std::list<std::string> l_history, l_completion;
 
-	char *completion_start;
 	Bit16u completion_index;
 	
 private:
@@ -72,6 +71,7 @@ private:
 public:
 
 	DOS_Shell();
+	virtual ~DOS_Shell();
 
 	void Run(void);
 	void RunInternal(void); //for command /C

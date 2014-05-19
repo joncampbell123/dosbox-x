@@ -131,13 +131,16 @@ AutoexecObject::~AutoexecObject(){
 	Uninstall();
 }
 
+DOS_Shell::~DOS_Shell() {
+	if (bf != NULL) delete bf; /* free batch file */
+}
+
 DOS_Shell::DOS_Shell():Program(){
 	input_handle=STDIN;
 	echo=true;
 	exit=false;
 	bf=0;
 	call=false;
-	completion_start = NULL;
 }
 
 Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn,bool * append) {
@@ -49703,8 +49706,16 @@ static unsigned char hexmem32_exe[] = {
 void SHELL_Run() {
 	if (first_shell != NULL) E_Exit("Attempt to start shell when shell already running");
 	SHELL_ProgramStart(&first_shell);
-	first_shell->Run();
-	delete first_shell;
-	first_shell = 0;//Make clear that it shouldn't be used anymore
+
+	try {
+		first_shell->Run();
+		delete first_shell;
+		first_shell = 0;//Make clear that it shouldn't be used anymore
+	}
+	catch (...) {
+		delete first_shell;
+		first_shell = 0;//Make clear that it shouldn't be used anymore
+		throw;
+	}
 }
 
