@@ -34,6 +34,7 @@ CFileLPT::CFileLPT (Bitu nr, Bit8u initIrq, CommandLine* cmd)
 	fileOpen = false;
 	controlreg = 0;
 	std::string str;
+	ack = false;
 
 	// add a formfeed when closing?
 	if(cmd->FindStringBegin("addFF",str,false))	addFF = true;
