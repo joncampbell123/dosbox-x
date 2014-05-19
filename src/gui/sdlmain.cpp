@@ -3378,6 +3378,14 @@ int main(int argc, char* argv[]) {
 		if(!load_videodrv && numlock_stat) SetNumLock ();
 #endif
 		control->StartUp();
+
+		/* and then start the shell */
+		void SHELL_Run();
+		SHELL_Run();
+
+		/* and then shutdown */
+		void GFX_ShutDown(void);
+		GFX_ShutDown();
 #ifdef __WIN32__
 		//menu.startup=false;
 #endif

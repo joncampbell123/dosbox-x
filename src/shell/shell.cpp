@@ -49696,12 +49696,15 @@ static unsigned char hexmem32_exe[] = {
 	/* Setup internal DOS Variables */
 	dos.dta(RealMake(psp_seg,0x80));
 	dos.psp(psp_seg);
+}
 
-	
+/* Pfff... starting and running the shell from a configuration section INIT
+ * What the hell were you guys thinking? --J.C. */
+void SHELL_Run() {
+	if (first_shell != NULL) E_Exit("Attempt to start shell when shell already running");
 	SHELL_ProgramStart(&first_shell);
 	first_shell->Run();
 	delete first_shell;
 	first_shell = 0;//Make clear that it shouldn't be used anymore
-	void GFX_ShutDown(void);
-	GFX_ShutDown();
 }
+
