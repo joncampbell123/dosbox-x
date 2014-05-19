@@ -2258,7 +2258,7 @@ static Bitu INT15_Handler(void) {
 					 *        not we emulate a laptop with a battery */
 					reg_bh = 0x01;		// AC line status (1=on-line)
 					reg_bl = 0xFF;		// Battery status (unknown)
-					reg_ch = 0xC0;		// Battery flag (selected battery not present, no system battery)
+					reg_ch = 0x80;		// Battery flag (no system battery)
 					reg_cl = 0xFF;		// Remaining battery charge (unknown)
 					reg_dx = 0xFFFF;	// Remaining battery life (unknown)
 					reg_si = 0;		// Number of battery units (if called with reg_bx == 0x8001)
