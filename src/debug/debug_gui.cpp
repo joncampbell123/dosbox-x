@@ -45,7 +45,7 @@ static list<string> logBuff;
 static list<string>::iterator logBuffPos = logBuff.end();
 
 static _LogGroup loggrp[LOG_MAX]={{"",true},{0,false}};
-static FILE* debuglog;
+static FILE* debuglog = NULL;
 
 extern int old_cursor_state;
 
@@ -203,10 +203,12 @@ static void LOG_Destroy(Section*) {
 static void LOG_Init(Section * sec) {
 	Section_prop * sect=static_cast<Section_prop *>(sec);
 	const char * blah=sect->Get_string("logfile");
-	if(blah && blah[0] &&(debuglog = fopen(blah,"wt+"))){
-	}else{
+	if (blah != NULL && blah[0] != 0 && (debuglog=fopen(blah,"wt+")) != NULL) {
+	}
+	else {
 		debuglog=0;
 	}
+
 	sect->AddDestroyFunction(&LOG_Destroy);
 	char buf[1024];
 	for (Bitu i=1;i<LOG_MAX;i++) {
