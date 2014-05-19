@@ -53,7 +53,7 @@ void CALLBACK_Shutdown(void) {
 Bitu CALLBACK_Allocate(void) {
 	for (Bitu i=1;(i<CB_MAX);i++) {
 		if (CallBack_Handlers[i]==&illegal_handler) {
-			if (CallBack_Description[i] != NULL) fprintf(stderr,"CALLBACK_Allocate() warning: empty slot still has description string!\n");
+			if (CallBack_Description[i] != NULL) LOG_MSG("CALLBACK_Allocate() warning: empty slot still has description string!\n");
 			CallBack_Handlers[i]=0;
 			return i;
 		}

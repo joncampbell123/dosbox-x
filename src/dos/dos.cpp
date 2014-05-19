@@ -58,7 +58,7 @@ extern bool dos_kernel_disabled;
 
 Bit16u DOS_Block::psp() {
 	if (dos_kernel_disabled) {
-		fprintf(stderr,"BUG: DOS kernel is disabled (booting a guest OS), and yet somebody is still asking for DOS's current PSP segment\n");
+		LOG_MSG("BUG: DOS kernel is disabled (booting a guest OS), and yet somebody is still asking for DOS's current PSP segment\n");
 		return 0x0000;
 	}
 
@@ -67,7 +67,7 @@ Bit16u DOS_Block::psp() {
 
 void DOS_Block::psp(Bit16u _seg) {
 	if (dos_kernel_disabled) {
-		fprintf(stderr,"BUG: DOS kernel is disabled (booting a guest OS), and yet somebody is still attempting to change DOS's current PSP segment\n");
+		LOG_MSG("BUG: DOS kernel is disabled (booting a guest OS), and yet somebody is still attempting to change DOS's current PSP segment\n");
 		return;
 	}
 
@@ -76,7 +76,7 @@ void DOS_Block::psp(Bit16u _seg) {
 
 RealPt DOS_Block::dta() {
 	if (dos_kernel_disabled) {
-		fprintf(stderr,"BUG: DOS kernel is disabled (booting a guest OS), and yet somebody is still asking for DOS's DTA (disk transfer address)\n");
+		LOG_MSG("BUG: DOS kernel is disabled (booting a guest OS), and yet somebody is still asking for DOS's DTA (disk transfer address)\n");
 		return 0;
 	}
 
@@ -85,7 +85,7 @@ RealPt DOS_Block::dta() {
 
 void DOS_Block::dta(RealPt _dta) {
 	if (dos_kernel_disabled) {
-		fprintf(stderr,"BUG: DOS kernel is disabled (booting a guest OS), and yet somebody is still attempting to change DOS's DTA (disk transfer address)\n");
+		LOG_MSG("BUG: DOS kernel is disabled (booting a guest OS), and yet somebody is still attempting to change DOS's DTA (disk transfer address)\n");
 		return;
 	}
 
@@ -222,7 +222,7 @@ bool DOS_BreakTest() {
 					terminint23 = true;
 				}
 				else {
-					fprintf(stderr,"Unexpected code in INT 23h termination exception\n");
+					LOG_MSG("Unexpected code in INT 23h termination exception\n");
 					abort();
 				}
 			}
@@ -232,11 +232,11 @@ bool DOS_BreakTest() {
 				/* if it returned with IRET, or with RETF and CF=0, don't terminate */
 				if (reg_sp == save_sp || (reg_flags & 1) == 0) {
 					terminate = false;
-					fprintf(stderr,"Note: DOS handler does not wish to terminate\n");
+					LOG_MSG("Note: DOS handler does not wish to terminate\n");
 				}
 				else {
 					/* program does not wish to continue. it used RETF. pop the remaining flags off */
-					fprintf(stderr,"Note: DOS handler does wish to terminate\n");
+					LOG_MSG("Note: DOS handler does wish to terminate\n");
 				}
 
 				if (reg_sp != save_sp) reg_sp += 2;
@@ -244,12 +244,12 @@ bool DOS_BreakTest() {
 		}
 
 		if (terminate) {
-			fprintf(stderr,"Note: DOS break terminating program\n");
+			LOG_MSG("Note: DOS break terminating program\n");
 			DOS_Terminate(dos.psp(),false,0);
 			return false;
 		}
 		else if (terminint23) {
-			fprintf(stderr,"Note: DOS break handler terminated program for us.\n");
+			LOG_MSG("Note: DOS break handler terminated program for us.\n");
 			return false;
 		}
 	}
@@ -1514,7 +1514,7 @@ static Bitu BIOS_1BHandler(void) {
 	/* take note (set flag) and return */
 	/* FIXME: Don't forget that on "BOOT" this handler should be unassigned, though having it assigned
 	 *        to the guest OS causes no harm. */
-	fprintf(stderr,"Note: default 1Bh handler invoked\n");
+	LOG_MSG("Note: default 1Bh handler invoked\n");
 	DOS_BreakFlag = true;
 	return CBRET_NONE;
 }
@@ -1593,7 +1593,7 @@ public:
 		private_always_from_umb = section->Get_bool("kernel allocation in umb");
 
 		if (!dynamic_dos_kernel_alloc || mainline_compatible_mapping) {
-			fprintf(stderr,"kernel allocation in umb option incompatible with other settings, disabling.\n");
+			LOG_MSG("kernel allocation in umb option incompatible with other settings, disabling.\n");
 			private_always_from_umb = false;
 		}
 
@@ -1625,7 +1625,7 @@ public:
 					DOS_PRIVATE_SEGMENT_END = (MEM_TotalPages() << (12 - 4)) - 1; /* NTS: Remember DOSBox's implementation reuses the last paragraph for UMB linkage */
 			}
 
-			fprintf(stderr,"Dynamic DOS kernel mode, structures will be allocated from pool 0x%04x-0x%04x\n",
+			LOG_MSG("Dynamic DOS kernel mode, structures will be allocated from pool 0x%04x-0x%04x\n",
 				DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
 
 			DOS_FIRST_SHELL_SIZE = 19 + (dosbox_shell_env_size >> 4);
@@ -1657,7 +1657,7 @@ public:
 			DOS_FIRST_SHELL_END = DOS_MEM_START = 0x158;	 // regression to r3437 fixes nascar 2 colors
 
 			if (dosbox_shell_env_size != 0) {
-				fprintf(stderr,"WARNING: Shell environment block size setting is only available when dynamic dos kernel allocation is enabled\n");
+				LOG_MSG("WARNING: Shell environment block size setting is only available when dynamic dos kernel allocation is enabled\n");
 				dosbox_shell_env_size = (DOS_FIRST_SHELL_END - (DOS_FIRST_SHELL+19)) << 4; /* see src/shell/shell.cpp line 722 for more information */
 			}
 
@@ -1677,20 +1677,20 @@ public:
 				DOS_PRIVATE_SEGMENT_END = segend;
 				DOS_MEM_START = DOS_PRIVATE_SEGMENT_END;
 				DOS_GetMemory_reset();
-				fprintf(stderr,"Private area, not stored in UMB on request, occupies 0x%04x-0x%04x\n",
+				LOG_MSG("Private area, not stored in UMB on request, occupies 0x%04x-0x%04x\n",
 					DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
 			}
 		}
 
-		fprintf(stderr,"DOS kernel alloc:\n");
-		fprintf(stderr,"   IHSEG:        seg 0x%04x\n",DOS_IHSEG);
-		fprintf(stderr,"   infoblock:    seg 0x%04x\n",DOS_INFOBLOCK_SEG);
-		fprintf(stderr,"   condrv:       seg 0x%04x\n",DOS_CONDRV_SEG);
-		fprintf(stderr,"   constring:    seg 0x%04x\n",DOS_CONSTRING_SEG);
-		fprintf(stderr,"   SDA:          seg 0x%04x:0x%04x\n",DOS_SDA_SEG,DOS_SDA_OFS);
-		fprintf(stderr,"   CDS:          seg 0x%04x\n",DOS_CDS_SEG);
-		fprintf(stderr,"   first shell:  seg 0x%04x-0x%04x\n",DOS_FIRST_SHELL,DOS_FIRST_SHELL_END-1);
-		fprintf(stderr,"[private segment @ this point 0x%04x-0x%04x mem=0x%04x]\n",
+		LOG_MSG("DOS kernel alloc:\n");
+		LOG_MSG("   IHSEG:        seg 0x%04x\n",DOS_IHSEG);
+		LOG_MSG("   infoblock:    seg 0x%04x\n",DOS_INFOBLOCK_SEG);
+		LOG_MSG("   condrv:       seg 0x%04x\n",DOS_CONDRV_SEG);
+		LOG_MSG("   constring:    seg 0x%04x\n",DOS_CONSTRING_SEG);
+		LOG_MSG("   SDA:          seg 0x%04x:0x%04x\n",DOS_SDA_SEG,DOS_SDA_OFS);
+		LOG_MSG("   CDS:          seg 0x%04x\n",DOS_CDS_SEG);
+		LOG_MSG("   first shell:  seg 0x%04x-0x%04x\n",DOS_FIRST_SHELL,DOS_FIRST_SHELL_END-1);
+		LOG_MSG("[private segment @ this point 0x%04x-0x%04x mem=0x%04x]\n",
 			DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END,
 			MEM_TotalPages() << (12 - 4));
 
@@ -1765,11 +1765,11 @@ public:
 				DOS_PRIVATE_SEGMENT_END = segend;
 				DOS_MEM_START = DOS_PRIVATE_SEGMENT_END;
 				DOS_GetMemory_reset();
-				fprintf(stderr,"Private area, not stored in UMB on request, occupies 0x%04x-0x%04x [dynamic]\n",
+				LOG_MSG("Private area, not stored in UMB on request, occupies 0x%04x-0x%04x [dynamic]\n",
 					DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
 			}
 		}
-		fprintf(stderr,"   mem start:    seg 0x%04x\n",DOS_MEM_START);
+		LOG_MSG("   mem start:    seg 0x%04x\n",DOS_MEM_START);
 
 		/* carry on setup */
 		DOS_SetupMemory();								/* Setup first MCB */

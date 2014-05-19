@@ -57,7 +57,7 @@ Bit16u BIOS_GetMemory(Bit16u pages,const char *who) {
 		E_Exit("BIOS:Not enough memory for internal tables");
 	}
 	Bit16u page=bios_memseg;
-	fprintf(stderr,"BIOS_GetMemory(0x%04x pages,\"%s\") = 0x%04x\n",pages,who,page);
+	LOG_MSG("BIOS_GetMemory(0x%04x pages,\"%s\") = 0x%04x\n",pages,who,page);
 	bios_memseg+=pages;
 	return page;
 }
@@ -71,7 +71,7 @@ void DOS_GetMemory_reset() {
 
 void DOS_GetMemory_unmap() {
 	if (DOS_PRIVATE_SEGMENT != 0) {
-		fprintf(stderr,"Unmapping DOS private segment 0x%04x-0x%04x\n",DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
+		LOG_MSG("Unmapping DOS private segment 0x%04x-0x%04x\n",DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
 		if (DOS_PRIVATE_SEGMENT >= 0xA000) MEM_unmap_physmem(DOS_PRIVATE_SEGMENT<<4,(DOS_PRIVATE_SEGMENT_END<<4)-1);
 		DOS_GetMemory_unmapped = true;
 		DOS_PRIVATE_SEGMENT_END = 0;
@@ -99,7 +99,7 @@ void DOS_GetMemory_Choose() {
 			MEM_map_RAM_physmem(DOS_PRIVATE_SEGMENT<<4,(DOS_PRIVATE_SEGMENT_END<<4)-1);
 		}
 
-		fprintf(stderr,"DOS private segment set to 0x%04x-0x%04x\n",DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
+		LOG_MSG("DOS private segment set to 0x%04x-0x%04x\n",DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
 	}
 }
 
@@ -113,12 +113,12 @@ Bit16u DOS_GetMemory(Bit16u pages,const char *who) {
 	}
 
 	if (((Bitu)pages+(Bitu)dos_memseg) > DOS_PRIVATE_SEGMENT_END) {
-		fprintf(stderr,"DOS_GetMemory(%u) failed (alloc=0x%04x segment=0x%04x end=0x%04x)\n",
+		LOG_MSG("DOS_GetMemory(%u) failed (alloc=0x%04x segment=0x%04x end=0x%04x)\n",
 			pages,dos_memseg,DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END);
 		E_Exit("DOS:Not enough memory for internal tables");
 	}
 	Bit16u page=dos_memseg;
-	fprintf(stderr,"DOS_GetMemory(0x%04x pages,\"%s\") = 0x%04x\n",pages,who,page);
+	LOG_MSG("DOS_GetMemory(0x%04x pages,\"%s\") = 0x%04x\n",pages,who,page);
 	dos_memseg+=pages;
 	return page;
 }

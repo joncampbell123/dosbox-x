@@ -211,12 +211,12 @@ Bit8u imageDisk::Read_AbsoluteSector(Bit32u sectnum, void * data) {
 
 	fseeko64(diskimg,bytenum,SEEK_SET);
 	if ((Bit64u)ftello64(diskimg) != bytenum) {
-		fprintf(stderr,"fseek() failed in Read_AbsoluteSector for sector %lu\n",(unsigned long)sectnum);
+		LOG_MSG("fseek() failed in Read_AbsoluteSector for sector %lu\n",(unsigned long)sectnum);
 		return 0x05;
 	}
 
 	if (fread(data, 1, sector_size, diskimg) != sector_size) {
-		fprintf(stderr,"fread() failed in Read_AbsoluteSector for sectur %lu\n",(unsigned long)sectnum);
+		LOG_MSG("fread() failed in Read_AbsoluteSector for sectur %lu\n",(unsigned long)sectnum);
 		return 0x05;
 	}
 
@@ -241,7 +241,7 @@ Bit8u imageDisk::Write_AbsoluteSector(Bit32u sectnum, void *data) {
 
 	fseeko64(diskimg,bytenum,SEEK_SET);
 	if ((Bit64u)ftello64(diskimg) != bytenum)
-		fprintf(stderr,"WARNING: fseek() failed in Read_AbsoluteSector for sector %lu\n",(unsigned long)sectnum);
+		LOG_MSG("WARNING: fseek() failed in Read_AbsoluteSector for sector %lu\n",(unsigned long)sectnum);
 
 	size_t ret=fwrite(data, sector_size, 1, diskimg);
 
@@ -415,7 +415,7 @@ static Bitu INT13_DiskHandler(void) {
 
 	/* map out functions 0x40-0x48 if not emulating INT 13h extensions */
 	if (!int13_extensions_enable && reg_ah >= 0x40 && reg_ah <= 0x48) {
-		fprintf(stderr,"Warning: Guest is attempting to use INT 13h extensions (AH=0x%02X). Set 'int 13 extensions=1' if you want to enable them.\n",reg_ah);
+		LOG_MSG("Warning: Guest is attempting to use INT 13h extensions (AH=0x%02X). Set 'int 13 extensions=1' if you want to enable them.\n",reg_ah);
 		reg_ah=0xff;
 		CALLBACK_SCF(true);
 		return CBRET_NONE;
@@ -559,19 +559,19 @@ static Bitu INT13_DiskHandler(void) {
 		break;
 	case 0x05: /* Format track */
 		/* ignore it. I just fucking want FORMAT.COM to write the FAT structure for God's sake */
-		fprintf(stderr,"WARNING: Format track ignored\n");
+		LOG_MSG("WARNING: Format track ignored\n");
 		CALLBACK_SCF(false);
 		reg_ah = 0x00;
 		break;
 	case 0x06: /* Format track set bad sector flags */
 		/* ignore it. I just fucking want FORMAT.COM to write the FAT structure for God's sake */
-		fprintf(stderr,"WARNING: Format track set bad sector flags ignored (6)\n");
+		LOG_MSG("WARNING: Format track set bad sector flags ignored (6)\n");
 		CALLBACK_SCF(false);
 		reg_ah = 0x00;
 		break;
 	case 0x07: /* Format track set bad sector flags */
 		/* ignore it. I just fucking want FORMAT.COM to write the FAT structure for God's sake */
-		fprintf(stderr,"WARNING: Format track set bad sector flags ignored (7)\n");
+		LOG_MSG("WARNING: Format track set bad sector flags ignored (7)\n");
 		CALLBACK_SCF(false);
 		reg_ah = 0x00;
 		break;

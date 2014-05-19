@@ -276,9 +276,9 @@ struct ExpCode : public Xbyak::CodeGenerator {
 			makeExpPs(self, cpu);
 			return;
 		} catch (Xbyak::Error err) {
-			fprintf(stderr, "ExpCode ERR:%s(%d)\n", Xbyak::ConvertErrorToString(err), err);
+			LOG_MSG( "ExpCode ERR:%s(%d)\n", Xbyak::ConvertErrorToString(err), err);
 		} catch (...) {
-			fprintf(stderr, "ExpCode ERR:unknown error\n");
+			LOG_MSG( "ExpCode ERR:unknown error\n");
 		}
 		::exit(1);
 	}

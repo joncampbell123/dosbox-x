@@ -527,7 +527,7 @@ void TIMER_ShutdownTickHandlers() {
 	}
 
 	if (leftovers != 0)
-		fprintf(stderr,"TIMER: %u leftover handlers (clean up!).\n",leftovers);
+		LOG_MSG("TIMER: %u leftover handlers (clean up!).\n",leftovers);
 }
 
 void TIMER_DelTickHandler(TIMER_TickHandler handler) {

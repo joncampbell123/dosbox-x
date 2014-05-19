@@ -76,7 +76,7 @@ CDirectLPT::CDirectLPT (Bitu nr, Bit8u initIrq, CommandLine* cmd)
      hLib = LoadLibrary("inpout32.dll");
 
      if (hLib == NULL) {
-          fprintf(stderr,"LoadLibrary Failed.\n");
+          LOG_MSG("LoadLibrary Failed.\n");
           return ;
      }
 

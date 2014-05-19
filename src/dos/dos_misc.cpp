@@ -175,16 +175,16 @@ static bool DOS_MultiplexFunctions(void) {
 	case 0x1605:	/* Windows init broadcast */
 		/* TODO: Maybe future parts of DOSBox-X will do something with this */
 		/* TODO: Don't show this by default. Show if the user wants it by a) setting something to "true" in dosbox.conf or b) running a builtin command in Z:\ */
-		fprintf(stderr,"DEBUG: INT 2Fh Windows 286/386 DOSX init broadcast issued (ES:BX=%04x:%04x DS:SI=%04x:%04x CX=%04x DX=%04x DI=%04x(aka version %u.%u))",
+		LOG_MSG("DEBUG: INT 2Fh Windows 286/386 DOSX init broadcast issued (ES:BX=%04x:%04x DS:SI=%04x:%04x CX=%04x DX=%04x DI=%04x(aka version %u.%u))",
 			SegValue(es),reg_bx,
 			SegValue(ds),reg_si,
 			reg_cx,reg_dx,reg_di,
 			reg_di>>8,reg_di&0xFF);
 		if (reg_dx & 0x0001)
-			fprintf(stderr," [286 DOS extender]");
+			LOG_MSG(" [286 DOS extender]");
 		else
-			fprintf(stderr," [Enhanced mode]");
-		fprintf(stderr,"\n");
+			LOG_MSG(" [Enhanced mode]");
+		LOG_MSG("\n");
 
 		/* NTS: The way this protocol works, is that when you (the program hooking this call) receive it,
 		 *      you first pass the call down to the previous INT 2Fh handler with registers unmodified,
@@ -194,23 +194,23 @@ static bool DOS_MultiplexFunctions(void) {
 		 *      way the Windows kernel issued the call. If that's not the case, then we need to issue
 		 *      a warning because some bastard on the call chain is ruining it for all of us. */
 		if (SegValue(es) != 0 || reg_bx != 0 || SegValue(ds) != 0 || reg_si != 0 || reg_cx != 0) {
-			fprintf(stderr,"WARNING: Some registers at this point (the top of the call chain) are nonzero.\n");
-			fprintf(stderr,"         That means a TSR or other entity has modified registers on the way down\n");
-			fprintf(stderr,"         the call chain. The Windows init broadcast is supposed to be handled\n");
-			fprintf(stderr,"         going down the chain by calling the previous INT 2Fh handler with registers\n");
-			fprintf(stderr,"         unmodified, and only modify registers on the way back up the chain!\n");
+			LOG_MSG("WARNING: Some registers at this point (the top of the call chain) are nonzero.\n");
+			LOG_MSG("         That means a TSR or other entity has modified registers on the way down\n");
+			LOG_MSG("         the call chain. The Windows init broadcast is supposed to be handled\n");
+			LOG_MSG("         going down the chain by calling the previous INT 2Fh handler with registers\n");
+			LOG_MSG("         unmodified, and only modify registers on the way back up the chain!\n");
 		}
 
 		return false; /* pass it on to other INT 2F handlers */
 	case 0x1606:	/* Windows exit broadcast */
 		/* TODO: Maybe future parts of DOSBox-X will do something with this */
 		/* TODO: Don't show this by default. Show if the user wants it by a) setting something to "true" in dosbox.conf or b) running a builtin command in Z:\ */
-		fprintf(stderr,"DEBUG: INT 2Fh Windows 286/386 DOSX exit broadcast issued (DX=0x%04x)",reg_dx);
+		LOG_MSG("DEBUG: INT 2Fh Windows 286/386 DOSX exit broadcast issued (DX=0x%04x)",reg_dx);
 		if (reg_dx & 0x0001)
-			fprintf(stderr," [286 DOS extender]");
+			LOG_MSG(" [286 DOS extender]");
 		else
-			fprintf(stderr," [Enhanced mode]");
-		fprintf(stderr,"\n");
+			LOG_MSG(" [Enhanced mode]");
+		LOG_MSG("\n");
 		return false; /* pass it on to other INT 2F handlers */
 	case 0x1607:
 		/* TODO: Don't show this by default. Show if the user wants it by a) setting something to "true" in dosbox.conf or b) running a builtin command in Z:\
@@ -219,7 +219,7 @@ static bool DOS_MultiplexFunctions(void) {
 			const char *str = Win_NameThatVXD(reg_bx);
 
 			if (str == NULL) str = "??";
-			fprintf(stderr,"DEBUG: INT 2Fh Windows virtual device '%s' callout (BX(deviceID)=0x%04x CX(function)=0x%04x)\n",
+			LOG_MSG("DEBUG: INT 2Fh Windows virtual device '%s' callout (BX(deviceID)=0x%04x CX(function)=0x%04x)\n",
 				str,reg_bx,reg_cx);
 		}
 

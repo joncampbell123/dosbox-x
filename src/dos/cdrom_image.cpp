@@ -273,7 +273,7 @@ bool CDROM_Interface_Image::ReadSector(Bit8u *buffer, bool raw, unsigned long se
 	 * that doesn't exist on pure CD audio emulated images */
 	if (tracks[track].sectorSize == RAW_SECTOR_SIZE && !raw) {
 		if ((tracks[track].attr&0x40) == 0x00) {
-			fprintf(stderr,"Rejecting cooked read from raw audio CD sector\n");
+			LOG_MSG("Rejecting cooked read from raw audio CD sector\n");
 			return false;
 		}
 	}

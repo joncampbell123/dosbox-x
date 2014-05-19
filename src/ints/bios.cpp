@@ -272,7 +272,7 @@ static Bitu isapnp_read_port(Bitu port,Bitu /*iolen*/) {
 			   break;
 	}
 
-//	if (1) fprintf(stderr,"PnP read(%02X) = %02X\n",ISA_PNP_CUR_ADDR,ret);
+//	if (1) LOG_MSG("PnP read(%02X) = %02X\n",ISA_PNP_CUR_ADDR,ret);
 	return ret;
 }
 
@@ -280,10 +280,10 @@ void isapnp_write_port(Bitu port,Bitu val,Bitu /*iolen*/) {
 	Bitu i;
 
 	if (port == 0x279) {
-//		if (1) fprintf(stderr,"PnP addr(%02X)\n",val);
+//		if (1) LOG_MSG("PnP addr(%02X)\n",val);
 		if (val == isa_pnp_init_keystring[ISA_PNP_KEYMATCH]) {
 			if (++ISA_PNP_KEYMATCH == 32) {
-//				fprintf(stderr,"ISA PnP key -> going to sleep\n");
+//				LOG_MSG("ISA PnP key -> going to sleep\n");
 				ISA_PNP_CUR_STATE = ISA_PNP_SLEEP;
 				ISA_PNP_KEYMATCH = 0;
 				for (i=0;i < MAX_ISA_PNP_DEVICES;i++) {
@@ -300,7 +300,7 @@ void isapnp_write_port(Bitu port,Bitu val,Bitu /*iolen*/) {
 		ISA_PNP_CUR_ADDR = val;
 	}
 	else if (port == 0xA79) {
-//		if (1) fprintf(stderr,"PnP write(%02X) = %02X\n",ISA_PNP_CUR_ADDR,val);
+//		if (1) LOG_MSG("PnP write(%02X) = %02X\n",ISA_PNP_CUR_ADDR,val);
 		switch (ISA_PNP_CUR_ADDR) {
 			case 0x00: {	/* RD_DATA */
 				unsigned int np = ((val & 0xFF) << 2) | 3;
@@ -311,14 +311,14 @@ void isapnp_write_port(Bitu port,Bitu val,Bitu /*iolen*/) {
 					}
 
 					if (np >= 0x200 && np <= 0x3FF) { /* allowable port I/O range according to spec */
-						fprintf(stderr,"PNP OS changed I/O read port to 0x%03X (from 0x%03X)\n",np,ISA_PNP_WPORT);
+						LOG_MSG("PNP OS changed I/O read port to 0x%03X (from 0x%03X)\n",np,ISA_PNP_WPORT);
 
 						ISA_PNP_WPORT = np;
 						ISAPNP_PNP_READ_PORT = new IO_ReadHandleObject;
 						ISAPNP_PNP_READ_PORT->Install(ISA_PNP_WPORT,isapnp_read_port,IO_MB);
 					}
 					else {
-						fprintf(stderr,"PNP OS I/O read port disabled\n");
+						LOG_MSG("PNP OS I/O read port disabled\n");
 
 						ISA_PNP_WPORT = 0;
 					}
@@ -386,7 +386,7 @@ void ISAPNP_Cfg_Init(Section *s) {
 	APMBIOS_allow_realmode = section->Get_bool("apmbios allow realmode");
 	APMBIOS_allow_prot16 = section->Get_bool("apmbios allow 16-bit protected mode");
 	APMBIOS_allow_prot32 = section->Get_bool("apmbios allow 32-bit protected mode");
-	fprintf(stderr,"APM BIOS allow: real=%u pm16=%u pm32=%u\n",
+	LOG_MSG("APM BIOS allow: real=%u pm16=%u pm32=%u\n",
 		APMBIOS_allow_realmode,
 		APMBIOS_allow_prot16,
 		APMBIOS_allow_prot32);
@@ -404,7 +404,7 @@ void ISAPNP_Cfg_Init(Section *s) {
 
 		cb = CALLBACK_Allocate();
 		INT15_apm_pmentry = CALLBACK_RealPointer(cb);
-		fprintf(stderr,"Allocated APM BIOS pm entry point at %04x:%04x\n",INT15_apm_pmentry>>16,INT15_apm_pmentry&0xFFFF);
+		LOG_MSG("Allocated APM BIOS pm entry point at %04x:%04x\n",INT15_apm_pmentry>>16,INT15_apm_pmentry&0xFFFF);
 		CALLBACK_Setup(cb,INT15_Handler,CB_RETF,"APM BIOS protected mode entry point");
 	}
 }
@@ -753,14 +753,14 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
 		arg = SegPhys(ss) + reg_sp + (2*2); /* entry point (real and protected) is 16-bit, expected to RETF (skip CS:IP) */
 
 	if (protmode != ISAPNP_CPU_ProtMode()) {
-		//fprintf(stderr,"ISA PnP %s entry point called from %s. On real BIOSes this would CRASH\n",protmode ? "Protected mode" : "Real mode",
+		//LOG_MSG("ISA PnP %s entry point called from %s. On real BIOSes this would CRASH\n",protmode ? "Protected mode" : "Real mode",
 		//	ISAPNP_CPU_ProtMode() ? "Protected mode" : "Real mode");
 		reg_ax = 0x84;/* BAD_PARAMETER */
 		return 0;
 	}
 
 	func = mem_readw(arg);
-//	fprintf(stderr,"PnP prot=%u DS=%04x (base=0x%08lx) SS:ESP=%04x:%04x (base=0x%08lx phys=0x%08lx) function=0x%04x\n",
+//	LOG_MSG("PnP prot=%u DS=%04x (base=0x%08lx) SS:ESP=%04x:%04x (base=0x%08lx phys=0x%08lx) function=0x%04x\n",
 //		(unsigned int)protmode,(unsigned int)SegValue(ds),(unsigned long)SegPhys(ds),
 //		(unsigned int)SegValue(ss),(unsigned int)reg_esp,(unsigned long)SegPhys(ss),
 //		(unsigned long)arg,(unsigned int)func);
@@ -806,7 +806,7 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
 
 			/* control bits 0-1 must be '01' or '10' but not '00' or '11' */
 			if (Control == 0 || (Control&3) == 3) {
-				fprintf(stderr,"ISAPNP Get System Device Node: Invalid Control value 0x%04x\n",Control);
+				LOG_MSG("ISAPNP Get System Device Node: Invalid Control value 0x%04x\n",Control);
 				reg_ax = 0x84;/* BAD_PARAMETER */
 				break;
 			}
@@ -815,7 +815,7 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
 			Node_ptr = ISAPNP_xlate_address(Node_ptr);
 			Node = mem_readb(Node_ptr);
 			if (Node >= ISAPNP_SysDevNodeCount) {
-				fprintf(stderr,"ISAPNP Get System Device Node: Invalid Node 0x%02x (max 0x%04x)\n",Node,ISAPNP_SysDevNodeCount);
+				LOG_MSG("ISAPNP Get System Device Node: Invalid Node 0x%02x (max 0x%04x)\n",Node,ISAPNP_SysDevNodeCount);
 				reg_ax = 0x84;/* BAD_PARAMETER */
 				break;
 			}
@@ -827,7 +827,7 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
 			for (i=0;i < (Bitu)nd->raw_len;i++)
 				mem_writeb(devNodeBuffer_ptr+i+3,nd->raw[i]);
 
-//			fprintf(stderr,"ISAPNP OS asked for Node 0x%02x\n",Node);
+//			LOG_MSG("ISAPNP OS asked for Node 0x%02x\n",Node);
 
 			if (++Node >= ISAPNP_SysDevNodeCount) Node = 0xFF; /* no more nodes */
 			mem_writeb(Node_ptr,Node);
@@ -845,20 +845,20 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
 
 			switch (Message) {
 				case 0x41:	/* POWER_OFF */
-					fprintf(stderr,"Plug & Play OS requested power off.\n");
+					LOG_MSG("Plug & Play OS requested power off.\n");
 					throw 1;	/* NTS: Based on the Reboot handler code, causes DOSBox to cleanly shutdown and exit */
 					reg_ax = 0;
 					break;
 				case 0x42:	/* PNP_OS_ACTIVE */
-					fprintf(stderr,"Plug & Play OS reports itself active\n");
+					LOG_MSG("Plug & Play OS reports itself active\n");
 					reg_ax = 0;
 					break;
 				case 0x43:	/* PNP_OS_INACTIVE */
-					fprintf(stderr,"Plug & Play OS reports itself inactive\n");
+					LOG_MSG("Plug & Play OS reports itself inactive\n");
 					reg_ax = 0;
 					break;
 				default:
-					fprintf(stderr,"Unknown ISA PnP message 0x%04x\n",Message);
+					LOG_MSG("Unknown ISA PnP message 0x%04x\n",Message);
 					reg_ax = 0x82;/* FUNCTION_NOT_SUPPORTED */
 					break;
 			}
@@ -890,7 +890,7 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
 			reg_ax = 0x00;/* SUCCESS */
 		} break;
 		default:
-			//fprintf(stderr,"Unsupported ISA PnP function 0x%04x\n",func);
+			//LOG_MSG("Unsupported ISA PnP function 0x%04x\n",func);
 			reg_ax = 0x82;/* FUNCTION_NOT_SUPPORTED */
 			break;
 	};
@@ -899,8 +899,8 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
 badBiosSelector:
 	/* return an error. remind the user (possible developer) how lucky he is, a real
 	 * BIOS implementation would CRASH when misused like this */
-	fprintf(stderr,"ISA PnP function 0x%04x called with incorrect BiosSelector parameter 0x%04x\n",func,BiosSelector);
-	fprintf(stderr," > STACK %04X %04X %04X %04X %04X %04X %04X %04X\n",
+	LOG_MSG("ISA PnP function 0x%04x called with incorrect BiosSelector parameter 0x%04x\n",func,BiosSelector);
+	LOG_MSG(" > STACK %04X %04X %04X %04X %04X %04X %04X %04X\n",
 		mem_readw(arg),		mem_readw(arg+2),	mem_readw(arg+4),	mem_readw(arg+6),
 		mem_readw(arg+8),	mem_readw(arg+10),	mem_readw(arg+12),	mem_readw(arg+14));
 
@@ -1943,7 +1943,7 @@ static Bitu INT15_Handler(void) {
 			 *       OSes that communicate directly with the AUX port however (Linux, Windows NT) will not work
 			 *       unless aux=true. */
 		if (en_bios_ps2mouse) {
-//			fprintf(stderr,"INT 15h AX=%04x BX=%04x\n",reg_ax,reg_bx);
+//			LOG_MSG("INT 15h AX=%04x BX=%04x\n",reg_ax,reg_bx);
 			switch (reg_al) {
 				case 0x00:		// enable/disable
 					if (reg_bh==0) {	// disable
@@ -1995,7 +1995,7 @@ static Bitu INT15_Handler(void) {
 						 *       it in src/ints/mouse.cpp device callback emulation to reframe the
 						 *       PS/2 mouse bytes coming from AUX (if aux=true) or emulate the
 						 *       re-framing if aux=false to emulate this protocol fully. */
-						fprintf(stderr,"INT 15h mouse initialized to %u-byte protocol\n",reg_bh);
+						LOG_MSG("INT 15h mouse initialized to %u-byte protocol\n",reg_bh);
 						KEYBOARD_AUX_Write(0xF6); /* set defaults */
 						Mouse_SetPS2State(false);
 						KEYBOARD_ClrBuffer();
@@ -2025,7 +2025,7 @@ static Bitu INT15_Handler(void) {
 					break;
 				case 0x04:		// get type
 					reg_bh=KEYBOARD_AUX_GetType();	// ID
-					fprintf(stderr,"INT 15h reporting mouse device ID 0x%02x\n",reg_bh);
+					LOG_MSG("INT 15h reporting mouse device ID 0x%02x\n",reg_bh);
 					KEYBOARD_ClrBuffer();
 					CALLBACK_SCF(false);
 					reg_ah=0;
@@ -2058,7 +2058,7 @@ static Bitu INT15_Handler(void) {
 					reg_ah=0;
 					break;
 				default:
-					fprintf(stderr,"INT 15h unknown mouse call AX=%04x\n",reg_ax);
+					LOG_MSG("INT 15h unknown mouse call AX=%04x\n",reg_ax);
 					CALLBACK_SCF(true);
 					reg_ah=1;
 					break;
@@ -2083,7 +2083,7 @@ static Bitu INT15_Handler(void) {
 		break;
 	case 0x53: // APM BIOS
 		if (APMBIOS) {
-//			fprintf(stderr,"APM BIOS call AX=%04x BX=0x%04x CX=0x%04x\n",reg_ax,reg_bx,reg_cx);
+//			LOG_MSG("APM BIOS call AX=%04x BX=0x%04x CX=0x%04x\n",reg_ax,reg_bx,reg_cx);
 			switch(reg_al) {
 				case 0x00: // installation check
 					reg_ah = 1;			// APM 1.2	<- TODO: Make dosbox.conf option what version APM interface we emulate
@@ -2095,7 +2095,7 @@ static Bitu INT15_Handler(void) {
 					break;
 				case 0x01: // connect real mode interface
 					if(!APMBIOS_allow_realmode) {
-						fprintf(stderr,"APM BIOS: OS attemped real-mode connection, which is disabled in your dosbox.conf\n");
+						LOG_MSG("APM BIOS: OS attemped real-mode connection, which is disabled in your dosbox.conf\n");
 						reg_ah = 0x86;	// APM not present
 						CALLBACK_SCF(true);			
 						break;
@@ -2106,19 +2106,19 @@ static Bitu INT15_Handler(void) {
 						break;
 					}
 					if(!apm_realmode_connected) { // not yet connected
-						fprintf(stderr,"APM BIOS: Connected to real-mode interface\n");
+						LOG_MSG("APM BIOS: Connected to real-mode interface\n");
 						CALLBACK_SCF(false);
 						APMBIOS_connect_mode = APMBIOS_CONNECT_REAL;
 						apm_realmode_connected=true;
 					} else {
-						fprintf(stderr,"APM BIOS: OS attempted to connect to real-mode interface when already connected\n");
+						LOG_MSG("APM BIOS: OS attempted to connect to real-mode interface when already connected\n");
 						reg_ah = APMBIOS_connected_already_err(); // interface connection already in effect
 						CALLBACK_SCF(true);			
 					}
 					break;
 				case 0x02: // connect 16-bit protected mode interface
 					if(!APMBIOS_allow_prot16) {
-						fprintf(stderr,"APM BIOS: OS attemped 16-bit protected mode connection, which is disabled in your dosbox.conf\n");
+						LOG_MSG("APM BIOS: OS attemped 16-bit protected mode connection, which is disabled in your dosbox.conf\n");
 						reg_ah = 0x06;	// not supported
 						CALLBACK_SCF(true);			
 						break;
@@ -2132,7 +2132,7 @@ static Bitu INT15_Handler(void) {
 						/* NTS: We use the same callback address for both 16-bit and 32-bit
 						 *      because only the DOS callback and RETF instructions are involved,
 						 *      which can be executed as either 16-bit or 32-bit code without problems. */
-						fprintf(stderr,"APM BIOS: Connected to 16-bit protected mode interface\n");
+						LOG_MSG("APM BIOS: Connected to 16-bit protected mode interface\n");
 						CALLBACK_SCF(false);
 						reg_ax = INT15_apm_pmentry >> 16;	// AX = 16-bit code segment (real mode base)
 						reg_bx = INT15_apm_pmentry & 0xFFFF;	// BX = offset of entry point
@@ -2142,7 +2142,7 @@ static Bitu INT15_Handler(void) {
 						APMBIOS_connect_mode = APMBIOS_CONNECT_PROT16;
 						apm_realmode_connected=true;
 					} else {
-						fprintf(stderr,"APM BIOS: OS attempted to connect to 16-bit protected mode interface when already connected\n");
+						LOG_MSG("APM BIOS: OS attempted to connect to 16-bit protected mode interface when already connected\n");
 						reg_ah = APMBIOS_connected_already_err(); // interface connection already in effect
 						CALLBACK_SCF(true);			
 					}
@@ -2151,7 +2151,7 @@ static Bitu INT15_Handler(void) {
 					// Note that Windows 98 will NOT talk to the APM BIOS unless the 32-bit protected mode connection is available.
 					// And if you lie about it in function 0x00 and then fail, Windows 98 will fail with a "Windows protection error".
 					if(!APMBIOS_allow_prot32) {
-						fprintf(stderr,"APM BIOS: OS attemped 32-bit protected mode connection, which is disabled in your dosbox.conf\n");
+						LOG_MSG("APM BIOS: OS attemped 32-bit protected mode connection, which is disabled in your dosbox.conf\n");
 						reg_ah = 0x08;	// not supported
 						CALLBACK_SCF(true);			
 						break;
@@ -2162,7 +2162,7 @@ static Bitu INT15_Handler(void) {
 						break;
 					}
 					if(!apm_realmode_connected) { // not yet connected
-						fprintf(stderr,"APM BIOS: Connected to 32-bit protected mode interface\n");
+						LOG_MSG("APM BIOS: Connected to 32-bit protected mode interface\n");
 						CALLBACK_SCF(false);
 						/* NTS: We use the same callback address for both 16-bit and 32-bit
 						 *      because only the DOS callback and RETF instructions are involved,
@@ -2176,7 +2176,7 @@ static Bitu INT15_Handler(void) {
 						APMBIOS_connect_mode = APMBIOS_CONNECT_PROT32;
 						apm_realmode_connected=true;
 					} else {
-						fprintf(stderr,"APM BIOS: OS attempted to connect to 32-bit protected mode interface when already connected\n");
+						LOG_MSG("APM BIOS: OS attempted to connect to 32-bit protected mode interface when already connected\n");
 						reg_ah = APMBIOS_connected_already_err(); // interface connection already in effect
 						CALLBACK_SCF(true);			
 					}
@@ -2188,7 +2188,7 @@ static Bitu INT15_Handler(void) {
 						break;
 					}
 					if(apm_realmode_connected) {
-						fprintf(stderr,"APM BIOS: OS disconnected\n");
+						LOG_MSG("APM BIOS: OS disconnected\n");
 						CALLBACK_SCF(false);
 						apm_realmode_connected=false;
 					} else {
@@ -2221,10 +2221,10 @@ static Bitu INT15_Handler(void) {
 					//       on APM idle calls? Allow selection between "nothing" "hlt"
 					//       and "software delay".
 					if (!(reg_flags&0x200)) {
-						fprintf(stderr,"APM BIOS warning: CPU IDLE called with IF=0, not HLTing\n");
+						LOG_MSG("APM BIOS warning: CPU IDLE called with IF=0, not HLTing\n");
 					}
 					else if (cpudecoder == &HLT_Decode) { /* do not re-execute HLT, it makes DOSBox hang */
-						fprintf(stderr,"APM BIOS warning: CPU IDLE HLT within HLT (DOSBox core failure)\n");
+						LOG_MSG("APM BIOS warning: CPU IDLE HLT within HLT (DOSBox core failure)\n");
 					}
 					else {
 						CPU_HLT(reg_eip);
@@ -2332,7 +2332,7 @@ static Bitu INT15_Handler(void) {
 					}
 					break;
 				default:
-					fprintf(stderr,"Unknown APM BIOS call AX=%04x\n",reg_ax);
+					LOG_MSG("Unknown APM BIOS call AX=%04x\n",reg_ax);
 					reg_ah = 0x0C; // function not supported
 					CALLBACK_SCF(false);
 					break;
@@ -2341,7 +2341,7 @@ static Bitu INT15_Handler(void) {
 		else {
 			reg_ah=0x86;
 			CALLBACK_SCF(true);
-			fprintf(stderr,"APM BIOS call attempted. set apmbios=1 if you want power management\n");
+			LOG_MSG("APM BIOS call attempted. set apmbios=1 if you want power management\n");
 			if ((IS_EGAVGA_ARCH) || (machine==MCH_CGA) || (machine==MCH_AMSTRAD)) {
 				/* relict from comparisons, as int15 exits with a retf2 instead of an iret */
 				CALLBACK_SZF(false);
@@ -2751,7 +2751,7 @@ public:
 			ISAPNP_PNP_DATA_PORT->Install(0xA79,isapnp_write_port,IO_MB);
 			ISAPNP_PNP_READ_PORT = new IO_ReadHandleObject;
 			ISAPNP_PNP_READ_PORT->Install(ISA_PNP_WPORT,isapnp_read_port,IO_MB);
-			fprintf(stderr,"Registered ISA PnP read port at 0x%03x\n",ISA_PNP_WPORT);
+			LOG_MSG("Registered ISA PnP read port at 0x%03x\n",ISA_PNP_WPORT);
 
 			/* debug: test PnP device. FIXME: Make this an optional device for debugging and testing!
 			 * The intent of this test device is to give PnP emulation something to pickup. The only
@@ -2771,12 +2771,12 @@ public:
 			Bitu call_pnp_r = CALLBACK_Allocate();
 			Bitu call_pnp_rp = PNPentry_real = CALLBACK_RealPointer(call_pnp_r);
 			CALLBACK_Setup(call_pnp_r,ISAPNP_Handler_RM,CB_RETF,"ISA Plug & Play entry point (real)");
-			//fprintf(stderr,"real entry pt=%08lx\n",PNPentry_real);
+			//LOG_MSG("real entry pt=%08lx\n",PNPentry_real);
 
 			Bitu call_pnp_p = CALLBACK_Allocate();
 			Bitu call_pnp_pp = PNPentry_prot = CALLBACK_RealPointer(call_pnp_p);
 			CALLBACK_Setup(call_pnp_p,ISAPNP_Handler_PM,CB_RETF,"ISA Plug & Play entry point (protected)");
-			//fprintf(stderr,"prot entry pt=%08lx\n",PNPentry_prot);
+			//LOG_MSG("prot entry pt=%08lx\n",PNPentry_prot);
 
 			phys_writeb(base+0,'$');
 			phys_writeb(base+1,'P');
@@ -2802,62 +2802,62 @@ public:
 
 			/* input device (keyboard) */
 			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_Keyboard,sizeof(ISAPNP_sysdev_Keyboard),true))
-				fprintf(stderr,"ISAPNP register failed\n");
+				LOG_MSG("ISAPNP register failed\n");
 
 			/* input device (mouse) */
 			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_Mouse,sizeof(ISAPNP_sysdev_Mouse),true))
-				fprintf(stderr,"ISAPNP register failed\n");
+				LOG_MSG("ISAPNP register failed\n");
 
 			/* DMA controller */
 			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_DMA_Controller,sizeof(ISAPNP_sysdev_DMA_Controller),true))
-				fprintf(stderr,"ISAPNP register failed\n");
+				LOG_MSG("ISAPNP register failed\n");
 
 			/* Interrupt controller */
 			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_PIC,sizeof(ISAPNP_sysdev_PIC),true))
-				fprintf(stderr,"ISAPNP register failed\n");
+				LOG_MSG("ISAPNP register failed\n");
 
 			/* Timer */
 			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_Timer,sizeof(ISAPNP_sysdev_Timer),true))
-				fprintf(stderr,"ISAPNP register failed\n");
+				LOG_MSG("ISAPNP register failed\n");
 
 			/* Realtime clock */
 			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_RTC,sizeof(ISAPNP_sysdev_RTC),true))
-				fprintf(stderr,"ISAPNP register failed\n");
+				LOG_MSG("ISAPNP register failed\n");
 
 			/* PC speaker */
 			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_PC_Speaker,sizeof(ISAPNP_sysdev_PC_Speaker),true))
-				fprintf(stderr,"ISAPNP register failed\n");
+				LOG_MSG("ISAPNP register failed\n");
 
 			/* System board */
 			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_System_Board,sizeof(ISAPNP_sysdev_System_Board),true))
-				fprintf(stderr,"ISAPNP register failed\n");
+				LOG_MSG("ISAPNP register failed\n");
 
 			/* Motherboard PNP resources and general */
 			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_General_ISAPNP,sizeof(ISAPNP_sysdev_General_ISAPNP),true))
-				fprintf(stderr,"ISAPNP register failed\n");
+				LOG_MSG("ISAPNP register failed\n");
 
 			/* ISA bus, meaning, a computer with ISA slots.
 			 * The purpose of this device is to convince Windows 95 to automatically install it's
 			 * "ISA Plug and Play bus" so that PnP devices are recognized automatically */
 			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_ISA_BUS,sizeof(ISAPNP_sysdev_ISA_BUS),true))
-				fprintf(stderr,"ISAPNP register failed\n");
+				LOG_MSG("ISAPNP register failed\n");
 
 			/* PCI bus, meaning, a computer with PCI slots.
 			 * The purpose of this device is to tell Windows 95 that a PCI bus is present. Without
 			 * this entry, PCI devices will not be recognized until you manually install the PCI driver. */
 			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_PCI_BUS,sizeof(ISAPNP_sysdev_PCI_BUS),true))
-				fprintf(stderr,"ISAPNP register failed\n");
+				LOG_MSG("ISAPNP register failed\n");
 
 			/* APM BIOS device. To help Windows 95 see our APM BIOS. */
 			if (APMBIOS) {
 				if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_APM_BIOS,sizeof(ISAPNP_sysdev_APM_BIOS),true))
-					fprintf(stderr,"ISAPNP register failed\n");
+					LOG_MSG("ISAPNP register failed\n");
 			}
 
 #if (C_FPU)
 			/* Numeric Coprocessor */
 			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_Numeric_Coprocessor,sizeof(ISAPNP_sysdev_Numeric_Coprocessor),true))
-				fprintf(stderr,"ISAPNP register failed\n");
+				LOG_MSG("ISAPNP register failed\n");
 #endif
 
 			/* RAM resources. we have to construct it */
@@ -2906,7 +2906,7 @@ public:
 				i += 2;
 
 				if (!ISAPNP_RegisterSysDev(tmp,i))
-					fprintf(stderr,"ISAPNP register failed\n");
+					LOG_MSG("ISAPNP register failed\n");
 			}
 
 			/* register parallel ports */
@@ -2946,7 +2946,7 @@ public:
 					i += 2;
 
 					if (!ISAPNP_RegisterSysDev(tmp,i))
-						fprintf(stderr,"ISAPNP register failed\n");
+						LOG_MSG("ISAPNP register failed\n");
 				}
 			}
 		}
@@ -3098,7 +3098,7 @@ void BIOS_PnP_ComPortRegister(Bitu port,Bitu irq) {
 		i += 2;
 
 		if (!ISAPNP_RegisterSysDev(tmp,i)) {
-			//fprintf(stderr,"ISAPNP register failed\n");
+			//LOG_MSG("ISAPNP register failed\n");
 		}
 	}
 }

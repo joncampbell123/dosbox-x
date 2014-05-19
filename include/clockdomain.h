@@ -85,7 +85,7 @@ public:
 	unsigned long long time_to_clocks(double f) {
 		f -= base_f;
 		if (f < 0.0) {
-			fprintf(stderr,"Clock domain %s warning: time went backwards below base\n",name.c_str());
+			LOG_MSG("Clock domain %s warning: time went backwards below base\n",name.c_str());
 			base_f = f;
 			f = 0;
 			notify_rebase();
@@ -113,13 +113,13 @@ public:
 	void add_slave(ClockDomain *s) {
 		assert(s != NULL);
 		if (s->master_clock != NULL) {
-			fprintf(stderr,"Clock domain %s warning: attempting to add slave clock %s when said clock is already slave to someone else\n",name.c_str(),s->name.c_str());
+			LOG_MSG("Clock domain %s warning: attempting to add slave clock %s when said clock is already slave to someone else\n",name.c_str(),s->name.c_str());
 			return;
 		}
 
 		for (size_t i=0;i < slaves.size();i++) {
 			if (slaves[i] == s) {
-				fprintf(stderr,"Clock domain %s warning: attempted to add slave clock %s again\n",name.c_str(),s->name.c_str());
+				LOG_MSG("Clock domain %s warning: attempted to add slave clock %s again\n",name.c_str(),s->name.c_str());
 				return;
 			}
 		}
@@ -168,7 +168,7 @@ public:
 		ClockDomainEvent new_event;
 
 		if (t_clk < counter) {
-			fprintf(stderr,"Clock domain %s warning: attempt to add event prior to NOW\n",name.c_str());
+			LOG_MSG("Clock domain %s warning: attempt to add event prior to NOW\n",name.c_str());
 			t_clk = counter + 1ULL; /* one-clock penalty */
 		}
 

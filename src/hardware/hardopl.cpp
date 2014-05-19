@@ -86,7 +86,7 @@ void HARDOPL_Init(Bitu hardwareaddr, Bitu blasteraddr, bool isCMSp) {
      hLib = LoadLibrary("inpout32.dll");
 
      if (hLib == NULL) {
-          fprintf(stderr,"LoadLibrary Failed.\n");
+          LOG_MSG("LoadLibrary Failed.\n");
           return ;
      }
 

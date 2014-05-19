@@ -419,7 +419,7 @@ public:
 	HelpWindow(GUI::Screen *parent, int x, int y, Section *section) :
 		MessageBox2(parent, x, y, 580, "", "") { // 740
 		if (section == NULL) {
-			fprintf(stderr,"BUG: HelpWindow constructor called with section == NULL\n");
+			LOG_MSG("BUG: HelpWindow constructor called with section == NULL\n");
 			return;
 		}
 
@@ -452,7 +452,7 @@ public:
 	SectionEditor(GUI::Screen *parent, int x, int y, Section_prop *section) :
 		ToplevelWindow(parent, x, y, 510, 300, ""), section(section) {
 		if (section == NULL) {
-			fprintf(stderr,"BUG: SectionEditor constructor called with section == NULL\n");
+			LOG_MSG("BUG: SectionEditor constructor called with section == NULL\n");
 			return;
 		}
 		std::string title(section->GetName());
@@ -504,7 +504,7 @@ public:
 	AutoexecEditor(GUI::Screen *parent, int x, int y, Section_line *section) :
 		ToplevelWindow(parent, x, y, 450, 300, ""), section(section) {
 		if (section == NULL) {
-			fprintf(stderr,"BUG: AutoexecEditor constructor called with section == NULL\n");
+			LOG_MSG("BUG: AutoexecEditor constructor called with section == NULL\n");
 			return;
 		}
 

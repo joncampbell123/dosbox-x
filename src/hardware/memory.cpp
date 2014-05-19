@@ -615,17 +615,17 @@ extern bool warn_on_mem_write;
 extern CPUBlock cpu;
 
 void mem_writeb(PhysPt address,Bit8u val) {
-//	if (warn_on_mem_write && cpu.pmode) fprintf(stderr,"WARNING: post-killswitch memory write to 0x%08x = 0x%02x\n",address,val);
+//	if (warn_on_mem_write && cpu.pmode) LOG_MSG("WARNING: post-killswitch memory write to 0x%08x = 0x%02x\n",address,val);
 	mem_writeb_inline(address,val);
 }
 
 void mem_writew(PhysPt address,Bit16u val) {
-//	if (warn_on_mem_write && cpu.pmode) fprintf(stderr,"WARNING: post-killswitch memory write to 0x%08x = 0x%04x\n",address,val);
+//	if (warn_on_mem_write && cpu.pmode) LOG_MSG("WARNING: post-killswitch memory write to 0x%08x = 0x%04x\n",address,val);
 	mem_writew_inline(address,val);
 }
 
 void mem_writed(PhysPt address,Bit32u val) {
-//	if (warn_on_mem_write && cpu.pmode) fprintf(stderr,"WARNING: post-killswitch memory write to 0x%08x = 0x%08x\n",address,val);
+//	if (warn_on_mem_write && cpu.pmode) LOG_MSG("WARNING: post-killswitch memory write to 0x%08x = 0x%08x\n",address,val);
 	mem_writed_inline(address,val);
 }
 
@@ -643,13 +643,13 @@ static void write_p92(Bitu port,Bitu val,Bitu iolen) {
 	// Bit 0 = system reset (switch back to real mode)
 	if (val & 1) {
 		if (allow_port_92_reset) {
-			fprintf(stderr,"Restart by port 92h requested\n");
+			LOG_MSG("Restart by port 92h requested\n");
 			control->startup_params.insert(control->startup_params.begin(),control->cmdline->GetFileName());
 			restart_program(control->startup_params);
 			/* does not return */
 		}
 		else {
-			fprintf(stderr,"WARNING: port 92h written with bit 0 set. Is the guest OS or application attempting to reset the system?\n");
+			LOG_MSG("WARNING: port 92h written with bit 0 set. Is the guest OS or application attempting to reset the system?\n");
 		}
 	}
 
@@ -680,9 +680,9 @@ bool MEM_unmap_physmem(Bitu start,Bitu end) {
 	Bitu p;
 
 	if (start & 0xFFF)
-		fprintf(stderr,"WARNING: unmap_physmem() start not page aligned.\n");
+		LOG_MSG("WARNING: unmap_physmem() start not page aligned.\n");
 	if ((end & 0xFFF) != 0xFFF)
-		fprintf(stderr,"WARNING: unmap_physmem() end not page aligned.\n");
+		LOG_MSG("WARNING: unmap_physmem() end not page aligned.\n");
 	start >>= 12; end >>= 12;
 
 	for (p=start;p <= end;p++)
@@ -700,9 +700,9 @@ bool MEM_map_RAM_physmem(Bitu start,Bitu end) {
 		: (PageHandler*)(&ram_alias_page_handler); /* aliasing */
 
 	if (start & 0xFFF)
-		fprintf(stderr,"WARNING: unmap_physmem() start not page aligned.\n");
+		LOG_MSG("WARNING: unmap_physmem() start not page aligned.\n");
 	if ((end & 0xFFF) != 0xFFF)
-		fprintf(stderr,"WARNING: unmap_physmem() end not page aligned.\n");
+		LOG_MSG("WARNING: unmap_physmem() end not page aligned.\n");
 	start >>= 12; end >>= 12;
 
 	for (p=start;p <= end;p++) {
@@ -721,9 +721,9 @@ bool MEM_map_ROM_physmem(Bitu start,Bitu end) {
 	Bitu p;
 
 	if (start & 0xFFF)
-		fprintf(stderr,"WARNING: unmap_physmem() start not page aligned.\n");
+		LOG_MSG("WARNING: unmap_physmem() start not page aligned.\n");
 	if ((end & 0xFFF) != 0xFFF)
-		fprintf(stderr,"WARNING: unmap_physmem() end not page aligned.\n");
+		LOG_MSG("WARNING: unmap_physmem() end not page aligned.\n");
 	start >>= 12; end >>= 12;
 
 	for (p=start;p <= end;p++) {
@@ -765,7 +765,7 @@ static void RAM_remap_64KBat1MB_A20fast(bool enable/*if set, we're transitioning
 		}
 	}
 
-	fprintf(stderr,"A20gate mode change: %u pages modified (fast enable=%d)\n",c,enable);
+	LOG_MSG("A20gate mode change: %u pages modified (fast enable=%d)\n",c,enable);
 }
 
 class A20GATE : public Program {
@@ -864,38 +864,38 @@ public:
 
 		std::string ss = section->Get_string("a20");
 		if (ss == "mask" || ss == "") {
-			fprintf(stderr,"A20: masking emulation\n");
+			LOG_MSG("A20: masking emulation\n");
 			a20_guest_changeable = true;
 			a20_full_masking = true;
 		}
 		else if (ss == "on") {
-			fprintf(stderr,"A20: locked on\n");
+			LOG_MSG("A20: locked on\n");
 			a20_guest_changeable = false;
 			a20_full_masking = true;
 			memory.a20.enabled = 1;
 		}
 		else if (ss == "on_fake") {
-			fprintf(stderr,"A20: locked on (but will fake control bit)\n");
+			LOG_MSG("A20: locked on (but will fake control bit)\n");
 			a20_guest_changeable = false;
 			a20_fake_changeable = true;
 			a20_full_masking = true;
 			memory.a20.enabled = 1;
 		}
 		else if (ss == "off") {
-			fprintf(stderr,"A20: locked off\n");
+			LOG_MSG("A20: locked off\n");
 			a20_guest_changeable = false;
 			a20_full_masking = true;
 			memory.a20.enabled = 0;
 		}
 		else if (ss == "off_fake") {
-			fprintf(stderr,"A20: locked off (but will fake control bit)\n");
+			LOG_MSG("A20: locked off (but will fake control bit)\n");
 			a20_guest_changeable = false;
 			a20_fake_changeable = true;
 			a20_full_masking = true;
 			memory.a20.enabled = 0;
 		}
 		else { /* "" or "fast" */
-			fprintf(stderr,"A20: fast remapping (64KB+1MB) DOSBox style\n");
+			LOG_MSG("A20: fast remapping (64KB+1MB) DOSBox style\n");
 			a20_guest_changeable = true;
 			a20_full_masking = false;
 		}
@@ -934,7 +934,7 @@ public:
 		   DOSBox that relies on reading and maintaining DOS structures and wrapping in
 		   that way is a good way to cause a crash. Note 0xFF << 12 == 0xFFFFF */
 		if ((memory.mem_alias_pagemask & 0xFF) != 0xFF) {
-			//fprintf(stderr,"BUG: invalid alias pagemask 0x%08lX\n",
+			//LOG_MSG("BUG: invalid alias pagemask 0x%08lX\n",
 			//	(unsigned long)memory.mem_alias_pagemask);
 			abort();
 		}

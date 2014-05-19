@@ -434,7 +434,7 @@ bool MEM_unmap_physmem(Bitu start,Bitu end);
 void RemoveUMBBlock() {
 	/* FIXME: Um... why is umb_available == false even when set to true below? */
 	if (umb_init) {
-		fprintf(stderr,"Removing UMB block 0x%04x-0x%04x\n",first_umb_seg,first_umb_seg+first_umb_size-1);
+		LOG_MSG("Removing UMB block 0x%04x-0x%04x\n",first_umb_seg,first_umb_seg+first_umb_size-1);
 		MEM_unmap_physmem(first_umb_seg<<4,((first_umb_seg+first_umb_size)<<4)-1);
 		umb_init = false;
 	}
@@ -489,32 +489,32 @@ public:
 		if (first_umb_size == 0) first_umb_size = 0xEFFF;
 
 		if (first_umb_seg < 0xC000 || first_umb_seg < DOS_PRIVATE_SEGMENT_END) {
-			fprintf(stderr,"UMB warning: UMB blocks before 0xD000 conflict with VGA (0xA000-0xBFFF), VGA BIOS (0xC000-0xC7FF) and DOSBox private area (0x%04x-0x%04x)\n",
+			LOG_MSG("UMB warning: UMB blocks before 0xD000 conflict with VGA (0xA000-0xBFFF), VGA BIOS (0xC000-0xC7FF) and DOSBox private area (0x%04x-0x%04x)\n",
 				DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
 			first_umb_seg = 0xC000;
 			if (first_umb_seg < (Bitu)DOS_PRIVATE_SEGMENT_END) first_umb_seg = (Bitu)DOS_PRIVATE_SEGMENT_END;
 		}
 		if (first_umb_seg >= 0xF000) {
-			fprintf(stderr,"UMB starting segment conflict with BIOS at 0xF000. Disabling UMBs\n");
+			LOG_MSG("UMB starting segment conflict with BIOS at 0xF000. Disabling UMBs\n");
 			umb_available = false;
 		}
 		if (first_umb_size >= 0xF000) {
-			fprintf(stderr,"UMB ending segment conflicts with BIOS at 0xF000, truncating region\n");
+			LOG_MSG("UMB ending segment conflicts with BIOS at 0xF000, truncating region\n");
 			first_umb_size = 0xEFFF;
 		}
 		if (first_umb_size < first_umb_seg) {
-			fprintf(stderr,"UMB end segment below UMB start. I'll just assume you mean to disable UMBs then.\n");
+			LOG_MSG("UMB end segment below UMB start. I'll just assume you mean to disable UMBs then.\n");
 			first_umb_size = first_umb_seg - 1;
 			umb_available = false;
 		}
 		first_umb_size = (first_umb_size + 1 - first_umb_seg);
 		if (umb_available) {
-			fprintf(stderr,"UMB assigned region is 0x%04x-0x%04x\n",first_umb_seg,first_umb_seg+first_umb_size-1);
+			LOG_MSG("UMB assigned region is 0x%04x-0x%04x\n",first_umb_seg,first_umb_seg+first_umb_size-1);
 			if (MEM_map_RAM_physmem(first_umb_seg<<4,((first_umb_seg+first_umb_size)<<4)-1)) {
 				memset(GetMemBase()+(first_umb_seg<<4),0x00,first_umb_size<<4);
 			}
 			else {
-				fprintf(stderr,"Unable to claim UMB region (perhaps adapter ROM is in the way). Disabling UMB\n");
+				LOG_MSG("Unable to claim UMB region (perhaps adapter ROM is in the way). Disabling UMB\n");
 				umb_available = false;
 			}
 		}

@@ -289,7 +289,7 @@ void run_hw() {
 	} while (again && --patience > 0);
 
 	if (patience <= 0)
-		fprintf(stderr,"WARNING: run_hw() one or more clock events are stuck?\n");
+		LOG_MSG("WARNING: run_hw() one or more clock events are stuck?\n");
 }
 
 #include "paging.h"
@@ -330,9 +330,9 @@ static Bitu Normal_Loop(void) {
 			catch (GuestPageFaultException &pf) {
 				ret = 0;
 				dosbox_allow_nonrecursive_page_fault = false;
-				fprintf(stderr,"Guest page fault exception! Alternate method will be used. Wish me luck.\n");
-				if (reg_eip != orig_eip) fprintf(stderr,"WARNING: eip changed up to page fault (0x%x != 0x%x)\n",reg_eip,orig_eip);
-				if (orig_cs != SegValue(cs)) fprintf(stderr,"WARNING: cs changed up to page fault (0x%x != 0x%x)\n",SegValue(cs),orig_cs);
+				LOG_MSG("Guest page fault exception! Alternate method will be used. Wish me luck.\n");
+				if (reg_eip != orig_eip) LOG_MSG("WARNING: eip changed up to page fault (0x%x != 0x%x)\n",reg_eip,orig_eip);
+				if (orig_cs != SegValue(cs)) LOG_MSG("WARNING: cs changed up to page fault (0x%x != 0x%x)\n",SegValue(cs),orig_cs);
 				if (orig_cs == SegValue(cs)) reg_eip = orig_eip; /* HACK: may have changed slightly */
 				CPU_Exception(EXCEPTION_PF,pf.faultcode);
 			}
@@ -562,7 +562,7 @@ void parse_busclk_setting_str(ClockDomain *cd,const char *s) {
 /* tied to ISA BCLK clock. test callback */
 void ISA_BCLK_test_event(ClockDomainEvent *e) {
 	if (e->domain->counter != e->t_clock) {
-		fprintf(stderr,"%s test event, counter=%llu %lld clocks*div late\n",
+		LOG_MSG("%s test event, counter=%llu %lld clocks*div late\n",
 			e->domain->name.c_str(),e->domain->counter,
 			(signed long long)(e->domain->counter - e->t_clock));
 	}

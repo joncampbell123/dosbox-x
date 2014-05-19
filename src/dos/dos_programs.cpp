@@ -915,7 +915,7 @@ public:
 			for(i=0;i<512;i++) real_writeb(0, (load_seg<<4) + i, bootarea.rawdata[i]);
 
 			/* debug */
-			fprintf(stderr,"Booting guest OS stack_seg=0x%04x load_seg=0x%04x\n",stack_seg,load_seg);
+			LOG_MSG("Booting guest OS stack_seg=0x%04x load_seg=0x%04x\n",stack_seg,load_seg);
 
 			/* standard method */
 			SegSet16(cs, 0);
@@ -1980,7 +1980,7 @@ public:
 			heads = 2;
 			cylinders = 69;
 			sectors = 14;
-			fprintf(stderr,"BUG! unsupported floppy_emu_type in El Torito floppy object\n");
+			LOG_MSG("BUG! unsupported floppy_emu_type in El Torito floppy object\n");
 		}
 
 		active = true;
@@ -2119,7 +2119,7 @@ public:
 				return;
 			}
 
-			fprintf(stderr,"El Torito emulation: Found ISO 9660 Boot Record in sector %lu, pointing to sector %lu\n",
+			LOG_MSG("El Torito emulation: Found ISO 9660 Boot Record in sector %lu, pointing to sector %lu\n",
 				boot_record_sector,el_torito_base);
 
 			/* Step #2: Parse the records. Each one is 32 bytes long */
@@ -2142,40 +2142,40 @@ public:
 
 				if (entry[0] == 0x01/*header*/) {
 					if (!ElTorito_ChecksumRecord(entry)) {
-						fprintf(stderr,"Warning: El Torito checksum error in header(0x01) entry\n");
+						LOG_MSG("Warning: El Torito checksum error in header(0x01) entry\n");
 						continue;
 					}
 
 					if (header_count != 0) {
-						fprintf(stderr,"Warning: El Torito has more than one Header/validation entry\n");
+						LOG_MSG("Warning: El Torito has more than one Header/validation entry\n");
 						continue;
 					}
 
 					if (header_final) {
-						fprintf(stderr,"Warning: El Torito has an additional header past the final header\n");
+						LOG_MSG("Warning: El Torito has an additional header past the final header\n");
 						continue;
 					}
 
 					header_more = -1;
 					header_platform = entry[1];
-					fprintf(stderr,"El Torito entry: first header platform=0x%02x\n",header_platform);
+					LOG_MSG("El Torito entry: first header platform=0x%02x\n",header_platform);
 					header_count++;
 				}
 				else if (entry[0] == 0x90/*header, more follows*/ || entry[0] == 0x91/*final header*/) {
 					if (header_final) {
-						fprintf(stderr,"Warning: El Torito has an additional header past the final header\n");
+						LOG_MSG("Warning: El Torito has an additional header past the final header\n");
 						continue;
 					}
 
 					header_final = (entry[0] == 0x91);
 					header_more = ((unsigned int)entry[2]) + (((unsigned int)entry[3]) << 8);
 					header_platform = entry[1];
-					fprintf(stderr,"El Torito entry: first header platform=0x%02x more=%u final=%u\n",header_platform,header_more,header_final);
+					LOG_MSG("El Torito entry: first header platform=0x%02x more=%u final=%u\n",header_platform,header_more,header_final);
 					header_count++;
 				}
 				else {
 					if (header_more == 0) {
-						fprintf(stderr,"El Torito entry: Non-header entry count expired, ignoring record 0x%02x\n",entry[0]);
+						LOG_MSG("El Torito entry: Non-header entry count expired, ignoring record 0x%02x\n",entry[0]);
 						continue;
 					}
 					else if (header_more > 0) {
@@ -2183,10 +2183,10 @@ public:
 					}
 
 					if (entry[0] == 0x44) {
-						fprintf(stderr,"El Torito entry: ignoring extension record\n");
+						LOG_MSG("El Torito entry: ignoring extension record\n");
 					}
 					else if (entry[0] == 0x00/*non-bootable*/) {
-						fprintf(stderr,"El Torito entry: ignoring non-bootable record\n");
+						LOG_MSG("El Torito entry: ignoring non-bootable record\n");
 					}
 					else if (entry[0] == 0x88/*bootable*/) {
 						if (header_platform == 0x00/*x86*/) {
@@ -2197,7 +2197,7 @@ public:
 							unsigned long load_rba = ((unsigned int)entry[8]) + (((unsigned int)entry[9]) << 8) +
 								(((unsigned int)entry[10]) << 16) + (((unsigned int)entry[11]) << 24);
 
-							fprintf(stderr,"El Torito entry: bootable x86 record mediatype=%u load_segment=0x%04x "
+							LOG_MSG("El Torito entry: bootable x86 record mediatype=%u load_segment=0x%04x "
 								"system_type=0x%02x sector_count=%u load_rba=%lu\n",
 								mediatype,load_segment,system_type,sector_count,load_rba);
 
@@ -2206,12 +2206,12 @@ public:
 								continue;
 
 							if (load_segment != 0 && load_segment != 0x7C0)
-								fprintf(stderr,"El Torito boot warning: load segments other than 0x7C0 not supported yet\n");
+								LOG_MSG("El Torito boot warning: load segments other than 0x7C0 not supported yet\n");
 							if (sector_count != 1)
-								fprintf(stderr,"El Torito boot warning: sector counts other than 1 are not supported yet\n");
+								LOG_MSG("El Torito boot warning: sector counts other than 1 are not supported yet\n");
 
 							if (mediatype < 1 || mediatype > 3) {
-								fprintf(stderr,"El Torito boot entry: media types other than floppy emulation not supported yet\n");
+								LOG_MSG("El Torito boot entry: media types other than floppy emulation not supported yet\n");
 								continue;
 							}
 
@@ -2219,11 +2219,11 @@ public:
 							el_torito_floppy_type = mediatype;
 						}
 						else {
-							fprintf(stderr,"El Torito entry: ignoring bootable non-x86 (platform_id=0x%02x) record\n",header_platform);
+							LOG_MSG("El Torito entry: ignoring bootable non-x86 (platform_id=0x%02x) record\n",header_platform);
 						}
 					}
 					else {
-						fprintf(stderr,"El Torito entry: ignoring unknown record ID %02x\n",entry[0]);
+						LOG_MSG("El Torito entry: ignoring unknown record ID %02x\n",entry[0]);
 					}
 				}
 			}

@@ -189,7 +189,7 @@ static Bitu INT2FDBG_Handler(void) {
 		int patience = 500;
 		Bitu st_seg,st_ofs;
 
-		fprintf(stderr,"INT 2Fh debug hook: Caught Windows init broadcast results (ES:BX=%04x:%04x DS:SI=%04x:%04x CX=%04x DX=%04x DI=%04x)\n",
+		LOG_MSG("INT 2Fh debug hook: Caught Windows init broadcast results (ES:BX=%04x:%04x DS:SI=%04x:%04x CX=%04x DX=%04x DI=%04x)\n",
 			SegValue(es),reg_bx,
 			SegValue(ds),reg_si,
 			reg_cx,reg_dx,reg_di);
@@ -206,7 +206,7 @@ static Bitu INT2FDBG_Handler(void) {
 			PhysPt st_o;
 
 			if (--patience <= 0) {
-				fprintf(stderr,"**WARNING: Chain is too long. Something might have gotten corrupted\n");
+				LOG_MSG("**WARNING: Chain is too long. Something might have gotten corrupted\n");
 				break;
 			}
 
@@ -242,17 +242,17 @@ static Bitu INT2FDBG_Handler(void) {
 				}
 			}
 
-			fprintf(stderr," >> Version %u.%u\n",v_major,v_minor);
-			fprintf(stderr,"    Next entry at %04x:%04x\n",st_seg_next,st_ofs_next);
-			fprintf(stderr,"    Virtual device name: %04x:%04x '%s'\n",name_seg,name_ofs,devname);
-			fprintf(stderr,"    Virtual dev ref data: %04x:%04x\n",vdev_seg,vdev_ofs);
-			fprintf(stderr,"    Instance data records: %04x:%04x\n",idrc_seg,idrc_ofs);
+			LOG_MSG(" >> Version %u.%u\n",v_major,v_minor);
+			LOG_MSG("    Next entry at %04x:%04x\n",st_seg_next,st_ofs_next);
+			LOG_MSG("    Virtual device name: %04x:%04x '%s'\n",name_seg,name_ofs,devname);
+			LOG_MSG("    Virtual dev ref data: %04x:%04x\n",vdev_seg,vdev_ofs);
+			LOG_MSG("    Instance data records: %04x:%04x\n",idrc_seg,idrc_ofs);
 
 			st_seg = st_seg_next;
 			st_ofs = st_ofs_next;
 		}
 
-		fprintf(stderr,"----END CHAIN\n");
+		LOG_MSG("----END CHAIN\n");
 	}
 
 	return CBRET_NONE;
@@ -296,7 +296,7 @@ void DOS_Shell::CMD_INT2FDBG(char * args) {
 			/* return */
 			phys_writeb(w++,(Bit8u)0xCF);					//IRET
 
-			fprintf(stderr,"INT 2Fh debugging hook set\n");
+			LOG_MSG("INT 2Fh debugging hook set\n");
 			WriteOut("INT 2Fh hook set\n");
 		}
 		else {

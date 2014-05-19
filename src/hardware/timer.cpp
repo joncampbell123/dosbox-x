@@ -282,7 +282,7 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 					/* NTS: We also force the higher rate if we detect that it wrote 18.2Hz
 					 * more than once, as that is a sign it hung at startup */
 					if (p->cntr > 64000 && prev_cntr > 64000)
-						fprintf(stderr,"PIT hack for Project Angel: 18.2Hz was written twice---did the demo hang? Forcing timer to higher rate.\n");
+						LOG_MSG("PIT hack for Project Angel: 18.2Hz was written twice---did the demo hang? Forcing timer to higher rate.\n");
 
 					if (p->cntr > 64000 && prev_cntr <= 64000)
 						p->delay=(1000.0f/((float)PIT_TICK_RATE/(float)65536));
@@ -473,15 +473,15 @@ bool TIMER_GetOutput2() {
 void PIT_HACK_Set_type(std::string type) {
 	if (type == "project_angel_demo") {
 		pit_hack_mode = PIT_HACK_PROJECT_ANGEL_DEMO;
-		fprintf(stderr,"PIT: Hacking PIT emulation to stabilize Project Angel demo\n");
+		LOG_MSG("PIT: Hacking PIT emulation to stabilize Project Angel demo\n");
 	}
 	else if (type == "pc_speaker_as_timer") {
 		pit_hack_mode = PIT_HACK_PC_SPEAKER_AS_TIMER;
-		fprintf(stderr,"PIT: Hacking PIT emulation to double PIT 2 countdown value\n");
+		LOG_MSG("PIT: Hacking PIT emulation to double PIT 2 countdown value\n");
 	}
 	else {
 		pit_hack_mode = PIT_HACK_NONE;
-		fprintf(stderr,"PIT: Hacks disabled\n");
+		LOG_MSG("PIT: Hacks disabled\n");
 	}
 }
 

@@ -2816,7 +2816,7 @@ static void show_warning(char const * const message) {
 	if ( !sdl.inited && SDL_Init(SDL_INIT_VIDEO|SDL_INIT_NOPARACHUTE) < 0 ) textonly = true;
 	sdl.inited = true;
 #endif
-	fprintf(stderr, "Warning: %s", message);
+	LOG_MSG( "Warning: %s", message);
 	if(textonly) return;
 	if(!sdl.surface) sdl.surface = SDL_SetVideoMode(640,400,0,SDL_RESIZABLE);
 	if(!sdl.surface) return;
@@ -3423,7 +3423,7 @@ int main(int argc, char* argv[]) {
 			if (!keep_private_area_on_boot)
 				DOS_GetMemory_unmap();
 			else if (DOS_PRIVATE_SEGMENT < 0xA000) {
-				fprintf(stderr,"WARNING: Unmapping DOS private segment even though configuration says otherwise, because\n"
+				LOG_MSG("WARNING: Unmapping DOS private segment even though configuration says otherwise, because\n"
 						"private segment exists below 640KB boundary and will be trampled on by the OS you are booting.\n");
 				DOS_GetMemory_unmap();
 			}
@@ -3460,8 +3460,8 @@ int main(int argc, char* argv[]) {
 		}
 
 		if (run_machine) {
-			fprintf(stderr,"Alright: DOS kernel shutdown, booting a guest OS\n");
-			fprintf(stderr,"  CS:IP=%04x:%04x SS:SP=%04x:%04x AX=%04x BX=%04x CX=%04x DX=%04x\n",
+			LOG_MSG("Alright: DOS kernel shutdown, booting a guest OS\n");
+			LOG_MSG("  CS:IP=%04x:%04x SS:SP=%04x:%04x AX=%04x BX=%04x CX=%04x DX=%04x\n",
 				SegValue(cs),reg_ip,
 				SegValue(ss),reg_sp,
 				reg_ax,reg_bx,reg_cx,reg_dx);

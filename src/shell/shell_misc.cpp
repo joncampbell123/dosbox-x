@@ -452,7 +452,7 @@ void DOS_Shell::ProcessCmdLineEnvVarStitution(char *line) {
 
 	/* if the incoming string is already too long, then that's a problem too! */
 	if (((size_t)(r+1-line)) >= CMD_MAXLINE) {
-		fprintf(stderr,"DOS_Shell::ProcessCmdLineEnvVarStitution WARNING incoming string to substitute is already too long!\n");
+		LOG_MSG("DOS_Shell::ProcessCmdLineEnvVarStitution WARNING incoming string to substitute is already too long!\n");
 		goto overflow;
 	}
 

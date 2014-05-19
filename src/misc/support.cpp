@@ -179,7 +179,7 @@ void E_Exit(const char * format,...) {
 	vsprintf(buf,format,msg);
 	va_end(msg);
 	strcat(buf,"\n");
-	fprintf(stderr,"E_Exit: %s\n",buf);
+	LOG_MSG("E_Exit: %s\n",buf);
 
 	throw(buf);
 }

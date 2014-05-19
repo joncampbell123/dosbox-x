@@ -40,20 +40,20 @@ static void DOS_Mem_E_Exit(const char *msg) {
 	DOS_MCB mcb_next(0);
 	Bitu counter=0;
 	
-	fprintf(stderr,"DOS MCB dump:\n");
+	LOG_MSG("DOS MCB dump:\n");
 	while (mcb.GetType()!='Z') {
 		if (counter++ > 10000) break;
-		fprintf(stderr," Type=0x%02x(%c) Seg=0x%04x size=0x%04x\n",
+		LOG_MSG(" Type=0x%02x(%c) Seg=0x%04x size=0x%04x\n",
 			mcb.GetType(),mcb.GetType(),
 			mcb_segment+1,mcb.GetSize());
 		mcb_next.SetPt((Bit16u)(mcb_segment+mcb.GetSize()+1));
 		mcb_segment+=mcb.GetSize()+1;
 		mcb.SetPt(mcb_segment);
 	}
-	fprintf(stderr,"FINAL: Type=0x%02x(%c) Seg=0x%04x size=0x%04x\n",
+	LOG_MSG("FINAL: Type=0x%02x(%c) Seg=0x%04x size=0x%04x\n",
 			mcb.GetType(),mcb.GetType(),
 			mcb_segment+1,mcb.GetSize());
-	fprintf(stderr,"End dump\n");
+	LOG_MSG("End dump\n");
 
 	E_Exit(msg);
 }
@@ -163,7 +163,7 @@ bool DOS_AllocateMemory(Bit16u * segment,Bit16u * blocks) {
 				*segment=mcb_segment+1;
 
 #ifdef DEBUG_ALLOC
-				fprintf(stderr,"DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x\n",*blocks,*segment,*segment+*blocks-1);
+				LOG_MSG("DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x\n",*blocks,*segment,*segment+*blocks-1);
 #endif
 				return true;
 			} else {
@@ -181,7 +181,7 @@ bool DOS_AllocateMemory(Bit16u * segment,Bit16u * blocks) {
 						*segment=mcb_segment+1;
 
 #ifdef DEBUG_ALLOC
-						fprintf(stderr,"DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x\n",*blocks,*segment,*segment+*blocks-1);
+						LOG_MSG("DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x\n",*blocks,*segment,*segment+*blocks-1);
 #endif
 						return true;
 					case 1: /* bestfit */
@@ -235,7 +235,7 @@ bool DOS_AllocateMemory(Bit16u * segment,Bit16u * blocks) {
 							*segment = found_seg+1;
 
 #ifdef DEBUG_ALLOC
-							fprintf(stderr,"DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x\n",*blocks,*segment,*segment+*blocks-1);
+							LOG_MSG("DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x\n",*blocks,*segment,*segment+*blocks-1);
 #endif
 							return true;
 						}
@@ -252,7 +252,7 @@ bool DOS_AllocateMemory(Bit16u * segment,Bit16u * blocks) {
 					}
 
 #ifdef DEBUG_ALLOC
-					fprintf(stderr,"DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x\n",*blocks,*segment,*segment+*blocks-1);
+					LOG_MSG("DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x\n",*blocks,*segment,*segment+*blocks-1);
 #endif
 					return true;
 				}
@@ -265,7 +265,7 @@ bool DOS_AllocateMemory(Bit16u * segment,Bit16u * blocks) {
 	}
 
 #ifdef DEBUG_ALLOC
-	fprintf(stderr,"DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x\n",*blocks,*segment,*segment+*blocks-1);
+	LOG_MSG("DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x\n",*blocks,*segment,*segment+*blocks-1);
 #endif
 	return false;
 }
@@ -357,7 +357,7 @@ bool DOS_FreeMemory(Bit16u segment) {
 	}
 
 #ifdef DEBUG_ALLOC
-	fprintf(stderr,"DOS_FreeMemory(seg=0x%04x)\n",segment);
+	LOG_MSG("DOS_FreeMemory(seg=0x%04x)\n",segment);
 #endif
 
 	mcb.SetPSPSeg(MCB_FREE);

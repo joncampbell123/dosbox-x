@@ -282,7 +282,7 @@ static Bitu read_p60(Bitu port,Bitu iolen) {
 		keyb.scheduled=true;
 		PIC_AddEvent(KEYBOARD_TransferBuffer,KEYDELAY);
 	}
-//	fprintf(stderr,"Keyboard read60=0x%02x\n",keyb.p60data);
+//	LOG_MSG("Keyboard read60=0x%02x\n",keyb.p60data);
 	return keyb.p60data;
 }
 
@@ -324,7 +324,7 @@ void KEYBOARD_AUX_Write(Bitu val) {
 		}
 	}
 
-//	fprintf(stderr,"AUX write 0x%02x mode=%u\n",val,keyb.aux_command);
+//	LOG_MSG("AUX write 0x%02x mode=%u\n",val,keyb.aux_command);
 
 	switch (keyb.aux_command) {
 		case ACMD_NONE:
@@ -450,7 +450,7 @@ bool allow_keyb_reset = true;
 void restart_program(std::vector<std::string> & parameters);
 
 static void write_p60(Bitu port,Bitu val,Bitu iolen) {
-//	fprintf(stderr,"Keyboard command60=0x%02x mode=%u\n",val,keyb.command);
+//	LOG_MSG("Keyboard command60=0x%02x mode=%u\n",val,keyb.command);
 
 	switch (keyb.command) {
 	case CMD_NONE:	/* None */
@@ -547,13 +547,13 @@ static void write_p60(Bitu port,Bitu val,Bitu iolen) {
 		/* FIXME: if (val & 1 == 0) then reset the computer */
 		if (!(val & 1)) {
 			if (allow_keyb_reset) {
-				fprintf(stderr,"Restart by keyboard controller requested\n");
+				LOG_MSG("Restart by keyboard controller requested\n");
 				control->startup_params.insert(control->startup_params.begin(),control->cmdline->GetFileName());
 				restart_program(control->startup_params);
 				/* does not return */
 			}
 			else {
-				fprintf(stderr,"WARNING: Keyboard output port written with bit 1 clear. Is the guest OS or application attempting to reset the system?\n");
+				LOG_MSG("WARNING: Keyboard output port written with bit 1 clear. Is the guest OS or application attempting to reset the system?\n");
 			}
 		}
 		MEM_A20_Enable((val & 2)>0);
@@ -607,7 +607,7 @@ static Bitu read_p61(Bitu, Bitu) {
 	dbg = ((port_61_data & 0xF) |
 			(TIMER_GetOutput2()? 0x20:0) |
 			((fmod(PIC_FullIndex(),0.030) > 0.015)? 0x10:0));
-//	fprintf(stderr,"Keyboard read61=0x%02x\n",dbg);
+//	LOG_MSG("Keyboard read61=0x%02x\n",dbg);
 	return dbg;
 }
 
@@ -626,7 +626,7 @@ static void write_p64(Bitu port,Bitu val,Bitu iolen) {
 	if (keyb.reset)
 		return;
 
-//	fprintf(stderr,"Keyboard command64=0x%02x mode=%u\n",val,keyb.command);
+//	LOG_MSG("Keyboard command64=0x%02x mode=%u\n",val,keyb.command);
 
 	switch (val) {
 	case 0x20:		/* read command byte */
@@ -717,13 +717,13 @@ static void write_p64(Bitu port,Bitu val,Bitu iolen) {
 		/* pulse output register */
 		if (!(val & 1)) {
 			if (allow_keyb_reset) {
-				fprintf(stderr,"Restart by keyboard controller requested\n");
+				LOG_MSG("Restart by keyboard controller requested\n");
 				control->startup_params.insert(control->startup_params.begin(),control->cmdline->GetFileName());
 				restart_program(control->startup_params);
 				/* does not return */
 			}
 			else {
-				fprintf(stderr,"WARNING: Keyboard output port written (pulsed) with bit 1 clear. Is the guest OS or application attempting to reset the system?\n");
+				LOG_MSG("WARNING: Keyboard output port written (pulsed) with bit 1 clear. Is the guest OS or application attempting to reset the system?\n");
 			}
 		}
 		break;

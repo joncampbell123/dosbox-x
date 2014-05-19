@@ -269,13 +269,13 @@ bool EnvPhys_ScanUntilNextString(PhysPt &env_scan,PhysPt env_fence) {
 
 	/* if we hit the fence, that's something to warn about. */
 	if (env_scan >= env_fence) {
-		fprintf(stderr,"Warning: environment string scan hit the end of the environment block without terminating NUL\n");
+		LOG_MSG("Warning: environment string scan hit the end of the environment block without terminating NUL\n");
 		return false;
 	}
 
 	/* if we stopped at anything other than a NUL, that's something to warn about */
 	if (mem_readb(env_scan) != 0) {
-		fprintf(stderr,"Warning: environment string scan scan stopped without hitting NUL\n");
+		LOG_MSG("Warning: environment string scan scan stopped without hitting NUL\n");
 		return false;
 	}
 
@@ -287,12 +287,12 @@ bool Program::GetEnvStr(const char * entry,std::string & result) {
 	PhysPt env_base,env_fence,env_scan;
 
 	if (dos_kernel_disabled) {
-		fprintf(stderr,"BUG: Program::GetEnvNum() called with DOS kernel disabled (such as OS boot).\n");
+		LOG_MSG("BUG: Program::GetEnvNum() called with DOS kernel disabled (such as OS boot).\n");
 		return false;
 	}
 
 	if (!LocateEnvironmentBlock(env_base,env_fence,psp->GetEnvironment())) {
-		fprintf(stderr,"Warning: GetEnvCount() was not able to locate the program's environment block\n");
+		LOG_MSG("Warning: GetEnvCount() was not able to locate the program's environment block\n");
 		return false;
 	}
 
@@ -318,12 +318,12 @@ bool Program::GetEnvNum(Bitu want_num,std::string & result) {
 	Bitu num = 0;
 
 	if (dos_kernel_disabled) {
-		fprintf(stderr,"BUG: Program::GetEnvNum() called with DOS kernel disabled (such as OS boot).\n");
+		LOG_MSG("BUG: Program::GetEnvNum() called with DOS kernel disabled (such as OS boot).\n");
 		return false;
 	}
 
 	if (!LocateEnvironmentBlock(env_base,env_fence,psp->GetEnvironment())) {
-		fprintf(stderr,"Warning: GetEnvCount() was not able to locate the program's environment block\n");
+		LOG_MSG("Warning: GetEnvCount() was not able to locate the program's environment block\n");
 		return false;
 	}
 
@@ -351,12 +351,12 @@ Bitu Program::GetEnvCount(void) {
 	Bitu num = 0;
 
 	if (dos_kernel_disabled) {
-		fprintf(stderr,"BUG: Program::GetEnvCount() called with DOS kernel disabled (such as OS boot).\n");
+		LOG_MSG("BUG: Program::GetEnvCount() called with DOS kernel disabled (such as OS boot).\n");
 		return 0;
 	}
 
 	if (!LocateEnvironmentBlock(env_base,env_fence,psp->GetEnvironment())) {
-		fprintf(stderr,"Warning: GetEnvCount() was not able to locate the program's environment block\n");
+		LOG_MSG("Warning: GetEnvCount() was not able to locate the program's environment block\n");
 		return false;
 	}
 
@@ -378,12 +378,12 @@ bool Program::SetEnv(const char * entry,const char * new_string) {
 	size_t nsl = 0,el = 0,needs;
 
 	if (dos_kernel_disabled) {
-		fprintf(stderr,"BUG: Program::SetEnv() called with DOS kernel disabled (such as OS boot).\n");
+		LOG_MSG("BUG: Program::SetEnv() called with DOS kernel disabled (such as OS boot).\n");
 		return false;
 	}
 
 	if (!LocateEnvironmentBlock(env_base,env_fence,psp->GetEnvironment())) {
-		fprintf(stderr,"Warning: SetEnv() was not able to locate the program's environment block\n");
+		LOG_MSG("Warning: SetEnv() was not able to locate the program's environment block\n");
 		return false;
 	}
 
@@ -404,7 +404,7 @@ bool Program::SetEnv(const char * entry,const char * new_string) {
 			/* before we remove it: is there room for the new value? */
 			if (nsl != 0) {
 				if ((env_scan+needs) > env_fence) {
-					fprintf(stderr,"Program::SetEnv() error, insufficient room for environment variable %s=%s\n",entry,new_string);
+					LOG_MSG("Program::SetEnv() error, insufficient room for environment variable %s=%s\n",entry,new_string);
 					return false;
 				}
 			}
@@ -433,7 +433,7 @@ bool Program::SetEnv(const char * entry,const char * new_string) {
 	/* add the string to the end of the block */
 	if (*new_string != 0) {
 		if ((env_scan+needs) > env_fence) {
-			fprintf(stderr,"Program::SetEnv() error, insufficient room for environment variable %s=%s\n",entry,new_string);
+			LOG_MSG("Program::SetEnv() error, insufficient room for environment variable %s=%s\n",entry,new_string);
 			return false;
 		}
 

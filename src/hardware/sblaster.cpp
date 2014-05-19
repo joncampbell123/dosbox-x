@@ -584,7 +584,7 @@ static void DMA_DAC_Event(Bitu val) {
 	expct = (sb.dma.stereo ? 2 : 1) * (sb.dma.mode == DSP_DMA_16 ? 2 : 1);
 	read = sb.dma.chan->Read(expct,tmp);
 	//if (read != expct)
-	//	fprintf(stderr,"DMA read was not sample aligned. Sound may swap channels or become static. On real hardware the same may happen unless audio is prepared specifically.\n");
+	//	LOG_MSG("DMA read was not sample aligned. Sound may swap channels or become static. On real hardware the same may happen unless audio is prepared specifically.\n");
 
 	if (sb.dma.mode == DSP_DMA_16) {
 		L = (int16_t)host_readw(&tmp[0]);
@@ -811,8 +811,8 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo) {
 	 */
 	if (sb.goldplay && sb.dma_dac_srcrate > 0 && sb.dma.chan->basecnt < 2/* && sb.dma.chan->autoinit && mode == DSP_DMA_8*/) {
 		if (!sb.dma_dac_warning) {
-			//fprintf(stderr,"SoundBlaster: DMA count is way too small. Switching to per-sample DMA rendering, which may reduce emulator performance @ %uHz.\n",sb.dma_dac_srcrate);
-			//fprintf(stderr,"This is usually caused by DOS demos using the GoldPlay library. See src/hardware/sblaster.cpp comments for more information.\n");
+			//LOG_MSG("SoundBlaster: DMA count is way too small. Switching to per-sample DMA rendering, which may reduce emulator performance @ %uHz.\n",sb.dma_dac_srcrate);
+			//LOG_MSG("This is usually caused by DOS demos using the GoldPlay library. See src/hardware/sblaster.cpp comments for more information.\n");
 			sb.dma_dac_warning=1;
 		}
 		sb.dma_dac_mode=1;
@@ -1813,15 +1813,15 @@ class ViBRA_PnP : public ISAPnPDevice {
 						break;
 					case 0x60: case 0x61:	/* I/O [0] sound blaster */
 						/* TODO: on-the-fly changing */
-						//fprintf(stderr,"ISA PnP Warning: Sound Blaster I/O port changing not implemented yet\n");
+						//LOG_MSG("ISA PnP Warning: Sound Blaster I/O port changing not implemented yet\n");
 						break;
 					case 0x62: case 0x63:	/* I/O [1] MPU */
 						/* TODO: on-the-fly changing */
-						//fprintf(stderr,"ISA PnP Warning: MPU I/O port changing not implemented yet\n");
+						//LOG_MSG("ISA PnP Warning: MPU I/O port changing not implemented yet\n");
 						break;
 					case 0x64: case 0x65:	/* I/O [1] OPL-3 */
 						/* TODO: on-the-fly changing */
-						//fprintf(stderr,"ISA PnP Warning: OPL-3 I/O port changing not implemented yet\n");
+						//LOG_MSG("ISA PnP Warning: OPL-3 I/O port changing not implemented yet\n");
 						break;
 					case 0x70: /* IRQ[0] */
 						if (val & 0xF)
@@ -1848,7 +1848,7 @@ class ViBRA_PnP : public ISAPnPDevice {
 				switch (addr) {
 					case 0x60: case 0x61:	/* I/O [0] gameport */
 						/* TODO: on-the-fly changing */
-						//fprintf(stderr,"ISA PnP Warning: Gameport I/O port changing not implemented yet\n");
+						//LOG_MSG("ISA PnP Warning: Gameport I/O port changing not implemented yet\n");
 						break;
 				};
 			}
