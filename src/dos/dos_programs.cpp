@@ -606,7 +606,7 @@ private:
 		strcpy(test,"ems=false");
 		dos_sec->HandleInputline(test);
 		dos_sec->ExecuteInit(false);
-     }
+	}
 
 public:
    
@@ -908,63 +908,11 @@ public:
 				WriteOut_NoParsing("PROGRAM_BOOT_UNABLE");
 				return;
 			}
+
 			disable_umb_ems_xms();
-			void RemoveEMSPageFrame(void);
-			RemoveEMSPageFrame();
+
 			WriteOut(MSG_Get("PROGRAM_BOOT_BOOT"), drive);
 			for(i=0;i<512;i++) real_writeb(0, (load_seg<<4) + i, bootarea.rawdata[i]);
-
-			extern bool keep_umb_on_boot;
-			extern bool keep_private_area_on_boot;
-
-			/* remove UMB block */
-			void RemoveUMBBlock();
-			if (!keep_umb_on_boot) RemoveUMBBlock();
-
-			/* disable INT 33h mouse services */
-			/* NTS: If you want to run Windows NT 3.1 or ME this is vital because DOSBox's
-			 *      INT 33h emulation involves memory I/O that serves only to cause page
-			 *      fault issues with 32-bit OSes */
-			DisableINT33();
-
-			void DOS_GetMemory_unmap();
-			if (!keep_private_area_on_boot)
-				DOS_GetMemory_unmap();
-			else if (DOS_PRIVATE_SEGMENT < 0xA000) {
-				fprintf(stderr,"WARNING: Unmapping DOS private segment even though configuration says otherwise, because\n"
-						"private segment exists below 640KB boundary and will be trampled on by the OS you are booting.\n");
-				DOS_GetMemory_unmap();
-			}
-
-			/* revector some dos-allocated interrupts */
-			real_writed(0,0x01*4,0xf000ff53);
-			real_writed(0,0x03*4,0xf000ff53);
-
-			/* shutdown DOSBox's virtual drive Z */
-			void VFILE_Shutdown(void);
-			VFILE_Shutdown();
-
-			/* shutdown the programs */
-			void PROGRAMS_Shutdown(void);
-			PROGRAMS_Shutdown();		/* FIXME: Is this safe? Or will this cause use-after-free bug? */
-
-			void DOS_UninstallMisc(void);
-			DOS_UninstallMisc();
-
-			/* remove environment variables for some components */
-			SBLASTER_DOS_Shutdown();
-			GUS_DOS_Shutdown();
-			/* disable Expanded Memory. EMM is a DOS API, not an OS API */
-			EMS_DoShutDown();
-			/* and XMS, also a DOS API */
-			XMS_DoShutDown();
-			/* and the DOS API in general */
-			DOS_DoShutDown();
-
-			/* set the "disable DOS kernel" flag so other parts of this program
-			 * do not attempt to manipulate now-defunct parts of the kernel
-			 * such as the environment block */
-			dos_kernel_disabled = true;
 
 			/* debug */
 			fprintf(stderr,"Booting guest OS stack_seg=0x%04x load_seg=0x%04x\n",stack_seg,load_seg);
@@ -991,6 +939,9 @@ public:
 			// let menu know it boots
 			menu.boot=true;
 #endif
+
+			/* forcibly exit the shell, the DOS kernel, and anything else by throwing an exception */
+			throw int(2);
 		}
 	}
 };

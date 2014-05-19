@@ -3381,11 +3381,104 @@ int main(int argc, char* argv[]) {
 		}
 		if(!load_videodrv && numlock_stat) SetNumLock ();
 #endif
+		bool run_machine = false;
+		bool dos_kernel_shutdown = false;
+
 		control->StartUp();
 
-		/* and then start the shell */
-		void SHELL_Run();
-		SHELL_Run();
+		try {
+			/* and then start the shell */
+			void SHELL_Run();
+			SHELL_Run();
+		} catch (int x) {
+			if (x == 2) { /* booting a guest OS. "boot" has already done the work to load the image and setup CPU registers */
+				run_machine = true; /* make note. don't run the whole shebang from an exception handler! */
+				dos_kernel_shutdown = true;
+			}
+			else {
+				throw; // kill switch (see instances of throw(0) and throw(1) elsewhere in DOSBox)
+			}
+		}
+		catch (...) {
+			throw;
+		}
+
+		if (dos_kernel_shutdown) {
+			void DisableINT33();
+			void EMS_DoShutDown();
+			void XMS_DoShutDown();
+			void DOS_DoShutDown();
+			void GUS_DOS_Shutdown();
+			void SBLASTER_DOS_Shutdown();
+			void RemoveEMSPageFrame(void);
+
+			RemoveEMSPageFrame();
+
+			extern bool keep_umb_on_boot;
+			extern bool keep_private_area_on_boot;
+			extern bool dos_kernel_disabled;
+
+			/* remove UMB block */
+			void RemoveUMBBlock();
+			if (!keep_umb_on_boot) RemoveUMBBlock();
+
+			/* disable INT 33h mouse services */
+			/* NTS: If you want to run Windows NT 3.1 or ME this is vital because DOSBox's
+			 *      INT 33h emulation involves memory I/O that serves only to cause page
+			 *      fault issues with 32-bit OSes */
+			DisableINT33();
+
+			void DOS_GetMemory_unmap();
+			if (!keep_private_area_on_boot)
+				DOS_GetMemory_unmap();
+			else if (DOS_PRIVATE_SEGMENT < 0xA000) {
+				fprintf(stderr,"WARNING: Unmapping DOS private segment even though configuration says otherwise, because\n"
+						"private segment exists below 640KB boundary and will be trampled on by the OS you are booting.\n");
+				DOS_GetMemory_unmap();
+			}
+
+			/* revector some dos-allocated interrupts */
+			real_writed(0,0x01*4,0xf000ff53);
+			real_writed(0,0x03*4,0xf000ff53);
+
+			/* shutdown DOSBox's virtual drive Z */
+			void VFILE_Shutdown(void);
+			VFILE_Shutdown();
+
+			/* shutdown the programs */
+			void PROGRAMS_Shutdown(void);
+			PROGRAMS_Shutdown();		/* FIXME: Is this safe? Or will this cause use-after-free bug? */
+
+			void DOS_UninstallMisc(void);
+			DOS_UninstallMisc();
+
+			/* remove environment variables for some components */
+			SBLASTER_DOS_Shutdown();
+			GUS_DOS_Shutdown();
+			/* disable Expanded Memory. EMM is a DOS API, not an OS API */
+			EMS_DoShutDown();
+			/* and XMS, also a DOS API */
+			XMS_DoShutDown();
+			/* and the DOS API in general */
+			DOS_DoShutDown();
+
+			/* set the "disable DOS kernel" flag so other parts of this program
+			 * do not attempt to manipulate now-defunct parts of the kernel
+			 * such as the environment block */
+			dos_kernel_disabled = true;
+		}
+
+		if (run_machine) {
+			fprintf(stderr,"Alright: DOS kernel shutdown, booting a guest OS\n");
+			fprintf(stderr,"  CS:IP=%04x:%04x SS:SP=%04x:%04x AX=%04x BX=%04x CX=%04x DX=%04x\n",
+				SegValue(cs),reg_ip,
+				SegValue(ss),reg_sp,
+				reg_ax,reg_bx,reg_cx,reg_dx);
+
+			/* go! */
+			while (1/*execute until some other part of DOSBox throws exception*/)
+				DOSBOX_RunMachine();
+		}
 
 		/* and then shutdown */
 		void GFX_ShutDown(void);
@@ -3411,9 +3504,6 @@ int main(int argc, char* argv[]) {
 #endif
 		}
 
-	}
-	catch (int){
-		;//nothing pressed killswitch
 	}
 	catch(...){
 		sticky_keys(true);
