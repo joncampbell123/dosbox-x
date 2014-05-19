@@ -117,7 +117,7 @@ static Bitu PROGRAMS_Handler(void) {
 	PhysPt reader=PhysMake(dos.psp(),256+sizeof(exe_block));
 	HostPt writer=(HostPt)&index;
 	for (;size>0;size--) *writer++=mem_readb(reader++);
-	Program * new_program;
+	Program * new_program = NULL;
 	if (index > internal_progs.size()) E_Exit("something is messing with the memory");
 	InternalProgramEntry *ipe = internal_progs[index];
 	if (ipe == NULL) E_Exit("Attempt to run internal program slot with nothing allocated");
