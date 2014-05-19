@@ -3384,10 +3384,18 @@ int main(int argc, char* argv[]) {
 		bool run_machine = false;
 		bool dos_kernel_shutdown = false;
 
+
+		/* let all config sections run their INITs */
 		control->StartUp();
 
+		/* main execution. run the DOSBox shell. various exceptions will be thrown. some,
+		 * which have type "int", have special actions. int(2) means to boot a guest OS
+		 * (thrown as an exception to force stack unwinding), while int(0) and int(1)
+		 * means someone pressed DOSBox's killswitch (CTRL+F9). */
+		run_machine = false;
+		dos_kernel_shutdown = false;
+
 		try {
-			/* and then start the shell */
 			void SHELL_Run();
 			SHELL_Run();
 		} catch (int x) {
@@ -3396,7 +3404,9 @@ int main(int argc, char* argv[]) {
 				dos_kernel_shutdown = true;
 			}
 			else {
-				throw; // kill switch (see instances of throw(0) and throw(1) elsewhere in DOSBox)
+				// kill switch (see instances of throw(0) and throw(1) elsewhere in DOSBox)
+				run_machine = false;
+				dos_kernel_shutdown = false;
 			}
 		}
 		catch (...) {
