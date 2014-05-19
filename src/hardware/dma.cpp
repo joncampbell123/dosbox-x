@@ -26,7 +26,7 @@
 #include "paging.h"
 #include "setup.h"
 
-DmaController *DmaControllers[2];
+DmaController *DmaControllers[2]={NULL};
 
 #define EMM_PAGEFRAME4K	((0xE000*16)/4096)
 Bit32u ems_board_mapping[LINK_START];
@@ -391,7 +391,10 @@ void DMA_SetWrapping(Bitu wrap) {
 static DMA* test;
 
 void DMA_Destroy(Section* /*sec*/){
-	delete test;
+	if (test != NULL) {
+		delete test;
+		test = NULL;
+	}
 }
 void DMA_Init(Section* sec) {
 	DMA_SetWrapping(0xffff);
