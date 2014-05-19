@@ -2190,7 +2190,8 @@ static Bitu INT15_Handler(void) {
 					// NTS: For whatever weird reason, NOT emulating HLT makes Windows 95
 					//      crashy when the APM driver is active! There's something within
 					//      the Win95 kernel that apparently screws up really badly if
-					//      the APM IDLE call returns immediately.
+					//      the APM IDLE call returns immediately. Windows 98 SE also
+					//      seems to have this problem.
 					//
 					//      Also need to note that the choice of "HLT" is not arbitrary
 					//      at all. The APM BIOS standard mentions CPU IDLE either stopping
@@ -2199,7 +2200,9 @@ static Bitu INT15_Handler(void) {
 					// TODO: Make this a dosbox.conf configuration option: what do we do
 					//       on APM idle calls? Allow selection between "nothing" "hlt"
 					//       and "software delay".
+					CPU_Cycles = 0;
 					CPU_HLT(reg_eip);
+					CPU_Cycles = 0;
 					CALLBACK_SCF(false);
 					break;
 				case 0x07:
