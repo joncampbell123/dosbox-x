@@ -52,18 +52,19 @@ extern int old_cursor_state;
 
 
 void DEBUG_ShowMsg(char const* format,...) {
-	
 	char buf[512];
 	va_list msg;
+	size_t len;
+
 	va_start(msg,format);
-	vsprintf(buf,format,msg);
+	len = vsnprintf(buf,sizeof(buf)-2,format,msg); /* <- NTS: Did you know sprintf/vsnprintf returns number of chars written? */
 	va_end(msg);
 
 	/* Add newline if not present */
-	Bitu len=strlen(buf);
-	if(buf[len-1]!='\n') strcat(buf,"\n");
+	if (len > 0 && buf[len-1] != '\n') buf[len++] = '\n';
+	buf[len] = 0;
 
-	if(debuglog) fprintf(debuglog,"%s",buf);
+	if (debuglog) fprintf(debuglog,"%s",buf);
 
 	if (logBuffPos!=logBuff.end()) {
 		logBuffPos=logBuff.end();

@@ -2721,10 +2721,14 @@ bool no_stdout = false;
 void GFX_ShowMsg(char const* format,...) {
 	char buf[512];
 	va_list msg;
+	size_t len;
+
 	va_start(msg,format);
-	vsprintf(buf,format,msg);
-        strcat(buf,"\n");
+	len = vsnprintf(buf,sizeof(buf)-2,format,msg);
+	buf[len++] = '\n';
+	buf[len] = 0;
 	va_end(msg);
+
 	if(!no_stdout) printf("%s",buf); //Else buf is parsed again.
 }
 
