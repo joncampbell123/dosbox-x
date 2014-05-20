@@ -644,6 +644,15 @@ static void write_p92(Bitu port,Bitu val,Bitu iolen) {
 	if (val & 1) {
 		if (allow_port_92_reset) {
 			LOG_MSG("Restart by port 92h requested\n");
+
+			/* this technique is NOT reliable when running the dynamic core! */
+			if (cpudecoder == &CPU_Core_Dyn_X86_Run) {
+				LOG_MSG("Using traditional DOSBox re-exec, C++ exception method is not compatible with dynamic core\n");
+				control->startup_params.insert(control->startup_params.begin(),control->cmdline->GetFileName());
+				restart_program(control->startup_params);
+				return;
+			}
+
 			throw int(3);
 			/* does not return */
 		}

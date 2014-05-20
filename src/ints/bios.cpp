@@ -2447,6 +2447,16 @@ static Bitu IRQ15_Dummy(void) {
 
 static Bitu Reboot_Handler(void) {
 	LOG_MSG("Restart by INT 19h requested\n");
+
+	/* this technique is NOT reliable when running the dynamic core! */
+	if (cpudecoder == &CPU_Core_Dyn_X86_Run) {
+		LOG_MSG("Using traditional DOSBox re-exec, C++ exception method is not compatible with dynamic core\n");
+		control->startup_params.insert(control->startup_params.begin(),control->cmdline->GetFileName());
+		restart_program(control->startup_params);
+		return CBRET_NONE;
+	}
+
+	/* throw exception so that reboot unwinds it's way down to main() */
 	throw int(3);
 	/* does not return */
 	return CBRET_NONE;

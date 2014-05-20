@@ -25,6 +25,7 @@
 #include "mouse.h"
 #include "pic.h"
 #include "mem.h"
+#include "cpu.h"
 #include "mixer.h"
 #include "timer.h"
 #include <math.h>
@@ -718,6 +719,15 @@ static void write_p64(Bitu port,Bitu val,Bitu iolen) {
 		if (!(val & 1)) {
 			if (allow_keyb_reset) {
 				LOG_MSG("Restart by keyboard controller requested\n");
+
+				/* this technique is NOT reliable when running the dynamic core! */
+				if (cpudecoder == &CPU_Core_Dyn_X86_Run) {
+					LOG_MSG("Using traditional DOSBox re-exec, C++ exception method is not compatible with dynamic core\n");
+					control->startup_params.insert(control->startup_params.begin(),control->cmdline->GetFileName());
+					restart_program(control->startup_params);
+					return;
+				}
+
 				throw int(3);
 				/* does not return */
 			}
@@ -1278,7 +1288,7 @@ void KEYBOARD_Init(Section* sec) {
 
 	sec->AddDestroyFunction(&KEYBOARD_ShutDown);
 
-	if (keyb.enable_aux=section->Get_bool("aux")) {
+	if ((keyb.enable_aux=section->Get_bool("aux")) != false) {
 		LOG(LOG_KEYBOARD,LOG_NORMAL)("Keyboard AUX emulation enabled");
 	}
 
