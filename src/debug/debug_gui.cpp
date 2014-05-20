@@ -202,10 +202,12 @@ void DEBUG_ShowMsg(char const* format,...) {
 
 	if (debuglog != NULL) {
 		fprintf(debuglog,"%s",buf);
+		fflush(debuglog);
 	}
 #if !C_DEBUG
 	else {
 		fprintf(stderr,"DOSBox LOG: %s",buf);
+		fflush(stderr);
 	}
 #endif
 
