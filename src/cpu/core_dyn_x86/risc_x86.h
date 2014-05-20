@@ -128,18 +128,35 @@ return_address:
 	);
 	reg_flags=(reg_flags & ~FMASK_TEST) | (tempflags & FMASK_TEST);
 #else
+	/* TODO: How can we modify this so that GDB can stack trace into the dynamic
+	 *       code properly as well as from any function called by the dynamic
+	 *       code, so that the next time an I/O handler screws up I can
+	 *       get a correct stack trace? Also, failure to do a stack trace seems
+	 *       to be the reason C++ exceptions do not work properly from functions
+	 *       called by the dynamic code.
+	 *
+	 *       If it helps, according to experimentation, GDB loses track of the
+	 *       overall stack trace the INSTANT we start pushing things in this
+	 *       assembly language code. Literally, one 'stepi' past the pushl
+	 *       at the top of the asm block below and GDB suddenly can't trace
+	 *       past this function. And it doesn't come back until the ESP stack
+	 *       pointer is resolved. Knowing this, is there anything we can do
+	 *       to create a valid stack frame for GDB to stack trace properly?
+	 *
+	 *       In the meantime, I am considering adding an #if 0 block to this
+	 *       code that would contain calls to GLIBC function backtrace().
+	 *       If anything is going wrong, change it to #if 1 and get a stack
+	 *       trace dump every time this function is called to get a general
+	 *       idea how it got there. --J.C. */
 	register Bit32u tempflags=reg_flags & FMASK_TEST;
 	__asm__ volatile (
-		"pushl %%ebp							\n"
 		"pushl $(run_return_adress)					\n"
 		"pushl  %2							\n"
-		"movl %%esp,%%ebp						\n"
 		"jmp  *%3							\n"
 		"run_return_adress:						\n"
-		"popl %%ebp							\n"
 		:"=a" (retval), "=c" (tempflags)
 		:"r" (tempflags),"r" (code)
-		:"%edx","%ebx","%edi","%esi","cc","memory"
+		:"%edx","%ebx","%edi","%esi","%ebp","cc","memory"
 	);
 	reg_flags=(reg_flags & ~FMASK_TEST) | (tempflags & FMASK_TEST);
 #endif
