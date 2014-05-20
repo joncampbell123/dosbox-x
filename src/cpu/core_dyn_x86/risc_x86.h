@@ -130,11 +130,12 @@ return_address:
 #else
 	register Bit32u tempflags=reg_flags & FMASK_TEST;
 	__asm__ volatile (
-		"pushl %%ebp						\n"
-		"pushl $(run_return_adress)			\n"
+		"pushl %%ebp							\n"
+		"pushl $(run_return_adress)					\n"
 		"pushl  %2							\n"
+		"movl %%esp,%%ebp						\n"
 		"jmp  *%3							\n"
-		"run_return_adress:					\n"
+		"run_return_adress:						\n"
 		"popl %%ebp							\n"
 		:"=a" (retval), "=c" (tempflags)
 		:"r" (tempflags),"r" (code)
