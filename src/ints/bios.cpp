@@ -2447,8 +2447,8 @@ static Bitu IRQ15_Dummy(void) {
 
 static Bitu Reboot_Handler(void) {
 	LOG_MSG("Restart by INT 19h requested\n");
-	control->startup_params.insert(control->startup_params.begin(),control->cmdline->GetFileName());
-	restart_program(control->startup_params);
+	throw int(3);
+	/* does not return */
 	return CBRET_NONE;
 }
 

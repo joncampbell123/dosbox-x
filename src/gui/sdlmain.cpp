@@ -3363,6 +3363,7 @@ int main(int argc, char* argv[]) {
 		if(!load_videodrv && numlock_stat) SetNumLock ();
 #endif
 		bool run_machine = false;
+		bool reboot_machine = false;
 		bool dos_kernel_shutdown = false;
 
 
@@ -3374,6 +3375,7 @@ int main(int argc, char* argv[]) {
 		 * (thrown as an exception to force stack unwinding), while int(0) and int(1)
 		 * means someone pressed DOSBox's killswitch (CTRL+F9). */
 		run_machine = false;
+		reboot_machine = false;
 		dos_kernel_shutdown = false;
 
 		try {
@@ -3383,6 +3385,9 @@ int main(int argc, char* argv[]) {
 			if (x == 2) { /* booting a guest OS. "boot" has already done the work to load the image and setup CPU registers */
 				run_machine = true; /* make note. don't run the whole shebang from an exception handler! */
 				dos_kernel_shutdown = true;
+			}
+			else if (x == 3) { /* reboot the system */
+				reboot_machine = true;
 			}
 			else {
 				// kill switch (see instances of throw(0) and throw(1) elsewhere in DOSBox)
@@ -3472,11 +3477,22 @@ int main(int argc, char* argv[]) {
 					DOSBOX_RunMachine();
 			}
 			catch (int x) {
-				// kill switch (see instances of throw(0) and throw(1) elsewhere in DOSBox)
+				if (x == 3) { /* reboot the machine */
+					reboot_machine = true;
+				}
+				else {
+					// kill switch (see instances of throw(0) and throw(1) elsewhere in DOSBox)
+				}
 			}
 			catch (...) {
 				throw;
 			}
+		}
+
+		if (reboot_machine) {
+			LOG_MSG("Rebooting the system\n");
+			control->startup_params.insert(control->startup_params.begin(),control->cmdline->GetFileName());
+			restart_program(control->startup_params);
 		}
 
 		/* and then shutdown */

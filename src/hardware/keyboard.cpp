@@ -718,8 +718,7 @@ static void write_p64(Bitu port,Bitu val,Bitu iolen) {
 		if (!(val & 1)) {
 			if (allow_keyb_reset) {
 				LOG_MSG("Restart by keyboard controller requested\n");
-				control->startup_params.insert(control->startup_params.begin(),control->cmdline->GetFileName());
-				restart_program(control->startup_params);
+				throw int(3);
 				/* does not return */
 			}
 			else {
