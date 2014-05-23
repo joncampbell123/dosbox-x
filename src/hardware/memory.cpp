@@ -645,6 +645,7 @@ static void write_p92(Bitu port,Bitu val,Bitu iolen) {
 		if (allow_port_92_reset) {
 			LOG_MSG("Restart by port 92h requested\n");
 
+#if C_DYNAMIC_X86
 			/* this technique is NOT reliable when running the dynamic core! */
 			if (cpudecoder == &CPU_Core_Dyn_X86_Run) {
 				LOG_MSG("Using traditional DOSBox re-exec, C++ exception method is not compatible with dynamic core\n");
@@ -652,6 +653,7 @@ static void write_p92(Bitu port,Bitu val,Bitu iolen) {
 				restart_program(control->startup_params);
 				return;
 			}
+#endif
 
 			throw int(3);
 			/* does not return */
