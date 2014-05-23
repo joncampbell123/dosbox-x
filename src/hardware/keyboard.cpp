@@ -283,7 +283,6 @@ static Bitu read_p60(Bitu port,Bitu iolen) {
 		keyb.scheduled=true;
 		PIC_AddEvent(KEYBOARD_TransferBuffer,KEYDELAY);
 	}
-//	LOG_MSG("Keyboard read60=0x%02x\n",keyb.p60data);
 	return keyb.p60data;
 }
 
@@ -324,8 +323,6 @@ void KEYBOARD_AUX_Write(Bitu val) {
 			return;
 		}
 	}
-
-//	LOG_MSG("AUX write 0x%02x mode=%u\n",val,keyb.aux_command);
 
 	switch (keyb.aux_command) {
 		case ACMD_NONE:
@@ -422,13 +419,13 @@ void KEYBOARD_AUX_Write(Bitu val) {
 				if (keyb.ps2mouse.last_srate[0] == 200 && keyb.ps2mouse.last_srate[2] == 80) {
 					if (keyb.ps2mouse.last_srate[1] == 100) {
 						if (!keyb.ps2mouse.intellimouse_mode) {
-							LOG(LOG_KEYBOARD,LOG_NORMAL)("Intellimouse mode enabled",val);
+							LOG(LOG_KEYBOARD,LOG_NORMAL)("Intellimouse mode enabled");
 							keyb.ps2mouse.intellimouse_mode=true;
 						}
 					}
 					else if (keyb.ps2mouse.last_srate[1] == 200 && keyb.ps2mouse.type >= MOUSE_INTELLIMOUSE45) {
 						if (!keyb.ps2mouse.intellimouse_btn45) {
-							LOG(LOG_KEYBOARD,LOG_NORMAL)("Intellimouse 4/5-button mode enabled",val);
+							LOG(LOG_KEYBOARD,LOG_NORMAL)("Intellimouse 4/5-button mode enabled");
 							keyb.ps2mouse.intellimouse_btn45=true;
 						}
 					}
@@ -451,8 +448,6 @@ bool allow_keyb_reset = true;
 void restart_program(std::vector<std::string> & parameters);
 
 static void write_p60(Bitu port,Bitu val,Bitu iolen) {
-//	LOG_MSG("Keyboard command60=0x%02x mode=%u\n",val,keyb.command);
-
 	switch (keyb.command) {
 	case CMD_NONE:	/* None */
 		if (keyb.reset)
@@ -606,9 +601,8 @@ static Bit8u port_61_data = 0;
 static Bitu read_p61(Bitu, Bitu) {
 	unsigned char dbg;
 	dbg = ((port_61_data & 0xF) |
-			(TIMER_GetOutput2()? 0x20:0) |
-			((fmod(PIC_FullIndex(),0.030) > 0.015)? 0x10:0));
-//	LOG_MSG("Keyboard read61=0x%02x\n",dbg);
+		(TIMER_GetOutput2()? 0x20:0) |
+		((fmod(PIC_FullIndex(),0.030) > 0.015)? 0x10:0));
 	return dbg;
 }
 
@@ -626,8 +620,6 @@ static void write_p61(Bitu, Bitu val, Bitu) {
 static void write_p64(Bitu port,Bitu val,Bitu iolen) {
 	if (keyb.reset)
 		return;
-
-//	LOG_MSG("Keyboard command64=0x%02x mode=%u\n",val,keyb.command);
 
 	switch (val) {
 	case 0x20:		/* read command byte */
