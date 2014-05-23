@@ -2,7 +2,7 @@
 !define VER_MINOR 74
 !define APP_NAME "DOSBox ${VER_MAYOR}.${VER_MINOR} Installer"
 !define COMP_NAME "DOSBox Team"
-!define COPYRIGHT "Copyright © 2002-2013 DOSBox Team"
+!define COPYRIGHT "Copyright © 2002-2014 DOSBox Team"
 !define DESCRIPTION "DOSBox Installer"
 
 VIProductVersion "${VER_MAYOR}.${VER_MINOR}.0.0"

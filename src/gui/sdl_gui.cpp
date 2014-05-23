@@ -681,7 +681,6 @@ public:
 
 	void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
 		if (arg == "OK") {
-			char * text=name->getText();
 			extern unsigned int hdd_defsize;
 			int human_readable = atoi(name->getText());
 			if (human_readable < 0)
@@ -759,7 +758,7 @@ public:
 			Section_prop *section = static_cast<Section_prop *>(sec);
 			new SectionEditor(getScreen(), 50, 30, section);
 		} else if (arg == "About") {
-			new GUI::MessageBox2(getScreen(), 200, 150, 280, "About DOSBox", "\nDOSBox-X\nAn emulator for old DOS Games\n\nCopyright 2002-2013\nThe DOSBox Team");
+			new GUI::MessageBox2(getScreen(), 200, 150, 280, "About DOSBox", "\nDOSBox-X\nAn emulator for old DOS Games\n\nCopyright 2002-2014\nThe DOSBox Team");
 		} else if (arg == "Introduction") {
 			new GUI::MessageBox2(getScreen(), 20, 50, 600, "Introduction", MSG_Get("PROGRAM_INTRO"));
 		} else if (arg == "Getting Started") {

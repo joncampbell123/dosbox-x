@@ -1032,12 +1032,12 @@ BEGIN
     BEGIN
 		BLOCK "040904b0"
 		BEGIN
-		    VALUE "Comments", "?2002-2013 DOSBox Team, published under GNU GPL"
+		    VALUE "Comments", "(C) 2002-2014 DOSBox Team, published under GNU GPL"
 		    VALUE "CompanyName", "DOSBox Team"
 		    VALUE "FileDescription", "DOSBox DOS Emulator"
 		    VALUE "FileVersion", "0, 74, 0, 0"
 		    VALUE "InternalName", "DOSBox"
-		    VALUE "LegalCopyright", "Copyright ?2002-2013 DOSBox Team"
+		    VALUE "LegalCopyright", "Copyright ?2002-2014 DOSBox Team"
 		    VALUE "OriginalFilename", "dosbox.exe"
 		    VALUE "ProductName", "DOSBox DOS Emulator"
 		    VALUE "ProductVersion", "0, 74, 0, 0"
