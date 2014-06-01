@@ -149,6 +149,7 @@ bool				mono_cga=false;
 bool				ignore_opcode_63 = true;
 bool				mainline_compatible_mapping = true;
 Bitu				VGA_BIOS_Size_override = 0;
+int				dynamic_core_cache_block_size = 32;
 
 static Bit32u			ticksRemain;
 static Bit32u			ticksLast;
@@ -966,6 +967,13 @@ void DOSBOX_Init(void) {
 	Pstring->Set_values(cores);
 	Pstring->Set_help("CPU Core used in emulation. auto will switch to dynamic if available and\n"
 		"appropriate.");
+
+	Pint = secprop->Add_int("dynamic core cache block size",Property::Changeable::Always,32);
+	Pint->SetMinMax(1,65536);
+	Pint->Set_help("dynamic core cache block size. default value is 32. change this value carefully.\n"
+			"according to forum discussion, setting this to 1 can aid debugging, however doing so\n"
+			"also causes problems with 32-bit protected mode DOS games and reduces the performance\n"
+			"of the dynamic core.\n");
 
 	Pstring = secprop->Add_string("cputype",Property::Changeable::Always,"auto");
 	Pstring->Set_values(cputype_values);

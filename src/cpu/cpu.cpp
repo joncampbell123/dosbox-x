@@ -2370,6 +2370,7 @@ void CPU_Disable_SkipAutoAdjust(void) {
 
 extern Bit32s ticksDone;
 extern Bit32u ticksScheduled;
+extern int dynamic_core_cache_block_size;
 
 void CPU_Reset_AutoAdjust(void) {
 	CPU_IODelayRemoved = 0;
@@ -2459,6 +2460,9 @@ public:
 
 		cpu_allow_big16 = section->Get_bool("realbig16");
 		if (cpu_allow_big16) LOG_MSG("WARNING: B (big) bit allowed in real mode\n");
+
+		dynamic_core_cache_block_size = section->Get_int("dynamic core cache block size");
+		if (dynamic_core_cache_block_size < 1 || dynamic_core_cache_block_size > 65536) dynamic_core_cache_block_size = 32;
 
 		Prop_multival* p = section->Get_multival("cycles");
 		std::string type = p->GetSection()->Get_string("type");

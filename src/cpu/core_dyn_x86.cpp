@@ -256,6 +256,7 @@ static void dyn_restoreregister(DynReg * src_reg, DynReg * dst_reg) {
 }
 #endif
 
+extern int dynamic_core_cache_block_size;
 
 Bits CPU_Core_Dyn_X86_Run(void) {
 	/* Determine the linear address of CS:EIP */
@@ -277,7 +278,7 @@ restart_core:
 	CacheBlock * block=chandler->FindCacheBlock(ip_point&4095);
 	if (!block) {
 		if (!chandler->invalidation_map || (chandler->invalidation_map[ip_point&4095]<4)) {
-			block=CreateCacheBlock(chandler,ip_point,32);
+			block=CreateCacheBlock(chandler,ip_point,dynamic_core_cache_block_size);
 		} else {
 			Bitu old_cycles=CPU_Cycles;
 			CPU_Cycles=1;
