@@ -3563,6 +3563,10 @@ int main(int argc, char* argv[]) {
 
 	sticky_keys(true); //Might not be needed if the shutdown function switches to windowed mode, but it doesn't hurt
 
+#if C_DEBUG
+	DEBUG_ShutDown(NULL);
+#endif
+
 	//Force visible mouse to end user. Somehow this sometimes doesn't happen
 	SDL_WM_GrabInput(SDL_GRAB_OFF);
 	SDL_ShowCursor(SDL_ENABLE);
