@@ -746,7 +746,7 @@ void SHELL_Init() {
 	real_writed(0,0x23*4,((Bit32u)psp_seg<<16));
 
 	/* sanity check */
-	assert(DOS_FIRST_SHELL_END <= DOS_MEM_START);
+	if (DOS_FIRST_SHELL_END < 0xA000) { assert(DOS_FIRST_SHELL_END <= DOS_MEM_START); };
 	assert(DOS_FIRST_SHELL_END > env_seg);
 
 	if ((env_seg+(dosbox_shell_env_size>>4)) > DOS_FIRST_SHELL_END)
