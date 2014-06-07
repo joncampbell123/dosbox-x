@@ -255,8 +255,17 @@ static void DSP_SetSpeaker(bool how) {
 	}
 }
 
-/* FIXME: I need to pull out my old Pentium test system with the ViBRA card in it
- *        and see what happens with assigning IRQ 2 vs IRQ 9 --Jonathan C. */
+/* NTS: Using some old Creative Sound Blaster 16 ViBRA PnP cards as reference,
+ *      the card will send IRQ 9 if the IRQ is configured to either "2" or "9".
+ *      Whichever value is written will be read back. The reason for this has
+ *      to do with the pin on the ISA bus connector that used to signal IRQ 2
+ *      on PC/XT hardware, but was wired to fire IRQ 9 instead on PC/AT hardware
+ *      because of the IRQ 8-15 -> IRQ 2 cascade on AT hardware.
+ *
+ *      There's not much to change here, because PIC_ActivateIRQ was modified
+ *      to remap IRQ 2 -> IRQ 9 for us *if* emulating AT hardware.
+ *
+ *      --Jonathan C. */
 static INLINE void SB_RaiseIRQ(SB_IRQS type) {
 	LOG(LOG_SB,LOG_NORMAL)("Raising IRQ");
 	switch (type) {
