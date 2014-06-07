@@ -893,6 +893,7 @@ void DOSBOX_Init(void) {
 	Pbool->Set_help("Emulate port 92h (PS/2 system control port A). If you want to emulate a system that predates the PS/2, clear this setting.");
 
 	secprop->AddInitFunction(&CALLBACK_Init);
+	secprop->AddInitFunction(&DMA_Init);//done
 	secprop->AddInitFunction(&PIC_Init);//done
 	secprop->AddInitFunction(&PROGRAMS_Init);
 	secprop->AddInitFunction(&TIMER_Init);//done
@@ -1046,7 +1047,6 @@ void DOSBOX_Init(void) {
 #if C_FPU
 	secprop->AddInitFunction(&FPU_Init);
 #endif
-	secprop->AddInitFunction(&DMA_Init);//done
 	secprop->AddInitFunction(&ISAPNP_Cfg_Init);
 
 	secprop=control->AddSection_prop("keyboard",&KEYBOARD_Init);
