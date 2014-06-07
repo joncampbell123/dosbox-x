@@ -285,6 +285,17 @@ static Bitu read_data(Bitu port,Bitu iolen) {
 }
 
 void PIC_ActivateIRQ(Bitu irq) {
+	/* Remember what was once IRQ 2 on PC/XT is IRQ 9 on PC/AT */
+	if (true/*TODO: If PC/AT emulation with second PIC cascaded to master*/) {
+		if (irq == 2) irq = 9;
+	}
+	else { /* PC/XT emulation with only master PIC */
+		if (irq >= 8) {
+			LOG(LOG_PIC,LOG_ERROR)("Attempted to raise IRQ %u when slave PIC does not exist",irq);
+			return;
+		}
+	}
+
 	Bitu t = irq>7 ? (irq - 8): irq;
 	PIC_Controller * pic=&pics[irq>7 ? 1 : 0];
 
@@ -309,6 +320,17 @@ void PIC_ActivateIRQ(Bitu irq) {
 }
 
 void PIC_DeActivateIRQ(Bitu irq) {
+	/* Remember what was once IRQ 2 on PC/XT is IRQ 9 on PC/AT */
+	if (true/*TODO: If PC/AT emulation with second PIC cascaded to master*/) {
+		if (irq == 2) irq = 9;
+	}
+	else { /* PC/XT emulation with only master PIC */
+		if (irq >= 8) {
+			LOG(LOG_PIC,LOG_ERROR)("Attempted to lower IRQ %u when slave PIC does not exist",irq);
+			return;
+		}
+	}
+
 	Bitu t = irq>7 ? (irq - 8): irq;
 	PIC_Controller * pic=&pics[irq>7 ? 1 : 0];
 	pic->lower_irq(t);
