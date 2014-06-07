@@ -255,6 +255,8 @@ static void DSP_SetSpeaker(bool how) {
 	}
 }
 
+/* FIXME: I need to pull out my old Pentium test system with the ViBRA card in it
+ *        and see what happens with assigning IRQ 2 vs IRQ 9 --Jonathan C. */
 static INLINE void SB_RaiseIRQ(SB_IRQS type) {
 	LOG(LOG_SB,LOG_NORMAL)("Raising IRQ");
 	switch (type) {

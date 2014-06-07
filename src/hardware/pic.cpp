@@ -324,8 +324,15 @@ static void slave_startIRQ(){
 			break;
 		}
 	}
-	// Maybe change the E_Exit to a return
-	if (GCC_UNLIKELY(pic1_irq == 8)) E_Exit("irq 2 is active, but no irq active on the slave PIC.");
+
+	if (GCC_UNLIKELY(pic1_irq == 8)) {
+		/* we have an IRQ routing problem. this code is supposed to emulate the fact that
+		 * what was once IRQ 2 on PC/XT is routed to IRQ 9 on AT systems, because IRQ 8-15
+		 * cascade to IRQ 2 on such systems. but it's nothing to E_Exit() over. */
+		LOG(LOG_PIC,LOG_ERROR)("ISA PIC problem: IRQ 2 is active on master PIC without active IRQ 8-15 on slave PIC.");
+		slave.lower_irq(2); /* clear it */
+		return;
+	}
 
 	slave.start_irq(pic1_irq);
 	master.start_irq(2);
