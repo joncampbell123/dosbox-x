@@ -263,6 +263,9 @@ Bitu DmaController::ReadControllerReg(Bitu reg,Bitu /*len*/) {
 			if (chan->request) ret|=1 << (4+ct);
 		}
 		return ret;
+	case 0xc:		/* Clear Flip/Flip (apparently most motherboards will treat read OR write as reset) */
+		flipflop=false;
+		break;
 	default:
 		LOG(LOG_DMACONTROL,LOG_NORMAL)("Trying to read undefined DMA port %x",reg);
 		break;
