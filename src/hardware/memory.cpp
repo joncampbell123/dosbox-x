@@ -41,6 +41,8 @@ bool a20_guest_changeable = true;
 bool a20_full_masking = false;
 bool a20_fake_changeable = false;
 
+bool enable_port92 = true;
+
 #define PAGES_IN_BLOCK	((1024*1024)/MEM_PAGE_SIZE)
 #define SAFE_MEMORY	32
 #define MAX_MEMORY	512
@@ -872,6 +874,8 @@ public:
 		memory.a20.enabled = 0;
 		a20_fake_changeable = false;
 
+		enable_port92 = section->Get_bool("enable port 92");
+
 		std::string ss = section->Get_string("a20");
 		if (ss == "mask" || ss == "") {
 			LOG_MSG("A20: masking emulation\n");
@@ -1036,9 +1040,11 @@ public:
 		}
 		/* Reset some links */
 		memory.links.used = 0;
-		// A20 Line - PS/2 system control port A
-		WriteHandler.Install(0x92,write_p92,IO_MB);
-		ReadHandler.Install(0x92,read_p92,IO_MB);
+		if (enable_port92) {
+			// A20 Line - PS/2 system control port A
+			WriteHandler.Install(0x92,write_p92,IO_MB);
+			ReadHandler.Install(0x92,read_p92,IO_MB);
+		}
 		MEM_A20_Enable(false);
 	}
 	~MEMORY(){
