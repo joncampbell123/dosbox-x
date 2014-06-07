@@ -890,7 +890,11 @@ void DOSBOX_Init(void) {
 	Pbool->Set_help("If set (default), allow the application to reset the CPU through port 92h");
 
 	Pbool = secprop->Add_bool("enable port 92",Property::Changeable::WhenIdle,true);
-	Pbool->Set_help("Emulate port 92h (PS/2 system control port A). If you want to emulate a system that predates the PS/2, clear this setting.");
+	Pbool->Set_help("Emulate port 92h (PS/2 system control port A). If you want to emulate a system that predates the PS/2, set to 0.");
+
+	Pbool = secprop->Add_bool("enable 2nd dma controller",Property::Changeable::WhenIdle,true);
+	Pbool->Set_help("Emulate 2nd (AT) DMA controller (default). Set to 0 if you wish to emulate a PC/XT system without 16-bit DMA.\n"
+			"Note: mainline DOSBox automatically disables 16-bit DMA when machine=cga or machine=hercules, while DOSBox-X does not.");
 
 	secprop->AddInitFunction(&CALLBACK_Init);
 	secprop->AddInitFunction(&DMA_Init);//done
