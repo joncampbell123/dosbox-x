@@ -122,9 +122,14 @@ static void DMA_Write_Port(Bitu port,Bitu val,Bitu /*iolen*/) {
 			case 0x81:GetDMAChannel(2)->SetPage((Bit8u)val);break;
 			case 0x82:GetDMAChannel(3)->SetPage((Bit8u)val);break;
 			case 0x83:GetDMAChannel(1)->SetPage((Bit8u)val);break;
+			case 0x87:GetDMAChannel(0)->SetPage((Bit8u)val);break;
 			case 0x89:GetDMAChannel(6)->SetPage((Bit8u)val);break;
 			case 0x8a:GetDMAChannel(7)->SetPage((Bit8u)val);break;
 			case 0x8b:GetDMAChannel(5)->SetPage((Bit8u)val);break;
+			case 0x8f:GetDMAChannel(4)->SetPage((Bit8u)val);break;
+			default:
+				  LOG(LOG_DMACONTROL,LOG_NORMAL)("Trying to write undefined DMA page register %x",port);
+				  break;
 		}
 	}
 }
@@ -141,11 +146,16 @@ static Bitu DMA_Read_Port(Bitu port,Bitu iolen) {
 		case 0x81:return GetDMAChannel(2)->pagenum;
 		case 0x82:return GetDMAChannel(3)->pagenum;
 		case 0x83:return GetDMAChannel(1)->pagenum;
+		case 0x87:return GetDMAChannel(0)->pagenum;
 		case 0x89:return GetDMAChannel(6)->pagenum;
 		case 0x8a:return GetDMAChannel(7)->pagenum;
 		case 0x8b:return GetDMAChannel(5)->pagenum;
+		case 0x8f:return GetDMAChannel(4)->pagenum;
+		default:
+			  LOG(LOG_DMACONTROL,LOG_NORMAL)("Trying to read undefined DMA page register %x",port);
+			  break;
 	}
-	return 0;
+	return ~0;
 }
 
 void DmaController::WriteControllerReg(Bitu reg,Bitu val,Bitu /*len*/) {
@@ -363,13 +373,13 @@ public:
 			}
 		}
 		/* install handlers for ports 0x81-0x83 (on the first DMA controller) */
-		DmaControllers[0]->DMA_WriteHandler[0x10].Install(0x81,DMA_Write_Port,IO_MB,3);
-		DmaControllers[0]->DMA_ReadHandler[0x10].Install(0x81,DMA_Read_Port,IO_MB,3);
+		DmaControllers[0]->DMA_WriteHandler[0x10].Install(0x80,DMA_Write_Port,IO_MB,8);
+		DmaControllers[0]->DMA_ReadHandler[0x10].Install(0x80,DMA_Read_Port,IO_MB,8);
 
 		if (IS_EGAVGA_ARCH) {
 			/* install handlers for ports 0x81-0x83 (on the second DMA controller) */
-			DmaControllers[1]->DMA_WriteHandler[0x10].Install(0x89,DMA_Write_Port,IO_MB,3);
-			DmaControllers[1]->DMA_ReadHandler[0x10].Install(0x89,DMA_Read_Port,IO_MB,3);
+			DmaControllers[1]->DMA_WriteHandler[0x10].Install(0x88,DMA_Write_Port,IO_MB,8);
+			DmaControllers[1]->DMA_ReadHandler[0x10].Install(0x88,DMA_Read_Port,IO_MB,8);
 		}
 	}
 	~DMA(){
