@@ -238,7 +238,15 @@ static Bitu IRQ1_Handler(void) {
 /* handling of the locks key is difficult as sdl only gives
  * states for numlock capslock. 
  */
-	Bitu scancode=reg_al;	/* Read the code */
+	Bitu scancode;
+
+	/* Read the code */
+	if (machine == MCH_PCJR) {
+		/* we're just CB_IRET so we need to read the code */
+		scancode=IO_ReadB(0x60);
+	}
+	else /* already read for us by CB_IRQ1 */
+		scancode=reg_al;
 
 	Bit8u flags1,flags2,flags3,leds;
 	flags1=mem_readb(BIOS_KEYBOARD_FLAGS1);
@@ -647,23 +655,30 @@ void BIOS_SetupKeyboard(void) {
 	CALLBACK_Setup(call_int16,&INT16_Handler,CB_INT16,"Keyboard");
 	RealSetVec(0x16,CALLBACK_RealPointer(call_int16));
 
-	call_irq1=CALLBACK_Allocate();	
-	CALLBACK_Setup(call_irq1,&IRQ1_Handler,CB_IRQ1,Real2Phys(BIOS_DEFAULT_IRQ1_LOCATION),"IRQ 1 Keyboard");
-	RealSetVec(0x09,BIOS_DEFAULT_IRQ1_LOCATION);
-	// pseudocode for CB_IRQ1:
-	//	push ax
-	//	in al, 0x60
-	//	mov ah, 0x4f
-	//	stc
-	//	int 15
-	//	jc skip
-	//	callback IRQ1_Handler
-	//	label skip:
-	//	cli
-	//	mov al, 0x20
-	//	out 0x20, al
-	//	pop ax
-	//	iret
+	call_irq1=CALLBACK_Allocate();
+	if (machine == MCH_PCJR) { /* PCjr keyboard interrupt connected to NMI */
+		/* FIXME: This doesn't take INT 15h hook into consideration */
+		CALLBACK_Setup(call_irq1,&IRQ1_Handler,CB_IRET,"PCjr NMI Keyboard");
+		RealSetVec(0x02/*NMI*/,CALLBACK_RealPointer(call_irq1));
+	}
+	else {
+		CALLBACK_Setup(call_irq1,&IRQ1_Handler,CB_IRQ1,Real2Phys(BIOS_DEFAULT_IRQ1_LOCATION),"IRQ 1 Keyboard");
+		RealSetVec(0x09/*IRQ 1*/,BIOS_DEFAULT_IRQ1_LOCATION);
+		// pseudocode for CB_IRQ1:
+		//	push ax
+		//	in al, 0x60
+		//	mov ah, 0x4f
+		//	stc
+		//	int 15
+		//	jc skip
+		//	callback IRQ1_Handler
+		//	label skip:
+		//	cli
+		//	mov al, 0x20
+		//	out 0x20, al
+		//	pop ax
+		//	iret
+	}
 
 	irq1_ret_ctrlbreak_callback=CALLBACK_Allocate();
 	CALLBACK_Setup(irq1_ret_ctrlbreak_callback,&IRQ1_CtrlBreakAfterInt1B,CB_IRQ1_BREAK,"IRQ 1 Ctrl-Break callback");

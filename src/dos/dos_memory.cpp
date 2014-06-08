@@ -483,7 +483,7 @@ void DOS_SetupMemory(void) {
 	real_writew(ihseg,ihofs+0x02,callbackhandler.Get_callback());  //The immediate word
 	real_writeb(ihseg,ihofs+0x04,(Bit8u)0xCF);	//An IRET Instruction
 	RealSetVec(0x01,RealMake(ihseg,ihofs));		//BioMenace (offset!=4)
-	RealSetVec(0x02,RealMake(ihseg,ihofs));		//BioMenace (segment<0x8000)
+	if (machine != MCH_PCJR) RealSetVec(0x02,RealMake(ihseg,ihofs)); //BioMenace (segment<0x8000). Else, taken by BIOS NMI interrupt
 	RealSetVec(0x03,RealMake(ihseg,ihofs));		//Alien Incident (offset!=0)
 	RealSetVec(0x04,RealMake(ihseg,ihofs));		//Shadow President (lower byte of segment!=0)
 //	RealSetVec(0x0f,RealMake(ihseg,ihofs));		//Always a tricky one (soundblaster irq)

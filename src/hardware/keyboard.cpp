@@ -199,7 +199,7 @@ static void KEYBOARD_SetPort60(Bit16u val) {
 	}
 	else {
 		if (keyb.cb_irq1) {
-			if (machine==MCH_PCJR) PIC_ActivateIRQ(6);
+			if (machine == MCH_PCJR) CPU_Raise_NMI(); /* NTS: PCjr apparently hooked the keyboard to NMI */
 			else PIC_ActivateIRQ(1);
 		}
 	}
