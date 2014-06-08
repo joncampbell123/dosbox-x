@@ -29,6 +29,7 @@
 DmaController *DmaControllers[2]={NULL};
 unsigned char dma_extra_page_registers[16]={0}; /* 0x80-0x8F */
 bool enable_dma_extra_page_registers = true;
+bool dma_page_register_writeonly = false;
 
 #define EMM_PAGEFRAME4K	((0xE000*16)/4096)
 Bit32u ems_board_mapping[LINK_START];
@@ -148,22 +149,29 @@ static Bitu DMA_Read_Port(Bitu port,Bitu iolen) {
 	} else if (port>=0xc0 && port <=0xdf) {
 		/* read from the second DMA controller (channels 4-7) */
 		return DmaControllers[1]->ReadControllerReg((port-0xc0) >> 1,iolen);
-	} else switch (port) {
-		/* read DMA page register */
-		case 0x81:return GetDMAChannel(2)->pagenum;
-		case 0x82:return GetDMAChannel(3)->pagenum;
-		case 0x83:return GetDMAChannel(1)->pagenum;
-		case 0x87:return GetDMAChannel(0)->pagenum;
-		case 0x89:return GetDMAChannel(6)->pagenum;
-		case 0x8a:return GetDMAChannel(7)->pagenum;
-		case 0x8b:return GetDMAChannel(5)->pagenum;
-		case 0x8f:return GetDMAChannel(4)->pagenum;
-		default:
-			  if (enable_dma_extra_page_registers)
-				return dma_extra_page_registers[port&0xF];
+	} else {
+		/* if we're emulating PC/XT DMA controller behavior, then the page registers
+		 * are write-only and cannot be read */
+		if (dma_page_register_writeonly)
+			return ~0;
+
+		switch (port) {
+			/* read DMA page register */
+			case 0x81:return GetDMAChannel(2)->pagenum;
+			case 0x82:return GetDMAChannel(3)->pagenum;
+			case 0x83:return GetDMAChannel(1)->pagenum;
+			case 0x87:return GetDMAChannel(0)->pagenum;
+			case 0x89:return GetDMAChannel(6)->pagenum;
+			case 0x8a:return GetDMAChannel(7)->pagenum;
+			case 0x8b:return GetDMAChannel(5)->pagenum;
+			case 0x8f:return GetDMAChannel(4)->pagenum;
+			default:
+				  if (enable_dma_extra_page_registers)
+					return dma_extra_page_registers[port&0xF];
  
-			  LOG(LOG_DMACONTROL,LOG_NORMAL)("Trying to read undefined DMA page register %x",port);
-			  break;
+				  LOG(LOG_DMACONTROL,LOG_NORMAL)("Trying to read undefined DMA page register %x",port);
+				  break;
+		}
 	}
 	return ~0;
 }
@@ -374,6 +382,7 @@ public:
 		enable_2nd_dma = section->Get_bool("enable 2nd dma controller");
 		enable_1st_dma = enable_2nd_dma || section->Get_bool("enable 1st dma controller");
 		enable_dma_extra_page_registers = section->Get_bool("enable dma extra page registers");
+		dma_page_register_writeonly = section->Get_bool("dma page registers write-only");
 
 		if (enable_1st_dma) DmaControllers[0] = new DmaController(0);
 		else DmaControllers[0] = NULL;

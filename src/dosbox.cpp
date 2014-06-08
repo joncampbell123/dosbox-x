@@ -903,6 +903,9 @@ void DOSBOX_Init(void) {
 	Pbool->Set_help("If set, emulate the extra page registers (I/O ports 0x80, 0x84-0x86, 0x88, 0x8C-0x8E), like actual hardware.\n"
 			"Note that mainline DOSBox behavior is to NOT emulate these registers.");
 
+	Pbool = secprop->Add_bool("dma page registers write-only",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("Normally (on AT hardware) the DMA page registers are read/write. Set this option if you want to emulate PC/XT hardware where the page registers are write-only.");
+
 	secprop->AddInitFunction(&CALLBACK_Init);
 	secprop->AddInitFunction(&DMA_Init);//done
 	secprop->AddInitFunction(&PIC_Init);//done
