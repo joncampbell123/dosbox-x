@@ -290,6 +290,7 @@ void PIC_ActivateIRQ(Bitu irq) {
 		if (irq == 2) irq = 9;
 	}
 	else { /* PC/XT emulation with only master PIC */
+		if (irq == 9) irq = 2;
 		if (irq >= 8) {
 			LOG(LOG_PIC,LOG_ERROR)("Attempted to raise IRQ %u when slave PIC does not exist",irq);
 			return;
@@ -325,6 +326,7 @@ void PIC_DeActivateIRQ(Bitu irq) {
 		if (irq == 2) irq = 9;
 	}
 	else { /* PC/XT emulation with only master PIC */
+		if (irq == 9) irq = 2;
 		if (irq >= 8) {
 			LOG(LOG_PIC,LOG_ERROR)("Attempted to lower IRQ %u when slave PIC does not exist",irq);
 			return;
