@@ -1891,8 +1891,15 @@ private:
 		else if (!strcasecmp(sbtype,"none")) type=SBT_NONE;
 		else type=SBT_16;
 
-		if (type==SBT_16) {
-			if ((!IS_EGAVGA_ARCH) || !SecondDMAControllerAvailable()) type=SBT_PRO2;
+		if (type == SBT_16) {
+			/* NTS: mainline DOSBox forces the type to SBT_PRO2 if !IS_EGAVGA_ARCH or no secondary DMA controller.
+			 *      I'd rather take the approach that, if the user wants to emulate a bizarre unusual setup like
+			 *      sticking a Sound Blaster 16 in an 8-bit machine, they are free to do so on the understanding
+			 *      it won't work properly (and emulation will show what happens). I also believe that tying
+			 *      8-bit vs 16-bit system type to the *video card* was a really dumb move. */
+			if (!SecondDMAControllerAvailable()) {
+				LOG(LOG_SB,LOG_WARN)("Sound Blaster 16 enabled on a system without 16-bit DMA. Don't expect this setup to work properly! To improve compatability please edit your dosbox.conf and change sbtype to sbpro2 instead, or else enable the secondary DMA controller.");
+			}
 		}
 
 		/* SB16 Vibra cards are Plug & Play */
