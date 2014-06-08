@@ -27,6 +27,8 @@
 #include "setup.h"
 
 DmaController *DmaControllers[2]={NULL};
+unsigned char dma_extra_page_registers[16]={0}; /* 0x80-0x8F */
+bool enable_dma_extra_page_registers = true;
 
 #define EMM_PAGEFRAME4K	((0xE000*16)/4096)
 Bit32u ems_board_mapping[LINK_START];
@@ -120,6 +122,7 @@ static void DMA_Write_Port(Bitu port,Bitu val,Bitu /*iolen*/) {
 		DmaControllers[1]->WriteControllerReg((port-0xc0) >> 1,val,1);
 	} else {
 		UpdateEMSMapping();
+		dma_extra_page_registers[port&0xF] = val;
 		switch (port) {
 			/* write DMA page register */
 			case 0x81:GetDMAChannel(2)->SetPage((Bit8u)val);break;
@@ -131,7 +134,8 @@ static void DMA_Write_Port(Bitu port,Bitu val,Bitu /*iolen*/) {
 			case 0x8b:GetDMAChannel(5)->SetPage((Bit8u)val);break;
 			case 0x8f:GetDMAChannel(4)->SetPage((Bit8u)val);break;
 			default:
-				  LOG(LOG_DMACONTROL,LOG_NORMAL)("Trying to write undefined DMA page register %x",port);
+				  if (!enable_dma_extra_page_registers)
+					  LOG(LOG_DMACONTROL,LOG_NORMAL)("Trying to write undefined DMA page register %x",port);
 				  break;
 		}
 	}
@@ -155,6 +159,9 @@ static Bitu DMA_Read_Port(Bitu port,Bitu iolen) {
 		case 0x8b:return GetDMAChannel(5)->pagenum;
 		case 0x8f:return GetDMAChannel(4)->pagenum;
 		default:
+			  if (enable_dma_extra_page_registers)
+				return dma_extra_page_registers[port&0xF];
+ 
 			  LOG(LOG_DMACONTROL,LOG_NORMAL)("Trying to read undefined DMA page register %x",port);
 			  break;
 	}
@@ -366,6 +373,7 @@ public:
 
 		enable_2nd_dma = section->Get_bool("enable 2nd dma controller");
 		enable_1st_dma = enable_2nd_dma || section->Get_bool("enable 1st dma controller");
+		enable_dma_extra_page_registers = section->Get_bool("enable dma extra page registers");
 
 		if (enable_1st_dma) DmaControllers[0] = new DmaController(0);
 		else DmaControllers[0] = NULL;
