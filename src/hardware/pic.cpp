@@ -114,7 +114,7 @@ static PIC_Controller& master = pics[0];
 static PIC_Controller& slave  = pics[1];
 Bitu PIC_Ticks = 0;
 Bitu PIC_IRQCheck = 0; //Maybe make it a bool and/or ensure 32bit size (x86 dynamic core seems to assume 32 bit variable size)
-
+bool enable_slave_pic = true; /* if set, emulate slave with cascade to master. if clear, emulate only master, and no cascade (IRQ 2 is open) */
 
 void PIC_Controller::set_imr(Bit8u val) {
 	if (GCC_UNLIKELY(machine==MCH_PCJR)) {
@@ -286,7 +286,7 @@ static Bitu read_data(Bitu port,Bitu iolen) {
 
 void PIC_ActivateIRQ(Bitu irq) {
 	/* Remember what was once IRQ 2 on PC/XT is IRQ 9 on PC/AT */
-	if (true/*TODO: If PC/AT emulation with second PIC cascaded to master*/) {
+	if (enable_slave_pic) { /* PC/AT emulation with slave PIC cascade to master */
 		if (irq == 2) irq = 9;
 	}
 	else { /* PC/XT emulation with only master PIC */
@@ -322,7 +322,7 @@ void PIC_ActivateIRQ(Bitu irq) {
 
 void PIC_DeActivateIRQ(Bitu irq) {
 	/* Remember what was once IRQ 2 on PC/XT is IRQ 9 on PC/AT */
-	if (true/*TODO: If PC/AT emulation with second PIC cascaded to master*/) {
+	if (enable_slave_pic) { /* PC/AT emulation with slave PIC cascade to master */
 		if (irq == 2) irq = 9;
 	}
 	else { /* PC/XT emulation with only master PIC */
@@ -377,7 +377,7 @@ void PIC_runIRQs(void) {
 	const Bit8u max = master.special?8:master.active_irq;
 	for(Bit8u i = 0,s = 1;i < max;i++, s<<=1){
 		if (p&s){
-			if (i==2) { //second pic
+			if (i==2 && enable_slave_pic) { //second pic
 				slave_startIRQ();
 			} else {
 				master_startIRQ(i);
@@ -620,6 +620,10 @@ private:
 	IO_WriteHandleObject WriteHandler[4];
 public:
 	PIC_8259A(Section* configuration):Module_base(configuration){
+		Section_prop * section=static_cast<Section_prop *>(configuration);
+
+		enable_slave_pic = section->Get_bool("enable slave pic");
+
 		/* Setup pic0 and pic1 with initial values like DOS has normally */
 		PIC_IRQCheck=0;
 		PIC_Ticks=0;
@@ -652,10 +656,12 @@ public:
 		ReadHandler[1].Install(0x21,read_data,IO_MB);
 		WriteHandler[0].Install(0x20,write_command,IO_MB);
 		WriteHandler[1].Install(0x21,write_data,IO_MB);
-		ReadHandler[2].Install(0xa0,read_command,IO_MB);
-		ReadHandler[3].Install(0xa1,read_data,IO_MB);
-		WriteHandler[2].Install(0xa0,write_command,IO_MB);
-		WriteHandler[3].Install(0xa1,write_data,IO_MB);
+		if (enable_slave_pic) {
+			ReadHandler[2].Install(0xa0,read_command,IO_MB);
+			ReadHandler[3].Install(0xa1,read_data,IO_MB);
+			WriteHandler[2].Install(0xa0,write_command,IO_MB);
+			WriteHandler[3].Install(0xa1,write_data,IO_MB);
+		}
 		/* Initialize the pic queue */
 		for (i=0;i<PIC_QUEUESIZE-1;i++) {
 			pic_queue.entries[i].next=&pic_queue.entries[i+1];

@@ -906,6 +906,9 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("dma page registers write-only",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("Normally (on AT hardware) the DMA page registers are read/write. Set this option if you want to emulate PC/XT hardware where the page registers are write-only.");
 
+	Pbool = secprop->Add_bool("enable slave pic",Property::Changeable::WhenIdle,true);
+	Pbool->Set_help("Enable slave PIC (IRQ 8-15). Set this to 0 if you want to emulate a PC/XT type arrangement with IRQ 0-7 and no IRQ 2 cascade.");
+
 	secprop->AddInitFunction(&CALLBACK_Init);
 	secprop->AddInitFunction(&DMA_Init);//done
 	secprop->AddInitFunction(&PIC_Init);//done
