@@ -147,7 +147,13 @@ void init_vm86_fake_io();
 #define CPU_INT_HAS_ERROR		0x4
 #define CPU_INT_NOIOPLCHECK		0x8
 
+extern bool CPU_NMI_active;
+extern bool CPU_NMI_pending;
+
 void CPU_Interrupt(Bitu num,Bitu type,Bitu oldeip);
+void CPU_Check_NMI();
+void CPU_Raise_NMI();
+void CPU_NMI_Interrupt();
 static INLINE void CPU_HW_Interrupt(Bitu num) {
 	CPU_Interrupt(num,0,reg_eip);
 }

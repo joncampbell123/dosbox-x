@@ -33,6 +33,9 @@
 #include "support.h"
 #include "control.h"
 
+bool CPU_NMI_active = false;
+bool CPU_NMI_pending = false;
+
 extern bool ignore_opcode_63;
 
 Bitu DEBUG_EnableDebugger(void);
@@ -142,6 +145,24 @@ void CPU_Core_Dyn_X86_Cache_Close(void);
 void CPU_Core_Dyn_X86_SetFPUMode(bool dh_fpu);
 void CPU_Core_Dyn_X86_Cache_Reset(void);
 #endif
+
+/* called to signal an NMI.
+ * NTS: The NMI signal to the processor is said to be edge-triggered not level triggered */
+void CPU_NMI_Interrupt() {
+	if (CPU_NMI_active) E_Exit("CPU_NMI_Interrupt() called while NMI already active");
+	CPU_NMI_active = true;
+	CPU_NMI_pending = false;
+	CPU_Interrupt(2/*INT 2 = NMI*/,0,reg_eip);
+}
+
+void CPU_Raise_NMI() {
+	CPU_NMI_pending = true;
+	if (!CPU_NMI_active) CPU_NMI_Interrupt();
+}
+
+void CPU_Check_NMI() {
+	if (!CPU_NMI_active && CPU_NMI_pending) CPU_NMI_Interrupt();
+}
 
 /* In debug mode exceptions are tested and dosbox exits when 
  * a unhandled exception state is detected. 
@@ -840,6 +861,10 @@ do_interrupt:
 
 
 void CPU_IRET(bool use32,Bitu oldeip) {
+	/* x86 CPUs consider IRET the completion of an NMI, no matter where it happens */
+	/* FIXME: If the IRET causes an exception, is it still considered the end of the NMI? */
+	CPU_NMI_active = false;
+
 	if (!cpu.pmode) {					/* RealMode IRET */
 		if (use32) {
 			reg_eip=CPU_Pop32();

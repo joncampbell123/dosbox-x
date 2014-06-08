@@ -316,6 +316,9 @@ static Bitu Normal_Loop(void) {
 				frames=0;
 			}
 
+			/* now is the time to check for the NMI (Non-maskable interrupt) */
+			CPU_Check_NMI();
+
 			/* FIXME: we check some registers to make sure page fault handling doesn't trip up */
 			Bitu orig_eip = reg_eip;
 			Bitu orig_cs = SegValue(cs);

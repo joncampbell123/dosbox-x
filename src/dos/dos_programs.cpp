@@ -29,6 +29,7 @@
 #include "cross.h"
 #include "regs.h"
 #include "ide.h"
+#include "cpu.h"
 #include "callback.h"
 #include "cdrom.h"
 #include "dos_system.h"
@@ -2857,6 +2858,17 @@ static void MORE_ProgramStart(Program * * make) {
 void CLOCKDOM_ProgramStart(Program * * make);
 void A20GATE_ProgramStart(Program * * make);
 
+class NMITEST : public Program {
+public:
+	void Run(void) {
+		CPU_Raise_NMI();
+	}
+};
+
+static void NMITEST_ProgramStart(Program * * make) {
+	*make=new NMITEST;
+}
+
 void DOS_SetupPrograms(void) {
 	/*Add Messages */
 
@@ -3197,4 +3209,5 @@ void DOS_SetupPrograms(void) {
 	PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart);
 	PROGRAMS_MakeFile("CLOCKDOM.COM",CLOCKDOM_ProgramStart);
 	PROGRAMS_MakeFile("SHOWGUI.COM",SHOWGUI_ProgramStart);
+	PROGRAMS_MakeFile("NMITEST.COM",NMITEST_ProgramStart);
 }
