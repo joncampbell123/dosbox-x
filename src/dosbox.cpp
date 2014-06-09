@@ -912,6 +912,9 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("enable slave pic",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Enable slave PIC (IRQ 8-15). Set this to 0 if you want to emulate a PC/XT type arrangement with IRQ 0-7 and no IRQ 2 cascade.");
 
+	Pbool = secprop->Add_bool("enable pc nmi mask",Property::Changeable::WhenIdle,true);
+	Pbool->Set_help("Enable PC/XT style NMI mask register (0xA0). Note that this option conflicts with the secondary PIC and will be ignored if the slave PIC is enabled.");
+
 	secprop->AddInitFunction(&CALLBACK_Init);
 	secprop->AddInitFunction(&DMA_Init);//done
 	secprop->AddInitFunction(&PIC_Init);//done

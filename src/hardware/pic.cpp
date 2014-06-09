@@ -115,6 +115,7 @@ static PIC_Controller& slave  = pics[1];
 Bitu PIC_Ticks = 0;
 Bitu PIC_IRQCheck = 0; //Maybe make it a bool and/or ensure 32bit size (x86 dynamic core seems to assume 32 bit variable size)
 bool enable_slave_pic = true; /* if set, emulate slave with cascade to master. if clear, emulate only master, and no cascade (IRQ 2 is open) */
+bool enable_pc_xt_nmi_mask = false;
 
 void PIC_Controller::set_imr(Bit8u val) {
 	Bit8u change = (imr) ^ (val); //Bits that have changed become 1.
@@ -278,6 +279,14 @@ static Bitu read_command(Bitu port,Bitu iolen) {
 static Bitu read_data(Bitu port,Bitu iolen) {
 	PIC_Controller * pic=&pics[port==0x21 ? 0 : 1];
 	return pic->imr;
+}
+
+/* PC/XT NMI mask register 0xA0. Documentation on the other bits
+ * is sparse and spread across the internet, but many seem to
+ * agree that bit 7 is used to enable/disable the NMI (1=enable,
+ * 0=disable) */
+static void pc_xt_nmi_write(Bitu port,Bitu val,Bitu iolen) {
+	CPU_NMI_gate = (val & 0x80) ? true : false;
 }
 
 void PIC_ActivateIRQ(Bitu irq) {
@@ -609,6 +618,8 @@ void TIMER_AddTick(void) {
 	}
 }
 
+static IO_WriteHandleObject PCXT_NMI_WriteHandler;
+
 /* Use full name to avoid name clash with compile option for position-independent code */
 class PIC_8259A: public Module_base {
 private:
@@ -619,6 +630,7 @@ public:
 		Section_prop * section=static_cast<Section_prop *>(configuration);
 
 		enable_slave_pic = section->Get_bool("enable slave pic");
+		enable_pc_xt_nmi_mask = section->Get_bool("enable pc nmi mask");
 
 		/* Setup pic0 and pic1 with initial values like DOS has normally */
 		PIC_IRQCheck=0;
@@ -648,12 +660,18 @@ public:
 		ReadHandler[1].Install(0x21,read_data,IO_MB);
 		WriteHandler[0].Install(0x20,write_command,IO_MB);
 		WriteHandler[1].Install(0x21,write_data,IO_MB);
+
+		/* the secondary slave PIC takes priority over PC/XT NMI mask emulation */
 		if (enable_slave_pic) {
 			ReadHandler[2].Install(0xa0,read_command,IO_MB);
 			ReadHandler[3].Install(0xa1,read_data,IO_MB);
 			WriteHandler[2].Install(0xa0,write_command,IO_MB);
 			WriteHandler[3].Install(0xa1,write_data,IO_MB);
 		}
+		else if (enable_pc_xt_nmi_mask) {
+			PCXT_NMI_WriteHandler.Install(0xa0,pc_xt_nmi_write,IO_MB);
+		}
+
 		/* Initialize the pic queue */
 		for (i=0;i<PIC_QUEUESIZE-1;i++) {
 			pic_queue.entries[i].next=&pic_queue.entries[i+1];
