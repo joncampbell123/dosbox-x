@@ -834,14 +834,7 @@ static void DSP_PrepareDMA_New(DMA_MODES mode,Bitu length,bool autoinit,bool ste
 	sb.dma.total=length;
 	sb.dma.autoinit=autoinit;
 	if (mode==DSP_DMA_16) {
-		if (sb.hw.dma16!=0xff) {
-			sb.dma.chan=GetDMAChannel(sb.hw.dma16);
-			if (sb.dma.chan==NULL) {
-				sb.dma.chan=GetDMAChannel(sb.hw.dma8);
-				mode=DSP_DMA_16_ALIASED;
-				sb.dma.total<<=1;
-			}
-		} else {
+		if (sb.hw.dma16 == 0xff) { /* 16-bit DMA not assigned */
 			sb.dma.chan=GetDMAChannel(sb.hw.dma8);
 			mode=DSP_DMA_16_ALIASED;
 			//UNDOCUMENTED:
@@ -849,7 +842,18 @@ static void DSP_PrepareDMA_New(DMA_MODES mode,Bitu length,bool autoinit,bool ste
 			//16-bit samples so we need double 8-bit DMA buffer length
 			sb.dma.total<<=1;
 		}
-	} else sb.dma.chan=GetDMAChannel(sb.hw.dma8);
+		else if (sb.hw.dma16 >= 4) { /* 16-bit DMA assigned to 16-bit DMA channel */
+			sb.dma.chan=GetDMAChannel(sb.hw.dma16);
+		}
+		else { /* 16-bit DMA assigned to 8-bit channel */
+			sb.dma.chan=GetDMAChannel(sb.hw.dma8);
+			mode=DSP_DMA_16_ALIASED;
+			sb.dma.total<<=1;
+		}
+	} else {
+		sb.dma.chan=GetDMAChannel(sb.hw.dma8);
+	}
+
 	DSP_DoDMATransfer(mode,freq,stereo);
 }
 
