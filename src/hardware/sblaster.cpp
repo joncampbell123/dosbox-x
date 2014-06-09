@@ -108,6 +108,7 @@ struct SB_INFO {
 	bool speaker;
 	bool midi;
 	bool vibra;
+	bool emit_blaster_var;
 	bool dma_dac_mode; /* some very old DOS demos "play" sound by setting the DMA terminal count to 0.
 			      normally that would mean the DMA controller transmitting the same byte at the sample rate,
 			      except that the program creates sound by overwriting that byte periodically.
@@ -1926,17 +1927,27 @@ private:
 public:
 	SBLASTER(Section* configuration):Module_base(configuration) {
 		Bitu i;
+		int si;
+
 		Section_prop * section=static_cast<Section_prop *>(configuration);
 
 		sb.hw.base=section->Get_hex("sbbase");
-		sb.hw.irq=section->Get_int("irq");
 		sb.goldplay=section->Get_bool("goldplay");
-		Bitu dma8bit=section->Get_int("dma");
-		if (dma8bit>0xff) dma8bit=0xff;
-		sb.hw.dma8=(Bit8u)(dma8bit&0xff);
-		Bitu dma16bit=section->Get_int("hdma");
-		if (dma16bit>0xff) dma16bit=0xff;
-		sb.hw.dma16=(Bit8u)(dma16bit&0xff);
+		sb.emit_blaster_var=section->Get_bool("blaster environment variable");
+
+		si=section->Get_int("irq");
+		sb.hw.irq=(si >= 0) ? si : 0xFF;
+
+		si=section->Get_int("dma");
+		sb.hw.dma8=(si >= 0) ? si : 0xFF;
+
+		si=section->Get_int("hdma");
+		sb.hw.dma16=(si >= 0) ? si : 0xFF;
+
+		if (sb.hw.irq == 0xFF || sb.hw.dma8 == 0xFF) {
+			LOG(LOG_SB,LOG_WARN)("IRQ and 8-bit DMA not assigned, disabling BLASTER variable");
+			sb.emit_blaster_var = false;
+		}
 
 		sb.mixer.enabled=section->Get_bool("sbmixer");
 		sb.mixer.stereo=false;
@@ -1994,14 +2005,17 @@ public:
 		if (sb.type == SBT_16) sb.chan->Enable(true);
 		else sb.chan->Enable(false);
 
-		// Create set blaster line
-		ostringstream temp;
-		temp << "SET BLASTER=A" << setw(3)<< hex << sb.hw.base
-		     << " I" << dec << (Bitu)sb.hw.irq << " D" << (Bitu)sb.hw.dma8;
-		if (sb.type==SBT_16) temp << " H" << (Bitu)sb.hw.dma16;
-		temp << " T" << static_cast<unsigned int>(sb.type) << ends;
+		if (sb.emit_blaster_var) {
+			// Create set blaster line
+			ostringstream temp;
+			temp << "SET BLASTER=A" << setw(3) << hex << sb.hw.base;
+			if (sb.hw.irq != 0xFF) temp << " I" << dec << (Bitu)sb.hw.irq;
+			if (sb.hw.dma8 != 0xFF) temp << " D" << (Bitu)sb.hw.dma8;
+			if (sb.type==SBT_16 && sb.hw.dma16 != 0xFF) temp << " H" << (Bitu)sb.hw.dma16;
+			temp << " T" << static_cast<unsigned int>(sb.type) << ends;
 
-		autoexecline.Install(temp.str());
+			autoexecline.Install(temp.str());
+		}
 
 		/* Soundblaster midi interface */
 		if (!MIDI_Available()) sb.midi = false;

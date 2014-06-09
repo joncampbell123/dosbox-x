@@ -1199,15 +1199,15 @@ void DOSBOX_Init(void) {
 
 	Pint = secprop->Add_int("irq",Property::Changeable::WhenIdle,7);
 	Pint->Set_values(irqssb);
-	Pint->Set_help("The IRQ number of the soundblaster.");
+	Pint->Set_help("The IRQ number of the soundblaster. Set to -1 to start DOSBox with the IRQ unassigned");
 
 	Pint = secprop->Add_int("dma",Property::Changeable::WhenIdle,1);
 	Pint->Set_values(dmassb);
-	Pint->Set_help("The DMA number of the soundblaster.");
+	Pint->Set_help("The DMA number of the soundblaster. Set to -1 to start DOSBox with the IRQ unassigned");
 
 	Pint = secprop->Add_int("hdma",Property::Changeable::WhenIdle,5);
 	Pint->Set_values(dmassb);
-	Pint->Set_help("The High DMA number of the soundblaster.");
+	Pint->Set_help("The High DMA number of the soundblaster. Set to -1 to start DOSBox with the IRQ unassigned");
 
 	Pbool = secprop->Add_bool("sbmixer",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Allow the soundblaster mixer to modify the DOSBox mixer.");
@@ -1231,6 +1231,9 @@ void DOSBOX_Init(void) {
 		"210,220,230,240,250,260,280");
 	Pbool = secprop->Add_bool("goldplay",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("Enable goldplay emulation.");
+
+	Pbool = secprop->Add_bool("blaster environment variable",Property::Changeable::WhenIdle,true);
+	Pbool->Set_help("Whether or not to set the BLASTER environment variable automatically at startup");
 
 	secprop=control->AddSection_prop("gus",&GUS_Init,true); //done
 	Pbool = secprop->Add_bool("gus",Property::Changeable::WhenIdle,false); 	
