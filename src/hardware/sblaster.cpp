@@ -802,11 +802,16 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo) {
 	 *    Triton - Crystal Dream (1992) [SB and SB Pro modes] ----FIXME: Yes, but apparently the demo fails to acknowledge the IRQ and sound stops
 	 *    The Jungly (1992) [SB and SB Pro modes]
 	 */
-	if (sb.goldplay && sb.dma_dac_srcrate > 0 && sb.dma.chan != NULL && sb.dma.chan->basecnt < 2/* && sb.dma.chan->autoinit && mode == DSP_DMA_8*/) {
-		sb.dma_dac_mode=1;
-		PIC_AddEvent(DMA_DAC_Event,1000.0 / sb.dma_dac_srcrate);
+	if (sb.dma.chan != NULL) {
+		if (sb.goldplay && sb.dma_dac_srcrate > 0 && sb.dma.chan->basecnt < 2/* && sb.dma.chan->autoinit && mode == DSP_DMA_8*/) {
+			sb.dma_dac_mode=1;
+			PIC_AddEvent(DMA_DAC_Event,1000.0 / sb.dma_dac_srcrate);
+		}
+		sb.dma.chan->Register_Callback(DSP_DMA_CallBack);
 	}
-	sb.dma.chan->Register_Callback(DSP_DMA_CallBack);
+	else {
+		LOG(LOG_SB,LOG_WARN)("DMA transfer initiated with no channel assigned");
+	}
 
 #if (C_DEBUG)
 	LOG(LOG_SB,LOG_NORMAL)("DMA Transfer:%s %s %s freq %d rate %d size %d",
