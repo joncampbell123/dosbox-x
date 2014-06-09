@@ -725,26 +725,6 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo) {
 	char const * type;
 	sb.mode=MODE_DMA_MASKED;
 
-	/* This takes the RAW sample rate value computed from the Time Constant
-	 * given to us by DSP command 0x40. Normally, the DOS program multiplies
-	 * the value by 2 when playing stereo. GoldPlay doesn't seem to do that,
-	 * it seems to send the same time constant whether we do stereo or mono.
-	 *
-	 * This explains why on real hardware the Sound Blaster Pro Stereo modes
-	 * always sounded worse than the Sound Blaster mono modes with GoldPlay.
-	 * When using the time constant and SB/SBPro DSP commands to do stereo
-	 * output you're supposed to compute the time constant using the sample
-	 * rates times the number of channels.
-	 *
-	 * What we do here to get full quality is we ignore that rule and effectively
-	 * play the single sample at twice the sample rate (what GoldPlay is doing
-	 * anyway) and then reduce the DMA block length every other sample instead
-	 * of every sample so that the IRQ is fired off at the correct rate that
-	 * a Sound Blaster would properly do it given the sound configuration.
-	 *
-	 * At the same time, if a DOS program is setting the time constant correctly,
-	 * it will also be rendered at the proper sample rate. With each sample
-	 * doubled up, that's all :) */
 	sb.dma_dac_srcrate=sb.freq;
 
 	sb.chan->FillUp();
