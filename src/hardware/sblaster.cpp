@@ -1470,7 +1470,7 @@ static void CTMIXER_Write(Bit8u val) {
 		if (sb.type==SBT_16) sb.mixer.mic=val>>3;
 		break;
 	case 0x80:		/* IRQ Select */
-		if (!(sb.type==SBT_16 && sb.vibra)) { /* ViBRA PnP cards do not allow reconfiguration by this byte */
+		if (sb.type==SBT_16 && !sb.vibra) { /* ViBRA PnP cards do not allow reconfiguration by this byte */
 			sb.hw.irq=0xff;
 			if (val & 0x1) sb.hw.irq=2;
 			else if (val & 0x2) sb.hw.irq=5;
@@ -1479,7 +1479,7 @@ static void CTMIXER_Write(Bit8u val) {
 		}
 		break;
 	case 0x81:		/* DMA Select */
-		if (!(sb.type==SBT_16 && sb.vibra)) { /* ViBRA PnP cards do not allow reconfiguration by this byte */
+		if (sb.type==SBT_16 && !sb.vibra) { /* ViBRA PnP cards do not allow reconfiguration by this byte */
 			sb.hw.dma8=0xff;
 			sb.hw.dma16=0xff;
 			if (val & 0x1) sb.hw.dma8=0;
@@ -1572,6 +1572,7 @@ static Bit8u CTMIXER_Read(void) {
 		ret=0xa;
 		break;
 	case 0x80:		/* IRQ Select */
+		ret=0;
 		switch (sb.hw.irq) {
 		case 2:  return 0x1;
 		case 5:  return 0x2;
