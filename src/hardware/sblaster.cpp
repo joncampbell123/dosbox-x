@@ -109,6 +109,7 @@ struct SB_INFO {
 	bool midi;
 	bool vibra;
 	bool emit_blaster_var;
+	bool sbpro_stereo_bit_strict_mode; /* if set, stereo bit in mixer can only be set if emulating a Pro. if clear, SB16 can too */
 	bool sample_rate_limits; /* real SB hardware has limits on the sample rate */
 	bool dma_dac_mode; /* some very old DOS demos "play" sound by setting the DMA terminal count to 0.
 			      normally that would mean the DMA controller transmitting the same byte at the sample rate,
@@ -1420,7 +1421,10 @@ static void CTMIXER_Write(Bit8u val) {
 		}
 		break;
 	case 0x0e:		/* Output/Stereo Select */
-		sb.mixer.stereo=(val & 0x2) > 0;
+		/* only allow writing stereo bit if Sound Blaster Pro OR if a SB16 and user says to allow it */
+		if ((sb.type == SBT_PRO1 || sb.type == SBT_PRO2) || (sb.type == SBT_16 && !sb.sbpro_stereo_bit_strict_mode))
+			sb.mixer.stereo=(val & 0x2) > 0;
+
 		sb.mixer.filtered=(val & 0x20) > 0;
 		DSP_ChangeStereo(sb.mixer.stereo);
 		LOG(LOG_SB,LOG_WARN)("Mixer set to %s",sb.dma.stereo ? "STEREO" : "MONO");
@@ -1982,6 +1986,7 @@ public:
 		sb.goldplay=section->Get_bool("goldplay");
 		sb.emit_blaster_var=section->Get_bool("blaster environment variable");
 		sb.sample_rate_limits=section->Get_bool("sample rate limits");
+		sb.sbpro_stereo_bit_strict_mode=section->Get_bool("stereo control with sbpro only");
 
 		si=section->Get_int("irq");
 		sb.hw.irq=(si >= 0) ? si : 0xFF;

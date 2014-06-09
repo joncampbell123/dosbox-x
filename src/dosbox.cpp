@@ -1238,6 +1238,17 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("sample rate limits",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("If set (default), limit DSP sample rate to what real hardware is limited to");
 
+	/* this is off by default not because of accuracy but in consideration of other people on the
+	 * DOSBox forums who probably wouldn't like breakage of their favorite games that use Sound Blaster
+	 * Pro stereo modes. Also, many Sound Blaster clones, including those that emulate the Sound Blaster
+	 * 16, also honor the stereo bit in the mixer. The reason this is an option however, is that the
+	 * SB16 cards put out by Creative do NOT honor the stereo mixer bit. If you want accuracy in your
+	 * emulation, then you would set this option. */
+	Pbool = secprop->Add_bool("stereo control with sbpro only",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("Default off. If set, Sound Blaster Pro stereo is not available when emulating sb16 or sb16vibra.\n"
+			"If clear, sb16 emulation will honor the sbpro stereo bit. Note that Creative SB16 cards do not\n"
+			"honor the stereo bit, and this option allows DOSBox emulate that fact.");
+
 	secprop=control->AddSection_prop("gus",&GUS_Init,true); //done
 	Pbool = secprop->Add_bool("gus",Property::Changeable::WhenIdle,false); 	
 	Pbool->Set_help("Enable the Gravis Ultrasound emulation.");
