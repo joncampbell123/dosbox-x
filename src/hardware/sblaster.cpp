@@ -851,7 +851,7 @@ static void DSP_PrepareDMA_New(DMA_MODES mode,Bitu length,bool autoinit,bool ste
 			sb.dma.chan=GetDMAChannel(sb.hw.dma16);
 		}
 		else { /* 16-bit DMA assigned to 8-bit channel */
-			sb.dma.chan=GetDMAChannel(sb.hw.dma8);
+			sb.dma.chan=GetDMAChannel(sb.hw.dma16);
 			mode=DSP_DMA_16_ALIASED;
 			sb.dma.total<<=1;
 		}
