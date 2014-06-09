@@ -895,10 +895,18 @@ static void DSP_PrepareDMA_New(DMA_MODES mode,Bitu length,bool autoinit,bool ste
 		else if (sb.hw.dma16 >= 4) { /* 16-bit DMA assigned to 16-bit DMA channel */
 			sb.dma.chan=GetDMAChannel(sb.hw.dma16);
 		}
-		else { /* 16-bit DMA assigned to 8-bit channel */
+		else if (sb.hw.dma16 == sb.hw.dma8) { /* 16-bit DMA assigned to 8-bit channel */
 			sb.dma.chan=GetDMAChannel(sb.hw.dma16);
 			mode=DSP_DMA_16_ALIASED;
 			sb.dma.total<<=1;
+		}
+		else {
+			/* Nope. According to one ViBRA PnP card I have on hand, asking the
+			 * card to do 16-bit DMA over 8-bit DMA only works if they are the
+			 * same channel, otherwise, the card doesn't seem to carry out any
+			 * DMA fetching. */
+			sb.dma.chan=NULL;
+			return;
 		}
 	} else {
 		sb.dma.chan=GetDMAChannel(sb.hw.dma8);
