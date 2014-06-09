@@ -1235,6 +1235,9 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("blaster environment variable",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Whether or not to set the BLASTER environment variable automatically at startup");
 
+	Pbool = secprop->Add_bool("sample rate limits",Property::Changeable::WhenIdle,true);
+	Pbool->Set_help("If set (default), limit DSP sample rate to what real hardware is limited to");
+
 	secprop=control->AddSection_prop("gus",&GUS_Init,true); //done
 	Pbool = secprop->Add_bool("gus",Property::Changeable::WhenIdle,false); 	
 	Pbool->Set_help("Enable the Gravis Ultrasound emulation.");

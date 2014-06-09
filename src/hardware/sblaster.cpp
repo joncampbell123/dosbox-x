@@ -65,7 +65,7 @@ bool MIDI_Available(void);
 #define SB_SH_MASK	((1 << SB_SH)-1)
 
 enum {DSP_S_RESET,DSP_S_RESET_WAIT,DSP_S_NORMAL,DSP_S_HIGHSPEED};
-enum SB_TYPES {SBT_NONE=0,SBT_1=1,SBT_PRO1=2,SBT_2=3,SBT_PRO2=4,SBT_16=6,SBT_GB=7};
+enum SB_TYPES {SBT_NONE=0,SBT_1=1,SBT_PRO1=2,SBT_2=3,SBT_PRO2=4,SBT_16=6,SBT_GB=7}; /* TODO: Need SB 2.0 vs SB 2.01 */
 enum SB_IRQS {SB_IRQ_8,SB_IRQ_16,SB_IRQ_MPU};
 
 enum DSP_MODES {
@@ -109,6 +109,7 @@ struct SB_INFO {
 	bool midi;
 	bool vibra;
 	bool emit_blaster_var;
+	bool sample_rate_limits; /* real SB hardware has limits on the sample rate */
 	bool dma_dac_mode; /* some very old DOS demos "play" sound by setting the DMA terminal count to 0.
 			      normally that would mean the DMA controller transmitting the same byte at the sample rate,
 			      except that the program creates sound by overwriting that byte periodically.
@@ -825,6 +826,40 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo) {
 }
 
 static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign) {
+	/* Ignore high-speed DAC commands if Sound Blaster 1.xx */
+	if (sb.type == SBT_1 && (sb.dsp.cmd == 0x90 || sb.dsp.cmd == 0x91)) return;
+
+	if (sb.sample_rate_limits) { /* enforce speed limits documented by Creative */
+		unsigned int u_limit=23000,l_limit=4000; /* NTS: Recording vs playback is not considered because DOSBox only emulates playback */
+
+		if ((sb.dsp.cmd&0xFE) == 0x74 || sb.dsp.cmd == 0x7D) /* 4-bit ADPCM */
+			u_limit = 12000;
+		else if ((sb.dsp.cmd&0xFE) == 0x76) /* 2.6-bit ADPCM */
+			u_limit = 13000;
+		else if ((sb.dsp.cmd&0xFE) == 0x16) /* 2-bit ADPCM */
+			u_limit = 13000;
+		else if ((sb.dsp.cmd&0xFE) == 0x90) /* high-speed DAC */ {
+			if (sb.type == SBT_1) /* 1.xx does not support */
+				return;
+			else
+				u_limit = 44100; /* which is 22050Hz stereo when programmed DSP 3.x style */
+		}
+		/* NTS: We skip the SB16 commands because those are handled by another function */
+		else {
+			/* NTS: experience tells me that even on SB16 the traditional (pre 4.xx) DSP commands
+			 *      are limited to 23KHz. TODO: What are the highspeed DAC commands limited to? 44.1KHz? 48KHz? */
+			u_limit = 23000; /* non-highspeed limit is 23KHz */
+		}
+
+		/* NTS: Don't forget: Sound Blaster Pro "stereo" is programmed with a time constant divided by
+		 *      two times the sample rate, which is what we get back here. That's why here we don't need
+		 *      to consider stereo vs mono. */
+		if (sb.freq < l_limit)
+			sb.freq = l_limit;
+		if (sb.freq > u_limit)
+			sb.freq = u_limit;
+	}
+
 	sb.dma_dac_mode=0;
 	sb.dma.autoinit=autoinit;
 	sb.dma.sign=sign;
@@ -834,6 +869,18 @@ static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign) {
 }
 
 static void DSP_PrepareDMA_New(DMA_MODES mode,Bitu length,bool autoinit,bool stereo) {
+	if (sb.sample_rate_limits) { /* enforce speed limits documented by Creative */
+		unsigned int u_limit=23000,l_limit=4000; /* NTS: Recording vs playback is not considered because DOSBox only emulates playback */
+
+		if (sb.vibra) u_limit = 48000;
+		else u_limit = 44100;
+
+		if (sb.freq < l_limit)
+			sb.freq = l_limit;
+		if (sb.freq > u_limit)
+			sb.freq = u_limit;
+	}
+
 	Bitu freq=sb.freq;
 	//equal length if data format and dma channel are both 16-bit or 8-bit
 	sb.dma_dac_mode=0;
@@ -1934,6 +1981,7 @@ public:
 		sb.hw.base=section->Get_hex("sbbase");
 		sb.goldplay=section->Get_bool("goldplay");
 		sb.emit_blaster_var=section->Get_bool("blaster environment variable");
+		sb.sample_rate_limits=section->Get_bool("sample rate limits");
 
 		si=section->Get_int("irq");
 		sb.hw.irq=(si >= 0) ? si : 0xFF;
