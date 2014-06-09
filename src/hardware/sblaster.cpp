@@ -113,7 +113,6 @@ struct SB_INFO {
 			      except that the program creates sound by overwriting that byte periodically.
 			      on actual hardware this happens to work (though with kind of a gritty sound to it),
 			      The DMA emulation here does not handle that well. */
-	bool dma_dac_warning;
 	bool goldplay;
 	Bit8u time_constant;
 	DSP_MODES mode;
@@ -824,16 +823,8 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo) {
 	 *    The Jungly (1992) [SB and SB Pro modes]
 	 */
 	if (sb.goldplay && sb.dma_dac_srcrate > 0 && sb.dma.chan->basecnt < 2/* && sb.dma.chan->autoinit && mode == DSP_DMA_8*/) {
-		if (!sb.dma_dac_warning) {
-			//LOG_MSG("SoundBlaster: DMA count is way too small. Switching to per-sample DMA rendering, which may reduce emulator performance @ %uHz.\n",sb.dma_dac_srcrate);
-			//LOG_MSG("This is usually caused by DOS demos using the GoldPlay library. See src/hardware/sblaster.cpp comments for more information.\n");
-			sb.dma_dac_warning=1;
-		}
 		sb.dma_dac_mode=1;
 		PIC_AddEvent(DMA_DAC_Event,1000.0 / sb.dma_dac_srcrate);
-	}
-	else {
-		sb.dma_dac_warning=0;
 	}
 	sb.dma.chan->Register_Callback(DSP_DMA_CallBack);
 
@@ -928,7 +919,6 @@ static void DSP_Reset(void) {
 	sb.dac.last=0;
 	sb.e2.value=0xaa;
 	sb.e2.count=0;
-	sb.dma_dac_warning=0;
 	sb.dma_dac_src_div2count = 0;
 	sb.irq.pending_8bit=false;
 	sb.irq.pending_16bit=false;
@@ -2072,7 +2062,6 @@ void SBLASTER_ShutDown(Section* /*sec*/) {
 void SBLASTER_Init(Section* sec) {
 	test = new SBLASTER(sec);
 	sec->AddDestroyFunction(&SBLASTER_ShutDown,true);
-	sb.dma_dac_warning = 0;
 	sb.dma_dac_src_div2count = 0;
 }
 
