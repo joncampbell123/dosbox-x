@@ -16,6 +16,9 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+/* FIXME: Sound Blaster Pro emulation bug: playback is supposed to max out at 44100Hz mono, 22050 stereo at highspeed modes,
+ *        and 22050 at normal speed. DOSBox is allowing the DSP to run faster than that! */
+/* TODO: Add an option that, if set, and emulating a Sound Blaster 16, the mixer "stereo" bit is ignored (just like real hardware) */
 
 #include <iomanip>
 #include <sstream>
