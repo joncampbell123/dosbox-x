@@ -22,6 +22,7 @@
 
 #include "dosbox.h"
 #include "timer.h"
+#include "cpu.h"
 #include "pic.h"
 #include "inout.h"
 #include "mem.h"
@@ -104,6 +105,11 @@ static void cmos_checktimer(void) {
 }
 
 void cmos_selreg(Bitu port,Bitu val,Bitu iolen) {
+	if (machine != MCH_PCJR) {
+		/* bit 7 also controls NMI masking, if set, NMI is disabled */
+		CPU_NMI_gate = (val&0x80) ? false : true;
+	}
+
 	cmos.reg=val & 0x3f;
 	cmos.nmi=(val & 0x80)>0;
 }
@@ -155,7 +161,7 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
 		case 0x04:		/* Hours */
 			if (cmos.ampm)				// 12h am/pm mode
 			{
-				if (val > 12 && val < 0x81 || val > 0x8c) return;	// invalid hour value
+				if ((val > 12 && val < 0x81) || val > 0x8c) return;	// invalid hour value
 				if (val > 12) val -= (0x80-12);			// convert pm to 24h
 			}
 			else						// 24h mode

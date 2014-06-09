@@ -33,6 +33,7 @@
 #include "support.h"
 #include "control.h"
 
+bool CPU_NMI_gate = true;
 bool CPU_NMI_active = false;
 bool CPU_NMI_pending = false;
 
@@ -157,11 +158,11 @@ void CPU_NMI_Interrupt() {
 
 void CPU_Raise_NMI() {
 	CPU_NMI_pending = true;
-	if (!CPU_NMI_active) CPU_NMI_Interrupt();
+	if (!CPU_NMI_active && CPU_NMI_gate) CPU_NMI_Interrupt();
 }
 
 void CPU_Check_NMI() {
-	if (!CPU_NMI_active && CPU_NMI_pending) CPU_NMI_Interrupt();
+	if (!CPU_NMI_active && CPU_NMI_gate && CPU_NMI_pending) CPU_NMI_Interrupt();
 }
 
 /* In debug mode exceptions are tested and dosbox exits when 

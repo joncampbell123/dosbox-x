@@ -147,6 +147,7 @@ void init_vm86_fake_io();
 #define CPU_INT_HAS_ERROR		0x4
 #define CPU_INT_NOIOPLCHECK		0x8
 
+extern bool CPU_NMI_gate;
 extern bool CPU_NMI_active;
 extern bool CPU_NMI_pending;
 
