@@ -3,9 +3,26 @@
 
   Use core=dynamic for a faster install.
 
-  Turn OFF the "non-recursive page fault" option during
-  the install phase. Leaving it on guarantees that DOSBox
-  (with core=dynamic) will segfault after the 2nd reboot.
-  I have no idea at this time what the segfault is about.
-  You can turn the non-recursive page fault back on later.
+  For the first phase of the install, make sure
+  you set:
+
+  dynamic core cache block size=32
+
+  Let it install then reboot. Stop the emulation
+  before it starts booting again, and change it to:
+
+  dynamic core cache block size=1
+
+  For the rest of the install, leave it at that
+  setting.
+
+  The setup phase may show some invalid page fault
+  dialog boxes (for some reason). If you ack them,
+  Windows will make it through the install and
+  boot up properly.
+
+  Do not change the dynamic core cache block size
+  back to 32. Windows 98 will become unstable and
+  DOSBox will likely segfault at some point, usually
+  when opening the Control Panel.
 
