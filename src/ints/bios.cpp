@@ -40,6 +40,11 @@ extern bool PS1AudioCard;
 /* mouse.cpp */
 extern bool en_bios_ps2mouse;
 
+/* default bios type/version/date strings */
+const char* const bios_type_string = "IBM COMPATIBLE 486 BIOS COPYRIGHT The DOSBox Team.";
+const char* const bios_version_string = "DOSBox FakeBIOS v1.0";
+const char* const bios_date_string = "01/01/92";
+
 /* if mem_systems 0 then size_extended is reported as the real size else 
  * zero is reported. ems and xms can increase or decrease the other_memsystems
  * counter using the BIOS_ZeroExtendedSize call */
@@ -2626,19 +2631,16 @@ public:
 		else phys_writeb(0xffffe,0xfc);	/* PC */
 
 		// System BIOS identification
-		const char* const b_type =
-			"IBM COMPATIBLE 486 BIOS COPYRIGHT The DOSBox Team.";
-		for(Bitu i = 0; i < strlen(b_type); i++) phys_writeb(0xfe00e + i,b_type[i]);
+		for(Bitu i = 0; i < strlen(bios_type_string); i++) phys_writeb(0xfe00e + i,bios_type_string[i]);
 		
 		// System BIOS version
-		const char* const b_vers =
-			"DOSBox FakeBIOS v1.0";
-		for(Bitu i = 0; i < strlen(b_vers); i++) phys_writeb(0xfe061+i,b_vers[i]);
+		for(Bitu i = 0; i < strlen(bios_version_string); i++) phys_writeb(0xfe061+i,bios_version_string[i]);
 
 		// write system BIOS date
-		const char* const b_date = "01/01/92";
-		for(Bitu i = 0; i < strlen(b_date); i++) phys_writeb(0xffff5+i,b_date[i]);
-		phys_writeb(0xfffff,0x55); // signature
+		for(Bitu i = 0; i < strlen(bios_date_string); i++) phys_writeb(0xffff5+i,bios_date_string[i]);
+
+		// signature
+		phys_writeb(0xfffff,0x55);
 
 		// program system timer
 		// timer 2
