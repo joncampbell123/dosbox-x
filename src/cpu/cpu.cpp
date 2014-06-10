@@ -149,6 +149,15 @@ void CPU_Core_Dyn_X86_Cache_Reset(void);
 
 /* called to signal an NMI.
  * NTS: The NMI signal to the processor is said to be edge-triggered not level triggered */
+/* NTS: From the Intel 80386 programmer's reference manual:
+ *
+ * 9.2.1 NMI Masks Further NMIs
+ * While an NMI handler is executing, the processor ignores further interrupt
+ * signals at the NMI pin until the next IRET instruction is executed.
+ *
+ * This is why, further down, CPU_IRET() clears the CPU_NMI_active flag.
+ *
+ */
 void CPU_NMI_Interrupt() {
 	if (CPU_NMI_active) E_Exit("CPU_NMI_Interrupt() called while NMI already active");
 	CPU_NMI_active = true;
