@@ -377,6 +377,7 @@ void PIC_runIRQs(void) {
 	if (!GETFLAG(IF)) return;
 	if (GCC_UNLIKELY(!PIC_IRQCheck)) return;
 	if (GCC_UNLIKELY(cpudecoder==CPU_Core_Normal_Trap_Run)) return;
+	if (GCC_UNLIKELY(CPU_NMI_active)) return; /* NMI has higher priority than PIC */
 
 	const Bit8u p = (master.irr & master.imrr)&master.isrr;
 	const Bit8u max = master.special?8:master.active_irq;
