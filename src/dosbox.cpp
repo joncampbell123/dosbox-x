@@ -163,6 +163,7 @@ void				LOG_StartUp(void);
 void				MEM_Init(Section *);
 void				PAGING_Init(Section *);
 void				ISAPNP_Cfg_Init(Section *);
+void				ROMBIOS_Init(Section *);
 void				IO_Init(Section *);
 void				CALLBACK_Init(Section*);
 void				PROGRAMS_Init(Section*);
@@ -848,6 +849,7 @@ void DOSBOX_Init(void) {
 	secprop->AddInitFunction(&PAGING_Init);//done
 	secprop->AddInitFunction(&MEM_Init);//done
 	secprop->AddInitFunction(&HARDWARE_Init);//done
+	secprop->AddInitFunction(&ROMBIOS_Init);
 	Pint = secprop->Add_int("memsize", Property::Changeable::WhenIdle,16);
 	Pint->SetMinMax(1,511);
 	Pint->Set_help(

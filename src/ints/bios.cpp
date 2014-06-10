@@ -40,10 +40,42 @@ extern bool PS1AudioCard;
 /* mouse.cpp */
 extern bool en_bios_ps2mouse;
 
+/* allow 256 of private space for BIOS functions (16 para x 16 = 256) */
+#define BIOS_PRIVATE_SEGMENT			0xF300
+#define BIOS_PRIVATE_SEGMENT_END		0xF310
+
 /* default bios type/version/date strings */
 const char* const bios_type_string = "IBM COMPATIBLE 486 BIOS COPYRIGHT The DOSBox Team.";
 const char* const bios_version_string = "DOSBox FakeBIOS v1.0";
 const char* const bios_date_string = "01/01/92";
+
+static Bit16u bios_memseg=0;
+static Bit16u rombios_allocation=0; /* allocation extends downward from 0xFFFF:0xFFF0 (exluding segment 0xFFFF which is occupied by BIOS date, ID, jump vector) */
+static Bit16u rombios_minimum_segment=0xE000; /* minimum segment allowed */
+
+Bit16u ROMBIOS_GetMemory(Bit16u pages,const char *who) {
+	if (who == NULL) who = "";
+	if (rombios_allocation == 0) E_Exit("ROMBIOS_GetMemory when not initialized or when BIOS layout finalized for %s",who);
+	if (pages > rombios_allocation) E_Exit("ROMBIOS_GetMemory: pages requested > allocation for %s",who);
+	if ((rombios_allocation-pages) < rombios_minimum_segment) E_Exit("ROMBIOS_GetMemory: Not enough room for %s",who);
+
+	/* do it */
+	rombios_allocation -= pages;
+	LOG_MSG("ROMBIOS_GetMemory(0x%04x pages,\"%s\") = 0x%04x\n",pages,who,rombios_allocation);
+	return rombios_allocation;
+}
+
+Bit16u BIOS_GetMemory(Bit16u pages,const char *who) {
+	if (who == NULL) who = "";
+	if (bios_memseg == 0) E_Exit("BIOS:allocation segment not setup");
+	if (((Bitu)pages+(Bitu)bios_memseg) > BIOS_PRIVATE_SEGMENT_END) {
+		E_Exit("BIOS:Not enough memory for internal tables");
+	}
+	Bit16u page=bios_memseg;
+	LOG_MSG("BIOS_GetMemory(0x%04x pages,\"%s\") = 0x%04x\n",pages,who,page);
+	bios_memseg+=pages;
+	return page;
+}
 
 /* if mem_systems 0 then size_extended is reported as the real size else 
  * zero is reported. ems and xms can increase or decrease the other_memsystems
@@ -2493,9 +2525,30 @@ class BIOS:public Module_base{
 private:
 	CALLBACK_HandlerObject callback[13];
 public:
+	void write_FFFF_signature() {
+		/* write the signature at 0xF000:0xFFF0 */
+
+		// The farjump at the processor reset entry point (jumps to POST routine)
+		phys_writeb(0xffff0,0xEA);		// FARJMP
+		phys_writew(0xffff1,RealOff(BIOS_DEFAULT_RESET_LOCATION));	// offset
+		phys_writew(0xffff3,RealSeg(BIOS_DEFAULT_RESET_LOCATION));	// segment
+
+		// write system BIOS date
+		for(Bitu i = 0; i < strlen(bios_date_string); i++) phys_writeb(0xffff5+i,bios_date_string[i]);
+
+		/* model byte */
+		if (machine==MCH_TANDY || machine==MCH_AMSTRAD) phys_writeb(0xffffe,0xff)	;	/* Tandy model */
+		else if (machine==MCH_PCJR) phys_writeb(0xffffe,0xfd);	/* PCJr model */
+		else phys_writeb(0xffffe,0xfc);	/* PC */
+
+		// signature
+		phys_writeb(0xfffff,0x55);
+	}
 	BIOS(Section* configuration):Module_base(configuration){
 		/* tandy DAC can be requested in tandy_sound.cpp by initializing this field */
 		bool use_tandyDAC=(real_readb(0x40,0xd4)==0xff);
+
+		write_FFFF_signature();
 
 		// Disney workaround
 		Bit16u disney_port = mem_readw(BIOS_ADDRESS_LPT1);
@@ -2607,11 +2660,6 @@ public:
 
 		init_vm86_fake_io();
 
-		// The farjump at the processor reset entry point (jumps to POST routine)
-		phys_writeb(0xFFFF0,0xEA);		// FARJMP
-		phys_writew(0xFFFF1,RealOff(BIOS_DEFAULT_RESET_LOCATION));	// offset
-		phys_writew(0xFFFF3,RealSeg(BIOS_DEFAULT_RESET_LOCATION));	// segment
-
 		// Compatible POST routine location: jump to the callback
 		phys_writeb(Real2Phys(BIOS_DEFAULT_RESET_LOCATION)+0,0xEA);				// FARJMP
 		phys_writew(Real2Phys(BIOS_DEFAULT_RESET_LOCATION)+1,RealOff(rptr));	// offset
@@ -2626,21 +2674,11 @@ public:
 		phys_writeb(Real2Phys(BIOS_DEFAULT_HANDLER_LOCATION),0xcf);	/* bios default interrupt vector location -> IRET */
 		phys_writew(Real2Phys(RealGetVec(0x12))+0x12,0x20); //Hack for Jurresic
 
-		if (machine==MCH_TANDY || machine==MCH_AMSTRAD) phys_writeb(0xffffe,0xff)	;	/* Tandy model */
-		else if (machine==MCH_PCJR) phys_writeb(0xffffe,0xfd);	/* PCJr model */
-		else phys_writeb(0xffffe,0xfc);	/* PC */
-
 		// System BIOS identification
 		for(Bitu i = 0; i < strlen(bios_type_string); i++) phys_writeb(0xfe00e + i,bios_type_string[i]);
 		
 		// System BIOS version
 		for(Bitu i = 0; i < strlen(bios_version_string); i++) phys_writeb(0xfe061+i,bios_version_string[i]);
-
-		// write system BIOS date
-		for(Bitu i = 0; i < strlen(bios_date_string); i++) phys_writeb(0xffff5+i,bios_date_string[i]);
-
-		// signature
-		phys_writeb(0xfffff,0x55);
 
 		// program system timer
 		// timer 2
@@ -3125,3 +3163,9 @@ void BIOS_Init(Section* sec) {
 	test = new BIOS(sec);
 	sec->AddDestroyFunction(&BIOS_Destroy,false);
 }
+
+void ROMBIOS_Init(Section *sec) {
+	bios_memseg = BIOS_PRIVATE_SEGMENT;
+	rombios_allocation=0xFFFF;
+}
+

@@ -37,10 +37,6 @@ GCC_ATTRIBUTE (packed);
 #pragma pack ()
 #endif
 
-/* allow 256 of private space for BIOS functions (16 para x 16 = 256) */
-#define BIOS_PRIVATE_SEGMENT			0xF300
-#define BIOS_PRIVATE_SEGMENT_END		0xF310
-
 RealPt DOS_TableUpCase;
 RealPt DOS_TableLowCase;
 
@@ -49,18 +45,6 @@ extern bool mainline_compatible_mapping;
 static Bitu call_casemap;
 
 static Bit16u dos_memseg=0;//DOS_PRIVATE_SEGMENT;
-static Bit16u bios_memseg=BIOS_PRIVATE_SEGMENT;
-
-Bit16u BIOS_GetMemory(Bit16u pages,const char *who) {
-	if (who == NULL) who = "";
-	if (((Bitu)pages+(Bitu)bios_memseg) > BIOS_PRIVATE_SEGMENT_END) {
-		E_Exit("BIOS:Not enough memory for internal tables");
-	}
-	Bit16u page=bios_memseg;
-	LOG_MSG("BIOS_GetMemory(0x%04x pages,\"%s\") = 0x%04x\n",pages,who,page);
-	bios_memseg+=pages;
-	return page;
-}
 
 extern Bitu VGA_BIOS_SEG_END;
 bool DOS_GetMemory_unmapped = false;
