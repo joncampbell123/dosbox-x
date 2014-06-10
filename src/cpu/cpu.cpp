@@ -147,16 +147,80 @@ void CPU_Core_Dyn_X86_SetFPUMode(bool dh_fpu);
 void CPU_Core_Dyn_X86_Cache_Reset(void);
 #endif
 
-/* called to signal an NMI.
- * NTS: The NMI signal to the processor is said to be edge-triggered not level triggered */
+/* called to signal an NMI. */
+
 /* NTS: From the Intel 80386 programmer's reference manual:
  *
- * 9.2.1 NMI Masks Further NMIs
- * While an NMI handler is executing, the processor ignores further interrupt
- * signals at the NMI pin until the next IRET instruction is executed.
+ * "
+ *   9.2.1 NMI Masks Further NMIs
+ *
+ *   While an NMI handler is executing, the processor ignores further interrupt
+ *   signals at the NMI pin until the next IRET instruction is executed.
+ * "
  *
  * This is why, further down, CPU_IRET() clears the CPU_NMI_active flag.
  *
+ *
+ * And, in response to my father's incredulous response regarding the fact that
+ * NMI is edge-triggered (from the Intel 386SX Microprocessor datasheet):
+ *
+ * "
+ *   Non-Maskable Interrupt Request (NMI))
+ *
+ *   This input indicates a request for interrupt service
+ *   which cannot be masked by software. The non-
+ *   maskable interrupt request is always processed ac-
+ *   cording to the pointer or gate in slot 2 of the interrupt
+ *   table. Because of the fixed NMI slot assignment, no
+ *   interrupt acknowledge cycles are performed when
+ *   processing NMI.
+ *
+ *   NMI is an active HIGH, rising edge-sensitive asyn-
+ *   chronous signal. Setup and hold times, t27 and and t28,
+ *   relative to the CLK2 signal must be met to guarantee
+ *   recognition at a particular clock edge. To assure rec-
+ *   ognition of NMI, it must be inactive for at least eight
+ *   CLK2 periods, and then be active for at least eight
+ *   CLK2 periods before the beginning of the instruction
+ *   boundary in the Intel386 SX Microprocessor's Exe-
+ *   cution Unit.
+ *
+ *   Once NMI processing has begun, no additional
+ *   NMI's are processed until after the next IRET in-
+ *   struction, which is typically the end of the NMI serv-
+ *   ice routine. If NMI is re-asserted prior to that time,
+ *   however, one rising edge on NMI will be remem-
+ *   bered for processing after executing the next IRET
+ *   instruction
+ * "
+ *
+ * From the Pentium Pro Processor datasheet:
+ *
+ * "
+ *   A.38 NMI (I)
+ *
+ *   The NMI signal is the Non-maskable Interrupt signal.
+ *   It is the state of the LINT1 signal when APIC is
+ *   disabled. Asserting NMI causes an interrupt with an
+ *   internally supplied vector value of 2. An external
+ *   interrupt-acknowledge transaction is not generated. If
+ *   NMI is asserted during the execution of an NMI
+ *   service routine, it remains pending and is recognized
+ *   after the IRET is executed by the NMI service
+ *   routine. At most, one assertion of NMI is held
+ *   pending.
+ *
+ *   NMI is rising-edge sensitive. Recognition of NMI is
+ *   guaranteed in a specific clock if it is asserted
+ *   synchronously and meets the setup and hold times. If
+ *   asserted asynchronously, active and inactive pulse
+ *   widths must be a minimum of two clocks. In FRC
+ *   mode, NMI must be synchronous to BCLK.
+ * "
+ *
+ * Similar references exist in the Pentium III and Pentium 4
+ * datasheets, while later on in the Core 2 datasheets there
+ * is no mention whatsoever to the NMI that I can find.
  */
 void CPU_NMI_Interrupt() {
 	if (CPU_NMI_active) E_Exit("CPU_NMI_Interrupt() called while NMI already active");
