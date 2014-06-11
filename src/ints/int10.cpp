@@ -712,6 +712,7 @@ bool MEM_map_ROM_physmem(Bitu start,Bitu end);
 extern Bitu VGA_BIOS_Size;
 extern Bitu VGA_BIOS_SEG;
 extern Bitu VGA_BIOS_SEG_END;
+extern bool VIDEO_BIOS_disable;
 
 void INT10_Init(Section* /*sec*/) {
 	INT10_InitVGA();
@@ -725,13 +726,19 @@ void INT10_Init(Section* /*sec*/) {
 	INT10_Seg40Init();
 	INT10_SetupVESA();
 	INT10_SetupRomMemoryChecksum();//SetupVesa modifies the rom as well.
+	INT10_SetupBasicVideoParameterTable();
 
 	if (int10.rom.used > VGA_BIOS_Size) /* <- this is fatal, it means the Setup() functions scrozzled over the adjacent ROM or RAM area */
 		E_Exit("VGA BIOS size too small");
 
-	LOG_MSG("VGA BIOS occupies segment 0x%04x-0x%04x\n",VGA_BIOS_SEG,VGA_BIOS_SEG_END-1);
-	if (!MEM_map_ROM_physmem(0xC0000,0xC0000+VGA_BIOS_Size-1))
-		LOG_MSG("INT 10 video: unable to map BIOS\n");
+	if (VGA_BIOS_Size > 0) {
+		LOG_MSG("VGA BIOS occupies segment 0x%04x-0x%04x\n",VGA_BIOS_SEG,VGA_BIOS_SEG_END-1);
+		if (!MEM_map_ROM_physmem(0xC0000,0xC0000+VGA_BIOS_Size-1))
+			LOG_MSG("INT 10 video: unable to map BIOS\n");
+	}
+	else {
+		LOG_MSG("Not mapping VGA BIOS\n");
+	}
 
 	INT10_SetVideoMode(0x3);
 }

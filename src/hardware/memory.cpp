@@ -46,6 +46,7 @@ bool enable_port92 = true;
 extern Bitu rombios_minimum_location;
 extern bool VIDEO_BIOS_always_carry_14_high_font;
 extern bool VIDEO_BIOS_always_carry_16_high_font;
+extern bool VIDEO_BIOS_disable;
 
 #define PAGES_IN_BLOCK	((1024*1024)/MEM_PAGE_SIZE)
 #define SAFE_MEMORY	32
@@ -945,8 +946,10 @@ public:
 				VGA_BIOS_Size = 0x3000;
 			else if (VIDEO_BIOS_always_carry_16_high_font || VIDEO_BIOS_always_carry_14_high_font)
 				VGA_BIOS_Size = 0x2000;
-			else
+			else if (!VIDEO_BIOS_disable)
 				VGA_BIOS_Size = 0x1000;
+			else
+				VGA_BIOS_Size = 0;
 		}
 		VGA_BIOS_SEG = 0xC000;
 		VGA_BIOS_SEG_END = (VGA_BIOS_SEG + (VGA_BIOS_Size >> 4));

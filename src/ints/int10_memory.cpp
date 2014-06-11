@@ -26,6 +26,7 @@ bool rom_bios_8x8_cga_font = true;
 bool VGA_BIOS_dont_duplicate_CGA_first_half = false;
 bool VIDEO_BIOS_always_carry_14_high_font = true;
 bool VIDEO_BIOS_always_carry_16_high_font = true;
+bool VIDEO_BIOS_disable = false;
 
 static Bit8u static_functionality[0x10]=
 {
@@ -107,6 +108,15 @@ void INT10_ReloadFont(void) {
 extern Bitu VGA_BIOS_Size;
 
 void INT10_SetupRomMemory(void) {
+	/* if no space allocated for video BIOS (such as machine=cga) then return immediately */
+	if (VGA_BIOS_Size == 0) {
+		int10.rom.font_8_first=0;
+		int10.rom.font_8_second=0;
+		int10.rom.static_state=0;
+		RealSetVec(0x1F,int10.rom.font_8_second);
+		return;
+	}
+
 /* This should fill up certain structures inside the Video Bios Rom Area */
 	PhysPt rom_base=PhysMake(0xc000,0);
 	Bitu i;
@@ -220,8 +230,6 @@ void INT10_SetupRomMemory(void) {
 		phys_writed(rom_base+int10.rom.used,0);		int10.rom.used+=4;
 		phys_writed(rom_base+int10.rom.used,0);		int10.rom.used+=4;
 	}
-
-	INT10_SetupBasicVideoParameterTable();
 
 	if (IS_TANDY_ARCH) {
 		RealSetVec(0x44,int10.rom.font_8_first);

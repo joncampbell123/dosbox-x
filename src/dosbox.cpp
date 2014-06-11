@@ -125,6 +125,7 @@ extern Bitu			DOS_PRIVATE_SEGMENT_Size;
 extern bool			VGA_BIOS_dont_duplicate_CGA_first_half;
 extern bool			VIDEO_BIOS_always_carry_14_high_font;
 extern bool			VIDEO_BIOS_always_carry_16_high_font;
+extern bool			VIDEO_BIOS_disable;
 
 /* ISA bus OSC clock (14.31818MHz) */
 /*  +---- / 12 = PIT timer clock 1.1931816666... MHz */
@@ -602,6 +603,7 @@ static void DOSBOX_RealInit(Section * sec) {
 	VGA_BIOS_dont_duplicate_CGA_first_half = section->Get_bool("video bios dont duplicate cga first half rom font");
 	VIDEO_BIOS_always_carry_14_high_font = section->Get_bool("video bios always offer 14-pixel high rom font");
 	VIDEO_BIOS_always_carry_16_high_font = section->Get_bool("video bios always offer 16-pixel high rom font");
+	VIDEO_BIOS_disable = section->Get_bool("video bios disable");
 
 	/* private area size param in bytes. round up to nearest paragraph */
 	DOS_PRIVATE_SEGMENT_Size = (section->Get_int("private area size") + 8) / 16;
@@ -611,6 +613,13 @@ static void DOSBOX_RealInit(Section * sec) {
 	rom_bios_vptable_enable = mainline_compatible_bios_mapping || section->Get_bool("rom bios video parameter table");
 
 	/* sanity check */
+	if (mainline_compatible_bios_mapping)
+		VIDEO_BIOS_disable = false;
+	if (VIDEO_BIOS_disable) {
+		VIDEO_BIOS_always_carry_14_high_font = VIDEO_BIOS_always_carry_16_high_font = false;
+		VGA_BIOS_dont_duplicate_CGA_first_half = true;
+		rom_bios_8x8_cga_font = true;
+	}
 	if (VGA_BIOS_dont_duplicate_CGA_first_half && !rom_bios_8x8_cga_font) /* can't point at the BIOS copy if it's not there */
 		VGA_BIOS_dont_duplicate_CGA_first_half = false;
 
@@ -924,6 +933,9 @@ void DOSBOX_Init(void) {
 
 	Pbool = secprop->Add_bool("video bios always offer 16-pixel high rom font",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("If set, video BIOS will always carry the 16-pixel ROM font. If clear, 16-pixel rom font will not be offered except for VGA emulation.");
+
+	Pbool = secprop->Add_bool("video bios disable",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("If set, and not emulating EGA/VGA, no video bios will be created at 0xC000");
 
 	Pstring = secprop->Add_string("forcerate",Property::Changeable::Always,"");
 	Pstring->Set_help("Force the VGA framerate to a specific value(ntsc, pal, or specific hz), no matter what");
