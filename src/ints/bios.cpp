@@ -2697,6 +2697,15 @@ public:
 		bool use_tandyDAC=(real_readb(0x40,0xd4)==0xff);
 		Bitu wo;
 
+		/* some structures when enabled are fixed no matter what */
+		if (!mainline_compatible_bios_mapping) {
+			/* line 139, int10_memory.cpp: the 8x8 font at 0xF000:FA6E, first 128 chars.
+			 * allocate this NOW before other things get in the way */
+			if (ROMBIOS_GetMemory(128*8,"BIOS 8x8 font (first 128 chars)",1,0xFFA6E) == 0) {
+				LOG_MSG("WARNING: Was not able to mark off 0xFFA6E off-limits for 8x8 font");
+			}
+		}
+
 		/* pick locations */
 		if (mainline_compatible_bios_mapping) { /* mapping BIOS the way mainline DOSBox does */
 			BIOS_DEFAULT_RESET_LOCATION = RealMake(0xf000,0xe05b);
