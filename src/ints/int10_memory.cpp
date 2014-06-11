@@ -136,11 +136,6 @@ void INT10_SetupRomMemory(void) {
 	for (i=0;i<0x10;i++) {
 		phys_writeb(rom_base+int10.rom.used++,static_functionality[i]);
 	}
-	if (rom_bios_8x8_cga_font) {
-		for (i=0;i<128*8;i++) {
-			phys_writeb(PhysMake(0xf000,0xfa6e)+i,int10_font_08[i]);
-		}
-	}
 	RealSetVec(0x1F,int10.rom.font_8_second);
 	int10.rom.font_14_alternate=RealMake(0xC000,int10.rom.used);
 	int10.rom.font_16_alternate=RealMake(0xC000,int10.rom.used);

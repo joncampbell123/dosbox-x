@@ -3417,10 +3417,12 @@ void write_ID_version_string() {
 	}
 }
 
+extern Bit8u int10_font_08[256 * 8];
+
 /* NTS: Do not use callbacks! This function is called before CALLBACK_Init() */
 void ROMBIOS_Init(Section *sec) {
 	Section_prop * section=static_cast<Section_prop *>(sec);
-	Bitu oi;
+	Bitu oi,i;
 
 	oi = section->Get_int("rom bios minimum size"); /* in KB */
 	oi = (oi + 3) & ~3; /* round to 4KB page */
@@ -3467,6 +3469,13 @@ void ROMBIOS_Init(Section *sec) {
 		 * allocate this NOW before other things get in the way */
 		if (ROMBIOS_GetMemory(128*8,"BIOS 8x8 font (first 128 chars)",1,0xFFA6E) == 0) {
 			LOG_MSG("WARNING: Was not able to mark off 0xFFA6E off-limits for 8x8 font");
+		}
+	}
+
+	/* install the font */
+	if (rom_bios_8x8_cga_font) {
+		for (i=0;i<128*8;i++) {
+			phys_writeb(PhysMake(0xf000,0xfa6e)+i,int10_font_08[i]);
 		}
 	}
 
