@@ -106,13 +106,14 @@
 #define BIOS_VIDEO_SAVEPTR              0x4a8
 
 
-#define BIOS_DEFAULT_IRQ0_LOCATION		(RealMake(0xf000,0xfea5))
-
+//#define BIOS_DEFAULT_IRQ0_LOCATION		(RealMake(0xf000,0xfea5))
 //#define BIOS_DEFAULT_IRQ1_LOCATION		(RealMake(0xf000,0xe987))
 //#define BIOS_DEFAULT_IRQ2_LOCATION		(RealMake(0xf000,0xff55))
 //#define BIOS_DEFAULT_HANDLER_LOCATION		(RealMake(0xf000,0xff53))
 //#define BIOS_VIDEO_TABLE_LOCATION		(RealMake(0xf000,0xf0a4))
 //#define BIOS_DEFAULT_RESET_LOCATION		(RealMake(0xf000,0xe05b))
+
+extern Bitu BIOS_DEFAULT_IRQ0_LOCATION;		// (RealMake(0xf000,0xfea5))
 
 extern Bitu BIOS_DEFAULT_IRQ1_LOCATION;		// (RealMake(0xf000,0xe987))
 
