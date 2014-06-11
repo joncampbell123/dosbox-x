@@ -32,10 +32,14 @@ enum { CB_RETN,CB_RETF,CB_RETF8,CB_IRET,CB_IRETD,CB_IRET_STI,CB_IRET_EOI_PIC1,
 		/*CB_INT28,*/CB_INT29,CB_INT16,CB_HOOKABLE,CB_TDE_IRET,CB_IPXESR,CB_IPXESR_RET,
 		CB_INT21,CB_INT13,CB_VESA_START };
 
+/* NTS: Cannot make runtime configurable, because CB_MAX is used to define an array */
 #define CB_MAX		128
 #define CB_SIZE		32
-#define CB_SEG		0xF000
-#define CB_SOFFSET	0x1000
+
+/* we can make THESE configurable though! */
+//#define CB_SEG	0xF000
+//#define CB_SOFFSET	0x1000
+extern Bit16u CB_SEG,CB_SOFFSET;
 
 enum {	
 	CBRET_NONE=0,CBRET_STOP=1

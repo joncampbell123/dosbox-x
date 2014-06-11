@@ -3359,6 +3359,7 @@ void write_ID_version_string() {
 	}
 }
 
+/* NTS: Do not use callbacks! This function is called before CALLBACK_Init() */
 void ROMBIOS_Init(Section *sec) {
 	if (mainline_compatible_bios_mapping)
 		rombios_minimum_location = 0xF0000;
@@ -3390,20 +3391,11 @@ void ROMBIOS_Init(Section *sec) {
 		}
 	}
 
+	/* mark the vm86 hack as off-limits */
+	if (ROMBIOS_GetMemory(16,"DOSBox vm86 hack",1,0xF0700/*see cpu.cpp*/) == 0)
+		E_Exit("Mainline compat bios mapping: failed to declare entire BIOS area off-limits");
+
 	if (mainline_compatible_bios_mapping) {
-		/* TODO: We'll get rid of the BIOS private area at some point and use dynamic allocation!
-		 *       Shouldn't be hard, because the ONLY code using it is the INT 15h code that allocates
-		 *       a paragraph on-demand for the system identification! So why don't we just make that
-		 *       up at boot time instead?? */
-
-		/* mark the vm86 hack as off-limits */
-		if (ROMBIOS_GetMemory(16,"DOSBox vm86 hack",1,0xF0700/*see cpu.cpp*/) == 0)
-			E_Exit("Mainline compat bios mapping: failed to declare entire BIOS area off-limits");
-
-		/* mark the fixed callback location as off-limits */
-		if (ROMBIOS_GetMemory((CB_MAX*CB_SIZE)+(256*6),"DOSBox callbacks region",1,PhysMake(CB_SEG,CB_SOFFSET)) == 0)
-			E_Exit("Mainline compat bios mapping: failed to declare entire BIOS area off-limits");
-
 		/* then mark the region 0xE000-0xFFF0 as off-limits.
 		 * believe it or not, there's this whole range between 0xF3000 and 0xFE000 that remains unused! */
 		if (ROMBIOS_GetMemory(0xFFFF0-0xFE000,"BIOS with fixed layout",1,0xFE000) == 0)

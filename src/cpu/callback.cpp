@@ -22,8 +22,12 @@
 
 #include "dosbox.h"
 #include "callback.h"
+#include "logging.h"
+#include "bios.h"
 #include "mem.h"
 #include "cpu.h"
+
+Bit16u CB_SEG=0,CB_SOFFSET=0;
 
 /* CallBack are located at 0xF000:0x1000  (see CB_SEG and CB_SOFFSET in callback.h)
    And they are 16 bytes each and you can define them to behave in certain ways like a
@@ -603,6 +607,28 @@ void CALLBACK_HandlerObject::Set_RealVec(Bit8u vec){
 }
 
 void CALLBACK_Init(Section* /*sec*/) {
+	if (mainline_compatible_bios_mapping) {
+		CB_SOFFSET=0x1000;
+		CB_SEG=0xF000;
+
+		/* mark the fixed callback location as off-limits */
+		if (ROMBIOS_GetMemory((CB_MAX*CB_SIZE)+(256*6),"DOSBox callbacks region",1,PhysMake(CB_SEG,CB_SOFFSET)) == 0)
+			E_Exit("Mainline compat bios mapping: failed to declare entire BIOS area off-limits");
+	}
+	else {
+		/* NTS: Layout of the callback area:
+		 *
+		 * CB_MAX entries CB_SIZE each, where executable x86 code is written per callback,
+		 * followed by 256 entries 6 bytes each corresponding to an interrupt call */
+		Bitu o = ROMBIOS_GetMemory((CB_MAX*CB_SIZE)+(256*6),"DOSBox callback area",1);
+		if (o == 0) E_Exit("Cannot allocate callback area");
+		CB_SOFFSET = o&0xFFFF;
+		CB_SEG = (o>>4)&0xF000;
+		if (((Bitu)CB_SOFFSET + (CB_MAX*CB_SIZE) + (256*6)) > 0x10000) E_Exit("Callback area spans 64KB segment");
+	}
+
+	LOG_MSG("Callback area starts at %04x:%04x",CB_SEG,CB_SOFFSET);
+
 	Bitu i;
 	for (i=0;i<CB_MAX;i++) {
 		CallBack_Handlers[i]=&illegal_handler;
