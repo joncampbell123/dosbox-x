@@ -28,6 +28,8 @@
 #include "cpu.h"
 
 Bit16u CB_SEG=0,CB_SOFFSET=0;
+extern Bitu vm86_fake_io_seg;
+extern Bitu vm86_fake_io_off;
 
 /* CallBack are located at 0xF000:0x1000  (see CB_SEG and CB_SOFFSET in callback.h)
    And they are 16 bytes each and you can define them to behave in certain ways like a
@@ -614,17 +616,31 @@ void CALLBACK_Init(Section* /*sec*/) {
 		/* mark the fixed callback location as off-limits */
 		if (ROMBIOS_GetMemory((CB_MAX*CB_SIZE)+(256*6),"DOSBox callbacks region",1,PhysMake(CB_SEG,CB_SOFFSET)) == 0)
 			E_Exit("Mainline compat bios mapping: failed to declare entire BIOS area off-limits");
+
+		vm86_fake_io_seg = 0xF000;	/* unused area in BIOS for IO instruction */
+		vm86_fake_io_off = 0x0700;
+		/* mark the vm86 hack as off-limits */
+		if (ROMBIOS_GetMemory(14/*2+2+3+2+2+3*/,"DOSBox vm86 hack",1,(vm86_fake_io_seg<<4)+vm86_fake_io_off) == 0)
+			E_Exit("Mainline compat bios mapping: failed to declare entire BIOS area off-limits");
 	}
 	else {
 		/* NTS: Layout of the callback area:
 		 *
 		 * CB_MAX entries CB_SIZE each, where executable x86 code is written per callback,
 		 * followed by 256 entries 6 bytes each corresponding to an interrupt call */
-		Bitu o = ROMBIOS_GetMemory((CB_MAX*CB_SIZE)+(256*6),"DOSBox callback area",1);
+		Bitu o;
+
+		o = ROMBIOS_GetMemory((CB_MAX*CB_SIZE)+(256*6),"DOSBox callback area",1);
 		if (o == 0) E_Exit("Cannot allocate callback area");
 		CB_SOFFSET = o&0xFFFF;
 		CB_SEG = (o>>4)&0xF000;
 		if (((Bitu)CB_SOFFSET + (CB_MAX*CB_SIZE) + (256*6)) > 0x10000) E_Exit("Callback area spans 64KB segment");
+
+		o = ROMBIOS_GetMemory(14/*2+2+3+2+2+3*/,"DOSBox vm86 hack",1);
+		if (o == 0) E_Exit("Cannot allocate vm86 hack");
+		vm86_fake_io_off = o&0xFFFF;
+		vm86_fake_io_seg = (o>>4)&0xF000;
+		if ((vm86_fake_io_off+14) > 0x1000000) E_Exit("vm86 area spans 64KB segment");
 	}
 
 	LOG_MSG("Callback area starts at %04x:%04x",CB_SEG,CB_SOFFSET);

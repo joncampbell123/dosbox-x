@@ -2797,9 +2797,9 @@ CPU_Decoder *CPU_IndexDecoderType( Bit16u decoder_idx )
 	return cpudecoder;
 }
 
-static Bitu vm86_fake_io_seg = 0xF000;	/* unused area in BIOS for IO instruction */
-static Bitu vm86_fake_io_off = 0x0700;
-static Bitu vm86_fake_io_offs[3*2]={0};	/* offsets from base off because of dynamic core cache */
+Bitu vm86_fake_io_seg = 0xF000;	/* unused area in BIOS for IO instruction */
+Bitu vm86_fake_io_off = 0x0700;
+Bitu vm86_fake_io_offs[3*2]={0};	/* offsets from base off because of dynamic core cache */
 
 void init_vm86_fake_io() {
 	Bitu phys = (vm86_fake_io_seg << 4) + vm86_fake_io_off;

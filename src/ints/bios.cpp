@@ -3391,10 +3391,6 @@ void ROMBIOS_Init(Section *sec) {
 		}
 	}
 
-	/* mark the vm86 hack as off-limits */
-	if (ROMBIOS_GetMemory(16,"DOSBox vm86 hack",1,0xF0700/*see cpu.cpp*/) == 0)
-		E_Exit("Mainline compat bios mapping: failed to declare entire BIOS area off-limits");
-
 	if (mainline_compatible_bios_mapping) {
 		/* then mark the region 0xE000-0xFFF0 as off-limits.
 		 * believe it or not, there's this whole range between 0xF3000 and 0xFE000 that remains unused! */
