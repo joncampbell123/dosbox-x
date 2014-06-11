@@ -2992,9 +2992,15 @@ public:
 		// ISA Plug & Play BIOS entrypoint
 		if (ISAPNPBIOS) {
 			int i;
+			Bitu base;
 			unsigned char c,tmp[256];
-			Bitu base = 0xfe100; /* take the unused space just after the fake BIOS signature */
 
+			if (mainline_compatible_bios_mapping)
+				base = 0xFE100; /* take the unused space just after the fake BIOS signature */
+			else
+				base = ROMBIOS_GetMemory(0x21,"ISA Plug & Play BIOS struct",/*paragraph alignment*/0x10);
+
+			if (base == 0) E_Exit("Unable to allocate ISA PnP struct");
 			LOG_MSG("ISA Plug & Play BIOS enabled");
 
 			Bitu call_pnp_r = CALLBACK_Allocate();
