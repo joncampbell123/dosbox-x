@@ -539,6 +539,11 @@ static Bitu VESA_PMSetStart(void) {
 
 
 void INT10_SetupVESA(void) {
+	/* BUGFIX: Generating VESA BIOS data when machine=ega or machine=vgaonly is dumb.
+	 * Stop wasting ROM space! --J.C. */
+	if (machine != MCH_VGA) return;
+	if (svgaCard == SVGA_None) return;
+
 	/* Put the mode list somewhere in memory */
 	Bitu i;
 	i=0;
