@@ -123,6 +123,8 @@ extern ClockDomain		clockdom_8254_PIT;
 extern bool			dynamic_dos_kernel_alloc;
 extern Bitu			DOS_PRIVATE_SEGMENT_Size;
 extern bool			VGA_BIOS_dont_duplicate_CGA_first_half;
+extern bool			VIDEO_BIOS_always_carry_14_high_font;
+extern bool			VIDEO_BIOS_always_carry_16_high_font;
 
 /* ISA bus OSC clock (14.31818MHz) */
 /*  +---- / 12 = PIT timer clock 1.1931816666... MHz */
@@ -598,6 +600,8 @@ static void DOSBOX_RealInit(Section * sec) {
 	VGA_BIOS_Size_override = section->Get_int("vga bios size override");
 	if (VGA_BIOS_Size_override > 0) VGA_BIOS_Size_override = (VGA_BIOS_Size_override+0x7FF)&(~0xFFF);
 	VGA_BIOS_dont_duplicate_CGA_first_half = section->Get_bool("video bios dont duplicate cga first half rom font");
+	VIDEO_BIOS_always_carry_14_high_font = section->Get_bool("video bios always offer 14-pixel high rom font");
+	VIDEO_BIOS_always_carry_16_high_font = section->Get_bool("video bios always offer 16-pixel high rom font");
 
 	/* private area size param in bytes. round up to nearest paragraph */
 	DOS_PRIVATE_SEGMENT_Size = (section->Get_int("private area size") + 8) / 16;
@@ -914,6 +918,12 @@ void DOSBOX_Init(void) {
 
 	Pbool = secprop->Add_bool("video bios dont duplicate cga first half rom font",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("If set, save 4KB of EGA/VGA ROM space by pointing to the copy in the ROM BIOS of the first 128 chars");
+
+	Pbool = secprop->Add_bool("video bios always offer 14-pixel high rom font",Property::Changeable::WhenIdle,true);
+	Pbool->Set_help("If set, video BIOS will always carry the 14-pixel ROM font. If clear, 14-pixel rom font will not be offered except for EGA/VGA emulation.");
+
+	Pbool = secprop->Add_bool("video bios always offer 16-pixel high rom font",Property::Changeable::WhenIdle,true);
+	Pbool->Set_help("If set, video BIOS will always carry the 16-pixel ROM font. If clear, 16-pixel rom font will not be offered except for VGA emulation.");
 
 	Pstring = secprop->Add_string("forcerate",Property::Changeable::Always,"");
 	Pstring->Set_help("Force the VGA framerate to a specific value(ntsc, pal, or specific hz), no matter what");

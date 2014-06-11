@@ -24,6 +24,8 @@
 
 bool rom_bios_8x8_cga_font = true;
 bool VGA_BIOS_dont_duplicate_CGA_first_half = false;
+bool VIDEO_BIOS_always_carry_14_high_font = true;
+bool VIDEO_BIOS_always_carry_16_high_font = true;
 
 static Bit8u static_functionality[0x10]=
 {
@@ -130,13 +132,24 @@ void INT10_SetupRomMemory(void) {
 	for (i=0;i<128*8;i++) {
 		phys_writeb(rom_base+int10.rom.used++,int10_font_08[i+128*8]);
 	}
-	int10.rom.font_14=RealMake(0xC000,int10.rom.used);
-	for (i=0;i<256*14;i++) {
-		phys_writeb(rom_base+int10.rom.used++,int10_font_14[i]);
+	if (IS_EGAVGA_ARCH || VIDEO_BIOS_always_carry_14_high_font) {
+		int10.rom.font_14=RealMake(0xC000,int10.rom.used);
+		for (i=0;i<256*14;i++) {
+			phys_writeb(rom_base+int10.rom.used++,int10_font_14[i]);
+		}
 	}
-	int10.rom.font_16=RealMake(0xC000,int10.rom.used);
-	for (i=0;i<256*16;i++) {
-		phys_writeb(rom_base+int10.rom.used++,int10_font_16[i]);
+	else {
+		int10.rom.font_14=0; /* why write the 14-high version if not emulating EGA/VGA? */
+	}
+	if (IS_VGA_ARCH || VIDEO_BIOS_always_carry_16_high_font) {
+		int10.rom.font_16=RealMake(0xC000,int10.rom.used);
+		for (i=0;i<256*16;i++) {
+			phys_writeb(rom_base+int10.rom.used++,int10_font_16[i]);
+		}
+	}
+	else {
+		int10.rom.font_16=0; /* why write the 16-high version if not emulating VGA? */
+		/* FIXME: Does the EGA BIOS have the 16-high font, or just 14-high? */
 	}
 	int10.rom.static_state=RealMake(0xC000,int10.rom.used);
 	for (i=0;i<0x10;i++) {

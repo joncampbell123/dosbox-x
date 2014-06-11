@@ -44,6 +44,8 @@ bool a20_fake_changeable = false;
 bool enable_port92 = true;
 
 extern Bitu rombios_minimum_location;
+extern bool VIDEO_BIOS_always_carry_14_high_font;
+extern bool VIDEO_BIOS_always_carry_16_high_font;
 
 #define PAGES_IN_BLOCK	((1024*1024)/MEM_PAGE_SIZE)
 #define SAFE_MEMORY	32
@@ -926,8 +928,26 @@ public:
 		/* FIXME: This belongs elsewhere! */
 		if (VGA_BIOS_Size_override >= 512 && VGA_BIOS_Size_override <= 65536)
 			VGA_BIOS_Size = (VGA_BIOS_Size_override + 0x7FF) & (~0xFFF);
-		else
+		else if (IS_VGA_ARCH)
 			VGA_BIOS_Size = mainline_compatible_mapping ? 0x8000 : 0x3000; /* <- Experimentation shows the S3 emulation can fit in 12KB, doesn't need all 32KB */
+		else if (machine == MCH_EGA) {
+			if (mainline_compatible_mapping)
+				VGA_BIOS_Size = 0x8000;
+			else if (VIDEO_BIOS_always_carry_16_high_font)
+				VGA_BIOS_Size = 0x3000;
+			else
+				VGA_BIOS_Size = 0x2000;
+		}
+		else {
+			if (mainline_compatible_mapping)
+				VGA_BIOS_Size = 0x8000;
+			else if (VIDEO_BIOS_always_carry_16_high_font && VIDEO_BIOS_always_carry_14_high_font)
+				VGA_BIOS_Size = 0x3000;
+			else if (VIDEO_BIOS_always_carry_16_high_font || VIDEO_BIOS_always_carry_14_high_font)
+				VGA_BIOS_Size = 0x2000;
+			else
+				VGA_BIOS_Size = 0x1000;
+		}
 		VGA_BIOS_SEG = 0xC000;
 		VGA_BIOS_SEG_END = (VGA_BIOS_SEG + (VGA_BIOS_Size >> 4));
 		/* END FIXME */
