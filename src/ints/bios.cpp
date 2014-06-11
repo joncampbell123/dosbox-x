@@ -30,6 +30,7 @@
 #include "pci_bus.h"
 #include "joystick.h"
 #include "mouse.h"
+#include "callback.h"
 #include "setup.h"
 #include "serialport.h"
 #include "vga.h"
@@ -42,6 +43,8 @@ extern bool en_bios_ps2mouse;
 extern bool mainline_compatible_bios_mapping;
 extern bool rom_bios_8x8_cga_font;
 
+Bit16u biosConfigSeg=0;
+
 Bitu BIOS_DEFAULT_IRQ0_LOCATION = ~0;		// (RealMake(0xf000,0xfea5))
 Bitu BIOS_DEFAULT_IRQ1_LOCATION = ~0;		// (RealMake(0xf000,0xe987))
 Bitu BIOS_DEFAULT_IRQ2_LOCATION = ~0;		// (RealMake(0xf000,0xff55))
@@ -52,10 +55,6 @@ Bitu BIOS_VIDEO_TABLE_LOCATION = ~0;		// RealMake(0xf000,0xf0a4)
 Bitu BIOS_VIDEO_TABLE_SIZE = 0;
 
 Bitu BIOS_DEFAULT_RESET_LOCATION = ~0;		// RealMake(0xf000,0xe05b)
-
-/* allow 256 of private space for BIOS functions (16 para x 16 = 256) */
-#define BIOS_PRIVATE_SEGMENT			0xF300
-#define BIOS_PRIVATE_SEGMENT_END		0xF310
 
 /* default bios type/version/date strings */
 const char* const bios_type_string = "IBM COMPATIBLE 486 BIOS COPYRIGHT The DOSBox Team.";
@@ -75,8 +74,6 @@ public:
 	Bitu		end;
 	bool		free;
 };
-
-static Bit16u bios_memseg=0;
 
 static std::vector<ROMBIOS_block> rombios_alloc;
 static Bitu rombios_minimum_location = 0xF0000; /* minimum segment allowed */
@@ -221,15 +218,8 @@ Bitu ROMBIOS_GetMemory(Bitu bytes,const char *who,Bitu alignment,Bitu must_be_at
 }
 
 Bit16u BIOS_GetMemory(Bit16u pages,const char *who) {
-	if (who == NULL) who = "";
-	if (bios_memseg == 0) E_Exit("BIOS:allocation segment not setup");
-	if (((Bitu)pages+(Bitu)bios_memseg) > BIOS_PRIVATE_SEGMENT_END) {
-		E_Exit("BIOS:Not enough memory for internal tables");
-	}
-	Bit16u page=bios_memseg;
-	LOG_MSG("BIOS_GetMemory(0x%04x pages,\"%s\") = 0x%04x\n",pages,who,page);
-	bios_memseg+=pages;
-	return page;
+	E_Exit("BIOS_GetMemory() is dead");
+	return 0;
 }
 
 /* if mem_systems 0 then size_extended is reported as the real size else 
@@ -1864,8 +1854,6 @@ unsigned char KEYBOARD_AUX_SampleRate();
 void KEYBOARD_ClrBuffer(void);
 
 static Bitu INT15_Handler(void) {
-	static Bit16u biosConfigSeg=0;
-
 	if( ( machine==MCH_AMSTRAD ) && ( reg_ah<0x07 ) ) {
 		switch(reg_ah) {
 			case 0x00:
@@ -1923,42 +1911,11 @@ static Bitu INT15_Handler(void) {
 		LOG(LOG_BIOS,LOG_NORMAL)("INT15 Unkown Function 6 (Amstrad?)");
 		break;
 	case 0xC0:	/* Get Configuration*/
-		{
-			if (biosConfigSeg==0) biosConfigSeg = BIOS_GetMemory(1); //We have 16 bytes
-			PhysPt data	= PhysMake(biosConfigSeg,0);
-			phys_writew(data,8);						// 8 Bytes following
-			if (IS_TANDY_ARCH) {
-				if (machine==MCH_TANDY) {
-					// Model ID (Tandy)
-					phys_writeb(data+2,0xFF);
-				} else {
-					// Model ID (PCJR)
-					phys_writeb(data+2,0xFD);
-				}
-				phys_writeb(data+3,0x0A);					// Submodel ID
-				phys_writeb(data+4,0x10);					// Bios Revision
-				/* Tandy doesn't have a 2nd PIC, left as is for now */
-				phys_writeb(data+5,(1<<6)|(1<<5)|(1<<4));	// Feature Byte 1
-			} else {
-				if( PS1AudioCard ) {
-					phys_writeb(data+2,0xFC);					// Model ID (PC)
-					phys_writeb(data+3,0x0B);					// Submodel ID (PS/1).
-				} else {
-					phys_writeb(data+2,0xFC);					// Model ID (PC)
-					phys_writeb(data+3,0x00);					// Submodel ID
-				}
-				phys_writeb(data+4,0x01);					// Bios Revision
-				phys_writeb(data+5,(1<<6)|(1<<5)|(1<<4));	// Feature Byte 1
-			}
-			phys_writeb(data+6,(1<<6));				// Feature Byte 2
-			phys_writeb(data+7,0);					// Feature Byte 3
-			phys_writeb(data+8,0);					// Feature Byte 4
-			phys_writeb(data+9,0);					// Feature Byte 5
-			CPU_SetSegGeneral(es,biosConfigSeg);
-			reg_bx = 0;
-			reg_ah = 0;
-			CALLBACK_SCF(false);
-		}; break;
+		CPU_SetSegGeneral(es,biosConfigSeg);
+		reg_bx = 0;
+		reg_ah = 0;
+		CALLBACK_SCF(false);
+		break;
 	case 0x4f:	/* BIOS - Keyboard intercept */
 		/* Carry should be set but let's just set it just in case */
 		CALLBACK_SCF(true);
@@ -2699,50 +2656,10 @@ public:
 		// signature
 		phys_writeb(0xfffff,0x55);
 	}
-	void write_ID_version_string() {
-		Bitu str_id_at,str_ver_at;
-		size_t str_id_len,str_ver_len;
-
-		/* NTS: We can't move the version and ID strings, it causes programs like MSD.EXE to lose
-		 *      track of the "IBM compatible blahblahblah" string. Which means that apparently
-		 *      programs looking for this information have the address hardcoded ALTHOUGH
-		 *      experiments show you can move the version string around so long as it's
-		 *      +1 from a paragraph boundary */
-		/* TODO: *DO* allow dynamic relocation however if the dosbox.conf indicates that the user
-		 *       is not interested in IBM BIOS compatability. Also, it would be really cool if
-		 *       dosbox.conf could override these strings and the user could enter custom BIOS
-		 *       version and ID strings. Heh heh heh.. :) */
-		str_id_at = 0xFE00E;
-		str_ver_at = 0xFE061;
-		str_id_len = strlen(bios_type_string)+1;
-		str_ver_len = strlen(bios_version_string)+1;
-		if (!mainline_compatible_bios_mapping) {
-			/* need to mark these strings off-limits so dynamic allocation does not overwrite them */
-			ROMBIOS_GetMemory(str_id_len+1,"BIOS ID string",1,str_id_at);
-			ROMBIOS_GetMemory(str_ver_len+1,"BIOS version string",1,str_ver_at);
-		}
-		if (str_id_at != 0) {
-			for (size_t i=0;i < str_id_len;i++) phys_writeb(str_id_at+i,bios_type_string[i]);
-		}
-		if (str_ver_at != 0) {
-			for (size_t i=0;i < str_ver_len;i++) phys_writeb(str_ver_at+i,bios_version_string[i]);
-		}
-	}
 	BIOS(Section* configuration):Module_base(configuration){
 		/* tandy DAC can be requested in tandy_sound.cpp by initializing this field */
 		bool use_tandyDAC=(real_readb(0x40,0xd4)==0xff);
 		Bitu wo;
-
-		/* some structures when enabled are fixed no matter what */
-		if (!mainline_compatible_bios_mapping && rom_bios_8x8_cga_font) {
-			/* line 139, int10_memory.cpp: the 8x8 font at 0xF000:FA6E, first 128 chars.
-			 * allocate this NOW before other things get in the way */
-			if (ROMBIOS_GetMemory(128*8,"BIOS 8x8 font (first 128 chars)",1,0xFFA6E) == 0) {
-				LOG_MSG("WARNING: Was not able to mark off 0xFFA6E off-limits for 8x8 font");
-			}
-		}
-
-		write_ID_version_string();
 
 		/* pick locations */
 		if (mainline_compatible_bios_mapping) { /* mapping BIOS the way mainline DOSBox does */
@@ -2751,10 +2668,6 @@ public:
 			BIOS_DEFAULT_IRQ0_LOCATION = RealMake(0xf000,0xfea5);
 			BIOS_DEFAULT_IRQ1_LOCATION = RealMake(0xf000,0xe987);
 			BIOS_DEFAULT_IRQ2_LOCATION = RealMake(0xf000,0xff55);
-
-			/* mark all but the first 0x600 bytes of the BIOS segment off-limits */
-			if (ROMBIOS_GetMemory(0xFFFF0-0xF0600,"BIOS with fixed layout",1,0xF0600) == 0)
-				E_Exit("Mainline compat bios mapping: failed to declare entire BIOS area off-limits");
 		}
 		else {
 			BIOS_DEFAULT_RESET_LOCATION = PhysToReal416(ROMBIOS_GetMemory(5/*JMP xxxx:xxxx*/,"BIOS default reset location"));
@@ -3207,6 +3120,40 @@ public:
 				}
 			}
 		}
+
+		/* this belongs HERE not on-demand from INT 15h! */
+		biosConfigSeg = ROMBIOS_GetMemory(16/*one paragraph*/,"BIOS configuration (INT 15h AH=0xC0)",/*paragraph align*/16)>>4;
+		if (biosConfigSeg != 0) {
+			PhysPt data = PhysMake(biosConfigSeg,0);
+			phys_writew(data,8);						// 8 Bytes following
+			if (IS_TANDY_ARCH) {
+				if (machine==MCH_TANDY) {
+					// Model ID (Tandy)
+					phys_writeb(data+2,0xFF);
+				} else {
+					// Model ID (PCJR)
+					phys_writeb(data+2,0xFD);
+				}
+				phys_writeb(data+3,0x0A);					// Submodel ID
+				phys_writeb(data+4,0x10);					// Bios Revision
+				/* Tandy doesn't have a 2nd PIC, left as is for now */
+				phys_writeb(data+5,(1<<6)|(1<<5)|(1<<4));	// Feature Byte 1
+			} else {
+				if (PS1AudioCard) { /* FIXME: Won't work because BIOS_Init() comes before PS1SOUND_Init() */
+					phys_writeb(data+2,0xFC);					// Model ID (PC)
+					phys_writeb(data+3,0x0B);					// Submodel ID (PS/1).
+				} else {
+					phys_writeb(data+2,0xFC);					// Model ID (PC)
+					phys_writeb(data+3,0x00);					// Submodel ID
+				}
+				phys_writeb(data+4,0x01);					// Bios Revision
+				phys_writeb(data+5,(1<<6)|(1<<5)|(1<<4));	// Feature Byte 1
+			}
+			phys_writeb(data+6,(1<<6));				// Feature Byte 2
+			phys_writeb(data+7,0);					// Feature Byte 3
+			phys_writeb(data+8,0);					// Feature Byte 4
+			phys_writeb(data+9,0);					// Feature Byte 5
+		}
 	}
 	~BIOS(){
 		/* snap the CPU back to real mode. this code thinks in terms of 16-bit real mode
@@ -3382,9 +3329,37 @@ void BIOS_Init(Section* sec) {
 	sec->AddDestroyFunction(&BIOS_Destroy,false);
 }
 
-void ROMBIOS_Init(Section *sec) {
-	bios_memseg = BIOS_PRIVATE_SEGMENT;
+void write_ID_version_string() {
+	Bitu str_id_at,str_ver_at;
+	size_t str_id_len,str_ver_len;
 
+	/* NTS: We can't move the version and ID strings, it causes programs like MSD.EXE to lose
+	 *      track of the "IBM compatible blahblahblah" string. Which means that apparently
+	 *      programs looking for this information have the address hardcoded ALTHOUGH
+	 *      experiments show you can move the version string around so long as it's
+	 *      +1 from a paragraph boundary */
+	/* TODO: *DO* allow dynamic relocation however if the dosbox.conf indicates that the user
+	 *       is not interested in IBM BIOS compatability. Also, it would be really cool if
+	 *       dosbox.conf could override these strings and the user could enter custom BIOS
+	 *       version and ID strings. Heh heh heh.. :) */
+	str_id_at = 0xFE00E;
+	str_ver_at = 0xFE061;
+	str_id_len = strlen(bios_type_string)+1;
+	str_ver_len = strlen(bios_version_string)+1;
+	if (!mainline_compatible_bios_mapping) {
+		/* need to mark these strings off-limits so dynamic allocation does not overwrite them */
+		ROMBIOS_GetMemory(str_id_len+1,"BIOS ID string",1,str_id_at);
+		ROMBIOS_GetMemory(str_ver_len+1,"BIOS version string",1,str_ver_at);
+	}
+	if (str_id_at != 0) {
+		for (size_t i=0;i < str_id_len;i++) phys_writeb(str_id_at+i,bios_type_string[i]);
+	}
+	if (str_ver_at != 0) {
+		for (size_t i=0;i < str_ver_len;i++) phys_writeb(str_ver_at+i,bios_version_string[i]);
+	}
+}
+
+void ROMBIOS_Init(Section *sec) {
 	if (mainline_compatible_bios_mapping)
 		rombios_minimum_location = 0xF0000;
 	else
@@ -3402,6 +3377,37 @@ void ROMBIOS_Init(Section *sec) {
 		x.end = 0xFFFF0 - 1;
 		x.free = true;
 		rombios_alloc.push_back(x);
+	}
+
+	write_ID_version_string();
+
+	/* some structures when enabled are fixed no matter what */
+	if (!mainline_compatible_bios_mapping && rom_bios_8x8_cga_font) {
+		/* line 139, int10_memory.cpp: the 8x8 font at 0xF000:FA6E, first 128 chars.
+		 * allocate this NOW before other things get in the way */
+		if (ROMBIOS_GetMemory(128*8,"BIOS 8x8 font (first 128 chars)",1,0xFFA6E) == 0) {
+			LOG_MSG("WARNING: Was not able to mark off 0xFFA6E off-limits for 8x8 font");
+		}
+	}
+
+	if (mainline_compatible_bios_mapping) {
+		/* TODO: We'll get rid of the BIOS private area at some point and use dynamic allocation!
+		 *       Shouldn't be hard, because the ONLY code using it is the INT 15h code that allocates
+		 *       a paragraph on-demand for the system identification! So why don't we just make that
+		 *       up at boot time instead?? */
+
+		/* mark the vm86 hack as off-limits */
+		if (ROMBIOS_GetMemory(16,"DOSBox vm86 hack",1,0xF0700/*see cpu.cpp*/) == 0)
+			E_Exit("Mainline compat bios mapping: failed to declare entire BIOS area off-limits");
+
+		/* mark the fixed callback location as off-limits */
+		if (ROMBIOS_GetMemory((CB_MAX*CB_SIZE)+(256*6),"DOSBox callbacks region",1,PhysMake(CB_SEG,CB_SOFFSET)) == 0)
+			E_Exit("Mainline compat bios mapping: failed to declare entire BIOS area off-limits");
+
+		/* then mark the region 0xE000-0xFFF0 as off-limits.
+		 * believe it or not, there's this whole range between 0xF3000 and 0xFE000 that remains unused! */
+		if (ROMBIOS_GetMemory(0xFFFF0-0xFE000,"BIOS with fixed layout",1,0xFE000) == 0)
+			E_Exit("Mainline compat bios mapping: failed to declare entire BIOS area off-limits");
 	}
 }
 
