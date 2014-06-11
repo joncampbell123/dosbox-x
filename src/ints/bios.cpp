@@ -77,6 +77,10 @@ public:
 
 static std::vector<ROMBIOS_block> rombios_alloc;
 Bitu rombios_minimum_location = 0xF0000; /* minimum segment allowed */
+Bitu rombios_minimum_size = 0x10000;
+
+bool MEM_map_ROM_physmem(Bitu start,Bitu end);
+bool MEM_unmap_physmem(Bitu start,Bitu end);
 
 void ROMBIOS_DumpMemory() {
 	size_t si;
@@ -107,6 +111,60 @@ void ROMBIOS_SanityCheck() {
 
 		pblk = blk;
 	}
+}
+
+Bitu ROMBIOS_MinAllocatedLoc() {
+	Bitu r = 0xFFFFF;
+	size_t si = 0;
+
+	while (si < rombios_alloc.size()) {
+		ROMBIOS_block &blk = rombios_alloc[si];
+		if (blk.free) {
+			si++;
+			continue;
+		}
+
+		r = blk.start;
+		break;
+	}
+
+	if (r > (0x100000 - rombios_minimum_size))
+		r = (0x100000 - rombios_minimum_size);
+
+	return r & ~0xFFF;
+}
+
+void ROMBIOS_FreeUnusedMinToLoc(Bitu phys) {
+	Bitu max = 0x100000 - rombios_minimum_size;
+	assert(max <= 0xFE000);
+
+	if (phys <= rombios_minimum_location) return;
+	if (phys > max) phys = max;
+	phys &= ~0xFFF; /* page align */
+
+	/* scan bottom-up */
+	while (rombios_alloc.size() != 0) {
+		ROMBIOS_block &blk = rombios_alloc[0];
+		if (!blk.free) {
+			if (phys > blk.start) phys = blk.start;
+			break;
+		}
+		if (phys > blk.end) {
+			/* remove entirely */
+			rombios_alloc.erase(rombios_alloc.begin());
+			continue;
+		}
+		if (phys <= blk.start) break;
+		blk.start = phys;
+		break;
+	}
+
+	if (rombios_minimum_location < phys)
+		MEM_unmap_physmem(rombios_minimum_location,phys-1);
+
+	rombios_minimum_location = phys;
+	ROMBIOS_SanityCheck();
+	ROMBIOS_DumpMemory();
 }
 
 Bitu ROMBIOS_GetMemory(Bitu bytes,const char *who,Bitu alignment,Bitu must_be_at) {
@@ -3359,25 +3417,36 @@ void write_ID_version_string() {
 	}
 }
 
-bool MEM_map_ROM_physmem(Bitu start,Bitu end);
-
 /* NTS: Do not use callbacks! This function is called before CALLBACK_Init() */
 void ROMBIOS_Init(Section *sec) {
 	Section_prop * section=static_cast<Section_prop *>(sec);
 	Bitu oi;
+
+	oi = section->Get_int("rom bios minimum size"); /* in KB */
+	oi = (oi + 3) & ~3; /* round to 4KB page */
+	if (oi > 128) oi = 128;
+	if (oi == 0) oi = mainline_compatible_bios_mapping ? 128 : 64;
+	if (oi < 8) oi = 8; /* because of some of DOSBox's fixed ROM structures we can only go down to 8KB */
+	rombios_minimum_size = (oi << 10); /* convert to minimum, using size coming downward from 1MB */
 
 	oi = section->Get_int("rom bios allocation max"); /* in KB */
 	oi = (oi + 3) & ~3; /* round to 4KB page */
 	if (oi > 128) oi = 128;
 	if (oi == 0) oi = mainline_compatible_bios_mapping ? 128 : 64;
 	if (oi < 8) oi = 8; /* because of some of DOSBox's fixed ROM structures we can only go down to 8KB */
-	rombios_minimum_location = 0x100000 - (oi << 10); /* convert to minimum, using size coming downward from 1MB */
+	oi <<= 10;
+	if (oi < rombios_minimum_size) oi = rombios_minimum_size;
+	rombios_minimum_location = 0x100000 - oi; /* convert to minimum, using size coming downward from 1MB */
 
-	/* sanity check */
-	if (mainline_compatible_bios_mapping && rombios_minimum_location > 0xF0000)
+	/* in mainline compatible, make sure we cover the 0xF0000-0xFFFFF range */
+	if (mainline_compatible_bios_mapping && rombios_minimum_location > 0xF0000) {
 		rombios_minimum_location = 0xF0000;
+		rombios_minimum_size = 0x10000;
+	}
 
 	LOG_MSG("ROM BIOS range: 0x%05x-0xFFFFF\n",rombios_minimum_location);
+	LOG_MSG("ROM BIOS range, final: 0x%05x-0xFFFFF\n",0x100000 - rombios_minimum_size);
+
 	if (!MEM_map_ROM_physmem(rombios_minimum_location,0xFFFFF)) E_Exit("Unable to map ROM region as ROM");
 
 	/* set up allocation */

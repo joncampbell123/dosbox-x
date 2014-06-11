@@ -76,6 +76,8 @@
 #define	UMB_ONLY_SMALLER_BLOCK				0xb0
 #define	UMB_NO_BLOCKS_AVAILABLE				0xb1
 
+extern Bitu rombios_minimum_location;
+
 struct XMS_Block {
 	Bitu	size;
 	MemHandle mem;
@@ -429,7 +431,9 @@ extern bool mainline_compatible_mapping;
 Bitu GetEMSType(Section_prop * section);
 void DOS_GetMemory_Choose();
 
+void ROMBIOS_FreeUnusedMinToLoc(Bitu phys);
 bool MEM_unmap_physmem(Bitu start,Bitu end);
+Bitu ROMBIOS_MinAllocatedLoc();
 
 void RemoveUMBBlock() {
 	/* FIXME: Um... why is umb_available == false even when set to true below? */
@@ -486,7 +490,7 @@ public:
 			else if (first_umb_seg < VGA_BIOS_SEG_END)
 				first_umb_seg = VGA_BIOS_SEG_END;
 		}
-		if (first_umb_size == 0) first_umb_size = 0xEFFF;
+		if (first_umb_size == 0) first_umb_size = ROMBIOS_MinAllocatedLoc()>>4;
 
 		if (first_umb_seg < 0xC000 || first_umb_seg < DOS_PRIVATE_SEGMENT_END) {
 			LOG_MSG("UMB warning: UMB blocks before 0xD000 conflict with VGA (0xA000-0xBFFF), VGA BIOS (0xC000-0xC7FF) and DOSBox private area (0x%04x-0x%04x)\n",
@@ -494,13 +498,18 @@ public:
 			first_umb_seg = 0xC000;
 			if (first_umb_seg < (Bitu)DOS_PRIVATE_SEGMENT_END) first_umb_seg = (Bitu)DOS_PRIVATE_SEGMENT_END;
 		}
-		if (first_umb_seg >= 0xF000) {
-			LOG_MSG("UMB starting segment conflict with BIOS at 0xF000. Disabling UMBs\n");
+		if (first_umb_seg >= (rombios_minimum_location>>4)) {
+			LOG_MSG("UMB starting segment 0x%04x conflict with BIOS at 0x%04x. Disabling UMBs\n",first_umb_seg,rombios_minimum_location>>4);
 			umb_available = false;
 		}
-		if (first_umb_size >= 0xF000) {
-			LOG_MSG("UMB ending segment conflicts with BIOS at 0xF000, truncating region\n");
-			first_umb_size = 0xEFFF;
+		if (first_umb_size >= (rombios_minimum_location>>4)) {
+			/* we can ask the BIOS code to trim back the region, assuming it hasn't allocated anything there yet */
+			LOG_MSG("UMB ending segment 0x%04x conflicts with BIOS at 0x%04x, asking BIOS to move aside\n",first_umb_size,rombios_minimum_location>>4);
+			ROMBIOS_FreeUnusedMinToLoc(first_umb_size<<4);
+		}
+		if (first_umb_size >= (rombios_minimum_location>>4)) {
+			LOG_MSG("UMB ending segment 0x%04x conflicts with BIOS at 0x%04x, truncating region\n",first_umb_size,rombios_minimum_location>>4);
+			first_umb_size = (rombios_minimum_location>>4)-1;
 		}
 		if (first_umb_size < first_umb_seg) {
 			LOG_MSG("UMB end segment below UMB start. I'll just assume you mean to disable UMBs then.\n");

@@ -860,6 +860,10 @@ void DOSBOX_Init(void) {
 	Pint->SetMinMax(0,128);
 	Pint->Set_help("Maximum size (top down from 1MB) allowed for ROM BIOS dynamic allocation in KB");
 
+	Pint = secprop->Add_int("rom bios minimum size",Property::Changeable::OnlyAtStart,0);
+	Pint->SetMinMax(0,128);
+	Pint->Set_help("Once ROM BIOS layout is finalized, trim total region down to a minimum amount in KB");
+
 	LOG_StartUp();
 	
 	secprop->AddInitFunction(&IO_Init);//done
