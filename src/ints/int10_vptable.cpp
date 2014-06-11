@@ -23,11 +23,6 @@
 #include "inout.h"
 #include "int10.h"
 
-Bitu ROMBIOS_GetMemory(Bitu bytes,const char *who=NULL,Bitu alignment=1,Bitu must_be_at=0);
-Bitu ROMBIOS_PhysToReal416(Bitu phys);
-
-extern bool mainline_compatible_bios_mapping;
-
 const Bit8u vparams[] = {
 	// 40x25 mode 0 and 1 crtc registers
 	0x38, 0x28, 0x2d, 0x0a, 0x1f, 0x06, 0x19, 0x1c, 0x02, 0x07, 0x06, 0x07, 0,0,0,0,
@@ -569,7 +564,7 @@ void INT10_SetupBasicVideoParameterTable(void) {
 		if (mainline_compatible_bios_mapping)
 			BIOS_VIDEO_TABLE_LOCATION = RealMake(0xf000,0xf0a4);
 		else
-			BIOS_VIDEO_TABLE_LOCATION = ROMBIOS_PhysToReal416(ROMBIOS_GetMemory(copy_sz,"BIOS video table (INT 1Dh)")); /* TODO: make option */
+			BIOS_VIDEO_TABLE_LOCATION = PhysToReal416(ROMBIOS_GetMemory(copy_sz,"BIOS video table (INT 1Dh)")); /* TODO: make option */
 
 		/* NTS: Failure to allocate means BIOS_VIDEO_TABLE_LOCATION == 0 */
 	}

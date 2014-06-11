@@ -41,9 +41,10 @@ extern bool PS1AudioCard;
 extern bool en_bios_ps2mouse;
 extern bool mainline_compatible_bios_mapping;
 
-Bitu BIOS_DEFAULT_RESET_LOCATION = ~0;		// RealMake(0xf000,0xe05b)
 Bitu BIOS_VIDEO_TABLE_LOCATION = ~0;		// RealMake(0xf000,0xf0a4)
 Bitu BIOS_VIDEO_TABLE_SIZE = 0;
+
+Bitu BIOS_DEFAULT_RESET_LOCATION = ~0;		// RealMake(0xf000,0xe05b)
 
 /* allow 256 of private space for BIOS functions (16 para x 16 = 256) */
 #define BIOS_PRIVATE_SEGMENT			0xF300
@@ -72,11 +73,6 @@ static Bit16u bios_memseg=0;
 
 static std::vector<ROMBIOS_block> rombios_alloc;
 static Bitu rombios_minimum_location = 0xF0000; /* minimum segment allowed */
-
-/* convert physical address to 4:16 real pointer (example: 0xABCDE -> 0xA000:0xBCDE) */
-Bitu ROMBIOS_PhysToReal416(Bitu phys) {
-	return RealMake((phys>>4)&0xF000,phys&0xFFFF);
-}
 
 void ROMBIOS_DumpMemory() {
 	size_t si;
@@ -109,7 +105,7 @@ void ROMBIOS_SanityCheck() {
 	}
 }
 
-Bitu ROMBIOS_GetMemory(Bitu bytes,const char *who=NULL,Bitu alignment=1,Bitu must_be_at=0) {
+Bitu ROMBIOS_GetMemory(Bitu bytes,const char *who,Bitu alignment,Bitu must_be_at) {
 	size_t si;
 	Bitu base;
 
@@ -2710,7 +2706,7 @@ public:
 				E_Exit("Mainline compat bios mapping: failed to declare entire BIOS area off-limits");
 		}
 		else {
-			BIOS_DEFAULT_RESET_LOCATION = ROMBIOS_PhysToReal416(ROMBIOS_GetMemory(5/*JMP xxxx:xxxx*/,"BIOS default reset location"));
+			BIOS_DEFAULT_RESET_LOCATION = PhysToReal416(ROMBIOS_GetMemory(5/*JMP xxxx:xxxx*/,"BIOS default reset location"));
 		}
 
 		write_FFFF_signature();
@@ -3333,10 +3329,18 @@ void BIOS_Init(Section* sec) {
 
 void ROMBIOS_Init(Section *sec) {
 	bios_memseg = BIOS_PRIVATE_SEGMENT;
-	rombios_minimum_location = 0xF0000;
+
+	if (mainline_compatible_bios_mapping)
+		rombios_minimum_location = 0xF0000;
+	else
+		rombios_minimum_location = 0xE0000;
+
+	/* sanity check */
+	if (mainline_compatible_bios_mapping && rombios_minimum_location < 0xF0000)
+		rombios_minimum_location = 0xF0000;
 
 	/* set up allocation */
-	if (!mainline_compatible_bios_mapping) {
+	{
 		ROMBIOS_block x;
 
 		x.start = rombios_minimum_location;

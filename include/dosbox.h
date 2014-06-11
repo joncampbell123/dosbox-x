@@ -50,6 +50,8 @@ extern SVGACards			svgaCard;
 extern MachineType			machine;
 extern bool				SDLNetInited;
 extern bool				mono_cga;
+extern bool				mainline_compatible_mapping;
+extern bool				mainline_compatible_bios_mapping;
 
 #ifdef __SSE__
 extern bool				sse1_available;

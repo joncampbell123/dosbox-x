@@ -114,7 +114,11 @@
 //#define BIOS_VIDEO_TABLE_LOCATION		(RealMake(0xf000,0xf0a4))
 //#define BIOS_DEFAULT_RESET_LOCATION		(RealMake(0xf000,0xe05b))
 extern Bitu BIOS_VIDEO_TABLE_LOCATION;		// (RealMake(0xf000,0xf0a4))
+extern Bitu BIOS_VIDEO_TABLE_SIZE;
+
 extern Bitu BIOS_DEFAULT_RESET_LOCATION;	// RealMake(0xf000,0xe05b)
+
+Bitu ROMBIOS_GetMemory(Bitu bytes,const char *who=NULL,Bitu alignment=1,Bitu must_be_at=0);
 
 /* maximum of scancodes handled by keyboard bios routines */
 #define MAX_SCAN_CODE 0x58

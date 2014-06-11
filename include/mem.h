@@ -215,6 +215,11 @@ static INLINE void RealSetVec(Bit8u vec,RealPt pt,RealPt &old) {
 	mem_writed(vec<<2,pt);
 }
 
+/* convert physical address to 4:16 real pointer (example: 0xABCDE -> 0xA000:0xBCDE) */
+static INLINE Bitu PhysToReal416(Bitu phys) {
+	return RealMake((phys>>4)&0xF000,phys&0xFFFF);
+}
+
 static INLINE RealPt RealGetVec(Bit8u vec) {
 	return mem_readd(vec<<2);
 }	
