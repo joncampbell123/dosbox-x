@@ -122,6 +122,7 @@ extern bool			sse2_available;
 extern ClockDomain		clockdom_8254_PIT;
 extern bool			dynamic_dos_kernel_alloc;
 extern Bitu			DOS_PRIVATE_SEGMENT_Size;
+extern bool			VGA_BIOS_dont_duplicate_CGA_first_half;
 
 /* ISA bus OSC clock (14.31818MHz) */
 /*  +---- / 12 = PIT timer clock 1.1931816666... MHz */
@@ -596,6 +597,7 @@ static void DOSBOX_RealInit(Section * sec) {
 	mainline_compatible_bios_mapping = section->Get_bool("mainline compatible bios mapping");
 	VGA_BIOS_Size_override = section->Get_int("vga bios size override");
 	if (VGA_BIOS_Size_override > 0) VGA_BIOS_Size_override = (VGA_BIOS_Size_override+0x7FF)&(~0xFFF);
+	VGA_BIOS_dont_duplicate_CGA_first_half = section->Get_bool("video bios dont duplicate cga first half rom font");
 
 	/* private area size param in bytes. round up to nearest paragraph */
 	DOS_PRIVATE_SEGMENT_Size = (section->Get_int("private area size") + 8) / 16;
@@ -603,6 +605,10 @@ static void DOSBOX_RealInit(Section * sec) {
 	/* NTS: mainline compatible mapping demands the 8x8 CGA font */
 	rom_bios_8x8_cga_font = mainline_compatible_bios_mapping || section->Get_bool("rom bios 8x8 CGA font");
 	rom_bios_vptable_enable = mainline_compatible_bios_mapping || section->Get_bool("rom bios video parameter table");
+
+	/* sanity check */
+	if (VGA_BIOS_dont_duplicate_CGA_first_half && !rom_bios_8x8_cga_font) /* can't point at the BIOS copy if it's not there */
+		VGA_BIOS_dont_duplicate_CGA_first_half = false;
 
 	allow_port_92_reset = section->Get_bool("allow port 92 reset");
 
@@ -905,6 +911,9 @@ void DOSBOX_Init(void) {
 	Pint = secprop->Add_int("vga bios size override", Property::Changeable::WhenIdle,0);
 	Pint->SetMinMax(512,65536);
 	Pint->Set_help("VGA BIOS size override. Override the size of the VGA BIOS (normally 32KB in compatible or 12KB in non-compatible).");
+
+	Pbool = secprop->Add_bool("video bios dont duplicate cga first half rom font",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("If set, save 4KB of EGA/VGA ROM space by pointing to the copy in the ROM BIOS of the first 128 chars");
 
 	Pstring = secprop->Add_string("forcerate",Property::Changeable::Always,"");
 	Pstring->Set_help("Force the VGA framerate to a specific value(ntsc, pal, or specific hz), no matter what");

@@ -23,6 +23,7 @@
 #include "int10.h"
 
 bool rom_bios_8x8_cga_font = true;
+bool VGA_BIOS_dont_duplicate_CGA_first_half = false;
 
 static Bit8u static_functionality[0x10]=
 {
@@ -116,9 +117,14 @@ void INT10_SetupRomMemory(void) {
 		else phys_writes(rom_base+0x1e, "IBM compatible EGA BIOS", 24);
 		int10.rom.used=0x100;
 	}
-	int10.rom.font_8_first=RealMake(0xC000,int10.rom.used);
-	for (i=0;i<128*8;i++) {
-		phys_writeb(rom_base+int10.rom.used++,int10_font_08[i]);
+	if (VGA_BIOS_dont_duplicate_CGA_first_half) {
+		int10.rom.font_8_first=RealMake(0xF000,0xFA6E); /* why duplicate data? use the copy in the ROM BIOS */
+	}
+	else {
+		int10.rom.font_8_first=RealMake(0xC000,int10.rom.used);
+		for (i=0;i<128*8;i++) {
+			phys_writeb(rom_base+int10.rom.used++,int10_font_08[i]);
+		}
 	}
 	int10.rom.font_8_second=RealMake(0xC000,int10.rom.used);
 	for (i=0;i<128*8;i++) {
