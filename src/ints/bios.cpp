@@ -40,6 +40,7 @@ extern bool PS1AudioCard;
 /* mouse.cpp */
 extern bool en_bios_ps2mouse;
 extern bool mainline_compatible_bios_mapping;
+extern bool rom_bios_8x8_cga_font;
 
 Bitu BIOS_VIDEO_TABLE_LOCATION = ~0;		// RealMake(0xf000,0xf0a4)
 Bitu BIOS_VIDEO_TABLE_SIZE = 0;
@@ -2698,7 +2699,7 @@ public:
 		Bitu wo;
 
 		/* some structures when enabled are fixed no matter what */
-		if (!mainline_compatible_bios_mapping) {
+		if (!mainline_compatible_bios_mapping && rom_bios_8x8_cga_font) {
 			/* line 139, int10_memory.cpp: the 8x8 font at 0xF000:FA6E, first 128 chars.
 			 * allocate this NOW before other things get in the way */
 			if (ROMBIOS_GetMemory(128*8,"BIOS 8x8 font (first 128 chars)",1,0xFFA6E) == 0) {

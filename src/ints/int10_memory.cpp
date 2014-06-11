@@ -22,6 +22,7 @@
 #include "inout.h"
 #include "int10.h"
 
+bool rom_bios_8x8_cga_font = true;
 
 static Bit8u static_functionality[0x10]=
 {
@@ -135,8 +136,10 @@ void INT10_SetupRomMemory(void) {
 	for (i=0;i<0x10;i++) {
 		phys_writeb(rom_base+int10.rom.used++,static_functionality[i]);
 	}
-	for (i=0;i<128*8;i++) { /* TODO: Make this an option, recent motherboards I've seen don't have this fixed data */
-		phys_writeb(PhysMake(0xf000,0xfa6e)+i,int10_font_08[i]);
+	if (rom_bios_8x8_cga_font) {
+		for (i=0;i<128*8;i++) {
+			phys_writeb(PhysMake(0xf000,0xfa6e)+i,int10_font_08[i]);
+		}
 	}
 	RealSetVec(0x1F,int10.rom.font_8_second);
 	int10.rom.font_14_alternate=RealMake(0xC000,int10.rom.used);
