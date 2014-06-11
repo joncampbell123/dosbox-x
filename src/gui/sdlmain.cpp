@@ -51,6 +51,7 @@
 #include "pic.h"
 #include "timer.h"
 #include "setup.h"
+#include "bios.h"
 #include "support.h"
 #include "debug.h"
 #include "render.h"
@@ -3434,8 +3435,8 @@ int main(int argc, char* argv[]) {
 			}
 
 			/* revector some dos-allocated interrupts */
-			real_writed(0,0x01*4,0xf000ff53);
-			real_writed(0,0x03*4,0xf000ff53);
+			real_writed(0,0x01*4,BIOS_DEFAULT_HANDLER_LOCATION);
+			real_writed(0,0x03*4,BIOS_DEFAULT_HANDLER_LOCATION);
 
 			/* shutdown DOSBox's virtual drive Z */
 			void VFILE_Shutdown(void);
