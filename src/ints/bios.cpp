@@ -42,6 +42,8 @@ extern bool en_bios_ps2mouse;
 extern bool mainline_compatible_bios_mapping;
 extern bool rom_bios_8x8_cga_font;
 
+Bitu BIOS_DEFAULT_IRQ2_LOCATION = ~0;		// (RealMake(0xf000,0xff55))
+
 Bitu BIOS_DEFAULT_HANDLER_LOCATION = ~0;	// (RealMake(0xf000,0xff53))
 
 Bitu BIOS_VIDEO_TABLE_LOCATION = ~0;		// RealMake(0xf000,0xf0a4)
@@ -2713,6 +2715,7 @@ public:
 		if (mainline_compatible_bios_mapping) { /* mapping BIOS the way mainline DOSBox does */
 			BIOS_DEFAULT_RESET_LOCATION = RealMake(0xf000,0xe05b);
 			BIOS_DEFAULT_HANDLER_LOCATION = RealMake(0xf000,0xff53);
+			BIOS_DEFAULT_IRQ2_LOCATION = RealMake(0xf000,0xff55);
 
 			/* mark all but the first 0x600 bytes of the BIOS segment off-limits */
 			if (ROMBIOS_GetMemory(0xFFFF0-0xF0600,"BIOS with fixed layout",1,0xF0600) == 0)
@@ -2721,6 +2724,7 @@ public:
 		else {
 			BIOS_DEFAULT_RESET_LOCATION = PhysToReal416(ROMBIOS_GetMemory(5/*JMP xxxx:xxxx*/,"BIOS default reset location"));
 			BIOS_DEFAULT_HANDLER_LOCATION = PhysToReal416(ROMBIOS_GetMemory(1/*IRET*/,"BIOS default handler location"));
+			BIOS_DEFAULT_IRQ2_LOCATION = PhysToReal416(ROMBIOS_GetMemory(7/*see callback.cpp for EOI_PIC1*/,"BIOS default IRQ2 location"));
 		}
 
 		write_FFFF_signature();
