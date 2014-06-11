@@ -726,7 +726,7 @@ bool INT10_SetVideoMode_OTHER(Bit16u mode,bool clearmem) {
 
 	// Check if the program wants us to use a custom mode table
 	RealPt vparams = RealGetVec(0x1d);
-	if ((vparams != BIOS_VIDEO_TABLE_LOCATION) && (mode < 8)) {
+	if (vparams != 0 && (vparams != BIOS_VIDEO_TABLE_LOCATION) && (mode < 8)) {
 		// load crtc parameters from video params table
 		Bit16u crtc_block_index = 0;
 		if (mode < 2) crtc_block_index = 0;

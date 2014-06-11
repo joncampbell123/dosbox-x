@@ -41,7 +41,9 @@ extern bool PS1AudioCard;
 extern bool en_bios_ps2mouse;
 extern bool mainline_compatible_bios_mapping;
 
-Bitu BIOS_DEFAULT_RESET_LOCATION = 0xFFFFFFFF;	// RealMake(0xf000,0xe05b)
+Bitu BIOS_DEFAULT_RESET_LOCATION = ~0;		// RealMake(0xf000,0xe05b)
+Bitu BIOS_VIDEO_TABLE_LOCATION = ~0;		// RealMake(0xf000,0xf0a4)
+Bitu BIOS_VIDEO_TABLE_SIZE = 0;
 
 /* allow 256 of private space for BIOS functions (16 para x 16 = 256) */
 #define BIOS_PRIVATE_SEGMENT			0xF300
@@ -205,11 +207,12 @@ Bitu ROMBIOS_GetMemory(Bitu bytes,const char *who=NULL,Bitu alignment=1,Bitu mus
 			assert(blk.start <= blk.end);
 		}
 
-		LOG_MSG("ROMBIOS_GetMemory(0x%05x bytes,\"%s\",align=%u,mustbe=0x%05x) = 0x%05x\n",bytes,who,base,alignment,must_be_at);
+		LOG_MSG("ROMBIOS_GetMemory(0x%05x bytes,\"%s\",align=%u,mustbe=0x%05x) = 0x%05x\n",bytes,who,alignment,must_be_at,base);
 		ROMBIOS_SanityCheck();
 		return base;
 	}
 
+	LOG_MSG("ROMBIOS_GetMemory(0x%05x bytes,\"%s\",align=%u,mustbe=0x%05x) = FAILED\n",bytes,who,alignment,must_be_at);
 	ROMBIOS_SanityCheck();
 	return 0;
 }
@@ -2699,8 +2702,12 @@ public:
 		Bitu wo;
 
 		/* pick locations */
-		if (mainline_compatible_bios_mapping) {
+		if (mainline_compatible_bios_mapping) { /* mapping BIOS the way mainline DOSBox does */
 			BIOS_DEFAULT_RESET_LOCATION = RealMake(0xf000,0xe05b);
+
+			/* in mainline the entire ROM area is off limits */
+			if (ROMBIOS_GetMemory(0xFFF0,"BIOS with fixed layout",1,0xF0000) == 0)
+				E_Exit("Mainline compat bios mapping: failed to declare entire BIOS area off-limits");
 		}
 		else {
 			BIOS_DEFAULT_RESET_LOCATION = ROMBIOS_PhysToReal416(ROMBIOS_GetMemory(5/*JMP xxxx:xxxx*/,"BIOS default reset location"));
