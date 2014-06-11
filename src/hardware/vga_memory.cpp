@@ -990,6 +990,8 @@ void VGA_ChangedBank(void) {
 	VGA_SetupHandlers();
 }
 
+void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages);
+
 void VGA_SetupHandlers(void) {
 	vga.svga.bank_read_full = vga.svga.bank_read*vga.svga.bank_size;
 	vga.svga.bank_write_full = vga.svga.bank_write*vga.svga.bank_size;
@@ -1112,21 +1114,21 @@ void VGA_SetupHandlers(void) {
 		vgapages.base = VGA_PAGE_A0;
 		vgapages.mask = 0xffff;
 		MEM_SetPageHandler( VGA_PAGE_A0, 16, newHandler );
-		MEM_ResetPageHandler( VGA_PAGE_B0, 16);
+		MEM_ResetPageHandler_Unmapped( VGA_PAGE_B0, 16);
 		break;
 	case 2:
 		vgapages.base = VGA_PAGE_B0;
 		vgapages.mask = 0x7fff;
 		MEM_SetPageHandler( VGA_PAGE_B0, 8, newHandler );
-		MEM_ResetPageHandler( VGA_PAGE_A0, 16 );
-		MEM_ResetPageHandler( VGA_PAGE_B8, 8 );
+		MEM_ResetPageHandler_Unmapped( VGA_PAGE_A0, 16 );
+		MEM_ResetPageHandler_Unmapped( VGA_PAGE_B8, 8 );
 		break;
 	case 3:
 		vgapages.base = VGA_PAGE_B8;
 		vgapages.mask = 0x7fff;
 		MEM_SetPageHandler( VGA_PAGE_B8, 8, newHandler );
-		MEM_ResetPageHandler( VGA_PAGE_A0, 16 );
-		MEM_ResetPageHandler( VGA_PAGE_B0, 8 );
+		MEM_ResetPageHandler_Unmapped( VGA_PAGE_A0, 16 );
+		MEM_ResetPageHandler_Unmapped( VGA_PAGE_B0, 8 );
 		break;
 	}
 	if(svgaCard == SVGA_S3Trio && (vga.s3.ext_mem_ctrl & 0x10))

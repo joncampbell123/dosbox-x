@@ -213,13 +213,20 @@ void MEM_SetPageHandler(Bitu phys_page,Bitu pages,PageHandler * handler) {
 	}
 }
 
-void MEM_ResetPageHandler(Bitu phys_page, Bitu pages) {
+void MEM_ResetPageHandler_RAM(Bitu phys_page, Bitu pages) {
 	PageHandler *ram_ptr =
 		(memory.mem_alias_pagemask == (Bit32u)(~0UL) && !a20_full_masking)
 		? (PageHandler*)(&ram_page_handler) /* no aliasing */
 		: (PageHandler*)(&ram_alias_page_handler); /* aliasing */
 	for (;pages>0;pages--) {
 		memory.phandlers[phys_page]=ram_ptr;
+		phys_page++;
+	}
+}
+
+void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages) {
+	for (;pages>0;pages--) {
+		memory.phandlers[phys_page]=&unmapped_page_handler;
 		phys_page++;
 	}
 }
