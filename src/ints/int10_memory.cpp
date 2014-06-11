@@ -167,9 +167,14 @@ void INT10_SetupRomMemory(void) {
 		int10.rom.font_16=0; /* why write the 16-high version if not emulating VGA? */
 		/* FIXME: Does the EGA BIOS have the 16-high font, or just 14-high? */
 	}
-	int10.rom.static_state=RealMake(0xC000,int10.rom.used);
-	for (i=0;i<0x10;i++) {
-		phys_writeb(rom_base+int10.rom.used++,static_functionality[i]);
+	if (IS_VGA_ARCH) { /* according to sources this static state stuff only applies to VGA, right? */
+		int10.rom.static_state=RealMake(0xC000,int10.rom.used);
+		for (i=0;i<0x10;i++) {
+			phys_writeb(rom_base+int10.rom.used++,static_functionality[i]);
+		}
+	}
+	else {
+		int10.rom.static_state=0;
 	}
 	RealSetVec(0x1F,int10.rom.font_8_second);
 	int10.rom.font_14_alternate=RealMake(0xC000,int10.rom.used);
