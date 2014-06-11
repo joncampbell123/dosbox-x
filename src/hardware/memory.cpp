@@ -1032,10 +1032,7 @@ public:
 		}
 		if (rombios_minimum_location == 0) E_Exit("Uninitialized ROM BIOS base");
 
-		/* Setup rom at base-0x100000 */
-		if (rombios_minimum_location & 0xFFF) E_Exit("ROM BIOS base not page aligned");
-		for (i=(rombios_minimum_location>>12);i<0x100;i++)
-			memory.phandlers[i] = &rom_page_handler;
+		/* NTS: ROMBIOS_Init() takes care of mapping ROM */
 
 		if (machine==MCH_PCJR) {
 			/* Setup cartridge rom at 0xe0000-0xf0000 */

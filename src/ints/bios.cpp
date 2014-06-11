@@ -3359,6 +3359,8 @@ void write_ID_version_string() {
 	}
 }
 
+bool MEM_map_ROM_physmem(Bitu start,Bitu end);
+
 /* NTS: Do not use callbacks! This function is called before CALLBACK_Init() */
 void ROMBIOS_Init(Section *sec) {
 	Section_prop * section=static_cast<Section_prop *>(sec);
@@ -3376,6 +3378,7 @@ void ROMBIOS_Init(Section *sec) {
 		rombios_minimum_location = 0xF0000;
 
 	LOG_MSG("ROM BIOS range: 0x%05x-0xFFFFF\n",rombios_minimum_location);
+	if (!MEM_map_ROM_physmem(rombios_minimum_location,0xFFFFF)) E_Exit("Unable to map ROM region as ROM");
 
 	/* set up allocation */
 	{
