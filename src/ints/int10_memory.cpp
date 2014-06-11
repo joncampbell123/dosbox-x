@@ -26,6 +26,7 @@ bool rom_bios_8x8_cga_font = true;
 bool VGA_BIOS_dont_duplicate_CGA_first_half = false;
 bool VIDEO_BIOS_always_carry_14_high_font = true;
 bool VIDEO_BIOS_always_carry_16_high_font = true;
+bool VIDEO_BIOS_enable_CGA_8x8_second_half = false;
 bool VIDEO_BIOS_disable = false;
 
 static Bit8u static_functionality[0x10]=
@@ -138,9 +139,14 @@ void INT10_SetupRomMemory(void) {
 			phys_writeb(rom_base+int10.rom.used++,int10_font_08[i]);
 		}
 	}
-	int10.rom.font_8_second=RealMake(0xC000,int10.rom.used);
-	for (i=0;i<128*8;i++) {
-		phys_writeb(rom_base+int10.rom.used++,int10_font_08[i+128*8]);
+	if (IS_EGAVGA_ARCH || VIDEO_BIOS_enable_CGA_8x8_second_half) {
+		int10.rom.font_8_second=RealMake(0xC000,int10.rom.used);
+		for (i=0;i<128*8;i++) {
+			phys_writeb(rom_base+int10.rom.used++,int10_font_08[i+128*8]);
+		}
+	}
+	else {
+		int10.rom.font_8_second=0;
 	}
 	if (IS_EGAVGA_ARCH || VIDEO_BIOS_always_carry_14_high_font) {
 		int10.rom.font_14=RealMake(0xC000,int10.rom.used);

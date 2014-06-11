@@ -125,6 +125,7 @@ extern Bitu			DOS_PRIVATE_SEGMENT_Size;
 extern bool			VGA_BIOS_dont_duplicate_CGA_first_half;
 extern bool			VIDEO_BIOS_always_carry_14_high_font;
 extern bool			VIDEO_BIOS_always_carry_16_high_font;
+extern bool			VIDEO_BIOS_enable_CGA_8x8_second_half;
 extern bool			VIDEO_BIOS_disable;
 
 /* ISA bus OSC clock (14.31818MHz) */
@@ -603,6 +604,7 @@ static void DOSBOX_RealInit(Section * sec) {
 	VGA_BIOS_dont_duplicate_CGA_first_half = section->Get_bool("video bios dont duplicate cga first half rom font");
 	VIDEO_BIOS_always_carry_14_high_font = section->Get_bool("video bios always offer 14-pixel high rom font");
 	VIDEO_BIOS_always_carry_16_high_font = section->Get_bool("video bios always offer 16-pixel high rom font");
+	VIDEO_BIOS_enable_CGA_8x8_second_half = section->Get_bool("video bios enable cga second half rom font");
 	VIDEO_BIOS_disable = section->Get_bool("video bios disable");
 
 	/* private area size param in bytes. round up to nearest paragraph */
@@ -933,6 +935,10 @@ void DOSBOX_Init(void) {
 
 	Pbool = secprop->Add_bool("video bios always offer 16-pixel high rom font",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("If set, video BIOS will always carry the 16-pixel ROM font. If clear, 16-pixel rom font will not be offered except for VGA emulation.");
+
+	Pbool = secprop->Add_bool("video bios enable cga second half rom font",Property::Changeable::WhenIdle,true);
+	Pbool->Set_help("If set, and emulating CGA/PCjr/Tandy, automatically provide the second half of the 8x8 ROM font.\n"
+			"This setting is ignored for EGA/VGA emulation. If not set, you will need a utility like GRAFTABL.COM to load the second half of the ROM font for graphics.");
 
 	Pbool = secprop->Add_bool("video bios disable",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("If set, and not emulating EGA/VGA, no video bios will be created at 0xC000");
