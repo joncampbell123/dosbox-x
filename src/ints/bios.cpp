@@ -205,8 +205,11 @@ Bitu ROMBIOS_GetMemory(Bitu bytes,const char *who,Bitu alignment,Bitu must_be_at
 			newblk.free = false;
 			newblk.who = who;
 			blk.end = base - 1;
+			if (blk.start > blk.end) {
+				ROMBIOS_SanityCheck();
+				abort();
+			}
 			rombios_alloc.insert(rombios_alloc.begin()+si+1,newblk);
-			assert(blk.start <= blk.end);
 		}
 
 		LOG_MSG("ROMBIOS_GetMemory(0x%05x bytes,\"%s\",align=%u,mustbe=0x%05x) = 0x%05x\n",bytes,who,alignment,must_be_at,base);
