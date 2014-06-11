@@ -299,6 +299,7 @@ void run_hw() {
 
 extern Bitu dosbox_check_nonrecursive_pf_cs;
 extern Bitu dosbox_check_nonrecursive_pf_eip;
+extern bool rom_bios_vptable_enable;
 extern bool rom_bios_8x8_cga_font;
 extern bool allow_port_92_reset;
 extern bool allow_keyb_reset;
@@ -601,6 +602,7 @@ static void DOSBOX_RealInit(Section * sec) {
 
 	/* NTS: mainline compatible mapping demands the 8x8 CGA font */
 	rom_bios_8x8_cga_font = mainline_compatible_bios_mapping || section->Get_bool("rom bios 8x8 CGA font");
+	rom_bios_vptable_enable = mainline_compatible_bios_mapping || section->Get_bool("rom bios video parameter table");
 
 	allow_port_92_reset = section->Get_bool("allow port 92 reset");
 
@@ -930,6 +932,9 @@ void DOSBOX_Init(void) {
 
 	Pbool = secprop->Add_bool("rom bios 8x8 CGA font",Property::Changeable::Always,true);
 	Pbool->Set_help("If set, or mainline compatible bios mapping, a legacy 8x8 CGA font (first 128 characters) is stored at 0xF000:0xFA6E. DOS programs that do not use INT 10h to locate fonts might require that font to be located there.");
+
+	Pbool = secprop->Add_bool("rom bios video parameter table",Property::Changeable::Always,true);
+	Pbool->Set_help("If set, or mainline compatible bios mapping, DOSBox will emulate the video parameter table and assign that to INT 1Dh. If clear, table will not be provided.");
 
 	secprop->AddInitFunction(&CALLBACK_Init);
 	secprop->AddInitFunction(&DMA_Init);//done

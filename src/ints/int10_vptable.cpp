@@ -23,6 +23,8 @@
 #include "inout.h"
 #include "int10.h"
 
+bool rom_bios_vptable_enable = true;
+
 const Bit8u vparams[] = {
 	// 40x25 mode 0 and 1 crtc registers
 	0x38, 0x28, 0x2d, 0x0a, 0x1f, 0x06, 0x19, 0x1c, 0x02, 0x07, 0x06, 0x07, 0,0,0,0,
@@ -535,8 +537,6 @@ Bitu RealToPhys(Bitu x) {
 	return PhysMake(x>>16,x&0xFFFF);
 }
 
-extern Bitu BIOS_VIDEO_TABLE_SIZE;
-
 void INT10_SetupBasicVideoParameterTable(void) {
 	const unsigned char *copy = NULL;
 	size_t copy_sz = 0;
@@ -558,15 +558,20 @@ void INT10_SetupBasicVideoParameterTable(void) {
 	}
 
 	if (BIOS_VIDEO_TABLE_LOCATION == ~0 || BIOS_VIDEO_TABLE_SIZE != (Bitu)copy_sz) {
-		/* TODO: Free previous block */
+		if (rom_bios_vptable_enable) {
+			/* TODO: Free previous block */
 
-		BIOS_VIDEO_TABLE_SIZE = copy_sz;
-		if (mainline_compatible_bios_mapping)
-			BIOS_VIDEO_TABLE_LOCATION = RealMake(0xf000,0xf0a4);
-		else
-			BIOS_VIDEO_TABLE_LOCATION = PhysToReal416(ROMBIOS_GetMemory(copy_sz,"BIOS video table (INT 1Dh)")); /* TODO: make option */
+			BIOS_VIDEO_TABLE_SIZE = copy_sz;
+			if (mainline_compatible_bios_mapping)
+				BIOS_VIDEO_TABLE_LOCATION = RealMake(0xf000,0xf0a4);
+			else
+				BIOS_VIDEO_TABLE_LOCATION = PhysToReal416(ROMBIOS_GetMemory(copy_sz,"BIOS video table (INT 1Dh)")); /* TODO: make option */
 
-		/* NTS: Failure to allocate means BIOS_VIDEO_TABLE_LOCATION == 0 */
+			/* NTS: Failure to allocate means BIOS_VIDEO_TABLE_LOCATION == 0 */
+		}
+		else {
+			BIOS_VIDEO_TABLE_LOCATION = 0;
+		}
 	}
 
 	RealSetVec(0x1d,BIOS_VIDEO_TABLE_LOCATION);
