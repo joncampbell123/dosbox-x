@@ -39,6 +39,9 @@ extern bool PS1AudioCard;
 #include <sys/timeb.h>
 /* mouse.cpp */
 extern bool en_bios_ps2mouse;
+extern bool mainline_compatible_bios_mapping;
+
+Bitu BIOS_DEFAULT_RESET_LOCATION = 0xFFFFFFFF;	// RealMake(0xf000,0xe05b)
 
 /* allow 256 of private space for BIOS functions (16 para x 16 = 256) */
 #define BIOS_PRIVATE_SEGMENT			0xF300
@@ -50,19 +53,29 @@ const char* const bios_version_string = "DOSBox FakeBIOS v1.0";
 const char* const bios_date_string = "01/01/92";
 
 static Bit16u bios_memseg=0;
-static Bit16u rombios_allocation=0; /* allocation extends downward from 0xFFFF:0xFFF0 (exluding segment 0xFFFF which is occupied by BIOS date, ID, jump vector) */
-static Bit16u rombios_minimum_segment=0xE000; /* minimum segment allowed */
+static Bitu rombios_allocation=0; /* allocation extends downward from 0xFFFF:0xFFF0 (exluding segment 0xFFFF which is occupied by BIOS date, ID, jump vector) */
+static Bitu rombios_minimum_location=0xE0000; /* minimum segment allowed */
 
-Bit16u ROMBIOS_GetMemory(Bit16u pages,const char *who) {
+Bitu ROMBIOS_GetMemory(Bitu bytes,const char *who) {
 	if (who == NULL) who = "";
 	if (rombios_allocation == 0) E_Exit("ROMBIOS_GetMemory when not initialized or when BIOS layout finalized for %s",who);
-	if (pages > rombios_allocation) E_Exit("ROMBIOS_GetMemory: pages requested > allocation for %s",who);
-	if ((rombios_allocation-pages) < rombios_minimum_segment) E_Exit("ROMBIOS_GetMemory: Not enough room for %s",who);
+	if (bytes > rombios_allocation) E_Exit("ROMBIOS_GetMemory: bytes requested > allocation for %s",who);
+	if ((rombios_allocation-bytes) < rombios_minimum_location) E_Exit("ROMBIOS_GetMemory: Not enough room for %s",who);
 
 	/* do it */
-	rombios_allocation -= pages;
-	LOG_MSG("ROMBIOS_GetMemory(0x%04x pages,\"%s\") = 0x%04x\n",pages,who,rombios_allocation);
+	rombios_allocation -= bytes;
+	LOG_MSG("ROMBIOS_GetMemory(0x%05x byte,\"%s\") = 0x%05x\n",bytes,who,rombios_allocation);
 	return rombios_allocation;
+}
+
+Bitu ROMBIOS_GetMemoryReal(Bitu bytes,const char *who) {
+	Bitu r = ROMBIOS_GetMemory(bytes,who);
+	return RealMake(r>>4,r&0xF);
+}
+
+Bitu ROMBIOS_GetMemoryReal_16_4(Bit16u bytes,const char *who) {
+	Bitu r = ROMBIOS_GetMemory(bytes,who);
+	return RealMake((r>>4)&0xF000,r&0xFFFF);
 }
 
 Bit16u BIOS_GetMemory(Bit16u pages,const char *who) {
@@ -2537,7 +2550,7 @@ public:
 		for(Bitu i = 0; i < strlen(bios_date_string); i++) phys_writeb(0xffff5+i,bios_date_string[i]);
 
 		/* model byte */
-		if (machine==MCH_TANDY || machine==MCH_AMSTRAD) phys_writeb(0xffffe,0xff)	;	/* Tandy model */
+		if (machine==MCH_TANDY || machine==MCH_AMSTRAD) phys_writeb(0xffffe,0xff);	/* Tandy model */
 		else if (machine==MCH_PCJR) phys_writeb(0xffffe,0xfd);	/* PCJr model */
 		else phys_writeb(0xffffe,0xfc);	/* PC */
 
@@ -2547,6 +2560,15 @@ public:
 	BIOS(Section* configuration):Module_base(configuration){
 		/* tandy DAC can be requested in tandy_sound.cpp by initializing this field */
 		bool use_tandyDAC=(real_readb(0x40,0xd4)==0xff);
+		Bitu wo;
+
+		/* pick locations */
+		if (mainline_compatible_bios_mapping) {
+			BIOS_DEFAULT_RESET_LOCATION = RealMake(0xf000,0xe05b);
+		}
+		else {
+			BIOS_DEFAULT_RESET_LOCATION = ROMBIOS_GetMemoryReal_16_4(5/*JMP xxxx:xxxx*/,"BIOS default reset location");
+		}
 
 		write_FFFF_signature();
 
@@ -2661,9 +2683,10 @@ public:
 		init_vm86_fake_io();
 
 		// Compatible POST routine location: jump to the callback
-		phys_writeb(Real2Phys(BIOS_DEFAULT_RESET_LOCATION)+0,0xEA);				// FARJMP
-		phys_writew(Real2Phys(BIOS_DEFAULT_RESET_LOCATION)+1,RealOff(rptr));	// offset
-		phys_writew(Real2Phys(BIOS_DEFAULT_RESET_LOCATION)+3,RealSeg(rptr));	// segment
+		wo = Real2Phys(BIOS_DEFAULT_RESET_LOCATION);
+		phys_writeb(wo+0,0xEA);			// FARJMP     +0
+		phys_writew(wo+1,RealOff(rptr));	// offset     +1
+		phys_writew(wo+3,RealSeg(rptr));	// segment    +3 = +5 bytes
 
 		/* Irq 2 */
 		Bitu call_irq2=CALLBACK_Allocate();	
@@ -3166,6 +3189,10 @@ void BIOS_Init(Section* sec) {
 
 void ROMBIOS_Init(Section *sec) {
 	bios_memseg = BIOS_PRIVATE_SEGMENT;
-	rombios_allocation=0xFFFF;
+
+	if (mainline_compatible_bios_mapping)
+		rombios_allocation = 0; /* disable */
+	else
+		rombios_allocation = 0xFFFF0; /* enable, top down from 0xFFFF */
 }
 

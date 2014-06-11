@@ -148,6 +148,7 @@ bool				ticksLocked;
 bool				mono_cga=false;
 bool				ignore_opcode_63 = true;
 bool				mainline_compatible_mapping = true;
+bool				mainline_compatible_bios_mapping = true;
 Bitu				VGA_BIOS_Size_override = 0;
 int				dynamic_core_cache_block_size = 32;
 
@@ -590,6 +591,7 @@ static void DOSBOX_RealInit(Section * sec) {
 	dosbox_shell_env_size = section->Get_int("shell environment size");
 
 	mainline_compatible_mapping = section->Get_bool("mainline compatible mapping");
+	mainline_compatible_bios_mapping = section->Get_bool("mainline compatible bios mapping");
 	VGA_BIOS_Size_override = section->Get_int("vga bios size override");
 	if (VGA_BIOS_Size_override > 0) VGA_BIOS_Size_override = (VGA_BIOS_Size_override+0x7FF)&(~0xFFF);
 
@@ -789,6 +791,11 @@ void DOSBOX_Init(void) {
 
 	Pbool = secprop->Add_bool("mainline compatible mapping",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("If set, arrange private areas, UMBs, and DOS kernel structures by default in the same way the mainline branch would do it.\n"
+			"If cleared, these areas are allocated dynamically which may improve available memory and emulation accuracy.\n"
+			"If your DOS game breaks under DOSBox-X but works with mainline DOSBox setting this option may help.");
+
+	Pbool = secprop->Add_bool("mainline compatible bios mapping",Property::Changeable::OnlyAtStart,true);
+	Pbool->Set_help("If set, arrange the BIOS area in the same way that the mainline branch would do it.\n"
 			"If cleared, these areas are allocated dynamically which may improve available memory and emulation accuracy.\n"
 			"If your DOS game breaks under DOSBox-X but works with mainline DOSBox setting this option may help.");
 
