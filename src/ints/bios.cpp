@@ -158,8 +158,8 @@ Bitu ROMBIOS_GetMemory(Bitu bytes,const char *who,Bitu alignment,Bitu must_be_at
 			}
 			else if ((base+bytes-1) == blk.end) { /* need to split */
 				ROMBIOS_block newblk = blk; /* this becomes the new block we insert */
-				blk.end = base+bytes-1;
-				newblk.start = base+bytes;
+				blk.end = base-1;
+				newblk.start = base;
 				newblk.free = false;
 				newblk.who = who;
 				rombios_alloc.insert(rombios_alloc.begin()+si+1,newblk);
@@ -2714,8 +2714,8 @@ public:
 			BIOS_DEFAULT_RESET_LOCATION = RealMake(0xf000,0xe05b);
 			BIOS_DEFAULT_HANDLER_LOCATION = RealMake(0xf000,0xff53);
 
-			/* in mainline the entire ROM area is off limits */
-			if (ROMBIOS_GetMemory(0xFFF0,"BIOS with fixed layout",1,0xF0000) == 0)
+			/* mark all but the first 0x600 bytes of the BIOS segment off-limits */
+			if (ROMBIOS_GetMemory(0xFFFF0-0xF0600,"BIOS with fixed layout",1,0xF0600) == 0)
 				E_Exit("Mainline compat bios mapping: failed to declare entire BIOS area off-limits");
 		}
 		else {
