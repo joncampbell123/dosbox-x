@@ -19,15 +19,17 @@
 
 #include "dosbox.h"
 #include "mem.h"
+#include "bios.h"
 #include "dos_inc.h"
 #include "callback.h"
 
 // uncomment for alloc/free debug messages
 #define DEBUG_ALLOC
 
+Bitu UMB_START_SEG = 0x9FFF;
 /* FIXME: This should be a variable that reflects the last RAM segment.
  *        That means 0x9FFF if 640KB or more, or a lesser value if less than 640KB */
-#define UMB_START_SEG 0x9fff
+//#define UMB_START_SEG 0x9fff
 
 Bit16u first_umb_seg = 0xd000;
 Bit16u first_umb_size = 0x2000;
@@ -464,8 +466,13 @@ extern Bit16u DOS_IHSEG;
 
 static	CALLBACK_HandlerObject callbackhandler;
 void DOS_SetupMemory(void) {
-	unsigned int seg_limit = MEM_TotalPages()*256;
-	if (seg_limit > 0xA000) seg_limit = 0xA000;
+	unsigned int max_conv;
+	unsigned int seg_limit;
+
+	max_conv = mem_readw(BIOS_MEMORY_SIZE) << (10-4);
+	seg_limit = MEM_TotalPages()*256;
+	if (seg_limit > max_conv) seg_limit = max_conv;
+	UMB_START_SEG = max_conv - 1;
 
 	/* Let dos claim a few bios interrupts. Makes DOSBox more compatible with 
 	 * buggy games, which compare against the interrupt table. (probably a 

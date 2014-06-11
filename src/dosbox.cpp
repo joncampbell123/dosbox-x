@@ -126,6 +126,7 @@ extern bool			VGA_BIOS_dont_duplicate_CGA_first_half;
 extern bool			VIDEO_BIOS_always_carry_14_high_font;
 extern bool			VIDEO_BIOS_always_carry_16_high_font;
 extern bool			VIDEO_BIOS_enable_CGA_8x8_second_half;
+extern bool			allow_more_than_640kb;
 
 /* ISA bus OSC clock (14.31818MHz) */
 /*  +---- / 12 = PIT timer clock 1.1931816666... MHz */
@@ -611,6 +612,7 @@ static void DOSBOX_RealInit(Section * sec) {
 	/* NTS: mainline compatible mapping demands the 8x8 CGA font */
 	rom_bios_8x8_cga_font = mainline_compatible_bios_mapping || section->Get_bool("rom bios 8x8 CGA font");
 	rom_bios_vptable_enable = mainline_compatible_bios_mapping || section->Get_bool("rom bios video parameter table");
+	allow_more_than_640kb = section->Get_bool("allow more than 640kb base memory");
 
 	/* sanity check */
 	if (VGA_BIOS_dont_duplicate_CGA_first_half && !rom_bios_8x8_cga_font) /* can't point at the BIOS copy if it's not there */
@@ -969,6 +971,11 @@ void DOSBOX_Init(void) {
 
 	Pbool = secprop->Add_bool("rom bios video parameter table",Property::Changeable::Always,true);
 	Pbool->Set_help("If set, or mainline compatible bios mapping, DOSBox will emulate the video parameter table and assign that to INT 1Dh. If clear, table will not be provided.");
+
+	Pbool = secprop->Add_bool("allow more than 640kb base memory",Property::Changeable::Always,false);
+	Pbool->Set_help("If set, and space is available, allow conventional memory to extend past 640KB.\n"
+			"For example, if machine=cga, conventional memory can extend out to 0xB800 and provide up to 736KB of RAM.\n"
+			"This allows you to emulate PC/XT style memory extensions.");
 
 	secprop->AddInitFunction(&CALLBACK_Init);
 	secprop->AddInitFunction(&DMA_Init);//done

@@ -56,6 +56,8 @@ Bitu BIOS_VIDEO_TABLE_SIZE = 0;
 
 Bitu BIOS_DEFAULT_RESET_LOCATION = ~0;		// RealMake(0xf000,0xe05b)
 
+bool allow_more_than_640kb = false;
+
 /* default bios type/version/date strings */
 const char* const bios_type_string = "IBM COMPATIBLE 486 BIOS COPYRIGHT The DOSBox Team.";
 const char* const bios_version_string = "DOSBox FakeBIOS v1.0";
@@ -2771,7 +2773,26 @@ public:
 		callback[2].Set_RealVec(0x12);
 
 		Bitu t_conv = MEM_TotalPages() << 2; /* convert 4096/byte pages -> 1024/byte KB units */
-		if (t_conv > 640) t_conv = 640;
+		if (allow_more_than_640kb) {
+			Bitu ulimit;
+
+			if (machine == MCH_CGA)
+				ulimit = 736;		/* 640KB + 64KB + 32KB  0x00000-0xB7FFF */
+			else if (machine == MCH_HERC)
+				ulimit = 704;		/* 640KB + 64KB = 0x00000-0xAFFFF */
+			else
+				ulimit = 640;		/* No can do, sorry */
+
+			if (t_conv > ulimit) t_conv = ulimit;
+			if (t_conv > 640) { /* because the memory emulation has already set things up */
+				bool MEM_map_RAM_physmem(Bitu start,Bitu end);
+				MEM_map_RAM_physmem(0xA0000,(t_conv<<10)-1);
+				memset(GetMemBase()+(640<<10),0,(t_conv-640)<<10);
+			}
+		}
+		else {
+			if (t_conv > 640) t_conv = 640;
+		}
 
 		if (IS_TANDY_ARCH) {
 			/* reduce reported memory size for the Tandy (32k graphics memory
