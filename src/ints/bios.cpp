@@ -158,7 +158,6 @@ Bitu ROMBIOS_GetMemory(Bitu bytes,const char *who,Bitu alignment,Bitu must_be_at
 				newblk.free = false;
 				newblk.who = who;
 				rombios_alloc.insert(rombios_alloc.begin()+si,newblk);
-				assert(blk.start <= blk.end);
 			}
 			else if ((base+bytes-1) == blk.end) { /* need to split */
 				ROMBIOS_block newblk = blk; /* this becomes the new block we insert */
@@ -167,7 +166,6 @@ Bitu ROMBIOS_GetMemory(Bitu bytes,const char *who,Bitu alignment,Bitu must_be_at
 				newblk.free = false;
 				newblk.who = who;
 				rombios_alloc.insert(rombios_alloc.begin()+si+1,newblk);
-				assert(blk.start <= blk.end);
 			}
 			else { /* complex split */
 				ROMBIOS_block newblk = blk,newblk2 = blk; /* this becomes the new block we insert */
@@ -181,7 +179,6 @@ Bitu ROMBIOS_GetMemory(Bitu bytes,const char *who,Bitu alignment,Bitu must_be_at
 				newblk2.free = false;
 				newblk2.who = who;
 				rombios_alloc.insert(rombios_alloc.begin()+si+1,newblk2);
-				assert(blk.start <= blk.end);
 			}
 		}
 		else {
@@ -2702,6 +2699,35 @@ public:
 		// signature
 		phys_writeb(0xfffff,0x55);
 	}
+	void write_ID_version_string() {
+		Bitu str_id_at,str_ver_at;
+		size_t str_id_len,str_ver_len;
+
+		/* NTS: We can't move the version and ID strings, it causes programs like MSD.EXE to lose
+		 *      track of the "IBM compatible blahblahblah" string. Which means that apparently
+		 *      programs looking for this information have the address hardcoded ALTHOUGH
+		 *      experiments show you can move the version string around so long as it's
+		 *      +1 from a paragraph boundary */
+		/* TODO: *DO* allow dynamic relocation however if the dosbox.conf indicates that the user
+		 *       is not interested in IBM BIOS compatability. Also, it would be really cool if
+		 *       dosbox.conf could override these strings and the user could enter custom BIOS
+		 *       version and ID strings. Heh heh heh.. :) */
+		str_id_at = 0xFE00E;
+		str_ver_at = 0xFE061;
+		str_id_len = strlen(bios_type_string)+1;
+		str_ver_len = strlen(bios_version_string)+1;
+		if (!mainline_compatible_bios_mapping) {
+			/* need to mark these strings off-limits so dynamic allocation does not overwrite them */
+			ROMBIOS_GetMemory(str_id_len+1,"BIOS ID string",1,str_id_at);
+			ROMBIOS_GetMemory(str_ver_len+1,"BIOS version string",1,str_ver_at);
+		}
+		if (str_id_at != 0) {
+			for (size_t i=0;i < str_id_len;i++) phys_writeb(str_id_at+i,bios_type_string[i]);
+		}
+		if (str_ver_at != 0) {
+			for (size_t i=0;i < str_ver_len;i++) phys_writeb(str_ver_at+i,bios_version_string[i]);
+		}
+	}
 	BIOS(Section* configuration):Module_base(configuration){
 		/* tandy DAC can be requested in tandy_sound.cpp by initializing this field */
 		bool use_tandyDAC=(real_readb(0x40,0xd4)==0xff);
@@ -2715,6 +2741,8 @@ public:
 				LOG_MSG("WARNING: Was not able to mark off 0xFFA6E off-limits for 8x8 font");
 			}
 		}
+
+		write_ID_version_string();
 
 		/* pick locations */
 		if (mainline_compatible_bios_mapping) { /* mapping BIOS the way mainline DOSBox does */
@@ -2862,12 +2890,6 @@ public:
 		/* Some hardcoded vectors */
 		phys_writeb(Real2Phys(BIOS_DEFAULT_HANDLER_LOCATION),0xcf);	/* bios default interrupt vector location -> IRET */
 		phys_writew(Real2Phys(RealGetVec(0x12))+0x12,0x20); //Hack for Jurresic
-
-		// System BIOS identification
-		for(Bitu i = 0; i < strlen(bios_type_string); i++) phys_writeb(0xfe00e + i,bios_type_string[i]);
-		
-		// System BIOS version
-		for(Bitu i = 0; i < strlen(bios_version_string); i++) phys_writeb(0xfe061+i,bios_version_string[i]);
 
 		// program system timer
 		// timer 2
