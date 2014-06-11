@@ -76,7 +76,7 @@ public:
 };
 
 static std::vector<ROMBIOS_block> rombios_alloc;
-static Bitu rombios_minimum_location = 0xF0000; /* minimum segment allowed */
+Bitu rombios_minimum_location = 0xF0000; /* minimum segment allowed */
 
 void ROMBIOS_DumpMemory() {
 	size_t si;
@@ -3361,14 +3361,21 @@ void write_ID_version_string() {
 
 /* NTS: Do not use callbacks! This function is called before CALLBACK_Init() */
 void ROMBIOS_Init(Section *sec) {
-	if (mainline_compatible_bios_mapping)
-		rombios_minimum_location = 0xF0000;
-	else
-		rombios_minimum_location = 0xE0000;
+	Section_prop * section=static_cast<Section_prop *>(sec);
+	Bitu oi;
+
+	oi = section->Get_int("rom bios allocation max"); /* in KB */
+	oi = (oi + 3) & ~3; /* round to 4KB page */
+	if (oi > 128) oi = 128;
+	if (oi == 0) oi = mainline_compatible_bios_mapping ? 128 : 64;
+	if (oi < 8) oi = 8; /* because of some of DOSBox's fixed ROM structures we can only go down to 8KB */
+	rombios_minimum_location = 0x100000 - (oi << 10); /* convert to minimum, using size coming downward from 1MB */
 
 	/* sanity check */
-	if (mainline_compatible_bios_mapping && rombios_minimum_location < 0xF0000)
+	if (mainline_compatible_bios_mapping && rombios_minimum_location > 0xF0000)
 		rombios_minimum_location = 0xF0000;
+
+	LOG_MSG("ROM BIOS range: 0x%05x-0xFFFFF\n",rombios_minimum_location);
 
 	/* set up allocation */
 	{

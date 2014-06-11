@@ -43,6 +43,8 @@ bool a20_fake_changeable = false;
 
 bool enable_port92 = true;
 
+extern Bitu rombios_minimum_location;
+
 #define PAGES_IN_BLOCK	((1024*1024)/MEM_PAGE_SIZE)
 #define SAFE_MEMORY	32
 #define MAX_MEMORY	512
@@ -1028,10 +1030,13 @@ public:
 				memory.mhandles[i] = 0;
 			}
 		}
-		/* Setup rom at 0xf0000-0x100000 */
-		for (i=0xf0;i<0x100;i++) {
+		if (rombios_minimum_location == 0) E_Exit("Uninitialized ROM BIOS base");
+
+		/* Setup rom at base-0x100000 */
+		if (rombios_minimum_location & 0xFFF) E_Exit("ROM BIOS base not page aligned");
+		for (i=(rombios_minimum_location>>12);i<0x100;i++)
 			memory.phandlers[i] = &rom_page_handler;
-		}
+
 		if (machine==MCH_PCJR) {
 			/* Setup cartridge rom at 0xe0000-0xf0000 */
 			for (i=0xe0;i<0xf0;i++) {

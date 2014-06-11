@@ -856,6 +856,10 @@ void DOSBOX_Init(void) {
 			  "  <integer or float>           Any integer or floating point value will be used as the clock frequency in Hz\n"
 			  "  <integer/integer ratio>      If a ratio is given (num/den), the ratio will be used as the clock frequency");
 
+	Pint = secprop->Add_int("rom bios allocation max",Property::Changeable::OnlyAtStart,0);
+	Pint->SetMinMax(0,128);
+	Pint->Set_help("Maximum size (top down from 1MB) allowed for ROM BIOS dynamic allocation in KB");
+
 	LOG_StartUp();
 	
 	secprop->AddInitFunction(&IO_Init);//done
