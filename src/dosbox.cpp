@@ -126,7 +126,6 @@ extern bool			VGA_BIOS_dont_duplicate_CGA_first_half;
 extern bool			VIDEO_BIOS_always_carry_14_high_font;
 extern bool			VIDEO_BIOS_always_carry_16_high_font;
 extern bool			VIDEO_BIOS_enable_CGA_8x8_second_half;
-extern bool			VIDEO_BIOS_disable;
 
 /* ISA bus OSC clock (14.31818MHz) */
 /*  +---- / 12 = PIT timer clock 1.1931816666... MHz */
@@ -605,7 +604,6 @@ static void DOSBOX_RealInit(Section * sec) {
 	VIDEO_BIOS_always_carry_14_high_font = section->Get_bool("video bios always offer 14-pixel high rom font");
 	VIDEO_BIOS_always_carry_16_high_font = section->Get_bool("video bios always offer 16-pixel high rom font");
 	VIDEO_BIOS_enable_CGA_8x8_second_half = section->Get_bool("video bios enable cga second half rom font");
-	VIDEO_BIOS_disable = section->Get_bool("video bios disable");
 
 	/* private area size param in bytes. round up to nearest paragraph */
 	DOS_PRIVATE_SEGMENT_Size = (section->Get_int("private area size") + 8) / 16;
@@ -615,13 +613,6 @@ static void DOSBOX_RealInit(Section * sec) {
 	rom_bios_vptable_enable = mainline_compatible_bios_mapping || section->Get_bool("rom bios video parameter table");
 
 	/* sanity check */
-	if (mainline_compatible_bios_mapping)
-		VIDEO_BIOS_disable = false;
-	if (VIDEO_BIOS_disable) {
-		VIDEO_BIOS_always_carry_14_high_font = VIDEO_BIOS_always_carry_16_high_font = false;
-		VGA_BIOS_dont_duplicate_CGA_first_half = true;
-		rom_bios_8x8_cga_font = true;
-	}
 	if (VGA_BIOS_dont_duplicate_CGA_first_half && !rom_bios_8x8_cga_font) /* can't point at the BIOS copy if it's not there */
 		VGA_BIOS_dont_duplicate_CGA_first_half = false;
 
@@ -938,10 +929,8 @@ void DOSBOX_Init(void) {
 
 	Pbool = secprop->Add_bool("video bios enable cga second half rom font",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("If set, and emulating CGA/PCjr/Tandy, automatically provide the second half of the 8x8 ROM font.\n"
-			"This setting is ignored for EGA/VGA emulation. If not set, you will need a utility like GRAFTABL.COM to load the second half of the ROM font for graphics.");
-
-	Pbool = secprop->Add_bool("video bios disable",Property::Changeable::WhenIdle,false);
-	Pbool->Set_help("If set, and not emulating EGA/VGA, no video bios will be created at 0xC000");
+			"This setting is ignored for EGA/VGA emulation. If not set, you will need a utility like GRAFTABL.COM to load the second half of the ROM font for graphics.\n"
+			"NOTE: if you disable the 14 & 16 pixel high font AND the second half when machine=cga, you will disable video bios completely.");
 
 	Pstring = secprop->Add_string("forcerate",Property::Changeable::Always,"");
 	Pstring->Set_help("Force the VGA framerate to a specific value(ntsc, pal, or specific hz), no matter what");
