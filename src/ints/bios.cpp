@@ -52,30 +52,166 @@ const char* const bios_type_string = "IBM COMPATIBLE 486 BIOS COPYRIGHT The DOSB
 const char* const bios_version_string = "DOSBox FakeBIOS v1.0";
 const char* const bios_date_string = "01/01/92";
 
+/* rombios memory block */
+class ROMBIOS_block {
+public:
+	ROMBIOS_block() {
+		start = end = 0;
+		free = true;
+	}
+public:
+	std::string	who;
+	Bitu		start;		/* start-end of the block inclusive */
+	Bitu		end;
+	bool		free;
+};
+
 static Bit16u bios_memseg=0;
-static Bitu rombios_allocation=0; /* allocation extends downward from 0xFFFF:0xFFF0 (exluding segment 0xFFFF which is occupied by BIOS date, ID, jump vector) */
-static Bitu rombios_minimum_location=0xE0000; /* minimum segment allowed */
 
-Bitu ROMBIOS_GetMemory(Bitu bytes,const char *who) {
+static std::vector<ROMBIOS_block> rombios_alloc;
+static Bitu rombios_minimum_location = 0xF0000; /* minimum segment allowed */
+
+/* convert physical address to 4:16 real pointer (example: 0xABCDE -> 0xA000:0xBCDE) */
+Bitu ROMBIOS_PhysToReal416(Bitu phys) {
+	return RealMake((phys>>4)&0xF000,phys&0xFFFF);
+}
+
+void ROMBIOS_DumpMemory() {
+	size_t si;
+
+	fprintf(stderr,"ROMBIOS memory dump:\n");
+	for (si=0;si < rombios_alloc.size();si++) {
+		ROMBIOS_block &blk = rombios_alloc[si];
+		fprintf(stderr,"     0x%08x-0x%08x free=%u %s\n",blk.start,blk.end,blk.free?1:0,blk.who.c_str());
+	}
+	fprintf(stderr,"[end dump]\n");
+}
+
+void ROMBIOS_SanityCheck() {
+	ROMBIOS_block *pblk,*blk;
+	size_t si;
+
+	if (rombios_alloc.size() <= 1)
+		return;
+
+	pblk = &rombios_alloc[0];
+	for (si=1;si < rombios_alloc.size();si++) {
+		blk = &rombios_alloc[si];
+		if (blk->start != (pblk->end+1) || blk->start > blk->end || blk->start < rombios_minimum_location ||
+			blk->end > 0xFFFF0) {
+			ROMBIOS_DumpMemory();
+			E_Exit("ROMBIOS sanity check failed");
+		}
+
+		pblk = blk;
+	}
+}
+
+Bitu ROMBIOS_GetMemory(Bitu bytes,const char *who=NULL,Bitu alignment=1,Bitu must_be_at=0) {
+	size_t si;
+	Bitu base;
+
+	if (bytes == 0) return 0;
+	if (alignment > 1 && must_be_at != 0) return 0; /* avoid nonsense! */
 	if (who == NULL) who = "";
-	if (rombios_allocation == 0) E_Exit("ROMBIOS_GetMemory when not initialized or when BIOS layout finalized for %s",who);
-	if (bytes > rombios_allocation) E_Exit("ROMBIOS_GetMemory: bytes requested > allocation for %s",who);
-	if ((rombios_allocation-bytes) < rombios_minimum_location) E_Exit("ROMBIOS_GetMemory: Not enough room for %s",who);
+	if (rombios_alloc.size() == 0) E_Exit("ROMBIOS_GetMemory called when rombios allocation list not initialized");
 
-	/* do it */
-	rombios_allocation -= bytes;
-	LOG_MSG("ROMBIOS_GetMemory(0x%05x byte,\"%s\") = 0x%05x\n",bytes,who,rombios_allocation);
-	return rombios_allocation;
-}
+	/* alignment must be power of 2 */
+	if (alignment == 0)
+		alignment = 1;
+	else if ((alignment & (alignment-1)) != 0)
+		E_Exit("ROMBIOS_GetMemory called with non-power of 2 alignment value %u",alignment);
 
-Bitu ROMBIOS_GetMemoryReal(Bitu bytes,const char *who) {
-	Bitu r = ROMBIOS_GetMemory(bytes,who);
-	return RealMake(r>>4,r&0xF);
-}
+	/* allocate downward from the top */
+	si = rombios_alloc.size() - 1;
+	while (si >= 0) {
+		ROMBIOS_block &blk = rombios_alloc[si];
 
-Bitu ROMBIOS_GetMemoryReal_16_4(Bit16u bytes,const char *who) {
-	Bitu r = ROMBIOS_GetMemory(bytes,who);
-	return RealMake((r>>4)&0xF000,r&0xFFFF);
+		if (!blk.free || (blk.end+1-blk.start) < bytes) {
+			si--;
+			continue;
+		}
+
+		/* if must_be_at != 0 the caller wants a block at a very specific location */
+		if (must_be_at != 0) {
+			/* well, is there room to fit the forced block? if it starts before
+			 * this block or the forced block would end past the block then, no. */
+			if (must_be_at < blk.start || (must_be_at+bytes-1) > blk.end) {
+				si--;
+				continue;
+			}
+
+			base = must_be_at;
+			if (base == blk.start && (base+bytes-1) == blk.end) { /* easy case: perfect match */
+				blk.free = false;
+				blk.who = who;
+			}
+			else if (base == blk.start) { /* need to split */
+				ROMBIOS_block newblk = blk; /* this becomes the new block we insert */
+				blk.start = base+bytes;
+				newblk.end = base+bytes-1;
+				newblk.free = false;
+				newblk.who = who;
+				rombios_alloc.insert(rombios_alloc.begin()+si,newblk);
+				assert(blk.start <= blk.end);
+			}
+			else if ((base+bytes-1) == blk.end) { /* need to split */
+				ROMBIOS_block newblk = blk; /* this becomes the new block we insert */
+				blk.end = base+bytes-1;
+				newblk.start = base+bytes;
+				newblk.free = false;
+				newblk.who = who;
+				rombios_alloc.insert(rombios_alloc.begin()+si+1,newblk);
+				assert(blk.start <= blk.end);
+			}
+			else { /* complex split */
+				ROMBIOS_block newblk = blk,newblk2 = blk; /* this becomes the new block we insert */
+				Bitu orig_end = blk.end;
+				blk.end = base-1;
+				newblk.start = base+bytes;
+				newblk.end = orig_end;
+				rombios_alloc.insert(rombios_alloc.begin()+si+1,newblk);
+				newblk2.start = base;
+				newblk2.end = base+bytes-1;
+				newblk2.free = false;
+				newblk2.who = who;
+				rombios_alloc.insert(rombios_alloc.begin()+si+1,newblk2);
+				assert(blk.start <= blk.end);
+			}
+		}
+		else {
+			base = blk.end + 1 - bytes; /* allocate downward from the top */
+			assert(base >= blk.start);
+			base &= ~(alignment - 1); /* NTS: alignment == 16 means ~0xF or 0xFFFF0 */
+			if (base < blk.start) { /* if not possible after alignment, then skip */
+				si--;
+				continue;
+			}
+
+			/* easy case: base matches start, just take the block! */
+			if (base == blk.start) {
+				blk.free = false;
+				blk.who = who;
+				return blk.start;
+			}
+
+			/* not-so-easy: need to split the block and claim the upper half */
+			ROMBIOS_block newblk = blk; /* this becomes the new block we insert */
+			newblk.start = base;
+			newblk.free = false;
+			newblk.who = who;
+			blk.end = base - 1;
+			rombios_alloc.insert(rombios_alloc.begin()+si+1,newblk);
+			assert(blk.start <= blk.end);
+		}
+
+		LOG_MSG("ROMBIOS_GetMemory(0x%05x bytes,\"%s\",align=%u,mustbe=0x%05x) = 0x%05x\n",bytes,who,base,alignment,must_be_at);
+		ROMBIOS_SanityCheck();
+		return base;
+	}
+
+	ROMBIOS_SanityCheck();
+	return 0;
 }
 
 Bit16u BIOS_GetMemory(Bit16u pages,const char *who) {
@@ -2542,7 +2678,7 @@ public:
 		/* write the signature at 0xF000:0xFFF0 */
 
 		// The farjump at the processor reset entry point (jumps to POST routine)
-		phys_writeb(0xffff0,0xEA);		// FARJMP
+		phys_writeb(0xffff0,0xEA);					// FARJMP
 		phys_writew(0xffff1,RealOff(BIOS_DEFAULT_RESET_LOCATION));	// offset
 		phys_writew(0xffff3,RealSeg(BIOS_DEFAULT_RESET_LOCATION));	// segment
 
@@ -2567,7 +2703,7 @@ public:
 			BIOS_DEFAULT_RESET_LOCATION = RealMake(0xf000,0xe05b);
 		}
 		else {
-			BIOS_DEFAULT_RESET_LOCATION = ROMBIOS_GetMemoryReal_16_4(5/*JMP xxxx:xxxx*/,"BIOS default reset location");
+			BIOS_DEFAULT_RESET_LOCATION = ROMBIOS_PhysToReal416(ROMBIOS_GetMemory(5/*JMP xxxx:xxxx*/,"BIOS default reset location"));
 		}
 
 		write_FFFF_signature();
@@ -3169,6 +3305,7 @@ void BIOS_PnP_ComPortRegister(Bitu port,Bitu irq) {
 static BIOS* test = NULL;
 
 void BIOS_Destroy(Section* /*sec*/){
+	ROMBIOS_DumpMemory();
 	ISA_PNP_FreeAllDevs();
 	if (test != NULL) {
 		delete test;
@@ -3189,10 +3326,16 @@ void BIOS_Init(Section* sec) {
 
 void ROMBIOS_Init(Section *sec) {
 	bios_memseg = BIOS_PRIVATE_SEGMENT;
+	rombios_minimum_location = 0xF0000;
 
-	if (mainline_compatible_bios_mapping)
-		rombios_allocation = 0; /* disable */
-	else
-		rombios_allocation = 0xFFFF0; /* enable, top down from 0xFFFF */
+	/* set up allocation */
+	if (!mainline_compatible_bios_mapping) {
+		ROMBIOS_block x;
+
+		x.start = rombios_minimum_location;
+		x.end = 0xFFFF0 - 1;
+		x.free = true;
+		rombios_alloc.push_back(x);
+	}
 }
 
