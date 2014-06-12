@@ -15,6 +15,11 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
+/* TODO: Actual Sound Blaster 16 hardware seems to require acknowledgement of the
+ *       interrupt, and if it doesn't get it, it halts DMA transfer, compared to
+ *       many clones and older Sound Blaster cards that continue to play audio
+ *       (apparently) in the absense of any acknowledgement. Add option to dosbox.conf
+ *       (default on) to emulate that fact. */
 
 #include <iomanip>
 #include <sstream>
@@ -1668,6 +1673,35 @@ static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
 	case DSP_WRITE_STATUS:
 		switch (sb.dsp.state) {
 		case DSP_S_NORMAL:
+			/* FIXME: Wait---WHAT???
+			 *        There are several problems with this emulation of this
+			 *        busy bit!!!
+			 *
+			 *        1) It's supposed to be set when the DSP is busy and you
+			 *           can't write to the DSP
+			 *
+			 *        2) It just toggles on and off no matter how busy the DSP
+			 *
+			 *        3) It has nothing to do with DSP state i.e. if you've
+			 *           recently just written a DSP command
+			 *
+			 *        4) It has nothing to do with time i.e. how long the DSP
+			 *           is "busy" depends entirely on how long it takes your
+			 *           program to read this I/O port enough times!
+			 *
+			 *        5) It does not reflect Creative documentation that says
+			 *           the DSP will not accept commands while High Speed
+			 *           DMA playback is running!
+			 *
+			 *        I'm glad that so far this has worked "well enough" for
+			 *        DOSBox emulation but this is not acceptable for accuracy!
+			 *
+			 *        On a related note, I found that this "busy" emulation
+			 *        clashes badly with the Triton "Crystal Dreams" demo and
+			 *        is the reason why Sound Blaster output from the demo
+			 *        doesn't work properly--See NOTES for all the disgusting
+			 *        details on what the hell the demo is doing instead of
+			 *        responding to SB IRQs like a well-behaved DOS program. --Jonathan C. */
 			sb.dsp.write_busy++;
 			if (sb.dsp.write_busy & 8) return 0xff;
 			return 0x7f;

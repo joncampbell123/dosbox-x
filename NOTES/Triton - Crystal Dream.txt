@@ -1,0 +1,77 @@
+Triton "Crystal Dreams" (1992) DOS demo
+[http://www.pouet.net/prod.php?which=463]
+
+How to configure DOSBox to run this demo:
+-----------------------------------------
+
+machine=vgaonly (you might consider machine=svga_et4000 for kicks)
+cycles=10000 or higher
+memsize=1 (demo does not appear to use extended memory)
+goldplay=true (demo uses Goldplay-style hacked Sound Blaster support)
+
+
+"Crystal Dream" and the horrifying reason it's Sound Blaster output
+doesn't work with DOSBox by Jonathan Campbell
+-------------------------------------------------------------------
+
+It was bad enough writing the Goldplay hack for early DOS demos.
+The idea of telling the DSP one length (65536) while telling the
+DMA controller another length (1) and then using the timer interrupt
+to write to the byte at the sample rate was bad enough. But those
+demos at least handled the Sound Blaster as intended regardless
+including the IRQ.
+
+When I tested the hack against various DOS demos I was intrigued to
+discover that Crystal Dream also used the technique, but I was also
+confused as to why the demo seemed to have difficulty responding to
+the IRQ to keep the sound going---when you started the demo with
+Sound Blaster output the audio would run for about 1 second, and
+then stop. I assumed it had to do with faulty PIC emulation at the
+time, after all, DOSBox's debug code reported the demo writing some
+strange ICW3 and ICW4 values. I chased that around for a while, then
+gave up and moved on.
+
+Today (as of writing this) I had tried the demo again, this time using
+the debugger to try and examine what IRQ the demo had hooked to see
+if it was detecting the Sound Blaster IRQ properly. What I found instead
+is that while the demo hooks IRQ 0 (timer) and IRQ 1 (keyboard), it
+does NOT hook any IRQ for the Sound Blaster. In fact, it appears to
+complete ignore the IRQ entirely! Instead, it has code in the timer
+interrupt (which is running at the sample rate of audio!) to check
+the DSP write status port (hard-coded to 0x22C apparently!) and
+maintain a counter based on whether or not the DSP is busy. If the
+DSP is not busy, it counts down and then after a delay writes
+DSP command 0x14 (length 0xFFFF). It does this repeatedly, despite the
+fact that command 0x14 is already in effect! The demo (at about 10-20
+times a second) is constantly restarting a 1-second block of DSP
+playback by interrupting the DSP playback it just started! All that
+just to hack around the fact that it's not really paying attention
+to the Sound Blaster IRQ!
+
+It makes me wonder how this technique apparently managed to work as
+well as it did on both Creative hardware and on a clone Sound Blaster
+(Gallant SC-6000) that I owned back in the day!
+
+Now while that works on real hardware (apparently), it does not work
+with DOSBox, because (at the time of writing this but before fixing
+DSP emulation) DOSBox emulated the DSP's busy bit by incrementing
+a counter on read and returning 0xFF if bit 3 was set, rather than
+using actual writes to the DSP and time to emulate busy/not busy.
+This is "good enough" for most DOS games that only loop until not
+busy, but if you're "Crystal Dream" polling port 0x22C on every
+timer interrupt, this blind toggling only serves to confuse it's
+hacked DSP playback mode. Specifically, DOSBox's blind toggling
+every 8 reads causes the demo's countdown timer to reset. Because
+the counter is never allowed to count down properly, the demo never
+gets to the stage of issuing another DSP command 0x14 to keep audio
+playback going, and eventually, the 1-second long DSP block stops
+and audio goes silent.
+
+TODO: Since the demo is not acknowledging the IRQ the standard way
+      (by reading the proper I/O port), would audio also stop and
+      halt on Sound Blaster 16 hardware?
+
+      This posting on Pouet seems to provide a hint:
+
+      "Nice demo with common effects of its time. The soundblaster sound worked only with my old sb pro, today I have to use my even older DAC :-))"
+
