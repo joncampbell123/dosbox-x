@@ -118,6 +118,7 @@ struct SB_INFO {
 			      on actual hardware this happens to work (though with kind of a gritty sound to it),
 			      The DMA emulation here does not handle that well. */
 	bool goldplay;
+	bool goldplay_stereo;
 	Bit8u time_constant;
 	DSP_MODES mode;
 	SB_TYPES type;
@@ -729,7 +730,47 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo) {
 	char const * type;
 	sb.mode=MODE_DMA_MASKED;
 
-	sb.dma_dac_srcrate=sb.freq;
+	/* Explanation: A handful of ancient DOS demos (in the 1990-1992 timeframe) were written to output
+	 *              sound using the timer interrupt (IRQ 0) at a fixed rate to a device, usually the
+	 *              PC speaker or LPT1 DAC. When SoundBlaster came around, the programmers decided
+	 *              apparently to treat the Sound Blaster in the same way, so many of these early
+	 *              demos (especially those using GoldPlay) used either Direct DAC output or a hacked
+	 *              form of DMA single-cycle 8-bit output.
+	 *
+	 *              The way the hacked DMA mode works, is that the Sound Blaster is told the transfer
+	 *              length is 65536 or some other large value. Then, the DMA controller is programmed
+	 *              to point at a specific byte (or two bytes for stereo) and the counter value for
+	 *              that DMA channel is set to 0 (or 1 for stereo). This means that as the Sound Blaster 
+	 *              fetches bytes to play, the DMA controller ends up sending the same byte value
+	 *              over and over again. However, the demo has the timer running at the desired sample
+	 *              rate (IRQ 0) and the interrupt routine is modifying the byte to reflect the latest
+	 *              sample output. In this way, the demo renders audio whenever it feels like it and
+	 *              the Sound Blaster gets audio at the rate it works best with.
+	 *
+	 *              It's worth noting the programmers may have done this because DMA playback is the
+	 *              only way to get SB Pro stereo output working.
+	 *
+	 *              The problem here in DOSBox is that the DMA block-transfer code here is not precise
+	 *              enough to handle that properly. When you run such a program in DOSBox 0.74 and
+	 *              earlier, you get a low-frequency digital "rumble" that kinda-sorta sounds like
+	 *              what the demo is playing (the same byte value repeated over and over again, 
+	 *              remember?). The only way to properly render such output, is to read the memory
+	 *              value at the sample rate and buffer it for output.
+	 *
+	 * This fixes Sound Blaster output in:
+	 *    Twilight Zone - Buttman (1992) [SB and SB Pro modes]
+	 *    Triton - Crystal Dream (1992) [SB and SB Pro modes] ----FIXME: Yes, but apparently the demo fails to acknowledge the IRQ and sound stops
+	 *    The Jungly (1992) [SB and SB Pro modes]
+	 */
+	if (sb.goldplay && sb.freq > 0 && sb.dma.chan->basecnt < 2/* && sb.dma.chan->autoinit && mode == DSP_DMA_8*/)
+		sb.dma_dac_mode=1;
+	else
+		sb.dma_dac_mode=0;
+
+	if (sb.dma_dac_mode && sb.goldplay_stereo)
+		sb.dma_dac_srcrate=sb.freq * 2;
+	else
+		sb.dma_dac_srcrate=sb.freq;
 
 	sb.chan->FillUp();
 	sb.dma.left=sb.dma.total;
@@ -767,50 +808,17 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo) {
 		return;
 	}
 	if (sb.dma.stereo) sb.dma.mul*=2;
-	sb.dma.rate=(sb.freq*sb.dma.mul) >> SB_SH;
+	sb.dma.rate=(sb.dma_dac_srcrate*sb.dma.mul) >> SB_SH;
 	sb.dma.min=(sb.dma.rate*3)/1000;
-	sb.chan->SetFreq(freq);
+	sb.chan->SetFreq(sb.dma_dac_srcrate);
 	sb.dma.mode=mode;
 	PIC_RemoveEvents(DMA_DAC_Event);
 	PIC_RemoveEvents(END_DMA_Event);
 
-	/* Explanation: A handful of ancient DOS demos (in the 1990-1992 timeframe) were written to output
-	 *              sound using the timer interrupt (IRQ 0) at a fixed rate to a device, usually the
-	 *              PC speaker or LPT1 DAC. When SoundBlaster came around, the programmers decided
-	 *              apparently to treat the Sound Blaster in the same way, so many of these early
-	 *              demos (especially those using GoldPlay) used either Direct DAC output or a hacked
-	 *              form of DMA single-cycle 8-bit output.
-	 *
-	 *              The way the hacked DMA mode works, is that the Sound Blaster is told the transfer
-	 *              length is 65536 or some other large value. Then, the DMA controller is programmed
-	 *              to point at a specific byte (or two bytes for stereo) and the counter value for
-	 *              that DMA channel is set to 0 (or 1 for stereo). This means that as the Sound Blaster 
-	 *              fetches bytes to play, the DMA controller ends up sending the same byte value
-	 *              over and over again. However, the demo has the timer running at the desired sample
-	 *              rate (IRQ 0) and the interrupt routine is modifying the byte to reflect the latest
-	 *              sample output. In this way, the demo renders audio whenever it feels like it and
-	 *              the Sound Blaster gets audio at the rate it works best with.
-	 *
-	 *              It's worth noting the programmers may have done this because DMA playback is the
-	 *              only way to get SB Pro stereo output working.
-	 *
-	 *              The problem here in DOSBox is that the DMA block-transfer code here is not precise
-	 *              enough to handle that properly. When you run such a program in DOSBox 0.74 and
-	 *              earlier, you get a low-frequency digital "rumble" that kinda-sorta sounds like
-	 *              what the demo is playing (the same byte value repeated over and over again, 
-	 *              remember?). The only way to properly render such output, is to read the memory
-	 *              value at the sample rate and buffer it for output.
-	 *
-	 * This fixes Sound Blaster output in:
-	 *    Twilight Zone - Buttman (1992) [SB and SB Pro modes]
-	 *    Triton - Crystal Dream (1992) [SB and SB Pro modes] ----FIXME: Yes, but apparently the demo fails to acknowledge the IRQ and sound stops
-	 *    The Jungly (1992) [SB and SB Pro modes]
-	 */
+	if (sb.dma_dac_mode)
+		PIC_AddEvent(DMA_DAC_Event,1000.0 / sb.dma_dac_srcrate);
+
 	if (sb.dma.chan != NULL) {
-		if (sb.goldplay && sb.dma_dac_srcrate > 0 && sb.dma.chan->basecnt < 2/* && sb.dma.chan->autoinit && mode == DSP_DMA_8*/) {
-			sb.dma_dac_mode=1;
-			PIC_AddEvent(DMA_DAC_Event,1000.0 / sb.dma_dac_srcrate);
-		}
 		sb.dma.chan->Register_Callback(DSP_DMA_CallBack);
 	}
 	else {
@@ -2017,6 +2025,7 @@ public:
 
 		sb.hw.base=section->Get_hex("sbbase");
 		sb.goldplay=section->Get_bool("goldplay");
+		sb.goldplay_stereo=section->Get_bool("goldplay stereo");
 		sb.emit_blaster_var=section->Get_bool("blaster environment variable");
 		sb.sample_rate_limits=section->Get_bool("sample rate limits");
 		sb.sbpro_stereo_bit_strict_mode=section->Get_bool("stereo control with sbpro only");

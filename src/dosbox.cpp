@@ -1294,8 +1294,14 @@ void DOSBOX_Init(void) {
 	Phex = secprop->Add_hex("hardwarebase",Property::Changeable::WhenIdle,0x220);
 	Phex->Set_help("base address of the real hardware soundblaster:\n"\
 		"210,220,230,240,250,260,280");
-	Pbool = secprop->Add_bool("goldplay",Property::Changeable::WhenIdle,false);
+	Pbool = secprop->Add_bool("goldplay",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Enable goldplay emulation.");
+
+	Pbool = secprop->Add_bool("goldplay stereo",Property::Changeable::WhenIdle,true);
+	Pbool->Set_help("Enable workaround for goldplay stereo playback. Many DOS demos using this technique\n"
+			"don't seem to know they need to double the frequency when programming the DSP time constant for Pro stereo output.\n"
+			"If stereo playback seems to have artifacts consider enabling this option. For accurate emulation of Sound Blaster\n"
+			"hardware, disable this option.");
 
 	Pbool = secprop->Add_bool("blaster environment variable",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Whether or not to set the BLASTER environment variable automatically at startup");
