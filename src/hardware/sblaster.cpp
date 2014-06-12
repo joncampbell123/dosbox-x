@@ -74,8 +74,8 @@ enum DSP_MODES {
 	MODE_DAC,
 	MODE_DMA,
 	MODE_DMA_PAUSE,
-	MODE_DMA_MASKED
-
+	MODE_DMA_MASKED,
+	MODE_DMA_REQUIRE_IRQ_ACK		/* Sound Blaster 16 style require IRQ ack to resume DMA */
 };
 
 enum DMA_MODES {
@@ -139,6 +139,7 @@ struct SB_INFO {
 		} in,out;
 		Bit8u test_register;
 		Bitu write_busy;
+		bool require_irq_ack;
 	} dsp;
 	struct {
 		Bit16s data[DSP_DACSIZE+1];
@@ -275,6 +276,7 @@ static void DSP_SetSpeaker(bool how) {
  *      --Jonathan C. */
 static INLINE void SB_RaiseIRQ(SB_IRQS type) {
 	LOG(LOG_SB,LOG_NORMAL)("Raising IRQ");
+
 	switch (type) {
 	case SB_IRQ_8:
 		if (sb.irq.pending_8bit) {
@@ -540,7 +542,10 @@ static void GenerateDMASound(Bitu size) {
 			sb.dma.mode=DSP_DMA_NONE;
 		} else {
 			sb.dma.left=sb.dma.total;
-			if (!sb.dma.left) {
+			if (sb.dsp.require_irq_ack) { /* Sound Blaster 16-style require IRQ ack before proceeding even with auto-init */
+				sb.mode=MODE_DMA_REQUIRE_IRQ_ACK;
+			}
+			else if (!sb.dma.left) {
 				LOG(LOG_SB,LOG_NORMAL)("Auto-init transfer with 0 size");
 				sb.mode=MODE_NONE;
 			}
@@ -1668,9 +1673,16 @@ static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
 			sb.irq.pending_8bit=false;
 			PIC_DeActivateIRQ(sb.hw.irq);
 		}
+
+		if (sb.mode == MODE_DMA_REQUIRE_IRQ_ACK)
+			sb.mode = MODE_DMA;
+
 		if (sb.dsp.out.used) return 0xff;
 		else return 0x7f;
 	case DSP_ACK_16BIT:
+		if (sb.mode == MODE_DMA_REQUIRE_IRQ_ACK)
+			sb.mode = MODE_DMA;
+
 		sb.irq.pending_16bit=false;
 		break;
 	case DSP_WRITE_STATUS:
@@ -1765,6 +1777,7 @@ static void SBLASTER_CallBack(Bitu len) {
 	case MODE_NONE:
 	case MODE_DMA_PAUSE:
 	case MODE_DMA_MASKED:
+	case MODE_DMA_REQUIRE_IRQ_ACK:
 		sb.chan->AddSilence();
 		break;
 	case MODE_DAC:
@@ -2018,6 +2031,7 @@ private:
 	}
 public:
 	SBLASTER(Section* configuration):Module_base(configuration) {
+		string s;
 		Bitu i;
 		int si;
 
@@ -2111,6 +2125,14 @@ public:
 
 			autoexecline.Install(temp.str());
 		}
+
+		s=section->Get_string("dsp require interrupt acknowledge");
+		if (s == "true" || s == "1" || s == "on")
+			sb.dsp.require_irq_ack = 1;
+		else if (s == "false" || s == "0" || s == "off")
+			sb.dsp.require_irq_ack = 0;
+		else /* auto */
+			sb.dsp.require_irq_ack = (sb.type == SBT_16) ? 1 : 0; /* Yes if SB16, No otherwise */
 
 		/* Soundblaster midi interface */
 		if (!MIDI_Available()) sb.midi = false;

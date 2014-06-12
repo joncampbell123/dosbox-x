@@ -1303,6 +1303,13 @@ void DOSBOX_Init(void) {
 			"If stereo playback seems to have artifacts consider enabling this option. For accurate emulation of Sound Blaster\n"
 			"hardware, disable this option.");
 
+	Pstring = secprop->Add_string("dsp require interrupt acknowledge",Property::Changeable::WhenIdle,"auto");
+	Pstring->Set_help("If set, the DSP will halt DMA playback until IRQ acknowledgement occurs even in auto-init mode (SB16 behavior).\n"
+			"If clear, IRQ acknowledgement will have no effect on auto-init playback (SB Pro and earlier & clone behavior)\n"
+			"If set to 'auto' then behavior is determined by sbtype= setting.\n"
+			"This is a setting for hardware accuracy in emulation. If audio briefly plays then stops then your DOS game\n"
+			"and it's not using IRQ (but using DMA), try setting this option to 'false'");
+
 	Pbool = secprop->Add_bool("blaster environment variable",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Whether or not to set the BLASTER environment variable automatically at startup");
 
