@@ -15,11 +15,6 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-/* TODO: Actual Sound Blaster 16 hardware seems to require acknowledgement of the
- *       interrupt, and if it doesn't get it, it halts DMA transfer, compared to
- *       many clones and older Sound Blaster cards that continue to play audio
- *       (apparently) in the absense of any acknowledgement. Add option to dosbox.conf
- *       (default on) to emulate that fact. */
 
 #include <iomanip>
 #include <sstream>
