@@ -134,7 +134,9 @@ struct SB_INFO {
 		} in,out;
 		Bit8u test_register;
 		Bitu write_busy;
+		bool highspeed;
 		bool require_irq_ack;
+		unsigned int dsp_write_busy_time; /* when you write to the DSP, how long it signals "busy" */
 	} dsp;
 	struct {
 		Bit16s data[DSP_DACSIZE+1];
@@ -528,21 +530,35 @@ static void GenerateDMASound(Bitu size) {
 	}
 	sb.dma.left-=read;
 	if (!sb.dma.left) {
+		bool was_irq=false;
+
 		PIC_RemoveEvents(END_DMA_Event);
-		if (sb.dma.mode >= DSP_DMA_16) SB_RaiseIRQ(SB_IRQ_16);
-		else SB_RaiseIRQ(SB_IRQ_8);
+		if (sb.dma.mode >= DSP_DMA_16) {
+			was_irq = sb.irq.pending_16bit;
+			SB_RaiseIRQ(SB_IRQ_16);
+		}
+		else {
+			was_irq = sb.irq.pending_8bit;
+			SB_RaiseIRQ(SB_IRQ_8);
+		}
+
 		if (!sb.dma.autoinit) {
+			sb.dsp.highspeed = false;
 			LOG(LOG_SB,LOG_NORMAL)("Single cycle transfer ended");
 			sb.mode=MODE_NONE;
 			sb.dma.mode=DSP_DMA_NONE;
 		} else {
 			sb.dma.left=sb.dma.total;
-			if (sb.dsp.require_irq_ack) { /* Sound Blaster 16-style require IRQ ack before proceeding even with auto-init */
-				sb.mode=MODE_DMA_REQUIRE_IRQ_ACK;
-			}
-			else if (!sb.dma.left) {
+			if (!sb.dma.left) {
 				LOG(LOG_SB,LOG_NORMAL)("Auto-init transfer with 0 size");
+				sb.dsp.highspeed = false;
 				sb.mode=MODE_NONE;
+			}
+			else if (sb.dsp.require_irq_ack && was_irq) { /* Sound Blaster 16-style require IRQ ack before proceeding even with auto-init */
+				/* FIXME: ^ Is this accurate? Because this makes sense to me.
+				 *          Or, does the SB16 have a timeout from the IRQ instead? */
+				LOG(LOG_SB,LOG_WARN)("DMA ended when previous IRQ had not yet been acked");
+				sb.mode=MODE_DMA_REQUIRE_IRQ_ACK;
 			}
 		}
 	}
@@ -836,8 +852,16 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo) {
 }
 
 static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign) {
-	/* Ignore high-speed DAC commands if Sound Blaster 1.xx */
-	if (sb.type == SBT_1 && (sb.dsp.cmd == 0x90 || sb.dsp.cmd == 0x91)) return;
+	/* FIXME: DSP 2.xx and 3.xx are said to require a reset to exit highspeed mode.
+	 *        And the DSP does not accept writes. Is that true for SB16 hardware? */
+	if (sb.dsp.cmd == 0x90 || sb.dsp.cmd == 0x91) { /* highspeed modes */
+		/* Ignore high-speed DAC commands if Sound Blaster 1.xx */
+		if (sb.type == SBT_1) return;
+		sb.dsp.highspeed = true;
+	}
+	else {
+		sb.dsp.highspeed = false;
+	}
 
 	if (sb.sample_rate_limits) { /* enforce speed limits documented by Creative */
 		unsigned int u_limit=23000,l_limit=4000; /* NTS: Recording vs playback is not considered because DOSBox only emulates playback */
@@ -879,6 +903,7 @@ static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign) {
 }
 
 static void DSP_PrepareDMA_New(DMA_MODES mode,Bitu length,bool autoinit,bool stereo) {
+	sb.dsp.highspeed = false;
 	if (sb.sample_rate_limits) { /* enforce speed limits documented by Creative */
 		unsigned int u_limit=23000,l_limit=4000; /* NTS: Recording vs playback is not considered because DOSBox only emulates playback */
 
@@ -935,6 +960,9 @@ static void DSP_AddData(Bit8u val) {
 	}
 }
 
+static void DSP_BusyComplete(Bitu /*val*/) {
+	sb.dsp.write_busy = 0;
+}
 
 static void DSP_FinishReset(Bitu /*val*/) {
 	DSP_FlushData();
@@ -953,6 +981,7 @@ static void DSP_Reset(void) {
 	sb.dsp.out.pos=0;
 	sb.dsp.write_busy=0;
 	PIC_RemoveEvents(DSP_FinishReset);
+	PIC_RemoveEvents(DSP_BusyComplete);
 
 	sb.dma.left=0;
 	sb.dma.total=0;
@@ -969,6 +998,7 @@ static void DSP_Reset(void) {
 	sb.dac.last=0;
 	sb.e2.value=0xaa;
 	sb.e2.count=0;
+	sb.dsp.highspeed=0;
 	sb.dma_dac_src_div2count = 0;
 	sb.irq.pending_8bit=false;
 	sb.irq.pending_16bit=false;
@@ -988,6 +1018,7 @@ static void DSP_DoReset(Bit8u val) {
 		PIC_RemoveEvents(DSP_FinishReset);
 		PIC_AddEvent(DSP_FinishReset,20.0f/1000.0f,0);	// 20 microseconds
 	}
+	sb.dsp.write_busy = 0;
 }
 
 static void DSP_E2_DMA_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
@@ -1322,18 +1353,45 @@ static void DSP_DoCommand(void) {
 }
 
 static void DSP_DoWrite(Bit8u val) {
+	if (sb.dsp.write_busy || sb.dsp.highspeed) {
+		LOG(LOG_SB,LOG_WARN)("DSP:Command write %2X ignored, DSP not ready. DOS game or OS is not polling status",val);
+		return;
+	}
+
+	/* NTS: We allow the user to set busy wait time == 0 aka "instant gratification mode".
+	 *      We also assume that if they do that, some DOS programs might be timing sensitive
+	 *      enough to freak out when DSP commands and data are accepted immediately */
+	{
+		unsigned int delay = sb.dsp.dsp_write_busy_time;
+
+		/* Part of enforcing sample rate limits is to make sure to emulate that the
+		 * Direct DAC output command 0x10 is "busy" long enough to effectively rate
+		 * limit output to 23KHz. */
+		if (sb.sample_rate_limits) {
+			if (sb.dsp.cmd == 0x10/*DSP direct DAC, this write is the data byte*/) {
+				delay = (1000000000 / 25500/*Hz FIXME*/) - sb.dsp.dsp_write_busy_time;
+			}
+		}
+
+		if (delay > 0) {
+			sb.dsp.write_busy = 1;
+			PIC_RemoveEvents(DSP_BusyComplete);
+			PIC_AddEvent(DSP_BusyComplete,(double)delay / 1000000);
+		}
+	}
+
 	switch (sb.dsp.cmd) {
-	case DSP_NO_COMMAND:
-		sb.dsp.cmd=val;
-		if (sb.type == SBT_16) sb.dsp.cmd_len=DSP_cmd_len_sb16[val];
-		else sb.dsp.cmd_len=DSP_cmd_len_sb[val];
-		sb.dsp.in.pos=0;
-		if (!sb.dsp.cmd_len) DSP_DoCommand();
-		break;
-	default:
-		sb.dsp.in.data[sb.dsp.in.pos]=val;
-		sb.dsp.in.pos++;
-		if (sb.dsp.in.pos>=sb.dsp.cmd_len) DSP_DoCommand();
+		case DSP_NO_COMMAND:
+			sb.dsp.cmd=val;
+			if (sb.type == SBT_16) sb.dsp.cmd_len=DSP_cmd_len_sb16[val];
+			else sb.dsp.cmd_len=DSP_cmd_len_sb[val];
+			sb.dsp.in.pos=0;
+			if (!sb.dsp.cmd_len) DSP_DoCommand();
+			break;
+		default:
+			sb.dsp.in.data[sb.dsp.in.pos]=val;
+			sb.dsp.in.pos++;
+			if (sb.dsp.in.pos>=sb.dsp.cmd_len) DSP_DoCommand();
 	}
 }
 
@@ -1683,37 +1741,7 @@ static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
 	case DSP_WRITE_STATUS:
 		switch (sb.dsp.state) {
 		case DSP_S_NORMAL:
-			/* FIXME: Wait---WHAT???
-			 *        There are several problems with this emulation of this
-			 *        busy bit!!!
-			 *
-			 *        1) It's supposed to be set when the DSP is busy and you
-			 *           can't write to the DSP
-			 *
-			 *        2) It just toggles on and off no matter how busy the DSP
-			 *
-			 *        3) It has nothing to do with DSP state i.e. if you've
-			 *           recently just written a DSP command
-			 *
-			 *        4) It has nothing to do with time i.e. how long the DSP
-			 *           is "busy" depends entirely on how long it takes your
-			 *           program to read this I/O port enough times!
-			 *
-			 *        5) It does not reflect Creative documentation that says
-			 *           the DSP will not accept commands while High Speed
-			 *           DMA playback is running!
-			 *
-			 *        I'm glad that so far this has worked "well enough" for
-			 *        DOSBox emulation but this is not acceptable for accuracy!
-			 *
-			 *        On a related note, I found that this "busy" emulation
-			 *        clashes badly with the Triton "Crystal Dreams" demo and
-			 *        is the reason why Sound Blaster output from the demo
-			 *        doesn't work properly--See NOTES for all the disgusting
-			 *        details on what the hell the demo is doing instead of
-			 *        responding to SB IRQs like a well-behaved DOS program. --Jonathan C. */
-			sb.dsp.write_busy++;
-			if (sb.dsp.write_busy & 8) return 0xff;
+			if (sb.dsp.write_busy || sb.dsp.highspeed) return 0xff;
 			return 0x7f;
 		case DSP_S_RESET:
 		case DSP_S_RESET_WAIT:
@@ -2128,6 +2156,10 @@ public:
 			sb.dsp.require_irq_ack = 0;
 		else /* auto */
 			sb.dsp.require_irq_ack = (sb.type == SBT_16) ? 1 : 0; /* Yes if SB16, No otherwise */
+
+		si=section->Get_int("dsp write busy delay"); /* in nanoseconds */
+		if (si >= 0) sb.dsp.dsp_write_busy_time = si;
+		else sb.dsp.dsp_write_busy_time = 1000; /* FIXME: How long is the DSP busy on real hardware? */
 
 		/* Soundblaster midi interface */
 		if (!MIDI_Available()) sb.midi = false;

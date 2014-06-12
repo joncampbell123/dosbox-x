@@ -1310,6 +1310,11 @@ void DOSBOX_Init(void) {
 			"This is a setting for hardware accuracy in emulation. If audio briefly plays then stops then your DOS game\n"
 			"and it's not using IRQ (but using DMA), try setting this option to 'false'");
 
+	Pint = secprop->Add_int("dsp write busy delay",Property::Changeable::WhenIdle,-1);
+	Pint->Set_help("Amount of time in nanoseconds the DSP chip signals 'busy' after writing to the DSP (port 2xCh). Set to -1 to use card-specific defaults.\n"
+			"WARNING: Setting the value too high (above 20000ns) may have detrimental effects to DOS games that use IRQ 0 and DSP command 0x10 to play audio.\n"
+			"         Setting the value way too high (above 1000000ns) can cause significant lag in DOS games.");
+
 	Pbool = secprop->Add_bool("blaster environment variable",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Whether or not to set the BLASTER environment variable automatically at startup");
 
