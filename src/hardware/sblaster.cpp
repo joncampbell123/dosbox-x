@@ -834,7 +834,7 @@ static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign) {
 		else if ((sb.dsp.cmd&0xFE) == 0x76) /* 2.6-bit ADPCM */
 			u_limit = 13000;
 		else if ((sb.dsp.cmd&0xFE) == 0x16) /* 2-bit ADPCM */
-			u_limit = 13000;
+			u_limit = 11000;
 		else if ((sb.dsp.cmd&0xFE) == 0x90) /* high-speed DAC */ {
 			if (sb.type == SBT_1) /* 1.xx does not support */
 				return;
