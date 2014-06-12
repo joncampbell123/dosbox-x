@@ -8,6 +8,7 @@ machine=vgaonly (you might consider machine=svga_et4000 for kicks)
 cycles=10000 or higher
 memsize=1 (demo does not appear to use extended memory)
 goldplay=true (demo uses Goldplay-style hacked Sound Blaster support)
+linewise=true (or else you will get flickering on the bottom of the screen)
 
 
 "Crystal Dream" and the horrifying reason it's Sound Blaster output
