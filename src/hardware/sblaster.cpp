@@ -744,6 +744,7 @@ static void DSP_RaiseIRQEvent(Bitu /*val*/) {
 
 static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo) {
 	char const * type;
+
 	sb.mode=MODE_DMA_MASKED;
 
 	/* Explanation: A handful of ancient DOS demos (in the 1990-1992 timeframe) were written to output
@@ -852,6 +853,20 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo) {
 }
 
 static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign) {
+	/* Hack for Crystal Dream and any other bozo implementation that spams the DSP
+	 * with command 0x14: if we're already playing audio, don't setup audio playback
+	 * again. the reason this is important is that this setup process sets the mode
+	 * to DMA_MASKED, which gives the mixer callback an opportunity to insert silence
+	 * and thus cause popping and crackling. */
+	if (sb.mode == MODE_DMA) {
+		/* FIXME: So how does real hardware handle DSP command 0x14 while another
+		 * DSP command 0x14 is in progress? */
+		if (!autoinit) sb.dma.total=1+sb.dsp.in.data[0]+(sb.dsp.in.data[1] << 8);
+		sb.dma.left=sb.dma.total;
+		sb.dma.autoinit=autoinit;
+		return;
+	}
+
 	/* FIXME: DSP 2.xx and 3.xx are said to require a reset to exit highspeed mode.
 	 *        And the DSP does not accept writes. Is that true for SB16 hardware? */
 	if (sb.dsp.cmd == 0x90 || sb.dsp.cmd == 0x91) { /* highspeed modes */
@@ -2159,7 +2174,7 @@ public:
 
 		si=section->Get_int("dsp write busy delay"); /* in nanoseconds */
 		if (si >= 0) sb.dsp.dsp_write_busy_time = si;
-		else sb.dsp.dsp_write_busy_time = 1000; /* FIXME: How long is the DSP busy on real hardware? */
+		else sb.dsp.dsp_write_busy_time = 15000; /* FIXME: How long is the DSP busy on real hardware? */
 
 		/* Soundblaster midi interface */
 		if (!MIDI_Available()) sb.midi = false;
