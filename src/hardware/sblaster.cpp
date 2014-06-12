@@ -1095,7 +1095,7 @@ static void DSP_DoCommand(void) {
 		if (sb.midi == true) MIDI_RawOutByte(sb.dsp.in.data[0]);
 		break;
 	case 0x40:	/* Set Timeconstant */
-		sb.freq=(1000000 / (256 - sb.dsp.in.data[0]));
+		sb.freq=(256000000 / (65536 - (sb.dsp.in.data[0] << 8)));
 		/* Nasty kind of hack to allow runtime changing of frequency */
 		if (sb.dma.mode != DSP_DMA_NONE && sb.dma.autoinit) {
 			DSP_PrepareDMA_Old(sb.dma.mode,sb.dma.autoinit,sb.dma.sign);
