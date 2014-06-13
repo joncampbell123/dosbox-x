@@ -15,6 +15,20 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
+/* TODO: I noticed a "bug" on a SB16 ViBRA where if you use single-cycle DMA
+ *       playback with DSP 4.xx commands with the FIFO enabled, the card seems
+ *       to buffer through the FIFO, play the block, and then when the DSP
+ *       block completes, doesn't play what remains in the FIFO and stops
+ *       immediately. So, if you do very small DSP block single-cycle transfers
+ *       using the SB16 0xB0-0xCF DSP commands, the audio will play fast because
+ *       the last 16-32 samples are being skipped, effectively.
+ *
+ *       I also noticed (related to this) that Creative's documentation only
+ *       lists using 0xB0/0xC0 for single-cycle playback, OR using 0xB6/0xC6
+ *       for autoinit playback, in other words either single-cycle without FIFO
+ *       or autoinit with FIFO.
+ *
+ *       As usual, expect this to be a dosbox.conf option --Jonathan C. */
 
 #include <iomanip>
 #include <sstream>
@@ -1352,6 +1366,8 @@ static void DSP_DoWrite(Bit8u val) {
 			PIC_RemoveEvents(DSP_BusyComplete);
 			PIC_AddEvent(DSP_BusyComplete,(double)delay / 1000000);
 		}
+
+		LOG(LOG_SB,LOG_NORMAL)("DSP:Command %02x delay %u",val,delay);
 	}
 
 	switch (sb.dsp.cmd) {
