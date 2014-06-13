@@ -665,12 +665,14 @@ static void DMA_DAC_Event(Bitu val) {
 				PIC_RemoveEvents(DMA_DAC_Event);
 				if (!sb.dma.autoinit) {
 					LOG(LOG_SB,LOG_NORMAL)("Single cycle transfer ended");
+					sb.dsp.highspeed = false;
 					sb.mode=MODE_NONE;
 					sb.dma.mode=DSP_DMA_NONE;
 					sb.dma_dac_mode=0;
 				} else {
 					sb.dma.left=sb.dma.total;
 					if (!sb.dma.left) {
+						sb.dsp.highspeed = false;
 						LOG(LOG_SB,LOG_NORMAL)("Auto-init transfer with 0 size");
 						sb.mode=MODE_NONE;
 					}
@@ -694,12 +696,14 @@ static void DMA_DAC_Event(Bitu val) {
 			PIC_RemoveEvents(DMA_DAC_Event);
 			if (!sb.dma.autoinit) {
 				LOG(LOG_SB,LOG_NORMAL)("Single cycle transfer ended");
+				sb.dsp.highspeed = false;
 				sb.mode=MODE_NONE;
 				sb.dma.mode=DSP_DMA_NONE;
 				sb.dma_dac_mode=0;
 			} else {
 				sb.dma.left=sb.dma.total;
 				if (!sb.dma.left) {
+					sb.dsp.highspeed = false;
 					LOG(LOG_SB,LOG_NORMAL)("Auto-init transfer with 0 size");
 					sb.mode=MODE_NONE;
 				}
