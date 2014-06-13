@@ -618,7 +618,7 @@ static void DMA_DAC_Event(Bitu val) {
 
 	/* NTS: chan->Read() deals with DMA unit transfers.
 	 *      for 8-bit DMA, read/expct is in bytes, for 16-bit DMA, read/expct is in 16-bit words */
-	expct = (sb.dma.stereo ? 2 : 1);// * ((sb.dma.mode == DSP_DMA_16 || sb.dma.mode == DSP_DMA_16_ALIASED) ? 2 : 1);
+	expct = (sb.dma.stereo ? 2 : 1) * (sb.dma.mode == DSP_DMA_16_ALIASED ? 2 : 1);
 	read = sb.dma.chan->Read(expct,tmp);
 	//if (read != expct)
 	//	LOG_MSG("DMA read was not sample aligned. Sound may swap channels or become static. On real hardware the same may happen unless audio is prepared specifically.\n");
