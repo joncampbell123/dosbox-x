@@ -784,12 +784,8 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo) {
 	else
 		sb.dma_dac_mode=0;
 
-	if (sb.dma_dac_mode && sb.goldplay_stereo)
-		sb.dma_dac_srcrate=sb.freq * 2;
-	else
-		sb.dma_dac_srcrate=sb.freq;
-
 	sb.chan->FillUp();
+	sb.dma_dac_srcrate=sb.freq;
 	sb.dma.left=sb.dma.total;
 	sb.dma.mode=mode;
 	sb.dma.stereo=stereo;
@@ -827,7 +823,10 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo) {
 	if (sb.dma.stereo) sb.dma.mul*=2;
 	sb.dma.rate=(sb.dma_dac_srcrate*sb.dma.mul) >> SB_SH;
 	sb.dma.min=(sb.dma.rate*3)/1000;
-	sb.chan->SetFreq(sb.dma_dac_srcrate);
+	if (sb.dma_dac_mode && sb.goldplay_stereo)
+		sb.chan->SetFreq(sb.dma_dac_srcrate);
+	else
+		sb.chan->SetFreq(freq);
 	sb.dma.mode=mode;
 	PIC_RemoveEvents(DMA_DAC_Event);
 	PIC_RemoveEvents(END_DMA_Event);
