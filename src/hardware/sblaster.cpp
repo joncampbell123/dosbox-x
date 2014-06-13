@@ -780,10 +780,10 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo) {
 	 *
 	 * This fixes Sound Blaster output in:
 	 *    Twilight Zone - Buttman (1992) [SB and SB Pro modes]
-	 *    Triton - Crystal Dream (1992) [SB and SB Pro modes] ----FIXME: Yes, but apparently the demo fails to acknowledge the IRQ and sound stops
+	 *    Triton - Crystal Dream (1992) [SB and SB Pro modes]
 	 *    The Jungly (1992) [SB and SB Pro modes]
 	 */
-	if (sb.goldplay && sb.freq > 0 && sb.dma.chan->basecnt < 2/* && sb.dma.chan->autoinit && mode == DSP_DMA_8*/)
+	if (sb.goldplay && sb.freq > 0 && sb.dma.chan->basecnt < 4)
 		sb.dma_dac_mode=1;
 	else
 		sb.dma_dac_mode=0;
