@@ -1367,7 +1367,7 @@ static void DSP_DoWrite(Bit8u val) {
 			PIC_AddEvent(DSP_BusyComplete,(double)delay / 1000000);
 		}
 
-		LOG(LOG_SB,LOG_NORMAL)("DSP:Command %02x delay %u",val,delay);
+//		LOG(LOG_SB,LOG_NORMAL)("DSP:Command %02x delay %u",val,delay);
 	}
 
 	switch (sb.dsp.cmd) {
