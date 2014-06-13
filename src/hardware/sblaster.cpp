@@ -655,7 +655,13 @@ static void DMA_DAC_Event(Bitu val) {
 			sb.dac.data[sb.dac.used++]=L;
 	}
 
-	sb.dma.left-=read;
+	/* NTS: don't forget this code maintains dma.left vs dma.total as number of *samples* remaining.
+	 * by "samples" we mean samples per channel, such as samples = left in mono and samples = left * 2 in stereo */
+	if (sb.dma.mode >= DSP_DMA_16)
+		sb.dma.left -= read >> 1;
+	else
+		sb.dma.left -= read;
+
 	if (!sb.dma.left) {
 		PIC_RemoveEvents(END_DMA_Event);
 		PIC_RemoveEvents(DMA_DAC_Event);
