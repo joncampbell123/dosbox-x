@@ -1183,6 +1183,16 @@ static void DSP_DoCommand(void) {
 		sb.adpcm.haveref=true;
 		DSP_PrepareDMA_Old(DSP_DMA_4,true,false);
 		break;
+	case 0x7f:	/* Auto Init 3-bit(2.6bit) ADPCM Reference */
+		DSP_SB2_ABOVE;
+		sb.adpcm.haveref=true;
+		DSP_PrepareDMA_Old(DSP_DMA_3,true,false);
+		break;
+	case 0x1f:	/* Auto Init 2-bit ADPCM Reference */
+		DSP_SB2_ABOVE;
+		sb.adpcm.haveref=true;
+		DSP_PrepareDMA_Old(DSP_DMA_2,true,false);
+		break;
 	case 0x17:	/* 017h : Single Cycle 2-bit ADPCM Reference*/
 		sb.adpcm.haveref=true;
 	case 0x16:  /* 074h : Single Cycle 2-bit ADPCM */
@@ -1308,10 +1318,6 @@ static void DSP_DoCommand(void) {
 	case 0x34: case 0x35: case 0x36: case 0x37:
 		DSP_SB2_ABOVE;
 		LOG(LOG_SB,LOG_ERROR)("DSP:Unimplemented MIDI UART command %2X",sb.dsp.cmd);
-		break;
-	case 0x7f: case 0x1f:
-		DSP_SB2_ABOVE;
-		LOG(LOG_SB,LOG_ERROR)("DSP:Unimplemented auto-init DMA ADPCM command %2X",sb.dsp.cmd);
 		break;
 	case 0x20:
 		DSP_AddData(0x7f);   // fake silent input for Creative parrot
