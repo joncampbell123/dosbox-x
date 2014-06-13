@@ -419,6 +419,40 @@ INLINE Bit8u decode_ADPCM_3_sample(Bit8u sample,Bit8u & reference,Bits& scale) {
 	return reference;
 }
 
+void SB_OnEndOfDMA(void) {
+	bool was_irq=false;
+
+	PIC_RemoveEvents(END_DMA_Event);
+	if (sb.dma.mode >= DSP_DMA_16) {
+		was_irq = sb.irq.pending_16bit;
+		SB_RaiseIRQ(SB_IRQ_16);
+	}
+	else {
+		was_irq = sb.irq.pending_8bit;
+		SB_RaiseIRQ(SB_IRQ_8);
+	}
+
+	if (!sb.dma.autoinit) {
+		sb.dsp.highspeed = false;
+		LOG(LOG_SB,LOG_NORMAL)("Single cycle transfer ended");
+		sb.mode=MODE_NONE;
+		sb.dma.mode=DSP_DMA_NONE;
+	} else {
+		sb.dma.left=sb.dma.total;
+		if (!sb.dma.left) {
+			LOG(LOG_SB,LOG_NORMAL)("Auto-init transfer with 0 size");
+			sb.dsp.highspeed = false;
+			sb.mode=MODE_NONE;
+		}
+		else if (sb.dsp.require_irq_ack && was_irq) { /* Sound Blaster 16-style require IRQ ack before proceeding even with auto-init */
+			/* FIXME: ^ Is this accurate? Because this makes sense to me.
+			 *          Or, does the SB16 have a timeout from the IRQ instead? */
+			LOG(LOG_SB,LOG_WARN)("DMA ended when previous IRQ had not yet been acked");
+			sb.mode=MODE_DMA_REQUIRE_IRQ_ACK;
+		}
+	}
+}
+
 static void GenerateDMASound(Bitu size) {
 	Bitu read=0;Bitu done=0;Bitu i=0;
 
@@ -528,39 +562,7 @@ static void GenerateDMASound(Bitu size) {
 		return;
 	}
 	sb.dma.left-=read;
-	if (!sb.dma.left) {
-		bool was_irq=false;
-
-		PIC_RemoveEvents(END_DMA_Event);
-		if (sb.dma.mode >= DSP_DMA_16) {
-			was_irq = sb.irq.pending_16bit;
-			SB_RaiseIRQ(SB_IRQ_16);
-		}
-		else {
-			was_irq = sb.irq.pending_8bit;
-			SB_RaiseIRQ(SB_IRQ_8);
-		}
-
-		if (!sb.dma.autoinit) {
-			sb.dsp.highspeed = false;
-			LOG(LOG_SB,LOG_NORMAL)("Single cycle transfer ended");
-			sb.mode=MODE_NONE;
-			sb.dma.mode=DSP_DMA_NONE;
-		} else {
-			sb.dma.left=sb.dma.total;
-			if (!sb.dma.left) {
-				LOG(LOG_SB,LOG_NORMAL)("Auto-init transfer with 0 size");
-				sb.dsp.highspeed = false;
-				sb.mode=MODE_NONE;
-			}
-			else if (sb.dsp.require_irq_ack && was_irq) { /* Sound Blaster 16-style require IRQ ack before proceeding even with auto-init */
-				/* FIXME: ^ Is this accurate? Because this makes sense to me.
-				 *          Or, does the SB16 have a timeout from the IRQ instead? */
-				LOG(LOG_SB,LOG_WARN)("DMA ended when previous IRQ had not yet been acked");
-				sb.mode=MODE_DMA_REQUIRE_IRQ_ACK;
-			}
-		}
-	}
+	if (!sb.dma.left) SB_OnEndOfDMA();
 }
 
 /* old version...
@@ -614,7 +616,9 @@ static void DMA_DAC_Event(Bitu val) {
 		return;
 	}
 
-	expct = (sb.dma.stereo ? 2 : 1) * ((sb.dma.mode == DSP_DMA_16 || sb.dma.mode == DSP_DMA_16_ALIASED) ? 2 : 1);
+	/* NTS: chan->Read() deals with DMA unit transfers.
+	 *      for 8-bit DMA, read/expct is in bytes, for 16-bit DMA, read/expct is in 16-bit words */
+	expct = (sb.dma.stereo ? 2 : 1);// * ((sb.dma.mode == DSP_DMA_16 || sb.dma.mode == DSP_DMA_16_ALIASED) ? 2 : 1);
 	read = sb.dma.chan->Read(expct,tmp);
 	//if (read != expct)
 	//	LOG_MSG("DMA read was not sample aligned. Sound may swap channels or become static. On real hardware the same may happen unless audio is prepared specifically.\n");
@@ -655,33 +659,10 @@ static void DMA_DAC_Event(Bitu val) {
 			sb.dac.data[sb.dac.used++]=L;
 	}
 
-	/* NTS: don't forget this code maintains dma.left vs dma.total as number of *samples* remaining.
-	 * by "samples" we mean samples per channel, such as samples = left in mono and samples = left * 2 in stereo */
-	if (sb.dma.mode >= DSP_DMA_16)
-		sb.dma.left -= read >> 1;
-	else
-		sb.dma.left -= read;
-
+	sb.dma.left -= read;
 	if (!sb.dma.left) {
-		PIC_RemoveEvents(END_DMA_Event);
-		PIC_RemoveEvents(DMA_DAC_Event);
-		if (!sb.dma.autoinit) {
-			LOG(LOG_SB,LOG_NORMAL)("Single cycle transfer ended");
-			sb.dsp.highspeed = false;
-			sb.mode=MODE_NONE;
-			sb.dma.mode=DSP_DMA_NONE;
-			sb.dma_dac_mode=0;
-		} else {
-			sb.dma.left=sb.dma.total;
-			if (!sb.dma.left) {
-				sb.dsp.highspeed = false;
-				LOG(LOG_SB,LOG_NORMAL)("Auto-init transfer with 0 size");
-				sb.mode=MODE_NONE;
-			}
-		}
-		if (sb.dma.mode >= DSP_DMA_16) SB_RaiseIRQ(SB_IRQ_16);
-		else SB_RaiseIRQ(SB_IRQ_8);
-		if (sb.dma.autoinit) PIC_AddEvent(DMA_DAC_Event,1000.0 / sb.dma_dac_srcrate);
+		SB_OnEndOfDMA();
+		if (sb.dma_dac_mode) PIC_AddEvent(DMA_DAC_Event,1000.0 / sb.dma_dac_srcrate);
 	}
 	else {
 		PIC_AddEvent(DMA_DAC_Event,1000.0 / sb.dma_dac_srcrate);
