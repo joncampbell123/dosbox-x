@@ -86,7 +86,6 @@ enum {
 struct SB_INFO {
 	Bitu freq;
 	Bitu dma_dac_srcrate;
-	Bit8u dma_dac_src_div2count;
 	struct {
 		bool stereo,sign,autoinit;
 		DMA_MODES mode;
@@ -656,65 +655,30 @@ static void DMA_DAC_Event(Bitu val) {
 			sb.dac.data[sb.dac.used++]=L;
 	}
 
-	if (sb.dma.stereo) {
-		if (++sb.dma_dac_src_div2count >= 2) {
-			sb.dma_dac_src_div2count=0;
-			sb.dma.left-=read;
+	sb.dma.left-=read;
+	if (!sb.dma.left) {
+		PIC_RemoveEvents(END_DMA_Event);
+		PIC_RemoveEvents(DMA_DAC_Event);
+		if (!sb.dma.autoinit) {
+			LOG(LOG_SB,LOG_NORMAL)("Single cycle transfer ended");
+			sb.dsp.highspeed = false;
+			sb.mode=MODE_NONE;
+			sb.dma.mode=DSP_DMA_NONE;
+			sb.dma_dac_mode=0;
+		} else {
+			sb.dma.left=sb.dma.total;
 			if (!sb.dma.left) {
-				PIC_RemoveEvents(END_DMA_Event);
-				PIC_RemoveEvents(DMA_DAC_Event);
-				if (!sb.dma.autoinit) {
-					LOG(LOG_SB,LOG_NORMAL)("Single cycle transfer ended");
-					sb.dsp.highspeed = false;
-					sb.mode=MODE_NONE;
-					sb.dma.mode=DSP_DMA_NONE;
-					sb.dma_dac_mode=0;
-				} else {
-					sb.dma.left=sb.dma.total;
-					if (!sb.dma.left) {
-						sb.dsp.highspeed = false;
-						LOG(LOG_SB,LOG_NORMAL)("Auto-init transfer with 0 size");
-						sb.mode=MODE_NONE;
-					}
-				}
-				if (sb.dma.mode >= DSP_DMA_16) SB_RaiseIRQ(SB_IRQ_16);
-				else SB_RaiseIRQ(SB_IRQ_8);
-				if (sb.dma.autoinit) PIC_AddEvent(DMA_DAC_Event,1000.0 / sb.dma_dac_srcrate);
-			}
-			else {
-				PIC_AddEvent(DMA_DAC_Event,1000.0 / sb.dma_dac_srcrate);
+				sb.dsp.highspeed = false;
+				LOG(LOG_SB,LOG_NORMAL)("Auto-init transfer with 0 size");
+				sb.mode=MODE_NONE;
 			}
 		}
-		else {
-			PIC_AddEvent(DMA_DAC_Event,1000.0 / sb.dma_dac_srcrate);
-		}
+		if (sb.dma.mode >= DSP_DMA_16) SB_RaiseIRQ(SB_IRQ_16);
+		else SB_RaiseIRQ(SB_IRQ_8);
+		if (sb.dma.autoinit) PIC_AddEvent(DMA_DAC_Event,1000.0 / sb.dma_dac_srcrate);
 	}
 	else {
-		sb.dma.left-=read;
-		if (!sb.dma.left) {
-			PIC_RemoveEvents(END_DMA_Event);
-			PIC_RemoveEvents(DMA_DAC_Event);
-			if (!sb.dma.autoinit) {
-				LOG(LOG_SB,LOG_NORMAL)("Single cycle transfer ended");
-				sb.dsp.highspeed = false;
-				sb.mode=MODE_NONE;
-				sb.dma.mode=DSP_DMA_NONE;
-				sb.dma_dac_mode=0;
-			} else {
-				sb.dma.left=sb.dma.total;
-				if (!sb.dma.left) {
-					sb.dsp.highspeed = false;
-					LOG(LOG_SB,LOG_NORMAL)("Auto-init transfer with 0 size");
-					sb.mode=MODE_NONE;
-				}
-			}
-			if (sb.dma.mode >= DSP_DMA_16) SB_RaiseIRQ(SB_IRQ_16);
-			else SB_RaiseIRQ(SB_IRQ_8);
-			if (sb.dma.autoinit) PIC_AddEvent(DMA_DAC_Event,1000.0 / sb.dma_dac_srcrate);
-		}
-		else {
-			PIC_AddEvent(DMA_DAC_Event,1000.0 / sb.dma_dac_srcrate);
-		}
+		PIC_AddEvent(DMA_DAC_Event,1000.0 / sb.dma_dac_srcrate);
 	}
 }
 
@@ -1017,7 +981,6 @@ static void DSP_Reset(void) {
 	sb.e2.value=0xaa;
 	sb.e2.count=0;
 	sb.dsp.highspeed=0;
-	sb.dma_dac_src_div2count = 0;
 	sb.irq.pending_8bit=false;
 	sb.irq.pending_16bit=false;
 	sb.chan->SetFreq(22050);
@@ -2233,6 +2196,5 @@ void SBLASTER_ShutDown(Section* /*sec*/) {
 void SBLASTER_Init(Section* sec) {
 	test = new SBLASTER(sec);
 	sec->AddDestroyFunction(&SBLASTER_ShutDown,true);
-	sb.dma_dac_src_div2count = 0;
 }
 
