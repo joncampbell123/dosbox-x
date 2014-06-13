@@ -615,12 +615,12 @@ static void DMA_DAC_Event(Bitu val) {
 		return;
 	}
 
-	expct = (sb.dma.stereo ? 2 : 1) * (sb.dma.mode == DSP_DMA_16 ? 2 : 1);
+	expct = (sb.dma.stereo ? 2 : 1) * ((sb.dma.mode == DSP_DMA_16 || sb.dma.mode == DSP_DMA_16_ALIASED) ? 2 : 1);
 	read = sb.dma.chan->Read(expct,tmp);
 	//if (read != expct)
 	//	LOG_MSG("DMA read was not sample aligned. Sound may swap channels or become static. On real hardware the same may happen unless audio is prepared specifically.\n");
 
-	if (sb.dma.mode == DSP_DMA_16) {
+	if (sb.dma.mode == DSP_DMA_16 || sb.dma.mode == DSP_DMA_16_ALIASED) {
 		L = (int16_t)host_readw(&tmp[0]);
 		if (!sb.dma.sign) L ^= 0x8000;
 		if (sb.dma.stereo) {
