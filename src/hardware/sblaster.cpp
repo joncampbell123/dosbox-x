@@ -1242,7 +1242,15 @@ static void DSP_DoCommand(void) {
 		case SBT_PRO2:
 			DSP_AddData(0x3);DSP_AddData(0x2);break;
 		case SBT_16:
-			DSP_AddData(0x4);DSP_AddData(0x5);break;
+			if (sb.vibra) {
+				DSP_AddData(4); /* SB16 ViBRA DSP 4.13 */
+				DSP_AddData(13);
+			}
+			else {
+				DSP_AddData(4); /* SB16 DSP 4.05 */
+				DSP_AddData(5);
+			}
+			break;
 		default:
 			break;
 		}
