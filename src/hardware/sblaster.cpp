@@ -825,18 +825,14 @@ static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign) {
 	 * with command 0x14: if we're already playing audio, don't setup audio playback
 	 * again. the reason this is important is that this setup process sets the mode
 	 * to DMA_MASKED, which gives the mixer callback an opportunity to insert silence
-	 * and thus cause popping and crackling. */
+	 * and cause popping and crackling. */
 	if (sb.mode == MODE_DMA) {
-		/* FIXME: So how does real hardware handle DSP command 0x14 while another
-		 * DSP command 0x14 is in progress? */
 		if (!autoinit) sb.dma.total=1+sb.dsp.in.data[0]+(sb.dsp.in.data[1] << 8);
 		sb.dma.left=sb.dma.total;
 		sb.dma.autoinit=autoinit;
 		return;
 	}
 
-	/* FIXME: DSP 2.xx and 3.xx are said to require a reset to exit highspeed mode.
-	 *        And the DSP does not accept writes. Is that true for SB16 hardware? */
 	if (sb.dsp.cmd == 0x90 || sb.dsp.cmd == 0x91) { /* highspeed modes */
 		if (sb.type == SBT_1) /* Ignore high-speed DAC commands if Sound Blaster 1.xx */
 			return;
@@ -882,6 +878,20 @@ static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign) {
 }
 
 static void DSP_PrepareDMA_New(DMA_MODES mode,Bitu length,bool autoinit,bool stereo) {
+	/* apparently SB16 hardware allows 0xBx-0xCx 4.xx DSP commands to interrupt
+	 * a previous SB16 playback command, DSP "nag" style. The difference is that
+	 * if you do that you risk exploiting DMA and timing glitches in the chip that
+	 * can cause funny things to happen, like causing 16-bit PCM to stop, or causing
+	 * 8-bit stereo PCM to swap left/right channels because the host is using auto-init
+	 * DMA and you interrupted the DSP chip when it fetched the L channel before it
+	 * had a chance to latch it and begin loading the R channel. */
+	if (sb.mode == MODE_DMA) {
+		if (!autoinit) sb.dma.total=length;
+		sb.dma.left=sb.dma.total;
+		sb.dma.autoinit=autoinit;
+		return;
+	}
+
 	sb.dsp.highspeed = false;
 	if (sb.sample_rate_limits) { /* enforce speed limits documented by Creative */
 		unsigned int u_limit=23000,l_limit=4000; /* NTS: Recording vs playback is not considered because DOSBox only emulates playback */
