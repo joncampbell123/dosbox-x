@@ -174,6 +174,7 @@ struct SB_INFO {
 		Bitu base;
 		Bitu irq;
 		Bit8u dma8,dma16;
+		bool sb_io_alias;
 	} hw;
 	struct {
 		Bits value;
@@ -1709,6 +1710,10 @@ static Bit8u CTMIXER_Read(void) {
 
 
 static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
+	/* TODO: Does real SB 1.xx and 2.xx hardware (prior to the Pro) actually alias I/O ports like this?
+	 *       Because the EMF "Internal Damage" demo seems to depend on it when you select "Sound Blaster" output! */
+	if (sb.hw.sb_io_alias) port &= ~1;
+
 	switch (port-sb.hw.base) {
 	case MIXER_INDEX:
 		return sb.mixer.index;
@@ -1754,6 +1759,10 @@ static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
 }
 
 static void write_sb(Bitu port,Bitu val,Bitu /*iolen*/) {
+	/* TODO: Does real SB 1.xx and 2.xx hardware (prior to the Pro) actually alias I/O ports like this?
+	 *       Because the EMF "Internal Damage" demo seems to depend on it when you select "Sound Blaster" output! */
+	if (sb.hw.sb_io_alias) port &= ~1;
+
 	Bit8u val8=(Bit8u)(val&0xff);
 	switch (port-sb.hw.base) {
 	case DSP_RESET:
@@ -2062,6 +2071,7 @@ public:
 		sb.emit_blaster_var=section->Get_bool("blaster environment variable");
 		sb.sample_rate_limits=section->Get_bool("sample rate limits");
 		sb.sbpro_stereo_bit_strict_mode=section->Get_bool("stereo control with sbpro only");
+		sb.hw.sb_io_alias=section->Get_bool("io port aliasing");
 
 		si=section->Get_int("irq");
 		sb.hw.irq=(si >= 0) ? si : 0xFF;
@@ -2156,6 +2166,12 @@ public:
 		si=section->Get_int("dsp write busy delay"); /* in nanoseconds */
 		if (si >= 0) sb.dsp.dsp_write_busy_time = si;
 		else sb.dsp.dsp_write_busy_time = 15000; /* FIXME: How long is the DSP busy on real hardware? */
+
+		/* sanity check. Pro and later cards have I/O port arrangements that obviously need
+		 * I/O ports on odd numbers, and therefore aliasing is impractical. */
+		/* TODO: Does the Sound Blaster 2.0 have the same aliasing problem? */
+		/* FIXME: We're going to assume the Game Blaster has the same problem since it pre-dates the Sound Blaster 1.x */
+		if (!(sb.type == SBT_1 || sb.type == SBT_2 || sb.type == SBT_GB)) sb.hw.sb_io_alias=false;
 
 		/* Soundblaster midi interface */
 		if (!MIDI_Available()) sb.midi = false;

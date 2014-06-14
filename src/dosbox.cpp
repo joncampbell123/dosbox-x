@@ -1332,6 +1332,13 @@ void DOSBOX_Init(void) {
 			"If clear, sb16 emulation will honor the sbpro stereo bit. Note that Creative SB16 cards do not\n"
 			"honor the stereo bit, and this option allows DOSBox emulate that fact.");
 
+	/* TODO: Does real Sound Blaster 1.0 and 2.0 hardware actually do this?!?!? If it does, make this "true" by default */
+	Pbool = secprop->Add_bool("io port aliasing",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("If set, Sound Blaster ports alias by not decoding the LSB of the I/O port.\n"
+			"This option only applies when sbtype is set to sb1 or sb2 (not SBPro or SB16).\n"
+			"This is a hack for the Electromotive Force 'Internal Damage' demo which apparently\n"
+			"relies on this behavior for Sound Blaster output.");
+
 	secprop=control->AddSection_prop("gus",&GUS_Init,true); //done
 	Pbool = secprop->Add_bool("gus",Property::Changeable::WhenIdle,false); 	
 	Pbool->Set_help("Enable the Gravis Ultrasound emulation.");
