@@ -99,6 +99,7 @@ enum {
 
 struct SB_INFO {
 	Bitu freq;
+	Bit8u timeconst;
 	Bitu dma_dac_srcrate;
 	struct {
 		bool stereo,sign,autoinit;
@@ -847,27 +848,29 @@ static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign) {
 	}
 
 	if (sb.sample_rate_limits) { /* enforce speed limits documented by Creative */
-		unsigned int u_limit=23000,l_limit=4000; /* NTS: Recording vs playback is not considered because DOSBox only emulates playback */
+		/* commands that invoke this call use the DSP time constant, so use the DSP
+		 * time constant to constrain rate */
+		unsigned int u_limit=212;/* 23KHz */
 
 		/* NTS: We skip the SB16 commands because those are handled by another function */
 		if ((sb.dsp.cmd&0xFE) == 0x74 || sb.dsp.cmd == 0x7D) /* 4-bit ADPCM */
-			u_limit = 12000;
+			u_limit = 172; /* 12KHz */
 		else if ((sb.dsp.cmd&0xFE) == 0x76) /* 2.6-bit ADPCM */
-			u_limit = 13000;
+			u_limit = 179; /* 13KHz */
 		else if ((sb.dsp.cmd&0xFE) == 0x16) /* 2-bit ADPCM */
-			u_limit = 11000;
+			u_limit = 165; /* 11KHz */
 		else if (sb.type == SBT_16) /* Sound Blaster 16: Apparently you no longer need to issue highspeed commands, DSP playback commands can go up to max sample rate */
-			u_limit = sb.vibra ? 48000 : 44100;
+			u_limit = sb.vibra ? 235/*48KHz*/ : 233/*44.1KHz*/;
 		else
-			u_limit = (sb.dsp.highspeed ? 44100 : 23000);
+			u_limit = (sb.dsp.highspeed ? 233/*44.1KHz*/ : 212/*23KHz*/);
 
 		/* NTS: Don't forget: Sound Blaster Pro "stereo" is programmed with a time constant divided by
 		 *      two times the sample rate, which is what we get back here. That's why here we don't need
 		 *      to consider stereo vs mono. */
-		if (sb.freq < l_limit)
-			sb.freq = l_limit;
-		if (sb.freq > u_limit)
-			sb.freq = u_limit;
+		if (sb.timeconst > u_limit) {
+			sb.timeconst = u_limit;
+			sb.freq = (256000000 / (65536 - (sb.timeconst << 8)));
+		}
 	}
 
 	sb.dma_dac_mode=0;
@@ -905,6 +908,8 @@ static void DSP_PrepareDMA_New(DMA_MODES mode,Bitu length,bool autoinit,bool ste
 		if (sb.freq > u_limit)
 			sb.freq = u_limit;
 	}
+
+	sb.timeconst = (65536 - (256000000 / sb.freq)) >> 8;
 
 	Bitu freq=sb.freq;
 	//equal length if data format and dma channel are both 16-bit or 8-bit
@@ -1124,6 +1129,7 @@ static void DSP_DoCommand(void) {
 		break;
 	case 0x40:	/* Set Timeconstant */
 		sb.freq=(256000000 / (65536 - (sb.dsp.in.data[0] << 8)));
+		sb.timeconst=sb.dsp.in.data[0];
 		/* Nasty kind of hack to allow runtime changing of frequency */
 		if (sb.dma.mode != DSP_DMA_NONE && sb.dma.autoinit) {
 			DSP_PrepareDMA_Old(sb.dma.mode,sb.dma.autoinit,sb.dma.sign);
