@@ -838,9 +838,12 @@ static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign) {
 	/* FIXME: DSP 2.xx and 3.xx are said to require a reset to exit highspeed mode.
 	 *        And the DSP does not accept writes. Is that true for SB16 hardware? */
 	if (sb.dsp.cmd == 0x90 || sb.dsp.cmd == 0x91) { /* highspeed modes */
-		/* Ignore high-speed DAC commands if Sound Blaster 1.xx */
-		if (sb.type == SBT_1) return;
-		sb.dsp.highspeed = true;
+		if (sb.type == SBT_1) /* Ignore high-speed DAC commands if Sound Blaster 1.xx */
+			return;
+		else if (sb.type == SBT_16) /* Sound Blaster 16: There is no high-speed mode, hispeed commands are aliases of non-hispeed commands effectively */
+			sb.dsp.highspeed = false;
+		else			/* SB 2.0 and Pro: note it and emulate it */
+			sb.dsp.highspeed = true;
 	}
 	else {
 		sb.dsp.highspeed = false;
@@ -849,24 +852,17 @@ static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign) {
 	if (sb.sample_rate_limits) { /* enforce speed limits documented by Creative */
 		unsigned int u_limit=23000,l_limit=4000; /* NTS: Recording vs playback is not considered because DOSBox only emulates playback */
 
+		/* NTS: We skip the SB16 commands because those are handled by another function */
 		if ((sb.dsp.cmd&0xFE) == 0x74 || sb.dsp.cmd == 0x7D) /* 4-bit ADPCM */
 			u_limit = 12000;
 		else if ((sb.dsp.cmd&0xFE) == 0x76) /* 2.6-bit ADPCM */
 			u_limit = 13000;
 		else if ((sb.dsp.cmd&0xFE) == 0x16) /* 2-bit ADPCM */
 			u_limit = 11000;
-		else if ((sb.dsp.cmd&0xFE) == 0x90) /* high-speed DAC */ {
-			if (sb.type == SBT_1) /* 1.xx does not support */
-				return;
-			else
-				u_limit = 44100; /* which is 22050Hz stereo when programmed DSP 3.x style */
-		}
-		/* NTS: We skip the SB16 commands because those are handled by another function */
-		else {
-			/* NTS: experience tells me that even on SB16 the traditional (pre 4.xx) DSP commands
-			 *      are limited to 23KHz. TODO: What are the highspeed DAC commands limited to? 44.1KHz? 48KHz? */
-			u_limit = 23000; /* non-highspeed limit is 23KHz */
-		}
+		else if (sb.type == SBT_16) /* Sound Blaster 16: Apparently you no longer need to issue highspeed commands, DSP playback commands can go up to max sample rate */
+			u_limit = sb.vibra ? 48000 : 44100;
+		else
+			u_limit = (sb.dsp.highspeed ? 44100 : 23000);
 
 		/* NTS: Don't forget: Sound Blaster Pro "stereo" is programmed with a time constant divided by
 		 *      two times the sample rate, which is what we get back here. That's why here we don't need
