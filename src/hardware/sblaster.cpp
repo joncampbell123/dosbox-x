@@ -863,14 +863,21 @@ static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign) {
 		unsigned int u_limit=212;/* 23KHz */
 
 		/* NTS: We skip the SB16 commands because those are handled by another function */
-		if ((sb.dsp.cmd&0xFE) == 0x74 || sb.dsp.cmd == 0x7D) /* 4-bit ADPCM */
+		if ((sb.dsp.cmd&0xFE) == 0x74 || sb.dsp.cmd == 0x7D) { /* 4-bit ADPCM */
 			u_limit = 172; /* 12KHz */
-		else if ((sb.dsp.cmd&0xFE) == 0x76) /* 2.6-bit ADPCM */
-			u_limit = 179; /* 13KHz */
-		else if ((sb.dsp.cmd&0xFE) == 0x16) /* 2-bit ADPCM */
-			u_limit = 165; /* 11KHz */
+		}
+		else if ((sb.dsp.cmd&0xFE) == 0x76) { /* 2.6-bit ADPCM */
+			if (sb.type == SBT_2) u_limit = 172; /* 12KHz */
+			else u_limit = 179; /* 13KHz */
+		}
+		else if ((sb.dsp.cmd&0xFE) == 0x16) { /* 2-bit ADPCM */
+			if (sb.type == SBT_2) u_limit = 189; /* 15KHz */
+			else u_limit = 165; /* 11KHz */
+		}
 		else if (sb.type == SBT_16) /* Sound Blaster 16: Apparently you no longer need to issue highspeed commands, DSP playback commands can go up to max sample rate */
 			u_limit = sb.vibra ? 235/*48KHz*/ : 233/*44.1KHz*/;
+		else if (sb.type == SBT_2) /* Sound Blaster 2.0: According to a DSP 2.1 card I own, there are some different limits than documented (FIXME: not anomolies?) */
+			u_limit = (sb.dsp.highspeed ? 234/*46KHz*/ : 210/*22.5KHz*/);
 		else
 			u_limit = (sb.dsp.highspeed ? 233/*44.1KHz*/ : 212/*23KHz*/);
 
