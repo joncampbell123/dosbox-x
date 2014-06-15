@@ -136,6 +136,11 @@ struct SB_INFO {
 	Bit8u time_constant;
 	DSP_MODES mode;
 	SB_TYPES type;
+	int busy_cycle_hz;
+	int busy_cycle_duty_percent;
+	int busy_cycle_io_hack;
+	double busy_cycle_last_check;
+	double busy_cycle_last_poll;
 	struct {
 		bool pending_8bit;
 		bool pending_16bit;
@@ -1366,6 +1371,39 @@ static void DSP_DoCommand(void) {
 	sb.dsp.in.pos=0;
 }
 
+static bool DSP_busy_cycle() {
+	double now;
+	int t;
+
+	if (sb.busy_cycle_hz <= 0) return false;
+	if (sb.busy_cycle_duty_percent <= 0) return false;
+
+	/* NTS: DOSBox's I/O emulation doesn't yet attempt to accurately match ISA bus speeds or
+	 *      consider ISA bus cycles, but to emulate SB16 behavior we have to "time" it so
+	 *      that 8 consecutive I/O reads eventually see a transition from busy to not busy
+	 *      (or the other way around). So what this hack does is it uses accurate timing
+	 *      to determine where in the cycle we are, but if this function is called repeatedly
+	 *      through I/O access, we switch to incrementing a counter to ensure busy/not busy
+	 *      transition happens in 8 I/O cycles.
+	 *
+	 *      Without this hack, the CPU cycles count becomes a major factor in how many I/O
+	 *      reads are required for busy/not busy to happen. If you set cycles count high
+	 *      enough, more than 8 is required, and the SNDSB test code will have issues with
+	 *      direct DAC mode again.
+	 *
+	 *      This isn't 100% accurate, but it's the best DOSBox-X can do for now to mimick
+	 *      SB16 DSP behavior. */
+
+	now = PIC_FullIndex();
+	if (now >= (sb.busy_cycle_last_check+0.02/*ms*/))
+		sb.busy_cycle_io_hack = (int)(fmod((now / 1000) * sb.busy_cycle_hz,1.0) * 16);
+
+	sb.busy_cycle_last_check = now;
+	t = ((sb.busy_cycle_io_hack % 16) * 100) / 16; /* HACK: DOSBox's I/O is not quite ISA bus speeds or related to it */
+	if (t < sb.busy_cycle_duty_percent) return true;
+	return false;
+}
+
 static void DSP_DoWrite(Bit8u val) {
 	if (sb.dsp.write_busy || sb.dsp.highspeed) {
 		LOG(LOG_SB,LOG_WARN)("DSP:Command write %2X ignored, DSP not ready. DOS game or OS is not polling status",val);
@@ -1764,6 +1802,13 @@ static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
 	case DSP_WRITE_STATUS:
 		switch (sb.dsp.state) {
 		case DSP_S_NORMAL:
+			/* NTS: DSP "busy cycle" is independent of whether the DSP is actually
+			 *      busy (executing a command) or highspeed mode. On SB16 hardware,
+			 *      writing a DSP command during the busy cycle means that the command
+			 *      is remembered, but not acted on until the DSP leaves it's busy
+			 *      cycle. */
+			sb.busy_cycle_io_hack++; /* NTS: busy cycle I/O timing hack! */
+			if (DSP_busy_cycle()) return 0xFF;
 			if (sb.dsp.write_busy || sb.dsp.highspeed) return 0xff;
 			return 0x7f;
 		case DSP_S_RESET:
@@ -1791,6 +1836,9 @@ static void write_sb(Bitu port,Bitu val,Bitu /*iolen*/) {
 		DSP_DoReset(val8);
 		break;
 	case DSP_WRITE_DATA:
+		/* FIXME: We need to emulate behavior where either the DSP command is delayed (busy cycle)
+		 *        and then acted on, or we need to emulate the DSP ignoring the byte because a
+		 *        command is in progress */
 		DSP_DoWrite(val8);
 		break;
 	case MIXER_INDEX:
@@ -2094,6 +2142,10 @@ public:
 		sb.sample_rate_limits=section->Get_bool("sample rate limits");
 		sb.sbpro_stereo_bit_strict_mode=section->Get_bool("stereo control with sbpro only");
 		sb.hw.sb_io_alias=section->Get_bool("io port aliasing");
+		sb.busy_cycle_hz=section->Get_int("dsp busy cycle rate");
+		sb.busy_cycle_duty_percent=section->Get_int("dsp busy cycle duty");
+		sb.busy_cycle_last_check=0;
+		sb.busy_cycle_io_hack=0;
 
 		si=section->Get_int("irq");
 		sb.hw.irq=(si >= 0) ? si : 0xFF;
@@ -2194,6 +2246,18 @@ public:
 		/* TODO: Does the Sound Blaster 2.0 have the same aliasing problem? */
 		/* FIXME: We're going to assume the Game Blaster has the same problem since it pre-dates the Sound Blaster 1.x */
 		if (!(sb.type == SBT_1 || sb.type == SBT_2 || sb.type == SBT_GB)) sb.hw.sb_io_alias=false;
+
+		/* auto-pick busy cycle */
+		if (sb.busy_cycle_hz < 0) {
+			if (sb.type == SBT_16) /* Guess: Pentium PCI-ISA SYSCLK=8.333MHz  /  (6 cycles per 8-bit I/O read  x  16 reads from DSP status) = about 86.805KHz? */
+				sb.busy_cycle_hz = 8333333 / 6 / 16;
+			else /* other SB cards as far as I know don't have this busy cycle */
+				sb.busy_cycle_hz = 0;
+		}
+
+		/* auto-pick busy duty cycle */
+		if (sb.busy_cycle_duty_percent < 0 || sb.busy_cycle_duty_percent > 100)
+			sb.busy_cycle_duty_percent = 50; /* seems about right */
 
 		/* Soundblaster midi interface */
 		if (!MIDI_Available()) sb.midi = false;

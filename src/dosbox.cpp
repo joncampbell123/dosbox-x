@@ -1332,6 +1332,22 @@ void DOSBOX_Init(void) {
 			"If clear, sb16 emulation will honor the sbpro stereo bit. Note that Creative SB16 cards do not\n"
 			"honor the stereo bit, and this option allows DOSBox emulate that fact.");
 
+	/* NTS: It turns out (SB16 at least) the DSP will periodically set bit 7 (busy) by itself at some
+	 *      clock rate even if it's idle. Casual testing on an old Pentium system with a ViBRA shows
+	 *      it's possible to see both 0x7F and 0xFF come back if you repeatedly type "i 22c" in DOS
+	 *      DEBUG.EXE.  FIXME: At what clock rate and duty cycle does this happen? */
+	Pint = secprop->Add_int("dsp busy cycle rate",Property::Changeable::WhenIdle,-1/*default*/);
+	Pint->Set_help("Sound Blaster 16 DSP chips appear to go busy periodically at some high clock rate\n"
+			"whether the DSP is actually doing anything for the system or not. This is an accuracy\n"
+			"option for Sound Blaster emulation. If this option is nonzero, it will be interpreted\n"
+			"as the busy cycle rate in Hz. If zero, busy cycle will not be emulated. If -1, sound\n"
+			"blaster emulation will automatically choose a setting based on the sbtype= setting");
+
+	Pint = secprop->Add_int("dsp busy cycle duty",Property::Changeable::WhenIdle,-1/*default*/);
+	Pint->Set_help("If emulating SB16 busy cycle, this value (0 to 100) controls the duty cycle of the busy cycle.\n"
+			"If this option is set to -1, Sound Blaster emulation will choose a value automatically according\n"
+			"to sbtype=. If 0, busy cycle emulation is disabled.");
+
 	/* TODO: Does real Sound Blaster 1.0 and 2.0 hardware actually do this?!?!? If it does, make this "true" by default */
 	Pbool = secprop->Add_bool("io port aliasing",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("If set, Sound Blaster ports alias by not decoding the LSB of the I/O port.\n"
