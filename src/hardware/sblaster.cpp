@@ -28,6 +28,11 @@
  *       for autoinit playback, in other words either single-cycle without FIFO
  *       or autoinit with FIFO.
  *
+ *       Also noticed is that the DSP "nag" mode in my test program can interrupt
+ *       the SB16's DSP chip at the right time (with auto-init DMA) that it can
+ *       cause the DSP to drop a byte and effectively cause stereo left/right
+ *       swapping. It can also cause 16-bit DMA to halt.
+ *
  *       As usual, expect this to be a dosbox.conf option --Jonathan C. */
 
 #include <iomanip>
@@ -1904,8 +1909,8 @@ class ViBRA_PnP : public ISAPnPDevice {
 			resource_ident = 0;
 			resource_data = (unsigned char*)ViBRA_sysdev;
 			resource_data_len = sizeof(ViBRA_sysdev);
-			*((uint32_t*)(ident+0)) = ISAPNP_ID('C','T','L',0x0,0x0,0x7,0x0); /* CTL0070: ViBRA C */
-			*((uint32_t*)(ident+4)) = 0xFFFFFFFFUL;
+			host_writed(ident+0,ISAPNP_ID('C','T','L',0x0,0x0,0x7,0x0)); /* CTL0070: ViBRA C */
+			host_writed(ident+4,0xFFFFFFFFUL);
 			checksum_ident();
 		}
 		void select_logical_device(Bitu val) {
