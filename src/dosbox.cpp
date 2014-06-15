@@ -1343,12 +1343,13 @@ void DOSBOX_Init(void) {
 			"If this option is set to -1, Sound Blaster emulation will choose a value automatically according\n"
 			"to sbtype=. If 0, busy cycle emulation is disabled.");
 
-	/* TODO: Does real Sound Blaster 1.0 and 2.0 hardware actually do this?!?!? If it does, make this "true" by default */
-	Pbool = secprop->Add_bool("io port aliasing",Property::Changeable::WhenIdle,false);
+	/* NTS: Confirmed: My Sound Blaster 2.0 (at least) mirrors the DSP on port 22Ch and 22Dh. This option
+	 *      will only take effect with sbtype sb1 and sb2, so make it enabled by default. Accuracy setting. */
+	Pbool = secprop->Add_bool("io port aliasing",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("If set, Sound Blaster ports alias by not decoding the LSB of the I/O port.\n"
 			"This option only applies when sbtype is set to sb1 or sb2 (not SBPro or SB16).\n"
 			"This is a hack for the Electromotive Force 'Internal Damage' demo which apparently\n"
-			"relies on this behavior for Sound Blaster output.");
+			"relies on this behavior for Sound Blaster output and should be enabled for accuracy in emulation.");
 
 	secprop=control->AddSection_prop("gus",&GUS_Init,true); //done
 	Pbool = secprop->Add_bool("gus",Property::Changeable::WhenIdle,false); 	
