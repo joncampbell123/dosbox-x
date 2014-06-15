@@ -1383,7 +1383,10 @@ static void DSP_DoWrite(Bit8u val) {
 		 * limit output to 23KHz. */
 		if (sb.sample_rate_limits) {
 			if (sb.dsp.cmd == 0x10/*DSP direct DAC, this write is the data byte*/) {
-				delay = (1000000000 / 25500/*Hz FIXME*/) - sb.dsp.dsp_write_busy_time;
+				if (sb.type == SBT_16 && sb.vibra)
+					delay = (1000000000 / 24000) - sb.dsp.dsp_write_busy_time - 3000;
+				else
+					delay = (1000000000 / 23000) - sb.dsp.dsp_write_busy_time - 3000;
 			}
 		}
 
