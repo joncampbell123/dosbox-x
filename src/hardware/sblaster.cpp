@@ -832,31 +832,7 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo) {
 #endif
 }
 
-static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign) {
-	/* Hack for Crystal Dream and any other bozo implementation that spams the DSP
-	 * with command 0x14: if we're already playing audio, don't setup audio playback
-	 * again. the reason this is important is that this setup process sets the mode
-	 * to DMA_MASKED, which gives the mixer callback an opportunity to insert silence
-	 * and cause popping and crackling. */
-	if (sb.mode == MODE_DMA) {
-		if (!autoinit) sb.dma.total=1+sb.dsp.in.data[0]+(sb.dsp.in.data[1] << 8);
-		sb.dma.left=sb.dma.total;
-		sb.dma.autoinit=autoinit;
-		return;
-	}
-
-	if (sb.dsp.cmd == 0x90 || sb.dsp.cmd == 0x91) { /* highspeed modes */
-		if (sb.type == SBT_1) /* Ignore high-speed DAC commands if Sound Blaster 1.xx */
-			return;
-		else if (sb.type == SBT_16) /* Sound Blaster 16: There is no high-speed mode, hispeed commands are aliases of non-hispeed commands effectively */
-			sb.dsp.highspeed = false;
-		else			/* SB 2.0 and Pro: note it and emulate it */
-			sb.dsp.highspeed = true;
-	}
-	else {
-		sb.dsp.highspeed = false;
-	}
-
+static Bit8u DSP_RateLimitedFinalTC_Old() {
 	if (sb.sample_rate_limits) { /* enforce speed limits documented by Creative */
 		/* commands that invoke this call use the DSP time constant, so use the DSP
 		 * time constant to constrain rate */
@@ -884,11 +860,48 @@ static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign) {
 		/* NTS: Don't forget: Sound Blaster Pro "stereo" is programmed with a time constant divided by
 		 *      two times the sample rate, which is what we get back here. That's why here we don't need
 		 *      to consider stereo vs mono. */
-		if (sb.timeconst > u_limit) {
-			sb.timeconst = u_limit;
-			sb.freq = (256000000 / (65536 - (sb.timeconst << 8)));
-		}
+		if (sb.timeconst > u_limit) return u_limit;
 	}
+
+	return sb.timeconst;
+}
+
+static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign) {
+	Bit8u final_tc;
+
+	/* Hack for Crystal Dream and any other bozo implementation that spams the DSP
+	 * with command 0x14: if we're already playing audio, don't setup audio playback
+	 * again. the reason this is important is that this setup process sets the mode
+	 * to DMA_MASKED, which gives the mixer callback an opportunity to insert silence
+	 * and cause popping and crackling. */
+	if (sb.mode == MODE_DMA) {
+		if (!autoinit) sb.dma.total=1+sb.dsp.in.data[0]+(sb.dsp.in.data[1] << 8);
+		sb.dma.left=sb.dma.total;
+		sb.dma.autoinit=autoinit;
+		return;
+	}
+
+	if (sb.dsp.cmd == 0x90 || sb.dsp.cmd == 0x91) { /* highspeed modes */
+		if (sb.type == SBT_1) /* Ignore high-speed DAC commands if Sound Blaster 1.xx */
+			return;
+		else if (sb.type == SBT_16) /* Sound Blaster 16: There is no high-speed mode, hispeed commands are aliases of non-hispeed commands effectively */
+			sb.dsp.highspeed = false;
+		else			/* SB 2.0 and Pro: note it and emulate it */
+			sb.dsp.highspeed = true;
+	}
+	else {
+		sb.dsp.highspeed = false;
+	}
+
+	/* BUGFIX: Instead of direct rate-limiting the DSP time constant, keep the original
+	 *         value written intact and rate-limit a copy. Bugfix for Optic Nerve and
+	 *         sbtype=sbpro2. On initialization the demo first sends DSP command 0x14
+	 *         with a 2-byte playback interval, then sends command 0x91 to begin
+	 *         playback. Rate-limiting the copy means the 45454Hz time constant written
+	 *         by the demo stays intact despite being limited to 22050Hz during the first
+	 *         DSP block (command 0x14). */
+	final_tc = DSP_RateLimitedFinalTC_Old();
+	sb.freq = (256000000 / (65536 - (final_tc << 8)));
 
 	sb.dma_dac_mode=0;
 	sb.dma.autoinit=autoinit;
