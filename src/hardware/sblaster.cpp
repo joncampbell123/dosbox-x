@@ -2108,7 +2108,7 @@ public:
 
 		sb.mixer.enabled=section->Get_bool("sbmixer");
 		sb.mixer.stereo=false;
-		OPL_Mode opl_mode = OPL_none;
+
 		Find_Type_And_Opl(section,sb.type,oplmode);
 		bool isCMSpassthrough = false;
 	
@@ -2214,6 +2214,8 @@ public:
 		case OPL_dualopl2:
 		case OPL_opl3:
 			OPL_ShutDown(m_configuration);
+			break;
+		default:
 			break;
 		}
 		if (sb.type==SBT_NONE || sb.type==SBT_GB) return;
