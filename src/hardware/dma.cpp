@@ -82,8 +82,23 @@ static void DMA_BlockReadBackwards(PhysPt spage,PhysPt offset,void * data,Bitu s
 
 	if (dma16) {
 		/* I'm going to assume by how ISA DMA works that you can't just copy bytes backwards,
-		 * because things are transferred in 16-bit WORDs. I know of know software that would
-		 * actually want to transfer 16-bit DMA backwards, so, it's not implemented. */
+		 * because things are transferred in 16-bit WORDs. So you would copy each pair of bytes
+		 * in normal order, writing the pairs backwards [*1]. I know of no software that would
+		 * actually want to transfer 16-bit DMA backwards, so, it's not implemented.
+		 *
+		 * Like this:
+		 *
+		 * 0x1234 0x5678 0x9ABC 0xDEF0
+		 *
+		 * becomes:
+		 *
+		 * 0xDEF0 0x9ABC 0x5678 0x1234
+		 *
+		 * it does NOT become:
+		 *
+		 * 0xF0DE 0xBC9A 0x7856 0x3412
+		 *
+		 * */
 		LOG(LOG_DMACONTROL,LOG_WARN)("16-bit decrementing DMA not implemented");
 	}
 	else {
