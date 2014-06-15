@@ -219,7 +219,8 @@ void DmaController::WriteControllerReg(Bitu reg,Bitu val,Bitu /*len*/) {
 		UpdateEMSMapping();
 		chan=GetChannel(val & 3);
 		chan->autoinit=(val & 0x10) > 0;
-		chan->increment=(val & 0x20) > 0;
+		chan->increment=(val & 0x20) == 0; /* 0=increment 1=decrement */
+		if (!chan->increment) LOG(LOG_DMACONTROL,LOG_WARN)("DMA: Mode register written to use decrementing DMA, not supported yet");
 		//TODO Maybe other bits?
 		break;
 	case 0xc:		/* Clear Flip/Flip */
