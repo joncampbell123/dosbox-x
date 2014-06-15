@@ -38,6 +38,7 @@ static Bit32u dma_wrapping = 0xffff;
 
 bool enable_1st_dma = true;
 bool enable_2nd_dma = true;
+bool allow_decrement_mode = true;
 
 static void UpdateEMSMapping(void) {
 	/* if EMS is not present, this will result in a 1:1 mapping */
@@ -55,9 +56,6 @@ static void DMA_BlockRead(PhysPt spage,PhysPt offset,void * data,Bitu size,Bit8u
 	offset <<= dma16;
 	Bit32u dma_wrap = ((0xffff<<dma16)+dma16) | dma_wrapping;
 	for ( ; size ; size--, offset++) {
-		if (offset>(dma_wrapping<<dma16)) {
-			//LOG_MSG("DMA segbound wrapping (read): %x:%x size %x [%x] wrap %x",spage,offset,size,dma16,dma_wrapping);
-		}
 		offset &= dma_wrap;
 		Bitu page = highpart_addr_page+(offset >> 12);
 		/* care for EMS pageframe etc. */
@@ -65,6 +63,39 @@ static void DMA_BlockRead(PhysPt spage,PhysPt offset,void * data,Bitu size,Bit8u
 		else if (page < EMM_PAGEFRAME4K+0x10) page = ems_board_mapping[page];
 		else if (page < LINK_START) page = paging.firstmb[page];
 		*write++=phys_readb(page*4096 + (offset & 4095));
+	}
+}
+
+/* decrement mode. Needed for EMF Internal Damage and other weird demo programs that like to transfer
+ * audio data backwards to the sound card.
+ *
+ * NTS: Don't forget, from 8237 datasheet: The DMA chip transfers a byte (or word if 16-bit) of data,
+ *      and THEN increments or decrements the address. So in decrement mode, "address" is still the
+ *      first byte before decrementing. */
+static void DMA_BlockReadBackwards(PhysPt spage,PhysPt offset,void * data,Bitu size,Bit8u dma16) {
+	Bit8u * write=(Bit8u *) data;
+	Bitu highpart_addr_page = spage>>12;
+
+	size <<= dma16;
+	offset <<= dma16;
+	Bit32u dma_wrap = ((0xffff<<dma16)+dma16) | dma_wrapping;
+
+	if (dma16) {
+		/* I'm going to assume by how ISA DMA works that you can't just copy bytes backwards,
+		 * because things are transferred in 16-bit WORDs. I know of know software that would
+		 * actually want to transfer 16-bit DMA backwards, so, it's not implemented. */
+		LOG(LOG_DMACONTROL,LOG_WARN)("16-bit decrementing DMA not implemented");
+	}
+	else {
+		for ( ; size ; size--, offset--) {
+			offset &= dma_wrap;
+			Bitu page = highpart_addr_page+(offset >> 12);
+			/* care for EMS pageframe etc. */
+			if (page < EMM_PAGEFRAME4K) page = paging.firstmb[page];
+			else if (page < EMM_PAGEFRAME4K+0x10) page = ems_board_mapping[page];
+			else if (page < LINK_START) page = paging.firstmb[page];
+			*write++=phys_readb(page*4096 + (offset & 4095));
+		}
 	}
 }
 
@@ -219,9 +250,8 @@ void DmaController::WriteControllerReg(Bitu reg,Bitu val,Bitu /*len*/) {
 		UpdateEMSMapping();
 		chan=GetChannel(val & 3);
 		chan->autoinit=(val & 0x10) > 0;
-		chan->increment=(val & 0x20) == 0; /* 0=increment 1=decrement */
-		if (!chan->increment) LOG(LOG_DMACONTROL,LOG_WARN)("DMA: Mode register written to use decrementing DMA, not supported yet");
-		//TODO Maybe other bits?
+		chan->increment=(!allow_decrement_mode) || ((val & 0x20) == 0); /* 0=increment 1=decrement */
+		//TODO Maybe other bits? Like bits 6-7 to select demand/single/block/cascade mode? */
 		break;
 	case 0xc:		/* Clear Flip/Flip */
 		flipflop=false;
@@ -316,12 +346,23 @@ Bitu DmaChannel::Read(Bitu want, Bit8u * buffer) {
 again:
 	Bitu left=(currcnt+1);
 	if (want<left) {
-		DMA_BlockRead(pagebase,curraddr,buffer,want,DMA16);
-		done+=want;
-		curraddr+=want;
+		if (increment) {
+			DMA_BlockRead(pagebase,curraddr,buffer,want,DMA16);
+			curraddr+=want;
+		}
+		else {
+			DMA_BlockReadBackwards(pagebase,curraddr,buffer,want,DMA16);
+			curraddr-=want;
+		}
+
 		currcnt-=want;
+		done+=want;
 	} else {
-		DMA_BlockRead(pagebase,curraddr,buffer,want,DMA16);
+		if (increment)
+			DMA_BlockRead(pagebase,curraddr,buffer,want,DMA16);
+		else
+			DMA_BlockReadBackwards(pagebase,curraddr,buffer,want,DMA16);
+
 		buffer+=left << DMA16;
 		want-=left;
 		done+=left;
@@ -332,7 +373,8 @@ again:
 			if (want) goto again;
 			UpdateEMSMapping();
 		} else {
-			curraddr+=left;
+			if (increment) curraddr+=left;
+			else curraddr-=left;
 			currcnt=0xffff;
 			masked=true;
 			UpdateEMSMapping();
@@ -345,6 +387,14 @@ again:
 Bitu DmaChannel::Write(Bitu want, Bit8u * buffer) {
 	Bitu done=0;
 	curraddr &= dma_wrapping;
+
+	/* TODO: Implement DMA_BlockWriteBackwards() if you find a DOS program, any program, that
+	 *       transfers data backwards into system memory */
+	if (!increment) {
+		LOG(LOG_DMACONTROL,LOG_WARN)("DMA decrement mode (writing) not implemented");
+		return 0;
+	}
+
 again:
 	Bitu left=(currcnt+1);
 	if (want<left) {
@@ -384,6 +434,7 @@ public:
 		enable_1st_dma = enable_2nd_dma || section->Get_bool("enable 1st dma controller");
 		enable_dma_extra_page_registers = section->Get_bool("enable dma extra page registers");
 		dma_page_register_writeonly = section->Get_bool("dma page registers write-only");
+		allow_decrement_mode = section->Get_bool("allow dma address decrement");
 
 		if (enable_1st_dma) DmaControllers[0] = new DmaController(0);
 		else DmaControllers[0] = NULL;

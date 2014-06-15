@@ -953,6 +953,10 @@ void DOSBOX_Init(void) {
 	Pbool->Set_help("Emulate 2nd (AT) DMA controller (default). Set to 0 if you wish to emulate a PC/XT system without 16-bit DMA.\n"
 			"Note: mainline DOSBox automatically disables 16-bit DMA when machine=cga or machine=hercules, while DOSBox-X does not.");
 
+	Pbool = secprop->Add_bool("allow dma address decrement",Property::Changeable::WhenIdle,true);
+	Pbool->Set_help("If set, allow increment & decrement modes as specified in the 8237 datasheet.\n"
+			"If clear, always increment the address (as if to emulate clone 8237 implementations that skipped the inc/dec bit).");
+
 	Pbool = secprop->Add_bool("enable dma extra page registers",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("If set, emulate the extra page registers (I/O ports 0x80, 0x84-0x86, 0x88, 0x8C-0x8E), like actual hardware.\n"
 			"Note that mainline DOSBox behavior is to NOT emulate these registers.");
