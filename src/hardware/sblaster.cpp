@@ -1819,6 +1819,8 @@ static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
 		break;
 	case DSP_WRITE_STATUS:
 		switch (sb.dsp.state) {
+			/* FIXME: On a SB 2.0 card I own, the port will usually read either 0x2A or 0xAA,
+			 *        rather than 0x7F or 0xFF. Is there any significance to that? */
 		case DSP_S_NORMAL:
 			/* NTS: DSP "busy cycle" is independent of whether the DSP is actually
 			 *      busy (executing a command) or highspeed mode. On SB16 hardware,
