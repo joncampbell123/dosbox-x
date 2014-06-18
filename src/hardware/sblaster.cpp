@@ -161,6 +161,7 @@ struct SB_INFO {
 		bool highspeed;
 		bool require_irq_ack;
 		bool instant_direct_dac;
+		bool force_goldplay;
 		unsigned int dsp_write_busy_time; /* when you write to the DSP, how long it signals "busy" */
 	} dsp;
 	struct {
@@ -761,13 +762,21 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo) {
 	 *    Triton - Crystal Dream (1992) [SB and SB Pro modes]
 	 *    The Jungly (1992) [SB and SB Pro modes]
 	 */
-	if (sb.goldplay && sb.freq > 0 && sb.dma.chan->basecnt < 4)
+	if (sb.dsp.force_goldplay) {
+		sb.dma_dac_srcrate=freq;
 		sb.dma_dac_mode=1;
-	else
+	}
+	else if (sb.goldplay && sb.freq > 0 && sb.dma.chan->basecnt < ((mode==DSP_DMA_16_ALIASED?2:1)*(stereo?2:1))/*size of one sample in DMA counts*/) {
+		sb.dma_dac_srcrate=sb.freq;
+		sb.dma_dac_mode=1;
+	}
+	else {
+		sb.dma_dac_srcrate=sb.freq;
 		sb.dma_dac_mode=0;
+	}
 
 	sb.chan->FillUp();
-	sb.dma_dac_srcrate=sb.freq;
+
 	sb.dma.left=sb.dma.total;
 	sb.dma.mode=mode;
 	sb.dma.stereo=stereo;
@@ -2192,6 +2201,7 @@ public:
 		sb.busy_cycle_hz=section->Get_int("dsp busy cycle rate");
 		sb.busy_cycle_duty_percent=section->Get_int("dsp busy cycle duty");
 		sb.dsp.instant_direct_dac=section->Get_bool("instant direct dac");
+		sb.dsp.force_goldplay=section->Get_bool("force goldplay");
 
 		sb.busy_cycle_last_check=0;
 		sb.busy_cycle_io_hack=0;

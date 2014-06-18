@@ -1298,6 +1298,10 @@ void DOSBOX_Init(void) {
 	Phex = secprop->Add_hex("hardwarebase",Property::Changeable::WhenIdle,0x220);
 	Phex->Set_help("base address of the real hardware soundblaster:\n"\
 		"210,220,230,240,250,260,280");
+
+	Pbool = secprop->Add_bool("force goldplay",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("Always render Sound Blaster output sample-at-a-time. Testing option. You probably don't want to enable this.");
+
 	Pbool = secprop->Add_bool("goldplay",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Enable goldplay emulation.");
 
