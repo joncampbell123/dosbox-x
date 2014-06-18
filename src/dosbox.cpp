@@ -1325,6 +1325,9 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("sample rate limits",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("If set (default), limit DSP sample rate to what real hardware is limited to");
 
+	/* recommended for:
+	 *   1992 demo "overload" (if set, Sound Blaster support can run at 24KHz without causing demo to hang in the IRQ 0 timer)
+	 *   1993 demo "xmas 93" (superiority complex) because the demo's Sound Blaster mode writes at the timer interrupt rate without polling the DSP to check busy state */
 	Pbool = secprop->Add_bool("instant direct dac",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("If set, direct DAC output commands are instantaneous. This option is intended as a quick fix for\n"
 			"games or demos that play direct DAC music/sound from the IRQ 0 timer who a) write the DSP command\n"
