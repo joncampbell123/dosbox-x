@@ -160,6 +160,7 @@ struct SB_INFO {
 		Bitu write_busy;
 		bool highspeed;
 		bool require_irq_ack;
+		bool instant_direct_dac;
 		unsigned int dsp_write_busy_time; /* when you write to the DSP, how long it signals "busy" */
 	} dsp;
 	struct {
@@ -1436,10 +1437,13 @@ static void DSP_DoWrite(Bit8u val) {
 	{
 		unsigned int delay = sb.dsp.dsp_write_busy_time;
 
+		if (sb.dsp.instant_direct_dac) {
+			delay = 0;
+		}
 		/* Part of enforcing sample rate limits is to make sure to emulate that the
 		 * Direct DAC output command 0x10 is "busy" long enough to effectively rate
 		 * limit output to 23KHz. */
-		if (sb.sample_rate_limits) {
+		else if (sb.sample_rate_limits) {
 			if (sb.type == SBT_2) { /* timing observed on SB 2.0: there's no busy cycles. these approximate what i noted. --J.C. */
 				/* FIXME: This best approximates the Direct DAC playback observed on an SB 2.0 but it would be wiser
 				 *        to run the DSP command through a test program that times how long the command is busy and
@@ -2187,6 +2191,8 @@ public:
 		sb.hw.sb_io_alias=section->Get_bool("io port aliasing");
 		sb.busy_cycle_hz=section->Get_int("dsp busy cycle rate");
 		sb.busy_cycle_duty_percent=section->Get_int("dsp busy cycle duty");
+		sb.dsp.instant_direct_dac=section->Get_bool("instant direct dac");
+
 		sb.busy_cycle_last_check=0;
 		sb.busy_cycle_io_hack=0;
 

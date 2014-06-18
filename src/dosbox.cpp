@@ -1325,6 +1325,13 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("sample rate limits",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("If set (default), limit DSP sample rate to what real hardware is limited to");
 
+	Pbool = secprop->Add_bool("instant direct dac",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("If set, direct DAC output commands are instantaneous. This option is intended as a quick fix for\n"
+			"games or demos that play direct DAC music/sound from the IRQ 0 timer who a) write the DSP command\n"
+			"and data without polling the DSP to ensure it's ready or b) can get locked into the IRQ 0 handler\n"
+			"waiting for DSP status when instructed to play at or beyond the DSP's maximum direct DAC sample rate.\n"
+			"This fix allows broken Sound Blaster code to work and should not be enabled unless necessary.");
+
 	/* accuracy emulation: SB16 does not honor SBPro stereo bit in the mixer */
 	Pbool = secprop->Add_bool("stereo control with sbpro only",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Default on. If set, Sound Blaster Pro stereo is not available when emulating sb16 or sb16vibra.\n"
