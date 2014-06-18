@@ -40,6 +40,13 @@
 
 #define VGA_PARTS 4
 
+extern bool vga_page_flip_occurred;
+
+void memxor(void *_d,unsigned int byte,size_t count) {
+	unsigned char *d = (unsigned char*)_d;
+	while (count-- > 0) *d++ ^= byte;
+}
+
 typedef Bit8u * (* VGA_Line_Handler)(Bitu vidstart, Bitu line);
 
 static VGA_Line_Handler VGA_DrawLine;
@@ -897,9 +904,17 @@ static void VGA_DrawSingleLine(Bitu /*blah*/) {
 				wptr[i] = value;
 			}
 		}
+		if (vga_page_flip_occurred) {
+			memxor(TempLine,0xFF,vga.draw.width*(vga.draw.bpp>>3));
+			vga_page_flip_occurred = false;
+		}
 		RENDER_DrawLine(TempLine);
 	} else {
-		Bit8u * data=VGA_DrawLine( vga.draw.address, vga.draw.address_line );	
+		Bit8u * data=VGA_DrawLine( vga.draw.address, vga.draw.address_line );
+		if (vga_page_flip_occurred) {
+			memxor(data,0xFF,vga.draw.width*(vga.draw.bpp>>3));
+			vga_page_flip_occurred = false;
+		}
 		RENDER_DrawLine(data);
 	}
 
@@ -1050,6 +1065,7 @@ static void VGA_PanningLatch(Bitu /*val*/) {
 
 static void VGA_VerticalTimer(Bitu /*val*/) {
 	vga.draw.delay.framestart = PIC_FullIndex();
+	vga_page_flip_occurred = false;
 
 	float vsynctimerval;
 	float vdisplayendtimerval;

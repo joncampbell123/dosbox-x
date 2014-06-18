@@ -937,6 +937,11 @@ void DOSBOX_Init(void) {
 	Pstring = secprop->Add_string("forcerate",Property::Changeable::Always,"");
 	Pstring->Set_help("Force the VGA framerate to a specific value(ntsc, pal, or specific hz), no matter what");
 
+	Pbool = secprop->Add_bool("page flip debug line",Property::Changeable::Always,false);
+	Pbool->Set_help("VGA debugging switch. If set, an inverse line will be drawn on the exact scanline that the CRTC display offset registers were written.\n"
+			"This can be used to help diagnose whether or not the DOS game is page flipping properly according to vertical retrace if the display on-screen is flickering.\n"
+			"You must enable linewise mode for this debug option to work correctly.");
+
 	Pbool = secprop->Add_bool("cgasnow",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("When machine=cga, determines whether or not to emulate CGA snow");
 

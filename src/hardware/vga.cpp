@@ -37,6 +37,13 @@ using namespace std;
 VGA_Type vga;
 SVGA_Driver svga;
 int enableCGASnow;
+bool vga_page_flip_occurred = false;
+bool enable_page_flip_debugging_marker = false;
+
+void page_flip_debug_notify() {
+	if (enable_page_flip_debugging_marker)
+		vga_page_flip_occurred = true;
+}
 
 Bit32u CGA_2_Table[16];
 Bit32u CGA_4_Table[256];
@@ -306,6 +313,7 @@ void VGA_Init(Section* sec) {
 	}
 
 	enableCGASnow = section->Get_bool("cgasnow");
+	enable_page_flip_debugging_marker = section->Get_bool("page flip debug line");
 
 	if (vga_force_refresh_rate > 0)
 		LOG(LOG_VGA,LOG_NORMAL)("VGA forced refresh rate active = %.3f",vga_force_refresh_rate);
