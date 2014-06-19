@@ -833,11 +833,12 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo) {
 	}
 
 #if (C_DEBUG)
-	LOG(LOG_SB,LOG_NORMAL)("DMA Transfer:%s %s %s freq %d rate %d size %d",
+	LOG(LOG_SB,LOG_NORMAL)("DMA Transfer:%s %s %s freq %d rate %d size %d gold %d",
 		type,
 		sb.dma.stereo ? "Stereo" : "Mono",
 		sb.dma.autoinit ? "Auto-Init" : "Single-Cycle",
-		freq,sb.dma.rate,sb.dma.total
+		freq,sb.dma.rate,sb.dma.total,
+		sb.dma_dac_mode
 	);
 #endif
 }
