@@ -942,6 +942,11 @@ void DOSBOX_Init(void) {
 			"This can be used to help diagnose whether or not the DOS game is page flipping properly according to vertical retrace if the display on-screen is flickering.\n"
 			"You must enable linewise mode for this debug option to work correctly.");
 
+	Pbool = secprop->Add_bool("vertical retrace poll debug line",Property::Changeable::Always,false);
+	Pbool->Set_help("VGA debugging switch. If set, an inverse green dotted line will be drawn on the exact scanline that the CRTC status port (0x3DA) was read.\n"
+			"This can be used to help diagnose whether the DOS game is propertly waiting for vertical retrace.\n"
+			"You must enable linewise mode for this debug option to work correctly.");
+
 	Pbool = secprop->Add_bool("cgasnow",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("When machine=cga, determines whether or not to emulate CGA snow");
 

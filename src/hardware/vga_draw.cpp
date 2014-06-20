@@ -40,11 +40,22 @@
 
 #define VGA_PARTS 4
 
+extern bool vga_3da_polled;
 extern bool vga_page_flip_occurred;
 
 void memxor(void *_d,unsigned int byte,size_t count) {
 	unsigned char *d = (unsigned char*)_d;
 	while (count-- > 0) *d++ ^= byte;
+}
+
+void memxor_greendotted_16bpp(uint16_t *d,unsigned int count,unsigned int line) {
+	static const uint16_t greenptrn[2] = { (0x3F << 5), 0 };
+	line &= 1;
+	count >>= 1;
+	while (count-- > 0) {
+		*d++ ^= greenptrn[line];
+		*d++ ^= greenptrn[line^1];
+	}
 }
 
 typedef Bit8u * (* VGA_Line_Handler)(Bitu vidstart, Bitu line);
@@ -908,12 +919,20 @@ static void VGA_DrawSingleLine(Bitu /*blah*/) {
 			memxor(TempLine,0xFF,vga.draw.width*(vga.draw.bpp>>3));
 			vga_page_flip_occurred = false;
 		}
+		if (vga_3da_polled) {
+			memxor_greendotted_16bpp((uint16_t*)TempLine,(vga.draw.width>>1)*(vga.draw.bpp>>3),vga.draw.lines_done);
+			vga_3da_polled = false;
+		}
 		RENDER_DrawLine(TempLine);
 	} else {
 		Bit8u * data=VGA_DrawLine( vga.draw.address, vga.draw.address_line );
 		if (vga_page_flip_occurred) {
 			memxor(data,0xFF,vga.draw.width*(vga.draw.bpp>>3));
 			vga_page_flip_occurred = false;
+		}
+		if (vga_3da_polled) {
+			memxor_greendotted_16bpp((uint16_t*)TempLine,(vga.draw.width>>1)*(vga.draw.bpp>>3),vga.draw.lines_done);
+			vga_3da_polled = false;
 		}
 		RENDER_DrawLine(data);
 	}
@@ -1066,6 +1085,7 @@ static void VGA_PanningLatch(Bitu /*val*/) {
 static void VGA_VerticalTimer(Bitu /*val*/) {
 	vga.draw.delay.framestart = PIC_FullIndex();
 	vga_page_flip_occurred = false;
+	vga_3da_polled = false;
 
 	float vsynctimerval;
 	float vdisplayendtimerval;
