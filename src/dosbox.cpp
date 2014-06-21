@@ -991,6 +991,13 @@ void DOSBOX_Init(void) {
 			"For example, if machine=cga, conventional memory can extend out to 0xB800 and provide up to 736KB of RAM.\n"
 			"This allows you to emulate PC/XT style memory extensions.");
 
+	Pint = secprop->Add_int("vesa lfb base scanline adjust",Property::Changeable::WhenIdle,0);
+	Pint->Set_help("If non-zero, the VESA BIOS will report the linear framebuffer as offset by this many scanlines.\n"
+			"For example, if the LFB is at 0xC0000000 and you need the demo to draw 2 scan lines lower,\n"
+			"at 0xC0000000 + (320*2) (320x240x256 mode), you would set this to 2. This option should be set\n"
+			"to zero by default unless needed for certain DOS demos that have sloppy VESA linear framebuffer\n"
+			"rendering code that renders a few scanlines UP into undefined memory preceeding the linear framebuffer.");
+
 	secprop->AddInitFunction(&CALLBACK_Init);
 	secprop->AddInitFunction(&DMA_Init);//done
 	secprop->AddInitFunction(&PIC_Init);//done

@@ -28,6 +28,8 @@
 #include "int10.h"
 #include "dos_inc.h"
 
+int hack_lfb_yadjust = 0;
+
 #define VESA_SUCCESS          0x00
 #define VESA_FAIL             0x01
 #define VESA_HW_UNSUPPORTED   0x02
@@ -259,7 +261,7 @@ foundit:
 	var_write(&minfo.Reserved_page,0x1);
 	var_write(&minfo.XCharSize,mblock->cwidth);
 	var_write(&minfo.YCharSize,mblock->cheight);
-	if (!int10.vesa_nolfb) var_write(&minfo.PhysBasePtr,S3_LFB_BASE);
+	if (!int10.vesa_nolfb) var_write(&minfo.PhysBasePtr,S3_LFB_BASE + (hack_lfb_yadjust*host_readw((HostPt)(&minfo.BytesPerScanLine))));
 
 	MEM_BlockWrite(buf,&minfo,sizeof(MODE_INFO));
 	return VESA_SUCCESS;

@@ -319,9 +319,12 @@ void VGA_Init(Section* sec) {
 		vga_force_refresh_rate = atof(str.c_str());
 	}
 
+	extern int hack_lfb_yadjust;
+
 	enableCGASnow = section->Get_bool("cgasnow");
 	enable_page_flip_debugging_marker = section->Get_bool("page flip debug line");
 	enable_vretrace_poll_debugging_marker = section->Get_bool("vertical retrace poll debug line");
+	hack_lfb_yadjust = section->Get_int("vesa lfb base scanline adjust");
 
 	if (vga_force_refresh_rate > 0)
 		LOG(LOG_VGA,LOG_NORMAL)("VGA forced refresh rate active = %.3f",vga_force_refresh_rate);
