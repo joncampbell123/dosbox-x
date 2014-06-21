@@ -42,6 +42,14 @@ bool vga_page_flip_occurred = false;
 bool enable_page_flip_debugging_marker = false;
 bool enable_vretrace_poll_debugging_marker = false;
 
+bool allow_vesa_32bpp = true;
+bool allow_vesa_24bpp = true;
+bool allow_vesa_16bpp = true;
+bool allow_vesa_15bpp = true;
+bool allow_vesa_8bpp = true;
+bool allow_vesa_4bpp = true;
+bool allow_vesa_tty = true;
+
 void page_flip_debug_notify() {
 	if (enable_page_flip_debugging_marker)
 		vga_page_flip_occurred = true;
@@ -326,6 +334,13 @@ void VGA_Init(Section* sec) {
 	enable_page_flip_debugging_marker = section->Get_bool("page flip debug line");
 	enable_vretrace_poll_debugging_marker = section->Get_bool("vertical retrace poll debug line");
 	hack_lfb_yadjust = section->Get_int("vesa lfb base scanline adjust");
+	allow_vesa_32bpp = section->Get_bool("allow 32bpp vesa modes");
+	allow_vesa_24bpp = section->Get_bool("allow 24bpp vesa modes");
+	allow_vesa_16bpp = section->Get_bool("allow 16bpp vesa modes");
+	allow_vesa_15bpp = section->Get_bool("allow 15bpp vesa modes");
+	allow_vesa_8bpp = section->Get_bool("allow 8bpp vesa modes");
+	allow_vesa_4bpp = section->Get_bool("allow 4bpp vesa modes");
+	allow_vesa_tty = section->Get_bool("allow tty vesa modes");
 
 	if (vga_force_refresh_rate > 0)
 		LOG(LOG_VGA,LOG_NORMAL)("VGA forced refresh rate active = %.3f",vga_force_refresh_rate);

@@ -1006,6 +1006,27 @@ void DOSBOX_Init(void) {
 			"This option DOES NOT affect the visible offset of the linear framebuffer, it only affects the physical\n"
 			"memory location reported by VESA BIOS emulation.");
 
+	Pbool = secprop->Add_bool("allow 32bpp vesa modes",Property::Changeable::Always,true);
+	Pbool->Set_help("If the DOS game or demo has problems with 32bpp VESA modes, set to 'false'");
+
+	Pbool = secprop->Add_bool("allow 24bpp vesa modes",Property::Changeable::Always,true);
+	Pbool->Set_help("If the DOS game or demo has problems with 24bpp VESA modes, set to 'false'");
+
+	Pbool = secprop->Add_bool("allow 16bpp vesa modes",Property::Changeable::Always,true);
+	Pbool->Set_help("If the DOS game or demo has problems with 16bpp VESA modes, set to 'false'");
+
+	Pbool = secprop->Add_bool("allow 15bpp vesa modes",Property::Changeable::Always,true);
+	Pbool->Set_help("If the DOS game or demo has problems with 15bpp VESA modes, set to 'false'");
+
+	Pbool = secprop->Add_bool("allow 8bpp vesa modes",Property::Changeable::Always,true);
+	Pbool->Set_help("If the DOS game or demo has problems with 8bpp VESA modes, set to 'false'");
+
+	Pbool = secprop->Add_bool("allow 4bpp vesa modes",Property::Changeable::Always,true);
+	Pbool->Set_help("If the DOS game or demo has problems with 4bpp VESA modes, set to 'false'");
+
+	Pbool = secprop->Add_bool("allow tty vesa modes",Property::Changeable::Always,true);
+	Pbool->Set_help("If the DOS game or demo has problems with text VESA modes, set to 'false'");
+
 	secprop->AddInitFunction(&CALLBACK_Init);
 	secprop->AddInitFunction(&DMA_Init);//done
 	secprop->AddInitFunction(&PIC_Init);//done
