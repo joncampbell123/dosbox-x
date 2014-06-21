@@ -991,6 +991,12 @@ void DOSBOX_Init(void) {
 			"For example, if machine=cga, conventional memory can extend out to 0xB800 and provide up to 736KB of RAM.\n"
 			"This allows you to emulate PC/XT style memory extensions.");
 
+	/* should be set to zero unless for very specific demos:
+	 *  - "Melvindale" by MFX (1996): Set this to 2, the nightmarish visual rendering code appears to draw 2 scanlines
+	 *    upward from the VESA linear framebuffer base we return, causing DOSBox to emit warnings about illegal read/writes
+	 *    from 0xBFFFF000-0xBFFFFFFF (just before the base of the framebuffer at 0xC0000000). It also has the effect of
+	 *    properly centering the picture on the screen. I suppose it's a miracle the demo didn't crash people's computers
+	 *    writing to undefined areas like that. */
 	Pint = secprop->Add_int("vesa lfb base scanline adjust",Property::Changeable::WhenIdle,0);
 	Pint->Set_help("If non-zero, the VESA BIOS will report the linear framebuffer as offset by this many scanlines.\n"
 			"For example, if the LFB is at 0xC0000000 and you need the demo to draw 2 scan lines lower,\n"
