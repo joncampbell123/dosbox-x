@@ -996,7 +996,9 @@ void DOSBOX_Init(void) {
 			"For example, if the LFB is at 0xC0000000 and you need the demo to draw 2 scan lines lower,\n"
 			"at 0xC0000000 + (320*2) (320x240x256 mode), you would set this to 2. This option should be set\n"
 			"to zero by default unless needed for certain DOS demos that have sloppy VESA linear framebuffer\n"
-			"rendering code that renders a few scanlines UP into undefined memory preceeding the linear framebuffer.");
+			"rendering code that renders a few scanlines UP into undefined memory preceeding the linear framebuffer.\n"
+			"This option DOES NOT affect the visible offset of the linear framebuffer, it only affects the physical\n"
+			"memory location reported by VESA BIOS emulation.");
 
 	secprop->AddInitFunction(&CALLBACK_Init);
 	secprop->AddInitFunction(&DMA_Init);//done
