@@ -305,6 +305,25 @@ static Bit8u * VGA_Draw_Changes_Line(Bitu vidstart, Bitu line) {
 
 #endif
 
+static Bit8u * VGA_Draw_Linear_Line_24_to_32(Bitu vidstart, Bitu /*line*/) {
+	Bitu offset = vidstart & vga.draw.linear_mask;
+	Bitu i;
+
+	/* DOSBox's render/scalar code can't handle 24bpp natively, so we have
+	 * to convert 24bpp -> 32bpp.
+	 *
+	 * WARNING: My clever trick might crash on processors that don't support
+	 *          unaligned memory addressing. To explain what it's doing, is
+	 *          it's using a DWORD read to fetch the 24bpp pixel (plus an
+	 *          extra byte), then overwrites the extra byte with 0xFF to
+	 *          produce a valid RGBA 8:8:8:8 value with the original pixel's
+	 *          RGB plus alpha channel value of 0xFF. */
+	for (i=0;i < vga.draw.width;i++)
+		((uint32_t*)TempLine)[i] = *((uint32_t*)(vga.draw.linear_base+offset+(i*3))) | 0xFF000000;
+
+	return TempLine;
+}
+
 static Bit8u * VGA_Draw_Linear_Line(Bitu vidstart, Bitu /*line*/) {
 	Bitu offset = vidstart & vga.draw.linear_mask;
 	Bit8u* ret = &vga.draw.linear_base[offset];
@@ -1277,6 +1296,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 	case M_LIN8:
 	case M_LIN15:
 	case M_LIN16:
+	case M_LIN24:
 	case M_LIN32:
 		vga.draw.byte_panning_shift = 4;
 		vga.draw.address += vga.draw.bytes_skip;
@@ -1375,6 +1395,7 @@ void VGA_CheckScanLength(void) {
 	case M_LIN8:
 	case M_LIN15:
 	case M_LIN16:
+	case M_LIN24:
 	case M_LIN32:
 		vga.draw.address_add=vga.config.scan_len*8;
 		break;
@@ -1416,7 +1437,7 @@ void VGA_ActivateHardwareCursor(void) {
 	if (svga.hardware_cursor_active) {
 		if (svga.hardware_cursor_active()) hwcursor_active=true;
 	}
-	if (hwcursor_active) {
+	if (hwcursor_active && vga.mode != M_LIN24) {
 		switch(vga.mode) {
 		case M_LIN32:
 			VGA_DrawLine=VGA_Draw_LIN32_Line_HWMouse;
@@ -1438,10 +1459,13 @@ void VGA_ActivateHardwareCursor(void) {
 			if (vga.draw.linewise_effect) VGA_DrawLine=VGA_Draw_Xlat16_Linear_Line;
 			else VGA_DrawLine=VGA_Draw_Linear_Line;
 			break;
+		case M_LIN24:
+			VGA_DrawLine=VGA_Draw_Linear_Line_24_to_32;
+			break;
 		default:
-		VGA_DrawLine=VGA_Draw_Linear_Line;
+			VGA_DrawLine=VGA_Draw_Linear_Line;
+		}
 	}
-}
 }
 
 void VGA_SetupDrawing(Bitu /*val*/) {
@@ -1829,6 +1853,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 	case M_LIN16:
 		bpp = 16;
 		break;
+	case M_LIN24:
 	case M_LIN32:
 		bpp = 32;
 		break;
@@ -1868,6 +1893,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 
 		VGA_ActivateHardwareCursor();
 		break;
+	case M_LIN24:
 	case M_LIN32:
 		VGA_ActivateHardwareCursor();
 		break;
@@ -2100,7 +2126,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 	const char* const mode_texts[] = {
 		"M_CGA2", "M_CGA4",
 		"M_EGA", "M_VGA",
-		"M_LIN4", "M_LIN8", "M_LIN15", "M_LIN16", "M_LIN32",
+		"M_LIN4", "M_LIN8", "M_LIN15", "M_LIN16", "M_LIN24", "M_LIN32",
 		"M_TEXT",
 		"M_HERC_GFX", "M_HERC_TEXT",
 		"M_CGA16", "M_TANDY2", "M_TANDY4", "M_TANDY16", "M_TANDY_TEXT",

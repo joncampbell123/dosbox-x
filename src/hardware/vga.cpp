@@ -108,6 +108,7 @@ void VGA_DetermineMode(void) {
 	case 1:VGA_SetMode(M_LIN8);break;
 	case 3:VGA_SetMode(M_LIN15);break;
 	case 5:VGA_SetMode(M_LIN16);break;
+	case 7:VGA_SetMode(M_LIN24);break;
 	case 13:VGA_SetMode(M_LIN32);break;
 	}
 }

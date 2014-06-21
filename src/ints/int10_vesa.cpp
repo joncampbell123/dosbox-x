@@ -198,6 +198,21 @@ foundit:
 		modeAttributes = 0x1b;	// Color, graphics
 		if (!int10.vesa_nolfb) modeAttributes |= 0x80;	// linear framebuffer
 		break;
+	case M_LIN24:
+		pageSize = mblock->sheight * mblock->swidth*3;
+		var_write(&minfo.BytesPerScanLine,mblock->swidth*3);
+		var_write(&minfo.NumberOfPlanes,0x1);
+		var_write(&minfo.BitsPerPixel,24);
+		var_write(&minfo.MemoryModel,6);	//HiColour
+		var_write(&minfo.RedMaskSize,8);
+		var_write(&minfo.RedMaskPos,0x10);
+		var_write(&minfo.GreenMaskSize,0x8);
+		var_write(&minfo.GreenMaskPos,0x8);
+		var_write(&minfo.BlueMaskSize,0x8);
+		var_write(&minfo.BlueMaskPos,0x0);
+		modeAttributes = 0x1b;	// Color, graphics
+		if (!int10.vesa_nolfb) modeAttributes |= 0x80;	// linear framebuffer
+		break;
 	case M_LIN32:
 		pageSize = mblock->sheight * mblock->swidth*4;
 		var_write(&minfo.BytesPerScanLine,mblock->swidth*4);

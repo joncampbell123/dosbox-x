@@ -1059,6 +1059,7 @@ void VGA_SetupHandlers(void) {
 		break;	
 	case M_LIN15:
 	case M_LIN16:
+	case M_LIN24:
 	case M_LIN32:
 #ifdef VGA_LFB_MAPPED
 		newHandler = &vgaph.map;

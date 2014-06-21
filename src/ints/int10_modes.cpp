@@ -82,19 +82,27 @@ VideoModeBlock ModeList_VGA[]={
 { 0x10B  ,M_TEXT   ,1056,400, 132,50, 8,  8, 1 ,0xB8000 ,0x4000, 160, 449, 132,400, 0   },
 { 0x10C  ,M_TEXT   ,1056,480, 132,60, 8,  8, 2 ,0xB8000 ,0x4000, 160, 531, 132,480, 0   },
 
-/* VESA higher color modes */
+/* VESA higher color modes.
+ * Note v1.2 of the VESA BIOS extensions explicitly states modes 0x10F, 0x112, 0x115, 0x118 are 8:8:8 (24-bit) not 8:8:8:8 (32-bit).
+ * This also fixes COMA "Parhaat" 1997 demo, by offering a true 24bpp mode so that it doesn't try to draw 24bpp on a 32bpp VESA linear framebuffer */
 { 0x10D  ,M_LIN15  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 , _DOUBLESCAN },
 { 0x10E  ,M_LIN16  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 , _DOUBLESCAN },
-{ 0x10F  ,M_LIN32  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,50  ,449 ,40 ,400 , _DOUBLESCAN },
+{ 0x10F  ,M_LIN24  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,50  ,449 ,40 ,400 , _DOUBLESCAN },
 { 0x110  ,M_LIN15  ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,200 ,525 ,160,480 ,0   },
 { 0x111  ,M_LIN16  ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,200 ,525 ,160,480 ,0   },
-{ 0x112  ,M_LIN32  ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 ,0   },
+{ 0x112  ,M_LIN24  ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 ,0   },
 { 0x113  ,M_LIN15  ,800 ,600 ,100,37 ,8 ,16 ,1 ,0xA0000 ,0x10000,264 ,628 ,200,600 ,0   },
 { 0x114  ,M_LIN16  ,800 ,600 ,100,37 ,8 ,16 ,1 ,0xA0000 ,0x10000,264 ,628 ,200,600 ,0   },
-{ 0x115  ,M_LIN32  ,800 ,600 ,100,37 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,628 ,100,600 ,0   },
+{ 0x115  ,M_LIN24  ,800 ,600 ,100,37 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,628 ,100,600 ,0   },
 { 0x116  ,M_LIN15  ,1024,768 ,128,48 ,8 ,16 ,1 ,0xA0000 ,0x10000,336 ,806 ,256,768 ,0	},
 { 0x117  ,M_LIN16  ,1024,768 ,128,48 ,8 ,16 ,1 ,0xA0000 ,0x10000,336 ,806 ,256,768 ,0	},
-{ 0x118  ,M_LIN32  ,1024,768 ,128,48 ,8 ,16 ,1 ,0xA0000 ,0x10000,168 ,806 ,128,768 ,0	},
+{ 0x118  ,M_LIN24  ,1024,768 ,128,48 ,8 ,16 ,1 ,0xA0000 ,0x10000,168 ,806 ,128,768 ,0	},
+
+/* RGBX 8:8:8:8 modes. These were once the M_LIN32 modes DOSBox mapped to 0x10F-0x11B prior to implementing M_LIN24. */
+{ 0x210  ,M_LIN32  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,50  ,449 ,40 ,400 , _DOUBLESCAN },
+{ 0x211  ,M_LIN32  ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 ,0   },
+{ 0x212  ,M_LIN32  ,800 ,600 ,100,37 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,628 ,100,600 ,0   },
+{ 0x213  ,M_LIN32  ,1024,768 ,128,48 ,8 ,16 ,1 ,0xA0000 ,0x10000,168 ,806 ,128,768 ,0	},
 
 /* those should be interlaced but ok */
 { 0x119  ,M_LIN15  ,1280,1024,160,64 ,8 ,16 ,1 ,0xA0000 ,0x10000,424 ,1066,320,1024,0	},
@@ -507,6 +515,7 @@ static void FinishSetMode(bool clearmem) {
 		case M_LIN4:
 		case M_LIN15:
 		case M_LIN16:
+		case M_LIN24:
 		case M_LIN32:
 			/* Hack we just access the memory directly */
 			memset(vga.mem.linear,0,vga.vmemsize);
@@ -889,6 +898,7 @@ bool INT10_SetVideoMode(Bit16u mode) {
 	case M_LIN8:						//Seems to have the same reg layout from testing
 	case M_LIN15:
 	case M_LIN16:
+	case M_LIN24:
 	case M_LIN32:
 	case M_VGA:
 		seq_data[2]|=0xf;				//Enable all planes for writing
@@ -1055,6 +1065,7 @@ bool INT10_SetVideoMode(Bit16u mode) {
 	case M_LIN8:
 	case M_LIN15:
 	case M_LIN16:
+	case M_LIN24:
 	case M_LIN32:
 		underline=0x60;			//Seems to enable the every 4th clock on my s3
 		break;
@@ -1083,6 +1094,9 @@ bool INT10_SetVideoMode(Bit16u mode) {
 	case M_LIN15:
 	case M_LIN16:
 		offset = 2 * CurMode->swidth/8;
+		break;
+	case M_LIN24:
+		offset = 3 * CurMode->swidth/8;
 		break;
 	case M_LIN32:
 		offset = 4 * CurMode->swidth/8;
@@ -1128,6 +1142,7 @@ bool INT10_SetVideoMode(Bit16u mode) {
 	case M_LIN8:
 	case M_LIN15:
 	case M_LIN16:
+	case M_LIN24:
 	case M_LIN32:
 		mode_control=0xa3;
 		if (CurMode->special & _VGA_PIXEL_DOUBLE)
@@ -1161,6 +1176,9 @@ bool INT10_SetVideoMode(Bit16u mode) {
 		case M_LIN16:
 			misc_control_2=0x50;
 			break;
+		case M_LIN24:
+			misc_control_2=0x70; /* FIXME: Is this right? I have no other reference than comments in vga_s3.cpp and s3freak's patch */
+			break;
 		case M_LIN32:
 			misc_control_2=0xd0;
 			break;
@@ -1183,6 +1201,7 @@ bool INT10_SetVideoMode(Bit16u mode) {
 	case M_LIN8:
 	case M_LIN15:
 	case M_LIN16:
+	case M_LIN24:
 	case M_LIN32:
 	case M_VGA:
 		gfx_data[0x5]|=0x40;		//256 color mode
@@ -1300,6 +1319,7 @@ att_text16:
 	case M_LIN8:
 	case M_LIN15:
 	case M_LIN16:
+	case M_LIN24:
 	case M_LIN32:
 		for (Bit8u ct=0;ct<16;ct++) att_data[ct]=ct;
 		att_data[0x10]=0x41;		//Color Graphics 8-bit
@@ -1372,6 +1392,7 @@ dac_text16:
 		case M_LIN8:
 		case M_LIN15:
 		case M_LIN16:
+		case M_LIN24:
 		case M_LIN32:
 			for (i=0;i<256;i++) {
 				IO_Write(0x3c9,vga_palette[i][0]);
@@ -1471,6 +1492,7 @@ dac_text16:
 		switch (CurMode->type) {
 			case M_LIN15:
 			case M_LIN16:
+			case M_LIN24:
 			case M_LIN32:
 				reg_3a=0x15;
 				break;
@@ -1490,6 +1512,7 @@ dac_text16:
 		case M_LIN8:
 		case M_LIN15:
 		case M_LIN16:
+		case M_LIN24:
 		case M_LIN32:
 			reg_31 = 9;
 			break;
@@ -1571,6 +1594,8 @@ Bitu VideoModeMemSize(Bitu mode) {
 		return vmodeBlock->swidth*vmodeBlock->sheight;
 	case M_LIN15: case M_LIN16:
 		return vmodeBlock->swidth*vmodeBlock->sheight*2;
+	case M_LIN24:
+		return vmodeBlock->swidth*vmodeBlock->sheight*3;
 	case M_LIN32:
 		return vmodeBlock->swidth*vmodeBlock->sheight*4;
 	case M_TEXT:
