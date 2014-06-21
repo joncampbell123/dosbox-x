@@ -42,6 +42,7 @@ bool vga_page_flip_occurred = false;
 bool enable_page_flip_debugging_marker = false;
 bool enable_vretrace_poll_debugging_marker = false;
 
+bool vesa12_modes_32bpp = true;
 bool allow_vesa_32bpp = true;
 bool allow_vesa_24bpp = true;
 bool allow_vesa_16bpp = true;
@@ -334,6 +335,7 @@ void VGA_Init(Section* sec) {
 	enable_page_flip_debugging_marker = section->Get_bool("page flip debug line");
 	enable_vretrace_poll_debugging_marker = section->Get_bool("vertical retrace poll debug line");
 	hack_lfb_yadjust = section->Get_int("vesa lfb base scanline adjust");
+	vesa12_modes_32bpp = section->Get_bool("vesa vbe 1.2 modes are 32bpp");
 	allow_vesa_32bpp = section->Get_bool("allow 32bpp vesa modes");
 	allow_vesa_24bpp = section->Get_bool("allow 24bpp vesa modes");
 	allow_vesa_16bpp = section->Get_bool("allow 16bpp vesa modes");
@@ -341,6 +343,16 @@ void VGA_Init(Section* sec) {
 	allow_vesa_8bpp = section->Get_bool("allow 8bpp vesa modes");
 	allow_vesa_4bpp = section->Get_bool("allow 4bpp vesa modes");
 	allow_vesa_tty = section->Get_bool("allow tty vesa modes");
+
+	/* sanity check: "VBE 1.2 modes 32bpp" doesn't make any sense if neither 24bpp or 32bpp is enabled */
+	if (!allow_vesa_32bpp && !allow_vesa_24bpp)
+		vesa12_modes_32bpp = 0;
+	/* sanity check: "VBE 1.2 modes 32bpp=true" doesn't make sense if the user disabled 32bpp */
+	else if (vesa12_modes_32bpp && !allow_vesa_32bpp)
+		vesa12_modes_32bpp = 0;
+	/* sanity check: "VBE 1.2 modes 32bpp=false" doesn't make sense if the user disabled 24bpp */
+	else if (!vesa12_modes_32bpp && !allow_vesa_24bpp && allow_vesa_32bpp)
+		vesa12_modes_32bpp = 1;
 
 	if (vga_force_refresh_rate > 0)
 		LOG(LOG_VGA,LOG_NORMAL)("VGA forced refresh rate active = %.3f",vga_force_refresh_rate);

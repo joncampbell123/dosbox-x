@@ -38,6 +38,7 @@
 #define GFX_REGS 0x09
 #define ATT_REGS 0x15
 
+extern bool vesa12_modes_32bpp;
 extern bool allow_vesa_32bpp;
 extern bool allow_vesa_24bpp;
 extern bool allow_vesa_16bpp;
@@ -92,7 +93,9 @@ VideoModeBlock ModeList_VGA[]={
 
 /* VESA higher color modes.
  * Note v1.2 of the VESA BIOS extensions explicitly states modes 0x10F, 0x112, 0x115, 0x118 are 8:8:8 (24-bit) not 8:8:8:8 (32-bit).
- * This also fixes COMA "Parhaat" 1997 demo, by offering a true 24bpp mode so that it doesn't try to draw 24bpp on a 32bpp VESA linear framebuffer */
+ * This also fixes COMA "Parhaat" 1997 demo, by offering a true 24bpp mode so that it doesn't try to draw 24bpp on a 32bpp VESA linear framebuffer.
+ * NTS: The 24bpp modes listed here will not be available to the DOS game/demo if the user says that the VBE 1.2 modes are 32bpp,
+ *      instead the redefinitions in the next block will apply to allow M_LIN32. To use the 24bpp modes here, you must set 'vesa vbe 1.2 modes are 32bpp=false' */
 { 0x10D  ,M_LIN15  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 , _DOUBLESCAN },
 { 0x10E  ,M_LIN16  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 , _DOUBLESCAN },
 { 0x10F  ,M_LIN24  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,50  ,449 ,40 ,400 , _DOUBLESCAN },
@@ -105,6 +108,15 @@ VideoModeBlock ModeList_VGA[]={
 { 0x116  ,M_LIN15  ,1024,768 ,128,48 ,8 ,16 ,1 ,0xA0000 ,0x10000,336 ,806 ,256,768 ,0	},
 { 0x117  ,M_LIN16  ,1024,768 ,128,48 ,8 ,16 ,1 ,0xA0000 ,0x10000,336 ,806 ,256,768 ,0	},
 { 0x118  ,M_LIN24  ,1024,768 ,128,48 ,8 ,16 ,1 ,0xA0000 ,0x10000,168 ,806 ,128,768 ,0	},
+
+/* But of course... there are other demos that assume mode 0x10F is 32bpp!
+ * So we have another definition of those modes that overlaps some of the same mode numbers above.
+ * This allows "Phenomena" demo to use 32bpp 320x200 mode if you set 'vesa vbe 1.2 modes are 32bpp=true'.
+ * The code will allow either this block's mode 0x10F (LIN32), or the previous block's mode 0x10F (LIN24), but not both. */
+{ 0x10F  ,M_LIN32  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,50  ,449 ,40 ,400 , _DOUBLESCAN },
+{ 0x112  ,M_LIN32  ,640 ,480 ,80 ,30 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 ,0   },
+{ 0x115  ,M_LIN32  ,800 ,600 ,100,37 ,8 ,16 ,1 ,0xA0000 ,0x10000,132 ,628 ,100,600 ,0   },
+{ 0x118  ,M_LIN32  ,1024,768 ,128,48 ,8 ,16 ,1 ,0xA0000 ,0x10000,168 ,806 ,128,768 ,0	},
 
 /* RGBX 8:8:8:8 modes. These were once the M_LIN32 modes DOSBox mapped to 0x10F-0x11B prior to implementing M_LIN24. */
 { 0x210  ,M_LIN32  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,50  ,449 ,40 ,400 , _DOUBLESCAN },
@@ -447,7 +459,15 @@ VideoModeBlock * CurMode;
 static bool SetCurMode(VideoModeBlock modeblock[],Bit16u mode) {
 	Bitu i=0;
 	while (modeblock[i].mode!=0xffff) {
-		if (modeblock[i].mode!=mode) i++;
+		if (modeblock[i].mode!=mode)
+			i++;
+		/* Hack for VBE 1.2 modes and 24/32bpp ambiguity */
+		else if (modeblock[i].mode >= 0x100 && modeblock[i].mode <= 0x11F &&
+			((modeblock[i].type == M_LIN32 && !vesa12_modes_32bpp) ||
+			(modeblock[i].type == M_LIN24 && vesa12_modes_32bpp))) {
+			/* ignore */
+			i++;
+		}
 		else {
 			if ((!int10.vesa_oldvbe) || (ModeList_VGA[i].mode<0x120)) {
 				CurMode=&modeblock[i];
@@ -1592,8 +1612,16 @@ Bitu VideoModeMemSize(Bitu mode) {
 	Bitu i=0;
 	while (modelist[i].mode!=0xffff) {
 		if (modelist[i].mode==mode) {
-			vmodeBlock = &modelist[i];
-			break;
+			/* Hack for VBE 1.2 modes and 24/32bpp ambiguity */
+			if (modelist[i].mode >= 0x100 && modelist[i].mode <= 0x11F &&
+				((modelist[i].type == M_LIN32 && !vesa12_modes_32bpp) ||
+				 (modelist[i].type == M_LIN24 && vesa12_modes_32bpp))) {
+				/* ignore */
+			}
+			else {
+				vmodeBlock = &modelist[i];
+				break;
+			}
 		}
 		i++;
 	}

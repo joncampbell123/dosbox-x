@@ -30,6 +30,7 @@
 
 int hack_lfb_yadjust = 0;
 
+extern bool vesa12_modes_32bpp;
 extern bool allow_vesa_32bpp;
 extern bool allow_vesa_24bpp;
 extern bool allow_vesa_16bpp;
@@ -150,7 +151,17 @@ Bit8u VESA_GetSVGAModeInformation(Bit16u mode,Bit16u seg,Bit16u off) {
 		if (!svga.accepts_mode(mode)) return 0x01;
 	}
 	while (ModeList_VGA[i].mode!=0xffff) {
-		if (mode==ModeList_VGA[i].mode) goto foundit; else i++;
+		/* Hack for VBE 1.2 modes and 24/32bpp ambiguity */
+		if (ModeList_VGA[i].mode >= 0x100 && ModeList_VGA[i].mode <= 0x11F &&
+			((ModeList_VGA[i].type == M_LIN32 && !vesa12_modes_32bpp) ||
+			 (ModeList_VGA[i].type == M_LIN24 && vesa12_modes_32bpp))) {
+			/* ignore */
+			i++;
+		}
+		else if (mode==ModeList_VGA[i].mode)
+			goto foundit;
+		else
+			i++;
 	}
 	return VESA_FAIL;
 foundit:
@@ -585,6 +596,12 @@ void INT10_SetupVESA(void) {
 		bool canuse_mode=false;
 		if (!svga.accepts_mode)
 			canuse_mode=true;
+		/* Hack for VBE 1.2 modes and 24/32bpp ambiguity */
+		else if (ModeList_VGA[i].mode >= 0x100 && ModeList_VGA[i].mode <= 0x11F &&
+			((ModeList_VGA[i].type == M_LIN32 && !vesa12_modes_32bpp) ||
+			 (ModeList_VGA[i].type == M_LIN24 && vesa12_modes_32bpp))) {
+			/* ignore */
+		}
 		else {
 			if (svga.accepts_mode(ModeList_VGA[i].mode)) {
 				canuse_mode=true;
