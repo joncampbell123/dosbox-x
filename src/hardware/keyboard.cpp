@@ -747,6 +747,10 @@ void KEYBOARD_AddKey3(KBD_KEYS keytype,bool pressed) {
 	if (keyb.reset)
 		return;
 
+	/* TODO: So... how exactly will we be mapping F13-F24? */
+	if (keytype >= KBD_f13 && keytype <= KBD_f24)
+		return;
+
 	/* if the keyboard is disabled, then store the keystroke but don't transmit yet */
 	/*
 	if (!keyb.active || !keyb.scanning) {
@@ -897,6 +901,10 @@ void KEYBOARD_AddKey2(KBD_KEYS keytype,bool pressed) {
 	Bit8u ret=0,ret2=0;bool extend=false;
 
 	if (keyb.reset)
+		return;
+
+	/* TODO: So... how exactly will we be mapping F13-F24? */
+	if (keytype >= KBD_f13 && keytype <= KBD_f24)
 		return;
 
 	/* if the keyboard is disabled, then store the keystroke but don't transmit yet */
@@ -1066,6 +1074,10 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
 	Bit8u ret=0,ret2=0;bool extend=false;
 
 	if (keyb.reset)
+		return;
+
+	/* TODO: So... how exactly will we be mapping F13-F24? */
+	if (keytype >= KBD_f13 && keytype <= KBD_f24)
 		return;
 
 	/* if the keyboard is disabled, then store the keystroke but don't transmit yet */

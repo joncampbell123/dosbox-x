@@ -48,6 +48,11 @@ enum KBD_KEYS {
 
 	/* other bindings */
 	KBD_kpequals,
+
+	/* F13-F24 */
+	KBD_f13,KBD_f14,KBD_f15,KBD_f16,
+	KBD_f17,KBD_f18,KBD_f19,KBD_f20,
+	KBD_f21,KBD_f22,KBD_f23,KBD_f24,
 	
 	KBD_LAST
 };
