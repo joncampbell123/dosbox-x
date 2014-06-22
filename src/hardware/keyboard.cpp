@@ -872,6 +872,9 @@ void KEYBOARD_AddKey3(KBD_KEYS keytype,bool pressed) {
 	case KBD_delete:ret=0x64;break;
 	case KBD_pause:ret=0x62;break;
 	case KBD_printscreen:ret=0x57;break;
+	case KBD_lwindows:ret=0x5B;break;
+	case KBD_rwindows:ret=0x5C;break;
+	case KBD_rwinmenu:ret=0x5D;break;
 	default:
 		E_Exit("Unsupported key press");
 		break;
@@ -1031,6 +1034,9 @@ void KEYBOARD_AddKey2(KBD_KEYS keytype,bool pressed) {
 		if (pressed) { ret=0x12; ret2=0x7c; }
 		else         { ret=0x7c; ret2=0x12; }
 		return;
+	case KBD_lwindows:extend=true;ret=0x5B;break;
+	case KBD_rwindows:extend=true;ret=0x5C;break;
+	case KBD_rwinmenu:extend=true;ret=0x5D;break;
 	default:
 		E_Exit("Unsupported key press");
 		break;
@@ -1217,6 +1223,9 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
 		if (pressed) { ret=0x2a; ret2=0x37; }
 		else         { ret=0xb7; ret2=0xaa; }
 		return;
+	case KBD_lwindows:extend=true;ret=0x5B;break;
+	case KBD_rwindows:extend=true;ret=0x5C;break;
+	case KBD_rwinmenu:extend=true;ret=0x5D;break;
 	default:
 		E_Exit("Unsupported key press");
 		break;

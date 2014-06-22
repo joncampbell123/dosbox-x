@@ -43,6 +43,8 @@ enum KBD_KEYS {
 	KBD_kp1,KBD_kp2,KBD_kp3,KBD_kp4,KBD_kp5,KBD_kp6,KBD_kp7,KBD_kp8,KBD_kp9,KBD_kp0,
 	KBD_kpdivide,KBD_kpmultiply,KBD_kpminus,KBD_kpplus,KBD_kpenter,KBD_kpperiod,
 
+	/* Windows 95 keys */
+	KBD_lwindows,KBD_rwindows,KBD_rwinmenu,
 	
 	KBD_LAST
 };

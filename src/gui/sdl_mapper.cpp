@@ -1850,9 +1850,12 @@ static void CreateLayout(void) {
 
 	/* Last Row */
 	AddKeyButtonEvent(PX(0) ,PY(5),BW*2,BH,"CTRL","lctrl",KBD_leftctrl);
-	AddKeyButtonEvent(PX(3) ,PY(5),BW*2,BH,"ALT","lalt",KBD_leftalt);
-	AddKeyButtonEvent(PX(5) ,PY(5),BW*6,BH,"SPACE","space",KBD_space);
-	AddKeyButtonEvent(PX(11),PY(5),BW*2,BH,"ALT","ralt",KBD_rightalt);
+	AddKeyButtonEvent(PX(2) ,PY(5),BW*1,BH,"WIN","lwindows",KBD_lwindows);
+	AddKeyButtonEvent(PX(3) ,PY(5),BW*1,BH,"ALT","lalt",KBD_leftalt);
+	AddKeyButtonEvent(PX(4) ,PY(5),BW*7,BH,"SPACE","space",KBD_space);
+	AddKeyButtonEvent(PX(11),PY(5),BW*1,BH,"ALT","ralt",KBD_rightalt);
+	AddKeyButtonEvent(PX(12),PY(5),BW*1,BH,"WIN","rwindows",KBD_rwindows);
+	AddKeyButtonEvent(PX(13),PY(5),BW*1,BH,"WMN","rwinmenu",KBD_rwinmenu);
 	AddKeyButtonEvent(PX(14),PY(5),BW*2,BH,"CTRL","rctrl",KBD_rightctrl);
 
 	/* Arrow Keys */
@@ -2098,6 +2101,11 @@ static struct {
 	{"kp_divide",SDLK_KP_DIVIDE},	{"kp_multiply",SDLK_KP_MULTIPLY},
 	{"kp_minus",SDLK_KP_MINUS},		{"kp_plus",SDLK_KP_PLUS},
 	{"kp_period",SDLK_KP_PERIOD},	{"kp_enter",SDLK_KP_ENTER},
+
+	/* Windows 95 keyboard stuff */
+	{"lwindows",SDLK_LSUPER},
+	{"rwindows",SDLK_RSUPER},
+	{"rwinmenu",SDLK_MENU},
 
 #if defined (MACOSX)
 	/* Intl Mac keyboards in US layout actually put U+00A7 SECTION SIGN here */
