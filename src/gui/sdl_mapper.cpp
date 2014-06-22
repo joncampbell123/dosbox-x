@@ -1917,6 +1917,15 @@ static void CreateLayout(void) {
 	AddKeyButtonEvent(PX(XO+3),PY(YO+2),BW,BH,"F24","f24",KBD_f24);
 #undef XO
 #undef YO
+#define XO 0
+#define YO 13
+	/* Japanese keys */
+	AddKeyButtonEvent(PX(XO+0),PY(YO+0),BW*3,BH,"HANKAKU", "jp_hankaku", KBD_jp_hankaku);
+	AddKeyButtonEvent(PX(XO+0),PY(YO+1),BW*3,BH,"MUHENKAN","jp_muhenkan",KBD_jp_muhenkan);
+	AddKeyButtonEvent(PX(XO+0),PY(YO+2),BW*3,BH,"HENKAN",  "jp_henkan",  KBD_jp_henkan);
+	AddKeyButtonEvent(PX(XO+3),PY(YO+0),BW*3,BH,"HIRAGANA","jp_hiragana",KBD_jp_hiragana);
+#undef XO
+#undef YO
 #define XO 10
 #define YO 8
 	/* Joystick Buttons/Texts */
@@ -2009,9 +2018,9 @@ static void CreateLayout(void) {
    
    
 	/* The modifier buttons */
-	AddModButton(PX(0),PY(16),50,20,"Mod1",1);
-	AddModButton(PX(2),PY(16),50,20,"Mod2",2);
-	AddModButton(PX(4),PY(16),50,20,"Mod3",3);
+	AddModButton(PX(0),PY(17),50,20,"Mod1",1);
+	AddModButton(PX(2),PY(17),50,20,"Mod2",2);
+	AddModButton(PX(4),PY(17),50,20,"Mod3",3);
 	/* Create Handler buttons */
 	Bitu xpos=3;Bitu ypos=11;
 	for (CHandlerEventVector_it hit=handlergroup.begin();hit!=handlergroup.end();hit++) {

@@ -2539,7 +2539,7 @@ public:
 		MAPPER_AddHandler(CPU_ToggleNormalCore,MK_1,MMOD1,"normal"  ,"Tog. Normal Core");
 		MAPPER_AddHandler(CPU_ToggleFullCore,MK_2,MMOD1,"full","Tog. Full Core");
 #if (C_DYNAMIC_X86)
-		MAPPER_AddHandler(CPU_ToggleDynamicCore,MK_3,MMOD1,"dynamic","Tog. Dynamic Core");
+		MAPPER_AddHandler(CPU_ToggleDynamicCore,MK_3,MMOD1,"dynamic","Tog. Dyn. Core");
 #endif
 		MAPPER_AddHandler(CPU_ToggleSimpleCore,MK_4,MMOD1,"simple","Tog. Simple Core");
 		Change_Config(configuration);	
