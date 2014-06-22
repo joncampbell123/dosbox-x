@@ -2009,9 +2009,9 @@ static void CreateLayout(void) {
    
    
 	/* The modifier buttons */
-	AddModButton(PX(0),PY(14),50,20,"Mod1",1);
-	AddModButton(PX(2),PY(14),50,20,"Mod2",2);
-	AddModButton(PX(4),PY(14),50,20,"Mod3",3);
+	AddModButton(PX(0),PY(16),50,20,"Mod1",1);
+	AddModButton(PX(2),PY(16),50,20,"Mod2",2);
+	AddModButton(PX(4),PY(16),50,20,"Mod3",3);
 	/* Create Handler buttons */
 	Bitu xpos=3;Bitu ypos=11;
 	for (CHandlerEventVector_it hit=handlergroup.begin();hit!=handlergroup.end();hit++) {

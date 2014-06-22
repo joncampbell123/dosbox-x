@@ -53,7 +53,13 @@ enum KBD_KEYS {
 	KBD_f13,KBD_f14,KBD_f15,KBD_f16,
 	KBD_f17,KBD_f18,KBD_f19,KBD_f20,
 	KBD_f21,KBD_f22,KBD_f23,KBD_f24,
-	
+
+	/* Japanese [see http://www.stanford.edu/class/cs140/projects/pintos/specs/kbd/scancodes-7.html] */
+	KBD_jp_hankaku,		/* Hankaku/zenkaku (half-width/full-width) */
+	KBD_jp_muhenkan,	/* Muhenkan (No conversion from kana to kanji) */
+	KBD_jp_henkan,		/* Henkan/zenkouho (Conversion from kana to kanji, shifted: previous candidate, alt: all candidates) */
+	KBD_jp_hiragana,	/* Hiragana/Katakana (Hiragana, shifted: Katakana, alt: romaji) */
+
 	KBD_LAST
 };
 
