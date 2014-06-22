@@ -771,6 +771,7 @@ void KEYBOARD_AddKey3(KBD_KEYS keytype,bool pressed) {
 
 	case KBD_minus:ret=0x4e;break;
 	case KBD_equals:ret=0x55;break;
+	case KBD_kpequals:ret=0x55;break;
 	case KBD_backspace:ret=0x66;break;
 	case KBD_tab:ret=0x0d;break;
 
@@ -920,6 +921,7 @@ void KEYBOARD_AddKey2(KBD_KEYS keytype,bool pressed) {
 
 	case KBD_minus:ret=0x4e;break;
 	case KBD_equals:ret=0x55;break;
+	case KBD_kpequals:ret=0x55;break;
 	case KBD_backspace:ret=0x66;break;
 	case KBD_tab:ret=0x0d;break;
 
@@ -1088,6 +1090,7 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
 
 	case KBD_minus:ret=12;break;
 	case KBD_equals:ret=13;break;
+	case KBD_kpequals:ret=13;break;
 	case KBD_backspace:ret=14;break;
 	case KBD_tab:ret=15;break;
 

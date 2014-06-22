@@ -1865,6 +1865,7 @@ static void CreateLayout(void) {
 	AddKeyButtonEvent(PX(XO+0),PY(YO),BW,BH,"PRT","printscreen",KBD_printscreen);
 	AddKeyButtonEvent(PX(XO+1),PY(YO),BW,BH,"SCL","scrolllock",KBD_scrolllock);
 	AddKeyButtonEvent(PX(XO+2),PY(YO),BW,BH,"PAU","pause",KBD_pause);
+	AddKeyButtonEvent(PX(XO+3),PY(YO),BW,BH,"NEQ","kp_equals",KBD_kpequals);
 	AddKeyButtonEvent(PX(XO+0),PY(YO+1),BW,BH,"INS","insert",KBD_insert);
 	AddKeyButtonEvent(PX(XO+1),PY(YO+1),BW,BH,"HOM","home",KBD_home);
 	AddKeyButtonEvent(PX(XO+2),PY(YO+1),BW,BH,"PUP","pageup",KBD_pageup);
@@ -2101,6 +2102,11 @@ static struct {
 	{"kp_divide",SDLK_KP_DIVIDE},	{"kp_multiply",SDLK_KP_MULTIPLY},
 	{"kp_minus",SDLK_KP_MINUS},		{"kp_plus",SDLK_KP_PLUS},
 	{"kp_period",SDLK_KP_PERIOD},	{"kp_enter",SDLK_KP_ENTER},
+
+	/* NTS: IBM PC keyboards as far as I know do not have numeric keypad equals sign.
+	 *      This default assignment should allow Apple Mac users (who's keyboards DO have one)
+	 *      to use theirs as a normal equals sign. */
+	{"kp_equals",SDLK_KP_EQUALS},
 
 	/* Windows 95 keyboard stuff */
 	{"lwindows",SDLK_LSUPER},

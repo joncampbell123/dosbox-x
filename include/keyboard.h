@@ -45,6 +45,9 @@ enum KBD_KEYS {
 
 	/* Windows 95 keys */
 	KBD_lwindows,KBD_rwindows,KBD_rwinmenu,
+
+	/* other bindings */
+	KBD_kpequals,
 	
 	KBD_LAST
 };
