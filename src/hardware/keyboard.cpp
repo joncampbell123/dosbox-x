@@ -742,13 +742,9 @@ static Bitu read_p64(Bitu port,Bitu iolen) {
 }
 
 void KEYBOARD_AddKey3(KBD_KEYS keytype,bool pressed) {
-	Bit8u ret=0;
+	Bit8u ret=0,ret2=0;
 
 	if (keyb.reset)
-		return;
-
-	/* TODO: So... how exactly will we be mapping F13-F24? */
-	if (keytype >= KBD_f13 && keytype <= KBD_f24)
 		return;
 
 	/* if the keyboard is disabled, then store the keystroke but don't transmit yet */
@@ -837,6 +833,22 @@ void KEYBOARD_AddKey3(KBD_KEYS keytype,bool pressed) {
 	case KBD_f8:ret=0x3f;break;
 	case KBD_f9:ret=0x47;break;
 	case KBD_f10:ret=0x4f;break;
+	case KBD_f11:ret=0x56;break;
+	case KBD_f12:ret=0x5e;break;
+
+	/* IBM F13-F24 = Shift F1-F12 */
+	case KBD_f13:ret=0x12;ret2=0x07;break;
+	case KBD_f14:ret=0x12;ret2=0x0F;break;
+	case KBD_f15:ret=0x12;ret2=0x17;break;
+	case KBD_f16:ret=0x12;ret2=0x1F;break;
+	case KBD_f17:ret=0x12;ret2=0x27;break;
+	case KBD_f18:ret=0x12;ret2=0x2F;break;
+	case KBD_f19:ret=0x12;ret2=0x37;break;
+	case KBD_f20:ret=0x12;ret2=0x3F;break;
+	case KBD_f21:ret=0x12;ret2=0x47;break;
+	case KBD_f22:ret=0x12;ret2=0x4F;break;
+	case KBD_f23:ret=0x12;ret2=0x56;break;
+	case KBD_f24:ret=0x12;ret2=0x5E;break;
 
 	case KBD_numlock:ret=0x76;break;
 	case KBD_scrolllock:ret=0x5f;break;
@@ -856,8 +868,6 @@ void KEYBOARD_AddKey3(KBD_KEYS keytype,bool pressed) {
 	case KBD_kpperiod:ret=0x71;break;
 
 /*	case KBD_extra_lt_gt:ret=;break; */
-	case KBD_f11:ret=0x56;break;
-	case KBD_f12:ret=0x5e;break;
 
 	//The Extended keys
 
@@ -877,34 +887,42 @@ void KEYBOARD_AddKey3(KBD_KEYS keytype,bool pressed) {
 	case KBD_delete:ret=0x64;break;
 	case KBD_pause:ret=0x62;break;
 	case KBD_printscreen:ret=0x57;break;
-	case KBD_lwindows:ret=0x5B;break;
-	case KBD_rwindows:ret=0x5C;break;
-	case KBD_rwinmenu:ret=0x5D;break;
+	case KBD_lwindows:ret=0x8B;break;
+	case KBD_rwindows:ret=0x8C;break;
+	case KBD_rwinmenu:ret=0x8D;break;
 	default:
 		E_Exit("Unsupported key press");
 		break;
 	}
+
 	/* Add the actual key in the keyboard queue */
 	if (pressed) {
 		if (keyb.repeat.key==keytype) keyb.repeat.wait=keyb.repeat.rate;		
 		else keyb.repeat.wait=keyb.repeat.pause;
 		keyb.repeat.key=keytype;
 	} else {
+		if (keytype >= KBD_f13 && keytype <= KBD_f24) {
+			unsigned int t = ret;
+			ret = ret2;
+			ret2 = t;
+		}
+
 		keyb.repeat.key=KBD_NONE;
 		keyb.repeat.wait=0;
 	}
+
 	if (!pressed) KEYBOARD_AddBuffer(0xf0);
 	KEYBOARD_AddBuffer(ret);
+	if (ret2 != 0) {
+		if (!pressed) KEYBOARD_AddBuffer(0xf0);
+		KEYBOARD_AddBuffer(ret2);
+	}
 }
 
 void KEYBOARD_AddKey2(KBD_KEYS keytype,bool pressed) {
 	Bit8u ret=0,ret2=0;bool extend=false;
 
 	if (keyb.reset)
-		return;
-
-	/* TODO: So... how exactly will we be mapping F13-F24? */
-	if (keytype >= KBD_f13 && keytype <= KBD_f24)
 		return;
 
 	/* if the keyboard is disabled, then store the keystroke but don't transmit yet */
@@ -991,6 +1009,22 @@ void KEYBOARD_AddKey2(KBD_KEYS keytype,bool pressed) {
 	case KBD_f8:ret=0x0a;break;
 	case KBD_f9:ret=0x01;break;
 	case KBD_f10:ret=0x09;break;
+	case KBD_f11:ret=0x78;break;
+	case KBD_f12:ret=0x07;break;
+
+	/* IBM F13-F24 = Shift F1-F12 */
+	case KBD_f13:ret=0x12;ret2=0x05;break;
+	case KBD_f14:ret=0x12;ret2=0x06;break;
+	case KBD_f15:ret=0x12;ret2=0x04;break;
+	case KBD_f16:ret=0x12;ret2=0x0c;break;
+	case KBD_f17:ret=0x12;ret2=0x03;break;
+	case KBD_f18:ret=0x12;ret2=0x0b;break;
+	case KBD_f19:ret=0x12;ret2=0x83;break;
+	case KBD_f20:ret=0x12;ret2=0x0a;break;
+	case KBD_f21:ret=0x12;ret2=0x01;break;
+	case KBD_f22:ret=0x12;ret2=0x09;break;
+	case KBD_f23:ret=0x12;ret2=0x78;break;
+	case KBD_f24:ret=0x12;ret2=0x07;break;
 
 	case KBD_numlock:ret=0x77;break;
 	case KBD_scrolllock:ret=0x7e;break;
@@ -1010,8 +1044,6 @@ void KEYBOARD_AddKey2(KBD_KEYS keytype,bool pressed) {
 	case KBD_kpperiod:ret=0x71;break;
 
 /*	case KBD_extra_lt_gt:ret=;break; */
-	case KBD_f11:ret=0x78;break;
-	case KBD_f12:ret=0x07;break;
 
 	//The Extended keys
 
@@ -1044,9 +1076,9 @@ void KEYBOARD_AddKey2(KBD_KEYS keytype,bool pressed) {
 		if (pressed) { ret=0x12; ret2=0x7c; }
 		else         { ret=0x7c; ret2=0x12; }
 		return;
-	case KBD_lwindows:extend=true;ret=0x5B;break;
-	case KBD_rwindows:extend=true;ret=0x5C;break;
-	case KBD_rwinmenu:extend=true;ret=0x5D;break;
+	case KBD_lwindows:extend=true;ret=0x1f;break;
+	case KBD_rwindows:extend=true;ret=0x27;break;
+	case KBD_rwinmenu:extend=true;ret=0x2f;break;
 	default:
 		E_Exit("Unsupported key press");
 		break;
@@ -1057,9 +1089,16 @@ void KEYBOARD_AddKey2(KBD_KEYS keytype,bool pressed) {
 		else keyb.repeat.wait=keyb.repeat.pause;
 		keyb.repeat.key=keytype;
 	} else {
+		if (keytype >= KBD_f13 && keytype <= KBD_f24) {
+			unsigned int t = ret;
+			ret = ret2;
+			ret2 = t;
+		}
+
 		keyb.repeat.key=KBD_NONE;
 		keyb.repeat.wait=0;
 	}
+
 	if (extend) KEYBOARD_AddBuffer(0xe0);
 	if (!pressed) KEYBOARD_AddBuffer(0xf0);
 	KEYBOARD_AddBuffer(ret);
@@ -1074,10 +1113,6 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
 	Bit8u ret=0,ret2=0;bool extend=false;
 
 	if (keyb.reset)
-		return;
-
-	/* TODO: So... how exactly will we be mapping F13-F24? */
-	if (keytype >= KBD_f13 && keytype <= KBD_f24)
 		return;
 
 	/* if the keyboard is disabled, then store the keystroke but don't transmit yet */
@@ -1167,6 +1202,22 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
 	case KBD_f8:ret=66;break;
 	case KBD_f9:ret=67;break;
 	case KBD_f10:ret=68;break;
+	case KBD_f11:ret=87;break;
+	case KBD_f12:ret=88;break;
+
+	/* IBM F13-F24 apparently map to Shift + F1-F12 */
+	case KBD_f13:ret=0x2A;ret2=59;break;
+	case KBD_f14:ret=0x2A;ret2=60;break;
+	case KBD_f15:ret=0x2A;ret2=61;break;
+	case KBD_f16:ret=0x2A;ret2=62;break;
+	case KBD_f17:ret=0x2A;ret2=63;break;
+	case KBD_f18:ret=0x2A;ret2=64;break;
+	case KBD_f19:ret=0x2A;ret2=65;break;
+	case KBD_f20:ret=0x2A;ret2=66;break;
+	case KBD_f21:ret=0x2A;ret2=67;break;
+	case KBD_f22:ret=0x2A;ret2=68;break;
+	case KBD_f23:ret=0x2A;ret2=87;break;
+	case KBD_f24:ret=0x2A;ret2=88;break;
 
 	case KBD_numlock:ret=69;break;
 	case KBD_scrolllock:ret=70;break;
@@ -1186,8 +1237,6 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
 	case KBD_kpperiod:ret=83;break;
 
 	case KBD_extra_lt_gt:ret=86;break;
-	case KBD_f11:ret=87;break;
-	case KBD_f12:ret=88;break;
 
 	//The Extended keys
 
@@ -1245,6 +1294,7 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
 		E_Exit("Unsupported key press");
 		break;
 	}
+
 	/* Add the actual key in the keyboard queue */
 	if (pressed) {
 		if (keyb.repeat.key == keytype) keyb.repeat.wait = keyb.repeat.rate;		
@@ -1256,7 +1306,15 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
 			keyb.repeat.key  = KBD_NONE;
 			keyb.repeat.wait = 0;
 		}
+
+		if (keytype >= KBD_f13 && keytype <= KBD_f24) {
+			unsigned int t = ret;
+			ret = ret2;
+			ret2 = t;
+		}
+
 		ret += 128;
+		if (ret2 != 0) ret2 += 128;
 	}
 	if (extend) KEYBOARD_AddBuffer(0xe0);
 	KEYBOARD_AddBuffer(ret);
