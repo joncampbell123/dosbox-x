@@ -757,6 +757,18 @@ void KEYBOARD_AddKey3(KBD_KEYS keytype,bool pressed) {
 	*/
 
 	switch (keytype) {
+	case KBD_kor_hancha:
+		keyb.repeat.key=KBD_NONE;
+		keyb.repeat.wait=0;
+		if (!pressed) return;
+		KEYBOARD_AddBuffer(0xF1);
+		break;
+	case KBD_kor_hanyong:
+		keyb.repeat.key=KBD_NONE;
+		keyb.repeat.wait=0;
+		if (!pressed) return;
+		KEYBOARD_AddBuffer(0xF2);
+		break;
 	case KBD_esc:ret=0x08;break;
 	case KBD_1:ret=0x16;break;
 	case KBD_2:ret=0x1E;break;
@@ -937,6 +949,18 @@ void KEYBOARD_AddKey2(KBD_KEYS keytype,bool pressed) {
 	}*/
 
 	switch (keytype) {
+	case KBD_kor_hancha:
+		keyb.repeat.key=KBD_NONE;
+		keyb.repeat.wait=0;
+		if (!pressed) return;
+		KEYBOARD_AddBuffer(0xF1);
+		break;
+	case KBD_kor_hanyong:
+		keyb.repeat.key=KBD_NONE;
+		keyb.repeat.wait=0;
+		if (!pressed) return;
+		KEYBOARD_AddBuffer(0xF2);
+		break;
 	case KBD_esc:ret=0x76;break;
 	case KBD_1:ret=0x16;break;
 	case KBD_2:ret=0x1e;break;
@@ -1131,6 +1155,18 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
 	}*/
 
 	switch (keytype) {
+	case KBD_kor_hancha:
+		keyb.repeat.key=KBD_NONE;
+		keyb.repeat.wait=0;
+		if (!pressed) return;
+		KEYBOARD_AddBuffer(0xF1);
+		break;
+	case KBD_kor_hanyong:
+		keyb.repeat.key=KBD_NONE;
+		keyb.repeat.wait=0;
+		if (!pressed) return;
+		KEYBOARD_AddBuffer(0xF2);
+		break;
 	case KBD_esc:ret=1;break;
 	case KBD_1:ret=2;break;
 	case KBD_2:ret=3;break;
