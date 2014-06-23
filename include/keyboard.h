@@ -60,6 +60,10 @@ enum KBD_KEYS {
 	KBD_jp_henkan,		/* Henkan/zenkouho (Conversion from kana to kanji, shifted: previous candidate, alt: all candidates) */
 	KBD_jp_hiragana,	/* Hiragana/Katakana (Hiragana, shifted: Katakana, alt: romaji) */
 
+	/* Korean */
+	KBD_kor_hancha,		/* Hancha */
+	KBD_kor_hanyong,	/* Han/yong */
+
 	KBD_LAST
 };
 
