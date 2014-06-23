@@ -803,6 +803,7 @@ void KEYBOARD_AddKey3(KBD_KEYS keytype,bool pressed) {
 
 	case KBD_semicolon:ret=0x4c;break;
 	case KBD_quote:ret=0x52;break;
+	case KBD_jp_hankaku:ret=0x0e;break;
 	case KBD_grave:ret=0x0e;break;
 	case KBD_leftshift:ret=0x12;break;
 	case KBD_backslash:ret=0x5c;break;
@@ -890,6 +891,9 @@ void KEYBOARD_AddKey3(KBD_KEYS keytype,bool pressed) {
 	case KBD_lwindows:ret=0x8B;break;
 	case KBD_rwindows:ret=0x8C;break;
 	case KBD_rwinmenu:ret=0x8D;break;
+	case KBD_jp_muhenkan:ret=0x85;break;
+	case KBD_jp_henkan:ret=0x86;break;
+	case KBD_jp_hiragana:ret=0x87;break;/*also Katakana */
 	default:
 		E_Exit("Unsupported key press");
 		break;
@@ -979,6 +983,7 @@ void KEYBOARD_AddKey2(KBD_KEYS keytype,bool pressed) {
 
 	case KBD_semicolon:ret=0x4c;break;
 	case KBD_quote:ret=0x52;break;
+	case KBD_jp_hankaku:ret=0x0e;break;
 	case KBD_grave:ret=0x0e;break;
 	case KBD_leftshift:ret=0x12;break;
 	case KBD_backslash:ret=0x5d;break;
@@ -1079,6 +1084,9 @@ void KEYBOARD_AddKey2(KBD_KEYS keytype,bool pressed) {
 	case KBD_lwindows:extend=true;ret=0x1f;break;
 	case KBD_rwindows:extend=true;ret=0x27;break;
 	case KBD_rwinmenu:extend=true;ret=0x2f;break;
+	case KBD_jp_muhenkan:ret=0x67;break;
+	case KBD_jp_henkan:ret=0x64;break;
+	case KBD_jp_hiragana:ret=0x13;break;/*also Katakana */
 	default:
 		E_Exit("Unsupported key press");
 		break;
@@ -1172,6 +1180,7 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
 
 	case KBD_semicolon:ret=39;break;
 	case KBD_quote:ret=40;break;
+	case KBD_jp_hankaku:ret=41;break;
 	case KBD_grave:ret=41;break;
 	case KBD_leftshift:ret=42;break;
 	case KBD_backslash:ret=43;break;
@@ -1290,6 +1299,9 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
 	case KBD_lwindows:extend=true;ret=0x5B;break;
 	case KBD_rwindows:extend=true;ret=0x5C;break;
 	case KBD_rwinmenu:extend=true;ret=0x5D;break;
+	case KBD_jp_muhenkan:ret=0x7B;break;
+	case KBD_jp_henkan:ret=0x79;break;
+	case KBD_jp_hiragana:ret=0x70;break;/*also Katakana */
 	default:
 		E_Exit("Unsupported key press");
 		break;
