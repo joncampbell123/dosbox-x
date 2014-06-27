@@ -274,7 +274,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		crtc(underline_location)=val;
 		if (IS_VGA_ARCH) {
 			//Byte,word,dword mode
-			if ( crtc(underline_location) & 0x20 )
+			if ( crtc(underline_location) & 0x40 )
 				vga.config.addr_shift = 2;
 			else if ( crtc( mode_control) & 0x40 )
 				vga.config.addr_shift = 0;
@@ -283,6 +283,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		} else {
 			vga.config.addr_shift = 1;
 		}
+
 		VGA_CheckScanLength();
 		/*
 			0-4	Position of underline within Character cell.
@@ -316,7 +317,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		crtc(mode_control)=val;
 		vga.tandy.line_mask = (~val) & 3;
 		//Byte,word,dword mode
-		if ( crtc(underline_location) & 0x20 )
+		if ( crtc(underline_location) & 0x40 )
 			vga.config.addr_shift = 2;
 		else if ( crtc( mode_control) & 0x40 )
 			vga.config.addr_shift = 0;
