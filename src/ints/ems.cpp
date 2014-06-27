@@ -1307,6 +1307,7 @@ private:
 	/* location in protected unfreeable memory where the ems name and callback are
 	 * stored  32 bytes.*/
 	static Bit16u ems_baseseg;
+	unsigned int oshandle_memsize_16kb;
 	RealPt old4b_pointer,old67_pointer;
 	CALLBACK_HandlerObject call_vdma,call_vcpi,call_v86mon;
 	Bitu call_int67;
@@ -1333,6 +1334,11 @@ public:
 			return;
 		}
 		BIOS_ZeroExtendedSize(true);
+
+		oshandle_memsize_16kb = section->Get_int("ems system handle memory size");
+		/* convert KB to 16KB pages */
+		oshandle_memsize_16kb = (oshandle_memsize_16kb+15)/16;
+		if (oshandle_memsize_16kb == 0) oshandle_memsize_16kb = 1;
 
 		if (!ems_baseseg) ems_baseseg=DOS_GetMemory(2,"ems_baseseg");	//We have 32 bytes
 
@@ -1365,7 +1371,7 @@ public:
 			emm_segmentmappings[i].handle=NULL_HANDLE;
 		}
 
-		EMM_AllocateSystemHandle(24);	// allocate OS-dedicated handle (ems handle zero, 384kb)
+		EMM_AllocateSystemHandle(oshandle_memsize_16kb);	// allocate OS-dedicated handle (ems handle zero, 384kb)
 
 		if (ems_type==3) {
 			DMA_SetWrapping(0xffffffff);	// emm386-bug that disables dma wrapping

@@ -1607,6 +1607,9 @@ void DOSBOX_Init(void) {
 		"other choices, or require EMS support to be disabled (=false)\n"
 		"to work at all.");
 
+	Pint = secprop->Add_int("ems system handle memory size",Property::Changeable::WhenIdle,384);
+	Pint->Set_help("Amount of memory associated with system handle, in KB");
+
 	Pbool = secprop->Add_bool("umb",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Enable UMB support.");
 
