@@ -1389,7 +1389,7 @@ void VGA_CheckScanLength(void) {
 		if ((machine==MCH_EGA)&&(vga.crtc.mode_control&0x8))
 			vga.draw.address_add=vga.config.scan_len*32;
 		else
-		vga.draw.address_add=vga.config.scan_len*16;
+			vga.draw.address_add=vga.config.scan_len*16;
 		break;
 	case M_VGA:
 	case M_LIN8:
@@ -1397,18 +1397,18 @@ void VGA_CheckScanLength(void) {
 	case M_LIN16:
 	case M_LIN24:
 	case M_LIN32:
-		vga.draw.address_add=vga.config.scan_len*8;
+		vga.draw.address_add=vga.config.scan_len*8; // FIXME: I know this ties into word/dword mode somehow
 		break;
 	case M_TEXT:
-		vga.draw.address_add=vga.config.scan_len*4;
+		vga.draw.address_add=vga.config.scan_len*(2<<vga.config.addr_shift);
 		break;
 	case M_CGA2:
-		vga.draw.address_add=vga.config.scan_len*2;
+		vga.draw.address_add=vga.config.scan_len*(2<<vga.config.addr_shift);
 		break;
 	case M_CGA4:
 	case M_CGA16:
 	case M_AMSTRAD:	// Next line.
-		vga.draw.address_add=vga.config.scan_len*4;
+		vga.draw.address_add=vga.config.scan_len*(2<<vga.config.addr_shift);
 		break;
 	case M_TANDY2:
 		vga.draw.address_add=vga.draw.blocks/4;
