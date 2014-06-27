@@ -283,6 +283,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		} else {
 			vga.config.addr_shift = 1;
 		}
+		VGA_CheckScanLength();
 		/*
 			0-4	Position of underline within Character cell.
 			5	If set memory address is only changed every fourth character clock.
@@ -329,6 +330,8 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 			vga.tandy.addr_mask = ~0;
 			vga.tandy.line_shift = 0;
 		}
+		VGA_CheckScanLength();
+
 		//Should we really need to do a determinemode here?
 //		VGA_DetermineMode();
 		/*
