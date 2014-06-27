@@ -1397,7 +1397,10 @@ void VGA_CheckScanLength(void) {
 	case M_LIN16:
 	case M_LIN24:
 	case M_LIN32:
-		vga.draw.address_add=vga.config.scan_len*(2<<vga.config.addr_shift);
+		if (vga.mode == M_VGA && vga.config.addr_shift != 2) /* HACK: DOSBox renders Mode X with stride set as if still chained */
+			vga.draw.address_add=vga.config.scan_len*8;
+		else
+			vga.draw.address_add=vga.config.scan_len*(2<<vga.config.addr_shift);
 		break;
 	case M_TEXT:
 		vga.draw.address_add=vga.config.scan_len*(2<<vga.config.addr_shift);
