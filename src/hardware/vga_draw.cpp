@@ -1397,7 +1397,7 @@ void VGA_CheckScanLength(void) {
 	case M_LIN16:
 	case M_LIN24:
 	case M_LIN32:
-		vga.draw.address_add=vga.config.scan_len*8; // FIXME: I know this ties into word/dword mode somehow
+		vga.draw.address_add=vga.config.scan_len*(2<<vga.config.addr_shift);
 		break;
 	case M_TEXT:
 		vga.draw.address_add=vga.config.scan_len*(2<<vga.config.addr_shift);
