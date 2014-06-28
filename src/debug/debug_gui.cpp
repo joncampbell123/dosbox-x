@@ -53,19 +53,16 @@ void DEBUG_RefreshPage(char scroll) {
 
 	list<string>::iterator i = logBuffPos;
 	int maxy, maxx; getmaxyx(dbg.win_out,maxy,maxx);
-	int rem_lines = maxy;
+	int rem_lines = maxy - 1;
 	if(rem_lines == -1) return;
 
 	wclear(dbg.win_out);
-
 	while (rem_lines > 0 && i!=logBuff.begin()) {
 		--i;
-		for (string::size_type posf=0, posl; (posl=(*i).find('\n',posf)) != string::npos ;posf=posl+1)
-			rem_lines -= (int) ((posl-posf) / maxx) + 1; // len=(posl+1)-posf-1
 		/* Const cast is needed for pdcurses which has no const char in mvwprintw (bug maybe) */
-		mvwprintw(dbg.win_out,rem_lines-1, 0, const_cast<char*>((*i).c_str()));
+		mvwprintw(dbg.win_out,rem_lines, 0, const_cast<char*>((*i).c_str()));
+		rem_lines--;
 	}
-	mvwprintw(dbg.win_out,maxy-1, 0, "");
 	wrefresh(dbg.win_out);
 }
 
@@ -147,7 +144,7 @@ static void MakeSubWindows(void) {
 	dbg.win_var=subwin(dbg.win_main,4,win_main_maxx,outy,0);
 	outy+=5; // 34
 	/* The Output Window */	
-	dbg.win_out=subwin(dbg.win_main,win_main_maxy-outy,win_main_maxx,outy,0);
+	dbg.win_out=subwin(dbg.win_main,win_main_maxy-outy-2,win_main_maxx,outy,0);
 	if(!dbg.win_reg ||!dbg.win_data || !dbg.win_code || !dbg.win_var || !dbg.win_out) E_Exit("Setting up windows failed");
 //	dbg.input_y=win_main_maxy-1;
 	scrollok(dbg.win_out,TRUE);
@@ -169,6 +166,7 @@ void DBGUI_StartUp(void) {
 	dbg.win_main=initscr();
 	cbreak();       /* take input chars one at a time, no wait for \n */
 	noecho();       /* don't echo input */
+	scrollok(stdscr,false);
 	nodelay(dbg.win_main,true);
 	keypad(dbg.win_main,true);
 	#ifndef WIN32
@@ -182,7 +180,6 @@ void DBGUI_StartUp(void) {
 	cycle_count=0;
 	MakePairs();
 	MakeSubWindows();
-
 }
 
 #endif
@@ -215,7 +212,6 @@ void DEBUG_ShowMsg(char const* format,...) {
 	if (logBuffPos!=logBuff.end()) {
 		logBuffPos=logBuff.end();
 		DEBUG_RefreshPage(0);
-//		mvwprintw(dbg.win_out,dbg.win_out->_maxy-1, 0, "");
 	}
 	logBuff.push_back(buf);
 	if (logBuff.size() > MAX_LOG_BUFFER)
