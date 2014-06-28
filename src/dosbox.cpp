@@ -783,6 +783,8 @@ void DOSBOX_Init(void) {
 #endif
 	SDLNetInited = false;
 
+	LOG_StartUp();
+
 	secprop=control->AddSection_prop("dosbox",&DOSBOX_RealInit);
 	Pstring = secprop->Add_path("language",Property::Changeable::Always,"");
 	Pstring->Set_help("Select another language file.");
@@ -805,6 +807,11 @@ void DOSBOX_Init(void) {
 		"For build engine games, use more memory than in the list above so it can\n"
 		"use triple buffering and thus won't flicker.\n"
 		);
+
+	Pint = secprop->Add_int("vmemsizekb", Property::Changeable::WhenIdle,0);
+	Pint->SetMinMax(0,8);
+	Pint->Set_help(
+		"Amount of video memory in kilobytes, in addition to vmemsize");
 
 	Pstring = secprop->Add_path("captures",Property::Changeable::Always,"capture");
 	Pstring->Set_help("Directory where things like wave, midi, screenshot get captured.");
@@ -878,8 +885,6 @@ void DOSBOX_Init(void) {
 	Pint->SetMinMax(0,128);
 	Pint->Set_help("Once ROM BIOS layout is finalized, trim total region down to a minimum amount in KB");
 
-	LOG_StartUp();
-	
 	secprop->AddInitFunction(&IO_Init);//done
 	secprop->AddInitFunction(&PAGING_Init);//done
 	secprop->AddInitFunction(&MEM_Init);//done
