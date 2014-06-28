@@ -26,6 +26,7 @@
 #include "support.h"
 #include "setup.h"
 #include "mem.h"
+#include "util_units.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -33,6 +34,32 @@
 #include <stdio.h>
 
 using namespace std;
+
+/* TODO: Utility header */
+bool is_power_of_2(Bitu val) {
+	return (val != 0) && ((val&(val-1)) == 0);
+	/* To explain: if val is a power of 2, then only one bit is set.
+	 * Decrementing val would change that one bit to 0, and all bits to the right to 1.
+	 * Example:
+	 *
+	 * Power of 2: val = 1024
+	 *
+	 *      1024 = 0000 0100 0000 0000
+	 *  AND 1023 = 0000 0011 1111 1111
+	 *  ------------------------------
+	 *         0 = 0000 0000 0000 0000
+	 *
+	 * Non-power of 2: val = 713
+	 *
+	 *       713 = 0000 0010 1100 1001
+	 *   AND 712 = 0000 0010 1100 1000
+	 *  ------------------------------
+	 *       712 = 0000 0010 1100 1000
+	 *
+	 * See how that works?
+	 *
+	 * For more info see https://graphics.stanford.edu/~seander/bithacks.html#DetermineIfPowerOf2*/
+}
 
 VGA_Type vga;
 SVGA_Driver svga;
@@ -305,6 +332,14 @@ static void CGASNOW_ProgramStart(Program * * make) {
 	*make=new CGASNOW;
 }
 
+/* TODO: move to general header */
+static inline int int_log2(int val) {
+	int log = 0;
+	while ((val >>= 1) != 0) log++;
+	return log;
+}
+
+
 void VGA_Init(Section* sec) {
 	Section_prop * section=static_cast<Section_prop *>(sec);
 	string str;
@@ -359,8 +394,65 @@ void VGA_Init(Section* sec) {
 
 	vga.draw.resizing=false;
 	vga.mode=M_ERROR;			//For first init
-	vga.vmemsize=section->Get_int("vmemsize")*1024*1024;
-	SVGA_Setup_Driver();		// svga video memory size is set here
+
+	/* mainline compatible vmemsize (in MB)
+	 * plus vmemsizekb for KB-level control.
+	 * then we round up a page.
+	 *
+	 * FIXME: If PCjr/Tandy uses system memory as video memory,
+	 *        can we get away with pointing at system memory
+	 *        directly and not allocate a dedicated char[]
+	 *        array for VRAM? Likewise for VGA emulation of
+	 *        various motherboard chipsets known to "steal"
+	 *        off the top of system RAM, like Intel and
+	 *        Chips & Tech VGA implementations? */
+	vga.vmemsize  = _MB_bytes(section->Get_int("vmemsize"));
+	vga.vmemsize += _KB_bytes(section->Get_int("vmemsizekb"));
+	vga.vmemsize  = (vga.vmemsize + 0xFFF) & (~0xFFF);
+	/* mainline compatible: vmemsize == 0 means 512KB */
+	if (vga.vmemsize == 0) vga.vmemsize = _KB_bytes(512);
+
+	/* round up to the nearest power of 2 (TODO: Any video hardware that uses non-power-of-2 sizes?).
+	 * A lot of DOSBox's VGA emulation code assumes power-of-2 VRAM sizes especially when wrapping
+	 * memory addresses with (a & (vmemsize - 1)) type code. */
+	if (!is_power_of_2(vga.vmemsize)) {
+		Bitu i = int_log2(vga.vmemsize)+1;
+		vga.vmemsize = 1 << i;
+		LOG(LOG_VGA,LOG_WARN)("VGA RAM size requested is not a power of 2, rounding up to %uKB",vga.vmemsize>>10);
+	}
+
+	/* sanity check according to adapter type.
+	 * FIXME: Again it was foolish for DOSBox to standardize on machine=
+	 * for selecting machine type AND video card. */
+	switch (machine) {
+		case MCH_HERC: /* FIXME: MCH_MDA (4KB) vs MCH_HERC (64KB?) */
+			if (vga.vmemsize < _KB_bytes(64)) vga.vmemsize = _KB_bytes(64);
+			break;
+		case MCH_CGA:
+			if (vga.vmemsize < _KB_bytes(16)) vga.vmemsize = _KB_bytes(16);
+			break;
+		case MCH_TANDY:
+		case MCH_PCJR:
+			if (vga.vmemsize < _KB_bytes(128)) vga.vmemsize = _KB_bytes(128); /* FIXME: Right? */
+			break;
+		case MCH_EGA:
+			if (vga.vmemsize <= _KB_bytes(128)) vga.vmemsize = _KB_bytes(128); /* Either 128KB or 256KB */
+			else vga.vmemsize = _KB_bytes(256);
+			break;
+		case MCH_VGA:
+			if (vga.vmemsize < _KB_bytes(256)) vga.vmemsize = _KB_bytes(256);
+			break;
+		case MCH_AMSTRAD:
+			if (vga.vmemsize < _KB_bytes(64)) vga.vmemsize = _KB_bytes(64); /* FIXME: Right? */
+			break;
+		default:
+			E_Exit("Unexpected machine");
+	};
+
+	vga.vmemwrap = 256*1024;	// default to 256KB VGA mem wrap
+	SVGA_Setup_Driver();		// svga video memory size is set here, possibly over-riding the user's selection
+	LOG(LOG_VGA,LOG_NORMAL)("Video RAM: %uKB",vga.vmemsize>>10);
+
 	VGA_SetupMemory(sec);		// memory is allocated here
 	VGA_SetupMisc();
 	VGA_SetupDAC();
@@ -444,7 +536,7 @@ void SVGA_Setup_Driver(void) {
 		SVGA_Setup_ParadisePVGA1A();
 		break;
 	default:
-		vga.vmemsize = vga.vmemwrap = 256*1024;
+		vga.vmemwrap = 256*1024;
 		break;
 	}
 }

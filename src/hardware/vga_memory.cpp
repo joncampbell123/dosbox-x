@@ -1177,15 +1177,8 @@ void VGA_SetupMemory(Section* sec) {
 	vga.svga.bank_read = vga.svga.bank_write = 0;
 	vga.svga.bank_read_full = vga.svga.bank_write_full = 0;
 
-	Bit32u vga_allocsize=vga.vmemsize;
-	// Keep lower limit at 512k
-	if (vga_allocsize<512*1024) vga_allocsize=512*1024;
-	
-	vga_allocsize += 4096 * 4;	// We reserve an extra scan line (max S3 scanline 4096)
-	vga_allocsize += 16;		// for memory alignment	
-
-	vga.mem.linear_orgptr = new Bit8u[vga_allocsize+32];
-	memset(vga.mem.linear_orgptr,0,vga_allocsize+32);
+	vga.mem.linear_orgptr = new Bit8u[vga.vmemsize+32];
+	memset(vga.mem.linear_orgptr,0,vga.vmemsize+32);
 	vga.mem.linear=(Bit8u*)(((Bitu)vga.mem.linear_orgptr + 16-1) & ~(16-1));
 
 	vga.fastmem_orgptr = new Bit8u[(vga.vmemsize<<1)+4096+32];
@@ -1214,27 +1207,4 @@ void VGA_SetupMemory(Section* sec) {
 		//TODO map?	
 	} 
 }
-
-
-
-// save state support
-void *VGA_PageHandler_Func[16] =
-{
-	(void *) &vgaph.map,
-	(void *) &vgaph.slow,
-	(void *) &vgaph.changes,
-	(void *) &vgaph.text,
-	(void *) &vgaph.tandy,
-	(void *) &vgaph.cega,
-	(void *) &vgaph.cvga,
-	(void *) &vgaph.uega,
-	(void *) &vgaph.uvga,
-	(void *) &vgaph.pcjr,
-	(void *) &vgaph.lin4,
-	(void *) &vgaph.lfb,
-	(void *) &vgaph.lfbchanges,
-	(void *) &vgaph.mmio,
-	(void *) &vgaph.ams,
-	(void *) &vgaph.empty,
-};
 
