@@ -358,7 +358,7 @@ static Bit8u * VGA_Draw_Xlat16_Linear_Line(Bitu vidstart, Bitu /*line*/) {
 	Bit8u *ret = &vga.draw.linear_base[ vidstart & vga.draw.linear_mask ];
 	Bit16u* temps = (Bit16u*) TempLine;
 
-	for(Bitu i = 0; i < vga.draw.line_length; i++)
+	for(Bitu i = 0; i < (vga.draw.line_length>>1); i++)
 		temps[i]=vga.dac.xlat16[ret[i]];
 
 	return TempLine;
@@ -368,7 +368,7 @@ static Bit8u * VGA_Draw_Xlat32_Linear_Line(Bitu vidstart, Bitu /*line*/) {
 	Bit8u *ret = &vga.draw.linear_base[ vidstart & vga.draw.linear_mask ];
 	Bit32u* temps = (Bit32u*) TempLine;
 
-	for(Bitu i = 0; i < vga.draw.line_length; i++)
+	for(Bitu i = 0; i < (vga.draw.line_length>>2); i++)
 		temps[i]=vga.dac.xlat32[ret[i]];
 
 	return TempLine;
@@ -1902,8 +1902,8 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 	
 	//TODO
 	if (vga.draw.doublescan_merging)
-			vga.draw.vblank_skip /= 2;
-		
+		vga.draw.vblank_skip /= 2;
+
 	vga.draw.lines_total=height;
 	vga.draw.line_length = width * ((bpp + 1) / 8);
 	vga.draw.clock = clock;
