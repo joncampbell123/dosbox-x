@@ -354,6 +354,7 @@ typedef struct {
 	Bit8u combine[16];
 	RGBEntry rgb[0x100];
 	Bit16u xlat16[256];
+	Bit32u xlat32[256];
 	Bit8u hidac_counter;
 	Bit8u reg02;
 } VGA_Dac;

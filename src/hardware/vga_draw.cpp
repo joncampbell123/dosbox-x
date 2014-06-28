@@ -357,9 +357,20 @@ static Bit8u * VGA_Draw_Linear_Line(Bitu vidstart, Bitu /*line*/) {
 static Bit8u * VGA_Draw_Xlat16_Linear_Line(Bitu vidstart, Bitu /*line*/) {
 	Bit8u *ret = &vga.draw.linear_base[ vidstart & vga.draw.linear_mask ];
 	Bit16u* temps = (Bit16u*) TempLine;
-	for(Bitu i = 0; i < vga.draw.line_length; i++) {
+
+	for(Bitu i = 0; i < vga.draw.line_length; i++)
 		temps[i]=vga.dac.xlat16[ret[i]];
-	}
+
+	return TempLine;
+}
+
+static Bit8u * VGA_Draw_Xlat32_Linear_Line(Bitu vidstart, Bitu /*line*/) {
+	Bit8u *ret = &vga.draw.linear_base[ vidstart & vga.draw.linear_mask ];
+	Bit32u* temps = (Bit32u*) TempLine;
+
+	for(Bitu i = 0; i < vga.draw.line_length; i++)
+		temps[i]=vga.dac.xlat32[ret[i]];
+
 	return TempLine;
 }
 
@@ -373,24 +384,24 @@ static Bit8u * VGA_Draw_Xlat16_Linear_Line(Bitu vidstart, Bitu /*line*/) {
 	return TempLine;
 } */
 
-static Bit8u * VGA_Draw_VGA_Line_Xlat16_HWMouse( Bitu vidstart, Bitu /*line*/) {
+static Bit8u * VGA_Draw_VGA_Line_Xlat32_HWMouse( Bitu vidstart, Bitu /*line*/) {
 	if (!svga.hardware_cursor_active || !svga.hardware_cursor_active())
 		// HW Mouse not enabled, use the tried and true call
-		return VGA_Draw_Xlat16_Linear_Line(vidstart, 0);
+		return VGA_Draw_Xlat32_Linear_Line(vidstart, 0);
 
 	Bitu lineat = (vidstart-(vga.config.real_start<<2)) / vga.draw.width;
 	if ((vga.s3.hgc.posx >= vga.draw.width) ||
 		(lineat < vga.s3.hgc.originy) ||
 		(lineat > (vga.s3.hgc.originy + (63U-vga.s3.hgc.posy))) ) {
 		// the mouse cursor *pattern* is not on this line
-		return VGA_Draw_Xlat16_Linear_Line(vidstart, 0);
+		return VGA_Draw_Xlat32_Linear_Line(vidstart, 0);
 	} else {
 		// Draw mouse cursor: cursor is a 64x64 pattern which is shifted (inside the
 		// 64x64 mouse cursor space) to the right by posx pixels and up by posy pixels.
 		// This is used when the mouse cursor partially leaves the screen.
 		// It is arranged as bitmap of 16bits of bitA followed by 16bits of bitB, each
 		// AB bits corresponding to a cursor pixel. The whole map is 8kB in size.
-		Bit16u* temp = (Bit16u*)VGA_Draw_Xlat16_Linear_Line(vidstart, 0);
+		Bit32u* temp = (Bit32u*)VGA_Draw_Xlat32_Linear_Line(vidstart, 0);
 		//memcpy(TempLine, &vga.mem.linear[ vidstart ], vga.draw.width);
 
 		// the index of the bit inside the cursor bitmap we start at:
@@ -403,7 +414,7 @@ static Bit8u * VGA_Draw_VGA_Line_Xlat16_HWMouse( Bitu vidstart, Bitu /*line*/) {
 		// stay at the right position in the pattern
 		if (cursorMemStart & 0x2) cursorMemStart--;
 		Bitu cursorMemEnd = cursorMemStart + ((64-vga.s3.hgc.posx) >> 2);
-		Bit16u* xat = &temp[vga.s3.hgc.originx]; // mouse data start pos. in scanline
+		Bit32u* xat = &temp[vga.s3.hgc.originx]; // mouse data start pos. in scanline
 		for (Bitu m = cursorMemStart; m < cursorMemEnd; (m&1)?(m+=3):m++) {
 			// for each byte of cursor data
 			Bit8u bitsA = vga.mem.linear[m];
@@ -412,12 +423,12 @@ static Bit8u * VGA_Draw_VGA_Line_Xlat16_HWMouse( Bitu vidstart, Bitu /*line*/) {
 				// for each bit
 				cursorStartBit=0; // only the first byte has some bits cut off
 				if (bitsA&bit) {
-					if (bitsB&bit) *xat ^= 0xFFFF; // Invert screen data
+					if (bitsB&bit) *xat ^= 0xFFFFFFFF; // Invert screen data
 					//else Transparent
 				} else if (bitsB&bit) {
-					*xat = vga.dac.xlat16[vga.s3.hgc.forestack[0]]; // foreground color
+					*xat = vga.dac.xlat32[vga.s3.hgc.forestack[0]]; // foreground color
 				} else {
-					*xat = vga.dac.xlat16[vga.s3.hgc.backstack[0]];
+					*xat = vga.dac.xlat32[vga.s3.hgc.backstack[0]];
 				}
 				xat++;
 			}
@@ -723,68 +734,10 @@ skip_cursor:
 	return TempLine;
 }
 
-// combined 8/9-dot wide text mode 8bpp line drawing function
-static Bit8u* VGA_TEXT_Draw_Line89(Bitu vidstart, Bitu line) {
-	// keep it aligned:
-	Bit8u* draw = ((Bit8u*)TempLine) + 16 - vga.draw.panning;
-	const Bit8u* vidmem = VGA_Text_Memwrap(vidstart); // pointer to chars+attribs
-	Bitu blocks = vga.draw.blocks;
-	if (vga.draw.panning) blocks++; // if the text is panned part of an 
-									// additional character becomes visible
-	while (blocks--) { // for each character in the line
-		Bitu chr = *vidmem++;
-		Bitu attr = *vidmem++;
-		// the font pattern
-		Bitu font = vga.draw.font_tables[(attr >> 3)&1][(chr<<5)+line];
-		
-		Bitu background = attr >> 4;
-		// if blinking is enabled bit7 is not mapped to attributes
-		if (vga.draw.blinking) background &= ~0x8;
-		// choose foreground color if blinking not set for this cell or blink on
-		Bitu foreground = (vga.draw.blink || (!(attr&0x80)))?
-			(attr&0xf):background;
-		// underline: all foreground [freevga: 0x77, previous 0x7]
-		if (GCC_UNLIKELY(((attr&0x77) == 0x01) &&
-			(vga.crtc.underline_location&0x1f)==line))
-				background = foreground;
-		if (vga.draw.char9dot) {
-			font <<=1; // 9 pixels
-			// extend to the 9th pixel if needed
-			if ((font&0x2) && (vga.attr.mode_control&0x04) &&
-				(chr>=0xc0) && (chr<=0xdf)) font |= 1;
-			for (Bitu n = 0; n < 9; n++) {
-				*draw++ = (font&0x100)? foreground:background;
-				font <<= 1;
-			}
-		} else {
-			for (Bitu n = 0; n < 8; n++) {
-				*draw++ = (font&0x80)? foreground:background;
-				font <<= 1;
-			}
-		}
-	}
-	// draw the text mode cursor if needed
-	if ((vga.draw.cursor.count&0x8) && (line >= vga.draw.cursor.sline) &&
-		(line <= vga.draw.cursor.eline) && vga.draw.cursor.enabled) {
-		// the adress of the attribute that makes up the cell the cursor is in
-		Bits attr_addr = (vga.draw.cursor.address-vidstart) >> 1;
-		if (attr_addr >= 0 && attr_addr < (Bits)vga.draw.blocks) {
-			Bitu index = attr_addr * (vga.draw.char9dot? 9:8);
-			draw = (Bit8u*)(&TempLine[index]) + 16 - vga.draw.panning;
-			
-			Bitu foreground = vga.tandy.draw_base[vga.draw.cursor.address+1] & 0xf;
-			for (Bitu i = 0; i < 8; i++) {
-				*draw++ = foreground;
-			}
-		}
-	}
-	return TempLine+16;
-}
-
 // combined 8/9-dot wide text mode 16bpp line drawing function
-static Bit8u* VGA_TEXT_Xlat16_Draw_Line(Bitu vidstart, Bitu line) {
+static Bit8u* VGA_TEXT_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 	// keep it aligned:
-	Bit16u* draw = ((Bit16u*)TempLine) + 16 - vga.draw.panning;
+	Bit32u* draw = ((Bit32u*)TempLine) + 16 - vga.draw.panning;
 	const Bit8u* vidmem = VGA_Text_Memwrap(vidstart); // pointer to chars+attribs
 	Bitu blocks = vga.draw.blocks;
 	if (vga.draw.panning) blocks++; // if the text is panned part of an 
@@ -811,12 +764,12 @@ static Bit8u* VGA_TEXT_Xlat16_Draw_Line(Bitu vidstart, Bitu line) {
 			if ((font&0x2) && (vga.attr.mode_control&0x04) &&
 				(chr>=0xc0) && (chr<=0xdf)) font |= 1;
 			for (Bitu n = 0; n < 9; n++) {
-				*draw++ = vga.dac.xlat16[(font&0x100)? foreground:background];
+				*draw++ = vga.dac.xlat32[(font&0x100)? foreground:background];
 				font <<= 1;
 			}
 		} else {
 			for (Bitu n = 0; n < 8; n++) {
-				*draw++ = vga.dac.xlat16[(font&0x80)? foreground:background];
+				*draw++ = vga.dac.xlat32[(font&0x80)? foreground:background];
 				font <<= 1;
 			}
 		}
@@ -827,16 +780,16 @@ static Bit8u* VGA_TEXT_Xlat16_Draw_Line(Bitu vidstart, Bitu line) {
 		// the adress of the attribute that makes up the cell the cursor is in
 		Bits attr_addr = (vga.draw.cursor.address-vidstart) >> 1;
 		if (attr_addr >= 0 && attr_addr < (Bits)vga.draw.blocks) {
-			Bitu index = attr_addr * (vga.draw.char9dot? 18:16);
-			draw = (Bit16u*)(&TempLine[index]) + 16 - vga.draw.panning;
+			Bitu index = attr_addr * (vga.draw.char9dot?9:8) * 4;
+			draw = (Bit32u*)(&TempLine[index]) + 16 - vga.draw.panning;
 			
 			Bitu foreground = vga.tandy.draw_base[vga.draw.cursor.address+1] & 0xf;
 			for (Bitu i = 0; i < 8; i++) {
-				*draw++ = vga.dac.xlat16[foreground];
+				*draw++ = vga.dac.xlat32[foreground];
 			}
 		}
 	}
-	return TempLine+32;
+	return TempLine+(16*4);
 }
 
 #ifdef VGA_KEEP_CHANGES
@@ -1389,7 +1342,7 @@ void VGA_ActivateHardwareCursor(void) {
 			VGA_DrawLine=VGA_Draw_LIN16_Line_HWMouse;
 			break;
 		case M_LIN8:
-			VGA_DrawLine=VGA_Draw_VGA_Line_Xlat16_HWMouse;
+			VGA_DrawLine=VGA_Draw_VGA_Line_Xlat32_HWMouse;
 			break;
 		default:
 			VGA_DrawLine=VGA_Draw_VGA_Line_HWMouse;
@@ -1398,7 +1351,7 @@ void VGA_ActivateHardwareCursor(void) {
 	} else {
 		switch(vga.mode) {
 		case M_LIN8:
-			VGA_DrawLine=VGA_Draw_Xlat16_Linear_Line;
+			VGA_DrawLine=VGA_Draw_Xlat32_Linear_Line;
 			break;
 		case M_LIN24:
 			VGA_DrawLine=VGA_Draw_Linear_Line_24_to_32;
@@ -1811,13 +1764,13 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 			pix_per_char = 2;
 			break;
 		}
-		bpp = 16;
+		bpp = 32;
 		pix_per_char = 4;
-		VGA_DrawLine = VGA_Draw_Xlat16_Linear_Line;
+		VGA_DrawLine = VGA_Draw_Xlat32_Linear_Line;
 		break;
 	case M_LIN8:
-		bpp = 16;
-		VGA_DrawLine = VGA_Draw_Xlat16_Linear_Line;
+		bpp = 32;
+		VGA_DrawLine = VGA_Draw_Xlat32_Linear_Line;
 
 		if ((vga.s3.reg_3a & 0x10)||(svgaCard!=SVGA_S3Trio))
 			pix_per_char = 8; // TODO fiddle out the bits for other svga cards
@@ -1868,14 +1821,14 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		if ((vga.seq.clocking_mode&0x01) || !vga.draw.char9_set) {
 			// 8-pixel wide
 			vga.draw.char9dot = false;
-			VGA_DrawLine=VGA_TEXT_Xlat16_Draw_Line;
-			bpp = 16;
+			VGA_DrawLine=VGA_TEXT_Xlat32_Draw_Line;
+			bpp = 32;
 		} else {
 			// 9-pixel wide
 			pix_per_char = 9;
 			vga.draw.char9dot = true;
-			VGA_DrawLine=VGA_TEXT_Xlat16_Draw_Line;
-			bpp = 16;
+			VGA_DrawLine=VGA_TEXT_Xlat32_Draw_Line;
+			bpp = 32;
 		}
 		break;
 	case M_HERC_GFX:
