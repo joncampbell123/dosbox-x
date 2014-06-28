@@ -689,8 +689,7 @@ void RENDER_SetForceUpdate(bool f) {
 void RENDER_Init(Section * sec) {
 	Section_prop * section=static_cast<Section_prop *>(sec);
 
-	// line-by-line emulation
-	vga.draw.linewise_set=section->Get_bool("linewise");
+	vga.draw.linewise_set=true;
 	vga.draw.doublescan_set=section->Get_bool("doublescan");
 	vga.draw.char9_set=section->Get_bool("char9");
 

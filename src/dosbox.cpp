@@ -939,13 +939,11 @@ void DOSBOX_Init(void) {
 
 	Pbool = secprop->Add_bool("page flip debug line",Property::Changeable::Always,false);
 	Pbool->Set_help("VGA debugging switch. If set, an inverse line will be drawn on the exact scanline that the CRTC display offset registers were written.\n"
-			"This can be used to help diagnose whether or not the DOS game is page flipping properly according to vertical retrace if the display on-screen is flickering.\n"
-			"You must enable linewise mode for this debug option to work correctly.");
+			"This can be used to help diagnose whether or not the DOS game is page flipping properly according to vertical retrace if the display on-screen is flickering.");
 
 	Pbool = secprop->Add_bool("vertical retrace poll debug line",Property::Changeable::Always,false);
 	Pbool->Set_help("VGA debugging switch. If set, an inverse green dotted line will be drawn on the exact scanline that the CRTC status port (0x3DA) was read.\n"
-			"This can be used to help diagnose whether the DOS game is propertly waiting for vertical retrace.\n"
-			"You must enable linewise mode for this debug option to work correctly.");
+			"This can be used to help diagnose whether the DOS game is propertly waiting for vertical retrace.");
 
 	Pbool = secprop->Add_bool("cgasnow",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("When machine=cga, determines whether or not to emulate CGA snow");
@@ -1066,9 +1064,6 @@ void DOSBOX_Init(void) {
 
 	Pbool = secprop->Add_bool("aspect",Property::Changeable::Always,false);
 	Pbool->Set_help("Do aspect correction, if your output method doesn't support scaling this can slow things down!.");
-
-	Pbool = secprop->Add_bool("linewise",Property::Changeable::Always,true);
-	Pbool->Set_help("Draw the display line by line. Needed for certain special graphics effects in games and demos. Can be changed at runtime but will be put in effect at the next mode switch.");
 
 	Pbool = secprop->Add_bool("char9",Property::Changeable::Always,true);
 	Pbool->Set_help("Allow 9-pixel wide text mode fonts.");

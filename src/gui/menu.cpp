@@ -1395,7 +1395,6 @@ int Reflect_Menu(void) {
 	}
 	sec = static_cast<Section_prop *>(control->GetSection("render"));
 	if (sec) {
-		CheckMenuItem(m_handle, ID_LINEWISE, sec->Get_bool("linewise") ? MF_CHECKED : MF_STRING);
 		CheckMenuItem(m_handle, ID_CHAR9, sec->Get_bool("char9") ? MF_CHECKED : MF_STRING);
 		CheckMenuItem(m_handle, ID_MULTISCAN, sec->Get_bool("multiscan") ? MF_CHECKED : MF_STRING);
 	}
@@ -1842,7 +1841,6 @@ void MSG_Loop(void) {
 				KEYBOARD_AddKey(KBD_delete, false);
 				break;
 				}
-			case ID_LINEWISE: MENU_SetBool("render", "linewise"); break;
 			case ID_CHAR9: MENU_SetBool("render", "char9"); break;
 			case ID_MULTISCAN: MENU_SetBool("render", "multiscan"); break;
 			case ID_DRVFORCE_DIRECTX: {
