@@ -23,9 +23,12 @@
 #include "dosbox.h"
 #endif
 
-typedef Bit32u PhysPt;
-typedef Bit8u * HostPt;
-typedef Bit32u RealPt;
+typedef Bit8u *HostPt;		/* host (virtual) memory address aka ptr */
+
+typedef Bit32u PhysPt;		/* guest physical memory pointer */
+typedef Bit32u LinearPt;	/* guest linear memory address */
+typedef Bit32u RealPt;		/* guest real-mode memory address (16:16 -> seg:offset) */
+typedef Bit16u SegmentVal;	/* guest segment value */
 
 typedef Bit32s MemHandle;
 
@@ -216,7 +219,7 @@ static INLINE void RealSetVec(Bit8u vec,RealPt pt,RealPt &old) {
 }
 
 /* convert physical address to 4:16 real pointer (example: 0xABCDE -> 0xA000:0xBCDE) */
-static INLINE Bitu PhysToReal416(Bitu phys) {
+static INLINE RealPt PhysToReal416(PhysPt phys) {
 	return RealMake((phys>>4)&0xF000,phys&0xFFFF);
 }
 
