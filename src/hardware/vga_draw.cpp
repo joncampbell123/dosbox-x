@@ -38,8 +38,6 @@
 //#define C_DEBUG 1
 //#define LOG(X,Y) LOG_MSG
 
-#define VGA_PARTS 4
-
 extern bool vga_3da_polled;
 extern bool vga_page_flip_occurred;
 
@@ -991,57 +989,6 @@ static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
 	} else RENDER_EndUpdate(false);
 }
 
-static void VGA_DrawPart(Bitu lines) {
-	while (lines--) { //if (GCC_LIKELY(!vga.attr.disabled)) while (lines--) {
-		Bit8u * data=VGA_DrawLine( vga.draw.address, vga.draw.address_line );
-		RENDER_DrawLine(data);
-		vga.draw.address_line++;
-		if (vga.draw.address_line>=vga.draw.address_line_total) {
-			vga.draw.address_line=0;
-			vga.draw.address+=vga.draw.address_add;
-		}
-		vga.draw.lines_done++;
-		if (vga.draw.split_line==vga.draw.lines_done) {
-#ifdef VGA_KEEP_CHANGES
-			VGA_ChangesEnd( );
-#endif
-			VGA_ProcessSplit();
-#ifdef VGA_KEEP_CHANGES
-			vga.changes.start = vga.draw.address >> VGA_CHANGE_SHIFT;
-#endif
-		}
-	} /* else { // attrib disabled
-		memset(TempLine, VGA_GetBlankedIndex(), sizeof(TempLine));
-		while (lines--) {
-			RENDER_DrawLine(TempLine);
-			vga.draw.address_line++;
-			if (vga.draw.address_line>=vga.draw.address_line_total) {
-				vga.draw.address_line=0;
-				vga.draw.address+=vga.draw.address_add;
-	}
-			vga.draw.lines_done++;
-			if (vga.draw.split_line==vga.draw.lines_done) {
-#ifdef VGA_KEEP_CHANGES
-				VGA_ChangesEnd( );
-#endif
-				VGA_ProcessSplit();
-#ifdef VGA_KEEP_CHANGES
-				vga.changes.start = vga.draw.address >> VGA_CHANGE_SHIFT;
-#endif
-			}
-		}
-	} // ---- */
-	if (--vga.draw.parts_left) {
-		PIC_AddEvent(VGA_DrawPart,(float)vga.draw.delay.parts,
-			 (vga.draw.parts_left!=1) ? vga.draw.parts_lines  : (vga.draw.lines_total - vga.draw.lines_done));
-	} else {
-#ifdef VGA_KEEP_CHANGES
-		VGA_ChangesEnd();
-#endif
-		RENDER_EndUpdate(false);
-	}
-}
-
 void VGA_SetBlinking(Bitu enabled) {
 	Bitu b;
 	LOG(LOG_VGA,LOG_NORMAL)("Blinking %d",enabled);
@@ -1355,16 +1302,6 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 
 	// add the draw event
 	switch (vga.draw.mode) {
-	case PART:
-		if (GCC_UNLIKELY(vga.draw.parts_left)) {
-			LOG(LOG_VGAMISC,LOG_NORMAL)( "Parts left: %d", vga.draw.parts_left );
-			PIC_RemoveEvents(VGA_DrawPart);
-			RENDER_EndUpdate(true);
-		}
-		vga.draw.lines_done = 0;
-		vga.draw.parts_left = vga.draw.parts_total;
-		PIC_AddEvent(VGA_DrawPart,(float)vga.draw.delay.parts + draw_skip,vga.draw.parts_lines);
-		break;
 	case LINE:
 	case EGALINE:
 		if (GCC_UNLIKELY(vga.draw.lines_done < vga.draw.lines_total)) {
@@ -1452,23 +1389,23 @@ void VGA_ActivateHardwareCursor(void) {
 			VGA_DrawLine=VGA_Draw_LIN16_Line_HWMouse;
 			break;
 		case M_LIN8:
-			if (vga.draw.linewise_effect) VGA_DrawLine=VGA_Draw_VGA_Line_Xlat16_HWMouse;
-			else VGA_DrawLine=VGA_Draw_VGA_Line_HWMouse;
+			VGA_DrawLine=VGA_Draw_VGA_Line_Xlat16_HWMouse;
 			break;
 		default:
 			VGA_DrawLine=VGA_Draw_VGA_Line_HWMouse;
+			break;
 		}
 	} else {
 		switch(vga.mode) {
 		case M_LIN8:
-			if (vga.draw.linewise_effect) VGA_DrawLine=VGA_Draw_Xlat16_Linear_Line;
-			else VGA_DrawLine=VGA_Draw_Linear_Line;
+			VGA_DrawLine=VGA_Draw_Xlat16_Linear_Line;
 			break;
 		case M_LIN24:
 			VGA_DrawLine=VGA_Draw_Linear_Line_24_to_32;
 			break;
 		default:
 			VGA_DrawLine=VGA_Draw_Linear_Line;
+			break;
 		}
 	}
 }
@@ -1484,11 +1421,8 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 	// multiscan -- zooming effects - only makes sense if linewise is enabled
 	// linewise -- scan display line by line instead of 4 blocks
 	// keep compatibility with other builds of DOSBox for vgaonly.
-    vga.draw.linewise_effect = vga.draw.linewise_set;
-
-	if (vga.draw.linewise_effect) {
-		vga.draw.doublescan_effect = vga.draw.doublescan_set;
-	} else vga.draw.doublescan_effect = false;
+	vga.draw.linewise_effect = true;
+	vga.draw.doublescan_effect = vga.draw.doublescan_set;
 
 	// set the drawing mode
 	switch (machine) {
@@ -1508,8 +1442,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		}
 		// fall-through
 	default:
-		if (vga.draw.linewise_effect) vga.draw.mode = LINE;
-		else vga.draw.mode = PART;
+		vga.draw.mode = LINE;
 		break;
 	}
 	
@@ -1755,7 +1688,6 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		}
 	}
 
-	vga.draw.parts_total=VGA_PARTS;
 	/*
       6  Horizontal Sync Polarity. Negative if set
       7  Vertical Sync Polarity. Negative if set
@@ -1796,7 +1728,6 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 
 	double aspect_ratio = pheight / pwidth;
 
-	vga.draw.delay.parts = vga.draw.delay.vdend/vga.draw.parts_total;
 	vga.draw.resizing=false;
 	vga.draw.vret_triggered=false;
 
@@ -1880,21 +1811,18 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 			pix_per_char = 2;
 			break;
 		}
+		bpp = 16;
 		pix_per_char = 4;
-		if (vga.draw.linewise_effect) {
-			bpp=16;
-			VGA_DrawLine = VGA_Draw_Xlat16_Linear_Line;
-		} else VGA_DrawLine = VGA_Draw_Linear_Line;
+		VGA_DrawLine = VGA_Draw_Xlat16_Linear_Line;
 		break;
 	case M_LIN8:
-		if (vga.draw.linewise_effect) {
-			bpp=16;
-			VGA_DrawLine = VGA_Draw_Xlat16_Linear_Line;
-		} else VGA_DrawLine = VGA_Draw_Linear_Line;
+		bpp = 16;
+		VGA_DrawLine = VGA_Draw_Xlat16_Linear_Line;
 
 		if ((vga.s3.reg_3a & 0x10)||(svgaCard!=SVGA_S3Trio))
 			pix_per_char = 8; // TODO fiddle out the bits for other svga cards
-		else pix_per_char = 4;
+		else
+			pix_per_char = 4;
 
 		VGA_ActivateHardwareCursor();
 		break;
@@ -1914,11 +1842,10 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		vga.draw.linear_mask = (vga.vmemwrap<<1) - 1;
 		break;
 	case M_EGA:
+		bpp = 16;
 		vga.draw.blocks = width;
-		if (vga.draw.linewise_effect) {
-			bpp=16;
-			VGA_DrawLine = VGA_Draw_Xlat16_Linear_Line;
-		} else VGA_DrawLine=VGA_Draw_Linear_Line;
+		VGA_DrawLine = VGA_Draw_Xlat16_Linear_Line;
+
 		vga.draw.linear_base = vga.fastmem;
 		vga.draw.linear_mask = (vga.vmemwrap<<1) - 1;
 		break;
@@ -1940,21 +1867,15 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		// if char9_set is true, allow 9-pixel wide fonts
 		if ((vga.seq.clocking_mode&0x01) || !vga.draw.char9_set) {
 			// 8-pixel wide
-				vga.draw.char9dot = false;
-			if (vga.draw.linewise_effect) {
-				VGA_DrawLine=VGA_TEXT_Xlat16_Draw_Line;
-				bpp=16;
-			} else
-				VGA_DrawLine=VGA_TEXT_Draw_Line; // original version
-			} else {
+			vga.draw.char9dot = false;
+			VGA_DrawLine=VGA_TEXT_Xlat16_Draw_Line;
+			bpp = 16;
+		} else {
 			// 9-pixel wide
 			pix_per_char = 9;
-				vga.draw.char9dot = true;
-			if (vga.draw.linewise_effect) {
+			vga.draw.char9dot = true;
 			VGA_DrawLine=VGA_TEXT_Xlat16_Draw_Line;
-			bpp=16;
-			} else
-				VGA_DrawLine=VGA_TEXT_Draw_Line89; // 8bpp version
+			bpp = 16;
 		}
 		break;
 	case M_HERC_GFX:
@@ -2031,7 +1952,6 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 			vga.draw.vblank_skip /= 2;
 		
 	vga.draw.lines_total=height;
-	vga.draw.parts_lines=vga.draw.lines_total/vga.draw.parts_total;
 	vga.draw.line_length = width * ((bpp + 1) / 8);
 	vga.draw.clock = clock;
 #ifdef VGA_KEEP_CHANGES
@@ -2167,11 +2087,8 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 }
 
 void VGA_KillDrawing(void) {
-	PIC_RemoveEvents(VGA_DrawPart);
 	PIC_RemoveEvents(VGA_DrawSingleLine);
 	PIC_RemoveEvents(VGA_DrawEGASingleLine);
-	vga.draw.parts_left = 0;
-	vga.draw.lines_done = ~0;
 	if (!vga.draw.vga_override) RENDER_EndUpdate(true);
 }
 

@@ -113,7 +113,6 @@ typedef struct {
 } VGA_Config;
 
 typedef enum {
-	PART,
 	LINE,
 	EGALINE
 } Drawmode;
@@ -136,9 +135,6 @@ typedef struct {
 	Bitu vblank_skip;
 	Bitu lines_done;
 	Bitu split_line;
-	Bitu parts_total;
-	Bitu parts_lines;
-	Bitu parts_left;
 	Bitu byte_panning_shift;
 	struct {
 		double framestart;
@@ -148,7 +144,6 @@ typedef struct {
 		double vblkstart, vblkend;	// V-Blanking
 		double vdend, vtotal;
 		double hdend, htotal;
-		double parts;
 		float singleline_delay;
 	} delay;
 	double screen_ratio;

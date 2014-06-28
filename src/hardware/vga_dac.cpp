@@ -193,7 +193,6 @@ void VGA_DAC_CombineColor(Bit8u attr,Bit8u pal) {
 	case M_VGA:
 		// used by copper demo; almost no video card seems to support it
 		// Update: supported by ET4000AX (and not by ET4000AF)
-		if(!vga.draw.linewise_effect) break;
 	default:
 		VGA_DAC_SendColor( attr, pal );
 	}
