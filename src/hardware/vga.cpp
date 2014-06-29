@@ -91,6 +91,12 @@
  *
  *   And yet, the BIOS does not implement VESA BIOS extensions. Hm..
  *
+ * Sharp PC-9030 with Cirrus SVGA (1996):
+ *
+ *   VGA 256-color chained mode acts the same weird way, as if:
+ *   addr = ((addr & ~3) << 2) + (addr & 3)
+ * 
+ *   All VESA BIOS modes support INT 10h TTY output.
  */
 
 #include "dosbox.h"
