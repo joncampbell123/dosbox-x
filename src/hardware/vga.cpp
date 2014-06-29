@@ -16,6 +16,30 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+/* NTS: Hardware notes
+ *
+ * S3 Virge DX:
+ *
+ *   VGA 256-color chained mode appears to work differently than
+ *   expected. Groups of 4 pixels are spread across the VGA planes
+ *   as expected, but actual memory storage of those 32-bit quantities
+ *   are 4 "bytes" apart (probably the inspiration for DOSBox's
+ *   chain emulation using addr = ((addr & ~3) << 2) + (addr & 3) when
+ *   emulating chained mode).
+ *
+ *   The attribute controller has a bug where if you attempt to read
+ *   the palette indexes 0x00-0x0F with PAS=1 (see FreeVGA for more
+ *   info) the returned value will be correct except for bit 5 which
+ *   will be 1 i.e. if palette index 0x2 is read in this way and
+ *   contains 0x02 you will get 0x22 instead. The trick is to write
+ *   the index with PAS=0 and read the data, then issue the index with
+ *   PAS=1. Related: the S3 acts as if there are different flip-flops
+ *   associated with reading vs writing i.e. writing to 0x3C0, then
+ *   reading port 0x3C1, then writing port 0x3C0, will treat the second
+ *   write to 0x3C0 as data still, not as an index. Both flip flops are
+ *   reset by reading 3xAh though.
+ *
+ */
 
 #include "dosbox.h"
 #include "setup.h"
