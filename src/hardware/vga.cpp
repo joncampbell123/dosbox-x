@@ -70,6 +70,27 @@
  *   Raw planar layout of alphanumeric text modes apply the same rules
  *   as mentioned above in the S3 Virge DX description.
  *
+ * Compaq Elite LTE 4/50CX laptop:
+ *
+ *   No SVGA modes. All modes work as expected.
+ *
+ *   VGA 256-color chained mode acts the same weird way as described
+ *   above, seems to act like addr = ((addr & ~3) << 2) + (addr & 3)
+ *
+ *   There seems to be undocumented INT 10h modes:
+ *
+ *        0x22:  640x480x?? INT 10h text is all green and garbled
+ *        0x28:  320x200x?? INT 10h text is all green and garbled
+ *        0x32:  640x480x?? INT 10h text is all yellow and garbled
+ *        0x5E:  640x400x256-color with bank switching
+ *        0x5F:  640x480x256-color with bank switching
+ *        0x62:  640x480x?? INT 10h text is all dark gray
+ *        0x68:  320x200x?? INT 10h text is all dark gray
+ *        0x72:  640x480x?? INT 10h text is all dark gray
+ *        0x78:  320x200x?? INT 10h text is all dark gray
+ *
+ *   And yet, the BIOS does not implement VESA BIOS extensions. Hm..
+ *
  */
 
 #include "dosbox.h"
