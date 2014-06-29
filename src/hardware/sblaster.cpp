@@ -766,7 +766,7 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo) {
 		sb.dma_dac_srcrate=freq;
 		sb.dma_dac_mode=1;
 	}
-	else if (sb.goldplay && sb.freq > 0 && sb.dma.chan->basecnt < ((mode==DSP_DMA_16_ALIASED?2:1)*(stereo?2:1))/*size of one sample in DMA counts*/) {
+	else if (sb.goldplay && sb.freq > 0 && sb.dma.chan != NULL && sb.dma.chan->basecnt < ((mode==DSP_DMA_16_ALIASED?2:1)*(stereo?2:1))/*size of one sample in DMA counts*/) {
 		sb.dma_dac_srcrate=sb.freq;
 		sb.dma_dac_mode=1;
 	}
