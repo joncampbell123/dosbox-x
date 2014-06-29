@@ -41,6 +41,14 @@
  *
  *   VGA BIOS does not support INT 10h TTY functions in VESA BIOS modes.
  *
+ *   Raw planar dumps of the VGA memory in alphanumeric modes suggest
+ *   that, not only do the cards direct even writes to 0/2 and odd to 1/3,
+ *   it does so without shifting down the address. So in a raw planar
+ *   dump, you will see on plane 0 something like "C : \ > " where the
+ *   spaces are hex 0x00, and in plane 1, something like 0x07 0x00 0x07 0x00 ...
+ *   the card however (in even/odd mode) does mask out bit A0 which
+ *   explains why the Plane 1 capture is 0x07 0x00 ... not 0x00 0x07.
+ *
  * ATI Rage 128 (AGP):
  *
  *   VGA 256-color chained mode appears to work in the same weird way
@@ -58,6 +66,9 @@
  *   VGA modes, however in SVGA VESA BIOS modes, the Attribute Controller
  *   palette has no effect on output EXCEPT in 16-color (4bpp) VESA BIOS
  *   modes.
+ *
+ *   Raw planar layout of alphanumeric text modes apply the same rules
+ *   as mentioned above in the S3 Virge DX description.
  *
  */
 
