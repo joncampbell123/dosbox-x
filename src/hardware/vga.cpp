@@ -18,7 +18,7 @@
 
 /* NTS: Hardware notes
  *
- * S3 Virge DX:
+ * S3 Virge DX (PCI):
  *
  *   VGA 256-color chained mode appears to work differently than
  *   expected. Groups of 4 pixels are spread across the VGA planes
@@ -38,6 +38,26 @@
  *   reading port 0x3C1, then writing port 0x3C0, will treat the second
  *   write to 0x3C0 as data still, not as an index. Both flip flops are
  *   reset by reading 3xAh though.
+ *
+ *   VGA BIOS does not support INT 10h TTY functions in VESA BIOS modes.
+ *
+ * ATI Rage 128 (AGP):
+ *
+ *   VGA 256-color chained mode appears to work in the same weird way
+ *   that S3 Virge DX does (see above).
+ *
+ *   VGA BIOS supports TTY INT 10h functions in 16 & 256-color modes
+ *   only. There are apparently INT 10h functions for 15/16bpp modes
+ *   as well, but they don't appear to render anything except shades
+ *   of green.
+ *
+ *   The VESA BIOS interface seems to have INT 10h aliases for many
+ *   VBE 1.2 modes i.e. mode 0x110 is also mode 0x42.
+ *
+ *   The Attribute Controller palette indexes work as expected in all
+ *   VGA modes, however in SVGA VESA BIOS modes, the Attribute Controller
+ *   palette has no effect on output EXCEPT in 16-color (4bpp) VESA BIOS
+ *   modes.
  *
  */
 
