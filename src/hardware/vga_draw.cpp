@@ -364,6 +364,28 @@ static Bit8u * VGA_Draw_Xlat16_Linear_Line(Bitu vidstart, Bitu /*line*/) {
 	return TempLine;
 }
 
+static Bit8u * VGA_Draw_Xlat32_VGA_CRTC_bmode_Line(Bitu vidstart, Bitu /*line*/) {
+	Bit8u *ret = &vga.draw.linear_base[ vidstart & vga.draw.linear_mask ];
+	Bit32u* temps = (Bit32u*) TempLine;
+	Bitu skip; /* how much to skip after drawing 4 pixels */
+
+	/* for each group of 4 pixels, render with consideration for CRTC byte/word/dword mode */
+	/* testing with DOSLIB tools confirms this is what most SVGA chipsets do with video
+	 * RAM when in VGA 256-color mode */
+	skip = (4 << vga.config.addr_shift) - 4;
+	for(Bitu i = 0; i < (vga.draw.line_length>>(2/*32bpp*/+2/*4 pixels*/)); i++) {
+		/* one group of 4 */
+		*temps++ = vga.dac.xlat32[*ret++];
+		*temps++ = vga.dac.xlat32[*ret++];
+		*temps++ = vga.dac.xlat32[*ret++];
+		*temps++ = vga.dac.xlat32[*ret++];
+		/* and skip */
+		ret += skip;
+	}
+
+	return TempLine;
+}
+
 static Bit8u * VGA_Draw_Xlat32_Linear_Line(Bitu vidstart, Bitu /*line*/) {
 	Bit8u *ret = &vga.draw.linear_base[ vidstart & vga.draw.linear_mask ];
 	Bit32u* temps = (Bit32u*) TempLine;
@@ -1186,6 +1208,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 #endif
 		break;
 	case M_VGA:
+#if 0
 		if (vga.config.compatible_chain4 && (vga.crtc.underline_location & 0x40)) {
 			vga.draw.linear_base = vga.fastmem;
 			vga.draw.linear_mask = 0x3ffff;	/* 256KB */
@@ -1193,6 +1216,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 			vga.draw.linear_base = vga.mem.linear;
 			vga.draw.linear_mask = vga.vmemwrap - 1;
 		}
+#endif
 	case M_LIN8:
 	case M_LIN15:
 	case M_LIN16:
@@ -1287,10 +1311,30 @@ void VGA_CheckScanLength(void) {
 	case M_LIN16:
 	case M_LIN24:
 	case M_LIN32:
-		if (vga.mode == M_VGA && vga.config.addr_shift != 2) /* HACK: DOSBox renders Mode X with stride set as if still chained */
-			vga.draw.address_add=vga.config.scan_len*8;
-		else
+		if (vga.mode == M_VGA) {
+			if (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K) {
+				/* Observed ET4000AX behavior:
+				 *    byte mode OR dword mode scans 256-color 4-pixel groups byte by byte from
+				 *    planar RAM. word mode scans every other byte (skips by two).
+				 *    We can just scan the buffer normally as linear because of the address
+				 *    translation carried out by the ET4000 in chained mode:
+				 *
+				 *    plane = (addr & 3)   addr = (addr >> 2)
+				 *
+				 *    TODO: Validate that this is correct. */
+				vga.draw.address_add=vga.config.scan_len*((vga.config.addr_shift == 1)?16:8);
+			}
+			else {
+				/* Most (almost ALL) VGA clones render chained modes as 4 8-bit planes one DWORD apart.
+				 * They all act as if writes to chained VGA memory are translated as:
+				 * addr = ((addr & ~3) << 3) + (addr & 3) */
+				vga.draw.address_add=vga.config.scan_len*((2*4)<<vga.config.addr_shift);
+			}
+		}
+		else {
+			/* the rest (SVGA modes) can be rendered with sanity */
 			vga.draw.address_add=vga.config.scan_len*(2<<vga.config.addr_shift);
+		}
 		break;
 	case M_TEXT:
 		vga.draw.address_add=vga.config.scan_len*(2<<vga.config.addr_shift);
@@ -1766,7 +1810,20 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		}
 		bpp = 32;
 		pix_per_char = 4;
-		VGA_DrawLine = VGA_Draw_Xlat32_Linear_Line;
+		if (vga.mode == M_VGA && (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K)) {
+			/* ET4000 chipsets handle the chained mode (in my opinion) with sanity and we can scan linearly for it.
+			 * Chained VGA mode maps planar byte addr = (addr >> 2) and plane = (addr & 3) */
+			VGA_DrawLine = VGA_Draw_Xlat32_Linear_Line;
+		}
+		else {
+			/* other SVGA chipsets appear to handle chained mode by writing 4 pixels to 4 planes, and showing
+			 * only every 4th byte, which is why when you switch the CRTC to byte or word mode on these chipsets,
+			 * you see 16-pixel groups with 4 pixels from the chained display you expect followed by 12 pixels
+			 * of whatever contents of memory remain. but when you unchain the bitplanes the card will allow
+			 * "planar" writing to all 16 pixels properly. Chained VGA maps like planar byte = (addr & ~3) and
+			 * plane = (addr & 3) */
+			VGA_DrawLine = VGA_Draw_Xlat32_VGA_CRTC_bmode_Line;
+		}
 		break;
 	case M_LIN8:
 		bpp = 32;
