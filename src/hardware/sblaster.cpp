@@ -176,6 +176,7 @@ struct SB_INFO {
 		bool stereo;
 		bool enabled;
 		bool filtered;
+		bool sbpro_stereo; /* Game or OS is attempting SB Pro type stereo */
 		Bit8u unhandled[0x48];
 	} mixer;
 	struct {
@@ -766,7 +767,10 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo) {
 		sb.dma_dac_srcrate=freq;
 		sb.dma_dac_mode=1;
 	}
-	else if (sb.goldplay && sb.freq > 0 && sb.dma.chan != NULL && sb.dma.chan->basecnt < ((mode==DSP_DMA_16_ALIASED?2:1)*(stereo?2:1))/*size of one sample in DMA counts*/) {
+	/* NTS: Besides computing sample size from stereo we also take into consideration whether
+	 *      or not the DOS game is TRYING to use sbpro stereo (even if we're ignoring it) */
+	else if (sb.goldplay && sb.freq > 0 && sb.dma.chan != NULL &&
+		sb.dma.chan->basecnt < ((mode==DSP_DMA_16_ALIASED?2:1)*((stereo || sb.mixer.sbpro_stereo)?2:1))/*size of one sample in DMA counts*/) {
 		sb.dma_dac_srcrate=sb.freq;
 		sb.dma_dac_mode=1;
 	}
@@ -1597,6 +1601,7 @@ static void CTMIXER_Write(Bit8u val) {
 		if ((sb.type == SBT_PRO1 || sb.type == SBT_PRO2) || (sb.type == SBT_16 && !sb.sbpro_stereo_bit_strict_mode))
 			sb.mixer.stereo=(val & 0x2) > 0;
 
+		sb.mixer.sbpro_stereo=(val & 0x2) > 0;
 		sb.mixer.filtered=(val & 0x20) > 0;
 		DSP_ChangeStereo(sb.mixer.stereo);
 		LOG(LOG_SB,LOG_WARN)("Mixer set to %s",sb.dma.stereo ? "STEREO" : "MONO");
