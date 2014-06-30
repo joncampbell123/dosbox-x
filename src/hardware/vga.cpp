@@ -97,6 +97,23 @@
  *   addr = ((addr & ~3) << 2) + (addr & 3)
  * 
  *   All VESA BIOS modes support INT 10h TTY output.
+ *
+ * Tseng ET4000AX:
+ *
+ *   The ET4000 cards appear to be the ONLY SVGA chipset out there
+ *   that does NOT do the odd VGA 256-color chained mode that
+ *   other cards do.
+ *
+ *   Chained 256-color on ET4000:
+ *       addr = addr                             (addr >> 2) byte in planar space, plane select by (addr & 3)
+ *
+ *   Other VGA cards:
+ *       addr = ((addr & ~3) << 2) + (addr & 3)  (addr & ~3) byte in planar space, plane select by (addr & 3)
+ *
+ *   I suspect that this difference may be the reason several 1992-1993-ish DOS demos have problems clearing
+ *   VRAM. It's possible they noticed that zeroing RAM was faster in planar mode, and coded their routines
+ *   around ET4000 cards, not knowing that Trident, Cirrus, and every VGA clone thereafter implemented the
+ *   chained 256-color modes differently.
  */
 
 #include "dosbox.h"
