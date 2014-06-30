@@ -679,11 +679,18 @@ static void INT10_Seg40Init(void) {
 }
 
 static void INT10_InitVGA(void) {
-/* switch to color mode and enable CPU access 480 lines */
-	IO_Write(0x3c2,0xc3);
-	/* More than 64k */
-	IO_Write(0x3c4,0x04);
-	IO_Write(0x3c5,0x02);
+	if (IS_EGAVGA_ARCH) {
+		/* switch to color mode and enable CPU access 480 lines */
+		IO_Write(0x3c2,0xc3);
+		/* More than 64k */
+		IO_Write(0x3c4,0x04);
+		IO_Write(0x3c5,0x02);
+		if (IS_VGA_ARCH) {
+			/* Initialize DAC */
+			IO_Write(0x3c8,0);
+			for (Bitu i=0;i<3*256;i++) IO_Write(0x3c9,0);
+		}
+	}
 }
 
 static void SetupTandyBios(void) {
