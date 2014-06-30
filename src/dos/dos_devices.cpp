@@ -63,9 +63,8 @@ public:
 		SetName("PRN");
 	}
 	bool Read(Bit8u * data,Bit16u * size) {
-		*size=0;
-		LOG(LOG_DOSMISC,LOG_NORMAL)("PRNDEVICE:Read called");
-		return true;
+		DOS_SetError(DOSERR_ACCESS_DENIED);
+		return false;
 	}
 	bool Write(Bit8u * data,Bit16u * size) {
 		for(int i = 0; i < 3; i++) {
