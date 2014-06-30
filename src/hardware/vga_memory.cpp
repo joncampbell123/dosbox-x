@@ -413,6 +413,98 @@ public:
 	}
 };
 
+// alternate version for ET4000 emulation.
+// ET4000 cards implement 256-color chain-4 differently than most cards.
+class VGA_ET4000_ChainedVGA_Handler : public PageHandler {
+public:
+	VGA_ET4000_ChainedVGA_Handler() : PageHandler(PFLAG_NOCODE) {}
+	template <class Size>
+	static INLINE Bitu readHandler(PhysPt addr ) {
+		return hostRead<Size>( &vga.mem.linear[addr] );
+	}
+	template <class Size>
+	static INLINE void writeCache(PhysPt addr, Bitu val) {
+		hostWrite<Size>( &vga.fastmem[addr], val );
+		if (GCC_UNLIKELY(addr < 320)) {
+			// And replicate the first line
+			hostWrite<Size>( &vga.fastmem[addr+64*1024], val );
+		}
+	}
+	template <class Size>
+	static INLINE void writeHandler(PhysPt addr, Bitu val) {
+		// No need to check for compatible chains here, this one is only enabled if that bit is set
+		hostWrite<Size>( &vga.mem.linear[addr], val );
+	}
+	Bitu readb(PhysPt addr ) {
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+		addr += vga.svga.bank_read_full;
+		addr = CHECKED(addr);
+		return readHandler<Bit8u>( addr );
+	}
+	Bitu readw(PhysPt addr ) {
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+		addr += vga.svga.bank_read_full;
+		addr = CHECKED(addr);
+		if (GCC_UNLIKELY(addr & 1)) {
+			Bitu ret = (readHandler<Bit8u>( addr+0 ) << 0 );
+			ret     |= (readHandler<Bit8u>( addr+1 ) << 8 );
+			return ret;
+		} else
+			return readHandler<Bit16u>( addr );
+	}
+	Bitu readd(PhysPt addr ) {
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+		addr += vga.svga.bank_read_full;
+		addr = CHECKED(addr);
+		if (GCC_UNLIKELY(addr & 3)) {
+			Bitu ret = (readHandler<Bit8u>( addr+0 ) << 0 );
+			ret     |= (readHandler<Bit8u>( addr+1 ) << 8 );
+			ret     |= (readHandler<Bit8u>( addr+2 ) << 16 );
+			ret     |= (readHandler<Bit8u>( addr+3 ) << 24 );
+			return ret;
+		} else
+			return readHandler<Bit32u>( addr );
+	}
+	void writeb(PhysPt addr, Bitu val ) {
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+		addr += vga.svga.bank_write_full;
+		addr = CHECKED(addr);
+		MEM_CHANGED( addr );
+		writeHandler<Bit8u>( addr, val );
+		writeCache<Bit8u>( addr, val );
+	}
+	void writew(PhysPt addr,Bitu val) {
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+		addr += vga.svga.bank_write_full;
+		addr = CHECKED(addr);
+		MEM_CHANGED( addr );
+//		MEM_CHANGED( addr + 1);
+		if (GCC_UNLIKELY(addr & 1)) {
+			writeHandler<Bit8u>( addr+0, val >> 0 );
+			writeHandler<Bit8u>( addr+1, val >> 8 );
+		} else {
+			writeHandler<Bit16u>( addr, val );
+		}
+		writeCache<Bit16u>( addr, val );
+	}
+	void writed(PhysPt addr,Bitu val) {
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+		addr += vga.svga.bank_write_full;
+		addr = CHECKED(addr);
+		MEM_CHANGED( addr );
+//		MEM_CHANGED( addr + 3);
+		if (GCC_UNLIKELY(addr & 3)) {
+			writeHandler<Bit8u>( addr+0, val >> 0 );
+			writeHandler<Bit8u>( addr+1, val >> 8 );
+			writeHandler<Bit8u>( addr+2, val >> 16 );
+			writeHandler<Bit8u>( addr+3, val >> 24 );
+		} else {
+			writeHandler<Bit32u>( addr, val );
+		}
+		writeCache<Bit32u>( addr, val );
+	}
+};
+
 class VGA_UnchainedVGA_Handler : public VGA_UnchainedRead_Handler {
 public:
 	void writeHandler( PhysPt addr, Bit8u val ) {
@@ -969,6 +1061,7 @@ static struct vg {
 	VGA_TANDY_PageHandler		tandy;
 	VGA_ChainedEGA_Handler		cega;
 	VGA_ChainedVGA_Handler		cvga;
+	VGA_ET4000_ChainedVGA_Handler		cvga_et4000;
 	VGA_UnchainedEGA_Handler	uega;
 	VGA_UnchainedVGA_Handler	uvga;
 	VGA_PCJR_Handler			pcjr;
@@ -1070,8 +1163,17 @@ void VGA_SetupHandlers(void) {
 	case M_LIN8:
 	case M_VGA:
 		if (vga.config.chained) {
-			if(vga.config.compatible_chain4)
-				newHandler = &vgaph.cvga;
+			if(vga.config.compatible_chain4) {
+				/* NTS: ET4000AX cards appear to have a different chain4 implementation from everyone else:
+				 *      the planar memory byte address is address >> 2 and bits A0-A1 select the plane,
+				 *      where all other clones I've tested seem to write planar memory byte (address & ~3)
+				 *      (one byte per 4 bytes) and bits A0-A1 select the plane. */
+				/* FIXME: Different chain4 implementation on ET4000 noted---is it true also for ET3000? */
+				if (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K)
+					newHandler = &vgaph.cvga_et4000;
+				else
+					newHandler = &vgaph.cvga;
+			}
 			else 
 #ifdef VGA_LFB_MAPPED
 				newHandler = &vgaph.map;
