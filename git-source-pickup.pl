@@ -1,6 +1,12 @@
 #!/usr/bin/perl
 
-$project = 'dosbox-x';
+$project = `git config --get remote.origin.url | sed -e 's/\\/\$//' | sed -e 's/^.*\\///'`;
+chomp $project;
+die if $project eq "";
+
+$branch = `git branch | grep '^\*' | sed -e 's/^\* //'`; chomp $branch;
+$branchfname = "-branch-$branch" if $branch ne "";
+print "Current branch: $branch\n";
 
 print "Ensuring the build tree is clean...\n";
 $x = system("./git-update-all-wo-push");
@@ -53,26 +59,12 @@ close(S);
 
 #my $filename = $project."-rev-".sprintf("%08u",$lcrev)."-src.tar.bz2";
 my $pwd = `pwd`; chomp $pwd;
-my $filename = "../".($as ne "" ? $as : $project)."-$lcdate-commit-$lcommit-src.tar";
+my $filename = "../".($as ne "" ? $as : $project)."-$lcdate-commit-$lcommit-src$branchfname.tar";
 if (!( -f "$filename.xz" )) {
 	print "Packing source (all build files except LIB,OBJ,etc.)\n";
 	print "  to: $filename\n";
 
 	$x = system("tar -C .. -cvf $filename $project"); # --exclude=.git
-	die unless $x == 0;
-	print "Packing to XZ\n";
-	$x = system("xz -6e $filename");
-	die unless $x == 0;
-}
-
-#my $filename = $project."-rev-".sprintf("%08u",$lcrev)."-src.tar.bz2";
-my $pwd = `pwd`; chomp $pwd;
-my $filename = "../".($as ne "" ? $as : $project)."-$lcdate-commit-$lcommit-src-nogit.tar";
-if (!( -f "$filename.xz" )) {
-	print "Packing source (all build files except LIB,OBJ,etc.)\n";
-	print "  to: $filename\n";
-
-	$x = system("tar --exclude=.git -C .. -cvf $filename $project"); # --exclude=.git
 	die unless $x == 0;
 	print "Packing to XZ\n";
 	$x = system("xz -6e $filename");
