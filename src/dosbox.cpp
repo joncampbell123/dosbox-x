@@ -896,7 +896,8 @@ void DOSBOX_Init(void) {
 		"Amount of memory DOSBox has in megabytes.\n"
 		"  This value is best left at its default to avoid problems with some games,\n"
 		"  though few games might require a higher value.\n"
-		"  There is generally no speed advantage when raising this value.");
+		"  There is generally no speed advantage when raising this value.\n"
+		"  Programs that use 286 protected mode like Windows 3.0 in Standard Mode may crash with more than 15MB.");
 
 	Pint = secprop->Add_int("memsizekb", Property::Changeable::WhenIdle,0);
 	Pint->SetMinMax(0,524288);
