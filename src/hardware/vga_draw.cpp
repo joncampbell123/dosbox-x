@@ -1219,7 +1219,15 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 		break;
 	case M_VGA:
 		/* TODO: Various SVGA chipsets have a bit to enable/disable 256KB wrapping */
-		vga.draw.linear_mask = 0x3ffff; 
+		vga.draw.linear_mask = 0x3ffff;
+		if (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K) {
+			if (vga.config.addr_shift == 1) /* NTS: Remember the ET4K steps by 4 pixels, one per byteplane, treats BYTE and DWORD modes the same */
+				vga.draw.address *= 2;
+		}
+		else {
+			vga.draw.address *= 1<<vga.config.addr_shift; /* NTS: Remember the bizarre 4 x 4 mode most SVGA chipsets do */
+		}
+		/* fall through */
 	case M_LIN8:
 	case M_LIN15:
 	case M_LIN16:
