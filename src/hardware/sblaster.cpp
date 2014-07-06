@@ -108,6 +108,7 @@ struct SB_INFO {
 	Bitu dma_dac_srcrate;
 	struct {
 		bool stereo,sign,autoinit;
+		bool force_autoinit;
 		DMA_MODES mode;
 		Bitu rate,mul;
 		Bitu total,left,min;
@@ -884,6 +885,9 @@ static Bit8u DSP_RateLimitedFinalTC_Old() {
 static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign) {
 	Bit8u final_tc;
 
+	if (sb.dma.force_autoinit)
+		autoinit = true;
+
 	/* Hack for Crystal Dream and any other bozo implementation that spams the DSP
 	 * with command 0x14: if we're already playing audio, don't setup audio playback
 	 * again. the reason this is important is that this setup process sets the mode
@@ -927,6 +931,9 @@ static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign) {
 }
 
 static void DSP_PrepareDMA_New(DMA_MODES mode,Bitu length,bool autoinit,bool stereo) {
+	if (sb.dma.force_autoinit)
+		autoinit = true;
+
 	/* apparently SB16 hardware allows 0xBx-0xCx 4.xx DSP commands to interrupt
 	 * a previous SB16 playback command, DSP "nag" style. The difference is that
 	 * if you do that you risk exploiting DMA and timing glitches in the chip that
@@ -2208,6 +2215,7 @@ public:
 		sb.busy_cycle_duty_percent=section->Get_int("dsp busy cycle duty");
 		sb.dsp.instant_direct_dac=section->Get_bool("instant direct dac");
 		sb.dsp.force_goldplay=section->Get_bool("force goldplay");
+		sb.dma.force_autoinit=section->Get_bool("force dsp auto-init");
 
 		sb.busy_cycle_last_check=0;
 		sb.busy_cycle_io_hack=0;

@@ -1351,6 +1351,13 @@ void DOSBOX_Init(void) {
 	Phex->Set_help("base address of the real hardware soundblaster:\n"\
 		"210,220,230,240,250,260,280");
 
+	Pbool = secprop->Add_bool("force dsp auto-init",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("Treat all single-cycle DSP commands as auto-init to keep playback going.\n"
+			"This option is a workaround for DOS games or demos that use single-cycle DSP playback commands and\n"
+			"have problems with missing the Sound Blaster IRQ under load. Do not enable unless you need this workaround.\n"
+			"Needed for:\n"
+			"  - Extreme \"lunatic\" demo (1993)");
+
 	Pbool = secprop->Add_bool("force goldplay",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("Always render Sound Blaster output sample-at-a-time. Testing option. You probably don't want to enable this.");
 
