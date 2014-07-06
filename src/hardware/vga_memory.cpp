@@ -1253,7 +1253,7 @@ void VGA_SetupHandlers(void) {
 		switch (svgaCard) {
 		case SVGA_TsengET3K:
 		case SVGA_TsengET4K:
-			vgapages.mask = 0xffff;
+			vgapages.mask = 0xffff; /* FIXME: I seem to remember my ET4000AX supporing the full 128KB. I need to check --J.C. */
 			break;
 		case SVGA_S3Trio:
 		default:
