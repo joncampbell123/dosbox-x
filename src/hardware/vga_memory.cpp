@@ -151,7 +151,11 @@ public:
 		switch (vga.config.read_mode) {
 			case 0:
 				bplane = vga.config.read_map_select;
-				if (!(vga.seq.memory_mode&4))
+				/* NTS: We check the sequencer AND the GC to know whether we mask the bitplane line this,
+				 *      even though in TEXT mode we only check the sequencer. Without this extra check,
+				 *      Windows 95 and Windows 3.1 will exhibit glitches in the standard VGA 640x480x16
+				 *      planar mode */
+				if (!(vga.seq.memory_mode&4) && (vga.gfx.miscellaneous&2)) /* FIXME: How exactly do SVGA cards determine this? */
 					bplane = (bplane & ~1) + (start & 1); /* FIXME: Is this what VGA cards do? It makes sense to me */
 				return (vga.latch.b[bplane]);
 			case 1:
