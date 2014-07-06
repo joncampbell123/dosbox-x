@@ -141,14 +141,23 @@ class VGA_UnchainedRead_Handler : public PageHandler {
 public:
 	VGA_UnchainedRead_Handler(Bitu flags) : PageHandler(flags) {}
 	Bitu readHandler(PhysPt start) {
-		vga.latch.d=((Bit32u*)vga.mem.linear)[start];
+		PhysPt memstart = start;
+		unsigned char bplane;
+
+		if (vga.gfx.miscellaneous&2) /* Odd/Even mode */
+			memstart &= ~1;
+
+		vga.latch.d=((Bit32u*)vga.mem.linear)[memstart];
 		switch (vga.config.read_mode) {
-		case 0:
-			return (vga.latch.b[vga.config.read_map_select]);
-		case 1:
-			VGA_Latch templatch;
-			templatch.d=(vga.latch.d &	FillTable[vga.config.color_dont_care]) ^ FillTable[vga.config.color_compare & vga.config.color_dont_care];
-			return (Bit8u)~(templatch.b[0] | templatch.b[1] | templatch.b[2] | templatch.b[3]);
+			case 0:
+				bplane = vga.config.read_map_select;
+				if (!(vga.seq.memory_mode&4))
+					bplane = (bplane & ~1) + (start & 1); /* FIXME: Is this what VGA cards do? It makes sense to me */
+				return (vga.latch.b[bplane]);
+			case 1:
+				VGA_Latch templatch;
+				templatch.d=(vga.latch.d & FillTable[vga.config.color_dont_care]) ^ FillTable[vga.config.color_compare & vga.config.color_dont_care];
+				return (Bit8u)~(templatch.b[0] | templatch.b[1] | templatch.b[2] | templatch.b[3]);
 		}
 		return 0;
 	}
@@ -508,14 +517,55 @@ public:
 class VGA_UnchainedVGA_Handler : public VGA_UnchainedRead_Handler {
 public:
 	void writeHandler( PhysPt addr, Bit8u val ) {
+		PhysPt memaddr = addr;
 		Bit32u data=ModeOperation(val);
 		VGA_Latch pixels;
-		pixels.d=((Bit32u*)vga.mem.linear)[addr];
-		pixels.d&=vga.config.full_not_map_mask;
-		pixels.d|=(data & vga.config.full_map_mask);
-		((Bit32u*)vga.mem.linear)[addr]=pixels.d;
-//		if(vga.config.compatible_chain4)
-//			((Bit32u*)vga.mem.linear)[CHECKED2(addr+64*1024)]=pixels.d; 
+
+		if (vga.gfx.miscellaneous&2) /* Odd/Even mode masks off A0 */
+			memaddr &= ~1;
+
+		pixels.d=((Bit32u*)vga.mem.linear)[memaddr];
+
+		/* Odd/even emulation, emulation fix for Windows 95's boot screen */
+		if (!(vga.seq.memory_mode&4)) {
+			/* You're probably wondering what the hell odd/even mode has to do with Windows 95's boot
+			 * screen, right? Well, hopefully you won't puke when you read the following...
+			 * 
+			 * When Windows 95 starts up and shows it's boot logo, it calls INT 10h to set mode 0x13.
+			 * But it calls INT 10h with AX=0x93 which means set mode 0x13 and don't clear VRAM. Then,
+			 * it uses mode X to write the logo to the BOTTOM half of VGA RAM, at 0x8000 to be exact,
+			 * and of course, reprograms the CRTC offset register to make that visible.
+			 * THEN, it reprograms the registers to map VRAM at 0xB800, disable Chain 4, re-enable
+			 * odd/even mode, and then allows both DOS and the BIOS to write to the top half of VRAM
+			 * as if still running in 80x25 alphanumeric text mode. It even sets the video mode byte
+			 * at 0x40:0x49 to 0x03 to continue the illusion!
+			 *
+			 * When Windows 95 is ready to restore text mode, it just switches back (this time, calling
+			 * the saved INT 10h pointer directly) again without clearing VRAM.
+			 *
+			 * So if you wonder why I would spend time implementing odd/even emulation for VGA unchained
+			 * mode... that's why. You can thank Microsoft for that. */
+			if (addr & 1) {
+				if (vga.seq.map_mask & 0x2) /* bitplane 1: attribute RAM */
+					pixels.b[1] = data >> 8;
+				if (vga.seq.map_mask & 0x8) /* bitplane 3: unused RAM */
+					pixels.b[3] = data >> 24;
+			}
+			else {
+				if (vga.seq.map_mask & 0x1) /* bitplane 0: character RAM */
+					pixels.b[0] = data;
+				if (vga.seq.map_mask & 0x4) { /* bitplane 2: font RAM */
+					pixels.b[2] = data >> 16;
+					vga.draw.font[memaddr] = data >> 16;
+				}
+			}
+		}
+		else {
+			pixels.d&=vga.config.full_not_map_mask;
+			pixels.d|=(data & vga.config.full_map_mask);
+		}
+
+		((Bit32u*)vga.mem.linear)[memaddr]=pixels.d;
 	}
 public:
 	VGA_UnchainedVGA_Handler() : VGA_UnchainedRead_Handler(PFLAG_NOCODE) {}
