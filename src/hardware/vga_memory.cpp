@@ -344,14 +344,6 @@ public:
 		return hostRead<Size>( &vga.mem.linear[((addr&~3)<<2)+(addr&3)] );
 	}
 	template <class Size>
-	static INLINE void writeCache(PhysPt addr, Bitu val) {
-		hostWrite<Size>( &vga.fastmem[addr], val );
-		if (GCC_UNLIKELY(addr < 320)) {
-			// And replicate the first line
-			hostWrite<Size>( &vga.fastmem[addr+64*1024], val );
-		}
-	}
-	template <class Size>
 	static INLINE void writeHandler(PhysPt addr, Bitu val) {
 		// No need to check for compatible chains here, this one is only enabled if that bit is set
 		hostWrite<Size>( &vga.mem.linear[((addr&~3)<<2)+(addr&3)], val );
@@ -392,7 +384,6 @@ public:
 		addr = CHECKED(addr);
 		MEM_CHANGED( addr );
 		writeHandler<Bit8u>( addr, val );
-		writeCache<Bit8u>( addr, val );
 	}
 	void writew(PhysPt addr,Bitu val) {
 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
@@ -406,7 +397,6 @@ public:
 		} else {
 			writeHandler<Bit16u>( addr, val );
 		}
-		writeCache<Bit16u>( addr, val );
 	}
 	void writed(PhysPt addr,Bitu val) {
 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
@@ -422,7 +412,6 @@ public:
 		} else {
 			writeHandler<Bit32u>( addr, val );
 		}
-		writeCache<Bit32u>( addr, val );
 	}
 };
 
@@ -434,14 +423,6 @@ public:
 	template <class Size>
 	static INLINE Bitu readHandler(PhysPt addr ) {
 		return hostRead<Size>( &vga.mem.linear[addr] );
-	}
-	template <class Size>
-	static INLINE void writeCache(PhysPt addr, Bitu val) {
-		hostWrite<Size>( &vga.fastmem[addr], val );
-		if (GCC_UNLIKELY(addr < 320)) {
-			// And replicate the first line
-			hostWrite<Size>( &vga.fastmem[addr+64*1024], val );
-		}
 	}
 	template <class Size>
 	static INLINE void writeHandler(PhysPt addr, Bitu val) {
@@ -484,7 +465,6 @@ public:
 		addr = CHECKED(addr);
 		MEM_CHANGED( addr );
 		writeHandler<Bit8u>( addr, val );
-		writeCache<Bit8u>( addr, val );
 	}
 	void writew(PhysPt addr,Bitu val) {
 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
@@ -498,7 +478,6 @@ public:
 		} else {
 			writeHandler<Bit16u>( addr, val );
 		}
-		writeCache<Bit16u>( addr, val );
 	}
 	void writed(PhysPt addr,Bitu val) {
 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
@@ -514,7 +493,6 @@ public:
 		} else {
 			writeHandler<Bit32u>( addr, val );
 		}
-		writeCache<Bit32u>( addr, val );
 	}
 };
 
