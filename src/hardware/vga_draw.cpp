@@ -1218,15 +1218,8 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 #endif
 		break;
 	case M_VGA:
-#if 0
-		if (vga.config.compatible_chain4 && (vga.crtc.underline_location & 0x40)) {
-			vga.draw.linear_base = vga.fastmem;
-			vga.draw.linear_mask = 0x3ffff;	/* 256KB */
-		} else {
-			vga.draw.linear_base = vga.mem.linear;
-			vga.draw.linear_mask = vga.vmemwrap - 1;
-		}
-#endif
+		/* TODO: Various SVGA chipsets have a bit to enable/disable 256KB wrapping */
+		vga.draw.linear_mask = 0x3ffff; 
 	case M_LIN8:
 	case M_LIN15:
 	case M_LIN16:
