@@ -538,7 +538,12 @@ static void FinishSetMode(bool clearmem) {
 			break;
 		case M_TEXT: {
 			Bit16u max = (CurMode->ptotal*CurMode->plength)>>1;
-			for (Bit16u ct=0;ct<max;ct++) mem_writew(CurMode->pstart+ct*2,0x0720);
+			if (CurMode->mode == 7) {
+				for (Bit16u ct=0;ct<max;ct++) real_writew(0xB000,ct*2,0x0720);
+			}
+			else {
+				for (Bit16u ct=0;ct<max;ct++) real_writew(0xB800,ct*2,0x0720);
+			}
 			break;
 		}
 		case M_EGA:	
