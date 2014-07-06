@@ -364,34 +364,62 @@ static Bit8u * VGA_Draw_Xlat16_Linear_Line(Bitu vidstart, Bitu /*line*/) {
 	return TempLine;
 }
 
+/* WARNING: This routine assumes (vidstart&3) == 0 */
 static Bit8u * VGA_Draw_Xlat32_VGA_CRTC_bmode_Line(Bitu vidstart, Bitu /*line*/) {
-	Bit8u *ret = &vga.draw.linear_base[ vidstart & vga.draw.linear_mask ];
 	Bit32u* temps = (Bit32u*) TempLine;
 	Bitu skip; /* how much to skip after drawing 4 pixels */
 
 	/* for each group of 4 pixels, render with consideration for CRTC byte/word/dword mode */
 	/* testing with DOSLIB tools confirms this is what most SVGA chipsets do with video
 	 * RAM when in VGA 256-color mode */
-	skip = (4 << vga.config.addr_shift) - 4;
-	for(Bitu i = 0; i < (vga.draw.line_length>>(2/*32bpp*/+2/*4 pixels*/)); i++) {
-		/* one group of 4 */
-		*temps++ = vga.dac.xlat32[*ret++];
-		*temps++ = vga.dac.xlat32[*ret++];
-		*temps++ = vga.dac.xlat32[*ret++];
-		*temps++ = vga.dac.xlat32[*ret++];
-		/* and skip */
-		ret += skip;
+	if (GCC_UNLIKELY((vidstart+((vga.draw.line_length>>(2+2))*(4<<vga.config.addr_shift)))) > (vga.draw.linear_mask+1)) {
+		/* alternate (slow) version for when the scan line crosses the wraparound point */
+		skip = 4 << vga.config.addr_shift;
+		for(Bitu i = 0; i < (vga.draw.line_length>>(2/*32bpp*/+2/*4 pixels*/)); i++) {
+			Bit8u *ret = &vga.draw.linear_base[ vidstart & vga.draw.linear_mask ];
+
+			/* one group of 4 */
+			*temps++ = vga.dac.xlat32[*ret++];
+			*temps++ = vga.dac.xlat32[*ret++];
+			*temps++ = vga.dac.xlat32[*ret++];
+			*temps++ = vga.dac.xlat32[*ret++];
+			/* and skip */
+			vidstart += skip;
+		}
+	}
+	else {
+		Bit8u *ret = &vga.draw.linear_base[ vidstart & vga.draw.linear_mask ];
+
+		skip = (4 << vga.config.addr_shift) - 4;
+		for(Bitu i = 0; i < (vga.draw.line_length>>(2/*32bpp*/+2/*4 pixels*/)); i++) {
+			/* one group of 4 */
+			*temps++ = vga.dac.xlat32[*ret++];
+			*temps++ = vga.dac.xlat32[*ret++];
+			*temps++ = vga.dac.xlat32[*ret++];
+			*temps++ = vga.dac.xlat32[*ret++];
+			/* and skip */
+			ret += skip;
+		}
 	}
 
 	return TempLine;
 }
 
 static Bit8u * VGA_Draw_Xlat32_Linear_Line(Bitu vidstart, Bitu /*line*/) {
-	Bit8u *ret = &vga.draw.linear_base[ vidstart & vga.draw.linear_mask ];
 	Bit32u* temps = (Bit32u*) TempLine;
 
-	for(Bitu i = 0; i < (vga.draw.line_length>>2); i++)
-		temps[i]=vga.dac.xlat32[ret[i]];
+	if (GCC_UNLIKELY((vidstart+(vga.draw.line_length>>2))) > (vga.draw.linear_mask+1)) {
+		/* FIXME: Untested! */
+		/* alternate (slow) version for when the scan line crosses the wraparound point */
+		for(Bitu i = 0; i < (vga.draw.line_length>>2); i++)
+			temps[i]=vga.dac.xlat32[vga.draw.linear_base[(vidstart+i)&vga.draw.linear_mask]];
+	}
+	else {
+		Bit8u *ret = &vga.draw.linear_base[ vidstart & vga.draw.linear_mask ];
+
+		for(Bitu i = 0; i < (vga.draw.line_length>>2); i++)
+			temps[i]=vga.dac.xlat32[ret[i]];
+	}
 
 	return TempLine;
 }
