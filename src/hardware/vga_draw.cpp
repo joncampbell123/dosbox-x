@@ -590,6 +590,11 @@ static Bit8u * VGA_Draw_LIN32_Line_HWMouse(Bitu vidstart, Bitu /*line*/) {
 	}
 }
 
+static const Bit32u* VGA_Planar_Memwrap(Bitu vidstart) {
+	vidstart &= vga.draw.linear_mask;
+	return (Bit32u*)(&vga.mem.linear[vidstart<<2]);
+}
+
 static const Bit8u* VGA_Text_Memwrap(Bitu vidstart) {
 	vidstart &= vga.draw.linear_mask;
 	Bitu line_end = 2 * vga.draw.blocks;
@@ -760,13 +765,18 @@ skip_cursor:
 static Bit8u* VGA_TEXT_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 	// keep it aligned:
 	Bit32u* draw = ((Bit32u*)TempLine) + 16 - vga.draw.panning;
-	const Bit8u* vidmem = VGA_Text_Memwrap(vidstart); // pointer to chars+attribs
+	const Bit32u* vidmem = VGA_Planar_Memwrap(vidstart); // pointer to chars+attribs
 	Bitu blocks = vga.draw.blocks;
 	if (vga.draw.panning) blocks++; // if the text is panned part of an 
 									// additional character becomes visible
 	while (blocks--) { // for each character in the line
-		Bitu chr = *vidmem++;
-		Bitu attr = *vidmem++;
+		VGA_Latch pixels;
+
+		pixels.d = *vidmem;
+		vidmem += 1<<vga.config.addr_shift;
+
+		Bitu chr = pixels.b[0];
+		Bitu attr = pixels.b[1];
 		// the font pattern
 		Bitu font = vga.draw.font_tables[(attr >> 3)&1][(chr<<5)+line];
 		

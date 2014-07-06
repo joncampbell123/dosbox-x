@@ -913,7 +913,8 @@ bool INT10_SetVideoMode(Bit16u mode) {
 		if (CurMode->cwidth==9) seq_data[1] &= ~1;
 		seq_data[2]|=0x3;				//Enable plane 0 and 1
 		seq_data[4]|=0x01;				//Alpanumeric
-		if (IS_VGA_ARCH) seq_data[4]|=0x04;				//odd/even enabled
+// NTS: Actually, no, seq_data[4] & 0x4 is an Odd/Even memory write DISABLE bit.
+//		if (IS_VGA_ARCH) seq_data[4]|=0x04;				//odd/even enabled
 		break;
 	case M_CGA2:
 		seq_data[2]|=0xf;				//Enable plane 0

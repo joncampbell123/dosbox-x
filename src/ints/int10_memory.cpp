@@ -54,6 +54,7 @@ static Bit16u map_offset[8]={
 void INT10_LoadFont(PhysPt font,bool reload,Bitu count,Bitu offset,Bitu map,Bitu height) {
 	PhysPt ftwhere=PhysMake(0xa000,map_offset[map & 0x7]+(Bit16u)(offset*32));
 	IO_Write(0x3c4,0x2);IO_Write(0x3c5,0x4);	//Enable plane 2
+	IO_Write(0x3c4,0x4);IO_Write(0x3c5,0x6);	//disable odd/even memory write
 	IO_Write(0x3ce,0x6);Bitu old_6=IO_Read(0x3cf);
 	IO_Write(0x3cf,0x0);	//Disable odd/even and a0000 addressing
 	for (Bitu i=0;i<count;i++) {
@@ -62,6 +63,7 @@ void INT10_LoadFont(PhysPt font,bool reload,Bitu count,Bitu offset,Bitu map,Bitu
 		font+=height;
 	}
 	IO_Write(0x3c4,0x2);IO_Write(0x3c5,0x3);	//Enable textmode planes (0,1)
+	IO_Write(0x3c4,0x4);IO_Write(0x3c5,0x2);	//reenable odd/even memory write
 	IO_Write(0x3ce,0x6);
 	if (IS_VGA_ARCH) IO_Write(0x3cf,(Bit8u)old_6);	//odd/even and b8000 addressing
 	else IO_Write(0x3cf,0x0e);

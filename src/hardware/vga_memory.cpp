@@ -589,31 +589,47 @@ class VGA_TEXT_PageHandler : public PageHandler {
 public:
 	VGA_TEXT_PageHandler() : PageHandler(PFLAG_NOCODE) {}
 	Bitu readb(PhysPt addr) {
+		unsigned char bplane;
+
 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
-		switch(vga.gfx.read_map_select) {
-		case 0: // character index
-			return vga.mem.linear[CHECKED3(vga.svga.bank_read_full+addr)];
-		case 1: // character attribute
-			return vga.mem.linear[CHECKED3(vga.svga.bank_read_full+addr+1)];
-		case 2: // font map
-			return vga.draw.font[addr];
-		default: // 3=unused, but still RAM that could save values
-			return 0;
-		}
+		bplane = vga.gfx.read_map_select;
+
+		if (!(vga.seq.memory_mode&4))
+			bplane = (bplane & ~1) + (addr & 1); /* FIXME: Is this what VGA cards do? It makes sense to me */
+		if (vga.gfx.miscellaneous&2) /* Odd/Even mode */
+			addr &= ~1;
+
+		return vga.mem.linear[CHECKED3(vga.svga.bank_read_full+(addr<<2)+bplane)];
 	}
 	void writeb(PhysPt addr,Bitu val){
+		VGA_Latch pixels;
+		Bitu memaddr;
+
 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
-		
-		if (GCC_LIKELY(vga.seq.map_mask == 0x4)) {
-			vga.draw.font[addr]=(Bit8u)val;
-		} else {
-			if (vga.seq.map_mask & 0x4) // font map
-				vga.draw.font[addr]=(Bit8u)val;
-			if (vga.seq.map_mask & 0x2) // character attribute
-				vga.mem.linear[CHECKED3(vga.svga.bank_read_full+addr+1)]=(Bit8u)val;
-			if (vga.seq.map_mask & 0x1) // character index
-				vga.mem.linear[CHECKED3(vga.svga.bank_read_full+addr)]=(Bit8u)val;
+		memaddr = addr;
+
+		/* Chain Odd/Even enable: A0 is replaced by a "higher order bit" (0 apparently) */
+		if (vga.gfx.miscellaneous&2)
+			memaddr &= ~1;
+
+		pixels.d=((Bit32u*)vga.mem.linear)[memaddr];
+
+		if ((vga.seq.memory_mode&4)/*Odd/Even disable*/ || (addr & 1)) {
+			if (vga.seq.map_mask & 0x2) /* bitplane 1: attribute RAM */
+				pixels.b[1] = val;
+			if (vga.seq.map_mask & 0x8) /* bitplane 3: unused RAM */
+				pixels.b[3] = val;
 		}
+		if ((vga.seq.memory_mode&4)/*Odd/Even disable*/ || !(addr & 1)) {
+			if (vga.seq.map_mask & 0x1) /* bitplane 0: character RAM */
+				pixels.b[0] = val;
+			if (vga.seq.map_mask & 0x4) { /* bitplane 2: font RAM */
+				pixels.b[2] = val;
+				vga.draw.font[memaddr] = val;
+			}
+		}
+
+		((Bit32u*)vga.mem.linear)[memaddr]=pixels.d;
 	}
 };
 
@@ -1191,9 +1207,7 @@ void VGA_SetupHandlers(void) {
 			newHandler = &vgaph.uega;
 		break;	
 	case M_TEXT:
-		/* Check if we're not in odd/even mode */
-		if (vga.gfx.miscellaneous & 0x2) newHandler = &vgaph.map;
-		else newHandler = &vgaph.text;
+		newHandler = &vgaph.text;
 		break;
 	case M_CGA4:
 	case M_CGA2:
