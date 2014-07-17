@@ -1741,7 +1741,10 @@ void DOSBOX_Init(void) {
 	for (size_t i=0;i < 4;i++) {
 		secprop=control->AddSection_prop(ide_names[i],ide_inits[i],false);//done
 
-		Pbool = secprop->Add_bool("enable",Property::Changeable::OnlyAtStart,true);
+		/* Primary and Secondary are on by default, Teritary and Quaternary are off by default.
+		 * Throughout the life of the IDE interface it was far more common for a PC to have just
+		 * a Primary and Secondary interface */
+		Pbool = secprop->Add_bool("enable",Property::Changeable::OnlyAtStart,(i < 2) ? true : false);
 		if (i == 0) Pbool->Set_help("Enable IDE interface");
 
 		Pbool = secprop->Add_bool("pnp",Property::Changeable::OnlyAtStart,true);
