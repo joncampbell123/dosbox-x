@@ -1035,6 +1035,9 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("allow tty vesa modes",Property::Changeable::Always,true);
 	Pbool->Set_help("If the DOS game or demo has problems with text VESA modes, set to 'false'");
 
+	Pbool = secprop->Add_bool("enable pci bus",Property::Changeable::OnlyAtStart,true);
+	Pbool->Set_help("Enable PCI bus emulation");
+
 	secprop->AddInitFunction(&CALLBACK_Init);
 	secprop->AddInitFunction(&DMA_Init);//done
 	secprop->AddInitFunction(&PIC_Init);//done

@@ -30,6 +30,8 @@
 #include "../ints/int10.h"
 #include "voodoo.h"
 
+bool pcibus_enable = false;
+
 static Bit32u pci_caddress=0;			// current PCI addressing
 
 static PCI_Device* pci_devices[PCI_MAX_PCIBUSSES][PCI_MAX_PCIDEVICES]={{NULL}};		// registered PCI devices
@@ -390,6 +392,7 @@ static PCI_Device *S3_PCI=NULL;
 static PCI_Device *SST_PCI=NULL;
 
 void PCI_AddSVGAS3_Device(void) {
+	if (!pcibus_enable) return;
 	if (pci_interface == NULL) E_Exit("PCI device add attempt and PCI interface not initialized");
 
 	if (S3_PCI == NULL) {
@@ -410,6 +413,7 @@ void PCI_RemoveSVGAS3_Device(void) {
 }
 
 void PCI_AddSST_Device(Bitu type) {
+	if (!pcibus_enable) return;
 	if (pci_interface == NULL) E_Exit("PCI device add attempt and PCI interface not initialized");
 
 	if (SST_PCI == NULL) {
@@ -466,7 +470,11 @@ void PCI_Init(Section* sec) {
 }
 
 void PCIBUS_Init(Section *sec) {
-	if (pci_interface == NULL)
+	Section_prop * secprop=static_cast<Section_prop *>(sec);
+
+	pcibus_enable = secprop->Get_bool("enable pci bus");
+
+	if (pci_interface == NULL && pcibus_enable)
 		pci_interface = new PCI(sec);
 }
 

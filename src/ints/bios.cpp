@@ -42,6 +42,7 @@ extern bool PS1AudioCard;
 extern bool en_bios_ps2mouse;
 extern bool mainline_compatible_bios_mapping;
 extern bool rom_bios_8x8_cga_font;
+extern bool pcibus_enable;
 
 Bit16u biosConfigSeg=0;
 
@@ -1542,59 +1543,30 @@ static Bitu INT1A_Handler(void) {
 		TandyDAC_Handler(reg_ah);
 		break;
 	case 0xb1:		/* PCI Bios Calls */
-		LOG(LOG_BIOS,LOG_WARN)("INT1A:PCI bios call %2X",reg_al);
-		switch (reg_al) {
-			case 0x01:	// installation check
-				if (PCI_IsInitialized()) {
-					reg_ah=0x00;
-					reg_al=0x01;	// cfg space mechanism 1 supported
-					reg_bx=0x0210;	// ver 2.10
-					reg_cx=0x0000;	// only one PCI bus
-					reg_edx=0x20494350;
-					reg_edi=PCI_GetPModeInterface();
-					CALLBACK_SCF(false);
-				} else {
-					CALLBACK_SCF(true);
-				}
-				break;
-			case 0x02: {	// find device
-				Bitu devnr=0;
-				Bitu count=0x100;
-				Bit32u devicetag=(reg_cx<<16)|reg_dx;
-				Bits found=-1;
-				for (Bitu i=0; i<=count; i++) {
-					IO_WriteD(0xcf8,0x80000000|(i<<8));	// query unique device/subdevice entries
-					if (IO_ReadD(0xcfc)==devicetag) {
-						if (devnr==reg_si) {
-							found=i;
-							break;
-						} else {
-							// device found, but not the SIth device
-							devnr++;
-						}
+		if (pcibus_enable) {
+			LOG(LOG_BIOS,LOG_WARN)("INT1A:PCI bios call %2X",reg_al);
+			switch (reg_al) {
+				case 0x01:	// installation check
+					if (PCI_IsInitialized()) {
+						reg_ah=0x00;
+						reg_al=0x01;	// cfg space mechanism 1 supported
+						reg_bx=0x0210;	// ver 2.10
+						reg_cx=0x0000;	// only one PCI bus
+						reg_edx=0x20494350;
+						reg_edi=PCI_GetPModeInterface();
+						CALLBACK_SCF(false);
+					} else {
+						CALLBACK_SCF(true);
 					}
-				}
-				if (found>=0) {
-					reg_ah=0x00;
-					reg_bh=0x00;	// bus 0
-					reg_bl=(Bit8u)(found&0xff);
-					CALLBACK_SCF(false);
-				} else {
-					reg_ah=0x86;	// device not found
-					CALLBACK_SCF(true);
-				}
-				}
-				break;
-			case 0x03: {	// find device by class code
-				Bitu devnr=0;
-				Bitu count=0x100;
-				Bit32u classtag=reg_ecx&0xffffff;
-				Bits found=-1;
-				for (Bitu i=0; i<=count; i++) {
-					IO_WriteD(0xcf8,0x80000000|(i<<8));	// query unique device/subdevice entries
-					if (IO_ReadD(0xcfc)!=0xffffffff) {
-						IO_WriteD(0xcf8,0x80000000|(i<<8)|0x08);
-						if ((IO_ReadD(0xcfc)>>8)==classtag) {
+					break;
+				case 0x02: {	// find device
+					Bitu devnr=0;
+					Bitu count=0x100;
+					Bit32u devicetag=(reg_cx<<16)|reg_dx;
+					Bits found=-1;
+					for (Bitu i=0; i<=count; i++) {
+						IO_WriteD(0xcf8,0x80000000|(i<<8));	// query unique device/subdevice entries
+						if (IO_ReadD(0xcfc)==devicetag) {
 							if (devnr==reg_si) {
 								found=i;
 								break;
@@ -1604,53 +1576,87 @@ static Bitu INT1A_Handler(void) {
 							}
 						}
 					}
-				}
-				if (found>=0) {
-					reg_ah=0x00;
-					reg_bh=0x00;	// bus 0
-					reg_bl=(Bit8u)(found&0xff);
+					if (found>=0) {
+						reg_ah=0x00;
+						reg_bh=0x00;	// bus 0
+						reg_bl=(Bit8u)(found&0xff);
+						CALLBACK_SCF(false);
+					} else {
+						reg_ah=0x86;	// device not found
+						CALLBACK_SCF(true);
+					}
+					}
+					break;
+				case 0x03: {	// find device by class code
+					Bitu devnr=0;
+					Bitu count=0x100;
+					Bit32u classtag=reg_ecx&0xffffff;
+					Bits found=-1;
+					for (Bitu i=0; i<=count; i++) {
+						IO_WriteD(0xcf8,0x80000000|(i<<8));	// query unique device/subdevice entries
+						if (IO_ReadD(0xcfc)!=0xffffffff) {
+							IO_WriteD(0xcf8,0x80000000|(i<<8)|0x08);
+							if ((IO_ReadD(0xcfc)>>8)==classtag) {
+								if (devnr==reg_si) {
+									found=i;
+									break;
+								} else {
+									// device found, but not the SIth device
+									devnr++;
+								}
+							}
+						}
+					}
+					if (found>=0) {
+						reg_ah=0x00;
+						reg_bh=0x00;	// bus 0
+						reg_bl=(Bit8u)(found&0xff);
+						CALLBACK_SCF(false);
+					} else {
+						reg_ah=0x86;	// device not found
+						CALLBACK_SCF(true);
+					}
+					}
+					break;
+				case 0x08:	// read configuration byte
+					IO_WriteD(0xcf8,0x80000000|(reg_bx<<8)|(reg_di&0xfc));
+					reg_cl=IO_ReadB(0xcfc+(reg_di&3));
 					CALLBACK_SCF(false);
-				} else {
-					reg_ah=0x86;	// device not found
+					break;
+				case 0x09:	// read configuration word
+					IO_WriteD(0xcf8,0x80000000|(reg_bx<<8)|(reg_di&0xfc));
+					reg_cx=IO_ReadW(0xcfc+(reg_di&2));
+					CALLBACK_SCF(false);
+					break;
+				case 0x0a:	// read configuration dword
+					IO_WriteD(0xcf8,0x80000000|(reg_bx<<8)|(reg_di&0xfc));
+					reg_ecx=IO_ReadD(0xcfc+(reg_di&3));
+					CALLBACK_SCF(false);
+					break;
+				case 0x0b:	// write configuration byte
+					IO_WriteD(0xcf8,0x80000000|(reg_bx<<8)|(reg_di&0xfc));
+					IO_WriteB(0xcfc+(reg_di&3),reg_cl);
+					CALLBACK_SCF(false);
+					break;
+				case 0x0c:	// write configuration word
+					IO_WriteD(0xcf8,0x80000000|(reg_bx<<8)|(reg_di&0xfc));
+					IO_WriteW(0xcfc+(reg_di&2),reg_cx);
+					CALLBACK_SCF(false);
+					break;
+				case 0x0d:	// write configuration dword
+					IO_WriteD(0xcf8,0x80000000|(reg_bx<<8)|(reg_di&0xfc));
+					IO_WriteD(0xcfc+(reg_di&3),reg_ecx);
+					CALLBACK_SCF(false);
+					break;
+				default:
+					LOG(LOG_BIOS,LOG_ERROR)("INT1A:PCI BIOS: unknown function %x (%x %x %x)",
+						reg_ax,reg_bx,reg_cx,reg_dx);
 					CALLBACK_SCF(true);
-				}
-				}
-				break;
-			case 0x08:	// read configuration byte
-				IO_WriteD(0xcf8,0x80000000|(reg_bx<<8)|(reg_di&0xfc));
-				reg_cl=IO_ReadB(0xcfc+(reg_di&3));
-				CALLBACK_SCF(false);
-				break;
-			case 0x09:	// read configuration word
-				IO_WriteD(0xcf8,0x80000000|(reg_bx<<8)|(reg_di&0xfc));
-				reg_cx=IO_ReadW(0xcfc+(reg_di&2));
-				CALLBACK_SCF(false);
-				break;
-			case 0x0a:	// read configuration dword
-				IO_WriteD(0xcf8,0x80000000|(reg_bx<<8)|(reg_di&0xfc));
-				reg_ecx=IO_ReadD(0xcfc+(reg_di&3));
-				CALLBACK_SCF(false);
-				break;
-			case 0x0b:	// write configuration byte
-				IO_WriteD(0xcf8,0x80000000|(reg_bx<<8)|(reg_di&0xfc));
-				IO_WriteB(0xcfc+(reg_di&3),reg_cl);
-				CALLBACK_SCF(false);
-				break;
-			case 0x0c:	// write configuration word
-				IO_WriteD(0xcf8,0x80000000|(reg_bx<<8)|(reg_di&0xfc));
-				IO_WriteW(0xcfc+(reg_di&2),reg_cx);
-				CALLBACK_SCF(false);
-				break;
-			case 0x0d:	// write configuration dword
-				IO_WriteD(0xcf8,0x80000000|(reg_bx<<8)|(reg_di&0xfc));
-				IO_WriteD(0xcfc+(reg_di&3),reg_ecx);
-				CALLBACK_SCF(false);
-				break;
-			default:
-				LOG(LOG_BIOS,LOG_ERROR)("INT1A:PCI BIOS: unknown function %x (%x %x %x)",
-					reg_ax,reg_bx,reg_cx,reg_dx);
-				CALLBACK_SCF(true);
-				break;
+					break;
+			}
+		}
+		else {
+			CALLBACK_SCF(true);
 		}
 		break;
 	default:
