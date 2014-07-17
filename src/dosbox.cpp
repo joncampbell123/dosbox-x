@@ -1761,6 +1761,11 @@ void DOSBOX_Init(void) {
 				"WARNING: Setting the I/O port to non-standard values will not work unless the guest OS is using the ISA PnP BIOS to detect the IDE controller.\n"
 				"         Using any port other than 1F0, 170, 1E8 or 168 can prevent MS-DOS CD-ROM drivers from detecting the IDE controller.");
 
+		Phex = secprop->Add_hex("altio",Property::Changeable::WhenIdle,0/*use IDE default*/);
+		if (i == 0) Pint->Set_help("Alternate I/O port for IDE controller (alt status, etc). Set to 0 for default.\n"
+				"WARNING: Setting the I/O port to non-standard values will not work unless the guest OS is using the ISA PnP BIOS to detect the IDE controller.\n"
+				"         For best compatability set this value to io+0x106, for example, io=1F0 altio=3F6.");
+
 		Pbool = secprop->Add_bool("int13fakeio",Property::Changeable::WhenIdle,false);
 		if (i == 0) Pbool->Set_help(
 				"If set, force IDE state change on certain INT 13h commands.\n"

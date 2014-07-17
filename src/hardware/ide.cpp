@@ -3160,9 +3160,12 @@ IDEController::IDEController(Section* configuration,unsigned char index):Module_
 	i = section->Get_hex("io");
 	if (i >= 0x100 && i <= 0x3FF) base_io = i & ~7;
 
+	i = section->Get_hex("altio");
+	if (i >= 0x100 && i <= 0x3FF) alt_io = i & ~1;
+
 	if (index < sizeof(IDE_default_IRQs)) {
-		alt_io = IDE_default_alts[index];
 		if (IRQ < 0) IRQ = IDE_default_IRQs[index];
+		if (alt_io == 0) alt_io = IDE_default_alts[index];
 		if (base_io == 0) base_io = IDE_default_bases[index];
 	}
 
