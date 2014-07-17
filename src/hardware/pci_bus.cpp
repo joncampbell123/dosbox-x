@@ -51,6 +51,8 @@ static void write_pci_addr(Bitu port,Bitu val,Bitu iolen) {
 }
 
 static void write_pci_register(PCI_Device* dev,Bit8u regnum,Bit8u value) {
+	// FIXME: This is stupid, why not just pass the write down to the PCI device and let it handle it? Hm?
+
 	// vendor/device/class IDs/header type/etc. are read-only
 	if ((regnum<0x04) || ((regnum>=0x06) && (regnum<0x0c)) || (regnum==0x0e)) return;
 	if (dev==NULL) return;
@@ -108,20 +110,7 @@ static Bitu read_pci_addr(Bitu port,Bitu iolen) {
 
 // read single 8bit value from register file (special register treatment included)
 static Bit8u read_pci_register(PCI_Device* dev,Bit8u regnum) {
-	switch (regnum) {
-		case 0x00:
-			return (Bit8u)(dev->VendorID()&0xff);
-		case 0x01:
-			return (Bit8u)((dev->VendorID()>>8)&0xff);
-		case 0x02:
-			return (Bit8u)(dev->DeviceID()&0xff);
-		case 0x03:
-			return (Bit8u)((dev->DeviceID()>>8)&0xff);
-		case 0x0e:
-			return (dev->config[regnum]&0x7f);
-		default:
-			break;
-	}
+	// FIXME: This is stupid, why not just pass the read down to the PCI device and let it handle it? Hm?
 
 	// call device routine for special actions and possibility to discard/remap register
 	Bits parsed_regnum=dev->ParseReadRegister(regnum);
@@ -192,10 +181,8 @@ PCI_Device::~PCI_Device() {
 
 PCI_Device::PCI_Device(Bit16u vendor, Bit16u device) {
 	memset(config,0,256);
-	pci_id=-1;
-	pci_subfunction=-1;
-	vendor_id=vendor;
-	device_id=device;
+	setVendorID(vendor);
+	setDeviceID(device);
 }
 
 // queued devices (PCI device registering requested before the PCI framework was initialized)

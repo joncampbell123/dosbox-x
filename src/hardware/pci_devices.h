@@ -26,9 +26,6 @@ public:
 	PCI_VGADevice():PCI_Device(vendor,device) {
 	}
 
-	static Bit16u VendorID(void) { return vendor; }
-	static Bit16u DeviceID(void) { return device; }
-
 	Bits ParseReadRegister(Bit8u regnum) {
 		return regnum;
 	}
@@ -113,8 +110,6 @@ public:
 		oscillator_ctr=0;
 		pci_ctr=0;
 	}
-
-	static Bit16u VendorID(void) { return vendor; }
 
 	Bits ParseReadRegister(Bit8u regnum) {
 //		LOG_MSG("SST ParseReadRegister %x",regnum);

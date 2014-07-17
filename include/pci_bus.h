@@ -29,33 +29,30 @@
 
 class PCI_Device {
 public:
-	Bits pci_id, pci_subfunction;
-	Bit16u vendor_id, device_id;
-
 	/* configuration space */
 	unsigned char config[256];
 
 	PCI_Device(Bit16u vendor, Bit16u device);
 	virtual ~PCI_Device();
 
-	Bits PCIId(void) {
-		return pci_id;
+	Bit16u DeviceID() {
+		return host_readw(config + 0x02);
 	}
-	Bits PCISubfunction(void) {
-		return pci_subfunction;
+	void setDeviceID(const Bit16u device) {
+		return host_writew(config + 0x02,device);
 	}
-	Bit16u VendorID(void) {
-		return vendor_id;
+
+	Bit16u VendorID() {
+		return host_readw(config + 0x00);
 	}
-	Bit16u DeviceID(void) {
-		return device_id;
+	void setVendorID(const Bit16u vendor) {
+		return host_writew(config + 0x00,vendor);
 	}
 
 	virtual Bits ParseReadRegister(Bit8u regnum)=0;
 	virtual bool OverrideReadRegister(Bit8u regnum, Bit8u* rval, Bit8u* rval_mask)=0;
 	virtual Bits ParseWriteRegister(Bit8u regnum,Bit8u value)=0;
 	virtual bool InitializeRegisters(Bit8u registers[256])=0;
-
 };
 
 bool PCI_IsInitialized();
