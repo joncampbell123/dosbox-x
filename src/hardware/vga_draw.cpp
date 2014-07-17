@@ -275,34 +275,6 @@ static Bit8u * VGA_Draw_4BPP_Line_Double(Bitu vidstart, Bitu line) {
 	return TempLine;
 }
 
-#ifdef VGA_KEEP_CHANGES
-static Bit8u * VGA_Draw_Changes_Line(Bitu vidstart, Bitu line) {
-	Bitu checkMask = vga.changes.checkMask;
-	Bit8u *map = vga.changes.map;
-	Bitu start = (vidstart >> VGA_CHANGE_SHIFT);
-	Bitu end = ((vidstart + vga.draw.line_length ) >> VGA_CHANGE_SHIFT);
-	for (; start <= end;start++) {
-		if ( map[start] & checkMask ) {
-			Bitu offset = vidstart & vga.draw.linear_mask;
-			if (vga.draw.linear_mask-offset < vga.draw.line_length)
-				memcpy(vga.draw.linear_base+vga.draw.linear_mask+1, vga.draw.linear_base, vga.draw.line_length);
-			Bit8u *ret = &vga.draw.linear_base[ offset ];
-#if !defined(C_UNALIGNED_MEMORY)
-			if (GCC_UNLIKELY( ((Bitu)ret) & (sizeof(Bitu)-1)) ) {
-				memcpy( TempLine, ret, vga.draw.line_length );
-				return TempLine;
-			}
-#endif
-			return ret;
-		}
-	}
-//	memset( TempLine, 0x30, vga.changes.lineWidth );
-//	return TempLine;
-	return 0;
-}
-
-#endif
-
 static Bit8u * VGA_Draw_Linear_Line_24_to_32(Bitu vidstart, Bitu /*line*/) {
 	Bitu offset = vidstart & vga.draw.linear_mask;
 	Bitu i;
@@ -852,24 +824,6 @@ static Bit8u* VGA_TEXT_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 	return TempLine+(16*4);
 }
 
-#ifdef VGA_KEEP_CHANGES
-static INLINE void VGA_ChangesEnd(void ) {
-	if ( vga.changes.active ) {
-//		vga.changes.active = false;
-		Bitu end = vga.draw.address >> VGA_CHANGE_SHIFT;
-		Bitu total = 4 + end - vga.changes.start;
-		Bit32u clearMask = vga.changes.clearMask;
-		total >>= 2;
-		Bit32u *clear = (Bit32u *)&vga.changes.map[  vga.changes.start & ~3 ];
-		while ( total-- ) {
-			clear[0] &= clearMask;
-			clear++;
-		}
-	}
-}
-#endif
-
-
 static void VGA_ProcessSplit() {
 	if (vga.attr.mode_control&0x20) {
 		vga.draw.address=0;
@@ -1016,29 +970,6 @@ void VGA_SetBlinking(Bitu enabled) {
 	}
 	for (Bitu i=0;i<8;i++) TXT_BG_Table[i+8]=(b+i) | ((b+i) << 8)| ((b+i) <<16) | ((b+i) << 24);
 }
-
-#ifdef VGA_KEEP_CHANGES
-static void INLINE VGA_ChangesStart( void ) {
-	vga.changes.start = vga.draw.address >> VGA_CHANGE_SHIFT;
-	vga.changes.last = vga.changes.start;
-	if ( vga.changes.lastAddress != vga.draw.address ) {
-//		LOG_MSG("Address");
-		VGA_DrawLine = VGA_Draw_Linear_Line;
-		vga.changes.lastAddress = vga.draw.address;
-	} else if ( render.fullFrame ) {
-//		LOG_MSG("Full Frame");
-		VGA_DrawLine = VGA_Draw_Linear_Line;
-	} else {
-//		LOG_MSG("Changes");
-		VGA_DrawLine = VGA_Draw_Changes_Line;
-	}
-	vga.changes.active = true;
-	vga.changes.checkMask = vga.changes.writeMask;
-	vga.changes.clearMask = ~( 0x01010101 << (vga.changes.frame & 7));
-	vga.changes.frame++;
-	vga.changes.writeMask = 1 << (vga.changes.frame & 7);
-}
-#endif
 
 static void VGA_VertInterrupt(Bitu /*val*/) {
 	if ((!vga.draw.vret_triggered) && ((vga.crtc.vertical_retrace_end&0x30)==0x10)) {
@@ -1229,9 +1160,6 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 	vga.draw.address = vga.config.real_start;
 	vga.draw.byte_panning_shift = 0;
 
-#ifdef VGA_KEEP_CHANGES
-	bool startaddr_changed=false;
-#endif
 	switch (vga.mode) {
 	case M_EGA:
 		if (!(vga.crtc.mode_control&0x1)) vga.draw.linear_mask &= ~0x10000;
@@ -1241,9 +1169,6 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 		vga.draw.address += vga.draw.bytes_skip;
 		vga.draw.address *= vga.draw.byte_panning_shift;
 		if (machine!=MCH_EGA) vga.draw.address += vga.draw.panning;
-#ifdef VGA_KEEP_CHANGES
-		startaddr_changed=true;
-#endif
 		break;
 	case M_VGA:
 		/* TODO: Various SVGA chipsets have a bit to enable/disable 256KB wrapping */
@@ -1265,9 +1190,6 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 		vga.draw.address += vga.draw.bytes_skip;
 		vga.draw.address *= vga.draw.byte_panning_shift;
 		vga.draw.address += vga.draw.panning;
-#ifdef VGA_KEEP_CHANGES
-		startaddr_changed=true;
-#endif
 		break;
 	case M_TEXT:
 		vga.draw.byte_panning_shift = 2;
@@ -1305,9 +1227,6 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 		break;
 	}
 	if (GCC_UNLIKELY(vga.draw.split_line==0)) VGA_ProcessSplit();
-#ifdef VGA_KEEP_CHANGES
-	if (startaddr_changed) VGA_ChangesStart();
-#endif
 
 	// check if some lines at the top off the screen are blanked
 	float draw_skip = 0.0;
@@ -2003,11 +1922,6 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 	vga.draw.lines_total=height;
 	vga.draw.line_length = width * ((bpp + 1) / 8);
 	vga.draw.clock = clock;
-#ifdef VGA_KEEP_CHANGES
-	vga.changes.active = false;
-	vga.changes.frame = 0;
-	vga.changes.writeMask = 1;
-#endif
 
 	double vratio = ((double)width)/(double)height; // ratio if pixels were square
 

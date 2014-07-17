@@ -25,13 +25,9 @@
 #endif
 #include <iostream>
 
-//Don't enable keeping changes and mapping lfb probably...
 #define VGA_LFB_MAPPED
-//#define VGA_KEEP_CHANGES
-#define VGA_CHANGE_SHIFT	9
 
 class PageHandler;
-
 
 enum VGAModes {
 	M_CGA2, M_CGA4,
@@ -421,9 +417,6 @@ typedef struct {
 	Bit8u* fastmem;  /* memory for fast (usually 16-color) rendering, always twice as big as vmemsize */
 	Bit8u* fastmem_orgptr;
 	Bit32u vmemsize;
-#ifdef VGA_KEEP_CHANGES
-	VGA_Changes changes;
-#endif
 	VGA_LFB lfb;
 } VGA_Type;
 
