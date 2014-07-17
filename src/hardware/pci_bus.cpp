@@ -50,29 +50,6 @@ static void write_pci_addr(Bitu port,Bitu val,Bitu iolen) {
 	pci_caddress=val;
 }
 
-static void write_pci_register(PCI_Device* dev,Bit8u regnum,Bit8u value) {
-	// FIXME: This is stupid, why not just pass the write down to the PCI device and let it handle it? Hm?
-
-	// vendor/device/class IDs/header type/etc. are read-only
-	if ((regnum<0x04) || ((regnum>=0x06) && (regnum<0x0c)) || (regnum==0x0e)) return;
-	if (dev==NULL) return;
-	switch (dev->config[0x0e]&0x7f) { // header-type specific handling
-		case 0x00:
-			if ((regnum>=0x28) && (regnum<0x30)) return;	// subsystem information is read-only
-			break;
-		case 0x01:
-		case 0x02:
-		default:
-			break;
-	}
-
-	// call device routine for special actions and the
-	// possibility to discard/replace the value that is to be written
-	Bits parsed_register=dev->ParseWriteRegister(regnum,value);
-	if (parsed_register>=0)
-		dev->config[regnum]=(Bit8u)(parsed_register&0xff);
-}
-
 static void write_pci(Bitu port,Bitu val,Bitu iolen) {
 	LOG(LOG_PCI,LOG_NORMAL)("Write PCI data port %x :=%x (len %d)",port,val,iolen);
 
@@ -88,17 +65,7 @@ static void write_pci(Bitu port,Bitu val,Bitu iolen) {
 
 		PCI_Device* dev=pci_devices[busnum][devnum];
 		if (dev == NULL) return;
-
-		// write data to PCI device/configuration
-		switch (iolen) {
-			case 1: write_pci_register(dev,regnum+0,(Bit8u)(val&0xff)); break;
-			case 2: write_pci_register(dev,regnum+0,(Bit8u)(val&0xff));
-					write_pci_register(dev,regnum+1,(Bit8u)((val>>8)&0xff)); break;
-			case 4: write_pci_register(dev,regnum+0,(Bit8u)(val&0xff));
-					write_pci_register(dev,regnum+1,(Bit8u)((val>>8)&0xff));
-					write_pci_register(dev,regnum+2,(Bit8u)((val>>16)&0xff));
-					write_pci_register(dev,regnum+3,(Bit8u)((val>>24)&0xff)); break;
-		}
+		dev->config_write(regnum,iolen,val);
 	}
 }
 
@@ -106,24 +73,6 @@ static void write_pci(Bitu port,Bitu val,Bitu iolen) {
 static Bitu read_pci_addr(Bitu port,Bitu iolen) {
 	LOG(LOG_PCI,LOG_NORMAL)("Read PCI address -> %x",pci_caddress);
 	return pci_caddress;
-}
-
-// read single 8bit value from register file (special register treatment included)
-static Bit8u read_pci_register(PCI_Device* dev,Bit8u regnum) {
-	// FIXME: This is stupid, why not just pass the read down to the PCI device and let it handle it? Hm?
-
-	// call device routine for special actions and possibility to discard/remap register
-	Bits parsed_regnum=dev->ParseReadRegister(regnum);
-	if ((parsed_regnum>=0) && (parsed_regnum<256))
-		return dev->config[parsed_regnum];
-
-	Bit8u newval, mask;
-	if (dev->OverrideReadRegister(regnum, &newval, &mask)) {
-		Bit8u oldval=dev->config[regnum] & (~mask);
-		return oldval | (newval & mask);
-	}
-
-	return 0xff;
 }
 
 static Bitu read_pci(Bitu port,Bitu iolen) {
@@ -141,30 +90,7 @@ static Bitu read_pci(Bitu port,Bitu iolen) {
 
 		PCI_Device* dev=pci_devices[busnum][devnum];
 		if (dev == NULL) return ~0;
-
-		switch (iolen) {
-			case 1:
-				{
-					Bit8u val8=read_pci_register(dev,regnum);
-					return val8;
-				}
-			case 2:
-				{
-					Bit16u val16=read_pci_register(dev,regnum);
-					val16|=(read_pci_register(dev,regnum+1)<<8);
-					return val16;
-				}
-			case 4:
-				{
-					Bit32u val32=read_pci_register(dev,regnum);
-					val32|=(read_pci_register(dev,regnum+1)<<8);
-					val32|=(read_pci_register(dev,regnum+2)<<16);
-					val32|=(read_pci_register(dev,regnum+3)<<24);
-					return val32;
-				}
-			default:
-				break;
-		}
+		return dev->config_read(regnum,iolen);
 	}
 
 	return ~0;
@@ -180,9 +106,13 @@ PCI_Device::~PCI_Device() {
 }
 
 PCI_Device::PCI_Device(Bit16u vendor, Bit16u device) {
-	memset(config,0,256);
+	memset(config,0,256);		/* zero config space */
+	memset(config_writemask,0,256);	/* none of it is writeable */
 	setVendorID(vendor);
 	setDeviceID(device);
+
+	/* default: allow setting/clearing some bits in the Command register */
+	host_writew(config+0x04,0x0403);	/* allow changing mem/io enable and interrupt disable */
 }
 
 #include "pci_devices.h"
@@ -271,13 +201,9 @@ public:
 
 		if (!initialized) InitializePCI();
 
-		if (device->InitializeRegisters(device->config)) {
-			if (pci_devices[bus][slot] != NULL) E_Exit("PCI interface error: attempted to fill slot already taken");
-			pci_devices[bus][slot]=device;
-			return slot;
-		}
-
-		return -1;
+		if (pci_devices[bus][slot] != NULL) E_Exit("PCI interface error: attempted to fill slot already taken");
+		pci_devices[bus][slot]=device;
+		return slot;
 	}
 
 	void Deinitialize(void) {
