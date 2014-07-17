@@ -3093,11 +3093,13 @@ public:
 			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_ISA_BUS,sizeof(ISAPNP_sysdev_ISA_BUS),true))
 				LOG_MSG("ISAPNP register failed\n");
 
-			/* PCI bus, meaning, a computer with PCI slots.
-			 * The purpose of this device is to tell Windows 95 that a PCI bus is present. Without
-			 * this entry, PCI devices will not be recognized until you manually install the PCI driver. */
-			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_PCI_BUS,sizeof(ISAPNP_sysdev_PCI_BUS),true))
-				LOG_MSG("ISAPNP register failed\n");
+			if (pcibus_enable) {
+				/* PCI bus, meaning, a computer with PCI slots.
+				 * The purpose of this device is to tell Windows 95 that a PCI bus is present. Without
+				 * this entry, PCI devices will not be recognized until you manually install the PCI driver. */
+				if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_PCI_BUS,sizeof(ISAPNP_sysdev_PCI_BUS),true))
+					LOG_MSG("ISAPNP register failed\n");
+			}
 
 			/* APM BIOS device. To help Windows 95 see our APM BIOS. */
 			if (APMBIOS) {
