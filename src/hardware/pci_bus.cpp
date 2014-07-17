@@ -34,10 +34,8 @@
 #if defined(PCI_FUNCTIONALITY_ENABLED)
 
 static Bit32u pci_caddress=0;			// current PCI addressing
-static Bitu pci_devices_installed=0;	// number of registered PCI devices
 
-static PCI_Device* pci_devices[PCI_MAX_PCIDEVICES]={NULL};		// registered PCI devices
-
+static PCI_Device* pci_devices[PCI_MAX_PCIBUSSES][PCI_MAX_PCIDEVICES]={{NULL}};		// registered PCI devices
 
 // PCI address
 // 31    - set for a PCI access
@@ -76,15 +74,17 @@ static void write_pci_register(PCI_Device* dev,Bit8u regnum,Bit8u value) {
 static void write_pci(Bitu port,Bitu val,Bitu iolen) {
 	LOG(LOG_PCI,LOG_NORMAL)("Write PCI data port %x :=%x (len %d)",port,val,iolen);
 
-	// check for enabled/bus 0
-	if ((pci_caddress & 0x80ff0000) == 0x80000000) {
+	if (pci_caddress & 0x80000000) {
+		Bit8u busnum = (Bit8u)((pci_caddress >> 16) & 0xff);
 		Bit8u devnum = (Bit8u)((pci_caddress >> 11) & 0x1f);
 		Bit8u fctnum = (Bit8u)((pci_caddress >> 8) & 0x7);
 		Bit8u regnum = (Bit8u)((pci_caddress & 0xfc) + (port & 0x03));
 		LOG(LOG_PCI,LOG_NORMAL)("  Write to device %x register %x (function %x) (:=%x)",devnum,regnum,fctnum,val);
 
-		if (devnum>=pci_devices_installed) return;
-		PCI_Device* masterdev=pci_devices[devnum];
+		if (busnum >= PCI_MAX_PCIBUSSES) return;
+		if (devnum >= PCI_MAX_PCIDEVICES) return;
+
+		PCI_Device* masterdev=pci_devices[busnum][devnum];
 		if (masterdev==NULL) return;
 		if (fctnum>masterdev->NumSubdevices()) return;
 
@@ -145,47 +145,49 @@ static Bit8u read_pci_register(PCI_Device* dev,Bit8u regnum) {
 static Bitu read_pci(Bitu port,Bitu iolen) {
 	LOG(LOG_PCI,LOG_NORMAL)("Read PCI data -> %x",pci_caddress);
 
-	if ((pci_caddress & 0x80ff0000) == 0x80000000) {
+	if (pci_caddress & 0x80000000) {
+		Bit8u busnum = (Bit8u)((pci_caddress >> 16) & 0xff);
 		Bit8u devnum = (Bit8u)((pci_caddress >> 11) & 0x1f);
 		Bit8u fctnum = (Bit8u)((pci_caddress >> 8) & 0x7);
 		Bit8u regnum = (Bit8u)((pci_caddress & 0xfc) + (port & 0x03));
-		if (devnum>=pci_devices_installed) return 0xffffffff;
-		LOG(LOG_PCI,LOG_NORMAL)("  Read from device %x register %x (function %x); addr %x",
-			devnum,regnum,fctnum,pci_caddress);
+		LOG(LOG_PCI,LOG_NORMAL)("  Read from device %x register %x (function %x)",devnum,regnum,fctnum);
 
-		PCI_Device* masterdev=pci_devices[devnum];
-		if (masterdev==NULL) return 0xffffffff;
-		if (fctnum>masterdev->NumSubdevices()) return 0xffffffff;
+		if (busnum >= PCI_MAX_PCIBUSSES) return ~0;
+		if (devnum >= PCI_MAX_PCIDEVICES) return ~0;
+
+		PCI_Device* masterdev=pci_devices[busnum][devnum];
+		if (masterdev==NULL) return ~0;
+		if (fctnum>masterdev->NumSubdevices()) return ~0;
 
 		PCI_Device* dev=masterdev->GetSubdevice(fctnum);
+		if (dev==NULL) return ~0;
 
-		if (dev!=NULL) {
-			switch (iolen) {
-				case 1:
-					{
-						Bit8u val8=read_pci_register(dev,regnum);
-						return val8;
-					}
-				case 2:
-					{
-						Bit16u val16=read_pci_register(dev,regnum);
-						val16|=(read_pci_register(dev,regnum+1)<<8);
-						return val16;
-					}
-				case 4:
-					{
-						Bit32u val32=read_pci_register(dev,regnum);
-						val32|=(read_pci_register(dev,regnum+1)<<8);
-						val32|=(read_pci_register(dev,regnum+2)<<16);
-						val32|=(read_pci_register(dev,regnum+3)<<24);
-						return val32;
-					}
-				default:
-					break;
-			}
+		switch (iolen) {
+			case 1:
+				{
+					Bit8u val8=read_pci_register(dev,regnum);
+					return val8;
+				}
+			case 2:
+				{
+					Bit16u val16=read_pci_register(dev,regnum);
+					val16|=(read_pci_register(dev,regnum+1)<<8);
+					return val16;
+				}
+			case 4:
+				{
+					Bit32u val32=read_pci_register(dev,regnum);
+					val32|=(read_pci_register(dev,regnum+1)<<8);
+					val32|=(read_pci_register(dev,regnum+2)<<16);
+					val32|=(read_pci_register(dev,regnum+3)<<24);
+					return val32;
+				}
+			default:
+				break;
 		}
 	}
-	return 0xffffffff;
+
+	return ~0;
 }
 
 
@@ -292,35 +294,66 @@ public:
 		initialized=true;
 	}
 
-	// register PCI device to bus and setup data
-	Bits RegisterPCIDevice(PCI_Device* device, Bits slot=-1) {
-		if (device==NULL) return -1;
+	bool UnregisterPCIDevice(PCI_Device* device) {
+		unsigned int bus,dev;
 
-		if (slot>=0) {
-			// specific slot specified, basic check for validity
-			if (slot>=PCI_MAX_PCIDEVICES) return -1;
-		} else {
-			// auto-add to new slot, check if one is still free
-			if (pci_devices_installed>=PCI_MAX_PCIDEVICES) return -1;
+		for (bus=0;bus < PCI_MAX_PCIBUSSES;bus++) {
+			for (dev=0;dev < PCI_MAX_PCIDEVICES;dev++) {
+				if (pci_devices[bus][dev] == device) {
+					pci_devices[bus][dev] = NULL;
+					return true;
+				}
+			}
 		}
+
+		return false;
+	}
+
+	// register PCI device to bus and setup data
+	Bits RegisterPCIDevice(PCI_Device* device, Bits bus=-1, Bits slot=-1) {
+		if (device == NULL) return -1;
+		if (bus >= PCI_MAX_PCIBUSSES) return -1;
+		if (slot >= PCI_MAX_PCIDEVICES) return -1;
+
+		if (bus < 0 || slot < 0) {
+			Bits try_bus,try_slot;
+
+			try_bus = (bus < 0) ? 0 : bus;
+			try_slot = (slot < 0) ? 0 : slot; /* NTS: Most PCI implementations have a motherboard chipset or PCI bus device at slot 0 */
+			while (pci_devices[try_bus][try_slot] != NULL) {
+				if (slot >= 0 || (try_slot+1) >= PCI_MAX_PCIDEVICES) {
+					if (slot < 0) try_slot = 0;
+					try_bus++;
+
+					if (bus >= 0 || try_bus >= PCI_MAX_PCIBUSSES)
+						break;
+				}
+				else if (slot < 0) {
+					try_slot++;
+				}
+			}
+
+			bus = try_bus;
+			slot = try_slot;
+		}
+
+		if (bus >= PCI_MAX_PCIBUSSES || slot >= PCI_MAX_PCIDEVICES)
+			return -1;
 
 		if (!initialized) InitializePCI();
 
-		if (slot<0) slot=pci_devices_installed;	// use next slot
 		Bits subfunction=0;	// main device unless specific already-occupied slot is requested
-		if (pci_devices[slot]!=NULL) {
-			subfunction=pci_devices[slot]->GetNextSubdeviceNumber();
+		if (pci_devices[bus][slot] != NULL) {
+			subfunction=pci_devices[bus][slot]->GetNextSubdeviceNumber();
 			if (subfunction<0) E_Exit("Too many PCI subdevices!");
 		}
 
 		if (device->InitializeRegisters(device->config)) {
 			device->SetPCIId(slot, subfunction);
-			if (pci_devices[slot]==NULL) {
-				pci_devices[slot]=device;
-				pci_devices_installed++;
-			} else {
-				pci_devices[slot]->AddSubdevice(device);
-			}
+			if (pci_devices[bus][slot]==NULL)
+				pci_devices[bus][slot]=device;
+			else
+				pci_devices[bus][slot]->AddSubdevice(device);
 
 			return slot;
 		}
@@ -330,7 +363,6 @@ public:
 
 	void Deinitialize(void) {
 		initialized=false;
-		pci_devices_installed=0;
 		num_rqueued_devices=0;
 		pci_caddress=0;
 
@@ -346,58 +378,18 @@ public:
 		callback_pci.Uninstall();
 	}
 
-	void RemoveDevice(Bit16u vendor_id, Bit16u device_id) {
-		for (Bitu dct=0;dct<pci_devices_installed;dct++) {
-			if (pci_devices[dct]!=NULL) {
-				if (pci_devices[dct]->NumSubdevices()>0) {
-					for (Bitu sct=1;sct<PCI_MAX_PCIFUNCTIONS;sct++) {
-						PCI_Device* sdev=pci_devices[dct]->GetSubdevice(sct);
-						if (sdev!=NULL) {
-							if ((sdev->VendorID()==vendor_id) && (sdev->DeviceID()==device_id)) {
-								pci_devices[dct]->RemoveSubdevice(sct);
-							}
-						}
-					}
-				}
-
-				if ((pci_devices[dct]->VendorID()==vendor_id) && (pci_devices[dct]->DeviceID()==device_id)) {
-					delete pci_devices[dct];
-					pci_devices[dct]=NULL;
-				}
-			}
-		}
-
-		// check if all devices have been removed
-		bool any_device_left=false;
-		for (Bitu dct=0;dct<PCI_MAX_PCIDEVICES;dct++) {
-			if (dct>=pci_devices_installed) break;
-			if (pci_devices[dct]!=NULL) {
-				any_device_left=true;
-				break;
-			}
-		}
-		if (!any_device_left) Deinitialize();
-
-		Bitu last_active_device=PCI_MAX_PCIDEVICES;
-		for (Bitu dct=0;dct<PCI_MAX_PCIDEVICES;dct++) {
-			if (pci_devices[dct]!=NULL) last_active_device=dct;
-		}
-		if (last_active_device<pci_devices_installed)
-			pci_devices_installed=last_active_device+1;
-	}
-
 	PCI(Section* configuration):Module_base(configuration) {
 		initialized=false;
-		pci_devices_installed=0;
 
-		for (Bitu devct=0;devct<PCI_MAX_PCIDEVICES;devct++)
-			pci_devices[devct]=NULL;
+		for (Bitu bus=0;bus<PCI_MAX_PCIBUSSES;bus++)
+			for (Bitu devct=0;devct<PCI_MAX_PCIDEVICES;devct++)
+				pci_devices[bus][devct]=NULL;
 
 		if (num_rqueued_devices>0) {
 			// register all devices that have been added before the PCI bus was instantiated
-			for (Bitu dct=0;dct<num_rqueued_devices;dct++) {
+			for (Bitu dct=0;dct<num_rqueued_devices;dct++)
 				this->RegisterPCIDevice(rqueued_devices[dct]);
-			}
+
 			num_rqueued_devices=0;
 		}
 	}
@@ -405,69 +397,76 @@ public:
 	~PCI() {
 		unsigned int i;
 
-		for (i=0;i < PCI_MAX_PCIDEVICES;i++) {
-			if (pci_devices[i] != NULL) {
-				delete pci_devices[i];
-				pci_devices[i] = NULL;
+		for (Bitu bus=0;bus<PCI_MAX_PCIBUSSES;bus++) {
+			for (i=0;i < PCI_MAX_PCIDEVICES;i++) {
+				if (pci_devices[bus][i] != NULL) {
+					delete pci_devices[bus][i];
+					pci_devices[bus][i] = NULL;
+				}
 			}
 		}
 
 		initialized=false;
-		pci_devices_installed=0;
 		num_rqueued_devices=0;
 	}
 
 };
 
 static PCI* pci_interface=NULL;
-
+static PCI_Device *S3_PCI=NULL;
+static PCI_Device *SST_PCI=NULL;
 
 void PCI_AddSVGAS3_Device(void) {
-	PCI_Device* svga_dev=new PCI_VGADevice();
-	if (pci_interface!=NULL) {
-		pci_interface->RegisterPCIDevice(svga_dev);
-	} else {
-		if (num_rqueued_devices<max_rqueued_devices)
-			rqueued_devices[num_rqueued_devices++]=svga_dev;
+	if (pci_interface == NULL) E_Exit("PCI device add attempt and PCI interface not initialized");
+
+	if (S3_PCI == NULL) {
+		if ((S3_PCI=new PCI_VGADevice()) == NULL)
+			return;
+
+		pci_interface->RegisterPCIDevice(S3_PCI);
 	}
 }
 
 void PCI_RemoveSVGAS3_Device(void) {
-	if (pci_interface!=NULL) {
-		Bit16u vendor=PCI_VGADevice::VendorID();
-		Bit16u device=PCI_VGADevice::DeviceID();
-		pci_interface->RemoveDevice(vendor,device);
+	if (pci_interface != NULL) {
+		if (S3_PCI != NULL) {
+			pci_interface->UnregisterPCIDevice(S3_PCI);
+			S3_PCI = NULL;
+		}
 	}
 }
 
 void PCI_AddSST_Device(Bitu type) {
-	Bitu ctype = 1;
-	switch (type) {
-		case 1:
-		case 2:
-			ctype = type;
-			break;
-		default:
-			LOG_MSG("PCI:SST: Invalid board type %x specified",type);
-			break;
-	}
-	PCI_Device* voodoo_dev=new PCI_SSTDevice(ctype);
-	if (pci_interface!=NULL) {
-		pci_interface->RegisterPCIDevice(voodoo_dev);
-	} else {
-		if (num_rqueued_devices<max_rqueued_devices)
-			rqueued_devices[num_rqueued_devices++]=voodoo_dev;
+	if (pci_interface == NULL) E_Exit("PCI device add attempt and PCI interface not initialized");
+
+	if (SST_PCI == NULL) {
+		Bitu ctype = 1;
+
+		switch (type) {
+			case 1:
+			case 2:
+				ctype = type;
+				break;
+			default:
+				LOG_MSG("PCI:SST: Invalid board type %x specified",type);
+				break;
+		}
+
+		if ((SST_PCI=new PCI_SSTDevice(ctype)) == NULL)
+			return;
+
+		pci_interface->RegisterPCIDevice(SST_PCI);
 	}
 }
 
 void PCI_RemoveSST_Device(void) {
 	if (pci_interface!=NULL) {
-		Bit16u vendor=PCI_SSTDevice::VendorID();
-		pci_interface->RemoveDevice(vendor,1);
-		pci_interface->RemoveDevice(vendor,2);
+		if (SST_PCI != NULL) {
+			pci_interface->UnregisterPCIDevice(SST_PCI);
+			SST_PCI = NULL;
+		}
 	}
 }
-
 
 PhysPt PCI_GetPModeInterface(void) {
 	if (pci_interface) {
@@ -483,13 +482,19 @@ bool PCI_IsInitialized() {
 
 
 void PCI_ShutDown(Section* sec){
-	delete pci_interface;
-	pci_interface=NULL;
+	if (pci_interface != NULL) {
+		delete pci_interface;
+		pci_interface = NULL;
+	}
 }
 
 void PCI_Init(Section* sec) {
-	pci_interface = new PCI(sec);
 	sec->AddDestroyFunction(&PCI_ShutDown,false);
+}
+
+void PCIBUS_Init(Section *sec) {
+	if (pci_interface == NULL)
+		pci_interface = new PCI(sec);
 }
 
 #else

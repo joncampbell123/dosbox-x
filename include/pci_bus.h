@@ -23,9 +23,9 @@
 
 #if defined PCI_FUNCTIONALITY_ENABLED
 
-#define PCI_MAX_PCIDEVICES		10
-#define PCI_MAX_PCIFUNCTIONS	8
-
+#define PCI_MAX_PCIBUSSES		256
+#define PCI_MAX_PCIDEVICES		32
+#define PCI_MAX_PCIFUNCTIONS		8
 
 class PCI_Device {
 public:
@@ -61,7 +61,7 @@ public:
 	bool AddSubdevice(PCI_Device* dev);
 	void RemoveSubdevice(Bits subfct);
 
-	PCI_Device* GetSubdevice(Bits subfct);
+	virtual PCI_Device* GetSubdevice(Bits subfct);
 
 	Bit16u NumSubdevices(void) {
 		if (num_subdevices>PCI_MAX_PCIFUNCTIONS-1) return (Bit16u)(PCI_MAX_PCIFUNCTIONS-1);

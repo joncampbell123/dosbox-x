@@ -186,6 +186,7 @@ void				MIXER_Init(Section*);
 void				MIDI_Init(Section*);
 void				HARDWARE_Init(Section*);
 #if defined(PCI_FUNCTIONALITY_ENABLED)
+void				PCIBUS_Init(Section*);
 void				PCI_Init(Section*);
 void				VOODOO_Init(Section*);
 #endif
@@ -1039,6 +1040,7 @@ void DOSBOX_Init(void) {
 	secprop->AddInitFunction(&CALLBACK_Init);
 	secprop->AddInitFunction(&DMA_Init);//done
 	secprop->AddInitFunction(&PIC_Init);//done
+	secprop->AddInitFunction(&PCIBUS_Init);
 	secprop->AddInitFunction(&PROGRAMS_Init);
 	secprop->AddInitFunction(&TIMER_Init);//done
 	secprop->AddInitFunction(&CMOS_Init);//done
