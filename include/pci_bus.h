@@ -19,10 +19,6 @@
 #ifndef DOSBOX_PCI_H
 #define DOSBOX_PCI_H
 
-#define PCI_FUNCTIONALITY_ENABLED 1
-
-#if defined PCI_FUNCTIONALITY_ENABLED
-
 #define PCI_MAX_PCIBUSSES		256
 #define PCI_MAX_PCIDEVICES		32
 #define PCI_MAX_PCIFUNCTIONS		8
@@ -95,14 +91,13 @@ public:
 
 bool PCI_IsInitialized();
 
-RealPt PCI_GetPModeInterface(void);
-
-#endif
-
 void PCI_AddSVGAS3_Device(void);
 void PCI_RemoveSVGAS3_Device(void);
 
 void PCI_AddSST_Device(Bitu type);
 void PCI_RemoveSST_Device(void);
 
+RealPt PCI_GetPModeInterface(void);
+
 #endif
+

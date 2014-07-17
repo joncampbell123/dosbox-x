@@ -30,9 +30,6 @@
 #include "../ints/int10.h"
 #include "voodoo.h"
 
-
-#if defined(PCI_FUNCTIONALITY_ENABLED)
-
 static Bit32u pci_caddress=0;			// current PCI addressing
 
 static PCI_Device* pci_devices[PCI_MAX_PCIBUSSES][PCI_MAX_PCIDEVICES]={{NULL}};		// registered PCI devices
@@ -473,18 +470,3 @@ void PCIBUS_Init(Section *sec) {
 		pci_interface = new PCI(sec);
 }
 
-#else
-
-void PCI_AddSVGAS3_Device(void) {
-}
-
-void PCI_RemoveSVGAS3_Device(void) {
-}
-
-void PCI_AddSST_Device(Bitu type) {
-}
-
-void PCI_RemoveSST_Device(void) {
-}
-
-#endif

@@ -1543,7 +1543,6 @@ static Bitu INT1A_Handler(void) {
 		break;
 	case 0xb1:		/* PCI Bios Calls */
 		LOG(LOG_BIOS,LOG_WARN)("INT1A:PCI bios call %2X",reg_al);
-#if defined(PCI_FUNCTIONALITY_ENABLED)
 		switch (reg_al) {
 			case 0x01:	// installation check
 				if (PCI_IsInitialized()) {
@@ -1653,9 +1652,6 @@ static Bitu INT1A_Handler(void) {
 				CALLBACK_SCF(true);
 				break;
 		}
-#else
-		CALLBACK_SCF(true);
-#endif
 		break;
 	default:
 		LOG(LOG_BIOS,LOG_ERROR)("INT1A:Undefined call %2X",reg_ah);

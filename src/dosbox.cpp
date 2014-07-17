@@ -185,11 +185,9 @@ void				DMA_Init(Section*);
 void				MIXER_Init(Section*);
 void				MIDI_Init(Section*);
 void				HARDWARE_Init(Section*);
-#if defined(PCI_FUNCTIONALITY_ENABLED)
 void				PCIBUS_Init(Section*);
 void				PCI_Init(Section*);
 void				VOODOO_Init(Section*);
-#endif
 void				IDE_Primary_Init(Section*);
 void				IDE_Secondary_Init(Section*);
 void				IDE_Tertiary_Init(Section*);
@@ -1206,15 +1204,12 @@ void DOSBOX_Init(void) {
 	Pstring->Set_values(auxdevices);
 	Pstring->Set_help("Type of PS/2 mouse attached to the AUX port");
 
-#if defined(PCI_FUNCTIONALITY_ENABLED)
 	secprop=control->AddSection_prop("pci",&PCI_Init,false); //PCI bus
 
 	secprop->AddInitFunction(&VOODOO_Init,true);
 	Pstring = secprop->Add_string("voodoo",Property::Changeable::WhenIdle,"auto");
 	Pstring->Set_values(voodoo_settings);
 	Pstring->Set_help("Enable VOODOO support.");
-#endif
-
 
 	secprop=control->AddSection_prop("mixer",&MIXER_Init);
 	Pbool = secprop->Add_bool("nosound",Property::Changeable::OnlyAtStart,false);
