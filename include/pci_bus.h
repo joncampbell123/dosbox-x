@@ -35,11 +35,6 @@ public:
 	/* configuration space */
 	unsigned char config[256];
 
-	// subdevices declarations, they will respond to pci functions 1 to 7
-	// (main device is attached to function 0)
-	Bitu num_subdevices;
-	PCI_Device* subdevices[PCI_MAX_PCIFUNCTIONS-1];
-
 	PCI_Device(Bit16u vendor, Bit16u device);
 	virtual ~PCI_Device();
 
@@ -54,23 +49,6 @@ public:
 	}
 	Bit16u DeviceID(void) {
 		return device_id;
-	}
-
-	void SetPCIId(Bitu number, Bits subfct);
-
-	bool AddSubdevice(PCI_Device* dev);
-	void RemoveSubdevice(Bits subfct);
-
-	virtual PCI_Device* GetSubdevice(Bits subfct);
-
-	Bit16u NumSubdevices(void) {
-		if (num_subdevices>PCI_MAX_PCIFUNCTIONS-1) return (Bit16u)(PCI_MAX_PCIFUNCTIONS-1);
-		return (Bit16u)num_subdevices;
-	}
-
-	Bits GetNextSubdeviceNumber(void) {
-		if (num_subdevices>=PCI_MAX_PCIFUNCTIONS-1) return -1;
-		return (Bits)num_subdevices+1;
 	}
 
 	virtual Bits ParseReadRegister(Bit8u regnum)=0;

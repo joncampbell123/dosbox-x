@@ -84,12 +84,8 @@ static void write_pci(Bitu port,Bitu val,Bitu iolen) {
 		if (busnum >= PCI_MAX_PCIBUSSES) return;
 		if (devnum >= PCI_MAX_PCIDEVICES) return;
 
-		PCI_Device* masterdev=pci_devices[busnum][devnum];
-		if (masterdev==NULL) return;
-		if (fctnum>masterdev->NumSubdevices()) return;
-
-		PCI_Device* dev=masterdev->GetSubdevice(fctnum);
-		if (dev==NULL) return;
+		PCI_Device* dev=pci_devices[busnum][devnum];
+		if (dev == NULL) return;
 
 		// write data to PCI device/configuration
 		switch (iolen) {
@@ -121,9 +117,8 @@ static Bit8u read_pci_register(PCI_Device* dev,Bit8u regnum) {
 			return (Bit8u)(dev->DeviceID()&0xff);
 		case 0x03:
 			return (Bit8u)((dev->DeviceID()>>8)&0xff);
-
 		case 0x0e:
-			return (dev->config[regnum]&0x7f) | ((dev->NumSubdevices()>0)?0x80:0x00);
+			return (dev->config[regnum]&0x7f);
 		default:
 			break;
 	}
@@ -155,12 +150,8 @@ static Bitu read_pci(Bitu port,Bitu iolen) {
 		if (busnum >= PCI_MAX_PCIBUSSES) return ~0;
 		if (devnum >= PCI_MAX_PCIDEVICES) return ~0;
 
-		PCI_Device* masterdev=pci_devices[busnum][devnum];
-		if (masterdev==NULL) return ~0;
-		if (fctnum>masterdev->NumSubdevices()) return ~0;
-
-		PCI_Device* dev=masterdev->GetSubdevice(fctnum);
-		if (dev==NULL) return ~0;
+		PCI_Device* dev=pci_devices[busnum][devnum];
+		if (dev == NULL) return ~0;
 
 		switch (iolen) {
 			case 1:
@@ -205,50 +196,7 @@ PCI_Device::PCI_Device(Bit16u vendor, Bit16u device) {
 	pci_subfunction=-1;
 	vendor_id=vendor;
 	device_id=device;
-	num_subdevices=0;
-	for (Bitu dct=0;dct<PCI_MAX_PCIFUNCTIONS-1;dct++) subdevices[dct]=0;
 }
-
-void PCI_Device::SetPCIId(Bitu number, Bits subfct) {
-	if ((number>=0) && (number<PCI_MAX_PCIDEVICES)) {
-		pci_id=number;
-		if ((subfct>=0) && (subfct<PCI_MAX_PCIFUNCTIONS-1))
-			pci_subfunction=subfct;
-		else
-			pci_subfunction=-1;
-	}
-}
-
-bool PCI_Device::AddSubdevice(PCI_Device* dev) {
-	if (num_subdevices<PCI_MAX_PCIFUNCTIONS-1) {
-		if (subdevices[num_subdevices]!=NULL) E_Exit("PCI subdevice slot already in use!");
-		subdevices[num_subdevices]=dev;
-		num_subdevices++;
-		return true;
-	}
-	return false;
-}
-
-void PCI_Device::RemoveSubdevice(Bits subfct) {
-	if ((subfct>0) && (subfct<PCI_MAX_PCIFUNCTIONS)) {
-		if (subfct<=this->NumSubdevices()) {
-			delete subdevices[subfct-1];
-			subdevices[subfct-1]=NULL;
-			// should adjust things like num_subdevices as well...
-		}
-	}
-}
-
-PCI_Device* PCI_Device::GetSubdevice(Bits subfct) {
-	if (subfct>=PCI_MAX_PCIFUNCTIONS) return NULL;
-	if (subfct>0) {
-		if (subfct<=this->NumSubdevices()) return subdevices[subfct-1];
-	} else if (subfct==0) {
-		return this;
-	}
-	return NULL;
-}
-
 
 // queued devices (PCI device registering requested before the PCI framework was initialized)
 static const Bitu max_rqueued_devices=16;
@@ -342,19 +290,9 @@ public:
 
 		if (!initialized) InitializePCI();
 
-		Bits subfunction=0;	// main device unless specific already-occupied slot is requested
-		if (pci_devices[bus][slot] != NULL) {
-			subfunction=pci_devices[bus][slot]->GetNextSubdeviceNumber();
-			if (subfunction<0) E_Exit("Too many PCI subdevices!");
-		}
-
 		if (device->InitializeRegisters(device->config)) {
-			device->SetPCIId(slot, subfunction);
-			if (pci_devices[bus][slot]==NULL)
-				pci_devices[bus][slot]=device;
-			else
-				pci_devices[bus][slot]->AddSubdevice(device);
-
+			if (pci_devices[bus][slot] != NULL) E_Exit("PCI interface error: attempted to fill slot already taken");
+			pci_devices[bus][slot]=device;
 			return slot;
 		}
 
