@@ -17,6 +17,7 @@
  */
 
 
+#include <string.h>
 #include "dosbox.h"
 #include "inout.h"
 #include "paging.h"
@@ -35,7 +36,6 @@
 static Bit32u pci_caddress=0;			// current PCI addressing
 static Bitu pci_devices_installed=0;	// number of registered PCI devices
 
-static Bit8u pci_cfg_data[PCI_MAX_PCIDEVICES][PCI_MAX_PCIFUNCTIONS][256];		// PCI configuration data
 static PCI_Device* pci_devices[PCI_MAX_PCIDEVICES]={NULL};		// registered PCI devices
 
 
@@ -56,7 +56,7 @@ static void write_pci_register(PCI_Device* dev,Bit8u regnum,Bit8u value) {
 	// vendor/device/class IDs/header type/etc. are read-only
 	if ((regnum<0x04) || ((regnum>=0x06) && (regnum<0x0c)) || (regnum==0x0e)) return;
 	if (dev==NULL) return;
-	switch (pci_cfg_data[dev->PCIId()][dev->PCISubfunction()][0x0e]&0x7f) {	// header-type specific handling
+	switch (dev->config[0x0e]&0x7f) { // header-type specific handling
 		case 0x00:
 			if ((regnum>=0x28) && (regnum<0x30)) return;	// subsystem information is read-only
 			break;
@@ -70,11 +70,11 @@ static void write_pci_register(PCI_Device* dev,Bit8u regnum,Bit8u value) {
 	// possibility to discard/replace the value that is to be written
 	Bits parsed_register=dev->ParseWriteRegister(regnum,value);
 	if (parsed_register>=0)
-		pci_cfg_data[dev->PCIId()][dev->PCISubfunction()][regnum]=(Bit8u)(parsed_register&0xff);
+		dev->config[regnum]=(Bit8u)(parsed_register&0xff);
 }
 
 static void write_pci(Bitu port,Bitu val,Bitu iolen) {
-	LOG(LOG_PCI,LOG_NORMAL)("Write PCI data :=%x (len %d)",port,val,iolen);
+	LOG(LOG_PCI,LOG_NORMAL)("Write PCI data port %x :=%x (len %d)",port,val,iolen);
 
 	// check for enabled/bus 0
 	if ((pci_caddress & 0x80ff0000) == 0x80000000) {
@@ -123,8 +123,7 @@ static Bit8u read_pci_register(PCI_Device* dev,Bit8u regnum) {
 			return (Bit8u)((dev->DeviceID()>>8)&0xff);
 
 		case 0x0e:
-			return (pci_cfg_data[dev->PCIId()][dev->PCISubfunction()][regnum]&0x7f) |
-						((dev->NumSubdevices()>0)?0x80:0x00);
+			return (dev->config[regnum]&0x7f) | ((dev->NumSubdevices()>0)?0x80:0x00);
 		default:
 			break;
 	}
@@ -132,11 +131,11 @@ static Bit8u read_pci_register(PCI_Device* dev,Bit8u regnum) {
 	// call device routine for special actions and possibility to discard/remap register
 	Bits parsed_regnum=dev->ParseReadRegister(regnum);
 	if ((parsed_regnum>=0) && (parsed_regnum<256))
-		return pci_cfg_data[dev->PCIId()][dev->PCISubfunction()][parsed_regnum];
+		return dev->config[parsed_regnum];
 
 	Bit8u newval, mask;
 	if (dev->OverrideReadRegister(regnum, &newval, &mask)) {
-		Bit8u oldval=pci_cfg_data[dev->PCIId()][dev->PCISubfunction()][regnum] & (~mask);
+		Bit8u oldval=dev->config[regnum] & (~mask);
 		return oldval | (newval & mask);
 	}
 
@@ -195,8 +194,11 @@ static Bitu PCI_PM_Handler() {
 	return CBRET_NONE;
 }
 
+PCI_Device::~PCI_Device() {
+}
 
 PCI_Device::PCI_Device(Bit16u vendor, Bit16u device) {
+	memset(config,0,256);
 	pci_id=-1;
 	pci_subfunction=-1;
 	vendor_id=vendor;
@@ -285,11 +287,6 @@ public:
 			PCI_ReadHandler[1+ct].Install(0xcfc+ct,read_pci,IO_MB);
 		}
 
-		for (Bitu dev=0; dev<PCI_MAX_PCIDEVICES; dev++)
-			for (Bitu fct=0; fct<PCI_MAX_PCIFUNCTIONS-1; fct++)
-				for (Bitu reg=0; reg<256; reg++)
-					pci_cfg_data[dev][fct][reg] = 0;
-
 		callback_pci.Install(&PCI_PM_Handler,CB_IRETD,"PCI PM");
 
 		initialized=true;
@@ -316,7 +313,7 @@ public:
 			if (subfunction<0) E_Exit("Too many PCI subdevices!");
 		}
 
-		if (device->InitializeRegisters(pci_cfg_data[slot][subfunction])) {
+		if (device->InitializeRegisters(device->config)) {
 			device->SetPCIId(slot, subfunction);
 			if (pci_devices[slot]==NULL) {
 				pci_devices[slot]=device;
@@ -336,11 +333,6 @@ public:
 		pci_devices_installed=0;
 		num_rqueued_devices=0;
 		pci_caddress=0;
-
-		for (Bitu dev=0; dev<PCI_MAX_PCIDEVICES; dev++)
-			for (Bitu fct=0; fct<PCI_MAX_PCIFUNCTIONS-1; fct++)
-				for (Bitu reg=0; reg<256; reg++)
-					pci_cfg_data[dev][fct][reg] = 0;
 
 		// install PCI-addressing ports
 		PCI_WriteHandler[0].Uninstall();

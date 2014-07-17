@@ -28,17 +28,20 @@
 
 
 class PCI_Device {
-private:
+public:
 	Bits pci_id, pci_subfunction;
 	Bit16u vendor_id, device_id;
+
+	/* configuration space */
+	unsigned char config[256];
 
 	// subdevices declarations, they will respond to pci functions 1 to 7
 	// (main device is attached to function 0)
 	Bitu num_subdevices;
 	PCI_Device* subdevices[PCI_MAX_PCIFUNCTIONS-1];
 
-public:
 	PCI_Device(Bit16u vendor, Bit16u device);
+	virtual ~PCI_Device();
 
 	Bits PCIId(void) {
 		return pci_id;

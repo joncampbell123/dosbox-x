@@ -42,7 +42,7 @@ public:
 		if ((regnum>=0x30) && (regnum<0x34)) return -1;	// expansion rom addresses are read-only
 		switch (regnum) {
 			case 0x10:
-				return (pci_cfg_data[this->PCIId()][this->PCISubfunction()][0x10]&0x0f);
+				return (config[0x10]&0x0f);
 			case 0x11:
 				return 0x00;
 			case 0x12:
@@ -51,7 +51,7 @@ public:
 			case 0x13:
 				return value;
 			case 0x14:
-				return (pci_cfg_data[this->PCIId()][this->PCISubfunction()][0x10]&0x0f);
+				return (config[0x10]&0x0f);
 			case 0x15:
 				return 0x00;
 			case 0x16:
@@ -181,7 +181,7 @@ public:
 		if ((regnum>=0x30) && (regnum<0x34)) return -1;	// expansion rom addresses are read-only
 		switch (regnum) {
 			case 0x10:
-				return (pci_cfg_data[this->PCIId()][this->PCISubfunction()][0x10]&0x0f);
+				return (config[0x10]&0x0f);
 			case 0x11:
 				return 0x00;
 			case 0x12:
