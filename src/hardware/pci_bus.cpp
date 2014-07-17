@@ -112,7 +112,7 @@ PCI_Device::PCI_Device(Bit16u vendor, Bit16u device) {
 	setDeviceID(device);
 
 	/* default: allow setting/clearing some bits in the Command register */
-	host_writew(config+0x04,0x0403);	/* allow changing mem/io enable and interrupt disable */
+	host_writew(config_writemask+0x04,0x0403);	/* allow changing mem/io enable and interrupt disable */
 }
 
 #include "pci_devices.h"
