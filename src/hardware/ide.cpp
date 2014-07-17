@@ -3133,6 +3133,7 @@ void IDEDevice::select(uint8_t ndh,bool switched_to) {
 IDEController::IDEController(Section* configuration,unsigned char index):Module_base(configuration){
 	Section_prop * section=static_cast<Section_prop *>(configuration);
 	bool register_pnp = false;
+	int i;
 
 	register_pnp = section->Get_bool("pnp");
 	int13fakeio = section->Get_bool("int13fakeio");
@@ -3153,10 +3154,13 @@ IDEController::IDEController(Section* configuration,unsigned char index):Module_
 	alt_io = 0;
 	IRQ = -1;
 
+	i = section->Get_int("irq");
+	if (i > 0 && i <= 15) IRQ = i;
+
 	if (index < sizeof(IDE_default_IRQs)) {
 		base_io = IDE_default_bases[index];
 		alt_io = IDE_default_alts[index];
-		IRQ = IDE_default_IRQs[index];
+		if (IRQ < 0) IRQ = IDE_default_IRQs[index];
 	}
 
 	if (register_pnp && base_io > 0 && alt_io > 0) {
