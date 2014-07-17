@@ -1744,6 +1744,9 @@ void DOSBOX_Init(void) {
 		Pbool = secprop->Add_bool("enable",Property::Changeable::OnlyAtStart,true);
 		if (i == 0) Pbool->Set_help("Enable IDE interface");
 
+		Pbool = secprop->Add_bool("pnp",Property::Changeable::OnlyAtStart,true);
+		if (i == 0) Pbool->Set_help("List IDE device in ISA PnP BIOS enumeration");
+
 		Pbool = secprop->Add_bool("int13fakeio",Property::Changeable::WhenIdle,false);
 		if (i == 0) Pbool->Set_help(
 				"If set, force IDE state change on certain INT 13h commands.\n"

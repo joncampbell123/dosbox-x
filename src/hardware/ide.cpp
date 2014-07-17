@@ -3132,7 +3132,9 @@ void IDEDevice::select(uint8_t ndh,bool switched_to) {
 
 IDEController::IDEController(Section* configuration,unsigned char index):Module_base(configuration){
 	Section_prop * section=static_cast<Section_prop *>(configuration);
+	bool register_pnp = false;
 
+	register_pnp = section->Get_bool("pnp");
 	int13fakeio = section->Get_bool("int13fakeio");
 	int13fakev86io = section->Get_bool("int13fakev86io");
 	spinup_time = section->Get_int("cd-rom spinup time");
@@ -3155,6 +3157,59 @@ IDEController::IDEController(Section* configuration,unsigned char index):Module_
 		base_io = IDE_default_bases[index];
 		alt_io = IDE_default_alts[index];
 		IRQ = IDE_default_IRQs[index];
+	}
+
+	if (register_pnp && base_io > 0 && alt_io > 0) {
+		unsigned char tmp[256];
+		unsigned int i;
+
+		const unsigned char h1[9] = {
+			ISAPNP_SYSDEV_HEADER(
+				ISAPNP_ID('P','N','P',0x0,0x6,0x0,0x0), /* PNP0600 Generic ESDI/IDE/ATA compatible hard disk controller */
+				ISAPNP_TYPE(0x01,0x01,0x00),		/* type: Mass Storage Device / IDE / Generic */
+				0x0001 | 0x0002)
+		};
+
+		i = 0;
+		memcpy(tmp+i,h1,9); i += 9;			/* can't disable, can't configure */
+		/*----------allocated--------*/
+		tmp[i+0] = (8 << 3) | 7;			/* IO resource */
+		tmp[i+1] = 0x01;				/* 16-bit decode */
+		host_writew(tmp+i+2,base_io);			/* min */
+		host_writew(tmp+i+4,base_io);			/* max */
+		tmp[i+6] = 0x08;				/* align */
+		tmp[i+7] = 0x08;				/* length */
+		i += 7+1;
+
+		tmp[i+0] = (8 << 3) | 7;			/* IO resource */
+		tmp[i+1] = 0x01;				/* 16-bit decode */
+		host_writew(tmp+i+2,alt_io);			/* min */
+		host_writew(tmp+i+4,alt_io);			/* max */
+		tmp[i+6] = 0x04;				/* align */
+		tmp[i+7] = 0x02;				/* length */
+		i += 7+1;
+
+		if (IRQ > 0) {
+			tmp[i+0] = (4 << 3) | 3;		/* IRQ resource */
+			host_writew(tmp+i+1,1 << IRQ);
+			tmp[i+3] = 0x09;			/* HTE=1 LTL=1 */
+			i += 3+1;
+		}
+
+		tmp[i+0] = 0x79;				/* END TAG */
+		tmp[i+1] = 0x00;
+		i += 2;
+		/*-------------possible-----------*/
+		tmp[i+0] = 0x79;				/* END TAG */
+		tmp[i+1] = 0x00;
+		i += 2;
+		/*-------------compatible---------*/
+		tmp[i+0] = 0x79;				/* END TAG */
+		tmp[i+1] = 0x00;
+		i += 2;
+
+		if (!ISAPNP_RegisterSysDev(tmp,i))
+			LOG_MSG("ISAPNP register failed\n");
 	}
 }
 
