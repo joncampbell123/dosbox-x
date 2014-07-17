@@ -185,12 +185,6 @@ PCI_Device::PCI_Device(Bit16u vendor, Bit16u device) {
 	setDeviceID(device);
 }
 
-// queued devices (PCI device registering requested before the PCI framework was initialized)
-static const Bitu max_rqueued_devices=16;
-static Bitu num_rqueued_devices=0;
-static PCI_Device* rqueued_devices[max_rqueued_devices];
-
-
 #include "pci_devices.h"
 
 class PCI:public Module_base{
@@ -288,7 +282,6 @@ public:
 
 	void Deinitialize(void) {
 		initialized=false;
-		num_rqueued_devices=0;
 		pci_caddress=0;
 
 		// install PCI-addressing ports
@@ -309,14 +302,6 @@ public:
 		for (Bitu bus=0;bus<PCI_MAX_PCIBUSSES;bus++)
 			for (Bitu devct=0;devct<PCI_MAX_PCIDEVICES;devct++)
 				pci_devices[bus][devct]=NULL;
-
-		if (num_rqueued_devices>0) {
-			// register all devices that have been added before the PCI bus was instantiated
-			for (Bitu dct=0;dct<num_rqueued_devices;dct++)
-				this->RegisterPCIDevice(rqueued_devices[dct]);
-
-			num_rqueued_devices=0;
-		}
 	}
 
 	~PCI() {
@@ -332,9 +317,7 @@ public:
 		}
 
 		initialized=false;
-		num_rqueued_devices=0;
 	}
-
 };
 
 static PCI* pci_interface=NULL;
