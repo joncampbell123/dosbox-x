@@ -1756,6 +1756,11 @@ void DOSBOX_Init(void) {
 				"         Setting the IRQ to one already occupied by another device or IDE controller will trigger \"resource conflict\" errors in Windows 95.\n"
 				"         Using IRQ 9, 12, 13, or IRQ 2-7 may cause problems with MS-DOS CD-ROM drivers.");
 
+		Phex = secprop->Add_hex("io",Property::Changeable::WhenIdle,0/*use IDE default*/);
+		if (i == 0) Pint->Set_help("Base I/O port for IDE controller. Set to 0 for default.\n"
+				"WARNING: Setting the I/O port to non-standard values will not work unless the guest OS is using the ISA PnP BIOS to detect the IDE controller.\n"
+				"         Using any port other than 1F0, 170, 1E8 or 168 can prevent MS-DOS CD-ROM drivers from detecting the IDE controller.");
+
 		Pbool = secprop->Add_bool("int13fakeio",Property::Changeable::WhenIdle,false);
 		if (i == 0) Pbool->Set_help(
 				"If set, force IDE state change on certain INT 13h commands.\n"

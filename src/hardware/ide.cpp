@@ -3157,10 +3157,13 @@ IDEController::IDEController(Section* configuration,unsigned char index):Module_
 	i = section->Get_int("irq");
 	if (i > 0 && i <= 15) IRQ = i;
 
+	i = section->Get_hex("io");
+	if (i >= 0x100 && i <= 0x3FF) base_io = i & ~7;
+
 	if (index < sizeof(IDE_default_IRQs)) {
-		base_io = IDE_default_bases[index];
 		alt_io = IDE_default_alts[index];
 		if (IRQ < 0) IRQ = IDE_default_IRQs[index];
+		if (base_io == 0) base_io = IDE_default_bases[index];
 	}
 
 	if (register_pnp && base_io > 0 && alt_io > 0) {
