@@ -515,7 +515,6 @@
 #define ID_REMOVE_STATE_9               602
 #define ID_REMOVE_STATE_10              603
 #define ID_REMOVE_STATE_ALL             604
-#define ID_LINEWISE                     605
 #define ID_CHAR9                        606
 #define ID_MULTISCAN                    607
 #define ID_CPU_ADVANCED                 608

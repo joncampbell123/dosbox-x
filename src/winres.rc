@@ -166,7 +166,6 @@ BEGIN
 	END
 	POPUP "Compatibility"
 	BEGIN
-		MENUITEM "Draw the display line by line",	ID_LINEWISE
 		MENUITEM "Allow 9-pixel wide text mode fonts",	ID_CHAR9
 		MENUITEM "Multiscan",	ID_MULTISCAN
 	END
