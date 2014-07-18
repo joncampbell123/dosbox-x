@@ -35,7 +35,7 @@
 
 #define MSCDEX_VERSION_HIGH	2
 #define MSCDEX_VERSION_LOW	23
-#define MSCDEX_MAX_DRIVES	8
+#define MSCDEX_MAX_DRIVES	16
 
 // Error Codes
 #define MSCDEX_ERROR_INVALID_FUNCTION	1
@@ -157,7 +157,7 @@ public:
 
 	Bit16u				defaultBufSeg;
 	TDriveInfo			dinfo[MSCDEX_MAX_DRIVES];
-	CDROM_Interface*	cdrom[MSCDEX_MAX_DRIVES];
+	CDROM_Interface*		cdrom[MSCDEX_MAX_DRIVES];
 	
 public:
 	Bit16u		rootDriverHeaderSeg;
