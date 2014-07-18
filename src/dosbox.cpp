@@ -192,6 +192,10 @@ void				IDE_Primary_Init(Section*);
 void				IDE_Secondary_Init(Section*);
 void				IDE_Tertiary_Init(Section*);
 void				IDE_Quaternary_Init(Section*);
+void				IDE_Quinternary_Init(Section*);
+void				IDE_Sexternary_Init(Section*);
+void				IDE_Septernary_Init(Section*);
+void				IDE_Octernary_Init(Section*);
 void				KEYBOARD_Init(Section*);	//TODO This should setup INT 16 too but ok ;)
 void				JOYSTICK_Init(Section*);
 void				MOUSE_Init(Section*);
@@ -1731,14 +1735,27 @@ void DOSBOX_Init(void) {
 #endif // C_NE2000
 
 	/* IDE emulation options and setup */
-	const char *ide_names[4] = {"ide, primary","ide, secondary","ide, tertiary","ide, quaternary"};
-	void (*ide_inits[4])(Section *) = {
+	const char *ide_names[8] = {
+		"ide, primary",
+		"ide, secondary",
+		"ide, tertiary",
+		"ide, quaternary",
+		"ide, quinternary",
+		"ide, sexternary",
+		"ide, septernary",
+		"ide, octernary"
+	};
+	void (*ide_inits[8])(Section *) = {
 		&IDE_Primary_Init,
 		&IDE_Secondary_Init,
 		&IDE_Tertiary_Init,
-		&IDE_Quaternary_Init
+		&IDE_Quaternary_Init,
+		&IDE_Quinternary_Init,
+		&IDE_Sexternary_Init,
+		&IDE_Septernary_Init,
+		&IDE_Octernary_Init
 	};
-	for (size_t i=0;i < 4;i++) {
+	for (size_t i=0;i < 8;i++) {
 		secprop=control->AddSection_prop(ide_names[i],ide_inits[i],false);//done
 
 		/* Primary and Secondary are on by default, Teritary and Quaternary are off by default.

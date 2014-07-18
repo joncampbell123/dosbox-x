@@ -28,7 +28,7 @@
 # define MIN(a,b) std::min(a,b)
 #endif
 
-#define MAX_IDE_CONTROLLERS 4
+#define MAX_IDE_CONTROLLERS 8
 
 static unsigned char init_ide = 0;
 
@@ -266,7 +266,7 @@ public:
 	~IDEController();
 };
 
-static IDEController* idecontroller[MAX_IDE_CONTROLLERS]={NULL,NULL,NULL,NULL};
+static IDEController* idecontroller[MAX_IDE_CONTROLLERS]={NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/);
 static IDEController* GetIDEController(Bitu idx);
@@ -3168,6 +3168,10 @@ IDEController::IDEController(Section* configuration,unsigned char index):Module_
 		if (alt_io == 0) alt_io = IDE_default_alts[index];
 		if (base_io == 0) base_io = IDE_default_bases[index];
 	}
+	else {
+		if (IRQ < 0 || alt_io == 0 || base_io == 0)
+			LOG_MSG("WARNING: IDE interface %u: Insufficient resources assigned by dosbox.conf, and no appropriate default resources for this interface.",index);
+	}
 
 	if (register_pnp && base_io > 0 && alt_io > 0) {
 		unsigned char tmp[256];
@@ -3454,7 +3458,7 @@ static void IDE_Init(Section* sec,unsigned char interface) {
 	Section_prop *section=static_cast<Section_prop *>(sec);
 	IDEController *ide;
 
-	assert(interface < sizeof(IDE_default_IRQs));
+	assert(interface < MAX_IDE_CONTROLLERS);
 
 	if (!section->Get_bool("enable"))
 		return;
@@ -3467,10 +3471,7 @@ static void IDE_Init(Section* sec,unsigned char interface) {
 	ide = idecontroller[interface] = new IDEController(sec,interface);
 	ide->install_io_port();
 
-	if (interface == 0)
-		PIC_SetIRQMask(14,false);
-	else if (interface == 1)
-		PIC_SetIRQMask(15,false);
+	PIC_SetIRQMask(ide->IRQ,false);
 }
 
 void IDE_Primary_Init(Section *sec) {
@@ -3487,5 +3488,21 @@ void IDE_Tertiary_Init(Section *sec) {
 
 void IDE_Quaternary_Init(Section *sec) {
 	IDE_Init(sec,3);
+}
+
+void IDE_Quinternary_Init(Section *sec) {
+	IDE_Init(sec,4);
+}
+
+void IDE_Sexternary_Init(Section *sec) {
+	IDE_Init(sec,5);
+}
+
+void IDE_Septernary_Init(Section *sec) {
+	IDE_Init(sec,6);
+}
+
+void IDE_Octernary_Init(Section *sec) {
+	IDE_Init(sec,7);
 }
 
