@@ -38,6 +38,7 @@ bool CPU_NMI_active = false;
 bool CPU_NMI_pending = false;
 
 bool enable_msr = true;
+bool ignore_undefined_msr = true;
 
 extern bool ignore_opcode_63;
 
@@ -2644,6 +2645,7 @@ public:
 			CPU_CycleAutoAdjust=false;
 		}
 
+		ignore_undefined_msr=section->Get_bool("ignore undefined msr");
 		enable_msr=section->Get_bool("enable msr");
 		CPU_CycleUp=section->Get_int("cycleup");
 		CPU_CycleDown=section->Get_int("cycledown");
@@ -2900,6 +2902,12 @@ bool CPU_RDMSR() {
 			break;
 	}
 
+	if (ignore_undefined_msr) {
+		/* wing it and hope nobody notices */
+		reg_edx = reg_eax = 0;
+		return true;
+	}
+
 	return false; /* unknown reg, signal illegal opcode */
 }
 
@@ -2912,6 +2920,7 @@ bool CPU_WRMSR() {
 			break;
 	}
 
+	if (ignore_undefined_msr) return true; /* ignore */
 	return false; /* unknown reg, signal illegal opcode */
 }
 

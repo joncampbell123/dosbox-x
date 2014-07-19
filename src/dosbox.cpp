@@ -1123,6 +1123,13 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("enable msr",Property::Changeable::Always,true);
 	Pbool->Set_help("Allow RDMSR/WRMSR instructions. This option is only meaningful when cputype=pentium.");
 
+	Pbool = secprop->Add_bool("ignore undefined msr",Property::Changeable::Always,false);
+	Pbool->Set_help("Ignore RDMSR/WRMSR on undefined registers. Normally the CPU will fire an Invalid Opcode exception in that case.\n"
+			"This option is off by default, enable if using software or drivers that assumes the presence of\n"
+			"certain MSR registers without checking. If you are using certain versions of the 3Dfx glide drivers for MS-DOS\n"
+			"you will need to set this to TRUE as 3Dfx appears to have coded GLIDE2.OVL to assume the presence\n"
+			"of Pentium Pro/Pentium II MTRR registers.");
+
 	Pint = secprop->Add_int("dynamic core cache block size",Property::Changeable::Always,32);
 	Pint->SetMinMax(1,65536);
 	Pint->Set_help("dynamic core cache block size. default value is 32. change this value carefully.\n"
