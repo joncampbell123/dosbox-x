@@ -2885,3 +2885,24 @@ void CPU_ForceV86FakeIO_Out(Bitu port,Bitu val,Bitu len) {
 	reg_edx = old_dx;
 }
 
+/* pentium machine-specific registers */
+bool CPU_RDMSR() {
+	switch (reg_ecx) {
+		default:
+			LOG(LOG_CPU,LOG_WARN)("RDMSR: Unknown register 0x%08lx",(unsigned long)reg_ecx);
+			break;
+	}
+
+	return false; /* unknown reg, signal illegal opcode */
+}
+
+bool CPU_WRMSR() {
+	switch (reg_ecx) {
+		default:
+			LOG(LOG_CPU,LOG_WARN)("WRMSR: Unknown register 0x%08lx (write 0x%08lx:0x%08lx)",(unsigned long)reg_ecx,(unsigned long)reg_edx,(unsigned long)reg_eax);
+			break;
+	}
+
+	return false; /* unknown reg, signal illegal opcode */
+}
+

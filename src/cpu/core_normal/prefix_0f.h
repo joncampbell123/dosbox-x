@@ -16,6 +16,9 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+bool CPU_RDMSR();
+bool CPU_WRMSR();
+
 	CASE_0F_W(0x00)												/* GRP 6 Exxx */
 		{
 			if ((reg_flags & FLAG_VM) || (!cpu.pmode)) goto illegal_opcode;
@@ -225,6 +228,12 @@
 			if (CPU_WRITE_TRX(which,*eard)) RUNEXCEPTION();
 		}
 		break;
+	CASE_0F_B(0x30)												/* WRMSR */
+		{
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUM) goto illegal_opcode;
+			if (!CPU_WRMSR()) goto illegal_opcode;
+		}
+		break;
 	CASE_0F_B(0x31)												/* RDTSC */
 		{
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUM) goto illegal_opcode;
@@ -232,6 +241,12 @@
 			Bit64s tsc=(Bit64s)(PIC_FullIndex()*(double) (CPU_CycleAutoAdjust?70000:CPU_CycleMax));
 			reg_edx=(Bit32u)(tsc>>32);
 			reg_eax=(Bit32u)(tsc&0xffffffff);
+		}
+		break;
+	CASE_0F_B(0x32)												/* RDMSR */
+		{
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUM) goto illegal_opcode;
+			if (!CPU_RDMSR()) goto illegal_opcode;
 		}
 		break;
 	CASE_0F_W(0x80)												/* JO */
