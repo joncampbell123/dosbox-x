@@ -1120,6 +1120,9 @@ void DOSBOX_Init(void) {
 	Pstring->Set_help("CPU Core used in emulation. auto will switch to dynamic if available and\n"
 		"appropriate.");
 
+	Pbool = secprop->Add_bool("enable msr",Property::Changeable::Always,true);
+	Pbool->Set_help("Allow RDMSR/WRMSR instructions. This option is only meaningful when cputype=pentium.");
+
 	Pint = secprop->Add_int("dynamic core cache block size",Property::Changeable::Always,32);
 	Pint->SetMinMax(1,65536);
 	Pint->Set_help("dynamic core cache block size. default value is 32. change this value carefully.\n"

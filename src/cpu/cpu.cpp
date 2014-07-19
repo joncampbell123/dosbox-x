@@ -37,6 +37,8 @@ bool CPU_NMI_gate = true;
 bool CPU_NMI_active = false;
 bool CPU_NMI_pending = false;
 
+bool enable_msr = true;
+
 extern bool ignore_opcode_63;
 
 Bitu DEBUG_EnableDebugger(void);
@@ -2246,11 +2248,13 @@ bool CPU_CPUID(void) {
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
 			reg_edx=0x00000011;	/* FPU+TimeStamp/RDTSC */
+			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
 		} else if (CPU_ArchitectureType==CPU_ARCHTYPE_P55CSLOW) {
 			reg_eax=0x543;		/* intel pentium mmx (P55C) */
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
-			reg_edx=0x00800011;	/* FPU+TimeStamp/RDTSC+MMX */
+			reg_edx=0x00800031;	/* FPU+TimeStamp/RDTSC+MMX+ModelSpecific/MSR */
+			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
 		} else {
 			return false;
 		}
@@ -2640,6 +2644,7 @@ public:
 			CPU_CycleAutoAdjust=false;
 		}
 
+		enable_msr=section->Get_bool("enable msr");
 		CPU_CycleUp=section->Get_int("cycleup");
 		CPU_CycleDown=section->Get_int("cycledown");
 		std::string core(section->Get_string("core"));
@@ -2887,9 +2892,11 @@ void CPU_ForceV86FakeIO_Out(Bitu port,Bitu val,Bitu len) {
 
 /* pentium machine-specific registers */
 bool CPU_RDMSR() {
+	if (!enable_msr) return false;
+
 	switch (reg_ecx) {
 		default:
-			LOG(LOG_CPU,LOG_WARN)("RDMSR: Unknown register 0x%08lx",(unsigned long)reg_ecx);
+			LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Unknown register 0x%08lx",(unsigned long)reg_ecx);
 			break;
 	}
 
@@ -2897,9 +2904,11 @@ bool CPU_RDMSR() {
 }
 
 bool CPU_WRMSR() {
+	if (!enable_msr) return false;
+
 	switch (reg_ecx) {
 		default:
-			LOG(LOG_CPU,LOG_WARN)("WRMSR: Unknown register 0x%08lx (write 0x%08lx:0x%08lx)",(unsigned long)reg_ecx,(unsigned long)reg_edx,(unsigned long)reg_eax);
+			LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Unknown register 0x%08lx (write 0x%08lx:0x%08lx)",(unsigned long)reg_ecx,(unsigned long)reg_edx,(unsigned long)reg_eax);
 			break;
 	}
 
