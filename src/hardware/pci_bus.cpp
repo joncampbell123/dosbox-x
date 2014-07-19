@@ -198,7 +198,7 @@ public:
 				case 0x11:
 				case 0x12:
 				case 0x13:
-					VOODOO_PCI_SetLFB(value<<24);
+					VOODOO_PCI_SetLFB(host_readd(config+0x10)&0xfffffff0UL); /* need to act on the new (masked off) value */
 					break;
 				case 0x40:
 					VOODOO_PCI_InitEnable(value&7);
