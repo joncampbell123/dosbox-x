@@ -190,7 +190,7 @@ public:
 	virtual void config_write(Bit8u regnum,Bitu iolen,Bit32u value) {
 		if (iolen == 1) {
 			/* configuration write masks apply here as well */
-			config[regnum] = value = (value & config_writemask[regnum]) +
+			config[regnum] = (value & config_writemask[regnum]) +
 				(config[regnum] & (~config_writemask[regnum]));
 
 			switch (regnum) { /* FIXME: I hope I ported this right --J.C. */
