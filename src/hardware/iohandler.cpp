@@ -180,29 +180,6 @@ Bits IOFaultCore(void) {
  * games with their timing of certain operations
  */
 
-
-#define IODELAY_READ_MICROS 1.0
-#define IODELAY_WRITE_MICROS 0.75
-
-inline void IO_USEC_read_delay_old() {
-	if(CPU_CycleMax > static_cast<Bit32s>((IODELAY_READ_MICROS*1000.0))) {
-		// this could be calculated whenever CPU_CycleMax changes
-		Bits delaycyc = static_cast<Bits>((CPU_CycleMax/1000)*IODELAY_READ_MICROS);
-		if(CPU_Cycles > delaycyc) CPU_Cycles -= delaycyc;
-		else CPU_Cycles = 0;
-	}
-}
-
-inline void IO_USEC_write_delay_old() {
-	if(CPU_CycleMax > static_cast<Bit32s>((IODELAY_WRITE_MICROS*1000.0))) {
-		// this could be calculated whenever CPU_CycleMax changes
-		Bits delaycyc = static_cast<Bits>((CPU_CycleMax/1000)*IODELAY_WRITE_MICROS);
-		if(CPU_Cycles > delaycyc) CPU_Cycles -= delaycyc;
-		else CPU_Cycles = 0;
-	}
-}
-
-
 #define IODELAY_READ_MICROSk (Bit32u)(1024/1.0)
 #define IODELAY_WRITE_MICROSk (Bit32u)(1024/0.75)
 
