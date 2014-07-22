@@ -85,7 +85,6 @@
 #ifdef __SSE__
 bool sse2_available = false;
 
-#if !defined(__APPLE__)
 # ifdef __GNUC__
 #  define cpuid(func,ax,bx,cx,dx)\
 	__asm__ __volatile__ ("cpuid":\
@@ -101,7 +100,6 @@ bool sse2_available = false;
 	__asm mov c, ecx\
 	__asm mov d, edx
 # endif /* _MSC_VER */
-#endif /* !defined(__APPLE) */
 
 void CheckSSESupport()
 {
