@@ -183,7 +183,6 @@ static void disney_write(Bitu port,Bitu val,Bitu iolen) {
 	disney.last_used=PIC_Ticks;
 	switch (port-DISNEY_BASE) {
 	case 0:		/* Data Port */
-	case 0x330-DISNEY_BASE:
 	{
 		disney.data=val;
 		// if data is written here too often without using the stereo
