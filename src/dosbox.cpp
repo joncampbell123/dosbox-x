@@ -1194,6 +1194,9 @@ void DOSBOX_Init(void) {
 			"If you want power management in Windows 95/98/ME (beyond using the APM to shutdown the computer) you MUST enable this option.\n"
 			"Windows 95/98/ME does not support the 16-bit real and protected mode APM BIOS entry points.");
 
+	Pbool = secprop->Add_bool("integration device",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("Enable DOSBox integration I/O device. This can be used by the guest OS to match mouse pointer position, for example. EXPERIMENTAL!");
+
 	Pbool = secprop->Add_bool("isapnpbios",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Emulate ISA Plug & Play BIOS. Enable if using DOSBox to run a PnP aware DOS program or if booting Windows 9x.\n"
 			"Do not disable if Windows 9x is configured around PnP devices, you will likely confuse it.");

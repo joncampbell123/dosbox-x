@@ -283,6 +283,30 @@ Bit16u BIOS_GetMemory(Bit16u pages,const char *who) {
 	return 0;
 }
 
+static IO_ReadHandleObject *DOSBOX_INTEGRATION_PORT_READ[4] = {NULL};
+static IO_WriteHandleObject *DOSBOX_INTEGRATION_PORT_WRITE[4] = {NULL};
+
+static Bitu dosbox_integration_port_r(Bitu port,Bitu iolen) {
+	Bitu ret = ~0;
+
+	switch (port-0x28) {
+		case 0:
+			ret = 0xAAAAD05B;
+			break;
+		default:
+			break;
+	};
+
+	return ret;
+}
+
+void dosbox_integration_port_w(Bitu port,Bitu val,Bitu iolen) {
+	switch (port-0x28) {
+		default:
+			break;
+	};
+}
+
 /* if mem_systems 0 then size_extended is reported as the real size else 
  * zero is reported. ems and xms can increase or decrease the other_memsystems
  * counter using the BIOS_ZeroExtendedSize call */
@@ -314,6 +338,7 @@ static unsigned char ISA_PNP_KEYMATCH=0;
 static Bits other_memsystems=0;
 static bool apm_realmode_connected = false;
 void CMOS_SetRegister(Bitu regNr, Bit8u val); //For setting equipment word
+bool enable_integration_device=false;
 bool ISAPNPBIOS=false;
 bool APMBIOS=false;
 bool APMBIOS_allow_realmode=false;
@@ -394,7 +419,7 @@ static ISAPnPDevice *ISA_PNP_selected = NULL;
 static ISAPnPDevice *ISA_PNP_devs[MAX_ISA_PNP_DEVICES] = {NULL}; /* FIXME: free objects on shutdown */
 static Bitu ISA_PNP_devnext = 0;
 
-static const unsigned char ISAPnPTestDevice_sysdev[] = {
+static const unsigned char ISAPnPIntegrationDevice_sysdev[] = {
 	ISAPNP_IO_RANGE(
 			0x01,					/* decodes 16-bit ISA addr */
 			0x28,0x28,				/* min-max range I/O port */
@@ -402,12 +427,12 @@ static const unsigned char ISAPnPTestDevice_sysdev[] = {
 	ISAPNP_END
 };
 
-class ISAPnPTestDevice : public ISAPnPDevice {
+class ISAPnPIntegrationDevice : public ISAPnPDevice {
 	public:
-		ISAPnPTestDevice() : ISAPnPDevice() {
+		ISAPnPIntegrationDevice() : ISAPnPDevice() {
 			resource_ident = 0;
-			resource_data = (unsigned char*)ISAPnPTestDevice_sysdev;
-			resource_data_len = sizeof(ISAPnPTestDevice_sysdev);
+			resource_data = (unsigned char*)ISAPnPIntegrationDevice_sysdev;
+			resource_data_len = sizeof(ISAPnPIntegrationDevice_sysdev);
 			host_writed(ident+0,ISAPNP_ID('D','O','S',0x1,0x2,0x3,0x4)); /* DOS1234 test device */
 			host_writed(ident+4,0xFFFFFFFFUL);
 			checksum_ident();
@@ -624,6 +649,7 @@ static Bitu INT15_Handler(void);
 
 void ISAPNP_Cfg_Init(Section *s) {
 	Section_prop * section=static_cast<Section_prop *>(s);
+	enable_integration_device = section->Get_bool("integration device");
 	ISAPNPBIOS = section->Get_bool("isapnpbios");
 	APMBIOS = section->Get_bool("apmbios");
 	APMBIOS_allow_realmode = section->Get_bool("apmbios allow realmode");
@@ -2997,12 +3023,18 @@ public:
 			ISAPNP_PNP_READ_PORT = new IO_ReadHandleObject;
 			ISAPNP_PNP_READ_PORT->Install(ISA_PNP_WPORT,isapnp_read_port,IO_MB);
 			LOG_MSG("Registered ISA PnP read port at 0x%03x\n",ISA_PNP_WPORT);
+		}
 
-			/* debug: test PnP device. FIXME: Make this an optional device for debugging and testing!
-			 * The intent of this test device is to give PnP emulation something to pickup. The only
-			 * other way to test PnP enumeration is to enable Sound Blaster emulation and set
-			 * sbtype=sb16vibra. */
-			ISA_PNP_devreg(new ISAPnPTestDevice);
+		if (enable_integration_device) {
+			for (Bitu i=0;i < 4;i++) {
+				DOSBOX_INTEGRATION_PORT_READ[i] = new IO_ReadHandleObject;
+				DOSBOX_INTEGRATION_PORT_WRITE[i] = new IO_WriteHandleObject;
+				DOSBOX_INTEGRATION_PORT_READ[i]->Install(0x28+i,dosbox_integration_port_r,IO_MA);
+				DOSBOX_INTEGRATION_PORT_WRITE[i]->Install(0x28+i,dosbox_integration_port_w,IO_MA);
+			}
+
+			/* DOSBox integration device */
+			ISA_PNP_devreg(new ISAPnPIntegrationDevice);
 		}
 
 		// ISA Plug & Play BIOS entrypoint
