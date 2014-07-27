@@ -285,13 +285,114 @@ Bit16u BIOS_GetMemory(Bit16u pages,const char *who) {
 
 static IO_ReadHandleObject *DOSBOX_INTEGRATION_PORT_READ[4] = {NULL};
 static IO_WriteHandleObject *DOSBOX_INTEGRATION_PORT_WRITE[4] = {NULL};
+static unsigned char dosbox_int_register_shf = 0;
+static uint32_t dosbox_int_register = 0;
+static unsigned char dosbox_int_regsel_shf = 0;
+static uint32_t dosbox_int_regsel = 0;
+static bool dosbox_int_error = false;
+static bool dosbox_int_busy = false;
+static const char *dosbox_int_version = "DOSBox-X integration device";
+static const char *dosbox_int_ver_read = NULL;
+
+/* read triggered, update the regsel */
+void dosbox_integration_trigger_read() {
+	dosbox_int_error = false;
+
+	switch (dosbox_int_regsel) {
+		case 0: /* Identification */
+			dosbox_int_register = 0xD05B0740;
+			break;
+		case 1: /* test */
+			break;
+		case 2: /* version string */
+			if (dosbox_int_ver_read == NULL)
+				dosbox_int_ver_read = dosbox_int_version;
+
+			dosbox_int_register = 0;
+			for (Bitu i=0;i < 4;i++) {
+				if (*dosbox_int_ver_read == 0) {
+					dosbox_int_ver_read = dosbox_int_version;
+					break;
+				}
+
+				dosbox_int_register += ((uint32_t)((unsigned char)(*dosbox_int_ver_read++))) << (uint32_t)(i * 8);
+			}
+			break;
+		default:
+			dosbox_int_register = 0xAA55AA55;
+			dosbox_int_error = true;
+			break;
+	};
+
+	LOG_MSG("DOSBox integration read 0x%08lx got 0x%08lx (err=%u)\n",
+		(unsigned long)dosbox_int_regsel,
+		(unsigned long)dosbox_int_register,
+		dosbox_int_error?1:0);
+}
+
+/* write triggered */
+void dosbox_integration_trigger_write() {
+	dosbox_int_error = false;
+
+	LOG_MSG("DOSBox integration write 0x%08lx val 0x%08lx\n",
+		(unsigned long)dosbox_int_regsel,
+		(unsigned long)dosbox_int_register);
+
+	switch (dosbox_int_regsel) {
+		case 1: /* test */
+			break;
+		case 2: /* version string */
+			dosbox_int_ver_read = NULL;
+			break;
+		default:
+			dosbox_int_register = 0x55AA55AA;
+			dosbox_int_error = true;
+			break;
+	};
+}
+
+/* PORT 0x28: Index
+ *      0x29: Data
+ *      0x2A: Status(R) or Command(W)
+ *      0x2B: Not yet assigned
+ *
+ *      Registers are 32-bit wide. I/O to index and data rotate through the
+ *      bytes of the register depending on I/O length, meaning that one 32-bit
+ *      I/O read will read the entire register, while four 8-bit reads will
+ *      read one byte out of 4. */
 
 static Bitu dosbox_integration_port_r(Bitu port,Bitu iolen) {
 	Bitu ret = ~0;
+	Bitu retb = 0;
 
 	switch (port-0x28) {
-		case 0:
-			ret = 0xAAAAD05B;
+		case 0: /* index */
+			ret = 0;
+			while (iolen > 0) {
+				ret += (dosbox_int_regsel >> (dosbox_int_regsel_shf * 8)) << (retb * 8);
+				if ((++dosbox_int_regsel_shf) >= 4) dosbox_int_regsel_shf = 0;
+				iolen--;
+				retb++;
+			}
+			break;
+		case 1: /* data */
+			ret = 0;
+			while (iolen > 0) {
+				if (dosbox_int_register_shf == 0) dosbox_integration_trigger_read();
+				ret += (dosbox_int_register >> (dosbox_int_register_shf * 8)) << (retb * 8);
+				if ((++dosbox_int_register_shf) >= 4) dosbox_int_register_shf = 0;
+				iolen--;
+				retb++;
+			}
+			break;
+		case 2: /* status */
+			/* 7:6 = regsel byte index
+			 * 5:4 = register byte index
+			 * 3:2 = reserved
+			 *   1 = error
+			 *   0 = busy */
+			ret = (dosbox_int_regsel_shf << 6) + (dosbox_int_register_shf << 4) +
+				(dosbox_int_error ? 1 : 0) + (dosbox_int_busy ? 1 : 0);
 			break;
 		default:
 			break;
@@ -301,7 +402,36 @@ static Bitu dosbox_integration_port_r(Bitu port,Bitu iolen) {
 }
 
 void dosbox_integration_port_w(Bitu port,Bitu val,Bitu iolen) {
+	uint32_t msk;
+
 	switch (port-0x28) {
+		case 0: /* index */
+			while (iolen > 0) {
+				msk = 0xFFU << (dosbox_int_regsel_shf * 8);
+				dosbox_int_regsel = (dosbox_int_regsel & ~msk) + ((val & 0xFF) << (dosbox_int_regsel_shf * 8));
+				if ((++dosbox_int_regsel_shf) >= 4) dosbox_int_regsel_shf = 0;
+				val >>= 8U;
+				iolen--;
+			}
+			break;
+		case 1: /* data */
+			while (iolen > 0) {
+				msk = 0xFFU << (dosbox_int_register_shf * 8);
+				dosbox_int_register = (dosbox_int_register & ~msk) + ((val & 0xFF) << (dosbox_int_register_shf * 8));
+				if ((++dosbox_int_register_shf) >= 4) dosbox_int_register_shf = 0;
+				if (dosbox_int_register_shf == 0) dosbox_integration_trigger_write();
+				val >>= 8U;
+				iolen--;
+			}
+			break;
+		case 2: /* command */
+			switch (val) {
+				case 0x00: /* switch latch */
+					dosbox_int_register_shf = 0;
+					dosbox_int_regsel_shf = 0;
+					break;
+			};
+			break;
 		default:
 			break;
 	};
