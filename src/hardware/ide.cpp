@@ -1593,6 +1593,10 @@ void IDEATAPICDROMDevice::data_write(Bitu v,Bitu iolen) {
 			atapi_cmd[atapi_cmd_i++] = v;
 		if (iolen >= 2 && atapi_cmd_i < atapi_cmd_total)
 			atapi_cmd[atapi_cmd_i++] = v >> 8;
+		if (iolen >= 4 && atapi_cmd_i < atapi_cmd_total) {
+			atapi_cmd[atapi_cmd_i++] = v >> 16;
+			atapi_cmd[atapi_cmd_i++] = v >> 24;
+		}
 
 		if (atapi_cmd_i >= atapi_cmd_total)
 			atapi_cmd_completion();
@@ -1611,7 +1615,11 @@ void IDEATAPICDROMDevice::data_write(Bitu v,Bitu iolen) {
 			return;
 		}
 
-		if (iolen >= 2) {
+		if (iolen >= 4) {
+			host_writed(sector+sector_i,v);
+			sector_i += 4;
+		}
+		else if (iolen >= 2) {
 			host_writew(sector+sector_i,v);
 			sector_i += 2;
 		}
@@ -1671,7 +1679,11 @@ void IDEATADevice::data_write(Bitu v,Bitu iolen) {
 		return;
 	}
 
-	if (iolen >= 2) {
+	if (iolen >= 4) {
+		host_writed(sector+sector_i,v);
+		sector_i += 4;
+	}
+	else if (iolen >= 2) {
 		host_writew(sector+sector_i,v);
 		sector_i += 2;
 	}
