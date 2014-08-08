@@ -1809,6 +1809,17 @@ void DOSBOX_Init(void) {
 				"virtual 8086 mode and a fake IRQ signal. you must enable this option\n"
 				"if you want 32-bit disk access in Windows 95 to work with DOSBox.");
 
+		Pbool = secprop->Add_bool("enable pio32",Property::Changeable::WhenIdle,false);
+		if (i == 0) Pbool->Set_help(
+				"If set, 32-bit I/O reads and writes are handled directly (much like PCI IDE implementations)\n"
+				"If clear, 32-bit I/O will be handled as if two 16-bit I/O (much like ISA IDE implementations)");
+
+		Pbool = secprop->Add_bool("ignore pio32",Property::Changeable::WhenIdle,false);
+		if (i == 0) Pbool->Set_help(
+				"If 32-bit I/O is enabled, attempts to read/write 32-bit I/O will be ignored entirely.\n"
+				"In this way, you can have DOSBox emulate one of the strange quirks of 1995-1997 era\n"
+				"laptop hardware");
+
 		Pint = secprop->Add_int("cd-rom spinup time",Property::Changeable::WhenIdle,0/*use IDE or CD-ROM default*/);
 		if (i == 0) Pint->Set_help("Emulated CD-ROM time in ms to spin up if CD is stationary.\n"
 				"Set to 0 to use controller or CD-ROM drive-specific default.");

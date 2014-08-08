@@ -243,6 +243,8 @@ public:
 	int IRQ;
 	bool int13fakeio;		/* on certain INT 13h calls, force IDE state as if BIOS had carried them out */
 	bool int13fakev86io;		/* on certain INT 13h calls in virtual 8086 mode, trigger fake CPU I/O traps */
+	bool enable_pio32;		/* enable 32-bit PIO (if disabled, attempts at 32-bit PIO are handled as if two 16-bit I/O) */
+	bool ignore_pio32;		/* if 32-bit PIO enabled, but ignored, writes do nothing, reads return 0xFFFFFFFF */
 	unsigned short alt_io;
 	unsigned short base_io;
 	unsigned char interface_index;
@@ -3157,6 +3159,8 @@ IDEController::IDEController(Section* configuration,unsigned char index):Module_
 	register_pnp = section->Get_bool("pnp");
 	int13fakeio = section->Get_bool("int13fakeio");
 	int13fakev86io = section->Get_bool("int13fakev86io");
+	enable_pio32 = section->Get_bool("enable pio32");
+	ignore_pio32 = section->Get_bool("ignore pio32");
 	spinup_time = section->Get_int("cd-rom spinup time");
 	spindown_timeout = section->Get_int("cd-rom spindown timeout");
 	cd_insertion_time = section->Get_int("cd-rom insertion delay");
@@ -3283,6 +3287,14 @@ static void ide_altio_w(Bitu port,Bitu val,Bitu iolen) {
 		return;
 	}
 
+	if (!ide->enable_pio32 && iolen == 4) {
+		ide_altio_w(port,val&0xFFFF,2);
+		ide_altio_w(port+2,val>>16,2);
+		return;
+	}
+	else if (ide->ignore_pio32 && iolen == 4)
+		return;
+
 	port &= 1;
 	if (port == 0) {/*3F6*/
 		ide->interrupt_enable = (val&2)?0:1;
@@ -3314,8 +3326,13 @@ static Bitu ide_altio_r(Bitu port,Bitu iolen) {
 		LOG_MSG("WARNING: port read from I/O port not registered to IDE, yet callback triggered\n");
 		return ~(0UL);
 	}
-	dev = ide->device[ide->select];
 
+	if (!ide->enable_pio32 && iolen == 4)
+		return ide_altio_r(port,2) + (ide_altio_r(port+2,2) << 16);
+	else if (ide->ignore_pio32 && iolen == 4)
+		return ~0;
+
+	dev = ide->device[ide->select];
 	port &= 1;
 	if (port == 0)/*3F6(R) status, does NOT clear interrupt*/
 		return (dev != NULL) ? dev->status : ide->status;
@@ -3335,8 +3352,13 @@ static Bitu ide_baseio_r(Bitu port,Bitu iolen) {
 		LOG_MSG("WARNING: port read from I/O port not registered to IDE, yet callback triggered\n");
 		return ~(0UL);
 	}
-	dev = ide->device[ide->select];
 
+	if (!ide->enable_pio32 && iolen == 4)
+		return ide_baseio_r(port,2) + (ide_baseio_r(port+2,2) << 16);
+	else if (ide->ignore_pio32 && iolen == 4)
+		return ~0;
+
+	dev = ide->device[ide->select];
 	port &= 7;
 	switch (port) {
 		case 0:	/* 1F0 */
@@ -3385,6 +3407,15 @@ static void ide_baseio_w(Bitu port,Bitu val,Bitu iolen) {
 		LOG_MSG("WARNING: port read from I/O port not registered to IDE, yet callback triggered\n");
 		return;
 	}
+
+	if (!ide->enable_pio32 && iolen == 4) {
+		ide_baseio_w(port,val&0xFFFF,2);
+		ide_baseio_w(port+2,val>>16,2);
+		return;
+	}
+	else if (ide->ignore_pio32 && iolen == 4)
+		return;
+
 	dev = ide->device[ide->select];
 	port &= 7;
 
