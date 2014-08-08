@@ -1350,12 +1350,15 @@ Bitu IDEATAPICDROMDevice::data_read(Bitu iolen) {
 	if (sector_i >= sector_total)
 		return 0xFFFFUL;
 
-	/* TODO: The MS-DOS CD-ROM driver I'm testing against uses byte-wide I/O during identification?!? REALLY?!?
-		 I thought you weren't supposed to do that! */
-	if (iolen >= 2) {
+	if (iolen >= 4) {
+		w = host_readd(sector+sector_i);
+		sector_i += 4;
+	}
+	else if (iolen >= 2) {
 		w = host_readw(sector+sector_i);
 		sector_i += 2;
 	}
+	/* NTS: Some MS-DOS CD-ROM drivers like OAKCDROM.SYS use byte-wide I/O for the initial identification */
 	else if (iolen == 1) {
 		w = sector[sector_i++];
 	}
@@ -1635,11 +1638,15 @@ Bitu IDEATADevice::data_read(Bitu iolen) {
 	if (sector_i >= sector_total)
 		return 0xFFFFUL;
 
-	/* NTS: Some MS-DOS CD-ROM drivers like OAKCDROM.SYS use byte-wide I/O for the initial identification */
-	if (iolen >= 2) {
+	if (iolen >= 4) {
+		w = host_readd(sector+sector_i);
+		sector_i += 4;
+	}
+	else if (iolen >= 2) {
 		w = host_readw(sector+sector_i);
 		sector_i += 2;
 	}
+	/* NTS: Some MS-DOS CD-ROM drivers like OAKCDROM.SYS use byte-wide I/O for the initial identification */
 	else if (iolen == 1) {
 		w = sector[sector_i++];
 	}
