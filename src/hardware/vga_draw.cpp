@@ -814,12 +814,12 @@ static Bit8u* VGA_TEXT_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 	if ((vga.draw.cursor.count&0x8) && (line >= vga.draw.cursor.sline) &&
 		(line <= vga.draw.cursor.eline) && vga.draw.cursor.enabled) {
 		// the adress of the attribute that makes up the cell the cursor is in
-		Bits attr_addr = (vga.draw.cursor.address-vidstart) >> 1;
+		Bits attr_addr = (vga.draw.cursor.address - vidstart) >> vga.config.addr_shift; /* <- FIXME: This right? */
 		if (attr_addr >= 0 && attr_addr < (Bits)vga.draw.blocks) {
 			Bitu index = attr_addr * (vga.draw.char9dot?9:8) * 4;
 			draw = (Bit32u*)(&TempLine[index]) + 16 - vga.draw.panning;
 			
-			Bitu foreground = vga.tandy.draw_base[vga.draw.cursor.address+1] & 0xf;
+			Bitu foreground = vga.tandy.draw_base[(vga.draw.cursor.address<<2)+1] & 0xf;
 			for (Bitu i = 0; i < 8; i++) {
 				*draw++ = vga.dac.xlat32[foreground];
 			}
@@ -1203,7 +1203,10 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 		if (machine==MCH_HERC) vga.draw.linear_mask = 0xfff; // 1 page
 		else if (IS_EGAVGA_ARCH) vga.draw.linear_mask = 0x7fff; // 8 pages
 		else vga.draw.linear_mask = 0x3fff; // CGA, Tandy 4 pages
-		vga.draw.cursor.address=vga.config.cursor_start*2;
+		if (IS_EGAVGA_ARCH)
+			vga.draw.cursor.address=vga.config.cursor_start<<vga.config.addr_shift;
+		else
+			vga.draw.cursor.address=vga.config.cursor_start*2;
 		vga.draw.address *= 2;
 
 		/* check for blinking and blinking change delay */
