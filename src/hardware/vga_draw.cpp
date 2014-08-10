@@ -1160,7 +1160,6 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 	vga.draw.address_line = vga.config.hlines_skip;
 	if (IS_EGAVGA_ARCH) {
 		vga.draw.split_line = vga.config.line_compare+1;
-		if (vga.draw.doublescan_merging) vga.draw.split_line /=2;
 		if (svgaCard==SVGA_S3Trio) {
 			if (vga.config.line_compare==0) vga.draw.split_line=0;
 			if (vga.s3.reg_42 & 0x20) { // interlaced mode
@@ -1707,8 +1706,6 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 	Bitu width=hdend;
 	Bitu height=vdend;
 
-	bool doublescan_merging = false;
-
 	if (IS_EGAVGA_ARCH) {
 		vga.draw.address_line_total=(vga.crtc.maximum_scan_line&0x1f)+1;
 		switch(vga.mode) {
@@ -1721,7 +1718,6 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 			// EGA has no doublescanning bit at 0x80
 			if (vga.crtc.maximum_scan_line&0x80) {
 				// vga_draw only needs to draw every second line
-				doublescan_merging = true;
 				height/=2;
 			}
 			break;
@@ -1735,11 +1731,9 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 			} else {
 				if (vga.crtc.maximum_scan_line & 0x80) {
 					// double scan method 1
-					doublescan_merging = true;
 					height/=2;
 				} else if (vga.draw.address_line_total == 2) { // 4,8,16?
 					// double scan method 2
-					doublescan_merging = true;
 					height/=2;
 					vga.draw.address_line_total=1; // don't repeat in this case
 				}
@@ -1747,7 +1741,6 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 			break;
 		}
 	}
-	vga.draw.doublescan_merging = doublescan_merging;
 
 	//Set the bpp
 	Bitu bpp;
@@ -1920,10 +1913,6 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 	}
 	width *= pix_per_char;
 	VGA_CheckScanLength();
-	
-	//TODO
-	if (vga.draw.doublescan_merging)
-		vga.draw.vblank_skip /= 2;
 
 	vga.draw.lines_total=height;
 	vga.draw.line_length = width * ((bpp + 1) / 8);
@@ -2050,9 +2039,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		if (!vga.draw.vga_override) 
 			RENDER_SetSize(width,height,bpp,(float)fps,screenratio);
 	}
-	if (doublescan_merging)
-		vga.draw.delay.singleline_delay = (float)(vga.draw.delay.htotal*2.0);
-	else vga.draw.delay.singleline_delay = (float)vga.draw.delay.htotal;
+	vga.draw.delay.singleline_delay = (float)vga.draw.delay.htotal;
 }
 
 void VGA_KillDrawing(void) {

@@ -144,7 +144,6 @@ typedef struct {
 	} delay;
 	double screen_ratio;
 	double refresh;
-	bool doublescan_merging;
 	Bit8u font[64*1024];
 	Bit8u * font_tables[2];
 	Bitu blinking;

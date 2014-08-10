@@ -149,12 +149,9 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		Bit8u old = crtc(maximum_scan_line);
 		crtc(maximum_scan_line) = val;
 
-		if(!vga.draw.doublescan_merging) {
-			if ((old ^ val) & 0x20) VGA_StartResize();
-			vga.draw.address_line_total = (val &0x1F) + 1;
-			if (val&0x80) vga.draw.address_line_total*=2;
-		} else if ((old ^ val) & 0xbf)
-				VGA_StartResize();
+		if ((old ^ val) & 0x20) VGA_StartResize();
+		vga.draw.address_line_total = (val &0x1F) + 1;
+		if (val&0x80) vga.draw.address_line_total*=2;
 		/*
 			0-4	Number of scan lines in a character row -1. In graphics modes this is
 				the number of times (-1) the line is displayed before passing on to
