@@ -614,6 +614,3 @@ void SVGA_Setup_Driver(void) {
 	}
 }
 
-//save state support
-void *VGA_SetupDrawing_PIC_Event = (void*)VGA_SetupDrawing;
-
