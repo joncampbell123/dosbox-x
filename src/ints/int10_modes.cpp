@@ -556,7 +556,6 @@ static void FinishSetMode(bool clearmem) {
 		case M_LIN32:
 			/* Hack we just access the memory directly */
 			memset(vga.mem.linear,0,vga.vmemsize);
-			memset(vga.fastmem, 0, vga.vmemsize<<1);
 		}
 	}
 	/* Setup the BIOS */

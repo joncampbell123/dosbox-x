@@ -190,30 +190,10 @@ public:
 		return vga.mem.linear[addr];
 	}
 	void writeHandler(PhysPt start, Bit8u val) {
+		/* FIXME: "Chained EGA" how does that work?? */
 		ModeOperation(val);
 		/* Update video memory and the pixel buffer */
-		VGA_Latch pixels;
 		vga.mem.linear[start] = val;
-		start >>= 2;
-		pixels.d=((Bit32u*)vga.mem.linear)[start];
-
-		Bit8u * write_pixels=&vga.fastmem[start<<3];
-
-		Bit32u colors0_3, colors4_7;
-		VGA_Latch temp;temp.d=(pixels.d>>4) & 0x0f0f0f0f;
-		colors0_3 = 
-			Expand16Table[0][temp.b[0]] |
-			Expand16Table[1][temp.b[1]] |
-			Expand16Table[2][temp.b[2]] |
-			Expand16Table[3][temp.b[3]];
-		*(Bit32u *)write_pixels=colors0_3;
-		temp.d=pixels.d & 0x0f0f0f0f;
-		colors4_7 = 
-			Expand16Table[0][temp.b[0]] |
-			Expand16Table[1][temp.b[1]] |
-			Expand16Table[2][temp.b[2]] |
-			Expand16Table[3][temp.b[3]];
-		*(Bit32u *)(write_pixels+4)=colors4_7;
 	}
 public:	
 	VGA_ChainedEGA_Handler() : PageHandler(PFLAG_NOCODE) {}
@@ -277,23 +257,6 @@ public:
 		pixels.d&=vga.config.full_not_map_mask;
 		pixels.d|=(data & vga.config.full_map_mask);
 		((Bit32u*)vga.mem.linear)[start]=pixels.d;
-		Bit8u * write_pixels=&vga.fastmem[start<<3];
-
-		Bit32u colors0_3, colors4_7;
-		VGA_Latch temp;temp.d=(pixels.d>>4) & 0x0f0f0f0f;
-			colors0_3 = 
-			Expand16Table[0][temp.b[0]] |
-			Expand16Table[1][temp.b[1]] |
-			Expand16Table[2][temp.b[2]] |
-			Expand16Table[3][temp.b[3]];
-		*(Bit32u *)write_pixels=colors0_3;
-		temp.d=pixels.d & 0x0f0f0f0f;
-		colors4_7 = 
-			Expand16Table[0][temp.b[0]] |
-			Expand16Table[1][temp.b[1]] |
-			Expand16Table[2][temp.b[2]] |
-			Expand16Table[3][temp.b[3]];
-		*(Bit32u *)(write_pixels+4)=colors4_7;
 	}
 public:	
 	VGA_UnchainedEGA_Handler() : VGA_UnchainedRead_Handler(PFLAG_NOCODE) {}
@@ -1275,7 +1238,6 @@ void VGA_StartUpdateLFB(void) {
 
 static void VGA_Memory_ShutDown(Section * /*sec*/) {
 	delete[] vga.mem.linear_orgptr;
-	delete[] vga.fastmem_orgptr;
 }
 
 void VGA_SetupMemory(Section* sec) {
@@ -1286,12 +1248,7 @@ void VGA_SetupMemory(Section* sec) {
 	memset(vga.mem.linear_orgptr,0,vga.vmemsize+32);
 	vga.mem.linear=(Bit8u*)(((Bitu)vga.mem.linear_orgptr + 16-1) & ~(16-1));
 
-	vga.fastmem_orgptr = new Bit8u[(vga.vmemsize<<1)+4096+32];
-	memset(vga.fastmem_orgptr,0,(vga.vmemsize<<1)+4096+32);
-	vga.fastmem=(Bit8u*)(((Bitu)vga.fastmem_orgptr + 16-1) & ~(16-1));
-
-	// In most cases these values stay the same. Assumptions: vmemwrap is power of 2,
-	// vmemwrap <= vmemsize, fastmem implicitly has mem wrap twice as big
+	// In most cases these values stay the same. Assumptions: vmemwrap is power of 2, vmemwrap <= vmemsize
 	vga.vmemwrap = vga.vmemsize;
 
 	vga.svga.bank_read = vga.svga.bank_write = 0;

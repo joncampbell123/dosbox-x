@@ -341,37 +341,17 @@ static Bit8u * VGA_Draw_Xlat32_VGA_CRTC_bmode_Line(Bitu vidstart, Bitu /*line*/)
 	Bit32u* temps = (Bit32u*) TempLine;
 	Bitu skip; /* how much to skip after drawing 4 pixels */
 
-	/* for each group of 4 pixels, render with consideration for CRTC byte/word/dword mode */
-	/* testing with DOSLIB tools confirms this is what most SVGA chipsets do with video
-	 * RAM when in VGA 256-color mode */
-	if (GCC_UNLIKELY((vidstart+((vga.draw.line_length>>(2+2))*(4<<vga.config.addr_shift)))) > (vga.draw.linear_mask+1)) {
-		/* alternate (slow) version for when the scan line crosses the wraparound point */
-		skip = 4 << vga.config.addr_shift;
-		for(Bitu i = 0; i < (vga.draw.line_length>>(2/*32bpp*/+2/*4 pixels*/)); i++) {
-			Bit8u *ret = &vga.draw.linear_base[ vidstart & vga.draw.linear_mask ];
-
-			/* one group of 4 */
-			*temps++ = vga.dac.xlat32[*ret++];
-			*temps++ = vga.dac.xlat32[*ret++];
-			*temps++ = vga.dac.xlat32[*ret++];
-			*temps++ = vga.dac.xlat32[*ret++];
-			/* and skip */
-			vidstart += skip;
-		}
-	}
-	else {
+	skip = 4 << vga.config.addr_shift;
+	for(Bitu i = 0; i < (vga.draw.line_length>>(2/*32bpp*/+2/*4 pixels*/)); i++) {
 		Bit8u *ret = &vga.draw.linear_base[ vidstart & vga.draw.linear_mask ];
 
-		skip = (4 << vga.config.addr_shift) - 4;
-		for(Bitu i = 0; i < (vga.draw.line_length>>(2/*32bpp*/+2/*4 pixels*/)); i++) {
-			/* one group of 4 */
-			*temps++ = vga.dac.xlat32[*ret++];
-			*temps++ = vga.dac.xlat32[*ret++];
-			*temps++ = vga.dac.xlat32[*ret++];
-			*temps++ = vga.dac.xlat32[*ret++];
-			/* and skip */
-			ret += skip;
-		}
+		/* one group of 4 */
+		*temps++ = vga.dac.xlat32[*ret++];
+		*temps++ = vga.dac.xlat32[*ret++];
+		*temps++ = vga.dac.xlat32[*ret++];
+		*temps++ = vga.dac.xlat32[*ret++];
+		/* and skip */
+		vidstart += skip;
 	}
 
 	return TempLine;
@@ -380,20 +360,44 @@ static Bit8u * VGA_Draw_Xlat32_VGA_CRTC_bmode_Line(Bitu vidstart, Bitu /*line*/)
 static Bit8u * VGA_Draw_Xlat32_Linear_Line(Bitu vidstart, Bitu /*line*/) {
 	Bit32u* temps = (Bit32u*) TempLine;
 
-	if (GCC_UNLIKELY((vidstart+(vga.draw.line_length>>2))) > (vga.draw.linear_mask+1)) {
-		/* FIXME: Untested! */
-		/* alternate (slow) version for when the scan line crosses the wraparound point */
-		for(Bitu i = 0; i < (vga.draw.line_length>>2); i++)
-			temps[i]=vga.dac.xlat32[vga.draw.linear_base[(vidstart+i)&vga.draw.linear_mask]];
-	}
-	else {
-		Bit8u *ret = &vga.draw.linear_base[ vidstart & vga.draw.linear_mask ];
-
-		for(Bitu i = 0; i < (vga.draw.line_length>>2); i++)
-			temps[i]=vga.dac.xlat32[ret[i]];
-	}
+	for(Bitu i = 0; i < (vga.draw.line_length>>2); i++)
+		temps[i]=vga.dac.xlat32[vga.draw.linear_base[(vidstart+i)&vga.draw.linear_mask]];
 
 	return TempLine;
+}
+
+extern Bit32u Expand16Table[4][16];
+
+static Bit8u * VGA_Draw_VGA_Planar_Xlat32_Line(Bitu vidstart, Bitu /*line*/) {
+	Bit32u* temps = (Bit32u*) TempLine;
+	Bit32u t1,t2,tmp;
+
+	for (Bitu i = 0; i < ((vga.draw.line_length>>2)+vga.draw.panning); i += 8) {
+		t1 = t2 = *((Bit32u*)(&vga.draw.linear_base[ vidstart & vga.draw.linear_mask ]));
+		t1 = (t1 >> 4) & 0x0f0f0f0f;
+		t2 &= 0x0f0f0f0f;
+		vidstart += 4;
+
+		tmp =	Expand16Table[0][(t1>>0)&0xFF] |
+			Expand16Table[1][(t1>>8)&0xFF] |
+			Expand16Table[2][(t1>>16)&0xFF] |
+			Expand16Table[3][(t1>>24)&0xFF];
+		temps[i+0] = vga.dac.xlat32[(tmp>>0)&0xFF];
+		temps[i+1] = vga.dac.xlat32[(tmp>>8)&0xFF];
+		temps[i+2] = vga.dac.xlat32[(tmp>>16)&0xFF];
+		temps[i+3] = vga.dac.xlat32[(tmp>>24)&0xFF];
+
+		tmp =	Expand16Table[0][(t2>>0)&0xFF] |
+			Expand16Table[1][(t2>>8)&0xFF] |
+			Expand16Table[2][(t2>>16)&0xFF] |
+			Expand16Table[3][(t2>>24)&0xFF];
+		temps[i+4] = vga.dac.xlat32[(tmp>>0)&0xFF];
+		temps[i+5] = vga.dac.xlat32[(tmp>>8)&0xFF];
+		temps[i+6] = vga.dac.xlat32[(tmp>>16)&0xFF];
+		temps[i+7] = vga.dac.xlat32[(tmp>>24)&0xFF];
+	}
+
+	return TempLine + vga.draw.panning;
 }
 
 //Test version, might as well keep it
@@ -1165,10 +1169,9 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 		if (!(vga.crtc.mode_control&0x1)) vga.draw.linear_mask &= ~0x10000;
 		else vga.draw.linear_mask |= 0x10000;
 	case M_LIN4:
-		vga.draw.byte_panning_shift = 8;
+		vga.draw.byte_panning_shift = 4;
 		vga.draw.address += vga.draw.bytes_skip;
 		vga.draw.address *= vga.draw.byte_panning_shift;
-		if (machine!=MCH_EGA) vga.draw.address += vga.draw.panning;
 		break;
 	case M_VGA:
 		/* TODO: Various SVGA chipsets have a bit to enable/disable 256KB wrapping */
@@ -1259,9 +1262,9 @@ void VGA_CheckScanLength(void) {
 	case M_EGA:
 	case M_LIN4:
 		if ((machine==MCH_EGA)&&(vga.crtc.mode_control&0x8))
-			vga.draw.address_add=vga.config.scan_len*32;
-		else
 			vga.draw.address_add=vga.config.scan_len*16;
+		else
+			vga.draw.address_add=vga.config.scan_len*8;
 		break;
 	case M_VGA:
 	case M_LIN8:
@@ -1804,18 +1807,10 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		VGA_ActivateHardwareCursor();
 		break;
 	case M_LIN4:
-		vga.draw.blocks = width;
-		VGA_DrawLine=VGA_Draw_Linear_Line;
-		vga.draw.linear_base = vga.fastmem;
-		vga.draw.linear_mask = (vga.vmemwrap<<1) - 1;
-		break;
 	case M_EGA:
-		bpp = 16;
+		bpp = 32;
 		vga.draw.blocks = width;
-		VGA_DrawLine = VGA_Draw_Xlat16_Linear_Line;
-
-		vga.draw.linear_base = vga.fastmem;
-		vga.draw.linear_mask = (vga.vmemwrap<<1) - 1;
+		VGA_DrawLine = VGA_Draw_VGA_Planar_Xlat32_Line;
 		break;
 	case M_CGA16:
 		vga.draw.blocks=width*2;

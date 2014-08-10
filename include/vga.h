@@ -414,8 +414,6 @@ typedef struct {
 	VGA_OTHER other;
 	VGA_Memory mem;
 	Bit32u vmemwrap; /* this is assumed to be power of 2 */
-	Bit8u* fastmem;  /* memory for fast (usually 16-color) rendering, always twice as big as vmemsize */
-	Bit8u* fastmem_orgptr;
 	Bit32u vmemsize;
 	VGA_LFB lfb;
 } VGA_Type;
