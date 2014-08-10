@@ -929,6 +929,7 @@ static void VGA_DrawSingleLine(Bitu /*blah*/) {
 	/* some VGA cards (ATI chipsets especially) do not double-buffer the
 	 * horizontal panning register. some DOS demos take advantage of that
 	 * to make the picture "waver" */
+	/* FIXME: If we hit the splitscreen this code must NOT apply the panning offset for all scanlines following the split, unless registers to enable so */
 	if (IS_VGA_ARCH && vga_enable_hpel_effects) {
 		vga.draw.panning = vga.config.pel_panning;
 	}
