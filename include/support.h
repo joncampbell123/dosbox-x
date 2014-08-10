@@ -56,4 +56,29 @@ Bits ConvHexWord(char * word);
 void upcase(std::string &str);
 void lowcase(std::string &str);
 
+static inline bool is_power_of_2(Bitu val) {
+	return (val != 0) && ((val&(val-1)) == 0);
+	/* To explain: if val is a power of 2, then only one bit is set.
+	 * Decrementing val would change that one bit to 0, and all bits to the right to 1.
+	 * Example:
+	 *
+	 * Power of 2: val = 1024
+	 *
+	 *      1024 = 0000 0100 0000 0000
+	 *  AND 1023 = 0000 0011 1111 1111
+	 *  ------------------------------
+	 *         0 = 0000 0000 0000 0000
+	 *
+	 * Non-power of 2: val = 713
+	 *
+	 *       713 = 0000 0010 1100 1001
+	 *   AND 712 = 0000 0010 1100 1000
+	 *  ------------------------------
+	 *       712 = 0000 0010 1100 1000
+	 *
+	 * See how that works?
+	 *
+	 * For more info see https://graphics.stanford.edu/~seander/bithacks.html#DetermineIfPowerOf2*/
+}
+
 #endif
