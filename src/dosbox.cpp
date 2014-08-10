@@ -1011,6 +1011,11 @@ void DOSBOX_Init(void) {
 			"This option DOES NOT affect the visible offset of the linear framebuffer, it only affects the physical\n"
 			"memory location reported by VESA BIOS emulation.");
 
+	Pbool = secprop->Add_bool("allow hpel effects",Property::Changeable::Always,false);
+	Pbool->Set_help("If set, allow the DOS demo or program to change the horizontal pel (panning) register per scanline.\n"
+			"Some early DOS demos use this to create waving or sinus effects on the picture. Not very many VGA\n"
+			"chipsets allow this, so far, only ATI chipsets are known to support this effect. Disabled by default.");
+
 	Pbool = secprop->Add_bool("vesa vbe 1.2 modes are 32bpp",Property::Changeable::Always,true);
 	Pbool->Set_help("If set, truecolor (16M color) VESA BIOS modes in the 0x100-0x11F range are 32bpp. If clear, they are 24bpp.\n"
 			"Some DOS games and demos assume one bit depth or the other and do not enumerate VESA BIOS modes, which is why this\n"

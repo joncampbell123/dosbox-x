@@ -40,6 +40,7 @@
 
 extern bool vga_3da_polled;
 extern bool vga_page_flip_occurred;
+extern bool vga_enable_hpel_effects;
 
 void memxor(void *_d,unsigned int byte,size_t count) {
 	unsigned char *d = (unsigned char*)_d;
@@ -923,6 +924,13 @@ static void VGA_DrawSingleLine(Bitu /*blah*/) {
 			vga_3da_polled = false;
 		}
 		RENDER_DrawLine(data);
+	}
+
+	/* some VGA cards (ATI chipsets especially) do not double-buffer the
+	 * horizontal panning register. some DOS demos take advantage of that
+	 * to make the picture "waver" */
+	if (IS_VGA_ARCH && vga_enable_hpel_effects) {
+		vga.draw.panning = vga.config.pel_panning;
 	}
 
 	vga.draw.address_line++;
