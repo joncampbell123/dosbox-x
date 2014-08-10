@@ -158,8 +158,6 @@ typedef struct {
 	Drawmode mode;
 	bool vret_triggered;
 	bool vga_override;
-	bool linewise_set;
-	bool linewise_effect;
 	bool doublescan_set;
 	bool doublescan_effect;
 	bool char9_set;

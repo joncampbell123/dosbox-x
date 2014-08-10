@@ -1389,7 +1389,6 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 	// multiscan -- zooming effects - only makes sense if linewise is enabled
 	// linewise -- scan display line by line instead of 4 blocks
 	// keep compatibility with other builds of DOSBox for vgaonly.
-	vga.draw.linewise_effect = true;
 	vga.draw.doublescan_effect = vga.draw.doublescan_set;
 
 	// set the drawing mode
