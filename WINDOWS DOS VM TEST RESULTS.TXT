@@ -1,0 +1,21 @@
+Windows 3.11/95 DOS VM save/restore test results
+
+ N - WIN31     WIN95
+
+ 0 - PASSED    PASSED
+ 1 - PASSED    PASSED
+ 2 - PASSED    PASSED
+ 3 - PASSED    PASSED
+ 4 - PASSED    PASSED
+ 5 - PASSED    PASSED
+ 6 - PASSED    PASSED
+ 7 - FAIL      FAIL
+13 - FAIL      FAIL
+14 - FAIL      FAIL
+15 - FAIL      FAIL
+16 - FAIL      FAIL
+17 - FAIL      FAIL
+18 - FAIL      FAIL
+19 - FAIL      PASSED
+19x- FAIL      FAIL
+
