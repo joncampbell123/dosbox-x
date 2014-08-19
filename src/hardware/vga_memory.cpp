@@ -635,48 +635,6 @@ public:
 	
 };
 
-
-class VGA_Changes_Handler : public PageHandler {
-public:
-	VGA_Changes_Handler() : PageHandler(PFLAG_NOCODE) {}
-	Bitu readb(PhysPt addr) {
-		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
-		addr += vga.svga.bank_read_full;
-		addr = CHECKED(addr);
-		return hostRead<Bit8u>( &vga.mem.linear[addr] );
-	}
-	Bitu readw(PhysPt addr) {
-		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
-		addr += vga.svga.bank_read_full;
-		addr = CHECKED(addr);
-		return hostRead<Bit16u>( &vga.mem.linear[addr] );
-	}
-	Bitu readd(PhysPt addr) {
-		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
-		addr += vga.svga.bank_read_full;
-		addr = CHECKED(addr);
-		return hostRead<Bit32u>( &vga.mem.linear[addr] );
-	}
-	void writeb(PhysPt addr,Bitu val) {
-		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
-		addr += vga.svga.bank_write_full;
-		addr = CHECKED(addr);
-		hostWrite<Bit8u>( &vga.mem.linear[addr], val );
-	}
-	void writew(PhysPt addr,Bitu val) {
-		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
-		addr += vga.svga.bank_write_full;
-		addr = CHECKED(addr);
-		hostWrite<Bit16u>( &vga.mem.linear[addr], val );
-	}
-	void writed(PhysPt addr,Bitu val) {
-		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
-		addr += vga.svga.bank_write_full;
-		addr = CHECKED(addr);
-		hostWrite<Bit32u>( &vga.mem.linear[addr], val );
-	}
-};
-
 class VGA_LIN4_Handler : public VGA_UnchainedEGA_Handler {
 public:
 	VGA_LIN4_Handler() : VGA_UnchainedEGA_Handler(PFLAG_NOCODE) {}
@@ -719,43 +677,6 @@ public:
 		ret     |= (readHandler(addr+2) << 16);
 		ret     |= (readHandler(addr+3) << 24);
 		return ret;
-	}
-};
-
-
-class VGA_LFBChanges_Handler : public PageHandler {
-public:
-	VGA_LFBChanges_Handler() : PageHandler(PFLAG_NOCODE) {}
-	Bitu readb(PhysPt addr) {
-
-		addr = PAGING_GetPhysicalAddress(addr) - vga.lfb.addr;
-		addr = CHECKED(addr);
-		return hostRead<Bit8u>( &vga.mem.linear[addr] );
-	}
-	Bitu readw(PhysPt addr) {
-		addr = PAGING_GetPhysicalAddress(addr) - vga.lfb.addr;
-		addr = CHECKED(addr);
-		return hostRead<Bit16u>( &vga.mem.linear[addr] );
-	}
-	Bitu readd(PhysPt addr) {
-		addr = PAGING_GetPhysicalAddress(addr) - vga.lfb.addr;
-		addr = CHECKED(addr);
-		return hostRead<Bit32u>( &vga.mem.linear[addr] );
-	}
-	void writeb(PhysPt addr,Bitu val) {
-		addr = PAGING_GetPhysicalAddress(addr) - vga.lfb.addr;
-		addr = CHECKED(addr);
-		hostWrite<Bit8u>( &vga.mem.linear[addr], val );
-	}
-	void writew(PhysPt addr,Bitu val) {
-		addr = PAGING_GetPhysicalAddress(addr) - vga.lfb.addr;
-		addr = CHECKED(addr);
-		hostWrite<Bit16u>( &vga.mem.linear[addr], val );
-	}
-	void writed(PhysPt addr,Bitu val) {
-		addr = PAGING_GetPhysicalAddress(addr) - vga.lfb.addr;
-		addr = CHECKED(addr);
-		hostWrite<Bit32u>( &vga.mem.linear[addr], val );
 	}
 };
 
@@ -1027,7 +948,6 @@ public:
 static struct vg {
 	VGA_Map_Handler				map;
 	VGA_Slow_CGA_Handler		slow;
-	VGA_Changes_Handler			changes;
 	VGA_TEXT_PageHandler		text;
 	VGA_CGATEXT_PageHandler		cgatext;
 	VGA_TANDY_PageHandler		tandy;
@@ -1039,19 +959,12 @@ static struct vg {
 	VGA_PCJR_Handler			pcjr;
 	VGA_LIN4_Handler			lin4;
 	VGA_LFB_Handler				lfb;
-	VGA_LFBChanges_Handler		lfbchanges;
 	VGA_MMIO_Handler			mmio;
 	VGA_AMS_Handler				ams;
 	VGA_Empty_Handler			empty;
 } vgaph;
 
 void VGA_ChangedBank(void) {
-#ifndef VGA_LFB_MAPPED
-	//If the mode is accurate than the correct mapper must have been installed already
-	if ( vga.mode >= M_LIN4 && vga.mode <= M_LIN32 ) {
-		return;
-	}
-#endif
 	VGA_SetupHandlers();
 }
 
@@ -1126,11 +1039,7 @@ void VGA_SetupHandlers(void) {
 	case M_LIN16:
 	case M_LIN24:
 	case M_LIN32:
-#ifdef VGA_LFB_MAPPED
 		newHandler = &vgaph.map;
-#else
-		newHandler = &vgaph.changes;
-#endif
 		break;
 	case M_LIN8:
 	case M_VGA:
@@ -1146,12 +1055,9 @@ void VGA_SetupHandlers(void) {
 				else
 					newHandler = &vgaph.cvga;
 			}
-			else 
-#ifdef VGA_LFB_MAPPED
+			else {
 				newHandler = &vgaph.map;
-#else
-				newHandler = &vgaph.changes;
-#endif
+			}
 		} else {
 			newHandler = &vgaph.uvga;
 		}
@@ -1228,11 +1134,7 @@ range_done:
 void VGA_StartUpdateLFB(void) {
 	vga.lfb.page = vga.s3.la_window << 4;
 	vga.lfb.addr = vga.s3.la_window << 16;
-#ifdef VGA_LFB_MAPPED
 	vga.lfb.handler = &vgaph.lfb;
-#else
-	vga.lfb.handler = &vgaph.lfbchanges;
-#endif
 	MEM_SetLFB(vga.s3.la_window << 4 ,vga.vmemsize/4096, vga.lfb.handler, &vgaph.mmio);
 }
 
