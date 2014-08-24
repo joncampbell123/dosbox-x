@@ -188,6 +188,46 @@ static Bit8u * VGA_Draw_1BPP_Blend_Line(Bitu vidstart, Bitu line) {
 	return TempLine;
 }
 
+static Bit8u * VGA_Draw_2BPP_Line_as_VGA(Bitu vidstart, Bitu line) {
+	const Bit32u *base = (Bit32u*)vga.draw.linear_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
+	Bit32u * draw=(Bit32u *)TempLine;
+	VGA_Latch pixels;
+	Bitu val,i;
+
+	for (Bitu x=0;x<vga.draw.blocks;x++) {
+		pixels.d = base[vidstart & vga.tandy.addr_mask];
+		vidstart += 1<<vga.config.addr_shift;
+
+		/* CGA odd/even mode, first plane */
+		val=pixels.b[0];
+		for (i=0;i < 4;i++,val <<= 2)
+			*draw++ = vga.dac.xlat32[(val>>6)&3];
+
+		/* CGA odd/even mode, second plane */
+		val=pixels.b[1];
+		for (i=0;i < 4;i++,val <<= 2)
+			*draw++ = vga.dac.xlat32[(val>>6)&3];
+	}
+	return TempLine;
+}
+
+static Bit8u * VGA_Draw_1BPP_Line_as_VGA(Bitu vidstart, Bitu line) {
+	const Bit32u *base = (Bit32u*)vga.draw.linear_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
+	Bit32u * draw=(Bit32u *)TempLine;
+	VGA_Latch pixels;
+	Bitu val,i;
+
+	for (Bitu x=0;x<vga.draw.blocks;x++) {
+		pixels.d = base[vidstart & vga.tandy.addr_mask];
+		vidstart += 1<<vga.config.addr_shift;
+
+		val=pixels.b[0];
+		for (i=0;i < 8;i++,val <<= 1)
+			*draw++ = vga.dac.xlat32[(val>>7)&1];
+	}
+	return TempLine;
+}
+
 static Bit8u * VGA_Draw_2BPP_Line(Bitu vidstart, Bitu line) {
 	const Bit8u *base = vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
 	Bit32u * draw=(Bit32u *)TempLine;
@@ -1822,12 +1862,26 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		VGA_DrawLine=VGA_Draw_CGA16_Line;
 		break;
 	case M_CGA4:
-		vga.draw.blocks=width*2;
-		VGA_DrawLine=VGA_Draw_2BPP_Line;
+		if (IS_EGAVGA_ARCH) {
+			vga.draw.blocks=width;
+			VGA_DrawLine=VGA_Draw_2BPP_Line_as_VGA;
+			bpp = 32;
+		}
+		else {
+			vga.draw.blocks=width*2;
+			VGA_DrawLine=VGA_Draw_2BPP_Line;
+		}
 		break;
 	case M_CGA2:
-		vga.draw.blocks=width*2;
-		VGA_DrawLine=VGA_Draw_1BPP_Line;
+		if (IS_EGAVGA_ARCH) {
+			vga.draw.blocks=width;
+			VGA_DrawLine=VGA_Draw_1BPP_Line_as_VGA;
+			bpp = 32;
+		}
+		else {
+			vga.draw.blocks=width*2;
+			VGA_DrawLine=VGA_Draw_1BPP_Line;
+		}
 		break;
 	case M_TEXT:
 		vga.draw.blocks=width;

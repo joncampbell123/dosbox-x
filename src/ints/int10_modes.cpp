@@ -907,7 +907,8 @@ bool INT10_SetVideoMode(Bit16u mode) {
 	memset(seq_data,0,SEQ_REGS);
 	
 	seq_data[0] = 0x3;	// not reset
-	seq_data[1] = 0x21; // screen still disabled, will be enabled at end of setmode
+	seq_data[1] = 0x21;	// screen still disabled, will be enabled at end of setmode
+	seq_data[4] = 0x04;	// odd/even disable
 	
 	if (CurMode->special & _EGA_HALF_CLOCK) seq_data[1]|=0x08; //Check for half clock
 	if ((machine==MCH_EGA) && (CurMode->special & _EGA_HALF_CLOCK)) seq_data[1]|=0x02;
@@ -917,20 +918,22 @@ bool INT10_SetVideoMode(Bit16u mode) {
 		if (CurMode->cwidth==9) seq_data[1] &= ~1;
 		seq_data[2]|=0x3;				//Enable plane 0 and 1
 		seq_data[4]|=0x01;				//Alpanumeric
-// NTS: Actually, no, seq_data[4] & 0x4 is an Odd/Even memory write DISABLE bit.
-//		if (IS_VGA_ARCH) seq_data[4]|=0x04;				//odd/even enabled
+		seq_data[4]&=~0x04;				//odd/even enable
 		break;
 	case M_CGA2:
-		seq_data[2]|=0xf;				//Enable plane 0
-		if (machine==MCH_EGA) seq_data[4]|=0x04;		//odd/even enabled
+		if (IS_EGAVGA_ARCH) {
+			seq_data[2]|=0x1;			//Enable plane 0. Most VGA cards treat it as a 640x200 variant of the MCGA 2-color mode, with bit 13 remapped for interlace
+		}
 		break;
 	case M_CGA4:
-		if (machine==MCH_EGA) seq_data[2]|=0x03;		//Enable plane 0 and 1
+		if (IS_EGAVGA_ARCH) {
+			seq_data[2]|=0x3;			//Enable plane 0 and 1
+			seq_data[4]&=~0x04;			//odd/even enable
+		}
 		break;
 	case M_LIN4:
 	case M_EGA:
 		seq_data[2]|=0xf;				//Enable all planes for writing
-		if (machine==MCH_EGA) seq_data[4]|=0x04;		//odd/even enabled
 		break;
 	case M_LIN8:						//Seems to have the same reg layout from testing
 	case M_LIN15:
@@ -939,7 +942,7 @@ bool INT10_SetVideoMode(Bit16u mode) {
 	case M_LIN32:
 	case M_VGA:
 		seq_data[2]|=0xf;				//Enable all planes for writing
-		seq_data[4]|=0xc;				//Graphics - odd/even - Chained
+		seq_data[4]|=0x8;				//Graphics - Chained
 		break;
 	}
 	for (Bit8u ct=0;ct<SEQ_REGS;ct++) {
@@ -1233,7 +1236,7 @@ bool INT10_SetVideoMode(Bit16u mode) {
 	switch (CurMode->type) {
 	case M_TEXT:
 		gfx_data[0x5]|=0x10;		//Odd-Even Mode
-		gfx_data[0x6]|=mono_mode ? 0x0a : 0x0e;		//Either b800 or b000
+		gfx_data[0x6]|=mono_mode ? 0x0a : 0x0e;		//Either b800 or b000, chain odd/even enable
 		break;
 	case M_LIN8:
 	case M_LIN15:
@@ -1253,14 +1256,10 @@ bool INT10_SetVideoMode(Bit16u mode) {
 	case M_CGA4:
 		gfx_data[0x5]|=0x20;		//CGA mode
 		gfx_data[0x6]|=0x0f;		//graphics mode at at 0xb800=0xbfff
-		if (machine==MCH_EGA) gfx_data[0x5]|=0x10;
+		if (IS_EGAVGA_ARCH) gfx_data[0x5]|=0x10;
 		break;
 	case M_CGA2:
-		if (machine==MCH_EGA) {
-			gfx_data[0x6]|=0x0d;		//graphics mode at at 0xb800=0xbfff
-		} else {
-			gfx_data[0x6]|=0x0f;		//graphics mode at at 0xb800=0xbfff
-		}
+		gfx_data[0x6]|=0x0d;		//graphics mode at at 0xb800=0xbfff, chain odd/even disabled
 		break;
 	}
 	for (Bit8u ct=0;ct<GFX_REGS;ct++) {

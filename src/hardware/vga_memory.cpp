@@ -1071,8 +1071,10 @@ void VGA_SetupHandlers(void) {
 	case M_TEXT:
 		newHandler = &vgaph.text;
 		break;
-	case M_CGA4:
 	case M_CGA2:
+	case M_CGA4:
+		newHandler = &vgaph.text;
+		break;
 	case M_AMSTRAD:
 		newHandler = &vgaph.map;
 		break;
