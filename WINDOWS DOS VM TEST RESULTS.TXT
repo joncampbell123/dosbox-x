@@ -10,15 +10,25 @@ machine=svga_s3
  4 - PASSED    PASSED
  5 - PASSED    PASSED
  6 - PASSED    PASSED
- 7 - FAIL      FAIL
-13 - FAIL      FAIL
-14 - FAIL      FAIL
-15 - FAIL      FAIL
-16 - FAIL      FAIL
-17 - FAIL      FAIL
-18 - FAIL      FAIL
-19 - FAIL      PASSED
-19x- FAIL      FAIL
+ 7 - FAIL[1]   FAIL[1]
+13 - PASSED    PASSED
+14 - PASSED    PASSED
+15 - PASSED    PASSED
+16 - PASSED    PASSED
+17 - PASSED    PASSED
+18 - PASSED    PASSED
+19 - *-----    PASSED
+19x- *-----    PASSED
+
+[1] The DOS VM is able to draw the mode windowed correctly,
+    but the S3 driver doesn't seem to switch it back to fullscreen
+    properly.
+
+* NTS: Windows 3.1 will not  show the DOS screen windowed for 320x200x256
+       color (mode 19) for some reason.
+
+       Despite that, the DOS VM is able to restore the mode correctly
+       going back to fullscreen.
 
 Windows 3.11/95 DOS VM save/restore test results
 machine=svga_et4000
@@ -41,6 +51,14 @@ machine=svga_et4000
 18 - FAIL
 19 - FAIL
 19x- FAIL
+
+The ET4000 driver in the test VM seems to mistake all
+modes 4-6 and 13-18 as some variant of 256-color mode
+for some weird reason, the graphics are drawn as
+"squeezed". And for some reason, the DOS VM refuses to
+run 320x200x256-color mode windowed, which is strange,
+I remember running that mode just fine on my ancient
+386...
 
 Windows 3.11/95 DOS VM save/restore test results
 machine=vgaonly
@@ -72,4 +90,7 @@ machine=vgaonly
        But... for some reason, 320x200x256 mode X is OK to run
        windowed, even if it allows the general palette on screen
        to get messed up doing so. Weird.
+
+       Despite that, the DOS VM is able to restore the mode correctly
+       going back to fullscreen.
 
