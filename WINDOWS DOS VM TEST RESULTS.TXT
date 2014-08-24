@@ -47,20 +47,29 @@ machine=vgaonly
 
  N - WIN31     WIN95
 
- 0 - PASSED
- 1 - PASSED
- 2 - PASSED
- 3 - PASSED
- 4 - FAIL
- 5 - FAIL
- 6 - FAIL
- 7 - PASSED
-13 - FAIL
-14 - FAIL
-15 - FAIL
-16 - FAIL
-17 - FAIL
-18 - FAIL
-19 - FAIL
-19x- FAIL
+ 0 - PASSED    PASSED
+ 1 - PASSED    PASSED
+ 2 - PASSED    PASSED
+ 3 - PASSED    PASSED
+ 4 - PASSED    PASSED
+ 5 - PASSED    PASSED
+ 6 - PASSED    PASSED
+ 7 - PASSED    PASSED
+13 - PASSED    PASSED
+14 - PASSED    PASSED
+15 - PASSED    PASSED
+16 - PASSED    PASSED
+17 - PASSED    PASSED
+18 - PASSED    PASSED
+19 - *-----    PASSED
+19x- PASSED    PASSED
+
+* NTS: Windows 3.1's standard VGA driver (640x480x16 mode) will not
+       show the DOS screen windowed for 320x200x256 color (mode 19)
+       obviously because that would require the DOS VM window to
+       create a color palette and map it somehow to 16 colors.
+
+       But... for some reason, 320x200x256 mode X is OK to run
+       windowed, even if it allows the general palette on screen
+       to get messed up doing so. Weird.
 
