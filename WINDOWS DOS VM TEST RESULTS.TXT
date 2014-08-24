@@ -35,22 +35,30 @@ machine=svga_et4000
 
  N - WIN31     WIN95
 
- 0 - PASSED
- 1 - PASSED
- 2 - PASSED
- 3 - PASSED
- 4 - FAIL
- 5 - FAIL
- 6 - FAIL
- 7 - PASSED
-13 - FAIL
-14 - FAIL
-15 - FAIL
-16 - FAIL
-17 - FAIL
-18 - FAIL
-19 - FAIL
-19x- FAIL
+ 0 - PASSED    PASSED
+ 1 - PASSED    PASSED
+ 2 - PASSED    PASSED
+ 3 - PASSED    PASSED
+ 4 - FAIL      PASSED
+ 5 - FAIL      PASSED
+ 6 - FAIL      PASSED
+ 7 - PASSED    FAIL[1]
+13 - FAIL      PASSED
+14 - FAIL      PASSED
+15 - FAIL      PASSED
+16 - FAIL      PASSED
+17 - FAIL      PASSED
+18 - FAIL      PASSED
+19 - FAIL      PASSED
+19x- FAIL      PASSED
+
+Windows 95:
+
+[1] The DOS VM is able to draw the mode windowed correctly,
+    but the driver doesn't seem to switch it back to fullscreen
+    properly.
+
+Windows 3.1:
 
 The ET4000 driver in the test VM seems to mistake all
 modes 4-6 and 13-18 as some variant of 256-color mode
