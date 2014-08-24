@@ -209,10 +209,8 @@ public:
 	}
 	void WritePanPot(Bit8u val) {
 		PanPot = val;
-		if ((val & 0xf) >= 8) PanLeft = pantable[val & 0xf];
-		else PanLeft = 0;
-		if ((val & 0xf) < 7) PanRight = pantable[0xf - (val & 0xf)];
-		else PanRight = 0;
+		PanLeft = pantable[(val & 0xf)];
+		PanRight = pantable[0x0f-(val & 0xf)];
 		UpdateVolumes();
 	}
 	Bit8u ReadPanPot(void) {
