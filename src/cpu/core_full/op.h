@@ -342,18 +342,30 @@ switch (inst.code.op) {
 	case O_CALLFw:
 		FillFlags();
 		CPU_CALL(false,inst_op2_d,inst_op1_d,GetIP());
+		if (GETFLAG(TF)) {	
+			cpudecoder=CPU_Core_Full_Trap_Run;
+		}
 		continue;
 	case O_CALLFd:
 		FillFlags();
 		CPU_CALL(true,inst_op2_d,inst_op1_d,GetIP());
+		if (GETFLAG(TF)) {	
+			cpudecoder=CPU_Core_Full_Trap_Run;
+		}
 		continue;
 	case O_JMPFw:
 		FillFlags();
 		CPU_JMP(false,inst_op2_d,inst_op1_d,GetIP());
+		if (GETFLAG(TF)) {	
+			cpudecoder=CPU_Core_Full_Trap_Run;
+		}
 		continue;
 	case O_JMPFd:
 		FillFlags();
 		CPU_JMP(true,inst_op2_d,inst_op1_d,GetIP());
+		if (GETFLAG(TF)) {	
+			cpudecoder=CPU_Core_Full_Trap_Run;
+		}
 		continue;
 	case O_INT:
 #if C_DEBUG

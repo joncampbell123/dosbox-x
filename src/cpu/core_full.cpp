@@ -94,6 +94,20 @@ illegalopcode:
 }
 
 
+Bits CPU_Core_Full_Trap_Run(void) {
+	Bits oldCycles = CPU_Cycles;
+	CPU_Cycles = 1;
+	cpu.trap_skip = false;
+
+	Bits ret=CPU_Core_Full_Run();
+	if (!cpu.trap_skip) CPU_HW_Interrupt(1);
+	CPU_Cycles = oldCycles-1;
+	cpudecoder = &CPU_Core_Full_Run;
+
+	return ret;
+}
+
+
 void CPU_Core_Full_Init(void) {
 
 }
