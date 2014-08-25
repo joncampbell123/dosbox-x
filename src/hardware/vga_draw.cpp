@@ -438,7 +438,7 @@ static Bit8u * VGA_Draw_VGA_Planar_Xlat32_Line(Bitu vidstart, Bitu /*line*/) {
 		temps[i+7] = vga.dac.xlat32[(tmp>>24)&0xFF];
 	}
 
-	return TempLine + vga.draw.panning;
+	return TempLine + (vga.draw.panning*4);
 }
 
 //Test version, might as well keep it
