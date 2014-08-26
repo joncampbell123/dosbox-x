@@ -344,6 +344,7 @@ switch (inst.code.op) {
 		CPU_CALL(false,inst_op2_d,inst_op1_d,GetIP());
 		if (GETFLAG(TF)) {	
 			cpudecoder=CPU_Core_Full_Trap_Run;
+			break;
 		}
 		continue;
 	case O_CALLFd:
@@ -351,6 +352,7 @@ switch (inst.code.op) {
 		CPU_CALL(true,inst_op2_d,inst_op1_d,GetIP());
 		if (GETFLAG(TF)) {	
 			cpudecoder=CPU_Core_Full_Trap_Run;
+			break;
 		}
 		continue;
 	case O_JMPFw:
@@ -358,6 +360,7 @@ switch (inst.code.op) {
 		CPU_JMP(false,inst_op2_d,inst_op1_d,GetIP());
 		if (GETFLAG(TF)) {	
 			cpudecoder=CPU_Core_Full_Trap_Run;
+			break;
 		}
 		continue;
 	case O_JMPFd:
@@ -365,6 +368,7 @@ switch (inst.code.op) {
 		CPU_JMP(true,inst_op2_d,inst_op1_d,GetIP());
 		if (GETFLAG(TF)) {	
 			cpudecoder=CPU_Core_Full_Trap_Run;
+			break;
 		}
 		continue;
 	case O_INT:

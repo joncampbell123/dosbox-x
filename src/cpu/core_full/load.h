@@ -308,6 +308,7 @@ l_M_Ed:
 		CPU_IRET(false,GetIP());
 		if (GETFLAG(TF)) {	
 			cpudecoder=CPU_Core_Full_Trap_Run;
+			break;
 		}
 		if (GETFLAG(IF) && PIC_IRQCheck) {
 			return CBRET_NONE;
@@ -317,6 +318,7 @@ l_M_Ed:
 		CPU_IRET(true,GetIP());
 		if (GETFLAG(TF)) {	
 			cpudecoder=CPU_Core_Full_Trap_Run;
+			break;
 		}
 		if (GETFLAG(IF) && PIC_IRQCheck) 
 			return CBRET_NONE;
