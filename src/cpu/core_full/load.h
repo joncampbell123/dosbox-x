@@ -306,20 +306,12 @@ l_M_Ed:
 		break;
 	case D_IRETw:
 		CPU_IRET(false,GetIP());
-		if (GETFLAG(TF)) {	
-			cpudecoder=CPU_Core_Full_Trap_Run;
-			break;
-		}
 		if (GETFLAG(IF) && PIC_IRQCheck) {
 			return CBRET_NONE;
 		}
 		continue;
 	case D_IRETd:
 		CPU_IRET(true,GetIP());
-		if (GETFLAG(TF)) {	
-			cpudecoder=CPU_Core_Full_Trap_Run;
-			break;
-		}
 		if (GETFLAG(IF) && PIC_IRQCheck) 
 			return CBRET_NONE;
 		continue;
