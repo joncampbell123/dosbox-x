@@ -41,6 +41,8 @@
 extern bool vga_3da_polled;
 extern bool vga_page_flip_occurred;
 extern bool vga_enable_hpel_effects;
+extern bool vga_enable_hretrace_effects;
+extern unsigned int vga_display_start_hretrace;
 
 void memxor(void *_d,unsigned int byte,size_t count) {
 	unsigned char *d = (unsigned char*)_d;
@@ -383,6 +385,23 @@ static Bit8u * VGA_Draw_Xlat32_VGA_CRTC_bmode_Line(Bitu vidstart, Bitu /*line*/)
 	Bitu skip; /* how much to skip after drawing 4 pixels */
 
 	skip = 4 << vga.config.addr_shift;
+
+	/* hack for Surprise! productions "copper" demo.
+	 * when the demo talks about making the picture waver, what it's doing is diddling
+	 * with the Start Horizontal Retrace register of the CRTC once per scanline.
+	 * ...yeah, really. It's a wonder in retrospect the programmer didn't burn out his
+	 * VGA monitor, and I bet this makes the demo effect unwatchable on LCD flat panels or
+	 * scan converters that rely on the pulses to detect VGA mode changes! */
+	if (vga_enable_hretrace_effects) {
+		/* NTS: This is NOT BACKWARDS. It makes sense if you think about it: the monitor
+		 *      begins swinging the electron beam back on horizontal retract, so if the
+		 *      retrace starts sooner, then the blanking on the left side appears to last
+		 *      longer because there are more clocks until active display */
+		/* horizontal retrace is based on character clocks not pixels, so we can emulate this
+		 * by adjusting the video address */
+		vidstart += skip * (vga_display_start_hretrace - vga.crtc.start_horizontal_retrace);
+	}
+
 	for(Bitu i = 0; i < (vga.draw.line_length>>(2/*32bpp*/+2/*4 pixels*/)); i++) {
 		Bit8u *ret = &vga.draw.linear_base[ vidstart & vga.draw.linear_mask ];
 
@@ -400,6 +419,22 @@ static Bit8u * VGA_Draw_Xlat32_VGA_CRTC_bmode_Line(Bitu vidstart, Bitu /*line*/)
 
 static Bit8u * VGA_Draw_Xlat32_Linear_Line(Bitu vidstart, Bitu /*line*/) {
 	Bit32u* temps = (Bit32u*) TempLine;
+
+	/* hack for Surprise! productions "copper" demo.
+	 * when the demo talks about making the picture waver, what it's doing is diddling
+	 * with the Start Horizontal Retrace register of the CRTC once per scanline.
+	 * ...yeah, really. It's a wonder in retrospect the programmer didn't burn out his
+	 * VGA monitor, and I bet this makes the demo effect unwatchable on LCD flat panels or
+	 * scan converters that rely on the pulses to detect VGA mode changes! */
+	if (vga_enable_hretrace_effects) {
+		/* NTS: This is NOT BACKWARDS. It makes sense if you think about it: the monitor
+		 *      begins swinging the electron beam back on horizontal retract, so if the
+		 *      retrace starts sooner, then the blanking on the left side appears to last
+		 *      longer because there are more clocks until active display */
+		/* horizontal retrace is based on character clocks not pixels, so we can emulate this
+		 * by adjusting the video address */
+		vidstart += 4 * (vga_display_start_hretrace - vga.crtc.start_horizontal_retrace);
+	}
 
 	for(Bitu i = 0; i < (vga.draw.line_length>>2); i++)
 		temps[i]=vga.dac.xlat32[vga.draw.linear_base[(vidstart+i)&vga.draw.linear_mask]];
@@ -1037,6 +1072,10 @@ static void VGA_Other_VertInterrupt(Bitu val) {
 }
 
 static void VGA_DisplayStartLatch(Bitu /*val*/) {
+	/* hretrace fx support: store the hretrace value at start of picture so we have
+	 * a point of reference how far to displace the scanline when wavy effects are
+	 * made */
+	vga_display_start_hretrace = vga.crtc.start_horizontal_retrace;
 	vga.config.real_start=vga.config.display_start & (vga.vmemwrap-1);
 	vga.draw.bytes_skip = vga.config.bytes_skip;
 }
