@@ -61,10 +61,31 @@ typedef PhysPt EAPoint;
 		continue;											\
 	}
 
+Bits CPU_Core_Normal_Trap_Run(void);
+
 Bits CPU_Core_Full_Run(void) {
-	FullData inst;	
+	static bool tf_warn=false;
+	FullData inst;
+
 	while (CPU_Cycles-->0) {
 		cycle_count++;
+
+		/* this core isn't written to emulate the Trap Flag. at least
+		 * let the user know. some demos (Second Reality, Future Crew)
+		 * use the Trap Flag to self-decrypt on execute, which is why
+		 * they normally crash when run under core=full */
+		if (GETFLAG(TF)) {
+			if (!tf_warn) {
+				tf_warn = true;
+				LOG(LOG_CPU,LOG_WARN)("Trap Flag single-stepping not supported by full core. Using normal core for TF emulation.");
+			}
+
+			return CPU_Core_Normal_Trap_Run();
+		}
+		else {
+			tf_warn = false;
+		}
+
 #if C_DEBUG		
 #if C_HEAVY_DEBUG
 		if (DEBUG_HeavyIsBreakpoint()) {
