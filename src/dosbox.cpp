@@ -708,6 +708,7 @@ void DOSBOX_Init(void) {
 	Prop_hex* Phex;
 	Prop_bool* Pbool;
 	Prop_string* Pstring;
+	Prop_double* Pdouble;
 	Prop_multival* Pmulti;
 	Section_prop * secprop;
 	Prop_multival_remain* Pmulti_remain;
@@ -1020,6 +1021,11 @@ void DOSBOX_Init(void) {
 	Pbool->Set_help("If set, allow the DOS demo or program to make the picture wavy by playing with the 'start horizontal"
 			"retrace' register of the CRTC during the active picture. Some early DOS demos (Copper by Surprise!"
 			"productions) need this option set for some demo effects to work. Disabled by default.");
+
+	Pdouble = secprop->Add_double("hretrace effect weight",Property::Changeable::Always,3.0);
+	Pdouble->Set_help("If emulating hretrace effects, this parameter adds 'weight' to the offset to smooth it out.\n"
+			"the larger the number, the more averaging is applied. This is intended to emulate the inertia\n"
+			"of the electron beam in a CRT monitor");
 
 	Pbool = secprop->Add_bool("vesa vbe 1.2 modes are 32bpp",Property::Changeable::Always,true);
 	Pbool->Set_help("If set, truecolor (16M color) VESA BIOS modes in the 0x100-0x11F range are 32bpp. If clear, they are 24bpp.\n"

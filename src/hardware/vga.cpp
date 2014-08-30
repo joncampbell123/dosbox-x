@@ -145,6 +145,7 @@ bool vga_enable_hretrace_effects = false;
 bool vga_enable_hpel_effects = false;
 
 unsigned int vga_display_start_hretrace = 0;
+float hretrace_fx_avg_weight = 3;
 
 bool vesa12_modes_32bpp = true;
 bool allow_vesa_32bpp = true;
@@ -446,6 +447,7 @@ void VGA_Init(Section* sec) {
 	enableCGASnow = section->Get_bool("cgasnow");
 	vga_enable_hpel_effects = section->Get_bool("allow hpel effects");
 	vga_enable_hretrace_effects = section->Get_bool("allow hretrace effects");
+	hretrace_fx_avg_weight = section->Get_double("hretrace effect weight");
 	enable_page_flip_debugging_marker = section->Get_bool("page flip debug line");
 	enable_vretrace_poll_debugging_marker = section->Get_bool("vertical retrace poll debug line");
 	hack_lfb_yadjust = section->Get_int("vesa lfb base scanline adjust");
