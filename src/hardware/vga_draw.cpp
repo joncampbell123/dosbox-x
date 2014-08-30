@@ -409,7 +409,7 @@ static Bit8u * VGA_Draw_Xlat32_VGA_CRTC_bmode_Line(Bitu vidstart, Bitu /*line*/)
 		float a = 1.0 / (hretrace_fx_avg_weight + 1);
 
 		hretrace_fx_avg *= 1.0 - a;
-		hretrace_fx_avg += a * ((int)vga_display_start_hretrace - (int)vga.crtc.start_horizontal_retrace);
+		hretrace_fx_avg += a * skip * ((int)vga_display_start_hretrace - (int)vga.crtc.start_horizontal_retrace);
 		int x = (int)floor(hretrace_fx_avg + 0.5);
 
 		vidstart += skip * (x >> 2);

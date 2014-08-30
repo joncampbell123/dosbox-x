@@ -1022,7 +1022,7 @@ void DOSBOX_Init(void) {
 			"retrace' register of the CRTC during the active picture. Some early DOS demos (Copper by Surprise!"
 			"productions) need this option set for some demo effects to work. Disabled by default.");
 
-	Pdouble = secprop->Add_double("hretrace effect weight",Property::Changeable::Always,3.0);
+	Pdouble = secprop->Add_double("hretrace effect weight",Property::Changeable::Always,4.0);
 	Pdouble->Set_help("If emulating hretrace effects, this parameter adds 'weight' to the offset to smooth it out.\n"
 			"the larger the number, the more averaging is applied. This is intended to emulate the inertia\n"
 			"of the electron beam in a CRT monitor");
