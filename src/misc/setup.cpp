@@ -453,12 +453,6 @@ const std::vector<Value>& Prop_multival::GetValues() const
 	return suggested_values;
 }
 
-/*
-void Section_prop::Add_double(char const * const _propname, double _value) {
-	Property* test=new Prop_double(_propname,_value);
-	properties.push_back(test);
-}*/
-
 void Property::Set_values(const char * const *in) {
 	Value::Etype type = default_value.type;
 	int i = 0;
@@ -467,6 +461,12 @@ void Property::Set_values(const char * const *in) {
 		suggested_values.push_back(val);
 		i++;
 	}
+}
+
+Prop_double* Section_prop::Add_double(string const& _propname, Property::Changeable::Value when, double _value) {
+	Prop_double* test=new Prop_double(_propname,when,_value);
+	properties.push_back(test);
+	return test;
 }
 
 Prop_int* Section_prop::Add_int(string const& _propname, Property::Changeable::Value when, int _value) {

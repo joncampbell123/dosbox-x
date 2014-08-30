@@ -273,7 +273,7 @@ public:
 	Prop_path* Add_path(std::string const& _propname, Property::Changeable::Value when, char const * const _value=NULL);
 	Prop_bool*  Add_bool(std::string const& _propname, Property::Changeable::Value when, bool _value=false);
 	Prop_hex* Add_hex(std::string const& _propname, Property::Changeable::Value when, Hex _value=0);
-//	void Add_double(char const * const _propname, double _value=0.0);   
+	Prop_double* Add_double(std::string const& _propname, Property::Changeable::Value when, double _value=0.0);   
 	Prop_multival *Add_multi(std::string const& _propname, Property::Changeable::Value when,std::string const& sep);
 	Prop_multival_remain *Add_multiremain(std::string const& _propname, Property::Changeable::Value when,std::string const& sep);
 
