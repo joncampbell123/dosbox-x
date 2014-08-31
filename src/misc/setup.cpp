@@ -277,9 +277,6 @@ bool Prop_double::SetValue(std::string const& input){
 	return SetVal(val,false,true);
 }
 
-//void Property::SetValue(char* input){ 
-//	value.SetValue(input, Value::V_CURRENT);
-//}
 bool Prop_int::SetValue(std::string const& input){;
 	Value val;
 	if(!val.SetValue(input,Value::V_INT)) return false;
@@ -868,10 +865,6 @@ bool Config::ParseConfigFile(char const * const configfilename){
 	return true;
 }
 
-/*const char* Config::GetPrimaryConfigFile() {
-	return configfile.c_str();
-}*/
-
 void Config::ParseEnv(char ** envp) {
 	for(char** env=envp; *env;env++) {
 		char copy[1024];
@@ -1085,30 +1078,6 @@ int CommandLine::GetParameterFromList(const char* const params[], std::vector<st
 	}
 	
 	return retval;
-/*
-bool CommandLine::FindEntry(char const * const name,cmd_it & it,bool neednext) {
-	for (it=cmds.begin();it!=cmds.end();it++) {
-		if (!strcasecmp((*it).c_str(),name)) {
-			cmd_it itnext=it;itnext++;
-			if (neednext && (itnext==cmds.end())) return false;
-			return true;
-		}
-	}
-	return false;
-*/
-
-
-/*
-	cmd_it it=cmds.begin();value=(*it++);
-	while(it != cmds.end()) {
-		if(params.
-
-		it++;
-	}
-*/
-	// find next parameter
-	//return -1;
-
 }
 
 
@@ -1122,6 +1091,7 @@ CommandLine::CommandLine(int argc,char const * const argv[]) {
 		i++;
 	}
 }
+
 Bit16u CommandLine::Get_arglength() {
 	if(cmds.empty()) return 0;
 	Bit16u i=1;
