@@ -947,12 +947,6 @@
 	CASE_W(0xef)												/* OUT DX,AX */
 		if (CPU_IO_Exception(reg_dx,2)) RUNEXCEPTION();
 		IO_WriteW(reg_dx,reg_ax);
-#if C_DEBUG
-		if (reg_dx == 0x1F0) {
-			reg_eip++;
-			return debugCallback;
-		}
-#endif
 		break;
 	CASE_B(0xf0)												/* LOCK */
 		LOG(LOG_CPU,LOG_NORMAL)("CPU:LOCK"); /* FIXME: see case D_LOCK in core_full/load.h */
