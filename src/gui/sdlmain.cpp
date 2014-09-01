@@ -3079,7 +3079,7 @@ static void erasemapperfile() {
 	exit(0);
 }
 
-void SetNumLock( void ) {
+void SetNumLock(void) {
 #ifdef WIN32
 	if (control->cmdline->FindExist("-disable_numlock_check")) return;
       // Simulate a key press
@@ -3096,27 +3096,37 @@ void SetNumLock( void ) {
 #endif
 }
 
+void CheckNumLockState(void) {
+#ifdef WIN32
+	bool numlock_stat=false;
+	BYTE keyState[256];
+
+	GetKeyboardState((LPBYTE)(&keyState));
+	if (keyState[VK_NUMLOCK] & 1) numlock_stat=true;
+	if (numlock_stat) SetNumLock();
+#endif
+}
+
 //extern void UI_Init(void);
 int main(int argc, char* argv[]) {
 	try {
 		CommandLine com_line(argc,argv);
 		Config myconf(&com_line);
 		control=&myconf;
-#ifdef WIN32
-		BYTE keyState[256];
-		GetKeyboardState((LPBYTE)&keyState);
-		bool numlock_stat=false;
-		if(keyState[VK_NUMLOCK] & 1) numlock_stat=true;
-		if(numlock_stat) SetNumLock ();
-#endif
+
 		/* Init the configuration system and add default values */
+		CheckNumLockState();
 		Config_Add_SDL();
 		DOSBOX_Init();
 
-		std::string editor;
-		if(control->cmdline->FindString("-editconf",editor,false)) launcheditor();
-		if(control->cmdline->FindString("-opencaptures",editor,true)) launchcaptures(editor);
-		if(control->cmdline->FindString("-opensaves",editor,true)) launchsaves(editor);
+		{
+			std::string editor;
+
+			if(control->cmdline->FindString("-editconf",editor,false)) launcheditor();
+			if(control->cmdline->FindString("-opencaptures",editor,true)) launchcaptures(editor);
+			if(control->cmdline->FindString("-opensaves",editor,true)) launchsaves(editor);
+		}
+
 		if(control->cmdline->FindExist("-eraseconf")) eraseconfigfile();
 		if(control->cmdline->FindExist("-resetconf")) eraseconfigfile();
 		if(control->cmdline->FindExist("-erasemapper")) erasemapperfile();
