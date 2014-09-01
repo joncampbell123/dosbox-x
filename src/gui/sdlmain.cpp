@@ -3081,18 +3081,14 @@ static void erasemapperfile() {
 
 void SetNumLock(void) {
 #ifdef WIN32
-	if (control->cmdline->FindExist("-disable_numlock_check")) return;
-      // Simulate a key press
-         keybd_event( VK_NUMLOCK,
-                      0x45,
-                      KEYEVENTF_EXTENDEDKEY | 0,
-                      0 );
+	if (control->cmdline->FindExist("-disable_numlock_check"))
+		return;
 
-      // Simulate a key release
-         keybd_event( VK_NUMLOCK,
-                      0x45,
-                      KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP,
-                      0);
+	// Simulate a key press
+	keybd_event(VK_NUMLOCK,0x45,KEYEVENTF_EXTENDEDKEY | 0,0);
+
+	// Simulate a key release
+	keybd_event(VK_NUMLOCK,0x45,KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP,0);
 #endif
 }
 
