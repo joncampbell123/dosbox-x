@@ -114,24 +114,29 @@ static void Voodoo_VerticalTimer(Bitu /*val*/) {
 	if (v->fbi.vblank_flush_pending) {
 		voodoo_vblank_flush();
 		if (GFX_LazyFullscreenRequested()) {
-			/* removed */
+			v->ogl_dimchange = true;
 		}
 	}
 
-	if (!RENDER_StartUpdate()) return; // frameskip
+	if (!v->ogl) {
+		if (!RENDER_StartUpdate()) return; // frameskip
 
-	rectangle r;
-	r.min_x = r.min_y = 0;
-	r.max_x = (int)v->fbi.width;
-	r.max_y = (int)v->fbi.height;
+		rectangle r;
+		r.min_x = r.min_y = 0;
+		r.max_x = (int)v->fbi.width;
+		r.max_y = (int)v->fbi.height;
 
-	// draw all lines at once
-	Bit16u *viewbuf = (Bit16u *)(v->fbi.ram + v->fbi.rgboffs[v->fbi.frontbuf]);
-	for(Bitu i = 0; i < v->fbi.height; i++) {
-		RENDER_DrawLine((Bit8u*) viewbuf);
-		viewbuf += v->fbi.rowpixels;
+		// draw all lines at once
+		Bit16u *viewbuf = (Bit16u *)(v->fbi.ram + v->fbi.rgboffs[v->fbi.frontbuf]);
+		for(Bitu i = 0; i < v->fbi.height; i++) {
+			RENDER_DrawLine((Bit8u*) viewbuf);
+			viewbuf += v->fbi.rowpixels;
+		}
+		RENDER_EndUpdate(false);
+	} else {
+		// ???
+		voodoo_set_window();
 	}
-	RENDER_EndUpdate(false);
 }
 
 bool Voodoo_GetRetrace() {
@@ -205,13 +210,18 @@ static void Voodoo_UpdateScreen(void) {
 
 		voodoo_activate();
 		
-		RENDER_SetSize(v->fbi.width, v->fbi.height, 16, vdraw.vfreq, 4.0/3.0);
+		if (v->ogl) {
+			v->ogl_dimchange = false;
+		} else {
+			RENDER_SetSize(v->fbi.width, v->fbi.height, 16, vdraw.vfreq, 4.0/3.0);
+		}
 
 		Voodoo_VerticalTimer(0);
 	}
 
-	if (v->clock_enabled && v->output_on)
+	if ((v->clock_enabled && v->output_on) && v->ogl_dimchange) {
 		voodoo_update_dimensions();
+	}
 
 	vdraw.screen_update_requested = false;
 }
@@ -263,6 +273,11 @@ void Voodoo_Initialize(Bits emulation_type, Bits card_type, bool max_voodoomem) 
 	voodoo_pagehandler = new Voodoo_PageHandler(0);
 
 	v = new voodoo_state;
+	v->ogl = false;
+	extern bool OpenGL_using(void);
+	if (emulation_type == 2) v->ogl = OpenGL_using();
+	LOG_MSG("voodoo: ogl=%u",v->ogl);
+
 	vdraw.vfreq = 1000.0f/60.0f;
 
 	voodoo_init(board);
@@ -287,13 +302,9 @@ void Voodoo_PCI_InitEnable(Bitu val) {
 
 void Voodoo_PCI_Enable(bool enable) {
 	v->clock_enabled = enable;
-#if C_DYNAMIC_X86
 	CPU_Core_Dyn_X86_SaveDHFPUState();
-#endif
 	Voodoo_UpdateScreenStart();
-#if C_DYNAMIC_X86
 	CPU_Core_Dyn_X86_RestoreDHFPUState();
-#endif
 }
 
 PageHandler* Voodoo_GetPageHandler() {

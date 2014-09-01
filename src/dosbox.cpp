@@ -776,6 +776,9 @@ void DOSBOX_Init(void) {
 	const char* voodoo_settings[] = {
 		"false",
 		"software",
+#if C_OPENGL
+		"opengl",
+#endif
 		"auto",
 		0
 	};

@@ -746,6 +746,7 @@ with_alsa_inc_prefix
 enable_alsatest
 enable_debug
 enable_core_inline
+enable_opengl
 enable_dynamic_core
 enable_dynamic_x86
 enable_fpu
@@ -1396,6 +1397,7 @@ Optional Features:
   --disable-alsatest      Do not try to compile and run a test Alsa program
   --enable-debug          Enable debug mode
   --enable-core-inline    Enable inlined memory handling in CPU Core
+  --disable-opengl        Disable opengl support
   --disable-dynamic-core  Disable all dynamic cores
   --disable-dynamic-x86   Disable x86 dynamic cpu core
   --disable-fpu           Disable fpu support
@@ -6745,6 +6747,125 @@ $as_echo "enabling inlined memory handling in CPU Core" >&6; }
 fi
 
 
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -lGL" >&5
+$as_echo_n "checking for main in -lGL... " >&6; }
+if ${ac_cv_lib_GL_main+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lGL  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+int
+main ()
+{
+return main ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_GL_main=yes
+else
+  ac_cv_lib_GL_main=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_GL_main" >&5
+$as_echo "$ac_cv_lib_GL_main" >&6; }
+if test "x$ac_cv_lib_GL_main" = xyes; then :
+  have_gl_lib=yes
+else
+  have_gl_lib=no
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -lopengl32" >&5
+$as_echo_n "checking for main in -lopengl32... " >&6; }
+if ${ac_cv_lib_opengl32_main+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lopengl32  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+int
+main ()
+{
+return main ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_opengl32_main=yes
+else
+  ac_cv_lib_opengl32_main=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_opengl32_main" >&5
+$as_echo "$ac_cv_lib_opengl32_main" >&6; }
+if test "x$ac_cv_lib_opengl32_main" = xyes; then :
+  have_opengl32_lib=yes
+else
+  have_opengl32_lib=no
+fi
+
+ac_fn_c_check_header_mongrel "$LINENO" "GL/gl.h" "ac_cv_header_GL_gl_h" "$ac_includes_default"
+if test "x$ac_cv_header_GL_gl_h" = xyes; then :
+  have_gl_h=yes
+else
+  have_gl_h=no
+fi
+
+
+# Check whether --enable-opengl was given.
+if test "${enable_opengl+set}" = set; then :
+  enableval=$enable_opengl;
+else
+  enable_opengl=yes
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether opengl display output will be enabled" >&5
+$as_echo_n "checking whether opengl display output will be enabled... " >&6; }
+if test x$enable_opengl = xyes; then
+case "$host" in
+    *-*-darwin*)
+       { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+       LIBS="$LIBS -framework OpenGL"
+       $as_echo "#define C_OPENGL 1" >>confdefs.h
+
+       ;;
+    *)
+       if test x$have_gl_h = xyes -a x$have_gl_lib = xyes ; then
+         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+         LIBS="$LIBS -lGL"
+         $as_echo "#define C_OPENGL 1" >>confdefs.h
+
+       elif test x$have_gl_h = xyes -a x$have_opengl32_lib = xyes ; then
+         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+         LIBS="$LIBS -lopengl32"
+         $as_echo "#define C_OPENGL 1" >>confdefs.h
+
+       else
+         { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+       fi
+       ;;
+esac
+fi
 
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for target cpu type" >&5
