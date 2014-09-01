@@ -3129,8 +3129,7 @@ int main(int argc, char* argv[]) {
 		if(control->cmdline->FindExist("-resetmapper")) erasemapperfile();
 		
 		/* Can't disable the console with debugger enabled */
-		if (control->cmdline->FindExist("-version") ||
-		    control->cmdline->FindExist("--version") ) {
+		if (control->cmdline->FindExist("-version")) {
 			printf("\nDOSBox version %s, copyright 2002-2013 DOSBox Team.\n\n",VERSION);
 			printf("DOSBox is written by the DOSBox Team (See AUTHORS file))\n");
 			printf("DOSBox comes with ABSOLUTELY NO WARRANTY.  This is free software,\n");

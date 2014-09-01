@@ -940,7 +940,13 @@ bool CommandLine::FindCommand(unsigned int which,std::string & value) {
 
 bool CommandLine::FindEntry(char const * const name,cmd_it & it,bool neednext) {
 	for (it=cmds.begin();it!=cmds.end();it++) {
-		if (!strcasecmp((*it).c_str(),name)) {
+		const char *d = (*it).c_str();
+
+		/* HACK: If the search string starts with -, it's a switch,
+		 *       so adjust pointers so that it matches --switch or -switch */
+		if (*name == '-' && d[0] == '-' && d[1] == '-') d++;
+
+		if (!strcasecmp(d,name)) {
 			cmd_it itnext=it;itnext++;
 			if (neednext && (itnext==cmds.end())) return false;
 			return true;
