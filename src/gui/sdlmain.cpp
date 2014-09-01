@@ -3142,12 +3142,14 @@ int main(int argc, char* argv[]) {
 
 #if C_DEBUG
 #if defined(WIN32)
-	if (control->cmdline->FindExist("-noconsole")) {
-		ShowWindow( GetConsoleWindow(), SW_HIDE );
-		DestroyWindow(GetConsoleWindow());
-	} else
+		if (control->cmdline->FindExist("-noconsole")) {
+			ShowWindow( GetConsoleWindow(), SW_HIDE );
+			DestroyWindow(GetConsoleWindow());
+		} else
 #endif
-		DEBUG_SetupConsole();
+		{
+			DEBUG_SetupConsole();
+		}
 #endif
 
 #if defined(WIN32)
