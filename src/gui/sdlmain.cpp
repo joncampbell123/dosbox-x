@@ -3118,15 +3118,17 @@ int main(int argc, char* argv[]) {
 		{
 			std::string editor;
 
-			if(control->cmdline->FindString("-editconf",editor,false)) launcheditor();
-			if(control->cmdline->FindString("-opencaptures",editor,true)) launchcaptures(editor);
-			if(control->cmdline->FindString("-opensaves",editor,true)) launchsaves(editor);
+			if (control->cmdline->FindString("-editconf",editor,false)) launcheditor();
+			if (control->cmdline->FindString("-opencaptures",editor,true)) launchcaptures(editor);
+			if (control->cmdline->FindString("-opensaves",editor,true)) launchsaves(editor);
 		}
 
-		if(control->cmdline->FindExist("-eraseconf")) eraseconfigfile();
-		if(control->cmdline->FindExist("-resetconf")) eraseconfigfile();
-		if(control->cmdline->FindExist("-erasemapper")) erasemapperfile();
-		if(control->cmdline->FindExist("-resetmapper")) erasemapperfile();
+		if (control->cmdline->FindExist("-eraseconf")) eraseconfigfile();
+		if (control->cmdline->FindExist("-resetconf")) eraseconfigfile();
+		if (control->cmdline->FindExist("-printconf")) printconfiglocation();
+
+		if (control->cmdline->FindExist("-erasemapper")) erasemapperfile();
+		if (control->cmdline->FindExist("-resetmapper")) erasemapperfile();
 		
 		/* Can't disable the console with debugger enabled */
 		if (control->cmdline->FindExist("-version")) {
@@ -3137,7 +3139,6 @@ int main(int argc, char* argv[]) {
 			printf("please read the COPYING file thoroughly before doing so.\n\n");
 			return 0;
 		}
-		if(control->cmdline->FindExist("-printconf")) printconfiglocation();
 
 #if C_DEBUG
 #if defined(WIN32)
