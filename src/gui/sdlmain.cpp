@@ -3148,7 +3148,6 @@ int main(int argc, char* argv[]) {
 		if (control->cmdline->FindExist("-erasemapper")) erasemapperfile();
 		if (control->cmdline->FindExist("-resetmapper")) erasemapperfile();
 		
-		/* Can't disable the console with debugger enabled */
 		if (control->cmdline->FindExist("-version")) {
 			printf("\nDOSBox version %s, copyright 2002-2013 DOSBox Team.\n\n",VERSION);
 			printf("DOSBox is written by the DOSBox Team (See AUTHORS file))\n");
@@ -3157,9 +3156,33 @@ int main(int argc, char* argv[]) {
 			printf("please read the COPYING file thoroughly before doing so.\n\n");
 			return 0;
 		}
+		if (control->cmdline->FindExist("-help") || control->cmdline->FindExist("-h")) {
+			printf("\ndosbox [options]\n");
+			printf("\nDOSBox version %s, copyright 2002-2013 DOSBox Team.\n\n",VERSION);
+			printf("  -h     -help                            Show this help\n");
+			printf("  -editconf                               Launch editor\n");
+			printf("  -opencaptures <param>                   Launch captures\n");
+			printf("  -opensaves <param>                      Launch saves\n");
+			printf("  -eraseconf                              Erase config file\n");
+			printf("  -resetconf                              Erase config file\n");
+			printf("  -printconf                              Print config file location\n");
+			printf("  -erasemapper                            Erase mapper file\n");
+			printf("  -resetmapper                            Erase mapper file\n");
+			printf("  -noconsole                              Don't show console (debug+win32 only)\n");
+			printf("  -nogui                                  Don't show gui (win32 only)\n");
+			printf("  -nomenu                                 Don't show menu (win32 only)\n");
+			printf("  -userconf                               Create user level config file\n");
+			printf("  -conf <param>                           Use config file <param>\n");
+			printf("  -startui                                Start DOSBox-X with UI\n");
+			printf("  -startmapper                            Start DOSBox-X with mapper\n");
+			printf("  -showcycles                             Show cycles count\n");
+			printf("  -fullscreen                             Start in fullscreen\n");
+			return 0;
+		}
 
 #if C_DEBUG
 # if defined(WIN32)
+		/* Can't disable the console with debugger enabled */
 		if (control->cmdline->FindExist("-noconsole")) {
 			ShowWindow( GetConsoleWindow(), SW_HIDE );
 			DestroyWindow(GetConsoleWindow());
