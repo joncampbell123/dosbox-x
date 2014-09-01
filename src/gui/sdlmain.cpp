@@ -81,6 +81,36 @@
 #include "cross.h"
 #include "control.h"
 
+extern bool keep_umb_on_boot;
+extern bool keep_private_area_on_boot;
+extern bool dos_kernel_disabled;
+
+void SHELL_Run();
+void DisableINT33();
+void EMS_DoShutDown();
+void XMS_DoShutDown();
+void DOS_DoShutDown();
+void GUS_DOS_Shutdown();
+void SBLASTER_DOS_Shutdown();
+void DOS_ShutdownDevices(void);
+void RemoveEMSPageFrame(void);
+void RemoveUMBBlock();
+void DOS_GetMemory_unmap();
+void VFILE_Shutdown(void);
+void PROGRAMS_Shutdown(void);
+void DOS_UninstallMisc(void);
+void CALLBACK_Shutdown(void);
+void PROGRAMS_Shutdown(void);
+void DOS_ShutdownDrives();
+void VFILE_Shutdown(void);
+void DOS_ShutdownFiles();
+void FreeBIOSDiskList();
+void GFX_ShutDown(void);
+void MAPPER_Shutdown();
+#if C_DYNAMIC_X86
+void CPU_Core_Dyn_X86_Shutdown(void);
+#endif
+
 /* TODO: move to general header */
 static inline int int_log2(int val) {
 	int log = 0;
@@ -2961,10 +2991,7 @@ static void launchcaptures(std::string const& edit) {
 	path = ".";
 	path += CROSS_FILESPLIT;
 	path += file;
-	//path += CROSS_FILESPLIT;
-	/*
-	if(stat(path.c_str(),&cstat) || (cstat.st_mode & S_IFDIR) == 0) {
-	*/
+
 	stat(path.c_str(),&cstat);
 	if(cstat.st_mode & S_IFDIR) {
 		execlp(edit.c_str(),edit.c_str(),path.c_str(),(char*) 0);
@@ -2986,11 +3013,6 @@ static void launchcaptures(std::string const& edit) {
 		printf("can't find filemanager %s\n",edit.c_str());
 		exit(1);
 	}
-
-/*	if(edit.empty()) {
-		printf("no editor specified.\n");
-		exit(1);
-	}*/
 }
 
 static void launchsaves(std::string const& edit) {
@@ -3021,11 +3043,6 @@ static void launchsaves(std::string const& edit) {
 		printf("can't find filemanager %s\n",edit.c_str());
 		exit(1);
 	}
-
-/*	if(edit.empty()) {
-		printf("no editor specified.\n");
-		exit(1);
-	}*/
 }
 
 static void printconfiglocation() {
@@ -3106,6 +3123,7 @@ void CheckNumLockState(void) {
 //extern void UI_Init(void);
 int main(int argc, char* argv[]) {
 	try {
+		std::string config_file,config_path;
 		CommandLine com_line(argc,argv);
 		Config myconf(&com_line);
 		control=&myconf;
@@ -3141,94 +3159,88 @@ int main(int argc, char* argv[]) {
 		}
 
 #if C_DEBUG
-#if defined(WIN32)
+# if defined(WIN32)
 		if (control->cmdline->FindExist("-noconsole")) {
 			ShowWindow( GetConsoleWindow(), SW_HIDE );
 			DestroyWindow(GetConsoleWindow());
 		} else
-#endif
+# endif
 		{
 			DEBUG_SetupConsole();
 		}
 #endif
 
 #if defined(WIN32)
-	SetConsoleCtrlHandler((PHANDLER_ROUTINE) ConsoleEventHandler,TRUE);
+		SetConsoleCtrlHandler((PHANDLER_ROUTINE) ConsoleEventHandler,TRUE);
 #endif
 
-#ifdef OS2
-        PPIB pib;
-        PTIB tib;
-        DosGetInfoBlocks(&tib, &pib);
-        if (pib->pib_ultype == 2) pib->pib_ultype = 3;
-        setbuf(stdout, NULL);
-        setbuf(stderr, NULL);
-#endif
+		/* Display Welcometext in the console */
+		LOG_MSG("DOSBox version %s",VERSION);
+		LOG_MSG("Copyright 2002-2013 DOSBox Team, published under GNU GPL.");
 
-	/* Display Welcometext in the console */
-	LOG_MSG("DOSBox version %s",VERSION);
-	LOG_MSG("Copyright 2002-2013 DOSBox Team, published under GNU GPL.");
-	int id, major, minor;
-	DOSBox_CheckOS(id, major, minor);
-	if (id==1) menu.compatible=true;
-	if(!menu_compatible) {
-	    if(DOSBox_Kor()) {
-	        LOG_MSG("도스박스 다음 카페 http://cafe.daum.net/dosbox");
-	        LOG_MSG("─────────────────────────────");
-	} else
-	LOG_MSG("---");
-    }
+		{
+			int id, major, minor;
 
-	/* Init SDL */
+			DOSBox_CheckOS(id, major, minor);
+			if (id == 1) menu.compatible=true;
+			if (!menu_compatible) LOG_MSG("---");
+		}
+
+		/* Init SDL */
 #if SDL_VERSION_ATLEAST(1, 2, 14)
-	/* Or debian/ubuntu with older libsdl version as they have done this themselves, but then differently.
-	 * with this variable they will work correctly. I've only tested the 1.2.14 behaviour against the windows version
-	 * of libsdl
-	 */
-	putenv(const_cast<char*>("SDL_DISABLE_LOCK_KEYS=1"));
+		/* Or debian/ubuntu with older libsdl version as they have done this themselves, but then differently.
+		 * with this variable they will work correctly. I've only tested the 1.2.14 behaviour against the windows version
+		 * of libsdl
+		 */
+		putenv(const_cast<char*>("SDL_DISABLE_LOCK_KEYS=1"));
 #endif
+
 #ifdef WIN32
-	if (getenv("SDL_VIDEODRIVER")==NULL) {
-		load_videodrv=false;
-		putenv("SDL_VIDEODRIVER=windib");
-		sdl.using_windib=true;
-	}
+		if (getenv("SDL_VIDEODRIVER")==NULL) {
+			putenv("SDL_VIDEODRIVER=windib");
+			sdl.using_windib=true;
+			load_videodrv=false;
+		}
 #endif
-	if ( SDL_Init( SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_CDROM
-		|SDL_INIT_NOPARACHUTE
-		) < 0 ) E_Exit("Can't init SDL %s",SDL_GetError());
-	sdl.inited = true;
 
-    if (control->cmdline->FindExist("-nogui") || menu.compatible) menu.gui=false;
-    if (menu_gui && !control->cmdline->FindExist("-nomenu")) DOSBox_SetMenu();
-    if (menu_gui) {
-        if(GetMenu(GetHWND())) {
-             if(!DOSBox_Kor())
-                LOG_MSG("GUI: Press Ctrl-F10 to capture/release mouse.\n     Save your configuration and restart DOSBox if your settings do not take effect.");
-            else {
-                LOG_MSG("GUI: 마우스를 나오게 하거나 들어가게 하려면 Ctrl-F10키를 누르십시오.\n지정한 설정이 적용되지 않으면 설정을 저장하고 DOSBox를 다시 시작하십시오.");
-            }
-       }
-    } else {
-	    LOG_MSG("GUI: Press Ctrl-F10 to capture/release mouse, Alt-F10 for configuration.");
-    }
-    SDL_Prepare();
+		if (SDL_Init( SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_CDROM|SDL_INIT_NOPARACHUTE) < 0)
+			E_Exit("Can't init SDL %s",SDL_GetError());
+		sdl.inited = true;
 
-	//Initialise Joystick seperately. This way we can warn when it fails instead
-	//of exiting the application
-	if( SDL_InitSubSystem(SDL_INIT_JOYSTICK) < 0 ) LOG_MSG("Failed to init joystick support");
+		if (control->cmdline->FindExist("-nogui") || menu.compatible)
+			menu.gui=false;
+		if (menu_gui && !control->cmdline->FindExist("-nomenu"))
+			DOSBox_SetMenu();
 
-	sdl.laltstate = SDL_KEYUP;
-	sdl.raltstate = SDL_KEYUP;
+		if (menu_gui) {
+			if (GetMenu(GetHWND())) {
+				LOG_MSG("GUI: Press Ctrl-F10 to capture/release mouse.\n"
+					"     Save your configuration and restart DOSBox if your settings do not take effect.");
+			}
+		} else {
+			LOG_MSG("GUI: Press Ctrl-F10 to capture/release mouse, Alt-F10 for configuration.");
+		}
+		SDL_Prepare();
+
+		//Initialise Joystick seperately. This way we can warn when it fails instead
+		//of exiting the application
+		if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) < 0) LOG_MSG("Failed to init joystick support");
+		sdl.num_joysticks = SDL_NumJoysticks();
+
+		/* assume L+R ALT keys are up */
+		sdl.laltstate = SDL_KEYUP;
+		sdl.raltstate = SDL_KEYUP;
 
 #if defined (WIN32)
-#if SDL_VERSION_ATLEAST(1, 2, 10)
+# if SDL_VERSION_ATLEAST(1, 2, 10)
 		sdl.using_windib=true;
-#else
+# else
 		sdl.using_windib=false;
-#endif
-		char sdl_drv_name[128];
+# endif
+
 		if (getenv("SDL_VIDEODRIVER")==NULL) {
+			char sdl_drv_name[128];
+
 			if (SDL_VideoDriverName(sdl_drv_name,128)!=NULL) {
 				sdl.using_windib=false;
 				if (strcmp(sdl_drv_name,"directx")!=0) {
@@ -3247,134 +3259,144 @@ int main(int argc, char* argv[]) {
 			else if (strcmp(sdl_videodrv,"windib")==0) sdl.using_windib = true;
 		}
 #endif
-	sdl.num_joysticks=SDL_NumJoysticks();
 
-	/* Parse configuration files */
-	std::string config_file,config_path;
-	Cross::GetPlatformConfigDir(config_path);
-	
-	//First parse -userconf
-	if(control->cmdline->FindExist("-userconf",true)){
-		config_file.clear();
+		/* Parse configuration files */
 		Cross::GetPlatformConfigDir(config_path);
-		Cross::GetPlatformConfigName(config_file);
-		config_path += config_file;
-		control->ParseConfigFile(config_path.c_str());
-		if(!control->configfiles.size()) {
+
+		//First parse -userconf
+		if (control->cmdline->FindExist("-userconf",true)){
+			config_file.clear();
+			Cross::GetPlatformConfigDir(config_path);
+			Cross::GetPlatformConfigName(config_file);
+			config_path += config_file;
+			control->ParseConfigFile(config_path.c_str());
+			if (!control->configfiles.size()) {
+				//Try to create the userlevel configfile.
+				config_file.clear();
+				Cross::CreatePlatformConfigDir(config_path);
+				Cross::GetPlatformConfigName(config_file);
+				config_path += config_file;
+				if (control->PrintConfig(config_path.c_str())) {
+					LOG_MSG("CONFIG: Generating default configuration.\nWriting it to %s",config_path.c_str());
+					//Load them as well. Makes relative paths much easier
+					control->ParseConfigFile(config_path.c_str());
+				}
+			}
+		}
+
+		//Second parse -conf switches
+		while (control->cmdline->FindString("-conf",config_file,true)) {
+			if (!control->ParseConfigFile(config_file.c_str())) {
+				// try to load it from the user directory
+				control->ParseConfigFile((config_path + config_file).c_str());
+			}
+		}
+
+		// if none found => parse localdir conf
+		if (!control->configfiles.size()) control->ParseConfigFile("dosbox.conf");
+
+		// if none found => parse userlevel conf
+		if (!control->configfiles.size()) {
+			config_file.clear();
+			Cross::GetPlatformConfigName(config_file);
+			control->ParseConfigFile((config_path + config_file).c_str());
+		}
+
+		if (!control->configfiles.size()) {
 			//Try to create the userlevel configfile.
 			config_file.clear();
 			Cross::CreatePlatformConfigDir(config_path);
 			Cross::GetPlatformConfigName(config_file);
 			config_path += config_file;
-			if(control->PrintConfig(config_path.c_str())) {
+			if (control->PrintConfig(config_path.c_str())) {
 				LOG_MSG("CONFIG: Generating default configuration.\nWriting it to %s",config_path.c_str());
 				//Load them as well. Makes relative paths much easier
 				control->ParseConfigFile(config_path.c_str());
+			} else {
+				LOG_MSG("CONFIG: Using default settings. Create a configfile to change them");
 			}
 		}
-	}
-
-	//Second parse -conf switches
-	while(control->cmdline->FindString("-conf",config_file,true)) {
-		if(!control->ParseConfigFile(config_file.c_str())) {
-			// try to load it from the user directory
-			control->ParseConfigFile((config_path + config_file).c_str());
-		}
-	}
-	// if none found => parse localdir conf
-	if(!control->configfiles.size()) control->ParseConfigFile("dosbox.conf");
-
-	// if none found => parse userlevel conf
-	if(!control->configfiles.size()) {
-		config_file.clear();
-		Cross::GetPlatformConfigName(config_file);
-		control->ParseConfigFile((config_path + config_file).c_str());
-	}
-
-	if(!control->configfiles.size()) {
-		//Try to create the userlevel configfile.
-		config_file.clear();
-		Cross::CreatePlatformConfigDir(config_path);
-		Cross::GetPlatformConfigName(config_file);
-		config_path += config_file;
-		if(control->PrintConfig(config_path.c_str())) {
-			LOG_MSG("CONFIG: Generating default configuration.\nWriting it to %s",config_path.c_str());
-			//Load them as well. Makes relative paths much easier
-			control->ParseConfigFile(config_path.c_str());
-		} else {
-			LOG_MSG("CONFIG: Using default settings. Create a configfile to change them");
-		}
-	}
-
 
 #if (ENVIRON_LINKED)
 		control->ParseEnv(environ);
 #endif
+
 		UI_Init();
-		if (control->cmdline->FindExist("-startui")) UI_Run(false);
+		if (control->cmdline->FindExist("-startui"))
+			UI_Run(false);
+
 		/* Init all the sections */
 		control->Init();
 
-		/* Some extra SDL Functions */
-		Section_prop * sdl_sec=static_cast<Section_prop *>(control->GetSection("sdl"));
+		{
+			/* Some extra SDL Functions */
+			Section_prop *sdl_sec = static_cast<Section_prop*>(control->GetSection("sdl"));
 
-		if (control->cmdline->FindExist("-fullscreen") || sdl_sec->Get_bool("fullscreen")) {
-		if(sdl.desktop.want_type != SCREEN_OPENGLHQ) SetMenu(GetHWND(),NULL);
-			if(!sdl.desktop.fullscreen) { //only switch if not already in fullscreen
-				GFX_SwitchFullScreen();
+			if (control->cmdline->FindExist("-fullscreen") || sdl_sec->Get_bool("fullscreen")) {
+				if (sdl.desktop.want_type != SCREEN_OPENGLHQ) SetMenu(GetHWND(),NULL);
+				//only switch if not already in fullscreen
+				if (!sdl.desktop.fullscreen) GFX_SwitchFullScreen();
 			}
 		}
 
 		/* Init the keyMapper */
 		MAPPER_Init();
-		if (control->cmdline->FindExist("-startmapper")) MAPPER_RunInternal();
+		if (control->cmdline->FindExist("-startmapper"))
+			MAPPER_RunInternal();
+
 		/* Start up main machine */
 
 		// Shows menu bar (window)
-		//configfilesave = config_file;
-		menu.startup=true;
+		menu.startup = true;
 		menu.hidecycles = ((control->cmdline->FindExist("-showcycles")) ? false : true);
-		if(sdl.desktop.want_type==SCREEN_OPENGLHQ) {
+		if (sdl.desktop.want_type == SCREEN_OPENGLHQ) {
 			menu.gui=false; DOSBox_SetOriginalIcon();
-			if(!render.scale.hardware) SetVal("render","scaler",!render.scale.forced?"hardware2x":"hardware2x forced");
+			if (!render.scale.hardware) SetVal("render","scaler",!render.scale.forced?"hardware2x":"hardware2x forced");
 		}
 
 #ifdef WIN32
-		if(sdl.desktop.want_type==SCREEN_OPENGL && sdl.using_windib) {
+		if (sdl.desktop.want_type == SCREEN_OPENGL && sdl.using_windib) {
 			SDL_QuitSubSystem(SDL_INIT_VIDEO);
-			if (SDL_InitSubSystem(SDL_INIT_VIDEO)<0) E_Exit("Can't init SDL Video %s",SDL_GetError());
+			if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
+				E_Exit("Can't init SDL Video %s",SDL_GetError());
+
 			change_output(4);
 			GFX_SetIcon();
 			SDL_Prepare();
 			if (menu.gui && !control->cmdline->FindExist("-nomenu")) {
 				SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
-				DrawMenuBar (GetHWND());
-				//if (menu.gui && !control->cmdline->FindExist("-nomenu")) DOSBox_SetMenu();
+				DrawMenuBar(GetHWND());
 			}
 		}
 #endif
+
 #ifdef WIN32
-		Section_prop *sec=static_cast<Section_prop *>(control->GetSection("sdl"));
-		if(!strcmp(sec->Get_string("output"),"ddraw") && sdl.using_windib) {
-			SDL_QuitSubSystem(SDL_INIT_VIDEO);
-			putenv("SDL_VIDEODRIVER=directx");
-			sdl.using_windib=false;
-			if (SDL_InitSubSystem(SDL_INIT_VIDEO)<0) E_Exit("Can't init SDL Video %s",SDL_GetError());
-			change_output(1);
-			GFX_SetIcon();
-			SDL_Prepare();
-			if (menu.gui && !control->cmdline->FindExist("-nomenu")) {
-				SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
-				DrawMenuBar (GetHWND());
-				//if (menu.gui && !control->cmdline->FindExist("-nomenu")) DOSBox_SetMenu();
+		{
+			Section_prop *sec = static_cast<Section_prop *>(control->GetSection("sdl"));
+			if (!strcmp(sec->Get_string("output"),"ddraw") && sdl.using_windib) {
+				SDL_QuitSubSystem(SDL_INIT_VIDEO);
+				putenv("SDL_VIDEODRIVER=directx");
+				sdl.using_windib=false;
+				if (SDL_InitSubSystem(SDL_INIT_VIDEO)<0)
+					E_Exit("Can't init SDL Video %s",SDL_GetError());
+
+				change_output(1);
+				GFX_SetIcon();
+				SDL_Prepare();
+				if (menu.gui && !control->cmdline->FindExist("-nomenu")) {
+					SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
+					DrawMenuBar(GetHWND());
+				}
 			}
+
+			if (!load_videodrv && numlock_stat)
+				SetNumLock ();
 		}
-		if(!load_videodrv && numlock_stat) SetNumLock ();
 #endif
+
 		bool run_machine = false;
 		bool reboot_machine = false;
 		bool dos_kernel_shutdown = false;
-
 
 		/* let all config sections run their INITs */
 		control->StartUp();
@@ -3388,7 +3410,6 @@ int main(int argc, char* argv[]) {
 		dos_kernel_shutdown = false;
 
 		try {
-			void SHELL_Run();
 			SHELL_Run();
 		} catch (int x) {
 			if (x == 2) { /* booting a guest OS. "boot" has already done the work to load the image and setup CPU registers */
@@ -3409,58 +3430,37 @@ int main(int argc, char* argv[]) {
 		}
 
 		if (dos_kernel_shutdown) {
-			void DisableINT33();
-			void EMS_DoShutDown();
-			void XMS_DoShutDown();
-			void DOS_DoShutDown();
-			void GUS_DOS_Shutdown();
-			void SBLASTER_DOS_Shutdown();
-			void RemoveEMSPageFrame(void);
-
 			RemoveEMSPageFrame();
 
-			extern bool keep_umb_on_boot;
-			extern bool keep_private_area_on_boot;
-			extern bool dos_kernel_disabled;
-
 			/* remove UMB block */
-			void RemoveUMBBlock();
 			if (!keep_umb_on_boot) RemoveUMBBlock();
 
-			/* disable INT 33h mouse services */
-			/* NTS: If you want to run Windows NT 3.1 or ME this is vital because DOSBox's
-			 *      INT 33h emulation involves memory I/O that serves only to cause page
-			 *      fault issues with 32-bit OSes */
+			/* disable INT 33h mouse services. it can interfere with guest OS paging and control of the mouse */
 			DisableINT33();
 
-			void DOS_GetMemory_unmap();
+			/* unmap the DOSBox kernel private segment. if the user told us not to,
+			 * but the segment exists below 640KB, then we must, because the guest OS
+			 * will trample it and assume control of that region of RAM. */
 			if (!keep_private_area_on_boot)
 				DOS_GetMemory_unmap();
-			else if (DOS_PRIVATE_SEGMENT < 0xA000) {
-				LOG_MSG("WARNING: Unmapping DOS private segment even though configuration says otherwise, because\n"
-						"private segment exists below 640KB boundary and will be trampled on by the OS you are booting.\n");
+			else if (DOS_PRIVATE_SEGMENT < 0xA000)
 				DOS_GetMemory_unmap();
-			}
 
 			/* revector some dos-allocated interrupts */
 			real_writed(0,0x01*4,BIOS_DEFAULT_HANDLER_LOCATION);
 			real_writed(0,0x03*4,BIOS_DEFAULT_HANDLER_LOCATION);
 
 			/* shutdown DOSBox's virtual drive Z */
-			void VFILE_Shutdown(void);
 			VFILE_Shutdown();
 
 			/* shutdown the programs */
-			void PROGRAMS_Shutdown(void);
 			PROGRAMS_Shutdown();		/* FIXME: Is this safe? Or will this cause use-after-free bug? */
 
-			void DOS_UninstallMisc(void);
-			DOS_UninstallMisc();
-
 			/* remove environment variables for some components */
+			DOS_UninstallMisc();
 			SBLASTER_DOS_Shutdown();
 			GUS_DOS_Shutdown();
-			/* disable Expanded Memory. EMM is a DOS API, not an OS API */
+			/* disable Expanded Memory. EMM is a DOS API, not a BIOS API */
 			EMS_DoShutDown();
 			/* and XMS, also a DOS API */
 			XMS_DoShutDown();
@@ -3505,19 +3505,16 @@ int main(int argc, char* argv[]) {
 		}
 
 		/* and then shutdown */
-		void GFX_ShutDown(void);
 		GFX_ShutDown();
-#ifdef __WIN32__
-		//menu.startup=false;
-#endif
 		/* Shutdown everything */
 	} catch (char * error) {
 #if defined (WIN32)
 		sticky_keys(true);
 #endif
+
 		LOG_MSG("Exit to error: %s",error);
 		fflush(NULL);
-		if(sdl.wait_on_error) {
+		if (sdl.wait_on_error) {
 			//TODO Maybe look for some way to show message in linux?
 #if (C_DEBUG)
 			LOG_MSG("Press enter to continue");
@@ -3527,9 +3524,8 @@ int main(int argc, char* argv[]) {
 			Sleep(5000);
 #endif
 		}
-
 	}
-	catch(...){
+	catch (...) {
 		sticky_keys(true);
 
 		//Force visible mouse to end user. Somehow this sometimes doesn't happen
@@ -3540,41 +3536,22 @@ int main(int argc, char* argv[]) {
 
 	/* GUI font registry shutdown */
 	GUI::Font::registry_freeall();
-
-	void DOS_ShutdownDrives();
 	DOS_ShutdownDrives();
-
-	void DOS_ShutdownFiles();
 	DOS_ShutdownFiles();
-
-	void DOS_ShutdownDevices(void);
 	DOS_ShutdownDevices();
-
-	void CALLBACK_Shutdown(void);
 	CALLBACK_Shutdown();
-
 #if C_DYNAMIC_X86
-	void CPU_Core_Dyn_X86_Shutdown(void);
 	CPU_Core_Dyn_X86_Shutdown();
 #endif
-
-	void FreeBIOSDiskList();
 	FreeBIOSDiskList();
-
-	void MAPPER_Shutdown();
 	MAPPER_Shutdown();
-
-	void VFILE_Shutdown(void);
 	VFILE_Shutdown();
-
-	void PROGRAMS_Shutdown(void);
 	PROGRAMS_Shutdown();
-
-	sticky_keys(true); //Might not be needed if the shutdown function switches to windowed mode, but it doesn't hurt
-
 #if C_DEBUG
 	DEBUG_ShutDown(NULL);
 #endif
+
+	sticky_keys(true); //Might not be needed if the shutdown function switches to windowed mode, but it doesn't hurt
 
 	//Force visible mouse to end user. Somehow this sometimes doesn't happen
 	SDL_WM_GrabInput(SDL_GRAB_OFF);
