@@ -180,8 +180,26 @@ void swapInNextDisk(bool pressed) {
 		return;
 	DriveManager::CycleAllDisks();
 	/* Hack/feature: rescan all disks as well */
+	LOG_MSG("Diskcaching reset for floppy drives.");
+	for(Bitu i=0;i<2;i++) { /* Swap A: and B: where DOSBox mainline would run through ALL drive letters */
+		if (Drives[i] != NULL) {
+			Drives[i]->EmptyCache();
+			Drives[i]->MediaChange();
+		}
+	}
+	swapPosition++;
+	if(diskSwap[swapPosition] == NULL) swapPosition = 0;
+	swapInDisks();
+	swapping_requested = true;
+}
+
+void swapInNextCD(bool pressed) {
+	if (!pressed)
+		return;
+	DriveManager::CycleAllDisks();
+	/* Hack/feature: rescan all disks as well */
 	LOG_MSG("Diskcaching reset for normal mounted drives.");
-	for(Bitu i=0;i<DOS_DRIVES;i++) {
+	for(Bitu i=2;i<DOS_DRIVES;i++) { /* Swap C: D: .... Z: TODO: Need to swap ONLY if a CD-ROM drive! */
 		if (Drives[i] != NULL) {
 			Drives[i]->EmptyCache();
 			Drives[i]->MediaChange();
@@ -784,7 +802,9 @@ void BIOS_SetupDisks(void) {
 /* Setup the Bios Area */
 	mem_writeb(BIOS_HARDDISK_COUNT,2);
 
-	MAPPER_AddHandler(swapInNextDisk,MK_f4,MMOD1,"swapimg","Swap Image");
+	MAPPER_AddHandler(swapInNextDisk,MK_f4,MMOD1,"swapimg","SwapFloppy"); /* Originally "Swap Image" but this version does not swap CDs */
+	MAPPER_AddHandler(swapInNextCD,MK_f5,MMOD1|MMOD2,"swapcd","SwapCD"); /* Variant of "Swap Image" for CDs */
+
 	killRead = false;
 	swapping_requested = false;
 }
