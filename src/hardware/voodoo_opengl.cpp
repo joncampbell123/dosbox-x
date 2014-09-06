@@ -1577,7 +1577,7 @@ void voodoo_ogl_set_window(voodoo_state *v) {
 	if (size_changed) {
 		//correction for viewport if 640x400
 		if( v->fbi.height < 480 && GFX_IsFullscreen()) adjust_y=(480-v->fbi.height)/2;
-		if( v->fbi.height < 640 && GFX_IsFullscreen()) adjust_x=(640-v->fbi.width)/2;
+		if( v->fbi.width < 640 && GFX_IsFullscreen()) adjust_x=(640-v->fbi.width)/2;
 		glViewport( adjust_x, adjust_y, v->fbi.width, v->fbi.height );
 		last_width = v->fbi.width;
 		last_height = v->fbi.height;
@@ -1611,11 +1611,9 @@ void voodoo_ogl_reset_videomode(void) {
 
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-	//EF2000 FIX
 	glViewport( 0, 0, v->fbi.width, v->fbi.height );
 	last_width = v->fbi.width;
-	last_height = v->fbi.height+80;
-	v->fbi.height = v->fbi.height+80;
+	last_height = v->fbi.height;
 
 	/*glMatrixMode( GL_PROJECTION );
 	glLoadIdentity();
