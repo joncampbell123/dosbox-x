@@ -196,7 +196,7 @@ void swapInNextDisk(bool pressed) {
 void swapInNextCD(bool pressed) {
 	if (!pressed)
 		return;
-	DriveManager::CycleAllDisks();
+	DriveManager::CycleAllCDs();
 	/* Hack/feature: rescan all disks as well */
 	LOG_MSG("Diskcaching reset for normal mounted drives.");
 	for(Bitu i=2;i<DOS_DRIVES;i++) { /* Swap C: D: .... Z: TODO: Need to swap ONLY if a CD-ROM drive! */
@@ -205,10 +205,6 @@ void swapInNextCD(bool pressed) {
 			Drives[i]->MediaChange();
 		}
 	}
-	swapPosition++;
-	if(diskSwap[swapPosition] == NULL) swapPosition = 0;
-	swapInDisks();
-	swapping_requested = true;
 }
 
 

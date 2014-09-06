@@ -171,7 +171,27 @@ void DriveManager::CycleDisk(bool pressed) {
 */
 
 void DriveManager::CycleAllDisks(void) {
-	for (int idrive=0; idrive<DOS_DRIVES; idrive++) {
+	for (int idrive=0; idrive<2; idrive++) { /* Cycle all DISKS meaning A: and B: */
+		int numDisks = (int)driveInfos[idrive].disks.size();
+		if (numDisks > 1) {
+			// cycle disk
+			int currentDisk = driveInfos[idrive].currentDisk;
+			DOS_Drive* oldDisk = driveInfos[idrive].disks[currentDisk];
+			currentDisk = (currentDisk + 1) % numDisks;		
+			DOS_Drive* newDisk = driveInfos[idrive].disks[currentDisk];
+			driveInfos[idrive].currentDisk = currentDisk;
+			
+			// copy working directory, acquire system resources and finally switch to next drive		
+			strcpy(newDisk->curdir, oldDisk->curdir);
+			newDisk->Activate();
+			Drives[idrive] = newDisk;
+			LOG_MSG("Drive %c: disk %d of %d now active", 'A'+idrive, currentDisk+1, numDisks);
+		}
+	}
+}
+
+void DriveManager::CycleAllCDs(void) {
+	for (int idrive=2; idrive<DOS_DRIVES; idrive++) { /* Cycle all CDs in C: D: ... Z: */
 		int numDisks = (int)driveInfos[idrive].disks.size();
 		if (numDisks > 1) {
 			// cycle disk

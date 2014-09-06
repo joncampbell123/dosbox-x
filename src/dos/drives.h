@@ -36,6 +36,7 @@ public:
 //	static void CycleDrive(bool pressed);
 //	static void CycleDisk(bool pressed);
 	static void CycleAllDisks(void);
+	static void CycleAllCDs(void);
 	static void Init(Section* sec);
 	
 	static void SaveState( std::ostream& stream );
