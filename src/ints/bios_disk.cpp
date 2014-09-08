@@ -799,7 +799,7 @@ void BIOS_SetupDisks(void) {
 	mem_writeb(BIOS_HARDDISK_COUNT,2);
 
 	MAPPER_AddHandler(swapInNextDisk,MK_f4,MMOD1,"swapimg","SwapFloppy"); /* Originally "Swap Image" but this version does not swap CDs */
-	MAPPER_AddHandler(swapInNextCD,MK_f5,MMOD1|MMOD2,"swapcd","SwapCD"); /* Variant of "Swap Image" for CDs */
+	MAPPER_AddHandler(swapInNextCD,MK_f3,MMOD1,"swapcd","SwapCD"); /* Variant of "Swap Image" for CDs */
 
 	killRead = false;
 	swapping_requested = false;
