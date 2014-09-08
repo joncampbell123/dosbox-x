@@ -107,6 +107,7 @@ void DOS_ShutdownFiles();
 void FreeBIOSDiskList();
 void GFX_ShutDown(void);
 void MAPPER_Shutdown();
+void SHELL_Init(void);
 #if C_DYNAMIC_X86
 void CPU_Core_Dyn_X86_Shutdown(void);
 #endif
@@ -3638,8 +3639,9 @@ int main(int argc, char* argv[]) {
 		bool reboot_machine = false;
 		bool dos_kernel_shutdown = false;
 
-		/* let all config sections run their INITs */
+		/* start the shell */
 		control->StartUp();
+		SHELL_Init();
 
 		/* main execution. run the DOSBox shell. various exceptions will be thrown. some,
 		 * which have type "int", have special actions. int(2) means to boot a guest OS

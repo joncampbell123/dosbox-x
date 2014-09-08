@@ -79,7 +79,6 @@ public:
 	Section* GetSection(std::string const&_sectionname) const;
 	Section* GetSectionFromProperty(char const * const prop) const;
 
-	void SetStartUp(void (*_function)(void));
 	void Init();
 	void ShutDown();
 	void StartUp();
