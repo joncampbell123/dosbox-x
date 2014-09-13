@@ -1324,6 +1324,34 @@ void IDEATADevice::io_completion() {
 			status = IDE_STATUS_BUSY;
 			PIC_AddEvent(IDE_DelayedCommand,((progress_count == 0 && !faked_command) ? 0.1 : 0.00001)/*ms*/,controller->interface_index);
 			break;
+		case 0xC4:/* READ MULTIPLE */
+			/* OK, decrement count, increment address */
+			/* NTS: Remember that count == 0 means the host wanted to transfer 256 sectors */
+			for (unsigned int cc=0;cc < multiple_sector_count;cc++) {
+				progress_count++;
+				if ((count&0xFF) == 1) {
+					/* end of the transfer */
+					count = 0;
+					status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+					state = IDE_DEV_READY;
+					allow_writing = true;
+					return;
+				}
+				else if ((count&0xFF) == 0) count = 255;
+				else count--;
+
+				if (!increment_current_address()) {
+					LOG_MSG("READ advance error\n");
+					abort_error();
+					return;
+				}
+			}
+
+			/* cause another delay, another sector read */
+			state = IDE_DEV_BUSY;
+			status = IDE_STATUS_BUSY;
+			PIC_AddEvent(IDE_DelayedCommand,0.00001/*ms*/,controller->interface_index);
+			break;
 		default: /* most commands: signal drive ready, return to ready state */
 			/* NTS: Some MS-DOS CD-ROM drivers will loop endlessly if we never set "drive seek complete"
 			        because they like to hit the device with DEVICE RESET (08h) whether or not it's
@@ -2735,6 +2763,75 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 				PIC_AddEvent(IDE_DelayedCommand,0.00001/*ms*/,dev->controller->interface_index);
 				break;
 
+			case 0xC4:/* READ MULTIPLE */
+				disk = ata->getBIOSdisk();
+				if (disk == NULL) {
+					LOG_MSG("ATA READ fail, bios disk N/A\n");
+					ata->abort_error();
+					dev->controller->raise_irq();
+					return;
+				}
+
+				sectcount = ata->count & 0xFF;
+				if (sectcount == 0) sectcount = 256;
+				if (drivehead_is_lba(ata->drivehead)) {
+					/* LBA */
+					sectorn = ((ata->drivehead & 0xF) << 24) | ata->lba[0] |
+						(ata->lba[1] << 8) |
+						(ata->lba[2] << 16);
+				}
+				else {
+					/* C/H/S */
+					if (ata->lba[0] == 0) {
+						LOG_MSG("WARNING C/H/S access mode and sector==0\n");
+						ata->abort_error();
+						dev->controller->raise_irq();
+						return;
+					}
+					else if ((unsigned int)(ata->drivehead & 0xF) >= (unsigned int)ata->heads ||
+						(unsigned int)ata->lba[0] > (unsigned int)ata->sects ||
+						(unsigned int)(ata->lba[1] | (ata->lba[2] << 8)) >= (unsigned int)ata->cyls) {
+						LOG_MSG("C/H/S %u/%u/%u out of bounds %u/%u/%u\n",
+							ata->lba[1] | (ata->lba[2] << 8),
+							ata->drivehead&0xF,
+							ata->lba[0],
+							ata->cyls,
+							ata->heads,
+							ata->sects);
+						ata->abort_error();
+						dev->controller->raise_irq();
+						return;
+					}
+
+					sectorn = ((ata->drivehead & 0xF) * ata->sects) +
+						((ata->lba[1] | (ata->lba[2] << 8)) * ata->sects * ata->heads) +
+						(ata->lba[0] - 1);
+				}
+
+				if ((512*ata->multiple_sector_count) > sizeof(ata->sector))
+					E_Exit("SECTOR OVERFLOW");
+
+				for (unsigned int cc=0;cc < std::min(ata->multiple_sector_count,sectcount);cc++) {
+					/* it would be great if the disk object had a "read multiple sectors" member function */
+					if (disk->Read_AbsoluteSector(sectorn+cc, ata->sector+(cc*512)) != 0) {
+						LOG_MSG("ATA read failed\n");
+						ata->abort_error();
+						dev->controller->raise_irq();
+						return;
+					}
+				}
+
+				/* NTS: the way this command works is that the drive reads ONE sector, then fires the IRQ
+				        and lets the host read it, then reads another sector, fires the IRQ, etc. One
+					IRQ signal per sector. We emulate that here by adding another event to trigger this
+					call unless the sector count has just dwindled to zero, then we let it stop. */
+				/* NTS: The sector advance + count decrement is done in the I/O completion function */
+				dev->state = IDE_DEV_DATA_READ;
+				dev->status = IDE_STATUS_DRQ|IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+				ata->prepare_read(0,512*std::min(ata->multiple_sector_count,sectcount));
+				dev->controller->raise_irq();
+				break;
+
 			case 0xEC:/*IDENTIFY DEVICE (CONTINUED) */
 				dev->state = IDE_DEV_DATA_READ;
 				dev->status = IDE_STATUS_DRQ|IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
@@ -3130,6 +3227,12 @@ void IDEATADevice::writecommand(uint8_t cmd) {
 
 			status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
 			allow_writing = true;
+			break;
+		case 0xC4: /* READ MULTIPLE */
+			progress_count = 0;
+			state = IDE_DEV_BUSY;
+			status = IDE_STATUS_BUSY;
+			PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 0.1)/*ms*/,controller->interface_index);
 			break;
 		case 0xC6: /* SET MULTIPLE MODE */
 			/* only sector counts 1, 2, 4, 8, 16, 32, 64, and 128 are legal by standard.
