@@ -1864,7 +1864,9 @@ void IDEATADevice::generate_identify_device() {
 	for (;i < 40;i++)
 		sector[(i^1)+(27*2)] = ' ';
 
-	host_writew(sector+(47*2),0x80|multiple_sector_max); /* <- READ/WRITE MULTIPLE MAX SECTORS */
+	if (multiple_sector_max != 0)
+		host_writew(sector+(47*2),0x80|multiple_sector_max); /* <- READ/WRITE MULTIPLE MAX SECTORS */
+
 	host_writew(sector+(48*2),0x0000);	/* :0  0=we do not support doubleword (32-bit) PIO */
 	host_writew(sector+(49*2),0x0A00);	/* :13 0=Standby timer values managed by device */
 						/* :11 1=IORDY supported */
@@ -1881,8 +1883,11 @@ void IDEATADevice::generate_identify_device() {
 	host_writew(sector+(55*2),heads);	/* current heads */
 	host_writew(sector+(56*2),sects);	/* current sectors per track */
 	host_writed(sector+(57*2),total);	/* current capacity in sectors */
-	host_writew(sector+(59*2),0x0100|multiple_sector_count); /* :8  multiple sector setting is valid */
+
+	if (multiple_sector_count != 0)
+		host_writew(sector+(59*2),0x0100|multiple_sector_count); /* :8  multiple sector setting is valid */
 						/* 7:0 current setting for number of log. sectors per DRQ of READ/WRITE MULTIPLE */
+
 	host_writed(sector+(60*2),ptotal);	/* total user addressable sectors (LBA) */
 	host_writew(sector+(62*2),0x0000);	/* FIXME: ??? */
 	host_writew(sector+(63*2),0x0000);	/* :10 0=Multiword DMA mode 2 not selected */
