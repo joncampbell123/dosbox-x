@@ -53,6 +53,8 @@ static const unsigned short IDE_default_alts[4] = {
 	0x36E	/* quaternary */
 };
 
+bool fdc_takes_port_3F7();
+
 static void ide_altio_w(Bitu port,Bitu val,Bitu iolen);
 static Bitu ide_altio_r(Bitu port,Bitu iolen);
 static void ide_baseio_w(Bitu port,Bitu val,Bitu iolen);
@@ -3490,8 +3492,15 @@ void IDEController::install_io_port(){
 		WriteHandlerAlt[0].Install(alt_io,ide_altio_w,IO_MA);
 		ReadHandlerAlt[0].Install(alt_io,ide_altio_r,IO_MA);
 
-		WriteHandlerAlt[1].Install(alt_io+1,ide_altio_w,IO_MA);
-		ReadHandlerAlt[1].Install(alt_io+1,ide_altio_r,IO_MA);
+		/* the floppy controller might take port 0x3F7.
+		 * don't claim it if so */
+		if (alt_io == 0x3F6 && fdc_takes_port_3F7()) {
+			LOG_MSG("IDE: Not registering port 3F7h, FDC will occupy it.\n");
+		}
+		else {
+			WriteHandlerAlt[1].Install(alt_io+1,ide_altio_w,IO_MA);
+			ReadHandlerAlt[1].Install(alt_io+1,ide_altio_r,IO_MA);
+		}
 	}
 }
 
@@ -3780,5 +3789,198 @@ void IDE_Septernary_Init(Section *sec) {
 
 void IDE_Octernary_Init(Section *sec) {
 	IDE_Init(sec,7);
+}
+
+/* -------------------- FLOPPY CONTROLLER (TODO MOVE) -------------------- */
+
+#define MAX_FLOPPY_CONTROLLERS 8
+
+static unsigned char init_floppy = 0;
+
+class FloppyController;
+
+class FloppyDevice {
+public:
+	FloppyController *controller;
+public:
+	FloppyDevice(FloppyController *c);
+	virtual ~FloppyDevice();
+};
+
+class FloppyController:public Module_base{
+public:
+	int IRQ;
+	unsigned short base_io;
+	unsigned char interface_index;
+	IO_ReadHandleObject ReadHandler[8];
+	IO_WriteHandleObject WriteHandler[8];
+	bool irq_pending;
+public:
+	FloppyDevice* device[4];	/* Floppy devices */
+public:
+	FloppyController(Section* configuration,unsigned char index);
+	void install_io_port();
+	void raise_irq();
+	void lower_irq();
+	~FloppyController();
+};
+
+static FloppyController* floppycontroller[MAX_FLOPPY_CONTROLLERS]={NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+
+static void fdc_baseio_w(Bitu port,Bitu val,Bitu iolen);
+static Bitu fdc_baseio_r(Bitu port,Bitu iolen);
+
+static void FDC_Destroy(Section* sec) {
+	for (unsigned int i=0;i < MAX_FLOPPY_CONTROLLERS;i++) {
+		if (floppycontroller[i] != NULL) {
+			delete floppycontroller[i];
+			floppycontroller[i] = NULL;
+		}
+	}
+
+	init_floppy = 0;
+}
+
+static void FDC_Init(Section* sec,unsigned char interface) {
+	Section_prop *section=static_cast<Section_prop *>(sec);
+	FloppyController *fdc;
+
+	assert(interface < MAX_FLOPPY_CONTROLLERS);
+
+	if (!section->Get_bool("enable"))
+		return;
+
+	if (!init_floppy) {
+		sec->AddDestroyFunction(&FDC_Destroy);
+		init_floppy = 1;
+	}
+
+	fdc = floppycontroller[interface] = new FloppyController(sec,interface);
+	fdc->install_io_port();
+
+	PIC_SetIRQMask(fdc->IRQ,false);
+}
+
+void FDC_Primary_Init(Section *sec) {
+	FDC_Init(sec,0);
+}
+
+void FDC_Secondary_Init(Section *sec) {
+	FDC_Init(sec,1);
+}
+
+void FDC_Tertiary_Init(Section *sec) {
+	FDC_Init(sec,2);
+}
+
+void FDC_Quaternary_Init(Section *sec) {
+	FDC_Init(sec,3);
+}
+
+void FDC_Quinternary_Init(Section *sec) {
+	FDC_Init(sec,4);
+}
+
+void FDC_Sexternary_Init(Section *sec) {
+	FDC_Init(sec,5);
+}
+
+void FDC_Septernary_Init(Section *sec) {
+	FDC_Init(sec,6);
+}
+
+void FDC_Octernary_Init(Section *sec) {
+	FDC_Init(sec,7);
+}
+
+FloppyController::FloppyController(Section* configuration,unsigned char index):Module_base(configuration){
+	Section_prop * section=static_cast<Section_prop *>(configuration);
+	int i;
+
+	device[0] = NULL;
+	device[1] = NULL;
+	device[2] = NULL;
+	device[3] = NULL;
+	base_io = 0;
+	IRQ = -1;
+
+	i = section->Get_int("irq");
+	if (i > 0 && i <= 15) IRQ = i;
+
+	i = section->Get_hex("io");
+	if (i >= 0x100 && i <= 0x3FF) base_io = i & ~7;
+
+	if (IRQ < 0) IRQ = 6;
+
+	if (base_io == 0) {
+		if (index == 0) base_io = 0x3F0;
+	}
+	else if (base_io == 1) {
+		if (index == 0) base_io = 0x370;
+	}
+}
+
+void FloppyController::install_io_port(){
+	unsigned int i;
+
+	if (base_io != 0) {
+		LOG_MSG("FDC installing to io=%03xh IRQ=%d\n",base_io,IRQ);
+		for (i=0;i < 8;i++) {
+			if (i != 6) { /* does not use port 0x3F6 */
+				WriteHandler[i].Install(base_io+i,fdc_baseio_w,IO_MA);
+				ReadHandler[i].Install(base_io+i,fdc_baseio_r,IO_MA);
+			}
+		}
+	}
+}
+
+FloppyController::~FloppyController() {
+	unsigned int i;
+
+	for (i=0;i < 4;i++) {
+		if (device[i] != NULL) {
+			delete device[i];
+			device[i] = NULL;
+		}
+	}
+}
+
+FloppyController *match_fdc_controller(Bitu port) {
+	unsigned int i;
+
+	for (i=0;i < MAX_FLOPPY_CONTROLLERS;i++) {
+		FloppyController *fdc = floppycontroller[i];
+		if (fdc == NULL) continue;
+		if (fdc->base_io != 0U && fdc->base_io == (port&0xFFF8U)) return fdc;
+	}
+
+	return NULL;
+}
+
+/* IDE code needs to know if port 3F7 will be taken by FDC emulation */
+bool fdc_takes_port_3F7() {
+	return (match_fdc_controller(0x3F7) != NULL);
+}
+
+static void fdc_baseio_w(Bitu port,Bitu val,Bitu iolen) {
+	FloppyController *fdc = match_fdc_controller(port);
+	if (fdc == NULL) {
+		LOG_MSG("WARNING: port read from I/O port not registered to FDC, yet callback triggered\n");
+		return;
+	}
+
+	LOG_MSG("DEBUG: FDC write port %03xh val %02xh len=%u\n",port,val,iolen);
+}
+
+static Bitu fdc_baseio_r(Bitu port,Bitu iolen) {
+	FloppyController *fdc = match_fdc_controller(port);
+
+	if (fdc == NULL) {
+		LOG_MSG("WARNING: port read from I/O port not registered to FDC, yet callback triggered\n");
+		return ~(0UL);
+	}
+
+	LOG_MSG("DEBUG: FDC read port %03xh len=%u\n",port,iolen);
+	return ~(0UL);
 }
 

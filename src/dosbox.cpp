@@ -1798,10 +1798,8 @@ void DOSBOX_Init(void) {
 	for (size_t i=0;i < 8;i++) {
 		secprop=control->AddSection_prop(fdc_names[i],fdc_inits[i],false);//done
 
-		/* Primary and Secondary are on by default, Teritary and Quaternary are off by default.
-		 * Throughout the life of the IDE interface it was far more common for a PC to have just
-		 * a Primary and Secondary interface */
-		Pbool = secprop->Add_bool("enable",Property::Changeable::OnlyAtStart,(i < 2) ? true : false);
+		/* Primary FDC on by default, secondary is not. Most PCs have only one floppy controller. */
+		Pbool = secprop->Add_bool("enable",Property::Changeable::OnlyAtStart,(i == 0) ? true : false);
 		if (i == 0) Pbool->Set_help("Enable floppy controller interface");
 
 		Pbool = secprop->Add_bool("pnp",Property::Changeable::OnlyAtStart,true);
