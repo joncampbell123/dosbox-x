@@ -3827,6 +3827,7 @@ public:
 	bool irq_pending;
 /* FDC internal registers */
 	uint8_t ST[4];			/* ST0..ST3 */
+	uint8_t current_cylinder;
 /* buffers */
 	uint8_t in_cmd[16];
 	uint8_t in_cmd_len;
@@ -3847,6 +3848,7 @@ public:
 	void fdc_data_write(uint8_t b);
 	void prepare_res_phase(uint8_t len);
 	void invalid_command_code();
+	void on_fdc_in_command();
 	void on_reset();
 public:
 	FloppyDevice* device[4];	/* Floppy devices */
@@ -3864,6 +3866,7 @@ static void fdc_baseio_w(Bitu port,Bitu val,Bitu iolen);
 static Bitu fdc_baseio_r(Bitu port,Bitu iolen);
 
 void FloppyController::on_reset() {
+	current_cylinder = 0;
 	reset_io();
 }
 
@@ -4137,6 +4140,52 @@ uint8_t FloppyController::fdc_data_read() {
 	return 0xFF;
 }
 
+void FloppyController::on_fdc_in_command() {
+	in_cmd_state = false;
+
+	LOG_MSG("FDC: Command len=%u %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
+		in_cmd_len,
+		in_cmd[0],in_cmd[1],in_cmd[2],in_cmd[3],in_cmd[4],
+		in_cmd[5],in_cmd[6],in_cmd[7],in_cmd[8],in_cmd[9]);
+
+	switch (in_cmd[0]&0x1F) {
+		case 0x04: /* Check Drive Status */
+			/*     |   7    6    5    4    3    2    1    0
+			 * ----+------------------------------------------
+			 *   0 |               Register ST3
+			 * -----------------------------------------------
+			 *   1     total
+			 */
+			reset_res();
+			prepare_res_phase(1);
+			out_res[0] = ST[3];
+			break;
+		case 0x07: /* Calibrate drive */
+			/* move head to track 0 */
+			current_cylinder = 0;
+			/* no result phase */
+			reset_io();
+			break;
+		case 0x08: /* Check Interrupt Status */
+			/*     |   7    6    5    4    3    2    1    0
+			 * ----+------------------------------------------
+			 *   0 |               Register ST0
+			 *   1 |              Current Cylinder
+			 * -----------------------------------------------
+			 *   2     total
+			 */
+			reset_res();
+			prepare_res_phase(2);
+			out_res[0] = ST[0];
+			out_res[1] = current_cylinder;
+			break;
+		default:
+			LOG_MSG("FDC: Unknown command %02xh (somehow passed first check)\n",in_cmd[0]);
+			reset_io();
+			break;
+	};
+}
+
 void FloppyController::fdc_data_write(uint8_t b) {
 	if (!busy_status) {
 		/* we're starting another command */
@@ -4159,37 +4208,40 @@ void FloppyController::fdc_data_write(uint8_t b) {
 				 */
 				in_cmd_len = 2;
 				break;
+			case 0x07: /* Calibrate drive (move head to track 0) */
+				/*     |   7    6    5    4    3    2    1    0
+				 * ----+------------------------------------------
+				 *   0 |   0    0    0    0    0    1    1    1
+				 *   1 |   x    x    x    x    x    0  DR1  DR0
+				 * -----------------------------------------------
+				 *   2     total
+				 */
+				in_cmd_len = 2;
+				break;
+			case 0x08: /* Check Interrupt Status */
+				/*     |   7    6    5    4    3    2    1    0
+				 * ----+------------------------------------------
+				 *   0 |   0    0    0    0    1    0    0    0
+				 * -----------------------------------------------
+				 *   1     total
+				 */
+				break;
 			default:
 				LOG_MSG("FDC: Unknown command (first byte %02xh)\n",in_cmd[0]);
 				/* give Invalid Command Code 0x80 as response */
 				invalid_command_code();
 				break;
 		};
+
+		if (in_cmd_state && in_cmd_pos >= in_cmd_len)
+			on_fdc_in_command();
 	}
 	else if (in_cmd_state) {
 		if (in_cmd_pos < in_cmd_len)
 			in_cmd[in_cmd_pos++] = b;
 
-		if (in_cmd_pos >= in_cmd_len) {
-			in_cmd_state = false;
-
-			switch (in_cmd[0]&0x1F) {
-				case 0x04: /* Check Drive Status */
-					/*     |   7    6    5    4    3    2    1    0
-					 * ----+------------------------------------------
-					 *   0 |               Register ST3
-					 * -----------------------------------------------
-					 *   1     total
-					 */
-					reset_res();
-					prepare_res_phase(1);
-					out_res[0] = ST[3];
-					break;
-				default:
-					LOG_MSG("FDC: Unknown command %02xh (somehow passed first check)\n",in_cmd[0]);
-					break;
-			};
-		}
+		if (in_cmd_pos >= in_cmd_len)
+			on_fdc_in_command();
 	}
 	else {
 		LOG_MSG("FDC: Unknown state!\n");
