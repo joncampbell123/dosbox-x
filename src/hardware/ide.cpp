@@ -4186,6 +4186,14 @@ void FloppyController::on_fdc_in_command() {
 			out_res[0] = ST[0];
 			out_res[1] = current_cylinder;
 			break;
+		case 0x0F: /* Seek Head */
+			/* move head to whatever track was wanted */
+			current_cylinder = in_cmd[2]; /* from 3rd byte of command */
+			/* fire IRQ */
+			raise_irq();
+			/* no result phase */
+			reset_io();
+			break;
 		default:
 			LOG_MSG("FDC: Unknown command %02xh (somehow passed first check)\n",in_cmd[0]);
 			reset_io();
@@ -4232,6 +4240,25 @@ void FloppyController::fdc_data_write(uint8_t b) {
 				 * -----------------------------------------------
 				 *   1     total
 				 */
+				break;
+			case 0x0F: /* Seek Head */
+				/*     |   7    6    5    4    3    2    1    0
+				 * ----+------------------------------------------
+				 *   0 |   0    0    0    0    1    1    1    1
+				 *   1 |   x    x    x    x    x   HD  DR1  DR0
+				 *   2 |                Cylinder
+				 * -----------------------------------------------
+				 *   3     total
+				 */
+				if (in_cmd[0]&0x80) { /* Reject Seek Relative (1xfh) most FDC's I've tested don't support it */
+					LOG_MSG("FDC: Seek Relative not supported\n");
+					/* give Invalid Command Code 0x80 as response */
+					invalid_command_code();
+					reset_cmd();
+				}
+				else {
+					in_cmd_len = 3;
+				}
 				break;
 			default:
 				LOG_MSG("FDC: Unknown command (first byte %02xh)\n",in_cmd[0]);
