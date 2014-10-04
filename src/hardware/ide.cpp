@@ -3847,6 +3847,7 @@ public:
 	uint8_t fdc_data_read();
 	void fdc_data_write(uint8_t b);
 	void prepare_res_phase(uint8_t len);
+	void on_dor_change(unsigned char b);
 	void invalid_command_code();
 	void on_fdc_in_command();
 	void on_reset();
@@ -4061,20 +4062,20 @@ FloppyController *match_fdc_controller(Bitu port) {
 }
 
 /* when DOR port is written */
-void on_fdc_dor_change(FloppyController *fdc,unsigned char b) {
-	unsigned char chg = b ^ fdc->digital_output_register;
+void FloppyController::on_dor_change(unsigned char b) {
+	unsigned char chg = b ^ digital_output_register;
 	unsigned int i;
 
 	/* !RESET line */
 	if (chg & 0x04) {
 		if (!(b&0x04)) { /* if bit 2 == 0 s/w is resetting the controller */
 			LOG_MSG("FDC: Reset\n");
-			fdc->on_reset();
+			on_reset();
 		}
 		else {
 			LOG_MSG("FDC: Reset complete\n");
 			/* resetting the FDC on real hardware apparently fires another IRQ */
-			fdc->raise_irq();
+			raise_irq();
 		}
 	}
 
@@ -4082,13 +4083,13 @@ void on_fdc_dor_change(FloppyController *fdc,unsigned char b) {
 	if (chg & 0x03) {
 		int o,n;
 
-		o = fdc->drive_selected();
+		o = drive_selected();
 		n = b & 3;
 		if (o >= 0) {
 			LOG_MSG("FDC: Drive select from %c to %c\n",o+'A',n+'A');
-			if (fdc->device[o] != NULL) fdc->device[o]->set_select(false);
-			if (fdc->device[n] != NULL) fdc->device[n]->set_select(true);
-			fdc->update_ST3();
+			if (device[o] != NULL) device[o]->set_select(false);
+			if (device[n] != NULL) device[n]->set_select(true);
+			update_ST3();
 		}
 	}
 
@@ -4098,11 +4099,11 @@ void on_fdc_dor_change(FloppyController *fdc,unsigned char b) {
 			(b>>7)&1,(b>>6)&1,(b>>5)&1,(b>>4)&1);
 
 		for (i=0;i < 4;i++) {
-			if (fdc->device[i] != NULL) fdc->device[i]->set_motor((chg&(0x10<<i))?true:false);
+			if (device[i] != NULL) device[i]->set_motor((chg&(0x10<<i))?true:false);
 		}
 	}
 
-	fdc->digital_output_register = b;
+	digital_output_register = b;
 }
 
 /* IDE code needs to know if port 3F7 will be taken by FDC emulation */
@@ -4269,7 +4270,7 @@ static void fdc_baseio_w(Bitu port,Bitu val,Bitu iolen) {
 
 	switch (port&7) {
 		case 2: /* digital output port */
-			on_fdc_dor_change(fdc,val&0xFF);
+			fdc->on_dor_change(val&0xFF);
 			break;
 		case 5: /* data */
 			if (!fdc->data_register_ready) {
