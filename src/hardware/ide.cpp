@@ -3868,6 +3868,7 @@ static Bitu fdc_baseio_r(Bitu port,Bitu iolen);
 void FloppyController::on_reset() {
 	current_cylinder = 0;
 	reset_io();
+	lower_irq();
 }
 
 FloppyDevice::~FloppyDevice() {
@@ -4072,6 +4073,8 @@ void on_fdc_dor_change(FloppyController *fdc,unsigned char b) {
 		}
 		else {
 			LOG_MSG("FDC: Reset complete\n");
+			/* resetting the FDC on real hardware apparently fires another IRQ */
+			fdc->raise_irq();
 		}
 	}
 
@@ -4163,6 +4166,8 @@ void FloppyController::on_fdc_in_command() {
 		case 0x07: /* Calibrate drive */
 			/* move head to track 0 */
 			current_cylinder = 0;
+			/* fire IRQ */
+			raise_irq();
 			/* no result phase */
 			reset_io();
 			break;
@@ -4174,6 +4179,7 @@ void FloppyController::on_fdc_in_command() {
 			 * -----------------------------------------------
 			 *   2     total
 			 */
+			lower_irq(); /* doesn't cause IRQ, clears IRQ */
 			reset_res();
 			prepare_res_phase(2);
 			out_res[0] = ST[0];
@@ -4321,5 +4327,17 @@ static Bitu fdc_baseio_r(Bitu port,Bitu iolen) {
 	};
 
 	return ~(0UL);
+}
+
+void FloppyController::raise_irq() {
+	if (dma_irq_enabled()) {
+		irq_pending = true;
+		if (IRQ >= 0) PIC_ActivateIRQ(IRQ);
+	}
+}
+
+void FloppyController::lower_irq() {
+	irq_pending = false;
+	if (IRQ >= 0) PIC_DeActivateIRQ(IRQ);
 }
 
