@@ -4230,6 +4230,7 @@ void FloppyController::fdc_data_write(uint8_t b) {
 				LOG_MSG("FDC: Unknown command (first byte %02xh)\n",in_cmd[0]);
 				/* give Invalid Command Code 0x80 as response */
 				invalid_command_code();
+				reset_cmd();
 				break;
 		};
 
