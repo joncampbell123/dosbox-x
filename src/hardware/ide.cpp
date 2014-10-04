@@ -3803,6 +3803,8 @@ class FloppyDevice {
 public:
 	FloppyController *controller;
 public:
+	bool select,motor;
+public:
 	FloppyDevice(FloppyController *c);
 	void set_select(bool enable);	/* set selection on/off */
 	void set_motor(bool enable);	/* set motor on/off */
@@ -3864,10 +3866,19 @@ void FloppyController::on_reset() {
 	reset_io();
 }
 
+FloppyDevice::~FloppyDevice() {
+}
+
+FloppyDevice::FloppyDevice(FloppyController *c) {
+	motor = select = false;
+}
+
 void FloppyDevice::set_select(bool enable) {
+	select = enable;
 }
 
 void FloppyDevice::set_motor(bool enable) {
+	motor = enable;
 }
 
 int FloppyController::drive_selected() {
