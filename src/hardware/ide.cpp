@@ -3804,6 +3804,8 @@ public:
 	FloppyController *controller;
 public:
 	FloppyDevice(FloppyController *c);
+	void set_select(bool enable);	/* set selection on/off */
+	void set_motor(bool enable);	/* set motor on/off */
 	virtual ~FloppyDevice();
 };
 
@@ -3814,7 +3816,35 @@ public:
 	unsigned char interface_index;
 	IO_ReadHandleObject ReadHandler[8];
 	IO_WriteHandleObject WriteHandler[8];
+	uint8_t digital_output_register;
+	bool data_register_ready;	/* 0x3F4 bit 7 */
+	bool data_read_expected;	/* 0x3F4 bit 6 (DIO) if set CPU is expected to read from the controller */
+	bool non_dma_mode;		/* 0x3F4 bit 5 (NDMA) */
+	bool busy_status;		/* 0x3F4 bit 4 (BUSY). By "busy" the floppy controller is in the middle of an instruction */
+	bool positioning[4];		/* 0x3F4 bit 0-3 floppy A...D in positioning mode */
 	bool irq_pending;
+/* FDC internal registers */
+	uint8_t ST[4];			/* ST0..ST3 */
+/* buffers */
+	uint8_t in_cmd[16];
+	uint8_t in_cmd_len;
+	uint8_t in_cmd_pos;
+	uint8_t out_res[16];
+	uint8_t out_res_len;
+	uint8_t out_res_pos;
+	bool in_cmd_state;
+	bool out_res_state;
+public:
+	bool dma_irq_enabled();
+	int drive_selected();
+	void reset_cmd();
+	void reset_res();
+	void reset_io();
+	uint8_t fdc_data_read();
+	void fdc_data_write(uint8_t b);
+	void prepare_res_phase(uint8_t len);
+	void invalid_command_code();
+	void on_reset();
 public:
 	FloppyDevice* device[4];	/* Floppy devices */
 public:
@@ -3829,6 +3859,24 @@ static FloppyController* floppycontroller[MAX_FLOPPY_CONTROLLERS]={NULL,NULL,NUL
 
 static void fdc_baseio_w(Bitu port,Bitu val,Bitu iolen);
 static Bitu fdc_baseio_r(Bitu port,Bitu iolen);
+
+void FloppyController::on_reset() {
+	reset_io();
+}
+
+void FloppyDevice::set_select(bool enable) {
+}
+
+void FloppyDevice::set_motor(bool enable) {
+}
+
+int FloppyController::drive_selected() {
+	return (digital_output_register & 3);
+}
+
+bool FloppyController::dma_irq_enabled() {
+	return (digital_output_register & 0x08); /* bit 3 of DOR controls DMA/IRQ enable */
+}
 
 static void FDC_Destroy(Section* sec) {
 	for (unsigned int i=0;i < MAX_FLOPPY_CONTROLLERS;i++) {
@@ -3893,10 +3941,38 @@ void FDC_Octernary_Init(Section *sec) {
 	FDC_Init(sec,7);
 }
 
+void FloppyController::reset_io() {
+	reset_cmd();
+	reset_res();
+	busy_status=0;
+	data_read_expected=0;
+}
+
+void FloppyController::reset_cmd() {
+	in_cmd_len=0;
+	in_cmd_pos=0;
+	in_cmd_state=false;
+}
+
+void FloppyController::reset_res() {
+	out_res_len=0;
+	out_res_pos=0;
+	out_res_state=false;
+}
+
 FloppyController::FloppyController(Section* configuration,unsigned char index):Module_base(configuration){
 	Section_prop * section=static_cast<Section_prop *>(configuration);
 	int i;
 
+	data_register_ready = 1;
+	data_read_expected = 0;
+	non_dma_mode = 0;
+	busy_status = 0;
+	for (i=0;i < 4;i++) positioning[i] = false;
+	for (i=0;i < 4;i++) ST[i] = 0x00;
+	reset_io();
+
+	digital_output_register = 0;
 	device[0] = NULL;
 	device[1] = NULL;
 	device[2] = NULL;
@@ -3957,9 +4033,105 @@ FloppyController *match_fdc_controller(Bitu port) {
 	return NULL;
 }
 
+/* when DOR port is written */
+void on_fdc_dor_change(FloppyController *fdc,unsigned char b) {
+	unsigned char chg = b ^ fdc->digital_output_register;
+	unsigned int i;
+
+	/* !RESET line */
+	if (chg & 0x04) {
+		if (!(b&0x04)) { /* if bit 2 == 0 s/w is resetting the controller */
+			LOG_MSG("FDC: Reset\n");
+			fdc->on_reset();
+		}
+		else {
+			LOG_MSG("FDC: Reset complete\n");
+		}
+	}
+
+	/* drive select */
+	if (chg & 0x03) {
+		int o,n;
+
+		o = fdc->drive_selected();
+		n = b & 3;
+		if (o >= 0) {
+			LOG_MSG("FDC: Drive select from %c to %c\n",o+'A',n+'A');
+			if (fdc->device[o] != NULL) fdc->device[o]->set_select(false);
+			if (fdc->device[n] != NULL) fdc->device[n]->set_select(true);
+		}
+	}
+
+	/* drive motors */
+	if (chg & 0xF0) {
+		LOG_MSG("FDC: Motor control {A,B,C,D} = {%u,%u,%u,%u}\n",
+			(b>>7)&1,(b>>6)&1,(b>>5)&1,(b>>4)&1);
+
+		for (i=0;i < 4;i++) {
+			if (fdc->device[i] != NULL) fdc->device[i]->set_motor((chg&(0x10<<i))?true:false);
+		}
+	}
+
+	fdc->digital_output_register = b;
+}
+
 /* IDE code needs to know if port 3F7 will be taken by FDC emulation */
 bool fdc_takes_port_3F7() {
 	return (match_fdc_controller(0x3F7) != NULL);
+}
+
+void FloppyController::prepare_res_phase(uint8_t len) {
+	data_read_expected = 1;
+	out_res_pos = 0;
+	out_res_len = len;
+	out_res_state = true;
+}
+
+void FloppyController::invalid_command_code() {
+	reset_res();
+	prepare_res_phase(1);
+	out_res[0] = 0x80;
+}
+
+uint8_t FloppyController::fdc_data_read() {
+	if (busy_status) {
+		if (out_res_state) {
+			if (out_res_pos < out_res_len) {
+				uint8_t b = out_res[out_res_pos++];
+				if (out_res_pos >= out_res_len) reset_io();
+				return b;
+			}
+			else {
+				reset_io();
+			}
+		}
+		else {
+			reset_io();
+		}
+	}
+
+	return 0xFF;
+}
+
+void FloppyController::fdc_data_write(uint8_t b) {
+	if (!busy_status) {
+		/* we're starting another command */
+		reset_io();
+		in_cmd[0] = b;
+		in_cmd_len = 1;
+		in_cmd_pos = 1;
+		busy_status = true;
+		in_cmd_state = true;
+
+		/* right away.. how long is the command going to be? */
+		switch (in_cmd[0]&0x1F) {
+			default:
+				LOG_MSG("FDC: Unknown command (first byte %02xh)\n",in_cmd[0]);
+				/* give Invalid Command Code 0x80 as response */
+				invalid_command_code();
+				break;
+		};
+	}
 }
 
 static void fdc_baseio_w(Bitu port,Bitu val,Bitu iolen) {
@@ -3969,7 +4141,29 @@ static void fdc_baseio_w(Bitu port,Bitu val,Bitu iolen) {
 		return;
 	}
 
-	LOG_MSG("DEBUG: FDC write port %03xh val %02xh len=%u\n",port,val,iolen);
+	if (iolen > 1) {
+		LOG_MSG("WARNING: FDC unusual port write %03xh val=%02xh len=%u, port I/O should be 8-bit\n",port,val,iolen);
+	}
+
+	switch (port&7) {
+		case 2: /* digital output port */
+			on_fdc_dor_change(fdc,val&0xFF);
+			break;
+		case 5: /* data */
+			if (!fdc->data_register_ready) {
+				LOG_MSG("WARNING: FDC data write when data port not ready\n");
+			}
+			else if (fdc->data_read_expected) {
+				LOG_MSG("WARNING: FDC data write when data port ready but expecting I/O read\n");
+			}
+			else {
+				fdc->fdc_data_write(val&0xFF);
+			}
+			break;
+		default:
+			LOG_MSG("DEBUG: FDC write port %03xh val %02xh len=%u\n",port,val,iolen);
+			break;
+	};
 }
 
 static Bitu fdc_baseio_r(Bitu port,Bitu iolen) {
@@ -3980,7 +4174,36 @@ static Bitu fdc_baseio_r(Bitu port,Bitu iolen) {
 		return ~(0UL);
 	}
 
-	LOG_MSG("DEBUG: FDC read port %03xh len=%u\n",port,iolen);
+	if (iolen > 1) {
+		LOG_MSG("WARNING: FDC unusual port read %03xh len=%u, port I/O should be 8-bit\n",port,iolen);
+	}
+
+	switch (port&7) {
+		case 4: /* main status */
+			return	(fdc->data_register_ready ? 0x80 : 0x00) +
+				(fdc->data_read_expected ? 0x40 : 0x00) +
+				(fdc->non_dma_mode ? 0x20 : 0x00) +
+				(fdc->busy_status ? 0x10 : 0x00) +
+				(fdc->positioning[3] ? 0x08 : 0x00) +
+				(fdc->positioning[2] ? 0x04 : 0x00) +
+				(fdc->positioning[1] ? 0x02 : 0x00) +
+				(fdc->positioning[0] ? 0x01 : 0x00);
+		case 5: /* data */
+			if (!fdc->data_register_ready) {
+				LOG_MSG("WARNING: FDC data read when data port not ready\n");
+				return ~(0UL);
+			}
+			else if (!fdc->data_read_expected) {
+				LOG_MSG("WARNING: FDC data read when data port ready but expecting I/O write\n");
+				return ~(0UL);
+			}
+
+			return fdc->fdc_data_read();
+		default:
+			LOG_MSG("DEBUG: FDC read port %03xh len=%u\n",port,iolen);
+			break;
+	};
+
 	return ~(0UL);
 }
 
