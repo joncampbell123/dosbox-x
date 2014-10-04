@@ -3842,6 +3842,7 @@ public:
 	void reset_cmd();
 	void reset_res();
 	void reset_io();
+	void update_ST3();
 	uint8_t fdc_data_read();
 	void fdc_data_write(uint8_t b);
 	void prepare_res_phase(uint8_t len);
@@ -3952,6 +3953,15 @@ void FDC_Octernary_Init(Section *sec) {
 	FDC_Init(sec,7);
 }
 
+void FloppyController::update_ST3() {
+	/* FIXME: Should assemble bits from FloppyDevice objects and their boolean "signal" variables */
+	ST[3] =
+		0x20/*RDY*/ +
+		0x10/*TRACK 0 [FIXME] */+
+		0x08/*DOUBLE-SIDED SIGNAL*/+
+		(drive_selected()&3);/*DRIVE SELECT*/
+}
+
 void FloppyController::reset_io() {
 	reset_cmd();
 	reset_res();
@@ -3990,6 +4000,8 @@ FloppyController::FloppyController(Section* configuration,unsigned char index):M
 	device[3] = NULL;
 	base_io = 0;
 	IRQ = -1;
+
+	update_ST3();
 
 	i = section->Get_int("irq");
 	if (i > 0 && i <= 15) IRQ = i;
@@ -4070,6 +4082,7 @@ void on_fdc_dor_change(FloppyController *fdc,unsigned char b) {
 			LOG_MSG("FDC: Drive select from %c to %c\n",o+'A',n+'A');
 			if (fdc->device[o] != NULL) fdc->device[o]->set_select(false);
 			if (fdc->device[n] != NULL) fdc->device[n]->set_select(true);
+			fdc->update_ST3();
 		}
 	}
 
@@ -4136,12 +4149,51 @@ void FloppyController::fdc_data_write(uint8_t b) {
 
 		/* right away.. how long is the command going to be? */
 		switch (in_cmd[0]&0x1F) {
+			case 0x04: /* Check Drive Status */
+				/*     |   7    6    5    4    3    2    1    0
+				 * ----+------------------------------------------
+				 *   0 |   0    0    0    0    0    1    0    0
+				 *   1 |   x    x    x    x    x   HD  DR1  DR0
+				 * -----------------------------------------------
+				 *   2     total
+				 */
+				in_cmd_len = 2;
+				break;
 			default:
 				LOG_MSG("FDC: Unknown command (first byte %02xh)\n",in_cmd[0]);
 				/* give Invalid Command Code 0x80 as response */
 				invalid_command_code();
 				break;
 		};
+	}
+	else if (in_cmd_state) {
+		if (in_cmd_pos < in_cmd_len)
+			in_cmd[in_cmd_pos++] = b;
+
+		if (in_cmd_pos >= in_cmd_len) {
+			in_cmd_state = false;
+
+			switch (in_cmd[0]&0x1F) {
+				case 0x04: /* Check Drive Status */
+					/*     |   7    6    5    4    3    2    1    0
+					 * ----+------------------------------------------
+					 *   0 |               Register ST3
+					 * -----------------------------------------------
+					 *   1     total
+					 */
+					reset_res();
+					prepare_res_phase(1);
+					out_res[0] = ST[3];
+					break;
+				default:
+					LOG_MSG("FDC: Unknown command %02xh (somehow passed first check)\n",in_cmd[0]);
+					break;
+			};
+		}
+	}
+	else {
+		LOG_MSG("FDC: Unknown state!\n");
+		on_reset();
 	}
 }
 
