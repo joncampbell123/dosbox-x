@@ -4135,7 +4135,7 @@ void FloppyController::prepare_res_phase(uint8_t len) {
 void FloppyController::invalid_command_code() {
 	reset_res();
 	prepare_res_phase(1);
-	out_res[0] = 0x80;
+	out_res[0] = ST[0] = 0x80;
 }
 
 uint8_t FloppyController::fdc_data_read() {
@@ -4177,8 +4177,10 @@ void FloppyController::on_fdc_in_command() {
 			reset_res();
 			prepare_res_phase(1);
 			out_res[0] = ST[3];
+			ST[0] = 0x00 | drive_selected();
 			break;
 		case 0x07: /* Calibrate drive */
+			ST[0] = 0x20 | drive_selected();
 			/* move head to track 0 */
 			current_cylinder = 0;
 			/* fire IRQ */
@@ -4201,6 +4203,7 @@ void FloppyController::on_fdc_in_command() {
 			out_res[1] = current_cylinder;
 			break;
 		case 0x0F: /* Seek Head */
+			ST[0] = 0x00 | drive_selected();
 			/* move head to whatever track was wanted */
 			current_cylinder = in_cmd[2]; /* from 3rd byte of command */
 			/* fire IRQ */
