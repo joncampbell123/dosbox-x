@@ -391,7 +391,7 @@ static Bit8u * VGA_Draw_Xlat32_VGA_CRTC_bmode_Line(Bitu vidstart, Bitu /*line*/)
 
 	/* *sigh* it looks like DOSBox's VGA scanline code will pass nonzero bits 0-1 in vidstart */
 	poff += vidstart & 3;
-	vidstart &= ~15; /* NTS: Before you say "WTF?" look at how VGA chain-4 emulation computes vidstart */
+	vidstart &= ~3;
 
 	/* hack for Surprise! productions "copper" demo.
 	 * when the demo talks about making the picture waver, what it's doing is diddling
