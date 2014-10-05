@@ -389,6 +389,10 @@ static Bit8u * VGA_Draw_Xlat32_VGA_CRTC_bmode_Line(Bitu vidstart, Bitu /*line*/)
 
 	skip = 4 << vga.config.addr_shift;
 
+	/* *sigh* it looks like DOSBox's VGA scanline code will pass nonzero bits 0-1 in vidstart */
+	poff += vidstart & 3;
+	vidstart &= ~15; /* NTS: Before you say "WTF?" look at how VGA chain-4 emulation computes vidstart */
+
 	/* hack for Surprise! productions "copper" demo.
 	 * when the demo talks about making the picture waver, what it's doing is diddling
 	 * with the Start Horizontal Retrace register of the CRTC once per scanline.
@@ -413,10 +417,10 @@ static Bit8u * VGA_Draw_Xlat32_VGA_CRTC_bmode_Line(Bitu vidstart, Bitu /*line*/)
 		int x = (int)floor(hretrace_fx_avg + 0.5);
 
 		vidstart += skip * (x >> 2);
-		poff = x & 3;
+		poff += x & 3;
 	}
 
-	for(Bitu i = 0; i < (vga.draw.line_length>>(2/*32bpp*/+2/*4 pixels*/)); i++) {
+	for(Bitu i = 0; i < ((vga.draw.line_length>>(2/*32bpp*/+2/*4 pixels*/))+((poff+3)>>2)); i++) {
 		Bit8u *ret = &vga.draw.linear_base[ vidstart & vga.draw.linear_mask ];
 
 		/* one group of 4 */
