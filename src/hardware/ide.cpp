@@ -3819,6 +3819,7 @@ public:
 	IO_ReadHandleObject ReadHandler[8];
 	IO_WriteHandleObject WriteHandler[8];
 	uint8_t digital_output_register;
+	bool int13fakev86io;		/* on certain INT 13h calls in virtual 8086 mode, trigger fake CPU I/O traps */
 	bool data_register_ready;	/* 0x3F4 bit 7 */
 	bool data_read_expected;	/* 0x3F4 bit 6 (DIO) if set CPU is expected to read from the controller */
 	bool non_dma_mode;		/* 0x3F4 bit 5 (NDMA) */
@@ -4007,6 +4008,8 @@ FloppyController::FloppyController(Section* configuration,unsigned char index):M
 	IRQ = -1;
 
 	update_ST3();
+
+	int13fakev86io = section->Get_bool("int13fakev86io");
 
 	i = section->Get_int("irq");
 	if (i > 0 && i <= 15) IRQ = i;
