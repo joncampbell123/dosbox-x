@@ -1805,16 +1805,21 @@ void DOSBOX_Init(void) {
 		Pbool = secprop->Add_bool("pnp",Property::Changeable::OnlyAtStart,true);
 		if (i == 0) Pbool->Set_help("List floppy controller in ISA PnP BIOS enumeration");
 
-		Pint = secprop->Add_int("irq",Property::Changeable::WhenIdle,0/*use IDE default*/);
+		Pint = secprop->Add_int("irq",Property::Changeable::WhenIdle,0/*use FDC default*/);
 		if (i == 0) Pint->Set_help("IRQ used by floppy controller. Set to 0 for default.\n"
 				"WARNING: Setting the IRQ to non-standard values will not work unless the guest OS is using the ISA PnP BIOS to detect the floppy controller.\n"
 				"         Setting the IRQ to one already occupied by another device or IDE controller will trigger \"resource conflict\" errors in Windows 95.\n"
 				"         Normally, floppy controllers use IRQ 6.");
 
-		Phex = secprop->Add_hex("io",Property::Changeable::WhenIdle,0/*use IDE default*/);
-		if (i == 0) Pint->Set_help("Base I/O port for floppy controller. Set to 0 for default.\n"
+		Phex = secprop->Add_hex("io",Property::Changeable::WhenIdle,0/*use FDC default*/);
+		if (i == 0) Phex->Set_help("Base I/O port for floppy controller. Set to 0 for default.\n"
 				"WARNING: Setting the I/O port to non-standard values will not work unless the guest OS is using the ISA PnP BIOS to detect the IDE controller.\n"
 				"         Standard I/O ports are 3F0 and 370.");
+
+		Pint = secprop->Add_int("dma",Property::Changeable::WhenIdle,-1/*use FDC default*/);
+		if (i == 0) Pint->Set_help("DMA channel for floppy controller. Set to -1 for default.\n"
+				"WARNING: Setting the DMA channel to non-standard values will not work unless the guest OS is using the ISA PnP BIOS to detect the IDE controller.\n"
+				"         Standard DMA channel is 1.");
 
 		Pbool = secprop->Add_bool("int13fakev86io",Property::Changeable::WhenIdle,false);
 		if (i == 0) Pbool->Set_help(

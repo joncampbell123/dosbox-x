@@ -3814,6 +3814,7 @@ public:
 class FloppyController:public Module_base{
 public:
 	int IRQ;
+	int DMA;
 	unsigned short base_io;
 	unsigned char interface_index;
 	IO_ReadHandleObject ReadHandler[8];
@@ -4006,6 +4007,7 @@ FloppyController::FloppyController(Section* configuration,unsigned char index):M
 	device[3] = NULL;
 	base_io = 0;
 	IRQ = -1;
+	DMA = -1;
 
 	update_ST3();
 
@@ -4014,10 +4016,14 @@ FloppyController::FloppyController(Section* configuration,unsigned char index):M
 	i = section->Get_int("irq");
 	if (i > 0 && i <= 15) IRQ = i;
 
+	i = section->Get_int("dma");
+	if (i > 0 && i <= 15) DMA = i;
+
 	i = section->Get_hex("io");
 	if (i >= 0x100 && i <= 0x3FF) base_io = i & ~7;
 
 	if (IRQ < 0) IRQ = 6;
+	if (DMA < 0) DMA = 1;
 
 	if (base_io == 0) {
 		if (index == 0) base_io = 0x3F0;
@@ -4031,7 +4037,7 @@ void FloppyController::install_io_port(){
 	unsigned int i;
 
 	if (base_io != 0) {
-		LOG_MSG("FDC installing to io=%03xh IRQ=%d\n",base_io,IRQ);
+		LOG_MSG("FDC installing to io=%03xh IRQ=%d DMA=%d\n",base_io,IRQ,DMA);
 		for (i=0;i < 8;i++) {
 			if (i != 6) { /* does not use port 0x3F6 */
 				WriteHandler[i].Install(base_io+i,fdc_baseio_w,IO_MA);
