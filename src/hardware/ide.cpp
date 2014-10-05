@@ -3793,6 +3793,8 @@ void IDE_Octernary_Init(Section *sec) {
 
 /* -------------------- FLOPPY CONTROLLER (TODO MOVE) -------------------- */
 
+#include "dma.h"
+
 #define MAX_FLOPPY_CONTROLLERS 8
 
 static unsigned char init_floppy = 0;
@@ -3854,6 +3856,7 @@ public:
 	void on_fdc_in_command();
 	void on_reset();
 public:
+	DmaChannel* dma;
 	FloppyDevice* device[4];	/* Floppy devices */
 public:
 	FloppyController(Section* configuration,unsigned char index);
@@ -4024,6 +4027,8 @@ FloppyController::FloppyController(Section* configuration,unsigned char index):M
 
 	if (IRQ < 0) IRQ = 6;
 	if (DMA < 0) DMA = 1;
+
+	dma = GetDMAChannel(DMA);
 
 	if (base_io == 0) {
 		if (index == 0) base_io = 0x3F0;
