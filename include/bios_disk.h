@@ -76,6 +76,19 @@ public:
 	Bit32u heads,cylinders,sectors;
 	Bit32u reserved_cylinders;
 	Bit64u current_fpos;
+
+	volatile int refcount;
+	bool auto_delete_on_refcount_zero;
+
+	int Addref() {
+		return ++refcount;
+	}
+	int Release() {
+		int ret = --refcount;
+		if (ret < 0) fprintf(stderr,"WARNING: imageDisk Release() changed refcount to %d\n",ret);
+		if (ret <= 0 && auto_delete_on_refcount_zero) delete this;
+		return ret;
+	}
 };
 
 void updateDPT(void);

@@ -275,8 +275,10 @@ imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHard
 	heads = 0;
 	cylinders = 0;
 	sectors = 0;
+	refcount = 0;
 	sector_size = 512;
 	reserved_cylinders = 0;
+	auto_delete_on_refcount_zero = true;
 	diskimg = imgFile;
 	class_id = ID_BASE;
 
