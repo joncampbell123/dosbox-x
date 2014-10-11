@@ -143,6 +143,12 @@ bool MSCDEX_HasDrive(char driveLetter);
 bool MSCDEX_GetVolumeName(Bit8u subUnit, char* name);
 
 isoDrive::isoDrive(char driveLetter, const char *fileName, Bit8u mediaid, int &error) {
+	size_t i;
+
+	for (i=0;i < 26;i++)
+		CDROM_Interface_Image::images[i] = NULL;
+
+	subUnit = 0;
 	nextFreeDirIterator = 0;
 	memset(dirIterators, 0, sizeof(dirIterators));
 	memset(sectorHashEntries, 0, sizeof(sectorHashEntries));

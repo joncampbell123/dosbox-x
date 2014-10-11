@@ -70,7 +70,7 @@ int CDROM_Interface_Image::BinaryFile::getLength()
 
 // initialize static members
 int CDROM_Interface_Image::refCount = 0;
-CDROM_Interface_Image* CDROM_Interface_Image::images[26];
+CDROM_Interface_Image* CDROM_Interface_Image::images[26] = {NULL};
 CDROM_Interface_Image::imagePlayer CDROM_Interface_Image::player = {
 	NULL, NULL, NULL, {0}, 0, 0, 0, false, false, false, {0} };
 
