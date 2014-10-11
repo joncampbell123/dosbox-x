@@ -3078,7 +3078,7 @@ void voodoo_shutdown() {
 			free(v->tmu[1].ram);
 			v->tmu[1].ram = NULL;
 		}
-		delete v->thread_stats;
+		delete[] v->thread_stats;
 		v->active=false;
 	}
 }
