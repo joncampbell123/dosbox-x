@@ -681,8 +681,10 @@ public:
 				WriteOut(MSG_Get("PROGRAM_BOOT_IMAGE_OPEN"), temp_line.c_str());
 				FILE *usefile = getFSFile(temp_line.c_str(), &floppysize, &rombytesize);
 				if(usefile != NULL) {
-					if(diskSwap[i] != NULL) delete diskSwap[i];
+					if(diskSwap[i] != NULL) diskSwap[i]->Release();
 					diskSwap[i] = new imageDisk(usefile, (Bit8u *)temp_line.c_str(), floppysize, false);
+					diskSwap[i]->Addref();
+
 					if (usefile_1==NULL) {
 						usefile_1=usefile;
 						rombytesize_1=rombytesize;
@@ -754,7 +756,7 @@ public:
 						}
 						for(Bitu dct=0;dct<MAX_SWAPPABLE_DISKS;dct++) {
 							if(diskSwap[dct]!=NULL) {
-								delete diskSwap[dct];
+								diskSwap[dct]->Release();
 								diskSwap[dct]=NULL;
 							}
 						}
@@ -786,7 +788,7 @@ public:
 							}
 							for(Bitu dct=0;dct<MAX_SWAPPABLE_DISKS;dct++) {
 								if(diskSwap[dct]!=NULL) {
-									delete diskSwap[dct];
+									diskSwap[dct]->Release();
 									diskSwap[dct]=NULL;
 								}
 							}
@@ -853,7 +855,7 @@ public:
 				//Close cardridges
 				for(Bitu dct=0;dct<MAX_SWAPPABLE_DISKS;dct++) {
 					if(diskSwap[dct]!=NULL) {
-						delete diskSwap[dct];
+						diskSwap[dct]->Release();
 						diskSwap[dct]=NULL;
 					}
 				}
@@ -2634,6 +2636,7 @@ public:
 				WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, tmp.c_str());
 			} else if (el_torito != "") {
 				newImage = new imageDiskElToritoFloppy(el_torito_cd_drive,el_torito_floppy_base,el_torito_floppy_type);
+				newImage->Addref();
 			} else {
 				if (el_torito != "") {
 					WriteOut("El Torito bootable CD: -fs none unexpected path (BUG)\n");
@@ -2645,6 +2648,8 @@ public:
 				imagesize = (Bit32u)(ftello64(newDisk) / 1024);
 
 				newImage = new imageDisk(newDisk, (Bit8u *)temp_line.c_str(), imagesize, (imagesize > 2880));
+				newImage->Addref();
+
 				if(imagesize>2880) newImage->Set_Geometry(sizes[2],sizes[3],sizes[1],sizes[0]);
 				if (reserved_cylinders > 0) newImage->Set_Reserved_Cylinders(reserved_cylinders);
 			}
@@ -2655,12 +2660,15 @@ public:
 
 		if (fstype=="none") {
 			/* TODO: Notify IDE ATA emulation if a drive is already there */
-			if(imageDiskList[drive-'0'] != NULL) delete imageDiskList[drive-'0'];
+			if(imageDiskList[drive-'0'] != NULL) imageDiskList[drive-'0']->Release();
 			imageDiskList[drive-'0'] = newImage;
 			updateDPT();
 			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT_NUMBER"),drive-'0',temp_line.c_str());
 			// If instructed, attach to IDE controller as ATA hard disk
 			if (ide_index >= 0) IDE_Hard_Disk_Attach(ide_index,ide_slave,drive-'0');
+		}
+		else {
+			if (newImage != NULL) newImage->Release();
 		}
 
 		// check if volume label is given. becareful for cdrom
