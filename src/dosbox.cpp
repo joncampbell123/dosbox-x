@@ -1383,6 +1383,25 @@ void DOSBOX_Init(void) {
 		"All OPL modes are Adlib-compatible, except for 'cms'. sbtype=none\n"
 		"together with oplmode=cms will emulate a Gameblaster.");
 
+	Pbool = secprop->Add_bool("adlib force timer overflow on detect",Property::Changeable::WhenIdle,true);
+	Pbool->Set_help("If set, Adlib/OPL emulation will signal 'overflow' on timers after 50 I/O reads.\n"
+			"This is a temporary hack to work around timing bugs noted in DOSBox-X. Certain\n"
+			"games (Wolfenstein 3D) poll the Adlib status port a fixed number of times assuming\n"
+			"that the poll loop takes long enough for the Adlib timer to run out. If the game\n"
+			"cannot reliably detect Adlib at higher cycles counts, but can reliably detect at\n"
+			"lower cycles counts, set this option.\n"
+			"NOTE: Technically this decreases emulation accuracy, however it also reflects the\n"
+			"      fact that DOSBox-X's I/O timing code needs some work to better match the\n"
+			"      slowness of the ISA bus per I/O read in consideration of DOS games. So this\n"
+			"      option is ON by default.");
+	/* NTS: The reason I mention Wolfenstein 3D is that it seems coded not to probe for Sound Blaster unless it
+	 *      first detects the Adlib at port 0x388. No Adlib, no Sound Blaster. */
+	/* ^ NTS: To see what I mean, download Wolf3d source code, look at ID_SD.C line 1585 (Adlib detection routine).
+	 *        Note it sets Timer 1, then reads port 388h 100 times before reading status to detect whether the
+	 *        timer "overflowed" (fairly typical Adlib detection code).
+	 *        Some quick math: 8333333Hz ISA BCLK / 6 cycles per read (3 wait states) = 1388888 reads/second possible
+	 *                         100 I/O reads * (1 / 1388888) = 72us */ 
+
 	Pstring = secprop->Add_string("oplemu",Property::Changeable::WhenIdle,"default");
 	Pstring->Set_values(oplemus);
 	Pstring->Set_help("Provider for the OPL emulation. compat might provide better quality (see oplrate as well).");
