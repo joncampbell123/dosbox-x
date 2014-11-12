@@ -26,6 +26,8 @@
 #include "regs.h"
 #include <cstdlib>
 
+extern bool vga_enable_3C6_ramdac;
+
 // Tseng ET4K data
 typedef struct {
 	Bit8u extensionsEnabled;
@@ -485,7 +487,9 @@ void write_p3c9_et4k(Bitu port,Bitu val,Bitu iolen) {
 }
 Bitu read_p3c6_et4k(Bitu port,Bitu iolen) {
 	if (et4k.hicolorDACcmdmode <= 3) {
-		et4k.hicolorDACcmdmode ++;
+		if (vga_enable_3C6_ramdac)
+			et4k.hicolorDACcmdmode++;
+
 		return read_p3c6(port, iolen);
 	} else {
 		return et4k.hicolorDACcommand;

@@ -21,6 +21,8 @@
 #include "render.h"
 #include "vga.h"
 
+extern bool vga_enable_3C6_ramdac;
+
 /*
 3C6h (R/W):  PEL Mask
 bit 0-7  This register is anded with the palette index sent for each dot.
@@ -83,7 +85,9 @@ void write_p3c6(Bitu port,Bitu val,Bitu iolen) {
 
 
 Bitu read_p3c6(Bitu port,Bitu iolen) {
-	vga.dac.hidac_counter++;
+	if (vga_enable_3C6_ramdac)
+		vga.dac.hidac_counter++;
+
 	return vga.dac.pel_mask;
 }
 
