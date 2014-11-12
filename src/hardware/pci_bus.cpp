@@ -440,6 +440,7 @@ void PCI_RemoveSST_Device(void) {
 	if (pci_interface!=NULL) {
 		if (SST_PCI != NULL) {
 			pci_interface->UnregisterPCIDevice(SST_PCI);
+			delete SST_PCI;
 			SST_PCI = NULL;
 		}
 	}
