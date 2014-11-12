@@ -531,7 +531,10 @@ void INT10Extensions_ET4K() {
 		break;
 	case 0x10F1: /* ET4000: GET DAC TYPE */
 		reg_ax = 0x0010;
-		reg_bl = 0x01;
+		if (vga_enable_3C6_ramdac)
+			reg_bl = 0x01;
+		else
+			reg_bl = 0x00;
 		break;
 	case 0x10F2: /* ET4000: CHECK/SET HiColor MODE */
 		switch (reg_bl) {
