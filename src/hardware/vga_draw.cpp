@@ -38,6 +38,8 @@
 //#define C_DEBUG 1
 //#define LOG(X,Y) LOG_MSG
 
+bool et4k_highcolor_half_pixel_rate();
+
 extern bool vga_3da_polled;
 extern bool vga_page_flip_occurred;
 extern bool vga_enable_hpel_effects;
@@ -1599,6 +1601,11 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 				//clock /= 2;
 		}
 		}
+
+		/* FIXME: This is based on correcting the hicolor mode for MFX/Transgression 2.
+		 *        I am not able to test against the Windows drivers at this time. */
+		if ((svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K) && et4k_highcolor_half_pixel_rate())
+			clock /= 2;
 	} else {
 		// not EGAVGA_ARCH
 		vga.draw.split_line = 0x10000;	// don't care
@@ -1888,7 +1895,13 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		break;
 	case M_LIN15:
  	case M_LIN16:
-		pix_per_char = 4; // 15/16 bpp modes double the horizontal values
+		/* FIXME: This is based on correcting the hicolor mode for MFX/Transgression 2.
+		 *        I am not able to test against the Windows drivers at this time. */
+		if ((svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K) && et4k_highcolor_half_pixel_rate())
+			pix_per_char = 2;
+		else
+			pix_per_char = 4; // 15/16 bpp modes double the horizontal values
+
 		VGA_ActivateHardwareCursor();
 		break;
 	case M_LIN4:

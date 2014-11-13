@@ -462,6 +462,11 @@ Bitu read_p3c7(Bitu port,Bitu iolen);
 Bitu read_p3c8(Bitu port,Bitu iolen);
 Bitu read_p3c9(Bitu port,Bitu iolen);
 
+bool et4k_highcolor_half_pixel_rate() {
+	/* if highcolor and NOT using two clocks per pixel */
+	return (et4k.hicolorDACcommand & 0x80) && (!(et4k.hicolorDACcommand & 0x20));
+}
+
 void write_p3c6_et4k(Bitu port,Bitu val,Bitu iolen) {
 	if (et4k.hicolorDACcmdmode <= 3) {
 		write_p3c6(port, val, iolen);
