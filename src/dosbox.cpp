@@ -964,6 +964,12 @@ void DOSBOX_Init(void) {
 			"Disable if you wish to emulate SVGA hardware that lacks a RAMDAC or (depending on the chipset) does\n"
 			"not emulate a RAMDAC that is accessible through port 3C6h. This option has no effect for non-VGA video hardware.");
 
+	Pbool = secprop->Add_bool("sierra ramdac lock 565",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("When emulating High Sierra highcolor RAMDAC, assume 5:6:5 at all times if set. Else,\n"
+			"bit 6 of the DAC command selects between 5:5:5 and 5:6:5. Set this option for demos or\n"
+			"games that got the command byte wrong (MFX Transgrassion 2) or any other demo that is\n"
+			"not rendering highcolor 16bpp correctly.");
+
 	Pbool = secprop->Add_bool("page flip debug line",Property::Changeable::Always,false);
 	Pbool->Set_help("VGA debugging switch. If set, an inverse line will be drawn on the exact scanline that the CRTC display offset registers were written.\n"
 			"This can be used to help diagnose whether or not the DOS game is page flipping properly according to vertical retrace if the display on-screen is flickering.");

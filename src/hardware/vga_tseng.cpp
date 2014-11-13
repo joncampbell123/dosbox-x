@@ -27,6 +27,7 @@
 #include <cstdlib>
 
 extern bool vga_enable_3C6_ramdac;
+extern bool vga_sierra_lock_565;
 
 // Tseng ET4K data
 typedef struct {
@@ -397,7 +398,7 @@ void FinishSetMode_ET4K(Bitu crtc_base, VGA_ModeExtraData* modeData) {
 void DetermineMode_ET4K() {
 	// Special case for HiColor DAC enabled modes
 	if ((et4k.hicolorDACcommand & 0xc0) == 0x80) {
-		VGA_SetMode(M_LIN15);
+		VGA_SetMode(vga_sierra_lock_565 ? M_LIN16 : M_LIN15);
 		return;
 	} else if ((et4k.hicolorDACcommand & 0xc0) == 0xc0) {
 		VGA_SetMode(M_LIN16);

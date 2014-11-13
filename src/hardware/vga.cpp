@@ -144,6 +144,7 @@ bool enable_vretrace_poll_debugging_marker = false;
 bool vga_enable_hretrace_effects = false;
 bool vga_enable_hpel_effects = false;
 bool vga_enable_3C6_ramdac = false;
+bool vga_sierra_lock_565 = false;
 
 unsigned int vga_display_start_hretrace = 0;
 float hretrace_fx_avg_weight = 3;
@@ -448,6 +449,7 @@ void VGA_Init(Section* sec) {
 	enableCGASnow = section->Get_bool("cgasnow");
 	vga_enable_3C6_ramdac = section->Get_bool("sierra ramdac");
 	vga_enable_hpel_effects = section->Get_bool("allow hpel effects");
+	vga_sierra_lock_565 = section->Get_bool("sierra ramdac lock 565");
 	vga_enable_hretrace_effects = section->Get_bool("allow hretrace effects");
 	hretrace_fx_avg_weight = section->Get_double("hretrace effect weight");
 	enable_page_flip_debugging_marker = section->Get_bool("page flip debug line");
