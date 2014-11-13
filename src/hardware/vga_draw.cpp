@@ -1782,8 +1782,6 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		break;
 	}
 
-	double aspect_ratio = pheight / pwidth;
-
 	vga.draw.resizing=false;
 	vga.draw.vret_triggered=false;
 
