@@ -594,6 +594,19 @@ static Bit8u * VGA_Draw_VGA_Line_HWMouse( Bitu vidstart, Bitu /*line*/) {
 	}
 }
 
+/* render 16bpp line DOUBLED horizontally */
+static Bit8u * VGA_Draw_LIN16_Line_2x(Bitu vidstart, Bitu /*line*/) {
+	Bit16u *s = (Bit16u*)(&vga.mem.linear[vidstart]);
+	Bit16u *d = (Bit16u*)TempLine;
+
+	for (Bitu i = 0; i < (vga.draw.line_length>>2); i++) {
+		d[0] = d[1] = *s++;
+		d += 2;
+	}
+
+	return TempLine;
+}
+
 static Bit8u * VGA_Draw_LIN16_Line_HWMouse(Bitu vidstart, Bitu /*line*/) {
 	if (!svga.hardware_cursor_active || !svga.hardware_cursor_active())
 		return &vga.mem.linear[vidstart];
@@ -1325,6 +1338,14 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 	}
 	if (GCC_UNLIKELY(vga.draw.split_line==0)) VGA_ProcessSplit();
 
+	/* ET4000 High Sierra DAC programs can change SVGA mode */
+	if ((vga.mode == M_LIN15 || vga.mode == M_LIN16) && (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K)) {
+		if (et4k_highcolor_half_pixel_rate())
+			VGA_DrawLine=VGA_Draw_LIN16_Line_2x;
+		else
+			VGA_DrawLine=VGA_Draw_LIN16_Line_HWMouse;
+	}
+
 	// check if some lines at the top off the screen are blanked
 	float draw_skip = 0.0;
 	if (GCC_UNLIKELY(vga.draw.vblank_skip)) {
@@ -1438,7 +1459,10 @@ void VGA_ActivateHardwareCursor(void) {
 			break;
 		case M_LIN15:
 		case M_LIN16:
-			VGA_DrawLine=VGA_Draw_LIN16_Line_HWMouse;
+			if ((svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K) && et4k_highcolor_half_pixel_rate())
+				VGA_DrawLine=VGA_Draw_LIN16_Line_2x;
+			else
+				VGA_DrawLine=VGA_Draw_LIN16_Line_HWMouse;
 			break;
 		case M_LIN8:
 			VGA_DrawLine=VGA_Draw_VGA_Line_Xlat32_HWMouse;
@@ -1855,8 +1879,8 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 			bpp=16;
 			vga.mode=M_LIN16;
 			VGA_SetupHandlers();
-			VGA_DrawLine=VGA_Draw_LIN16_Line_HWMouse;
-			pix_per_char = 2;
+			VGA_DrawLine=VGA_Draw_LIN16_Line_2x;
+			pix_per_char = 4;
 			break;
 		}
 		bpp = 32;
@@ -1893,13 +1917,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		break;
 	case M_LIN15:
  	case M_LIN16:
-		/* FIXME: This is based on correcting the hicolor mode for MFX/Transgression 2.
-		 *        I am not able to test against the Windows drivers at this time. */
-		if ((svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K) && et4k_highcolor_half_pixel_rate())
-			pix_per_char = 2;
-		else
-			pix_per_char = 4; // 15/16 bpp modes double the horizontal values
-
+		pix_per_char = 4; // 15/16 bpp modes double the horizontal values
 		VGA_ActivateHardwareCursor();
 		break;
 	case M_LIN4:
