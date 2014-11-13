@@ -436,6 +436,35 @@ graphics_chars:
 			reg_al=0x12; // success
 			break;
 		}
+#if 0 /* TODO: For Tseng ET4000 emulation. ET4000 W32p driver uses it. */
+/*
+
+   INT 10 - Tseng ET-4000 BIOS - GET/SET SCREEN REFRESH RATE
+
+   AH = 12h
+   BL = F1h
+   AL = subfunction
+   00h set refresh rate
+   01h get refresh rate
+   BH = video mode
+   00h	 640x480
+   01h	 800x600
+   02h	 1024x768
+   03h	 1280x1024
+   CX = new refresh rate (see #00035) if AL = 00h
+Return: AL = 12h if supported
+CX = current rate (for AL=00h, a changed CX indicates failure)
+
+Values for Tseng ET4000 refresh rate:
+CX	640x480	800x600	  1024x768/1280x1024
+00h	60 Hz	 56 Hz	   interlaced
+01h	72 Hz	 60 Hz	   60 Hz
+02h	75 Hz	 72 Hz	   70 Hz
+03h	90 Hz	 75 Hz	   75 Hz
+04h	--	 90 Hz	   --
+
+ */
+#endif
 		default:
 			LOG(LOG_INT10,LOG_ERROR)("Function 12:Call %2X not handled",reg_bl);
 			if (machine!=MCH_EGA) reg_al=0;
