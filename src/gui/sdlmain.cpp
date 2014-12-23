@@ -3327,9 +3327,12 @@ void SetNumLock(void) {
 #endif
 }
 
+#ifdef WIN32
+bool numlock_stat=false;
+#endif
+
 void CheckNumLockState(void) {
 #ifdef WIN32
-	bool numlock_stat=false;
 	BYTE keyState[256];
 
 	GetKeyboardState((LPBYTE)(&keyState));
