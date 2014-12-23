@@ -2561,6 +2561,7 @@ public:
 					if(((fatDrive *)newdrive)->loadedDisk->hardDrive) {
 						if(imageDiskList[2] == NULL) {
 							imageDiskList[2] = ((fatDrive *)newdrive)->loadedDisk;
+							imageDiskList[2]->Addref();
 							// If instructed, attach to IDE controller as ATA hard disk
 							if (ide_index >= 0) IDE_Hard_Disk_Attach(ide_index,ide_slave,2);
 							updateDPT();
@@ -2568,6 +2569,7 @@ public:
 						}
 						if(imageDiskList[3] == NULL) {
 							imageDiskList[3] = ((fatDrive *)newdrive)->loadedDisk;
+							imageDiskList[3]->Addref();
 							// If instructed, attach to IDE controller as ATA hard disk
 							if (ide_index >= 0) IDE_Hard_Disk_Attach(ide_index,ide_slave,3);
 							updateDPT();
@@ -2576,6 +2578,7 @@ public:
 					}
 					if(!((fatDrive *)newdrive)->loadedDisk->hardDrive) {
 						imageDiskList[0] = ((fatDrive *)newdrive)->loadedDisk;
+						imageDiskList[0]->Addref();
 					}
 				}
 			} else if (fstype=="iso") {

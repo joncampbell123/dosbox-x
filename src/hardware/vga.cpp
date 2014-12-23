@@ -145,6 +145,7 @@ bool vga_enable_hretrace_effects = false;
 bool vga_enable_hpel_effects = false;
 bool vga_enable_3C6_ramdac = false;
 bool vga_sierra_lock_565 = false;
+bool enable_vga_resize_delay = false;
 
 unsigned int vga_display_start_hretrace = 0;
 float hretrace_fx_avg_weight = 3;
@@ -231,6 +232,9 @@ void VGA_DetermineMode(void) {
 
 void VGA_StartResize(Bitu delay /*=50*/) {
 	if (!vga.draw.resizing) {
+		/* even if the user disables the delay, we can avoid a lot of window resizing by at least having 1ms of delay */
+		if (!enable_vga_resize_delay && delay > 1) delay = 1;
+
 		vga.draw.resizing=true;
 		if (vga.mode==M_ERROR) delay = 5;
 		/* Start a resize after delay (default 50 ms) */
@@ -463,6 +467,7 @@ void VGA_Init(Section* sec) {
 	allow_vesa_8bpp = section->Get_bool("allow 8bpp vesa modes");
 	allow_vesa_4bpp = section->Get_bool("allow 4bpp vesa modes");
 	allow_vesa_tty = section->Get_bool("allow tty vesa modes");
+	enable_vga_resize_delay = section->Get_bool("enable vga resize delay");
 
 	/* sanity check: "VBE 1.2 modes 32bpp" doesn't make any sense if neither 24bpp or 32bpp is enabled */
 	if (!allow_vesa_32bpp && !allow_vesa_24bpp)

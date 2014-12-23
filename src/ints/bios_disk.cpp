@@ -72,30 +72,14 @@ imageDisk *GetINT13HardDrive(unsigned char drv) {
 void FreeBIOSDiskList() {
 	for (int i=0;i < MAX_DISK_IMAGES;i++) {
 		if (imageDiskList[i] != NULL) {
-			/* diskSwap[] and imageDiskList[] are intertwined because of pointer assign... pretty damn sloppy if you ask me --J.C. */
-			for (int j=0;j < MAX_SWAPPABLE_DISKS;j++) {
-				if (diskSwap[j] == imageDiskList[i])
-					diskSwap[j] = NULL;
-			}
-
-			/* and apparently, the same pointer exists elsewhere in the array...
-			 * again, VERY sloppy on DOSBox developer's part. If you ask me,
-			 * this loosey-goosey passing pointers around means that imageDisk
-			 * might want to consider a COM/OLE design with Addref() and Release()
-			 * so that this hack is no longer necessary --J.C. */
-			for (int j=i+1;j < MAX_DISK_IMAGES;j++) {
-				if (imageDiskList[j] == imageDiskList[i])
-					imageDiskList[j] = NULL;
-			}
-
-			delete imageDiskList[i];
+			imageDiskList[i]->Release();
 			imageDiskList[i] = NULL;
 		}
 	}
 
 	for (int j=0;j < MAX_SWAPPABLE_DISKS;j++) {
 		if (diskSwap[j] != NULL) {
-			delete diskSwap[j];
+			diskSwap[j]->Release();
 			diskSwap[j] = NULL;
 		}
 	}
@@ -161,7 +145,13 @@ void swapInDisks(void) {
 	while(diskcount<2) {
 		if(diskSwap[swapPos] != NULL) {
 			LOG_MSG("Loaded disk %d from swaplist position %d - \"%s\"", diskcount, swapPos, diskSwap[swapPos]->diskname.c_str());
+
+			if (imageDiskList[diskcount] != NULL)
+				imageDiskList[diskcount]->Release();
+
 			imageDiskList[diskcount] = diskSwap[swapPos];
+			imageDiskList[diskcount]->Addref();
+
 			diskcount++;
 		}
 		swapPos++;
@@ -776,7 +766,7 @@ void BIOS_SetupDisks(void) {
 	CALLBACK_Setup(call_int13,&INT13_DiskHandler,CB_INT13,"Int 13 Bios disk");
 	RealSetVec(0x13,CALLBACK_RealPointer(call_int13));
 
-	for(i=0;i<4;i++)
+	for(i=0;i<MAX_DISK_IMAGES;i++)
 		imageDiskList[i] = NULL;
 	for(i=0;i<MAX_SWAPPABLE_DISKS;i++)
 		diskSwap[i] = NULL;

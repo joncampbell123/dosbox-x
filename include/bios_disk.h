@@ -85,8 +85,11 @@ public:
 	}
 	int Release() {
 		int ret = --refcount;
-		if (ret < 0) fprintf(stderr,"WARNING: imageDisk Release() changed refcount to %d\n",ret);
-		if (ret <= 0 && auto_delete_on_refcount_zero) delete this;
+		if (ret < 0) {
+			fprintf(stderr,"WARNING: imageDisk Release() changed refcount to %d\n",ret);
+			abort();
+		}
+		if (ret == 0 && auto_delete_on_refcount_zero) delete this;
 		return ret;
 	}
 };
