@@ -4026,7 +4026,7 @@ FloppyController::FloppyController(Section* configuration,unsigned char index):M
 	if (i >= 0x100 && i <= 0x3FF) base_io = i & ~7;
 
 	if (IRQ < 0) IRQ = 6;
-	if (DMA < 0) DMA = 1;
+	if (DMA < 0) DMA = 2;
 
 	dma = GetDMAChannel(DMA);
 

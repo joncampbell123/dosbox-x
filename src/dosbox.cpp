@@ -1856,7 +1856,7 @@ void DOSBOX_Init(void) {
 		Pint = secprop->Add_int("dma",Property::Changeable::WhenIdle,-1/*use FDC default*/);
 		if (i == 0) Pint->Set_help("DMA channel for floppy controller. Set to -1 for default.\n"
 				"WARNING: Setting the DMA channel to non-standard values will not work unless the guest OS is using the ISA PnP BIOS to detect the IDE controller.\n"
-				"         Standard DMA channel is 1.");
+				"         Standard DMA channel is 2.");
 
 		Pbool = secprop->Add_bool("int13fakev86io",Property::Changeable::WhenIdle,false);
 		if (i == 0) Pbool->Set_help(
