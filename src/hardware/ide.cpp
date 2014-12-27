@@ -4196,11 +4196,24 @@ void FloppyController::on_fdc_in_command() {
 			 * -----------------------------------------------
 			 *   2     total
 			 */
-			lower_irq(); /* doesn't cause IRQ, clears IRQ */
-			reset_res();
-			prepare_res_phase(2);
-			out_res[0] = ST[0];
-			out_res[1] = current_cylinder;
+			if (irq_pending) {
+				lower_irq(); /* doesn't cause IRQ, clears IRQ */
+				reset_res();
+				prepare_res_phase(2);
+				out_res[0] = ST[0];
+				out_res[1] = current_cylinder;
+			}
+			else {
+				/* if no pending IRQ, signal error.
+				 * this is considered standard floppy controller behavior.
+				 * this also fixes an issue where Windows 3.1 QIC tape backup software like Norton Backup (Norton Desktop 3.0)
+				 * will "hang" Windows 3.1 polling the FDC in an endless loop if we don't return this error to say that no
+				 * more IRQs are pending. */
+				reset_res();
+				ST[0] = (ST[0] & 0x3F) | 0x80;
+				out_res[0] = ST[0];
+				prepare_res_phase(1);
+			}
 			break;
 		case 0x0F: /* Seek Head */
 			ST[0] = 0x00 | drive_selected();
@@ -4216,6 +4229,11 @@ void FloppyController::on_fdc_in_command() {
 			reset_io();
 			break;
 	};
+
+	LOG_MSG("FDC: Response len=%u %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
+		out_res_len,
+		out_res[0],out_res[1],out_res[2],out_res[3],out_res[4],
+		out_res[5],out_res[6],out_res[7],out_res[8],out_res[9]);
 }
 
 void FloppyController::fdc_data_write(uint8_t b) {
