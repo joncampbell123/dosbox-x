@@ -3873,6 +3873,7 @@ static Bitu fdc_baseio_r(Bitu port,Bitu iolen);
 
 void FloppyController::on_reset() {
 	current_cylinder = 0;
+	ST[0] &= 0x3F;
 	reset_io();
 	lower_irq();
 }
@@ -4107,13 +4108,19 @@ void FloppyController::on_dor_change(unsigned char b) {
 		}
 	}
 
+	/* DMA/IRQ enable */
+	if (chg & 0x08 && IRQ >= 0) {
+		if ((b&0x08) && irq_pending) PIC_ActivateIRQ(IRQ);
+		else PIC_DeActivateIRQ(IRQ);
+	}
+
 	/* drive motors */
 	if (chg & 0xF0) {
 		LOG_MSG("FDC: Motor control {A,B,C,D} = {%u,%u,%u,%u}\n",
 			(b>>7)&1,(b>>6)&1,(b>>5)&1,(b>>4)&1);
 
 		for (i=0;i < 4;i++) {
-			if (device[i] != NULL) device[i]->set_motor((chg&(0x10<<i))?true:false);
+			if (device[i] != NULL) device[i]->set_motor((b&(0x10<<i))?true:false);
 		}
 	}
 
@@ -4326,6 +4333,8 @@ static void fdc_baseio_w(Bitu port,Bitu val,Bitu iolen) {
 		return;
 	}
 
+	LOG_MSG("FDC: Write port 0x%03x data 0x%02x irq_at_time=%u\n",port,val,fdc->irq_pending);
+
 	if (iolen > 1) {
 		LOG_MSG("WARNING: FDC unusual port write %03xh val=%02xh len=%u, port I/O should be 8-bit\n",port,val,iolen);
 	}
@@ -4358,6 +4367,8 @@ static Bitu fdc_baseio_r(Bitu port,Bitu iolen) {
 		LOG_MSG("WARNING: port read from I/O port not registered to FDC, yet callback triggered\n");
 		return ~(0UL);
 	}
+
+	LOG_MSG("FDC: Read port 0x%03x irq_at_time=%u\n",port,fdc->irq_pending);
 
 	if (iolen > 1) {
 		LOG_MSG("WARNING: FDC unusual port read %03xh len=%u, port I/O should be 8-bit\n",port,iolen);
@@ -4393,10 +4404,8 @@ static Bitu fdc_baseio_r(Bitu port,Bitu iolen) {
 }
 
 void FloppyController::raise_irq() {
-	if (dma_irq_enabled()) {
-		irq_pending = true;
-		if (IRQ >= 0) PIC_ActivateIRQ(IRQ);
-	}
+	irq_pending = true;
+	if (dma_irq_enabled() && IRQ >= 0) PIC_ActivateIRQ(IRQ);
 }
 
 void FloppyController::lower_irq() {
