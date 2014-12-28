@@ -2534,7 +2534,7 @@ void MAPPER_StartUp(Section * sec) {
 	}
 	for (i=0; i<MAX_VJOY_AXES; i++) {
 		virtual_joysticks[0].axis_pos[i]=0;
-		virtual_joysticks[0].axis_pos[i]=0;
+		virtual_joysticks[1].axis_pos[i]=0;
 	}
 
 	usescancodes = false;
