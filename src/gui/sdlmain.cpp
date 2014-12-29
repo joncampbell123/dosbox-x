@@ -100,7 +100,6 @@ void VFILE_Shutdown(void);
 void PROGRAMS_Shutdown(void);
 void DOS_UninstallMisc(void);
 void CALLBACK_Shutdown(void);
-void PROGRAMS_Shutdown(void);
 void DOS_ShutdownDrives();
 void VFILE_Shutdown(void);
 void DOS_ShutdownFiles();
@@ -3638,9 +3637,9 @@ int main(int argc, char* argv[]) {
 		}
 #endif
 
-		bool run_machine = false;
-		bool reboot_machine = false;
-		bool dos_kernel_shutdown = false;
+		bool run_machine;
+		bool reboot_machine;
+		bool dos_kernel_shutdown;
 
 		/* start the shell */
 		control->StartUp();

@@ -47,8 +47,6 @@ static Bitu illegal_handler(void) {
 	return 1;
 }
 
-void CALLBACK_SetDescription(Bitu nr, const char* descr);
-
 void CALLBACK_Shutdown(void) {
 	for (Bitu i=1;(i<CB_MAX);i++) {
 		CallBack_Handlers[i] = &illegal_handler;
