@@ -810,12 +810,20 @@ public:
 		memset(GUSRam,0,1024*1024);
 	
 		myGUS.rate=section->Get_int("gusrate");
-	
+
+		// FIXME: HUH?? Read the port number and subtract 0x200, then use GUS_BASE
+		// in other parts of the code to compare against 0x200 and 0x300? That's confusing. Fix!
 		myGUS.portbase = section->Get_hex("gusbase") - 0x200;
+
+		// TODO: so, if the GUS ULTRASND variable actually mentions two DMA and two IRQ channels,
+		//       shouldn't we offer the ability to specify them independently? especially when
+		//       GUS NMI is completed to the extent that SBOS and MEGA-EM can run within DOSBox?
 		int dma_val = section->Get_int("gusdma");
 		if ((dma_val<0) || (dma_val>255)) dma_val = 3;	// sensible default
+
 		int irq_val = section->Get_int("gusirq");
 		if ((irq_val<0) || (irq_val>255)) irq_val = 5;	// sensible default
+
 		myGUS.dma1 = (Bit8u)dma_val;
 		myGUS.dma2 = (Bit8u)dma_val;
 		myGUS.irq1 = (Bit8u)irq_val;
