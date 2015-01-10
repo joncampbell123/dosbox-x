@@ -1413,11 +1413,7 @@ void VGA_CheckScanLength(void) {
 		}
 		break;
 	case M_TEXT:
-		vga.draw.address_add=vga.config.scan_len*(2<<vga.config.addr_shift);
-		break;
 	case M_CGA2:
-		vga.draw.address_add=vga.config.scan_len*(2<<vga.config.addr_shift);
-		break;
 	case M_CGA4:
 	case M_CGA16:
 	case M_AMSTRAD:	// Next line.
