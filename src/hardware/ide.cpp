@@ -3805,11 +3805,14 @@ class FloppyDevice {
 public:
 	FloppyController *controller;
 public:
+	unsigned char current_track;
 	bool select,motor;
+	bool track0;
 public:
 	FloppyDevice(FloppyController *c);
 	void set_select(bool enable);	/* set selection on/off */
 	void set_motor(bool enable);	/* set motor on/off */
+	void motor_step(int dir);
 	virtual ~FloppyDevice();
 };
 
@@ -3877,13 +3880,22 @@ static Bitu fdc_baseio_r(Bitu port,Bitu iolen);
 
 void FDC_MotorStep(Bitu idx/*which IDE controller*/) {
 	FloppyController *fdc;
+	FloppyDevice *dev;
 
 	if (idx >= MAX_FLOPPY_CONTROLLERS) return;
 	fdc = floppycontroller[idx];
 	if (fdc == NULL) return;
 
-	LOG_MSG("FDC: motor step. if=%u rem=%u dir=%d current=%u\n",
-		idx,fdc->motor_steps,fdc->motor_dir,fdc->current_cylinder);
+	dev = fdc->device[fdc->drive_selected()&3];
+
+//	LOG_MSG("FDC: motor step. if=%u rem=%u dir=%d current=%u\n",
+//		idx,fdc->motor_steps,fdc->motor_dir,fdc->current_cylinder);
+
+	if (dev != NULL && dev->track0) {
+		LOG_MSG("FDC: motor step abort. floppy drive signalling track0\n");
+		fdc->motor_steps = 0;
+		fdc->current_cylinder = 0;
+	}
 
 	if (fdc->motor_steps > 0) {
 		fdc->motor_steps--;
@@ -3896,8 +3908,12 @@ void FDC_MotorStep(Bitu idx/*which IDE controller*/) {
 			fdc->current_cylinder = 255;
 			fdc->motor_steps = 0;
 		}
+
+		if (dev != NULL)
+			dev->motor_step(fdc->motor_dir);
 	}
 
+	fdc->update_ST3();
 	if (fdc->motor_steps != 0) {
 		/* step again */
 		PIC_AddEvent(FDC_MotorStep,fdc->fdc_motor_step_delay,idx);
@@ -3913,7 +3929,12 @@ void FDC_MotorStep(Bitu idx/*which IDE controller*/) {
 		/* no result phase */
 		fdc->reset_io();
 
-		LOG_MSG("FDC: motor step finished. current=%u\n",fdc->current_cylinder);
+		/* real FDC's don't have this insight, but for DOSBox-X debugging... */
+		if (dev != NULL && dev->current_track != fdc->current_cylinder)
+			LOG_MSG("FDC: warning, after motor step FDC and drive are out of sync (fdc=%u drive=%u). OS or App needs to recalibrate\n",
+				fdc->current_cylinder,dev->current_track);
+
+//		LOG_MSG("FDC: motor step finished. current=%u\n",fdc->current_cylinder);
 	}
 }
 
@@ -3934,6 +3955,8 @@ FloppyDevice::~FloppyDevice() {
 
 FloppyDevice::FloppyDevice(FloppyController *c) {
 	motor = select = false;
+	current_track = 0;
+	track0 = false;
 }
 
 void FloppyDevice::set_select(bool enable) {
@@ -3942,6 +3965,13 @@ void FloppyDevice::set_select(bool enable) {
 
 void FloppyDevice::set_motor(bool enable) {
 	motor = enable;
+}
+
+void FloppyDevice::motor_step(int dir) {
+	current_track += dir;
+	if (current_track < 0) current_track = 0;
+	if (current_track > 84) current_track = 84;
+	track0 = (current_track == 0);
 }
 
 int FloppyController::drive_selected() {
@@ -4016,12 +4046,16 @@ void FDC_Octernary_Init(Section *sec) {
 }
 
 void FloppyController::update_ST3() {
+	FloppyDevice *dev = device[drive_selected()&3];
+
 	/* FIXME: Should assemble bits from FloppyDevice objects and their boolean "signal" variables */
 	ST[3] =
 		0x20/*RDY*/ +
-		0x10/*TRACK 0 [FIXME] */+
 		0x08/*DOUBLE-SIDED SIGNAL*/+
 		(drive_selected()&3);/*DRIVE SELECT*/
+
+	if (dev != NULL)
+		ST[3] |= (dev->track0 ? 0x10 : 0)/*TRACK 0 signal from device*/;
 }
 
 void FloppyController::reset_io() {
@@ -4422,7 +4456,7 @@ static void fdc_baseio_w(Bitu port,Bitu val,Bitu iolen) {
 		return;
 	}
 
-	LOG_MSG("FDC: Write port 0x%03x data 0x%02x irq_at_time=%u\n",port,val,fdc->irq_pending);
+//	LOG_MSG("FDC: Write port 0x%03x data 0x%02x irq_at_time=%u\n",port,val,fdc->irq_pending);
 
 	if (iolen > 1) {
 		LOG_MSG("WARNING: FDC unusual port write %03xh val=%02xh len=%u, port I/O should be 8-bit\n",port,val,iolen);
