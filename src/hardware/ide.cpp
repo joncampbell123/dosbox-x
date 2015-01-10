@@ -3823,6 +3823,7 @@ public:
 	IO_WriteHandleObject WriteHandler[8];
 	uint8_t digital_output_register;
 	bool int13fakev86io;		/* on certain INT 13h calls in virtual 8086 mode, trigger fake CPU I/O traps */
+	bool instant_mode;		/* make floppy operations instantaneous if true */
 	bool data_register_ready;	/* 0x3F4 bit 7 */
 	bool data_read_expected;	/* 0x3F4 bit 6 (DIO) if set CPU is expected to read from the controller */
 	bool non_dma_mode;		/* 0x3F4 bit 5 (NDMA) */
@@ -3839,6 +3840,9 @@ public:
 	uint8_t out_res[16];
 	uint8_t out_res_len;
 	uint8_t out_res_pos;
+	unsigned int motor_steps;
+	int motor_dir;
+	float fdc_motor_step_delay;
 	bool in_cmd_state;
 	bool out_res_state;
 public:
@@ -3871,8 +3875,55 @@ static FloppyController* floppycontroller[MAX_FLOPPY_CONTROLLERS]={NULL,NULL,NUL
 static void fdc_baseio_w(Bitu port,Bitu val,Bitu iolen);
 static Bitu fdc_baseio_r(Bitu port,Bitu iolen);
 
+void FDC_MotorStep(Bitu idx/*which IDE controller*/) {
+	FloppyController *fdc;
+
+	if (idx >= MAX_FLOPPY_CONTROLLERS) return;
+	fdc = floppycontroller[idx];
+	if (fdc == NULL) return;
+
+	LOG_MSG("FDC: motor step. if=%u rem=%u dir=%d current=%u\n",
+		idx,fdc->motor_steps,fdc->motor_dir,fdc->current_cylinder);
+
+	if (fdc->motor_steps > 0) {
+		fdc->motor_steps--;
+		fdc->current_cylinder += fdc->motor_dir;
+		if (fdc->current_cylinder <= 0) {
+			fdc->current_cylinder = 0;
+			fdc->motor_steps = 0;
+		}
+		else if (fdc->current_cylinder > 255) {
+			fdc->current_cylinder = 255;
+			fdc->motor_steps = 0;
+		}
+	}
+
+	if (fdc->motor_steps != 0) {
+		/* step again */
+		PIC_AddEvent(FDC_MotorStep,fdc->fdc_motor_step_delay,idx);
+	}
+	else {
+		/* done stepping */
+		fdc->data_register_ready = 1;
+		fdc->busy_status = 0;
+		fdc->ST[0] &= 0x1F;
+		if (fdc->current_cylinder == 0) fdc->ST[0] |= 0x20;
+		/* fire IRQ */
+		fdc->raise_irq();
+		/* no result phase */
+		fdc->reset_io();
+
+		LOG_MSG("FDC: motor step finished. current=%u\n",fdc->current_cylinder);
+	}
+}
+
 void FloppyController::on_reset() {
+	/* TODO: cancel DOSBox events corresponding to read/seek/etc */
+	PIC_RemoveSpecificEvents(FDC_MotorStep,interface_index);
+	motor_dir = 0;
+	motor_steps = 0;
 	current_cylinder = 0;
+	busy_status = 0;
 	ST[0] &= 0x3F;
 	reset_io();
 	lower_irq();
@@ -3996,6 +4047,8 @@ FloppyController::FloppyController(Section* configuration,unsigned char index):M
 	Section_prop * section=static_cast<Section_prop *>(configuration);
 	int i;
 
+	fdc_motor_step_delay = 400.0f / 80; /* FIXME: Based on 400ms seek time from track 0 to 80 */
+	interface_index = index;
 	data_register_ready = 1;
 	data_read_expected = 0;
 	non_dma_mode = 0;
@@ -4016,6 +4069,7 @@ FloppyController::FloppyController(Section* configuration,unsigned char index):M
 	update_ST3();
 
 	int13fakev86io = section->Get_bool("int13fakev86io");
+	instant_mode = section->Get_bool("instant mode");
 
 	i = section->Get_int("irq");
 	if (i > 0 && i <= 15) IRQ = i;
@@ -4188,12 +4242,30 @@ void FloppyController::on_fdc_in_command() {
 			break;
 		case 0x07: /* Calibrate drive */
 			ST[0] = 0x20 | drive_selected();
-			/* move head to track 0 */
-			current_cylinder = 0;
-			/* fire IRQ */
-			raise_irq();
-			/* no result phase */
-			reset_io();
+			if (instant_mode) {
+				/* move head to track 0 */
+				current_cylinder = 0;
+				/* fire IRQ */
+				raise_irq();
+				/* no result phase */
+				reset_io();
+			}
+			else {
+				/* delay due to stepping the head to the desired cylinder */
+				motor_steps = current_cylinder; /* always to track 0 */
+				if (motor_steps > 79) motor_steps = 79; /* calibrate is said to max out at 79 */
+				motor_dir = -1; /* always step backwards */
+
+				/* the command takes time to move the head */
+				data_register_ready = 0;
+				busy_status = 1;
+
+				/* and make it happen */
+				PIC_AddEvent(FDC_MotorStep,(motor_steps > 0 ? fdc_motor_step_delay : 0.1)/*ms*/,interface_index);
+
+				/* return now */
+				return;
+			}
 			break;
 		case 0x08: /* Check Interrupt Status */
 			/*     |   7    6    5    4    3    2    1    0
@@ -4224,12 +4296,29 @@ void FloppyController::on_fdc_in_command() {
 			break;
 		case 0x0F: /* Seek Head */
 			ST[0] = 0x00 | drive_selected();
-			/* move head to whatever track was wanted */
-			current_cylinder = in_cmd[2]; /* from 3rd byte of command */
-			/* fire IRQ */
-			raise_irq();
-			/* no result phase */
-			reset_io();
+			if (instant_mode) {
+				/* move head to whatever track was wanted */
+				current_cylinder = in_cmd[2]; /* from 3rd byte of command */
+				/* fire IRQ */
+				raise_irq();
+				/* no result phase */
+				reset_io();
+			}
+			else {
+				/* delay due to stepping the head to the desired cylinder */
+				motor_steps = abs(in_cmd[2] - current_cylinder);
+				motor_dir = in_cmd[2] > current_cylinder ? 1 : -1;
+
+				/* the command takes time to move the head */
+				data_register_ready = 0;
+				busy_status = 1;
+
+				/* and make it happen */
+				PIC_AddEvent(FDC_MotorStep,(motor_steps > 0 ? fdc_motor_step_delay : 0.1)/*ms*/,interface_index);
+
+				/* return now */
+				return;
+			}
 			break;
 		default:
 			LOG_MSG("FDC: Unknown command %02xh (somehow passed first check)\n",in_cmd[0]);
@@ -4362,13 +4451,14 @@ static void fdc_baseio_w(Bitu port,Bitu val,Bitu iolen) {
 
 static Bitu fdc_baseio_r(Bitu port,Bitu iolen) {
 	FloppyController *fdc = match_fdc_controller(port);
+	unsigned char b;
 
 	if (fdc == NULL) {
 		LOG_MSG("WARNING: port read from I/O port not registered to FDC, yet callback triggered\n");
 		return ~(0UL);
 	}
 
-	LOG_MSG("FDC: Read port 0x%03x irq_at_time=%u\n",port,fdc->irq_pending);
+//	LOG_MSG("FDC: Read port 0x%03x irq_at_time=%u\n",port,fdc->irq_pending);
 
 	if (iolen > 1) {
 		LOG_MSG("WARNING: FDC unusual port read %03xh len=%u, port I/O should be 8-bit\n",port,iolen);
@@ -4376,7 +4466,7 @@ static Bitu fdc_baseio_r(Bitu port,Bitu iolen) {
 
 	switch (port&7) {
 		case 4: /* main status */
-			return	(fdc->data_register_ready ? 0x80 : 0x00) +
+			b =	(fdc->data_register_ready ? 0x80 : 0x00) +
 				(fdc->data_read_expected ? 0x40 : 0x00) +
 				(fdc->non_dma_mode ? 0x20 : 0x00) +
 				(fdc->busy_status ? 0x10 : 0x00) +
@@ -4384,6 +4474,8 @@ static Bitu fdc_baseio_r(Bitu port,Bitu iolen) {
 				(fdc->positioning[2] ? 0x04 : 0x00) +
 				(fdc->positioning[1] ? 0x02 : 0x00) +
 				(fdc->positioning[0] ? 0x01 : 0x00);
+//			LOG_MSG("FDC: read status 0x%02x\n",b);
+			return b;
 		case 5: /* data */
 			if (!fdc->data_register_ready) {
 				LOG_MSG("WARNING: FDC data read when data port not ready\n");
@@ -4394,7 +4486,9 @@ static Bitu fdc_baseio_r(Bitu port,Bitu iolen) {
 				return ~(0UL);
 			}
 
-			return fdc->fdc_data_read();
+			b = fdc->fdc_data_read();
+//			LOG_MSG("FDC: read data 0x%02x\n",b);
+			return b;
 		default:
 			LOG_MSG("DEBUG: FDC read port %03xh len=%u\n",port,iolen);
 			break;
