@@ -4114,7 +4114,7 @@ FloppyController::FloppyController(Section* configuration,unsigned char index):M
 	if (i > 0 && i <= 15) IRQ = i;
 
 	i = section->Get_int("dma");
-	if (i > 0 && i <= 15) DMA = i;
+	if (i >= 0 && i <= 15) DMA = i;
 
 	i = section->Get_hex("io");
 	if (i >= 0x100 && i <= 0x3FF) base_io = i & ~7;
