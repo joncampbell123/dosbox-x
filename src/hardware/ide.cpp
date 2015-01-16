@@ -3451,7 +3451,10 @@ IDEController::IDEController(Section* configuration,unsigned char index):Module_
 		host_writew(tmp+i+2,alt_io);			/* min */
 		host_writew(tmp+i+4,alt_io);			/* max */
 		tmp[i+6] = 0x04;				/* align */
-		tmp[i+7] = 0x02;				/* length */
+		if (alt_io == 0x3F6 && fdc_takes_port_3F7())
+			tmp[i+7] = 0x01;			/* length 1 (so as not to conflict with floppy controller at 0x3F7) */
+		else
+			tmp[i+7] = 0x02;			/* length 2 */
 		i += 7+1;
 
 		if (IRQ > 0) {
@@ -4079,6 +4082,7 @@ void FloppyController::reset_res() {
 
 FloppyController::FloppyController(Section* configuration,unsigned char index):Module_base(configuration){
 	Section_prop * section=static_cast<Section_prop *>(configuration);
+	bool register_pnp = false;
 	int i;
 
 	fdc_motor_step_delay = 400.0f / 80; /* FIXME: Based on 400ms seek time from track 0 to 80 */
@@ -4104,6 +4108,7 @@ FloppyController::FloppyController(Section* configuration,unsigned char index):M
 
 	int13fakev86io = section->Get_bool("int13fakev86io");
 	instant_mode = section->Get_bool("instant mode");
+	register_pnp = section->Get_bool("pnp");
 
 	i = section->Get_int("irq");
 	if (i > 0 && i <= 15) IRQ = i;
@@ -4124,6 +4129,66 @@ FloppyController::FloppyController(Section* configuration,unsigned char index):M
 	}
 	else if (base_io == 1) {
 		if (index == 0) base_io = 0x370;
+	}
+
+	if (register_pnp && base_io > 0) {
+		unsigned char tmp[256];
+		unsigned int i;
+
+		const unsigned char h1[9] = {
+			ISAPNP_SYSDEV_HEADER(
+				ISAPNP_ID('P','N','P',0x0,0x7,0x0,0x0), /* PNP0700 Generic floppy controller */
+				ISAPNP_TYPE(0x01,0x02,0x00),		/* type: Mass Storage Device / Floppy / Generic */
+				0x0001 | 0x0002)
+		};
+
+		i = 0;
+		memcpy(tmp+i,h1,9); i += 9;			/* can't disable, can't configure */
+		/*----------allocated--------*/
+		tmp[i+0] = (8 << 3) | 7;			/* IO resource */
+		tmp[i+1] = 0x01;				/* 16-bit decode */
+		host_writew(tmp+i+2,base_io);			/* min */
+		host_writew(tmp+i+4,base_io);			/* max */
+		tmp[i+6] = 0x08;				/* align */
+		tmp[i+7] = 0x06;				/* length (FIXME: Emit as 7 unless we know IDE interface will not conflict) */
+		i += 7+1;
+
+		tmp[i+0] = (8 << 3) | 7;			/* IO resource (FIXME: Don't emit this if we know IDE interface will take port 0x3F7) */
+		tmp[i+1] = 0x01;				/* 16-bit decode */
+		host_writew(tmp+i+2,base_io+7);			/* min */
+		host_writew(tmp+i+4,base_io+7);			/* max */
+		tmp[i+6] = 0x01;				/* align */
+		tmp[i+7] = 0x01;				/* length */
+		i += 7+1;
+
+		if (IRQ > 0) {
+			tmp[i+0] = (4 << 3) | 3;		/* IRQ resource */
+			host_writew(tmp+i+1,1 << IRQ);
+			tmp[i+3] = 0x09;			/* HTE=1 LTL=1 */
+			i += 3+1;
+		}
+
+		if (DMA >= 0) {
+			tmp[i+0] = (5 << 3) | 2;		/* IRQ resource */
+			tmp[i+1] = 1 << DMA;
+			tmp[i+2] = 0x00;			/* 8-bit */
+			i += 2+1;
+		}
+
+		tmp[i+0] = 0x79;				/* END TAG */
+		tmp[i+1] = 0x00;
+		i += 2;
+		/*-------------possible-----------*/
+		tmp[i+0] = 0x79;				/* END TAG */
+		tmp[i+1] = 0x00;
+		i += 2;
+		/*-------------compatible---------*/
+		tmp[i+0] = 0x79;				/* END TAG */
+		tmp[i+1] = 0x00;
+		i += 2;
+
+		if (!ISAPNP_RegisterSysDev(tmp,i))
+			LOG_MSG("ISAPNP register failed\n");
 	}
 }
 
