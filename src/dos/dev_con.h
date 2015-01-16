@@ -515,8 +515,10 @@ bool device_CON::Close() {
 	return true;
 }
 
+extern bool dos_con_use_int16_to_detect_input;
+
 Bit16u device_CON::GetInformation(void) {
-	if (true/*FIXME: make an option*/) {
+	if (dos_con_use_int16_to_detect_input) {
 		Bit16u ret = 0x80D3; /* No Key Available */
 
 		/* DOSBox-X behavior: Use INT 16h AH=0x11 Query keyboard status/preview key.

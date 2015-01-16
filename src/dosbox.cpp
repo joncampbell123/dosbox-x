@@ -126,6 +126,8 @@ extern bool			VIDEO_BIOS_always_carry_16_high_font;
 extern bool			VIDEO_BIOS_enable_CGA_8x8_second_half;
 extern bool			allow_more_than_640kb;
 
+bool				dos_con_use_int16_to_detect_input = true;
+
 /* ISA bus OSC clock (14.31818MHz) */
 /*  +---- / 12 = PIT timer clock 1.1931816666... MHz */
 ClockDomain			clockdom_ISA_OSC(14318180);		/* MASTER 14.31818MHz */
@@ -1761,6 +1763,12 @@ void DOSBOX_Init(void) {
 
 	Pint = secprop->Add_int("files",Property::Changeable::OnlyAtStart,127);
 	Pint->Set_help("Number of file handles available to DOS programs. (equivalent to \"files=\" in config.sys)");
+
+	Pbool = secprop->Add_bool("con device use int 16h to detect keyboard input",Property::Changeable::OnlyAtStart,true);
+	Pbool->Set_help("If set, use INT 16h to detect keyboard input (MS-DOS style). If clear, detect keyboard input by\n"
+			"peeking into the BIOS keyboard buffer (Mainline DOSBox behavior). You will need to set this\n"
+			"option for programs that hook INT 16h to handle keyboard input ahead of the DOS console.\n"
+			"Microsoft Scandisk needs this option to respond to keyboard input correctly.");
 
 	// Mscdex
 	secprop->AddInitFunction(&MSCDEX_Init);

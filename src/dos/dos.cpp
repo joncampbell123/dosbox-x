@@ -1577,6 +1577,7 @@ void DOS_GetMemory_Choose();
 #include <assert.h>
 
 extern unsigned int dosbox_shell_env_size;
+extern bool dos_con_use_int16_to_detect_input;
 
 class DOS:public Module_base{
 private:
@@ -1591,6 +1592,7 @@ public:
 		enable_collating_uppercase = section->Get_bool("collating and uppercase");
 		dynamic_dos_kernel_alloc = section->Get_bool("dynamic kernel allocation");
 		private_always_from_umb = section->Get_bool("kernel allocation in umb");
+		dos_con_use_int16_to_detect_input = section->Get_bool("con device use int 16h to detect keyboard input");
 
 		if (!dynamic_dos_kernel_alloc || mainline_compatible_mapping) {
 			LOG_MSG("kernel allocation in umb option incompatible with other settings, disabling.\n");
