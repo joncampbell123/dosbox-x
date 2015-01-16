@@ -537,6 +537,8 @@ Bit16u device_CON::GetInformation(void) {
 		 * Since Scandisk is using INT 21h AH=0x0B to query STDIN during this time,
 		 * this implementation is a good "halfway" compromise in that this call
 		 * will trigger the INT 16h AH=0x11 hook it relies on. */
+		if (readcache) return 0x8093; /* key available */
+
 		Bitu saved_ax = reg_ax;
 
 		reg_ah = (IS_EGAVGA_ARCH)?0x11:0x1; // check for keystroke
