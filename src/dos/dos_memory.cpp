@@ -130,6 +130,22 @@ bool DOS_SetMemAllocStrategy(Bit16u strat) {
 	return false;
 }
 
+extern bool dbg_zero_on_dos_allocmem;
+
+void DOS_zeromem(uint16_t seg,uint16_t para) {
+	uint32_t ofs,cnt;
+
+	if (para == 0) return;
+
+	ofs = ((uint32_t)seg << 4);
+	cnt = ((uint32_t)para << 4);
+	if ((ofs+cnt) > 0x100000) E_Exit("DOS_zeromem out of range");
+	while (cnt != 0) {
+		mem_writeb(ofs++,0);
+		cnt--;
+	}
+}
+
 bool DOS_AllocateMemory(Bit16u * segment,Bit16u * blocks) {
 	DOS_CompressMemory();
 	Bit16u bigsize=0;
@@ -164,6 +180,7 @@ bool DOS_AllocateMemory(Bit16u * segment,Bit16u * blocks) {
 				mcb.SetPSPSeg(dos.psp());
 				*segment=mcb_segment+1;
 
+				if (dbg_zero_on_dos_allocmem) DOS_zeromem(*segment,*blocks);
 #ifdef DEBUG_ALLOC
 				LOG_MSG("DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x\n",*blocks,*segment,*segment+*blocks-1);
 #endif
@@ -182,6 +199,7 @@ bool DOS_AllocateMemory(Bit16u * segment,Bit16u * blocks) {
 						//TODO Filename
 						*segment=mcb_segment+1;
 
+						if (dbg_zero_on_dos_allocmem) DOS_zeromem(*segment,*blocks);
 #ifdef DEBUG_ALLOC
 						LOG_MSG("DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x\n",*blocks,*segment,*segment+*blocks-1);
 #endif
@@ -236,6 +254,7 @@ bool DOS_AllocateMemory(Bit16u * segment,Bit16u * blocks) {
 							mcb.SetFileName(psp_name);
 							*segment = found_seg+1;
 
+							if (dbg_zero_on_dos_allocmem) DOS_zeromem(*segment,*blocks);
 #ifdef DEBUG_ALLOC
 							LOG_MSG("DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x\n",*blocks,*segment,*segment+*blocks-1);
 #endif
@@ -253,6 +272,7 @@ bool DOS_AllocateMemory(Bit16u * segment,Bit16u * blocks) {
 						mcb.SetType(0x4D);
 					}
 
+					if (dbg_zero_on_dos_allocmem) DOS_zeromem(*segment,*blocks);
 #ifdef DEBUG_ALLOC
 					LOG_MSG("DOS_AllocateMemory(blocks=0x%04x) = 0x%04x-0x%04x\n",*blocks,*segment,*segment+*blocks-1);
 #endif

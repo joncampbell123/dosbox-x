@@ -128,6 +128,8 @@ extern bool			allow_more_than_640kb;
 
 bool				dos_con_use_int16_to_detect_input = true;
 
+bool				dbg_zero_on_dos_allocmem = true;
+
 /* ISA bus OSC clock (14.31818MHz) */
 /*  +---- / 12 = PIT timer clock 1.1931816666... MHz */
 ClockDomain			clockdom_ISA_OSC(14318180);		/* MASTER 14.31818MHz */
@@ -1769,6 +1771,13 @@ void DOSBOX_Init(void) {
 			"peeking into the BIOS keyboard buffer (Mainline DOSBox behavior). You will need to set this\n"
 			"option for programs that hook INT 16h to handle keyboard input ahead of the DOS console.\n"
 			"Microsoft Scandisk needs this option to respond to keyboard input correctly.");
+
+	Pbool = secprop->Add_bool("zero memory on int 21h memory allocation",Property::Changeable::OnlyAtStart,false);
+	Pbool->Set_help("If set, memory returned by the INT 21h allocation call is zeroed first. This is NOT what\n"
+			"DOS actually does, but if set, can help certain DOS games and demos cope with problems\n"
+			"related to uninitialized variables in the data or stack segment. If you intend to run a\n"
+			"game or demo known to have this problem (Second Unreal, for example), set to true, else\n"
+			"set to false. When enabled this option may incur a slight to moderate performance penalty.");
 
 	// Mscdex
 	secprop->AddInitFunction(&MSCDEX_Init);
