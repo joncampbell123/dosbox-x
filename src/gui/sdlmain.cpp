@@ -3370,37 +3370,37 @@ int main(int argc, char* argv[]) {
 		control->cmdline->BeginOpt();
 		while (control->cmdline->GetOpt(optname)) {
 			if (optname == "version") {
-				printf("\nDOSBox version %s, copyright 2002-2015 DOSBox Team.\n\n",VERSION);
-				printf("DOSBox is written by the DOSBox Team (See AUTHORS file))\n");
-				printf("DOSBox comes with ABSOLUTELY NO WARRANTY.  This is free software,\n");
-				printf("and you are welcome to redistribute it under certain conditions;\n");
-				printf("please read the COPYING file thoroughly before doing so.\n\n");
+				fprintf(stderr,"\nDOSBox version %s, copyright 2002-2015 DOSBox Team.\n\n",VERSION);
+				fprintf(stderr,"DOSBox is written by the DOSBox Team (See AUTHORS file))\n");
+				fprintf(stderr,"DOSBox comes with ABSOLUTELY NO WARRANTY.  This is free software,\n");
+				fprintf(stderr,"and you are welcome to redistribute it under certain conditions;\n");
+				fprintf(stderr,"please read the COPYING file thoroughly before doing so.\n\n");
 				return 0;
 			}
 			else if (optname == "h" || optname == "help") {
-				printf("\ndosbox [options]\n");
-				printf("\nDOSBox version %s, copyright 2002-2015 DOSBox Team.\n\n",VERSION);
-				printf("  -h     -help                            Show this help\n");
-				printf("  -editconf                               Launch editor\n");
-				printf("  -opencaptures <param>                   Launch captures\n");
-				printf("  -opensaves <param>                      Launch saves\n");
-				printf("  -eraseconf                              Erase config file\n");
-				printf("  -resetconf                              Erase config file\n");
-				printf("  -printconf                              Print config file location\n");
-				printf("  -erasemapper                            Erase mapper file\n");
-				printf("  -resetmapper                            Erase mapper file\n");
-				printf("  -noconsole                              Don't show console (debug+win32 only)\n");
-				printf("  -nogui                                  Don't show gui (win32 only)\n");
-				printf("  -nomenu                                 Don't show menu (win32 only)\n");
-				printf("  -userconf                               Create user level config file\n");
-				printf("  -conf <param>                           Use config file <param>\n");
-				printf("  -startui                                Start DOSBox-X with UI\n");
-				printf("  -startmapper                            Start DOSBox-X with mapper\n");
-				printf("  -showcycles                             Show cycles count\n");
-				printf("  -fullscreen                             Start in fullscreen\n");
-				printf("  -savedir <path>                         Save path\n");
-				printf("  -disable-numlock-check                  Disable numlock check (win32 only)\n");
-				printf("  -date-host-forced                       Force synchronization of date with host\n");
+				fprintf(stderr,"\ndosbox [options]\n");
+				fprintf(stderr,"\nDOSBox version %s, copyright 2002-2015 DOSBox Team.\n\n",VERSION);
+				fprintf(stderr,"  -h     -help                            Show this help\n");
+				fprintf(stderr,"  -editconf                               Launch editor\n");
+				fprintf(stderr,"  -opencaptures <param>                   Launch captures\n");
+				fprintf(stderr,"  -opensaves <param>                      Launch saves\n");
+				fprintf(stderr,"  -eraseconf                              Erase config file\n");
+				fprintf(stderr,"  -resetconf                              Erase config file\n");
+				fprintf(stderr,"  -printconf                              Print config file location\n");
+				fprintf(stderr,"  -erasemapper                            Erase mapper file\n");
+				fprintf(stderr,"  -resetmapper                            Erase mapper file\n");
+				fprintf(stderr,"  -noconsole                              Don't show console (debug+win32 only)\n");
+				fprintf(stderr,"  -nogui                                  Don't show gui (win32 only)\n");
+				fprintf(stderr,"  -nomenu                                 Don't show menu (win32 only)\n");
+				fprintf(stderr,"  -userconf                               Create user level config file\n");
+				fprintf(stderr,"  -conf <param>                           Use config file <param>\n");
+				fprintf(stderr,"  -startui                                Start DOSBox-X with UI\n");
+				fprintf(stderr,"  -startmapper                            Start DOSBox-X with mapper\n");
+				fprintf(stderr,"  -showcycles                             Show cycles count\n");
+				fprintf(stderr,"  -fullscreen                             Start in fullscreen\n");
+				fprintf(stderr,"  -savedir <path>                         Save path\n");
+				fprintf(stderr,"  -disable-numlock-check                  Disable numlock check (win32 only)\n");
+				fprintf(stderr,"  -date-host-forced                       Force synchronization of date with host\n");
 				return 0;
 			}
 			else if (optname == "date-host-forced" || optname == "date_host_forced") {
