@@ -85,6 +85,7 @@ extern bool keep_umb_on_boot;
 extern bool keep_private_area_on_boot;
 extern bool dos_kernel_disabled;
 
+bool opt_date_host_forced = false;
 bool opt_disable_numlock_check = false;
 std::string custom_savedir;
 
@@ -3399,7 +3400,11 @@ int main(int argc, char* argv[]) {
 				printf("  -fullscreen                             Start in fullscreen\n");
 				printf("  -savedir <path>                         Save path\n");
 				printf("  -disable-numlock-check                  Disable numlock check (win32 only)\n");
+				printf("  -date-host-forced                       Force synchronization of date with host\n");
 				return 0;
+			}
+			else if (optname == "date-host-forced" || optname == "date_host_forced") {
+				opt_date_host_forced = true;
 			}
 			else if (optname == "showcycles") {
 				opt_showcycles = true;
