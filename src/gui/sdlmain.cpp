@@ -3351,26 +3351,6 @@ int main(int argc, char* argv[]) {
 		Config myconf(&com_line);
 		control=&myconf;
 
-		/* Init the configuration system and add default values */
-		CheckNumLockState();
-		Config_Add_SDL();
-		DOSBOX_Init();
-
-		{
-			std::string editor;
-
-			if (control->cmdline->FindString("-editconf",editor,false)) launcheditor();
-			if (control->cmdline->FindString("-opencaptures",editor,true)) launchcaptures(editor);
-			if (control->cmdline->FindString("-opensaves",editor,true)) launchsaves(editor);
-		}
-
-		if (control->cmdline->FindExist("-eraseconf")) eraseconfigfile();
-		if (control->cmdline->FindExist("-resetconf")) eraseconfigfile();
-		if (control->cmdline->FindExist("-printconf")) printconfiglocation();
-
-		if (control->cmdline->FindExist("-erasemapper")) erasemapperfile();
-		if (control->cmdline->FindExist("-resetmapper")) erasemapperfile();
-		
 		if (control->cmdline->FindExist("-version")) {
 			printf("\nDOSBox version %s, copyright 2002-2013 DOSBox Team.\n\n",VERSION);
 			printf("DOSBox is written by the DOSBox Team (See AUTHORS file))\n");
@@ -3402,6 +3382,26 @@ int main(int argc, char* argv[]) {
 			printf("  -fullscreen                             Start in fullscreen\n");
 			return 0;
 		}
+
+		/* Init the configuration system and add default values */
+		CheckNumLockState();
+		Config_Add_SDL();
+		DOSBOX_Init();
+
+		{
+			std::string editor;
+
+			if (control->cmdline->FindString("-editconf",editor,false)) launcheditor();
+			if (control->cmdline->FindString("-opencaptures",editor,true)) launchcaptures(editor);
+			if (control->cmdline->FindString("-opensaves",editor,true)) launchsaves(editor);
+		}
+
+		if (control->cmdline->FindExist("-eraseconf")) eraseconfigfile();
+		if (control->cmdline->FindExist("-resetconf")) eraseconfigfile();
+		if (control->cmdline->FindExist("-printconf")) printconfiglocation();
+
+		if (control->cmdline->FindExist("-erasemapper")) erasemapperfile();
+		if (control->cmdline->FindExist("-resetmapper")) erasemapperfile();
 
 #if C_DEBUG
 # if defined(WIN32)
