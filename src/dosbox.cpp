@@ -1774,7 +1774,7 @@ void DOSBOX_Init(void) {
 	Pint->Set_help("Number of file handles available to DOS programs. (equivalent to \"files=\" in config.sys)");
 
 	Pbool = secprop->Add_bool("con device use int 16h to detect keyboard input",Property::Changeable::OnlyAtStart,true);
-	Pbool->Set_help("If set, use INT 16h to detect keyboard input (MS-DOS style). If clear, detect keyboard input by\n"
+	Pbool->Set_help("If set, use INT 16h to detect keyboard input (MS-DOS 6.22 behavior). If clear, detect keyboard input by\n"
 			"peeking into the BIOS keyboard buffer (Mainline DOSBox behavior). You will need to set this\n"
 			"option for programs that hook INT 16h to handle keyboard input ahead of the DOS console.\n"
 			"Microsoft Scandisk needs this option to respond to keyboard input correctly.");
