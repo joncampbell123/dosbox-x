@@ -129,6 +129,7 @@ extern bool			allow_more_than_640kb;
 bool				dos_con_use_int16_to_detect_input = true;
 
 bool				dbg_zero_on_dos_allocmem = true;
+bool				dbg_zero_on_xms_allocmem = true;
 
 /* ISA bus OSC clock (14.31818MHz) */
 /*  +---- / 12 = PIT timer clock 1.1931816666... MHz */
@@ -1691,6 +1692,12 @@ void DOSBOX_Init(void) {
 	secprop->AddInitFunction(&XMS_Init,true);//done
 	Pbool = secprop->Add_bool("xms",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Enable XMS support.");
+
+	Pbool = secprop->Add_bool("zero memory on xms memory allocation",Property::Changeable::OnlyAtStart,false);
+	Pbool->Set_help("If set, memory returned by XMS allocation call is zeroed first. This is NOT what\n"
+			"DOS actually does, but if set, can help certain DOS games and demos cope with problems\n"
+			"related to uninitialized variables in extended memory. When enabled this option may\n"
+			"incur a slight to moderate performance penalty.");
 
 	secprop->AddInitFunction(&EMS_Init,true);//done
 	Pstring = secprop->Add_string("ems",Property::Changeable::WhenIdle,"true");

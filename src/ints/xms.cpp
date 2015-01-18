@@ -136,6 +136,22 @@ Bitu XMS_QueryFreeMemory(Bit32u& largestFree, Bit32u& totalFree) {
 	return 0;
 }
 
+void XMS_ZeroAllocation(MemHandle mem,unsigned int pages) {
+	PhysPt address;
+
+	if (pages == 0) return;
+	address = mem*4096;
+	pages *= 4096;
+
+	if ((address+pages) > 0xC0000000) E_Exit("XMS_ZeroAllocation out of range");
+	while (pages != 0) {
+		mem_writeb(address++,0);
+		pages--;
+	}
+}
+
+extern bool dbg_zero_on_xms_allocmem;
+
 Bitu XMS_AllocateMemory(Bitu size, Bit16u& handle) {	// size = kb
 	/* Find free handle */
 	Bit16u index=1;
@@ -147,9 +163,11 @@ Bitu XMS_AllocateMemory(Bitu size, Bit16u& handle) {	// size = kb
 		Bitu pages=(size/4) + ((size & 3) ? 1 : 0);
 		mem=MEM_AllocatePages(pages,true);
 		if (!mem) return XMS_OUT_OF_SPACE;
+		if (dbg_zero_on_xms_allocmem) XMS_ZeroAllocation(mem,pages);
 	} else {
 		mem=MEM_GetNextFreePage();
 		if (mem==0) LOG(LOG_MISC,LOG_ERROR)("XMS:Allocate zero pages with no memory left");
+		if (mem != 0 && dbg_zero_on_xms_allocmem) XMS_ZeroAllocation(mem,1);
 	}
 	xms_handles[index].free=false;
 	xms_handles[index].mem=mem;
@@ -455,6 +473,12 @@ public:
 		Bitu i;
 		BIOS_ZeroExtendedSize(true);
 		DOS_AddMultiplexHandler(multiplex_xms);
+
+		dbg_zero_on_xms_allocmem = section->Get_bool("zero memory on xms memory allocation");
+
+		if (dbg_zero_on_xms_allocmem) {
+			LOG_MSG("Debug option enabled: XMS memory allocation will always clear memory block before returning\n");
+		}
 
 		/* place hookable callback in writable memory area */
 		xms_callback=RealMake(DOS_GetMemory(0x1,"xms_callback")-1,0x10);
