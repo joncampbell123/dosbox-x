@@ -85,6 +85,8 @@ extern bool keep_umb_on_boot;
 extern bool keep_private_area_on_boot;
 extern bool dos_kernel_disabled;
 
+std::string custom_savedir;
+
 void SHELL_Run();
 void DisableINT33();
 void EMS_DoShutDown();
@@ -3351,8 +3353,10 @@ int main(int argc, char* argv[]) {
 		bool opt_printconf = false;
 		bool opt_erasemapper = false;
 		bool opt_resetmapper = false;
+		bool opt_userconf = false;
 		std::string opt_opensaves,opt_opencaptures;
 		std::string config_file,config_path,optname,optarg;
+		std::vector<std::string> config_file_list;
 		CommandLine com_line(argc,argv);
 		Config myconf(&com_line);
 		control=&myconf;
@@ -3388,7 +3392,18 @@ int main(int argc, char* argv[]) {
 				printf("  -startmapper                            Start DOSBox-X with mapper\n");
 				printf("  -showcycles                             Show cycles count\n");
 				printf("  -fullscreen                             Start in fullscreen\n");
+				printf("  -savedir <path>                         Save path\n");
 				return 0;
+			}
+			else if (optname == "savedir") {
+				if (!control->cmdline->NextOptArgv(custom_savedir)) return 1;
+			}
+			else if (optname == "userconf") {
+				opt_userconf = true;
+			}
+			else if (optname == "conf") {
+				if (!control->cmdline->NextOptArgv(config_file)) return 1;
+				config_file_list.push_back(config_file);
 			}
 			else if (optname == "editconf") {
 				if (!control->cmdline->NextOptArgv(opt_editconf)) return 1;
@@ -3553,7 +3568,7 @@ int main(int argc, char* argv[]) {
 		Cross::GetPlatformConfigDir(config_path);
 
 		//First parse -userconf
-		if (control->cmdline->FindExist("-userconf",true)){
+		if (opt_userconf) {
 			config_file.clear();
 			Cross::GetPlatformConfigDir(config_path);
 			Cross::GetPlatformConfigName(config_file);
@@ -3573,13 +3588,15 @@ int main(int argc, char* argv[]) {
 			}
 		}
 
-		//Second parse -conf switches
-		while (control->cmdline->FindString("-conf",config_file,true)) {
-			if (!control->ParseConfigFile(config_file.c_str())) {
+		//Second parse all -conf switches we read from command line
+		for (size_t si=0;si < config_file_list.size();si++) {
+			std::string &cfg = config_file_list[si];
+			if (!control->ParseConfigFile(cfg.c_str())) {
 				// try to load it from the user directory
-				control->ParseConfigFile((config_path + config_file).c_str());
+				control->ParseConfigFile((config_path + cfg).c_str());
 			}
 		}
+		config_file_list.clear();
 
 		// if none found => parse localdir conf
 		if (!control->configfiles.size()) control->ParseConfigFile("dosbox.conf");
@@ -3844,12 +3861,9 @@ bool OpenGL_using(void) {
 }
 
 bool Get_Custom_SaveDir(std::string& savedir) {
-	std::string custom_savedir;
-	if (control->cmdline->FindString("-savedir",custom_savedir,false)) {
-		savedir=custom_savedir;
+	if (custom_savedir.length() != 0)
 		return true;
-	} else {
-		return false;
-	}
+
+	return false;
 }
 
