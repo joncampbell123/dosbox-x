@@ -3343,6 +3343,9 @@ int main(int argc, char* argv[]) {
 		 * The destructor relies on executing section destruction code as part of
 		 * DOSBox shutdown. */
 		std::string opt_editconf;
+		bool opt_nogui = false;
+		bool opt_nomenu = false;
+		bool opt_noconsole = false;
 		bool opt_eraseconf = false;
 		bool opt_resetconf = false;
 		bool opt_printconf = false;
@@ -3411,6 +3414,15 @@ int main(int argc, char* argv[]) {
 			else if (optname == "resetmapper") {
 				opt_resetmapper = true;
 			}
+			else if (optname == "noconsole") {
+				opt_noconsole = true;
+			}
+			else if (optname == "nomenu") {
+				opt_nomenu = true;
+			}
+			else if (optname == "nogui") {
+				opt_nogui = true;
+			}
 			else {
 				printf("WARNING: Unknown option %s (first parsing stage)\n",optname.c_str());
 			}
@@ -3437,8 +3449,8 @@ int main(int argc, char* argv[]) {
 #if C_DEBUG
 # if defined(WIN32)
 		/* Can't disable the console with debugger enabled */
-		if (control->cmdline->FindExist("-noconsole")) {
-			ShowWindow( GetConsoleWindow(), SW_HIDE );
+		if (opt_noconsole) {
+			ShowWindow(GetConsoleWindow(), SW_HIDE);
 			DestroyWindow(GetConsoleWindow());
 		} else
 # endif
@@ -3453,7 +3465,7 @@ int main(int argc, char* argv[]) {
 
 		/* Display Welcometext in the console */
 		LOG_MSG("DOSBox version %s",VERSION);
-		LOG_MSG("Copyright 2002-2013 DOSBox Team, published under GNU GPL.");
+		LOG_MSG("Copyright 2002-2015 DOSBox Team, published under GNU GPL.");
 
 		{
 			int id, major, minor;
@@ -3484,9 +3496,9 @@ int main(int argc, char* argv[]) {
 			E_Exit("Can't init SDL %s",SDL_GetError());
 		sdl.inited = true;
 
-		if (control->cmdline->FindExist("-nogui") || menu.compatible)
+		if (opt_nogui || menu.compatible)
 			menu.gui=false;
-		if (menu_gui && !control->cmdline->FindExist("-nomenu"))
+		if (menu_gui && !opt_nomenu)
 			DOSBox_SetMenu();
 
 		if (menu_gui) {
@@ -3640,7 +3652,7 @@ int main(int argc, char* argv[]) {
 			change_output(4);
 			GFX_SetIcon();
 			SDL_Prepare();
-			if (menu.gui && !control->cmdline->FindExist("-nomenu")) {
+			if (menu.gui && !opt_nomenu) {
 				SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
 				DrawMenuBar(GetHWND());
 			}
@@ -3660,7 +3672,7 @@ int main(int argc, char* argv[]) {
 				change_output(1);
 				GFX_SetIcon();
 				SDL_Prepare();
-				if (menu.gui && !control->cmdline->FindExist("-nomenu")) {
+				if (menu.gui && !opt_nomenu) {
 					SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
 					DrawMenuBar(GetHWND());
 				}
