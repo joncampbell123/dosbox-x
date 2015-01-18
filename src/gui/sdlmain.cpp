@@ -3342,7 +3342,10 @@ void CheckNumLockState(void) {
 
 //extern void UI_Init(void);
 int main(int argc, char* argv[]) {
-	try {
+	{
+		/* NTS: Warning, do NOT move the Config myconf() object out of this scope.
+		 * The destructor relies on executing section destruction code as part of
+		 * DOSBox shutdown. */
 		std::string config_file,config_path;
 		CommandLine com_line(argc,argv);
 		Config myconf(&com_line);
@@ -3751,31 +3754,6 @@ int main(int argc, char* argv[]) {
 		/* and then shutdown */
 		GFX_ShutDown();
 		/* Shutdown everything */
-	} catch (char * error) {
-#if defined (WIN32)
-		sticky_keys(true);
-#endif
-
-		LOG_MSG("Exit to error: %s",error);
-		fflush(NULL);
-		if (sdl.wait_on_error) {
-			//TODO Maybe look for some way to show message in linux?
-#if (C_DEBUG)
-			LOG_MSG("Press enter to continue");
-			fflush(NULL);
-			fgetc(stdin);
-#elif defined(WIN32)
-			Sleep(5000);
-#endif
-		}
-	}
-	catch (...) {
-		sticky_keys(true);
-
-		//Force visible mouse to end user. Somehow this sometimes doesn't happen
-		SDL_WM_GrabInput(SDL_GRAB_OFF);
-		SDL_ShowCursor(SDL_ENABLE);
-		throw;//dunno what happened. rethrow for sdl to catch
 	}
 
 	/* GUI font registry shutdown */
