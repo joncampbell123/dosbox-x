@@ -484,6 +484,11 @@ static char const * const init_line="/INIT AUTOEXEC.BAT";
 
 extern unsigned int dosbox_shell_env_size;
 
+/* TODO: Why is all this DOS kernel and VFILE registration here in SHELL_Init()?
+ *       That's like claiming that DOS memory and device initialization happens from COMMAND.COM!
+ *       We need to move the DOS kernel initialization into another function, and the VFILE
+ *       registration to another function, and then message initialization to another function,
+ *       and then those functions need to be called before SHELL_Init() -J.C. */
 void SHELL_Init() {
 	/* Add messages */
 	MSG_Add("SHELL_CMD_VOL_DRIVE","\n Volume in drive %c ");
