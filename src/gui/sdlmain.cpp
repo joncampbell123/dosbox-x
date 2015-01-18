@@ -85,6 +85,7 @@ extern bool keep_umb_on_boot;
 extern bool keep_private_area_on_boot;
 extern bool dos_kernel_disabled;
 
+bool opt_disable_numlock_check = false;
 std::string custom_savedir;
 
 void SHELL_Run();
@@ -3313,7 +3314,7 @@ static void erasemapperfile() {
 
 void SetNumLock(void) {
 #ifdef WIN32
-	if (control->cmdline->FindExist("-disable_numlock_check"))
+	if (opt_disable_numlock_check)
 		return;
 
 	// Simulate a key press
@@ -3393,7 +3394,11 @@ int main(int argc, char* argv[]) {
 				printf("  -showcycles                             Show cycles count\n");
 				printf("  -fullscreen                             Start in fullscreen\n");
 				printf("  -savedir <path>                         Save path\n");
+				printf("  -disable-numlock-check                  Disable numlock check (win32 only)\n");
 				return 0;
+			}
+			else if (optname == "disable-numlock-check") {
+				opt_disable_numlock_check = true;
 			}
 			else if (optname == "savedir") {
 				if (!control->cmdline->NextOptArgv(custom_savedir)) return 1;
