@@ -3099,7 +3099,7 @@ static void show_warning(char const * const message) {
 	SDL_Delay(12000);
 }
    
-static void launcheditor() {
+static void launcheditor(std::string edit) {
 	std::string path,file;
 	Cross::CreatePlatformConfigDir(path);
 	Cross::GetPlatformConfigName(file);
@@ -3110,13 +3110,9 @@ static void launcheditor() {
 		exit(1);
 	}
 	if(f) fclose(f);
-/*	if(edit.empty()) {
-		printf("no editor specified.\n");
-		exit(1);
-	}*/
-	std::string edit;
-	while(control->cmdline->FindString("-editconf",edit,true)) //Loop until one succeeds
-		execlp(edit.c_str(),edit.c_str(),path.c_str(),(char*) 0);
+
+	execlp(edit.c_str(),edit.c_str(),path.c_str(),(char*) 0);
+
 	//if you get here the launching failed!
 	printf("can't find editor(s) specified at the command line.\n");
 	exit(1);
@@ -3346,41 +3342,78 @@ int main(int argc, char* argv[]) {
 		/* NTS: Warning, do NOT move the Config myconf() object out of this scope.
 		 * The destructor relies on executing section destruction code as part of
 		 * DOSBox shutdown. */
-		std::string config_file,config_path;
+		std::string opt_editconf;
+		bool opt_eraseconf = false;
+		bool opt_resetconf = false;
+		bool opt_printconf = false;
+		bool opt_erasemapper = false;
+		bool opt_resetmapper = false;
+		std::string opt_opensaves,opt_opencaptures;
+		std::string config_file,config_path,optname,optarg;
 		CommandLine com_line(argc,argv);
 		Config myconf(&com_line);
 		control=&myconf;
 
-		if (control->cmdline->FindExist("-version")) {
-			printf("\nDOSBox version %s, copyright 2002-2013 DOSBox Team.\n\n",VERSION);
-			printf("DOSBox is written by the DOSBox Team (See AUTHORS file))\n");
-			printf("DOSBox comes with ABSOLUTELY NO WARRANTY.  This is free software,\n");
-			printf("and you are welcome to redistribute it under certain conditions;\n");
-			printf("please read the COPYING file thoroughly before doing so.\n\n");
-			return 0;
-		}
-		if (control->cmdline->FindExist("-help") || control->cmdline->FindExist("-h")) {
-			printf("\ndosbox [options]\n");
-			printf("\nDOSBox version %s, copyright 2002-2013 DOSBox Team.\n\n",VERSION);
-			printf("  -h     -help                            Show this help\n");
-			printf("  -editconf                               Launch editor\n");
-			printf("  -opencaptures <param>                   Launch captures\n");
-			printf("  -opensaves <param>                      Launch saves\n");
-			printf("  -eraseconf                              Erase config file\n");
-			printf("  -resetconf                              Erase config file\n");
-			printf("  -printconf                              Print config file location\n");
-			printf("  -erasemapper                            Erase mapper file\n");
-			printf("  -resetmapper                            Erase mapper file\n");
-			printf("  -noconsole                              Don't show console (debug+win32 only)\n");
-			printf("  -nogui                                  Don't show gui (win32 only)\n");
-			printf("  -nomenu                                 Don't show menu (win32 only)\n");
-			printf("  -userconf                               Create user level config file\n");
-			printf("  -conf <param>                           Use config file <param>\n");
-			printf("  -startui                                Start DOSBox-X with UI\n");
-			printf("  -startmapper                            Start DOSBox-X with mapper\n");
-			printf("  -showcycles                             Show cycles count\n");
-			printf("  -fullscreen                             Start in fullscreen\n");
-			return 0;
+		control->cmdline->BeginOpt(/*eat argv=*/false); // TODO: When the rest of DOSBox has been weaned off of FindExist/etc change to true
+		while (control->cmdline->GetOpt(optname)) {
+			if (optname == "version") {
+				printf("\nDOSBox version %s, copyright 2002-2015 DOSBox Team.\n\n",VERSION);
+				printf("DOSBox is written by the DOSBox Team (See AUTHORS file))\n");
+				printf("DOSBox comes with ABSOLUTELY NO WARRANTY.  This is free software,\n");
+				printf("and you are welcome to redistribute it under certain conditions;\n");
+				printf("please read the COPYING file thoroughly before doing so.\n\n");
+				return 0;
+			}
+			else if (optname == "h" || optname == "help") {
+				printf("\ndosbox [options]\n");
+				printf("\nDOSBox version %s, copyright 2002-2015 DOSBox Team.\n\n",VERSION);
+				printf("  -h     -help                            Show this help\n");
+				printf("  -editconf                               Launch editor\n");
+				printf("  -opencaptures <param>                   Launch captures\n");
+				printf("  -opensaves <param>                      Launch saves\n");
+				printf("  -eraseconf                              Erase config file\n");
+				printf("  -resetconf                              Erase config file\n");
+				printf("  -printconf                              Print config file location\n");
+				printf("  -erasemapper                            Erase mapper file\n");
+				printf("  -resetmapper                            Erase mapper file\n");
+				printf("  -noconsole                              Don't show console (debug+win32 only)\n");
+				printf("  -nogui                                  Don't show gui (win32 only)\n");
+				printf("  -nomenu                                 Don't show menu (win32 only)\n");
+				printf("  -userconf                               Create user level config file\n");
+				printf("  -conf <param>                           Use config file <param>\n");
+				printf("  -startui                                Start DOSBox-X with UI\n");
+				printf("  -startmapper                            Start DOSBox-X with mapper\n");
+				printf("  -showcycles                             Show cycles count\n");
+				printf("  -fullscreen                             Start in fullscreen\n");
+				return 0;
+			}
+			else if (optname == "editconf") {
+				if (!control->cmdline->NextOptArgv(opt_editconf)) return 1;
+			}
+			else if (optname == "opencaptures") {
+				if (!control->cmdline->NextOptArgv(opt_opencaptures)) return 1;
+			}
+			else if (optname == "opensaves") {
+				if (!control->cmdline->NextOptArgv(opt_opensaves)) return 1;
+			}
+			else if (optname == "eraseconf") {
+				opt_eraseconf = true;
+			}
+			else if (optname == "resetconf") {
+				opt_resetconf = true;
+			}
+			else if (optname == "printconf") {
+				opt_printconf = true;
+			}
+			else if (optname == "erasemapper") {
+				opt_erasemapper = true;
+			}
+			else if (optname == "resetmapper") {
+				opt_resetmapper = true;
+			}
+			else {
+				printf("WARNING: Unknown option %s (first parsing stage)\n",optname.c_str());
+			}
 		}
 
 		/* Init the configuration system and add default values */
@@ -3388,20 +3421,18 @@ int main(int argc, char* argv[]) {
 		Config_Add_SDL();
 		DOSBOX_Init();
 
-		{
-			std::string editor;
-
-			if (control->cmdline->FindString("-editconf",editor,false)) launcheditor();
-			if (control->cmdline->FindString("-opencaptures",editor,true)) launchcaptures(editor);
-			if (control->cmdline->FindString("-opensaves",editor,true)) launchsaves(editor);
-		}
-
-		if (control->cmdline->FindExist("-eraseconf")) eraseconfigfile();
-		if (control->cmdline->FindExist("-resetconf")) eraseconfigfile();
-		if (control->cmdline->FindExist("-printconf")) printconfiglocation();
-
-		if (control->cmdline->FindExist("-erasemapper")) erasemapperfile();
-		if (control->cmdline->FindExist("-resetmapper")) erasemapperfile();
+		if (opt_editconf.length() != 0)
+			launcheditor(opt_editconf);
+		if (opt_opencaptures.length() != 0)
+			launchcaptures(opt_opencaptures);
+		if (opt_opensaves.length() != 0)
+			launchsaves(opt_opensaves);
+		if (opt_eraseconf || opt_resetconf)
+			eraseconfigfile();
+		if (opt_printconf)
+			printconfiglocation();
+		if (opt_erasemapper || opt_resetmapper)
+			erasemapperfile();
 
 #if C_DEBUG
 # if defined(WIN32)

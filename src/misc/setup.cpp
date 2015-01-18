@@ -1021,6 +1021,63 @@ unsigned int CommandLine::GetCount(void) {
 	return (unsigned int)cmds.size();
 }
 
+bool CommandLine::NextOptArgv(std::string &argv) {
+	argv.clear();
+	if (opt_scan == cmds.end()) return false;
+	argv = *opt_scan;
+	if (opt_eat_argv) opt_scan = cmds.erase(opt_scan);
+	else opt_scan++;
+	return true;
+}
+
+bool CommandLine::BeginOpt(bool eat_argv) {
+	opt_scan = cmds.begin();
+	if (opt_scan == cmds.end()) return false;
+	opt_eat_argv = eat_argv;
+	return true;
+}
+
+bool CommandLine::GetOpt(std::string &name) {
+	name.clear();
+	while (opt_scan != cmds.end()) {
+		std::string &argv = *opt_scan;
+		const char *str = argv.c_str();
+
+		if ((opt_style == CommandLine::either || opt_style == CommandLine::dos) && *str == '/') {
+			/* MS-DOS style /option. Example: /A /OPT /HAX /BLAH */
+			name = str+1; /* copy to caller minus leaking slash, then erase/skip */
+			if (opt_eat_argv) opt_scan = cmds.erase(opt_scan);
+			else opt_scan++;
+			return true;
+		}
+		else if ((opt_style == CommandLine::either || opt_style == CommandLine::gnu || opt_style == CommandLine::gnu_getopt) && *str == '-') {
+			str++; /* step past '-' */
+			if (str[0] == '-' && str[1] == 0) { /* '--' means to stop parsing */
+				opt_scan = cmds.end();
+				if (opt_eat_argv) opt_scan = cmds.erase(opt_scan);
+				break;
+			}
+
+			/* TODO: getopt single-char switches like -a -b or to represent -q -r -s as -qrs */
+			if (opt_style != CommandLine::gnu_getopt && *str == '-') str++;
+
+			name = str; /* copy to caller, then erase/skip */
+			if (opt_eat_argv) opt_scan = cmds.erase(opt_scan);
+			else opt_scan++;
+			return true;
+		}
+		else {
+			opt_scan++;
+		}
+	}
+
+	return false;
+}
+
+void CommandLine::EndOpt() {
+	opt_scan = cmds.end();
+}
+
 void CommandLine::FillVector(std::vector<std::string> & vector) {
 	for(cmd_it it=cmds.begin(); it != cmds.end(); it++) {
 		vector.push_back((*it));
@@ -1086,11 +1143,12 @@ int CommandLine::GetParameterFromList(const char* const params[], std::vector<st
 }
 
 
-CommandLine::CommandLine(int argc,char const * const argv[]) {
+CommandLine::CommandLine(int argc,char const * const argv[],enum opt_style opt) {
 	if (argc>0) {
 		file_name=argv[0];
 	}
 	int i=1;
+	opt_style = opt;
 	while (i<argc) {
 		cmds.push_back(argv[i]);
 		i++;
@@ -1106,13 +1164,14 @@ Bit16u CommandLine::Get_arglength() {
 }
 
 
-CommandLine::CommandLine(char const * const name,char const * const cmdline) {
+CommandLine::CommandLine(char const * const name,char const * const cmdline,enum opt_style opt) {
 	if (name) file_name=name;
 	/* Parse the cmds and put them in the list */
 	bool inword,inquote;char c;
 	inword=false;inquote=false;
 	std::string str;
 	const char * c_cmdline=cmdline;
+	opt_style = opt;
 	while ((c=*c_cmdline)!=0) {
 		if (inquote) {
 			if (c!='"') str+=c;
