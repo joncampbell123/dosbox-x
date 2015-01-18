@@ -130,6 +130,7 @@ bool				dos_con_use_int16_to_detect_input = true;
 
 bool				dbg_zero_on_dos_allocmem = true;
 bool				dbg_zero_on_xms_allocmem = true;
+bool				dbg_zero_on_ems_allocmem = true;
 
 /* ISA bus OSC clock (14.31818MHz) */
 /*  +---- / 12 = PIT timer clock 1.1931816666... MHz */
@@ -1706,6 +1707,12 @@ void DOSBOX_Init(void) {
 		"compatibility but certain applications may run better with\n"
 		"other choices, or require EMS support to be disabled (=false)\n"
 		"to work at all.");
+
+	Pbool = secprop->Add_bool("zero memory on ems memory allocation",Property::Changeable::OnlyAtStart,false);
+	Pbool->Set_help("If set, memory returned by EMS allocation call is zeroed first. This is NOT what\n"
+			"DOS actually does, but if set, can help certain DOS games and demos cope with problems\n"
+			"related to uninitialized variables in expanded memory. When enabled this option may\n"
+			"incur a slight to moderate performance penalty.");
 
 	Pint = secprop->Add_int("ems system handle memory size",Property::Changeable::WhenIdle,384);
 	Pint->Set_help("Amount of memory associated with system handle, in KB");

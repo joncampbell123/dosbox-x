@@ -236,6 +236,23 @@ static bool INLINE ValidHandle(Bit16u handle) {
 	return true;
 }
 
+void EMS_ZeroAllocation(MemHandle mem,unsigned int pages) {
+	PhysPt address;
+
+	if (pages == 0) return;
+	address = mem*4096;
+	pages *= 4096;
+
+	if ((address+pages) > 0xC0000000) E_Exit("EMS_ZeroAllocation out of range");
+	while (pages != 0) {
+		mem_writeb(address++,0);
+		pages--;
+	}
+}
+
+extern bool dbg_zero_on_ems_allocmem;
+
+/* NTS: "page" in EMS refers to 16KB regions, not the 4KB memory pages we normally work with */
 static Bit8u EMM_AllocateMemory(Bit16u pages,Bit16u & dhandle,bool can_allocate_zpages) {
 	/* Check for 0 page allocation */
 	if (!pages) {
@@ -252,6 +269,7 @@ static Bit8u EMM_AllocateMemory(Bit16u pages,Bit16u & dhandle,bool can_allocate_
 	if (pages) {
 		mem = MEM_AllocatePages(pages*4,false);
 		if (!mem) E_Exit("EMS:Memory allocation failure");
+		else if (dbg_zero_on_ems_allocmem) EMS_ZeroAllocation(mem,pages*4);
 	}
 	emm_handles[handle].pages = pages;
 	emm_handles[handle].mem = mem;
@@ -1334,6 +1352,12 @@ public:
 			return;
 		}
 		BIOS_ZeroExtendedSize(true);
+
+		dbg_zero_on_ems_allocmem = section->Get_bool("zero memory on ems memory allocation");
+
+		if (dbg_zero_on_ems_allocmem) {
+			LOG_MSG("Debug option enabled: EMS memory allocation will always clear memory block before returning\n");
+		}
 
 		oshandle_memsize_16kb = section->Get_int("ems system handle memory size");
 		/* convert KB to 16KB pages */
