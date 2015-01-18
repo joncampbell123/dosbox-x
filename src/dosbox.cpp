@@ -1833,7 +1833,11 @@ void DOSBOX_Init(void) {
 		"this has to be changed for each. AC:DE:48 is an address range reserved for\n"
 		"private use, so modify the last three number blocks.\n"
 		"I.e. AC:DE:48:88:99:AB.");
-	
+
+	/* TODO: Change default to "nat" and then begin implementing support for emulating
+	 *       an ethernet connection with DOSBox-X as a NAT/firewall between the guest
+	 *       and the OS. Sort of like "NAT" mode in VirtualBox. When that works, we
+	 *       can then compile NE2000 support with and without libpcap/winpcap support. */
 	Pstring = secprop->Add_string("realnic", Property::Changeable::WhenIdle,"list");
 	Pstring->Set_help("Specifies which of your network interfaces is used.\n"
 		"Write \'list\' here to see the list of devices in the\n"
