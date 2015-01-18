@@ -3348,12 +3348,16 @@ int main(int argc, char* argv[]) {
 		std::string opt_editconf;
 		bool opt_nogui = false;
 		bool opt_nomenu = false;
+		bool opt_startui = false;
 		bool opt_noconsole = false;
 		bool opt_eraseconf = false;
 		bool opt_resetconf = false;
 		bool opt_printconf = false;
 		bool opt_erasemapper = false;
 		bool opt_resetmapper = false;
+		bool opt_startmapper = false;
+		bool opt_fullscreen = false;
+		bool opt_showcycles = false;
 		bool opt_userconf = false;
 		std::string opt_opensaves,opt_opencaptures;
 		std::string config_file,config_path,optname,optarg;
@@ -3362,7 +3366,7 @@ int main(int argc, char* argv[]) {
 		Config myconf(&com_line);
 		control=&myconf;
 
-		control->cmdline->BeginOpt(/*eat argv=*/false); // TODO: When the rest of DOSBox has been weaned off of FindExist/etc change to true
+		control->cmdline->BeginOpt();
 		while (control->cmdline->GetOpt(optname)) {
 			if (optname == "version") {
 				printf("\nDOSBox version %s, copyright 2002-2015 DOSBox Team.\n\n",VERSION);
@@ -3396,6 +3400,18 @@ int main(int argc, char* argv[]) {
 				printf("  -savedir <path>                         Save path\n");
 				printf("  -disable-numlock-check                  Disable numlock check (win32 only)\n");
 				return 0;
+			}
+			else if (optname == "showcycles") {
+				opt_showcycles = true;
+			}
+			else if (optname == "startmapper") {
+				opt_startmapper = true;
+			}
+			else if (optname == "fullscreen") {
+				opt_fullscreen = true;
+			}
+			else if (optname == "startui") {
+				opt_startui = true;
 			}
 			else if (optname == "disable-numlock-check" || optname == "disable_numlock_check") {
 				/* mainline DOSBox expects -disable_numlock_check so we support that here too */
@@ -3634,8 +3650,7 @@ int main(int argc, char* argv[]) {
 #endif
 
 		UI_Init();
-		if (control->cmdline->FindExist("-startui"))
-			UI_Run(false);
+		if (opt_startui) UI_Run(false);
 
 		/* Init all the sections */
 		control->Init();
@@ -3644,7 +3659,7 @@ int main(int argc, char* argv[]) {
 			/* Some extra SDL Functions */
 			Section_prop *sdl_sec = static_cast<Section_prop*>(control->GetSection("sdl"));
 
-			if (control->cmdline->FindExist("-fullscreen") || sdl_sec->Get_bool("fullscreen")) {
+			if (opt_fullscreen || sdl_sec->Get_bool("fullscreen")) {
 				if (sdl.desktop.want_type != SCREEN_OPENGLHQ) SetMenu(GetHWND(),NULL);
 				//only switch if not already in fullscreen
 				if (!sdl.desktop.fullscreen) GFX_SwitchFullScreen();
@@ -3653,14 +3668,14 @@ int main(int argc, char* argv[]) {
 
 		/* Init the keyMapper */
 		MAPPER_Init();
-		if (control->cmdline->FindExist("-startmapper"))
+		if (opt_startmapper)
 			MAPPER_RunInternal();
 
 		/* Start up main machine */
 
 		// Shows menu bar (window)
 		menu.startup = true;
-		menu.hidecycles = ((control->cmdline->FindExist("-showcycles")) ? false : true);
+		menu.hidecycles = (opt_showcycles ? false : true);
 		if (sdl.desktop.want_type == SCREEN_OPENGLHQ) {
 			menu.gui=false; DOSBox_SetOriginalIcon();
 			if (!render.scale.hardware) SetVal("render","scaler",!render.scale.forced?"hardware2x":"hardware2x forced");
