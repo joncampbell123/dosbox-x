@@ -3397,7 +3397,8 @@ int main(int argc, char* argv[]) {
 				printf("  -disable-numlock-check                  Disable numlock check (win32 only)\n");
 				return 0;
 			}
-			else if (optname == "disable-numlock-check") {
+			else if (optname == "disable-numlock-check" || optname == "disable_numlock_check") {
+				/* mainline DOSBox expects -disable_numlock_check so we support that here too */
 				opt_disable_numlock_check = true;
 			}
 			else if (optname == "savedir") {
