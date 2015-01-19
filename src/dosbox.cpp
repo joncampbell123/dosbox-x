@@ -1709,6 +1709,12 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("xms",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Enable XMS support.");
 
+	Pbool = secprop->Add_bool("enable a20 on windows init",Property::Changeable::OnlyAtStart,true);
+	Pbool->Set_help("If set, DOSBox will enable the A20 gate when Windows 3.1/9x broadcasts the INIT message\n"
+			"at startup. Windows 3.1 appears to make assumptions at some key points on startup about\n"
+			"A20 that don't quite hold up and cause Windows 3.1 to crash when you set A20 emulation\n"
+			"to a20=mask as opposed to a20=fast. This option is enabled by default.");
+
 	Pbool = secprop->Add_bool("zero memory on xms memory allocation",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("If set, memory returned by XMS allocation call is zeroed first. This is NOT what\n"
 			"DOS actually does, but if set, can help certain DOS games and demos cope with problems\n"

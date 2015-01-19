@@ -24,6 +24,9 @@
 #include "dos_inc.h"
 #include <list>
 
+extern Bitu XMS_EnableA20(bool enable);
+
+bool enable_a20_on_windows_init = false;
 
 static Bitu call_int2f,call_int2a;
 
@@ -173,6 +176,11 @@ static bool DOS_MultiplexFunctions(void) {
 		}
 		return true;
 	case 0x1605:	/* Windows init broadcast */
+		if (enable_a20_on_windows_init) {
+			LOG_MSG("Enabling A20 gate for Windows in response to INIT broadcast");
+			XMS_EnableA20(true);
+		}
+
 		/* TODO: Maybe future parts of DOSBox-X will do something with this */
 		/* TODO: Don't show this by default. Show if the user wants it by a) setting something to "true" in dosbox.conf or b) running a builtin command in Z:\ */
 		LOG_MSG("DEBUG: INT 2Fh Windows 286/386 DOSX init broadcast issued (ES:BX=%04x:%04x DS:SI=%04x:%04x CX=%04x DX=%04x DI=%04x(aka version %u.%u))",

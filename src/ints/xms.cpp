@@ -152,6 +152,7 @@ void XMS_ZeroAllocation(MemHandle mem,unsigned int pages) {
 	}
 }
 
+extern bool enable_a20_on_windows_init;
 extern bool dbg_zero_on_xms_allocmem;
 
 Bitu XMS_AllocateMemory(Bitu size, Bit16u& handle) {	// size = kb
@@ -499,6 +500,7 @@ public:
 		BIOS_ZeroExtendedSize(true);
 		DOS_AddMultiplexHandler(multiplex_xms);
 
+		enable_a20_on_windows_init = section->Get_bool("enable a20 on windows init");
 		dbg_zero_on_xms_allocmem = section->Get_bool("zero memory on xms memory allocation");
 
 		if (dbg_zero_on_xms_allocmem) {
