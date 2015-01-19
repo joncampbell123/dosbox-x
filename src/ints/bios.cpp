@@ -2851,6 +2851,8 @@ unsigned char do_isapnp_chksum(unsigned char *d,int i) {
 	return (0x100 - sum) & 0xFF;
 }
 
+void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages);
+
 extern unsigned int dos_conventional_limit;
 
 class BIOS:public Module_base{
@@ -2932,16 +2934,14 @@ public:
 		callback[2].Install(&INT12_Handler,CB_IRET,"Int 12 Memory");
 		callback[2].Set_RealVec(0x12);
 
+		Bitu ulimit = 640;
 		Bitu t_conv = MEM_TotalPages() << 2; /* convert 4096/byte pages -> 1024/byte KB units */
 		if (allow_more_than_640kb) {
-			Bitu ulimit;
 
 			if (machine == MCH_CGA)
 				ulimit = 736;		/* 640KB + 64KB + 32KB  0x00000-0xB7FFF */
 			else if (machine == MCH_HERC)
 				ulimit = 704;		/* 640KB + 64KB = 0x00000-0xAFFFF */
-			else
-				ulimit = 640;		/* No can do, sorry */
 
 			if (t_conv > ulimit) t_conv = ulimit;
 			if (t_conv > 640) { /* because the memory emulation has already set things up */
@@ -2963,6 +2963,13 @@ public:
 		/* allow user to further limit the available memory below 1MB */
 		if (dos_conventional_limit != 0 && t_conv > dos_conventional_limit)
 			t_conv = dos_conventional_limit;
+
+		/* and then unmap RAM between t_conv and ulimit */
+		if (t_conv < ulimit) {
+			Bitu start = (t_conv+3)/4;	/* start = 1KB to page round up */
+			Bitu end = ulimit/4;		/* end = 1KB to page round down */
+			if (start < end) MEM_ResetPageHandler_Unmapped(start,end-start);
+		}
 
 		mem_writew(BIOS_MEMORY_SIZE,t_conv);
 
