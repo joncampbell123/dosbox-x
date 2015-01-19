@@ -177,6 +177,11 @@ static bool DOS_MultiplexFunctions(void) {
 		return true;
 	case 0x1605:	/* Windows init broadcast */
 		if (enable_a20_on_windows_init) {
+			/* This hack exists because Windows 3.1 doesn't seem to enable A20 first during an
+			 * initial critical period where it assumes it's on, prior to checking and enabling/disabling it.
+			 *
+			 * Note that Windows 3.1 also makes this mistake in Standard/286 mode, but it doesn't even
+			 * make this callout, so this hack is useless unless you are using Enhanced/386 mode. */
 			LOG_MSG("Enabling A20 gate for Windows in response to INIT broadcast");
 			XMS_EnableA20(true);
 		}
