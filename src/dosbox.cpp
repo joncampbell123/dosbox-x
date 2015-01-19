@@ -1098,6 +1098,13 @@ void DOSBOX_Init(void) {
 			"that your capture will also show a few garbled frames at any point mode changes occur, which is why this option is disabled\n"
 			"by default. If you intend to run certain DOS games and demos like DoWhackaDo, enable this option.");
 
+	Pbool = secprop->Add_bool("resize only on vga active display width increase",Property::Changeable::Always,false);
+	Pbool->Set_help("If set, changes to the Display End register of the CRTC do not trigger DOSBox to resize it's window\n"
+			"IF the value written is less than the current value. Some demos like DoWhackaDo need this option set\n"
+			"because of the way it's raster effects work. If the DOSBox window rapidly changes size during a demo\n"
+			"try setting this option. Else, leave it turned off. Changes to other VGA CRTC registers will trigger\n"
+			"a DOSBox mode change as normal regardless of this setting.");
+
 	Pbool = secprop->Add_bool("enable pci bus",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("Enable PCI bus emulation");
 

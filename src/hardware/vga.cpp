@@ -146,6 +146,7 @@ bool vga_enable_hpel_effects = false;
 bool vga_enable_3C6_ramdac = false;
 bool vga_sierra_lock_565 = false;
 bool enable_vga_resize_delay = false;
+bool vga_ignore_hdispend_change_if_smaller = false;
 
 unsigned int vga_display_start_hretrace = 0;
 float hretrace_fx_avg_weight = 3;
@@ -468,6 +469,7 @@ void VGA_Init(Section* sec) {
 	allow_vesa_4bpp = section->Get_bool("allow 4bpp vesa modes");
 	allow_vesa_tty = section->Get_bool("allow tty vesa modes");
 	enable_vga_resize_delay = section->Get_bool("enable vga resize delay");
+	vga_ignore_hdispend_change_if_smaller = section->Get_bool("resize only on vga active display width increase");
 
 	/* sanity check: "VBE 1.2 modes 32bpp" doesn't make any sense if neither 24bpp or 32bpp is enabled */
 	if (!allow_vesa_32bpp && !allow_vesa_24bpp)
