@@ -928,7 +928,12 @@ void DOSBOX_Init(void) {
 		"  If nonzero, overrides the memsize parameter.\n"
 		"  Finer grained control of total memory may be useful in\n"
 		"  emulating ancient DOS machines with less than 640KB of\n"
-		"  RAM or early 386 systems with odd extended memory sizes.\n");
+		"  RAM or early 386 systems with odd extended memory sizes.");
+
+	Pint = secprop->Add_int("dos mem limit", Property::Changeable::WhenIdle,0);
+	Pint->SetMinMax(0,1023);
+	Pint->Set_help(	"Limit DOS conventional memory to this amount. Does not affect extended memory.\n"
+			"Some DOS programs may find < 640KB + extended memory an unusual situation. For diagnostic purposes.");
 
 	Pint = secprop->Add_int("memalias", Property::Changeable::WhenIdle,0);
 	Pint->SetMinMax(0,32);
@@ -941,7 +946,7 @@ void DOSBOX_Init(void) {
 		"  Recommended values when enabled:\n"
 		"    24: 16MB aliasing. Common on 386SX systems (CPU had 24 external address bits)\n"
 		"        or 386DX and 486 systems where the CPU communicated directly with the ISA bus (A24-A31 tied off)\n"
-		"    26: 64MB aliasing. Some 486s had only 26 external address bits, some motherboards tied off A26-A31\n");
+		"    26: 64MB aliasing. Some 486s had only 26 external address bits, some motherboards tied off A26-A31");
 
 	Pint = secprop->Add_int("vga bios size override", Property::Changeable::WhenIdle,0);
 	Pint->SetMinMax(512,65536);

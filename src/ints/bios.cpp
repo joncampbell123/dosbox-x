@@ -2851,6 +2851,8 @@ unsigned char do_isapnp_chksum(unsigned char *d,int i) {
 	return (0x100 - sum) & 0xFF;
 }
 
+extern unsigned int dos_conventional_limit;
+
 class BIOS:public Module_base{
 private:
 	CALLBACK_HandlerObject callback[13];
@@ -2957,6 +2959,11 @@ public:
 			   at the end of the conventional 640k) */
 			if (machine==MCH_TANDY && t_conv > 624) t_conv = 624;
 		}
+
+		/* allow user to further limit the available memory below 1MB */
+		if (dos_conventional_limit != 0 && t_conv > dos_conventional_limit)
+			t_conv = dos_conventional_limit;
+
 		mem_writew(BIOS_MEMORY_SIZE,t_conv);
 
 		/* INT 13 Bios Disk Support */

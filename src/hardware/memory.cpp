@@ -62,6 +62,8 @@ extern bool VIDEO_BIOS_always_carry_16_high_font;
  * not show up and reads return 0xFF, just like real hardware. */
 bool adapter_rom_is_ram = false;
 
+unsigned int dos_conventional_limit = 0;
+
 struct LinkBlock {
 	Bitu used;
 	Bit32u pages[MAX_LINKS];
@@ -930,6 +932,7 @@ public:
 		Bitu memsizekb=section->Get_int("memsizekb");
 		Bitu address_bits=section->Get_int("memalias");
 
+		dos_conventional_limit = section->Get_int("dos mem limit");
 		adapter_rom_is_ram = section->Get_bool("adapter rom is ram");
 
 		/* FIXME: This belongs elsewhere! */
