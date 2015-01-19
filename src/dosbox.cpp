@@ -1947,7 +1947,7 @@ void DOSBOX_Init(void) {
 		 *    sectors: it's a start but it's mostly wrong. Hopefully DOSLIB will shed light on what the real differences
 		 *    are and what is most common. --J.C. */
 		Pstring = secprop->Add_string("mode",Property::Changeable::WhenIdle,"ps2");
-		Pstring->Set_help(
+		if (i == 0) Pstring->Set_help(
 				"Floppy controller mode. What the controller acts like.\n"
 				"  ps2                          PS/2 mode (most common)\n"
 				"  ps2_model30                  PS/2 model 30\n"
@@ -1956,7 +1956,7 @@ void DOSBOX_Init(void) {
 
 		/* FIXME: Not yet implemented. Future plans */
 		Pstring = secprop->Add_string("chip",Property::Changeable::WhenIdle,"82077aa");
-		Pstring->Set_help(
+		if (i == 0) Pstring->Set_help(
 				"Floppy controller chipset\n"
 				"  82077aa                      Intel 82077AA chipset\n"
 				"  82072                        Intel 82072 chipset\n"
