@@ -106,11 +106,13 @@ struct XMS_MemMove{
 #pragma pack ()
 #endif
 
+static int xms_local_enable_count = 0;
 
 Bitu XMS_EnableA20(bool enable) {
 	Bit8u val = IO_Read	(0x92);
 	if (enable) IO_Write(0x92,val | 2);
 	else		IO_Write(0x92,val & ~2);
+//	LOG_MSG("XMS A20 enable=%u lock=%u",enable?1:0,xms_local_enable_count);
 	return 0;
 }
 
@@ -286,7 +288,7 @@ static bool multiplex_xms(void) {
 
 INLINE void SET_RESULT(Bitu res,bool touch_bl_on_succes=true) {
 	if(touch_bl_on_succes || res) reg_bl = (Bit8u)res;
-	reg_ax = (res==0);
+	reg_ax = (res==0)?1:0;
 }
 
 Bitu XMS_Handler(void) {
@@ -305,15 +307,38 @@ Bitu XMS_Handler(void) {
 		reg_ax=0;
 		reg_bl=HIGH_MEMORY_NOT_EXIST;
 		break;
-		
 	case XMS_GLOBAL_ENABLE_A20:									/* 03 */
-	case XMS_LOCAL_ENABLE_A20:									/* 05 */
 		SET_RESULT(XMS_EnableA20(true));
 		break;
 	case XMS_GLOBAL_DISABLE_A20:								/* 04 */
-	case XMS_LOCAL_DISABLE_A20:									/* 06 */
 		SET_RESULT(XMS_EnableA20(false));
-		break;	
+		break;
+	case XMS_LOCAL_ENABLE_A20:									/* 05 */
+		if (xms_local_enable_count == 0) {
+			SET_RESULT(XMS_EnableA20(true));
+		}
+		else {
+			SET_RESULT(0);
+		}
+		xms_local_enable_count++;
+		break;
+	case XMS_LOCAL_DISABLE_A20:									/* 06 */
+		if (xms_local_enable_count > 0) {
+			xms_local_enable_count--;
+			if (xms_local_enable_count == 0) {
+				SET_RESULT(XMS_EnableA20(false));
+			}
+			else {
+				SET_RESULT(0x94/*still enabled*/);
+			}
+		}
+		else {
+			/* NTS: The XMS spec says that A20 disable should only happen IF the counter == 1 and decrements to zero.
+			 *      Windows 3.1 treats the XMS driver differently on startup (big surprise), and will call LOCAL DISABLE
+			 *      and QUERY A20 until we indicate the A20 line is off (at one point during startup). */
+			SET_RESULT(XMS_EnableA20(false));
+		}
+		break;
 	case XMS_QUERY_A20:											/* 07 */
 		reg_ax = XMS_GetEnabledA20();
 		reg_bl = 0;
