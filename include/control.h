@@ -68,7 +68,22 @@ public:
 	Config(CommandLine * cmd):cmdline(cmd),secure_mode(false) {
 		startup_params.push_back(cmdline->GetFileName());
 		cmdline->FillVector(startup_params);
-		initialised=false;
+		opt_nogui = false;
+		opt_nomenu = false;
+		opt_startui = false;
+		initialised = false;
+		opt_userconf = false;
+		opt_noconsole = false;
+		opt_eraseconf = false;
+		opt_resetconf = false;
+		opt_printconf = false;
+		opt_fullscreen = false;
+		opt_showcycles = false;
+		opt_erasemapper = false;
+		opt_resetmapper = false;
+		opt_startmapper = false;
+		opt_date_host_forced = false;
+		opt_disable_numlock_check = false;
 	}
 	~Config();
 
@@ -87,6 +102,24 @@ public:
 	void ParseEnv(char ** envp);
 	bool SecureMode() const { return secure_mode; }
 	void SwitchToSecureMode() { secure_mode = true; }//can't be undone
+public:
+	std::string opt_editconf,opt_opensaves,opt_opencaptures;
+	std::vector<std::string> config_file_list;
+	bool opt_disable_numlock_check;
+	bool opt_date_host_forced;
+	bool opt_erasemapper;
+	bool opt_resetmapper;
+	bool opt_startmapper;
+	bool opt_fullscreen;
+	bool opt_showcycles;
+	bool opt_noconsole;
+	bool opt_eraseconf;
+	bool opt_resetconf;
+	bool opt_printconf;
+	bool opt_userconf;
+	bool opt_startui;
+	bool opt_nomenu;
+	bool opt_nogui;
 };
 
 #endif

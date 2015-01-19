@@ -35,6 +35,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <assert.h>
 #include <stdarg.h>
 #include <sys/types.h>
 #ifdef WIN32
@@ -85,8 +86,6 @@ extern bool keep_umb_on_boot;
 extern bool keep_private_area_on_boot;
 extern bool dos_kernel_disabled;
 
-bool opt_date_host_forced = false;
-bool opt_disable_numlock_check = false;
 std::string custom_savedir;
 
 void SHELL_Run();
@@ -3340,158 +3339,154 @@ void CheckNumLockState(void) {
 #endif
 }
 
+bool DOSBOX_parse_argv() {
+	std::string optname,tmp;
+
+	assert(control != NULL);
+	assert(control->cmdline != NULL);
+
+	control->cmdline->BeginOpt();
+	while (control->cmdline->GetOpt(optname)) {
+		if (optname == "version") {
+			fprintf(stderr,"\nDOSBox version %s, copyright 2002-2015 DOSBox Team.\n\n",VERSION);
+			fprintf(stderr,"DOSBox is written by the DOSBox Team (See AUTHORS file))\n");
+			fprintf(stderr,"DOSBox comes with ABSOLUTELY NO WARRANTY.  This is free software,\n");
+			fprintf(stderr,"and you are welcome to redistribute it under certain conditions;\n");
+			fprintf(stderr,"please read the COPYING file thoroughly before doing so.\n\n");
+			return 0;
+		}
+		else if (optname == "h" || optname == "help") {
+			fprintf(stderr,"\ndosbox [options]\n");
+			fprintf(stderr,"\nDOSBox version %s, copyright 2002-2015 DOSBox Team.\n\n",VERSION);
+			fprintf(stderr,"  -h     -help                            Show this help\n");
+			fprintf(stderr,"  -editconf                               Launch editor\n");
+			fprintf(stderr,"  -opencaptures <param>                   Launch captures\n");
+			fprintf(stderr,"  -opensaves <param>                      Launch saves\n");
+			fprintf(stderr,"  -eraseconf                              Erase config file\n");
+			fprintf(stderr,"  -resetconf                              Erase config file\n");
+			fprintf(stderr,"  -printconf                              Print config file location\n");
+			fprintf(stderr,"  -erasemapper                            Erase mapper file\n");
+			fprintf(stderr,"  -resetmapper                            Erase mapper file\n");
+			fprintf(stderr,"  -noconsole                              Don't show console (debug+win32 only)\n");
+			fprintf(stderr,"  -nogui                                  Don't show gui (win32 only)\n");
+			fprintf(stderr,"  -nomenu                                 Don't show menu (win32 only)\n");
+			fprintf(stderr,"  -userconf                               Create user level config file\n");
+			fprintf(stderr,"  -conf <param>                           Use config file <param>\n");
+			fprintf(stderr,"  -startui                                Start DOSBox-X with UI\n");
+			fprintf(stderr,"  -startmapper                            Start DOSBox-X with mapper\n");
+			fprintf(stderr,"  -showcycles                             Show cycles count\n");
+			fprintf(stderr,"  -fullscreen                             Start in fullscreen\n");
+			fprintf(stderr,"  -savedir <path>                         Save path\n");
+			fprintf(stderr,"  -disable-numlock-check                  Disable numlock check (win32 only)\n");
+			fprintf(stderr,"  -date-host-forced                       Force synchronization of date with host\n");
+			return 0;
+		}
+		else if (optname == "date-host-forced" || optname == "date_host_forced") {
+			control->opt_date_host_forced = true;
+		}
+		else if (optname == "showcycles") {
+			control->opt_showcycles = true;
+		}
+		else if (optname == "startmapper") {
+			control->opt_startmapper = true;
+		}
+		else if (optname == "fullscreen") {
+			control->opt_fullscreen = true;
+		}
+		else if (optname == "startui") {
+			control->opt_startui = true;
+		}
+		else if (optname == "disable-numlock-check" || optname == "disable_numlock_check") {
+			/* mainline DOSBox expects -disable_numlock_check so we support that here too */
+			control->opt_disable_numlock_check = true;
+		}
+		else if (optname == "savedir") {
+			if (!control->cmdline->NextOptArgv(custom_savedir)) return false;
+		}
+		else if (optname == "userconf") {
+			control->opt_userconf = true;
+		}
+		else if (optname == "conf") {
+			if (!control->cmdline->NextOptArgv(tmp)) return false;
+			control->config_file_list.push_back(tmp);
+		}
+		else if (optname == "editconf") {
+			if (!control->cmdline->NextOptArgv(control->opt_editconf)) return false;
+		}
+		else if (optname == "opencaptures") {
+			if (!control->cmdline->NextOptArgv(control->opt_opencaptures)) return false;
+		}
+		else if (optname == "opensaves") {
+			if (!control->cmdline->NextOptArgv(control->opt_opensaves)) return false;
+		}
+		else if (optname == "eraseconf") {
+			control->opt_eraseconf = true;
+		}
+		else if (optname == "resetconf") {
+			control->opt_resetconf = true;
+		}
+		else if (optname == "printconf") {
+			control->opt_printconf = true;
+		}
+		else if (optname == "erasemapper") {
+			control->opt_erasemapper = true;
+		}
+		else if (optname == "resetmapper") {
+			control->opt_resetmapper = true;
+		}
+		else if (optname == "noconsole") {
+			control->opt_noconsole = true;
+		}
+		else if (optname == "nomenu") {
+			control->opt_nomenu = true;
+		}
+		else if (optname == "nogui") {
+			control->opt_nogui = true;
+		}
+		else {
+			printf("WARNING: Unknown option %s (first parsing stage)\n",optname.c_str());
+		}
+	}
+
+	return true;
+}
+
 //extern void UI_Init(void);
 int main(int argc, char* argv[]) {
+	CommandLine com_line(argc,argv);
+
 	{
 		/* NTS: Warning, do NOT move the Config myconf() object out of this scope.
 		 * The destructor relies on executing section destruction code as part of
 		 * DOSBox shutdown. */
-		std::string opt_editconf;
-		bool opt_nogui = false;
-		bool opt_nomenu = false;
-		bool opt_startui = false;
-		bool opt_noconsole = false;
-		bool opt_eraseconf = false;
-		bool opt_resetconf = false;
-		bool opt_printconf = false;
-		bool opt_erasemapper = false;
-		bool opt_resetmapper = false;
-		bool opt_startmapper = false;
-		bool opt_fullscreen = false;
-		bool opt_showcycles = false;
-		bool opt_userconf = false;
-		std::string opt_opensaves,opt_opencaptures;
-		std::string config_file,config_path,optname,optarg;
-		std::vector<std::string> config_file_list;
-		CommandLine com_line(argc,argv);
+		std::string tmp,config_path;
 		Config myconf(&com_line);
 		control=&myconf;
 
-		control->cmdline->BeginOpt();
-		while (control->cmdline->GetOpt(optname)) {
-			if (optname == "version") {
-				fprintf(stderr,"\nDOSBox version %s, copyright 2002-2015 DOSBox Team.\n\n",VERSION);
-				fprintf(stderr,"DOSBox is written by the DOSBox Team (See AUTHORS file))\n");
-				fprintf(stderr,"DOSBox comes with ABSOLUTELY NO WARRANTY.  This is free software,\n");
-				fprintf(stderr,"and you are welcome to redistribute it under certain conditions;\n");
-				fprintf(stderr,"please read the COPYING file thoroughly before doing so.\n\n");
-				return 0;
-			}
-			else if (optname == "h" || optname == "help") {
-				fprintf(stderr,"\ndosbox [options]\n");
-				fprintf(stderr,"\nDOSBox version %s, copyright 2002-2015 DOSBox Team.\n\n",VERSION);
-				fprintf(stderr,"  -h     -help                            Show this help\n");
-				fprintf(stderr,"  -editconf                               Launch editor\n");
-				fprintf(stderr,"  -opencaptures <param>                   Launch captures\n");
-				fprintf(stderr,"  -opensaves <param>                      Launch saves\n");
-				fprintf(stderr,"  -eraseconf                              Erase config file\n");
-				fprintf(stderr,"  -resetconf                              Erase config file\n");
-				fprintf(stderr,"  -printconf                              Print config file location\n");
-				fprintf(stderr,"  -erasemapper                            Erase mapper file\n");
-				fprintf(stderr,"  -resetmapper                            Erase mapper file\n");
-				fprintf(stderr,"  -noconsole                              Don't show console (debug+win32 only)\n");
-				fprintf(stderr,"  -nogui                                  Don't show gui (win32 only)\n");
-				fprintf(stderr,"  -nomenu                                 Don't show menu (win32 only)\n");
-				fprintf(stderr,"  -userconf                               Create user level config file\n");
-				fprintf(stderr,"  -conf <param>                           Use config file <param>\n");
-				fprintf(stderr,"  -startui                                Start DOSBox-X with UI\n");
-				fprintf(stderr,"  -startmapper                            Start DOSBox-X with mapper\n");
-				fprintf(stderr,"  -showcycles                             Show cycles count\n");
-				fprintf(stderr,"  -fullscreen                             Start in fullscreen\n");
-				fprintf(stderr,"  -savedir <path>                         Save path\n");
-				fprintf(stderr,"  -disable-numlock-check                  Disable numlock check (win32 only)\n");
-				fprintf(stderr,"  -date-host-forced                       Force synchronization of date with host\n");
-				return 0;
-			}
-			else if (optname == "date-host-forced" || optname == "date_host_forced") {
-				opt_date_host_forced = true;
-			}
-			else if (optname == "showcycles") {
-				opt_showcycles = true;
-			}
-			else if (optname == "startmapper") {
-				opt_startmapper = true;
-			}
-			else if (optname == "fullscreen") {
-				opt_fullscreen = true;
-			}
-			else if (optname == "startui") {
-				opt_startui = true;
-			}
-			else if (optname == "disable-numlock-check" || optname == "disable_numlock_check") {
-				/* mainline DOSBox expects -disable_numlock_check so we support that here too */
-				opt_disable_numlock_check = true;
-			}
-			else if (optname == "savedir") {
-				if (!control->cmdline->NextOptArgv(custom_savedir)) return 1;
-			}
-			else if (optname == "userconf") {
-				opt_userconf = true;
-			}
-			else if (optname == "conf") {
-				if (!control->cmdline->NextOptArgv(config_file)) return 1;
-				config_file_list.push_back(config_file);
-			}
-			else if (optname == "editconf") {
-				if (!control->cmdline->NextOptArgv(opt_editconf)) return 1;
-			}
-			else if (optname == "opencaptures") {
-				if (!control->cmdline->NextOptArgv(opt_opencaptures)) return 1;
-			}
-			else if (optname == "opensaves") {
-				if (!control->cmdline->NextOptArgv(opt_opensaves)) return 1;
-			}
-			else if (optname == "eraseconf") {
-				opt_eraseconf = true;
-			}
-			else if (optname == "resetconf") {
-				opt_resetconf = true;
-			}
-			else if (optname == "printconf") {
-				opt_printconf = true;
-			}
-			else if (optname == "erasemapper") {
-				opt_erasemapper = true;
-			}
-			else if (optname == "resetmapper") {
-				opt_resetmapper = true;
-			}
-			else if (optname == "noconsole") {
-				opt_noconsole = true;
-			}
-			else if (optname == "nomenu") {
-				opt_nomenu = true;
-			}
-			else if (optname == "nogui") {
-				opt_nogui = true;
-			}
-			else {
-				printf("WARNING: Unknown option %s (first parsing stage)\n",optname.c_str());
-			}
-		}
+		if (!DOSBOX_parse_argv()) return 1;
 
 		/* Init the configuration system and add default values */
 		CheckNumLockState();
 		Config_Add_SDL();
 		DOSBOX_Init();
 
-		if (opt_editconf.length() != 0)
-			launcheditor(opt_editconf);
-		if (opt_opencaptures.length() != 0)
-			launchcaptures(opt_opencaptures);
-		if (opt_opensaves.length() != 0)
-			launchsaves(opt_opensaves);
-		if (opt_eraseconf || opt_resetconf)
+		if (control->opt_editconf.length() != 0)
+			launcheditor(control->opt_editconf);
+		if (control->opt_opencaptures.length() != 0)
+			launchcaptures(control->opt_opencaptures);
+		if (control->opt_opensaves.length() != 0)
+			launchsaves(control->opt_opensaves);
+		if (control->opt_eraseconf || control->opt_resetconf)
 			eraseconfigfile();
-		if (opt_printconf)
+		if (control->opt_printconf)
 			printconfiglocation();
-		if (opt_erasemapper || opt_resetmapper)
+		if (control->opt_erasemapper || control->opt_resetmapper)
 			erasemapperfile();
 
 #if C_DEBUG
 # if defined(WIN32)
 		/* Can't disable the console with debugger enabled */
-		if (opt_noconsole) {
+		if (control->opt_noconsole) {
 			ShowWindow(GetConsoleWindow(), SW_HIDE);
 			DestroyWindow(GetConsoleWindow());
 		} else
@@ -3538,9 +3533,9 @@ int main(int argc, char* argv[]) {
 			E_Exit("Can't init SDL %s",SDL_GetError());
 		sdl.inited = true;
 
-		if (opt_nogui || menu.compatible)
+		if (control->opt_nogui || menu.compatible)
 			menu.gui=false;
-		if (menu_gui && !opt_nomenu)
+		if (menu_gui && !control->opt_nomenu)
 			DOSBox_SetMenu();
 
 		if (menu_gui) {
@@ -3595,18 +3590,18 @@ int main(int argc, char* argv[]) {
 		Cross::GetPlatformConfigDir(config_path);
 
 		//First parse -userconf
-		if (opt_userconf) {
-			config_file.clear();
+		if (control->opt_userconf) {
+			tmp.clear();
 			Cross::GetPlatformConfigDir(config_path);
-			Cross::GetPlatformConfigName(config_file);
-			config_path += config_file;
+			Cross::GetPlatformConfigName(tmp);
+			config_path += tmp;
 			control->ParseConfigFile(config_path.c_str());
 			if (!control->configfiles.size()) {
 				//Try to create the userlevel configfile.
-				config_file.clear();
+				tmp.clear();
 				Cross::CreatePlatformConfigDir(config_path);
-				Cross::GetPlatformConfigName(config_file);
-				config_path += config_file;
+				Cross::GetPlatformConfigName(tmp);
+				config_path += tmp;
 				if (control->PrintConfig(config_path.c_str())) {
 					LOG_MSG("CONFIG: Generating default configuration.\nWriting it to %s",config_path.c_str());
 					//Load them as well. Makes relative paths much easier
@@ -3616,31 +3611,30 @@ int main(int argc, char* argv[]) {
 		}
 
 		//Second parse all -conf switches we read from command line
-		for (size_t si=0;si < config_file_list.size();si++) {
-			std::string &cfg = config_file_list[si];
+		for (size_t si=0;si < control->config_file_list.size();si++) {
+			std::string &cfg = control->config_file_list[si];
 			if (!control->ParseConfigFile(cfg.c_str())) {
 				// try to load it from the user directory
 				control->ParseConfigFile((config_path + cfg).c_str());
 			}
 		}
-		config_file_list.clear();
 
 		// if none found => parse localdir conf
 		if (!control->configfiles.size()) control->ParseConfigFile("dosbox.conf");
 
 		// if none found => parse userlevel conf
 		if (!control->configfiles.size()) {
-			config_file.clear();
-			Cross::GetPlatformConfigName(config_file);
-			control->ParseConfigFile((config_path + config_file).c_str());
+			tmp.clear();
+			Cross::GetPlatformConfigName(tmp);
+			control->ParseConfigFile((config_path + tmp).c_str());
 		}
 
 		if (!control->configfiles.size()) {
 			//Try to create the userlevel configfile.
-			config_file.clear();
+			tmp.clear();
 			Cross::CreatePlatformConfigDir(config_path);
-			Cross::GetPlatformConfigName(config_file);
-			config_path += config_file;
+			Cross::GetPlatformConfigName(tmp);
+			config_path += tmp;
 			if (control->PrintConfig(config_path.c_str())) {
 				LOG_MSG("CONFIG: Generating default configuration.\nWriting it to %s",config_path.c_str());
 				//Load them as well. Makes relative paths much easier
@@ -3655,7 +3649,7 @@ int main(int argc, char* argv[]) {
 #endif
 
 		UI_Init();
-		if (opt_startui) UI_Run(false);
+		if (control->opt_startui) UI_Run(false);
 
 		/* Init all the sections */
 		control->Init();
@@ -3664,7 +3658,7 @@ int main(int argc, char* argv[]) {
 			/* Some extra SDL Functions */
 			Section_prop *sdl_sec = static_cast<Section_prop*>(control->GetSection("sdl"));
 
-			if (opt_fullscreen || sdl_sec->Get_bool("fullscreen")) {
+			if (control->opt_fullscreen || sdl_sec->Get_bool("fullscreen")) {
 				if (sdl.desktop.want_type != SCREEN_OPENGLHQ) SetMenu(GetHWND(),NULL);
 				//only switch if not already in fullscreen
 				if (!sdl.desktop.fullscreen) GFX_SwitchFullScreen();
@@ -3673,14 +3667,14 @@ int main(int argc, char* argv[]) {
 
 		/* Init the keyMapper */
 		MAPPER_Init();
-		if (opt_startmapper)
+		if (control->opt_startmapper)
 			MAPPER_RunInternal();
 
 		/* Start up main machine */
 
 		// Shows menu bar (window)
 		menu.startup = true;
-		menu.hidecycles = (opt_showcycles ? false : true);
+		menu.hidecycles = (control->opt_showcycles ? false : true);
 		if (sdl.desktop.want_type == SCREEN_OPENGLHQ) {
 			menu.gui=false; DOSBox_SetOriginalIcon();
 			if (!render.scale.hardware) SetVal("render","scaler",!render.scale.forced?"hardware2x":"hardware2x forced");

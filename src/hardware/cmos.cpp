@@ -588,10 +588,8 @@ void CMOS_Destroy(Section* sec){
 	delete test;
 }
 
-extern bool opt_date_host_forced;
-
 void CMOS_Init(Section* sec) {
-	if (opt_date_host_forced) {
+	if (control->opt_date_host_forced) {
 		LOG_MSG("Synchronize date with host: Forced");
 		date_host_forced=true;
 	}
