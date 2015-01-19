@@ -935,6 +935,9 @@ void DOSBOX_Init(void) {
 	Pint->Set_help(	"Limit DOS conventional memory to this amount. Does not affect extended memory.\n"
 			"Some DOS programs may find < 640KB + extended memory an unusual situation. For diagnostic purposes.");
 
+	Pbool = secprop->Add_bool("isa memory hole at 512kb",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("If set, emulate an ISA memory hole at the 512KB to 640KB area (0x80000-0x9FFFF).");
+
 	Pint = secprop->Add_int("memalias", Property::Changeable::WhenIdle,0);
 	Pint->SetMinMax(0,32);
 	Pint->Set_help(

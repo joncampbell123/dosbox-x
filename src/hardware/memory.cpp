@@ -61,6 +61,7 @@ extern bool VIDEO_BIOS_always_carry_16_high_font;
  * VGA, with the Illegal handler (not mapped). Actual RAM behind the storage does
  * not show up and reads return 0xFF, just like real hardware. */
 bool adapter_rom_is_ram = false;
+bool isa_memory_hole_512kb = false;
 
 unsigned int dos_conventional_limit = 0;
 
@@ -934,6 +935,7 @@ public:
 
 		dos_conventional_limit = section->Get_int("dos mem limit");
 		adapter_rom_is_ram = section->Get_bool("adapter rom is ram");
+		isa_memory_hole_512kb = section->Get_bool("isa memory hole at 512kb");
 
 		/* FIXME: This belongs elsewhere! */
 		if (VGA_BIOS_Size_override >= 512 && VGA_BIOS_Size_override <= 65536)

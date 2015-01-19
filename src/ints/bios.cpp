@@ -43,6 +43,7 @@ extern bool en_bios_ps2mouse;
 extern bool mainline_compatible_bios_mapping;
 extern bool rom_bios_8x8_cga_font;
 extern bool pcibus_enable;
+extern bool isa_memory_hole_512kb;
 
 Bit16u biosConfigSeg=0;
 
@@ -2963,6 +2964,9 @@ public:
 		/* allow user to further limit the available memory below 1MB */
 		if (dos_conventional_limit != 0 && t_conv > dos_conventional_limit)
 			t_conv = dos_conventional_limit;
+
+		/* if requested to emulate an ISA memory hole at 512KB, further limit the memory */
+		if (isa_memory_hole_512kb && t_conv > 512) t_conv = 512;
 
 		/* and then unmap RAM between t_conv and ulimit */
 		if (t_conv < ulimit) {
