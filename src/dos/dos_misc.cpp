@@ -181,7 +181,9 @@ static bool DOS_MultiplexFunctions(void) {
 			 * initial critical period where it assumes it's on, prior to checking and enabling/disabling it.
 			 *
 			 * Note that Windows 3.1 also makes this mistake in Standard/286 mode, but it doesn't even
-			 * make this callout, so this hack is useless unless you are using Enhanced/386 mode. */
+			 * make this callout, so this hack is useless unless you are using Enhanced/386 mode.
+			 * If you want to run Windows 3.1 Standard mode with a20=mask you will have to run builtin
+			 * command "a20gate on" to turn on the A20 gate prior to starting Windows. */
 			LOG_MSG("Enabling A20 gate for Windows in response to INIT broadcast");
 			XMS_EnableA20(true);
 		}
