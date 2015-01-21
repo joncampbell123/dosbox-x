@@ -27,13 +27,6 @@
 #include "vga.h"
 #include "bios.h"
 
-#define _EGA_HALF_CLOCK			0x0001
-#define _DOUBLESCAN			0x0002
-#define _VGA_PIXEL_DOUBLE		0x0004
-#define _S3_PIXEL_DOUBLE		0x0008
-#define _REPEAT1			0x0010
-#define _CGA_SYNCDOUBLE			0x0020
-
 #define SEQ_REGS 0x05
 #define GFX_REGS 0x09
 #define ATT_REGS 0x15

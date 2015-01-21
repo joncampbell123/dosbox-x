@@ -144,6 +144,13 @@ typedef struct {
 	bool vesa_oldvbe;
 } Int10Data;
 
+#define _EGA_HALF_CLOCK			0x0001
+#define _DOUBLESCAN			0x0002
+#define _VGA_PIXEL_DOUBLE		0x0004
+#define _S3_PIXEL_DOUBLE		0x0008
+#define _REPEAT1			0x0010
+#define _CGA_SYNCDOUBLE			0x0020
+
 extern Int10Data int10;
 
 static inline Bit8u CURSOR_POS_COL(Bit8u page) {
