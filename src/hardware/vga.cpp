@@ -151,6 +151,7 @@ bool vga_ignore_hdispend_change_if_smaller = false;
 unsigned int vga_display_start_hretrace = 0;
 float hretrace_fx_avg_weight = 3;
 
+bool allow_vesa_lowres_modes = true;
 bool vesa12_modes_32bpp = true;
 bool allow_vesa_32bpp = true;
 bool allow_vesa_24bpp = true;
@@ -460,6 +461,7 @@ void VGA_Init(Section* sec) {
 	enable_page_flip_debugging_marker = section->Get_bool("page flip debug line");
 	enable_vretrace_poll_debugging_marker = section->Get_bool("vertical retrace poll debug line");
 	hack_lfb_yadjust = section->Get_int("vesa lfb base scanline adjust");
+	allow_vesa_lowres_modes = section->Get_bool("allow low resolution vesa modes");
 	vesa12_modes_32bpp = section->Get_bool("vesa vbe 1.2 modes are 32bpp");
 	allow_vesa_32bpp = section->Get_bool("allow 32bpp vesa modes");
 	allow_vesa_24bpp = section->Get_bool("allow 24bpp vesa modes");

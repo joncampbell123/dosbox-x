@@ -1071,6 +1071,10 @@ void DOSBOX_Init(void) {
 			"Some DOS games and demos assume one bit depth or the other and do not enumerate VESA BIOS modes, which is why this\n"
 			"option exists.");
 
+	Pbool = secprop->Add_bool("allow low resolution vesa modes",Property::Changeable::Always,true);
+	Pbool->Set_help("If set, allow low resolution VESA modes (320x200x16/24/32bpp and so on). You could set this to false to simulate\n"
+			"SVGA hardware with a BIOS that does not support the lowres modes for testing purposes.");
+
 	Pbool = secprop->Add_bool("allow 32bpp vesa modes",Property::Changeable::Always,true);
 	Pbool->Set_help("If the DOS game or demo has problems with 32bpp VESA modes, set to 'false'");
 

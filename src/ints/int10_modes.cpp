@@ -38,6 +38,7 @@
 #define GFX_REGS 0x09
 #define ATT_REGS 0x15
 
+extern bool allow_vesa_lowres_modes;
 extern bool vesa12_modes_32bpp;
 extern bool allow_vesa_32bpp;
 extern bool allow_vesa_24bpp;
