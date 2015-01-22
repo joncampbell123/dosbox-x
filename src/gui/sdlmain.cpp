@@ -3314,7 +3314,7 @@ static void erasemapperfile() {
 
 void SetNumLock(void) {
 #ifdef WIN32
-	if (opt_disable_numlock_check)
+	if (control->opt_disable_numlock_check)
 		return;
 
 	// Simulate a key press
@@ -3689,7 +3689,7 @@ int main(int argc, char* argv[]) {
 			change_output(4);
 			GFX_SetIcon();
 			SDL_Prepare();
-			if (menu.gui && !opt_nomenu) {
+			if (menu.gui && !control->opt_nomenu) {
 				SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
 				DrawMenuBar(GetHWND());
 			}
@@ -3709,7 +3709,7 @@ int main(int argc, char* argv[]) {
 				change_output(1);
 				GFX_SetIcon();
 				SDL_Prepare();
-				if (menu.gui && !opt_nomenu) {
+				if (menu.gui && !control->opt_nomenu) {
 					SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
 					DrawMenuBar(GetHWND());
 				}
