@@ -2312,7 +2312,7 @@ public:
 
 		si=section->Get_int("dsp write busy delay"); /* in nanoseconds */
 		if (si >= 0) sb.dsp.dsp_write_busy_time = si;
-		else sb.dsp.dsp_write_busy_time = 15000; /* FIXME: How long is the DSP busy on real hardware? */
+		else sb.dsp.dsp_write_busy_time = 1000; /* FIXME: How long is the DSP busy on real hardware? */
 
 		/* sanity check. Pro and later cards have I/O port arrangements that obviously need
 		 * I/O ports on odd numbers, and therefore aliasing is impractical. */
