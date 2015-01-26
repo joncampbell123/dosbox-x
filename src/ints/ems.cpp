@@ -1315,12 +1315,6 @@ static void SetupVCPI() {
 		mem_writeb(vcpi.private_area+0x3000+tse_ct,0);
 	}
 
-	/* we want to use the I/O permissions bitmap */
-	mem_writew(vcpi.private_area+0x3000+0x66,0x68);
-
-	/* DEBUG: Trap I/O 0xB0-0xB7 */
-	mem_writeb(vcpi.private_area+0x3000+0x68+(0xB0/8),0xFF);
-
 	/* Set up the ring0-stack */
 	mem_writed(vcpi.private_area+0x3004,0x00002000);	// esp
 	mem_writed(vcpi.private_area+0x3008,0x00000014);	// ss
