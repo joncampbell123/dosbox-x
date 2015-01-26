@@ -33,6 +33,9 @@
 #include <ntddscsi.h>
 #include <winioctl.h>			// Ioctl stuff
 #else 
+#ifdef __MINGW64_VERSION_MAJOR
+#include <winioctl.h>
+#endif
 #include "ddk/ntddcdrm.h"		// Ioctl stuff
 #include "ddk/ntddscsi.h"
 #endif
