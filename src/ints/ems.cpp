@@ -33,6 +33,19 @@
 #include "cpu.h"
 #include "dma.h"
 
+/* TODO: Make EMS page frame address (and size) user configurable.
+ *       With auto setting to fit in automatically with BIOS and UMBs.
+ *       With limit variable to emulate EMM386.EXE limits (32MB limit in MS-DOS/Win9x).
+ *       With command .COM program in the Z:\ directly to allow enabling/disabling EMS
+ *           and turning on/off the virtual 8086 mode, just like what EMM386.EXE offers in DOS.
+ *       With code to create and maintain vm86 page tables when emulating EMM386.EXE,
+ *           while retaining the 'hardware' based mapping it does now if "mixed" or "board".
+ *       With configuration parameter to control the number of EMS handles.
+ *       With configuration parameter to specify what version EMS to emulate.
+ *       With code to change DOS device EMMXXXX0 <-> EMMQXXX0 depending on when you enable/disable EMS at runtime.
+ *       With runtime enable/disable of VCPI (if nobody is using VCPI).
+ */
+
 #define EMM_PAGEFRAME	0xE000
 #define EMM_PAGEFRAME4K	((EMM_PAGEFRAME*16)/4096)
 #define	EMM_MAX_HANDLES	200				/* 255 Max */
