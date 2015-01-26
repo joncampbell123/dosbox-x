@@ -49,7 +49,8 @@
 #define NULL_HANDLE			0xffff
 #define	NULL_PAGE			0xffff
 
-#define ENABLE_VCPI 1
+bool ENABLE_VCPI=true;
+
 #define ENABLE_V86_STARTUP 0
 
 
@@ -1356,6 +1357,8 @@ public:
 			return;
 		}
 		BIOS_ZeroExtendedSize(true);
+
+		ENABLE_VCPI = section->Get_bool("vcpi");
 
 		dbg_zero_on_ems_allocmem = section->Get_bool("zero memory on ems memory allocation");
 		if (dbg_zero_on_ems_allocmem) {

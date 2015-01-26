@@ -1741,6 +1741,9 @@ void DOSBOX_Init(void) {
 		"other choices, or require EMS support to be disabled (=false)\n"
 		"to work at all.");
 
+	Pbool = secprop->Add_bool("vcpi",Property::Changeable::OnlyAtStart,true);
+	Pbool->Set_help("If set and expanded memory is enabled, also emulate VCPI.");
+
 	Pbool = secprop->Add_bool("zero memory on ems memory allocation",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("If set, memory returned by EMS allocation call is zeroed first. This is NOT what\n"
 			"DOS actually does, but if set, can help certain DOS games and demos cope with problems\n"
