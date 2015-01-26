@@ -74,6 +74,12 @@
 #define EMM_MOVE_OVLAPI			0x97
 #define EMM_NOT_FOUND			0xa0
 
+enum {
+	EMS_NONE=0,			/* no emulation */
+	EMS_MIXED,			/* "mixed mode", default if "true", attempts to please everybody */
+	EMS_BOARD,			/* act like pre-386 expanded memory, provided by an expansion card */
+	EMS_EMM386			/* act like 386+ expanded memory, faked using virtual 8086 mode (EMM386.EXE style) */
+};
 
 struct EMM_Mapping {
 	Bit16u handle;
@@ -88,7 +94,7 @@ struct EMM_Handle {
 	EMM_Mapping page_map[EMM_MAX_PHYS];
 };
 
-static Bitu ems_type;
+static Bitu ems_type = EMS_NONE;
 
 static EMM_Handle emm_handles[EMM_MAX_HANDLES];
 static EMM_Mapping emm_mappings[EMM_MAX_PHYS];
@@ -350,7 +356,7 @@ static Bit8u EMM_MapSegment(Bitu segment,Bit16u handle,Bit16u log_page) {
 
 	bool valid_segment=false;
 
-	if ((ems_type==1) || (ems_type==3)) {
+	if ((ems_type == EMS_MIXED) || (ems_type == EMS_EMM386)) {
 		if (segment<0xf000+0x1000) valid_segment=true;
 	} else {
 		if ((segment>=0xa000) && (segment<0xb000)) {
@@ -507,7 +513,7 @@ static Bit8u EMM_PartialPageMapping(void) {
 				mem_writew(data,segment);data+=2;
 				MEM_BlockWrite(data,&emm_mappings[page],sizeof(EMM_Mapping));
 				data+=sizeof(EMM_Mapping);
-			} else if ((ems_type==1) || (ems_type==3) || ((segment>=EMM_PAGEFRAME-0x1000) && (segment<EMM_PAGEFRAME)) || ((segment>=0xa000) && (segment<0xb000))) {
+			} else if ((ems_type == EMS_MIXED) || (ems_type == EMS_EMM386) || ((segment>=EMM_PAGEFRAME-0x1000) && (segment<EMM_PAGEFRAME)) || ((segment>=0xa000) && (segment<0xb000))) {
 				mem_writew(data,segment);data+=2;
 				MEM_BlockWrite(data,&emm_segmentmappings[segment>>10],sizeof(EMM_Mapping));
 				data+=sizeof(EMM_Mapping);
@@ -524,7 +530,7 @@ static Bit8u EMM_PartialPageMapping(void) {
 			if ((segment>=EMM_PAGEFRAME) && (segment<EMM_PAGEFRAME+0x1000)) {
 				Bit16u page = (segment-EMM_PAGEFRAME) / (EMM_PAGE_SIZE>>4);
 				MEM_BlockRead(data,&emm_mappings[page],sizeof(EMM_Mapping));
-			} else if ((ems_type==1) || (ems_type==3) || ((segment>=EMM_PAGEFRAME-0x1000) && (segment<EMM_PAGEFRAME)) || ((segment>=0xa000) && (segment<0xb000))) {
+			} else if ((ems_type == EMS_MIXED) || (ems_type == EMS_EMM386) || ((segment>=EMM_PAGEFRAME-0x1000) && (segment<EMM_PAGEFRAME)) || ((segment>=0xa000) && (segment<0xb000))) {
 				MEM_BlockRead(data,&emm_segmentmappings[segment>>10],sizeof(EMM_Mapping));
 			} else {
 				return EMM_ILL_PHYS;
@@ -1304,17 +1310,18 @@ static Bitu INT4B_Handler() {
 }
 
 Bitu GetEMSType(Section_prop * section) {
+	std::string emstypestr = section->Get_string("ems");
 	Bitu rtype = 0;
-	std::string emstypestr(section->Get_string("ems"));
-	if (emstypestr=="true") {
-		rtype = 1;	// mixed mode
-	} else if (emstypestr=="emsboard") {
-		rtype = 2;
-	} else if (emstypestr=="emm386") {
-		rtype = 3;
-	} else {
-		rtype = 0;
-	}
+
+	if (emstypestr == "true")
+		rtype = EMS_MIXED;
+	else if (emstypestr == "emsboard")
+		rtype = EMS_BOARD;
+	else if (emstypestr == "emm386")
+		rtype = EMS_EMM386;
+	else
+		rtype = EMS_NONE;
+
 	return rtype;
 }
 
@@ -1331,7 +1338,6 @@ private:
 public:
 	EMS(Section* configuration):Module_base(configuration) {
 		emm_device=NULL;
-		ems_type=0;
 
 		/* Virtual DMA interrupt callback */
 		call_vdma.Install(&INT4B_Handler,CB_IRET,"Int 4b vdma");
@@ -1341,18 +1347,17 @@ public:
 		GEMMIS_seg=0;
 		
 		Section_prop * section=static_cast<Section_prop *>(configuration);
-		ems_type=GetEMSType(section);
-		if (ems_type<=0) return;
+		ems_type = GetEMSType(section);
+		if (ems_type == EMS_NONE) return;
 
-		if (machine==MCH_PCJR) {
-			ems_type=0;
+		if (machine == MCH_PCJR) {
+			ems_type = EMS_NONE;
 			LOG_MSG("EMS disabled for PCJr machine");
 			return;
 		}
 		BIOS_ZeroExtendedSize(true);
 
 		dbg_zero_on_ems_allocmem = section->Get_bool("zero memory on ems memory allocation");
-
 		if (dbg_zero_on_ems_allocmem) {
 			LOG_MSG("Debug option enabled: EMS memory allocation will always clear memory block before returning\n");
 		}
@@ -1374,7 +1379,7 @@ public:
 
 		/* Register the ems device */
 		//TODO MAYBE put it in the class.
-		emm_device = new device_EMM(ems_type!=2);
+		emm_device = new device_EMM(ems_type != EMS_BOARD);
 		DOS_AddDevice(emm_device);
 
 		/* Clear handle and page tables */
@@ -1395,13 +1400,13 @@ public:
 
 		EMM_AllocateSystemHandle(oshandle_memsize_16kb);	// allocate OS-dedicated handle (ems handle zero, 384kb)
 
-		if (ems_type==3) {
+		if (ems_type == EMS_EMM386) {
 			DMA_SetWrapping(0xffffffff);	// emm386-bug that disables dma wrapping
 		}
 
 		if (!ENABLE_VCPI) return;
 
-		if (ems_type!=2) {
+		if (ems_type != EMS_BOARD) {
 			/* Install a callback that handles VCPI-requests in protected mode requests */
 			call_vcpi.Install(&VCPI_PM_Handler,CB_IRETD,"VCPI PM");
 			vcpi.pm_interface=(call_vcpi.Get_callback())*CB_SIZE;
