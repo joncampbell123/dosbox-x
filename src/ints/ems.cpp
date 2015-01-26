@@ -308,6 +308,9 @@ static Bit8u EMM_AllocateSystemHandle(Bit16u pages) {
 	if (!mem) E_Exit("EMS:System handle memory allocation failure");
 	emm_handles[handle].pages = pages;
 	emm_handles[handle].mem = mem;
+	LOG_MSG("EMS: OS handle allocated 0x%08lx-0x%08lx",
+		(unsigned long)mem * 4096UL,
+		((unsigned long)mem * 4096UL) + (pages * 4096UL) - 1);
 	return EMM_NO_ERROR;
 }
 
