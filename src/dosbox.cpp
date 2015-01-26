@@ -452,6 +452,14 @@ increaseticks:
 					if (new_cmax<CPU_CYCLES_LOWER_LIMIT)
 						new_cmax=CPU_CYCLES_LOWER_LIMIT;
 
+					/*
+					LOG_MSG("cyclelog: current %6d   cmax %6d   ratio  %5d  done %3d   sched %3d",
+						CPU_CycleMax,
+						new_cmax,
+						ratio,
+						ticksDone,
+						ticksScheduled);
+					*/  
 					/* ratios below 1% are considered to be dropouts due to
 					   temporary load imbalance, the cycles adjusting is skipped */
 					if (ratio>10) {
