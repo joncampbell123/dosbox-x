@@ -982,6 +982,10 @@ static Bitu INT67_Handler(void) {
 				reg_ah=EMM_NO_ERROR;
 				}
 				break;
+			case 0x07:		/* VCPI Read CR0 */
+				reg_ah=EMM_NO_ERROR;
+				reg_ebx=CPU_GET_CRX(0);
+				break;
 			case 0x0a:		/* VCPI Get PIC Vector Mappings */
 				reg_bx=vcpi.pic1_remapping;		// master PIC
 				reg_cx=vcpi.pic2_remapping;		// slave PIC
