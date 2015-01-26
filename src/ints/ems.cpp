@@ -44,7 +44,12 @@
  *       With configuration parameter to specify what version EMS to emulate.
  *       With code to change DOS device EMMXXXX0 <-> EMMQXXX0 depending on when you enable/disable EMS at runtime.
  *       With runtime enable/disable of VCPI (if nobody is using VCPI).
+ *       With DOSBox option to force EMM OS handle to be allocated from an within an even megabyte if the user
+ *           would rather be able to manage the A20 line without crashing, and another option to specify if
+ *           A20 should be turned on or left off in this case.
  */
+
+Bitu XMS_EnableA20(bool enable);
 
 #define EMM_PAGEFRAME	0xE000
 #define EMM_PAGEFRAME4K	((EMM_PAGEFRAME*16)/4096)
@@ -1246,6 +1251,15 @@ static Bitu V86_Monitor() {
 }
 
 static void SetupVCPI() {
+	/* The EMM OS handle is often located just above the 1MB boundary.
+	 * And we're about to write that area directly. So for obvious
+	 * reasons we should enable the A20 gate now. This fixes random
+	 * crashes in v86 mode when a20=mask as opposed to a20=fast. */
+	if ((emm_handles[vcpi.ems_handle].mem<<12) & (1<<20)) {
+		LOG_MSG("EMS:EMM OS handle is associated with memory on an odd megabyte. Enabling A20 gate to avoid corrupting DOS state");
+		XMS_EnableA20(true);
+	}
+
 	vcpi.enabled=false;
 
 	vcpi.ems_handle=0;	// use EMM system handle for VCPI data
@@ -1339,7 +1353,6 @@ Bitu GetEMSType(Section_prop * section) {
 
 	return rtype;
 }
-
 
 class EMS: public Module_base {
 private:
@@ -1468,9 +1481,24 @@ public:
 			mem_writeb(vcpi.private_area+0x2e04,(Bit8u)0x66);
 			mem_writeb(vcpi.private_area+0x2e05,(Bit8u)0xCF);       //A IRETD Instruction
 
-			/* Testcode only, starts up dosbox in v86-mode */
+			/* DOSBox's default EMS emulation provides the EMS memory mapping but without the virtual 8086
+			 * mode. But there are DOS games and demos that assume EMM386.EXE == virtual 8086 mode and will
+			 * fail to detect EMS if the v86 bit in EFLAGS is not set.
+			 *
+			 * Examples:
+			 *   ftp://ftp.scene.org/pub/parties/1994/3s94/demo/friends.zip
+			 *     - Refuses to run unless it detects Expanded memory
+			 *     - Does not detect Expanded memory because it doesn't detect virtual 8086 mode
+			 *     - Therefore, without this option, it is impossible to run the demo. */
 			if (ENABLE_V86_STARTUP) {
 				LOG_MSG("EMS: Now setting up the DOS environment to run in EMM386.EXE virtual 8086 mode");
+
+				/* our V86 state may require A20 enabled to run. the EMM OS handle
+				 * often resides on an odd megabyte */
+				if ((emm_handles[vcpi.ems_handle].mem<<12) & (1<<20)) {
+					LOG_MSG("EMS:EMM OS handle is associated with memory on an odd megabyte. Enabling A20 gate to safely enter V86 mode.");
+					XMS_EnableA20(true);
+				}
 
 				/* Prepare V86-task */
 				CPU_SET_CRX(0, 1);
@@ -1479,7 +1507,13 @@ public:
 				if (CPU_LLDT(0x08)) LOG_MSG("VCPI:Could not load LDT");
 				if (CPU_LTR(0x10)) LOG_MSG("VCPI:Could not load TR");
 
-				/* TODO: Page tables are usually involved as well. */
+				/* TODO: Page tables are usually involved as well. That is the "magic"
+				 * behind EMM386.EXE page frames. */
+
+				/* TODO: Also setup (here or in SetupVCPI) the I/O permission bitmap
+				 * so that the V86 monitor can virtualize certain I/O ports. EMM386.EXE
+				 * emulation would demand that we at least virtualize the DMA controller
+				 * I/O ports as MS-DOS does. */
 
 				/* register setup */
 				CPU_Push32(SegValue(gs));
