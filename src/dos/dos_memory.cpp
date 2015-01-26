@@ -60,7 +60,7 @@ static void DOS_Mem_E_Exit(const char *msg) {
 	E_Exit(msg);
 }
 
-static void DOS_CompressMemory(void) {
+static void DOS_CompressMemory(Bit16u first_segment=0/*default*/) {
 	Bit16u mcb_segment=dos.firstMCB;
 	DOS_MCB mcb(mcb_segment);
 	DOS_MCB mcb_next(0);
@@ -70,7 +70,7 @@ static void DOS_CompressMemory(void) {
 		if(counter++ > 10000000) DOS_Mem_E_Exit("DOS_CompressMemory: DOS MCB list corrupted.");
 		mcb_next.SetPt((Bit16u)(mcb_segment+mcb.GetSize()+1));
 		if (GCC_UNLIKELY((mcb_next.GetType()!=0x4d) && (mcb_next.GetType()!=0x5a))) E_Exit("Corrupt MCB chain");
-		if ((mcb.GetPSPSeg()==MCB_FREE) && (mcb_next.GetPSPSeg()==MCB_FREE)) {
+		if (mcb_segment >= first_segment && (mcb.GetPSPSeg()==MCB_FREE) && (mcb_next.GetPSPSeg()==MCB_FREE)) {
 			mcb.SetSize(mcb.GetSize()+mcb_next.GetSize()+1);
 			mcb.SetType(mcb_next.GetType());
 		} else {
