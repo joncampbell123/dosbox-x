@@ -1365,6 +1365,11 @@ public:
 			LOG_MSG("Debug option enabled: EMS memory allocation will always clear memory block before returning\n");
 		}
 
+		if (ems_type == EMS_BOARD && ENABLE_VCPI) {
+			LOG_MSG("VCPI emulation is incompatible with ems=board. Turning off VCPI emulation");
+			ENABLE_VCPI=false;
+		}
+
 		oshandle_memsize_16kb = section->Get_int("ems system handle memory size");
 		/* convert KB to 16KB pages */
 		oshandle_memsize_16kb = (oshandle_memsize_16kb+15)/16;
@@ -1407,9 +1412,10 @@ public:
 			DMA_SetWrapping(0xffffffff);	// emm386-bug that disables dma wrapping
 		}
 
-		if (!ENABLE_VCPI) return;
+		if (ENABLE_VCPI) {
+			assert(ems_type != EMS_BOARD);
+			LOG_MSG("Enabling VCPI emulation\n");
 
-		if (ems_type != EMS_BOARD) {
 			/* Install a callback that handles VCPI-requests in protected mode requests */
 			call_vcpi.Install(&VCPI_PM_Handler,CB_IRETD,"VCPI PM");
 			vcpi.pm_interface=(call_vcpi.Get_callback())*CB_SIZE;
@@ -1479,15 +1485,15 @@ public:
 		/* Clear handle and page tables */
 		//TODO
 
-		if ((!ENABLE_VCPI) || (!vcpi.enabled)) return;
-
-		if (cpu.pmode && GETFLAG(VM)) {
-			/* Switch back to real mode if in v86-mode */
-			CPU_SET_CRX(0, 0);
-			CPU_SET_CRX(3, 0);
-			reg_flags&=(~(FLAG_IOPL|FLAG_VM));
-			CPU_LIDT(0x3ff, 0);
-			CPU_SetCPL(0);
+		if (ENABLE_VCPI && vcpi.enabled) {
+			if (cpu.pmode && GETFLAG(VM)) {
+				/* Switch back to real mode if in v86-mode */
+				CPU_SET_CRX(0, 0);
+				CPU_SET_CRX(3, 0);
+				reg_flags&=(~(FLAG_IOPL|FLAG_VM));
+				CPU_LIDT(0x3ff, 0);
+				CPU_SetCPL(0);
+			}
 		}
 	}
 };
