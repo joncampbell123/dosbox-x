@@ -1374,6 +1374,10 @@ public:
 			LOG_MSG("EMS EMM386.EXE v86 mode is incompatible with ems= setting. Starting up in real mode.");
 			ENABLE_V86_STARTUP=false;
 		}
+		if (ENABLE_V86_STARTUP && !ENABLE_VCPI) {
+			LOG_MSG("EMS: DOSBox does not support enabling virtual 8086 mode without VCPI.");
+			ENABLE_V86_STARTUP=false;
+		}
 
 		oshandle_memsize_16kb = section->Get_int("ems system handle memory size");
 		/* convert KB to 16KB pages */
