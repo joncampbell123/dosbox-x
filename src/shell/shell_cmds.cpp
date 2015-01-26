@@ -506,13 +506,25 @@ void DOS_Shell::CMD_EXIT(char * args) {
 void DOS_Shell::CMD_CHDIR(char * args) {
 	HELP("CHDIR");
 	StripSpaces(args);
+	Bit8u drive = DOS_GetDefaultDrive()+'A';
+	char dir[DOS_PATHLENGTH];
 	if (!*args) {
-		Bit8u drive=DOS_GetDefaultDrive()+'A';
-		char dir[DOS_PATHLENGTH];
 		DOS_GetCurrentDir(0,dir);
 		WriteOut("%c:\\%s\n",drive,dir);
 	} else if(strlen(args) == 2 && args[1]==':') {
-		WriteOut(MSG_Get("SHELL_CMD_CHDIR_HINT"),toupper(*reinterpret_cast<unsigned char*>(&args[0])));
+		Bit8u targetdrive = (args[0] | 0x20)-'a' + 1;
+		unsigned char targetdisplay = *reinterpret_cast<unsigned char*>(&args[0]);
+		if(!DOS_GetCurrentDir(targetdrive,dir)) {
+			if(drive == 'Z') {
+				WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(targetdisplay));
+			} else {
+				WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
+			}
+			return;
+		}
+		WriteOut("%c:\\%s\n",toupper(targetdisplay),dir);
+		if(drive == 'Z')
+			WriteOut(MSG_Get("SHELL_CMD_CHDIR_HINT"),toupper(targetdisplay));
 	} else 	if (!DOS_ChangeDir(args)) {
 		/* Changedir failed. Check if the filename is longer then 8 and/or contains spaces */
 	   
@@ -537,8 +549,7 @@ void DOS_Shell::CMD_CHDIR(char * args) {
 			temps += "~1";
 			WriteOut(MSG_Get("SHELL_CMD_CHDIR_HINT_2"),temps.insert(0,slashpart).c_str());
 		} else {
-			Bit8u drive=DOS_GetDefaultDrive()+'A';
-			if (drive=='Z') {
+			if (drive == 'Z') {
 				WriteOut(MSG_Get("SHELL_CMD_CHDIR_HINT_3"));
 			} else {
 				WriteOut(MSG_Get("SHELL_CMD_CHDIR_ERROR"),args);
