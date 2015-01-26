@@ -86,8 +86,8 @@ public:
 	Value(char const * const in) :_string(new std::string(in)),type(V_STRING) { };
 	Value(Value const& in):_string(0) {plaincopy(in);}
 	~Value() { destroy();};
-	Value(std::string const& in,Etype _t) :_string(0),type(V_NONE) {SetValue(in,_t);}
-	
+	Value(std::string const& in,Etype _t) :_hex(0),_bool(false),_int(0),_string(0),_double(0),type(V_NONE) {SetValue(in,_t);}
+
 	/* Assigment operators */
 	Value& operator= (Hex in) throw(WrongType)                { return copy(Value(in));}
 	Value& operator= (int in) throw(WrongType)                { return copy(Value(in));}
