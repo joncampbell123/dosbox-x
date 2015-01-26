@@ -347,22 +347,26 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
 		phys_writew(physAddress+0x01,(Bit16u)0x60e4);		// in al, 0x60
 		phys_writew(physAddress+0x03,(Bit16u)0xe03c);		// cmp al, 0xe0
 		if (use_cb) {
-			phys_writew(physAddress+0x05,(Bit16u)0x0674);	// je skip
+			phys_writew(physAddress+0x05,(Bit16u)0x0b74);	// je skip
 			phys_writeb(physAddress+0x07,(Bit8u)0xFE);		//GRP 4
 			phys_writeb(physAddress+0x08,(Bit8u)0x38);		//Extra Callback instruction
 			phys_writew(physAddress+0x09,(Bit16u)callback);			//The immediate word
 			physAddress+=4;
 		} else {
-			phys_writew(physAddress+0x05,(Bit16u)0x0274);	// je skip
+			phys_writew(physAddress+0x05,(Bit16u)0x0774);	// je skip
 		}
-		phys_writew(physAddress+0x07,(Bit16u)0x09cd);		// int 9
+		phys_writeb(physAddress+0x07,(Bit8u)0x1e);			// push ds
+		phys_writew(physAddress+0x08,(Bit16u)0x406a);		// push 0x0040
+		phys_writeb(physAddress+0x0a,(Bit8u)0x1f);			// pop ds
+		phys_writew(physAddress+0x0b,(Bit16u)0x09cd);		// int 9
+		phys_writeb(physAddress+0x0d,(Bit8u)0x1f);			// pop ds
 		// jump here to (skip):
-		phys_writeb(physAddress+0x09,(Bit8u)0xfa);			// cli
-		phys_writew(physAddress+0x0a,(Bit16u)0x20b0);		// mov al, 0x20
-		phys_writew(physAddress+0x0c,(Bit16u)0x20e6);		// out 0x20, al
-		phys_writeb(physAddress+0x0e,(Bit8u)0x58);			// pop ax
-		phys_writeb(physAddress+0x0f,(Bit8u)0xcf);			//An IRET Instruction
-		return (use_cb?0x14:0x10);
+		phys_writeb(physAddress+0x0e,(Bit8u)0xfa);			// cli
+		phys_writew(physAddress+0x0f,(Bit16u)0x20b0);		// mov al, 0x20
+		phys_writew(physAddress+0x11,(Bit16u)0x20e6);		// out 0x20, al
+		phys_writeb(physAddress+0x13,(Bit8u)0x58);			// pop ax
+		phys_writeb(physAddress+0x14,(Bit8u)0xcf);			//An IRET Instruction
+		return (use_cb?0x19:0x15);
 	case CB_MOUSE:
 		phys_writew(physAddress+0x00,(Bit16u)0x07eb);		// jmp i33hd
 		physAddress+=9;
