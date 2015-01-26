@@ -1744,11 +1744,11 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("vcpi",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("If set and expanded memory is enabled, also emulate VCPI.");
 
-	Pbool = secprop->Add_bool("emm386 startup active",Property::Changeable::OnlyAtStart,true);
+	/* FIXME: The vm86 monitor in src/ints/ems.cpp is not very stable! Option is default OFF until stabilized! */
+	Pbool = secprop->Add_bool("emm386 startup active",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("If set and expanded memory is set to emulate emm386, start the DOS machine with EMM386.EXE active\n"
 			"(running the 16-bit DOS environment from within Virtual 8086 mode). If you will be running anything\n"
-			"that involves a DOS extender you will also need to enable the VCPI interface as well. This\n"
-			"option is enabled by default to reflect common MS-DOS EMM386.EXE behavior.");
+			"that involves a DOS extender you will also need to enable the VCPI interface as well.");
 
 	Pbool = secprop->Add_bool("zero memory on ems memory allocation",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("If set, memory returned by EMS allocation call is zeroed first. This is NOT what\n"

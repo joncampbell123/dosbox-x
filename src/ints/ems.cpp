@@ -1364,6 +1364,11 @@ public:
 			LOG_MSG("Debug option enabled: EMS memory allocation will always clear memory block before returning\n");
 		}
 
+		/* FIXME: VM86 monitor is not stable! */
+		if (ENABLE_V86_STARTUP) {
+			LOG_MSG("WARNING: EMM386 virtual 8086 monitor is not stable!");
+		}
+
 		if (ems_type == EMS_BOARD && ENABLE_VCPI) {
 			LOG_MSG("VCPI emulation is incompatible with ems=board. Turning off VCPI emulation");
 			ENABLE_VCPI=false;
