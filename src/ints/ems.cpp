@@ -1310,10 +1310,17 @@ static void SetupVCPI() {
 	}
 
 	/* TSS */
-	for (Bitu tse_ct=0; tse_ct<0x68+0x200; tse_ct++) {
+	for (Bitu tse_ct=0; tse_ct<0x68+0x2000/*all 65536 I/O ports*/; tse_ct++) {
 		/* clear the TSS as most entries are not used here */
-		mem_writeb(vcpi.private_area+0x3000,0);
+		mem_writeb(vcpi.private_area+0x3000+tse_ct,0);
 	}
+
+	/* we want to use the I/O permissions bitmap */
+	mem_writew(vcpi.private_area+0x3000+0x66,0x68);
+
+	/* DEBUG: Trap I/O 0xB0-0xB7 */
+	mem_writeb(vcpi.private_area+0x3000+0x68+(0xB0/8),0xFF);
+
 	/* Set up the ring0-stack */
 	mem_writed(vcpi.private_area+0x3004,0x00002000);	// esp
 	mem_writed(vcpi.private_area+0x3008,0x00000014);	// ss
@@ -1452,6 +1459,12 @@ public:
 
 		if (ems_type == EMS_EMM386) {
 			DMA_SetWrapping(0xffffffff);	// emm386-bug that disables dma wrapping
+		}
+
+		/* the VCPI emulation requires a large enough OS handle memory region. */
+		if (ENABLE_VCPI && oshandle_memsize_16kb < (0x4000/16384)) { /* at least 16KB */
+			LOG_MSG("EMS:System handle memory size too small (<16KB), disabling VCPI");
+			ENABLE_VCPI = false;
 		}
 
 		if (ENABLE_VCPI) {
