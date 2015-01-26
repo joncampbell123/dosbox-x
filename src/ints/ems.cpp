@@ -37,15 +37,14 @@
 #define EMM_PAGEFRAME4K	((EMM_PAGEFRAME*16)/4096)
 #define	EMM_MAX_HANDLES	200				/* 255 Max */
 #define EMM_PAGE_SIZE	(16*1024U)
-#define EMM_MAX_PAGES	(32 * 1024 / 16 )
 #define EMM_MAX_PHYS	4				/* 4 16kb pages in pageframe */
 
 #define EMM_VERSION			0x40
-#define EMM_MINOR_VERSION	0x00
-//#define EMM_MINOR_VERSION	0x30	// emm386 4.48
-#define GEMMIS_VERSION		0x0001	// Version 1.0
+#define EMM_MINOR_VERSION		0x00
+//#define EMM_MINOR_VERSION		0x30	// emm386 4.48
+#define GEMMIS_VERSION			0x0001	// Version 1.0
 
-#define EMM_SYSTEM_HANDLE	0x0000
+#define EMM_SYSTEM_HANDLE		0x0000
 #define NULL_HANDLE			0xffff
 #define	NULL_PAGE			0xffff
 
