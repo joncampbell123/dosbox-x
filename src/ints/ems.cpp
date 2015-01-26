@@ -1370,7 +1370,11 @@ public:
 		}
 		if (ems_type != EMS_EMM386 && ENABLE_V86_STARTUP) {
 			/* starting up in virtual 8086 mode makes no sense unless emulating EMM386.EXE */
-			LOG_MSG("EMS EMM386.EXE v86 mode is incompatible with ems= setting. Starting up in real mode.");
+			if (ems_type != EMS_MIXED) {
+				/* v86 startup is default. to avoid yelling at the user do not print anything unless
+				 * the user set it to any value other than the default ems=true */
+				LOG_MSG("EMS EMM386.EXE v86 mode is incompatible with ems= setting. Starting up in real mode.");
+			}
 			ENABLE_V86_STARTUP=false;
 		}
 		if (ENABLE_V86_STARTUP && !ENABLE_VCPI) {
