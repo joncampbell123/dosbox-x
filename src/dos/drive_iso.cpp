@@ -25,6 +25,9 @@
 #include "support.h"
 #include "drives.h"
 
+#define FLAGS1	((iso) ? de.fileFlags : de.timeZone)
+#define FLAGS2	((iso) ? de->fileFlags : de->timeZone)
+
 using namespace std;
 
 class isoFile : public DOS_File {
@@ -210,7 +213,7 @@ bool isoDrive::FileOpen(DOS_File **file, const char *name, Bit32u flags) {
 	}
 	
 	isoDirEntry de;
-	bool success = lookup(&de, name) && !IS_DIR(de.fileFlags);
+	bool success = lookup(&de, name) && !IS_DIR(FLAGS1);
 
 	if (success) {
 		FileStat_Block file_stat;
@@ -246,7 +249,7 @@ bool isoDrive::MakeDir(const char* /*dir*/) {
 
 bool isoDrive::TestDir(const char *dir) {
 	isoDirEntry de;	
-	return (lookup(&de, dir) && IS_DIR(de.fileFlags));
+	return (lookup(&de, dir) && IS_DIR(FLAGS1));
 }
 
 bool isoDrive::FindFirst(const char *dir, DOS_DTA &dta, bool fcb_findfirst) {
@@ -291,11 +294,11 @@ bool isoDrive::FindNext(DOS_DTA &dta) {
 	isoDirEntry de;
 	while (GetNextDirEntry(dirIterator, &de)) {
 		Bit8u findAttr = 0;
-		if (IS_DIR(de.fileFlags)) findAttr |= DOS_ATTR_DIRECTORY;
+		if (IS_DIR(FLAGS1)) findAttr |= DOS_ATTR_DIRECTORY;
 		else findAttr |= DOS_ATTR_ARCHIVE;
-		if (IS_HIDDEN(de.fileFlags)) findAttr |= DOS_ATTR_HIDDEN;
+		if (IS_HIDDEN(FLAGS1)) findAttr |= DOS_ATTR_HIDDEN;
 
-		if (!IS_ASSOC(de.fileFlags) && !(isRoot && de.ident[0]=='.') && WildFileCmp((char*)de.ident, pattern)
+		if (!IS_ASSOC(FLAGS1) && !(isRoot && de.ident[0]=='.') && WildFileCmp((char*)de.ident, pattern)
 			&& !(~attr & findAttr & (DOS_ATTR_DIRECTORY | DOS_ATTR_HIDDEN | DOS_ATTR_SYSTEM))) {
 			
 			/* file is okay, setup everything to be copied in DTA Block */
@@ -330,8 +333,8 @@ bool isoDrive::GetFileAttr(const char *name, Bit16u *attr) {
 	bool success = lookup(&de, name);
 	if (success) {
 		*attr = DOS_ATTR_ARCHIVE | DOS_ATTR_READ_ONLY;
-		if (IS_HIDDEN(de.fileFlags)) *attr |= DOS_ATTR_HIDDEN;
-		if (IS_DIR(de.fileFlags)) *attr |= DOS_ATTR_DIRECTORY;
+		if (IS_HIDDEN(FLAGS1)) *attr |= DOS_ATTR_HIDDEN;
+		if (IS_DIR(FLAGS1)) *attr |= DOS_ATTR_DIRECTORY;
 	}
 	return success;
 }
@@ -346,7 +349,7 @@ bool isoDrive::AllocationInfo(Bit16u *bytes_sector, Bit8u *sectors_cluster, Bit1
 
 bool isoDrive::FileExists(const char *name) {
 	isoDirEntry de;
-	return (lookup(&de, name) && !IS_DIR(de.fileFlags));
+	return (lookup(&de, name) && !IS_DIR(FLAGS1));
 }
 
 bool isoDrive::FileStat(const char *name, FileStat_Block *const stat_block) {
@@ -358,7 +361,7 @@ bool isoDrive::FileStat(const char *name, FileStat_Block *const stat_block) {
 		stat_block->time = DOS_PackTime(de.timeHour, de.timeMin, de.timeSec);
 		stat_block->size = DATA_LENGTH(de);
 		stat_block->attr = DOS_ATTR_ARCHIVE | DOS_ATTR_READ_ONLY;
-		if (IS_DIR(de.fileFlags)) stat_block->attr |= DOS_ATTR_DIRECTORY;
+		if (IS_DIR(FLAGS1)) stat_block->attr |= DOS_ATTR_DIRECTORY;
 	}
 	
 	return success;
@@ -482,7 +485,7 @@ int isoDrive :: readDirEntry(isoDirEntry *de, Bit8u *data) {
 	
 	// modify file identifier for use with dosbox
 	if ((de->length < 33 + de->fileIdentLength)) return -1;
-	if (IS_DIR(de->fileFlags)) {
+	if (IS_DIR(FLAGS2)) {
 		if (de->fileIdentLength == 1 && de->ident[0] == 0) strcpy((char*)de->ident, ".");
 		else if (de->fileIdentLength == 1 && de->ident[0] == 1) strcpy((char*)de->ident, "..");
 		else {
@@ -511,11 +514,14 @@ int isoDrive :: readDirEntry(isoDirEntry *de, Bit8u *data) {
 }
 
 bool isoDrive :: loadImage() {
-	isoPVD pvd;
+	Bit8u pvd[COOKED_SECTOR_SIZE];
 	dataCD = false;
-	readSector((Bit8u*)(&pvd), ISO_FIRST_VD);
-	if (pvd.type != 1 || strncmp((char*)pvd.standardIdent, "CD001", 5) || pvd.version != 1) return false;
-	if (readDirEntry(&this->rootEntry, pvd.rootEntry)>0) {
+	readSector(pvd, ISO_FIRST_VD);
+	if (pvd[0] == 1 && !strncmp((char*)(&pvd[1]), "CD001", 5) && pvd[6] == 1) iso = true;
+	else if (pvd[8] == 1 && !strncmp((char*)(&pvd[9]), "CDROM", 5) && pvd[14] == 1) iso = false;
+	else return false;
+	Bit16u offset = iso ? 156 : 180;
+	if (readDirEntry(&this->rootEntry, &pvd[offset])>0) {
 		dataCD = true;
 		return true;
 	}
@@ -536,7 +542,7 @@ bool isoDrive :: lookup(isoDirEntry *de, const char *path) {
 
 		bool found = false;	
 		// current entry must be a directory, abort otherwise
-		if (IS_DIR(de->fileFlags)) {
+		if (IS_DIR(FLAGS2)) {
 			
 			// remove the trailing dot if present
 			size_t nameLength = strlen(name);
@@ -547,7 +553,7 @@ bool isoDrive :: lookup(isoDirEntry *de, const char *path) {
 			// look for the current path element
 			int dirIterator = GetDirIterator(de);
 			while (!found && GetNextDirEntry(dirIterator, de)) {
-				if (!IS_ASSOC(de->fileFlags) && (0 == strncasecmp((char*) de->ident, name, ISO_MAX_FILENAME_LENGTH))) {
+				if (!IS_ASSOC(FLAGS2) && (0 == strncasecmp((char*) de->ident, name, ISO_MAX_FILENAME_LENGTH))) {
 					found = true;
 				}
 			}

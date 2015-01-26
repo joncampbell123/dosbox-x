@@ -430,6 +430,7 @@ private:
 		Bit8u data[ISO_FRAMESIZE];
 	} sectorHashEntries[ISO_MAX_HASH_TABLE_SIZE];
 
+	bool iso;
 	bool dataCD;
 	isoDirEntry rootEntry;
 	Bit8u mediaid;
