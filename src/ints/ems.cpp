@@ -1108,6 +1108,29 @@ static Bitu VCPI_PM_Handler() {
 	return CBRET_NONE;
 }
 
+bool vcpi_virtual_a20 = true;
+
+/* if we handle the read, we're expected to write over AL/AX */
+bool VCPI_trapio_r(uint16_t port,unsigned int sz) {
+	switch (port) {
+		case 0x92:
+			reg_al = vcpi_virtual_a20?0x02:0x00;
+			return true;
+	};
+
+	return false;
+}
+
+bool VCPI_trapio_w(uint16_t port,uint32_t data,unsigned int sz) {
+	switch (port) {
+		case 0x92:
+			vcpi_virtual_a20 = (data & 2) ? true : false;
+			return true;
+	};
+
+	return false;
+}
+
 static Bitu V86_Monitor() {
 	/* Calculate which interrupt did occur */
 	Bitu int_num=(mem_readw(SegPhys(ss)+(reg_esp & cpu.stack.mask))-0x2803);
@@ -1173,35 +1196,43 @@ static Bitu V86_Monitor() {
 				}
 				break;
 			case 0xe4:		// IN AL,Ib
-				reg_al=(Bit8u)(IO_ReadB(mem_readb((v86_cs<<4)+v86_ip+1))&0xff);
+				if (!VCPI_trapio_r(mem_readb((v86_cs<<4)+v86_ip+1),1))
+					reg_al=(Bit8u)(IO_ReadB(mem_readb((v86_cs<<4)+v86_ip+1))&0xff);
 				mem_writew(SegPhys(ss)+((reg_esp+0) & cpu.stack.mask),v86_ip+2);
 				break;
 			case 0xe5:		// IN AX,Ib
-				reg_ax=(Bit16u)(IO_ReadW(mem_readb((v86_cs<<4)+v86_ip+1))&0xffff);
+				if (!VCPI_trapio_r(mem_readb((v86_cs<<4)+v86_ip+1),2))
+					reg_ax=(Bit16u)(IO_ReadW(mem_readb((v86_cs<<4)+v86_ip+1))&0xffff);
 				mem_writew(SegPhys(ss)+((reg_esp+0) & cpu.stack.mask),v86_ip+2);
 				break;
 			case 0xe6:		// OUT Ib,AL
-				IO_WriteB(mem_readb((v86_cs<<4)+v86_ip+1),reg_al);
+				if (!VCPI_trapio_w(mem_readb((v86_cs<<4)+v86_ip+1),reg_al,1))
+					IO_WriteB(mem_readb((v86_cs<<4)+v86_ip+1),reg_al);
 				mem_writew(SegPhys(ss)+((reg_esp+0) & cpu.stack.mask),v86_ip+2);
 				break;
 			case 0xe7:		// OUT Ib,AX
-				IO_WriteW(mem_readb((v86_cs<<4)+v86_ip+1),reg_ax);
+				if (!VCPI_trapio_w(mem_readb((v86_cs<<4)+v86_ip+1),reg_ax,2))
+					IO_WriteW(mem_readb((v86_cs<<4)+v86_ip+1),reg_ax);
 				mem_writew(SegPhys(ss)+((reg_esp+0) & cpu.stack.mask),v86_ip+2);
 				break;
 			case 0xec:		// IN AL,DX
-				reg_al=(Bit8u)(IO_ReadB(reg_dx)&0xff);
+				if (!VCPI_trapio_r(reg_dx,1))
+					reg_al=(Bit8u)(IO_ReadB(reg_dx)&0xff);
 				mem_writew(SegPhys(ss)+((reg_esp+0) & cpu.stack.mask),v86_ip+1);
 				break;
 			case 0xed:		// IN AX,DX
-				reg_ax=(Bit16u)(IO_ReadW(reg_dx)&0xffff);
+				if (!VCPI_trapio_r(reg_dx,2))
+					reg_ax=(Bit16u)(IO_ReadW(reg_dx)&0xffff);
 				mem_writew(SegPhys(ss)+((reg_esp+0) & cpu.stack.mask),v86_ip+1);
 				break;
 			case 0xee:		// OUT DX,AL
-				IO_WriteB(reg_dx,reg_al);
+				if (!VCPI_trapio_w(reg_dx,reg_al,1))
+					IO_WriteB(reg_dx,reg_al);
 				mem_writew(SegPhys(ss)+((reg_esp+0) & cpu.stack.mask),v86_ip+1);
 				break;
 			case 0xef:		// OUT DX,AX
-				IO_WriteW(reg_dx,reg_ax);
+				if (!VCPI_trapio_w(reg_dx,reg_ax,2))
+					IO_WriteW(reg_dx,reg_ax);
 				mem_writew(SegPhys(ss)+((reg_esp+0) & cpu.stack.mask),v86_ip+1);
 				break;
 			case 0xf0:		// LOCK prefix
@@ -1244,6 +1275,15 @@ static Bitu V86_Monitor() {
 	mem_writew((v86_ss<<4)+v86_sp+2,return_cs);
 	mem_writew((v86_ss<<4)+v86_sp+4,(Bit16u)(return_eflags&0xffff));
 	return CBRET_NONE;
+}
+
+inline void VCPI_iopermw(uint16_t port,bool set) {
+	unsigned char b;
+
+	b = mem_readb(vcpi.private_area+0x3000+0x68+(port>>3));
+	if (set) b |= 1<<(port&7);
+	else b &= ~(1<<(port&7));
+	mem_writeb(vcpi.private_area+0x3000+0x68+(port>>3),b);
 }
 
 static void SetupVCPI() {
@@ -1314,6 +1354,9 @@ static void SetupVCPI() {
 		/* clear the TSS as most entries are not used here */
 		mem_writeb(vcpi.private_area+0x3000+tse_ct,0);
 	}
+
+	/* trap some ports */
+	VCPI_iopermw(0x92,true);
 
 	/* Set up the ring0-stack */
 	mem_writed(vcpi.private_area+0x3004,0x00002000);	// esp
@@ -1502,6 +1545,7 @@ public:
 					LOG_MSG("EMS:EMM OS handle is associated with memory on an odd megabyte. Enabling A20 gate to safely enter V86 mode.");
 					XMS_EnableA20(true);
 				}
+				vcpi_virtual_a20 = true;
 
 				/* Prepare V86-task */
 				CPU_SET_CRX(0, 1);
