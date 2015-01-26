@@ -36,6 +36,7 @@
 #include "dos_inc.h"
 #include "bios.h"
 #include "inout.h"
+#include "dma.h"
 #include "bios_disk.h" 
 #include "setup.h"
 #include "control.h"
@@ -919,6 +920,9 @@ public:
 
 			/* debug */
 			LOG_MSG("Booting guest OS stack_seg=0x%04x load_seg=0x%04x\n",stack_seg,load_seg);
+ 
+			/* create appearance of floppy drive DMA usage (Demon's Forge) */
+			if (!IS_TANDY_ARCH && floppysize!=0) GetDMAChannel(2)->tcount=true;
 
 			/* standard method */
 			SegSet16(cs, 0);
