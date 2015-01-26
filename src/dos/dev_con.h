@@ -267,8 +267,8 @@ bool device_CON::Write(Bit8u * data,Bit16u * size) {
 			} else { 
 				/* Some sort of "hack" now that '\n' doesn't set col to 0 (int10_char.cpp old chessgame) */
 				if((data[count] == '\n') && (lastwrite != '\r')) Real_INT10_TeletypeOutputAttr('\r',ansi.attr,ansi.enabled);
- 				/* pass attribute only if ansi is enabled */
-				Real_INT10_TeletypeOutputAttr(data[count],ansi.attr,ansi.enabled);
+				/* use ansi attribute if ansi is enabled, otherwise use DOS default attribute*/
+				Real_INT10_TeletypeOutputAttr(data[count],ansi.enabled?ansi.attr:7,true);
 				lastwrite = data[count++];
 				continue;
 		}
