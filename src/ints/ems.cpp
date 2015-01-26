@@ -50,8 +50,7 @@
 #define	NULL_PAGE			0xffff
 
 bool ENABLE_VCPI=true;
-
-#define ENABLE_V86_STARTUP 0
+bool ENABLE_V86_STARTUP=false;
 
 
 /* EMM errors */
@@ -1359,6 +1358,7 @@ public:
 		BIOS_ZeroExtendedSize(true);
 
 		ENABLE_VCPI = section->Get_bool("vcpi");
+		ENABLE_V86_STARTUP = section->Get_bool("emm386 startup active");
 
 		dbg_zero_on_ems_allocmem = section->Get_bool("zero memory on ems memory allocation");
 		if (dbg_zero_on_ems_allocmem) {
@@ -1368,6 +1368,11 @@ public:
 		if (ems_type == EMS_BOARD && ENABLE_VCPI) {
 			LOG_MSG("VCPI emulation is incompatible with ems=board. Turning off VCPI emulation");
 			ENABLE_VCPI=false;
+		}
+		if (ems_type != EMS_EMM386 && ENABLE_V86_STARTUP) {
+			/* starting up in virtual 8086 mode makes no sense unless emulating EMM386.EXE */
+			LOG_MSG("EMS EMM386.EXE v86 mode is incompatible with ems= setting. Starting up in real mode.");
+			ENABLE_V86_STARTUP=false;
 		}
 
 		oshandle_memsize_16kb = section->Get_int("ems system handle memory size");
@@ -1437,6 +1442,8 @@ public:
 
 			/* Testcode only, starts up dosbox in v86-mode */
 			if (ENABLE_V86_STARTUP) {
+				LOG_MSG("EMS: Now setting up the DOS environment to run in EMM386.EXE virtual 8086 mode");
+
 				/* Prepare V86-task */
 				CPU_SET_CRX(0, 1);
 				CPU_LGDT(0xff, vcpi.private_area+0x0000);
@@ -1444,12 +1451,15 @@ public:
 				if (CPU_LLDT(0x08)) LOG_MSG("VCPI:Could not load LDT");
 				if (CPU_LTR(0x10)) LOG_MSG("VCPI:Could not load TR");
 
+				/* TODO: Page tables are usually involved as well. */
+
+				/* register setup */
 				CPU_Push32(SegValue(gs));
 				CPU_Push32(SegValue(fs));
 				CPU_Push32(SegValue(ds));
 				CPU_Push32(SegValue(es));
 				CPU_Push32(SegValue(ss));
-				CPU_Push32(0x23002);
+				CPU_Push32(0x23002); /* FIXME: Confirm: this is EFLAGS? */
 				CPU_Push32(SegValue(cs));
 				CPU_Push32(reg_eip&0xffff);
 				/* Switch to V86-mode */
