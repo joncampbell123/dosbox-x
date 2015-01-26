@@ -1018,10 +1018,6 @@ static Bitu INT67_Handler(void) {
 				CPU_SET_CRX(0, new_cr0);
 				CPU_SET_CRX(3, new_cr3);
 
-				PhysPt tbaddr=new_gdt_base+(new_tr&0xfff8)+5;
-				Bit8u tb=mem_readb(tbaddr);
-				mem_writeb(tbaddr, tb&0xfd);
-
 				/* Load tables and initialize segment registers */
 				CPU_LGDT(new_gdt_limit, new_gdt_base);
 				CPU_LIDT(new_idt_limit, new_idt_base);
