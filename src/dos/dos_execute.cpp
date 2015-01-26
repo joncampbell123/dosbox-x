@@ -225,6 +225,10 @@ bool DOS_ChildPSP(Bit16u segment, Bit16u size) {
 	psp.SetFCB2(RealMake(parent_psp_seg,0x6c));
 	psp.SetEnvironment(psp_parent.GetEnvironment());
 	psp.SetSize(size);
+	// push registers in case child PSP is terminated
+	SaveRegisters();
+	psp.SetStack(RealMakeSeg(ss,reg_sp));
+	reg_sp+=18;
 	return true;
 }
 
