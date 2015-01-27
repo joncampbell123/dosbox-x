@@ -299,6 +299,8 @@ bool DOS_ResizeMemory(Bit16u segment,Bit16u * blocks) {
 	if (segment < DOS_MEM_START+1) {
 		LOG(LOG_DOSMISC,LOG_ERROR)("Program resizes %X, take care",segment);
 	}
+
+	LOG_MSG("DOS_ResizeMemory(seg=0x%04x) blocks=0x%04x",segment,*blocks);
       
 	DOS_MCB mcb(segment-1);
 	if ((mcb.GetType()!=0x4d) && (mcb.GetType()!=0x5a)) {
@@ -308,6 +310,10 @@ bool DOS_ResizeMemory(Bit16u segment,Bit16u * blocks) {
 
 	Bit16u total=mcb.GetSize();
 	DOS_MCB	mcb_next(segment+total);
+
+	if (*blocks > total)
+		DOS_CompressMemory(segment-1);
+
 	if (*blocks<=total) {
 		if (GCC_UNLIKELY(*blocks==total)) {
 			/* Nothing to do */
