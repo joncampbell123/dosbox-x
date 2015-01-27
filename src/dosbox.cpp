@@ -1433,24 +1433,6 @@ void DOSBOX_Init(void) {
 			"Option is needed for:\n"
 			"   Public NMI \"jump\" demo (1992)");
 
-	Pbool = secprop->Add_bool("pic unmask irq on reset",Property::Changeable::WhenIdle,false);
-	Pbool->Set_help("If the 'pic unmask irq' option allows music to start playing, but music cuts out again\n"
-			"when the DOS game/demo stops and restarts the music, set this option to force unmask\n"
-			"the PIC IRQ on DSP reset. This of course is nonstandard behavior that can break other\n"
-			"DOS games, considering the Sound Blaster on real hardware does not have the capability\n"
-			"to just reach across the ISA bus and unmask IRQs in the 8259 PIC on a whim!\n"
-			"Set this option for DOS games and demos that for whatever reason fail to\n"
-			"unmask the IRQ or who write strange nonsensical values to the 8259 PIC interrupt mask\n"
-			"register that prevents Sound Blaster IRQ handling.\n"
-			"Option is needed for:\n"
-			"   Public NMI \"jump\" demo (1992)");
-
-	Pbool = secprop->Add_bool("pic unmask irq on interrupt",Property::Changeable::WhenIdle,false);
-	Pbool->Set_help("Finally, if the DOS game or demo is stupidly dense and an irresponsible idiot with handling\n"
-			"the Sound Blaster IRQ, set this option to force unmask the IRQ when the Sound Blaster\n"
-			"raises the IRQ signal. This is *very* nonstandard behavior intended for broken DOS\n"
-			"games and demos (*ahem* Public NMI \"jump\" demo) to keep music playback going.");
-
 	Pbool = secprop->Add_bool("sbmixer",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Allow the soundblaster mixer to modify the DOSBox mixer.");
 
