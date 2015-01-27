@@ -198,7 +198,7 @@ struct SB_INFO {
 	MixerChannel * chan;
 };
 
-
+static bool sb_unmask_irq_on_reset = false;
 
 static SB_INFO sb;
 
@@ -1015,6 +1015,11 @@ static void DSP_FinishReset(Bitu /*val*/) {
 	DSP_FlushData();
 	DSP_AddData(0xaa);
 	sb.dsp.state=DSP_S_NORMAL;
+
+	if (sb_unmask_irq_on_reset && sb.hw.irq != 0xFF) {
+		LOG_MSG("SB: DSP reset, force unmasking SB IRQ as requested (nonstandard behavior)");
+		PIC_SetIRQMask(sb.hw.irq,false);
+	}
 }
 
 static void DSP_Reset(void) {
@@ -1052,6 +1057,11 @@ static void DSP_Reset(void) {
 //	DSP_SetSpeaker(false);
 	PIC_RemoveEvents(END_DMA_Event);
 	PIC_RemoveEvents(DMA_DAC_Event);
+
+	if (sb_unmask_irq_on_reset && sb.hw.irq != 0xFF) {
+		LOG_MSG("SB: DSP reset, force unmasking SB IRQ as requested (nonstandard behavior)");
+		PIC_SetIRQMask(sb.hw.irq,false);
+	}
 }
 
 static void DSP_DoReset(Bit8u val) {
@@ -2238,6 +2248,8 @@ public:
 			LOG_MSG("Sound blaster: unmasking IRQ at startup as requested.");
 			PIC_SetIRQMask(sb.hw.irq,false);
 		}
+
+		sb_unmask_irq_on_reset=section->Get_bool("pic unmask irq on reset");
 
 		if (sb.hw.irq == 0xFF || sb.hw.dma8 == 0xFF) {
 			LOG(LOG_SB,LOG_WARN)("IRQ and 8-bit DMA not assigned, disabling BLASTER variable");
