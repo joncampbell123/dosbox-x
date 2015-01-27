@@ -247,6 +247,12 @@ struct MoveRegion {
 	Bit16u dest_page_seg;
 };
 
+static Bit16u EMM_GetTotalPages(void) {
+	Bitu count=MEM_FreeLargest()/4;
+	if (count>0x7fff) count=0x7fff;
+	return (Bit16u)count;
+}
+
 static Bit16u EMM_GetFreePages(void) {
 	Bitu count=MEM_FreeTotal()/4;
 	if (count>0x7fff) count=0x7fff;
@@ -748,7 +754,7 @@ static Bitu INT67_Handler(void) {
 		reg_ah=EMM_NO_ERROR;
 		break;
 	case 0x42:		/* Get number of pages */
-		reg_dx=(Bit16u)(MEM_TotalPages()/4);		//Not entirely correct but okay
+		reg_dx=EMM_GetTotalPages();
 		reg_bx=EMM_GetFreePages();
 		reg_ah=EMM_NO_ERROR;
 		break;
