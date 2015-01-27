@@ -1425,6 +1425,14 @@ void DOSBOX_Init(void) {
 	Pint->Set_values(dmassb);
 	Pint->Set_help("The High DMA number of the soundblaster. Set to -1 to start DOSBox with the IRQ unassigned");
 
+	Pbool = secprop->Add_bool("pic unmask irq",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("Start the DOS virtual machine with the sound blaster IRQ already unmasked at the PIC.\n"
+			"Some early DOS games/demos that support Sound Blaster expect the IRQ to fire but make\n"
+			"no attempt to unmask the IRQ. If audio cuts out no matter what IRQ you try, then try\n"
+			"setting this option.\n"
+			"Option is needed for:\n"
+			"   Public NMI \"jump\" demo (1992)");
+
 	Pbool = secprop->Add_bool("sbmixer",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Allow the soundblaster mixer to modify the DOSBox mixer.");
 

@@ -2198,6 +2198,7 @@ private:
 	}
 public:
 	SBLASTER(Section* configuration):Module_base(configuration) {
+		bool bv;
 		string s;
 		Bitu i;
 		int si;
@@ -2228,6 +2229,15 @@ public:
 
 		si=section->Get_int("hdma");
 		sb.hw.dma16=(si >= 0) ? si : 0xFF;
+
+		/* some DOS games/demos support Sound Blaster, and expect the IRQ to fire, but
+		 * make no attempt to unmask the IRQ (perhaps the programmer forgot). This option
+		 * is needed for Public NMI "jump" demo in order for music to continue playing. */
+		bv=section->Get_bool("pic unmask irq");
+		if (bv && sb.hw.irq != 0xFF) {
+			LOG_MSG("Sound blaster: unmasking IRQ at startup as requested.");
+			PIC_SetIRQMask(sb.hw.irq,false);
+		}
 
 		if (sb.hw.irq == 0xFF || sb.hw.dma8 == 0xFF) {
 			LOG(LOG_SB,LOG_WARN)("IRQ and 8-bit DMA not assigned, disabling BLASTER variable");
