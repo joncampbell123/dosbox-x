@@ -198,6 +198,7 @@ struct SB_INFO {
 	MixerChannel * chan;
 };
 
+static bool sb_unmask_irq_on_signal = false;
 static bool sb_unmask_irq_on_reset = false;
 
 static SB_INFO sb;
@@ -302,6 +303,11 @@ static void DSP_SetSpeaker(bool how) {
  *      --Jonathan C. */
 static INLINE void SB_RaiseIRQ(SB_IRQS type) {
 	LOG(LOG_SB,LOG_NORMAL)("Raising IRQ");
+
+	if (sb_unmask_irq_on_signal && sb.hw.irq != 0xFF) {
+		LOG_MSG("SB: IRQ, force unmasking SB IRQ as requested (nonstandard behavior)");
+		PIC_SetIRQMask(sb.hw.irq,false);
+	}
 
 	switch (type) {
 	case SB_IRQ_8:
@@ -2249,6 +2255,7 @@ public:
 			PIC_SetIRQMask(sb.hw.irq,false);
 		}
 
+		sb_unmask_irq_on_signal=section->Get_bool("pic unmask irq on interrupt");
 		sb_unmask_irq_on_reset=section->Get_bool("pic unmask irq on reset");
 
 		if (sb.hw.irq == 0xFF || sb.hw.dma8 == 0xFF) {

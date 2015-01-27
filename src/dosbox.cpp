@@ -1445,6 +1445,12 @@ void DOSBOX_Init(void) {
 			"Option is needed for:\n"
 			"   Public NMI \"jump\" demo (1992)");
 
+	Pbool = secprop->Add_bool("pic unmask irq on interrupt",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("Finally, if the DOS game or demo is stupidly dense and an irresponsible idiot with handling\n"
+			"the Sound Blaster IRQ, set this option to force unmask the IRQ when the Sound Blaster\n"
+			"raises the IRQ signal. This is *very* nonstandard behavior intended for broken DOS\n"
+			"games and demos (*ahem* Public NMI \"jump\" demo) to keep music playback going.");
+
 	Pbool = secprop->Add_bool("sbmixer",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Allow the soundblaster mixer to modify the DOSBox mixer.");
 
