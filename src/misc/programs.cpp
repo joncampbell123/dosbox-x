@@ -296,13 +296,16 @@ bool Program::GetEnvStr(const char * entry,std::string & result) {
 		return false;
 	}
 
+	std::string bigentry(entry);
+	for (std::string::iterator it = bigentry.begin(); it != bigentry.end(); ++it) *it = toupper(*it);
+
 	env_scan = env_base;
 	while (env_scan < env_fence) {
 		/* "NAME" + "=" + "VALUE" + "\0" */
 		/* end of the block is a NULL string meaning a \0 follows the last string's \0 */
 		if (mem_readb(env_scan) == 0) break; /* normal end of block */
 
-		if (EnvPhys_StrCmp(env_scan,env_fence,entry) == 0) {
+		if (EnvPhys_StrCmp(env_scan,env_fence,bigentry.c_str()) == 0) {
 			EnvPhys_StrCpyToCPPString(result,env_scan,env_fence);
 			return true;
 		}
@@ -387,7 +390,10 @@ bool Program::SetEnv(const char * entry,const char * new_string) {
 		return false;
 	}
 
-	el = strlen(entry);
+	std::string bigentry(entry);
+	for (std::string::iterator it = bigentry.begin(); it != bigentry.end(); ++it) *it = toupper(*it);
+
+	el = strlen(bigentry.c_str());
 	if (*new_string != 0) nsl = strlen(new_string);
 	needs = nsl+1+el+1+1; /* entry + '=' + new_string + '\0' + '\0' */
 
@@ -396,7 +402,7 @@ bool Program::SetEnv(const char * entry,const char * new_string) {
 	while (env_scan < env_fence) {
 		if (mem_readb(env_scan) == 0) break;
 
-		if (EnvPhys_StrCmp(env_scan,env_fence,entry) == 0) {
+		if (EnvPhys_StrCmp(env_scan,env_fence,bigentry.c_str()) == 0) {
 			/* found it. remove by shifting the rest of the environment block over */
 			int zeroes=0;
 			PhysPt s,d;
@@ -404,7 +410,7 @@ bool Program::SetEnv(const char * entry,const char * new_string) {
 			/* before we remove it: is there room for the new value? */
 			if (nsl != 0) {
 				if ((env_scan+needs) > env_fence) {
-					LOG_MSG("Program::SetEnv() error, insufficient room for environment variable %s=%s\n",entry,new_string);
+					LOG_MSG("Program::SetEnv() error, insufficient room for environment variable %s=%s\n",bigentry.c_str(),new_string);
 					return false;
 				}
 			}
@@ -433,12 +439,12 @@ bool Program::SetEnv(const char * entry,const char * new_string) {
 	/* add the string to the end of the block */
 	if (*new_string != 0) {
 		if ((env_scan+needs) > env_fence) {
-			LOG_MSG("Program::SetEnv() error, insufficient room for environment variable %s=%s\n",entry,new_string);
+			LOG_MSG("Program::SetEnv() error, insufficient room for environment variable %s=%s\n",bigentry.c_str(),new_string);
 			return false;
 		}
 
 		assert(env_scan < env_fence);
-		for (const char *s=entry;*s != 0;) mem_writeb(env_scan++,*s++);
+		for (const char *s=bigentry.c_str();*s != 0;) mem_writeb(env_scan++,*s++);
 		mem_writeb(env_scan++,'=');
 
 		assert(env_scan < env_fence);
