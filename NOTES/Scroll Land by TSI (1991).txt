@@ -1,0 +1,46 @@
+Here's an unusual case of legacy DOS code:
+
+This demo left me scratching my head for months
+on why it seemed to support Sound Blaster, but
+failed to produce any audio.
+
+It wasn't until I watched the demo initialize
+the Sound Blaster and I happened to look at the
+interrupt vector table that I noticed the demo
+is not hooking IRQ 5 or 7. It's hooking IRQ 3.
+It began producing audio once I set sbtype=sb2
+and irq=3.
+
+This is very unusual, considering most demos
+of that time assumed IRQ 7, the original stock
+configuration of the original Sound Blaster.
+I was not aware the Sound Blaster 2.0 had any
+jumper settings to take IRQ 3, since that is
+normally taken by serial ports on standard
+PC hardware.
+
+This is also the first demo I've found that
+uses undocumented Sound Blaster 2.0 commands
+0xE2 (DMA identification), 0xE4 (write test
+register), 0xE8 (read test register), and
+0xE0 (SB20 identification where you read
+back the NOT inversion of your data byte).
+
+* If the demo is in fact using some obscure
+  mechanism to autodetect the IRQ, please let
+  me know!
+
+Recommended settings:
+
+[cpu]
+core=normal
+cycles=1000 # doesn't need much CPU horsepower to cycle the VGA palette and play lo-fi MOD music
+cputype=386
+
+[sblaster]
+sbtype=sb2
+sbbase=220
+irq=3
+dma=1
+goldplay=false
+
