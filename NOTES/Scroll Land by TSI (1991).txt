@@ -27,11 +27,12 @@ register), 0xE8 (read test register), and
 back the NOT inversion of your data byte).
 
 I also noticed that the demo isn't playing
-tracker so much as it's playing a simple
+tracker music. Instead it's playing a simple
 loop, using varied DSP+DMA block sizes to
 act on "cue" points so that additional text
 on top of the animation can flash in time
-with the music.
+with the music. Debug messages printed to
+the log by DOSBox confirm this.
 
 * If the demo is in fact using some obscure
   mechanism to autodetect the IRQ, please let
@@ -41,7 +42,7 @@ Recommended settings:
 
 [cpu]
 core=normal
-cycles=1000 # doesn't need much CPU horsepower to cycle the VGA palette and play a lo-fi audio loop.
+cycles=4000
 cputype=386
 
 [sblaster]
@@ -50,4 +51,9 @@ sbbase=220
 irq=3
 dma=1
 goldplay=false
+
+A cycles count between 3000 and 4000 is
+recommended. Below 2500 the animated
+"oscilloscope" of the music will render at
+half the normal frame rate, if that matters.
 
