@@ -26,6 +26,13 @@ register), 0xE8 (read test register), and
 0xE0 (SB20 identification where you read
 back the NOT inversion of your data byte).
 
+I also noticed that the demo isn't playing
+tracker so much as it's playing a simple
+loop, using varied DSP+DMA block sizes to
+act on "cue" points so that additional text
+on top of the animation can flash in time
+with the music.
+
 * If the demo is in fact using some obscure
   mechanism to autodetect the IRQ, please let
   me know!
@@ -34,7 +41,7 @@ Recommended settings:
 
 [cpu]
 core=normal
-cycles=1000 # doesn't need much CPU horsepower to cycle the VGA palette and play lo-fi MOD music
+cycles=1000 # doesn't need much CPU horsepower to cycle the VGA palette and play a lo-fi audio loop.
 cputype=386
 
 [sblaster]
