@@ -247,7 +247,7 @@ void VGA_StartResize(Bitu delay /*=50*/) {
 
 #define IS_RESET ((vga.seq.reset&0x3)!=0x3)
 #define IS_SCREEN_ON ((vga.seq.clocking_mode&0x20)==0)
-static bool hadReset = false;
+//static bool hadReset = false;
 
 // disabled for later improvement
 // Idea behind this: If the sequencer was reset and screen off we can

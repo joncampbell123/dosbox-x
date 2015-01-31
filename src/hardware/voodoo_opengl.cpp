@@ -920,7 +920,7 @@ void ogl_shaders(const poly_extra_data *extra) {
 	/* shaders extensions not loaded */
 	if (!glCreateShaderObjectARB) return;
 
-	UINT32 FBZMODE      = extra->r_fbzMode;
+//	UINT32 FBZMODE      = extra->r_fbzMode;
 	UINT32 FOGMODE      = extra->r_fogMode;
 	UINT32 texcount     = extra->texcount;
 
@@ -1438,7 +1438,7 @@ void voodoo_ogl_fastfill(void) {
 
 	bool scissors_needed = true;
 	if ((sx == 0) && (sy == 0)) {
-		if ((ex == v->fbi.width) && (ey == v->fbi.height)) scissors_needed = false;
+		if (((Bitu)ex == (Bitu)v->fbi.width) && ((Bitu)ey == (Bitu)v->fbi.height)) scissors_needed = false;
 	}
 
 	if (scissors_needed) {
