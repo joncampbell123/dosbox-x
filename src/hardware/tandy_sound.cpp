@@ -269,7 +269,7 @@ static void TandySN76496Update(Bitu length) {
 }
 
 static void TandyDACWrite(Bitu port,Bitu data,Bitu iolen) {
-	LOG_MSG("Write tandy dac %X val %X",port,data);
+	LOG_MSG("Write tandy dac %X val %X",(int)port,(int)data);
 }
 
 static void SN76496_set_clock(struct SN76496 *R, int clock) {
@@ -393,7 +393,7 @@ static Bitu TandyDACRead(Bitu port,Bitu /*iolen*/) {
 	case 0xc7:
 		return (Bit8u)(((tandy.dac.frequency>>8)&0xf) | (tandy.dac.amplitude<<5));
 	}
-	LOG_MSG("Tandy DAC: Read from unknown %X",port);
+	LOG_MSG("Tandy DAC: Read from unknown %X",(int)port);
 	return 0xff;
 }
 

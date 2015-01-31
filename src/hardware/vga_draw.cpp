@@ -1064,7 +1064,7 @@ static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
 
 void VGA_SetBlinking(Bitu enabled) {
 	Bitu b;
-	LOG(LOG_VGA,LOG_NORMAL)("Blinking %d",enabled);
+	LOG(LOG_VGA,LOG_NORMAL)("Blinking %d",(int)enabled);
 	if (enabled) {
 		b=0;vga.draw.blinking=1; //used to -1 but blinking is unsigned
 		vga.attr.mode_control|=0x08;
@@ -1360,7 +1360,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 	case EGALINE:
 		if (GCC_UNLIKELY(vga.draw.lines_done < vga.draw.lines_total)) {
 			LOG(LOG_VGAMISC,LOG_NORMAL)( "Lines left: %d", 
-				vga.draw.lines_total-vga.draw.lines_done);
+				(int)(vga.draw.lines_total-vga.draw.lines_done));
 			if (vga.draw.mode==EGALINE) PIC_RemoveEvents(VGA_DrawEGASingleLine);
 			else PIC_RemoveEvents(VGA_DrawSingleLine);
 			RENDER_EndUpdate(true);
@@ -1668,9 +1668,9 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 	}
 #if C_DEBUG
 	LOG(LOG_VGA,LOG_NORMAL)("h total %3d end %3d blank (%3d/%3d) retrace (%3d/%3d)",
-		htotal, hdend, hbstart, hbend, hrstart, hrend );
+		(int)htotal, (int)hdend, (int)hbstart, (int)hbend, (int)hrstart, (int)hrend );
 	LOG(LOG_VGA,LOG_NORMAL)("v total %3d end %3d blank (%3d/%3d) retrace (%3d/%3d)",
-		vtotal, vdend, vbstart, vbend, vrstart, vrend );
+		(int)vtotal, (int)vdend, (int)vbstart, (int)vbend, (int)vrstart, (int)vrend );
 #endif
 	if (!htotal) return;
 	if (!vtotal) return;
@@ -1720,15 +1720,15 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 				if (vbstart < vdend) {
 					vdend = vbstart;
 				}
-				LOG(LOG_VGA,LOG_WARN)("Blanking wrap to line %d", vblank_skip);
+				LOG(LOG_VGA,LOG_WARN)("Blanking wrap to line %d", (int)vblank_skip);
 			} else if (vbstart<=1) {
 				// blanking is used to cut lines at the start of the screen
 				vblank_skip = vbend;
-				LOG(LOG_VGA,LOG_WARN)("Upper %d lines of the screen blanked", vblank_skip);
+				LOG(LOG_VGA,LOG_WARN)("Upper %d lines of the screen blanked", (int)vblank_skip);
 			} else if (vbstart < vdend) {
 				if (vbend < vdend) {
 					// the game wants a black bar somewhere on the screen
-					LOG(LOG_VGA,LOG_WARN)("Unsupported blanking: line %d-%d",vbstart,vbend);
+					LOG(LOG_VGA,LOG_WARN)("Unsupported blanking: line %d-%d",(int)vbstart,(int)vbend);
 				} else {
 					// blanking is used to cut off some lines from the bottom
 					vdend = vbstart;
@@ -2132,7 +2132,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		vga.draw.screen_ratio = screenratio;
 		vga.draw.bpp = bpp;
 #if C_DEBUG
-		LOG(LOG_VGA,LOG_NORMAL)("%dx%d, %3.2fHz, %dbpp, screen %1.3f",width,height,fps,bpp,screenratio);
+		LOG(LOG_VGA,LOG_NORMAL)("%dx%d, %3.2fHz, %dbpp, screen %1.3f",(int)width,(int)height,fps,(int)bpp,screenratio);
 #endif
 		if (!vga.draw.vga_override) 
 			RENDER_SetSize(width,height,bpp,(float)fps,screenratio);

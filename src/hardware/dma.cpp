@@ -123,7 +123,7 @@ static void DMA_BlockWrite(PhysPt spage,PhysPt offset,void * data,Bitu size,Bit8
 	Bit32u dma_wrap = ((0xffff<<dma16)+dma16) | dma_wrapping;
 	for ( ; size ; size--, offset++) {
 		if (offset>(dma_wrapping<<dma16)) {
-			LOG_MSG("DMA segbound wrapping (write): %x:%x size %x [%x] wrap %x",spage,offset,size,dma16,dma_wrapping);
+			LOG_MSG("DMA segbound wrapping (write): %x:%x size %x [%x] wrap %x",(int)spage,(int)offset,(int)size,dma16,(int)dma_wrapping);
 		}
 		offset &= dma_wrap;
 		Bitu page = highpart_addr_page+(offset >> 12);
@@ -182,7 +182,7 @@ static void DMA_Write_Port(Bitu port,Bitu val,Bitu /*iolen*/) {
 			case 0x8f:GetDMAChannel(4)->SetPage((Bit8u)val);break;
 			default:
 				  if (!enable_dma_extra_page_registers)
-					  LOG(LOG_DMACONTROL,LOG_NORMAL)("Trying to write undefined DMA page register %x",port);
+					  LOG(LOG_DMACONTROL,LOG_NORMAL)("Trying to write undefined DMA page register %x",(int)port);
 				  break;
 		}
 	}
@@ -215,7 +215,7 @@ static Bitu DMA_Read_Port(Bitu port,Bitu iolen) {
 				  if (enable_dma_extra_page_registers)
 					return dma_extra_page_registers[port&0xF];
  
-				  LOG(LOG_DMACONTROL,LOG_NORMAL)("Trying to read undefined DMA page register %x",port);
+				  LOG(LOG_DMACONTROL,LOG_NORMAL)("Trying to read undefined DMA page register %x",(int)port);
 				  break;
 		}
 	}
@@ -331,7 +331,7 @@ Bitu DmaController::ReadControllerReg(Bitu reg,Bitu /*len*/) {
 		flipflop=false;
 		break;
 	default:
-		LOG(LOG_DMACONTROL,LOG_NORMAL)("Trying to read undefined DMA port %x",reg);
+		LOG(LOG_DMACONTROL,LOG_NORMAL)("Trying to read undefined DMA port %x",(int)reg);
 		break;
 	}
 	return 0xffffffff;

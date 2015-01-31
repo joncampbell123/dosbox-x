@@ -201,7 +201,7 @@ static void disney_write(Bitu port,Bitu val,Bitu iolen) {
 		break;
 	}
 	case 1:		/* Status Port */		
-		LOG(LOG_MISC,LOG_NORMAL)("DISNEY:Status write %x",val);
+		LOG(LOG_MISC,LOG_NORMAL)("DISNEY:Status write %x",(int)val);
 		break;
 	case 2:		/* Control Port */
 		if((disney.control & 0x2) && !(val & 0x2)) {

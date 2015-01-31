@@ -167,13 +167,13 @@ public:
 		flags=PFLAG_READABLE|PFLAG_HASROM;
 	}
 	void writeb(PhysPt addr,Bitu val){
-		LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at %x",val,addr);
+		LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at %x",(int)val,(int)addr);
 	}
 	void writew(PhysPt addr,Bitu val){
-		LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at %x",val,addr);
+		LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at %x",(int)val,(int)addr);
 	}
 	void writed(PhysPt addr,Bitu val){
-		LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at %x",val,addr);
+		LOG(LOG_CPU,LOG_ERROR)("Write %x to rom at %x",(int)val,(int)addr);
 	}
 };
 
@@ -791,7 +791,7 @@ static void RAM_remap_64KBat1MB_A20fast(bool enable/*if set, we're transitioning
 		}
 	}
 
-	LOG_MSG("A20gate mode change: %u pages modified (fast enable=%d)\n",c,enable);
+	LOG_MSG("A20gate mode change: %u pages modified (fast enable=%d)\n",(int)c,(int)enable);
 }
 
 class A20GATE : public Program {
@@ -993,7 +993,7 @@ public:
 		/* we can't have more memory than the memory aliasing allows */
 		if (address_bits < 32 && ((memsize*256)+(memsizekb/4)) > (memory.mem_alias_pagemask+1)) {
 			LOG_MSG("%u-bit memory aliasing limits you to %uMB",
-				address_bits,(memory.mem_alias_pagemask+1)/256);
+				(int)address_bits,(int)((memory.mem_alias_pagemask+1)/256));
 			memsize = (memory.mem_alias_pagemask+1)/256;
 			memsizekb = 0;
 		}
@@ -1023,7 +1023,7 @@ public:
 
 		MemBase = new Bit8u[memory.pages*4096];
 		memorySize = sizeof(Bit8u) * memsize*1024*1024;
-		if (!MemBase) E_Exit("Can't allocate main memory of %d MB",memsize);
+		if (!MemBase) E_Exit("Can't allocate main memory of %d MB",(int)memsize);
 		/* Clear the memory, as new doesn't always give zeroed memory
 		 * (Visual C debug mode). We want zeroed memory though. */
 		memset((void*)MemBase,0,memory.reported_pages*4096);

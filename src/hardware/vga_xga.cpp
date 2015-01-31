@@ -104,7 +104,7 @@ void XGA_Write_Multifunc(Bitu val, Bitu len) {
 			xga.read_sel = dataval;
 			break;
 		default:
-			LOG_MSG("XGA: Unhandled multifunction command %x", regselect);
+			LOG_MSG("XGA: Unhandled multifunction command %x", (int)regselect);
 			break;
 	}
 }
@@ -328,7 +328,7 @@ void XGA_DrawLineVector(Bitu val) {
 				XGA_DrawPoint(xat,yat, destval);
 				break;
 			default: 
-				LOG_MSG("XGA: DrawLine: Needs mixmode %x", mixmode);
+				LOG_MSG("XGA: DrawLine: Needs mixmode %x", (int)mixmode);
 				break;
 		}
 		xat += sx;
@@ -435,7 +435,7 @@ void XGA_DrawLineBresenham(Bitu val) {
 
 					break;
 				default: 
-					LOG_MSG("XGA: DrawLine: Needs mixmode %x", mixmode);
+					LOG_MSG("XGA: DrawLine: Needs mixmode %x", (int)mixmode);
 					break;
 			}
 			while (e > 0) {
@@ -510,7 +510,7 @@ void XGA_DrawRectangle(Bitu val) {
 					XGA_DrawPoint(srcx,srcy, destval);
 					break;
 				default: 
-					LOG_MSG("XGA: DrawRect: Needs mixmode %x", mixmode);
+					LOG_MSG("XGA: DrawRect: Needs mixmode %x", (int)mixmode);
 					break;
 			}
 			srcx += dx;
@@ -648,7 +648,7 @@ void XGA_DrawWait(Bitu val, Bitu len) {
 						default:
 							// Let's hope they never show up ;)
 							LOG_MSG("XGA: unsupported bpp / datawidth combination %x",
-								xga.waitcmd.buswidth);
+								(int)xga.waitcmd.buswidth);
 							break;
 					};
 					break;
@@ -700,7 +700,7 @@ void XGA_DrawWait(Bitu val, Bitu len) {
 									break;
 								default:
 									LOG_MSG("XGA: DrawBlitWait: Unsupported src %x",
-										(mixmode >> 5) & 0x03);
+										(int)((mixmode >> 5) & 0x03));
 									srcval=0;
 									break;
 							}
@@ -719,12 +719,12 @@ void XGA_DrawWait(Bitu val, Bitu len) {
 					break;
 
 				default:
-					LOG_MSG("XGA: DrawBlitWait: Unhandled mixmode: %d", mixmode);
+					LOG_MSG("XGA: DrawBlitWait: Unhandled mixmode: %d", (int)mixmode);
 					break;
 			} // switch mixmode
 			break;
 		default:
-			LOG_MSG("XGA: Unhandled draw command %x", xga.waitcmd.cmd);
+			LOG_MSG("XGA: Unhandled draw command %x", (int)xga.waitcmd.cmd);
 			break;
 	}
 }
@@ -1183,7 +1183,7 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 				XGA_DrawWait(val, len);
 				
 			}
-			else LOG_MSG("XGA: Wrote to port %x with %x, len %x", port, val, len);
+			else LOG_MSG("XGA: Wrote to port %x with %x, len %x", (int)port, (int)val, (int)len);
 			break;
 	}
 }

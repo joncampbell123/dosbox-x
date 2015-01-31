@@ -195,7 +195,7 @@ static void write_command(Bitu port,Bitu val,Bitu iolen) {
 			else pic->special = false;
 			//Check if there are irqs ready to run, as the priority system has possibly been changed.
 			pic->check_for_irq();
-			LOG(LOG_PIC,LOG_NORMAL)("port %X : special mask %s",port,(pic->special)?"ON":"OFF");
+			LOG(LOG_PIC,LOG_NORMAL)("port %X : special mask %s",(int)port,(pic->special)?"ON":"OFF");
 		}
 	} else {	// OCW2 issued
 		if (val&0x20) {		// EOI commands
@@ -232,13 +232,13 @@ static void write_data(Bitu port,Bitu val,Bitu iolen) {
 		pic->set_imr(val);
 		break;
 	case 1:                        /* icw2          */
-		LOG(LOG_PIC,LOG_NORMAL)("%d:Base vector %X",port==0x21 ? 0 : 1,val);
+		LOG(LOG_PIC,LOG_NORMAL)("%d:Base vector %X",port==0x21 ? 0 : 1,(int)val);
 		pic->vector_base = val&0xf8;
 		if(pic->icw_index++ >= pic->icw_words) pic->icw_index=0;
 		else if(pic->single) pic->icw_index=3;		/* skip ICW3 in single mode */
 		break;
 	case 2:							/* icw 3 */
-		LOG(LOG_PIC,LOG_NORMAL)("%d:ICW 3 %X",port==0x21 ? 0 : 1,val);
+		LOG(LOG_PIC,LOG_NORMAL)("%d:ICW 3 %X",port==0x21 ? 0 : 1,(int)val);
 		if(pic->icw_index++ >= pic->icw_words) pic->icw_index=0;
 		break;
 	case 3:							/* icw 4 */
@@ -252,15 +252,15 @@ static void write_data(Bitu port,Bitu val,Bitu iolen) {
 		*/
 		pic->auto_eoi=(val & 0x2)>0;
 		
-		LOG(LOG_PIC,LOG_NORMAL)("%d:ICW 4 %X",port==0x21 ? 0 : 1,val);
+		LOG(LOG_PIC,LOG_NORMAL)("%d:ICW 4 %X",port==0x21 ? 0 : 1,(int)val);
 
-		if ((val&0x01)==0) LOG_MSG("PIC:ICW4: %x, 8085 mode not handled",val);
-		if ((val&0x10)!=0) LOG_MSG("PIC:ICW4: %x, special fully-nested mode not handled",val);
+		if ((val&0x01)==0) LOG_MSG("PIC:ICW4: %x, 8085 mode not handled",(int)val);
+		if ((val&0x10)!=0) LOG_MSG("PIC:ICW4: %x, special fully-nested mode not handled",(int)val);
 
 		if(pic->icw_index++ >= pic->icw_words) pic->icw_index=0;
 		break;
 	default:
-		LOG(LOG_PIC,LOG_NORMAL)("ICW HUH? %X",val);
+		LOG(LOG_PIC,LOG_NORMAL)("ICW HUH? %X",(int)val);
 		break;
 	}
 }
@@ -297,7 +297,7 @@ void PIC_ActivateIRQ(Bitu irq) {
 	else { /* PC/XT emulation with only master PIC */
 		if (irq == 9) irq = 2;
 		if (irq >= 8) {
-			LOG(LOG_PIC,LOG_ERROR)("Attempted to raise IRQ %u when slave PIC does not exist",irq);
+			LOG(LOG_PIC,LOG_ERROR)("Attempted to raise IRQ %u when slave PIC does not exist",(int)irq);
 			return;
 		}
 	}
@@ -333,7 +333,7 @@ void PIC_DeActivateIRQ(Bitu irq) {
 	else { /* PC/XT emulation with only master PIC */
 		if (irq == 9) irq = 2;
 		if (irq >= 8) {
-			LOG(LOG_PIC,LOG_ERROR)("Attempted to lower IRQ %u when slave PIC does not exist",irq);
+			LOG(LOG_PIC,LOG_ERROR)("Attempted to lower IRQ %u when slave PIC does not exist",(int)irq);
 			return;
 		}
 	}

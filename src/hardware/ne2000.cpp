@@ -1523,7 +1523,7 @@ public:
 
 		// mac address
 		const char* macstring=section->Get_string("macaddr");
-		Bitu macint[6];
+		unsigned int macint[6];
 		Bit8u mac[6];
 		if(sscanf(macstring,"%02x:%02x:%02x:%02x:%02x:%02x",
 			&macint[0],&macint[1],&macint[2],&macint[3],&macint[4],&macint[5]) != 6) {
@@ -1540,7 +1540,7 @@ public:
 		pcap_if_t *alldevs;
 		pcap_if_t *currentdev = NULL;
 		char errbuf[PCAP_ERRBUF_SIZE];
-		Bitu userdev;
+		unsigned int userdev;
 #ifdef WIN32
 		if (pcap_findalldevs_ex(PCAP_SRC_IF_STRING, NULL, &alldevs, errbuf) == -1)
 #else
@@ -1559,7 +1559,7 @@ public:
 				const char* desc = "no description"; 
 				if(currentdev->description) desc=currentdev->description;
 				i++;
-				LOG_MSG("%2d. %s\n    (%s)\n",i,currentdev->name,desc);
+				LOG_MSG("%2d. %s\n    (%s)\n",(int)i,currentdev->name,desc);
 			}
 			pcap_freealldevs(alldevs);
 			load_success = false;

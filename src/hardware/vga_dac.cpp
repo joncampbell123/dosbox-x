@@ -76,7 +76,7 @@ void write_p3c6(Bitu port,Bitu val,Bitu iolen) {
 		return;
 	}
 	if ( vga.dac.pel_mask != val ) {
-		LOG(LOG_VGAMISC,LOG_NORMAL)("VGA:DCA:Pel Mask set to %X", val);
+		LOG(LOG_VGAMISC,LOG_NORMAL)("VGA:DCA:Pel Mask set to %X", (int)val);
 		vga.dac.pel_mask = val;
 		for ( Bitu i = 0;i<256;i++) 
 			VGA_DAC_UpdateColor( i );

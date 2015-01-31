@@ -414,7 +414,7 @@ void KEYBOARD_AUX_Write(Bitu val) {
 			keyb.ps2mouse.last_srate[2] = val;
 			keyb.ps2mouse.samplerate = val;
 			keyb.aux_command = ACMD_NONE;
-			LOG(LOG_KEYBOARD,LOG_NORMAL)("PS/2 mouse sample rate set to %u",val);
+			LOG(LOG_KEYBOARD,LOG_NORMAL)("PS/2 mouse sample rate set to %u",(int)val);
 			if (keyb.ps2mouse.type >= MOUSE_INTELLIMOUSE) {
 				if (keyb.ps2mouse.last_srate[0] == 200 && keyb.ps2mouse.last_srate[2] == 80) {
 					if (keyb.ps2mouse.last_srate[1] == 100) {
@@ -436,7 +436,7 @@ void KEYBOARD_AUX_Write(Bitu val) {
 			keyb.aux_command = ACMD_NONE;
 			KEYBOARD_AddBuffer(AUX|0xfa);	/* ack */
 			keyb.ps2mouse.resolution = val & 3;
-			LOG(LOG_KEYBOARD,LOG_NORMAL)("PS/2 mouse resolution set to %u",1 << (val&3));
+			LOG(LOG_KEYBOARD,LOG_NORMAL)("PS/2 mouse resolution set to %u",(int)(1 << (val&3)));
 			break;
 	};
 }
@@ -501,7 +501,7 @@ static void write_p60(Bitu port,Bitu val,Bitu iolen) {
 			break;
 		default:
 			/* Just always acknowledge strange commands */
-			LOG(LOG_KEYBOARD,LOG_ERROR)("60:Unhandled command %X",val);
+			LOG(LOG_KEYBOARD,LOG_ERROR)("60:Unhandled command %X",(int)val);
 			KEYBOARD_AddBuffer(0xfa);	/* Acknowledge */
 		}
 		return;
@@ -731,7 +731,7 @@ static void write_p64(Bitu port,Bitu val,Bitu iolen) {
 		}
 		break;
 	default:
-		LOG(LOG_KEYBOARD,LOG_ERROR)("Port 64 write with val %d",val);
+		LOG(LOG_KEYBOARD,LOG_ERROR)("Port 64 write with val %d",(int)val);
 		break;
 	}
 }

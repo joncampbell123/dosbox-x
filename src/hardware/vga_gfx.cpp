@@ -181,11 +181,11 @@ static void write_p3cf(Bitu port,Bitu val,Bitu iolen) {
 			break;
 		}
 		if (gfx(index) == 9 && !index9warned) {
-			LOG(LOG_VGAMISC,LOG_NORMAL)("VGA:3CF:Write %2X to illegal index 9",val);
+			LOG(LOG_VGAMISC,LOG_NORMAL)("VGA:3CF:Write %2X to illegal index 9",(int)val);
 			index9warned=true;
 			break;
 		}
-		LOG(LOG_VGAMISC,LOG_NORMAL)("VGA:3CF:Write %2X to illegal index %2X",val,gfx(index));
+		LOG(LOG_VGAMISC,LOG_NORMAL)("VGA:3CF:Write %2X to illegal index %2X",(int)val,(int)gfx(index));
 		break;
 	}
 }
@@ -213,7 +213,7 @@ static Bitu read_p3cf(Bitu port,Bitu iolen) {
 	default:
 		if (svga.read_p3cf)
 			return svga.read_p3cf(gfx(index), iolen);
-		LOG(LOG_VGAMISC,LOG_NORMAL)("Reading from illegal index %2X in port %4X",static_cast<Bit32u>(gfx(index)),port);
+		LOG(LOG_VGAMISC,LOG_NORMAL)("Reading from illegal index %2X in port %4X",(int)static_cast<Bit32u>(gfx(index)),(int)port);
 		break;
 	}
 	return 0;	/* Compiler happy */

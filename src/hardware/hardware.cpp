@@ -118,7 +118,7 @@ FILE * OpenCaptureFile(const char * type,const char * ext) {
 	}
 	close_directory( dir );
 	char file_name[CROSS_LEN];
-	sprintf(file_name,"%s%c%s%03d%s",capturedir.c_str(),CROSS_FILESPLIT,file_start,last,ext);
+	sprintf(file_name,"%s%c%s%03d%s",capturedir.c_str(),CROSS_FILESPLIT,file_start,(int)last,ext);
 	/* Open the actual file */
 	FILE * handle=fopen(file_name,"wb");
 	if (handle) {

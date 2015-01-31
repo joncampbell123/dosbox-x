@@ -147,7 +147,7 @@ static void PS1SOUNDWrite(Bitu port,Bitu data,Bitu iolen) {
 
 #if C_DEBUG != 0
 	if( ( port != 0x0205 ) && ( port != 0x0200 ) )
-		LOG_MSG("PS1 WR %04X,%02X (%04X:%08X)",port,data,SegValue(cs),reg_eip);
+		LOG_MSG("PS1 WR %04X,%02X (%04X:%08X)",(int)port,(int)data,(int)SegValue(cs),(int)reg_eip);
 #endif
 	switch(port)
 	{
@@ -222,7 +222,7 @@ static Bitu PS1SOUNDRead(Bitu port,Bitu iolen) {
 		ps1.enabledDAC=true;
 	}
 #if C_DEBUG != 0
-	LOG_MSG("PS1 RD %04X (%04X:%08X)",port,SegValue(cs),reg_eip);
+	LOG_MSG("PS1 RD %04X (%04X:%08X)",(int)port,(int)SegValue(cs),(int)reg_eip);
 #endif
 	switch(port)
 	{

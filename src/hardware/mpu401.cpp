@@ -129,7 +129,7 @@ static void MPU401_WriteCommand(Bitu port,Bitu val,Bitu iolen) {
 			case 2: {MIDI_RawOutByte(0xfa);break;}
 			case 3: {MIDI_RawOutByte(0xfb);break;}
 		}
-		if (val&0x20) LOG(LOG_MISC,LOG_ERROR)("MPU-401:Unhandled Recording Command %x",val);
+		if (val&0x20) LOG(LOG_MISC,LOG_ERROR)("MPU-401:Unhandled Recording Command %x",(int)val);
 		switch (val&0xc) {
 			case  0x4:	/* Stop */
 				PIC_RemoveEvents(MPU401_Event);
@@ -243,14 +243,14 @@ static void MPU401_WriteCommand(Bitu port,Bitu val,Bitu iolen) {
 			mpu.state.irq_pending=true;
 			break;
 		case 0xff:	/* Reset MPU-401 */
-			LOG(LOG_MISC,LOG_NORMAL)("MPU-401:Reset %X",val);
+			LOG(LOG_MISC,LOG_NORMAL)("MPU-401:Reset %X",(int)val);
 			PIC_AddEvent(MPU401_ResetDone,MPU401_RESETBUSY);
 			mpu.state.reset=true;
 			MPU401_Reset();
 			if (mpu.mode==M_UART) return;//do not send ack in UART mode
 			break;
 		case 0x3f:	/* UART mode */
-			LOG(LOG_MISC,LOG_NORMAL)("MPU-401:Set UART mode %X",val);
+			LOG(LOG_MISC,LOG_NORMAL)("MPU-401:Set UART mode %X",(int)val);
 			mpu.mode=M_UART;
 			break;
 		default:;
@@ -613,7 +613,7 @@ static void MPU401_Reset(void) {
 }
 
 static void IMF_Write(Bitu port,Bitu val,Bitu iolen) {
-	LOG(LOG_MISC,LOG_NORMAL)("IMF:Wr %4X,%X",port,val);
+	LOG(LOG_MISC,LOG_NORMAL)("IMF:Wr %4X,%X",(int)port,(int)val);
 }
 
 class MPU401:public Module_base{

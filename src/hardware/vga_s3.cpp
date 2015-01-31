@@ -359,7 +359,7 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
 		vga.s3.reg_6b=(Bit8u)val;
 		break;
 	default:
-		LOG(LOG_VGAMISC,LOG_NORMAL)("VGA:S3:CRTC:Write to illegal index %2X", reg );
+		LOG(LOG_VGAMISC,LOG_NORMAL)("VGA:S3:CRTC:Write to illegal index %2X", (int)reg );
 		break;
 	}
 }
@@ -478,7 +478,7 @@ void SVGA_S3_WriteSEQ(Bitu reg,Bitu val,Bitu iolen) {
 		VGA_StartResize();
 		break;
 	default:
-		LOG(LOG_VGAMISC,LOG_NORMAL)("VGA:S3:SEQ:Write to illegal index %2X", reg );
+		LOG(LOG_VGAMISC,LOG_NORMAL)("VGA:S3:SEQ:Write to illegal index %2X", (int)reg );
 		break;
 	}
 }
@@ -513,7 +513,7 @@ Bitu SVGA_S3_ReadSEQ(Bitu reg,Bitu iolen) {
 			return retval;
 		}
 	default:
-		LOG(LOG_VGAMISC,LOG_NORMAL)("VGA:S3:SEQ:Read from illegal index %2X", reg);
+		LOG(LOG_VGAMISC,LOG_NORMAL)("VGA:S3:SEQ:Read from illegal index %2X", (int)reg);
 		return 0;
 	}
 }

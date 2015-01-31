@@ -103,7 +103,7 @@ void write_p3cf_pvga1a(Bitu reg,Bitu val,Bitu iolen) {
 		pvga1a.PR5 = val;
 		break;
 	default:
-		LOG(LOG_VGAMISC,LOG_NORMAL)("VGA:GFX:PVGA1A:Write to illegal index %2X", reg);
+		LOG(LOG_VGAMISC,LOG_NORMAL)("VGA:GFX:PVGA1A:Write to illegal index %2X", (int)reg);
 		break;
 	}
 }
@@ -128,7 +128,7 @@ Bitu read_p3cf_pvga1a(Bitu reg,Bitu iolen) {
 	case 0x0f:
 		return pvga1a.PR5;
 	default:
-		LOG(LOG_VGAMISC,LOG_NORMAL)("VGA:GFX:PVGA1A:Read from illegal index %2X", reg);
+		LOG(LOG_VGAMISC,LOG_NORMAL)("VGA:GFX:PVGA1A:Read from illegal index %2X", (int)reg);
 		break;
 	}
 

@@ -45,19 +45,19 @@ static PCI_Device* pci_devices[PCI_MAX_PCIBUSSES][PCI_MAX_PCIDEVICES]={{NULL}};	
 //  7- 2 - config register #	(0x000000fc)
 
 static void write_pci_addr(Bitu port,Bitu val,Bitu iolen) {
-	LOG(LOG_PCI,LOG_NORMAL)("Write PCI address :=%x",val);
+	LOG(LOG_PCI,LOG_NORMAL)("Write PCI address :=%x",(int)val);
 	pci_caddress=val;
 }
 
 static void write_pci(Bitu port,Bitu val,Bitu iolen) {
-	LOG(LOG_PCI,LOG_NORMAL)("Write PCI data port %x :=%x (len %d)",port,val,iolen);
+	LOG(LOG_PCI,LOG_NORMAL)("Write PCI data port %x :=%x (len %d)",(int)port,(int)val,(int)iolen);
 
 	if (pci_caddress & 0x80000000) {
 		Bit8u busnum = (Bit8u)((pci_caddress >> 16) & 0xff);
 		Bit8u devnum = (Bit8u)((pci_caddress >> 11) & 0x1f);
 		Bit8u fctnum = (Bit8u)((pci_caddress >> 8) & 0x7);
 		Bit8u regnum = (Bit8u)((pci_caddress & 0xfc) + (port & 0x03));
-		LOG(LOG_PCI,LOG_NORMAL)("  Write to device %x register %x (function %x) (:=%x)",devnum,regnum,fctnum,val);
+		LOG(LOG_PCI,LOG_NORMAL)("  Write to device %x register %x (function %x) (:=%x)",(int)devnum,(int)regnum,(int)fctnum,(int)val);
 
 		if (busnum >= PCI_MAX_PCIBUSSES) return;
 		if (devnum >= PCI_MAX_PCIDEVICES) return;
@@ -82,7 +82,7 @@ static Bitu read_pci(Bitu port,Bitu iolen) {
 		Bit8u devnum = (Bit8u)((pci_caddress >> 11) & 0x1f);
 		Bit8u fctnum = (Bit8u)((pci_caddress >> 8) & 0x7);
 		Bit8u regnum = (Bit8u)((pci_caddress & 0xfc) + (port & 0x03));
-		LOG(LOG_PCI,LOG_NORMAL)("  Read from device %x register %x (function %x)",devnum,regnum,fctnum);
+		LOG(LOG_PCI,LOG_NORMAL)("  Read from device %x register %x (function %x)",(int)devnum,(int)regnum,(int)fctnum);
 
 		if (busnum >= PCI_MAX_PCIBUSSES) return ~0;
 		if (devnum >= PCI_MAX_PCIDEVICES) return ~0;
@@ -425,7 +425,7 @@ void PCI_AddSST_Device(Bitu type) {
 				ctype = type;
 				break;
 			default:
-				LOG_MSG("PCI:SST: Invalid board type %x specified",type);
+				LOG_MSG("PCI:SST: Invalid board type %x specified",(int)type);
 				break;
 		}
 

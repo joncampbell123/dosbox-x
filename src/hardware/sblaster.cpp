@@ -840,8 +840,8 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo) {
 		type,
 		sb.dma.stereo ? "Stereo" : "Mono",
 		sb.dma.autoinit ? "Auto-Init" : "Single-Cycle",
-		freq,sb.dma.rate,sb.dma.total,
-		sb.dma_dac_mode
+		(int)freq,(int)sb.dma.rate,(int)sb.dma.total,
+		(int)sb.dma_dac_mode
 	);
 #endif
 }
@@ -1160,7 +1160,7 @@ static void DSP_DoCommand(void) {
 	case 0x24:	/* Singe Cycle 8-Bit DMA ADC */
 		sb.dma.left=sb.dma.total=1+sb.dsp.in.data[0]+(sb.dsp.in.data[1] << 8);
 		sb.dma.sign=false;
-		LOG(LOG_SB,LOG_ERROR)("DSP:Faked ADC for %d bytes",sb.dma.total);
+		LOG(LOG_SB,LOG_ERROR)("DSP:Faked ADC for %d bytes",(int)sb.dma.total);
 		GetDMAChannel(sb.hw.dma8)->Register_Callback(DSP_ADC_CallBack);
 		break;
 	case 0x14:	/* Singe Cycle 8-Bit DMA DAC */
@@ -1886,7 +1886,7 @@ static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
 	case DSP_RESET:
 		return 0xff;
 	default:
-		LOG(LOG_SB,LOG_NORMAL)("Unhandled read from SB Port %4X",port);
+		LOG(LOG_SB,LOG_NORMAL)("Unhandled read from SB Port %4X",(int)port);
 		break;
 	}
 	return 0xff;
@@ -1915,7 +1915,7 @@ static void write_sb(Bitu port,Bitu val,Bitu /*iolen*/) {
 		CTMIXER_Write(val8);
 		break;
 	default:
-		LOG(LOG_SB,LOG_NORMAL)("Unhandled write to SB Port %4X",port);
+		LOG(LOG_SB,LOG_NORMAL)("Unhandled write to SB Port %4X",(int)port);
 		break;
 	}
 }
