@@ -26,19 +26,19 @@ namespace MT32Emu {
 PartialManager::PartialManager(Synth *useSynth, Part **useParts) {
 	synth = useSynth;
 	parts = useParts;
-	for (int i = 0; i < synth->getPartialLimit(); i++) {
+	for (unsigned int i = 0; i < synth->getPartialLimit(); i++) {
 		partialTable[i] = new Partial(synth, i);
 	}
 }
 
 PartialManager::~PartialManager(void) {
-	for (int i = 0; i < synth->getPartialLimit(); i++) {
+	for (unsigned int i = 0; i < synth->getPartialLimit(); i++) {
 		delete partialTable[i];
 	}
 }
 
 void PartialManager::clearAlreadyOutputed() {
-	for (int i = 0; i < synth->getPartialLimit(); i++) {
+	for (unsigned int i = 0; i < synth->getPartialLimit(); i++) {
 		partialTable[i]->alreadyOutputed = false;
 	}
 }
@@ -52,14 +52,14 @@ bool PartialManager::produceOutput(int i, float *leftBuf, float *rightBuf, Bit32
 }
 
 void PartialManager::deactivateAll() {
-	for (int i = 0; i < synth->getPartialLimit(); i++) {
+	for (unsigned int i = 0; i < synth->getPartialLimit(); i++) {
 		partialTable[i]->deactivate();
 	}
 }
 
 unsigned int PartialManager::setReserve(Bit8u *rset) {
 	unsigned int pr = 0;
-	for (int x = 0; x <= 8; x++) {
+	for (unsigned int x = 0; x <= 8; x++) {
 		numReservedPartialsForPart[x] = rset[x];
 		pr += rset[x];
 	}
@@ -70,7 +70,7 @@ Partial *PartialManager::allocPartial(int partNum) {
 	Partial *outPartial = NULL;
 
 	// Get the first inactive partial
-	for (int partialNum = 0; partialNum < synth->getPartialLimit(); partialNum++) {
+	for (unsigned int partialNum = 0; partialNum < synth->getPartialLimit(); partialNum++) {
 		if (!partialTable[partialNum]->isActive()) {
 			outPartial = partialTable[partialNum];
 			break;
@@ -83,8 +83,8 @@ Partial *PartialManager::allocPartial(int partNum) {
 }
 
 unsigned int PartialManager::getFreePartialCount(void) {
-	int count = 0;
-	for (int i = 0; i < synth->getPartialLimit(); i++) {
+	unsigned int count = 0;
+	for (unsigned int i = 0; i < synth->getPartialLimit(); i++) {
 		if (!partialTable[i]->isActive()) {
 			count++;
 		}
