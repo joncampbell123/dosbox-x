@@ -34,8 +34,8 @@ extern "C" {
   void fluid_log_config(void);
 }
 
-static fluid_log_function_t fluid_log_function[LAST_LOG_LEVEL];
-static int fluid_log_initialized = 0;
+//static fluid_log_function_t fluid_log_function[LAST_LOG_LEVEL];
+//static int fluid_log_initialized = 0;
 
 struct _fluid_midi_event_t {
   fluid_midi_event_t* next; /* Link to next event */
@@ -85,6 +85,7 @@ enum fluid_midi_event_type {
   MIDI_META_EVENT = 0xff
 };
 
+#if 0 /* UNUSED CODE */
 static int fluid_midi_event_length(unsigned char event) {
       switch (event & 0xF0) {
             case NOTE_OFF: 
@@ -110,6 +111,7 @@ static int fluid_midi_event_length(unsigned char event) {
       }
       return 1;
 }
+#endif
 
 int delete_fluid_midi_parser(fluid_midi_parser_t* parser) {
       FLUID_FREE(parser);
@@ -159,7 +161,7 @@ private:
 	bool isOpen;
 
 public:
-	MidiHandler_synth() : isOpen(false),MidiHandler() {};
+	MidiHandler_synth() : MidiHandler(),isOpen(false) {};
 	const char * GetName(void) { return "synth"; };
 	bool Open(const char *conf) {
 
@@ -262,7 +264,7 @@ public:
 	void PlayMsg(Bit8u *msg) {
 		fluid_midi_event_t *evt;
 		Bitu len;
-		int i;
+		Bitu i;
 
 		len=MIDI_evt_len[*msg];
 		synthchan->Enable(true);
@@ -278,7 +280,7 @@ public:
 	};
 	void PlaySysex(Bit8u *sysex, Bitu len) {
 		fluid_midi_event_t *evt;
-		int i;
+		Bitu i;
 
 		/* let the parser convert the data into events */
 		for (i = 0; i < len; i++) {

@@ -431,8 +431,8 @@ static void SDL_Overscan(void) {
 		// Find four rectangles forming the border
 			SDL_Rect *rect = &sdl.updateRects[0];
 			rect->x = 0; rect->y = 0; rect->w = sdl.draw.width+2*sdl.clip.x; rect->h = sdl.clip.y; // top
-			if (rect->h > sdl.overscan_width) { rect->y += (rect->h-sdl.overscan_width); rect->h = sdl.overscan_width; }
-			if (sdl.clip.x > sdl.overscan_width) { rect->x += (sdl.clip.x-sdl.overscan_width); rect->w -= 2*(sdl.clip.x-sdl.overscan_width); }
+			if ((Bitu)rect->h > (Bitu)sdl.overscan_width) { rect->y += (rect->h-sdl.overscan_width); rect->h = sdl.overscan_width; }
+			if ((Bitu)sdl.clip.x > (Bitu)sdl.overscan_width) { rect->x += (sdl.clip.x-sdl.overscan_width); rect->w -= 2*(sdl.clip.x-sdl.overscan_width); }
 			rect = &sdl.updateRects[1];
 			rect->x = 0; rect->y = sdl.clip.y; rect->w = sdl.clip.x; rect->h = sdl.draw.height; // left
 			if (rect->w > sdl.overscan_width) { rect->x += (rect->w-sdl.overscan_width); rect->w = sdl.overscan_width; }
@@ -441,8 +441,8 @@ static void SDL_Overscan(void) {
 			if (rect->w > sdl.overscan_width) { rect->w = sdl.overscan_width; }
 			rect = &sdl.updateRects[3];
 			rect->x = 0; rect->y = sdl.clip.y+sdl.draw.height; rect->w = sdl.draw.width+2*sdl.clip.x; rect->h = sdl.clip.y; // bottom
-			if (rect->h > sdl.overscan_width) { rect->h = sdl.overscan_width; }
-			if (sdl.clip.x > sdl.overscan_width) { rect->x += (sdl.clip.x-sdl.overscan_width); rect->w -= 2*(sdl.clip.x-sdl.overscan_width); }
+			if ((Bitu)rect->h > (Bitu)sdl.overscan_width) { rect->h = sdl.overscan_width; }
+			if ((Bitu)sdl.clip.x > (Bitu)sdl.overscan_width) { rect->x += (sdl.clip.x-sdl.overscan_width); rect->w -= 2*(sdl.clip.x-sdl.overscan_width); }
 
 			if (sdl.surface->format->BitsPerPixel == 8) { // SDL_FillRect seems to have some issues with palettized hw surfaces
 				Bit8u* pixelptr = (Bit8u*)sdl.surface->pixels;
@@ -528,8 +528,9 @@ static void SDLScreen_Reset(void) {
 	if ((sdl_videodrv && !strcmp(sdl_videodrv,"windib")) || sdl.desktop.fullscreen || fullscreen_switch || sdl.desktop.want_type==SCREEN_OPENGLHQ || menu_compatible) return;
 	int id, major, minor;
 	DOSBox_CheckOS(id, major, minor);
-	if((id==VER_PLATFORM_WIN32_NT) && (major<6) || sdl.desktop.want_type==SCREEN_DIRECT3D) return;
+	if(((id==VER_PLATFORM_WIN32_NT) && (major<6)) || sdl.desktop.want_type==SCREEN_DIRECT3D) return;
 
+	minor = minor;//shut up unused var warnings
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);	SDL_Delay(500);
 	SDL_InitSubSystem(SDL_INIT_VIDEO);
 	GFX_SetIcon();
@@ -1749,6 +1750,8 @@ Bitu GFX_GetRGB(Bit8u red,Bit8u green,Bit8u blue) {
 		else
 #endif
 		    return ((blue << 0) | (green << 8) | (red << 16)) | (255 << 24);
+	default:
+		break;
 	}
 	return 0;
 }
@@ -2019,7 +2022,7 @@ static void GUI_StartUp(Section * sec) {
 	}
 #endif
 
-	int width=1024; int height=768;
+	int width=1024;// int height=768;
 	if (!sdl.desktop.full.width) {
 		sdl.desktop.full.width=width;
 	}
@@ -2170,7 +2173,7 @@ static void RedrawScreen(Bit32u nWidth, Bit32u nHeight) {
 		return;
 	}
 #endif
-	if(nWidth == width && nHeight == height) {
+	if((Bitu)nWidth == (Bitu)width && (Bitu)nHeight == (Bitu)height) {
 		RENDER_CallBack( GFX_CallBackReset);
 		return;
 	}
@@ -2179,19 +2182,19 @@ static void RedrawScreen(Bit32u nWidth, Bit32u nHeight) {
 		switch (render.scale.op) {
 			case scalerOpNormal:
 				if(!render.scale.hardware) {
-					if(nWidth>width || nHeight>height) {
+					if((Bitu)nWidth>(Bitu)width || (Bitu)nHeight>(Bitu)height) {
 						if (render.scale.size <= 4 && render.scale.size >=1) ++render.scale.size; break;
 					} else {
 						if (render.scale.size <= 5 && render.scale.size >= 2) --render.scale.size; break;
 					}
 				} else {
-					if(nWidth>width || nHeight>height) {
+					if((Bitu)nWidth>(Bitu)width || (Bitu)nHeight>(Bitu)height) {
 						if (render.scale.size == 1) { render.scale.size=4; break; }
 						if (render.scale.size == 4) { render.scale.size=6; break; }
 						if (render.scale.size == 6) { render.scale.size=8; break; }
 						if (render.scale.size == 8) { render.scale.size=10; break; }
 					}
-					if(nWidth<width || nHeight<height) {
+					if((Bitu)nWidth<(Bitu)width || (Bitu)nHeight<(Bitu)height) {
 						if (render.scale.size == 10) { render.scale.size=8; break; }
 						if (render.scale.size == 8) { render.scale.size=6; break; }
 						if (render.scale.size == 6) { render.scale.size=4; break; }
@@ -2205,8 +2208,8 @@ static void RedrawScreen(Bit32u nWidth, Bit32u nHeight) {
 			case scalerOpTV:
 			case scalerOpRGB:
 			case scalerOpScan:
-				if(nWidth>width || nHeight>height) { if (render.scale.size == 2) ++render.scale.size; }
-				if(nWidth<width || nHeight<height) { if (render.scale.size == 3) --render.scale.size; }
+				if((Bitu)nWidth>(Bitu)width || (Bitu)nHeight>(Bitu)height) { if (render.scale.size == 2) ++render.scale.size; }
+				if((Bitu)nWidth<(Bitu)width || (Bitu)nHeight<(Bitu)height) { if (render.scale.size == 3) --render.scale.size; }
 				break;
 			case scalerOpSaI:
 			case scalerOpSuperSaI:
@@ -3220,7 +3223,7 @@ static void launchcaptures(std::string const& edit) {
 		path += file;
 		Cross::CreateDir(path);
 		stat(path.c_str(),&cstat);
-		if(cstat.st_mode & S_IFDIR == 0) {
+		if((cstat.st_mode & S_IFDIR) == 0) {
 			printf("%s doesn't exist or isn't a directory.\n",path.c_str());
 			exit(1);
 		}
@@ -3250,7 +3253,7 @@ static void launchsaves(std::string const& edit) {
 		path += file;
 		Cross::CreateDir(path);
 		stat(path.c_str(),&cstat);
-		if(cstat.st_mode & S_IFDIR == 0) {
+		if((cstat.st_mode & S_IFDIR) == 0) {
 			printf("%s doesn't exists or isn't a directory.\n",path.c_str());
 			exit(1);
 		}
@@ -3510,6 +3513,9 @@ int main(int argc, char* argv[]) {
 			DOSBox_CheckOS(id, major, minor);
 			if (id == 1) menu.compatible=true;
 			if (!menu_compatible) LOG_MSG("---");
+
+			/* use all variables to shut up the compiler about unused vars */
+			LOG_MSG("DOSBox_CheckOS results: id=%u major=%u minor=%u",id,major,minor);
 		}
 
 		/* Init SDL */

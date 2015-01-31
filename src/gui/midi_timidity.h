@@ -326,10 +326,9 @@ void MidiHandler_timidity::timidity_write_data(const void *buf, int nbytes) {
 }
 
 int MidiHandler_timidity::fdgets(char *buff, size_t buff_size) {
-	int n, len, count, size;
+	int n, count, size;
 	char *buff_endp = buff + buff_size - 1, *pbuff, *beg;
 
-	len = 0;
 	count = _controlbuffer_count;
 	size = _controlbuffer_size;
 	pbuff = _controlbuffer;

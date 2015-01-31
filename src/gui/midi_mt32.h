@@ -76,7 +76,7 @@ private:
 	static int processingThread(void *);
 
 public:
-	MidiHandler_mt32() : open(false), chan(NULL), synth(NULL), thread(NULL), synthMutex(NULL), procIdleSem(NULL), mixerReqSem(NULL) {}
+	MidiHandler_mt32() : chan(NULL), synth(NULL), thread(NULL), synthMutex(NULL), procIdleSem(NULL), mixerReqSem(NULL), open(false) {}
 
 	~MidiHandler_mt32() {
 		Close();
