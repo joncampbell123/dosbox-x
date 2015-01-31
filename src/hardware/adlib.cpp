@@ -602,7 +602,7 @@ void OPL_Write(Bitu port,Bitu val,Bitu iolen) {
 /*
 	Save the current state of the operators as instruments in an reality adlib tracker file
 */
-static void SaveRad() {
+void SaveRad() {
 	char b[16 * 1024];
 	int w = 0;
 
@@ -701,6 +701,8 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
 		break;
 	case OPL_opl3:
 		Init( Adlib::MODE_OPL3 );
+		break;
+	default:
 		break;
 	}
 	//0x388 range

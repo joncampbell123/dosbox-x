@@ -86,10 +86,12 @@ static const Bit8u regbase2op[44] = {
 	18,19,20,27,28,29,0,0,21,22,23,30,31,32,0,0,24,25,26,33,34,35	// second set
 };
 #else
-static const Bit8u regbase2modop[22] = {
+static const Bit8u regbase2modop[22*2] = {
+	0,1,2,0,1,2,0,0,3,4,5,3,4,5,0,0,6,7,8,6,7,8,
 	0,1,2,0,1,2,0,0,3,4,5,3,4,5,0,0,6,7,8,6,7,8
 };
-static const Bit8u regbase2op[22] = {
+static const Bit8u regbase2op[22*2] = {
+	0,1,2,9,10,11,0,0,3,4,5,12,13,14,0,0,6,7,8,15,16,17,
 	0,1,2,9,10,11,0,0,3,4,5,12,13,14,0,0,6,7,8,15,16,17
 };
 #endif
