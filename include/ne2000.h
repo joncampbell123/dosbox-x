@@ -42,9 +42,9 @@
 #  define BX_NE2K_SMF
 #  define BX_NE2K_THIS_PTR 
 #  define BX_NE2K_THIS	
-#define BX_INFO 
+//#define BX_INFO 
 //LOG_MSG
-#define BX_DEBUG 
+//#define BX_DEBUG 
 //LOG_MSG
 
 #define  BX_NE2K_MEMSIZ    (32*1024)
@@ -203,7 +203,7 @@ typedef struct {
 class bx_ne2k_c  {
 public:
   bx_ne2k_c(void);
-  ~bx_ne2k_c(void);
+  virtual ~bx_ne2k_c(void);
   virtual void init(void);
   virtual void reset(unsigned type);
 

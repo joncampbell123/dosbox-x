@@ -81,10 +81,26 @@ int (*PacketFindALlDevsEx)(char *, struct pcap_rmtauth *, pcap_if_t **, char *) 
 //#define BX_DEBUG 
 //#define BX_INFO 
 #define BX_NULL_TIMER_HANDLE 0
-#define BX_PANIC 
-#define BX_ERROR 
+//#define BX_PANIC 
+//#define BX_ERROR 
 #define BX_RESET_HARDWARE 0
 #define BX_RESET_SOFTWARE 1
+
+static inline void BX_INFO(const char *msg,...) {
+	/* TODO: #if DEBUG or such, to enable debugging messages */
+}
+
+static inline void BX_DEBUG(const char *msg,...) {
+	/* TODO: #if DEBUG or such, to enable debugging messages */
+}
+
+static inline void BX_ERROR(const char *msg,...) {
+	/* TODO: #if DEBUG or such, to enable debugging messages */
+}
+
+static inline void BX_PANIC(const char *msg,...) {
+	/* TODO: #if DEBUG or such, to enable debugging messages */
+}
 
 bx_ne2k_c* theNE2kDevice = NULL;
 
@@ -1203,7 +1219,7 @@ bx_ne2k_c::rx_frame(const void *buf, unsigned io_len)
   int pages;
   int avail;
   unsigned idx;
-  int wrapped;
+//  int wrapped;
   int nextpage;
   unsigned char pkthdr[4];
   unsigned char *pktbuf = (unsigned char *) buf;
@@ -1233,7 +1249,7 @@ bx_ne2k_c::rx_frame(const void *buf, unsigned io_len)
   } else {
     avail = (BX_NE2K_THIS s.page_stop - BX_NE2K_THIS s.page_start) -
       (BX_NE2K_THIS s.curr_page - BX_NE2K_THIS s.bound_ptr);
-    wrapped = 1;
+//    wrapped = 1;
   }
 
   // Avoid getting into a buffer overflow condition by not attempting
