@@ -373,27 +373,27 @@ void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
 
 	if (!menu_startup) {
 		sprintf(title,"DOSBox %s, CPU speed: %8d cycles, Frameskip %2d, %8s",VERSION,
-			internal_cycles,internal_frameskip,RunningProgram);
+			(int)internal_cycles,(int)internal_frameskip,RunningProgram);
 		SDL_WM_SetCaption(title,VERSION);
 		return;
 	}
 	if (menu.hidecycles) {
 		if (CPU_CycleAutoAdjust) {
 			sprintf(title,"DOSBox %s, CPU speed: max %3d%% cycles, Frameskip %2d, %8s",
-				VERSION,CPU_CyclePercUsed,internal_frameskip,RunningProgram);
+				VERSION,(int)CPU_CyclePercUsed,(int)internal_frameskip,RunningProgram);
 		}
 		else {
 			sprintf(title,"DOSBox %s, CPU speed: %8d cycles, Frameskip %2d, %8s",
-				VERSION,internal_cycles,internal_frameskip,RunningProgram);
+				VERSION,(int)internal_cycles,(int)internal_frameskip,RunningProgram);
 		}
 	} else if (CPU_CycleAutoAdjust) {
 		sprintf(title,"DOSBox %s, CPU : %s %8d%% = max %3d, %d FPS - %2d %8s %i.%i%%",
-			VERSION,core_mode,CPU_CyclePercUsed,internal_cycles,frames,
-			internal_frameskip,RunningProgram,internal_timing/100,internal_timing%100/10);
+			VERSION,core_mode,(int)CPU_CyclePercUsed,(int)internal_cycles,(int)frames,
+			(int)internal_frameskip,RunningProgram,(int)(internal_timing/100),(int)(internal_timing%100/10));
 	} else {
 		sprintf(title,"DOSBox %s, CPU : %s %8d = %8d, %d FPS - %2d %8s %i.%i%%",
-			VERSION,core_mode,CPU_CyclesCur,internal_cycles,frames,internal_frameskip,
-			RunningProgram,internal_timing/100,internal_timing%100/10);
+			VERSION,core_mode,(int)CPU_CyclesCur,(int)internal_cycles,(int)frames,(int)internal_frameskip,
+			RunningProgram,(int)(internal_timing/100),(int)((internal_timing%100)/10));
 	}
 
 	if (paused) strcat(title," PAUSED");
@@ -849,7 +849,7 @@ dosurface:
 			}
 #endif
 			if (sdl.surface == NULL)
-				E_Exit("Could not set windowed video mode %ix%i-%i: %s",width,height,bpp,SDL_GetError());
+				E_Exit("Could not set windowed video mode %ix%i-%i: %s",(int)width,(int)height,(int)bpp,SDL_GetError());
 		}
 		if (sdl.surface) {
 			switch (sdl.surface->format->BitsPerPixel) {

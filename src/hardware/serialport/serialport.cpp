@@ -275,8 +275,13 @@ void CSerial::handleEvent(Bit16u type) {
 		case SERIAL_ERRMSG_EVENT: {
 			LOG_MSG("Serial%d: Errors: "\
 				"Framing %d, Parity %d, Overrun RX:%d (IF0:%d), TX:%d, Break %d",
-				COMNUMBER, framingErrors, parityErrors, overrunErrors,
-				overrunIF0,txOverrunErrors, breakErrors);
+				(int)COMNUMBER,
+				(int)framingErrors,
+				(int)parityErrors,
+				(int)overrunErrors,
+				(int)overrunIF0,
+				(int)txOverrunErrors,
+				(int)breakErrors);
 			errormsg_pending=false;
 			framingErrors=0;
 			parityErrors=0;
@@ -1141,7 +1146,10 @@ bool CSerial::getBituSubstring(const char* name,Bitu* data, CommandLine* cmd) {
 	std::string tmpstring;
 	if(!(cmd->FindStringBegin(name,tmpstring,false))) return false;
 	const char* tmpchar=tmpstring.c_str();
-	if(sscanf(tmpchar,"%u",data)!=1) return false;
+
+	unsigned int tmp;
+	if(sscanf(tmpchar,"%u",&tmp)!=1) return false;
+	*data = (Bitu)tmp;
 	return true;
 }
 
@@ -1288,7 +1296,7 @@ public:
 				serialports[i] = NULL;
 			} else {
 				serialports[i] = NULL;
-				LOG_MSG("Invalid type for serial%d",i+1);
+				LOG_MSG("Invalid type for serial%d",(int)i+1);
 			}
 			if(serialports[i]) {
 				biosParameter[i] = serial_baseaddr[i];

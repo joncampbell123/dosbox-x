@@ -277,10 +277,10 @@ void CSerialModem::EnterIdleState(void){
 		
 		serversocket=new TCPServerSocket(listenport);	
 		if(!serversocket->isopen) {
-			LOG_MSG("Serial%d: Modem could not open TCP port %d.",COMNUMBER,listenport);
+			LOG_MSG("Serial%d: Modem could not open TCP port %d.",(int)COMNUMBER,(int)listenport);
 			delete serversocket;
 			serversocket=0;
-		} else LOG_MSG("Serial%d: Modem listening on port %d...",COMNUMBER,listenport);
+		} else LOG_MSG("Serial%d: Modem listening on port %d...",(int)COMNUMBER,(int)listenport);
 	}
 	waitingclientsocket=0;
 	
