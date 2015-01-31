@@ -557,7 +557,7 @@ void INT10_SetupBasicVideoParameterTable(void) {
 			break;
 	}
 
-	if (BIOS_VIDEO_TABLE_LOCATION == ~0 || BIOS_VIDEO_TABLE_SIZE != (Bitu)copy_sz) {
+	if (BIOS_VIDEO_TABLE_LOCATION == ~(0U) || BIOS_VIDEO_TABLE_SIZE != (Bitu)copy_sz) {
 		if (rom_bios_vptable_enable) {
 			/* TODO: Free previous block */
 
