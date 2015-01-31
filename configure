@@ -5029,6 +5029,8 @@ CXXFLAGS="$CXXFLAGS -std=gnu++11 -Wall"
 
 CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2 -D_FILE_OFFSET_BITS=64"
 
+CXXFLAGS="$CXXFLAGS -Wno-strict-aliasing"
+
 if test x$host = xi386-pc-os2-emx ; then
     CXXFLAGS="$CXXFLAGS -Zmt"
     LDFLAGS="$LDFLAGS -Zomf -Zmt"
