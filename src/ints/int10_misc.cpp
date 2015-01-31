@@ -257,7 +257,7 @@ void INT10_EGA_RIL_ReadRegisterRange(Bit8u ch, Bit8u cl, Bit16u dx, PhysPt dst) 
 	Bitu regs = 0;
 	EGA_RIL(dx,port,regs);
 	if(regs == 0) {
-		LOG(LOG_INT10,LOG_ERROR)("EGA RIL range read with port %x called",port);
+		LOG(LOG_INT10,LOG_ERROR)("EGA RIL range read with port %x called",(int)port);
 	} else {
 		if(ch<regs) {
 			if ((Bitu)ch+cl>regs) cl=(Bit8u)(regs-ch);
@@ -267,7 +267,7 @@ void INT10_EGA_RIL_ReadRegisterRange(Bit8u ch, Bit8u cl, Bit16u dx, PhysPt dst) 
 				mem_writeb(dst++,IO_Read(port+1));
 			}
 			if(port == 0x3c0) IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6);
-		} else LOG(LOG_INT10,LOG_ERROR)("EGA RIL range read from %x for invalid register %x",port,ch);
+		} else LOG(LOG_INT10,LOG_ERROR)("EGA RIL range read from %x for invalid register %x",(int)port,(int)ch);
 	}
 }
 
@@ -276,7 +276,7 @@ void INT10_EGA_RIL_WriteRegisterRange(Bit8u ch, Bit8u cl, Bit16u dx, PhysPt src)
 	Bitu regs = 0;
 	EGA_RIL(dx,port,regs);
 	if(regs == 0) {
-		LOG(LOG_INT10,LOG_ERROR)("EGA RIL range write called with port %x",port);
+		LOG(LOG_INT10,LOG_ERROR)("EGA RIL range write called with port %x",(int)port);
 	} else {
 		if(ch<regs) {
 			if ((Bitu)ch+cl>regs) cl=(Bit8u)(regs-ch);
@@ -292,7 +292,7 @@ void INT10_EGA_RIL_WriteRegisterRange(Bit8u ch, Bit8u cl, Bit16u dx, PhysPt src)
 					IO_Write(port+1,mem_readb(src++));
 				}
 			}
-		} else LOG(LOG_INT10,LOG_ERROR)("EGA RIL range write to %x with invalid register %x",port,ch);
+		} else LOG(LOG_INT10,LOG_ERROR)("EGA RIL range write to %x with invalid register %x",(int)port,(int)ch);
 	}
 }
 

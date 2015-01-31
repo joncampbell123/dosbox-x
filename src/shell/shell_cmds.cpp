@@ -243,10 +243,10 @@ static Bitu INT2FDBG_Handler(void) {
 			}
 
 			LOG_MSG(" >> Version %u.%u\n",v_major,v_minor);
-			LOG_MSG("    Next entry at %04x:%04x\n",st_seg_next,st_ofs_next);
-			LOG_MSG("    Virtual device name: %04x:%04x '%s'\n",name_seg,name_ofs,devname);
-			LOG_MSG("    Virtual dev ref data: %04x:%04x\n",vdev_seg,vdev_ofs);
-			LOG_MSG("    Instance data records: %04x:%04x\n",idrc_seg,idrc_ofs);
+			LOG_MSG("    Next entry at %04x:%04x\n",(int)st_seg_next,(int)st_ofs_next);
+			LOG_MSG("    Virtual device name: %04x:%04x '%s'\n",(int)name_seg,(int)name_ofs,devname);
+			LOG_MSG("    Virtual dev ref data: %04x:%04x\n",(int)vdev_seg,(int)vdev_ofs);
+			LOG_MSG("    Instance data records: %04x:%04x\n",(int)idrc_seg,(int)idrc_ofs);
 
 			st_seg = st_seg_next;
 			st_ofs = st_ofs_next;

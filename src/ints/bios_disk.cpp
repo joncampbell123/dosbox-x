@@ -144,7 +144,7 @@ void swapInDisks(void) {
 	/* If only one disk is loaded, this loop will load the same disk in dive A and drive B */
 	while(diskcount<2) {
 		if(diskSwap[swapPos] != NULL) {
-			LOG_MSG("Loaded disk %d from swaplist position %d - \"%s\"", diskcount, swapPos, diskSwap[swapPos]->diskname.c_str());
+			LOG_MSG("Loaded disk %d from swaplist position %d - \"%s\"", (int)diskcount, (int)swapPos, diskSwap[swapPos]->diskname.c_str());
 
 			if (imageDiskList[diskcount] != NULL)
 				imageDiskList[diskcount]->Release();
@@ -356,19 +356,19 @@ static Bitu GetDosDriveNumber(Bitu biosNum) {
 
 static bool driveInactive(Bitu driveNum) {
 	if(driveNum>=(2 + MAX_HDD_IMAGES)) {
-		LOG(LOG_BIOS,LOG_ERROR)("Disk %d non-existant", driveNum);
+		LOG(LOG_BIOS,LOG_ERROR)("Disk %d non-existant", (int)driveNum);
 		last_status = 0x01;
 		CALLBACK_SCF(true);
 		return true;
 	}
 	if(imageDiskList[driveNum] == NULL) {
-		LOG(LOG_BIOS,LOG_ERROR)("Disk %d not active", driveNum);
+		LOG(LOG_BIOS,LOG_ERROR)("Disk %d not active", (int)driveNum);
 		last_status = 0x01;
 		CALLBACK_SCF(true);
 		return true;
 	}
 	if(!imageDiskList[driveNum]->active) {
-		LOG(LOG_BIOS,LOG_ERROR)("Disk %d not active", driveNum);
+		LOG(LOG_BIOS,LOG_ERROR)("Disk %d not active", (int)driveNum);
 		last_status = 0x01;
 		CALLBACK_SCF(true);
 		return true;
@@ -750,7 +750,7 @@ static Bitu INT13_DiskHandler(void) {
 		CALLBACK_SCF(false);
 		} break;
 	default:
-		LOG(LOG_BIOS,LOG_ERROR)("INT13: Function %x called on drive %x (dos drive %d)", reg_ah,  reg_dl, drivenum);
+		LOG(LOG_BIOS,LOG_ERROR)("INT13: Function %x called on drive %x (dos drive %d)", (int)reg_ah, (int)reg_dl, (int)drivenum);
 		reg_ah=0xff;
 		CALLBACK_SCF(true);
 	}

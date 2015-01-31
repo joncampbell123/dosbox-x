@@ -147,9 +147,9 @@ void INT10_PutPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u color) {
 			//Perhaps also set mode 1 
 			/* Calculate where the pixel is in video memory */
 			if (CurMode->plength!=(Bitu)real_readw(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE))
-				LOG(LOG_INT10,LOG_ERROR)("PutPixel_EGA_p: %x!=%x",CurMode->plength,real_readw(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE));
+				LOG(LOG_INT10,LOG_ERROR)("PutPixel_EGA_p: %x!=%x",(int)CurMode->plength,(int)real_readw(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE));
 			if (CurMode->swidth!=(Bitu)real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8)
-				LOG(LOG_INT10,LOG_ERROR)("PutPixel_EGA_w: %x!=%x",CurMode->swidth,real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8);
+				LOG(LOG_INT10,LOG_ERROR)("PutPixel_EGA_w: %x!=%x",(int)CurMode->swidth,(int)real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8);
 			PhysPt off=0xa0000+real_readw(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE)*page+
 				((y*real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8+x)>>3);
 			/* Bitmask and set/reset should do the rest */
@@ -168,7 +168,7 @@ void INT10_PutPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u color) {
 		break;
 	case M_LIN8: {
 			if (CurMode->swidth!=(Bitu)real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8)
-				LOG(LOG_INT10,LOG_ERROR)("PutPixel_VGA_w: %x!=%x",CurMode->swidth,real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8);
+				LOG(LOG_INT10,LOG_ERROR)("PutPixel_VGA_w: %x!=%x",(int)CurMode->swidth,(int)real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8);
 			PhysPt off=S3_LFB_BASE+y*real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8+x;
 			mem_writeb(off,color);
 			break;
@@ -176,7 +176,7 @@ void INT10_PutPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u color) {
 	default:
 		if(GCC_UNLIKELY(!putpixelwarned)) {
 			putpixelwarned = true;		
-			LOG(LOG_INT10,LOG_ERROR)("PutPixel unhandled mode type %d",CurMode->type);
+			LOG(LOG_INT10,LOG_ERROR)("PutPixel unhandled mode type %d",(int)CurMode->type);
 		}
 		break;
 	}	
@@ -224,9 +224,9 @@ void INT10_GetPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u * color) {
 		{
 			/* Calculate where the pixel is in video memory */
 			if (CurMode->plength!=(Bitu)real_readw(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE))
-				LOG(LOG_INT10,LOG_ERROR)("GetPixel_EGA_p: %x!=%x",CurMode->plength,real_readw(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE));
+				LOG(LOG_INT10,LOG_ERROR)("GetPixel_EGA_p: %x!=%x",(int)CurMode->plength,(int)real_readw(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE));
 			if (CurMode->swidth!=(Bitu)real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8)
-				LOG(LOG_INT10,LOG_ERROR)("GetPixel_EGA_w: %x!=%x",CurMode->swidth,real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8);
+				LOG(LOG_INT10,LOG_ERROR)("GetPixel_EGA_w: %x!=%x",(int)CurMode->swidth,(int)real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8);
 			PhysPt off=0xa0000+real_readw(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE)*page+
 				((y*real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8+x)>>3);
 			Bitu shift=7-(x & 7);
@@ -247,13 +247,13 @@ void INT10_GetPixel(Bit16u x,Bit16u y,Bit8u page,Bit8u * color) {
 		break;
 	case M_LIN8: {
 			if (CurMode->swidth!=(Bitu)real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8)
-				LOG(LOG_INT10,LOG_ERROR)("GetPixel_VGA_w: %x!=%x",CurMode->swidth,real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8);
+				LOG(LOG_INT10,LOG_ERROR)("GetPixel_VGA_w: %x!=%x",(int)CurMode->swidth,(int)real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8);
 			PhysPt off=S3_LFB_BASE+y*real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8+x;
 			*color = mem_readb(off);
 			break;
 		}
 	default:
-		LOG(LOG_INT10,LOG_ERROR)("GetPixel unhandled mode type %d",CurMode->type);
+		LOG(LOG_INT10,LOG_ERROR)("GetPixel unhandled mode type %d",(int)CurMode->type);
 		break;
 	}	
 }

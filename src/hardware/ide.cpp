@@ -2880,12 +2880,12 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 						(unsigned int)ata->lba[0] > (unsigned int)ata->sects ||
 						(unsigned int)(ata->lba[1] | (ata->lba[2] << 8)) >= (unsigned int)ata->cyls) {
 						LOG_MSG("C/H/S %u/%u/%u out of bounds %u/%u/%u\n",
-							ata->lba[1] | (ata->lba[2] << 8),
-							ata->drivehead&0xF,
-							ata->lba[0],
-							ata->cyls,
-							ata->heads,
-							ata->sects);
+							(unsigned int)(ata->lba[1] | (ata->lba[2] << 8)),
+							(unsigned int)(ata->drivehead&0xF),
+							(unsigned int)ata->lba[0],
+							(unsigned int)ata->cyls,
+							(unsigned int)ata->heads,
+							(unsigned int)ata->sects);
 						ata->abort_error();
 						dev->controller->raise_irq();
 						return;
@@ -3319,8 +3319,8 @@ void IDEATADevice::writecommand(uint8_t cmd) {
 
 					/* the OS is changing logical disk geometry, so update our head/sector count (needed for Windows ME) */
 					LOG_MSG("IDE warning: OS is changing logical geometry from C/H/S %u/%u/%u to logical H/S %u/%u/%u\n",
-						cyls,heads,sects,
-						ncyls,(drivehead&0xF)+1,count);
+						(int)cyls,(int)heads,(int)sects,
+						(int)ncyls,(int)((drivehead&0xF)+1),(int)count);
 					LOG_MSG("             Compatibility issues may occur if the OS tries to use INT 13 at the same time!\n");
 
 					cyls = ncyls;
@@ -3674,7 +3674,7 @@ static void ide_baseio_w(Bitu port,Bitu val,Bitu iolen) {
 				return;
 			}
 			else {
-				LOG_MSG("W-%03X %02X BUSY DROP [DEV]\n",port+ide->base_io,val);
+				LOG_MSG("W-%03X %02X BUSY DROP [DEV]\n",(int)(port+ide->base_io),(int)val);
 				return;
 			}
 		}
@@ -3685,7 +3685,7 @@ static void ide_baseio_w(Bitu port,Bitu val,Bitu iolen) {
 			return;
 		}
 		else {
-			LOG_MSG("W-%03X %02X BUSY DROP [IDE]\n",port+ide->base_io,val);
+			LOG_MSG("W-%03X %02X BUSY DROP [IDE]\n",(int)(port+ide->base_io),(int)val);
 			return;
 		}
 	}
@@ -4533,7 +4533,7 @@ static void fdc_baseio_w(Bitu port,Bitu val,Bitu iolen) {
 //	LOG_MSG("FDC: Write port 0x%03x data 0x%02x irq_at_time=%u\n",port,val,fdc->irq_pending);
 
 	if (iolen > 1) {
-		LOG_MSG("WARNING: FDC unusual port write %03xh val=%02xh len=%u, port I/O should be 8-bit\n",port,val,iolen);
+		LOG_MSG("WARNING: FDC unusual port write %03xh val=%02xh len=%u, port I/O should be 8-bit\n",(int)port,(int)val,(int)iolen);
 	}
 
 	switch (port&7) {
@@ -4552,7 +4552,7 @@ static void fdc_baseio_w(Bitu port,Bitu val,Bitu iolen) {
 			}
 			break;
 		default:
-			LOG_MSG("DEBUG: FDC write port %03xh val %02xh len=%u\n",port,val,iolen);
+			LOG_MSG("DEBUG: FDC write port %03xh val %02xh len=%u\n",(int)port,(int)val,(int)iolen);
 			break;
 	};
 }
@@ -4569,7 +4569,7 @@ static Bitu fdc_baseio_r(Bitu port,Bitu iolen) {
 //	LOG_MSG("FDC: Read port 0x%03x irq_at_time=%u\n",port,fdc->irq_pending);
 
 	if (iolen > 1) {
-		LOG_MSG("WARNING: FDC unusual port read %03xh len=%u, port I/O should be 8-bit\n",port,iolen);
+		LOG_MSG("WARNING: FDC unusual port read %03xh len=%u, port I/O should be 8-bit\n",(int)port,(int)iolen);
 	}
 
 	switch (port&7) {
@@ -4598,7 +4598,7 @@ static Bitu fdc_baseio_r(Bitu port,Bitu iolen) {
 //			LOG_MSG("FDC: read data 0x%02x\n",b);
 			return b;
 		default:
-			LOG_MSG("DEBUG: FDC read port %03xh len=%u\n",port,iolen);
+			LOG_MSG("DEBUG: FDC read port %03xh len=%u\n",(int)port,(int)iolen);
 			break;
 	};
 

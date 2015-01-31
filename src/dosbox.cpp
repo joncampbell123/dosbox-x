@@ -361,8 +361,8 @@ static Bitu Normal_Loop(void) {
 				ret = 0;
 				dosbox_allow_nonrecursive_page_fault = false;
 				LOG_MSG("Guest page fault exception! Alternate method will be used. Wish me luck.\n");
-				if (reg_eip != orig_eip) LOG_MSG("WARNING: eip changed up to page fault (0x%x != 0x%x)\n",reg_eip,orig_eip);
-				if (orig_cs != SegValue(cs)) LOG_MSG("WARNING: cs changed up to page fault (0x%x != 0x%x)\n",SegValue(cs),orig_cs);
+				if (reg_eip != orig_eip) LOG_MSG("WARNING: eip changed up to page fault (0x%x != 0x%x)\n",(int)reg_eip,(int)orig_eip);
+				if (orig_cs != SegValue(cs)) LOG_MSG("WARNING: cs changed up to page fault (0x%x != 0x%x)\n",(int)SegValue(cs),(int)orig_cs);
 				if (orig_cs == SegValue(cs)) reg_eip = orig_eip; /* HACK: may have changed slightly */
 				CPU_Exception(EXCEPTION_PF,pf.faultcode);
 			}

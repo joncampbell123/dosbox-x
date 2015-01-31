@@ -550,16 +550,16 @@ public:
 			if (first_umb_seg < (Bitu)DOS_PRIVATE_SEGMENT_END) first_umb_seg = (Bitu)DOS_PRIVATE_SEGMENT_END;
 		}
 		if (first_umb_seg >= (rombios_minimum_location>>4)) {
-			LOG_MSG("UMB starting segment 0x%04x conflict with BIOS at 0x%04x. Disabling UMBs\n",first_umb_seg,rombios_minimum_location>>4);
+			LOG_MSG("UMB starting segment 0x%04x conflict with BIOS at 0x%04x. Disabling UMBs\n",(int)first_umb_seg,(int)(rombios_minimum_location>>4));
 			umb_available = false;
 		}
 		if (first_umb_size >= (rombios_minimum_location>>4)) {
 			/* we can ask the BIOS code to trim back the region, assuming it hasn't allocated anything there yet */
-			LOG_MSG("UMB ending segment 0x%04x conflicts with BIOS at 0x%04x, asking BIOS to move aside\n",first_umb_size,rombios_minimum_location>>4);
+			LOG_MSG("UMB ending segment 0x%04x conflicts with BIOS at 0x%04x, asking BIOS to move aside\n",(int)first_umb_size,(int)(rombios_minimum_location>>4));
 			ROMBIOS_FreeUnusedMinToLoc(first_umb_size<<4);
 		}
 		if (first_umb_size >= (rombios_minimum_location>>4)) {
-			LOG_MSG("UMB ending segment 0x%04x conflicts with BIOS at 0x%04x, truncating region\n",first_umb_size,rombios_minimum_location>>4);
+			LOG_MSG("UMB ending segment 0x%04x conflicts with BIOS at 0x%04x, truncating region\n",(int)first_umb_size,(int)(rombios_minimum_location>>4));
 			first_umb_size = (rombios_minimum_location>>4)-1;
 		}
 		if (first_umb_size < first_umb_seg) {
@@ -569,7 +569,7 @@ public:
 		}
 		first_umb_size = (first_umb_size + 1 - first_umb_seg);
 		if (umb_available) {
-			LOG_MSG("UMB assigned region is 0x%04x-0x%04x\n",first_umb_seg,first_umb_seg+first_umb_size-1);
+			LOG_MSG("UMB assigned region is 0x%04x-0x%04x\n",(int)first_umb_seg,(int)(first_umb_seg+first_umb_size-1));
 			if (MEM_map_RAM_physmem(first_umb_seg<<4,((first_umb_seg+first_umb_size)<<4)-1)) {
 				memset(GetMemBase()+(first_umb_seg<<4),0x00,first_umb_size<<4);
 			}

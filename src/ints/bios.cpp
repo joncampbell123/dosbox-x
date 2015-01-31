@@ -92,7 +92,7 @@ void ROMBIOS_DumpMemory() {
 	fprintf(stderr,"ROMBIOS memory dump:\n");
 	for (si=0;si < rombios_alloc.size();si++) {
 		ROMBIOS_block &blk = rombios_alloc[si];
-		fprintf(stderr,"     0x%08x-0x%08x free=%u %s\n",blk.start,blk.end,blk.free?1:0,blk.who.c_str());
+		fprintf(stderr,"     0x%08x-0x%08x free=%u %s\n",(int)blk.start,(int)blk.end,blk.free?1:0,blk.who.c_str());
 	}
 	fprintf(stderr,"[end dump]\n");
 }
@@ -184,7 +184,7 @@ Bitu ROMBIOS_GetMemory(Bitu bytes,const char *who,Bitu alignment,Bitu must_be_at
 	if (alignment == 0)
 		alignment = 1;
 	else if ((alignment & (alignment-1)) != 0)
-		E_Exit("ROMBIOS_GetMemory called with non-power of 2 alignment value %u",alignment);
+		E_Exit("ROMBIOS_GetMemory called with non-power of 2 alignment value %u",(int)alignment);
 
 	/* allocate downward from the top */
 	si = rombios_alloc.size() - 1;
@@ -269,12 +269,12 @@ Bitu ROMBIOS_GetMemory(Bitu bytes,const char *who,Bitu alignment,Bitu must_be_at
 			rombios_alloc.insert(rombios_alloc.begin()+si+1,newblk);
 		}
 
-		LOG_MSG("ROMBIOS_GetMemory(0x%05x bytes,\"%s\",align=%u,mustbe=0x%05x) = 0x%05x\n",bytes,who,alignment,must_be_at,base);
+		LOG_MSG("ROMBIOS_GetMemory(0x%05x bytes,\"%s\",align=%u,mustbe=0x%05x) = 0x%05x\n",(int)bytes,who,(int)alignment,(int)must_be_at,(int)base);
 		ROMBIOS_SanityCheck();
 		return base;
 	}
 
-	LOG_MSG("ROMBIOS_GetMemory(0x%05x bytes,\"%s\",align=%u,mustbe=0x%05x) = FAILED\n",bytes,who,alignment,must_be_at);
+	LOG_MSG("ROMBIOS_GetMemory(0x%05x bytes,\"%s\",align=%u,mustbe=0x%05x) = FAILED\n",(int)bytes,who,(int)alignment,(int)must_be_at);
 	ROMBIOS_SanityCheck();
 	return 0;
 }
@@ -1206,7 +1206,7 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
 
 			/* control bits 0-1 must be '01' or '10' but not '00' or '11' */
 			if (Control == 0 || (Control&3) == 3) {
-				LOG_MSG("ISAPNP Get System Device Node: Invalid Control value 0x%04x\n",Control);
+				LOG_MSG("ISAPNP Get System Device Node: Invalid Control value 0x%04x\n",(int)Control);
 				reg_ax = 0x84;/* BAD_PARAMETER */
 				break;
 			}
@@ -1215,7 +1215,7 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
 			Node_ptr = ISAPNP_xlate_address(Node_ptr);
 			Node = mem_readb(Node_ptr);
 			if (Node >= ISAPNP_SysDevNodeCount) {
-				LOG_MSG("ISAPNP Get System Device Node: Invalid Node 0x%02x (max 0x%04x)\n",Node,ISAPNP_SysDevNodeCount);
+				LOG_MSG("ISAPNP Get System Device Node: Invalid Node 0x%02x (max 0x%04x)\n",(int)Node,(int)ISAPNP_SysDevNodeCount);
 				reg_ax = 0x84;/* BAD_PARAMETER */
 				break;
 			}
@@ -1258,7 +1258,7 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
 					reg_ax = 0;
 					break;
 				default:
-					LOG_MSG("Unknown ISA PnP message 0x%04x\n",Message);
+					LOG_MSG("Unknown ISA PnP message 0x%04x\n",(int)Message);
 					reg_ax = 0x82;/* FUNCTION_NOT_SUPPORTED */
 					break;
 			}
@@ -1299,7 +1299,7 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
 badBiosSelector:
 	/* return an error. remind the user (possible developer) how lucky he is, a real
 	 * BIOS implementation would CRASH when misused like this */
-	LOG_MSG("ISA PnP function 0x%04x called with incorrect BiosSelector parameter 0x%04x\n",func,BiosSelector);
+	LOG_MSG("ISA PnP function 0x%04x called with incorrect BiosSelector parameter 0x%04x\n",(int)func,(int)BiosSelector);
 	LOG_MSG(" > STACK %04X %04X %04X %04X %04X %04X %04X %04X\n",
 		mem_readw(arg),		mem_readw(arg+2),	mem_readw(arg+4),	mem_readw(arg+6),
 		mem_readw(arg+8),	mem_readw(arg+10),	mem_readw(arg+12),	mem_readw(arg+14));
@@ -3651,8 +3651,8 @@ void ROMBIOS_Init(Section *sec) {
 		rombios_minimum_size = 0x10000;
 	}
 
-	LOG_MSG("ROM BIOS range: 0x%05x-0xFFFFF\n",rombios_minimum_location);
-	LOG_MSG("ROM BIOS range, final: 0x%05x-0xFFFFF\n",0x100000 - rombios_minimum_size);
+	LOG_MSG("ROM BIOS range: 0x%05x-0xFFFFF\n",(int)rombios_minimum_location);
+	LOG_MSG("ROM BIOS range, final: 0x%05x-0xFFFFF\n",(int)(0x100000 - rombios_minimum_size));
 
 	if (!MEM_map_ROM_physmem(rombios_minimum_location,0xFFFFF)) E_Exit("Unable to map ROM region as ROM");
 
