@@ -349,7 +349,10 @@ static void TandyDAC_DMA_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
 	}
 }
 
-static void TandyDACModeChanged(void) {
+/* NTS: Formerly defined static, but nobody uses the function. But, this
+ * function contains too much technical documentation within that is worth
+ * keeping. --J.C. */
+void TandyDACModeChanged(void) {
 	switch (tandy.dac.mode&3) {
 	case 0:
 		// joystick mode
@@ -379,13 +382,6 @@ static void TandyDACModeChanged(void) {
 		}
 		break;
 	}
-}
-
-static void TandyDACDMAEnabled(void) {
-	TandyDACModeChanged();
-}
-
-static void TandyDACDMADisabled(void) {
 }
 
 static Bitu TandyDACRead(Bitu port,Bitu /*iolen*/) {
