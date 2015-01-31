@@ -209,7 +209,7 @@ void Synth::polyStateChanged(int partNum) {
 }
 
 void Synth::partialStateChanged(const Partial * const partial, int oldPartialPhase, int newPartialPhase) {
-	for (int i = 0; i < getPartialLimit(); i++) {
+	for (unsigned int i = 0; i < getPartialLimit(); i++) {
 		if (getPartial(i) == partial) {
 			reportHandler->onPartialStateChanged(i, oldPartialPhase, newPartialPhase);
 			break;
@@ -1508,7 +1508,7 @@ bool Synth::hasActivePartials() const {
 		// It also means that partials are definitely active at this render point.
 		return true;
 	}
-	for (int partialNum = 0; partialNum < getPartialLimit(); partialNum++) {
+	for (unsigned int partialNum = 0; partialNum < getPartialLimit(); partialNum++) {
 		if (partialManager->getPartial(partialNum)->isActive()) {
 			return true;
 		}
@@ -1633,7 +1633,7 @@ void Synth::findPart( const Part *src, Bit8u *index_out )
 		part_idx = 0;
 		stop = false;
 
-		for( int lcv=0; lcv<9; lcv++ ) {
+		for( unsigned int lcv=0; lcv<9; lcv++ ) {
 			if( src == getPart(lcv) ) { stop = true; break; }
 
 			part_idx++;
@@ -1662,7 +1662,7 @@ void Synth::findPartial( const Partial *src, Bit8u *index_out )
 		partials_idx = 0;
 		stop = false;
 
-		for( int lcv=0; lcv<getPartialLimit(); lcv++ ) {
+		for( unsigned int lcv=0; lcv<getPartialLimit(); lcv++ ) {
 			if( src == getPartial(lcv) ) { stop = true; break; }
 
 			partials_idx++;
@@ -1798,7 +1798,7 @@ void Synth::findPartialParam( const TimbreParam::PartialParam *src, Bit16u *inde
 			partialParam_idx1 = 0x5000;
 
 			// #6 = partials[] - cacheBackup
-			for( int lcv1=0; lcv1<getPartialLimit(); lcv1++ ) {
+			for( unsigned int lcv1=0; lcv1<getPartialLimit(); lcv1++ ) {
 				partialParam_idx2 = 0;
 
 				for( int lcv2=0; lcv2<1; lcv2++ ) {
@@ -1906,7 +1906,7 @@ void Synth::findPatchCache( const PatchCache *src, Bit16u *index_out1, Bit16u *i
 			patchCache_idx1 = 0x3000;
 
 			// #4 partials[] - cacheBackup
-			for( int lcv1=0; lcv1<getPartialLimit(); lcv1++ ) {
+			for( unsigned int lcv1=0; lcv1<getPartialLimit(); lcv1++ ) {
 				patchCache_idx2 = 0;
 
 				for( int lcv2=0; lcv2<1; lcv2++ ) {
