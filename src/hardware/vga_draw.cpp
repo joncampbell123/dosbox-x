@@ -373,6 +373,7 @@ static Bit8u * VGA_Draw_Linear_Line(Bitu vidstart, Bitu /*line*/) {
 	return ret;
 }
 
+/* NTS: Unused in this code. I intend to keep this around */
 static Bit8u * VGA_Draw_Xlat16_Linear_Line(Bitu vidstart, Bitu /*line*/) {
 	Bit8u *ret = &vga.draw.linear_base[ vidstart & vga.draw.linear_mask ];
 	Bit16u* temps = (Bit16u*) TempLine;
@@ -1518,7 +1519,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 	}
 	
 	/* Calculate the FPS for this screen */
-	Bitu oscclock, clock;
+	Bitu oscclock = 0, clock;
 	Bitu htotal, hdend, hbstart, hbend, hrstart, hrend;
 	Bitu vtotal, vdend, vbstart, vbend, vrstart, vrend;
 	Bitu hbend_mask, vbend_mask;
@@ -1775,32 +1776,9 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 	//Base pixel width around 100 clocks horizontal
 	//For 9 pixel text modes this should be changed, but we don't support that anyway :)
 	//Seems regular vga only listens to the 9 char pixel mode with character mode enabled
-	double pwidth = (machine==MCH_EGA) ? (114.0 / htotal) : (100.0 / htotal);
 	//Base pixel height around vertical totals of modes that have 100 clocks horizontal
 	//Different sync values gives different scaling of the whole vertical range
 	//VGA monitor just seems to thighten or widen the whole vertical range
-	double pheight;
-	double target_total = (machine==MCH_EGA) ? 262.0 : 449.0;
-	Bitu sync = vga.misc_output >> 6;
-	switch ( sync ) {
-	case 0:		// This is not defined in vga specs,
-				// Kiet, seems to be slightly less than 350 on my monitor
-		//340 line mode, filled with 449 total
-		pheight = (480.0 / 340.0) * ( target_total / vtotal );
-		break;
-	case 1:		//400 line mode, filled with 449 total
-		pheight = (480.0 / 400.0) * ( target_total / vtotal );
-		break;
-	case 2:		//350 line mode, filled with 449 total
-		//This mode seems to get regular 640x400 timing and goes for a loong retrace
-		//Depends on the monitor to stretch the screen
-		pheight = (480.0 / 350.0) * ( target_total / vtotal );
-		break;
-	case 3:		//480 line mode, filled with 525 total
-	default:
-		pheight = (480.0 / 480.0) * ( 525.0 / vtotal );
-		break;
-	}
 
 	vga.draw.resizing=false;
 	vga.draw.vret_triggered=false;
