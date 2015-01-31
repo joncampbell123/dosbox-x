@@ -113,5 +113,5 @@ switch (inst.code.save) {
 	case 0:
 		break;
 	default:
-		LOG(LOG_CPU,LOG_ERROR)("SAVE:Unhandled code %d entry %X",inst.code.save,inst.entry);
+		LOG(LOG_CPU,LOG_ERROR)("SAVE:Unhandled code %d entry %lx",inst.code.save,(unsigned long)inst.entry);
 }

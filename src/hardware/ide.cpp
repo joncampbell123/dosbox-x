@@ -1650,7 +1650,7 @@ void IDEATAPICDROMDevice::data_write(Bitu v,Bitu iolen) {
 			return;
 		}
 		if ((sector_i+iolen) > sector_total) {
-			LOG_MSG("ide atapi warning: sector already full %u / %u\n",sector_i,sector_total);
+			LOG_MSG("ide atapi warning: sector already full %lu / %lu\n",(unsigned long)sector_i,(unsigned long)sector_total);
 			return;
 		}
 
@@ -1683,7 +1683,7 @@ Bitu IDEATADevice::data_read(Bitu iolen) {
 	}
 
 	if ((sector_i+iolen) > sector_total) {
-		LOG_MSG("ide ata warning: sector already read %u / %u\n",sector_i,sector_total);
+		LOG_MSG("ide ata warning: sector already read %lu / %lu\n",(unsigned long)sector_i,(unsigned long)sector_total);
 		return 0xFFFFUL;
 	}
 
@@ -1716,7 +1716,7 @@ void IDEATADevice::data_write(Bitu v,Bitu iolen) {
 		return;
 	}
 	if ((sector_i+iolen) > sector_total) {
-		LOG_MSG("ide ata warning: sector already full %u / %u\n",sector_i,sector_total);
+		LOG_MSG("ide ata warning: sector already full %lu / %lu\n",(unsigned long)sector_i,(unsigned long)sector_total);
 		return;
 	}
 
@@ -2029,13 +2029,21 @@ void IDEATADevice::update_from_biosdisk() {
 		LOG_MSG("Some OSes, such as Windows 95, will not enable their 32-bit IDE driver if\n");
 		LOG_MSG("a clean mapping does not exist between IDE and BIOS geometry.\n");
 		LOG_MSG("Mapping BIOS DISK C/H/S %u/%u/%u as IDE %u/%u/%u (non-straightforward mapping)\n",
-			dsk->cylinders,dsk->heads,dsk->sectors,
-			cyls,heads,sects);
+			(unsigned int)dsk->cylinders,
+			(unsigned int)dsk->heads,
+			(unsigned int)dsk->sectors,
+			(unsigned int)cyls,
+			(unsigned int)heads,
+			(unsigned int)sects);
 	}
 	else {
 		LOG_MSG("Mapping BIOS DISK C/H/S %u/%u/%u as IDE %u/%u/%u\n",
-			dsk->cylinders,dsk->heads,dsk->sectors,
-			cyls,heads,sects);
+			(unsigned int)dsk->cylinders,
+			(unsigned int)dsk->heads,
+			(unsigned int)dsk->sectors,
+			(unsigned int)cyls,
+			(unsigned int)heads,
+			(unsigned int)sects);
 	}
 
 	phys_heads = heads;
@@ -2509,8 +2517,9 @@ void IDE_ResetDiskByBIOS(unsigned char disk) {
 
 				if ((ata->bios_disk_index-2) == (disk-0x80)) {
 					LOG_MSG("IDE %d%c reset by BIOS disk 0x%02x\n",
-						idx+1,ms?'s':'m',
-						disk);
+						(unsigned int)(idx+1),
+						ms?'s':'m',
+						(unsigned int)disk);
 
 					if (ide->int13fakev86io && IDE_CPU_Is_Vm86()) {
 						/* issue the DEVICE RESET command */
@@ -2580,12 +2589,12 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 						(unsigned int)ata->lba[0] > (unsigned int)ata->sects ||
 						(unsigned int)(ata->lba[1] | (ata->lba[2] << 8)) >= (unsigned int)ata->cyls) {
 						LOG_MSG("C/H/S %u/%u/%u out of bounds %u/%u/%u\n",
-							ata->lba[1] | (ata->lba[2] << 8),
-							ata->drivehead&0xF,
-							ata->lba[0],
-							ata->cyls,
-							ata->heads,
-							ata->sects);
+							(unsigned int)(ata->lba[1] | (ata->lba[2] << 8)),
+							(unsigned int)(ata->drivehead&0xF),
+							(unsigned int)(ata->lba[0]),
+							(unsigned int)ata->cyls,
+							(unsigned int)ata->heads,
+							(unsigned int)ata->sects);
 						ata->abort_error();
 						dev->controller->raise_irq();
 						return;
@@ -2662,12 +2671,12 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 						(unsigned int)ata->lba[0] > (unsigned int)ata->sects ||
 						(unsigned int)(ata->lba[1] | (ata->lba[2] << 8)) >= (unsigned int)ata->cyls) {
 						LOG_MSG("C/H/S %u/%u/%u out of bounds %u/%u/%u\n",
-							ata->lba[1] | (ata->lba[2] << 8),
-							ata->drivehead&0xF,
-							ata->lba[0],
-							ata->cyls,
-							ata->heads,
-							ata->sects);
+							(unsigned int)(ata->lba[1] | (ata->lba[2] << 8)),
+							(unsigned int)(ata->drivehead&0xF),
+							(unsigned int)ata->lba[0],
+							(unsigned int)ata->cyls,
+							(unsigned int)ata->heads,
+							(unsigned int)ata->sects);
 						ata->abort_error();
 						dev->controller->raise_irq();
 						return;
@@ -2726,12 +2735,12 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 						(unsigned int)ata->lba[0] > (unsigned int)ata->sects ||
 						(unsigned int)(ata->lba[1] | (ata->lba[2] << 8)) >= (unsigned int)ata->cyls) {
 						LOG_MSG("C/H/S %u/%u/%u out of bounds %u/%u/%u\n",
-							ata->lba[1] | (ata->lba[2] << 8),
-							ata->drivehead&0xF,
-							ata->lba[0],
-							ata->cyls,
-							ata->heads,
-							ata->sects);
+							(unsigned int)(ata->lba[1] | (ata->lba[2] << 8)),
+							(unsigned int)(ata->drivehead&0xF),
+							(unsigned int)ata->lba[0],
+							(unsigned int)ata->cyls,
+							(unsigned int)ata->heads,
+							(unsigned int)ata->sects);
 						ata->abort_error();
 						dev->controller->raise_irq();
 						return;
@@ -2802,12 +2811,12 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 						(unsigned int)ata->lba[0] > (unsigned int)ata->sects ||
 						(unsigned int)(ata->lba[1] | (ata->lba[2] << 8)) >= (unsigned int)ata->cyls) {
 						LOG_MSG("C/H/S %u/%u/%u out of bounds %u/%u/%u\n",
-							ata->lba[1] | (ata->lba[2] << 8),
-							ata->drivehead&0xF,
-							ata->lba[0],
-							ata->cyls,
-							ata->heads,
-							ata->sects);
+							(unsigned int)(ata->lba[1] | (ata->lba[2] << 8)),
+							(unsigned int)(ata->drivehead&0xF),
+							(unsigned int)ata->lba[0],
+							(unsigned int)ata->cyls,
+							(unsigned int)ata->heads,
+							(unsigned int)ata->sects);
 						ata->abort_error();
 						dev->controller->raise_irq();
 						return;
@@ -2821,7 +2830,7 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 				if ((512*ata->multiple_sector_count) > sizeof(ata->sector))
 					E_Exit("SECTOR OVERFLOW");
 
-				for (unsigned int cc=0;cc < MIN(ata->multiple_sector_count,sectcount);cc++) {
+				for (unsigned int cc=0;cc < MIN((Bitu)ata->multiple_sector_count,(Bitu)sectcount);cc++) {
 					/* it would be great if the disk object had a "read multiple sectors" member function */
 					if (disk->Read_AbsoluteSector(sectorn+cc, ata->sector+(cc*512)) != 0) {
 						LOG_MSG("ATA read failed\n");
@@ -2838,7 +2847,7 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 				/* NTS: The sector advance + count decrement is done in the I/O completion function */
 				dev->state = IDE_DEV_DATA_READ;
 				dev->status = IDE_STATUS_DRQ|IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-				ata->prepare_read(0,512*MIN(ata->multiple_sector_count,sectcount));
+				ata->prepare_read(0,512*MIN((Bitu)ata->multiple_sector_count,(Bitu)sectcount));
 				dev->controller->raise_irq();
 				break;
 
@@ -2887,7 +2896,7 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 						(ata->lba[0] - 1);
 				}
 
-				for (unsigned int cc=0;cc < MIN(ata->multiple_sector_count,sectcount);cc++) {
+				for (unsigned int cc=0;cc < MIN((Bitu)ata->multiple_sector_count,(Bitu)sectcount);cc++) {
 					/* it would be great if the disk object had a "write multiple sectors" member function */
 					if (disk->Write_AbsoluteSector(sectorn+cc, ata->sector+(cc*512)) != 0) {
 						LOG_MSG("Failed to write sector\n");
@@ -2897,7 +2906,7 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 					}
 				}
 
-				for (unsigned int cc=0;cc < MIN(ata->multiple_sector_count,sectcount);cc++) {
+				for (unsigned int cc=0;cc < MIN((Bitu)ata->multiple_sector_count,(Bitu)sectcount);cc++) {
 					if ((ata->count&0xFF) == 1) {
 						/* end of the transfer */
 						ata->count = 0;
@@ -2923,7 +2932,7 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 				if (sectcount == 0) sectcount = 256;
 				dev->state = IDE_DEV_DATA_WRITE;
 				dev->status = IDE_STATUS_DRQ|IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-				ata->prepare_write(0,512*MIN(ata->multiple_sector_count,sectcount));
+				ata->prepare_write(0,512*MIN((Bitu)ata->multiple_sector_count,(Bitu)sectcount));
 				dev->controller->raise_irq();
 				break;
 

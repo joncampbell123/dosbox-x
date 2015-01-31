@@ -417,7 +417,7 @@ switch (inst.code.op) {
 			CPU_VERW(inst_op1_d);
 			goto nextopcode;		/* Else value will saved */
 		default:
-			LOG(LOG_CPU,LOG_ERROR)("Group 6 Illegal subfunction %X",inst.rm_index);
+			LOG(LOG_CPU,LOG_ERROR)("Group 6 Illegal subfunction %lx",(unsigned long)inst.rm_index);
 			goto illegalopcode;
 		}
 		break;
@@ -453,7 +453,7 @@ switch (inst.code.op) {
 			PAGING_ClearTLB();
 			goto nextopcode;
 		default:
-			LOG(LOG_CPU,LOG_ERROR)("Group 7 Illegal subfunction %X",inst.rm_index);
+			LOG(LOG_CPU,LOG_ERROR)("Group 7 Illegal subfunction %lx",(unsigned long)inst.rm_index);
 			goto illegalopcode;
 		}
 		break;
@@ -662,6 +662,6 @@ switch (inst.code.op) {
 	case 0:
 		break;
 	default:
-		LOG(LOG_CPU,LOG_ERROR)("OP:Unhandled code %d entry %X",inst.code.op,inst.entry);
+		LOG(LOG_CPU,LOG_ERROR)("OP:Unhandled code %d entry %lx",inst.code.op,(unsigned long)inst.entry);
 		
 }

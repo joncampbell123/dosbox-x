@@ -119,7 +119,7 @@ Bit32u get_CF(void) {
 	case t_DIV:
 		return false;	/* Unkown */
 	default:
-		LOG(LOG_CPU,LOG_ERROR)("get_CF Unknown %d",lflags.type);
+		LOG(LOG_CPU,LOG_ERROR)("get_CF Unknown %d",(int)lflags.type);
 	}
 	return 0;
 }
@@ -201,7 +201,7 @@ Bit32u get_AF(void) {
 	case t_MUL:
 		return false;			          /* Unkown */
 	default:
-		LOG(LOG_CPU,LOG_ERROR)("get_AF Unknown %d",lflags.type);
+		LOG(LOG_CPU,LOG_ERROR)("get_AF Unknown %d",(int)lflags.type);
 	}
 	return 0;
 }
@@ -270,7 +270,7 @@ Bit32u get_ZF(void) {
 	case t_MUL:
 		return false;		/* Unkown */
 	default:
-		LOG(LOG_CPU,LOG_ERROR)("get_ZF Unknown %d",lflags.type);
+		LOG(LOG_CPU,LOG_ERROR)("get_ZF Unknown %d",(int)lflags.type);
 	}
 	return false;
 }
@@ -338,7 +338,7 @@ Bit32u get_SF(void) {
 	case t_MUL:
 		return false;	/* Unkown */
 	default:
-		LOG(LOG_CPU,LOG_ERROR)("get_SF Unkown %d",lflags.type);
+		LOG(LOG_CPU,LOG_ERROR)("get_SF Unkown %d",(int)lflags.type);
 	}
 	return false;
 
@@ -426,7 +426,7 @@ Bit32u get_OF(void) {
 	case t_DIV:
 		return false;		/* Unkown */
 	default:
-		LOG(LOG_CPU,LOG_ERROR)("get_OF Unkown %d",lflags.type);
+		LOG(LOG_CPU,LOG_ERROR)("get_OF Unkown %d",(int)lflags.type);
 	}
 	return false;
 }
@@ -874,7 +874,7 @@ Bitu FillFlags(void) {
 		break;
 
 	default:
-		LOG(LOG_CPU,LOG_ERROR)("Unhandled flag type %d",lflags.type);
+		LOG(LOG_CPU,LOG_ERROR)("Unhandled flag type %d",(int)lflags.type);
 		return 0;
 	}
 	lflags.type=t_UNKNOWN;
@@ -1175,7 +1175,7 @@ void FillFlagsNoCFOF(void) {
 		break;
 
 	default:
-		LOG(LOG_CPU,LOG_ERROR)("Unhandled flag type %d",lflags.type);
+		LOG(LOG_CPU,LOG_ERROR)("Unhandled flag type %d",(int)lflags.type);
 		break;
 	}
 	lflags.type=t_UNKNOWN;

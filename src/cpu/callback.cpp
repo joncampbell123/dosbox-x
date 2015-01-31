@@ -520,7 +520,7 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
 		phys_writeb(physAddress+0x04,(Bit8u)0xCF);		//An IRET Instruction
 		return (use_cb?9:5);
 	default:
-		E_Exit("CALLBACK:Setup:Illegal type %d",type);
+		E_Exit("CALLBACK:Setup:Illegal type %u",(unsigned int)type);
 	}
 	return 0;
 }
