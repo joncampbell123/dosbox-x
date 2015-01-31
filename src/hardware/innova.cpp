@@ -57,7 +57,8 @@ static void INNOVA_CallBack(Bitu len) {
 
 	cycle_count delta_t = SID_FREQ*len/innova.rate;
 	short* buffer = (short*)MixTemp;
-	int bufindex = 0;
+	Bitu bufindex = 0;
+
 	while(delta_t && bufindex != len) {
 		bufindex += innova.sid->clock(delta_t, buffer+bufindex, len-bufindex);
 	}
