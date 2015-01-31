@@ -622,6 +622,7 @@ void INT10_SetupVESA(void) {
 						case M_LIN8:	canuse_mode=allow_vesa_8bpp && allow_res; break;
 						case M_LIN4:	canuse_mode=allow_vesa_4bpp; break;
 						case M_TEXT:	canuse_mode=allow_vesa_tty; break;
+						default:	break;
 					}
 				}
 			}
@@ -640,10 +641,6 @@ void INT10_SetupVESA(void) {
 	Bitu len=(Bitu)(strlen(string_oem)+1);
 	for (i=0;i<len;i++) {
 		phys_writeb(0xc0000+int10.rom.used++,string_oem[i]);
-	}
-	switch (svgaCard) {
-	case SVGA_S3Trio:
-		break;
 	}
 	callback.setwindow=CALLBACK_Allocate();
 	callback.pmPalette=CALLBACK_Allocate();
