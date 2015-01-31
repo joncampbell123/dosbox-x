@@ -154,6 +154,7 @@ void CSerialModem::SendRes(ResTypes response) {
 		case ResNODIALTONE: string="NO DIALTONE"; code=6; break;
 		case ResNOCARRIER:	string="NO CARRIER" ;code=3; break;
 		case ResCONNECT:	string="CONNECT 57600"; code=1; break;
+		default:		return;
 	}
 	
 	if(doresponse!=1) {
@@ -270,7 +271,7 @@ void CSerialModem::EnterIdleState(void){
 	}
 	// get rid of everything
 	if(serversocket) {
-		while(waitingclientsocket=serversocket->Accept())
+		while ((waitingclientsocket=serversocket->Accept()))
 			delete waitingclientsocket;
 	} else if (listenport) {
 		
@@ -647,7 +648,6 @@ void CSerialModem::TelnetEmulation(Bit8u * data, Bitu size) {
 
 void CSerialModem::Timer2(void) {
 
-	unsigned long args = 1;
 	bool sendbyte = true;
 	Bitu usesize;
 	Bit8u txval;
