@@ -1132,7 +1132,7 @@ void poly_render_triangle(void *dest, poly_draw_scanline_func callback, const po
 	INT32 curscan, scaninc=1;
 
 	INT32 v1yclip, v3yclip;
-	INT32 v1y, v3y, v1x;
+	INT32 v1y, v3y;//, v1x;
 
 	/* first sort by Y */
 	if (v2->y < v1->y)
@@ -1155,7 +1155,7 @@ void poly_render_triangle(void *dest, poly_draw_scanline_func callback, const po
 	}
 
 	/* compute some integral X/Y vertex values */
-	v1x = round_coordinate(v1->x);
+//	v1x = round_coordinate(v1->x);
 	v1y = round_coordinate(v1->y);
 	v3y = round_coordinate(v3->y);
 
@@ -1293,10 +1293,10 @@ static void update_statistics(voodoo_state *v, bool accumulate)
  *************************************/
 
 void register_w(UINT32 offset, UINT32 data) {
-	voodoo_reg reg;
+//	voodoo_reg reg;
 	UINT32 regnum  = (offset) & 0xff;
 	UINT32 chips   = (offset>>8) & 0xf;
-	reg.u = data;
+//	reg.u = data;
 
 	INT64 data64;
 
@@ -2411,6 +2411,7 @@ void lfb_w(UINT32 offset, UINT32 data, UINT32 mem_mask) {
 						LOG_MSG("blend RGB c_local");
 						break;
 					case 2:		/* a_other */
+						blendr = blendg = blendb = 0; // HACK: Gotta fill them with something --J.C
 //						blendr = blendg = blendb = c_other.rgb.a;
 						LOG_MSG("blend RGB a_other");
 						break;
@@ -2419,10 +2420,12 @@ void lfb_w(UINT32 offset, UINT32 data, UINT32 mem_mask) {
 						LOG_MSG("blend RGB a_local");
 						break;
 					case 4:		/* texture alpha */
+						blendr = blendg = blendb = 0; // HACK: Gotta fill them with something --J.C
 //						blendr = blendg = blendb = texel.rgb.a;
 						LOG_MSG("blend RGB texture alpha");
 						break;
 					case 5:		/* texture RGB (Voodoo 2 only) */
+						blendr = blendg = blendb = 0; // HACK: Gotta fill them with something --J.C
 /*						blendr = texel.rgb.r;
 						blendg = texel.rgb.g;
 						blendb = texel.rgb.b; */
@@ -2442,6 +2445,7 @@ void lfb_w(UINT32 offset, UINT32 data, UINT32 mem_mask) {
 //						LOG_MSG("blend alpha a_local");
 						break;
 					case 2:		/* a_other */
+						blenda = 0; /* HACK: gotta fill it with something */
 //						blenda = c_other.rgb.a;
 						LOG_MSG("blend alpha a_other");
 						break;
@@ -2450,6 +2454,7 @@ void lfb_w(UINT32 offset, UINT32 data, UINT32 mem_mask) {
 						LOG_MSG("blend alpha a_local");
 						break;
 					case 4:		/* texture alpha */
+						blenda = 0; /* HACK: gotta fill it with something */
 //						blenda = texel.rgb.a;
 						LOG_MSG("blend alpha texture alpha");
 						break;
@@ -3148,7 +3153,7 @@ void fastfill(voodoo_state *v)
 	/* fill in a block of extents */
 	extents[0].startx = sx;
 	extents[0].stopx = ex;
-	for (extnum = 1; extnum < ARRAY_LENGTH(extents); extnum++)
+	for (extnum = 1; (size_t)extnum < ARRAY_LENGTH(extents); extnum++)
 		extents[extnum] = extents[0];
 
 	poly_extra_data *extra = new poly_extra_data;
@@ -3160,7 +3165,7 @@ void fastfill(voodoo_state *v)
 		/* iterate over blocks of extents */
 		for (y = sy; y < ey; y += ARRAY_LENGTH(extents))
 		{
-			int count = MIN(ey - y, ARRAY_LENGTH(extents));
+			int count = MIN(((size_t)(ey - y)), ARRAY_LENGTH(extents));
 
 			extra->state = v;
 			memcpy(extra->dither, dithermatrix, sizeof(extra->dither));
