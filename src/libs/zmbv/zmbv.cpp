@@ -194,13 +194,13 @@ INLINE void VideoCodec::AddXorBlock(int vx,int vy,FrameBlock * block) {
 
 template<class P>
 void VideoCodec::AddXorFrame(void) {
-	int written=0;
-	int lastvector=0;
+//	int written=0;
+//	int lastvector=0;
 	signed char * vectors=(signed char*)&work[workUsed];
 	/* Align the following xor data on 4 byte boundary*/
 	workUsed=(workUsed + blockcount*2 +3) & ~3;
-	int totalx=0;
-	int totaly=0;
+//	int totalx=0;
+//	int totaly=0;
 	for (int b=0;b<blockcount;b++) {
 		FrameBlock * block=&blocks[b];
 		int bestvx = 0;
@@ -350,6 +350,8 @@ int VideoCodec::FinishCompressFrame( void ) {
 		case ZMBV_FORMAT_32BPP:
 			AddXorFrame<long>();
 			break;
+		default:
+			break;
 		}
 	}
 	/* Create the actual frame with compression */
@@ -360,7 +362,7 @@ int VideoCodec::FinishCompressFrame( void ) {
 	zstream.next_out = (Bytef *)(compress.writeBuf + compress.writeDone);
 	zstream.avail_out = compress.writeSize - compress.writeDone;
 	zstream.total_out = 0;
-	int res = deflate(&zstream, Z_SYNC_FLUSH);
+	deflate(&zstream, Z_SYNC_FLUSH);
 	return compress.writeDone + zstream.total_out;
 }
 
@@ -430,7 +432,7 @@ bool VideoCodec::DecompressFrame(void * framedata, int size) {
 	zstream.next_out = (Bytef *)work;
 	zstream.avail_out = bufsize;
 	zstream.total_out = 0;
-	int res = inflate(&zstream, Z_FINISH);
+	inflate(&zstream, Z_FINISH);
 	workUsed= zstream.total_out;
 	workPos = 0;
 	if (tag & Mask_KeyFrame) {
@@ -470,6 +472,8 @@ bool VideoCodec::DecompressFrame(void * framedata, int size) {
 			break;
 		case ZMBV_FORMAT_32BPP:
 			UnXorFrame<long>();
+			break;
+		default:
 			break;
 		}
 	}
@@ -515,6 +519,8 @@ void VideoCodec::Output_UpsideDown_24(void *output) {
 				*w++ = r[j*4+1];
 				*w++ = r[j*4+2];
 			}
+			break;
+		default:
 			break;
 		}
 
