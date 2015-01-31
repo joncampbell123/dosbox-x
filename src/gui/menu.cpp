@@ -31,7 +31,7 @@
 
 extern bool dos_kernel_disabled;
 
-static std::string MSCDEX_Output(int num) {
+std::string MSCDEX_Output(int num) {
 	std::string MSCDEX_MSG = "GUI: MSCDEX ";
 	std::string MSCDEX_MSG_Failure = "Failure: ";
 	switch (num) {

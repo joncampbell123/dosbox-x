@@ -714,7 +714,7 @@ void PolyList::remove(Poly * const polyToRemove) {
 // TODO: WE NEED TO REFRESH THIS (FROM)
 const Poly *Part::getActivePoly(int num)
 {
-	if( num >= sizeof(activePolys) ) return NULL;
+	if( (size_t)num >= sizeof(activePolys) ) return NULL;
 
 	for( Poly* polyIt = activePolys.getFirst(); polyIt != activePolys.getLast(); polyIt++ ) {
 		if( num == 0 ) return polyIt;
