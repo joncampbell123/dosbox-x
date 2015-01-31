@@ -568,6 +568,8 @@ void INT10_WriteChar(Bit8u chr,Bit8u attr,Bit8u page,Bit16u count,bool showattr)
 			case MCH_AMSTRAD:
 				page=0;
 				break;
+			default:
+				break;
 		}
 	}
 
