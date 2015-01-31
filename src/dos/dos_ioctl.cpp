@@ -116,11 +116,11 @@ bool DOS_IOCTL(void) {
 				reg_al=0x0; //EOF or beyond
 			}
 			Files[handle]->Seek(&oldlocation, DOS_SEEK_SET); //restore filelocation
-			LOG(LOG_IOCTL,LOG_NORMAL)("06:Used Get Input Status on regular file with handle %d",handle);
+			LOG(LOG_IOCTL,LOG_NORMAL)("06:Used Get Input Status on regular file with handle %d",(int)handle);
 		}
 		return true;
 	case 0x07:		/* Get Output Status */
-		LOG(LOG_IOCTL,LOG_NORMAL)("07:Fakes output status is ready for handle %d",handle);
+		LOG(LOG_IOCTL,LOG_NORMAL)("07:Fakes output status is ready for handle %d",(int)handle);
 		reg_al=0xff;
 		return true;
 	case 0x08:		/* Check if block device removable */
@@ -145,7 +145,7 @@ bool DOS_IOCTL(void) {
 		return true;
 	case 0x0A:		/* Is Device of Handle Remote? */
 		reg_dx=0x8000;
-		LOG(LOG_IOCTL,LOG_NORMAL)("0A:Faked output: device of handle %d is remote",handle);
+		LOG(LOG_IOCTL,LOG_NORMAL)("0A:Faked output: device of handle %d is remote",(int)handle);
 		return true;
 	case 0x0B:		/* Set sharing retry count */
 		if (reg_dx==0) {

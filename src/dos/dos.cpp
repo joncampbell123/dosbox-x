@@ -1698,9 +1698,9 @@ public:
 		LOG_MSG("   SDA:          seg 0x%04x:0x%04x\n",DOS_SDA_SEG,DOS_SDA_OFS);
 		LOG_MSG("   CDS:          seg 0x%04x\n",DOS_CDS_SEG);
 		LOG_MSG("   first shell:  seg 0x%04x-0x%04x\n",DOS_FIRST_SHELL,DOS_FIRST_SHELL_END-1);
-		LOG_MSG("[private segment @ this point 0x%04x-0x%04x mem=0x%04x]\n",
+		LOG_MSG("[private segment @ this point 0x%04x-0x%04x mem=0x%04lx]\n",
 			DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END,
-			MEM_TotalPages() << (12 - 4));
+			(unsigned long)(MEM_TotalPages() << (12 - 4)));
 
 		callback[0].Install(DOS_20Handler,CB_IRET,"DOS Int 20");
 		callback[0].Set_RealVec(0x20);

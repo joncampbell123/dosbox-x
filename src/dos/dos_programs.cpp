@@ -919,7 +919,7 @@ public:
 			for(i=0;i<512;i++) real_writeb(0, (load_seg<<4) + i, bootarea.rawdata[i]);
 
 			/* debug */
-			LOG_MSG("Booting guest OS stack_seg=0x%04x load_seg=0x%04x\n",stack_seg,load_seg);
+			LOG_MSG("Booting guest OS stack_seg=0x%04x load_seg=0x%04x\n",(int)stack_seg,(int)load_seg);
  
 			/* create appearance of floppy drive DMA usage (Demon's Forge) */
 			if (!IS_TANDY_ARCH && floppysize!=0) GetDMAChannel(2)->tcount=true;
@@ -1215,7 +1215,7 @@ restart_int:
 		std::string path = "";
 		std::string dpath;
 
-		Bitu c, h, s, sectors; 
+		unsigned int c, h, s, sectors; 
 		Bit64u size = 0;
 
 		if(cmd->FindExist("-?")) {
@@ -2765,7 +2765,7 @@ void KEYB::Run(void) {
 					WriteOut(MSG_Get("PROGRAM_KEYB_SHOWHELP"));
 					break;
 				default:
-					LOG(LOG_DOSMISC,LOG_ERROR)("KEYB:Invalid returncode %x",keyb_error);
+					LOG(LOG_DOSMISC,LOG_ERROR)("KEYB:Invalid returncode %x",(int)keyb_error);
 					break;
 			}
 		}

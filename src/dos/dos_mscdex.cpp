@@ -944,7 +944,7 @@ bool GetMSCDEXDrive(unsigned char drive_letter,CDROM_Interface **_cdrom) {
 
 static Bit16u MSCDEX_IOCTL_Input(PhysPt buffer,Bit8u drive_unit) {
 	Bitu ioctl_fct = mem_readb(buffer);
-	MSCDEX_LOG("MSCDEX: IOCTL INPUT Subfunction %02X",ioctl_fct);
+	MSCDEX_LOG("MSCDEX: IOCTL INPUT Subfunction %02X",(int)ioctl_fct);
 	switch (ioctl_fct) {
 		case 0x00 : /* Get Device Header address */
 					mem_writed(buffer+1,RealMake(mscdex->rootDriverHeaderSeg,0));
@@ -1053,7 +1053,7 @@ static Bit16u MSCDEX_IOCTL_Input(PhysPt buffer,Bit8u drive_unit) {
 					mem_writeb(buffer+10,0x00);
 					break;
 				   };
-		default :	LOG(LOG_MISC,LOG_ERROR)("MSCDEX: Unsupported IOCTL INPUT Subfunction %02X",ioctl_fct);
+		default :	LOG(LOG_MISC,LOG_ERROR)("MSCDEX: Unsupported IOCTL INPUT Subfunction %02X",(int)ioctl_fct);
 					return 0x03;	// invalid function
 	}
 	return 0x00;	// success
@@ -1084,7 +1084,7 @@ static Bit16u MSCDEX_IOCTL_Optput(PhysPt buffer,Bit8u drive_unit) {
 		case 0x05 :	// load media
 					if (!mscdex->LoadUnloadMedia(drive_unit,false)) return 0x02;
 					break;
-		default	:	LOG(LOG_MISC,LOG_ERROR)("MSCDEX: Unsupported IOCTL OUTPUT Subfunction %02X",ioctl_fct);
+		default	:	LOG(LOG_MISC,LOG_ERROR)("MSCDEX: Unsupported IOCTL OUTPUT Subfunction %02X",(int)ioctl_fct);
 					return 0x03;	// invalid function
 	}
 	return 0x00;	// success
