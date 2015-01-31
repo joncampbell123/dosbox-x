@@ -1628,13 +1628,18 @@ void Synth::findPart( const Part *src, Bit8u *index_out )
 
 	part_idx = 0xff;
 	if( src != NULL ) {
-		bool stop;
+#ifdef WIN32_DEBUG
+		bool stop = false;
+#endif
 	
 		part_idx = 0;
-		stop = false;
-
 		for( unsigned int lcv=0; lcv<9; lcv++ ) {
-			if( src == getPart(lcv) ) { stop = true; break; }
+			if( src == getPart(lcv) ) {
+#ifdef WIN32_DEBUG
+				stop = true;
+#endif
+				break;
+			}
 
 			part_idx++;
 		}
@@ -1657,13 +1662,18 @@ void Synth::findPartial( const Partial *src, Bit8u *index_out )
 
 	partials_idx = 0xff;
 	if( src != NULL ) {
-		bool stop;
+#ifdef WIN32_DEBUG
+		bool stop = false;
+#endif
 
 		partials_idx = 0;
-		stop = false;
-
 		for( unsigned int lcv=0; lcv<getPartialLimit(); lcv++ ) {
-			if( src == getPartial(lcv) ) { stop = true; break; }
+			if( src == getPartial(lcv) ) {
+#ifdef WIN32_DEBUG
+				stop = true;
+#endif
+				break;
+			}
 
 			partials_idx++;
 		}
@@ -1940,13 +1950,18 @@ void Synth::findPatchTemp( const MemParams::PatchTemp *src, Bit8u *index_out )
 
 	patchTemp_idx = 0xff;
 	if( src != NULL ) {
-		bool stop;
+#ifdef WIN32_DEBUG
+		bool stop = false;
+#endif
 
 		patchTemp_idx = 0;
-		stop = false;
-
 		for( int lcv=0; lcv<9; lcv++ ) {
-			if( src == &mt32ram.patchTemp[lcv] ) { stop = true; break; }
+			if( src == &mt32ram.patchTemp[lcv] ) {
+#ifdef WIN32_DEBUG
+				stop = true;
+#endif
+				break;
+			}
 
 			patchTemp_idx++;
 		}
@@ -1969,13 +1984,18 @@ void Synth::findPCMWaveEntry( const PCMWaveEntry *src, Bit16u *index_out )
 
 	PCMWaveEntry_idx = 0xffff;
 	if( src != NULL ) {
-		bool stop;
+#ifdef WIN32_DEBUG
+		bool stop = false;
+#endif
 
 		PCMWaveEntry_idx = 0;
-		stop = false;
-
 		for( int lcv=0; lcv<controlROMMap->pcmCount; lcv++ ) {
-			if( src == &pcmWaves[lcv] ) { stop = true; break; }
+			if( src == &pcmWaves[lcv] ) {
+#ifdef WIN32_DEBUG
+				stop = true;
+#endif
+				break;
+			}
 
 			PCMWaveEntry_idx++;
 		}
@@ -2041,13 +2061,18 @@ void Synth::findRhythmTemp( const MemParams::RhythmTemp *src, Bit8u *index_out )
 
 	rhythmTemp_idx = 0xff;
 	if( src != NULL ) {
-		bool stop;
+#ifdef WIN32_DEBUG
+		bool stop = false;
+#endif
 
 		rhythmTemp_idx = 0;
-		stop = false;
-
 		for( int lcv=0; lcv<85; lcv++ ) {
-			if( src == &mt32ram.rhythmTemp[lcv] ) { stop = true; break; }
+			if( src == &mt32ram.rhythmTemp[lcv] ) {
+#ifdef WIN32_DEBUG
+				stop = true;
+#endif
+				break;
+			}
 
 			rhythmTemp_idx++;
 		}
@@ -2070,13 +2095,18 @@ void Synth::findTimbreParam( const TimbreParam *src, Bit8u *index_out )
 
 	timbreParam_idx = 0xff;
 	if( src != NULL ) {
-		bool stop;
+#ifdef WIN32_DEBUG
+		bool stop = false;
+#endif
 
 		timbreParam_idx = 0;
-		stop = false;
-
 		for( int lcv=0; lcv<8; lcv++ ) {
-			if( src == &mt32ram.timbreTemp[lcv] ) { stop = true; break; }
+			if( src == &mt32ram.timbreTemp[lcv] ) {
+#ifdef WIN32_DEBUG
+				stop = true;
+#endif
+				break;
+			}
 
 			timbreParam_idx++;
 		}
