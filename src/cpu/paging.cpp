@@ -314,8 +314,8 @@ static void PAGING_NewPageFault(PhysPt lin_addr, Bitu page_addr, bool prepare_on
 		 *                   reports an anomaly in it's cache, and then segfaults. core=normal may work,
 		 *                   but is guaranteed to crash if you're in Windows 3.1 and you enter the DOS
 		 *                   box. */
-		LOG_MSG("DEBUG: Using non-recursive page fault for lin=0x%08x page=0x%08x faultcode=%u. Wish me luck.\n",
-			lin_addr,page_addr,faultcode);
+		LOG_MSG("DEBUG: Using non-recursive page fault for lin=0x%08lx page=0x%08lx faultcode=%u. Wish me luck.\n",
+			(unsigned long)lin_addr,(unsigned long)page_addr,(unsigned int)faultcode);
 		throw GuestPageFaultException(lin_addr,page_addr,faultcode);
 	} else {
 		// Save the state of the cpu cores
@@ -325,7 +325,7 @@ static void PAGING_NewPageFault(PhysPt lin_addr, Bitu page_addr, bool prepare_on
 		old_cpudecoder=cpudecoder;
 		cpudecoder=&PageFaultCore;
 		if (pf_queue.used >= PF_QUEUESIZE) E_Exit("PF queue overrun.");
-		if (pf_queue.used != 0) LOG_MSG("Warning: PAGING_NewPageFault() more than one level, now using level %d\n",pf_queue.used+1);
+		if (pf_queue.used != 0) LOG_MSG("Warning: PAGING_NewPageFault() more than one level, now using level %d\n",(int)pf_queue.used+1);
 		PF_Entry * entry=&pf_queue.entries[pf_queue.used++];
 		entry->cs=SegValue(cs);
 		entry->eip=reg_eip;
@@ -335,7 +335,7 @@ static void PAGING_NewPageFault(PhysPt lin_addr, Bitu page_addr, bool prepare_on
 		CPU_Exception(EXCEPTION_PF,faultcode);
 		DOSBOX_RunMachine();
 		pf_queue.used--;
-		LOG(LOG_PAGING,LOG_NORMAL)("Left PageFault for %x queue %d",lin_addr,pf_queue.used);
+		LOG(LOG_PAGING,LOG_NORMAL)("Left PageFault for %lx queue %d",(unsigned long)lin_addr,(int)pf_queue.used);
 		memcpy(&lflags,&old_lflags,sizeof(LazyFlags));
 		cpudecoder=old_cpudecoder;
 	}

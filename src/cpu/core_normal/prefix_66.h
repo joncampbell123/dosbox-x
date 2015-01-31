@@ -709,7 +709,7 @@
 				else {GetEAa;Push_32(LoadMd(eaa));}
 				break;
 			default:
-				LOG(LOG_CPU,LOG_ERROR)("CPU:66:GRP5:Illegal call %2X",which);
+				LOG(LOG_CPU,LOG_ERROR)("CPU:66:GRP5:Illegal call %2X",(int)which);
 				goto illegal_opcode;
 			}
 			break;

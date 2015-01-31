@@ -56,7 +56,7 @@
 				}
 				break;
 			default:
-				LOG(LOG_CPU,LOG_ERROR)("GRP6:Illegal call %2X",which);
+				LOG(LOG_CPU,LOG_ERROR)("GRP6:Illegal call %2X",(int)which);
 				goto illegal_opcode;
 			}
 		}
@@ -111,7 +111,7 @@
 					if (CPU_LMSW(*eard)) RUNEXCEPTION();
 					break;
 				default:
-					LOG(LOG_CPU,LOG_ERROR)("Illegal group 7 RM subfunction %d",which);
+					LOG(LOG_CPU,LOG_ERROR)("Illegal group 7 RM subfunction %d",(int)which);
 					goto illegal_opcode;
 					break;
 				}
