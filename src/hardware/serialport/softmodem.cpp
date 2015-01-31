@@ -510,7 +510,7 @@ void CSerialModem::DoCommand() {
 					SendRes(ResERROR);
 					return;
 				default:
-					LOG_MSG("Modem: Unhandled command: &%c%d",cmdchar,ScanNumber(scanbuf));
+					LOG_MSG("Modem: Unhandled command: &%c%d",cmdchar,(int)ScanNumber(scanbuf));
 					break;
 			}
 			break;
@@ -530,7 +530,7 @@ void CSerialModem::DoCommand() {
 					SendRes(ResERROR);
 					return;
 				default:
-					LOG_MSG("Modem: Unhandled command: \\%c%d",cmdchar, ScanNumber(scanbuf));
+					LOG_MSG("Modem: Unhandled command: \\%c%d",cmdchar, (int)ScanNumber(scanbuf));
 					break;
 			}
 			break;
@@ -539,7 +539,7 @@ void CSerialModem::DoCommand() {
 			SendRes(ResOK);
 			return;
 		default:
-			LOG_MSG("Modem: Unhandled command: %c%d",chr,ScanNumber(scanbuf));
+			LOG_MSG("Modem: Unhandled command: %c%d",chr,(int)ScanNumber(scanbuf));
 			break;
 		}
 	}

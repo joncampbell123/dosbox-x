@@ -209,7 +209,7 @@ CParallel::CParallel(CommandLine* cmd, Bitu portnr, Bit8u initirq) {
 			portnr+1,base,cleft.c_str());
 	}
 #endif
-	LOG_MSG("Parallel%d: BASE %xh",portnr+1,base);
+	LOG_MSG("Parallel%d: BASE %xh",(int)portnr+1,(int)base);
 
 	for (Bitu i = 0; i < 3; i++) {
 		/* bugfix: do not register I/O write handler for the status port. it's a *status* port.
@@ -314,7 +314,7 @@ public:
 			if(str=="disabled") {
 				parallelPortObjects[i] = 0;
 			} else {
-				LOG_MSG ("Invalid type for LPT%d.", i + 1);
+				LOG_MSG ("Invalid type for LPT%d.",(int)i + 1);
 				parallelPortObjects[i] = 0;
 			}
 		} // for lpt 1-3

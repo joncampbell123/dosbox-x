@@ -104,17 +104,16 @@ CNullModem::CNullModem(Bitu id, CommandLine* cmd):CSerial (id, cmd) {
 					if (!ClientConnect(new TCPClientSocket(sock)))
 						return;
 				} else {
-					LOG_MSG("Serial%d: -socket parameter missing.",COMNUMBER);
+					LOG_MSG("Serial%d: -socket parameter missing.",(int)COMNUMBER);
 					return;
 				}
 			}
 		} else {
-			LOG_MSG("Serial%d: socket inheritance not supported on this platform.",
-				COMNUMBER);
+			LOG_MSG("Serial%d: socket inheritance not supported on this platform.",(int)COMNUMBER);
 			return;
 		}
 #else
-		LOG_MSG("Serial%d: socket inheritance not available.", COMNUMBER);
+		LOG_MSG("Serial%d: socket inheritance not available.",(int)COMNUMBER);
 #endif
 	} else {
 		// normal server/client
@@ -132,7 +131,7 @@ CNullModem::CNullModem(Bitu id, CommandLine* cmd):CSerial (id, cmd) {
 			if (dtrrespect) {
 				// we connect as soon as DTR is switched on
 				setEvent(SERIAL_NULLMODEM_DTR_EVENT, 50);
-				LOG_MSG("Serial%d: Waiting for DTR...",COMNUMBER);
+				LOG_MSG("Serial%d: Waiting for DTR...",(int)COMNUMBER);
 			} else if (!ClientConnect(
 				new TCPClientSocket((char*)hostnamebuffer,(Bit16u)clientport)))
 				return;
@@ -189,7 +188,7 @@ bool CNullModem::ClientConnect(TCPClientSocket* newsocket) {
 	clientsocket = newsocket;
  
 	if (!clientsocket->isopen) {
-		LOG_MSG("Serial%d: Connection failed.",COMNUMBER);
+		LOG_MSG("Serial%d: Connection failed.",(int)COMNUMBER);
 		delete clientsocket;
 		clientsocket=0;
 		setCD(false);
@@ -200,7 +199,7 @@ bool CNullModem::ClientConnect(TCPClientSocket* newsocket) {
 	// transmit the line status
 	if (!transparent) setRTSDTR(getRTS(), getDTR());
 	rx_state=N_RX_IDLE;
-	LOG_MSG("Serial%d: Connected to %s",COMNUMBER,peernamebuf);
+	LOG_MSG("Serial%d: Connected to %s",(int)COMNUMBER,peernamebuf);
 	setEvent(SERIAL_POLLING_EVENT, 1);
 	setCD(true);
 	return true;
@@ -211,7 +210,7 @@ bool CNullModem::ServerListen() {
 	serversocket = new TCPServerSocket(serverport);
 	if (!serversocket->isopen) return false;
 	LOG_MSG("Serial%d: Nullmodem server waiting for connection on port %d...",
-		COMNUMBER,serverport);
+		(int)COMNUMBER,serverport);
 	setEvent(SERIAL_SERVER_POLLING_EVENT, 50);
 	setCD(false);
 	return true;
@@ -224,7 +223,7 @@ bool CNullModem::ServerConnect() {
 	
 	Bit8u peeripbuf[16];
 	clientsocket->GetRemoteAddressString(peeripbuf);
-	LOG_MSG("Serial%d: A client (%s) has connected.",COMNUMBER,peeripbuf);
+	LOG_MSG("Serial%d: A client (%s) has connected.",(int)COMNUMBER,peeripbuf);
 #if SERIAL_DEBUG
 	log_ser(dbg_aux,"Nullmodem: A client (%s) has connected.", peeripbuf);
 #endif
@@ -246,7 +245,7 @@ void CNullModem::Disconnect() {
 	removeEvent(SERIAL_POLLING_EVENT);
 	removeEvent(SERIAL_RX_EVENT);
 	// it was disconnected; free the socket and restart the server socket
-	LOG_MSG("Serial%d: Disconnected.",COMNUMBER);
+	LOG_MSG("Serial%d: Disconnected.",(int)COMNUMBER);
 	delete clientsocket;
 	clientsocket=0;
 	setDSR(false);
@@ -457,7 +456,7 @@ Bits CNullModem::TelnetEmulation(Bit8u data) {
 	if (telClient.inIAC) {
 		if (telClient.recCommand) {
 			if ((data != 0) && (data != 1) && (data != 3)) {
-				LOG_MSG("Serial%d: Unrecognized telnet option %d",COMNUMBER, data);
+				LOG_MSG("Serial%d: Unrecognized telnet option %d",(int)COMNUMBER, data);
 				if (telClient.command>250) {
 					/* Reject anything we don't recognize */
 					response[0]=0xff;

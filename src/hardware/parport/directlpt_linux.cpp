@@ -44,12 +44,12 @@ CDirectLPT::CDirectLPT (Bitu nr, Bit8u initIrq, CommandLine* cmd)
 	std::string str;
 
 	if(!cmd->FindStringBegin("realport:",str,false)) {
-		LOG_MSG("parallel%d: realport parameter missing.",nr+1);
+		LOG_MSG("parallel%d: realport parameter missing.",(int)nr+1);
 		return;
 	}
 	porthandle = open(str.c_str(), O_RDWR );
 	if(porthandle == -1) {
-		LOG_MSG("parallel%d: Could not open port %s.",nr+1,str.c_str());
+		LOG_MSG("parallel%d: Could not open port %s.",(int)nr+1,str.c_str());
 		if (errno == 2) LOG_MSG ("The specified port does not exist.");
 		else if(errno==EBUSY) LOG_MSG("The specified port is already in use.");
 		else if(errno==EACCES) LOG_MSG("You are not allowed to access this port.");
@@ -58,7 +58,7 @@ CDirectLPT::CDirectLPT (Bitu nr, Bit8u initIrq, CommandLine* cmd)
 	}
 
 	if(ioctl( porthandle, PPCLAIM, NULL ) == -1) {
-		LOG_MSG("parallel%d: failed to claim port.",nr+1);
+		LOG_MSG("parallel%d: failed to claim port.",(int)nr+1);
 		return;
 	}
 	// TODO check return value

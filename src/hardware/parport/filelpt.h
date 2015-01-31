@@ -62,7 +62,7 @@ public:
 
 	bool autofeed;
 	bool ack;
-	Bitu timeout;
+	unsigned int timeout;
 	Bitu lastUsedTick;
 	virtual void handleUpperEvent(Bit16u type);
 };
