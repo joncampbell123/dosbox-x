@@ -412,7 +412,8 @@ static void write_cga_color_select(Bitu val) {
 		vga.attr.overscan_color = 0;
 		break;
 	case M_AMSTRAD: // Amstrad "palette". 0x3D9
-		Bitu x = 0;
+		break;
+	default:
 		break;
 	}
 }
