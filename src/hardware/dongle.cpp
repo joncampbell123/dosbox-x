@@ -32,13 +32,7 @@ More information: http://blogs.conus.info/node/56
 
 */
 
-#define DONGLE_BASE 0x0378
-
-static void DONGLE_disable(Bitu) {
-}
-
-static void DONGLE_enable(Bitu freq) {
-}
+#define DONGLE_BASE		0x0378
 
 #define IS_SET(flag, bit)       ((flag) & (bit))
 
@@ -171,11 +165,8 @@ public:
 
 		WriteHandler.Install(DONGLE_BASE,dongle_write,IO_MB,3);
 		ReadHandler.Install(DONGLE_BASE,dongle_read,IO_MB,3);
-
-		DONGLE_disable(0);
 	}
 	~DONGLE(){
-		DONGLE_disable(0);
 	}
 };
 
