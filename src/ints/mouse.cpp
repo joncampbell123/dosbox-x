@@ -1155,12 +1155,12 @@ void MOUSE_Init(Section* sec) {
 	Section_prop *section=static_cast<Section_prop *>(sec);
 	RealPt i33loc=0;
 
-	if (en_int33=section->Get_bool("int33")) {
+	if ((en_int33=section->Get_bool("int33"))) {
 		LOG(LOG_KEYBOARD,LOG_NORMAL)("INT 33H emulation enabled");
 	}
 
 	/* NTS: This assumes MOUSE_Init() is called after KEYBOARD_Init() */
-	if (en_bios_ps2mouse=section->Get_bool("biosps2")) {
+	if ((en_bios_ps2mouse=section->Get_bool("biosps2"))) {
 		if (MouseTypeNone()) {
 			LOG(LOG_KEYBOARD,LOG_WARN)("INT 15H PS/2 emulation NOT enabled. biosps2=1 but mouse type=none");
 		}
