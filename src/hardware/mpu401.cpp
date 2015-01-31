@@ -616,11 +616,6 @@ static void IMF_Write(Bitu port,Bitu val,Bitu iolen) {
 	LOG(LOG_MISC,LOG_NORMAL)("IMF:Wr %4X,%X",port,val);
 }
 
-static Bitu IMF_Read(Bitu port,Bitu iolen) {
-	LOG(LOG_MISC,LOG_NORMAL)("IMF:Rd %4X",port);
-	return 0x00;
-}
-
 class MPU401:public Module_base{
 private:
 	IO_ReadHandleObject ReadHandler[2];
