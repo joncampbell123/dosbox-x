@@ -309,20 +309,23 @@ void XGA_DrawLineVector(Bitu val) {
 					case 0x02: /* Src is pixel data from PIX_TRANS register */
 						//srcval = tmpval;
 						//LOG_MSG("XGA: DrawRect: Wants data from PIX_TRANS register");
+						srcval = 0;
 						break;
 					case 0x03: /* Src is bitmap data */
 						LOG_MSG("XGA: DrawRect: Wants data from srcdata");
 						//srcval = srcdata;
+						srcval = 0;
 						break;
 					default:
 						LOG_MSG("XGA: DrawRect: Shouldn't be able to get here!");
+						srcval = 0;
 						break;
 				}
 				dstdata = XGA_GetPoint(xat,yat);
 
 				destval = XGA_GetMixResult(mixmode, srcval, dstdata);
 
-                XGA_DrawPoint(xat,yat, destval);
+				XGA_DrawPoint(xat,yat, destval);
 				break;
 			default: 
 				LOG_MSG("XGA: DrawLine: Needs mixmode %x", mixmode);
@@ -403,13 +406,16 @@ void XGA_DrawLineBresenham(Bitu val) {
 						case 0x02: /* Src is pixel data from PIX_TRANS register */
 							//srcval = tmpval;
 							LOG_MSG("XGA: DrawRect: Wants data from PIX_TRANS register");
+							srcval = 0;
 							break;
 						case 0x03: /* Src is bitmap data */
 							LOG_MSG("XGA: DrawRect: Wants data from srcdata");
 							//srcval = srcdata;
+							srcval = 0;
 							break;
 						default:
 							LOG_MSG("XGA: DrawRect: Shouldn't be able to get here!");
+							srcval = 0;
 							break;
 					}
 
@@ -485,20 +491,23 @@ void XGA_DrawRectangle(Bitu val) {
 						case 0x02: /* Src is pixel data from PIX_TRANS register */
 							//srcval = tmpval;
 							LOG_MSG("XGA: DrawRect: Wants data from PIX_TRANS register");
+							srcval = 0;
 							break;
 						case 0x03: /* Src is bitmap data */
 							LOG_MSG("XGA: DrawRect: Wants data from srcdata");
 							//srcval = srcdata;
+							srcval = 0;
 							break;
 						default:
 							LOG_MSG("XGA: DrawRect: Shouldn't be able to get here!");
+							srcval = 0;
 							break;
 					}
 					dstdata = XGA_GetPoint(srcx,srcy);
 
 					destval = XGA_GetMixResult(mixmode, srcval, dstdata);
 
-                    XGA_DrawPoint(srcx,srcy, destval);
+					XGA_DrawPoint(srcx,srcy, destval);
 					break;
 				default: 
 					LOG_MSG("XGA: DrawRect: Needs mixmode %x", mixmode);
@@ -661,10 +670,14 @@ void XGA_DrawWait(Bitu val, Bitu len) {
 							chunksize=16;
 							if(len==4) chunks=2;
 							else chunks = 1;
-                           	break;
+							break;
 						case 0x60: // undocumented guess (but works)
 							chunksize=8;
 							chunks=4;
+							break;
+						default:
+							chunksize=0;
+							chunks=0;
 							break;
 					}
 					
@@ -786,6 +799,7 @@ void XGA_BlitRect(Bitu val) {
 					break;
 				case 0x02: /* Src is pixel data from PIX_TRANS register */
 					LOG_MSG("XGA: DrawPattern: Wants data from PIX_TRANS register");
+					srcval = 0;
 					break;
 				case 0x03: /* Src is bitmap data */
 					srcval = srcdata;
@@ -872,6 +886,7 @@ void XGA_DrawPattern(Bitu val) {
 					break;
 				case 0x02: /* Src is pixel data from PIX_TRANS register */
 					LOG_MSG("XGA: DrawPattern: Wants data from PIX_TRANS register");
+					srcval = 0;
 					break;
 				case 0x03: /* Src is bitmap data */
 					srcval = srcdata;
@@ -988,6 +1003,8 @@ void XGA_SetDualReg(Bit32u& reg, Bitu val) {
 			reg = (reg&0xffff0000)|(val&0x0000ffff);
 		xga.control1 ^= 0x10;
 		break;
+	default:
+		break;
 	}
 }
 
@@ -1002,6 +1019,8 @@ Bitu XGA_GetDualReg(Bit32u reg) {
 		xga.control1 ^= 0x10;
 		if (xga.control1 & 0x10) return reg&0x0000ffff;
 		else return reg>>16;
+	default:
+		break;
 	}
 	return 0;
 }
