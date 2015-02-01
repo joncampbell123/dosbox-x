@@ -85,8 +85,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|x64"
-			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory=".\Release"
+			IntermediateDirectory=".\Release"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC70.vsprops"
 			UseOfMFC="0"
@@ -114,7 +114,7 @@
 				AdditionalIncludeDirectories="..\..\include,..\..\include\SDL"
 				PreprocessorDefinitions="_CRT_SECURE_NO_DEPRECATE;WIN32,NDEBUG,_WINDOWS"
 				StringPooling="true"
-				RuntimeLibrary="2"
+				RuntimeLibrary="1"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile=".\Release/SDLmain.pch"
@@ -245,7 +245,7 @@
 				AdditionalIncludeDirectories="..\..\include,..\..\include\SDL"
 				PreprocessorDefinitions="_CRT_SECURE_NO_DEPRECATE;WIN32,NDEBUG,_WINDOWS,NO_STDIO_REDIRECT"
 				StringPooling="true"
-				RuntimeLibrary="2"
+				RuntimeLibrary="1"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile=".\Release_NOSTDIO/SDLmain.pch"
@@ -346,8 +346,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|x64"
-			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory=".\Debug"
+			IntermediateDirectory=".\Debug"
 			ConfigurationType="4"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC70.vsprops"
 			UseOfMFC="0"
@@ -374,7 +374,7 @@
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\include,..\..\include\SDL"
 				PreprocessorDefinitions="_CRT_SECURE_NO_DEPRECATE;WIN32,_DEBUG,_WINDOWS"
-				RuntimeLibrary="2"
+				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile=".\Debug/SDLmain.pch"
 				WarningLevel="3"

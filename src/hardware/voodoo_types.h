@@ -305,7 +305,7 @@ INLINE INT32 mul_32x32_shift(INT32 a, INT32 b, INT8 shift)
 {
 	INT32 result;
 
-#if defined _MSC_VER
+#if defined(_MSC_VER) && defined(_M_IX86)
     __asm
     {
         mov   eax,a

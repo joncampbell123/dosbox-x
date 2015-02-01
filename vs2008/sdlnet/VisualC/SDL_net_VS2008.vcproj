@@ -108,7 +108,7 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|x64"
-			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)/.."
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="2"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
@@ -139,13 +139,11 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
+				AdditionalIncludeDirectories="$(SolutionDir)/../include;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/sdl/include;$(SolutionDir)/libpng;$(SolutionDir)/sdlnet"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS"
 				MinimalRebuild="true"
-				RuntimeLibrary="2"
+				RuntimeLibrary="1"
 				PrecompiledHeaderFile=".\Debug/SDL_net.pch"
-				AssemblerListingLocation=".\Debug/"
-				ObjectFile=".\Debug/"
-				ProgramDataBaseFileName=".\Debug/"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
@@ -163,8 +161,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib iphlpapi.lib SDL.lib"
-				OutputFile=".\Debug/SDL_net.dll"
+				AdditionalDependencies="wsock32.lib iphlpapi.lib"
+				OutputFile="$(OutDir)\SDL_net.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				GenerateDebugInformation="true"
@@ -286,7 +284,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|x64"
-			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)/.."
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="2"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
@@ -318,9 +316,10 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
+				AdditionalIncludeDirectories="$(SolutionDir)/../include;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/sdl/include;$(SolutionDir)/libpng;$(SolutionDir)/sdlnet"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS"
 				StringPooling="true"
-				RuntimeLibrary="2"
+				RuntimeLibrary="1"
 				EnableFunctionLevelLinking="true"
 				PrecompiledHeaderFile=".\Release/SDL_net.pch"
 				WarningLevel="3"
@@ -339,8 +338,8 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ws2_32.lib iphlpapi.lib SDL.lib"
-				OutputFile=".\Release/SDL_net.dll"
+				AdditionalDependencies="wsock32.lib iphlpapi.lib"
+				OutputFile="$(OutDir)\SDL_net.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				ProgramDatabaseFile=".\Release/SDL_net.pdb"

@@ -819,7 +819,7 @@ INLINE UINT8 count_leading_zeros(UINT32 value)
 {
 	INT32 result;
 
-#if defined _MSC_VER
+#if defined(_MSC_VER) && defined(_M_IX86)
     __asm
     {
     	bsr   eax,value

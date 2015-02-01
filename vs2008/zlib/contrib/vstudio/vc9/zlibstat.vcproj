@@ -96,8 +96,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|x64"
-			OutputDirectory="x64\ZlibStat$(ConfigurationName)"
-			IntermediateDirectory="x64\ZlibStat$(ConfigurationName)\Tmp"
+			OutputDirectory="$(SolutionDir)/.."
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\VCProjectDefaults\UpgradeFromVC70.vsprops"
 			UseOfMFC="0"
@@ -123,9 +123,9 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\..;..\..\masmx86"
-				PreprocessorDefinitions="ZLIB_WINAPI;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_WARNINGS;WIN64"
+				PreprocessorDefinitions="WIN32;ZLIB_WINAPI;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_WARNINGS"
 				ExceptionHandling="0"
-				RuntimeLibrary="3"
+				RuntimeLibrary="1"
 				BufferSecurityCheck="false"
 				PrecompiledHeaderFile="$(IntDir)/zlibstat.pch"
 				AssemblerListingLocation="$(IntDir)\"
@@ -148,7 +148,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalOptions="/MACHINE:AMD64 /NODEFAULTLIB"
+				AdditionalOptions="/NODEFAULTLIB"
 				OutputFile="$(OutDir)\zlibstat.lib"
 				SuppressStartupBanner="true"
 			/>
@@ -244,8 +244,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|x64"
-			OutputDirectory="x64\ZlibStat$(ConfigurationName)"
-			IntermediateDirectory="x64\ZlibStat$(ConfigurationName)\Tmp"
+			OutputDirectory="$(SolutionDir)/.."
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\VCProjectDefaults\UpgradeFromVC70.vsprops"
 			UseOfMFC="0"
@@ -271,10 +271,10 @@
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..;..\..\masmx86"
-				PreprocessorDefinitions="ZLIB_WINAPI;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_WARNINGS;ASMV;ASMINF;WIN64"
+				PreprocessorDefinitions="WIN32;ZLIB_WINAPI;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_WARNINGS;ASMV;ASMINF"
 				StringPooling="true"
 				ExceptionHandling="0"
-				RuntimeLibrary="2"
+				RuntimeLibrary="1"
 				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="true"
 				PrecompiledHeaderFile="$(IntDir)/zlibstat.pch"
@@ -296,8 +296,8 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalOptions="/MACHINE:AMD64 /NODEFAULTLIB"
-				AdditionalDependencies="..\..\masmx64\gvmat64.obj ..\..\masmx64\inffasx64.obj "
+				AdditionalOptions="/NODEFAULTLIB"
+				AdditionalDependencies="..\..\masmx86\match686.obj ..\..\masmx86\inffas32.obj "
 				OutputFile="$(OutDir)\zlibstat.lib"
 				SuppressStartupBanner="true"
 			/>
@@ -392,8 +392,8 @@
 		</Configuration>
 		<Configuration
 			Name="ReleaseWithoutAsm|x64"
-			OutputDirectory="x64\ZlibStat$(ConfigurationName)"
-			IntermediateDirectory="x64\ZlibStat$(ConfigurationName)\Tmp"
+			OutputDirectory="$(SolutionDir)/.."
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="4"
 			InheritedPropertySheets="C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\VCProjectDefaults\UpgradeFromVC70.vsprops"
 			UseOfMFC="0"
@@ -419,10 +419,10 @@
 				Name="VCCLCompilerTool"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\..;..\..\masmx86"
-				PreprocessorDefinitions="ZLIB_WINAPI;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_WARNINGS;WIN64"
+				PreprocessorDefinitions="WIN32;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_WARNINGS"
 				StringPooling="true"
 				ExceptionHandling="0"
-				RuntimeLibrary="2"
+				RuntimeLibrary="1"
 				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="true"
 				PrecompiledHeaderFile="$(IntDir)/zlibstat.pch"
@@ -444,7 +444,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalOptions="/MACHINE:AMD64 /NODEFAULTLIB"
+				AdditionalOptions="/NODEFAULTLIB"
 				OutputFile="$(OutDir)\zlibstat.lib"
 				SuppressStartupBanner="true"
 			/>

@@ -110,8 +110,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|x64"
-			OutputDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)/.."
+			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC70.vsprops"
 			UseOfMFC="0"
@@ -142,7 +142,7 @@
 				Optimization="0"
 				AdditionalIncludeDirectories="&quot;$(ProjectDir)\..\..\include&quot;"
 				PreprocessorDefinitions="_CRT_SECURE_NO_DEPRECATE;_DEBUG;_WINDOWS;_WIN32_WINNT=0x0400"
-				RuntimeLibrary="2"
+				RuntimeLibrary="1"
 				BufferSecurityCheck="false"
 				UsePrecompiledHeader="0"
 				PrecompiledHeaderFile=".\Debug/SDL.pch"
@@ -166,7 +166,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="winmm.lib dxguid.lib"
-				OutputFile=".\Debug/SDL.dll"
+				OutputFile="$(OutDir)\SDL.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				IgnoreAllDefaultLibraries="false"
@@ -290,8 +290,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|x64"
-			OutputDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)/.."
+			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC70.vsprops"
 			UseOfMFC="0"
@@ -324,7 +324,7 @@
 				AdditionalIncludeDirectories="&quot;$(ProjectDir)\..\..\include&quot;"
 				PreprocessorDefinitions="_CRT_SECURE_NO_DEPRECATE;NDEBUG;_WINDOWS;_WIN32_WINNT=0x0400"
 				StringPooling="true"
-				RuntimeLibrary="2"
+				RuntimeLibrary="1"
 				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -348,7 +348,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="winmm.lib dxguid.lib"
-				OutputFile=".\Release/SDL.dll"
+				OutputFile="$(OutDir)\SDL.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				IgnoreAllDefaultLibraries="false"

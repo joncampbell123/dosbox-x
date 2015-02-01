@@ -1,5 +1,5 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
-
+/* Hand-edited by Jonathan Campbell for Visual Studio 2008 */
 
 /*
  *  Copyright (C) 2002-2013  The DOSBox Team
@@ -48,8 +48,15 @@
    */
 #undef C_DIRECTSERIAL
 
+#ifdef _M_AMD64 /* Microsoft C++ amd64 */
+# undef C_DYNAMIC_X86
+# undef C_TARGETCPU
+#else
+/* The type of cpu this target has */
+#define C_TARGETCPU X86
 /* Define to 1 to use x86 dynamic cpu core */
-#define C_DYNAMIC_X86			1
+# define C_DYNAMIC_X86			1
+#endif
 
 /* Define to 1 to enable fluidsynth MIDI synthesis */
 #undef C_FLUIDSYNTH
@@ -90,9 +97,6 @@
 
 /* Define to 1 to enable screenshots, requires libpng */
 #define C_SSHOT 1
-
-/* The type of cpu this target has */
-#define C_TARGETCPU X86
 
 /* Define to 1 to use a unaligned memory access */
 #define C_UNALIGNED_MEMORY		1
