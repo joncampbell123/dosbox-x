@@ -248,11 +248,12 @@ void				MSG_Loop(void);
 static void check_pic_time() {
 #if C_DEBUG
 	static double p_time = -1;
-	double c_time = PIC_FullIndex() / 1000;
+	double c_time = PIC_FullIndex();
 
 	if (p_time >= 0) {
 		if (c_time < p_time)
-			LOG_MSG("PIC_FullIndex() jumped backwards by %.40f\n",p_time - c_time);
+			LOG_MSG("PIC_FullIndex() jumped backwards by %.40f cycles_max=%d cycles_left=%d cycles=%d nd=%d\n",
+				p_time - c_time,(int)CPU_CycleMax,(int)CPU_CycleLeft,(int)CPU_Cycles,(int)PIC_TickIndexND());
 	}
 
 	p_time = c_time;
