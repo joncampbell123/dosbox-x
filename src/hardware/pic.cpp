@@ -602,8 +602,8 @@ void TIMER_AddTick(void) {
 		PIC_benchstart = ticks;
 		PIC_tickstart = PIC_Ticks;
 	}
-	CPU_CycleLeft=CPU_CycleMax;
-	CPU_Cycles=0;
+	CPU_CycleLeft += CPU_CycleMax + CPU_Cycles;
+	CPU_Cycles = 0;
 	/* Go through the list of scheduled events and lower their index with 1000 */
 	PICEntry * entry=pic_queue.next_entry;
 	while (entry) {
