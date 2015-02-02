@@ -108,32 +108,11 @@ public:
 		}
 	}
 	virtual void notify_advance(unsigned long long wc) { /* override me! */
-		for (size_t i=0;i < slaves.size();i++) slaves[i]->advance(wc);
 	}
 	virtual void notify_rebase() { /* override me! */
-		for (size_t i=0;i < slaves.size();i++) slaves[i]->notify_rebase();
-	}
-	void add_slave(ClockDomain *s) {
-		assert(s != NULL);
-		if (s->master_clock != NULL) {
-			LOG_MSG("Clock domain %s warning: attempting to add slave clock %s when said clock is already slave to someone else\n",name.c_str(),s->name.c_str());
-			return;
-		}
-
-		for (size_t i=0;i < slaves.size();i++) {
-			if (slaves[i] == s) {
-				LOG_MSG("Clock domain %s warning: attempted to add slave clock %s again\n",name.c_str(),s->name.c_str());
-				return;
-			}
-		}
-
-		s->master = false;
-		s->master_clock = this;
-		slaves.push_back(s);
 	}
 	void snapshot() {
 		counter_whole_snapshot = counter_whole;
-		for (size_t i=0;i < slaves.size();i++) slaves[i]->snapshot();
 	}
 	void remove_event(ClockDomainEventHandler cb,unsigned long long t_clk=CLOCKDOM_DONTCARE,unsigned long long val=CLOCKDOM_DONTCARE) {
 		std::list<ClockDomainEvent>::iterator i;
@@ -194,7 +173,6 @@ public:
 		events.clear();
 	}
 	bool next_event_time(unsigned long long &t_next) {
-		unsigned long long t_slave;
 		bool ret = false;
 
 		if (events.size() != 0) {
@@ -203,17 +181,6 @@ public:
 		}
 		else {
 			t_next = 0;
-		}
-
-		/* and if slave clocks have their own, then report that too */
-		for (size_t i=0;i < slaves.size();i++) {
-			if (slaves[i]->next_event_time(t_slave)) {
-				t_slave *= freq_div;
-				if (ret == false || t_next > t_slave) {
-					t_next = t_slave;
-					ret = true;
-				}
-			}
 		}
 
 		return ret;
@@ -231,9 +198,6 @@ public:
 			events.erase(i);
 			i=events.begin();
 		}
-
-		/* then let the slaves fire their events */
-		for (size_t i=0;i < slaves.size();i++) slaves[i]->fire_events();
 	}
 public:
 	/* NTS: Slave clock rules:
@@ -249,7 +213,6 @@ public:
 	std::string			name;
 	bool				master;
 	ClockDomain*			master_clock;
-	std::vector<ClockDomain*>	slaves;
 	std::list<ClockDomainEvent>	events;		/* <- NTS: I'm tempted to use std::map<> but the most common use of this
 							           event list will be to access the first entry to check if an
 								   event is ready to fire (O(1) time) and it will happen far more

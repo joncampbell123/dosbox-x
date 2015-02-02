@@ -271,7 +271,7 @@ void				MSG_Loop(void);
 #endif
 
 static void check_pic_time() {
-#if C_DEBUG
+#if C_DEBUG && 0
 	static double p_time = -1;
 	double c_time = PIC_FullIndex();
 
