@@ -252,7 +252,7 @@ static void check_pic_time() {
 
 	if (p_time >= 0) {
 		if (c_time < p_time)
-			LOG_MSG("PIC_FullIndex() jumped backwards by %.12f\n",p_time - c_time);
+			LOG_MSG("PIC_FullIndex() jumped backwards by %.40f\n",p_time - c_time);
 	}
 
 	p_time = c_time;
