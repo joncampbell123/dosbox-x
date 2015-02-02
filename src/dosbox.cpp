@@ -302,11 +302,9 @@ static Bitu Normal_Loop(void) {
 			Bit32u ticksNew;
 			ticksNew=GetTicks();
 			if(ticksNew>=Ticks) {
-				CPU_CyclesCur=(cycle_count-CPU_CyclesCur) >> 9;
 				Ticks=ticksNew + 512;		// next update in 512ms
 				frames*=1.953;			// compensate for 512ms interval
 				if(!menu.hidecycles) GFX_SetTitle(CPU_CycleMax,-1,-1,false);
-				CPU_CyclesCur=cycle_count;
 				frames=0;
 			}
 

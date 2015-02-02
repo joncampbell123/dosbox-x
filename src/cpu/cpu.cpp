@@ -125,7 +125,6 @@ Bit32s CPU_CycleLimit = -1;
 Bit32s CPU_CycleUp = 0;
 Bit32s CPU_CycleDown = 0;
 Bit32s CPU_CyclesSet = 3000;
-Bitu CPU_CyclesCur = 0;
 Bit64s CPU_IODelayRemoved = 0;
 char core_mode[16];
 CPU_Decoder * cpudecoder;
