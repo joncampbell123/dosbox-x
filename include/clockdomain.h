@@ -44,14 +44,12 @@ class ClockDomain {
 public:
 	ClockDomain() {
 		freq = 0;
-		freq_mul = 1;
 		freq_div = 1;
 		master = true;
 		master_clock = NULL;
 	}
 	ClockDomain(unsigned long long freq_new) {
 		freq = freq_new;
-		freq_mul = 1;
 		freq_div = 1;
 		master = true;
 		master_clock = NULL;
@@ -63,7 +61,6 @@ public:
 		freq = freq_new;
 		freq_div = div;
 		master = true;
-		freq_mul = 1;
 	}
 public:
 	void set_name(const char *s) {
@@ -205,7 +202,7 @@ public:
 	 *       - Do not set clock time by floating point time (only the toplevel clocks in the tree should do that)
 	 *       - Must rebase at the same reference time as the master
 	 *       - Must maintain time according to master time divided by master's clock divider */
-	unsigned long long		freq,freq_mul,freq_div;	/* NTS: For slave clocks this code assumes freq value is the same, divides only by freq_div */
+	unsigned long long		freq,freq_div;	/* NTS: For slave clocks this code assumes freq value is the same, divides only by freq_div */
 	double				base_f;		/* base time if driven by floating point time */
 	unsigned long long		counter;	/* in units of freq */
 	unsigned long long		counter_whole;	/* in units of freq / freq_div */

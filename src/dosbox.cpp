@@ -270,6 +270,38 @@ void				NE2K_Init(Section* sec);
 void				MSG_Loop(void);
 #endif
 
+/* NTS: At the current time, the master clock is driven by CPU_Cycles/CPU_CyclesMax.
+ *      But as we progress, we'll eventually transition to making PIC_*() functions
+ *      and events, and timer events run from the master clock and the CPU cycles
+ *      count will become some fixed point multiple of the master clock. */
+void pic_to_master_clock() {
+	static signed long long s_prev = 0;
+	signed long long s;
+
+	/* PIC_Ticks (if I read the code correctly) is millisecond ticks, units of 1/1000 seconds.
+	 * PIC_TickIndexND() units of submillisecond time in units of 1/CPU_CycleMax. */
+	s  = (signed long long)PIC_Ticks * master_clockdom->freq;
+	s += ((signed long long)PIC_TickIndexND() * master_clockdom->freq) / (signed long long)CPU_CycleMax;
+	/* convert down to frequency counts, not freq x 1000 */
+	s /= 1000LL * (signed long long)master_clockdom->freq_div;
+
+#if C_DEBUG
+	if (s < s_prev) {
+		/* NTS: This still happens IF you change CPU cycle count at runtime */
+		LOG_MSG("pic_to_master_clock() time jumped backwards by %lld",s_prev - s);
+	}
+#endif
+
+#if 0
+	LOG_MSG("s=%llu (%.6f) rate=%.6f PIC_Ticks=%d ND=%d max=%d cycles=%d left=%d",
+		s,((double)s * master_clockdom->freq_div) / master_clockdom->freq,
+		(double)master_clockdom->freq / master_clockdom->freq_div,
+		PIC_Ticks,PIC_TickIndexND(),CPU_CycleMax,CPU_Cycles,CPU_CycleLeft);
+#endif
+
+	s_prev = s;
+}
+
 static void check_pic_time() {
 #if C_DEBUG && 0
 	static double p_time = -1;
@@ -301,6 +333,7 @@ static Bitu Normal_Loop(void) {
 	Bits ret;
 
 	while (1) {
+		pic_to_master_clock();
 		check_pic_time();
 		if (PIC_RunQueue()) {
 			ticksNew = GetTicks();
