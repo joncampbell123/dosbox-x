@@ -294,18 +294,21 @@ extern bool rom_bios_8x8_cga_font;
 extern bool allow_port_92_reset;
 extern bool allow_keyb_reset;
 
+extern bool DOSBox_Paused();
+
 static Bitu Normal_Loop(void) {
+	Bit32u ticksNew;
 	Bits ret;
+
 	while (1) {
 		check_pic_time();
 		if (PIC_RunQueue()) {
-			Bit32u ticksNew;
-			ticksNew=GetTicks();
-			if(ticksNew>=Ticks) {
-				Ticks=ticksNew + 512;		// next update in 512ms
-				frames*=1.953;			// compensate for 512ms interval
+			ticksNew = GetTicks();
+			if (ticksNew >= Ticks) {
+				Ticks = ticksNew + 500;		// next update in 500ms
+				frames *= 2;			// compensate for 500ms interval
 				if(!menu.hidecycles) GFX_SetTitle(CPU_CycleMax,-1,-1,false);
-				frames=0;
+				frames = 0;
 			}
 
 			/* now is the time to check for the NMI (Non-maskable interrupt) */
@@ -360,11 +363,12 @@ static Bitu Normal_Loop(void) {
 			MSG_Loop();
 #endif
 			GFX_Events();
-			extern bool DOSBox_Paused();
-			if (DOSBox_Paused() == false && ticksRemain>0) {
+			if (DOSBox_Paused() == false && ticksRemain > 0) {
 				TIMER_AddTick();
 				ticksRemain--;
-			} else goto increaseticks;
+			} else {
+				goto increaseticks;
+			}
 		}
 	}
 increaseticks:
