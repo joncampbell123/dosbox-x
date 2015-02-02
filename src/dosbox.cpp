@@ -117,7 +117,6 @@ extern void			GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused)
 extern Bitu			frames;
 extern Bitu			cycle_count;
 extern bool			sse2_available;
-extern ClockDomain		clockdom_8254_PIT;
 extern bool			dynamic_dos_kernel_alloc;
 extern Bitu			DOS_PRIVATE_SEGMENT_Size;
 extern bool			VGA_BIOS_dont_duplicate_CGA_first_half;
@@ -132,16 +131,42 @@ bool				dbg_zero_on_dos_allocmem = true;
 bool				dbg_zero_on_xms_allocmem = true;
 bool				dbg_zero_on_ems_allocmem = true;
 
-/* ISA bus OSC clock (14.31818MHz) */
-/*  +---- / 12 = PIT timer clock 1.1931816666... MHz */
-ClockDomain			clockdom_ISA_OSC(14318180);		/* MASTER 14.31818MHz */
-ClockDomain			clockdom_8254_PIT(14318180,12);		/* SLAVE  14.31818MHz / 12 = 1.1931816666666.... MHz */
+/* the exact frequency of the NTSC color subcarrier ~3.579545454...MHz or 315/88 */
+/* see: http://en.wikipedia.org/wiki/Colorburst */
+#define				NTSC_COLOR_SUBCARRIER_NUM		(315)
+#define				NTSC_COLOR_SUBCARRIER_DEN		(88)
 
-/* ISA bus BCLK clock (8.3333MHz) */
+/* PCI bus clock
+ * Usual setting: 100MHz / 3 = 33.333MHz
+ *                 90MHz / 3 = 30.000MHz */
+ClockDomain			clockdom_PCI_BCLK(100000000,3);		/* MASTER 100MHz / 3 = 33.33333MHz */
+
+/* ISA bus OSC clock (14.31818MHz), using a crystal that is 4x the NTSC subcarrier frequency 3.5795454..MHz */
+ClockDomain			clockdom_ISA_OSC(NTSC_COLOR_SUBCARRIER_NUM*4,NTSC_COLOR_SUBCARRIER_DEN);
+
+/* ISA bus clock (varies between 4.77MHz to 8.333MHz)
+ * PC/XT: ISA oscillator clock (14.31818MHz / 3) = 4.77MHz
+ * Some systems keep CPU synchronous to bus clock: 4.77MHz, 6MHz, 8MHz, 8.333MHz
+ * Later systems: 25MHz / 3 = 8.333MHz
+ *                33MHz / 4 = 8.333MHz
+ * PCI bus systems: PCI bus clock 33MHz / 4 = 8.333MHz (especially Intel chipsets according to PIIX datasheets) */
 ClockDomain			clockdom_ISA_BCLK(25000000,3);		/* MASTER 25000000Hz / 3 = 8.333333MHz */
 
-/* PCI bus clock (33.3333MHz) */
-ClockDomain			clockdom_PCI_BCLK(100000000,3);		/* MASTER 100MHz / 3 = 33.33333MHz */
+/* 8254 PIT. slave to a clock determined by motherboard.
+ * PC/XT: slave to ISA busclock (4.77MHz / 4) = 1.193181MHz
+ * AT/later: ISA oscillator clock (14.31818MHz / 12) */
+/* 14.1818MHz / 12 == (NTSC * 4) / 12 == (NTSC * 4) / (4*3) == NTSC / 3 */
+ClockDomain			clockdom_8254_PIT(NTSC_COLOR_SUBCARRIER_NUM,NTSC_COLOR_SUBCARRIER_DEN*3);
+
+/* 8250 UART.
+ * PC/XT: ??? What did IBM use on the motherboard to drive the UART? Is it some divisor of the ISA OSC clock?? Closest I can calculate: 14.31818MHz / 8 = 1.78MHz.
+ * Other hardware (guess): Independent clock crystal: 115200 * 16 = 1843200Hz = 1.843200MHz based on datasheet (http://www.ti.com/lit/ds/symlink/pc16550d.pdf)
+ *
+ * Feel free to correct me if I'm wrong. */
+ClockDomain			clockdom_8250_UART(115200 * 16);
+
+/* The master clock domain that drives DOSBox timing and events */
+ClockDomain*			master_clockdom = NULL;
 
 Config*				control;
 MachineType			machine;
@@ -540,17 +565,6 @@ void parse_busclk_setting_str(ClockDomain *cd,const char *s) {
 	}
 }
 
-/* tied to ISA BCLK clock. test callback */
-void ISA_BCLK_test_event(ClockDomainEvent *e) {
-	if (e->domain->counter != e->t_clock) {
-		LOG_MSG("%s test event, counter=%llu %lld clocks*div late\n",
-			e->domain->name.c_str(),e->domain->counter,
-			(signed long long)(e->domain->counter - e->t_clock));
-	}
-
-	e->domain->add_event_rel(ISA_BCLK_test_event,e->domain->freq);
-}
-
 unsigned int dosbox_shell_env_size = 0;
 
 static void DOSBOX_RealInit(Section * sec) {
@@ -647,24 +661,15 @@ static void DOSBOX_RealInit(Section * sec) {
 	else
 		parse_busclk_setting_str(&clockdom_PCI_BCLK,pcibclk.c_str());
 
-	/* MASTER: ISA OSC (14.31818MHz) */
 	clockdom_ISA_OSC.set_name("ISA OSC");
-	/* SLAVE: PIT clock */
 	clockdom_8254_PIT.set_name("8254 PIT");
-	clockdom_ISA_OSC.add_slave(&clockdom_8254_PIT);
-
-	/* MASTER: ISA BCLK (bus clock) (8.333333MHz) */
 	clockdom_ISA_BCLK.set_name("ISA BCLK");
-
-	/* MASTER: PCI BCLK (bus clock) (33.333333MHz) FIXME: Only add this clock IF emulating a PCI-based motherboard */
 	clockdom_PCI_BCLK.set_name("PCI BCLK");
 
-	/* MASTER event dispatch testing */
-	clockdom_PCI_BCLK.add_event_rel(ISA_BCLK_test_event,clockdom_PCI_BCLK.freq);
-	clockdom_ISA_BCLK.add_event_rel(ISA_BCLK_test_event,clockdom_ISA_BCLK.freq);
-	clockdom_ISA_OSC.add_event_rel(ISA_BCLK_test_event,clockdom_ISA_OSC.freq);
-	/* SLAVE event dispatch testing */
-	clockdom_8254_PIT.add_event_rel(ISA_BCLK_test_event,clockdom_8254_PIT.freq);
+	/* pick the master clock that determines all timing in DOSBox-X.
+	 * later initialization will select the PCI bus clock if emulating PCI.
+	 * later versions will also allow the user to pick the clock source from dosbox.conf. */
+	master_clockdom = &clockdom_ISA_OSC;
 }
 
 void DOSBOX_Init(void) {

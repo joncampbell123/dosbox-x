@@ -21,6 +21,8 @@
 #define DOSBOX_DOSBOX_H
 
 #include "config.h"
+#include "logging.h"
+#include "clockdomain.h"
 
 class Config;
 class Section;
@@ -81,5 +83,13 @@ void					DOSBOX_Init(void);
 #ifndef DOSBOX_LOGGING_H
 #include "logging.h"
 #endif // the logging system.
+
+extern ClockDomain			clockdom_PCI_BCLK;
+extern ClockDomain			clockdom_ISA_OSC;
+extern ClockDomain			clockdom_ISA_BCLK;
+extern ClockDomain			clockdom_8254_PIT;
+extern ClockDomain			clockdom_8250_UART;
+
+extern ClockDomain*			master_clockdom;
 
 #endif /* DOSBOX_DOSBOX_H */

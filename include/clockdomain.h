@@ -15,6 +15,9 @@
 #include <vector>
 #include <list>
 
+#ifndef DOSBOX_CLOCKDOMAIN_H
+#define DOSBOX_CLOCKDOMAIN_H
+
 class ClockDomain;
 class ClockDomainEvent;
 
@@ -252,4 +255,6 @@ public:
 								   event is ready to fire (O(1) time) and it will happen far more
 								   than the act of inserting events */
 };
+
+#endif //DOSBOX_CLOCKDOMAIN_H
 
