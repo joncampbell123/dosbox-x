@@ -143,9 +143,6 @@ ClockDomain			clockdom_ISA_BCLK(25000000,3);		/* MASTER 25000000Hz / 3 = 8.33333
 /* PCI bus clock (33.3333MHz) */
 ClockDomain			clockdom_PCI_BCLK(100000000,3);		/* MASTER 100MHz / 3 = 33.33333MHz */
 
-/* Clocks to be updated by Normal loop */
-std::list<ClockDomain*>		clockdom_top_update;			/* list of master clocks at the top of the clock tree */
-
 Config*				control;
 MachineType			machine;
 bool				PS1AudioCard;		// Perhaps have PS1 as a machine type...?
@@ -248,73 +245,18 @@ void				NE2K_Init(Section* sec);
 void				MSG_Loop(void);
 #endif
 
-/*================================================ move to it's own source file =============================================*/
-class CLOCKDOM : public Program {
-public:
-	void Run(void) {
-		for (std::list<ClockDomain*>::iterator i=clockdom_top_update.begin();i!=clockdom_top_update.end();i++)
-			(*i)->snapshot();
+static void check_pic_time() {
+#if C_DEBUG
+	static double p_time = -1;
+	double c_time = PIC_FullIndex() / 1000;
 
-		WriteOut("%zu clock domains\n",clockdom_top_update.size());
-		for (std::list<ClockDomain*>::iterator i=clockdom_top_update.begin();i!=clockdom_top_update.end();i++) {
-			WriteOut(" %c  %-15s count=%llu freq=%.1fHz (%llu/%llu)\n",
-				(*i)->master ? 'M' : 'S',
-				(*i)->name.c_str(),
-				(*i)->counter_whole_snapshot,
-				((double)(*i)->freq) / (*i)->freq_div,
-				(*i)->freq,(*i)->freq_div);
-
-			for (std::vector<ClockDomain*>::iterator j=(*i)->slaves.begin();j!=(*i)->slaves.end();j++) {
-				WriteOut(" +%c %-15s count=%llu freq=%.1fHz (%llu/%llu)\n",
-					(*j)->master ? 'M' : 'S',
-					(*j)->name.c_str(),
-					(*j)->counter_whole_snapshot,
-					((double)(*j)->freq) / (*j)->freq_div,
-					(*j)->freq,(*j)->freq_div);
-			}
-		}
+	if (p_time >= 0) {
+		if (c_time < p_time)
+			LOG_MSG("PIC_FullIndex() jumped backwards by %.6f\n",p_time - c_time);
 	}
-};
 
-void CLOCKDOM_ProgramStart(Program * * make) {
-	*make=new CLOCKDOM;
-}
-/*=============================================================================================================================*/
-
-void run_hw() {
-	double f = PIC_FullIndex() / 1000,next_f,p_next_f=0,nudge=0;
-	unsigned long long t_next;
-	unsigned long long t_clk;
-	int patience = 1000;
-	bool again;
-
-	do {
-		again=false;
-		next_f=f;
-
-		for (std::list<ClockDomain*>::iterator i=clockdom_top_update.begin();i!=clockdom_top_update.end();i++) {
-			t_clk = (*i)->time_to_clocks(next_f);
-			if (t_clk < (*i)->counter) t_clk = (*i)->counter;
-			if ((*i)->next_event_time(/*&*/t_next) && t_clk > t_next) {
-				next_f = (*i)->clocks_to_time(t_next);
-				again = true;
-			}
-		}
-
-		/* in case floating point errors cause next_f to NOT QUITE REACH the next event, be prepared to give it a nudge */
-		if (next_f == p_next_f) nudge += 1.0 / 100000000;
-
-		for (std::list<ClockDomain*>::iterator i=clockdom_top_update.begin();i!=clockdom_top_update.end();i++) {
-			t_clk = (*i)->time_to_clocks(next_f+nudge);
-			if (t_clk > (*i)->counter) (*i)->advance(t_clk - (*i)->counter);
-			(*i)->fire_events();
-		}
-
-		p_next_f = next_f;
-	} while (again && --patience > 0);
-
-	if (patience <= 0)
-		LOG_MSG("WARNING: run_hw() one or more clock events are stuck?\n");
+	p_time = c_time;
+#endif
 }
 
 #include "paging.h"
@@ -329,7 +271,7 @@ extern bool allow_keyb_reset;
 static Bitu Normal_Loop(void) {
 	Bits ret;
 	while (1) {
-		run_hw();
+		check_pic_time();
 		if (PIC_RunQueue()) {
 			Bit32u ticksNew;
 			ticksNew=GetTicks();
@@ -706,18 +648,15 @@ static void DOSBOX_RealInit(Section * sec) {
 
 	/* MASTER: ISA OSC (14.31818MHz) */
 	clockdom_ISA_OSC.set_name("ISA OSC");
-	clockdom_top_update.push_back(&clockdom_ISA_OSC);
 	/* SLAVE: PIT clock */
 	clockdom_8254_PIT.set_name("8254 PIT");
 	clockdom_ISA_OSC.add_slave(&clockdom_8254_PIT);
 
 	/* MASTER: ISA BCLK (bus clock) (8.333333MHz) */
 	clockdom_ISA_BCLK.set_name("ISA BCLK");
-	clockdom_top_update.push_back(&clockdom_ISA_BCLK);
 
 	/* MASTER: PCI BCLK (bus clock) (33.333333MHz) FIXME: Only add this clock IF emulating a PCI-based motherboard */
 	clockdom_PCI_BCLK.set_name("PCI BCLK");
-	clockdom_top_update.push_back(&clockdom_PCI_BCLK);
 
 	/* MASTER event dispatch testing */
 	clockdom_PCI_BCLK.add_event_rel(ISA_BCLK_test_event,clockdom_PCI_BCLK.freq);
