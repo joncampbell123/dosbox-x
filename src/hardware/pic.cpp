@@ -562,6 +562,7 @@ bool PIC_RunQueue(void) {
 		}
 		else {
 			LOG_MSG("Bug? master clock domain next event happens before now. It should have fired");
+			CPU_Cycles = CPU_CycleLeft;
 		}
 	}
 	else {
