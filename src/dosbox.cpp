@@ -172,6 +172,7 @@ ClockDomain*			master_clockdom = NULL;
 class ClockDomainConversion {
 public:
 	unsigned long long		mult,div; /* src * mult / div = dst */
+	unsigned long long		rmaster_mult,rmaster_div; /* this clock * mult / div = master clock */
 	ClockDomain*			dst_clock;
 	ClockDomain*			src_clock;
 public:
@@ -179,11 +180,24 @@ public:
 		if (b != 0ULL) return clk_gcd(b,a%b);
 		else return a;
 	}
+	void update_master_muldiv(void) {
+		unsigned long long dv;
+
+		assert(master_clockdom != NULL);
+
+		rmaster_mult = master_clockdom->freq * dst_clock->freq_div;
+		rmaster_div = master_clockdom->freq_div * dst_clock->freq;
+		dv = clk_gcd(rmaster_mult,rmaster_div);
+		rmaster_mult /= dv;
+		rmaster_div /= dv;
+	}
 	ClockDomainConversion(ClockDomain *clk,ClockDomain *s_clk) {
 		unsigned long long dv;
 
 		src_clock = s_clk;
 		dst_clock = clk;
+
+		rmaster_mult = rmaster_div = 0;
 
 		mult = dst_clock->freq * src_clock->freq_div;
 		div = dst_clock->freq_div * src_clock->freq;
@@ -756,11 +770,14 @@ void clocktree_build_conversion_list() {
 	LOG_MSG("New clock tree: Master clock %s",master_clockdom->name.c_str());
 	for (size_t i=0;i < clockdom_tree_conversion_list.size();i++) {
 		ClockDomainConversion &cnv = clockdom_tree_conversion_list[i];
-		LOG_MSG("   ClockDom %s <- %s: %llu/%llu <- %llu/%llu: dst = src * %llu / %llu",
+		cnv.update_master_muldiv();
+
+		LOG_MSG("   ClockDom %s <- %s: %llu/%llu <- %llu/%llu: dst = src * %llu / %llu. master = dst * %llu / %llu",
 			cnv.dst_clock->name.c_str(),cnv.src_clock->name.c_str(),
 			cnv.dst_clock->freq,cnv.dst_clock->freq_div,
 			cnv.src_clock->freq,cnv.src_clock->freq_div,
-			cnv.mult,cnv.div);
+			cnv.mult,cnv.div,
+			cnv.rmaster_mult,cnv.rmaster_div);
 	}
 	LOG_MSG("-----");
 }
