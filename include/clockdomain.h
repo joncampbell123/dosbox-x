@@ -90,8 +90,10 @@ public:
 			if ((*i).cb == cb &&
 				(t_clk == CLOCKDOM_DONTCARE || (*i).t_clock == t_clk) &&
 				(val == CLOCKDOM_DONTCARE || (*i).value == val)) {
-				if ((*i).in_progress) E_Exit("CLOCKDOM: Attempt to remove event that's executing now");
-				break; /* found it */
+				if ((*i).in_progress)
+					return; /* found it, but it's in progress now and will be deleted once the callback finishes */
+				else
+					break; /* found it, exit loop to erase() below */
 			}
 
 			i++;
@@ -107,8 +109,10 @@ public:
 			if ((*i).cb == cb &&
 				(t_clk == CLOCKDOM_DONTCARE || (*i).t_clock == t_clk) &&
 				(val == CLOCKDOM_DONTCARE || (*i).value == val)) {
-				if ((*i).in_progress) E_Exit("CLOCKDOM: Attempt to remove event that's executing now");
-				i = events.erase(i); /* NTS: stl::list.erase() is documented to return iterator to next element that followed the one you erased */
+				if ((*i).in_progress)
+					i++; /* skip over it, event handler will delete when callback finishes */
+				else
+					i = events.erase(i); /* NTS: stl::list.erase() is documented to return iterator to next element that followed the one you erased */
 			}
 			else {
 				i++;
@@ -123,8 +127,10 @@ public:
 			if ((*i).cb_pic == cb_pic &&
 				(t_clk == CLOCKDOM_DONTCARE || (*i).t_clock == t_clk) &&
 				(val == CLOCKDOM_DONTCARE || (*i).value == val)) {
-				if ((*i).in_progress) E_Exit("CLOCKDOM: Attempt to remove PIC event that's executing now");
-				i = events.erase(i); /* NTS: stl::list.erase() is documented to return iterator to next element that followed the one you erased */
+				if ((*i).in_progress)
+					i++; /* skip over it, event handler will delete when callback finishes */
+				else
+					i = events.erase(i); /* NTS: stl::list.erase() is documented to return iterator to next element that followed the one you erased */
 			}
 			else {
 				i++;
