@@ -739,7 +739,6 @@ public:
 	}
 
 	~PIC_8259A(){
-		TIMER_ShutdownTickHandlers();
 	}
 };
 

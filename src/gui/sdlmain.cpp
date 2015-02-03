@@ -3454,6 +3454,8 @@ bool DOSBOX_parse_argv() {
 	return true;
 }
 
+void TIMER_ShutdownTickHandlers();
+
 //extern void UI_Init(void);
 int main(int argc, char* argv[]) {
 	CommandLine com_line(argc,argv);
@@ -3855,6 +3857,7 @@ int main(int argc, char* argv[]) {
 	MAPPER_Shutdown();
 	VFILE_Shutdown();
 	PROGRAMS_Shutdown();
+	TIMER_ShutdownTickHandlers();
 #if C_DEBUG
 	DEBUG_ShutDown(NULL);
 #endif
