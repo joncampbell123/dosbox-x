@@ -344,7 +344,6 @@ void pic_to_master_clock() {
 			ClockDomainConversion &cnv = clockdom_tree_conversion_list[i];
 			cnv.dst_clock->counter = (cnv.src_clock->counter * cnv.mult) / cnv.div;
 		}
-		master_clockdom->fire_events();
 	}
 	s_prev = s;
 }

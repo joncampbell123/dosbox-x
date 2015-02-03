@@ -18,6 +18,9 @@
 #ifndef DOSBOX_CLOCKDOMAIN_H
 #define DOSBOX_CLOCKDOMAIN_H
 
+/* this code contains support for existing DOSBox code that uses PIC_AddEvent, etc. callbacks */
+#include "pic.h"
+
 class ClockDomain;
 class ClockDomainEvent;
 
@@ -32,12 +35,14 @@ public:
 		t_clock = 0;
 		value = 0;
 		cb = NULL;
+		cb_pic = NULL;
 	}
 public:
 	unsigned long long		t_clock;	/* <- at what clock tick to fire (in freq ticks NOT freq/div) */
 	unsigned long long		value;		/* <- this is up to the code assigning the event */
 	ClockDomain*			domain;
 	ClockDomainEventHandler		cb;
+	PIC_EventHandler		cb_pic;
 };
 
 class ClockDomain {
@@ -105,6 +110,21 @@ public:
 			}
 		}
 	}
+	void remove_events_pic(PIC_EventHandler cb_pic,unsigned long long t_clk=CLOCKDOM_DONTCARE,unsigned long long val=CLOCKDOM_DONTCARE) {
+		std::list<ClockDomainEvent>::iterator i;
+
+		i=events.begin();
+		while (i != events.end()) {
+			if ((*i).cb_pic == cb_pic &&
+				(t_clk == CLOCKDOM_DONTCARE || (*i).t_clock == t_clk) &&
+				(val == CLOCKDOM_DONTCARE || (*i).value == val)) {
+				i = events.erase(i); /* NTS: stl::list.erase() is documented to return iterator to next element that followed the one you erased */
+			}
+			else {
+				i++;
+			}
+		}
+	}
 	void add_event(ClockDomainEventHandler cb,unsigned long long t_clk,unsigned long long val=CLOCKDOM_DONTCARE) {
 		std::list<ClockDomainEvent>::iterator i;
 		ClockDomainEvent new_event;
@@ -128,6 +148,30 @@ public:
 	}
 	void add_event_rel(ClockDomainEventHandler cb,unsigned long long t_clk,unsigned long long val=CLOCKDOM_DONTCARE) {
 		add_event(cb,t_clk+counter,val);
+	}
+	void add_event_pic(PIC_EventHandler cb_pic,unsigned long long t_clk,unsigned long long val=CLOCKDOM_DONTCARE) {
+		std::list<ClockDomainEvent>::iterator i;
+		ClockDomainEvent new_event;
+
+		if (t_clk < counter) {
+			LOG_MSG("Clock domain %s warning: attempt to add event prior to NOW\n",name.c_str());
+			t_clk = counter + 1ULL; /* one-clock penalty */
+		}
+
+		new_event.t_clock = t_clk;
+		new_event.cb_pic = cb_pic;
+		new_event.value = val;
+		new_event.domain = this;
+
+		/* locate the slot where the event should be inserted.
+		 * loop should terminate with iterator at end or just before the first item with
+		 * a later t_clock than ours */
+		i=events.begin();
+		while (i != events.end() && (*i).t_clock <= t_clk) i++;
+		events.insert(i,new_event); /* NTS: inserts new item BEFORE the element at iterator i */
+	}
+	void add_event_rel_pic(PIC_EventHandler cb_pic,unsigned long long t_clk,unsigned long long val=CLOCKDOM_DONTCARE) {
+		add_event_pic(cb_pic,t_clk+counter,val);
 	}
 	void remove_all_events() { /* remove all events. do not call them, just remove them */
 		events.clear();
@@ -154,7 +198,8 @@ public:
 			/* NTS: This code must tread carefully and assume that the callback will add another event to the list (or remove some even!).
 			 *      As a linked list we're safe as long as the node we're holding onto still exists after the callback
 			 *      and we do not hold onto any iterators or pointers to the next or previous entries */
-			(*i).cb(&(*i));
+			if ((*i).cb_pic != NULL) (*i).cb_pic((Bitu)(*i).value);
+			if ((*i).cb != NULL) (*i).cb(&(*i));
 			events.erase(i);
 			i=events.begin();
 		}
