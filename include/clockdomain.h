@@ -179,7 +179,7 @@ public:
 	bool next_event_time(unsigned long long &t_next) {
 		bool ret = false;
 
-		if (events.size() != 0) {
+		if (events.begin() != events.end()) {
 			t_next = events.front().t_clock;
 			ret = true;
 		}
