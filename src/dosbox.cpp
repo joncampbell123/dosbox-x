@@ -320,6 +320,18 @@ void pic_to_master_clock() {
 #endif
 	if (s > s_prev) {
 		master_clockdom->counter = (unsigned long long)s;
+		for (size_t i=0;i < clockdom_tree_conversion_list.size();i++) {
+			ClockDomainConversion &cnv = clockdom_tree_conversion_list[i];
+			cnv.dst_clock->counter = (cnv.src_clock->counter * cnv.mult) / cnv.div;
+		}
+#if 0
+		LOG_MSG("Master clock '%s' now %llu",master_clockdom->name.c_str(),master_clockdom->counter);
+		for (size_t i=0;i < clockdom_tree_conversion_list.size();i++) {
+			ClockDomainConversion &cnv = clockdom_tree_conversion_list[i];
+			LOG_MSG("  clock '%s' now %llu",cnv.dst_clock->name.c_str(),cnv.dst_clock->counter);
+		}
+		LOG_MSG("---");
+#endif
 	}
 
 #if 0
