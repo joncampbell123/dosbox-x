@@ -18,6 +18,7 @@
 #ifndef DOSBOX_CLOCKDOMAIN_H
 #define DOSBOX_CLOCKDOMAIN_H
 
+#include "dosbox.h"
 /* this code contains support for existing DOSBox code that uses PIC_AddEvent, etc. callbacks */
 #include "pic.h"
 
@@ -36,8 +37,10 @@ public:
 		value = 0;
 		cb = NULL;
 		cb_pic = NULL;
+		in_progress = false;
 	}
 public:
+	bool				in_progress;
 	unsigned long long		t_clock;	/* <- at what clock tick to fire (in freq ticks NOT freq/div) */
 	unsigned long long		value;		/* <- this is up to the code assigning the event */
 	ClockDomain*			domain;
@@ -87,6 +90,7 @@ public:
 			if ((*i).cb == cb &&
 				(t_clk == CLOCKDOM_DONTCARE || (*i).t_clock == t_clk) &&
 				(val == CLOCKDOM_DONTCARE || (*i).value == val)) {
+				if ((*i).in_progress) E_Exit("CLOCKDOM: Attempt to remove event that's executing now");
 				break; /* found it */
 			}
 
@@ -103,6 +107,7 @@ public:
 			if ((*i).cb == cb &&
 				(t_clk == CLOCKDOM_DONTCARE || (*i).t_clock == t_clk) &&
 				(val == CLOCKDOM_DONTCARE || (*i).value == val)) {
+				if ((*i).in_progress) E_Exit("CLOCKDOM: Attempt to remove event that's executing now");
 				i = events.erase(i); /* NTS: stl::list.erase() is documented to return iterator to next element that followed the one you erased */
 			}
 			else {
@@ -118,6 +123,7 @@ public:
 			if ((*i).cb_pic == cb_pic &&
 				(t_clk == CLOCKDOM_DONTCARE || (*i).t_clock == t_clk) &&
 				(val == CLOCKDOM_DONTCARE || (*i).value == val)) {
+				if ((*i).in_progress) E_Exit("CLOCKDOM: Attempt to remove PIC event that's executing now");
 				i = events.erase(i); /* NTS: stl::list.erase() is documented to return iterator to next element that followed the one you erased */
 			}
 			else {
@@ -198,8 +204,10 @@ public:
 			/* NTS: This code must tread carefully and assume that the callback will add another event to the list (or remove some even!).
 			 *      As a linked list we're safe as long as the node we're holding onto still exists after the callback
 			 *      and we do not hold onto any iterators or pointers to the next or previous entries */
+			(*i).in_progress = true;
 			if ((*i).cb_pic != NULL) (*i).cb_pic((Bitu)(*i).value);
 			if ((*i).cb != NULL) (*i).cb(&(*i));
+			(*i).in_progress = false;
 			events.erase(i);
 			i=events.begin();
 		}

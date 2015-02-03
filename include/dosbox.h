@@ -22,6 +22,9 @@
 
 #include "config.h"
 #include "logging.h"
+
+GCC_ATTRIBUTE(noreturn) void		E_Exit(const char * message,...) GCC_ATTRIBUTE( __format__(__printf__, 1, 2));
+
 #include "clockdomain.h"
 
 class Config;
@@ -59,8 +62,6 @@ extern bool				mainline_compatible_bios_mapping;
 extern bool				sse1_available;
 extern bool				sse2_available;
 #endif
-
-GCC_ATTRIBUTE(noreturn) void		E_Exit(const char * message,...) GCC_ATTRIBUTE( __format__(__printf__, 1, 2));
 
 void					MSG_Add(const char*,const char*); //add messages to the internal languagefile
 const char*				MSG_Get(char const *);     //get messages from the internal languagefile
