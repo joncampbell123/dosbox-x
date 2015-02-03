@@ -41,20 +41,24 @@ static void DOS_Mem_E_Exit(const char *msg) {
 	DOS_MCB mcb(mcb_segment);
 	DOS_MCB mcb_next(0);
 	Bitu counter=0;
-	
+	char c;
+
 	LOG_MSG("DOS MCB dump:\n");
-	while (mcb.GetType()!='Z') {
+	while ((c=mcb.GetType()) != 'Z') {
 		if (counter++ > 10000) break;
+		if (c != 'M') break;
+
 		LOG_MSG(" Type=0x%02x(%c) Seg=0x%04x size=0x%04x\n",
-			mcb.GetType(),mcb.GetType(),
+			mcb.GetType(),c,
 			mcb_segment+1,mcb.GetSize());
 		mcb_next.SetPt((Bit16u)(mcb_segment+mcb.GetSize()+1));
 		mcb_segment+=mcb.GetSize()+1;
 		mcb.SetPt(mcb_segment);
 	}
+
+	c = mcb.GetType(); if (c < 32) c = '.';
 	LOG_MSG("FINAL: Type=0x%02x(%c) Seg=0x%04x size=0x%04x\n",
-			mcb.GetType(),mcb.GetType(),
-			mcb_segment+1,mcb.GetSize());
+		mcb.GetType(),c,mcb_segment+1,mcb.GetSize());
 	LOG_MSG("End dump\n");
 
 	E_Exit(msg);
