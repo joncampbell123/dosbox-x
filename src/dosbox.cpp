@@ -769,7 +769,11 @@ void clocktree_build_conversion_list() {
 	if (master_clockdom != &clockdom_8254_PIT)
 		clockdom_tree_conversion_list.push_back(ClockDomainConversion(&clockdom_8254_PIT,&clockdom_ISA_OSC));
 
-	LOG_MSG("New clock tree: Master clock %s",master_clockdom->name.c_str());
+	LOG_MSG("New clock tree: Master clock %s: %llu/%llu (%.3fHz)",
+		master_clockdom->name.c_str(),
+		master_clockdom->freq,master_clockdom->freq_div,
+		(double)master_clockdom->freq / master_clockdom->freq_div);
+
 	for (size_t i=0;i < clockdom_tree_conversion_list.size();i++) {
 		ClockDomainConversion &cnv = clockdom_tree_conversion_list[i];
 		cnv.update_master_muldiv();
