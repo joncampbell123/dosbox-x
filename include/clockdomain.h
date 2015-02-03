@@ -45,22 +45,16 @@ public:
 	ClockDomain() {
 		freq = 0;
 		freq_div = 1;
-		master = true;
-		master_clock = NULL;
 	}
 	ClockDomain(unsigned long long freq_new) {
 		freq = freq_new;
 		freq_div = 1;
-		master = true;
-		master_clock = NULL;
 	}
 	/* we allow non-integer frequencies as integer fractions.
 	 * example: 33.3333333...MHz as 100,000,000Hz / 3 */
 	ClockDomain(unsigned long long freq_new,unsigned long long div) {
-		master_clock = NULL;
 		freq = freq_new;
 		freq_div = div;
-		master = true;
 	}
 public:
 	void set_name(const char *s) {
@@ -73,43 +67,6 @@ public:
 	}
 	const char *get_name() {
 		return name.c_str();
-	}
-	void set_base(double f) {
-		counter = 0;
-		base_f = f;
-	}
-	double clocks_to_time(unsigned long long t) {
-		double f = (double)t / freq;
-		return f + base_f;
-	}
-	unsigned long long time_to_clocks(double f) {
-		f -= base_f;
-		if (f < 0.0) {
-			LOG_MSG("Clock domain %s warning: time went backwards below base\n",name.c_str());
-			base_f = f;
-			f = 0;
-			notify_rebase();
-			return 0ULL;
-		}
-		else {
-			return (unsigned long long)floor(f*freq);
-		}
-	}
-	void advance(unsigned long long c) { /* where C is units of freq * freq_div */
-		unsigned long long wadv = (counter % freq_div) + c;
-
-		counter += c;
-		if (wadv >= freq_div) {
-			counter_whole += wadv/freq_div;
-			notify_advance(wadv/freq_div);
-		}
-	}
-	virtual void notify_advance(unsigned long long wc) { /* override me! */
-	}
-	virtual void notify_rebase() { /* override me! */
-	}
-	void snapshot() {
-		counter_whole_snapshot = counter_whole;
 	}
 	void remove_event(ClockDomainEventHandler cb,unsigned long long t_clk=CLOCKDOM_DONTCARE,unsigned long long val=CLOCKDOM_DONTCARE) {
 		std::list<ClockDomainEvent>::iterator i;
@@ -203,13 +160,8 @@ public:
 	 *       - Must rebase at the same reference time as the master
 	 *       - Must maintain time according to master time divided by master's clock divider */
 	unsigned long long		freq,freq_div;	/* NTS: For slave clocks this code assumes freq value is the same, divides only by freq_div */
-	double				base_f;		/* base time if driven by floating point time */
 	unsigned long long		counter;	/* in units of freq */
-	unsigned long long		counter_whole;	/* in units of freq / freq_div */
-	unsigned long long		counter_whole_snapshot;
 	std::string			name;
-	bool				master;
-	ClockDomain*			master_clock;
 	std::list<ClockDomainEvent>	events;		/* <- NTS: I'm tempted to use std::map<> but the most common use of this
 							           event list will be to access the first entry to check if an
 								   event is ready to fire (O(1) time) and it will happen far more

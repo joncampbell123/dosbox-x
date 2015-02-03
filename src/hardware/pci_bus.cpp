@@ -371,8 +371,12 @@ public:
 				pci_devices[bus][devct]=NULL;
 
 		/* if the master clock domain is ISA bus, switch to PCI now */
-		if (master_clockdom == &clockdom_ISA_OSC || master_clockdom == &clockdom_ISA_BCLK)
+		if (master_clockdom == &clockdom_ISA_OSC || master_clockdom == &clockdom_ISA_BCLK) {
+			void clocktree_build_conversion_list();
+
 			master_clockdom = &clockdom_PCI_BCLK;
+			clocktree_build_conversion_list();
+		}
 	}
 
 	~PCI() {

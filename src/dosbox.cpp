@@ -133,8 +133,8 @@ bool				dbg_zero_on_ems_allocmem = true;
 
 /* the exact frequency of the NTSC color subcarrier ~3.579545454...MHz or 315/88 */
 /* see: http://en.wikipedia.org/wiki/Colorburst */
-#define				NTSC_COLOR_SUBCARRIER_NUM		(315)
-#define				NTSC_COLOR_SUBCARRIER_DEN		(88)
+#define				NTSC_COLOR_SUBCARRIER_NUM		(315000000ULL)
+#define				NTSC_COLOR_SUBCARRIER_DEN		(88ULL)
 
 /* PCI bus clock
  * Usual setting: 100MHz / 3 = 33.333MHz
@@ -167,6 +167,33 @@ ClockDomain			clockdom_8250_UART(115200 * 16);
 
 /* The master clock domain that drives DOSBox timing and events */
 ClockDomain*			master_clockdom = NULL;
+
+/* how to convert/divide one clock to another */
+class ClockDomainConversion {
+public:
+	unsigned long long		mult,div; /* src * mult / div = dst */
+	ClockDomain*			dst_clock;
+	ClockDomain*			src_clock;
+public:
+	static unsigned long long clk_gcd(unsigned long long a,unsigned long long b) {
+		if (b != 0ULL) return clk_gcd(b,a%b);
+		else return a;
+	}
+	ClockDomainConversion(ClockDomain *clk,ClockDomain *s_clk) {
+		unsigned long long dv;
+
+		src_clock = s_clk;
+		dst_clock = clk;
+
+		mult = dst_clock->freq * src_clock->freq_div;
+		div = dst_clock->freq_div * src_clock->freq;
+		dv = clk_gcd(mult,div);
+		mult /= dv;
+		div /= dv;
+	}
+};
+
+std::vector<ClockDomainConversion>	clockdom_tree_conversion_list;
 
 Config*				control;
 MachineType			machine;
@@ -275,7 +302,7 @@ void				MSG_Loop(void);
  *      and events, and timer events run from the master clock and the CPU cycles
  *      count will become some fixed point multiple of the master clock. */
 void pic_to_master_clock() {
-	static signed long long s_prev = 0;
+	static signed long long s_prev = -1;
 	signed long long s;
 
 	/* PIC_Ticks (if I read the code correctly) is millisecond ticks, units of 1/1000 seconds.
@@ -291,6 +318,9 @@ void pic_to_master_clock() {
 		LOG_MSG("pic_to_master_clock() time jumped backwards by %lld",s_prev - s);
 	}
 #endif
+	if (s > s_prev) {
+		master_clockdom->counter = (unsigned long long)s;
+	}
 
 #if 0
 	LOG_MSG("s=%llu (%.6f) rate=%.6f PIC_Ticks=%d ND=%d max=%d cycles=%d left=%d",
@@ -602,6 +632,8 @@ void parse_busclk_setting_str(ClockDomain *cd,const char *s) {
 
 unsigned int dosbox_shell_env_size = 0;
 
+void clocktree_build_conversion_list();
+
 static void DOSBOX_RealInit(Section * sec) {
 	Section_prop * section=static_cast<Section_prop *>(sec);
 	/* Initialize some dosbox internals */
@@ -698,13 +730,42 @@ static void DOSBOX_RealInit(Section * sec) {
 
 	clockdom_ISA_OSC.set_name("ISA OSC");
 	clockdom_8254_PIT.set_name("8254 PIT");
+	clockdom_8250_UART.set_name("8250 UART");
 	clockdom_ISA_BCLK.set_name("ISA BCLK");
 	clockdom_PCI_BCLK.set_name("PCI BCLK");
 
 	/* pick the master clock that determines all timing in DOSBox-X.
 	 * later initialization will select the PCI bus clock if emulating PCI.
 	 * later versions will also allow the user to pick the clock source from dosbox.conf. */
-	master_clockdom = &clockdom_ISA_OSC;
+	master_clockdom = &clockdom_ISA_BCLK;
+	clocktree_build_conversion_list();
+}
+
+void clocktree_build_conversion_list() {
+	clockdom_tree_conversion_list.clear();
+
+	if (master_clockdom != &clockdom_PCI_BCLK) /* TODO: If pci bus emulation enabled */
+		clockdom_tree_conversion_list.push_back(ClockDomainConversion(&clockdom_PCI_BCLK,master_clockdom));
+	if (master_clockdom != &clockdom_ISA_BCLK)
+		clockdom_tree_conversion_list.push_back(ClockDomainConversion(&clockdom_ISA_BCLK,master_clockdom));
+	if (master_clockdom != &clockdom_ISA_OSC)
+		clockdom_tree_conversion_list.push_back(ClockDomainConversion(&clockdom_ISA_OSC,master_clockdom));
+
+	if (master_clockdom != &clockdom_8250_UART)
+		clockdom_tree_conversion_list.push_back(ClockDomainConversion(&clockdom_8250_UART,master_clockdom));
+	if (master_clockdom != &clockdom_8254_PIT)
+		clockdom_tree_conversion_list.push_back(ClockDomainConversion(&clockdom_8254_PIT,&clockdom_ISA_OSC));
+
+	LOG_MSG("New clock tree: Master clock %s",master_clockdom->name.c_str());
+	for (size_t i=0;i < clockdom_tree_conversion_list.size();i++) {
+		ClockDomainConversion &cnv = clockdom_tree_conversion_list[i];
+		LOG_MSG("   ClockDom %s <- %s: %llu/%llu <- %llu/%llu: dst = src * %llu / %llu",
+			cnv.dst_clock->name.c_str(),cnv.src_clock->name.c_str(),
+			cnv.dst_clock->freq,cnv.dst_clock->freq_div,
+			cnv.src_clock->freq,cnv.src_clock->freq_div,
+			cnv.mult,cnv.div);
+	}
+	LOG_MSG("-----");
 }
 
 void DOSBOX_Init(void) {
