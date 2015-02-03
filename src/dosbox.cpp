@@ -165,6 +165,9 @@ ClockDomain			clockdom_8254_PIT(NTSC_COLOR_SUBCARRIER_NUM,NTSC_COLOR_SUBCARRIER_
  * Feel free to correct me if I'm wrong. */
 ClockDomain			clockdom_8250_UART(115200 * 16);
 
+/* DOSBox cycles count emulation from master clock */
+ClockDomain			clockdom_DOSBox_cycles(3000);
+
 /* The master clock domain that drives DOSBox timing and events */
 ClockDomain*			master_clockdom = NULL;
 
@@ -372,9 +375,16 @@ extern bool allow_keyb_reset;
 
 extern bool DOSBox_Paused();
 
+void update_dosbox_cycles_clock();
+
 static Bitu Normal_Loop(void) {
 	Bit32u ticksNew;
 	Bits ret;
+
+	/* observation: when other parts of DOSBox change CPU_CycleMax, they also set CPU_CyclesLeft == 0
+	 * which would cause PIC_RunQueue() to return false and this code to run through the ticksRemain
+	 * countdown, and possibly exit this function through increaseticks */
+	update_dosbox_cycles_clock();
 
 	while (1) {
 		pic_to_master_clock();
@@ -440,6 +450,7 @@ static Bitu Normal_Loop(void) {
 			MSG_Loop();
 #endif
 			GFX_Events();
+			update_dosbox_cycles_clock();
 			if (DOSBox_Paused() == false && ticksRemain > 0) {
 				TIMER_AddTick();
 				ticksRemain--;
@@ -747,6 +758,7 @@ static void DOSBOX_RealInit(Section * sec) {
 	clockdom_8250_UART.set_name("8250 UART");
 	clockdom_ISA_BCLK.set_name("ISA BCLK");
 	clockdom_PCI_BCLK.set_name("PCI BCLK");
+	clockdom_DOSBox_cycles.set_name("CPU cycles");
 
 	/* pick the master clock that determines all timing in DOSBox-X.
 	 * later initialization will select the PCI bus clock if emulating PCI.
@@ -757,8 +769,56 @@ static void DOSBOX_RealInit(Section * sec) {
 
 extern bool pcibus_enable;
 
+void print_clocktree_conversion_list(ClockDomain *match=NULL) {
+	if (match == NULL) {
+		LOG_MSG("New clock tree: Master clock %s: %llu/%llu (%.3fHz)",
+			master_clockdom->name.c_str(),
+			master_clockdom->freq,master_clockdom->freq_div,
+			(double)master_clockdom->freq / master_clockdom->freq_div);
+	}
+
+	for (size_t i=0;i < clockdom_tree_conversion_list.size();i++) {
+		ClockDomainConversion &cnv = clockdom_tree_conversion_list[i];
+		if (match != NULL && match != cnv.dst_clock) continue;
+
+		LOG_MSG("   ClockDom %s <- %s: %llu/%llu (%.3fHz) <- %llu/%llu (%.3fHz): dst = src * %llu / %llu. master = dst * %llu / %llu",
+			cnv.dst_clock->name.c_str(),cnv.src_clock->name.c_str(),
+			cnv.dst_clock->freq,cnv.dst_clock->freq_div,
+			(double)cnv.dst_clock->freq / cnv.dst_clock->freq_div,
+			cnv.src_clock->freq,cnv.src_clock->freq_div,
+			(double)cnv.src_clock->freq / cnv.src_clock->freq_div,
+			cnv.mult,cnv.div,
+			cnv.dst_clock->rmaster_mult,cnv.dst_clock->rmaster_div);
+	}
+	LOG_MSG("-----");
+}
+
+void update_dosbox_cycles_clock() {
+	if (clockdom_DOSBox_cycles.freq != (unsigned long long)CPU_CycleMax) {
+		clockdom_DOSBox_cycles.set_frequency(CPU_CycleMax);
+
+		/* should be first in the clocktree conversion list */
+		for (size_t i=0;i < clockdom_tree_conversion_list.size();i++) {
+			ClockDomainConversion &cnv = clockdom_tree_conversion_list[i];
+
+			if (cnv.dst_clock == &clockdom_DOSBox_cycles) {
+				cnv = ClockDomainConversion(&clockdom_DOSBox_cycles,master_clockdom);
+				cnv.update_master_muldiv();
+
+				LOG_MSG("Updating DOSBox cycles clock domain for cycles=%lu",(unsigned long)CPU_CycleMax);
+				print_clocktree_conversion_list(&clockdom_DOSBox_cycles);
+				break;
+			}
+		}
+	}
+}
+
 void clocktree_build_conversion_list() {
+	update_dosbox_cycles_clock();
+
 	clockdom_tree_conversion_list.clear();
+
+	clockdom_tree_conversion_list.push_back(ClockDomainConversion(&clockdom_DOSBox_cycles,master_clockdom));
 
 	if (master_clockdom != &clockdom_PCI_BCLK && pcibus_enable)
 		clockdom_tree_conversion_list.push_back(ClockDomainConversion(&clockdom_PCI_BCLK,master_clockdom));
@@ -772,25 +832,10 @@ void clocktree_build_conversion_list() {
 	if (master_clockdom != &clockdom_8254_PIT)
 		clockdom_tree_conversion_list.push_back(ClockDomainConversion(&clockdom_8254_PIT,&clockdom_ISA_OSC));
 
-	LOG_MSG("New clock tree: Master clock %s: %llu/%llu (%.3fHz)",
-		master_clockdom->name.c_str(),
-		master_clockdom->freq,master_clockdom->freq_div,
-		(double)master_clockdom->freq / master_clockdom->freq_div);
+	for (size_t i=0;i < clockdom_tree_conversion_list.size();i++)
+		clockdom_tree_conversion_list[i].update_master_muldiv();
 
-	for (size_t i=0;i < clockdom_tree_conversion_list.size();i++) {
-		ClockDomainConversion &cnv = clockdom_tree_conversion_list[i];
-		cnv.update_master_muldiv();
-
-		LOG_MSG("   ClockDom %s <- %s: %llu/%llu (%.3fHz) <- %llu/%llu (%.3fHz): dst = src * %llu / %llu. master = dst * %llu / %llu",
-			cnv.dst_clock->name.c_str(),cnv.src_clock->name.c_str(),
-			cnv.dst_clock->freq,cnv.dst_clock->freq_div,
-			(double)cnv.dst_clock->freq / cnv.dst_clock->freq_div,
-			cnv.src_clock->freq,cnv.src_clock->freq_div,
-			(double)cnv.src_clock->freq / cnv.src_clock->freq_div,
-			cnv.mult,cnv.div,
-			cnv.dst_clock->rmaster_mult,cnv.dst_clock->rmaster_div);
-	}
-	LOG_MSG("-----");
+	print_clocktree_conversion_list();
 }
 
 class CLOCKDOM : public Program {

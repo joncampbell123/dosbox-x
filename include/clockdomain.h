@@ -66,7 +66,7 @@ public:
 	void set_name(const char *s) {
 		name = s;
 	}
-	void set_frequency(unsigned long long freq_new,unsigned long long div_new) {
+	void set_frequency(unsigned long long freq_new,unsigned long long div_new=1) {
 		counter = 0;
 		freq = freq_new;
 		freq_div = div_new;
