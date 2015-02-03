@@ -324,6 +324,12 @@ void pic_to_master_clock() {
 			ClockDomainConversion &cnv = clockdom_tree_conversion_list[i];
 			cnv.dst_clock->counter = (cnv.src_clock->counter * cnv.mult) / cnv.div;
 		}
+		master_clockdom->fire_events();
+		for (size_t i=0;i < clockdom_tree_conversion_list.size();i++) {
+			ClockDomainConversion &cnv = clockdom_tree_conversion_list[i];
+			cnv.dst_clock->fire_events();
+		}
+
 #if 0
 		LOG_MSG("Master clock '%s' now %llu",master_clockdom->name.c_str(),master_clockdom->counter);
 		for (size_t i=0;i < clockdom_tree_conversion_list.size();i++) {
