@@ -784,6 +784,44 @@ void clocktree_build_conversion_list() {
 	LOG_MSG("-----");
 }
 
+class CLOCKDOM : public Program {
+public:
+	void Run(void) {
+		char tmp[512];
+
+		sprintf(tmp,"Master '%s' at %llu/%llu (%.3fHz) now at %llu (%.6f)\n",
+			master_clockdom->name.c_str(),
+			master_clockdom->freq,master_clockdom->freq_div,
+			(double)master_clockdom->freq / master_clockdom->freq_div,
+			master_clockdom->counter,
+			((double)master_clockdom->counter * master_clockdom->freq_div) / master_clockdom->freq);
+		WriteOut(tmp);
+
+		for (size_t i=0;i < clockdom_tree_conversion_list.size();i++) {
+			ClockDomainConversion &cnv = clockdom_tree_conversion_list[i];
+
+			sprintf(tmp,"Clock '%s' at %llu/%llu (%.3fHz) now at %llu (%.6f)\n",
+				cnv.dst_clock->name.c_str(),
+				cnv.dst_clock->freq,cnv.dst_clock->freq_div,
+				(double)cnv.dst_clock->freq / cnv.dst_clock->freq_div,
+				cnv.dst_clock->counter,
+				((double)cnv.dst_clock->counter * cnv.dst_clock->freq_div) / cnv.dst_clock->freq);
+			WriteOut(tmp);
+
+			sprintf(tmp,"  from clock '%s' at %llu/%llu (%.3fHz) * %llu / %llu\n",
+				cnv.src_clock->name.c_str(),
+				cnv.src_clock->freq,cnv.src_clock->freq_div,
+				(double)cnv.src_clock->freq / cnv.src_clock->freq_div,
+				cnv.mult,cnv.div);
+			WriteOut(tmp);
+		}
+	}
+};
+
+void CLOCKDOM_ProgramStart(Program * * make) {
+	*make=new CLOCKDOM;
+}
+
 void DOSBOX_Init(void) {
 	Prop_int* Pint;
 	Prop_hex* Phex;
