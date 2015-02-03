@@ -41,6 +41,7 @@ static void DOS_Mem_E_Exit(const char *msg) {
 	DOS_MCB mcb(mcb_segment);
 	DOS_MCB mcb_next(0);
 	Bitu counter=0;
+	char name[10];
 	char c;
 
 	LOG_MSG("DOS MCB dump:\n");
@@ -48,17 +49,19 @@ static void DOS_Mem_E_Exit(const char *msg) {
 		if (counter++ > 10000) break;
 		if (c != 'M') break;
 
-		LOG_MSG(" Type=0x%02x(%c) Seg=0x%04x size=0x%04x\n",
+		mcb.GetFileName(name);
+		LOG_MSG(" Type=0x%02x(%c) Seg=0x%04x size=0x%04x name='%s'\n",
 			mcb.GetType(),c,
-			mcb_segment+1,mcb.GetSize());
+			mcb_segment+1,mcb.GetSize(),name);
 		mcb_next.SetPt((Bit16u)(mcb_segment+mcb.GetSize()+1));
 		mcb_segment+=mcb.GetSize()+1;
 		mcb.SetPt(mcb_segment);
 	}
 
+	mcb.GetFileName(name);
 	c = mcb.GetType(); if (c < 32) c = '.';
-	LOG_MSG("FINAL: Type=0x%02x(%c) Seg=0x%04x size=0x%04x\n",
-		mcb.GetType(),c,mcb_segment+1,mcb.GetSize());
+	LOG_MSG("FINAL: Type=0x%02x(%c) Seg=0x%04x size=0x%04x name='%s'\n",
+		mcb.GetType(),c,mcb_segment+1,mcb.GetSize(),name);
 	LOG_MSG("End dump\n");
 
 	E_Exit(msg);
