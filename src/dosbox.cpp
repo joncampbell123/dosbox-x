@@ -190,6 +190,9 @@ public:
 		dv = clk_gcd(rmaster_mult,rmaster_div);
 		rmaster_mult /= dv;
 		rmaster_div /= dv;
+
+		dst_clock->rmaster_mult = rmaster_mult;
+		dst_clock->rmaster_div = rmaster_div;
 	}
 	ClockDomainConversion(ClockDomain *clk,ClockDomain *s_clk) {
 		unsigned long long dv;
@@ -197,7 +200,7 @@ public:
 		src_clock = s_clk;
 		dst_clock = clk;
 
-		rmaster_mult = rmaster_div = 0;
+		rmaster_mult = rmaster_div = 1;
 
 		mult = dst_clock->freq * src_clock->freq_div;
 		div = dst_clock->freq_div * src_clock->freq;
@@ -785,7 +788,7 @@ void clocktree_build_conversion_list() {
 			cnv.src_clock->freq,cnv.src_clock->freq_div,
 			(double)cnv.src_clock->freq / cnv.src_clock->freq_div,
 			cnv.mult,cnv.div,
-			cnv.rmaster_mult,cnv.rmaster_div);
+			cnv.dst_clock->rmaster_mult,cnv.dst_clock->rmaster_div);
 	}
 	LOG_MSG("-----");
 }
