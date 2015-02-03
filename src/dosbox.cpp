@@ -772,10 +772,12 @@ void clocktree_build_conversion_list() {
 		ClockDomainConversion &cnv = clockdom_tree_conversion_list[i];
 		cnv.update_master_muldiv();
 
-		LOG_MSG("   ClockDom %s <- %s: %llu/%llu <- %llu/%llu: dst = src * %llu / %llu. master = dst * %llu / %llu",
+		LOG_MSG("   ClockDom %s <- %s: %llu/%llu (%.3fHz) <- %llu/%llu (%.3fHz): dst = src * %llu / %llu. master = dst * %llu / %llu",
 			cnv.dst_clock->name.c_str(),cnv.src_clock->name.c_str(),
 			cnv.dst_clock->freq,cnv.dst_clock->freq_div,
+			(double)cnv.dst_clock->freq / cnv.dst_clock->freq_div,
 			cnv.src_clock->freq,cnv.src_clock->freq_div,
+			(double)cnv.src_clock->freq / cnv.src_clock->freq_div,
 			cnv.mult,cnv.div,
 			cnv.rmaster_mult,cnv.rmaster_div);
 	}
