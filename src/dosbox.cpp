@@ -792,9 +792,19 @@ void print_clocktree_conversion_list(ClockDomain *match=NULL) {
 	LOG_MSG("-----");
 }
 
+static Bits p_CPU_CycleMax = -1;
+
 void update_dosbox_cycles_clock() {
-	if (clockdom_DOSBox_cycles.freq != (unsigned long long)CPU_CycleMax) {
-		clockdom_DOSBox_cycles.set_frequency(CPU_CycleMax);
+	if (p_CPU_CycleMax != CPU_CycleMax) {
+		p_CPU_CycleMax = CPU_CycleMax;
+
+		/* NTS: This is not explained well in this code at all, but DOSBox cycles count actually
+		 *      represent CPU cycles per millisecond, NOT second. So a cycles count of 5000 means
+		 *      to emulate 5000000 cycles per second. DOSBox's main "normal" loop works with pic.cpp
+		 *      to emulate one millisecond of time using CPU_CycleMax, CPU_Cycles, and CPU_CycleLeft,
+		 *      before making adjustments, counting the millisecond with PIC_Ticks, and then going
+		 *      on to execute another millisecond. */
+		clockdom_DOSBox_cycles.set_frequency((unsigned long long)CPU_CycleMax * 1000ULL);
 
 		/* should be first in the clocktree conversion list */
 		for (size_t i=0;i < clockdom_tree_conversion_list.size();i++) {
