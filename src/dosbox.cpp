@@ -325,24 +325,7 @@ void pic_to_master_clock() {
 			cnv.dst_clock->counter = (cnv.src_clock->counter * cnv.mult) / cnv.div;
 		}
 		master_clockdom->fire_events();
-
-#if 0
-		LOG_MSG("Master clock '%s' now %llu",master_clockdom->name.c_str(),master_clockdom->counter);
-		for (size_t i=0;i < clockdom_tree_conversion_list.size();i++) {
-			ClockDomainConversion &cnv = clockdom_tree_conversion_list[i];
-			LOG_MSG("  clock '%s' now %llu",cnv.dst_clock->name.c_str(),cnv.dst_clock->counter);
-		}
-		LOG_MSG("---");
-#endif
 	}
-
-#if 0
-	LOG_MSG("s=%llu (%.6f) rate=%.6f PIC_Ticks=%d ND=%d max=%d cycles=%d left=%d",
-		s,((double)s * master_clockdom->freq_div) / master_clockdom->freq,
-		(double)master_clockdom->freq / master_clockdom->freq_div,
-		PIC_Ticks,PIC_TickIndexND(),CPU_CycleMax,CPU_Cycles,CPU_CycleLeft);
-#endif
-
 	s_prev = s;
 }
 
