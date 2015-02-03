@@ -752,10 +752,12 @@ static void DOSBOX_RealInit(Section * sec) {
 	clocktree_build_conversion_list();
 }
 
+extern bool pcibus_enable;
+
 void clocktree_build_conversion_list() {
 	clockdom_tree_conversion_list.clear();
 
-	if (master_clockdom != &clockdom_PCI_BCLK) /* TODO: If pci bus emulation enabled */
+	if (master_clockdom != &clockdom_PCI_BCLK && pcibus_enable)
 		clockdom_tree_conversion_list.push_back(ClockDomainConversion(&clockdom_PCI_BCLK,master_clockdom));
 	if (master_clockdom != &clockdom_ISA_BCLK)
 		clockdom_tree_conversion_list.push_back(ClockDomainConversion(&clockdom_ISA_BCLK,master_clockdom));
