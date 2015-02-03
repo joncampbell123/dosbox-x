@@ -6,15 +6,13 @@ VGA raster bugs:
    (but only if the cycles count is greater than about 9000).
 
 Memory corruption bugs:
- - Majic 12 appears to have issues with upper memory blocks or anything
-   in the upper (0xC000-0xCFFF) range. If you run the demo with umb=true
-   or with the private data area in umb, the contents stored up there
-   will be partially or fully zeroed by the demo on shutdown. Worst
-   case scenario the overwritten data will cause DOSBox to crash with
-   an error message stating that the MCBs (Memory Control Block linked
-   list used to manage DOS memory allocations) is corrupt.
-
-   A dump of the MCB list in that case shows MCBs in lower memory
-   (below 640KB) are intact while the MCB chain in upper memory is
-   completely gone!
+ - If UMBs are enabled, Majic 12 will cause an "MCB list corrupted"
+   message after the demo has run, when you run certain other programs
+   like MEM.COM. Apparently Majic 12 overwrites 2 bytes in the
+   last MCB below 640KB at segment 0x9FFF sometime during the demo.
+   The 2 bytes written happen to stomp on the upper 8 bits of some
+   other field and the lower 8 bits of the segment size field. Once
+   the segment size is corrupted, the MCB no longer points to the
+   first block in UMB, and DOSBox detects this as an "MCB list
+   corrupted" error.
 
