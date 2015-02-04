@@ -730,7 +730,7 @@ static void DOSBOX_RealInit(Section * sec) {
 	else if (isabclk == "std6")
 		clockdom_ISA_BCLK.set_frequency(6000000,1);	/* 6MHz */
 	else if (isabclk == "std4.77")
-		clockdom_ISA_BCLK.set_frequency(clockdom_ISA_OSC.freq,3); /* 14.31818MHz / 3 = 4.77MHz */
+		clockdom_ISA_BCLK.set_frequency(clockdom_ISA_OSC.freq,clockdom_ISA_OSC.freq_div*3LL); /* 14.31818MHz / 3 = 4.77MHz */
 	else if (isabclk == "oc10")
 		clockdom_ISA_BCLK.set_frequency(10000000,1);	/* 10MHz */
 	else if (isabclk == "oc12")
