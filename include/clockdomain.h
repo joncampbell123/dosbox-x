@@ -34,6 +34,7 @@ public:
 	ClockDomainEvent() {
 		domain = NULL;
 		t_clock = 0;
+		err = 0;
 		value = 0;
 		cb = NULL;
 		cb_pic = NULL;
@@ -41,6 +42,7 @@ public:
 	}
 public:
 	bool				in_progress;
+	double				err;
 	unsigned long long		t_clock;	/* <- at what clock tick to fire (in freq ticks NOT freq/div) */
 	unsigned long long		value;		/* <- this is up to the code assigning the event */
 	ClockDomain*			domain;
@@ -56,12 +58,15 @@ public:
 		rmaster_mult = 1;
 		rmaster_div = 1;
 		in_progress_base = 0;
+		in_progress_cum_err = 0;
 	}
 	ClockDomain(unsigned long long freq_new) {
 		freq = freq_new;
 		freq_div = 1;
 		rmaster_mult = 1;
 		rmaster_div = 1;
+		in_progress_base = 0;
+		in_progress_cum_err = 0;
 	}
 	/* we allow non-integer frequencies as integer fractions.
 	 * example: 33.3333333...MHz as 100,000,000Hz / 3 */
@@ -70,6 +75,8 @@ public:
 		freq_div = div;
 		rmaster_mult = 1;
 		rmaster_div = 1;
+		in_progress_base = 0;
+		in_progress_cum_err = 0;
 	}
 public:
 	void set_name(const char *s) {
@@ -162,7 +169,7 @@ public:
 	void add_event_rel(ClockDomainEventHandler cb,unsigned long long t_clk,unsigned long long val=CLOCKDOM_DONTCARE) {
 		add_event(cb,t_clk+counter,val);
 	}
-	void add_event_pic(PIC_EventHandler cb_pic,unsigned long long t_clk,unsigned long long val=CLOCKDOM_DONTCARE) {
+	void add_event_pic(PIC_EventHandler cb_pic,unsigned long long t_clk,unsigned long long val=CLOCKDOM_DONTCARE,double err=0.0) {
 		std::list<ClockDomainEvent>::iterator i;
 		ClockDomainEvent new_event;
 
@@ -171,7 +178,11 @@ public:
 			t_clk = counter + 1ULL; /* one-clock penalty */
 		}
 
-		new_event.t_clock = t_clk;
+		signed long long w = (signed long long)floor(err+0.5);
+
+		err -= w;
+		new_event.err = err;
+		new_event.t_clock = t_clk+(unsigned long long)w;
 		new_event.cb_pic = cb_pic;
 		new_event.value = val;
 		new_event.domain = this;
@@ -183,15 +194,15 @@ public:
 		while (i != events.end() && (*i).t_clock <= t_clk) i++;
 		events.insert(i,new_event); /* NTS: inserts new item BEFORE the element at iterator i */
 	}
-	void add_event_rel_pic(PIC_EventHandler cb_pic,unsigned long long t_clk,unsigned long long val=CLOCKDOM_DONTCARE) {
+	void add_event_rel_pic(PIC_EventHandler cb_pic,unsigned long long t_clk,unsigned long long val=CLOCKDOM_DONTCARE,double err=0.0) {
 		/* NTS: If you read the original DOSBox source code, in PIC_AddEvent, you see the same behavior: if a global
 		 *      flag is set that indicates the callbacks are in progress (meaning: PIC_AddEvent was called from within
 		 *      the callback function), then we treat the delay relative to the event we're processing now instead of
 		 *      from the current time. */
 		if (in_progress_base != 0ULL)
-			add_event_pic(cb_pic,t_clk+in_progress_base,val);
+			add_event_pic(cb_pic,t_clk+in_progress_base,val,err+in_progress_cum_err);
 		else
-			add_event_pic(cb_pic,t_clk+counter,val);
+			add_event_pic(cb_pic,t_clk+counter,val,err);
 	}
 	void remove_all_events() { /* remove all events. do not call them, just remove them */
 		events.clear();
@@ -220,6 +231,7 @@ public:
 			 *      and we do not hold onto any iterators or pointers to the next or previous entries */
 			(*i).in_progress = true;
 			in_progress_base = (*i).t_clock;
+			in_progress_cum_err = (*i).err;
 			if ((*i).cb_pic != NULL) (*i).cb_pic((Bitu)(*i).value);
 			if ((*i).cb != NULL) (*i).cb(&(*i));
 			(*i).in_progress = false;
@@ -228,6 +240,7 @@ public:
 		}
 
 		in_progress_base = 0;
+		in_progress_cum_err = 0;
 	}
 public:
 	/* NTS: Slave clock rules:
@@ -239,6 +252,7 @@ public:
 	unsigned long long		rmaster_mult,rmaster_div; /* this clock * mult / div = master clock */
 	unsigned long long		counter;	/* in units of freq */
 	unsigned long long		in_progress_base;
+	double				in_progress_cum_err;
 	std::string			name;
 	std::list<ClockDomainEvent>	events;		/* <- NTS: I'm tempted to use std::map<> but the most common use of this
 							           event list will be to access the first entry to check if an

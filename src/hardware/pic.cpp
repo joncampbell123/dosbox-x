@@ -446,8 +446,14 @@ static void AddEntry(PICEntry * entry) {
 //static float srv_lag = 0;
 
 void PIC_AddEvent(PIC_EventHandler handler,float delay,Bitu val) {
+	unsigned long long n;
+
 	/* NTS: Must not forget, "delay" is in millseconds */
-	master_clockdom->add_event_rel_pic(handler,(unsigned long long)((delay * master_clockdom->freq) / (master_clockdom->freq_div * 1000ULL)),(unsigned long long)val);
+	delay *= master_clockdom->freq;
+	delay /= master_clockdom->freq_div * 1000ULL;
+	n = (unsigned long long)floor(delay+0.5);
+	delay -= n; /* becomes "error" */
+	master_clockdom->add_event_rel_pic(handler,(unsigned long long)n,(unsigned long long)val,delay);
 #if 0
 	if (GCC_UNLIKELY(!pic_queue.free_entry)) {
 		LOG(LOG_PIC,LOG_ERROR)("Event queue full");
