@@ -2883,8 +2883,6 @@ static void NMITEST_ProgramStart(Program * * make) {
 	*make=new NMITEST;
 }
 
-void CLOCKDOM_ProgramStart(Program * * make);
-
 void DOS_SetupPrograms(void) {
 	/*Add Messages */
 
@@ -3226,5 +3224,4 @@ void DOS_SetupPrograms(void) {
 	PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart);
 	PROGRAMS_MakeFile("SHOWGUI.COM",SHOWGUI_ProgramStart);
 	PROGRAMS_MakeFile("NMITEST.COM",NMITEST_ProgramStart);
-	PROGRAMS_MakeFile("CLOCKDOM.COM",CLOCKDOM_ProgramStart);
 }

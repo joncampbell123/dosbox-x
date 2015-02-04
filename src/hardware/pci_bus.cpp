@@ -369,14 +369,6 @@ public:
 		for (Bitu bus=0;bus<PCI_MAX_PCIBUSSES;bus++)
 			for (Bitu devct=0;devct<PCI_MAX_PCIDEVICES;devct++)
 				pci_devices[bus][devct]=NULL;
-
-		/* if the master clock domain is ISA bus, switch to PCI now */
-		if (master_clockdom == &clockdom_ISA_OSC || master_clockdom == &clockdom_ISA_BCLK) {
-			void clocktree_build_conversion_list();
-
-			master_clockdom = &clockdom_PCI_BCLK;
-			clocktree_build_conversion_list();
-		}
 	}
 
 	~PCI() {

@@ -165,53 +165,6 @@ ClockDomain			clockdom_8254_PIT(NTSC_COLOR_SUBCARRIER_NUM,NTSC_COLOR_SUBCARRIER_
  * Feel free to correct me if I'm wrong. */
 ClockDomain			clockdom_8250_UART(115200 * 16);
 
-/* The master clock domain that drives DOSBox timing and events */
-ClockDomain*			master_clockdom = NULL;
-
-/* how to convert/divide one clock to another */
-class ClockDomainConversion {
-public:
-	unsigned long long		mult,div; /* src * mult / div = dst */
-	unsigned long long		rmaster_mult,rmaster_div; /* this clock * mult / div = master clock */
-	ClockDomain*			dst_clock;
-	ClockDomain*			src_clock;
-public:
-	static unsigned long long clk_gcd(unsigned long long a,unsigned long long b) {
-		if (b != 0ULL) return clk_gcd(b,a%b);
-		else return a;
-	}
-	void update_master_muldiv(void) {
-		unsigned long long dv;
-
-		assert(master_clockdom != NULL);
-
-		rmaster_mult = master_clockdom->freq * dst_clock->freq_div;
-		rmaster_div = master_clockdom->freq_div * dst_clock->freq;
-		dv = clk_gcd(rmaster_mult,rmaster_div);
-		rmaster_mult /= dv;
-		rmaster_div /= dv;
-
-		dst_clock->rmaster_mult = rmaster_mult;
-		dst_clock->rmaster_div = rmaster_div;
-	}
-	ClockDomainConversion(ClockDomain *clk,ClockDomain *s_clk) {
-		unsigned long long dv;
-
-		src_clock = s_clk;
-		dst_clock = clk;
-
-		rmaster_mult = rmaster_div = 1;
-
-		mult = dst_clock->freq * src_clock->freq_div;
-		div = dst_clock->freq_div * src_clock->freq;
-		dv = clk_gcd(mult,div);
-		mult /= dv;
-		div /= dv;
-	}
-};
-
-std::vector<ClockDomainConversion>	clockdom_tree_conversion_list;
-
 Config*				control;
 MachineType			machine;
 bool				PS1AudioCard;		// Perhaps have PS1 as a machine type...?
@@ -314,50 +267,49 @@ void				NE2K_Init(Section* sec);
 void				MSG_Loop(void);
 #endif
 
-/* NTS: At the current time, the master clock is driven by CPU_Cycles/CPU_CyclesMax.
- *      But as we progress, we'll eventually transition to making PIC_*() functions
- *      and events, and timer events run from the master clock and the CPU cycles
- *      count will become some fixed point multiple of the master clock. */
-void pic_to_master_clock() {
-	static signed long long s_prev = -1;
+signed long long time_to_clockdom(ClockDomain &src,double t) {
+	signed long long lt = (signed long long)t;
+
+	lt *= (signed long long)src.freq;
+	lt /= (signed long long)src.freq_div;
+	return lt;
+}
+
+unsigned long long update_clockdom_from_now(ClockDomain &dst) {
 	signed long long s;
 
 	/* PIC_Ticks (if I read the code correctly) is millisecond ticks, units of 1/1000 seconds.
 	 * PIC_TickIndexND() units of submillisecond time in units of 1/CPU_CycleMax. */
-	s  = (signed long long)PIC_Ticks * master_clockdom->freq;
-	s += ((signed long long)PIC_TickIndexND() * master_clockdom->freq) / (signed long long)CPU_CycleMax;
+	s  = (signed long long)PIC_Ticks * dst.freq;
+	s += ((signed long long)PIC_TickIndexND() * dst.freq) / (signed long long)CPU_CycleMax;
 	/* convert down to frequency counts, not freq x 1000 */
-	s /= 1000LL * (signed long long)master_clockdom->freq_div;
+	s /= 1000LL * (signed long long)dst.freq_div;
 
-#if C_DEBUG
-	if (s < s_prev) {
-		/* NTS: This still happens IF you change CPU cycle count at runtime */
-		LOG_MSG("pic_to_master_clock() time jumped backwards by %lld",s_prev - s);
-	}
-#endif
-	if (s > s_prev) {
-		master_clockdom->counter = (unsigned long long)s;
-		for (size_t i=0;i < clockdom_tree_conversion_list.size();i++) {
-			ClockDomainConversion &cnv = clockdom_tree_conversion_list[i];
-			cnv.dst_clock->counter = (cnv.src_clock->counter * cnv.mult) / cnv.div;
-		}
-	}
-	s_prev = s;
+	/* guard against time going backwards slightly (as PIC_TickIndexND() will do sometimes by tiny amounts) */
+	if (dst.counter < (unsigned long long)s) dst.counter = (unsigned long long)s;
+
+	return dst.counter;
 }
 
-static void check_pic_time() {
-#if C_DEBUG && 0
-	static double p_time = -1;
-	double c_time = PIC_FullIndex();
+/* for ISA components that rely on dividing down from OSC */
+unsigned long long update_ISA_OSC_clock() {
+	return update_clockdom_from_now(clockdom_ISA_OSC);
+}
 
-	if (p_time >= 0) {
-		if (c_time < p_time)
-			LOG_MSG("PIC_FullIndex() jumped backwards by %.40f cycles_max=%d cycles_left=%d cycles=%d nd=%d\n",
-				p_time - c_time,(int)CPU_CycleMax,(int)CPU_CycleLeft,(int)CPU_Cycles,(int)PIC_TickIndexND());
-	}
+/* for PIT emulation. The PIT ticks at exactly 1/12 the ISA OSC clock. */
+unsigned long long update_8254_PIT_clock() {
+	clockdom_8254_PIT.counter = update_ISA_OSC_clock() / 12ULL;
+	return clockdom_8254_PIT.counter;
+}
 
-	p_time = c_time;
-#endif
+/* for ISA components */
+unsigned long long update_ISA_BCLK_clock() {
+	return update_clockdom_from_now(clockdom_ISA_BCLK);
+}
+
+/* for PCI components */
+unsigned long long update_PCI_BCLK_clock() {
+	return update_clockdom_from_now(clockdom_PCI_BCLK);
 }
 
 #include "paging.h"
@@ -376,8 +328,6 @@ static Bitu Normal_Loop(void) {
 	Bits ret;
 
 	while (1) {
-		pic_to_master_clock();
-		check_pic_time();
 		if (PIC_RunQueue()) {
 			ticksNew = GetTicks();
 			if (ticksNew >= Ticks) {
@@ -746,97 +696,6 @@ static void DOSBOX_RealInit(Section * sec) {
 	clockdom_8250_UART.set_name("8250 UART");
 	clockdom_ISA_BCLK.set_name("ISA BCLK");
 	clockdom_PCI_BCLK.set_name("PCI BCLK");
-
-	/* pick the master clock that determines all timing in DOSBox-X.
-	 * later initialization will select the PCI bus clock if emulating PCI.
-	 * later versions will also allow the user to pick the clock source from dosbox.conf. */
-	master_clockdom = &clockdom_ISA_BCLK;
-	clocktree_build_conversion_list();
-}
-
-extern bool pcibus_enable;
-
-void print_clocktree_conversion_list(ClockDomain *match=NULL) {
-	if (match == NULL) {
-		LOG_MSG("New clock tree: Master clock %s: %llu/%llu (%.3fHz)",
-			master_clockdom->name.c_str(),
-			master_clockdom->freq,master_clockdom->freq_div,
-			(double)master_clockdom->freq / master_clockdom->freq_div);
-	}
-
-	for (size_t i=0;i < clockdom_tree_conversion_list.size();i++) {
-		ClockDomainConversion &cnv = clockdom_tree_conversion_list[i];
-		if (match != NULL && match != cnv.dst_clock) continue;
-
-		LOG_MSG("   ClockDom %s <- %s: %llu/%llu (%.3fHz) <- %llu/%llu (%.3fHz): dst = src * %llu / %llu. master = dst * %llu / %llu",
-			cnv.dst_clock->name.c_str(),cnv.src_clock->name.c_str(),
-			cnv.dst_clock->freq,cnv.dst_clock->freq_div,
-			(double)cnv.dst_clock->freq / cnv.dst_clock->freq_div,
-			cnv.src_clock->freq,cnv.src_clock->freq_div,
-			(double)cnv.src_clock->freq / cnv.src_clock->freq_div,
-			cnv.mult,cnv.div,
-			cnv.dst_clock->rmaster_mult,cnv.dst_clock->rmaster_div);
-	}
-	LOG_MSG("-----");
-}
-
-void clocktree_build_conversion_list() {
-	clockdom_tree_conversion_list.clear();
-
-	if (master_clockdom != &clockdom_PCI_BCLK && pcibus_enable)
-		clockdom_tree_conversion_list.push_back(ClockDomainConversion(&clockdom_PCI_BCLK,master_clockdom));
-	if (master_clockdom != &clockdom_ISA_BCLK)
-		clockdom_tree_conversion_list.push_back(ClockDomainConversion(&clockdom_ISA_BCLK,master_clockdom));
-	if (master_clockdom != &clockdom_ISA_OSC)
-		clockdom_tree_conversion_list.push_back(ClockDomainConversion(&clockdom_ISA_OSC,master_clockdom));
-
-	if (master_clockdom != &clockdom_8250_UART)
-		clockdom_tree_conversion_list.push_back(ClockDomainConversion(&clockdom_8250_UART,master_clockdom));
-	if (master_clockdom != &clockdom_8254_PIT)
-		clockdom_tree_conversion_list.push_back(ClockDomainConversion(&clockdom_8254_PIT,&clockdom_ISA_OSC));
-
-	for (size_t i=0;i < clockdom_tree_conversion_list.size();i++)
-		clockdom_tree_conversion_list[i].update_master_muldiv();
-
-	print_clocktree_conversion_list();
-}
-
-class CLOCKDOM : public Program {
-public:
-	void Run(void) {
-		char tmp[512];
-
-		sprintf(tmp,"Master '%s' at %llu/%llu (%.3fHz) now at %llu (%.6f)\n",
-			master_clockdom->name.c_str(),
-			master_clockdom->freq,master_clockdom->freq_div,
-			(double)master_clockdom->freq / master_clockdom->freq_div,
-			master_clockdom->counter,
-			((double)master_clockdom->counter * master_clockdom->freq_div) / master_clockdom->freq);
-		WriteOut(tmp);
-
-		for (size_t i=0;i < clockdom_tree_conversion_list.size();i++) {
-			ClockDomainConversion &cnv = clockdom_tree_conversion_list[i];
-
-			sprintf(tmp,"Clock '%s' at %llu/%llu (%.3fHz) now at %llu (%.6f)\n",
-				cnv.dst_clock->name.c_str(),
-				cnv.dst_clock->freq,cnv.dst_clock->freq_div,
-				(double)cnv.dst_clock->freq / cnv.dst_clock->freq_div,
-				cnv.dst_clock->counter,
-				((double)cnv.dst_clock->counter * cnv.dst_clock->freq_div) / cnv.dst_clock->freq);
-			WriteOut(tmp);
-
-			sprintf(tmp,"  from clock '%s' at %llu/%llu (%.3fHz) * %llu / %llu\n",
-				cnv.src_clock->name.c_str(),
-				cnv.src_clock->freq,cnv.src_clock->freq_div,
-				(double)cnv.src_clock->freq / cnv.src_clock->freq_div,
-				cnv.mult,cnv.div);
-			WriteOut(tmp);
-		}
-	}
-};
-
-void CLOCKDOM_ProgramStart(Program * * make) {
-	*make=new CLOCKDOM;
 }
 
 void DOSBOX_Init(void) {
