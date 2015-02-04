@@ -6,9 +6,9 @@ VGA raster bugs:
    (but only if the cycles count is greater than about 9000).
 
 Memory corruption bugs:
- - If UMBs are enabled, Majic 12 will cause an "MCB list corrupted"
+ - If UMBs are enabled, Show will cause an "MCB list corrupted"
    message after the demo has run, when you run certain other programs
-   like MEM.COM. Apparently Majic 12 overwrites 2 bytes in the
+   like MEM.COM. Apparently Show overwrites 2 bytes in the
    last MCB below 640KB at segment 0x9FFF sometime during the demo.
    The 2 bytes written happen to stomp on the upper 8 bits of some
    other field and the lower 8 bits of the segment size field. Once
