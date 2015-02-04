@@ -24,9 +24,7 @@
 #include "timer.h"
 #include "setup.h"
 
-#if 0
 #define PIC_QUEUESIZE 512
-#endif
 
 struct PIC_Controller {
 	Bitu icw_words;
@@ -162,7 +160,6 @@ void PIC_Controller::start_irq(Bit8u val){
 	}
 }
 
-#if 0
 struct PICEntry {
 	float index;
 	Bitu value;
@@ -175,7 +172,6 @@ static struct {
 	PICEntry * free_entry;
 	PICEntry * next_entry;
 } pic_queue;
-#endif
 
 static void write_command(Bitu port,Bitu val,Bitu iolen) {
 	PIC_Controller * pic=&pics[port==0x20 ? 0 : 1];
@@ -409,7 +405,6 @@ void PIC_SetIRQMask(Bitu irq, bool masked) {
 	pic->set_imr(newmask);
 }
 
-#if 0
 static void AddEntry(PICEntry * entry) {
 	PICEntry * find_entry=pic_queue.next_entry;
 	if (GCC_UNLIKELY(find_entry ==0)) {
@@ -440,21 +435,11 @@ static void AddEntry(PICEntry * entry) {
 		CPU_Cycles=0;
 	}
 }
-#endif
 
-//static bool InEventService = false;
-//static float srv_lag = 0;
+static bool InEventService = false;
+static float srv_lag = 0;
 
 void PIC_AddEvent(PIC_EventHandler handler,float delay,Bitu val) {
-	unsigned long long n;
-
-	/* NTS: Must not forget, "delay" is in millseconds */
-	delay *= master_clockdom->freq;
-	delay /= master_clockdom->freq_div * 1000ULL;
-	n = (unsigned long long)floor(delay+0.5);
-	delay -= n; /* becomes "error" */
-	master_clockdom->add_event_rel_pic(handler,(unsigned long long)n,(unsigned long long)val,delay);
-#if 0
 	if (GCC_UNLIKELY(!pic_queue.free_entry)) {
 		LOG(LOG_PIC,LOG_ERROR)("Event queue full");
 		return;
@@ -467,12 +452,9 @@ void PIC_AddEvent(PIC_EventHandler handler,float delay,Bitu val) {
 	entry->value=val;
 	pic_queue.free_entry=pic_queue.free_entry->next;
 	AddEntry(entry);
-#endif
 }
 
 void PIC_RemoveSpecificEvents(PIC_EventHandler handler, Bitu val) {
-	master_clockdom->remove_events_pic(handler,CLOCKDOM_DONTCARE,(unsigned long long)val);
-#if 0
 	PICEntry * entry=pic_queue.next_entry;
 	PICEntry * prev_entry;
 	prev_entry = 0;
@@ -495,12 +477,9 @@ void PIC_RemoveSpecificEvents(PIC_EventHandler handler, Bitu val) {
 		prev_entry=entry;
 		entry=entry->next;
 	}	
-#endif
 }
 
 void PIC_RemoveEvents(PIC_EventHandler handler) {
-	master_clockdom->remove_events_pic(handler);
-#if 0
 	PICEntry * entry=pic_queue.next_entry;
 	PICEntry * prev_entry;
 	prev_entry=0;
@@ -523,22 +502,15 @@ void PIC_RemoveEvents(PIC_EventHandler handler) {
 		prev_entry=entry;
 		entry=entry->next;
 	}	
-#endif
 }
 
 extern ClockDomain clockdom_DOSBox_cycles;
 
 bool PIC_RunQueue(void) {
-	unsigned long long nt,cycles;
-
 	/* Check to see if a new millisecond needs to be started */
-	CPU_CycleLeft+=CPU_Cycles;
-	CPU_Cycles=0;
-	if (CPU_CycleLeft <= 0)
-		return false;
+	CPU_CycleLeft += CPU_Cycles; CPU_Cycles = 0;
+	if (CPU_CycleLeft <= 0) return false;
 
-	master_clockdom->fire_events();
-#if 0
 	/* Check the queue for an entry */
 	Bits index_nd=PIC_TickIndexND();
 	InEventService = true;
@@ -554,29 +526,7 @@ bool PIC_RunQueue(void) {
 		pic_queue.free_entry=entry;
 	}
 	InEventService = false;
-#endif
 
-	if (master_clockdom->next_event_time(nt)) {
-		if (nt >= master_clockdom->counter) {
-			/* convert delta to DOSBox cycles counts. use rmaster mult/div to convert backwards from master */
-			cycles  = nt - master_clockdom->counter;
-			cycles *= clockdom_DOSBox_cycles.rmaster_div;
-			cycles /= clockdom_DOSBox_cycles.rmaster_mult;
-			if (cycles == 0) cycles = 1;
-			if (cycles > (unsigned long long)CPU_CycleLeft) cycles = (unsigned long long)CPU_CycleLeft;
-			CPU_Cycles = (Bits)cycles;
-		}
-		else {
-			LOG_MSG("Bug? master clock domain next event happens before now. It should have fired");
-			CPU_Cycles = CPU_CycleLeft;
-		}
-	}
-	else {
-		CPU_Cycles = CPU_CycleLeft;
-	}
-	CPU_CycleLeft -= CPU_Cycles;
-
-#if 0
 	/* Check when to set the new cycle end */
 	if (pic_queue.next_entry) {
 		Bits cycles=(Bits)(pic_queue.next_entry->index*CPU_CycleMax-index_nd);
@@ -588,7 +538,6 @@ bool PIC_RunQueue(void) {
 		}
 	} else CPU_Cycles=CPU_CycleLeft;
 	CPU_CycleLeft-=CPU_Cycles;
-#endif
 
 	if (PIC_IRQCheck)
 		PIC_runIRQs();
@@ -658,14 +607,12 @@ void TIMER_AddTick(void) {
 	CPU_CycleLeft += CPU_CycleMax + CPU_Cycles;
 	CPU_Cycles = 0;
 
-#if 0
 	/* Go through the list of scheduled events and lower their index with 1000 */
 	PICEntry * entry=pic_queue.next_entry;
 	while (entry) {
 		entry->index -= 1.0;
 		entry=entry->next;
 	}
-#endif
 
 	/* Call our list of ticker handlers */
 	TickerBlock * ticker=firstticker;
@@ -730,7 +677,6 @@ public:
 			PCXT_NMI_WriteHandler.Install(0xa0,pc_xt_nmi_write,IO_MB);
 		}
 
-#if 0
 		/* Initialize the pic queue */
 		for (i=0;i<PIC_QUEUESIZE-1;i++) {
 			pic_queue.entries[i].next=&pic_queue.entries[i+1];
@@ -741,7 +687,6 @@ public:
 		pic_queue.entries[PIC_QUEUESIZE-1].next=0;
 		pic_queue.free_entry=&pic_queue.entries[0];
 		pic_queue.next_entry=0;
-#endif
 	}
 
 	~PIC_8259A(){

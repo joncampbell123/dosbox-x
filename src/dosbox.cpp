@@ -165,9 +165,6 @@ ClockDomain			clockdom_8254_PIT(NTSC_COLOR_SUBCARRIER_NUM,NTSC_COLOR_SUBCARRIER_
  * Feel free to correct me if I'm wrong. */
 ClockDomain			clockdom_8250_UART(115200 * 16);
 
-/* DOSBox cycles count emulation from master clock */
-ClockDomain			clockdom_DOSBox_cycles(3000);
-
 /* The master clock domain that drives DOSBox timing and events */
 ClockDomain*			master_clockdom = NULL;
 
@@ -374,16 +371,9 @@ extern bool allow_keyb_reset;
 
 extern bool DOSBox_Paused();
 
-void update_dosbox_cycles_clock();
-
 static Bitu Normal_Loop(void) {
 	Bit32u ticksNew;
 	Bits ret;
-
-	/* observation: when other parts of DOSBox change CPU_CycleMax, they also set CPU_CyclesLeft == 0
-	 * which would cause PIC_RunQueue() to return false and this code to run through the ticksRemain
-	 * countdown, and possibly exit this function through increaseticks */
-	update_dosbox_cycles_clock();
 
 	while (1) {
 		pic_to_master_clock();
@@ -449,7 +439,6 @@ static Bitu Normal_Loop(void) {
 			MSG_Loop();
 #endif
 			GFX_Events();
-			update_dosbox_cycles_clock();
 			if (DOSBox_Paused() == false && ticksRemain > 0) {
 				TIMER_AddTick();
 				ticksRemain--;
@@ -757,7 +746,6 @@ static void DOSBOX_RealInit(Section * sec) {
 	clockdom_8250_UART.set_name("8250 UART");
 	clockdom_ISA_BCLK.set_name("ISA BCLK");
 	clockdom_PCI_BCLK.set_name("PCI BCLK");
-	clockdom_DOSBox_cycles.set_name("CPU cycles");
 
 	/* pick the master clock that determines all timing in DOSBox-X.
 	 * later initialization will select the PCI bus clock if emulating PCI.
@@ -792,42 +780,8 @@ void print_clocktree_conversion_list(ClockDomain *match=NULL) {
 	LOG_MSG("-----");
 }
 
-static Bits p_CPU_CycleMax = -1;
-
-void update_dosbox_cycles_clock() {
-	if (p_CPU_CycleMax != CPU_CycleMax) {
-		p_CPU_CycleMax = CPU_CycleMax;
-
-		/* NTS: This is not explained well in this code at all, but DOSBox cycles count actually
-		 *      represent CPU cycles per millisecond, NOT second. So a cycles count of 5000 means
-		 *      to emulate 5000000 cycles per second. DOSBox's main "normal" loop works with pic.cpp
-		 *      to emulate one millisecond of time using CPU_CycleMax, CPU_Cycles, and CPU_CycleLeft,
-		 *      before making adjustments, counting the millisecond with PIC_Ticks, and then going
-		 *      on to execute another millisecond. */
-		clockdom_DOSBox_cycles.set_frequency((unsigned long long)CPU_CycleMax * 1000ULL);
-
-		/* should be first in the clocktree conversion list */
-		for (size_t i=0;i < clockdom_tree_conversion_list.size();i++) {
-			ClockDomainConversion &cnv = clockdom_tree_conversion_list[i];
-
-			if (cnv.dst_clock == &clockdom_DOSBox_cycles) {
-				cnv = ClockDomainConversion(&clockdom_DOSBox_cycles,master_clockdom);
-				cnv.update_master_muldiv();
-
-				LOG_MSG("Updating DOSBox cycles clock domain for cycles=%lu",(unsigned long)CPU_CycleMax);
-				print_clocktree_conversion_list(&clockdom_DOSBox_cycles);
-				break;
-			}
-		}
-	}
-}
-
 void clocktree_build_conversion_list() {
-	update_dosbox_cycles_clock();
-
 	clockdom_tree_conversion_list.clear();
-
-	clockdom_tree_conversion_list.push_back(ClockDomainConversion(&clockdom_DOSBox_cycles,master_clockdom));
 
 	if (master_clockdom != &clockdom_PCI_BCLK && pcibus_enable)
 		clockdom_tree_conversion_list.push_back(ClockDomainConversion(&clockdom_PCI_BCLK,master_clockdom));

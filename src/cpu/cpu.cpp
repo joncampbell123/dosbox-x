@@ -2728,9 +2728,6 @@ public:
 		if(CPU_CycleUp <= 0)   CPU_CycleUp = 500;
 		if(CPU_CycleDown <= 0) CPU_CycleDown = 20;
 
-		void update_dosbox_cycles_clock();
-		update_dosbox_cycles_clock();
-
 		if (CPU_CycleAutoAdjust) GFX_SetTitle(CPU_CyclePercUsed,-1,-1,false);
 		else GFX_SetTitle(CPU_CycleMax,-1,-1,false);
 		return true;
