@@ -16,3 +16,15 @@ Memory corruption bugs:
    first block in UMB, and DOSBox detects this as an "MCB list
    corrupted" error.
 
+   Workaround:
+
+   You can avoid this crash/memory corruption by setting 'dos mem limit'
+   to a value less than 640 (such as 'dos mem limit=639') to mark off
+   the last 1KB of lower conventional memory as off-limits. If the demo
+   corrupts the bytes at segment 0x9FFF, it will have no effect and
+   DOSBox will no longer crash with "MCB list corrupted". It's possible
+   nobody ever caught the bug because most BIOSes by that point had
+   started taking the top 1KB under 640KB for the EBDA (extended BIOS
+   data area) and the corruption merely affected the unused trailing
+   end of it.
+
