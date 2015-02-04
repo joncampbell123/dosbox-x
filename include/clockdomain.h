@@ -55,6 +55,7 @@ public:
 		freq_div = 1;
 		rmaster_mult = 1;
 		rmaster_div = 1;
+		in_progress_base = 0;
 	}
 	ClockDomain(unsigned long long freq_new) {
 		freq = freq_new;
@@ -183,7 +184,14 @@ public:
 		events.insert(i,new_event); /* NTS: inserts new item BEFORE the element at iterator i */
 	}
 	void add_event_rel_pic(PIC_EventHandler cb_pic,unsigned long long t_clk,unsigned long long val=CLOCKDOM_DONTCARE) {
-		add_event_pic(cb_pic,t_clk+counter,val);
+		/* NTS: If you read the original DOSBox source code, in PIC_AddEvent, you see the same behavior: if a global
+		 *      flag is set that indicates the callbacks are in progress (meaning: PIC_AddEvent was called from within
+		 *      the callback function), then we treat the delay relative to the event we're processing now instead of
+		 *      from the current time. */
+		if (in_progress_base != 0ULL)
+			add_event_pic(cb_pic,t_clk+in_progress_base,val);
+		else
+			add_event_pic(cb_pic,t_clk+counter,val);
 	}
 	void remove_all_events() { /* remove all events. do not call them, just remove them */
 		events.clear();
@@ -211,12 +219,15 @@ public:
 			 *      As a linked list we're safe as long as the node we're holding onto still exists after the callback
 			 *      and we do not hold onto any iterators or pointers to the next or previous entries */
 			(*i).in_progress = true;
+			in_progress_base = (*i).t_clock;
 			if ((*i).cb_pic != NULL) (*i).cb_pic((Bitu)(*i).value);
 			if ((*i).cb != NULL) (*i).cb(&(*i));
 			(*i).in_progress = false;
 			events.erase(i);
 			i=events.begin();
 		}
+
+		in_progress_base = 0;
 	}
 public:
 	/* NTS: Slave clock rules:
@@ -227,6 +238,7 @@ public:
 	unsigned long long		freq,freq_div;	/* frequency of clock as integer ratio */
 	unsigned long long		rmaster_mult,rmaster_div; /* this clock * mult / div = master clock */
 	unsigned long long		counter;	/* in units of freq */
+	unsigned long long		in_progress_base;
 	std::string			name;
 	std::list<ClockDomainEvent>	events;		/* <- NTS: I'm tempted to use std::map<> but the most common use of this
 							           event list will be to access the first entry to check if an
