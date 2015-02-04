@@ -21,6 +21,11 @@
 #define DOSBOX_DOSBOX_H
 
 #include "config.h"
+#include "logging.h"
+
+GCC_ATTRIBUTE(noreturn) void		E_Exit(const char * message,...) GCC_ATTRIBUTE( __format__(__printf__, 1, 2));
+
+#include "clockdomain.h"
 
 class Config;
 class Section;
@@ -58,8 +63,6 @@ extern bool				sse1_available;
 extern bool				sse2_available;
 #endif
 
-GCC_ATTRIBUTE(noreturn) void		E_Exit(const char * message,...) GCC_ATTRIBUTE( __format__(__printf__, 1, 2));
-
 void					MSG_Add(const char*,const char*); //add messages to the internal languagefile
 const char*				MSG_Get(char const *);     //get messages from the internal languagefile
 
@@ -81,5 +84,18 @@ void					DOSBOX_Init(void);
 #ifndef DOSBOX_LOGGING_H
 #include "logging.h"
 #endif // the logging system.
+
+extern ClockDomain			clockdom_PCI_BCLK;
+extern ClockDomain			clockdom_ISA_OSC;
+extern ClockDomain			clockdom_ISA_BCLK;
+extern ClockDomain			clockdom_8254_PIT;
+extern ClockDomain			clockdom_8250_UART;
+
+signed long long time_to_clockdom(ClockDomain &src,double t);
+unsigned long long update_clockdom_from_now(ClockDomain &dst);
+unsigned long long update_ISA_OSC_clock();
+unsigned long long update_8254_PIT_clock();
+unsigned long long update_ISA_BCLK_clock();
+unsigned long long update_PCI_BCLK_clock();
 
 #endif /* DOSBOX_DOSBOX_H */

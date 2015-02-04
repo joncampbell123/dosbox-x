@@ -996,7 +996,14 @@ static void VGA_DrawSingleLine(Bitu /*blah*/) {
 			for (Bitu i = 0; i < sizeof(TempLine)/2; i++) {
 				wptr[i] = value;
 			}
+		} else if (vga.draw.bpp==32) {
+			Bit32u* wptr = (Bit32u*) TempLine;
+			Bit32u value = vga.dac.xlat32[bg_color_index];
+			for (Bitu i = 0; i < sizeof(TempLine)/4; i++) {
+				wptr[i] = value;
+			}
 		}
+
 		if (vga_page_flip_occurred) {
 			memxor(TempLine,0xFF,vga.draw.width*(vga.draw.bpp>>3));
 			vga_page_flip_occurred = false;

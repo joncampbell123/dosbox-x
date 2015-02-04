@@ -125,7 +125,6 @@ Bit32s CPU_CycleLimit = -1;
 Bit32s CPU_CycleUp = 0;
 Bit32s CPU_CycleDown = 0;
 Bit32s CPU_CyclesSet = 3000;
-Bitu CPU_CyclesCur = 0;
 Bit64s CPU_IODelayRemoved = 0;
 char core_mode[16];
 CPU_Decoder * cpudecoder;
@@ -2728,6 +2727,7 @@ public:
 		if(CPU_CycleMax <= 0) CPU_CycleMax = 3000;
 		if(CPU_CycleUp <= 0)   CPU_CycleUp = 500;
 		if(CPU_CycleDown <= 0) CPU_CycleDown = 20;
+
 		if (CPU_CycleAutoAdjust) GFX_SetTitle(CPU_CyclePercUsed,-1,-1,false);
 		else GFX_SetTitle(CPU_CycleMax,-1,-1,false);
 		return true;

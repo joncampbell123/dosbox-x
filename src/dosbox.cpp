@@ -117,7 +117,6 @@ extern void			GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused)
 extern Bitu			frames;
 extern Bitu			cycle_count;
 extern bool			sse2_available;
-extern ClockDomain		clockdom_8254_PIT;
 extern bool			dynamic_dos_kernel_alloc;
 extern Bitu			DOS_PRIVATE_SEGMENT_Size;
 extern bool			VGA_BIOS_dont_duplicate_CGA_first_half;
@@ -132,16 +131,39 @@ bool				dbg_zero_on_dos_allocmem = true;
 bool				dbg_zero_on_xms_allocmem = true;
 bool				dbg_zero_on_ems_allocmem = true;
 
-/* ISA bus OSC clock (14.31818MHz) */
-/*  +---- / 12 = PIT timer clock 1.1931816666... MHz */
-ClockDomain			clockdom_ISA_OSC(14318180);		/* MASTER 14.31818MHz */
-ClockDomain			clockdom_8254_PIT(14318180,12);		/* SLAVE  14.31818MHz / 12 = 1.1931816666666.... MHz */
+/* the exact frequency of the NTSC color subcarrier ~3.579545454...MHz or 315/88 */
+/* see: http://en.wikipedia.org/wiki/Colorburst */
+#define				NTSC_COLOR_SUBCARRIER_NUM		(315000000ULL)
+#define				NTSC_COLOR_SUBCARRIER_DEN		(88ULL)
 
-/* ISA bus BCLK clock (8.3333MHz) */
+/* PCI bus clock
+ * Usual setting: 100MHz / 3 = 33.333MHz
+ *                 90MHz / 3 = 30.000MHz */
+ClockDomain			clockdom_PCI_BCLK(100000000,3);		/* MASTER 100MHz / 3 = 33.33333MHz */
+
+/* ISA bus OSC clock (14.31818MHz), using a crystal that is 4x the NTSC subcarrier frequency 3.5795454..MHz */
+ClockDomain			clockdom_ISA_OSC(NTSC_COLOR_SUBCARRIER_NUM*4,NTSC_COLOR_SUBCARRIER_DEN);
+
+/* ISA bus clock (varies between 4.77MHz to 8.333MHz)
+ * PC/XT: ISA oscillator clock (14.31818MHz / 3) = 4.77MHz
+ * Some systems keep CPU synchronous to bus clock: 4.77MHz, 6MHz, 8MHz, 8.333MHz
+ * Later systems: 25MHz / 3 = 8.333MHz
+ *                33MHz / 4 = 8.333MHz
+ * PCI bus systems: PCI bus clock 33MHz / 4 = 8.333MHz (especially Intel chipsets according to PIIX datasheets) */
 ClockDomain			clockdom_ISA_BCLK(25000000,3);		/* MASTER 25000000Hz / 3 = 8.333333MHz */
 
-/* PCI bus clock (33.3333MHz) */
-ClockDomain			clockdom_PCI_BCLK(100000000,3);		/* MASTER 100MHz / 3 = 33.33333MHz */
+/* 8254 PIT. slave to a clock determined by motherboard.
+ * PC/XT: slave to ISA busclock (4.77MHz / 4) = 1.193181MHz
+ * AT/later: ISA oscillator clock (14.31818MHz / 12) */
+/* 14.1818MHz / 12 == (NTSC * 4) / 12 == (NTSC * 4) / (4*3) == NTSC / 3 */
+ClockDomain			clockdom_8254_PIT(NTSC_COLOR_SUBCARRIER_NUM,NTSC_COLOR_SUBCARRIER_DEN*3);
+
+/* 8250 UART.
+ * PC/XT: ??? What did IBM use on the motherboard to drive the UART? Is it some divisor of the ISA OSC clock?? Closest I can calculate: 14.31818MHz / 8 = 1.78MHz.
+ * Other hardware (guess): Independent clock crystal: 115200 * 16 = 1843200Hz = 1.843200MHz based on datasheet (http://www.ti.com/lit/ds/symlink/pc16550d.pdf)
+ *
+ * Feel free to correct me if I'm wrong. */
+ClockDomain			clockdom_8250_UART(115200 * 16);
 
 Config*				control;
 MachineType			machine;
@@ -245,19 +267,49 @@ void				NE2K_Init(Section* sec);
 void				MSG_Loop(void);
 #endif
 
-static void check_pic_time() {
-#if C_DEBUG && 0
-	static double p_time = -1;
-	double c_time = PIC_FullIndex();
+signed long long time_to_clockdom(ClockDomain &src,double t) {
+	signed long long lt = (signed long long)t;
 
-	if (p_time >= 0) {
-		if (c_time < p_time)
-			LOG_MSG("PIC_FullIndex() jumped backwards by %.40f cycles_max=%d cycles_left=%d cycles=%d nd=%d\n",
-				p_time - c_time,(int)CPU_CycleMax,(int)CPU_CycleLeft,(int)CPU_Cycles,(int)PIC_TickIndexND());
-	}
+	lt *= (signed long long)src.freq;
+	lt /= (signed long long)src.freq_div;
+	return lt;
+}
 
-	p_time = c_time;
-#endif
+unsigned long long update_clockdom_from_now(ClockDomain &dst) {
+	signed long long s;
+
+	/* PIC_Ticks (if I read the code correctly) is millisecond ticks, units of 1/1000 seconds.
+	 * PIC_TickIndexND() units of submillisecond time in units of 1/CPU_CycleMax. */
+	s  = (signed long long)PIC_Ticks * dst.freq;
+	s += ((signed long long)PIC_TickIndexND() * dst.freq) / (signed long long)CPU_CycleMax;
+	/* convert down to frequency counts, not freq x 1000 */
+	s /= 1000LL * (signed long long)dst.freq_div;
+
+	/* guard against time going backwards slightly (as PIC_TickIndexND() will do sometimes by tiny amounts) */
+	if (dst.counter < (unsigned long long)s) dst.counter = (unsigned long long)s;
+
+	return dst.counter;
+}
+
+/* for ISA components that rely on dividing down from OSC */
+unsigned long long update_ISA_OSC_clock() {
+	return update_clockdom_from_now(clockdom_ISA_OSC);
+}
+
+/* for PIT emulation. The PIT ticks at exactly 1/12 the ISA OSC clock. */
+unsigned long long update_8254_PIT_clock() {
+	clockdom_8254_PIT.counter = update_ISA_OSC_clock() / 12ULL;
+	return clockdom_8254_PIT.counter;
+}
+
+/* for ISA components */
+unsigned long long update_ISA_BCLK_clock() {
+	return update_clockdom_from_now(clockdom_ISA_BCLK);
+}
+
+/* for PCI components */
+unsigned long long update_PCI_BCLK_clock() {
+	return update_clockdom_from_now(clockdom_PCI_BCLK);
 }
 
 #include "paging.h"
@@ -269,20 +321,20 @@ extern bool rom_bios_8x8_cga_font;
 extern bool allow_port_92_reset;
 extern bool allow_keyb_reset;
 
+extern bool DOSBox_Paused();
+
 static Bitu Normal_Loop(void) {
+	Bit32u ticksNew;
 	Bits ret;
+
 	while (1) {
-		check_pic_time();
 		if (PIC_RunQueue()) {
-			Bit32u ticksNew;
-			ticksNew=GetTicks();
-			if(ticksNew>=Ticks) {
-				CPU_CyclesCur=(cycle_count-CPU_CyclesCur) >> 9;
-				Ticks=ticksNew + 512;		// next update in 512ms
-				frames*=1.953;			// compensate for 512ms interval
+			ticksNew = GetTicks();
+			if (ticksNew >= Ticks) {
+				Ticks = ticksNew + 500;		// next update in 500ms
+				frames *= 2;			// compensate for 500ms interval
 				if(!menu.hidecycles) GFX_SetTitle(CPU_CycleMax,-1,-1,false);
-				CPU_CyclesCur=cycle_count;
-				frames=0;
+				frames = 0;
 			}
 
 			/* now is the time to check for the NMI (Non-maskable interrupt) */
@@ -337,11 +389,12 @@ static Bitu Normal_Loop(void) {
 			MSG_Loop();
 #endif
 			GFX_Events();
-			extern bool DOSBox_Paused();
-			if (DOSBox_Paused() == false && ticksRemain>0) {
+			if (DOSBox_Paused() == false && ticksRemain > 0) {
 				TIMER_AddTick();
 				ticksRemain--;
-			} else goto increaseticks;
+			} else {
+				goto increaseticks;
+			}
 		}
 	}
 increaseticks:
@@ -540,18 +593,9 @@ void parse_busclk_setting_str(ClockDomain *cd,const char *s) {
 	}
 }
 
-/* tied to ISA BCLK clock. test callback */
-void ISA_BCLK_test_event(ClockDomainEvent *e) {
-	if (e->domain->counter != e->t_clock) {
-		LOG_MSG("%s test event, counter=%llu %lld clocks*div late\n",
-			e->domain->name.c_str(),e->domain->counter,
-			(signed long long)(e->domain->counter - e->t_clock));
-	}
-
-	e->domain->add_event_rel(ISA_BCLK_test_event,e->domain->freq);
-}
-
 unsigned int dosbox_shell_env_size = 0;
+
+void clocktree_build_conversion_list();
 
 static void DOSBOX_RealInit(Section * sec) {
 	Section_prop * section=static_cast<Section_prop *>(sec);
@@ -625,7 +669,7 @@ static void DOSBOX_RealInit(Section * sec) {
 	else if (isabclk == "std6")
 		clockdom_ISA_BCLK.set_frequency(6000000,1);	/* 6MHz */
 	else if (isabclk == "std4.77")
-		clockdom_ISA_BCLK.set_frequency(clockdom_ISA_OSC.freq,3); /* 14.31818MHz / 3 = 4.77MHz */
+		clockdom_ISA_BCLK.set_frequency(clockdom_ISA_OSC.freq,clockdom_ISA_OSC.freq_div*3LL); /* 14.31818MHz / 3 = 4.77MHz */
 	else if (isabclk == "oc10")
 		clockdom_ISA_BCLK.set_frequency(10000000,1);	/* 10MHz */
 	else if (isabclk == "oc12")
@@ -647,24 +691,11 @@ static void DOSBOX_RealInit(Section * sec) {
 	else
 		parse_busclk_setting_str(&clockdom_PCI_BCLK,pcibclk.c_str());
 
-	/* MASTER: ISA OSC (14.31818MHz) */
 	clockdom_ISA_OSC.set_name("ISA OSC");
-	/* SLAVE: PIT clock */
 	clockdom_8254_PIT.set_name("8254 PIT");
-	clockdom_ISA_OSC.add_slave(&clockdom_8254_PIT);
-
-	/* MASTER: ISA BCLK (bus clock) (8.333333MHz) */
+	clockdom_8250_UART.set_name("8250 UART");
 	clockdom_ISA_BCLK.set_name("ISA BCLK");
-
-	/* MASTER: PCI BCLK (bus clock) (33.333333MHz) FIXME: Only add this clock IF emulating a PCI-based motherboard */
 	clockdom_PCI_BCLK.set_name("PCI BCLK");
-
-	/* MASTER event dispatch testing */
-	clockdom_PCI_BCLK.add_event_rel(ISA_BCLK_test_event,clockdom_PCI_BCLK.freq);
-	clockdom_ISA_BCLK.add_event_rel(ISA_BCLK_test_event,clockdom_ISA_BCLK.freq);
-	clockdom_ISA_OSC.add_event_rel(ISA_BCLK_test_event,clockdom_ISA_OSC.freq);
-	/* SLAVE event dispatch testing */
-	clockdom_8254_PIT.add_event_rel(ISA_BCLK_test_event,clockdom_8254_PIT.freq);
 }
 
 void DOSBOX_Init(void) {

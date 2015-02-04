@@ -392,7 +392,7 @@ void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
 			(int)internal_frameskip,RunningProgram,(int)(internal_timing/100),(int)(internal_timing%100/10));
 	} else {
 		sprintf(title,"DOSBox %s, CPU : %s %8d = %8d, %d FPS - %2d %8s %i.%i%%",
-			VERSION,core_mode,(int)CPU_CyclesCur,(int)internal_cycles,(int)frames,(int)internal_frameskip,
+			VERSION,core_mode,(int)0,(int)internal_cycles,(int)frames,(int)internal_frameskip,
 			RunningProgram,(int)(internal_timing/100),(int)((internal_timing%100)/10));
 	}
 
@@ -3454,6 +3454,8 @@ bool DOSBOX_parse_argv() {
 	return true;
 }
 
+void TIMER_ShutdownTickHandlers();
+
 //extern void UI_Init(void);
 int main(int argc, char* argv[]) {
 	CommandLine com_line(argc,argv);
@@ -3855,6 +3857,7 @@ int main(int argc, char* argv[]) {
 	MAPPER_Shutdown();
 	VFILE_Shutdown();
 	PROGRAMS_Shutdown();
+	TIMER_ShutdownTickHandlers();
 #if C_DEBUG
 	DEBUG_ShutDown(NULL);
 #endif

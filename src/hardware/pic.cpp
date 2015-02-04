@@ -160,7 +160,6 @@ void PIC_Controller::start_irq(Bit8u val){
 	}
 }
 
-
 struct PICEntry {
 	float index;
 	Bitu value;
@@ -436,6 +435,7 @@ static void AddEntry(PICEntry * entry) {
 		CPU_Cycles=0;
 	}
 }
+
 static bool InEventService = false;
 static float srv_lag = 0;
 
@@ -504,14 +504,13 @@ void PIC_RemoveEvents(PIC_EventHandler handler) {
 	}	
 }
 
+extern ClockDomain clockdom_DOSBox_cycles;
 
 bool PIC_RunQueue(void) {
 	/* Check to see if a new millisecond needs to be started */
-	CPU_CycleLeft+=CPU_Cycles;
-	CPU_Cycles=0;
-	if (CPU_CycleLeft<=0) {
-		return false;
-	}
+	CPU_CycleLeft += CPU_Cycles; CPU_Cycles = 0;
+	if (CPU_CycleLeft <= 0) return false;
+
 	/* Check the queue for an entry */
 	Bits index_nd=PIC_TickIndexND();
 	InEventService = true;
@@ -539,7 +538,10 @@ bool PIC_RunQueue(void) {
 		}
 	} else CPU_Cycles=CPU_CycleLeft;
 	CPU_CycleLeft-=CPU_Cycles;
-	if 	(PIC_IRQCheck)	PIC_runIRQs();
+
+	if (PIC_IRQCheck)
+		PIC_runIRQs();
+
 	return true;
 }
 
@@ -604,12 +606,14 @@ void TIMER_AddTick(void) {
 	}
 	CPU_CycleLeft += CPU_CycleMax + CPU_Cycles;
 	CPU_Cycles = 0;
+
 	/* Go through the list of scheduled events and lower their index with 1000 */
 	PICEntry * entry=pic_queue.next_entry;
 	while (entry) {
 		entry->index -= 1.0;
 		entry=entry->next;
 	}
+
 	/* Call our list of ticker handlers */
 	TickerBlock * ticker=firstticker;
 	while (ticker) {
@@ -686,7 +690,6 @@ public:
 	}
 
 	~PIC_8259A(){
-		TIMER_ShutdownTickHandlers();
 	}
 };
 
