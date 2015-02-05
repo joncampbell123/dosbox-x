@@ -180,21 +180,23 @@ Bits IOFaultCore(void) {
  * games with their timing of certain operations
  */
 
-#define IODELAY_READ_MICROSk (Bit32u)(1024/1.0)
-#define IODELAY_WRITE_MICROSk (Bit32u)(1024/0.75)
+/* how much delay to add to I/O in nanoseconds */
+int io_delay_ns = -1;
 
 inline void IO_USEC_read_delay() {
-	Bits delaycyc = CPU_CycleMax/IODELAY_READ_MICROSk;
-	if(GCC_UNLIKELY(CPU_Cycles < 3*delaycyc)) delaycyc = 0; //Else port acces will set cycles to 0. which might trigger problem with games which read 16 bit values
-	CPU_Cycles -= delaycyc;
-	CPU_IODelayRemoved += delaycyc;
+	if (io_delay_ns > 0) {
+		Bits delaycyc = (CPU_CycleMax * io_delay_ns) / 1000000;
+		CPU_Cycles -= delaycyc;
+		CPU_IODelayRemoved += delaycyc;
+	}
 }
 
 inline void IO_USEC_write_delay() {
-	Bits delaycyc = CPU_CycleMax/IODELAY_WRITE_MICROSk;
-	if(GCC_UNLIKELY(CPU_Cycles < 3*delaycyc)) delaycyc=0;
-	CPU_Cycles -= delaycyc;
-	CPU_IODelayRemoved += delaycyc;
+	if (io_delay_ns > 0) {
+		Bits delaycyc = (CPU_CycleMax * io_delay_ns * 4) / (1000000 * 3);
+		CPU_Cycles -= delaycyc;
+		CPU_IODelayRemoved += delaycyc;
+	}
 }
 
 #ifdef ENABLE_PORTLOG
@@ -497,5 +499,19 @@ void IO_Destroy(Section*) {
 void IO_Init(Section * sect) {
 	test = new IO(sect);
 	sect->AddDestroyFunction(&IO_Destroy);
+}
+
+extern bool pcibus_enable;
+
+void IODELAY_Init(Section *sect) {
+	Section_prop * section=static_cast<Section_prop *>(sect);
+
+	io_delay_ns = section->Get_int("iodelay");
+	if (io_delay_ns < 0) {
+		double t = (1024000000.0 * clockdom_ISA_BCLK.freq_div * 8.5) / clockdom_ISA_BCLK.freq;
+		io_delay_ns = (int)floor(t);
+	}
+
+	LOG_MSG("I/O delay %uns",io_delay_ns);
 }
 

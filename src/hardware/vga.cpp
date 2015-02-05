@@ -134,6 +134,8 @@
 
 using namespace std;
 
+extern int vga_memio_delay_ns;
+
 VGA_Type vga;
 SVGA_Driver svga;
 int enableCGASnow;
@@ -425,6 +427,7 @@ static inline int int_log2(int val) {
 	return log;
 }
 
+extern bool pcibus_enable;
 
 void VGA_Init(Section* sec) {
 	Section_prop * section=static_cast<Section_prop *>(sec);
@@ -488,6 +491,27 @@ void VGA_Init(Section* sec) {
 
 	vga.draw.resizing=false;
 	vga.mode=M_ERROR;			//For first init
+
+	vga_memio_delay_ns = section->Get_int("vmemdelay");
+	if (vga_memio_delay_ns < 0) {
+		if (pcibus_enable) {
+			/* some delay based on PCI bus protocol with frame start, turnaround, and burst transfer */
+			double t = (1024000000.0 * clockdom_PCI_BCLK.freq_div * (1.0 + (1.0 / 16))) / clockdom_PCI_BCLK.freq;
+			vga_memio_delay_ns = (int)floor(t);
+		}
+		else {
+			/* very optimistic setting, ISA bus cycles are longer than 2, but also 386/486/Pentium pipeline.
+			 * this is long enough to fix some demo's raster effects to work properly but not enough to
+			 * significantly bring DOS games to a crawl. Apparently, this also fixes Future Crew "Panic!"
+			 * by making the shadebob take long enough to allow the 3D rotating dot object to finish it's
+			 * routine just in time to become the FC logo, instead of sitting there waiting awkwardly
+			 * for 3-5 seconds. */
+			double t = (1024000000.0 * clockdom_ISA_BCLK.freq_div * 2) / clockdom_ISA_BCLK.freq;
+			vga_memio_delay_ns = (int)floor(t);
+		}
+	}
+
+	LOG_MSG("VGA memory I/O delay %uns",vga_memio_delay_ns);
 
 	/* mainline compatible vmemsize (in MB)
 	 * plus vmemsizekb for KB-level control.

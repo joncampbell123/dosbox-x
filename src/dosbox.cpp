@@ -194,6 +194,7 @@ void				PAGING_Init(Section *);
 void				ISAPNP_Cfg_Init(Section *);
 void				ROMBIOS_Init(Section *);
 void				IO_Init(Section *);
+void				IODELAY_Init(Section *);
 void				CALLBACK_Init(Section*);
 void				PROGRAMS_Init(Section*);
 void				RENDER_Init(Section*);
@@ -793,6 +794,15 @@ void DOSBOX_Init(void) {
 	Pstring->Set_values(machines);
 	Pstring->Set_help("The type of machine DOSBox tries to emulate.");
 
+	Pint = secprop->Add_int("vmemdelay", Property::Changeable::WhenIdle,0);
+	Pint->SetMinMax(-1,100000);
+	Pint->Set_help(	"VGA Memory I/O delay in nanoseconds. Set to -1 to use default, 0 to disable.\n"
+			"Default off. Enable this option (-1 or nonzero) if you are running a game or\n"
+			"demo that needs slower VGA memory (like that of older ISA hardware) to work properly.\n"
+			"If your game is not sensitive to VGA RAM I/O speed, then turning on this option\n"
+			"will do nothing but cause a significant drop in frame rate which is probably not\n"
+			"what you want. Recommended values -1, 0 to 2000.");
+
 	Pint = secprop->Add_int("vmemsize", Property::Changeable::WhenIdle,2);
 	Pint->SetMinMax(0,8);
 	Pint->Set_help(
@@ -890,6 +900,15 @@ void DOSBOX_Init(void) {
 	secprop->AddInitFunction(&MEM_Init);//done
 	secprop->AddInitFunction(&HARDWARE_Init);//done
 	secprop->AddInitFunction(&ROMBIOS_Init);
+	secprop->AddInitFunction(&IODELAY_Init);
+
+	Pint = secprop->Add_int("iodelay", Property::Changeable::WhenIdle,-1);
+	Pint->SetMinMax(-1,100000);
+	Pint->Set_help(	"I/O delay in nanoseconds for I/O port access. Set to -1 to use default, 0 to disable.\n"
+			"A value of 1000 (1us) is recommended for ISA bus type delays. If your game\n"
+			"or demo is not sensitive to I/O port and ISA bus timing, you can turn this option off\n"
+			"(set to 0) to increase game performance.");
+
 	Pint = secprop->Add_int("memsize", Property::Changeable::WhenIdle,16);
 	Pint->SetMinMax(1,511);
 	Pint->Set_help(
