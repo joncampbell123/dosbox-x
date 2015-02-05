@@ -6,8 +6,27 @@ VGA BUG: Color palette error, last color of the palette, usually if it's white,
        vertially: the failure appears as black splotches on his wings that SHOULD
        be white.
 
+       NOTE: I'm not certain but I wonder if it has anything to do with the
+             previous demo effect and possible palette animation involved for
+             the "fading" effect as it renders. If I'm right, then whether or
+             not the error happens depends entirely on when the previous demo
+             effect ended and the state the color palette was left in.
+
+================================================================================
+  THE FOLLOWING BUGS ARE FIXED!
+================================================================================
 
 VGA BUG: Exotic VRAM clearing tricks do not work, leaving "garbage" on the screen
+
+ - Abaddon: Cycling!
+     - Failure to clear the screen is visible when the VGA split-screen pans upward.
+       The "loading" graphic and other garbage contents are visible below the
+       animated VU meters where on real hardware that part of the screen would be
+       blank.
+
+       NOTE: This is still a problem with machine=svga_s3, but fixable by setting
+             machine=svga_et4000 instead. I'm not sure at this time whether the
+             demo has the same problems on real hardware or not.
 
  - Surprise! productions, The Good, The Bad, & The Ugly
      - There are two parts with rotating wireframe meshes that make use of VGA
@@ -19,11 +38,11 @@ VGA BUG: Exotic VRAM clearing tricks do not work, leaving "garbage" on the scree
        demo fails to clear the screen. Result: demo title with contents of the
        previous screen or title screen around it, garbled due to palette mismatch.
 
- - Abaddon: Cycling!
-     - Failure to clear the screen is visible when the VGA split-screen pans upward.
-       The "loading" graphic and other garbage contents are visible below the
-       animated VU meters where on real hardware that part of the screen would be
-       blank.
+       NOTE: This is still an issue with machine=svga_s3, but you can
+             eliminate the problem by setting machine=svga_et4000 or running
+             the demo from an MS-DOS 5.0 or 6.0 bootdisk. MS-DOS 6.22 may cause
+             stability issues. Windows 95/98 DOS mode is certain to cause the
+             demo to crash.
 
  - Impact Studios: Legend
      - Failure to clear the screen causes 3D dot fields to overdraw into an orange
@@ -55,4 +74,5 @@ VGA BUG: Active display area cuts off right margin for Do Whacka Do
 
  - Do Whacka Do works perfectly except that the rightmost 8-10 pixels are cut off,
    which makes it a bit difficult to read the scroller at the bottom of the screen.
+
 
