@@ -186,6 +186,7 @@ int io_delay_ns = -1;
 inline void IO_USEC_read_delay() {
 	if (io_delay_ns > 0) {
 		Bits delaycyc = (CPU_CycleMax * io_delay_ns) / 1000000;
+		if(GCC_UNLIKELY(CPU_Cycles < 3*delaycyc)) delaycyc = 0; //Else port acces will set cycles to 0. which might trigger problem with games which read 16 bit values
 		CPU_Cycles -= delaycyc;
 		CPU_IODelayRemoved += delaycyc;
 	}
@@ -194,6 +195,7 @@ inline void IO_USEC_read_delay() {
 inline void IO_USEC_write_delay() {
 	if (io_delay_ns > 0) {
 		Bits delaycyc = (CPU_CycleMax * io_delay_ns * 4) / (1000000 * 3);
+		if(GCC_UNLIKELY(CPU_Cycles < 3*delaycyc)) delaycyc = 0; //Else port acces will set cycles to 0. which might trigger problem with games which read 16 bit values
 		CPU_Cycles -= delaycyc;
 		CPU_IODelayRemoved += delaycyc;
 	}
