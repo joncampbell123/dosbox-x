@@ -2,6 +2,9 @@
 
 BUG: Noticeable pause of music at points where VGA BIOS is called to set video mode during demo
 
+     However, this pause also happens on real hardware if the BIOS does not use the IRQ for hard
+     disk access (tested on a Pentium MMX 133MHz with a CompactFlash card for a hard disk).
+
 BUG: You can only run the demo once. Additional attempts log "illegal instruction" messages and
      crash back to the DOS prompt. You must close and reopen DOSBox-X to run the demo again.
 
