@@ -284,6 +284,80 @@ public:
 	}
 };
 
+// Slow accurate emulation.
+// This version takes the Graphics Controller bitmask and ROPs into account.
+// This is needed for demos that use the bitmask to do color combination or bitplane "page flipping" tricks.
+// This code will kick in if running in a chained VGA mode and the graphics controller bitmask register is
+// changed to anything other than 0xFF.
+//
+// Impact Studios "Legend"
+//  - The rotating objects, rendered as dots, needs this hack because it uses a combination of masking off
+//    bitplanes using the VGA DAC pel mask and drawing on the hidden bitplane using the Graphics Controller
+//    bitmask. It also relies on loading the VGA latches with zeros as a form of "overdraw". Without this
+//    version the effect will instead become a glowing ball of flickering yellow/red.
+class VGA_ChainedVGA_Slow_Handler : public PageHandler {
+public:
+	VGA_ChainedVGA_Slow_Handler() : PageHandler(PFLAG_NOCODE) {}
+	static INLINE Bitu readHandler8(PhysPt addr ) {
+		vga.latch.d=((Bit32u*)vga.mem.linear)[addr&~3];
+		return vga.latch.b[addr&3];
+	}
+	static INLINE void writeHandler8(PhysPt addr, Bitu val) {
+		VGA_Latch pixels;
+
+		/* byte-sized template specialization with masking */
+		pixels.d = ModeOperation(val);
+		/* Update video memory and the pixel buffer */
+		hostWrite<Bit8u>( &vga.mem.linear[((addr&~3)<<2)+(addr&3)], pixels.b[addr&3] );
+	}
+	Bitu readb(PhysPt addr ) {
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+		addr += vga.svga.bank_read_full;
+		addr = CHECKED(addr);
+		return readHandler8( addr );
+	}
+	Bitu readw(PhysPt addr ) {
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+		addr += vga.svga.bank_read_full;
+		addr = CHECKED(addr);
+		Bitu ret = (readHandler8( addr+0 ) << 0 );
+		ret     |= (readHandler8( addr+1 ) << 8 );
+		return ret;
+	}
+	Bitu readd(PhysPt addr ) {
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+		addr += vga.svga.bank_read_full;
+		addr = CHECKED(addr);
+		Bitu ret = (readHandler8( addr+0 ) << 0 );
+		ret     |= (readHandler8( addr+1 ) << 8 );
+		ret     |= (readHandler8( addr+2 ) << 16 );
+		ret     |= (readHandler8( addr+3 ) << 24 );
+		return ret;
+	}
+	void writeb(PhysPt addr, Bitu val ) {
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+		addr += vga.svga.bank_write_full;
+		addr = CHECKED(addr);
+		writeHandler8( addr, val );
+	}
+	void writew(PhysPt addr,Bitu val) {
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+		addr += vga.svga.bank_write_full;
+		addr = CHECKED(addr);
+		writeHandler8( addr+0, val >> 0 );
+		writeHandler8( addr+1, val >> 8 );
+	}
+	void writed(PhysPt addr,Bitu val) {
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+		addr += vga.svga.bank_write_full;
+		addr = CHECKED(addr);
+		writeHandler8( addr+0, val >> 0 );
+		writeHandler8( addr+1, val >> 8 );
+		writeHandler8( addr+2, val >> 16 );
+		writeHandler8( addr+3, val >> 24 );
+	}
+};
+
 //Slighly unusual version, will directly write 8,16,32 bits values
 class VGA_ChainedVGA_Handler : public PageHandler {
 public:
@@ -953,6 +1027,7 @@ static struct vg {
 	VGA_TANDY_PageHandler		tandy;
 	VGA_ChainedEGA_Handler		cega;
 	VGA_ChainedVGA_Handler		cvga;
+	VGA_ChainedVGA_Slow_Handler	cvga_slow;
 	VGA_ET4000_ChainedVGA_Handler		cvga_et4000;
 	VGA_UnchainedEGA_Handler	uega;
 	VGA_UnchainedVGA_Handler	uvga;
@@ -1044,16 +1119,27 @@ void VGA_SetupHandlers(void) {
 	case M_LIN8:
 	case M_VGA:
 		if (vga.config.chained) {
-			if(vga.config.compatible_chain4) {
+			bool slow = false;
+
+			/* NTS: Most demos and games do not use the Graphics Controller ROPs or bitmask in chained
+			 *      VGA modes. But, for the few that do, we have a "slow and accurate" implementation
+			 *      that will handle these demos properly at the expense of some emulation speed.
+			 *
+			 *      This fixes:
+			 *        Impact Studios 'Legend' demo (1993) */
+			if (vga.config.full_bit_mask != 0xFFFFFFFF)
+				slow = true;
+
+			if (slow || vga.config.compatible_chain4) {
 				/* NTS: ET4000AX cards appear to have a different chain4 implementation from everyone else:
 				 *      the planar memory byte address is address >> 2 and bits A0-A1 select the plane,
 				 *      where all other clones I've tested seem to write planar memory byte (address & ~3)
 				 *      (one byte per 4 bytes) and bits A0-A1 select the plane. */
 				/* FIXME: Different chain4 implementation on ET4000 noted---is it true also for ET3000? */
 				if (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K)
-					newHandler = &vgaph.cvga_et4000;
+					newHandler = &vgaph.cvga_et4000; /* TODO: need a "cvga_et4000_slow" */
 				else
-					newHandler = &vgaph.cvga;
+					newHandler = slow ? ((PageHandler*)(&vgaph.cvga_slow)) : ((PageHandler*)(&vgaph.cvga));
 			}
 			else {
 				newHandler = &vgaph.map;
