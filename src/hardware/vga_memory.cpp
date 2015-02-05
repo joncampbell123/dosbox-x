@@ -509,6 +509,69 @@ public:
 	}
 };
 
+class VGA_ET4000_ChainedVGA_Slow_Handler : public PageHandler {
+public:
+	VGA_ET4000_ChainedVGA_Slow_Handler() : PageHandler(PFLAG_NOCODE) {}
+	static INLINE Bitu readHandler8(PhysPt addr ) {
+		vga.latch.d=((Bit32u*)vga.mem.linear)[addr>>2];
+		return vga.latch.b[addr&3];
+	}
+	static INLINE void writeHandler8(PhysPt addr, Bitu val) {
+		VGA_Latch pixels;
+
+		/* byte-sized template specialization with masking */
+		pixels.d = ModeOperation(val);
+		/* Update video memory and the pixel buffer */
+		hostWrite<Bit8u>( &vga.mem.linear[addr], pixels.b[addr&3] );
+	}
+	Bitu readb(PhysPt addr ) {
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+		addr += vga.svga.bank_read_full;
+		addr = CHECKED(addr);
+		return readHandler8( addr );
+	}
+	Bitu readw(PhysPt addr ) {
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+		addr += vga.svga.bank_read_full;
+		addr = CHECKED(addr);
+		Bitu ret = (readHandler8( addr+0 ) << 0 );
+		ret     |= (readHandler8( addr+1 ) << 8 );
+		return ret;
+	}
+	Bitu readd(PhysPt addr ) {
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+		addr += vga.svga.bank_read_full;
+		addr = CHECKED(addr);
+		Bitu ret = (readHandler8( addr+0 ) << 0 );
+		ret     |= (readHandler8( addr+1 ) << 8 );
+		ret     |= (readHandler8( addr+2 ) << 16 );
+		ret     |= (readHandler8( addr+3 ) << 24 );
+		return ret;
+	}
+	void writeb(PhysPt addr, Bitu val ) {
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+		addr += vga.svga.bank_write_full;
+		addr = CHECKED(addr);
+		writeHandler8( addr, val );
+	}
+	void writew(PhysPt addr,Bitu val) {
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+		addr += vga.svga.bank_write_full;
+		addr = CHECKED(addr);
+		writeHandler8( addr+0, val >> 0 );
+		writeHandler8( addr+1, val >> 8 );
+	}
+	void writed(PhysPt addr,Bitu val) {
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+		addr += vga.svga.bank_write_full;
+		addr = CHECKED(addr);
+		writeHandler8( addr+0, val >> 0 );
+		writeHandler8( addr+1, val >> 8 );
+		writeHandler8( addr+2, val >> 16 );
+		writeHandler8( addr+3, val >> 24 );
+	}
+};
+
 class VGA_UnchainedVGA_Handler : public VGA_UnchainedRead_Handler {
 public:
 	void writeHandler( PhysPt addr, Bit8u val ) {
@@ -1029,6 +1092,7 @@ static struct vg {
 	VGA_ChainedVGA_Handler		cvga;
 	VGA_ChainedVGA_Slow_Handler	cvga_slow;
 	VGA_ET4000_ChainedVGA_Handler		cvga_et4000;
+	VGA_ET4000_ChainedVGA_Slow_Handler	cvga_et4000_slow;
 	VGA_UnchainedEGA_Handler	uega;
 	VGA_UnchainedVGA_Handler	uvga;
 	VGA_PCJR_Handler			pcjr;
@@ -1137,7 +1201,7 @@ void VGA_SetupHandlers(void) {
 				 *      (one byte per 4 bytes) and bits A0-A1 select the plane. */
 				/* FIXME: Different chain4 implementation on ET4000 noted---is it true also for ET3000? */
 				if (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K)
-					newHandler = &vgaph.cvga_et4000; /* TODO: need a "cvga_et4000_slow" */
+					newHandler = slow ? ((PageHandler*)(&vgaph.cvga_et4000_slow)) : ((PageHandler*)(&vgaph.cvga_et4000));
 				else
 					newHandler = slow ? ((PageHandler*)(&vgaph.cvga_slow)) : ((PageHandler*)(&vgaph.cvga));
 			}
