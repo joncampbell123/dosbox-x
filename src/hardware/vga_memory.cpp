@@ -54,7 +54,7 @@ int vga_memio_delay_ns = 1000;
 
 void VGAMEM_USEC_read_delay() {
 	if (vga_memio_delay_ns > 0) {
-		Bits delaycyc = (CPU_CycleMax * vga_memio_delay_ns) / 1024000;
+		Bits delaycyc = (CPU_CycleMax * vga_memio_delay_ns) / 1000000;
 //		if(GCC_UNLIKELY(CPU_Cycles < 3*delaycyc)) delaycyc = 0; //Else port acces will set cycles to 0. which might trigger problem with games which read 16 bit values
 		CPU_Cycles -= delaycyc;
 		CPU_IODelayRemoved += delaycyc;
@@ -63,7 +63,7 @@ void VGAMEM_USEC_read_delay() {
 
 void VGAMEM_USEC_write_delay() {
 	if (vga_memio_delay_ns > 0) {
-		Bits delaycyc = (CPU_CycleMax * vga_memio_delay_ns * 4) / (1024000 * 3);
+		Bits delaycyc = (CPU_CycleMax * vga_memio_delay_ns * 3) / (1000000 * 4);
 //		if(GCC_UNLIKELY(CPU_Cycles < 3*delaycyc)) delaycyc = 0; //Else port acces will set cycles to 0. which might trigger problem with games which read 16 bit values
 		CPU_Cycles -= delaycyc;
 		CPU_IODelayRemoved += delaycyc;

@@ -496,7 +496,7 @@ void VGA_Init(Section* sec) {
 	if (vga_memio_delay_ns < 0) {
 		if (pcibus_enable) {
 			/* some delay based on PCI bus protocol with frame start, turnaround, and burst transfer */
-			double t = (1024000000.0 * clockdom_PCI_BCLK.freq_div * (1.0 + (1.0 / 16))) / clockdom_PCI_BCLK.freq;
+			double t = (1000000000.0 * clockdom_PCI_BCLK.freq_div * (1.0 + (1.0 / 16))) / clockdom_PCI_BCLK.freq;
 			vga_memio_delay_ns = (int)floor(t);
 		}
 		else {
@@ -506,7 +506,7 @@ void VGA_Init(Section* sec) {
 			 * by making the shadebob take long enough to allow the 3D rotating dot object to finish it's
 			 * routine just in time to become the FC logo, instead of sitting there waiting awkwardly
 			 * for 3-5 seconds. */
-			double t = (1024000000.0 * clockdom_ISA_BCLK.freq_div * 2) / clockdom_ISA_BCLK.freq;
+			double t = (1000000000.0 * clockdom_ISA_BCLK.freq_div * 2) / clockdom_ISA_BCLK.freq;
 			vga_memio_delay_ns = (int)floor(t);
 		}
 	}
