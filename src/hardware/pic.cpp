@@ -508,8 +508,15 @@ extern ClockDomain clockdom_DOSBox_cycles;
 
 bool PIC_RunQueue(void) {
 	/* Check to see if a new millisecond needs to be started */
-	CPU_CycleLeft += CPU_Cycles; CPU_Cycles = 0;
-	if (CPU_CycleLeft <= 0) return false;
+	CPU_CycleLeft += CPU_Cycles;
+	CPU_Cycles = 0;
+
+	if (CPU_CycleLeft <= 0) {
+		if (PIC_IRQCheck)
+			PIC_runIRQs();
+
+		return false;
+	}
 
 	/* Check the queue for an entry */
 	Bits index_nd=PIC_TickIndexND();
