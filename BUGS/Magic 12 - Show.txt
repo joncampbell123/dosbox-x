@@ -1,9 +1,8 @@
 Magic 12 - Show bug report
 
-VGA raster bugs:
- - 18-bit RGB highcolor hacked modes work except for minor errors
-   in linewise rendering that cause visible "stripes" in the output
-   (but only if the cycles count is greater than about 9000).
+=========================================================
+ THESE ARE NOT BUGS IN DOSBOX, BUT NOTED
+=========================================================
 
 Memory corruption bugs:
  - If UMBs are enabled, Show will cause an "MCB list corrupted"
@@ -27,4 +26,13 @@ Memory corruption bugs:
    started taking the top 1KB under 640KB for the EBDA (extended BIOS
    data area) and the corruption merely affected the unused trailing
    end of it.
+
+==========================================================
+ THESE BUGS ARE FIXED
+==========================================================
+
+VGA raster bugs:
+ - 18-bit RGB highcolor hacked modes work except for minor errors
+   in linewise rendering that cause visible "stripes" in the output
+   (but only if the cycles count is greater than about 9000).
 

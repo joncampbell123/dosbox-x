@@ -1,6 +1,1 @@
-Surprise! Productions - The Good, The Bad, & The Ugly
- - VGA emulation is good enough for most parts but not QUITE good enough.
-   The demo (or DOSBox) seems to be off by one scanline which means that
-   when VGA row width or warping effects are active a "tear line" moves
-   slowly up the picture, distorting the effect slightly.
 
