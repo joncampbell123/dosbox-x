@@ -341,14 +341,14 @@ int VideoCodec::FinishCompressFrame( void ) {
 		/* Add the delta frame data */
 		switch (format) {
 		case ZMBV_FORMAT_8BPP:
-			AddXorFrame<char>();
+			AddXorFrame<uint8_t>();
 			break;
 		case ZMBV_FORMAT_15BPP:
 		case ZMBV_FORMAT_16BPP:
-			AddXorFrame<short>();
+			AddXorFrame<uint16_t>();
 			break;
 		case ZMBV_FORMAT_32BPP:
-			AddXorFrame<long>();
+			AddXorFrame<uint32_t>();
 			break;
 		default:
 			break;
@@ -464,14 +464,14 @@ bool VideoCodec::DecompressFrame(void * framedata, int size) {
 		}
 		switch (format) {
 		case ZMBV_FORMAT_8BPP:
-			UnXorFrame<char>();
+			UnXorFrame<uint8_t>();
 			break;
 		case ZMBV_FORMAT_15BPP:
 		case ZMBV_FORMAT_16BPP:
-			UnXorFrame<short>();
+			UnXorFrame<uint16_t>();
 			break;
 		case ZMBV_FORMAT_32BPP:
-			UnXorFrame<long>();
+			UnXorFrame<uint32_t>();
 			break;
 		default:
 			break;
