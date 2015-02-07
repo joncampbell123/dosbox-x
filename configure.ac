@@ -358,6 +358,7 @@ else
   AC_MSG_WARN([Can't find libpcap, NE2000 ethernet passthrough disabled])
 fi
 
+AH_TEMPLATE(C_SDL_NET,[Indicate whether SDL_net is present])
 AH_TEMPLATE(C_MODEM,[Define to 1 to enable internal modem support, requires SDL_net])
 AH_TEMPLATE(C_IPX,[Define to 1 to enable IPX over Internet networking, requires SDL_net])
 AC_CHECK_HEADER(SDL_net.h,have_sdl_net_h=yes,)

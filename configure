@@ -7209,6 +7209,7 @@ fi
 
 
 
+
 ac_fn_c_check_header_mongrel "$LINENO" "SDL_net.h" "ac_cv_header_SDL_net_h" "$ac_includes_default"
 if test "x$ac_cv_header_SDL_net_h" = xyes; then :
   have_sdl_net_h=yes
