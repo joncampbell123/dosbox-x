@@ -10,6 +10,7 @@
  *
  */
 
+#ifdef C_SDL_NET
 //#ifdef C_TIMIDITY
 
 #include "SDL.h"
@@ -423,4 +424,5 @@ void MidiHandler_timidity::PlaySysex(Bit8u *msg, Bitu length) {
 
 MidiHandler_timidity Midi_timidity;
 
-//#endif
+#endif /*C_SDL_NET*/
+
