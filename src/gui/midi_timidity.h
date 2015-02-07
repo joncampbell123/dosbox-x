@@ -9,6 +9,10 @@
  *   distribution, for which it was modified by Luigi Rizzo)
  *
  */
+/* NTS: Anyone notice that while midi.cpp includes this file, it doesn't
+ *      actually use the Timidity MIDI handler? You could delete this header
+ *      entirely and remove the #include and it would have no effect on
+ *      DOSBox-X. --J.C. */
 
 #ifdef C_SDL_NET
 //#ifdef C_TIMIDITY
