@@ -1,0 +1,19 @@
+Crystal Dream II notes:
+
+- Flickering issues, problems with vertical retrace timing.
+
+  If playing to GUS or Sound Blaster, the demo attempt to measure
+  the VGA refresh rate, then use IRQ 0 as sort of a vertical retrace
+  interrupt to synchronize demo page flipping and rendering to
+  the display.
+
+  For reasons unknown to me at this time, the demo will misdetect
+  VGA timing if core=dynamic. The dynamic core seems to throw off
+  the demo's VGA timing code.
+
+  If demo effects jump, run too fast/slow, and generally flicker
+  on screen, then the demo has misdetected the VGA refresh rate
+  and the timer is not synchronized with vertical retrace.
+
+  To avoid this problem, set core=normal or core=full.
+
