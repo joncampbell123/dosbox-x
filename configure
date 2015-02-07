@@ -7288,6 +7288,8 @@ fi
 fi
 if test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
    LIBS="$LIBS -lSDL_net"
+   $as_echo "#define C_SDL_NET 1" >>confdefs.h
+
    $as_echo "#define C_MODEM 1" >>confdefs.h
 
    $as_echo "#define C_IPX 1" >>confdefs.h

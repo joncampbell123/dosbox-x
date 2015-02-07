@@ -375,6 +375,7 @@ AC_CHECK_LIB(SDL_net, SDLNet_Init, have_sdl_net_lib=yes, , )
 fi
 if test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
    LIBS="$LIBS -lSDL_net"
+   AC_DEFINE(C_SDL_NET,1)
    AC_DEFINE(C_MODEM,1)
    AC_DEFINE(C_IPX,1)
 else 
