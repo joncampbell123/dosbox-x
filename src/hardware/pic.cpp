@@ -143,7 +143,19 @@ void PIC_Controller::activate() {
 void PIC_Controller::deactivate() { 
 	//removes irq check value  if master, signals master if slave
 	if(this == &master) {
-		PIC_IRQCheck = 0;
+		/* NTS: DOSBox code used to set PIC_IRQCheck = 0 here.
+		 *
+		 *      That's actually not the way to handle it. Here's why:
+		 *
+		 *      What would happen if one device raised an IRQ (setting PIC_IRQCheck=1)
+		 *      then before dispatching IRQs, another device lowered an IRQ (setting PIC_IRQCheck=0).
+		 *
+		 *      Lowering the IRQ would reset the flag, and PIC_runIRQs() would never process
+		 *      any pending IRQs even though some are waiting.
+		 *
+		 *      It's better if we set the flag when raising an IRQ, and leave the flag set until
+		 *      PIC_runIRQs() determines there are no more IRQs to dispatch. Then and only then
+		 *      will PIC_runIRQs() clear the flag. */
 	} else {
 		master.lower_irq(2);
 	}
@@ -380,7 +392,9 @@ void PIC_runIRQs(void) {
 
 	const Bit8u p = (master.irr & master.imrr)&master.isrr;
 	const Bit8u max = master.special?8:master.active_irq;
-	for(Bit8u i = 0,s = 1;i < max;i++, s<<=1){
+	Bit8u i,s;
+
+	for (i = 0,s = 1;i < max;i++, s<<=1){
 		if (p&s){
 			if (i==2 && enable_slave_pic) { //second pic
 				slave_startIRQ();
@@ -390,8 +404,11 @@ void PIC_runIRQs(void) {
 			break;
 		}
 	}
-	//Disable check variable.
-	PIC_IRQCheck = 0;
+
+	/* if we cleared all IRQs, then stop checking.
+	 * otherwise, keep the flag set for the next IRQ to process. */
+	if (i == max && (master.irr&master.imrr&slave.irr&slave.imrr) == 0)
+		PIC_IRQCheck = 0;
 }
 
 void PIC_SetIRQMask(Bitu irq, bool masked) {
