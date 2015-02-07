@@ -1463,23 +1463,13 @@ static void DSP_DoWrite(Bit8u val) {
 		 * Direct DAC output command 0x10 is "busy" long enough to effectively rate
 		 * limit output to 23KHz. */
 		else if (sb.sample_rate_limits) {
-			if (sb.type == SBT_2) { /* timing observed on SB 2.0: there's no busy cycles. these approximate what i noted. --J.C. */
-				/* FIXME: This best approximates the Direct DAC playback observed on an SB 2.0 but it would be wiser
-				 *        to run the DSP command through a test program that times how long the command is busy and
-				 *        other measurements to make this more accurate --J.C. */
-				if (sb.dsp.cmd == 0x10/*DSP direct DAC, this write is data byte*/) {
-					delay = ((1000000000 / 24000) * 55) / 100;
-				}
-				else if (sb.dsp.cmd == DSP_NO_COMMAND && val == 0x10/*DSP direct DAC, command*/) {
-					delay = ((1000000000 / 24000) * 45) / 100;
-				}
-			}
-			else if (sb.dsp.cmd == 0x10/*DSP direct DAC, this write is the data byte*/) {
-				if (sb.type == SBT_16 && sb.vibra)
-					delay = (1000000000 / 24000) - sb.dsp.dsp_write_busy_time - 3000;
-				else
-					delay = (1000000000 / 23000) - sb.dsp.dsp_write_busy_time - 3000;
-			}
+			unsigned int limit = 24000;
+
+			if (sb.type == SBT_16 && sb.vibra)
+				limit = 23000;
+
+			if (sb.dsp.cmd == DSP_NO_COMMAND && val == 0x10/*DSP direct DAC, command*/)
+				delay = (625000000UL / limit) - sb.dsp.dsp_write_busy_time;
 		}
 
 		if (delay > 0) {
