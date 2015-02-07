@@ -1463,10 +1463,10 @@ static void DSP_DoWrite(Bit8u val) {
 		 * Direct DAC output command 0x10 is "busy" long enough to effectively rate
 		 * limit output to 23KHz. */
 		else if (sb.sample_rate_limits) {
-			unsigned int limit = 24000;
+			unsigned int limit = 23000; /* documented max sample rate for SB16/SBPro and earlier */
 
 			if (sb.type == SBT_16 && sb.vibra)
-				limit = 23000;
+				limit = 24000; /* DSP maxes out at 48KHz not 44.1KHz on ViBRA cards */
 
 			if (sb.dsp.cmd == DSP_NO_COMMAND && val == 0x10/*DSP direct DAC, command*/)
 				delay = (625000000UL / limit) - sb.dsp.dsp_write_busy_time;
