@@ -1996,7 +1996,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		break;
 	case M_TANDY_TEXT: /* Also CGA */
 		vga.draw.blocks=width;
-		if (machine==MCH_CGA /*&& !doublewidth*/ && enableCGASnow)
+		if (machine==MCH_CGA /*&& !doublewidth*/ && enableCGASnow && (vga.tandy.mode_control & 1)/*80-column mode*/)
 			VGA_DrawLine=VGA_CGASNOW_TEXT_Draw_Line; /* Alternate version that emulates CGA snow */
 		else
 			VGA_DrawLine=VGA_TEXT_Draw_Line;
