@@ -719,16 +719,13 @@ public:
 		flags=PFLAG_NOCODE;
 	}
 	Bitu readb(PhysPt addr) {
-		if (enableCGASnow) {
-			/* CGA memory is SLOW. And if we don't do this DOSBox's efficient RAM emulation
-			 * causes the "snow" to bunch together in an unrealistic fashion */
-			CPU_Cycles -= CPU_CycleMax / 160;
-		}
-
 		addr = PAGING_GetPhysicalAddress(addr) & 0x3FFF;
+		VGAMEM_USEC_read_delay();
 		return vga.tandy.mem_base[addr];
 	}
 	void writeb(PhysPt addr,Bitu val){
+		VGAMEM_USEC_write_delay();
+
 		if (enableCGASnow) {
 			/* NTS: We can't use PIC_FullIndex() exclusively because it's not precise enough
 			 *      with respect to when DOSBox CPU emulation is writing. We have to use other
@@ -739,10 +736,6 @@ public:
 			/* we're in active area. which column should the snow show up on? */
 			Bit32u x = (Bit32u)((timeInLine * 80) / vga.draw.delay.hblkstart);
 			if ((unsigned)x < 80) vga.draw.cga_snow[x] = val;
-
-			/* CGA memory is SLOW. And if we don't do this DOSBox's efficient RAM emulation
-			 * causes the "snow" to bunch together in an unrealistic fashion */
-			CPU_Cycles -= CPU_CycleMax / 160;
 		}
 
 		addr = PAGING_GetPhysicalAddress(addr) & 0x3FFF;

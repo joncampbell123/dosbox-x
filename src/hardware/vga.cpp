@@ -494,19 +494,32 @@ void VGA_Init(Section* sec) {
 
 	vga_memio_delay_ns = section->Get_int("vmemdelay");
 	if (vga_memio_delay_ns < 0) {
-		if (pcibus_enable) {
-			/* some delay based on PCI bus protocol with frame start, turnaround, and burst transfer */
-			double t = (1000000000.0 * clockdom_PCI_BCLK.freq_div * (1.0 + (1.0 / 16))) / clockdom_PCI_BCLK.freq;
+		if (IS_EGAVGA_ARCH) {
+			if (pcibus_enable) {
+				/* some delay based on PCI bus protocol with frame start, turnaround, and burst transfer */
+				double t = (1000000000.0 * clockdom_PCI_BCLK.freq_div * (1.0 + (1.0 / 16))) / clockdom_PCI_BCLK.freq;
+				vga_memio_delay_ns = (int)floor(t);
+			}
+			else {
+				/* very optimistic setting, ISA bus cycles are longer than 2, but also 386/486/Pentium pipeline.
+				 * this is long enough to fix some demo's raster effects to work properly but not enough to
+				 * significantly bring DOS games to a crawl. Apparently, this also fixes Future Crew "Panic!"
+				 * by making the shadebob take long enough to allow the 3D rotating dot object to finish it's
+				 * routine just in time to become the FC logo, instead of sitting there waiting awkwardly
+				 * for 3-5 seconds. */
+				double t = (1000000000.0 * clockdom_ISA_BCLK.freq_div * 2) / clockdom_ISA_BCLK.freq;
+				vga_memio_delay_ns = (int)floor(t);
+			}
+		}
+		else if (machine == MCH_CGA || machine == MCH_HERC) {
+			/* default IBM PC/XT 4.77MHz timing. this is carefully tuned so that Trixter's CGA test program
+			 * times our CGA emulation as having about 305KB/sec reading speed. */
+			double t = (1000000000.0 * clockdom_ISA_OSC.freq_div * 143) / (clockdom_ISA_OSC.freq * 3);
 			vga_memio_delay_ns = (int)floor(t);
 		}
 		else {
-			/* very optimistic setting, ISA bus cycles are longer than 2, but also 386/486/Pentium pipeline.
-			 * this is long enough to fix some demo's raster effects to work properly but not enough to
-			 * significantly bring DOS games to a crawl. Apparently, this also fixes Future Crew "Panic!"
-			 * by making the shadebob take long enough to allow the 3D rotating dot object to finish it's
-			 * routine just in time to become the FC logo, instead of sitting there waiting awkwardly
-			 * for 3-5 seconds. */
-			double t = (1000000000.0 * clockdom_ISA_BCLK.freq_div * 2) / clockdom_ISA_BCLK.freq;
+			/* dunno. pick something */
+			double t = (1000000000.0 * clockdom_ISA_BCLK.freq_div * 6) / clockdom_ISA_BCLK.freq;
 			vga_memio_delay_ns = (int)floor(t);
 		}
 	}
