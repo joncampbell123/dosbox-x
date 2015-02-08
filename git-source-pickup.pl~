@@ -9,7 +9,8 @@ $branch = `git branch | grep '^\*' | sed -e 's/^\* //'`; chomp $branch;
 $branchfname = "-branch-$branch" if $branch ne "";
 print "Current branch: $branch\n";
 
-system("find -name \\\*\~") == 0 || die;
+system("find -name \\\*\~");
+die;
 
 if (!open(S,"git --no-pager log --max-count=1 |")) { exit 1; }
 my $lcommit = "x";
