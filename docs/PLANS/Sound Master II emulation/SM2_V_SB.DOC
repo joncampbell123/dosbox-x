@@ -1,0 +1,264 @@
+
+
+
+
+
+
+       ----------------------------------------------------------------------
+       DOCUMENT:
+
+          PROGRAMMING DIFFERENCES BETWEEN SOUND MASTER II AND SOUND BLASTER
+             FOR RECORDING AND PLAYBACK OF VOICE (DMA AND NON-DMA MODES)
+                                   Version 1.0
+                                  April 2, 1991
+
+                   Programming and Documentation by Ryan Hanlon
+               Copyright (c) 1991,  Covox, Inc.  All Rights Reserved
+
+       ----------------------------------------------------------------------
+       QUICK COMPARISON
+
+                    ---------------------------------------------------------
+                    SOUND MASTER II             SOUND BLASTER
+                    ---------------------------------------------------------
+       BASE PORTS   0x0220, 0x0240,             0x0210, 0x0220, 0x0230
+                    0x0280, 0x02C0              0x0240, 0x0250, 0x0260
+                    ---------------------------------------------------------
+       BASE PORT    8254 TIMER 0  = 0x08        RESET                 = 0x06
+       OFFSET       8254 TIMER 1  = 0x09        READ DATA             = 0x0A
+                    8254 TIMER 2  = 0x0A        WRITE COMMAND/DATA    = 0x0C
+                    8254 CONTROL  = 0x0B        WRITE BUFFER STATUS   = 0x0C
+                    CLEAR IRQ     = 0x0C        DATA AVAILABLE STATUS = 0x0E
+                    DISABLE VMDMA = 0x0D
+                    ENABLE VMDMA  = 0x0E
+                    DAC OFFSET    = 0x0F
+                    ---------------------------------------------------------
+       MAXIMUM      INPUT  (ADC) 25KHz          INPUT  (ADC) 13KHz
+       I/O RATES    OUTPUT (DAC) 100KHz         OUTPUT (DAC) 13KHz
+       (8 bit only)
+                    ---------------------------------------------------------
+       DATA         2 bit, 3 bit, 4 bit         2 bit, 3 bit, 4 bit
+                    true ADPCM (high quality)   differential PCM (not ADPCM)
+       COMPRESSION  optional silence encoding   optional silence encoding
+                    ---------------------------------------------------------
+       AVAILABLE    3, 4, 5, 6, 7               2, 3, 5, 7
+       IRQ'S
+                    ---------------------------------------------------------
+       COMMANDS     N/A                         8 BIT DAC OUTPUT    = 0x10
+                                                8 BIT ADC INPUT     = 0x20
+                                                8 BIT DMA INPUT     = 0x24
+                                                8 BIT DMA OUTPUT    = 0x14
+                                                2 BIT DMA OUTPUT    = 0x16
+                                                2 BIT DMA REFERENCE = 0x17
+                                                2.6 BIT DMA OUTPUT  = 0x76
+                                                2.6 BIT DMA REF.    = 0x77
+                                                4 BIT DMA OUTPUT    = 0x74
+                                                4 BIT DMA REFERENCE = 0x75
+                                                HALT DMA            = 0xD0
+                                                CONTINUE DMA        = 0xD4
+                                                SET TIME CONSTANT   = 0x40
+                                                MULTI-CHANNEL DAC   = 0x6?
+
+
+
+
+
+
+
+
+
+
+
+
+                                                TURN ON SPEAKER     = 0xD1
+                                                TURN OFF SPEAKER    = 0xD3
+                                                CARD IDENTIFICATION = 0xE0
+                                                GET DSP VERSION NUM = 0xE1
+       ----------------------------------------------------------------------
+       NON-DMA INPUT OF 8 BIT PCM SOUND DATA
+
+       SOUND MASTER II                  SOUND BLASTER
+       ---------------------------      --------------------------------
+       INITIALIZE SM II FOR INPUT       INITIALIZE THE DSP FOR INPUT OF PCM DATA
+       1. Set up timing method.         1. Reset the DSP chip by writing a '1'
+                                           to the RESET PORT (offset 0x06).
+                                        2. Wait 3 micro-seconds.
+                                        3. Write a '0' to the RESET PORT.
+                                        4. Insure that the DSP was initialized
+                                           by polling for '0xAA' at the READ
+                                           DATA PORT (offset 0x0A)
+                                        5. Wait for the MSB of the WRITE DATA
+                                           COMMAND PORT (offset 0x0C) to equal
+                                           0.
+                                        6. Write 0xD3 command (TURN OFF SPEAKER)
+                                           to the WRITE DATA/COMMAND PORT.
+                                        7. Set up timing method.
+
+       INPUT PCM DATA FROM SM II        INPUT PCM DATA FROM DSP
+       2. Read byte of PCM data         8. Wait for the MSB of the WRITE DATA/
+          from DAC PORT (offset            COMMAND PORT (offset 0x0C) to equal
+          0x0F).                           0.
+       3. Wait for correct timing       9. Write 0x20 command (8 BIT ADC INPUT)
+          and repeat step 2 until          to the WRITE DATA/COMMAND PORT.
+          end of transfer.             10. Wait for the MSB of the WRITE DATA/
+                                           COMMAND PORT (offset 0x0C) to equal
+                                           1.
+                                       11. Read byte of PCM data from the READ
+                                           DATA PORT (offset 0x0A).
+                                       12. Wait for correct timing and repeat  
+                                           steps 8 through 11 until end of     
+                                           transfer.
+       ----------------------------------------------------------------------
+       NON-DMA OUTPUT OF 8 BIT PCM SOUND DATA
+
+       SOUND MASTER II                  SOUND BLASTER
+       ---------------------------      --------------------------------
+       INITIALIZE SM II FOR OUTPUT      INITIALIZE THE DSP FOR OUTPUT OF PCM DATA
+       1. Set up timing method.         1. Reset the DSP chip by writing a '1'
+                                           to the RESET PORT (offset 0x06).
+                                        2. Wait 3 micro-seconds.
+                                        3. Write a '0' to the RESET PORT.
+                                        4. Insure that the DSP was initialized
+                                           by polling for '0xAA' at the READ
+                                           DATA PORT (offset 0x0A)
+                                        5. Wait for the MSB of the WRITE DATA
+                                           COMMAND PORT (offset 0x0C) to equal
+                                           0.
+
+
+
+
+
+
+
+
+
+
+
+
+                                        6. Write 0xD1 command (TURN ON SPEAKER)
+                                           to the WRITE DATA/COMMAND PORT.
+                                        7. Set up timing method.
+
+       OUTPUT PCM DATA FROM SM II       INPUT PCM DATA FROM DSP
+       2. Read byte of PCM data         8. Wait for the MSB of the WRITE DATA/
+          from DAC PORT (offset            COMMAND PORT (offset 0x0C) to equal
+          0x0F).                           0.
+       3. Wait for correct timing       9. Write 0x10 command (8 BIT ADC OUTPUT)
+          and repeat step 2 until          to the WRITE DATA/COMMAND PORT.
+          end of transfer.             10. Wait for the MSB of the WRITE DATA/
+                                           COMMAND PORT (offset 0x0C) to equal 1.
+                                       11. Write a byte of PCM data to the WRITE
+                                           DATA/COMMAND PORT (offset 0x0C).
+                                       12. Wait for correct timing and repeat  
+                                           steps 8 through 11 until end of     
+                                           transfer.
+       ----------------------------------------------------------------------
+       DMA INPUT OF 8 BIT PCM SOUND DATA
+
+       SOUND MASTER II                  SOUND BLASTER
+       ---------------------------      --------------------------------
+       INITIALIZE THE SM II FOR INPUT   INITIALIZE THE DSP FOR INPUT OF PCM DATA
+       1. Disable VMDMA on the sm II    1. Reset the DSP chip by writing a '1'
+          by writting any value to         to the RESET PORT (offset 0x06).
+          the DISABLE VMDMA PORT        2. Wait 3 micro-seconds.
+          (offset 0x0D).                   3. Write a '0' to the RESET PORT.
+                                        4. Insure that the DSP was initialized
+                                           by polling for '0xAA' at the READ
+                                           DATA PORT (offset 0x0A)
+                                        5. Wait for the MSB of the WRITE DATA
+                                           COMMAND PORT (offset 0x0C) to equal
+                                           0.
+                                        6. Write 0xD3 command (TURN OFF SPEAKER)
+                                           to the WRITE DATA/COMMAND PORT.
+
+       2. Setup 8237 DMA controller     7. Setup 8237 DMA controller and IRQ
+          and IRQ handlers.                handlers.
+
+       3. Write control byte to the     8. Wait for the MSB of the WRITE DATA
+          8254 controller on the           COMMAND PORT to equal 0.
+          SM II.                        9. Write 0x40 command (SET TIME CONSTANT)
+       4. Write LSB of the input rate      to the WRITE DATA/COMMAND PORT.
+          to the 8254 on the SM II.    10. Wait for the MSB of the WRITE DATA
+       5. Write MSB of the input rate      COMMAND PORT to equal 0.
+          to the 8254 on the SM II.    11. Write one byte value to WRITE DATA/
+                                           COMMAND PORT for desired input rate.
+
+       6. Enable VMDMA on the SM II    12. Wait for the MSB of the WRITE DATA
+          by writing any value to the      COMMAND PORT to equal 0.
+          ENABLE VMDMA PORT (offset    13. Write 0x24 command (8 BIT DMA INPUT)
+          0x0E).                           to the WRITE DATA/COMMAND PORT.
+
+       ----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+       DMA OUTPUT OF 8 BIT PCM SOUND DATA
+
+       SOUND MASTER II                  SOUND BLASTER
+       ---------------------------      --------------------------------
+       INITIALIZE THE SM II FOR OUTPUT  INITIALIZE THE DSP FOR OUTPUT OF PCM DATA
+       1. Disable VMDMA on the sm II    1. Reset the DSP chip by writing a '1'
+          by writting any value to         to the RESET PORT (offset 0x06).
+          the DISABLE VMDMA PORT        2. Wait 3 micro-seconds.
+          (offset 0x0D).                   3. Write a '0' to the RESET PORT.
+                                        4. Insure that the DSP was initialized
+                                           by polling for '0xAA' at the READ
+                                           DATA PORT (offset 0x0A)
+                                        5. Wait for the MSB of the WRITE DATA
+                                           COMMAND PORT (offset 0x0C) to equal
+                                           0.
+                                        6. Write 0xD2 command (TURN ON SPEAKER)
+                                           to the WRITE DATA/COMMAND PORT.
+
+       2. Setup 8237 DMA controller     7. Setup 8237 DMA controller and IRQ
+          and IRQ handlers.                handlers.
+
+       3. Write control byte to the     8. Wait for the MSB of the WRITE DATA
+          8254 controller on the           COMMAND PORT to equal 0.
+          SM II.                        9. Write 0x40 command (SET TIME CONSTANT)
+       4. Write LSB of the input rate      to the WRITE DATA/COMMAND PORT.
+          to the 8254 on the SM II.    10. Wait for the MSB of the WRITE DATA
+       5. Write MSB of the input rate      COMMAND PORT to equal 0.
+          to the 8254 on the SM II.    11. Write one byte value to WRITE DATA/
+                                           COMMAND PORT for desired input rate.
+       6. Enable VMDMA on the SM II    12. Wait for the MSB of the WRITE DATA
+          by writing any value to the      COMMAND PORT to equal 0.
+          ENABLE VMDMA PORT (offset    13. Write 0x14 command (8 BIT DMA OUTPUT)
+          0x0E).                           to the WRITE DATA/COMMAND PORT.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
