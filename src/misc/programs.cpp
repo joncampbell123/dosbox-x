@@ -452,7 +452,7 @@ bool Program::SetEnv(const char * entry,const char * new_string) {
 		mem_writeb(env_scan++,0);
 		mem_writeb(env_scan++,0);
 
-		assert(env_scan < env_fence);
+		assert(env_scan <= env_fence);
 	}
 
 	return true;
