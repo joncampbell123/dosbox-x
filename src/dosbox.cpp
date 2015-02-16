@@ -1727,7 +1727,8 @@ void DOSBOX_Init(void) {
 
 	Pbool = secprop->Add_bool("enable loadfix padding",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("If set (default), allocate a small 1KB region at the base of conventional memory.\n"
-			"Clearing this option can reclaim a small amount of conventional memory.");
+			"Clearing this option can reclaim a small amount of conventional memory, but can also\n"
+			"cause some DOS games to break especially if dynamic kernel allocation is enabled.");
 
 	Pbool = secprop->Add_bool("enable dummy environment block",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("If set (default), allocate a dummy environment block at the base of conventional memory.\n"
