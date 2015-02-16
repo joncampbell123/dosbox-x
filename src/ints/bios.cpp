@@ -3632,14 +3632,14 @@ void ROMBIOS_Init(Section *sec) {
 	oi = section->Get_int("rom bios minimum size"); /* in KB */
 	oi = (oi + 3) & ~3; /* round to 4KB page */
 	if (oi > 128) oi = 128;
-	if (oi == 0) oi = mainline_compatible_bios_mapping ? 128 : 64;
+	if (oi == 0) oi = (mainline_compatible_bios_mapping && machine != MCH_PCJR) ? 128 : 64;
 	if (oi < 8) oi = 8; /* because of some of DOSBox's fixed ROM structures we can only go down to 8KB */
 	rombios_minimum_size = (oi << 10); /* convert to minimum, using size coming downward from 1MB */
 
 	oi = section->Get_int("rom bios allocation max"); /* in KB */
 	oi = (oi + 3) & ~3; /* round to 4KB page */
 	if (oi > 128) oi = 128;
-	if (oi == 0) oi = mainline_compatible_bios_mapping ? 128 : 64;
+	if (oi == 0) oi = (mainline_compatible_bios_mapping && machine != MCH_PCJR) ? 128 : 64;
 	if (oi < 8) oi = 8; /* because of some of DOSBox's fixed ROM structures we can only go down to 8KB */
 	oi <<= 10;
 	if (oi < rombios_minimum_size) oi = rombios_minimum_size;
