@@ -47,3 +47,31 @@ switch away (and restore cursor responsiveness) or ALT+Space
 to bring up the DOS box's system menu (taking focus away from
 the DOS session restores proper mouse pointer responsiveness).
 
+--------------------------------------------------------------
+
+Known problems with "additional environment block size on exec"
+option.
+
+Setting "additional environment block size on exec" to 0 in your
+dosbox.conf and then running Windows 3.1 can cause DOSBox-X to
+crash with a "MCB chain corrupt" error message.
+
+--------------------------------------------------------------
+
+"kernel allocation in umb" and dynamic kernel allocation problem.
+
+Windows 3.1 will not start if DOSBox-X is configured to put all
+DOS kernel structures and private data in the upper memory block
+area.
+
+--------------------------------------------------------------
+
+EMS, VCPI, and virtual 8086 mode incompatibility.
+
+DOSBox-X's VCPI emulation is incompatible with Windows 3.1.
+Windows 3.1 will complain (from the DOSMGR driver) that it
+cannot run with the protected mode manager.
+
+You must disable the option that says to start DOSBox-X with
+expanded memory and virtual 8086 mode active to run Windows 3.1.
+
