@@ -6,8 +6,8 @@ Known issues:
 
 1. If you have dynamic kernel allocation enabled,
    and you have most of the private data in the umb,
-   you will need to at least enable the "dummy loadfix"
+   you will need to at least enable the "loadfix padding"
    memory block for the game to start properly. If
    you start the game and it stays at a black screen,
-   try enabling the dummy loadfix option.
+   try enabling the loadfix padding option.
 
