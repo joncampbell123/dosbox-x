@@ -54,8 +54,11 @@ struct EXE_Header {
 
 #define MAGIC1 0x5a4d
 #define MAGIC2 0x4d5a
-#define MAXENV 32768u
-#define ENV_KEEPFREE 83				 /* keep unallocated by environment variables */
+
+/* TODO: Make these variables the user can change */
+#define MAXENV 65535u						/* mainline DOSBOx: original value was 32768u */
+#define ENV_KEEPFREE 1024					/* keep unallocated by environment variables (original value mainline DOSBox: 83) */
+
 #define LOADNGO 0
 #define LOAD    1
 #define OVERLAY 3
