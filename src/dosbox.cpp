@@ -1720,6 +1720,16 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("xms",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Enable XMS support.");
 
+	Pint = secprop->Add_int("maximum environment block size on exec", Property::Changeable::WhenIdle,-1);
+	Pint->SetMinMax(-1,65535);
+	Pint->Set_help("Maximum environment block size to copy for child processes. Set to -1 for default.");
+
+	Pint = secprop->Add_int("additional environment block size on exec", Property::Changeable::WhenIdle,-1);
+	Pint->SetMinMax(-1,65535);
+	Pint->Set_help("When executing a program, compute the size of the parent block then add this amount to allow for a few additional variables.\n"
+			"If the subprocesses will never add/modify the environment block, you can free up a few additional bytes by setting this to 0.\n"
+			"Set to -1 for default setting.");
+
 	Pbool = secprop->Add_bool("enable a20 on windows init",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("If set, DOSBox will enable the A20 gate when Windows 3.1/9x broadcasts the INIT message\n"
 			"at startup. Windows 3.1 appears to make assumptions at some key points on startup about\n"

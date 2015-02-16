@@ -55,9 +55,11 @@ struct EXE_Header {
 #define MAGIC1 0x5a4d
 #define MAGIC2 0x4d5a
 
-/* TODO: Make these variables the user can change */
-#define MAXENV 65535u						/* mainline DOSBOx: original value was 32768u */
-#define ENV_KEEPFREE 1024					/* keep unallocated by environment variables (original value mainline DOSBox: 83) */
+unsigned int MAXENV = 32768u;
+unsigned int ENV_KEEPFREE = 83;
+
+//#define MAXENV 65535u						/* mainline DOSBOx: original value was 32768u */
+//#define ENV_KEEPFREE 1024					/* keep unallocated by environment variables (original value mainline DOSBox: 83) */
 
 #define LOADNGO 0
 #define LOAD    1
@@ -166,8 +168,12 @@ static bool MakeEnv(char * name,Bit16u * segment) {
 	/* If segment to copy environment is 0 copy the caller's environment */
 	DOS_PSP psp(dos.psp());
 	PhysPt envread,envwrite;
+	unsigned int keepfree;
 	Bit16u envsize=1;
 	bool parentenv=true;
+
+	/* below 83 bytes, we must not append the mystery 0x01 + program name string */
+	keepfree = ENV_KEEPFREE;
 
 	if (*segment==0) {
 		if (!psp.GetEnvironment()) parentenv=false;				//environment seg=0
@@ -179,7 +185,7 @@ static bool MakeEnv(char * name,Bit16u * segment) {
 
 	if (parentenv) {
 		for (envsize=0; ;envsize++) {
-			if (envsize>=MAXENV - ENV_KEEPFREE) {
+			if (envsize >= (MAXENV - keepfree)) {
 				DOS_SetError(DOSERR_ENVIRONMENT_INVALID);
 				return false;
 			}
@@ -187,7 +193,8 @@ static bool MakeEnv(char * name,Bit16u * segment) {
 		}
 		envsize += 2;									/* account for trailing \0\0 */
 	}
-	Bit16u size=long2para(envsize+ENV_KEEPFREE);
+	Bit16u size = long2para(envsize+keepfree);
+	if (size == 0) size = 1;
 	if (!DOS_AllocateMemory(segment,&size)) return false;
 	envwrite=PhysMake(*segment,0);
 	if (parentenv) {
@@ -197,13 +204,22 @@ static bool MakeEnv(char * name,Bit16u * segment) {
 	} else {
 		mem_writeb(envwrite++,0);
 	}
-	mem_writew(envwrite,1);
-	envwrite+=2;
-	char namebuf[DOS_PATHLENGTH];
-	if (DOS_Canonicalize(name,namebuf)) {
-		MEM_BlockWrite(envwrite,namebuf,(Bitu)(strlen(namebuf)+1));
-		return true;
-	} else return false;
+
+	/* If you look at environment blocks in real DOS, you see \x01 and then the name of your program follow
+	 * the environment block for some reason. If the user set the "keep free" below 83 bytes, then don't
+	 * do it. This might break some games that look for that string, but that's the user's fault for
+	 * setting the option, not ours */
+	if (keepfree >= 83) {
+		mem_writew(envwrite,1);
+		envwrite+=2;
+		char namebuf[DOS_PATHLENGTH];
+		if (DOS_Canonicalize(name,namebuf)) {
+			MEM_BlockWrite(envwrite,namebuf,(Bitu)(strlen(namebuf)+1));
+			return true;
+		} else return false;
+	}
+
+	return true;
 }
 
 bool DOS_NewPSP(Bit16u segment, Bit16u size) {

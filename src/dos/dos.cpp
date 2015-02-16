@@ -51,6 +51,9 @@ Bit16u DOS_PRIVATE_SEGMENT_END=0;//0xd000;
 
 Bitu DOS_PRIVATE_SEGMENT_Size=0x800;	// 32KB (0x800 pages), mainline DOSBox behavior
 
+extern unsigned int MAXENV;// = 32768u;
+extern unsigned int ENV_KEEPFREE;// = 83;
+
 DOS_Block dos;
 DOS_InfoBlock dos_infoblock;
 
@@ -1595,6 +1598,16 @@ public:
 		private_always_from_umb = section->Get_bool("kernel allocation in umb");
 		dos_con_use_int16_to_detect_input = section->Get_bool("con device use int 16h to detect keyboard input");
 		dbg_zero_on_dos_allocmem = section->Get_bool("zero memory on int 21h memory allocation");
+		MAXENV = section->Get_int("maximum environment block size on exec");
+		ENV_KEEPFREE = section->Get_int("additional environment block size on exec");
+
+		if ((int)MAXENV < 0) MAXENV = mainline_compatible_mapping ? 32768 : 65535;
+		if ((int)ENV_KEEPFREE < 0) ENV_KEEPFREE = mainline_compatible_mapping ? 83 : 1024;
+
+		LOG_MSG("DOS: MAXENV=%u ENV_KEEPFREE=%u",MAXENV,ENV_KEEPFREE);
+
+		if (ENV_KEEPFREE < 83)
+			LOG_MSG("DOS: ENV_KEEPFREE is below 83 bytes. DOS programs that rely on undocumented data following the environment block may break.");
 
 		if (dbg_zero_on_dos_allocmem) {
 			LOG_MSG("Debug option enabled: INT 21h memory allocation will always clear memory block before returning\n");
