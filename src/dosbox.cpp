@@ -840,7 +840,7 @@ void DOSBOX_Init(void) {
 	Pbool->Set_help("Map adapter ROM as RAM (mainline DOSBox 0.74 behavior). When clear, unused adapter ROM is mapped out");
 
 	Pint = secprop->Add_int("shell environment size",Property::Changeable::OnlyAtStart,0);
-	Pint->SetMinMax(512,65280);
+	Pint->SetMinMax(0,65280);
 	Pint->Set_help("Size of the initial DOSBox shell environment block, in bytes. This does not affect the environment block of sub-processes spawned from the shell.\n"
 			"This option has no effect unless dynamic kernel allocation is enabled.");
 
@@ -1719,6 +1719,19 @@ void DOSBOX_Init(void) {
 	secprop->AddInitFunction(&XMS_Init,true);//done
 	Pbool = secprop->Add_bool("xms",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Enable XMS support.");
+
+	Pbool = secprop->Add_bool("enable dummy device mcb",Property::Changeable::OnlyAtStart,true);
+	Pbool->Set_help("If set (default), allocate a fake device MCB at the base of conventional memory.\n"
+			"Clearing this option can reclaim a small amount of conventional memory at the expense of\n"
+			"some minor DOS compatibility.");
+
+	Pbool = secprop->Add_bool("enable loadfix padding",Property::Changeable::OnlyAtStart,true);
+	Pbool->Set_help("If set (default), allocate a small 1KB region at the base of conventional memory.\n"
+			"Clearing this option can reclaim a small amount of conventional memory.");
+
+	Pbool = secprop->Add_bool("enable dummy environment block",Property::Changeable::OnlyAtStart,true);
+	Pbool->Set_help("If set (default), allocate a dummy environment block at the base of conventional memory.\n"
+			"You can clear this option to reclaim a small amount of conventional memory.");
 
 	Pint = secprop->Add_int("maximum environment block size on exec", Property::Changeable::WhenIdle,-1);
 	Pint->SetMinMax(-1,65535);
