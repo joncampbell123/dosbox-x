@@ -1643,7 +1643,7 @@ public:
 			else if (private_always_from_umb) {
 				DOS_GetMemory_Choose(); /* the pool starts in UMB */
 				if (minimum_mcb_segment == 0)
-					DOS_MEM_START = 0x51; /* and we allow allocation from down below where the DOS kernel *would* reside */
+					DOS_MEM_START = 0x70;
 				else
 					DOS_MEM_START = minimum_mcb_segment;
 
