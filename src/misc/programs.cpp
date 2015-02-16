@@ -375,6 +375,32 @@ Bitu Program::GetEnvCount(void) {
 	return num;
 }
 
+void Program::DebugDumpEnv() {
+	PhysPt env_base,env_fence,env_scan;
+	unsigned char c;
+	std::string tmp;
+
+	if (dos_kernel_disabled)
+		return;
+
+	if (!LocateEnvironmentBlock(env_base,env_fence,psp->GetEnvironment()))
+		return;
+
+	env_scan = env_base;
+	LOG_MSG("DebugDumpEnv()");
+	while (env_scan < env_fence) {
+		if (mem_readb(env_scan) == 0) break;
+
+		while (env_scan < env_fence) {
+			if ((c=mem_readb(env_scan++)) == 0) break;
+			tmp += c;
+		}
+
+		LOG_MSG("...%s",tmp.c_str());
+		tmp = "";
+	}
+}
+
 /* NTS: "entry" string must have already been converted to uppercase */
 bool Program::SetEnv(const char * entry,const char * new_string) {
 	PhysPt env_base,env_fence,env_scan;
@@ -411,6 +437,7 @@ bool Program::SetEnv(const char * entry,const char * new_string) {
 			if (nsl != 0) {
 				if ((env_scan+needs) > env_fence) {
 					LOG_MSG("Program::SetEnv() error, insufficient room for environment variable %s=%s (replacement)\n",bigentry.c_str(),new_string);
+					DebugDumpEnv();
 					return false;
 				}
 			}
@@ -440,6 +467,7 @@ bool Program::SetEnv(const char * entry,const char * new_string) {
 	if (*new_string != 0) {
 		if ((env_scan+needs) > env_fence) {
 			LOG_MSG("Program::SetEnv() error, insufficient room for environment variable %s=%s (addition)\n",bigentry.c_str(),new_string);
+			DebugDumpEnv();
 			return false;
 		}
 

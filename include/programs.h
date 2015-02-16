@@ -97,7 +97,7 @@ public:
 	void WriteOut(const char * format,...);				/* Write to standard output */
 	void WriteOut_NoParsing(const char * format);				/* Write to standard output, no parsing */
 	void ChangeToLongCmd();
-
+	void DebugDumpEnv();
 };
 
 typedef void (PROGRAMS_Main)(Program * * make);
