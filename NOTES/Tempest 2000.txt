@@ -11,3 +11,8 @@ Known issues:
    you start the game and it stays at a black screen,
    try enabling the loadfix padding option.
 
+   UPDATE: Tempest 2000 fails to startup if the first MCB
+           of the chain starts at 0x69 or lower. You can
+           leave off "loadfix padding" if you set the
+           "minimum mcb segment" value to 0x6A or higher.
+

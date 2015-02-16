@@ -45,6 +45,7 @@ Bit16u DOS_CDS_SEG=0x108;
 Bit16u DOS_FIRST_SHELL=0x118;
 Bit16u DOS_FIRST_SHELL_END=0x158;
 Bit16u DOS_MEM_START=0x158;	 // regression to r3437 fixes nascar 2 colors
+Bit16u minimum_mcb_segment=0x70;
 
 Bit16u DOS_PRIVATE_SEGMENT=0;//0xc800;
 Bit16u DOS_PRIVATE_SEGMENT_END=0;//0xd000;
@@ -1596,6 +1597,7 @@ public:
 
 		enable_dbcs_tables = section->Get_bool("dbcs");
 		enable_filenamechar = section->Get_bool("filenamechar");
+		minimum_mcb_segment = section->Get_hex("minimum mcb segment");
 		private_segment_in_umb = section->Get_bool("private area in umb");
 		enable_collating_uppercase = section->Get_bool("collating and uppercase");
 		dynamic_dos_kernel_alloc = section->Get_bool("dynamic kernel allocation");
@@ -1640,7 +1642,23 @@ public:
 			}
 			else if (private_always_from_umb) {
 				DOS_GetMemory_Choose(); /* the pool starts in UMB */
-				DOS_MEM_START = 0x51; /* and we allow allocation from down below where the DOS kernel *would* reside */
+				if (minimum_mcb_segment == 0)
+					DOS_MEM_START = 0x51; /* and we allow allocation from down below where the DOS kernel *would* reside */
+				else
+					DOS_MEM_START = minimum_mcb_segment;
+
+				/* do not allow setting past the 64KB mark */
+				if (DOS_MEM_START > 0x1000)
+					DOS_MEM_START = 0x1000;
+
+				if (DOS_MEM_START < 0x40)
+					LOG_MSG("DANGER, DANGER! DOS_MEM_START has been set to within the interrupt vector table! Proceed at your own risk!");
+				else if (DOS_MEM_START < 0x50)
+					LOG_MSG("WARNING: DOS_MEM_START has been assigned to the BIOS data area! Proceed at your own risk!");
+				else if (DOS_MEM_START < 0x51)
+					LOG_MSG("WARNING: DOS_MEM_START has been assigned to segment 0x50, which some programs may use as the Print Screen flag");
+				else if (DOS_MEM_START < 0x70)
+					LOG_MSG("CAUTION: DOS_MEM_START is less than 0x70 which may cause problems with some DOS games or applications");
 			}
 			else {
 				DOS_PRIVATE_SEGMENT = 0x50; /* NTS: The first paragraph overlaps the PRINT SCREEN BYTE but DOSBox's kernel does not use that byte anyway */

@@ -1729,6 +1729,10 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("xms",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Enable XMS support.");
 
+	Phex = secprop->Add_hex("minimum mcb segment", Property::Changeable::WhenIdle,0);
+	Phex->Set_help("Minimum segment value to begin memory allocation from. Set to 0 for default.\n"
+			"There may be compatibility issues if this value is below 0x70.");
+
 	Pbool = secprop->Add_bool("enable dummy device mcb",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("If set (default), allocate a fake device MCB at the base of conventional memory.\n"
 			"Clearing this option can reclaim a small amount of conventional memory at the expense of\n"
