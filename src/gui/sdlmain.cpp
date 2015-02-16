@@ -3660,6 +3660,8 @@ int main(int argc, char* argv[]) {
 		if (control->opt_startui) UI_Run(false);
 
 		/* Init all the sections */
+		void DOSBOX_RealInit(Section * sec);
+		DOSBOX_RealInit(control->GetSection("dosbox"));
 		control->Init();
 
 		{

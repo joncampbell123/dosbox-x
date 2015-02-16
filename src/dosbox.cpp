@@ -598,7 +598,11 @@ unsigned int dosbox_shell_env_size = 0;
 
 void clocktree_build_conversion_list();
 
-static void DOSBOX_RealInit(Section * sec) {
+static void Null_Init(Section *sec) {
+	sec = sec;
+}
+
+void DOSBOX_RealInit(Section * sec) {
 	Section_prop * section=static_cast<Section_prop *>(sec);
 	/* Initialize some dosbox internals */
 
@@ -786,7 +790,7 @@ void DOSBOX_Init(void) {
 
 	LOG_StartUp();
 
-	secprop=control->AddSection_prop("dosbox",&DOSBOX_RealInit);
+	secprop=control->AddSection_prop("dosbox",&Null_Init);
 	Pstring = secprop->Add_path("language",Property::Changeable::Always,"");
 	Pstring->Set_help("Select another language file.");
 
