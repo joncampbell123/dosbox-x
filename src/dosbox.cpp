@@ -1148,7 +1148,7 @@ void DOSBOX_Init(void) {
 	Pmulti_remain->SetValue("");
 	Pstring->Set_values(pit_hax);
 
-	secprop=control->AddSection_prop("render",&RENDER_Init,true);
+	secprop=control->AddSection_prop("render",&Null_Init,true);
 	Pint = secprop->Add_int("frameskip",Property::Changeable::Always,0);
 	Pint->SetMinMax(0,10);
 	Pint->Set_help("How many frames DOSBox skips before drawing one.");

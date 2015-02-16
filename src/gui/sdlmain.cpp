@@ -3661,7 +3661,10 @@ int main(int argc, char* argv[]) {
 
 		/* Init all the sections */
 		void DOSBOX_RealInit(Section * sec);
+		void RENDER_Init(Section*);
+
 		DOSBOX_RealInit(control->GetSection("dosbox"));
+		RENDER_Init(control->GetSection("render"));
 		control->Init();
 
 		{
