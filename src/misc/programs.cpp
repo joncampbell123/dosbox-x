@@ -410,7 +410,7 @@ bool Program::SetEnv(const char * entry,const char * new_string) {
 			/* before we remove it: is there room for the new value? */
 			if (nsl != 0) {
 				if ((env_scan+needs) > env_fence) {
-					LOG_MSG("Program::SetEnv() error, insufficient room for environment variable %s=%s\n",bigentry.c_str(),new_string);
+					LOG_MSG("Program::SetEnv() error, insufficient room for environment variable %s=%s (replacement)\n",bigentry.c_str(),new_string);
 					return false;
 				}
 			}
@@ -439,7 +439,7 @@ bool Program::SetEnv(const char * entry,const char * new_string) {
 	/* add the string to the end of the block */
 	if (*new_string != 0) {
 		if ((env_scan+needs) > env_fence) {
-			LOG_MSG("Program::SetEnv() error, insufficient room for environment variable %s=%s\n",bigentry.c_str(),new_string);
+			LOG_MSG("Program::SetEnv() error, insufficient room for environment variable %s=%s (addition)\n",bigentry.c_str(),new_string);
 			return false;
 		}
 
