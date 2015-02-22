@@ -4393,6 +4393,48 @@ void FloppyController::on_fdc_in_command() {
 			out_res[0] = ST[3];
 			ST[0] = 0x00 | devidx;
 			break;
+		case 0x06: /* Read data (0110) */
+			/*     |   7    6    5    4    3    2    1    0
+			 * ----+------------------------------------------
+			 *   0 |               Register ST0
+			 *   1 |               Register ST1
+			 *   2 |               Register ST2
+			 *   3 |             Logical cylinder
+			 *   4 |               Logical head
+			 *   5 |              Logical sector
+			 *   6 |           Logical sector size
+			 * -----------------------------------------------
+			 *   7     total
+			 */
+			/* must have a device present. must have an image. device motor and select must be enabled.
+			 * current physical cylinder position must be within range of the image. request must have MFM bit set. */
+			if (dev != NULL && dev->motor && dev->select && image != NULL && (in_cmd[0]&0x40)/*MFM=1*/ &&
+				current_cylinder[devidx] < image->cylinders && (in_cmd[1]&4?1:0) <= image->heads &&
+				(in_cmd[1]&4?1:0) == in_cmd[3] && in_cmd[2] == current_cylinder[devidx] &&
+				in_cmd[5] == 2/*512 bytes/sector*/ && in_cmd[4] > 0 && in_cmd[4] <= image->sectors) {
+				/* TODO: delay related to how long it takes for the disk to rotate around to the sector requested */
+				reset_res();
+				ST[0] = 0x00 | devidx;
+				prepare_res_phase(7);
+				out_res[0] = ST[0];
+				out_res[1] = ST[1];
+				out_res[2] = ST[2];
+				out_res[3] = in_cmd[2];
+				out_res[4] = in_cmd[3];
+				out_res[5] = in_cmd[4];		/* the sector passing under the head at this time */
+				out_res[6] = 2;			/* 128 << 2 == 512 bytes/sector */
+			}
+			else {
+				/* TODO: real floppy controllers will pause for up to 1/2 a second before erroring out */
+				reset_res();
+				ST[0] = (ST[0] & 0x3F) | 0x80;
+				ST[1] = (1 << 0)/*missing address mark*/ | (1 << 2)/*no data*/;
+				ST[2] = (1 << 0)/*missing data address mark*/;
+				prepare_res_phase(1);
+				out_res[0] = ST[0];
+			}
+			raise_irq();
+			break;
 		case 0x07: /* Calibrate drive */
 			ST[0] = 0x20 | devidx;
 			if (instant_mode) {
@@ -4483,8 +4525,29 @@ void FloppyController::on_fdc_in_command() {
 				ST[1] = (1 << 0)/*missing address mark*/ | (1 << 2)/*no data*/;
 				ST[2] = (1 << 0)/*missing data address mark*/;
 				prepare_res_phase(1);
+				out_res[0] = ST[0];
 			}
 			raise_irq();
+			break;
+		case 0x0C: /* Read deleted data (1100) */
+			/*     |   7    6    5    4    3    2    1    0
+			 * ----+------------------------------------------
+			 *   0 |               Register ST0
+			 *   1 |               Register ST1
+			 *   2 |               Register ST2
+			 *   3 |             Logical cylinder
+			 *   4 |               Logical head
+			 *   5 |              Logical sector
+			 *   6 |           Logical sector size
+			 * -----------------------------------------------
+			 *   7     total
+			 */
+			/* the raw images used by DOSBox cannot represent "deleted sectors", so always fail */
+			reset_res();
+			ST[0] = (ST[0] & 0x3F) | 0x80;
+			ST[1] = (1 << 0)/*missing address mark*/ | (1 << 2)/*no data*/;
+			ST[2] = (1 << 0)/*missing data address mark*/;
+			prepare_res_phase(1);
 			break;
 		case 0x0F: /* Seek Head */
 			ST[0] = 0x00 | drive_selected();
@@ -4552,6 +4615,23 @@ void FloppyController::fdc_data_write(uint8_t b) {
 				 */
 				in_cmd_len = 2;
 				break;
+			case 0x06: /* Read data (0110) */
+				/*     |   7    6    5    4    3    2    1    0
+				 * ----+------------------------------------------
+				 *   0 |  MT  MFM   SK    0    0    1    1    0   
+				 *   1 |   0    0    0    0    0   HD  DR1  DR0
+				 *   2 |             Logical cylinder
+				 *   3 |               Logical head
+				 *   4 |          Logical sector (start)
+				 *   5 |           Logical sector size
+				 *   6 |               End of track               
+				 *   7 |               Gap 3 length
+				 *   8 |            Special sector size
+				 * -----------------------------------------------
+				 *   2     total
+				 */
+				in_cmd_len = 9;
+				break;
 			case 0x07: /* Calibrate drive (move head to track 0) */
 				/*     |   7    6    5    4    3    2    1    0
 				 * ----+------------------------------------------
@@ -4579,6 +4659,23 @@ void FloppyController::fdc_data_write(uint8_t b) {
 				 *   2     total
 				 */
 				in_cmd_len = 2;
+				break;
+			case 0x0C: /* Read deleted data (1100) */
+				/*     |   7    6    5    4    3    2    1    0
+				 * ----+------------------------------------------
+				 *   0 |  MT  MFM   SK    0    0    1    1    0   
+				 *   1 |   0    0    0    0    0   HD  DR1  DR0
+				 *   2 |             Logical cylinder
+				 *   3 |               Logical head
+				 *   4 |          Logical sector (start)
+				 *   5 |           Logical sector size
+				 *   6 |               End of track               
+				 *   7 |               Gap 3 length
+				 *   8 |            Special sector size
+				 * -----------------------------------------------
+				 *   2     total
+				 */
+				in_cmd_len = 9;
 				break;
 			case 0x0F: /* Seek Head */
 				/*     |   7    6    5    4    3    2    1    0
