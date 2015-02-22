@@ -3829,6 +3829,7 @@ public:
 	void motor_step(int dir);
 	imageDisk *getImage();
 	virtual ~FloppyDevice();
+	double floppy_image_motor_position();
 };
 
 class FloppyController:public Module_base{
@@ -3905,6 +3906,7 @@ bool FDC_AssignINT13Disk(unsigned char drv) {
 	dev = fdc->device[drv] = new FloppyDevice(fdc);
 	if (dev == NULL) return false;
 	dev->int13_disk = drv;
+	dev->set_select(fdc->drive_selected() == drv);
 
 	LOG_MSG("FDC: Primary controller, drive %u assigned to INT 13h drive %u",drv,drv);
 	return true;
@@ -3941,8 +3943,10 @@ void FDC_MotorStep(Bitu idx/*which IDE controller*/) {
 	devidx = fdc->drive_selected()&3;
 	dev = fdc->device[devidx];
 
+#if 0
 	LOG_MSG("FDC: motor step. if=%u dev=%u rem=%u dir=%d current=%u\n",
 		idx,devidx,fdc->motor_steps,fdc->motor_dir,fdc->current_cylinder[devidx]);
+#endif
 
 	if (dev != NULL && dev->track0) {
 		LOG_MSG("FDC: motor step abort. floppy drive signalling track0\n");
@@ -3989,6 +3993,13 @@ void FDC_MotorStep(Bitu idx/*which IDE controller*/) {
 
 //		LOG_MSG("FDC: motor step finished. current=%u\n",fdc->current_cylinder);
 	}
+}
+
+double FloppyDevice::floppy_image_motor_position() {
+	const unsigned int motor_rpm = 300;
+
+	if (!motor) return 0.0;
+	return fmod((PIC_FullIndex() * motor_rpm/*rotations/minute*/) / 1000/*convert to seconds from milliseconds*/ / 60/*rotations/min to rotations/sec*/,1.0);
 }
 
 imageDisk *FloppyDevice::getImage() {
@@ -4349,15 +4360,25 @@ uint8_t FloppyController::fdc_data_read() {
 }
 
 void FloppyController::on_fdc_in_command() {
+	imageDisk *image=NULL;
+	FloppyDevice *dev;
 	int devidx;
 
 	in_cmd_state = false;
 	devidx = drive_selected();
+	dev = device[devidx];
+	if (dev != NULL) image = dev->getImage();
 
-	LOG_MSG("FDC: Command len=%u %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
-		in_cmd_len,
-		in_cmd[0],in_cmd[1],in_cmd[2],in_cmd[3],in_cmd[4],
-		in_cmd[5],in_cmd[6],in_cmd[7],in_cmd[8],in_cmd[9]);
+	switch (in_cmd[0]&0x1F) {
+		case 0x0A:
+			break;
+		default:
+			LOG_MSG("FDC: Command len=%u %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
+				in_cmd_len,
+				in_cmd[0],in_cmd[1],in_cmd[2],in_cmd[3],in_cmd[4],
+				in_cmd[5],in_cmd[6],in_cmd[7],in_cmd[8],in_cmd[9]);
+			break;
+	}
 
 	switch (in_cmd[0]&0x1F) {
 		case 0x04: /* Check Drive Status */
@@ -4426,6 +4447,45 @@ void FloppyController::on_fdc_in_command() {
 				prepare_res_phase(1);
 			}
 			break;
+		case 0x0A: /* Read ID */
+			/*     |   7    6    5    4    3    2    1    0
+			 * ----+------------------------------------------
+			 *   0 |               Register ST0
+			 *   1 |               Register ST1
+			 *   2 |               Register ST2
+			 *   3 |             Logical cylinder
+			 *   4 |               Logical head
+			 *   5 |              Logical sector
+			 *   6 |           Logical sector size
+			 * -----------------------------------------------
+			 *   7     total
+			 */
+			/* must have a device present. must have an image. device motor and select must be enabled.
+			 * current physical cylinder position must be within range of the image. request must have MFM bit set. */
+			if (dev != NULL && dev->motor && dev->select && image != NULL && (in_cmd[0]&0x40)/*MFM=1*/ &&
+				current_cylinder[devidx] < image->cylinders && (in_cmd[1]&4?1:0) <= image->heads) {
+				int ns = (int)floor(dev->floppy_image_motor_position() * image->sectors);
+				/* TODO: minor delay to emulate time for one sector to pass under the head */
+				reset_res();
+				out_res[0] = ST[0];
+				out_res[1] = ST[1];
+				out_res[2] = ST[2];
+				out_res[3] = current_cylinder[devidx];
+				out_res[4] = (in_cmd[1]&4?1:0);
+				out_res[5] = ns + 1;		/* the sector passing under the head at this time */
+				out_res[6] = 2;			/* 128 << 2 == 512 bytes/sector */
+				prepare_res_phase(7);
+			}
+			else {
+				/* TODO: real floppy controllers will pause for up to 1/2 a second before erroring out */
+				reset_res();
+				ST[0] = (ST[0] & 0x3F) | 0x80;
+				ST[1] = (1 << 0)/*missing address mark*/ | (1 << 2)/*no data*/;
+				ST[2] = (1 << 0)/*missing data address mark*/;
+				prepare_res_phase(1);
+			}
+			raise_irq();
+			break;
 		case 0x0F: /* Seek Head */
 			ST[0] = 0x00 | drive_selected();
 			if (instant_mode) {
@@ -4458,10 +4518,16 @@ void FloppyController::on_fdc_in_command() {
 			break;
 	};
 
-	LOG_MSG("FDC: Response len=%u %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
-		out_res_len,
-		out_res[0],out_res[1],out_res[2],out_res[3],out_res[4],
-		out_res[5],out_res[6],out_res[7],out_res[8],out_res[9]);
+	switch (in_cmd[0]&0x1F) {
+		case 0x0A:
+			break;
+		default:
+			LOG_MSG("FDC: Response len=%u %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
+				out_res_len,
+				out_res[0],out_res[1],out_res[2],out_res[3],out_res[4],
+				out_res[5],out_res[6],out_res[7],out_res[8],out_res[9]);
+			break;
+	}
 }
 
 void FloppyController::fdc_data_write(uint8_t b) {
@@ -4503,6 +4569,16 @@ void FloppyController::fdc_data_write(uint8_t b) {
 				 * -----------------------------------------------
 				 *   1     total
 				 */
+				break;
+			case 0x0A: /* Read ID */
+				/*     |   7    6    5    4    3    2    1    0
+				 * ----+------------------------------------------
+				 *   0 |   0  MFM    0    0    1    0    1    0
+				 *   1 |   0    0    0    0    0   HD  DR1  DR0
+				 * -----------------------------------------------
+				 *   2     total
+				 */
+				in_cmd_len = 2;
 				break;
 			case 0x0F: /* Seek Head */
 				/*     |   7    6    5    4    3    2    1    0
