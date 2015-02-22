@@ -62,6 +62,13 @@ imageDisk *imageDiskList[MAX_DISK_IMAGES]={NULL};
 imageDisk *diskSwap[MAX_SWAPPABLE_DISKS]={NULL};
 Bits swapPosition;
 
+imageDisk *GetINT13FloppyDrive(unsigned char drv) {
+	if (drv >= 2)
+		return NULL;
+
+	return imageDiskList[drv];
+}
+
 imageDisk *GetINT13HardDrive(unsigned char drv) {
 	if (drv < 0x80 || drv >= (0x80+MAX_DISK_IMAGES-2))
 		return NULL;

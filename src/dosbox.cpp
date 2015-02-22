@@ -223,13 +223,6 @@ void				IDE_Septernary_Init(Section*);
 void				IDE_Octernary_Init(Section*);
 
 void				FDC_Primary_Init(Section*);
-void				FDC_Secondary_Init(Section*);
-void				FDC_Tertiary_Init(Section*);
-void				FDC_Quaternary_Init(Section*);
-void				FDC_Quinternary_Init(Section*);
-void				FDC_Sexternary_Init(Section*);
-void				FDC_Septernary_Init(Section*);
-void				FDC_Octernary_Init(Section*);
 
 void				KEYBOARD_Init(Section*);	//TODO This should setup INT 16 too but ok ;)
 void				JOYSTICK_Init(Section*);
@@ -1927,27 +1920,13 @@ void DOSBOX_Init(void) {
 #endif // C_NE2000
 
 	/* floppy controller emulation options and setup */
-	const char *fdc_names[8] = {
-		"fdc, primary",
-		"fdc, secondary",
-		"fdc, tertiary",
-		"fdc, quaternary",
-		"fdc, quinternary",
-		"fdc, sexternary",
-		"fdc, septernary",
-		"fdc, octernary"
+	const char *fdc_names[1] = {
+		"fdc, primary"
 	};
-	void (*fdc_inits[8])(Section *) = {
-		&FDC_Primary_Init,
-		&FDC_Secondary_Init,
-		&FDC_Tertiary_Init,
-		&FDC_Quaternary_Init,
-		&FDC_Quinternary_Init,
-		&FDC_Sexternary_Init,
-		&FDC_Septernary_Init,
-		&FDC_Octernary_Init
+	void (*fdc_inits[1])(Section *) = {
+		&FDC_Primary_Init
 	};
-	for (size_t i=0;i < 8;i++) {
+	for (size_t i=0;i < 1;i++) {
 		secprop=control->AddSection_prop(fdc_names[i],fdc_inits[i],false);//done
 
 		/* Primary FDC on by default, secondary is not. Most PCs have only one floppy controller. */

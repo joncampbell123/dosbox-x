@@ -3807,7 +3807,7 @@ void IDE_Octernary_Init(Section *sec) {
 
 #include "dma.h"
 
-#define MAX_FLOPPY_CONTROLLERS 8
+#define MAX_FLOPPY_CONTROLLERS 1
 
 static unsigned char init_floppy = 0;
 
@@ -3885,7 +3885,7 @@ public:
 	~FloppyController();
 };
 
-static FloppyController* floppycontroller[MAX_FLOPPY_CONTROLLERS]={NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+static FloppyController* floppycontroller[MAX_FLOPPY_CONTROLLERS]={NULL};
 
 static void fdc_baseio_w(Bitu port,Bitu val,Bitu iolen);
 static Bitu fdc_baseio_r(Bitu port,Bitu iolen);
@@ -4029,34 +4029,6 @@ static void FDC_Init(Section* sec,unsigned char interface) {
 
 void FDC_Primary_Init(Section *sec) {
 	FDC_Init(sec,0);
-}
-
-void FDC_Secondary_Init(Section *sec) {
-	FDC_Init(sec,1);
-}
-
-void FDC_Tertiary_Init(Section *sec) {
-	FDC_Init(sec,2);
-}
-
-void FDC_Quaternary_Init(Section *sec) {
-	FDC_Init(sec,3);
-}
-
-void FDC_Quinternary_Init(Section *sec) {
-	FDC_Init(sec,4);
-}
-
-void FDC_Sexternary_Init(Section *sec) {
-	FDC_Init(sec,5);
-}
-
-void FDC_Septernary_Init(Section *sec) {
-	FDC_Init(sec,6);
-}
-
-void FDC_Octernary_Init(Section *sec) {
-	FDC_Init(sec,7);
 }
 
 void FloppyController::update_ST3() {
