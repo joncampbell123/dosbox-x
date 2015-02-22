@@ -2012,6 +2012,9 @@ public:
 	Bit64u current_fpos; */
 };
 
+bool FDC_AssignINT13Disk(unsigned char drv);
+bool FDC_UnassignINT13Disk(unsigned char drv);
+
 class IMGMOUNT : public Program {
 public:
 	void Run(void) {
@@ -2036,6 +2039,9 @@ public:
 			if (isalpha(umount[0])) { /* if it's a drive letter, then traditional usage applies */
 				int i_drive = umount[0]-'A';
 				if (i_drive < DOS_DRIVES && i_drive >= 0 && Drives[i_drive]) {
+					if (i_drive <= 1)
+						FDC_UnassignINT13Disk(i_drive);
+
 					switch (DriveManager::UnmountDrive(i_drive)) {
 					case 0:
 						/* TODO: If the drive letter is also a CD-ROM drive attached to IDE, then let the
@@ -2676,6 +2682,16 @@ public:
 		}
 		else {
 			if (newImage != NULL) newImage->Release();
+		}
+
+		// let FDC know if we mounted a floppy
+		if (type == "floppy") {
+			if (drive >= '0' && drive <= '1')
+				FDC_AssignINT13Disk(drive-'0');
+			else if (drive >= 'A' && drive <= 'B')
+				FDC_AssignINT13Disk(drive-'A');
+			else if (drive >= 'a' && drive <= 'b')
+				FDC_AssignINT13Disk(drive-'a');
 		}
 
 		// check if volume label is given. becareful for cdrom

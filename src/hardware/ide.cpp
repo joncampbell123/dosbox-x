@@ -3890,6 +3890,42 @@ public:
 
 static FloppyController* floppycontroller[MAX_FLOPPY_CONTROLLERS]={NULL};
 
+bool FDC_AssignINT13Disk(unsigned char drv) {
+	if (drv >= 2) return false;
+	FloppyController *fdc = floppycontroller[0];
+	if (fdc == NULL) return false;
+	FloppyDevice *dev = fdc->device[drv];
+
+	if (dev != NULL) {
+		/* sorry. move it aside */
+		delete dev;
+		fdc->device[drv] = NULL;
+	}
+
+	dev = fdc->device[drv] = new FloppyDevice(fdc);
+	if (dev == NULL) return false;
+	dev->int13_disk = drv;
+
+	LOG_MSG("FDC: Primary controller, drive %u assigned to INT 13h drive %u",drv,drv);
+	return true;
+}
+
+bool FDC_UnassignINT13Disk(unsigned char drv) {
+	if (drv >= 2) return false;
+	FloppyController *fdc = floppycontroller[0];
+	if (fdc == NULL) return false;
+	FloppyDevice *dev = fdc->device[drv];
+
+	if (dev != NULL) {
+		/* sorry. move it aside */
+		delete dev;
+		fdc->device[drv] = NULL;
+	}
+
+	LOG_MSG("FDC: Primary controller, drive %u unassigned from INT 13h drive %u",drv,drv);
+	return true;
+}
+
 static void fdc_baseio_w(Bitu port,Bitu val,Bitu iolen);
 static Bitu fdc_baseio_r(Bitu port,Bitu iolen);
 
