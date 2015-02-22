@@ -3821,10 +3821,13 @@ public:
 	bool select,motor;
 	bool track0;
 public:
+	int		int13_disk;
+public:
 	FloppyDevice(FloppyController *c);
 	void set_select(bool enable);	/* set selection on/off */
 	void set_motor(bool enable);	/* set motor on/off */
 	void motor_step(int dir);
+	imageDisk *getImage();
 	virtual ~FloppyDevice();
 };
 
@@ -3952,6 +3955,13 @@ void FDC_MotorStep(Bitu idx/*which IDE controller*/) {
 	}
 }
 
+imageDisk *FloppyDevice::getImage() {
+	if (int13_disk >= 0)
+		return GetINT13FloppyDrive((unsigned char)int13_disk);
+
+	return NULL;
+}
+
 void FloppyController::on_reset() {
 	/* TODO: cancel DOSBox events corresponding to read/seek/etc */
 	PIC_RemoveSpecificEvents(FDC_MotorStep,interface_index);
@@ -3970,6 +3980,7 @@ FloppyDevice::~FloppyDevice() {
 FloppyDevice::FloppyDevice(FloppyController *c) {
 	motor = select = false;
 	current_track = 0;
+	int13_disk = -1;
 	track0 = false;
 }
 
