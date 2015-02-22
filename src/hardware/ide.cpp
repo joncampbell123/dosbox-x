@@ -3847,7 +3847,7 @@ public:
 	bool irq_pending;
 /* FDC internal registers */
 	uint8_t ST[4];			/* ST0..ST3 */
-	uint8_t current_cylinder;
+	uint8_t current_cylinder[4];
 /* buffers */
 	uint8_t in_cmd[16];
 	uint8_t in_cmd_len;
@@ -3893,31 +3893,33 @@ static Bitu fdc_baseio_r(Bitu port,Bitu iolen);
 void FDC_MotorStep(Bitu idx/*which IDE controller*/) {
 	FloppyController *fdc;
 	FloppyDevice *dev;
+	int devidx;
 
 	if (idx >= MAX_FLOPPY_CONTROLLERS) return;
 	fdc = floppycontroller[idx];
 	if (fdc == NULL) return;
 
-	dev = fdc->device[fdc->drive_selected()&3];
+	devidx = fdc->drive_selected()&3;
+	dev = fdc->device[devidx];
 
-//	LOG_MSG("FDC: motor step. if=%u rem=%u dir=%d current=%u\n",
-//		idx,fdc->motor_steps,fdc->motor_dir,fdc->current_cylinder);
+	LOG_MSG("FDC: motor step. if=%u dev=%u rem=%u dir=%d current=%u\n",
+		idx,devidx,fdc->motor_steps,fdc->motor_dir,fdc->current_cylinder[devidx]);
 
 	if (dev != NULL && dev->track0) {
 		LOG_MSG("FDC: motor step abort. floppy drive signalling track0\n");
 		fdc->motor_steps = 0;
-		fdc->current_cylinder = 0;
+		fdc->current_cylinder[devidx] = 0;
 	}
 
 	if (fdc->motor_steps > 0) {
 		fdc->motor_steps--;
-		fdc->current_cylinder += fdc->motor_dir;
-		if (fdc->current_cylinder <= 0) {
-			fdc->current_cylinder = 0;
+		fdc->current_cylinder[devidx] += fdc->motor_dir;
+		if (fdc->current_cylinder[devidx] <= 0) {
+			fdc->current_cylinder[devidx] = 0;
 			fdc->motor_steps = 0;
 		}
-		else if (fdc->current_cylinder > 255) {
-			fdc->current_cylinder = 255;
+		else if (fdc->current_cylinder[devidx] > 255) {
+			fdc->current_cylinder[devidx] = 255;
 			fdc->motor_steps = 0;
 		}
 
@@ -3942,9 +3944,9 @@ void FDC_MotorStep(Bitu idx/*which IDE controller*/) {
 		fdc->reset_io();
 
 		/* real FDC's don't have this insight, but for DOSBox-X debugging... */
-		if (dev != NULL && dev->current_track != fdc->current_cylinder)
+		if (dev != NULL && dev->current_track != fdc->current_cylinder[devidx])
 			LOG_MSG("FDC: warning, after motor step FDC and drive are out of sync (fdc=%u drive=%u). OS or App needs to recalibrate\n",
-				fdc->current_cylinder,dev->current_track);
+				fdc->current_cylinder[devidx],dev->current_track);
 
 //		LOG_MSG("FDC: motor step finished. current=%u\n",fdc->current_cylinder);
 	}
@@ -3955,7 +3957,7 @@ void FloppyController::on_reset() {
 	PIC_RemoveSpecificEvents(FDC_MotorStep,interface_index);
 	motor_dir = 0;
 	motor_steps = 0;
-	current_cylinder = 0;
+	for (size_t i=0;i < 4;i++) current_cylinder[i] = 0;
 	busy_status = 0;
 	ST[0] &= 0x3F;
 	reset_io();
@@ -4328,7 +4330,10 @@ uint8_t FloppyController::fdc_data_read() {
 }
 
 void FloppyController::on_fdc_in_command() {
+	int devidx;
+
 	in_cmd_state = false;
+	devidx = drive_selected();
 
 	LOG_MSG("FDC: Command len=%u %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
 		in_cmd_len,
@@ -4346,13 +4351,13 @@ void FloppyController::on_fdc_in_command() {
 			reset_res();
 			prepare_res_phase(1);
 			out_res[0] = ST[3];
-			ST[0] = 0x00 | drive_selected();
+			ST[0] = 0x00 | devidx;
 			break;
 		case 0x07: /* Calibrate drive */
-			ST[0] = 0x20 | drive_selected();
+			ST[0] = 0x20 | devidx;
 			if (instant_mode) {
 				/* move head to track 0 */
-				current_cylinder = 0;
+				current_cylinder[devidx] = 0;
 				/* fire IRQ */
 				raise_irq();
 				/* no result phase */
@@ -4360,7 +4365,7 @@ void FloppyController::on_fdc_in_command() {
 			}
 			else {
 				/* delay due to stepping the head to the desired cylinder */
-				motor_steps = current_cylinder; /* always to track 0 */
+				motor_steps = current_cylinder[devidx]; /* always to track 0 */
 				if (motor_steps > 79) motor_steps = 79; /* calibrate is said to max out at 79 */
 				motor_dir = -1; /* always step backwards */
 
@@ -4388,7 +4393,7 @@ void FloppyController::on_fdc_in_command() {
 				reset_res();
 				prepare_res_phase(2);
 				out_res[0] = ST[0];
-				out_res[1] = current_cylinder;
+				out_res[1] = current_cylinder[devidx];
 			}
 			else {
 				/* if no pending IRQ, signal error.
@@ -4406,7 +4411,7 @@ void FloppyController::on_fdc_in_command() {
 			ST[0] = 0x00 | drive_selected();
 			if (instant_mode) {
 				/* move head to whatever track was wanted */
-				current_cylinder = in_cmd[2]; /* from 3rd byte of command */
+				current_cylinder[devidx] = in_cmd[2]; /* from 3rd byte of command */
 				/* fire IRQ */
 				raise_irq();
 				/* no result phase */
@@ -4414,8 +4419,8 @@ void FloppyController::on_fdc_in_command() {
 			}
 			else {
 				/* delay due to stepping the head to the desired cylinder */
-				motor_steps = abs(in_cmd[2] - current_cylinder);
-				motor_dir = in_cmd[2] > current_cylinder ? 1 : -1;
+				motor_steps = abs(in_cmd[2] - current_cylinder[devidx]);
+				motor_dir = in_cmd[2] > current_cylinder[devidx] ? 1 : -1;
 
 				/* the command takes time to move the head */
 				data_register_ready = 0;
