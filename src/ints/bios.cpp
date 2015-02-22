@@ -2858,7 +2858,7 @@ extern unsigned int dos_conventional_limit;
 
 class BIOS:public Module_base{
 private:
-	CALLBACK_HandlerObject callback[13];
+	CALLBACK_HandlerObject callback[14];
 public:
 	void write_FFFF_signature() {
 		/* write the signature at 0xF000:0xFFF0 */
@@ -3041,6 +3041,10 @@ public:
 		// FIXME: Shouldn't the IRQ send an ACK to the PIC as well?!?
 		callback[12].Install(&IRQ15_Dummy,CB_IRET,"irq 15 ide");
 		callback[12].Set_RealVec(0x77);
+
+		// INT 0Eh: IDE IRQ 6
+		callback[13].Install(&IRQ15_Dummy,CB_IRET_EOI_PIC1,"irq 6 floppy");
+		callback[13].Set_RealVec(0x0E);
 
 		init_vm86_fake_io();
 
