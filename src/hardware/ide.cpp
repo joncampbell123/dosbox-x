@@ -4394,6 +4394,7 @@ void FloppyController::on_fdc_in_command() {
 			ST[0] = 0x00 | devidx;
 			break;
 		case 0x05: /* Write data (0101) */
+		case 0x09: /* Write deleted data (1001) */
 			/*     |   7    6    5    4    3    2    1    0
 			 * ----+------------------------------------------
 			 *   0 |               Register ST0
@@ -4730,6 +4731,7 @@ void FloppyController::fdc_data_write(uint8_t b) {
 				in_cmd_len = 2;
 				break;
 			case 0x05: /* Write data (0101) */
+			case 0x09: /* Write deleted data (1001) */
 				/*     |   7    6    5    4    3    2    1    0
 				 * ----+------------------------------------------
 				 *   0 |  MT  MFM    0    0    0    1    0    1   
