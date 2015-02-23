@@ -4393,6 +4393,84 @@ void FloppyController::on_fdc_in_command() {
 			out_res[0] = ST[3];
 			ST[0] = 0x00 | devidx;
 			break;
+		case 0x05: /* Write data (0101) */
+			/*     |   7    6    5    4    3    2    1    0
+			 * ----+------------------------------------------
+			 *   0 |               Register ST0
+			 *   1 |               Register ST1
+			 *   2 |               Register ST2
+			 *   3 |             Logical cylinder
+			 *   4 |               Logical head
+			 *   5 |              Logical sector
+			 *   6 |           Logical sector size
+			 * -----------------------------------------------
+			 *   7     total
+			 */
+			/* must have a device present. must have an image. device motor and select must be enabled.
+			 * current physical cylinder position must be within range of the image. request must have MFM bit set. */
+			dma = GetDMAChannel(DMA);
+			if (dev != NULL && dma != NULL && dev->motor && dev->select && image != NULL && (in_cmd[0]&0x40)/*MFM=1*/ &&
+				current_cylinder[devidx] < image->cylinders && (in_cmd[1]&4?1:0) <= image->heads &&
+				(in_cmd[1]&4?1:0) == in_cmd[3] && in_cmd[2] == current_cylinder[devidx] &&
+				in_cmd[5] == 2/*512 bytes/sector*/ && in_cmd[4] > 0 && in_cmd[4] <= image->sectors) {
+				unsigned char sector[512];
+				bool fail = false;
+
+				/* TODO: delay related to how long it takes for the disk to rotate around to the sector requested */
+				reset_res();
+				ST[0] = 0x00 | devidx;
+
+				while (!fail && !dma->tcount/*terminal count*/) {
+					/* if we're reading past the track, fail */
+					if (in_cmd[4] > image->sectors) {
+						fail = true;
+						break;
+					}
+
+					/* DMA transfer */
+					dma->Register_Callback(0);
+					if (dma->Read(512,sector) != 512) break;
+
+					/* write sector */
+					Bit8u err = image->Write_Sector(in_cmd[3]/*head*/,in_cmd[2]/*cylinder*/,in_cmd[4]/*sector*/,sector);
+					if (err != 0x00) {
+						fail = true;
+						break;
+					}
+
+					/* if we're at the last sector of the track according to program, then stop */
+					if (in_cmd[4] == in_cmd[6]) break;
+				}
+
+				if (fail) {
+					ST[0] = (ST[0] & 0x3F) | 0x80;
+					ST[1] = (1 << 0)/*missing address mark*/ | (1 << 2)/*no data*/;
+					ST[2] = (1 << 0)/*missing data address mark*/;
+					prepare_res_phase(1);
+					out_res[0] = ST[0];
+				}
+				else {
+					prepare_res_phase(7);
+					out_res[0] = ST[0];
+					out_res[1] = ST[1];
+					out_res[2] = ST[2];
+					out_res[3] = in_cmd[2];
+					out_res[4] = in_cmd[3];
+					out_res[5] = in_cmd[4];		/* the sector passing under the head at this time */
+					out_res[6] = 2;			/* 128 << 2 == 512 bytes/sector */
+				}
+			}
+			else {
+				/* TODO: real floppy controllers will pause for up to 1/2 a second before erroring out */
+				reset_res();
+				ST[0] = (ST[0] & 0x3F) | 0x80;
+				ST[1] = (1 << 0)/*missing address mark*/ | (1 << 2)/*no data*/;
+				ST[2] = (1 << 0)/*missing data address mark*/;
+				prepare_res_phase(1);
+				out_res[0] = ST[0];
+			}
+			raise_irq();
+			break;
 		case 0x06: /* Read data (0110) */
 			/*     |   7    6    5    4    3    2    1    0
 			 * ----+------------------------------------------
@@ -4651,6 +4729,23 @@ void FloppyController::fdc_data_write(uint8_t b) {
 				 */
 				in_cmd_len = 2;
 				break;
+			case 0x05: /* Write data (0101) */
+				/*     |   7    6    5    4    3    2    1    0
+				 * ----+------------------------------------------
+				 *   0 |  MT  MFM    0    0    0    1    0    1   
+				 *   1 |   0    0    0    0    0   HD  DR1  DR0
+				 *   2 |             Logical cylinder
+				 *   3 |               Logical head
+				 *   4 |          Logical sector (start)
+				 *   5 |           Logical sector size
+				 *   6 |               End of track               
+				 *   7 |               Gap 3 length
+				 *   8 |            Special sector size
+				 * -----------------------------------------------
+				 *   9     total
+				 */
+				in_cmd_len = 9;
+				break;
 			case 0x06: /* Read data (0110) */
 				/*     |   7    6    5    4    3    2    1    0
 				 * ----+------------------------------------------
@@ -4664,7 +4759,7 @@ void FloppyController::fdc_data_write(uint8_t b) {
 				 *   7 |               Gap 3 length
 				 *   8 |            Special sector size
 				 * -----------------------------------------------
-				 *   2     total
+				 *   9     total
 				 */
 				in_cmd_len = 9;
 				break;
@@ -4709,7 +4804,7 @@ void FloppyController::fdc_data_write(uint8_t b) {
 				 *   7 |               Gap 3 length
 				 *   8 |            Special sector size
 				 * -----------------------------------------------
-				 *   2     total
+				 *   9     total
 				 */
 				in_cmd_len = 9;
 				break;
