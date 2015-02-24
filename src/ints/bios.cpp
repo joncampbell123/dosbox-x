@@ -3066,8 +3066,21 @@ public:
 		// program system timer
 		// timer 2
 		IO_Write(0x43,0xb6);
-		IO_Write(0x42,1320&0xff);
-		IO_Write(0x42,1320>>8);
+		{
+			Section_prop *pcsec = static_cast<Section_prop *>(control->GetSection("speaker"));
+			int freq = pcsec->Get_int("initial frequency"); /* original code: 1320 */
+			int div;
+
+			if (freq < 18) {
+				div = 1;
+			}
+			else {
+				div = PIT_TICK_RATE / freq;
+				if (div > 65535) div = 65535;
+			}
+			IO_Write(0x42,div&0xff);
+			IO_Write(0x42,div>>8);
+		}
 
 		// tandy DAC setup
 		tandy_sb.port=0;
