@@ -1145,6 +1145,20 @@ public:
 */
 };
 
+class VGA_HERC_Handler : public PageHandler {
+public:
+	VGA_HERC_Handler() {
+		flags=PFLAG_READABLE|PFLAG_WRITEABLE;
+	}
+	HostPt GetHostReadPt(Bitu phys_page) {
+		// The 4kB map area is repeated in the 32kB range
+		return &vga.mem.linear[0];
+	}
+	HostPt GetHostWritePt(Bitu phys_page) {
+		return GetHostReadPt( phys_page );
+	}
+};
+
 class VGA_Empty_Handler : public PageHandler {
 public:
 	VGA_Empty_Handler() : PageHandler(PFLAG_NOCODE) {}
@@ -1171,6 +1185,7 @@ static struct vg {
 	VGA_UnchainedEGA_Handler	uega;
 	VGA_UnchainedVGA_Handler	uvga;
 	VGA_PCJR_Handler			pcjr;
+	VGA_HERC_Handler			herc;
 	VGA_LIN4_Handler			lin4;
 	VGA_LFB_Handler				lfb;
 	VGA_MMIO_Handler			mmio;
@@ -1210,7 +1225,7 @@ void VGA_SetupHandlers(void) {
 		} else {
 			vgapages.mask=0x7fff;
 			/* With hercules in 32kb mode it leaves a memory hole on 0xb800 */
-			MEM_SetPageHandler(VGA_PAGE_B0,8,&vgaph.map);
+			MEM_SetPageHandler(VGA_PAGE_B0,8,&vgaph.herc);
 			MEM_SetPageHandler(VGA_PAGE_B8,8,&vgaph.empty);
 		}
 		goto range_done;
