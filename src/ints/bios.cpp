@@ -1779,31 +1779,37 @@ static Bitu INT1A_Handler(void) {
 					IO_WriteD(0xcf8,0x80000000|(reg_bx<<8)|(reg_di&0xfc));
 					reg_cl=IO_ReadB(0xcfc+(reg_di&3));
 					CALLBACK_SCF(false);
+					reg_ah=0x00;
 					break;
 				case 0x09:	// read configuration word
 					IO_WriteD(0xcf8,0x80000000|(reg_bx<<8)|(reg_di&0xfc));
 					reg_cx=IO_ReadW(0xcfc+(reg_di&2));
 					CALLBACK_SCF(false);
+					reg_ah=0x00;
 					break;
 				case 0x0a:	// read configuration dword
 					IO_WriteD(0xcf8,0x80000000|(reg_bx<<8)|(reg_di&0xfc));
 					reg_ecx=IO_ReadD(0xcfc+(reg_di&3));
 					CALLBACK_SCF(false);
+					reg_ah=0x00;
 					break;
 				case 0x0b:	// write configuration byte
 					IO_WriteD(0xcf8,0x80000000|(reg_bx<<8)|(reg_di&0xfc));
 					IO_WriteB(0xcfc+(reg_di&3),reg_cl);
 					CALLBACK_SCF(false);
+					reg_ah=0x00;
 					break;
 				case 0x0c:	// write configuration word
 					IO_WriteD(0xcf8,0x80000000|(reg_bx<<8)|(reg_di&0xfc));
 					IO_WriteW(0xcfc+(reg_di&2),reg_cx);
 					CALLBACK_SCF(false);
+					reg_ah=0x00;
 					break;
 				case 0x0d:	// write configuration dword
 					IO_WriteD(0xcf8,0x80000000|(reg_bx<<8)|(reg_di&0xfc));
 					IO_WriteD(0xcfc+(reg_di&3),reg_ecx);
 					CALLBACK_SCF(false);
+					reg_ah=0x00;
 					break;
 				default:
 					LOG(LOG_BIOS,LOG_ERROR)("INT1A:PCI BIOS: unknown function %x (%x %x %x)",
