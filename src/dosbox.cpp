@@ -1728,6 +1728,9 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("xms",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Enable XMS support.");
 
+	Pbool = secprop->Add_bool("share",Property::Changeable::WhenIdle,true);
+	Pbool->Set_help("Report SHARE.EXE as resident. Does not actually emulate SHARE functions.");
+
 	Phex = secprop->Add_hex("minimum mcb segment", Property::Changeable::WhenIdle,0);
 	Phex->Set_help("Minimum segment value to begin memory allocation from, in hexadecimal. Set to 0 for default.\n"
 			"Recommended value is 70, some DOS games have problems if the value is lower than that.\n"

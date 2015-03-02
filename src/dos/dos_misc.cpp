@@ -24,6 +24,8 @@
 #include "dos_inc.h"
 #include <list>
 
+extern bool enable_share_exe_fake;
+
 extern Bitu XMS_EnableA20(bool enable);
 
 bool enable_a20_on_windows_init = false;
@@ -85,7 +87,12 @@ static bool DOS_MultiplexFunctions(void) {
 	switch (reg_ax) {
 	/* ert, 20100711: Locking extensions */
 	case 0x1000:	/* SHARE.EXE installation check */
-		reg_ax=0xffff; /* Pretend that share.exe is installed.. Of course it's a bloody LIE! */
+		if (enable_share_exe_fake) {
+			reg_ax=0xffff; /* Pretend that share.exe is installed.. Of course it's a bloody LIE! */
+		}
+		else {
+			return false; /* pass it on */
+		}
 		break;
 	case 0x1216:	/* GET ADDRESS OF SYSTEM FILE TABLE ENTRY */
 		// reg_bx is a system file table entry, should coincide with
