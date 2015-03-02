@@ -1219,13 +1219,23 @@ void VGA_SetupHandlers(void) {
 		goto range_done;
 	case MCH_HERC:
 		vgapages.base=VGA_PAGE_B0;
-		if (vga.herc.enable_bits & 0x2) {
+		/* NTS: Implemented according to [http://www.seasip.info/VintagePC/hercplus.html#regs] */
+		if (vga.herc.enable_bits & 0x2) { /* bit 1: page in upper 32KB */
 			vgapages.mask=0xffff;
-			MEM_SetPageHandler(VGA_PAGE_B0,16,&vgaph.map);
+			/* NTS: I don't know what Hercules graphics cards do if you set bit 1 but not bit 0.
+			 *      For the time being, I'm assuming that they respond to 0xB8000+ because of bit 1
+			 *      but only map to the first 4KB because of bit 0. Basically, a configuration no
+			 *      software would actually use. */
+			if (vga.herc.enable_bits & 0x1) /* allow graphics and enable 0xB1000-0xB7FFF */
+				MEM_SetPageHandler(VGA_PAGE_B0,16,&vgaph.map);
+			else
+				MEM_SetPageHandler(VGA_PAGE_B0,16,&vgaph.herc);
 		} else {
 			vgapages.mask=0x7fff;
-			/* With hercules in 32kb mode it leaves a memory hole on 0xb800 */
-			MEM_SetPageHandler(VGA_PAGE_B0,8,&vgaph.herc);
+			if (vga.herc.enable_bits & 0x1) /* allow graphics and enable 0xB1000-0xB7FFF */
+				MEM_SetPageHandler(VGA_PAGE_B0,8,&vgaph.map);
+			else
+				MEM_SetPageHandler(VGA_PAGE_B0,8,&vgaph.herc);
 			MEM_SetPageHandler(VGA_PAGE_B8,8,&vgaph.empty);
 		}
 		goto range_done;
