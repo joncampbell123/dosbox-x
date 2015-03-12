@@ -823,12 +823,12 @@ void DOSBOX_Init(void) {
 	Pstring = secprop->Add_path("captures",Property::Changeable::Always,"capture");
 	Pstring->Set_help("Directory where things like wave, midi, screenshot get captured.");
 
-	Pbool = secprop->Add_bool("mainline compatible mapping",Property::Changeable::OnlyAtStart,true);
+	Pbool = secprop->Add_bool("mainline compatible mapping",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("If set, arrange private areas, UMBs, and DOS kernel structures by default in the same way the mainline branch would do it.\n"
 			"If cleared, these areas are allocated dynamically which may improve available memory and emulation accuracy.\n"
 			"If your DOS game breaks under DOSBox-X but works with mainline DOSBox setting this option may help.");
 
-	Pbool = secprop->Add_bool("mainline compatible bios mapping",Property::Changeable::OnlyAtStart,true);
+	Pbool = secprop->Add_bool("mainline compatible bios mapping",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("If set, arrange the BIOS area in the same way that the mainline branch would do it.\n"
 			"If cleared, these areas are allocated dynamically which may improve available memory and emulation accuracy.\n"
 			"If your DOS game breaks under DOSBox-X but works with mainline DOSBox setting this option may help.");
@@ -921,7 +921,7 @@ void DOSBOX_Init(void) {
 	Pint->Set_help(
 		"Amount of memory DOSBox has in kilobytes.\n"
 		"  This value should normally be set to 0.\n"
-		"  If nonzero, overrides the memsize parameter.\n"
+		"  If nonzero, it is added to the memsize parameter.\n"
 		"  Finer grained control of total memory may be useful in\n"
 		"  emulating ancient DOS machines with less than 640KB of\n"
 		"  RAM or early 386 systems with odd extended memory sizes.");
@@ -959,10 +959,10 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("video bios dont duplicate cga first half rom font",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("If set, save 4KB of EGA/VGA ROM space by pointing to the copy in the ROM BIOS of the first 128 chars");
 
-	Pbool = secprop->Add_bool("video bios always offer 14-pixel high rom font",Property::Changeable::WhenIdle,true);
+	Pbool = secprop->Add_bool("video bios always offer 14-pixel high rom font",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("If set, video BIOS will always carry the 14-pixel ROM font. If clear, 14-pixel rom font will not be offered except for EGA/VGA emulation.");
 
-	Pbool = secprop->Add_bool("video bios always offer 16-pixel high rom font",Property::Changeable::WhenIdle,true);
+	Pbool = secprop->Add_bool("video bios always offer 16-pixel high rom font",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("If set, video BIOS will always carry the 16-pixel ROM font. If clear, 16-pixel rom font will not be offered except for VGA emulation.");
 
 	Pbool = secprop->Add_bool("video bios enable cga second half rom font",Property::Changeable::WhenIdle,true);
@@ -994,7 +994,7 @@ void DOSBOX_Init(void) {
 			"This can be used to help diagnose whether the DOS game is propertly waiting for vertical retrace.");
 
 	Pbool = secprop->Add_bool("cgasnow",Property::Changeable::WhenIdle,true);
-	Pbool->Set_help("When machine=cga, determines whether or not to emulate CGA snow");
+	Pbool->Set_help("When machine=cga, determines whether or not to emulate CGA snow in 80x25 text mode");
 
 	Pbool = secprop->Add_bool("allow port 92 reset",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("If set (default), allow the application to reset the CPU through port 92h");
@@ -1044,13 +1044,10 @@ void DOSBOX_Init(void) {
 	 *    properly centering the picture on the screen. I suppose it's a miracle the demo didn't crash people's computers
 	 *    writing to undefined areas like that. */
 	Pint = secprop->Add_int("vesa lfb base scanline adjust",Property::Changeable::WhenIdle,0);
-	Pint->Set_help("If non-zero, the VESA BIOS will report the linear framebuffer as offset by this many scanlines.\n"
-			"For example, if the LFB is at 0xC0000000 and you need the demo to draw 2 scan lines lower,\n"
-			"at 0xC0000000 + (320*2) (320x240x256 mode), you would set this to 2. This option should be set\n"
-			"to zero by default unless needed for certain DOS demos that have sloppy VESA linear framebuffer\n"
-			"rendering code that renders a few scanlines UP into undefined memory preceeding the linear framebuffer.\n"
-			"This option DOES NOT affect the visible offset of the linear framebuffer, it only affects the physical\n"
-			"memory location reported by VESA BIOS emulation.");
+	Pint->Set_help("If non-zero, the VESA BIOS will report the linear framebuffer offset by this many scanlines.\n"
+			"This does not affect the linear framebuffer's location. It only affects the linear framebuffer\n"
+			"location reported by the VESA BIOS. Set to nonzero for DOS games with sloppy VESA graphics pointer management.\n"
+			"    MFX \"Melvindale\" (1996): Set this option to 2 to center the picture properly.");
 
 	Pbool = secprop->Add_bool("allow hpel effects",Property::Changeable::Always,false);
 	Pbool->Set_help("If set, allow the DOS demo or program to change the horizontal pel (panning) register per scanline.\n"
