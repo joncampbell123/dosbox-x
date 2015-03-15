@@ -8,6 +8,14 @@
 #include <assert.h>
 #include <fcntl.h>
 
+/* FIXME: I made the mistake of putting critical calls in assert() calls, which under MSVC++ may evaluate to nothing in Release builds */
+#ifdef _MSC_VER
+# ifdef NDEBUG
+#  undef assert
+#  define assert(x) x
+# endif
+#endif
+
 int avi_writer_stream_check_samplecount(avi_writer_stream *s,unsigned int len) {
 	if (s == NULL) return 0;
 
