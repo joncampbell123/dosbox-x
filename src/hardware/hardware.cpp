@@ -35,6 +35,10 @@
 #include "../libs/zmbv/zmbv.cpp"
 #endif
 
+#include "riff_wav_writer.h"
+#include "avi_writer.h"
+#include "rawint.h"
+
 std::string capturedir;
 extern const char* RunningProgram;
 Bitu CaptureState;
@@ -45,7 +49,7 @@ Bitu CaptureState;
 
 static struct {
 	struct {
-		FILE * handle;
+		riff_wav_writer *writer;
 		Bit16s buf[WAVE_BUF][2];
 		Bitu used;
 		Bit32u length;
@@ -80,6 +84,47 @@ static struct {
 #endif
 } capture;
 
+std::string GetCaptureFilePath(const char * type,const char * ext) {
+	if(capturedir.empty()) {
+		LOG_MSG("Please specify a capture directory");
+		return "";
+	}
+
+	Bitu last=0;
+	char file_start[16];
+	dir_information * dir;
+	/* Find a filename to open */
+	dir = open_directory(capturedir.c_str());
+	if (!dir) {
+		//Try creating it first
+		Cross::CreateDir(capturedir);
+		dir=open_directory(capturedir.c_str());
+		if(!dir) {
+			LOG_MSG("Can't open dir %s for capturing %s",capturedir.c_str(),type);
+			return 0;
+		}
+	}
+	strcpy(file_start,RunningProgram);
+	lowcase(file_start);
+	strcat(file_start,"_");
+	bool is_directory;
+	char tempname[CROSS_LEN];
+	bool testRead = read_directory_first(dir, tempname, is_directory );
+	for ( ; testRead; testRead = read_directory_next(dir, tempname, is_directory) ) {
+		char * test=strstr(tempname,ext);
+		if (!test || strlen(test)!=strlen(ext)) 
+			continue;
+		*test=0;
+		if (strncasecmp(tempname,file_start,strlen(file_start))!=0) continue;
+		Bitu num=atoi(&tempname[strlen(file_start)]);
+		if (num>=last) last=num+1;
+	}
+	close_directory( dir );
+	char file_name[CROSS_LEN];
+	sprintf(file_name,"%s%c%s%03d%s",capturedir.c_str(),CROSS_FILESPLIT,file_start,(int)last,ext);
+	return file_name;
+}
+
 FILE * OpenCaptureFile(const char * type,const char * ext) {
 	if(capturedir.empty()) {
 		LOG_MSG("Please specify a capture directory");
@@ -96,7 +141,6 @@ FILE * OpenCaptureFile(const char * type,const char * ext) {
 		Cross::CreateDir(capturedir);
 		dir=open_directory(capturedir.c_str());
 		if(!dir) {
-		
 			LOG_MSG("Can't open dir %s for capturing %s",capturedir.c_str(),type);
 			return 0;
 		}
@@ -579,17 +623,6 @@ void CAPTURE_ScreenShotEvent(bool pressed) {
 }
 #endif
 
-
-/* WAV capturing */
-static Bit8u wavheader[]={
-	'R','I','F','F',	0x0,0x0,0x0,0x0,		/* Bit32u Riff Chunk ID /  Bit32u riff size */
-	'W','A','V','E',	'f','m','t',' ',		/* Bit32u Riff Format  / Bit32u fmt chunk id */
-	0x10,0x0,0x0,0x0,	0x1,0x0,0x2,0x0,		/* Bit32u fmt size / Bit16u encoding/ Bit16u channels */
-	0x0,0x0,0x0,0x0,	0x0,0x0,0x0,0x0,		/* Bit32u freq / Bit32u byterate */
-	0x4,0x0,0x10,0x0,	'd','a','t','a',		/* Bit16u byte-block / Bit16u bits / Bit16u data chunk id */
-	0x0,0x0,0x0,0x0,							/* Bit32u data size */
-};
-
 void CAPTURE_AddWave(Bit32u freq, Bit32u len, Bit16s * data) {
 #if (C_SSHOT)
 	if (CaptureState & CAPTURE_VIDEO) {
@@ -602,22 +635,53 @@ void CAPTURE_AddWave(Bit32u freq, Bit32u len, Bit16s * data) {
 	}
 #endif
 	if (CaptureState & CAPTURE_WAVE) {
-		if (!capture.wave.handle) {
-			capture.wave.handle=OpenCaptureFile("Wave Output",".wav");
-			if (!capture.wave.handle) {
+		if (capture.wave.writer == NULL) {
+			std::string path = GetCaptureFilePath("Wave Output",".wav");
+			if (path == "") {
 				CaptureState &= ~CAPTURE_WAVE;
 				return;
 			}
+
+			capture.wave.writer = riff_wav_writer_create();
+			if (capture.wave.writer == NULL) {
+				CaptureState &= ~CAPTURE_WAVE;
+				capture.wave.writer = riff_wav_writer_destroy(capture.wave.writer);
+				return;
+			}
+
+			windows_WAVEFORMAT fmt;
+
+			memset(&fmt,0,sizeof(fmt));
+			__w_le_u16(&fmt.wFormatTag,windows_WAVE_FORMAT_PCM);
+			__w_le_u16(&fmt.nChannels,2);			/* stereo */
+			__w_le_u32(&fmt.nSamplesPerSec,freq);
+			__w_le_u16(&fmt.wBitsPerSample,16);		/* 16-bit/sample */
+			__w_le_u16(&fmt.nBlockAlign,2*2);
+			__w_le_u32(&fmt.nAvgBytesPerSec,freq*2*2);
+
+			if (!riff_wav_writer_open_file(capture.wave.writer,path.c_str())) {
+				CaptureState &= ~CAPTURE_WAVE;
+				capture.wave.writer = riff_wav_writer_destroy(capture.wave.writer);
+				return;
+			}
+			if (!riff_wav_writer_set_format(capture.wave.writer,&fmt) ||
+				!riff_wav_writer_begin_header(capture.wave.writer) ||
+				!riff_wav_writer_begin_data(capture.wave.writer)) {
+				CaptureState &= ~CAPTURE_WAVE;
+				capture.wave.writer = riff_wav_writer_destroy(capture.wave.writer);
+				return;
+			}
+
 			capture.wave.length = 0;
 			capture.wave.used = 0;
 			capture.wave.freq = freq;
-			fwrite(wavheader,1,sizeof(wavheader),capture.wave.handle);
+			LOG_MSG("Started capturing wave output.");
 		}
 		Bit16s * read = data;
 		while (len > 0 ) {
 			Bitu left = WAVE_BUF - capture.wave.used;
 			if (!left) {
-				fwrite(capture.wave.buf,1,4*WAVE_BUF,capture.wave.handle);
+				riff_wav_writer_data_write(capture.wave.writer,capture.wave.buf,2*2*WAVE_BUF);
 				capture.wave.length += 4*WAVE_BUF;
 				capture.wave.used = 0;
 				left = WAVE_BUF;
@@ -635,24 +699,18 @@ void CAPTURE_WaveEvent(bool pressed) {
 	if (!pressed)
 		return;
 	/* Check for previously opened wave file */
-	if (capture.wave.handle) {
+	if (capture.wave.writer != NULL) {
 		LOG_MSG("Stopped capturing wave output.");
 		/* Write last piece of audio in buffer */
-		fwrite(capture.wave.buf,1,capture.wave.used*4,capture.wave.handle);
+		riff_wav_writer_data_write(capture.wave.writer,capture.wave.buf,2*2*capture.wave.used);
 		capture.wave.length+=capture.wave.used*4;
-		/* Fill in the header with useful information */
-		host_writed(&wavheader[0x04],capture.wave.length+sizeof(wavheader)-8);
-		host_writed(&wavheader[0x18],capture.wave.freq);
-		host_writed(&wavheader[0x1C],capture.wave.freq*4);
-		host_writed(&wavheader[0x28],capture.wave.length);
-		
-		fseek(capture.wave.handle,0,0);
-		fwrite(wavheader,1,sizeof(wavheader),capture.wave.handle);
-		fclose(capture.wave.handle);
-		capture.wave.handle=0;
-		CaptureState |= CAPTURE_WAVE;
+		riff_wav_writer_end_data(capture.wave.writer);
+		capture.wave.writer = riff_wav_writer_destroy(capture.wave.writer);
+		CaptureState &= ~CAPTURE_WAVE;
 	} 
-	CaptureState ^= CAPTURE_WAVE;
+	else {
+		CaptureState ^= CAPTURE_WAVE;
+	}
 }
 
 /* MIDI capturing */
@@ -761,7 +819,7 @@ public:
 #if (C_SSHOT)
 		if (capture.video.handle) CAPTURE_VideoEvent(true);
 #endif
-		if (capture.wave.handle) CAPTURE_WaveEvent(true);
+		if (capture.wave.writer) CAPTURE_WaveEvent(true);
 		if (capture.midi.handle) CAPTURE_MidiEvent(true);
 	}
 };
