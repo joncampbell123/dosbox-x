@@ -7,10 +7,6 @@
 #include "informational.h"
 #include "guid.h"	/* <- need windows_GUID definition below */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* [doc] windows_WAVEFORMATOLD
  *
  * Packed portable representation of the Microsoft Windows WAVEFORMAT
@@ -147,10 +143,6 @@ typedef struct {							/* (sizeof) (offset hex) (offset dec) */
 	windows_GUID				SubFormat;		/* (16) +0x18 +24 */
 } __attribute__((packed)) windows_WAVEFORMATEXTENSIBLE;			/* (40) =0x28 =40 */
 #define windows_WAVEFORMATEXTENSIBLE_size (40)
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* __ISP_UTILS_V4_WIN_WAVEFORMATEX_H */
 

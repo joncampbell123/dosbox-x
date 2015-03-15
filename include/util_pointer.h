@@ -10,10 +10,6 @@
 #include <stddef.h>
 #include <alloca.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define min_uintptr_t			((uintptr_t)0)
 #define max_uintptr_t			( ~((uintptr_t)0) )
 
@@ -39,10 +35,6 @@ extern "C" {
 #define alignment_mmx			(8)
 #define alignment_sse			(16)
 #define alignment_avx			(32)
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* __UTIL_POINTER_H */
 

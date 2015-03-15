@@ -428,7 +428,7 @@ int riff_stack_read(riff_stack *s,riff_chunk *c,void *buf,size_t len) {
  * of the file or encounter any other chunk. Again, this code will NOT prevent you from
  * reading junk at the end of the file as an AVI chunk!
  */
-int riff_stack_readchunk(riff_stack _In_ *s,riff_chunk _In_opt_ *pc,riff_chunk _Out_ *c) {
+int riff_stack_readchunk(riff_stack *s,riff_chunk *pc,riff_chunk *c) {
 	unsigned char buf[8];
 
 	if (s == NULL) return 0; /* caller must provide (s) stack */
@@ -613,7 +613,7 @@ int riff_stack_prepare_for_writing(riff_stack *r,int wmode) {
 	return 1;
 }
 
-int riff_stack_begin_new_chunk_here(riff_stack _In_ *s,riff_chunk _Out_ *c) {
+int riff_stack_begin_new_chunk_here(riff_stack *s,riff_chunk *c) {
 	riff_chunk *p = riff_stack_top(s);
 
 	/* you can't begin new chunks if you're not writing the file */
@@ -693,7 +693,7 @@ int riff_stack_header_sync_all(riff_stack *s) {
 }
 
 /* start a data chunk (no subchunks) with FOURCC (fcc) */
-int riff_stack_set_chunk_data_type(riff_chunk _Inout_ *c,riff_fourcc_t _In_ fcc) {
+int riff_stack_set_chunk_data_type(riff_chunk *c,riff_fourcc_t fcc) {
 	if (!c->wmode)
 		return 0;
 	if (c->write_offset != 0LL) {
@@ -709,7 +709,7 @@ int riff_stack_set_chunk_data_type(riff_chunk _Inout_ *c,riff_fourcc_t _In_ fcc)
 
 /* start a list chunk (with subchunks) with list type (list) usually "RIFF" and "LIST" and FOURCC (fcc).
  * For example: RIFF:AVI would be list = "RIFF" fcc = "AVI " */
-int riff_stack_set_chunk_list_type(riff_chunk _Inout_ *c,riff_fourcc_t _In_ list,riff_fourcc_t _In_ fcc) {
+int riff_stack_set_chunk_list_type(riff_chunk *c,riff_fourcc_t list,riff_fourcc_t fcc) {
 	if (!c->wmode)
 		return 0;
 	if (c->write_offset != 0LL) {

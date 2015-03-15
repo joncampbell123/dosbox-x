@@ -5,10 +5,6 @@
 #include <stdint.h>
 #include "informational.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* [doc] windows_BITMAPFILEHEADER
  *
  * Packed portable representation of the Microsoft Windows BITMAPFILEHEADER
@@ -144,10 +140,6 @@ typedef struct {						/* (sizeof) (offset hex) (offset dec) */
 	uint32_t _Little_Endian_	bV5ProfileSize;		/* (4) +0x74 +116 */
 	uint32_t _Little_Endian_	bV5Reserved;		/* (4) +0x78 +120 */
 } __attribute__((packed)) windows_BITMAPV5HEADER;		/* (100) =0x7C =124 */
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif
 

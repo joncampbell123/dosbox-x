@@ -9,10 +9,6 @@
 #include "bitmapinfoheader.h"
 #include "riff.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #if defined(_MSC_VER)
 # pragma pack(push,1)
 #endif
@@ -289,10 +285,6 @@ static const windows_DVINFO WINDOWS_DVINFO_INIT = {
 
 #if defined(_MSC_VER)
 # pragma pack(pop)
-#endif
-
-#ifdef __cplusplus
-}
 #endif
 
 #endif

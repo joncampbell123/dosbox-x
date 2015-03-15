@@ -25,7 +25,7 @@ unsigned char*		avi_io_readfence = NULL;
 unsigned char *avi_io_buffer_init(size_t structsize) {
 #define GROUPSIZE ((size_t)(65536*2))
 	if (avi_io_buf == NULL) {
-		avi_io_buf = malloc(GROUPSIZE);
+		avi_io_buf = (unsigned char*)malloc(GROUPSIZE);
 		if (avi_io_buf == NULL) return NULL;
 	}
 

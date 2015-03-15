@@ -3,10 +3,6 @@
 
 #include "avi.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 enum {
 	AVI_WRITER_STATE_INIT=0,
 	AVI_WRITER_STATE_HEADER,
@@ -79,10 +75,6 @@ uint64_t avi_writer_stream_alloc_superindex(avi_writer *w,avi_writer_stream *s);
 int avi_writer_emit_avioldindex(avi_writer *w);
 int avi_writer_emit_opendml_indexes(avi_writer *w);
 int avi_writer_update_avi_and_stream_headers(avi_writer *w);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* __ISP_UTILS_AVI_WRITER_H */
 

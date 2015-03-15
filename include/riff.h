@@ -8,10 +8,6 @@
 
 #include "informational.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #if defined(_MSC_VER)
 # pragma pack(push,1)
 #endif
@@ -113,9 +109,9 @@ int riff_stack_assign_fd(riff_stack *s,int fd);
 int riff_stack_assign_fd_ownership(riff_stack *s);
 int riff_stack_assign_buffer(riff_stack *s,void *buffer,size_t len);
 int riff_stack_chunk_contains_subchunks(riff_chunk *c);
-int riff_stack_readchunk(riff_stack _In_ *s,riff_chunk _In_opt_ *pc,riff_chunk _Out_ *c);
-int riff_stack_set_chunk_data_type(riff_chunk _Inout_ *c,riff_fourcc_t _In_ fcc);
-int riff_stack_set_chunk_list_type(riff_chunk _Inout_ *c,riff_fourcc_t _In_ list,riff_fourcc_t _In_ fcc);
+int riff_stack_readchunk(riff_stack *s,riff_chunk *pc,riff_chunk *c);
+int riff_stack_set_chunk_data_type(riff_chunk *c,riff_fourcc_t fcc);
+int riff_stack_set_chunk_list_type(riff_chunk *c,riff_fourcc_t list,riff_fourcc_t fcc);
 void riff_stack_debug_chunk_dump(FILE *fp,riff_stack *riff,riff_chunk *chunk);
 void riff_stack_debug_print(FILE *fp,int level,riff_chunk *chunk);
 void riff_chunk_improvise(riff_chunk *c,uint64_t ofs,uint32_t size);
@@ -123,7 +119,7 @@ void riff_stack_fourcc_to_str(riff_fourcc_t t,char *tmp);
 void riff_stack_debug_print_indent(FILE *fp,int level);
 int riff_stack_eof(riff_stack *r);
 int riff_stack_prepare_for_writing(riff_stack *r,int wmode);
-int riff_stack_begin_new_chunk_here(riff_stack _In_ *s,riff_chunk _Out_ *c);
+int riff_stack_begin_new_chunk_here(riff_stack *s,riff_chunk *c);
 int riff_stack_header_sync(riff_stack *s,riff_chunk *c);
 int riff_stack_header_sync_all(riff_stack *s);
 int riff_stack_chunk_limit(riff_stack *s,int len);
@@ -135,10 +131,6 @@ void riff_stack_writing_sync(riff_stack *s);
 
 #if defined(_MSC_VER)
 # pragma pack(pop)
-#endif
-
-#ifdef __cplusplus
-}
 #endif
 
 #endif

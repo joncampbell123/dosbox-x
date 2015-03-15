@@ -6,10 +6,6 @@
 
 #include "informational.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* [doc] windows_GUID
  *
  * Packed portable representation of the Microsoft Windows GUID
@@ -24,10 +20,6 @@ typedef struct {					/* (sizeof) (offset hex) (offset dec) */
 #define windows_GUID_size (16)
 
 unsigned char windows_IsEqualGUID(const windows_GUID *a,const windows_GUID *b);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif
 

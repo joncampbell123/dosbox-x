@@ -7,10 +7,6 @@
 #include "waveformatex.h"
 #include "bitmapinfoheader.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct riff_wav_writer {
 	riff_stack*		riff;
 	int			state;
@@ -41,10 +37,6 @@ riff_wav_writer *riff_wav_writer_destroy(riff_wav_writer *w);
 int riff_wav_writer_data_write(riff_wav_writer *w,void *buffer,size_t len);
 int64_t riff_wav_writer_data_seek(riff_wav_writer *w,int64_t offset);
 int64_t riff_wav_writer_data_tell(riff_wav_writer *w);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* __ISP_UTILS_V4_AVI_RIFF_WAV_WRITER_H */
 
