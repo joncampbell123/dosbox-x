@@ -21,5 +21,5 @@ libgui_a_SOURCES = sdlmain.cpp sdl_mapper.cpp dosbox_logo.h \
 	./freeverb/comb.h ./freeverb/denormals.h ./freeverb/revmodel.cpp \
 	./freeverb/revmodel.h ./freeverb/tuning.h midi_mt32.h \
 	./sha1/sha1.cpp ./sha1/sha1.h ROMInfo.cpp ROMInfo.h \
-	guid.c ksdataformat.c riff.c riff_wav_writer.c avi_rw_iobuf.c avi_writer.c
+	guid.cpp ksdataformat.cpp riff.cpp riff_wav_writer.cpp avi_rw_iobuf.cpp avi_writer.cpp
 
