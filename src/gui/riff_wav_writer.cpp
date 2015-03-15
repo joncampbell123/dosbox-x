@@ -15,6 +15,10 @@
 # include <io.h>
 #endif
 
+#ifndef O_BINARY
+# define O_BINARY 0
+#endif
+
 #include "riff_wav_writer.h"
 #include "rawint.h"
 
@@ -105,7 +109,7 @@ int riff_wav_writer_open_file(riff_wav_writer *w,const char *path) {
 		return 0;
 	if (w->fd >= 0)
 		return 0;
-	if ((w->fd = open(path,O_WRONLY|O_CREAT|O_TRUNC,0644)) < 0)
+	if ((w->fd = open(path,O_WRONLY|O_CREAT|O_TRUNC|O_BINARY,0644)) < 0)
 		return 0;
 	if (!riff_stack_assign_fd(w->riff,w->fd)) {
 		close(w->fd);

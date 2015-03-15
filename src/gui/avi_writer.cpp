@@ -14,6 +14,10 @@
 # include <io.h>
 #endif
 
+#ifndef O_BINARY
+# define O_BINARY 0
+#endif
+
 /* FIXME: I made the mistake of putting critical calls in assert() calls, which under MSVC++ may evaluate to nothing in Release builds */
 #ifdef _MSC_VER
 # ifdef NDEBUG
@@ -166,7 +170,7 @@ int avi_writer_open_file(avi_writer *w,const char *path) {
 	avi_writer_close_file(w);
 
 	w->own_fd = 1;
-	if ((w->fd = open(path,O_WRONLY|O_CREAT|O_TRUNC,0644)) < 0)
+	if ((w->fd = open(path,O_WRONLY|O_CREAT|O_TRUNC|O_BINARY,0644)) < 0)
 		return 0;
 
 	if ((w->riff = riff_stack_create(256)) == NULL)
