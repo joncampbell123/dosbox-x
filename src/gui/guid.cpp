@@ -1,7 +1,9 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <inttypes.h>
+#ifndef _MSC_VER
+# include <inttypes.h>
+#endif
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>

@@ -1,4 +1,7 @@
 
+/* Shut up! */
+#define _CRT_NONSTDC_NO_DEPRECATE
+
 #include "rawint.h"
 #include "avi.h"
 #include "avi_writer.h"
@@ -7,6 +10,9 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <fcntl.h>
+#ifdef _MSC_VER
+# include <io.h>
+#endif
 
 /* FIXME: I made the mistake of putting critical calls in assert() calls, which under MSVC++ may evaluate to nothing in Release builds */
 #ifdef _MSC_VER

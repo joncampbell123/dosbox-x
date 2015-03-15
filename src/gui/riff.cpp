@@ -1,10 +1,16 @@
 
+/* Shut up! */
+#define _CRT_NONSTDC_NO_DEPRECATE
+
 #include "rawint.h"
 #include "riff.h"
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#ifdef _MSC_VER
+# include <io.h>
+#endif
 
 int riff_std_read(void *a,void *b,size_t c) {
 	riff_stack *rs;

@@ -156,28 +156,6 @@ static inline void __w_be_u64(const void *p,const uint64_t val) {
 	((uint8_t*)(p))[7] = val;
 }
 
-static inline float __be_float32(void *p) {
-	union f {
-		uint32_t	i;
-		float		f;
-	};
-	union f fv;
-
-	fv.i = __be_u32(p);
-	return fv.f;
-}
-
-static inline double __be_float64(void *p) {
-	union f {
-		uint64_t	i;
-		double		f;
-	};
-	union f fv;
-
-	fv.i = __be_u64(p);
-	return fv.f;
-}
-
 static inline uint16_t __be_to_he_16(uint16_t val) {
 	return (val << 8) | (val >> 8);
 }
