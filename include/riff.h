@@ -8,10 +8,6 @@
 
 #include "informational.h"
 
-#if defined(_MSC_VER)
-# pragma pack(push,1)
-#endif
-
 typedef uint32_t riff_fourcc_t;
 #define riff_fourcc_const(a,b,c,d)	( (((uint32_t)(a)) << 0U) | (((uint32_t)(b)) << 8U) | (((uint32_t)(c)) << 16U) | (((uint32_t)(d)) << 24U) )
 
@@ -128,10 +124,6 @@ void riff_stack_writing_sync(riff_stack *s);
 
 #define RIFF_CHUNK_HEADER_LENGTH		8
 #define RIFF_LIST_CHUNK_HEADER_LENGTH		12
-
-#if defined(_MSC_VER)
-# pragma pack(pop)
-#endif
 
 #endif
 

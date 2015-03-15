@@ -16,7 +16,7 @@ typedef struct {						/* (sizeof) (offset hex) (offset dec) */
 	uint16_t _Little_Endian_	bfReserved1;		/* (2) +0x06 +6 */
 	uint16_t _Little_Endian_	bfReserved2;		/* (2) +0x08 +8 */
 	uint32_t _Little_Endian_	bfOffBits;		/* (4) +0x0A +10 */
-} __attribute__((packed)) windows_BITMAPFILEHEADER;		/* (14) =0x0E =14 */
+} GCC_ATTRIBUTE(packed) windows_BITMAPFILEHEADER;		/* (14) =0x0E =14 */
 
 static const windows_BITMAPFILEHEADER WINDOWS_BITMAPFILEHEADER_INIT = {
 	0,
@@ -43,7 +43,7 @@ typedef struct {						/* (sizeof) (offset hex) (offset dec) */
 	int32_t _Little_Endian_		biYPelsPerMeter;	/* (4) +0x1C +28 */
 	uint32_t _Little_Endian_	biClrUsed;		/* (4) +0x20 +32 */
 	uint32_t _Little_Endian_	biClrImportant;		/* (4) +0x24 +36 */
-} __attribute__((packed)) windows_BITMAPINFOHEADER;		/* (40) =0x28 =40 */
+} GCC_ATTRIBUTE(packed) windows_BITMAPINFOHEADER;		/* (40) =0x28 =40 */
 
 static const windows_BITMAPINFOHEADER WINDOWS_BITMAPINFOHEADER_INIT = {
 	0,
@@ -68,7 +68,7 @@ typedef struct {						/* (sizeof) (offset hex) (offset dec) */
 	uint32_t _Little_Endian_	ciexyzX;		/* (4) +0x00 +0 */
 	uint32_t _Little_Endian_	ciexyzY;		/* (4) +0x04 +4 */
 	uint32_t _Little_Endian_	ciexyzZ;		/* (4) +0x08 +8 */
-} __attribute__((packed)) windows_CIEXYZ;			/* (12) =0x0C =12 */
+} GCC_ATTRIBUTE(packed) windows_CIEXYZ;			/* (12) =0x0C =12 */
 
 /* [doc] windows_CIEXYZTRIPLE
  *
@@ -79,7 +79,7 @@ typedef struct {						/* (sizeof) (offset hex) (offset dec) */
 	windows_CIEXYZ			ciexyzRed;		/* (12) +0x00 +0 */
 	windows_CIEXYZ			ciexyzGreen;		/* (12) +0x0C +12 */
 	windows_CIEXYZ			ciexyzBlue;		/* (12) +0x18 +24 */
-} __attribute__((packed)) windows_CIEXYZTRIPLE;			/* (36) =0x24 =36 */
+} GCC_ATTRIBUTE(packed) windows_CIEXYZTRIPLE;			/* (36) =0x24 =36 */
 
 /* [doc] windows_BITMAPV4HEADER
  *
@@ -107,7 +107,7 @@ typedef struct {						/* (sizeof) (offset hex) (offset dec) */
 	uint32_t _Little_Endian_	bV4GammaRed;		/* (4) +0x60 +96 */
 	uint32_t _Little_Endian_	bV4GammaGreen;		/* (4) +0x64 +100 */
 	uint32_t _Little_Endian_	bV4GammaBlue;		/* (4) +0x68 +104 */
-} __attribute__((packed)) windows_BITMAPV4HEADER;		/* (84) =0x6C =108 */
+} GCC_ATTRIBUTE(packed) windows_BITMAPV4HEADER;		/* (84) =0x6C =108 */
 
 /* [doc] windows_BITMAPV5HEADER
  *
@@ -139,7 +139,7 @@ typedef struct {						/* (sizeof) (offset hex) (offset dec) */
 	uint32_t _Little_Endian_	bV5ProfileData;		/* (4) +0x70 +112 */
 	uint32_t _Little_Endian_	bV5ProfileSize;		/* (4) +0x74 +116 */
 	uint32_t _Little_Endian_	bV5Reserved;		/* (4) +0x78 +120 */
-} __attribute__((packed)) windows_BITMAPV5HEADER;		/* (100) =0x7C =124 */
+} GCC_ATTRIBUTE(packed) windows_BITMAPV5HEADER;		/* (100) =0x7C =124 */
 
 #endif
 

@@ -7,6 +7,10 @@
 #include "informational.h"
 #include "guid.h"	/* <- need windows_GUID definition below */
 
+#if defined(_MSC_VER)
+# pragma pack(push,1)
+#endif
+
 /* [doc] windows_WAVEFORMATOLD
  *
  * Packed portable representation of the Microsoft Windows WAVEFORMAT
@@ -27,7 +31,7 @@ typedef struct {						/* (sizeof) (offset hex) (offset dec) */
 	uint32_t _Little_Endian_	nSamplesPerSec;		/* (4)  +0x04 +4 */
 	uint32_t _Little_Endian_	nAvgBytesPerSec;	/* (4)  +0x08 +8 */
 	uint16_t _Little_Endian_	nBlockAlign;		/* (2)  +0x0C +12 */
-} __attribute__((packed)) windows_WAVEFORMATOLD;		/* (14) =0x0E =14 */
+} GCC_ATTRIBUTE(packed) windows_WAVEFORMATOLD;		/* (14) =0x0E =14 */
 #define windows_WAVEFORMATOLD_size (14)
 
 /* [doc] windows_WAVEFORMAT
@@ -45,7 +49,7 @@ typedef struct {						/* (sizeof) (offset hex) (offset dec) */
 	uint32_t _Little_Endian_	nAvgBytesPerSec;	/* (4)  +0x08 +8 */
 	uint16_t _Little_Endian_	nBlockAlign;		/* (2)  +0x0C +12 */
 	uint16_t _Little_Endian_	wBitsPerSample;		/* (2)  +0x0E +14 */
-} __attribute__((packed)) windows_WAVEFORMAT;			/* (16) +0x10 +16 */
+} GCC_ATTRIBUTE(packed) windows_WAVEFORMAT;			/* (16) +0x10 +16 */
 #define windows_WAVEFORMAT_size (16)
 
 /* [doc] windows_WAVEFORMATEX
@@ -63,7 +67,7 @@ typedef struct {						/* (sizeof) (offset hex) (offset dec) */
 	uint16_t _Little_Endian_	nBlockAlign;		/* (2)  +0x0C +12 */
 	uint16_t _Little_Endian_	wBitsPerSample;		/* (2)  +0x0E +14 */
 	uint16_t _Little_Endian_	cbSize;			/* (2)  +0x10 +16 */
-} __attribute__((packed)) windows_WAVEFORMATEX;			/* (18) =0x12 =18 */
+} GCC_ATTRIBUTE(packed) windows_WAVEFORMATEX;			/* (18) =0x12 =18 */
 #define windows_WAVEFORMATEX_size (18)
 
 static const windows_WAVEFORMATEX WINDOWS_WAVEFORMATEX_INIT = {
@@ -89,7 +93,7 @@ typedef struct {						/* (sizeof) (offset hex) (offset dec) */
 	uint16_t _Little_Endian_	wSamplesPerBlock;	/* (2)  +0x12 +18 */
 	uint16_t _Little_Endian_	wNumCoef;		/* (2)  +0x14 +20 */
 	uint16_t _Little_Endian_	aCoef[7*2];		/* (28) +0x16 +22 */ /* NTS: This array is wNumCoef*2 large, for MS-ADPCM wNumCoef == 7 */
-} __attribute__((packed)) windows_ADPCMWAVEFORMAT;		/* (50) =0x42 =50 */
+} GCC_ATTRIBUTE(packed) windows_ADPCMWAVEFORMAT;		/* (50) =0x42 =50 */
 #define windows_ADPCMWAVEFORMAT_size (50)
 
 /* [doc] windows_IMAADPCMWAVEFORMAT
@@ -99,7 +103,7 @@ typedef struct {						/* (sizeof) (offset hex) (offset dec) */
 typedef struct ima_adpcmwaveformat_tag {			/* (sizeof) (offset hex) (offset dec) */
 	windows_WAVEFORMATEX		wfx;			/* (18) +0x00 +0 */
 	uint16_t _Little_Endian_	wSamplesPerBlock;	/* (2)  +0x12 +18 */
-} __attribute__((packed)) windows_IMAADPCMWAVEFORMAT;		/* (20) =0x14 +20 */
+} GCC_ATTRIBUTE(packed) windows_IMAADPCMWAVEFORMAT;		/* (20) =0x14 +20 */
 #define windows_IMAADPCMWAVEFORMAT_size (20)
 
 /* [doc] windows_TRUESPEECHWAVEFORMAT
@@ -110,7 +114,7 @@ typedef struct truespeechwaveformat_tag {			/* (sizeof) (offset hex) (offset dec
 	uint16_t _Little_Endian_	wRevision;		/* (2)  +0x12 +18 */
 	uint16_t _Little_Endian_	nSamplesPerBlock;	/* (2)  +0x14 +20 */
 	uint8_t				abReserved[28];		/* (28) +0x16 +22 */
-} __attribute__((packed)) windows_TRUESPEECHWAVEFORMAT;		/* (50) =0x42 =50 */
+} GCC_ATTRIBUTE(packed) windows_TRUESPEECHWAVEFORMAT;		/* (50) =0x42 =50 */
 #define windows_TRUESPEECHWAVEFORMAT_size (50)
 
 /* [doc] windows_GSM610WAVEFORMAT
@@ -119,7 +123,7 @@ typedef struct truespeechwaveformat_tag {			/* (sizeof) (offset hex) (offset dec
 typedef struct gsm610waveformat_tag {				/* (sizeof) (offset hex) (offset dec) */
 	windows_WAVEFORMATEX		wfx;			/* (18) +0x00 +0 */
 	uint16_t _Little_Endian_	wSamplesPerBlock;	/* (2)  +0x12 +18 */
-} __attribute__((packed)) windows_GSM610WAVEFORMAT;		/* (20) =0x14 =20 */
+} GCC_ATTRIBUTE(packed) windows_GSM610WAVEFORMAT;		/* (20) =0x14 =20 */
 #define windows_GSM610WAVEFORMAT_size (20)
 
 /* [doc] windows_WAVEFORMATEXTENSIBLE
@@ -141,8 +145,12 @@ typedef struct {							/* (sizeof) (offset hex) (offset dec) */
 	} Samples;							/* (2)  +0x12 +18 */
 	uint32_t _Little_Endian_		dwChannelMask;		/* (4)  +0x14 +20 */
 	windows_GUID				SubFormat;		/* (16) +0x18 +24 */
-} __attribute__((packed)) windows_WAVEFORMATEXTENSIBLE;			/* (40) =0x28 =40 */
+} GCC_ATTRIBUTE(packed) windows_WAVEFORMATEXTENSIBLE;			/* (40) =0x28 =40 */
 #define windows_WAVEFORMATEXTENSIBLE_size (40)
+
+#if defined(_MSC_VER)
+# pragma pack(pop)
+#endif
 
 #endif /* __ISP_UTILS_V4_WIN_WAVEFORMATEX_H */
 

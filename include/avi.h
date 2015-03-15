@@ -65,7 +65,7 @@ typedef struct {						/* (sizeof) (offset hex) (offset dec) */
 	uint32_t _Little_Endian_	dwWidth;		/* (4)  +0x20 +32 */
 	uint32_t _Little_Endian_	dwHeight;		/* (4)  +0x24 +36 */
 	uint32_t _Little_Endian_	dwReserved[4];		/* (16) +0x28 +40 */
-} __attribute__((packed)) riff_avih_AVIMAINHEADER;		/* (56) =0x38 =56 */
+} GCC_ATTRIBUTE(packed) riff_avih_AVIMAINHEADER;		/* (56) =0x38 =56 */
 
 #define riff_avih_AVIMAINHEADER_flags_HASINDEX				0x00000010UL
 #define riff_avih_AVIMAINHEADER_flags_MUSTUSEINDEX			0x00000020UL
@@ -109,8 +109,8 @@ typedef struct {						/* (sizeof) (offset hex) (offset dec) */
 		int16_t _Little_Endian_	top;			/* (2)  +0x32 +50 */
 		int16_t _Little_Endian_	right;			/* (2)  +0x34 +52 */
 		int16_t _Little_Endian_	bottom;			/* (2)  +0x36 +54 */
-	} __attribute__((packed)) rcFrame;
-} __attribute__((packed)) riff_strh_AVISTREAMHEADER;		/* (56) +0x38 +56 */
+	} GCC_ATTRIBUTE(packed) rcFrame;
+} GCC_ATTRIBUTE(packed) riff_strh_AVISTREAMHEADER;		/* (56) +0x38 +56 */
 
 static const riff_strh_AVISTREAMHEADER riff_strh_AVISTREAMHEADER_INIT = {
 	0,
@@ -138,12 +138,12 @@ typedef struct {
 	uint8_t		bNumEntries;
 	uint16_t	wFlags;
 	/* PALETTEENTRY[] */
-} __attribute__((packed)) riff_AVIPALCHANGE_header;
+} GCC_ATTRIBUTE(packed) riff_AVIPALCHANGE_header;
 
 /* AVI palette entry */
 typedef struct {
 	uint8_t		peRed,peGreen,peBlue,peFlags;
-} __attribute__((packed)) riff_AVIPALCHANGE_PALETTEENTRY;
+} GCC_ATTRIBUTE(packed) riff_AVIPALCHANGE_PALETTEENTRY;
 
 #define riff_AVIPALCHANGE_PALETTEENTRY_flags_PC_RESERVED		0x01U
 #define riff_AVIPALCHANGE_PALETTEENTRY_flags_PC_EXPLICIT		0x02U
@@ -155,7 +155,7 @@ typedef struct {
 	uint32_t        dwFlags;
 	uint32_t        dwOffset;
 	uint32_t        dwSize;
-} __attribute__((packed)) riff_idx1_AVIOLDINDEX;
+} GCC_ATTRIBUTE(packed) riff_idx1_AVIOLDINDEX;
 
 /* AVIOLDINDEX chunk IDs. NOTE that this chunk ID makes the last two bytes of dwChunkId (the upper 16 bits) */
 /* NOTICE due to little Endian byte order the string is typed in reverse here */
@@ -183,7 +183,7 @@ typedef struct {
 	uint32_t        dwChunkId;
 	uint32_t        dwReserved[3];
 /*	uint32_t           adwIndex[]; */
-} __attribute__((packed)) riff_indx_AVIMETAINDEX;
+} GCC_ATTRIBUTE(packed) riff_indx_AVIMETAINDEX;
 
 #define riff_indx_type_AVI_INDEX_OF_INDEXES				0x00
 #define riff_indx_type_AVI_INDEX_OF_CHUNKS				0x01
@@ -205,13 +205,13 @@ typedef struct {
 	uint32_t        dwChunkId;
 	uint32_t        dwReserved[3];
 /*	AVISUPERINDEXentry[] */
-} __attribute__((packed)) riff_indx_AVISUPERINDEX;
+} GCC_ATTRIBUTE(packed) riff_indx_AVISUPERINDEX;
 
 typedef struct {
 	uint64_t        qwOffset;
 	uint32_t        dwSize;
 	uint32_t        dwDuration;
-} __attribute__((packed)) riff_indx_AVISUPERINDEX_entry;
+} GCC_ATTRIBUTE(packed) riff_indx_AVISUPERINDEX_entry;
 
 /* AVISTDINDEX */
 typedef struct {
@@ -225,12 +225,12 @@ typedef struct {
 	uint64_t	qwBaseOffset;
 	uint32_t	dwReserved_3;
 /*	AVISTDINDEXentry[] */
-} __attribute__((packed)) riff_indx_AVISTDINDEX;
+} GCC_ATTRIBUTE(packed) riff_indx_AVISTDINDEX;
 
 typedef struct {
 	uint32_t        dwOffset;		/* relative to qwBaseOffset */
 	uint32_t        dwSize;			/* bit 31 is set if delta frame */
-} __attribute__((packed)) riff_indx_AVISTDINDEX_entry;
+} GCC_ATTRIBUTE(packed) riff_indx_AVISTDINDEX_entry;
 
 typedef struct {
 	uint32_t        CompressedBMHeight;
@@ -241,7 +241,7 @@ typedef struct {
 	uint32_t        ValidBMYOffset;
 	uint32_t        VideoXOffsetInT;
 	uint32_t        VideoYValidStartLine;
-} __attribute__((packed)) riff_vprp_VIDEO_FIELD_DESC;
+} GCC_ATTRIBUTE(packed) riff_vprp_VIDEO_FIELD_DESC;
 
 /* vprp chunk */
 typedef struct {
@@ -255,12 +255,12 @@ typedef struct {
 	uint32_t        dwFrameHeightInLines;
 	uint32_t        nbFieldPerFrame;
 /*	riff_vprp_VIDEO_FIELD_DESC FieldInfo[nbFieldPerFrame]; */
-} __attribute__((packed)) riff_vprp_VideoPropHeader;
+} GCC_ATTRIBUTE(packed) riff_vprp_VideoPropHeader;
 
 /* LIST:odml dmlh chunk */
 typedef struct {
 	uint32_t	dwTotalFrames;
-} __attribute__((packed)) riff_odml_dmlh_ODMLExtendedAVIHeader;
+} GCC_ATTRIBUTE(packed) riff_odml_dmlh_ODMLExtendedAVIHeader;
 
 /* AVI stream format contents if stream type is 'iavs' (Interleaved audio/video stream) */
 typedef struct windows_DVINFO {
@@ -271,7 +271,7 @@ typedef struct windows_DVINFO {
 	uint32_t	dwDVVAuxSrc;
 	uint32_t	dwDVVAuxCtl;
 	uint32_t	dwDVReserved[2];
-} __attribute__((packed)) windows_DVINFO; /* =32 bytes */
+} GCC_ATTRIBUTE(packed) windows_DVINFO; /* =32 bytes */
 
 static const windows_DVINFO WINDOWS_DVINFO_INIT = {
 	0,
