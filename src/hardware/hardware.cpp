@@ -66,7 +66,7 @@ static struct {
 	} image;
 #if (C_SSHOT)
 	struct {
-		FILE		*handle;
+		avi_writer	*writer;
 		Bitu		frames;
 		Bit16s		audiobuf[WAVE_BUF][2];
 		Bitu		audioused;
@@ -76,10 +76,8 @@ static struct {
 		Bitu		width, height, bpp;
 		Bitu		written;
 		float		fps;
-		int			bufSize;
+		int		bufSize;
 		void		*buf;
-		Bit8u		*index;
-		Bitu		indexsize, indexused;
 	} video;
 #endif
 } capture;
@@ -174,7 +172,15 @@ FILE * OpenCaptureFile(const char * type,const char * ext) {
 }
 
 #if (C_SSHOT)
-static void CAPTURE_AddAviChunk(const char * tag, Bit32u size, void * data, Bit32u flags) {
+static void CAPTURE_AddAviChunk(const char * tag, Bit32u size, void * data, Bit32u flags, unsigned int streamindex) {
+	if (capture.video.writer != NULL) {
+		if ((int)streamindex < capture.video.writer->avi_stream_alloc) {
+			avi_writer_stream *os = capture.video.writer->avi_stream + streamindex;
+			avi_writer_stream_write(capture.video.writer,os,data,size,flags);
+		}
+		/* TODO see #if 0'd code below */
+	}
+#if 0
 	Bit8u chunk[8];Bit8u *index;Bit32u pos, writesize;
 
 	chunk[0] = tag[0];chunk[1] = tag[1];chunk[2] = tag[2];chunk[3] = tag[3];
@@ -200,6 +206,7 @@ static void CAPTURE_AddAviChunk(const char * tag, Bit32u size, void * data, Bit3
 	host_writed(index+4, flags);
 	host_writed(index+8, pos);
 	host_writed(index+12, size);
+#endif
 }
 #endif
 
@@ -212,6 +219,13 @@ void CAPTURE_VideoEvent(bool pressed) {
 		CaptureState &= ~CAPTURE_VIDEO;
 		LOG_MSG("Stopped capturing video.");	
 
+		if (capture.video.writer != NULL) {
+			avi_writer_end_data(capture.video.writer);
+			avi_writer_finish(capture.video.writer);
+			avi_writer_close_file(capture.video.writer);
+			capture.video.writer = avi_writer_destroy(capture.video.writer);
+		}
+#if 0
 		Bit8u avi_header[AVI_HEADER_SIZE];
 		Bitu main_list;
 		Bitu header_pos=0;
@@ -332,10 +346,12 @@ void CAPTURE_VideoEvent(bool pressed) {
 		fseek(capture.video.handle, 0, SEEK_SET);
 		fwrite(&avi_header, 1, AVI_HEADER_SIZE, capture.video.handle);
 		fclose( capture.video.handle );
-		free( capture.video.index );
+#endif
 		free( capture.video.buf );
 		delete capture.video.codec;
+#if 0
 		capture.video.handle = 0;
+#endif
 	} else {
 		CaptureState |= CAPTURE_VIDEO;
 	}
@@ -503,7 +519,7 @@ skip_shot:
 	if (CaptureState & CAPTURE_VIDEO) {
 		zmbv_format_t format;
 		/* Disable capturing if any of the test fails */
-		if (capture.video.handle && (
+		if (capture.video.writer != NULL && (
 			capture.video.width != width ||
 			capture.video.height != height ||
 			capture.video.bpp != bpp ||
@@ -520,10 +536,18 @@ skip_shot:
 		default:
 			goto skip_video;
 		}
-		if (!capture.video.handle) {
-			capture.video.handle = OpenCaptureFile("Video",".avi");
-			if (!capture.video.handle)
+		if (capture.video.writer == NULL) {
+			std::string path = GetCaptureFilePath("Video",".avi");
+			if (path == "")
 				goto skip_video;
+
+			capture.video.writer = avi_writer_create();
+			if (capture.video.writer == NULL)
+				goto skip_video;
+
+			if (!avi_writer_open_file(capture.video.writer,path.c_str()))
+				goto skip_video;
+
 			capture.video.codec = new VideoCodec();
 			if (!capture.video.codec)
 				goto skip_video;
@@ -533,22 +557,121 @@ skip_shot:
 			capture.video.buf = malloc( capture.video.bufSize );
 			if (!capture.video.buf)
 				goto skip_video;
-			capture.video.index = (Bit8u*)malloc( 16*4096 );
-			if (!capture.video.buf)
-				goto skip_video;
-			capture.video.indexsize = 16*4096;
-			capture.video.indexused = 8;
 
 			capture.video.width = width;
 			capture.video.height = height;
 			capture.video.bpp = bpp;
 			capture.video.fps = fps;
-			for (i=0;i<AVI_HEADER_SIZE;i++)
-				fputc(0,capture.video.handle);
 			capture.video.frames = 0;
 			capture.video.written = 0;
 			capture.video.audioused = 0;
 			capture.video.audiowritten = 0;
+
+			riff_avih_AVIMAINHEADER *mheader = avi_writer_main_header(capture.video.writer);
+			if (mheader == NULL)
+				goto skip_video;
+
+			memset(mheader,0,sizeof(*mheader));
+			__w_le_u32(&mheader->dwMicroSecPerFrame,(uint32_t)(1000000 / fps)); /* NTS: int divided by double */
+			__w_le_u32(&mheader->dwMaxBytesPerSec,0);
+			__w_le_u32(&mheader->dwPaddingGranularity,0);
+			__w_le_u32(&mheader->dwFlags,0x110);                     /* Flags,0x10 has index, 0x100 interleaved */
+			__w_le_u32(&mheader->dwTotalFrames,0);			/* AVI writer updates this automatically on finish */
+			__w_le_u32(&mheader->dwInitialFrames,0);
+			__w_le_u32(&mheader->dwStreams,2);			/* audio+video */
+			__w_le_u32(&mheader->dwSuggestedBufferSize,0);
+			__w_le_u32(&mheader->dwWidth,capture.video.width);
+			__w_le_u32(&mheader->dwHeight,capture.video.height);
+
+
+
+			avi_writer_stream *vstream = avi_writer_new_stream(capture.video.writer);
+			if (vstream == NULL)
+				goto skip_video;
+
+			riff_strh_AVISTREAMHEADER *vsheader = avi_writer_stream_header(vstream);
+			if (vsheader == NULL)
+				goto skip_video;
+
+			memset(vsheader,0,sizeof(*vsheader));
+			__w_le_u32(&vsheader->fccType,avi_fccType_video);
+			__w_le_u32(&vsheader->fccHandler,avi_fourcc_const('Z','M','B','V'));
+			__w_le_u32(&vsheader->dwFlags,0);
+			__w_le_u16(&vsheader->wPriority,0);
+			__w_le_u16(&vsheader->wLanguage,0);
+			__w_le_u32(&vsheader->dwInitialFrames,0);
+			__w_le_u32(&vsheader->dwScale,1000000);
+			__w_le_u32(&vsheader->dwRate,(uint32_t)(1000000 * fps));
+			__w_le_u32(&vsheader->dwStart,0);
+			__w_le_u32(&vsheader->dwLength,0);			/* AVI writer updates this automatically */
+			__w_le_u32(&vsheader->dwSuggestedBufferSize,0);
+			__w_le_u32(&vsheader->dwQuality,~0);
+			__w_le_u32(&vsheader->dwSampleSize,0);
+			__w_le_u16(&vsheader->rcFrame.left,0);
+			__w_le_u16(&vsheader->rcFrame.top,0);
+			__w_le_u16(&vsheader->rcFrame.right,capture.video.width);
+			__w_le_u16(&vsheader->rcFrame.bottom,capture.video.height);
+
+			windows_BITMAPINFOHEADER vbmp;
+
+			memset(&vbmp,0,sizeof(vbmp));
+			__w_le_u32(&vbmp.biSize,sizeof(vbmp)); /* 40 */
+			__w_le_u32(&vbmp.biWidth,capture.video.width);
+			__w_le_u32(&vbmp.biHeight,capture.video.height);
+			__w_le_u16(&vbmp.biPlanes,0);		/* FIXME: Only repeating what the original DOSBox code did */
+			__w_le_u16(&vbmp.biBitCount,0);		/* FIXME: Only repeating what the original DOSBox code did */
+			__w_le_u32(&vbmp.biCompression,avi_fourcc_const('Z','M','B','V'));
+			__w_le_u32(&vbmp.biSizeImage,capture.video.width * capture.video.height * 4);
+
+			if (!avi_writer_stream_set_format(vstream,&vbmp,sizeof(vbmp)))
+				goto skip_video;
+
+
+			avi_writer_stream *astream = avi_writer_new_stream(capture.video.writer);
+			if (astream == NULL)
+				goto skip_video;
+
+			riff_strh_AVISTREAMHEADER *asheader = avi_writer_stream_header(astream);
+			if (asheader == NULL)
+				goto skip_video;
+
+			memset(asheader,0,sizeof(*asheader));
+			__w_le_u32(&asheader->fccType,avi_fccType_audio);
+			__w_le_u32(&asheader->fccHandler,0);
+			__w_le_u32(&asheader->dwFlags,0);
+			__w_le_u16(&asheader->wPriority,0);
+			__w_le_u16(&asheader->wLanguage,0);
+			__w_le_u32(&asheader->dwInitialFrames,0);
+			__w_le_u32(&asheader->dwScale,1);
+			__w_le_u32(&asheader->dwRate,capture.video.audiorate);
+			__w_le_u32(&asheader->dwStart,0);
+			__w_le_u32(&asheader->dwLength,0);			/* AVI writer updates this automatically */
+			__w_le_u32(&asheader->dwSuggestedBufferSize,0);
+			__w_le_u32(&asheader->dwQuality,~0);
+			__w_le_u32(&asheader->dwSampleSize,2*2);
+			__w_le_u16(&asheader->rcFrame.left,0);
+			__w_le_u16(&asheader->rcFrame.top,0);
+			__w_le_u16(&asheader->rcFrame.right,0);
+			__w_le_u16(&asheader->rcFrame.bottom,0);
+
+			windows_WAVEFORMAT fmt;
+
+			memset(&fmt,0,sizeof(fmt));
+			__w_le_u16(&fmt.wFormatTag,windows_WAVE_FORMAT_PCM);
+			__w_le_u16(&fmt.nChannels,2);			/* stereo */
+			__w_le_u32(&fmt.nSamplesPerSec,capture.video.audiorate);
+			__w_le_u16(&fmt.wBitsPerSample,16);		/* 16-bit/sample */
+			__w_le_u16(&fmt.nBlockAlign,2*2);
+			__w_le_u32(&fmt.nAvgBytesPerSec,capture.video.audiorate*2*2);
+
+			if (!avi_writer_stream_set_format(astream,&fmt,sizeof(fmt)))
+				goto skip_video;
+
+
+			if (!avi_writer_begin_header(capture.video.writer) || !avi_writer_begin_data(capture.video.writer))
+				goto skip_video;
+
+			LOG_MSG("Started capturing video.");
 		}
 		int codecFlags;
 		if (capture.video.frames % 300 == 0)
@@ -597,11 +720,11 @@ skip_shot:
 		int written = capture.video.codec->FinishCompressFrame();
 		if (written < 0)
 			goto skip_video;
-		CAPTURE_AddAviChunk( "00dc", written, capture.video.buf, codecFlags & 1 ? 0x10 : 0x0);
+		CAPTURE_AddAviChunk( "00dc", written, capture.video.buf, codecFlags & 1 ? 0x10 : 0x0, 0);
 		capture.video.frames++;
 //		LOG_MSG("Frame %d video %d audio %d",capture.video.frames, written, capture.video.audioused *4 );
 		if ( capture.video.audioused ) {
-			CAPTURE_AddAviChunk( "01wb", capture.video.audioused * 4, capture.video.audiobuf, 0);
+			CAPTURE_AddAviChunk( "01wb", capture.video.audioused * 4, capture.video.audiobuf, 0, 1);
 			capture.video.audiowritten = capture.video.audioused*4;
 			capture.video.audioused = 0;
 		}
@@ -609,7 +732,10 @@ skip_shot:
 		/* Everything went okay, set flag again for next frame */
 		CaptureState |= CAPTURE_VIDEO;
 	}
+
+	return;
 skip_video:
+	capture.video.writer = avi_writer_destroy(capture.video.writer);
 #endif
 	return;
 }
@@ -817,7 +943,7 @@ public:
 	}
 	~HARDWARE(){
 #if (C_SSHOT)
-		if (capture.video.handle) CAPTURE_VideoEvent(true);
+		if (capture.video.writer != NULL) CAPTURE_VideoEvent(true);
 #endif
 		if (capture.wave.writer) CAPTURE_WaveEvent(true);
 		if (capture.midi.handle) CAPTURE_MidiEvent(true);
