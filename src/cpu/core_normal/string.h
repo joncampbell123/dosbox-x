@@ -48,7 +48,7 @@ static void DoString(STRING_OP type) {
 	} else {
 		CPU_Cycles++;
 		/* we allow the user to cap our count as a way of making REP string operations interruptable (and at what granularity) */
-		if (cpu_rep_max > 0 && count > (unsigned int)cpu_rep_max) {
+		if (cpu_rep_max > 0 && count > (unsigned int)cpu_rep_max && (type<R_SCASB)) {
 			count_left+=count-(unsigned int)cpu_rep_max;
 			count=(unsigned int)cpu_rep_max;
 			LOADIP;		//capping the count means (E)CX will be nonzero afterwards, we need CPU to restart it again
