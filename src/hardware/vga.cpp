@@ -497,17 +497,21 @@ void VGA_Init(Section* sec) {
 		if (IS_EGAVGA_ARCH) {
 			if (pcibus_enable) {
 				/* some delay based on PCI bus protocol with frame start, turnaround, and burst transfer */
-				double t = (1000000000.0 * clockdom_PCI_BCLK.freq_div * (1.0 + (1.0 / 16))) / clockdom_PCI_BCLK.freq;
+				double t = (1000000000.0 * clockdom_PCI_BCLK.freq_div * (1/*turnaround*/+1/*frame start*/+1/*burst*/-0.25/*fudge*/)) / clockdom_PCI_BCLK.freq;
 				vga_memio_delay_ns = (int)floor(t);
 			}
 			else {
-				/* very optimistic setting, ISA bus cycles are longer than 2, but also 386/486/Pentium pipeline.
+				/* very optimistic setting, ISA bus cycles are longer than 2, but also the 386/486/Pentium pipeline
+				 * instruction decoding. so it's not a matter of sucking up enough CPU cycle counts to match the
+				 * duration of a memory I/O cycle, because real hardware probably has another instruction decode
+				 * going while it does it.
+				 *
 				 * this is long enough to fix some demo's raster effects to work properly but not enough to
 				 * significantly bring DOS games to a crawl. Apparently, this also fixes Future Crew "Panic!"
 				 * by making the shadebob take long enough to allow the 3D rotating dot object to finish it's
 				 * routine just in time to become the FC logo, instead of sitting there waiting awkwardly
 				 * for 3-5 seconds. */
-				double t = (1000000000.0 * clockdom_ISA_BCLK.freq_div * 2) / clockdom_ISA_BCLK.freq;
+				double t = (1000000000.0 * clockdom_ISA_BCLK.freq_div * 3.75) / clockdom_ISA_BCLK.freq;
 				vga_memio_delay_ns = (int)floor(t);
 			}
 		}
