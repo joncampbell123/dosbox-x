@@ -1809,13 +1809,13 @@ void DOSBOX_Init(void) {
 	Pbool->Set_help("If set, dynamic kernel allocation=1, and private area in umb=1, all kernel structures will be allocated from the private area in UMB.\n"
 			"If you intend to run Windows 3.1 in DOSBox, you must set this option to false else Windows 3.1 will not start.");
 
-	Pbool = secprop->Add_bool("dynamic kernel allocation",Property::Changeable::OnlyAtStart,false);
+	Pbool = secprop->Add_bool("dynamic kernel allocation",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("If set, DOS kernel structures are allocated dynamically. If clear, DOS kernel structures are fixed at specific segments (mainline DOSBox behavior)");
 
-	Pbool = secprop->Add_bool("keep umb on boot",Property::Changeable::OnlyAtStart,0);
+	Pbool = secprop->Add_bool("keep umb on boot",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("If emulating UMBs, keep the UMB around after boot (Mainline DOSBox behavior). If clear, UMB is unmapped when you boot an operating system.");
 
-	Pbool = secprop->Add_bool("keep private area on boot",Property::Changeable::OnlyAtStart,0);
+	Pbool = secprop->Add_bool("keep private area on boot",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("If set, keep the DOSBox private area around after boot (Mainline DOSBox behavior). If clear, unmap and discard the private area when you boot an operating system.");
 
 	Pbool = secprop->Add_bool("private area in umb",Property::Changeable::WhenIdle,true);
