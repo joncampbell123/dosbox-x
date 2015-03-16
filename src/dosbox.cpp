@@ -1198,7 +1198,7 @@ void DOSBOX_Init(void) {
 			"you will need to set this to TRUE as 3Dfx appears to have coded GLIDE2.OVL to assume the presence\n"
 			"of Pentium Pro/Pentium II MTRR registers.");
 
-	// FIXME: Only the normal and prefetch cpu cores obey this setting!
+	/* NTS: This setting is honored by all cpu cores except dynamic core */
 	Pint = secprop->Add_int("interruptible rep string op",Property::Changeable::Always,-1);
 	Pint->SetMinMax(-1,65536);
 	Pint->Set_help("if nonzero, REP string instructions (LODS/MOVS/STOS/INS/OUTS) are interruptible (by interrupts or other events).\n"
