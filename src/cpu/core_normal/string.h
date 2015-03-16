@@ -28,6 +28,8 @@ enum STRING_OP {
 
 #define LoadD(_BLAH) _BLAH
 
+extern int cpu_rep_max;
+
 static void DoString(STRING_OP type) {
 	PhysPt  si_base,di_base;
 	Bitu	si_index,di_index;
@@ -45,12 +47,19 @@ static void DoString(STRING_OP type) {
 		count=1;
 	} else {
 		CPU_Cycles++;
+		/* we allow the user to cap our count as a way of making REP string operations interruptable (and at what granularity) */
+		if (cpu_rep_max > 0 && count > (unsigned int)cpu_rep_max) {
+			count_left+=count-(unsigned int)cpu_rep_max;
+			count=(unsigned int)cpu_rep_max;
+			LOADIP;		//capping the count means (E)CX will be nonzero afterwards, we need CPU to restart it again
+		}
+
 		/* Calculate amount of ops to do before cycles run out */
 		if ((count>(Bitu)CPU_Cycles) && (type<R_SCASB)) {
-			count_left=count-CPU_Cycles;
+			count_left+=count-CPU_Cycles;
 			count=CPU_Cycles;
 			CPU_Cycles=0;
-			LOADIP;		//RESET IP to the start
+			LOADIP;		//capping the count means (E)CX will be nonzero afterwards, we need CPU to restart it again
 		} else {
 			/* Won't interrupt scas and cmps instruction since they can interrupt themselves */
 			if ((count<=1) && (CPU_Cycles<=1)) CPU_Cycles--;

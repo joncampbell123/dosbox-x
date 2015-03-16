@@ -1198,6 +1198,17 @@ void DOSBOX_Init(void) {
 			"you will need to set this to TRUE as 3Dfx appears to have coded GLIDE2.OVL to assume the presence\n"
 			"of Pentium Pro/Pentium II MTRR registers.");
 
+	// FIXME: Only the normal and prefetch cpu cores obey this setting!
+	Pint = secprop->Add_int("interruptible rep string op",Property::Changeable::Always,-1);
+	Pint->SetMinMax(-1,65536);
+	Pint->Set_help("if nonzero, REP string instructions (LODS/MOVS/STOS/INS/OUTS) are interruptible (by interrupts or other events).\n"
+			"if zero, REP string instructions are carried out in full before processing events and interrupts.\n"
+			"Set to -1 for a reasonable default setting based on cpu type and other configuration.\n"
+			"A setting of 0 can improve emulation speed at the expense of emulation accuracy.\n"
+			"A nonzero setting (1-8) may be needed for DOS games and demos that use the IRQ 0 interrupt to play digitized samples\n"
+			"while doing VGA palette animation at the same time (use case of REP OUTS), where the non-interruptible version\n"
+			"would cause an audible drop in audio pitch.");
+
 	Pint = secprop->Add_int("dynamic core cache block size",Property::Changeable::Always,32);
 	Pint->SetMinMax(1,65536);
 	Pint->Set_help("dynamic core cache block size. default value is 32. change this value carefully.\n"
