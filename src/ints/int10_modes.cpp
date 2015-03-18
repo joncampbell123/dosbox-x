@@ -902,6 +902,10 @@ bool INT10_SetVideoMode(Bit16u mode) {
 		// 28MHz (16MHz EGA) clock for 9-pixel wide chars
 		misc_output|=0x4;
 	}
+	else if (machine == MCH_EGA && CurMode->vdispend >= 350) {
+		// EGA 350-line modes need the 16MHz dot clock to run at 60Hz
+		misc_output|=0x4;
+	}
 
 	switch (CurMode->vdispend) {
 	case 400: 
