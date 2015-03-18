@@ -176,8 +176,9 @@ static void write_lightpen(Bitu port,Bitu val,Bitu) {
 	}
 }
 
+Bit8u cga_comp = 0;
+
 static double hue_offset = 0.0;
-static Bit8u cga_comp = 0;
 static bool new_cga = 0;
 
 static Bit8u cga16_val = 0;

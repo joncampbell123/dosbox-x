@@ -595,6 +595,8 @@ static void Null_Init(Section *sec) {
 	sec = sec;
 }
 
+extern Bit8u cga_comp;
+
 void DOSBOX_RealInit(Section * sec) {
 	Section_prop * section=static_cast<Section_prop *>(sec);
 	/* Initialize some dosbox internals */
@@ -645,6 +647,8 @@ void DOSBOX_RealInit(Section * sec) {
 	int10.vesa_oldvbe = false;
 	if      (mtype == "cga")           { machine = MCH_CGA; mono_cga = false; }
 	else if (mtype == "cga_mono")      { machine = MCH_CGA; mono_cga = true; }
+	else if (mtype == "cga_rgb")       { machine = MCH_CGA; mono_cga = false; cga_comp = 2; }
+	else if (mtype == "cga_composite") { machine = MCH_CGA; mono_cga = false; cga_comp = 1; }
 	else if (mtype == "tandy")         { machine = MCH_TANDY; }
 	else if (mtype == "pcjr")          { machine = MCH_PCJR; }
 	else if (mtype == "hercules")      { machine = MCH_HERC; }
@@ -745,7 +749,7 @@ void DOSBOX_Init(void) {
 
 	/* Setup all the different modules making up DOSBox */
 	const char* machines[] = {
-		"hercules", "cga", "cga_mono", "tandy", "pcjr", "ega",
+		"hercules", "cga", "cga_mono", "cga_rgb", "cga_composite", "tandy", "pcjr", "ega",
 		"vgaonly", "svga_s3", "svga_et3000", "svga_et4000",
 		"svga_paradise", "vesa_nolfb", "vesa_oldvbe", "amstrad", 0 };
 
