@@ -47,6 +47,7 @@ extern bool vga_enable_hretrace_effects;
 extern unsigned int vga_display_start_hretrace;
 extern float hretrace_fx_avg_weight;
 extern bool ignore_vblank_wraparound;
+extern bool vga_double_buffered_line_compare;
 
 void memxor(void *_d,unsigned int byte,size_t count) {
 	unsigned char *d = (unsigned char*)_d;
@@ -951,6 +952,19 @@ static Bit8u VGA_GetBlankedIndex() {
 	return bg_color_index;
 }
 
+/* this is now called PER LINE because most VGA cards do not double-buffer the value.
+ * a few demos rely on line compare schenanigans to play with the raster, as does my own VGA test program --J.C. */
+void VGA_Update_SplitLineCompare() {
+	vga.draw.split_line = vga.config.line_compare+1;
+	if (svgaCard==SVGA_S3Trio) {
+		if (vga.config.line_compare==0) vga.draw.split_line=0;
+		if (vga.s3.reg_42 & 0x20) { // interlaced mode
+			vga.draw.split_line *= 2;
+		}
+	}
+	vga.draw.split_line -= vga.draw.vblank_skip;
+}
+
 static void VGA_DrawSingleLine(Bitu /*blah*/) {
 	if (GCC_UNLIKELY(vga.attr.disabled)) {
 		switch(machine) {
@@ -1045,6 +1059,8 @@ static void VGA_DrawSingleLine(Bitu /*blah*/) {
 	if (vga.draw.lines_done < vga.draw.lines_total) {
 		PIC_AddEvent(VGA_DrawSingleLine,(float)vga.draw.delay.singleline_delay);
 	} else RENDER_EndUpdate(false);
+
+	if (IS_EGAVGA_ARCH && !vga_double_buffered_line_compare) VGA_Update_SplitLineCompare();
 }
 
 static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
@@ -1264,16 +1280,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 	if (vga.draw.vga_override || !RENDER_StartUpdate()) return;
 
 	vga.draw.address_line = vga.config.hlines_skip;
-	if (IS_EGAVGA_ARCH) {
-		vga.draw.split_line = vga.config.line_compare+1;
-		if (svgaCard==SVGA_S3Trio) {
-			if (vga.config.line_compare==0) vga.draw.split_line=0;
-			if (vga.s3.reg_42 & 0x20) { // interlaced mode
-				vga.draw.split_line *= 2;
-			}
-		}
-		vga.draw.split_line -= vga.draw.vblank_skip;
-	}
+	if (IS_EGAVGA_ARCH) VGA_Update_SplitLineCompare();
 	vga.draw.address = vga.config.real_start;
 	vga.draw.byte_panning_shift = 0;
 

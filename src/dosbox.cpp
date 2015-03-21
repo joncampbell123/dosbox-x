@@ -1100,6 +1100,10 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("allow tty vesa modes",Property::Changeable::Always,true);
 	Pbool->Set_help("If the DOS game or demo has problems with text VESA modes, set to 'false'");
 
+	Pbool = secprop->Add_bool("double-buffered line compare",Property::Changeable::Always,false);
+	Pbool->Set_help("This setting affects the VGA Line Compare register. Set to false (default value) to emulate most VGA behavior\n"
+			"Set to true for the value to latch once at the start of the frame.");
+
 	Pbool = secprop->Add_bool("ignore vblank wraparound",Property::Changeable::Always,false);
 	Pbool->Set_help("DOSBox-X can handle active display properly if games or demos reprogram vertical blanking to end in the active picture area.\n"
 			"If the wraparound handling prevents the game from displaying properly, set this to false. Out of bounds vblank values will be ignored.\n");

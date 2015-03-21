@@ -150,6 +150,7 @@ bool vga_sierra_lock_565 = false;
 bool enable_vga_resize_delay = false;
 bool vga_ignore_hdispend_change_if_smaller = false;
 bool ignore_vblank_wraparound = false;
+bool vga_double_buffered_line_compare = false;
 
 unsigned int vga_display_start_hretrace = 0;
 float hretrace_fx_avg_weight = 3;
@@ -465,6 +466,7 @@ void VGA_Init(Section* sec) {
 	vga_enable_hretrace_effects = section->Get_bool("allow hretrace effects");
 	enable_page_flip_debugging_marker = section->Get_bool("page flip debug line");
 	enable_vretrace_poll_debugging_marker = section->Get_bool("vertical retrace poll debug line");
+	vga_double_buffered_line_compare = section->Get_bool("double-buffered line compare");
 	hack_lfb_yadjust = section->Get_int("vesa lfb base scanline adjust");
 	allow_vesa_lowres_modes = section->Get_bool("allow low resolution vesa modes");
 	vesa12_modes_32bpp = section->Get_bool("vesa vbe 1.2 modes are 32bpp");
