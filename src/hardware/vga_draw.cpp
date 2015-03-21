@@ -46,6 +46,7 @@ extern bool vga_enable_hpel_effects;
 extern bool vga_enable_hretrace_effects;
 extern unsigned int vga_display_start_hretrace;
 extern float hretrace_fx_avg_weight;
+extern bool ignore_vblank_wraparound;
 
 void memxor(void *_d,unsigned int byte,size_t count) {
 	unsigned char *d = (unsigned char*)_d;
@@ -1716,7 +1717,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 
 	// Vertical blanking tricks
 	vblank_skip = 0;
-	if (IS_VGA_ARCH) { // others need more investigation
+	if (IS_VGA_ARCH && !ignore_vblank_wraparound) { // others need more investigation
 		if (vbstart < vtotal) { // There will be no blanking at all otherwise
 			if (vbend > vtotal) {
 				// blanking wraps to the start of the screen

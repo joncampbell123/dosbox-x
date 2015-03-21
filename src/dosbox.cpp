@@ -1100,6 +1100,10 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("allow tty vesa modes",Property::Changeable::Always,true);
 	Pbool->Set_help("If the DOS game or demo has problems with text VESA modes, set to 'false'");
 
+	Pbool = secprop->Add_bool("ignore vblank wraparound",Property::Changeable::Always,false);
+	Pbool->Set_help("DOSBox-X can handle active display properly if games or demos reprogram vertical blanking to end in the active picture area.\n"
+			"If the wraparound handling prevents the game from displaying properly, set this to false. Out of bounds vblank values will be ignored.\n");
+
 	Pbool = secprop->Add_bool("enable vga resize delay",Property::Changeable::Always,false);
 	Pbool->Set_help("If the DOS game you are running relies on certain VGA raster tricks that affect active display area, enable this option.\n"
 			"This adds a delay between VGA mode changes and window updates. It also means that if you are capturing a demo or game,\n"
