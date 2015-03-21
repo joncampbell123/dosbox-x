@@ -1345,7 +1345,6 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 	default:
 		break;
 	}
-	if (GCC_UNLIKELY(vga.draw.split_line==0)) VGA_ProcessSplit();
 
 	/* ET4000 High Sierra DAC programs can change SVGA mode */
 	if ((vga.mode == M_LIN15 || vga.mode == M_LIN16) && (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K)) {
@@ -1357,9 +1356,21 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 
 	// check if some lines at the top off the screen are blanked
 	float draw_skip = 0.0;
-	if (GCC_UNLIKELY(vga.draw.vblank_skip)) {
+	if (GCC_UNLIKELY(vga.draw.vblank_skip > 0)) {
 		draw_skip = (float)(vga.draw.delay.htotal * vga.draw.vblank_skip);
-		vga.draw.address += vga.draw.address_add * (vga.draw.vblank_skip/(vga.draw.address_line_total));
+		vga.draw.address_line += (vga.draw.vblank_skip % vga.draw.address_line_total);
+		vga.draw.address += vga.draw.address_add * (vga.draw.vblank_skip / vga.draw.address_line_total);
+	}
+
+	/* do VGA split now if line compare <= 0. NTS: vga.draw.split_line is defined as Bitu (unsigned integer) so we need the typecast. */
+	if (GCC_UNLIKELY((Bits)vga.draw.split_line <= 0)) {
+		VGA_ProcessSplit();
+
+		/* if vblank_skip != 0, line compare can become a negative value! Fixes "Warlock" 1992 demo by Warlock */
+		if (GCC_UNLIKELY((Bits)vga.draw.split_line < 0)) {
+			vga.draw.address_line += (-((Bits)vga.draw.split_line) % vga.draw.address_line_total);
+			vga.draw.address += vga.draw.address_add * (-((Bits)vga.draw.split_line) / vga.draw.address_line_total);
+		}
 	}
 
 	// add the draw event
