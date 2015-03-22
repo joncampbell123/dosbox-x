@@ -925,6 +925,7 @@ static Bit8u* VGA_TEXT_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 }
 
 static void VGA_ProcessSplit() {
+	vga.draw.has_split = true;
 	if (vga.attr.mode_control&0x20) {
 		vga.draw.address=0;
 		// reset panning to 0 here so we don't have to check for 
@@ -1043,9 +1044,10 @@ static void VGA_DrawSingleLine(Bitu /*blah*/) {
 
 	/* some VGA cards (ATI chipsets especially) do not double-buffer the
 	 * horizontal panning register. some DOS demos take advantage of that
-	 * to make the picture "waver" */
-	/* FIXME: If we hit the splitscreen this code must NOT apply the panning offset for all scanlines following the split, unless registers to enable so */
-	if (IS_VGA_ARCH && vga_enable_hpel_effects) {
+	 * to make the picture "waver".
+	 *
+	 * We stop doing this though if the attribute controller is setup to set hpel=0 at splitscreen. */
+	if (IS_VGA_ARCH && vga_enable_hpel_effects && (!vga.draw.has_split || !(vga.attr.mode_control&0x20))) {
 		vga.draw.panning = vga.config.pel_panning;
 	}
 
@@ -1129,6 +1131,7 @@ static void VGA_PanningLatch(Bitu /*val*/) {
 static void VGA_VerticalTimer(Bitu /*val*/) {
 	vga.draw.delay.framestart = PIC_FullIndex();
 	vga_page_flip_occurred = false;
+	vga.draw.has_split = false;
 	vga_3da_polled = false;
 
 	float vsynctimerval;
@@ -1817,6 +1820,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 	//VGA monitor just seems to thighten or widen the whole vertical range
 
 	vga.draw.resizing=false;
+	vga.draw.has_split=false;
 	vga.draw.vret_triggered=false;
 
 	//Check to prevent useless black areas

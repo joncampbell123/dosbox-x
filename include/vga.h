@@ -156,6 +156,7 @@ typedef struct {
 		Bit8u enabled;
 	} cursor;
 	Drawmode mode;
+	bool has_split;
 	bool vret_triggered;
 	bool vga_override;
 	bool doublescan_set;
