@@ -18,6 +18,7 @@
 
 
 #include <string.h>
+#include <algorithm>
 #include "dosbox.h"
 #include "inout.h"
 #include "mixer.h"
