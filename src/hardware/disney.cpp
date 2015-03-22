@@ -84,6 +84,9 @@ static void DISNEY_enable(Bitu freq) {
 	if(freq < 500 || freq > 100000) {
 		// try again..
 		disney.state = DS_IDLE;
+#if 0
+		LOG(LOG_MISC,LOG_NORMAL)("disney enable rejected, %ld Hz, stereo=%u",(long)freq,(int)disney.stereo);
+#endif
 		return;	
 	} else {
 #if 0
@@ -135,13 +138,17 @@ static void DISNEY_analyze(Bitu channel){
 			Bitu ch_speed[2];
 
 			for(Bitu i = 0; i < 2; i++) {
-				ch_speed[i] = (Bitu)(1.0/((disney.da[i].speedcheck_sum/1000.0) /
-				(float)(((float)disney.da[i].used)-1.0))); // -1.75
+				if (disney.da[i].used > 1/*avoid divide-by-zero!*/) {
+					ch_speed[i] = (Bitu)(1.0/((disney.da[i].speedcheck_sum/1000.0) /
+						(float)(((float)disney.da[i].used)-1.0))); // -1.75
+				}
+				else {
+					ch_speed[i] = 0;
+				}
 			}
-			
+
 			// choose the larger value
-			DISNEY_enable(ch_speed[0] > ch_speed[1]?
-				ch_speed[0]:ch_speed[1]); // TODO
+			DISNEY_enable(std::max(ch_speed[0],ch_speed[1]));
 			break;
 		}
 		case DS_ANALYZING:
