@@ -1718,6 +1718,13 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		fps=(double)clock/(vtotal*htotal);
 		LOG(LOG_VGA,LOG_NORMAL)("VGA refresh rate is now, %.3f",vga_force_refresh_rate);
 	}
+
+	/* clip display end to stay within vtotal ("Monolith" demo part 4 320x570 mode fix) */
+	if (vdend > vtotal) {
+		LOG(LOG_VGA,LOG_WARN)("VGA display end greater than vtotal!");
+		vdend = vtotal;
+	}
+
 	// Horizontal total (that's how long a line takes with whistles and bells)
 	vga.draw.delay.htotal = htotal*1000.0/clock; //in milliseconds
 	// Start and End of horizontal blanking
