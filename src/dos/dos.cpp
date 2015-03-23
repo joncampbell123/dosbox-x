@@ -1817,6 +1817,15 @@ public:
 					DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
 			}
 		}
+
+		if (minimum_mcb_segment != 0 && DOS_MEM_START < minimum_mcb_segment) {
+			DOS_MEM_START = minimum_mcb_segment;
+
+			/* do not allow setting past the 64KB mark */
+			if (DOS_MEM_START > 0x1000)
+				DOS_MEM_START = 0x1000;
+		}
+
 		LOG_MSG("   mem start:    seg 0x%04x\n",DOS_MEM_START);
 
 		/* carry on setup */
