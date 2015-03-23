@@ -496,9 +496,9 @@ void PauseDOSBox(bool pressed) {
 		switch (event.type) {
 
 			case SDL_QUIT: KillSwitch(true); break;
-			case SDL_KEYDOWN:   // Must use Pause/Break Key to resume.
+			case SDL_KEYDOWN:   // Must use Pause/Break or escape Key to resume.
 			case SDL_KEYUP:
-			if(event.key.keysym.sym == SDLK_PAUSE) {
+			if(event.key.keysym.sym == SDLK_PAUSE || event.key.keysym.sym == SDLK_ESCAPE) {
 
 				paused = false;
 				GFX_SetTitle(-1,-1,-1,false);
@@ -2132,6 +2132,7 @@ static void GUI_StartUp(Section * sec) {
 	MAPPER_AddHandler(Restart,MK_home,MMOD1|MMOD2,"restart","Restart");
 #if C_DEBUG
 	/* Pause binds with activate-debugger */
+	MAPPER_AddHandler(&PauseDOSBox, MK_pause, MMOD1, "pause", "Pause");
 #else
 	MAPPER_AddHandler(&PauseDOSBox, MK_pause, MMOD2, "pause", "Pause");
 #endif
