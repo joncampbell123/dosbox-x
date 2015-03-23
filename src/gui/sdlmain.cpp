@@ -528,6 +528,9 @@ void PauseDOSBox(bool pressed) {
 	void GFX_UpdateSDLCaptureState();
 	GFX_UpdateSDLCaptureState();
 
+	KEYBOARD_ClrBuffer();
+	GFX_LosingFocus();
+
 	// redraw screen (ex. fullscreen - pause - alt+tab x2 - unpause)
 	if (sdl.draw.callback) (sdl.draw.callback)( GFX_CallBackReset );
 }
