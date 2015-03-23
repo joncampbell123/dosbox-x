@@ -1649,10 +1649,6 @@ public:
 				else
 					DOS_MEM_START = minimum_mcb_segment;
 
-				/* do not allow setting past the 64KB mark */
-				if (DOS_MEM_START > 0x1000)
-					DOS_MEM_START = 0x1000;
-
 				if (DOS_MEM_START < 0x40)
 					LOG_MSG("DANGER, DANGER! DOS_MEM_START has been set to within the interrupt vector table! Proceed at your own risk!");
 				else if (DOS_MEM_START < 0x50)
@@ -1816,14 +1812,6 @@ public:
 				LOG_MSG("Private area, not stored in UMB on request, occupies 0x%04x-0x%04x [dynamic]\n",
 					DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
 			}
-		}
-
-		if (minimum_mcb_segment != 0 && DOS_MEM_START < minimum_mcb_segment) {
-			DOS_MEM_START = minimum_mcb_segment;
-
-			/* do not allow setting past the 64KB mark */
-			if (DOS_MEM_START > 0x1000)
-				DOS_MEM_START = 0x1000;
 		}
 
 		LOG_MSG("   mem start:    seg 0x%04x\n",DOS_MEM_START);
