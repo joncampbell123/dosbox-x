@@ -1502,7 +1502,10 @@ public:
 			emm_segmentmappings[i].handle=NULL_HANDLE;
 		}
 
-		EMM_AllocateSystemHandle(oshandle_memsize_16kb);	// allocate OS-dedicated handle (ems handle zero, 384kb)
+		if (EMM_AllocateSystemHandle(oshandle_memsize_16kb) != EMM_NO_ERROR) { // allocate OS-dedicated handle (ems handle zero, 384kb)
+			LOG_MSG("EMS:Unable to allocate EMS system handle. disabling VCPI");
+			ENABLE_VCPI = false;
+		}
 
 		if (ems_type == EMS_EMM386) {
 			DMA_SetWrapping(0xffffffff);	// emm386-bug that disables dma wrapping

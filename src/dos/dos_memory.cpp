@@ -67,7 +67,7 @@ static void DOS_Mem_E_Exit(const char *msg) {
 	E_Exit(msg);
 }
 
-static void DOS_CompressMemory(Bit16u first_segment=0/*default*/) {
+void DOS_CompressMemory(Bit16u first_segment=0/*default*/) {
 	Bit16u mcb_segment=dos.firstMCB;
 	DOS_MCB mcb(mcb_segment);
 	DOS_MCB mcb_next(0);
