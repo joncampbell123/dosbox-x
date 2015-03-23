@@ -934,9 +934,20 @@ static void VGA_ProcessSplit() {
 		vga.draw.panning=0; 
 	} else {
 		// In text mode only the characters are shifted by panning, not the address;
-		// this is done in the text line draw function.
+		// this is done in the text line draw function. EGA/VGA planar is handled the same way.
 		vga.draw.address = vga.draw.byte_panning_shift*vga.draw.bytes_skip;
-		if ((vga.mode!=M_TEXT)&&(machine!=MCH_EGA)) vga.draw.address += vga.draw.panning;
+		if (machine != MCH_EGA) {
+			switch (vga.mode) {
+				case M_TEXT:
+				case M_EGA:
+				case M_LIN4:
+					/* ignore */
+					break;
+				default:
+					vga.draw.address += vga.draw.panning;
+					break;
+			}
+		}
 	}
 	vga.draw.address_line=0;
 }
@@ -1076,7 +1087,18 @@ static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
 		RENDER_DrawLine(TempLine);
 	} else {
 		Bitu address = vga.draw.address;
-		if (vga.mode!=M_TEXT) address += vga.draw.panning;
+		if (machine != MCH_EGA) {
+			switch (vga.mode) {
+				case M_TEXT:
+				case M_EGA:
+				case M_LIN4:
+					/* ignore */
+					break;
+				default:
+					vga.draw.address += vga.draw.panning;
+					break;
+			}
+		}
 		Bit8u * data=VGA_DrawLine(address, vga.draw.address_line );	
 		RENDER_DrawLine(data);
 	}
