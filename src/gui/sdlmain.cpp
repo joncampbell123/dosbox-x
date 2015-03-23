@@ -469,17 +469,24 @@ bool DOSBox_Paused()
 	return emu_paused;
 }
 
+bool pause_on_vsync = false;
+
 void PauseDOSBox(bool pressed) {
 	bool paused = true;
+	SDL_Event event;
 
 	if (!pressed) return;
 	GFX_SetTitle(-1,-1,-1,true);
 	KEYBOARD_ClrBuffer();
+#if 0
 	SDL_Delay(500);
-	SDL_Event event;
+#endif
 	while (SDL_PollEvent(&event)) {
 		// flush event queue.
 	}
+
+	// reset pause conditions
+	pause_on_vsync = false;
 
 	// give mouse to win32 (ex. alt-tab)
 	SDL_WM_GrabInput(SDL_GRAB_OFF);
@@ -497,10 +504,16 @@ void PauseDOSBox(bool pressed) {
 
 			case SDL_QUIT: KillSwitch(true); break;
 			case SDL_KEYDOWN:   // Must use Pause/Break or escape Key to resume.
-			case SDL_KEYUP:
 			if(event.key.keysym.sym == SDLK_PAUSE || event.key.keysym.sym == SDLK_ESCAPE) {
 
 				paused = false;
+				GFX_SetTitle(-1,-1,-1,false);
+				break;
+			}
+			else if (event.key.keysym.sym == SDLK_SPACE) { /* spacebar = single frame step */
+				/* resume, but let the VGA code know to call us on vertical retrace */
+				paused = false;
+				pause_on_vsync = true;
 				GFX_SetTitle(-1,-1,-1,false);
 				break;
 			}

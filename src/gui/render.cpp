@@ -226,6 +226,9 @@ static void RENDER_Halt( void ) {
 }
 
 extern Bitu PIC_Ticks;
+extern bool pause_on_vsync;
+void PauseDOSBox(bool pressed);
+
 void RENDER_EndUpdate( bool abort ) {
 	if (GCC_UNLIKELY(!render.updating))
 		return;
@@ -261,6 +264,11 @@ void RENDER_EndUpdate( bool abort ) {
 	}
 	render.frameskip.index = (render.frameskip.index + 1) & (RENDER_SKIP_CACHE - 1);
 	render.updating=false;
+
+	if (pause_on_vsync) {
+		pause_on_vsync = false;
+		PauseDOSBox(true);
+	}
 }
 
 static Bitu MakeAspectTable(Bitu skip,Bitu height,double scaley,Bitu miny) {
