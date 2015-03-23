@@ -1631,6 +1631,8 @@ public:
 
 		unsigned int DOS_FIRST_SHELL_SIZE;
 
+		if (minimum_mcb_segment > 0x8000) minimum_mcb_segment = 0x8000; /* FIXME: Clip against available memory */
+
 		if (dynamic_dos_kernel_alloc) {
 			if (dosbox_shell_env_size == 0)
 				dosbox_shell_env_size = (0x158 - (0x118 + 19)) << 4; /* equivalent to mainline DOSBox */
@@ -1813,6 +1815,9 @@ public:
 					DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
 			}
 		}
+
+		if (minimum_mcb_segment != 0 && DOS_MEM_START < minimum_mcb_segment)
+			DOS_MEM_START = minimum_mcb_segment;
 
 		LOG_MSG("   mem start:    seg 0x%04x\n",DOS_MEM_START);
 
