@@ -1042,15 +1042,6 @@ static void VGA_DrawSingleLine(Bitu /*blah*/) {
 		RENDER_DrawLine(data);
 	}
 
-	/* some VGA cards (ATI chipsets especially) do not double-buffer the
-	 * horizontal panning register. some DOS demos take advantage of that
-	 * to make the picture "waver".
-	 *
-	 * We stop doing this though if the attribute controller is setup to set hpel=0 at splitscreen. */
-	if (IS_VGA_ARCH && vga_enable_hpel_effects && (!vga.draw.has_split || !(vga.attr.mode_control&0x20))) {
-		vga.draw.panning = vga.config.pel_panning;
-	}
-
 	vga.draw.address_line++;
 	if (vga.draw.address_line>=vga.draw.address_line_total) {
 		vga.draw.address_line=0;
@@ -1061,6 +1052,20 @@ static void VGA_DrawSingleLine(Bitu /*blah*/) {
 	if (vga.draw.lines_done < vga.draw.lines_total) {
 		PIC_AddEvent(VGA_DrawSingleLine,(float)vga.draw.delay.singleline_delay);
 	} else RENDER_EndUpdate(false);
+
+	/* some VGA cards (ATI chipsets especially) do not double-buffer the
+	 * horizontal panning register. some DOS demos take advantage of that
+	 * to make the picture "waver".
+	 *
+	 * We stop doing this though if the attribute controller is setup to set hpel=0 at splitscreen. */
+	if (IS_VGA_ARCH && vga_enable_hpel_effects) {
+		/* Attribute Mode Controller: If bit 5 (Pixel Panning Mode) is set, then upon line compare the bottom portion is displayed as if Pixel Shift Count and Byte Panning are set to 0.
+		 * This ensures some demos like Future Crew "Yo" display correctly instead of the bottom non-scroller half jittering because the top half is scrolling. */
+		if (vga.draw.has_split && (vga.attr.mode_control&0x20))
+			vga.draw.panning = 0;
+		else
+			vga.draw.panning = vga.config.pel_panning;
+	}
 
 	if (IS_EGAVGA_ARCH && !vga_double_buffered_line_compare) VGA_Update_SplitLineCompare();
 }
