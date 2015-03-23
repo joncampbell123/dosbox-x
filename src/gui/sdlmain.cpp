@@ -478,12 +478,8 @@ void PauseDOSBox(bool pressed) {
 	if (!pressed) return;
 	GFX_SetTitle(-1,-1,-1,true);
 	KEYBOARD_ClrBuffer();
-#if 0
-	SDL_Delay(500);
-#endif
-	while (SDL_PollEvent(&event)) {
-		// flush event queue.
-	}
+	GFX_LosingFocus();
+	while (SDL_PollEvent(&event)); // flush event queue.
 
 	// reset pause conditions
 	pause_on_vsync = false;
