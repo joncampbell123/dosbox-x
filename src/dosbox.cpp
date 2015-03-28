@@ -1755,7 +1755,7 @@ void DOSBOX_Init(void) {
 
 	Phex = secprop->Add_hex("minimum mcb segment", Property::Changeable::WhenIdle,0);
 	Phex->Set_help("Minimum segment value to begin memory allocation from, in hexadecimal. Set to 0 for default.\n"
-			"Recommended value is 70, some DOS games have problems if the value is lower than that.\n"
+			"Recommended value is 400, some DOS games have problems if the value is lower than that.\n"
 			"The lowest value you can safely use is 51, any value lower than that risks conflict with\n"
 			"the BIOS data area and interrupt vector table.");
 
