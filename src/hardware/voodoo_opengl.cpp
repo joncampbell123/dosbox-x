@@ -1053,9 +1053,9 @@ void ogl_shaders(const poly_extra_data *extra) {
 
 		/* use this shader */
 		glUseProgramObjectARB(m_hProgramObject);
-		extra->info->so_shader_program=(UINT32)m_hProgramObject;
-		extra->info->so_vertex_shader=(UINT32)m_hVertexShader;
-		extra->info->so_fragment_shader=(UINT32)m_hFragmentShader;
+		extra->info->so_shader_program=(uintptr_t)m_hProgramObject;
+		extra->info->so_vertex_shader=(uintptr_t)m_hVertexShader;
+		extra->info->so_fragment_shader=(uintptr_t)m_hFragmentShader;
 
 		extra->info->shader_ready=true;
 
@@ -1163,7 +1163,7 @@ void voodoo_ogl_draw_triangle(poly_extra_data *extra) {
 		for (int t=0; t<2; t++)
 		if ( td[t].enable ) {
 			UINT32 TEXMODE = v->tmu[t].reg[textureMode].u;
-			glActiveTextureARB(GL_TEXTURE0_ARB+t);
+			glActiveTexture(GL_TEXTURE0_ARB+t);
 			glBindTexture (GL_TEXTURE_2D, td[t].texID);
 			if (!extra->info->shader_ready) {
 				glEnable (GL_TEXTURE_2D);
@@ -1244,7 +1244,7 @@ void voodoo_ogl_draw_triangle(poly_extra_data *extra) {
 
 		for (int t=0;t<2;t++)
 			if (td[t].enable) {
-				glMultiTexCoord4fvARB(GL_TEXTURE0_ARB+t,&vd[i].m[t].sw);
+				glMultiTexCoord4fv(GL_TEXTURE0_ARB+t,&vd[i].m[t].sw);
 				if (extra->info->shader_ulocations[10+t] >= 0)
 					glVertexAttrib1fARB(extra->info->shader_ulocations[10+t],vd[i].m[t].lodblend);
 			}
