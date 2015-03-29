@@ -179,6 +179,9 @@ bool CPU_WRMSR();
 		}
 		break;
 	CASE_0F_B(0x22)												/* MOV CRx,Rd */
+#if 0 /* DO NOT ENABLE UNLESS DEBUGGING 286-STYLE TRIPLE FAULT THUNKING BACK TO REAL MODE */
+		goto illegal_opcode;
+#endif
 		{
 			GetRM;
 			Bitu which=(rm >> 3) & 7;

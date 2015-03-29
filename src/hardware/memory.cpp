@@ -701,8 +701,12 @@ void On_Software_286_reset_vector(unsigned char code) {
 	/* does not return */
 }
 
+void CPU_Exception_Level_Reset();
+
 void On_Software_CPU_Reset() {
 	unsigned char c;
+
+	CPU_Exception_Level_Reset();
 
 	/* software-initiated CPU reset. but the intent may not be to reset the system but merely
 	 * the CPU. check the CMOS shutdown byte */

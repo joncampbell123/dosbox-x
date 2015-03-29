@@ -42,6 +42,9 @@ bool ignore_undefined_msr = true;
 
 extern bool ignore_opcode_63;
 
+bool cpu_double_fault_enable;
+bool cpu_triple_fault_reset;
+
 int cpu_rep_max = 0;
 
 Bitu DEBUG_EnableDebugger(void);
@@ -715,8 +718,45 @@ doexception:
 	return CPU_PrepareException(EXCEPTION_GP,0);
 }
 
+#include <stack>
+
+int CPU_Exception_Level[0x20] = {0};
+std::stack<int> CPU_Exception_In_Progress;
+
+void CPU_Exception_Level_Reset() {
+	int i;
+
+	for (i=0;i < 0x20;i++)
+		CPU_Exception_Level[i] = 0;
+	while (!CPU_Exception_In_Progress.empty())
+		CPU_Exception_In_Progress.pop();
+}
+
+void On_Software_CPU_Reset();
+
 void CPU_Exception(Bitu which,Bitu error ) {
+	assert(which < 0x20);
 //	LOG_MSG("Exception %d error %x",which,error);
+	if (CPU_Exception_Level[which] != 0) {
+		if (CPU_Exception_Level[EXCEPTION_DF] != 0 && cpu_triple_fault_reset) {
+			LOG_MSG("CPU_Exception: Double fault already in progress == Triple Fault. Resetting CPU.");
+			// Triple fault -> special shutdown cycle -> reset signal -> reset.
+			// Sickening, I know, but that's how IBM wired things a long long time ago.
+			On_Software_CPU_Reset();
+			E_Exit("Triple fault reset call unexpectedly returned");
+		}
+
+		LOG_MSG("CPU_Exception: Exception %d already in progress, triggering double fault instead",which);
+		which = EXCEPTION_DF;
+		error = 0;
+	}
+
+	if (cpu_double_fault_enable) {
+		/* CPU_Interrupt() could cause another fault during memory access. This needs to happen here */
+		CPU_Exception_Level[which]++;
+		CPU_Exception_In_Progress.push(which);
+	}
+
 	cpu.exception.error=error;
 	CPU_Interrupt(which,CPU_INT_EXCEPTION | ((which>=8) ? CPU_INT_HAS_ERROR : 0),reg_eip);
 }
@@ -942,6 +982,18 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 	/* x86 CPUs consider IRET the completion of an NMI, no matter where it happens */
 	/* FIXME: If the IRET causes an exception, is it still considered the end of the NMI? */
 	CPU_NMI_active = false;
+
+	/* Fault emulation */
+	if (!CPU_Exception_In_Progress.empty()) {
+		int which = CPU_Exception_In_Progress.top();
+		CPU_Exception_In_Progress.pop();
+		assert(which < 0x20);
+
+		if (CPU_Exception_Level[which] > 0)
+			CPU_Exception_Level[which]--;
+
+//		LOG_MSG("Leaving CPU exception %d",which);
+	}
 
 	if (!cpu.pmode) {					/* RealMode IRET */
 		if (use32) {
@@ -2566,7 +2618,8 @@ public:
 		if (dosbox_enable_nonrecursive_page_fault) LOG_MSG("WARNING: experimental non-recursive page fault mode enabled. If this causes problems, add 'non-recursive page fault=0' to your dosbox.conf\n");
 
 		ignore_opcode_63 = section->Get_bool("ignore opcode 63");
-
+		cpu_double_fault_enable = section->Get_bool("double fault");
+		cpu_triple_fault_reset = section->Get_bool("reset on triple fault");
 		cpu_allow_big16 = section->Get_bool("realbig16");
 		if (cpu_allow_big16) LOG_MSG("WARNING: B (big) bit allowed in real mode\n");
 

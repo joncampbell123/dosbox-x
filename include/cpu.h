@@ -181,6 +181,7 @@ void CPU_SetFlags(Bitu word,Bitu mask);
 
 
 #define EXCEPTION_UD			6
+#define EXCEPTION_DF                    8
 #define EXCEPTION_TS			10
 #define EXCEPTION_NP			11
 #define EXCEPTION_SS			12
