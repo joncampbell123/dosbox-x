@@ -541,7 +541,6 @@ static void write_p60(Bitu port,Bitu val,Bitu iolen) {
 		KEYBOARD_AddBuffer(AUX|val); /* stuff into AUX output */
 		break;
 	case CMD_SETOUTPORT:
-		/* FIXME: if (val & 1 == 0) then reset the computer */
 		if (!(val & 1)) {
 			if (allow_keyb_reset) {
 				LOG_MSG("Restart by keyboard controller requested\n");
@@ -681,7 +680,7 @@ static void write_p64(Bitu port,Bitu val,Bitu iolen) {
 		KEYBOARD_Add8042Response(0x40);
 		break;
 	case 0xd0:		/* Outport on buffer */
-		KEYBOARD_SetPort60(MEM_A20_Enabled() ? 0x02 : 0);
+		KEYBOARD_SetPort60((MEM_A20_Enabled() ? 0x02 : 0) | 0x01/*some programs read the output port then write it back*/);
 		break;
 	case 0xd1:		/* Write to outport */
 		keyb.command=CMD_SETOUTPORT;
