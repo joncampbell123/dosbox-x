@@ -445,6 +445,7 @@ void KEYBOARD_AUX_Write(Bitu val) {
 
 bool allow_keyb_reset = true;
 
+void On_Software_CPU_Reset();
 void restart_program(std::vector<std::string> & parameters);
 
 static void write_p60(Bitu port,Bitu val,Bitu iolen) {
@@ -544,9 +545,7 @@ static void write_p60(Bitu port,Bitu val,Bitu iolen) {
 		if (!(val & 1)) {
 			if (allow_keyb_reset) {
 				LOG_MSG("Restart by keyboard controller requested\n");
-				control->startup_params.insert(control->startup_params.begin(),control->cmdline->GetFileName());
-				restart_program(control->startup_params);
-				/* does not return */
+				On_Software_CPU_Reset();
 			}
 			else {
 				LOG_MSG("WARNING: Keyboard output port written with bit 1 clear. Is the guest OS or application attempting to reset the system?\n");
@@ -616,8 +615,6 @@ static void write_p61(Bitu, Bitu val, Bitu) {
 	}
 	port_61_data = val;
 }
-
-void On_Software_CPU_Reset();
 
 static void write_p64(Bitu port,Bitu val,Bitu iolen) {
 	if (keyb.reset)
