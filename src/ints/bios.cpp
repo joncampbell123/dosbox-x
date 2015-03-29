@@ -2819,21 +2819,22 @@ static Bitu IRQ15_Dummy(void) {
 	return CBRET_NONE;
 }
 
-static Bitu Reboot_Handler(void) {
+void On_Software_CPU_Reset();
+
+static Bitu BIOS_RESET_FFFF_0000(void) {
+	LOG_MSG("Restart by jumping to BIOS entry point (FFFF:0000) requested\n");
+	/* NTS: It's worth noting on an old Pentium 100MHz system of mine, that the BIOS decompresses
+	 * itself from ROM into shadow RAM and then puts an "INT 19h" at FFFF:0000. Many other motherboards
+	 * that did not shadow their ROM BIOS put actual initialization code in place there. --J.C. */
+	On_Software_CPU_Reset();
+	/* does not return */
+	return CBRET_NONE;
+}
+
+static Bitu INT19_Handler(void) {
 	LOG_MSG("Restart by INT 19h requested\n");
-
-#if C_DYNAMIC_X86
-	/* this technique is NOT reliable when running the dynamic core! */
-	if (cpudecoder == &CPU_Core_Dyn_X86_Run) {
-		LOG_MSG("Using traditional DOSBox re-exec, C++ exception method is not compatible with dynamic core\n");
-		control->startup_params.insert(control->startup_params.begin(),control->cmdline->GetFileName());
-		restart_program(control->startup_params);
-		return CBRET_NONE;
-	}
-#endif
-
-	/* throw exception so that reboot unwinds it's way down to main() */
-	throw int(3);
+	/* FIXME: INT 19h is sort of a BIOS boot BIOS reset-ish thing, not really a CPU reset at all. */
+	On_Software_CPU_Reset();
 	/* does not return */
 	return CBRET_NONE;
 }
@@ -2864,7 +2865,7 @@ extern unsigned int dos_conventional_limit;
 
 class BIOS:public Module_base{
 private:
-	CALLBACK_HandlerObject callback[14];
+	CALLBACK_HandlerObject callback[15];
 public:
 	void write_FFFF_signature() {
 		/* write the signature at 0xF000:0xFFF0 */
@@ -3020,17 +3021,19 @@ public:
 		/* Reboot */
 		// This handler is an exit for more than only reboots, since we
 		// don't handle these cases
-		callback[10].Install(&Reboot_Handler,CB_IRET,"reboot");
+		callback[10].Install(&INT19_Handler,CB_IRET,"int 19");
 		
 		// INT 18h: Enter BASIC
 		// Non-IBM BIOS would display "NO ROM BASIC" here
 		callback[10].Set_RealVec(0x18);
-		RealPt rptr = callback[10].Get_RealPointer();
 
 		// INT 19h: Boot function
 		// This is not a complete reboot as it happens after the POST
 		// We don't handle it, so use the reboot function as exit.
-		RealSetVec(0x19,rptr);
+		{
+			RealPt rptr = callback[10].Get_RealPointer();
+			RealSetVec(0x19,rptr);
+		}
 
 		// INT 76h: IDE IRQ 14
 		// This is just a dummy IRQ handler to prevent crashes when
@@ -3052,13 +3055,20 @@ public:
 		callback[13].Install(&IRQ15_Dummy,CB_IRET_EOI_PIC1,"irq 6 floppy");
 		callback[13].Set_RealVec(0x0E);
 
+		// Handler for FFFF:0000 (usually distinct from INT 19h).
+		callback[14].Install(&BIOS_RESET_FFFF_0000,CB_IRET,"BIOS entry point");
+
 		init_vm86_fake_io();
 
 		// Compatible POST routine location: jump to the callback
-		wo = Real2Phys(BIOS_DEFAULT_RESET_LOCATION);
-		phys_writeb(wo+0,0xEA);			// FARJMP     +0
-		phys_writew(wo+1,RealOff(rptr));	// offset     +1
-		phys_writew(wo+3,RealSeg(rptr));	// segment    +3 = +5 bytes
+		{
+			RealPt rptr = callback[10].Get_RealPointer();
+
+			wo = Real2Phys(BIOS_DEFAULT_RESET_LOCATION);
+			phys_writeb(wo+0,0xEA);			// FARJMP     +0
+			phys_writew(wo+1,RealOff(rptr));	// offset     +1
+			phys_writew(wo+3,RealSeg(rptr));	// segment    +3 = +5 bytes
+		}
 
 		/* Irq 2 */
 		Bitu call_irq2=CALLBACK_Allocate();	
