@@ -653,6 +653,21 @@ void phys_writes(PhysPt addr, const char* string, Bitu length) {
 
 void restart_program(std::vector<std::string> & parameters);
 
+void On_Software_CPU_Reset() {
+#if C_DYNAMIC_X86
+	/* this technique is NOT reliable when running the dynamic core! */
+	if (cpudecoder == &CPU_Core_Dyn_X86_Run) {
+		LOG_MSG("Using traditional DOSBox re-exec, C++ exception method is not compatible with dynamic core\n");
+		control->startup_params.insert(control->startup_params.begin(),control->cmdline->GetFileName());
+		restart_program(control->startup_params);
+		return;
+	}
+#endif
+
+	throw int(3);
+	/* does not return */
+}
+
 bool allow_port_92_reset = true;
 
 static void write_p92(Bitu port,Bitu val,Bitu iolen) {	
@@ -660,19 +675,7 @@ static void write_p92(Bitu port,Bitu val,Bitu iolen) {
 	if (val & 1) {
 		if (allow_port_92_reset) {
 			LOG_MSG("Restart by port 92h requested\n");
-
-#if C_DYNAMIC_X86
-			/* this technique is NOT reliable when running the dynamic core! */
-			if (cpudecoder == &CPU_Core_Dyn_X86_Run) {
-				LOG_MSG("Using traditional DOSBox re-exec, C++ exception method is not compatible with dynamic core\n");
-				control->startup_params.insert(control->startup_params.begin(),control->cmdline->GetFileName());
-				restart_program(control->startup_params);
-				return;
-			}
-#endif
-
-			throw int(3);
-			/* does not return */
+			On_Software_CPU_Reset();
 		}
 		else {
 			LOG_MSG("WARNING: port 92h written with bit 0 set. Is the guest OS or application attempting to reset the system?\n");
