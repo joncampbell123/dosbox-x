@@ -652,8 +652,67 @@ void phys_writes(PhysPt addr, const char* string, Bitu length) {
 #include "control.h"
 
 void restart_program(std::vector<std::string> & parameters);
+unsigned char CMOS_GetShutdownByte();
+void CPU_Snap_Back_To_Real_Mode();
+void DEBUG_Enable(bool pressed);
+void CPU_Snap_Back_Forget();
+
+void On_Software_286_reset_vector(unsigned char code) {
+	Bit16u vec_seg,vec_off;
+
+	/* make CPU core stop immediately */
+	CPU_Cycles = 0;
+
+	/* force CPU back to real mode */
+	CPU_Snap_Back_To_Real_Mode();
+	CPU_Snap_Back_Forget();
+
+	/* read the reset vector from the BIOS data area */
+	vec_off = phys_readw(0x400 + 0x67);
+	vec_seg = phys_readw(0x400 + 0x69);
+
+	/* TODO: If cputype=386 or cputype=486, and A20 gate disabled, treat it as an intentional trick
+	 * to trigger a reset + invalid opcode exception through which the program can then read the
+	 * CPU stepping ID register */
+
+	LOG_MSG("CMOS Shutdown byte 0x%02x says to jump to reset vector %04x:%04x",code,vec_seg,vec_off);
+
+	/* FIXME: The way I will be carrying this out is incompatible with the Dynamic core! */
+	if (cpudecoder == &CPU_Core_Dyn_X86_Run) E_Exit("Sorry, CMOS shutdown CPU reset method is not compatible with dynamic core");
+
+	/* following CPU reset, and coming from the BIOS, CPU registers are trashed */
+	reg_eax = 0x2010000;
+	reg_ebx = 0x2111;
+	reg_ecx = 0;
+	reg_edx = 0xABCD;
+	reg_esi = 0;
+	reg_edi = 0;
+	reg_ebp = 0;
+	reg_esp = 0x4F8;
+	CPU_SetSegGeneral(ds,0x0040);
+	CPU_SetSegGeneral(es,0x0000);
+	CPU_SetSegGeneral(ss,0x0000);
+	/* redirect CPU instruction pointer */
+	CPU_SetSegGeneral(cs,vec_seg);
+	reg_eip = vec_off;
+
+	/* force execution change (FIXME: Is there a better way to do this?) */
+	throw int(4);
+	/* does not return */
+}
 
 void On_Software_CPU_Reset() {
+	unsigned char c;
+
+	/* software-initiated CPU reset. but the intent may not be to reset the system but merely
+	 * the CPU. check the CMOS shutdown byte */
+	switch (c=CMOS_GetShutdownByte()) {
+		case 0x05:	/* JMP double word pointer with EOI */
+		case 0x0A:	/* JMP double word pointer without EOI */
+			On_Software_286_reset_vector(c);
+			return;
+	};
+
 #if C_DYNAMIC_X86
 	/* this technique is NOT reliable when running the dynamic core! */
 	if (cpudecoder == &CPU_Core_Dyn_X86_Run) {
@@ -670,7 +729,10 @@ void On_Software_CPU_Reset() {
 
 bool allow_port_92_reset = true;
 
-static void write_p92(Bitu port,Bitu val,Bitu iolen) {	
+static void write_p92(Bitu port,Bitu val,Bitu iolen) {
+	memory.a20.controlport = val & ~2;
+	MEM_A20_Enable((val & 2)>0);
+
 	// Bit 0 = system reset (switch back to real mode)
 	if (val & 1) {
 		if (allow_port_92_reset) {
@@ -681,9 +743,6 @@ static void write_p92(Bitu port,Bitu val,Bitu iolen) {
 			LOG_MSG("WARNING: port 92h written with bit 0 set. Is the guest OS or application attempting to reset the system?\n");
 		}
 	}
-
-	memory.a20.controlport = val & ~2;
-	MEM_A20_Enable((val & 2)>0);
 }
 
 static Bitu read_p92(Bitu port,Bitu iolen) {

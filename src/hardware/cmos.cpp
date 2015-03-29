@@ -297,6 +297,9 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
 	}
 }
 
+unsigned char CMOS_GetShutdownByte() {
+	return cmos.regs[0x0F];
+}
 
 #define MAKE_RETURN(_VAL) (cmos.bcd ? ((((_VAL) / 10) << 4) | ((_VAL) % 10)) : (_VAL));
 

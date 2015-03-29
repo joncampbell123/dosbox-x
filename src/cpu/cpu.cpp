@@ -1763,6 +1763,10 @@ void CPU_Snap_Back_Restore() {
 	snap_cpu_snapped = false;
 }
 
+void CPU_Snap_Back_Forget() {
+	snap_cpu_snapped = false;
+}
+
 static bool printed_cycles_auto_info = false;
 void CPU_SET_CRX(Bitu cr,Bitu value) {
 	switch (cr) {

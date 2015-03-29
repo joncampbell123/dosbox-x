@@ -355,6 +355,15 @@ static Bitu Normal_Loop(void) {
 				if (orig_cs == SegValue(cs)) reg_eip = orig_eip; /* HACK: may have changed slightly */
 				CPU_Exception(EXCEPTION_PF,pf.faultcode);
 			}
+			catch (int x) {
+				if (x == 4/*CMOS shutdown*/) {
+					ret = 0;
+					LOG_MSG("CMOS shutdown reset acknowledged");
+				}
+				else {
+					throw;
+				}
+			}
 
 			if (GCC_UNLIKELY(ret<0)) {
 				dosbox_allow_nonrecursive_page_fault = saved_allow;
