@@ -3698,6 +3698,7 @@ int main(int argc, char* argv[]) {
 		void FPU_Init(Section*);
 #endif
 		void ISAPNP_Cfg_Init(Section*);
+		void KEYBOARD_Init(Section*);
 
 		GUI_StartUp(control->GetSection("sdl"));
 		DOSBOX_RealInit(control->GetSection("dosbox"));
@@ -3722,6 +3723,7 @@ int main(int argc, char* argv[]) {
 		FPU_Init(control->GetSection("cpu"));
 #endif
 		ISAPNP_Cfg_Init(control->GetSection("cpu"));
+		KEYBOARD_Init(control->GetSection("keyboard"));
 		control->Init();
 
 		{
