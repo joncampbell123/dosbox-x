@@ -28,8 +28,6 @@
 # define MIN(a,b) std::min(a,b)
 #endif
 
-#define MAX_IDE_CONTROLLERS 8
-
 static unsigned char init_ide = 0;
 
 static const unsigned char IDE_default_IRQs[4] = {
@@ -3802,4 +3800,25 @@ void IDE_Septernary_Init(Section *sec) {
 void IDE_Octernary_Init(Section *sec) {
 	IDE_Init(sec,7);
 }
+
+const char *ide_names[MAX_IDE_CONTROLLERS] = {
+	"ide, primary",
+	"ide, secondary",
+	"ide, tertiary",
+	"ide, quaternary",
+	"ide, quinternary",
+	"ide, sexternary",
+	"ide, septernary",
+	"ide, octernary"
+};
+void (*ide_inits[MAX_IDE_CONTROLLERS])(Section *) = {
+	&IDE_Primary_Init,
+	&IDE_Secondary_Init,
+	&IDE_Tertiary_Init,
+	&IDE_Quaternary_Init,
+	&IDE_Quinternary_Init,
+	&IDE_Sexternary_Init,
+	&IDE_Septernary_Init,
+	&IDE_Octernary_Init
+};
 

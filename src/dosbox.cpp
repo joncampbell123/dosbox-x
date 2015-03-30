@@ -56,6 +56,7 @@
 #include "video.h"
 #include "pic.h"
 #include "cpu.h"
+#include "ide.h"
 #include "callback.h"
 #include "inout.h"
 #include "mixer.h"
@@ -2003,27 +2004,7 @@ void DOSBOX_Init(void) {
 		"  none                         No chipset (For PC/XT mode)");
 
 	/* IDE emulation options and setup */
-	const char *ide_names[8] = {
-		"ide, primary",
-		"ide, secondary",
-		"ide, tertiary",
-		"ide, quaternary",
-		"ide, quinternary",
-		"ide, sexternary",
-		"ide, septernary",
-		"ide, octernary"
-	};
-	void (*ide_inits[8])(Section *) = {
-		&IDE_Primary_Init,
-		&IDE_Secondary_Init,
-		&IDE_Tertiary_Init,
-		&IDE_Quaternary_Init,
-		&IDE_Quinternary_Init,
-		&IDE_Sexternary_Init,
-		&IDE_Septernary_Init,
-		&IDE_Octernary_Init
-	};
-	for (size_t i=0;i < 8;i++) {
+	for (size_t i=0;i < MAX_IDE_CONTROLLERS;i++) {
 		secprop=control->AddSection_prop(ide_names[i],ide_inits[i],false);//done
 
 		/* Primary and Secondary are on by default, Teritary and Quaternary are off by default.
