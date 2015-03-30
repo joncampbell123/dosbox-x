@@ -1311,9 +1311,8 @@ void DOSBOX_Init(void) {
 	Pstring->Set_values(auxdevices);
 	Pstring->Set_help("Type of PS/2 mouse attached to the AUX port");
 
-	secprop=control->AddSection_prop("pci",&PCI_Init,false); //PCI bus
+	secprop=control->AddSection_prop("pci",&Null_Init,false); //PCI bus
 
-	secprop->AddInitFunction(&VOODOO_Init,true);
 	Pstring = secprop->Add_string("voodoo",Property::Changeable::WhenIdle,"auto");
 	Pstring->Set_values(voodoo_settings);
 	Pstring->Set_help("Enable VOODOO support.");

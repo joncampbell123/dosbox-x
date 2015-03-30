@@ -3699,6 +3699,8 @@ int main(int argc, char* argv[]) {
 #endif
 		void ISAPNP_Cfg_Init(Section*);
 		void KEYBOARD_Init(Section*);
+		void PCI_Init(Section*);
+		void VOODOO_Init(Section*);
 
 		GUI_StartUp(control->GetSection("sdl"));
 		DOSBOX_RealInit(control->GetSection("dosbox"));
@@ -3724,6 +3726,8 @@ int main(int argc, char* argv[]) {
 #endif
 		ISAPNP_Cfg_Init(control->GetSection("cpu"));
 		KEYBOARD_Init(control->GetSection("keyboard"));
+		PCI_Init(control->GetSection("pci"));
+		VOODOO_Init(control->GetSection("pci"));
 		control->Init();
 
 		{
