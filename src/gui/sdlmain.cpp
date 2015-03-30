@@ -3867,6 +3867,10 @@ int main(int argc, char* argv[]) {
 		/* and then shutdown */
 		GFX_ShutDown();
 		/* Shutdown everything */
+
+		/* NTS: The "control" object destructor is called here because the "myconf" object leaves scope.
+		 * The destructor calls all section destroy functions here. After this point, all sections have
+		 * freed resources. */
 	}
 
 	/* GUI font registry shutdown */
