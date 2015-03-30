@@ -274,14 +274,13 @@ bool Prop_int::CheckValue(Value const& in, bool warn) {
 bool Prop_double::SetValue(std::string const& input){
 	Value val;
 	if(!val.SetValue(input,Value::V_DOUBLE)) return false;
-	return SetVal(val,false,true);
+	return SetVal(val,false,/*warn*/true);
 }
 
 bool Prop_int::SetValue(std::string const& input){;
 	Value val;
 	if(!val.SetValue(input,Value::V_INT)) return false;
-	bool retval = SetVal(val,false,true);
-	return retval;
+	return SetVal(val,false,/*warn*/true);
 }
 
 bool Prop_string::SetValue(std::string const& input){
@@ -331,13 +330,15 @@ bool Prop_path::SetValue(std::string const& input){
 }
 	
 bool Prop_bool::SetValue(std::string const& input){
-	return value.SetValue(input,Value::V_BOOL);
+	Value val;
+	if(!val.SetValue(input,Value::V_BOOL)) return false;
+	return SetVal(val,false,/*warn*/true);
 }
 
 bool Prop_hex::SetValue(std::string const& input){
 	Value val;
-	val.SetValue(input,Value::V_HEX);
-	return SetVal(val,false,true);
+	if(!val.SetValue(input,Value::V_HEX)) return false;
+	return SetVal(val,false,/*warn*/true);
 }
 
 void Prop_multival::make_default_value(){
@@ -352,7 +353,7 @@ void Prop_multival::make_default_value(){
 		result += seperator; result += props;
 	}
 	Value val(result,Value::V_STRING);
-	SetVal(val,false,true);
+	SetVal(val,false,true,/*init*/true);
 }
 
    
@@ -611,6 +612,8 @@ bool Section_prop::HandleInputline(string const& gegevens){
 void Section_prop::PrintData(FILE* outfile) {
 	/* Now print out the individual section entries */
 	for(const_it tel=properties.begin();tel!=properties.end();tel++){
+		if (/*TODO: !Flag to print entire configuration*/true && !(*tel)->modified()) continue;
+
 		fprintf(outfile,"%s=%s\n",(*tel)->propname.c_str(),(*tel)->GetValue().ToString().c_str());
 	}
 }
@@ -657,19 +660,32 @@ bool Config::PrintConfig(char const * const configfilename) const {
 		Section_prop *sec = dynamic_cast<Section_prop *>(*tel);
 		strcpy(temp,(*tel)->GetName());
 		lowcase(temp);
-		fprintf(outfile,"[%s]\n",temp);
 
 		if (sec) {
+			int mods=0;
 			Property *p;
 			size_t i = 0, maxwidth = 0;
 			while ((p = sec->Get_prop(i++))) {
+				if (/*TODO: !Flag to print entire configuration*/true && !p->modified()) continue;
+
 				size_t w = strlen(p->propname.c_str());
 				if (w > maxwidth) maxwidth = w;
+				mods++;
 			}
+
+			if (/*TODO: Flag to print entire configuration*/false || mods == 0) {
+				/* nothing to print */
+				continue;
+			}
+
+			fprintf(outfile,"[%s]\n",temp);
+
 			i=0;
 			char prefix[80];
 			snprintf(prefix,80, "\n# %*s  ", (int)maxwidth, "");
-			while ((p = sec->Get_prop(i++))) {		
+			while ((p = sec->Get_prop(i++))) {
+				if (/*TODO: !Flag to print entire configuration*/true && !p->modified()) continue;
+
 				std::string help = p->Get_help();
 				std::string::size_type pos = std::string::npos;
 				while ((pos = help.find("\n", pos+1)) != std::string::npos) {
@@ -697,6 +713,8 @@ bool Config::PrintConfig(char const * const configfilename) const {
 				}
 			}
 		} else {
+			fprintf(outfile,"[%s]\n",temp);
+
 			upcase(temp);
 			strcat(temp,"_CONFIGFILE_HELP");
 			const char * helpstr=MSG_Get(temp);

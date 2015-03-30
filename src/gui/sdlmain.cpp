@@ -3654,21 +3654,6 @@ int main(int argc, char* argv[]) {
 			control->ParseConfigFile((config_path + tmp).c_str());
 		}
 
-		if (!control->configfiles.size()) {
-			//Try to create the userlevel configfile.
-			tmp.clear();
-			Cross::CreatePlatformConfigDir(config_path);
-			Cross::GetPlatformConfigName(tmp);
-			config_path += tmp;
-			if (control->PrintConfig(config_path.c_str())) {
-				LOG_MSG("CONFIG: Generating default configuration.\nWriting it to %s",config_path.c_str());
-				//Load them as well. Makes relative paths much easier
-				control->ParseConfigFile(config_path.c_str());
-			} else {
-				LOG_MSG("CONFIG: Using default settings. Create a configfile to change them");
-			}
-		}
-
 #if (ENVIRON_LINKED)
 		control->ParseEnv(environ);
 #endif

@@ -122,7 +122,7 @@ public:
 	struct Changeable { enum Value {Always, WhenIdle,OnlyAtStart};};
 	const std::string propname;
 
-	Property(std::string const& _propname, Changeable::Value when):propname(_propname),change(when) { use_global_config_str=false; }
+	Property(std::string const& _propname, Changeable::Value when):propname(_propname),is_modified(false),change(when) { use_global_config_str=false; }
 	void Set_values(const char * const * in);
 	void Set_help(std::string const& str);
 	char const* Get_help();
@@ -134,15 +134,17 @@ public:
 	//specific features.
 	virtual bool CheckValue(Value const& in, bool warn);
 	//Set interval value to in or default if in is invalid. force always sets the value.
-	bool SetVal(Value const& in, bool forced,bool warn=true) {
-		if(forced || CheckValue(in,warn)) {value = in; return true;} else { value = default_value; return false;}}
+	bool SetVal(Value const& in, bool forced,bool warn=true,bool init=false) {
+		if(forced || CheckValue(in,warn)) {value = in; is_modified = !init; return true;} else { value = default_value; is_modified = false; return false;}}
 	virtual ~Property(){ } 
 	virtual const std::vector<Value>& GetValues() const;
 	Value::Etype Get_type(){return default_value.type;}
 	Changeable::Value getChange() {return change;}
+	bool modified() const { return is_modified; };
 
 protected:
 	Value value;
+	bool is_modified;
 	std::vector<Value> suggested_values;
 	typedef std::vector<Value>::iterator iter;
 	Value default_value;
