@@ -256,7 +256,7 @@ public:
 
 	virtual std::string GetPropValue(std::string const& _property) const =0;
 	virtual bool HandleInputline(std::string const& _line)=0;
-	virtual void PrintData(FILE* outfile) = 0;
+	virtual void PrintData(FILE* outfile,bool everything=false) = 0;
 	virtual ~Section() { /*Children must call executedestroy ! */ }
 };
 
@@ -289,7 +289,7 @@ public:
 	Prop_multival* Get_multival(std::string const& _propname) const;
 	Prop_multival_remain* Get_multivalremain(std::string const& _propname) const;
 	virtual bool HandleInputline(std::string const& gegevens);
-	virtual void PrintData(FILE* outfile);
+	virtual void PrintData(FILE* outfile,bool everything=false);
 	virtual std::string GetPropValue(std::string const& _property) const;
 	//ExecuteDestroy should be here else the destroy functions use destroyed properties
 	virtual ~Section_prop();
@@ -324,7 +324,7 @@ public:
 	Section_line(std::string const& _sectionname):Section(_sectionname){}
 	virtual ~Section_line() { ExecuteDestroy(true); }
 	virtual bool HandleInputline(std::string const& gegevens);
-	virtual void PrintData(FILE* outfile);
+	virtual void PrintData(FILE* outfile,bool everything=false);
 	virtual std::string GetPropValue(std::string const& _property) const;
 	std::string data;
 };

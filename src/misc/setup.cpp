@@ -609,10 +609,10 @@ bool Section_prop::HandleInputline(string const& gegevens){
 	return false;
 }
 
-void Section_prop::PrintData(FILE* outfile) {
+void Section_prop::PrintData(FILE* outfile,bool everything) {
 	/* Now print out the individual section entries */
 	for(const_it tel=properties.begin();tel!=properties.end();tel++){
-		if (/*TODO: !Flag to print entire configuration*/true && !(*tel)->modified()) continue;
+		if (!everything && !(*tel)->modified()) continue;
 
 		fprintf(outfile,"%s=%s\n",(*tel)->propname.c_str(),(*tel)->GetValue().ToString().c_str());
 	}
@@ -639,7 +639,7 @@ bool Section_line::HandleInputline(string const& line){
 	return true;
 }
 
-void Section_line::PrintData(FILE* outfile) {
+void Section_line::PrintData(FILE* outfile,bool everything) {
 	fprintf(outfile,"%s",data.c_str());
 }
 
@@ -647,7 +647,7 @@ string Section_line::GetPropValue(string const& /* _property*/) const {
 	return NO_SUCH_PROPERTY;
 }
 
-bool Config::PrintConfig(char const * const configfilename) const {
+bool Config::PrintConfig(char const * const configfilename,bool everything) const {
 	char temp[50];char helpline[256];
 	FILE* outfile=fopen(configfilename,"w+t");
 	if(outfile==NULL) return false;
@@ -666,14 +666,14 @@ bool Config::PrintConfig(char const * const configfilename) const {
 			Property *p;
 			size_t i = 0, maxwidth = 0;
 			while ((p = sec->Get_prop(i++))) {
-				if (/*TODO: !Flag to print entire configuration*/true && !p->modified()) continue;
+				if (!everything && !p->modified()) continue;
 
 				size_t w = strlen(p->propname.c_str());
 				if (w > maxwidth) maxwidth = w;
 				mods++;
 			}
 
-			if (/*TODO: Flag to print entire configuration*/false || mods == 0) {
+			if (!everything && mods == 0) {
 				/* nothing to print */
 				continue;
 			}
@@ -684,7 +684,7 @@ bool Config::PrintConfig(char const * const configfilename) const {
 			char prefix[80];
 			snprintf(prefix,80, "\n# %*s  ", (int)maxwidth, "");
 			while ((p = sec->Get_prop(i++))) {
-				if (/*TODO: !Flag to print entire configuration*/true && !p->modified()) continue;
+				if (!everything && !p->modified()) continue;
 
 				std::string help = p->Get_help();
 				std::string::size_type pos = std::string::npos;
@@ -730,7 +730,7 @@ bool Config::PrintConfig(char const * const configfilename) const {
 			}
 		}
 	   
-		(*tel)->PrintData(outfile);
+		(*tel)->PrintData(outfile,everything);
 		fprintf(outfile,"\n");		/* Always an empty line between sections */
 	}
 	fclose(outfile);
