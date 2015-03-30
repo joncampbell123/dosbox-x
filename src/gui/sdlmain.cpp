@@ -3714,6 +3714,20 @@ int main(int argc, char* argv[]) {
 		void TANDYSOUND_Init(Section*);
 		void DISNEY_Init(Section*);
 		void PS1SOUND_Init(Section*);
+		void BIOS_Init(Section*);
+		void INT10_Init(Section*);
+		void JOYSTICK_Init(Section*);
+		void SERIAL_Init(Section*);
+		void PARALLEL_Init(Section*);
+		void DONGLE_Init(Section*);
+		void DOS_Init(Section*);
+		void XMS_Init(Section*);
+		void EMS_Init(Section*);
+		void MOUSE_Init(Section*);
+		void DOS_KeyboardLayout_Init(Section*);
+		void MSCDEX_Init(Section*);
+		void DRIVES_Init(Section*);
+		void CDROM_Image_Init(Section*);
 
 		GUI_StartUp(control->GetSection("sdl"));
 		DOSBOX_RealInit(control->GetSection("dosbox"));
@@ -3754,6 +3768,20 @@ int main(int argc, char* argv[]) {
 		TANDYSOUND_Init(control->GetSection("speaker"));
 		DISNEY_Init(control->GetSection("speaker"));
 		PS1SOUND_Init(control->GetSection("speaker"));
+		BIOS_Init(control->GetSection("joystick"));//FIXME: Why??
+		INT10_Init(control->GetSection("joystick"));
+		JOYSTICK_Init(control->GetSection("joystick"));
+		SERIAL_Init(control->GetSection("serial"));
+		PARALLEL_Init(control->GetSection("parallel"));
+		DONGLE_Init(control->GetSection("parallel"));
+		DOS_Init(control->GetSection("dos"));
+		XMS_Init(control->GetSection("dos"));
+		EMS_Init(control->GetSection("dos"));
+		MOUSE_Init(control->GetSection("dos"));
+		DOS_KeyboardLayout_Init(control->GetSection("dos"));
+		MSCDEX_Init(control->GetSection("dos"));
+		DRIVES_Init(control->GetSection("dos"));
+		CDROM_Image_Init(control->GetSection("dos"));
 		control->Init();
 
 		{

@@ -1609,7 +1609,6 @@ void DOSBOX_Init(void) {
 	Pint->Set_values(rates);
 	Pint->Set_help("Sample rate of the PC-Speaker sound generation.");
 
-	secprop->AddInitFunction(&Null_Init,true);//done
 	Pstring = secprop->Add_string("tandy",Property::Changeable::WhenIdle,"auto");
 	Pstring->Set_values(tandys);
 	Pstring->Set_help("Enable Tandy Sound System emulation. For 'auto', emulation is present only if machine is set to 'tandy'.");
@@ -1627,9 +1626,7 @@ void DOSBOX_Init(void) {
 	Pint->Set_values(rates);
 	Pint->Set_help("Sample rate of the PS1 audio emulation.");
 
-	secprop=control->AddSection_prop("joystick",&BIOS_Init,false);//done
-	secprop->AddInitFunction(&INT10_Init);
-	secprop->AddInitFunction(&JOYSTICK_Init);
+	secprop=control->AddSection_prop("joystick",&Null_Init,false);//done
 	Pstring = secprop->Add_string("joysticktype",Property::Changeable::WhenIdle,"auto");
 	Pstring->Set_values(joytypes);
 	Pstring->Set_help(
@@ -1654,7 +1651,7 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("buttonwrap",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("enable button wrapping at the number of emulated buttons.");
 
-	secprop=control->AddSection_prop("serial",&SERIAL_Init,true);
+	secprop=control->AddSection_prop("serial",&Null_Init,true);
    
 	Pmulti_remain = secprop->Add_multiremain("serial1",Property::Changeable::WhenIdle," ");
 	Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::WhenIdle,"dummy");
@@ -1695,7 +1692,7 @@ void DOSBOX_Init(void) {
 	Pmulti_remain->Set_help("see serial1");
 
 	// parallel ports
-	secprop=control->AddSection_prop("parallel",&PARALLEL_Init,true);
+	secprop=control->AddSection_prop("parallel",&Null_Init,true);
 	Pstring = secprop->Add_string("parallel1",Property::Changeable::WhenIdle,"disabled");
 	Pstring->Set_help(
 	        "parallel1-3 -- set type of device connected to lpt port.\n"
@@ -1727,13 +1724,11 @@ void DOSBOX_Init(void) {
 	Pstring = secprop->Add_string("parallel3",Property::Changeable::WhenIdle,"disabled");
 	Pstring->Set_help("see parallel1");
 
-	secprop->AddInitFunction(&DONGLE_Init,true);//done
 	Pbool = secprop->Add_bool("dongle",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("Enable dongle");
 
 	/* All the DOS Related stuff, which will eventually start up in the shell */
-	secprop=control->AddSection_prop("dos",&DOS_Init,false);//done
-	secprop->AddInitFunction(&XMS_Init,true);//done
+	secprop=control->AddSection_prop("dos",&Null_Init,false);//done
 	Pbool = secprop->Add_bool("xms",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Enable XMS support.");
 
@@ -1782,7 +1777,6 @@ void DOSBOX_Init(void) {
 			"related to uninitialized variables in extended memory. When enabled this option may\n"
 			"incur a slight to moderate performance penalty.");
 
-	secprop->AddInitFunction(&EMS_Init,true);//done
 	Pstring = secprop->Add_string("ems",Property::Changeable::WhenIdle,"true");
 	Pstring->Set_values(ems_settings);
 	Pstring->Set_help("Enable EMS support. The default (=true) provides the best\n"
@@ -1853,8 +1847,6 @@ void DOSBOX_Init(void) {
 	Pbool->Set_help("Set to true if the guest OS or DOS program assigns an INT 15h mouse callback,\n"
 			"but does not properly preserve CPU registers. Diagnostic function only (default off).");
 
-	secprop->AddInitFunction(&MOUSE_Init); //Must be after int10 as it uses CurMode
-	secprop->AddInitFunction(&DOS_KeyboardLayout_Init,true);
 	Pstring = secprop->Add_string("keyboardlayout",Property::Changeable::WhenIdle, "auto");
 	Pstring->Set_help("Language code of the keyboard layout (or none).");
 
@@ -1884,10 +1876,6 @@ void DOSBOX_Init(void) {
 			"game or demo known to have this problem (Second Unreal, for example), set to true, else\n"
 			"set to false. When enabled this option may incur a slight to moderate performance penalty.");
 
-	// Mscdex
-	secprop->AddInitFunction(&MSCDEX_Init);
-	secprop->AddInitFunction(&DRIVES_Init);
-	secprop->AddInitFunction(&CDROM_Image_Init);
 #if C_IPX
 	secprop=control->AddSection_prop("ipx",&IPX_Init,true);
 	Pbool = secprop->Add_bool("ipx",Property::Changeable::WhenIdle, false);
