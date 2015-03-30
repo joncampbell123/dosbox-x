@@ -768,7 +768,7 @@ void CPU_Exception(Bitu which,Bitu error ) {
 			CPU_Exception_Level[which]--;
 
 		if (!CPU_Exception_In_Progress.empty()) {
-			if (CPU_Exception_In_Progress.top() == which)
+			if ((Bitu)CPU_Exception_In_Progress.top() == which)
 				CPU_Exception_In_Progress.pop();
 			else
 				LOG_MSG("Top of fault stack not the same as what I'm handling");
