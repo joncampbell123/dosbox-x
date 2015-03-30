@@ -3678,11 +3678,13 @@ int main(int argc, char* argv[]) {
 		void DOSBOX_RealInit(Section * sec);
 		void RENDER_Init(Section*);
 		void VGA_VsyncInit(Section*);
+		void CPU_Init(Section*);
 
 		GUI_StartUp(control->GetSection("sdl"));
 		DOSBOX_RealInit(control->GetSection("dosbox"));
 		RENDER_Init(control->GetSection("render"));
 		VGA_VsyncInit(control->GetSection("vsync"));
+		CPU_Init(control->GetSection("cpu"));
 		control->Init();
 
 		{
