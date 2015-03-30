@@ -1876,14 +1876,11 @@ void DOSBOX_Init(void) {
 			"game or demo known to have this problem (Second Unreal, for example), set to true, else\n"
 			"set to false. When enabled this option may incur a slight to moderate performance penalty.");
 
-#if C_IPX
-	secprop=control->AddSection_prop("ipx",&IPX_Init,true);
+	secprop=control->AddSection_prop("ipx",&Null_Init,true);
 	Pbool = secprop->Add_bool("ipx",Property::Changeable::WhenIdle, false);
 	Pbool->Set_help("Enable ipx over UDP/IP emulation.");
-#endif
 
-#if C_NE2000
-	secprop=control->AddSection_prop("ne2000",&NE2K_Init,true);
+	secprop=control->AddSection_prop("ne2000",&Null_Init,true);
 	MSG_Add("NE2000_CONFIGFILE_HELP",
 		"macaddr -- The physical address the emulator will use on your network.\n"
 		"           If you have multiple DOSBoxes running on your network,\n"
@@ -1923,7 +1920,6 @@ void DOSBOX_Init(void) {
 		"Status Window. Then make your choice and put either the\n"
 		"interface number (2 or something) or a part of your adapters\n"
 		"name, e.g. VIA here.");
-#endif // C_NE2000
 
 	/* floppy controller emulation options and setup */
 	const char *fdc_names[1] = {
@@ -2108,7 +2104,7 @@ void DOSBOX_Init(void) {
 	}
 
 	//TODO ?
-	control->AddSection_line("autoexec",&AUTOEXEC_Init);
+	control->AddSection_line("autoexec",&Null_Init);
 	MSG_Add("AUTOEXEC_CONFIGFILE_HELP",
 		"Lines in this section will be run at startup.\n"
 		"You can put your MOUNT lines here.\n"

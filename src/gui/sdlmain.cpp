@@ -3728,6 +3728,9 @@ int main(int argc, char* argv[]) {
 		void MSCDEX_Init(Section*);
 		void DRIVES_Init(Section*);
 		void CDROM_Image_Init(Section*);
+		void IPX_Init(Section*);
+		void NE2K_Init(Section*);
+		void AUTOEXEC_Init(Section*);
 
 		GUI_StartUp(control->GetSection("sdl"));
 		DOSBOX_RealInit(control->GetSection("dosbox"));
@@ -3782,6 +3785,13 @@ int main(int argc, char* argv[]) {
 		MSCDEX_Init(control->GetSection("dos"));
 		DRIVES_Init(control->GetSection("dos"));
 		CDROM_Image_Init(control->GetSection("dos"));
+#if C_IPX
+		IPX_Init(control->GetSection("ipx"));
+#endif
+#if C_NE2000
+		NE2K_Init(control->GetSection("ne2000"));
+#endif
+		AUTOEXEC_Init(control->GetSection("autoexec"));
 		control->Init();
 
 		{
