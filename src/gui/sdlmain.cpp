@@ -79,6 +79,7 @@
 #include "vga.h"
 #include "keyboard.h"
 #include "cpu.h"
+#include "fpu.h"
 #include "cross.h"
 #include "control.h"
 
@@ -3693,6 +3694,10 @@ int main(int argc, char* argv[]) {
 		void TIMER_Init(Section*);
 		void CMOS_Init(Section*);
 		void VGA_Init(Section*);
+#if C_FPU
+		void FPU_Init(Section*);
+#endif
+		void ISAPNP_Cfg_Init(Section*);
 
 		GUI_StartUp(control->GetSection("sdl"));
 		DOSBOX_RealInit(control->GetSection("dosbox"));
@@ -3702,9 +3707,6 @@ int main(int argc, char* argv[]) {
 		HARDWARE_Init(control->GetSection("dosbox"));
 		ROMBIOS_Init(control->GetSection("dosbox"));
 		IODELAY_Init(control->GetSection("dosbox"));
-		RENDER_Init(control->GetSection("render"));
-		VGA_VsyncInit(control->GetSection("vsync"));
-		CPU_Init(control->GetSection("cpu"));
 		CALLBACK_Init(control->GetSection("dosbox"));
 		DMA_Init(control->GetSection("dosbox"));
 		PIC_Init(control->GetSection("dosbox"));
@@ -3713,6 +3715,13 @@ int main(int argc, char* argv[]) {
 		TIMER_Init(control->GetSection("dosbox"));
 		CMOS_Init(control->GetSection("dosbox"));
 		VGA_Init(control->GetSection("dosbox"));
+		RENDER_Init(control->GetSection("render"));
+		VGA_VsyncInit(control->GetSection("vsync"));
+		CPU_Init(control->GetSection("cpu"));
+#if C_FPU
+		FPU_Init(control->GetSection("cpu"));
+#endif
+		ISAPNP_Cfg_Init(control->GetSection("cpu"));
 		control->Init();
 
 		{

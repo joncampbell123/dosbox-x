@@ -1297,11 +1297,6 @@ void DOSBOX_Init(void) {
 	Pbool->Set_help("Allow the B (big) bit in real mode. If set, allow the DOS program to set the B bit,\n"
 		"then jump to realmode with B still set (aka Huge Unreal mode). Needed for Project Angel.");
 
-#if C_FPU
-	secprop->AddInitFunction(&FPU_Init);
-#endif
-	secprop->AddInitFunction(&ISAPNP_Cfg_Init);
-
 	secprop=control->AddSection_prop("keyboard",&KEYBOARD_Init);
 	Pbool = secprop->Add_bool("aux",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("Enable emulation of the 8042 auxiliary port. PS/2 mouse emulation requires this to be enabled.\n"
