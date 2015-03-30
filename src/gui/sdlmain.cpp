@@ -2978,8 +2978,10 @@ static BOOL WINAPI ConsoleEventHandler(DWORD event) {
 }
 #endif
 
+void Null_Init(Section *sec);
+
 void Config_Add_SDL() {
-	Section_prop * sdl_sec=control->AddSection_prop("sdl",&GUI_StartUp);
+	Section_prop * sdl_sec=control->AddSection_prop("sdl",&Null_Init);
 	sdl_sec->AddInitFunction(&MAPPER_StartUp);
 #if (HAVE_D3D9_H) && defined(WIN32)
 	// Allows dynamic pixelshader change
@@ -3675,9 +3677,12 @@ int main(int argc, char* argv[]) {
 		/* Init all the sections */
 		void DOSBOX_RealInit(Section * sec);
 		void RENDER_Init(Section*);
+		void VGA_VsyncInit(Section*);
 
+		GUI_StartUp(control->GetSection("sdl"));
 		DOSBOX_RealInit(control->GetSection("dosbox"));
 		RENDER_Init(control->GetSection("render"));
+		VGA_VsyncInit(control->GetSection("vsync"));
 		control->Init();
 
 		{

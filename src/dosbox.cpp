@@ -600,7 +600,7 @@ unsigned int dosbox_shell_env_size = 0;
 
 void clocktree_build_conversion_list();
 
-static void Null_Init(Section *sec) {
+void Null_Init(Section *sec) {
 	sec = sec;
 }
 
@@ -1196,7 +1196,7 @@ void DOSBOX_Init(void) {
 		"- Intended for output=direct3d, fullresolution=original, aspect=true");
 
 
-	secprop=control->AddSection_prop("vsync",&VGA_VsyncInit,true);//done
+	secprop=control->AddSection_prop("vsync",&Null_Init,true);//done
 
 	Pstring = secprop->Add_string("vsyncmode",Property::Changeable::WhenIdle,"off");
 	Pstring->Set_values(vsyncmode);
