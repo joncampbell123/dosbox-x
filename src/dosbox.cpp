@@ -1406,11 +1406,9 @@ void DOSBOX_Init(void) {
 	Pint->SetMinMax(0,256);
 	Pint->Set_help("MT-32 max partials allowed (0-256)");
 
-#if C_DEBUG
-	secprop=control->AddSection_prop("debug",&DEBUG_Init);
-#endif
+	secprop=control->AddSection_prop("debug",&Null_Init);
 
-	secprop=control->AddSection_prop("sblaster",&SBLASTER_Init,true);//done
+	secprop=control->AddSection_prop("sblaster",&Null_Init,true);//done
 	
 	Pstring = secprop->Add_string("sbtype",Property::Changeable::WhenIdle,"sb16");
 	Pstring->Set_values(sbtypes);
@@ -1557,7 +1555,7 @@ void DOSBOX_Init(void) {
 			"This is a hack for the Electromotive Force 'Internal Damage' demo which apparently\n"
 			"relies on this behavior for Sound Blaster output and should be enabled for accuracy in emulation.");
 
-	secprop=control->AddSection_prop("gus",&GUS_Init,true); //done
+	secprop=control->AddSection_prop("gus",&Null_Init,true); //done
 	Pbool = secprop->Add_bool("gus",Property::Changeable::WhenIdle,false); 	
 	Pbool->Set_help("Enable the Gravis Ultrasound emulation.");
 
@@ -1584,7 +1582,7 @@ void DOSBOX_Init(void) {
 		"the patch files for GUS playback. Patch sets used\n"
 		"with Timidity should work fine.");
 
-	secprop = control->AddSection_prop("innova",&INNOVA_Init,true);//done
+	secprop = control->AddSection_prop("innova",&Null_Init,true);//done
 	Pbool = secprop->Add_bool("innova",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("Enable the Innovation SSI-2001 emulation.");
 	Pint = secprop->Add_int("samplerate",Property::Changeable::WhenIdle,22050);
@@ -1597,7 +1595,7 @@ void DOSBOX_Init(void) {
 	Pint->Set_values(qualityno);
 	Pint->Set_help("Set SID emulation quality level (0 to 3).");
 
-	secprop = control->AddSection_prop("speaker",&PCSPEAKER_Init,true);//done
+	secprop = control->AddSection_prop("speaker",&Null_Init,true);//done
 	Pbool = secprop->Add_bool("pcspeaker",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Enable PC-Speaker emulation.");
 
@@ -1611,7 +1609,7 @@ void DOSBOX_Init(void) {
 	Pint->Set_values(rates);
 	Pint->Set_help("Sample rate of the PC-Speaker sound generation.");
 
-	secprop->AddInitFunction(&TANDYSOUND_Init,true);//done
+	secprop->AddInitFunction(&Null_Init,true);//done
 	Pstring = secprop->Add_string("tandy",Property::Changeable::WhenIdle,"auto");
 	Pstring->Set_values(tandys);
 	Pstring->Set_help("Enable Tandy Sound System emulation. For 'auto', emulation is present only if machine is set to 'tandy'.");
@@ -1619,12 +1617,9 @@ void DOSBOX_Init(void) {
 	Pint = secprop->Add_int("tandyrate",Property::Changeable::WhenIdle,44100);
 	Pint->Set_values(rates);
 	Pint->Set_help("Sample rate of the Tandy 3-Voice generation.");
-
-	secprop->AddInitFunction(&DISNEY_Init,true);//done
 	
 	Pbool = secprop->Add_bool("disney",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("Enable Disney Sound Source emulation. (Covox Voice Master and Speech Thing compatible).");
-	secprop->AddInitFunction(&PS1SOUND_Init,true);//done
 	Pstring = secprop->Add_string("ps1audio",Property::Changeable::WhenIdle,"off");
 	Pstring->Set_values(ps1opt);
 	Pstring->Set_help("Enable PS1 audio emulation.");

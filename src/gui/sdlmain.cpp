@@ -3704,6 +3704,16 @@ int main(int argc, char* argv[]) {
 		void MIXER_Init(Section*);
 		void MIDI_Init(Section*);
 		void MPU401_Init(Section*);
+#if C_DEBUG
+		void DEBUG_Init(Section*);
+#endif
+		void SBLASTER_Init(Section*);
+		void GUS_Init(Section*);
+		void INNOVA_Init(Section*);
+		void PCSPEAKER_Init(Section*);
+		void TANDYSOUND_Init(Section*);
+		void DISNEY_Init(Section*);
+		void PS1SOUND_Init(Section*);
 
 		GUI_StartUp(control->GetSection("sdl"));
 		DOSBOX_RealInit(control->GetSection("dosbox"));
@@ -3734,6 +3744,16 @@ int main(int argc, char* argv[]) {
 		MIXER_Init(control->GetSection("mixer"));
 		MIDI_Init(control->GetSection("midi"));
 		MPU401_Init(control->GetSection("midi"));
+#if C_DEBUG
+		DEBUG_Init(control->GetSection("debug"));
+#endif
+		SBLASTER_Init(control->GetSection("sblaster"));
+		GUS_Init(control->GetSection("gus"));
+		INNOVA_Init(control->GetSection("innova"));
+		PCSPEAKER_Init(control->GetSection("speaker"));
+		TANDYSOUND_Init(control->GetSection("speaker"));
+		DISNEY_Init(control->GetSection("speaker"));
+		PS1SOUND_Init(control->GetSection("speaker"));
 		control->Init();
 
 		{
