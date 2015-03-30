@@ -58,6 +58,7 @@
 #include "render.h"
 #include "menu.h"
 #include "SDL_video.h"
+#include "ide.h"
 
 #include "../src/libs/gui_tk/gui_tk.h"
 
@@ -3793,6 +3794,7 @@ int main(int argc, char* argv[]) {
 		NE2K_Init(control->GetSection("ne2000"));
 #endif
 		FDC_Primary_Init(control->GetSection("fdc, primary"));
+		for (size_t i=0;i < MAX_IDE_CONTROLLERS;i++) ide_inits[i](control->GetSection(ide_names[i]));
 		AUTOEXEC_Init(control->GetSection("autoexec"));
 		control->Init();
 

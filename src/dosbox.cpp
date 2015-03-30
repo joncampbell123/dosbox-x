@@ -2005,7 +2005,7 @@ void DOSBOX_Init(void) {
 
 	/* IDE emulation options and setup */
 	for (size_t i=0;i < MAX_IDE_CONTROLLERS;i++) {
-		secprop=control->AddSection_prop(ide_names[i],ide_inits[i],false);//done
+		secprop=control->AddSection_prop(ide_names[i],&Null_Init,false);//done
 
 		/* Primary and Secondary are on by default, Teritary and Quaternary are off by default.
 		 * Throughout the life of the IDE interface it was far more common for a PC to have just
