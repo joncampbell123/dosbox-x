@@ -3730,6 +3730,7 @@ int main(int argc, char* argv[]) {
 		void CDROM_Image_Init(Section*);
 		void IPX_Init(Section*);
 		void NE2K_Init(Section*);
+		void FDC_Primary_Init(Section*);
 		void AUTOEXEC_Init(Section*);
 
 		GUI_StartUp(control->GetSection("sdl"));
@@ -3791,6 +3792,7 @@ int main(int argc, char* argv[]) {
 #if C_NE2000
 		NE2K_Init(control->GetSection("ne2000"));
 #endif
+		FDC_Primary_Init(control->GetSection("fdc, primary"));
 		AUTOEXEC_Init(control->GetSection("autoexec"));
 		control->Init();
 

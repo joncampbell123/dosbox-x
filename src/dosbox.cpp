@@ -1922,93 +1922,85 @@ void DOSBOX_Init(void) {
 		"name, e.g. VIA here.");
 
 	/* floppy controller emulation options and setup */
-	const char *fdc_names[1] = {
-		"fdc, primary"
-	};
-	void (*fdc_inits[1])(Section *) = {
-		&FDC_Primary_Init
-	};
-	for (size_t i=0;i < 1;i++) {
-		secprop=control->AddSection_prop(fdc_names[i],fdc_inits[i],false);//done
+	secprop=control->AddSection_prop("fdc, primary",&Null_Init,false);
 
-		/* Primary FDC on by default, secondary is not. Most PCs have only one floppy controller. */
-		Pbool = secprop->Add_bool("enable",Property::Changeable::OnlyAtStart,(i == 0) ? true : false);
-		if (i == 0) Pbool->Set_help("Enable floppy controller interface");
+	/* Primary FDC on by default, secondary is not. Most PCs have only one floppy controller. */
+	Pbool = secprop->Add_bool("enable",Property::Changeable::OnlyAtStart,true);
+	Pbool->Set_help("Enable floppy controller interface");
 
-		Pbool = secprop->Add_bool("pnp",Property::Changeable::OnlyAtStart,true);
-		if (i == 0) Pbool->Set_help("List floppy controller in ISA PnP BIOS enumeration");
+	Pbool = secprop->Add_bool("pnp",Property::Changeable::OnlyAtStart,true);
+	Pbool->Set_help("List floppy controller in ISA PnP BIOS enumeration");
 
-		Pint = secprop->Add_int("irq",Property::Changeable::WhenIdle,0/*use FDC default*/);
-		if (i == 0) Pint->Set_help("IRQ used by floppy controller. Set to 0 for default.\n"
-				"WARNING: Setting the IRQ to non-standard values will not work unless the guest OS is using the ISA PnP BIOS to detect the floppy controller.\n"
-				"         Setting the IRQ to one already occupied by another device or IDE controller will trigger \"resource conflict\" errors in Windows 95.\n"
-				"         Normally, floppy controllers use IRQ 6.");
+	Pint = secprop->Add_int("irq",Property::Changeable::WhenIdle,0/*use FDC default*/);
+	Pint->Set_help("IRQ used by floppy controller. Set to 0 for default.\n"
+		"WARNING: Setting the IRQ to non-standard values will not work unless the guest OS is using the ISA PnP BIOS to detect the floppy controller.\n"
+		"         Setting the IRQ to one already occupied by another device or IDE controller will trigger \"resource conflict\" errors in Windows 95.\n"
+		"         Normally, floppy controllers use IRQ 6.");
 
-		Phex = secprop->Add_hex("io",Property::Changeable::WhenIdle,0/*use FDC default*/);
-		if (i == 0) Phex->Set_help("Base I/O port for floppy controller. Set to 0 for default.\n"
-				"WARNING: Setting the I/O port to non-standard values will not work unless the guest OS is using the ISA PnP BIOS to detect the IDE controller.\n"
-				"         Standard I/O ports are 3F0 and 370.");
+	Phex = secprop->Add_hex("io",Property::Changeable::WhenIdle,0/*use FDC default*/);
+	Phex->Set_help("Base I/O port for floppy controller. Set to 0 for default.\n"
+		"WARNING: Setting the I/O port to non-standard values will not work unless the guest OS is using the ISA PnP BIOS to detect the IDE controller.\n"
+		"         Standard I/O ports are 3F0 and 370.");
 
-		Pint = secprop->Add_int("dma",Property::Changeable::WhenIdle,-1/*use FDC default*/);
-		if (i == 0) Pint->Set_help("DMA channel for floppy controller. Set to -1 for default.\n"
-				"WARNING: Setting the DMA channel to non-standard values will not work unless the guest OS is using the ISA PnP BIOS to detect the IDE controller.\n"
-				"         Standard DMA channel is 2.");
+	Pint = secprop->Add_int("dma",Property::Changeable::WhenIdle,-1/*use FDC default*/);
+	Pint->Set_help("DMA channel for floppy controller. Set to -1 for default.\n"
+		"WARNING: Setting the DMA channel to non-standard values will not work unless the guest OS is using the ISA PnP BIOS to detect the IDE controller.\n"
+		"         Standard DMA channel is 2.");
 
-		Pbool = secprop->Add_bool("int13fakev86io",Property::Changeable::WhenIdle,false);
-		if (i == 0) Pbool->Set_help(
-				"If set, and int13fakeio is set, certain INT 13h commands will\n"
-				"cause floppy emulation to issue fake CPU I/O traps (GPF) in\n"
-				"virtual 8086 mode and a fake IRQ signal. you must enable this option\n"
-				"if you want 32-bit floppy access in Windows 95 to work with DOSBox.");
+	Pbool = secprop->Add_bool("int13fakev86io",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help(
+		"If set, and int13fakeio is set, certain INT 13h commands will\n"
+		"cause floppy emulation to issue fake CPU I/O traps (GPF) in\n"
+		"virtual 8086 mode and a fake IRQ signal. you must enable this option\n"
+		"if you want 32-bit floppy access in Windows 95 to work with DOSBox.");
 
-		Pbool = secprop->Add_bool("instant mode",Property::Changeable::WhenIdle,false);
-		if (i == 0) Pbool->Set_help(
-				"If set, all floppy operations are 'instantaneous', they are carried\n"
-				"out without any delay. Real hardware of course has motor, command\n"
-				"and data I/O delays and so this option is off by default for realistic\n"
-				"emulation.");
+	Pbool = secprop->Add_bool("instant mode",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help(
+		"If set, all floppy operations are 'instantaneous', they are carried\n"
+		"out without any delay. Real hardware of course has motor, command\n"
+		"and data I/O delays and so this option is off by default for realistic\n"
+		"emulation.");
 
-		Pbool = secprop->Add_bool("auto-attach to int 13h",Property::Changeable::WhenIdle,true);
-		if (i == 0) Pbool->Set_help(
-				"If set, DOSBox-X will automatically attach a disk image as being\n"
-				"inserted into a floppy drive attached to the controller when imgmount is used\n"
-				"to mount a disk image to drive 0/1 or A/B. If not set, you must specify\n"
-				"the -fdc option to imgmount to attach drive A/B to the floppy controller\n"
-				"manually. You must use the -fdc option regardless if loading floppies into\n"
-				"drives attached to any other FDC than the primary controller");
+	Pbool = secprop->Add_bool("auto-attach to int 13h",Property::Changeable::WhenIdle,true);
+	Pbool->Set_help(
+		"If set, DOSBox-X will automatically attach a disk image as being\n"
+		"inserted into a floppy drive attached to the controller when imgmount is used\n"
+		"to mount a disk image to drive 0/1 or A/B. If not set, you must specify\n"
+		"the -fdc option to imgmount to attach drive A/B to the floppy controller\n"
+		"manually. You must use the -fdc option regardless if loading floppies into\n"
+		"drives attached to any other FDC than the primary controller");
 
-		/* FIXME: From http://wiki.osdev.org/Floppy_Disk_Controller#Configure
-		 *
-		 *    "The three modes are PC-AT mode, PS/2 mode, and Model 30 mode. The most likely mode ... is model 30 mode.
-		 *    You may find some pre-1996 Pentium machines using PS/2 mode. You can ignore PC-AT mode."
-		 *
-		 *    What? What the fuck are you talking about?
-		 *
-		 *    "AT mode" seems to imply the presense of port 3F7. PS/2 mode seems to imply the presense of 3F0-3F1 and 3F7.
-		 *    A Toshiba laptop (Satellite Pro 465CDX) has port 3F7 but not 3F0-3F1. By other documentation I've found, that
-		 *    means this laptop (which came out late 1997) is running in AT mode! There's plenty of hardware running in both
-		 *    PS/2 and AT mode, even some very old stuff in my pile of junk dating back to 1990!
-		 *
-		 *    Somehow I think this information is as correct as their ATAPI programming docs on how to read CD-ROM
-		 *    sectors: it's a start but it's mostly wrong. Hopefully DOSLIB will shed light on what the real differences
-		 *    are and what is most common. --J.C. */
-		Pstring = secprop->Add_string("mode",Property::Changeable::WhenIdle,"ps2");
-		if (i == 0) Pstring->Set_help(
-				"Floppy controller mode. What the controller acts like.\n"
-				"  ps2                          PS/2 mode (most common)\n"
-				"  ps2_model30                  PS/2 model 30\n"
-				"  at                           AT mode\n"
-				"  xt                           PC/XT mode");
+	/* FIXME: From http://wiki.osdev.org/Floppy_Disk_Controller#Configure
+	 *
+	 *    "The three modes are PC-AT mode, PS/2 mode, and Model 30 mode. The most likely mode ... is model 30 mode.
+	 *    You may find some pre-1996 Pentium machines using PS/2 mode. You can ignore PC-AT mode."
+	 *
+	 *    What? What the fuck are you talking about?
+	 *
+	 *    "AT mode" seems to imply the presense of port 3F7. PS/2 mode seems to imply the presense of 3F0-3F1 and 3F7.
+	 *    A Toshiba laptop (Satellite Pro 465CDX) has port 3F7 but not 3F0-3F1. By other documentation I've found, that
+	 *    means this laptop (which came out late 1997) is running in AT mode! There's plenty of hardware running in both
+	 *    PS/2 and AT mode, even some very old stuff in my pile of junk dating back to 1990!
+	 *
+	 *    Somehow I think this information is as correct as their ATAPI programming docs on how to read CD-ROM
+	 *    sectors: it's a start but it's mostly wrong. Hopefully DOSLIB will shed light on what the real differences
+	 *    are and what is most common. --J.C. */
+	Pstring = secprop->Add_string("mode",Property::Changeable::WhenIdle,"ps2");
+	Pstring->Set_help(
+		"Floppy controller mode. What the controller acts like.\n"
+		"  ps2                          PS/2 mode (most common)\n"
+		"  ps2_model30                  PS/2 model 30\n"
+		"  at                           AT mode\n"
+		"  xt                           PC/XT mode");
 
-		/* FIXME: Not yet implemented. Future plans */
-		Pstring = secprop->Add_string("chip",Property::Changeable::WhenIdle,"82077aa");
-		if (i == 0) Pstring->Set_help(
-				"Floppy controller chipset\n"
-				"  82077aa                      Intel 82077AA chipset\n"
-				"  82072                        Intel 82072 chipset\n"
-				"  nec_uPD765                   NEC uPD765 chipset\n"
-				"  none                         No chipset (For PC/XT mode)");
-	}
+	/* FIXME: Not yet implemented. Future plans */
+	Pstring = secprop->Add_string("chip",Property::Changeable::WhenIdle,"82077aa");
+	Pstring->Set_help(
+		"Floppy controller chipset\n"
+		"  82077aa                      Intel 82077AA chipset\n"
+		"  82072                        Intel 82072 chipset\n"
+		"  nec_uPD765                   NEC uPD765 chipset\n"
+		"  none                         No chipset (For PC/XT mode)");
 
 	/* IDE emulation options and setup */
 	const char *ide_names[8] = {
