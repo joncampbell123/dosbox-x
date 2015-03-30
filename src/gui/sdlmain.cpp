@@ -3679,9 +3679,21 @@ int main(int argc, char* argv[]) {
 		void RENDER_Init(Section*);
 		void VGA_VsyncInit(Section*);
 		void CPU_Init(Section*);
+		void IO_Init(Section*);
+		void PAGING_Init(Section*);
+		void MEM_Init(Section*);
+		void HARDWARE_Init(Section*);
+		void ROMBIOS_Init(Section*);
+		void IODELAY_Init(Section*);
 
 		GUI_StartUp(control->GetSection("sdl"));
 		DOSBOX_RealInit(control->GetSection("dosbox"));
+		IO_Init(control->GetSection("dosbox"));
+		PAGING_Init(control->GetSection("dosbox"));
+		MEM_Init(control->GetSection("dosbox"));
+		HARDWARE_Init(control->GetSection("dosbox"));
+		ROMBIOS_Init(control->GetSection("dosbox"));
+		IODELAY_Init(control->GetSection("dosbox"));
 		RENDER_Init(control->GetSection("render"));
 		VGA_VsyncInit(control->GetSection("vsync"));
 		CPU_Init(control->GetSection("cpu"));

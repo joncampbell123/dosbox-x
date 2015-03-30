@@ -908,13 +908,6 @@ void DOSBOX_Init(void) {
 	Pint->SetMinMax(0,128);
 	Pint->Set_help("Once ROM BIOS layout is finalized, trim total region down to a minimum amount in KB");
 
-	secprop->AddInitFunction(&IO_Init);//done
-	secprop->AddInitFunction(&PAGING_Init);//done
-	secprop->AddInitFunction(&MEM_Init);//done
-	secprop->AddInitFunction(&HARDWARE_Init);//done
-	secprop->AddInitFunction(&ROMBIOS_Init);
-	secprop->AddInitFunction(&IODELAY_Init);
-
 	Pint = secprop->Add_int("iodelay", Property::Changeable::WhenIdle,-1);
 	Pint->SetMinMax(-1,100000);
 	Pint->Set_help(	"I/O delay in nanoseconds for I/O port access. Set to -1 to use default, 0 to disable.\n"
