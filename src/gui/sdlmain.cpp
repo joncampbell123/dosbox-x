@@ -3701,6 +3701,9 @@ int main(int argc, char* argv[]) {
 		void KEYBOARD_Init(Section*);
 		void PCI_Init(Section*);
 		void VOODOO_Init(Section*);
+		void MIXER_Init(Section*);
+		void MIDI_Init(Section*);
+		void MPU401_Init(Section*);
 
 		GUI_StartUp(control->GetSection("sdl"));
 		DOSBOX_RealInit(control->GetSection("dosbox"));
@@ -3728,6 +3731,9 @@ int main(int argc, char* argv[]) {
 		KEYBOARD_Init(control->GetSection("keyboard"));
 		PCI_Init(control->GetSection("pci"));
 		VOODOO_Init(control->GetSection("pci"));
+		MIXER_Init(control->GetSection("mixer"));
+		MIDI_Init(control->GetSection("midi"));
+		MPU401_Init(control->GetSection("midi"));
 		control->Init();
 
 		{

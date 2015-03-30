@@ -1317,7 +1317,7 @@ void DOSBOX_Init(void) {
 	Pstring->Set_values(voodoo_settings);
 	Pstring->Set_help("Enable VOODOO support.");
 
-	secprop=control->AddSection_prop("mixer",&MIXER_Init);
+	secprop=control->AddSection_prop("mixer",&Null_Init);
 	Pbool = secprop->Add_bool("nosound",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("Enable silent mode, sound is still emulated though.");
 
@@ -1336,9 +1336,8 @@ void DOSBOX_Init(void) {
 	Pint->SetMinMax(0,100);
 	Pint->Set_help("How many milliseconds of data to keep on top of the blocksize.");
 
-	secprop=control->AddSection_prop("midi",&MIDI_Init,true);//done
-	secprop->AddInitFunction(&MPU401_Init,true);//done
-	
+	secprop=control->AddSection_prop("midi",&Null_Init,true);//done
+
 	Pstring = secprop->Add_string("mpu401",Property::Changeable::WhenIdle,"intelligent");
 	Pstring->Set_values(mputypes);
 	Pstring->Set_help("Type of MPU-401 to emulate.");
