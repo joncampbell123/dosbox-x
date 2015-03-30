@@ -306,7 +306,8 @@ public:
 	}
 	Section_prop *GetSection() { return section; }
 	const Section_prop *GetSection() const { return section; }
-	virtual bool SetValue(std::string const& input);
+	virtual bool SetValue(std::string const& input,bool init);
+	virtual bool SetValue(std::string const& input) { return SetValue(input,/*init*/false); };
 	virtual const std::vector<Value>& GetValues() const;
 	virtual ~Prop_multival() { if (section != NULL) { delete section; } }
 }; //value bevat totale string. setvalue zet elk van de sub properties en checked die.
@@ -315,7 +316,8 @@ class Prop_multival_remain:public Prop_multival{
 public:
 	Prop_multival_remain(std::string const& _propname, Changeable::Value when,std::string const& sep):Prop_multival(_propname,when,sep){ }
 
-	virtual bool SetValue(std::string const& input);
+	virtual bool SetValue(std::string const& input,bool init);
+	virtual bool SetValue(std::string const& input) { return SetValue(input,/*init*/false); };
 };
 
    

@@ -1143,7 +1143,7 @@ void DOSBOX_Init(void) {
 		"                                     - Impact Studios, Legend");
 
 	Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::Always,"");
-	Pmulti_remain->SetValue("");
+	Pmulti_remain->SetValue("",/*init*/true);
 	Pstring->Set_values(pit_hax);
 
 	secprop=control->AddSection_prop("render",&Null_Init,true);
@@ -1166,7 +1166,7 @@ void DOSBOX_Init(void) {
 			"This affects the raster PRIOR to the software or hardware scalers. Choose wisely.\n");
 
 	Pmulti = secprop->Add_multi("scaler",Property::Changeable::Always," ");
-	Pmulti->SetValue("normal2x");
+	Pmulti->SetValue("normal2x",/*init*/true);
 	Pmulti->Set_help("Scaler used to enlarge/enhance low resolution modes. If 'forced' is appended,\n"
 	                 "then the scaler will be used even if the result might not be desired.");
 	Pstring = Pmulti->GetSection()->Add_string("type",Property::Changeable::Always,"normal2x");
@@ -1247,7 +1247,7 @@ void DOSBOX_Init(void) {
 		"                  handle.");
 
 	Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::Always,"auto");
-	Pmulti_remain->SetValue("auto");
+	Pmulti_remain->SetValue("auto",/*init*/true);
 	Pstring->Set_values(cyclest);
 
 	Pstring = Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::Always,"");
@@ -1656,7 +1656,7 @@ void DOSBOX_Init(void) {
    
 	Pmulti_remain = secprop->Add_multiremain("serial1",Property::Changeable::WhenIdle," ");
 	Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::WhenIdle,"dummy");
-	Pmulti_remain->SetValue("dummy");
+	Pmulti_remain->SetValue("dummy",/*init*/true);
 	Pstring->Set_values(serials);
 	Pstring = Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
 	Pmulti_remain->Set_help(
@@ -1673,21 +1673,21 @@ void DOSBOX_Init(void) {
 
 	Pmulti_remain = secprop->Add_multiremain("serial2",Property::Changeable::WhenIdle," ");
 	Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::WhenIdle,"dummy");
-	Pmulti_remain->SetValue("dummy");
+	Pmulti_remain->SetValue("dummy",/*init*/true);
 	Pstring->Set_values(serials);
 	Pstring = Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
 	Pmulti_remain->Set_help("see serial1");
 
 	Pmulti_remain = secprop->Add_multiremain("serial3",Property::Changeable::WhenIdle," ");
 	Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::WhenIdle,"disabled");
-	Pmulti_remain->SetValue("disabled");
+	Pmulti_remain->SetValue("disabled",/*init*/true);
 	Pstring->Set_values(serials);
 	Pstring = Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
 	Pmulti_remain->Set_help("see serial1");
 
 	Pmulti_remain = secprop->Add_multiremain("serial4",Property::Changeable::WhenIdle," ");
 	Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::WhenIdle,"disabled");
-	Pmulti_remain->SetValue("disabled");
+	Pmulti_remain->SetValue("disabled",/*init*/true);
 	Pstring->Set_values(serials);
 	Pstring = Pmulti_remain->GetSection()->Add_string("parameters",Property::Changeable::WhenIdle,"");
 	Pmulti_remain->Set_help("see serial1");

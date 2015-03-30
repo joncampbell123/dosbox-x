@@ -359,9 +359,9 @@ void Prop_multival::make_default_value(){
    
 
 //TODO checkvalue stuff
-bool Prop_multival_remain::SetValue(std::string const& input) {
+bool Prop_multival_remain::SetValue(std::string const& input,bool init) {
 	Value val(input,Value::V_STRING);
-	bool retval = SetVal(val,false,true);
+	bool retval = SetVal(val,false,true,init);
 
 	std::string local(input);
 	int i = 0,number_of_properties = 0;
@@ -400,9 +400,9 @@ bool Prop_multival_remain::SetValue(std::string const& input) {
 }
 
 //TODO checkvalue stuff
-bool Prop_multival::SetValue(std::string const& input) {
+bool Prop_multival::SetValue(std::string const& input,bool init) {
 	Value val(input,Value::V_STRING);
-	bool retval = SetVal(val,false,true);
+	bool retval = SetVal(val,false,true,init);
 
 	std::string local(input);
 	int i = 0;

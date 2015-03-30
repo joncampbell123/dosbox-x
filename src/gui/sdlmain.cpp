@@ -3043,7 +3043,7 @@ void Config_Add_SDL() {
 	Pbool->Set_help("Wait before closing the console if dosbox has an error.");
 
 	Pmulti = sdl_sec->Add_multi("priority", Property::Changeable::Always, ",");
-	Pmulti->SetValue("higher,normal");
+	Pmulti->SetValue("higher,normal",/*init*/true);
 	Pmulti->Set_help("Priority levels for dosbox. Second entry behind the comma is for when dosbox is not focused/minimized.\n"
 	                 "  pause is only valid for the second entry.");
 
@@ -3060,7 +3060,7 @@ void Config_Add_SDL() {
 
 #if (HAVE_D3D9_H) && (C_D3DSHADERS) && defined(WIN32)
 	Pmulti = sdl_sec->Add_multi("pixelshader",Property::Changeable::Always," ");
-	Pmulti->SetValue("none");
+	Pmulti->SetValue("none",/*init*/true);
 	Pmulti->Set_help("Pixelshader program (effect file must be in Shaders subdirectory). If 'forced' is appended,\n"
 	    "then the shader will be used even if the result might not be desired.");
 
