@@ -495,15 +495,17 @@ public:
 private:
 	void restart(const char* useconfig);
 	
-	void writeconf(std::string name, bool configdir) {
+	void writeconf(std::string name, bool configdir,bool everything) {
+#if 0 /* I'd rather have an option stating the user wants to write to user homedir */
 		if (configdir) {
 			// write file to the default config directory
 			std::string config_path;
 			Cross::GetPlatformConfigDir(config_path);
 			name = config_path + name;
 		}
+#endif
 		WriteOut(MSG_Get("PROGRAM_CONFIG_FILE_WHICH"),name.c_str());
-		if (!control->PrintConfig(name.c_str())) {
+		if (!control->PrintConfig(name.c_str(),everything)) {
 			WriteOut(MSG_Get("PROGRAM_CONFIG_FILE_ERROR"),name.c_str());
 		}
 		return;
@@ -522,7 +524,7 @@ void CONFIG::Run(void) {
 	static const char* const params[] = {
 		"-r", "-wcp", "-wcd", "-wc", "-writeconf", "-l", "-rmconf",
 		"-h", "-help", "-?", "-axclear", "-axadd", "-axtype", "-get", "-set",
-		"-writelang", "-wl", "-securemode", NULL };
+		"-writelang", "-wl", "-securemode", "-all", NULL };
 	enum prs {
 		P_NOMATCH, P_NOPARAMS, // fixed return values for GetParameterFromList
 		P_RESTART,
@@ -532,16 +534,21 @@ void CONFIG::Run(void) {
 		P_AUTOEXEC_CLEAR, P_AUTOEXEC_ADD, P_AUTOEXEC_TYPE,
 		P_GETPROP, P_SETPROP,
 		P_WRITELANG, P_WRITELANG2,
-		P_SECURE
+		P_SECURE, P_ALL
 	} presult = P_NOMATCH;
-	
+
+	bool all = false;
 	bool first = true;
 	std::vector<std::string> pvars;
 	// Loop through the passed parameters
 	while(presult != P_NOPARAMS) {
 		presult = (enum prs)cmd->GetParameterFromList(params, pvars);
 		switch(presult) {
-		
+	
+		case P_ALL:
+			all = true;
+			break;
+
 		case P_RESTART:
 			if (securemode_check()) return;
 			if (pvars.size() == 0) restart_program(control->startup_params);
@@ -587,10 +594,10 @@ void CONFIG::Run(void) {
 			if (pvars.size() > 1) return;
 			else if (pvars.size() == 1) {
 				// write config to specific file, except if it is an absolute path
-				writeconf(pvars[0], !Cross::IsPathAbsolute(pvars[0]));
+				writeconf(pvars[0], !Cross::IsPathAbsolute(pvars[0]), all);
 			} else {
 				// -wc without parameter: write primary config file
-				if (control->configfiles.size()) writeconf(control->configfiles[0], false);
+				if (control->configfiles.size()) writeconf(control->configfiles[0], false, all);
 				else WriteOut(MSG_Get("PROGRAM_CONFIG_NOCONFIGFILE"));
 			}
 			break;
@@ -600,7 +607,7 @@ void CONFIG::Run(void) {
 			if (pvars.size() > 0) return;
 			std::string confname;
 			Cross::GetPlatformConfigName(confname);
-			writeconf(confname, true);
+			writeconf(confname, true, all);
 			break;
 		}
 		case P_WRITECONF_PORTABLE:
@@ -608,10 +615,10 @@ void CONFIG::Run(void) {
 			if (pvars.size() > 1) return;
 			else if (pvars.size() == 1) {
 				// write config to startup directory
-				writeconf(pvars[0], false);
+				writeconf(pvars[0], false, all);
 			} else {
 				// -wcp without parameter: write dosbox.conf to startup directory
-				if (control->configfiles.size()) writeconf(std::string("dosbox.conf"), false);
+				if (control->configfiles.size()) writeconf(std::string("dosbox.conf"), false, all);
 				else WriteOut(MSG_Get("PROGRAM_CONFIG_NOCONFIGFILE"));
 			}
 			break;
