@@ -1126,15 +1126,6 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("enable pci bus",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("Enable PCI bus emulation");
 
-	secprop->AddInitFunction(&CALLBACK_Init);
-	secprop->AddInitFunction(&DMA_Init);//done
-	secprop->AddInitFunction(&PIC_Init);//done
-	secprop->AddInitFunction(&PCIBUS_Init);
-	secprop->AddInitFunction(&PROGRAMS_Init);
-	secprop->AddInitFunction(&TIMER_Init);//done
-	secprop->AddInitFunction(&CMOS_Init);//done
-	secprop->AddInitFunction(&VGA_Init);
-
 	Pmulti_remain = secprop->Add_multiremain("pit hack",Property::Changeable::Always,"");
 	Pmulti_remain->Set_help(
 		"If set, demo/game-specific hacks are applied to PIT timer emulation to help\n"

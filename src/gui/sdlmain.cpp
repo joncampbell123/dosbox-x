@@ -3685,6 +3685,14 @@ int main(int argc, char* argv[]) {
 		void HARDWARE_Init(Section*);
 		void ROMBIOS_Init(Section*);
 		void IODELAY_Init(Section*);
+		void CALLBACK_Init(Section*);
+		void DMA_Init(Section*);
+		void PIC_Init(Section*);
+		void PCIBUS_Init(Section*);
+		void PROGRAMS_Init(Section*);
+		void TIMER_Init(Section*);
+		void CMOS_Init(Section*);
+		void VGA_Init(Section*);
 
 		GUI_StartUp(control->GetSection("sdl"));
 		DOSBOX_RealInit(control->GetSection("dosbox"));
@@ -3697,6 +3705,14 @@ int main(int argc, char* argv[]) {
 		RENDER_Init(control->GetSection("render"));
 		VGA_VsyncInit(control->GetSection("vsync"));
 		CPU_Init(control->GetSection("cpu"));
+		CALLBACK_Init(control->GetSection("dosbox"));
+		DMA_Init(control->GetSection("dosbox"));
+		PIC_Init(control->GetSection("dosbox"));
+		PCIBUS_Init(control->GetSection("dosbox"));
+		PROGRAMS_Init(control->GetSection("dosbox"));
+		TIMER_Init(control->GetSection("dosbox"));
+		CMOS_Init(control->GetSection("dosbox"));
+		VGA_Init(control->GetSection("dosbox"));
 		control->Init();
 
 		{
