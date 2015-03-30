@@ -3719,6 +3719,28 @@ int main(int argc, char* argv[]) {
 		void FDC_Primary_Init(Section*);
 		void AUTOEXEC_Init(Section*);
 
+		/* FIXME: We need a more general "init list", outside of the section-based design,
+		 *        that we then execute serially here. */
+		/* TODO: Each section currently uses "AddDestroyFunction" per section. We need to
+		 *       change over that code to a global destroy callback list instead. */
+		/* TODO: Get rid of "init" and "destroy" callback lists per section. */
+		/* TODO: Add a global (within the Config object) init and destroy callback list.
+		 *       On each call, init functions are added to the end of the list, and
+		 *       destroy functions added to the beginning of the list. That way, init
+		 *       is lowest level to highest, destroy is highest level to lowest. */
+		/* TODO: Config object should also have a "reset" callback list. On system
+		 *       reset each device would be notified so that it can emulate hardware
+		 *       reset (the RESET line on ISA/PCI bus), lowest level to highest. */
+		/* TODO: Each "init" function should do the work of getting the section object,
+		 *       whatever section it wants to read, instead of us doing the work. When
+		 *       that's complete, the call to init should be without parameters (void).
+		 *       The hope is that the init functions can read whatever sections it wants,
+		 *       both newer DOSBox-X sections and existing DOSBox (mainline) compatible
+		 *       sections. */
+
+		/* The order is important here:
+		 * Init functions are called low-level first to high level last,
+		 * because some init functions rely on others. */
 		GUI_StartUp(control->GetSection("sdl"));
 		DOSBOX_RealInit(control->GetSection("dosbox"));
 		IO_Init(control->GetSection("dosbox"));
