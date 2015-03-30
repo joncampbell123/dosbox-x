@@ -759,6 +759,21 @@ void CPU_Exception(Bitu which,Bitu error ) {
 
 	cpu.exception.error=error;
 	CPU_Interrupt(which,CPU_INT_EXCEPTION | ((which>=8) ? CPU_INT_HAS_ERROR : 0),reg_eip);
+
+	/* allow recursive page faults. required for multitasking OSes like Windows 95.
+	 * we set this AFTER CPU_Interrupt so that if CPU_Interrupt faults while starting
+	 * a page fault we still trigger double fault. */
+	if (which == EXCEPTION_PF) {
+		if (CPU_Exception_Level[which] > 0)
+			CPU_Exception_Level[which]--;
+
+		if (!CPU_Exception_In_Progress.empty()) {
+			if (CPU_Exception_In_Progress.top() == which)
+				CPU_Exception_In_Progress.pop();
+			else
+				LOG_MSG("Top of fault stack not the same as what I'm handling");
+		}
+	}
 }
 
 Bit8u lastint;
