@@ -1788,6 +1788,10 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("vcpi",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("If set and expanded memory is enabled, also emulate VCPI.");
 
+	Pbool = secprop->Add_bool("zero int 67h if no ems",Property::Changeable::OnlyAtStart,true);
+	Pbool->Set_help("If ems=false, leave interrupt vector 67h zeroed out (default true).\n"
+			"This is a workaround for games or demos that try to detect EMS by whether or not INT 67h is 0000:0000 rather than a proper test.");
+
 	/* FIXME: The vm86 monitor in src/ints/ems.cpp is not very stable! Option is default OFF until stabilized! */
 	Pbool = secprop->Add_bool("emm386 startup active",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("If set and expanded memory is set to emulate emm386, start the DOS machine with EMM386.EXE active\n"

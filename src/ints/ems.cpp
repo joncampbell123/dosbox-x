@@ -68,7 +68,7 @@ Bitu XMS_EnableA20(bool enable);
 
 bool ENABLE_VCPI=true;
 bool ENABLE_V86_STARTUP=false;
-
+bool zero_int67_if_no_ems=true;
 
 /* EMM errors */
 #define EMM_NO_ERROR			0x00
@@ -1404,6 +1404,13 @@ Bitu GetEMSType(Section_prop * section) {
 	return rtype;
 }
 
+void setup_EMS_none() {
+	if (zero_int67_if_no_ems) {
+		/* zero INT 67h */
+		phys_writed(0x67*4,0);
+	}
+}
+
 class EMS: public Module_base {
 private:
 	Bit16u ems_baseseg;
@@ -1423,12 +1430,17 @@ public:
 
 		vcpi.enabled=false;
 		GEMMIS_seg=0;
-		
+
 		Section_prop * section=static_cast<Section_prop *>(configuration);
+		zero_int67_if_no_ems = section->Get_bool("zero int 67h if no ems");
 		ems_type = GetEMSType(section);
-		if (ems_type == EMS_NONE) return;
+		if (ems_type == EMS_NONE) {
+			setup_EMS_none();
+			return;
+		}
 
 		if (machine == MCH_PCJR) {
+			setup_EMS_none();
 			ems_type = EMS_NONE;
 			LOG_MSG("EMS disabled for PCJr machine");
 			return;
