@@ -1574,6 +1574,7 @@ static Bitu DOS_26Handler(void) {
 }
 
 extern bool mainline_compatible_mapping;
+bool iret_only_for_debug_interrupts = true;
 bool enable_collating_uppercase = true;
 bool keep_private_area_on_boot = false;
 bool dynamic_dos_kernel_alloc = false;
@@ -1607,6 +1608,7 @@ public:
 		private_always_from_umb = section->Get_bool("kernel allocation in umb");
 		minimum_dos_initial_private_segment = section->Get_hex("minimum dos initial private segment");
 		dos_con_use_int16_to_detect_input = section->Get_bool("con device use int 16h to detect keyboard input");
+		iret_only_for_debug_interrupts = section->Get_bool("write plain iretf for debug interrupts");
 		dbg_zero_on_dos_allocmem = section->Get_bool("zero memory on int 21h memory allocation");
 		MAXENV = section->Get_int("maximum environment block size on exec");
 		ENV_KEEPFREE = section->Get_int("additional environment block size on exec");

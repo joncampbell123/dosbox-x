@@ -1736,6 +1736,14 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("share",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Report SHARE.EXE as resident. Does not actually emulate SHARE functions.");
 
+	// bugfix for "Digital Dream" DOS demo that displays a "peace to hackers" message if it thinks it's being debugged.
+	Pbool = secprop->Add_bool("write plain iretf for debug interrupts",Property::Changeable::WhenIdle,true);
+	Pbool->Set_help("If true (default), the DOS kernel will create an alternate interrupt handler for debug interrupts INT 1 and INT 3\n"
+			"that contain ONLY an IRETF instruction. If false, INT 1 and INT 3 will use the same default interrupt handler in\n"
+			"the DOS kernel, which contains a callback instruction followed by IRETF. Some DOS games/demos assume they are being\n"
+			"debugged if the debug interrupts point to anything other than an IRETF instruction. Set this option to false if\n"
+			"you need notification that INT 1/INT 3 was not handled.");
+
 	Phex = secprop->Add_hex("minimum dos initial private segment", Property::Changeable::WhenIdle,0);
 	Phex->Set_help("In non-mainline mapping mode, where DOS structures are allocated from base memory, this sets the\n"
 			"minimum segment value. Recommended value is 0x70. You may reduce the value down to 0x50 if freeing\n"

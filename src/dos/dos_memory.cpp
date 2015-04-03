@@ -513,6 +513,7 @@ extern Bit16u DOS_IHSEG;
 extern bool enable_dummy_environment_block;
 extern bool enable_dummy_loadfix_padding;
 extern bool enable_dummy_device_mcb;
+extern bool iret_only_for_debug_interrupts;
 
 static	CALLBACK_HandlerObject callbackhandler;
 void DOS_SetupMemory(void) {
@@ -539,9 +540,17 @@ void DOS_SetupMemory(void) {
 	real_writeb(ihseg,ihofs+0x01,(Bit8u)0x38);	//Extra Callback instruction
 	real_writew(ihseg,ihofs+0x02,callbackhandler.Get_callback());  //The immediate word
 	real_writeb(ihseg,ihofs+0x04,(Bit8u)0xCF);	//An IRET Instruction
-	RealSetVec(0x01,RealMake(ihseg,ihofs));		//BioMenace (offset!=4)
+
+	if (iret_only_for_debug_interrupts) {
+		//point at IRET, not the callback. Hack for paranoid games & demos that check for debugger presence.
+		RealSetVec(0x01,RealMake(ihseg,ihofs+4));
+		RealSetVec(0x03,RealMake(ihseg,ihofs+4));
+	}
+	else {
+		RealSetVec(0x01,RealMake(ihseg,ihofs));		//BioMenace (offset!=4)
+		RealSetVec(0x03,RealMake(ihseg,ihofs));		//Alien Incident (offset!=0)
+	}
 	if (machine != MCH_PCJR) RealSetVec(0x02,RealMake(ihseg,ihofs)); //BioMenace (segment<0x8000). Else, taken by BIOS NMI interrupt
-	RealSetVec(0x03,RealMake(ihseg,ihofs));		//Alien Incident (offset!=0)
 	RealSetVec(0x04,RealMake(ihseg,ihofs));		//Shadow President (lower byte of segment!=0)
 //	RealSetVec(0x0f,RealMake(ihseg,ihofs));		//Always a tricky one (soundblaster irq)
 
