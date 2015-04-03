@@ -1790,7 +1790,8 @@ void DOSBOX_Init(void) {
 
 	Pbool = secprop->Add_bool("zero int 67h if no ems",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("If ems=false, leave interrupt vector 67h zeroed out (default true).\n"
-			"This is a workaround for games or demos that try to detect EMS by whether or not INT 67h is 0000:0000 rather than a proper test.");
+			"This is a workaround for games or demos that try to detect EMS by whether or not INT 67h is 0000:0000 rather than a proper test.\n"
+			"This option also affects whether INT 67h is zeroed when booting a guest OS");
 
 	/* FIXME: The vm86 monitor in src/ints/ems.cpp is not very stable! Option is default OFF until stabilized! */
 	Pbool = secprop->Add_bool("emm386 startup active",Property::Changeable::OnlyAtStart,false);

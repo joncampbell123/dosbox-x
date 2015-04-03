@@ -1428,6 +1428,7 @@ public:
 		call_vdma.Install(&INT4B_Handler,CB_IRET,"Int 4b vdma");
 		call_vdma.Set_RealVec(0x4b);
 
+		ems_baseseg=0;
 		vcpi.enabled=false;
 		GEMMIS_seg=0;
 
@@ -1618,8 +1619,8 @@ public:
 
 		/* Remove the emsname and callback hack */
 		char buf[32]= { 0 };
-		MEM_BlockWrite(PhysMake(ems_baseseg,0),buf,32);
-		RealSetVec(0x67,old67_pointer);
+		if (ems_baseseg != 0) MEM_BlockWrite(PhysMake(ems_baseseg,0),buf,32);
+		RealSetVec(0x67,zero_int67_if_no_ems ? 0 : old67_pointer);
 
 		/* Release memory allocated to system handle */
 		if (emm_handles[EMM_SYSTEM_HANDLE].pages != NULL_HANDLE) {
