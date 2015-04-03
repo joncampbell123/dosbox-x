@@ -47,6 +47,7 @@ Bit16u DOS_FIRST_SHELL=0x118;
 Bit16u DOS_FIRST_SHELL_END=0x158;
 Bit16u DOS_MEM_START=0x158;	 // regression to r3437 fixes nascar 2 colors
 Bit16u minimum_mcb_segment=0x70;
+Bit16u minimum_dos_initial_private_segment=0x70;
 
 Bit16u DOS_PRIVATE_SEGMENT=0;//0xc800;
 Bit16u DOS_PRIVATE_SEGMENT_END=0;//0xd000;
@@ -1604,6 +1605,7 @@ public:
 		enable_collating_uppercase = section->Get_bool("collating and uppercase");
 		dynamic_dos_kernel_alloc = section->Get_bool("dynamic kernel allocation");
 		private_always_from_umb = section->Get_bool("kernel allocation in umb");
+		minimum_dos_initial_private_segment = section->Get_hex("minimum dos initial private segment");
 		dos_con_use_int16_to_detect_input = section->Get_bool("con device use int 16h to detect keyboard input");
 		dbg_zero_on_dos_allocmem = section->Get_bool("zero memory on int 21h memory allocation");
 		MAXENV = section->Get_int("maximum environment block size on exec");
@@ -1661,7 +1663,13 @@ public:
 					LOG_MSG("CAUTION: DOS_MEM_START is less than 0x70 which may cause problems with some DOS games or applications");
 			}
 			else {
-				DOS_PRIVATE_SEGMENT = 0x50; /* NTS: The first paragraph overlaps the PRINT SCREEN BYTE but DOSBox's kernel does not use that byte anyway */
+				if (minimum_dos_initial_private_segment == 0)
+					DOS_PRIVATE_SEGMENT = 0x70;
+				else
+					DOS_PRIVATE_SEGMENT = minimum_dos_initial_private_segment;
+
+				if (DOS_PRIVATE_SEGMENT < 0x50)
+					LOG_MSG("DANGER, DANGER! DOS_PRIVATE_SEGMENT has been set too low!");
 			}
 
 			if (!private_always_from_umb) {

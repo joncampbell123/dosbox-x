@@ -1736,6 +1736,11 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("share",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Report SHARE.EXE as resident. Does not actually emulate SHARE functions.");
 
+	Phex = secprop->Add_hex("minimum dos initial private segment", Property::Changeable::WhenIdle,0);
+	Phex->Set_help("In non-mainline mapping mode, where DOS structures are allocated from base memory, this sets the\n"
+			"minimum segment value. Recommended value is 0x70. You may reduce the value down to 0x50 if freeing\n"
+			"up more memory is important. Set to 0 for default.");
+
 	Phex = secprop->Add_hex("minimum mcb segment", Property::Changeable::WhenIdle,0);
 	Phex->Set_help("Minimum segment value to begin memory allocation from, in hexadecimal. Set to 0 for default.\n"
 			"Recommended value is 400, some DOS games have problems if the value is lower than that.\n"
