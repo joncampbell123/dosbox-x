@@ -230,7 +230,9 @@ void LOG_Destroy(Section*) {
 	}
 }
 
-static void LOG_Init(Section * sec) {
+void Null_Init(Section *sec);
+
+void LOG_Init(Section * sec) {
 	Section_prop * sect=static_cast<Section_prop *>(sec);
 	const char * blah=sect->Get_string("logfile");
 	if (blah != NULL && blah[0] != 0 && (debuglog=fopen(blah,"wt+")) != NULL) {
@@ -284,7 +286,7 @@ void LOG_StartUp(void) {
 	loggrp[LOG_VOODOO].front="SST";
 	
 	/* Register the log section */
-	Section_prop * sect=control->AddSection_prop("log",LOG_Init);
+	Section_prop * sect=control->AddSection_prop("log",Null_Init);
 	Prop_string* Pstring = sect->Add_string("logfile",Property::Changeable::Always,"");
 	Pstring->Set_help("file where the log messages will be saved to");
 	char buf[1024];

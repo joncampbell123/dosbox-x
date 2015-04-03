@@ -3715,6 +3715,7 @@ int main(int argc, char* argv[]) {
 		void DRIVES_Init(Section*);
 		void CDROM_Image_Init(Section*);
 		void IPX_Init(Section*);
+		void LOG_Init(Section*);
 		void NE2K_Init(Section*);
 		void FDC_Primary_Init(Section*);
 		void AUTOEXEC_Init(Section*);
@@ -3741,6 +3742,7 @@ int main(int argc, char* argv[]) {
 		/* The order is important here:
 		 * Init functions are called low-level first to high level last,
 		 * because some init functions rely on others. */
+		LOG_Init(control->GetSection("log"));
 		GUI_StartUp(control->GetSection("sdl"));
 		DOSBOX_RealInit(control->GetSection("dosbox"));
 		IO_Init(control->GetSection("dosbox"));
