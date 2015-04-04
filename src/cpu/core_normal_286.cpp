@@ -29,7 +29,7 @@
 #include "paging.h"
 #include "mmx.h"
 
-#define CPU_CORE_386
+#define CPU_CORE_286
 
 extern bool ignore_opcode_63;
 
@@ -58,7 +58,7 @@ extern bool ignore_opcode_63;
 #define SaveMq(off,val) {mem_writed_inline(off,val&0xffffffff);mem_writed_inline(off+4,(val>>32)&0xffffffff);}
 #endif
 
-Bitu cycle_count;
+extern Bitu cycle_count;
 
 #if C_FPU
 #define CPU_FPU	1						//Enable FPU escape instructions
@@ -145,7 +145,7 @@ static INLINE Bit32u Fetchd() {
 
 #define EALookupTable (core.ea_table)
 
-Bits CPU_Core_Normal_Run(void) {
+Bits CPU_Core286_Normal_Run(void) {
 	while (CPU_Cycles-->0) {
 		LOADIP;
 		core.opcode_index=cpu.code.big*0x200;
@@ -201,22 +201,22 @@ decode_end:
 	return CBRET_NONE;
 }
 
-Bits CPU_Core_Normal_Trap_Run(void) {
+Bits CPU_Core286_Normal_Trap_Run(void) {
 	Bits oldCycles = CPU_Cycles;
 	CPU_Cycles = 1;
 	cpu.trap_skip = false;
 
-	Bits ret=CPU_Core_Normal_Run();
+	Bits ret=CPU_Core286_Normal_Run();
 	if (!cpu.trap_skip) CPU_HW_Interrupt(1);
 	CPU_Cycles = oldCycles-1;
-	cpudecoder = &CPU_Core_Normal_Run;
+	cpudecoder = &CPU_Core286_Normal_Run;
 
 	return ret;
 }
 
 
 
-void CPU_Core_Normal_Init(void) {
+void CPU_Core286_Normal_Init(void) {
 
 }
 

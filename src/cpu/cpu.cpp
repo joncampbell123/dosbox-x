@@ -2811,7 +2811,7 @@ public:
 			}
 		} else if (cputype == "286") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_286;
-			/* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
+			cpudecoder=&CPU_Core286_Normal_Run;
 		} else if (cputype == "286_prefetch") { /* 6-byte prefetch queue ref [http://www.phatcode.net/res/224/files/html/ch11/11-02.html] */
 			CPU_ArchitectureType = CPU_ARCHTYPE_286;
 			if (core == "normal") {
