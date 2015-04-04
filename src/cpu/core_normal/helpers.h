@@ -144,8 +144,12 @@
 #define CASE_W(_WHICH)							\
 	case (OPCODE_NONE+_WHICH):
 
-#define CASE_D(_WHICH)							\
+#ifdef CPU_CORE_386
+# define CASE_D(_WHICH)							\
 	case (OPCODE_SIZE+_WHICH):
+#else
+# define CASE_D(_WHICH)
+#endif
 
 #define CASE_B(_WHICH)							\
 	CASE_W(_WHICH)								\
@@ -154,8 +158,12 @@
 #define CASE_0F_W(_WHICH)						\
 	case ((OPCODE_0F|OPCODE_NONE)+_WHICH):
 
-#define CASE_0F_D(_WHICH)						\
+#ifdef CPU_CORE_386
+# define CASE_0F_D(_WHICH)						\
 	case ((OPCODE_0F|OPCODE_SIZE)+_WHICH):
+#else
+# define CASE_0F_D(_WHICH)
+#endif
 
 #define CASE_0F_B(_WHICH)						\
 	CASE_0F_W(_WHICH)							\

@@ -69,12 +69,14 @@ extern Bitu cycle_count;
 
 #define OPCODE_NONE			0x000
 #define OPCODE_0F			0x100
-#define OPCODE_SIZE			0x200
 
-#define PREFIX_ADDR			0x1
+#define OPCODE_SIZE			0			//DISABLED
+
+#define PREFIX_ADDR			0			//DISABLED
+
 #define PREFIX_REP			0x2
 
-#define TEST_PREFIX_ADDR	(core.prefixes & PREFIX_ADDR)
+#define TEST_PREFIX_ADDR	(0)				//DISABLED
 #define TEST_PREFIX_REP		(core.prefixes & PREFIX_REP)
 
 #define DO_PREFIX_SEG(_SEG)					\
@@ -83,11 +85,9 @@ extern Bitu cycle_count;
 	core.base_val_ds=_SEG;					\
 	goto restart_opcode;
 
+// it's the core's job not to decode 0x66-0x67 when compiled for 286
 #define DO_PREFIX_ADDR()								\
-	core.prefixes=(core.prefixes & ~PREFIX_ADDR) |		\
-	(cpu.code.big ^ PREFIX_ADDR);						\
-	core.ea_table=&EATable[(core.prefixes&1) * 256];	\
-	goto restart_opcode;
+	abort();									
 
 #define DO_PREFIX_REP(_ZERO)				\
 	core.prefixes|=PREFIX_REP;				\
@@ -96,7 +96,7 @@ extern Bitu cycle_count;
 
 typedef PhysPt (*GetEAHandler)(void);
 
-static const Bit32u AddrMaskTable[2]={0x0000ffff,0xffffffff};
+static const Bit32u AddrMaskTable[2]={0x0000ffff,0x0000ffff};
 
 static struct {
 	Bitu opcode_index;
@@ -134,9 +134,9 @@ static INLINE Bit32u Fetchd() {
 }
 
 #define Push_16 CPU_Push16
-#define Push_32 CPU_Push32
 #define Pop_16 CPU_Pop16
-#define Pop_32 CPU_Pop32
+#define Push_32 abort();	//DISABLED
+#define Pop_32 abort();		//DISABLED
 
 #include "instructions.h"
 #include "core_normal/support.h"
@@ -148,9 +148,9 @@ static INLINE Bit32u Fetchd() {
 Bits CPU_Core286_Normal_Run(void) {
 	while (CPU_Cycles-->0) {
 		LOADIP;
-		core.opcode_index=cpu.code.big*0x200;
-		core.prefixes=cpu.code.big;
-		core.ea_table=&EATable[cpu.code.big*256];
+		core.prefixes=0;
+		core.opcode_index=0;
+		core.ea_table=&EATable[0];
 		BaseDS=SegBase(ds);
 		BaseSS=SegBase(ss);
 		core.base_val_ds=ds;
@@ -167,8 +167,8 @@ restart_opcode:
 		switch (core.opcode_index+Fetchb()) {
 		#include "core_normal/prefix_none.h"
 		#include "core_normal/prefix_0f.h"
-		#include "core_normal/prefix_66.h"
-		#include "core_normal/prefix_66_0f.h"
+//		#include "core_normal/prefix_66.h"			// DISABLED
+//		#include "core_normal/prefix_66_0f.h"			// DISABLED
 		default:
 		illegal_opcode:
 #if C_DEBUG	

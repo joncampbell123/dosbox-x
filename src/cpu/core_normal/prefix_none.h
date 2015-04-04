@@ -255,11 +255,15 @@
 		DO_PREFIX_SEG(fs);break;
 	CASE_B(0x65)												/* SEG GS: */
 		DO_PREFIX_SEG(gs);break;
-	CASE_B(0x66)												/* Operand Size Prefix */
+#ifdef CPU_CORE_386
+	CASE_B(0x66)												/* Operand Size Prefix (386+) */
 		core.opcode_index=(cpu.code.big^0x1)*0x200;
 		goto restart_opcode;
-	CASE_B(0x67)												/* Address Size Prefix */
+#endif
+#ifdef CPU_CORE_386
+	CASE_B(0x67)												/* Address Size Prefix (386+) */
 		DO_PREFIX_ADDR();
+#endif
 	CASE_W(0x68)												/* PUSH Iw */
 		Push_16(Fetchw());break;
 	CASE_W(0x69)												/* IMUL Gw,Ew,Iw */
