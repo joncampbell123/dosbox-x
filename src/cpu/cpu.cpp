@@ -345,7 +345,26 @@ void CPU_SetCPL(Bitu newcpl) {
 }
 
 void CPU_SetFlags(Bitu word,Bitu mask) {
-	mask|=CPU_extflags_toggle;	// ID-flag and AC-flag can be toggled on CPUID-supporting CPUs
+	/* 8086/286 flags manipulation.
+	 * For more information read about the Intel CPU detection algorithm and other bits of info:
+	 * [http://www.rcollins.org/ddj/Sep96/Sep96.html] */
+
+	/* 286 real mode: bits 12-15 bits cannot be set, always zero */
+	if (CPU_ArchitectureType == CPU_ARCHTYPE_286 && !(cpu.cr0 & CR0_PROTECTION)) {
+		/* update mask and word to ensure bits 12-15 are zero */
+		word &= ~0xF000;
+		mask |= 0xF000;
+	}
+	/* 8086: bits 12-15 cannot be zeroed */
+	else if (CPU_ArchitectureType == CPU_ARCHTYPE_8086) {
+		/* update mask and word to ensure bits 12-15 are set */
+		word |= 0xF000;
+		mask |= 0xF000;
+	}
+	else {
+		mask |= CPU_extflags_toggle;	// ID-flag and AC-flag can be toggled on CPUID-supporting CPUs
+	}
+
 	reg_flags=(reg_flags & ~mask)|(word & mask)|2;
 	cpu.direction=1-((reg_flags & FLAG_DF) >> 9);
 }
@@ -2760,6 +2779,36 @@ public:
 		std::string cputype(section->Get_string("cputype"));
 		if (cputype == "auto") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_MIXED;
+		} else if (cputype == "8086") {
+			CPU_ArchitectureType = CPU_ARCHTYPE_8086;
+			/* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
+		} else if (cputype == "8086_prefetch") { /* 6-byte prefetch queue ref [http://www.phatcode.net/res/224/files/html/ch11/11-02.html] */
+			CPU_ArchitectureType = CPU_ARCHTYPE_8086;
+			if (core == "normal") {
+				cpudecoder=&CPU_Core_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
+				CPU_PrefetchQueueSize = 4; /* Emulate the 8088, which was more common in home PCs than having an 8086 */
+			} else if (core == "auto") {
+				cpudecoder=&CPU_Core_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
+				CPU_PrefetchQueueSize = 4; /* Emulate the 8088, which was more common in home PCs than having an 8086 */
+				CPU_AutoDetermineMode&=(~CPU_AUTODETERMINE_CORE);
+			} else {
+				E_Exit("prefetch queue emulation requires the normal core setting.");
+			}
+		} else if (cputype == "286") {
+			CPU_ArchitectureType = CPU_ARCHTYPE_286;
+			/* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
+		} else if (cputype == "286_prefetch") { /* 6-byte prefetch queue ref [http://www.phatcode.net/res/224/files/html/ch11/11-02.html] */
+			CPU_ArchitectureType = CPU_ARCHTYPE_286;
+			if (core == "normal") {
+				cpudecoder=&CPU_Core_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
+				CPU_PrefetchQueueSize = 6;
+			} else if (core == "auto") {
+				cpudecoder=&CPU_Core_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
+				CPU_PrefetchQueueSize = 6;
+				CPU_AutoDetermineMode&=(~CPU_AUTODETERMINE_CORE);
+			} else {
+				E_Exit("prefetch queue emulation requires the normal core setting.");
+			}
 		} else if (cputype == "386") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_386;
 		} else if (cputype == "386_prefetch") {
@@ -2793,6 +2842,14 @@ public:
 		} else if (cputype == "pentium_mmx") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_P55CSLOW;
  		}
+
+		/* WARNING */
+		if (CPU_ArchitectureType == CPU_ARCHTYPE_286) {
+			LOG_MSG("CPU warning: 286 cpu type is experimental at this time");
+		}
+		else if (CPU_ArchitectureType == CPU_ARCHTYPE_8086) {
+			LOG_MSG("CPU warning: 8086 cpu type is experimental at this time");
+		}
 
 		if (CPU_ArchitectureType>=CPU_ARCHTYPE_486NEW) CPU_extflags_toggle=(FLAG_ID|FLAG_AC);
 		else if (CPU_ArchitectureType>=CPU_ARCHTYPE_486OLD) CPU_extflags_toggle=(FLAG_AC);
