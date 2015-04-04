@@ -1202,6 +1202,12 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("reset on triple fault",Property::Changeable::Always,true);
 	Pbool->Set_help("Reset CPU on triple fault condition (failure to handle double fault)");
 
+	Pbool = secprop->Add_bool("always report double fault",Property::Changeable::Always,false);
+	Pbool->Set_help("Always report (to log file) double faults if set. Else, a double fault is reported only once. Set this option for debugging purposes.");
+
+	Pbool = secprop->Add_bool("always report triple fault",Property::Changeable::Always,false);
+	Pbool->Set_help("Always report (to log file) triple faults if set. Else, a triple fault is reported only once. Set this option for debugging purposes.");
+
 	Pbool = secprop->Add_bool("enable msr",Property::Changeable::Always,true);
 	Pbool->Set_help("Allow RDMSR/WRMSR instructions. This option is only meaningful when cputype=pentium.");
 

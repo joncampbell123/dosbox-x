@@ -751,6 +751,11 @@ void CPU_Exception_Level_Reset() {
 		CPU_Exception_In_Progress.pop();
 }
 
+bool has_printed_double_fault = false;
+bool has_printed_triple_fault = false;
+bool always_report_double_fault = false;
+bool always_report_triple_fault = false;
+
 void On_Software_CPU_Reset();
 
 void CPU_Exception(Bitu which,Bitu error ) {
@@ -758,14 +763,21 @@ void CPU_Exception(Bitu which,Bitu error ) {
 //	LOG_MSG("Exception %d error %x",which,error);
 	if (CPU_Exception_Level[which] != 0) {
 		if (CPU_Exception_Level[EXCEPTION_DF] != 0 && cpu_triple_fault_reset) {
-			LOG_MSG("CPU_Exception: Double fault already in progress == Triple Fault. Resetting CPU.");
+			if (always_report_triple_fault || !has_printed_triple_fault) {
+				LOG_MSG("CPU_Exception: Double fault already in progress == Triple Fault. Resetting CPU.");
+				has_printed_triple_fault = true;
+			}
+
 			// Triple fault -> special shutdown cycle -> reset signal -> reset.
 			// Sickening, I know, but that's how IBM wired things a long long time ago.
 			On_Software_CPU_Reset();
 			E_Exit("Triple fault reset call unexpectedly returned");
 		}
 
-		LOG_MSG("CPU_Exception: Exception %d already in progress, triggering double fault instead",which);
+		if (always_report_double_fault || !has_printed_double_fault) {
+			LOG_MSG("CPU_Exception: Exception %d already in progress, triggering double fault instead",which);
+			has_printed_double_fault = true;
+		}
 		which = EXCEPTION_DF;
 		error = 0;
 	}
@@ -2656,6 +2668,9 @@ public:
 		cpu_triple_fault_reset = section->Get_bool("reset on triple fault");
 		cpu_allow_big16 = section->Get_bool("realbig16");
 		if (cpu_allow_big16) LOG_MSG("WARNING: B (big) bit allowed in real mode\n");
+
+		always_report_double_fault = section->Get_bool("always report double fault");
+		always_report_triple_fault = section->Get_bool("always report triple fault");
 
 		dynamic_core_cache_block_size = section->Get_int("dynamic core cache block size");
 		if (dynamic_core_cache_block_size < 1 || dynamic_core_cache_block_size > 65536) dynamic_core_cache_block_size = 32;
