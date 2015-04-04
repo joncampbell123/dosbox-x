@@ -656,6 +656,54 @@ unsigned char CMOS_GetShutdownByte();
 void CPU_Snap_Back_To_Real_Mode();
 void DEBUG_Enable(bool pressed);
 void CPU_Snap_Back_Forget();
+Bitu CPU_Pop16(void);
+
+static bool cmos_reset_type_9_sarcastic_win31_comments=true;
+
+void On_Software_286_int15_block_move_return(unsigned char code) {
+	Bit16u vec_seg,vec_off;
+
+	/* make CPU core stop immediately */
+	CPU_Cycles = 0;
+
+	/* force CPU back to real mode */
+	CPU_Snap_Back_To_Real_Mode();
+	CPU_Snap_Back_Forget();
+
+	/* read the reset vector from the BIOS data area. this time, it's a stack pointer */
+	vec_off = phys_readw(0x400 + 0x67);
+	vec_seg = phys_readw(0x400 + 0x69);
+
+	if (cmos_reset_type_9_sarcastic_win31_comments) {
+		cmos_reset_type_9_sarcastic_win31_comments=false;
+		LOG_MSG("CMOS Shutdown byte 0x%02x says to do INT 15 block move reset %04x:%04x. Only weirdos like Windows 3.1 use this... NOT WELL TESTED!",code,vec_seg,vec_off);
+	}
+
+	/* FIXME: The way I will be carrying this out is incompatible with the Dynamic core! */
+	if (cpudecoder == &CPU_Core_Dyn_X86_Run) E_Exit("Sorry, CMOS shutdown CPU reset method is not compatible with dynamic core");
+
+	/* set stack pointer. prepare to emulate BIOS returning from INT 15h block move, 286 style */
+	CPU_SetSegGeneral(cs,0xF000);
+	CPU_SetSegGeneral(ss,vec_seg);
+	reg_esp = vec_off;
+
+	/* WARNING! WARNING! This is based on what Windows 3.1 standard mode (cputype=286) expects.
+	 * We need more comprehensive documentation on what actual 286 BIOSes do.
+	 * This code, order-wise, is a guess! No documentation exists on what actually happens!
+	 * But so far, this allows Windows 3.1 to run in full Standard Mode when cputype=286 without crashing.
+	 * Be warned that while it works DOSBox-X will spit a shitload of messages about the triple-fault reset trick it's using. */
+	CPU_SetSegGeneral(es,CPU_Pop16());	/* FIXME: ES? or DS? */
+	CPU_SetSegGeneral(ds,CPU_Pop16());	/* FIXME: ES? or DS? */
+	/* probably the stack frame of POPA */
+	reg_di=CPU_Pop16();reg_si=CPU_Pop16();reg_bp=CPU_Pop16();CPU_Pop16();//Don't save SP
+	reg_bx=CPU_Pop16();reg_dx=CPU_Pop16();reg_cx=CPU_Pop16();reg_ax=CPU_Pop16();
+	/* and then finally what looks like an IRET frame */
+	CPU_IRET(false,0);
+
+	/* force execution change (FIXME: Is there a better way to do this?) */
+	throw int(4);
+	/* does not return */
+}
 
 void On_Software_286_reset_vector(unsigned char code) {
 	Bit16u vec_seg,vec_off;
@@ -714,6 +762,9 @@ void On_Software_CPU_Reset() {
 		case 0x05:	/* JMP double word pointer with EOI */
 		case 0x0A:	/* JMP double word pointer without EOI */
 			On_Software_286_reset_vector(c);
+			return;
+		case 0x09:	/* INT 15h block move return to real mode (to appease Windows 3.1 KRNL286.EXE and cputype=286, yuck) */
+			On_Software_286_int15_block_move_return(c);
 			return;
 	};
 
