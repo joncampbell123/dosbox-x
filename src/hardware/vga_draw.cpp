@@ -969,6 +969,30 @@ static Bit8u VGA_GetBlankedIndex() {
 void VGA_Update_SplitLineCompare() {
 	vga.draw.split_line = vga.config.line_compare+1;
 	if (svgaCard==SVGA_S3Trio) {
+		/* FIXME: Is this really necessary? Is this what S3 chipsets do?
+		 *        What is supposed to happen is that line_compare == 0 on normal VGA will cause the first
+		 *        scanline to repeat twice. Do S3 chipsets NOT reproduce that quirk?
+		 *
+		 *        The other theory I have about whoever wrote this code is that they wanted to multiply
+		 *        the scan line by two but had to compensate for the line_compare+1 assignment above.
+		 *        Rather than end up with a splitscreen too far down, they did that.
+		 *
+		 *        I think the proper code to put here would be:
+		 *
+		 *        if (vga.s3.reg_42 & 0x20) {
+		 *            vga.draw.split_line--;
+		 *            vga.draw.split_line *= 2;
+		 *            vga.draw.split_line++;
+		 *        }
+		 *
+		 *        Is that right?
+		 *
+		 *        This behavior is the reason for Issue #40 "Flash productions "monstra" extra white line at top of screen"
+		 *        because it causes line compare to miss and the first scanline of the white bar appears on scanline 2,
+		 *        when the demo coder obviously intended for line_compare == 0 to repeat the first scanline twice so that
+		 *        on line 3, it can begin updating line compare to continue repeating the first scanline.
+		 *
+		 * TODO: Pull out some S3 graphics cards and check split line behavior when line_compare == 0 */
 		if (vga.config.line_compare==0) vga.draw.split_line=0;
 		if (vga.s3.reg_42 & 0x20) { // interlaced mode
 			vga.draw.split_line *= 2;
