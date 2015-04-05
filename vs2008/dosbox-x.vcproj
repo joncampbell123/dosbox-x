@@ -607,6 +607,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\hardware\floppy.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\fpu\fpu.cpp"
 				>
 			</File>
