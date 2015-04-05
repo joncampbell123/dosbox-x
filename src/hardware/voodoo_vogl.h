@@ -29,6 +29,8 @@
 extern PFNGLACTIVETEXTUREARBPROC glActiveTextureARB;
 extern PFNGLMULTITEXCOORD4FARBPROC glMultiTexCoord4fARB;
 extern PFNGLMULTITEXCOORD4FVARBPROC glMultiTexCoord4fvARB;
+# define glMultiTexCoord4fv glMultiTexCoord4fvARB
+# define glActiveTexture glActiveTextureARB
 #endif
 
 extern PFNGLCREATESHADEROBJECTARBPROC glCreateShaderObjectARB;
