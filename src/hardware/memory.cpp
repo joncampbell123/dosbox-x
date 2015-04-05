@@ -679,8 +679,10 @@ void On_Software_286_int15_block_move_return(unsigned char code) {
 		LOG_MSG("CMOS Shutdown byte 0x%02x says to do INT 15 block move reset %04x:%04x. Only weirdos like Windows 3.1 use this... NOT WELL TESTED!",code,vec_seg,vec_off);
 	}
 
+#if C_DYNAMIC_X86
 	/* FIXME: The way I will be carrying this out is incompatible with the Dynamic core! */
 	if (cpudecoder == &CPU_Core_Dyn_X86_Run) E_Exit("Sorry, CMOS shutdown CPU reset method is not compatible with dynamic core");
+#endif
 
 	/* set stack pointer. prepare to emulate BIOS returning from INT 15h block move, 286 style */
 	CPU_SetSegGeneral(cs,0xF000);
@@ -725,8 +727,10 @@ void On_Software_286_reset_vector(unsigned char code) {
 
 	LOG_MSG("CMOS Shutdown byte 0x%02x says to jump to reset vector %04x:%04x",code,vec_seg,vec_off);
 
+#if C_DYNAMIC_X86
 	/* FIXME: The way I will be carrying this out is incompatible with the Dynamic core! */
 	if (cpudecoder == &CPU_Core_Dyn_X86_Run) E_Exit("Sorry, CMOS shutdown CPU reset method is not compatible with dynamic core");
+#endif
 
 	/* following CPU reset, and coming from the BIOS, CPU registers are trashed */
 	reg_eax = 0x2010000;
