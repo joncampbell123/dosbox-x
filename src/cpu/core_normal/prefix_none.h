@@ -278,19 +278,19 @@
 		RMGwEwOp3(DIMULW,Fetchbs());
 		break;
 	CASE_B(0x6c)												/* INSB */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_286) goto illegal_opcode;
 		if (CPU_IO_Exception(reg_dx,1)) RUNEXCEPTION();
 		DoString(R_INSB);break;
 	CASE_W(0x6d)												/* INSW */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_286) goto illegal_opcode;
 		if (CPU_IO_Exception(reg_dx,2)) RUNEXCEPTION();
 		DoString(R_INSW);break;
 	CASE_B(0x6e)												/* OUTSB */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_286) goto illegal_opcode;
 		if (CPU_IO_Exception(reg_dx,1)) RUNEXCEPTION();
 		DoString(R_OUTSB);break;
 	CASE_W(0x6f)												/* OUTSW */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_286) goto illegal_opcode;
 		if (CPU_IO_Exception(reg_dx,2)) RUNEXCEPTION();
 		DoString(R_OUTSW);break;
 	CASE_W(0x70)												/* JO */
