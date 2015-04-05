@@ -358,7 +358,7 @@ void CPU_SetFlags(Bitu word,Bitu mask) {
 		}
 	}
 	/* 8086: bits 12-15 cannot be zeroed */
-	else if (CPU_ArchitectureType == CPU_ARCHTYPE_8086) {
+	else if (CPU_ArchitectureType < CPU_ARCHTYPE_286) {
 		/* update mask and word to ensure bits 12-15 are set */
 		word |= 0xF000;
 		mask |= 0xF000;
@@ -2798,7 +2798,7 @@ public:
 			CPU_ArchitectureType = CPU_ARCHTYPE_MIXED;
 		} else if (cputype == "8086") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_8086;
-			/* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
+			cpudecoder=&CPU_Core286_Normal_Run;
 		} else if (cputype == "8086_prefetch") { /* 6-byte prefetch queue ref [http://www.phatcode.net/res/224/files/html/ch11/11-02.html] */
 			CPU_ArchitectureType = CPU_ARCHTYPE_8086;
 			if (core == "normal") {
