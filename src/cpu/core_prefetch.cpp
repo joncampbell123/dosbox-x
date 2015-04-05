@@ -30,6 +30,8 @@
 #include "paging.h"
 #include "mmx.h"
 
+#define CPU_CORE_386
+
 extern bool ignore_opcode_63;
 
 #if C_DEBUG
