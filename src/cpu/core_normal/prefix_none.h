@@ -252,8 +252,10 @@
 		}
 		break;
 	CASE_B(0x64)												/* SEG FS: */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		DO_PREFIX_SEG(fs);break;
 	CASE_B(0x65)												/* SEG GS: */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		DO_PREFIX_SEG(gs);break;
 #ifdef CPU_CORE_386
 	CASE_B(0x66)												/* Operand Size Prefix (386+) */

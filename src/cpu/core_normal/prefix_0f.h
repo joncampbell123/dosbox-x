@@ -321,14 +321,17 @@ bool CPU_WRMSR();
 		SETcc(TFLG_NLE);break;
 
 	CASE_0F_W(0xa0)												/* PUSH FS */		
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		Push_16(SegValue(fs));break;
 	CASE_0F_W(0xa1)												/* POP FS */	
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		if (CPU_PopSeg(fs,false)) RUNEXCEPTION();
 		break;
 	CASE_0F_B(0xa2)												/* CPUID */
 		if (!CPU_CPUID()) goto illegal_opcode;
 		break;
 	CASE_0F_W(0xa3)												/* BT Ew,Gw */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			FillFlags();GetRMrw;
 			Bit16u mask=1 << (*rmrw & 15);
@@ -343,17 +346,22 @@ bool CPU_WRMSR();
 			break;
 		}
 	CASE_0F_W(0xa4)												/* SHLD Ew,Gw,Ib */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		RMEwGwOp3(DSHLW,Fetchb());
 		break;
 	CASE_0F_W(0xa5)												/* SHLD Ew,Gw,CL */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		RMEwGwOp3(DSHLW,reg_cl);
 		break;
 	CASE_0F_W(0xa8)												/* PUSH GS */		
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		Push_16(SegValue(gs));break;
 	CASE_0F_W(0xa9)												/* POP GS */		
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		if (CPU_PopSeg(gs,false)) RUNEXCEPTION();
 		break;
 	CASE_0F_W(0xab)												/* BTS Ew,Gw */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			FillFlags();GetRMrw;
 			Bit16u mask=1 << (*rmrw & 15);
@@ -370,9 +378,11 @@ bool CPU_WRMSR();
 			break;
 		}
 	CASE_0F_W(0xac)												/* SHRD Ew,Gw,Ib */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		RMEwGwOp3(DSHRW,Fetchb());
 		break;
 	CASE_0F_W(0xad)												/* SHRD Ew,Gw,CL */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		RMEwGwOp3(DSHRW,reg_cl);
 		break;
 	CASE_0F_W(0xaf)												/* IMUL Gw,Ew */
@@ -445,6 +455,7 @@ bool CPU_WRMSR();
 			break;
 		}
 	CASE_0F_W(0xb3)												/* BTR Ew,Gw */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			FillFlags();GetRMrw;
 			Bit16u mask=1 << (*rmrw & 15);
@@ -461,6 +472,7 @@ bool CPU_WRMSR();
 			break;
 		}
 	CASE_0F_W(0xb4)												/* LFS Ew */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{	
 			GetRMrw;
 			if (rm >= 0xc0) goto illegal_opcode;
@@ -470,6 +482,7 @@ bool CPU_WRMSR();
 			break;
 		}
 	CASE_0F_W(0xb5)												/* LGS Ew */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{	
 			GetRMrw;
 			if (rm >= 0xc0) goto illegal_opcode;
@@ -479,6 +492,7 @@ bool CPU_WRMSR();
 			break;
 		}
 	CASE_0F_W(0xb6)												/* MOVZX Gw,Eb */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			GetRMrw;															
 			if (rm >= 0xc0 ) {GetEArb;*rmrw=*earb;}
@@ -487,6 +501,7 @@ bool CPU_WRMSR();
 		}
 	CASE_0F_W(0xb7)												/* MOVZX Gw,Ew */
 	CASE_0F_W(0xbf)												/* MOVSX Gw,Ew */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			GetRMrw;															
 			if (rm >= 0xc0 ) {GetEArw;*rmrw=*earw;}
@@ -494,6 +509,7 @@ bool CPU_WRMSR();
 			break;
 		}
 	CASE_0F_W(0xba)												/* GRP8 Ew,Ib */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			FillFlags();GetRM;
 			if (rm >= 0xc0 ) {
@@ -538,6 +554,7 @@ bool CPU_WRMSR();
 			break;
 		}
 	CASE_0F_W(0xbb)												/* BTC Ew,Gw */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			FillFlags();GetRMrw;
 			Bit16u mask=1 << (*rmrw & 15);
@@ -554,6 +571,7 @@ bool CPU_WRMSR();
 			break;
 		}
 	CASE_0F_W(0xbc)												/* BSF Gw,Ew */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			GetRMrw;
 			Bit16u result,value;
@@ -571,6 +589,7 @@ bool CPU_WRMSR();
 			break;
 		}
 	CASE_0F_W(0xbd)												/* BSR Gw,Ew */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			GetRMrw;
 			Bit16u result,value;
@@ -588,6 +607,7 @@ bool CPU_WRMSR();
 			break;
 		}
 	CASE_0F_W(0xbe)												/* MOVSX Gw,Eb */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			GetRMrw;															
 			if (rm >= 0xc0 ) {GetEArb;*rmrw=*(Bit8s *)earb;}
