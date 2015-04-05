@@ -92,6 +92,7 @@ bool CPU_WRMSR();
 					if (CPU_LMSW(limit)) RUNEXCEPTION();
 					break;
 				case 0x07:										/* INVLPG */
+					if (CPU_ArchitectureType<CPU_ARCHTYPE_486OLD) goto illegal_opcode;
 					if (cpu.pmode && cpu.cpl) EXCEPTION(EXCEPTION_GP);
 					PAGING_ClearTLB();
 					break;
@@ -255,6 +256,7 @@ bool CPU_WRMSR();
 			if (!CPU_RDMSR()) goto illegal_opcode;
 		}
 		break;
+#ifdef CPU_CORE_386
 	CASE_0F_W(0x80)												/* JO */
 		JumpCond16_w(TFLG_O);break;
 	CASE_0F_W(0x81)												/* JNO */
@@ -319,7 +321,7 @@ bool CPU_WRMSR();
 		SETcc(TFLG_LE);break;
 	CASE_0F_B(0x9f)												/* SETNLE */
 		SETcc(TFLG_NLE);break;
-
+#endif
 	CASE_0F_W(0xa0)												/* PUSH FS */		
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		Push_16(SegValue(fs));break;
