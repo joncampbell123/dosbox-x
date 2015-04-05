@@ -319,7 +319,10 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
 		if (!use_cb) E_Exit("int74 callback must implement a callback handler!");
 		phys_writeb(physAddress+0x00,(Bit8u)0x1e);		// push ds
 		phys_writeb(physAddress+0x01,(Bit8u)0x06);		// push es
-		phys_writew(physAddress+0x02,(Bit16u)0x6066);	// pushad
+		if (CPU_ArchitectureType>=CPU_ARCHTYPE_386)
+			phys_writew(physAddress+0x02,(Bit16u)0x6066);	// pushad
+		else
+			phys_writew(physAddress+0x02,(Bit16u)0x6090);	// pusha+nop
 		phys_writeb(physAddress+0x04,(Bit8u)0xfc);		// cld
 		phys_writeb(physAddress+0x05,(Bit8u)0xfb);		// sti
 		phys_writeb(physAddress+0x06,(Bit8u)0xFE);		//GRP 4
@@ -337,7 +340,10 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
 		phys_writew(physAddress+0x01,(Bit16u)0x20b0);	// mov al, 0x20
 		phys_writew(physAddress+0x03,(Bit16u)0xa0e6);	// out 0xa0, al
 		phys_writew(physAddress+0x05,(Bit16u)0x20e6);	// out 0x20, al
-		phys_writew(physAddress+0x07,(Bit16u)0x6166);	// popad
+		if (CPU_ArchitectureType>=CPU_ARCHTYPE_386)
+			phys_writew(physAddress+0x07,(Bit16u)0x6166);	// popad
+		else
+			phys_writew(physAddress+0x07,(Bit16u)0x6190);	// popa+nop
 		phys_writeb(physAddress+0x09,(Bit8u)0x07);		// pop es
 		phys_writeb(physAddress+0x0a,(Bit8u)0x1f);		// pop ds
 		phys_writeb(physAddress+0x0b,(Bit8u)0xcf);		//An IRET Instruction
