@@ -151,6 +151,7 @@ bool CPU_WRMSR();
 		if (cpu.pmode && cpu.cpl) EXCEPTION(EXCEPTION_GP);
 		break;
 	CASE_0F_B(0x20)												/* MOV Rd.CRx */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			GetRM;
 			Bitu which=(rm >> 3) & 7;
@@ -165,6 +166,7 @@ bool CPU_WRMSR();
 		}
 		break;
 	CASE_0F_B(0x21)												/* MOV Rd,DRx */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			GetRM;
 			Bitu which=(rm >> 3) & 7;
@@ -179,9 +181,7 @@ bool CPU_WRMSR();
 		}
 		break;
 	CASE_0F_B(0x22)												/* MOV CRx,Rd */
-#if 0 /* DO NOT ENABLE UNLESS DEBUGGING 286-STYLE TRIPLE FAULT THUNKING BACK TO REAL MODE */
-		goto illegal_opcode;
-#endif
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			GetRM;
 			Bitu which=(rm >> 3) & 7;
@@ -194,6 +194,7 @@ bool CPU_WRMSR();
 		}
 		break;
 	CASE_0F_B(0x23)												/* MOV DRx,Rd */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			GetRM;
 			Bitu which=(rm >> 3) & 7;
@@ -206,6 +207,7 @@ bool CPU_WRMSR();
 		}
 		break;
 	CASE_0F_B(0x24)												/* MOV Rd,TRx */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			GetRM;
 			Bitu which=(rm >> 3) & 7;
@@ -220,6 +222,7 @@ bool CPU_WRMSR();
 		}
 		break;
 	CASE_0F_B(0x26)												/* MOV TRx,Rd */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
 			GetRM;
 			Bitu which=(rm >> 3) & 7;
