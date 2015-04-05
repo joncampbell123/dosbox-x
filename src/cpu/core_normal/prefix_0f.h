@@ -448,6 +448,7 @@ bool CPU_WRMSR();
 		}
 
 	CASE_0F_W(0xb2)												/* LSS Ew */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{	
 			GetRMrw;
 			if (rm >= 0xc0) goto illegal_opcode;
