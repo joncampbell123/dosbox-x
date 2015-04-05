@@ -370,7 +370,6 @@ static void FPU_FST(Bitu st, Bitu other){
 # define isinf(x) (!(_finite(x) || _isnan(x)))
 #else
 # include <cmath>
-using namespace std;
 #endif
 
 static void FPU_FCOM(Bitu st, Bitu other){
