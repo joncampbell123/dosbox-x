@@ -2811,6 +2811,21 @@ public:
 			} else {
 				E_Exit("prefetch queue emulation requires the normal core setting.");
 			}
+		} else if (cputype == "80186") {
+			CPU_ArchitectureType = CPU_ARCHTYPE_80186;
+			cpudecoder=&CPU_Core286_Normal_Run;
+		} else if (cputype == "80186_prefetch") { /* 6-byte prefetch queue ref [http://www.phatcode.net/res/224/files/html/ch11/11-02.html] */
+			CPU_ArchitectureType = CPU_ARCHTYPE_80186;
+			if (core == "normal") {
+				cpudecoder=&CPU_Core_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
+				CPU_PrefetchQueueSize = 6;
+			} else if (core == "auto") {
+				cpudecoder=&CPU_Core_Prefetch_Run; /* TODO: Alternate 16-bit only decoder for 286 that does NOT include 386+ instructions */
+				CPU_PrefetchQueueSize = 6;
+				CPU_AutoDetermineMode&=(~CPU_AUTODETERMINE_CORE);
+			} else {
+				E_Exit("prefetch queue emulation requires the normal core setting.");
+			}
 		} else if (cputype == "286") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_286;
 			cpudecoder=&CPU_Core286_Normal_Run;
@@ -2861,11 +2876,11 @@ public:
  		}
 
 		/* WARNING */
-		if (CPU_ArchitectureType == CPU_ARCHTYPE_286) {
-			LOG_MSG("CPU warning: 286 cpu type is experimental at this time");
-		}
-		else if (CPU_ArchitectureType == CPU_ARCHTYPE_8086) {
+		if (CPU_ArchitectureType == CPU_ARCHTYPE_8086) {
 			LOG_MSG("CPU warning: 8086 cpu type is experimental at this time");
+		}
+		else if (CPU_ArchitectureType == CPU_ARCHTYPE_80186) {
+			LOG_MSG("CPU warning: 80186 cpu type is experimental at this time");
 		}
 
 		if (CPU_ArchitectureType>=CPU_ARCHTYPE_486NEW) CPU_extflags_toggle=(FLAG_ID|FLAG_AC);
