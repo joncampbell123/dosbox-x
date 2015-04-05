@@ -226,6 +226,7 @@
 		reg_bx=Pop_16();reg_dx=Pop_16();reg_cx=Pop_16();reg_ax=Pop_16();
 		break;
 	CASE_W(0x62)												/* BOUND */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
 		{
 			Bit16s bound_min, bound_max;
 			GetRMrw;GetEAa;
@@ -267,30 +268,34 @@
 		DO_PREFIX_ADDR();
 #endif
 	CASE_W(0x68)												/* PUSH Iw */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
 		Push_16(Fetchw());break;
 	CASE_W(0x69)												/* IMUL Gw,Ew,Iw */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_286) goto illegal_opcode;
 		RMGwEwOp3(DIMULW,Fetchws());
 		break;
 	CASE_W(0x6a)												/* PUSH Ib */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
 		Push_16(Fetchbs());
 		break;
 	CASE_W(0x6b)												/* IMUL Gw,Ew,Ib */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_286) goto illegal_opcode;
 		RMGwEwOp3(DIMULW,Fetchbs());
 		break;
 	CASE_B(0x6c)												/* INSB */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_286) goto illegal_opcode;
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
 		if (CPU_IO_Exception(reg_dx,1)) RUNEXCEPTION();
 		DoString(R_INSB);break;
 	CASE_W(0x6d)												/* INSW */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_286) goto illegal_opcode;
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
 		if (CPU_IO_Exception(reg_dx,2)) RUNEXCEPTION();
 		DoString(R_INSW);break;
 	CASE_B(0x6e)												/* OUTSB */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_286) goto illegal_opcode;
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
 		if (CPU_IO_Exception(reg_dx,1)) RUNEXCEPTION();
 		DoString(R_OUTSB);break;
 	CASE_W(0x6f)												/* OUTSW */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_286) goto illegal_opcode;
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
 		if (CPU_IO_Exception(reg_dx,2)) RUNEXCEPTION();
 		DoString(R_OUTSW);break;
 	CASE_W(0x70)												/* JO */
@@ -728,6 +733,7 @@
 			break;
 		}
 	CASE_W(0xc8)												/* ENTER Iw,Ib */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
 		{
 			Bitu bytes=Fetchw();
 			Bitu level=Fetchb();
@@ -735,6 +741,7 @@
 		}
 		break;
 	CASE_W(0xc9)												/* LEAVE */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
 		reg_esp&=cpu.stack.notmask;
 		reg_esp|=(reg_ebp&cpu.stack.mask);
 		reg_bp=Pop_16();
