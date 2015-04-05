@@ -68,13 +68,18 @@ bool CPU_WRMSR();
 			if (rm < 0xc0)	{ //First ones all use EA
 				GetEAa;Bitu limit;
 				switch (which) {
+					/* NTS: The 286 is documented to write 0xFF in the most significant byte of the 6-byte field,
+					 *      while 386 and later is documented to write 0x00 (or the MSB of the base if 32-bit form).
+					 *      Some programs, including Microsoft Windows 3.0, execute SGDT and then compare the most
+					 *      significant byte against 0xFF. It does NOT use the standard Intel detection process. */
 				case 0x00:										/* SGDT */
 					SaveMw(eaa,CPU_SGDT_limit());
-					SaveMd(eaa+2,CPU_SGDT_base());
+					SaveMd(eaa+2,CPU_SGDT_base()|(CPU_ArchitectureType<CPU_ARCHTYPE_386?0xFF000000UL:0));
 					break;
+					/* NTS: Same comments for SIDT as SGDT */
 				case 0x01:										/* SIDT */
 					SaveMw(eaa,CPU_SIDT_limit());
-					SaveMd(eaa+2,CPU_SIDT_base());
+					SaveMd(eaa+2,CPU_SIDT_base()|(CPU_ArchitectureType<CPU_ARCHTYPE_386?0xFF000000UL:0));
 					break;
 				case 0x02:										/* LGDT */
 					if (cpu.pmode && cpu.cpl) EXCEPTION(EXCEPTION_GP);
