@@ -30,6 +30,7 @@
 #include "mmx.h"
 
 #define CPU_CORE CPU_ARCHTYPE_286
+#define CPU_Core_Normal_Trap_Run CPU_Core286_Normal_Trap_Run
 
 extern bool ignore_opcode_63;
 

@@ -818,12 +818,18 @@
 	}														\
 }
 
+#if CPU_CORE == CPU_ARCHTYPE_8086
+#  define CPU_SHIFTOP_MASK(x,m) ((x) > (m) ? (m) : (x))
+#else
+#  define CPU_SHIFTOP_MASK(x,m) ((x) & 0x1f)
+#endif
+
 #define GRP2B(blah)											\
 {															\
 	GetRM;Bitu which=(rm>>3)&7;								\
+	Bit8u val=CPU_SHIFTOP_MASK(blah,7);								\
 	if (rm >= 0xc0) {										\
 		GetEArb;											\
-		Bit8u val=blah & 0x1f;								\
 		switch (which)	{									\
 		case 0x00:ROLB(*earb,val,LoadRb,SaveRb);break;		\
 		case 0x01:RORB(*earb,val,LoadRb,SaveRb);break;		\
@@ -836,7 +842,6 @@
 		}													\
 	} else {												\
 		GetEAa;												\
-		Bit8u val=blah & 0x1f;								\
 		switch (which) {									\
 		case 0x00:ROLB(eaa,val,LoadMb,SaveMb);break;		\
 		case 0x01:RORB(eaa,val,LoadMb,SaveMb);break;		\
@@ -855,9 +860,9 @@
 #define GRP2W(blah)											\
 {															\
 	GetRM;Bitu which=(rm>>3)&7;								\
+	Bit8u val=CPU_SHIFTOP_MASK(blah,15);								\
 	if (rm >= 0xc0) {										\
 		GetEArw;											\
-		Bit8u val=blah & 0x1f;								\
 		switch (which)	{									\
 		case 0x00:ROLW(*earw,val,LoadRw,SaveRw);break;		\
 		case 0x01:RORW(*earw,val,LoadRw,SaveRw);break;		\
@@ -870,7 +875,6 @@
 		}													\
 	} else {												\
 		GetEAa;												\
-		Bit8u val=blah & 0x1f;								\
 		switch (which) {									\
 		case 0x00:ROLW(eaa,val,LoadMw,SaveMw);break;		\
 		case 0x01:RORW(eaa,val,LoadMw,SaveMw);break;		\
@@ -888,9 +892,9 @@
 #define GRP2D(blah)											\
 {															\
 	GetRM;Bitu which=(rm>>3)&7;								\
+	Bit8u val=CPU_SHIFTOP_MASK(blah,31);								\
 	if (rm >= 0xc0) {										\
 		GetEArd;											\
-		Bit8u val=blah & 0x1f;								\
 		switch (which)	{									\
 		case 0x00:ROLD(*eard,val,LoadRd,SaveRd);break;		\
 		case 0x01:RORD(*eard,val,LoadRd,SaveRd);break;		\
@@ -903,7 +907,6 @@
 		}													\
 	} else {												\
 		GetEAa;												\
-		Bit8u val=blah & 0x1f;								\
 		switch (which) {									\
 		case 0x00:ROLD(eaa,val,LoadMd,SaveMd);break;		\
 		case 0x01:RORD(eaa,val,LoadMd,SaveMd);break;		\

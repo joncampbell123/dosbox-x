@@ -696,10 +696,14 @@
 		reg_si=Fetchw();break;
 	CASE_W(0xbf)												/* MOV DI,Iw */
 		reg_di=Fetchw();break;
+#if CPU_CORE >= CPU_ARCHTYPE_80186
 	CASE_B(0xc0)												/* GRP2 Eb,Ib */
+		if (CPU_ArchitectureType < CPU_ARCHTYPE_80186) abort();
 		GRP2B(Fetchb());break;
 	CASE_W(0xc1)												/* GRP2 Ew,Ib */
+		if (CPU_ArchitectureType < CPU_ARCHTYPE_80186) abort();
 		GRP2W(Fetchb());break;
+#endif
 	CASE_W(0xc2)												/* RETN Iw */
 		reg_eip=Pop_16();
 		reg_esp+=Fetchw();
