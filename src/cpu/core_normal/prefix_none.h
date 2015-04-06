@@ -539,6 +539,9 @@
 			if (rm >= 0xc0 ) {GetEArw;val=*earw;}
 			else {GetEAa;val=LoadMw(eaa);}
 			switch (which) {
+#if CPU_CORE <= CPU_ARCHTYPE_8086
+			case 0x01:					/* MOV CS,Ew (8086 only) */
+#endif
 			case 0x02:					/* MOV SS,Ew */
 				CPU_Cycles++; //Always do another instruction
 			case 0x00:					/* MOV ES,Ew */
