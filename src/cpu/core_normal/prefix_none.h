@@ -191,7 +191,11 @@
 	CASE_W(0x53)												/* PUSH BX */
 		Push_16(reg_bx);break;
 	CASE_W(0x54)												/* PUSH SP */
-		Push_16(reg_sp);break;
+		if (CPU_ArchitectureType >= CPU_ARCHTYPE_286)
+			Push_16(reg_sp);
+		else /* 8086 decrements SP then pushes it */
+			Push_16(reg_sp-2);
+		break;
 	CASE_W(0x55)												/* PUSH BP */
 		Push_16(reg_bp);break;
 	CASE_W(0x56)												/* PUSH SI */

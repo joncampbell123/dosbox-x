@@ -349,19 +349,19 @@ void CPU_SetFlags(Bitu word,Bitu mask) {
 	 * For more information read about the Intel CPU detection algorithm and other bits of info:
 	 * [http://www.rcollins.org/ddj/Sep96/Sep96.html] */
 
+	/* 8086: bits 12-15 cannot be zeroed */
+	if (CPU_ArchitectureType <= CPU_ARCHTYPE_80186) {
+		/* update mask and word to ensure bits 12-15 are set */
+		word |= 0xF000;
+		mask |= 0xF000;
+	}
 	/* 286 real mode: bits 12-15 bits cannot be set, always zero */
-	if (CPU_ArchitectureType == CPU_ARCHTYPE_286) {
+	else if (CPU_ArchitectureType <= CPU_ARCHTYPE_286) {
 		if (!(cpu.cr0 & CR0_PROTECTION)) {
 			/* update mask and word to ensure bits 12-15 are zero */
 			word &= ~0xF000;
 			mask |= 0xF000;
 		}
-	}
-	/* 8086: bits 12-15 cannot be zeroed */
-	else if (CPU_ArchitectureType < CPU_ARCHTYPE_286) {
-		/* update mask and word to ensure bits 12-15 are set */
-		word |= 0xF000;
-		mask |= 0xF000;
 	}
 	else {
 		mask |= CPU_extflags_toggle;	// ID-flag and AC-flag can be toggled on CPUID-supporting CPUs
