@@ -1446,10 +1446,19 @@ public:
 			LOG_MSG("EMS disabled for PCJr machine");
 			return;
 		}
-		BIOS_ZeroExtendedSize(true);
 
 		ENABLE_VCPI = section->Get_bool("vcpi");
 		ENABLE_V86_STARTUP = section->Get_bool("emm386 startup active");
+
+		/* if 286 or lower, EMM386 emulation is impossible */
+		if (CPU_ArchitectureType < CPU_ARCHTYPE_386 && ems_type != EMS_BOARD) {
+			LOG_MSG("CPU is 286 or lower, setting EMS emulation to ems=emsboard and disabling VCPI and v86 startup");
+			ENABLE_V86_STARTUP = false;
+			ems_type = EMS_BOARD;
+			ENABLE_VCPI = false;
+		}
+
+		BIOS_ZeroExtendedSize(true);
 
 		dbg_zero_on_ems_allocmem = section->Get_bool("zero memory on ems memory allocation");
 		if (dbg_zero_on_ems_allocmem) {
