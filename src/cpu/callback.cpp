@@ -317,36 +317,66 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
 		return (use_cb?0x0e:0x0a);
 	case CB_IRQ12:	// ps2 mouse int74
 		if (!use_cb) E_Exit("int74 callback must implement a callback handler!");
-		phys_writeb(physAddress+0x00,(Bit8u)0x1e);		// push ds
-		phys_writeb(physAddress+0x01,(Bit8u)0x06);		// push es
-		if (CPU_ArchitectureType>=CPU_ARCHTYPE_386)
-			phys_writew(physAddress+0x02,(Bit16u)0x6066);	// pushad
-		else
-			phys_writew(physAddress+0x02,(Bit16u)0x6090);	// pusha+nop
-		phys_writeb(physAddress+0x04,(Bit8u)0xfc);		// cld
-		phys_writeb(physAddress+0x05,(Bit8u)0xfb);		// sti
-		phys_writeb(physAddress+0x06,(Bit8u)0xFE);		//GRP 4
-		phys_writeb(physAddress+0x07,(Bit8u)0x38);		//Extra Callback instruction
-		phys_writew(physAddress+0x08,(Bit16u)callback);			//The immediate word
+		phys_writeb(physAddress++,(Bit8u)0x1e);		// push ds
+		phys_writeb(physAddress++,(Bit8u)0x06);		// push es
+		if (CPU_ArchitectureType>=CPU_ARCHTYPE_386) {
+			phys_writew(physAddress,(Bit16u)0x6066);// pushad
+			physAddress += 2;
+		}
+		else if (CPU_ArchitectureType>=CPU_ARCHTYPE_80186) {
+			phys_writeb(physAddress++,(Bit8u)0x60);	// pusha
+		}
+		else {
+			// 8086-level tedium, PUSHA not available
+			phys_writeb(physAddress++,(Bit8u)0x50);	// push ax
+			phys_writeb(physAddress++,(Bit8u)0x51);	// push cx
+			phys_writeb(physAddress++,(Bit8u)0x52);	// push dx
+			phys_writeb(physAddress++,(Bit8u)0x53);	// push bx
+			phys_writeb(physAddress++,(Bit8u)0x55);	// push bp
+			phys_writeb(physAddress++,(Bit8u)0x56);	// push si
+			phys_writeb(physAddress++,(Bit8u)0x57);	// push di
+		}
+		phys_writeb(physAddress++,(Bit8u)0xfc);		// cld
+		phys_writeb(physAddress++,(Bit8u)0xfb);		// sti
+		phys_writeb(physAddress++,(Bit8u)0xFE);		//GRP 4
+		phys_writeb(physAddress++,(Bit8u)0x38);		//Extra Callback instruction
+		phys_writew(physAddress,(Bit16u)callback);			//The immediate word
+		physAddress += 2;
 		return 0x0a;
 	case CB_IRQ12_RET:	// ps2 mouse int74 return
 		if (use_cb) {
-			phys_writeb(physAddress+0x00,(Bit8u)0xFE);	//GRP 4
-			phys_writeb(physAddress+0x01,(Bit8u)0x38);	//Extra Callback instruction
-			phys_writew(physAddress+0x02,(Bit16u)callback);		//The immediate word
-			physAddress+=4;
+			phys_writeb(physAddress++,(Bit8u)0xFE);	//GRP 4
+			phys_writeb(physAddress++,(Bit8u)0x38);	//Extra Callback instruction
+			phys_writew(physAddress,(Bit16u)callback);		//The immediate word
+			physAddress+=2;
 		}
-		phys_writeb(physAddress+0x00,(Bit8u)0xfa);		// cli
-		phys_writew(physAddress+0x01,(Bit16u)0x20b0);	// mov al, 0x20
-		phys_writew(physAddress+0x03,(Bit16u)0xa0e6);	// out 0xa0, al
-		phys_writew(physAddress+0x05,(Bit16u)0x20e6);	// out 0x20, al
-		if (CPU_ArchitectureType>=CPU_ARCHTYPE_386)
-			phys_writew(physAddress+0x07,(Bit16u)0x6166);	// popad
-		else
-			phys_writew(physAddress+0x07,(Bit16u)0x6190);	// popa+nop
-		phys_writeb(physAddress+0x09,(Bit8u)0x07);		// pop es
-		phys_writeb(physAddress+0x0a,(Bit8u)0x1f);		// pop ds
-		phys_writeb(physAddress+0x0b,(Bit8u)0xcf);		//An IRET Instruction
+		phys_writeb(physAddress++,(Bit8u)0xfa);		// cli
+		phys_writew(physAddress,(Bit16u)0x20b0);	// mov al, 0x20
+		physAddress += 2;
+		phys_writew(physAddress,(Bit16u)0xa0e6);	// out 0xa0, al
+		physAddress += 2;
+		phys_writew(physAddress,(Bit16u)0x20e6);	// out 0x20, al
+		physAddress += 2;
+		if (CPU_ArchitectureType>=CPU_ARCHTYPE_386) {
+			phys_writew(physAddress,(Bit16u)0x6166);// popad
+			physAddress += 2;
+		}
+		else if (CPU_ArchitectureType>=CPU_ARCHTYPE_80186) {
+			phys_writeb(physAddress++,(Bit8u)0x61);	// popa
+		}
+		else {
+			// 8086-level tedium, POPA not available
+			phys_writeb(physAddress++,(Bit8u)0x5F);	// pop di
+			phys_writeb(physAddress++,(Bit8u)0x5E);	// pop si
+			phys_writeb(physAddress++,(Bit8u)0x5D);	// pop bp
+			phys_writeb(physAddress++,(Bit8u)0x5B);	// pop bx
+			phys_writeb(physAddress++,(Bit8u)0x5A);	// pop dx
+			phys_writeb(physAddress++,(Bit8u)0x59);	// pop cx
+			phys_writeb(physAddress++,(Bit8u)0x58);	// pop ax
+		}
+		phys_writeb(physAddress++,(Bit8u)0x07);		// pop es
+		phys_writeb(physAddress++,(Bit8u)0x1f);		// pop ds
+		phys_writeb(physAddress++,(Bit8u)0xcf);		//An IRET Instruction
 		return (use_cb?0x10:0x0c);
 	case CB_IRQ6_PCJR:	// pcjr keyboard interrupt
 		phys_writeb(physAddress+0x00,(Bit8u)0x50);			// push ax
