@@ -1739,6 +1739,12 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("xms",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Enable XMS support.");
 
+	Pbool = secprop->Add_bool("hma",Property::Changeable::WhenIdle,true);
+	Pbool->Set_help("Enable XMS access to HMA.");
+
+	Pint = secprop->Add_int("hmamin",Property::Changeable::WhenIdle,0);
+	Pint->Set_help("Minimum allocation size for HMA in bytes.");
+
 	Pbool = secprop->Add_bool("share",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Report SHARE.EXE as resident. Does not actually emulate SHARE functions.");
 

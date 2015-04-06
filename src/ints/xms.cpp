@@ -79,6 +79,10 @@
 
 extern Bitu rombios_minimum_location;
 
+Bitu xms_hmamin = 0;
+bool enable_xms_hma = true;
+bool xms_hma_appalloc = false;
+
 struct XMS_Block {
 	Bitu	size;
 	MemHandle mem;
@@ -299,15 +303,42 @@ Bitu XMS_Handler(void) {
 	case XMS_GET_VERSION:										/* 00 */
 		reg_ax=XMS_VERSION;
 		reg_bx=XMS_DRIVER_VERSION;
-		reg_dx=0;	/* No we don't have HMA */
+		reg_dx=enable_xms_hma?1:0;
 		break;
 	case XMS_ALLOCATE_HIGH_MEMORY:								/* 01 */
-		reg_ax=0;
-		reg_bl=HIGH_MEMORY_NOT_EXIST;
+		if (enable_xms_hma) {
+			if (xms_hma_appalloc || reg_dx < xms_hmamin) {
+				/* no room! */
+				reg_ax=0;
+				reg_bl=HIGH_MEMORY_IN_USE;
+			}
+			else { /* program allocation */
+				LOG_MSG("XMS: HMA allocated");
+				xms_hma_appalloc = true;
+				reg_ax=1;
+			}
+		}
+		else {
+			reg_ax=0;
+			reg_bl=HIGH_MEMORY_NOT_EXIST;
+		}
 		break;
 	case XMS_FREE_HIGH_MEMORY:									/* 02 */
-		reg_ax=0;
-		reg_bl=HIGH_MEMORY_NOT_EXIST;
+		if (enable_xms_hma) {
+			if (xms_hma_appalloc) {
+				LOG_MSG("XMS: HMA freed");
+				xms_hma_appalloc = false;
+				reg_ax=1;
+			}
+			else {
+				reg_ax=0;
+				reg_bl=HIGH_MEMORY_NOT_ALLOCATED;
+			}
+		}
+		else {
+			reg_ax=0;
+			reg_bl=HIGH_MEMORY_NOT_EXIST;
+		}
 		break;
 	case XMS_GLOBAL_ENABLE_A20:									/* 03 */
 		SET_RESULT(XMS_EnableA20(true));
@@ -516,6 +547,13 @@ public:
 			LOG_MSG("CPU is 80186 or lower model that lacks the address lines needed for 'extended memory' to exist, disabling XMS");
 			return;
 		}
+
+		enable_xms_hma = section->Get_bool("hma");
+		xms_hmamin = section->Get_int("hmamin");
+		if (xms_hmamin > 0xFFF0) xms_hmamin = 0xFFF0;
+
+		if (enable_xms_hma)
+			LOG_MSG("XMS services will allow access to the HMA, minimum allocation %u bytes",xms_hmamin);
 
 		Bitu i;
 		BIOS_ZeroExtendedSize(true);
