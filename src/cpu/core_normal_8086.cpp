@@ -185,7 +185,8 @@ restart_opcode:
 					LOG(LOG_CPU,LOG_NORMAL)("Illegal/Unhandled opcode %s",tempcode);
 			}
 #endif
-			CPU_Exception(6,0);
+			/* there is no invalid opcode instruction. */
+			reg_eip += 2;
 			continue;
 		}
 		SAVEIP;
