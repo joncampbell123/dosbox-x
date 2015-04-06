@@ -230,7 +230,7 @@
 	CASE_W(0x60)												/* PUSHA */
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
 		{
-			Bit16u old_sp=reg_sp;
+			Bit16u old_sp = (CPU_ArchitectureType >= CPU_ARCHTYPE_286 ? reg_sp : (reg_sp-2));
 			Push_16(reg_ax);Push_16(reg_cx);Push_16(reg_dx);Push_16(reg_bx);
 			Push_16(old_sp);Push_16(reg_bp);Push_16(reg_si);Push_16(reg_di);
 		}
