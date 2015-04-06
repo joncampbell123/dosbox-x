@@ -29,6 +29,7 @@
 #include "inout.h"
 #include "xms.h"
 #include "bios.h"
+#include "cpu.h"
 
 #include <algorithm>
 
@@ -495,7 +496,27 @@ public:
 	XMS(Section* configuration):Module_base(configuration){
 		Section_prop * section=static_cast<Section_prop *>(configuration);
 		umb_available=false;
+
 		if (!section->Get_bool("xms")) return;
+
+		/* NTS: Disable XMS emulation if CPU type is less than a 286, because extended memory did not
+		 *      exist until the CPU had enough address lines to read past the 1MB mark.
+		 *
+		 *      The other reason we do this is that there is plenty of software that assumes 286+ instructions
+		 *      if they detect XMS services, including but not limited to:
+		 *
+		 *      MSD.EXE Microsoft Diagnostics
+		 *      Microsoft Windows 3.0
+		 *
+		 *      Not emulating XMS for 8086/80186 emulation prevents the software from crashing. */
+
+		/* TODO: Add option to allow users to *force* XMS emulation, overriding this lockout, if they're
+		 *       crazy enough to see what happens or they want to witness the mis-detection mentioned above. */
+		if (CPU_ArchitectureType < CPU_ARCHTYPE_286) {
+			LOG_MSG("CPU is 80186 or lower model that lacks the address lines needed for 'extended memory' to exist, disabling XMS");
+			return;
+		}
+
 		Bitu i;
 		BIOS_ZeroExtendedSize(true);
 		DOS_AddMultiplexHandler(multiplex_xms);
