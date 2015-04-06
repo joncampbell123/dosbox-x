@@ -135,8 +135,6 @@ static INLINE Bit32u Fetchd() {
 
 #define Push_16 CPU_Push16
 #define Pop_16 CPU_Pop16
-#define Push_32 abort();	//DISABLED
-#define Pop_32 abort();		//DISABLED
 
 #include "instructions.h"
 #include "core_normal/support.h"
@@ -167,8 +165,6 @@ restart_opcode:
 		switch (core.opcode_index+Fetchb()) {
 		#include "core_normal/prefix_none.h"
 		#include "core_normal/prefix_0f.h"
-//		#include "core_normal/prefix_66.h"			// DISABLED
-//		#include "core_normal/prefix_66_0f.h"			// DISABLED
 		default:
 		illegal_opcode:
 #if C_DEBUG	
