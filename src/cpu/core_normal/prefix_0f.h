@@ -20,6 +20,7 @@ bool CPU_RDMSR();
 bool CPU_WRMSR();
 
 	CASE_0F_W(0x00)												/* GRP 6 Exxx */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_286) goto illegal_opcode;
 		{
 			if ((reg_flags & FLAG_VM) || (!cpu.pmode)) goto illegal_opcode;
 			GetRM;Bitu which=(rm>>3)&7;
@@ -63,6 +64,7 @@ bool CPU_WRMSR();
 		}
 		break;
 	CASE_0F_W(0x01)												/* Group 7 Ew */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_286) goto illegal_opcode;
 		{
 			GetRM;Bitu which=(rm>>3)&7;
 			if (rm < 0xc0)	{ //First ones all use EA
@@ -124,6 +126,7 @@ bool CPU_WRMSR();
 		}
 		break;
 	CASE_0F_W(0x02)												/* LAR Gw,Ew */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_286) goto illegal_opcode;
 		{
 			if ((reg_flags & FLAG_VM) || (!cpu.pmode)) goto illegal_opcode;
 			GetRMrw;Bitu ar=*rmrw;
@@ -136,6 +139,7 @@ bool CPU_WRMSR();
 		}
 		break;
 	CASE_0F_W(0x03)												/* LSL Gw,Ew */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_286) goto illegal_opcode;
 		{
 			if ((reg_flags & FLAG_VM) || (!cpu.pmode)) goto illegal_opcode;
 			GetRMrw;Bitu limit=*rmrw;
@@ -148,6 +152,7 @@ bool CPU_WRMSR();
 		}
 		break;
 	CASE_0F_B(0x06)												/* CLTS */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_286) goto illegal_opcode;
 		if (cpu.pmode && cpu.cpl) EXCEPTION(EXCEPTION_GP);
 		cpu.cr0&=(~CR0_TASKSWITCH);
 		break;
