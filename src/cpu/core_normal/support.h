@@ -97,7 +97,11 @@ static INLINE Bit32s Fetchds() {
 	}
 
 #include "helpers.h"
-#include "table_ea.h"
+#if CPU_CORE <= CPU_ARCHTYPE_8086
+# include "table_ea_8086.h"
+#else
+# include "table_ea.h"
+#endif
 #include "../modrm.h"
 
 
