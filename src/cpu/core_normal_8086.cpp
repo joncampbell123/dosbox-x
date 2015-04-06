@@ -165,7 +165,6 @@ Bits CPU_Core8086_Normal_Run(void) {
 restart_opcode:
 		switch (core.opcode_index+Fetchb()) {
 		#include "core_normal/prefix_none.h"
-		#include "core_normal/prefix_0f.h"
 		default:
 		illegal_opcode:
 #if C_DEBUG	

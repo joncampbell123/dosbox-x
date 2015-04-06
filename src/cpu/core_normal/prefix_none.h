@@ -47,10 +47,19 @@
 		AXIw(ORW);break;
 	CASE_W(0x0e)												/* PUSH CS */		
 		Push_16(SegValue(cs));break;
-	CASE_B(0x0f)												/* 2 byte opcodes*/		
-		core.opcode_index|=OPCODE_0F;
-		goto restart_opcode;
-		break;
+	CASE_B(0x0f)												/* 2 byte opcodes*/
+#if CPU_CORE < CPU_ARCHTYPE_286
+		if (CPU_ArchitectureType < CPU_ARCHTYPE_286) {
+			/* 8086 emulation: treat as "POP CS" */
+			if (CPU_PopSeg(cs,false)) RUNEXCEPTION();
+			break;
+		}
+		else
+#endif
+		{
+			core.opcode_index|=OPCODE_0F;
+			goto restart_opcode;
+		} break;
 	CASE_B(0x10)												/* ADC Eb,Gb */
 		RMEbGb(ADCB);break;
 	CASE_W(0x11)												/* ADC Ew,Gw */
@@ -278,7 +287,7 @@
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
 		Push_16(Fetchw());break;
 	CASE_W(0x69)												/* IMUL Gw,Ew,Iw */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_286) goto illegal_opcode;
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
 		RMGwEwOp3(DIMULW,Fetchws());
 		break;
 	CASE_W(0x6a)												/* PUSH Ib */
@@ -286,7 +295,7 @@
 		Push_16(Fetchbs());
 		break;
 	CASE_W(0x6b)												/* IMUL Gw,Ew,Ib */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_286) goto illegal_opcode;
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
 		RMGwEwOp3(DIMULW,Fetchbs());
 		break;
 	CASE_B(0x6c)												/* INSB */
