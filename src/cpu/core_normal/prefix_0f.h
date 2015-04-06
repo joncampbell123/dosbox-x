@@ -261,7 +261,7 @@ bool CPU_WRMSR();
 			if (!CPU_RDMSR()) goto illegal_opcode;
 		}
 		break;
-#ifdef CPU_CORE_386
+#if CPU_CORE >= CPU_ARCHTYPE_386
 	CASE_0F_W(0x80)												/* JO */
 		JumpCond16_w(TFLG_O);break;
 	CASE_0F_W(0x81)												/* JNO */

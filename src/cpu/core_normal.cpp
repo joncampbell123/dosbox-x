@@ -29,7 +29,7 @@
 #include "paging.h"
 #include "mmx.h"
 
-#define CPU_CORE_386
+#define CPU_CORE CPU_ARCHTYPE_386
 
 extern bool ignore_opcode_63;
 

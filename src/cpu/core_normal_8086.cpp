@@ -29,7 +29,7 @@
 #include "paging.h"
 #include "mmx.h"
 
-#define CPU_CORE_8086
+#define CPU_CORE CPU_ARCHTYPE_8086
 
 extern bool ignore_opcode_63;
 

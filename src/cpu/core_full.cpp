@@ -28,8 +28,7 @@
 #include "inout.h"
 #include "callback.h"
 
-#define CPU_CORE_386
-
+#define CPU_CORE CPU_ARCHTYPE_386
 
 typedef PhysPt EAPoint;
 #define SegBase(c)	SegPhys(c)

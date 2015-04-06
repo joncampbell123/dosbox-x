@@ -258,12 +258,12 @@
 	CASE_B(0x65)												/* SEG GS: */
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		DO_PREFIX_SEG(gs);break;
-#ifdef CPU_CORE_386
+#if CPU_CORE >= CPU_ARCHTYPE_386
 	CASE_B(0x66)												/* Operand Size Prefix (386+) */
 		core.opcode_index=(cpu.code.big^0x1)*0x200;
 		goto restart_opcode;
 #endif
-#ifdef CPU_CORE_386
+#if CPU_CORE >= CPU_ARCHTYPE_386
 	CASE_B(0x67)												/* Address Size Prefix (386+) */
 		DO_PREFIX_ADDR();
 #endif
