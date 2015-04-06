@@ -88,6 +88,9 @@ Bits CPU_Core_Prefetch_Trap_Run(void);
 Bits CPU_Core286_Normal_Run(void);
 Bits CPU_Core286_Normal_Trap_Run(void);
 
+Bits CPU_Core8086_Normal_Run(void);
+Bits CPU_Core8086_Normal_Trap_Run(void);
+
 void CPU_Enable_SkipAutoAdjust(void);
 void CPU_Disable_SkipAutoAdjust(void);
 void CPU_Reset_AutoAdjust(void);

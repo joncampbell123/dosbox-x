@@ -101,9 +101,9 @@ libcpu_a_AR = $(AR) $(ARFLAGS)
 libcpu_a_LIBADD =
 am_libcpu_a_OBJECTS = callback.$(OBJEXT) cpu.$(OBJEXT) flags.$(OBJEXT) \
 	modrm.$(OBJEXT) core_full.$(OBJEXT) paging.$(OBJEXT) \
-	core_normal.$(OBJEXT) core_normal_286.$(OBJEXT) \
-	core_simple.$(OBJEXT) core_prefetch.$(OBJEXT) \
-	core_dyn_x86.$(OBJEXT) mmx.$(OBJEXT)
+	core_normal.$(OBJEXT) core_normal_8086.$(OBJEXT) \
+	core_normal_286.$(OBJEXT) core_simple.$(OBJEXT) \
+	core_prefetch.$(OBJEXT) core_dyn_x86.$(OBJEXT) mmx.$(OBJEXT)
 libcpu_a_OBJECTS = $(am_libcpu_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -326,7 +326,7 @@ SUBDIRS = core_full core_normal core_dyn_x86
 AM_CPPFLAGS = -I$(top_srcdir)/include
 noinst_LIBRARIES = libcpu.a
 libcpu_a_SOURCES = callback.cpp cpu.cpp flags.cpp modrm.cpp modrm.h core_full.cpp instructions.h	\
-		   paging.cpp lazyflags.h core_normal.cpp core_normal_286.cpp core_simple.cpp core_prefetch.cpp \
+		   paging.cpp lazyflags.h core_normal.cpp core_normal_8086.cpp core_normal_286.cpp core_simple.cpp core_prefetch.cpp \
 		   core_dyn_x86.cpp mmx.cpp
 
 all: all-recursive
@@ -383,6 +383,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/core_full.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/core_normal.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/core_normal_286.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/core_normal_8086.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/core_prefetch.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/core_simple.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cpu.Po@am__quote@
