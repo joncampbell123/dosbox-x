@@ -215,6 +215,7 @@
 	CASE_W(0x5f)												/* POP DI */
 		reg_di=Pop_16();break;
 	CASE_W(0x60)												/* PUSHA */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
 		{
 			Bit16u old_sp=reg_sp;
 			Push_16(reg_ax);Push_16(reg_cx);Push_16(reg_dx);Push_16(reg_bx);
@@ -222,6 +223,7 @@
 		}
 		break;
 	CASE_W(0x61)												/* POPA */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
 		reg_di=Pop_16();reg_si=Pop_16();reg_bp=Pop_16();Pop_16();//Don't save SP
 		reg_bx=Pop_16();reg_dx=Pop_16();reg_cx=Pop_16();reg_ax=Pop_16();
 		break;
