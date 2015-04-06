@@ -415,21 +415,21 @@
 #define SHLB(op1,op2,load,save)								\
 	if (!op2) break;										\
 	lf_var1b=load(op1);lf_var2b=op2;				\
-	lf_resb=lf_var1b << lf_var2b;			\
+	lf_resb=(lf_var2b < 8) ? (lf_var1b << lf_var2b) : 0;			\
 	save(op1,lf_resb);								\
 	lflags.type=t_SHLb;
 
 #define SHLW(op1,op2,load,save)								\
 	if (!op2) break;										\
 	lf_var1w=load(op1);lf_var2b=op2 ;				\
-	lf_resw=lf_var1w << lf_var2b;			\
+	lf_resw=(lf_var2b < 16) ? (lf_var1w << lf_var2b) : 0;			\
 	save(op1,lf_resw);								\
 	lflags.type=t_SHLw;
 
 #define SHLD(op1,op2,load,save)								\
 	if (!op2) break;										\
 	lf_var1d=load(op1);lf_var2b=op2;				\
-	lf_resd=lf_var1d << lf_var2b;			\
+	lf_resd=(lf_var2b < 32) ? (lf_var1d << lf_var2b) : 0;			\
 	save(op1,lf_resd);								\
 	lflags.type=t_SHLd;
 
@@ -437,21 +437,21 @@
 #define SHRB(op1,op2,load,save)								\
 	if (!op2) break;										\
 	lf_var1b=load(op1);lf_var2b=op2;				\
-	lf_resb=lf_var1b >> lf_var2b;			\
+	lf_resb=(lf_var2b < 8) ? (lf_var1b >> lf_var2b) : 0;			\
 	save(op1,lf_resb);								\
 	lflags.type=t_SHRb;
 
 #define SHRW(op1,op2,load,save)								\
 	if (!op2) break;										\
 	lf_var1w=load(op1);lf_var2b=op2;				\
-	lf_resw=lf_var1w >> lf_var2b;			\
+	lf_resw=(lf_var2b < 16) ? (lf_var1w >> lf_var2b) : 0;			\
 	save(op1,lf_resw);								\
 	lflags.type=t_SHRw;
 
 #define SHRD(op1,op2,load,save)								\
 	if (!op2) break;										\
 	lf_var1d=load(op1);lf_var2b=op2;				\
-	lf_resd=lf_var1d >> lf_var2b;			\
+	lf_resd=(lf_var2b < 32) ? (lf_var1d >> lf_var2b) : 0;			\
 	save(op1,lf_resd);								\
 	lflags.type=t_SHRd;
 
@@ -819,11 +819,22 @@
 }
 
 #if CPU_CORE == CPU_ARCHTYPE_8086
-#  define CPU_SHIFTOP_MASK(x,m) ((x) > (m) ? (m) : (x))
+#  define CPU_SHIFTOP_MASK(x,m) ((x) & 0xff)
 #else
 #  define CPU_SHIFTOP_MASK(x,m) ((x) & 0x1f)
 #endif
 
+/* FIXME: For 8086 core we care mostly about whether or not SHL/SHR emulate the non-masked shift count.
+ *        Note that running this code compiled for Intel processors naturally imposes the shift count,
+ *        compilers generate a shift instruction and do not consider the CPU masking the bit count.
+ *
+ *        unsigned int a = 0x12345678,b = 0x20,c;
+ *        c = a << b;      <-- on Intel x86 builds, c == a because GCC will compile to shl eax,cl and Intel processors will act like c == a << (b&0x1F).
+ *
+ *        What we care about is that shift counts greater than or equal to the width of the target register come out to zero,
+ *        or for SAR, that all bits become copies of the sign bit. When emulating the 8086 we want DOS programs to be able to
+ *        test that we are an 8086 by executing shl ax,cl with cl == 32 and to get AX == 0 as a result instead of AX unchanged.
+ *        the shift count mask test is one of the several tests DOS programs may do to differentiate 8086 from 80186. */
 #define GRP2B(blah)											\
 {															\
 	GetRM;Bitu which=(rm>>3)&7;								\
