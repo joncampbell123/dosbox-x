@@ -240,6 +240,7 @@
 		}
 		break;
 	CASE_W(0x63)												/* ARPL Ew,Rw */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_286) goto illegal_opcode;
 		{
 			if ((reg_flags & FLAG_VM) || (!cpu.pmode)) goto illegal_opcode;
 			GetRMrw;
