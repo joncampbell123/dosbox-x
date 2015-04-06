@@ -38,25 +38,65 @@ extern bool ignore_opcode_63;
 #include "debug.h"
 #endif
 
+static Bit16u last_ea86_offset;
+
+/* NTS: we special case writes to seg:ffff to emulate 8086 behavior where word read/write wraps around the 64KB segment */
 #if (!C_CORE_INLINE)
+
 #define LoadMb(off) mem_readb(off)
-#define LoadMw(off) mem_readw(off)
+
+static inline Bit16u LoadMw(Bitu off) {
+	if (last_ea86_offset == 0xffff)
+		return (mem_readb(off,val) | (mem_readb(off-0xffff) << 8));
+
+	return mem_readw(off);	
+}
+
 #define LoadMd(off) mem_readd(off)
-#define LoadMq(off) ((Bit64u)((Bit64u)mem_readd(off+4)<<32 | (Bit64u)mem_readd(off)))
+
 #define SaveMb(off,val)	mem_writeb(off,val)
-#define SaveMw(off,val)	mem_writew(off,val)
+
+static void SaveMw(Bitu off,Bitu val) {
+	if (last_ea86_offset == 0xffff) {
+		mem_writeb(off,val);
+		mem_writeb(off-0xffff,val>>8);
+	}
+	else {
+		mem_writew(off,val);
+	}
+}
+
 #define SaveMd(off,val)	mem_writed(off,val)
-#define SaveMq(off,val) {mem_writed(off,val&0xffffffff);mem_writed(off+4,(val>>32)&0xffffffff);}
+
 #else 
+
 #include "paging.h"
+
 #define LoadMb(off) mem_readb_inline(off)
-#define LoadMw(off) mem_readw_inline(off)
+
+static inline Bit16u LoadMw(Bitu off) {
+	if (last_ea86_offset == 0xffff)
+		return (mem_readb_inline(off) | (mem_readb_inline(off-0xffff) << 8));
+
+	return mem_readw_inline(off);	
+}
+
 #define LoadMd(off) mem_readd_inline(off)
-#define LoadMq(off) ((Bit64u)((Bit64u)mem_readd_inline(off+4)<<32 | (Bit64u)mem_readd_inline(off)))
+
 #define SaveMb(off,val)	mem_writeb_inline(off,val)
-#define SaveMw(off,val)	mem_writew_inline(off,val)
+
+static void SaveMw(Bitu off,Bitu val) {
+	if (last_ea86_offset == 0xffff) {
+		mem_writeb_inline(off,val);
+		mem_writeb_inline(off-0xffff,val>>8);
+	}
+	else {
+		mem_writew_inline(off,val);
+	}
+}
+
 #define SaveMd(off,val)	mem_writed_inline(off,val)
-#define SaveMq(off,val) {mem_writed_inline(off,val&0xffffffff);mem_writed_inline(off+4,(val>>32)&0xffffffff);}
+
 #endif
 
 extern Bitu cycle_count;
@@ -128,6 +168,7 @@ static INLINE Bit16u Fetchw() {
 	core.cseip+=2;
 	return temp;
 }
+
 static INLINE Bit32u Fetchd() {
 	Bit32u temp=LoadMd(core.cseip);
 	core.cseip+=4;
@@ -149,6 +190,7 @@ Bits CPU_Core8086_Normal_Run(void) {
 		LOADIP;
 		core.prefixes=0;
 		core.opcode_index=0;
+		last_ea86_offset=0;
 		core.ea_table=&EATable[0];
 		BaseDS=SegBase(ds);
 		BaseSS=SegBase(ss);
