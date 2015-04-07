@@ -32,10 +32,21 @@
 #include "serialport.h"
 #include "dos_network.h"
 
+bool dos_in_hma = true;
 bool DOS_BreakFlag = false;
 bool enable_dbcs_tables = true;
 bool enable_filenamechar = true;
 bool enable_share_exe_fake = true;
+
+bool XMS_IS_ACTIVE();
+bool XMS_HMA_EXISTS();
+
+bool DOS_IS_IN_HMA() {
+	if (dos_in_hma && XMS_IS_ACTIVE() && XMS_HMA_EXISTS())
+		return true;
+
+	return false;
+}
 
 Bit16u DOS_INFOBLOCK_SEG=0x80;	// sysvars (list of lists)
 Bit16u DOS_CONDRV_SEG=0xa0;
@@ -776,7 +787,7 @@ static Bitu DOS_21Handler(void) {
 		break;
 	case 0x30:		/* Get DOS Version */
 		if (reg_al==0) reg_bh=0xFF;		/* Fake Microsoft DOS */
-		if (reg_al==1) reg_bh=0x10;		/* DOS is in HMA */
+		if (reg_al==1 && DOS_IS_IN_HMA()) reg_bh=0x10;		/* DOS is in HMA? */
 		reg_al=dos.version.major;
 		reg_ah=dos.version.minor;
 		/* Serialnumber */
@@ -820,7 +831,7 @@ static Bitu DOS_21Handler(void) {
 				reg_bl=dos.version.major;
 				reg_bh=dos.version.minor;
 				reg_dl=dos.version.revision;
-				reg_dh=0x10;								/* Dos in HMA */
+				reg_dh=DOS_IS_IN_HMA()?0x10:0x00;						/* Dos in HMA?? */
 				break;
 			case 7:
 				break;
@@ -1598,6 +1609,7 @@ public:
 	DOS(Section* configuration):Module_base(configuration){
 		Section_prop * section=static_cast<Section_prop *>(configuration);
 
+		dos_in_hma = section->Get_bool("dos in hma");
 		enable_dbcs_tables = section->Get_bool("dbcs");
 		enable_share_exe_fake = section->Get_bool("share");
 		enable_filenamechar = section->Get_bool("filenamechar");

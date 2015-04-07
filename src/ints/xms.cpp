@@ -78,6 +78,8 @@
 #define	UMB_ONLY_SMALLER_BLOCK				0xb0
 #define	UMB_NO_BLOCKS_AVAILABLE				0xb1
 
+bool DOS_IS_IN_HMA();
+
 extern Bitu rombios_minimum_location;
 
 Bitu xms_hma_minimum_alloc = 0;
@@ -309,8 +311,8 @@ Bitu XMS_Handler(void) {
 		break;
 	case XMS_ALLOCATE_HIGH_MEMORY:								/* 01 */
 		if (xms_hma_exists) {
-			if (xms_hma_application_has_control) {
-				/* no room! */
+			if (xms_hma_application_has_control || DOS_IS_IN_HMA()) {
+				/* hma already controlled by application or DOS kernel */
 				reg_ax=0;
 				reg_bl=HIGH_MEMORY_IN_USE;
 			}
@@ -332,6 +334,8 @@ Bitu XMS_Handler(void) {
 		break;
 	case XMS_FREE_HIGH_MEMORY:									/* 02 */
 		if (xms_hma_exists) {
+			if (DOS_IS_IN_HMA()) LOG(LOG_MISC,LOG_WARN)("DOS application attempted to free HMA while DOS kernel occupies it!");
+
 			if (xms_hma_application_has_control) {
 				LOG(LOG_MISC,LOG_DEBUG)("XMS: HMA freed by application/TSR");
 				xms_hma_application_has_control = false;
@@ -510,6 +514,14 @@ extern Bitu VGA_BIOS_SEG_END;
 extern Bitu VGA_BIOS_Size;
 
 extern bool mainline_compatible_mapping;
+
+bool XMS_IS_ACTIVE() {
+	return (xms_callback != 0);
+}
+
+bool XMS_HMA_EXISTS() {
+	return XMS_IS_ACTIVE() && xms_hma_exists;
+}
 
 Bitu GetEMSType(Section_prop * section);
 void DOS_GetMemory_Choose();

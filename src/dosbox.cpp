@@ -1749,6 +1749,9 @@ void DOSBOX_Init(void) {
 	Pint = secprop->Add_int("hma minimum allocation",Property::Changeable::WhenIdle,0);
 	Pint->Set_help("Minimum allocation size for HMA in bytes (equivalent to /HMAMIN= parameter).");
 
+	Pbool = secprop->Add_bool("dos in hma",Property::Changeable::WhenIdle,true);
+	Pbool->Set_help("Report that DOS occupies HMA (equiv. DOS=HIGH)");
+
 	Pbool = secprop->Add_bool("share",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Report SHARE.EXE as resident. Does not actually emulate SHARE functions.");
 
