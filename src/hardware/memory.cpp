@@ -1013,38 +1013,38 @@ public:
 
 		std::string ss = section->Get_string("a20");
 		if (ss == "mask" || ss == "") {
-			LOG_MSG("A20: masking emulation\n");
+			LOG(LOG_MISC,LOG_DEBUG)("A20: masking emulation\n");
 			a20_guest_changeable = true;
 			a20_full_masking = true;
 		}
 		else if (ss == "on") {
-			LOG_MSG("A20: locked on\n");
+			LOG(LOG_MISC,LOG_DEBUG)("A20: locked on\n");
 			a20_guest_changeable = false;
 			a20_full_masking = true;
 			memory.a20.enabled = 1;
 		}
 		else if (ss == "on_fake") {
-			LOG_MSG("A20: locked on (but will fake control bit)\n");
+			LOG(LOG_MISC,LOG_DEBUG)("A20: locked on (but will fake control bit)\n");
 			a20_guest_changeable = false;
 			a20_fake_changeable = true;
 			a20_full_masking = true;
 			memory.a20.enabled = 1;
 		}
 		else if (ss == "off") {
-			LOG_MSG("A20: locked off\n");
+			LOG(LOG_MISC,LOG_DEBUG)("A20: locked off\n");
 			a20_guest_changeable = false;
 			a20_full_masking = true;
 			memory.a20.enabled = 0;
 		}
 		else if (ss == "off_fake") {
-			LOG_MSG("A20: locked off (but will fake control bit)\n");
+			LOG(LOG_MISC,LOG_DEBUG)("A20: locked off (but will fake control bit)\n");
 			a20_guest_changeable = false;
 			a20_fake_changeable = true;
 			a20_full_masking = true;
 			memory.a20.enabled = 0;
 		}
 		else { /* "" or "fast" */
-			LOG_MSG("A20: fast remapping (64KB+1MB) DOSBox style\n");
+			LOG(LOG_MISC,LOG_DEBUG)("A20: fast remapping (64KB+1MB) DOSBox style\n");
 			a20_guest_changeable = true;
 			a20_full_masking = false;
 		}

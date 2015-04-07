@@ -97,12 +97,12 @@ Bit16u DOS_GetMemory(Bit16u pages,const char *who) {
 	}
 
 	if (((Bitu)pages+(Bitu)dos_memseg) > DOS_PRIVATE_SEGMENT_END) {
-		LOG_MSG("DOS_GetMemory(%u) failed for '%s' (alloc=0x%04x segment=0x%04x end=0x%04x)\n",
+		LOG(LOG_DOSMISC,LOG_ERROR)("DOS_GetMemory(%u) failed for '%s' (alloc=0x%04x segment=0x%04x end=0x%04x)\n",
 			pages,who,dos_memseg,DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END);
 		E_Exit("DOS:Not enough memory for internal tables");
 	}
 	Bit16u page=dos_memseg;
-	LOG_MSG("DOS_GetMemory(0x%04x pages,\"%s\") = 0x%04x\n",pages,who,page);
+	LOG(LOG_DOSMISC,LOG_DEBUG)("DOS_GetMemory(0x%04x pages,\"%s\") = 0x%04x\n",pages,who,page);
 	dos_memseg+=pages;
 	return page;
 }

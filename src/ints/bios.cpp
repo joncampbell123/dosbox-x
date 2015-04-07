@@ -269,12 +269,12 @@ Bitu ROMBIOS_GetMemory(Bitu bytes,const char *who,Bitu alignment,Bitu must_be_at
 			rombios_alloc.insert(rombios_alloc.begin()+si+1,newblk);
 		}
 
-		LOG_MSG("ROMBIOS_GetMemory(0x%05x bytes,\"%s\",align=%u,mustbe=0x%05x) = 0x%05x\n",(int)bytes,who,(int)alignment,(int)must_be_at,(int)base);
+		LOG(LOG_BIOS,LOG_DEBUG)("ROMBIOS_GetMemory(0x%05x bytes,\"%s\",align=%u,mustbe=0x%05x) = 0x%05x\n",(int)bytes,who,(int)alignment,(int)must_be_at,(int)base);
 		ROMBIOS_SanityCheck();
 		return base;
 	}
 
-	LOG_MSG("ROMBIOS_GetMemory(0x%05x bytes,\"%s\",align=%u,mustbe=0x%05x) = FAILED\n",(int)bytes,who,(int)alignment,(int)must_be_at);
+	LOG(LOG_BIOS,LOG_DEBUG)("ROMBIOS_GetMemory(0x%05x bytes,\"%s\",align=%u,mustbe=0x%05x) = FAILED\n",(int)bytes,who,(int)alignment,(int)must_be_at);
 	ROMBIOS_SanityCheck();
 	return 0;
 }
@@ -3684,8 +3684,8 @@ void ROMBIOS_Init(Section *sec) {
 		rombios_minimum_size = 0x10000;
 	}
 
-	LOG_MSG("ROM BIOS range: 0x%05x-0xFFFFF\n",(int)rombios_minimum_location);
-	LOG_MSG("ROM BIOS range, final: 0x%05x-0xFFFFF\n",(int)(0x100000 - rombios_minimum_size));
+	LOG(LOG_BIOS,LOG_NORMAL)("ROM BIOS range: 0x%05x-0xFFFFF\n",(int)rombios_minimum_location);
+	LOG(LOG_BIOS,LOG_NORMAL)("ROM BIOS range, final: 0x%05x-0xFFFFF\n",(int)(0x100000 - rombios_minimum_size));
 
 	if (!MEM_map_ROM_physmem(rombios_minimum_location,0xFFFFF)) E_Exit("Unable to map ROM region as ROM");
 

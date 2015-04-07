@@ -514,6 +514,6 @@ void IODELAY_Init(Section *sect) {
 		io_delay_ns = (int)floor(t);
 	}
 
-	LOG_MSG("I/O delay %uns",io_delay_ns);
+	LOG(LOG_IO,LOG_DEBUG)("I/O delay %uns",io_delay_ns);
 }
 

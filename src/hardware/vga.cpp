@@ -532,7 +532,7 @@ void VGA_Init(Section* sec) {
 		}
 	}
 
-	LOG_MSG("VGA memory I/O delay %uns",vga_memio_delay_ns);
+	LOG(LOG_VGA,LOG_DEBUG)("VGA memory I/O delay %uns",vga_memio_delay_ns);
 
 	/* mainline compatible vmemsize (in MB)
 	 * plus vmemsizekb for KB-level control.

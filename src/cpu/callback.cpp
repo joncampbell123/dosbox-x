@@ -681,7 +681,7 @@ void CALLBACK_Init(Section* /*sec*/) {
 		if ((vm86_fake_io_off+14) > 0x1000000) E_Exit("vm86 area spans 64KB segment");
 	}
 
-	LOG_MSG("Callback area starts at %04x:%04x",CB_SEG,CB_SOFFSET);
+	LOG(LOG_CPU,LOG_DEBUG)("Callback area starts at %04x:%04x",CB_SEG,CB_SOFFSET);
 
 	Bitu i;
 	for (i=0;i<CB_MAX;i++) {
