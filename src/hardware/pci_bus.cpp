@@ -45,19 +45,19 @@ static PCI_Device* pci_devices[PCI_MAX_PCIBUSSES][PCI_MAX_PCIDEVICES]={{NULL}};	
 //  7- 2 - config register #	(0x000000fc)
 
 static void write_pci_addr(Bitu port,Bitu val,Bitu iolen) {
-	LOG(LOG_PCI,LOG_NORMAL)("Write PCI address :=%x",(int)val);
+	LOG(LOG_PCI,LOG_DEBUG)("Write PCI address :=%x",(int)val);
 	pci_caddress=val;
 }
 
 static void write_pci(Bitu port,Bitu val,Bitu iolen) {
-	LOG(LOG_PCI,LOG_NORMAL)("Write PCI data port %x :=%x (len %d)",(int)port,(int)val,(int)iolen);
+	LOG(LOG_PCI,LOG_DEBUG)("Write PCI data port %x :=%x (len %d)",(int)port,(int)val,(int)iolen);
 
 	if (pci_caddress & 0x80000000) {
 		Bit8u busnum = (Bit8u)((pci_caddress >> 16) & 0xff);
 		Bit8u devnum = (Bit8u)((pci_caddress >> 11) & 0x1f);
 		Bit8u fctnum = (Bit8u)((pci_caddress >> 8) & 0x7);
 		Bit8u regnum = (Bit8u)((pci_caddress & 0xfc) + (port & 0x03));
-		LOG(LOG_PCI,LOG_NORMAL)("  Write to device %x register %x (function %x) (:=%x)",(int)devnum,(int)regnum,(int)fctnum,(int)val);
+		LOG(LOG_PCI,LOG_DEBUG)("  Write to device %x register %x (function %x) (:=%x)",(int)devnum,(int)regnum,(int)fctnum,(int)val);
 
 		if (busnum >= PCI_MAX_PCIBUSSES) return;
 		if (devnum >= PCI_MAX_PCIDEVICES) return;
@@ -70,19 +70,19 @@ static void write_pci(Bitu port,Bitu val,Bitu iolen) {
 
 
 static Bitu read_pci_addr(Bitu port,Bitu iolen) {
-	LOG(LOG_PCI,LOG_NORMAL)("Read PCI address -> %x",pci_caddress);
+	LOG(LOG_PCI,LOG_DEBUG)("Read PCI address -> %x",pci_caddress);
 	return pci_caddress;
 }
 
 static Bitu read_pci(Bitu port,Bitu iolen) {
-	LOG(LOG_PCI,LOG_NORMAL)("Read PCI data -> %x",pci_caddress);
+	LOG(LOG_PCI,LOG_DEBUG)("Read PCI data -> %x",pci_caddress);
 
 	if (pci_caddress & 0x80000000) {
 		Bit8u busnum = (Bit8u)((pci_caddress >> 16) & 0xff);
 		Bit8u devnum = (Bit8u)((pci_caddress >> 11) & 0x1f);
 		Bit8u fctnum = (Bit8u)((pci_caddress >> 8) & 0x7);
 		Bit8u regnum = (Bit8u)((pci_caddress & 0xfc) + (port & 0x03));
-		LOG(LOG_PCI,LOG_NORMAL)("  Read from device %x register %x (function %x)",(int)devnum,(int)regnum,(int)fctnum);
+		LOG(LOG_PCI,LOG_DEBUG)("  Read from device %x register %x (function %x)",(int)devnum,(int)regnum,(int)fctnum);
 
 		if (busnum >= PCI_MAX_PCIBUSSES) return ~0;
 		if (devnum >= PCI_MAX_PCIDEVICES) return ~0;
@@ -97,7 +97,7 @@ static Bitu read_pci(Bitu port,Bitu iolen) {
 
 
 static Bitu PCI_PM_Handler() {
-	LOG_MSG("PCI PMode handler, function %x",reg_ax);
+	LOG(LOG_PCI,LOG_WARN)("PCI PMode handler, unhandled function %x",reg_ax);
 	return CBRET_NONE;
 }
 
@@ -224,7 +224,7 @@ public:
 				case 0x4d:
 				case 0x4e:
 				case 0x4f:
-					LOG_MSG("SST ParseReadRegister STATUS %x",regnum);
+					LOG(LOG_PCI,LOG_DEBUG)("SST ParseReadRegister STATUS %x",regnum);
 					break;
 
 				case 0x54: /* FIXME: I hope I ported this right --J.C. */
@@ -425,7 +425,7 @@ void PCI_AddSST_Device(Bitu type) {
 				ctype = type;
 				break;
 			default:
-				LOG_MSG("PCI:SST: Invalid board type %x specified",(int)type);
+				LOG(LOG_PCI,LOG_WARN)("PCI:SST: Invalid board type %x specified",(int)type);
 				break;
 		}
 
