@@ -27,7 +27,7 @@
 #include "support.h"
 #include "control.h"
 
-_LogGroup loggrp[LOG_MAX]={{"",true},{0,false}};
+_LogGroup loggrp[LOG_MAX]={{"",LOG_NORMAL},{0,LOG_NORMAL}};
 FILE* debuglog = NULL;
 
 #if C_DEBUG
@@ -74,7 +74,7 @@ void LOG::operator() (char const* format, ...){
 	va_end(msg);
 
 	if (d_type>=LOG_MAX) return;
-	if ((d_severity!=LOG_ERROR) && (!loggrp[d_type].enabled)) return;
+	if (d_severity < loggrp[d_type].min_severity) return;
 	DEBUG_ShowMsg("%10u: %s:%s\n",static_cast<Bit32u>(cycle_count),loggrp[d_type].front,buf);
 }
 
@@ -232,6 +232,25 @@ void LOG_Destroy(Section*) {
 
 void Null_Init(Section *sec);
 
+void LOG_ParseEnableSetting(_LogGroup &group,const char *setting) {
+	if (!strcmp(setting,"true") || !strcmp(setting,"1") || !strcmp(setting,"normal"))
+		group.min_severity = LOG_NORMAL; /* NTS: Original code only had LOG_NORMAL, so "true" means to act like original code, no debug messages */
+	else if (!strcmp(setting,"false") || !strcmp(setting,"0") || !strcmp(setting,""))
+		group.min_severity = LOG_ERROR; /* NTS: Original code treated "false" to mean don't log unless LOG_ERROR, so we emulate that here */
+	else if (!strcmp(setting,"debug"))
+		group.min_severity = LOG_DEBUG;
+	else if (!strcmp(setting,"warn"))
+		group.min_severity = LOG_WARN;
+	else if (!strcmp(setting,"error"))
+		group.min_severity = LOG_ERROR;
+	else if (!strcmp(setting,"fatal"))
+		group.min_severity = LOG_FATAL;
+	else if (!strcmp(setting,"never"))
+		group.min_severity = LOG_NEVER;
+	else
+		group.min_severity = LOG_NORMAL;
+}
+
 void LOG_Init(Section * sec) {
 	Section_prop * sect=static_cast<Section_prop *>(sec);
 	const char * blah=sect->Get_string("logfile");
@@ -247,11 +266,25 @@ void LOG_Init(Section * sec) {
 		strcpy(buf,loggrp[i].front);
 		buf[strlen(buf)]=0;
 		lowcase(buf);
-		loggrp[i].enabled=sect->Get_bool(buf);
+		LOG_ParseEnableSetting(/*&*/loggrp[i],sect->Get_string(buf));
 	}
 }
 
 void LOG_StartUp(void) {
+	const char *log_values[] = {
+		/* compatibility with existing dosbox.conf files */
+		"true", "false",
+
+		/* log levels */
+		"debug",
+		"normal",
+		"warn",
+		"error",
+		"fatal",
+		"never",		/* <- this means NEVER EVER log anything */
+
+		0};
+
 	/* Setup logging groups */
 	loggrp[LOG_ALL].front="ALL";
 	loggrp[LOG_VGA].front="VGA";
@@ -293,9 +326,10 @@ void LOG_StartUp(void) {
 	for (Bitu i=1;i<LOG_MAX;i++) {
 		strcpy(buf,loggrp[i].front);
 		lowcase(buf);
-		Prop_bool* Pbool = sect->Add_bool(buf,Property::Changeable::Always,true);
-		Pbool->Set_help("Enable/Disable logging of this type.");
+
+		Pstring = sect->Add_string(buf,Property::Changeable::Always,"false");
+		Pstring->Set_values(log_values);
+		Pstring->Set_help("Enable/Disable logging of this type.");
 	}
-//	MSG_Add("LOG_CONFIGFILE_HELP","Logging related options for the debugger.\n");
 }
 

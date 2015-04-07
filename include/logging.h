@@ -37,14 +37,17 @@ enum LOG_TYPES {
 };
 
 enum LOG_SEVERITIES {
+	LOG_DEBUG,
 	LOG_NORMAL,
 	LOG_WARN,
-	LOG_ERROR
+	LOG_ERROR,
+	LOG_FATAL,
+	LOG_NEVER
 };
 
 struct _LogGroup {
 	char const* front;
-	bool enabled;
+	enum LOG_SEVERITIES min_severity;
 };
 
 extern _LogGroup loggrp[LOG_MAX];
