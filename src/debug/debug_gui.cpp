@@ -234,9 +234,9 @@ void Null_Init(Section *sec);
 
 void LOG_ParseEnableSetting(_LogGroup &group,const char *setting) {
 	if (!strcmp(setting,"true") || !strcmp(setting,"1") || !strcmp(setting,"normal"))
-		group.min_severity = LOG_NORMAL; /* NTS: Original code only had LOG_NORMAL, so "true" means to act like original code, no debug messages */
+		group.min_severity = LOG_NORMAL; /* original code's handling is equivalent to our "normal" setting */
 	else if (!strcmp(setting,"false") || !strcmp(setting,"0") || !strcmp(setting,""))
-		group.min_severity = LOG_ERROR; /* NTS: Original code treated "false" to mean don't log unless LOG_ERROR, so we emulate that here */
+		group.min_severity = LOG_ERROR; /* original code's handling is equivalent to our "error" setting */
 	else if (!strcmp(setting,"debug"))
 		group.min_severity = LOG_DEBUG;
 	else if (!strcmp(setting,"warn"))
