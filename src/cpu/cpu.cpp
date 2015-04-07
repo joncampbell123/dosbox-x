@@ -796,7 +796,7 @@ void CPU_Exception(Bitu which,Bitu error ) {
 	/* allow recursive page faults. required for multitasking OSes like Windows 95.
 	 * we set this AFTER CPU_Interrupt so that if CPU_Interrupt faults while starting
 	 * a page fault we still trigger double fault. */
-	if (which == EXCEPTION_PF) {
+	if (which == EXCEPTION_PF || which == EXCEPTION_GP) {
 		if (CPU_Exception_Level[which] > 0)
 			CPU_Exception_Level[which]--;
 
