@@ -3358,6 +3358,27 @@ void IDEATADevice::writecommand(uint8_t cmd) {
 			controller->raise_irq();
 			allow_writing = true;
 			break;
+		case 0xA0:/*ATAPI PACKET*/
+			/* We're not an ATAPI packet device!
+			 * Windows 95 seems to issue this at startup to hard drives. Duh. */
+			/* fall through */
+		case 0xA1: /* IDENTIFY PACKET DEVICE */
+			/* We are not an ATAPI packet device.
+			 * Most MS-DOS drivers and Windows 95 like to issue both IDENTIFY ATA and IDENTIFY ATAPI commands.
+			 * I also gather from some contributers on the github comments that people think our "Unknown IDE/ATA command"
+			 * error message is part of some other error in the emulation. Rather than put up with that, we'll just
+			 * silently abort the command with an error. */
+			abort_normal();
+			status = IDE_STATUS_ERROR|IDE_STATUS_DRIVE_READY;
+			drivehead &= 0x30; controller->drivehead = drivehead;
+			count = 0x01;
+			lba[0] = 0x01;
+			feature = 0x04;	/* abort */
+			lba[1] = 0x00;
+			lba[2] = 0x00;
+			controller->raise_irq();
+			allow_writing = true;
+			break;
 		case 0xEC: /* IDENTIFY DEVICE */
 			state = IDE_DEV_BUSY;
 			status = IDE_STATUS_BUSY;
