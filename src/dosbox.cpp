@@ -1740,10 +1740,14 @@ void DOSBOX_Init(void) {
 	Pbool->Set_help("Enable XMS support.");
 
 	Pbool = secprop->Add_bool("hma",Property::Changeable::WhenIdle,true);
-	Pbool->Set_help("Enable XMS access to HMA.");
+	Pbool->Set_help("Report through XMS that HMA exists (not necessarily available)");
 
-	Pint = secprop->Add_int("hmamin",Property::Changeable::WhenIdle,0);
-	Pint->Set_help("Minimum allocation size for HMA in bytes.");
+	Pbool = secprop->Add_bool("hma allow reservation",Property::Changeable::WhenIdle,true);
+	Pbool->Set_help("Allow TSR and application (anything other than the DOS kernel) to request control of the HMA.\n"
+			"They will not be able to request control however if the DOS kernel is configured to occupy the HMA (DOS=HIGH)");
+
+	Pint = secprop->Add_int("hma minimum allocation",Property::Changeable::WhenIdle,0);
+	Pint->Set_help("Minimum allocation size for HMA in bytes (equivalent to /HMAMIN= parameter).");
 
 	Pbool = secprop->Add_bool("share",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Report SHARE.EXE as resident. Does not actually emulate SHARE functions.");

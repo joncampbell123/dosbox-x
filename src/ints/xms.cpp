@@ -63,6 +63,7 @@
 #define	XMS_FUNCTION_NOT_IMPLEMENTED		0x80
 #define	HIGH_MEMORY_NOT_EXIST				0x90
 #define	HIGH_MEMORY_IN_USE					0x91
+#define HIGH_MEMORY_NOT_BIG_ENOUGH			0x92
 #define	HIGH_MEMORY_NOT_ALLOCATED			0x93
 #define XMS_OUT_OF_SPACE					0xa0
 #define XMS_OUT_OF_HANDLES					0xa1
@@ -79,9 +80,10 @@
 
 extern Bitu rombios_minimum_location;
 
-Bitu xms_hmamin = 0;
-bool enable_xms_hma = true;
-bool xms_hma_appalloc = false;
+Bitu xms_hma_minimum_alloc = 0;
+bool xms_hma_exists = true;
+bool xms_hma_application_has_control = false;
+bool xms_hma_alloc_non_dos_kernel_control = true;
 
 struct XMS_Block {
 	Bitu	size;
@@ -303,18 +305,23 @@ Bitu XMS_Handler(void) {
 	case XMS_GET_VERSION:										/* 00 */
 		reg_ax=XMS_VERSION;
 		reg_bx=XMS_DRIVER_VERSION;
-		reg_dx=enable_xms_hma?1:0;
+		reg_dx=xms_hma_exists?1:0;
 		break;
 	case XMS_ALLOCATE_HIGH_MEMORY:								/* 01 */
-		if (enable_xms_hma) {
-			if (xms_hma_appalloc || reg_dx < xms_hmamin) {
+		if (xms_hma_exists) {
+			if (xms_hma_application_has_control) {
 				/* no room! */
 				reg_ax=0;
 				reg_bl=HIGH_MEMORY_IN_USE;
 			}
+			else if (reg_dx < xms_hma_minimum_alloc) {
+				/* not big enough */
+				reg_ax=0;
+				reg_bl=HIGH_MEMORY_NOT_BIG_ENOUGH;
+			}
 			else { /* program allocation */
-				LOG(LOG_MISC,LOG_DEBUG)("XMS: HMA allocated");
-				xms_hma_appalloc = true;
+				LOG(LOG_MISC,LOG_DEBUG)("XMS: HMA allocated by application/TSR");
+				xms_hma_application_has_control = true;
 				reg_ax=1;
 			}
 		}
@@ -324,10 +331,10 @@ Bitu XMS_Handler(void) {
 		}
 		break;
 	case XMS_FREE_HIGH_MEMORY:									/* 02 */
-		if (enable_xms_hma) {
-			if (xms_hma_appalloc) {
-				LOG(LOG_MISC,LOG_DEBUG)("XMS: HMA freed");
-				xms_hma_appalloc = false;
+		if (xms_hma_exists) {
+			if (xms_hma_application_has_control) {
+				LOG(LOG_MISC,LOG_DEBUG)("XMS: HMA freed by application/TSR");
+				xms_hma_application_has_control = false;
 				reg_ax=1;
 			}
 			else {
@@ -548,12 +555,10 @@ public:
 			return;
 		}
 
-		enable_xms_hma = section->Get_bool("hma");
-		xms_hmamin = section->Get_int("hmamin");
-		if (xms_hmamin > 0xFFF0) xms_hmamin = 0xFFF0;
-
-		if (enable_xms_hma)
-			LOG(LOG_MISC,LOG_NORMAL)("XMS services will allow access to the HMA, minimum allocation %u bytes",xms_hmamin);
+		xms_hma_exists = section->Get_bool("hma");
+		xms_hma_minimum_alloc = section->Get_int("hma minimum allocation");
+		xms_hma_alloc_non_dos_kernel_control = section->Get_bool("hma allow reservation");
+		if (xms_hma_minimum_alloc > 0xFFF0) xms_hma_minimum_alloc = 0xFFF0;
 
 		Bitu i;
 		BIOS_ZeroExtendedSize(true);
