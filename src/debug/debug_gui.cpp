@@ -255,6 +255,7 @@ void LOG_Init(Section * sec) {
 	Section_prop * sect=static_cast<Section_prop *>(sec);
 	const char * blah=sect->Get_string("logfile");
 	if (blah != NULL && blah[0] != 0 && (debuglog=fopen(blah,"wt+")) != NULL) {
+		setbuf(debuglog,NULL);
 	}
 	else {
 		debuglog=0;

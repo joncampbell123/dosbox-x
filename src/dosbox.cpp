@@ -1752,6 +1752,10 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("dos in hma",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Report that DOS occupies HMA (equiv. DOS=HIGH)");
 
+	Pint = secprop->Add_int("hma free space",Property::Changeable::WhenIdle,34*1024); /* default 34KB (TODO: How much does MS-DOS 5.0 usually occupy?) */
+	Pint->Set_help("Controls the amount of free space available in HMA. This setting is not meaningful unless the\n"
+			"DOS kernel occupies HMA and the emulated DOS version is at least 5.0.");
+
 	Pbool = secprop->Add_bool("share",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Report SHARE.EXE as resident. Does not actually emulate SHARE functions.");
 

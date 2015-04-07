@@ -24,6 +24,11 @@
 #include "dos_inc.h"
 #include <list>
 
+Bit32u DOS_HMA_LIMIT();
+Bit32u DOS_HMA_FREE_START();
+Bit32u DOS_HMA_GET_FREE_SPACE();
+void DOS_HMA_CLAIMED(Bitu bytes);
+
 extern bool enable_share_exe_fake;
 
 extern Bitu XMS_EnableA20(bool enable);
@@ -288,14 +293,58 @@ static bool DOS_MultiplexFunctions(void) {
 	case 0x168f:	/*  Close awareness crap */
 	   /* Removing warning */
 		return true;
-	case 0x4a01:	/* Query free hma space */
-	case 0x4a02:	/* ALLOCATE HMA SPACE */
-		LOG(LOG_DOSMISC,LOG_WARN)("INT 2f:4a HMA. DOSBox reports none available.");
-		reg_bx=0;	//number of bytes available in HMA or amount successfully allocated
-		//ESDI=ffff:ffff Location of HMA/Allocated memory
+	case 0x4a01: {	/* Query free hma space */
+		Bit32u limit = DOS_HMA_LIMIT();
+
+		if (limit == 0) {
+			/* TODO: What does MS-DOS prior to v5.0? */
+			reg_bx = 0;
+			reg_di = 0xFFFF;
+			SegSet16(es,0xFFFF);
+			LOG(LOG_MISC,LOG_DEBUG)("HMA query: rejected");
+			return true;
+		}
+
+		Bit32u start = DOS_HMA_FREE_START();
+		reg_bx = limit - start; /* free space in bytes */
 		SegSet16(es,0xffff);
-		reg_di=0xffff;
-		return true;
+		reg_di = (start + 0x10) & 0xFFFF;
+		LOG(LOG_MISC,LOG_DEBUG)("HMA query: start=0x%06x limit=0x%06x free=0x%06x -> bx=%u %04x:%04x",
+			start,limit,DOS_HMA_GET_FREE_SPACE(),(int)reg_bx,(int)SegValue(es),(int)reg_di);
+		} return true;
+	case 0x4a02: {	/* ALLOCATE HMA SPACE */
+		Bit32u limit = DOS_HMA_LIMIT();
+
+		if (limit == 0) {
+			/* TODO: What does MS-DOS prior to v5.0? */
+			reg_bx = 0;
+			reg_di = 0xFFFF;
+			SegSet16(es,0xFFFF);
+			LOG(LOG_MISC,LOG_DEBUG)("HMA allocation: rejected");
+			return true;
+		}
+
+		/* FIXME: So, according to Ralph Brown Interrupt List, MS-DOS 5 and 6 liked to round up to the next paragraph? And then Windows 95 changed that? */
+		if (dos.version.major < 7 && (reg_bx & 0xF) != 0)
+			reg_bx = (reg_bx + 0xF) & (~0xF);
+
+		Bit32u start = DOS_HMA_FREE_START();
+		if ((start+reg_bx) > limit) {
+			LOG(LOG_MISC,LOG_DEBUG)("HMA allocation: rejected (not enough room) for %u bytes",reg_bx);
+			reg_bx = 0;
+			reg_di = 0xFFFF;
+			SegSet16(es,0xFFFF);
+			return true;
+		}
+
+		/* convert the start to segment:offset, normalized to FFFF:offset */
+		reg_di = (start - 0x10) & 0xFFFF;
+		SegSet16(es,0xFFFF);
+
+		/* let HMA emulation know what was claimed */
+		LOG(LOG_MISC,LOG_DEBUG)("HMA allocation: %u bytes at FFFF:%04x",reg_bx,reg_di);
+		DOS_HMA_CLAIMED(reg_bx);
+		} return true;
 	}
 
 	return false;

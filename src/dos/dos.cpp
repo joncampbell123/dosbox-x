@@ -37,6 +37,9 @@ bool DOS_BreakFlag = false;
 bool enable_dbcs_tables = true;
 bool enable_filenamechar = true;
 bool enable_share_exe_fake = true;
+int dos_initial_hma_free = 34*1024;
+
+Bit32u dos_hma_allocator = 0; /* physical memory addr */
 
 bool XMS_IS_ACTIVE();
 bool XMS_HMA_EXISTS();
@@ -46,6 +49,44 @@ bool DOS_IS_IN_HMA() {
 		return true;
 
 	return false;
+}
+
+Bit32u DOS_HMA_LIMIT() {
+	if (dos.version.major < 5) return 0; /* MS-DOS 5.0+ only */
+	if (!DOS_IS_IN_HMA()) return 0;
+	return (0x110000 - 16); /* 1MB + 64KB - 16 bytes == (FFFF:FFFF + 1) == (0xFFFF0 + 0xFFFF + 1) == 0x10FFF0 */
+}
+
+Bit32u DOS_HMA_FREE_START() {
+	if (dos.version.major < 5) return 0; /* MS-DOS 5.0+ only */
+	if (!DOS_IS_IN_HMA()) return 0;
+
+	if (dos_hma_allocator == 0) {
+		dos_hma_allocator = 0x100000 + dos_initial_hma_free; /* start from 1MB marker */
+		LOG(LOG_MISC,LOG_DEBUG)("Starting HMA allocation from physical address 0x%06x (FFFF:%04x)",
+			dos_hma_allocator,(dos_hma_allocator+0x10)&0xFFFF);
+	}
+
+	return dos_hma_allocator;
+}
+
+Bit32u DOS_HMA_GET_FREE_SPACE() {
+	Bit32u start;
+
+	if (dos.version.major < 5) return 0; /* MS-DOS 5.0+ only */
+	if (!DOS_IS_IN_HMA()) return 0;
+	start = DOS_HMA_FREE_START();
+	if (start == 0) return 0;
+	return (DOS_HMA_LIMIT() - start);
+}
+
+void DOS_HMA_CLAIMED(Bitu bytes) {
+	Bit32u limit = DOS_HMA_LIMIT();
+
+	if (limit == 0) E_Exit("HMA allocatiom bug: Claim function called when HMA allocation is not enabled");
+	if (dos_hma_allocator == 0) E_Exit("HMA allocatiom bug: Claim function called without having determined start");
+	dos_hma_allocator += bytes;
+	if (dos_hma_allocator > limit) E_Exit("HMA allocation bug: Exceeded limit");
 }
 
 Bit16u DOS_INFOBLOCK_SEG=0x80;	// sysvars (list of lists)
@@ -1613,6 +1654,7 @@ public:
 		enable_dbcs_tables = section->Get_bool("dbcs");
 		enable_share_exe_fake = section->Get_bool("share");
 		enable_filenamechar = section->Get_bool("filenamechar");
+		dos_initial_hma_free = section->Get_int("hma free space");
 		minimum_mcb_segment = section->Get_hex("minimum mcb segment");
 		private_segment_in_umb = section->Get_bool("private area in umb");
 		enable_collating_uppercase = section->Get_bool("collating and uppercase");
