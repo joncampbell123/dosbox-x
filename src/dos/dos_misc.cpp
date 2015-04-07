@@ -324,7 +324,9 @@ static bool DOS_MultiplexFunctions(void) {
 			return true;
 		}
 
-		/* FIXME: So, according to Ralph Brown Interrupt List, MS-DOS 5 and 6 liked to round up to the next paragraph? And then Windows 95 changed that? */
+		/* NTS: According to RBIL, Windows 95 adds a deallocate function and changes HMA allocation up to follow a
+		 *      MCB chain structure. Which is something we're probably not going to add for awhile. */
+		/* FIXME: So, according to Ralph Brown Interrupt List, MS-DOS 5 and 6 liked to round up to the next paragraph? */
 		if (dos.version.major < 7 && (reg_bx & 0xF) != 0)
 			reg_bx = (reg_bx + 0xF) & (~0xF);
 
