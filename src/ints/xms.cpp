@@ -313,7 +313,7 @@ Bitu XMS_Handler(void) {
 				reg_bl=HIGH_MEMORY_IN_USE;
 			}
 			else { /* program allocation */
-				LOG_MSG("XMS: HMA allocated");
+				LOG(LOG_MISC,LOG_DEBUG)("XMS: HMA allocated");
 				xms_hma_appalloc = true;
 				reg_ax=1;
 			}
@@ -326,7 +326,7 @@ Bitu XMS_Handler(void) {
 	case XMS_FREE_HIGH_MEMORY:									/* 02 */
 		if (enable_xms_hma) {
 			if (xms_hma_appalloc) {
-				LOG_MSG("XMS: HMA freed");
+				LOG(LOG_MISC,LOG_DEBUG)("XMS: HMA freed");
 				xms_hma_appalloc = false;
 				reg_ax=1;
 			}
@@ -553,7 +553,7 @@ public:
 		if (xms_hmamin > 0xFFF0) xms_hmamin = 0xFFF0;
 
 		if (enable_xms_hma)
-			LOG_MSG("XMS services will allow access to the HMA, minimum allocation %u bytes",xms_hmamin);
+			LOG(LOG_MISC,LOG_NORMAL)("XMS services will allow access to the HMA, minimum allocation %u bytes",xms_hmamin);
 
 		Bitu i;
 		BIOS_ZeroExtendedSize(true);
