@@ -3684,8 +3684,8 @@ void ROMBIOS_Init(Section *sec) {
 		rombios_minimum_size = 0x10000;
 	}
 
-	LOG(LOG_BIOS,LOG_NORMAL)("ROM BIOS range: 0x%05x-0xFFFFF\n",(int)rombios_minimum_location);
-	LOG(LOG_BIOS,LOG_NORMAL)("ROM BIOS range, final: 0x%05x-0xFFFFF\n",(int)(0x100000 - rombios_minimum_size));
+	LOG(LOG_BIOS,LOG_NORMAL)("ROM BIOS range: 0x%05x-0xFFFFF",(int)rombios_minimum_location);
+	LOG(LOG_BIOS,LOG_NORMAL)("ROM BIOS range, final: 0x%05x-0xFFFFF",(int)(0x100000 - rombios_minimum_size));
 
 	if (!MEM_map_ROM_physmem(rombios_minimum_location,0xFFFFF)) E_Exit("Unable to map ROM region as ROM");
 
