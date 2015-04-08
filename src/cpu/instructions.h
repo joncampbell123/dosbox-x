@@ -683,12 +683,23 @@
  *
  *      In other words, after the XOR EDX,EDX (sets ZF=1), the DIV instruction does not reset ZF, you have a NexGen 5x86.
  *      The purpose of this fix is to prevent DOS programs from misdetecting DOSBox-X as a NexGen 5x86 when cputype=386,
- *      Prior to this fix DOSBox-X did not modify any flags for DIV/IDIV. */
-#define DIV_UPDATE_FLAGS(remainder) \
-	SETFLAGBIT(ZF,(remainder==0));
+ *      Prior to this fix DOSBox-X did not modify any flags for DIV/IDIV.
+ *
+ *      Also observed: CY is set if (quot&1)^(remainder&1) == 0 on Pentium Pro 133MHz. Well, not quite, it's some algorithm in place. So far, this is enough to prevent Nx586 misdetection.
+ *      Also observed: AC bit mirrors CY (so far as I can tell).
+ *      Also observed: PF is set based on parity of both quot and remainder */
+#define DIV_UPDATE_FLAGS(quot,remainder) \
+	SETFLAGBIT(ZF,(remainder==0)); \
+	SETFLAGBIT(CF,((quot&1)^(remainder&1))!=0); \
+	SETFLAGBIT(AF,((quot&1)^(remainder&1))!=0);
 
-#define IDIV_UPDATE_FLAGS(remainder) \
-	SETFLAGBIT(ZF,(remainder==0));
+#define IDIV_UPDATE_FLAGS(quot,remainder) \
+	SETFLAGBIT(ZF,(remainder==0)); \
+	SETFLAGBIT(CF,((quot&1)^(remainder&1))!=0); \
+	SETFLAGBIT(AF,((quot&1)^(remainder&1))!=0);
+
+#define PARITY16(x)  (parity_lookup[((x)>>8)&0xff]^parity_lookup[(x)&0xff])
+#define PARITY32(x)  (PARITY16((x)&0xffff)^PARITY16(((x)>>16)&0xffff))
 
 #define DIVB(op1,load,save)									\
 {															\
@@ -700,7 +711,8 @@
 	if (quo>0xff) EXCEPTION(0);								\
 	reg_ah=rem;												\
 	reg_al=quo8;											\
-	DIV_UPDATE_FLAGS(rem);								\
+	DIV_UPDATE_FLAGS(quo8,rem);								\
+	SETFLAGBIT(PF,parity_lookup[rem&0xff]^parity_lookup[quo8&0xff]);					\
 }
 
 
@@ -715,7 +727,8 @@
 	if (quo!=(Bit32u)quo16) EXCEPTION(0);					\
 	reg_dx=rem;												\
 	reg_ax=quo16;											\
-	DIV_UPDATE_FLAGS(rem);								\
+	DIV_UPDATE_FLAGS(quo16,rem);								\
+	SETFLAGBIT(PF,PARITY16(rem&0xffff)^PARITY16(quo16&0xffff));					\
 }
 
 #define DIVD(op1,load,save)									\
@@ -729,7 +742,8 @@
 	if (quo!=(Bit64u)quo32) EXCEPTION(0);					\
 	reg_edx=rem;											\
 	reg_eax=quo32;											\
-	DIV_UPDATE_FLAGS(rem);								\
+	DIV_UPDATE_FLAGS(quo32,rem);								\
+	SETFLAGBIT(PF,PARITY32(rem&0xffffffff)^PARITY32(quo32&0xffffffff));					\
 }
 
 
@@ -743,7 +757,8 @@
 	if (quo!=(Bit16s)quo8s) EXCEPTION(0);					\
 	reg_ah=rem;												\
 	reg_al=quo8s;											\
-	IDIV_UPDATE_FLAGS(rem);								\
+	IDIV_UPDATE_FLAGS(quo8s,rem);								\
+	SETFLAGBIT(PF,parity_lookup[rem&0xff]^parity_lookup[quo8s&0xff]);					\
 }
 
 
@@ -758,7 +773,8 @@
 	if (quo!=(Bit32s)quo16s) EXCEPTION(0);					\
 	reg_dx=rem;												\
 	reg_ax=quo16s;											\
-	IDIV_UPDATE_FLAGS(rem);								\
+	IDIV_UPDATE_FLAGS(quo16s,rem);								\
+	SETFLAGBIT(PF,PARITY16(rem&0xffff)^PARITY16(quo16s&0xffff));					\
 }
 
 #define IDIVD(op1,load,save)								\
@@ -772,7 +788,8 @@
 	if (quo!=(Bit64s)quo32s) EXCEPTION(0);					\
 	reg_edx=rem;											\
 	reg_eax=quo32s;											\
-	IDIV_UPDATE_FLAGS(rem);								\
+	IDIV_UPDATE_FLAGS(quo32s,rem);								\
+	SETFLAGBIT(PF,PARITY32(rem&0xffffffff)^PARITY32(quo32s&0xffffffff));					\
 }
 
 #define IMULB(op1,load,save)								\
