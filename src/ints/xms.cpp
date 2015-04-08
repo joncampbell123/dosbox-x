@@ -178,7 +178,7 @@ Bitu XMS_AllocateMemory(Bitu size, Bit16u& handle) {	// size = kb
 		if (dbg_zero_on_xms_allocmem) XMS_ZeroAllocation(mem,pages);
 	} else {
 		mem=MEM_GetNextFreePage();
-		if (mem==0) LOG(LOG_MISC,LOG_ERROR)("XMS:Allocate zero pages with no memory left");
+		if (mem==0) LOG(LOG_MISC,LOG_DEBUG)("XMS:Allocate zero pages with no memory left"); // Windows 3.1 triggers this surprisingly often!
 		if (mem != 0 && dbg_zero_on_xms_allocmem) XMS_ZeroAllocation(mem,1);
 	}
 	xms_handles[index].free=false;
