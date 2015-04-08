@@ -727,12 +727,6 @@ void IDEATAPICDROMDevice::read_toc() {
 
 	memset(sector,0,8);
 
-	if (Format != 0) {
-		LOG_MSG("WARNING: ATAPI READ TOC Format=%u not supported\n",Format);
-		prepare_read(0,8);
-		return;
-	}
-
 	if (!cdrom->GetAudioTracks(first,last,leadOut)) {
 		LOG_MSG("WARNING: ATAPI READ TOC failed to get track info\n");
 		prepare_read(0,8);
@@ -741,32 +735,30 @@ void IDEATAPICDROMDevice::read_toc() {
 
 	/* start 2 bytes out. we'll fill in the data length later */
 	write = sector + 2;
-	*write++ = (unsigned char)first;	/* @+2 */
-	*write++ = (unsigned char)last;		/* @+3 */
 
-	for (track=first;track <= last;track++) {
+	if (Format == 1) { /* Read multisession info */
 		unsigned char attr;
 		TMSF start;
 
-		if (!cdrom->GetAudioTrackInfo(track,start,attr)) {
-			LOG_MSG("WARNING: ATAPI READ TOC unable to read track %u information\n",track);
+		*write++ = (unsigned char)1;		/* @+2 first complete session */
+		*write++ = (unsigned char)1;		/* @+3 last complete session */
+
+		if (!cdrom->GetAudioTrackInfo(first,start,attr)) {
+			LOG_MSG("WARNING: ATAPI READ TOC unable to read track %u information\n",first);
 			attr = 0x41; /* ADR=1 CONTROL=4 */
 			start.min = 0;
 			start.sec = 0;
 			start.fr = 0;
 		}
 
-		if (track < Track)
-			continue;
-		if ((write+8) > (sector+AllocationLength))
-			break;
-
-		LOG_MSG("Track %u attr=0x%02x\n",track,attr);
+		LOG_MSG("Track %u attr=0x%02x\n",first,attr);
 
 		*write++ = 0x00;		/* entry+0 RESERVED */
-		*write++ = (attr >> 4) | 0x10; /* entry+1 ADR=1 CONTROL=4 (DATA) */
-		*write++ = (unsigned char)track;/* entry+2 TRACK */
+		*write++ = (attr >> 4) | 0x10;  /* entry+1 ADR=1 CONTROL=4 (DATA) */
+		*write++ = (unsigned char)first;/* entry+2 TRACK */
 		*write++ = 0x00;		/* entry+3 RESERVED */
+
+		/* then, start address of first track in session */
 		if (TIME) {
 			*write++ = 0x00;
 			*write++ = start.min;
@@ -781,25 +773,72 @@ void IDEATAPICDROMDevice::read_toc() {
 			*write++ = (unsigned char)(sec >> 0);
 		}
 	}
+	else if (Format == 0) { /* Read table of contents */
+		*write++ = (unsigned char)first;	/* @+2 */
+		*write++ = (unsigned char)last;		/* @+3 */
 
-	if ((write+8) <= (sector+AllocationLength)) {
-		*write++ = 0x00;
-		*write++ = 0x14;
-		*write++ = 0xAA;/*TRACK*/
-		*write++ = 0x00;
-		if (TIME) {
+		for (track=first;track <= last;track++) {
+			unsigned char attr;
+			TMSF start;
+
+			if (!cdrom->GetAudioTrackInfo(track,start,attr)) {
+				LOG_MSG("WARNING: ATAPI READ TOC unable to read track %u information\n",track);
+				attr = 0x41; /* ADR=1 CONTROL=4 */
+				start.min = 0;
+				start.sec = 0;
+				start.fr = 0;
+			}
+
+			if (track < Track)
+				continue;
+			if ((write+8) > (sector+AllocationLength))
+				break;
+
+			LOG_MSG("Track %u attr=0x%02x\n",track,attr);
+
+			*write++ = 0x00;		/* entry+0 RESERVED */
+			*write++ = (attr >> 4) | 0x10; /* entry+1 ADR=1 CONTROL=4 (DATA) */
+			*write++ = (unsigned char)track;/* entry+2 TRACK */
+			*write++ = 0x00;		/* entry+3 RESERVED */
+			if (TIME) {
+				*write++ = 0x00;
+				*write++ = start.min;
+				*write++ = start.sec;
+				*write++ = start.fr;
+			}
+			else {
+				uint32_t sec = (start.min*60*75)+(start.sec*75)+start.fr - 150;
+				*write++ = (unsigned char)(sec >> 24);
+				*write++ = (unsigned char)(sec >> 16);
+				*write++ = (unsigned char)(sec >> 8);
+				*write++ = (unsigned char)(sec >> 0);
+			}
+		}
+
+		if ((write+8) <= (sector+AllocationLength)) {
 			*write++ = 0x00;
-			*write++ = leadOut.min;
-			*write++ = leadOut.sec;
-			*write++ = leadOut.fr;
+			*write++ = 0x14;
+			*write++ = 0xAA;/*TRACK*/
+			*write++ = 0x00;
+			if (TIME) {
+				*write++ = 0x00;
+				*write++ = leadOut.min;
+				*write++ = leadOut.sec;
+				*write++ = leadOut.fr;
+			}
+			else {
+				uint32_t sec = (leadOut.min*60*75)+(leadOut.sec*75)+leadOut.fr - 150;
+				*write++ = (unsigned char)(sec >> 24);
+				*write++ = (unsigned char)(sec >> 16);
+				*write++ = (unsigned char)(sec >> 8);
+				*write++ = (unsigned char)(sec >> 0);
+			}
 		}
-		else {
-			uint32_t sec = (leadOut.min*60*75)+(leadOut.sec*75)+leadOut.fr - 150;
-			*write++ = (unsigned char)(sec >> 24);
-			*write++ = (unsigned char)(sec >> 16);
-			*write++ = (unsigned char)(sec >> 8);
-			*write++ = (unsigned char)(sec >> 0);
-		}
+	}
+	else {
+		LOG_MSG("WARNING: ATAPI READ TOC Format=%u not supported\n",Format);
+		prepare_read(0,8);
+		return;
 	}
 
 	/* update the TOC data length field */
@@ -810,11 +849,6 @@ void IDEATAPICDROMDevice::read_toc() {
 	}
 
 	prepare_read(0,MIN(MIN((unsigned int)(write-sector),(unsigned int)host_maximum_byte_count),AllocationLength));
-#if 0
-	printf("TOC ");
-	for (size_t i=0;i < sector_total;i++) printf("%02x ",sector[i]);
-	printf("\n");
-#endif
 }
 
 /* when the ATAPI command has been accepted, and the timeout has passed */
