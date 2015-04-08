@@ -219,15 +219,26 @@ void LOG_Destroy(Section*) {
 void Null_Init(Section *sec);
 
 void LOG::operator() (char const* format, ...){
+	const char *s_severity = "";
 	char buf[512];
 	va_list msg;
+
+	switch (d_severity) {
+		case LOG_DEBUG:	s_severity = " DEBUG"; break;
+		case LOG_NORMAL:s_severity = "      "; break;
+		case LOG_WARN:  s_severity = " WARN "; break;
+		case LOG_ERROR: s_severity = " ERROR"; break;
+		case LOG_FATAL: s_severity = " FATAL"; break;
+		default: break;
+	};
+
 	va_start(msg,format);
 	vsnprintf(buf,sizeof(buf)-1,format,msg);
 	va_end(msg);
 
 	if (d_type>=LOG_MAX) return;
 	if (d_severity < loggrp[d_type].min_severity) return;
-	DEBUG_ShowMsg("%10u: %s:%s\n",static_cast<Bit32u>(cycle_count),loggrp[d_type].front,buf);
+	DEBUG_ShowMsg("%10u%s %s:%s\n",static_cast<Bit32u>(cycle_count),s_severity,loggrp[d_type].front,buf);
 }
 
 void LOG_ParseEnableSetting(_LogGroup &group,const char *setting) {
