@@ -620,37 +620,37 @@ public:
 		if (first_umb_size == 0) first_umb_size = ROMBIOS_MinAllocatedLoc()>>4;
 
 		if (first_umb_seg < 0xC000 || first_umb_seg < DOS_PRIVATE_SEGMENT_END) {
-			LOG_MSG("UMB warning: UMB blocks before 0xD000 conflict with VGA (0xA000-0xBFFF), VGA BIOS (0xC000-0xC7FF) and DOSBox private area (0x%04x-0x%04x)\n",
+			LOG(LOG_MISC,LOG_WARN)("UMB blocks before 0xD000 conflict with VGA (0xA000-0xBFFF), VGA BIOS (0xC000-0xC7FF) and DOSBox private area (0x%04x-0x%04x)",
 				DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
 			first_umb_seg = 0xC000;
 			if (first_umb_seg < (Bitu)DOS_PRIVATE_SEGMENT_END) first_umb_seg = (Bitu)DOS_PRIVATE_SEGMENT_END;
 		}
 		if (first_umb_seg >= (rombios_minimum_location>>4)) {
-			LOG_MSG("UMB starting segment 0x%04x conflict with BIOS at 0x%04x. Disabling UMBs\n",(int)first_umb_seg,(int)(rombios_minimum_location>>4));
+			LOG(LOG_MISC,LOG_NORMAL)("UMB starting segment 0x%04x conflict with BIOS at 0x%04x. Disabling UMBs",(int)first_umb_seg,(int)(rombios_minimum_location>>4));
 			umb_available = false;
 		}
 		if (first_umb_size >= (rombios_minimum_location>>4)) {
 			/* we can ask the BIOS code to trim back the region, assuming it hasn't allocated anything there yet */
-			LOG_MSG("UMB ending segment 0x%04x conflicts with BIOS at 0x%04x, asking BIOS to move aside\n",(int)first_umb_size,(int)(rombios_minimum_location>>4));
+			LOG(LOG_MISC,LOG_DEBUG)("UMB ending segment 0x%04x conflicts with BIOS at 0x%04x, asking BIOS to move aside",(int)first_umb_size,(int)(rombios_minimum_location>>4));
 			ROMBIOS_FreeUnusedMinToLoc(first_umb_size<<4);
 		}
 		if (first_umb_size >= (rombios_minimum_location>>4)) {
-			LOG_MSG("UMB ending segment 0x%04x conflicts with BIOS at 0x%04x, truncating region\n",(int)first_umb_size,(int)(rombios_minimum_location>>4));
+			LOG(LOG_MISC,LOG_DEBUG)("UMB ending segment 0x%04x conflicts with BIOS at 0x%04x, truncating region",(int)first_umb_size,(int)(rombios_minimum_location>>4));
 			first_umb_size = (rombios_minimum_location>>4)-1;
 		}
 		if (first_umb_size < first_umb_seg) {
-			LOG_MSG("UMB end segment below UMB start. I'll just assume you mean to disable UMBs then.\n");
+			LOG(LOG_MISC,LOG_NORMAL)("UMB end segment below UMB start. I'll just assume you mean to disable UMBs then.");
 			first_umb_size = first_umb_seg - 1;
 			umb_available = false;
 		}
 		first_umb_size = (first_umb_size + 1 - first_umb_seg);
 		if (umb_available) {
-			LOG_MSG("UMB assigned region is 0x%04x-0x%04x\n",(int)first_umb_seg,(int)(first_umb_seg+first_umb_size-1));
+			LOG(LOG_MISC,LOG_NORMAL)("UMB assigned region is 0x%04x-0x%04x",(int)first_umb_seg,(int)(first_umb_seg+first_umb_size-1));
 			if (MEM_map_RAM_physmem(first_umb_seg<<4,((first_umb_seg+first_umb_size)<<4)-1)) {
 				memset(GetMemBase()+(first_umb_seg<<4),0x00,first_umb_size<<4);
 			}
 			else {
-				LOG_MSG("Unable to claim UMB region (perhaps adapter ROM is in the way). Disabling UMB\n");
+				LOG(LOG_MISC,LOG_WARN)("Unable to claim UMB region (perhaps adapter ROM is in the way). Disabling UMB");
 				umb_available = false;
 			}
 		}
