@@ -89,12 +89,12 @@ bool MEM_unmap_physmem(Bitu start,Bitu end);
 void ROMBIOS_DumpMemory() {
 	size_t si;
 
-	fprintf(stderr,"ROMBIOS memory dump:\n");
+	LOG(LOG_BIOS,LOG_DEBUG)("ROMBIOS memory dump:");
 	for (si=0;si < rombios_alloc.size();si++) {
 		ROMBIOS_block &blk = rombios_alloc[si];
-		fprintf(stderr,"     0x%08x-0x%08x free=%u %s\n",(int)blk.start,(int)blk.end,blk.free?1:0,blk.who.c_str());
+		LOG(LOG_BIOS,LOG_DEBUG)("     0x%08x-0x%08x free=%u %s",(int)blk.start,(int)blk.end,blk.free?1:0,blk.who.c_str());
 	}
-	fprintf(stderr,"[end dump]\n");
+	LOG(LOG_BIOS,LOG_DEBUG)("[end dump]");
 }
 
 void ROMBIOS_SanityCheck() {
