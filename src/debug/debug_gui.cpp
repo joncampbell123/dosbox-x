@@ -26,16 +26,15 @@
 #include "logging.h"
 #include "support.h"
 #include "control.h"
+#include "regs.h"
+#include "debug.h"
+#include "debug_inc.h"
 
 _LogGroup loggrp[LOG_MAX]={{"",LOG_NORMAL},{0,LOG_NORMAL}};
 FILE* debuglog = NULL;
 
 #if C_DEBUG
 #include <curses.h>
-
-#include "regs.h"
-#include "debug.h"
-#include "debug_inc.h"
 
 #include <list>
 #include <string>
@@ -228,9 +227,7 @@ void LOG::operator() (char const* format, ...){
 
 	if (d_type>=LOG_MAX) return;
 	if (d_severity < loggrp[d_type].min_severity) return;
-#if C_DEBUG
 	DEBUG_ShowMsg("%10u: %s:%s\n",static_cast<Bit32u>(cycle_count),loggrp[d_type].front,buf);
-#endif
 }
 
 void LOG_ParseEnableSetting(_LogGroup &group,const char *setting) {
