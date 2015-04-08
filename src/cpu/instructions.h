@@ -669,6 +669,27 @@
 	}														\
 }
 
+/* NTS: Intel officially documents all the flags as "undefined".
+ *      Unofficially, it seems to set ZF based on the remainder (based on some testing with DEBUG.COM on a Pentium Pro 133MHz).
+ *      The reason this matters is because there is a well-known test to differentiate a 386 from a NexGen 5x86: http://people.freebsd.org/~kato/cpuident.html#identNx586
+ *      
+ *      movl    $0x5555, %eax
+ *      xorl    %edx, %edx
+ *      movl    $2, %ecx
+ *      clc
+ *      divl    %ecx
+ *      jz      you_have_NexGen_586
+ *      jmp     you_have_i80386
+ *
+ *      In other words, after the XOR EDX,EDX (sets ZF=1), the DIV instruction does not reset ZF, you have a NexGen 5x86.
+ *      The purpose of this fix is to prevent DOS programs from misdetecting DOSBox-X as a NexGen 5x86 when cputype=386,
+ *      Prior to this fix DOSBox-X did not modify any flags for DIV/IDIV. */
+#define DIV_UPDATE_FLAGS(remainder) \
+	SETFLAGBIT(ZF,(remainder==0));
+
+#define IDIV_UPDATE_FLAGS(remainder) \
+	SETFLAGBIT(ZF,(remainder==0));
+
 #define DIVB(op1,load,save)									\
 {															\
 	Bitu val=load(op1);										\
@@ -679,6 +700,7 @@
 	if (quo>0xff) EXCEPTION(0);								\
 	reg_ah=rem;												\
 	reg_al=quo8;											\
+	DIV_UPDATE_FLAGS(rem);								\
 }
 
 
@@ -693,6 +715,7 @@
 	if (quo!=(Bit32u)quo16) EXCEPTION(0);					\
 	reg_dx=rem;												\
 	reg_ax=quo16;											\
+	DIV_UPDATE_FLAGS(rem);								\
 }
 
 #define DIVD(op1,load,save)									\
@@ -706,6 +729,7 @@
 	if (quo!=(Bit64u)quo32) EXCEPTION(0);					\
 	reg_edx=rem;											\
 	reg_eax=quo32;											\
+	DIV_UPDATE_FLAGS(rem);								\
 }
 
 
@@ -719,6 +743,7 @@
 	if (quo!=(Bit16s)quo8s) EXCEPTION(0);					\
 	reg_ah=rem;												\
 	reg_al=quo8s;											\
+	IDIV_UPDATE_FLAGS(rem);								\
 }
 
 
@@ -733,6 +758,7 @@
 	if (quo!=(Bit32s)quo16s) EXCEPTION(0);					\
 	reg_dx=rem;												\
 	reg_ax=quo16s;											\
+	IDIV_UPDATE_FLAGS(rem);								\
 }
 
 #define IDIVD(op1,load,save)								\
@@ -746,6 +772,7 @@
 	if (quo!=(Bit64s)quo32s) EXCEPTION(0);					\
 	reg_edx=rem;											\
 	reg_eax=quo32s;											\
+	IDIV_UPDATE_FLAGS(rem);								\
 }
 
 #define IMULB(op1,load,save)								\
