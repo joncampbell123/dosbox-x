@@ -66,19 +66,6 @@ void DEBUG_RefreshPage(char scroll) {
 	wrefresh(dbg.win_out);
 }
 
-void LOG::operator() (char const* format, ...){
-	char buf[512];
-	va_list msg;
-	va_start(msg,format);
-	vsnprintf(buf,sizeof(buf)-1,format,msg);
-	va_end(msg);
-
-	if (d_type>=LOG_MAX) return;
-	if (d_severity < loggrp[d_type].min_severity) return;
-	DEBUG_ShowMsg("%10u: %s:%s\n",static_cast<Bit32u>(cycle_count),loggrp[d_type].front,buf);
-}
-
-
 static void Draw_RegisterLayout(void) {
 	mvwaddstr(dbg.win_reg,0,0,"EAX=");
 	mvwaddstr(dbg.win_reg,1,0,"EBX=");
@@ -231,6 +218,20 @@ void LOG_Destroy(Section*) {
 }
 
 void Null_Init(Section *sec);
+
+void LOG::operator() (char const* format, ...){
+	char buf[512];
+	va_list msg;
+	va_start(msg,format);
+	vsnprintf(buf,sizeof(buf)-1,format,msg);
+	va_end(msg);
+
+	if (d_type>=LOG_MAX) return;
+	if (d_severity < loggrp[d_type].min_severity) return;
+#if C_DEBUG
+	DEBUG_ShowMsg("%10u: %s:%s\n",static_cast<Bit32u>(cycle_count),loggrp[d_type].front,buf);
+#endif
+}
 
 void LOG_ParseEnableSetting(_LogGroup &group,const char *setting) {
 	if (!strcmp(setting,"true") || !strcmp(setting,"1") || !strcmp(setting,"normal"))
