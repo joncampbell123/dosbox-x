@@ -546,7 +546,7 @@ bool DOS_OpenFile(char const * name,Bit8u flags,Bit16u * entry) {
 		return Network_OpenFile(const_cast<char *>(name),flags,entry);
 #endif
 	/* First check for devices */
-	if (flags>2) LOG(LOG_FILES,LOG_ERROR)("Special file open command %X file %s",flags,name);
+	if (flags>2) LOG(LOG_FILES,LOG_NORMAL)("Special file open command %X file %s",flags,name); // FIXME: Why? Is there something about special opens DOSBox doesn't handle properly?
 	else LOG(LOG_FILES,LOG_NORMAL)("file open command %X file %s",flags,name);
 
 	DOS_PSP psp(dos.psp());
