@@ -1,5 +1,5 @@
 dnl Init.
-AC_INIT(dosbox,DOSBox-X)
+AC_INIT(dosbox-x,0.800,[https://github.com/joncampbell123/dosbox-x/issues],[],[http://dosbox-x.software])
 AC_PREREQ(2.50)
 AC_CONFIG_SRCDIR(README)
 
@@ -538,3 +538,7 @@ src/platform/Makefile
 include/Makefile
 ])
 AC_OUTPUT
+
+# and then hack the vs2008 copy
+(grep -v PACKAGE_ vs2008/config.h && grep PACKAGE_ config.h) >vs2008/config.h.tmp && mv -v vs2008/config.h.tmp vs2008/config.h
+

@@ -23,6 +23,8 @@
 #include "config.h"
 #include "logging.h"
 
+#define UPDATED_STR			"April 9, 2015"
+
 GCC_ATTRIBUTE(noreturn) void		E_Exit(const char * message,...) GCC_ATTRIBUTE( __format__(__printf__, 1, 2));
 
 #include "clockdomain.h"
