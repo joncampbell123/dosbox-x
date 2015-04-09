@@ -693,6 +693,49 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
 	}
 
 	loadedDisk->Read_AbsoluteSector(0+partSectOff,&bootbuffer);
+
+	/* Check for DOS 1.x format floppy */
+	if ((bootbuffer.mediadescriptor & 0xf0) != 0xf0 && filesize <= 360) {
+
+		Bit8u sectorBuffer[512];
+		loadedDisk->Read_AbsoluteSector(1,&sectorBuffer);
+		Bit8u mdesc = sectorBuffer[0];
+
+		/* Allowed if media descriptor in FAT matches image size  */
+		if ((mdesc == 0xfc && filesize == 180) ||
+			(mdesc == 0xfd && filesize == 360) ||
+			(mdesc == 0xfe && filesize == 160) ||
+			(mdesc == 0xff && filesize == 320)) {
+
+			/* Create parameters for a 160kB floppy */
+			bootbuffer.bytespersector = 512;
+			bootbuffer.sectorspercluster = 1;
+			bootbuffer.reservedsectors = 1;
+			bootbuffer.fatcopies = 2;
+			bootbuffer.rootdirentries = 64;
+			bootbuffer.totalsectorcount = 320;
+			bootbuffer.mediadescriptor = mdesc;
+			bootbuffer.sectorsperfat = 1;
+			bootbuffer.sectorspertrack = 8;
+			bootbuffer.headcount = 1;
+			bootbuffer.magic1 = 0x55;	// to silence warning
+			bootbuffer.magic2 = 0xaa;
+			if (!(mdesc & 0x2)) {
+				/* Adjust for 9 sectors per track */
+				bootbuffer.totalsectorcount = 360;
+				bootbuffer.sectorsperfat = 2;
+				bootbuffer.sectorspertrack = 9;
+			}
+			if (mdesc & 0x1) {
+				/* Adjust for 2 sides */
+				bootbuffer.sectorspercluster = 2;
+				bootbuffer.rootdirentries = 112;
+				bootbuffer.totalsectorcount *= 2;
+				bootbuffer.headcount = 2;
+			}
+		}
+	}
+
 	if ((bootbuffer.magic1 != 0x55) || (bootbuffer.magic2 != 0xaa)) {
 		/* Not a FAT filesystem */
 		LOG_MSG("Loaded image has no valid magicnumbers at the end!");
@@ -935,6 +978,10 @@ nextfile:
 	entryoffset = dirPos % 16;
 
 	if(dirClustNumber==0) {
+		if(dirPos >= bootbuffer.rootdirentries) {
+			DOS_SetError(DOSERR_NO_MORE_FILES);
+			return false;
+		}
 		loadedDisk->Read_AbsoluteSector(firstRootDirSect+logentsector,sectbuf);
 	} else {
 		tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
