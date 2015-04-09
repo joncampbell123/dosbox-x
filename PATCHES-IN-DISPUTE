@@ -1,0 +1,4 @@
+mainline patches NOT applied:
+
+svn diff -r 3903:3904      Allow CRTC read/write access on all mirror ports for non-VGA machine types. Fixes Tandy and EGA display in International Hockey booter. Thanks Great Hierophant for testing on real systems.
+

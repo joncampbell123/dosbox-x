@@ -300,6 +300,7 @@ bool DOS_Rename(char const * const oldname,char const * const newname) {
 }
 
 bool DOS_FindFirst(char * search,Bit16u attr,bool fcb_findfirst) {
+	LOG(LOG_FILES,LOG_NORMAL)("file search attributes %X name %s",attr,search);
 	DOS_DTA dta(dos.dta());
 	Bit8u drive;char fullsearch[DOS_PATHLENGTH];
 	char dir[DOS_PATHLENGTH];char pattern[DOS_PATHLENGTH];
@@ -660,6 +661,11 @@ bool DOS_OpenFileExtended(char const * name, Bit16u flags, Bit16u createAttr, Bi
 
 bool DOS_UnlinkFile(char const * const name) {
 	char fullname[DOS_PATHLENGTH];Bit8u drive;
+	// An existing device returns an access denied error
+	if (DOS_FindDevice(name) != DOS_DEVICES) {
+		DOS_SetError(DOSERR_ACCESS_DENIED);
+		return false;
+	}
 	if (!DOS_MakeName(name,fullname,&drive)) return false;
 	if(Drives[drive]->FileUnlink(fullname)){
 		return true;
