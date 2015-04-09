@@ -40,17 +40,18 @@ extern bool dos_kernel_disabled;
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
 static Bit8u exe_block[]={
-	0xbc,0x00,0x04,					//MOV SP,0x400 decrease stack size
-	0xbb,0x40,0x00,					//MOV BX,0x040 for memory resize
-	0xb4,0x4a,						//MOV AH,0x4A	Resize memory block
-	0xcd,0x21,						//INT 0x21
-//pos 12 is callback number
-	0xFE,0x38,0x00,0x00,			//CALLBack number
-	0xb8,0x00,0x4c,					//Mov ax,4c00
-	0xcd,0x21,						//INT 0x21
-};
+	0xbc,0x00,0x04,					//0x100 MOV SP,0x400  decrease stack size
+	0xbb,0x40,0x00,					//0x103 MOV BX,0x0040 for memory resize
+	0xb4,0x4a,					//0x106 MOV AH,0x4A   Resize memory block
+	0xcd,0x21,					//0x108 INT 0x21      ...
+	0x30,0xc0,					//0x10A XOR AL,AL     Clear AL (exit code). Program will write AL to modify exit status
+//pos 14 is callback number
+	0xFE,0x38,0x00,0x00,				//0x10C CALLBack number
+	0xb4,0x4c,					//0x110 Mov AH,0x4C   Prepare to exit, preserve AL
+	0xcd,0x21					//0x112 INT 0x21      Exit to DOS
+};							//0x114 --DONE--
 
-#define CB_POS 12
+#define CB_POS 14
 
 class InternalProgramEntry {
 public:
@@ -153,9 +154,16 @@ Program::Program() {
 	char filename[256+1];
 	MEM_StrCopy(envscan,filename,256);
 	cmd = new CommandLine(filename,tail.buffer);
+	exit_status = 0;
 }
 
 extern std::string full_arguments;
+
+void Program::WriteExitStatus() {
+	/* the exe block was modified that on return to DOS only AH is modified, leaving AL normally
+	 * zero but we're free to set AL to any other value to set exit code */
+	reg_al = exit_status;
+}
 
 void Program::ChangeToLongCmd() {
 	/* 
@@ -524,7 +532,7 @@ void CONFIG::Run(void) {
 	static const char* const params[] = {
 		"-r", "-wcp", "-wcd", "-wc", "-writeconf", "-l", "-rmconf",
 		"-h", "-help", "-?", "-axclear", "-axadd", "-axtype", "-get", "-set",
-		"-writelang", "-wl", "-securemode", "-all", NULL };
+		"-writelang", "-wl", "-securemode", "-all", "-errtest", NULL };
 	enum prs {
 		P_NOMATCH, P_NOPARAMS, // fixed return values for GetParameterFromList
 		P_RESTART,
@@ -534,7 +542,7 @@ void CONFIG::Run(void) {
 		P_AUTOEXEC_CLEAR, P_AUTOEXEC_ADD, P_AUTOEXEC_TYPE,
 		P_GETPROP, P_SETPROP,
 		P_WRITELANG, P_WRITELANG2,
-		P_SECURE, P_ALL
+		P_SECURE, P_ALL, P_ERRTEST
 	} presult = P_NOMATCH;
 
 	bool all = false;
@@ -548,6 +556,11 @@ void CONFIG::Run(void) {
 		case P_ALL:
 			all = true;
 			break;
+
+		case P_ERRTEST:
+			exit_status = 1;
+			WriteExitStatus();
+			return;
 
 		case P_RESTART:
 			if (securemode_check()) return;

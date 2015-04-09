@@ -86,6 +86,7 @@ public:
 		if (cmd != NULL) delete cmd;
 		if (psp != NULL) delete psp;
 	}
+	unsigned char exit_status;
 	std::string temp_line;
 	CommandLine * cmd;
 	DOS_PSP * psp;
@@ -98,6 +99,7 @@ public:
 	void WriteOut_NoParsing(const char * format);				/* Write to standard output, no parsing */
 	void ChangeToLongCmd();
 	void DebugDumpEnv();
+	void WriteExitStatus();
 };
 
 typedef void (PROGRAMS_Main)(Program * * make);
