@@ -1232,7 +1232,9 @@ void VGA_SetupHandlers(void) {
 				MEM_SetPageHandler(VGA_PAGE_B0,16,&vgaph.herc);
 		} else {
 			vgapages.mask=0x7fff;
-			if (vga.herc.enable_bits & 0x1) /* allow graphics and enable 0xB1000-0xB7FFF */
+			// With hercules in 32kB mode it leaves a memory hole on 0xb800
+			// and has MDA-compatible address wrapping when graphics are disabled
+			if (vga.herc.enable_bits & 0x1)
 				MEM_SetPageHandler(VGA_PAGE_B0,8,&vgaph.map);
 			else
 				MEM_SetPageHandler(VGA_PAGE_B0,8,&vgaph.herc);
