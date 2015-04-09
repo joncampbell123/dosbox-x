@@ -661,6 +661,26 @@ void GFX_ForceFullscreenExit(void) {
 	}
 }
 
+void GFX_LogSDLState(void) {
+	LOG(LOG_MISC,LOG_DEBUG)("SDL video mode: %ux%u (clip %ux%u with upper-left at %ux%u) %ubpp",
+		(unsigned)sdl.surface->w,(unsigned)sdl.surface->h,
+		(unsigned)sdl.clip.w,(unsigned)sdl.clip.h,
+		(unsigned)sdl.clip.x,(unsigned)sdl.clip.y,
+		(unsigned)sdl.surface->format->BitsPerPixel);
+	LOG(LOG_MISC,LOG_DEBUG)("   red: shift=%u mask=0x%08lx",
+		(unsigned)sdl.surface->format->Rshift,
+		(unsigned long)sdl.surface->format->Rmask);
+	LOG(LOG_MISC,LOG_DEBUG)("   green: shift=%u mask=0x%08lx",
+		(unsigned)sdl.surface->format->Gshift,
+		(unsigned long)sdl.surface->format->Gmask);
+	LOG(LOG_MISC,LOG_DEBUG)("   blue: shift=%u mask=0x%08lx",
+		(unsigned)sdl.surface->format->Bshift,
+		(unsigned long)sdl.surface->format->Bmask);
+	LOG(LOG_MISC,LOG_DEBUG)("   alpha: shift=%u mask=0x%08lx",
+		(unsigned)sdl.surface->format->Ashift,
+		(unsigned long)sdl.surface->format->Amask);
+}
+
 static SDL_Surface * GFX_SetupSurfaceScaled(Bit32u sdl_flags, Bit32u bpp) {
 	Bit16u fixedWidth;
 	Bit16u fixedHeight;
@@ -695,14 +715,15 @@ static SDL_Surface * GFX_SetupSurfaceScaled(Bit32u sdl_flags, Bit32u bpp) {
 			sdl.clip.x = 0;
 			sdl.clip.y = 0;
 		}
-		return sdl.surface;
 	} else {
 		sdl.clip.x=0;sdl.clip.y=0;
 		sdl.clip.w=(Bit16u)(sdl.draw.width*sdl.draw.scalex);
 		sdl.clip.h=(Bit16u)(sdl.draw.height*sdl.draw.scaley);
 		sdl.surface=SDL_SetVideoMode(sdl.clip.w,sdl.clip.h,bpp,sdl_flags);
-		return sdl.surface;
 	}
+
+	GFX_LogSDLState();
+	return sdl.surface;
 }
 
 void GFX_TearDown(void) {
@@ -1168,6 +1189,7 @@ dosurface:
 		goto dosurface;
 		break;
 	}//CASE
+	GFX_LogSDLState();
 	if (retFlags)
 		GFX_Start();
 	if (!sdl.mouse.autoenable) SDL_ShowCursor(sdl.mouse.autolock?SDL_DISABLE:SDL_ENABLE);
