@@ -3421,6 +3421,7 @@ bool DOSBOX_parse_argv() {
 			fprintf(stderr,"  -savedir <path>                         Save path\n");
 			fprintf(stderr,"  -disable-numlock-check                  Disable numlock check (win32 only)\n");
 			fprintf(stderr,"  -date-host-forced                       Force synchronization of date with host\n");
+			fprintf(stderr,"  -debug                                  Set all logging levels to debug\n");
 			return 0;
 		}
 		else if (optname == "date-host-forced" || optname == "date_host_forced") {
@@ -3484,6 +3485,9 @@ bool DOSBOX_parse_argv() {
 		}
 		else if (optname == "nogui") {
 			control->opt_nogui = true;
+		}
+		else if (optname == "debug") {
+			control->opt_debug = true;
 		}
 		else {
 			printf("WARNING: Unknown option %s (first parsing stage)\n",optname.c_str());

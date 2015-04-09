@@ -276,7 +276,11 @@ void LOG_Init(Section * sec) {
 		strcpy(buf,loggrp[i].front);
 		buf[strlen(buf)]=0;
 		lowcase(buf);
-		LOG_ParseEnableSetting(/*&*/loggrp[i],sect->Get_string(buf));
+
+		if (control->opt_debug)
+			LOG_ParseEnableSetting(/*&*/loggrp[i],"debug");
+		else
+			LOG_ParseEnableSetting(/*&*/loggrp[i],sect->Get_string(buf));
 	}
 }
 

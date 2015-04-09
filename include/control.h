@@ -68,6 +68,7 @@ public:
 	Config(CommandLine * cmd):cmdline(cmd),secure_mode(false) {
 		startup_params.push_back(cmdline->GetFileName());
 		cmdline->FillVector(startup_params);
+		opt_debug = false;
 		opt_nogui = false;
 		opt_nomenu = false;
 		opt_startui = false;
@@ -119,6 +120,7 @@ public:
 	bool opt_userconf;
 	bool opt_startui;
 	bool opt_nomenu;
+	bool opt_debug;
 	bool opt_nogui;
 };
 
