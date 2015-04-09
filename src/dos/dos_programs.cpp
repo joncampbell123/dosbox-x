@@ -147,6 +147,7 @@ public:
 		std::string label;
 		std::string umount;
 		std::string newz;
+		bool quiet=false;
 		char drive;
 
 		//Hack To allow long commandlines
@@ -164,6 +165,9 @@ public:
 			WriteOut(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
 			return;
 		}
+
+		if (cmd->FindExist("-q",false))
+			quiet = true;
 
 		/* Check for unmounting */
 		if (cmd->FindString("-u",umount,false)) {
@@ -450,7 +454,7 @@ public:
 		Drives[drive-'A']=newdrive;
 		/* Set the correct media byte in the table */
 		mem_writeb(Real2Phys(dos.tables.mediaid)+(drive-'A')*2,newdrive->GetMediaByte());
-		WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"),drive,newdrive->GetInfo());
+		if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"),drive,newdrive->GetInfo());
 		/* check if volume label is given and don't allow it to updated in the future */
 		if (cmd->FindString("-label",label,true)) newdrive->SetLabel(label.c_str(),iscdrom,false);
 		/* For hard drives set the label to DRIVELETTER_Drive.
