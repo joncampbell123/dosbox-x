@@ -18,6 +18,8 @@
 
 /* Jumps */
 
+extern bool enable_fpu;
+
 /* All Byte general instructions */
 #define ADDB(op1,op2,load,save)								\
 	lf_var1b=load(op1);lf_var2b=op2;					\

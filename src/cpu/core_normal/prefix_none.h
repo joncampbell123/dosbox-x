@@ -853,21 +853,77 @@
 		break;
 #ifdef CPU_FPU
 	CASE_B(0xd8)												/* FPU ESC 0 */
-		 FPU_ESC(0);break;
+		if (enable_fpu) {
+			FPU_ESC(0);
+		}
+		else {
+			Bit8u rm=Fetchb();
+			if (rm<0xc0) GetEAa;
+		}
+		break;
 	CASE_B(0xd9)												/* FPU ESC 1 */
-		 FPU_ESC(1);break;
+		if (enable_fpu) {
+			FPU_ESC(1);
+		}
+		else {
+			Bit8u rm=Fetchb();
+			if (rm<0xc0) GetEAa;
+		}
+		break;
 	CASE_B(0xda)												/* FPU ESC 2 */
-		 FPU_ESC(2);break;
+		if (enable_fpu) {
+			FPU_ESC(2);
+		}
+		else {
+			Bit8u rm=Fetchb();
+			if (rm<0xc0) GetEAa;
+		}
+		break;
 	CASE_B(0xdb)												/* FPU ESC 3 */
-		 FPU_ESC(3);break;
+		if (enable_fpu) {
+			FPU_ESC(3);
+		}
+		else {
+			Bit8u rm=Fetchb();
+			if (rm<0xc0) GetEAa;
+		}
+		break;
 	CASE_B(0xdc)												/* FPU ESC 4 */
-		 FPU_ESC(4);break;
+		if (enable_fpu) {
+			FPU_ESC(4);
+		}
+		else {
+			Bit8u rm=Fetchb();
+			if (rm<0xc0) GetEAa;
+		}
+		break;
 	CASE_B(0xdd)												/* FPU ESC 5 */
-		 FPU_ESC(5);break;
+		if (enable_fpu) {
+			FPU_ESC(5);
+		}
+		else {
+			Bit8u rm=Fetchb();
+			if (rm<0xc0) GetEAa;
+		}
+		break;
 	CASE_B(0xde)												/* FPU ESC 6 */
-		 FPU_ESC(6);break;
+		if (enable_fpu) {
+			FPU_ESC(6);
+		}
+		else {
+			Bit8u rm=Fetchb();
+			if (rm<0xc0) GetEAa;
+		}
+		break;
 	CASE_B(0xdf)												/* FPU ESC 7 */
-		 FPU_ESC(7);break;
+		if (enable_fpu) {
+			FPU_ESC(7);
+		}
+		else {
+			Bit8u rm=Fetchb();
+			if (rm<0xc0) GetEAa;
+		}
+		break;
 #else 
 	CASE_B(0xd8)												/* FPU ESC 0 */
 	CASE_B(0xd9)												/* FPU ESC 1 */

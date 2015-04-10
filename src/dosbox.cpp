@@ -1196,6 +1196,9 @@ void DOSBOX_Init(void) {
 	Pstring->Set_help("CPU Core used in emulation. auto will switch to dynamic if available and\n"
 		"appropriate.");
 
+	Pbool = secprop->Add_bool("fpu",Property::Changeable::Always,true);
+	Pbool->Set_help("Enable FPU emulation");
+
 	Pbool = secprop->Add_bool("double fault",Property::Changeable::Always,true);
 	Pbool->Set_help("Emulate double fault exception");
 

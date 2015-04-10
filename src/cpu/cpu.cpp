@@ -37,6 +37,7 @@ bool CPU_NMI_gate = true;
 bool CPU_NMI_active = false;
 bool CPU_NMI_pending = false;
 
+bool enable_fpu = true;
 bool enable_msr = true;
 bool ignore_undefined_msr = true;
 
@@ -2754,6 +2755,7 @@ public:
 			CPU_CycleAutoAdjust=false;
 		}
 
+		enable_fpu=section->Get_bool("fpu");
 		cpu_rep_max=section->Get_int("interruptible rep string op");
 		ignore_undefined_msr=section->Get_bool("ignore undefined msr");
 		enable_msr=section->Get_bool("enable msr");
@@ -2886,6 +2888,13 @@ public:
 		if (CPU_ArchitectureType>=CPU_ARCHTYPE_486NEW) CPU_extflags_toggle=(FLAG_ID|FLAG_AC);
 		else if (CPU_ArchitectureType>=CPU_ARCHTYPE_486OLD) CPU_extflags_toggle=(FLAG_AC);
 		else CPU_extflags_toggle=0;
+
+		if (CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUM) {
+			if (!enable_fpu) {
+				LOG(LOG_CPU,LOG_NORMAL)("Emulated CPU is Pentium or higher, enabling FPU emulation");
+				enable_fpu = true;
+			}
+		}
 
 		if (cpu_rep_max < 0) cpu_rep_max = 4;	/* compromise to help emulation speed without too much loss of accuracy */
 
