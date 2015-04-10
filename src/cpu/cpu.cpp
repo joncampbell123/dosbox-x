@@ -2334,6 +2334,8 @@ bool CPU_PopSeg(SegNames seg,bool use32) {
 	return false;
 }
 
+extern bool enable_fpu;
+
 bool CPU_CPUID(void) {
 	if (CPU_ArchitectureType<CPU_ARCHTYPE_486NEW) return false;
 	switch (reg_eax) {
@@ -2349,18 +2351,18 @@ bool CPU_CPUID(void) {
 			reg_eax=0x402;		/* intel 486dx */
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
-			reg_edx=0x00000001;	/* FPU */
+			reg_edx=enable_fpu?1:0;	/* FPU */
 		} else if (CPU_ArchitectureType==CPU_ARCHTYPE_PENTIUM) {
 			reg_eax=0x513;		/* intel pentium */
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
-			reg_edx=0x00000011;	/* FPU+TimeStamp/RDTSC */
+			reg_edx=0x00000010|(enable_fpu?1:0);	/* FPU+TimeStamp/RDTSC */
 			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
 		} else if (CPU_ArchitectureType==CPU_ARCHTYPE_P55CSLOW) {
 			reg_eax=0x543;		/* intel pentium mmx (P55C) */
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
-			reg_edx=0x00800031;	/* FPU+TimeStamp/RDTSC+MMX+ModelSpecific/MSR */
+			reg_edx=0x00800030|(enable_fpu?1:0);	/* FPU+TimeStamp/RDTSC+MMX+ModelSpecific/MSR */
 			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
 		} else {
 			return false;
@@ -2888,13 +2890,6 @@ public:
 		if (CPU_ArchitectureType>=CPU_ARCHTYPE_486NEW) CPU_extflags_toggle=(FLAG_ID|FLAG_AC);
 		else if (CPU_ArchitectureType>=CPU_ARCHTYPE_486OLD) CPU_extflags_toggle=(FLAG_AC);
 		else CPU_extflags_toggle=0;
-
-		if (CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUM) {
-			if (!enable_fpu) {
-				LOG(LOG_CPU,LOG_NORMAL)("Emulated CPU is Pentium or higher, enabling FPU emulation");
-				enable_fpu = true;
-			}
-		}
 
 		if (cpu_rep_max < 0) cpu_rep_max = 4;	/* compromise to help emulation speed without too much loss of accuracy */
 
