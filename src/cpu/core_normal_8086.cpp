@@ -47,7 +47,7 @@ static Bit16u last_ea86_offset;
 
 static inline Bit16u LoadMw(Bitu off) {
 	if (last_ea86_offset == 0xffff)
-		return (mem_readb(off,val) | (mem_readb(off-0xffff) << 8));
+		return (mem_readb(off) | (mem_readb(off-0xffff) << 8));
 
 	return mem_readw(off);	
 }
