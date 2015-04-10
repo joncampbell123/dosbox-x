@@ -2225,8 +2225,10 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 #if C_DEBUG
 		LOG(LOG_VGA,LOG_NORMAL)("%dx%d, %3.2fHz, %dbpp, screen %1.3f",(int)width,(int)height,fps,(int)bpp,screenratio);
 #endif
-		if (!vga.draw.vga_override) 
+		if (!vga.draw.vga_override)
 			RENDER_SetSize(width,height,bpp,(float)fps,screenratio);
+
+		VGA_DAC_UpdateColorPalette();
 	}
 	vga.draw.delay.singleline_delay = (float)vga.draw.delay.htotal;
 }

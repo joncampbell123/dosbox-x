@@ -53,19 +53,41 @@ Note:  Each read or write of this register will cycle through first the
 enum {DAC_READ,DAC_WRITE};
 
 static void VGA_DAC_SendColor( Bitu index, Bitu src ) {
+	/* NTS: Don't forget red/green/blue are 6-bit RGB not 8-bit RGB */
 	const Bit8u red = vga.dac.rgb[src].red;
 	const Bit8u green = vga.dac.rgb[src].green;
 	const Bit8u blue = vga.dac.rgb[src].blue;
 
-	vga.dac.xlat32[index] = (blue<<2) | (green<<(2+8)) | (red<<(2+16)) | 0xFF000000;
-	vga.dac.xlat16[index] = ((blue>>1)&0x1f) | (((green)&0x3f)<<5) | (((red>>1)&0x1f) << 11);
+	if (GFX_bpp >= 24) /* FIXME: Assumes 8:8:8. What happens when desktops start using the 10:10:10 format? */
+		vga.dac.xlat32[index] = (blue<<(2+GFX_Bshift)) | (green<<(2+GFX_Gshift)) | (red<<(2+GFX_Rshift)) | GFX_Amask;
+	else /* FIXME: Assumes 5:6:5. I need to test against 5:5:5 format sometime. Perhaps I could dig out some older VGA cards and XFree86 drivers that support that format? */
+		vga.dac.xlat16[index] = ((((blue&0x3f)>>1)<<GFX_Bshift)) | ((green&0x3f)<<GFX_Gshift) | (((red&0x3f)>>1)<<GFX_Rshift) | GFX_Amask;
 
 	RENDER_SetPal( index, (red << 2) | ( red >> 4 ), (green << 2) | ( green >> 4 ), (blue << 2) | ( blue >> 4 ) );
 }
 
 static void VGA_DAC_UpdateColor( Bitu index ) {
-	Bitu maskIndex = index & vga.dac.pel_mask;
-	VGA_DAC_SendColor( index, maskIndex );
+	Bitu maskIndex;
+
+	switch (vga.mode) {
+		case M_VGA:
+		case M_LIN8:
+			maskIndex = index & vga.dac.pel_mask;
+			VGA_DAC_SendColor( index, maskIndex );
+			break;
+		default:
+			/* Remember the lookup table is there to handle the color palette AND the DAC mask AND the attribute controller palette */
+			/* FIXME: Is it: index -> attribute controller -> dac mask, or
+			 *               index -> dac mask -> attribute controller? */
+			maskIndex = vga.dac.combine[index&0xF] & vga.dac.pel_mask;
+			VGA_DAC_SendColor( index, maskIndex );
+			break;
+	}
+}
+
+void VGA_DAC_UpdateColorPalette() {
+	for ( Bitu i = 0;i<256;i++) 
+		VGA_DAC_UpdateColor( i );
 }
 
 void write_p3c6(Bitu port,Bitu val,Bitu iolen) {
@@ -78,8 +100,7 @@ void write_p3c6(Bitu port,Bitu val,Bitu iolen) {
 	if ( vga.dac.pel_mask != val ) {
 		LOG(LOG_VGAMISC,LOG_NORMAL)("VGA:DCA:Pel Mask set to %X", (int)val);
 		vga.dac.pel_mask = val;
-		for ( Bitu i = 0;i<256;i++) 
-			VGA_DAC_UpdateColor( i );
+		VGA_DAC_UpdateColorPalette();
 	}
 }
 

@@ -661,6 +661,16 @@ void GFX_ForceFullscreenExit(void) {
 	}
 }
 
+uint32_t GFX_Rmask;
+unsigned char GFX_Rshift;
+uint32_t GFX_Gmask;
+unsigned char GFX_Gshift;
+uint32_t GFX_Bmask;
+unsigned char GFX_Bshift;
+uint32_t GFX_Amask;
+unsigned char GFX_Ashift;
+unsigned char GFX_bpp;
+
 void GFX_LogSDLState(void) {
 	LOG(LOG_MISC,LOG_DEBUG)("SDL video mode: %ux%u (clip %ux%u with upper-left at %ux%u) %ubpp",
 		(unsigned)sdl.surface->w,(unsigned)sdl.surface->h,
@@ -679,6 +689,16 @@ void GFX_LogSDLState(void) {
 	LOG(LOG_MISC,LOG_DEBUG)("   alpha: shift=%u mask=0x%08lx",
 		(unsigned)sdl.surface->format->Ashift,
 		(unsigned long)sdl.surface->format->Amask);
+
+	GFX_bpp = sdl.surface->format->BitsPerPixel;
+	GFX_Rmask = sdl.surface->format->Rmask;
+	GFX_Rshift = sdl.surface->format->Rshift;
+	GFX_Gmask = sdl.surface->format->Gmask;
+	GFX_Gshift = sdl.surface->format->Gshift;
+	GFX_Bmask = sdl.surface->format->Bmask;
+	GFX_Bshift = sdl.surface->format->Bshift;
+	GFX_Amask = sdl.surface->format->Amask;
+	GFX_Ashift = sdl.surface->format->Ashift;
 }
 
 static SDL_Surface * GFX_SetupSurfaceScaled(Bit32u sdl_flags, Bit32u bpp) {
@@ -1494,6 +1514,7 @@ void change_output(int output) {
 		SDL_FreeSurface(screen_surf);
 	}
 	GFX_SetTitle(CPU_CycleMax,-1,-1,false);
+	GFX_LogSDLState();
 }
 
 
@@ -2151,6 +2172,7 @@ static void GUI_StartUp(Section * sec) {
 		}
 	}
 #endif
+	GFX_LogSDLState();
 
 	GFX_Stop();
 	SDL_WM_SetCaption("DOSBox",VERSION);

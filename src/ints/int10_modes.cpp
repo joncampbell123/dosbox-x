@@ -611,6 +611,8 @@ static void FinishSetMode(bool clearmem) {
 		case 16:RealSetVec(0x43,int10.rom.font_16);break;
 		}
 	}
+	/* FIXME */
+	VGA_DAC_UpdateColorPalette();
 	/* Tell mouse resolution change */
 	Mouse_NewVideoMode();
 }

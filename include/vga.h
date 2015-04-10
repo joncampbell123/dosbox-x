@@ -543,5 +543,20 @@ extern Bit32u TXT_BG_Table[16];
 extern Bit32u Expand16Table[4][16];
 extern Bit32u Expand16BigTable[0x10000];
 
+void VGA_DAC_UpdateColorPalette();
+
+extern uint32_t GFX_Rmask;
+extern unsigned char GFX_Rshift;
+
+extern uint32_t GFX_Gmask;
+extern unsigned char GFX_Gshift;
+
+extern uint32_t GFX_Bmask;
+extern unsigned char GFX_Bshift;
+
+extern uint32_t GFX_Amask;
+extern unsigned char GFX_Ashift;
+
+extern unsigned char GFX_bpp;
 
 #endif
