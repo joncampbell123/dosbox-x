@@ -30,7 +30,7 @@ enum STRING_OP {
 
 extern int cpu_rep_max;
 
-static void DoString(STRING_OP type) {
+void DoString(STRING_OP type) {
 	PhysPt  si_base,di_base;
 	Bitu	si_index,di_index;
 	Bitu	add_mask;

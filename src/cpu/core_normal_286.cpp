@@ -32,6 +32,8 @@
 #define CPU_CORE CPU_ARCHTYPE_286
 #define CPU_Core_Normal_Trap_Run CPU_Core286_Normal_Trap_Run
 
+#define DoString DoString_Normal286
+
 extern bool ignore_opcode_63;
 
 #if C_DEBUG

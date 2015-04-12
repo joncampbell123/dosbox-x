@@ -31,6 +31,8 @@
 
 #define CPU_CORE CPU_ARCHTYPE_386
 
+#define DoString DoString_Normal
+
 extern bool ignore_opcode_63;
 
 #if C_DEBUG
