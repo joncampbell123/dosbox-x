@@ -175,9 +175,9 @@ static void DoString(STRING_OP type) {
 		{
 			Bit8u val2;
 			for (;count>0;) {
-				count--;CPU_Cycles--;
 				val2=LoadMb(di_base+di_index);
 				di_index=(di_index+add_index) & add_mask;
+				count--;CPU_Cycles--;
 				if ((reg_al==val2)!=core.rep_zero) break;
 			}
 			CMPB(reg_al,val2,LoadD,0);
@@ -187,9 +187,9 @@ static void DoString(STRING_OP type) {
 		{
 			add_index<<=1;Bit16u val2;
 			for (;count>0;) {
-				count--;CPU_Cycles--;
 				val2=LoadMw(di_base+di_index);
 				di_index=(di_index+add_index) & add_mask;
+				count--;CPU_Cycles--;
 				if ((reg_ax==val2)!=core.rep_zero) break;
 			}
 			CMPW(reg_ax,val2,LoadD,0);
@@ -199,9 +199,9 @@ static void DoString(STRING_OP type) {
 		{
 			add_index<<=2;Bit32u val2;
 			for (;count>0;) {
-				count--;CPU_Cycles--;
 				val2=LoadMd(di_base+di_index);
 				di_index=(di_index+add_index) & add_mask;
+				count--;CPU_Cycles--;
 				if ((reg_eax==val2)!=core.rep_zero) break;
 			}
 			CMPD(reg_eax,val2,LoadD,0);
@@ -211,11 +211,11 @@ static void DoString(STRING_OP type) {
 		{
 			Bit8u val1,val2;
 			for (;count>0;) {
-				count--;CPU_Cycles--;
 				val1=LoadMb(si_base+si_index);
 				val2=LoadMb(di_base+di_index);
 				si_index=(si_index+add_index) & add_mask;
 				di_index=(di_index+add_index) & add_mask;
+				count--;CPU_Cycles--;
 				if ((val1==val2)!=core.rep_zero) break;
 			}
 			CMPB(val1,val2,LoadD,0);
@@ -225,11 +225,11 @@ static void DoString(STRING_OP type) {
 		{
 			add_index<<=1;Bit16u val1,val2;
 			for (;count>0;) {
-				count--;CPU_Cycles--;
 				val1=LoadMw(si_base+si_index);
 				val2=LoadMw(di_base+di_index);
 				si_index=(si_index+add_index) & add_mask;
 				di_index=(di_index+add_index) & add_mask;
+				count--;CPU_Cycles--;
 				if ((val1==val2)!=core.rep_zero) break;
 			}
 			CMPW(val1,val2,LoadD,0);
@@ -239,11 +239,11 @@ static void DoString(STRING_OP type) {
 		{
 			add_index<<=2;Bit32u val1,val2;
 			for (;count>0;) {
-				count--;CPU_Cycles--;
 				val1=LoadMd(si_base+si_index);
 				val2=LoadMd(di_base+di_index);
 				si_index=(si_index+add_index) & add_mask;
 				di_index=(di_index+add_index) & add_mask;
+				count--;CPU_Cycles--;
 				if ((val1==val2)!=core.rep_zero) break;
 			}
 			CMPD(val1,val2,LoadD,0);
