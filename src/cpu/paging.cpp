@@ -268,6 +268,7 @@ void PrintPageInfo(const char* string, PhysPt lin_addr, bool writing, bool prepa
 
 bool dosbox_enable_nonrecursive_page_fault = true;	/* user option */
 bool dosbox_allow_nonrecursive_page_fault = false;	/* when set, do nonrecursive mode (when executing instruction) */
+Bitu dosbox_check_nonrecursive_pf_cs,dosbox_check_nonrecursive_pf_eip;
 
 // PAGING_NewPageFault
 // lin_addr, page_addr: the linear and page address the fault happened at
@@ -280,7 +281,8 @@ static void PAGING_NewPageFault(PhysPt lin_addr, Bitu page_addr, bool prepare_on
 	if (prepare_only) {
 		cpu.exception.which = EXCEPTION_PF;
 		cpu.exception.error = faultcode;
-	} else if (dosbox_enable_nonrecursive_page_fault && dosbox_allow_nonrecursive_page_fault) {
+	} else if (dosbox_enable_nonrecursive_page_fault && dosbox_allow_nonrecursive_page_fault &&
+		dosbox_check_nonrecursive_pf_cs == SegValue(cs) && dosbox_check_nonrecursive_pf_eip == reg_eip) {
 		/* FIXME: Apparently, if Window 98/ME executes a floating point instruction that triggers a page
 		 *        fault and DOSBox is running the dynamic core, this code will throw the exception and
 		 *        the Normal_Loop() function farther up the call chain will not receive the exception,
