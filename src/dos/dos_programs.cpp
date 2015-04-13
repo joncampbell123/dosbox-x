@@ -2663,6 +2663,7 @@ public:
 				FILE *newDisk = fopen64(temp_line.c_str(), "rb+");
 				fseeko64(newDisk,0L, SEEK_END);
 				imagesize = (Bit32u)(ftello64(newDisk) / 1024);
+				setbuf(newDisk,NULL);
 
 				newImage = new imageDisk(newDisk, (Bit8u *)temp_line.c_str(), imagesize, (imagesize > 2880));
 				newImage->Addref();
