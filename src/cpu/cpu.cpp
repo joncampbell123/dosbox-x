@@ -1028,6 +1028,8 @@ do_interrupt:
 
 
 void CPU_IRET(bool use32,Bitu oldeip) {
+	Bitu orig_esp = reg_esp;
+
 	/* x86 CPUs consider IRET the completion of an NMI, no matter where it happens */
 	/* FIXME: If the IRET causes an exception, is it still considered the end of the NMI? */
 	CPU_NMI_active = false;
@@ -1045,6 +1047,7 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 	}
 
 	if (!cpu.pmode) {					/* RealMode IRET */
+		try {
 		if (use32) {
 			reg_eip=CPU_Pop32();
 			SegSet16(cs,CPU_Pop32());
@@ -1057,6 +1060,12 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 		if (!cpu_allow_big16) cpu.code.big=false;
 		DestroyConditionFlags();
 		return;
+		}
+		catch (GuestPageFaultException &pf) {
+			LOG_MSG("CPU_IRET() interrupted real");
+			reg_esp = orig_esp;
+			throw;
+		}
 	} else {	/* Protected mode IRET */
 		if (reg_flags & FLAG_VM) {
 			if ((reg_flags & FLAG_IOPL)!=FLAG_IOPL) {
@@ -1119,6 +1128,7 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 
 			if ((n_flags & FLAG_VM) && (cpu.cpl==0)) {
 				// commit point
+				try {
 				reg_esp=tempesp;
 				reg_eip=n_eip & 0xffff;
 				Bitu n_ss,n_esp,n_es,n_ds,n_fs,n_gs;
@@ -1143,6 +1153,12 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 				SegSet16(cs,n_cs_sel);
 				LOG(LOG_CPU,LOG_NORMAL)("IRET:Back to V86: CS:%X IP %X SS:%X SP %X FLAGS:%X",SegValue(cs),reg_eip,SegValue(ss),reg_esp,reg_flags);	
 				return;
+				}
+				catch (GuestPageFaultException &pf) {
+					LOG_MSG("CPU_IRET() interrupted prot use32");
+					reg_esp = orig_esp;
+					throw;
+				}
 			}
 			if (n_flags & FLAG_VM) E_Exit("IRET from pmode to v86 with CPL!=0");
 		} else {
@@ -1583,7 +1599,10 @@ call_code:
 
 
 void CPU_RET(bool use32,Bitu bytes,Bitu oldeip) {
+	Bitu orig_esp = reg_esp;
+
 	if (!cpu.pmode || (reg_flags & FLAG_VM)) {
+		try {
 		Bitu new_ip,new_cs;
 		if (!use32) {
 			new_ip=CPU_Pop16();
@@ -1597,6 +1616,12 @@ void CPU_RET(bool use32,Bitu bytes,Bitu oldeip) {
 		reg_eip=new_ip;
 		if (!cpu_allow_big16) cpu.code.big=false;
 		return;
+		}
+		catch (GuestPageFaultException &pf) {
+			LOG_MSG("CPU_RET() interrupted real/vm86");
+			reg_esp = orig_esp;
+			throw;
+		}
 	} else {
 		Bitu offset,selector;
 		if (!use32) selector	= mem_readw(SegPhys(ss) + (reg_esp & cpu.stack.mask) + 2);
@@ -1643,12 +1668,19 @@ RET_same_level:
 			}
 
 			// commit point
+			try {
 			if (!use32) {
 				offset=CPU_Pop16();
 				selector=CPU_Pop16();
 			} else {
 				offset=CPU_Pop32();
 				selector=CPU_Pop32() & 0xffff;
+			}
+			}
+			catch (GuestPageFaultException &pf) {
+				LOG_MSG("CPU_RET() interrupted prot rpl==cpl");
+				reg_esp = orig_esp;
+				throw;
 			}
 
 			Segs.phys[cs]=desc.GetBase();
@@ -1687,6 +1719,7 @@ RET_same_level:
 
 			// commit point
 			Bitu n_esp,n_ss;
+			try {
 			if (use32) {
 				offset=CPU_Pop32();
 				selector=CPU_Pop32() & 0xffff;
@@ -1699,6 +1732,12 @@ RET_same_level:
 				reg_esp+=bytes;
 				n_esp = CPU_Pop16();
 				n_ss = CPU_Pop16();
+			}
+			}
+			catch (GuestPageFaultException &pf) {
+				LOG_MSG("CPU_RET() interrupted prot #2");
+				reg_esp = orig_esp;
+				throw;
 			}
 
 			CPU_CHECK_COND((n_ss & 0xfffc)==0,
