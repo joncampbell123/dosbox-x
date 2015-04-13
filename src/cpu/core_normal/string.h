@@ -31,12 +31,13 @@ enum STRING_OP {
 extern int cpu_rep_max;
 
 void DoString(STRING_OP type) {
-	PhysPt  si_base,di_base;
-	Bitu	si_index,di_index;
-	Bitu	add_mask;
-	Bitu	count,count_left=0;
-	Bits	add_index;
-	
+	static PhysPt  si_base,di_base;
+	static Bitu	si_index,di_index;
+	static Bitu	add_mask;
+	static Bitu	count,count_left;
+	static Bits	add_index;
+
+	count_left=0;
 	si_base=BaseDS;
 	di_base=SegBase(es);
 	add_mask=AddrMaskTable[core.prefixes & PREFIX_ADDR];
@@ -67,7 +68,9 @@ void DoString(STRING_OP type) {
 		}
 	}
 	add_index=cpu.direction;
-	if (count) switch (type) {
+	if (count) {
+		try {
+		switch (type) {
 	case R_OUTSB:
 		for (;count>0;count--) {
 			IO_WriteB(reg_dx,LoadMb(si_base+si_index));
@@ -262,4 +265,23 @@ void DoString(STRING_OP type) {
 		reg_ecx&=(~add_mask);
 		reg_ecx|=(count & add_mask);
 	}
+	}
+	catch (GuestPageFaultException &pf) {
+		LOG_MSG("Strip op #%d interrupted si_index=%x di_index=%x count=%x+%x=%x esi=%x edi=%x ecx=%x",
+			type,si_index,di_index,count,count_left,count+count_left,reg_esi,reg_edi,reg_ecx);
+
+		/* Clean up after certain amount of instructions */
+		reg_esi&=(~add_mask);
+		reg_esi|=(si_index & add_mask);
+		reg_edi&=(~add_mask);
+		reg_edi|=(di_index & add_mask);
+		if (TEST_PREFIX_REP) {
+			count+=count_left;
+			reg_ecx&=(~add_mask);
+			reg_ecx|=(count & add_mask);
+		}
+
+		throw;
+	}
+	}// /count
 }
