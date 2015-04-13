@@ -74,7 +74,7 @@
 		AXIw(ADCW);break;
 	CASE_W(0x16)												/* PUSH SS */		
 		Push_16(SegValue(ss));break;
-	CASE_W(0x17)												/* POP SS */		
+	CASE_W(0x17)												/* POP SS */
 		if (CPU_PopSeg(ss,false)) RUNEXCEPTION();
 		CPU_Cycles++; //Always do another instruction
 		break;
@@ -230,16 +230,32 @@
 	CASE_W(0x60)												/* PUSHA */
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
 		{
-			Bit16u old_sp = (CPU_ArchitectureType >= CPU_ARCHTYPE_286 ? reg_sp : (reg_sp-10));
-			Push_16(reg_ax);Push_16(reg_cx);Push_16(reg_dx);Push_16(reg_bx);
-			Push_16(old_sp);Push_16(reg_bp);Push_16(reg_si);Push_16(reg_di);
-		}
-		break;
+			Bitu old_esp = reg_esp;
+			try {
+				Bit16u old_sp = (CPU_ArchitectureType >= CPU_ARCHTYPE_286 ? reg_sp : (reg_sp-10));
+				Push_16(reg_ax);Push_16(reg_cx);Push_16(reg_dx);Push_16(reg_bx);
+				Push_16(old_sp);Push_16(reg_bp);Push_16(reg_si);Push_16(reg_di);
+			}
+			catch (GuestPageFaultException &pf) {
+				LOG_MSG("PUSHA interrupted by page fault");
+				reg_esp = old_esp;
+				throw;
+			}
+		} break;
 	CASE_W(0x61)												/* POPA */
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
-		reg_di=Pop_16();reg_si=Pop_16();reg_bp=Pop_16();Pop_16();//Don't save SP
-		reg_bx=Pop_16();reg_dx=Pop_16();reg_cx=Pop_16();reg_ax=Pop_16();
-		break;
+		{
+			Bitu old_esp = reg_esp;
+			try {
+				reg_di=Pop_16();reg_si=Pop_16();reg_bp=Pop_16();Pop_16();//Don't save SP
+				reg_bx=Pop_16();reg_dx=Pop_16();reg_cx=Pop_16();reg_ax=Pop_16();
+			}
+			catch (GuestPageFaultException &pf) {
+				LOG_MSG("POPA interrupted by page fault");
+				reg_esp = old_esp;
+				throw;
+			}
+		} break;
 	CASE_W(0x62)												/* BOUND */
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
 		{

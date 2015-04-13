@@ -64,11 +64,16 @@ typedef PhysPt EAPoint;
 
 Bits CPU_Core_Normal_Trap_Run(void);
 
+extern Bitu dosbox_check_nonrecursive_pf_cs;
+extern Bitu dosbox_check_nonrecursive_pf_eip;
+
 Bits CPU_Core_Full_Run(void) {
 	static bool tf_warn=false;
 	FullData inst;
 
 	while (CPU_Cycles-->0) {
+		dosbox_check_nonrecursive_pf_cs = SegValue(cs);
+		dosbox_check_nonrecursive_pf_eip = reg_eip;
 		cycle_count++;
 
 		/* this core isn't written to emulate the Trap Flag. at least

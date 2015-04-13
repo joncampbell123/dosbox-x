@@ -336,27 +336,25 @@ static Bitu Normal_Loop(void) {
 			CPU_Check_NMI();
 
 			/* FIXME: we check some registers to make sure page fault handling doesn't trip up */
-			Bitu orig_eip = reg_eip;
-			Bitu orig_cs = SegValue(cs);
 			bool saved_allow = dosbox_allow_nonrecursive_page_fault;
 
-			dosbox_check_nonrecursive_pf_cs = orig_cs;
-			dosbox_check_nonrecursive_pf_eip = orig_eip;
 			dosbox_allow_nonrecursive_page_fault = true;
 			try {
 				ret = (*cpudecoder)();
-				dosbox_allow_nonrecursive_page_fault = false;
+				dosbox_allow_nonrecursive_page_fault = saved_allow;
 			}
 			catch (GuestPageFaultException &pf) {
+				Bitu FillFlags(void);
+
 				ret = 0;
+				FillFlags();
 				dosbox_allow_nonrecursive_page_fault = false;
 				LOG_MSG("Guest page fault exception! Alternate method will be used. Wish me luck.\n");
-				if (reg_eip != orig_eip) LOG_MSG("WARNING: eip changed up to page fault (0x%x != 0x%x)\n",(int)reg_eip,(int)orig_eip);
-				if (orig_cs != SegValue(cs)) LOG_MSG("WARNING: cs changed up to page fault (0x%x != 0x%x)\n",(int)SegValue(cs),(int)orig_cs);
-				if (orig_cs == SegValue(cs)) reg_eip = orig_eip; /* HACK: may have changed slightly */
 				CPU_Exception(EXCEPTION_PF,pf.faultcode);
+				dosbox_allow_nonrecursive_page_fault = saved_allow;
 			}
 			catch (int x) {
+				dosbox_allow_nonrecursive_page_fault = saved_allow;
 				if (x == 4/*CMOS shutdown*/) {
 					ret = 0;
 //					LOG_MSG("CMOS shutdown reset acknowledged");
@@ -366,28 +364,23 @@ static Bitu Normal_Loop(void) {
 				}
 			}
 
-			if (GCC_UNLIKELY(ret<0)) {
-				dosbox_allow_nonrecursive_page_fault = saved_allow;
+			if (GCC_UNLIKELY(ret<0))
 				return 1;
-			}
+
 			if (ret>0) {
-				if (GCC_UNLIKELY(ret >= CB_MAX)) {
-					dosbox_allow_nonrecursive_page_fault = saved_allow;
+				if (GCC_UNLIKELY(ret >= CB_MAX))
 					return 0;
-				}
+
+				dosbox_allow_nonrecursive_page_fault = false;
 				Bitu blah = (*CallBack_Handlers[ret])();
-				if (GCC_UNLIKELY(blah)) {
-					dosbox_allow_nonrecursive_page_fault = saved_allow;
+				dosbox_allow_nonrecursive_page_fault = saved_allow;
+				if (GCC_UNLIKELY(blah))
 					return blah;
-				}
 			}
 #if C_DEBUG
-			if (DEBUG_ExitLoop()) {
-				dosbox_allow_nonrecursive_page_fault = saved_allow;
+			if (DEBUG_ExitLoop())
 				return 0;
-			}
 #endif
-			dosbox_allow_nonrecursive_page_fault = saved_allow;
 		} else {
 #ifdef __WIN32__
 			MSG_Loop();

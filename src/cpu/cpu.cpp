@@ -867,7 +867,13 @@ void CPU_Interrupt(Bitu num,Bitu type,Bitu oldeip) {
 			return;
 		}
 
+		Bitu old_esp,old_ss,old_cpl;
 
+		old_esp = reg_esp;
+		old_ss = SegValue(ss);
+		old_cpl = cpu.cpl;
+
+		try {
 		switch (gate.Type()) {
 		case DESC_286_INT_GATE:		case DESC_386_INT_GATE:
 		case DESC_286_TRAP_GATE:	case DESC_386_TRAP_GATE:
@@ -1021,6 +1027,14 @@ do_interrupt:
 		default:
 			E_Exit("Illegal descriptor type %X for int %X",(int)gate.Type(),(int)num);
 		}
+		}
+		catch (GuestPageFaultException &pf) {
+			LOG_MSG("CPU_Interrupt() interrupted");
+			CPU_SetSegGeneral(ss,old_ss);
+			reg_esp = old_esp;
+			CPU_SetCPL(old_cpl);
+			throw;
+		}
 	}
 	assert(1);
 	return ; // make compiler happy
@@ -1047,7 +1061,6 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 	}
 
 	if (!cpu.pmode) {					/* RealMode IRET */
-		try {
 		if (use32) {
 			reg_eip=CPU_Pop32();
 			SegSet16(cs,CPU_Pop32());
@@ -1060,12 +1073,6 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 		if (!cpu_allow_big16) cpu.code.big=false;
 		DestroyConditionFlags();
 		return;
-		}
-		catch (GuestPageFaultException &pf) {
-			LOG_MSG("CPU_IRET() interrupted real");
-			reg_esp = orig_esp;
-			throw;
-		}
 	} else {	/* Protected mode IRET */
 		if (reg_flags & FLAG_VM) {
 			if ((reg_flags & FLAG_IOPL)!=FLAG_IOPL) {
@@ -1073,6 +1080,7 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 				CPU_Exception(EXCEPTION_GP,0);
 				return;
 			} else {
+				try {
 				if (use32) {
 					Bit32u new_eip=mem_readd(SegPhys(ss) + (reg_esp & cpu.stack.mask));
 					Bit32u tempesp=(reg_esp&cpu.stack.notmask)|((reg_esp+4)&cpu.stack.mask);
@@ -1097,6 +1105,12 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 					SegSet16(cs,new_cs);
 					/* IOPL can not be modified in v86 mode by IRET */
 					CPU_SetFlags(new_flags,FMASK_NORMAL|FLAG_NT);
+				}
+				}
+				catch (GuestPageFaultException &pf) {
+					LOG_MSG("CPU_IRET() interrupted prot vm86");
+					reg_esp = orig_esp;
+					throw;
 				}
 				cpu.code.big=false;
 				DestroyConditionFlags();
