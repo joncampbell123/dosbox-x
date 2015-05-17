@@ -469,28 +469,32 @@ static void MIXER_CallBack(void * userdata, Uint8 *stream, int len) {
 	Bitu reduce;
 	Bitu pos, index, index_add;
 	Bits sample;
-	/* sample accurate mode */
-	if (mixer.sampleaccurate) {
-		/* FIXME: Need stretching, min/max considerations, muting the buffer, etc. */
-		reduce = need;
-		if (reduce > mixer.done) reduce = mixer.done;
-		index_add = (reduce << MIXER_SHIFT) / need;
-	}
+
 	/* Enough room in the buffer ? */
-	else if (mixer.done < need) {
+	if (mixer.done < need) {
 //		LOG_MSG("Full underrun need %d, have %d, min %d", need, mixer.done, mixer.min_needed);
 		if((need - mixer.done) > (need >>7) ) //Max 1 procent stretch.
 			return;
 		reduce = mixer.done;
 		index_add = (reduce << MIXER_SHIFT) / need;
-		mixer.tick_add = ((mixer.freq+mixer.min_needed) << MIXER_SHIFT)/1000;
+
+		if (mixer.sampleaccurate)
+			mixer.tick_add = ((mixer.freq+mixer.min_needed) << MIXER_SHIFT)/mixer.freq;
+		else
+			mixer.tick_add = ((mixer.freq+mixer.min_needed) << MIXER_SHIFT)/1000;
+
 	} else if (mixer.done < mixer.max_needed) {
 		Bitu left = mixer.done - need;
 		if (left < mixer.min_needed) {
 			if( !Mixer_irq_important() ) {
 				Bitu needed = mixer.needed - need;
 				Bitu diff = (mixer.min_needed>needed?mixer.min_needed:needed) - left;
-				mixer.tick_add = ((mixer.freq+(diff*3)) << MIXER_SHIFT)/1000;
+
+				if (mixer.sampleaccurate)
+					mixer.tick_add = ((mixer.freq+(diff*3)) << MIXER_SHIFT)/mixer.freq;
+				else
+					mixer.tick_add = ((mixer.freq+(diff*3)) << MIXER_SHIFT)/1000;
+
 				left = 0; //No stretching as we compensate with the tick_add value
 			} else {
 				left = (mixer.min_needed - left);
@@ -512,12 +516,23 @@ static void MIXER_CallBack(void * userdata, Uint8 *stream, int len) {
 			 */
 			Bitu diff = left - mixer.min_needed;
 			if(diff > (mixer.min_needed<<1)) diff = mixer.min_needed<<1;
-			if(diff > (mixer.min_needed>>1))
-				mixer.tick_add = ((mixer.freq-(diff/5)) << MIXER_SHIFT)/1000;
-			else if (diff > (mixer.min_needed>>4))
-				mixer.tick_add = ((mixer.freq-(diff>>3)) << MIXER_SHIFT)/1000;
-			else
-				mixer.tick_add = (mixer.freq<< MIXER_SHIFT)/1000;
+
+			if (mixer.sampleaccurate) {
+				if(diff > (mixer.min_needed>>1))
+					mixer.tick_add = ((mixer.freq-(diff/5)) << MIXER_SHIFT)/mixer.freq;
+				else if (diff > (mixer.min_needed>>4))
+					mixer.tick_add = ((mixer.freq-(diff>>3)) << MIXER_SHIFT)/mixer.freq;
+				else
+					mixer.tick_add = (mixer.freq<< MIXER_SHIFT)/mixer.freq;
+			}
+			else {
+				if(diff > (mixer.min_needed>>1))
+					mixer.tick_add = ((mixer.freq-(diff/5)) << MIXER_SHIFT)/1000;
+				else if (diff > (mixer.min_needed>>4))
+					mixer.tick_add = ((mixer.freq-(diff>>3)) << MIXER_SHIFT)/1000;
+				else
+					mixer.tick_add = (mixer.freq<< MIXER_SHIFT)/1000;
+			}
 		}
 	} else {
 		/* There is way too much data in the buffer */
@@ -528,7 +543,11 @@ static void MIXER_CallBack(void * userdata, Uint8 *stream, int len) {
 			index_add = mixer.done - 2*mixer.min_needed;
 		index_add = (index_add << MIXER_SHIFT) / need;
 		reduce = mixer.done - 2* mixer.min_needed;
-		mixer.tick_add = ((mixer.freq-(mixer.min_needed/5)) << MIXER_SHIFT)/1000;
+
+		if (mixer.sampleaccurate)
+			mixer.tick_add = ((mixer.freq-(mixer.min_needed/5)) << MIXER_SHIFT)/mixer.freq;
+		else
+			mixer.tick_add = ((mixer.freq-(mixer.min_needed/5)) << MIXER_SHIFT)/1000;
 	}
 	/* Reduce done count in all channels */
 	for (MixerChannel * chan=mixer.channels;chan;chan=chan->next) {
