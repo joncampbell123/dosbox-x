@@ -72,7 +72,12 @@ static struct {
 	Bit32u freq;
 	Bit32u blocksize;
 	bool swapstereo;
+	bool sampleaccurate;
 } mixer;
+
+bool Mixer_SampleAccurate() {
+	return mixer.sampleaccurate;
+}
 
 Bit8u MixTemp[MIXER_BUFSIZE];
 
@@ -413,9 +418,20 @@ static void MIXER_MixData(Bitu needed) {
 		CAPTURE_AddWave( mixer.freq, added, (Bit16s*)convert );
 	}
 	//Reset the the tick_add for constant speed
-	if( Mixer_irq_important() )
+	if( Mixer_irq_important() && !mixer.sampleaccurate )
 		mixer.tick_add = ((mixer.freq) << MIXER_SHIFT)/1000;
 	mixer.done = needed;
+}
+
+static void MIXER_MixPICEvent(Bitu val) {
+	SDL_LockAudio();
+	if (mixer.needed > 0) MIXER_MixData(mixer.needed);
+	mixer.tick_remain+=mixer.tick_add;
+	mixer.needed+=(mixer.tick_remain>>MIXER_SHIFT);
+	mixer.tick_remain&=MIXER_REMAIN;
+	SDL_UnlockAudio();
+
+	PIC_AddEvent(MIXER_MixPICEvent,1000.0 / mixer.freq,0);
 }
 
 static void MIXER_Mix(void) {
@@ -453,8 +469,15 @@ static void MIXER_CallBack(void * userdata, Uint8 *stream, int len) {
 	Bitu reduce;
 	Bitu pos, index, index_add;
 	Bits sample;
+	/* sample accurate mode */
+	if (mixer.sampleaccurate) {
+		/* FIXME: Need stretching, min/max considerations, muting the buffer, etc. */
+		reduce = need;
+		if (reduce > mixer.done) reduce = mixer.done;
+		index_add = (reduce << MIXER_SHIFT) / need;
+	}
 	/* Enough room in the buffer ? */
-	if (mixer.done < need) {
+	else if (mixer.done < need) {
 //		LOG_MSG("Full underrun need %d, have %d, min %d", need, mixer.done, mixer.min_needed);
 		if((need - mixer.done) > (need >>7) ) //Max 1 procent stretch.
 			return;
@@ -514,7 +537,7 @@ static void MIXER_CallBack(void * userdata, Uint8 *stream, int len) {
 	}
    
 	// Reset mixer.tick_add when irqs are important
-	if( Mixer_irq_important() )
+	if( Mixer_irq_important() && !mixer.sampleaccurate )
 		mixer.tick_add=(mixer.freq<< MIXER_SHIFT)/1000;
 
 	mixer.done -= reduce;
@@ -663,6 +686,7 @@ void MIXER_Init(Section* sec) {
 	mixer.nosound=section->Get_bool("nosound");
 	mixer.blocksize=section->Get_int("blocksize");
 	mixer.swapstereo=section->Get_bool("swapstereo");
+	mixer.sampleaccurate=section->Get_bool("sample accurate");
 
 	/* Initialize the internal stuff */
 	mixer.channels=0;
@@ -698,8 +722,14 @@ void MIXER_Init(Section* sec) {
 			LOG_MSG("MIXER:Got different values from SDL: freq %d, blocksize %d",(int)obtained.freq,(int)obtained.samples);
 		mixer.freq=obtained.freq;
 		mixer.blocksize=obtained.samples;
-		mixer.tick_add=(mixer.freq << MIXER_SHIFT)/1000;
-		TIMER_AddTickHandler(MIXER_Mix);
+		if (mixer.sampleaccurate) {
+			mixer.tick_add=1 << MIXER_SHIFT; /* one sample per tick */
+			PIC_AddEvent(MIXER_MixPICEvent,1000.0 / mixer.freq,0);
+		}
+		else {
+			mixer.tick_add=(mixer.freq << MIXER_SHIFT)/1000;
+			TIMER_AddTickHandler(MIXER_Mix);
+		}
 		SDL_PauseAudio(0);
 	}
 	mixer.min_needed=section->Get_int("prebuffer");

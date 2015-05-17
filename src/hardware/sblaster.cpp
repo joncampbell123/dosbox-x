@@ -2206,6 +2206,12 @@ public:
 		sb.dsp.force_goldplay=section->Get_bool("force goldplay");
 		sb.dma.force_autoinit=section->Get_bool("force dsp auto-init");
 
+		bool Mixer_SampleAccurate();
+		if (Mixer_SampleAccurate() && sb.goldplay) {
+			LOG_MSG("Sound Blaster goldplay mode is incompatible with mixer sample-accurate mode.");
+			sb.goldplay=false;
+		}
+
 		sb.busy_cycle_last_check=0;
 		sb.busy_cycle_io_hack=0;
 

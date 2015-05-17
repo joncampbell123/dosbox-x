@@ -1324,6 +1324,11 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("nosound",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("Enable silent mode, sound is still emulated though.");
 
+	Pbool = secprop->Add_bool("sample accurate",Property::Changeable::OnlyAtStart,false);
+	Pbool->Set_help("Enable sample accurate mixing, at the expense of some emulation performance. Enable this option for DOS games and demos that\n"
+			"require such accuracy for correct Tandy/OPL output including digitized speech. This option can also help eliminate minor\n"
+			"errors in Gravis Ultrasound emulation that result in random echo/attenuation effects.");
+
 	Pbool = secprop->Add_bool("swapstereo",Property::Changeable::OnlyAtStart,false); 
 	Pbool->Set_help("Swaps the left and right stereo channels."); 
 
