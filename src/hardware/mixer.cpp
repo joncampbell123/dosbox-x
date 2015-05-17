@@ -523,7 +523,7 @@ static void MIXER_CallBack(void * userdata, Uint8 *stream, int len) {
 				else if (diff > (mixer.min_needed>>4))
 					mixer.tick_add = ((mixer.freq-(diff>>3)) << MIXER_SHIFT)/mixer.freq;
 				else
-					mixer.tick_add = (mixer.freq<< MIXER_SHIFT)/mixer.freq;
+					mixer.tick_add = (1 << MIXER_SHIFT);
 			}
 			else {
 				if(diff > (mixer.min_needed>>1))
