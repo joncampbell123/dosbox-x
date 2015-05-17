@@ -2212,14 +2212,28 @@ static Bitu INT15_Handler(void) {
 				CALLBACK_SCF(true);
 				break;
 			}
+			Bit8u t;
 			Bit32u count=(reg_cx<<16)|reg_dx;
 			mem_writed(BIOS_WAIT_FLAG_POINTER,RealMake(0,BIOS_WAIT_FLAG_TEMP));
 			mem_writed(BIOS_WAIT_FLAG_COUNT,count);
 			mem_writeb(BIOS_WAIT_FLAG_ACTIVE,1);
+
 			/* Reprogram RTC to start */
 			IO_Write(0x70,0xb);
 			IO_Write(0x71,IO_Read(0x71)|0x40);
 			while (mem_readd(BIOS_WAIT_FLAG_COUNT)) {
+				/* make sure our wait function works by unmasking IRQ 2, and IRQ 8.
+				 * (bugfix for 1993 demo Yodel "Mayday" demo. this demo keeps masking IRQ 2 for some stupid reason.) */
+				if ((t=IO_Read(0x21)) & (1 << 2)) {
+					LOG(LOG_BIOS,LOG_WARN)("INT15:86:Wait: IRQ 2 masked during wait. This condition might result in an infinite wait on some BIOSes. Unmasking IRQ to keep things moving along.");
+					IO_Write(0x21,t & ~(1 << 2));
+
+				}
+				if ((t=IO_Read(0xA1)) & (1 << 0)) {
+					LOG(LOG_BIOS,LOG_WARN)("INT15:86:Wait: IRQ 8 masked during wait. This condition might result in an infinite wait on some BIOSes. Unmasking IRQ to keep things moving along.");
+					IO_Write(0xA1,t & ~(1 << 0));
+				}
+
 				CALLBACK_Idle();
 			}
 			CALLBACK_SCF(false);
