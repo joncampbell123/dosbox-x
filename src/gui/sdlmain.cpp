@@ -2188,6 +2188,8 @@ static void GUI_StartUp(Section * sec) {
 	MAPPER_AddHandler(CaptureMouse,MK_f10,MMOD1,"capmouse","Cap Mouse");
 	MAPPER_AddHandler(SwitchFullScreen,MK_return,MMOD2,"fullscr","Fullscreen");
 	MAPPER_AddHandler(Restart,MK_home,MMOD1|MMOD2,"restart","Restart");
+	void PasteClipboard(bool bPressed); // emendelson from dbDOS adds MMOD2 to this for Ctrl-Alt-F5 for PasteClipboard
+	MAPPER_AddHandler(PasteClipboard, MK_f4, MMOD1 | MMOD2, "paste", "Paste Clipboard"); //end emendelson
 #if C_DEBUG
 	/* Pause binds with activate-debugger */
 	MAPPER_AddHandler(&PauseDOSBox, MK_pause, MMOD1, "pause", "Pause");
@@ -2351,6 +2353,8 @@ void GFX_LosingFocus(void) {
 	sdl.raltstate=SDL_KEYUP;
 	MAPPER_LosingFocus();
 }
+
+static bool PasteClipboardNext(); // added emendelson from dbDOS
 
 bool GFX_IsFullscreen(void) {
 	return sdl.desktop.fullscreen;
@@ -3006,7 +3010,271 @@ void GFX_Events() {
 			MAPPER_CheckEvent(&event);
 		}
 	}
+	// start emendelson from dbDOS
+	// Disabled multiple characters per dispatch b/c occasionally
+	// keystrokes get lost in the spew. (Prob b/c of DI usage on Win32, sadly..)
+	// while (PasteClipboardNext());
+	// Doesn't really matter though, it's fast enough as it is...
+	static Bitu iPasteTicker = 0;
+	if ((iPasteTicker++ % 20) == 0) // emendelson: was %2, %20 is good for WP51
+		PasteClipboardNext(); 	// end added emendelson from dbDOS
 }
+
+// added emendelson from dbDos
+#if defined(WIN32)
+#include <cassert>
+
+// Ripped from SDL's SDL_dx5events.c, since there's no API to access it...
+#define DIRECTINPUT_VERSION 0x0800
+#include <dinput.h>
+#ifndef DIK_PAUSE
+#define DIK_PAUSE	0xC5
+#endif
+#ifndef DIK_OEM_102
+#define DIK_OEM_102	0x56	/* < > | on UK/Germany keyboards */
+#endif
+static SDLKey aryScanCodeToSDLKey[0xFF];
+static bool   bScanCodeMapInited = false;
+static void PasteInitMapSCToSDLKey()
+{
+	/* Map the DIK scancodes to SDL keysyms */
+	for (int i = 0; i<SDL_arraysize(aryScanCodeToSDLKey); ++i)
+		aryScanCodeToSDLKey[i] = SDLK_UNKNOWN;
+
+	/* Defined DIK_* constants */
+	aryScanCodeToSDLKey[DIK_ESCAPE] = SDLK_ESCAPE;
+	aryScanCodeToSDLKey[DIK_1] = SDLK_1;
+	aryScanCodeToSDLKey[DIK_2] = SDLK_2;
+	aryScanCodeToSDLKey[DIK_3] = SDLK_3;
+	aryScanCodeToSDLKey[DIK_4] = SDLK_4;
+	aryScanCodeToSDLKey[DIK_5] = SDLK_5;
+	aryScanCodeToSDLKey[DIK_6] = SDLK_6;
+	aryScanCodeToSDLKey[DIK_7] = SDLK_7;
+	aryScanCodeToSDLKey[DIK_8] = SDLK_8;
+	aryScanCodeToSDLKey[DIK_9] = SDLK_9;
+	aryScanCodeToSDLKey[DIK_0] = SDLK_0;
+	aryScanCodeToSDLKey[DIK_MINUS] = SDLK_MINUS;
+	aryScanCodeToSDLKey[DIK_EQUALS] = SDLK_EQUALS;
+	aryScanCodeToSDLKey[DIK_BACK] = SDLK_BACKSPACE;
+	aryScanCodeToSDLKey[DIK_TAB] = SDLK_TAB;
+	aryScanCodeToSDLKey[DIK_Q] = SDLK_q;
+	aryScanCodeToSDLKey[DIK_W] = SDLK_w;
+	aryScanCodeToSDLKey[DIK_E] = SDLK_e;
+	aryScanCodeToSDLKey[DIK_R] = SDLK_r;
+	aryScanCodeToSDLKey[DIK_T] = SDLK_t;
+	aryScanCodeToSDLKey[DIK_Y] = SDLK_y;
+	aryScanCodeToSDLKey[DIK_U] = SDLK_u;
+	aryScanCodeToSDLKey[DIK_I] = SDLK_i;
+	aryScanCodeToSDLKey[DIK_O] = SDLK_o;
+	aryScanCodeToSDLKey[DIK_P] = SDLK_p;
+	aryScanCodeToSDLKey[DIK_LBRACKET] = SDLK_LEFTBRACKET;
+	aryScanCodeToSDLKey[DIK_RBRACKET] = SDLK_RIGHTBRACKET;
+	aryScanCodeToSDLKey[DIK_RETURN] = SDLK_RETURN;
+	aryScanCodeToSDLKey[DIK_LCONTROL] = SDLK_LCTRL;
+	aryScanCodeToSDLKey[DIK_A] = SDLK_a;
+	aryScanCodeToSDLKey[DIK_S] = SDLK_s;
+	aryScanCodeToSDLKey[DIK_D] = SDLK_d;
+	aryScanCodeToSDLKey[DIK_F] = SDLK_f;
+	aryScanCodeToSDLKey[DIK_G] = SDLK_g;
+	aryScanCodeToSDLKey[DIK_H] = SDLK_h;
+	aryScanCodeToSDLKey[DIK_J] = SDLK_j;
+	aryScanCodeToSDLKey[DIK_K] = SDLK_k;
+	aryScanCodeToSDLKey[DIK_L] = SDLK_l;
+	aryScanCodeToSDLKey[DIK_SEMICOLON] = SDLK_SEMICOLON;
+	aryScanCodeToSDLKey[DIK_APOSTROPHE] = SDLK_QUOTE;
+	aryScanCodeToSDLKey[DIK_GRAVE] = SDLK_BACKQUOTE;
+	aryScanCodeToSDLKey[DIK_LSHIFT] = SDLK_LSHIFT;
+	aryScanCodeToSDLKey[DIK_BACKSLASH] = SDLK_BACKSLASH;
+	aryScanCodeToSDLKey[DIK_OEM_102] = SDLK_LESS;
+	aryScanCodeToSDLKey[DIK_Z] = SDLK_z;
+	aryScanCodeToSDLKey[DIK_X] = SDLK_x;
+	aryScanCodeToSDLKey[DIK_C] = SDLK_c;
+	aryScanCodeToSDLKey[DIK_V] = SDLK_v;
+	aryScanCodeToSDLKey[DIK_B] = SDLK_b;
+	aryScanCodeToSDLKey[DIK_N] = SDLK_n;
+	aryScanCodeToSDLKey[DIK_M] = SDLK_m;
+	aryScanCodeToSDLKey[DIK_COMMA] = SDLK_COMMA;
+	aryScanCodeToSDLKey[DIK_PERIOD] = SDLK_PERIOD;
+	aryScanCodeToSDLKey[DIK_SLASH] = SDLK_SLASH;
+	aryScanCodeToSDLKey[DIK_RSHIFT] = SDLK_RSHIFT;
+	aryScanCodeToSDLKey[DIK_MULTIPLY] = SDLK_KP_MULTIPLY;
+	aryScanCodeToSDLKey[DIK_LMENU] = SDLK_LALT;
+	aryScanCodeToSDLKey[DIK_SPACE] = SDLK_SPACE;
+	aryScanCodeToSDLKey[DIK_CAPITAL] = SDLK_CAPSLOCK;
+	aryScanCodeToSDLKey[DIK_F1] = SDLK_F1;
+	aryScanCodeToSDLKey[DIK_F2] = SDLK_F2;
+	aryScanCodeToSDLKey[DIK_F3] = SDLK_F3;
+	aryScanCodeToSDLKey[DIK_F4] = SDLK_F4;
+	aryScanCodeToSDLKey[DIK_F5] = SDLK_F5;
+	aryScanCodeToSDLKey[DIK_F6] = SDLK_F6;
+	aryScanCodeToSDLKey[DIK_F7] = SDLK_F7;
+	aryScanCodeToSDLKey[DIK_F8] = SDLK_F8;
+	aryScanCodeToSDLKey[DIK_F9] = SDLK_F9;
+	aryScanCodeToSDLKey[DIK_F10] = SDLK_F10;
+	aryScanCodeToSDLKey[DIK_NUMLOCK] = SDLK_NUMLOCK;
+	aryScanCodeToSDLKey[DIK_SCROLL] = SDLK_SCROLLOCK;
+	aryScanCodeToSDLKey[DIK_NUMPAD7] = SDLK_KP7;
+	aryScanCodeToSDLKey[DIK_NUMPAD8] = SDLK_KP8;
+	aryScanCodeToSDLKey[DIK_NUMPAD9] = SDLK_KP9;
+	aryScanCodeToSDLKey[DIK_SUBTRACT] = SDLK_KP_MINUS;
+	aryScanCodeToSDLKey[DIK_NUMPAD4] = SDLK_KP4;
+	aryScanCodeToSDLKey[DIK_NUMPAD5] = SDLK_KP5;
+	aryScanCodeToSDLKey[DIK_NUMPAD6] = SDLK_KP6;
+	aryScanCodeToSDLKey[DIK_ADD] = SDLK_KP_PLUS;
+	aryScanCodeToSDLKey[DIK_NUMPAD1] = SDLK_KP1;
+	aryScanCodeToSDLKey[DIK_NUMPAD2] = SDLK_KP2;
+	aryScanCodeToSDLKey[DIK_NUMPAD3] = SDLK_KP3;
+	aryScanCodeToSDLKey[DIK_NUMPAD0] = SDLK_KP0;
+	aryScanCodeToSDLKey[DIK_DECIMAL] = SDLK_KP_PERIOD;
+	aryScanCodeToSDLKey[DIK_F11] = SDLK_F11;
+	aryScanCodeToSDLKey[DIK_F12] = SDLK_F12;
+
+	aryScanCodeToSDLKey[DIK_F13] = SDLK_F13;
+	aryScanCodeToSDLKey[DIK_F14] = SDLK_F14;
+	aryScanCodeToSDLKey[DIK_F15] = SDLK_F15;
+
+	aryScanCodeToSDLKey[DIK_NUMPADEQUALS] = SDLK_KP_EQUALS;
+	aryScanCodeToSDLKey[DIK_NUMPADENTER] = SDLK_KP_ENTER;
+	aryScanCodeToSDLKey[DIK_RCONTROL] = SDLK_RCTRL;
+	aryScanCodeToSDLKey[DIK_DIVIDE] = SDLK_KP_DIVIDE;
+	aryScanCodeToSDLKey[DIK_SYSRQ] = SDLK_PRINT;
+	aryScanCodeToSDLKey[DIK_RMENU] = SDLK_RALT;
+	aryScanCodeToSDLKey[DIK_PAUSE] = SDLK_PAUSE;
+	aryScanCodeToSDLKey[DIK_HOME] = SDLK_HOME;
+	aryScanCodeToSDLKey[DIK_UP] = SDLK_UP;
+	aryScanCodeToSDLKey[DIK_PRIOR] = SDLK_PAGEUP;
+	aryScanCodeToSDLKey[DIK_LEFT] = SDLK_LEFT;
+	aryScanCodeToSDLKey[DIK_RIGHT] = SDLK_RIGHT;
+	aryScanCodeToSDLKey[DIK_END] = SDLK_END;
+	aryScanCodeToSDLKey[DIK_DOWN] = SDLK_DOWN;
+	aryScanCodeToSDLKey[DIK_NEXT] = SDLK_PAGEDOWN;
+	aryScanCodeToSDLKey[DIK_INSERT] = SDLK_INSERT;
+	aryScanCodeToSDLKey[DIK_DELETE] = SDLK_DELETE;
+	aryScanCodeToSDLKey[DIK_LWIN] = SDLK_LMETA;
+	aryScanCodeToSDLKey[DIK_RWIN] = SDLK_RMETA;
+	aryScanCodeToSDLKey[DIK_APPS] = SDLK_MENU;
+
+	bScanCodeMapInited = true;
+}
+
+static std::string strPasteBuffer;
+// Just in case, to keep us from entering an unexpected KB state
+const  size_t      kPasteMinBufExtra = 4;
+/// Sightly inefficient, but who cares
+static void GenKBStroke(const UINT uiScanCode, const bool bDepressed, const SDLMod keymods)
+{
+	const SDLKey sdlkey = aryScanCodeToSDLKey[uiScanCode];
+	if (sdlkey == SDLK_UNKNOWN)
+		return;
+
+	SDL_Event evntKeyStroke = { 0 };
+	evntKeyStroke.type = bDepressed ? SDL_KEYDOWN : SDL_KEYUP;
+	evntKeyStroke.key.keysym.scancode = (unsigned char)LOBYTE(uiScanCode);
+	evntKeyStroke.key.keysym.sym = sdlkey;
+	evntKeyStroke.key.keysym.mod = keymods;
+	evntKeyStroke.key.keysym.unicode = 0;
+	evntKeyStroke.key.state = bDepressed ? SDL_PRESSED : SDL_RELEASED;
+	SDL_PushEvent(&evntKeyStroke);
+}
+
+static bool PasteClipboardNext()
+{
+	if (strPasteBuffer.length() == 0)
+		return false;
+
+	if (!bScanCodeMapInited)
+		PasteInitMapSCToSDLKey();
+
+	const char cKey = strPasteBuffer[0];
+	SHORT shVirKey = VkKeyScan(cKey); // If it fails then MapVirtK will also fail, so no bail yet
+	UINT uiScanCode = MapVirtualKey(LOBYTE(shVirKey), MAPVK_VK_TO_VSC);
+	if (uiScanCode)
+	{
+		const bool   bModShift = ((shVirKey & 0x0100) != 0);
+		const bool   bModCntrl = ((shVirKey & 0x0200) != 0);
+		const bool   bModAlt = ((shVirKey & 0x0400) != 0);
+		const SDLMod sdlmModsOn = SDL_GetModState();
+		const bool   bModShiftOn = ((sdlmModsOn & (KMOD_LSHIFT | KMOD_RSHIFT)) > 0);
+		const bool   bModCntrlOn = ((sdlmModsOn & (KMOD_LCTRL | KMOD_RCTRL)) > 0);
+		const bool   bModAltOn = ((sdlmModsOn & (KMOD_LALT | KMOD_RALT)) > 0);
+		const UINT   uiScanCodeShift = MapVirtualKey(VK_SHIFT, MAPVK_VK_TO_VSC);
+		const UINT   uiScanCodeCntrl = MapVirtualKey(VK_CONTROL, MAPVK_VK_TO_VSC);
+		const UINT   uiScanCodeAlt = MapVirtualKey(VK_MENU, MAPVK_VK_TO_VSC);
+		const SDLMod sdlmMods = (SDLMod)((sdlmModsOn & ~(KMOD_LSHIFT | KMOD_RSHIFT |
+			KMOD_LCTRL | KMOD_RCTRL |
+			KMOD_LALT | KMOD_RALT)) |
+			(bModShiftOn ? KMOD_LSHIFT : 0) |
+			(bModCntrlOn ? KMOD_LCTRL : 0) |
+			(bModAltOn ? KMOD_LALT : 0));
+
+		/// \note Currently pasteing a character is a two step affair, because if
+		///       you do it too quickly DI can miss a key press/release.
+		// Could be made more efficient, but would require tracking of more state,
+		// so let's forgot that for now...
+		size_t sStrokesRequired = 2; // At least the key & up/down
+		if (bModShift != bModShiftOn) sStrokesRequired += 2; // To press/release Shift
+		if (bModCntrl != bModCntrlOn) sStrokesRequired += 2; // To press/release Control
+		if (bModAlt != bModAltOn) sStrokesRequired += 2; // To press/release Alt
+		/// \fixme Should check if key is already pressed or not so it can toggle press
+		///        but since we don't actually have any mappings from VK/SC to DI codes
+		///        (which SDL (can) use(s) internally as actually scancodes), we can't
+		///        actually check that ourselves, sadly...
+		if (KEYBOARD_BufferSpaceAvail() < (sStrokesRequired + kPasteMinBufExtra))
+			return false;
+
+		if (bModShift != bModShiftOn) GenKBStroke(uiScanCodeShift, !bModShiftOn, sdlmMods);
+		if (bModCntrl != bModCntrlOn) GenKBStroke(uiScanCodeCntrl, !bModCntrlOn, sdlmMods);
+		if (bModAlt != bModAltOn) GenKBStroke(uiScanCodeAlt, !bModAltOn, sdlmMods);
+		GenKBStroke(uiScanCode, true, sdlmMods);
+		GenKBStroke(uiScanCode, false, sdlmMods);
+		if (bModShift != bModShiftOn) GenKBStroke(uiScanCodeShift, bModShiftOn, sdlmMods);
+		if (bModCntrl != bModCntrlOn) GenKBStroke(uiScanCodeCntrl, bModCntrlOn, sdlmMods);
+		if (bModAlt != bModAltOn) GenKBStroke(uiScanCodeAlt, bModAltOn, sdlmMods);
+		//putchar(cKey); // For debugging dropped strokes
+	}
+
+	// Pop head. Could be made more efficient, but this is neater.
+	strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length()); // technically -1, but it clamps by itself anyways...
+	return true;
+}
+
+void PasteClipboard(bool bPressed)
+{
+	if (!bPressed) return;
+	SDL_SysWMinfo wmiInfo;
+	SDL_VERSION(&wmiInfo.version);
+
+	if (SDL_GetWMInfo(&wmiInfo) != 1) return;
+	if (!::OpenClipboard(wmiInfo.window)) return;
+	if (!::IsClipboardFormatAvailable(CF_TEXT)) return;
+
+	HANDLE hContents = ::GetClipboardData(CF_TEXT);
+	if (!hContents) return;
+
+	const char* szClipboard = (const char*)::GlobalLock(hContents);
+	if (szClipboard)
+	{
+		// Create a copy of the string, and filter out Linefeed characters (ASCII '10')
+		size_t sClipboardLen = strlen(szClipboard);
+		char* szFilteredText = reinterpret_cast<char*>(alloca(sClipboardLen + 1));
+		char* szFilterNextChar = szFilteredText;
+		for (size_t i = 0; i < sClipboardLen; ++i)
+			if (szClipboard[i] != 0x0A) // Skip linefeeds
+			{
+				*szFilterNextChar = szClipboard[i];
+				++szFilterNextChar;
+			}
+		*szFilterNextChar = '\0'; // Cap it.
+
+		strPasteBuffer.append(szFilteredText);
+		::GlobalUnlock(hContents);
+	}
+
+	::CloseClipboard();
+}
+/// TODO: add menu items here 
+#endif // end emendelson from dbDOS
+
 
 #if defined (WIN32)
 static BOOL WINAPI ConsoleEventHandler(DWORD event) {

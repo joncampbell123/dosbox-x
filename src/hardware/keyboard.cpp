@@ -239,6 +239,11 @@ void KEYBOARD_ClrBuffer(void) {
 	keyb.scheduled=false;
 }
 
+size_t KEYBOARD_BufferSpaceAvail()   // emendelson from dbDOS
+{
+	return (KEYBUFSIZE - keyb.used);
+}									// end emendelson from dbDOS
+
 static void KEYBOARD_Add8042Response(Bit8u data) {
 	if(!keyb.enable_aux) return;
 	if (keyb.buf8042_pos >= keyb.buf8042_len)
