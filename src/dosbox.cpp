@@ -1881,6 +1881,14 @@ void DOSBOX_Init(void) {
 		"probe the AUX port directly and depend on this BIOS interface exclusively\n"
 		"for PS/2 mouse support. In other cases there is no harm in leaving this enabled");
 
+	/* bugfix for Yodel "mayday" demo */
+	/* TODO: Set this option to default to "true" if it turns out most BIOSes unmask the IRQ during INT 15h AH=86 WAIT */
+	Pbool = secprop->Add_bool("int15 wait force unmask irq",Property::Changeable::OnlyAtStart,false);
+	Pbool->Set_help("Set to true for misbehaving DOS programs or demos that use INT 15h AH=86 (WAIT).\n"
+			"If the demo hangs at this call, one likely cause is that IRQ 2 and/or IRQ 8 was masked\n"
+			"at the time of the call. Set this option to make INT 15h emulation forcibly unmask the\n"
+			"IRQ to allow the call to work properly.");
+
 	Pbool = secprop->Add_bool("int15 mouse callback does not preserve registers",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("Set to true if the guest OS or DOS program assigns an INT 15h mouse callback,\n"
 			"but does not properly preserve CPU registers. Diagnostic function only (default off).");

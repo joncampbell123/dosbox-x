@@ -39,6 +39,8 @@ bool enable_filenamechar = true;
 bool enable_share_exe_fake = true;
 int dos_initial_hma_free = 34*1024;
 
+extern bool int15_wait_force_unmask_irq;
+
 Bit32u dos_hma_allocator = 0; /* physical memory addr */
 
 bool XMS_IS_ACTIVE();
@@ -1669,6 +1671,7 @@ public:
 		enable_dummy_environment_block = section->Get_bool("enable dummy environment block");
 		enable_dummy_loadfix_padding = section->Get_bool("enable loadfix padding");
 		enable_dummy_device_mcb = section->Get_bool("enable dummy device mcb");
+		int15_wait_force_unmask_irq = section->Get_bool("int15 wait force unmask irq");
 
 		if ((int)MAXENV < 0) MAXENV = mainline_compatible_mapping ? 32768 : 65535;
 		if ((int)ENV_KEEPFREE < 0) ENV_KEEPFREE = mainline_compatible_mapping ? 83 : 1024;
