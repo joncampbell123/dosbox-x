@@ -3273,7 +3273,16 @@ void PasteClipboard(bool bPressed)
 	::CloseClipboard();
 }
 /// TODO: add menu items here 
-#endif // end emendelson from dbDOS
+#else // end emendelson from dbDOS
+void PasteClipboard(bool bPressed) {
+	// stub
+}
+
+bool PasteClipboardNext() {
+	// stub
+	return false;
+}
+#endif
 
 
 #if defined (WIN32)
