@@ -82,6 +82,7 @@ struct GFGus {
 	} timers[2];
 	Bit32u rate;
 	Bitu portbase;
+	Bit32u memsize;
 	Bit8u dma1;
 	Bit8u dma2;
 
@@ -614,7 +615,7 @@ static Bitu read_gus(Bitu port,Bitu iolen) {
 	case 0x305:
 		return ExecuteReadRegister() >> 8;
 	case 0x307:
-		if(myGUS.gDramAddr < sizeof(GUSRam)) {
+		if(myGUS.gDramAddr < myGUS.memsize) {
 			return GUSRam[myGUS.gDramAddr];
 		} else {
 			return 0;
@@ -699,7 +700,7 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 		ExecuteGlobRegister();
 		break;
 	case 0x307:
-		if(myGUS.gDramAddr < sizeof(GUSRam)) GUSRam[myGUS.gDramAddr] = (Bit8u)val;
+		if(myGUS.gDramAddr < myGUS.memsize) GUSRam[myGUS.gDramAddr] = (Bit8u)val;
 		break;
 	default:
 #if LOG_GUS
@@ -802,6 +803,8 @@ private:
 	MixerObject MixerChan;
 public:
 	GUS(Section* configuration):Module_base(configuration){
+		int x;
+
 		if(!IS_EGAVGA_ARCH) return;
 		Section_prop * section=static_cast<Section_prop *>(configuration);
 		if(!section->Get_bool("gus")) return;
@@ -810,6 +813,18 @@ public:
 		memset(GUSRam,0,1024*1024);
 	
 		myGUS.rate=section->Get_int("gusrate");
+
+		x = section->Get_int("gusmemsize");
+		if (x >= 0) myGUS.memsize = x*1024;
+		else myGUS.memsize = 1024*1024;
+
+		if (myGUS.memsize > (1024*1024))
+			myGUS.memsize = (1024*1024);
+
+		if ((myGUS.memsize&((256 << 10) - 1)) != 0)
+			LOG_MSG("GUS emulation warning: %uKB onboard is an unusual value. Usually GUS cards have some multiple of 256KB RAM onboard",myGUS.memsize>>10);
+
+		LOG_MSG("GUS emulation: %uKB onboard",myGUS.memsize>>10);
 
 		// FIXME: HUH?? Read the port number and subtract 0x200, then use GUS_BASE
 		// in other parts of the code to compare against 0x200 and 0x300? That's confusing. Fix!

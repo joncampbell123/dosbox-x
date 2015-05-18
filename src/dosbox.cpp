@@ -1571,6 +1571,10 @@ void DOSBOX_Init(void) {
 	Pint->Set_values(rates);
 	Pint->Set_help("Sample rate of Ultrasound emulation.");
 
+	Pint = secprop->Add_int("gusmemsize",Property::Changeable::WhenIdle,-1);
+	Pint->SetMinMax(-1,1024);
+	Pint->Set_help("Amount of RAM on the Gravis Ultrasound in KB. Set to -1 for default.");
+
 	Phex = secprop->Add_hex("gusbase",Property::Changeable::WhenIdle,0x240);
 	Phex->Set_values(iosgus);
 	Phex->Set_help("The IO base address of the Gravis Ultrasound.");
