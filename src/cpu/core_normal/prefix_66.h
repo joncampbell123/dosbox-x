@@ -471,9 +471,20 @@
 	CASE_D(0xc1)												/* GRP2 Ed,Ib */
 		GRP2D(Fetchb());break;
 	CASE_D(0xc2)												/* RETN Iw */
-		reg_eip=Pop_32();
-		reg_esp+=Fetchw();
-		continue;
+		{
+			Bit32u old_esp = reg_esp;
+
+			try {
+				/* this is structured either to complete RET or leave registers unmodified if interrupted by page fault */
+				Bit32u new_eip = Pop_32();
+				reg_esp += Fetchw();
+				reg_eip = new_eip;
+			}
+			catch (GuestPageFaultException &pf) {
+				reg_esp = old_esp; /* restore stack pointer */
+				throw;
+			}
+		} continue;
 	CASE_D(0xc3)												/* RETN */
 		reg_eip=Pop_32();
 		continue;
