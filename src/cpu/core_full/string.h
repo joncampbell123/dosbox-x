@@ -17,15 +17,19 @@
  */
 
 {
-	EAPoint si_base,di_base;
-	Bitu	si_index,di_index;
-	Bitu	add_mask;
-	Bitu	count,count_left=0;
-	Bits	add_index;
-	
+	extern int cpu_rep_max;
+	static PhysPt  si_base,di_base;
+	static Bitu	si_index,di_index;
+	static Bitu	add_mask;
+	static Bitu	count,count_left;
+	static Bits	add_index;
+
+	count_left=0;
+
 	if (inst.prefix & PREFIX_SEG) si_base=inst.seg.base;
 	else si_base=SegBase(ds);
 	di_base=SegBase(es);
+
 	if (inst.prefix & PREFIX_ADDR) {
 		add_mask=0xFFFFFFFF;
 		si_index=reg_esi;
@@ -37,23 +41,34 @@
 		di_index=reg_di;
 		count=reg_cx;
 	}
+
 	if (!(inst.prefix & PREFIX_REP)) {
 		count=1;
 	} else {
-		/* Calculate amount of ops to do before cycles run out */
 		CPU_Cycles++;
+		/* we allow the user to cap our count as a way of making REP string operations interruptable (and at what granularity) */
+		if (cpu_rep_max > 0 && count > (unsigned int)cpu_rep_max && (inst.code.op<R_SCASB)) {
+			count_left+=count-(unsigned int)cpu_rep_max;
+			count=(unsigned int)cpu_rep_max;
+			LoadIP();		//capping the count means (E)CX will be nonzero afterwards, we need CPU to restart it again
+		}
+
+		/* Calculate amount of ops to do before cycles run out */
 		if ((count>(Bitu)CPU_Cycles) && (inst.code.op<R_SCASB)) {
-			count_left=count-CPU_Cycles;
+			count_left+=count-CPU_Cycles;
 			count=CPU_Cycles;
 			CPU_Cycles=0;
-			LoadIP();
+			LoadIP();		//capping the count means (E)CX will be nonzero afterwards, we need CPU to restart it again
 		} else {
 			/* Won't interrupt scas and cmps instruction since they can interrupt themselves */
-			if (inst.code.op<R_SCASB) CPU_Cycles-=count;
+			if ((count<=1) && (CPU_Cycles<=1)) CPU_Cycles--;
+			else if (inst.code.op<R_SCASB) CPU_Cycles-=count;
 		}
 	}
 	add_index=cpu.direction;
-	if (count) switch (inst.code.op) {
+	if (count) {
+		try {
+		switch (inst.code.op) {
 	case R_OUTSB:
 		for (;count>0;count--) {
 			IO_WriteB(reg_dx,LoadMb(si_base+si_index));
@@ -161,9 +176,9 @@
 		{
 			Bit8u val2;
 			for (;count>0;) {
-				count--;CPU_Cycles--;
 				val2=LoadMb(di_base+di_index);
 				di_index=(di_index+add_index) & add_mask;
+				count--;CPU_Cycles--;
 				if ((reg_al==val2)!=inst.repz) break;
 			}
 			CMPB(reg_al,val2,LoadD,0);
@@ -173,9 +188,9 @@
 		{
 			add_index<<=1;Bit16u val2;
 			for (;count>0;) {
-				count--;CPU_Cycles--;
 				val2=LoadMw(di_base+di_index);
 				di_index=(di_index+add_index) & add_mask;
+				count--;CPU_Cycles--;
 				if ((reg_ax==val2)!=inst.repz) break;
 			}
 			CMPW(reg_ax,val2,LoadD,0);
@@ -185,9 +200,9 @@
 		{
 			add_index<<=2;Bit32u val2;
 			for (;count>0;) {
-				count--;CPU_Cycles--;
 				val2=LoadMd(di_base+di_index);
 				di_index=(di_index+add_index) & add_mask;
+				count--;CPU_Cycles--;
 				if ((reg_eax==val2)!=inst.repz) break;
 			}
 			CMPD(reg_eax,val2,LoadD,0);
@@ -197,11 +212,11 @@
 		{
 			Bit8u val1,val2;
 			for (;count>0;) {
-				count--;CPU_Cycles--;
 				val1=LoadMb(si_base+si_index);
 				val2=LoadMb(di_base+di_index);
 				si_index=(si_index+add_index) & add_mask;
 				di_index=(di_index+add_index) & add_mask;
+				count--;CPU_Cycles--;
 				if ((val1==val2)!=inst.repz) break;
 			}
 			CMPB(val1,val2,LoadD,0);
@@ -211,11 +226,11 @@
 		{
 			add_index<<=1;Bit16u val1,val2;
 			for (;count>0;) {
-				count--;CPU_Cycles--;
 				val1=LoadMw(si_base+si_index);
 				val2=LoadMw(di_base+di_index);
 				si_index=(si_index+add_index) & add_mask;
 				di_index=(di_index+add_index) & add_mask;
+				count--;CPU_Cycles--;
 				if ((val1==val2)!=inst.repz) break;
 			}
 			CMPW(val1,val2,LoadD,0);
@@ -225,18 +240,18 @@
 		{
 			add_index<<=2;Bit32u val1,val2;
 			for (;count>0;) {
-				count--;CPU_Cycles--;
 				val1=LoadMd(si_base+si_index);
 				val2=LoadMd(di_base+di_index);
 				si_index=(si_index+add_index) & add_mask;
 				di_index=(di_index+add_index) & add_mask;
+				count--;CPU_Cycles--;
 				if ((val1==val2)!=inst.repz) break;
 			}
 			CMPD(val1,val2,LoadD,0);
 		}
 		break;
 	default:
-		LOG(LOG_CPU,LOG_ERROR)("Unhandled string %d entry %lx",inst.code.op,(unsigned long)inst.entry);
+		LOG(LOG_CPU,LOG_ERROR)("Unhandled string op %d",inst.code.op);
 	}
 	/* Clean up after certain amount of instructions */
 	reg_esi&=(~add_mask);
@@ -248,4 +263,24 @@
 		reg_ecx&=(~add_mask);
 		reg_ecx|=(count & add_mask);
 	}
+	}
+	catch (GuestPageFaultException &pf) {
+		LOG_MSG("Strip op #%d interrupted si_index=%x di_index=%x count=%x+%x=%x esi=%x edi=%x ecx=%x",
+			inst.code.op,si_index,di_index,count,count_left,count+count_left,reg_esi,reg_edi,reg_ecx);
+
+		/* Clean up after certain amount of instructions */
+		reg_esi&=(~add_mask);
+		reg_esi|=(si_index & add_mask);
+		reg_edi&=(~add_mask);
+		reg_edi|=(di_index & add_mask);
+		if (inst.prefix & PREFIX_REP) {
+			count+=count_left;
+			reg_ecx&=(~add_mask);
+			reg_ecx|=(count & add_mask);
+		}
+
+		throw;
+	}
+	}// /count
 }
+
