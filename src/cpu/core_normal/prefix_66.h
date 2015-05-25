@@ -368,12 +368,19 @@
 		}
 	CASE_D(0x8f)												/* POP Ed */
 		{
-			Bit32u val=Pop_32();
-			GetRM;
-			if (rm >= 0xc0 ) {GetEArd;*eard=val;}
-			else {GetEAa;SaveMd(eaa,val);}
-			break;
-		}
+			Bit32u old_esp = reg_esp;
+
+			try {
+				Bit32u val=Pop_32();
+				GetRM;
+				if (rm >= 0xc0 ) {GetEArd;*eard=val;}
+				else {GetEAa;SaveMd(eaa,val);}
+			}
+			catch (GuestPageFaultException &pf) {
+				reg_esp = old_esp;
+				throw;
+			}
+		} break;
 	CASE_D(0x91)												/* XCHG ECX,EAX */
 		{ Bit32u temp=reg_eax;reg_eax=reg_ecx;reg_ecx=temp;break;}
 	CASE_D(0x92)												/* XCHG EDX,EAX */

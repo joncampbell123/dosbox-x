@@ -573,12 +573,19 @@
 		}							
 	CASE_W(0x8f)												/* POP Ew */
 		{
-			Bit16u val=Pop_16();
-			GetRM;
-			if (rm >= 0xc0 ) {GetEArw;*earw=val;}
-			else {GetEAa;SaveMw(eaa,val);}
-			break;
-		}
+			Bit32u old_esp = reg_esp;
+
+			try {
+				Bit16u val=Pop_16();
+				GetRM;
+				if (rm >= 0xc0 ) {GetEArw;*earw=val;}
+				else {GetEAa;SaveMw(eaa,val);}
+			}
+			catch (GuestPageFaultException &pf) {
+				reg_esp = old_esp;
+				throw;
+			}
+		} break;
 	CASE_B(0x90)												/* NOP */
 		break;
 	CASE_W(0x91)												/* XCHG CX,AX */
