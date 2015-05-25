@@ -22,6 +22,7 @@
 
 #include <math.h>
 #include <float.h>
+#include "paging.h"
 #include "cross.h"
 #include "mem.h"
 #include "fpu.h"
@@ -127,8 +128,18 @@ void FPU_ESC1_EA(Bitu rm,PhysPt addr) {
 	Bitu sub=(rm & 7);
 	switch(group){
 	case 0x00: /* FLD float*/
-		FPU_PREP_PUSH();
-		FPU_FLD_F32(addr,TOP);
+		{
+			unsigned char old_TOP = TOP;
+
+			try {
+				FPU_PREP_PUSH();
+				FPU_FLD_F32(addr,TOP);
+			}
+			catch (GuestPageFaultException &pf) {
+				TOP = old_TOP;
+				throw;
+			}
+		}
 		break;
 	case 0x01: /* UNKNOWN */
 		LOG(LOG_FPU,LOG_WARN)("ESC EA 1:Unhandled group %d subfunction %d",(int)group,(int)sub);
@@ -333,8 +344,18 @@ void FPU_ESC3_EA(Bitu rm,PhysPt addr) {
 	Bitu sub=(rm & 7);
 	switch(group){
 	case 0x00:	/* FILD */
-		FPU_PREP_PUSH();
-		FPU_FLD_I32(addr,TOP);
+		{
+			unsigned char old_TOP = TOP;
+
+			try {
+				FPU_PREP_PUSH();
+				FPU_FLD_I32(addr,TOP);
+			}
+			catch (GuestPageFaultException &pf) {
+				TOP = old_TOP;
+				throw;
+			}
+		}
 		break;
 	case 0x01:	/* FISTTP */
 		LOG(LOG_FPU,LOG_WARN)("ESC 3 EA:Unhandled group %d subfunction %d",(int)group,(int)sub);
@@ -347,8 +368,18 @@ void FPU_ESC3_EA(Bitu rm,PhysPt addr) {
 		FPU_FPOP();
 		break;
 	case 0x05:	/* FLD 80 Bits Real */
-		FPU_PREP_PUSH();
-		FPU_FLD_F80(addr);
+		{
+			unsigned char old_TOP = TOP;
+
+			try {
+				FPU_PREP_PUSH();
+				FPU_FLD_F80(addr);
+			}
+			catch (GuestPageFaultException &pf) {
+				TOP = old_TOP;
+				throw;
+			}
+		}
 		break;
 	case 0x07:	/* FSTP 80 Bits Real */
 		FPU_FST_F80(addr);
@@ -438,8 +469,18 @@ void FPU_ESC5_EA(Bitu rm,PhysPt addr) {
 	Bitu sub=(rm & 7);
 	switch(group){
 	case 0x00:  /* FLD double real*/
-		FPU_PREP_PUSH();
-		FPU_FLD_F64(addr,TOP);
+		{
+			unsigned char old_TOP = TOP;
+
+			try {
+				FPU_PREP_PUSH();
+				FPU_FLD_F64(addr,TOP);
+			}
+			catch (GuestPageFaultException &pf) {
+				TOP = old_TOP;
+				throw;
+			}
+		}
 		break;
 	case 0x01:  /* FISTTP longint*/
 		LOG(LOG_FPU,LOG_WARN)("ESC 5 EA:Unhandled group %d subfunction %d",(int)group,(int)sub);
@@ -550,8 +591,18 @@ void FPU_ESC7_EA(Bitu rm,PhysPt addr) {
 	Bitu sub=(rm & 7);
 	switch(group){
 	case 0x00:  /* FILD Bit16s */
-		FPU_PREP_PUSH();
-		FPU_FLD_I16(addr,TOP);
+		{
+			unsigned char old_TOP = TOP;
+
+			try {
+				FPU_PREP_PUSH();
+				FPU_FLD_I16(addr,TOP);
+			}
+			catch (GuestPageFaultException &pf) {
+				TOP = old_TOP;
+				throw;
+			}
+		}
 		break;
 	case 0x01:
 		LOG(LOG_FPU,LOG_WARN)("ESC 7 EA:Unhandled group %d subfunction %d",(int)group,(int)sub);
@@ -564,12 +615,32 @@ void FPU_ESC7_EA(Bitu rm,PhysPt addr) {
 		FPU_FPOP();
 		break;
 	case 0x04:   /* FBLD packed BCD */
-		FPU_PREP_PUSH();
-		FPU_FBLD(addr,TOP);
+		{
+			unsigned char old_TOP = TOP;
+
+			try {
+				FPU_PREP_PUSH();
+				FPU_FBLD(addr,TOP);
+			}
+			catch (GuestPageFaultException &pf) {
+				TOP = old_TOP;
+				throw;
+			}
+		}
 		break;
 	case 0x05:  /* FILD Bit64s */
-		FPU_PREP_PUSH();
-		FPU_FLD_I64(addr,TOP);
+		{
+			unsigned char old_TOP = TOP;
+
+			try {
+				FPU_PREP_PUSH();
+				FPU_FLD_I64(addr,TOP);
+			}
+			catch (GuestPageFaultException &pf) {
+				TOP = old_TOP;
+				throw;
+			}
+		}
 		break;
 	case 0x06:	/* FBSTP packed BCD */
 		FPU_FBST(addr);
