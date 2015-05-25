@@ -282,8 +282,7 @@ static void PAGING_NewPageFault(PhysPt lin_addr, Bitu page_addr, bool prepare_on
 	if (prepare_only) {
 		cpu.exception.which = EXCEPTION_PF;
 		cpu.exception.error = faultcode;
-	} else if (dosbox_enable_nonrecursive_page_fault && dosbox_allow_nonrecursive_page_fault &&
-		dosbox_check_nonrecursive_pf_cs == SegValue(cs) && dosbox_check_nonrecursive_pf_eip == reg_eip) {
+	} else if (dosbox_enable_nonrecursive_page_fault && dosbox_allow_nonrecursive_page_fault) {
 		/* FIXME: Apparently, if Window 98/ME executes a floating point instruction that triggers a page
 		 *        fault and DOSBox is running the dynamic core, this code will throw the exception and
 		 *        the Normal_Loop() function farther up the call chain will not receive the exception,
@@ -317,6 +316,14 @@ static void PAGING_NewPageFault(PhysPt lin_addr, Bitu page_addr, bool prepare_on
 		 *                   box. */
 		LOG_MSG("DEBUG: Using non-recursive page fault for lin=0x%08lx page=0x%08lx faultcode=%u. Wish me luck.\n",
 			(unsigned long)lin_addr,(unsigned long)page_addr,(unsigned int)faultcode);
+
+		if (!(dosbox_check_nonrecursive_pf_cs == SegValue(cs) && dosbox_check_nonrecursive_pf_eip == reg_eip))
+			LOG_MSG("....CS:IP mistmatch expect %x:%x got %x:%x",
+				dosbox_check_nonrecursive_pf_cs,
+				dosbox_check_nonrecursive_pf_eip,
+				SegValue(cs),
+				reg_eip);
+
 		throw GuestPageFaultException(lin_addr,page_addr,faultcode);
 	} else {
 		// Save the state of the cpu cores
