@@ -1260,9 +1260,13 @@
 				RMEw(DECW);
 				break;		
 			case 0x02:										/* CALL Ev */
-				if (rm >= 0xc0 ) {GetEArw;reg_eip=*earw;}
-				else {GetEAa;reg_eip=LoadMw(eaa);}
-				Push_16(GETIP);
+				{ /* either EIP is set to the call address or EIP does not change if interrupted by PF */
+					Bit16u new_eip;
+					if (rm >= 0xc0 ) {GetEArw;new_eip=*earw;}
+					else {GetEAa;new_eip=LoadMw(eaa);}
+					Push_16(GETIP); /* <- PF may happen here */
+					reg_eip = new_eip;
+				}
 				continue;
 			case 0x03:										/* CALL Ep */
 				{

@@ -709,9 +709,13 @@
 				RMEd(DECD);
 				break;
 			case 0x02:											/* CALL NEAR Ed */
-				if (rm >= 0xc0 ) {GetEArd;reg_eip=*eard;}
-				else {GetEAa;reg_eip=LoadMd(eaa);}
-				Push_32(GETIP);
+				{ /* either EIP is set to the call address or EIP does not change if interrupted by PF */
+					Bit32u new_eip;
+					if (rm >= 0xc0 ) {GetEArd;new_eip=*eard;}
+					else {GetEAa;new_eip=LoadMd(eaa);}
+					Push_32(GETIP); /* <- PF can happen here */
+					reg_eip = new_eip;
+				}
 				continue;
 			case 0x03:											/* CALL FAR Ed */
 				{
