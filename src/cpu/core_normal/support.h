@@ -57,34 +57,30 @@ static INLINE Bit32s Fetchds() {
  *      CS:IP variables, reg_ip and core.cseip which Fetchb() modifies. */
 //TODO Could probably make all byte operands fast?
 #define JumpCond16_b(COND) {						\
-	SAVEIP;								\
 	Bit8s adj=Fetchbs();						\
+	SAVEIP;								\
 	if (COND) reg_ip+=adj;						\
-	reg_ip+=1;							\
 	continue;							\
 }
 
 #define JumpCond16_w(COND) {						\
-	SAVEIP;								\
 	Bit16s adj=Fetchws();						\
+	SAVEIP;								\
 	if (COND) reg_ip+=adj;						\
-	reg_ip+=2;							\
 	continue;							\
 }
 
 #define JumpCond32_b(COND) {						\
-	SAVEIP;								\
 	Bit8s adj=Fetchbs();						\
+	SAVEIP;								\
 	if (COND) reg_eip+=adj;						\
-	reg_eip+=1;							\
 	continue;							\
 }
 
 #define JumpCond32_d(COND) {						\
-	SAVEIP;								\
 	Bit32s adj=Fetchds();						\
+	SAVEIP;								\
 	if (COND) reg_eip+=adj;						\
-	reg_eip+=4;							\
 	continue;							\
 }
 
