@@ -543,6 +543,11 @@ enum TSwitchType {
 };
 
 bool CPU_SwitchTask(Bitu new_tss_selector,TSwitchType tstype,Bitu old_eip) {
+	bool old_allow = dosbox_allow_nonrecursive_page_fault;
+
+	/* this code isn't very easy to make interruptible. so temporarily revert to recursive PF handling method */
+	dosbox_allow_nonrecursive_page_fault = false;
+
 	FillFlags();
 	TaskStateSegment new_tss;
 	if (!new_tss.SetSelector(new_tss_selector)) 
@@ -717,6 +722,8 @@ doconforming:
 //	cpu_tss.desc.SetBusy(true);
 //	cpu_tss.SaveSelector();
 //	LOG_MSG("Task CPL %X CS:%X IP:%X SS:%X SP:%X eflags %x",cpu.cpl,SegValue(cs),reg_eip,SegValue(ss),reg_esp,reg_flags);
+
+	dosbox_allow_nonrecursive_page_fault = old_allow;
 	return true;
 }
 
