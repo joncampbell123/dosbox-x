@@ -1037,10 +1037,12 @@
 		}
 	CASE_W(0xe8)												/* CALL Jw */
 		{ 
+			/* must not adjust (E)IP until we have completed the instruction.
+			 * if interrupted by a page fault, EIP must be unmodified. */
 			Bit16u addip=Fetchws();
-			SAVEIP;
-			Push_16(reg_eip);
-			reg_eip=(Bit16u)(reg_eip+addip);
+			Bit16u here=GETIP;
+			Push_16(here);
+			reg_eip=(Bit16u)(addip+here);
 			continue;
 		}
 	CASE_W(0xe9)												/* JMP Jw */

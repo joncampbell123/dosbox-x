@@ -612,10 +612,12 @@
 		}
 	CASE_D(0xe8)												/* CALL Jd */
 		{ 
+			/* must not adjust (E)IP until we have completed the instruction.
+			 * if interrupted by a page fault, EIP must be unmodified. */
 			Bit32s addip=Fetchds();
-			SAVEIP;
-			Push_32(reg_eip);
-			reg_eip+=addip;
+			Bit32u here=GETIP;
+			Push_32(here);
+			reg_eip=(Bit32u)(addip+here);
 			continue;
 		}
 	CASE_D(0xe9)												/* JMP Jd */
