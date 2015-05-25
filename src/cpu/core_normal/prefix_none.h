@@ -799,10 +799,19 @@
 		break;
 	CASE_W(0xc9)												/* LEAVE */
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_80186) goto illegal_opcode;
-		reg_esp&=cpu.stack.notmask;
-		reg_esp|=(reg_ebp&cpu.stack.mask);
-		reg_bp=Pop_16();
-		break;
+		{
+			Bit32u old_esp = reg_esp;
+
+			reg_esp &= cpu.stack.notmask;
+			reg_esp |= reg_ebp&cpu.stack.mask;
+			try {
+				reg_bp = Pop_16();
+			}
+			catch (GuestPageFaultException &pf) {
+				reg_esp = old_esp;
+				throw;
+			}
+		} break;
 	CASE_W(0xca)												/* RETF Iw */
 		{
 			Bitu words=Fetchw();

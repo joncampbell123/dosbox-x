@@ -528,10 +528,19 @@
 		}
 		break;
 	CASE_D(0xc9)												/* LEAVE */
-		reg_esp&=cpu.stack.notmask;
-		reg_esp|=(reg_ebp&cpu.stack.mask);
-		reg_ebp=Pop_32();
-		break;
+		{
+			Bit32u old_esp = reg_esp;
+
+			reg_esp &= cpu.stack.notmask;
+			reg_esp |= reg_ebp&cpu.stack.mask;
+			try {
+				reg_ebp = Pop_32();
+			}
+			catch (GuestPageFaultException &pf) {
+				reg_esp = old_esp;
+				throw;
+			}
+		} break;
 	CASE_D(0xca)												/* RETF Iw */
 		{ 
 			Bitu words=Fetchw();
