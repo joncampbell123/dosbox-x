@@ -1142,6 +1142,9 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
 	 *
 	 * Yeah... for a 16-bit code segment call. Right. Typical Microsoft. >:(
 	 *
+	 * This might also explain why my early experiments with Bochs always had the perpetual
+	 * APM BIOS that never worked but was always detected.
+	 *
 	 * ------------------------------------------------------------------------
 	 * Windows 95 OSR2:
 	 *
@@ -1149,10 +1152,7 @@ static Bitu ISAPNP_Handler(bool protmode /* called from protected mode interface
 	 * around 0xC1xxxxxx), all we have to do to correctly access it is work through the page tables.
 	 * This is within spec, but now Microsoft sends us a data segment that is based at virtual address
 	 * 0xC2xxxxxx, which is why I had to disable the "verify selector" routine */
-	if (protmode)
-		arg = SegPhys(ss) + reg_esp + (2*2); /* entry point (real and protected) is 16-bit, expected to RETF (skip CS:IP) */
-	else
-		arg = SegPhys(ss) + reg_sp + (2*2); /* entry point (real and protected) is 16-bit, expected to RETF (skip CS:IP) */
+	arg = SegPhys(ss) + (reg_esp&cpu.stack.mask) + (2*2); /* entry point (real and protected) is 16-bit, expected to RETF (skip CS:IP) */
 
 	if (protmode != ISAPNP_CPU_ProtMode()) {
 		//LOG_MSG("ISA PnP %s entry point called from %s. On real BIOSes this would CRASH\n",protmode ? "Protected mode" : "Real mode",
