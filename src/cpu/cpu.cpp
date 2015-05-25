@@ -1384,7 +1384,11 @@ CODE_jmp:
 
 
 void CPU_CALL(bool use32,Bitu selector,Bitu offset,Bitu oldeip) {
+	Bit32u old_esp = reg_esp;
+	Bit32u old_eip = reg_eip;
+
 	if (!cpu.pmode || (reg_flags & FLAG_VM)) {
+		try {
 		if (!use32) {
 			CPU_Push16(SegValue(cs));
 			CPU_Push16(oldeip);
@@ -1393,6 +1397,12 @@ void CPU_CALL(bool use32,Bitu selector,Bitu offset,Bitu oldeip) {
 			CPU_Push32(SegValue(cs));
 			CPU_Push32(oldeip);
 			reg_eip=offset;
+		}
+		}
+		catch (GuestPageFaultException &pf) {
+			reg_esp = old_esp;
+			reg_eip = old_eip;
+			throw;
 		}
 		if (!cpu_allow_big16) cpu.code.big=false;
 		SegSet16(cs,selector);
@@ -1431,6 +1441,7 @@ call_code:
 				return;
 			}
 			// commit point
+			try {
 			if (!use32) {
 				CPU_Push16(SegValue(cs));
 				CPU_Push16(oldeip);
@@ -1440,6 +1451,13 @@ call_code:
 				CPU_Push32(oldeip);
 				reg_eip=offset;
 			}
+			}
+			catch (GuestPageFaultException &pf) {
+				reg_esp = old_esp;
+				reg_eip = old_eip;
+				throw;
+			}
+
 			Segs.phys[cs]=call.GetBase();
 			cpu.code.big=call.Big()>0;
 			Segs.val[cs]=(selector & 0xfffc) | cpu.cpl;
@@ -1523,6 +1541,11 @@ call_code:
 							}
 						}
 
+						bool old_allow = dosbox_allow_nonrecursive_page_fault;
+
+						/* this code isn't very easy to make interruptible. so temporarily revert to recursive PF handling method */
+						dosbox_allow_nonrecursive_page_fault = false;
+
 						// commit point
 						Segs.val[ss]=n_ss_sel;
 						Segs.phys[ss]=n_ss_desc.GetBase();
@@ -1565,6 +1588,7 @@ call_code:
 							CPU_Push16(oldeip);
 						}
 
+						dosbox_allow_nonrecursive_page_fault = old_allow;
 						break;		
 					} else if (n_cs_dpl > cpu.cpl)
 						E_Exit("CALL:GATE:CS DPL>CPL");		// or #GP(sel)
@@ -1572,12 +1596,19 @@ call_code:
 				case DESC_CODE_R_C_A:case DESC_CODE_R_C_NA:
 					// zrdx extender
 
+					try {
 					if (call.Type()==DESC_386_CALL_GATE) {
 						CPU_Push32(SegValue(cs));
 						CPU_Push32(oldeip);
 					} else {
 						CPU_Push16(SegValue(cs));
 						CPU_Push16(oldeip);
+					}
+					}
+					catch (GuestPageFaultException &pf) {
+						reg_esp = old_esp;
+						reg_eip = old_eip;
+						throw;
 					}
 
 					/* Switch to new CS:EIP */
