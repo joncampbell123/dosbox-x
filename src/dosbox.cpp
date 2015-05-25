@@ -601,6 +601,8 @@ void Null_Init(Section *sec) {
 extern Bit8u cga_comp;
 extern bool new_cga;
 
+std::string dosbox_title;
+
 void DOSBOX_RealInit(Section * sec) {
 	Section_prop * section=static_cast<Section_prop *>(sec);
 	/* Initialize some dosbox internals */
@@ -610,6 +612,8 @@ void DOSBOX_RealInit(Section * sec) {
 	ticksLocked = false;
 	DOSBOX_SetLoop(&Normal_Loop);
 	MSG_Init(section);
+
+	dosbox_title = section->Get_string("title");
 
 	dosbox_shell_env_size = section->Get_int("shell environment size");
 
@@ -795,6 +799,9 @@ void DOSBOX_Init(void) {
 	secprop=control->AddSection_prop("dosbox",&Null_Init);
 	Pstring = secprop->Add_path("language",Property::Changeable::Always,"");
 	Pstring->Set_help("Select another language file.");
+
+	Pstring = secprop->Add_path("title",Property::Changeable::Always,"");
+	Pstring->Set_help("Additional text to place in the title bar of the window");
 
 	Pstring = secprop->Add_string("machine",Property::Changeable::OnlyAtStart,"svga_s3");
 	Pstring->Set_values(machines);
