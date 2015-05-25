@@ -2640,6 +2640,16 @@ static Bitu INT15_Handler(void) {
 						CPU_HLT(reg_eip);
 					}
 					break;
+				case 0x06: // CPU BUSY
+					if(!apm_realmode_connected) {
+						reg_ah = 0x03;
+						CALLBACK_SCF(true);
+						break;
+					}
+
+					/* OK. whatever. system no longer idle */
+					CALLBACK_SCF(false);
+					break;
 				case 0x07:
 					if(reg_bx != 0x1) {
 						reg_ah = 0x09;	// wrong device ID
