@@ -705,7 +705,7 @@ bool CPU_SwitchTask(Bitu new_tss_selector,TSwitchType tstype,Bitu old_eip) {
 			if (cpu.cpl < cs_desc.DPL()) E_Exit("Task CS RPL < DPL");
 doconforming:
 			Segs.expanddown[cs]=cs_desc.GetExpandDown();
-			Segs.limit[cs]=cs_desc.GetLimit();
+			Segs.limit[cs]=do_seg_limits?cs_desc.GetLimit():(~0UL);
 			Segs.phys[cs]=cs_desc.GetBase();
 			cpu.code.big=cs_desc.Big()>0;
 			Segs.val[cs]=new_cs;
@@ -948,7 +948,7 @@ void CPU_Interrupt(Bitu num,Bitu type,Bitu oldeip) {
 
 						// commit point
 						Segs.expanddown[ss]=n_ss_desc.GetExpandDown();
-						Segs.limit[ss]=n_ss_desc.GetLimit();
+						Segs.limit[ss]=do_seg_limits?n_ss_desc.GetLimit():(~0UL);
 						Segs.phys[ss]=n_ss_desc.GetBase();
 						Segs.val[ss]=n_ss;
 						if (n_ss_desc.Big()) {
@@ -1012,7 +1012,7 @@ do_interrupt:
 
 				Segs.val[cs]=(gate_sel&0xfffc) | cpu.cpl;
 				Segs.phys[cs]=cs_desc.GetBase();
-				Segs.limit[cs]=cs_desc.GetLimit();
+				Segs.limit[cs]=do_seg_limits?cs_desc.GetLimit():(~0UL);
 				Segs.expanddown[cs]=cs_desc.GetExpandDown();
 				cpu.code.big=cs_desc.Big()>0;
 				reg_eip=gate_off;
@@ -1238,7 +1238,7 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 			// commit point
 			reg_esp=tempesp;
 			Segs.expanddown[cs]=n_cs_desc.GetExpandDown();
-			Segs.limit[cs]=n_cs_desc.GetLimit();
+			Segs.limit[cs]=do_seg_limits?n_cs_desc.GetLimit():(~0UL);
 			Segs.phys[cs]=n_cs_desc.GetBase();
 			cpu.code.big=n_cs_desc.Big()>0;
 			Segs.val[cs]=n_cs_sel;
@@ -1290,7 +1290,7 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 			// commit point
 
 			Segs.expanddown[cs]=n_cs_desc.GetExpandDown();
-			Segs.limit[cs]=n_cs_desc.GetLimit();
+			Segs.limit[cs]=do_seg_limits?n_cs_desc.GetLimit():(~0UL);
 			Segs.phys[cs]=n_cs_desc.GetBase();
 			cpu.code.big=n_cs_desc.Big()>0;
 			Segs.val[cs]=n_cs_sel;
@@ -1305,7 +1305,7 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 
 			Segs.val[ss]=n_ss;
 			Segs.phys[ss]=n_ss_desc.GetBase();
-			Segs.limit[ss]=n_ss_desc.GetLimit();
+			Segs.limit[ss]=do_seg_limits?n_ss_desc.GetLimit():(~0UL);
 			Segs.expanddown[ss]=n_ss_desc.GetExpandDown();
 			if (n_ss_desc.Big()) {
 				cpu.stack.big=true;
@@ -1374,7 +1374,7 @@ CODE_jmp:
 
 			/* Normal jump to another selector:offset */
 			Segs.expanddown[cs]=desc.GetExpandDown();
-			Segs.limit[cs]=desc.GetLimit();
+			Segs.limit[cs]=do_seg_limits?desc.GetLimit():(~0UL);
 			Segs.phys[cs]=desc.GetBase();
 			cpu.code.big=desc.Big()>0;
 			Segs.val[cs]=(selector & 0xfffc) | cpu.cpl;
@@ -1474,7 +1474,7 @@ call_code:
 			}
 
 			Segs.expanddown[cs]=call.GetExpandDown();
-			Segs.limit[cs]=call.GetLimit();
+			Segs.limit[cs]=do_seg_limits?call.GetLimit():(~0UL);
 			Segs.phys[cs]=call.GetBase();
 			cpu.code.big=call.Big()>0;
 			Segs.val[cs]=(selector & 0xfffc) | cpu.cpl;
@@ -1566,7 +1566,7 @@ call_code:
 						// commit point
 						Segs.val[ss]=n_ss_sel;
 						Segs.phys[ss]=n_ss_desc.GetBase();
-						Segs.limit[ss]=n_ss_desc.GetLimit();
+						Segs.limit[ss]=do_seg_limits?n_ss_desc.GetLimit():(~0UL);
 						Segs.expanddown[ss]=n_ss_desc.GetExpandDown();
 						if (n_ss_desc.Big()) {
 							cpu.stack.big=true;
@@ -1584,7 +1584,7 @@ call_code:
 						Bit16u oldcs    = SegValue(cs);
 						/* Switch to new CS:EIP */
 						Segs.expanddown[cs]=n_cs_desc.GetExpandDown();
-						Segs.limit[cs]  = n_cs_desc.GetLimit();
+						Segs.limit[cs]  = do_seg_limits?n_cs_desc.GetLimit():(~0UL);
 						Segs.phys[cs]	= n_cs_desc.GetBase();
 						Segs.val[cs]	= (n_cs_sel & 0xfffc) | cpu.cpl;
 						cpu.code.big	= n_cs_desc.Big()>0;
@@ -1634,7 +1634,7 @@ call_code:
 
 					/* Switch to new CS:EIP */
 					Segs.expanddown[cs]=n_cs_desc.GetExpandDown();
-					Segs.limit[cs]  = n_cs_desc.GetLimit();
+					Segs.limit[cs]  = do_seg_limits?n_cs_desc.GetLimit():(~0UL);
 					Segs.phys[cs]	= n_cs_desc.GetBase();
 					Segs.val[cs]	= (n_cs_sel & 0xfffc) | cpu.cpl;
 					cpu.code.big	= n_cs_desc.Big()>0;
@@ -1759,7 +1759,7 @@ RET_same_level:
 			}
 
 			Segs.expanddown[cs]=desc.GetExpandDown();
-			Segs.limit[cs]=desc.GetLimit();
+			Segs.limit[cs]=do_seg_limits?desc.GetLimit():(~0UL);
 			Segs.phys[cs]=desc.GetBase();
 			cpu.code.big=desc.Big()>0;
 			Segs.val[cs]=selector;
@@ -1842,7 +1842,7 @@ RET_same_level:
 
 			CPU_SetCPL(rpl);
 			Segs.expanddown[cs]=desc.GetExpandDown();
-			Segs.limit[cs]=desc.GetLimit();
+			Segs.limit[cs]=do_seg_limits?desc.GetLimit():(~0UL);
 			Segs.phys[cs]=desc.GetBase();
 			cpu.code.big=desc.Big()>0;
 			Segs.val[cs]=(selector&0xfffc) | cpu.cpl;
@@ -1850,7 +1850,7 @@ RET_same_level:
 
 			Segs.val[ss]=n_ss;
 			Segs.phys[ss]=n_ss_desc.GetBase();
-			Segs.limit[ss]=n_ss_desc.GetLimit();
+			Segs.limit[ss]=do_seg_limits?n_ss_desc.GetLimit():(~0UL);
 			Segs.expanddown[ss]=n_ss_desc.GetExpandDown();
 			if (n_ss_desc.Big()) {
 				cpu.stack.big=true;
@@ -2396,7 +2396,7 @@ bool CPU_SetSegGeneral(SegNames seg,Bitu value) {
 
 			Segs.val[seg]=value;
 			Segs.phys[seg]=desc.GetBase();
-			Segs.limit[seg]=desc.GetLimit();
+			Segs.limit[seg]=do_seg_limits?desc.GetLimit():(~0UL);
 			Segs.expanddown[seg]=desc.GetExpandDown();
 			if (desc.Big()) {
 				cpu.stack.big=true;
@@ -2442,7 +2442,7 @@ bool CPU_SetSegGeneral(SegNames seg,Bitu value) {
 
 			Segs.val[seg]=value;
 			Segs.phys[seg]=desc.GetBase();
-			Segs.limit[seg]=desc.GetLimit();
+			Segs.limit[seg]=do_seg_limits?desc.GetLimit():(~0UL);
 			Segs.expanddown[seg]=desc.GetExpandDown();
 		}
 
