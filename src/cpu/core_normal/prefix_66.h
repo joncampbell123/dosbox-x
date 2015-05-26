@@ -436,14 +436,15 @@
 #endif
 		break;
 	CASE_D(0xa1)												/* MOV EAX,Od */
-		{
-			GetEADirect;
+		{ /* NTS: GetEADirect may jump instead to the GP# trigger code if the offset exceeds the segment limit.
+		          For whatever reason, NOT signalling GP# in that condition prevents Windows 95 OSR2 from starting a DOS VM. Weird. */
+			GetEADirect(4);
 			reg_eax=LoadMd(eaa);
 		}
 		break;
 	CASE_D(0xa3)												/* MOV Od,EAX */
 		{
-			GetEADirect;
+			GetEADirect(4);
 			SaveMd(eaa,reg_eax);
 		}
 		break;

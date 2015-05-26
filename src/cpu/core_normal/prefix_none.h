@@ -654,28 +654,28 @@
 	CASE_B(0xa0)												/* MOV AL,Ob */
 		{ /* NTS: GetEADirect may jump instead to the GP# trigger code if the offset exceeds the segment limit.
 		          For whatever reason, NOT signalling GP# in that condition prevents Windows 95 OSR2 from starting a DOS VM. Weird. */
-			GetEADirect;
+			GetEADirect(1);
 			reg_al=LoadMb(eaa);
 		}
 		break;
 	CASE_W(0xa1)												/* MOV AX,Ow */
 		{ /* NTS: GetEADirect may jump instead to the GP# trigger code if the offset exceeds the segment limit.
 		          For whatever reason, NOT signalling GP# in that condition prevents Windows 95 OSR2 from starting a DOS VM. Weird. */
-			GetEADirect;
+			GetEADirect(2);
 			reg_ax=LoadMw(eaa);
 		}
 		break;
 	CASE_B(0xa2)												/* MOV Ob,AL */
 		{ /* NTS: GetEADirect may jump instead to the GP# trigger code if the offset exceeds the segment limit.
 		          For whatever reason, NOT signalling GP# in that condition prevents Windows 95 OSR2 from starting a DOS VM. Weird. */
-			GetEADirect;
+			GetEADirect(1);
 			SaveMb(eaa,reg_al);
 		}
 		break;
 	CASE_W(0xa3)												/* MOV Ow,AX */
 		{ /* NTS: GetEADirect may jump instead to the GP# trigger code if the offset exceeds the segment limit.
 		          For whatever reason, NOT signalling GP# in that condition prevents Windows 95 OSR2 from starting a DOS VM. Weird. */
-			GetEADirect;
+			GetEADirect(2);
 			SaveMw(eaa,reg_ax);
 		}
 		break;

@@ -176,7 +176,7 @@ static GetEAHandler EATable[512]={
 
 extern bool do_seg_limits;
 
-#define GetEADirect						\
+#define GetEADirect(sz)						\
 	PhysPt eaa;						\
 	if (TEST_PREFIX_ADDR)					\
 		eaa=Fetchd();					\
@@ -190,8 +190,8 @@ extern bool do_seg_limits;
 			}					\
 		}						\
 		else {						\
-			if (eaa > SegLimit(core.base_val_ds)) {/*FIXME: Factor in access size, BYTE, WORD, etc */\
-				LOG_MSG("Limit check %x > %x",eaa,SegLimit(core.base_val_ds)); \
+			if ((eaa+(sz)-1) > SegLimit(core.base_val_ds)) { \
+				LOG_MSG("Limit check %x+%x-1 > %x",eaa,sz,SegLimit(core.base_val_ds)); \
 				goto gp_fault;			\
 			}					\
 		}						\
