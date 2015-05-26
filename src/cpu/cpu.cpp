@@ -36,6 +36,7 @@
 bool CPU_NMI_gate = true;
 bool CPU_NMI_active = false;
 bool CPU_NMI_pending = false;
+bool do_seg_limits = false;
 
 bool enable_fpu = true;
 bool enable_msr = true;
@@ -703,6 +704,7 @@ bool CPU_SwitchTask(Bitu new_tss_selector,TSwitchType tstype,Bitu old_eip) {
 		case DESC_CODE_R_C_A:		case DESC_CODE_R_C_NA:
 			if (cpu.cpl < cs_desc.DPL()) E_Exit("Task CS RPL < DPL");
 doconforming:
+			Segs.limit[cs]=cs_desc.GetLimit();
 			Segs.phys[cs]=cs_desc.GetBase();
 			cpu.code.big=cs_desc.Big()>0;
 			Segs.val[cs]=new_cs;
@@ -944,6 +946,7 @@ void CPU_Interrupt(Bitu num,Bitu type,Bitu oldeip) {
 							EXCEPTION_SS,(n_ss & 0xfffc)+(type&CPU_INT_SOFTWARE)?0:1)
 
 						// commit point
+						Segs.limit[ss]=n_ss_desc.GetLimit();
 						Segs.phys[ss]=n_ss_desc.GetBase();
 						Segs.val[ss]=n_ss;
 						if (n_ss_desc.Big()) {
@@ -1007,6 +1010,7 @@ do_interrupt:
 
 				Segs.val[cs]=(gate_sel&0xfffc) | cpu.cpl;
 				Segs.phys[cs]=cs_desc.GetBase();
+				Segs.limit[cs]=cs_desc.GetLimit();
 				cpu.code.big=cs_desc.Big()>0;
 				reg_eip=gate_off;
 
@@ -1230,6 +1234,7 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 
 			// commit point
 			reg_esp=tempesp;
+			Segs.limit[cs]=n_cs_desc.GetLimit();
 			Segs.phys[cs]=n_cs_desc.GetBase();
 			cpu.code.big=n_cs_desc.Big()>0;
 			Segs.val[cs]=n_cs_sel;
@@ -1280,6 +1285,7 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 
 			// commit point
 
+			Segs.limit[cs]=n_cs_desc.GetLimit();
 			Segs.phys[cs]=n_cs_desc.GetBase();
 			cpu.code.big=n_cs_desc.Big()>0;
 			Segs.val[cs]=n_cs_sel;
@@ -1294,6 +1300,7 @@ void CPU_IRET(bool use32,Bitu oldeip) {
 
 			Segs.val[ss]=n_ss;
 			Segs.phys[ss]=n_ss_desc.GetBase();
+			Segs.limit[ss]=n_ss_desc.GetLimit();
 			if (n_ss_desc.Big()) {
 				cpu.stack.big=true;
 				cpu.stack.mask=0xffffffff;
@@ -1360,6 +1367,7 @@ CODE_jmp:
 			}
 
 			/* Normal jump to another selector:offset */
+			Segs.limit[cs]=desc.GetLimit();
 			Segs.phys[cs]=desc.GetBase();
 			cpu.code.big=desc.Big()>0;
 			Segs.val[cs]=(selector & 0xfffc) | cpu.cpl;
@@ -1458,6 +1466,7 @@ call_code:
 				throw;
 			}
 
+			Segs.limit[cs]=call.GetLimit();
 			Segs.phys[cs]=call.GetBase();
 			cpu.code.big=call.Big()>0;
 			Segs.val[cs]=(selector & 0xfffc) | cpu.cpl;
@@ -1549,6 +1558,7 @@ call_code:
 						// commit point
 						Segs.val[ss]=n_ss_sel;
 						Segs.phys[ss]=n_ss_desc.GetBase();
+						Segs.limit[ss]=n_ss_desc.GetLimit();
 						if (n_ss_desc.Big()) {
 							cpu.stack.big=true;
 							cpu.stack.mask=0xffffffff;
@@ -1564,6 +1574,7 @@ call_code:
 						CPU_SetCPL(n_cs_desc.DPL());
 						Bit16u oldcs    = SegValue(cs);
 						/* Switch to new CS:EIP */
+						Segs.limit[cs]  = n_cs_desc.GetLimit();
 						Segs.phys[cs]	= n_cs_desc.GetBase();
 						Segs.val[cs]	= (n_cs_sel & 0xfffc) | cpu.cpl;
 						cpu.code.big	= n_cs_desc.Big()>0;
@@ -1612,6 +1623,7 @@ call_code:
 					}
 
 					/* Switch to new CS:EIP */
+					Segs.limit[cs]  = n_cs_desc.GetLimit();
 					Segs.phys[cs]	= n_cs_desc.GetBase();
 					Segs.val[cs]	= (n_cs_sel & 0xfffc) | cpu.cpl;
 					cpu.code.big	= n_cs_desc.Big()>0;
@@ -1735,6 +1747,7 @@ RET_same_level:
 				throw;
 			}
 
+			Segs.limit[cs]=desc.GetLimit();
 			Segs.phys[cs]=desc.GetBase();
 			cpu.code.big=desc.Big()>0;
 			Segs.val[cs]=selector;
@@ -1816,6 +1829,7 @@ RET_same_level:
 				EXCEPTION_SS,n_ss & 0xfffc)
 
 			CPU_SetCPL(rpl);
+			Segs.limit[cs]=desc.GetLimit();
 			Segs.phys[cs]=desc.GetBase();
 			cpu.code.big=desc.Big()>0;
 			Segs.val[cs]=(selector&0xfffc) | cpu.cpl;
@@ -1823,6 +1837,7 @@ RET_same_level:
 
 			Segs.val[ss]=n_ss;
 			Segs.phys[ss]=n_ss_desc.GetBase();
+			Segs.limit[ss]=n_ss_desc.GetLimit();
 			if (n_ss_desc.Big()) {
 				cpu.stack.big=true;
 				cpu.stack.mask=0xffffffff;
@@ -2367,6 +2382,7 @@ bool CPU_SetSegGeneral(SegNames seg,Bitu value) {
 
 			Segs.val[seg]=value;
 			Segs.phys[seg]=desc.GetBase();
+			Segs.limit[seg]=desc.GetLimit();
 			if (desc.Big()) {
 				cpu.stack.big=true;
 				cpu.stack.mask=0xffffffff;
@@ -2411,6 +2427,7 @@ bool CPU_SetSegGeneral(SegNames seg,Bitu value) {
 
 			Segs.val[seg]=value;
 			Segs.phys[seg]=desc.GetBase();
+			Segs.limit[seg]=desc.GetLimit();
 		}
 
 		return false;
@@ -2686,6 +2703,8 @@ private:
 	static bool inited;
 public:
 	CPU(Section* configuration):Module_base(configuration) {
+		Section_prop * section=static_cast<Section_prop *>(configuration);
+
 		if(inited) {
 			Change_Config(configuration);
 			return;
@@ -2700,13 +2719,15 @@ public:
 		reg_esi=0;
 		reg_ebp=0;
 		reg_esp=0;
+
+		do_seg_limits = section->Get_bool("segment limits");
 	
-		SegSet16(cs,0);
-		SegSet16(ds,0);
-		SegSet16(es,0);
-		SegSet16(fs,0);
-		SegSet16(gs,0);
-		SegSet16(ss,0);
+		SegSet16(cs,0); Segs.limit[cs] = do_seg_limits ? 0xFFFF : ~0UL;
+		SegSet16(ds,0); Segs.limit[ds] = do_seg_limits ? 0xFFFF : ~0UL;
+		SegSet16(es,0); Segs.limit[es] = do_seg_limits ? 0xFFFF : ~0UL;
+		SegSet16(fs,0); Segs.limit[fs] = do_seg_limits ? 0xFFFF : ~0UL;
+		SegSet16(gs,0); Segs.limit[gs] = do_seg_limits ? 0xFFFF : ~0UL;
+		SegSet16(ss,0); Segs.limit[ss] = do_seg_limits ? 0xFFFF : ~0UL;
 	
 		CPU_SetFlags(FLAG_IF,FMASK_ALL);		//Enable interrupts
 		cpu.cr0=0xffffffff;

@@ -160,6 +160,8 @@ extern bool CPU_NMI_gate;
 extern bool CPU_NMI_active;
 extern bool CPU_NMI_pending;
 
+extern bool do_seg_limits;
+
 void CPU_Interrupt(Bitu num,Bitu type,Bitu oldeip);
 void CPU_Check_NMI();
 void CPU_Raise_NMI();

@@ -56,6 +56,7 @@
 struct Segment {
 	Bit16u val;
 	PhysPt phys;							/* The phyiscal address start in emulated machine */
+	PhysPt limit;
 };
 
 enum SegNames { es=0,cs,ss,ds,fs,gs};
@@ -63,6 +64,7 @@ enum SegNames { es=0,cs,ss,ds,fs,gs};
 struct Segments {
 	Bitu val[8];
 	PhysPt phys[8];
+	PhysPt limit[8];
 };
 
 union GenReg32 {
@@ -102,6 +104,10 @@ std::istream& operator>>(std::istream& stream, Segments& seg);
 std::ostream& operator<<(std::ostream& stream, const CPU_Regs& reg);
 std::istream& operator>>(std::istream& stream, CPU_Regs& reg);
 
+static INLINE PhysPt SegLimit(SegNames index) {
+	return Segs.limit[index];
+}
+
 static INLINE PhysPt SegPhys(SegNames index) {
 	return Segs.phys[index];
 }
@@ -118,6 +124,7 @@ static INLINE RealPt RealMakeSeg(SegNames index,Bit16u off) {
 static INLINE void SegSet16(Bitu index,Bit16u val) {
 	Segs.val[index]=val;
 	Segs.phys[index]=val << 4;
+	/* real mode does not update limit */
 }
 
 enum {

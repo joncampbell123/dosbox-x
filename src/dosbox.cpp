@@ -1199,6 +1199,9 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("fpu",Property::Changeable::Always,true);
 	Pbool->Set_help("Enable FPU emulation");
 
+	Pbool = secprop->Add_bool("segment limits",Property::Changeable::Always,false); /* change to "true" when segment limits are fully implemented */
+	Pbool->Set_help("Enforce segment limits");
+
 	Pbool = secprop->Add_bool("double fault",Property::Changeable::Always,true);
 	Pbool->Set_help("Emulate double fault exception");
 
