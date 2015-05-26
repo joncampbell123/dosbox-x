@@ -65,6 +65,7 @@ struct Segments {
 	Bitu val[8];
 	PhysPt phys[8];
 	PhysPt limit[8];
+	bool expanddown[8];
 };
 
 union GenReg32 {

@@ -168,6 +168,9 @@ restart_opcode:
 		illegal_opcode:
 			CPU_Exception(6,0);
 			continue;
+		gp_fault:
+			CPU_Exception(EXCEPTION_GP,0);
+			continue;
 		}
 		SAVEIP;
 	}

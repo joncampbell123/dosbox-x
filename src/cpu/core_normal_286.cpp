@@ -189,6 +189,9 @@ restart_opcode:
 #endif
 			CPU_Exception(6,0);
 			continue;
+		gp_fault:
+			CPU_Exception(EXCEPTION_GP,0);
+			continue;
 		}
 		SAVEIP;
 	}

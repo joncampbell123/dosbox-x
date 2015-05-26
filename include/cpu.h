@@ -358,6 +358,32 @@ public:
 	PhysPt GetBase (void) { 
 		return (saved.seg.base_24_31<<24) | (saved.seg.base_16_23<<16) | saved.seg.base_0_15; 
 	}
+	bool GetExpandDown (void) {
+#if 0
+	Bit32u limit_0_15	:16;
+	Bit32u base_0_15	:16;
+	Bit32u base_16_23	:8;
+	Bit32u type			:5;
+	Bit32u dpl			:2;
+	Bit32u p			:1;
+	Bit32u limit_16_19	:4;
+	Bit32u avl			:1;
+	Bit32u r			:1;
+	Bit32u big			:1;
+	Bit32u g			:1;
+	Bit32u base_24_31	:8;
+#endif
+		if (!(saved.seg.type & 0x10)) /* must be storage type descriptor */
+			return false;
+
+		/* type: 1 0 E W A for data */
+		/* type: 1 1 C R A for code */
+		if (saved.seg.type & 0x08)
+			return false;
+
+		/* it's data. return the 'E' bit */
+		return (saved.seg.type & 4) != 0;
+	}
 	Bitu GetLimit (void) {
 		Bitu limit = (saved.seg.limit_16_19<<16) | saved.seg.limit_0_15;
 		if (saved.seg.g)	return (limit<<12) | 0xFFF;

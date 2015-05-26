@@ -297,6 +297,9 @@ restart_opcode:
 			CPU_Exception(6,0);
 			invalidate_pq=true;
 			continue;
+		gp_fault:
+			CPU_Exception(EXCEPTION_GP,0);
+			continue;
 		}
 		SAVEIP;
 	}

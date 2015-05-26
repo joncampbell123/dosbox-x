@@ -174,12 +174,23 @@ static GetEAHandler EATable[512]={
 	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0
 };
 
-#define GetEADirect							\
-	PhysPt eaa;								\
-	if (TEST_PREFIX_ADDR) {					\
-		eaa=BaseDS+Fetchd();				\
-	} else {								\
-		eaa=BaseDS+Fetchw();				\
-	}										\
-
+#define GetEADirect					\
+	PhysPt eaa;					\
+	if (TEST_PREFIX_ADDR)				\
+		eaa=Fetchd();				\
+	else						\
+		eaa=Fetchw();				\
+	if (Segs.expanddown[core.base_val_ds]) {	\
+		if (eaa <= SegLimit(core.base_val_ds)) {\
+			LOG_MSG("Limit check %x <= %x (E)",eaa,SegLimit(core.base_val_ds)); \
+			goto gp_fault;			\
+		}					\
+	}						\
+	else {						\
+		if (eaa > SegLimit(core.base_val_ds)) {/*FIXME: Factor in access size, BYTE, WORD, etc */\
+			LOG_MSG("Limit check %x > %x",eaa,SegLimit(core.base_val_ds)); \
+			goto gp_fault;			\
+		}					\
+	}						\
+	eaa += BaseDS;
 
