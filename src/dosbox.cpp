@@ -1199,7 +1199,7 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("fpu",Property::Changeable::Always,true);
 	Pbool->Set_help("Enable FPU emulation");
 
-	Pbool = secprop->Add_bool("segment limits",Property::Changeable::Always,false); /* change to "true" when segment limits are fully implemented */
+	Pbool = secprop->Add_bool("segment limits",Property::Changeable::Always,true);
 	Pbool->Set_help("Enforce segment limits");
 
 	Pbool = secprop->Add_bool("double fault",Property::Changeable::Always,true);
@@ -1990,7 +1990,7 @@ void DOSBOX_Init(void) {
 	secprop=control->AddSection_prop("fdc, primary",&Null_Init,false);
 
 	/* Primary FDC on by default, secondary is not. Most PCs have only one floppy controller. */
-	Pbool = secprop->Add_bool("enable",Property::Changeable::OnlyAtStart,true);
+	Pbool = secprop->Add_bool("enable",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("Enable floppy controller interface");
 
 	Pbool = secprop->Add_bool("pnp",Property::Changeable::OnlyAtStart,true);
