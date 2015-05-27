@@ -2362,6 +2362,12 @@ bool CPU_SetSegGeneral(SegNames seg,Bitu value) {
 			cpu.stack.mask=0xffff;
 			cpu.stack.notmask=0xffff0000;
 		}
+
+		/* real mode: loads do not change the limit. "Flat real mode" would not be possible otherwise.
+		 * vm86: loads are fixed at 64KB (right?) */
+		if (reg_flags & FLAG_VM)
+			Segs.limit[seg] = 0xFFFF;
+
 		return false;
 	} else {
 		if (seg==ss) {

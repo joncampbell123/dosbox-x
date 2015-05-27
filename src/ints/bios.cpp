@@ -2272,6 +2272,10 @@ static Bitu INT15_Handler(void) {
 			MEM_BlockCopy(dest,source,bytes);
 			reg_ax = 0x00;
 			MEM_A20_Enable(enabled);
+			Segs.limit[cs] = 0xFFFF;
+			Segs.limit[ds] = 0xFFFF;
+			Segs.limit[es] = 0xFFFF;
+			Segs.limit[ss] = 0xFFFF;
 			CALLBACK_SCF(false);
 			break;
 		}	

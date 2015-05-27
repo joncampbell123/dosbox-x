@@ -190,8 +190,8 @@ extern bool do_seg_limits;
 			}					\
 		}						\
 		else {						\
-			if ((eaa+(sz)-1) > SegLimit(core.base_val_ds)) { \
-				LOG_MSG("Limit check %x+%x-1 > %x",eaa,sz,SegLimit(core.base_val_ds)); \
+			if ((eaa+(sz)-1UL) > SegLimit(core.base_val_ds)) { \
+				LOG_MSG("Limit check %x+%x-1 = %x > %x",eaa,sz,eaa+(sz)-1UL,SegLimit(core.base_val_ds)); \
 				goto gp_fault;			\
 			}					\
 		}						\
