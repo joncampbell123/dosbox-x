@@ -2748,17 +2748,44 @@ static Bitu INT15_Handler(void) {
 						CALLBACK_SCF(true);
 						break;
 					}
-					if(reg_cx==0x0) LOG_MSG("disengage APM for device %4x",reg_bx);
-					else if(reg_cx==0x1) LOG_MSG("engage APM for device %4x",reg_bx);
+					if(reg_cx==0x0) {
+						LOG_MSG("disengage APM for device %4x",reg_bx);
+						CALLBACK_SCF(false);
+					}
+					else if(reg_cx==0x1) {
+						LOG_MSG("engage APM for device %4x",reg_bx);
+						CALLBACK_SCF(false);
+					}
 					else {
 						reg_ah = 0x0A; // invalid parameter value in CX
 						CALLBACK_SCF(true);
 					}
 					break;
+				case 0x10:
+					if (!apm_realmode_connected) {
+						reg_ah = 0x03;	// interface not connected
+						CALLBACK_SCF(true);
+						break;
+					}
+					if (reg_bx != 0) {
+						reg_ah = 0x09;	// unrecognized device ID
+						CALLBACK_SCF(true);
+						break;
+					}
+					reg_ah = 0;
+					reg_bl = 0; // number of battery units
+					reg_cx = 0x03; // can enter suspend/standby and will post standby/resume events
+					CALLBACK_SCF(false);
+					break;
 				default:
 					LOG_MSG("Unknown APM BIOS call AX=%04x\n",reg_ax);
+					if (!apm_realmode_connected) {
+						reg_ah = 0x03;	// interface not connected
+						CALLBACK_SCF(true);
+						break;
+					}
 					reg_ah = 0x0C; // function not supported
-					CALLBACK_SCF(false);
+					CALLBACK_SCF(true);
 					break;
 			}
 		}
