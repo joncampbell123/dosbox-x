@@ -1288,6 +1288,10 @@ void DOSBOX_Init(void) {
 	Pbool->Set_help("Emulate Advanced Power Management BIOS calls.\n"
 		"Do not enable if you are running Windows ME.");
 
+	Pbool = secprop->Add_bool("apmbios pnp",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("If emulating ISA PnP BIOS, announce APM BIOS in PnP enumeration.\n"
+			"Warning: this can cause Windows 95 OSR2 and later to enumerate the APM BIOS twice and cause problems.");
+
 	Pbool = secprop->Add_bool("apmbios allow realmode",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Allow guest OS to connect from real mode.");
 

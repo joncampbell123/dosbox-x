@@ -474,6 +474,7 @@ void CMOS_SetRegister(Bitu regNr, Bit8u val); //For setting equipment word
 bool enable_integration_device=false;
 bool ISAPNPBIOS=false;
 bool APMBIOS=false;
+bool APMBIOS_pnp=false;
 bool APMBIOS_allow_realmode=false;
 bool APMBIOS_allow_prot16=false;
 bool APMBIOS_allow_prot32=false;
@@ -785,6 +786,7 @@ void ISAPNP_Cfg_Init(Section *s) {
 	enable_integration_device = section->Get_bool("integration device");
 	ISAPNPBIOS = section->Get_bool("isapnpbios");
 	APMBIOS = section->Get_bool("apmbios");
+	APMBIOS_pnp = section->Get_bool("apmbios pnp");
 	APMBIOS_allow_realmode = section->Get_bool("apmbios allow realmode");
 	APMBIOS_allow_prot16 = section->Get_bool("apmbios allow 16-bit protected mode");
 	APMBIOS_allow_prot32 = section->Get_bool("apmbios allow 32-bit protected mode");
@@ -3392,7 +3394,8 @@ public:
 			}
 
 			/* APM BIOS device. To help Windows 95 see our APM BIOS. */
-			if (APMBIOS) {
+			if (APMBIOS && APMBIOS_pnp) {
+				LOG_MSG("Registering APM BIOS as ISA Plug & Play BIOS device node");
 				if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_APM_BIOS,sizeof(ISAPNP_sysdev_APM_BIOS),true))
 					LOG_MSG("ISAPNP register failed\n");
 			}
