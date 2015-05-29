@@ -81,6 +81,8 @@ public:
 	bool		free;
 };
 
+bool APM_inactivity_timer = true;
+
 static std::vector<ROMBIOS_block> rombios_alloc;
 Bitu rombios_minimum_location = 0xF0000; /* minimum segment allowed */
 Bitu rombios_minimum_size = 0x10000;
@@ -2724,6 +2726,30 @@ static Bitu INT15_Handler(void) {
 					reg_ah = 0x80; // no power management events pending
 					CALLBACK_SCF(true);
 					break;
+				case 0x0d:
+					// NTS: NOT implementing this call can cause Windows 98's APM driver to crash on startup
+					if(reg_bx != 0x0 && reg_bx != 0x1) {
+						reg_ah = 0x09;	// unrecognized device ID
+						CALLBACK_SCF(true);
+						break;
+					} else if(!apm_realmode_connected) {
+						reg_ah = 0x03;
+						CALLBACK_SCF(true);
+						break;
+					}
+					if(reg_cx==0x0) {
+						LOG_MSG("disable APM for device %4x",reg_bx);
+						CALLBACK_SCF(false);
+					}
+					else if(reg_cx==0x1) {
+						LOG_MSG("enable APM for device %4x",reg_bx);
+						CALLBACK_SCF(false);
+					}
+					else {
+						reg_ah = 0x0A; // invalid parameter value in CX
+						CALLBACK_SCF(true);
+					}
+					break;
 				case 0x0e:
 					if(reg_bx != 0x0) {
 						reg_ah = 0x09;	// unrecognized device ID
@@ -2778,6 +2804,38 @@ static Bitu INT15_Handler(void) {
 					reg_bl = 0; // number of battery units
 					reg_cx = 0x03; // can enter suspend/standby and will post standby/resume events
 					CALLBACK_SCF(false);
+					break;
+				case 0x13://enable/disable/query timer based requests
+					// NTS: NOT implementing this call can cause Windows 98's APM driver to crash on startup
+					if (!apm_realmode_connected) {
+						reg_ah = 0x03;	// interface not connected
+						CALLBACK_SCF(true);
+						break;
+					}
+					if (reg_bx != 0) {
+						reg_ah = 0x09;	// unrecognized device ID
+						CALLBACK_SCF(true);
+						break;
+					}
+
+					if (reg_cx == 0) { // disable
+						APM_inactivity_timer = false;
+						reg_cx = 0;
+						CALLBACK_SCF(false);
+					}
+					else if (reg_cx == 1) { // enable
+						APM_inactivity_timer = true;
+						reg_cx = 1;
+						CALLBACK_SCF(false);
+					}
+					else if (reg_cx == 2) { // get enabled status
+						reg_cx = APM_inactivity_timer ? 1 : 0;
+						CALLBACK_SCF(false);
+					}
+					else {
+						reg_ah = 0x0A; // invalid parameter value in CX
+						CALLBACK_SCF(true);
+					}
 					break;
 				default:
 					LOG_MSG("Unknown APM BIOS call AX=%04x\n",reg_ax);
