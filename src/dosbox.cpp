@@ -349,7 +349,9 @@ static Bitu Normal_Loop(void) {
 				ret = 0;
 				FillFlags();
 				dosbox_allow_nonrecursive_page_fault = false;
+#if 0 //TODO make option
 				LOG_MSG("Guest page fault exception! Alternate method will be used. Wish me luck.\n");
+#endif
 				CPU_Exception(EXCEPTION_PF,pf.faultcode);
 				dosbox_allow_nonrecursive_page_fault = saved_allow;
 			}

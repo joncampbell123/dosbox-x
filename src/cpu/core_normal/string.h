@@ -267,8 +267,10 @@ void DoString(STRING_OP type) {
 	}
 	}
 	catch (GuestPageFaultException &pf) {
+#if 0 //TODO: Make option
 		LOG_MSG("Strip op #%d interrupted si_index=%x di_index=%x count=%x+%x=%x esi=%x edi=%x ecx=%x",
 			type,si_index,di_index,count,count_left,count+count_left,reg_esi,reg_edi,reg_ecx);
+#endif
 
 		/* Clean up after certain amount of instructions */
 		reg_esi&=(~add_mask);

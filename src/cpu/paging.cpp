@@ -314,8 +314,10 @@ static void PAGING_NewPageFault(PhysPt lin_addr, Bitu page_addr, bool prepare_on
 		 *                   reports an anomaly in it's cache, and then segfaults. core=normal may work,
 		 *                   but is guaranteed to crash if you're in Windows 3.1 and you enter the DOS
 		 *                   box. */
+#if 0//TODO make option
 		LOG_MSG("DEBUG: Using non-recursive page fault for lin=0x%08lx page=0x%08lx faultcode=%u. Wish me luck.\n",
 			(unsigned long)lin_addr,(unsigned long)page_addr,(unsigned int)faultcode);
+#endif
 
 		if (!(dosbox_check_nonrecursive_pf_cs == SegValue(cs) && dosbox_check_nonrecursive_pf_eip == reg_eip))
 			LOG_MSG("....CS:IP mistmatch expect %x:%x got %x:%x",
