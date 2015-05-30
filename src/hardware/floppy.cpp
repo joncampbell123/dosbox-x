@@ -951,6 +951,19 @@ void FloppyController::on_fdc_in_command() {
 				return;
 			}
 			break;
+		case 0x13: /* Configure */
+			/*     |   7    6    5    4    3    2    1    0
+			 * ----+------------------------------------------
+			 *   0 |   0    0    0    1    0    0    1    1
+			 *   1 |   0    0    0    0    0    0    0    0
+			 *   2 |   0   EIS EFIFO POLL  <--- FIFOTHR -->
+			 *   3 |                 PRETRK
+			 * -----------------------------------------------
+			 *   4     total
+			 */
+			reset_res(); // TODO: Do something with this
+			reset_io();
+			break;
 		default:
 			LOG_MSG("FDC: Unknown command %02xh (somehow passed first check)\n",in_cmd[0]);
 			reset_io();
@@ -1109,6 +1122,18 @@ void FloppyController::fdc_data_write(uint8_t b) {
 				else {
 					in_cmd_len = 3;
 				}
+				break;
+			case 0x13: /* Configure */
+				/*     |   7    6    5    4    3    2    1    0
+				 * ----+------------------------------------------
+				 *   0 |   0    0    0    1    0    0    1    1
+				 *   1 |   0    0    0    0    0    0    0    0
+				 *   2 |   0   EIS EFIFO POLL  <--- FIFOTHR -->
+				 *   3 |                 PRETRK
+				 * -----------------------------------------------
+				 *   4     total
+				 */
+				in_cmd_len = 4;
 				break;
 			default:
 				LOG_MSG("FDC: Unknown command (first byte %02xh)\n",in_cmd[0]);
