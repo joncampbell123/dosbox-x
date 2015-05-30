@@ -895,6 +895,35 @@ void FloppyController::on_fdc_in_command() {
 			ST[2] = (1 << 0)/*missing data address mark*/;
 			prepare_res_phase(1);
 			break;
+		case 0x0E: /* Dump registers (response) */
+			/*     |   7    6    5    4    3    2    1    0
+			 * ----+------------------------------------------
+			 *   0 |                PCN-Drive 0
+			 *   1 |                PCN-Drive 1
+			 *   2 |                PCN-Drive 2
+			 *   3 |                PCN-Drive 3
+			 *   4 |   <----- SRT ---->    <----- HUT ---->
+			 *   5 |   <------------ HLT ------------>   ND
+			 *   6 |   <------------- SC/EOT ------------->
+			 *   7 |  LOCK  0   D3   D2   D1   D0   GAP WGATE
+			 *   8 |   0   EIS EFIFO POLL  <--- FIFOTHR -->
+			 *   9 |                   PRETRK
+			 * -----------------------------------------------
+			 *  10     total
+			 */
+			reset_res();
+			prepare_res_phase(10);
+			out_res[0] = current_cylinder[0];
+			out_res[1] = current_cylinder[1];
+			out_res[2] = current_cylinder[2];
+			out_res[3] = current_cylinder[3];
+			out_res[4] = 0x88;			// FIXME
+			out_res[5] = 0x40;			// FIXME
+			out_res[6] = 18;			// FIXME
+			out_res[7] = 0;				// FIXME
+			out_res[8] = 0x78;			// FIXME
+			out_res[9] = 0x00;			// FIXME
+			break;
 		case 0x0F: /* Seek Head */
 			ST[0] = 0x00 | drive_selected();
 			if (instant_mode) {
@@ -1051,6 +1080,15 @@ void FloppyController::fdc_data_write(uint8_t b) {
 				 *   9     total
 				 */
 				in_cmd_len = 9;
+				break;
+			case 0x0E: /* Dump registers */
+				/*     |   7    6    5    4    3    2    1    0
+				 * ----+------------------------------------------
+				 *   0 |   0    0    0    0    1    1    1    0
+				 * -----------------------------------------------
+				 *   1     total
+				 */
+				in_cmd_len = 1;
 				break;
 			case 0x0F: /* Seek Head */
 				/*     |   7    6    5    4    3    2    1    0
