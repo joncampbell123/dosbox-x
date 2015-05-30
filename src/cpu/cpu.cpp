@@ -788,7 +788,7 @@ void CPU_Exception(Bitu which,Bitu error ) {
 		}
 
 		if (always_report_double_fault || !has_printed_double_fault) {
-			LOG_MSG("CPU_Exception: Exception %d already in progress, triggering double fault instead",which);
+			LOG_MSG("CPU_Exception: Exception %d already in progress, triggering double fault instead",(int)which);
 			has_printed_double_fault = true;
 		}
 		which = EXCEPTION_DF;

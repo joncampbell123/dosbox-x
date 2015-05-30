@@ -185,13 +185,13 @@ extern bool do_seg_limits;
 	if (do_seg_limits) {					\
 		if (Segs.expanddown[core.base_val_ds]) {	\
 			if (eaa <= SegLimit(core.base_val_ds)) {\
-				LOG_MSG("Limit check %x <= %x (E)",eaa,SegLimit(core.base_val_ds)); \
+				LOG_MSG("Limit check %x <= %x (E)",(unsigned int)eaa,(unsigned int)SegLimit(core.base_val_ds)); \
 				goto gp_fault;			\
 			}					\
 		}						\
 		else {						\
 			if ((eaa+(sz)-1UL) > SegLimit(core.base_val_ds)) { \
-				LOG_MSG("Limit check %x+%x-1 = %x > %x",eaa,sz,eaa+(sz)-1UL,SegLimit(core.base_val_ds)); \
+				LOG_MSG("Limit check %x+%x-1 = %x > %x",(unsigned int)eaa,(unsigned int)sz,(unsigned int)(eaa+(sz)-1U),(unsigned int)SegLimit(core.base_val_ds)); \
 				goto gp_fault;			\
 			}					\
 		}						\

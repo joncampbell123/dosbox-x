@@ -321,10 +321,10 @@ static void PAGING_NewPageFault(PhysPt lin_addr, Bitu page_addr, bool prepare_on
 
 		if (!(dosbox_check_nonrecursive_pf_cs == SegValue(cs) && dosbox_check_nonrecursive_pf_eip == reg_eip))
 			LOG_MSG("....CS:IP mistmatch expect %x:%x got %x:%x",
-				dosbox_check_nonrecursive_pf_cs,
-				dosbox_check_nonrecursive_pf_eip,
-				SegValue(cs),
-				reg_eip);
+				(unsigned int)dosbox_check_nonrecursive_pf_cs,
+				(unsigned int)dosbox_check_nonrecursive_pf_eip,
+				(unsigned int)SegValue(cs),
+				(unsigned int)reg_eip);
 
 		throw GuestPageFaultException(lin_addr,page_addr,faultcode);
 	} else {

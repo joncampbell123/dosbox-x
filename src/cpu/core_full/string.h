@@ -266,7 +266,15 @@
 	}
 	catch (GuestPageFaultException &pf) {
 		LOG_MSG("Strip op #%d interrupted si_index=%x di_index=%x count=%x+%x=%x esi=%x edi=%x ecx=%x",
-			inst.code.op,si_index,di_index,count,count_left,count+count_left,reg_esi,reg_edi,reg_ecx);
+			(unsigned int)inst.code.op,
+			(unsigned int)si_index,
+			(unsigned int)di_index,
+			(unsigned int)count,
+			(unsigned int)count_left,
+			(unsigned int)(count+count_left),
+			(unsigned int)reg_esi,
+			(unsigned int)reg_edi,
+			(unsigned int)reg_ecx);
 
 		/* Clean up after certain amount of instructions */
 		reg_esi&=(~add_mask);
