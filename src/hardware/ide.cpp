@@ -3512,7 +3512,7 @@ IDEController::IDEController(Section* configuration,unsigned char index):Module_
 		tmp[i+1] = 0x01;				/* 16-bit decode */
 		host_writew(tmp+i+2,alt_io);			/* min */
 		host_writew(tmp+i+4,alt_io);			/* max */
-		tmp[i+6] = 0x04;				/* align */
+		tmp[i+6] = 0x01;				/* align */
 		if (alt_io == 0x3F6 && fdc_takes_port_3F7())
 			tmp[i+7] = 0x01;			/* length 1 (so as not to conflict with floppy controller at 0x3F7) */
 		else

@@ -410,7 +410,7 @@ FloppyController::FloppyController(Section* configuration,unsigned char index):M
 		tmp[i+1] = 0x01;				/* 16-bit decode */
 		host_writew(tmp+i+2,base_io);			/* min */
 		host_writew(tmp+i+4,base_io);			/* max */
-		tmp[i+6] = 0x08;				/* align */
+		tmp[i+6] = 0x01;				/* align */
 		tmp[i+7] = 0x06;				/* length (FIXME: Emit as 7 unless we know IDE interface will not conflict) */
 		i += 7+1;
 
