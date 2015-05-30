@@ -611,6 +611,7 @@ void FloppyController::on_fdc_in_command() {
 			 *   3     total
 			 */
 			reset_res(); // TODO: Do something with this
+			reset_io();
 			break;
 		case 0x04: /* Check Drive Status */
 			/*     |   7    6    5    4    3    2    1    0
