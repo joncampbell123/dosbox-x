@@ -601,6 +601,17 @@ void FloppyController::on_fdc_in_command() {
 	}
 
 	switch (in_cmd[0]&0x1F) {
+		case 0x03: /* Specify */
+			/*     |   7    6    5    4    3    2    1    0
+			 * ----+------------------------------------------
+			 *   0 |   0    0    0    0    0    0    1    1
+			 *   1 |   <---- SRT ----->    <----- HUT ---->
+			 *   2 |   <-------------- HLT ---------->   ND
+			 * -----------------------------------------------
+			 *   3     total
+			 */
+			reset_res(); // TODO: Do something with this
+			break;
 		case 0x04: /* Check Drive Status */
 			/*     |   7    6    5    4    3    2    1    0
 			 * ----+------------------------------------------
@@ -940,6 +951,17 @@ void FloppyController::fdc_data_write(uint8_t b) {
 
 		/* right away.. how long is the command going to be? */
 		switch (in_cmd[0]&0x1F) {
+			case 0x03: /* Specify */
+				/*     |   7    6    5    4    3    2    1    0
+				 * ----+------------------------------------------
+				 *   0 |   0    0    0    0    0    0    1    1
+				 *   1 |   <---- SRT ----->    <----- HUT ---->
+				 *   2 |   <-------------- HLT ---------->   ND
+				 * -----------------------------------------------
+				 *   3     total
+				 */
+				in_cmd_len = 3;
+				break;
 			case 0x04: /* Check Drive Status */
 				/*     |   7    6    5    4    3    2    1    0
 				 * ----+------------------------------------------
