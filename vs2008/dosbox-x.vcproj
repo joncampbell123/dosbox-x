@@ -435,6 +435,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\cpu\core_normal_8086.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\cpu\core_prefetch.cpp"
 				>
 			</File>

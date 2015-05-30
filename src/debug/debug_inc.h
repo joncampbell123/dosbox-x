@@ -19,6 +19,7 @@
 /* Local Debug Function */
 
 
+#if C_DEBUG
 #include <curses.h>
 #include "mem.h"
 
@@ -57,4 +58,5 @@ extern DBGBlock dbg;
 /* Local Debug Stuff */
 Bitu DasmI386(char* buffer, PhysPt pc, Bitu cur_ip, bool bit32);
 int  DasmLastOperandSize(void);
+#endif
 
