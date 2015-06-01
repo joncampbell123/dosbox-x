@@ -685,7 +685,11 @@ extern bool enable_fpu;
 	reg_ah=rem;												\
 	reg_al=quo8;											\
 	FillFlags();											\
+	SETFLAGBIT(AF,0);/*FIXME*/									\
+	SETFLAGBIT(SF,0);/*FIXME*/									\
+	SETFLAGBIT(OF,0);/*FIXME*/									\
 	SETFLAGBIT(ZF,(rem==0)&&((quo8&1)!=0));								\
+	SETFLAGBIT(CF,((rem&3) >= 1 && (rem&3) <= 2)); \
 	SETFLAGBIT(PF,parity_lookup[rem&0xff]^parity_lookup[quo8&0xff]);					\
 }
 
@@ -702,7 +706,11 @@ extern bool enable_fpu;
 	reg_dx=rem;												\
 	reg_ax=quo16;											\
 	FillFlags();											\
+	SETFLAGBIT(AF,0);/*FIXME*/									\
+	SETFLAGBIT(SF,0);/*FIXME*/									\
+	SETFLAGBIT(OF,0);/*FIXME*/									\
 	SETFLAGBIT(ZF,(rem==0)&&((quo16&1)!=0));								\
+	SETFLAGBIT(CF,((rem&3) >= 1 && (rem&3) <= 2)); \
 	SETFLAGBIT(PF,PARITY16(rem&0xffff)^PARITY16(quo16&0xffff));					\
 }
 
@@ -718,7 +726,11 @@ extern bool enable_fpu;
 	reg_edx=rem;											\
 	reg_eax=quo32;											\
 	FillFlags();											\
+	SETFLAGBIT(AF,0);/*FIXME*/									\
+	SETFLAGBIT(SF,0);/*FIXME*/									\
+	SETFLAGBIT(OF,0);/*FIXME*/									\
 	SETFLAGBIT(ZF,(rem==0)&&((quo32&1)!=0));								\
+	SETFLAGBIT(CF,((rem&3) >= 1 && (rem&3) <= 2)); \
 	SETFLAGBIT(PF,PARITY32(rem&0xffffffff)^PARITY32(quo32&0xffffffff));					\
 }
 
@@ -734,6 +746,11 @@ extern bool enable_fpu;
 	reg_ah=rem;												\
 	reg_al=quo8s;											\
 	FillFlags();											\
+	SETFLAGBIT(AF,0);/*FIXME*/									\
+	SETFLAGBIT(SF,0);/*FIXME*/									\
+	SETFLAGBIT(OF,0);/*FIXME*/									\
+	SETFLAGBIT(ZF,(rem==0)&&((quo8s&1)!=0));								\
+	SETFLAGBIT(CF,((rem&3) >= 1 && (rem&3) <= 2)); \
 	SETFLAGBIT(PF,parity_lookup[rem&0xff]^parity_lookup[quo8s&0xff]);					\
 }
 
@@ -750,6 +767,11 @@ extern bool enable_fpu;
 	reg_dx=rem;												\
 	reg_ax=quo16s;											\
 	FillFlags();											\
+	SETFLAGBIT(AF,0);/*FIXME*/									\
+	SETFLAGBIT(SF,0);/*FIXME*/									\
+	SETFLAGBIT(OF,0);/*FIXME*/									\
+	SETFLAGBIT(ZF,(rem==0)&&((quo16s&1)!=0));								\
+	SETFLAGBIT(CF,((rem&3) >= 1 && (rem&3) <= 2)); \
 	SETFLAGBIT(PF,PARITY16(rem&0xffff)^PARITY16(quo16s&0xffff));					\
 }
 
@@ -765,6 +787,11 @@ extern bool enable_fpu;
 	reg_edx=rem;											\
 	reg_eax=quo32s;											\
 	FillFlags();											\
+	SETFLAGBIT(AF,0);/*FIXME*/									\
+	SETFLAGBIT(SF,0);/*FIXME*/									\
+	SETFLAGBIT(OF,0);/*FIXME*/									\
+	SETFLAGBIT(ZF,(rem==0)&&((quo32s&1)!=0));								\
+	SETFLAGBIT(CF,((rem&3) >= 1 && (rem&3) <= 2)); \
 	SETFLAGBIT(PF,PARITY32(rem&0xffffffff)^PARITY32(quo32s&0xffffffff));					\
 }
 
