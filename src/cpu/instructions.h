@@ -684,6 +684,8 @@ extern bool enable_fpu;
 	if (quo>0xff) EXCEPTION(0);								\
 	reg_ah=rem;												\
 	reg_al=quo8;											\
+	FillFlags();											\
+	SETFLAGBIT(ZF,(rem==0)&&((quo8&1)!=0));								\
 	SETFLAGBIT(PF,parity_lookup[rem&0xff]^parity_lookup[quo8&0xff]);					\
 }
 
@@ -699,6 +701,8 @@ extern bool enable_fpu;
 	if (quo!=(Bit32u)quo16) EXCEPTION(0);					\
 	reg_dx=rem;												\
 	reg_ax=quo16;											\
+	FillFlags();											\
+	SETFLAGBIT(ZF,(rem==0)&&((quo16&1)!=0));								\
 	SETFLAGBIT(PF,PARITY16(rem&0xffff)^PARITY16(quo16&0xffff));					\
 }
 
@@ -713,6 +717,8 @@ extern bool enable_fpu;
 	if (quo!=(Bit64u)quo32) EXCEPTION(0);					\
 	reg_edx=rem;											\
 	reg_eax=quo32;											\
+	FillFlags();											\
+	SETFLAGBIT(ZF,(rem==0)&&((quo32&1)!=0));								\
 	SETFLAGBIT(PF,PARITY32(rem&0xffffffff)^PARITY32(quo32&0xffffffff));					\
 }
 
@@ -727,6 +733,7 @@ extern bool enable_fpu;
 	if (quo!=(Bit16s)quo8s) EXCEPTION(0);					\
 	reg_ah=rem;												\
 	reg_al=quo8s;											\
+	FillFlags();											\
 	SETFLAGBIT(PF,parity_lookup[rem&0xff]^parity_lookup[quo8s&0xff]);					\
 }
 
@@ -742,6 +749,7 @@ extern bool enable_fpu;
 	if (quo!=(Bit32s)quo16s) EXCEPTION(0);					\
 	reg_dx=rem;												\
 	reg_ax=quo16s;											\
+	FillFlags();											\
 	SETFLAGBIT(PF,PARITY16(rem&0xffff)^PARITY16(quo16s&0xffff));					\
 }
 
@@ -756,6 +764,7 @@ extern bool enable_fpu;
 	if (quo!=(Bit64s)quo32s) EXCEPTION(0);					\
 	reg_edx=rem;											\
 	reg_eax=quo32s;											\
+	FillFlags();											\
 	SETFLAGBIT(PF,PARITY32(rem&0xffffffff)^PARITY32(quo32s&0xffffffff));					\
 }
 
