@@ -832,6 +832,8 @@
 		FillFlags();
 		if (DEBUG_Breakpoint())
 			return debugCallback;
+		if (DEBUG_IntBreakpoint(3))
+			return debugCallback;
 #endif			
 		CPU_SW_Interrupt_NoIOPLCheck(3,GETIP);
 #if CPU_TRAP_CHECK
