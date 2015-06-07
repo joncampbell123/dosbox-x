@@ -150,5 +150,10 @@ static INLINE void FPU_SET_C3(Bitu C){
 	if(C) fpu.sw |= 0x4000;
 }
 
+static INLINE void FPU_SET_D(Bitu C){
+	fpu.sw &= ~0x0002;
+	if(C) fpu.sw |= 0x0002;
+}
+
 
 #endif

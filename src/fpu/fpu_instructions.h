@@ -272,8 +272,23 @@ static void FPU_FBST(PhysPt addr) {
 	mem_writeb(addr+9,p);
 }
 
+#if defined(WIN32) && defined(_MSC_VER)
+/* std::isinf is C99 standard how could you NOT have this VS2008??? */
+# include <math.h>
+/* the purpose of this macro is to test for -/+inf. NaN is not inf. If finite or NaN it's not infinity */
+# define isinf(x) (!(_finite(x) || _isnan(x)))
+#else
+# include <math.h>
+# include <cmath>
+# define isdenormal(x) (!std::isnormal(x))
+#endif
+
 static void FPU_FADD(Bitu op1, Bitu op2){
+	// HACK: Set the denormal flag according to whether the source or final result is a denormalized number.
+	//       This is vital if we don't want certain DOS programs to mis-detect our FPU emulation as an IIT clone chip when cputype == 286
+	bool was_not_normal = isdenormal(fpu.regs[op1].d);
 	fpu.regs[op1].d+=fpu.regs[op2].d;
+	FPU_SET_D(was_not_normal || isdenormal(fpu.regs[op1].d) || isdenormal(fpu.regs[op2].d));
 	//flags and such :)
 	return;
 }
@@ -362,15 +377,6 @@ static void FPU_FST(Bitu st, Bitu other){
 	fpu.tags[other] = fpu.tags[st];
 	fpu.regs[other] = fpu.regs[st];
 }
-
-#if defined(WIN32) && defined(_MSC_VER)
-/* std::isinf is C99 standard how could you NOT have this VS2008??? */
-# include <math.h>
-/* the purpose of this macro is to test for -/+inf. NaN is not inf. If finite or NaN it's not infinity */
-# define isinf(x) (!(_finite(x) || _isnan(x)))
-#else
-# include <cmath>
-#endif
 
 static void FPU_FCOM(Bitu st, Bitu other){
 	if(((fpu.tags[st] != TAG_Valid) && (fpu.tags[st] != TAG_Zero)) || 
