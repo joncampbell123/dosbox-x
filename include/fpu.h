@@ -114,6 +114,11 @@ static INLINE void FPU_SetTag(Bit16u tag){
 }
 
 static INLINE void FPU_SetCW(Bitu word){
+	// HACK: Bits 13-15 are not defined. Apparently, one program likes to test for
+	//       Cyrix EMC87 by trying to set bit 15. We want the test program to see
+	//       us as an Intel 287 when cputype == 286.
+	word &= 0x7FFF;
+
 	fpu.cw = (Bit16u)word;
 	fpu.cw_mask_all = (Bit16u)(word | 0x3f);
 	fpu.round = (FPU_Round)((word >> 10) & 3);
