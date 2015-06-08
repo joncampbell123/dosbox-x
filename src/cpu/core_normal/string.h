@@ -201,36 +201,44 @@ void DoString(STRING_OP type) {
 				case R_SCASB:
 					{
 						Bit8u val2;
-						while (count > 0) {
+						do {
 							val2=LoadMb(di_base+di_index);
 							di_index=(di_index+add_index) & add_mask;
-							count--;CPU_Cycles--;
+							count--;
+
+							if ((--CPU_Cycles) <= 0) break;
 							if ((reg_al==val2)!=core.rep_zero) break;
-						}
+						} while (count != 0);
 						CMPB(reg_al,val2,LoadD,0);
 					}
 					break;
 				case R_SCASW:
+					add_index<<=1;
 					{
-						add_index<<=1;Bit16u val2;
-						while (count > 0) {
+						Bit16u val2;
+						do {
 							val2=LoadMw(di_base+di_index);
 							di_index=(di_index+add_index) & add_mask;
-							count--;CPU_Cycles--;
+							count--;
+
+							if ((--CPU_Cycles) <= 0) break;
 							if ((reg_ax==val2)!=core.rep_zero) break;
-						}
+						} while (count != 0);
 						CMPW(reg_ax,val2,LoadD,0);
 					}
 					break;
 				case R_SCASD:
+					add_index<<=2;
 					{
-						add_index<<=2;Bit32u val2;
-						while (count > 0) {
+						Bit32u val2;
+						do {
 							val2=LoadMd(di_base+di_index);
 							di_index=(di_index+add_index) & add_mask;
-							count--;CPU_Cycles--;
+							count--;
+
+							if ((--CPU_Cycles) <= 0) break;
 							if ((reg_eax==val2)!=core.rep_zero) break;
-						}
+						} while (count != 0);
 						CMPD(reg_eax,val2,LoadD,0);
 					}
 					break;
@@ -238,45 +246,54 @@ void DoString(STRING_OP type) {
 				case R_CMPSB:
 					{
 						Bit8u val1,val2;
-						while (count > 0) {
+						do {
 							val1=LoadMb(si_base+si_index);
 							val2=LoadMb(di_base+di_index);
 							si_index=(si_index+add_index) & add_mask;
 							di_index=(di_index+add_index) & add_mask;
-							count--;CPU_Cycles--;
+							count--;
+
+							if ((--CPU_Cycles) <= 0) break;
 							if ((val1==val2)!=core.rep_zero) break;
-						}
+						} while (count != 0);
 						CMPB(val1,val2,LoadD,0);
 					}
 					break;
 				case R_CMPSW:
+					add_index<<=1;
 					{
-						add_index<<=1;Bit16u val1,val2;
-						while (count > 0) {
+						Bit16u val1,val2;
+						do {
 							val1=LoadMw(si_base+si_index);
 							val2=LoadMw(di_base+di_index);
 							si_index=(si_index+add_index) & add_mask;
 							di_index=(di_index+add_index) & add_mask;
-							count--;CPU_Cycles--;
+							count--;
+
+							if ((--CPU_Cycles) <= 0) break;
 							if ((val1==val2)!=core.rep_zero) break;
-						}
+						} while (count != 0);
 						CMPW(val1,val2,LoadD,0);
 					}
 					break;
 				case R_CMPSD:
+					add_index<<=2;
 					{
-						add_index<<=2;Bit32u val1,val2;
-						while (count > 0) {
+						Bit32u val1,val2;
+						do {
 							val1=LoadMd(si_base+si_index);
 							val2=LoadMd(di_base+di_index);
 							si_index=(si_index+add_index) & add_mask;
 							di_index=(di_index+add_index) & add_mask;
-							count--;CPU_Cycles--;
+							count--;
+
+							if ((--CPU_Cycles) <= 0) break;
 							if ((val1==val2)!=core.rep_zero) break;
-						}
+						} while (count != 0);
 						CMPD(val1,val2,LoadD,0);
 					}
 					break;
+
 				default:
 					LOG(LOG_CPU,LOG_ERROR)("Unhandled string op %d",type);
 			}
@@ -297,7 +314,10 @@ void DoString(STRING_OP type) {
 						LOADIP;
 					}
 					else {
-						/* TODO */
+						/* if ZF matches the REP condition, restart the instruction */
+						if ((get_ZF()?1:0) == (core.rep_zero?1:0)) {
+							LOADIP;
+						}
 					}
 				}
 			}
