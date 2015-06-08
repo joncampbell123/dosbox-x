@@ -17,11 +17,13 @@
  */
 
 enum STRING_OP {
+	// simple string ops
 	R_OUTSB,R_OUTSW,R_OUTSD,
-	R_INSB,R_INSW,R_INSD,
+	R_INSB, R_INSW, R_INSD,
 	R_MOVSB,R_MOVSW,R_MOVSD,
 	R_LODSB,R_LODSW,R_LODSD,
 	R_STOSB,R_STOSW,R_STOSD,
+	// string ops that will stop if a comparison fails
 	R_SCASB,R_SCASW,R_SCASD,
 	R_CMPSB,R_CMPSW,R_CMPSD
 };
@@ -51,6 +53,12 @@ void DoString(STRING_OP type) {
 	}
 	else {
 		/* we allow the user to cap our count as a way of making REP string operations interruptable (and at what granularity) */
+		/* NTS: This condition is less important now that the loops themselves break when CPU_Cycles <= 0. when this code was
+		 *      initially implemented the string ops stubbornly counted through the bytes regardless of pending interrupts and
+		 *      it caused problems with code that needed fine timing i.e. demos that played music through the LPT DAC while
+		 *      using REP OUTSB to the VGA palette suffered from audio quality problems. at this phase of implementation the
+		 *      "interruptible string ops" parameter is now merely a testing parameter that can be used to verify this code
+		 *      breaks and restarts string ops correctly. */
 		if (cpu_rep_max > 0 && count > (unsigned int)cpu_rep_max) {
 			count_left+=count-(unsigned int)cpu_rep_max;
 			count=(unsigned int)cpu_rep_max;
@@ -308,6 +316,11 @@ void DoString(STRING_OP type) {
 				reg_ecx&=(~add_mask);
 				reg_ecx|=(count & add_mask);
 
+				/* if the count is still nonzero, then there is still work to do and the
+				 * instruction has not finished executing---it needs to be restarted.
+				 * if the string op was REP CMPSB or REP SCASB then it also matters
+				 * whether the ZF flag matches the REP condition on whether or not we
+				 * restart the instruction. */
 				if (count != 0) {
 					if (type < R_SCASB) {
 						/* if count != 0 then restart the instruction */
@@ -334,7 +347,13 @@ void DoString(STRING_OP type) {
 				reg_ecx|=(count & add_mask);
 			}
 
+			/* rethrow the exception.
+			 * NOTE: this means the normal core has no chance to execute SAVEIP, therefore
+			 *       when the guest OS has finished handling the page fault the instruction
+			 *       pointer will come right back to the string op that caused the fault
+			 *       and the string op will restart where it left off. */
 			throw;
 		}
-	}// /count
+	}
 }
+
