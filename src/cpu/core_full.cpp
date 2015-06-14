@@ -114,7 +114,6 @@ restartopcode:
 			#include "core_full/save.h"
 		}
 		catch (GuestPageFaultException &pf) {
-			LOG_MSG("Page fault in full core");
 			reg_esp = old_esp;
 			throw;
 		}
