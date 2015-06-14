@@ -633,10 +633,14 @@ extern bool enable_fpu;
 		lflags.type=t_UNKNOWN;								\
 	}
 
+#define PARITY16(x)  (parity_lookup[((x)>>8)&0xff]^parity_lookup[(x)&0xff]^FLAG_PF)
+#define PARITY32(x)  (PARITY16((x)&0xffff)^PARITY16(((x)>>16)&0xffff)^FLAG_PF)
+
 #define MULB(op1,load,save)									\
 	reg_ax=reg_al*load(op1);								\
 	FillFlagsNoCFOF();										\
 	SETFLAGBIT(ZF,reg_al == 0);								\
+	SETFLAGBIT(PF,PARITY16(reg_ax));								\
 	if (reg_ax & 0xff00) {									\
 		SETFLAGBIT(CF,true);SETFLAGBIT(OF,true);			\
 	} else {												\
@@ -650,6 +654,7 @@ extern bool enable_fpu;
 	reg_dx=(Bit16u)(tempu >> 16);							\
 	FillFlagsNoCFOF();										\
 	SETFLAGBIT(ZF,reg_ax == 0);								\
+	SETFLAGBIT(PF,PARITY16(reg_ax)^PARITY16(reg_dx)^FLAG_PF);						\
 	if (reg_dx) {											\
 		SETFLAGBIT(CF,true);SETFLAGBIT(OF,true);			\
 	} else {												\
@@ -664,15 +669,13 @@ extern bool enable_fpu;
 	reg_edx=(Bit32u)(tempu >> 32);							\
 	FillFlagsNoCFOF();										\
 	SETFLAGBIT(ZF,reg_eax == 0);							\
+	SETFLAGBIT(PF,PARITY32(reg_eax)^PARITY32(reg_edx)^FLAG_PF);						\
 	if (reg_edx) {											\
 		SETFLAGBIT(CF,true);SETFLAGBIT(OF,true);			\
 	} else {												\
 		SETFLAGBIT(CF,false);SETFLAGBIT(OF,false);			\
 	}														\
 }
-
-#define PARITY16(x)  (parity_lookup[((x)>>8)&0xff]^parity_lookup[(x)&0xff])
-#define PARITY32(x)  (PARITY16((x)&0xffff)^PARITY16(((x)>>16)&0xffff))
 
 #define DIVB(op1,load,save)									\
 {															\
@@ -690,7 +693,7 @@ extern bool enable_fpu;
 	SETFLAGBIT(OF,0);/*FIXME*/									\
 	SETFLAGBIT(ZF,(rem==0)&&((quo8&1)!=0));								\
 	SETFLAGBIT(CF,((rem&3) >= 1 && (rem&3) <= 2)); \
-	SETFLAGBIT(PF,parity_lookup[rem&0xff]^parity_lookup[quo8&0xff]);					\
+	SETFLAGBIT(PF,parity_lookup[rem&0xff]^parity_lookup[quo8&0xff]^FLAG_PF);					\
 }
 
 
@@ -711,7 +714,7 @@ extern bool enable_fpu;
 	SETFLAGBIT(OF,0);/*FIXME*/									\
 	SETFLAGBIT(ZF,(rem==0)&&((quo16&1)!=0));								\
 	SETFLAGBIT(CF,((rem&3) >= 1 && (rem&3) <= 2)); \
-	SETFLAGBIT(PF,PARITY16(rem&0xffff)^PARITY16(quo16&0xffff));					\
+	SETFLAGBIT(PF,PARITY16(rem&0xffff)^PARITY16(quo16&0xffff)^FLAG_PF);					\
 }
 
 #define DIVD(op1,load,save)									\
@@ -731,7 +734,7 @@ extern bool enable_fpu;
 	SETFLAGBIT(OF,0);/*FIXME*/									\
 	SETFLAGBIT(ZF,(rem==0)&&((quo32&1)!=0));								\
 	SETFLAGBIT(CF,((rem&3) >= 1 && (rem&3) <= 2)); \
-	SETFLAGBIT(PF,PARITY32(rem&0xffffffff)^PARITY32(quo32&0xffffffff));					\
+	SETFLAGBIT(PF,PARITY32(rem&0xffffffff)^PARITY32(quo32&0xffffffff)^FLAG_PF);					\
 }
 
 
@@ -751,7 +754,7 @@ extern bool enable_fpu;
 	SETFLAGBIT(OF,0);/*FIXME*/									\
 	SETFLAGBIT(ZF,(rem==0)&&((quo8s&1)!=0));								\
 	SETFLAGBIT(CF,((rem&3) >= 1 && (rem&3) <= 2)); \
-	SETFLAGBIT(PF,parity_lookup[rem&0xff]^parity_lookup[quo8s&0xff]);					\
+	SETFLAGBIT(PF,parity_lookup[rem&0xff]^parity_lookup[quo8s&0xff]^FLAG_PF);					\
 }
 
 
@@ -772,7 +775,7 @@ extern bool enable_fpu;
 	SETFLAGBIT(OF,0);/*FIXME*/									\
 	SETFLAGBIT(ZF,(rem==0)&&((quo16s&1)!=0));								\
 	SETFLAGBIT(CF,((rem&3) >= 1 && (rem&3) <= 2)); \
-	SETFLAGBIT(PF,PARITY16(rem&0xffff)^PARITY16(quo16s&0xffff));					\
+	SETFLAGBIT(PF,PARITY16(rem&0xffff)^PARITY16(quo16s&0xffff)^FLAG_PF);					\
 }
 
 #define IDIVD(op1,load,save)								\
@@ -792,7 +795,7 @@ extern bool enable_fpu;
 	SETFLAGBIT(OF,0);/*FIXME*/									\
 	SETFLAGBIT(ZF,(rem==0)&&((quo32s&1)!=0));								\
 	SETFLAGBIT(CF,((rem&3) >= 1 && (rem&3) <= 2)); \
-	SETFLAGBIT(PF,PARITY32(rem&0xffffffff)^PARITY32(quo32s&0xffffffff));					\
+	SETFLAGBIT(PF,PARITY32(rem&0xffffffff)^PARITY32(quo32s&0xffffffff)^FLAG_PF);					\
 }
 
 #define IMULB(op1,load,save)								\
