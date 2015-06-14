@@ -499,15 +499,33 @@ l_M_Ed:
 			goto nextopcode;
 		}
 	case D_LEAVEw:
-		reg_esp&=cpu.stack.notmask;
-		reg_esp|=(reg_ebp&cpu.stack.mask);
-		reg_bp=Pop_16();
-		goto nextopcode;
+		{
+			Bit32u old_esp = reg_esp;
+
+			reg_esp &= cpu.stack.notmask;
+			reg_esp |= reg_ebp&cpu.stack.mask;
+			try {
+				reg_bp = Pop_16();
+			}
+			catch (GuestPageFaultException &pf) {
+				reg_esp = old_esp;
+				throw;
+			}
+		} goto nextopcode;
 	case D_LEAVEd:
-		reg_esp&=cpu.stack.notmask;
-		reg_esp|=(reg_ebp&cpu.stack.mask);
-		reg_ebp=Pop_32();
-		goto nextopcode;
+		{
+			Bit32u old_esp = reg_esp;
+
+			reg_esp &= cpu.stack.notmask;
+			reg_esp |= reg_ebp&cpu.stack.mask;
+			try {
+				reg_ebp = Pop_32();
+			}
+			catch (GuestPageFaultException &pf) {
+				reg_esp = old_esp;
+				throw;
+			}
+		} goto nextopcode;
 	case D_DAA:
 		DAA();
 		goto nextopcode;
