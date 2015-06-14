@@ -2155,7 +2155,8 @@ void DOSBOX_Init(void) {
 	MSG_Add("CONFIGFILE_INTRO",
 	        "# This is the configuration file for DOSBox %s. (Please use the latest version of DOSBox)\n"
 	        "# Lines starting with a # are comment lines and are ignored by DOSBox.\n"
-	        "# They are used to (briefly) document the effect of each option.\n");
+	        "# They are used to (briefly) document the effect of each option.\n"
+		"# To write out ALL options, use command 'config -all' with -wc or -writeconf options.\n");
 	MSG_Add("CONFIG_SUGGESTED_VALUES", "Possible values");
 }
 
