@@ -100,15 +100,24 @@ Bits CPU_Core_Full_Run(void) {
 		};
 #endif
 #endif
+
 		LoadIP();
 		inst.entry=cpu.code.big*0x200;
 		inst.prefix=cpu.code.big;
 restartopcode:
 		inst.entry=(inst.entry & 0xffffff00) | Fetchb();
 		inst.code=OpCodeTable[inst.entry];
-		#include "core_full/load.h"
-		#include "core_full/op.h"
-		#include "core_full/save.h"
+		Bitu old_esp = reg_esp; // always restore stack pointer on page fault
+		try {
+			#include "core_full/load.h"
+			#include "core_full/op.h"
+			#include "core_full/save.h"
+		}
+		catch (GuestPageFaultException &pf) {
+			LOG_MSG("Page fault in full core");
+			reg_esp = old_esp;
+			throw;
+		}
 nextopcode:;
 		SaveIP();
 		continue;
