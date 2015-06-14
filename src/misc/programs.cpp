@@ -1033,6 +1033,7 @@ void PROGRAMS_Init(Section* /*sec*/) {
 		"-writeconf or -wc without parameter: write to primary loaded config file.\n"\
 		"-writeconf or -wc with filename: write file to config directory.\n"\
 		"Use -writelang or -wl filename to write the current language strings.\n"\
+		"-all  Use -all with -wc and -writeconf to write ALL options to the file.\n"\
 		"-r [parameters]\n Restart DOSBox, either using the previous parameters or any that are appended.\n"\
 		"-wcp [filename]\n Write config file to the program directory, dosbox.conf or the specified \n filename.\n"\
 		"-wcd\n Write to the default config file in the config directory.\n"\
