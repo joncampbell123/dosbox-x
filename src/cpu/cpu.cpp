@@ -371,6 +371,8 @@ void CPU_SetFlags(Bitu word,Bitu mask) {
 
 	reg_flags=(reg_flags & ~mask)|(word & mask)|2;
 	cpu.direction=1-((reg_flags & FLAG_DF) >> 9);
+	// ^ NTS: Notice the DF flag is bit 10. This code computes (reg_flags & FLAG_DF) >> 9 on purpose.
+	//        It's not a typo (9 vs 10), it's done to set cpu.direction to either 1 or -1.
 }
 
 bool CPU_PrepareException(Bitu which,Bitu error) {
