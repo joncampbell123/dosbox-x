@@ -3297,8 +3297,11 @@ public:
 		Bit16u config = 0x0;
 		
 #if (C_FPU)
+		extern bool enable_fpu;
+
 		//FPU
-		config|=0x2;
+		if (enable_fpu)
+			config|=0x2;
 #endif
 		switch (machine) {
 		case MCH_HERC:
