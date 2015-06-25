@@ -689,8 +689,208 @@ void FPU_ESC7_Normal(Bitu rm) {
 	}
 }
 
+// test routine at startup to make sure our typedef struct bitfields
+// line up with the host's definition of a 32-bit single-precision
+// floating point value.
+void FPU_Selftest_32() {
+	struct ftest {
+		const char*	name;
+		float		val;
+		int		exponent:15;
+		unsigned int	sign:1;
+		uint32_t	mantissa;
+	};
+	static const struct ftest test[] = {
+		// name			// val		// exponent (no bias)		// sign		// 23-bit mantissa without 23rd implied bit (max 2^23-1 = 0x7FFFFF)
+		{"0.0f",		0.0f,		-FPU_Reg_32_exponent_bias,	0,		0x000000},	// IEEE standard way to encode zero
+		{"1.0f",		1.0f,		0,				0,		0x000000},	// 1.0 x 2^0 = 1.0 x 1 = 1.0
+		{"2.0f",		2.0f,		1,				0,		0x000000},	// 1.0 x 2^1 = 1.0 x 2 = 2.0
+		{"3.0f",		3.0f,		1,				0,		0x400000},	// 1.5 x 2^1 = 1.5 x 2 = 3.0
+		{"4.0f",		4.0f,		2,				0,		0x000000},	// 1.0 x 2^2 = 1.0 x 4 = 4.0
+		{"-1.0f",		-1.0f,		0,				1,		0x000000},	// 1.0 x 2^0 = 1.0 x 1 = 1.0
+		{"-2.0f",		-2.0f,		1,				1,		0x000000},	// 1.0 x 2^1 = 1.0 x 2 = 2.0
+		{"-3.0f",		-3.0f,		1,				1,		0x400000},	// 1.5 x 2^1 = 1.5 x 2 = 3.0
+		{"-4.0f",		-4.0f,		2,				1,		0x000000}	// 1.0 x 2^2 = 1.0 x 4 = 4.0
+	};
+	static const size_t tests = sizeof(test) / sizeof(test[0]);
+	FPU_Reg_32 ft;
+
+	if (sizeof(ft) < 4) {
+		LOG(LOG_FPU,LOG_WARN)("FPU32 sizeof(reg32) < 4 bytes");
+		return;
+	}
+	if (sizeof(float) != 4) {
+		LOG(LOG_FPU,LOG_WARN)("FPU32 sizeof(float) != 4 bytes your host is weird");
+		return;
+	}
+
+	for (size_t t=0;t < tests;t++) {
+		ft.v = test[t].val; FPU_Reg_m_barrier();
+		if (((int)ft.f.exponent - FPU_Reg_32_exponent_bias) != test[t].exponent ||
+			ft.f.sign != test[t].sign || ft.f.mantissa != test[t].mantissa) {
+			LOG(LOG_FPU,LOG_WARN)("FPU32 selftest fail stage %s",test[t].name);
+			LOG(LOG_FPU,LOG_WARN)("  expected t.v = %.10f t.s=%u t.exp=%d t.mantissa=%u",
+				test[t].val,
+				test[t].sign,
+				(int)test[t].exponent,
+				(unsigned int)test[t].mantissa);
+			goto dump;
+		}
+	}
+
+	LOG(LOG_FPU,LOG_NORMAL)("FPU32 selftest passed");
+	return;
+dump:
+	LOG(LOG_FPU,LOG_WARN)("Result: t.v = %.10f t.s=%u t.exp=%d t.mantissa=%u",
+		ft.v,
+		ft.f.sign,
+		(int)ft.f.exponent - FPU_Reg_32_exponent_bias,
+		(unsigned int)ft.f.mantissa);
+}
+
+// test routine at startup to make sure our typedef struct bitfields
+// line up with the host's definition of a 64-bit double-precision
+// floating point value.
+void FPU_Selftest_64() {
+	struct ftest {
+		const char*	name;
+		double		val;
+		int		exponent:15;
+		unsigned int	sign:1;
+		uint64_t	mantissa;
+	};
+	static const struct ftest test[] = {
+		// name			// val		// exponent (no bias)		// sign		// 52-bit mantissa without 52rd implied bit (max 2^52-1 = 0x1FFFFFFFFFFFFF)
+		{"0.0d",		0.0,		-FPU_Reg_64_exponent_bias,	0,		0x0000000000000ULL},	// IEEE standard way to encode zero
+		{"1.0d",		1.0,		0,				0,		0x0000000000000ULL},	// 1.0 x 2^0 = 1.0 x 1 = 1.0
+		{"2.0d",		2.0,		1,				0,		0x0000000000000ULL},	// 1.0 x 2^1 = 1.0 x 2 = 2.0
+		{"3.0d",		3.0,		1,				0,		0x8000000000000ULL},	// 1.5 x 2^1 = 1.5 x 2 = 3.0
+		{"4.0d",		4.0,		2,				0,		0x0000000000000ULL},	// 1.0 x 2^2 = 1.0 x 4 = 4.0
+		{"-1.0d",		-1.0,		0,				1,		0x0000000000000ULL},	// 1.0 x 2^0 = 1.0 x 1 = 1.0
+		{"-2.0d",		-2.0,		1,				1,		0x0000000000000ULL},	// 1.0 x 2^1 = 1.0 x 2 = 2.0
+		{"-3.0d",		-3.0,		1,				1,		0x8000000000000ULL},	// 1.5 x 2^1 = 1.5 x 2 = 3.0
+		{"-4.0d",		-4.0,		2,				1,		0x0000000000000ULL}	// 1.0 x 2^2 = 1.0 x 4 = 4.0
+	};
+	static const size_t tests = sizeof(test) / sizeof(test[0]);
+	FPU_Reg_64 ft;
+
+	if (sizeof(ft) < 8) {
+		LOG(LOG_FPU,LOG_WARN)("FPU64 sizeof(reg64) < 8 bytes");
+		return;
+	}
+	if (sizeof(double) != 8) {
+		LOG(LOG_FPU,LOG_WARN)("FPU64 sizeof(float) != 8 bytes your host is weird");
+		return;
+	}
+
+	for (size_t t=0;t < tests;t++) {
+		ft.v = test[t].val; FPU_Reg_m_barrier();
+		if (((int)ft.f.exponent - FPU_Reg_64_exponent_bias) != test[t].exponent ||
+			ft.f.sign != test[t].sign || ft.f.mantissa != test[t].mantissa) {
+			LOG(LOG_FPU,LOG_WARN)("FPU64 selftest fail stage %s",test[t].name);
+			LOG(LOG_FPU,LOG_WARN)("  expected t.v = %.10f t.s=%u t.exp=%d t.mantissa=%llu (0x%llx)",
+				test[t].val,
+				test[t].sign,
+				(int)test[t].exponent,
+				(unsigned long long)test[t].mantissa,
+				(unsigned long long)test[t].mantissa);
+			goto dump;
+		}
+	}
+
+	LOG(LOG_FPU,LOG_NORMAL)("FPU64 selftest passed");
+	return;
+dump:
+	LOG(LOG_FPU,LOG_WARN)("Result: t.v = %.10f t.s=%u t.exp=%d t.mantissa=%llu (0x%llx)",
+		ft.v,
+		(int)ft.f.sign,
+		(int)ft.f.exponent - FPU_Reg_64_exponent_bias,
+		(unsigned long long)ft.f.mantissa,
+		(unsigned long long)ft.f.mantissa);
+}
+
+// test routine at startup to make sure our typedef struct bitfields
+// line up with the host's definition of a 80-bit extended-precision
+// floating point value (if the host is i686, x86_64, or any other
+// host with the same definition of long double).
+void FPU_Selftest_80() {
+	// we're assuming "long double" means the Intel 80x87 extended precision format, which is true when using
+	// GCC on Linux i686 and x86_64 hosts.
+	//
+	// I understand that other platforms (PowerPC, Sparc, etc) might have other ideas on what makes "long double"
+	// and I also understand Microsoft Visual C++ treats long double the same as double. We will disable this
+	// test with #ifdefs when compiling for platforms where long double doesn't mean 80-bit extended precision.
+	struct ftest {
+		const char*	name;
+		long double	val;
+		int		exponent:15;
+		unsigned int	sign:1;
+		uint64_t	mantissa;
+	};
+	static const struct ftest test[] = {
+		// name			// val		// exponent (no bias)		// sign		// 64-bit mantissa WITH whole integer bit #63
+		{"0.0L",		0.0,		-FPU_Reg_80_exponent_bias,	0,		0x0000000000000000ULL},	// IEEE standard way to encode zero
+		{"1.0L",		1.0,		0,				0,		0x8000000000000000ULL},	// 1.0 x 2^0 = 1.0 x 1 = 1.0
+		{"2.0L",		2.0,		1,				0,		0x8000000000000000ULL},	// 1.0 x 2^1 = 1.0 x 2 = 2.0
+		{"3.0L",		3.0,		1,				0,		0xC000000000000000ULL},	// 1.5 x 2^1 = 1.5 x 2 = 3.0
+		{"4.0L",		4.0,		2,				0,		0x8000000000000000ULL},	// 1.0 x 2^2 = 1.0 x 4 = 4.0
+		{"-1.0L",		-1.0,		0,				1,		0x8000000000000000ULL},	// 1.0 x 2^0 = 1.0 x 1 = 1.0
+		{"-2.0L",		-2.0,		1,				1,		0x8000000000000000ULL},	// 1.0 x 2^1 = 1.0 x 2 = 2.0
+		{"-3.0L",		-3.0,		1,				1,		0xC000000000000000ULL},	// 1.5 x 2^1 = 1.5 x 2 = 3.0
+		{"-4.0L",		-4.0,		2,				1,		0x8000000000000000ULL}	// 1.0 x 2^2 = 1.0 x 4 = 4.0
+	};
+	static const size_t tests = sizeof(test) / sizeof(test[0]);
+	FPU_Reg_80 ft;
+
+	if (sizeof(ft) < 10) {
+		LOG(LOG_FPU,LOG_WARN)("FPU80 sizeof(reg80) < 10 bytes");
+		return;
+	}
+	if (sizeof(long double) == sizeof(double)) {
+		LOG(LOG_FPU,LOG_WARN)("FPU80 sizeof(long double) == sizeof(double) so your compiler just makes it an alias. skipping tests. please recompile with proper config.");
+		return;
+	}
+	else if (sizeof(long double) < 10 || sizeof(long double) > 16) {
+		// NTS: We can't assume 10 bytes. GCC on i686 makes long double 12 or 16 bytes long for alignment
+		//      even though only 80 bits (10 bytes) are used.
+		LOG(LOG_FPU,LOG_WARN)("FPU80 sizeof(float) < 10 bytes your host is weird");
+		return;
+	}
+
+	for (size_t t=0;t < tests;t++) {
+		ft.v = test[t].val; FPU_Reg_m_barrier();
+		if (((int)ft.f.exponent - FPU_Reg_80_exponent_bias) != test[t].exponent ||
+			ft.f.sign != test[t].sign || ft.f.mantissa != test[t].mantissa) {
+			LOG(LOG_FPU,LOG_WARN)("FPU80 selftest fail stage %s",test[t].name);
+			LOG(LOG_FPU,LOG_WARN)("  expected t.v = %.10Lf t.s=%u t.exp=%d t.mantissa=%llu (0x%llx)",
+				test[t].val,
+				test[t].sign,
+				(int)test[t].exponent,
+				(unsigned long long)test[t].mantissa,
+				(unsigned long long)test[t].mantissa);
+			goto dump;
+		}
+	}
+
+	LOG(LOG_FPU,LOG_NORMAL)("FPU80 selftest passed");
+	return;
+dump:
+	LOG(LOG_FPU,LOG_WARN)("Result: t.v = %.10Lf t.s=%u t.exp=%d t.mantissa=%llu (0x%llx)",
+		ft.v,
+		(int)ft.f.sign,
+		(int)ft.f.exponent - FPU_Reg_64_exponent_bias,
+		(unsigned long long)ft.f.mantissa,
+		(unsigned long long)ft.f.mantissa);
+}
+
+void FPU_Selftest() {
+	FPU_Selftest_32();
+	FPU_Selftest_64();
+	FPU_Selftest_80();
+}
 
 void FPU_Init(Section*) {
+	FPU_Selftest();
 	FPU_FINIT();
 }
 
