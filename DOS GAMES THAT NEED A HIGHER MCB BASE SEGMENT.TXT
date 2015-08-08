@@ -6,5 +6,6 @@ game/application                        value       reason
 -------------------------------------------------------------------------------------------------------------------
 Shamaani (1994 demo)                    800         Will crash if ems=true and loaded too low after GUS I/O port selection menu
 Space Pigs Megademo (1990)              C00         Demo will crash at startup, claim EXE corruption or files are screwed up, if too low
+Vicky (Space Pigs demo)                 1000        Demo is compressed with EXEPACK, needs to be loaded 64KB or higher in memory to run
 Warlock (1992 demo)                     C00         Final credits part will crash if too low
 
