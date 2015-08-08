@@ -743,6 +743,7 @@ void DOSBOX_Init(void) {
 	const char* sbtypes[] = { "sb1", "sb2", "sbpro1", "sbpro2", "sb16", "sb16vibra", "gb", "none", 0 };
 	const char* oplmodes[]={ "auto", "cms", "opl2", "dualopl2", "opl3", "none", "hardware", "hardwaregb", 0};
 	const char* serials[] = { "dummy", "disabled", "modem", "nullmodem", "serialmouse", "directserial",0 };
+	const char* guspantables[] = { "old", "accurate", "default", 0 };
 	const char *sidbaseno[] = { "240", "220", "260", "280", "2a0", "2c0", "2e0", "300", 0 };
 	const char* joytypes[] = { "auto", "2axis", "4axis", "4axis_2", "fcs", "ch", "none",0};
 	const char* iosgus[] = { "240", "220", "260", "280", "2a0", "2c0", "2e0", "300", 0 };
@@ -1582,6 +1583,12 @@ void DOSBOX_Init(void) {
 	secprop=control->AddSection_prop("gus",&Null_Init,true); //done
 	Pbool = secprop->Add_bool("gus",Property::Changeable::WhenIdle,false); 	
 	Pbool->Set_help("Enable the Gravis Ultrasound emulation.");
+	
+	Pstring = secprop->Add_string("gus panning table",Property::Changeable::WhenIdle,"default");
+	Pstring->Set_values(guspantables);
+	Pstring->Set_help("Controls which table or equation is used for the Gravis Ultrasound panning emulation.\n"
+			"accurate emulation attempts to better reflect how the actual hardware handles panning,\n"
+			"while the old emulation uses a simpler idealistic mapping.");
 
 	Pint = secprop->Add_int("gusrate",Property::Changeable::WhenIdle,44100);
 	Pint->Set_values(rates);

@@ -46,6 +46,10 @@ using namespace std;
 #define GUS_RATE myGUS.rate
 #define LOG_GUS 0
 
+// fixed panning table (avx)
+static Bit16u const pantablePDF[16] = { 0, 13, 26, 41, 57, 72, 94, 116, 141, 169, 203, 244, 297, 372, 500, 4095 };
+static bool gus_fixed_table = false;
+
 Bit8u adlib_commandreg;
 static MixerChannel * gus_chan;
 static Bit8u const irqtable[8] = { 0, 2, 5, 3, 7, 11, 12, 15 };
@@ -786,13 +790,20 @@ static void MakeTables(void) {
 	 *      Having made this fix I can finally enjoy old DOS demos
 	 *      in GUS stereo instead of having everything mushed into
 	 *      mono. */
-	for (i=0;i < 8;i++)
-		pantable[i] = 0;
-	for (i=8;i < 15;i++)
-		pantable[i]=(Bit32u)(-128.0*(log((double)(15-i)/7.0)/log(2.0))*(double)(1 << RAMP_FRACT));
-	/* if the program cranks the pan register all the way, ensure the
-	 * opposite channel is crushed to silence */
-	pantable[15] = 1UL << 30UL;
+	if (gus_fixed_table) {
+		for (i=0;i < 16;i++)
+			pantable[i] = pantablePDF[15 - i/*FIXME: Is this backwards?*/] * 2048;
+	}
+	else {
+		for (i=0;i < 8;i++)
+			pantable[i] = 0;
+		for (i=8;i < 15;i++)
+			pantable[i]=(Bit32u)(-128.0*(log((double)(15-i)/7.0)/log(2.0))*(double)(1 << RAMP_FRACT));
+
+		/* if the program cranks the pan register all the way, ensure the
+		 * opposite channel is crushed to silence */
+		pantable[15] = 1UL << 30UL;
+	}
 }
 
 class GUS:public Module_base{
@@ -811,7 +822,15 @@ public:
 	
 		memset(&myGUS,0,sizeof(myGUS));
 		memset(GUSRam,0,1024*1024);
-	
+
+		string s_pantable = section->Get_string("gus panning table");
+		if (s_pantable == "default" || s_pantable == "" || s_pantable == "accurate")
+			gus_fixed_table = true;
+		else if (s_pantable == "old")
+			gus_fixed_table = false;
+		else
+			gus_fixed_table = true;
+
 		myGUS.rate=section->Get_int("gusrate");
 
 		x = section->Get_int("gusmemsize");
