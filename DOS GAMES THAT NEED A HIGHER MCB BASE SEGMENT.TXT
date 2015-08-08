@@ -1,0 +1,9 @@
+
+DOS games/applications that will not work correctly unless given a minimum MCB segment that is higher than default:
+
+                                        recommended
+game/application                        value       reason
+-------------------------------------------------------------------------------------------------------------------
+Space Pigs Megademo (1990)              C00         Demo will crash at startup, claim EXE corruption or files are screwed up, if too low
+Warlock (1992 demo)                     C00         Final credits part will crash if too low
+
