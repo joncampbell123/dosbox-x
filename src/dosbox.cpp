@@ -1795,9 +1795,10 @@ void DOSBOX_Init(void) {
 
 	Phex = secprop->Add_hex("minimum mcb segment", Property::Changeable::WhenIdle,0);
 	Phex->Set_help("Minimum segment value to begin memory allocation from, in hexadecimal. Set to 0 for default.\n"
-			"Recommended value is 400, some DOS games have problems if the value is lower than that.\n"
-			"The lowest value you can safely use is 51, any value lower than that risks conflict with\n"
-			"the BIOS data area and interrupt vector table.");
+			"You can increase available DOS memory by reducing this value down to as low as 0x51, however\n"
+			"setting it to low can cause some DOS programs to crash or run erratically, and some DOS games\n"
+			"and demos to cause intermittent static noises when using Sound Blaster output. DOS programs\n"
+			"compressed with Microsoft EXEPACK will not run if the minimum MCB segment is below 64KB.");
 
 	Pbool = secprop->Add_bool("enable dummy device mcb",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("If set (default), allocate a fake device MCB at the base of conventional memory.\n"

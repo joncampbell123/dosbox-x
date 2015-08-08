@@ -1891,8 +1891,8 @@ public:
 		 * and emulate a DOS kernel that consumes 20-30KB of memory to keep things from crashing a lot. A user who wants to push
 		 * their luck freeing more conventional memory is free to set "minimum mcb segment" to a lower value. */
 		else if (dynamic_dos_kernel_alloc && !mainline_compatible_mapping) {
-			if (DOS_MEM_START < 0x400)
-				DOS_MEM_START = 0x400;
+			if (DOS_MEM_START < 0x800)
+				DOS_MEM_START = 0x800;
 		}
 
 		LOG_MSG("   mem start:    seg 0x%04x\n",DOS_MEM_START);
