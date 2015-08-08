@@ -1468,8 +1468,8 @@ void DOSBOX_Init(void) {
 	Pstring = secprop->Add_string("oplmode",Property::Changeable::WhenIdle,"auto");
 	Pstring->Set_values(oplmodes);
 	Pstring->Set_help("Type of OPL emulation. On 'auto' the mode is determined by sblaster type.\n"
-		"All OPL modes are Adlib-compatible, except for 'cms'. sbtype=none\n"
-		"together with oplmode=cms will emulate a Gameblaster.");
+		"To emulate Adlib, set sbtype=none and oplmode=opl2. To emulate a Game Blaster, set\n"
+		"sbtype=none and oplmode=cms");
 
 	Pbool = secprop->Add_bool("adlib force timer overflow on detect",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("If set, Adlib/OPL emulation will signal 'overflow' on timers after 50 I/O reads.\n"
