@@ -62,6 +62,9 @@ Bitu BIOS_DEFAULT_RESET_LOCATION = ~0;		// RealMake(0xf000,0xe05b)
 
 bool allow_more_than_640kb = false;
 
+unsigned int APM_BIOS_connected_minor_version = 0;// what version the OS connected to us with. default to 1.0
+unsigned int APM_BIOS_minor_version = 2;	// what version to emulate e.g to emulate 1.2 set this to 2
+
 /* default bios type/version/date strings */
 const char* const bios_type_string = "IBM COMPATIBLE 486 BIOS COPYRIGHT The DOSBox Team.";
 const char* const bios_version_string = "DOSBox FakeBIOS v1.0";
@@ -792,10 +795,23 @@ void ISAPNP_Cfg_Init(Section *s) {
 	APMBIOS_allow_realmode = section->Get_bool("apmbios allow realmode");
 	APMBIOS_allow_prot16 = section->Get_bool("apmbios allow 16-bit protected mode");
 	APMBIOS_allow_prot32 = section->Get_bool("apmbios allow 32-bit protected mode");
-	LOG_MSG("APM BIOS allow: real=%u pm16=%u pm32=%u\n",
+
+	std::string apmbiosver = section->Get_string("apmbios version");
+
+	if (apmbiosver == "1.0")
+		APM_BIOS_minor_version = 0;
+	else if (apmbiosver == "1.1")
+		APM_BIOS_minor_version = 1;
+	else if (apmbiosver == "1.2")
+		APM_BIOS_minor_version = 2;
+	else//auto
+		APM_BIOS_minor_version = 2;
+
+	LOG_MSG("APM BIOS allow: real=%u pm16=%u pm32=%u version=1.%u\n",
 		APMBIOS_allow_realmode,
 		APMBIOS_allow_prot16,
-		APMBIOS_allow_prot32);
+		APMBIOS_allow_prot32,
+		APM_BIOS_minor_version);
 
 	if (APMBIOS && (APMBIOS_allow_prot16 || APMBIOS_allow_prot32) && INT15_apm_pmentry == 0) {
 		Bitu cb;
@@ -2504,9 +2520,9 @@ static Bitu INT15_Handler(void) {
 //			LOG_MSG("APM BIOS call AX=%04x BX=0x%04x CX=0x%04x\n",reg_ax,reg_bx,reg_cx);
 			switch(reg_al) {
 				case 0x00: // installation check
-					reg_ah = 1;			// APM 1.2	<- TODO: Make dosbox.conf option what version APM interface we emulate
-					reg_al = 2;
-					reg_bx = 0x504d;	// 'PM'
+					reg_ah = 1;				// major
+					reg_al = APM_BIOS_minor_version;	// minor
+					reg_bx = 0x504d;			// 'PM'
 					reg_cx = (APMBIOS_allow_prot16?0x01:0x00) + (APMBIOS_allow_prot32?0x02:0x00);
 					// 32-bit interface seems to be needed for standby in win95
 					CALLBACK_SCF(false);
@@ -2533,6 +2549,7 @@ static Bitu INT15_Handler(void) {
 						reg_ah = APMBIOS_connected_already_err(); // interface connection already in effect
 						CALLBACK_SCF(true);			
 					}
+					APM_BIOS_connected_minor_version = 0;
 					break;
 				case 0x02: // connect 16-bit protected mode interface
 					if(!APMBIOS_allow_prot16) {
@@ -2564,6 +2581,7 @@ static Bitu INT15_Handler(void) {
 						reg_ah = APMBIOS_connected_already_err(); // interface connection already in effect
 						CALLBACK_SCF(true);			
 					}
+					APM_BIOS_connected_minor_version = 0;
 					break;
 				case 0x03: // connect 32-bit protected mode interface
 					// Note that Windows 98 will NOT talk to the APM BIOS unless the 32-bit protected mode connection is available.
@@ -2598,6 +2616,7 @@ static Bitu INT15_Handler(void) {
 						reg_ah = APMBIOS_connected_already_err(); // interface connection already in effect
 						CALLBACK_SCF(true);			
 					}
+					APM_BIOS_connected_minor_version = 0;
 					break;
 				case 0x04: // DISCONNECT INTERFACE
 					if(reg_bx != 0x0) {
@@ -2613,6 +2632,7 @@ static Bitu INT15_Handler(void) {
 						reg_ah = 0x03;	// interface not connected
 						CALLBACK_SCF(true);			
 					}
+					APM_BIOS_connected_minor_version = 0;
 					break;
 				case 0x05: // CPU IDLE
 					if(!apm_realmode_connected) {
@@ -2751,20 +2771,28 @@ static Bitu INT15_Handler(void) {
 					}
 					break;
 				case 0x0e:
-					if(reg_bx != 0x0) {
-						reg_ah = 0x09;	// unrecognized device ID
-						CALLBACK_SCF(true);			
-						break;
-					} else if(!apm_realmode_connected) {
-						reg_ah = 0x03;	// interface not connected
-						CALLBACK_SCF(true);
-						break;
+					if (APM_BIOS_minor_version != 0) { // APM 1.1 or higher only
+						if(reg_bx != 0x0) {
+							reg_ah = 0x09;	// unrecognized device ID
+							CALLBACK_SCF(true);
+							break;
+						} else if(!apm_realmode_connected) {
+							reg_ah = 0x03;	// interface not connected
+							CALLBACK_SCF(true);
+							break;
+						}
+						reg_ah = reg_ch; /* we are called with desired version in CH,CL, return actual version in AH,AL */
+						reg_al = reg_cl;
+						if(reg_ah != 1) reg_ah = 1;						// major
+						if(reg_al > APM_BIOS_minor_version) reg_al = APM_BIOS_minor_version;	// minor
+						APM_BIOS_connected_minor_version = reg_al;				// what we decided becomes the interface we emulate
+						LOG_MSG("APM BIOS negotiated to v1.%u",APM_BIOS_connected_minor_version);
+						CALLBACK_SCF(false);
 					}
-					reg_ah = reg_ch; /* we are called with desired version in CH,CL, return actual version in AH,AL */
-					reg_al = reg_cl;
-					if(reg_ah != 1) reg_ah = 1;	/* major version must be 1 */
-					if(reg_al > 2) reg_al = 2;	/* minor version must be 0, 1, or 2 */
-					CALLBACK_SCF(false);
+					else { // APM 1.0 does not recognize this call
+						reg_ah = 0x0C; // function not supported
+						CALLBACK_SCF(true);
+					}
 					break;
 				case 0x0f:
 					if(reg_bx != 0x0 && reg_bx != 0x1) {

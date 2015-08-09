@@ -733,6 +733,7 @@ void DOSBOX_Init(void) {
 	const char* rates[] = {  "44100", "48000", "32000","22050", "16000", "11025", "8000", "49716", 0 };
 	const char* oplrates[] = {   "44100", "49716", "48000", "32000","22050", "16000", "11025", "8000", 0 };
 	const char* devices[] = { "default", "win32", "alsa", "oss", "coreaudio", "coremidi", "mt32", "synth", "timidity", "none", 0}; // FIXME: add some way to offer the actually available choices.
+	const char* apmbiosversions[] = { "auto", "1.0", "1.1", "1.2", 0 };
 	const char *mt32log[] = {"off", "on",0};
 	const char *mt32thread[] = {"off", "on",0};
 	const char *mt32ReverseStereo[] = {"off", "on",0};
@@ -1287,12 +1288,16 @@ void DOSBOX_Init(void) {
 			"Enable this option to ignore spurious errors while debugging from within Windows 3.1/9x/ME");
 
 	Pbool = secprop->Add_bool("apmbios",Property::Changeable::WhenIdle,false);
-	Pbool->Set_help("Emulate Advanced Power Management BIOS calls.\n"
-		"Do not enable if you are running Windows ME.");
+	Pbool->Set_help("Emulate Advanced Power Management BIOS calls");
 
 	Pbool = secprop->Add_bool("apmbios pnp",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("If emulating ISA PnP BIOS, announce APM BIOS in PnP enumeration.\n"
 			"Warning: this can cause Windows 95 OSR2 and later to enumerate the APM BIOS twice and cause problems.");
+
+	Pstring = secprop->Add_string("apmbios version",Property::Changeable::WhenIdle,"auto");
+	Pstring->Set_values(apmbiosversions);
+	Pstring->Set_help("What version of the APM BIOS specification to emulate.\n"
+			"You will need at least APM BIOS v1.1 for emulation to work with Windows 95/98/ME");
 
 	Pbool = secprop->Add_bool("apmbios allow realmode",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Allow guest OS to connect from real mode.");
