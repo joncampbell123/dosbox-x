@@ -687,7 +687,22 @@ static void DMA_DAC_Event(Bitu val) {
 			sb.dac.data[sb.dac.used++]=L;
 	}
 
-	sb.dma.left -= read;
+	/* NTS: The reason we check this is that sometimes the various "checks" performed by
+	 *      setup/configuration tools will setup impossible playback scenarios to test
+	 *      the card that would result in read > sb.dma.left. If read > sb.dma.left then
+	 *      the subtraction below would drive sb.dma.left below zero and the IRQ would
+	 *      never fire, and the test program would fail to detect SB16 emulation.
+	 *
+	 *      Bugfix for "Extreme Assault" that allows the game to detect Sound Blaster 16
+	 *      hardware. "Extreme Assault"'s SB16 test appears to configure a DMA transfer
+	 *      of 1 byte then attempt to play 16-bit signed stereo PCM (4 bytes) which prior
+	 *      to this fix would falsely trigger Goldplay then cause sb.dma.left to underrun
+	 *      and fail to fire the IRQ. */
+	if (sb.dma.left >= read)
+		sb.dma.left -= read;
+	else
+		sb.dma.left = 0;
+
 	if (!sb.dma.left) {
 		SB_OnEndOfDMA();
 		if (sb.dma_dac_mode) PIC_AddEvent(DMA_DAC_Event,1000.0 / sb.dma_dac_srcrate);
