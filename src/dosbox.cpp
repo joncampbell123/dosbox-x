@@ -1196,8 +1196,9 @@ void DOSBOX_Init(void) {
 	secprop=control->AddSection_prop("cpu",&Null_Init,true);//done
 	Pstring = secprop->Add_string("core",Property::Changeable::WhenIdle,"auto");
 	Pstring->Set_values(cores);
-	Pstring->Set_help("CPU Core used in emulation. auto will switch to dynamic if available and\n"
-		"appropriate.");
+	Pstring->Set_help("CPU Core used in emulation. auto will switch to dynamic if available and appropriate.\n"
+			"WARNING: Do not use dynamic or auto setting core with Windows 95 or other preemptive\n"
+			"multitasking OSes with protected mode paging, you should use the normal core instead.");
 
 	Pbool = secprop->Add_bool("fpu",Property::Changeable::Always,true);
 	Pbool->Set_help("Enable FPU emulation");
@@ -1275,13 +1276,11 @@ void DOSBOX_Init(void) {
 	Pint->SetMinMax(1,1000000);
 	Pint->Set_help("Setting it lower than 100 will be a percentage.");
 
-	Pbool = secprop->Add_bool("non-recursive page fault",Property::Changeable::Always,false);
+	Pbool = secprop->Add_bool("non-recursive page fault",Property::Changeable::Always,true);
 	Pbool->Set_help("Determines whether CPU emulation attempts to use a non-recursive method to emulate guest OS page fault exceptions.\n"
-			"If false (mainline DOSBox compatible), page faults are emulated using a recursive method, which is fine\n"
-			"for MS-DOS and Windows 3.1 emulation scenarios where the exception handler will always return directly to the fault location.\n"
-			"However, that assumption is not necessarily true for preemptive multitasking operating systems like Windows 95, for which\n"
-			"this setting should be enabled to help avoid recursion issues in DOSBox.\n"
-			"WARNING: this feature is not entirely stable yet especially if the dynamic core is involved.");
+			"If false (mainline DOSBox compatible), page faults are emulated using a recursive method, which is recommended for\n"
+			"MS-DOS and Windows 3.1 exception handlers. For preemptive multitasking OSes like Windows 95, set this option to true.\n"
+			"This option is not compatible with the dynamic core.");
 
 	Pbool = secprop->Add_bool("ignore opcode 63",Property::Changeable::Always,true);
 	Pbool->Set_help("When debugging, do not report illegal opcode 0x63.\n"

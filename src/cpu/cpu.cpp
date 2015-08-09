@@ -33,6 +33,25 @@
 #include "support.h"
 #include "control.h"
 
+/* caution: do not uncomment unless you want a lot of spew */
+//#define CPU_DEBUG_SPEW
+
+#if defined(CPU_DEBUG_SPEW)
+# define _LOG LOG
+#else
+class _LOG : public LOG { // HACK
+public:
+	_LOG(LOG_TYPES type , LOG_SEVERITIES severity) : LOG(type,severity) { }
+};
+# undef LOG
+# if defined (_MSC_VER)
+#  define LOG(X,Y)
+# else
+#  define LOG(X,Y) CPU_LOG
+# define CPU_LOG(...)
+# endif
+#endif
+
 bool CPU_NMI_gate = true;
 bool CPU_NMI_active = false;
 bool CPU_NMI_pending = false;
@@ -51,16 +70,6 @@ int cpu_rep_max = 0;
 
 Bitu DEBUG_EnableDebugger(void);
 extern void GFX_SetTitle(Bit32s cycles, Bits frameskip, Bits timing, bool paused);
-
-#if 1
-#undef LOG
-#if defined (_MSC_VER)
-#define LOG(X,Y)
-#else
-#define LOG(X,Y) CPU_LOG
-#define CPU_LOG(...)
-#endif
-#endif
 
 CPU_Regs cpu_regs;
 CPUBlock cpu;
@@ -2025,6 +2034,11 @@ void CPU_SET_CRX(Bitu cr,Bitu value) {
 				}
 #if (C_DYNAMIC_X86)
 				if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CORE) {
+					if (dosbox_enable_nonrecursive_page_fault) {
+						dosbox_enable_nonrecursive_page_fault = false;
+						_LOG(LOG_CPU,LOG_NORMAL)("nonrecursive page fault not compatible with dynamic core, switching it off");
+					}
+
 					CPU_Core_Dyn_X86_Cache_Init(true);
 					cpudecoder=&CPU_Core_Dyn_X86_Run;
 					strcpy(core_mode, "dynamic");
@@ -2802,8 +2816,6 @@ public:
 		CPU_SkipCycleAutoAdjust=false;
 
 		dosbox_enable_nonrecursive_page_fault = section->Get_bool("non-recursive page fault");
-		if (dosbox_enable_nonrecursive_page_fault) LOG_MSG("WARNING: experimental non-recursive page fault mode enabled. If this causes problems, add 'non-recursive page fault=0' to your dosbox.conf\n");
-
 		ignore_opcode_63 = section->Get_bool("ignore opcode 63");
 		cpu_double_fault_enable = section->Get_bool("double fault");
 		cpu_triple_fault_reset = section->Get_bool("reset on triple fault");
@@ -2915,9 +2927,19 @@ public:
 			CPU_AutoDetermineMode|=CPU_AUTODETERMINE_CORE;
 		}
 		else if (core == "dynamic") {
+			if (dosbox_enable_nonrecursive_page_fault) {
+				dosbox_enable_nonrecursive_page_fault = false;
+				_LOG(LOG_CPU,LOG_NORMAL)("nonrecursive page fault not compatible with dynamic core, switching it off");
+			}
+
 			cpudecoder=&CPU_Core_Dyn_X86_Run;
 			CPU_Core_Dyn_X86_SetFPUMode(true);
 		} else if (core == "dynamic_nodhfpu") {
+			if (dosbox_enable_nonrecursive_page_fault) {
+				dosbox_enable_nonrecursive_page_fault = false;
+				_LOG(LOG_CPU,LOG_NORMAL)("nonrecursive page fault not compatible with dynamic core, switching it off");
+			}
+
 			cpudecoder=&CPU_Core_Dyn_X86_Run;
 			CPU_Core_Dyn_X86_SetFPUMode(false);
 #else
@@ -3095,11 +3117,21 @@ CPU_Decoder *CPU_IndexDecoderType( Bit16u decoder_idx )
 		case 2: cpudecoder = &CPU_Core_Simple_Run; break;
 		case 3: cpudecoder = &CPU_Core_Full_Run; break;
 #if C_DYNAMIC_X86
-		case 4: cpudecoder = &CPU_Core_Dyn_X86_Run; break;
+		case 4: cpudecoder = &CPU_Core_Dyn_X86_Run;
+			if (dosbox_enable_nonrecursive_page_fault) {
+				dosbox_enable_nonrecursive_page_fault = false;
+				_LOG(LOG_CPU,LOG_NORMAL)("nonrecursive page fault not compatible with dynamic core, switching it off");
+			}
+			break;
 #endif
 		case 100: cpudecoder = &CPU_Core_Normal_Trap_Run; break;
 #if C_DYNAMIC_X86
-		case 101: cpudecoder = &CPU_Core_Dyn_X86_Trap_Run; break;
+		case 101: cpudecoder = &CPU_Core_Dyn_X86_Trap_Run;
+			if (dosbox_enable_nonrecursive_page_fault) {
+				dosbox_enable_nonrecursive_page_fault = false;
+				_LOG(LOG_CPU,LOG_NORMAL)("nonrecursive page fault not compatible with dynamic core, switching it off");
+			}
+			break;
 #endif
 
 		case 200: cpudecoder = &HLT_Decode; break;
