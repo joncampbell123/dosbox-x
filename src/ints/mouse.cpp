@@ -44,7 +44,7 @@ void bios_enable_ps2();
 /* hardware/keyboard.cpp */
 void AUX_INT33_Takeover();
 int KEYBOARD_AUX_Active();
-void KEYBOARD_AUX_Event(float x,float y,Bitu buttons);
+void KEYBOARD_AUX_Event(float x,float y,Bitu buttons,int scrollwheel);
 
 bool en_int33=false;
 bool en_bios_ps2mouse=false;
@@ -153,6 +153,7 @@ static struct {
 	bool in_UIR;
 	Bit8u mode;
 	Bit16s gran_x,gran_y;
+	int scrollwheel;
 } mouse;
 
 bool Mouse_SetPS2State(bool use) {
@@ -493,7 +494,8 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
 	float dy = (Mouse_Vertical?-yrel:yrel) * mouse.pixelPerMickey_y;
 
 	if (KEYBOARD_AUX_Active()) {
-		KEYBOARD_AUX_Event(xrel,yrel,mouse.buttons);
+		KEYBOARD_AUX_Event(xrel,yrel,mouse.buttons,mouse.scrollwheel);
+		mouse.scrollwheel = 0;
 		return;
 	}
 
@@ -565,9 +567,13 @@ void Mouse_ButtonPressed(Bit8u button) {
 				return;
 		}
 
-		KEYBOARD_AUX_Event(0,0,mouse.buttons);
+		KEYBOARD_AUX_Event(0,0,mouse.buttons,mouse.scrollwheel);
+		mouse.scrollwheel = 0;
 		return;
 	}
+
+	if (button > 2)
+		return;
 
 	switch (button) {
 #if (MOUSE_BUTTONS >= 1)
@@ -611,13 +617,23 @@ void Mouse_ButtonReleased(Bit8u button) {
 			case 2:
 				mouse.buttons&=~4;
 				break;
+			case (100-1):	/* scrollwheel up */
+				mouse.scrollwheel -= 8;
+				break;
+			case (100+1):	/* scrollwheel down */
+				mouse.scrollwheel += 8;
+				break;
 			default:
 				return;
 		}
 
-		KEYBOARD_AUX_Event(0,0,mouse.buttons);
+		KEYBOARD_AUX_Event(0,0,mouse.buttons,mouse.scrollwheel);
+		mouse.scrollwheel = 0;
 		return;
 	}
+
+	if (button > 2)
+		return;
 
 	switch (button) {
 #if (MOUSE_BUTTONS >= 1)
@@ -1235,6 +1251,7 @@ void MOUSE_Init(Section* sec) {
 	mouse.hidden = 1; //Hide mouse on startup
 	mouse.timer_in_progress = false;
 	mouse.mode = 0xFF; //Non existing mode
+	mouse.scrollwheel = 0;
 
    	mouse.sub_mask=0;
 	mouse.sub_seg=0x6362;	// magic value

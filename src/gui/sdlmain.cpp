@@ -2337,6 +2337,12 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
 		case SDL_BUTTON_MIDDLE:
 			Mouse_ButtonPressed(2);
 			break;
+		case SDL_BUTTON_WHEELUP: /* Ick, really SDL? */
+			Mouse_ButtonPressed(100-1);
+			break;
+		case SDL_BUTTON_WHEELDOWN: /* Ick, really SDL? */
+			Mouse_ButtonPressed(100+1);
+			break;
 		}
 		break;
 	case SDL_RELEASED:
@@ -2349,6 +2355,12 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
 			break;
 		case SDL_BUTTON_MIDDLE:
 			Mouse_ButtonReleased(2);
+			break;
+		case SDL_BUTTON_WHEELUP: /* Ick, really SDL? */
+			Mouse_ButtonReleased(100-1);
+			break;
+		case SDL_BUTTON_WHEELDOWN: /* Ick, really SDL? */
+			Mouse_ButtonReleased(100+1);
 			break;
 		}
 		break;

@@ -136,12 +136,19 @@ bool MouseTypeNone() {
 }
 
 /* NTS: INT33H emulation is coded to call this ONLY if it hasn't taken over the role of mouse input */
-void KEYBOARD_AUX_Event(float x,float y,Bitu buttons) {
+void KEYBOARD_AUX_Event(float x,float y,Bitu buttons,int scrollwheel) {
 	keyb.ps2mouse.acx += x;
 	keyb.ps2mouse.acy += y;
 	keyb.ps2mouse.l = (buttons & 1)>0;
 	keyb.ps2mouse.r = (buttons & 2)>0;
 	keyb.ps2mouse.m = (buttons & 4)>0;
+
+	/* "Valid ranges are -8 to 7"
+	 * http://www.computer-engineering.org/ps2mouse/ */
+	if (scrollwheel < -8)
+		scrollwheel = -8;
+	else if (scrollwheel > 7)
+		scrollwheel = 7;
 
 	if (keyb.ps2mouse.reporting && keyb.ps2mouse.mode == MM_STREAM) {
 		if ((keyb.used+4) < KEYBUFSIZE) {
@@ -169,10 +176,11 @@ void KEYBOARD_AUX_Event(float x,float y,Bitu buttons) {
 			KEYBOARD_AddBuffer(AUX|(x&0xFF));
 			KEYBOARD_AddBuffer(AUX|(y&0xFF));
 			if (keyb.ps2mouse.intellimouse_btn45) {
-				KEYBOARD_AddBuffer(AUX|0x00);			/* TODO: scrollwheel and 4th & 5th buttons */
+				KEYBOARD_AddBuffer(AUX|(scrollwheel&0xFF));	/* TODO: 4th & 5th buttons */
 			}
 			else if (keyb.ps2mouse.intellimouse_mode) {
-				KEYBOARD_AddBuffer(AUX|0x00);			/* TODO: scrollwheel */
+				LOG_MSG("Scrollwheel %d",scrollwheel);
+				KEYBOARD_AddBuffer(AUX|(scrollwheel&0xFF));
 			}
 		}
 
@@ -385,7 +393,8 @@ void KEYBOARD_AUX_Write(Bitu val) {
 					KEYBOARD_AUX_Event(0,0,
 						(keyb.ps2mouse.m << 2)|
 						(keyb.ps2mouse.r << 1)|
-						(keyb.ps2mouse.l << 0));
+						(keyb.ps2mouse.l << 0),
+						0);
 					break;
 				case 0xea:	/* set stream mode */
 					KEYBOARD_AddBuffer(AUX|0xfa);	/* ack */
