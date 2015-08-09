@@ -179,7 +179,6 @@ void KEYBOARD_AUX_Event(float x,float y,Bitu buttons,int scrollwheel) {
 				KEYBOARD_AddBuffer(AUX|(scrollwheel&0xFF));	/* TODO: 4th & 5th buttons */
 			}
 			else if (keyb.ps2mouse.intellimouse_mode) {
-				LOG_MSG("Scrollwheel %d",scrollwheel);
 				KEYBOARD_AddBuffer(AUX|(scrollwheel&0xFF));
 			}
 		}
