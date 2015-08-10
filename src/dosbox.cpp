@@ -672,6 +672,7 @@ void DOSBOX_RealInit(Section * sec) {
 	else if (mtype == "svga_paradise") { svgaCard = SVGA_ParadisePVGA1A; }
 	else if (mtype == "vgaonly")       { svgaCard = SVGA_None; }
 	else if (mtype == "amstrad")       { machine = MCH_AMSTRAD; }
+	else if (mtype == "pc98")          { machine = MCH_PC98; }
 	else E_Exit("DOSBOX:Unknown machine type %s",mtype.c_str());
 
 	std::string isabclk = section->Get_string("isa bus clock");
@@ -709,6 +710,9 @@ void DOSBOX_RealInit(Section * sec) {
 	clockdom_8250_UART.set_name("8250 UART");
 	clockdom_ISA_BCLK.set_name("ISA BCLK");
 	clockdom_PCI_BCLK.set_name("PCI BCLK");
+
+	// TODO: When we begin to flesh out any kind of NEC PC-98 emulation, remove this abort
+	if (IS_PC98_ARCH) E_Exit("Sorry, NEC PC-98 emulation not implemented. Coming soon.");
 }
 
 void DOSBOX_Init(void) {
@@ -767,7 +771,7 @@ void DOSBOX_Init(void) {
 	const char* machines[] = {
 		"hercules", "cga", "cga_mono", "cga_rgb", "cga_composite", "cga_composite2", "tandy", "pcjr", "ega",
 		"vgaonly", "svga_s3", "svga_et3000", "svga_et4000",
-		"svga_paradise", "vesa_nolfb", "vesa_oldvbe", "amstrad", 0 };
+		"svga_paradise", "vesa_nolfb", "vesa_oldvbe", "amstrad", "pc98", 0 };
 
 	const char* scalers[] = { 
 		"none", "normal2x", "normal3x", "normal4x", "normal5x",

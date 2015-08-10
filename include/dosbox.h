@@ -39,7 +39,8 @@ enum MachineType {
 	MCH_PCJR,
 	MCH_EGA,
 	MCH_VGA,
-	MCH_AMSTRAD
+	MCH_AMSTRAD,
+	MCH_PC98
 };
 
 enum SVGACards {
@@ -77,11 +78,13 @@ void					DOSBOX_Init(void);
 #define IS_TANDY_ARCH			((machine==MCH_TANDY) || (machine==MCH_PCJR))
 #define IS_EGAVGA_ARCH			((machine==MCH_EGA) || (machine==MCH_VGA))
 #define IS_VGA_ARCH			(machine==MCH_VGA)
+#define IS_PC98_ARCH			(machine==MCH_PC98)
 
 /* machine tests for use with switch() statements */
 #define TANDY_ARCH_CASE			MCH_TANDY: case MCH_PCJR
 #define EGAVGA_ARCH_CASE		MCH_EGA: case MCH_VGA
 #define VGA_ARCH_CASE			MCH_VGA
+#define PC98_ARCH_CASE			MCH_PC98
 
 #ifndef DOSBOX_LOGGING_H
 #include "logging.h"
