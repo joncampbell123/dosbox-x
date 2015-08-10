@@ -745,6 +745,7 @@ void DOSBOX_Init(void) {
 	const char* oplmodes[]={ "auto", "cms", "opl2", "dualopl2", "opl3", "none", "hardware", "hardwaregb", 0};
 	const char* serials[] = { "dummy", "disabled", "modem", "nullmodem", "serialmouse", "directserial",0 };
 	const char* acpi_rsd_ptr_settings[] = { "auto", "bios", "ebda", 0 };
+	const char* dosv_settings[] = { "off", "japanese", "chinese", "korean", 0 };
 	const char* acpisettings[] = { "off", "1.0", "1.0b", "2.0", "2.0a", "2.0b", "2.0c", "3.0", "3.0a", "3.0b", "4.0", "4.0a", "5.0", "5.0a", "6.0", 0 };
 	const char* guspantables[] = { "old", "accurate", "default", 0 };
 	const char *sidbaseno[] = { "240", "220", "260", "280", "2a0", "2c0", "2e0", "300", 0 };
@@ -1868,6 +1869,16 @@ void DOSBOX_Init(void) {
 			"DOS actually does, but if set, can help certain DOS games and demos cope with problems\n"
 			"related to uninitialized variables in extended memory. When enabled this option may\n"
 			"incur a slight to moderate performance penalty.");
+
+	Pstring = secprop->Add_string("dosv",Property::Changeable::WhenIdle,"off");
+	Pstring->Set_values(dosv_settings);
+	Pstring->Set_help("Enable DOS/V emulation and specify which version to emulate. This option is intended for\n"
+			"use with games or software originating from Asia that use the double byte character set\n"
+			"encodings and the DOS/V extensions to display Japanese, Chinese, or Korean text.\n"
+			"Note that enabling DOS/V replaces 80x25 text mode (INT 10h mode 3) with a EGA/VGA graphics\n"
+			"mode that emulates text mode to display the characters and may be incompatible with non-Asian\n"
+			"software that assumes direct access to the text mode via segment 0xB800.\n"
+			"WARNING: This option is very experimental at this time.");
 
 	Pstring = secprop->Add_string("ems",Property::Changeable::WhenIdle,"true");
 	Pstring->Set_values(ems_settings);
