@@ -230,11 +230,15 @@ void raster_generic(UINT32 TMUS, UINT32 TEXMODE0, UINT32 TEXMODE1, void *destbas
 	/* loop in X */
 	for (x = startx; x < stopx; x++)
 	{
-		rgb_union iterargb = { 0 };
+		rgb_union iterargb;
 		rgb_union texel = { 0 };
+		rgb_union color;
 
 		/* pixel pipeline part 1 handles depth testing and stippling */
 		PIXEL_PIPELINE_BEGIN(v, x, y, v->reg[fbzColorPath].u, v->reg[fbzMode].u, iterz, iterw);
+
+		/* depth testing */
+		DEPTH_TEST(v, stats, x, v->reg[fbzMode].u);
 
 		/* run the texture pipeline on TMU1 to produce a value in texel */
 		/* note that they set LOD min to 8 to "disable" a TMU */
@@ -305,25 +309,6 @@ void raster_generic(UINT32 TMUS, UINT32 TEXMODE0, UINT32 TEXMODE1, void *destbas
 		/* handle alpha mask */
 		APPLY_ALPHAMASK(v, stats, v->reg[fbzMode].u, c_other.rgb.a);
 
-		/* handle alpha test */
-		APPLY_ALPHATEST(v, stats, v->reg[alphaMode].u, c_other.rgb.a);
-
-		/* compute c_local */
-		if (FBZCP_CC_LOCALSELECT_OVERRIDE(v->reg[fbzColorPath].u) == 0)
-		{
-			if (FBZCP_CC_LOCALSELECT(v->reg[fbzColorPath].u) == 0)	/* iterated RGB */
-				c_local.u = iterargb.u;
-			else											/* color0 RGB */
-				c_local.u = v->reg[color0].u;
-		}
-		else
-		{
-			if (!(texel.rgb.a & 0x80))					/* iterated RGB */
-				c_local.u = iterargb.u;
-			else											/* color0 RGB */
-				c_local.u = v->reg[color0].u;
-		}
-
 		/* compute a_local */
 		switch (FBZCP_CCA_LOCALSELECT(v->reg[fbzColorPath].u))
 		{
@@ -350,6 +335,78 @@ void raster_generic(UINT32 TMUS, UINT32 TEXMODE0, UINT32 TEXMODE1, void *destbas
 			}
 		}
 
+		/* select zero or a_other */
+		if (FBZCP_CCA_ZERO_OTHER(v->reg[fbzColorPath].u) == 0)
+			a = c_other.rgb.a;
+		else
+			a = 0;
+
+		/* subtract a_local */ 
+		if (FBZCP_CCA_SUB_CLOCAL(v->reg[fbzColorPath].u)) 
+			a -= c_local.rgb.a; 
+		
+		/* blend alpha */ 
+		switch (FBZCP_CCA_MSELECT(v->reg[fbzColorPath].u)) 
+		{ 
+			default: /* reserved */ 
+			case 0: /* 0 */ 
+				blenda = 0; 
+				break; 
+		
+			case 1: /* a_local */ 
+				blenda = c_local.rgb.a; 
+				break; 
+		
+			case 2: /* a_other */ 
+				blenda = c_other.rgb.a; 
+				break; 
+		
+			case 3: /* a_local */ 
+				blenda = c_local.rgb.a; 
+				break; 
+		
+			case 4: /* texture alpha */ 
+				blenda = texel.rgb.a; 
+				break; 
+		} 
+		
+		/* reverse the alpha blend */ 
+		if (!FBZCP_CCA_REVERSE_BLEND(v->reg[fbzColorPath].u)) 
+			blenda ^= 0xff; 
+		
+		/* do the blend */ 
+		a = (a * (blenda + 1)) >> 8; 
+		
+		/* add clocal or alocal to alpha */ 
+		if (FBZCP_CCA_ADD_ACLOCAL(v->reg[fbzColorPath].u)) 
+			a += c_local.rgb.a; 
+		
+		/* clamp */ 
+		CLAMP(a, 0x00, 0xff); 
+		
+		/* invert */ 
+		if (FBZCP_CCA_INVERT_OUTPUT(v->reg[fbzColorPath].u)) 
+			a ^= 0xff; 
+
+		/* handle alpha test */
+		APPLY_ALPHATEST(v, stats, v->reg[alphaMode].u, a);
+		
+		/* compute c_local */
+		if (FBZCP_CC_LOCALSELECT_OVERRIDE(v->reg[fbzColorPath].u) == 0)
+		{
+			if (FBZCP_CC_LOCALSELECT(v->reg[fbzColorPath].u) == 0) /* iterated RGB */
+				c_local.u = iterargb.u;
+			else /* color0 RGB */
+				c_local.u = v->reg[color0].u;
+		}
+		else
+		{
+			if (!(texel.rgb.a & 0x80)) /* iterated RGB */
+				c_local.u = iterargb.u;
+			else /* color0 RGB */
+				c_local.u = v->reg[color0].u;
+		} 
+		
 		/* select zero or c_other */
 		if (FBZCP_CC_ZERO_OTHER(v->reg[fbzColorPath].u) == 0)
 		{
@@ -360,12 +417,6 @@ void raster_generic(UINT32 TMUS, UINT32 TEXMODE0, UINT32 TEXMODE1, void *destbas
 		else
 			r = g = b = 0;
 
-		/* select zero or a_other */
-		if (FBZCP_CCA_ZERO_OTHER(v->reg[fbzColorPath].u) == 0)
-			a = c_other.rgb.a;
-		else
-			a = 0;
-
 		/* subtract c_local */
 		if (FBZCP_CC_SUB_CLOCAL(v->reg[fbzColorPath].u))
 		{
@@ -373,10 +424,6 @@ void raster_generic(UINT32 TMUS, UINT32 TEXMODE0, UINT32 TEXMODE1, void *destbas
 			g -= c_local.rgb.g;
 			b -= c_local.rgb.b;
 		}
-
-		/* subtract a_local */
-		if (FBZCP_CCA_SUB_CLOCAL(v->reg[fbzColorPath].u))
-			a -= c_local.rgb.a;
 
 		/* blend RGB */
 		switch (FBZCP_CC_MSELECT(v->reg[fbzColorPath].u))
@@ -406,27 +453,6 @@ void raster_generic(UINT32 TMUS, UINT32 TEXMODE0, UINT32 TEXMODE1, void *destbas
 				break;
 		}
 
-		/* blend alpha */
-		switch (FBZCP_CCA_MSELECT(v->reg[fbzColorPath].u))
-		{
-			default:	/* reserved */
-			case 0:		/* 0 */
-				blenda = 0;
-				break;
-			case 1:		/* a_local */
-				blenda = c_local.rgb.a;
-				break;
-			case 2:		/* a_other */
-				blenda = c_other.rgb.a;
-				break;
-			case 3:		/* a_local */
-				blenda = c_local.rgb.a;
-				break;
-			case 4:		/* texture alpha */
-				blenda = texel.rgb.a;
-				break;
-		}
-
 		/* reverse the RGB blend */
 		if (!FBZCP_CC_REVERSE_BLEND(v->reg[fbzColorPath].u))
 		{
@@ -435,15 +461,10 @@ void raster_generic(UINT32 TMUS, UINT32 TEXMODE0, UINT32 TEXMODE1, void *destbas
 			blendb ^= 0xff;
 		}
 
-		/* reverse the alpha blend */
-		if (!FBZCP_CCA_REVERSE_BLEND(v->reg[fbzColorPath].u))
-			blenda ^= 0xff;
-
 		/* do the blend */
 		r = (r * (blendr + 1)) >> 8;
 		g = (g * (blendg + 1)) >> 8;
 		b = (b * (blendb + 1)) >> 8;
-		a = (a * (blenda + 1)) >> 8;
 
 		/* add clocal or alocal to RGB */
 		switch (FBZCP_CC_ADD_ACLOCAL(v->reg[fbzColorPath].u))
@@ -463,15 +484,10 @@ void raster_generic(UINT32 TMUS, UINT32 TEXMODE0, UINT32 TEXMODE1, void *destbas
 				break;
 		}
 
-		/* add clocal or alocal to alpha */
-		if (FBZCP_CCA_ADD_ACLOCAL(v->reg[fbzColorPath].u))
-			a += c_local.rgb.a;
-
 		/* clamp */
 		CLAMP(r, 0x00, 0xff);
 		CLAMP(g, 0x00, 0xff);
 		CLAMP(b, 0x00, 0xff);
-		CLAMP(a, 0x00, 0xff);
 
 		/* invert */
 		if (FBZCP_CC_INVERT_OUTPUT(v->reg[fbzColorPath].u))
@@ -480,9 +496,6 @@ void raster_generic(UINT32 TMUS, UINT32 TEXMODE0, UINT32 TEXMODE1, void *destbas
 			g ^= 0xff;
 			b ^= 0xff;
 		}
-		if (FBZCP_CCA_INVERT_OUTPUT(v->reg[fbzColorPath].u))
-			a ^= 0xff;
-
 
 		/* pixel pipeline part 2 handles fog, alpha, and final output */
 		PIXEL_PIPELINE_MODIFY(v, dither, dither4, x,
@@ -2177,7 +2190,7 @@ void lfb_w(UINT32 offset, UINT32 data, UINT32 mem_mask) {
 	/* simple case: no pipeline */
 	if (!LFBMODE_ENABLE_PIXEL_PIPELINE(v->reg[lfbMode].u))
 	{
-		DECLARE_DITHER_POINTERS;
+		DECLARE_DITHER_POINTERS_NO_DITHER_VAR;
 		UINT32 bufoffs;
 
 		if (LOG_LFB) LOG(LOG_VOODOO,LOG_WARN)("VOODOO.LFB:write raw mode %X (%d,%d) = %08X & %08X\n", LFBMODE_WRITE_FORMAT(v->reg[lfbMode].u), x, y, data, mem_mask);
@@ -2191,7 +2204,7 @@ void lfb_w(UINT32 offset, UINT32 data, UINT32 mem_mask) {
 		bufoffs = scry * v->fbi.rowpixels + x;
 
 		/* compute dithering */
-		COMPUTE_DITHER_POINTERS(v->reg[fbzMode].u, y);
+		COMPUTE_DITHER_POINTERS_NO_DITHER_VAR(v->reg[fbzMode].u, y);
 
 		/* loop over up to two pixels */
 		for (pix = 0; mask; pix++)
@@ -2271,9 +2284,15 @@ void lfb_w(UINT32 offset, UINT32 data, UINT32 mem_mask) {
 			if (mask & 0x0f)
 			{
 				stats_block *stats = &v->fbi.lfb_stats;
-				INT64 iterw = sw[pix] << (30-16);
+				INT64 iterw;
+				if (LFBMODE_WRITE_W_SELECT(v->reg[lfbMode].u)) {
+					iterw = (UINT32) v->reg[zaColor].u << 16;
+				} else {
+					iterw = (UINT32) sw[pix] << 16;
+				}
 				INT32 iterz = sw[pix] << 12;
 				rgb_union color;
+				rgb_union iterargb = { 0 };
 
 				/* apply clipping */
 				if (FBZMODE_ENABLE_CLIPPING(v->reg[fbzMode].u))
@@ -2291,12 +2310,52 @@ void lfb_w(UINT32 offset, UINT32 data, UINT32 mem_mask) {
 
 				/* pixel pipeline part 1 handles depth testing and stippling */
 				// TODO: in the v->ogl case this macro doesn't really work with depth testing
-				PIXEL_PIPELINE_BEGIN(v, x, y, v->reg[fbzColorPath].u, v->reg[fbzMode].u, iterz, iterw);
+				// PIXEL_PIPELINE_BEGIN(v, x, y, v->reg[fbzColorPath].u, v->reg[fbzMode].u, iterz, iterw);
+// Start PIXEL_PIPE_BEGIN copy
+					INT32 fogdepth, biasdepth;
+					INT32 prefogr, prefogg, prefogb;
+					INT32 r, g, b, a;
+
+					(stats)->pixels_in++;
+
+					/* apply clipping */
+					/* note that for perf reasons, we assume the caller has done clipping */
+
+					/* handle stippling */
+					if (FBZMODE_ENABLE_STIPPLE(v->reg[fbzMode].u))
+					{
+						/* rotate mode */
+						if (FBZMODE_STIPPLE_PATTERN(v->reg[fbzMode].u) == 0)
+						{
+							v->reg[stipple].u = (v->reg[stipple].u << 1) | (v->reg[stipple].u >> 31);
+							if ((v->reg[stipple].u & 0x80000000) == 0)
+							{
+								goto skipdrawdepth;
+							}
+						}
+
+						/* pattern mode */
+						else
+						{
+							int stipple_index = ((y & 3) << 3) | (~x & 7);
+							if (((v->reg[stipple].u >> stipple_index) & 1) == 0)
+							{
+								goto nextpixel;
+							}
+						}
+					}
+// End PIXEL_PIPELINE_BEGIN COPY
+
+				// Depth testing value for lfb pipeline writes is directly from write data, no biasing is used
+				fogdepth = biasdepth = (UINT32) sw[pix];
 
 				color.rgb.r = sr[pix];
 				color.rgb.g = sg[pix];
 				color.rgb.b = sb[pix];
 				color.rgb.a = sa[pix];
+
+				/* Perform depth testing */
+				DEPTH_TEST(v, stats, x, v->reg[fbzMode].u);	
 
 				/* apply chroma key */
 				APPLY_CHROMAKEY(v, stats, v->reg[fbzMode].u, color);
@@ -2529,13 +2588,12 @@ void lfb_w(UINT32 offset, UINT32 data, UINT32 mem_mask) {
 					} */
 				} else {
 					/* pixel pipeline part 2 handles color combine, fog, alpha, and final output */
-					PIXEL_PIPELINE_MODIFY(v, dither, dither4, x, v->reg[fbzMode].u, v->reg[fbzColorPath].u, v->reg[alphaMode].u, v->reg[fogMode].u, iterz, iterw, v->reg[zaColor]);
+					PIXEL_PIPELINE_MODIFY(v, dither, dither4, x, v->reg[fbzMode].u, v->reg[fbzColorPath].u, v->reg[alphaMode].u, v->reg[fogMode].u, iterz, iterw, iterargb);
 
 					PIXEL_PIPELINE_FINISH(v, dither_lookup, x, dest, depth, v->reg[fbzMode].u);
 				}
 
 				PIXEL_PIPELINE_END(stats);
-			}
 nextpixel:
 			/* advance our pointers */
 			x++;
@@ -2639,7 +2697,7 @@ INT32 texture_w(UINT32 offset, UINT32 data) {
 		UINT16 *dest;
 
 		/* extract info */
-		tmunum = (offset >> 19) & 0x03;
+		// tmunum = (offset >> 19) & 0x03;
 		lod = (offset >> 15) & 0x0f;
 		tt = (offset >> 7) & 0xff;
 		ts = (offset << 1) & 0xfe;
@@ -2852,8 +2910,10 @@ UINT32 lfb_r(UINT32 offset)
 	} else {
 		/* advance pointers to the proper row */
 		bufoffs = scry * v->fbi.rowpixels + x;
-		if (bufoffs >= bufmax)
+		if (bufoffs >= bufmax){
+			LOG_MSG("LFB_R: Buffer offset out of bounds x=%i y=%i offset=%08X bufoffs=%08X\n", x, y, offset, (UINT32) bufoffs);
 			return 0xffffffff;
+		}
 
 		/* compute the data */
 		data = buffer[bufoffs + 0] | (buffer[bufoffs + 1] << 16);
@@ -3136,8 +3196,8 @@ void fastfill(voodoo_state *v)
 		/* determine the dither pattern */
 		for (y = 0; y < 4; y++)
 		{
-			DECLARE_DITHER_POINTERS;
-			COMPUTE_DITHER_POINTERS(v->reg[fbzMode].u, y);
+			DECLARE_DITHER_POINTERS_NO_DITHER_VAR;
+			COMPUTE_DITHER_POINTERS_NO_DITHER_VAR(v->reg[fbzMode].u, y);
 			for (x = 0; x < 4; x++)
 			{
 				int r = v->reg[color1].rgb.r;
