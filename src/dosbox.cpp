@@ -744,6 +744,8 @@ void DOSBOX_Init(void) {
 	const char* sbtypes[] = { "sb1", "sb2", "sbpro1", "sbpro2", "sb16", "sb16vibra", "gb", "none", 0 };
 	const char* oplmodes[]={ "auto", "cms", "opl2", "dualopl2", "opl3", "none", "hardware", "hardwaregb", 0};
 	const char* serials[] = { "dummy", "disabled", "modem", "nullmodem", "serialmouse", "directserial",0 };
+	const char* acpi_rsd_ptr_settings[] = { "auto", "bios", "ebda", 0 };
+	const char* acpisettings[] = { "off", "1.0", "1.0b", "2.0", "2.0a", "2.0b", "2.0c", "3.0", "3.0a", "3.0b", "4.0", "4.0a", "5.0", "5.0a", "6.0", 0 };
 	const char* guspantables[] = { "old", "accurate", "default", 0 };
 	const char *sidbaseno[] = { "240", "220", "260", "280", "2a0", "2c0", "2e0", "300", 0 };
 	const char* joytypes[] = { "auto", "2axis", "4axis", "4axis_2", "fcs", "ch", "none",0};
@@ -919,6 +921,26 @@ void DOSBOX_Init(void) {
 			"A value of 1000 (1us) is recommended for ISA bus type delays. If your game\n"
 			"or demo is not sensitive to I/O port and ISA bus timing, you can turn this option off\n"
 			"(set to 0) to increase game performance.");
+
+	Pstring = secprop->Add_string("acpi", Property::Changeable::OnlyAtStart,"off");
+	Pstring->Set_values(acpisettings);
+	Pstring->Set_help("ACPI emulation, and what version of the specification to follow.\n"
+			"WARNING: This option is very experimental at this time and should not be enabled unless you're willing to accept the consequences.\n"
+			"         Intended for use with ACPI-aware OSes including Linux and Windows 98/ME. This option will also slightly reduce available\n"
+			"         system memory to make room for the ACPI tables, just as real BIOSes do, and reserve an IRQ for ACPI functions.");
+
+	Pstring = secprop->Add_string("acpi rsd ptr location", Property::Changeable::OnlyAtStart,"auto");
+	Pstring->Set_values(acpi_rsd_ptr_settings);
+	Pstring->Set_help("Where to store the Root System Description Pointer structure. You can have it stored in the ROM BIOS area, or the Extended Bios Data Area.");
+
+	Pint = secprop->Add_int("acpi sci irq", Property::Changeable::WhenIdle,-1);
+	Pint->Set_help("IRQ to assign as ACPI system control interrupt. set to -1 to automatically assign.");
+
+	Phex = secprop->Add_hex("acpi iobase",Property::Changeable::WhenIdle,0);
+	Phex->Set_help("I/O port base for the ACPI device Power Management registers. Set to 0 for automatic assignment.");
+
+	Pint = secprop->Add_int("acpi reserved size", Property::Changeable::WhenIdle,0);
+	Pint->Set_help("Amount of memory at top to reserve for ACPI structures and tables. Set to 0 for automatic assignment.");
 
 	Pint = secprop->Add_int("memsize", Property::Changeable::WhenIdle,16);
 	Pint->SetMinMax(1,511);
