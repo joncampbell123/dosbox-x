@@ -334,6 +334,7 @@ static void PAGING_NewPageFault(PhysPt lin_addr, Bitu page_addr, bool prepare_on
 		CPU_Decoder * old_cpudecoder;
 		old_cpudecoder=cpudecoder;
 		cpudecoder=&PageFaultCore;
+		LOG(LOG_PAGING,LOG_NORMAL)("Recursive PageFault for %lx used=%d",(unsigned long)lin_addr,(int)pf_queue.used);
 		if (pf_queue.used >= PF_QUEUESIZE) E_Exit("PF queue overrun.");
 		if (pf_queue.used != 0) LOG_MSG("Warning: PAGING_NewPageFault() more than one level, now using level %d\n",(int)pf_queue.used+1);
 		PF_Entry * entry=&pf_queue.entries[pf_queue.used++];
@@ -345,7 +346,6 @@ static void PAGING_NewPageFault(PhysPt lin_addr, Bitu page_addr, bool prepare_on
 		CPU_Exception(EXCEPTION_PF,faultcode);
 		DOSBOX_RunMachine();
 		pf_queue.used--;
-		LOG(LOG_PAGING,LOG_NORMAL)("Left PageFault for %lx queue %d",(unsigned long)lin_addr,(int)pf_queue.used);
 		memcpy(&lflags,&old_lflags,sizeof(LazyFlags));
 		cpudecoder=old_cpudecoder;
 	}
