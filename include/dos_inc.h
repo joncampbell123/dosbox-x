@@ -21,6 +21,7 @@
 #define DOSBOX_DOS_INC_H
 
 #include <stddef.h>
+#define CTBUF 127
 
 #ifndef DOSBOX_DOS_SYSTEM_H
 #include "dos_system.h"
@@ -36,7 +37,7 @@
 #endif
 struct CommandTail{
   Bit8u count;				/* number of bytes returned */
-  char buffer[127];			 /* the buffer itself */
+  char buffer[CTBUF];			 /* the buffer itself */
 } GCC_ATTRIBUTE(packed);
 #ifdef _MSC_VER
 #pragma pack ()
@@ -175,6 +176,7 @@ bool DOS_OpenFile(char const * name,Bit8u flags,Bit16u * entry);
 bool DOS_OpenFileExtended(char const * name, Bit16u flags, Bit16u createAttr, Bit16u action, Bit16u *entry, Bit16u* status);
 bool DOS_CreateFile(char const * name,Bit16u attribute,Bit16u * entry);
 bool DOS_UnlinkFile(char const * const name);
+bool DOS_GetSFNPath(char const * const path, char *SFNpath, bool LFN);
 bool DOS_FindFirst(char *search,Bit16u attr,bool fcb_findfirst=false);
 bool DOS_FindNext(void);
 bool DOS_Canonicalize(char const * const name,char * const big);
@@ -187,7 +189,7 @@ bool DOS_MakeName(char const * const name,char * const fullname,Bit8u * drive);
 Bit8u DOS_GetDefaultDrive(void);
 void DOS_SetDefaultDrive(Bit8u drive);
 bool DOS_SetDrive(Bit8u drive);
-bool DOS_GetCurrentDir(Bit8u drive,char * const buffer);
+bool DOS_GetCurrentDir(Bit8u drive,char * const buffer, bool LFN);
 bool DOS_ChangeDir(char const * const dir);
 bool DOS_MakeDir(char const * const dir);
 bool DOS_RemoveDir(char const * const dir);
@@ -522,12 +524,14 @@ class DOS_DTA:public MemStruct{
 public:
 	DOS_DTA(RealPt addr) { SetPt(addr); }
 
+	int GetFindData(char * finddata);
+
 	void SetupSearch(Bit8u _sdrive,Bit8u _sattr,char * _pattern);
-	void SetResult(const char * _name,Bit32u _size,Bit16u _date,Bit16u _time,Bit8u _attr);
+	void SetResult(const char * _name,const char * _lname,Bit32u _size,Bit16u _date,Bit16u _time,Bit8u _attr);
 	
 	Bit8u GetSearchDrive(void);
 	void GetSearchParams(Bit8u & _sattr,char * _spattern);
-	void GetResult(char * _name,Bit32u & _size,Bit16u & _date,Bit16u & _time,Bit8u & _attr);
+	void GetResult(char * _name,char * _lname,Bit32u & _size,Bit16u & _date,Bit16u & _time,Bit8u & _attr);
 
 	void	SetDirID(Bit16u entry)			{ sSave(sDTA,dirID,entry); };
 	void	SetDirIDCluster(Bit16u entry)	{ sSave(sDTA,dirCluster,entry); };
@@ -539,8 +543,8 @@ private:
 	#endif
 	struct sDTA {
 		Bit8u sdrive;						/* The Drive the search is taking place */
-		Bit8u sname[8];						/* The Search pattern for the filename */		
-		Bit8u sext[3];						/* The Search pattern for the extenstion */
+		Bit8u spname[8];					/* The Search pattern for the filename */		
+		Bit8u spext[3];						/* The Search pattern for the extension */
 		Bit8u sattr;						/* The Attributes that need to be found */
 		Bit16u dirID;						/* custom: dir-search ID for multiple searches at the same time */
 		Bit16u dirCluster;					/* custom (drive_fat only): cluster number for multiple searches at the same time */

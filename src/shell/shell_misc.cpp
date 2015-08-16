@@ -35,7 +35,7 @@
 void DOS_Shell::ShowPrompt(void) {
 	char dir[DOS_PATHLENGTH];
 	dir[0] = 0; //DOS_GetCurrentDir doesn't always return something. (if drive is messed up)
-	DOS_GetCurrentDir(0,dir);
+	DOS_GetCurrentDir(0,dir,uselfn);
 	std::string line;
 	const char * promptstr = "\0";
 
@@ -297,9 +297,20 @@ void DOS_Shell::InputCommand(char * line) {
 					// build new completion list
 					// Lines starting with CD will only get directories in the list
 					bool dir_only = (strncasecmp(line,"CD ",3)==0);
+					int q=0;
 
 					// get completion mask
 					char *p_completion_start = strrchr(line, ' ');
+ 					while (p_completion_start) {
+ 						q=0;
+ 						char *i;
+ 						for (i=line;i<p_completion_start;i++)
+ 							if (*i=='\"') q++;
+ 						if (q/2*2==q) break;
+ 						*i=0;
+ 						p_completion_start = strrchr(line, ' ');
+ 						*i=' ';
+ 					}
 
 					if (p_completion_start) {
 						p_completion_start ++;
@@ -314,7 +325,7 @@ void DOS_Shell::InputCommand(char * line) {
 					if ((path = strrchr(line+completion_index,'/'))) completion_index = (Bit16u)(path-line+1);
 
 					// build the completion list
-					char mask[DOS_PATHLENGTH];
+					char mask[DOS_PATHLENGTH+2],smask[DOS_PATHLENGTH];
 					if (p_completion_start) {
 						strcpy(mask, p_completion_start);
 						char* dot_pos=strrchr(mask,'.');
@@ -332,6 +343,9 @@ void DOS_Shell::InputCommand(char * line) {
 					RealPt save_dta=dos.dta();
 					dos.dta(dos.tables.tempdta);
 
+ 					DOS_GetSFNPath(mask,smask,false);
+ 					sprintf(mask,"\"%s\"",smask);
+
 					bool res = DOS_FindFirst(mask, 0xffff & ~DOS_ATTR_VOLUME);
 					if (!res) {
 						dos.dta(save_dta);
@@ -339,24 +353,34 @@ void DOS_Shell::InputCommand(char * line) {
 					}
 
 					DOS_DTA dta(dos.dta());
-					char name[DOS_NAMELENGTH_ASCII];Bit32u sz;Bit16u date;Bit16u time;Bit8u att;
+					char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH], qlname[LFN_NAMELENGTH+2];
+					Bit32u sz;Bit16u date;Bit16u time;Bit8u att;
 
 					std::list<std::string> executable;
+ 					q=0;
+ 					while (*p_completion_start)
+ 						if (*p_completion_start++=='\"')
+ 							q++;
 					while (res) {
-						dta.GetResult(name,sz,date,time,att);
+ 						dta.GetResult(name,lname,sz,date,time,att);
+ 						if (strchr(uselfn?lname:name,' ')!=NULL&&q/2*2==q)
+ 							sprintf(qlname,"\"%s\"",uselfn?lname:name);
+ 						else
+ 							strcpy(qlname,uselfn?lname:name);
 						// add result to completion list
 
 						char *ext;	// file extension
 						if (strcmp(name, ".") && strcmp(name, "..")) {
 							if (dir_only) { //Handle the dir only case different (line starts with cd)
-								if(att & DOS_ATTR_DIRECTORY) l_completion.push_back(name);
+								if(att & DOS_ATTR_DIRECTORY) l_completion.push_back(qlname);
+
 							} else {
 								ext = strrchr(name, '.');
 								if (ext && (strcmp(ext, ".BAT") == 0 || strcmp(ext, ".COM") == 0 || strcmp(ext, ".EXE") == 0))
 									// we add executables to the a seperate list and place that list infront of the normal files
-									executable.push_front(name);
+									executable.push_front(qlname);
 								else
-									l_completion.push_back(name);
+									l_completion.push_back(qlname);
 							}
 						}
 						res=DOS_FindNext();
@@ -737,13 +761,13 @@ failed:
 		/* Fill the command line */
 		CommandTail cmdtail;
 		cmdtail.count = 0;
-		memset(&cmdtail.buffer,0,127); //Else some part of the string is unitialized (valgrind)
-		if (strlen(line)>126) line[126]=0;
+ 		memset(&cmdtail.buffer,0,CTBUF); //Else some part of the string is unitialized (valgrind)
+ 		if (strlen(line)>=CTBUF) line[CTBUF-1]=0;
 		cmdtail.count=(Bit8u)strlen(line);
 		memcpy(cmdtail.buffer,line,strlen(line));
 		cmdtail.buffer[strlen(line)]=0xd;
 		/* Copy command line in stack block too */
-		MEM_BlockWrite(SegPhys(ss)+reg_sp+0x100,&cmdtail,128);
+		MEM_BlockWrite(SegPhys(ss)+reg_sp+0x100,&cmdtail,CTBUF+1);
 		/* Parse FCB (first two parameters) and put them into the current DOS_PSP */
 		Bit8u add;
 		FCB_Parsename(dos.psp(),0x5C,0x00,cmdtail.buffer,&add);

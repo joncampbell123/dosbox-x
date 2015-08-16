@@ -154,7 +154,7 @@ dir_information* open_directory(const char* dirname) {
 	return (_access(dirname,0) ? NULL : &dir);
 }
 
-bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_directory) {
+bool read_directory_first2(dir_information* dirp, char* entry_name, bool& is_directory) {
 	dirp->handle = FindFirstFile(dirp->base_path, &dirp->search_data);
 	if (INVALID_HANDLE_VALUE == dirp->handle) {
 		return false;
@@ -168,11 +168,39 @@ bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_dire
 	return true;
 }
 
-bool read_directory_next(dir_information* dirp, char* entry_name, bool& is_directory) {
+bool read_directory_next2(dir_information* dirp, char* entry_name, bool& is_directory) {
 	int result = FindNextFile(dirp->handle, &dirp->search_data);
 	if (result==0) return false;
 
 	safe_strncpy(entry_name,dirp->search_data.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
+
+	if (dirp->search_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) is_directory = true;
+	else is_directory = false;
+
+	return true;
+}
+
+bool read_directory_first(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory) {
+	dirp->handle = FindFirstFile(dirp->base_path, &dirp->search_data);
+	if (INVALID_HANDLE_VALUE == dirp->handle) {
+		return false;
+	}
+
+	safe_strncpy(entry_name,dirp->search_data.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
+	safe_strncpy(entry_sname,dirp->search_data.cAlternateFileName,13);
+
+	if (dirp->search_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) is_directory = true;
+	else is_directory = false;
+
+	return true;
+}
+
+bool read_directory_next(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory) {
+	int result = FindNextFile(dirp->handle, &dirp->search_data);
+	if (result==0) return false;
+
+	safe_strncpy(entry_name,dirp->search_data.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
+	safe_strncpy(entry_sname,dirp->search_data.cAlternateFileName,13);
 
 	if (dirp->search_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) is_directory = true;
 	else is_directory = false;
@@ -196,7 +224,7 @@ dir_information* open_directory(const char* dirname) {
 	return dir.dir?&dir:NULL;
 }
 
-bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_directory) {
+bool read_directory_first(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory) {
 	struct dirent* dentry = readdir(dirp->dir);
 	if (dentry==NULL) {
 		return false;
@@ -204,6 +232,7 @@ bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_dire
 
 //	safe_strncpy(entry_name,dentry->d_name,(FILENAME_MAX<MAX_PATH)?FILENAME_MAX:MAX_PATH);	// [include stdio.h], maybe pathconf()
 	safe_strncpy(entry_name,dentry->d_name,CROSS_LEN);
+	entry_sname[0]=0;
 
 #ifdef DIRENT_HAS_D_TYPE
 	if(dentry->d_type == DT_DIR) {
@@ -227,7 +256,7 @@ bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_dire
 	return true;
 }
 
-bool read_directory_next(dir_information* dirp, char* entry_name, bool& is_directory) {
+bool read_directory_next(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory) {
 	struct dirent* dentry = readdir(dirp->dir);
 	if (dentry==NULL) {
 		return false;
@@ -235,6 +264,7 @@ bool read_directory_next(dir_information* dirp, char* entry_name, bool& is_direc
 
 //	safe_strncpy(entry_name,dentry->d_name,(FILENAME_MAX<MAX_PATH)?FILENAME_MAX:MAX_PATH);	// [include stdio.h], maybe pathconf()
 	safe_strncpy(entry_name,dentry->d_name,CROSS_LEN);
+	entry_sname[0]=0;
 
 #ifdef DIRENT_HAS_D_TYPE
 	if(dentry->d_type == DT_DIR) {

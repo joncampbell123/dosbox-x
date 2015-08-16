@@ -118,6 +118,7 @@ char * ScanCMDRemain(char * cmd) {
 
 char * StripWord(char *&line) {
 	char * scan=line;
+	int q=0;
 	scan=ltrim(scan);
 	if (*scan=='"') {
 		char * end_quote=strchr(scan+1,'"');
@@ -130,6 +131,23 @@ char * StripWord(char *&line) {
 	char * begin=scan;
 	for (char c = *scan ;(c = *scan);scan++) {
 		if (isspace(*reinterpret_cast<unsigned char*>(&c))) {
+ 			*scan++=0;
+ 			break;
+ 		}
+ 	}
+ 	line=scan;
+ 	return begin;
+ }
+ 
+ char * StripArg(char *&line) {
+ 	char * scan=line;
+ 	int q=0;
+ 	scan=ltrim(scan);
+ 	char * begin=scan;
+ 	for (char c = *scan ;(c = *scan);scan++) {
+ 		if (*scan=='"') {
+ 			q++;
+ 		} else if (q/2*2==q && isspace(*reinterpret_cast<unsigned char*>(&c))) {
 			*scan++=0;
 			break;
 		}

@@ -266,16 +266,16 @@ bool isoDrive::FindFirst(const char *dir, DOS_DTA &dta, bool fcb_findfirst) {
 	dta.SetDirID((Bit16u)dirIterator);
 
 	Bit8u attr;
-	char pattern[ISO_MAXPATHNAME];
+	char pattern[CROSS_LEN];
 	dta.GetSearchParams(attr, pattern);
    
 	if (attr == DOS_ATTR_VOLUME) {
-		dta.SetResult(discLabel, 0, 0, 0, DOS_ATTR_VOLUME);
+		dta.SetResult(discLabel, discLabel, 0, 0, 0, DOS_ATTR_VOLUME);
 		return true;
 	} else if ((attr & DOS_ATTR_VOLUME) && isRoot && !fcb_findfirst) {
 		if (WildFileCmp(discLabel,pattern)) {
 			// Get Volume Label (DOS_ATTR_VOLUME) and only in basedir and if it matches the searchstring
-			dta.SetResult(discLabel, 0, 0, 0, DOS_ATTR_VOLUME);
+			dta.SetResult(discLabel, discLabel, 0, 0, 0, DOS_ATTR_VOLUME);
 			return true;
 		}
 	}
@@ -285,7 +285,7 @@ bool isoDrive::FindFirst(const char *dir, DOS_DTA &dta, bool fcb_findfirst) {
 
 bool isoDrive::FindNext(DOS_DTA &dta) {
 	Bit8u attr;
-	char pattern[DOS_NAMELENGTH_ASCII];
+	char pattern[CROSS_LEN], findName[DOS_NAMELENGTH_ASCII], lfindName[ISO_MAXPATHNAME];
 	dta.GetSearchParams(attr, pattern);
 	
 	int dirIterator = dta.GetDirID();
@@ -298,11 +298,13 @@ bool isoDrive::FindNext(DOS_DTA &dta) {
 		else findAttr |= DOS_ATTR_ARCHIVE;
 		if (IS_HIDDEN(FLAGS1)) findAttr |= DOS_ATTR_HIDDEN;
 
-		if (!IS_ASSOC(FLAGS1) && !(isRoot && de.ident[0]=='.') && WildFileCmp((char*)de.ident, pattern)
+ 		GetLongName((char*)de.ident,lfindName);
+ 		char temp[ISO_MAXPATHNAME*2];
+ 		sprintf(temp,"%s%s\n",lfindName,lfindName);
+ 		if (!IS_ASSOC(FLAGS1) && !(isRoot && de.ident[0]=='.') && (WildFileCmp((char*)de.ident, pattern) || LWildFileCmp(lfindName, pattern))
 			&& !(~attr & findAttr & (DOS_ATTR_DIRECTORY | DOS_ATTR_HIDDEN | DOS_ATTR_SYSTEM))) {
 			
 			/* file is okay, setup everything to be copied in DTA Block */
-			char findName[DOS_NAMELENGTH_ASCII];		
 			findName[0] = 0;
 			if(strlen((char*)de.ident) < DOS_NAMELENGTH_ASCII) {
 				strcpy(findName, (char*)de.ident);
@@ -311,7 +313,7 @@ bool isoDrive::FindNext(DOS_DTA &dta) {
 			Bit32u findSize = DATA_LENGTH(de);
 			Bit16u findDate = DOS_PackDate(1900 + de.dateYear, de.dateMonth, de.dateDay);
 			Bit16u findTime = DOS_PackTime(de.timeHour, de.timeMin, de.timeSec);
-			dta.SetResult(findName, findSize, findDate, findTime, findAttr);
+			dta.SetResult(findName, lfindName, findSize, findDate, findTime, findAttr);
 			return true;
 		}
 	}
@@ -533,7 +535,7 @@ bool isoDrive :: lookup(isoDirEntry *de, const char *path) {
 	*de = this->rootEntry;
 	if (!strcmp(path, "")) return true;
 	
-	char isoPath[ISO_MAXPATHNAME];
+	char isoPath[ISO_MAXPATHNAME], longname[ISO_MAXPATHNAME];
 	safe_strncpy(isoPath, path, ISO_MAXPATHNAME);
 	strreplace(isoPath, '\\', '/');
 	
@@ -553,7 +555,8 @@ bool isoDrive :: lookup(isoDirEntry *de, const char *path) {
 			// look for the current path element
 			int dirIterator = GetDirIterator(de);
 			while (!found && GetNextDirEntry(dirIterator, de)) {
-				if (!IS_ASSOC(FLAGS2) && (0 == strncasecmp((char*) de->ident, name, ISO_MAX_FILENAME_LENGTH))) {
+ 				GetLongName((char*)de->ident,longname);
+ 				if (!IS_ASSOC(FLAGS2) && (0 == strncasecmp((char*) de->ident, name, ISO_MAX_FILENAME_LENGTH)) ||0 == strncasecmp((char*) longname, name, ISO_MAXPATHNAME)) {
 					found = true;
 				}
 			}
@@ -570,3 +573,16 @@ void isoDrive :: MediaChange() {
 	IDE_ATAPI_MediaChangeNotify(toupper(driveLetter) - 'A'); /* ewwww */
 }
 
+void isoDrive :: GetLongName(char *ident, char *lfindName) {
+ 	char *c=ident+strlen(ident);
+ 	int i,j=222-strlen(ident)-6;
+ 	for (i=5;i<j;i++) {
+ 		if (*(c+i)=='N'&&*(c+i+1)=='M'&&*(c+i+2)>0&&*(c+i+3)==1&&*(c+i+4)==0&&*(c+i+5)>0)
+ 			break;
+ 		}
+ 	if (i<j&&strcmp(ident,".")&&strcmp(ident,"..")) {
+ 		strncpy(lfindName,c+i+5,*(c+i+2)-5);
+ 		lfindName[*(c+i+2)-5]=0;
+ 	} else
+ 		strcpy(lfindName,ident);
+}

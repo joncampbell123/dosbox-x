@@ -132,6 +132,7 @@ Bitu XMS_GetEnabledA20(void) {
 static RealPt xms_callback;
 static bool umb_available = false;
 static bool umb_init = false;
+bool uselfn;
 
 static XMS_Block xms_handles[XMS_HANDLES];
 
@@ -545,6 +546,8 @@ private:
 public:
 	XMS(Section* configuration):Module_base(configuration){
 		Section_prop * section=static_cast<Section_prop *>(configuration);
+		dos.version.major = section->Get_int("ver");
+ 		uselfn = strcmp(section->Get_string("lfn"),"false") && (!strcmp(section->Get_string("lfn"),"true") || dos.version.major>=7);
 		umb_available=false;
 
 		if (!section->Get_bool("xms")) return;

@@ -36,9 +36,10 @@
 
 #define DOS_NAMELENGTH 12
 #define DOS_NAMELENGTH_ASCII (DOS_NAMELENGTH+1)
+#define LFN_NAMELENGTH 255
 #define DOS_FCBNAME 15
 #define DOS_DIRDEPTH 8
-#define DOS_PATHLENGTH 80
+#define DOS_PATHLENGTH 255
 #define DOS_TEMPSIZE 1024
 
 enum {
@@ -147,14 +148,14 @@ public:
 	void		SetBaseDir			(const char* path, DOS_Drive *drive);
 	void		SetDirSort			(TDirSort sort) { sortDirType = sort; };
 	bool		OpenDir				(const char* path, Bit16u& id);
-	bool		ReadDir				(Bit16u id, char* &result);
+	bool		ReadDir				(Bit16u id, char* &result, char * &lresult);
 
 	void		ExpandName			(char* path);
 	char*		GetExpandName		(const char* path);
 	bool		GetShortName		(const char* fullname, char* shortname);
 
 	bool		FindFirst			(char* path, Bit16u& id);
-	bool		FindNext			(Bit16u id, char* &result);
+	bool		FindNext			(Bit16u id, char* &result, char* &lresult);
 
 	void		CacheOut			(const char* path, bool ignoreLastDir = false);
 	void		AddEntry			(const char* path, bool checkExist = false);
@@ -198,12 +199,12 @@ private:
 	void		CreateShortName		(CFileInfo* dir, CFileInfo* info);
 	Bitu		CreateShortNameID	(CFileInfo* dir, const char* name);
 	int		CompareShortname	(const char* compareName, const char* shortName);
-	bool		SetResult		(CFileInfo* dir, char * &result, Bitu entryNr);
+	bool		SetResult		(CFileInfo* dir, char * &result, char * &lresult, Bitu entryNr);
 	bool		IsCachedIn		(CFileInfo* dir);
 	CFileInfo*	FindDirInfo		(const char* path, char* expandedPath);
 	bool		RemoveSpaces		(char* str);
 	bool		OpenDir			(CFileInfo* dir, const char* path, Bit16u& id);
-	void		CreateEntry		(CFileInfo* dir, const char* name, bool query_directory);
+	void		CreateEntry		(CFileInfo* dir, const char* name, const char* sname, bool query_directory);
 	void		CopyEntry		(CFileInfo* dir, CFileInfo* from);
 	Bit16u		GetFreeID		(CFileInfo* dir);
 	void		Clear			(void);

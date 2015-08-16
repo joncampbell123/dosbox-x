@@ -235,7 +235,7 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 	if (this->isRemote() && this->isRemovable()) {
 		// cdroms behave a bit different than regular drives
 		if (sAttr == DOS_ATTR_VOLUME) {
-			dta.SetResult(dirCache.GetLabel(),0,0,0,DOS_ATTR_VOLUME);
+			dta.SetResult(dirCache.GetLabel(),dirCache.GetLabel(),0,0,0,DOS_ATTR_VOLUME);
 			return true;
 		}
 	} else {
@@ -247,13 +247,13 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 				DOS_SetError(DOSERR_NO_MORE_FILES);
 				return false;
 			}
-			dta.SetResult(dirCache.GetLabel(),0,0,0,DOS_ATTR_VOLUME);
+			dta.SetResult(dirCache.GetLabel(),dirCache.GetLabel(),0,0,0,DOS_ATTR_VOLUME);
 			return true;
 		} else if ((sAttr & DOS_ATTR_VOLUME)  && (*_dir == 0) && !fcb_findfirst) { 
 		//should check for a valid leading directory instead of 0
 		//exists==true if the volume label matches the searchmask and the path is valid
 			if (WildFileCmp(dirCache.GetLabel(),tempDir)) {
-				dta.SetResult(dirCache.GetLabel(),0,0,0,DOS_ATTR_VOLUME);
+				dta.SetResult(dirCache.GetLabel(),dirCache.GetLabel(),0,0,0,DOS_ATTR_VOLUME);
 				return true;
 			}
 		}
@@ -263,31 +263,36 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 
 bool localDrive::FindNext(DOS_DTA & dta) {
 
-	char * dir_ent;
+	char * dir_ent, *ldir_ent;
 	struct stat stat_block;
-	char full_name[CROSS_LEN];
-	char dir_entcopy[CROSS_LEN];
+ 	char full_name[CROSS_LEN], lfull_name[LFN_NAMELENGTH+1];
+ 	char dir_entcopy[CROSS_LEN], ldir_entcopy[CROSS_LEN];
 
-	Bit8u srch_attr;char srch_pattern[DOS_NAMELENGTH_ASCII];
+	Bit8u srch_attr;char srch_pattern[LFN_NAMELENGTH];
 	Bit8u find_attr;
 
 	dta.GetSearchParams(srch_attr,srch_pattern);
 	Bit16u id = dta.GetDirID();
 
 again:
-	if (!dirCache.FindNext(id,dir_ent)) {
+	if (!dirCache.FindNext(id,dir_ent,ldir_ent)) {
 		DOS_SetError(DOSERR_NO_MORE_FILES);
 		return false;
 	}
-	if(!WildFileCmp(dir_ent,srch_pattern)) goto again;
+	if(!WildFileCmp(dir_ent,srch_pattern)&&!LWildFileCmp(ldir_ent,srch_pattern)) goto again;
 
 	strcpy(full_name,srchInfo[id].srch_dir);
 	strcat(full_name,dir_ent);
+
+ 	strcat(lfull_name,ldir_ent);
+ 	char temp[LFN_NAMELENGTH*2+2];
+ 	sprintf(temp,"%s%s",lfull_name,lfull_name);
 	
 	//GetExpandName might indirectly destroy dir_ent (by caching in a new directory 
 	//and due to its design dir_ent might be lost.)
 	//Copying dir_ent first
 	strcpy(dir_entcopy,dir_ent);
+	strcpy(ldir_entcopy,ldir_ent);
 	if (stat(dirCache.GetExpandName(full_name),&stat_block)!=0) { 
 		goto again;//No symlinks and such
 	}	
@@ -297,12 +302,14 @@ again:
  	if (~srch_attr & find_attr & (DOS_ATTR_DIRECTORY | DOS_ATTR_HIDDEN | DOS_ATTR_SYSTEM)) goto again;
 	
 	/*file is okay, setup everything to be copied in DTA Block */
-	char find_name[DOS_NAMELENGTH_ASCII];Bit16u find_date,find_time;Bit32u find_size;
+ 	char find_name[DOS_NAMELENGTH_ASCII], *lfind_name=ldir_ent;
+ 	Bit16u find_date,find_time;Bit32u find_size;
 
 	if(strlen(dir_entcopy)<DOS_NAMELENGTH_ASCII){
 		strcpy(find_name,dir_entcopy);
 		upcase(find_name);
 	} 
+	lfind_name[LFN_NAMELENGTH]=0;
 
 	find_size=(Bit32u) stat_block.st_size;
 	struct tm *time;
@@ -313,7 +320,7 @@ again:
 		find_time=6; 
 		find_date=4;
 	}
-	dta.SetResult(find_name,find_size,find_date,find_time,find_attr);
+	dta.SetResult(find_name,lfind_name,find_size,find_date,find_time,find_attr);
 	return true;
 }
 
@@ -461,13 +468,21 @@ void localDrive::closedir(void *handle) {
 	close_directory((dir_information*)handle);
 }
 
-bool localDrive::read_directory_first(void *handle, char* entry_name, bool& is_directory) {
-	return ::read_directory_first((dir_information*)handle, entry_name, is_directory);
+bool localDrive::read_directory_first2(void *handle, char* entry_name, bool& is_directory) {
+	return ::read_directory_first2((dir_information*)handle, entry_name, is_directory);
 }
 
-bool localDrive::read_directory_next(void *handle, char* entry_name, bool& is_directory) {
-	return ::read_directory_next((dir_information*)handle, entry_name, is_directory);
+bool localDrive::read_directory_next2(void *handle, char* entry_name, bool& is_directory) {
+	return ::read_directory_next2((dir_information*)handle, entry_name, is_directory);
 }
+
+bool localDrive::read_directory_first(void *handle, char* entry_name, char* entry_sname, bool& is_directory) {
+	return ::read_directory_first((dir_information*)handle, entry_name, entry_sname, is_directory);
+}
+
+bool localDrive::read_directory_next(void *handle, char* entry_name, char* entry_sname, bool& is_directory) {
+	return ::read_directory_next((dir_information*)handle, entry_name, entry_sname, is_directory);
+} 
 
 localDrive::localDrive(const char * startdir,Bit16u _bytes_sector,Bit8u _sectors_cluster,Bit16u _total_clusters,Bit16u _free_clusters,Bit8u _mediaid) {
 	strcpy(basedir,startdir);

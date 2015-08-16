@@ -89,6 +89,7 @@ static Bitu INT2A_Handler(void) {
 }
 
 static bool DOS_MultiplexFunctions(void) {
+	char name[256];
 	switch (reg_ax) {
 	/* ert, 20100711: Locking extensions */
 	case 0x1000:	/* SHARE.EXE installation check */
@@ -187,6 +188,22 @@ static bool DOS_MultiplexFunctions(void) {
 
 		}
 		return true;
+ 	case 0x1300:
+ 	case 0x1302:
+ 		reg_ax=0;
+ 		return true;
+ 	case 0x1612:
+ 		reg_ax=0;
+ 		name[0]=1;
+ 		name[1]=0;
+ 		MEM_BlockWrite(SegPhys(es)+reg_bx,name,0x20);
+ 		return true;
+ 	case 0x1613:	/* Get SYSTEM.DAT path */
+ 		strcpy(name,"C:\\WINDOWS\\SYSTEM.DAT");
+ 		MEM_BlockWrite(SegPhys(es)+reg_di,name,(Bitu)(strlen(name)+1));
+ 		reg_ax=0;
+ 		reg_cx=strlen(name);
+ 		return true;
 	case 0x1605:	/* Windows init broadcast */
 		if (enable_a20_on_windows_init) {
 			/* This hack exists because Windows 3.1 doesn't seem to enable A20 first during an
@@ -347,6 +364,12 @@ static bool DOS_MultiplexFunctions(void) {
 		LOG(LOG_MISC,LOG_DEBUG)("HMA allocation: %u bytes at FFFF:%04x",reg_bx,reg_di);
 		DOS_HMA_CLAIMED(reg_bx);
 		} return true;
+ 	case 0x4a16:	/* Open bootlog */
+ 		return true;
+ 	case 0x4a17:	/* Write bootlog */
+ 		MEM_StrCopy(SegPhys(ds)+reg_dx,name,255);
+ 		LOG(LOG_DOSMISC,LOG_NORMAL)("BOOTLOG: %s\n",name);
+ 		return true;
 	}
 
 	return false;
