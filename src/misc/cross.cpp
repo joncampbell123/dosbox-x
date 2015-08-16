@@ -289,90 +289,8 @@ bool read_directory_next2(dir_information* dirp, char* entry_name, bool& is_dire
 	return true;
 }
 
-bool should_fake_LFN(const char *name) {
-	int namelen=0,extlen=0;
-	char need_lfn=false;
-
-	/* need LFN if name prior to dot is longer than 8 or has certain chars, like spaces.
-	 * we're trying to mimic Windows 95 LFN behavior. */
-	while (*name != 0) {
-		if (*name == '.') break;
-		if (*name == ' ' || *name < 32/*NTS: as signed char, also covers >= (unsigned char) 128*/) need_lfn = true;
-		namelen++;
-		name++;
-	}
-
-	if (*name == '.') {
-		name++;
-
-		/* and now file extension */
-		while (*name != 0) {
-			if (*name == ' ' || *name == '.'/*clearly the first dot was not the file extension*/ ||
-				*name < 32/*NTS: as signed char, also covers (unsigned char) >= 128*/) need_lfn = true;
-
-			extlen++;
-			name++;
-		}
-	}
-
-	return need_lfn || (namelen > 8) || (extlen > 3);
-}
-
-unsigned int lfn_fake_ext_from_inode(ino_t inode) {
-	while (inode > 0xFFF) // FIXME: This probably sucks. Got any other hashing functions?
-		inode = ((inode & 0xFFF) ^ (inode >> 12)) + 3;
-
-	return inode;
-}
-
-void do_fake_lfn(const char *entry_name,char *entry_sname,struct stat &status) {
-	/* fake an LFN using the file's inode number, cram it into 3 hex digits */
-	const char *s = entry_name;
-	const char *ext = strrchr(s,'.');
-	int i=0,j=0;
-
-	if (ext == NULL) ext = s + strlen(s);
-
-	while (s < ext && i < 4) {
-		if (*s == ' ' || *s < 32) {
-			s++;
-			continue;
-		}
-
-		entry_sname[i++] = *s++;
-	}
-
-	entry_sname[i++] = '~';
-	sprintf(entry_sname+i,"%03x",lfn_fake_ext_from_inode(status.st_ino));
-	i += 3;
-
-	/* then the remainder of the string, for file extension */
-	if (ext != NULL) {
-		s = ext;
-		if (*s == '.') s++;
-		entry_sname[i++] = '.';
-
-		while (*s && j < 3) {
-			if (*s == ' ' || *s < 32) {
-				s++;
-				continue;
-			}
-
-			entry_sname[i++] = *s++;
-			j++;
-		}
-	}
-
-	entry_sname[i] = 0;
-	assert(i <= (8+1+3)); /* fits 8.3 format RIGHT?? */
-
-	LOG_MSG("Faking Windows 95 LFN: '%s' => '%s'\n",
-		entry_name,entry_sname);
-}
-
 bool read_directory_first(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory) {
 	struct dirent* dentry = readdir(dirp->dir);
-	bool fake_lfn=false;
 
 	if (dentry==NULL) {
 		return false;
@@ -382,19 +300,13 @@ bool read_directory_first(dir_information* dirp, char* entry_name, char* entry_s
 	safe_strncpy(entry_name,dentry->d_name,CROSS_LEN);
 	entry_sname[0]=0;
 
-	/* if LFN emulation is enabled, then use other characteristics provided by
-	 * Linux or Mac OS X to at least try to fake LFN support */
-	if (uselfn) fake_lfn=should_fake_LFN(dentry->d_name);
-
 #ifdef DIRENT_HAS_D_TYPE
-	if (!fake_lfn) { /* LFN fakery needs the full stat(), sorry */
 	if(dentry->d_type == DT_DIR) {
 		is_directory = true;
 		return true;
 	} else if(dentry->d_type == DT_REG) {
 		is_directory = false;
 		return true;
-	}
 	}
 #endif
 
@@ -407,14 +319,11 @@ bool read_directory_first(dir_information* dirp, char* entry_name, char* entry_s
 	if (stat(buffer,&status)==0) is_directory = (S_ISDIR(status.st_mode)>0);
 	else is_directory = false;
 
-	if (fake_lfn) do_fake_lfn(entry_name,entry_sname,status);
-
 	return true;
 }
 
 bool read_directory_next(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory) {
 	struct dirent* dentry = readdir(dirp->dir);
-	bool fake_lfn=false;
 
 	if (dentry==NULL) {
 		return false;
@@ -423,10 +332,6 @@ bool read_directory_next(dir_information* dirp, char* entry_name, char* entry_sn
 //	safe_strncpy(entry_name,dentry->d_name,(FILENAME_MAX<MAX_PATH)?FILENAME_MAX:MAX_PATH);	// [include stdio.h], maybe pathconf()
 	safe_strncpy(entry_name,dentry->d_name,CROSS_LEN);
 	entry_sname[0]=0;
-
-	/* if LFN emulation is enabled, then use other characteristics provided by
-	 * Linux or Mac OS X to at least try to fake LFN support */
-	if (uselfn) fake_lfn=should_fake_LFN(dentry->d_name);
 
 #ifdef DIRENT_HAS_D_TYPE
 	if(dentry->d_type == DT_DIR) {
@@ -447,8 +352,6 @@ bool read_directory_next(dir_information* dirp, char* entry_name, char* entry_sn
 
 	if (stat(buffer,&status)==0) is_directory = (S_ISDIR(status.st_mode)>0);
 	else is_directory = false;
-
-	if (fake_lfn) do_fake_lfn(entry_name,entry_sname,status);
 
 	return true;
 }
