@@ -1908,6 +1908,33 @@ public:
 	
 		dos.version.major=5;
 		dos.version.minor=0;
+
+		std::string ver = section->Get_string("ver");
+		if (!ver.empty()) {
+			const char *s = ver.c_str();
+
+			if (isdigit(*s)) {
+				dos.version.minor=0;
+				dos.version.major=(int)strtoul(s,(char**)(&s),10);
+				if (*s == '.') {
+					s++;
+					if (isdigit(*s)) {
+						dos.version.minor=(int)strtoul(s,(char**)(&s),10);
+					}
+				}
+
+				/* warn about unusual version numbers */
+				if (dos.version.major >= 10 && dos.version.major <= 30) {
+					LOG_MSG("WARNING, DOS version %u.%u: the major version is set to a "
+						"range that may cause some DOS programs to think they are "
+						"running from within an OS/2 DOS box.",
+						dos.version.major, dos.version.minor);
+				}
+				else if (dos.version.major == 0 || dos.version.major > 8 || dos.version.minor > 90)
+					LOG_MSG("WARNING: DOS version %u.%u is unusual, may confuse DOS programs",
+						dos.version.major, dos.version.minor);
+			}
+		}
 	}
 	~DOS(){
 		/* NTS: We do NOT free the drives! The OS may use them later! */

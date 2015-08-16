@@ -1940,6 +1940,14 @@ void DOSBOX_Init(void) {
 	Pbool->Set_help("If set, keep private DOS segment in upper memory block, usually segment 0xC800 (Mainline DOSBox behavior)\n"
 			"If clear, place private DOS segment at the base of system memory (just below the MCB)");
 
+	Pstring = secprop->Add_string("ver",Property::Changeable::WhenIdle,"");
+	Pstring->Set_help("Set DOS version. Specify as major.minor format. A single number is treated as the major version (LFN patch compat). Common settings are:\n"
+			"auto (or unset)                  Pick a DOS kernel version automatically\n"
+			"3.3                              MS-DOS 3.3 emulation (not tested!)\n"
+			"5.0                              MS-DOS 5.0 emulation (recommended for DOS gaming)\n"
+			"6.22                             MS-DOS 6.22 emulation\n"
+			"7.0                              Windows 95 (pure DOS mode) emulation\n");
+
 	Pbool = secprop->Add_bool("automount",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Enable automatic mount.");
 
