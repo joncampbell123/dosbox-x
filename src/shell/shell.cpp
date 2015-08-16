@@ -504,7 +504,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_MISSING_PARAMETER","Required parameter missing.\n");
 	MSG_Add("SHELL_CMD_CHDIR_ERROR","Unable to change to: %s.\n");
 	MSG_Add("SHELL_CMD_CHDIR_HINT","Hint: To change to different drive type \033[31m%c:\033[0m\n");
-	MSG_Add("SHELL_CMD_CHDIR_HINT_2","directoryname contains unquoted spaces.\nTry \033[31mcd %s\033[0m or properly quote them with quotation marks.\n");
+	MSG_Add("SHELL_CMD_CHDIR_HINT_2","directoryname is longer than 8 characters and/or contains spaces.\nTry \033[31mcd %s\033[0m\n");
 	MSG_Add("SHELL_CMD_CHDIR_HINT_3","You are still on drive Z:, change to a mounted drive with \033[31mC:\033[0m.\n");
 	MSG_Add("SHELL_CMD_DATE_HELP","Displays or changes the internal date.\n");
 	MSG_Add("SHELL_CMD_DATE_ERROR","The specified date is not correct.\n");
@@ -525,7 +525,6 @@ void SHELL_Init() {
 									"  /H:         Synchronize with host\n");
 	MSG_Add("SHELL_CMD_MKDIR_ERROR","Unable to make: %s.\n");
 	MSG_Add("SHELL_CMD_RMDIR_ERROR","Unable to remove: %s.\n");
-	MSG_Add("SHELL_CMD_RENAME_ERROR","Unable to rename: %s.\n");
 	MSG_Add("SHELL_CMD_DEL_ERROR","Unable to delete: %s.\n");
 	MSG_Add("SHELL_CMD_DEL_SURE","Are you sure[Y,N]?");
 	MSG_Add("SHELL_SYNTAXERROR","The syntax of the command is incorrect.\n");
@@ -49697,10 +49696,10 @@ static unsigned char hexmem32_exe[] = {
 	CommandTail tail;
 	tail.count=(Bit8u)strlen(init_line);
 	strcpy(tail.buffer,init_line);
-	MEM_BlockWrite(PhysMake(psp_seg,CTBUF+1),&tail,CTBUF+1);
+	MEM_BlockWrite(PhysMake(psp_seg,128),&tail,128);
 	
 	/* Setup internal DOS Variables */
-	dos.dta(RealMake(psp_seg,CTBUF+1));
+	dos.dta(RealMake(psp_seg,0x80));
 	dos.psp(psp_seg);
 }
 

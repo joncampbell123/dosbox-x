@@ -103,10 +103,8 @@ typedef struct dir_struct {
 #endif
 
 dir_information* open_directory(const char* dirname);
-bool read_directory_first(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory);
-bool read_directory_next(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory);
-bool read_directory_first2(dir_information* dirp, char* entry_name, bool& is_directory);
-bool read_directory_next2(dir_information* dirp, char* entry_name, bool& is_directory);
+bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_directory);
+bool read_directory_next(dir_information* dirp, char* entry_name, bool& is_directory);
 void close_directory(dir_information* dirp);
 
 #endif

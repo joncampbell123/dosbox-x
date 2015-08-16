@@ -336,7 +336,6 @@ static Bitu DOS_21Handler(void) {
 
 	char name1[DOSNAMEBUF+2+DOS_NAMELENGTH_ASCII];
 	char name2[DOSNAMEBUF+2+DOS_NAMELENGTH_ASCII];
-	char *p;
 	
 	static Bitu time_start = 0; //For emulating temporary time changes.
 
@@ -1111,7 +1110,7 @@ static Bitu DOS_21Handler(void) {
 		}
 		break;
 	case 0x47:					/* CWD Get current directory */
-		if (DOS_GetCurrentDir(reg_dl,name1,false)) {
+		if (DOS_GetCurrentDir(reg_dl,name1)) {
 			MEM_BlockWrite(SegPhys(ds)+reg_si,name1,(Bitu)(strlen(name1)+1));	
 			reg_ax=0x0100;
 			CALLBACK_SCF(false);
@@ -1549,291 +1548,9 @@ static Bitu DOS_21Handler(void) {
 		break;
 
 	case 0x71:					/* Unknown probably 4dos detection */
- 		LOG(LOG_DOSMISC,LOG_NORMAL)("DOS:Windows long file name support call %2X",reg_al);
- 		if (!uselfn) {
- 			reg_ax=0x7100;
- 			CALLBACK_SCF(true); //Check this! What needs this ? See default case
- 			break;
- 		}
- 		switch(reg_al)		{
- 			case 0x39:		/* LFN MKDIR */
- 				MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
- 				*name1='\"';
- 				p=name1+strlen(name1);
- 				while (*p==' '||*p==0) p--;
- 				*(p+1)='\"';
- 				*(p+2)=0;
- 				if (DOS_MakeDir(name1)) {
- 					reg_ax=0;
- 					CALLBACK_SCF(false);
- 				} else {
- 					reg_ax=dos.errorcode;
- 					CALLBACK_SCF(true);
- 				}
- 				break;
- 			case 0x3a:		/* LFN RMDIR */
- 				MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
- 				*name1='\"';
- 				p=name1+strlen(name1);
- 				while (*p==' '||*p==0) p--;
- 				*(p+1)='\"';
- 				*(p+2)=0;
- 				if  (DOS_RemoveDir(name1)) {
- 					reg_ax=0;
- 					CALLBACK_SCF(false);
- 				} else {
- 					reg_ax=dos.errorcode;
- 					CALLBACK_SCF(true);
- 					LOG(LOG_MISC,LOG_NORMAL)("Remove dir failed on %s with error %X",name1,dos.errorcode);
- 				}
- 				break;
- 			case 0x3b:		/* LFN CHDIR */
- 				MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
- 				*name1='\"';
- 				p=name1+strlen(name1);
- 				while (*p==' '||*p==0) p--;
- 				*(p+1)='\"';
- 				*(p+2)=0;
- 				if  (DOS_ChangeDir(name1)) {
- 					reg_ax=0;
- 					CALLBACK_SCF(false);
- 				} else {
- 					reg_ax=dos.errorcode;
- 					CALLBACK_SCF(true);
- 				}
- 				break;
- 			case 0x41:		/* LFN UNLINK */
- 				MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
- 				*name1='\"';
- 				p=name1+strlen(name1);
- 				while (*p==' '||*p==0) p--;
- 				*(p+1)='\"';
- 				*(p+2)=0;
- 				if (DOS_UnlinkFile(name1)) {
- 					reg_ax=0;
- 					CALLBACK_SCF(false);
- 				} else {
- 					reg_ax=dos.errorcode;
- 					CALLBACK_SCF(true);
- 				}
- 				break;
- 			case 0x43:		/* LFN ATTR */
- 				MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
- 				*name1='\"';
- 				p=name1+strlen(name1);
- 				while (*p==' '||*p==0) p--;
- 				*(p+1)='\"';
- 				*(p+2)=0;
- 				switch (reg_bl) {
- 					case 0x00:				/* Get */
- 					{
- 						Bit16u attr_val=reg_cx;
- 						if (DOS_GetFileAttr(name1,&attr_val)) {
- 							reg_cx=attr_val;
- 							reg_ax=0;
- 							CALLBACK_SCF(false);
- 						} else {
- 							CALLBACK_SCF(true);
- 							reg_ax=dos.errorcode;
- 						}
- 						break;
- 					};
- 					case 0x01:				/* Set */
- 						if (DOS_SetFileAttr(name1,reg_cx)) {
- 							reg_ax=0;
- 							CALLBACK_SCF(false);
- 						} else {
- 							CALLBACK_SCF(true);
- 							reg_ax=dos.errorcode;
- 						}
- 						break;
- 					case 0x02:
- 					case 0x03:
- 					case 0x04:
- 					case 0x05:
- 					case 0x06:
- 					case 0x07:
- 					case 0x08:
- 						LOG(LOG_MISC,LOG_ERROR)("DOS:7143:Unimplemented subfunction %2X",reg_bl);
- 						reg_ax=1;
- 						CALLBACK_SCF(true);
- 						break;
- 					default:
- 						E_Exit("DOS:Illegal LFN Attr call %2X",reg_bl);
- 				}
- 				break;
- 			case 0x47:		/* LFN PWD */
- 				if (DOS_GetCurrentDir(reg_dl,name1,true)) {
- 					MEM_BlockWrite(SegPhys(ds)+reg_si,name1,(Bitu)(strlen(name1)+1));
- 					reg_ax=0;
- 					CALLBACK_SCF(false);
- 				} else {
- 					reg_ax=dos.errorcode;
- 					CALLBACK_SCF(true);
- 				}
- 				break;
- 			case 0x4e:		/* LFN FindFirst */
- 				MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
- 				*name1='\"';
- 				p=name1+strlen(name1);
- 				while (*p==' '||*p==0) p--;
- 				*(p+1)='\"';
- 				*(p+2)=0;
- 				DOS_GetSFNPath(name1,name2,false);
- 				if (DOS_FindFirst(name2,reg_cx,false)) {
- 					DOS_DTA dta(dos.dta());
- 					char finddata[CROSS_LEN];
- 					int i=dta.GetFindData(finddata);
- 					MEM_BlockWrite(SegPhys(es)+reg_di,finddata,i+1);
- 					CALLBACK_SCF(false);
- 					reg_ax=1; // todo: return filefind handle
- 				} else {
- 					reg_ax=dos.errorcode;
- 					CALLBACK_SCF(true);
- 				};
- 				break;		 
- 			case 0x4f:		/* LFN FindNext */
- 				if (DOS_FindNext()) {
- 					DOS_DTA dta(dos.dta());
- 					char finddata[CROSS_LEN];
- 					int i=dta.GetFindData(finddata);
- 					MEM_BlockWrite(SegPhys(es)+reg_di,finddata,i+1);
- 					CALLBACK_SCF(false);
- 					reg_ax=0x4f05;
- 				} else {
- 					reg_ax=dos.errorcode;
- 					CALLBACK_SCF(true);
- 				};
- 				break;		
- 			case 0x56:		/* LFN RENAME */
- 				MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
- 				*name1='\"';
- 				p=name1+strlen(name1);
- 				while (*p==' '||*p==0) p--;
- 				*(p+1)='\"';
- 				*(p+2)=0;
- 				MEM_StrCopy(SegPhys(es)+reg_di,name2+1,DOSNAMEBUF);
- 				*name2='\"';
- 				p=name2+strlen(name2);
- 				while (*p==' '||*p==0) p--;
- 				*(p+1)='\"';
- 				*(p+2)=0;
- 				if (DOS_Rename(name1,name2)) {
- 					reg_ax=0;
- 					CALLBACK_SCF(false);			
- 				} else {
- 					reg_ax=dos.errorcode;
- 					CALLBACK_SCF(true);
- 				}
- 				break;		
- 			case 0x60:		/* LFN GetName */
- 				MEM_StrCopy(SegPhys(ds)+reg_si,name1,DOSNAMEBUF);
- 				if (DOS_Canonicalize(name1,name2)) {
- 					switch(reg_cl)		{
- 						case 0:		// Canonoical path name
- 							strcpy(name1,name2);
- 							break;
- 						case 1:		/* SFN path name */
- 							DOS_GetSFNPath(name2,name1,false);
- 							break;
- 						case 2:		/* LFN path name */
- 							DOS_GetSFNPath(name2,name1,true);
- 							break;
- 						default:
- 							E_Exit("DOS:Illegal LFN GetName call %2X",reg_cl);
- 					}
- 					MEM_BlockWrite(SegPhys(es)+reg_di,name1,(Bitu)(strlen(name1)+1));
- 					reg_ax=5;
- 					CALLBACK_SCF(false);
- 				} else {
- 					reg_ax=dos.errorcode;
- 					CALLBACK_SCF(true);
- 				}
- 				break;
- 			case 0x6c:		/* LFN CREATE */
- 				MEM_StrCopy(SegPhys(ds)+reg_si,name1+1,DOSNAMEBUF);
- 				*name1='\"';
- 				p=name1+strlen(name1);
- 				while (*p==' '||*p==0) p--;
- 				*(p+1)='\"';
- 				*(p+2)=0;
- 				if (DOS_OpenFileExtended(name1,reg_bx,reg_cx,reg_dx,&reg_ax,&reg_cx)) {
- 					CALLBACK_SCF(false);
- 				} else {
- 					reg_ax=dos.errorcode;
- 					CALLBACK_SCF(true);
- 				}
- 				break;
- 			case 0xa0:		/* LFN VolInfo */
- 				MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
- 				if (DOS_Canonicalize(name1,name2)) {
- 					if (reg_cx > 3)
- 						MEM_BlockWrite(SegPhys(es)+reg_di,"FAT",4);
- 					reg_ax=0;
- 					reg_bx=0x4006;
- 					reg_cx=0xff;
- 					reg_dx=0x104;
- 					CALLBACK_SCF(false);
- 				} else {
- 					reg_ax=dos.errorcode;
- 					CALLBACK_SCF(true);
- 				}
- 				break;
- 			case 0xa1:		/* LFN FileClose */
- 				reg_ax=0;
- 				CALLBACK_SCF(false);
- 				break;
- 			case 0xa7:		/* LFN TimeConv */
- 				switch (reg_bl) {
- 					case 0x00:
- 						reg_cl=mem_readb(SegPhys(ds)+reg_si);	//not yet a proper implementation,
- 						reg_ch=mem_readb(SegPhys(ds)+reg_si+1);	//but DIR from MS-DOS 7 COMMAND.COM
- 						reg_dl=mem_readb(SegPhys(ds)+reg_si+4);	//should show date/time correctly now
- 						reg_dh=mem_readb(SegPhys(ds)+reg_si+5);
- 						reg_bh=0;
- 						reg_ax=0;
- 						CALLBACK_SCF(false);
- 						break;
- 					case 0x01:
- 						reg_ax=1;
- 						CALLBACK_SCF(true); // not implemented yet
- 						break;
- 					default:
- 						E_Exit("DOS:Illegal LFN TimeConv call %2X",reg_bl);
- 				}
- 				break;
- 			case 0xa8:		/* LFN GenSFN */
- 				if (reg_dh == 0 || reg_dh == 1) {
- 					MEM_StrCopy(SegPhys(ds)+reg_si,name1,DOSNAMEBUF);
- 					int i,j=0;
- 					char c[13],*s=strrchr(name1,'.');
- 					for (i=0;i<8;j++) {
- 						if (name1[j] == 0 || s-name1 <= j) break;
- 						if (name1[j] == '.') continue;
- 						sprintf(c,"%s%c",c,toupper(name1[j]));
- 						i++;
- 					}
- 					if (s != NULL) {
- 						s++;
- 						if (s != 0 && reg_dh == 1) strcat(c,".");
- 						for (i=0;i<3;i++) {
- 							if (*(s+i) == 0) break;
- 							sprintf(c,"%s%c",c,toupper(*(s+i)));
- 						}
- 					}
- 					MEM_BlockWrite(SegPhys(es)+reg_di,c,strlen(c)+1);
- 					reg_ax=0;
- 					CALLBACK_SCF(false);
- 				} else {
- 					reg_ax=1;
- 					CALLBACK_SCF(true);
- 				}
- 				break;
- 			case 0xaa:		/* LFN SUBST */
- 			default:
- 				reg_ax=0x7100;
- 				CALLBACK_SCF(true); //Check this! What needs this ? See default case
- 		}
+		reg_ax=0x7100;
+		CALLBACK_SCF(true); //Check this! What needs this ? See default case
+		LOG(LOG_DOSMISC,LOG_NORMAL)("DOS:Windows long file name support call %2X",reg_al);
 		break;
 
 	case 0xE0:
@@ -2189,6 +1906,7 @@ public:
 
 		keep_private_area_on_boot = section->Get_bool("keep private area on boot");
 	
+		dos.version.major=5;
 		dos.version.minor=0;
 	}
 	~DOS(){

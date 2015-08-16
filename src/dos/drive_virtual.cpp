@@ -28,7 +28,6 @@
 
 struct VFILE_Block {
 	const char * name;
-	const char * lname;
 	Bit8u * data;
 	Bit32u size;
 	Bit16u date;
@@ -50,7 +49,6 @@ void VFILE_Shutdown(void) {
 void VFILE_Register(const char * name,Bit8u * data,Bit32u size) {
 	VFILE_Block * new_file=new VFILE_Block;
 	new_file->name=name;
-	new_file->lname=name;
 	new_file->data=data;
 	new_file->size=size;
 	new_file->date=DOS_PackDate(2002,10,1);
@@ -212,14 +210,14 @@ bool Virtual_Drive::FileExists(const char* name){
 
 bool Virtual_Drive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 	search_file=first_file;
-	Bit8u attr;char pattern[CROSS_LEN];
+	Bit8u attr;char pattern[DOS_NAMELENGTH_ASCII];
 	dta.GetSearchParams(attr,pattern);
 	if (attr == DOS_ATTR_VOLUME) {
-		dta.SetResult("DOSBOX","DOSBOX",0,0,0,DOS_ATTR_VOLUME);
+		dta.SetResult("DOSBOX",0,0,0,DOS_ATTR_VOLUME);
 		return true;
 	} else if ((attr & DOS_ATTR_VOLUME) && !fcb_findfirst) {
 		if (WildFileCmp("DOSBOX",pattern)) {
-			dta.SetResult("DOSBOX","DOSBOX",0,0,0,DOS_ATTR_VOLUME);
+			dta.SetResult("DOSBOX",0,0,0,DOS_ATTR_VOLUME);
 			return true;
 		}
 	}
@@ -227,11 +225,11 @@ bool Virtual_Drive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst
 }
 
 bool Virtual_Drive::FindNext(DOS_DTA & dta) {
-	Bit8u attr;char pattern[CROSS_LEN];
+	Bit8u attr;char pattern[DOS_NAMELENGTH_ASCII];
 	dta.GetSearchParams(attr,pattern);
 	while (search_file) {
 		if (WildFileCmp(search_file->name,pattern)) {
-			dta.SetResult(search_file->name,search_file->lname,search_file->size,search_file->date,search_file->time,DOS_ATTR_ARCHIVE);
+			dta.SetResult(search_file->name,search_file->size,search_file->date,search_file->time,DOS_ATTR_ARCHIVE);
 			search_file=search_file->next;
 			return true;
 		}

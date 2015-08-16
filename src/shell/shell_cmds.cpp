@@ -397,10 +397,7 @@ continue_1:
 	args = ExpandDot(args,buffer);
 	StripSpaces(args);
 	if (!DOS_Canonicalize(args,full)) { WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));return; }
- 	char spath[DOS_PATHLENGTH],sargs[DOS_PATHLENGTH];
- 	DOS_GetSFNPath(args,spath,false);
- 	sprintf(sargs,"\"%s\"",spath);
- 	bool res=DOS_FindFirst(sargs,0xffff & ~DOS_ATTR_VOLUME);
+	bool res=DOS_FindFirst(args,0xffff & ~DOS_ATTR_VOLUME);
 	if (!res) {
 		WriteOut(MSG_Get("SHELL_CMD_DEL_ERROR"),args);
 		dos.dta(save_dta);
@@ -408,11 +405,10 @@ continue_1:
 	}
 	//end can't be 0, but if it is we'll get a nice crash, who cares :)
 	char * end=strrchr(full,'\\')+1;*end=0;
-	char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
-	Bit32u size;Bit16u time,date;Bit8u attr;
+	char name[DOS_NAMELENGTH_ASCII];Bit32u size;Bit16u time,date;Bit8u attr;
 	DOS_DTA dta(dos.dta());
 	while (res) {
-		dta.GetResult(name,lname,size,date,time,attr);
+		dta.GetResult(name,size,date,time,attr);	
 		if (!(attr & (DOS_ATTR_DIRECTORY|DOS_ATTR_READ_ONLY))) {
 			strcpy(end,name);
 			if (!DOS_UnlinkFile(full)) WriteOut(MSG_Get("SHELL_CMD_DEL_ERROR"),full);
@@ -442,7 +438,7 @@ void DOS_Shell::CMD_RENAME(char * args){
 	StripSpaces(args);
 	if(!*args) {SyntaxError();return;}
 	if((strchr(args,'*')!=NULL) || (strchr(args,'?')!=NULL) ) { WriteOut(MSG_Get("SHELL_CMD_NO_WILD"));return;}
-	char * arg1=StripArg(args);
+	char * arg1=StripWord(args);
 	char* slash = strrchr(arg1,'\\');
 	if(slash) { 
 		slash++;
@@ -461,17 +457,15 @@ void DOS_Shell::CMD_RENAME(char * args){
 
 		char dir_current[DOS_PATHLENGTH + 1];
 		dir_current[0] = '\\'; //Absolute addressing so we can return properly
-		DOS_GetCurrentDir(0,dir_current + 1,false);
+		DOS_GetCurrentDir(0,dir_current + 1);
 		if(!DOS_ChangeDir(dir_source)) {
 			WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));
 			return;
 		}
-	 	if (!DOS_Rename(slash,args))
- 			WriteOut(MSG_Get("SHELL_CMD_RENAME_ERROR"),slash);
+		DOS_Rename(slash,args);
 		DOS_ChangeDir(dir_current);
 	} else {
-		if (!DOS_Rename(arg1,args))
- 			WriteOut(MSG_Get("SHELL_CMD_RENAME_ERROR"),arg1);
+		DOS_Rename(arg1,args);
 	}
 }
 
@@ -512,18 +506,15 @@ void DOS_Shell::CMD_EXIT(char * args) {
 void DOS_Shell::CMD_CHDIR(char * args) {
 	HELP("CHDIR");
 	StripSpaces(args);
- 	char sargs[CROSS_LEN];
- 	DOS_GetSFNPath(args,sargs,false);
-
 	Bit8u drive = DOS_GetDefaultDrive()+'A';
 	char dir[DOS_PATHLENGTH];
 	if (!*args) {
-		DOS_GetCurrentDir(0,dir,true);
+		DOS_GetCurrentDir(0,dir);
 		WriteOut("%c:\\%s\n",drive,dir);
 	} else if(strlen(args) == 2 && args[1]==':') {
 		Bit8u targetdrive = (args[0] | 0x20)-'a' + 1;
 		unsigned char targetdisplay = *reinterpret_cast<unsigned char*>(&args[0]);
-		if(!DOS_GetCurrentDir(targetdrive,dir,true)) { // verify that this should be true
+		if(!DOS_GetCurrentDir(targetdrive,dir)) {
 			if(drive == 'Z') {
 				WriteOut(MSG_Get("SHELL_EXECUTE_DRIVE_NOT_FOUND"),toupper(targetdisplay));
 			} else {
@@ -534,7 +525,7 @@ void DOS_Shell::CMD_CHDIR(char * args) {
 		WriteOut("%c:\\%s\n",toupper(targetdisplay),dir);
 		if(drive == 'Z')
 			WriteOut(MSG_Get("SHELL_CMD_CHDIR_HINT"),toupper(targetdisplay));
-	} else 	if (!DOS_ChangeDir(sargs)) {
+	} else 	if (!DOS_ChangeDir(args)) {
 		/* Changedir failed. Check if the filename is longer then 8 and/or contains spaces */
 	   
 		std::string temps(args),slashpart;
@@ -545,14 +536,16 @@ void DOS_Shell::CMD_CHDIR(char * args) {
 		}
 		separator = temps.find_first_of("\\/");
 		if(separator != std::string::npos) temps.erase(separator);
- 		separator = temps.find_first_of("\"");
- 		if(separator != std::string::npos) temps.erase(separator);
 		separator = temps.rfind('.');
 		if(separator != std::string::npos) temps.erase(separator);
 		separator = temps.find(' ');
 		if(separator != std::string::npos) {/* Contains spaces */
 			temps.erase(separator);
 			if(temps.size() >6) temps.erase(6);
+			temps += "~1";
+			WriteOut(MSG_Get("SHELL_CMD_CHDIR_HINT_2"),temps.insert(0,slashpart).c_str());
+		} else if (temps.size()>8) {
+			temps.erase(6);
 			temps += "~1";
 			WriteOut(MSG_Get("SHELL_CMD_CHDIR_HINT_2"),temps.insert(0,slashpart).c_str());
 		} else {
@@ -622,7 +615,6 @@ void DOS_Shell::CMD_DIR(char * args) {
 	HELP("DIR");
 	char numformat[16];
 	char path[DOS_PATHLENGTH];
-	char sargs[CROSS_LEN];
 
 	std::string line;
 	if(GetEnvStr("DIRCMD",line)){
@@ -682,16 +674,10 @@ void DOS_Shell::CMD_DIR(char * args) {
 	}
 	if (!strrchr(args,'*') && !strrchr(args,'?')) {
 		Bit16u attribute=0;
- 		DOS_GetSFNPath(args,sargs,false);
- 		if(DOS_GetFileAttr(sargs,&attribute) && (attribute&DOS_ATTR_DIRECTORY) ) {
- 			DOS_FindFirst(sargs,0xffff & ~DOS_ATTR_VOLUME);
- 			DOS_DTA dta(dos.dta());
- 			strcpy(args,sargs);
+		if(DOS_GetFileAttr(args,&attribute) && (attribute&DOS_ATTR_DIRECTORY) ) {
 			strcat(args,"\\*.*");	// if no wildcard and a directory, get its files
 		}
 	}
- 	DOS_GetSFNPath(args,sargs,false);
- 	sprintf(args,"\"%s\"",sargs);
 	if (!strrchr(args,'.')) {
 		strcat(args,".*");	// if no extension, get them all
 	}
@@ -702,9 +688,10 @@ void DOS_Shell::CMD_DIR(char * args) {
 		return;
 	}
 	*(strrchr(path,'\\')+1)=0;
- 	DOS_GetSFNPath(path,sargs,true);
- 	if (*(sargs+strlen(sargs)-1) != '\\') strcat(sargs,"\\");
- 	if (!optB) WriteOut(MSG_Get("SHELL_CMD_DIR_INTRO"),sargs);
+	if (!optB) {
+		CMD_VOL(empty_string);
+		WriteOut(MSG_Get("SHELL_CMD_DIR_INTRO"),path);
+	}
 
 	/* Command uses dta so set it to our internal dta */
 	RealPt save_dta=dos.dta();
@@ -726,9 +713,8 @@ void DOS_Shell::CMD_DIR(char * args) {
 	}
 
 	do {    /* File name and extension */
-		char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH+1];
-		Bit32u size;Bit16u date;Bit16u time;Bit8u attr;
-		dta.GetResult(name,lname,size,date,time,attr);
+		char name[DOS_NAMELENGTH_ASCII];Bit32u size;Bit16u date;Bit16u time;Bit8u attr;
+		dta.GetResult(name,size,date,time,attr);
 
 		/* Skip non-directories if option AD is present */
 		if(optAD && !(attr&DOS_ATTR_DIRECTORY) ) continue;
@@ -736,8 +722,8 @@ void DOS_Shell::CMD_DIR(char * args) {
 		/* output the file */
 		if (optB) {
 			// this overrides pretty much everything
-			if (strcmp(".",uselfn?lname:name) && strcmp("..",uselfn?lname:name)) {
- 				WriteOut("%s\n",uselfn?lname:name);
+			if (strcmp(".",name) && strcmp("..",name)) {
+				WriteOut("%s\n",name);
 			}
 		} else {
 			char * ext = empty_string;
@@ -760,7 +746,7 @@ void DOS_Shell::CMD_DIR(char * args) {
 						for (size_t i=14-namelen;i>0;i--) WriteOut(" ");
 					}
 				} else {
-					WriteOut("%-8s %-3s   %-16s %02d-%02d-%04d %2d:%02d %s\n",name,ext,"<DIR>",day,month,year,hour,minute,uselfn?lname:"");
+					WriteOut("%-8s %-3s   %-16s %02d-%02d-%04d %2d:%02d\n",name,ext,"<DIR>",day,month,year,hour,minute);
 				}
 				dir_count++;
 			} else {
@@ -768,7 +754,7 @@ void DOS_Shell::CMD_DIR(char * args) {
 					WriteOut("%-16s",name);
 				} else {
 					FormatNumber(size,numformat);
-					WriteOut("%-8s %-3s   %16s %02d-%02d-%04d %2d:%02d %s\n",name,ext,numformat,day,month,year,hour,minute,uselfn?lname:"");
+					WriteOut("%-8s %-3s   %16s %02d-%02d-%04d %2d:%02d\n",name,ext,numformat,day,month,year,hour,minute);
 				}
 				file_count++;
 				byte_count+=size;
@@ -834,7 +820,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 	dos.dta(dos.tables.tempdta);
 	DOS_DTA dta(dos.dta());
 	Bit32u size;Bit16u date;Bit16u time;Bit8u attr;
-	char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH+1];
+	char name[DOS_NAMELENGTH_ASCII];
 	std::vector<copysource> sources;
 	// ignore /b and /t switches: always copy binary
 	while(ScanCMDBool(args,"B")) ;
@@ -853,10 +839,9 @@ void DOS_Shell::CMD_COPY(char * args) {
 	// Gather all sources (extension to copy more then 1 file specified at command line)
 	// Concatenating files go as follows: All parts except for the last bear the concat flag.
 	// This construction allows them to be counted (only the non concat set)
-	char q[]="\"";
 	char* source_p = NULL;
 	char source_x[DOS_PATHLENGTH+CROSS_LEN];
-	while ( (source_p = StripArg(args)) && *source_p ) {
+	while ( (source_p = StripWord(args)) && *source_p ) {
 		do {
 			char* plus = strchr(source_p,'+');
 			// If StripWord() previously cut at a space before a plus then
@@ -875,10 +860,8 @@ void DOS_Shell::CMD_COPY(char * args) {
 				if (source_x[source_x_len-1]==':') has_drive_spec = true;
 			}
 			if (!has_drive_spec  && !strpbrk(source_p,"*?") ) { //doubt that fu*\*.* is valid
-				char spath[DOS_PATHLENGTH];
- 				DOS_GetSFNPath(source_p,spath,false);
- 				if (DOS_FindFirst(spath,0xffff & ~DOS_ATTR_VOLUME)) {
- 					dta.GetResult(name,lname,size,date,time,attr);
+				if (DOS_FindFirst(source_p,0xffff & ~DOS_ATTR_VOLUME)) {
+					dta.GetResult(name,size,date,time,attr);
 					if (attr & DOS_ATTR_DIRECTORY)
 						strcat(source_x,"\\*.*");
 				}
@@ -943,7 +926,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 		// add '\\' if target is a directory
 		if (pathTarget[strlen(pathTarget)-1]!='\\') {
 			if (DOS_FindFirst(pathTarget,0xffff & ~DOS_ATTR_VOLUME)) {
-				dta.GetResult(name,lname,size,date,time,attr);
+				dta.GetResult(name,size,date,time,attr);
 				if (attr & DOS_ATTR_DIRECTORY)	
 					strcat(pathTarget,"\\");
 			}
@@ -1006,7 +989,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 		}
 
 		while (ret) {
-			dta.GetResult(name,lname,size,date,time,attr);
+			dta.GetResult(name,size,date,time,attr);
 
 			if ((attr & DOS_ATTR_DIRECTORY)==0) {
 				strcpy(nameSource,pathSource);
@@ -1014,8 +997,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 				// Open Source
 				if (DOS_OpenFile(nameSource,0,&sourceHandle)) {
 					// Create Target or open it if in concat mode
- 					strcpy(nameTarget,q);
- 					strcat(nameTarget,pathTarget);
+					strcpy(nameTarget,pathTarget);
 					
 					if (ext) { // substitute parts if necessary
 						if (!ext[-1]) { // substitute extension
@@ -1027,8 +1009,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 						}
 					}
 					
- 					if (nameTarget[strlen(nameTarget)-1]=='\\') strcat(nameTarget,uselfn?lname:name);
- 					strcat(nameTarget,q);
+					if (nameTarget[pathTargetLen-1]=='\\') strcat(nameTarget,name);
 					//Don't create a new file when in concat mode
 					if (oldsource.concat || DOS_CreateFile(nameTarget,0,&targetHandle)) {
 						Bit32u dummy=0;
@@ -1045,10 +1026,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 							} while (toread==0x8000);
 							failed |= DOS_CloseFile(sourceHandle);
 							failed |= DOS_CloseFile(targetHandle);
-							if (strcmp(name,lname)&&uselfn)
- 								WriteOut(" %s [%s]\n",lname,name);
- 							else
- 								WriteOut(" %s\n",uselfn?lname:name);
+							WriteOut(" %s\n",name);
 							if(!source.concat) count++; //Only count concat files once
 						} else {
 							DOS_CloseFile(sourceHandle);
@@ -1068,7 +1046,6 @@ void DOS_Shell::CMD_COPY(char * args) {
 
 	WriteOut(MSG_Get("SHELL_CMD_COPY_SUCCESS"),count);
 	dos.dta(save_dta);
-	Drives[DOS_GetDefaultDrive()]->EmptyCache();
 }
 
 /* NTS: WARNING, this function modifies the buffer pointed to by char *args */
@@ -1156,7 +1133,7 @@ void DOS_Shell::CMD_IF(char * args) {
 	if(strncasecmp(args,"EXIST ",6) == 0) {
 		args += 6; //Skip text
 		StripSpaces(args);
-		char* word = StripArg(args);
+		char* word = StripWord(args);
 		if (!*word) {
 			WriteOut(MSG_Get("SHELL_CMD_IF_EXIST_MISSING_FILENAME"));
 			return;
@@ -1248,7 +1225,7 @@ void DOS_Shell::CMD_TYPE(char * args) {
 	Bit16u handle;
 	char * word;
 nextfile:
-	word=StripArg(args);
+	word=StripWord(args);
 	if (!DOS_OpenFile(word,0,&handle)) {
 		WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),word);
 		return;
@@ -1498,11 +1475,8 @@ void DOS_Shell::CMD_SUBST (char * args) {
 		strcat(mountstring,temp_str);
 		strcat(mountstring," ");
 
-   		Bit8u drive;char dir[DOS_PATHLENGTH+2],fulldir[DOS_PATHLENGTH];
-    		if (strchr(arg.c_str(),'\"')==NULL)
- 	   		sprintf(dir,"\"%s\"",arg.c_str());
- 	   	else strcpy(dir,arg.c_str());
- 		if (!DOS_MakeName(dir,fulldir,&drive)) throw 0;
+   		Bit8u drive;char fulldir[DOS_PATHLENGTH];
+		if (!DOS_MakeName(const_cast<char*>(arg.c_str()),fulldir,&drive)) throw 0;
 	
 		if( ( ldp=dynamic_cast<localDrive*>(Drives[drive])) == 0 ) throw 0;
 		char newname[CROSS_LEN];   

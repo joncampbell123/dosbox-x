@@ -1943,16 +1943,6 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("automount",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Enable automatic mount.");
 
- 	Pint = secprop->Add_int("ver",Property::Changeable::WhenIdle,5);
- 	Pint->Set_help("Set DOS major version.");
- 	
- 	const char* lfn_settings[] = { "true", "auto", "false", 0};
- 	Pstring = secprop->Add_string("lfn",Property::Changeable::WhenIdle,"auto");
- 	Pstring->Set_values(lfn_settings);
- 	Pstring->Set_help("Enable LFN support. The default (=auto) means that LFN support\n"
- 		"will be enabled if and only if the major DOS version is set to\n"
- 		"at least 7.\n");
-
 	Pbool = secprop->Add_bool("int33",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Enable INT 33H (mouse) support.");
 

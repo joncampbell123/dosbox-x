@@ -133,8 +133,8 @@ void DOS_Drive_Cache::SetBaseDir(const char* baseDir, DOS_Drive *drive) {
 	strcpy(basePath,baseDir);
 	this->drive = drive;
 	if (OpenDir(baseDir,id)) {
- 		char* result = 0, *lresult = 0;
- 		ReadDir(id,result,lresult);
+		char* result = 0;
+		ReadDir(id,result);
 	};
 	// Get Volume Label
 #if defined (WIN32) || defined (OS2)
@@ -213,9 +213,7 @@ void DOS_Drive_Cache::AddEntry(const char* path, bool checkExists) {
 			if (GetLongName(dir,file)>=0) return;
 		}
 
- 		char sfile[DOS_NAMELENGTH];
- 		sfile[0]=0;
- 		CreateEntry(dir,file,sfile,false);
+		CreateEntry(dir,file,false);
 
 		Bits index = GetLongName(dir,file);
 		if (index>=0) {
@@ -602,9 +600,9 @@ DOS_Drive_Cache::CFileInfo* DOS_Drive_Cache::FindDirInfo(const char* path, char*
 		strcpy(work,basePath);
 		if (OpenDir(curDir,work,id)) {
 			char buffer[CROSS_LEN];
-			char *result = 0, *lresult = 0;
+			char* result = 0;
 			strcpy(buffer,dirPath);
-			ReadDir(id,result,lresult);
+			ReadDir(id,result);
 			strcpy(dirPath,buffer);
 			if (dirSearch[id]) {
 				dirSearch[id]->id = MAX_OPENDIRS;
@@ -635,9 +633,9 @@ DOS_Drive_Cache::CFileInfo* DOS_Drive_Cache::FindDirInfo(const char* path, char*
 			if (!IsCachedIn(curDir)) {
 				if (OpenDir(curDir,expandedPath,id)) {
 					char buffer[CROSS_LEN];
-					char *result = 0, *lresult = 0;
+					char* result = 0;
 					strcpy(buffer,dirPath);
-					ReadDir(id,result,lresult);
+					ReadDir(id,result);
 					strcpy(dirPath,buffer);
 					if (dirSearch[id]) {
 						dirSearch[id]->id = MAX_OPENDIRS;
@@ -681,7 +679,7 @@ bool DOS_Drive_Cache::OpenDir(CFileInfo* dir, const char* expand, Bit16u& id) {
 	// open dir
 	if (dirSearch[id]) {
 		// open dir
-		dir_information* dirp = (dir_information*)drive->opendir(expandcopy);  // verify this conversion from void* is valid
+		void* dirp = drive->opendir(expandcopy);
 		if (dirp) { 
 			// Reset it..
 			drive->closedir(dirp);
@@ -696,15 +694,14 @@ bool DOS_Drive_Cache::OpenDir(CFileInfo* dir, const char* expand, Bit16u& id) {
 	return false;
 }
 
-void DOS_Drive_Cache::CreateEntry(CFileInfo* dir, const char* name, const char* sname, bool is_directory) {
+void DOS_Drive_Cache::CreateEntry(CFileInfo* dir, const char* name, bool is_directory) {
 	CFileInfo* info = new CFileInfo;
-	strcpy(info->shortname, sname);
 	strcpy(info->orgname, name);				
 	info->shortNr = 0;
 	info->isDir = is_directory;
 
 	// Check for long filenames...
-	if (sname[0]==0) CreateShortName(dir, info);			
+	CreateShortName(dir, info);		
 
 	bool found = false;
 
@@ -743,13 +740,13 @@ void DOS_Drive_Cache::CopyEntry(CFileInfo* dir, CFileInfo* from) {
 	dir->fileList.push_back(info);
 }
 
-bool DOS_Drive_Cache::ReadDir(Bit16u id, char* &result, char * &lresult) {
+bool DOS_Drive_Cache::ReadDir(Bit16u id, char* &result) {
 	// shouldnt happen...
 	if (id>MAX_OPENDIRS) return false;
 
 	if (!IsCachedIn(dirSearch[id])) {
 		// Try to open directory
-		dir_information* dirp = (dir_information*)drive->opendir(dirPath); // verify this conversion from void* is valid
+		void* dirp = drive->opendir(dirPath);
 		if (!dirp) {
 			if (dirSearch[id]) {
 				dirSearch[id]->id = MAX_OPENDIRS;
@@ -758,12 +755,12 @@ bool DOS_Drive_Cache::ReadDir(Bit16u id, char* &result, char * &lresult) {
 			return false;
 		}
 		// Read complete directory
-		char dir_name[CROSS_LEN], dir_sname[DOS_NAMELENGTH+1];
+		char dir_name[CROSS_LEN];
 		bool is_directory;
- 		if (read_directory_first(dirp, dir_name, dir_sname, is_directory)) {
- 			CreateEntry(dirSearch[id], dir_name, dir_sname, is_directory);
- 			while (read_directory_next(dirp, dir_name, dir_sname, is_directory)) {
- 				CreateEntry(dirSearch[id], dir_name, dir_sname, is_directory);
+		if (drive->read_directory_first(dirp, dir_name, is_directory)) {
+			CreateEntry(dirSearch[id], dir_name, is_directory);
+			while (drive->read_directory_next(dirp, dir_name, is_directory)) {
+				CreateEntry(dirSearch[id], dir_name, is_directory);
 			}
 		}
 
@@ -780,7 +777,7 @@ bool DOS_Drive_Cache::ReadDir(Bit16u id, char* &result, char * &lresult) {
 			LOG_DEBUG(buffer);
 		};*/
 	};
-	if (SetResult(dirSearch[id], result, lresult, dirSearch[id]->nextEntry)) return true;
+	if (SetResult(dirSearch[id], result, dirSearch[id]->nextEntry)) return true;
 	if (dirSearch[id]) {
 		dirSearch[id]->id = MAX_OPENDIRS;
 		dirSearch[id] = 0;
@@ -788,19 +785,15 @@ bool DOS_Drive_Cache::ReadDir(Bit16u id, char* &result, char * &lresult) {
 	return false;
 }
 
-bool DOS_Drive_Cache::SetResult(CFileInfo* dir, char* &result, char* &lresult, Bitu entryNr)
+bool DOS_Drive_Cache::SetResult(CFileInfo* dir, char* &result, Bitu entryNr)
 {
 	static char res[CROSS_LEN] = { 0 };
-	static char lres[CROSS_LEN] = { 0 };
 
 	result = res;
-	lresult = lres;
-
 	if (entryNr>=dir->fileList.size()) return false;
 	CFileInfo* info = dir->fileList[entryNr];
 	// copy filename, short version
 	strcpy(res,info->shortname);
-	strcpy(lres,info->orgname);
 	// Set to next Entry
 	dir->nextEntry = entryNr+1;
 	return true;
@@ -859,13 +852,13 @@ bool DOS_Drive_Cache::FindFirst(char* path, Bit16u& id) {
 	return true;
 }
 
-bool DOS_Drive_Cache::FindNext(Bit16u id, char* &result, char* &lresult) {
+bool DOS_Drive_Cache::FindNext(Bit16u id, char* &result) {
 	// out of range ?
 	if ((id>=MAX_OPENDIRS) || !dirFindFirst[id]) {
 		LOG(LOG_MISC,LOG_ERROR)("DIRCACHE: FindFirst/Next failure : ID out of range: %04X",id);
 		return false;
 	}
-	if (!SetResult(dirFindFirst[id], result, lresult, dirFindFirst[id]->nextEntry)) {
+	if (!SetResult(dirFindFirst[id], result, dirFindFirst[id]->nextEntry)) {
 		// free slot
 		DeleteFileInfo(dirFindFirst[id]); dirFindFirst[id] = 0;
 		return false;

@@ -45,8 +45,6 @@ char *trim(char * str);
 char * upcase(char * str);
 char * lowcase(char * str);
 
-char * StripArg(char *&cmd);
-
 bool ScanCMDBool(char * cmd,char const * const check);
 char * ScanCMDRemain(char * cmd);
 char * StripWord(char *&cmd);

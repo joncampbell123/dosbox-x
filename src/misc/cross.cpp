@@ -35,8 +35,6 @@
 #include <pwd.h>
 #endif
 
-extern bool uselfn;
-
 #ifdef WIN32
 static void W32_ConfDir(std::string& in,bool create) {
 	int c = create?1:0;
@@ -156,7 +154,7 @@ dir_information* open_directory(const char* dirname) {
 	return (_access(dirname,0) ? NULL : &dir);
 }
 
-bool read_directory_first2(dir_information* dirp, char* entry_name, bool& is_directory) {
+bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_directory) {
 	dirp->handle = FindFirstFile(dirp->base_path, &dirp->search_data);
 	if (INVALID_HANDLE_VALUE == dirp->handle) {
 		return false;
@@ -170,39 +168,11 @@ bool read_directory_first2(dir_information* dirp, char* entry_name, bool& is_dir
 	return true;
 }
 
-bool read_directory_next2(dir_information* dirp, char* entry_name, bool& is_directory) {
+bool read_directory_next(dir_information* dirp, char* entry_name, bool& is_directory) {
 	int result = FindNextFile(dirp->handle, &dirp->search_data);
 	if (result==0) return false;
 
 	safe_strncpy(entry_name,dirp->search_data.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
-
-	if (dirp->search_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) is_directory = true;
-	else is_directory = false;
-
-	return true;
-}
-
-bool read_directory_first(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory) {
-	dirp->handle = FindFirstFile(dirp->base_path, &dirp->search_data);
-	if (INVALID_HANDLE_VALUE == dirp->handle) {
-		return false;
-	}
-
-	safe_strncpy(entry_name,dirp->search_data.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
-	safe_strncpy(entry_sname,dirp->search_data.cAlternateFileName,13);
-
-	if (dirp->search_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) is_directory = true;
-	else is_directory = false;
-
-	return true;
-}
-
-bool read_directory_next(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory) {
-	int result = FindNextFile(dirp->handle, &dirp->search_data);
-	if (result==0) return false;
-
-	safe_strncpy(entry_name,dirp->search_data.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
-	safe_strncpy(entry_sname,dirp->search_data.cAlternateFileName,13);
 
 	if (dirp->search_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) is_directory = true;
 	else is_directory = false;
@@ -226,7 +196,7 @@ dir_information* open_directory(const char* dirname) {
 	return dir.dir?&dir:NULL;
 }
 
-bool read_directory_first2(dir_information* dirp, char* entry_name, bool& is_directory) {
+bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_directory) {
 	struct dirent* dentry = readdir(dirp->dir);
 	if (dentry==NULL) {
 		return false;
@@ -257,7 +227,7 @@ bool read_directory_first2(dir_information* dirp, char* entry_name, bool& is_dir
 	return true;
 }
 
-bool read_directory_next2(dir_information* dirp, char* entry_name, bool& is_directory) {
+bool read_directory_next(dir_information* dirp, char* entry_name, bool& is_directory) {
 	struct dirent* dentry = readdir(dirp->dir);
 	if (dentry==NULL) {
 		return false;
@@ -265,73 +235,6 @@ bool read_directory_next2(dir_information* dirp, char* entry_name, bool& is_dire
 
 //	safe_strncpy(entry_name,dentry->d_name,(FILENAME_MAX<MAX_PATH)?FILENAME_MAX:MAX_PATH);	// [include stdio.h], maybe pathconf()
 	safe_strncpy(entry_name,dentry->d_name,CROSS_LEN);
-
-#ifdef DIRENT_HAS_D_TYPE
-	if(dentry->d_type == DT_DIR) {
-		is_directory = true;
-		return true;
-	} else if(dentry->d_type == DT_REG) {
-		is_directory = false;
-		return true;
-	}
-#endif
-
-	// probably use d_type here instead of a full stat()
-	static char buffer[2*CROSS_LEN] = { 0 };
-	buffer[0] = 0;
-	strcpy(buffer,dirp->base_path);
-	strcat(buffer,entry_name);
-	struct stat status;
-
-	if (stat(buffer,&status)==0) is_directory = (S_ISDIR(status.st_mode)>0);
-	else is_directory = false;
-
-	return true;
-}
-
-bool read_directory_first(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory) {
-	struct dirent* dentry = readdir(dirp->dir);
-
-	if (dentry==NULL) {
-		return false;
-	}
-
-//	safe_strncpy(entry_name,dentry->d_name,(FILENAME_MAX<MAX_PATH)?FILENAME_MAX:MAX_PATH);	// [include stdio.h], maybe pathconf()
-	safe_strncpy(entry_name,dentry->d_name,CROSS_LEN);
-	entry_sname[0]=0;
-
-#ifdef DIRENT_HAS_D_TYPE
-	if(dentry->d_type == DT_DIR) {
-		is_directory = true;
-		return true;
-	} else if(dentry->d_type == DT_REG) {
-		is_directory = false;
-		return true;
-	}
-#endif
-
-	// probably use d_type here instead of a full stat()
-	static char buffer[2*CROSS_LEN] = { 0 };
-	buffer[0] = 0;
-	strcpy(buffer,dirp->base_path);
-	strcat(buffer,entry_name); // FIXME: This is clearly an opportunity for a buffer overflow and crash
-	struct stat status;
-	if (stat(buffer,&status)==0) is_directory = (S_ISDIR(status.st_mode)>0);
-	else is_directory = false;
-
-	return true;
-}
-
-bool read_directory_next(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory) {
-	struct dirent* dentry = readdir(dirp->dir);
-
-	if (dentry==NULL) {
-		return false;
-	}
-
-//	safe_strncpy(entry_name,dentry->d_name,(FILENAME_MAX<MAX_PATH)?FILENAME_MAX:MAX_PATH);	// [include stdio.h], maybe pathconf()
-	safe_strncpy(entry_name,dentry->d_name,CROSS_LEN);
-	entry_sname[0]=0;
 
 #ifdef DIRENT_HAS_D_TYPE
 	if(dentry->d_type == DT_DIR) {

@@ -26,7 +26,6 @@
 #include "shell.h" /* for DOS_Shell */
 
 bool WildFileCmp(const char * file, const char * wild);
-bool LWildFileCmp(const char * file, const char * wild);
 void Set_Label(char const * const input, char * const output, bool cdrom);
 
 class DriveManager {
@@ -78,10 +77,8 @@ public:
 	virtual void SetLabel(const char *label, bool iscdrom, bool updatable) { dirCache.SetLabel(label,iscdrom,updatable); };
 	virtual void *opendir(const char *dir);
 	virtual void closedir(void *handle);
-	virtual bool read_directory_first(void *handle, char* entry_name, char* entry_sname, bool& is_directory);
-	virtual bool read_directory_next(void *handle, char* entry_name, char* entry_sname, bool& is_directory);
-	virtual bool read_directory_first2(void *handle, char* entry_name, bool& is_directory);
-	virtual bool read_directory_next2(void *handle, char* entry_name, bool& is_directory);
+	virtual bool read_directory_first(void *handle, char* entry_name, bool& is_directory);
+	virtual bool read_directory_next(void *handle, char* entry_name, bool& is_directory);
 
 	virtual void EmptyCache(void) { dirCache.EmptyCache(); };
 	virtual void MediaChange() {};
@@ -416,7 +413,6 @@ private:
 	bool GetNextDirEntry(const int dirIterator, isoDirEntry* de);
 	void FreeDirIterator(const int dirIterator);
 	bool ReadCachedSector(Bit8u** buffer, const Bit32u sector);
-	void GetLongName(char *ident, char *lfindName);
 	
 	struct DirIterator {
 		bool valid;

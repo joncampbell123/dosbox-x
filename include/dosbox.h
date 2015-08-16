@@ -56,7 +56,7 @@ typedef Bitu				(LoopHandler)(void);
 extern Config*				control;
 extern SVGACards			svgaCard;
 extern MachineType			machine;
-extern bool				SDLNetInited, uselfn;
+extern bool				SDLNetInited;
 extern bool				mono_cga;
 extern bool				mainline_compatible_mapping;
 extern bool				mainline_compatible_bios_mapping;

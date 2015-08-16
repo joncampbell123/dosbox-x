@@ -66,13 +66,9 @@ bool DOS_MakeName(char const * const name,char * const fullname,Bit8u * drive) {
 	const char * name_int = name;
 	char tempdir[DOS_PATHLENGTH];
 	char upname[DOS_PATHLENGTH];
-	Bitu r,w, q=0;
+	Bitu r,w;
 	*drive = DOS_GetDefaultDrive();
 	/* First get the drive */
- 	while (name_int[0]=='"') {
- 		q++;
- 		name_int++;
- 	}
 	if (name_int[1]==':') {
 		*drive=(name_int[0] | 0x20)-'a';
 		name_int+=2;
@@ -84,19 +80,15 @@ bool DOS_MakeName(char const * const name,char * const fullname,Bit8u * drive) {
 	r=0;w=0;
 	while (name_int[r]!=0 && (r<DOS_PATHLENGTH)) {
 		Bit8u c=name_int[r++];
-		if ((c>='a') && (c<='z')) {upname[w++]=c;continue;}
+		if ((c>='a') && (c<='z')) {upname[w++]=c-32;continue;}
 		if ((c>='A') && (c<='Z')) {upname[w++]=c;continue;}
 		if ((c>='0') && (c<='9')) {upname[w++]=c;continue;}
 		switch (c) {
- 		case '"':
- 			q++;
- 			continue;
 		case '/':
 			upname[w++]='\\';
 			break;
- 		case ' ':
- 			if (q/2*2 == q) {break;}
- 			else {upname[w++]=c;continue;}
+		case ' ': /* should be seperator */
+			break;
 		default:
 			upname[w++]=c;
 			break;
@@ -160,7 +152,6 @@ bool DOS_MakeName(char const * const name,char * const fullname,Bit8u * drive) {
 			lastdir=(Bit32u)strlen(fullname);
 
 			if (lastdir!=0) strcat(fullname,"\\");
-			/*
 			char * ext=strchr(tempdir,'.');
 			if (ext) {
 				if(strchr(ext+1,'.')) { 
@@ -177,7 +168,6 @@ bool DOS_MakeName(char const * const name,char * const fullname,Bit8u * drive) {
 				ext[4] = 0;
 				if((strlen(tempdir) - strlen(ext)) > 8) memmove(tempdir + 8, ext, 5);
 			} else tempdir[8]=0;
-			*/
 
 			if (strlen(fullname)+strlen(tempdir)>=DOS_PATHLENGTH) {
 				DOS_SetError(DOSERR_PATH_NOT_FOUND);return false;
@@ -193,85 +183,19 @@ bool DOS_MakeName(char const * const name,char * const fullname,Bit8u * drive) {
 	return true;	
 }
 
-bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
-	char dir_current[DOS_PATHLENGTH + 1], pdir[LFN_NAMELENGTH], *p;
-	Bit8u drive;char fulldir[DOS_PATHLENGTH],LFNPath[CROSS_LEN];
-	char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH];
-	int w=0;
-	DOS_DTA dta(dos.dta());
-	Bit32u size;Bit16u date;Bit16u time;Bit8u attr;
-	if (!DOS_MakeName(path,fulldir,&drive)) return false;
-	sprintf(SFNPath,"%c:\\",drive+'A');
-	strcpy(LFNPath,SFNPath);
-	strcpy(dir_current,Drives[drive]->curdir);
-	Drives[drive]->curdir,"";
-	p = fulldir;
-	if (*p==0) return true;
-	for (char *s = strchr(p,'\\'); s != NULL; s = strchr(p,'\\')) {
-		*s = 0;
-		if (SFNPath[strlen(SFNPath)-1]=='\\')
-			sprintf(pdir,"\"%s%s\"",SFNPath,p);
-		else
-			sprintf(pdir,"\"%s\\%s\"",SFNPath,p);
-		if (!strrchr(p,'*') && !strrchr(p,'?')) {
-			*s = '\\';
-			p = s + 1;
-			if (DOS_FindFirst(pdir,0xffff & DOS_ATTR_DIRECTORY & ~DOS_ATTR_VOLUME,false)) {
-				dta.GetResult(name,lname,size,date,time,attr);
-				strcat(SFNPath,name);
-				strcat(LFNPath,lname);
-				Drives[drive]->curdir,SFNPath+3;
-				strcat(SFNPath,"\\");
-				strcat(LFNPath,"\\");
-			}
-			else {
-			return false;}
-		} else {
-			strcat(SFNPath,p);
-			strcat(LFNPath,p);
-			strcat(SFNPath,"\\");
-			strcat(LFNPath,"\\");
-			*s = '\\';
-			p = s + 1;
-			break;
-		}
-	}
-	if (p != 0) {
-		sprintf(pdir,"\"%s%s\"",SFNPath,p);
-		if (!strrchr(p,'*')&&!strrchr(p,'?')&&DOS_FindFirst(pdir,0xffff & ~DOS_ATTR_VOLUME,false)) {
-			dta.GetResult(name,lname,size,date,time,attr);
-			strcat(SFNPath,name);
-			strcat(LFNPath,lname);
-		} else {
-			strcat(SFNPath,p);
-			strcat(LFNPath,p);
-		}
-	}
-	Drives[drive]->curdir,dir_current;
-	if (LFN) strcpy(SFNPath,LFNPath);
-	return true;
-}
- 
-bool DOS_GetCurrentDir(Bit8u drive,char * const buffer, bool LFN) {
+bool DOS_GetCurrentDir(Bit8u drive,char * const buffer) {
 	if (drive==0) drive=DOS_GetDefaultDrive();
 	else drive--;
 	if ((drive>=DOS_DRIVES) || (!Drives[drive])) {
 		DOS_SetError(DOSERR_INVALID_DRIVE);
 		return false;
 	}
- 	if (LFN && uselfn) {
- 		char cdir[DOS_PATHLENGTH],ldir[DOS_PATHLENGTH];
- 		sprintf(cdir,"%c:\\%s",drive+'A',Drives[drive]->curdir);
- 		DOS_GetSFNPath(cdir,ldir,true);
- 		strcpy(buffer,ldir+3);
- 	} else {
- 		strcpy(buffer,Drives[drive]->curdir);
- 	}
+	strcpy(buffer,Drives[drive]->curdir);
 	return true;
 }
 
 bool DOS_ChangeDir(char const * const dir) {
-	Bit8u drive;char fulldir[DOS_PATHLENGTH],sdir[DOS_PATHLENGTH];
+	Bit8u drive;char fulldir[DOS_PATHLENGTH];
 	const char * testdir=dir;
 	if (strlen(testdir) && testdir[1]==':') testdir+=2;
 	size_t len=strlen(testdir);
@@ -280,9 +204,13 @@ bool DOS_ChangeDir(char const * const dir) {
 		return false;
 	}
 	if (!DOS_MakeName(dir,fulldir,&drive)) return false;
+	if (strlen(fulldir) && testdir[len-1]=='\\') {
+		DOS_SetError(DOSERR_PATH_NOT_FOUND);
+		return false;
+	}
 	
-	if (Drives[drive]->TestDir(fulldir)&&DOS_GetSFNPath(dir,sdir,false)) {
-		strcpy(Drives[drive]->curdir,sdir+3);
+	if (Drives[drive]->TestDir(fulldir)) {
+		strcpy(Drives[drive]->curdir,fulldir);
 		return true;
 	} else {
 		DOS_SetError(DOSERR_PATH_NOT_FOUND);
@@ -321,10 +249,9 @@ bool DOS_RemoveDir(char const * const dir) {
 		return false;
 	}
 	/* See if it's current directory */
- 	char currdir[DOS_PATHLENGTH]= { 0 }, lcurrdir[DOS_PATHLENGTH]= { 0 };
- 	DOS_GetCurrentDir(drive + 1 ,currdir, false);
- 	DOS_GetCurrentDir(drive + 1 ,lcurrdir, true);
- 	if(strcasecmp(currdir,fulldir) == 0 || uselfn && strcasecmp(lcurrdir,fulldir) == 0) {
+	char currdir[DOS_PATHLENGTH]= { 0 };
+	DOS_GetCurrentDir(drive + 1 ,currdir);
+	if(strcmp(currdir,fulldir) == 0) {
 		DOS_SetError(DOSERR_REMOVE_CURRENT_DIRECTORY);
 		return false;
 	}
@@ -405,13 +332,12 @@ bool DOS_FindFirst(char * search,Bit16u attr,bool fcb_findfirst) {
 		find_last = strrchr(pattern,'.');
 		if(find_last) *find_last = 0;
 		//TODO use current date and time
-		dta.SetResult(pattern,pattern,0,0,0,DOS_ATTR_DEVICE);
+		dta.SetResult(pattern,0,0,0,DOS_ATTR_DEVICE);
 		LOG(LOG_DOSMISC,LOG_WARN)("finding device %s",pattern);
 		return true;
 	}
    
- 	bool r=Drives[drive]->FindFirst(dir, dta, fcb_findfirst);
- 	return r;
+	if (Drives[drive]->FindFirst(dir,dta,fcb_findfirst)) return true;
 	
 	return false;
 }
@@ -1014,10 +940,9 @@ static void DTAExtendName(char * const name,char * const filename,char * const e
 
 static void SaveFindResult(DOS_FCB & find_fcb) {
 	DOS_DTA find_dta(dos.tables.tempdta);
- 	char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
- 	Bit32u size;Bit16u date;Bit16u time;Bit8u attr;Bit8u drive;
+	char name[DOS_NAMELENGTH_ASCII];Bit32u size;Bit16u date;Bit16u time;Bit8u attr;Bit8u drive;
 	char file_name[9];char ext[4];
-	find_dta.GetResult(name,lname,size,date,time,attr);
+	find_dta.GetResult(name,size,date,time,attr);
 	drive=find_fcb.GetDrive()+1;
 	Bit8u find_attr = DOS_ATTR_ARCHIVE;
 	find_fcb.GetAttr(find_attr); /* Gets search attributes if extended */
