@@ -1943,7 +1943,7 @@ void DOSBOX_Init(void) {
 	Pbool = secprop->Add_bool("automount",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Enable automatic mount.");
 
- 	Pint = secprop->Add_int("ver",Property::Changeable::WhenIdle,7);
+ 	Pint = secprop->Add_int("ver",Property::Changeable::WhenIdle,5);
  	Pint->Set_help("Set DOS major version.");
  	
  	const char* lfn_settings[] = { "true", "auto", "false", 0};
