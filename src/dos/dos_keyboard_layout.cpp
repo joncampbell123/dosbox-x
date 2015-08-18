@@ -1239,6 +1239,9 @@ public:
 					layoutname = "sf";
 					wants_dos_codepage = 437;
 					break;
+				case 1041:
+					layoutname = "jp";
+					break;
 				default:
 					break;
 			}
