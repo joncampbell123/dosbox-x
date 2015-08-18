@@ -3827,6 +3827,11 @@ void TIMER_ShutdownTickHandlers();
 int main(int argc, char* argv[]) {
 	CommandLine com_line(argc,argv);
 
+#if defined(WIN32)
+	/* Microsoft's IME does not play nice with DOSBox */
+	ImmDisableIME((DWORD)(-1));
+#endif
+
 	{
 		/* NTS: Warning, do NOT move the Config myconf() object out of this scope.
 		 * The destructor relies on executing section destruction code as part of
