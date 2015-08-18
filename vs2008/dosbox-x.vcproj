@@ -69,7 +69,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				UseUnicodeResponseFiles="false"
-				AdditionalDependencies="winmm.lib  opengl32.lib $(SolutionDir)\..\zlibstat.lib"
+				AdditionalDependencies="winmm.lib  imm32.lib opengl32.lib $(SolutionDir)\..\zlibstat.lib"
 				ShowProgress="2"
 				OutputFile="$(OutDir)\DOSBox.exe"
 				LinkIncremental="2"
@@ -150,7 +150,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				UseUnicodeResponseFiles="false"
-				AdditionalDependencies="winmm.lib  opengl32.lib $(SolutionDir)\..\zlibstat.lib"
+				AdditionalDependencies="winmm.lib  imm32.lib opengl32.lib $(SolutionDir)\..\zlibstat.lib"
 				ShowProgress="2"
 				OutputFile="$(OutDir)\DOSBox.exe"
 				LinkIncremental="2"
@@ -230,7 +230,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				UseUnicodeResponseFiles="false"
-				AdditionalDependencies="winmm.lib opengl32.lib $(SolutionDir)\..\zlibstat.lib"
+				AdditionalDependencies="winmm.lib imm32.lib opengl32.lib $(SolutionDir)\..\zlibstat.lib"
 				ShowProgress="2"
 				OutputFile="$(OutDir)/DOSBox.exe"
 				LinkIncremental="1"
@@ -313,7 +313,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				UseUnicodeResponseFiles="false"
-				AdditionalDependencies="winmm.lib opengl32.lib $(SolutionDir)\..\zlibstat.lib"
+				AdditionalDependencies="winmm.lib  imm32.lib opengl32.lib $(SolutionDir)\..\zlibstat.lib"
 				ShowProgress="2"
 				OutputFile="$(OutDir)/DOSBox.exe"
 				LinkIncremental="1"
