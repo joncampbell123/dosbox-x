@@ -2268,9 +2268,18 @@ static bool MAPPER_LoadBinds(void) {
 	return true;
 }
 
+bool log_keyboard_scan_codes = false;
+
 void MAPPER_CheckEvent(SDL_Event * event) {
 	for (CBindGroup_it it=bindgroups.begin();it!=bindgroups.end();it++) {
 		if ((*it)->CheckEvent(event)) return;
+	}
+
+	if (log_keyboard_scan_codes) {
+		if (event->type == SDL_KEYDOWN || event->type == SDL_KEYUP)
+			LOG_MSG("MAPPER: SDL keyboard event (%s): scancode=0x%X sym=0x%X mod=0x%X",
+				event->type == SDL_KEYDOWN?"down":"up",
+				event->key.keysym.scancode,event->key.keysym.sym,event->key.keysym.mod);
 	}
 }
 

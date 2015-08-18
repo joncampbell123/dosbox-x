@@ -3699,6 +3699,8 @@ void CheckNumLockState(void) {
 #endif
 }
 
+extern bool log_keyboard_scan_codes;
+
 bool DOSBOX_parse_argv() {
 	std::string optname,tmp;
 
@@ -3740,7 +3742,11 @@ bool DOSBOX_parse_argv() {
 			fprintf(stderr,"  -disable-numlock-check                  Disable numlock check (win32 only)\n");
 			fprintf(stderr,"  -date-host-forced                       Force synchronization of date with host\n");
 			fprintf(stderr,"  -debug                                  Set all logging levels to debug\n");
+			fprintf(stderr,"  -keydbg                                 Log all SDL key events (debugging)\n");
 			return 0;
+		}
+		else if (optname == "keydbg") {
+			log_keyboard_scan_codes = true;
 		}
 		else if (optname == "date-host-forced" || optname == "date_host_forced") {
 			control->opt_date_host_forced = true;
