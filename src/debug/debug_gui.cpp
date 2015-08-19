@@ -47,6 +47,8 @@ static list<string>::iterator logBuffPos = logBuff.end();
 extern int old_cursor_state;
 
 void DEBUG_RefreshPage(char scroll) {
+	if (dbg.win_out == NULL) return;
+
 	if (scroll==-1 && logBuffPos!=logBuff.begin()) logBuffPos--;
 	else if (scroll==1 && logBuffPos!=logBuff.end()) logBuffPos++;
 
@@ -204,8 +206,11 @@ void DEBUG_ShowMsg(char const* format,...) {
 		logBuff.pop_front();
 
 	logBuffPos = logBuff.end();
-	wprintw(dbg.win_out,"%s",buf);
-	wrefresh(dbg.win_out);
+
+	if (dbg.win_out != NULL) {
+		wprintw(dbg.win_out,"%s",buf);
+		wrefresh(dbg.win_out);
+	}
 #endif
 }
 
@@ -260,17 +265,20 @@ void LOG_ParseEnableSetting(_LogGroup &group,const char *setting) {
 		group.min_severity = LOG_NORMAL;
 }
 
-void LOG_Init(Section * sec) {
-	Section_prop * sect=static_cast<Section_prop *>(sec);
-	const char * blah=sect->Get_string("logfile");
-	if (blah != NULL && blah[0] != 0 && (debuglog=fopen(blah,"wt+")) != NULL) {
+void LOG_Init() {
+	assert(control != NULL);
+
+	Section_prop *sect = static_cast<Section_prop *>(control->GetSection("log"));
+	assert(sect != NULL);
+
+	const char *blah = sect->Get_string("logfile");
+	if (blah != NULL && blah[0] != 0 && (debuglog=fopen(blah,"wt+")) != NULL)
 		setbuf(debuglog,NULL);
-	}
-	else {
+	else
 		debuglog=0;
-	}
 
 	sect->AddDestroyFunction(&LOG_Destroy);
+
 	char buf[1024];
 	for (Bitu i=1;i<LOG_MAX;i++) {
 		strcpy(buf,loggrp[i].front);
@@ -284,7 +292,7 @@ void LOG_Init(Section * sec) {
 	}
 }
 
-void LOG_StartUp(void) {
+void LOG_SetupConfigSection(void) {
 	const char *log_values[] = {
 		/* compatibility with existing dosbox.conf files */
 		"true", "false",

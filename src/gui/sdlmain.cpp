@@ -3822,6 +3822,8 @@ bool DOSBOX_parse_argv() {
 }
 
 void TIMER_ShutdownTickHandlers();
+void LOG_SetupConfigSection(void);
+void LOG_Init();
 
 //extern void UI_Init(void);
 int main(int argc, char* argv[]) {
@@ -3840,19 +3842,10 @@ int main(int argc, char* argv[]) {
 		Config myconf(&com_line);
 		control=&myconf;
 
+		/* -- parse command line arguments */
 		if (!DOSBOX_parse_argv()) return 1;
 
-		/* Init the configuration system and add default values */
-		CheckNumLockState();
-		Config_Add_SDL();
-		DOSBOX_Init();
-
-		if (control->opt_editconf.length() != 0)
-			launcheditor(control->opt_editconf);
-		if (control->opt_opencaptures.length() != 0)
-			launchcaptures(control->opt_opencaptures);
-		if (control->opt_opensaves.length() != 0)
-			launchsaves(control->opt_opensaves);
+		/* -- Handle some command line options */
 		if (control->opt_eraseconf || control->opt_resetconf)
 			eraseconfigfile();
 		if (control->opt_printconf)
@@ -3860,6 +3853,64 @@ int main(int argc, char* argv[]) {
 		if (control->opt_erasemapper || control->opt_resetmapper)
 			erasemapperfile();
 
+		/* -- Init the configuration system and add default values */
+		CheckNumLockState();
+
+		/* -- setup the config sections for config parsing */
+		LOG_SetupConfigSection();
+
+		/* -- Parse configuration files */
+		Cross::GetPlatformConfigDir(config_path);
+
+		/* -- -- first the user config file */
+		if (control->opt_userconf) {
+			tmp.clear();
+			Cross::GetPlatformConfigDir(config_path);
+			Cross::GetPlatformConfigName(tmp);
+			config_path += tmp;
+			control->ParseConfigFile(config_path.c_str());
+			if (!control->configfiles.size()) {
+				//Try to create the userlevel configfile.
+				tmp.clear();
+				Cross::CreatePlatformConfigDir(config_path);
+				Cross::GetPlatformConfigName(tmp);
+				config_path += tmp;
+				if (control->PrintConfig(config_path.c_str())) {
+					LOG_MSG("CONFIG: Generating default configuration.\nWriting it to %s",config_path.c_str());
+					//Load them as well. Makes relative paths much easier
+					control->ParseConfigFile(config_path.c_str());
+				}
+			}
+		}
+
+		/* -- -- second the -conf switches from the command line */
+		for (size_t si=0;si < control->config_file_list.size();si++) {
+			std::string &cfg = control->config_file_list[si];
+			if (!control->ParseConfigFile(cfg.c_str())) {
+				// try to load it from the user directory
+				control->ParseConfigFile((config_path + cfg).c_str());
+			}
+		}
+
+		/* -- -- if none found, use dosbox.conf */
+		if (!control->configfiles.size()) control->ParseConfigFile("dosbox.conf");
+
+		/* -- -- if none found, use userlevel conf */
+		if (!control->configfiles.size()) {
+			tmp.clear();
+			Cross::GetPlatformConfigName(tmp);
+			control->ParseConfigFile((config_path + tmp).c_str());
+		}
+
+#if (ENVIRON_LINKED)
+		/* -- parse environment block (why?) */
+		control->ParseEnv(environ);
+#endif
+
+		/* -- initialize logging first, so that higher level inits can report problems to the log file */
+		LOG_Init();
+
+		/* -- [debug] setup console */
 #if C_DEBUG
 # if defined(WIN32)
 		/* Can't disable the console with debugger enabled */
@@ -3874,12 +3925,13 @@ int main(int argc, char* argv[]) {
 #endif
 
 #if defined(WIN32)
+		/* -- Windows: set console control handler */
 		SetConsoleCtrlHandler((PHANDLER_ROUTINE) ConsoleEventHandler,TRUE);
 #endif
 
-		/* Display Welcometext in the console */
-		LOG_MSG("DOSBox version %s",VERSION);
-		LOG_MSG("Copyright 2002-2015 DOSBox Team, published under GNU GPL.");
+		/* -- Welcome to DOSBox-X! */
+		LOG_MSG("DOSBox-X version %s",VERSION);
+		LOG(LOG_MISC,LOG_NORMAL)("Copyright 2002-2015 enhanced branch by The Great Codeholio, forked from the main project by the DOSBox Team, published under GNU GPL.");
 
 		{
 			int id, major, minor;
@@ -3889,49 +3941,54 @@ int main(int argc, char* argv[]) {
 			if (!menu_compatible) LOG_MSG("---");
 
 			/* use all variables to shut up the compiler about unused vars */
-			LOG_MSG("DOSBox_CheckOS results: id=%u major=%u minor=%u",id,major,minor);
+			LOG(LOG_MISC,LOG_DEBUG)("DOSBox_CheckOS results: id=%u major=%u minor=%u",id,major,minor);
 		}
 
-		/* Init SDL */
+		/* -- SDL init hackery */
 #if SDL_VERSION_ATLEAST(1, 2, 14)
-		/* Or debian/ubuntu with older libsdl version as they have done this themselves, but then differently.
-		 * with this variable they will work correctly. I've only tested the 1.2.14 behaviour against the windows version
-		 * of libsdl
-		 */
+		/* hack: On debian/ubuntu with older libsdl version as they have done this themselves, but then differently.
+		 * with this variable they will work correctly. I've only tested the 1.2.14 behaviour against the windows version of libsdl */
 		putenv(const_cast<char*>("SDL_DISABLE_LOCK_KEYS=1"));
+		LOG(LOG_GUI,LOG_DEBUG)("SDL 1.2.14 hack: SDL_DISABLE_LOCK_KEYS=1");
 #endif
 
 #ifdef WIN32
-		if (getenv("SDL_VIDEODRIVER")==NULL) {
+		/* hack: Encourage SDL to use windib if not otherwise specified */
+		if (getenv("SDL_VIDEODRIVER") == NULL) {
+			LOG(LOG_GUI,LOG_DEBUG)("Win32 hack: setting SDL_VIDEODRIVER=windib because environ variable is not set");
 			putenv("SDL_VIDEODRIVER=windib");
 			sdl.using_windib=true;
 			load_videodrv=false;
 		}
 #endif
 
-		if (SDL_Init( SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_CDROM|SDL_INIT_NOPARACHUTE) < 0)
+		/* -- SDL init */
+		if (SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_CDROM|SDL_INIT_NOPARACHUTE) >= 0)
+			sdl.inited = true;
+		else
 			E_Exit("Can't init SDL %s",SDL_GetError());
-		sdl.inited = true;
 
+		/* -- -- decide whether to show menu in GUI */
 		if (control->opt_nogui || menu.compatible)
 			menu.gui=false;
+
+		/* -- -- decide whether to set menu */
 		if (menu_gui && !control->opt_nomenu)
 			DOSBox_SetMenu();
 
-		if (menu_gui) {
-			if (GetMenu(GetHWND())) {
-				LOG_MSG("GUI: Press Ctrl-F10 to capture/release mouse.\n"
-					"     Save your configuration and restart DOSBox if your settings do not take effect.");
-			}
-		} else {
-			LOG_MSG("GUI: Press Ctrl-F10 to capture/release mouse, Alt-F10 for configuration.");
-		}
+		/* -- -- helpful advice */
+		LOG(LOG_GUI,LOG_NORMAL)("Press Ctrl-F10 to capture/release mouse, Alt-F10 for configuration.");
+
+		/* -- -- other steps to prepare SDL window/output */
 		SDL_Prepare();
 
-		//Initialise Joystick seperately. This way we can warn when it fails instead
-		//of exiting the application
-		if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) < 0) LOG_MSG("Failed to init joystick support");
-		sdl.num_joysticks = SDL_NumJoysticks();
+		/* -- -- Initialise Joystick seperately. This way we can warn when it fails instead of exiting the application */
+		if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) >= 0)
+			sdl.num_joysticks = SDL_NumJoysticks();
+		else {
+			LOG(LOG_GUI,LOG_WARN)("Failed to init joystick support");
+			sdl.num_joysticks = 0;
+		}
 
 		/* assume L+R ALT keys are up */
 		sdl.laltstate = SDL_KEYUP;
@@ -3965,56 +4022,6 @@ int main(int argc, char* argv[]) {
 			else if (strcmp(sdl_videodrv,"windib")==0) sdl.using_windib = true;
 		}
 #endif
-
-		/* Parse configuration files */
-		Cross::GetPlatformConfigDir(config_path);
-
-		//First parse -userconf
-		if (control->opt_userconf) {
-			tmp.clear();
-			Cross::GetPlatformConfigDir(config_path);
-			Cross::GetPlatformConfigName(tmp);
-			config_path += tmp;
-			control->ParseConfigFile(config_path.c_str());
-			if (!control->configfiles.size()) {
-				//Try to create the userlevel configfile.
-				tmp.clear();
-				Cross::CreatePlatformConfigDir(config_path);
-				Cross::GetPlatformConfigName(tmp);
-				config_path += tmp;
-				if (control->PrintConfig(config_path.c_str())) {
-					LOG_MSG("CONFIG: Generating default configuration.\nWriting it to %s",config_path.c_str());
-					//Load them as well. Makes relative paths much easier
-					control->ParseConfigFile(config_path.c_str());
-				}
-			}
-		}
-
-		//Second parse all -conf switches we read from command line
-		for (size_t si=0;si < control->config_file_list.size();si++) {
-			std::string &cfg = control->config_file_list[si];
-			if (!control->ParseConfigFile(cfg.c_str())) {
-				// try to load it from the user directory
-				control->ParseConfigFile((config_path + cfg).c_str());
-			}
-		}
-
-		// if none found => parse localdir conf
-		if (!control->configfiles.size()) control->ParseConfigFile("dosbox.conf");
-
-		// if none found => parse userlevel conf
-		if (!control->configfiles.size()) {
-			tmp.clear();
-			Cross::GetPlatformConfigName(tmp);
-			control->ParseConfigFile((config_path + tmp).c_str());
-		}
-
-#if (ENVIRON_LINKED)
-		control->ParseEnv(environ);
-#endif
-
-		UI_Init();
-		if (control->opt_startui) UI_Run(false);
 
 		/* Init all the sections */
 		void DOSBOX_RealInit(Section * sec);
@@ -4070,7 +4077,6 @@ int main(int argc, char* argv[]) {
 		void DRIVES_Init(Section*);
 		void CDROM_Image_Init(Section*);
 		void IPX_Init(Section*);
-		void LOG_Init(Section*);
 		void NE2K_Init(Section*);
 		void FDC_Primary_Init(Section*);
 		void AUTOEXEC_Init(Section*);
@@ -4097,7 +4103,20 @@ int main(int argc, char* argv[]) {
 		/* The order is important here:
 		 * Init functions are called low-level first to high level last,
 		 * because some init functions rely on others. */
-		LOG_Init(control->GetSection("log"));
+
+		Config_Add_SDL();
+		DOSBOX_Init();
+		UI_Init();
+
+		if (control->opt_startui)
+			UI_Run(false);
+		if (control->opt_editconf.length() != 0)
+			launcheditor(control->opt_editconf);
+		if (control->opt_opencaptures.length() != 0)
+			launchcaptures(control->opt_opencaptures);
+		if (control->opt_opensaves.length() != 0)
+			launchsaves(control->opt_opensaves);
+
 		GUI_StartUp(control->GetSection("sdl"));
 		DOSBOX_RealInit(control->GetSection("dosbox"));
 		IO_Init(control->GetSection("dosbox"));

@@ -805,8 +805,6 @@ void DOSBOX_Init(void) {
 #endif
 	SDLNetInited = false;
 
-	LOG_StartUp();
-
 	secprop=control->AddSection_prop("dosbox",&Null_Init);
 	Pstring = secprop->Add_path("language",Property::Changeable::Always,"");
 	Pstring->Set_help("Select another language file.");
