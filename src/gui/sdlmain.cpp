@@ -4395,6 +4395,14 @@ int main(int argc, char* argv[]) {
 	SDL_WM_GrabInput(SDL_GRAB_OFF);
 	SDL_ShowCursor(SDL_ENABLE);
 
+	/* Exit functions */
+	while (!exitfunctions.empty()) {
+		Function_wrapper &ent = exitfunctions.front();
+
+		ent.function(NULL);
+		exitfunctions.pop_front();
+	}
+
 	SDL_Quit();//Let's hope sdl will quit as well when it catches an exception
 	return 0;
 }

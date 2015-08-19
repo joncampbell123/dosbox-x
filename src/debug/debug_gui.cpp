@@ -30,6 +30,8 @@
 #include "debug.h"
 #include "debug_inc.h"
 
+static bool has_LOG_Init = false;
+
 _LogGroup loggrp[LOG_MAX]={{"",LOG_NORMAL},{0,LOG_NORMAL}};
 FILE* debuglog = NULL;
 
@@ -214,8 +216,10 @@ void DEBUG_ShowMsg(char const* format,...) {
 #endif
 }
 
-void LOG_Destroy(Section*) {
+/* callback function when DOSBox-X exits */
+void LOG_Exit(Section*) {
 	if (debuglog != NULL) {
+		fprintf(debuglog,"--END OF LOG--\n");
 		fclose(debuglog);
 		debuglog = NULL;
 	}
@@ -266,20 +270,31 @@ void LOG_ParseEnableSetting(_LogGroup &group,const char *setting) {
 }
 
 void LOG_Init() {
+	char buf[1024];
+
 	assert(control != NULL);
 
+	/* do not init twice */
+	if (has_LOG_Init) return;
+	has_LOG_Init = true;
+
+	/* get the [log] section */
 	Section_prop *sect = static_cast<Section_prop *>(control->GetSection("log"));
 	assert(sect != NULL);
 
+	/* do we write to a logfile, or not? */
 	const char *blah = sect->Get_string("logfile");
 	if (blah != NULL && blah[0] != 0 && (debuglog=fopen(blah,"wt+")) != NULL)
 		setbuf(debuglog,NULL);
 	else
 		debuglog=0;
 
-	sect->AddDestroyFunction(&LOG_Destroy);
+	/* please call LOG_Exit when DOSBox-X is exiting. This call is made first,
+	 * so our callback will be called last before DOSBox-X terminates. */
+	AddExitFunction(&LOG_Exit);
 
-	char buf[1024];
+	/* read settings for each log category, unless the -debug option was given,
+	 * in which case everything is set to debug level */
 	for (Bitu i=1;i<LOG_MAX;i++) {
 		strcpy(buf,loggrp[i].front);
 		buf[strlen(buf)]=0;

@@ -31,6 +31,9 @@
 #include <limits>
 #include <limits.h>
 
+/* functions to call when DOSBox-X is exiting. */
+std::list<Function_wrapper> exitfunctions;
+
 using namespace std;
 static std::string current_config_dir; // Set by parseconfigfile so Prop_path can use it to construct the realpath
 void Value::destroy() throw(){
@@ -776,6 +779,10 @@ void Section::AddDestroyFunction(SectionFunction func,bool canchange) {
 	destroyfunctions.push_front(Function_wrapper(func,canchange));
 }
 
+void AddExitFunction(SectionFunction func,bool canchange) {
+	/* NTS: Add functions to the back. First In Last Out order. */
+	exitfunctions.push_back(Function_wrapper(func,canchange));
+}
 
 void Section::ExecuteInit(bool initall) {
 	typedef std::list<Function_wrapper>::iterator func_it;

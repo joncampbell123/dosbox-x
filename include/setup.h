@@ -228,20 +228,24 @@ public:
 	virtual ~Prop_hex(){ }
 };
 
+class Section;
+
+typedef void (*SectionFunction)(Section*);
+
+/* Wrapper class around startup and shutdown functions. the variable
+ * canchange indicates it can be called on configuration changes */
+struct Function_wrapper {
+	SectionFunction function;
+	bool canchange;
+	Function_wrapper(SectionFunction const _fun,bool _ch){
+		function=_fun;
+		canchange=_ch;
+	}
+};
+
 #define NO_SUCH_PROPERTY "PROP_NOT_EXIST"
 class Section {
 private:
-	typedef void (*SectionFunction)(Section*);
-	/* Wrapper class around startup and shutdown functions. the variable
-	 * canchange indicates it can be called on configuration changes */
-	struct Function_wrapper {
-		SectionFunction function;
-		bool canchange;
-		Function_wrapper(SectionFunction const _fun,bool _ch){
-			function=_fun;
-			canchange=_ch;
-		}
-	};
 	std::list<Function_wrapper> initfunctions;
 	std::list<Function_wrapper> destroyfunctions;
 	std::string sectionname;
@@ -259,6 +263,10 @@ public:
 	virtual void PrintData(FILE* outfile,bool everything=false) = 0;
 	virtual ~Section() { /*Children must call executedestroy ! */ }
 };
+
+extern std::list<Function_wrapper> exitfunctions;
+
+void AddExitFunction(SectionFunction func,bool canchange=false);
 
 class Prop_multival;
 class Prop_multival_remain;
