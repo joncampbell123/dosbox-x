@@ -217,7 +217,7 @@ void DEBUG_ShowMsg(char const* format,...) {
 }
 
 /* callback function when DOSBox-X exits */
-void LOG_Exit(Section*) {
+void LOG::OnExit(Section*) {
 	if (debuglog != NULL) {
 		fprintf(debuglog,"--END OF LOG--\n");
 		fclose(debuglog);
@@ -250,7 +250,7 @@ void LOG::operator() (char const* format, ...){
 	DEBUG_ShowMsg("%10u%s %s:%s\n",static_cast<Bit32u>(cycle_count),s_severity,loggrp[d_type].front,buf);
 }
 
-void LOG_ParseEnableSetting(_LogGroup &group,const char *setting) {
+void LOG::ParseEnableSetting(_LogGroup &group,const char *setting) {
 	if (!strcmp(setting,"true") || !strcmp(setting,"1") || !strcmp(setting,"normal"))
 		group.min_severity = LOG_NORMAL; /* original code's handling is equivalent to our "normal" setting */
 	else if (!strcmp(setting,"false") || !strcmp(setting,"0") || !strcmp(setting,""))
@@ -269,7 +269,7 @@ void LOG_ParseEnableSetting(_LogGroup &group,const char *setting) {
 		group.min_severity = LOG_NORMAL;
 }
 
-void LOG_Init() {
+void LOG::Init() {
 	char buf[1024];
 
 	assert(control != NULL);
@@ -291,7 +291,7 @@ void LOG_Init() {
 
 	/* please call LOG_Exit when DOSBox-X is exiting. This call is made first,
 	 * so our callback will be called last before DOSBox-X terminates. */
-	AddExitFunction(&LOG_Exit);
+	AddExitFunction(&OnExit);
 
 	/* read settings for each log category, unless the -debug option was given,
 	 * in which case everything is set to debug level */
@@ -301,13 +301,13 @@ void LOG_Init() {
 		lowcase(buf);
 
 		if (control->opt_debug)
-			LOG_ParseEnableSetting(/*&*/loggrp[i],"debug");
+			ParseEnableSetting(/*&*/loggrp[i],"debug");
 		else
-			LOG_ParseEnableSetting(/*&*/loggrp[i],sect->Get_string(buf));
+			ParseEnableSetting(/*&*/loggrp[i],sect->Get_string(buf));
 	}
 }
 
-void LOG_SetupConfigSection(void) {
+void LOG::SetupConfigSection(void) {
 	const char *log_values[] = {
 		/* compatibility with existing dosbox.conf files */
 		"true", "false",

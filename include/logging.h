@@ -53,9 +53,6 @@ struct _LogGroup {
 extern _LogGroup loggrp[LOG_MAX];
 extern FILE* debuglog;
 
-void LOG_Destroy(Section*);
-void LOG_StartUp(void);
-
 class LOG 
 { 
 	LOG_TYPES       d_type;
@@ -66,6 +63,11 @@ public:
 		d_type(type),
 		d_severity(severity)
 		{}
+
+	static void ParseEnableSetting(_LogGroup &group,const char *setting);
+	static void SetupConfigSection(void);
+	static void OnExit(Section*);
+	static void Init();
 
 	void operator() (char const* buf, ...) GCC_ATTRIBUTE(__format__(__printf__, 2, 3));  //../src/debug/debug_gui.cpp
 };

@@ -3822,8 +3822,6 @@ bool DOSBOX_parse_argv() {
 }
 
 void TIMER_ShutdownTickHandlers();
-void LOG_SetupConfigSection(void);
-void LOG_Init();
 
 //extern void UI_Init(void);
 int main(int argc, char* argv[]) {
@@ -3857,7 +3855,7 @@ int main(int argc, char* argv[]) {
 		CheckNumLockState();
 
 		/* -- setup the config sections for config parsing */
-		LOG_SetupConfigSection();
+		LOG::SetupConfigSection();
 
 		/* -- Parse configuration files */
 		Cross::GetPlatformConfigDir(config_path);
@@ -3908,7 +3906,7 @@ int main(int argc, char* argv[]) {
 #endif
 
 		/* -- initialize logging first, so that higher level inits can report problems to the log file */
-		LOG_Init();
+		LOG::Init();
 
 		/* -- [debug] setup console */
 #if C_DEBUG
