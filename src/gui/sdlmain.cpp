@@ -180,7 +180,7 @@ enum PRIORITY_LEVELS {
 
 #define MAPPERFILE				"mapper-" VERSION ".map"
 
-void						GUI_Init();
+void						GUI_LoadFonts();
 void						GUI_Run(bool);
 void						EndSplashScreen();
 void						Restart(bool pressed);
@@ -1997,9 +1997,15 @@ static void D3D_reconfigure(Section * sec) {
 }
 #endif
 
-static void GUI_StartUp(Section * sec) {
-	sec->AddDestroyFunction(&GUI_ShutDown);
-	Section_prop * section=static_cast<Section_prop *>(sec);
+bool has_GUI_StartUp = false;
+
+static void GUI_StartUp() {
+	if (has_GUI_StartUp) return;
+	has_GUI_StartUp = true;
+
+	AddExitFunction(&GUI_ShutDown);
+	GUI_LoadFonts();
+
 	sdl.active=false;
 	sdl.updating=false;
 
@@ -2007,6 +2013,8 @@ static void GUI_StartUp(Section * sec) {
 
 	sdl.desktop.lazy_fullscreen=false;
 	sdl.desktop.lazy_fullscreen_req=false;
+
+	Section_prop * section=static_cast<Section_prop *>(control->GetSection("sdl"));
 
 	sdl.desktop.fullscreen=section->Get_bool("fullscreen");
 	sdl.wait_on_error=section->Get_bool("waitonerror");
@@ -4025,7 +4033,7 @@ int main(int argc, char* argv[]) {
 #endif
 
 		/* GUI init */
-		GUI_Init();
+		GUI_StartUp();
 
 		/* Init all the sections */
 		void DOSBOX_RealInit(Section * sec);
@@ -4117,7 +4125,6 @@ int main(int argc, char* argv[]) {
 		if (control->opt_opensaves.length() != 0)
 			launchsaves(control->opt_opensaves);
 
-		GUI_StartUp(control->GetSection("sdl"));
 		DOSBOX_RealInit(control->GetSection("dosbox"));
 		IO_Init(control->GetSection("dosbox"));
 		PAGING_Init(control->GetSection("dosbox"));

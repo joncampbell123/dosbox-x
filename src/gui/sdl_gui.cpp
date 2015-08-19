@@ -65,7 +65,7 @@ static SDL_Surface*		screenshot;
 static SDL_Surface*		background;
 
 /* Prepare screen for UI */
-void GUI_Init(void) {
+void GUI_LoadFonts(void) {
 	GUI::Font::addFont("default",new GUI::BitmapFont(int10_font_14,14,10));
 }
 
