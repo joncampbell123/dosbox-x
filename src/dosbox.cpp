@@ -715,7 +715,7 @@ void DOSBOX_RealInit(Section * sec) {
 	if (IS_PC98_ARCH) E_Exit("Sorry, NEC PC-98 emulation not implemented. Coming soon.");
 }
 
-void DOSBOX_Init(void) {
+void DOSBOX_SetupConfigSections(void) {
 	Prop_int* Pint;
 	Prop_hex* Phex;
 	Prop_bool* Pbool;

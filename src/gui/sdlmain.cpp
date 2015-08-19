@@ -3322,7 +3322,7 @@ static BOOL WINAPI ConsoleEventHandler(DWORD event) {
 
 void Null_Init(Section *sec);
 
-void Config_Add_SDL() {
+void SDL_SetupConfigSection() {
 	Section_prop * sdl_sec=control->AddSection_prop("sdl",&Null_Init);
 	sdl_sec->AddInitFunction(&MAPPER_StartUp);
 #if (HAVE_D3D9_H) && defined(WIN32)
@@ -3822,6 +3822,7 @@ bool DOSBOX_parse_argv() {
 }
 
 void TIMER_ShutdownTickHandlers();
+void DOSBOX_SetupConfigSections(void);
 
 //extern void UI_Init(void);
 int main(int argc, char* argv[]) {
@@ -3856,6 +3857,8 @@ int main(int argc, char* argv[]) {
 
 		/* -- setup the config sections for config parsing */
 		LOG::SetupConfigSection();
+		SDL_SetupConfigSection();
+		DOSBOX_SetupConfigSections();
 
 		/* -- Parse configuration files */
 		Cross::GetPlatformConfigDir(config_path);
@@ -4102,8 +4105,6 @@ int main(int argc, char* argv[]) {
 		 * Init functions are called low-level first to high level last,
 		 * because some init functions rely on others. */
 
-		Config_Add_SDL();
-		DOSBOX_Init();
 		UI_Init();
 
 		if (control->opt_startui)
