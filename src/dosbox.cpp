@@ -612,44 +612,64 @@ void DOSBOX_InitTickLoop() {
 }
 
 void DOSBOX_RealInit() {
+	MAPPER_AddHandler(DOSBOX_UnlockSpeed, MK_f12, MMOD2,"speedlock","Speedlock");
+	MAPPER_AddHandler(DOSBOX_UnlockSpeed2, MK_f11, MMOD2,"speedlock2","Speedlock2");
+
 	Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
 	assert(section != NULL);
 
+	// TODO: allow change at any time. in fact if it were possible for DOSBox-X configuration
+	//       schema code to attach event callbacks when a setting changes, we would set one
+	//       on the title= setting now to auto-update the titlebar when this changes.
 	dosbox_title = section->Get_string("title");
 
+	// TODO: these should be parsed by DOS kernel at startup
 	dosbox_shell_env_size = section->Get_int("shell environment size");
-
 	mainline_compatible_mapping = section->Get_bool("mainline compatible mapping");
+
+	// TODO: a bit of a challenge: if we put it in the ROM area as mainline DOSBox does then the init
+	//       needs to read this from the BIOS where it can map the memory appropriately. if the allocation
+	//       is dynamic and the private area is down at the base of memory like real DOS, then the BIOS
+	//       should ignore it and the DOS kernel should parse it. If we're going to put it into upper
+	//       areas as well, then we should also consider making it look like adapter ROM at startup
+	//       so it can be enumerated properly by DOS programs scanning the ROM area.
+	/* private area size param in bytes. round up to nearest paragraph */
+	DOS_PRIVATE_SEGMENT_Size = (section->Get_int("private area size") + 8) / 16;
+
+	// TODO: these should be parsed by BIOS startup
 	mainline_compatible_bios_mapping = section->Get_bool("mainline compatible bios mapping");
+	allow_more_than_640kb = section->Get_bool("allow more than 640kb base memory");
+
+	// TODO: these should be parsed by VGA emulation at startup
 	VGA_BIOS_Size_override = section->Get_int("vga bios size override");
 	if (VGA_BIOS_Size_override > 0) VGA_BIOS_Size_override = (VGA_BIOS_Size_override+0x7FF)&(~0xFFF);
 	VGA_BIOS_dont_duplicate_CGA_first_half = section->Get_bool("video bios dont duplicate cga first half rom font");
 	VIDEO_BIOS_always_carry_14_high_font = section->Get_bool("video bios always offer 14-pixel high rom font");
 	VIDEO_BIOS_always_carry_16_high_font = section->Get_bool("video bios always offer 16-pixel high rom font");
 	VIDEO_BIOS_enable_CGA_8x8_second_half = section->Get_bool("video bios enable cga second half rom font");
-
-	/* private area size param in bytes. round up to nearest paragraph */
-	DOS_PRIVATE_SEGMENT_Size = (section->Get_int("private area size") + 8) / 16;
-
 	/* NTS: mainline compatible mapping demands the 8x8 CGA font */
 	rom_bios_8x8_cga_font = mainline_compatible_bios_mapping || section->Get_bool("rom bios 8x8 CGA font");
 	rom_bios_vptable_enable = mainline_compatible_bios_mapping || section->Get_bool("rom bios video parameter table");
-	allow_more_than_640kb = section->Get_bool("allow more than 640kb base memory");
 
 	/* sanity check */
 	if (VGA_BIOS_dont_duplicate_CGA_first_half && !rom_bios_8x8_cga_font) /* can't point at the BIOS copy if it's not there */
 		VGA_BIOS_dont_duplicate_CGA_first_half = false;
 
+	// TODO: should be parsed by motherboard emulation
 	allow_port_92_reset = section->Get_bool("allow port 92 reset");
 
-	MAPPER_AddHandler(DOSBOX_UnlockSpeed, MK_f12, MMOD2,"speedlock","Speedlock");
-	MAPPER_AddHandler(DOSBOX_UnlockSpeed2, MK_f11, MMOD2,"speedlock2","Speedlock2");
+	// TODO: should be parsed by motherboard emulation or lower level equiv..?
 	std::string cmd_machine;
 	if (control->cmdline->FindString("-machine",cmd_machine,true)){
 		//update value in config (else no matching against suggested values
 		section->HandleInputline(std::string("machine=") + cmd_machine);
 	}
 
+	// TODO: should be parsed by...? perhaps at some point we support machine= for backwards compat
+	//       but translate it into two separate params that specify what machine vs what video hardware.
+	//       or better yet as envisioned, a possible dosbox.conf schema that allows a machine with no
+	//       base video of it's own, and then to specify an ISA or PCI card attached to the bus that
+	//       provides video.
 	std::string mtype(section->Get_string("machine"));
 	svgaCard = SVGA_None; 
 	machine = MCH_VGA;
@@ -675,6 +695,7 @@ void DOSBOX_RealInit() {
 	else if (mtype == "pc98")          { machine = MCH_PC98; }
 	else E_Exit("DOSBOX:Unknown machine type %s",mtype.c_str());
 
+	// TODO: should be parsed by motherboard emulation
 	std::string isabclk = section->Get_string("isa bus clock");
 	if (isabclk == "std8.3")
 		clockdom_ISA_BCLK.set_frequency(25000000,3);	/* 25MHz / 3 = 8.333MHz, early 386 systems did this, became an industry standard "norm" afterwards */
