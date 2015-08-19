@@ -4093,6 +4093,7 @@ int main(int argc, char* argv[]) {
 		void NE2K_Init(Section*);
 		void FDC_Primary_Init(Section*);
 		void AUTOEXEC_Init(Section*);
+		void MSG_Init(Section*);
 
 		/* FIXME: We need a more general "init list", outside of the section-based design,
 		 *        that we then execute serially here. */
@@ -4126,6 +4127,7 @@ int main(int argc, char* argv[]) {
 		if (control->opt_opensaves.length() != 0)
 			launchsaves(control->opt_opensaves);
 
+		MSG_Init(control->GetSection("dosbox"));
 		DOSBOX_RealInit(control->GetSection("dosbox"));
 		IO_Init(control->GetSection("dosbox"));
 		PAGING_Init(control->GetSection("dosbox"));

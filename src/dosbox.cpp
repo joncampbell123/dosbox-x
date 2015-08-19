@@ -188,7 +188,6 @@ static Bit32u			Ticks = 0;
 static LoopHandler*		loop;
 
 /* The whole load of startups for all the subfunctions */
-void				MSG_Init(Section_prop *);
 void				LOG_StartUp(void);
 void				MEM_Init(Section *);
 void				PAGING_Init(Section *);
@@ -613,7 +612,6 @@ void DOSBOX_RealInit(Section * sec) {
 	ticksLast=GetTicks();
 	ticksLocked = false;
 	DOSBOX_SetLoop(&Normal_Loop);
-	MSG_Init(section);
 
 	dosbox_title = section->Get_string("title");
 

@@ -135,7 +135,9 @@ bool MSG_Write(const char * location) {
 	return true;
 }
 
-void MSG_Init(Section_prop * section) {
+void MSG_Init(Section * sec) {
+	Section_prop * section=static_cast<Section_prop *>(sec);
+
 	std::string file_name;
 	if (control->cmdline->FindString("-lang",file_name,true)) {
 		LoadMessageFile(file_name.c_str());
