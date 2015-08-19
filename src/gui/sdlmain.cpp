@@ -3752,6 +3752,7 @@ bool DOSBOX_parse_argv() {
 			fprintf(stderr,"  -date-host-forced                       Force synchronization of date with host\n");
 			fprintf(stderr,"  -debug                                  Set all logging levels to debug\n");
 			fprintf(stderr,"  -keydbg                                 Log all SDL key events (debugging)\n");
+			fprintf(stderr,"  -lang <message file>                    Use specific message file instead of language= setting\n");
 			return 0;
 		}
 		else if (optname == "keydbg") {
@@ -3781,6 +3782,9 @@ bool DOSBOX_parse_argv() {
 		}
 		else if (optname == "userconf") {
 			control->opt_userconf = true;
+		}
+		else if (optname == "lang") {
+			if (!control->cmdline->NextOptArgv(control->opt_lang)) return false;
 		}
 		else if (optname == "conf") {
 			if (!control->cmdline->NextOptArgv(tmp)) return false;

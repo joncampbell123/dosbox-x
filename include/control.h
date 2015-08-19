@@ -104,7 +104,7 @@ public:
 	bool SecureMode() const { return secure_mode; }
 	void SwitchToSecureMode() { secure_mode = true; }//can't be undone
 public:
-	std::string opt_editconf,opt_opensaves,opt_opencaptures;
+	std::string opt_editconf,opt_opensaves,opt_opencaptures,opt_lang;
 	std::vector<std::string> config_file_list;
 	bool opt_disable_numlock_check;
 	bool opt_date_host_forced;
