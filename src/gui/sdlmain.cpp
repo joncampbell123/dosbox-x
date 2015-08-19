@@ -4086,6 +4086,7 @@ int main(int argc, char* argv[]) {
 		void EMS_Init(Section*);
 		void MOUSE_Init(Section*);
 		void DOS_KeyboardLayout_Init(Section*);
+		void DOSBOX_InitTickLoop(Section*);
 		void MSCDEX_Init(Section*);
 		void DRIVES_Init(Section*);
 		void CDROM_Image_Init(Section*);
@@ -4128,6 +4129,7 @@ int main(int argc, char* argv[]) {
 			launchsaves(control->opt_opensaves);
 
 		MSG_Init(control->GetSection("dosbox"));
+		DOSBOX_InitTickLoop(control->GetSection("dosbox"));
 		DOSBOX_RealInit(control->GetSection("dosbox"));
 		IO_Init(control->GetSection("dosbox"));
 		PAGING_Init(control->GetSection("dosbox"));
