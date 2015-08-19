@@ -3830,6 +3830,9 @@ bool DOSBOX_parse_argv() {
 	return true;
 }
 
+void MSG_Init();
+void DOSBOX_RealInit();
+void DOSBOX_InitTickLoop();
 void TIMER_ShutdownTickHandlers();
 void DOSBOX_SetupConfigSections(void);
 
@@ -4037,7 +4040,6 @@ int main(int argc, char* argv[]) {
 		GUI_StartUp();
 
 		/* Init all the sections */
-		void DOSBOX_RealInit(Section * sec);
 		void RENDER_Init(Section*);
 		void VGA_VsyncInit(Section*);
 		void CPU_Init(Section*);
@@ -4086,7 +4088,6 @@ int main(int argc, char* argv[]) {
 		void EMS_Init(Section*);
 		void MOUSE_Init(Section*);
 		void DOS_KeyboardLayout_Init(Section*);
-		void DOSBOX_InitTickLoop(Section*);
 		void MSCDEX_Init(Section*);
 		void DRIVES_Init(Section*);
 		void CDROM_Image_Init(Section*);
@@ -4094,7 +4095,6 @@ int main(int argc, char* argv[]) {
 		void NE2K_Init(Section*);
 		void FDC_Primary_Init(Section*);
 		void AUTOEXEC_Init(Section*);
-		void MSG_Init(Section*);
 
 		/* FIXME: We need a more general "init list", outside of the section-based design,
 		 *        that we then execute serially here. */
@@ -4128,9 +4128,9 @@ int main(int argc, char* argv[]) {
 		if (control->opt_opensaves.length() != 0)
 			launchsaves(control->opt_opensaves);
 
-		MSG_Init(control->GetSection("dosbox"));
-		DOSBOX_InitTickLoop(control->GetSection("dosbox"));
-		DOSBOX_RealInit(control->GetSection("dosbox"));
+		MSG_Init();
+		DOSBOX_InitTickLoop();
+		DOSBOX_RealInit();
 		IO_Init(control->GetSection("dosbox"));
 		PAGING_Init(control->GetSection("dosbox"));
 		MEM_Init(control->GetSection("dosbox"));

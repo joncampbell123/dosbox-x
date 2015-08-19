@@ -604,16 +604,16 @@ extern bool new_cga;
 
 std::string dosbox_title;
 
-void DOSBOX_InitTickLoop(Section * sec) {
+void DOSBOX_InitTickLoop() {
 	ticksRemain = 0;
 	ticksLocked = false;
 	ticksLast = GetTicks();
 	DOSBOX_SetLoop(&Normal_Loop);
 }
 
-void DOSBOX_RealInit(Section * sec) {
-	Section_prop * section=static_cast<Section_prop *>(sec);
-	/* Initialize some dosbox internals */
+void DOSBOX_RealInit() {
+	Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+	assert(section != NULL);
 
 	dosbox_title = section->Get_string("title");
 
