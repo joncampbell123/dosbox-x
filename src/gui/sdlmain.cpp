@@ -2015,6 +2015,7 @@ static void GUI_StartUp() {
 	sdl.desktop.lazy_fullscreen_req=false;
 
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("sdl"));
+	assert(section != NULL);
 
 	sdl.desktop.fullscreen=section->Get_bool("fullscreen");
 	sdl.wait_on_error=section->Get_bool("waitonerror");
