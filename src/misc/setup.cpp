@@ -34,6 +34,9 @@
 /* functions to call when DOSBox-X is exiting. */
 std::list<Function_wrapper> exitfunctions;
 
+/* VM events */
+std::list<Function_wrapper> vm_event_functions[VM_EVENT_MAX];
+
 using namespace std;
 static std::string current_config_dir; // Set by parseconfigfile so Prop_path can use it to construct the realpath
 void Value::destroy() throw(){
@@ -780,8 +783,22 @@ void Section::AddDestroyFunction(SectionFunction func,bool canchange) {
 }
 
 void AddExitFunction(SectionFunction func,bool canchange) {
-	/* NTS: Add functions to the back. First In Last Out order. */
-	exitfunctions.push_back(Function_wrapper(func,canchange));
+	/* NTS: Add functions so that iterating front to back executes them in First In Last Out order. */
+	exitfunctions.push_front(Function_wrapper(func,canchange));
+}
+
+void AddVMEventFunction(unsigned int event,SectionFunction func,bool canchange) {
+	assert(event < VM_EVENT_MAX);
+
+	/* NTS: First In First Out order */
+	vm_event_functions[event].push_back(Function_wrapper(func,canchange));
+}
+
+void DispatchVMEvent(unsigned int event) {
+	assert(event < VM_EVENT_MAX);
+
+	for (std::list<Function_wrapper>::iterator i=vm_event_functions[event].begin();i!=vm_event_functions[event].end();i++)
+		(*i).function(NULL);
 }
 
 void Section::ExecuteInit(bool initall) {

@@ -264,9 +264,33 @@ public:
 	virtual ~Section() { /*Children must call executedestroy ! */ }
 };
 
+/* list of functions to call (in list order) when DOSBox-X exits.
+ * use AddExitFunction() to add your function.
+ * NOTE: AddExitFunction() adds your function to the back of the list,
+ *       First-In-Last-Out order, so that exit callbacks added by init
+ *       code are called in the opposite order from initialization
+ *       (i.e. we want high-level stuff to cleanup first and low level
+ *       stuff like logging to cleanup last). */
 extern std::list<Function_wrapper> exitfunctions;
-
 void AddExitFunction(SectionFunction func,bool canchange=false);
+
+/* array of list of functions to call for various virtual machine events */
+enum {
+	VM_EVENT_POWERON=0,		// emulation has started to power on hardware. it is safe to connect I/O, memory, IRQ resources, etc. to the bus. BIOS not initialized yet.
+	VM_EVENT_RESET,			// reset signal (at the hardware level), whether by the keyboard controller, reset button, etc.
+	VM_EVENT_BIOS_BOOT,		// BIOS in the boot stage. usually leads to DOS kernel init or guest OS boot.
+	VM_EVENT_GUEST_OS_BOOT,		// BIOS or DOS kernel is booting a guest OS (BOOT command)
+	VM_EVENT_DOS_INIT_KERNEL,	// DOS kernel init. Prior to CONFIG.SYS handling.
+	VM_EVENT_DOS_INIT_CONFIG,	// DOS kernel init. After CONFIG.SYS handling, all devices inited.
+	VM_EVENT_DOS_INIT_SHELL,	// DOS kernel init. After COMMAND.COM initialization.
+	VM_EVENT_DOS_EXIT,		// DOS kernel is exiting (BOOT command, or exit back to the BIOS)
+
+	VM_EVENT_MAX
+};
+
+extern std::list<Function_wrapper> vm_event_functions[VM_EVENT_MAX];
+void AddVMEventFunction(unsigned int event,SectionFunction func,bool canchange=false);
+void DispatchVMEvent(unsigned int event);
 
 class Prop_multival;
 class Prop_multival_remain;
