@@ -1531,7 +1531,7 @@ void MSG_Loop(void) {
 					GetSetSDLValue(0, "wait_on_error", (void*)true);
 				}
 				break;
-			case ID_HDD_SIZE: UI_Shortcut(18); break;
+			case ID_HDD_SIZE: GUI_Shortcut(18); break;
 			case ID_BOOT_A: Go_Boot("A"); break;
 			case ID_BOOT_C: Go_Boot("C"); break;
 			case ID_BOOT_D: Go_Boot("D"); break;
@@ -1569,7 +1569,7 @@ void MSG_Loop(void) {
 			}
 			}
 			case ID_CAPMOUSE: GFX_CaptureMouse(); break;
-			case ID_REFRESH: UI_Shortcut(1); break;
+			case ID_REFRESH: GUI_Shortcut(1); break;
 			case ID_FULLSCREEN: GFX_SwitchFullScreen(); break;
 			case ID_ASPECT: SetVal("render", "aspect", render.aspect ? "false" : "true"); break;
 			case ID_HIDECYCL:
@@ -1632,7 +1632,7 @@ void MSG_Loop(void) {
 				}
 				break;
 
-			case ID_CYCLE: UI_Shortcut(16); break;
+			case ID_CYCLE: GUI_Shortcut(16); break;
 			case ID_CPU_TURBO: extern void DOSBOX_UnlockSpeed2(bool pressed); DOSBOX_UnlockSpeed2(1); break;
 			case ID_SKIP_0: SetVal("render", "frameskip", "0"); break;
 			case ID_SKIP_1: SetVal("render", "frameskip", "1"); break;
@@ -1876,7 +1876,7 @@ void MSG_Loop(void) {
 			case ID_OPENGLNB: change_output(4); SetVal("sdl", "output", "openglnb"); break;
 			case ID_DIRECT3D: if ((int) GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_DIRECT3D) { change_output(5); SetVal("sdl", "output", "direct3d"); } break;
 			case ID_OPENGLHQ: if ((int) GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_OPENGLHQ) { change_output(6); SetVal("sdl", "output", "openglhq"); } break;
-			case ID_WINFULL_USER: case ID_WINRES_USER: UI_Shortcut(2); break;
+			case ID_WINFULL_USER: case ID_WINRES_USER: GUI_Shortcut(2); break;
 			case ID_WINRES_ORIGINAL: res_input(true, "original"); break;
 			case ID_WINFULL_ORIGINAL: res_input(false, "original"); break;
 			case ID_WINRES_DESKTOP: res_input(true, "desktop"); break;
@@ -2132,7 +2132,7 @@ void MSG_Loop(void) {
 			case ID_OVERSCAN_8: LOG_MSG("GUI: Overscan 8 (surface)"); SetVal("sdl", "overscan", "8"); change_output(7); break;
 			case ID_OVERSCAN_9: LOG_MSG("GUI: Overscan 9 (surface)"); SetVal("sdl", "overscan", "9"); change_output(7); break;
 			case ID_OVERSCAN_10: LOG_MSG("GUI: Overscan 10 (surface)"); SetVal("sdl", "overscan", "10"); change_output(7); break;
-			case ID_VSYNC: UI_Shortcut(17); break;
+			case ID_VSYNC: GUI_Shortcut(17); break;
 			case ID_IPXNET: MENU_SetBool("ipx", "ipx"); break;
 			case ID_D3D_PS: D3D_PS(); if ((int) GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_DIRECT3D) change_output(7); break;
 			case ID_JOYSTICKTYPE_AUTO: SetVal("joystick", "joysticktype", "auto"); break;
@@ -2148,13 +2148,13 @@ void MSG_Loop(void) {
 			case ID_JOYSTICK_BUTTONWRAP: MENU_SetBool("joystick", "buttonwrap"); break;
 			case ID_SWAPSTEREO: MENU_swapstereo(MENU_SetBool("mixer", "swapstereo")); break;
 			case ID_MUTE: SDL_PauseAudio((SDL_GetAudioStatus() != SDL_AUDIO_PAUSED)); break;
-			case ID_DOSBOX_SECTION:  UI_Shortcut(3); break;
-			case ID_MIXER_SECTION:  UI_Shortcut(4); break;
-			case ID_SERIAL_SECTION:  UI_Shortcut(5); break;
-			case ID_PARALLEL_SECTION:  UI_Shortcut(11); break;
-			case ID_PRINTER_SECTION:  UI_Shortcut(12); break;
-			case ID_NE2000_SECTION:  UI_Shortcut(6); break;
-			case ID_AUTOEXEC:  UI_Shortcut(7); break;
+			case ID_DOSBOX_SECTION:  GUI_Shortcut(3); break;
+			case ID_MIXER_SECTION:  GUI_Shortcut(4); break;
+			case ID_SERIAL_SECTION:  GUI_Shortcut(5); break;
+			case ID_PARALLEL_SECTION:  GUI_Shortcut(11); break;
+			case ID_PRINTER_SECTION:  GUI_Shortcut(12); break;
+			case ID_NE2000_SECTION:  GUI_Shortcut(6); break;
+			case ID_AUTOEXEC:  GUI_Shortcut(7); break;
 			case ID_MOUSE_VERTICAL: extern bool Mouse_Vertical; Mouse_Vertical = !Mouse_Vertical; break;
 			case ID_GLIDE_TRUE:
 			{	
@@ -2168,7 +2168,7 @@ void MSG_Loop(void) {
 			if(sec) SetVal("glide", "glide", sec->Get_string("glide")=="emu"?"false":"emu");
 			break;
 			}
-			case ID_SAVELANG:  UI_Shortcut(9); break;
+			case ID_SAVELANG:  GUI_Shortcut(9); break;
 			case ID_CPUTYPE_AUTO: SetVal("cpu", "cputype", "auto"); break;
 			case ID_CPUTYPE_386: SetVal("cpu", "cputype", "386"); break;
 			//case ID_CPUTYPE_386_SLOW: SetVal("cpu","cputype","386_slow"); break;
@@ -2176,9 +2176,9 @@ void MSG_Loop(void) {
 			case ID_CPUTYPE_486: SetVal("cpu", "cputype", "486"); break;
 			case ID_CPUTYPE_PENTIUM: SetVal("cpu", "cputype", "pentium"); break;
 			case ID_CPUTYPE_PENTIUM_MMX: SetVal("cpu", "cputype", "pentium_mmx"); break;
-			case ID_CPU_ADVANCED:  UI_Shortcut(13); break;
-			case ID_DOS_ADVANCED:  UI_Shortcut(14); break;
-			case ID_MIDI_ADVANCED:  UI_Shortcut(15); break;
+			case ID_CPU_ADVANCED:  GUI_Shortcut(13); break;
+			case ID_DOS_ADVANCED:  GUI_Shortcut(14); break;
+			case ID_MIDI_ADVANCED:  GUI_Shortcut(15); break;
 			case ID_RATE_1_DELAY_1: MENU_KeyDelayRate(1, 1); break;
 			case ID_RATE_2_DELAY_1: MENU_KeyDelayRate(1, 2); break;
 			case ID_RATE_3_DELAY_1: MENU_KeyDelayRate(1, 3); break;
@@ -2307,7 +2307,7 @@ void MSG_Loop(void) {
 			case ID_RATE_30_DELAY_4: MENU_KeyDelayRate(4, 30); break;
 			case ID_RATE_31_DELAY_4: MENU_KeyDelayRate(4, 31); break;
 			case ID_RATE_32_DELAY_4: MENU_KeyDelayRate(4, 32); break;
-			case ID_MOUSE_SENSITIVITY: UI_Shortcut(2); break;
+			case ID_MOUSE_SENSITIVITY: GUI_Shortcut(2); break;
 			case ID_GLIDE_LFB_FULL: SetVal("glide", "lfb", "full"); break;
 			case ID_GLIDE_LFB_FULL_NOAUX: SetVal("glide", "lfb", "full_noaux"); break;
 			case ID_GLIDE_LFB_READ: SetVal("glide", "lfb", "read"); break;

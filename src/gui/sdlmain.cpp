@@ -180,8 +180,8 @@ enum PRIORITY_LEVELS {
 
 #define MAPPERFILE				"mapper-" VERSION ".map"
 
-void						UI_Init();
-void						UI_Run(bool);
+void						GUI_Init();
+void						GUI_Run(bool);
 void						EndSplashScreen();
 void						Restart(bool pressed);
 bool						RENDER_GetAspect(void);
@@ -2203,7 +2203,7 @@ static void GUI_StartUp(Section * sec) {
 #else
 	MAPPER_AddHandler(&PauseDOSBox, MK_pause, MMOD2, "pause", "Pause");
 #endif
-	MAPPER_AddHandler(&UI_Run, MK_f10, MMOD2, "gui", "ShowGUI");
+	MAPPER_AddHandler(&GUI_Run, MK_f10, MMOD2, "gui", "ShowGUI");
 	/* Get Keyboard state of numlock and capslock */
 	SDLMod keystate = SDL_GetModState();
 	if(keystate&KMOD_NUM) startup_state_numlock = true;
@@ -3734,7 +3734,7 @@ bool DOSBOX_parse_argv() {
 			fprintf(stderr,"  -nomenu                                 Don't show menu (win32 only)\n");
 			fprintf(stderr,"  -userconf                               Create user level config file\n");
 			fprintf(stderr,"  -conf <param>                           Use config file <param>\n");
-			fprintf(stderr,"  -startui                                Start DOSBox-X with UI\n");
+			fprintf(stderr,"  -startui -startgui                      Start DOSBox-X with UI\n");
 			fprintf(stderr,"  -startmapper                            Start DOSBox-X with mapper\n");
 			fprintf(stderr,"  -showcycles                             Show cycles count\n");
 			fprintf(stderr,"  -fullscreen                             Start in fullscreen\n");
@@ -3760,7 +3760,7 @@ bool DOSBOX_parse_argv() {
 		else if (optname == "fullscreen") {
 			control->opt_fullscreen = true;
 		}
-		else if (optname == "startui") {
+		else if (optname == "startui" || optname == "startgui") {
 			control->opt_startui = true;
 		}
 		else if (optname == "disable-numlock-check" || optname == "disable_numlock_check") {
@@ -4024,6 +4024,9 @@ int main(int argc, char* argv[]) {
 		}
 #endif
 
+		/* GUI init */
+		GUI_Init();
+
 		/* Init all the sections */
 		void DOSBOX_RealInit(Section * sec);
 		void RENDER_Init(Section*);
@@ -4105,10 +4108,8 @@ int main(int argc, char* argv[]) {
 		 * Init functions are called low-level first to high level last,
 		 * because some init functions rely on others. */
 
-		UI_Init();
-
 		if (control->opt_startui)
-			UI_Run(false);
+			GUI_Run(false);
 		if (control->opt_editconf.length() != 0)
 			launcheditor(control->opt_editconf);
 		if (control->opt_opencaptures.length() != 0)

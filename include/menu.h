@@ -41,7 +41,7 @@ void MountDrive_2(char drive, const char drive2[DOS_PATHLENGTH], std::string dri
 void MENU_Check_Drive(HMENU handle, int cdrom, int floppy, int local, int image, int automount, int umount, char drive);
 bool MENU_SetBool(std::string secname, std::string value);
 void MENU_swapstereo(bool enabled);
-void UI_Shortcut(int select);
+void GUI_Shortcut(int select);
 void* GetSetSDLValue(int isget, std::string target, void* setval);
 void Go_Boot(const char boot_drive[_MAX_DRIVE]);
 void Go_Boot2(const char boot_drive[_MAX_DRIVE]);

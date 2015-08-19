@@ -2484,7 +2484,7 @@ void MAPPER_RunInternal() {
 	if(mousetoggle) GFX_CaptureMouse();
 	SDL_ShowCursor(cursor);
 #ifdef __WIN32__
-	UI_Shortcut(0);
+	GUI_Shortcut(0);
 #endif
 	DOSBox_RefreshMenu();
 	if(!menu_gui) {

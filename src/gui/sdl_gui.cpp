@@ -65,7 +65,7 @@ static SDL_Surface*		screenshot;
 static SDL_Surface*		background;
 
 /* Prepare screen for UI */
-void UI_Init(void) {
+void GUI_Init(void) {
 	GUI::Font::addFont("default",new GUI::BitmapFont(int10_font_14,14,10));
 }
 
@@ -923,7 +923,7 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
 	}
 }
 
-void UI_Shortcut(int select) {
+void GUI_Shortcut(int select) {
 	if(running) return;
 	if(menu.maxwindow) ShowWindow(GetHWND(), SW_RESTORE);
 	shortcut=true;
@@ -935,7 +935,7 @@ void UI_Shortcut(int select) {
 }
 #endif
 
-void UI_Run(bool pressed) {
+void GUI_Run(bool pressed) {
 	if (pressed || running) return;
 	GUI::ScreenSDL *screen = UI_Startup(NULL);
 	UI_Execute(screen);
