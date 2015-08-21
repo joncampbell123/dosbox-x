@@ -4265,14 +4265,46 @@ int main(int argc, char* argv[]) {
 		bool reboot_machine;
 		bool dos_kernel_shutdown;
 
-		/* start the shell */
+		/* startup the not yet ported code */
 		control->StartUp();
+
+		/* dispatch a power on event. new code will use this as time to register IO ports.
+		 * At power on hardware emulation is working, the BIOS and DOS kernel are not present.
+		 * Eventually this will displace the older control->StartUp() call. */
+		DispatchVMEvent(VM_EVENT_POWERON);
+
+		/* BIOS boot event. This will have more meaning later on in development, when some emulation
+		 * might want to free resources related to BIOS initialization or offer INT 19h hooks, at
+		 * a time in the future when we allow dosbox.conf to describe booting directly to a guest OS
+		 * rather than through the DOS kernel. At this point hardware emulation and the BIOS are
+		 * ready, the DOS kernel is not present. The event is supposed to happen just prior to the
+		 * search for bootable media. */
+		DispatchVMEvent(VM_EVENT_BIOS_BOOT);
+
+		/* DOS startup. This will have more significance later when we allow dosbox.conf to describe
+		 * scenarios that boot directly into a guest OS rather than through the DOSBox DOS kernel and
+		 * when firing these events is moved into the DOS kernel code. */
+		DispatchVMEvent(VM_EVENT_DOS_BOOT);
+		DispatchVMEvent(VM_EVENT_DOS_INIT_KERNEL_READY);
+		DispatchVMEvent(VM_EVENT_DOS_INIT_CONFIG_SYS_DONE);
+
+		/* start the shell */
 		SHELL_Init();
+
+		/* Then, let the new code know we started the DOS shell (COMMAND.COM).
+		 * These events will have more significance when we break out COMMAND.COM startup process and
+		 * move these calls into the shell emulation. */
+		DispatchVMEvent(VM_EVENT_DOS_INIT_SHELL_READY);
+		DispatchVMEvent(VM_EVENT_DOS_INIT_AUTOEXEC_BAT_DONE);
+		DispatchVMEvent(VM_EVENT_DOS_INIT_AT_PROMPT);
 
 		/* main execution. run the DOSBox shell. various exceptions will be thrown. some,
 		 * which have type "int", have special actions. int(2) means to boot a guest OS
 		 * (thrown as an exception to force stack unwinding), while int(0) and int(1)
 		 * means someone pressed DOSBox's killswitch (CTRL+F9). */
+		/* FIXME: throwing int() objects is dumb and non-descriptive. We need a C++ exception
+		 *        type that's explicitly named to convey that we're throwing shutdown and
+		 *        reboot events. */
 		run_machine = false;
 		reboot_machine = false;
 		dos_kernel_shutdown = false;
@@ -4298,6 +4330,10 @@ int main(int argc, char* argv[]) {
 		}
 
 		if (dos_kernel_shutdown) {
+			/* new code: fire event */
+			DispatchVMEvent(VM_EVENT_DOS_EXIT_BEGIN);
+
+			/* older shutdown code */
 			RemoveEMSPageFrame();
 
 			/* remove UMB block */
@@ -4339,9 +4375,15 @@ int main(int argc, char* argv[]) {
 			 * do not attempt to manipulate now-defunct parts of the kernel
 			 * such as the environment block */
 			dos_kernel_disabled = true;
+
+			/* new code: fire event */
+			DispatchVMEvent(VM_EVENT_DOS_EXIT_KERNEL);
 		}
 
 		if (run_machine) {
+			/* new code: fire event */
+			DispatchVMEvent(VM_EVENT_GUEST_OS_BOOT);
+
 			LOG_MSG("Alright: DOS kernel shutdown, booting a guest OS\n");
 			LOG_MSG("  CS:IP=%04x:%04x SS:SP=%04x:%04x AX=%04x BX=%04x CX=%04x DX=%04x\n",
 				SegValue(cs),reg_ip,
@@ -4368,6 +4410,10 @@ int main(int argc, char* argv[]) {
 
 		if (reboot_machine) {
 			LOG_MSG("Rebooting the system\n");
+
+			/* new code: fire event (FIXME: DOSBox's current method of "rebooting" the emulator makes this meaningless!) */
+			DispatchVMEvent(VM_EVENT_RESET);
+
 			control->startup_params.insert(control->startup_params.begin(),control->cmdline->GetFileName());
 			restart_program(control->startup_params);
 		}
