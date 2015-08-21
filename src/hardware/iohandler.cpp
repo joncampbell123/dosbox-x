@@ -479,31 +479,11 @@ Bitu IO_ReadD(Bitu port) {
 	return retval;
 }
 
-class IO :public Module_base {
-public:
-	IO(Section* configuration):Module_base(configuration){
+void IO_Init() {
 	iof_queue.used=0;
 	IO_FreeReadHandler(0,IO_MA,IO_MAX);
 	IO_FreeWriteHandler(0,IO_MA,IO_MAX);
-	}
-	~IO()
-	{
-		//Same as the constructor ?
-	}
-};
-
-static IO* test;
-
-void IO_Destroy(Section*) {
-	delete test;
 }
-
-void IO_Init(Section * sect) {
-	test = new IO(sect);
-	sect->AddDestroyFunction(&IO_Destroy);
-}
-
-extern bool pcibus_enable;
 
 void IODELAY_Init(Section *sect) {
 	Section_prop * section=static_cast<Section_prop *>(sect);
