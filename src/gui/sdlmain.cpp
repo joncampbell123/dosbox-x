@@ -4137,6 +4137,13 @@ int main(int argc, char* argv[]) {
 		IO_Init();
 		PAGING_Init(control->GetSection("dosbox"));
 		MEM_Init(control->GetSection("dosbox"));
+
+		/* dispatch a power on event. new code will use this as time to register IO ports.
+		 * At power on hardware emulation is working, the BIOS and DOS kernel are not present.
+		 * Eventually this will displace the older control->StartUp() call. */
+		/* TODO: move down as appropriate */
+		DispatchVMEvent(VM_EVENT_POWERON);
+
 		HARDWARE_Init(control->GetSection("dosbox"));
 		ROMBIOS_Init(control->GetSection("dosbox"));
 		CALLBACK_Init(control->GetSection("dosbox"));
@@ -4267,11 +4274,6 @@ int main(int argc, char* argv[]) {
 
 		/* startup the not yet ported code */
 		control->StartUp();
-
-		/* dispatch a power on event. new code will use this as time to register IO ports.
-		 * At power on hardware emulation is working, the BIOS and DOS kernel are not present.
-		 * Eventually this will displace the older control->StartUp() call. */
-		DispatchVMEvent(VM_EVENT_POWERON);
 
 		/* BIOS boot event. This will have more meaning later on in development, when some emulation
 		 * might want to free resources related to BIOS initialization or offer INT 19h hooks, at

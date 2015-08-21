@@ -480,7 +480,7 @@ Bitu IO_ReadD(Bitu port) {
 	return retval;
 }
 
-void IO_Init() {
+void IO_Reset(Section * /*sec*/) { // Reset or power on
 	iof_queue.used=0;
 	IO_FreeReadHandler(0,IO_MA,IO_MAX);
 	IO_FreeWriteHandler(0,IO_MA,IO_MAX);
@@ -494,5 +494,16 @@ void IO_Init() {
 	}
 
 	LOG(LOG_IO,LOG_DEBUG)("I/O delay %uns",io_delay_ns);
+}
+
+void IO_Init() {
+	/* init the ports, rather than risk I/O jumping to random code */
+	iof_queue.used=0;
+	IO_FreeReadHandler(0,IO_MA,IO_MAX);
+	IO_FreeWriteHandler(0,IO_MA,IO_MAX);
+
+	/* please call our reset function on power-on and reset */
+	AddVMEventFunction(VM_EVENT_POWERON,&IO_Reset);
+	AddVMEventFunction(VM_EVENT_RESET,&IO_Reset);
 }
 
