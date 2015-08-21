@@ -18,6 +18,7 @@
 
 
 #include <string.h>
+#include "control.h"
 #include "dosbox.h"
 #include "inout.h"
 #include "setup.h"
@@ -485,8 +486,8 @@ void IO_Init() {
 	IO_FreeWriteHandler(0,IO_MA,IO_MAX);
 }
 
-void IODELAY_Init(Section *sect) {
-	Section_prop * section=static_cast<Section_prop *>(sect);
+void IODELAY_Init() {
+	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 
 	io_delay_ns = section->Get_int("iodelay");
 	if (io_delay_ns < 0) {

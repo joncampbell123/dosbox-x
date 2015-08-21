@@ -3839,6 +3839,7 @@ void DOSBOX_RealInit();
 void DOSBOX_InitTickLoop();
 void TIMER_ShutdownTickHandlers();
 void DOSBOX_SetupConfigSections(void);
+void IODELAY_Init();
 void IO_Init();
 
 //extern void UI_Init(void);
@@ -4052,7 +4053,6 @@ int main(int argc, char* argv[]) {
 		void MEM_Init(Section*);
 		void HARDWARE_Init(Section*);
 		void ROMBIOS_Init(Section*);
-		void IODELAY_Init(Section*);
 		void CALLBACK_Init(Section*);
 		void DMA_Init(Section*);
 		void PIC_Init(Section*);
@@ -4136,11 +4136,11 @@ int main(int argc, char* argv[]) {
 		DOSBOX_InitTickLoop();
 		DOSBOX_RealInit();
 		IO_Init();
+		IODELAY_Init();
 		PAGING_Init(control->GetSection("dosbox"));
 		MEM_Init(control->GetSection("dosbox"));
 		HARDWARE_Init(control->GetSection("dosbox"));
 		ROMBIOS_Init(control->GetSection("dosbox"));
-		IODELAY_Init(control->GetSection("dosbox"));
 		CALLBACK_Init(control->GetSection("dosbox"));
 		DMA_Init(control->GetSection("dosbox"));
 		PIC_Init(control->GetSection("dosbox"));

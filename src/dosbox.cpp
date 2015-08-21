@@ -193,7 +193,6 @@ void				MEM_Init(Section *);
 void				PAGING_Init(Section *);
 void				ISAPNP_Cfg_Init(Section *);
 void				ROMBIOS_Init(Section *);
-void				IODELAY_Init(Section *);
 void				CALLBACK_Init(Section*);
 void				PROGRAMS_Init(Section*);
 void				RENDER_Init(Section*);
