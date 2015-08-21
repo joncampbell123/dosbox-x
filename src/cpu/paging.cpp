@@ -1227,30 +1227,14 @@ bool PAGING_Enabled(void) {
 	return paging.enabled;
 }
 
-class PAGING:public Module_base{
-public:
-	PAGING(Section* configuration):Module_base(configuration){
-		/* Setup default Page Directory, force it to update */
-		paging.enabled=false;
-		paging.wp=false;
-		PAGING_InitTLB();
-		Bitu i;
-		for (i=0;i<LINK_START;i++) {
-			paging.firstmb[i]=i;
-		}
-		pf_queue.used=0;
-	}
-	~PAGING(){}
-};
-
-static PAGING* test;
-	
-static void PAGING_ShutDown(Section * sec) {
-	delete test;
-}
-
 void PAGING_Init(Section * sec) {
-	test = new PAGING(sec);
-	sec->AddDestroyFunction(&PAGING_ShutDown);
+	Bitu i;
+
+	/* Setup default Page Directory, force it to update */
+	paging.enabled=false;
+	paging.wp=false;
+	PAGING_InitTLB();
+	for (i=0;i<LINK_START;i++) paging.firstmb[i]=i;
+	pf_queue.used=0;
 }
 
