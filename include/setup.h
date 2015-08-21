@@ -283,7 +283,8 @@ enum {
 	VM_EVENT_DOS_INIT_KERNEL,	// DOS kernel init. Prior to CONFIG.SYS handling.
 	VM_EVENT_DOS_INIT_CONFIG,	// DOS kernel init. After CONFIG.SYS handling, all devices inited.
 	VM_EVENT_DOS_INIT_SHELL,	// DOS kernel init. After COMMAND.COM initialization.
-	VM_EVENT_DOS_EXIT,		// DOS kernel is exiting (BOOT command, or exit back to the BIOS)
+	VM_EVENT_DOS_EXIT_BEGIN,	// DOS kernel is just starting to exit (user used BOOT command)
+	VM_EVENT_DOS_EXIT_KERNEL,	// DOS kernel has just finished exiting
 
 	VM_EVENT_MAX
 };
