@@ -484,9 +484,7 @@ void IO_Init() {
 	iof_queue.used=0;
 	IO_FreeReadHandler(0,IO_MA,IO_MAX);
 	IO_FreeWriteHandler(0,IO_MA,IO_MAX);
-}
 
-void IODELAY_Init() {
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 
 	io_delay_ns = section->Get_int("iodelay");

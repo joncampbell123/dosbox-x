@@ -3839,7 +3839,6 @@ void DOSBOX_RealInit();
 void DOSBOX_InitTickLoop();
 void TIMER_ShutdownTickHandlers();
 void DOSBOX_SetupConfigSections(void);
-void IODELAY_Init();
 void IO_Init();
 
 //extern void UI_Init(void);
@@ -4136,7 +4135,6 @@ int main(int argc, char* argv[]) {
 		DOSBOX_InitTickLoop();
 		DOSBOX_RealInit();
 		IO_Init();
-		IODELAY_Init();
 		PAGING_Init(control->GetSection("dosbox"));
 		MEM_Init(control->GetSection("dosbox"));
 		HARDWARE_Init(control->GetSection("dosbox"));
