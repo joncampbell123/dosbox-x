@@ -190,7 +190,6 @@ static LoopHandler*		loop;
 /* The whole load of startups for all the subfunctions */
 void				LOG_StartUp(void);
 void				MEM_Init(Section *);
-void				PAGING_Init(Section *);
 void				ISAPNP_Cfg_Init(Section *);
 void				ROMBIOS_Init(Section *);
 void				CALLBACK_Init(Section*);

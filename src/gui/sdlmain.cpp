@@ -3839,6 +3839,7 @@ void DOSBOX_RealInit();
 void DOSBOX_InitTickLoop();
 void TIMER_ShutdownTickHandlers();
 void DOSBOX_SetupConfigSections(void);
+void PAGING_Init();
 void IO_Init();
 
 //extern void UI_Init(void);
@@ -4048,7 +4049,6 @@ int main(int argc, char* argv[]) {
 		void RENDER_Init(Section*);
 		void VGA_VsyncInit(Section*);
 		void CPU_Init(Section*);
-		void PAGING_Init(Section*);
 		void MEM_Init(Section*);
 		void HARDWARE_Init(Section*);
 		void ROMBIOS_Init(Section*);
@@ -4135,7 +4135,7 @@ int main(int argc, char* argv[]) {
 		DOSBOX_InitTickLoop();
 		DOSBOX_RealInit();
 		IO_Init();
-		PAGING_Init(control->GetSection("dosbox"));
+		PAGING_Init(); /* <- NTS: At this time, must come before memory init because paging is so well integrated into emulation code */
 		MEM_Init(control->GetSection("dosbox"));
 
 		/* dispatch a power on event. new code will use this as time to register IO ports.

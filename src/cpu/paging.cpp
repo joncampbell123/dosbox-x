@@ -1227,7 +1227,7 @@ bool PAGING_Enabled(void) {
 	return paging.enabled;
 }
 
-void PAGING_Init(Section * sec) {
+void PAGING_Init() {
 	Bitu i;
 
 	/* Setup default Page Directory, force it to update */
