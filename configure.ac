@@ -150,8 +150,10 @@ AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 #endif
 ])],[],[AC_DEFINE([socklen_t],[int],[Define to `int` if you don't have socklen_t])])
 
+dnl AC_CHECK_CXXFLAGS will prepend gnu++11 to CXXFLAGS if supported, for us.
+dnl our code adds -std=gnu++0x if not supported where the function would not do anything.
 AC_MSG_CHECKING([checking for C++11 support])
-AC_CHECK_CXXFLAGS([ -std=gnu++11 ], [ CXXFLAGS="$CXXFLAGS -std=gnu++11" ], [ CXXFLAGS="$CXXFLAGS -std=gnu++0x" ])
+AC_CHECK_CXXFLAGS([ -std=gnu++11 ], [  ], [ CXXFLAGS="$CXXFLAGS -std=gnu++0x" ])
 
 AC_MSG_CHECKING(if environ can be included)
 AC_LINK_IFELSE([AC_LANG_PROGRAM([[
