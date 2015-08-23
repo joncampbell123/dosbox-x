@@ -19,8 +19,49 @@ AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_RANLIB
 
+dnl TODO where else to put this?
+
+# AC_CHECK_CPPFLAGS(ADDITIONAL-CPPFLAGS, ACTION-IF-FOUND, ACTION-IF-NOT-FOUND)
+#
+# checks whether the $(C) compiler accepts the ADDITIONAL-CPPFLAGS
+# if so, they are added to the CPPFLAGS
+AC_DEFUN([AC_CHECK_CPPFLAGS],
+[
+  AC_MSG_CHECKING([whether $CPP accepts "$1"])
+  temp_check_cppflags="${CPPFLAGS}"
+  CPPFLAGS="$1 ${CPPFLAGS}"
+  AC_PREPROC_IFELSE(
+        [AC_LANG_SOURCE([[int main(void){return 0;}]])],
+        [AC_MSG_RESULT([yes])],
+        [AC_MSG_RESULT([no]); CPPFLAGS="${temp_check_cppflags}"])
+])# AC_CHECK_CPPFLAGS
+
+# AC_CHECK_CXXFLAGS(ADDITIONAL-CXXFLAGS, ACTION-IF-FOUND, ACTION-IF-NOT-FOUND)
+#
+# checks whether the $(CXX) (c++) compiler accepts the ADDITIONAL-CXXFLAGS
+# if so, they are added to the CXXFLAGS
+AC_DEFUN([AC_CHECK_CXXFLAGS],
+[
+  AC_MSG_CHECKING([whether $CXX accepts "$1"])
+cat > conftest.c++ << EOF
+int main(){
+  return 0;
+}
+EOF
+if $CXX $CPPFLAGS $CXXFLAGS -o conftest.o conftest.c++ [$1] > /dev/null 2>&1
+then
+  AC_MSG_RESULT([yes])
+  CXXFLAGS="${CXXFLAGS} [$1]"
+  AC_CHECK_CPPFLAGS([$1])
+  [$2]
+else
+  AC_MSG_RESULT([no])
+  [$3]
+fi
+])# AC_CHECK_CXXFLAGS
+
 dnl Need GCC to know this code is using C++ lamda functions
-CXXFLAGS="$CXXFLAGS -std=gnu++11 -Wall"
+CXXFLAGS="$CXXFLAGS -Wall"
 
 dnl Scalars in the code use MMX/SSE intrinsics
 CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2 -D_FILE_OFFSET_BITS=64"
@@ -108,6 +149,9 @@ AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 #include <sys/socket.h>
 #endif
 ])],[],[AC_DEFINE([socklen_t],[int],[Define to `int` if you don't have socklen_t])])
+
+AC_MSG_CHECKING([checking for C++11 support])
+AC_CHECK_CXXFLAGS([ -std=gnu++11 ], [ CXXFLAGS="$CXXFLAGS -std=gnu++11" ], [ CXXFLAGS="$CXXFLAGS -std=gnu++0x" ])
 
 AC_MSG_CHECKING(if environ can be included)
 AC_LINK_IFELSE([AC_LANG_PROGRAM([[

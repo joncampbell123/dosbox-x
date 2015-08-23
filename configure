@@ -5037,7 +5037,20 @@ else
 fi
 
 
-CXXFLAGS="$CXXFLAGS -std=gnu++11 -Wall"
+
+# AC_CHECK_CPPFLAGS(ADDITIONAL-CPPFLAGS, ACTION-IF-FOUND, ACTION-IF-NOT-FOUND)
+#
+# checks whether the $(C) compiler accepts the ADDITIONAL-CPPFLAGS
+# if so, they are added to the CPPFLAGS
+# AC_CHECK_CPPFLAGS
+
+# AC_CHECK_CXXFLAGS(ADDITIONAL-CXXFLAGS, ACTION-IF-FOUND, ACTION-IF-NOT-FOUND)
+#
+# checks whether the $(CXX) (c++) compiler accepts the ADDITIONAL-CXXFLAGS
+# if so, they are added to the CXXFLAGS
+# AC_CHECK_CXXFLAGS
+
+CXXFLAGS="$CXXFLAGS -Wall"
 
 CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2 -D_FILE_OFFSET_BITS=64"
 
@@ -6017,6 +6030,47 @@ $as_echo "#define socklen_t int" >>confdefs.h
 
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking checking for C++11 support" >&5
+$as_echo_n "checking checking for C++11 support... " >&6; }
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $CXX accepts \" -std=gnu++11 \"" >&5
+$as_echo_n "checking whether $CXX accepts \" -std=gnu++11 \"... " >&6; }
+cat > conftest.c++ << EOF
+int main(){
+  return 0;
+}
+EOF
+if $CXX $CPPFLAGS $CXXFLAGS -o conftest.o conftest.c++  -std=gnu++11  > /dev/null 2>&1
+then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+  CXXFLAGS="${CXXFLAGS}  -std=gnu++11 "
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $CPP accepts \" -std=gnu++11 \"" >&5
+$as_echo_n "checking whether $CPP accepts \" -std=gnu++11 \"... " >&6; }
+  temp_check_cppflags="${CPPFLAGS}"
+  CPPFLAGS=" -std=gnu++11  ${CPPFLAGS}"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+int main(void){return 0;}
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }; CPPFLAGS="${temp_check_cppflags}"
+fi
+rm -f conftest.err conftest.i conftest.$ac_ext
+
+   CXXFLAGS="$CXXFLAGS -std=gnu++11"
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+   CXXFLAGS="$CXXFLAGS -std=gnu++0x"
+fi
+
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking if environ can be included" >&5
 $as_echo_n "checking if environ can be included... " >&6; }
