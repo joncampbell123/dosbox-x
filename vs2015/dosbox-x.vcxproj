@@ -1,0 +1,404 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{8A52284E-5115-453E-AD4B-87B8FCDB1244}</ProjectGuid>
+    <RootNamespace>dosboxx</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>14.0.23107.0</_ProjectFileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>$(SolutionDir)/..\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(SolutionDir)/..\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>$(SolutionDir)/..\</OutDir>
+    <IntDir>$(Configuration)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(SolutionDir)/..\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>$(SolutionDir)/../include;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/sdl/include;$(SolutionDir)/libpng;$(SolutionDir)/sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;__WIN32__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessToFile>false</PreprocessToFile>
+      <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;$(SolutionDir)\..\zlibstat.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ShowProgress>LinkVerboseLib</ShowProgress>
+      <OutputFile>$(OutDir)DOSBox.exe</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>$(SolutionDir)/../include;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/sdl/include;$(SolutionDir)/libpng;$(SolutionDir)/sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;__WIN32__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessToFile>false</PreprocessToFile>
+      <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;$(SolutionDir)\..\zlibstat.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ShowProgress>LinkVerboseLib</ShowProgress>
+      <OutputFile>$(OutDir)DOSBox.exe</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>$(SolutionDir)/../include;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/sdl/include;$(SolutionDir)/libpng;$(SolutionDir)/sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;__WIN32__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;$(SolutionDir)\..\zlibstat.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ShowProgress>LinkVerboseLib</ShowProgress>
+      <OutputFile>$(OutDir)DOSBox.exe</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Midl>
+      <TargetEnvironment>X64</TargetEnvironment>
+    </Midl>
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>$(SolutionDir)/../include;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/sdl/include;$(SolutionDir)/libpng;$(SolutionDir)/sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;__WIN32__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <PrecompiledHeader />
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;$(SolutionDir)\..\zlibstat.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ShowProgress>LinkVerboseLib</ShowProgress>
+      <OutputFile>$(OutDir)DOSBox.exe</OutputFile>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\cpu\callback.cpp" />
+    <ClCompile Include="..\src\cpu\core_dyn_x86.cpp" />
+    <ClCompile Include="..\src\cpu\core_full.cpp" />
+    <ClCompile Include="..\src\cpu\core_normal.cpp" />
+    <ClCompile Include="..\src\cpu\core_normal_286.cpp" />
+    <ClCompile Include="..\src\cpu\core_normal_8086.cpp" />
+    <ClCompile Include="..\src\cpu\core_prefetch.cpp" />
+    <ClCompile Include="..\src\cpu\core_simple.cpp" />
+    <ClCompile Include="..\src\cpu\cpu.cpp" />
+    <ClCompile Include="..\src\cpu\flags.cpp" />
+    <ClCompile Include="..\src\cpu\mmx.cpp" />
+    <ClCompile Include="..\src\cpu\modrm.cpp" />
+    <ClCompile Include="..\src\cpu\paging.cpp" />
+    <ClCompile Include="..\src\debug\debug.cpp" />
+    <ClCompile Include="..\src\debug\debug_disasm.cpp" />
+    <ClCompile Include="..\src\debug\debug_gui.cpp" />
+    <ClCompile Include="..\src\debug\debug_win32.cpp" />
+    <ClCompile Include="..\src\dosbox.cpp" />
+    <ClCompile Include="..\src\dos\cdrom.cpp" />
+    <ClCompile Include="..\src\dos\cdrom_aspi_win32.cpp" />
+    <ClCompile Include="..\src\dos\cdrom_image.cpp" />
+    <ClCompile Include="..\src\dos\cdrom_ioctl_win32.cpp" />
+    <ClCompile Include="..\src\dos\dos.cpp" />
+    <ClCompile Include="..\src\dos\dos_classes.cpp" />
+    <ClCompile Include="..\src\dos\dos_devices.cpp" />
+    <ClCompile Include="..\src\dos\dos_execute.cpp" />
+    <ClCompile Include="..\src\dos\dos_files.cpp" />
+    <ClCompile Include="..\src\dos\dos_ioctl.cpp" />
+    <ClCompile Include="..\src\dos\dos_keyboard_layout.cpp" />
+    <ClCompile Include="..\src\dos\dos_memory.cpp" />
+    <ClCompile Include="..\src\dos\dos_misc.cpp" />
+    <ClCompile Include="..\src\dos\dos_mscdex.cpp" />
+    <ClCompile Include="..\src\dos\dos_programs.cpp" />
+    <ClCompile Include="..\src\dos\dos_tables.cpp" />
+    <ClCompile Include="..\src\dos\drives.cpp" />
+    <ClCompile Include="..\src\dos\drive_cache.cpp" />
+    <ClCompile Include="..\src\dos\drive_fat.cpp" />
+    <ClCompile Include="..\src\dos\drive_iso.cpp" />
+    <ClCompile Include="..\src\dos\drive_local.cpp" />
+    <ClCompile Include="..\src\dos\drive_virtual.cpp" />
+    <ClCompile Include="..\src\fpu\fpu.cpp" />
+    <ClCompile Include="..\src\gui\AReverbModel.cpp" />
+    <ClCompile Include="..\src\gui\avi_rw_iobuf.cpp" />
+    <ClCompile Include="..\src\gui\avi_writer.cpp" />
+    <ClCompile Include="..\src\gui\BReverbModel.cpp" />
+    <ClCompile Include="..\src\gui\DelayReverb.cpp" />
+    <ClCompile Include="..\src\gui\direct3d.cpp" />
+    <ClCompile Include="..\src\gui\File.cpp" />
+    <ClCompile Include="..\src\gui\FileStream.cpp" />
+    <ClCompile Include="..\src\gui\FreeverbModel.cpp" />
+    <ClCompile Include="..\src\gui\freeverb\allpass.cpp" />
+    <ClCompile Include="..\src\gui\freeverb\comb.cpp" />
+    <ClCompile Include="..\src\gui\freeverb\revmodel.cpp" />
+    <ClCompile Include="..\src\gui\guid.cpp" />
+    <ClCompile Include="..\src\gui\hq2x_d3d.cpp" />
+    <ClCompile Include="..\src\gui\ksdataformat.cpp" />
+    <ClCompile Include="..\src\gui\LA32Ramp.cpp" />
+    <ClCompile Include="..\src\gui\LA32WaveGenerator.cpp" />
+    <ClCompile Include="..\src\gui\LegacyWaveGenerator.cpp" />
+    <ClCompile Include="..\src\gui\menu.cpp" />
+    <ClCompile Include="..\src\gui\midi.cpp" />
+    <ClCompile Include="..\src\gui\Part.cpp" />
+    <ClCompile Include="..\src\gui\Partial.cpp" />
+    <ClCompile Include="..\src\gui\PartialManager.cpp" />
+    <ClCompile Include="..\src\gui\Poly.cpp" />
+    <ClCompile Include="..\src\gui\render.cpp" />
+    <ClCompile Include="..\src\gui\render_scalers.cpp" />
+    <ClCompile Include="..\src\gui\riff.cpp" />
+    <ClCompile Include="..\src\gui\riff_wav_writer.cpp" />
+    <ClCompile Include="..\src\gui\ROMInfo.cpp" />
+    <ClCompile Include="..\src\gui\sdlmain.cpp" />
+    <ClCompile Include="..\src\gui\sdl_gui.cpp" />
+    <ClCompile Include="..\src\gui\sdl_mapper.cpp" />
+    <ClCompile Include="..\src\gui\sha1\sha1.cpp" />
+    <ClCompile Include="..\src\gui\Synth.cpp" />
+    <ClCompile Include="..\src\gui\Tables.cpp" />
+    <ClCompile Include="..\src\gui\TVA.cpp" />
+    <ClCompile Include="..\src\gui\TVF.cpp" />
+    <ClCompile Include="..\src\gui\TVP.cpp" />
+    <ClCompile Include="..\src\hardware\adlib.cpp" />
+    <ClCompile Include="..\src\hardware\cmos.cpp" />
+    <ClCompile Include="..\src\hardware\dbopl.cpp" />
+    <ClCompile Include="..\src\hardware\disney.cpp" />
+    <ClCompile Include="..\src\hardware\dma.cpp" />
+    <ClCompile Include="..\src\hardware\dongle.cpp" />
+    <ClCompile Include="..\src\hardware\floppy.cpp" />
+    <ClCompile Include="..\src\hardware\gameblaster.cpp" />
+    <ClCompile Include="..\src\hardware\gus.cpp" />
+    <ClCompile Include="..\src\hardware\hardopl.cpp" />
+    <ClCompile Include="..\src\hardware\hardware.cpp" />
+    <ClCompile Include="..\src\hardware\ide.cpp" />
+    <ClCompile Include="..\src\hardware\innova.cpp" />
+    <ClCompile Include="..\src\hardware\iohandler.cpp" />
+    <ClCompile Include="..\src\hardware\ipx.cpp" />
+    <ClCompile Include="..\src\hardware\ipxserver.cpp" />
+    <ClCompile Include="..\src\hardware\joystick.cpp" />
+    <ClCompile Include="..\src\hardware\keyboard.cpp" />
+    <ClCompile Include="..\src\hardware\memory.cpp" />
+    <ClCompile Include="..\src\hardware\mixer.cpp" />
+    <ClCompile Include="..\src\hardware\mpu401.cpp" />
+    <ClCompile Include="..\src\hardware\ne2000.cpp" />
+    <ClCompile Include="..\src\hardware\opl.cpp" />
+    <ClCompile Include="..\src\hardware\parport\directlpt_win32.cpp" />
+    <ClCompile Include="..\src\hardware\parport\filelpt.cpp" />
+    <ClCompile Include="..\src\hardware\parport\parport.cpp" />
+    <ClCompile Include="..\src\hardware\parport\printer.cpp" />
+    <ClCompile Include="..\src\hardware\parport\printer_charmaps.cpp" />
+    <ClCompile Include="..\src\hardware\pci_bus.cpp" />
+    <ClCompile Include="..\src\hardware\pcspeaker.cpp" />
+    <ClCompile Include="..\src\hardware\pic.cpp" />
+    <ClCompile Include="..\src\hardware\ps1_sound.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\envelope.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\extfilt.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\filter.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\pot.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\sid.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\version.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\voice.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\wave.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\wave6581_PST.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\wave6581_PS_.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\wave6581_P_T.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\wave6581__ST.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\wave8580_PST.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\wave8580_PS_.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\wave8580_P_T.cpp" />
+    <ClCompile Include="..\src\hardware\reSID\wave8580__ST.cpp" />
+    <ClCompile Include="..\src\hardware\sblaster.cpp" />
+    <ClCompile Include="..\src\hardware\serialport\directserial.cpp" />
+    <ClCompile Include="..\src\hardware\serialport\libserial.cpp" />
+    <ClCompile Include="..\src\hardware\serialport\misc_util.cpp" />
+    <ClCompile Include="..\src\hardware\serialport\nullmodem.cpp" />
+    <ClCompile Include="..\src\hardware\serialport\serialdummy.cpp" />
+    <ClCompile Include="..\src\hardware\serialport\serialmouse.cpp" />
+    <ClCompile Include="..\src\hardware\serialport\serialport.cpp" />
+    <ClCompile Include="..\src\hardware\serialport\softmodem.cpp" />
+    <ClCompile Include="..\src\hardware\tandy_sound.cpp" />
+    <ClCompile Include="..\src\hardware\timer.cpp" />
+    <ClCompile Include="..\src\hardware\vga.cpp" />
+    <ClCompile Include="..\src\hardware\vga_attr.cpp" />
+    <ClCompile Include="..\src\hardware\vga_crtc.cpp" />
+    <ClCompile Include="..\src\hardware\vga_dac.cpp" />
+    <ClCompile Include="..\src\hardware\vga_draw.cpp" />
+    <ClCompile Include="..\src\hardware\vga_gfx.cpp" />
+    <ClCompile Include="..\src\hardware\vga_memory.cpp" />
+    <ClCompile Include="..\src\hardware\vga_misc.cpp" />
+    <ClCompile Include="..\src\hardware\vga_other.cpp" />
+    <ClCompile Include="..\src\hardware\vga_paradise.cpp" />
+    <ClCompile Include="..\src\hardware\vga_s3.cpp" />
+    <ClCompile Include="..\src\hardware\vga_seq.cpp" />
+    <ClCompile Include="..\src\hardware\vga_tseng.cpp" />
+    <ClCompile Include="..\src\hardware\vga_xga.cpp" />
+    <ClCompile Include="..\src\hardware\voodoo.cpp" />
+    <ClCompile Include="..\src\hardware\voodoo_emu.cpp" />
+    <ClCompile Include="..\src\hardware\voodoo_interface.cpp" />
+    <ClCompile Include="..\src\hardware\voodoo_opengl.cpp" />
+    <ClCompile Include="..\src\hardware\voodoo_vogl.cpp" />
+    <ClCompile Include="..\src\ints\bios.cpp" />
+    <ClCompile Include="..\src\ints\bios_disk.cpp" />
+    <ClCompile Include="..\src\ints\bios_keyboard.cpp" />
+    <ClCompile Include="..\src\ints\ems.cpp" />
+    <ClCompile Include="..\src\ints\int10.cpp" />
+    <ClCompile Include="..\src\ints\int10_char.cpp" />
+    <ClCompile Include="..\src\ints\int10_memory.cpp" />
+    <ClCompile Include="..\src\ints\int10_misc.cpp" />
+    <ClCompile Include="..\src\ints\int10_modes.cpp" />
+    <ClCompile Include="..\src\ints\int10_pal.cpp" />
+    <ClCompile Include="..\src\ints\int10_put_pixel.cpp" />
+    <ClCompile Include="..\src\ints\int10_vesa.cpp" />
+    <ClCompile Include="..\src\ints\int10_video_state.cpp" />
+    <ClCompile Include="..\src\ints\int10_vptable.cpp" />
+    <ClCompile Include="..\src\ints\mouse.cpp" />
+    <ClCompile Include="..\src\ints\xms.cpp" />
+    <ClCompile Include="..\src\libs\gui_tk\gui_tk.cpp" />
+    <ClCompile Include="..\src\libs\porttalk\porttalk.cpp" />
+    <ClCompile Include="..\src\misc\cross.cpp" />
+    <ClCompile Include="..\src\misc\messages.cpp" />
+    <ClCompile Include="..\src\misc\programs.cpp" />
+    <ClCompile Include="..\src\misc\setup.cpp" />
+    <ClCompile Include="..\src\misc\support.cpp" />
+    <ClCompile Include="..\src\shell\shell.cpp" />
+    <ClCompile Include="..\src\shell\shell_batch.cpp" />
+    <ClCompile Include="..\src\shell\shell_cmds.cpp" />
+    <ClCompile Include="..\src\shell\shell_misc.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\src\winres.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="libpng\projects\visualc71\libpng.vcxproj">
+      <Project>{0008960e-e0dd-41a6-8265-00b31ddb4c21}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="sdlnet\VisualC\SDL_net_VS2008.vcxproj">
+      <Project>{8ab3504f-5e58-4910-afe8-7a1e595ac3f4}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="sdl\VisualC\SDLmain\SDLmain.vcxproj">
+      <Project>{da956fd3-e142-46f2-9dd5-c78bebb56b7a}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="sdl\VisualC\SDL\SDL.vcxproj">
+      <Project>{81ce8daf-ebb2-4761-8e45-b71abcca8c68}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="zlib\contrib\vstudio\vc9\zlibstat.vcxproj">
+      <Project>{745dec58-ebb3-47a9-a9b8-4c6627c01bf8}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
