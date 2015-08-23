@@ -1400,7 +1400,7 @@ void VGA_SetupMemory(Section* sec) {
 
 	vga.mem.linear_orgptr = new Bit8u[vga.vmemsize+32];
 	memset(vga.mem.linear_orgptr,0,vga.vmemsize+32);
-	vga.mem.linear=(Bit8u*)(((Bitu)vga.mem.linear_orgptr + 16-1) & ~(16-1));
+	vga.mem.linear=(Bit8u*)(((uintptr_t)vga.mem.linear_orgptr + 16-1) & ~(16-1));
 
 	// In most cases these values stay the same. Assumptions: vmemwrap is power of 2, vmemwrap <= vmemsize
 	vga.vmemwrap = vga.vmemsize;
