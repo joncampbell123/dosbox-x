@@ -3842,6 +3842,27 @@ void DOSBOX_SetupConfigSections(void);
 void PAGING_Init();
 void IO_Init();
 
+#if defined(WIN32)
+void WindowsIAMDPIAware() {
+	// turn off DPI scaling so DOSBox-X doesn't look so blurry on Windows 8 & Windows 10.
+	// use GetProcAddress and LoadLibrary so that these functions are not hard dependencies that prevent us from
+	// running under Windows 7 or XP.
+	// 
+	// I'm also told that Windows 8.1 has SetProcessDPIAwareness but nobody seems to know where it is.
+	// Perhaps the tooth fairy can find it for me. Come on, Microsoft get your act together! [https://msdn.microsoft.com/en-us/library/windows/desktop/dn302122(v=vs.85).aspx]
+	BOOL (WINAPI *__SetProcessDPIAware)(void) = NULL; // vista/7/8/10
+	HMODULE __user32;
+
+	__user32 = GetModuleHandle("USER32.DLL");
+
+	if (__user32)
+		__SetProcessDPIAware = (BOOL(WINAPI *)(void))GetProcAddress(__user32, "SetProcessDPIAware");
+
+	if (__SetProcessDPIAware)
+		__SetProcessDPIAware();
+}
+#endif
+
 //extern void UI_Init(void);
 int main(int argc, char* argv[]) {
 	CommandLine com_line(argc,argv);
@@ -3849,6 +3870,9 @@ int main(int argc, char* argv[]) {
 #if defined(WIN32)
 	/* Microsoft's IME does not play nice with DOSBox */
 	ImmDisableIME((DWORD)(-1));
+
+	/* Windows Vista/7/8 please don't scale the window */
+	WindowsIAMDPIAware();
 #endif
 
 	{
