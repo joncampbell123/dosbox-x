@@ -85,6 +85,7 @@ public:
 		opt_startmapper = false;
 		opt_date_host_forced = false;
 		opt_disable_numlock_check = false;
+		opt_disable_dpi_awareness = false;
 	}
 	~Config();
 
@@ -106,6 +107,7 @@ public:
 public:
 	std::string opt_editconf,opt_opensaves,opt_opencaptures,opt_lang;
 	std::vector<std::string> config_file_list;
+	bool opt_disable_dpi_awareness;
 	bool opt_disable_numlock_check;
 	bool opt_date_host_forced;
 	bool opt_erasemapper;

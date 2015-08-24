@@ -599,6 +599,8 @@ void Null_Init(Section *sec) {
 extern Bit8u cga_comp;
 extern bool new_cga;
 
+bool dpi_aware_enable = true;
+
 std::string dosbox_title;
 
 void DOSBOX_InitTickLoop() {
@@ -614,6 +616,10 @@ void DOSBOX_RealInit() {
 
 	Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
 	assert(section != NULL);
+
+	// boot-time option whether or not to report ourself as "DPI aware" to Windows so the
+	// DWM doesn't upscale our window for backwards compat.
+	dpi_aware_enable = section->Get_bool("dpi aware");
 
 	// TODO: allow change at any time. in fact if it were possible for DOSBox-X configuration
 	//       schema code to attach event callbacks when a setting changes, we would set one
@@ -829,6 +835,11 @@ void DOSBOX_SetupConfigSections(void) {
 
 	Pstring = secprop->Add_path("title",Property::Changeable::Always,"");
 	Pstring->Set_help("Additional text to place in the title bar of the window");
+
+	Pbool = secprop->Add_bool("dpi aware",Property::Changeable::OnlyAtStart,true);
+	Pbool->Set_help("Set this option (on by default) to indicate to your OS that DOSBox is DPI aware.\n"
+			"If it is not set, Windows Vista/7/8/10 and higher may upscale the DOSBox window\n"
+			"on higher resolution monitors which is probably not what you want.");
 
 	Pstring = secprop->Add_string("machine",Property::Changeable::OnlyAtStart,"svga_s3");
 	Pstring->Set_values(machines);

@@ -3753,7 +3753,11 @@ bool DOSBOX_parse_argv() {
 			fprintf(stderr,"  -debug                                  Set all logging levels to debug\n");
 			fprintf(stderr,"  -keydbg                                 Log all SDL key events (debugging)\n");
 			fprintf(stderr,"  -lang <message file>                    Use specific message file instead of language= setting\n");
+			fprintf(stderr,"  -nodpiaware                             Ignore (don't signal) Windows DPI awareness\n");
 			return 0;
+		}
+		else if (optname == "nodpiaware") {
+			control->opt_disable_dpi_awareness = true;
 		}
 		else if (optname == "keydbg") {
 			log_keyboard_scan_codes = true;
@@ -3843,7 +3847,15 @@ void PAGING_Init();
 void IO_Init();
 
 #if defined(WIN32)
-void WindowsIAMDPIAware() {
+extern bool dpi_aware_enable;
+
+// NTS: I intend to add code that not only indicates High DPI awareness but also queries the monitor DPI
+//      and then factor the DPI into DOSBox's scaler and UI decisions.
+void Windows_DPI_Awareness_Init() {
+	// if the user says not to from the command line, or disables it from dosbox.conf, then don't enable DPI awareness.
+	if (!dpi_aware_enable || !control->opt_disable_dpi_awareness)
+		return;
+
 	// turn off DPI scaling so DOSBox-X doesn't look so blurry on Windows 8 & Windows 10.
 	// use GetProcAddress and LoadLibrary so that these functions are not hard dependencies that prevent us from
 	// running under Windows 7 or XP.
@@ -3858,8 +3870,10 @@ void WindowsIAMDPIAware() {
 	if (__user32)
 		__SetProcessDPIAware = (BOOL(WINAPI *)(void))GetProcAddress(__user32, "SetProcessDPIAware");
 
-	if (__SetProcessDPIAware)
+	if (__SetProcessDPIAware) {
+		LOG(LOG_MISC,LOG_DEBUG)("USER32.DLL exports SetProcessDPIAware function, calling it to signal we are DPI aware.");
 		__SetProcessDPIAware();
+	}
 }
 #endif
 
@@ -3870,9 +3884,6 @@ int main(int argc, char* argv[]) {
 #if defined(WIN32)
 	/* Microsoft's IME does not play nice with DOSBox */
 	ImmDisableIME((DWORD)(-1));
-
-	/* Windows Vista/7/8 please don't scale the window */
-	WindowsIAMDPIAware();
 #endif
 
 	{
@@ -4003,6 +4014,13 @@ int main(int argc, char* argv[]) {
 			sdl.using_windib=true;
 			load_videodrv=false;
 		}
+#endif
+
+#ifdef WIN32
+		/* Windows Vista/7/8/10 DPI awareness. If we don't tell Windows we're high DPI aware, the DWM will
+		 * upscale our window to emulate a 96 DPI display which on high res screen will make our UI look blurry.
+		 * But we obey the user if they don't want us to do that. */
+		Windows_DPI_Awareness_Init();
 #endif
 
 		/* -- SDL init */
