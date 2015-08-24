@@ -1065,6 +1065,10 @@ unsigned int CommandLine::GetCount(void) {
 
 bool CommandLine::NextOptArgv(std::string &argv) {
 	argv.clear();
+
+	/* no argv to return if we're doing single-char GNU switches */
+	if (!opt_gnu_getopt_singlechar.empty()) return false;
+
 	if (opt_scan == cmds.end()) return false;
 	argv = *opt_scan;
 	if (opt_eat_argv) opt_scan = cmds.erase(opt_scan);
@@ -1072,15 +1076,42 @@ bool CommandLine::NextOptArgv(std::string &argv) {
 	return true;
 }
 
+void CommandLine::ChangeOptStyle(enum opt_style opt_style) {
+	this->opt_style = opt_style;
+}
+
 bool CommandLine::BeginOpt(bool eat_argv) {
+	opt_gnu_getopt_singlechar.clear();
 	opt_scan = cmds.begin();
 	if (opt_scan == cmds.end()) return false;
 	opt_eat_argv = eat_argv;
 	return true;
 }
 
+bool CommandLine::GetOptGNUSingleCharCheck(std::string &name) {
+	char c;
+
+	/* return another char, skipping spaces or invalid chars */
+	name.clear();
+	while (!opt_gnu_getopt_singlechar.empty()) {
+		c = opt_gnu_getopt_singlechar.at(0);
+		opt_gnu_getopt_singlechar = opt_gnu_getopt_singlechar.substr(1);
+		if (c <= ' ' || c > 126) continue;
+
+		name = c;
+		return true;
+	}
+
+	return false;
+}
+
 bool CommandLine::GetOpt(std::string &name) {
 	name.clear();
+
+	/* if we're still doing GNU getopt single-char switches, then parse another and return */
+	if (GetOptGNUSingleCharCheck(name))
+		return true;
+
 	while (opt_scan != cmds.end()) {
 		std::string &argv = *opt_scan;
 		const char *str = argv.c_str();
@@ -1100,8 +1131,29 @@ bool CommandLine::GetOpt(std::string &name) {
 				break;
 			}
 
-			/* TODO: getopt single-char switches like -a -b or to represent -q -r -s as -qrs */
-			if (opt_style != CommandLine::gnu_getopt && *str == '-') str++;
+			if (opt_style == CommandLine::gnu_getopt) {
+				/* --switch => "switch"
+				 * -switch => -s -w -i -t -c -h */
+				if (*str == '-') {
+					str++;
+				}
+				else {
+					/* assign to single-char parse then eat the argv */
+					opt_gnu_getopt_singlechar = str;
+					if (opt_eat_argv) opt_scan = cmds.erase(opt_scan);
+					else opt_scan++;
+
+					/* if we parse a single-char switch, great */
+					if (GetOptGNUSingleCharCheck(name))
+						return true;
+
+					continue; /* if we're here then there was nothing to parse, continue */
+				}
+			}
+			else {
+				/* -switch and --switch mean the same thing */
+				if (*str == '-') str++;
+			}
 
 			name = str; /* copy to caller, then erase/skip */
 			if (opt_eat_argv) opt_scan = cmds.erase(opt_scan);

@@ -68,9 +68,12 @@ public:
 	bool BeginOpt(bool eat_argv=true);
 	bool GetOpt(std::string &name);
 	bool NextOptArgv(std::string &argv);
+	bool GetOptGNUSingleCharCheck(std::string &name);
+	void ChangeOptStyle(enum opt_style opt_style);
 	void EndOpt();
 private:
 	typedef std::list<std::string>::iterator cmd_it;
+	std::string opt_gnu_getopt_singlechar;		/* non-empty if we hit GNU options like -abcd => -a -b -c -d */
 	cmd_it opt_scan;
 	bool opt_eat_argv;
 	std::list<std::string> cmds;
