@@ -997,20 +997,63 @@ void A20GATE_ProgramStart(Program * * make) {
 	*make=new A20GATE;
 }
 
-class MEMORY:public Module_base{
-private:
-	IO_ReadHandleObject ReadHandler;
-	IO_WriteHandleObject WriteHandler;
-public:	
-	MEMORY(Section* configuration):Module_base(configuration){
+namespace MEMORY {
+
+	static IO_ReadHandleObject ReadHandler;
+	static IO_WriteHandleObject WriteHandler;
+
+	void ShutDown(Section * sec) {
+		delete [] MemBase;
+		delete [] memory.phandlers;
+		delete [] memory.mhandles;
+	}
+
+	void Init() {
+		Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 		Bitu i;
-		Section_prop * section=static_cast<Section_prop *>(configuration);
+
+		/* TODO: I would like to see this split out into multiple Init code related to each part of the
+		 *       motherboard:
+		 *
+		 *       1) An init for RAM, the RAM chips on the motherboard, and how they are addressed
+		 *       2) An init for the phandlers/mhandlers, which controls how DOSBox addresses RAM, ROM, or MMIO
+		 *       3) An init for VGA ROM BIOS on it's own
+		 *       4) An init for PCjr ROMs if enabled
+		 *       5) An init for the A20 gate (which should be controlled by the motherboard too)
+		 *       6) An init for the CPU address masking (which should be controlled by the motherboard too)
+		 *
+		 *       I would also like to see the phandlers system converted into one where all devices
+		 *       list themselves as attached to the motherboard, and phandlers default to a "slow path"
+		 *       that asks each device in turn who will accept the memory I/O request, and then patch
+		 *       whoever answers into the phandler so further I/O is fast. (NTS: the slow path would
+		 *       also NOT update the pointer if more than one device responds, and would patch in a
+		 *       "no response" handler if none of the devices respond)
+		 *
+		 *       I would also like to see phandlers[] allocated to cover the CPU's entire addressable
+		 *       range (up to 4GB in pages) instead of only covering the memory given to the guest,
+		 *       so that the "slow path" patching system can work on all memory resources accessible
+		 *       to the CPU. If running DOSBox-X on more memory limited platforms, we could also offer
+		 *       a parameter to say how large the addressable memory I/O is in bits if the user wants
+		 *       to cut down on memory utilization (make phandlers[] array smaller). Obviously below
+		 *       32 bits wide this would prevent something like mapping S3 SVGA linear framebuffers
+		 *       at 0xC0000000, but we'll let the user decide on that tradeoff.
+		 *
+		 *       On system reset, or power off then on, I would like to see this code support freeing,
+		 *       then reallocing the RAM if the user changed the memory size at runtime. If memory
+		 *       doesn't change size, then RAM should stay intact (as it would on real hardware).
+		 *       This would be independent of whether or not we would also emulate BIOS behavior
+		 *       of clearing RAM during a memory test on startup.
+		 */
+
+		AddExitFunction(&ShutDown);
 
 		memory.a20.enabled = 0;
 		a20_fake_changeable = false;
 
+		// TODO: this should be handled in a motherboard init routine
 		enable_port92 = section->Get_bool("enable port 92");
 
+		// TODO: A20 gate control should also be handled by a motherboard init routine
 		std::string ss = section->Get_string("a20");
 		if (ss == "mask" || ss == "") {
 			LOG(LOG_MISC,LOG_DEBUG)("A20: masking emulation");
@@ -1052,13 +1095,33 @@ public:
 		/* Setup the Physical Page Links */
 		Bitu memsize=section->Get_int("memsize");	
 		Bitu memsizekb=section->Get_int("memsizekb");
+
+		// TODO: this option should be handled by the CPU init since it concerns emulation
+		//       of older 386 and 486 boards with fewer than 32 address lines:
+		//
+		//         24-bit addressing on the 386SX vs full 32-bit addressing on the 386DX
+		//         26-bit addressing on the 486SX vs full 32-bit addressing on the 486DX
+		//
+		//       Also this code should automatically cap itself at 24 for 286 emulation and
+		//       20 for 8086 emulation.
 		Bitu address_bits=section->Get_int("memalias");
 
+		if (address_bits == 0)
+			address_bits = 32;
+		else if (address_bits < 20)
+			address_bits = 20;
+		else if (address_bits > 32)
+			address_bits = 32;
+
+		// TODO: this should be moved to the DOS kernel init
 		dos_conventional_limit = section->Get_int("dos mem limit");
+
+		// TODO: this should be moved to the motherboard init
 		adapter_rom_is_ram = section->Get_bool("adapter rom is ram");
+		// TODO: motherboard init, especially when we get around to full Intel Triton/i440FX chipset emulation
 		isa_memory_hole_512kb = section->Get_bool("isa memory hole at 512kb");
 
-		/* FIXME: This belongs elsewhere! */
+		// TODO: this belongs in VGA init, not here!
 		if (VGA_BIOS_Size_override >= 512 && VGA_BIOS_Size_override <= 65536)
 			VGA_BIOS_Size = (VGA_BIOS_Size_override + 0x7FF) & (~0xFFF);
 		else if (IS_VGA_ARCH)
@@ -1083,15 +1146,9 @@ public:
 		}
 		VGA_BIOS_SEG = 0xC000;
 		VGA_BIOS_SEG_END = (VGA_BIOS_SEG + (VGA_BIOS_Size >> 4));
-		/* END FIXME */
+		// END TODO
 
-		if (address_bits == 0)
-			address_bits = 32;
-		else if (address_bits < 20)
-			address_bits = 20;
-		else if (address_bits > 32)
-			address_bits = 32;
-
+		// TODO: This should be ...? CPU init? Motherboard init?
 		/* WARNING: Binary arithmetic done with 64-bit integers because under Microsoft C++
 		            ((1UL << 32UL) - 1UL) == 0, which is WRONG.
 					But I'll never get back the 4 days I wasted chasing it down, trying to
@@ -1099,15 +1156,10 @@ public:
 		memory.mem_alias_pagemask = (uint32_t)
 			(((((uint64_t)1) << (uint64_t)address_bits) - (uint64_t)1) >> (uint64_t)12);
 
-		/* If the page mask affects below the 1MB boundary then abort. There is a LOT in
-		   DOSBox that relies on reading and maintaining DOS structures and wrapping in
-		   that way is a good way to cause a crash. Note 0xFF << 12 == 0xFFFFF */
-		if ((memory.mem_alias_pagemask & 0xFF) != 0xFF) {
-			//LOG_MSG("BUG: invalid alias pagemask 0x%08lX\n",
-			//	(unsigned long)memory.mem_alias_pagemask);
-			abort();
-		}
+		/* memory aliasing cannot go below 1MB or serious problems may result. */
+		if ((memory.mem_alias_pagemask & 0xFF) != 0xFF) E_Exit("alias pagemask < 1MB");
 
+		/* update alias pagemask according to A20 gate */
 		if (a20_fake_changeable && a20_full_masking && !memory.a20.enabled)
 			memory.mem_alias_pagemask &= ~0x100;
 
@@ -1119,9 +1171,11 @@ public:
 			memsizekb = 0;
 		}
 
+		/* FIXME: hardcoding the max memory size is BAD. Use MAX_MEMORY. */
 		if (memsizekb > 524288) memsizekb = 524288;
 		if (memsizekb == 0 && memsize < 1) memsize = 1;
 		else if (memsizekb != 0 && memsize < 0) memsize = 0;
+
 		/* max 63 to solve problems with certain xms handlers */
 		if ((memsize+(memsizekb/1024)) > MAX_MEMORY-1) {
 			LOG_MSG("Maximum memory size is %d MB",MAX_MEMORY - 1);
@@ -1142,6 +1196,8 @@ public:
 		if (memory.pages < ((1024*1024)/4096))
 			memory.pages = ((1024*1024)/4096);
 
+		/* Allocate the RAM. We alloc as a large unsigned char array. new[] does not initialize the array,
+		 * so we then must zero the buffer. */
 		MemBase = new Bit8u[memory.pages*4096];
 		memorySize = sizeof(Bit8u) * memsize*1024*1024;
 		if (!MemBase) E_Exit("Can't allocate main memory of %d MB",(int)memsize);
@@ -1202,23 +1258,5 @@ public:
 		}
 		MEM_A20_Enable(false);
 	}
-	~MEMORY(){
-		delete [] MemBase;
-		delete [] memory.phandlers;
-		delete [] memory.mhandles;
-	}
 };	
-
-	
-static MEMORY* test;	
-	
-static void MEM_ShutDown(Section * sec) {
-	delete test;
-}
-
-void MEM_Init(Section * sec) {
-	/* shutdown function */
-	test = new MEMORY(sec);
-	sec->AddDestroyFunction(&MEM_ShutDown);
-}
 
