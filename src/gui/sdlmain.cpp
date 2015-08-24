@@ -3853,7 +3853,7 @@ extern bool dpi_aware_enable;
 //      and then factor the DPI into DOSBox's scaler and UI decisions.
 void Windows_DPI_Awareness_Init() {
 	// if the user says not to from the command line, or disables it from dosbox.conf, then don't enable DPI awareness.
-	if (!dpi_aware_enable || !control->opt_disable_dpi_awareness)
+	if (!dpi_aware_enable || control->opt_disable_dpi_awareness)
 		return;
 
 	// turn off DPI scaling so DOSBox-X doesn't look so blurry on Windows 8 & Windows 10.
