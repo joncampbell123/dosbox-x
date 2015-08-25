@@ -214,20 +214,25 @@ Bit8u imageDisk::Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * da
 }
 
 Bit8u imageDisk::Read_AbsoluteSector(Bit32u sectnum, void * data) {
-	Bit64u bytenum;
+	Bit64u bytenum,res;
+	int got;
 
-	bytenum = (Bit64u)sectnum * sector_size;
+	bytenum = (Bit64u)sectnum * (Bit64u)sector_size;
 
 	//LOG_MSG("Reading sectors %ld at bytenum %I64d", sectnum, bytenum);
 
 	fseeko64(diskimg,bytenum,SEEK_SET);
-	if ((Bit64u)ftello64(diskimg) != bytenum) {
-		LOG_MSG("fseek() failed in Read_AbsoluteSector for sector %lu\n",(unsigned long)sectnum);
+	res = ftello64(diskimg);
+	if (res != bytenum) {
+		LOG_MSG("fseek() failed in Read_AbsoluteSector for sector %lu. Want=%I64u Got=%I64u\n",
+			(unsigned long)sectnum,(unsigned long long)bytenum,(unsigned long long)res);
 		return 0x05;
 	}
 
-	if (fread(data, 1, sector_size, diskimg) != sector_size) {
-		LOG_MSG("fread() failed in Read_AbsoluteSector for sectur %lu\n",(unsigned long)sectnum);
+	got = fread(data, 1, sector_size, diskimg);
+	if (got != sector_size) {
+		LOG_MSG("fread() failed in Read_AbsoluteSector for sector %lu. Want=%u got=%d\n",
+			(unsigned long)sectnum,(unsigned int)sector_size,(unsigned int)got);
 		return 0x05;
 	}
 

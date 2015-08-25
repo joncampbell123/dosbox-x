@@ -992,7 +992,7 @@ public:
 
 			Bit8u vga_buffer[0x10000];
 			Bitu data_written=0;
-			Bitu data_read=fread(vga_buffer, 1, 0x10000, tmpfile);
+			Bitu data_read = (Bitu)fread(vga_buffer, 1, 0x10000, tmpfile);
 			for (Bitu ct=0; ct<data_read; ct++) {
 				phys_writeb(rom_base+(data_written++),vga_buffer[ct]);
 			}
@@ -2257,7 +2257,7 @@ public:
 		if(type == "cdrom") type = "iso"; //Tiny hack for people who like to type -t cdrom
 		Bit8u mediaid;
 		if (type=="floppy" || type=="hdd" || type=="iso") {
-			Bit16u sizes[4];
+			Bitu sizes[4] = { 0,0,0,0 };
 			bool imgsizedetect=false;
 			int reserved_cylinders=0;
 			std::string reservecyl;
@@ -2345,12 +2345,12 @@ public:
 			// find all file parameters, assuming that all option parameters have been removed
 			while(cmd->FindCommand((unsigned int)(paths.size() + 2), temp_line) && temp_line.size()) {
 				
-				struct stat test;
-				if (stat(temp_line.c_str(),&test)) {
+				pref_struct_stat test;
+				if (pref_stat(temp_line.c_str(),&test)) {
 					//See if it works if the ~ are written out
 					std::string homedir(temp_line);
 					Cross::ResolveHomedir(homedir);
-					if(!stat(homedir.c_str(),&test)) {
+					if(!pref_stat(homedir.c_str(),&test)) {
 						temp_line = homedir;
 					} else {
 						// convert dosbox filename to system filename
@@ -2372,7 +2372,7 @@ public:
 						ldp->GetSystemFilename(tmp, fullname);
 						temp_line = tmp;
 
-						if (stat(temp_line.c_str(),&test)) {
+						if (pref_stat(temp_line.c_str(),&test)) {
 							WriteOut(MSG_Get("PROGRAM_IMGMOUNT_FILE_NOT_FOUND"));
 							return;
 						}
@@ -2662,11 +2662,40 @@ public:
 
 				FILE *newDisk = fopen64(temp_line.c_str(), "rb+");
 				fseeko64(newDisk,0L, SEEK_END);
-				imagesize = (Bit32u)(ftello64(newDisk) / 1024);
+
+				/* auto-fill: sector size */
+				if (sizes[0] == 0) sizes[0] = 512;
+
+				Bit64u sectors = (Bit64u)ftello64(newDisk) / (Bit64u)sizes[0];
+
+				imagesize = (Bit32u)(sectors / 2); /* orig. code wants it in KBs */
 				setbuf(newDisk,NULL);
 
 				newImage = new imageDisk(newDisk, (Bit8u *)temp_line.c_str(), imagesize, (imagesize > 2880));
 				newImage->Addref();
+
+				/* auto-fill: sector/track count */
+				if (sizes[1] == 0) sizes[1] = 63;
+				/* auto-fill: head/cylinder count */
+				if (sizes[3]/*cylinders*/ == 0 && sizes[2]/*heads*/ == 0) {
+					sizes[2] = 16; /* typical hard drive, unless a very old drive */
+					sizes[3]/*cylinders*/ = (Bitu)((Bit64u)sectors / (Bit64u)sizes[2]/*heads*/ / (Bit64u)sizes[1]/*sectors/track*/);
+
+					/* INT 13h mapping, deal with 1024-cyl limit */
+					while (sizes[3] > 1024) {
+						if (sizes[2] >= 255) break; /* nothing more we can do */
+
+						/* try to generate head count 16, 32, 64, 128, 255 */
+						sizes[2]/*heads*/ *= 2;
+						if (sizes[2] >= 256) sizes[2] = 255;
+
+						/* and recompute cylinders */
+						sizes[3]/*cylinders*/ = (Bitu)((Bit64u)sectors / (Bit64u)sizes[2]/*heads*/ / (Bit64u)sizes[1]/*sectors/track*/);
+					}
+				}
+
+				LOG(LOG_MISC, LOG_NORMAL)("Mounting image as C/H/S %u/%u/%u with %u bytes/sector",
+					(unsigned int)sizes[3],(unsigned int)sizes[2],(unsigned int)sizes[1],(unsigned int)sizes[0]);
 
 				if(imagesize>2880) newImage->Set_Geometry(sizes[2],sizes[3],sizes[1],sizes[0]);
 				if (reserved_cylinders > 0) newImage->Set_Reserved_Cylinders(reserved_cylinders);

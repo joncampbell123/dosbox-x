@@ -23,6 +23,19 @@
 #include "config.h"
 #include "logging.h"
 
+#if defined(_MSC_VER)
+# include <sys/types.h>
+# include <sys/stat.h>
+
+/* Microsoft has their own stat/stat64 scheme */
+# define pref_stat			_stati64
+# define pref_struct_stat	struct _stat64
+#else
+/* As long as FILE_OFFSET_BITS==64 Linux is quite good at allowing stat to work with 64-bit sizes */
+# define pref_stat			stat
+# define pref_struct_stat	struct stat
+#endif
+
 #define UPDATED_STR			"April 9, 2015"
 
 GCC_ATTRIBUTE(noreturn) void		E_Exit(const char * message,...) GCC_ATTRIBUTE( __format__(__printf__, 1, 2));
