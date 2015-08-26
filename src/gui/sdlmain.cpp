@@ -1336,7 +1336,8 @@ static LRESULT CALLBACK WinExtHookKeyboardHookProc(int nCode,WPARAM wParam,LPARA
 
 					if (nopass) {
 						// catch the keystroke, post it to ourself, do not pass it on
-						PostMessage(myHwnd, (st_hook->flags & 0x80/*transition state*/) ? WM_KEYDOWN : WM_KEYUP, st_hook->vkCode, 0/*FIXME*/);
+						PostMessage(myHwnd, wParam, st_hook->vkCode,
+							(st_hook->flags & 0x80/*transition state*/) ? 0x0000 : 0xA000/*bits 13&15 are set*/);
 						return TRUE;
 					}
 				}
