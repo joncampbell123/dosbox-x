@@ -1260,6 +1260,11 @@ static LRESULT CALLBACK WinExtHookKeyboardHookProc(int nCode,WPARAM wParam,LPARA
 					// to control Num/Scroll/Caps Lock LEDs. If we don't check this we cannot control the LEDs. Injecting
 					// keydown/keyup for Num Lock is the only means provided by Windows to control those LEDs.
 				}
+				else if (st_hook->vkCode == VK_MENU/*alt*/ || st_hook->vkCode == VK_CONTROL ||
+					st_hook->vkCode == VK_LSHIFT || st_hook->vkCode == VK_RSHIFT) {
+					// always allow modifier keys through, so other applications are not left with state inconsistent from
+					// actual keyboard state.
+				}
 				else {
 					bool nopass = enable_hook_everything; // if the user wants us to hook ALL keys then that's where this signals it
 
@@ -1287,7 +1292,8 @@ static LRESULT CALLBACK WinExtHookKeyboardHookProc(int nCode,WPARAM wParam,LPARA
 						case VK_APPS:	// Application key (normally open to the user, but just in case)
 						case VK_PAUSE:	// pause key
 						case VK_SNAPSHOT: // print screen
-						case VK_TAB:	// try to catch ALT+TAB too
+						case VK_TAB:	// try to catch ALT+TAB too (not blocking VK_TAB will allow host OS to switch tasks)
+						case VK_ESCAPE:	// try to catch CTRL+ESC as well (so Windows 95 Start Menu is accessible)
 						case VK_SPACE:	// and space (catching VK_ZOOM isn't enough to prevent Windows 10 from changing res)
 						// these keys have no meaning to DOSBox and so we hook them by default to allow the guest OS to use them
 						case VK_BROWSER_BACK: // Browser Back key
