@@ -71,6 +71,8 @@ struct LinkBlock {
 };
 
 static struct MemoryBlock {
+	MemoryBlock() : pages(0), reported_pages(0), phandlers(NULL), mhandles(NULL), mem_alias_pagemask(0), address_bits(0) { }
+
 	Bitu pages;
 	Bitu reported_pages;
 	PageHandler * * phandlers;
@@ -88,9 +90,10 @@ static struct MemoryBlock {
 		Bit8u controlport;
 	} a20;
 	Bit32u mem_alias_pagemask;
+	Bit32u address_bits;
 } memory;
 
-HostPt MemBase;
+HostPt MemBase = NULL;
 
 namespace
 {
@@ -999,59 +1002,35 @@ void A20GATE_ProgramStart(Program * * make) {
 
 namespace MEMORY {
 
-	static IO_ReadHandleObject ReadHandler;
-	static IO_WriteHandleObject WriteHandler;
+	static IO_ReadHandleObject PS2_Port_92h_ReadHandler;
+	static IO_WriteHandleObject PS2_Port_92h_WriteHandler;
 
-	void ShutDown(Section * sec) {
-		delete [] MemBase;
-		delete [] memory.phandlers;
-		delete [] memory.mhandles;
+	void ShutDownMemoryAccessArray(Section * sec) {
+		if (memory.phandlers != NULL) {
+			delete [] memory.phandlers;
+			memory.phandlers = NULL;
+		}
 	}
 
-	void Init() {
+	void ShutDownRAM(Section * sec) {
+		if (MemBase != NULL) {
+			delete [] MemBase;
+			MemBase = NULL;
+		}
+	}
+
+	void ShutDownMemHandles(Section * sec) {
+		if (memory.mhandles != NULL) {
+			delete [] memory.mhandles;
+			memory.mhandles = NULL;
+		}
+	}
+
+	void Init_A20_Gate() {
 		Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
-		Bitu i;
-
-		/* TODO: I would like to see this split out into multiple Init code related to each part of the
-		 *       motherboard:
-		 *
-		 *       1) An init for RAM, the RAM chips on the motherboard, and how they are addressed
-		 *       2) An init for the phandlers/mhandlers, which controls how DOSBox addresses RAM, ROM, or MMIO
-		 *       3) An init for VGA ROM BIOS on it's own
-		 *       4) An init for PCjr ROMs if enabled
-		 *       5) An init for the A20 gate (which should be controlled by the motherboard too)
-		 *       6) An init for the CPU address masking (which should be controlled by the motherboard too)
-		 *
-		 *       I would also like to see the phandlers system converted into one where all devices
-		 *       list themselves as attached to the motherboard, and phandlers default to a "slow path"
-		 *       that asks each device in turn who will accept the memory I/O request, and then patch
-		 *       whoever answers into the phandler so further I/O is fast. (NTS: the slow path would
-		 *       also NOT update the pointer if more than one device responds, and would patch in a
-		 *       "no response" handler if none of the devices respond)
-		 *
-		 *       I would also like to see phandlers[] allocated to cover the CPU's entire addressable
-		 *       range (up to 4GB in pages) instead of only covering the memory given to the guest,
-		 *       so that the "slow path" patching system can work on all memory resources accessible
-		 *       to the CPU. If running DOSBox-X on more memory limited platforms, we could also offer
-		 *       a parameter to say how large the addressable memory I/O is in bits if the user wants
-		 *       to cut down on memory utilization (make phandlers[] array smaller). Obviously below
-		 *       32 bits wide this would prevent something like mapping S3 SVGA linear framebuffers
-		 *       at 0xC0000000, but we'll let the user decide on that tradeoff.
-		 *
-		 *       On system reset, or power off then on, I would like to see this code support freeing,
-		 *       then reallocing the RAM if the user changed the memory size at runtime. If memory
-		 *       doesn't change size, then RAM should stay intact (as it would on real hardware).
-		 *       This would be independent of whether or not we would also emulate BIOS behavior
-		 *       of clearing RAM during a memory test on startup.
-		 */
-
-		AddExitFunction(&ShutDown);
 
 		memory.a20.enabled = 0;
 		a20_fake_changeable = false;
-
-		// TODO: this should be handled in a motherboard init routine
-		enable_port92 = section->Get_bool("enable port 92");
 
 		// TODO: A20 gate control should also be handled by a motherboard init routine
 		std::string ss = section->Get_string("a20");
@@ -1092,9 +1071,84 @@ namespace MEMORY {
 			a20_full_masking = false;
 		}
 
+	}
+
+	void Init_PS2_Port_92h() {
+		Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+
+		// TODO: this should be handled in a motherboard init routine
+		enable_port92 = section->Get_bool("enable port 92");
+		if (enable_port92) {
+			// A20 Line - PS/2 system control port A
+			// TODO: This should exist in the motherboard emulation code yet to come! The motherboard
+			//       determines A20 gating, not the RAM!
+			PS2_Port_92h_WriteHandler.Install(0x92,write_p92,IO_MB);
+			PS2_Port_92h_ReadHandler.Install(0x92,read_p92,IO_MB);
+		}
+	}
+
+	void Init_RAM() {
+		Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+
 		/* Setup the Physical Page Links */
 		Bitu memsize=section->Get_int("memsize");	
 		Bitu memsizekb=section->Get_int("memsizekb");
+
+		/* we can't have more memory than the memory aliasing allows */
+		if ((memory.mem_alias_pagemask+1) != 0/*32-bit integer overflow avoidance*/ &&
+			((memsize*256)+(memsizekb/4)) > (memory.mem_alias_pagemask+1)) {
+			LOG_MSG("%u-bit memory aliasing limits you to %uMB",
+				(int)memory.address_bits,(int)((memory.mem_alias_pagemask+1)/256));
+			memsize = (memory.mem_alias_pagemask+1)/256;
+			memsizekb = 0;
+		}
+
+		/* FIXME: hardcoding the max memory size is BAD. Use MAX_MEMORY. */
+		if (memsizekb > 524288) memsizekb = 524288;
+		if (memsizekb == 0 && memsize < 1) memsize = 1;
+		else if (memsizekb != 0 && memsize < 0) memsize = 0;
+
+		/* max 63 to solve problems with certain xms handlers */
+		if ((memsize+(memsizekb/1024)) > MAX_MEMORY-1) {
+			LOG_MSG("Maximum memory size is %d MB",MAX_MEMORY - 1);
+			memsize = MAX_MEMORY-1;
+			memsizekb = 0;
+		}
+		if ((memsize+(memsizekb/1024)) > SAFE_MEMORY-1) {
+			LOG_MSG("Memory sizes above %d MB are NOT recommended.",SAFE_MEMORY - 1);
+			if ((memsize+(memsizekb/1024)) > 200) LOG_MSG("Memory sizes above 200 MB are too big for saving/loading states.");
+			LOG_MSG("Stick with the default values unless you are absolutely certain.");
+		}
+		memory.reported_pages = memory.pages =
+			((memsize*1024*1024) + (memsizekb*1024))/4096;
+
+		// FIXME: Hopefully our refactoring will remove the need for this hack
+		/* if the config file asks for less than 1MB of memory
+		 * then say so to the DOS program. but way too much code
+		 * here assumes memsize >= 1MB */
+		if (memory.pages < ((1024*1024)/4096))
+			memory.pages = ((1024*1024)/4096);
+
+		/* Allocate the RAM. We alloc as a large unsigned char array. new[] does not initialize the array,
+		 * so we then must zero the buffer. */
+		MemBase = new Bit8u[memory.pages*4096];
+		memorySize = sizeof(Bit8u) * memsize*1024*1024;
+		if (!MemBase) E_Exit("Can't allocate main memory of %d MB",(int)memsize);
+		/* Clear the memory, as new doesn't always give zeroed memory
+		 * (Visual C debug mode). We want zeroed memory though. */
+		memset((void*)MemBase,0,memory.reported_pages*4096);
+		/* the rest of "ROM" is for unmapped devices so we need to fill it appropriately */
+		if (memory.reported_pages < memory.pages)
+			memset((char*)MemBase+(memory.reported_pages*4096),0xFF,
+				(memory.pages - memory.reported_pages)*4096);
+		/* adapter ROM */
+		memset((char*)MemBase+0xA0000,0xFF,0x60000);
+		/* except for 0xF0000-0xFFFFF */
+		memset((char*)MemBase+0xF0000,0x00,0x10000);
+	}
+
+	void Init_AddressLimitAndGateMask() {
+		Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 
 		// TODO: this option should be handled by the CPU init since it concerns emulation
 		//       of older 386 and 486 boards with fewer than 32 address lines:
@@ -1104,23 +1158,32 @@ namespace MEMORY {
 		//
 		//       Also this code should automatically cap itself at 24 for 286 emulation and
 		//       20 for 8086 emulation.
-		Bitu address_bits=section->Get_int("memalias");
+		memory.address_bits=section->Get_int("memalias");
 
-		if (address_bits == 0)
-			address_bits = 32;
-		else if (address_bits < 20)
-			address_bits = 20;
-		else if (address_bits > 32)
-			address_bits = 32;
+		if (memory.address_bits == 0)
+			memory.address_bits = 32;
+		else if (memory.address_bits < 20)
+			memory.address_bits = 20;
+		else if (memory.address_bits > 32)
+			memory.address_bits = 32;
 
-		// TODO: this should be moved to the DOS kernel init
-		dos_conventional_limit = section->Get_int("dos mem limit");
+		// TODO: This should be ...? CPU init? Motherboard init?
+		/* WARNING: Binary arithmetic done with 64-bit integers because under Microsoft C++
+		            ((1UL << 32UL) - 1UL) == 0, which is WRONG.
+					But I'll never get back the 4 days I wasted chasing it down, trying to
+					figure out why DOSBox was getting stuck reopening it's own CON file handle. */
+		memory.mem_alias_pagemask = (uint32_t)
+			(((((uint64_t)1) << (uint64_t)memory.address_bits) - (uint64_t)1) >> (uint64_t)12);
 
-		// TODO: this should be moved to the motherboard init
-		adapter_rom_is_ram = section->Get_bool("adapter rom is ram");
-		// TODO: motherboard init, especially when we get around to full Intel Triton/i440FX chipset emulation
-		isa_memory_hole_512kb = section->Get_bool("isa memory hole at 512kb");
+		/* memory aliasing cannot go below 1MB or serious problems may result. */
+		if ((memory.mem_alias_pagemask & 0xFF) != 0xFF) E_Exit("alias pagemask < 1MB");
 
+		/* update alias pagemask according to A20 gate */
+		if (a20_fake_changeable && a20_full_masking && !memory.a20.enabled)
+			memory.mem_alias_pagemask &= ~0x100;
+	}
+
+	void Init_VGABIOS() {
 		// TODO: this belongs in VGA init, not here!
 		if (VGA_BIOS_Size_override >= 512 && VGA_BIOS_Size_override <= 65536)
 			VGA_BIOS_Size = (VGA_BIOS_Size_override + 0x7FF) & (~0xFFF);
@@ -1146,116 +1209,118 @@ namespace MEMORY {
 		}
 		VGA_BIOS_SEG = 0xC000;
 		VGA_BIOS_SEG_END = (VGA_BIOS_SEG + (VGA_BIOS_Size >> 4));
-		// END TODO
-
-		// TODO: This should be ...? CPU init? Motherboard init?
-		/* WARNING: Binary arithmetic done with 64-bit integers because under Microsoft C++
-		            ((1UL << 32UL) - 1UL) == 0, which is WRONG.
-					But I'll never get back the 4 days I wasted chasing it down, trying to
-					figure out why DOSBox was getting stuck reopening it's own CON file handle. */
-		memory.mem_alias_pagemask = (uint32_t)
-			(((((uint64_t)1) << (uint64_t)address_bits) - (uint64_t)1) >> (uint64_t)12);
-
-		/* memory aliasing cannot go below 1MB or serious problems may result. */
-		if ((memory.mem_alias_pagemask & 0xFF) != 0xFF) E_Exit("alias pagemask < 1MB");
-
-		/* update alias pagemask according to A20 gate */
-		if (a20_fake_changeable && a20_full_masking && !memory.a20.enabled)
-			memory.mem_alias_pagemask &= ~0x100;
-
-		/* we can't have more memory than the memory aliasing allows */
-		if (address_bits < 32 && ((memsize*256)+(memsizekb/4)) > (memory.mem_alias_pagemask+1)) {
-			LOG_MSG("%u-bit memory aliasing limits you to %uMB",
-				(int)address_bits,(int)((memory.mem_alias_pagemask+1)/256));
-			memsize = (memory.mem_alias_pagemask+1)/256;
-			memsizekb = 0;
-		}
-
-		/* FIXME: hardcoding the max memory size is BAD. Use MAX_MEMORY. */
-		if (memsizekb > 524288) memsizekb = 524288;
-		if (memsizekb == 0 && memsize < 1) memsize = 1;
-		else if (memsizekb != 0 && memsize < 0) memsize = 0;
-
-		/* max 63 to solve problems with certain xms handlers */
-		if ((memsize+(memsizekb/1024)) > MAX_MEMORY-1) {
-			LOG_MSG("Maximum memory size is %d MB",MAX_MEMORY - 1);
-			memsize = MAX_MEMORY-1;
-			memsizekb = 0;
-		}
-		if ((memsize+(memsizekb/1024)) > SAFE_MEMORY-1) {
-			LOG_MSG("Memory sizes above %d MB are NOT recommended.",SAFE_MEMORY - 1);
-			if ((memsize+(memsizekb/1024)) > 200) LOG_MSG("Memory sizes above 200 MB are too big for saving/loading states.");
-			LOG_MSG("Stick with the default values unless you are absolutely certain.");
-		}
-		memory.reported_pages = memory.pages =
-			((memsize*1024*1024) + (memsizekb*1024))/4096;
-
-		/* if the config file asks for less than 1MB of memory
-		 * then say so to the DOS program. but way too much code
-		 * here assumes memsize >= 1MB */
-		if (memory.pages < ((1024*1024)/4096))
-			memory.pages = ((1024*1024)/4096);
-
-		/* Allocate the RAM. We alloc as a large unsigned char array. new[] does not initialize the array,
-		 * so we then must zero the buffer. */
-		MemBase = new Bit8u[memory.pages*4096];
-		memorySize = sizeof(Bit8u) * memsize*1024*1024;
-		if (!MemBase) E_Exit("Can't allocate main memory of %d MB",(int)memsize);
-		/* Clear the memory, as new doesn't always give zeroed memory
-		 * (Visual C debug mode). We want zeroed memory though. */
-		memset((void*)MemBase,0,memory.reported_pages*4096);
-		/* the rest of "ROM" is for unmapped devices so we need to fill it appropriately */
-		if (memory.reported_pages < memory.pages)
-			memset((char*)MemBase+(memory.reported_pages*4096),0xFF,
-				(memory.pages - memory.reported_pages)*4096);
-		/* adapter ROM */
-		memset((char*)MemBase+0xA0000,0xFF,0x60000);
-		/* except for 0xF0000-0xFFFFF */
-		memset((char*)MemBase+0xF0000,0x00,0x10000);
-		/* VGA BIOS (FIXME: Why does Project Angel like our BIOS when we memset() here, but don't like it if we memset() in the INT 10 ROM setup routine?) */
+		/* clear for VGA BIOS (FIXME: Why does Project Angel like our BIOS when we memset() here, but don't like it if we memset() in the INT 10 ROM setup routine?) */
 		memset((char*)MemBase+0xC0000,0x00,VGA_BIOS_Size);
+		// END TODO
+	}
+
+	void Init_MemHandles() {
+		Bitu i;
+
+		if (memory.mhandles == NULL)
+			memory.mhandles = new MemHandle[memory.pages];
+
+		for (i = 0;i < memory.pages;i++)
+			memory.mhandles[i] = 0;				//Set to 0 for memory allocation
+
+		/* Reset some links */
+		memory.links.used = 0;
+	}
+
+	void Init_MemoryAccessArray() {
+		Bitu i;
 
 		PageHandler *ram_ptr =
 			(memory.mem_alias_pagemask == (Bit32u)(~0UL) && !a20_full_masking)
 			? (PageHandler*)(&ram_page_handler) /* no aliasing */
 			: (PageHandler*)(&ram_alias_page_handler); /* aliasing */
 
-		memory.phandlers=new  PageHandler * [memory.pages];
-		memory.mhandles=new MemHandle [memory.pages];
-		for (i = 0;i < memory.reported_pages;i++) {
+		if (memory.phandlers == NULL)
+			memory.phandlers = new PageHandler* [memory.pages];
+
+		for (i=0;i < memory.reported_pages;i++)
 			memory.phandlers[i] = ram_ptr;
-			memory.mhandles[i] = 0;				//Set to 0 for memory allocation
-		}
-		for (;i < memory.pages;i++) {
+		for (;i < memory.pages;i++)
 			memory.phandlers[i] = &illegal_page_handler;
-			memory.mhandles[i] = 0;				//Set to 0 for memory allocation
-		}
+
 		if (!adapter_rom_is_ram) {
 			/* FIXME: VGA emulation will selectively respond to 0xA0000-0xBFFFF according to the video mode,
 			 *        what we want however is for the VGA emulation to assign illegal_page_handler for
 			 *        address ranges it is not responding to when mapping changes. */
-			for (i=0xa0;i<0x100;i++) { /* we want to make sure adapter ROM is unmapped entirely! */
+			for (i=0xa0;i<0x100;i++) /* we want to make sure adapter ROM is unmapped entirely! */
 				memory.phandlers[i] = &unmapped_page_handler;
-				memory.mhandles[i] = 0;
-			}
 		}
-		if (rombios_minimum_location == 0) E_Exit("Uninitialized ROM BIOS base");
+	}
 
-		/* NTS: ROMBIOS_Init() takes care of mapping ROM */
+	void Init_PCJR_CartridgeROM() {
+		Bitu i;
 
-		if (machine==MCH_PCJR) {
-			/* Setup cartridge rom at 0xe0000-0xf0000 */
-			for (i=0xe0;i<0xf0;i++) {
-				memory.phandlers[i] = &rom_page_handler;
-			}
-		}
-		/* Reset some links */
-		memory.links.used = 0;
-		if (enable_port92) {
-			// A20 Line - PS/2 system control port A
-			WriteHandler.Install(0x92,write_p92,IO_MB);
-			ReadHandler.Install(0x92,read_p92,IO_MB);
-		}
+		/* Setup cartridge rom at 0xe0000-0xf0000.
+		 * Don't call this function unless emulating PCjr! */
+		for (i=0xe0;i<0xf0;i++)
+			memory.phandlers[i] = &rom_page_handler;
+	}
+
+	void Init() {
+		Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+
+		/* TODO: I would like to see this split out into multiple Init code related to each part of the
+		 *       motherboard:
+		 *
+		 *       1) An init for RAM, the RAM chips on the motherboard, and how they are addressed
+		 *       2) An init for the phandlers/mhandlers, which controls how DOSBox addresses RAM, ROM, or MMIO
+		 *       3) An init for VGA ROM BIOS on it's own
+		 *       4) An init for PCjr ROMs if enabled
+		 *       5) An init for the A20 gate (which should be controlled by the motherboard too)
+		 *       6) An init for the CPU address masking (which should be controlled by the motherboard too)
+		 *
+		 *       I would also like to see the phandlers system converted into one where all devices
+		 *       list themselves as attached to the motherboard, and phandlers default to a "slow path"
+		 *       that asks each device in turn who will accept the memory I/O request, and then patch
+		 *       whoever answers into the phandler so further I/O is fast. (NTS: the slow path would
+		 *       also NOT update the pointer if more than one device responds, and would patch in a
+		 *       "no response" handler if none of the devices respond)
+		 *
+		 *       I would also like to see phandlers[] allocated to cover the CPU's entire addressable
+		 *       range (up to 4GB in pages) instead of only covering the memory given to the guest,
+		 *       so that the "slow path" patching system can work on all memory resources accessible
+		 *       to the CPU. If running DOSBox-X on more memory limited platforms, we could also offer
+		 *       a parameter to say how large the addressable memory I/O is in bits if the user wants
+		 *       to cut down on memory utilization (make phandlers[] array smaller). Obviously below
+		 *       32 bits wide this would prevent something like mapping S3 SVGA linear framebuffers
+		 *       at 0xC0000000, but we'll let the user decide on that tradeoff.
+		 *
+		 *       On system reset, or power off then on, I would like to see this code support freeing,
+		 *       then reallocing the RAM if the user changed the memory size at runtime. If memory
+		 *       doesn't change size, then RAM should stay intact (as it would on real hardware).
+		 *       This would be independent of whether or not we would also emulate BIOS behavior
+		 *       of clearing RAM during a memory test on startup.
+		 */
+
+		AddExitFunction(&ShutDownRAM);
+		AddExitFunction(&ShutDownMemHandles);
+		AddExitFunction(&ShutDownMemoryAccessArray);
+
+		// TODO: this should be moved to the DOS kernel init
+		dos_conventional_limit = section->Get_int("dos mem limit");
+		// TODO: this should be moved to the motherboard init
+		adapter_rom_is_ram = section->Get_bool("adapter rom is ram");
+		// TODO: motherboard init, especially when we get around to full Intel Triton/i440FX chipset emulation
+		isa_memory_hole_512kb = section->Get_bool("isa memory hole at 512kb");
+
+		Init_A20_Gate();
+		Init_PS2_Port_92h();
+		Init_AddressLimitAndGateMask();
+		Init_RAM();
+		Init_VGABIOS();
+		Init_MemHandles();
+		Init_MemoryAccessArray();
+
+		if (machine == MCH_PCJR)
+			Init_PCJR_CartridgeROM();
+
+		// TODO: move to A20 gate init when it is safe to do so.
+		//       better yet, we might remove this call entirely when motherboard emulation can take care of it.
 		MEM_A20_Enable(false);
 	}
 };	

@@ -610,6 +610,9 @@ public:
 
 		DOS_GetMemory_Choose();
 
+		// Sanity check
+		if (rombios_minimum_location == 0) E_Exit("Uninitialized ROM BIOS base");
+
 		if (first_umb_seg == 0) {
 			first_umb_seg = DOS_PRIVATE_SEGMENT_END;
 			if (mainline_compatible_mapping && first_umb_seg < 0xD000)
