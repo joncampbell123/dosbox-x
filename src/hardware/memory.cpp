@@ -882,11 +882,6 @@ bool MEM_map_ROM_physmem(Bitu start,Bitu end) {
 
 HostPt GetMemBase(void) { return MemBase; }
 
-Bitu VGA_BIOS_SEG = 0xC000;
-Bitu VGA_BIOS_SEG_END = 0xC800;
-Bitu VGA_BIOS_Size = 0x8000;
-
-extern Bitu VGA_BIOS_Size_override;
 extern bool mainline_compatible_mapping;
 
 static void RAM_remap_64KBat1MB_A20fast(bool enable/*if set, we're transitioning to fast remap, else to full mask*/) {
@@ -991,6 +986,8 @@ public:
 void A20GATE_ProgramStart(Program * * make) {
 	*make=new A20GATE;
 }
+
+void Init_VGABIOS();
 
 namespace MEMORY {
 
@@ -1193,37 +1190,6 @@ namespace MEMORY {
 		/* update alias pagemask according to A20 gate */
 		if (a20_fake_changeable && a20_full_masking && !memory.a20.enabled)
 			memory.mem_alias_pagemask &= ~0x100;
-	}
-
-	void Init_VGABIOS() {
-		// TODO: this belongs in VGA init, not here!
-		if (VGA_BIOS_Size_override >= 512 && VGA_BIOS_Size_override <= 65536)
-			VGA_BIOS_Size = (VGA_BIOS_Size_override + 0x7FF) & (~0xFFF);
-		else if (IS_VGA_ARCH)
-			VGA_BIOS_Size = mainline_compatible_mapping ? 0x8000 : 0x3000; /* <- Experimentation shows the S3 emulation can fit in 12KB, doesn't need all 32KB */
-		else if (machine == MCH_EGA) {
-			if (mainline_compatible_mapping)
-				VGA_BIOS_Size = 0x8000;
-			else if (VIDEO_BIOS_always_carry_16_high_font)
-				VGA_BIOS_Size = 0x3000;
-			else
-				VGA_BIOS_Size = 0x2000;
-		}
-		else {
-			if (mainline_compatible_mapping)
-				VGA_BIOS_Size = 0x8000;
-			else if (VIDEO_BIOS_always_carry_16_high_font && VIDEO_BIOS_always_carry_14_high_font)
-				VGA_BIOS_Size = 0x3000;
-			else if (VIDEO_BIOS_always_carry_16_high_font || VIDEO_BIOS_always_carry_14_high_font)
-				VGA_BIOS_Size = 0x2000;
-			else
-				VGA_BIOS_Size = 0;
-		}
-		VGA_BIOS_SEG = 0xC000;
-		VGA_BIOS_SEG_END = (VGA_BIOS_SEG + (VGA_BIOS_Size >> 4));
-		/* clear for VGA BIOS (FIXME: Why does Project Angel like our BIOS when we memset() here, but don't like it if we memset() in the INT 10 ROM setup routine?) */
-		memset((char*)MemBase+0xC0000,0x00,VGA_BIOS_Size);
-		// END TODO
 	}
 
 	void Init_MemHandles() {

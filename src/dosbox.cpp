@@ -178,8 +178,11 @@ bool				mono_cga=false;
 bool				ignore_opcode_63 = true;
 bool				mainline_compatible_mapping = true;
 bool				mainline_compatible_bios_mapping = true;
-Bitu				VGA_BIOS_Size_override = 0;
 int				dynamic_core_cache_block_size = 32;
+Bitu				VGA_BIOS_Size_override = 0;
+Bitu				VGA_BIOS_SEG = 0xC000;
+Bitu				VGA_BIOS_SEG_END = 0xC800;
+Bitu				VGA_BIOS_Size = 0x8000;
 
 static Bit32u			ticksRemain;
 static Bit32u			ticksLast;
@@ -610,6 +613,55 @@ void DOSBOX_InitTickLoop() {
 	DOSBOX_SetLoop(&Normal_Loop);
 }
 
+void Init_VGABIOS() {
+	Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+	assert(section != NULL);
+
+	VGA_BIOS_Size_override = section->Get_int("vga bios size override");
+	if (VGA_BIOS_Size_override > 0) VGA_BIOS_Size_override = (VGA_BIOS_Size_override+0x7FF)&(~0xFFF);
+
+	VGA_BIOS_dont_duplicate_CGA_first_half = section->Get_bool("video bios dont duplicate cga first half rom font");
+	VIDEO_BIOS_always_carry_14_high_font = section->Get_bool("video bios always offer 14-pixel high rom font");
+	VIDEO_BIOS_always_carry_16_high_font = section->Get_bool("video bios always offer 16-pixel high rom font");
+	VIDEO_BIOS_enable_CGA_8x8_second_half = section->Get_bool("video bios enable cga second half rom font");
+	/* NTS: mainline compatible mapping demands the 8x8 CGA font */
+	rom_bios_8x8_cga_font = mainline_compatible_bios_mapping || section->Get_bool("rom bios 8x8 CGA font");
+	rom_bios_vptable_enable = mainline_compatible_bios_mapping || section->Get_bool("rom bios video parameter table");
+
+	/* sanity check */
+	if (VGA_BIOS_dont_duplicate_CGA_first_half && !rom_bios_8x8_cga_font) /* can't point at the BIOS copy if it's not there */
+		VGA_BIOS_dont_duplicate_CGA_first_half = false;
+
+	if (VGA_BIOS_Size_override >= 512 && VGA_BIOS_Size_override <= 65536)
+		VGA_BIOS_Size = (VGA_BIOS_Size_override + 0x7FF) & (~0xFFF);
+	else if (IS_VGA_ARCH)
+		VGA_BIOS_Size = mainline_compatible_mapping ? 0x8000 : 0x3000; /* <- Experimentation shows the S3 emulation can fit in 12KB, doesn't need all 32KB */
+	else if (machine == MCH_EGA) {
+		if (mainline_compatible_mapping)
+			VGA_BIOS_Size = 0x8000;
+		else if (VIDEO_BIOS_always_carry_16_high_font)
+			VGA_BIOS_Size = 0x3000;
+		else
+			VGA_BIOS_Size = 0x2000;
+	}
+	else {
+		if (mainline_compatible_mapping)
+			VGA_BIOS_Size = 0x8000;
+		else if (VIDEO_BIOS_always_carry_16_high_font && VIDEO_BIOS_always_carry_14_high_font)
+			VGA_BIOS_Size = 0x3000;
+		else if (VIDEO_BIOS_always_carry_16_high_font || VIDEO_BIOS_always_carry_14_high_font)
+			VGA_BIOS_Size = 0x2000;
+		else
+			VGA_BIOS_Size = 0;
+	}
+	VGA_BIOS_SEG = 0xC000;
+	VGA_BIOS_SEG_END = (VGA_BIOS_SEG + (VGA_BIOS_Size >> 4));
+
+	/* clear for VGA BIOS (FIXME: Why does Project Angel like our BIOS when we memset() here, but don't like it if we memset() in the INT 10 ROM setup routine?) */
+	if (VGA_BIOS_Size != 0 && MemBase != NULL)
+		memset((char*)MemBase+0xC0000,0x00,VGA_BIOS_Size);
+}
+
 void DOSBOX_RealInit() {
 	MAPPER_AddHandler(DOSBOX_UnlockSpeed, MK_f12, MMOD2,"speedlock","Speedlock");
 	MAPPER_AddHandler(DOSBOX_UnlockSpeed2, MK_f11, MMOD2,"speedlock2","Speedlock2");
@@ -642,21 +694,6 @@ void DOSBOX_RealInit() {
 	// TODO: these should be parsed by BIOS startup
 	mainline_compatible_bios_mapping = section->Get_bool("mainline compatible bios mapping");
 	allow_more_than_640kb = section->Get_bool("allow more than 640kb base memory");
-
-	// TODO: these should be parsed by VGA emulation at startup
-	VGA_BIOS_Size_override = section->Get_int("vga bios size override");
-	if (VGA_BIOS_Size_override > 0) VGA_BIOS_Size_override = (VGA_BIOS_Size_override+0x7FF)&(~0xFFF);
-	VGA_BIOS_dont_duplicate_CGA_first_half = section->Get_bool("video bios dont duplicate cga first half rom font");
-	VIDEO_BIOS_always_carry_14_high_font = section->Get_bool("video bios always offer 14-pixel high rom font");
-	VIDEO_BIOS_always_carry_16_high_font = section->Get_bool("video bios always offer 16-pixel high rom font");
-	VIDEO_BIOS_enable_CGA_8x8_second_half = section->Get_bool("video bios enable cga second half rom font");
-	/* NTS: mainline compatible mapping demands the 8x8 CGA font */
-	rom_bios_8x8_cga_font = mainline_compatible_bios_mapping || section->Get_bool("rom bios 8x8 CGA font");
-	rom_bios_vptable_enable = mainline_compatible_bios_mapping || section->Get_bool("rom bios video parameter table");
-
-	/* sanity check */
-	if (VGA_BIOS_dont_duplicate_CGA_first_half && !rom_bios_8x8_cga_font) /* can't point at the BIOS copy if it's not there */
-		VGA_BIOS_dont_duplicate_CGA_first_half = false;
 
 	// TODO: should be parsed by motherboard emulation
 	allow_port_92_reset = section->Get_bool("allow port 92 reset");
