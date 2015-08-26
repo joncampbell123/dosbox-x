@@ -1285,11 +1285,8 @@ static LRESULT CALLBACK WinExtHookKeyboardHookProc(int nCode,WPARAM wParam,LPARA
 						case VK_LWIN:	// left Windows key (normally triggers Start menu)
 						case VK_RWIN:	// right Windows key (normally triggers Start menu)
 						case VK_APPS:	// Application key (normally open to the user, but just in case)
-						case VK_MENU:	// alt key
 						case VK_PAUSE:	// pause key
 						case VK_SNAPSHOT: // print screen
-						case VK_LSHIFT:	// left shift (to prevent Accessibility if tapped 5 times)
-						case VK_RSHIFT:	// right shift (to prevent Accessibility if tapped 5 times)
 						case VK_TAB:	// try to catch ALT+TAB too
 						case VK_SPACE:	// and space (catching VK_ZOOM isn't enough to prevent Windows 10 from changing res)
 						// these keys have no meaning to DOSBox and so we hook them by default to allow the guest OS to use them
@@ -2580,6 +2577,7 @@ void GFX_LosingFocus(void) {
 	sdl.laltstate=SDL_KEYUP;
 	sdl.raltstate=SDL_KEYUP;
 	MAPPER_LosingFocus();
+	DoExtendedKeyboardHook(false);
 }
 
 static bool PasteClipboardNext(); // added emendelson from dbDOS
@@ -3130,7 +3128,7 @@ void GFX_Events() {
 		}
 #endif
 		case SDL_ACTIVEEVENT:
-			if (event.active.state & SDL_APPINPUTFOCUS) {
+			if (event.active.state & (SDL_APPINPUTFOCUS | SDL_APPACTIVE)) {
 				if (event.active.gain) {
 					if (sdl.desktop.fullscreen && !sdl.mouse.locked)
 						GFX_CaptureMouse();
