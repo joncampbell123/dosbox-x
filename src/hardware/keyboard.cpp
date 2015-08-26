@@ -110,6 +110,7 @@ static struct {
 	struct ps2mouse ps2mouse;
 	KeyCommands command;
 	AuxCommands aux_command;
+	Bitu led_state;
 	Bit8u p60data;
 	Bit8u scanset;
 	bool enable_aux;
@@ -198,7 +199,7 @@ int KEYBOARD_AUX_Active() {
 static void KEYBOARD_SetPort60(Bit16u val) {
 	keyb.auxchanged=(val&AUX)>0;
 	keyb.p60changed=true;
-	keyb.p60data=val;
+	keyb.p60data=(Bit8u)val;
 	if (keyb.auxchanged) {
 		if (keyb.cb_irq12) {
 			PIC_ActivateIRQ(12);
@@ -283,9 +284,21 @@ static void KEYBOARD_AddBuffer(Bit16u data) {
 	}
 }
 
+Bitu Keyboard_Guest_LED_State() {
+	return keyb.led_state;
+}
+
+void UpdateKeyboardLEDState(Bitu led_state/* in the same bitfield arrangement as using command 0xED on PS/2 keyboards */);
+
 static void KEYBOARD_SetLEDs(Bit8u bits) {
+	/* Some OSes we have control of the LEDs if keyboard+mouse capture */
+	keyb.led_state = bits;
+	UpdateKeyboardLEDState(bits);
+
 	/* TODO: Maybe someday you could have DOSBox show the LEDs */
-	LOG(LOG_KEYBOARD,LOG_NORMAL)("Keyboard LEDs: SCR=%u NUM=%u CAPS=%u",bits&1,(bits>>1)&1,(bits>>2)&1);
+
+	/* log for debug info */
+	LOG(LOG_KEYBOARD,LOG_DEBUG)("Keyboard LEDs: SCR=%u NUM=%u CAPS=%u",bits&1,(bits>>1)&1,(bits>>2)&1);
 }
 
 static Bitu read_p60(Bitu port,Bitu iolen) {
@@ -622,7 +635,7 @@ static void write_p61(Bitu, Bitu val, Bitu) {
 	if (diff & 0x1) TIMER_SetGate2(val & 0x1);
 	if (diff & 0x3) {
 		bool pit_clock_gate_enabled = val & 0x1;
-		bool pit_output_enabled = val & 0x2;
+		bool pit_output_enabled = !!(val & 0x2);
 		PCSPEAKER_SetType(pit_clock_gate_enabled, pit_output_enabled);
 	}
 	port_61_data = val;
@@ -638,7 +651,7 @@ static void write_p64(Bitu port,Bitu val,Bitu iolen) {
 		KEYBOARD_Add8042Response(
 			(keyb.cb_xlat << 6)      | ((!keyb.auxactive) << 5) |
 			((!keyb.active) << 4)    | (keyb.cb_sys << 2) |
-			(keyb.cb_irq12 << 1)     |  keyb.cb_irq1);
+			(keyb.cb_irq12 << 1)     | (keyb.cb_irq1?1:0));
 		break;
 	case 0x60:
 		keyb.command=CMD_SETCOMMAND;
@@ -1487,6 +1500,7 @@ void KEYBOARD_Reset() {
 	keyb.aux_command=ACMD_NONE;
 	keyb.p60changed=false;
 	keyb.auxchanged=false;
+	keyb.led_state = 0x00;
 	keyb.repeat.key=KBD_NONE;
 	keyb.repeat.pause=200;
 	keyb.repeat.rate=33;
