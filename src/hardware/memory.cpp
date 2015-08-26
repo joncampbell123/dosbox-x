@@ -1035,6 +1035,7 @@ void ShutDownRAM(Section * sec) {
 
 void Init_RAM() {
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+	Bitu i;
 
 	/* please let me know about shutdown! */
 	if (!has_Init_RAM) {
@@ -1077,15 +1078,6 @@ void Init_RAM() {
 	memory.reported_pages = memory.pages =
 		((memsize*1024*1024) + (memsizekb*1024))/4096;
 
-	// we maintain a different page count for page handlers because we want to maintain a
-	// "cache" of sorts of what device responds to a given memory address. default to
-	// MAX_PAGE_ENTRIES, but bring it down if the memory alising reduces the range of
-	// addressable memory from the CPU's point of view.
-	memory.handler_pages = MAX_PAGE_ENTRIES;
-	if ((memory.mem_alias_pagemask+1) != 0/*integer overflow check*/ &&
-			memory.handler_pages > (memory.mem_alias_pagemask+1))
-		memory.handler_pages = (memory.mem_alias_pagemask+1);
-
 	// FIXME: Hopefully our refactoring will remove the need for this hack
 	/* if the config file asks for less than 1MB of memory
 	 * then say so to the DOS program. but way too much code
@@ -1115,11 +1107,32 @@ void Init_RAM() {
 	/* the rest of "ROM" is for unmapped devices so we need to fill it appropriately */
 	if (memory.reported_pages < memory.pages)
 		memset((char*)MemBase+(memory.reported_pages*4096),0xFF,
-				(memory.pages - memory.reported_pages)*4096);
+			(memory.pages - memory.reported_pages)*4096);
 	/* adapter ROM */
 	memset((char*)MemBase+0xA0000,0xFF,0x60000);
 	/* except for 0xF0000-0xFFFFF */
 	memset((char*)MemBase+0xF0000,0x00,0x10000);
+
+	// sanity check. if this condition is false the loops below will overrun the array!
+	assert(memory.reported_pages <= memory.handler_pages);
+
+	PageHandler *ram_ptr =
+		(memory.mem_alias_pagemask == (Bit32u)(~0UL) && !a20_full_masking)
+		? (PageHandler*)(&ram_page_handler) /* no aliasing */
+		: (PageHandler*)(&ram_alias_page_handler); /* aliasing */
+
+	for (i=0;i < memory.reported_pages;i++)
+		memory.phandlers[i] = ram_ptr;
+	for (;i < memory.handler_pages;i++)
+		memory.phandlers[i] = &illegal_page_handler;
+
+	if (!adapter_rom_is_ram) {
+		/* FIXME: VGA emulation will selectively respond to 0xA0000-0xBFFFF according to the video mode,
+		 *        what we want however is for the VGA emulation to assign illegal_page_handler for
+		 *        address ranges it is not responding to when mapping changes. */
+		for (i=0xa0;i<0x100;i++) /* we want to make sure adapter ROM is unmapped entirely! */
+			memory.phandlers[i] = &unmapped_page_handler;
+	}
 }
 
 static IO_ReadHandleObject PS2_Port_92h_ReadHandler;
@@ -1226,29 +1239,23 @@ void Init_MemoryAccessArray() {
 		AddExitFunction(&ShutDownMemoryAccessArray);
 	}
 
-	// sanity check. if this condition is false the loops below will overrun the array!
-	assert(memory.reported_pages <= memory.handler_pages);
+	// CHECK: address mask init must have been called!
+	assert(memory.mem_alias_pagemask > 0xFF);
 
-	PageHandler *ram_ptr =
-		(memory.mem_alias_pagemask == (Bit32u)(~0UL) && !a20_full_masking)
-		? (PageHandler*)(&ram_page_handler) /* no aliasing */
-		: (PageHandler*)(&ram_alias_page_handler); /* aliasing */
+	// we maintain a different page count for page handlers because we want to maintain a
+	// "cache" of sorts of what device responds to a given memory address. default to
+	// MAX_PAGE_ENTRIES, but bring it down if the memory alising reduces the range of
+	// addressable memory from the CPU's point of view.
+	memory.handler_pages = MAX_PAGE_ENTRIES;
+	if ((memory.mem_alias_pagemask+1) != 0/*integer overflow check*/ &&
+		memory.handler_pages > (memory.mem_alias_pagemask+1))
+		memory.handler_pages = (memory.mem_alias_pagemask+1);
 
 	if (memory.phandlers == NULL)
 		memory.phandlers = new PageHandler* [memory.handler_pages];
 
-	for (i=0;i < memory.reported_pages;i++)
-		memory.phandlers[i] = ram_ptr;
-	for (;i < memory.handler_pages;i++)
+	for (i=0;i < memory.handler_pages;i++) // FIXME: This will eventually init all pages to the "slow path" for device lookup
 		memory.phandlers[i] = &illegal_page_handler;
-
-	if (!adapter_rom_is_ram) {
-		/* FIXME: VGA emulation will selectively respond to 0xA0000-0xBFFFF according to the video mode,
-		 *        what we want however is for the VGA emulation to assign illegal_page_handler for
-		 *        address ranges it is not responding to when mapping changes. */
-		for (i=0xa0;i<0x100;i++) /* we want to make sure adapter ROM is unmapped entirely! */
-			memory.phandlers[i] = &unmapped_page_handler;
-	}
 }
 
 void Init_PCJR_CartridgeROM() {

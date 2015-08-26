@@ -4186,13 +4186,13 @@ int main(int argc, char* argv[]) {
 		DOSBOX_RealInit();
 		IO_Init();
 		Init_AddressLimitAndGateMask(); /* <- need to init address mask so Init_RAM knows the maximum amount of RAM possible */
+		Init_MemoryAccessArray(); /* <- NTS: In DOSBox-X this is the "cache" of devices that responded to memory access */
 		Init_A20_Gate(); // FIXME: Should be handled by motherboard!
 		Init_PS2_Port_92h(); // FIXME: Should be handled by motherboard!
 		Init_RAM();
 		PAGING_Init(); /* <- NTS: At this time, must come before memory init because paging is so well integrated into emulation code */
 		Init_VGABIOS();
 		Init_MemHandles(); /* <- NTS: Memory handle system reflects XMS/EMS allocation in DOS. FIXME:  */
-		Init_MemoryAccessArray(); /* <- NTS: In DOSBox-X this is the "cache" of devices that responded to memory access */
 
 		/* If PCjr emulation, map cartridge ROM */
 		if (machine == MCH_PCJR)
