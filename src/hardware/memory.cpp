@@ -93,12 +93,6 @@ static struct MemoryBlock {
 
 HostPt MemBase = NULL;
 
-namespace
-{
-size_t memorySize;
-}
-
-
 class UnmappedPageHandler : public PageHandler {
 public:
 	UnmappedPageHandler() : PageHandler(PFLAG_INIT|PFLAG_NOCODE) {}
@@ -1151,7 +1145,6 @@ namespace MEMORY {
 		/* Allocate the RAM. We alloc as a large unsigned char array. new[] does not initialize the array,
 		 * so we then must zero the buffer. */
 		MemBase = new Bit8u[memory.pages*4096];
-		memorySize = sizeof(Bit8u) * memsize*1024*1024;
 		if (!MemBase) E_Exit("Can't allocate main memory of %d MB",(int)memsize);
 		/* Clear the memory, as new doesn't always give zeroed memory
 		 * (Visual C debug mode). We want zeroed memory though. */
