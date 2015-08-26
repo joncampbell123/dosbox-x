@@ -3845,10 +3845,15 @@ void TIMER_ShutdownTickHandlers();
 void DOSBOX_SetupConfigSections(void);
 void PAGING_Init();
 void IO_Init();
-
-namespace MEMORY {
-void Init();
-};
+void Init_VGABIOS();
+void Init_AddressLimitAndGateMask();
+void Init_RAM();
+void Init_VGABIOS();
+void Init_MemHandles();
+void Init_MemoryAccessArray();
+void Init_PCJR_CartridgeROM();
+void Init_PS2_Port_92h();
+void Init_A20_Gate();
 
 #if defined(WIN32)
 extern bool dpi_aware_enable;
@@ -4180,8 +4185,21 @@ int main(int argc, char* argv[]) {
 		DOSBOX_InitTickLoop();
 		DOSBOX_RealInit();
 		IO_Init();
+		Init_AddressLimitAndGateMask(); /* <- need to init address mask so Init_RAM knows the maximum amount of RAM possible */
+		Init_A20_Gate(); // FIXME: Should be handled by motherboard!
+		Init_PS2_Port_92h(); // FIXME: Should be handled by motherboard!
+		Init_RAM();
 		PAGING_Init(); /* <- NTS: At this time, must come before memory init because paging is so well integrated into emulation code */
-		MEMORY::Init();
+		Init_VGABIOS();
+		Init_MemHandles(); /* <- NTS: Memory handle system reflects XMS/EMS allocation in DOS. FIXME:  */
+		Init_MemoryAccessArray(); /* <- NTS: In DOSBox-X this is the "cache" of devices that responded to memory access */
+
+		/* If PCjr emulation, map cartridge ROM */
+		if (machine == MCH_PCJR)
+			Init_PCJR_CartridgeROM();
+
+		/* FIXME: Where to move this? A20 gate is disabled by default */
+		MEM_A20_Enable(false);
 
 		/* dispatch a power on event. new code will use this as time to register IO ports.
 		 * At power on hardware emulation is working, the BIOS and DOS kernel are not present.

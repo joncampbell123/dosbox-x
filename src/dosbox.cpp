@@ -125,6 +125,7 @@ extern bool			VIDEO_BIOS_always_carry_14_high_font;
 extern bool			VIDEO_BIOS_always_carry_16_high_font;
 extern bool			VIDEO_BIOS_enable_CGA_8x8_second_half;
 extern bool			allow_more_than_640kb;
+extern bool			adapter_rom_is_ram;
 
 bool				dos_con_use_int16_to_detect_input = true;
 
@@ -617,6 +618,10 @@ void Init_VGABIOS() {
 	Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
 	assert(section != NULL);
 
+	// mem init must have already happened.
+	// We can remove this once the device callout system is in place.
+	assert(MemBase != NULL);
+
 	VGA_BIOS_Size_override = section->Get_int("vga bios size override");
 	if (VGA_BIOS_Size_override > 0) VGA_BIOS_Size_override = (VGA_BIOS_Size_override+0x7FF)&(~0xFFF);
 
@@ -658,7 +663,7 @@ void Init_VGABIOS() {
 	VGA_BIOS_SEG_END = (VGA_BIOS_SEG + (VGA_BIOS_Size >> 4));
 
 	/* clear for VGA BIOS (FIXME: Why does Project Angel like our BIOS when we memset() here, but don't like it if we memset() in the INT 10 ROM setup routine?) */
-	if (VGA_BIOS_Size != 0 && MemBase != NULL)
+	if (VGA_BIOS_Size != 0)
 		memset((char*)MemBase+0xC0000,0x00,VGA_BIOS_Size);
 }
 
@@ -680,7 +685,10 @@ void DOSBOX_RealInit() {
 
 	// TODO: these should be parsed by DOS kernel at startup
 	dosbox_shell_env_size = section->Get_int("shell environment size");
+
+	/* these ARE general DOSBox configuration options */
 	mainline_compatible_mapping = section->Get_bool("mainline compatible mapping");
+	adapter_rom_is_ram = section->Get_bool("adapter rom is ram");
 
 	// TODO: a bit of a challenge: if we put it in the ROM area as mainline DOSBox does then the init
 	//       needs to read this from the BIOS where it can map the memory appropriately. if the allocation

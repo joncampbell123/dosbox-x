@@ -42,6 +42,9 @@ bool a20_full_masking = false;
 bool a20_fake_changeable = false;
 
 bool enable_port92 = true;
+bool has_Init_RAM = false;
+bool has_Init_MemHandles = false;
+bool has_Init_MemoryAccessArray = false;
 
 extern Bitu rombios_minimum_location;
 extern bool VIDEO_BIOS_always_carry_14_high_font;
@@ -987,284 +990,273 @@ void A20GATE_ProgramStart(Program * * make) {
 	*make=new A20GATE;
 }
 
-void Init_VGABIOS();
+void Init_AddressLimitAndGateMask() {
+	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 
-namespace MEMORY {
+	// TODO: this option should be handled by the CPU init since it concerns emulation
+	//       of older 386 and 486 boards with fewer than 32 address lines:
+	//
+	//         24-bit addressing on the 386SX vs full 32-bit addressing on the 386DX
+	//         26-bit addressing on the 486SX vs full 32-bit addressing on the 486DX
+	//
+	//       Also this code should automatically cap itself at 24 for 286 emulation and
+	//       20 for 8086 emulation.
+	memory.address_bits=section->Get_int("memalias");
 
-	static IO_ReadHandleObject PS2_Port_92h_ReadHandler;
-	static IO_WriteHandleObject PS2_Port_92h_WriteHandler;
+	if (memory.address_bits == 0)
+		memory.address_bits = 32;
+	else if (memory.address_bits < 20)
+		memory.address_bits = 20;
+	else if (memory.address_bits > 32)
+		memory.address_bits = 32;
 
-	void ShutDownMemoryAccessArray(Section * sec) {
-		if (memory.phandlers != NULL) {
-			delete [] memory.phandlers;
-			memory.phandlers = NULL;
-		}
+	// TODO: This should be ...? CPU init? Motherboard init?
+	/* WARNING: Binary arithmetic done with 64-bit integers because under Microsoft C++
+	   ((1UL << 32UL) - 1UL) == 0, which is WRONG.
+	   But I'll never get back the 4 days I wasted chasing it down, trying to
+	   figure out why DOSBox was getting stuck reopening it's own CON file handle. */
+	memory.mem_alias_pagemask = (uint32_t)
+		(((((uint64_t)1) << (uint64_t)memory.address_bits) - (uint64_t)1) >> (uint64_t)12);
+
+	/* memory aliasing cannot go below 1MB or serious problems may result. */
+	if ((memory.mem_alias_pagemask & 0xFF) != 0xFF) E_Exit("alias pagemask < 1MB");
+
+	/* update alias pagemask according to A20 gate */
+	if (a20_fake_changeable && a20_full_masking && !memory.a20.enabled)
+		memory.mem_alias_pagemask &= ~0x100;
+}
+
+void ShutDownRAM(Section * sec) {
+	if (MemBase != NULL) {
+		delete [] MemBase;
+		MemBase = NULL;
+	}
+}
+
+void Init_RAM() {
+	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+
+	/* please let me know about shutdown! */
+	if (!has_Init_RAM) {
+		AddExitFunction(&ShutDownRAM);
+		has_Init_RAM = true;
 	}
 
-	void ShutDownRAM(Section * sec) {
-		if (MemBase != NULL) {
-			delete [] MemBase;
-			MemBase = NULL;
-		}
-	}
+	// CHECK: address mask init must have been called!
+	assert(memory.mem_alias_pagemask > 0xFF);
 
-	void ShutDownMemHandles(Section * sec) {
-		if (memory.mhandles != NULL) {
-			delete [] memory.mhandles;
-			memory.mhandles = NULL;
-		}
-	}
+	/* Setup the Physical Page Links */
+	Bitu memsize=section->Get_int("memsize");	
+	Bitu memsizekb=section->Get_int("memsizekb");
 
-	void Init_A20_Gate() {
-		Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
-
-		memory.a20.enabled = 0;
-		a20_fake_changeable = false;
-
-		// TODO: A20 gate control should also be handled by a motherboard init routine
-		std::string ss = section->Get_string("a20");
-		if (ss == "mask" || ss == "") {
-			LOG(LOG_MISC,LOG_DEBUG)("A20: masking emulation");
-			a20_guest_changeable = true;
-			a20_full_masking = true;
-		}
-		else if (ss == "on") {
-			LOG(LOG_MISC,LOG_DEBUG)("A20: locked on");
-			a20_guest_changeable = false;
-			a20_full_masking = true;
-			memory.a20.enabled = 1;
-		}
-		else if (ss == "on_fake") {
-			LOG(LOG_MISC,LOG_DEBUG)("A20: locked on (but will fake control bit)");
-			a20_guest_changeable = false;
-			a20_fake_changeable = true;
-			a20_full_masking = true;
-			memory.a20.enabled = 1;
-		}
-		else if (ss == "off") {
-			LOG(LOG_MISC,LOG_DEBUG)("A20: locked off");
-			a20_guest_changeable = false;
-			a20_full_masking = true;
-			memory.a20.enabled = 0;
-		}
-		else if (ss == "off_fake") {
-			LOG(LOG_MISC,LOG_DEBUG)("A20: locked off (but will fake control bit)");
-			a20_guest_changeable = false;
-			a20_fake_changeable = true;
-			a20_full_masking = true;
-			memory.a20.enabled = 0;
-		}
-		else { /* "" or "fast" */
-			LOG(LOG_MISC,LOG_DEBUG)("A20: fast remapping (64KB+1MB) DOSBox style");
-			a20_guest_changeable = true;
-			a20_full_masking = false;
-		}
-
-	}
-
-	void Init_PS2_Port_92h() {
-		Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
-
-		// TODO: this should be handled in a motherboard init routine
-		enable_port92 = section->Get_bool("enable port 92");
-		if (enable_port92) {
-			// A20 Line - PS/2 system control port A
-			// TODO: This should exist in the motherboard emulation code yet to come! The motherboard
-			//       determines A20 gating, not the RAM!
-			PS2_Port_92h_WriteHandler.Install(0x92,write_p92,IO_MB);
-			PS2_Port_92h_ReadHandler.Install(0x92,read_p92,IO_MB);
-		}
-	}
-
-	void Init_RAM() {
-		Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
-
-		/* Setup the Physical Page Links */
-		Bitu memsize=section->Get_int("memsize");	
-		Bitu memsizekb=section->Get_int("memsizekb");
-
-		/* we can't have more memory than the memory aliasing allows */
-		if ((memory.mem_alias_pagemask+1) != 0/*32-bit integer overflow avoidance*/ &&
-			((memsize*256)+(memsizekb/4)) > (memory.mem_alias_pagemask+1)) {
-			LOG_MSG("%u-bit memory aliasing limits you to %uMB",
+	/* we can't have more memory than the memory aliasing allows */
+	if ((memory.mem_alias_pagemask+1) != 0/*32-bit integer overflow avoidance*/ &&
+		((memsize*256)+(memsizekb/4)) > (memory.mem_alias_pagemask+1)) {
+		LOG_MSG("%u-bit memory aliasing limits you to %uMB",
 				(int)memory.address_bits,(int)((memory.mem_alias_pagemask+1)/256));
-			memsize = (memory.mem_alias_pagemask+1)/256;
-			memsizekb = 0;
-		}
+		memsize = (memory.mem_alias_pagemask+1)/256;
+		memsizekb = 0;
+	}
 
-		/* FIXME: hardcoding the max memory size is BAD. Use MAX_MEMORY. */
-		if (memsizekb > 524288) memsizekb = 524288;
-		if (memsizekb == 0 && memsize < 1) memsize = 1;
-		else if (memsizekb != 0 && memsize < 0) memsize = 0;
+	/* FIXME: hardcoding the max memory size is BAD. Use MAX_MEMORY. */
+	if (memsizekb > 524288) memsizekb = 524288;
+	if (memsizekb == 0 && memsize < 1) memsize = 1;
+	else if (memsizekb != 0 && memsize < 0) memsize = 0;
 
-		/* max 63 to solve problems with certain xms handlers */
-		if ((memsize+(memsizekb/1024)) > MAX_MEMORY-1) {
-			LOG_MSG("Maximum memory size is %d MB",MAX_MEMORY - 1);
-			memsize = MAX_MEMORY-1;
-			memsizekb = 0;
-		}
-		if ((memsize+(memsizekb/1024)) > SAFE_MEMORY-1) {
-			LOG_MSG("Memory sizes above %d MB are NOT recommended.",SAFE_MEMORY - 1);
-			if ((memsize+(memsizekb/1024)) > 200) LOG_MSG("Memory sizes above 200 MB are too big for saving/loading states.");
-			LOG_MSG("Stick with the default values unless you are absolutely certain.");
-		}
-		memory.reported_pages = memory.pages =
-			((memsize*1024*1024) + (memsizekb*1024))/4096;
+	/* max 63 to solve problems with certain xms handlers */
+	if ((memsize+(memsizekb/1024)) > MAX_MEMORY-1) {
+		LOG_MSG("Maximum memory size is %d MB",MAX_MEMORY - 1);
+		memsize = MAX_MEMORY-1;
+		memsizekb = 0;
+	}
+	if ((memsize+(memsizekb/1024)) > SAFE_MEMORY-1) {
+		LOG_MSG("Memory sizes above %d MB are NOT recommended.",SAFE_MEMORY - 1);
+		if ((memsize+(memsizekb/1024)) > 200) LOG_MSG("Memory sizes above 200 MB are too big for saving/loading states.");
+		LOG_MSG("Stick with the default values unless you are absolutely certain.");
+	}
+	memory.reported_pages = memory.pages =
+		((memsize*1024*1024) + (memsizekb*1024))/4096;
 
-		// we maintain a different page count for page handlers because we want to maintain a
-		// "cache" of sorts of what device responds to a given memory address. default to
-		// MAX_PAGE_ENTRIES, but bring it down if the memory alising reduces the range of
-		// addressable memory from the CPU's point of view.
-		memory.handler_pages = MAX_PAGE_ENTRIES;
-		if ((memory.mem_alias_pagemask+1) != 0/*integer overflow check*/ &&
+	// we maintain a different page count for page handlers because we want to maintain a
+	// "cache" of sorts of what device responds to a given memory address. default to
+	// MAX_PAGE_ENTRIES, but bring it down if the memory alising reduces the range of
+	// addressable memory from the CPU's point of view.
+	memory.handler_pages = MAX_PAGE_ENTRIES;
+	if ((memory.mem_alias_pagemask+1) != 0/*integer overflow check*/ &&
 			memory.handler_pages > (memory.mem_alias_pagemask+1))
-			memory.handler_pages = (memory.mem_alias_pagemask+1);
+		memory.handler_pages = (memory.mem_alias_pagemask+1);
 
-		// FIXME: Hopefully our refactoring will remove the need for this hack
-		/* if the config file asks for less than 1MB of memory
-		 * then say so to the DOS program. but way too much code
-		 * here assumes memsize >= 1MB */
-		if (memory.pages < ((1024*1024)/4096))
-			memory.pages = ((1024*1024)/4096);
+	// FIXME: Hopefully our refactoring will remove the need for this hack
+	/* if the config file asks for less than 1MB of memory
+	 * then say so to the DOS program. but way too much code
+	 * here assumes memsize >= 1MB */
+	if (memory.pages < ((1024*1024)/4096))
+		memory.pages = ((1024*1024)/4096);
 
-		// DEBUG message (FIXME: later convert to LOG(LOG_MISC,LOG_DEBUG)
-		LOG_MSG("Memory: %u pages of RAM, %u reported to OS, %u pages of memory handlers",
+	// DEBUG message (FIXME: later convert to LOG(LOG_MISC,LOG_DEBUG)
+	LOG_MSG("Memory: %u pages of RAM, %u reported to OS, %u pages of memory handlers",
 			(unsigned int)memory.pages,
 			(unsigned int)memory.reported_pages,
 			(unsigned int)memory.handler_pages);
 
-		// sanity check!
-		assert(memory.handler_pages >= memory.pages);
-		assert(memory.reported_pages <= memory.pages);
-		assert(memory.handler_pages >= memory.reported_pages);
-		assert(memory.handler_pages >= 0x100); /* enough for at minimum 1MB of addressable memory */
+	// sanity check!
+	assert(memory.handler_pages >= memory.pages);
+	assert(memory.reported_pages <= memory.pages);
+	assert(memory.handler_pages >= memory.reported_pages);
+	assert(memory.handler_pages >= 0x100); /* enough for at minimum 1MB of addressable memory */
 
-		/* Allocate the RAM. We alloc as a large unsigned char array. new[] does not initialize the array,
-		 * so we then must zero the buffer. */
-		MemBase = new Bit8u[memory.pages*4096];
-		if (!MemBase) E_Exit("Can't allocate main memory of %d MB",(int)memsize);
-		/* Clear the memory, as new doesn't always give zeroed memory
-		 * (Visual C debug mode). We want zeroed memory though. */
-		memset((void*)MemBase,0,memory.reported_pages*4096);
-		/* the rest of "ROM" is for unmapped devices so we need to fill it appropriately */
-		if (memory.reported_pages < memory.pages)
-			memset((char*)MemBase+(memory.reported_pages*4096),0xFF,
+	/* Allocate the RAM. We alloc as a large unsigned char array. new[] does not initialize the array,
+	 * so we then must zero the buffer. */
+	MemBase = new Bit8u[memory.pages*4096];
+	if (!MemBase) E_Exit("Can't allocate main memory of %d MB",(int)memsize);
+	/* Clear the memory, as new doesn't always give zeroed memory
+	 * (Visual C debug mode). We want zeroed memory though. */
+	memset((void*)MemBase,0,memory.reported_pages*4096);
+	/* the rest of "ROM" is for unmapped devices so we need to fill it appropriately */
+	if (memory.reported_pages < memory.pages)
+		memset((char*)MemBase+(memory.reported_pages*4096),0xFF,
 				(memory.pages - memory.reported_pages)*4096);
-		/* adapter ROM */
-		memset((char*)MemBase+0xA0000,0xFF,0x60000);
-		/* except for 0xF0000-0xFFFFF */
-		memset((char*)MemBase+0xF0000,0x00,0x10000);
+	/* adapter ROM */
+	memset((char*)MemBase+0xA0000,0xFF,0x60000);
+	/* except for 0xF0000-0xFFFFF */
+	memset((char*)MemBase+0xF0000,0x00,0x10000);
+}
+
+static IO_ReadHandleObject PS2_Port_92h_ReadHandler;
+static IO_WriteHandleObject PS2_Port_92h_WriteHandler;
+
+void ShutDownMemoryAccessArray(Section * sec) {
+	if (memory.phandlers != NULL) {
+		delete [] memory.phandlers;
+		memory.phandlers = NULL;
+	}
+}
+
+void ShutDownMemHandles(Section * sec) {
+	if (memory.mhandles != NULL) {
+		delete [] memory.mhandles;
+		memory.mhandles = NULL;
+	}
+}
+
+void Init_A20_Gate() {
+	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+
+	memory.a20.enabled = 0;
+	a20_fake_changeable = false;
+
+	// TODO: A20 gate control should also be handled by a motherboard init routine
+	std::string ss = section->Get_string("a20");
+	if (ss == "mask" || ss == "") {
+		LOG(LOG_MISC,LOG_DEBUG)("A20: masking emulation");
+		a20_guest_changeable = true;
+		a20_full_masking = true;
+	}
+	else if (ss == "on") {
+		LOG(LOG_MISC,LOG_DEBUG)("A20: locked on");
+		a20_guest_changeable = false;
+		a20_full_masking = true;
+		memory.a20.enabled = 1;
+	}
+	else if (ss == "on_fake") {
+		LOG(LOG_MISC,LOG_DEBUG)("A20: locked on (but will fake control bit)");
+		a20_guest_changeable = false;
+		a20_fake_changeable = true;
+		a20_full_masking = true;
+		memory.a20.enabled = 1;
+	}
+	else if (ss == "off") {
+		LOG(LOG_MISC,LOG_DEBUG)("A20: locked off");
+		a20_guest_changeable = false;
+		a20_full_masking = true;
+		memory.a20.enabled = 0;
+	}
+	else if (ss == "off_fake") {
+		LOG(LOG_MISC,LOG_DEBUG)("A20: locked off (but will fake control bit)");
+		a20_guest_changeable = false;
+		a20_fake_changeable = true;
+		a20_full_masking = true;
+		memory.a20.enabled = 0;
+	}
+	else { /* "" or "fast" */
+		LOG(LOG_MISC,LOG_DEBUG)("A20: fast remapping (64KB+1MB) DOSBox style");
+		a20_guest_changeable = true;
+		a20_full_masking = false;
 	}
 
-	void Init_AddressLimitAndGateMask() {
-		Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+}
 
-		// TODO: this option should be handled by the CPU init since it concerns emulation
-		//       of older 386 and 486 boards with fewer than 32 address lines:
-		//
-		//         24-bit addressing on the 386SX vs full 32-bit addressing on the 386DX
-		//         26-bit addressing on the 486SX vs full 32-bit addressing on the 486DX
-		//
-		//       Also this code should automatically cap itself at 24 for 286 emulation and
-		//       20 for 8086 emulation.
-		memory.address_bits=section->Get_int("memalias");
+void Init_PS2_Port_92h() {
+	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 
-		if (memory.address_bits == 0)
-			memory.address_bits = 32;
-		else if (memory.address_bits < 20)
-			memory.address_bits = 20;
-		else if (memory.address_bits > 32)
-			memory.address_bits = 32;
-
-		// TODO: This should be ...? CPU init? Motherboard init?
-		/* WARNING: Binary arithmetic done with 64-bit integers because under Microsoft C++
-		            ((1UL << 32UL) - 1UL) == 0, which is WRONG.
-					But I'll never get back the 4 days I wasted chasing it down, trying to
-					figure out why DOSBox was getting stuck reopening it's own CON file handle. */
-		memory.mem_alias_pagemask = (uint32_t)
-			(((((uint64_t)1) << (uint64_t)memory.address_bits) - (uint64_t)1) >> (uint64_t)12);
-
-		/* memory aliasing cannot go below 1MB or serious problems may result. */
-		if ((memory.mem_alias_pagemask & 0xFF) != 0xFF) E_Exit("alias pagemask < 1MB");
-
-		/* update alias pagemask according to A20 gate */
-		if (a20_fake_changeable && a20_full_masking && !memory.a20.enabled)
-			memory.mem_alias_pagemask &= ~0x100;
+	// TODO: this should be handled in a motherboard init routine
+	enable_port92 = section->Get_bool("enable port 92");
+	if (enable_port92) {
+		// A20 Line - PS/2 system control port A
+		// TODO: This should exist in the motherboard emulation code yet to come! The motherboard
+		//       determines A20 gating, not the RAM!
+		PS2_Port_92h_WriteHandler.Install(0x92,write_p92,IO_MB);
+		PS2_Port_92h_ReadHandler.Install(0x92,read_p92,IO_MB);
 	}
+}
 
-	void Init_MemHandles() {
-		Bitu i;
+void Init_MemHandles() {
+	Bitu i;
 
-		if (memory.mhandles == NULL)
-			memory.mhandles = new MemHandle[memory.pages];
-
-		for (i = 0;i < memory.pages;i++)
-			memory.mhandles[i] = 0;				//Set to 0 for memory allocation
-
-		/* Reset some links */
-		memory.links.used = 0;
-	}
-
-	void Init_MemoryAccessArray() {
-		Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
-		Bitu i;
-
-		// TODO: this should be moved to the motherboard init
-		adapter_rom_is_ram = section->Get_bool("adapter rom is ram");
-
-		// sanity check. if this condition is false the loops below will overrun the array!
-		assert(memory.reported_pages <= memory.handler_pages);
-
-		PageHandler *ram_ptr =
-			(memory.mem_alias_pagemask == (Bit32u)(~0UL) && !a20_full_masking)
-			? (PageHandler*)(&ram_page_handler) /* no aliasing */
-			: (PageHandler*)(&ram_alias_page_handler); /* aliasing */
-
-		if (memory.phandlers == NULL)
-			memory.phandlers = new PageHandler* [memory.handler_pages];
-
-		for (i=0;i < memory.reported_pages;i++)
-			memory.phandlers[i] = ram_ptr;
-		for (;i < memory.handler_pages;i++)
-			memory.phandlers[i] = &illegal_page_handler;
-
-		if (!adapter_rom_is_ram) {
-			/* FIXME: VGA emulation will selectively respond to 0xA0000-0xBFFFF according to the video mode,
-			 *        what we want however is for the VGA emulation to assign illegal_page_handler for
-			 *        address ranges it is not responding to when mapping changes. */
-			for (i=0xa0;i<0x100;i++) /* we want to make sure adapter ROM is unmapped entirely! */
-				memory.phandlers[i] = &unmapped_page_handler;
-		}
-	}
-
-	void Init_PCJR_CartridgeROM() {
-		Bitu i;
-
-		/* Setup cartridge rom at 0xe0000-0xf0000.
-		 * Don't call this function unless emulating PCjr! */
-		for (i=0xe0;i<0xf0;i++)
-			memory.phandlers[i] = &rom_page_handler;
-	}
-
-	void Init() {
-		AddExitFunction(&ShutDownRAM);
+	if (!has_Init_MemHandles) {
 		AddExitFunction(&ShutDownMemHandles);
-		AddExitFunction(&ShutDownMemoryAccessArray);
-
-		Init_A20_Gate();
-		Init_PS2_Port_92h();
-		Init_AddressLimitAndGateMask();
-		Init_RAM();
-		Init_VGABIOS();
-		Init_MemHandles();
-		Init_MemoryAccessArray();
-
-		if (machine == MCH_PCJR)
-			Init_PCJR_CartridgeROM();
-
-		// TODO: move to A20 gate init when it is safe to do so.
-		//       better yet, we might remove this call entirely when motherboard emulation can take care of it.
-		MEM_A20_Enable(false);
+		has_Init_MemHandles = true;
 	}
-};	
+
+	if (memory.mhandles == NULL)
+		memory.mhandles = new MemHandle[memory.pages];
+
+	for (i = 0;i < memory.pages;i++)
+		memory.mhandles[i] = 0;				//Set to 0 for memory allocation
+
+	/* Reset some links */
+	memory.links.used = 0;
+}
+
+void Init_MemoryAccessArray() {
+	Bitu i;
+
+	if (!has_Init_MemoryAccessArray) {
+		has_Init_MemoryAccessArray = true;
+		AddExitFunction(&ShutDownMemoryAccessArray);
+	}
+
+	// sanity check. if this condition is false the loops below will overrun the array!
+	assert(memory.reported_pages <= memory.handler_pages);
+
+	PageHandler *ram_ptr =
+		(memory.mem_alias_pagemask == (Bit32u)(~0UL) && !a20_full_masking)
+		? (PageHandler*)(&ram_page_handler) /* no aliasing */
+		: (PageHandler*)(&ram_alias_page_handler); /* aliasing */
+
+	if (memory.phandlers == NULL)
+		memory.phandlers = new PageHandler* [memory.handler_pages];
+
+	for (i=0;i < memory.reported_pages;i++)
+		memory.phandlers[i] = ram_ptr;
+	for (;i < memory.handler_pages;i++)
+		memory.phandlers[i] = &illegal_page_handler;
+
+	if (!adapter_rom_is_ram) {
+		/* FIXME: VGA emulation will selectively respond to 0xA0000-0xBFFFF according to the video mode,
+		 *        what we want however is for the VGA emulation to assign illegal_page_handler for
+		 *        address ranges it is not responding to when mapping changes. */
+		for (i=0xa0;i<0x100;i++) /* we want to make sure adapter ROM is unmapped entirely! */
+			memory.phandlers[i] = &unmapped_page_handler;
+	}
+}
+
+void Init_PCJR_CartridgeROM() {
+	Bitu i;
+
+	/* Setup cartridge rom at 0xe0000-0xf0000.
+	 * Don't call this function unless emulating PCjr! */
+	for (i=0xe0;i<0xf0;i++)
+		memory.phandlers[i] = &rom_page_handler;
+}
 
