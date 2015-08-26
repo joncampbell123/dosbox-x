@@ -71,9 +71,10 @@ struct LinkBlock {
 };
 
 static struct MemoryBlock {
-	MemoryBlock() : pages(0), reported_pages(0), phandlers(NULL), mhandles(NULL), mem_alias_pagemask(0), address_bits(0) { }
+	MemoryBlock() : pages(0), handler_pages(0), reported_pages(0), phandlers(NULL), mhandles(NULL), mem_alias_pagemask(0), address_bits(0) { }
 
 	Bitu pages;
+	Bitu handler_pages;
 	Bitu reported_pages;
 	PageHandler * * phandlers;
 	MemHandle * mhandles;
@@ -1122,12 +1123,33 @@ namespace MEMORY {
 		memory.reported_pages = memory.pages =
 			((memsize*1024*1024) + (memsizekb*1024))/4096;
 
+		// we maintain a different page count for page handlers because we want to maintain a
+		// "cache" of sorts of what device responds to a given memory address. default to
+		// MAX_PAGE_ENTRIES, but bring it down if the memory alising reduces the range of
+		// addressable memory from the CPU's point of view.
+		memory.handler_pages = MAX_PAGE_ENTRIES;
+		if ((memory.mem_alias_pagemask+1) != 0/*integer overflow check*/ &&
+			memory.handler_pages > (memory.mem_alias_pagemask+1))
+			memory.handler_pages = (memory.mem_alias_pagemask+1);
+
 		// FIXME: Hopefully our refactoring will remove the need for this hack
 		/* if the config file asks for less than 1MB of memory
 		 * then say so to the DOS program. but way too much code
 		 * here assumes memsize >= 1MB */
 		if (memory.pages < ((1024*1024)/4096))
 			memory.pages = ((1024*1024)/4096);
+
+		// DEBUG message (FIXME: later convert to LOG(LOG_MISC,LOG_DEBUG)
+		LOG_MSG("Memory: %u pages of RAM, %u reported to OS, %u pages of memory handlers",
+			(unsigned int)memory.pages,
+			(unsigned int)memory.reported_pages,
+			(unsigned int)memory.handler_pages);
+
+		// sanity check!
+		assert(memory.handler_pages >= memory.pages);
+		assert(memory.reported_pages <= memory.pages);
+		assert(memory.handler_pages >= memory.reported_pages);
+		assert(memory.handler_pages >= 0x100); /* enough for at minimum 1MB of addressable memory */
 
 		/* Allocate the RAM. We alloc as a large unsigned char array. new[] does not initialize the array,
 		 * so we then must zero the buffer. */
@@ -1230,17 +1252,20 @@ namespace MEMORY {
 	void Init_MemoryAccessArray() {
 		Bitu i;
 
+		// sanity check. if this condition is false the loops below will overrun the array!
+		assert(memory.reported_pages <= memory.handler_pages);
+
 		PageHandler *ram_ptr =
 			(memory.mem_alias_pagemask == (Bit32u)(~0UL) && !a20_full_masking)
 			? (PageHandler*)(&ram_page_handler) /* no aliasing */
 			: (PageHandler*)(&ram_alias_page_handler); /* aliasing */
 
 		if (memory.phandlers == NULL)
-			memory.phandlers = new PageHandler* [memory.pages];
+			memory.phandlers = new PageHandler* [memory.handler_pages];
 
 		for (i=0;i < memory.reported_pages;i++)
 			memory.phandlers[i] = ram_ptr;
-		for (;i < memory.pages;i++)
+		for (;i < memory.handler_pages;i++)
 			memory.phandlers[i] = &illegal_page_handler;
 
 		if (!adapter_rom_is_ram) {
