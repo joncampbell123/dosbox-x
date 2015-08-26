@@ -1373,9 +1373,11 @@ Bitu Keyboard_Guest_LED_State();
 void UpdateKeyboardLEDState(Bitu led_state/* in the same bitfield arrangement as using command 0xED on PS/2 keyboards */);
 
 void UpdateKeyboardLEDState(Bitu led_state/* in the same bitfield arrangement as using command 0xED on PS/2 keyboards */) {
+#if defined(WIN32) /* Microsoft Windows */
 	WinSetKeyToggleState(VK_NUMLOCK, !!(led_state & 2));
 	WinSetKeyToggleState(VK_SCROLL, !!(led_state & 1));
 	WinSetKeyToggleState(VK_CAPITAL, !!(led_state & 4));
+#endif
 }
 
 void DoExtendedKeyboardHook(bool enable) {
