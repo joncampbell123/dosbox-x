@@ -4192,7 +4192,6 @@ int main(int argc, char* argv[]) {
 		Init_RAM();
 		PAGING_Init(); /* <- NTS: At this time, must come before memory init because paging is so well integrated into emulation code */
 		Init_VGABIOS();
-		Init_MemHandles(); /* <- NTS: Memory handle system reflects XMS/EMS allocation in DOS. FIXME:  */
 
 		/* If PCjr emulation, map cartridge ROM */
 		if (machine == MCH_PCJR)
@@ -4200,6 +4199,13 @@ int main(int argc, char* argv[]) {
 
 		/* FIXME: Where to move this? A20 gate is disabled by default */
 		MEM_A20_Enable(false);
+
+		/* Init memhandle system. This part is used by DOSBox's XMS/EMS emulation to associate handles
+		 * per page. FIXME: I would like to push this down to the point that it's never called until
+		 * XMS/EMS emulation needs it. I would also like the code to free the mhandle array immediately
+		 * upon booting into a guest OS, since memory handles no longer have meaning in the guest OS
+		 * memory layout. */
+		Init_MemHandles();
 
 		/* dispatch a power on event. new code will use this as time to register IO ports.
 		 * At power on hardware emulation is working, the BIOS and DOS kernel are not present.
