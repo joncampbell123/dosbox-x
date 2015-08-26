@@ -43,8 +43,8 @@ extern bool en_bios_ps2mouse;
 extern bool mainline_compatible_bios_mapping;
 extern bool rom_bios_8x8_cga_font;
 extern bool pcibus_enable;
-extern bool isa_memory_hole_512kb;
 
+bool isa_memory_hole_512kb = false;
 bool int15_wait_force_unmask_irq = false;
 
 Bit16u biosConfigSeg=0;
@@ -3026,7 +3026,7 @@ unsigned char do_isapnp_chksum(unsigned char *d,int i) {
 
 void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages);
 
-extern unsigned int dos_conventional_limit;
+unsigned int dos_conventional_limit = 0;
 
 class BIOS:public Module_base{
 private:
@@ -3055,6 +3055,17 @@ public:
 		/* tandy DAC can be requested in tandy_sound.cpp by initializing this field */
 		bool use_tandyDAC=(real_readb(0x40,0xd4)==0xff);
 		Bitu wo;
+
+		{
+			Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+
+			// TODO: motherboard init, especially when we get around to full Intel Triton/i440FX chipset emulation
+			isa_memory_hole_512kb = section->Get_bool("isa memory hole at 512kb");
+
+			// FIXME: Erm, well this couldv'e been named better. It refers to the amount of conventional memory
+			//        made available to the operating system below 1MB, which is usually DOS.
+			dos_conventional_limit = section->Get_int("dos mem limit");
+		}
 
 		/* pick locations */
 		if (mainline_compatible_bios_mapping) { /* mapping BIOS the way mainline DOSBox does */
@@ -3136,6 +3147,10 @@ public:
 		/* allow user to further limit the available memory below 1MB */
 		if (dos_conventional_limit != 0 && t_conv > dos_conventional_limit)
 			t_conv = dos_conventional_limit;
+
+		// TODO: Allow dosbox.conf to specify an option to add an EBDA (Extended BIOS Data Area)
+		//       at the top of the DOS conventional limit, which we then reduce further to hold
+		//       it. Most BIOSes past 1992 or so allocate an EBDA.
 
 		/* if requested to emulate an ISA memory hole at 512KB, further limit the memory */
 		if (isa_memory_hole_512kb && t_conv > 512) t_conv = 512;

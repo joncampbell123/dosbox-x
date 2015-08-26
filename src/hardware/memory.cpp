@@ -61,9 +61,6 @@ extern bool VIDEO_BIOS_always_carry_16_high_font;
  * VGA, with the Illegal handler (not mapped). Actual RAM behind the storage does
  * not show up and reads return 0xFF, just like real hardware. */
 bool adapter_rom_is_ram = false;
-bool isa_memory_hole_512kb = false;
-
-unsigned int dos_conventional_limit = 0;
 
 struct LinkBlock {
 	Bitu used;
@@ -1250,7 +1247,11 @@ namespace MEMORY {
 	}
 
 	void Init_MemoryAccessArray() {
+		Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 		Bitu i;
+
+		// TODO: this should be moved to the motherboard init
+		adapter_rom_is_ram = section->Get_bool("adapter rom is ram");
 
 		// sanity check. if this condition is false the loops below will overrun the array!
 		assert(memory.reported_pages <= memory.handler_pages);
@@ -1287,51 +1288,9 @@ namespace MEMORY {
 	}
 
 	void Init() {
-		Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
-
-		/* TODO: I would like to see this split out into multiple Init code related to each part of the
-		 *       motherboard:
-		 *
-		 *       1) An init for RAM, the RAM chips on the motherboard, and how they are addressed
-		 *       2) An init for the phandlers/mhandlers, which controls how DOSBox addresses RAM, ROM, or MMIO
-		 *       3) An init for VGA ROM BIOS on it's own
-		 *       4) An init for PCjr ROMs if enabled
-		 *       5) An init for the A20 gate (which should be controlled by the motherboard too)
-		 *       6) An init for the CPU address masking (which should be controlled by the motherboard too)
-		 *
-		 *       I would also like to see the phandlers system converted into one where all devices
-		 *       list themselves as attached to the motherboard, and phandlers default to a "slow path"
-		 *       that asks each device in turn who will accept the memory I/O request, and then patch
-		 *       whoever answers into the phandler so further I/O is fast. (NTS: the slow path would
-		 *       also NOT update the pointer if more than one device responds, and would patch in a
-		 *       "no response" handler if none of the devices respond)
-		 *
-		 *       I would also like to see phandlers[] allocated to cover the CPU's entire addressable
-		 *       range (up to 4GB in pages) instead of only covering the memory given to the guest,
-		 *       so that the "slow path" patching system can work on all memory resources accessible
-		 *       to the CPU. If running DOSBox-X on more memory limited platforms, we could also offer
-		 *       a parameter to say how large the addressable memory I/O is in bits if the user wants
-		 *       to cut down on memory utilization (make phandlers[] array smaller). Obviously below
-		 *       32 bits wide this would prevent something like mapping S3 SVGA linear framebuffers
-		 *       at 0xC0000000, but we'll let the user decide on that tradeoff.
-		 *
-		 *       On system reset, or power off then on, I would like to see this code support freeing,
-		 *       then reallocing the RAM if the user changed the memory size at runtime. If memory
-		 *       doesn't change size, then RAM should stay intact (as it would on real hardware).
-		 *       This would be independent of whether or not we would also emulate BIOS behavior
-		 *       of clearing RAM during a memory test on startup.
-		 */
-
 		AddExitFunction(&ShutDownRAM);
 		AddExitFunction(&ShutDownMemHandles);
 		AddExitFunction(&ShutDownMemoryAccessArray);
-
-		// TODO: this should be moved to the DOS kernel init
-		dos_conventional_limit = section->Get_int("dos mem limit");
-		// TODO: this should be moved to the motherboard init
-		adapter_rom_is_ram = section->Get_bool("adapter rom is ram");
-		// TODO: motherboard init, especially when we get around to full Intel Triton/i440FX chipset emulation
-		isa_memory_hole_512kb = section->Get_bool("isa memory hole at 512kb");
 
 		Init_A20_Gate();
 		Init_PS2_Port_92h();
