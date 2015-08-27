@@ -41,7 +41,8 @@ void KEYBOARD_Reset();
 static void KEYBOARD_SetPort60(Bit16u val);
 static void KEYBOARD_AddBuffer(Bit16u data);
 static void KEYBOARD_Add8042Response(Bit8u data);
-static void KEYBOARD_SetLEDs(Bit8u bits);
+void KEYBOARD_SetLEDs(Bit8u bits);
+
 static unsigned int aux_warning = 0;
 
 enum AuxCommands {
@@ -290,7 +291,7 @@ Bitu Keyboard_Guest_LED_State() {
 
 void UpdateKeyboardLEDState(Bitu led_state/* in the same bitfield arrangement as using command 0xED on PS/2 keyboards */);
 
-static void KEYBOARD_SetLEDs(Bit8u bits) {
+void KEYBOARD_SetLEDs(Bit8u bits) {
 	/* Some OSes we have control of the LEDs if keyboard+mouse capture */
 	keyb.led_state = bits;
 	UpdateKeyboardLEDState(bits);

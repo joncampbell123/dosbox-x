@@ -233,17 +233,20 @@ static void empty_keyboard_buffer() {
 	*/
 
 
+void KEYBOARD_SetLEDs(Bit8u bits);
+
 /* the scancode is in reg_al */
 static Bitu IRQ1_Handler(void) {
 /* handling of the locks key is difficult as sdl only gives
  * states for numlock capslock. 
  */
 	Bitu scancode=reg_al;
-	Bit8u flags1,flags2,flags3,leds;
+	Bit8u flags1,flags2,flags3,leds,leds_orig;
 	flags1=mem_readb(BIOS_KEYBOARD_FLAGS1);
 	flags2=mem_readb(BIOS_KEYBOARD_FLAGS2);
 	flags3=mem_readb(BIOS_KEYBOARD_FLAGS3);
 	leds  =mem_readb(BIOS_KEYBOARD_LEDS); 
+	leds_orig = leds;
 #ifdef CAN_USE_LOCK
 	/* No hack anymore! */
 #else
@@ -469,6 +472,10 @@ irq1_end:
 	mem_writeb(BIOS_KEYBOARD_FLAGS2,flags2);
 	mem_writeb(BIOS_KEYBOARD_FLAGS3,flags3);
 	mem_writeb(BIOS_KEYBOARD_LEDS,leds);
+
+	/* update LEDs on keyboard */
+	if (leds_orig != leds) KEYBOARD_SetLEDs(leds);
+
 /*	IO_Write(0x20,0x20); moved out of handler to be virtualizable */
 #if 0
 /* Signal the keyboard for next code */
