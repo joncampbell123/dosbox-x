@@ -39,6 +39,10 @@
 #include "setup.h"
 #include "menu.h"
 
+void MAPPER_CheckKeyboardLayout();
+
+bool isJPkeyboard = false;
+
 enum {
 	CLR_BLACK=0,
 	CLR_WHITE=1,
@@ -480,6 +484,8 @@ Bitu GetKeyCode(SDL_keysym keysym) {
 		/* another hack, for the Yen \ pipe key on Japanese 106-keyboards.
 		   sym == 0 if English layout, sym == 0x5C if Japanese layout */
 		if ((keysym.sym == 0 || keysym.sym == 0x5C) && (keysym.scancode == 0x7D)) return (Bitu)SDLK_WORLD_11; //FIXME: There's no SDLK code for that key! Re-use one of the world keys!
+		/* what is ~ ` on American keyboards is "Hankaku" on Japanese keyboards. Same scan code. */
+		if (isJPkeyboard && keysym.sym == SDLK_BACKQUOTE) return (int)SDLK_WORLD_12;
 #endif
 		return (Bitu)keysym.sym;
 	}
@@ -2179,6 +2185,8 @@ static struct {
 	{"jp_bckslash",SDLK_WORLD_10},	// FIXME: Apparently there's a name length limit in the mapper?
 	/* hack for Japanese keyboards with Yen and | */
 	{"jp_yen",SDLK_WORLD_11 },
+	/* more */
+	{"jp_hankaku", SDLK_WORLD_12 },
 
 	{0,0}
 };
@@ -2528,7 +2536,20 @@ void MAPPER_RunInternal() {
 	GFX_ForceRedrawScreen();
 }
 
+void MAPPER_CheckKeyboardLayout() {
+#if defined(WIN32)
+	WORD cur_kb_layout = LOWORD(GetKeyboardLayout(0));
+
+	isJPkeyboard = false;
+
+	if (cur_kb_layout == 1041/*JP106*/) {
+		isJPkeyboard = true;
+	}
+#endif
+}
+
 void MAPPER_Init(void) {
+	MAPPER_CheckKeyboardLayout();
 	InitializeJoysticks();
 	CreateLayout();
 	CreateBindGroups();
