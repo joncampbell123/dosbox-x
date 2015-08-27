@@ -1350,7 +1350,7 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
 	case KBD_jp_muhenkan:ret=0x7B;break;
 	case KBD_jp_henkan:ret=0x79;break;
 	case KBD_jp_hiragana:ret=0x70;break;/*also Katakana */
-	case KBD_jp_underscore:ret=0x73;break;/*JP 106-key: _ \ or ろ (ro)  <-- WARNING: UTF-8 unicode */
+	case KBD_jp_backslash:ret=0x73;break;/*JP 106-key: _ \ or ろ (ro)  <-- WARNING: UTF-8 unicode */
 	case KBD_jp_yen:ret=0x7d;break;/*JP 106-key: | ¥ (yen) or ー (prolonged sound mark)  <-- WARNING: UTF-8 unicode */
 	default:
 		E_Exit("Unsupported key press");
