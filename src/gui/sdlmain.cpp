@@ -1408,6 +1408,16 @@ void DoExtendedKeyboardHook(bool enable) {
 		// it's on
 		exthook_enabled = enable;
 
+		// flush out and handle pending keyboard I/O
+		{
+			MSG msg;
+
+			while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+			}
+		}
+
 		// Enable the SDL hack for Win32 to handle Num/Scroll/Caps
 		SDL_DOSBox_X_Hack_Set_Toggle_Key_WM_USER_Hack(1);
 
@@ -1429,6 +1439,19 @@ void DoExtendedKeyboardHook(bool enable) {
 				WinSetKeyToggleState(VK_NUMLOCK, on_capture_num_lock_was_on);
 				WinSetKeyToggleState(VK_SCROLL, on_capture_scroll_lock_was_on);
 				WinSetKeyToggleState(VK_CAPITAL, on_capture_caps_lock_was_on);
+			}
+
+			{
+				MSG msg;
+
+				// before we disable the SDL hack make sure we flush out and handle any pending keyboard events.
+				// if we don't do this the posted Num/Scroll/Caps events will stay in the queue and will be handled
+				// by SDL after turning off the toggle key hack.
+				Sleep(1); // make sure Windows posts the keystrokes
+				while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+					TranslateMessage(&msg);
+					DispatchMessage(&msg);
+				}
 			}
 
 			// Disable the SDL hack for Win32 to handle Num/Scroll/Caps
