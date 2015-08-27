@@ -1894,7 +1894,16 @@ static void BIOS_HostTimeSync() {
 // TODO: make option
 bool enable_bios_timer_synchronize_keyboard_leds = true;
 
-void KEYBOARD_BIOS_CheckLEDs_From_DataArea(Bitu x);
+void KEYBOARD_SetLEDs(Bit8u bits);
+
+void BIOS_KEYBOARD_SetLEDs(Bitu state) {
+	Bitu x = mem_readb(BIOS_KEYBOARD_LEDS);
+
+	x &= ~7;
+	x |= (state & 7);
+	mem_writeb(BIOS_KEYBOARD_LEDS,x);
+	KEYBOARD_SetLEDs(state);
+}
 
 static Bitu INT8_Handler(void) {
 	/* Increase the bios tick counter */
@@ -1913,8 +1922,13 @@ static Bitu INT8_Handler(void) {
 	   it when handling the keyboard from it's own driver. Their driver does
 	   hook the keyboard and handles keyboard I/O by itself, but it still
 	   allows the BIOS to do the keyboard magic from IRQ 0 (INT 8h). Yech. */
-	if (enable_bios_timer_synchronize_keyboard_leds)
-		KEYBOARD_BIOS_CheckLEDs_From_DataArea((mem_readb(BIOS_KEYBOARD_STATE) >> 4) & 7);
+	if (enable_bios_timer_synchronize_keyboard_leds) {
+		Bitu should_be = (mem_readb(BIOS_KEYBOARD_STATE) >> 4) & 7;
+		Bitu led_state = (mem_readb(BIOS_KEYBOARD_LEDS) & 7);
+
+		if (should_be != led_state)
+			BIOS_KEYBOARD_SetLEDs(should_be);
+	}
 
 #if DOSBOX_CLOCKSYNC
 	static bool check = false;
