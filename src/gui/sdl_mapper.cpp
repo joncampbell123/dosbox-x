@@ -546,6 +546,25 @@ public:
 		Bitu key=GetKeyCode(event->key.keysym);
 //		LOG_MSG("key type %i is %x [%x %x]",event->type,key,event->key.keysym.sym,event->key.keysym.scancode);
 		assert(Bitu(event->key.keysym.sym)<keys);
+
+#if defined(WIN32)
+		/* HACK: When setting up the Japanese keyboard layout, I'm seeing some bizarre keyboard handling
+		         from within Windows when pressing the ~ ` (grave) aka Hankaku key. I know it's not hardware
+				 because when you switch back to English the key works normally as the tilde/grave key.
+				 What I'm seeing is that pressing the key only sends the "down" event (even though you're
+				 not holding the key down). When you press the key again, an "up" event is sent immediately
+				 followed by a "down" event. This is confusing to the mapper, so we work around it here. */
+		if (isJPkeyboard && key == SDLK_WORLD_12/*Hankaku*/) {
+			if (event->type == SDL_KEYDOWN) {
+				// send down, then up (right?)
+				ActivateBindList(&lists[key], 0x7fff, true);
+				DeactivateBindList(&lists[key], true);
+			}
+
+			return 0; // ignore up event
+		}
+#endif
+
 		if (event->type==SDL_KEYDOWN) ActivateBindList(&lists[key],0x7fff,true);
 		else DeactivateBindList(&lists[key],true);
 		return 0;

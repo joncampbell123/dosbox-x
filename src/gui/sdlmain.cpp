@@ -1313,17 +1313,6 @@ static LRESULT CALLBACK WinExtHookKeyboardHookProc(int nCode,WPARAM wParam,LPARA
 						case VK_LAUNCH_APP2: // Start Application 2 key
 						case VK_PLAY: // Play key
 						case VK_ZOOM: // Zoom key (the (+) magnifying glass keyboard shortcut laptops have these days on the spacebar?)
-
-						// the following are hooked and discarded so that these keys can be used with the guest OS
-						// without interference from the host OS's Input Method Editor. Users with Japanese/Chinese/Korean
-						// keyboards can then use these keys with the guest OS.
-						case VK_KANA://VK_HANGUL
-						case VK_KANJI://VK_HANJA
-						case VK_CONVERT:
-						case VK_NONCONVERT:
-						case VK_ACCEPT:
-						case VK_MODECHANGE:
-						case VK_PROCESSKEY:
 							nopass = true;
 							break;
 
