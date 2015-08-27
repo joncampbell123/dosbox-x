@@ -1386,9 +1386,11 @@ void UpdateKeyboardLEDState(Bitu led_state/* in the same bitfield arrangement as
 
 void UpdateKeyboardLEDState(Bitu led_state/* in the same bitfield arrangement as using command 0xED on PS/2 keyboards */) {
 #if defined(WIN32) /* Microsoft Windows */
-	WinSetKeyToggleState(VK_NUMLOCK, !!(led_state & 2));
-	WinSetKeyToggleState(VK_SCROLL, !!(led_state & 1));
-	WinSetKeyToggleState(VK_CAPITAL, !!(led_state & 4));
+	if (exthook_enabled) { // ONLY if ext hook is enabled, else we risk infinite loops with keyboard events
+		WinSetKeyToggleState(VK_NUMLOCK, !!(led_state & 2));
+		WinSetKeyToggleState(VK_SCROLL, !!(led_state & 1));
+		WinSetKeyToggleState(VK_CAPITAL, !!(led_state & 4));
+	}
 #endif
 }
 
@@ -1398,8 +1400,13 @@ void DoExtendedKeyboardHook(bool enable) {
 
 #if defined(WIN32)
 	if (enable) {
-		exthook_winhook = SetWindowsHookEx(WH_KEYBOARD_LL,WinExtHookKeyboardHookProc,GetModuleHandle(NULL),NULL);
-		if (exthook_winhook == NULL) return;
+		if (!exthook_winhook) {
+			exthook_winhook = SetWindowsHookEx(WH_KEYBOARD_LL, WinExtHookKeyboardHookProc, GetModuleHandle(NULL), NULL);
+			if (exthook_winhook == NULL) return;
+		}
+
+		// it's on
+		exthook_enabled = enable;
 
 		// Enable the SDL hack for Win32 to handle Num/Scroll/Caps
 		SDL_DOSBox_X_Hack_Set_Toggle_Key_WM_USER_Hack(1);
@@ -1430,10 +1437,10 @@ void DoExtendedKeyboardHook(bool enable) {
 			UnhookWindowsHookEx(exthook_winhook);
 			exthook_winhook = NULL;
 		}
+
+		exthook_enabled = enable;
 	}
 #endif
-
-	exthook_enabled = enable;
 }
 
 void GFX_CaptureMouse(void) {
