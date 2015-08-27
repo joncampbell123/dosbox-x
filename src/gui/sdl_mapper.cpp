@@ -477,6 +477,9 @@ Bitu GetKeyCode(SDL_keysym keysym) {
 		/* special case of the \ _ key on Japanese 106-keyboards. seems to be the same code whether or not you've told Windows it's a 106-key */
 		/* NTS: SDL source on Win32 maps this key (VK_OEM_102) to SDLK_LESS */
 		if ((keysym.sym == 0) && (keysym.scancode == 0x73)) return (Bitu)SDLK_WORLD_10; //FIXME: There's no SDLK code for that key! Re-use one of the world keys!
+		/* another hack, for the Yen \ pipe key on Japanese 106-keyboards.
+		   sym == 0 if English layout, sym == 0x5C if Japanese layout */
+		if ((keysym.sym == 0 || keysym.sym == 0x5C) && (keysym.scancode == 0x7D)) return (Bitu)SDLK_WORLD_11; //FIXME: There's no SDLK code for that key! Re-use one of the world keys!
 #endif
 		return (Bitu)keysym.sym;
 	}
@@ -2174,6 +2177,8 @@ static struct {
 
 	/* hack for Japanese keyboards with \ and _ */
 	{"jp_bckslash",SDLK_WORLD_10},	// FIXME: Apparently there's a name length limit in the mapper?
+	/* hack for Japanese keyboards with Yen and | */
+	{"jp_yen",SDLK_WORLD_11 },
 
 	{0,0}
 };
