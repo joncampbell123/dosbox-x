@@ -474,6 +474,9 @@ Bitu GetKeyCode(SDL_keysym keysym) {
 #if defined (WIN32)
 		/* special handling of 102-key under windows */
 		if ((keysym.sym==SDLK_BACKSLASH) && (keysym.scancode==0x56)) return (Bitu)SDLK_LESS;
+		/* special case of the \ _ key on Japanese 106-keyboards. seems to be the same code whether or not you've told Windows it's a 106-key */
+		/* NTS: SDL source on Win32 maps this key (VK_OEM_102) to SDLK_LESS */
+		if ((keysym.sym == 0) && (keysym.scancode == 0x73)) return (Bitu)SDLK_WORLD_10; //FIXME: There's no SDLK code for that key! Re-use one of the world keys!
 #endif
 		return (Bitu)keysym.sym;
 	}
@@ -2168,6 +2171,9 @@ static struct {
 #else
 	{"lessthan",SDLK_LESS},
 #endif
+
+	/* hack for Japanese keyboards with \ and _ */
+	{"jp_backslash",SDLK_WORLD_10},
 
 	{0,0}
 };
