@@ -1247,6 +1247,8 @@ static bool exthook_enabled = false;
 #if defined(WIN32)
 static HHOOK exthook_winhook = NULL;
 
+extern "C" void SDL_DOSBox_X_Hack_Set_Toggle_Key_WM_USER_Hack(unsigned char x);
+
 static LRESULT CALLBACK WinExtHookKeyboardHookProc(int nCode,WPARAM wParam,LPARAM lParam) {
 	if (nCode == HC_ACTION) {
 		HWND myHwnd = GetHWND();
@@ -1399,6 +1401,9 @@ void DoExtendedKeyboardHook(bool enable) {
 		exthook_winhook = SetWindowsHookEx(WH_KEYBOARD_LL,WinExtHookKeyboardHookProc,GetModuleHandle(NULL),NULL);
 		if (exthook_winhook == NULL) return;
 
+		// Enable the SDL hack for Win32 to handle Num/Scroll/Caps
+		SDL_DOSBox_X_Hack_Set_Toggle_Key_WM_USER_Hack(1);
+
 		// if hooking Num/Scroll/Caps Lock then record the toggle state of those keys.
 		// then read from the keyboard emulation the LED state set by the guest and apply it to the host keyboard.
 		if (enable_hook_lock_toggle_keys) {
@@ -1418,6 +1423,9 @@ void DoExtendedKeyboardHook(bool enable) {
 				WinSetKeyToggleState(VK_SCROLL, on_capture_scroll_lock_was_on);
 				WinSetKeyToggleState(VK_CAPITAL, on_capture_caps_lock_was_on);
 			}
+
+			// Disable the SDL hack for Win32 to handle Num/Scroll/Caps
+			SDL_DOSBox_X_Hack_Set_Toggle_Key_WM_USER_Hack(0);
 
 			UnhookWindowsHookEx(exthook_winhook);
 			exthook_winhook = NULL;
