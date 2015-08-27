@@ -480,12 +480,18 @@ Bitu GetKeyCode(SDL_keysym keysym) {
 		if ((keysym.sym==SDLK_BACKSLASH) && (keysym.scancode==0x56)) return (Bitu)SDLK_LESS;
 		/* special case of the \ _ key on Japanese 106-keyboards. seems to be the same code whether or not you've told Windows it's a 106-key */
 		/* NTS: SDL source on Win32 maps this key (VK_OEM_102) to SDLK_LESS */
-		if ((keysym.sym == 0) && (keysym.scancode == 0x73)) return (Bitu)SDLK_WORLD_10; //FIXME: There's no SDLK code for that key! Re-use one of the world keys!
+		if (isJPkeyboard && (keysym.sym == 0) && (keysym.scancode == 0x73)) return (Bitu)SDLK_WORLD_10; //FIXME: There's no SDLK code for that key! Re-use one of the world keys!
 		/* another hack, for the Yen \ pipe key on Japanese 106-keyboards.
 		   sym == 0 if English layout, sym == 0x5C if Japanese layout */
-		if ((keysym.sym == 0 || keysym.sym == 0x5C) && (keysym.scancode == 0x7D)) return (Bitu)SDLK_WORLD_11; //FIXME: There's no SDLK code for that key! Re-use one of the world keys!
+		if (isJPkeyboard && (keysym.sym == 0 || keysym.sym == 0x5C) && (keysym.scancode == 0x7D)) return (Bitu)SDLK_WORLD_11; //FIXME: There's no SDLK code for that key! Re-use one of the world keys!
 		/* what is ~ ` on American keyboards is "Hankaku" on Japanese keyboards. Same scan code. */
 		if (isJPkeyboard && keysym.sym == SDLK_BACKQUOTE) return (int)SDLK_WORLD_12;
+		/* Muhenkan */
+		if (isJPkeyboard && keysym.sym == 0 && keysym.scancode == 0x7B) return (int)SDLK_WORLD_13;
+		/* Henkan/Zenkouho */
+		if (isJPkeyboard && keysym.sym == 0 && keysym.scancode == 0x79) return (int)SDLK_WORLD_14;
+		/* Hiragana/Katakana */
+		if (isJPkeyboard && keysym.sym == 0 && keysym.scancode == 0x70) return (int)SDLK_WORLD_15;
 #endif
 		return (Bitu)keysym.sym;
 	}
@@ -2187,6 +2193,9 @@ static struct {
 	{"jp_yen",SDLK_WORLD_11 },
 	/* more */
 	{"jp_hankaku", SDLK_WORLD_12 },
+	{"jp_muhenkan", SDLK_WORLD_13 },
+	{"jp_henkan", SDLK_WORLD_14 },
+	{"jp_hiragana", SDLK_WORLD_15 },
 
 	{0,0}
 };
