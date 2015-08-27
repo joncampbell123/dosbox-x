@@ -302,6 +302,18 @@ void KEYBOARD_SetLEDs(Bit8u bits) {
 	LOG(LOG_KEYBOARD,LOG_DEBUG)("Keyboard LEDs: SCR=%u NUM=%u CAPS=%u",bits&1,(bits>>1)&1,(bits>>2)&1);
 }
 
+// believe it or not most BIOSes will also periodically check the BIOS data area
+// and send updated keyboard LED state from it if it changes, from within IRQ 0 (INT 8h).
+// This is not documented anywhere I know, but it's been my experience with DOS
+// programming and Windows 3.1/9x keyboard handling seems to rely on it.
+void KEYBOARD_BIOS_CheckLEDs_From_DataArea(Bitu bits) {
+	if ((bits & 7) != (keyb.led_state & 7)) {
+		keyb.led_state = bits;
+		UpdateKeyboardLEDState(bits);
+		LOG(LOG_KEYBOARD, LOG_DEBUG)("Keyboard LEDs (from BIOS data area update): SCR=%u NUM=%u CAPS=%u", bits & 1, (bits >> 1) & 1, (bits >> 2) & 1);
+	}
+}
+
 static Bitu read_p60(Bitu port,Bitu iolen) {
 	keyb.p60changed=false;
 	keyb.auxchanged=false;

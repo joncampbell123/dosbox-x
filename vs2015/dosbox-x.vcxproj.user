@@ -2,25 +2,25 @@
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LocalDebuggerCommand>$(OutDir)DOSBox.exe</LocalDebuggerCommand>
-    <LocalDebuggerWorkingDirectory>c:\emu\test</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerWorkingDirectory>c:\emu\largedisk</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerCommandArguments>-debug</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LocalDebuggerCommand>$(OutDir)DOSBox.exe</LocalDebuggerCommand>
-    <LocalDebuggerWorkingDirectory>c:\emu\test</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerWorkingDirectory>c:\emu\largedisk</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerCommandArguments>-debug</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LocalDebuggerCommand>$(OutDir)DOSBox.exe</LocalDebuggerCommand>
-    <LocalDebuggerWorkingDirectory>c:\emu\test</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerWorkingDirectory>c:\emu\largedisk</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerCommandArguments>-debug</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerCommand>$(OutDir)DOSBox.exe</LocalDebuggerCommand>
-    <LocalDebuggerWorkingDirectory>c:\emu\test</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerWorkingDirectory>c:\emu\largedisk</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
     <LocalDebuggerCommandArguments>-debug</LocalDebuggerCommandArguments>
   </PropertyGroup>
