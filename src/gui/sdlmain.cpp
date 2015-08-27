@@ -1267,6 +1267,7 @@ static LRESULT CALLBACK WinExtHookKeyboardHookProc(int nCode,WPARAM wParam,LPARA
 				}
 				else {
 					bool nopass = enable_hook_everything; // if the user wants us to hook ALL keys then that's where this signals it
+					bool alternate_message = false; // send as WM_USER+0x100 instead of WM_KEYDOWN
 
 					if (!nopass) {
 						// hook only certain keys Windows is likely to act on by itself.
@@ -1327,11 +1328,20 @@ static LRESULT CALLBACK WinExtHookKeyboardHookProc(int nCode,WPARAM wParam,LPARA
 						case VK_NUMLOCK:
 						case VK_SCROLL:
 							nopass = enable_hook_lock_toggle_keys;
+							alternate_message = true;
 							break;
 						}
 					}
 
 					if (nopass) {
+						// convert WM_KEYDOWN/WM_KEYUP if obfuscating the message to distinguish between real and injected events
+						if (alternate_message) {
+							if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN)
+								wParam = WM_USER + 0x100;
+							else if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP)
+								wParam = WM_USER + 0x101;
+						}
+
 						// catch the keystroke, post it to ourself, do not pass it on
 						PostMessage(myHwnd, wParam, st_hook->vkCode,
 							(st_hook->flags & 0x80/*transition state*/) ? 0x0000 : 0xA000/*bits 13&15 are set*/);

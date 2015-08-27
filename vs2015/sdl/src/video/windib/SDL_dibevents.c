@@ -127,11 +127,39 @@ static void GapiTransform(GapiInfo *gapiInfo, LONG *x, LONG *y)
 }
 #endif 
 
+/* DOSBox-X deviation: hack to ignore Num/Scroll/Caps if set */
+#if defined(WIN32)
+unsigned char _dosbox_x_hack_ignore_toggle_keys = 1;
+unsigned char _dosbox_x_hack_wm_user100_to_keyevent = 1;
+#endif
 
 /* The main Win32 event handler */
 LRESULT DIB_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+#if defined(WIN32)
+	unsigned char toggle_key_xlat = 0;
+#endif
 	extern int posted;
+
+	/* DOSBox-X deviation: alternate route for user Num/Scroll/Caps from LL keyboard hook */
+#if defined(WIN32)
+	if (_dosbox_x_hack_wm_user100_to_keyevent) {
+		if (msg == (WM_USER + 0x100)) {
+			toggle_key_xlat = 1;
+			msg = WM_KEYDOWN;
+		}
+		else if (msg == (WM_USER + 0x101)) {
+			toggle_key_xlat = 1;
+			msg = WM_KEYUP;
+		}
+	}
+	if (_dosbox_x_hack_ignore_toggle_keys && !toggle_key_xlat) {
+		if (msg == WM_KEYDOWN || msg == WM_KEYUP || msg == WM_SYSKEYDOWN || msg == WM_SYSKEYUP) {
+			if (wParam == VK_NUMLOCK || wParam == VK_CAPITAL || wParam == VK_SCROLL)
+				return DefWindowProc(hwnd, msg, wParam, lParam);
+		}
+	}
+#endif
 
 	switch (msg) {
 		case WM_SYSKEYDOWN:
