@@ -1316,6 +1316,11 @@ static LRESULT CALLBACK WinExtHookKeyboardHookProc(int nCode,WPARAM wParam,LPARA
 							nopass = true;
 							break;
 
+							// IME Hiragana key, otherwise inaccessible to us
+						case 0xF2:
+							nopass = true; // FIXME: This doesn't (yet) cause a SDL key event.
+							break;
+
 							// we allow hooking Num/Scroll/Caps Lock keys so that pressing them does not toggle the LED.
 							// we then take Num/Scroll/Caps LED state from the guest and let THAT control the LED state.
 						case VK_CAPITAL:
