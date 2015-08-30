@@ -1,0 +1,1607 @@
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/include/cross.h dosbox/include/cross.h
+104,105c104,105
+< bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_directory);
+< bool read_directory_next(dir_information* dirp, char* entry_name, bool& is_directory);
+---
+> bool read_directory_first(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory);
+> bool read_directory_next(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory);
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/include/dos_inc.h dosbox/include/dos_inc.h
+30a31
+> #define CTBUF 127
+37c38
+<   char buffer[127];			 /* the buffer itself */
+---
+>   char buffer[CTBUF];			 /* the buffer itself */
+126a128
+> bool DOS_GetSFNPath(char const * const path, char *SFNpath, bool LFN);
+139c141
+< bool DOS_GetCurrentDir(Bit8u drive,char * const buffer);
+---
+> bool DOS_GetCurrentDir(Bit8u drive,char * const buffer, bool LFN);
+458c460
+< 	void SetResult(const char * _name,Bit32u _size,Bit16u _date,Bit16u _time,Bit8u _attr);
+---
+> 	void SetResult(const char * _name,const char * _lname,Bit32u _size,Bit16u _date,Bit16u _time,Bit8u _attr);
+459a462
+> 	int GetFindData(char * finddata);
+461,462c464,465
+< 	void GetSearchParams(Bit8u & _sattr,char * _spattern);
+< 	void GetResult(char * _name,Bit32u & _size,Bit16u & _date,Bit16u & _time,Bit8u & _attr);
+---
+> 	void GetSearchParams(Bit8u & _sattr,char * _spattern,bool lfn);
+> 	void GetResult(char * _name,char * _lname,Bit32u & _size,Bit16u & _date,Bit16u & _time,Bit8u & _attr);
+474,475c477,478
+< 		Bit8u sname[8];						/* The Search pattern for the filename */		
+< 		Bit8u sext[3];						/* The Search pattern for the extenstion */
+---
+> 		Bit8u spname[8];					/* The Search pattern for the filename */
+> 		Bit8u spext[3];						/* The Search pattern for the extenstion */
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/include/dos_system.h dosbox/include/dos_system.h
+38a39
+> #define LFN_NAMELENGTH 255
+41c42
+< #define DOS_PATHLENGTH 80
+---
+> #define DOS_PATHLENGTH 255
+137c138
+< 	bool		ReadDir				(Bit16u id, char* &result);
+---
+> 	bool		ReadDir				(Bit16u id, char* &result, char * &lresult);
+144c145
+< 	bool		FindNext			(Bit16u id, char* &result);
+---
+> 	bool		FindNext			(Bit16u id, char* &result, char* &lresult);
+187c188
+< 	bool		SetResult		(CFileInfo* dir, char * &result, Bitu entryNr);
+---
+> 	bool		SetResult		(CFileInfo* dir, char * &result, char * &lresult, Bitu entryNr);
+192c193
+< 	void		CreateEntry		(CFileInfo* dir, const char* name, bool query_directory);
+---
+> 	void		CreateEntry		(CFileInfo* dir, const char* name, const char* sname, bool query_directory);
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/include/dosbox.h dosbox/include/dosbox.h
+62c62
+< extern bool SDLNetInited;
+---
+> extern bool SDLNetInited, uselfn;
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/include/mouse.h dosbox/include/mouse.h
+18a19
+> #define C_CLIPBOARD 1
+33a35,39
+> #if C_CLIPBOARD
+> const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h);
+> void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h);
+> void Restore_Text(int x1, int y1, int x2, int y2, int w, int h);
+> #endif
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/include/support.h dosbox/include/support.h
+50a51
+> char * StripArg(char *&cmd);
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/src/dos/dos.cpp dosbox/src/dos/dos.cpp
+114a115
+> 	char *p;
+748c749
+< 		if (DOS_GetCurrentDir(reg_dl,name1)) {
+---
+> 		if (DOS_GetCurrentDir(reg_dl,name1,false)) {
+1122,1124c1123,1416
+< 		reg_ax=0x7100;
+< 		CALLBACK_SCF(true); //Check this! What needs this ? See default case
+< 		LOG(LOG_DOSMISC,LOG_NORMAL)("DOS:Windows long file name support call %2X",reg_al);
+---
+> 			//printf("DOS:LFN function call 71%2X\n",reg_al);
+> 			LOG(LOG_DOSMISC,LOG_NORMAL)("DOS:Windows long file name support call %2X",reg_al);
+> 			if (!uselfn) {
+> 				reg_ax=0x7100;
+> 				CALLBACK_SCF(true); //Check this! What needs this ? See default case
+> 				break;
+> 			}
+> 			switch(reg_al)		{
+> 			case 0x39:		/* LFN MKDIR */
+> 				MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
+> 				*name1='\"';
+> 				p=name1+strlen(name1);
+> 				while (*p==' '||*p==0) p--;
+> 				*(p+1)='\"';
+> 				*(p+2)=0;
+> 				if (DOS_MakeDir(name1)) {
+> 					reg_ax=0;
+> 					CALLBACK_SCF(false);
+> 				} else {
+> 					reg_ax=dos.errorcode;
+> 					CALLBACK_SCF(true);
+> 				}
+> 				break;
+> 			case 0x3a:		/* LFN RMDIR */
+> 				MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
+> 				*name1='\"';
+> 				p=name1+strlen(name1);
+> 				while (*p==' '||*p==0) p--;
+> 				*(p+1)='\"';
+> 				*(p+2)=0;
+> 				if  (DOS_RemoveDir(name1)) {
+> 					reg_ax=0;
+> 					CALLBACK_SCF(false);
+> 				} else {
+> 					reg_ax=dos.errorcode;
+> 					CALLBACK_SCF(true);
+> 					LOG(LOG_MISC,LOG_NORMAL)("Remove dir failed on %s with error %X",name1,dos.errorcode);
+> 				}
+> 				break;
+> 			case 0x3b:		/* LFN CHDIR */
+> 				MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
+> 				*name1='\"';
+> 				p=name1+strlen(name1);
+> 				while (*p==' '||*p==0) p--;
+> 				*(p+1)='\"';
+> 				*(p+2)=0;
+> 				if  (DOS_ChangeDir(name1)) {
+> 					reg_ax=0;
+> 					CALLBACK_SCF(false);
+> 				} else {
+> 					reg_ax=dos.errorcode;
+> 					CALLBACK_SCF(true);
+> 				}
+> 				break;
+> 			case 0x41:		/* LFN UNLINK */
+> 				MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
+> 				*name1='\"';
+> 				p=name1+strlen(name1);
+> 				while (*p==' '||*p==0) p--;
+> 				*(p+1)='\"';
+> 				*(p+2)=0;
+> 				if (DOS_UnlinkFile(name1)) {
+> 					reg_ax=0;
+> 					CALLBACK_SCF(false);
+> 				} else {
+> 					reg_ax=dos.errorcode;
+> 					CALLBACK_SCF(true);
+> 				}
+> 				break;
+> 			case 0x43:		/* LFN ATTR */
+> 				MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
+> 				*name1='\"';
+> 				p=name1+strlen(name1);
+> 				while (*p==' '||*p==0) p--;
+> 				*(p+1)='\"';
+> 				*(p+2)=0;
+> 				switch (reg_bl) {
+> 					case 0x00:				/* Get */
+> 					{
+> 						Bit16u attr_val=reg_cx;
+> 						if (DOS_GetFileAttr(name1,&attr_val)) {
+> 							reg_cx=attr_val;
+> 							reg_ax=0;
+> 							CALLBACK_SCF(false);
+> 						} else {
+> 							CALLBACK_SCF(true);
+> 							reg_ax=dos.errorcode;
+> 						}
+> 						break;
+> 					};
+> 					case 0x01:				/* Set */
+> 						if (DOS_SetFileAttr(name1,reg_cx)) {
+> 							reg_ax=0;
+> 							CALLBACK_SCF(false);
+> 						} else {
+> 							CALLBACK_SCF(true);
+> 							reg_ax=dos.errorcode;
+> 						}
+> 						break;
+> 					case 0x02:
+> 					case 0x03:
+> 					case 0x04:
+> 					case 0x05:
+> 					case 0x06:
+> 					case 0x07:
+> 					case 0x08:
+> 						LOG(LOG_MISC,LOG_ERROR)("DOS:7143:Unimplemented subfunction %2X",reg_bl);
+> 						reg_ax=1;
+> 						CALLBACK_SCF(true);
+> 						break;
+> 					default:
+> 						E_Exit("DOS:Illegal LFN Attr call %2X",reg_bl);
+> 				}
+> 				break;
+> 			case 0x47:		/* LFN PWD */
+> 				if (DOS_GetCurrentDir(reg_dl,name1,true)) {
+> 					MEM_BlockWrite(SegPhys(ds)+reg_si,name1,(Bitu)(strlen(name1)+1));
+> 					reg_ax=0;
+> 					CALLBACK_SCF(false);
+> 				} else {
+> 					reg_ax=dos.errorcode;
+> 					CALLBACK_SCF(true);
+> 				}
+> 				break;
+> 			case 0x4e:		/* LFN FindFirst */
+> 				MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
+> 				*name1='\"';
+> 				p=name1+strlen(name1);
+> 				while (*p==' '||*p==0) p--;
+> 				*(p+1)='\"';
+> 				*(p+2)=0;
+> 				DOS_GetSFNPath(name1,name2,false);
+> 				if (DOS_FindFirst(name2,reg_cx,false)) {
+> 					DOS_DTA dta(dos.dta());
+> 					char finddata[CROSS_LEN];
+> 					int i=dta.GetFindData(finddata);
+> 					MEM_BlockWrite(SegPhys(es)+reg_di,finddata,i+1);
+> 					CALLBACK_SCF(false);
+> 					reg_ax=1; // todo: return filefind handle
+> 				} else {
+> 					reg_ax=dos.errorcode;
+> 					CALLBACK_SCF(true);
+> 				};
+> 				break;		 
+> 			case 0x4f:		/* LFN FindNext */
+> 				if (DOS_FindNext()) {
+> 					DOS_DTA dta(dos.dta());
+> 					char finddata[CROSS_LEN];
+> 					int i=dta.GetFindData(finddata);
+> 					MEM_BlockWrite(SegPhys(es)+reg_di,finddata,i+1);
+> 					CALLBACK_SCF(false);
+> 					reg_ax=0x4f05;
+> 				} else {
+> 					reg_ax=dos.errorcode;
+> 					CALLBACK_SCF(true);
+> 				};
+> 				break;		
+> 			case 0x56:		/* LFN RENAME */
+> 				MEM_StrCopy(SegPhys(ds)+reg_dx,name1+1,DOSNAMEBUF);
+> 				*name1='\"';
+> 				p=name1+strlen(name1);
+> 				while (*p==' '||*p==0) p--;
+> 				*(p+1)='\"';
+> 				*(p+2)=0;
+> 				MEM_StrCopy(SegPhys(es)+reg_di,name2+1,DOSNAMEBUF);
+> 				*name2='\"';
+> 				p=name2+strlen(name2);
+> 				while (*p==' '||*p==0) p--;
+> 				*(p+1)='\"';
+> 				*(p+2)=0;
+> 				if (DOS_Rename(name1,name2)) {
+> 					reg_ax=0;
+> 					CALLBACK_SCF(false);			
+> 				} else {
+> 					reg_ax=dos.errorcode;
+> 					CALLBACK_SCF(true);
+> 				}
+> 				break;		
+> 			case 0x60:		/* LFN GetName */
+> 				MEM_StrCopy(SegPhys(ds)+reg_si,name1+1,DOSNAMEBUF);
+> 				*name1='\"';
+> 				p=name1+strlen(name1);
+> 				while (*p==' '||*p==0) p--;
+> 				*(p+1)='\"';
+> 				*(p+2)=0;
+> 				if (DOS_Canonicalize(name1,name2)) {
+> 					strcpy(name1,"\"");
+> 					strcat(name1,name2);
+> 					strcat(name1,"\"");
+> 					switch(reg_cl)		{
+> 						case 0:		// Canonoical path name
+> 							strcpy(name2,name1);
+> 							break;
+> 						case 1:		/* SFN path name */
+> 							DOS_GetSFNPath(name1,name2,false);
+> 							break;
+> 						case 2:		/* LFN path name */
+> 							DOS_GetSFNPath(name1,name2,true);
+> 							break;
+> 						default:
+> 							E_Exit("DOS:Illegal LFN GetName call %2X",reg_cl);
+> 					}
+> 					MEM_BlockWrite(SegPhys(es)+reg_di,name2,(Bitu)(strlen(name2)+1));
+> 					reg_ax=5;
+> 					CALLBACK_SCF(false);
+> 				} else {
+> 					reg_ax=dos.errorcode;
+> 					CALLBACK_SCF(true);
+> 				}
+> 				break;
+> 			case 0x6c:		/* LFN CREATE */
+> 				MEM_StrCopy(SegPhys(ds)+reg_si,name1+1,DOSNAMEBUF);
+> 				*name1='\"';
+> 				p=name1+strlen(name1);
+> 				while (*p==' '||*p==0) p--;
+> 				*(p+1)='\"';
+> 				*(p+2)=0;
+> 				if (DOS_OpenFileExtended(name1,reg_bx,reg_cx,reg_dx,&reg_ax,&reg_cx)) {
+> 					CALLBACK_SCF(false);
+> 				} else {
+> 					reg_ax=dos.errorcode;
+> 					CALLBACK_SCF(true);
+> 				}
+> 				break;
+> 			case 0xa0:		/* LFN VolInfo */
+> 				MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
+> 				if (DOS_Canonicalize(name1,name2)) {
+> 					if (reg_cx > 3)
+> 						MEM_BlockWrite(SegPhys(es)+reg_di,"FAT",4);
+> 					reg_ax=0;
+> 					reg_bx=0x4006;
+> 					reg_cx=0xff;
+> 					reg_dx=0x104;
+> 					CALLBACK_SCF(false);
+> 				} else {
+> 					reg_ax=dos.errorcode;
+> 					CALLBACK_SCF(true);
+> 				}
+> 				break;
+> 			case 0xa1:		/* LFN FileClose */
+> 				reg_ax=0;
+> 				CALLBACK_SCF(false);
+> 				break;
+> 			case 0xa7:		/* LFN TimeConv */
+> 				switch (reg_bl) {
+> 					case 0x00:
+> 						reg_cl=mem_readb(SegPhys(ds)+reg_si);	//not yet a proper implementation,
+> 						reg_ch=mem_readb(SegPhys(ds)+reg_si+1);	//but DIR from MS-DOS 7 COMMAND.COM
+> 						reg_dl=mem_readb(SegPhys(ds)+reg_si+4);	//should show date/time correctly now
+> 						reg_dh=mem_readb(SegPhys(ds)+reg_si+5);
+> 						reg_bh=0;
+> 						reg_ax=0;
+> 						CALLBACK_SCF(false);
+> 						break;
+> 					case 0x01:
+> 						reg_ax=1;
+> 						CALLBACK_SCF(true); // not implemented yet
+> 						break;
+> 					default:
+> 						E_Exit("DOS:Illegal LFN TimeConv call %2X",reg_bl);
+> 				}
+> 				break;
+> 			case 0xa8:		/* LFN GenSFN */
+> 				if (reg_dh == 0 || reg_dh == 1) {
+> 					MEM_StrCopy(SegPhys(ds)+reg_si,name1,DOSNAMEBUF);
+> 					int i,j=0;
+> 					char c[13],*s=strrchr(name1,'.');
+> 					for (i=0;i<8;j++) {
+> 						if (name1[j] == 0 || s-name1 <= j) break;
+> 						if (name1[j] == '.') continue;
+> 						sprintf(c,"%s%c",c,toupper(name1[j]));
+> 						i++;
+> 					}
+> 					if (s != NULL) {
+> 						s++;
+> 						if (s != 0 && reg_dh == 1) strcat(c,".");
+> 						for (i=0;i<3;i++) {
+> 							if (*(s+i) == 0) break;
+> 							sprintf(c,"%s%c",c,toupper(*(s+i)));
+> 						}
+> 					}
+> 					MEM_BlockWrite(SegPhys(es)+reg_di,c,strlen(c)+1);
+> 					reg_ax=0;
+> 					CALLBACK_SCF(false);
+> 				} else {
+> 					reg_ax=1;
+> 					CALLBACK_SCF(true);
+> 				}
+> 				break;
+> 			case 0xaa:		/* LFN SUBST */
+> 			default:
+> 				reg_ax=0x7100;
+> 				CALLBACK_SCF(true); //Check this! What needs this ? See default case
+> 			}
+1232,1233d1523
+< 	
+< 		dos.version.major=5;
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/src/dos/dos_classes.cpp dosbox/src/dos/dos_classes.cpp
+26a27,38
+> char sname[LFN_NAMELENGTH+1];
+> struct finddata {
+> 	Bit8u attr;
+> 	Bit8u fres1[19];
+> 	Bit32u mtime;
+> 	Bit32u mdate;
+> 	Bit32u hsize;
+> 	Bit32u size;
+> 	Bit8u fres2[8];
+> 	char lname[260];
+> 	char sname[14];
+> } fd;
+287c299
+< 		MEM_BlockCopy(pt+offsetof(sPSP,cmdtail),Real2Phys(src),128);
+---
+> 		MEM_BlockCopy(pt+offsetof(sPSP,cmdtail),Real2Phys(src),CTBUF+1);
+322d333
+< 
+326,328c337,344
+< 	/* Fill with spaces */
+< 	Bitu i;
+< 	for (i=0;i<11;i++) mem_writeb(pt+offsetof(sDTA,sname)+i,' ');
+---
+> 	/* Fill with char 0 */
+> 	int i;
+> 	for (i=0;i<LFN_NAMELENGTH;i++) {
+> 		if (pattern[i]==0) break;
+> 		sname[i]=pattern[i];
+> 	}
+> 	while (i<=LFN_NAMELENGTH) sname[i++]=0;
+> 	for (i=0;i<11;i++) mem_writeb(pt+offsetof(sDTA,spname)+i,0);
+334c350
+< 		MEM_BlockWrite(pt+offsetof(sDTA,sname),pattern,size);
+---
+> 		MEM_BlockWrite(pt+offsetof(sDTA,spname),pattern,size);
+336c352
+< 		MEM_BlockWrite(pt+offsetof(sDTA,sext),find_ext,(strlen(find_ext)>3) ? 3 : (Bitu)strlen(find_ext));
+---
+> 		MEM_BlockWrite(pt+offsetof(sDTA,spext),find_ext,(strlen(find_ext)>3) ? 3 : (Bitu)strlen(find_ext));
+338c354
+< 		MEM_BlockWrite(pt+offsetof(sDTA,sname),pattern,(strlen(pattern) > 8) ? 8 : (Bitu)strlen(pattern));
+---
+> 		MEM_BlockWrite(pt+offsetof(sDTA,spname),pattern,(strlen(pattern) > 8) ? 8 : (Bitu)strlen(pattern));
+342c358
+< void DOS_DTA::SetResult(const char * _name,Bit32u _size,Bit16u _date,Bit16u _time,Bit8u _attr) {
+---
+> void DOS_DTA::SetResult(const char * _name, const char * _lname, Bit32u _size,Bit16u _date,Bit16u _time,Bit8u _attr) {
+347a364,371
+> 	fd.hsize=0;
+> 	fd.size=_size;
+> 	fd.mdate=_date;
+> 	fd.mtime=_time;
+> 	fd.attr=_attr;
+> 	strcpy(fd.lname,_lname);
+> 	strcpy(fd.sname,_name);
+> 	if (!strcmp(fd.lname,fd.sname)) fd.sname[0]=0;
+350,351c374
+< 
+< void DOS_DTA::GetResult(char * _name,Bit32u & _size,Bit16u & _date,Bit16u & _time,Bit8u & _attr) {
+---
+> void DOS_DTA::GetResult(char * _name, char * _lname,Bit32u & _size,Bit16u & _date,Bit16u & _time,Bit8u & _attr) {
+352a376
+> 	strcpy(_lname,fd.lname);
+358a383,394
+> int DOS_DTA::GetFindData(char * fdstr) {
+> 	sprintf(fdstr,"%-1s%-19s%-2s%-2s%-4s%-4s%-4s%-8s%-260s%-14s",&fd.attr,&fd.fres1,&fd.mtime,&fd.mdate,&fd.mtime,&fd.size,&fd.hsize,&fd.fres2,&fd.lname,&fd.sname);
+> 	//for (int i=0;i<4;i++) fdstr[28+i]=0;
+> 	fdstr[32]=fd.size%256;
+> 	fdstr[33]=(char)((fd.size%65536)/256);
+> 	fdstr[34]=(char)((fd.size%16777216)/65536);
+> 	fdstr[35]=(char)(fd.size/16777216);
+> 	fdstr[44+strlen(fd.lname)]=0;
+> 	fdstr[304+strlen(fd.sname)]=0;
+> 	return (sizeof(fd));
+> }
+> 
+363c399
+< void DOS_DTA::GetSearchParams(Bit8u & attr,char * pattern) {
+---
+> void DOS_DTA::GetSearchParams(Bit8u & attr,char * pattern, bool lfn) {
+365,371c401,411
+< 	char temp[11];
+< 	MEM_BlockRead(pt+offsetof(sDTA,sname),temp,11);
+< 	memcpy(pattern,temp,8);
+< 	pattern[8]='.';
+< 	memcpy(&pattern[9],&temp[8],3);
+< 	pattern[12]=0;
+< 
+---
+> 	if (lfn) {
+> 		memcpy(pattern,sname,LFN_NAMELENGTH);
+> 		pattern[LFN_NAMELENGTH]=0;
+> 	} else {
+> 		char temp[11];
+> 		MEM_BlockRead(pt+offsetof(sDTA,spname),temp,11);
+> 		for (int i=0;i<13;i++) pattern[i]=0;
+> 		memcpy(pattern,temp,8);
+> 		pattern[strlen(pattern)]='.';
+> 		memcpy(&pattern[strlen(pattern)],&temp[8],3);
+> 	}
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/src/dos/dos_devices.cpp dosbox/src/dos/dos_devices.cpp
+40c40,41
+< 		*size = 0; //Return success and no data read. 
+---
+> 		*size = 0; //Return success and no data read.
+> 		
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/src/dos/dos_files.cpp dosbox/src/dos/dos_files.cpp
+68c68
+< 	Bitu r,w;
+---
+> 	Bitu r,w,q=0;
+70a71,74
+> 	while (name_int[0]=='"') {
+> 		q++;
+> 		name_int++;
+> 	}
+82c86
+< 		if ((c>='a') && (c<='z')) {upname[w++]=c-32;continue;}
+---
+> 		if ((c>='a') && (c<='z')) {upname[w++]=c;continue;}
+85a90,92
+> 		case '"':
+> 			q++;
+> 			continue;
+89,90c96,98
+< 		case ' ': /* should be seperator */
+< 			break;
+---
+> 		case ' ':
+> 			if (q/2*2 == q) {break;}
+> 			else {upname[w++]=c;continue;}
+94,95c102,103
+< 		case '\'':	case '+':	case '^':	case 246:	case 255:	case 0xa0:
+< 		case 0xe5:	case 0xbd:	case 0x9d:
+---
+> 		case '\'':	case '+':	case '^':	case '[':	case ']':	case 246:
+> 		case 255:	case 0xa0:	case 0xe5:	case 0xbd:	case 0x9d:
+160a169
+> 			/*
+165c174
+< 				//Or path not found depending on wether 
+---
+> 				//Or path not found depending on whether 
+176a186
+> 			*/
+192c202,261
+< bool DOS_GetCurrentDir(Bit8u drive,char * const buffer) {
+---
+> bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
+> 	char dir_current[DOS_PATHLENGTH + 1], pdir[LFN_NAMELENGTH], *p;
+> 	Bit8u drive;char fulldir[DOS_PATHLENGTH],LFNPath[CROSS_LEN];
+> 	char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH];
+> 	int w=0;
+> 	DOS_DTA dta(dos.dta());
+> 	Bit32u size;Bit16u date;Bit16u time;Bit8u attr;
+> 	if (!DOS_MakeName(path,fulldir,&drive)) return false;
+> 	sprintf(SFNPath,"%c:\\",drive+'A');
+> 	strcpy(LFNPath,SFNPath);
+> 	strcpy(dir_current,Drives[drive]->curdir);
+> 	Drives[drive]->curdir,"";
+> 	p = fulldir;
+> 	if (*p==0) return true;
+> 	for (char *s = strchr(p,'\\'); s != NULL; s = strchr(p,'\\')) {
+> 		*s = 0;
+> 		if (SFNPath[strlen(SFNPath)-1]=='\\')
+> 			sprintf(pdir,"\"%s%s\"",SFNPath,p);
+> 		else
+> 			sprintf(pdir,"\"%s\\%s\"",SFNPath,p);
+> 		if (!strrchr(p,'*') && !strrchr(p,'?')) {
+> 			*s = '\\';
+> 			p = s + 1;
+> 			if (DOS_FindFirst(pdir,0xffff & DOS_ATTR_DIRECTORY & ~DOS_ATTR_VOLUME,false)) {
+> 				dta.GetResult(name,lname,size,date,time,attr);
+> 				strcat(SFNPath,name);
+> 				strcat(LFNPath,lname);
+> 				Drives[drive]->curdir,SFNPath+3;
+> 				strcat(SFNPath,"\\");
+> 				strcat(LFNPath,"\\");
+> 			}
+> 			else {
+> 			return false;}
+> 		} else {
+> 			strcat(SFNPath,p);
+> 			strcat(LFNPath,p);
+> 			strcat(SFNPath,"\\");
+> 			strcat(LFNPath,"\\");
+> 			*s = '\\';
+> 			p = s + 1;
+> 			break;
+> 		}
+> 	}
+> 	if (p != 0) {
+> 		sprintf(pdir,"\"%s%s\"",SFNPath,p);
+> 		if (!strrchr(p,'*')&&!strrchr(p,'?')&&DOS_FindFirst(pdir,0xffff & ~DOS_ATTR_VOLUME,false)) {
+> 			dta.GetResult(name,lname,size,date,time,attr);
+> 			strcat(SFNPath,name);
+> 			strcat(LFNPath,lname);
+> 		} else {
+> 			strcat(SFNPath,p);
+> 			strcat(LFNPath,p);
+> 		}
+> 	}
+> 	Drives[drive]->curdir,dir_current;
+> 	if (LFN) strcpy(SFNPath,LFNPath);
+> 	return true;
+> }
+> 
+> bool DOS_GetCurrentDir(Bit8u drive,char * const buffer, bool LFN) {
+199c268,275
+< 	strcpy(buffer,Drives[drive]->curdir);
+---
+> 	if (LFN && uselfn) {
+> 		char cdir[DOS_PATHLENGTH],ldir[DOS_PATHLENGTH];
+> 		sprintf(cdir,"%c:\\%s",drive+'A',Drives[drive]->curdir);
+> 		DOS_GetSFNPath(cdir,ldir,true);
+> 		strcpy(buffer,ldir+3);
+> 	} else {
+> 		strcpy(buffer,Drives[drive]->curdir);
+> 	}
+204c280
+< 	Bit8u drive;char fulldir[DOS_PATHLENGTH];
+---
+> 	Bit8u drive;char fulldir[DOS_PATHLENGTH],sdir[DOS_PATHLENGTH];
+213,216d288
+< 	if (strlen(fulldir) && testdir[len-1]=='\\') {
+< 		DOS_SetError(DOSERR_PATH_NOT_FOUND);
+< 		return false;
+< 	}
+218,219c290,291
+< 	if (Drives[drive]->TestDir(fulldir)) {
+< 		strcpy(Drives[drive]->curdir,fulldir);
+---
+> 	if (Drives[drive]->TestDir(fulldir)&&DOS_GetSFNPath(dir,sdir,false)) {
+> 		strcpy(Drives[drive]->curdir,sdir+3);
+258,260c330,333
+< 	char currdir[DOS_PATHLENGTH]= { 0 };
+< 	DOS_GetCurrentDir(drive + 1 ,currdir);
+< 	if(strcmp(currdir,fulldir) == 0) {
+---
+> 	char currdir[DOS_PATHLENGTH]= { 0 }, lcurrdir[DOS_PATHLENGTH]= { 0 };
+> 	DOS_GetCurrentDir(drive + 1 ,currdir, false);
+> 	DOS_GetCurrentDir(drive + 1 ,lcurrdir, true);
+> 	if(strcasecmp(currdir,fulldir) == 0 || uselfn && strcasecmp(lcurrdir,fulldir) == 0) {
+340c413
+< 		dta.SetResult(pattern,0,0,0,DOS_ATTR_DEVICE);
+---
+> 		dta.SetResult(pattern,pattern,0,0,0,DOS_ATTR_DEVICE);
+344,345c417,420
+<    
+< 	if (Drives[drive]->FindFirst(dir,dta,fcb_findfirst)) return true;
+---
+> 	bool r=Drives[drive]->FindFirst(dir, dta, fcb_findfirst);
+> 	return r;
+> 
+> 	//if (Drives[drive]->FindFirst(dir,dta,fcb_findfirst)) return true;
+509a585
+> 		//Drives[drive]->EmptyCache();
+907c983,984
+< 	char name[DOS_NAMELENGTH_ASCII];Bit32u size;Bit16u date;Bit16u time;Bit8u attr;Bit8u drive;
+---
+> 	char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
+> 	Bit32u size;Bit16u date;Bit16u time;Bit8u attr;Bit8u drive;
+909c986
+< 	find_dta.GetResult(name,size,date,time,attr);
+---
+> 	find_dta.GetResult(name,lname,size,date,time,attr);
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/src/dos/dos_misc.cpp dosbox/src/dos/dos_misc.cpp
+59a60
+> 	char name[256];
+197a199,222
+> 		return true;
+> 	case 0x1300:
+> 	case 0x1302:
+> 		reg_ax=0;
+> 		return true;
+> 	case 0x1605:
+> 		return true;
+> 	case 0x1612:
+> 		reg_ax=0;
+> 		name[0]=1;
+> 		name[1]=0;
+> 		MEM_BlockWrite(SegPhys(es)+reg_bx,name,0x20);
+> 		return true;
+> 	case 0x1613:	/* Get SYSTEM.DAT path */
+> 		strcpy(name,"C:\\WINDOWS\\SYSTEM.DAT");
+> 		MEM_BlockWrite(SegPhys(es)+reg_di,name,(Bitu)(strlen(name)+1));
+> 		reg_ax=0;
+> 		reg_cx=strlen(name);
+> 		return true;
+> 	case 0x4a16:	/* Open bootlog */
+> 		return true;
+> 	case 0x4a17:	/* Write bootlog */
+> 		MEM_StrCopy(SegPhys(ds)+reg_dx,name,255);
+> 		LOG(LOG_DOSMISC,LOG_NORMAL)("BOOTLOG: %s\n",name);
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/src/dos/dos_programs.cpp dosbox/src/dos/dos_programs.cpp
+57c57,58
+< 		char name[DOS_NAMELENGTH_ASCII];Bit32u size;Bit16u date;Bit16u time;Bit8u attr;
+---
+> 		char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
+> 		Bit32u size;Bit16u date;Bit16u time;Bit8u attr;
+73c74
+< 				dta.GetResult(name,size,date,time,attr);
+---
+> 				dta.GetResult(name,lname,size,date,time,attr);
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/src/dos/drive_cache.cpp dosbox/src/dos/drive_cache.cpp
+135,136c135,136
+< 		char* result = 0;
+< 		ReadDir(id,result);
+---
+> 		char *result = 0, *lresult = 0;
+> 		ReadDir(id,result,lresult);
+215c215,217
+< 		CreateEntry(dir,file,false);
+---
+> 		char sfile[DOS_NAMELENGTH];
+> 		sfile[0]=0;
+> 		CreateEntry(dir,file,sfile,false);
+598c600
+< 			char* result = 0;
+---
+> 			char *result = 0, *lresult = 0;
+600c602
+< 			ReadDir(id,result);
+---
+> 			ReadDir(id,result,lresult);
+631c633
+< 					char* result = 0;
+---
+> 					char *result = 0, *lresult = 0;
+633c635
+< 					ReadDir(id,result);
+---
+> 					ReadDir(id,result,lresult);
+692c694
+< void DOS_Drive_Cache::CreateEntry(CFileInfo* dir, const char* name, bool is_directory) {
+---
+> void DOS_Drive_Cache::CreateEntry(CFileInfo* dir, const char* name, const char* sname, bool is_directory) {
+694a697
+> 	strcpy(info->shortname, sname);				
+699c702
+< 	CreateShortName(dir, info);		
+---
+> 	if (sname[0]==0) CreateShortName(dir, info);		
+731c734
+< 	strcpy(info->shortname, from->shortname);				
+---
+> 	strcpy(info->shortname, from->shortname);
+738c741
+< bool DOS_Drive_Cache::ReadDir(Bit16u id, char* &result) {
+---
+> bool DOS_Drive_Cache::ReadDir(Bit16u id, char* &result, char * &lresult) {
+753c756
+< 		char dir_name[CROSS_LEN];
+---
+> 		char dir_name[CROSS_LEN], dir_sname[DOS_NAMELENGTH+1];
+755,758c758,761
+< 		if (read_directory_first(dirp, dir_name, is_directory)) {
+< 			CreateEntry(dirSearch[id], dir_name, is_directory);
+< 			while (read_directory_next(dirp, dir_name, is_directory)) {
+< 				CreateEntry(dirSearch[id], dir_name, is_directory);
+---
+> 		if (read_directory_first(dirp, dir_name, dir_sname, is_directory)) {
+> 			CreateEntry(dirSearch[id], dir_name, dir_sname, is_directory);
+> 			while (read_directory_next(dirp, dir_name, dir_sname, is_directory)) {
+> 				CreateEntry(dirSearch[id], dir_name, dir_sname, is_directory);
+775c778
+< 	if (SetResult(dirSearch[id], result, dirSearch[id]->nextEntry)) return true;
+---
+> 	if (SetResult(dirSearch[id], result, lresult, dirSearch[id]->nextEntry)) return true;
+783c786
+< bool DOS_Drive_Cache::SetResult(CFileInfo* dir, char* &result, Bitu entryNr)
+---
+> bool DOS_Drive_Cache::SetResult(CFileInfo* dir, char* &result, char* &lresult, Bitu entryNr)
+785a789
+> 	static char lres[CROSS_LEN] = { 0 };
+787a792
+> 	lresult = lres;
+791a797
+> 	strcpy(lres,info->orgname);
+850c856
+< bool DOS_Drive_Cache::FindNext(Bit16u id, char* &result) {
+---
+> bool DOS_Drive_Cache::FindNext(Bit16u id, char* &result, char* &lresult) {
+856c862
+< 	if (!SetResult(dirFindFirst[id], result, dirFindFirst[id]->nextEntry)) {
+---
+> 	if (!SetResult(dirFindFirst[id], result, lresult, dirFindFirst[id]->nextEntry)) {
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/src/dos/drive_fat.cpp dosbox/src/dos/drive_fat.cpp
+439,440c439,441
+< 				char find_name[DOS_NAMELENGTH_ASCII];Bit16u find_date,find_time;Bit32u find_size;Bit8u find_attr;
+< 				imgDTA->GetResult(find_name,find_size,find_date,find_time,find_attr);
+---
+> 				char find_name[DOS_NAMELENGTH_ASCII],lfind_name[LFN_NAMELENGTH];
+> 				Bit16u find_date,find_time;Bit32u find_size;Bit8u find_attr;
+> 				imgDTA->GetResult(find_name,lfind_name,find_size,find_date,find_time,find_attr);
+480c481,482
+< 			char find_name[DOS_NAMELENGTH_ASCII];Bit16u find_date,find_time;Bit32u find_size;Bit8u find_attr;
+---
+> 			char find_name[DOS_NAMELENGTH_ASCII],lfind_name[LFN_NAMELENGTH];
+> 			Bit16u find_date,find_time;Bit32u find_size;Bit8u find_attr;
+484c486
+< 				imgDTA->GetResult(find_name,find_size,find_date,find_time,find_attr);
+---
+> 				imgDTA->GetResult(find_name,lfind_name,find_size,find_date,find_time,find_attr);
+864,865c866,867
+< 	Bit8u attr;char pattern[DOS_NAMELENGTH_ASCII];
+< 	dta.GetSearchParams(attr,pattern);
+---
+> 	Bit8u attr;char pattern[CROSS_LEN];
+> 	dta.GetSearchParams(attr,pattern,false);
+911c913
+< 	char srch_pattern[DOS_NAMELENGTH_ASCII];
+---
+> 	char srch_pattern[CROSS_LEN];
+912a915
+> 	char lfind_name[LFN_NAMELENGTH+1];
+915c918
+< 	dta.GetSearchParams(attrs, srch_pattern);
+---
+> 	dta.GetSearchParams(attrs, srch_pattern,false);
+943a947
+> 
+945a950
+> 	memset(lfind_name,0,LFN_NAMELENGTH);
+947a953
+> 	memcpy(lfind_name,&sectbuf[entryoffset].entryname[0],8);
+949a956
+> 	trimString(&lfind_name[0]);
+954a962,963
+> 		strcat(lfind_name, ".");
+> 		strcat(lfind_name, extension);
+969c978
+< 	if(!WildFileCmp(find_name,srch_pattern)) goto nextfile;
+---
+> 	if(!WildFileCmp(find_name,srch_pattern)&&!LWildFileCmp(lfind_name,srch_pattern)) goto nextfile;
+973c982
+< 	dta.SetResult(find_name, sectbuf[entryoffset].entrysize, sectbuf[entryoffset].modDate, sectbuf[entryoffset].modTime, sectbuf[entryoffset].attrib);
+---
+> 	dta.SetResult(find_name, lfind_name, sectbuf[entryoffset].entrysize, sectbuf[entryoffset].modDate, sectbuf[entryoffset].modTime, sectbuf[entryoffset].attrib);
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/src/dos/drive_iso.cpp dosbox/src/dos/drive_iso.cpp
+28a29
+> char fullname[LFN_NAMELENGTH];
+254,255c255,256
+< 	char pattern[ISO_MAXPATHNAME];
+< 	dta.GetSearchParams(attr, pattern);
+---
+> 	char pattern[CROSS_LEN];
+> 	dta.GetSearchParams(attr, pattern,true);
+258c259
+< 		dta.SetResult(discLabel, 0, 0, 0, DOS_ATTR_VOLUME);
+---
+> 		dta.SetResult(discLabel, discLabel, 0, 0, 0, DOS_ATTR_VOLUME);
+263c264
+< 			dta.SetResult(discLabel, 0, 0, 0, DOS_ATTR_VOLUME);
+---
+> 			dta.SetResult(discLabel, discLabel, 0, 0, 0, DOS_ATTR_VOLUME);
+273,274c274,275
+< 	char pattern[DOS_NAMELENGTH_ASCII];
+< 	dta.GetSearchParams(attr, pattern);
+---
+> 	char pattern[CROSS_LEN], findName[DOS_NAMELENGTH_ASCII], lfindName[ISO_MAXPATHNAME];
+> 	dta.GetSearchParams(attr, pattern,true);
+286c287,291
+< 		if (!IS_ASSOC(de.fileFlags) && !(isRoot && de.ident[0]=='.') && WildFileCmp((char*)de.ident, pattern)
+---
+> 		if (strcmp((char*)de.ident,(char*)fullname))
+> 			strcpy(lfindName,fullname);
+> 		else
+> 			GetLongName((char*)de.ident,lfindName);
+> 		if (!IS_ASSOC(de.fileFlags) && !(isRoot && de.ident[0]=='.') && (WildFileCmp((char*)de.ident, pattern) || LWildFileCmp(lfindName, pattern))
+289,290d293
+< 			/* file is okay, setup everything to be copied in DTA Block */
+< 			char findName[DOS_NAMELENGTH_ASCII];		
+291a295
+> 			/* file is okay, setup everything to be copied in DTA Block */
+299c303
+< 			dta.SetResult(findName, findSize, findDate, findTime, findAttr);
+---
+> 			dta.SetResult(findName, lfindName, findSize, findDate, findTime, findAttr);
+398a403
+> 	fullname[0]=0;
+418a424
+> 		 
+490a497
+> 	strcpy((char*)fullname,(char*)de->ident);
+518c525
+< 	char isoPath[ISO_MAXPATHNAME];
+---
+> 	char isoPath[ISO_MAXPATHNAME], longname[ISO_MAXPATHNAME];
+538c545,546
+< 				if (!IS_ASSOC(de->fileFlags) && (0 == strncasecmp((char*) de->ident, name, ISO_MAX_FILENAME_LENGTH))) {
+---
+> 				GetLongName((char*)de->ident,longname);
+> 				if (!IS_ASSOC(de->fileFlags) && (0 == strncasecmp((char*) de->ident, name, ISO_MAX_FILENAME_LENGTH)) ||0 == strncasecmp((char*) longname, name, ISO_MAXPATHNAME)) {
+546a555,568
+> }
+> 
+> void isoDrive :: GetLongName(char *ident, char *lfindName) {
+> 	char *c=ident+strlen(ident);
+> 	int i,j=222-strlen(ident)-6;
+> 	for (i=5;i<j;i++) {
+> 		if (*(c+i)=='N'&&*(c+i+1)=='M'&&*(c+i+2)>0&&*(c+i+3)==1&&*(c+i+4)==0&&*(c+i+5)>0)
+> 			break;
+> 		}
+> 	if (i<j&&strcmp(ident,".")&&strcmp(ident,"..")) {
+> 		strncpy(lfindName,c+i+5,*(c+i+2)-5);
+> 		lfindName[*(c+i+2)-5]=0;
+> 	} else
+> 		strcpy(lfindName,ident);
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/src/dos/drive_local.cpp dosbox/src/dos/drive_local.cpp
+217c217
+< 	dta.GetSearchParams(sAttr,tempDir);
+---
+> 	dta.GetSearchParams(sAttr,tempDir,true);
+222c222
+< 			dta.SetResult(dirCache.GetLabel(),0,0,0,DOS_ATTR_VOLUME);
+---
+> 			dta.SetResult(dirCache.GetLabel(),dirCache.GetLabel(),0,0,0,DOS_ATTR_VOLUME);
+234c234
+< 			dta.SetResult(dirCache.GetLabel(),0,0,0,DOS_ATTR_VOLUME);
+---
+> 			dta.SetResult(dirCache.GetLabel(),dirCache.GetLabel(),0,0,0,DOS_ATTR_VOLUME);
+240c240
+< 				dta.SetResult(dirCache.GetLabel(),0,0,0,DOS_ATTR_VOLUME);
+---
+> 				dta.SetResult(dirCache.GetLabel(),dirCache.GetLabel(),0,0,0,DOS_ATTR_VOLUME);
+250c250
+< 	char * dir_ent;
+---
+> 	char *dir_ent, *ldir_ent;
+252,253c252,253
+< 	char full_name[CROSS_LEN];
+< 	char dir_entcopy[CROSS_LEN];
+---
+> 	char full_name[CROSS_LEN], lfull_name[LFN_NAMELENGTH+1];
+> 	char dir_entcopy[CROSS_LEN], ldir_entcopy[CROSS_LEN];
+255c255
+< 	Bit8u srch_attr;char srch_pattern[DOS_NAMELENGTH_ASCII];
+---
+> 	Bit8u srch_attr;char srch_pattern[LFN_NAMELENGTH];
+258c258
+< 	dta.GetSearchParams(srch_attr,srch_pattern);
+---
+> 	dta.GetSearchParams(srch_attr,srch_pattern,true);
+262c262
+< 	if (!dirCache.FindNext(id,dir_ent)) {
+---
+> 	if (!dirCache.FindNext(id,dir_ent,ldir_ent)) {
+266c266
+< 	if(!WildFileCmp(dir_ent,srch_pattern)) goto again;
+---
+> 	if(!WildFileCmp(dir_ent,srch_pattern)&&!LWildFileCmp(ldir_ent,srch_pattern)) goto again;
+269a270,272
+> 	strcat(lfull_name,ldir_ent);
+> 	char temp[LFN_NAMELENGTH*2+2];
+> 	sprintf(temp,"%s%s%s",full_name,full_name,full_name);
+274a278
+> 	strcpy(ldir_entcopy,ldir_ent);
+284c288,289
+< 	char find_name[DOS_NAMELENGTH_ASCII];Bit16u find_date,find_time;Bit32u find_size;
+---
+> 	char find_name[DOS_NAMELENGTH_ASCII], *lfind_name=ldir_ent;
+> 	Bit16u find_date,find_time;Bit32u find_size;
+289a295
+> 	lfind_name[LFN_NAMELENGTH]=0;
+300c306
+< 	dta.SetResult(find_name,find_size,find_date,find_time,find_attr);
+---
+> 	dta.SetResult(find_name,lfind_name,find_size,find_date,find_time,find_attr);
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/src/dos/drive_virtual.cpp dosbox/src/dos/drive_virtual.cpp
+30a31
+> 	const char * lname;
+43a45
+> 	new_file->lname=name;
+205,206c207,208
+< 	Bit8u attr;char pattern[DOS_NAMELENGTH_ASCII];
+< 	dta.GetSearchParams(attr,pattern);
+---
+> 	Bit8u attr;char pattern[CROSS_LEN];
+> 	dta.GetSearchParams(attr,pattern,true);
+208c210
+< 		dta.SetResult("DOSBOX",0,0,0,DOS_ATTR_VOLUME);
+---
+> 		dta.SetResult("DOSBOX","DOSBOX",0,0,0,DOS_ATTR_VOLUME);
+212c214
+< 			dta.SetResult("DOSBOX",0,0,0,DOS_ATTR_VOLUME);
+---
+> 			dta.SetResult("DOSBOX","DOSBOX",0,0,0,DOS_ATTR_VOLUME);
+220,221c222,223
+< 	Bit8u attr;char pattern[DOS_NAMELENGTH_ASCII];
+< 	dta.GetSearchParams(attr,pattern);
+---
+> 	Bit8u attr;char pattern[CROSS_LEN];
+> 	dta.GetSearchParams(attr,pattern,true);
+224c226
+< 			dta.SetResult(search_file->name,search_file->size,search_file->date,search_file->time,DOS_ATTR_ARCHIVE);
+---
+> 			dta.SetResult(search_file->name,search_file->lname,search_file->size,search_file->date,search_file->time,DOS_ATTR_ARCHIVE);
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/src/dos/drives.cpp dosbox/src/dos/drives.cpp
+30,31c30,31
+< 	char wild_name[9];
+< 	char wild_ext[4];
+---
+> 	char wild_name[10];
+> 	char wild_ext[5];
+35,38c35,44
+< 	strcpy(file_name,"        ");
+< 	strcpy(file_ext,"   ");
+< 	strcpy(wild_name,"        ");
+< 	strcpy(wild_ext,"   ");
+---
+> 	for (r=0;r<9;r++) {
+> 	  file_name[r]=0;
+> 	  wild_name[r]=0;
+> 	}
+> 	wild_name[9]=0;
+> 	for (r=0;r<4;r++) {
+> 	  file_ext[r]=0;
+> 	  wild_ext[r]=0;
+> 	}
+> 	wild_ext[4]=0;
+54c60
+< 		if (size>8) size=8;
+---
+> 		if (size>9) size=9;
+57c63
+< 		memcpy(wild_ext,find_ext,(strlen(find_ext)>3) ? 3 : strlen(find_ext));
+---
+> 		memcpy(wild_ext,find_ext,(strlen(find_ext)>4) ? 4 : strlen(find_ext));
+59c65
+< 		memcpy(wild_name,wild,(strlen(wild) > 8) ? 8 : strlen(wild));
+---
+> 		memcpy(wild_name,wild,(strlen(wild) > 9) ? 9 : strlen(wild));
+68a75
+> 	if (wild_name[r]&&wild_name[r]!='*') return false;
+75a83,150
+> 	if (wild_ext[r]&&wild_ext[r]!='*') return false;
+> 	return true;
+> }
+> 
+> bool LWildFileCmp(const char * file, const char * wild) 
+> {
+> 	if (!uselfn) return false;
+> 	char file_name[256];
+> 	char file_ext[256];
+> 	char wild_name[256];
+> 	char wild_ext[256];
+> 	const char * find_ext;
+> 	Bitu r;
+> 
+> 	for (r=0;r<256;r++) {
+> 	  file_name[r]=0;
+> 	  wild_name[r]=0;
+> 	}
+> 	for (r=0;r<256;r++) {
+> 	  file_ext[r]=0;
+> 	  wild_ext[r]=0;
+> 	}
+> 
+> 	Bitu size,elen;
+> 	find_ext=strrchr(file,'.');
+> 	if (find_ext) {
+> 		size=(Bitu)(find_ext-file);
+> 		if (size>255) size=255;
+> 		memcpy(file_name,file,size);
+> 		find_ext++;
+> 		elen=strlen(find_ext);
+> 		memcpy(file_ext,find_ext,(strlen(find_ext)>255) ? 255 : strlen(find_ext)); 
+> 	} else {
+> 		size=strlen(file);
+> 		elen=0;
+> 		memcpy(file_name,file,(strlen(file) > 255) ? 255 : strlen(file));
+> 	}
+> 	upcase(file_name);upcase(file_ext);
+> 	char nwild[LFN_NAMELENGTH+2];
+> 	strcpy(nwild,wild);
+> 	if (strrchr(nwild,'*')&&strrchr(nwild,'.')==NULL) strcat(nwild,".*");
+> 	find_ext=strrchr(nwild,'.');
+> 	if (find_ext) {
+> 		Bitu size=(Bitu)(find_ext-nwild);
+> 		if (size>255) size=255;
+> 		memcpy(wild_name,nwild,size);
+> 		find_ext++;
+> 		memcpy(wild_ext,find_ext,(strlen(find_ext)>255) ? 255 : strlen(find_ext));
+> 	} else {
+> 		memcpy(wild_name,nwild,(strlen(nwild) > 255) ? 255 : strlen(nwild));
+> 	}
+> 	upcase(wild_name);upcase(wild_ext);
+> 	/* Names are right do some checking */
+> 	r=0;
+> 	while (r<size) {
+> 		if (wild_name[r]=='*') goto checkext;
+> 		if (wild_name[r]!='?' && wild_name[r]!=file_name[r]) return false;
+> 		r++;
+> 	}
+> 	if (wild_name[r]&&wild_name[r]!='*') return false;
+> checkext:
+>     r=0;
+> 	while (r<elen) {
+> 		if (wild_ext[r]=='*') return true;
+> 		if (wild_ext[r]!='?' && wild_ext[r]!=file_ext[r]) return false;
+> 		r++;
+> 	}
+> 	if (wild_ext[r]&&wild_ext[r]!='*') return false;
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/src/dos/drives.h dosbox/src/dos/drives.h
+28a29
+> bool LWildFileCmp(const char * file, const char * wild);
+348a350
+> 	void GetLongName(char *ident, char *lfindName);
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/src/dosbox.cpp dosbox/src/dosbox.cpp
+686a687,696
+> 	Pint = secprop->Add_int("ver",Property::Changeable::WhenIdle,7);
+> 	Pint->Set_help("Set DOS major version.");
+> 	
+> 	const char* lfn_settings[] = { "true", "auto", "false", 0};
+> 	Pstring = secprop->Add_string("lfn",Property::Changeable::WhenIdle,"auto");
+> 	Pstring->Set_values(lfn_settings);
+> 	Pstring->Set_help("Enable LFN support. The default (=auto) means that LFN support\n"
+> 		"will be enabled if and only if the major DOS version is set to\n"
+> 		"at least 7.\n");
+> 	
+714a725
+> 
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/src/gui/sdlmain.cpp dosbox/src/gui/sdlmain.cpp
+19c19
+< 
+---
+> #define C_CLIPBOARD 1
+51a52,53
+> #include "bios.h"
+> #include <curses.h>
+279a282,283
+> int mouse_start_x=-1, mouse_start_y=-1, mouse_end_x=-1, mouse_end_y=-1, fx=-1, fy=-1;
+> const char *modifier;
+1152a1157,1159
+> #if C_CLIPBOARD
+> void ClipboardPaste(bool pressed);
+> #endif
+1231a1239
+> 	modifier=section->Get_string("clipboardmodifier");
+1407a1416,1418
+> #if C_CLIPBOARD
+> 	MAPPER_AddHandler(ClipboardPaste,MK_f10,MMOD2,"paste","Clipboard Paste");
+> #endif
+1418a1430,1460
+> struct KeyValue {
+> 	char name;
+> 	KBD_KEYS key;
+> };
+> 
+> #if C_CLIPBOARD
+> #include "SDL_Clipboard.h"
+> void ClipboardPaste(bool pressed) {
+> 	if (!pressed) return;
+> 	char *text = NULL;
+> 	long len = 0;
+> #if defined(MACOSX)
+> 	SDLScrap_PasteFromClipboard(SDL_CLIPBOARD_TEXT_TYPE,(size_t *)&len,&text);
+> 	PDC_setclipboard(text,strlen(text));
+> #endif
+> 	if (PDC_getclipboard(&text,&len) == PDC_CLIP_SUCCESS && text != NULL) {
+> 		for (unsigned int i=0;i<strlen(text);i++)
+> 			BIOS_AddKeyToBuffer(text[i]);
+> 	}
+> 	PDC_freeclipboard(text);
+> }
+> 
+> void ClipboardCopy(void) {
+> 	const char* text = Mouse_GetSelected(mouse_start_x,mouse_start_y,mouse_end_x,mouse_end_y,sdl.draw.width,sdl.draw.height);
+> 	PDC_setclipboard(text,strlen(text));
+> #if defined(MACOSX)
+> 	SDLScrap_CopyToClipboard(SDL_CLIPBOARD_TEXT_TYPE,strlen(text),text);
+> #endif
+> }
+> #endif
+> 
+1434a1477,1485
+> #if C_CLIPBOARD
+> 	else if (mouse_start_x >= 0 && &mouse_start_y >= 0) {
+> 		if (fx>=0 && fy>=0)
+> 			Restore_Text(mouse_start_x,mouse_start_y,fx,fy,sdl.draw.width,sdl.draw.height);
+> 		Mouse_Select(mouse_start_x,mouse_start_y,motion->x,motion->y,sdl.draw.width,sdl.draw.height);
+> 		fx=motion->x;
+> 		fy=motion->y;
+> 	}
+> #endif
+1437c1488
+< static void HandleMouseButton(SDL_MouseButtonEvent * button) {
+---
+> static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEvent * motion) {
+1439a1491,1497
+> #if C_CLIPBOARD
+> 		if (!sdl.mouse.locked && button->button == SDL_BUTTON_RIGHT && (!strcmp(modifier,"none") || (!strcmp(modifier,"alt") || !strcmp(modifier,"lalt")) && sdl.laltstate==SDL_KEYDOWN || (!strcmp(modifier,"alt") || !strcmp(modifier,"ralt")) && sdl.raltstate==SDL_KEYDOWN)) {
+> 			mouse_start_x=motion->x;
+> 			mouse_start_y=motion->y;
+> 			break;
+> 		} else
+> #endif
+1461a1520,1538
+> #if C_CLIPBOARD
+> 		if (!sdl.mouse.locked && button->button == SDL_BUTTON_RIGHT && mouse_start_x >= 0 && &mouse_start_y >= 0) {
+> 			mouse_end_x=motion->x;
+> 			mouse_end_y=motion->y;
+> 			if (mouse_start_x == mouse_end_x && mouse_start_y == mouse_end_y)
+> 				ClipboardPaste(true);
+> 			else {
+> 				Restore_Text(mouse_start_x,mouse_start_y,fx,fy,sdl.draw.width,sdl.draw.height);
+> 				ClipboardCopy();
+> 			}
+> 			mouse_start_x = -1;
+> 			mouse_start_y = -1;
+> 			mouse_end_x = -1;
+> 			mouse_end_y = -1;
+> 			fx = -1;
+> 			fy = -1;
+> 			break;
+> 		}
+> #endif
+1575c1652
+< 			HandleMouseButton(&event.button);
+---
+> 			HandleMouseButton(&event.button,&event.motion);
+1705a1783,1787
+> 
+> 	const char* clipboardmodifier[] = { "none", "alt", "lalt", "ralt", "disabled", 0};
+> 	Pstring = sdl_sec->Add_string("clipboardmodifier",Property::Changeable::Always,"none");
+> 	Pstring->Set_values(clipboardmodifier);
+> 	Pstring->Set_help("Change the keyboard modifier for the right mouse button clipboard copy/paste function.");
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/src/hardware/hardware.cpp dosbox/src/hardware/hardware.cpp
+108,110c108,110
+< 	char tempname[CROSS_LEN];
+< 	bool testRead = read_directory_first(dir, tempname, is_directory );
+< 	for ( ; testRead; testRead = read_directory_next(dir, tempname, is_directory) ) {
+---
+> 	char tempname[CROSS_LEN], sname[12];
+> 	bool testRead = read_directory_first(dir, tempname, sname, is_directory );
+> 	for ( ; testRead; testRead = read_directory_next(dir, tempname, sname, is_directory) ) {
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/src/ints/int10_vesa.cpp dosbox/src/ints/int10_vesa.cpp
+48c48
+< static char string_productrev[]="DOSBox "VERSION;
+---
+> static char string_productrev[]="DOSBox " VERSION;
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/src/ints/mouse.cpp dosbox/src/ints/mouse.cpp
+500a501,570
+> #if C_CLIPBOARD
+> const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h) {
+> 	Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+> 	Bit16u c=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS), r=(Bit16u)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
+> 	int c1=c*x1/w, r1=r*y1/h, c2=c*x2/w, r2=r*y2/h, t;
+> 	char text[50*80], str[2], *out=text;
+> 	if (c1>c2) {
+> 		t=c1;
+> 		c1=c2;
+> 		c2=t;
+> 	}
+> 	if (r1>r2) {
+> 		t=r1;
+> 		r1=r2;
+> 		r2=t;
+> 	}
+> 	Bit16u result;
+> 	text[0]=0;
+> 	for (int i=r1; i<=r2; i++) {
+> 		for (int j=c1; j<=c2; j++) {
+> 			ReadCharAttr(j,i,page,&result);
+> 			sprintf(str,"%c",result);
+> 			if (str[0]==0) continue;
+> 			strcat(text,str);
+> 		}
+> 		while (strlen(text)>0&&text[strlen(text)-1]==32) text[strlen(text)-1]=0;
+> 		if (i<r2) strcat(text,"\r\n");
+> 	}
+> 	return out;
+> }
+> 
+> void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h) {
+> 	Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+> 	Bit16u c=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS), r=(Bit16u)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
+> 	int c1=c*x1/w, r1=r*y1/h, c2=c*x2/w, r2=r*y2/h, t;
+> 	if (c1>c2) {
+> 		t=c1;
+> 		c1=c2;
+> 		c2=t;
+> 	}
+> 	if (r1>r2) {
+> 		t=r1;
+> 		r1=r2;
+> 		r2=t;
+> 	}
+> 	for (int i=r1; i<=r2; i++)
+> 		for (int j=c1; j<=c2; j++)
+> 			real_writeb(0xb800,(i*c+j)*2+1,real_readb(0xb800,(i*c+j)*2+1)^119);
+> }
+> 
+> void Restore_Text(int x1, int y1, int x2, int y2, int w, int h) {
+> 	Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+> 	Bit16u c=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS), r=(Bit16u)real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1;
+> 	int c1=c*x1/w, r1=r*y1/h, c2=c*x2/w, r2=r*y2/h, t;
+> 	if (c1>c2) {
+> 		t=c1;
+> 		c1=c2;
+> 		c2=t;
+> 	}
+> 	if (r1>r2) {
+> 		t=r1;
+> 		r1=r2;
+> 		r2=t;
+> 	}
+> 	for (int i=r1; i<=r2; i++)
+> 		for (int j=c1; j<=c2; j++)
+> 			real_writeb(0xb800,(i*c+j)*2+1,real_readb(0xb800,(i*c+j)*2+1)^119);
+> }
+> #endif
+> 
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/src/ints/xms.cpp dosbox/src/ints/xms.cpp
+118a119
+> bool uselfn;
+423a425,426
+> 		dos.version.major = section->Get_int("ver");
+> 		uselfn = strcmp(section->Get_string("lfn"),"false") && (!strcmp(section->Get_string("lfn"),"true") || dos.version.major>=7);
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/src/misc/cross.cpp dosbox/src/misc/cross.cpp
+157c157
+< bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_directory) {
+---
+> bool read_directory_first(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory) {
+163a164
+> 	safe_strncpy(entry_sname,dirp->search_data.cAlternateFileName,13);
+171c172
+< bool read_directory_next(dir_information* dirp, char* entry_name, bool& is_directory) {
+---
+> bool read_directory_next(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory) {
+175a177
+> 	safe_strncpy(entry_sname,dirp->search_data.cAlternateFileName,13);
+199c201
+< bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_directory) {
+---
+> bool read_directory_first(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory) {
+206a209
+> 	entry_sname[0]=0;
+230c233
+< bool read_directory_next(dir_information* dirp, char* entry_name, bool& is_directory) {
+---
+> bool read_directory_next(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory) {
+237a241
+> 	entry_sname[0]=0;
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/src/misc/programs.cpp dosbox/src/misc/programs.cpp
+101,103c101,103
+< 	MEM_BlockRead(PhysMake(dos.psp(),128),&tail,128);
+< 	if (tail.count<127) tail.buffer[tail.count]=0;
+< 	else tail.buffer[126]=0;
+---
+> 	MEM_BlockRead(PhysMake(dos.psp(),CTBUF+1),&tail,CTBUF+1);
+> 	if (tail.count<CTBUF) tail.buffer[tail.count]=0;
+> 	else tail.buffer[CTBUF-1]=0;
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/src/misc/support.cpp dosbox/src/misc/support.cpp
+120a121
+> 	int q=0;
+132a134,150
+> 			*scan++=0;
+> 			break;
+> 		}
+> 	}
+> 	line=scan;
+> 	return begin;
+> }
+> 
+> char * StripArg(char *&line) {
+> 	char * scan=line;
+> 	int q=0;
+> 	scan=ltrim(scan);
+> 	char * begin=scan;
+> 	for (char c = *scan ;(c = *scan);scan++) {
+> 		if (*scan=='"') {
+> 			q++;
+> 		} else if (q/2*2==q && isspace(*reinterpret_cast<unsigned char*>(&c))) {
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/src/platform/visualc/config.h dosbox/src/platform/visualc/config.h
+8a9,11
+> /* Define to 1 to enable clipboard copy/paste, requires pdcurses */
+> #define C_CLIPBOARD 1
+> 
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/src/shell/shell.cpp dosbox/src/shell/shell.cpp
+466c466
+< 	MSG_Add("SHELL_CMD_CHDIR_HINT_2","directoryname is longer than 8 characters and/or contains spaces.\nTry \033[31mcd %s\033[0m\n");
+---
+> 	MSG_Add("SHELL_CMD_CHDIR_HINT_2","directoryname contains unquoted spaces.\nTry \033[31mcd %s\033[0m or properly quote them with quotation marks.\n");
+486a487
+> 	MSG_Add("SHELL_CMD_RENAME_ERROR","Unable to rename: %s.\n");
+663c664
+< 	MEM_BlockWrite(PhysMake(psp_seg,128),&tail,128);
+---
+> 	MEM_BlockWrite(PhysMake(psp_seg,CTBUF+1),&tail,CTBUF+1);
+666c667
+< 	dos.dta(RealMake(psp_seg,0x80));
+---
+> 	dos.dta(RealMake(psp_seg,CTBUF+1));
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/src/shell/shell_cmds.cpp dosbox/src/shell/shell_cmds.cpp
+75a76
+> 
+197c198,201
+< 	bool res=DOS_FindFirst(args,0xffff & ~DOS_ATTR_VOLUME);
+---
+> 	char spath[DOS_PATHLENGTH],sargs[DOS_PATHLENGTH];
+> 	DOS_GetSFNPath(args,spath,false);
+> 	sprintf(sargs,"\"%s\"",spath);
+> 	bool res=DOS_FindFirst(sargs,0xffff & ~DOS_ATTR_VOLUME);
+205c209,210
+< 	char name[DOS_NAMELENGTH_ASCII];Bit32u size;Bit16u time,date;Bit8u attr;
+---
+> 	char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
+> 	Bit32u size;Bit16u time,date;Bit8u attr;
+208c213
+< 		dta.GetResult(name,size,date,time,attr);	
+---
+> 		dta.GetResult(name,lname,size,date,time,attr);	
+238c243
+< 	char * arg1=StripWord(args);
+---
+> 	char * arg1=StripArg(args);
+257c262
+< 		DOS_GetCurrentDir(0,dir_current + 1);
+---
+> 		DOS_GetCurrentDir(0,dir_current + 1,false);
+262c267,268
+< 		DOS_Rename(slash,args);
+---
+> 		if (!DOS_Rename(slash,args))
+> 			WriteOut(MSG_Get("SHELL_CMD_RENAME_ERROR"),slash);
+265c271,272
+< 		DOS_Rename(arg1,args);
+---
+> 		if (!DOS_Rename(arg1,args))
+> 			WriteOut(MSG_Get("SHELL_CMD_RENAME_ERROR"),arg1);
+305a313,314
+> 	char sargs[CROSS_LEN];
+> 	DOS_GetSFNPath(args,sargs,false);
+309c318
+< 		DOS_GetCurrentDir(0,dir);
+---
+> 		DOS_GetCurrentDir(0,dir,true);
+313c322
+< 	} else 	if (!DOS_ChangeDir(args)) {
+---
+> 	} else 	if (!DOS_ChangeDir(sargs)) {
+323a333,334
+> 		separator = temps.find_first_of("\"");
+> 		if(separator != std::string::npos) temps.erase(separator);
+332,335d342
+< 		} else if (temps.size()>8) {
+< 			temps.erase(6);
+< 			temps += "~1";
+< 			WriteOut(MSG_Get("SHELL_CMD_CHDIR_HINT_2"),temps.insert(0,slashpart).c_str());
+400a408
+> 	char sargs[CROSS_LEN];
+449c457,461
+< 		if(DOS_GetFileAttr(args,&attribute) && (attribute&DOS_ATTR_DIRECTORY) ) {
+---
+> 		DOS_GetSFNPath(args,sargs,false);
+> 		if(DOS_GetFileAttr(sargs,&attribute) && (attribute&DOS_ATTR_DIRECTORY) ) {
+> 			DOS_FindFirst(sargs,0xffff & ~DOS_ATTR_VOLUME);
+> 			DOS_DTA dta(dos.dta());
+> 			strcpy(args,sargs);
+452a465,466
+> 	DOS_GetSFNPath(args,sargs,false);
+> 	sprintf(args,"\"%s\"",sargs);
+463c477,479
+< 	if (!optB) WriteOut(MSG_Get("SHELL_CMD_DIR_INTRO"),path);
+---
+> 	DOS_GetSFNPath(path,sargs,true);
+> 	if (*(sargs+strlen(sargs)-1) != '\\') strcat(sargs,"\\");
+> 	if (!optB) WriteOut(MSG_Get("SHELL_CMD_DIR_INTRO"),sargs);
+477,478c493,495
+< 		char name[DOS_NAMELENGTH_ASCII];Bit32u size;Bit16u date;Bit16u time;Bit8u attr;
+< 		dta.GetResult(name,size,date,time,attr);
+---
+> 		char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH+1];
+> 		Bit32u size;Bit16u date;Bit16u time;Bit8u attr;
+> 		dta.GetResult(name,lname,size,date,time,attr);
+486,487c503,504
+< 			if (strcmp(".",name) && strcmp("..",name)) {
+< 				WriteOut("%s\n",name);
+---
+> 			if (strcmp(".",uselfn?lname:name) && strcmp("..",uselfn?lname:name)) {
+> 				WriteOut("%s\n",uselfn?lname:name);
+510c527
+< 					WriteOut("%-8s %-3s   %-16s %02d-%02d-%04d %2d:%02d\n",name,ext,"<DIR>",day,month,year,hour,minute);
+---
+> 					WriteOut("%-8s %-3s   %-16s %02d-%02d-%04d %2d:%02d %s\n",name,ext,"<DIR>",day,month,year,hour,minute,uselfn?lname:"");
+518c535
+< 					WriteOut("%-8s %-3s   %16s %02d-%02d-%04d %2d:%02d\n",name,ext,numformat,day,month,year,hour,minute);
+---
+> 					WriteOut("%-8s %-3s   %16s %02d-%02d-%04d %2d:%02d %s\n",name,ext,numformat,day,month,year,hour,minute,uselfn?lname:"");
+570c587
+< 	char name[DOS_NAMELENGTH_ASCII];
+---
+> 	char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH+1];
+588a606
+> 	char q[]="\"";
+591c609
+< 	while ( (source_p = StripWord(args)) && *source_p ) {
+---
+> 	while ( (source_p = StripArg(args)) && *source_p ) {
+610,611c628,631
+< 				if (DOS_FindFirst(source_p,0xffff & ~DOS_ATTR_VOLUME)) {
+< 					dta.GetResult(name,size,date,time,attr);
+---
+> 				char spath[DOS_PATHLENGTH];
+> 				DOS_GetSFNPath(source_p,spath,false);
+> 				if (DOS_FindFirst(spath,0xffff & ~DOS_ATTR_VOLUME)) {
+> 					dta.GetResult(name,lname,size,date,time,attr);
+633a654
+> 	
+676c697
+< 				dta.GetResult(name,size,date,time,attr);
+---
+> 				dta.GetResult(name,lname,size,date,time,attr);
+695c716
+< 			dta.GetResult(name,size,date,time,attr);
+---
+> 			dta.GetResult(name,lname,size,date,time,attr);
+703,704c724,727
+< 					strcpy(nameTarget,pathTarget);
+< 					if (nameTarget[strlen(nameTarget)-1]=='\\') strcat(nameTarget,name);
+---
+> 					strcpy(nameTarget,q);
+> 					strcat(nameTarget,pathTarget);
+> 					if (nameTarget[strlen(nameTarget)-1]=='\\') strcat(nameTarget,uselfn?lname:name);
+> 					strcat(nameTarget,q);
+722c745,748
+< 							WriteOut(" %s\n",name);
+---
+> 							if (strcmp(name,lname)&&uselfn)
+> 								WriteOut(" %s [%s]\n",lname,name);
+> 							else
+> 								WriteOut(" %s\n",uselfn?lname:name);
+741a768
+> 	Drives[DOS_GetDefaultDrive()]->EmptyCache();
+833c860
+< 		char* word = StripWord(args);
+---
+> 		char* word = StripArg(args);
+919c946
+< 	word=StripWord(args);
+---
+> 	word=StripArg(args);
+1084,1085c1111,1115
+<    		Bit8u drive;char fulldir[DOS_PATHLENGTH];
+< 		if (!DOS_MakeName(const_cast<char*>(arg.c_str()),fulldir,&drive)) throw 0;
+---
+>    		Bit8u drive;char dir[DOS_PATHLENGTH+2],fulldir[DOS_PATHLENGTH];
+>    		if (strchr(arg.c_str(),'\"')==NULL)
+> 	   		sprintf(dir,"\"%s\"",arg.c_str());
+> 	   	else strcpy(dir,arg.c_str());
+> 		if (!DOS_MakeName(dir,fulldir,&drive)) throw 0;
+diff -x '*.exe' -x '*.a' -x '*.o' -x '*.in' -x '*.m4' -x '*.status' -x visualc_net -x .deps -x 'Makefile*' -x 'configure*' -r dosbox3876/src/shell/shell_misc.cpp dosbox/src/shell/shell_misc.cpp
+33c33
+< 	DOS_GetCurrentDir(0,dir);
+---
+> 	DOS_GetCurrentDir(0,dir,uselfn);
+237a238
+> 					int q=0;
+240a242,251
+> 					while (p_completion_start) {
+> 						q=0;
+> 						char *i;
+> 						for (i=line;i<p_completion_start;i++)
+> 							if (*i=='\"') q++;
+> 						if (q/2*2==q) break;
+> 						*i=0;
+> 						p_completion_start = strrchr(line, ' ');
+> 						*i=' ';
+> 					}
+255c266
+< 					char mask[DOS_PATHLENGTH];
+---
+> 					char mask[DOS_PATHLENGTH+2],smask[DOS_PATHLENGTH];
+272a284,285
+> 					DOS_GetSFNPath(mask,smask,false);
+> 					sprintf(mask,"\"%s\"",smask);
+280c293,294
+< 					char name[DOS_NAMELENGTH_ASCII];Bit32u sz;Bit16u date;Bit16u time;Bit8u att;
+---
+> 					char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH], qlname[LFN_NAMELENGTH+2];
+> 					Bit32u sz;Bit16u date;Bit16u time;Bit8u att;
+282a297,300
+> 					q=0;
+> 					while (*p_completion_start)
+> 						if (*p_completion_start++=='\"')
+> 							q++;
+284c302,306
+< 						dta.GetResult(name,sz,date,time,att);
+---
+> 						dta.GetResult(name,lname,sz,date,time,att);
+> 						if (strchr(uselfn?lname:name,' ')!=NULL&&q/2*2==q)
+> 							sprintf(qlname,"\"%s\"",uselfn?lname:name);
+> 						else
+> 							strcpy(qlname,uselfn?lname:name);
+290c312
+< 								if(att & DOS_ATTR_DIRECTORY) l_completion.push_back(name);
+---
+> 								if(att & DOS_ATTR_DIRECTORY) l_completion.push_back(qlname);
+295c317
+< 									executable.push_front(name);
+---
+> 									executable.push_front(qlname);
+297c319
+< 									l_completion.push_back(name);
+---
+> 									l_completion.push_back(qlname);
+476,477c498,499
+< 		memset(&cmdtail.buffer,0,127); //Else some part of the string is unitialized (valgrind)
+< 		if (strlen(line)>126) line[126]=0;
+---
+> 		memset(&cmdtail.buffer,0,CTBUF); //Else some part of the string is unitialized (valgrind)
+> 		if (strlen(line)>=CTBUF) line[CTBUF-1]=0;
+482c504
+< 		MEM_BlockWrite(SegPhys(ss)+reg_sp+0x100,&cmdtail,128);
+---
+> 		MEM_BlockWrite(SegPhys(ss)+reg_sp+0x100,&cmdtail,CTBUF+1);
