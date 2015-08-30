@@ -2160,3 +2160,4 @@ diff -rupN dosbox_BAK/src/shell/shell_misc.cpp dosbox/src/shell/shell_misc.cpp
  		/* Parse FCB (first two parameters) and put them into the current DOS_PSP */
  		Bit8u add;
  		FCB_Parsename(dos.psp(),0x5C,0x00,cmdtail.buffer,&add);
+
