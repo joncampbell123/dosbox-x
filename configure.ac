@@ -585,6 +585,3 @@ include/Makefile
 ])
 AC_OUTPUT
 
-# and then hack the vs2008 copy
-(grep -v PACKAGE_ vs2008/config.h && grep PACKAGE_ config.h) >vs2008/config.h.tmp && mv -v vs2008/config.h.tmp vs2008/config.h
-
