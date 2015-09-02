@@ -1,3 +1,7 @@
 *.sdf
 vs2015/*.sdf
+bin/
+bin/*
+obj/
+obj/*
 
