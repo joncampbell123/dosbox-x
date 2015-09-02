@@ -332,7 +332,6 @@
     <ClInclude Include="..\..\src\video\dummy\SDL_nullmouse_c.h" />
     <ClInclude Include="..\..\src\video\dummy\SDL_nullvideo.h" />
     <ClInclude Include="..\..\src\video\SDL_blit.h" />
-    <ClInclude Include="..\..\src\video\SDL_blit_A.h" />
     <ClInclude Include="..\..\src\video\SDL_cursor_c.h" />
     <ClInclude Include="..\..\src\video\SDL_leaks.h" />
     <ClInclude Include="..\..\src\video\SDL_pixels_c.h" />
