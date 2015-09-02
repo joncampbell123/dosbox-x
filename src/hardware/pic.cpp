@@ -128,9 +128,9 @@ void PIC_Controller::set_imr(Bit8u val) {
 }
 
 void PIC_Controller::activate() { 
+	PIC_IRQCheck = 1;
 	//Stops CPU if master, signals master if slave
 	if(this == &master) {
-		PIC_IRQCheck = 1;
 		//cycles 0, take care of the port IO stuff added in raise_irq base caller.
 		CPU_CycleLeft += CPU_Cycles;
 		CPU_Cycles = 0;
