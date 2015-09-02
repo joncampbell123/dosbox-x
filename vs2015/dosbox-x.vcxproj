@@ -105,7 +105,7 @@
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;Iphlpapi.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>LinkVerboseLib</ShowProgress>
-      <OutputFile>$(OutDir)DOSBox.exe</OutputFile>
+      <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
@@ -133,7 +133,7 @@
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;Iphlpapi.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>LinkVerboseLib</ShowProgress>
-      <OutputFile>$(OutDir)DOSBox.exe</OutputFile>
+      <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX64</TargetMachine>
@@ -156,7 +156,7 @@
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;Iphlpapi.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>LinkVerboseLib</ShowProgress>
-      <OutputFile>$(OutDir)DOSBox.exe</OutputFile>
+      <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -184,7 +184,7 @@
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;Iphlpapi.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>LinkVerboseLib</ShowProgress>
-      <OutputFile>$(OutDir)DOSBox.exe</OutputFile>
+      <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
