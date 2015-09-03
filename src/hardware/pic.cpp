@@ -387,7 +387,7 @@ static void inline master_startIRQ(Bitu i){
 void PIC_runIRQs(void) {
 	if (!GETFLAG(IF)) return;
 	if (GCC_UNLIKELY(!PIC_IRQCheck)) return;
-	if (GCC_UNLIKELY(cpudecoder==CPU_Core_Normal_Trap_Run)) return;
+	if (GCC_UNLIKELY(cpudecoder==CPU_Core_Normal_Trap_Run)) return; // FIXME: Why?
 	if (GCC_UNLIKELY(CPU_NMI_active) || GCC_UNLIKELY(CPU_NMI_pending)) return; /* NMI has higher priority than PIC */
 
 	const Bit8u p = (master.irr & master.imrr)&master.isrr;
@@ -407,7 +407,7 @@ void PIC_runIRQs(void) {
 
 	/* if we cleared all IRQs, then stop checking.
 	 * otherwise, keep the flag set for the next IRQ to process. */
-	if (i == max && (master.irr&master.imrr&slave.irr&slave.imrr) == 0)
+	if (i == max && (master.irr&master.imrr) == 0)
 		PIC_IRQCheck = 0;
 }
 
