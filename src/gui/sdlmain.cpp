@@ -4102,6 +4102,7 @@ void Init_MemoryAccessArray();
 void Init_PCJR_CartridgeROM();
 void Init_PS2_Port_92h();
 void Init_A20_Gate();
+void HARDWARE_Init();
 
 #if defined(WIN32)
 extern bool dpi_aware_enable;
@@ -4348,7 +4349,6 @@ int main(int argc, char* argv[]) {
 		void RENDER_Init(Section*);
 		void VGA_VsyncInit(Section*);
 		void CPU_Init(Section*);
-		void HARDWARE_Init(Section*);
 		void ROMBIOS_Init(Section*);
 		void CALLBACK_Init(Section*);
 		void DMA_Init(Section*);
@@ -4433,6 +4433,7 @@ int main(int argc, char* argv[]) {
 		DOSBOX_InitTickLoop();
 		DOSBOX_RealInit();
 		IO_Init();
+		HARDWARE_Init(); // FIXME: "Hardware" initialization seems to focus only on capture and capture-related mapper shortcuts
 		Init_AddressLimitAndGateMask(); /* <- need to init address mask so Init_RAM knows the maximum amount of RAM possible */
 		Init_MemoryAccessArray(); /* <- NTS: In DOSBox-X this is the "cache" of devices that responded to memory access */
 		Init_A20_Gate(); // FIXME: Should be handled by motherboard!
@@ -4461,7 +4462,6 @@ int main(int argc, char* argv[]) {
 		/* TODO: move down as appropriate */
 		DispatchVMEvent(VM_EVENT_POWERON);
 
-		HARDWARE_Init(control->GetSection("dosbox"));
 		ROMBIOS_Init(control->GetSection("dosbox"));
 		CALLBACK_Init(control->GetSection("dosbox"));
 		DMA_Init(control->GetSection("dosbox"));

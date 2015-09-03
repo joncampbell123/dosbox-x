@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "dosbox.h"
+#include "control.h"
 #include "hardware.h"
 #include "setup.h"
 #include "support.h"
@@ -775,36 +776,32 @@ void CAPTURE_MidiEvent(bool pressed) {
 	}
 }
 
-class HARDWARE:public Module_base{
-public:
-	HARDWARE(Section* configuration):Module_base(configuration){
-		Section_prop * section = static_cast<Section_prop *>(configuration);
-		Prop_path* proppath= section->Get_path("captures");
-		capturedir = proppath->realpath;
-		CaptureState = 0;
-		MAPPER_AddHandler(CAPTURE_WaveEvent,MK_f6,MMOD1,"recwave","Rec Wave");
-		MAPPER_AddHandler(CAPTURE_MidiEvent,MK_f8,MMOD1|MMOD2,"caprawmidi","Cap MIDI");
-#if (C_SSHOT)
-		MAPPER_AddHandler(CAPTURE_ScreenShotEvent,MK_f5,MMOD1,"scrshot","Screenshot");
-		MAPPER_AddHandler(CAPTURE_VideoEvent,MK_f5,MMOD1|MMOD2,"video","Video");
-#endif
-	}
-	~HARDWARE(){
-#if (C_SSHOT)
-		if (capture.video.writer != NULL) CAPTURE_VideoEvent(true);
-#endif
-		if (capture.wave.writer) CAPTURE_WaveEvent(true);
-		if (capture.midi.handle) CAPTURE_MidiEvent(true);
-	}
-};
-
-static HARDWARE* test;
-
 void HARDWARE_Destroy(Section * sec) {
-	delete test;
+	// NTS: These calls simulate a mapper keypress because the handlers either close the capture file or set a flag that would later start recording.
+	//      It would be clearer if there was an explicit "stop and close" function call instead of hacking the callbacks.
+#if (C_SSHOT)
+	if (capture.video.writer != NULL) CAPTURE_VideoEvent(true);
+#endif
+	if (capture.wave.writer) CAPTURE_WaveEvent(true);
+	if (capture.midi.handle) CAPTURE_MidiEvent(true);
 }
 
-void HARDWARE_Init(Section * sec) {
-	test = new HARDWARE(sec);
-	sec->AddDestroyFunction(&HARDWARE_Destroy,true);
+void HARDWARE_Init() {
+	Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+	assert(section != NULL);
+
+	Prop_path *proppath = section->Get_path("captures");
+	assert(proppath != NULL);
+	capturedir = proppath->realpath;
+
+	CaptureState = 0;
+
+	MAPPER_AddHandler(CAPTURE_WaveEvent,MK_f6,MMOD1,"recwave","Rec Wave");
+	MAPPER_AddHandler(CAPTURE_MidiEvent,MK_f8,MMOD1|MMOD2,"caprawmidi","Cap MIDI");
+#if (C_SSHOT)
+	MAPPER_AddHandler(CAPTURE_ScreenShotEvent,MK_f5,MMOD1,"scrshot","Screenshot");
+	MAPPER_AddHandler(CAPTURE_VideoEvent,MK_f5,MMOD1|MMOD2,"video","Video");
+#endif
+
+	AddExitFunction(&HARDWARE_Destroy,true);
 }
