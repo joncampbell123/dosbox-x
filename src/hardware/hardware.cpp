@@ -42,7 +42,7 @@
 
 std::string capturedir;
 extern const char* RunningProgram;
-Bitu CaptureState;
+Bitu CaptureState = 0;
 
 #define WAVE_BUF 16*1024
 #define MIDI_BUF 4*1024
@@ -776,9 +776,8 @@ void CAPTURE_MidiEvent(bool pressed) {
 	}
 }
 
-void HARDWARE_Destroy(Section * sec) {
-	// NTS: These calls simulate a mapper keypress because the handlers either close the capture file or set a flag that would later start recording.
-	//      It would be clearer if there was an explicit "stop and close" function call instead of hacking the callbacks.
+void CAPTURE_Destroy(Section *sec) {
+	// if capture is active, fake mapper event to "toggle" it off for each capture case.
 #if (C_SSHOT)
 	if (capture.video.writer != NULL) CAPTURE_VideoEvent(true);
 #endif
@@ -786,16 +785,18 @@ void HARDWARE_Destroy(Section * sec) {
 	if (capture.midi.handle) CAPTURE_MidiEvent(true);
 }
 
-void HARDWARE_Init() {
+void CAPTURE_Init() {
 	Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
 	assert(section != NULL);
 
+	// grab and store capture path
 	Prop_path *proppath = section->Get_path("captures");
 	assert(proppath != NULL);
 	capturedir = proppath->realpath;
 
-	CaptureState = 0;
+	CaptureState = 0; // make sure capture is off
 
+	// mapper shortcuts for capture
 	MAPPER_AddHandler(CAPTURE_WaveEvent,MK_f6,MMOD1,"recwave","Rec Wave");
 	MAPPER_AddHandler(CAPTURE_MidiEvent,MK_f8,MMOD1|MMOD2,"caprawmidi","Cap MIDI");
 #if (C_SSHOT)
@@ -803,5 +804,13 @@ void HARDWARE_Init() {
 	MAPPER_AddHandler(CAPTURE_VideoEvent,MK_f5,MMOD1|MMOD2,"video","Video");
 #endif
 
+	AddExitFunction(&CAPTURE_Destroy,true);
+}
+
+void HARDWARE_Destroy(Section * sec) {
+}
+
+void HARDWARE_Init() {
+	/* TODO: Hardware init. We moved capture init to it's own function. */
 	AddExitFunction(&HARDWARE_Destroy,true);
 }
