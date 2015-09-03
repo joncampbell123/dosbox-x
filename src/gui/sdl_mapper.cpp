@@ -1716,6 +1716,7 @@ static struct {
 	CCaptionButton *  bind_title;
 	CCaptionButton *  selected;
 	CCaptionButton *  action;
+	CCaptionButton *  dbg;
 	CBindButton * save;
 	CBindButton * exit;   
 	CBindButton * add;
@@ -2110,8 +2111,11 @@ static void CreateLayout(void) {
 	bind_but.add=new CBindButton(250,380,50,20,"Add",BB_Add);
 	bind_but.del=new CBindButton(300,380,50,20,"Del",BB_Del);
 
-	bind_but.save=new CBindButton(400,450,50,20,"Save",BB_Save);
-	bind_but.exit=new CBindButton(450,450,50,20,"Exit",BB_Exit);
+	bind_but.save=new CBindButton(400,440,50,20,"Save",BB_Save);
+	bind_but.exit=new CBindButton(450,440,50,20,"Exit",BB_Exit);
+
+	bind_but.dbg=new CCaptionButton(300,460,340,20); // right below the Save button
+	bind_but.dbg->Change("(event debug)");
 
 	bind_but.bind_title->Change("Bind Title");
 }
@@ -2345,6 +2349,26 @@ void BIND_MappingEvents(void) {
 		case SDL_QUIT:
 			mapper.exit=true;
 			break;
+		case SDL_KEYDOWN: /* help the user determine keyboard problems by showing keyboard event, scan code, etc. */
+		case SDL_KEYUP:
+			{
+				static int event_count = 0;
+				SDL_keysym &s = event.key.keysym;
+				char tmp[256];
+
+				sprintf(tmp,"%c%02x: scan=%u sym=%u mod=%xh u=%xh",
+					(event.type == SDL_KEYDOWN ? 'D' : 'U'),
+					event_count&0xFF,
+					s.scancode,
+					s.sym,
+					s.mod,
+					s.unicode);
+
+				LOG(LOG_GUI,LOG_DEBUG)("Mapper keyboard event: %s",tmp);
+				bind_but.dbg->Change(tmp);
+				event_count++;
+			}
+			/* fall through to mapper UI processing */
 		default:
 			if (mapper.addbind) for (CBindGroup_it it=bindgroups.begin();it!=bindgroups.end();it++) {
 				CBind * newbind=(*it)->CreateEventBind(&event);
