@@ -128,10 +128,10 @@ void PIC_Controller::set_imr(Bit8u val) {
 }
 
 void PIC_Controller::activate() { 
-	PIC_IRQCheck = 1;
 	//Stops CPU if master, signals master if slave
 	if(this == &master) {
 		//cycles 0, take care of the port IO stuff added in raise_irq base caller.
+		PIC_IRQCheck = 1;
 		CPU_CycleLeft += CPU_Cycles;
 		CPU_Cycles = 0;
 		//maybe when coming from a EOI, give a tiny delay. (for the cpu to pick it up) (see PIC_Activate_IRQ)
@@ -141,7 +141,7 @@ void PIC_Controller::activate() {
 }
 
 void PIC_Controller::deactivate() { 
-	//removes irq check value  if master, signals master if slave
+	//removes irq check value if master, signals master if slave
 	if(this == &master) {
 		/* NTS: DOSBox code used to set PIC_IRQCheck = 0 here.
 		 *
@@ -157,7 +157,11 @@ void PIC_Controller::deactivate() {
 		 *      PIC_runIRQs() determines there are no more IRQs to dispatch. Then and only then
 		 *      will PIC_runIRQs() clear the flag. */
 	} else {
-		master.lower_irq(2);
+		/* just because ONE IRQ on the slave finished doesn't mean there aren't any others needing service! */
+		if ((irr&imrr) == 0)
+			master.lower_irq(2);
+		else
+			LOG_MSG("Slave PIC: still to handle irr=%02x imrr=%02x isrr=%02x",irr,imrr,isrr);
 	}
 }
 
