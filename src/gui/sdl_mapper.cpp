@@ -53,7 +53,7 @@ enum {
 
 enum BB_Types {
 	BB_Next,BB_Add,BB_Del,
-	BB_Save,BB_Exit
+	BB_Save,BB_Exit,BB_Capture
 };
 
 enum BC_Types {
@@ -1401,6 +1401,9 @@ public:
 		CButton::Draw();
 		DrawText(x+2,y+2,text,color);
 	}
+	void SetText(const char *_text) {
+		text = _text;
+	}
 protected:
 	const char * text;
 };
@@ -1488,6 +1491,10 @@ public:
 			break;
 		case BB_Exit:   
 			mapper.exit=true;
+			break;
+		case BB_Capture:
+			GFX_CaptureMouse();
+			if (mouselocked) change_action_text("Capture enabled. Hit ESC to release capture.",CLR_WHITE);
 			break;
 		}
 	}
@@ -1719,6 +1726,7 @@ static struct {
 	CCaptionButton *  dbg;
 	CBindButton * save;
 	CBindButton * exit;   
+	CBindButton * cap;
 	CBindButton * add;
 	CBindButton * del;
 	CBindButton * next;
@@ -2113,6 +2121,7 @@ static void CreateLayout(void) {
 
 	bind_but.save=new CBindButton(400,440,50,20,"Save",BB_Save);
 	bind_but.exit=new CBindButton(450,440,50,20,"Exit",BB_Exit);
+	bind_but.cap=new CBindButton(500,440,50,20,"Capt",BB_Capture);
 
 	bind_but.dbg=new CCaptionButton(300,460,340,20); // right below the Save button
 	bind_but.dbg->Change("(event debug)");
@@ -2356,6 +2365,9 @@ void BIND_MappingEvents(void) {
 				SDL_keysym &s = event.key.keysym;
 				char tmp[256];
 
+				// ESC is your magic key out of capture
+				if (s.sym == SDLK_ESCAPE && mouselocked) GFX_CaptureMouse();
+
 				sprintf(tmp,"%c%02x: scan=%u sym=%u mod=%xh u=%xh",
 					(event.type == SDL_KEYDOWN ? 'D' : 'U'),
 					event_count&0xFF,
@@ -2552,7 +2564,7 @@ void MAPPER_RunInternal() {
 #if defined (REDUCE_JOYSTICK_POLLING)
 	SDL_JoystickEventState(SDL_DISABLE);
 #endif
-	if(mousetoggle) GFX_CaptureMouse();
+	if((mousetoggle && !mouselocked) || (!mousetoggle && mouselocked)) GFX_CaptureMouse();
 	SDL_ShowCursor(cursor);
 #ifdef __WIN32__
 	GUI_Shortcut(0);
