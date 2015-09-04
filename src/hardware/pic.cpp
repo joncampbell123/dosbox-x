@@ -531,45 +531,45 @@ bool PIC_RunQueue(void) {
 	CPU_CycleLeft += CPU_Cycles;
 	CPU_Cycles = 0;
 
-	if (CPU_CycleLeft <= 0) {
-		if (PIC_IRQCheck)
-			PIC_runIRQs();
+	if (CPU_CycleLeft > 0) {
+		/* Check the queue for an entry */
+		Bits index_nd = PIC_TickIndexND();
 
-		return false;
-	}
+		InEventService = true;
+		while (pic_queue.next_entry && (pic_queue.next_entry->index*CPU_CycleMax<=index_nd)) {
+			PICEntry * entry=pic_queue.next_entry;
+			pic_queue.next_entry=entry->next;
 
-	/* Check the queue for an entry */
-	Bits index_nd=PIC_TickIndexND();
-	InEventService = true;
-	while (pic_queue.next_entry && (pic_queue.next_entry->index*CPU_CycleMax<=index_nd)) {
-		PICEntry * entry=pic_queue.next_entry;
-		pic_queue.next_entry=entry->next;
+			srv_lag = entry->index;
+			(entry->pic_event)(entry->value); // call the event handler
 
-		srv_lag = entry->index;
-		(entry->pic_event)(entry->value); // call the event handler
-
-		/* Put the entry in the free list */
-		entry->next=pic_queue.free_entry;
-		pic_queue.free_entry=entry;
-	}
-	InEventService = false;
-
-	/* Check when to set the new cycle end */
-	if (pic_queue.next_entry) {
-		Bits cycles=(Bits)(pic_queue.next_entry->index*CPU_CycleMax-index_nd);
-		if (GCC_UNLIKELY(!cycles)) cycles=1;
-		if (cycles<CPU_CycleLeft) {
-			CPU_Cycles=cycles;
-		} else {
-			CPU_Cycles=CPU_CycleLeft;
+			/* Put the entry in the free list */
+			entry->next=pic_queue.free_entry;
+			pic_queue.free_entry=entry;
 		}
-	} else CPU_Cycles=CPU_CycleLeft;
-	CPU_CycleLeft-=CPU_Cycles;
+		InEventService = false;
+
+		/* Check when to set the new cycle end */
+		if (pic_queue.next_entry) {
+			Bits cycles=(Bits)(pic_queue.next_entry->index*CPU_CycleMax-index_nd);
+			if (GCC_UNLIKELY(!cycles)) cycles=1;
+
+			if (CPU_CycleLeft > cycles)
+				CPU_Cycles = cycles;
+			else
+				CPU_Cycles = CPU_CycleLeft;
+		}
+		else {
+			CPU_Cycles = CPU_CycleLeft;
+		}
+
+		CPU_CycleLeft -= CPU_Cycles;
+	}
 
 	if (PIC_IRQCheck)
 		PIC_runIRQs();
 
-	return true;
+	return (CPU_CycleLeft > 0);
 }
 
 /* The TIMER Part */
