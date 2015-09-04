@@ -334,8 +334,7 @@ void PIC_ActivateIRQ(Bitu irq) {
 
 		// It might be an idea to do this always in order to simulate this
 		// So on write mask and EOI as well. (so inside the activate function)
-//		CPU_CycleLeft += (CPU_Cycles-2);
-		CPU_CycleLeft -= 2;
+		CPU_CycleLeft += (CPU_Cycles-2);
 		CPU_Cycles = 2;
 	}
 }
