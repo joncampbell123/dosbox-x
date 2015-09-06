@@ -440,12 +440,6 @@ again:
 	return done;
 }
 
-class DMA:public Module_base{
-public:
-	DMA(Section* configuration):Module_base(configuration){
-	}
-};
-
 void DMA_SetWrapping(Bitu wrap) {
 	dma_wrapping = wrap;
 }
