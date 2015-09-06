@@ -4112,6 +4112,7 @@ void PCIBUS_Init();
 void PROGRAMS_Init();
 void TIMER_Init();
 void CMOS_Init();
+void VGA_Init();
 
 #if defined(WIN32)
 extern bool dpi_aware_enable;
@@ -4358,7 +4359,6 @@ int main(int argc, char* argv[]) {
 		void RENDER_Init(Section*);
 		void VGA_VsyncInit(Section*);
 		void CPU_Init(Section*);
-		void VGA_Init(Section*);
 #if C_FPU
 		void FPU_Init(Section*);
 #endif
@@ -4471,7 +4471,7 @@ int main(int argc, char* argv[]) {
 		/* TODO: move down as appropriate */
 		DispatchVMEvent(VM_EVENT_POWERON);
 
-		VGA_Init(control->GetSection("dosbox"));
+		VGA_Init();
 		RENDER_Init(control->GetSection("render"));
 		VGA_VsyncInit(control->GetSection("vsync"));
 		CPU_Init(control->GetSection("cpu"));

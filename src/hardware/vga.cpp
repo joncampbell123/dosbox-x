@@ -126,6 +126,7 @@
 #include "setup.h"
 #include "mem.h"
 #include "util_units.h"
+#include "control.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -431,8 +432,8 @@ static inline int int_log2(int val) {
 
 extern bool pcibus_enable;
 
-void VGA_Init(Section* sec) {
-	Section_prop * section=static_cast<Section_prop *>(sec);
+void VGA_Init() {
+	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 	string str;
 
 	vga_force_refresh_rate = -1;
@@ -592,7 +593,7 @@ void VGA_Init(Section* sec) {
 	SVGA_Setup_Driver();		// svga video memory size is set here, possibly over-riding the user's selection
 	LOG(LOG_VGA,LOG_NORMAL)("Video RAM: %uKB",vga.vmemsize>>10);
 
-	VGA_SetupMemory(sec);		// memory is allocated here
+	VGA_SetupMemory();		// memory is allocated here
 	VGA_SetupMisc();
 	VGA_SetupDAC();
 	VGA_SetupGFX();
