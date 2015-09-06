@@ -25,6 +25,7 @@
 #include "pic.h"
 #include "paging.h"
 #include "setup.h"
+#include "control.h"
 
 DmaController *DmaControllers[2]={NULL};
 unsigned char dma_extra_page_registers[16]={0}; /* 0x80-0x8F */
@@ -442,56 +443,6 @@ again:
 class DMA:public Module_base{
 public:
 	DMA(Section* configuration):Module_base(configuration){
-		Section_prop * section=static_cast<Section_prop *>(configuration);
-		Bitu i;
-
-		enable_2nd_dma = section->Get_bool("enable 2nd dma controller");
-		enable_1st_dma = enable_2nd_dma || section->Get_bool("enable 1st dma controller");
-		enable_dma_extra_page_registers = section->Get_bool("enable dma extra page registers");
-		dma_page_register_writeonly = section->Get_bool("dma page registers write-only");
-		allow_decrement_mode = section->Get_bool("allow dma address decrement");
-
-		if (enable_1st_dma) DmaControllers[0] = new DmaController(0);
-		else DmaControllers[0] = NULL;
-		if (enable_2nd_dma) DmaControllers[1] = new DmaController(1);
-		else DmaControllers[1] = NULL;
-	
-		for (i=0;i<0x10;i++) {
-			Bitu mask=IO_MB;
-			if (i<8) mask|=IO_MW;
-			if (enable_1st_dma) {
-				/* install handler for first DMA controller ports */
-				DmaControllers[0]->DMA_WriteHandler[i].Install(i,DMA_Write_Port,mask);
-				DmaControllers[0]->DMA_ReadHandler[i].Install(i,DMA_Read_Port,mask);
-			}
-			if (enable_2nd_dma) {
-				/* install handler for second DMA controller ports */
-				DmaControllers[1]->DMA_WriteHandler[i].Install(0xc0+i*2,DMA_Write_Port,mask);
-				DmaControllers[1]->DMA_ReadHandler[i].Install(0xc0+i*2,DMA_Read_Port,mask);
-			}
-		}
-
-		if (enable_1st_dma) {
-			/* install handlers for ports 0x81-0x83 (on the first DMA controller) */
-			DmaControllers[0]->DMA_WriteHandler[0x10].Install(0x80,DMA_Write_Port,IO_MB,8);
-			DmaControllers[0]->DMA_ReadHandler[0x10].Install(0x80,DMA_Read_Port,IO_MB,8);
-		}
-
-		if (enable_2nd_dma) {
-			/* install handlers for ports 0x81-0x83 (on the second DMA controller) */
-			DmaControllers[1]->DMA_WriteHandler[0x10].Install(0x88,DMA_Write_Port,IO_MB,8);
-			DmaControllers[1]->DMA_ReadHandler[0x10].Install(0x88,DMA_Read_Port,IO_MB,8);
-		}
-	}
-	~DMA(){
-		if (DmaControllers[0]) {
-			delete DmaControllers[0];
-			DmaControllers[0]=NULL;
-		}
-		if (DmaControllers[1]) {
-			delete DmaControllers[1];
-			DmaControllers[1]=NULL;
-		}
 	}
 };
 
@@ -499,21 +450,71 @@ void DMA_SetWrapping(Bitu wrap) {
 	dma_wrapping = wrap;
 }
 
-static DMA* test;
-
 void DMA_Destroy(Section* /*sec*/){
-	if (test != NULL) {
-		delete test;
-		test = NULL;
+	if (DmaControllers[0]) {
+		delete DmaControllers[0];
+		DmaControllers[0]=NULL;
+	}
+	if (DmaControllers[1]) {
+		delete DmaControllers[1];
+		DmaControllers[1]=NULL;
 	}
 }
-void DMA_Init(Section* sec) {
-	DMA_SetWrapping(0xffff);
-	test = new DMA(sec);
-	sec->AddDestroyFunction(&DMA_Destroy);
+
+void DMA_Init() {
 	Bitu i;
-	for (i=0;i<LINK_START;i++) {
-		ems_board_mapping[i]=i;
+
+	DMA_SetWrapping(0xffff);
+	AddExitFunction(&DMA_Destroy);
+
+	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+	assert(section != NULL);
+
+	enable_2nd_dma = section->Get_bool("enable 2nd dma controller");
+	enable_1st_dma = enable_2nd_dma || section->Get_bool("enable 1st dma controller");
+	enable_dma_extra_page_registers = section->Get_bool("enable dma extra page registers");
+	dma_page_register_writeonly = section->Get_bool("dma page registers write-only");
+	allow_decrement_mode = section->Get_bool("allow dma address decrement");
+
+	if (enable_1st_dma)
+		DmaControllers[0] = new DmaController(0);
+	else
+		DmaControllers[0] = NULL;
+
+	if (enable_2nd_dma)
+		DmaControllers[1] = new DmaController(1);
+	else
+		DmaControllers[1] = NULL;
+
+	for (i=0;i<0x10;i++) {
+		Bitu mask = IO_MB;
+		if (i < 8) mask |= IO_MW;
+
+		if (enable_1st_dma) {
+			/* install handler for first DMA controller ports */
+			DmaControllers[0]->DMA_WriteHandler[i].Install(i,DMA_Write_Port,mask);
+			DmaControllers[0]->DMA_ReadHandler[i].Install(i,DMA_Read_Port,mask);
+		}
+		if (enable_2nd_dma) {
+			/* install handler for second DMA controller ports */
+			DmaControllers[1]->DMA_WriteHandler[i].Install(0xc0+i*2,DMA_Write_Port,mask);
+			DmaControllers[1]->DMA_ReadHandler[i].Install(0xc0+i*2,DMA_Read_Port,mask);
+		}
 	}
+
+	if (enable_1st_dma) {
+		/* install handlers for ports 0x81-0x83 (on the first DMA controller) */
+		DmaControllers[0]->DMA_WriteHandler[0x10].Install(0x80,DMA_Write_Port,IO_MB,8);
+		DmaControllers[0]->DMA_ReadHandler[0x10].Install(0x80,DMA_Read_Port,IO_MB,8);
+	}
+
+	if (enable_2nd_dma) {
+		/* install handlers for ports 0x81-0x83 (on the second DMA controller) */
+		DmaControllers[1]->DMA_WriteHandler[0x10].Install(0x88,DMA_Write_Port,IO_MB,8);
+		DmaControllers[1]->DMA_ReadHandler[0x10].Install(0x88,DMA_Read_Port,IO_MB,8);
+	}
+
+	/* FIXME: This should be in a separate EMS board init */
+	for (i=0;i < LINK_START;i++) ems_board_mapping[i] = i;
 }
 

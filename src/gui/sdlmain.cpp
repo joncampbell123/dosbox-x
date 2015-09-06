@@ -4106,6 +4106,7 @@ void HARDWARE_Init();
 void CAPTURE_Init();
 void ROMBIOS_Init();
 void CALLBACK_Init();
+void DMA_Init();
 
 #if defined(WIN32)
 extern bool dpi_aware_enable;
@@ -4352,7 +4353,6 @@ int main(int argc, char* argv[]) {
 		void RENDER_Init(Section*);
 		void VGA_VsyncInit(Section*);
 		void CPU_Init(Section*);
-		void DMA_Init(Section*);
 		void PIC_Init(Section*);
 		void PCIBUS_Init(Section*);
 		void PROGRAMS_Init(Section*);
@@ -4466,7 +4466,7 @@ int main(int argc, char* argv[]) {
 		/* TODO: move down as appropriate */
 		DispatchVMEvent(VM_EVENT_POWERON);
 
-		DMA_Init(control->GetSection("dosbox"));
+		DMA_Init();
 		PIC_Init(control->GetSection("dosbox"));
 		PCIBUS_Init(control->GetSection("dosbox"));
 		PROGRAMS_Init(control->GetSection("dosbox"));
