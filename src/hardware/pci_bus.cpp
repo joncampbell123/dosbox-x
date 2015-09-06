@@ -259,163 +259,140 @@ public:
 	}
 };
 
-class PCI:public Module_base{
-private:
-	bool initialized;
+static bool initialized = false;
 
-protected:
-	IO_WriteHandleObject PCI_WriteHandler[5];
-	IO_ReadHandleObject PCI_ReadHandler[5];
+static IO_WriteHandleObject PCI_WriteHandler[5];
+static IO_ReadHandleObject PCI_ReadHandler[5];
 
-	CALLBACK_HandlerObject callback_pci;
+static CALLBACK_HandlerObject callback_pci;
 
-public:
+static PhysPt GetPModeCallbackPointer(void) {
+	return Real2Phys(callback_pci.Get_RealPointer());
+}
 
-	PhysPt GetPModeCallbackPointer(void) {
-		return Real2Phys(callback_pci.Get_RealPointer());
+static bool IsInitialized(void) {
+	return initialized;
+}
+
+// set up port handlers and configuration data
+static void InitializePCI(void) {
+	// install PCI-addressing ports
+	PCI_WriteHandler[0].Install(0xcf8,write_pci_addr,IO_MD);
+	PCI_ReadHandler[0].Install(0xcf8,read_pci_addr,IO_MD);
+	// install PCI-register read/write handlers
+	for (Bitu ct=0;ct<4;ct++) {
+		PCI_WriteHandler[1+ct].Install(0xcfc+ct,write_pci,IO_MB);
+		PCI_ReadHandler[1+ct].Install(0xcfc+ct,read_pci,IO_MB);
 	}
 
-	bool IsInitialized(void) {
-		return initialized;
-	}
+	callback_pci.Install(&PCI_PM_Handler,CB_IRETD,"PCI PM");
 
-	// set up port handlers and configuration data
-	void InitializePCI(void) {
-		// install PCI-addressing ports
-		PCI_WriteHandler[0].Install(0xcf8,write_pci_addr,IO_MD);
-		PCI_ReadHandler[0].Install(0xcf8,read_pci_addr,IO_MD);
-		// install PCI-register read/write handlers
-		for (Bitu ct=0;ct<4;ct++) {
-			PCI_WriteHandler[1+ct].Install(0xcfc+ct,write_pci,IO_MB);
-			PCI_ReadHandler[1+ct].Install(0xcfc+ct,read_pci,IO_MB);
+	initialized=true;
+}
+
+bool UnregisterPCIDevice(PCI_Device* device) {
+	unsigned int bus,dev;
+
+	for (bus=0;bus < PCI_MAX_PCIBUSSES;bus++) {
+		for (dev=0;dev < PCI_MAX_PCIDEVICES;dev++) {
+			if (pci_devices[bus][dev] == device) {
+				pci_devices[bus][dev] = NULL;
+				return true;
+			}
 		}
-
-		callback_pci.Install(&PCI_PM_Handler,CB_IRETD,"PCI PM");
-
-		initialized=true;
 	}
 
-	bool UnregisterPCIDevice(PCI_Device* device) {
-		unsigned int bus,dev;
+	return false;
+}
 
-		for (bus=0;bus < PCI_MAX_PCIBUSSES;bus++) {
-			for (dev=0;dev < PCI_MAX_PCIDEVICES;dev++) {
-				if (pci_devices[bus][dev] == device) {
-					pci_devices[bus][dev] = NULL;
-					return true;
-				}
+// register PCI device to bus and setup data
+Bits RegisterPCIDevice(PCI_Device* device, Bits bus=-1, Bits slot=-1) {
+	if (device == NULL) return -1;
+	if (bus >= PCI_MAX_PCIBUSSES) return -1;
+	if (slot >= PCI_MAX_PCIDEVICES) return -1;
+
+	if (!initialized) InitializePCI();
+
+	if (bus < 0 || slot < 0) {
+		Bits try_bus,try_slot;
+
+		try_bus = (bus < 0) ? 0 : bus;
+		try_slot = (slot < 0) ? 0 : slot; /* NTS: Most PCI implementations have a motherboard chipset or PCI bus device at slot 0 */
+		while (pci_devices[try_bus][try_slot] != NULL) {
+			if (slot >= 0 || (try_slot+1) >= PCI_MAX_PCIDEVICES) {
+				if (slot < 0) try_slot = 0;
+				try_bus++;
+
+				if (bus >= 0 || try_bus >= PCI_MAX_PCIBUSSES)
+					break;
+			}
+			else if (slot < 0) {
+				try_slot++;
 			}
 		}
 
-		return false;
+		bus = try_bus;
+		slot = try_slot;
 	}
 
-	// register PCI device to bus and setup data
-	Bits RegisterPCIDevice(PCI_Device* device, Bits bus=-1, Bits slot=-1) {
-		if (device == NULL) return -1;
-		if (bus >= PCI_MAX_PCIBUSSES) return -1;
-		if (slot >= PCI_MAX_PCIDEVICES) return -1;
+	if (bus >= PCI_MAX_PCIBUSSES || slot >= PCI_MAX_PCIDEVICES)
+		return -1;
 
-		if (bus < 0 || slot < 0) {
-			Bits try_bus,try_slot;
+	if (pci_devices[bus][slot] != NULL) E_Exit("PCI interface error: attempted to fill slot already taken");
+	pci_devices[bus][slot]=device;
+	return slot;
+}
 
-			try_bus = (bus < 0) ? 0 : bus;
-			try_slot = (slot < 0) ? 0 : slot; /* NTS: Most PCI implementations have a motherboard chipset or PCI bus device at slot 0 */
-			while (pci_devices[try_bus][try_slot] != NULL) {
-				if (slot >= 0 || (try_slot+1) >= PCI_MAX_PCIDEVICES) {
-					if (slot < 0) try_slot = 0;
-					try_bus++;
+static void Deinitialize(void) {
+	initialized=false;
+	pci_caddress=0;
 
-					if (bus >= 0 || try_bus >= PCI_MAX_PCIBUSSES)
-						break;
-				}
-				else if (slot < 0) {
-					try_slot++;
-				}
-			}
-
-			bus = try_bus;
-			slot = try_slot;
-		}
-
-		if (bus >= PCI_MAX_PCIBUSSES || slot >= PCI_MAX_PCIDEVICES)
-			return -1;
-
-		if (!initialized) InitializePCI();
-
-		if (pci_devices[bus][slot] != NULL) E_Exit("PCI interface error: attempted to fill slot already taken");
-		pci_devices[bus][slot]=device;
-		return slot;
+	// install PCI-addressing ports
+	PCI_WriteHandler[0].Uninstall();
+	PCI_ReadHandler[0].Uninstall();
+	// install PCI-register read/write handlers
+	for (Bitu ct=0;ct<4;ct++) {
+		PCI_WriteHandler[1+ct].Uninstall();
+		PCI_ReadHandler[1+ct].Uninstall();
 	}
 
-	void Deinitialize(void) {
-		initialized=false;
-		pci_caddress=0;
+	// remove callback
+	callback_pci.Uninstall();
 
-		// install PCI-addressing ports
-		PCI_WriteHandler[0].Uninstall();
-		PCI_ReadHandler[0].Uninstall();
-		// install PCI-register read/write handlers
-		for (Bitu ct=0;ct<4;ct++) {
-			PCI_WriteHandler[1+ct].Uninstall();
-			PCI_ReadHandler[1+ct].Uninstall();
-		}
-
-		callback_pci.Uninstall();
-	}
-
-	PCI(Section* configuration):Module_base(configuration) {
-		initialized=false;
-
-		for (Bitu bus=0;bus<PCI_MAX_PCIBUSSES;bus++)
-			for (Bitu devct=0;devct<PCI_MAX_PCIDEVICES;devct++)
-				pci_devices[bus][devct]=NULL;
-	}
-
-	~PCI() {
-		unsigned int i;
-
-		for (Bitu bus=0;bus<PCI_MAX_PCIBUSSES;bus++) {
-			for (i=0;i < PCI_MAX_PCIDEVICES;i++) {
-				if (pci_devices[bus][i] != NULL) {
-					delete pci_devices[bus][i];
-					pci_devices[bus][i] = NULL;
-				}
+	// disconnect all PCI devices
+	for (Bitu bus=0;bus<PCI_MAX_PCIBUSSES;bus++) {
+		for (Bitu i=0;i < PCI_MAX_PCIDEVICES;i++) {
+			if (pci_devices[bus][i] != NULL) {
+				delete pci_devices[bus][i];
+				pci_devices[bus][i] = NULL;
 			}
 		}
-
-		initialized=false;
 	}
-};
+}
 
-static PCI* pci_interface=NULL;
 static PCI_Device *S3_PCI=NULL;
 static PCI_Device *SST_PCI=NULL;
 
 void PCI_AddSVGAS3_Device(void) {
 	if (!pcibus_enable) return;
-	if (pci_interface == NULL) E_Exit("PCI device add attempt and PCI interface not initialized");
 
 	if (S3_PCI == NULL) {
 		if ((S3_PCI=new PCI_VGADevice()) == NULL)
 			return;
 
-		pci_interface->RegisterPCIDevice(S3_PCI);
+		RegisterPCIDevice(S3_PCI);
 	}
 }
 
 void PCI_RemoveSVGAS3_Device(void) {
-	if (pci_interface != NULL) {
-		if (S3_PCI != NULL) {
-			pci_interface->UnregisterPCIDevice(S3_PCI);
-			S3_PCI = NULL;
-		}
+	if (S3_PCI != NULL) {
+		UnregisterPCIDevice(S3_PCI);
+		S3_PCI = NULL;
 	}
 }
 
 void PCI_AddSST_Device(Bitu type) {
 	if (!pcibus_enable) return;
-	if (pci_interface == NULL) E_Exit("PCI device add attempt and PCI interface not initialized");
 
 	if (SST_PCI == NULL) {
 		Bitu ctype = 1;
@@ -433,48 +410,52 @@ void PCI_AddSST_Device(Bitu type) {
 		if ((SST_PCI=new PCI_SSTDevice(ctype)) == NULL)
 			return;
 
-		pci_interface->RegisterPCIDevice(SST_PCI);
+		RegisterPCIDevice(SST_PCI);
 	}
 }
 
 void PCI_RemoveSST_Device(void) {
-	if (pci_interface!=NULL) {
-		if (SST_PCI != NULL) {
-			pci_interface->UnregisterPCIDevice(SST_PCI);
-			delete SST_PCI;
-			SST_PCI = NULL;
-		}
+	if (SST_PCI != NULL) {
+		UnregisterPCIDevice(SST_PCI);
+		delete SST_PCI;
+		SST_PCI = NULL;
 	}
 }
 
 PhysPt PCI_GetPModeInterface(void) {
-	if (pci_interface) {
-		return pci_interface->GetPModeCallbackPointer();
-	}
-	return 0;
+	if (!pcibus_enable) return 0;
+	return GetPModeCallbackPointer();
 }
 
 bool PCI_IsInitialized() {
-	if (pci_interface) return pci_interface->IsInitialized();
-	return false;
+	return IsInitialized();
 }
 
-void PCI_ShutDown(Section* sec){
-	if (pci_interface != NULL) {
-		delete pci_interface;
-		pci_interface = NULL;
-	}
+void PCI_Reset(Section *sec) {
+	Section_prop * secprop=static_cast<Section_prop *>(control->GetSection("dosbox"));
+	assert(secprop != NULL);
+
+	Deinitialize();
+
+	pcibus_enable = secprop->Get_bool("enable pci bus");
+	if (pcibus_enable) InitializePCI();
+}
+
+void PCI_ShutDown(Section* sec) {
+	Deinitialize();
 }
 
 void PCIBUS_Init() {
 	Section_prop * secprop=static_cast<Section_prop *>(control->GetSection("dosbox"));
 	assert(secprop != NULL);
 
-	pcibus_enable = secprop->Get_bool("enable pci bus");
-
-	if (pci_interface == NULL && pcibus_enable)
-		pci_interface = new PCI(control->GetSection("dosbox"));
+	initialized=false;
+	for (Bitu bus=0;bus<PCI_MAX_PCIBUSSES;bus++)
+		for (Bitu devct=0;devct<PCI_MAX_PCIDEVICES;devct++)
+			pci_devices[bus][devct]=NULL;
 
 	AddExitFunction(&PCI_ShutDown,false);
+	AddVMEventFunction(VM_EVENT_POWERON,&PCI_Reset);
+	AddVMEventFunction(VM_EVENT_RESET,&PCI_Reset);
 }
 
