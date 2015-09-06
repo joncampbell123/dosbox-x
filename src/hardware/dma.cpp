@@ -83,23 +83,21 @@ static void DMA_BlockReadBackwards(PhysPt spage,PhysPt offset,void * data,Bitu s
 
 	if (dma16) {
 		/* I'm going to assume by how ISA DMA works that you can't just copy bytes backwards,
-		 * because things are transferred in 16-bit WORDs. So you would copy each pair of bytes
-		 * in normal order, writing the pairs backwards [*1]. I know of no software that would
-		 * actually want to transfer 16-bit DMA backwards, so, it's not implemented.
+		 * because 16-bit DMA means one 16-bit WORD transferred per DMA memory cycle on the ISA Bus.
 		 *
-		 * Like this:
+		 * I have yet to see a DOS program use this mode of ISA DMA, so this remains unimplemented.
+		 *
+		 * Data to transfer from the device:
 		 *
 		 * 0x1234 0x5678 0x9ABC 0xDEF0
 		 *
-		 * becomes:
+		 * Becomes stored to memory by DMA like this (one 16-bit WORD at a time):
 		 *
 		 * 0xDEF0 0x9ABC 0x5678 0x1234
 		 *
 		 * it does NOT become:
 		 *
-		 * 0xF0DE 0xBC9A 0x7856 0x3412
-		 *
-		 * */
+		 * 0xF0DE 0xBC9A 0x7856 0x3412 */
 		LOG(LOG_DMACONTROL,LOG_WARN)("16-bit decrementing DMA not implemented");
 	}
 	else {
@@ -444,7 +442,7 @@ void DMA_SetWrapping(Bitu wrap) {
 	dma_wrapping = wrap;
 }
 
-void DMA_Destroy(Section* /*sec*/){
+void DMA_FreeControllers() {
 	if (DmaControllers[0]) {
 		delete DmaControllers[0];
 		DmaControllers[0]=NULL;
@@ -455,15 +453,22 @@ void DMA_Destroy(Section* /*sec*/){
 	}
 }
 
-void DMA_Init() {
+void DMA_Destroy(Section* /*sec*/) {
+	DMA_FreeControllers();
+}
+
+void DMA_Reset(Section* /*sec*/) {
 	Bitu i;
 
-	DMA_SetWrapping(0xffff);
-	AddExitFunction(&DMA_Destroy);
+	DMA_FreeControllers();
 
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 	assert(section != NULL);
 
+	DMA_SetWrapping(0xffff);
+
+	/* NTS: parsing on reset means a reboot of the VM (and possibly other conditions) can permit
+	 *      the user to change DMA emulation settings and have them take effect on VM reboot. */
 	enable_2nd_dma = section->Get_bool("enable 2nd dma controller");
 	enable_1st_dma = enable_2nd_dma || section->Get_bool("enable 1st dma controller");
 	enable_dma_extra_page_registers = section->Get_bool("enable dma extra page registers");
@@ -510,5 +515,11 @@ void DMA_Init() {
 
 	/* FIXME: This should be in a separate EMS board init */
 	for (i=0;i < LINK_START;i++) ems_board_mapping[i] = i;
+}
+
+void Init_DMA() {
+	AddExitFunction(&DMA_Destroy);
+	AddVMEventFunction(VM_EVENT_POWERON,&DMA_Reset);
+	AddVMEventFunction(VM_EVENT_RESET,&DMA_Reset);
 }
 
