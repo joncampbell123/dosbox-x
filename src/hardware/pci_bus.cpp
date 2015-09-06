@@ -29,6 +29,7 @@
 #include "regs.h"
 #include "../ints/int10.h"
 #include "voodoo.h"
+#include "control.h"
 
 bool pcibus_enable = false;
 
@@ -458,7 +459,6 @@ bool PCI_IsInitialized() {
 	return false;
 }
 
-
 void PCI_ShutDown(Section* sec){
 	if (pci_interface != NULL) {
 		delete pci_interface;
@@ -466,16 +466,15 @@ void PCI_ShutDown(Section* sec){
 	}
 }
 
-void PCI_Init(Section* sec) {
-	sec->AddDestroyFunction(&PCI_ShutDown,false);
-}
-
-void PCIBUS_Init(Section *sec) {
-	Section_prop * secprop=static_cast<Section_prop *>(sec);
+void PCIBUS_Init() {
+	Section_prop * secprop=static_cast<Section_prop *>(control->GetSection("dosbox"));
+	assert(secprop != NULL);
 
 	pcibus_enable = secprop->Get_bool("enable pci bus");
 
 	if (pci_interface == NULL && pcibus_enable)
-		pci_interface = new PCI(sec);
+		pci_interface = new PCI(control->GetSection("dosbox"));
+
+	AddExitFunction(&PCI_ShutDown,false);
 }
 
