@@ -25,6 +25,7 @@
 #include "mixer.h"
 #include "timer.h"
 #include "setup.h"
+#include "control.h"
 
 enum {
 	PIT_HACK_NONE=0,
@@ -498,82 +499,75 @@ static void PITHACK_ProgramStart(Program * * make) {
 	*make=new PITHACK_Program;
 }
 
-class TIMER:public Module_base{
-private:
-	IO_ReadHandleObject ReadHandler[4];
-	IO_WriteHandleObject WriteHandler[4];
-public:
-	TIMER(Section* configuration):Module_base(configuration){
-		Section_prop * section=static_cast<Section_prop *>(configuration);
+static IO_ReadHandleObject ReadHandler[4];
+static IO_WriteHandleObject WriteHandler[4];
 
-		WriteHandler[0].Install(0x40,write_latch,IO_MB);
-	//	WriteHandler[1].Install(0x41,write_latch,IO_MB);
-		WriteHandler[2].Install(0x42,write_latch,IO_MB);
-		WriteHandler[3].Install(0x43,write_p43,IO_MB);
-		ReadHandler[0].Install(0x40,read_latch,IO_MB);
-		ReadHandler[1].Install(0x41,read_latch,IO_MB);
-		ReadHandler[2].Install(0x42,read_latch,IO_MB);
-		/* Setup Timer 0 */
-		pit[0].cntr=0x10000;
-		pit[0].write_state = 3;
-		pit[0].read_state = 3;
-		pit[0].read_latch=0;
-		pit[0].write_latch=0;
-		pit[0].mode=3;
-		pit[0].bcd = false;
-		pit[0].go_read_latch = true;
-		pit[0].counterstatus_set = false;
-		pit[0].update_count = false;
-	
-		pit[1].bcd = false;
-		pit[1].write_state = 1;
-		pit[1].read_state = 1;
-		pit[1].go_read_latch = true;
-		pit[1].cntr = 18;
-		pit[1].mode = 2;
-		pit[1].write_state = 3;
-		pit[1].counterstatus_set = false;
-	
-		pit[2].read_latch=1320;	/* MadTv1 */
-		pit[2].write_state = 3; /* Chuck Yeager */
-		pit[2].read_state = 3;
-		pit[2].mode=3;
-		pit[2].bcd=false;   
-		pit[2].cntr=1320;
-		pit[2].go_read_latch=true;
-		pit[2].counterstatus_set = false;
-		pit[2].counting = false;
-	
-		pit[0].delay=(1000.0f/((float)PIT_TICK_RATE/(float)pit[0].cntr));
-		pit[1].delay=(1000.0f/((float)PIT_TICK_RATE/(float)pit[1].cntr));
-		pit[2].delay=(1000.0f/((float)PIT_TICK_RATE/(float)pit[2].cntr));
+void TIMER_Reset(Section*) {
+	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+	assert(section != NULL);
 
-		Prop_multival* p = section->Get_multival("pit hack");
-		std::string type = p->GetSection()->Get_string("type");
+	PIC_RemoveEvents(PIT0_Event);
 
-		PIT_HACK_Set_type(type);
-		PROGRAMS_MakeFile("PITHACK.COM",PITHACK_ProgramStart);
+	WriteHandler[0].Install(0x40,write_latch,IO_MB);
+//	WriteHandler[1].Install(0x41,write_latch,IO_MB);
+	WriteHandler[2].Install(0x42,write_latch,IO_MB);
+	WriteHandler[3].Install(0x43,write_p43,IO_MB);
+	ReadHandler[0].Install(0x40,read_latch,IO_MB);
+	ReadHandler[1].Install(0x41,read_latch,IO_MB);
+	ReadHandler[2].Install(0x42,read_latch,IO_MB);
+	/* Setup Timer 0 */
+	pit[0].cntr=0x10000;
+	pit[0].write_state = 3;
+	pit[0].read_state = 3;
+	pit[0].read_latch=0;
+	pit[0].write_latch=0;
+	pit[0].mode=3;
+	pit[0].bcd = false;
+	pit[0].go_read_latch = true;
+	pit[0].counterstatus_set = false;
+	pit[0].update_count = false;
 
-		latched_timerstatus_locked=false;
-		gate2 = false;
-		PIC_AddEvent(PIT0_Event,pit[0].delay);
-	}
-	~TIMER(){
-		PIC_RemoveEvents(PIT0_Event);
-	}
-};
-static TIMER* test;
+	pit[1].bcd = false;
+	pit[1].write_state = 1;
+	pit[1].read_state = 1;
+	pit[1].go_read_latch = true;
+	pit[1].cntr = 18;
+	pit[1].mode = 2;
+	pit[1].write_state = 3;
+	pit[1].counterstatus_set = false;
 
-void TIMER_Destroy(Section*){
-	delete test;
-}
-void TIMER_Init(Section* sec) {
-	test = new TIMER(sec);
-	sec->AddDestroyFunction(&TIMER_Destroy);
+	pit[2].read_latch=1320;	/* MadTv1 */
+	pit[2].write_state = 3; /* Chuck Yeager */
+	pit[2].read_state = 3;
+	pit[2].mode=3;
+	pit[2].bcd=false;   
+	pit[2].cntr=1320;
+	pit[2].go_read_latch=true;
+	pit[2].counterstatus_set = false;
+	pit[2].counting = false;
+
+	pit[0].delay=(1000.0f/((float)PIT_TICK_RATE/(float)pit[0].cntr));
+	pit[1].delay=(1000.0f/((float)PIT_TICK_RATE/(float)pit[1].cntr));
+	pit[2].delay=(1000.0f/((float)PIT_TICK_RATE/(float)pit[2].cntr));
+
+	Prop_multival* p = section->Get_multival("pit hack");
+	std::string type = p->GetSection()->Get_string("type");
+
+	PIT_HACK_Set_type(type);
+	PROGRAMS_MakeFile("PITHACK.COM",PITHACK_ProgramStart);
+
+	latched_timerstatus_locked=false;
+	gate2 = false;
+	PIC_AddEvent(PIT0_Event,pit[0].delay);
 }
 
+void TIMER_Destroy(Section*) {
+	PIC_RemoveEvents(PIT0_Event);
+}
 
-
-//save state support
-void *PIT0_Event_PIC_Event = (void*)PIT0_Event;
+void TIMER_Init() {
+	AddExitFunction(&TIMER_Destroy);
+	AddVMEventFunction(VM_EVENT_POWERON,&TIMER_Reset);
+	AddVMEventFunction(VM_EVENT_RESET,&TIMER_Reset);
+}
 
