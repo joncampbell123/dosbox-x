@@ -4111,6 +4111,7 @@ void Init_PIC();
 void PCIBUS_Init();
 void PROGRAMS_Init();
 void TIMER_Init();
+void CMOS_Init();
 
 #if defined(WIN32)
 extern bool dpi_aware_enable;
@@ -4357,7 +4358,6 @@ int main(int argc, char* argv[]) {
 		void RENDER_Init(Section*);
 		void VGA_VsyncInit(Section*);
 		void CPU_Init(Section*);
-		void CMOS_Init(Section*);
 		void VGA_Init(Section*);
 #if C_FPU
 		void FPU_Init(Section*);
@@ -4445,6 +4445,7 @@ int main(int argc, char* argv[]) {
 		TIMER_Init();
 		PCIBUS_Init();
 		PAGING_Init(); /* <- NTS: At this time, must come before memory init because paging is so well integrated into emulation code */
+		CMOS_Init();
 		ROMBIOS_Init();
 		CALLBACK_Init(); /* <- NTS: This relies on ROM BIOS allocation and it must happen AFTER ROMBIOS init */
 		Init_VGABIOS();
@@ -4470,7 +4471,6 @@ int main(int argc, char* argv[]) {
 		/* TODO: move down as appropriate */
 		DispatchVMEvent(VM_EVENT_POWERON);
 
-		CMOS_Init(control->GetSection("dosbox"));
 		VGA_Init(control->GetSection("dosbox"));
 		RENDER_Init(control->GetSection("render"));
 		VGA_VsyncInit(control->GetSection("vsync"));
