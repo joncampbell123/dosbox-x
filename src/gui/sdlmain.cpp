@@ -4109,6 +4109,7 @@ void CALLBACK_Init();
 void Init_DMA();
 void Init_PIC();
 void PCIBUS_Init();
+void PROGRAMS_Init();
 
 #if defined(WIN32)
 extern bool dpi_aware_enable;
@@ -4355,7 +4356,6 @@ int main(int argc, char* argv[]) {
 		void RENDER_Init(Section*);
 		void VGA_VsyncInit(Section*);
 		void CPU_Init(Section*);
-		void PROGRAMS_Init(Section*);
 		void TIMER_Init(Section*);
 		void CMOS_Init(Section*);
 		void VGA_Init(Section*);
@@ -4447,6 +4447,7 @@ int main(int argc, char* argv[]) {
 		ROMBIOS_Init();
 		CALLBACK_Init(); /* <- NTS: This relies on ROM BIOS allocation and it must happen AFTER ROMBIOS init */
 		Init_VGABIOS();
+		PROGRAMS_Init(); /* <- NTS: Does not init programs, it inits the callback used later when creating the .COM programs on drive Z: */
 
 		/* If PCjr emulation, map cartridge ROM */
 		if (machine == MCH_PCJR)
@@ -4468,8 +4469,6 @@ int main(int argc, char* argv[]) {
 		/* TODO: move down as appropriate */
 		DispatchVMEvent(VM_EVENT_POWERON);
 
-
-		PROGRAMS_Init(control->GetSection("dosbox"));
 		TIMER_Init(control->GetSection("dosbox"));
 		CMOS_Init(control->GetSection("dosbox"));
 		VGA_Init(control->GetSection("dosbox"));
