@@ -4104,6 +4104,7 @@ void Init_PS2_Port_92h();
 void Init_A20_Gate();
 void HARDWARE_Init();
 void CAPTURE_Init();
+void ROMBIOS_Init();
 
 #if defined(WIN32)
 extern bool dpi_aware_enable;
@@ -4350,7 +4351,6 @@ int main(int argc, char* argv[]) {
 		void RENDER_Init(Section*);
 		void VGA_VsyncInit(Section*);
 		void CPU_Init(Section*);
-		void ROMBIOS_Init(Section*);
 		void CALLBACK_Init(Section*);
 		void DMA_Init(Section*);
 		void PIC_Init(Section*);
@@ -4442,6 +4442,7 @@ int main(int argc, char* argv[]) {
 		Init_PS2_Port_92h(); // FIXME: Should be handled by motherboard!
 		Init_RAM();
 		PAGING_Init(); /* <- NTS: At this time, must come before memory init because paging is so well integrated into emulation code */
+		ROMBIOS_Init();
 		Init_VGABIOS();
 
 		/* If PCjr emulation, map cartridge ROM */
@@ -4464,7 +4465,6 @@ int main(int argc, char* argv[]) {
 		/* TODO: move down as appropriate */
 		DispatchVMEvent(VM_EVENT_POWERON);
 
-		ROMBIOS_Init(control->GetSection("dosbox"));
 		CALLBACK_Init(control->GetSection("dosbox"));
 		DMA_Init(control->GetSection("dosbox"));
 		PIC_Init(control->GetSection("dosbox"));

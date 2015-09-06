@@ -3872,8 +3872,8 @@ void write_ID_version_string() {
 extern Bit8u int10_font_08[256 * 8];
 
 /* NTS: Do not use callbacks! This function is called before CALLBACK_Init() */
-void ROMBIOS_Init(Section *sec) {
-	Section_prop * section=static_cast<Section_prop *>(sec);
+void ROMBIOS_Init() {
+	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 	Bitu oi,i;
 
 	oi = section->Get_int("rom bios minimum size"); /* in KB */
