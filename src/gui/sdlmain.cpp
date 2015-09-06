@@ -4107,6 +4107,7 @@ void CAPTURE_Init();
 void ROMBIOS_Init();
 void CALLBACK_Init();
 void Init_DMA();
+void Init_PIC();
 
 #if defined(WIN32)
 extern bool dpi_aware_enable;
@@ -4353,7 +4354,6 @@ int main(int argc, char* argv[]) {
 		void RENDER_Init(Section*);
 		void VGA_VsyncInit(Section*);
 		void CPU_Init(Section*);
-		void PIC_Init(Section*);
 		void PCIBUS_Init(Section*);
 		void PROGRAMS_Init(Section*);
 		void TIMER_Init(Section*);
@@ -4442,6 +4442,7 @@ int main(int argc, char* argv[]) {
 		Init_PS2_Port_92h(); // FIXME: Should be handled by motherboard!
 		Init_RAM();
 		Init_DMA();
+		Init_PIC();
 		PAGING_Init(); /* <- NTS: At this time, must come before memory init because paging is so well integrated into emulation code */
 		ROMBIOS_Init();
 		CALLBACK_Init(); /* <- NTS: This relies on ROM BIOS allocation and it must happen AFTER ROMBIOS init */
@@ -4467,7 +4468,6 @@ int main(int argc, char* argv[]) {
 		/* TODO: move down as appropriate */
 		DispatchVMEvent(VM_EVENT_POWERON);
 
-		PIC_Init(control->GetSection("dosbox"));
 		PCIBUS_Init(control->GetSection("dosbox"));
 		PROGRAMS_Init(control->GetSection("dosbox"));
 		TIMER_Init(control->GetSection("dosbox"));

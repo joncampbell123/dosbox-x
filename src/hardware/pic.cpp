@@ -23,6 +23,7 @@
 #include "pic.h"
 #include "timer.h"
 #include "setup.h"
+#include "control.h"
 
 #define PIC_QUEUESIZE 512
 
@@ -652,82 +653,76 @@ void TIMER_AddTick(void) {
 
 static IO_WriteHandleObject PCXT_NMI_WriteHandler;
 
-/* Use full name to avoid name clash with compile option for position-independent code */
-class PIC_8259A: public Module_base {
-private:
-	IO_ReadHandleObject ReadHandler[4];
-	IO_WriteHandleObject WriteHandler[4];
-public:
-	PIC_8259A(Section* configuration):Module_base(configuration){
-		Section_prop * section=static_cast<Section_prop *>(configuration);
+static IO_ReadHandleObject ReadHandler[4];
+static IO_WriteHandleObject WriteHandler[4];
 
-		enable_slave_pic = section->Get_bool("enable slave pic");
-		enable_pc_xt_nmi_mask = section->Get_bool("enable pc nmi mask");
+void PIC_Reset(Section *sec) {
+	Bitu i;
 
-		/* Setup pic0 and pic1 with initial values like DOS has normally */
-		PIC_IRQCheck=0;
-		PIC_Ticks=0;
-		Bitu i;
-		for (i=0;i<2;i++) {
-			pics[i].auto_eoi=false;
-			pics[i].rotate_on_auto_eoi=false;
-			pics[i].request_issr=false;
-			pics[i].special=false;
-			pics[i].single=false;
-			pics[i].icw_index=0;
-			pics[i].icw_words=0;
-			pics[i].irr = pics[i].isr = pics[i].imrr = 0;
-			pics[i].isrr = pics[i].imr = 0xff;
-			pics[i].active_irq = 8;
-		}
-		master.vector_base = 0x08;
-		slave.vector_base = 0x70;
+	/* NTS: Parsing this on reset allows PIC configuration changes on reboot instead of restarting the entire emulator */
+	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+	assert(section != NULL);
 
-		PIC_SetIRQMask(0,false);					/* Enable system timer */
-		PIC_SetIRQMask(1,false);					/* Enable system timer */
-		PIC_SetIRQMask(2,false);					/* Enable second pic */
-		PIC_SetIRQMask(8,false);					/* Enable RTC IRQ */
+	enable_slave_pic = section->Get_bool("enable slave pic");
+	enable_pc_xt_nmi_mask = section->Get_bool("enable pc nmi mask");
 
-		ReadHandler[0].Install(0x20,read_command,IO_MB);
-		ReadHandler[1].Install(0x21,read_data,IO_MB);
-		WriteHandler[0].Install(0x20,write_command,IO_MB);
-		WriteHandler[1].Install(0x21,write_data,IO_MB);
+	/* Setup pic0 and pic1 with initial values like DOS has normally */
+	PIC_Ticks=0;
+	PIC_IRQCheck=0;
+	for (i=0;i<2;i++) {
+		pics[i].auto_eoi=false;
+		pics[i].rotate_on_auto_eoi=false;
+		pics[i].request_issr=false;
+		pics[i].special=false;
+		pics[i].single=false;
+		pics[i].icw_index=0;
+		pics[i].icw_words=0;
+		pics[i].irr = pics[i].isr = pics[i].imrr = 0;
+		pics[i].isrr = pics[i].imr = 0xff;
+		pics[i].active_irq = 8;
+	}
+	master.vector_base = 0x08;
+	slave.vector_base = 0x70;
 
-		/* the secondary slave PIC takes priority over PC/XT NMI mask emulation */
-		if (enable_slave_pic) {
-			ReadHandler[2].Install(0xa0,read_command,IO_MB);
-			ReadHandler[3].Install(0xa1,read_data,IO_MB);
-			WriteHandler[2].Install(0xa0,write_command,IO_MB);
-			WriteHandler[3].Install(0xa1,write_data,IO_MB);
-		}
-		else if (enable_pc_xt_nmi_mask) {
-			PCXT_NMI_WriteHandler.Install(0xa0,pc_xt_nmi_write,IO_MB);
-		}
+	PIC_SetIRQMask(0,false);					/* Enable system timer */
+	PIC_SetIRQMask(1,false);					/* Enable system timer */
+	PIC_SetIRQMask(2,false);					/* Enable second pic */
+	PIC_SetIRQMask(8,false);					/* Enable RTC IRQ */
 
-		/* Initialize the pic queue */
-		for (i=0;i<PIC_QUEUESIZE-1;i++) {
-			pic_queue.entries[i].next=&pic_queue.entries[i+1];
+	ReadHandler[0].Install(0x20,read_command,IO_MB);
+	ReadHandler[1].Install(0x21,read_data,IO_MB);
+	WriteHandler[0].Install(0x20,write_command,IO_MB);
+	WriteHandler[1].Install(0x21,write_data,IO_MB);
 
-			// savestate compatibility
-			pic_queue.entries[i].pic_event = 0;
-		}
-		pic_queue.entries[PIC_QUEUESIZE-1].next=0;
-		pic_queue.free_entry=&pic_queue.entries[0];
-		pic_queue.next_entry=0;
+	/* the secondary slave PIC takes priority over PC/XT NMI mask emulation */
+	if (enable_slave_pic) {
+		ReadHandler[2].Install(0xa0,read_command,IO_MB);
+		ReadHandler[3].Install(0xa1,read_data,IO_MB);
+		WriteHandler[2].Install(0xa0,write_command,IO_MB);
+		WriteHandler[3].Install(0xa1,write_data,IO_MB);
+	}
+	else if (enable_pc_xt_nmi_mask) {
+		PCXT_NMI_WriteHandler.Install(0xa0,pc_xt_nmi_write,IO_MB);
 	}
 
-	~PIC_8259A(){
+	/* Initialize the pic queue */
+	for (i=0;i<PIC_QUEUESIZE-1;i++) {
+		pic_queue.entries[i].next=&pic_queue.entries[i+1];
+
+		// savestate compatibility
+		pic_queue.entries[i].pic_event = 0;
 	}
-};
-
-static PIC_8259A* test;
-
-void PIC_Destroy(Section* sec){
-	delete test;
+	pic_queue.entries[PIC_QUEUESIZE-1].next=0;
+	pic_queue.free_entry=&pic_queue.entries[0];
+	pic_queue.next_entry=0;
 }
 
-void PIC_Init(Section* sec) {
-	test = new PIC_8259A(sec);
-	sec->AddDestroyFunction(&PIC_Destroy);
+void PIC_Destroy(Section* sec) {
+}
+
+void Init_PIC() {
+	AddExitFunction(&PIC_Destroy);
+	AddVMEventFunction(VM_EVENT_POWERON,&PIC_Reset);
+	AddVMEventFunction(VM_EVENT_RESET,&PIC_Reset);
 }
 
