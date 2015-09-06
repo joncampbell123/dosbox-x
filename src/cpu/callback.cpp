@@ -646,7 +646,7 @@ void CALLBACK_HandlerObject::Set_RealVec(Bit8u vec){
 	} else E_Exit ("double usage of vector handler");
 }
 
-void CALLBACK_Init(Section* /*sec*/) {
+void CALLBACK_Init() {
 	if (mainline_compatible_bios_mapping) {
 		CB_SOFFSET=0x1000;
 		CB_SEG=0xF000;
