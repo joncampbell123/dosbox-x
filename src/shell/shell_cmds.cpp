@@ -81,6 +81,7 @@ static SHELL_Cmd cmd_list[]={
 {	"MORE",	1,			&DOS_Shell::CMD_MORE,		"SHELL_CMD_MORE_HELP"},
 {	"FOR",	1,			&DOS_Shell::CMD_FOR,		"SHELL_CMD_FOR_HELP"},
 {	"INT2FDBG",	1,			&DOS_Shell::CMD_INT2FDBG,	"Hook INT 2Fh for debugging purposes"},
+{	"CTTY",		1,			&DOS_Shell::CMD_CTTY,		"Change TTY device"},
 {0,0,0,0}
 }; 
 
@@ -1960,7 +1961,30 @@ void DOS_Shell::CMD_ADDKEY(char * args){
 void DOS_Shell::CMD_FOR(char *args){
 }
 
+void DOS_Shell::CMD_CTTY(char * args) {
+	/* NTS: This is written to emulate the simplistic parsing in MS-DOS 6.22 */
+	Bit16u handle;
+	int i;
 
-// save state support
-void *delayed_press_PIC_Event = (void*)delayed_press;
-void *delayed_release_PIC_Event = (void*)delayed_release;
+	/* args has leading space? */
+	args = trim(args);
+
+	/* must be device */
+	if (DOS_FindDevice(args) == DOS_DEVICES) {
+		WriteOut("Invalid device");
+		return;
+	}
+
+	/* close STDIN/STDOUT/STDERR and replace with new handle */
+	if (!DOS_OpenFile(args,OPEN_READWRITE,&handle)) {
+		WriteOut("Unable to open device");
+		return;
+	}
+
+	for (i=0;i < 3;i++) {
+		DOS_CloseFile(i);
+		DOS_ForceDuplicateEntry(handle,i);
+	}
+	DOS_CloseFile(handle);
+}
+
