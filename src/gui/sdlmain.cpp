@@ -4114,7 +4114,12 @@ void RENDER_Init();
 void TIMER_Init();
 void CMOS_Init();
 void VGA_Init();
+void CPU_Init();
 void VGA_VsyncInit();
+void ISAPNP_Cfg_Init();
+#if C_FPU
+void FPU_Init();
+#endif
 
 #if defined(WIN32)
 extern bool dpi_aware_enable;
@@ -4358,11 +4363,6 @@ int main(int argc, char* argv[]) {
 		GUI_StartUp();
 
 		/* Init all the sections */
-		void CPU_Init(Section*);
-#if C_FPU
-		void FPU_Init(Section*);
-#endif
-		void ISAPNP_Cfg_Init(Section*);
 		void KEYBOARD_Init(Section*);
 		void VOODOO_Init(Section*);
 		void MIXER_Init(Section*);
@@ -4474,11 +4474,11 @@ int main(int argc, char* argv[]) {
 		VGA_Init();
 		RENDER_Init();
 		VGA_VsyncInit();
-		CPU_Init(control->GetSection("cpu"));
+		CPU_Init();
 #if C_FPU
-		FPU_Init(control->GetSection("cpu"));
+		FPU_Init();
 #endif
-		ISAPNP_Cfg_Init(control->GetSection("cpu"));
+		ISAPNP_Cfg_Init();
 		KEYBOARD_Init(control->GetSection("keyboard"));
 		VOODOO_Init(control->GetSection("pci"));
 		MIXER_Init(control->GetSection("mixer"));

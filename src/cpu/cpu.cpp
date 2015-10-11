@@ -3078,9 +3078,9 @@ void CPU_ShutDown(Section* sec) {
 	delete test;
 }
 
-void CPU_Init(Section* sec) {
-	test = new CPU(sec);
-	sec->AddDestroyFunction(&CPU_ShutDown,true);
+void CPU_Init() {
+	test = new CPU(control->GetSection("cpu"));
+	AddExitFunction(&CPU_ShutDown,true);
 }
 //initialize static members
 bool CPU::inited=false;

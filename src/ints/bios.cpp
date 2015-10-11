@@ -786,8 +786,8 @@ void isapnp_write_port(Bitu port,Bitu val,Bitu /*iolen*/) {
 
 static Bitu INT15_Handler(void);
 
-void ISAPNP_Cfg_Init(Section *s) {
-	Section_prop * section=static_cast<Section_prop *>(s);
+void ISAPNP_Cfg_Init() {
+	Section_prop * section=static_cast<Section_prop *>(control->GetSection("cpu"));
 	enable_integration_device = section->Get_bool("integration device");
 	ISAPNPBIOS = section->Get_bool("isapnpbios");
 	APMBIOS = section->Get_bool("apmbios");

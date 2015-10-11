@@ -889,7 +889,7 @@ void FPU_Selftest() {
 	FPU_Selftest_80();
 }
 
-void FPU_Init(Section*) {
+void FPU_Init() {
 	FPU_Selftest();
 	FPU_FINIT();
 }
