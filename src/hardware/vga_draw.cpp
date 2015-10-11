@@ -33,6 +33,8 @@
 #include "vga.h"
 #include "pic.h"
 #include "timer.h"
+#include "config.h"
+#include "control.h"
 
 //#undef C_DEBUG
 //#define C_DEBUG 1
@@ -138,8 +140,8 @@ void VGA_VsyncUpdateMode(VGA_Vsync vsyncmode) {
 
 void VGA_TweakUserVsyncOffset(float val) { uservsyncjolt = val; }
 
-void VGA_VsyncInit(Section * sec) {
-	Section_prop * section=static_cast<Section_prop *>(sec);
+void VGA_VsyncInit() {
+	Section_prop * section=static_cast<Section_prop *>(control->GetSection("vsync"));
 
 	const char * vsyncmodestr;
 	vsyncmodestr=section->Get_string("vsyncmode");

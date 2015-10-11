@@ -4114,6 +4114,7 @@ void RENDER_Init();
 void TIMER_Init();
 void CMOS_Init();
 void VGA_Init();
+void VGA_VsyncInit();
 
 #if defined(WIN32)
 extern bool dpi_aware_enable;
@@ -4357,7 +4358,6 @@ int main(int argc, char* argv[]) {
 		GUI_StartUp();
 
 		/* Init all the sections */
-		void VGA_VsyncInit(Section*);
 		void CPU_Init(Section*);
 #if C_FPU
 		void FPU_Init(Section*);
@@ -4473,7 +4473,7 @@ int main(int argc, char* argv[]) {
 
 		VGA_Init();
 		RENDER_Init();
-		VGA_VsyncInit(control->GetSection("vsync"));
+		VGA_VsyncInit();
 		CPU_Init(control->GetSection("cpu"));
 #if C_FPU
 		FPU_Init(control->GetSection("cpu"));
