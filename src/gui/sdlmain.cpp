@@ -4110,6 +4110,7 @@ void Init_DMA();
 void Init_PIC();
 void PCIBUS_Init();
 void PROGRAMS_Init();
+void RENDER_Init();
 void TIMER_Init();
 void CMOS_Init();
 void VGA_Init();
@@ -4356,7 +4357,6 @@ int main(int argc, char* argv[]) {
 		GUI_StartUp();
 
 		/* Init all the sections */
-		void RENDER_Init(Section*);
 		void VGA_VsyncInit(Section*);
 		void CPU_Init(Section*);
 #if C_FPU
@@ -4472,7 +4472,7 @@ int main(int argc, char* argv[]) {
 		DispatchVMEvent(VM_EVENT_POWERON);
 
 		VGA_Init();
-		RENDER_Init(control->GetSection("render"));
+		RENDER_Init();
 		VGA_VsyncInit(control->GetSection("vsync"));
 		CPU_Init(control->GetSection("cpu"));
 #if C_FPU
