@@ -362,7 +362,7 @@ public:
 
 		/* add stuff from the configfile unless -noautexec or -securemode is specified. */
 		char * extra = const_cast<char*>(section->data.c_str());
-		if (extra && !secure && !control->cmdline->FindExist("-noautoexec",true)) {
+		if (extra && !secure && !control->opt_noautoexec) {
 			/* detect if "echo off" is the first line */
 			bool echo_off  = !strncasecmp(extra,"echo off",8);
 			if (!echo_off) echo_off = !strncasecmp(extra,"@echo off",9);

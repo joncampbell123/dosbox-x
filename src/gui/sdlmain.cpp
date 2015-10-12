@@ -4003,7 +4003,11 @@ bool DOSBOX_parse_argv() {
 			fprintf(stderr,"  -lang <message file>                    Use specific message file instead of language= setting\n");
 			fprintf(stderr,"  -nodpiaware                             Ignore (don't signal) Windows DPI awareness\n");
 			fprintf(stderr,"  -securemode                             Enable secure mode\n");
+			fprintf(stderr,"  -noautoexec                             Don't execute AUTOEXEC.BAT config section\n");
 			return 0;
+		}
+		else if (optname == "noautoexec") {
+			control->opt_noautoexec = true;
 		}
 		else if (optname == "securemode") {
 			control->opt_securemode = true;
