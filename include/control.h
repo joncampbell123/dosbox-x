@@ -78,6 +78,7 @@ public:
 		opt_eraseconf = false;
 		opt_resetconf = false;
 		opt_printconf = false;
+		opt_securemode = false;
 		opt_fullscreen = false;
 		opt_showcycles = false;
 		opt_erasemapper = false;
@@ -113,6 +114,7 @@ public:
 	bool opt_erasemapper;
 	bool opt_resetmapper;
 	bool opt_startmapper;
+	bool opt_securemode;
 	bool opt_fullscreen;
 	bool opt_showcycles;
 	bool opt_noconsole;

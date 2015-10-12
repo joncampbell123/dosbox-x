@@ -4002,7 +4002,11 @@ bool DOSBOX_parse_argv() {
 			fprintf(stderr,"  -keydbg                                 Log all SDL key events (debugging)\n");
 			fprintf(stderr,"  -lang <message file>                    Use specific message file instead of language= setting\n");
 			fprintf(stderr,"  -nodpiaware                             Ignore (don't signal) Windows DPI awareness\n");
+			fprintf(stderr,"  -securemode                             Enable secure mode\n");
 			return 0;
+		}
+		else if (optname == "securemode") {
+			control->opt_securemode = true;
 		}
 		else if (optname == "nodpiaware") {
 			control->opt_disable_dpi_awareness = true;

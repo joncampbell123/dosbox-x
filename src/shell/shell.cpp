@@ -358,7 +358,7 @@ public:
 		Section_line * section=static_cast<Section_line *>(configuration);
 
 		/* Check -securemode switch to disable mount/imgmount/boot after running autoexec.bat */
-		bool secure = control->cmdline->FindExist("-securemode",true);
+		bool secure = control->opt_securemode;
 
 		/* add stuff from the configfile unless -noautexec or -securemode is specified. */
 		char * extra = const_cast<char*>(section->data.c_str());
