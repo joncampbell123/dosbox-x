@@ -377,13 +377,8 @@ public:
 		/* Check to see for extra command line options to be added (before the command specified on commandline) */
 		/* Maximum of extra commands: 10 */
 		Bitu i = 1;
-		while (control->cmdline->FindString("-c",line,true) && (i <= 11)) {
-#if defined (WIN32) || defined (OS2)
-			//replace single with double quotes so that mount commands can contain spaces
-			for(Bitu temp = 0;temp < line.size();++temp) if(line[temp] == '\'') line[temp]='\"';
-#endif //Linux users can simply use \" in their shell
-			autoexec[i++].Install(line);
-		}
+		for (auto it=control->opt_c.begin();i <= 11 && it!=control->opt_c.end();it++) /* -c switches */
+			autoexec[i++].Install(*it);
 
 		/* Check for the -exit switch which causes dosbox to when the command on the commandline has finished */
 		bool addexit = control->opt_exit;
