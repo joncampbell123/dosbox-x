@@ -383,6 +383,7 @@ public:
 		/* Check for the -exit switch which causes dosbox to when the command on the commandline has finished */
 		bool addexit = control->opt_exit;
 
+#if 0/*FIXME: This is ugly. I don't care to follow through on this nonsense for now. When needed, port to new command line switching. */
 		/* Check for first command being a directory or file */
 		char buffer[CROSS_LEN];
 		char orig[CROSS_LEN];
@@ -453,6 +454,12 @@ public:
 			}
 		}
 nomount:
+#endif
+
+		if (addexit) autoexec[i++].Install("exit");
+
+		assert(i <= 17); /* FIXME: autoexec[] should not be fixed size */
+
 		VFILE_Register("AUTOEXEC.BAT",(Bit8u *)autoexec_data,(Bit32u)strlen(autoexec_data));
 	}
 };
