@@ -68,6 +68,7 @@ public:
 	Config(CommandLine * cmd):cmdline(cmd),secure_mode(false) {
 		startup_params.push_back(cmdline->GetFileName());
 		cmdline->FillVector(startup_params);
+		opt_exit = false;
 		opt_debug = false;
 		opt_nogui = false;
 		opt_nomenu = false;
@@ -128,6 +129,7 @@ public:
 	bool opt_nomenu;
 	bool opt_debug;
 	bool opt_nogui;
+	bool opt_exit;
 };
 
 #endif

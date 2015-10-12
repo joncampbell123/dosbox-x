@@ -386,7 +386,7 @@ public:
 		}
 
 		/* Check for the -exit switch which causes dosbox to when the command on the commandline has finished */
-		bool addexit = control->cmdline->FindExist("-exit",true);
+		bool addexit = control->opt_exit;
 
 		/* Check for first command being a directory or file */
 		char buffer[CROSS_LEN];

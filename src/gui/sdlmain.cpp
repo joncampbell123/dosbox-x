@@ -4004,7 +4004,11 @@ bool DOSBOX_parse_argv() {
 			fprintf(stderr,"  -nodpiaware                             Ignore (don't signal) Windows DPI awareness\n");
 			fprintf(stderr,"  -securemode                             Enable secure mode\n");
 			fprintf(stderr,"  -noautoexec                             Don't execute AUTOEXEC.BAT config section\n");
+			fprintf(stderr,"  -exit                                   Exit after executing AUTOEXEC.BAT\n");
 			return 0;
+		}
+		else if (optname == "exit") {
+			control->opt_exit = true;
 		}
 		else if (optname == "noautoexec") {
 			control->opt_noautoexec = true;
