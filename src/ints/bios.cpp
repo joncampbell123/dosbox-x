@@ -786,6 +786,8 @@ void isapnp_write_port(Bitu port,Bitu val,Bitu /*iolen*/) {
 
 static Bitu INT15_Handler(void);
 
+// FIXME: This initializes both APM BIOS and ISA PNP emulation!
+//        Need to separate APM BIOS init from ISA PNP init from ISA PNP BIOS init!
 void ISAPNP_Cfg_Init() {
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("cpu"));
 	enable_integration_device = section->Get_bool("integration device");

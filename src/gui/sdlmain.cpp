@@ -4467,7 +4467,14 @@ int main(int argc, char* argv[]) {
 		ROMBIOS_Init();
 		CALLBACK_Init(); /* <- NTS: This relies on ROM BIOS allocation and it must happen AFTER ROMBIOS init */
 		Init_VGABIOS();
+		VOODOO_Init();
 		PROGRAMS_Init(); /* <- NTS: Does not init programs, it inits the callback used later when creating the .COM programs on drive Z: */
+		MIXER_Init();
+		MIDI_Init();
+		CPU_Init();
+#if C_FPU
+		FPU_Init();
+#endif
 
 		/* If PCjr emulation, map cartridge ROM */
 		if (machine == MCH_PCJR)
@@ -4492,15 +4499,8 @@ int main(int argc, char* argv[]) {
 		VGA_Init();
 		RENDER_Init();
 		VGA_VsyncInit();
-		CPU_Init();
-#if C_FPU
-		FPU_Init();
-#endif
 		ISAPNP_Cfg_Init();
 		KEYBOARD_Init();
-		VOODOO_Init();
-		MIXER_Init();
-		MIDI_Init();
 		MPU401_Init(control->GetSection("midi"));
 #if C_DEBUG
 		DEBUG_Init(control->GetSection("debug"));
