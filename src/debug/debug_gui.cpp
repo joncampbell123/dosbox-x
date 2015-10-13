@@ -193,16 +193,10 @@ void DEBUG_ShowMsg(char const* format,...) {
 		fprintf(debuglog,"%s",buf);
 		fflush(debuglog);
 	}
-	else if (do_LOG_stderr) {
+	if (do_LOG_stderr || !C_DEBUG || debuglog == NULL) {
 		fprintf(stderr,"DOSBox LOG: %s",buf);
 		fflush(stderr);
 	}
-#if !C_DEBUG
-	else {
-		fprintf(stderr,"DOSBox LOG: %s",buf);
-		fflush(stderr);
-	}
-#endif
 
 #if C_DEBUG
 	if (logBuffPos!=logBuff.end()) {
@@ -283,7 +277,9 @@ void LOG::Init() {
 	/* do not init twice */
 	if (has_LOG_Init) return;
 	has_LOG_Init = true;
-	do_LOG_stderr = false;
+
+	/* announce */
+	LOG_MSG("Logging init: beginning logging proper. This is the end of the early init logging");
 
 	/* get the [log] section */
 	Section_prop *sect = static_cast<Section_prop *>(control->GetSection("log"));
@@ -291,10 +287,22 @@ void LOG::Init() {
 
 	/* do we write to a logfile, or not? */
 	const char *blah = sect->Get_string("logfile");
-	if (blah != NULL && blah[0] != 0 && (debuglog=fopen(blah,"wt+")) != NULL)
-		setbuf(debuglog,NULL);
-	else
+	if (blah != NULL && blah[0] != 0) {
+		if ((debuglog=fopen(blah,"wt+")) != NULL) {
+			LOG_MSG("Logging: opened logfile '%s' successfully. All further logging will go to that file.",blah);
+			setbuf(debuglog,NULL);
+		}
+		else {
+			LOG_MSG("Logging: failed to open logfile '%s'. All further logging will be discarded. Error: %s",blah,strerror(errno));
+		}
+	}
+	else {
+		LOG_MSG("Logging: No logfile was given. All further logging will be discarded.");
 		debuglog=0;
+	}
+
+	/* end of early init logging */
+	do_LOG_stderr = false;
 
 	/* please call LOG_Exit when DOSBox-X is exiting. This call is made first,
 	 * so our callback will be called last before DOSBox-X terminates. */
@@ -312,6 +320,8 @@ void LOG::Init() {
 		else
 			ParseEnableSetting(/*&*/loggrp[i],sect->Get_string(buf));
 	}
+
+	LOG(LOG_MISC,LOG_DEBUG)("Logging init complete");
 }
 
 void LOG::EarlyInit(void) {
