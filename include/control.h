@@ -83,6 +83,7 @@ public:
 		opt_securemode = false;
 		opt_fullscreen = false;
 		opt_showcycles = false;
+		opt_earlydebug = false;
 		opt_erasemapper = false;
 		opt_resetmapper = false;
 		opt_startmapper = false;
@@ -121,6 +122,7 @@ public:
 	bool opt_securemode;
 	bool opt_fullscreen;
 	bool opt_showcycles;
+	bool opt_earlydebug;
 	bool opt_noconsole;
 	bool opt_eraseconf;
 	bool opt_resetconf;

@@ -31,6 +31,8 @@
 #include "debug_inc.h"
 
 static bool has_LOG_Init = false;
+static bool has_LOG_EarlyInit = false;
+static bool do_LOG_stderr = false;
 
 _LogGroup loggrp[LOG_MAX]={{"",LOG_NORMAL},{0,LOG_NORMAL}};
 FILE* debuglog = NULL;
@@ -191,6 +193,10 @@ void DEBUG_ShowMsg(char const* format,...) {
 		fprintf(debuglog,"%s",buf);
 		fflush(debuglog);
 	}
+	else if (do_LOG_stderr) {
+		fprintf(stderr,"DOSBox LOG: %s",buf);
+		fflush(stderr);
+	}
 #if !C_DEBUG
 	else {
 		fprintf(stderr,"DOSBox LOG: %s",buf);
@@ -277,6 +283,7 @@ void LOG::Init() {
 	/* do not init twice */
 	if (has_LOG_Init) return;
 	has_LOG_Init = true;
+	do_LOG_stderr = false;
 
 	/* get the [log] section */
 	Section_prop *sect = static_cast<Section_prop *>(control->GetSection("log"));
@@ -307,20 +314,12 @@ void LOG::Init() {
 	}
 }
 
-void LOG::SetupConfigSection(void) {
-	const char *log_values[] = {
-		/* compatibility with existing dosbox.conf files */
-		"true", "false",
+void LOG::EarlyInit(void) {
+	assert(control != NULL);
 
-		/* log levels */
-		"debug",
-		"normal",
-		"warn",
-		"error",
-		"fatal",
-		"never",		/* <- this means NEVER EVER log anything */
-
-		0};
+	/* do not init twice */
+	if (has_LOG_EarlyInit) return;
+	has_LOG_EarlyInit = true;
 
 	/* Setup logging groups */
 	loggrp[LOG_ALL].front="ALL";
@@ -354,7 +353,34 @@ void LOG::SetupConfigSection(void) {
 	loggrp[LOG_PCI].front="PCI";
 	
 	loggrp[LOG_VOODOO].front="SST";
-	
+
+	do_LOG_stderr = control->opt_earlydebug;
+
+	for (Bitu i=1;i<LOG_MAX;i++) {
+		if (control->opt_earlydebug)
+			ParseEnableSetting(/*&*/loggrp[i],"debug");
+		else
+			ParseEnableSetting(/*&*/loggrp[i],"warn");
+	}
+
+	LOG_MSG("Early LOG Init complete");
+}
+
+void LOG::SetupConfigSection(void) {
+	const char *log_values[] = {
+		/* compatibility with existing dosbox.conf files */
+		"true", "false",
+
+		/* log levels */
+		"debug",
+		"normal",
+		"warn",
+		"error",
+		"fatal",
+		"never",		/* <- this means NEVER EVER log anything */
+
+		0};
+
 	/* Register the log section */
 	Section_prop * sect=control->AddSection_prop("log",Null_Init);
 	Prop_string* Pstring = sect->Add_string("logfile",Property::Changeable::Always,"");

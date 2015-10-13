@@ -67,6 +67,7 @@ public:
 	static void ParseEnableSetting(_LogGroup &group,const char *setting);
 	static void SetupConfigSection(void);
 	static void OnExit(Section*);
+	static void EarlyInit();
 	static void Init();
 
 	void operator() (char const* buf, ...) GCC_ATTRIBUTE(__format__(__printf__, 2, 3));  //../src/debug/debug_gui.cpp

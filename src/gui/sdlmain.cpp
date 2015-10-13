@@ -3999,6 +3999,7 @@ bool DOSBOX_parse_argv() {
 			fprintf(stderr,"  -disable-numlock-check                  Disable numlock check (win32 only)\n");
 			fprintf(stderr,"  -date-host-forced                       Force synchronization of date with host\n");
 			fprintf(stderr,"  -debug                                  Set all logging levels to debug\n");
+			fprintf(stderr,"  -early-debug                            Log early initialization messages in DOSBox as well\n");
 			fprintf(stderr,"  -keydbg                                 Log all SDL key events (debugging)\n");
 			fprintf(stderr,"  -lang <message file>                    Use specific message file instead of language= setting\n");
 			fprintf(stderr,"  -nodpiaware                             Ignore (don't signal) Windows DPI awareness\n");
@@ -4095,6 +4096,9 @@ bool DOSBOX_parse_argv() {
 		}
 		else if (optname == "debug") {
 			control->opt_debug = true;
+		}
+		else if (optname == "early-debug") {
+			control->opt_earlydebug = true;
 		}
 		else {
 			printf("WARNING: Unknown option %s (first parsing stage)\n",optname.c_str());
@@ -4201,6 +4205,10 @@ int main(int argc, char* argv[]) {
 			printconfiglocation();
 		if (control->opt_erasemapper || control->opt_resetmapper)
 			erasemapperfile();
+
+		/* -- Early logging init, in case these details are needed to debug problems at this level */
+		/*    If --early-debug was given this opens up logging to STDERR until Log::Init() */
+		LOG::EarlyInit();
 
 		/* -- Init the configuration system and add default values */
 		CheckNumLockState();
