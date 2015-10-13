@@ -825,7 +825,6 @@ void DOSBOX_SetupConfigSections(void) {
 	const char* joytypes[] = { "auto", "2axis", "4axis", "4axis_2", "fcs", "ch", "none",0};
 	const char* iosgus[] = { "240", "220", "260", "280", "2a0", "2c0", "2e0", "300", 0 };
 	const char* ios[] = { "220", "240", "260", "280", "2a0", "2c0", "2e0", "300", 0 };
-	const char* pit_hax[] = { "","project_angel_demo", "pc_speaker_as_timer", 0 };
 	const char* ems_settings[] = { "true", "emsboard", "emm386", "false", 0};
 	const char* irqsgus[] = { "5", "3", "7", "9", "10", "11", "12", 0 };
 	const char* irqssb[] = { "7", "5", "3", "9", "10", "11", "12", 0 };
@@ -1229,25 +1228,6 @@ void DOSBOX_SetupConfigSections(void) {
 
 	Pbool = secprop->Add_bool("enable pci bus",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("Enable PCI bus emulation");
-
-	Pmulti_remain = secprop->Add_multiremain("pit hack",Property::Changeable::Always,"");
-	Pmulti_remain->Set_help(
-		"If set, demo/game-specific hacks are applied to PIT timer emulation to help\n"
-		"stabilize the demo and run more reliably. Valid values are:\n"
-		"  'project_angel_demo'            If you intend to run the Project Angel demo, use this\n"
-		"                                  setting. The PIT timer is forced to one of two values\n"
-		"                                  to resolve hangups, timing issues, music skipping on\n"
-		"                                  video mode changes, and VGA tearlines.\n"
-		"  'pc_speaker_as_timer'           A few early DOS demos apparently like to use PIT 2 as\n"
-		"                                  a timer source (where normally PIT 2 is used to generate\n"
-		"                                  a square wave to drive the PC speaker). If the demo you\n"
-		"                                  are running seems to run at half the normal speed for no\n"
-		"                                  logical reason, try this hack. Demos that need this hack:\n"
-		"                                     - Impact Studios, Legend");
-
-	Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::Always,"");
-	Pmulti_remain->SetValue("",/*init*/true);
-	Pstring->Set_values(pit_hax);
 
 	secprop=control->AddSection_prop("render",&Null_Init,true);
 	Pint = secprop->Add_int("frameskip",Property::Changeable::Always,0);

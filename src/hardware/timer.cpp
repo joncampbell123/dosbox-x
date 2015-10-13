@@ -27,15 +27,6 @@
 #include "setup.h"
 #include "control.h"
 
-enum {
-	PIT_HACK_NONE=0,
-
-	PIT_HACK_PROJECT_ANGEL_DEMO,
-	PIT_HACK_PC_SPEAKER_AS_TIMER
-};
-
-static int pit_hack_mode = PIT_HACK_NONE;
-
 static INLINE void BIN2BCD(Bit16u& val) {
 	Bit16u temp=val%10 + (((val/10)%10)<<4)+ (((val/100)%10)<<8) + (((val/1000)%10)<<12);
 	val=temp;
@@ -162,20 +153,7 @@ static void counter_latch(Bitu counter) {
 	switch (p->mode) {
 	case 4:		/* Software Triggered Strobe */
 	case 0:		/* Interrupt on Terminal Count */
-		if (counter == 2 && pit_hack_mode == PIT_HACK_PC_SPEAKER_AS_TIMER) {
-			/* Needed for Impact Studios "Legend". Perhaps the need for this hack is
-			 * a sign that some parts of DOSBox's PIT emulation still needs work. */
-			double f;
-
-			index *= 4; /* <- FIXME: Why does this work? Seems best setting when cycles=10000 */
-			/* ^ NTS: Setting too high makes the ball bounce TOO fast, and some parts
-			 *        sporadically fast-forward. */
-
-			f = index*(PIT_TICK_RATE/1000.0);
-			if (f > p->cntr) f = p->cntr;
-			p->read_latch = p->cntr - (Bit16u)f;
-		}
-		else {
+		{
 			/* Counter keeps on counting after passing terminal count */
 			if(p->bcd) {
 				index = fmod(index,(1000.0/PIT_TICK_RATE)*10000.0);
@@ -241,8 +219,6 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 	}
 	if (p->bcd==true) BCD2BIN(p->write_latch);
    	if (p->write_state != 0) {
-		Bitu prev_cntr = p->cntr;
-
 		if (p->write_latch == 0) {
 			if (p->bcd == false) p->cntr = 0x10000;
 			else p->cntr=9999;
@@ -257,43 +233,6 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 		}
 		p->start=PIC_FullIndex();
 		p->delay=(1000.0f/((float)PIT_TICK_RATE/(float)p->cntr));
-
-		switch (pit_hack_mode) {
-			case PIT_HACK_PROJECT_ANGEL_DEMO:
-				if (counter == 0) {
-					/* Project Angel PIT hack. The demo is constantly fiddling around with
-					 * the counter value in ways that can sometimes cause the demo to hang,
-					 * or in ways that prevent the demo from starting or can cause the demo
-					 * to run at half speed.
-					 *
-					 * Perhaps the programmers learned the hard way that switching the counter
-					 * rapidly between 18Hz and 421Hz is not a good way to run a demo.
-					 *
-					 * We force the counter value to one of two values to forcibly stabilize
-					 * the demo's timing. Doing this also fixes the VGA tearline that is
-					 * visible in the demo's Mode-X parts.
-					 *
-					 * I also noticed that without this hack, the music in the demo is prone
-					 * to skip forward suddenly during BIOS video mode changes, which this
-					 * hack also resolves.
-					 *
-					 * NTS: We do not modify the counter value, because that breaks the demo
-					 * too when it reads back a different value than it wrote. Instead, we
-					 * ignore the counter value it wrote and force a delay value. */
-					/* NTS: We also force the higher rate if we detect that it wrote 18.2Hz
-					 * more than once, as that is a sign it hung at startup */
-					if (p->cntr > 64000 && prev_cntr > 64000)
-						LOG_MSG("PIT hack for Project Angel: 18.2Hz was written twice---did the demo hang? Forcing timer to higher rate.\n");
-
-					if (p->cntr > 64000 && prev_cntr <= 64000)
-						p->delay=(1000.0f/((float)PIT_TICK_RATE/(float)65536));
-					else
-						p->delay=(1000.0f/((float)PIT_TICK_RATE/(float)2834));
-				}
-				break;
-			case PIT_HACK_PC_SPEAKER_AS_TIMER:
-				break;
-		}
 
 		switch (counter) {
 		case 0x00:			/* Timer hooked to IRQ 0 */
@@ -471,34 +410,6 @@ bool TIMER_GetOutput2() {
 
 #include "programs.h"
 
-void PIT_HACK_Set_type(std::string type) {
-	if (type == "project_angel_demo") {
-		pit_hack_mode = PIT_HACK_PROJECT_ANGEL_DEMO;
-		LOG(LOG_PIT,LOG_NORMAL)("PIT: Hacking PIT emulation to stabilize Project Angel demo\n");
-	}
-	else if (type == "pc_speaker_as_timer") {
-		pit_hack_mode = PIT_HACK_PC_SPEAKER_AS_TIMER;
-		LOG(LOG_PIT,LOG_NORMAL)("PIT: Hacking PIT emulation to double PIT 2 countdown value\n");
-	}
-	else {
-		pit_hack_mode = PIT_HACK_NONE;
-		LOG(LOG_PIT,LOG_DEBUG)("PIT: Hacks disabled\n");
-	}
-}
-
-class PITHACK_Program : public Program {
-public:
-	void Run(void) {
-		if (cmd->FindString("SET",temp_line,false)) {
-			PIT_HACK_Set_type(temp_line);
-		}
-	}
-};
-
-static void PITHACK_ProgramStart(Program * * make) {
-	*make=new PITHACK_Program;
-}
-
 static IO_ReadHandleObject ReadHandler[4];
 static IO_WriteHandleObject WriteHandler[4];
 
@@ -549,12 +460,6 @@ void TIMER_Reset(Section*) {
 	pit[0].delay=(1000.0f/((float)PIT_TICK_RATE/(float)pit[0].cntr));
 	pit[1].delay=(1000.0f/((float)PIT_TICK_RATE/(float)pit[1].cntr));
 	pit[2].delay=(1000.0f/((float)PIT_TICK_RATE/(float)pit[2].cntr));
-
-	Prop_multival* p = section->Get_multival("pit hack");
-	std::string type = p->GetSection()->Get_string("type");
-
-	PIT_HACK_Set_type(type);
-	PROGRAMS_MakeFile("PITHACK.COM",PITHACK_ProgramStart);
 
 	latched_timerstatus_locked=false;
 	gate2 = false;
