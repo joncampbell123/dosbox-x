@@ -44,6 +44,7 @@
 #include "setup.h"
 #include "cross.h"
 #include "support.h"
+#include "control.h"
 #include "mapper.h"
 #include "hardware.h"
 #include "programs.h"
@@ -696,10 +697,10 @@ void MENU_swapstereo(bool enabled) {
 }
 #endif
 
-void MIXER_Init(Section* sec) {
-	sec->AddDestroyFunction(&MIXER_Stop);
+void MIXER_Init() {
+	AddExitFunction(&MIXER_Stop);
 
-	Section_prop * section=static_cast<Section_prop *>(sec);
+	Section_prop * section=static_cast<Section_prop *>(control->GetSection("mixer"));
 	/* Read out config section */
 	mixer.freq=section->Get_int("rate");
 	mixer.nosound=section->Get_bool("nosound");

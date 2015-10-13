@@ -683,8 +683,9 @@ static MIDI* test;
 void MIDI_Destroy(Section* /*sec*/){
 	delete test;
 }
-void MIDI_Init(Section * sec) {
-	test = new MIDI(sec);
-	sec->AddDestroyFunction(&MIDI_Destroy,true);
+
+void MIDI_Init() {
+	test = new MIDI(control->GetSection("midi"));
+	AddExitFunction(&MIDI_Destroy,true);
 }
 

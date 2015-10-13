@@ -171,8 +171,8 @@ void VOODOO_Destroy(Section* /*sec*/) {
 	voodoo_dev=NULL;
 }
 
-void VOODOO_Init(Section* sec) {
+void VOODOO_Init() {
 	voodoo_current_lfb=(VOODOO_INITIAL_LFB&0xffff0000);
-	voodoo_dev = new VOODOO(sec);
-	sec->AddDestroyFunction(&VOODOO_Destroy,true);
+	voodoo_dev = new VOODOO(control->GetSection("pci"));
+	AddExitFunction(&VOODOO_Destroy,true);
 }

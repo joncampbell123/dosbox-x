@@ -1424,10 +1424,10 @@ static void KEYBOARD_ShutDown(Section * sec) {
 	TIMER_DelTickHandler(&KEYBOARD_TickHandler);
 }
 
-void KEYBOARD_Init(Section* sec) {
-	Section_prop *section=static_cast<Section_prop *>(sec);
+void KEYBOARD_Init() {
+	Section_prop *section=static_cast<Section_prop *>(control->GetSection("keyboard"));
 
-	sec->AddDestroyFunction(&KEYBOARD_ShutDown);
+	AddExitFunction(&KEYBOARD_ShutDown);
 
 	if ((keyb.enable_aux=section->Get_bool("aux")) != false) {
 		LOG(LOG_KEYBOARD,LOG_NORMAL)("Keyboard AUX emulation enabled");

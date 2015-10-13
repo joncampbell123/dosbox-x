@@ -4138,6 +4138,10 @@ void ISAPNP_Cfg_Init();
 #if C_FPU
 void FPU_Init();
 #endif
+void KEYBOARD_Init();
+void VOODOO_Init();
+void MIXER_Init();
+void MIDI_Init();
 
 #if defined(WIN32)
 extern bool dpi_aware_enable;
@@ -4381,10 +4385,6 @@ int main(int argc, char* argv[]) {
 		GUI_StartUp();
 
 		/* Init all the sections */
-		void KEYBOARD_Init(Section*);
-		void VOODOO_Init(Section*);
-		void MIXER_Init(Section*);
-		void MIDI_Init(Section*);
 		void MPU401_Init(Section*);
 #if C_DEBUG
 		void DEBUG_Init(Section*);
@@ -4497,10 +4497,10 @@ int main(int argc, char* argv[]) {
 		FPU_Init();
 #endif
 		ISAPNP_Cfg_Init();
-		KEYBOARD_Init(control->GetSection("keyboard"));
-		VOODOO_Init(control->GetSection("pci"));
-		MIXER_Init(control->GetSection("mixer"));
-		MIDI_Init(control->GetSection("midi"));
+		KEYBOARD_Init();
+		VOODOO_Init();
+		MIXER_Init();
+		MIDI_Init();
 		MPU401_Init(control->GetSection("midi"));
 #if C_DEBUG
 		DEBUG_Init(control->GetSection("debug"));
