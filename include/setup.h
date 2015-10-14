@@ -281,16 +281,20 @@ enum {
 	VM_EVENT_BIOS_BOOT,			// BIOS in the boot stage. usually leads to DOS kernel init or guest OS boot.
 	VM_EVENT_GUEST_OS_BOOT,			// BIOS or DOS kernel (BOOT command) is running a guest OS. just after loading boot sector into memory but before executing it.
 	VM_EVENT_DOS_BOOT,			// emulation has decided to boot the built-in DOS kernel. just prior to starting the DOS kernel.
-	VM_EVENT_DOS_INIT_KERNEL_READY,		// DOS kernel init. Prior to CONFIG.SYS handling.
+
+	VM_EVENT_DOS_INIT_KERNEL_READY=5,	// DOS kernel init. Prior to CONFIG.SYS handling.
 	VM_EVENT_DOS_INIT_CONFIG_SYS_DONE,	// DOS kernel init. After CONFIG.SYS handling, all devices inited.
 	VM_EVENT_DOS_INIT_SHELL_READY,		// DOS kernel init. After COMMAND.COM initialization, before AUTOEXEC.BAT execution.
 	VM_EVENT_DOS_INIT_AUTOEXEC_BAT_DONE,	// DOS kernel init. COMMAND.COM just finished AUTOEXEC.BAT.
 	VM_EVENT_DOS_INIT_AT_PROMPT,		// DOS kernel init complete. After this event, the user is immediately given the DOS prompt.
-	VM_EVENT_DOS_EXIT_BEGIN,		// DOS kernel is just starting to exit (user used BOOT command)
+
+	VM_EVENT_DOS_EXIT_BEGIN=10,		// DOS kernel is just starting to exit (user used BOOT command)
 	VM_EVENT_DOS_EXIT_KERNEL,		// DOS kernel has just finished exiting
 
 	VM_EVENT_MAX
 };
+
+const char *GetVMEventName(unsigned int event);
 
 extern std::list<Function_wrapper> vm_event_functions[VM_EVENT_MAX];
 void AddVMEventFunction(unsigned int event,SectionFunction func,bool canchange=false);

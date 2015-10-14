@@ -462,6 +462,9 @@ void DMA_Reset(Section* /*sec*/) {
 
 	DMA_FreeControllers();
 
+	// LOG
+	LOG(LOG_MISC,LOG_DEBUG)("DMA_Reset(): reinitializing DMA controller(s)");
+
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 	assert(section != NULL);
 
@@ -518,6 +521,8 @@ void DMA_Reset(Section* /*sec*/) {
 }
 
 void Init_DMA() {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing DMA controller emulation");
+
 	AddExitFunction(&DMA_Destroy);
 	AddVMEventFunction(VM_EVENT_POWERON,&DMA_Reset);
 	AddVMEventFunction(VM_EVENT_RESET,&DMA_Reset);

@@ -1048,6 +1048,9 @@ void Init_RAM() {
 		has_Init_RAM = true;
 	}
 
+	// LOG
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing RAM emulation (system memory)");
+
 	// CHECK: address mask init must have been called!
 	assert(memory.mem_alias_pagemask > 0xFF);
 
@@ -1160,6 +1163,9 @@ void ShutDownMemHandles(Section * sec) {
 void Init_A20_Gate() {
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 
+	// log it
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing A20 gate emulation");
+
 	memory.a20.enabled = 0;
 	a20_fake_changeable = false;
 
@@ -1201,11 +1207,13 @@ void Init_A20_Gate() {
 		a20_guest_changeable = true;
 		a20_full_masking = false;
 	}
-
 }
 
 void Init_PS2_Port_92h() {
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+
+	// LOG
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing PS/2 port 92h emulation");
 
 	// TODO: this should be handled in a motherboard init routine
 	enable_port92 = section->Get_bool("enable port 92");
@@ -1213,6 +1221,7 @@ void Init_PS2_Port_92h() {
 		// A20 Line - PS/2 system control port A
 		// TODO: This should exist in the motherboard emulation code yet to come! The motherboard
 		//       determines A20 gating, not the RAM!
+		LOG(LOG_MISC,LOG_DEBUG)("Port 92h installed, emulating PS/2 system control port A");
 		PS2_Port_92h_WriteHandler.Install(0x92,write_p92,IO_MB);
 		PS2_Port_92h_ReadHandler.Install(0x92,read_p92,IO_MB);
 	}
@@ -1225,6 +1234,9 @@ void Init_MemHandles() {
 		AddExitFunction(&ShutDownMemHandles);
 		has_Init_MemHandles = true;
 	}
+
+	// LOG
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing memory handle array (EMS/XMS handle management). mem_pages=%lx",(unsigned long)memory.pages);
 
 	if (memory.mhandles == NULL)
 		memory.mhandles = new MemHandle[memory.pages];
@@ -1243,6 +1255,9 @@ void Init_MemoryAccessArray() {
 		has_Init_MemoryAccessArray = true;
 		AddExitFunction(&ShutDownMemoryAccessArray);
 	}
+
+	// LOG
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing memory access array (page handler callback system). mem_alias_pagemask=%lx",(unsigned long)memory.mem_alias_pagemask);
 
 	// CHECK: address mask init must have been called!
 	assert(memory.mem_alias_pagemask > 0xFF);

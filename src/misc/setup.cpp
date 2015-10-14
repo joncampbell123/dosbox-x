@@ -794,8 +794,32 @@ void AddVMEventFunction(unsigned int event,SectionFunction func,bool canchange) 
 	vm_event_functions[event].push_back(Function_wrapper(func,canchange));
 }
 
+const char *VM_EVENT_string[VM_EVENT_MAX] = {
+	"Power On",				// 0
+	"Reset",
+	"BIOS Boot",
+	"Guest OS Boot",
+	"DOS Boot",
+
+	"DOS Init, kernel ready",		// 5
+	"DOS Init, CONFIG.SYS done",
+	"DOS Init, shell ready",
+	"DOS Init, AUTOEXEC.BAT done",
+	"DOS Init, at promot",
+
+	"DOS exit, begin",			// 10
+	"DOS exit, kernel exit"
+};
+
+const char *GetVMEventName(unsigned int event) {
+	if (event >= VM_EVENT_MAX) return "";
+	return VM_EVENT_string[event];
+};
+
 void DispatchVMEvent(unsigned int event) {
 	assert(event < VM_EVENT_MAX);
+
+	LOG(LOG_MISC,LOG_DEBUG)("Dispatching VM event %s",GetVMEventName(event));
 
 	for (std::list<Function_wrapper>::iterator i=vm_event_functions[event].begin();i!=vm_event_functions[event].end();i++)
 		(*i).function(NULL);

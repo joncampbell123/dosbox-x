@@ -417,6 +417,9 @@ void TIMER_Reset(Section*) {
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 	assert(section != NULL);
 
+	// log
+	LOG(LOG_MISC,LOG_DEBUG)("TIMER_Reset(): Reinitializing PIT timer emulation");
+
 	PIC_RemoveEvents(PIT0_Event);
 
 	WriteHandler[0].Install(0x40,write_latch,IO_MB);
@@ -471,6 +474,8 @@ void TIMER_Destroy(Section*) {
 }
 
 void TIMER_Init() {
+	LOG(LOG_MISC,LOG_DEBUG)("TIMER_Init()");
+
 	AddExitFunction(&TIMER_Destroy);
 	AddVMEventFunction(VM_EVENT_POWERON,&TIMER_Reset);
 	AddVMEventFunction(VM_EVENT_RESET,&TIMER_Reset);

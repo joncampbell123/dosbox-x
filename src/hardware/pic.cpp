@@ -659,6 +659,9 @@ static IO_WriteHandleObject WriteHandler[4];
 void PIC_Reset(Section *sec) {
 	Bitu i;
 
+	// LOG
+	LOG(LOG_MISC,LOG_DEBUG)("PIC_Reset(): reinitializing PIC controller");
+
 	/* NTS: Parsing this on reset allows PIC configuration changes on reboot instead of restarting the entire emulator */
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 	assert(section != NULL);
@@ -721,6 +724,8 @@ void PIC_Destroy(Section* sec) {
 }
 
 void Init_PIC() {
+	LOG(LOG_MISC,LOG_DEBUG)("Init_PIC()");
+
 	AddExitFunction(&PIC_Destroy);
 	AddVMEventFunction(VM_EVENT_POWERON,&PIC_Reset);
 	AddVMEventFunction(VM_EVENT_RESET,&PIC_Reset);
