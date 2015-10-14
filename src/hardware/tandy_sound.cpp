@@ -512,6 +512,8 @@ void TANDYSOUND_ShutDown(Section* /*sec*/) {
 }
 
 void TANDYSOUND_Init(Section* sec) {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing Tandy voice emulation");
+
 	test = new TANDYSOUND(sec);
 	sec->AddDestroyFunction(&TANDYSOUND_ShutDown,true);
 }

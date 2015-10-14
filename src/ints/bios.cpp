@@ -790,6 +790,9 @@ static Bitu INT15_Handler(void);
 //        Need to separate APM BIOS init from ISA PNP init from ISA PNP BIOS init!
 void ISAPNP_Cfg_Init() {
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("cpu"));
+
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing ISA PnP emulation");
+
 	enable_integration_device = section->Get_bool("integration device");
 	ISAPNPBIOS = section->Get_bool("isapnpbios");
 	APMBIOS = section->Get_bool("apmbios");

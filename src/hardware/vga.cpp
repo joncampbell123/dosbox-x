@@ -436,6 +436,8 @@ void VGA_Init() {
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 	string str;
 
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing VGA");
+
 	vga_force_refresh_rate = -1;
 	str=section->Get_string("forcerate");
 	if (str == "ntsc")

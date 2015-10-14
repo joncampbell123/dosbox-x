@@ -596,6 +596,8 @@ void PCSPEAKER_ShutDown(Section* sec){
 }
 
 void PCSPEAKER_Init(Section* sec) {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing PC speaker");
+
 	test = new PCSPEAKER(sec);
 	sec->AddDestroyFunction(&PCSPEAKER_ShutDown,true);
 }

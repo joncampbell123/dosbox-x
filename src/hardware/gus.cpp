@@ -956,13 +956,9 @@ void GUS_ShutDown(Section* /*sec*/) {
 }
 
 void GUS_Init(Section* sec) {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing Gravis Ultrasound emulation");
+
 	test = new GUS(sec);
 	sec->AddDestroyFunction(&GUS_ShutDown,true);
 }
-
-
-
-// save state support
-void *GUS_TimerEvent_PIC_Event = (void*)GUS_TimerEvent;
-void *GUS_DMA_Callback_Func = (void*)GUS_DMA_Callback;
 

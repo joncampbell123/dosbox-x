@@ -697,6 +697,8 @@ void RENDER_SetForceUpdate(bool f) {
 void RENDER_Init() {
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("render"));
 
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing renderer");
+
 	vga.draw.doublescan_set=section->Get_bool("doublescan");
 	vga.draw.char9_set=section->Get_bool("char9");
 

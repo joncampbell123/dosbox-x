@@ -143,6 +143,8 @@ void VGA_TweakUserVsyncOffset(float val) { uservsyncjolt = val; }
 void VGA_VsyncInit() {
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("vsync"));
 
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing VGA vsync");
+
 	const char * vsyncmodestr;
 	vsyncmodestr=section->Get_string("vsyncmode");
 	VGA_Vsync vsyncmode;

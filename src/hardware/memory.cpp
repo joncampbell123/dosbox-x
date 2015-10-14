@@ -538,6 +538,8 @@ void MEM_A20_Enable(bool enabled) {
 	if (a20_guest_changeable || a20_fake_changeable)
 		memory.a20.enabled = enabled;
 
+	LOG(LOG_MISC,LOG_DEBUG)("MEM_A20_Enable(%u)",enabled?1:0);
+
 	if (!a20_full_masking) {
 		Bitu phys_base=memory.a20.enabled ? (1024/4) : 0;
 		for (Bitu i=0;i<16;i++) PAGING_MapPage((1024/4)+i,phys_base+i);
@@ -1280,6 +1282,9 @@ void Init_MemoryAccessArray() {
 
 void Init_PCJR_CartridgeROM() {
 	Bitu i;
+
+	// log
+	LOG(LOG_MISC,LOG_DEBUG)("Mapping ROM handler for PCjr cartridge emulation");
 
 	/* Setup cartridge rom at 0xe0000-0xf0000.
 	 * Don't call this function unless emulating PCjr! */

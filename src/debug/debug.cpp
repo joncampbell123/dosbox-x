@@ -2147,6 +2147,7 @@ void DEBUG_ShutDown(Section * /*sec*/) {
 Bitu debugCallback;
 
 void DEBUG_Init(Section* sec) {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing debug system");
 
 //	MSG_Add("DEBUG_CONFIGFILE_HELP","Debugger related options.\n");
 	DEBUG_DrawScreen();

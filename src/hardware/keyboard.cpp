@@ -1427,6 +1427,8 @@ static void KEYBOARD_ShutDown(Section * sec) {
 void KEYBOARD_Init() {
 	Section_prop *section=static_cast<Section_prop *>(control->GetSection("keyboard"));
 
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing keyboard emulation");
+
 	AddExitFunction(&KEYBOARD_ShutDown);
 
 	if ((keyb.enable_aux=section->Get_bool("aux")) != false) {

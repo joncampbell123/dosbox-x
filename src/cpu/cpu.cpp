@@ -3079,6 +3079,8 @@ void CPU_ShutDown(Section* sec) {
 }
 
 void CPU_Init() {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing CPU");
+
 	test = new CPU(control->GetSection("cpu"));
 	AddExitFunction(&CPU_ShutDown,true);
 }

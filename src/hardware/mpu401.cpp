@@ -700,12 +700,9 @@ void MPU401_Destroy(Section* sec){
 }
 
 void MPU401_Init(Section* sec) {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing MPU401 emulation");
+
 	test = new MPU401(sec);
 	sec->AddDestroyFunction(&MPU401_Destroy,true);
 }
-
-
-
-// save state support
-void *MPU401_Event_PIC_Event = (void*)MPU401_Event;
 

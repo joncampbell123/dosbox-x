@@ -2399,6 +2399,8 @@ void SBLASTER_ShutDown(Section* /*sec*/) {
 }
 
 void SBLASTER_Init(Section* sec) {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing Sound Blaster emulation");
+
 	test = new SBLASTER(sec);
 	sec->AddDestroyFunction(&SBLASTER_ShutDown,true);
 }

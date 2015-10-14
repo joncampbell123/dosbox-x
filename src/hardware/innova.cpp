@@ -118,6 +118,8 @@ static void INNOVA_ShutDown(Section* sec){
 }
 
 void INNOVA_Init(Section* sec) {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing INNOVA emulation");
+
 	test = new INNOVA(sec);
 	sec->AddDestroyFunction(&INNOVA_ShutDown,true);
 }

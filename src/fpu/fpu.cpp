@@ -890,6 +890,8 @@ void FPU_Selftest() {
 }
 
 void FPU_Init() {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing FPU");
+
 	FPU_Selftest();
 	FPU_FINIT();
 }
