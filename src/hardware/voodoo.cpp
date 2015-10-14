@@ -172,6 +172,8 @@ void VOODOO_Destroy(Section* /*sec*/) {
 }
 
 void VOODOO_Init() {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing Voodoo/3DFX emulation");
+
 	voodoo_current_lfb=(VOODOO_INITIAL_LFB&0xffff0000);
 	voodoo_dev = new VOODOO(control->GetSection("pci"));
 	AddExitFunction(&VOODOO_Destroy,true);

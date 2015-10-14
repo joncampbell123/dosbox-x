@@ -1230,6 +1230,9 @@ bool PAGING_Enabled(void) {
 void PAGING_Init() {
 	Bitu i;
 
+	// log
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing paging system (CPU linear -> physical mapping system)");
+
 	/* Setup default Page Directory, force it to update */
 	paging.enabled=false;
 	paging.wp=false;

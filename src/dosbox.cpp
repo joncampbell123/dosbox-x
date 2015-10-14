@@ -620,6 +620,9 @@ void Init_VGABIOS() {
 	Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
 	assert(section != NULL);
 
+	// log
+	LOG(LOG_MISC,LOG_DEBUG)("Init_VGABIOS: Initializing VGA BIOS and parsing it's settings");
+
 	// mem init must have already happened.
 	// We can remove this once the device callout system is in place.
 	assert(MemBase != NULL);

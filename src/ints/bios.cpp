@@ -3878,6 +3878,9 @@ void ROMBIOS_Init() {
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 	Bitu oi,i;
 
+	// log
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing ROM BIOS");
+
 	oi = section->Get_int("rom bios minimum size"); /* in KB */
 	oi = (oi + 3) & ~3; /* round to 4KB page */
 	if (oi > 128) oi = 128;

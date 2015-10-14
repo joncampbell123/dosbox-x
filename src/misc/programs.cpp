@@ -1014,6 +1014,8 @@ static void CONFIG_ProgramStart(Program * * make) {
 /* FIXME: Rename the function to clarify it does not init programs, it inits the callback mechanism
  *        that program generation on drive Z: needs to tie a .COM executable to a callback */
 void PROGRAMS_Init() {
+	LOG(LOG_MISC,LOG_DEBUG)("PROGRAMS_Init(): initializing Z: drive .COM stub and program management");
+
 	/* Setup a special callback to start virtual programs */
 	call_program=CALLBACK_Allocate();
 	CALLBACK_Setup(call_program,&PROGRAMS_Handler,CB_RETF,"internal program");

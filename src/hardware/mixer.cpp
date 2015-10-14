@@ -700,6 +700,8 @@ void MENU_swapstereo(bool enabled) {
 void MIXER_Init() {
 	AddExitFunction(&MIXER_Stop);
 
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing DOSBox audio mixer");
+
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("mixer"));
 	/* Read out config section */
 	mixer.freq=section->Get_int("rate");
@@ -757,6 +759,18 @@ void MIXER_Init() {
 	mixer.min_needed=(mixer.freq*mixer.min_needed)/1000;
 	mixer.max_needed=mixer.blocksize * 2 + 2*mixer.min_needed;
 	mixer.needed=mixer.min_needed+1;
+
+	LOG(LOG_MISC,LOG_DEBUG)("Mixer: sample_accurate=%u blocksize=%u sdl_rate=%uHz mixer_rate=%uHz channels=%u samples=%u min/max/need=%u/%u/%u",
+		(unsigned int)mixer.sampleaccurate,
+		(unsigned int)mixer.blocksize,
+		(unsigned int)obtained.freq,
+		(unsigned int)mixer.freq,
+		(unsigned int)obtained.channels,
+		(unsigned int)obtained.samples,
+		(unsigned int)mixer.min_needed,
+		(unsigned int)mixer.max_needed,
+		(unsigned int)mixer.needed);
+
 	PROGRAMS_MakeFile("MIXER.COM",MIXER_ProgramStart);
 }
 

@@ -648,6 +648,8 @@ void CALLBACK_HandlerObject::Set_RealVec(Bit8u vec){
 
 void CALLBACK_Init() {
 	if (mainline_compatible_bios_mapping) {
+		LOG(LOG_MISC,LOG_DEBUG)("Initializing DOSBox callback instruction system (mainline compatible)");
+
 		CB_SOFFSET=0x1000;
 		CB_SEG=0xF000;
 
@@ -667,6 +669,8 @@ void CALLBACK_Init() {
 		 * CB_MAX entries CB_SIZE each, where executable x86 code is written per callback,
 		 * followed by 256 entries 6 bytes each corresponding to an interrupt call */
 		Bitu o;
+
+		LOG(LOG_MISC,LOG_DEBUG)("Initializing DOSBox callback instruction system");
 
 		o = ROMBIOS_GetMemory((CB_MAX*CB_SIZE)+(256*6),"DOSBox callback area",1);
 		if (o == 0) E_Exit("Cannot allocate callback area");

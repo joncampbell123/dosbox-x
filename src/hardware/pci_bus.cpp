@@ -276,6 +276,9 @@ static bool IsInitialized(void) {
 
 // set up port handlers and configuration data
 static void InitializePCI(void) {
+	// log
+	LOG(LOG_MISC,LOG_DEBUG)("InitializePCI(): reinitializing PCI bus emulation");
+
 	// install PCI-addressing ports
 	PCI_WriteHandler[0].Install(0xcf8,write_pci_addr,IO_MD);
 	PCI_ReadHandler[0].Install(0xcf8,read_pci_addr,IO_MD);
@@ -407,6 +410,7 @@ void PCI_AddSST_Device(Bitu type) {
 				break;
 		}
 
+		LOG(LOG_MISC,LOG_DEBUG)("Initializing Voodoo/3DFX PCI device");
 		if ((SST_PCI=new PCI_SSTDevice(ctype)) == NULL)
 			return;
 
@@ -448,6 +452,8 @@ void PCI_ShutDown(Section* sec) {
 void PCIBUS_Init() {
 	Section_prop * secprop=static_cast<Section_prop *>(control->GetSection("dosbox"));
 	assert(secprop != NULL);
+
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing PCI bus emulation");
 
 	initialized=false;
 	for (Bitu bus=0;bus<PCI_MAX_PCIBUSSES;bus++)

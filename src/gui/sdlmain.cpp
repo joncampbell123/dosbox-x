@@ -4127,7 +4127,6 @@ void IO_Init();
 void Init_VGABIOS();
 void Init_AddressLimitAndGateMask();
 void Init_RAM();
-void Init_VGABIOS();
 void Init_MemHandles();
 void Init_MemoryAccessArray();
 void Init_PCJR_CartridgeROM();
