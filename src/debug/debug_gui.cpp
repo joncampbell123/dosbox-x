@@ -177,6 +177,12 @@ void DBGUI_StartUp(void) {
 #endif
 
 void DEBUG_ShowMsg(char const* format,...) {
+	bool c_debug =
+#if C_DEBUG
+		true;
+#else
+		false;
+#endif
 	char buf[512];
 	va_list msg;
 	size_t len;
@@ -193,7 +199,7 @@ void DEBUG_ShowMsg(char const* format,...) {
 		fprintf(debuglog,"%s",buf);
 		fflush(debuglog);
 	}
-	if (do_LOG_stderr || !C_DEBUG || debuglog == NULL) {
+	if (do_LOG_stderr || !c_debug || debuglog == NULL) {
 		fprintf(stderr,"DOSBox LOG: %s",buf);
 		fflush(stderr);
 	}
