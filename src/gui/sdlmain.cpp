@@ -2257,6 +2257,8 @@ static void GUI_StartUp() {
 	if (has_GUI_StartUp) return;
 	has_GUI_StartUp = true;
 
+	LOG(LOG_GUI,LOG_DEBUG)("Starting GUI");
+
 	AddExitFunction(&GUI_ShutDown);
 	GUI_LoadFonts();
 
@@ -4154,6 +4156,37 @@ void VOODOO_Init();
 void MIXER_Init();
 void MIDI_Init();
 
+/* Init all the sections */
+void MPU401_Init(Section*);
+#if C_DEBUG
+void DEBUG_Init(Section*);
+#endif
+void SBLASTER_Init(Section*);
+void GUS_Init(Section*);
+void INNOVA_Init(Section*);
+void PCSPEAKER_Init(Section*);
+void TANDYSOUND_Init(Section*);
+void DISNEY_Init(Section*);
+void PS1SOUND_Init(Section*);
+void BIOS_Init(Section*);
+void INT10_Init(Section*);
+void JOYSTICK_Init(Section*);
+void SERIAL_Init(Section*);
+void PARALLEL_Init(Section*);
+void DONGLE_Init(Section*);
+void DOS_Init(Section*);
+void XMS_Init(Section*);
+void EMS_Init(Section*);
+void MOUSE_Init(Section*);
+void DOS_KeyboardLayout_Init(Section*);
+void MSCDEX_Init(Section*);
+void DRIVES_Init(Section*);
+void CDROM_Image_Init(Section*);
+void IPX_Init(Section*);
+void NE2K_Init(Section*);
+void FDC_Primary_Init(Section*);
+void AUTOEXEC_Init(Section*);
+
 #if defined(WIN32)
 extern bool dpi_aware_enable;
 
@@ -4388,12 +4421,16 @@ int main(int argc, char* argv[]) {
 		if (getenv("SDL_VIDEODRIVER")==NULL) {
 			char sdl_drv_name[128];
 
+			LOG(LOG_MISC,LOG_DEBUG)("Win32: SDL_VIDEODRIVER is not defined, attempting to detect and use directx SDL driver");
 			if (SDL_VideoDriverName(sdl_drv_name,128)!=NULL) {
 				sdl.using_windib=false;
+				LOG(LOG_MISC,LOG_DEBUG)("Win32: SDL driver name is '%s'",sdl_drv_name);
 				if (strcmp(sdl_drv_name,"directx")!=0) {
+					LOG(LOG_MISC,LOG_DEBUG)("Win32: Reinitializing SDL to use directx");
 					SDL_QuitSubSystem(SDL_INIT_VIDEO);
 					putenv("SDL_VIDEODRIVER=directx");
 					if (SDL_InitSubSystem(SDL_INIT_VIDEO)<0) {
+						LOG(LOG_MISC,LOG_DEBUG)("Win32: Failed to reinitialize to use directx. Falling back to windib");
 						putenv("SDL_VIDEODRIVER=windib");
 						if (SDL_InitSubSystem(SDL_INIT_VIDEO)<0) E_Exit("Can't init SDL Video %s",SDL_GetError());
 						sdl.using_windib=true;
@@ -4402,6 +4439,8 @@ int main(int argc, char* argv[]) {
 			}
 		} else {
 			char* sdl_videodrv = getenv("SDL_VIDEODRIVER");
+
+			LOG(LOG_MISC,LOG_DEBUG)("Win32: SDL_VIDEODRIVER is '%s', so I will obey it",sdl_videodrv);
 			if (strcmp(sdl_videodrv,"directx")==0) sdl.using_windib = false;
 			else if (strcmp(sdl_videodrv,"windib")==0) sdl.using_windib = true;
 		}
@@ -4409,37 +4448,6 @@ int main(int argc, char* argv[]) {
 
 		/* GUI init */
 		GUI_StartUp();
-
-		/* Init all the sections */
-		void MPU401_Init(Section*);
-#if C_DEBUG
-		void DEBUG_Init(Section*);
-#endif
-		void SBLASTER_Init(Section*);
-		void GUS_Init(Section*);
-		void INNOVA_Init(Section*);
-		void PCSPEAKER_Init(Section*);
-		void TANDYSOUND_Init(Section*);
-		void DISNEY_Init(Section*);
-		void PS1SOUND_Init(Section*);
-		void BIOS_Init(Section*);
-		void INT10_Init(Section*);
-		void JOYSTICK_Init(Section*);
-		void SERIAL_Init(Section*);
-		void PARALLEL_Init(Section*);
-		void DONGLE_Init(Section*);
-		void DOS_Init(Section*);
-		void XMS_Init(Section*);
-		void EMS_Init(Section*);
-		void MOUSE_Init(Section*);
-		void DOS_KeyboardLayout_Init(Section*);
-		void MSCDEX_Init(Section*);
-		void DRIVES_Init(Section*);
-		void CDROM_Image_Init(Section*);
-		void IPX_Init(Section*);
-		void NE2K_Init(Section*);
-		void FDC_Primary_Init(Section*);
-		void AUTOEXEC_Init(Section*);
 
 		/* FIXME: We need a more general "init list", outside of the section-based design,
 		 *        that we then execute serially here. */
