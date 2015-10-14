@@ -608,6 +608,8 @@ bool dpi_aware_enable = true;
 std::string dosbox_title;
 
 void DOSBOX_InitTickLoop() {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing tick loop management");
+
 	ticksRemain = 0;
 	ticksLocked = false;
 	ticksLast = GetTicks();
@@ -668,6 +670,8 @@ void Init_VGABIOS() {
 }
 
 void DOSBOX_RealInit() {
+	LOG(LOG_MISC,LOG_DEBUG)("DOSBOX_RealInit: loading settings and initializing");
+
 	MAPPER_AddHandler(DOSBOX_UnlockSpeed, MK_f12, MMOD2,"speedlock","Speedlock");
 	MAPPER_AddHandler(DOSBOX_UnlockSpeed2, MK_f11, MMOD2,"speedlock2","Speedlock2");
 

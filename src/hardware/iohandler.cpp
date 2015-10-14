@@ -497,6 +497,8 @@ void IO_Reset(Section * /*sec*/) { // Reset or power on
 }
 
 void IO_Init() {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing I/O port handler system");
+
 	/* init the ports, rather than risk I/O jumping to random code */
 	iof_queue.used=0;
 	IO_FreeReadHandler(0,IO_MA,IO_MAX);

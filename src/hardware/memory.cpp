@@ -993,6 +993,8 @@ void A20GATE_ProgramStart(Program * * make) {
 void Init_AddressLimitAndGateMask() {
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing address limit/gate system");
+
 	// TODO: this option should be handled by the CPU init since it concerns emulation
 	//       of older 386 and 486 boards with fewer than 32 address lines:
 	//
@@ -1024,6 +1026,9 @@ void Init_AddressLimitAndGateMask() {
 	/* update alias pagemask according to A20 gate */
 	if (a20_fake_changeable && a20_full_masking && !memory.a20.enabled)
 		memory.mem_alias_pagemask &= ~0x100;
+
+	/* log */
+	LOG(LOG_MISC,LOG_DEBUG)("Memory: address_bits=%u alias_pagemask=%lx",(unsigned int)memory.address_bits,(unsigned long)memory.mem_alias_pagemask);
 }
 
 void ShutDownRAM(Section * sec) {

@@ -70,6 +70,9 @@ void MSG_Replace(const char * _name, const char* _val) {
 void LoadMessageFile(const char * fname) {
 	if (!fname) return;
 	if(*fname=='\0') return;//empty string=no languagefile
+
+	LOG(LOG_MISC,LOG_DEBUG)("Loading message file %s",fname);
+
 	FILE * mfile=fopen(fname,"rt");
 	/* This should never happen and since other modules depend on this use a normal printf */
 	if (!mfile) {
