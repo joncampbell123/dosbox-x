@@ -90,19 +90,19 @@ void DOS_GetMemory_Choose() {
 Bit16u DOS_GetMemory(Bit16u pages,const char *who) {
 	if (who == NULL) who = "";
 	if (dos_memseg == 0) {
-		if (DOS_GetMemory_unmapped) E_Exit("DOS:Attempt to use DOS_GetMemory() when private area was unmapped by BOOT\n");
+		if (DOS_GetMemory_unmapped) E_Exit("DOS:Attempt to use DOS_GetMemory() when private area was unmapped by BOOT");
 		if (DOS_PRIVATE_SEGMENT == 0) DOS_GetMemory_Choose();
 		dos_memseg = DOS_PRIVATE_SEGMENT;
 		if (dos_memseg == 0) E_Exit("DOS:DOS_GetMemory() before private area has been initialized");
 	}
 
 	if (((Bitu)pages+(Bitu)dos_memseg) > DOS_PRIVATE_SEGMENT_END) {
-		LOG(LOG_DOSMISC,LOG_ERROR)("DOS_GetMemory(%u) failed for '%s' (alloc=0x%04x segment=0x%04x end=0x%04x)\n",
+		LOG(LOG_DOSMISC,LOG_ERROR)("DOS_GetMemory(%u) failed for '%s' (alloc=0x%04x segment=0x%04x end=0x%04x)",
 			pages,who,dos_memseg,DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END);
 		E_Exit("DOS:Not enough memory for internal tables");
 	}
 	Bit16u page=dos_memseg;
-	LOG(LOG_DOSMISC,LOG_DEBUG)("DOS_GetMemory(0x%04x pages,\"%s\") = 0x%04x\n",pages,who,page);
+	LOG(LOG_DOSMISC,LOG_DEBUG)("DOS_GetMemory(0x%04x pages,\"%s\") = 0x%04x",pages,who,page);
 	dos_memseg+=pages;
 	return page;
 }
