@@ -634,10 +634,17 @@ check_gotbpp:
 	return flags;
 }
 
+/* FIXME: This prepares the SDL library to accept Win32 drag+drop events from the Windows shell.
+ *        So it should be named something like EnableDragAcceptFiles() not SDL_Prepare() */
 void SDL_Prepare(void) {
-	if(menu_compatible) return;
+	if (menu_compatible) return;
+
+#if defined(WIN32) // Microsoft Windows specific
+	LOG(LOG_MISC,LOG_DEBUG)("Win32: Preparing main window to accept files dragged in from the Windows shell");
+
 	SDL_PumpEvents(); SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
 	DragAcceptFiles(GetHWND(), TRUE);
+#endif
 }
 
 void GFX_ForceRedrawScreen(void) {
@@ -4157,6 +4164,9 @@ void Windows_DPI_Awareness_Init() {
 	if (!dpi_aware_enable || control->opt_disable_dpi_awareness)
 		return;
 
+	/* log it */
+	LOG(LOG_MISC,LOG_DEBUG)("Win32: I will announce High DPI awareness to Windows to eliminate upscaling");
+
 	// turn off DPI scaling so DOSBox-X doesn't look so blurry on Windows 8 & Windows 10.
 	// use GetProcAddress and LoadLibrary so that these functions are not hard dependencies that prevent us from
 	// running under Windows 7 or XP.
@@ -4273,16 +4283,22 @@ int main(int argc, char* argv[]) {
 		/* -- initialize logging first, so that higher level inits can report problems to the log file */
 		LOG::Init();
 
+		/* -- Welcome to DOSBox-X! */
+		LOG_MSG("DOSBox-X version %s",VERSION);
+		LOG(LOG_MISC,LOG_NORMAL)("Copyright 2002-2015 enhanced branch by The Great Codeholio, forked from the main project by the DOSBox Team, published under GNU GPL.");
+
 		/* -- [debug] setup console */
 #if C_DEBUG
 # if defined(WIN32)
 		/* Can't disable the console with debugger enabled */
 		if (control->opt_noconsole) {
+			LOG(LOG_MISC,LOG_DEBUG)("-noconsole: hiding Win32 console window");
 			ShowWindow(GetConsoleWindow(), SW_HIDE);
 			DestroyWindow(GetConsoleWindow());
 		} else
 # endif
 		{
+			LOG(LOG_MISC,LOG_DEBUG)("Setting up the debug console");
 			DEBUG_SetupConsole();
 		}
 #endif
@@ -4292,16 +4308,11 @@ int main(int argc, char* argv[]) {
 		SetConsoleCtrlHandler((PHANDLER_ROUTINE) ConsoleEventHandler,TRUE);
 #endif
 
-		/* -- Welcome to DOSBox-X! */
-		LOG_MSG("DOSBox-X version %s",VERSION);
-		LOG(LOG_MISC,LOG_NORMAL)("Copyright 2002-2015 enhanced branch by The Great Codeholio, forked from the main project by the DOSBox Team, published under GNU GPL.");
-
 		{
 			int id, major, minor;
 
 			DOSBox_CheckOS(id, major, minor);
 			if (id == 1) menu.compatible=true;
-			if (!menu_compatible) LOG_MSG("---");
 
 			/* use all variables to shut up the compiler about unused vars */
 			LOG(LOG_MISC,LOG_DEBUG)("DOSBox_CheckOS results: id=%u major=%u minor=%u",id,major,minor);
@@ -4353,8 +4364,11 @@ int main(int argc, char* argv[]) {
 		SDL_Prepare();
 
 		/* -- -- Initialise Joystick seperately. This way we can warn when it fails instead of exiting the application */
-		if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) >= 0)
+		LOG(LOG_MISC,LOG_DEBUG)("Initializing SDL joystick subsystem...");
+		if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) >= 0) {
 			sdl.num_joysticks = SDL_NumJoysticks();
+			LOG(LOG_MISC,LOG_DEBUG)("SDL reports %u joysticks",(unsigned int)sdl.num_joysticks);
+		}
 		else {
 			LOG(LOG_GUI,LOG_WARN)("Failed to init joystick support");
 			sdl.num_joysticks = 0;

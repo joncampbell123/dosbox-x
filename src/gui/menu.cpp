@@ -744,6 +744,9 @@ void Mount_Img(char drive, std::string realpath) {
 
 void DOSBox_SetMenu(void) {
 	if(!menu.gui) return;
+
+	LOG(LOG_MISC,LOG_DEBUG)("Win32: loading and attaching menu resource to DOSBox's window");
+
 	menu.toggle=true;
 	SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
 	DrawMenuBar (GetHWND());
