@@ -3,6 +3,7 @@
 #include "inout.h"
 #include "pic.h"
 #include "setup.h"
+#include "control.h"
 
 /*
 
@@ -176,9 +177,9 @@ static void DONGLE_ShutDown(Section* sec){
 	delete test;
 }
 
-void DONGLE_Init(Section* sec) {
+void DONGLE_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing dongle emulation");
 
-	test = new DONGLE(sec);
-	sec->AddDestroyFunction(&DONGLE_ShutDown,true);
+	test = new DONGLE(control->GetSection("parallel"));
+	AddExitFunction(&DONGLE_ShutDown,true);
 }

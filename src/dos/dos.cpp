@@ -1978,11 +1978,11 @@ void DOS_ShutDown(Section* /*sec*/) {
 	DOS_DoShutDown();
 }
 
-void DOS_Init(Section* sec) {
+void DOS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing DOS kernel (DOS_Init)");
 
-	test = new DOS(sec);
+	test = new DOS(control->GetSection("dos"));
 	/* shutdown function */
-	sec->AddDestroyFunction(&DOS_ShutDown,false);
+	AddExitFunction(&DOS_ShutDown,false);
 }
 

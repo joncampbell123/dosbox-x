@@ -30,6 +30,7 @@
 #include "xms.h"
 #include "bios.h"
 #include "cpu.h"
+#include "control.h"
 
 #include <algorithm>
 
@@ -698,10 +699,10 @@ void XMS_ShutDown(Section* /*sec*/) {
 	XMS_DoShutDown();
 }
 
-void XMS_Init(Section* sec) {
+void XMS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing XMS extended memory services");
 
-	test = new XMS(sec);
-	sec->AddDestroyFunction(&XMS_ShutDown,true);
+	test = new XMS(control->GetSection("dos"));
+	AddExitFunction(&XMS_ShutDown,true);
 }
 

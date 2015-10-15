@@ -32,6 +32,7 @@
 #include "support.h"
 #include "cpu.h"
 #include "dma.h"
+#include "control.h"
 
 /* TODO: Make EMS page frame address (and size) user configurable.
  *       With auto setting to fit in automatically with BIOS and UMBs.
@@ -1621,7 +1622,8 @@ public:
  
 		/* Remove ems device */
 		if (emm_device!=NULL) {
-			DOS_DelDevice(emm_device);
+// FIXME: This is being called now after DOS shutdown. Causes a crash!
+//			DOS_DelDevice(emm_device);
 			emm_device=NULL;
 		}
 		GEMMIS_seg=0;
@@ -1665,11 +1667,11 @@ void EMS_ShutDown(Section* /*sec*/) {
 	EMS_DoShutDown();
 }
 
-void EMS_Init(Section* sec) {
+void EMS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing EMS expanded memory services");
 
 	assert(test == NULL);
-	test = new EMS(sec);
-	sec->AddDestroyFunction(&EMS_ShutDown,true);
+	test = new EMS(control->GetSection("dos"));
+	AddExitFunction(&EMS_ShutDown,true);
 }
 

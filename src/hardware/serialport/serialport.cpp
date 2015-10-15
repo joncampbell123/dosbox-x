@@ -1156,7 +1156,8 @@ bool CSerial::getBituSubstring(const char* name,Bitu* data, CommandLine* cmd) {
 
 CSerial::~CSerial(void) {
 	if (mydosdevice != NULL) {
-		DOS_DelDevice(mydosdevice);
+// FIXME: Now we're called after DOS shutdown! This is causing a crash!
+//		DOS_DelDevice(mydosdevice);
 		mydosdevice = NULL;
 	}
 	for(Bitu i = 0; i <= SERIAL_BASE_EVENT_COUNT; i++)

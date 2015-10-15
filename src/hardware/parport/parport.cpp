@@ -228,7 +228,9 @@ CParallel::~CParallel(void) {
 	BIOS_SetLPTPort(port_nr,0);
 	if (mydosdevice != NULL) {
 //		LOG_MSG("~CParallel DOS_Device free\n");
-		DOS_DelDevice(mydosdevice);
+
+// FIXME: Now we're called after DOS shutdown. This causes a crash!
+//		DOS_DelDevice(mydosdevice);
 		mydosdevice=NULL;
 	}
 };
