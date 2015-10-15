@@ -24,6 +24,8 @@
 #include "setup.h"
 #include "cpu.h"
 #include "support.h"
+#include "control.h"
+#include "setup.h"
 
 void MIDI_RawOutByte(Bit8u data);
 bool MIDI_Available(void);
@@ -685,24 +687,21 @@ public:
 		PIC_SetIRQMask(mpu.irq,false);
 		MPU401_Reset();
 	}
-	~MPU401(){
-		if(!installed) return;
-		Section_prop * section=static_cast<Section_prop *>(m_configuration);
-		if(strcasecmp(section->Get_string("mpu401"),"intelligent")) return;
-		PIC_SetIRQMask(mpu.irq,true);
-		}
 };
 
-static MPU401* test;
+static MPU401* test = NULL;
 
 void MPU401_Destroy(Section* sec){
-	delete test;
+	if (test != NULL) {
+		delete test;
+		test = NULL;
+	}
 }
 
-void MPU401_Init(Section* sec) {
+void MPU401_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing MPU401 emulation");
 
-	test = new MPU401(sec);
-	sec->AddDestroyFunction(&MPU401_Destroy,true);
+	test = new MPU401(control->GetSection("midi"));
+	AddExitFunction(&MPU401_Destroy,true);
 }
 

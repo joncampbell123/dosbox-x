@@ -4156,7 +4156,7 @@ void MIXER_Init();
 void MIDI_Init();
 
 /* Init all the sections */
-void MPU401_Init(Section*);
+void MPU401_Init();
 #if C_DEBUG
 void DEBUG_Init(Section*);
 #endif
@@ -4534,7 +4534,7 @@ int main(int argc, char* argv[]) {
 		VGA_VsyncInit();
 		ISAPNP_Cfg_Init();
 		KEYBOARD_Init();
-		MPU401_Init(control->GetSection("midi"));
+		MPU401_Init();
 #if C_DEBUG
 		DEBUG_Init(control->GetSection("debug"));
 #endif
