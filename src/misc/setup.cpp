@@ -844,10 +844,13 @@ void Section::ExecuteDestroy(bool destroyall) {
 }
 
 Config::~Config() {
-	std::list<Section*>::iterator it;
+	std::list<Section*>::iterator it; // FIXME: You guys do realize C++ STL provides reverse_iterator?
 
 	while ((it=sectionlist.end()) != sectionlist.begin()) {
 		it--;
+
+		LOG(LOG_MISC,LOG_DEBUG)("Config::~Config calling section %s destructor",(*it)->GetName());
+
 		delete (*it);
 		sectionlist.erase(it);
 	}
