@@ -2146,7 +2146,7 @@ void DEBUG_ShutDown(Section * /*sec*/) {
 
 Bitu debugCallback;
 
-void DEBUG_Init(Section* sec) {
+void DEBUG_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing debug system");
 
 //	MSG_Add("DEBUG_CONFIGFILE_HELP","Debugger related options.\n");
@@ -2161,7 +2161,7 @@ void DEBUG_Init(Section* sec) {
 	debugCallback=CALLBACK_Allocate();
 	CALLBACK_Setup(debugCallback,DEBUG_EnableDebugger,CB_RETF,"debugger");
 	/* shutdown function */
-	sec->AddDestroyFunction(&DEBUG_ShutDown);
+	AddExitFunction(&DEBUG_ShutDown);
 }
 
 // DEBUGGING VAR STUFF

@@ -4158,7 +4158,7 @@ void MIDI_Init();
 /* Init all the sections */
 void MPU401_Init();
 #if C_DEBUG
-void DEBUG_Init(Section*);
+void DEBUG_Init();
 #endif
 void SBLASTER_Init(Section*);
 void GUS_Init(Section*);
@@ -4536,7 +4536,7 @@ int main(int argc, char* argv[]) {
 		KEYBOARD_Init();
 		MPU401_Init();
 #if C_DEBUG
-		DEBUG_Init(control->GetSection("debug"));
+		DEBUG_Init();
 #endif
 		SBLASTER_Init(control->GetSection("sblaster"));
 		GUS_Init(control->GetSection("gus"));
