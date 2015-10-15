@@ -1666,6 +1666,8 @@ void EMS_ShutDown(Section* /*sec*/) {
 }
 
 void EMS_Init(Section* sec) {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing EMS expanded memory services");
+
 	assert(test == NULL);
 	test = new EMS(sec);
 	sec->AddDestroyFunction(&EMS_ShutDown,true);

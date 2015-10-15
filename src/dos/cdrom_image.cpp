@@ -707,4 +707,5 @@ void CDROM_Image_Destroy(Section*) {
 }
 
 void CDROM_Image_Init(Section* section) {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing CDROM image support");
 }

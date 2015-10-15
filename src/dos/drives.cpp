@@ -250,6 +250,8 @@ void DriveManager::Init(Section* s) {
 }
 
 void DRIVES_Init(Section* sec) {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing OOS drives");
+
 	DriveManager::Init(sec);
 }
 

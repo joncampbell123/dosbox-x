@@ -299,6 +299,8 @@ static void FDC_Init(Section* sec,unsigned char interface) {
 		init_floppy = 1;
 	}
 
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing floppy controller interface %u",interface);
+
 	fdc = floppycontroller[interface] = new FloppyController(sec,interface);
 	fdc->install_io_port();
 
@@ -306,6 +308,7 @@ static void FDC_Init(Section* sec,unsigned char interface) {
 }
 
 void FDC_Primary_Init(Section *sec) {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing floppy controller emulation");
 	FDC_Init(sec,0);
 }
 

@@ -1399,6 +1399,8 @@ void MSCDEX_ShutDown(Section* /*sec*/) {
 }
 
 void MSCDEX_Init(Section* sec) {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing MSCDEX.EXE emulation");
+
 	// AddDestroy func
 	sec->AddDestroyFunction(&MSCDEX_ShutDown);
 	/* Register the mscdex device */

@@ -225,6 +225,8 @@ void JOYSTICK_Destroy(Section* sec) {
 }
 
 void JOYSTICK_Init(Section* sec) {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing joystick emulation");
+
 	test = new JOYSTICK(sec);
 	sec->AddDestroyFunction(&JOYSTICK_Destroy,true); 
 }

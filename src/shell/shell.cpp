@@ -474,6 +474,8 @@ static void AUTOEXEC_ShutDown(Section * sec) {
 }
 
 void AUTOEXEC_Init(Section * sec) {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing AUTOEXEC.BAT emulation");
+
 	test = new AUTOEXEC(sec);
 	sec->AddDestroyFunction(&AUTOEXEC_ShutDown);
 }

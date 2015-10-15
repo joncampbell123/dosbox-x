@@ -699,6 +699,8 @@ void XMS_ShutDown(Section* /*sec*/) {
 }
 
 void XMS_Init(Section* sec) {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing XMS extended memory services");
+
 	test = new XMS(sec);
 	sec->AddDestroyFunction(&XMS_ShutDown,true);
 }

@@ -1189,6 +1189,8 @@ void IPX_ShutDown(Section* sec) {
 }
 
 void IPX_Init(Section* sec) {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing IPX emulation");
+
 	test = new IPX(sec);
 	sec->AddDestroyFunction(&IPX_ShutDown,true);
 }

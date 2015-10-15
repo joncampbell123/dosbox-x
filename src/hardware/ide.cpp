@@ -3818,6 +3818,8 @@ static void IDE_Init(Section* sec,unsigned char interface) {
 		init_ide = 1;
 	}
 
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing IDE controller %u",interface);
+
 	ide = idecontroller[interface] = new IDEController(sec,interface);
 	ide->install_io_port();
 

@@ -4566,8 +4566,11 @@ int main(int argc, char* argv[]) {
 		NE2K_Init(control->GetSection("ne2000"));
 #endif
 		FDC_Primary_Init(control->GetSection("fdc, primary"));
+		LOG(LOG_MISC,LOG_DEBUG)("Initializing IDE controllers");
 		for (size_t i=0;i < MAX_IDE_CONTROLLERS;i++) ide_inits[i](control->GetSection(ide_names[i]));
 		AUTOEXEC_Init(control->GetSection("autoexec"));
+
+		LOG(LOG_MISC,LOG_DEBUG)("Now running legacy (not-yet-ported) section init");
 		control->Init();
 
 		{

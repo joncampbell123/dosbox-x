@@ -1171,6 +1171,8 @@ void MOUSE_Init(Section* sec) {
 	Section_prop *section=static_cast<Section_prop *>(sec);
 	RealPt i33loc=0;
 
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing mouse interface emulation");
+
 	if ((en_int33=section->Get_bool("int33"))) {
 		LOG(LOG_KEYBOARD,LOG_NORMAL)("INT 33H emulation enabled");
 	}

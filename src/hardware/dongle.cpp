@@ -177,6 +177,8 @@ static void DONGLE_ShutDown(Section* sec){
 }
 
 void DONGLE_Init(Section* sec) {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing dongle emulation");
+
 	test = new DONGLE(sec);
 	sec->AddDestroyFunction(&DONGLE_ShutDown,true);
 }

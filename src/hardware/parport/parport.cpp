@@ -339,6 +339,8 @@ void PARALLEL_Destroy (Section * sec) {
 }
 
 void PARALLEL_Init (Section * sec) {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing parallel port emulation");
+
 	// should never happen
 	if (testParallelPortsBaseclass) delete testParallelPortsBaseclass;
 	testParallelPortsBaseclass = new PARPORTS (sec);

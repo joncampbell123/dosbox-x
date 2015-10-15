@@ -1665,6 +1665,8 @@ void NE2K_ShutDown(Section* sec) {
 }
 
 void NE2K_Init(Section* sec) {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing NE2000 network card emulation");
+
 	test = new NE2K(sec);
 	sec->AddDestroyFunction(&NE2K_ShutDown,true);
 	if(!test->load_success) {

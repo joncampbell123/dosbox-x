@@ -1323,6 +1323,8 @@ void SERIAL_Destroy (Section * sec) {
 }
 
 void SERIAL_Init (Section * sec) {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing serial port emulation");
+
 	// should never happen
 	if (testSerialPortsBaseclass) delete testSerialPortsBaseclass;
 	testSerialPortsBaseclass = new SERIALPORTS (sec);

@@ -769,7 +769,8 @@ Section_line* Config::AddSection_line(char const * const _name,void (*_initfunct
 
 
 void Config::Init() {
-	for (const_it tel=sectionlist.begin(); tel!=sectionlist.end(); tel++){ 
+	for (const_it tel=sectionlist.begin(); tel!=sectionlist.end(); tel++) {
+		LOG(LOG_MISC,LOG_DEBUG)("Config::Init calling section %s initialization",(*tel)->GetName());
 		(*tel)->ExecuteInit();
 	}
 }
