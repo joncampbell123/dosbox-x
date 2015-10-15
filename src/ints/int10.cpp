@@ -697,6 +697,8 @@ static void INT10_Seg40Init(void) {
 
 static void INT10_InitVGA(void) {
 	if (IS_EGAVGA_ARCH) {
+		LOG(LOG_MISC,LOG_DEBUG)("INT 10: initializing EGA/VGA state");
+
 		/* switch to color mode and enable CPU access 480 lines */
 		IO_Write(0x3c2,0xc3);
 		/* More than 64k */
@@ -725,9 +727,11 @@ static void SetupTandyBios(void) {
 	};
 	if (machine==MCH_TANDY) {
 		Bitu i;
-		for(i=0;i<130;i++) {
+
+		LOG(LOG_MISC,LOG_DEBUG)("Initializing Tandy video state (video BIOS init)");
+
+		for(i=0;i<130;i++)
 			phys_writeb(0xf0000+i+0xc000, TandyConfig[i]);
-		}
 	}
 }
 
@@ -739,6 +743,8 @@ extern Bitu VGA_BIOS_SEG_END;
 extern bool VIDEO_BIOS_disable;
 
 void INT10_Init(Section* /*sec*/) {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing BIOS INT10 emulation");
+
 	INT10_InitVGA();
 	if (IS_TANDY_ARCH) SetupTandyBios();
 	/* Setup the INT 10 vector */
@@ -752,6 +758,7 @@ void INT10_Init(Section* /*sec*/) {
 	INT10_SetupRomMemoryChecksum();//SetupVesa modifies the rom as well.
 	INT10_SetupBasicVideoParameterTable();
 
+	LOG(LOG_MISC,LOG_DEBUG)("INT 10: VGA bios used %d / %d memory",(int)int10.rom.used,(int)VGA_BIOS_Size);
 	if (int10.rom.used > VGA_BIOS_Size) /* <- this is fatal, it means the Setup() functions scrozzled over the adjacent ROM or RAM area */
 		E_Exit("VGA BIOS size too small");
 

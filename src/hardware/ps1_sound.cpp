@@ -347,6 +347,7 @@ public:
 			(strcmp(section->Get_string("ps1audio"),"auto")!=0)) return;
 
 		PS1AudioCard=true;
+		LOG(LOG_MISC,LOG_DEBUG)("PS/1 sound emulation enabled");
 
 		// Ports 0x0200-0x0205 (let normal code handle the joystick at 0x0201).
 		ReadHandler[0].Install(0x200,&PS1SOUNDRead,IO_MB);
@@ -378,6 +379,8 @@ void PS1SOUND_ShutDown(Section* sec) {
 }
 
 void PS1SOUND_Init(Section* sec) {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing PS/1 sound emulation");
+
 	test = new PS1SOUND(sec);
 	sec->AddDestroyFunction(&PS1SOUND_ShutDown,true);
 }

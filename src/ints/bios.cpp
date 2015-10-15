@@ -3836,6 +3836,8 @@ void BIOS_Destroy(Section* /*sec*/){
 void BIOS_Init(Section* sec) {
 	int i;
 
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing BIOS");
+
 	ISAPNP_SysDevNodeCount = 0;
 	ISAPNP_SysDevNodeLargest = 0;
 	for (i=0;i < 0x100;i++) ISAPNP_SysDevNodes[i] = NULL;

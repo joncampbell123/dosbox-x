@@ -416,6 +416,8 @@ static void DISNEY_ShutDown(Section* sec){
 }
 
 void DISNEY_Init(Section* sec) {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing Disney Sound Source emulation");
+
 	test = new DISNEY(sec);
 	sec->AddDestroyFunction(&DISNEY_ShutDown,true);
 }
