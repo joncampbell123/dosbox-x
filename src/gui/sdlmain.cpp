@@ -4787,9 +4787,13 @@ int main(int argc, char* argv[]) {
 			}
 			catch (int x) {
 				if (x == 3) { /* reboot the machine */
+					LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to reboot the system");
+
 					reboot_machine = true;
 				}
 				else {
+					LOG(LOG_MISC,LOG_DEBUG)("Emulation threw DOSBox kill switch signal");
+
 					// kill switch (see instances of throw(0) and throw(1) elsewhere in DOSBox)
 				}
 			}
@@ -4864,6 +4868,7 @@ void GFX_GetSize(int &width, int &height, bool &fullscreen) {
 }
 
 void GFX_ShutDown(void) {
+	LOG(LOG_MISC,LOG_DEBUG)("Shutting down GFX renderer");
 	GFX_Stop();
 	if (sdl.draw.callback) (sdl.draw.callback)( GFX_CallBackStop );
 	if (sdl.mouse.locked) GFX_CaptureMouse();
