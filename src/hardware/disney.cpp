@@ -26,6 +26,7 @@
 #include "setup.h"
 #include "bios.h"
 #include "mem.h"
+#include "control.h"
 
 #define DISNEY_BASE 0x0378
 
@@ -415,15 +416,10 @@ static void DISNEY_ShutDown(Section* sec){
 	delete test;
 }
 
-void DISNEY_Init(Section* sec) {
+void DISNEY_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing Disney Sound Source emulation");
 
-	test = new DISNEY(sec);
-	sec->AddDestroyFunction(&DISNEY_ShutDown,true);
+	test = new DISNEY(control->GetSection("speaker"));
+	AddExitFunction(&DISNEY_ShutDown,true);
 }
-
-
-
-// save state support
-void *DISNEY_disable_PIC_Event = (void*)DISNEY_disable;
 

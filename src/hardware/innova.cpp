@@ -22,6 +22,7 @@
 #include "mixer.h"
 #include "pic.h"
 #include "setup.h"
+#include "control.h"
 
 #include "reSID/sid.h"
 
@@ -117,10 +118,10 @@ static void INNOVA_ShutDown(Section* sec){
 	delete test;
 }
 
-void INNOVA_Init(Section* sec) {
+void INNOVA_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing INNOVA emulation");
 
-	test = new INNOVA(sec);
-	sec->AddDestroyFunction(&INNOVA_ShutDown,true);
+	test = new INNOVA(control->GetSection("innova"));
+	AddExitFunction(&INNOVA_ShutDown,true);
 }
 

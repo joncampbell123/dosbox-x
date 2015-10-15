@@ -46,6 +46,7 @@
 #include "pic.h"
 #include "bios.h"
 #include "hardware.h"
+#include "control.h"
 #include "setup.h"
 #include "support.h"
 #include "shell.h"
@@ -2398,10 +2399,10 @@ void SBLASTER_ShutDown(Section* /*sec*/) {
 	HWOPL_Cleanup();
 }
 
-void SBLASTER_Init(Section* sec) {
+void SBLASTER_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing Sound Blaster emulation");
 
-	test = new SBLASTER(sec);
-	sec->AddDestroyFunction(&SBLASTER_ShutDown,true);
+	test = new SBLASTER(control->GetSection("sblaster"));
+	AddExitFunction(&SBLASTER_ShutDown,true);
 }
 

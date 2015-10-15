@@ -23,7 +23,7 @@
 #include "timer.h"
 #include "setup.h"
 #include "pic.h"
-
+#include "control.h"
 
 #ifdef SPKR_DEBUGGING
 FILE* PCSpeakerLog = NULL;
@@ -595,10 +595,10 @@ void PCSPEAKER_ShutDown(Section* sec){
 	delete test;
 }
 
-void PCSPEAKER_Init(Section* sec) {
+void PCSPEAKER_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing PC speaker");
 
-	test = new PCSPEAKER(sec);
-	sec->AddDestroyFunction(&PCSPEAKER_ShutDown,true);
+	test = new PCSPEAKER(control->GetSection("speaker"));
+	AddExitFunction(&PCSPEAKER_ShutDown,true);
 }
 

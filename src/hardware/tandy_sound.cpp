@@ -28,6 +28,7 @@
 #include "pic.h"
 #include "dma.h"
 #include "hardware.h"
+#include "control.h"
 #include "sn76496.h"
 #include <cstring>
 #include <math.h>
@@ -511,15 +512,10 @@ void TANDYSOUND_ShutDown(Section* /*sec*/) {
 	delete test;	
 }
 
-void TANDYSOUND_Init(Section* sec) {
+void TANDYSOUND_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing Tandy voice emulation");
 
-	test = new TANDYSOUND(sec);
-	sec->AddDestroyFunction(&TANDYSOUND_ShutDown,true);
+	test = new TANDYSOUND(control->GetSection("speaker"));
+	AddExitFunction(&TANDYSOUND_ShutDown,true);
 }
-
-
-
-// save state support
-void *TandyDAC_DMA_CallBack_Func = (void*)TandyDAC_DMA_CallBack;
 

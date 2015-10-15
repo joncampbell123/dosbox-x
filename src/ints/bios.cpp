@@ -3833,7 +3833,7 @@ void BIOS_Destroy(Section* /*sec*/){
 	}
 }
 
-void BIOS_Init(Section* sec) {
+void BIOS_Init() {
 	int i;
 
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing BIOS");
@@ -3842,8 +3842,8 @@ void BIOS_Init(Section* sec) {
 	ISAPNP_SysDevNodeLargest = 0;
 	for (i=0;i < 0x100;i++) ISAPNP_SysDevNodes[i] = NULL;
 
-	test = new BIOS(sec);
-	sec->AddDestroyFunction(&BIOS_Destroy,false);
+	test = new BIOS(control->GetSection("joystick"));//FIXME: Why?? Also, BIOS object doesn't use the configuration object we pass it anyway
+	AddExitFunction(&BIOS_Destroy,false);
 }
 
 void write_ID_version_string() {

@@ -26,6 +26,7 @@
 #include "pic.h"
 #include "dma.h"
 #include "sn76496.h"
+#include "control.h"
 
 extern bool PS1AudioCard;
 #define DAC_CLOCK 1000000
@@ -378,10 +379,10 @@ void PS1SOUND_ShutDown(Section* sec) {
 	delete test;	
 }
 
-void PS1SOUND_Init(Section* sec) {
+void PS1SOUND_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing PS/1 sound emulation");
 
-	test = new PS1SOUND(sec);
-	sec->AddDestroyFunction(&PS1SOUND_ShutDown,true);
+	test = new PS1SOUND(control->GetSection("speaker"));
+	AddExitFunction(&PS1SOUND_ShutDown,true);
 }
 

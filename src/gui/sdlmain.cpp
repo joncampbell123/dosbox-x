@@ -4160,14 +4160,14 @@ void MPU401_Init();
 #if C_DEBUG
 void DEBUG_Init();
 #endif
-void SBLASTER_Init(Section*);
-void GUS_Init(Section*);
-void INNOVA_Init(Section*);
-void PCSPEAKER_Init(Section*);
-void TANDYSOUND_Init(Section*);
-void DISNEY_Init(Section*);
-void PS1SOUND_Init(Section*);
-void BIOS_Init(Section*);
+void SBLASTER_Init();
+void GUS_Init();
+void INNOVA_Init();
+void PCSPEAKER_Init();
+void TANDYSOUND_Init();
+void DISNEY_Init();
+void PS1SOUND_Init();
+void BIOS_Init();
 void INT10_Init(Section*);
 void JOYSTICK_Init(Section*);
 void SERIAL_Init(Section*);
@@ -4538,14 +4538,14 @@ int main(int argc, char* argv[]) {
 #if C_DEBUG
 		DEBUG_Init();
 #endif
-		SBLASTER_Init(control->GetSection("sblaster"));
-		GUS_Init(control->GetSection("gus"));
-		INNOVA_Init(control->GetSection("innova"));
-		PCSPEAKER_Init(control->GetSection("speaker"));
-		TANDYSOUND_Init(control->GetSection("speaker"));
-		DISNEY_Init(control->GetSection("speaker"));
-		PS1SOUND_Init(control->GetSection("speaker"));
-		BIOS_Init(control->GetSection("joystick"));//FIXME: Why??
+		SBLASTER_Init();
+		GUS_Init();
+		INNOVA_Init();
+		PCSPEAKER_Init();
+		TANDYSOUND_Init();
+		DISNEY_Init();
+		PS1SOUND_Init();
+		BIOS_Init();
 		INT10_Init(control->GetSection("joystick"));
 		JOYSTICK_Init(control->GetSection("joystick"));
 		SERIAL_Init(control->GetSection("serial"));

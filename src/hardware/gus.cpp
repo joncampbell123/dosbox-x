@@ -25,6 +25,7 @@
 #include "mixer.h"
 #include "dma.h"
 #include "pic.h"
+#include "control.h"
 #include "setup.h"
 #include "shell.h"
 #include "math.h"
@@ -955,10 +956,10 @@ void GUS_ShutDown(Section* /*sec*/) {
 	}
 }
 
-void GUS_Init(Section* sec) {
+void GUS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing Gravis Ultrasound emulation");
 
-	test = new GUS(sec);
-	sec->AddDestroyFunction(&GUS_ShutDown,true);
+	test = new GUS(control->GetSection("gus"));
+	AddExitFunction(&GUS_ShutDown,true);
 }
 
