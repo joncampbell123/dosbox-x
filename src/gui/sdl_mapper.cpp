@@ -2613,6 +2613,8 @@ void MAPPER_CheckKeyboardLayout() {
 }
 
 void MAPPER_Init(void) {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing DOSBox mapper");
+
 	MAPPER_CheckKeyboardLayout();
 	InitializeJoysticks();
 	CreateLayout();

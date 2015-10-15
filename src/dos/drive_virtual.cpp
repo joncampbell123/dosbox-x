@@ -39,6 +39,8 @@ struct VFILE_Block {
 static VFILE_Block * first_file;	
 
 void VFILE_Shutdown(void) {
+	LOG(LOG_MISC,LOG_DEBUG)("Shutting down VFILE system");
+
 	while (first_file != NULL) {
 		VFILE_Block *n = first_file->next;
 		delete first_file;

@@ -51,6 +51,8 @@ bool en_bios_ps2mouse=false;
 
 void DisableINT33() {
 	if (en_int33) {
+		LOG(LOG_MISC,LOG_DEBUG)("Disabling INT 33 services");
+
 		en_int33 = false;
 		/* TODO: Also unregister INT 33h handler */
 	}

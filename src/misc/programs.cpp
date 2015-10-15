@@ -76,6 +76,8 @@ public:
 static std::vector<InternalProgramEntry*> internal_progs;
 
 void PROGRAMS_Shutdown(void) {
+	LOG(LOG_MISC,LOG_DEBUG)("Shutting down internal programs list");
+
 	for (size_t i=0;i < internal_progs.size();i++) {
 		if (internal_progs[i] != NULL) {
 			delete internal_progs[i];

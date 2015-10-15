@@ -4578,6 +4578,8 @@ int main(int argc, char* argv[]) {
 			Section_prop *sdl_sec = static_cast<Section_prop*>(control->GetSection("sdl"));
 
 			if (control->opt_fullscreen || sdl_sec->Get_bool("fullscreen")) {
+				LOG(LOG_MISC,LOG_DEBUG)("Going fullscreen immediately, during startup");
+
 				if (sdl.desktop.want_type != SCREEN_OPENGLHQ) SetMenu(GetHWND(),NULL);
 				//only switch if not already in fullscreen
 				if (!sdl.desktop.fullscreen) GFX_SwitchFullScreen();
@@ -4586,8 +4588,10 @@ int main(int argc, char* argv[]) {
 
 		/* Init the keyMapper */
 		MAPPER_Init();
-		if (control->opt_startmapper)
+		if (control->opt_startmapper) {
+			LOG(LOG_MISC,LOG_DEBUG)("Running mapper interface, during startup, as instructed");
 			MAPPER_RunInternal();
+		}
 
 		/* Start up main machine */
 
@@ -4596,11 +4600,15 @@ int main(int argc, char* argv[]) {
 		menu.hidecycles = (control->opt_showcycles ? false : true);
 		if (sdl.desktop.want_type == SCREEN_OPENGLHQ) {
 			menu.gui=false; DOSBox_SetOriginalIcon();
-			if (!render.scale.hardware) SetVal("render","scaler",!render.scale.forced?"hardware2x":"hardware2x forced");
+			if (!render.scale.hardware) {
+				LOG(LOG_MISC,LOG_DEBUG)("Desktop wants SCREEN_OPENGLHQ, without hardware scaling. Forcing scalar.");
+				SetVal("render","scaler",!render.scale.forced?"hardware2x":"hardware2x forced");
+			}
 		}
 
 #ifdef WIN32
 		if (sdl.desktop.want_type == SCREEN_OPENGL && sdl.using_windib) {
+			LOG(LOG_MISC,LOG_DEBUG)("Desktop wants SCREEN_OPENGL and we're using windib now. Reinitializing SDL video output.");
 			SDL_QuitSubSystem(SDL_INIT_VIDEO);
 			if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
 				E_Exit("Can't init SDL Video %s",SDL_GetError());
@@ -4619,6 +4627,8 @@ int main(int argc, char* argv[]) {
 		{
 			Section_prop *sec = static_cast<Section_prop *>(control->GetSection("sdl"));
 			if (!strcmp(sec->Get_string("output"),"ddraw") && sdl.using_windib) {
+				LOG(LOG_MISC,LOG_DEBUG)("Output is 'ddraw' and we're using windib. Reinitializing SDL video output.");
+
 				SDL_QuitSubSystem(SDL_INIT_VIDEO);
 				putenv("SDL_VIDEODRIVER=directx");
 				sdl.using_windib=false;
@@ -4644,6 +4654,7 @@ int main(int argc, char* argv[]) {
 		bool dos_kernel_shutdown;
 
 		/* startup the not yet ported code */
+		LOG(LOG_MISC,LOG_DEBUG)("Now running legacy (not yet ported) section startup code");
 		control->StartUp();
 
 		/* BIOS boot event. This will have more meaning later on in development, when some emulation
@@ -4686,13 +4697,19 @@ int main(int argc, char* argv[]) {
 			SHELL_Run();
 		} catch (int x) {
 			if (x == 2) { /* booting a guest OS. "boot" has already done the work to load the image and setup CPU registers */
+				LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to boot guest OS");
+
 				run_machine = true; /* make note. don't run the whole shebang from an exception handler! */
 				dos_kernel_shutdown = true;
 			}
 			else if (x == 3) { /* reboot the system */
+				LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to reboot the system");
+
 				reboot_machine = true;
 			}
 			else {
+				LOG(LOG_MISC,LOG_DEBUG)("Emulation threw DOSBox kill switch signal");
+
 				// kill switch (see instances of throw(0) and throw(1) elsewhere in DOSBox)
 				run_machine = false;
 				dos_kernel_shutdown = false;

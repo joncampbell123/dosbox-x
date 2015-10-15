@@ -494,6 +494,8 @@ extern unsigned int dosbox_shell_env_size;
  *       registration to another function, and then message initialization to another function,
  *       and then those functions need to be called before SHELL_Init() -J.C. */
 void SHELL_Init() {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing DOS shell");
+
 	/* Add messages */
 	MSG_Add("SHELL_CMD_VOL_DRIVE","\n Volume in drive %c ");
 	MSG_Add("SHELL_CMD_VOL_DRIVEERROR","Cannot find the drive specified\n");
@@ -49710,6 +49712,8 @@ static unsigned char hexmem32_exe[] = {
 /* Pfff... starting and running the shell from a configuration section INIT
  * What the hell were you guys thinking? --J.C. */
 void SHELL_Run() {
+	LOG(LOG_MISC,LOG_DEBUG)("Running DOS shell now");
+
 	if (first_shell != NULL) E_Exit("Attempt to start shell when shell already running");
 	SHELL_ProgramStart(&first_shell);
 

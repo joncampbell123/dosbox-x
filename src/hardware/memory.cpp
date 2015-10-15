@@ -809,6 +809,8 @@ static Bitu read_p92(Bitu port,Bitu iolen) {
 }
 
 void RemoveEMSPageFrame(void) {
+	LOG(LOG_MISC,LOG_DEBUG)("Removing EMS page frame");
+
 	/* Setup rom at 0xe0000-0xf0000 */
 	for (Bitu ct=0xe0;ct<0xf0;ct++) {
 		memory.phandlers[ct] = &rom_page_handler;
@@ -816,6 +818,8 @@ void RemoveEMSPageFrame(void) {
 }
 
 void PreparePCJRCartRom(void) {
+	LOG(LOG_MISC,LOG_DEBUG)("Preparing mapping for PCjr cartridge ROM");
+
 	/* Setup rom at 0xd0000-0xe0000 */
 	for (Bitu ct=0xd0;ct<0xe0;ct++) {
 		memory.phandlers[ct] = &rom_page_handler;
