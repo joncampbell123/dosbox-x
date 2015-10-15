@@ -27,6 +27,7 @@
 #include "setup.h"
 #include "bios.h"					// SetComPorts(..)
 #include "callback.h"				// CALLBACK_Idle
+#include "control.h"
 
 #include "serialport.h"
 #include "serialmouse.h"
@@ -1322,15 +1323,12 @@ void SERIAL_Destroy (Section * sec) {
 	testSerialPortsBaseclass = NULL;
 }
 
-void SERIAL_Init (Section * sec) {
+void SERIAL_Init () {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing serial port emulation");
 
 	// should never happen
 	if (testSerialPortsBaseclass) delete testSerialPortsBaseclass;
-	testSerialPortsBaseclass = new SERIALPORTS (sec);
-	sec->AddDestroyFunction (&SERIAL_Destroy, true);
+	testSerialPortsBaseclass = new SERIALPORTS (control->GetSection("serial"));
+	AddExitFunction (&SERIAL_Destroy, true);
 }
 
-
-// save state support
-void *Serial_EventHandler_PIC_Event = (void*)Serial_EventHandler;

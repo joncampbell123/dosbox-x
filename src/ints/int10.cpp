@@ -742,7 +742,7 @@ extern Bitu VGA_BIOS_SEG;
 extern Bitu VGA_BIOS_SEG_END;
 extern bool VIDEO_BIOS_disable;
 
-void INT10_Init(Section* /*sec*/) {
+void INT10_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing BIOS INT10 emulation");
 
 	INT10_InitVGA();

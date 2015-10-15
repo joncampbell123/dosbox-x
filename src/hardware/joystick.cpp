@@ -24,6 +24,7 @@
 #include "joystick.h"
 #include "pic.h"
 #include "support.h"
+#include "control.h"
 
 #define RANGE 64
 #define TIMEOUT 10
@@ -224,10 +225,10 @@ void JOYSTICK_Destroy(Section* sec) {
 	delete test;
 }
 
-void JOYSTICK_Init(Section* sec) {
+void JOYSTICK_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing joystick emulation");
 
-	test = new JOYSTICK(sec);
-	sec->AddDestroyFunction(&JOYSTICK_Destroy,true); 
+	test = new JOYSTICK(control->GetSection("joystick"));
+	AddExitFunction(&JOYSTICK_Destroy,true); 
 }
 

@@ -338,11 +338,11 @@ void PARALLEL_Destroy (Section * sec) {
 	testParallelPortsBaseclass = NULL;
 }
 
-void PARALLEL_Init (Section * sec) {
+void PARALLEL_Init () {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing parallel port emulation");
 
 	// should never happen
 	if (testParallelPortsBaseclass) delete testParallelPortsBaseclass;
-	testParallelPortsBaseclass = new PARPORTS (sec);
-	sec->AddDestroyFunction (&PARALLEL_Destroy, true);
+	testParallelPortsBaseclass = new PARPORTS (control->GetSection("parallel"));
+	AddExitFunction (&PARALLEL_Destroy, true);
 }
