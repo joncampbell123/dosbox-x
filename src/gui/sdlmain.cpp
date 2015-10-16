@@ -4380,12 +4380,8 @@ int main(int argc, char* argv[]) {
 			LOG(LOG_MISC,LOG_DEBUG)("-noconsole: hiding Win32 console window");
 			ShowWindow(GetConsoleWindow(), SW_HIDE);
 			DestroyWindow(GetConsoleWindow());
-		} else
-# endif
-		{
-			LOG(LOG_MISC,LOG_DEBUG)("Setting up the debug console");
-			DEBUG_SetupConsole();
 		}
+# endif
 #endif
 
 #if defined(WIN32)
@@ -4561,8 +4557,6 @@ int main(int argc, char* argv[]) {
 #if C_FPU
 		FPU_Init();
 #endif
-		MAPPER_StartUp();
-		MAPPER_Init();
 
 		/* If PCjr emulation, map cartridge ROM */
 		if (machine == MCH_PCJR)
@@ -4623,6 +4617,9 @@ int main(int argc, char* argv[]) {
 		FDC_Primary_Init();
 		IDE_Init();
 		AUTOEXEC_Init();
+
+		MAPPER_StartUp();
+		MAPPER_Init();
 
 		LOG(LOG_MISC,LOG_DEBUG)("Now running legacy (not-yet-ported) section init");
 

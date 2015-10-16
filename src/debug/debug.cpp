@@ -671,7 +671,9 @@ bool DEBUG_ExitLoop(void)
 /********************/
 
 static void DrawData(void) {
-	
+	if (dbg.win_main == NULL || dbg.win_data == NULL)
+		return;
+
 	Bit8u ch;
 	Bit32u add = dataOfs;
 	Bit32u address;
@@ -693,6 +695,9 @@ static void DrawData(void) {
 };
 
 static void DrawRegisters(void) {
+	if (dbg.win_main == NULL || dbg.win_reg == NULL)
+		return;
+
 	/* Main Registers */
 	SetColor(reg_eax!=oldregs.eax);oldregs.eax=reg_eax;mvwprintw (dbg.win_reg,0,4,"%08X",reg_eax);
 	SetColor(reg_ebx!=oldregs.ebx);oldregs.ebx=reg_ebx;mvwprintw (dbg.win_reg,1,4,"%08X",reg_ebx);
@@ -766,12 +771,15 @@ static void DrawRegisters(void) {
 };
 
 static void DrawCode(void) {
+	if (dbg.win_main == NULL || dbg.win_code == NULL)
+		return;
+
 	bool saveSel; 
 	Bit32u disEIP = codeViewData.useEIP;
 	PhysPt start  = GetAddress(codeViewData.useCS,codeViewData.useEIP);
 	char dline[200];Bitu size;Bitu c;
 	static char line20[21] = "                    ";
-	
+
 	for (int i=0;i<10;i++) {
 		saveSel = false;
 		if (has_colors()) {
@@ -1760,6 +1768,7 @@ void DEBUG_Enable(bool pressed) {
 		return;
 	static bool showhelp=false;
 	debugging=true;
+	DEBUG_SetupConsole();
 	SetCodeWinStart();
 	DEBUG_DrawScreen();
 	DOSBOX_SetLoop(&DEBUG_Loop);
@@ -2116,17 +2125,18 @@ static void DEBUG_ProgramStart(Program * * make) {
 // INIT 
 
 void DEBUG_SetupConsole(void) {
-	LOG(LOG_MISC,LOG_DEBUG)("DEBUG_SetupConsole initializing GUI");
-	#ifdef WIN32
-	WIN32_Console();
-	#else
-	tcgetattr(0,&consolesettings);
-	#endif	
-	memset((void *)&dbg,0,sizeof(dbg));
-	debugging=false;
-//	dbg.active_win=3;
-	/* Start the Debug Gui */
-	DBGUI_StartUp();
+	if (dbg.win_main == NULL) {
+		LOG(LOG_MISC,LOG_DEBUG)("DEBUG_SetupConsole initializing GUI");
+#ifdef WIN32
+		WIN32_Console();
+#else
+		tcgetattr(0,&consolesettings);
+#endif	
+		debugging=false;
+		//	dbg.active_win=3;
+		/* Start the Debug Gui */
+		DBGUI_StartUp();
+	}
 }
 
 void DEBUG_ShutDown(Section * /*sec*/) {
