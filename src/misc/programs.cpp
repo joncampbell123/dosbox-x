@@ -972,11 +972,9 @@ void CONFIG::Run(void) {
 			for(Bitu i = 3; i < pvars.size(); i++) value += (std::string(" ") + pvars[i]);
 			std::string inputline = pvars[1] + "=" + value;
 			
-			tsec->ExecuteDestroy(false);
 			bool change_success = tsec->HandleInputline(inputline.c_str());
 			if (!change_success) WriteOut(MSG_Get("PROGRAM_CONFIG_VALUE_ERROR"),
 				value.c_str(),pvars[1].c_str());
-			tsec->ExecuteInit(false);
 			return;
 		}
 		case P_WRITELANG: case P_WRITELANG2:

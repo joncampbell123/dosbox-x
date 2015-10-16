@@ -62,11 +62,9 @@ void SetVal(const std::string secname, std::string preval, const std::string val
 		}
 	}
 	Section* sec = control->GetSection(secname);
-	sec->ExecuteDestroy(false);
 	if(sec) {
-        std::string real_val=preval+"="+val;
+		std::string real_val=preval+"="+val;
 		sec->HandleInputline(real_val);
-		sec->ExecuteInit(false);
 	}
 }
 
@@ -154,10 +152,8 @@ void mem_conf(std::string memtype, int option) {
 		}
 	}
 	if(sec) {
-		sec->ExecuteDestroy(false);
 		memtype += "=" + tmp;
 		sec->HandleInputline(memtype);
-		sec->ExecuteInit(false);
 	}
 }
 

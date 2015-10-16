@@ -603,7 +603,6 @@ private:
 
 	void disable_umb_ems_xms(void) {
 		Section* dos_sec = control->GetSection("dos");
-		dos_sec->ExecuteDestroy(false);
 		char test[20];
 		strcpy(test,"umb=false");
 		dos_sec->HandleInputline(test);
@@ -611,7 +610,6 @@ private:
 		dos_sec->HandleInputline(test);
 		strcpy(test,"ems=false");
 		dos_sec->HandleInputline(test);
-		dos_sec->ExecuteInit(false);
 	}
 
 public:

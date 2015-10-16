@@ -2647,7 +2647,6 @@ static void CPU_ToggleAutoCycles(bool pressed) {
     Section* sec=control->GetSection("cpu");
     if(sec) {
 	std::string tmp("cycles=");
-	sec->ExecuteDestroy(false);
 	if(CPU_CycleAutoAdjust) {
 	    std::ostringstream str;
 	    str << "fixed " << CPU_CyclesSet;
@@ -2658,7 +2657,6 @@ static void CPU_ToggleAutoCycles(bool pressed) {
 	    tmp.append("auto");
 	}
 	sec->HandleInputline(tmp);
-	sec->ExecuteInit(false);
     }
 }
 
@@ -2668,9 +2666,7 @@ static void CPU_ToggleFullCore(bool pressed) {
     Section* sec=control->GetSection("cpu");
     if(sec) {
 	std::string tmp="core=full";
-	sec->ExecuteDestroy(false);
 	sec->HandleInputline(tmp);
-	sec->ExecuteInit(false);
     }
 }
 
@@ -2680,9 +2676,7 @@ static void CPU_ToggleNormalCore(bool pressed) {
     Section* sec=control->GetSection("cpu");
     if(sec) {
 	std::string tmp="core=normal";
-	sec->ExecuteDestroy(false);
 	sec->HandleInputline(tmp);
-	sec->ExecuteInit(false);
     }
 }
 
@@ -2693,9 +2687,7 @@ static void CPU_ToggleDynamicCore(bool pressed) {
     Section* sec=control->GetSection("cpu");
     if(sec) {
 	std::string tmp="core=dynamic";
-	sec->ExecuteDestroy(false);
 	sec->HandleInputline(tmp);
-	sec->ExecuteInit(false);
     }
 }
 #endif
@@ -2706,9 +2698,7 @@ static void CPU_ToggleSimpleCore(bool pressed) {
     Section* sec=control->GetSection("cpu");
     std::string tmp="core=simple";
     if(sec) {
-	sec->ExecuteDestroy(false);
 	sec->HandleInputline(tmp);
-	sec->ExecuteInit(false);
     }
 }
 

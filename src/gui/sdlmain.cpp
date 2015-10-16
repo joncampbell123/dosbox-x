@@ -1665,14 +1665,13 @@ void res_input(bool type, const char * res) {
 	char win_res[11];
 	if(sec) {
 		strcpy(win_res,res);
-		sec->ExecuteDestroy(false);
 		if(type) {
 			std::string tmp("windowresolution="); tmp.append(win_res);
 			sec->HandleInputline(tmp);
 		} else {
 			std::string tmp("fullresolution="); tmp.append(win_res);
-			sec->HandleInputline(tmp); }
-		sec->ExecuteInit(false);
+			sec->HandleInputline(tmp);
+		}
 
 		res_init();
 	}
@@ -1744,7 +1743,6 @@ void change_output(int output) {
 			if(output == 0) {
 				std::string tmp("windowresolution=original");
 				sec->HandleInputline(tmp);
-				sec->ExecuteInit(false);
 			}
 		}
 	}
@@ -3590,10 +3588,12 @@ void Null_Init(Section *sec);
 
 void SDL_SetupConfigSection() {
 	Section_prop * sdl_sec=control->AddSection_prop("sdl",&Null_Init);
-	sdl_sec->AddInitFunction(&MAPPER_StartUp);
+// FIXME
+//	sdl_sec->AddInitFunction(&MAPPER_StartUp);
 #if (HAVE_D3D9_H) && defined(WIN32)
 	// Allows dynamic pixelshader change
-	sdl_sec->AddInitFunction(&D3D_reconfigure,true);
+// FIXME
+//	sdl_sec->AddInitFunction(&D3D_reconfigure,true);
 #endif
 	Prop_bool* Pbool;
 	Prop_string* Pstring;
@@ -4571,7 +4571,6 @@ int main(int argc, char* argv[]) {
 		AUTOEXEC_Init();
 
 		LOG(LOG_MISC,LOG_DEBUG)("Now running legacy (not-yet-ported) section init");
-		control->Init();
 
 		{
 			/* Some extra SDL Functions */
@@ -4652,10 +4651,6 @@ int main(int argc, char* argv[]) {
 		bool run_machine;
 		bool reboot_machine;
 		bool dos_kernel_shutdown;
-
-		/* startup the not yet ported code */
-		LOG(LOG_MISC,LOG_DEBUG)("Now running legacy (not yet ported) section startup code");
-		control->StartUp();
 
 		/* BIOS boot event. This will have more meaning later on in development, when some emulation
 		 * might want to free resources related to BIOS initialization or offer INT 19h hooks, at

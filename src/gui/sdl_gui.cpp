@@ -309,9 +309,7 @@ public:
 	void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
 		std::string line;
 		if (prepare(line)) {
-			if (first_shell) section->ExecuteDestroy(false);
 			prop->SetValue(GUI::String(line));
-			if (first_shell) section->ExecuteInit(false);
 		}
 	}
 };
@@ -613,10 +611,8 @@ public:
 				std::string tmp("cycles=");
 				const char* well = name->getText();
 				std::string s(well, 20);
-				sec->ExecuteDestroy(false);
 				tmp.append(s);
 				sec->HandleInputline(tmp);
-				sec->ExecuteInit(false);
 				delete well;
 			}
 		}
@@ -649,10 +645,8 @@ public:
 				const char* well = name->getText();
 				std::string s(well, 20);
 				std::string tmp("vsyncrate=");
-				sec->ExecuteDestroy(false);
 				tmp.append(s);
 				sec->HandleInputline(tmp);
-				sec->ExecuteInit(false);
 				delete well;
 			}
 		}

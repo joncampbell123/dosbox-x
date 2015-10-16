@@ -746,14 +746,11 @@ bool Config::PrintConfig(char const * const configfilename,bool everything) cons
 
 Section_prop* Config::AddSection_prop(char const * const _name,void (*_initfunction)(Section*),bool canchange){
 	Section_prop* blah = new Section_prop(_name);
-	blah->AddInitFunction(_initfunction,canchange);
 	sectionlist.push_back(blah);
 	return blah;
 }
 
 Section_prop::~Section_prop() {
-//ExecuteDestroy should be here else the destroy functions use destroyed properties
-	ExecuteDestroy(true);
 	/* Delete properties themself (properties stores the pointer of a prop */
 	for(it prop = properties.begin(); prop != properties.end(); prop++) delete (*prop);
 	properties.clear();
@@ -762,29 +759,11 @@ Section_prop::~Section_prop() {
 
 Section_line* Config::AddSection_line(char const * const _name,void (*_initfunction)(Section*)){
 	Section_line* blah = new Section_line(_name);
-	blah->AddInitFunction(_initfunction);
 	sectionlist.push_back(blah);
 	return blah;
 }
 
-
-void Config::Init() {
-	for (const_it tel=sectionlist.begin(); tel!=sectionlist.end(); tel++) {
-		LOG(LOG_MISC,LOG_DEBUG)("Config::Init calling section %s initialization",(*tel)->GetName());
-		(*tel)->ExecuteInit();
-	}
-}
-
 void Null_Init(Section *sec);
-
-void Section::AddInitFunction(SectionFunction func,bool canchange) {
-	if (func != &Null_Init)
-		LOG(LOG_MISC,LOG_WARN)("Section::AddInitFunction no longer supported");
-}
-
-void Section::AddDestroyFunction(SectionFunction func,bool canchange) {
-	LOG(LOG_MISC,LOG_WARN)("Section::AddDestroyFunction no longer supported");
-}
 
 void AddExitFunction(SectionFunction func,bool canchange) {
 	/* NTS: Add functions so that iterating front to back executes them in First In Last Out order. */
@@ -829,31 +808,11 @@ void DispatchVMEvent(unsigned int event) {
 		(*i).function(NULL);
 }
 
-void Section::ExecuteInit(bool initall) {
-	typedef std::list<Function_wrapper>::iterator func_it;
-	for (func_it tel=initfunctions.begin(); tel!=initfunctions.end(); tel++) {
-		if(initall || (*tel).canchange) (*tel).function(this);
-	}
-}
-
-void Section::ExecuteDestroy(bool destroyall) {
-	typedef std::list<Function_wrapper>::iterator func_it;
-	for (func_it tel=destroyfunctions.begin(); tel!=destroyfunctions.end(); ) {
-		if(destroyall || (*tel).canchange) {
-			(*tel).function(this);
-			tel=destroyfunctions.erase(tel); //Remove destroyfunction once used
-		} else tel++;
-	}
-}
-
 Config::~Config() {
 	std::list<Section*>::iterator it; // FIXME: You guys do realize C++ STL provides reverse_iterator?
 
 	while ((it=sectionlist.end()) != sectionlist.begin()) {
 		it--;
-
-		LOG(LOG_MISC,LOG_DEBUG)("Config::~Config calling section %s destructor",(*it)->GetName());
-
 		delete (*it);
 		sectionlist.erase(it);
 	}
@@ -958,10 +917,6 @@ void Config::ParseEnv(char ** envp) {
 			continue;
 		sect->HandleInputline(prop_name);
 	}
-}
-
-void Config::StartUp(void) {
-	initialised=true;
 }
 
 bool CommandLine::FindExist(char const * const name,bool remove) {

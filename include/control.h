@@ -100,9 +100,6 @@ public:
 	Section* GetSection(std::string const&_sectionname) const;
 	Section* GetSectionFromProperty(char const * const prop) const;
 
-	void Init();
-	void ShutDown();
-	void StartUp();
 	bool PrintConfig(char const * const configfilename,bool everything=false) const;
 	bool ParseConfigFile(char const * const configfilename);
 	void ParseEnv(char ** envp);

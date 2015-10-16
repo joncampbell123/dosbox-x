@@ -246,16 +246,10 @@ struct Function_wrapper {
 #define NO_SUCH_PROPERTY "PROP_NOT_EXIST"
 class Section {
 private:
-	std::list<Function_wrapper> initfunctions;
-	std::list<Function_wrapper> destroyfunctions;
 	std::string sectionname;
 public:
 	Section(std::string const& _sectionname):sectionname(_sectionname) {  }
 
-	void AddInitFunction(SectionFunction func,bool canchange=false);
-	void AddDestroyFunction(SectionFunction func,bool canchange=false);
-	void ExecuteInit(bool initall=true);
-	void ExecuteDestroy(bool destroyall=true);
 	const char* GetName() const {return sectionname.c_str();}
 
 	virtual std::string GetPropValue(std::string const& _property) const =0;
@@ -331,7 +325,6 @@ public:
 	virtual bool HandleInputline(std::string const& gegevens);
 	virtual void PrintData(FILE* outfile,bool everything=false);
 	virtual std::string GetPropValue(std::string const& _property) const;
-	//ExecuteDestroy should be here else the destroy functions use destroyed properties
 	virtual ~Section_prop();
 };
 
@@ -364,7 +357,7 @@ public:
 class Section_line: public Section{
 public:
 	Section_line(std::string const& _sectionname):Section(_sectionname){}
-	virtual ~Section_line() { ExecuteDestroy(true); }
+	virtual ~Section_line() { };
 	virtual bool HandleInputline(std::string const& gegevens);
 	virtual void PrintData(FILE* outfile,bool everything=false);
 	virtual std::string GetPropValue(std::string const& _property) const;

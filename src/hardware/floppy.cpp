@@ -296,7 +296,7 @@ static void FDC_Init(Section* sec,unsigned char interface) {
 		return;
 
 	if (!init_floppy) {
-		sec->AddDestroyFunction(&FDC_Destroy);
+		AddExitFunction(&FDC_Destroy);
 		init_floppy = 1;
 	}
 
