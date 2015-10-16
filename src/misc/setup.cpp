@@ -765,11 +765,6 @@ Section_line* Config::AddSection_line(char const * const _name,void (*_initfunct
 
 void Null_Init(Section *sec);
 
-void AddExitFunction(SectionFunction func,bool canchange) {
-	/* NTS: Add functions so that iterating front to back executes them in First In Last Out order. */
-	exitfunctions.push_front(Function_wrapper(func,canchange,NULL));
-}
-
 void AddExitFunction(SectionFunction func,const char *name,bool canchange) {
 	/* NTS: Add functions so that iterating front to back executes them in First In Last Out order. */
 	exitfunctions.push_front(Function_wrapper(func,canchange,name));

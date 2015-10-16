@@ -268,7 +268,6 @@ public:
  *       (i.e. we want high-level stuff to cleanup first and low level
  *       stuff like logging to cleanup last). */
 extern std::list<Function_wrapper> exitfunctions;
-void AddExitFunction(SectionFunction func,bool canchange=false);
 void AddExitFunction(SectionFunction func,const char *funcname,bool canchange=false);
 
 /* for use with AddExitFunction and a name of a function.
