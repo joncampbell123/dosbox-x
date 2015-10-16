@@ -595,7 +595,7 @@ void CMOS_Init() {
 		date_host_forced=true;
 	}
 
-	AddExitFunction(&CMOS_Destroy,true);
+	AddExitFunction(AddExitFunctionFuncPair(CMOS_Destroy),true);
 	AddVMEventFunction(VM_EVENT_POWERON,&CMOS_Reset);
 	AddVMEventFunction(VM_EVENT_RESET,&CMOS_Reset);
 }

@@ -460,7 +460,7 @@ void PCIBUS_Init() {
 		for (Bitu devct=0;devct<PCI_MAX_PCIDEVICES;devct++)
 			pci_devices[bus][devct]=NULL;
 
-	AddExitFunction(&PCI_ShutDown,false);
+	AddExitFunction(AddExitFunctionFuncPair(PCI_ShutDown),false);
 	AddVMEventFunction(VM_EVENT_POWERON,&PCI_Reset);
 	AddVMEventFunction(VM_EVENT_RESET,&PCI_Reset);
 }

@@ -806,7 +806,7 @@ void CAPTURE_Init() {
 	MAPPER_AddHandler(CAPTURE_VideoEvent,MK_f5,MMOD1|MMOD2,"video","Video");
 #endif
 
-	AddExitFunction(&CAPTURE_Destroy,true);
+	AddExitFunction(AddExitFunctionFuncPair(CAPTURE_Destroy),true);
 }
 
 void HARDWARE_Destroy(Section * sec) {
@@ -816,5 +816,5 @@ void HARDWARE_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("HARDWARE_Init: initializing");
 
 	/* TODO: Hardware init. We moved capture init to it's own function. */
-	AddExitFunction(&HARDWARE_Destroy,true);
+	AddExitFunction(AddExitFunctionFuncPair(HARDWARE_Destroy),true);
 }

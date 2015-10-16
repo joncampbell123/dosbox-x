@@ -1409,7 +1409,7 @@ void VGA_SetupMemory() {
 	vga.svga.bank_read_full = vga.svga.bank_write_full = 0;
 	vga.svga.bank_size = 0x10000; /* most common bank size is 64K */
 
-	AddExitFunction(&VGA_Memory_ShutDown);
+	AddExitFunction(AddExitFunctionFuncPair(VGA_Memory_ShutDown));
 
 	if (machine==MCH_PCJR) {
 		/* PCJr does not have dedicated graphics memory but uses

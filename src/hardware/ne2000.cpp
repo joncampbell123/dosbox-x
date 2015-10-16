@@ -1670,7 +1670,7 @@ void NE2K_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing NE2000 network card emulation");
 
 	test = new NE2K(control->GetSection("ne2000"));
-	AddExitFunction(&NE2K_ShutDown,true);
+	AddExitFunction(AddExitFunctionFuncPair(NE2K_ShutDown),true);
 	if(!test->load_success) {
 		delete test;
 		test=0;

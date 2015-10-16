@@ -229,6 +229,6 @@ void JOYSTICK_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing joystick emulation");
 
 	test = new JOYSTICK(control->GetSection("joystick"));
-	AddExitFunction(&JOYSTICK_Destroy,true); 
+	AddExitFunction(AddExitFunctionFuncPair(JOYSTICK_Destroy),true); 
 }
 

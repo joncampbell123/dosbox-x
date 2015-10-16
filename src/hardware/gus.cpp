@@ -958,6 +958,6 @@ void GUS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing Gravis Ultrasound emulation");
 
 	test = new GUS(control->GetSection("gus"));
-	AddExitFunction(&GUS_ShutDown,true);
+	AddExitFunction(AddExitFunctionFuncPair(GUS_ShutDown),true);
 }
 

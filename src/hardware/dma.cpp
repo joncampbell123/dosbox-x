@@ -523,7 +523,7 @@ void DMA_Reset(Section* /*sec*/) {
 void Init_DMA() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing DMA controller emulation");
 
-	AddExitFunction(&DMA_Destroy);
+	AddExitFunction(AddExitFunctionFuncPair(DMA_Destroy));
 	AddVMEventFunction(VM_EVENT_POWERON,&DMA_Reset);
 	AddVMEventFunction(VM_EVENT_RESET,&DMA_Reset);
 }

@@ -2403,6 +2403,6 @@ void SBLASTER_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing Sound Blaster emulation");
 
 	test = new SBLASTER(control->GetSection("sblaster"));
-	AddExitFunction(&SBLASTER_ShutDown,true);
+	AddExitFunction(AddExitFunctionFuncPair(SBLASTER_ShutDown),true);
 }
 

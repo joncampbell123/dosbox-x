@@ -1330,6 +1330,6 @@ void SERIAL_Init () {
 	// should never happen
 	if (testSerialPortsBaseclass) delete testSerialPortsBaseclass;
 	testSerialPortsBaseclass = new SERIALPORTS (control->GetSection("serial"));
-	AddExitFunction (&SERIAL_Destroy, true);
+	AddExitFunction(AddExitFunctionFuncPair(SERIAL_Destroy), true);
 }
 

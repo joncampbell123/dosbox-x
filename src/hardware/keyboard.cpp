@@ -1429,7 +1429,7 @@ void KEYBOARD_Init() {
 
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing keyboard emulation");
 
-	AddExitFunction(&KEYBOARD_ShutDown);
+	AddExitFunction(AddExitFunctionFuncPair(KEYBOARD_ShutDown));
 
 	if ((keyb.enable_aux=section->Get_bool("aux")) != false) {
 		LOG(LOG_KEYBOARD,LOG_NORMAL)("Keyboard AUX emulation enabled");

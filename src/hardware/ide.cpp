@@ -3815,7 +3815,7 @@ static void IDE_Init(Section* sec,unsigned char interface) {
 		return;
 
 	if (!init_ide) {
-		AddExitFunction(&IDE_Destroy);
+		AddExitFunction(AddExitFunctionFuncPair(IDE_Destroy));
 		init_ide = 1;
 	}
 

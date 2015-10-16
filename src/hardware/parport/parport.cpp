@@ -346,5 +346,5 @@ void PARALLEL_Init () {
 	// should never happen
 	if (testParallelPortsBaseclass) delete testParallelPortsBaseclass;
 	testParallelPortsBaseclass = new PARPORTS (control->GetSection("parallel"));
-	AddExitFunction (&PARALLEL_Destroy, true);
+	AddExitFunction(AddExitFunctionFuncPair(PARALLEL_Destroy), true);
 }

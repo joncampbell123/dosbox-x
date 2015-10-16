@@ -176,5 +176,5 @@ void VOODOO_Init() {
 
 	voodoo_current_lfb=(VOODOO_INITIAL_LFB&0xffff0000);
 	voodoo_dev = new VOODOO(control->GetSection("pci"));
-	AddExitFunction(&VOODOO_Destroy,true);
+	AddExitFunction(AddExitFunctionFuncPair(VOODOO_Destroy),true);
 }

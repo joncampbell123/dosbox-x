@@ -422,6 +422,6 @@ void DISNEY_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing Disney Sound Source emulation");
 
 	test = new DISNEY(control->GetSection("speaker"));
-	AddExitFunction(&DISNEY_ShutDown,true);
+	AddExitFunction(AddExitFunctionFuncPair(DISNEY_ShutDown),true);
 }
 

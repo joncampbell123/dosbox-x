@@ -1194,7 +1194,7 @@ void IPX_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing IPX emulation");
 
 	test = new IPX(control->GetSection("ipx"));
-	AddExitFunction(&IPX_ShutDown,true);
+	AddExitFunction(AddExitFunctionFuncPair(IPX_ShutDown),true);
 }
 
 #endif

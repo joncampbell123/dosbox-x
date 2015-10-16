@@ -1050,7 +1050,7 @@ void Init_RAM() {
 
 	/* please let me know about shutdown! */
 	if (!has_Init_RAM) {
-		AddExitFunction(&ShutDownRAM);
+		AddExitFunction(AddExitFunctionFuncPair(ShutDownRAM));
 		has_Init_RAM = true;
 	}
 
@@ -1237,7 +1237,7 @@ void Init_MemHandles() {
 	Bitu i;
 
 	if (!has_Init_MemHandles) {
-		AddExitFunction(&ShutDownMemHandles);
+		AddExitFunction(AddExitFunctionFuncPair(ShutDownMemHandles));
 		has_Init_MemHandles = true;
 	}
 
@@ -1259,7 +1259,7 @@ void Init_MemoryAccessArray() {
 
 	if (!has_Init_MemoryAccessArray) {
 		has_Init_MemoryAccessArray = true;
-		AddExitFunction(&ShutDownMemoryAccessArray);
+		AddExitFunction(AddExitFunctionFuncPair(ShutDownMemoryAccessArray));
 	}
 
 	// LOG

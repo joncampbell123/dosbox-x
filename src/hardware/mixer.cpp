@@ -698,7 +698,7 @@ void MENU_swapstereo(bool enabled) {
 #endif
 
 void MIXER_Init() {
-	AddExitFunction(&MIXER_Stop);
+	AddExitFunction(AddExitFunctionFuncPair(MIXER_Stop));
 
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing DOSBox audio mixer");
 

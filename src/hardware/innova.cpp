@@ -122,6 +122,6 @@ void INNOVA_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing INNOVA emulation");
 
 	test = new INNOVA(control->GetSection("innova"));
-	AddExitFunction(&INNOVA_ShutDown,true);
+	AddExitFunction(AddExitFunctionFuncPair(INNOVA_ShutDown),true);
 }
 

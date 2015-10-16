@@ -383,6 +383,6 @@ void PS1SOUND_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing PS/1 sound emulation");
 
 	test = new PS1SOUND(control->GetSection("speaker"));
-	AddExitFunction(&PS1SOUND_ShutDown,true);
+	AddExitFunction(AddExitFunctionFuncPair(PS1SOUND_ShutDown),true);
 }
 

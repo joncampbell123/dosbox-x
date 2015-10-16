@@ -3072,7 +3072,7 @@ void CPU_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing CPU");
 
 	test = new CPU(control->GetSection("cpu"));
-	AddExitFunction(&CPU_ShutDown,true);
+	AddExitFunction(AddExitFunctionFuncPair(CPU_ShutDown),true);
 }
 //initialize static members
 bool CPU::inited=false;

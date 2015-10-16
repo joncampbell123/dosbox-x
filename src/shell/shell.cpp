@@ -477,7 +477,7 @@ void AUTOEXEC_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing AUTOEXEC.BAT emulation");
 
 	test = new AUTOEXEC(control->GetSection("autoexec"));
-	AddExitFunction(&AUTOEXEC_ShutDown);
+	AddExitFunction(AddExitFunctionFuncPair(AUTOEXEC_ShutDown));
 }
 
 static char const * const path_string="PATH=Z:\\";
