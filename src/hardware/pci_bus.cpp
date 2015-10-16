@@ -461,7 +461,7 @@ void PCIBUS_Init() {
 			pci_devices[bus][devct]=NULL;
 
 	AddExitFunction(AddExitFunctionFuncPair(PCI_ShutDown),false);
-	AddVMEventFunction(VM_EVENT_POWERON,&PCI_Reset);
-	AddVMEventFunction(VM_EVENT_RESET,&PCI_Reset);
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(PCI_Reset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PCI_Reset));
 }
 

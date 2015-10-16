@@ -770,13 +770,6 @@ void AddExitFunction(SectionFunction func,const char *name,bool canchange) {
 	exitfunctions.push_front(Function_wrapper(func,canchange,name));
 }
 
-void AddVMEventFunction(enum vm_event event,SectionFunction func,bool canchange) {
-	assert(event < VM_EVENT_MAX);
-
-	/* NTS: First In First Out order */
-	vm_event_functions[event].push_back(Function_wrapper(func,canchange,NULL));
-}
-
 void AddVMEventFunction(enum vm_event event,SectionFunction func,const char *name,bool canchange) {
 	assert(event < VM_EVENT_MAX);
 
@@ -814,8 +807,10 @@ void DispatchVMEvent(enum vm_event event) {
 	LOG(LOG_MISC,LOG_DEBUG)("Dispatching VM event %s",GetVMEventName(event));
 
 	vm_dispatch_state.begin_event(event);
-	for (std::list<Function_wrapper>::iterator i=vm_event_functions[event].begin();i!=vm_event_functions[event].end();i++)
+	for (std::list<Function_wrapper>::iterator i=vm_event_functions[event].begin();i!=vm_event_functions[event].end();i++) {
+		LOG(LOG_MISC,LOG_DEBUG)("Calling event %s handler (%p) '%s'",GetVMEventName(event),(void*)((*i).function),(*i).name.c_str());
 		(*i).function(NULL);
+	}
 
 	vm_dispatch_state.end_event();
 }

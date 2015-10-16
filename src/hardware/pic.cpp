@@ -727,7 +727,7 @@ void Init_PIC() {
 	LOG(LOG_MISC,LOG_DEBUG)("Init_PIC()");
 
 	AddExitFunction(AddExitFunctionFuncPair(PIC_Destroy));
-	AddVMEventFunction(VM_EVENT_POWERON,&PIC_Reset);
-	AddVMEventFunction(VM_EVENT_RESET,&PIC_Reset);
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(PIC_Reset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PIC_Reset));
 }
 

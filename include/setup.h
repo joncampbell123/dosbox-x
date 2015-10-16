@@ -314,9 +314,12 @@ extern VMDispatchState vm_dispatch_state;
 const char *GetVMEventName(enum vm_event event);
 
 extern std::list<Function_wrapper> vm_event_functions[VM_EVENT_MAX];
-void AddVMEventFunction(enum vm_event event,SectionFunction func,bool canchange=false);
 void AddVMEventFunction(enum vm_event event,SectionFunction func,const char *name,bool canchange=false);
 void DispatchVMEvent(enum vm_event event);
+
+/* for use with AddExitFunction and a name of a function.
+ * this turns it into function pointer and function name. it turns one param into two. */
+#define AddVMEventFunctionFuncPair(x) &x, #x
 
 class Prop_multival;
 class Prop_multival_remain;

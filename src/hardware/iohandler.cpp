@@ -505,7 +505,7 @@ void IO_Init() {
 	IO_FreeWriteHandler(0,IO_MA,IO_MAX);
 
 	/* please call our reset function on power-on and reset */
-	AddVMEventFunction(VM_EVENT_POWERON,&IO_Reset);
-	AddVMEventFunction(VM_EVENT_RESET,&IO_Reset);
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(IO_Reset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(IO_Reset));
 }
 
