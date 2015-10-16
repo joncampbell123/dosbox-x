@@ -13,6 +13,8 @@
 #include "timer.h"
 #include "pic.h"
 #include "cpu.h"
+#include "setup.h"
+#include "control.h"
 
 /* Couldn't find a real spec for the NE2000 out there, hence this is adapted heavily from Bochs */
 
@@ -1664,20 +1666,15 @@ void NE2K_ShutDown(Section* sec) {
 	test=0;
 }
 
-void NE2K_Init(Section* sec) {
+void NE2K_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing NE2000 network card emulation");
 
-	test = new NE2K(sec);
-	sec->AddDestroyFunction(&NE2K_ShutDown,true);
+	test = new NE2K(control->GetSection("ne2000"));
+	AddExitFunction(&NE2K_ShutDown,true);
 	if(!test->load_success) {
 		delete test;
 		test=0;
 	}
 }
-
-
-// save state support
-void *NE2000_TX_Event_PIC_Event = (void*)NE2000_TX_Event;
-void *NE2000_Poller_PIC_Event = (void*)NE2000_Poller;
 
 #endif // C_NE2000

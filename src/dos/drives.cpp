@@ -23,6 +23,7 @@
 #include "setup.h"
 #include "mapper.h"
 #include "support.h"
+#include "control.h"
 
 bool WildFileCmp(const char * file, const char * wild) 
 {
@@ -249,10 +250,10 @@ void DriveManager::Init(Section* s) {
 //	MAPPER_AddHandler(&CycleDrive, MK_f3, MMOD2, "cycledrive", "Cycle Drv");
 }
 
-void DRIVES_Init(Section* sec) {
+void DRIVES_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing OOS drives");
 
-	DriveManager::Init(sec);
+	DriveManager::Init(control->GetSection("dos"));
 }
 
 char * DOS_Drive::GetBaseDir(void) {

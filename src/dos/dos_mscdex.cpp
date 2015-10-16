@@ -1398,11 +1398,11 @@ void MSCDEX_ShutDown(Section* /*sec*/) {
 	curReqheaderPtr = 0;
 }
 
-void MSCDEX_Init(Section* sec) {
+void MSCDEX_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing MSCDEX.EXE emulation");
 
 	// AddDestroy func
-	sec->AddDestroyFunction(&MSCDEX_ShutDown);
+	AddExitFunction(&MSCDEX_ShutDown);
 	/* Register the mscdex device */
 	DOS_Device * newdev = new device_MSCDEX();
 	DOS_AddDevice(newdev);

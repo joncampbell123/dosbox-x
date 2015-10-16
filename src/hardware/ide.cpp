@@ -18,6 +18,7 @@
 #include "mixer.h"
 #include "timer.h"
 #include "setup.h"
+#include "control.h"
 #include "callback.h"
 #include "bios_disk.h"
 #include "../src/dos/cdrom.h"
@@ -3878,4 +3879,9 @@ void (*ide_inits[MAX_IDE_CONTROLLERS])(Section *) = {
 	&IDE_Septernary_Init,
 	&IDE_Octernary_Init
 };
+
+void IDE_Init() {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing IDE controllers");
+	for (size_t i=0;i < MAX_IDE_CONTROLLERS;i++) ide_inits[i](control->GetSection(ide_names[i]));
+}
 

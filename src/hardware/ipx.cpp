@@ -40,6 +40,8 @@
 #include "SDL_net.h"
 #include "programs.h"
 #include "pic.h"
+#include "control.h"
+#include "setup.h"
 
 #define SOCKTABLESIZE	150 // DOS IPX driver was limited to 150 open sockets
 
@@ -1188,19 +1190,11 @@ void IPX_ShutDown(Section* sec) {
 	delete test;    
 }
 
-void IPX_Init(Section* sec) {
+void IPX_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing IPX emulation");
 
-	test = new IPX(sec);
-	sec->AddDestroyFunction(&IPX_ShutDown,true);
+	test = new IPX(control->GetSection("ipx"));
+	AddExitFunction(&IPX_ShutDown,true);
 }
-
-//Initialize static members;
-Bit16u IPX::dospage = 0;
-
-
-// save state support
-void *IPX_AES_EventHandler_PIC_Event = (void*)IPX_AES_EventHandler;
-void *IPX_ClientLoop_PIC_Timer = (void*)IPX_ClientLoop;
 
 #endif

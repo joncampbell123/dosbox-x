@@ -28,6 +28,8 @@
 #include "mem.h"
 #include "control.h"
 
+using namespace std;
+
 #define DISNEY_BASE 0x0378
 
 #define DISNEY_SIZE 128

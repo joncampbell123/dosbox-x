@@ -17,6 +17,7 @@
 #include "mixer.h"
 #include "timer.h"
 #include "setup.h"
+#include "control.h"
 #include "callback.h"
 #include "bios_disk.h"
 #include "../src/dos/cdrom.h"
@@ -307,9 +308,9 @@ static void FDC_Init(Section* sec,unsigned char interface) {
 	PIC_SetIRQMask(fdc->IRQ,false);
 }
 
-void FDC_Primary_Init(Section *sec) {
+void FDC_Primary_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing floppy controller emulation");
-	FDC_Init(sec,0);
+	FDC_Init(control->GetSection("fdc, primary"),0);
 }
 
 void FloppyController::update_ST3() {

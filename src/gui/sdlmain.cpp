@@ -4176,15 +4176,16 @@ void DONGLE_Init();
 void DOS_Init();
 void XMS_Init();
 void EMS_Init();
-void MOUSE_Init(Section*);
-void DOS_KeyboardLayout_Init(Section*);
-void MSCDEX_Init(Section*);
-void DRIVES_Init(Section*);
-void CDROM_Image_Init(Section*);
-void IPX_Init(Section*);
-void NE2K_Init(Section*);
-void FDC_Primary_Init(Section*);
-void AUTOEXEC_Init(Section*);
+void MOUSE_Init();
+void DOS_KeyboardLayout_Init();
+void MSCDEX_Init();
+void DRIVES_Init();
+void CDROM_Image_Init();
+void IPX_Init();
+void IDE_Init();
+void NE2K_Init();
+void FDC_Primary_Init();
+void AUTOEXEC_Init();
 
 #if defined(WIN32)
 extern bool dpi_aware_enable;
@@ -4554,21 +4555,20 @@ int main(int argc, char* argv[]) {
 		DOS_Init();
 		XMS_Init();
 		EMS_Init();
-		MOUSE_Init(control->GetSection("dos"));
-		DOS_KeyboardLayout_Init(control->GetSection("dos"));
-		MSCDEX_Init(control->GetSection("dos"));
-		DRIVES_Init(control->GetSection("dos"));
-		CDROM_Image_Init(control->GetSection("dos"));
+		MOUSE_Init();
+		DOS_KeyboardLayout_Init();
+		MSCDEX_Init();
+		DRIVES_Init();
+		CDROM_Image_Init();
 #if C_IPX
-		IPX_Init(control->GetSection("ipx"));
+		IPX_Init();
 #endif
 #if C_NE2000
-		NE2K_Init(control->GetSection("ne2000"));
+		NE2K_Init();
 #endif
-		FDC_Primary_Init(control->GetSection("fdc, primary"));
-		LOG(LOG_MISC,LOG_DEBUG)("Initializing IDE controllers");
-		for (size_t i=0;i < MAX_IDE_CONTROLLERS;i++) ide_inits[i](control->GetSection(ide_names[i]));
-		AUTOEXEC_Init(control->GetSection("autoexec"));
+		FDC_Primary_Init();
+		IDE_Init();
+		AUTOEXEC_Init();
 
 		LOG(LOG_MISC,LOG_DEBUG)("Now running legacy (not-yet-ported) section init");
 		control->Init();

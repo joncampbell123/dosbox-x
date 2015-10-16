@@ -29,6 +29,7 @@
 #include "cdrom.h"
 #include "drives.h"
 #include "support.h"
+#include "control.h"
 #include "setup.h"
 
 #if !defined(WIN32)
@@ -706,6 +707,6 @@ void CDROM_Interface_Image::ClearTracks()
 void CDROM_Image_Destroy(Section*) {
 }
 
-void CDROM_Image_Init(Section* section) {
+void CDROM_Image_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing CDROM image support");
 }

@@ -37,7 +37,8 @@
 #include "dos_inc.h"
 #include "support.h"
 #include "setup.h"
- 
+#include "control.h"
+
 /* ints/bios.cpp */
 void bios_enable_ps2();
 
@@ -1169,8 +1170,8 @@ Bitu MOUSE_UserInt_CB_Handler(void) {
 
 bool MouseTypeNone();
 
-void MOUSE_Init(Section* sec) {
-	Section_prop *section=static_cast<Section_prop *>(sec);
+void MOUSE_Init() {
+	Section_prop *section=static_cast<Section_prop *>(control->GetSection("dos"));
 	RealPt i33loc=0;
 
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing mouse interface emulation");
@@ -1268,6 +1269,4 @@ void MOUSE_Init(Section* sec) {
 	Mouse_Reset();
 	Mouse_SetSensitivity(50,50,50);
 }
-
-void *MOUSE_Limit_Events_PIC_Event = (void*)MOUSE_Limit_Events;
 

@@ -28,6 +28,7 @@
 #include "mapper.h"
 #include "drives.h"
 #include "dos_inc.h"
+#include "control.h"
 
 #include "dos_codepages.h"
 #include "dos_keyboard_layout_data.h"
@@ -1294,10 +1295,10 @@ void DOS_KeyboardLayout_ShutDown(Section* /*sec*/) {
 	delete test;	
 }
 
-void DOS_KeyboardLayout_Init(Section* sec) {
+void DOS_KeyboardLayout_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing DOS keyboard layout emulation");
 
-	test = new DOS_KeyboardLayout(sec);
-	sec->AddDestroyFunction(&DOS_KeyboardLayout_ShutDown,true);
+	test = new DOS_KeyboardLayout(control->GetSection("dos"));
+	AddExitFunction(&DOS_KeyboardLayout_ShutDown,true);
 //	MAPPER_AddHandler(switch_keyboard_layout,MK_f2,MMOD1|MMOD2,"sw_layout","Switch Layout");
 }
