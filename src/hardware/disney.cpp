@@ -150,7 +150,7 @@ static void DISNEY_analyze(Bitu channel){
 			}
 
 			// choose the larger value
-			DISNEY_enable(std::max(ch_speed[0],ch_speed[1]));
+			DISNEY_enable(max(ch_speed[0],ch_speed[1]));
 			break;
 		}
 		case DS_ANALYZING:
