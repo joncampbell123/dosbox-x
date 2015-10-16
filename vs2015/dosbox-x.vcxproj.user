@@ -4,24 +4,24 @@
     <LocalDebuggerCommand>$(OutDir)/$(ProjectName).exe</LocalDebuggerCommand>
     <LocalDebuggerWorkingDirectory>c:\emu\test</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>-debug</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-debug -early-debug</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LocalDebuggerCommand>$(OutDir)/$(ProjectName).exe</LocalDebuggerCommand>
     <LocalDebuggerWorkingDirectory>c:\emu\test</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>-debug</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-debug -early-debug</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LocalDebuggerCommand>$(OutDir)/$(ProjectName).exe</LocalDebuggerCommand>
     <LocalDebuggerWorkingDirectory>c:\emu\test</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>-debug</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-debug -early-debug</LocalDebuggerCommandArguments>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LocalDebuggerCommand>$(OutDir)/$(ProjectName).exe</LocalDebuggerCommand>
     <LocalDebuggerWorkingDirectory>c:\emu\test</LocalDebuggerWorkingDirectory>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>-debug</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-debug -early-debug</LocalDebuggerCommandArguments>
   </PropertyGroup>
 </Project>
