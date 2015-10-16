@@ -33,6 +33,7 @@
 #include "video.h"
 #include "keyboard.h"
 #include "pic.h"
+#include "control.h"
 #include "joystick.h"
 #include "support.h"
 #include "mapper.h"
@@ -2646,8 +2647,8 @@ void MAPPER_Init(void) {
 #include "SDL_syswm.h"
 #include <X11/XKBlib.h>
 #endif
-void MAPPER_StartUp(Section * sec) {
-	Section_prop * section=static_cast<Section_prop *>(sec);
+void MAPPER_StartUp() {
+	Section_prop * section=static_cast<Section_prop *>(control->GetSection("sdl"));
 	mapper.sticks.num=0;
 	mapper.sticks.num_groups=0;
 	Bitu i;

@@ -2238,9 +2238,9 @@ void EndSplashScreen() {
 #endif
 
 #if (HAVE_D3D9_H) && defined(WIN32)
-static void D3D_reconfigure(Section * sec) {
+static void D3D_reconfigure() {
 	if (d3d) {
-		Section_prop *section=static_cast<Section_prop *>(sec);
+		Section_prop *section=static_cast<Section_prop *>(control->GetSection("sdl"));
 		Prop_multival* prop = section->Get_multival("pixelshader");
 		if(SUCCEEDED(d3d->LoadPixelShader(prop->GetSection()->Get_string("type"), 0, 0))) {
 			GFX_ResetScreen();
@@ -3588,13 +3588,7 @@ void Null_Init(Section *sec);
 
 void SDL_SetupConfigSection() {
 	Section_prop * sdl_sec=control->AddSection_prop("sdl",&Null_Init);
-// FIXME
-//	sdl_sec->AddInitFunction(&MAPPER_StartUp);
-#if (HAVE_D3D9_H) && defined(WIN32)
-	// Allows dynamic pixelshader change
-// FIXME
-//	sdl_sec->AddInitFunction(&D3D_reconfigure,true);
-#endif
+
 	Prop_bool* Pbool;
 	Prop_string* Pstring;
 	Prop_int* Pint;
@@ -4587,10 +4581,18 @@ int main(int argc, char* argv[]) {
 
 		/* Init the keyMapper */
 		MAPPER_Init();
+
+		LOG(LOG_MISC,LOG_DEBUG)("Starting mapper");
+		MAPPER_StartUp();
+
 		if (control->opt_startmapper) {
 			LOG(LOG_MISC,LOG_DEBUG)("Running mapper interface, during startup, as instructed");
 			MAPPER_RunInternal();
 		}
+
+#if (HAVE_D3D9_H) && defined(WIN32)
+		D3D_reconfigure();
+#endif
 
 		/* Start up main machine */
 
