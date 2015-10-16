@@ -2137,6 +2137,12 @@ void DEBUG_ShutDown(Section * /*sec*/) {
 		curs_set(old_cursor_state);
 		endwin();
 		dbg.win_main = NULL;
+		dbg.win_reg = NULL;//FIXME: How to free return value of subwin()?
+		dbg.win_data = NULL;//FIXME: How to free return value of subwin()?
+		dbg.win_code = NULL;//FIXME: How to free return value of subwin()?
+		dbg.win_var = NULL;//FIXME: How to free return value of subwin()?
+		dbg.win_out = NULL;//FIXME: How to free return value of subwin()?
+
 #ifndef WIN32
 		tcsetattr(0,TCSANOW,&consolesettings);
 #endif

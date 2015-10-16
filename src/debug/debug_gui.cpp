@@ -72,6 +72,9 @@ void DEBUG_RefreshPage(char scroll) {
 }
 
 static void Draw_RegisterLayout(void) {
+	if (dbg.win_main == NULL)
+		return;
+
 	mvwaddstr(dbg.win_reg,0,0,"EAX=");
 	mvwaddstr(dbg.win_reg,1,0,"EBX=");
 	mvwaddstr(dbg.win_reg,2,0,"ECX=");
@@ -99,6 +102,9 @@ static void Draw_RegisterLayout(void) {
 
 
 static void DrawBars(void) {
+	if (dbg.win_main == NULL)
+		return;
+
 	if (has_colors()) {
 		attrset(COLOR_PAIR(PAIR_BLACK_BLUE));
 	}
