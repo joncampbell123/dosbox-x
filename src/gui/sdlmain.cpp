@@ -2257,7 +2257,7 @@ static void GUI_StartUp() {
 
 	LOG(LOG_GUI,LOG_DEBUG)("Starting GUI");
 
-	AddExitFunction(&GUI_ShutDown);
+	AddExitFunction(AddExitFunctionFuncPair(GUI_ShutDown));
 	GUI_LoadFonts();
 
 	sdl.active=false;

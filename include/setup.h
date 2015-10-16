@@ -271,6 +271,10 @@ extern std::list<Function_wrapper> exitfunctions;
 void AddExitFunction(SectionFunction func,bool canchange=false);
 void AddExitFunction(SectionFunction func,const char *funcname,bool canchange=false);
 
+/* for use with AddExitFunction and a name of a function.
+ * this turns it into function pointer and function name. it turns one param into two. */
+#define AddExitFunctionFuncPair(x) &x, #x
+
 /* array of list of functions to call for various virtual machine events */
 enum vm_event {
 	VM_EVENT_POWERON=0,			// emulation has started to power on hardware. it is safe to connect I/O, memory, IRQ resources, etc. to the bus. BIOS not initialized yet.

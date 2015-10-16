@@ -2161,7 +2161,7 @@ void DEBUG_Init() {
 	debugCallback=CALLBACK_Allocate();
 	CALLBACK_Setup(debugCallback,DEBUG_EnableDebugger,CB_RETF,"debugger");
 	/* shutdown function */
-	AddExitFunction(&DEBUG_ShutDown);
+	AddExitFunction(AddExitFunctionFuncPair(DEBUG_ShutDown));
 }
 
 // DEBUGGING VAR STUFF
