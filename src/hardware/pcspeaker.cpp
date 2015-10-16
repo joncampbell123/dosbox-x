@@ -584,11 +584,8 @@ public:
 		}
 #endif
 	}
-	~PCSPEAKER(){
-		Section_prop * section=static_cast<Section_prop *>(m_configuration);
-		if(!section->Get_bool("pcspeaker")) return;
-	}
 };
+
 static PCSPEAKER* test;
 
 void PCSPEAKER_ShutDown(Section* sec){

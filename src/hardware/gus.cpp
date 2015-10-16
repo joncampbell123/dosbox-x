@@ -927,8 +927,6 @@ public:
 
 	~GUS() {
 		if(!IS_EGAVGA_ARCH) return;
-		Section_prop * section=static_cast<Section_prop *>(m_configuration);
-		if(!section->Get_bool("gus")) return;
 	
 		myGUS.gRegData=0x1;
 		GUSReset();
