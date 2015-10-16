@@ -1084,13 +1084,15 @@ Bitu IPX_ESRHandler(void) {
 
 void VFILE_Remove(const char *name);
 
+// FIXME: VS2015 doesn't seem to like class IPX::dospage
+static Bit16u dospage;
+
 class IPX: public Module_base {
 private:
 	CALLBACK_HandlerObject callback_ipx;
 	CALLBACK_HandlerObject callback_esr;
 	CALLBACK_HandlerObject callback_ipxint;
 	RealPt old_73_vector;
-	static Bit16u dospage;
 public:
 	IPX(Section* configuration):Module_base(configuration) {
 		Section_prop * section = static_cast<Section_prop *>(configuration);
