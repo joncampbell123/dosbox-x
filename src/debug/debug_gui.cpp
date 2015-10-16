@@ -154,6 +154,7 @@ static void MakePairs(void) {
 }
 
 void DBGUI_StartUp(void) {
+	LOG(LOG_MISC,LOG_DEBUG)("DEBUG GUI startup");
 	/* Start the main window */
 	dbg.win_main=initscr();
 	cbreak();       /* take input chars one at a time, no wait for \n */
