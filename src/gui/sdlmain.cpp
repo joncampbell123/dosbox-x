@@ -3961,6 +3961,26 @@ void CheckNumLockState(void) {
 
 extern bool log_keyboard_scan_codes;
 
+void DOSBox_ShowConsole() {
+#if defined(WIN32)
+	/* Microsoft Windows: Allocate a console and begin spewing to it.
+	   DOSBox is compiled on Windows platforms as a Win32 application, and therefore, no console. */
+	AllocConsole();
+	freopen("CONIN$", "r", stdin);
+	freopen("CONOUT$", "w", stdout);
+	freopen("CONOUT$", "w", stderr);
+#endif
+}
+
+void DOSBox_ConsolePauseWait() {
+	char c;
+
+	printf("Hit ENTER to continue\n");
+	do {
+		if (fread(&c, 1, 1, stdin) != 1) break;
+	} while (!(c == 13 || c == 10)); /* wait for Enter key */
+}
+
 bool DOSBOX_parse_argv() {
 	std::string optname,tmp;
 
@@ -3970,14 +3990,23 @@ bool DOSBOX_parse_argv() {
 	control->cmdline->BeginOpt();
 	while (control->cmdline->GetOpt(optname)) {
 		if (optname == "version") {
+			DOSBox_ShowConsole();
+
 			fprintf(stderr,"\nDOSBox version %s, copyright 2002-2015 DOSBox Team.\n\n",VERSION);
 			fprintf(stderr,"DOSBox is written by the DOSBox Team (See AUTHORS file))\n");
 			fprintf(stderr,"DOSBox comes with ABSOLUTELY NO WARRANTY.  This is free software,\n");
 			fprintf(stderr,"and you are welcome to redistribute it under certain conditions;\n");
 			fprintf(stderr,"please read the COPYING file thoroughly before doing so.\n\n");
+
+#if defined(WIN32)
+			DOSBox_ConsolePauseWait();
+#endif
+
 			return 0;
 		}
 		else if (optname == "h" || optname == "help") {
+			DOSBox_ShowConsole();
+
 			fprintf(stderr,"\ndosbox [options]\n");
 			fprintf(stderr,"\nDOSBox version %s, copyright 2002-2015 DOSBox Team.\n\n",VERSION);
 			fprintf(stderr,"  -h     -help                            Show this help\n");
@@ -3989,6 +4018,7 @@ bool DOSBOX_parse_argv() {
 			fprintf(stderr,"  -printconf                              Print config file location\n");
 			fprintf(stderr,"  -erasemapper                            Erase mapper file\n");
 			fprintf(stderr,"  -resetmapper                            Erase mapper file\n");
+			fprintf(stderr,"  -console                                Show console (win32)\n");
 			fprintf(stderr,"  -noconsole                              Don't show console (debug+win32 only)\n");
 			fprintf(stderr,"  -nogui                                  Don't show gui (win32 only)\n");
 			fprintf(stderr,"  -nomenu                                 Don't show menu (win32 only)\n");
@@ -4002,7 +4032,7 @@ bool DOSBOX_parse_argv() {
 			fprintf(stderr,"  -disable-numlock-check                  Disable numlock check (win32 only)\n");
 			fprintf(stderr,"  -date-host-forced                       Force synchronization of date with host\n");
 			fprintf(stderr,"  -debug                                  Set all logging levels to debug\n");
-			fprintf(stderr,"  -early-debug                            Log early initialization messages in DOSBox as well\n");
+			fprintf(stderr,"  -early-debug                            Log early initialization messages in DOSBox (implies -console)\n");
 			fprintf(stderr,"  -keydbg                                 Log all SDL key events (debugging)\n");
 			fprintf(stderr,"  -lang <message file>                    Use specific message file instead of language= setting\n");
 			fprintf(stderr,"  -nodpiaware                             Ignore (don't signal) Windows DPI awareness\n");
@@ -4011,6 +4041,11 @@ bool DOSBOX_parse_argv() {
 			fprintf(stderr,"  -exit                                   Exit after executing AUTOEXEC.BAT\n");
 			fprintf(stderr,"  -c <command string>                     Execute this command in addition to AUTOEXEC.BAT.\n");
 			fprintf(stderr,"                                          Make sure to surround the command in quotes to cover spaces.\n");
+
+#if defined(WIN32)
+			DOSBox_ConsolePauseWait();
+#endif
+
 			return 0;
 		}
 		else if (optname == "c") {
@@ -4090,6 +4125,11 @@ bool DOSBOX_parse_argv() {
 		}
 		else if (optname == "noconsole") {
 			control->opt_noconsole = true;
+			control->opt_console = false;
+		}
+		else if (optname == "console") {
+			control->opt_noconsole = false;
+			control->opt_console = true;
 		}
 		else if (optname == "nomenu") {
 			control->opt_nomenu = true;
@@ -4102,6 +4142,7 @@ bool DOSBOX_parse_argv() {
 		}
 		else if (optname == "early-debug") {
 			control->opt_earlydebug = true;
+			control->opt_console = true;
 		}
 		else {
 			printf("WARNING: Unknown option %s (first parsing stage)\n",optname.c_str());
@@ -4234,6 +4275,9 @@ int main(int argc, char* argv[]) {
 
 		/* -- parse command line arguments */
 		if (!DOSBOX_parse_argv()) return 1;
+
+		if (control->opt_console)
+			DOSBox_ShowConsole();
 
 		/* -- Handle some command line options */
 		if (control->opt_eraseconf || control->opt_resetconf)

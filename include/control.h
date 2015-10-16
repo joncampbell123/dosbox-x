@@ -74,6 +74,7 @@ public:
 		opt_nomenu = false;
 		opt_startui = false;
 		initialised = false;
+		opt_console = false;
 		opt_userconf = false;
 		opt_noconsole = false;
 		opt_eraseconf = false;
@@ -125,6 +126,7 @@ public:
 	bool opt_resetconf;
 	bool opt_printconf;
 	bool opt_userconf;
+	bool opt_console;
 	bool opt_startui;
 	bool opt_nomenu;
 	bool opt_debug;
