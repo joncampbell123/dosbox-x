@@ -4851,6 +4851,7 @@ int main(int argc, char* argv[]) {
 		exitfunctions.pop_front();
 	}
 
+	LOG::Exit();
 	SDL_Quit();//Let's hope sdl will quit as well when it catches an exception
 	return 0;
 }

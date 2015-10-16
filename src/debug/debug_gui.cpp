@@ -224,7 +224,7 @@ void DEBUG_ShowMsg(char const* format,...) {
 }
 
 /* callback function when DOSBox-X exits */
-void LOG::OnExit(Section*) {
+void LOG::Exit() {
 	if (debuglog != NULL) {
 		fprintf(debuglog,"--END OF LOG--\n");
 		fclose(debuglog);
@@ -310,10 +310,6 @@ void LOG::Init() {
 
 	/* end of early init logging */
 	do_LOG_stderr = false;
-
-	/* please call LOG_Exit when DOSBox-X is exiting. This call is made first,
-	 * so our callback will be called last before DOSBox-X terminates. */
-	AddExitFunction(&OnExit);
 
 	/* read settings for each log category, unless the -debug option was given,
 	 * in which case everything is set to debug level */
