@@ -3965,6 +3965,7 @@ void DOSBox_ShowConsole() {
 #if defined(WIN32)
 	/* Microsoft Windows: Allocate a console and begin spewing to it.
 	   DOSBox is compiled on Windows platforms as a Win32 application, and therefore, no console. */
+	/* FIXME: What about "file handles" 0/1/2 emulated by C library, for use with _open/_close/_lseek/etc? */
 	AllocConsole();
 	freopen("CONIN$", "r", stdin);
 	freopen("CONOUT$", "w", stdout);
