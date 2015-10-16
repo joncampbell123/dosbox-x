@@ -4846,6 +4846,7 @@ int main(int argc, char* argv[]) {
 	while (!exitfunctions.empty()) {
 		Function_wrapper &ent = exitfunctions.front();
 
+		LOG(LOG_MISC,LOG_DEBUG)("Calling exit function (%p) '%s'",(void*)ent.function,ent.name.c_str()); 
 		ent.function(NULL);
 		exitfunctions.pop_front();
 	}

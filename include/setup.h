@@ -237,9 +237,11 @@ typedef void (*SectionFunction)(Section*);
 struct Function_wrapper {
 	SectionFunction function;
 	bool canchange;
-	Function_wrapper(SectionFunction const _fun,bool _ch){
+	std::string name;
+	Function_wrapper(SectionFunction const _fun,bool _ch,const char *_name) {
 		function=_fun;
 		canchange=_ch;
+		if (_name != NULL) name = _name;
 	}
 };
 
@@ -267,9 +269,10 @@ public:
  *       stuff like logging to cleanup last). */
 extern std::list<Function_wrapper> exitfunctions;
 void AddExitFunction(SectionFunction func,bool canchange=false);
+void AddExitFunction(SectionFunction func,const char *funcname,bool canchange=false);
 
 /* array of list of functions to call for various virtual machine events */
-enum {
+enum vm_event {
 	VM_EVENT_POWERON=0,			// emulation has started to power on hardware. it is safe to connect I/O, memory, IRQ resources, etc. to the bus. BIOS not initialized yet.
 	VM_EVENT_RESET,				// reset signal (at the hardware level), whether by the keyboard controller, reset button, etc.
 	VM_EVENT_BIOS_BOOT,			// BIOS in the boot stage. usually leads to DOS kernel init or guest OS boot.
@@ -288,11 +291,29 @@ enum {
 	VM_EVENT_MAX
 };
 
-const char *GetVMEventName(unsigned int event);
+class VMDispatchState {
+public:
+	VMDispatchState() : current_event(VM_EVENT_MAX), event_in_progress(false) { }
+	void begin_event(enum vm_event event) {
+		event_in_progress = true;
+		current_event = event;
+	}
+	void end_event() {
+		event_in_progress = false;
+	}
+public:
+	enum vm_event			current_event;
+	bool				event_in_progress;
+};
+
+extern VMDispatchState vm_dispatch_state;
+
+const char *GetVMEventName(enum vm_event event);
 
 extern std::list<Function_wrapper> vm_event_functions[VM_EVENT_MAX];
-void AddVMEventFunction(unsigned int event,SectionFunction func,bool canchange=false);
-void DispatchVMEvent(unsigned int event);
+void AddVMEventFunction(enum vm_event event,SectionFunction func,bool canchange=false);
+void AddVMEventFunction(enum vm_event event,SectionFunction func,const char *name,bool canchange=false);
+void DispatchVMEvent(enum vm_event event);
 
 class Prop_multival;
 class Prop_multival_remain;

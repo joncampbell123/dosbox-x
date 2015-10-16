@@ -508,6 +508,8 @@ Bitu XMS_Handler(void) {
 	return CBRET_NONE;
 }
 
+bool xms_init = false;
+
 bool keep_umb_on_boot;
 
 extern Bitu VGA_BIOS_SEG;
@@ -567,6 +569,8 @@ public:
 			LOG_MSG("CPU is 80186 or lower model that lacks the address lines needed for 'extended memory' to exist, disabling XMS");
 			return;
 		}
+
+		xms_init = true;
 
 		xms_hma_exists = section->Get_bool("hma");
 		xms_hma_minimum_alloc = section->Get_int("hma minimum allocation");
@@ -665,7 +669,6 @@ public:
 	}
 
 	~XMS(){
-		Section_prop * section = static_cast<Section_prop *>(m_configuration);
 		/* Remove upper memory information */
 		dos_infoblock.SetStartOfUMBChain(0xffff);
 		if (umb_available) {
@@ -673,7 +676,8 @@ public:
 			umb_available=false;
 		}
 
-		if (!section->Get_bool("xms")) return;
+		if (!xms_init) return;
+
 		/* Undo biosclearing */
 		BIOS_ZeroExtendedSize(false);
 
@@ -683,9 +687,12 @@ public:
 		/* Free used memory while skipping the 0 handle */
 		for (Bitu i = 1;i<XMS_HANDLES;i++) 
 			if(!xms_handles[i].free) XMS_FreeMemory(i);
+
+		xms_init = false;
 	}
 
 };
+
 static XMS* test = NULL;
 
 void XMS_DoShutDown() {

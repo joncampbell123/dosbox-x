@@ -767,14 +767,26 @@ void Null_Init(Section *sec);
 
 void AddExitFunction(SectionFunction func,bool canchange) {
 	/* NTS: Add functions so that iterating front to back executes them in First In Last Out order. */
-	exitfunctions.push_front(Function_wrapper(func,canchange));
+	exitfunctions.push_front(Function_wrapper(func,canchange,NULL));
 }
 
-void AddVMEventFunction(unsigned int event,SectionFunction func,bool canchange) {
+void AddExitFunction(SectionFunction func,const char *name,bool canchange) {
+	/* NTS: Add functions so that iterating front to back executes them in First In Last Out order. */
+	exitfunctions.push_front(Function_wrapper(func,canchange,name));
+}
+
+void AddVMEventFunction(enum vm_event event,SectionFunction func,bool canchange) {
 	assert(event < VM_EVENT_MAX);
 
 	/* NTS: First In First Out order */
-	vm_event_functions[event].push_back(Function_wrapper(func,canchange));
+	vm_event_functions[event].push_back(Function_wrapper(func,canchange,NULL));
+}
+
+void AddVMEventFunction(enum vm_event event,SectionFunction func,const char *name,bool canchange) {
+	assert(event < VM_EVENT_MAX);
+
+	/* NTS: First In First Out order */
+	vm_event_functions[event].push_back(Function_wrapper(func,canchange,name));
 }
 
 const char *VM_EVENT_string[VM_EVENT_MAX] = {
@@ -794,18 +806,23 @@ const char *VM_EVENT_string[VM_EVENT_MAX] = {
 	"DOS exit, kernel exit"
 };
 
-const char *GetVMEventName(unsigned int event) {
+VMDispatchState vm_dispatch_state;
+
+const char *GetVMEventName(enum vm_event event) {
 	if (event >= VM_EVENT_MAX) return "";
 	return VM_EVENT_string[event];
 };
 
-void DispatchVMEvent(unsigned int event) {
+void DispatchVMEvent(enum vm_event event) {
 	assert(event < VM_EVENT_MAX);
 
 	LOG(LOG_MISC,LOG_DEBUG)("Dispatching VM event %s",GetVMEventName(event));
 
+	vm_dispatch_state.begin_event(event);
 	for (std::list<Function_wrapper>::iterator i=vm_event_functions[event].begin();i!=vm_event_functions[event].end();i++)
 		(*i).function(NULL);
+
+	vm_dispatch_state.end_event();
 }
 
 Config::~Config() {
