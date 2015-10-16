@@ -1093,9 +1093,11 @@ private:
 	CALLBACK_HandlerObject callback_esr;
 	CALLBACK_HandlerObject callback_ipxint;
 	RealPt old_73_vector;
+	bool ipx_init;
 public:
 	IPX(Section* configuration):Module_base(configuration) {
 		Section_prop * section = static_cast<Section_prop *>(configuration);
+		ipx_init = false;
 		if(!section->Get_bool("ipx")) return;
 		if(!SDLNetInited) {
 			if(SDLNet_Init() == -1){
@@ -1161,12 +1163,15 @@ public:
 		IO_WriteB(0xa1,IO_ReadB(0xa1)&(~8));			// enable IRQ11
 
 		PROGRAMS_MakeFile("IPXNET.COM",IPXNET_ProgramStart);
+
+		ipx_init = true;
 	}
 
 	~IPX() {
-		Section_prop * section = static_cast<Section_prop *>(m_configuration);
+		// FIXME: This now gets called at DOSBox exit.
+		//        We should do this elsewhere, such as booting a guest OS or "power off"
 		PIC_RemoveEvents(IPX_AES_EventHandler);
-		if(!section->Get_bool("ipx")) return;
+		if(!ipx_init) return;
 
 		if(isIpxServer) {
 			isIpxServer = false;
