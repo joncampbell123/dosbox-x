@@ -3963,10 +3963,23 @@ extern bool log_keyboard_scan_codes;
 
 void DOSBox_ShowConsole() {
 #if defined(WIN32)
+	CONSOLE_SCREEN_BUFFER_INFO csbi;
+	COORD crd;
+	HWND hwnd;
+
 	/* Microsoft Windows: Allocate a console and begin spewing to it.
 	   DOSBox is compiled on Windows platforms as a Win32 application, and therefore, no console. */
 	/* FIXME: What about "file handles" 0/1/2 emulated by C library, for use with _open/_close/_lseek/etc? */
 	AllocConsole();
+
+	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
+	crd = csbi.dwSize;
+	crd.X = 130;
+	SetConsoleScreenBufferSize(GetStdHandle(STD_OUTPUT_HANDLE), crd);
+
+	hwnd = GetConsoleWindow();
+	ShowWindow(hwnd, SW_MAXIMIZE);
+
 	freopen("CONIN$", "r", stdin);
 	freopen("CONOUT$", "w", stdout);
 	freopen("CONOUT$", "w", stderr);
