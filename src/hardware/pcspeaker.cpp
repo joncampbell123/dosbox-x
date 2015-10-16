@@ -596,6 +596,6 @@ void PCSPEAKER_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing PC speaker");
 
 	test = new PCSPEAKER(control->GetSection("speaker"));
-	AddExitFunction(&PCSPEAKER_ShutDown,true);
+	AddExitFunction(AddExitFunctionFuncPair(PCSPEAKER_ShutDown),true);
 }
 

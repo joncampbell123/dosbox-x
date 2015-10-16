@@ -702,6 +702,6 @@ void MPU401_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing MPU401 emulation");
 
 	test = new MPU401(control->GetSection("midi"));
-	AddExitFunction(&MPU401_Destroy,true);
+	AddExitFunction(AddExitFunctionFuncPair(MPU401_Destroy),true);
 }
 

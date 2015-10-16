@@ -688,6 +688,6 @@ void MIDI_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing MIDI emulation");
 
 	test = new MIDI(control->GetSection("midi"));
-	AddExitFunction(&MIDI_Destroy,true);
+	AddExitFunction(AddExitFunctionFuncPair(MIDI_Destroy),true);
 }
 

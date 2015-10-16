@@ -1672,6 +1672,6 @@ void EMS_Init() {
 
 	assert(test == NULL);
 	test = new EMS(control->GetSection("dos"));
-	AddExitFunction(&EMS_ShutDown,true);
+	AddExitFunction(AddExitFunctionFuncPair(EMS_ShutDown),true);
 }
 

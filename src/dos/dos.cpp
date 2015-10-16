@@ -1983,6 +1983,6 @@ void DOS_Init() {
 
 	test = new DOS(control->GetSection("dos"));
 	/* shutdown function */
-	AddExitFunction(&DOS_ShutDown,false);
+	AddExitFunction(AddExitFunctionFuncPair(DOS_ShutDown),false);
 }
 

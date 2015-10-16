@@ -710,6 +710,6 @@ void XMS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing XMS extended memory services");
 
 	test = new XMS(control->GetSection("dos"));
-	AddExitFunction(&XMS_ShutDown,true);
+	AddExitFunction(AddExitFunctionFuncPair(XMS_ShutDown),true);
 }
 

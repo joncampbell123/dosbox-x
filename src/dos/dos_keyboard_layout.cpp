@@ -1299,6 +1299,6 @@ void DOS_KeyboardLayout_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing DOS keyboard layout emulation");
 
 	test = new DOS_KeyboardLayout(control->GetSection("dos"));
-	AddExitFunction(&DOS_KeyboardLayout_ShutDown,true);
+	AddExitFunction(AddExitFunctionFuncPair(DOS_KeyboardLayout_ShutDown),true);
 //	MAPPER_AddHandler(switch_keyboard_layout,MK_f2,MMOD1|MMOD2,"sw_layout","Switch Layout");
 }

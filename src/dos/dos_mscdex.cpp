@@ -1402,7 +1402,7 @@ void MSCDEX_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing MSCDEX.EXE emulation");
 
 	// AddDestroy func
-	AddExitFunction(&MSCDEX_ShutDown);
+	AddExitFunction(AddExitFunctionFuncPair(MSCDEX_ShutDown));
 	/* Register the mscdex device */
 	DOS_Device * newdev = new device_MSCDEX();
 	DOS_AddDevice(newdev);

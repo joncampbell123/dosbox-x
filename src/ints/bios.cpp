@@ -3843,7 +3843,7 @@ void BIOS_Init() {
 	for (i=0;i < 0x100;i++) ISAPNP_SysDevNodes[i] = NULL;
 
 	test = new BIOS(control->GetSection("joystick"));//FIXME: Why?? Also, BIOS object doesn't use the configuration object we pass it anyway
-	AddExitFunction(&BIOS_Destroy,false);
+	AddExitFunction(AddExitFunctionFuncPair(BIOS_Destroy),false);
 }
 
 void write_ID_version_string() {

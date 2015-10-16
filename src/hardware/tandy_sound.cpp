@@ -516,6 +516,6 @@ void TANDYSOUND_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing Tandy voice emulation");
 
 	test = new TANDYSOUND(control->GetSection("speaker"));
-	AddExitFunction(&TANDYSOUND_ShutDown,true);
+	AddExitFunction(AddExitFunctionFuncPair(TANDYSOUND_ShutDown),true);
 }
 

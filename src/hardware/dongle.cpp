@@ -181,5 +181,5 @@ void DONGLE_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing dongle emulation");
 
 	test = new DONGLE(control->GetSection("parallel"));
-	AddExitFunction(&DONGLE_ShutDown,true);
+	AddExitFunction(AddExitFunctionFuncPair(DONGLE_ShutDown),true);
 }
