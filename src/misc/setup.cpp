@@ -775,12 +775,15 @@ void Config::Init() {
 	}
 }
 
+void Null_Init(Section *sec);
+
 void Section::AddInitFunction(SectionFunction func,bool canchange) {
-	initfunctions.push_back(Function_wrapper(func,canchange));
+	if (func != &Null_Init)
+		LOG(LOG_MISC,LOG_WARN)("Section::AddInitFunction no longer supported");
 }
 
 void Section::AddDestroyFunction(SectionFunction func,bool canchange) {
-	destroyfunctions.push_front(Function_wrapper(func,canchange));
+	LOG(LOG_MISC,LOG_WARN)("Section::AddDestroyFunction no longer supported");
 }
 
 void AddExitFunction(SectionFunction func,bool canchange) {
