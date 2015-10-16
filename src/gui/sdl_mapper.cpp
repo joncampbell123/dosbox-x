@@ -2653,6 +2653,8 @@ void MAPPER_StartUp() {
 	mapper.sticks.num_groups=0;
 	Bitu i;
 
+	LOG(LOG_MISC,LOG_DEBUG)("MAPPER starting up");
+
 	for (i=0; i<MAX_VJOY_BUTTONS; i++) {
 		virtual_joysticks[0].button_pressed[i]=false;
 		virtual_joysticks[1].button_pressed[i]=false;

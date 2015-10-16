@@ -4503,6 +4503,8 @@ int main(int argc, char* argv[]) {
 #if C_FPU
 		FPU_Init();
 #endif
+		MAPPER_StartUp();
+		MAPPER_Init();
 
 		/* If PCjr emulation, map cartridge ROM */
 		if (machine == MCH_PCJR)
@@ -4578,12 +4580,6 @@ int main(int argc, char* argv[]) {
 				if (!sdl.desktop.fullscreen) GFX_SwitchFullScreen();
 			}
 		}
-
-		/* Init the keyMapper */
-		MAPPER_Init();
-
-		LOG(LOG_MISC,LOG_DEBUG)("Starting mapper");
-		MAPPER_StartUp();
 
 		if (control->opt_startmapper) {
 			LOG(LOG_MISC,LOG_DEBUG)("Running mapper interface, during startup, as instructed");
