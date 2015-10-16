@@ -184,6 +184,7 @@ void DBGUI_StartUp(void) {
 #endif
 
 void DEBUG_ShowMsg(char const* format,...) {
+	bool stderrlog = false;
 	char buf[512];
 	va_list msg;
 	size_t len;
@@ -196,11 +197,21 @@ void DEBUG_ShowMsg(char const* format,...) {
 	if (len > 0 && buf[len-1] != '\n') buf[len++] = '\n';
 	buf[len] = 0;
 
+	if (do_LOG_stderr || debuglog == NULL)
+		stderrlog = true;
+
+#if C_DEBUG
+	if (dbg.win_out == NULL)
+		stderrlog = true;
+#else
+	stderrlog = true;
+#endif
+
 	if (debuglog != NULL) {
 		fprintf(debuglog,"%s",buf);
 		fflush(debuglog);
 	}
-	if (do_LOG_stderr || dbg.win_out == NULL || debuglog == NULL) {
+	if (stderrlog) {
 		fprintf(stderr,"LOG: %s",buf);
 		fflush(stderr);
 	}
