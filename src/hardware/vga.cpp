@@ -433,60 +433,11 @@ static inline int int_log2(int val) {
 extern bool pcibus_enable;
 extern int hack_lfb_yadjust;
 
-void VGA_Init() {
+void VGA_Reset(Section*) {
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 	string str;
-	Bitu i,j;
 
-	LOG(LOG_MISC,LOG_DEBUG)("Initializing VGA");
-
-	for (i=0;i<256;i++) {
-		ExpandTable[i]=i | (i << 8)| (i <<16) | (i << 24);
-	}
-	for (i=0;i<16;i++) {
-		TXT_FG_Table[i]=i | (i << 8)| (i <<16) | (i << 24);
-		TXT_BG_Table[i]=i | (i << 8)| (i <<16) | (i << 24);
-#ifdef WORDS_BIGENDIAN
-		FillTable[i]=
-			((i & 1) ? 0xff000000 : 0) |
-			((i & 2) ? 0x00ff0000 : 0) |
-			((i & 4) ? 0x0000ff00 : 0) |
-			((i & 8) ? 0x000000ff : 0) ;
-		TXT_Font_Table[i]=
-			((i & 1) ? 0x000000ff : 0) |
-			((i & 2) ? 0x0000ff00 : 0) |
-			((i & 4) ? 0x00ff0000 : 0) |
-			((i & 8) ? 0xff000000 : 0) ;
-#else 
-		FillTable[i]=
-			((i & 1) ? 0x000000ff : 0) |
-			((i & 2) ? 0x0000ff00 : 0) |
-			((i & 4) ? 0x00ff0000 : 0) |
-			((i & 8) ? 0xff000000 : 0) ;
-		TXT_Font_Table[i]=	
-			((i & 1) ? 0xff000000 : 0) |
-			((i & 2) ? 0x00ff0000 : 0) |
-			((i & 4) ? 0x0000ff00 : 0) |
-			((i & 8) ? 0x000000ff : 0) ;
-#endif
-	}
-	for (j=0;j<4;j++) {
-		for (i=0;i<16;i++) {
-#ifdef WORDS_BIGENDIAN
-			Expand16Table[j][i] =
-				((i & 1) ? 1 << j : 0) |
-				((i & 2) ? 1 << (8 + j) : 0) |
-				((i & 4) ? 1 << (16 + j) : 0) |
-				((i & 8) ? 1 << (24 + j) : 0);
-#else
-			Expand16Table[j][i] =
-				((i & 1) ? 1 << (24 + j) : 0) |
-				((i & 2) ? 1 << (16 + j) : 0) |
-				((i & 4) ? 1 << (8 + j) : 0) |
-				((i & 8) ? 1 << j : 0);
-#endif
-		}
-	}
+	LOG(LOG_MISC,LOG_DEBUG)("VGA_Reset() reinitializing VGA emulation");
 
 	vga_force_refresh_rate = -1;
 	str=section->Get_string("forcerate");
@@ -657,8 +608,72 @@ void VGA_Init() {
 	VGA_SetCGA2Table(0,1);
 	VGA_SetCGA4Table(0,1,2,3);
 
+	// TODO: Code to remove programs added by PROGRAMS_MakeFile
+
 	if (machine == MCH_CGA) PROGRAMS_MakeFile("CGASNOW.COM",CGASNOW_ProgramStart);
 	PROGRAMS_MakeFile("VFRCRATE.COM",VFRCRATE_ProgramStart);
+}
+
+extern void VGA_TweakUserVsyncOffset(float val);
+
+void VGA_Init() {
+	string str;
+	Bitu i,j;
+
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing VGA");
+
+	VGA_TweakUserVsyncOffset(0.0f);
+
+	for (i=0;i<256;i++) {
+		ExpandTable[i]=i | (i << 8)| (i <<16) | (i << 24);
+	}
+	for (i=0;i<16;i++) {
+		TXT_FG_Table[i]=i | (i << 8)| (i <<16) | (i << 24);
+		TXT_BG_Table[i]=i | (i << 8)| (i <<16) | (i << 24);
+#ifdef WORDS_BIGENDIAN
+		FillTable[i]=
+			((i & 1) ? 0xff000000 : 0) |
+			((i & 2) ? 0x00ff0000 : 0) |
+			((i & 4) ? 0x0000ff00 : 0) |
+			((i & 8) ? 0x000000ff : 0) ;
+		TXT_Font_Table[i]=
+			((i & 1) ? 0x000000ff : 0) |
+			((i & 2) ? 0x0000ff00 : 0) |
+			((i & 4) ? 0x00ff0000 : 0) |
+			((i & 8) ? 0xff000000 : 0) ;
+#else 
+		FillTable[i]=
+			((i & 1) ? 0x000000ff : 0) |
+			((i & 2) ? 0x0000ff00 : 0) |
+			((i & 4) ? 0x00ff0000 : 0) |
+			((i & 8) ? 0xff000000 : 0) ;
+		TXT_Font_Table[i]=	
+			((i & 1) ? 0xff000000 : 0) |
+			((i & 2) ? 0x00ff0000 : 0) |
+			((i & 4) ? 0x0000ff00 : 0) |
+			((i & 8) ? 0x000000ff : 0) ;
+#endif
+	}
+	for (j=0;j<4;j++) {
+		for (i=0;i<16;i++) {
+#ifdef WORDS_BIGENDIAN
+			Expand16Table[j][i] =
+				((i & 1) ? 1 << j : 0) |
+				((i & 2) ? 1 << (8 + j) : 0) |
+				((i & 4) ? 1 << (16 + j) : 0) |
+				((i & 8) ? 1 << (24 + j) : 0);
+#else
+			Expand16Table[j][i] =
+				((i & 1) ? 1 << (24 + j) : 0) |
+				((i & 2) ? 1 << (16 + j) : 0) |
+				((i & 4) ? 1 << (8 + j) : 0) |
+				((i & 8) ? 1 << j : 0);
+#endif
+		}
+	}
+
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(VGA_Reset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(VGA_Reset));
 }
 
 void SVGA_Setup_Driver(void) {

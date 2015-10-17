@@ -4551,12 +4551,14 @@ int main(int argc, char* argv[]) {
 		Init_VGABIOS();
 		VOODOO_Init();
 		PROGRAMS_Init(); /* <- NTS: Does not init programs, it inits the callback used later when creating the .COM programs on drive Z: */
+		RENDER_Init();
 		MIXER_Init();
 		MIDI_Init();
 		CPU_Init();
 #if C_FPU
 		FPU_Init();
 #endif
+		VGA_Init();
 
 		/* If PCjr emulation, map cartridge ROM */
 		if (machine == MCH_PCJR)
@@ -4578,8 +4580,6 @@ int main(int argc, char* argv[]) {
 		/* TODO: move down as appropriate */
 		DispatchVMEvent(VM_EVENT_POWERON);
 
-		VGA_Init();
-		RENDER_Init();
 		VGA_VsyncInit();
 		ISAPNP_Cfg_Init();
 		KEYBOARD_Init();

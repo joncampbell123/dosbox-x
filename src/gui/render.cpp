@@ -168,7 +168,6 @@ static void RENDER_ClearCacheHandler(const void * src) {
 }
 
 extern void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused);
-extern void VGA_TweakUserVsyncOffset(float val);
 
 bool RENDER_StartUpdate(void) {
 	if (GCC_UNLIKELY(render.updating))
@@ -781,7 +780,6 @@ void RENDER_Init() {
 
 	MAPPER_AddHandler(DecreaseFrameSkip,MK_f7,MMOD1,"decfskip","Dec Fskip");
 	MAPPER_AddHandler(IncreaseFrameSkip,MK_f8,MMOD1,"incfskip","Inc Fskip");
-	VGA_TweakUserVsyncOffset(0.0f);
 
 	GFX_SetTitle(-1,render.frameskip.max,-1,false);
 }
