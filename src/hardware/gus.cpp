@@ -926,6 +926,7 @@ public:
 	}
 
 	~GUS() {
+#if 0 // FIXME
 		if(!IS_EGAVGA_ARCH) return;
 	
 		myGUS.gRegData=0x1;
@@ -938,7 +939,8 @@ public:
 
 		memset(&myGUS,0,sizeof(myGUS));
 		memset(GUSRam,0,1024*1024);
-		}
+#endif
+	}
 };
 
 static GUS* test = NULL;
