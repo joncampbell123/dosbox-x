@@ -418,10 +418,18 @@ static void DISNEY_ShutDown(Section* sec){
 	delete test;
 }
 
+void DISNEY_OnReset(Section* sec) {
+	if (test == NULL) {
+		LOG(LOG_MISC,LOG_DEBUG)("Allocating Disney Sound emulation");
+		test = new DISNEY(control->GetSection("speaker"));
+	}
+}
+
 void DISNEY_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing Disney Sound Source emulation");
 
-	test = new DISNEY(control->GetSection("speaker"));
 	AddExitFunction(AddExitFunctionFuncPair(DISNEY_ShutDown),true);
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(DISNEY_OnReset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(DISNEY_OnReset));
 }
 

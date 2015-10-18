@@ -4554,6 +4554,7 @@ int main(int argc, char* argv[]) {
 		VOODOO_Init();
 		PROGRAMS_Init(); /* <- NTS: Does not init programs, it inits the callback used later when creating the .COM programs on drive Z: */
 		PCSPEAKER_Init();
+		TANDYSOUND_Init();
 		MPU401_Init();
 		RENDER_Init();
 		MIXER_Init();
@@ -4566,6 +4567,8 @@ int main(int argc, char* argv[]) {
 		ISAPNP_Cfg_Init();
 		KEYBOARD_Init();
 		SBLASTER_Init();
+		PS1SOUND_Init();
+		DISNEY_Init();
 		GUS_Init();
 		INNOVA_Init();
 
@@ -4589,9 +4592,6 @@ int main(int argc, char* argv[]) {
 		/* TODO: move down as appropriate */
 		DispatchVMEvent(VM_EVENT_POWERON);
 
-		TANDYSOUND_Init();
-		DISNEY_Init();
-		PS1SOUND_Init();
 		BIOS_Init();
 		INT10_Init();
 		JOYSTICK_Init();

@@ -379,10 +379,18 @@ void PS1SOUND_ShutDown(Section* sec) {
 	delete test;	
 }
 
+void PS1SOUND_OnReset(Section* sec) {
+	if (test == NULL) {
+		LOG(LOG_MISC,LOG_DEBUG)("Allocating PS/1 sound emulation");
+		test = new PS1SOUND(control->GetSection("speaker"));
+	}
+}
+
 void PS1SOUND_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing PS/1 sound emulation");
 
-	test = new PS1SOUND(control->GetSection("speaker"));
 	AddExitFunction(AddExitFunctionFuncPair(PS1SOUND_ShutDown),true);
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(PS1SOUND_OnReset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PS1SOUND_OnReset));
 }
 

@@ -512,10 +512,18 @@ void TANDYSOUND_ShutDown(Section* /*sec*/) {
 	delete test;	
 }
 
+void TANDYSOUND_OnReset(Section* sec) {
+	if (test == NULL) {
+		LOG(LOG_MISC,LOG_DEBUG)("Allocating Tandy speaker emulation");
+		test = new TANDYSOUND(control->GetSection("speaker"));
+	}
+}
+
 void TANDYSOUND_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing Tandy voice emulation");
 
-	test = new TANDYSOUND(control->GetSection("speaker"));
 	AddExitFunction(AddExitFunctionFuncPair(TANDYSOUND_ShutDown),true);
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(TANDYSOUND_OnReset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(TANDYSOUND_OnReset));
 }
 
