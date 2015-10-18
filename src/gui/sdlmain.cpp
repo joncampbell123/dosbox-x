@@ -4591,6 +4591,7 @@ int main(int argc, char* argv[]) {
 		MOUSE_Init(); // FIXME: inits INT 15h and INT 33h at the same time. Also uses DOS_GetMemory() which is why DOS_Init must come first
 		XMS_Init();
 		EMS_Init();
+		MSCDEX_Init();
 
 		/* Init memhandle system. This part is used by DOSBox's XMS/EMS emulation to associate handles
 		 * per page. FIXME: I would like to push this down to the point that it's never called until
@@ -4605,7 +4606,6 @@ int main(int argc, char* argv[]) {
 		/* TODO: move down as appropriate */
 		DispatchVMEvent(VM_EVENT_POWERON);
 
-		MSCDEX_Init();
 		DRIVES_Init();
 		CDROM_Image_Init();
 #if C_IPX

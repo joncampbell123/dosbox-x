@@ -1398,18 +1398,26 @@ void MSCDEX_ShutDown(Section* /*sec*/) {
 	curReqheaderPtr = 0;
 }
 
+void MSCDEX_OnReset(Section* sec) {
+	if (mscdex == NULL) {
+		LOG(LOG_MISC,LOG_DEBUG)("Allocationg MSCDEX.EXE emulation");
+
+		/* Register the mscdex device */
+		DOS_Device * newdev = new device_MSCDEX();
+		DOS_AddDevice(newdev);
+		curReqheaderPtr = 0;
+		/* Add Multiplexer */
+		DOS_AddMultiplexHandler(MSCDEX_Handler);
+		/* Create MSCDEX */
+		mscdex = new CMscdex;
+	}
+}
+
 void MSCDEX_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing MSCDEX.EXE emulation");
 
-	// AddDestroy func
 	AddExitFunction(AddExitFunctionFuncPair(MSCDEX_ShutDown));
-	/* Register the mscdex device */
-	DOS_Device * newdev = new device_MSCDEX();
-	DOS_AddDevice(newdev);
-	curReqheaderPtr = 0;
-	/* Add Multiplexer */
-	DOS_AddMultiplexHandler(MSCDEX_Handler);
-	/* Create MSCDEX */
-	mscdex = new CMscdex;
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(MSCDEX_OnReset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(MSCDEX_OnReset));
 }
 
