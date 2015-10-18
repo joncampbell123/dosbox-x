@@ -4575,6 +4575,7 @@ int main(int argc, char* argv[]) {
 		BIOS_Init();
 		INT10_Init();
 		SERIAL_Init();
+		DONGLE_Init();
 		PARALLEL_Init();
 
 		/* If PCjr emulation, map cartridge ROM */
@@ -4597,7 +4598,6 @@ int main(int argc, char* argv[]) {
 		/* TODO: move down as appropriate */
 		DispatchVMEvent(VM_EVENT_POWERON);
 
-		DONGLE_Init();
 		DOS_Init();
 		XMS_Init();
 		EMS_Init();

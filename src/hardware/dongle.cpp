@@ -177,9 +177,17 @@ static void DONGLE_ShutDown(Section* sec){
 	delete test;
 }
 
+void DONGLE_OnReset(Section* sec) {
+	if (test == NULL) {
+		LOG(LOG_MISC,LOG_DEBUG)("Allocating parallel dongle emulation");
+		test = new DONGLE(control->GetSection("parallel"));
+	}
+}
+
 void DONGLE_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing dongle emulation");
 
-	test = new DONGLE(control->GetSection("parallel"));
 	AddExitFunction(AddExitFunctionFuncPair(DONGLE_ShutDown),true);
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(DONGLE_OnReset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(DONGLE_OnReset));
 }
