@@ -4615,9 +4615,27 @@ int main(int argc, char* argv[]) {
 		FDC_Primary_Init();
 		IDE_Init();
 		AUTOEXEC_Init();
-
 		MAPPER_StartUp();
 		MAPPER_Init();
+
+		bool run_machine;
+		bool reboot_machine;
+		bool dos_kernel_shutdown;
+
+		/* BIOS boot event. This will have more meaning later on in development, when some emulation
+		 * might want to free resources related to BIOS initialization or offer INT 19h hooks, at
+		 * a time in the future when we allow dosbox.conf to describe booting directly to a guest OS
+		 * rather than through the DOS kernel. At this point hardware emulation and the BIOS are
+		 * ready, the DOS kernel is not present. The event is supposed to happen just prior to the
+		 * search for bootable media. */
+		DispatchVMEvent(VM_EVENT_BIOS_BOOT);
+
+		/* DOS startup. This will have more significance later when we allow dosbox.conf to describe
+		 * scenarios that boot directly into a guest OS rather than through the DOSBox DOS kernel and
+		 * when firing these events is moved into the DOS kernel code. */
+		DispatchVMEvent(VM_EVENT_DOS_BOOT);
+		DispatchVMEvent(VM_EVENT_DOS_INIT_KERNEL_READY);
+		DispatchVMEvent(VM_EVENT_DOS_INIT_CONFIG_SYS_DONE);
 
 		{
 			/* Some extra SDL Functions */
@@ -4696,25 +4714,6 @@ int main(int argc, char* argv[]) {
 				SetNumLock ();
 		}
 #endif
-
-		bool run_machine;
-		bool reboot_machine;
-		bool dos_kernel_shutdown;
-
-		/* BIOS boot event. This will have more meaning later on in development, when some emulation
-		 * might want to free resources related to BIOS initialization or offer INT 19h hooks, at
-		 * a time in the future when we allow dosbox.conf to describe booting directly to a guest OS
-		 * rather than through the DOS kernel. At this point hardware emulation and the BIOS are
-		 * ready, the DOS kernel is not present. The event is supposed to happen just prior to the
-		 * search for bootable media. */
-		DispatchVMEvent(VM_EVENT_BIOS_BOOT);
-
-		/* DOS startup. This will have more significance later when we allow dosbox.conf to describe
-		 * scenarios that boot directly into a guest OS rather than through the DOSBox DOS kernel and
-		 * when firing these events is moved into the DOS kernel code. */
-		DispatchVMEvent(VM_EVENT_DOS_BOOT);
-		DispatchVMEvent(VM_EVENT_DOS_INIT_KERNEL_READY);
-		DispatchVMEvent(VM_EVENT_DOS_INIT_CONFIG_SYS_DONE);
 
 		/* start the shell */
 		SHELL_Init();
