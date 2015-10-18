@@ -4587,6 +4587,7 @@ int main(int argc, char* argv[]) {
 
 		/* OS init now */
 		DOS_Init();
+		MOUSE_Init(); // FIXME: inits INT 15h and INT 33h at the same time. Also uses DOS_GetMemory() which is why DOS_Init must come first
 		XMS_Init();
 		EMS_Init();
 
@@ -4603,7 +4604,6 @@ int main(int argc, char* argv[]) {
 		/* TODO: move down as appropriate */
 		DispatchVMEvent(VM_EVENT_POWERON);
 
-		MOUSE_Init();
 		DOS_KeyboardLayout_Init();
 		MSCDEX_Init();
 		DRIVES_Init();

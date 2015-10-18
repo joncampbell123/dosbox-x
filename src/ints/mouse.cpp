@@ -1170,11 +1170,9 @@ Bitu MOUSE_UserInt_CB_Handler(void) {
 
 bool MouseTypeNone();
 
-void MOUSE_Init() {
+void MOUSE_OnReset(Section *sec) {
 	Section_prop *section=static_cast<Section_prop *>(control->GetSection("dos"));
 	RealPt i33loc=0;
-
-	LOG(LOG_MISC,LOG_DEBUG)("Initializing mouse interface emulation");
 
 	if ((en_int33=section->Get_bool("int33"))) {
 		LOG(LOG_KEYBOARD,LOG_NORMAL)("INT 33H emulation enabled");
@@ -1268,5 +1266,12 @@ void MOUSE_Init() {
 	Mouse_ResetHardware();
 	Mouse_Reset();
 	Mouse_SetSensitivity(50,50,50);
+}
+
+void MOUSE_Init() {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing mouse interface emulation");
+
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(MOUSE_OnReset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(MOUSE_OnReset));
 }
 
