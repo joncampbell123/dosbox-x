@@ -592,10 +592,18 @@ void PCSPEAKER_ShutDown(Section* sec){
 	delete test;
 }
 
+void PCSPEAKER_OnReset(Section* sec) {
+	if (test == NULL) {
+		LOG(LOG_MISC,LOG_DEBUG)("Allocating PC speaker emulation");
+		test = new PCSPEAKER(control->GetSection("speaker"));
+	}
+}
+
 void PCSPEAKER_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing PC speaker");
 
-	test = new PCSPEAKER(control->GetSection("speaker"));
 	AddExitFunction(AddExitFunctionFuncPair(PCSPEAKER_ShutDown),true);
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(PCSPEAKER_OnReset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PCSPEAKER_OnReset));
 }
 

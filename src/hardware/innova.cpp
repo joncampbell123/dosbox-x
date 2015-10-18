@@ -118,10 +118,18 @@ static void INNOVA_ShutDown(Section* sec){
 	delete test;
 }
 
+void INNOVA_OnReset(Section *sec) {
+	if (test == NULL) {
+		LOG(LOG_MISC,LOG_DEBUG)("Allocating Innova emulation");
+		test = new INNOVA(control->GetSection("innova"));
+	}
+}
+
 void INNOVA_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing INNOVA emulation");
 
-	test = new INNOVA(control->GetSection("innova"));
 	AddExitFunction(AddExitFunctionFuncPair(INNOVA_ShutDown),true);
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(INNOVA_OnReset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(INNOVA_OnReset));
 }
 

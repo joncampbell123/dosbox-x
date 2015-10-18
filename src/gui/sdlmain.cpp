@@ -4553,6 +4553,7 @@ int main(int argc, char* argv[]) {
 		Init_VGABIOS();
 		VOODOO_Init();
 		PROGRAMS_Init(); /* <- NTS: Does not init programs, it inits the callback used later when creating the .COM programs on drive Z: */
+		PCSPEAKER_Init();
 		MPU401_Init();
 		RENDER_Init();
 		MIXER_Init();
@@ -4565,6 +4566,8 @@ int main(int argc, char* argv[]) {
 		ISAPNP_Cfg_Init();
 		KEYBOARD_Init();
 		SBLASTER_Init();
+		GUS_Init();
+		INNOVA_Init();
 
 		/* If PCjr emulation, map cartridge ROM */
 		if (machine == MCH_PCJR)
@@ -4586,9 +4589,6 @@ int main(int argc, char* argv[]) {
 		/* TODO: move down as appropriate */
 		DispatchVMEvent(VM_EVENT_POWERON);
 
-		GUS_Init();
-		INNOVA_Init();
-		PCSPEAKER_Init();
 		TANDYSOUND_Init();
 		DISNEY_Init();
 		PS1SOUND_Init();

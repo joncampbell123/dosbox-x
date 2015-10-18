@@ -956,10 +956,18 @@ void GUS_ShutDown(Section* /*sec*/) {
 	}
 }
 
+void GUS_OnReset(Section *sec) {
+	if (test == NULL) {
+		LOG(LOG_MISC,LOG_DEBUG)("Allocating GUS emulation");
+		test = new GUS(control->GetSection("gus"));
+	}
+}
+
 void GUS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing Gravis Ultrasound emulation");
 
-	test = new GUS(control->GetSection("gus"));
 	AddExitFunction(AddExitFunctionFuncPair(GUS_ShutDown),true);
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(GUS_OnReset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(GUS_OnReset));
 }
 
