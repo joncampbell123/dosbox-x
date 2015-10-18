@@ -698,10 +698,18 @@ void MPU401_Destroy(Section* sec){
 	}
 }
 
+void MPU401_Reset(Section* sec) {
+	if (test == NULL) {
+		LOG(LOG_MISC,LOG_DEBUG)("Allocating MPU401 emulation");
+		test = new MPU401(control->GetSection("midi"));
+	}
+}
+
 void MPU401_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing MPU401 emulation");
 
-	test = new MPU401(control->GetSection("midi"));
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(MPU401_Reset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(MPU401_Reset));
 	AddExitFunction(AddExitFunctionFuncPair(MPU401_Destroy),true);
 }
 
