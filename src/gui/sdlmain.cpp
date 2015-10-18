@@ -4571,6 +4571,7 @@ int main(int argc, char* argv[]) {
 		DISNEY_Init();
 		GUS_Init();
 		INNOVA_Init();
+		BIOS_Init();
 
 		/* If PCjr emulation, map cartridge ROM */
 		if (machine == MCH_PCJR)
@@ -4592,7 +4593,6 @@ int main(int argc, char* argv[]) {
 		/* TODO: move down as appropriate */
 		DispatchVMEvent(VM_EVENT_POWERON);
 
-		BIOS_Init();
 		INT10_Init();
 		JOYSTICK_Init();
 		SERIAL_Init();

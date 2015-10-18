@@ -605,7 +605,7 @@ public:
 	bool			own;
 };
 
-static ISAPNP_SysDevNode*	ISAPNP_SysDevNodes[MAX_ISA_PNP_SYSDEVNODES];
+static ISAPNP_SysDevNode*	ISAPNP_SysDevNodes[MAX_ISA_PNP_SYSDEVNODES] = {NULL};
 static Bitu			ISAPNP_SysDevNodeCount=0;
 static Bitu			ISAPNP_SysDevNodeLargest=0;
 
@@ -3838,17 +3838,30 @@ void BIOS_Destroy(Section* /*sec*/){
 	}
 }
 
-void BIOS_Init() {
-	int i;
-
-	LOG(LOG_MISC,LOG_DEBUG)("Initializing BIOS");
-
+void BIOS_OnReboot(Section* sec) {
 	ISAPNP_SysDevNodeCount = 0;
 	ISAPNP_SysDevNodeLargest = 0;
-	for (i=0;i < 0x100;i++) ISAPNP_SysDevNodes[i] = NULL;
+	for (int i=0;i < 0x100;i++) ISAPNP_SysDevNodes[i] = NULL;
+}
 
-	test = new BIOS(control->GetSection("joystick"));//FIXME: Why?? Also, BIOS object doesn't use the configuration object we pass it anyway
+void BIOS_OnReset(Section* sec) {
+	LOG(LOG_MISC,LOG_DEBUG)("Reinitializing BIOS emulation");
+	ISAPNP_SysDevNodeCount = 0;
+	ISAPNP_SysDevNodeLargest = 0;
+	for (int i=0;i < 0x100;i++) ISAPNP_SysDevNodes[i] = NULL;
+
+	if (test == NULL) {
+		LOG(LOG_MISC,LOG_DEBUG)("Allocating BIOS emulation");
+		test = new BIOS(control->GetSection("joystick"));//FIXME: Why?? Also, BIOS object doesn't use the configuration object we pass it anyway
+	}
+}
+
+void BIOS_Init() {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing BIOS");
+
 	AddExitFunction(AddExitFunctionFuncPair(BIOS_Destroy),false);
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(BIOS_OnReset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(BIOS_OnReset));
 }
 
 void write_ID_version_string() {
