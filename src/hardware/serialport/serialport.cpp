@@ -1320,16 +1320,25 @@ public:
 static SERIALPORTS *testSerialPortsBaseclass;
 
 void SERIAL_Destroy (Section * sec) {
-	delete testSerialPortsBaseclass;
-	testSerialPortsBaseclass = NULL;
+	if (testSerialPortsBaseclass) {
+		LOG(LOG_MISC,LOG_DEBUG)("Deleting serial port base class");
+		delete testSerialPortsBaseclass;
+		testSerialPortsBaseclass = NULL;
+	}
+}
+
+void SERIAL_OnReset (Section * sec) {
+	// should never happen
+	LOG(LOG_MISC,LOG_DEBUG)("Reinitializing serial emulation");
+	if (testSerialPortsBaseclass) delete testSerialPortsBaseclass;
+	testSerialPortsBaseclass = new SERIALPORTS (control->GetSection("serial"));
 }
 
 void SERIAL_Init () {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing serial port emulation");
 
-	// should never happen
-	if (testSerialPortsBaseclass) delete testSerialPortsBaseclass;
-	testSerialPortsBaseclass = new SERIALPORTS (control->GetSection("serial"));
-	AddExitFunction(AddExitFunctionFuncPair(SERIAL_Destroy), true);
+	AddExitFunction(AddExitFunctionFuncPair(SERIAL_Destroy),true);
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(SERIAL_OnReset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(SERIAL_OnReset));
 }
 
