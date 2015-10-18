@@ -4559,6 +4559,7 @@ int main(int argc, char* argv[]) {
 #endif
 		VGA_Init();
 		ISAPNP_Cfg_Init();
+		KEYBOARD_Init();
 
 		/* If PCjr emulation, map cartridge ROM */
 		if (machine == MCH_PCJR)
@@ -4580,7 +4581,6 @@ int main(int argc, char* argv[]) {
 		/* TODO: move down as appropriate */
 		DispatchVMEvent(VM_EVENT_POWERON);
 
-		KEYBOARD_Init();
 		MPU401_Init();
 #if C_DEBUG
 		DEBUG_Init();

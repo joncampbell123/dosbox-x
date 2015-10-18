@@ -1424,12 +1424,10 @@ static void KEYBOARD_ShutDown(Section * sec) {
 	TIMER_DelTickHandler(&KEYBOARD_TickHandler);
 }
 
-void KEYBOARD_Init() {
+void KEYBOARD_OnReset(Section *sec) {
 	Section_prop *section=static_cast<Section_prop *>(control->GetSection("keyboard"));
 
-	LOG(LOG_MISC,LOG_DEBUG)("Initializing keyboard emulation");
-
-	AddExitFunction(AddExitFunctionFuncPair(KEYBOARD_ShutDown));
+	LOG(LOG_MISC,LOG_DEBUG)("Keyboard reinitializing");
 
 	if ((keyb.enable_aux=section->Get_bool("aux")) != false) {
 		LOG(LOG_KEYBOARD,LOG_NORMAL)("Keyboard AUX emulation enabled");
@@ -1469,6 +1467,15 @@ void KEYBOARD_Init() {
 	write_p61(0,0,0);
 	KEYBOARD_Reset();
 	AUX_Reset();
+}
+
+void KEYBOARD_Init() {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing keyboard emulation");
+
+	AddExitFunction(AddExitFunctionFuncPair(KEYBOARD_ShutDown));
+
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(KEYBOARD_OnReset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(KEYBOARD_OnReset));
 }
 
 void AUX_Reset() {
