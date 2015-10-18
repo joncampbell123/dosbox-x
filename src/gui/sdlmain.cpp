@@ -4564,6 +4564,7 @@ int main(int argc, char* argv[]) {
 		VGA_Init();
 		ISAPNP_Cfg_Init();
 		KEYBOARD_Init();
+		SBLASTER_Init();
 
 		/* If PCjr emulation, map cartridge ROM */
 		if (machine == MCH_PCJR)
@@ -4585,7 +4586,6 @@ int main(int argc, char* argv[]) {
 		/* TODO: move down as appropriate */
 		DispatchVMEvent(VM_EVENT_POWERON);
 
-		SBLASTER_Init();
 		GUS_Init();
 		INNOVA_Init();
 		PCSPEAKER_Init();

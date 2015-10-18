@@ -2399,10 +2399,18 @@ void SBLASTER_ShutDown(Section* /*sec*/) {
 	HWOPL_Cleanup();
 }
 
+void SBLASTER_OnReset(Section *sec) {
+	if (test == NULL) {
+		LOG(LOG_MISC,LOG_DEBUG)("Allocating Sound Blaster emulation");
+		test = new SBLASTER(control->GetSection("sblaster"));
+	}
+}
+
 void SBLASTER_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing Sound Blaster emulation");
 
-	test = new SBLASTER(control->GetSection("sblaster"));
 	AddExitFunction(AddExitFunctionFuncPair(SBLASTER_ShutDown),true);
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(SBLASTER_OnReset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(SBLASTER_OnReset));
 }
 
