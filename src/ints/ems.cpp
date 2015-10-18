@@ -1633,10 +1633,12 @@ public:
 		if (ems_baseseg != 0) MEM_BlockWrite(PhysMake(ems_baseseg,0),buf,32);
 		RealSetVec(0x67,zero_int67_if_no_ems ? 0 : old67_pointer);
 
+#if 0 // FIXME
 		/* Release memory allocated to system handle */
 		if (emm_handles[EMM_SYSTEM_HANDLE].pages != NULL_HANDLE) {
 			MEM_ReleasePages(emm_handles[EMM_SYSTEM_HANDLE].mem);
 		}
+#endif
 
 		/* Clear handle and page tables */
 		//TODO
@@ -1667,11 +1669,18 @@ void EMS_ShutDown(Section* /*sec*/) {
 	EMS_DoShutDown();
 }
 
+void EMS_OnReset(Section* sec) {
+	if (test == NULL) {
+		LOG(LOG_MISC,LOG_DEBUG)("Allocating EMS emulation");
+		test = new EMS(control->GetSection("dos"));
+	}
+}
+
 void EMS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing EMS expanded memory services");
 
-	assert(test == NULL);
-	test = new EMS(control->GetSection("dos"));
 	AddExitFunction(AddExitFunctionFuncPair(EMS_ShutDown),true);
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(EMS_OnReset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(EMS_OnReset));
 }
 

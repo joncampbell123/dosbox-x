@@ -1978,11 +1978,18 @@ void DOS_ShutDown(Section* /*sec*/) {
 	DOS_DoShutDown();
 }
 
+void DOS_OnReset(Section* sec) {
+	if (test == NULL) {
+		LOG(LOG_MISC,LOG_DEBUG)("Allocating DOS kernel");
+		test = new DOS(control->GetSection("dos"));
+	}
+}
+
 void DOS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing DOS kernel (DOS_Init)");
 
-	test = new DOS(control->GetSection("dos"));
-	/* shutdown function */
 	AddExitFunction(AddExitFunctionFuncPair(DOS_ShutDown),false);
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(DOS_OnReset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(DOS_OnReset));
 }
 

@@ -4585,6 +4585,11 @@ int main(int argc, char* argv[]) {
 		/* FIXME: Where to move this? A20 gate is disabled by default */
 		MEM_A20_Enable(false);
 
+		/* OS init now */
+		DOS_Init();
+		XMS_Init();
+		EMS_Init();
+
 		/* Init memhandle system. This part is used by DOSBox's XMS/EMS emulation to associate handles
 		 * per page. FIXME: I would like to push this down to the point that it's never called until
 		 * XMS/EMS emulation needs it. I would also like the code to free the mhandle array immediately
@@ -4598,9 +4603,6 @@ int main(int argc, char* argv[]) {
 		/* TODO: move down as appropriate */
 		DispatchVMEvent(VM_EVENT_POWERON);
 
-		DOS_Init();
-		XMS_Init();
-		EMS_Init();
 		MOUSE_Init();
 		DOS_KeyboardLayout_Init();
 		MSCDEX_Init();
