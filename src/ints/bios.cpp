@@ -788,7 +788,7 @@ static Bitu INT15_Handler(void);
 
 // FIXME: This initializes both APM BIOS and ISA PNP emulation!
 //        Need to separate APM BIOS init from ISA PNP init from ISA PNP BIOS init!
-void ISAPNP_Cfg_Init() {
+void ISAPNP_Cfg_Reset(Section *sec) {
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("cpu"));
 
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing ISA PnP emulation");
@@ -834,6 +834,11 @@ void ISAPNP_Cfg_Init() {
 		LOG_MSG("Allocated APM BIOS pm entry point at %04x:%04x\n",INT15_apm_pmentry>>16,INT15_apm_pmentry&0xFFFF);
 		CALLBACK_Setup(cb,INT15_Handler,CB_RETF,"APM BIOS protected mode entry point");
 	}
+}
+
+void ISAPNP_Cfg_Init() {
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(ISAPNP_Cfg_Reset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(ISAPNP_Cfg_Reset));
 }
 
 /* the PnP callback registered two entry points. One for real, one for protected mode. */
