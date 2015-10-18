@@ -4619,8 +4619,6 @@ int main(int argc, char* argv[]) {
 		MAPPER_StartUp();
 		MAPPER_Init();
 
-		LOG(LOG_MISC,LOG_DEBUG)("Now running legacy (not-yet-ported) section init");
-
 		{
 			/* Some extra SDL Functions */
 			Section_prop *sdl_sec = static_cast<Section_prop*>(control->GetSection("sdl"));
