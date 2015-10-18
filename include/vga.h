@@ -39,6 +39,22 @@ enum VGAModes {
 	M_ERROR
 };
 
+enum VGA_Vsync {
+	VS_Off,
+	VS_On,
+	VS_Force,
+	VS_Host,
+};
+
+struct vsync_state {
+	double period;
+	bool manual;		// use manual vsync timing
+	bool persistent;	// use persistent timer (to keep in sync even after internal mode switches)
+	bool faithful;		// use faithful framerate adjustment
+};
+
+extern struct vsync_state vsync;
+extern float uservsyncjolt;
 
 #define CLK_25 25175
 #define CLK_28 28322

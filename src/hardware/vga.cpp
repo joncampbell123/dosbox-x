@@ -433,6 +433,8 @@ static inline int int_log2(int val) {
 extern bool pcibus_enable;
 extern int hack_lfb_yadjust;
 
+void VGA_VsyncUpdateMode(VGA_Vsync vsyncmode);
+
 void VGA_Reset(Section*) {
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 	string str;
@@ -607,6 +609,42 @@ void VGA_Reset(Section*) {
 /* Generate tables */
 	VGA_SetCGA2Table(0,1);
 	VGA_SetCGA4Table(0,1,2,3);
+
+	Section_prop * section2=static_cast<Section_prop *>(control->GetSection("vsync"));
+
+	const char * vsyncmodestr;
+	vsyncmodestr=section2->Get_string("vsyncmode");
+	VGA_Vsync vsyncmode;
+	if (!strcasecmp(vsyncmodestr,"off")) vsyncmode=VS_Off;
+	else if (!strcasecmp(vsyncmodestr,"on")) vsyncmode=VS_On;
+	else if (!strcasecmp(vsyncmodestr,"force")) vsyncmode=VS_Force;
+	else if (!strcasecmp(vsyncmodestr,"host")) vsyncmode=VS_Host;
+	else {
+		vsyncmode=VS_Off;
+		LOG_MSG("Illegal vsync type %s, falling back to off.",vsyncmodestr);
+	}
+	void change_output(int output);
+	change_output(8);
+	VGA_VsyncUpdateMode(vsyncmode);
+
+	const char * vsyncratestr;
+	vsyncratestr=section2->Get_string("vsyncrate");
+	double vsyncrate=70;
+	if (!strcasecmp(vsyncmodestr,"host")) {
+#if defined (WIN32)
+		DEVMODE	devmode;
+
+		if (EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &devmode))
+			vsyncrate=devmode.dmDisplayFrequency;
+		else
+			sscanf(vsyncratestr,"%lf",&vsyncrate);
+#endif
+	}
+	else {
+		sscanf(vsyncratestr,"%lf",&vsyncrate);
+	}
+
+	vsync.period = (1000.0F)/vsyncrate;
 
 	// TODO: Code to remove programs added by PROGRAMS_MakeFile
 

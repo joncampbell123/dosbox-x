@@ -95,21 +95,9 @@ static Bit8u * VGA_Draw_AMS_4BPP_Line(Bitu vidstart, Bitu line) {
 	return TempLine;
 }
 
-enum VGA_Vsync {
-	VS_Off,
-	VS_On,
-	VS_Force,
-	VS_Host,
-};
+struct vsync_state vsync;
 
-static struct {
-	double period;
-	bool manual;		// use manual vsync timing
-	bool persistent;	// use persistent timer (to keep in sync even after internal mode switches)
-	bool faithful;		// use faithful framerate adjustment
-} vsync;
-
-static float uservsyncjolt=0.0f;
+float uservsyncjolt=0.0f;
 
 void VGA_VsyncUpdateMode(VGA_Vsync vsyncmode) {
 	switch(vsyncmode) {
@@ -139,41 +127,6 @@ void VGA_VsyncUpdateMode(VGA_Vsync vsyncmode) {
 }
 
 void VGA_TweakUserVsyncOffset(float val) { uservsyncjolt = val; }
-
-void VGA_VsyncInit() {
-	Section_prop * section=static_cast<Section_prop *>(control->GetSection("vsync"));
-
-	LOG(LOG_MISC,LOG_DEBUG)("Initializing VGA vsync");
-
-	const char * vsyncmodestr;
-	vsyncmodestr=section->Get_string("vsyncmode");
-	VGA_Vsync vsyncmode;
-	if (!strcasecmp(vsyncmodestr,"off")) vsyncmode=VS_Off;
-	else if (!strcasecmp(vsyncmodestr,"on")) vsyncmode=VS_On;
-	else if (!strcasecmp(vsyncmodestr,"force")) vsyncmode=VS_Force;
-	else if (!strcasecmp(vsyncmodestr,"host")) vsyncmode=VS_Host;
-	else {
-		vsyncmode=VS_Off;
-		LOG_MSG("Illegal vsync type %s, falling back to off.",vsyncmodestr);
-	}
-	void change_output(int output);
-	change_output(8);
-	VGA_VsyncUpdateMode(vsyncmode);
-
-	const char * vsyncratestr;
-	vsyncratestr=section->Get_string("vsyncrate");
-	double vsyncrate;
-#if defined (WIN32)
-	if (!strcasecmp(vsyncmodestr,"host")) {
-		DEVMODE	devmode;
-		if (EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &devmode)) {
-			vsyncrate=devmode.dmDisplayFrequency;
-		} else sscanf(vsyncratestr,"%lf",&vsyncrate);
-	} else
-#endif
-	sscanf(vsyncratestr,"%lf",&vsyncrate);
-	vsync.period = (1000.0F)/vsyncrate;
-}
 
 static Bit8u * VGA_Draw_1BPP_Line(Bitu vidstart, Bitu line) {
 	const Bit8u *base = vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);

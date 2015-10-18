@@ -4194,7 +4194,6 @@ void TIMER_Init();
 void CMOS_Init();
 void VGA_Init();
 void CPU_Init();
-void VGA_VsyncInit();
 void ISAPNP_Cfg_Init();
 #if C_FPU
 void FPU_Init();
@@ -4580,7 +4579,6 @@ int main(int argc, char* argv[]) {
 		/* TODO: move down as appropriate */
 		DispatchVMEvent(VM_EVENT_POWERON);
 
-		VGA_VsyncInit();
 		ISAPNP_Cfg_Init();
 		KEYBOARD_Init();
 		MPU401_Init();
