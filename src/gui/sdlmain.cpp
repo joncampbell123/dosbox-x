@@ -4567,11 +4567,13 @@ int main(int argc, char* argv[]) {
 		ISAPNP_Cfg_Init();
 		KEYBOARD_Init();
 		SBLASTER_Init();
+		JOYSTICK_Init();
 		PS1SOUND_Init();
 		DISNEY_Init();
 		GUS_Init();
 		INNOVA_Init();
 		BIOS_Init();
+		INT10_Init();
 
 		/* If PCjr emulation, map cartridge ROM */
 		if (machine == MCH_PCJR)
@@ -4593,8 +4595,6 @@ int main(int argc, char* argv[]) {
 		/* TODO: move down as appropriate */
 		DispatchVMEvent(VM_EVENT_POWERON);
 
-		INT10_Init();
-		JOYSTICK_Init();
 		SERIAL_Init();
 		PARALLEL_Init();
 		DONGLE_Init();

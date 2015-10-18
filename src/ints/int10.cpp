@@ -742,8 +742,8 @@ extern Bitu VGA_BIOS_SEG;
 extern Bitu VGA_BIOS_SEG_END;
 extern bool VIDEO_BIOS_disable;
 
-void INT10_Init() {
-	LOG(LOG_MISC,LOG_DEBUG)("Initializing BIOS INT10 emulation");
+void INT10_OnReset(Section *sec) {
+	LOG(LOG_MISC,LOG_DEBUG)("INT 10h reinitializing");
 
 	INT10_InitVGA();
 	if (IS_TANDY_ARCH) SetupTandyBios();
@@ -772,5 +772,12 @@ void INT10_Init() {
 	}
 
 	INT10_SetVideoMode(0x3);
+}
+
+void INT10_Init() {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing BIOS INT10 emulation");
+
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(INT10_OnReset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(INT10_OnReset));
 }
 

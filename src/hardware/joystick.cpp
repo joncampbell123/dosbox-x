@@ -219,16 +219,25 @@ public:
 		                 stick[1].ytick = PIC_FullIndex();
 	}
 };
+
 static JOYSTICK* test;
 
 void JOYSTICK_Destroy(Section* sec) {
 	delete test;
 }
 
+void JOYSTICK_OnReset(Section* sec) {
+	if (test == NULL) {
+		LOG(LOG_MISC,LOG_DEBUG)("Allocating joystick emulation");
+		test = new JOYSTICK(control->GetSection("joystick"));
+	}
+}
+
 void JOYSTICK_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing joystick emulation");
 
-	test = new JOYSTICK(control->GetSection("joystick"));
 	AddExitFunction(AddExitFunctionFuncPair(JOYSTICK_Destroy),true); 
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(JOYSTICK_OnReset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(JOYSTICK_OnReset));
 }
 
