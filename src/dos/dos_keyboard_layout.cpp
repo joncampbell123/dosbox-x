@@ -1295,10 +1295,18 @@ void DOS_KeyboardLayout_ShutDown(Section* /*sec*/) {
 	delete test;	
 }
 
+void DOS_KeyboardLayout_OnReset(Section* sec) {
+	if (test == NULL) {
+		LOG(LOG_MISC,LOG_DEBUG)("Reinitializing DOS keyboard layout support");
+		test = new DOS_KeyboardLayout(control->GetSection("dos"));
+	}
+}
+
 void DOS_KeyboardLayout_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing DOS keyboard layout emulation");
 
-	test = new DOS_KeyboardLayout(control->GetSection("dos"));
 	AddExitFunction(AddExitFunctionFuncPair(DOS_KeyboardLayout_ShutDown),true);
-//	MAPPER_AddHandler(switch_keyboard_layout,MK_f2,MMOD1|MMOD2,"sw_layout","Switch Layout");
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(DOS_KeyboardLayout_OnReset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(DOS_KeyboardLayout_OnReset));
 }
+
