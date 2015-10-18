@@ -4547,6 +4547,9 @@ int main(int argc, char* argv[]) {
 		CMOS_Init();
 		ROMBIOS_Init();
 		CALLBACK_Init(); /* <- NTS: This relies on ROM BIOS allocation and it must happen AFTER ROMBIOS init */
+#if C_DEBUG
+		DEBUG_Init(); /* <- NTS: Relies on callback system */
+#endif
 		Init_VGABIOS();
 		VOODOO_Init();
 		PROGRAMS_Init(); /* <- NTS: Does not init programs, it inits the callback used later when creating the .COM programs on drive Z: */
@@ -4582,9 +4585,6 @@ int main(int argc, char* argv[]) {
 		DispatchVMEvent(VM_EVENT_POWERON);
 
 		MPU401_Init();
-#if C_DEBUG
-		DEBUG_Init();
-#endif
 		SBLASTER_Init();
 		GUS_Init();
 		INNOVA_Init();
