@@ -3860,6 +3860,12 @@ void BIOS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing BIOS");
 
 	AddExitFunction(AddExitFunctionFuncPair(BIOS_Destroy),false);
+	// FIXME: Split into power-on handling vs reset handling vs BIOS init event.
+	//        For the BIOS init event, this should call a function that ensures this code is called FIRST
+	//        for the BIOS to setup the data area, then the other callbacks can do their part.
+	//        Also, BIOS init should set up callback instruction so that any situation that would run
+	//        the init code of the BIOS would hit the callback and the BIOS can either proceed to normal
+	//        init or act on the CMOS byte to do the funky 286-ish reset vector functions.
 	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(BIOS_OnReset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(BIOS_OnReset));
 }
