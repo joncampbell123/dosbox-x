@@ -1197,11 +1197,19 @@ void IPX_ShutDown(Section* sec) {
 	delete test;    
 }
 
+void IPX_OnReset(Section* sec) {
+	if (test == NULL) {
+		LOG(LOG_MISC,LOG_DEBUG)("Allocating IPX emulation");
+		test = new IPX(control->GetSection("ipx"));
+	}
+}
+
 void IPX_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing IPX emulation");
 
-	test = new IPX(control->GetSection("ipx"));
 	AddExitFunction(AddExitFunctionFuncPair(IPX_ShutDown),true);
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(IPX_OnReset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(IPX_OnReset));
 }
 
 #endif

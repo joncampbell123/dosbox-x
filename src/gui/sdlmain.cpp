@@ -4228,7 +4228,6 @@ void MOUSE_Init();
 void DOS_KeyboardLayout_Init();
 void MSCDEX_Init();
 void DRIVES_Init();
-void CDROM_Image_Init();
 void IPX_Init();
 void IDE_Init();
 void NE2K_Init();
@@ -4577,6 +4576,9 @@ int main(int argc, char* argv[]) {
 		SERIAL_Init();
 		DONGLE_Init();
 		PARALLEL_Init();
+#if C_NE2000
+		NE2K_Init();
+#endif
 
 		/* If PCjr emulation, map cartridge ROM */
 		if (machine == MCH_PCJR)
@@ -4587,10 +4589,14 @@ int main(int argc, char* argv[]) {
 
 		/* OS init now */
 		DOS_Init();
+		DRIVES_Init();
 		DOS_KeyboardLayout_Init();
 		MOUSE_Init(); // FIXME: inits INT 15h and INT 33h at the same time. Also uses DOS_GetMemory() which is why DOS_Init must come first
 		XMS_Init();
 		EMS_Init();
+#if C_IPX
+		IPX_Init();
+#endif
 		MSCDEX_Init();
 
 		/* Init memhandle system. This part is used by DOSBox's XMS/EMS emulation to associate handles
@@ -4606,14 +4612,6 @@ int main(int argc, char* argv[]) {
 		/* TODO: move down as appropriate */
 		DispatchVMEvent(VM_EVENT_POWERON);
 
-		DRIVES_Init();
-		CDROM_Image_Init();
-#if C_IPX
-		IPX_Init();
-#endif
-#if C_NE2000
-		NE2K_Init();
-#endif
 		FDC_Primary_Init();
 		IDE_Init();
 		AUTOEXEC_Init();

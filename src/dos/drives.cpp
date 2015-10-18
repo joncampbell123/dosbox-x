@@ -233,10 +233,13 @@ int DriveManager::UnmountDrive(int drive) {
 	return result;
 }
 
+bool drivemanager_init = false;
 bool int13_extensions_enable = true;
 
 void DriveManager::Init(Section* s) {
 	Section_prop * section=static_cast<Section_prop *>(s);
+
+	drivemanager_init = true;
 
 	int13_extensions_enable = section->Get_bool("int 13 extensions");
 	
@@ -250,10 +253,18 @@ void DriveManager::Init(Section* s) {
 //	MAPPER_AddHandler(&CycleDrive, MK_f3, MMOD2, "cycledrive", "Cycle Drv");
 }
 
+void DRIVES_OnReset(Section *s) {
+	if (!drivemanager_init) {
+		LOG(LOG_MISC,LOG_DEBUG)("Initializing drive system");
+		DriveManager::Init(control->GetSection("dos"));
+	}
+}
+
 void DRIVES_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing OOS drives");
 
-	DriveManager::Init(control->GetSection("dos"));
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(DRIVES_OnReset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(DRIVES_OnReset));
 }
 
 char * DOS_Drive::GetBaseDir(void) {

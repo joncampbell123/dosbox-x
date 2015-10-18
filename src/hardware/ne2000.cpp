@@ -1666,15 +1666,25 @@ void NE2K_ShutDown(Section* sec) {
 	test=0;
 }
 
+void NE2K_OnReset(Section* sec) {
+	if (test == NULL) {
+		LOG(LOG_MISC,LOG_DEBUG)("Allocating NE2000 emulation");
+		test = new NE2K(control->GetSection("ne2000"));
+
+		if (!test->load_success) {
+			LOG(LOG_MISC,LOG_DEBUG)("Sorry, NE2000 allocation failed to load");
+			delete test;
+			test = NULL;
+		}
+	}
+}
+
 void NE2K_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing NE2000 network card emulation");
 
-	test = new NE2K(control->GetSection("ne2000"));
 	AddExitFunction(AddExitFunctionFuncPair(NE2K_ShutDown),true);
-	if(!test->load_success) {
-		delete test;
-		test=0;
-	}
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(NE2K_OnReset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(NE2K_OnReset));
 }
 
 #endif // C_NE2000
