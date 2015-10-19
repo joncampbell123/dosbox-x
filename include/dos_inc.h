@@ -48,6 +48,12 @@ extern Bit16u first_umb_size;
 bool MEM_unmap_physmem(Bitu start,Bitu end);
 bool MEM_map_RAM_physmem(Bitu start,Bitu end);
 
+struct BuiltinFileBlob {
+	const char		*recommended_file_name;
+	const unsigned char	*data;
+	size_t			length;
+};
+
 struct DOS_Date {
 	Bit16u year;
 	Bit8u month;

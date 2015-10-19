@@ -578,6 +578,7 @@ src/libs/Makefile
 src/libs/zmbv/Makefile
 src/libs/gui_tk/Makefile
 src/libs/porttalk/Makefile
+src/builtin/Makefile
 src/misc/Makefile
 src/shell/Makefile
 src/platform/Makefile
