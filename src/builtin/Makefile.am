@@ -6,5 +6,6 @@ libbuiltin_a_SOURCES = \
 	dos32a_exe.cpp \
 	dos4gw_exe.cpp \
 	hexmem16_exe.cpp \
-	hexmem32_exe.cpp
+	hexmem32_exe.cpp \
+	debug_exe.cpp
 
