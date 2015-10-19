@@ -10,5 +10,6 @@ libbuiltin_a_SOURCES = \
 	debug_exe.cpp \
 	tree_exe.cpp \
 	move_exe.cpp \
-	mem_com.cpp
+	mem_com.cpp \
+	find_exe.cpp
 
