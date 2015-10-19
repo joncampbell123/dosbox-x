@@ -18,4 +18,5 @@ extern struct BuiltinFileBlob bfb_XCOPY_EXE;		// XCOPY.EXE
 extern struct BuiltinFileBlob bfb_APPEND_EXE;		// APPEND.EXE
 extern struct BuiltinFileBlob bfb_EDIT_COM;		// EDIT.COM
 extern struct BuiltinFileBlob bfb_DEVICE_COM;		// DEVICE.COM
+extern struct BuiltinFileBlob bfb_BUFFERS_COM;		// BUFFERS.COM
 
