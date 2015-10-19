@@ -4,4 +4,5 @@ bin/
 bin/*
 obj/
 obj/*
+*~
 
