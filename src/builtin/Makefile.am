@@ -20,5 +20,6 @@ libbuiltin_a_SOURCES = \
 	edit_com.cpp \
 	device_com.cpp \
 	buffers_com.cpp \
-	copy_exe.cpp
+	copy_exe.cpp \
+	28_com.cpp
 
