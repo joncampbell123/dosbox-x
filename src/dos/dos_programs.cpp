@@ -2736,20 +2736,6 @@ void IMGMOUNT_ProgramStart(Program * * make) {
 	*make=new IMGMOUNT;
 }
 
-class LINE25 : public Program {
-public:
-	void Run(void);
-};
-
-void LINE25::Run(void) {
-		reg_ax=0x0003;
-		CALLBACK_RunRealInt(0x10);
-}
-
-static void LINE25_ProgramStart(Program * * make) {
-	*make=new LINE25;
-}
-
 Bitu DOS_SwitchKeyboardLayout(const char* new_layout, Bit32s& tried_cp);
 Bitu DOS_LoadKeyboardLayout(const char * layoutname, Bit32s codepage, const char * codepagefile);
 const char* DOS_GetLoadedLayout(void);
@@ -3266,7 +3252,6 @@ void DOS_SetupPrograms(void) {
 	PROGRAMS_MakeFile("IMGMOUNT.COM", IMGMOUNT_ProgramStart);
 	PROGRAMS_MakeFile("MODE.COM", MODE_ProgramStart);
 	//PROGRAMS_MakeFile("MORE.COM", MORE_ProgramStart);
-	PROGRAMS_MakeFile("25.COM", LINE25_ProgramStart);
 	PROGRAMS_MakeFile("KEYB.COM", KEYB_ProgramStart);
 	PROGRAMS_MakeFile("MOUSE.COM", MOUSE_ProgramStart);
 	PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart);

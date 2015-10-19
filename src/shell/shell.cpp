@@ -818,6 +818,7 @@ void SHELL_Init() {
 	VFILE_RegisterBuiltinFileBlob(bfb_COPY_EXE);
 	VFILE_RegisterBuiltinFileBlob(bfb_28_COM);
 	VFILE_RegisterBuiltinFileBlob(bfb_50_COM);
+	VFILE_RegisterBuiltinFileBlob(bfb_25_COM);
 
 	DOS_PSP psp(psp_seg);
 	psp.MakeNew(0);
