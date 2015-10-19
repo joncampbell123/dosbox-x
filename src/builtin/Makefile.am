@@ -15,5 +15,6 @@ libbuiltin_a_SOURCES = \
 	dosidle_exe.cpp \
 	lastdriv_com.cpp \
 	fcbs_com.cpp \
-	xcopy_exe.cpp
+	xcopy_exe.cpp \
+	append_exe.cpp
 

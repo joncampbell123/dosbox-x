@@ -15,6 +15,8 @@ extern struct BuiltinFileBlob bfb_DOSIDLE_EXE;		// DOSIDLE.EXE
 extern struct BuiltinFileBlob bfb_LASTDRIV_COM;		// LASTDRIV.COM
 extern struct BuiltinFileBlob bfb_FCBS_COM;		// FCBS.COM
 extern struct BuiltinFileBlob bfb_XCOPY_EXE;		// XCOPY.EXE
+extern struct BuiltinFileBlob bfb_APPEND_EXE;		// APPEND.EXE
+
 
 
 

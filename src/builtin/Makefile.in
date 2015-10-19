@@ -104,7 +104,7 @@ am_libbuiltin_a_OBJECTS = cwsdpmi_exe.$(OBJEXT) dos32a_exe.$(OBJEXT) \
 	hexmem32_exe.$(OBJEXT) debug_exe.$(OBJEXT) tree_exe.$(OBJEXT) \
 	move_exe.$(OBJEXT) mem_com.$(OBJEXT) find_exe.$(OBJEXT) \
 	dosidle_exe.$(OBJEXT) lastdriv_com.$(OBJEXT) \
-	fcbs_com.$(OBJEXT) xcopy_exe.$(OBJEXT)
+	fcbs_com.$(OBJEXT) xcopy_exe.$(OBJEXT) append_exe.$(OBJEXT)
 libbuiltin_a_OBJECTS = $(am_libbuiltin_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -285,7 +285,8 @@ libbuiltin_a_SOURCES = \
 	dosidle_exe.cpp \
 	lastdriv_com.cpp \
 	fcbs_com.cpp \
-	xcopy_exe.cpp
+	xcopy_exe.cpp \
+	append_exe.cpp
 
 all: all-am
 
@@ -336,6 +337,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/append_exe.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwsdpmi_exe.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/debug_exe.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dos32a_exe.Po@am__quote@
