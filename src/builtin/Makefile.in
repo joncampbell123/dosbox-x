@@ -102,7 +102,7 @@ libbuiltin_a_LIBADD =
 am_libbuiltin_a_OBJECTS = cwsdpmi_exe.$(OBJEXT) dos32a_exe.$(OBJEXT) \
 	dos4gw_exe.$(OBJEXT) hexmem16_exe.$(OBJEXT) \
 	hexmem32_exe.$(OBJEXT) debug_exe.$(OBJEXT) tree_exe.$(OBJEXT) \
-	move_exe.$(OBJEXT)
+	move_exe.$(OBJEXT) mem_com.$(OBJEXT)
 libbuiltin_a_OBJECTS = $(am_libbuiltin_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -277,7 +277,8 @@ libbuiltin_a_SOURCES = \
 	hexmem32_exe.cpp \
 	debug_exe.cpp \
 	tree_exe.cpp \
-	move_exe.cpp
+	move_exe.cpp \
+	mem_com.cpp
 
 all: all-am
 
@@ -334,6 +335,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dos4gw_exe.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hexmem16_exe.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hexmem32_exe.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mem_com.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/move_exe.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tree_exe.Po@am__quote@
 
