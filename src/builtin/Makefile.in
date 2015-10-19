@@ -102,7 +102,8 @@ libbuiltin_a_LIBADD =
 am_libbuiltin_a_OBJECTS = cwsdpmi_exe.$(OBJEXT) dos32a_exe.$(OBJEXT) \
 	dos4gw_exe.$(OBJEXT) hexmem16_exe.$(OBJEXT) \
 	hexmem32_exe.$(OBJEXT) debug_exe.$(OBJEXT) tree_exe.$(OBJEXT) \
-	move_exe.$(OBJEXT) mem_com.$(OBJEXT) find_exe.$(OBJEXT)
+	move_exe.$(OBJEXT) mem_com.$(OBJEXT) find_exe.$(OBJEXT) \
+	dosidle_exe.$(OBJEXT)
 libbuiltin_a_OBJECTS = $(am_libbuiltin_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -279,7 +280,8 @@ libbuiltin_a_SOURCES = \
 	tree_exe.cpp \
 	move_exe.cpp \
 	mem_com.cpp \
-	find_exe.cpp
+	find_exe.cpp \
+	dosidle_exe.cpp
 
 all: all-am
 
@@ -334,6 +336,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/debug_exe.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dos32a_exe.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dos4gw_exe.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dosidle_exe.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/find_exe.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hexmem16_exe.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hexmem32_exe.Po@am__quote@

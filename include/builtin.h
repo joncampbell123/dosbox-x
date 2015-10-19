@@ -11,4 +11,5 @@ extern struct BuiltinFileBlob bfb_TREE_EXE;		// TREE.EXE
 extern struct BuiltinFileBlob bfb_MOVE_EXE;		// MOVE.EXE
 extern struct BuiltinFileBlob bfb_MEM_COM;		// MEM.COM
 extern struct BuiltinFileBlob bfb_FIND_EXE;		// FIND.EXE
+extern struct BuiltinFileBlob bfb_DOSIDLE_EXE;		// DOSIDLE.EXE
 
