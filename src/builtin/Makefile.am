@@ -4,5 +4,7 @@ noinst_LIBRARIES = libbuiltin.a
 libbuiltin_a_SOURCES = \
 	cwsdpmi_exe.cpp	\
 	dos32a_exe.cpp \
-	dos4gw_exe.cpp
+	dos4gw_exe.cpp \
+	hexmem16_exe.cpp \
+	hexmem32_exe.cpp
 
