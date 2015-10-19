@@ -797,8 +797,6 @@ void SHELL_Init() {
 	extern bool Mouse_Drv;
 	Mouse_Drv = true;
 
-	static Bit8u some_data_50[8] = { 0xB8, 0x12, 0x11, 0x30, 0xDB, 0xCD, 0x10, 0xC3 };
-
 	VFILE_RegisterBuiltinFileBlob(bfb_CWSDPMI_EXE);
 	VFILE_RegisterBuiltinFileBlob(bfb_DOS32A_EXE);
 	VFILE_RegisterBuiltinFileBlob(bfb_DOS4GW_EXE);
@@ -819,8 +817,7 @@ void SHELL_Init() {
 	VFILE_RegisterBuiltinFileBlob(bfb_BUFFERS_COM);
 	VFILE_RegisterBuiltinFileBlob(bfb_COPY_EXE);
 	VFILE_RegisterBuiltinFileBlob(bfb_28_COM);
-
-	VFILE_Register("50.COM",some_data_50,8);
+	VFILE_RegisterBuiltinFileBlob(bfb_50_COM);
 
 	DOS_PSP psp(psp_seg);
 	psp.MakeNew(0);

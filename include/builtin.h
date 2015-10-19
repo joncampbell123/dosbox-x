@@ -21,4 +21,5 @@ extern struct BuiltinFileBlob bfb_DEVICE_COM;		// DEVICE.COM
 extern struct BuiltinFileBlob bfb_BUFFERS_COM;		// BUFFERS.COM
 extern struct BuiltinFileBlob bfb_COPY_EXE;		// COPY.EXE
 extern struct BuiltinFileBlob bfb_28_COM;		// 28.COM
+extern struct BuiltinFileBlob bfb_50_COM;		// 50.COM
 
