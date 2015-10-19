@@ -1166,11 +1166,8 @@ void ShutDownMemHandles(Section * sec) {
 	}
 }
 
-void Init_A20_Gate() {
+void A20Gate_OnReset(Section *sec) {
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
-
-	// log it
-	LOG(LOG_MISC,LOG_DEBUG)("Initializing A20 gate emulation");
 
 	memory.a20.enabled = 0;
 	a20_fake_changeable = false;
@@ -1215,11 +1212,15 @@ void Init_A20_Gate() {
 	}
 }
 
-void Init_PS2_Port_92h() {
-	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+void Init_A20_Gate() {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing A20 gate emulation");
 
-	// LOG
-	LOG(LOG_MISC,LOG_DEBUG)("Initializing PS/2 port 92h emulation");
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(A20Gate_OnReset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(A20Gate_OnReset));
+}
+
+void PS2Port92_OnReset(Section *sec) {
+	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 
 	// TODO: this should be handled in a motherboard init routine
 	enable_port92 = section->Get_bool("enable port 92");
@@ -1231,6 +1232,13 @@ void Init_PS2_Port_92h() {
 		PS2_Port_92h_WriteHandler.Install(0x92,write_p92,IO_MB);
 		PS2_Port_92h_ReadHandler.Install(0x92,read_p92,IO_MB);
 	}
+}
+
+void Init_PS2_Port_92h() {
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing PS/2 port 92h emulation");
+
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(PS2Port92_OnReset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PS2Port92_OnReset));
 }
 
 void Init_MemHandles() {
