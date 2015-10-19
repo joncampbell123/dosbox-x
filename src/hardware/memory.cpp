@@ -1222,6 +1222,9 @@ void Init_A20_Gate() {
 void PS2Port92_OnReset(Section *sec) {
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 
+	PS2_Port_92h_WriteHandler.Uninstall();
+	PS2_Port_92h_ReadHandler.Uninstall();
+
 	// TODO: this should be handled in a motherboard init routine
 	enable_port92 = section->Get_bool("enable port 92");
 	if (enable_port92) {

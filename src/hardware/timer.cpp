@@ -422,6 +422,15 @@ void TIMER_Reset(Section*) {
 
 	PIC_RemoveEvents(PIT0_Event);
 
+	WriteHandler[0].Uninstall();
+	WriteHandler[1].Uninstall();
+	WriteHandler[2].Uninstall();
+	WriteHandler[3].Uninstall();
+	ReadHandler[0].Uninstall();
+	ReadHandler[1].Uninstall();
+	ReadHandler[2].Uninstall();
+	ReadHandler[3].Uninstall();
+
 	WriteHandler[0].Install(0x40,write_latch,IO_MB);
 //	WriteHandler[1].Install(0x41,write_latch,IO_MB);
 	WriteHandler[2].Install(0x42,write_latch,IO_MB);

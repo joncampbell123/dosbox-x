@@ -659,6 +659,16 @@ static IO_WriteHandleObject WriteHandler[4];
 void PIC_Reset(Section *sec) {
 	Bitu i;
 
+	ReadHandler[0].Uninstall();
+	ReadHandler[1].Uninstall();
+	WriteHandler[0].Uninstall();
+	WriteHandler[1].Uninstall();
+	ReadHandler[2].Uninstall();
+	ReadHandler[3].Uninstall();
+	WriteHandler[2].Uninstall();
+	WriteHandler[3].Uninstall();
+	PCXT_NMI_WriteHandler.Uninstall();
+
 	// LOG
 	LOG(LOG_MISC,LOG_DEBUG)("PIC_Reset(): reinitializing PIC controller");
 
