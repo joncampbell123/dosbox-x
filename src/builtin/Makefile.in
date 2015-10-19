@@ -101,7 +101,7 @@ libbuiltin_a_AR = $(AR) $(ARFLAGS)
 libbuiltin_a_LIBADD =
 am_libbuiltin_a_OBJECTS = cwsdpmi_exe.$(OBJEXT) dos32a_exe.$(OBJEXT) \
 	dos4gw_exe.$(OBJEXT) hexmem16_exe.$(OBJEXT) \
-	hexmem32_exe.$(OBJEXT) debug_exe.$(OBJEXT)
+	hexmem32_exe.$(OBJEXT) debug_exe.$(OBJEXT) tree_exe.$(OBJEXT)
 libbuiltin_a_OBJECTS = $(am_libbuiltin_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -274,7 +274,8 @@ libbuiltin_a_SOURCES = \
 	dos4gw_exe.cpp \
 	hexmem16_exe.cpp \
 	hexmem32_exe.cpp \
-	debug_exe.cpp
+	debug_exe.cpp \
+	tree_exe.cpp
 
 all: all-am
 
@@ -331,6 +332,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dos4gw_exe.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hexmem16_exe.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hexmem32_exe.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tree_exe.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
