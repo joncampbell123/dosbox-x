@@ -3880,8 +3880,14 @@ void (*ide_inits[MAX_IDE_CONTROLLERS])(Section *) = {
 	&IDE_Octernary_Init
 };
 
+void IDE_OnReset(Section *sec) {
+	for (size_t i=0;i < MAX_IDE_CONTROLLERS;i++) ide_inits[i](control->GetSection(ide_names[i]));
+}
+
 void IDE_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing IDE controllers");
-	for (size_t i=0;i < MAX_IDE_CONTROLLERS;i++) ide_inits[i](control->GetSection(ide_names[i]));
+
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(IDE_OnReset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(IDE_OnReset));
 }
 

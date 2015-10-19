@@ -473,11 +473,19 @@ static void AUTOEXEC_ShutDown(Section * sec) {
 	}
 }
 
+void AUTOEXEC_OnReset(Section *sec) {
+	if (test == NULL) {
+		LOG(LOG_MISC,LOG_DEBUG)("Allocating AUTOEXEC.BAT emulation");
+		test = new AUTOEXEC(control->GetSection("autoexec"));
+	}
+}
+
 void AUTOEXEC_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing AUTOEXEC.BAT emulation");
 
-	test = new AUTOEXEC(control->GetSection("autoexec"));
 	AddExitFunction(AddExitFunctionFuncPair(AUTOEXEC_ShutDown));
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(AUTOEXEC_OnReset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(AUTOEXEC_OnReset));
 }
 
 static char const * const path_string="PATH=Z:\\";

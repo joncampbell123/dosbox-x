@@ -308,9 +308,15 @@ static void FDC_Init(Section* sec,unsigned char interface) {
 	PIC_SetIRQMask(fdc->IRQ,false);
 }
 
+void FDC_OnReset(Section *sec) {
+	FDC_Init(control->GetSection("fdc, primary"),0);
+}
+
 void FDC_Primary_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing floppy controller emulation");
-	FDC_Init(control->GetSection("fdc, primary"),0);
+
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(FDC_OnReset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(FDC_OnReset));
 }
 
 void FloppyController::update_ST3() {

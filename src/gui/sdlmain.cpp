@@ -4527,116 +4527,6 @@ int main(int argc, char* argv[]) {
 		if (control->opt_opensaves.length() != 0)
 			launchsaves(control->opt_opensaves);
 
-		MSG_Init();
-		DOSBOX_InitTickLoop();
-		DOSBOX_RealInit();
-		CAPTURE_Init();
-		IO_Init();
-		HARDWARE_Init();
-		Init_AddressLimitAndGateMask(); /* <- need to init address mask so Init_RAM knows the maximum amount of RAM possible */
-		Init_MemoryAccessArray(); /* <- NTS: In DOSBox-X this is the "cache" of devices that responded to memory access */
-		Init_A20_Gate(); // FIXME: Should be handled by motherboard!
-		Init_PS2_Port_92h(); // FIXME: Should be handled by motherboard!
-		Init_RAM();
-		Init_DMA();
-		Init_PIC();
-		TIMER_Init();
-		PCIBUS_Init();
-		PAGING_Init(); /* <- NTS: At this time, must come before memory init because paging is so well integrated into emulation code */
-		CMOS_Init();
-		ROMBIOS_Init();
-		CALLBACK_Init(); /* <- NTS: This relies on ROM BIOS allocation and it must happen AFTER ROMBIOS init */
-#if C_DEBUG
-		DEBUG_Init(); /* <- NTS: Relies on callback system */
-#endif
-		Init_VGABIOS();
-		VOODOO_Init();
-		PROGRAMS_Init(); /* <- NTS: Does not init programs, it inits the callback used later when creating the .COM programs on drive Z: */
-		PCSPEAKER_Init();
-		TANDYSOUND_Init();
-		MPU401_Init();
-		RENDER_Init();
-		MIXER_Init();
-		MIDI_Init();
-		CPU_Init();
-#if C_FPU
-		FPU_Init();
-#endif
-		VGA_Init();
-		ISAPNP_Cfg_Init();
-		KEYBOARD_Init();
-		SBLASTER_Init();
-		JOYSTICK_Init();
-		PS1SOUND_Init();
-		DISNEY_Init();
-		GUS_Init();
-		INNOVA_Init();
-		BIOS_Init();
-		INT10_Init();
-		SERIAL_Init();
-		DONGLE_Init();
-		PARALLEL_Init();
-#if C_NE2000
-		NE2K_Init();
-#endif
-
-		/* If PCjr emulation, map cartridge ROM */
-		if (machine == MCH_PCJR)
-			Init_PCJR_CartridgeROM();
-
-		/* FIXME: Where to move this? A20 gate is disabled by default */
-		MEM_A20_Enable(false);
-
-		/* OS init now */
-		DOS_Init();
-		DRIVES_Init();
-		DOS_KeyboardLayout_Init();
-		MOUSE_Init(); // FIXME: inits INT 15h and INT 33h at the same time. Also uses DOS_GetMemory() which is why DOS_Init must come first
-		XMS_Init();
-		EMS_Init();
-#if C_IPX
-		IPX_Init();
-#endif
-		MSCDEX_Init();
-
-		/* Init memhandle system. This part is used by DOSBox's XMS/EMS emulation to associate handles
-		 * per page. FIXME: I would like to push this down to the point that it's never called until
-		 * XMS/EMS emulation needs it. I would also like the code to free the mhandle array immediately
-		 * upon booting into a guest OS, since memory handles no longer have meaning in the guest OS
-		 * memory layout. */
-		Init_MemHandles();
-
-		/* dispatch a power on event. new code will use this as time to register IO ports.
-		 * At power on hardware emulation is working, the BIOS and DOS kernel are not present.
-		 * Eventually this will displace the older control->StartUp() call. */
-		/* TODO: move down as appropriate */
-		DispatchVMEvent(VM_EVENT_POWERON);
-
-		FDC_Primary_Init();
-		IDE_Init();
-		AUTOEXEC_Init();
-		MAPPER_StartUp();
-		MAPPER_Init();
-
-		bool run_machine;
-		bool reboot_machine;
-		bool dos_kernel_shutdown;
-
-		/* BIOS boot event. This will have more meaning later on in development, when some emulation
-		 * might want to free resources related to BIOS initialization or offer INT 19h hooks, at
-		 * a time in the future when we allow dosbox.conf to describe booting directly to a guest OS
-		 * rather than through the DOS kernel. At this point hardware emulation and the BIOS are
-		 * ready, the DOS kernel is not present. The event is supposed to happen just prior to the
-		 * search for bootable media. */
-		DispatchVMEvent(VM_EVENT_BIOS_BOOT);
-
-		/* DOS startup. This will have more significance later when we allow dosbox.conf to describe
-		 * scenarios that boot directly into a guest OS rather than through the DOSBox DOS kernel and
-		 * when firing these events is moved into the DOS kernel code. */
-		DispatchVMEvent(VM_EVENT_DOS_BOOT);
-		DispatchVMEvent(VM_EVENT_DOS_INIT_KERNEL_READY);
-		DispatchVMEvent(VM_EVENT_DOS_INIT_CONFIG_SYS_DONE);
-
 		{
 			/* Some extra SDL Functions */
 			Section_prop *sdl_sec = static_cast<Section_prop*>(control->GetSection("sdl"));
@@ -4648,11 +4538,6 @@ int main(int argc, char* argv[]) {
 				//only switch if not already in fullscreen
 				if (!sdl.desktop.fullscreen) GFX_SwitchFullScreen();
 			}
-		}
-
-		if (control->opt_startmapper) {
-			LOG(LOG_MISC,LOG_DEBUG)("Running mapper interface, during startup, as instructed");
-			MAPPER_RunInternal();
 		}
 
 #if (HAVE_D3D9_H) && defined(WIN32)
@@ -4715,6 +4600,118 @@ int main(int argc, char* argv[]) {
 		}
 #endif
 
+		MSG_Init();
+		MAPPER_StartUp();
+		MAPPER_Init();
+
+		/* stop at this point, and show the mapper, if instructed */
+		if (control->opt_startmapper) {
+			LOG(LOG_MISC,LOG_DEBUG)("Running mapper interface, during startup, as instructed");
+			MAPPER_RunInternal();
+		}
+
+		DOSBOX_InitTickLoop();
+		DOSBOX_RealInit();
+		CAPTURE_Init();
+		IO_Init();
+		HARDWARE_Init();
+		Init_AddressLimitAndGateMask(); /* <- need to init address mask so Init_RAM knows the maximum amount of RAM possible */
+		Init_MemoryAccessArray(); /* <- NTS: In DOSBox-X this is the "cache" of devices that responded to memory access */
+		Init_A20_Gate(); // FIXME: Should be handled by motherboard!
+		Init_PS2_Port_92h(); // FIXME: Should be handled by motherboard!
+		Init_RAM();
+		Init_DMA();
+		Init_PIC();
+		TIMER_Init();
+		PCIBUS_Init();
+		PAGING_Init(); /* <- NTS: At this time, must come before memory init because paging is so well integrated into emulation code */
+		CMOS_Init();
+		ROMBIOS_Init();
+		CALLBACK_Init(); /* <- NTS: This relies on ROM BIOS allocation and it must happen AFTER ROMBIOS init */
+#if C_DEBUG
+		DEBUG_Init(); /* <- NTS: Relies on callback system */
+#endif
+		Init_VGABIOS();
+		VOODOO_Init();
+		PROGRAMS_Init(); /* <- NTS: Does not init programs, it inits the callback used later when creating the .COM programs on drive Z: */
+		PCSPEAKER_Init();
+		TANDYSOUND_Init();
+		MPU401_Init();
+		RENDER_Init();
+		MIXER_Init();
+		MIDI_Init();
+		CPU_Init();
+#if C_FPU
+		FPU_Init();
+#endif
+		VGA_Init();
+		ISAPNP_Cfg_Init();
+		FDC_Primary_Init();
+		KEYBOARD_Init();
+		SBLASTER_Init();
+		JOYSTICK_Init();
+		PS1SOUND_Init();
+		DISNEY_Init();
+		GUS_Init();
+		IDE_Init();
+		INNOVA_Init();
+		BIOS_Init();
+		INT10_Init();
+		SERIAL_Init();
+		DONGLE_Init();
+		PARALLEL_Init();
+#if C_NE2000
+		NE2K_Init();
+#endif
+
+		/* If PCjr emulation, map cartridge ROM */
+		if (machine == MCH_PCJR)
+			Init_PCJR_CartridgeROM();
+
+		/* FIXME: Where to move this? A20 gate is disabled by default */
+		MEM_A20_Enable(false);
+
+		/* OS init now */
+		DOS_Init();
+		DRIVES_Init();
+		DOS_KeyboardLayout_Init();
+		MOUSE_Init(); // FIXME: inits INT 15h and INT 33h at the same time. Also uses DOS_GetMemory() which is why DOS_Init must come first
+		XMS_Init();
+		EMS_Init();
+		AUTOEXEC_Init();
+#if C_IPX
+		IPX_Init();
+#endif
+		MSCDEX_Init();
+
+		/* Init memhandle system. This part is used by DOSBox's XMS/EMS emulation to associate handles
+		 * per page. FIXME: I would like to push this down to the point that it's never called until
+		 * XMS/EMS emulation needs it. I would also like the code to free the mhandle array immediately
+		 * upon booting into a guest OS, since memory handles no longer have meaning in the guest OS
+		 * memory layout. */
+		Init_MemHandles();
+
+		/* dispatch a power on event. new code will use this as time to register IO ports.
+		 * At power on hardware emulation is working, the BIOS and DOS kernel are not present.
+		 * Eventually this will displace the older control->StartUp() call. */
+		/* TODO: move down as appropriate */
+		DispatchVMEvent(VM_EVENT_POWERON);
+
+		/* BIOS boot event. This will have more meaning later on in development, when some emulation
+		 * might want to free resources related to BIOS initialization or offer INT 19h hooks, at
+		 * a time in the future when we allow dosbox.conf to describe booting directly to a guest OS
+		 * rather than through the DOS kernel. At this point hardware emulation and the BIOS are
+		 * ready, the DOS kernel is not present. The event is supposed to happen just prior to the
+		 * search for bootable media. */
+		DispatchVMEvent(VM_EVENT_BIOS_BOOT);
+
+		/* DOS startup. This will have more significance later when we allow dosbox.conf to describe
+		 * scenarios that boot directly into a guest OS rather than through the DOSBox DOS kernel and
+		 * when firing these events is moved into the DOS kernel code. */
+		DispatchVMEvent(VM_EVENT_DOS_BOOT);
+		DispatchVMEvent(VM_EVENT_DOS_INIT_KERNEL_READY);
+		DispatchVMEvent(VM_EVENT_DOS_INIT_CONFIG_SYS_DONE);
+
 		/* start the shell */
 		SHELL_Init();
 
@@ -4732,6 +4729,10 @@ int main(int argc, char* argv[]) {
 		/* FIXME: throwing int() objects is dumb and non-descriptive. We need a C++ exception
 		 *        type that's explicitly named to convey that we're throwing shutdown and
 		 *        reboot events. */
+		bool run_machine;
+		bool reboot_machine;
+		bool dos_kernel_shutdown;
+
 		run_machine = false;
 		reboot_machine = false;
 		dos_kernel_shutdown = false;
