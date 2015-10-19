@@ -4602,14 +4602,6 @@ int main(int argc, char* argv[]) {
 
 		MSG_Init();
 		MAPPER_StartUp();
-		MAPPER_Init();
-
-		/* stop at this point, and show the mapper, if instructed */
-		if (control->opt_startmapper) {
-			LOG(LOG_MISC,LOG_DEBUG)("Running mapper interface, during startup, as instructed");
-			MAPPER_RunInternal();
-		}
-
 		DOSBOX_InitTickLoop();
 		DOSBOX_RealInit();
 		CAPTURE_Init();
@@ -4690,6 +4682,16 @@ int main(int argc, char* argv[]) {
 		 * upon booting into a guest OS, since memory handles no longer have meaning in the guest OS
 		 * memory layout. */
 		Init_MemHandles();
+
+		/* finally, the mapper */
+		MAPPER_Init();
+
+		/* stop at this point, and show the mapper, if instructed */
+		if (control->opt_startmapper) {
+			LOG(LOG_MISC,LOG_DEBUG)("Running mapper interface, during startup, as instructed");
+			MAPPER_RunInternal();
+		}
+
 
 		/* dispatch a power on event. new code will use this as time to register IO ports.
 		 * At power on hardware emulation is working, the BIOS and DOS kernel are not present.
