@@ -16,5 +16,6 @@ libbuiltin_a_SOURCES = \
 	lastdriv_com.cpp \
 	fcbs_com.cpp \
 	xcopy_exe.cpp \
-	append_exe.cpp
+	append_exe.cpp \
+	edit_com.cpp
 
