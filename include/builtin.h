@@ -13,4 +13,6 @@ extern struct BuiltinFileBlob bfb_MEM_COM;		// MEM.COM
 extern struct BuiltinFileBlob bfb_FIND_EXE;		// FIND.EXE
 extern struct BuiltinFileBlob bfb_DOSIDLE_EXE;		// DOSIDLE.EXE
 extern struct BuiltinFileBlob bfb_LASTDRIV_COM;		// LASTDRIV.COM
+extern struct BuiltinFileBlob bfb_FCBS_COM;		// FCBS.COM
+
 

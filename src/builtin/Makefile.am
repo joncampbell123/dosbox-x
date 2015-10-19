@@ -13,5 +13,6 @@ libbuiltin_a_SOURCES = \
 	mem_com.cpp \
 	find_exe.cpp \
 	dosidle_exe.cpp \
-	lastdriv_com.cpp
+	lastdriv_com.cpp \
+	fcbs_com.cpp
 
