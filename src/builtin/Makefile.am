@@ -19,5 +19,6 @@ libbuiltin_a_SOURCES = \
 	append_exe.cpp \
 	edit_com.cpp \
 	device_com.cpp \
-	buffers_com.cpp
+	buffers_com.cpp \
+	copy_exe.cpp
 
