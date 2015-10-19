@@ -48328,7 +48328,7 @@ static unsigned char hexmem32_exe[] = {
   0x00, 0x00, 0x00, 0x02, 0xd0, 0xcf, 0x00, 0x00
 };
 
-	VFILE_Register(bfb_CWSDPMI_EXE.recommended_file_name,(Bit8u*)bfb_CWSDPMI_EXE.data,bfb_CWSDPMI_EXE.length);
+	VFILE_RegisterBuiltinFileBlob(bfb_CWSDPMI_EXE);
 
 	VFILE_Register("DOS32A.EXE",some_data_dos32a,18235);
 	VFILE_Register("DOS4GW.EXE",some_data_dos4gw,353668);

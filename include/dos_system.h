@@ -291,4 +291,5 @@ void DOS_AddDevice(DOS_Device * adddev);
 void DOS_DelDevice(DOS_Device * dev);
 
 void VFILE_Register(const char * name,Bit8u * data,Bit32u size);
+void VFILE_RegisterBuiltinFileBlob(const struct BuiltinFileBlob &b);
 #endif
