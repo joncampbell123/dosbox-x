@@ -99,7 +99,7 @@ am__v_AR_0 = @echo "  AR      " $@;
 am__v_AR_1 = 
 libbuiltin_a_AR = $(AR) $(ARFLAGS)
 libbuiltin_a_LIBADD =
-am_libbuiltin_a_OBJECTS = cwsdpmi_exe.$(OBJEXT)
+am_libbuiltin_a_OBJECTS = cwsdpmi_exe.$(OBJEXT) dos32a_exe.$(OBJEXT)
 libbuiltin_a_OBJECTS = $(am_libbuiltin_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -266,7 +266,10 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CPPFLAGS = -I$(top_srcdir)/include
 noinst_LIBRARIES = libbuiltin.a
-libbuiltin_a_SOURCES = cwsdpmi_exe.cpp
+libbuiltin_a_SOURCES = \
+	cwsdpmi_exe.cpp	\
+	dos32a_exe.cpp
+
 all: all-am
 
 .SUFFIXES:
@@ -317,6 +320,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cwsdpmi_exe.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dos32a_exe.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
