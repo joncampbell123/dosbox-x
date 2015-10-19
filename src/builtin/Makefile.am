@@ -12,5 +12,6 @@ libbuiltin_a_SOURCES = \
 	move_exe.cpp \
 	mem_com.cpp \
 	find_exe.cpp \
-	dosidle_exe.cpp
+	dosidle_exe.cpp \
+	lastdriv_com.cpp
 
