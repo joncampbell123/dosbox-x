@@ -278,17 +278,18 @@ void AddExitFunction(SectionFunction func,const char *funcname,bool canchange=fa
 enum vm_event {
 	VM_EVENT_POWERON=0,			// emulation has started to power on hardware. it is safe to connect I/O, memory, IRQ resources, etc. to the bus. BIOS not initialized yet.
 	VM_EVENT_RESET,				// reset signal (at the hardware level), whether by the keyboard controller, reset button, etc.
+	VM_EVENT_RESET_END,			// reset signal switched off, permitting the system to begin booting.
 	VM_EVENT_BIOS_BOOT,			// BIOS in the boot stage. usually leads to DOS kernel init or guest OS boot.
 	VM_EVENT_GUEST_OS_BOOT,			// BIOS or DOS kernel (BOOT command) is running a guest OS. just after loading boot sector into memory but before executing it.
-	VM_EVENT_DOS_BOOT,			// emulation has decided to boot the built-in DOS kernel. just prior to starting the DOS kernel.
 
-	VM_EVENT_DOS_INIT_KERNEL_READY=5,	// DOS kernel init. Prior to CONFIG.SYS handling.
+	VM_EVENT_DOS_BOOT=5,			// emulation has decided to boot the built-in DOS kernel. just prior to starting the DOS kernel.
+	VM_EVENT_DOS_INIT_KERNEL_READY,		// DOS kernel init. Prior to CONFIG.SYS handling.
 	VM_EVENT_DOS_INIT_CONFIG_SYS_DONE,	// DOS kernel init. After CONFIG.SYS handling, all devices inited.
 	VM_EVENT_DOS_INIT_SHELL_READY,		// DOS kernel init. After COMMAND.COM initialization, before AUTOEXEC.BAT execution.
 	VM_EVENT_DOS_INIT_AUTOEXEC_BAT_DONE,	// DOS kernel init. COMMAND.COM just finished AUTOEXEC.BAT.
-	VM_EVENT_DOS_INIT_AT_PROMPT,		// DOS kernel init complete. After this event, the user is immediately given the DOS prompt.
 
-	VM_EVENT_DOS_EXIT_BEGIN=10,		// DOS kernel is just starting to exit (user used BOOT command)
+	VM_EVENT_DOS_INIT_AT_PROMPT=10,		// DOS kernel init complete. After this event, the user is immediately given the DOS prompt.
+	VM_EVENT_DOS_EXIT_BEGIN,		// DOS kernel is just starting to exit (user used BOOT command)
 	VM_EVENT_DOS_EXIT_KERNEL,		// DOS kernel has just finished exiting
 
 	VM_EVENT_MAX

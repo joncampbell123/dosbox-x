@@ -4692,37 +4692,24 @@ int main(int argc, char* argv[]) {
 			MAPPER_RunInternal();
 		}
 
-
-		/* dispatch a power on event. new code will use this as time to register IO ports.
-		 * At power on hardware emulation is working, the BIOS and DOS kernel are not present.
-		 * Eventually this will displace the older control->StartUp() call. */
-		/* TODO: move down as appropriate */
+		/* The machine just "powered on", and then reset finished */
 		DispatchVMEvent(VM_EVENT_POWERON);
+		DispatchVMEvent(VM_EVENT_RESET_END);
 
-		/* BIOS boot event. This will have more meaning later on in development, when some emulation
-		 * might want to free resources related to BIOS initialization or offer INT 19h hooks, at
-		 * a time in the future when we allow dosbox.conf to describe booting directly to a guest OS
-		 * rather than through the DOS kernel. At this point hardware emulation and the BIOS are
-		 * ready, the DOS kernel is not present. The event is supposed to happen just prior to the
-		 * search for bootable media. */
+		/* Now the BIOS has completed init, and is about to boot the OS from storage. */
 		DispatchVMEvent(VM_EVENT_BIOS_BOOT);
 
-		/* DOS startup. This will have more significance later when we allow dosbox.conf to describe
-		 * scenarios that boot directly into a guest OS rather than through the DOSBox DOS kernel and
-		 * when firing these events is moved into the DOS kernel code. */
-		DispatchVMEvent(VM_EVENT_DOS_BOOT);
-		DispatchVMEvent(VM_EVENT_DOS_INIT_KERNEL_READY);
-		DispatchVMEvent(VM_EVENT_DOS_INIT_CONFIG_SYS_DONE);
+		/* Now we're booting the DOSBox DOS kernel. */
+		DispatchVMEvent(VM_EVENT_DOS_BOOT); // <- just starting the DOS kernel now
+		DispatchVMEvent(VM_EVENT_DOS_INIT_KERNEL_READY); // <- kernel is ready
+		DispatchVMEvent(VM_EVENT_DOS_INIT_CONFIG_SYS_DONE); // <- we just finished executing CONFIG.SYS
 
 		/* start the shell */
 		SHELL_Init();
 
-		/* Then, let the new code know we started the DOS shell (COMMAND.COM).
-		 * These events will have more significance when we break out COMMAND.COM startup process and
-		 * move these calls into the shell emulation. */
-		DispatchVMEvent(VM_EVENT_DOS_INIT_SHELL_READY);
-		DispatchVMEvent(VM_EVENT_DOS_INIT_AUTOEXEC_BAT_DONE);
-		DispatchVMEvent(VM_EVENT_DOS_INIT_AT_PROMPT);
+		DispatchVMEvent(VM_EVENT_DOS_INIT_SHELL_READY); // <- we just finished loading the shell (COMMAND.COM)
+		DispatchVMEvent(VM_EVENT_DOS_INIT_AUTOEXEC_BAT_DONE); // <- we just finished executing AUTOEXEC.BAT
+		DispatchVMEvent(VM_EVENT_DOS_INIT_AT_PROMPT); // <- now, we're at the DOS prompt
 
 		/* main execution. run the DOSBox shell. various exceptions will be thrown. some,
 		 * which have type "int", have special actions. int(2) means to boot a guest OS
@@ -4853,6 +4840,7 @@ int main(int argc, char* argv[]) {
 
 			/* new code: fire event (FIXME: DOSBox's current method of "rebooting" the emulator makes this meaningless!) */
 			DispatchVMEvent(VM_EVENT_RESET);
+			DispatchVMEvent(VM_EVENT_RESET_END);
 
 			/* restart DOSBox (NOTE: Yuck) */
 			restart_program(control->startup_params);
