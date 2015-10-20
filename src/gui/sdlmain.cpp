@@ -4604,6 +4604,7 @@ int main(int argc, char* argv[]) {
 		MAPPER_StartUp();
 		DOSBOX_InitTickLoop();
 		DOSBOX_RealInit();
+		RENDER_Init();
 		CAPTURE_Init();
 		IO_Init();
 		HARDWARE_Init();
@@ -4629,7 +4630,6 @@ int main(int argc, char* argv[]) {
 		PCSPEAKER_Init();
 		TANDYSOUND_Init();
 		MPU401_Init();
-		RENDER_Init();
 		MIXER_Init();
 		MIDI_Init();
 		CPU_Init();
