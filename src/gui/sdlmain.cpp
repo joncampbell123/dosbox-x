@@ -4854,7 +4854,7 @@ int main(int argc, char* argv[]) {
 			/* new code: fire event (FIXME: DOSBox's current method of "rebooting" the emulator makes this meaningless!) */
 			DispatchVMEvent(VM_EVENT_RESET);
 
-			control->startup_params.insert(control->startup_params.begin(),control->cmdline->GetFileName());
+			/* restart DOSBox (NOTE: Yuck) */
 			restart_program(control->startup_params);
 		}
 
