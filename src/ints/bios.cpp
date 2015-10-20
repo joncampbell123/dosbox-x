@@ -3838,36 +3838,37 @@ void BIOS_Destroy(Section* /*sec*/){
 	}
 }
 
-void BIOS_OnReboot(Section* sec) {
-	ISAPNP_SysDevNodeCount = 0;
-	ISAPNP_SysDevNodeLargest = 0;
-	for (int i=0;i < 0x100;i++) ISAPNP_SysDevNodes[i] = NULL;
+// TODO: PowerOn should eventually become code that only creates a ROM BIOS image but does not initialize anything else.
+//       BIOS initialization and data area setup should be done in the VM_EVENT_BIOS_INIT handler instead.
+//       At this time a lot of DOSBox code relies on the VM_EVENT_POWERON handler to do it there.
+//       As you know, BIOSes don't magically have a data area and hardware initialized right at RESET, their code has
+//       to execute first!
+void BIOS_OnPowerOn(Section* sec) {
+	LOG(LOG_MISC,LOG_DEBUG)("BIOS power on");
+
+	ISA_PNP_FreeAllDevs();
+
+	if (test) delete test;
+	test = new BIOS(control->GetSection("joystick"));
 }
 
-void BIOS_OnReset(Section* sec) {
+// this must be FIRST callback for VM_EVENT_BIOS_INIT!
+void BIOS_OnBIOSReinit(Section* sec) {
 	LOG(LOG_MISC,LOG_DEBUG)("Reinitializing BIOS emulation");
-	ISAPNP_SysDevNodeCount = 0;
-	ISAPNP_SysDevNodeLargest = 0;
-	for (int i=0;i < 0x100;i++) ISAPNP_SysDevNodes[i] = NULL;
-
-	if (test == NULL) {
-		LOG(LOG_MISC,LOG_DEBUG)("Allocating BIOS emulation");
-		test = new BIOS(control->GetSection("joystick"));//FIXME: Why?? Also, BIOS object doesn't use the configuration object we pass it anyway
-	}
 }
 
 void BIOS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing BIOS");
 
+	/* make sure the array is zeroed */
+	ISAPNP_SysDevNodeCount = 0;
+	ISAPNP_SysDevNodeLargest = 0;
+	for (int i=0;i < MAX_ISA_PNP_SYSDEVNODES;i++) ISAPNP_SysDevNodes[i] = NULL;
+
+	/* NTS: VM_EVENT_BIOS_INIT this callback must be first. */
 	AddExitFunction(AddExitFunctionFuncPair(BIOS_Destroy),false);
-	// FIXME: Split into power-on handling vs reset handling vs BIOS init event.
-	//        For the BIOS init event, this should call a function that ensures this code is called FIRST
-	//        for the BIOS to setup the data area, then the other callbacks can do their part.
-	//        Also, BIOS init should set up callback instruction so that any situation that would run
-	//        the init code of the BIOS would hit the callback and the BIOS can either proceed to normal
-	//        init or act on the CMOS byte to do the funky 286-ish reset vector functions.
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(BIOS_OnReset));
-	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(BIOS_OnReset));
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(BIOS_OnPowerOn));
+	AddVMEventFunction(VM_EVENT_BIOS_INIT,AddVMEventFunctionFuncPair(BIOS_OnBIOSReinit)); // TODO: Variant of AddVMEventFunction that inserts the event at the head of the list
 }
 
 void write_ID_version_string() {
