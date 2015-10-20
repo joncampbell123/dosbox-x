@@ -781,16 +781,17 @@ const char *VM_EVENT_string[VM_EVENT_MAX] = {
 	"Power On",				// 0
 	"Reset",
 	"Reset Complete",
+	"BIOS Init",
 	"BIOS Boot",
-	"Guest OS Boot",
 
-	"DOS Boot",				// 5
+	"Guest OS Boot",			// 5
+	"DOS Boot",
 	"DOS Init, kernel ready",
 	"DOS Init, CONFIG.SYS done",
 	"DOS Init, shell ready",
-	"DOS Init, AUTOEXEC.BAT done",
 
-	"DOS Init, at promot",			// 10
+	"DOS Init, AUTOEXEC.BAT done",		// 10
+	"DOS Init, at promot",
 	"DOS exit, begin",
 	"DOS exit, kernel exit"
 };

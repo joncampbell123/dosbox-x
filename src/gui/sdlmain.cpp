@@ -4695,6 +4695,7 @@ int main(int argc, char* argv[]) {
 		/* The machine just "powered on", and then reset finished */
 		DispatchVMEvent(VM_EVENT_POWERON);
 		DispatchVMEvent(VM_EVENT_RESET_END);
+		DispatchVMEvent(VM_EVENT_BIOS_INIT);
 
 		/* Now the BIOS has completed init, and is about to boot the OS from storage. */
 		DispatchVMEvent(VM_EVENT_BIOS_BOOT);
