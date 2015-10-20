@@ -198,7 +198,7 @@ bool						emu_paused = false;
 bool						mouselocked = false; //Global variable for mapper
 bool						load_videodrv = true;
 bool						fullscreen_switch = true;
-bool						dos_kernel_disabled = false;
+bool						dos_kernel_disabled = true;
 bool						startup_state_numlock = false; // Global for keyboard initialisation
 bool						startup_state_capslock = false; // Global for keyboard initialisation
 
@@ -4701,6 +4701,7 @@ int main(int argc, char* argv[]) {
 
 		/* Now we're booting the DOSBox DOS kernel. */
 		DispatchVMEvent(VM_EVENT_DOS_BOOT); // <- just starting the DOS kernel now
+		dos_kernel_disabled = false; // FIXME: DOS_Init should install VM callback handler to set this
 		DispatchVMEvent(VM_EVENT_DOS_INIT_KERNEL_READY); // <- kernel is ready
 		DispatchVMEvent(VM_EVENT_DOS_INIT_CONFIG_SYS_DONE); // <- we just finished executing CONFIG.SYS
 
