@@ -433,6 +433,11 @@ MemHandle MEM_GetNextFreePage(void) {
 }
 
 void MEM_ReleasePages(MemHandle handle) {
+	if (memory.mhandles == NULL) {
+		LOG(LOG_MISC,LOG_WARN)("MEM_ReleasePages() called when mhandles==NULL, nothing to release");
+		return;
+	}
+
 	while (handle>0) {
 		MemHandle next=memory.mhandles[handle];
 		memory.mhandles[handle]=0;
