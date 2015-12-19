@@ -3849,8 +3849,6 @@ void BIOS_Destroy(Section* /*sec*/){
 void BIOS_OnPowerOn(Section* sec) {
 	LOG(LOG_MISC,LOG_DEBUG)("BIOS power on");
 
-	ISA_PNP_FreeAllDevs();
-
 	if (test) delete test;
 	test = new BIOS(control->GetSection("joystick"));
 }
