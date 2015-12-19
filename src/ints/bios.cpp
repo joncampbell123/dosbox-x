@@ -606,8 +606,8 @@ public:
 };
 
 static ISAPNP_SysDevNode*	ISAPNP_SysDevNodes[MAX_ISA_PNP_SYSDEVNODES] = {NULL};
-static Bitu			ISAPNP_SysDevNodeCount=0;
 static Bitu			ISAPNP_SysDevNodeLargest=0;
+static Bitu			ISAPNP_SysDevNodeCount=0;
 
 void ISA_PNP_FreeAllDevs() {
 	Bitu i;
@@ -622,6 +622,9 @@ void ISA_PNP_FreeAllDevs() {
 		if (ISAPNP_SysDevNodes[i] != NULL) delete ISAPNP_SysDevNodes[i];
 		ISAPNP_SysDevNodes[i] = NULL;
 	}
+
+	ISAPNP_SysDevNodeLargest=0;
+	ISAPNP_SysDevNodeCount=0;
 }
 
 void ISA_PNP_devreg(ISAPnPDevice *x) {
