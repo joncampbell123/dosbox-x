@@ -3192,6 +3192,9 @@ private:
 	static Bitu cb_bios_post__func(void) {
 		if (cpu.pmode) E_Exit("BIOS error: POST function called while in protected/vm86 mode");
 
+		/* we need A20 enabled for BIOS boot-up */
+		MEM_A20_Enable(true);
+
 		adapter_scan_start = 0xC0000;
 		bios_has_exec_vga_bios = false;
 		LOG(LOG_MISC,LOG_DEBUG)("BIOS: executing POST routine");
@@ -3513,6 +3516,13 @@ private:
 	}
 	CALLBACK_HandlerObject cb_bios_boot;
 	static Bitu cb_bios_boot__func(void) {
+		/* Reset/power-on overrides the user's A20 gate preferences.
+		 * It's time to revert back to what the user wants. */
+		void A20Gate_TakeUserSetting(Section *sec);
+		void MEM_A20_Enable(bool enabled);
+		A20Gate_TakeUserSetting(NULL);
+		MEM_A20_Enable(false);
+
 		if (cpu.pmode) E_Exit("BIOS error: BOOT function called while in protected/vm86 mode");
 		DispatchVMEvent(VM_EVENT_BIOS_BOOT);
 
