@@ -3108,6 +3108,45 @@ bool AdapterROM_Read(Bitu address,unsigned long *size) {
 }
 
 #include "src/gui/dosbox.vga16.bmp.h"
+#include "src/gui/dosbox.cga640.bmp.h"
+
+void DrawDOSBoxLogoCGA6(unsigned int x,unsigned int y) {
+	unsigned char *s = dosbox_cga640_bmp;
+	unsigned char *sf = s + sizeof(dosbox_cga640_bmp);
+	uint32_t width,height;
+	unsigned int dx,dy;
+	uint32_t vram;
+	uint32_t off;
+	uint32_t sz;
+
+	if (memcmp(s,"BM",2)) return;
+	sz = host_readd(s+2); // size of total bitmap
+	off = host_readd(s+10); // offset of bitmap
+	if ((s+sz) > sf) return;
+	if ((s+14+40) > sf) return;
+
+	sz = host_readd(s+34); // biSize
+	if ((s+off+sz) > sf) return;
+	if (host_readw(s+26) != 1) return; // biBitPlanes
+	if (host_readw(s+28) != 1)  return; // biBitCount
+
+	width = host_readd(s+18);
+	height = host_readd(s+22);
+	if (width > (640-x) || height > (200-y)) return;
+
+	LOG(LOG_MISC,LOG_DEBUG)("Drawing CGA logo (%u x %u)",(int)width,(int)height);
+	for (dy=0;dy < height;dy++) {
+		vram  = ((y+dy) >> 1) * 80;
+		vram += ((y+dy) & 1) * 0x2000;
+		vram += (x / 8);
+		s = dosbox_cga640_bmp + off + ((height-(dy+1))*((width+7)/8));
+		for (dx=0;dx < width;dx += 8) {
+			mem_writeb(0xB8000+vram,*s);
+			vram++;
+			s++;
+		}
+	}
+}
 
 void DrawDOSBoxLogoVGA(unsigned int x,unsigned int y) {
 	unsigned char *s = dosbox_vga16_bmp;
@@ -3331,6 +3370,13 @@ private:
 			IO_Write(0x3C0,0x20);
 
 			DrawDOSBoxLogoVGA(logo_x*8,logo_y*rowheight);
+		}
+		else if (machine == MCH_CGA || machine == MCH_PCJR || machine == MCH_AMSTRAD || machine == MCH_TANDY) {
+			rowheight = 8;
+			reg_eax = 6;		// 640x200 2-color
+			CALLBACK_RunRealInt(0x10);
+
+			DrawDOSBoxLogoCGA6(logo_x*8,logo_y*rowheight);
 		}
 		else {
 			reg_eax = 3;		// 80x25 text
