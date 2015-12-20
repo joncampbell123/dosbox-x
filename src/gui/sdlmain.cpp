@@ -87,6 +87,7 @@
 extern bool keep_umb_on_boot;
 extern bool keep_private_area_on_boot;
 extern bool dos_kernel_disabled;
+bool guest_machine_power_on = false;
 
 std::string custom_savedir;
 
@@ -4268,6 +4269,18 @@ void Windows_DPI_Awareness_Init() {
 }
 #endif
 
+bool VM_PowerOn() {
+	if (!guest_machine_power_on) {
+		// powering on means power on event, followed by reset assert, then reset deassert
+		guest_machine_power_on = true;
+		DispatchVMEvent(VM_EVENT_POWERON);
+		DispatchVMEvent(VM_EVENT_RESET);
+		DispatchVMEvent(VM_EVENT_RESET_END);
+	}
+
+	return true;
+}
+
 //extern void UI_Init(void);
 int main(int argc, char* argv[]) {
 	CommandLine com_line(argc,argv);
@@ -4693,11 +4706,10 @@ int main(int argc, char* argv[]) {
 		}
 
 		/* The machine just "powered on", and then reset finished */
-		DispatchVMEvent(VM_EVENT_POWERON);
-		DispatchVMEvent(VM_EVENT_RESET_END);
-		DispatchVMEvent(VM_EVENT_BIOS_INIT);
+		if (!VM_PowerOn()) E_Exit("VM failed to power on");
 
 		/* Now the BIOS has completed init, and is about to boot the OS from storage. */
+		DispatchVMEvent(VM_EVENT_BIOS_INIT);
 		DispatchVMEvent(VM_EVENT_BIOS_BOOT);
 
 		/* Now we're booting the DOSBox DOS kernel. */

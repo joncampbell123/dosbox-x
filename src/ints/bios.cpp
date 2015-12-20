@@ -3939,6 +3939,24 @@ void ROMBIOS_Init() {
 
 	if (!MEM_map_ROM_physmem(rombios_minimum_location,0xFFFFF)) E_Exit("Unable to map ROM region as ROM");
 
+	/* and the BIOS alias at the top of memory (TODO: what about 486/Pentium emulation where the BIOS at the 4GB top is different
+	 * from the BIOS at the legacy 1MB boundary because of shadowing and/or decompressing from ROM at boot? */
+	{
+		bool MEM_map_ROM_alias_physmem(Bitu start,Bitu end);
+		Bit32u MEM_get_address_bits();
+
+		uint64_t top = (uint64_t)1UL << (uint64_t)MEM_get_address_bits();
+		if (top >= ((uint64_t)1UL << (uint64_t)21UL)) { /* 2MB or more */
+			unsigned long alias_base,alias_end;
+
+			alias_base = (unsigned long)top + (unsigned long)rombios_minimum_location - (unsigned long)0x100000UL;
+			alias_end = (unsigned long)top - (unsigned long)1UL;
+
+			LOG(LOG_BIOS,LOG_DEBUG)("ROM BIOS also mapping alias to 0x%08lx-0x%08lx",alias_base,alias_end);
+			if (!MEM_map_ROM_alias_physmem(alias_base,alias_end)) E_Exit("Unable to map ROM region as ROM alias");
+		}
+	}
+
 	/* set up allocation */
 	{
 		ROMBIOS_block x;

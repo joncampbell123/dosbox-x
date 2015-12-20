@@ -3068,11 +3068,38 @@ void CPU_ShutDown(Section* sec) {
 	delete test;
 }
 
+void CPU_OnReset(Section* sec) {
+	LOG(LOG_CPU,LOG_DEBUG)("CPU reset");
+
+	CPU_Snap_Back_To_Real_Mode();
+	CPU_Snap_Back_Forget();
+
+	Segs.limit[cs]=0xFFFF;
+	Segs.expanddown[cs]=false;
+	if (CPU_ArchitectureType >= CPU_ARCHTYPE_386) {
+		/* 386 and later start at F000:FFF0 with CS base set to FFFF0000 (really?) */
+		SegSet16(cs,0xF000);
+		reg_eip=0xFFF0;
+		Segs.phys[cs]=0xFFFF0000;
+	}
+	else if (CPU_ArchitectureType >= CPU_ARCHTYPE_286) {
+		/* 286 start at F000:FFF0 (FFFF0) */
+		SegSet16(cs,0xF000);
+		reg_eip=0xFFF0;
+	}
+	else {
+		/* 8086 start at FFFF:0000 (FFFF0) */
+		SegSet16(cs,0xFFFF);
+		reg_eip=0x0000;
+	}
+}
+
 void CPU_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing CPU");
 
 	test = new CPU(control->GetSection("cpu"));
 	AddExitFunction(AddExitFunctionFuncPair(CPU_ShutDown),true);
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(CPU_OnReset));
 }
 //initialize static members
 bool CPU::inited=false;

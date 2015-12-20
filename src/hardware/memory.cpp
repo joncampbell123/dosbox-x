@@ -51,10 +51,8 @@ extern bool VIDEO_BIOS_always_carry_14_high_font;
 extern bool VIDEO_BIOS_always_carry_16_high_font;
 
 #define PAGES_IN_BLOCK	((1024*1024)/MEM_PAGE_SIZE)
-#define SAFE_MEMORY	32
-#define MAX_MEMORY	512
-#define MAX_PAGE_ENTRIES (MAX_MEMORY*1024*1024/4096)
-#define LFB_PAGES	512
+#define MAX_MEMORY	4096
+#define MAX_PAGE_ENTRIES (MAX_MEMORY*256)
 #define MAX_LINKS	((MAX_MEMORY*1024/4)+4096)		//Hopefully enough
 
 /* if set: mainline DOSBox behavior where adapter ROM (0xA0000-0xFFFFF) except for
@@ -71,7 +69,7 @@ struct LinkBlock {
 };
 
 static struct MemoryBlock {
-	MemoryBlock() : pages(0), handler_pages(0), reported_pages(0), phandlers(NULL), mhandles(NULL), mem_alias_pagemask(0), address_bits(0) { }
+	MemoryBlock() : pages(0), handler_pages(0), reported_pages(0), phandlers(NULL), mhandles(NULL), mem_alias_pagemask(0), mem_alias_pagemask_active(0), address_bits(0) { }
 
 	Bitu pages;
 	Bitu handler_pages;
@@ -91,8 +89,13 @@ static struct MemoryBlock {
 		Bit8u controlport;
 	} a20;
 	Bit32u mem_alias_pagemask;
+	Bit32u mem_alias_pagemask_active;
 	Bit32u address_bits;
 } memory;
+
+Bit32u MEM_get_address_bits() {
+	return memory.address_bits;
+}
 
 HostPt MemBase = NULL;
 
@@ -152,10 +155,23 @@ public:
 		flags=PFLAG_READABLE|PFLAG_WRITEABLE;
 	}
 	HostPt GetHostReadPt(Bitu phys_page) {
-		return MemBase+(phys_page&memory.mem_alias_pagemask)*MEM_PAGESIZE;
+		return MemBase+(phys_page&memory.mem_alias_pagemask_active)*MEM_PAGESIZE;
 	}
 	HostPt GetHostWritePt(Bitu phys_page) {
-		return MemBase+(phys_page&memory.mem_alias_pagemask)*MEM_PAGESIZE;
+		return MemBase+(phys_page&memory.mem_alias_pagemask_active)*MEM_PAGESIZE;
+	}
+};
+
+class ROMAliasPageHandler : public PageHandler {
+public:
+	ROMAliasPageHandler() {
+		flags=PFLAG_READABLE|PFLAG_HASROM;
+	}
+	HostPt GetHostReadPt(Bitu phys_page) {
+		return MemBase+((phys_page&0xF)+0xF0)*MEM_PAGESIZE;
+	}
+	HostPt GetHostWritePt(Bitu phys_page) {
+		return MemBase+((phys_page&0xF)+0xF0)*MEM_PAGESIZE;
 	}
 };
 
@@ -182,6 +198,7 @@ static IllegalPageHandler illegal_page_handler;
 static RAMAliasPageHandler ram_alias_page_handler;
 static RAMPageHandler ram_page_handler;
 static ROMPageHandler rom_page_handler;
+static ROMAliasPageHandler rom_page_alias_handler;
 
 void MEM_SetLFB(Bitu page, Bitu pages, PageHandler *handler, PageHandler *mmiohandler) {
 	memory.lfb.handler=handler;
@@ -192,17 +209,18 @@ void MEM_SetLFB(Bitu page, Bitu pages, PageHandler *handler, PageHandler *mmioha
 	PAGING_ClearTLB();
 }
 
+/* TODO: at some point, the VGA card's linear framebuffer needs to register memory callbacks instead of special case code here */
 PageHandler * MEM_GetPageHandler(Bitu phys_page) {
-	phys_page &= memory.mem_alias_pagemask;
-	if (phys_page<memory.pages) {
-		return memory.phandlers[phys_page];
-	} else if ((phys_page>=memory.lfb.start_page) && (phys_page<memory.lfb.end_page)) {
+	phys_page &= memory.mem_alias_pagemask_active;
+	if ((phys_page>=memory.lfb.start_page) && (phys_page<memory.lfb.end_page)) {
 		return memory.lfb.handler;
 	} else if ((phys_page>=memory.lfb.start_page+0x01000000/4096) &&
 		(phys_page<memory.lfb.start_page+0x01000000/4096+16)) {
 		return memory.lfb.mmiohandler;
 	} else if (VOODOO_PCI_CheckLFBPage(phys_page)) {
 		return VOODOO_GetPageHandler();
+	} else if (phys_page<memory.handler_pages) {
+		return memory.phandlers[phys_page];
 	}
 	return &illegal_page_handler;
 }
@@ -216,7 +234,7 @@ void MEM_SetPageHandler(Bitu phys_page,Bitu pages,PageHandler * handler) {
 
 void MEM_ResetPageHandler_RAM(Bitu phys_page, Bitu pages) {
 	PageHandler *ram_ptr =
-		(memory.mem_alias_pagemask == (Bit32u)(~0UL) && !a20_full_masking)
+		(memory.mem_alias_pagemask_active == (Bit32u)(~0UL) && !a20_full_masking)
 		? (PageHandler*)(&ram_page_handler) /* no aliasing */
 		: (PageHandler*)(&ram_alias_page_handler); /* aliasing */
 	for (;pages>0;pages--) {
@@ -550,8 +568,8 @@ void MEM_A20_Enable(bool enabled) {
 		for (Bitu i=0;i<16;i++) PAGING_MapPage((1024/4)+i,phys_base+i);
 	}
 	else if (!a20_fake_changeable) {
-		if (memory.a20.enabled) memory.mem_alias_pagemask |= 0x100;
-		else memory.mem_alias_pagemask &= ~0x100;
+		if (memory.a20.enabled) memory.mem_alias_pagemask_active |= 0x100;
+		else memory.mem_alias_pagemask_active &= ~0x100;
 		PAGING_ClearTLB();
 	}
 }
@@ -841,6 +859,10 @@ bool MEM_unmap_physmem(Bitu start,Bitu end) {
 		LOG_MSG("WARNING: unmap_physmem() end not page aligned.\n");
 	start >>= 12; end >>= 12;
 
+	if (start >= memory.handler_pages || end >= memory.handler_pages)
+		E_Exit("%s: attempt to map pages beyond handler page limit (0x%lx-0x%lx >= 0x%lx)",
+			__FUNCTION__,(unsigned long)start,(unsigned long)end,(unsigned long)memory.handler_pages);
+
 	for (p=start;p <= end;p++)
 		memory.phandlers[p] = &unmapped_page_handler;
 
@@ -851,7 +873,7 @@ bool MEM_unmap_physmem(Bitu start,Bitu end) {
 bool MEM_map_RAM_physmem(Bitu start,Bitu end) {
 	Bitu p;
 	PageHandler *ram_ptr =
-		(memory.mem_alias_pagemask == (Bit32u)(~0UL) && !a20_full_masking)
+		(memory.mem_alias_pagemask_active == (Bit32u)(~0UL) && !a20_full_masking)
 		? (PageHandler*)(&ram_page_handler) /* no aliasing */
 		: (PageHandler*)(&ram_alias_page_handler); /* aliasing */
 
@@ -860,6 +882,10 @@ bool MEM_map_RAM_physmem(Bitu start,Bitu end) {
 	if ((end & 0xFFF) != 0xFFF)
 		LOG_MSG("WARNING: unmap_physmem() end not page aligned.\n");
 	start >>= 12; end >>= 12;
+
+	if (start >= memory.handler_pages || end >= memory.handler_pages)
+		E_Exit("%s: attempt to map pages beyond handler page limit (0x%lx-0x%lx >= 0x%lx)",
+			__FUNCTION__,(unsigned long)start,(unsigned long)end,(unsigned long)memory.handler_pages);
 
 	for (p=start;p <= end;p++) {
 		if (memory.phandlers[p] != &illegal_page_handler && memory.phandlers[p] != &unmapped_page_handler)
@@ -882,6 +908,10 @@ bool MEM_map_ROM_physmem(Bitu start,Bitu end) {
 		LOG_MSG("WARNING: unmap_physmem() end not page aligned.\n");
 	start >>= 12; end >>= 12;
 
+	if (start >= memory.handler_pages || end >= memory.handler_pages)
+		E_Exit("%s: attempt to map pages beyond handler page limit (0x%lx-0x%lx >= 0x%lx)",
+			__FUNCTION__,(unsigned long)start,(unsigned long)end,(unsigned long)memory.handler_pages);
+
 	for (p=start;p <= end;p++) {
 		if (memory.phandlers[p] != &illegal_page_handler && memory.phandlers[p] != &unmapped_page_handler)
 			return false;
@@ -889,6 +919,31 @@ bool MEM_map_ROM_physmem(Bitu start,Bitu end) {
 
 	for (p=start;p <= end;p++)
 		memory.phandlers[p] = &rom_page_handler;
+
+	PAGING_ClearTLB();
+	return true;
+}
+
+bool MEM_map_ROM_alias_physmem(Bitu start,Bitu end) {
+	Bitu p;
+
+	if (start & 0xFFF)
+		LOG_MSG("WARNING: unmap_physmem() start not page aligned.\n");
+	if ((end & 0xFFF) != 0xFFF)
+		LOG_MSG("WARNING: unmap_physmem() end not page aligned.\n");
+	start >>= 12; end >>= 12;
+
+	if (start >= memory.handler_pages || end >= memory.handler_pages)
+		E_Exit("%s: attempt to map pages beyond handler page limit (0x%lx-0x%lx >= 0x%lx)",
+			__FUNCTION__,(unsigned long)start,(unsigned long)end,(unsigned long)memory.handler_pages);
+
+	for (p=start;p <= end;p++) {
+		if (memory.phandlers[p] != &illegal_page_handler && memory.phandlers[p] != &unmapped_page_handler)
+			return false;
+	}
+
+	for (p=start;p <= end;p++)
+		memory.phandlers[p] = &rom_page_alias_handler;
 
 	PAGING_ClearTLB();
 	return true;
@@ -1035,8 +1090,9 @@ void Init_AddressLimitAndGateMask() {
 	if ((memory.mem_alias_pagemask & 0xFF) != 0xFF) E_Exit("alias pagemask < 1MB");
 
 	/* update alias pagemask according to A20 gate */
+	memory.mem_alias_pagemask_active = memory.mem_alias_pagemask;
 	if (a20_fake_changeable && a20_full_masking && !memory.a20.enabled)
-		memory.mem_alias_pagemask &= ~0x100;
+		memory.mem_alias_pagemask_active &= ~0x100;
 
 	/* log */
 	LOG(LOG_MISC,LOG_DEBUG)("Memory: address_bits=%u alias_pagemask=%lx",(unsigned int)memory.address_bits,(unsigned long)memory.mem_alias_pagemask);
@@ -1089,11 +1145,6 @@ void Init_RAM() {
 		memsize = MAX_MEMORY-1;
 		memsizekb = 0;
 	}
-	if ((memsize+(memsizekb/1024)) > SAFE_MEMORY-1) {
-		LOG_MSG("Memory sizes above %d MB are NOT recommended.",SAFE_MEMORY - 1);
-		if ((memsize+(memsizekb/1024)) > 200) LOG_MSG("Memory sizes above 200 MB are too big for saving/loading states.");
-		LOG_MSG("Stick with the default values unless you are absolutely certain.");
-	}
 	memory.reported_pages = memory.pages =
 		((memsize*1024*1024) + (memsizekb*1024))/4096;
 
@@ -1105,9 +1156,10 @@ void Init_RAM() {
 		memory.pages = ((1024*1024)/4096);
 
 	// DEBUG message (FIXME: later convert to LOG(LOG_MISC,LOG_DEBUG)
-	LOG_MSG("Memory: %u pages of RAM, %u reported to OS, %u pages of memory handlers",
+	LOG_MSG("Memory: %u pages of RAM, %u reported to OS, %u (0x%x) pages of memory handlers",
 			(unsigned int)memory.pages,
 			(unsigned int)memory.reported_pages,
+			(unsigned int)memory.handler_pages,
 			(unsigned int)memory.handler_pages);
 
 	// sanity check!
@@ -1136,7 +1188,7 @@ void Init_RAM() {
 	assert(memory.reported_pages <= memory.handler_pages);
 
 	PageHandler *ram_ptr =
-		(memory.mem_alias_pagemask == (Bit32u)(~0UL) && !a20_full_masking)
+		(memory.mem_alias_pagemask_active == (Bit32u)(~0UL) && !a20_full_masking)
 		? (PageHandler*)(&ram_page_handler) /* no aliasing */
 		: (PageHandler*)(&ram_alias_page_handler); /* aliasing */
 
