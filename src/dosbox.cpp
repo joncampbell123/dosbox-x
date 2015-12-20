@@ -2024,11 +2024,9 @@ void DOSBOX_SetupConfigSections(void) {
 
 	/* bugfix for Yodel "mayday" demo */
 	/* TODO: Set this option to default to "true" if it turns out most BIOSes unmask the IRQ during INT 15h AH=86 WAIT */
-	Pbool = secprop->Add_bool("int15 wait force unmask irq",Property::Changeable::OnlyAtStart,false);
-	Pbool->Set_help("Set to true for misbehaving DOS programs or demos that use INT 15h AH=86 (WAIT).\n"
-			"If the demo hangs at this call, one likely cause is that IRQ 2 and/or IRQ 8 was masked\n"
-			"at the time of the call. Set this option to make INT 15h emulation forcibly unmask the\n"
-			"IRQ to allow the call to work properly.");
+	Pbool = secprop->Add_bool("int15 wait force unmask irq",Property::Changeable::OnlyAtStart,true);
+	Pbool->Set_help("Some demos or games mistakingly use INT 15h AH=0x86 (WAIT) while leaving the IRQs needed for it masked.\n"
+			"If this option is set (by default), the necessary IRQs will be unmasked when INT 15 AH=0x86 is used so that the game or demo does not hang.");
 
 	Pbool = secprop->Add_bool("int15 mouse callback does not preserve registers",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("Set to true if the guest OS or DOS program assigns an INT 15h mouse callback,\n"
