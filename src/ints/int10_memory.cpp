@@ -126,6 +126,10 @@ void INT10_SetupRomMemory(void) {
 	int10.rom.used=3;
 	if (IS_EGAVGA_ARCH) {
 		// set up the start of the ROM
+		// FIXME: This needs to emit some sort of valid code at rom_base+3 that,
+		//        when a BIOS or OS does a FAR CALL to it, does something then returns
+		//        via RETF. Right now, if a BIOS were to CALL the entry point the CPU
+		//        would run off into the weeds executing a lot of 0x00 bytes and junk.
 		phys_writew(rom_base+0,0xaa55);
 		phys_writeb(rom_base+2,VGA_BIOS_Size >> 9);
 		if (IS_VGA_ARCH) phys_writes(rom_base+0x1e, "IBM compatible VGA BIOS", 24);
