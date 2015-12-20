@@ -3080,6 +3080,111 @@ void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages);
 
 unsigned int dos_conventional_limit = 0;
 
+bool AdapterROM_Read(Bitu address,unsigned long *size) {
+	unsigned char chksum=0;
+	unsigned char c[3];
+	unsigned int i;
+
+	if ((address & 0x1FF) != 0) {
+		LOG(LOG_MISC,LOG_DEBUG)("AdapterROM_Read: Caller attempted ROM scan not aligned to 512-byte boundary");
+		return false;
+	}
+
+	for (i=0;i < 3;i++)
+		c[i] = phys_readb(address+i);
+
+	if (c[0] == 0x55 && c[1] == 0xAA) {
+		*size = (unsigned long)c[2] * 512UL;
+		for (i=0;i < (unsigned int)(*size);i++) chksum += phys_readb(address+i);
+		if (chksum != 0) {
+			LOG(LOG_MISC,LOG_WARN)("AdapterROM_Read: Found ROM at 0x%lx but checksum failed\n",(unsigned long)address);
+			return false;
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+#include "src/gui/dosbox.vga16.bmp.h"
+
+void DrawDOSBoxLogoVGA(unsigned int x,unsigned int y) {
+	unsigned char *s = dosbox_vga16_bmp;
+	unsigned char *sf = s + sizeof(dosbox_vga16_bmp);
+	unsigned int bit,dx,dy;
+	uint32_t width,height;
+	uint32_t vram;
+	uint32_t off;
+	uint32_t sz;
+
+	if (memcmp(s,"BM",2)) return;
+	sz = host_readd(s+2); // size of total bitmap
+	off = host_readd(s+10); // offset of bitmap
+	if ((s+sz) > sf) return;
+	if ((s+14+40) > sf) return;
+
+	sz = host_readd(s+34); // biSize
+	if ((s+off+sz) > sf) return;
+	if (host_readw(s+26) != 1) return; // biBitPlanes
+	if (host_readw(s+28) != 4)  return; // biBitCount
+
+	width = host_readd(s+18);
+	height = host_readd(s+22);
+	if (width > (640-x) || height > (350-y)) return;
+
+	// EGA/VGA Write Mode 2
+	LOG(LOG_MISC,LOG_DEBUG)("Drawing VGA logo (%u x %u)",(int)width,(int)height);
+	IO_Write(0x3CE,0x05); // graphics mode
+	IO_Write(0x3CF,0x02); // read=0 write=2 odd/even=0 shift=0 shift256=0
+	IO_Write(0x3CE,0x03); // data rotate
+	IO_Write(0x3CE,0x00); // no rotate, no XOP
+	for (bit=0;bit < 8;bit++) {
+		const unsigned char shf = ((bit & 1) ^ 1) * 4;
+
+		IO_Write(0x3CE,0x08); // bit mask
+		IO_Write(0x3CF,0x80 >> bit);
+
+		for (dy=0;dy < height;dy++) {
+			vram = ((y+dy) * 80) + (x / 8);
+			s = dosbox_vga16_bmp + off + (bit/2) + ((height-(dy+1))*((width+1)/2));
+			for (dx=bit;dx < width;dx += 8) {
+				mem_readb(0xA0000+vram); // load VGA latches
+				mem_writeb(0xA0000+vram,(*s >> shf) & 0xF);
+				vram++;
+				s += 4;
+			}
+		}
+	}
+	// restore write mode 0
+	IO_Write(0x3CE,0x05); // graphics mode
+	IO_Write(0x3CF,0x00); // read=0 write=0 odd/even=0 shift=0 shift256=0
+	IO_Write(0x3CE,0x08); // bit mask
+	IO_Write(0x3CF,0xFF);
+}
+
+static void BIOS_Int10RightJustifiedPrint(const int x,int &y,const char *msg) {
+	const char *s = msg;
+	while (*s != 0) {
+		if (*s == '\n') {
+			y++;
+			reg_eax = 0x0200;	// set cursor pos
+			reg_ebx = 0;		// page zero
+			reg_dh = y;		// row 4
+			reg_dl = x;		// column 20
+			CALLBACK_RunRealInt(0x10);
+			s++;
+		}
+		else {
+			reg_eax = 0x0E00 | ((unsigned char)(*s++));
+			reg_ebx = 0x07;
+			CALLBACK_RunRealInt(0x10);
+		}
+	}
+}
+
+static bool bios_has_exec_vga_bios=false;
+static Bitu adapter_scan_start;
 class BIOS:public Module_base{
 private:
 	CALLBACK_HandlerObject callback[16]; /* <- fixme: this is stupid. just declare one per interrupt. */
@@ -3087,24 +3192,287 @@ private:
 	static Bitu cb_bios_post__func(void) {
 		if (cpu.pmode) E_Exit("BIOS error: POST function called while in protected/vm86 mode");
 
+		adapter_scan_start = 0xC0000;
+		bios_has_exec_vga_bios = false;
+		LOG(LOG_MISC,LOG_DEBUG)("BIOS: executing POST routine");
 		DispatchVMEvent(VM_EVENT_BIOS_INIT);
+
+		// TODO: Anything we can test in the CPU here?
+
+		// initialize registers
+		SegSet16(ds,0x0000);
+		SegSet16(es,0x0000);
+		SegSet16(fs,0x0000);
+		SegSet16(gs,0x0000);
+		SegSet16(ss,0x0000);
+		reg_esp = 0x7FFC;
+		reg_ebp = 0;
+
 		return CBRET_NONE;
 	}
 	CALLBACK_HandlerObject cb_bios_scan_video_bios;
 	static Bitu cb_bios_scan_video_bios__func(void) {
+		unsigned long size;
+		Bit32u c1;
+
 		if (cpu.pmode) E_Exit("BIOS error: VIDEO BIOS SCAN function called while in protected/vm86 mode");
+
+		if (!bios_has_exec_vga_bios) {
+			bios_has_exec_vga_bios = true;
+			if (IS_EGAVGA_ARCH) {
+				/* make sure VGA BIOS is there at 0xC000:0x0000 */
+				if (AdapterROM_Read(0xC0000,&size)) {
+					LOG(LOG_MISC,LOG_DEBUG)("BIOS VIDEO ROM SCAN found VGA BIOS (size=%lu)",size);
+					adapter_scan_start = 0xC0000 + size;
+
+					/* HACK: DOSbox's current VGA BIOS emulation doesn't have a valid entry point at C000:0003
+					 *       where a normal VGA BIOS (like Bochs' VGA BIOS) would have code or at least a JMP
+					 *       instruction there to make a valid entry point. Fortunately, we can detect this
+					 *       by whether or not the bytes there are zeros. */
+					c1 = phys_readd(0xC0003);
+					if (c1 != 0UL) {
+						LOG(LOG_MISC,LOG_DEBUG)("Running VGA BIOS entry point");
+
+						// step back into the callback instruction that triggered this call
+						reg_eip -= 4;
+
+						// FAR CALL into the VGA BIOS
+						CPU_CALL(false,0xC000,0x0003,reg_eip);
+						return CBRET_NONE;
+					}
+					else {
+						LOG(LOG_MISC,LOG_DEBUG)("FIXME: VGA BIOS does not have valid code at ROM BIOS entry point (bytes are all zeros at C000:0003). Not executing entry point.");
+					}
+				}
+				else {
+					LOG(LOG_MISC,LOG_WARN)("BIOS VIDEO ROM SCAN did not find VGA BIOS");
+				}
+			}
+			else {
+				// CGA, MDA, Tandy, PCjr. No video BIOS to scan for
+			}
+		}
 
 		return CBRET_NONE;
 	}
 	CALLBACK_HandlerObject cb_bios_adapter_rom_scan;
 	static Bitu cb_bios_adapter_rom_scan__func(void) {
+		unsigned long size;
+		Bit32u c1;
+
 		if (cpu.pmode) E_Exit("BIOS error: ADAPTER ROM function called while in protected/vm86 mode");
 
+		while (adapter_scan_start < 0xF0000) {
+			if (AdapterROM_Read(adapter_scan_start,&size)) {
+				Bit16u segm = (Bit16u)(adapter_scan_start >> 4);
+
+				LOG(LOG_MISC,LOG_DEBUG)("BIOS ADAPTER ROM scan found ROM at 0x%lx (size=%lu)",(unsigned long)adapter_scan_start,size);
+
+				c1 = phys_readd(adapter_scan_start+3);
+				adapter_scan_start += size;
+				if (c1 != 0UL) {
+					LOG(LOG_MISC,LOG_DEBUG)("Running ADAPTER ROM entry point");
+
+					// step back into the callback instruction that triggered this call
+					reg_eip -= 4;
+
+					// FAR CALL into the VGA BIOS
+					CPU_CALL(false,segm,0x0003,reg_eip);
+					return CBRET_NONE;
+				}
+				else {
+					LOG(LOG_MISC,LOG_DEBUG)("FIXME: ADAPTER ROM entry point does not exist");
+				}
+			}
+			else {
+				if (IS_EGAVGA_ARCH) // supposedly newer systems only scan on 2KB boundaries by standard? right?
+					adapter_scan_start += 2048UL;
+				else // while older PC/XT systems scanned on 512-byte boundaries? right?
+					adapter_scan_start += 512UL;
+			}
+		}
+
+		LOG(LOG_MISC,LOG_DEBUG)("BIOS ADAPTER ROM scan complete");
 		return CBRET_NONE;
 	}
 	CALLBACK_HandlerObject cb_bios_startup_screen;
 	static Bitu cb_bios_startup_screen__func(void) {
+		const char *msg = PACKAGE_STRING " (C) 2002-2015 The DOSBox Team\nA fork of DOSBox 0.74 by TheGreatCodeholio\nFor more info visit http://dosbox-x.com\nBased on DOSBox (http://dosbox.com)\n\n";
+		int logo_x,logo_y,x,y,rowheight=8;
+
+		y = 2;
+		x = 2;
+		logo_y = 2;
+		logo_x = 80 - 2 - (224/8);
+
 		if (cpu.pmode) E_Exit("BIOS error: STARTUP function called while in protected/vm86 mode");
+
+		// TODO: For those who would rather not use the VGA graphical modes, add a configuration option to "disable graphical splash".
+		//       We would then revert to a plain text copyright and status message here (and maybe an ASCII art version of the DOSBox logo).
+		if (IS_VGA_ARCH) {
+			rowheight = 16;
+			reg_eax = 18;		// 640x480 16-color
+			CALLBACK_RunRealInt(0x10);
+			DrawDOSBoxLogoVGA(logo_x*8,logo_y*rowheight);
+		}
+		else if (machine == MCH_EGA) {
+			rowheight = 14;
+			reg_eax = 16;		// 640x350 16-color
+			CALLBACK_RunRealInt(0x10);
+
+			// color correction: change Dark Puke Green to brown
+			IO_Read(0x3DA); IO_Read(0x3BA);
+			IO_Write(0x3C0,0x06);
+			IO_Write(0x3C0,0x14); // red=1 green=1 blue=0
+			IO_Read(0x3DA); IO_Read(0x3BA);
+			IO_Write(0x3C0,0x20);
+
+			DrawDOSBoxLogoVGA(logo_x*8,logo_y*rowheight);
+		}
+		else {
+			reg_eax = 3;		// 80x25 text
+			CALLBACK_RunRealInt(0x10);
+
+			// TODO: For CGA, PCjr, and Tandy, we could render a 4-color CGA version of the same logo.
+			//       And for MDA/Hercules, we could render a monochromatic ASCII art version.
+		}
+
+		{
+			reg_eax = 0x0200;	// set cursor pos
+			reg_ebx = 0;		// page zero
+			reg_dh = y;		// row 4
+			reg_dl = x;		// column 20
+			CALLBACK_RunRealInt(0x10);
+		}
+
+		BIOS_Int10RightJustifiedPrint(x,y,msg);
+
+		{
+			uint64_t sz = (uint64_t)MEM_TotalPages() * (uint64_t)4096;
+			char tmp[512];
+
+			if (sz >= ((uint64_t)128 << (uint64_t)20))
+				sprintf(tmp,"%uMB memory installed\r\n",(unsigned int)(sz >> (uint64_t)20));
+			else
+				sprintf(tmp,"%uKB memory installed\r\n",(unsigned int)(sz >> (uint64_t)10));
+
+			BIOS_Int10RightJustifiedPrint(x,y,tmp);
+		}
+
+		{
+			char tmp[512];
+			const char *card = "?";
+
+			switch (machine) {
+				case MCH_CGA:
+					card = "IBM Color Graphics Adapter";
+					break;
+				case MCH_HERC:
+					card = "IBM Monochrome Display Adapter (Hercules)";
+					break;
+				case MCH_EGA:
+					card = "IBM Enhanced Graphics Adapter";
+					break;
+				case MCH_PCJR:
+					card = "PCjr graohics adapter";
+					break;
+				case MCH_TANDY:
+					card = "Tandy graohics adapter";
+					break;
+				case MCH_VGA:
+					switch (svgaCard) {
+						case SVGA_TsengET4K:
+							card = "Tseng ET4000 SVGA";
+							break;
+						case SVGA_TsengET3K:
+							card = "Tseng ET3000 SVGA";
+							break;
+						case SVGA_ParadisePVGA1A:
+							card = "Paradise SVGA";
+							break;
+						case SVGA_S3Trio:
+							card = "S3 Trio SVGA";
+							break;
+						default:
+							card = "Standard VGA";
+							break;
+					}
+
+					break;
+				case MCH_PC98:
+					card = "PC98 graphics";
+					break;
+				case MCH_AMSTRAD:
+					card = "Amstrad graphics";
+					break;
+			};
+
+			sprintf(tmp,"Video card is %s\n",card);
+			BIOS_Int10RightJustifiedPrint(x,y,tmp);
+		}
+
+		{
+			char tmp[512];
+			const char *cpu = "?";
+
+			switch (CPU_ArchitectureType) {
+				case CPU_ARCHTYPE_8086:
+					cpu = "8086";
+					break;
+				case CPU_ARCHTYPE_80186:
+					cpu = "80186";
+					break;
+				case CPU_ARCHTYPE_286:
+					cpu = "286";
+					break;
+				case CPU_ARCHTYPE_386:
+					cpu = "386";
+					break;
+				case CPU_ARCHTYPE_486OLD:
+					cpu = "486 (older generation)";
+					break;
+				case CPU_ARCHTYPE_486NEW:
+					cpu = "486 (later generation)";
+					break;
+				case CPU_ARCHTYPE_PENTIUM:
+					cpu = "Pentium";
+					break;
+				case CPU_ARCHTYPE_P55CSLOW:
+					cpu = "Pentium MMX";
+					break;
+			};
+
+			extern bool enable_fpu;
+
+			sprintf(tmp,"%s CPU present",cpu);
+			BIOS_Int10RightJustifiedPrint(x,y,tmp);
+			if (enable_fpu) BIOS_Int10RightJustifiedPrint(x,y," with FPU");
+			BIOS_Int10RightJustifiedPrint(x,y,"\n");
+		}
+
+		if (APMBIOS) {
+			BIOS_Int10RightJustifiedPrint(x,y,"Advanced Power Management BIOS interface is active\n");
+		}
+
+		if (ISAPNPBIOS) {
+			BIOS_Int10RightJustifiedPrint(x,y,"ISA Plug & Play BIOS active\n");
+		}
+
+		// TODO: Then at this screen, we can print messages demonstrating the detection of
+		//       IDE devices, floppy, ISA PnP initialization, anything of importance.
+		//       I also envision adding the ability to hit DEL or F2 at this point to enter
+		//       a "BIOS setup" screen where all DOSBox configuration options can be
+		//       modified, with the same look and feel of an old BIOS.
+
+		Bit32u lasttick=GetTicks();
+		while ((GetTicks()-lasttick)<1000) {
+			reg_eax = 0x0100;
+			CALLBACK_RunRealInt(0x16);
+		}
+
+		// restore 80x25 text mode
+		reg_eax = 3;
+		CALLBACK_RunRealInt(0x10);
 
 		return CBRET_NONE;
 	}
@@ -3112,6 +3480,8 @@ private:
 	static Bitu cb_bios_boot__func(void) {
 		if (cpu.pmode) E_Exit("BIOS error: BOOT function called while in protected/vm86 mode");
 		DispatchVMEvent(VM_EVENT_BIOS_BOOT);
+
+		// TODO: If instructed to, follow the INT 19h boot pattern, perhaps follow the BIOS Boot Specification, etc.
 
 		// TODO: If instructed to boot a guest OS...
 

@@ -2448,8 +2448,8 @@ static void GUI_StartUp() {
 	GFX_Stop();
 	SDL_WM_SetCaption("DOSBox",VERSION);
 
-/* Please leave the Splash screen stuff in working order in DOSBox. We spend a lot of time making DOSBox. */
-	ShowSplashScreen();
+	/* Please leave the Splash screen stuff in working order in DOSBox. We spend a lot of time making DOSBox. */
+	//ShowSplashScreen();	/* I will keep the splash screen alive. But now, the BIOS will do it --J.C. */
 
 	/* Get some Event handlers */
 #ifdef __WIN32__
@@ -4736,6 +4736,7 @@ int main(int argc, char* argv[]) {
 		 *      which will then "boot" into the DOSBox kernel, and then the shell, by calling VM_Boot_DOSBox_Kernel() */
 		/* FIXME: throwing int() is a stupid and nondescriptive way to signal shutdown/reset. */
 		try {
+//			DEBUG_EnableDebugger();
 			DOSBOX_RunMachine();
 		} catch (int x) {
 			if (x == 2) { /* booting a guest OS. "boot" has already done the work to load the image and setup CPU registers */
