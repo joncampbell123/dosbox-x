@@ -3091,11 +3091,11 @@ bool AdapterROM_Read(Bitu address,unsigned long *size) {
 	}
 
 	for (i=0;i < 3;i++)
-		c[i] = phys_readb(address+i);
+		c[i] = mem_readb(address+i);
 
 	if (c[0] == 0x55 && c[1] == 0xAA) {
 		*size = (unsigned long)c[2] * 512UL;
-		for (i=0;i < (unsigned int)(*size);i++) chksum += phys_readb(address+i);
+		for (i=0;i < (unsigned int)(*size);i++) chksum += mem_readb(address+i);
 		if (chksum != 0) {
 			LOG(LOG_MISC,LOG_WARN)("AdapterROM_Read: Found ROM at 0x%lx but checksum failed\n",(unsigned long)address);
 			return false;
@@ -3229,7 +3229,7 @@ private:
 					 *       where a normal VGA BIOS (like Bochs' VGA BIOS) would have code or at least a JMP
 					 *       instruction there to make a valid entry point. Fortunately, we can detect this
 					 *       by whether or not the bytes there are zeros. */
-					c1 = phys_readd(0xC0003);
+					c1 = mem_readd(0xC0003);
 					if (c1 != 0UL) {
 						LOG(LOG_MISC,LOG_DEBUG)("Running VGA BIOS entry point");
 
@@ -3268,7 +3268,7 @@ private:
 
 				LOG(LOG_MISC,LOG_DEBUG)("BIOS ADAPTER ROM scan found ROM at 0x%lx (size=%lu)",(unsigned long)adapter_scan_start,size);
 
-				c1 = phys_readd(adapter_scan_start+3);
+				c1 = mem_readd(adapter_scan_start+3);
 				adapter_scan_start += size;
 				if (c1 != 0UL) {
 					LOG(LOG_MISC,LOG_DEBUG)("Running ADAPTER ROM entry point");
