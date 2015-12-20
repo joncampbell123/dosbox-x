@@ -3320,7 +3320,7 @@ private:
 			reg_eax = 16;		// 640x350 16-color
 			CALLBACK_RunRealInt(0x10);
 
-			// color correction: change Dark Puke Green to brown
+			// color correction: change Dark Puke Yellow to brown
 			IO_Read(0x3DA); IO_Read(0x3BA);
 			IO_Write(0x3C0,0x06);
 			IO_Write(0x3C0,0x14); // red=1 green=1 blue=0
