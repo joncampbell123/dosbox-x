@@ -3289,9 +3289,9 @@ private:
 			}
 			else {
 				if (IS_EGAVGA_ARCH) // supposedly newer systems only scan on 2KB boundaries by standard? right?
-					adapter_scan_start += 2048UL;
+					adapter_scan_start = (adapter_scan_start | 2047UL) + 1UL;
 				else // while older PC/XT systems scanned on 512-byte boundaries? right?
-					adapter_scan_start += 512UL;
+					adapter_scan_start = (adapter_scan_start | 511UL) + 1UL;
 			}
 		}
 
