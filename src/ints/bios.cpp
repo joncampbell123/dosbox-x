@@ -3247,7 +3247,12 @@ private:
 		SegSet16(fs,0x0000);
 		SegSet16(gs,0x0000);
 		SegSet16(ss,0x0000);
-		reg_esp = 0x7FFC;
+
+		// FIXME: We have a problem: DOS kernel init still happens before our BIOS "POST" routine
+		//        because of code still not ported to the new design. If we set SS:SP to 0000:7FFC
+		//        we end up corrupting the DOS kernel or it's data. But so far, it looks like
+		//        0x500 to 0x5FF is free.
+		reg_esp = 0x5FC;
 		reg_ebp = 0;
 
 		return CBRET_NONE;
