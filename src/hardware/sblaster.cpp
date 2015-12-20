@@ -908,7 +908,7 @@ static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign) {
 	 * to DMA_MASKED, which gives the mixer callback an opportunity to insert silence
 	 * and cause popping and crackling. */
 	if (sb.mode == MODE_DMA) {
-		if (!autoinit) sb.dma.total=1+sb.dsp.in.data[0]+(sb.dsp.in.data[1] << 8);
+		sb.dma.total=1+sb.dsp.in.data[0]+(sb.dsp.in.data[1] << 8);
 		sb.dma.left=sb.dma.total;
 		sb.dma.autoinit=autoinit;
 		return;
@@ -939,7 +939,7 @@ static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign) {
 	sb.dma_dac_mode=0;
 	sb.dma.autoinit=autoinit;
 	sb.dma.sign=sign;
-	if (!autoinit) sb.dma.total=1+sb.dsp.in.data[0]+(sb.dsp.in.data[1] << 8);
+	sb.dma.total=1+sb.dsp.in.data[0]+(sb.dsp.in.data[1] << 8);
 	sb.dma.chan=GetDMAChannel(sb.hw.dma8);
 	DSP_DoDMATransfer(mode,sb.freq / (sb.mixer.stereo ? 2 : 1),sb.mixer.stereo);
 }
