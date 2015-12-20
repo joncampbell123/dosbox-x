@@ -3073,6 +3073,7 @@ void CPU_OnReset(Section* sec) {
 
 	CPU_Snap_Back_To_Real_Mode();
 	CPU_Snap_Back_Forget();
+	CPU_SetFlags(0,~0);
 
 	Segs.limit[cs]=0xFFFF;
 	Segs.expanddown[cs]=false;

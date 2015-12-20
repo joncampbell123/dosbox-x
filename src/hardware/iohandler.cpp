@@ -482,8 +482,8 @@ Bitu IO_ReadD(Bitu port) {
 
 void IO_Reset(Section * /*sec*/) { // Reset or power on
 	iof_queue.used=0;
-	IO_FreeReadHandler(0,IO_MA,IO_MAX);
-	IO_FreeWriteHandler(0,IO_MA,IO_MAX);
+//	IO_FreeReadHandler(0,IO_MA,IO_MAX);
+//	IO_FreeWriteHandler(0,IO_MA,IO_MAX);
 
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 

@@ -1223,7 +1223,20 @@ void ShutDownMemHandles(Section * sec) {
 	}
 }
 
+/* this is called on hardware reset. the BIOS needs the A20 gate ON to boot properly on 386 or higher!
+ * this temporarily switches on the A20 gate and lets it function as normal despite user settings.
+ * BIOS will POST and then permit the A20 gate to go back to whatever emulation setting given in dosbox.conf */
 void A20Gate_OnReset(Section *sec) {
+	memory.a20.enabled = 1;
+	a20_fake_changeable = false;
+	a20_guest_changeable = true;
+	a20_full_masking = true;
+	memory.mem_alias_pagemask_active |= 0x100;
+	PAGING_ClearTLB();
+}
+
+/* this is called after BIOS boot. the BIOS needs the A20 gate ON to boot properly on 386 or higher! */
+void A20Gate_TakeUserSetting(Section *sec) {
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 
 	memory.a20.enabled = 0;

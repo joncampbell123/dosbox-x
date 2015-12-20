@@ -44,6 +44,8 @@ extern bool mainline_compatible_bios_mapping;
 extern bool rom_bios_8x8_cga_font;
 extern bool pcibus_enable;
 
+bool VM_Boot_DOSBox_Kernel();
+
 bool isa_memory_hole_512kb = false;
 bool int15_wait_force_unmask_irq = false;
 
@@ -3039,6 +3041,13 @@ static Bitu BIOS_RESET_FFFF_0000(void) {
 	return CBRET_NONE;
 }
 
+static Bitu INT18_Handler(void) {
+	LOG_MSG("Restart by INT 18h requested\n");
+	On_Software_CPU_Reset();
+	/* does not return */
+	return CBRET_NONE;
+}
+
 static Bitu INT19_Handler(void) {
 	LOG_MSG("Restart by INT 19h requested\n");
 	/* FIXME: INT 19h is sort of a BIOS boot BIOS reset-ish thing, not really a CPU reset at all. */
@@ -3073,7 +3082,43 @@ unsigned int dos_conventional_limit = 0;
 
 class BIOS:public Module_base{
 private:
-	CALLBACK_HandlerObject callback[15];
+	CALLBACK_HandlerObject callback[16]; /* <- fixme: this is stupid. just declare one per interrupt. */
+	CALLBACK_HandlerObject cb_bios_post;
+	static Bitu cb_bios_post__func(void) {
+		if (cpu.pmode) E_Exit("BIOS error: POST function called while in protected/vm86 mode");
+
+		DispatchVMEvent(VM_EVENT_BIOS_INIT);
+		return CBRET_NONE;
+	}
+	CALLBACK_HandlerObject cb_bios_scan_video_bios;
+	static Bitu cb_bios_scan_video_bios__func(void) {
+		if (cpu.pmode) E_Exit("BIOS error: VIDEO BIOS SCAN function called while in protected/vm86 mode");
+
+		return CBRET_NONE;
+	}
+	CALLBACK_HandlerObject cb_bios_adapter_rom_scan;
+	static Bitu cb_bios_adapter_rom_scan__func(void) {
+		if (cpu.pmode) E_Exit("BIOS error: ADAPTER ROM function called while in protected/vm86 mode");
+
+		return CBRET_NONE;
+	}
+	CALLBACK_HandlerObject cb_bios_startup_screen;
+	static Bitu cb_bios_startup_screen__func(void) {
+		if (cpu.pmode) E_Exit("BIOS error: STARTUP function called while in protected/vm86 mode");
+
+		return CBRET_NONE;
+	}
+	CALLBACK_HandlerObject cb_bios_boot;
+	static Bitu cb_bios_boot__func(void) {
+		if (cpu.pmode) E_Exit("BIOS error: BOOT function called while in protected/vm86 mode");
+		DispatchVMEvent(VM_EVENT_BIOS_BOOT);
+
+		// TODO: If instructed to boot a guest OS...
+
+		// Begin booting the DOSBox shell. NOTE: VM_Boot_DOSBox_Kernel will change CS:IP instruction pointer!
+		if (!VM_Boot_DOSBox_Kernel()) E_Exit("BIOS error: BOOT function failed to boot DOSBox kernel");
+		return CBRET_NONE;
+	}
 public:
 	void write_FFFF_signature() {
 		/* write the signature at 0xF000:0xFFF0 */
@@ -3119,7 +3164,7 @@ public:
 			BIOS_DEFAULT_IRQ2_LOCATION = RealMake(0xf000,0xff55);
 		}
 		else {
-			BIOS_DEFAULT_RESET_LOCATION = PhysToReal416(ROMBIOS_GetMemory(5/*JMP xxxx:xxxx*/,"BIOS default reset location"));
+			BIOS_DEFAULT_RESET_LOCATION = PhysToReal416(ROMBIOS_GetMemory(64/*several callbacks*/,"BIOS default reset location"));
 			BIOS_DEFAULT_HANDLER_LOCATION = PhysToReal416(ROMBIOS_GetMemory(1/*IRET*/,"BIOS default handler location"));
 			BIOS_DEFAULT_IRQ0_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x13/*see callback.cpp for IRQ0*/,"BIOS default IRQ0 location"));
 			BIOS_DEFAULT_IRQ1_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x15/*see callback.cpp for IRQ1*/,"BIOS default IRQ1 location"));
@@ -3241,22 +3286,9 @@ public:
 		callback[9].Install(NULL,CB_IRQ9,"irq 9 bios");
 		callback[9].Set_RealVec(0x71);
 
-		/* Reboot */
-		// This handler is an exit for more than only reboots, since we
-		// don't handle these cases
-		callback[10].Install(&INT19_Handler,CB_IRET,"int 19");
-		
-		// INT 18h: Enter BASIC
-		// Non-IBM BIOS would display "NO ROM BASIC" here
-		callback[10].Set_RealVec(0x18);
-
 		// INT 19h: Boot function
-		// This is not a complete reboot as it happens after the POST
-		// We don't handle it, so use the reboot function as exit.
-		{
-			RealPt rptr = callback[10].Get_RealPointer();
-			RealSetVec(0x19,rptr);
-		}
+		callback[10].Install(&INT19_Handler,CB_IRET,"int 19");
+		callback[10].Set_RealVec(0x19);
 
 		// INT 76h: IDE IRQ 14
 		// This is just a dummy IRQ handler to prevent crashes when
@@ -3281,17 +3313,12 @@ public:
 		// Handler for FFFF:0000 (usually distinct from INT 19h).
 		callback[14].Install(&BIOS_RESET_FFFF_0000,CB_IRET,"BIOS entry point");
 
+		// INT 18h: Enter BASIC
+		// Non-IBM BIOS would display "NO ROM BASIC" here
+		callback[15].Install(&INT18_Handler,CB_IRET,"int 18");
+		callback[15].Set_RealVec(0x18);
+
 		init_vm86_fake_io();
-
-		// Compatible POST routine location: jump to the callback
-		{
-			RealPt rptr = callback[10].Get_RealPointer();
-
-			wo = Real2Phys(BIOS_DEFAULT_RESET_LOCATION);
-			phys_writeb(wo+0,0xEA);			// FARJMP     +0
-			phys_writew(wo+1,RealOff(rptr));	// offset     +1
-			phys_writew(wo+3,RealSeg(rptr));	// segment    +3 = +5 bytes
-		}
 
 		/* Irq 2 */
 		Bitu call_irq2=CALLBACK_Allocate();	
@@ -3301,6 +3328,57 @@ public:
 		/* Some hardcoded vectors */
 		phys_writeb(Real2Phys(BIOS_DEFAULT_HANDLER_LOCATION),0xcf);	/* bios default interrupt vector location -> IRET */
 		phys_writew(Real2Phys(RealGetVec(0x12))+0x12,0x20); //Hack for Jurresic
+
+		/* BIOS boot stages */
+		cb_bios_post.Install(&cb_bios_post__func,CB_RETF,"BIOS POST");
+		cb_bios_scan_video_bios.Install(&cb_bios_scan_video_bios__func,CB_RETF,"BIOS Scan Video BIOS");
+		cb_bios_adapter_rom_scan.Install(&cb_bios_adapter_rom_scan__func,CB_RETF,"BIOS Adapter ROM scan");
+		cb_bios_startup_screen.Install(&cb_bios_startup_screen__func,CB_RETF,"BIOS Startup screen");
+		cb_bios_boot.Install(&cb_bios_boot__func,CB_RETF,"BIOS BOOT");
+
+		// Compatible POST routine location: jump to the callback
+		{
+			Bitu wo_fence;
+
+			wo = Real2Phys(BIOS_DEFAULT_RESET_LOCATION);
+			wo_fence = wo + 64;
+
+			// POST
+			phys_writeb(wo+0x00,(Bit8u)0xFE);						//GRP 4
+			phys_writeb(wo+0x01,(Bit8u)0x38);						//Extra Callback instruction
+			phys_writew(wo+0x02,(Bit16u)cb_bios_post.Get_callback());			//The immediate word
+			wo += 4;
+
+			// video bios scan
+			phys_writeb(wo+0x00,(Bit8u)0xFE);						//GRP 4
+			phys_writeb(wo+0x01,(Bit8u)0x38);						//Extra Callback instruction
+			phys_writew(wo+0x02,(Bit16u)cb_bios_scan_video_bios.Get_callback());		//The immediate word
+			wo += 4;
+
+			// adapter ROM scan
+			phys_writeb(wo+0x00,(Bit8u)0xFE);						//GRP 4
+			phys_writeb(wo+0x01,(Bit8u)0x38);						//Extra Callback instruction
+			phys_writew(wo+0x02,(Bit16u)cb_bios_adapter_rom_scan.Get_callback());		//The immediate word
+			wo += 4;
+
+			// startup screen
+			phys_writeb(wo+0x00,(Bit8u)0xFE);						//GRP 4
+			phys_writeb(wo+0x01,(Bit8u)0x38);						//Extra Callback instruction
+			phys_writew(wo+0x02,(Bit16u)cb_bios_startup_screen.Get_callback());		//The immediate word
+			wo += 4;
+
+			// boot
+			phys_writeb(wo+0x00,(Bit8u)0xFE);						//GRP 4
+			phys_writeb(wo+0x01,(Bit8u)0x38);						//Extra Callback instruction
+			phys_writew(wo+0x02,(Bit16u)cb_bios_boot.Get_callback());			//The immediate word
+			wo += 4;
+
+			/* fence */
+			phys_writeb(wo++,0xEB);								// JMP $-2
+			phys_writeb(wo++,0xFE);
+
+			if (wo > wo_fence) E_Exit("BIOS boot callback overrun");
+		}
 
 		// program system timer
 		// timer 2

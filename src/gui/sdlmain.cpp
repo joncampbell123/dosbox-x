@@ -4269,6 +4269,22 @@ void Windows_DPI_Awareness_Init() {
 }
 #endif
 
+bool VM_Boot_DOSBox_Kernel() {
+	if (dos_kernel_disabled) {
+		DispatchVMEvent(VM_EVENT_DOS_BOOT); // <- just starting the DOS kernel now
+		dos_kernel_disabled = false; // FIXME: DOS_Init should install VM callback handler to set this
+		DispatchVMEvent(VM_EVENT_DOS_INIT_KERNEL_READY); // <- kernel is ready
+		DispatchVMEvent(VM_EVENT_DOS_INIT_CONFIG_SYS_DONE); // <- we just finished executing CONFIG.SYS
+		SHELL_Init(); // <- NTS: this will change CPU instruction pointer!
+		DispatchVMEvent(VM_EVENT_DOS_INIT_SHELL_READY); // <- we just finished loading the shell (COMMAND.COM)
+		DispatchVMEvent(VM_EVENT_DOS_INIT_AUTOEXEC_BAT_DONE); // <- we just finished executing AUTOEXEC.BAT
+		DispatchVMEvent(VM_EVENT_DOS_INIT_AT_PROMPT); // <- now, we're at the DOS prompt
+		SHELL_Run();
+	}
+
+	return true;
+}
+
 bool VM_PowerOn() {
 	if (!guest_machine_power_on) {
 		// powering on means power on event, followed by reset assert, then reset deassert
@@ -4673,8 +4689,8 @@ int main(int argc, char* argv[]) {
 		if (machine == MCH_PCJR)
 			Init_PCJR_CartridgeROM();
 
-		/* FIXME: Where to move this? A20 gate is disabled by default */
-		MEM_A20_Enable(false);
+		/* let's assume motherboards are sane on boot because A20 gate is ENABLED on first boot */
+		MEM_A20_Enable(true);
 
 		/* OS init now */
 		DOS_Init();
@@ -4708,30 +4724,6 @@ int main(int argc, char* argv[]) {
 		/* The machine just "powered on", and then reset finished */
 		if (!VM_PowerOn()) E_Exit("VM failed to power on");
 
-		/* Now the BIOS has completed init, and is about to boot the OS from storage. */
-		DispatchVMEvent(VM_EVENT_BIOS_INIT);
-		DispatchVMEvent(VM_EVENT_BIOS_BOOT);
-
-		/* Now we're booting the DOSBox DOS kernel. */
-		DispatchVMEvent(VM_EVENT_DOS_BOOT); // <- just starting the DOS kernel now
-		dos_kernel_disabled = false; // FIXME: DOS_Init should install VM callback handler to set this
-		DispatchVMEvent(VM_EVENT_DOS_INIT_KERNEL_READY); // <- kernel is ready
-		DispatchVMEvent(VM_EVENT_DOS_INIT_CONFIG_SYS_DONE); // <- we just finished executing CONFIG.SYS
-
-		/* start the shell */
-		SHELL_Init();
-
-		DispatchVMEvent(VM_EVENT_DOS_INIT_SHELL_READY); // <- we just finished loading the shell (COMMAND.COM)
-		DispatchVMEvent(VM_EVENT_DOS_INIT_AUTOEXEC_BAT_DONE); // <- we just finished executing AUTOEXEC.BAT
-		DispatchVMEvent(VM_EVENT_DOS_INIT_AT_PROMPT); // <- now, we're at the DOS prompt
-
-		/* main execution. run the DOSBox shell. various exceptions will be thrown. some,
-		 * which have type "int", have special actions. int(2) means to boot a guest OS
-		 * (thrown as an exception to force stack unwinding), while int(0) and int(1)
-		 * means someone pressed DOSBox's killswitch (CTRL+F9). */
-		/* FIXME: throwing int() objects is dumb and non-descriptive. We need a C++ exception
-		 *        type that's explicitly named to convey that we're throwing shutdown and
-		 *        reboot events. */
 		bool run_machine;
 		bool reboot_machine;
 		bool dos_kernel_shutdown;
@@ -4740,8 +4732,11 @@ int main(int argc, char* argv[]) {
 		reboot_machine = false;
 		dos_kernel_shutdown = false;
 
+		/* NTS: CPU reset handler, and BIOS init, has the instruction pointer poised to run through BIOS initialization,
+		 *      which will then "boot" into the DOSBox kernel, and then the shell, by calling VM_Boot_DOSBox_Kernel() */
+		/* FIXME: throwing int() is a stupid and nondescriptive way to signal shutdown/reset. */
 		try {
-			SHELL_Run();
+			DOSBOX_RunMachine();
 		} catch (int x) {
 			if (x == 2) { /* booting a guest OS. "boot" has already done the work to load the image and setup CPU registers */
 				LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to boot guest OS");
