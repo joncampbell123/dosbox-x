@@ -717,6 +717,15 @@ void PIC_Reset(Section *sec) {
 	else if (enable_pc_xt_nmi_mask) {
 		PCXT_NMI_WriteHandler.Install(0xa0,pc_xt_nmi_write,IO_MB);
 	}
+}
+
+void PIC_Destroy(Section* sec) {
+}
+
+void Init_PIC() {
+	Bitu i;
+
+	LOG(LOG_MISC,LOG_DEBUG)("Init_PIC()");
 
 	/* Initialize the pic queue */
 	for (i=0;i<PIC_QUEUESIZE-1;i++) {
@@ -728,13 +737,6 @@ void PIC_Reset(Section *sec) {
 	pic_queue.entries[PIC_QUEUESIZE-1].next=0;
 	pic_queue.free_entry=&pic_queue.entries[0];
 	pic_queue.next_entry=0;
-}
-
-void PIC_Destroy(Section* sec) {
-}
-
-void Init_PIC() {
-	LOG(LOG_MISC,LOG_DEBUG)("Init_PIC()");
 
 	AddExitFunction(AddExitFunctionFuncPair(PIC_Destroy));
 	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(PIC_Reset));
