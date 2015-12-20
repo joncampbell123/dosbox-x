@@ -3458,16 +3458,51 @@ private:
 			BIOS_Int10RightJustifiedPrint(x,y,"ISA Plug & Play BIOS active\n");
 		}
 
+		BIOS_Int10RightJustifiedPrint(x,y,"\nHit SPACEBAR to pause at this screen\n");
+		y--; /* next message should overprint */
+		{
+			reg_eax = 0x0200;	// set cursor pos
+			reg_ebx = 0;		// page zero
+			reg_dh = y;		// row 4
+			reg_dl = x;		// column 20
+			CALLBACK_RunRealInt(0x10);
+		}
+
 		// TODO: Then at this screen, we can print messages demonstrating the detection of
 		//       IDE devices, floppy, ISA PnP initialization, anything of importance.
 		//       I also envision adding the ability to hit DEL or F2 at this point to enter
 		//       a "BIOS setup" screen where all DOSBox configuration options can be
 		//       modified, with the same look and feel of an old BIOS.
 
+		bool wait_for_user = false;
 		Bit32u lasttick=GetTicks();
 		while ((GetTicks()-lasttick)<1000) {
 			reg_eax = 0x0100;
 			CALLBACK_RunRealInt(0x16);
+
+			if (!GETFLAG(ZF)) {
+				reg_eax = 0x0000;
+				CALLBACK_RunRealInt(0x16);
+
+				if (reg_al == 32) { // user hit space
+					BIOS_Int10RightJustifiedPrint(x,y,"Hit ENTER or ESC to continue                    \n"); // overprint
+					wait_for_user = true;
+					break;
+				}
+			}
+		}
+
+		while (wait_for_user) {
+			reg_eax = 0x0100;
+			CALLBACK_RunRealInt(0x16);
+
+			if (!GETFLAG(ZF)) {
+				reg_eax = 0x0000;
+				CALLBACK_RunRealInt(0x16);
+
+				if (reg_al == 27/*ESC*/ || reg_al == 13/*ENTER*/)
+					break;
+			}
 		}
 
 		// restore 80x25 text mode
