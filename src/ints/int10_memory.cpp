@@ -113,9 +113,12 @@ extern Bitu VGA_BIOS_Size;
 void INT10_SetupRomMemory(void) {
 	/* if no space allocated for video BIOS (such as machine=cga) then return immediately */
 	if (VGA_BIOS_Size == 0) {
-		int10.rom.font_8_first=0;
+		int10.rom.font_8_first=RealMake(0xF000,0xFA6E); /* why duplicate data? use the copy in the ROM BIOS */
 		int10.rom.font_8_second=0;
 		int10.rom.static_state=0;
+		int10.rom.font_14=0;
+		int10.rom.font_16=0;
+		RealSetVec(0x43,int10.rom.font_8_first);
 		RealSetVec(0x1F,int10.rom.font_8_second);
 		return;
 	}
