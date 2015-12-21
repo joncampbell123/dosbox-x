@@ -28,6 +28,52 @@ Bitu read_p3c4(Bitu /*port*/,Bitu /*iolen*/) {
 }
 
 void write_p3c4(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
+	// FIXME: Standard VGA behavior (based on observation) is to latch
+	//        the sequencer register based only on the lowest 4 bits.
+	//        Thus, the map mask register is accessible not only by index 0x02,
+	//        but also from 0x12, 0x22, etc..
+	//
+	//        This isn't quite universal, as WHATVGA documentation suggests
+	//        there are SVGA chipsets with extended registers in the 0x07-0x17
+	//        and 0x80-0x9F ranges. But register snapshots so far seem to suggest
+	//        most cards just mask off the index to 4 bits and put the extended
+	//        regs elsewhere.
+	//
+	//        The yet to be answered question is: if the card only latches the
+	//        low 4 bits, then what will you see when you read back the sequencer
+	//        index register? Will you see the full 8-bit value, or the low 4 bits
+	//        it actually decoded?
+	//
+	// FIXME: I don't have an EGA to test with, but, what masking behavior here
+	//        do EGA and compatibles do with the index?
+
+	/* Emulating the mask behavior fixes the following problems with games & demoscene entries:
+	 *
+	 * - "Spiral" by Dataction: SPIRAL.EXE appears to use VGA Mode-X 256-color mode, but it relies
+	 *   on sequencer alias register 0x12 for masking bitplanes instead of properly writing
+	 *   Map Mask Register (register 0x02). Older VGA chipsets only decoded 3 or 4 bits of the sequencer
+	 *   index register, so this happened to work anyway since (0x12 & 0x0F) == 0x02, but it also means
+	 *   the demo will not render Mode X properly on newer SVGA chipsets that decode more than 4 bits of
+	 *   the sequencer index register. Adding this masking behavior, and running the demo
+	 *   with machine=svga_et4000 allows the demo to display properly instead of rendering as
+	 *   a blocky low-res mess.
+	 *   [http://www.pouet.net/prod.php?which=12630]
+	 */
+
+	if (machine == MCH_VGA) {
+		if (svgaCard == SVGA_S3Trio)
+			val &= 0x3F;	// observed behavior: only the low 6 bits
+		else if (svgaCard == SVGA_TsengET4K)
+			val &= 0x07;	// observed behavior: only the low 3 bits
+		else if (svgaCard == SVGA_TsengET3K)
+			val &= 0x07;	// FIXME: reasonable guess, since the ET4000 does it too
+		else
+			val &= 0x0F;	// FIXME: reasonable guess
+	}
+	else if (machine == MCH_EGA) {
+		val &= 0x0F; // FIXME: reasonable guess
+	}
+
 	seq(index)=val;
 }
 
