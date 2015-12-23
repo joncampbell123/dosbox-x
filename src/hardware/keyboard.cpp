@@ -1433,6 +1433,8 @@ void KEYBOARD_OnReset(Section *sec) {
 		LOG(LOG_KEYBOARD,LOG_NORMAL)("Keyboard AUX emulation enabled");
 	}
 
+	TIMER_DelTickHandler(&KEYBOARD_TickHandler);
+
 	allow_keyb_reset = section->Get_bool("allow output port reset");
 
 	keyb.ps2mouse.int33_taken = 0;
