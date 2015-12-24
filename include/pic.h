@@ -28,6 +28,20 @@ extern Bit32s CPU_CycleMax;
 typedef void (PIC_EOIHandler) (void);
 typedef void (* PIC_EventHandler)(Bitu val);
 
+enum PIC_irq_hacks {
+	PIC_irq_hack_none=0,		// dispatch IRQ normally
+	PIC_irq_hack_cs_equ_ds		// do not fire IRQ unless segment registers in the CPU are DS == CS
+					//    explanation: a handful of games and demos have Sound Blaster interrupt service
+					//    routines that assume DS == CS and they make no attempt to reload DS to refer
+					//    to local variables properly. eventually these programs crash or malfunction
+					//    because sooner or later, the ISR is called with CS != DS. This hack can be
+					//    used to prevent those games/demos from crashing.
+};
+
+extern enum PIC_irq_hacks PIC_IRQ_hax[16];
+
+void PIC_Set_IRQ_hack(int IRQ,enum PIC_irq_hacks hack);
+enum PIC_irq_hacks PIC_parse_IRQ_hack_string(const char *str);
 
 extern Bitu PIC_IRQCheck;
 extern Bitu PIC_Ticks;

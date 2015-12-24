@@ -358,12 +358,47 @@ void PIC_DeActivateIRQ(Bitu irq) {
 	pic->lower_irq(t);
 }
 
+enum PIC_irq_hacks PIC_IRQ_hax[16] = { PIC_irq_hack_none };
+
+void PIC_Set_IRQ_hack(int IRQ,enum PIC_irq_hacks hack) {
+	if (IRQ < 0 || IRQ >= 16) return;
+	PIC_IRQ_hax[IRQ] = hack;
+}
+
+enum PIC_irq_hacks PIC_parse_IRQ_hack_string(const char *str) {
+	if (!strcmp(str,"none"))
+		return PIC_irq_hack_none;
+	else if (!strcmp(str,"cs_equ_ds"))
+		return PIC_irq_hack_cs_equ_ds;
+
+	return PIC_irq_hack_none;
+}
+
+static bool IRQ_hack_check_cs_equ_ds(const int IRQ) {
+	uint16_t s_cs = SegValue(cs);
+	uint16_t s_ds = SegValue(ds);
+
+	if (s_cs >= 0xA000)
+		return true; // don't complain about the BIOS ISR
+
+	if (s_cs != s_ds) {
+		LOG(LOG_PIC,LOG_DEBUG)("Not dispatching IRQ %d according to IRQ hack. CS != DS",IRQ);
+		return false;
+	}
+
+	return true;
+}
+
 static void slave_startIRQ(){
 	Bit8u pic1_irq = 8;
 	const Bit8u p = (slave.irr & slave.imrr)&slave.isrr;
 	const Bit8u max = slave.special?8:slave.active_irq;
-	for(Bit8u i = 0,s = 1;i < max;i++, s<<=1){
-		if (p&s){
+	for(Bit8u i = 0,s = 1;i < max;i++, s<<=1) {
+		if (p&s) {
+			if (PIC_IRQ_hax[i+8] == PIC_irq_hack_cs_equ_ds)
+				if (!IRQ_hack_check_cs_equ_ds(i+8))
+					continue; // skip IRQ
+
 			pic1_irq = i;
 			break;
 		}
@@ -399,7 +434,11 @@ void PIC_runIRQs(void) {
 	Bit8u i,s;
 
 	for (i = 0,s = 1;i < max;i++, s<<=1){
-		if (p&s){
+		if (p&s) {
+			if (PIC_IRQ_hax[i] == PIC_irq_hack_cs_equ_ds)
+				if (!IRQ_hack_check_cs_equ_ds(i))
+					continue; // skip IRQ
+
 			if (i==2 && enable_slave_pic) { //second pic
 				slave_startIRQ();
 			} else {

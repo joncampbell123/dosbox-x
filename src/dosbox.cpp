@@ -842,6 +842,10 @@ void DOSBOX_SetupConfigSections(void) {
 	const char* tandys[] = { "auto", "on", "off", 0};
 	const char* ps1opt[] = { "on", "off", 0};
 
+	const char* irqssbhack[] = {
+		"none", "cs_equ_ds", 0
+	};
+
 	/* Setup all the different modules making up DOSBox */
 	const char* machines[] = {
 		"hercules", "cga", "cga_mono", "cga_rgb", "cga_composite", "cga_composite2", "tandy", "pcjr", "ega",
@@ -1536,6 +1540,26 @@ void DOSBOX_SetupConfigSections(void) {
 	Pint = secprop->Add_int("irq",Property::Changeable::WhenIdle,7);
 	Pint->Set_values(irqssb);
 	Pint->Set_help("The IRQ number of the soundblaster. Set to -1 to start DOSBox with the IRQ unassigned");
+
+	/* Sound Blaster IRQ hacks.
+	 *
+	 * These hacks reduce emulation accuracy but can be set to work around bugs or mistakes in some old
+	 * games and demos related to handling the Sound Blaster IRQ.
+	 *
+	 * - Saga by Dust (1993):
+	 *     Sound Blaster support has a fatal flaw in that the Sound Blaster interrupt handler it installs assumes
+	 *     DS == CS. It uses the DS register to read local variables needed to manage the Sound Blaster card but
+	 *     it makes no attempt to push DS and then load the DS segment value it needs. While the demo may seem to
+	 *     run normally at first, eventually the interrupt is fired at just the right time to catch the demo in
+	 *     the middle of it's graphics routines (DS=A000). Since the ISR uses DS to load the Sound Blaster DSP
+	 *     I/O port, it reads some random value from *video RAM* and then hangs in a loop waiting for that I/O
+	 *     port to clear bit 7! Setting 'cs_equ_ds' works around that bug by instructing PIC emulation not to
+	 *     fire the interrupt unless segment registers CS and DS match. */
+	Pstring = secprop->Add_string("irq hack",Property::Changeable::WhenIdle,"none");
+	Pstring->Set_values(irqssbhack);
+	Pstring->Set_help("Specify a hack related to the Sound Blaster IRQ to avoid crashes in a handful of games and demos.\n"
+			"    none                   Emulate IRQs normally\n"
+			"    cs_equ_ds              Do not fire IRQ unless two CPU segment registers match: CS == DS. Read Dosbox-X Wiki or source code for details.");
 
 	Pint = secprop->Add_int("dma",Property::Changeable::WhenIdle,1);
 	Pint->Set_values(dmassb);

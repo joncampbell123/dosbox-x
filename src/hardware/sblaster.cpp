@@ -2352,6 +2352,14 @@ public:
 		if (sb.busy_cycle_duty_percent < 0 || sb.busy_cycle_duty_percent > 100)
 			sb.busy_cycle_duty_percent = 50; /* seems about right */
 
+		if (sb.hw.irq != 0 && sb.hw.irq != 0xFF) {
+			s = section->Get_string("irq hack");
+			if (!s.empty() && s != "none") {
+				LOG(LOG_SB,LOG_NORMAL)("Sound Blaster emulation: Assigning IRQ hack '%s' as instruced",s.c_str());
+				PIC_Set_IRQ_hack(sb.hw.irq,PIC_parse_IRQ_hack_string(s.c_str()));
+			}
+		}
+
 		/* Soundblaster midi interface */
 		if (!MIDI_Available()) sb.midi = false;
 		else sb.midi = true;
