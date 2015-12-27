@@ -85,6 +85,7 @@ public:
 		opt_fullscreen = false;
 		opt_showcycles = false;
 		opt_earlydebug = false;
+		opt_break_start = false;
 		opt_erasemapper = false;
 		opt_resetmapper = false;
 		opt_startmapper = false;
@@ -113,6 +114,7 @@ public:
 	bool opt_disable_dpi_awareness;
 	bool opt_disable_numlock_check;
 	bool opt_date_host_forced;
+	bool opt_break_start;
 	bool opt_erasemapper;
 	bool opt_resetmapper;
 	bool opt_startmapper;

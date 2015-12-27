@@ -4056,6 +4056,7 @@ bool DOSBOX_parse_argv() {
 			fprintf(stderr,"  -exit                                   Exit after executing AUTOEXEC.BAT\n");
 			fprintf(stderr,"  -c <command string>                     Execute this command in addition to AUTOEXEC.BAT.\n");
 			fprintf(stderr,"                                          Make sure to surround the command in quotes to cover spaces.\n");
+			fprintf(stderr,"  -break-start                            Break into debugger at startup\n");
 
 #if defined(WIN32)
 			DOSBox_ConsolePauseWait();
@@ -4066,6 +4067,9 @@ bool DOSBOX_parse_argv() {
 		else if (optname == "c") {
 			if (!control->cmdline->NextOptArgv(tmp)) return false;
 			control->opt_c.push_back(tmp);
+		}
+		else if (optname == "break-start") {
+			control->opt_break_start = true;
 		}
 		else if (optname == "exit") {
 			control->opt_exit = true;
@@ -4736,7 +4740,7 @@ int main(int argc, char* argv[]) {
 		 *      which will then "boot" into the DOSBox kernel, and then the shell, by calling VM_Boot_DOSBox_Kernel() */
 		/* FIXME: throwing int() is a stupid and nondescriptive way to signal shutdown/reset. */
 		try {
-//			DEBUG_EnableDebugger();
+			if (control->opt_break_start) DEBUG_EnableDebugger();
 			DOSBOX_RunMachine();
 		} catch (int x) {
 			if (x == 2) { /* booting a guest OS. "boot" has already done the work to load the image and setup CPU registers */
