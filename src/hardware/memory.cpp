@@ -416,6 +416,61 @@ INLINE Bitu BestMatch(Bitu size) {
 	return best_first;
 }
 
+/* alternate copy, that will only allocate memory on addresses
+ * where the 20th address bit is zero. memory allocated in this
+ * way will always be accessible no matter the state of the A20 gate */
+INLINE Bitu BestMatch_A20_friendly(Bitu size) {
+	Bitu index=XMS_START;
+	Bitu first=0;
+	Bitu best=0xfffffff;
+	Bitu best_first=0;
+
+	/* if the memory to allocate is more than 1MB this function will never work. give up now. */
+	if (size > 0x100)
+		return 0;
+
+	/*  TODO: For EMS allocation this would put things in the middle of extended memory space,
+	 *        which would increase possible memory fragmentation! Could we avoid memory fragmentation
+	 *        by instead scanning from the top down i.e. so the EMS system memory takes the top of
+	 *        extended memory and the DOS program is free to gobble up a large continuous range from
+	 *        below? */
+	while (index<memory.reported_pages) {
+		/* Check if we are searching for first free page */
+		if (!first) {
+			/* if the index is now on an odd megabyte, skip forward and try again */
+			if (index & 0x100) {
+				index = (index|0xFF)+1; /* round up to an even megabyte */
+				continue;
+			}
+
+			/* Check if this is a free page */
+			if (!memory.mhandles[index]) {
+				first=index;
+			}
+		} else {
+			/* Check if this still is used page or on odd megabyte */
+			if (memory.mhandles[index] || (index & 0x100)) {
+				Bitu pages=index-first;
+				if (pages==size) {
+					return first;
+				} else if (pages>size) {
+					if (pages<best) {
+						best=pages;
+						best_first=first;
+					}
+				}
+				first=0;			//Always reset for new search
+			}
+		}
+		index++;
+	}
+	/* Check for the final block if we can */
+	if (first && (index-first>=size) && (index-first<best)) {
+		return first;
+	}
+	return best_first;
+}
+
 MemHandle MEM_AllocatePages(Bitu pages,bool sequence) {
 	MemHandle ret;
 	if (!pages) return 0;
@@ -435,6 +490,46 @@ MemHandle MEM_AllocatePages(Bitu pages,bool sequence) {
 		while (pages) {
 			Bitu index=BestMatch(1);
 			if (!index) E_Exit("MEM:corruption during allocate");
+			while (pages && (!memory.mhandles[index])) {
+				*next=index;
+				next=&memory.mhandles[index];
+				index++;pages--;
+			}
+			*next=-1;		//Invalidate it in case we need another match
+		}
+	}
+	return ret;
+}
+
+/* alternate version guaranteed to allocate memory that is fully accessible
+ * regardless of the state of the A20 gate. the physical memory address will
+ * always have the 20th bit zero */
+MemHandle MEM_AllocatePages_A20_friendly(Bitu pages,bool sequence) {
+	MemHandle ret;
+	if (!pages) return 0;
+	if (sequence) {
+		Bitu index=BestMatch_A20_friendly(pages);
+		if (!index) return 0;
+#if C_DEBUG
+		if (index & 0x100) E_Exit("MEM_AllocatePages_A20_friendly failed to make sure address has bit 20 == 0");
+		if ((index+pages-1) & 0x100) E_Exit("MEM_AllocatePages_A20_friendly failed to make sure last page has bit 20 == 0");
+#endif
+		MemHandle * next=&ret;
+		while (pages) {
+			*next=index;
+			next=&memory.mhandles[index];
+			index++;pages--;
+		}
+		*next=-1;
+	} else {
+		if (MEM_FreeTotal()<pages) return 0;
+		MemHandle * next=&ret;
+		while (pages) {
+			Bitu index=BestMatch_A20_friendly(1);
+			if (!index) E_Exit("MEM:corruption during allocate");
+#if C_DEBUG
+			if (index & 0x100) E_Exit("MEM_AllocatePages_A20_friendly failed to make sure address has bit 20 == 0");
+#endif
 			while (pages && (!memory.mhandles[index])) {
 				*next=index;
 				next=&memory.mhandles[index];
