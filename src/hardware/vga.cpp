@@ -710,7 +710,6 @@ void VGA_Init() {
 		}
 	}
 
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(VGA_Reset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(VGA_Reset));
 }
 

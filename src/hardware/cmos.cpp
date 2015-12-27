@@ -601,7 +601,6 @@ void CMOS_Init() {
 	}
 
 	AddExitFunction(AddExitFunctionFuncPair(CMOS_Destroy),true);
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(CMOS_Reset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(CMOS_Reset));
 }
 

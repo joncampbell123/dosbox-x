@@ -1699,7 +1699,6 @@ void EMS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing EMS expanded memory services");
 
 	AddExitFunction(AddExitFunctionFuncPair(EMS_ShutDown),true);
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(EMS_OnReset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(EMS_OnReset));
 }
 

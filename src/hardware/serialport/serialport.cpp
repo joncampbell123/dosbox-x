@@ -1339,7 +1339,6 @@ void SERIAL_Init () {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing serial port emulation");
 
 	AddExitFunction(AddExitFunctionFuncPair(SERIAL_Destroy),true);
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(SERIAL_OnReset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(SERIAL_OnReset));
 }
 

@@ -842,7 +842,6 @@ void ISAPNP_Cfg_Reset(Section *sec) {
 }
 
 void ISAPNP_Cfg_Init() {
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(ISAPNP_Cfg_Reset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(ISAPNP_Cfg_Reset));
 }
 

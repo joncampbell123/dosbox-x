@@ -237,7 +237,6 @@ void JOYSTICK_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing joystick emulation");
 
 	AddExitFunction(AddExitFunctionFuncPair(JOYSTICK_Destroy),true); 
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(JOYSTICK_OnReset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(JOYSTICK_OnReset));
 }
 

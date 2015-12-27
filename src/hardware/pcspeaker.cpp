@@ -603,7 +603,6 @@ void PCSPEAKER_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing PC speaker");
 
 	AddExitFunction(AddExitFunctionFuncPair(PCSPEAKER_ShutDown),true);
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(PCSPEAKER_OnReset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PCSPEAKER_OnReset));
 }
 

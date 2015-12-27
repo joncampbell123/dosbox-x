@@ -1683,7 +1683,6 @@ void NE2K_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing NE2000 network card emulation");
 
 	AddExitFunction(AddExitFunctionFuncPair(NE2K_ShutDown),true);
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(NE2K_OnReset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(NE2K_OnReset));
 }
 

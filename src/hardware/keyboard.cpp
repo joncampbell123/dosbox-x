@@ -1476,7 +1476,6 @@ void KEYBOARD_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(KEYBOARD_ShutDown));
 
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(KEYBOARD_OnReset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(KEYBOARD_OnReset));
 }
 

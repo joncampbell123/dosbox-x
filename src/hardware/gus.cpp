@@ -967,7 +967,6 @@ void GUS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing Gravis Ultrasound emulation");
 
 	AddExitFunction(AddExitFunctionFuncPair(GUS_ShutDown),true);
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(GUS_OnReset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(GUS_OnReset));
 }
 

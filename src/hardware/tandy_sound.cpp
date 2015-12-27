@@ -523,7 +523,6 @@ void TANDYSOUND_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing Tandy voice emulation");
 
 	AddExitFunction(AddExitFunctionFuncPair(TANDYSOUND_ShutDown),true);
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(TANDYSOUND_OnReset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(TANDYSOUND_OnReset));
 }
 

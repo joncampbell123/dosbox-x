@@ -1271,7 +1271,6 @@ void MOUSE_OnReset(Section *sec) {
 void MOUSE_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing mouse interface emulation");
 
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(MOUSE_OnReset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(MOUSE_OnReset));
 }
 

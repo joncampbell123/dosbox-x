@@ -777,7 +777,6 @@ void Init_PIC() {
 	pic_queue.next_entry=0;
 
 	AddExitFunction(AddExitFunctionFuncPair(PIC_Destroy));
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(PIC_Reset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PIC_Reset));
 }
 

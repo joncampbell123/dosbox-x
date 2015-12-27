@@ -315,7 +315,6 @@ void FDC_OnReset(Section *sec) {
 void FDC_Primary_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing floppy controller emulation");
 
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(FDC_OnReset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(FDC_OnReset));
 }
 

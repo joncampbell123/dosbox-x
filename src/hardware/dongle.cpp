@@ -188,6 +188,5 @@ void DONGLE_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing dongle emulation");
 
 	AddExitFunction(AddExitFunctionFuncPair(DONGLE_ShutDown),true);
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(DONGLE_OnReset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(DONGLE_OnReset));
 }

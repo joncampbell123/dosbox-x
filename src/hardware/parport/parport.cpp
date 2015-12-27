@@ -355,6 +355,5 @@ void PARALLEL_Init () {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing parallel port emulation");
 
 	AddExitFunction(AddExitFunctionFuncPair(PARALLEL_Destroy),true);
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(PARALLEL_OnReset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PARALLEL_OnReset));
 }

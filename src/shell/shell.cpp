@@ -484,7 +484,6 @@ void AUTOEXEC_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing AUTOEXEC.BAT emulation");
 
 	AddExitFunction(AddExitFunctionFuncPair(AUTOEXEC_ShutDown));
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(AUTOEXEC_OnReset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(AUTOEXEC_OnReset));
 }
 

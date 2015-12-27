@@ -708,7 +708,6 @@ void MPU401_Reset(Section* sec) {
 void MPU401_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing MPU401 emulation");
 
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(MPU401_Reset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(MPU401_Reset));
 	AddExitFunction(AddExitFunctionFuncPair(MPU401_Destroy),true);
 }

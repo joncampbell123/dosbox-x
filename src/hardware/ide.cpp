@@ -3887,7 +3887,6 @@ void IDE_OnReset(Section *sec) {
 void IDE_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing IDE controllers");
 
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(IDE_OnReset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(IDE_OnReset));
 }
 

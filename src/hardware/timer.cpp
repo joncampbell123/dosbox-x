@@ -486,7 +486,6 @@ void TIMER_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("TIMER_Init()");
 
 	AddExitFunction(AddExitFunctionFuncPair(TIMER_Destroy));
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(TIMER_Reset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(TIMER_Reset));
 }
 

@@ -717,7 +717,6 @@ void XMS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing XMS extended memory services");
 
 	AddExitFunction(AddExitFunctionFuncPair(XMS_ShutDown),true);
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(XMS_OnReset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(XMS_OnReset));
 }
 

@@ -1380,7 +1380,6 @@ void A20Gate_TakeUserSetting(Section *sec) {
 void Init_A20_Gate() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing A20 gate emulation");
 
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(A20Gate_OnReset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(A20Gate_OnReset));
 }
 
@@ -1405,7 +1404,6 @@ void PS2Port92_OnReset(Section *sec) {
 void Init_PS2_Port_92h() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing PS/2 port 92h emulation");
 
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(PS2Port92_OnReset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PS2Port92_OnReset));
 }
 

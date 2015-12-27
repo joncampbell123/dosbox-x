@@ -390,7 +390,6 @@ void PS1SOUND_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing PS/1 sound emulation");
 
 	AddExitFunction(AddExitFunctionFuncPair(PS1SOUND_ShutDown),true);
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(PS1SOUND_OnReset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PS1SOUND_OnReset));
 }
 

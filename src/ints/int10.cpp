@@ -777,7 +777,6 @@ void INT10_OnReset(Section *sec) {
 void INT10_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing BIOS INT10 emulation");
 
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(INT10_OnReset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(INT10_OnReset));
 }
 

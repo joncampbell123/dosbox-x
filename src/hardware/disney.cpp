@@ -429,7 +429,6 @@ void DISNEY_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing Disney Sound Source emulation");
 
 	AddExitFunction(AddExitFunctionFuncPair(DISNEY_ShutDown),true);
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(DISNEY_OnReset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(DISNEY_OnReset));
 }
 

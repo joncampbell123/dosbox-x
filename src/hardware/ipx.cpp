@@ -1208,7 +1208,6 @@ void IPX_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing IPX emulation");
 
 	AddExitFunction(AddExitFunctionFuncPair(IPX_ShutDown),true);
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(IPX_OnReset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(IPX_OnReset));
 }
 

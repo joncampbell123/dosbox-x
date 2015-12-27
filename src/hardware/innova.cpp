@@ -129,7 +129,6 @@ void INNOVA_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing INNOVA emulation");
 
 	AddExitFunction(AddExitFunctionFuncPair(INNOVA_ShutDown),true);
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(INNOVA_OnReset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(INNOVA_OnReset));
 }
 
