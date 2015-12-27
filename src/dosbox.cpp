@@ -1997,6 +1997,13 @@ void DOSBOX_SetupConfigSections(void) {
 	Pint = secprop->Add_int("ems system handle memory size",Property::Changeable::WhenIdle,384);
 	Pint->Set_help("Amount of memory associated with system handle, in KB");
 
+	Pbool = secprop->Add_bool("ems system handle on even megabyte",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("If set, try to allocate the EMM system handle on an even megabyte.\n"
+			"If the DOS game or demo fiddles with the A20 gate while using EMM386.EXE emulation in virtual 8086 mode, setting this option may help prevent crashes.\n"
+			"However, forcing allocation on an even megabyte will also cause some extended memory fragmentation and reduce the\n"
+			"overall amount of extended memory available to the DOS game depending on whether it expects large contiguous chunks\n"
+			"of extended memory.");
+
 	Pbool = secprop->Add_bool("umb",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Enable UMB support.");
 

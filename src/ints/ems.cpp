@@ -70,6 +70,7 @@ Bitu XMS_EnableA20(bool enable);
 bool ENABLE_VCPI=true;
 bool ENABLE_V86_STARTUP=false;
 bool zero_int67_if_no_ems=true;
+bool ems_syshandle_on_even_mb=false;
 
 /* EMM errors */
 #define EMM_NO_ERROR			0x00
@@ -308,7 +309,9 @@ static Bit8u EMM_AllocateMemory(Bit16u pages,Bit16u & dhandle,bool can_allocate_
 	return EMM_NO_ERROR;
 }
 
-static Bit8u EMM_AllocateSystemHandle(Bit16u pages) {
+static Bit8u EMM_AllocateSystemHandle(Bit16u pages/*NTS: EMS pages are 16KB, this does not refer to 4KB CPU pages*/) {
+	MemHandle mem = 0;
+
 	/* Check for enough free pages */
 	if ((MEM_FreeTotal()/ 4) < pages) { return EMM_OUT_OF_LOG;}
 	Bit16u handle = EMM_SYSTEM_HANDLE;	// emm system handle (reserved for OS usage)
@@ -316,13 +319,28 @@ static Bit8u EMM_AllocateSystemHandle(Bit16u pages) {
 	if (emm_handles[handle].pages != NULL_HANDLE) {
 		MEM_ReleasePages(emm_handles[handle].mem);
 	}
-	MemHandle mem = MEM_AllocatePages(pages*4,false);
+
+	/* NTS: DOSBox 0.74 and older versions of DOSBox-X allocated EMS memory with the "sequential" param == false */
+	/* We now offer the option, if specified in the configuration, to allocate our system handle on an even megabyte.
+	 * Why? Well, if the system handle exists on an even megabyte, then it no longer matters what state the A20
+	 * gate is in. If the DOS game relies on EMM386.EXE but fiddles with the A20 gate while running in virtual 8086
+	 * mode, setting this option can help avoid crashes, where normally clearing the A20 gate prevents EMM386.EXE
+	 * from using it's protected mode structures (GDT, page tables) and the sudden aliasing turns them into junk
+	 * and the system crashes (random contents in DOS conventional memory interpreted as protected mode structures
+	 * doesn't work very well). */
+	mem = 0;
+	if (ems_syshandle_on_even_mb) {
+		mem = MEM_AllocatePages_A20_friendly(pages*4,/*sequential=*/true);
+		if (!mem) LOG(LOG_MISC,LOG_WARN)("EMS: Despite configuration setting, I was unable to allocate EMS system handle on even megabyte");
+	}
+	if (!mem) mem = MEM_AllocatePages(pages*4,/*sequential=*/true);
 	if (!mem) E_Exit("EMS:System handle memory allocation failure");
 	emm_handles[handle].pages = pages;
 	emm_handles[handle].mem = mem;
-	LOG_MSG("EMS: OS handle allocated 0x%08lx-0x%08lx",
+	LOG_MSG("EMS: OS handle allocated %u 16KB pages 0x%08lx-0x%08lx",
+		(unsigned int)pages,
 		(unsigned long)mem * 4096UL,
-		((unsigned long)mem * 4096UL) + (pages * 4096UL) - 1);
+		((unsigned long)mem * 4096UL) + (pages * 16384UL) - 1);
 	return EMM_NO_ERROR;
 }
 
@@ -1434,6 +1452,7 @@ public:
 		GEMMIS_seg=0;
 
 		Section_prop * section=static_cast<Section_prop *>(configuration);
+		ems_syshandle_on_even_mb = section->Get_bool("ems system handle on even megabyte");
 		zero_int67_if_no_ems = section->Get_bool("zero int 67h if no ems");
 		ems_type = GetEMSType(section);
 		if (ems_type == EMS_NONE) {
