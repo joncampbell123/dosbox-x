@@ -3845,6 +3845,7 @@ public:
 			if (wo > wo_fence) E_Exit("BIOS boot callback overrun");
 		}
 
+		// FIXME: This belongs in the BIOS POST/Init sequence, not here
 		// program system timer
 		// timer 2
 		IO_Write(0x43,0xb6);
@@ -4411,7 +4412,7 @@ void BIOS_Init() {
 
 	/* NTS: VM_EVENT_BIOS_INIT this callback must be first. */
 	AddExitFunction(AddExitFunctionFuncPair(BIOS_Destroy),false);
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(BIOS_OnPowerOn));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(BIOS_OnPowerOn));
 	AddVMEventFunction(VM_EVENT_BIOS_INIT,AddVMEventFunctionFuncPair(BIOS_OnBIOSReinit)); // TODO: Variant of AddVMEventFunction that inserts the event at the head of the list
 }
 
