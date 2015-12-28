@@ -3228,6 +3228,8 @@ private:
 	CALLBACK_HandlerObject callback[16]; /* <- fixme: this is stupid. just declare one per interrupt. */
 	CALLBACK_HandlerObject cb_bios_post;
 	static Bitu cb_bios_post__func(void) {
+		void TIMER_BIOS_INIT_Configure();
+
 		if (cpu.pmode) E_Exit("BIOS error: POST function called while in protected/vm86 mode");
 
 		/* we need A20 enabled for BIOS boot-up */
@@ -3253,6 +3255,8 @@ private:
 		//        0x500 to 0x5FF is free.
 		reg_esp = 0x5FC;
 		reg_ebp = 0;
+
+		TIMER_BIOS_INIT_Configure();
 
 		return CBRET_NONE;
 	}
@@ -3843,26 +3847,6 @@ public:
 			phys_writeb(wo++,0xFE);
 
 			if (wo > wo_fence) E_Exit("BIOS boot callback overrun");
-		}
-
-		// FIXME: This belongs in the BIOS POST/Init sequence, not here
-		// program system timer
-		// timer 2
-		IO_Write(0x43,0xb6);
-		{
-			Section_prop *pcsec = static_cast<Section_prop *>(control->GetSection("speaker"));
-			int freq = pcsec->Get_int("initial frequency"); /* original code: 1320 */
-			int div;
-
-			if (freq < 18) {
-				div = 1;
-			}
-			else {
-				div = PIT_TICK_RATE / freq;
-				if (div > 65535) div = 65535;
-			}
-			IO_Write(0x42,div&0xff);
-			IO_Write(0x42,div>>8);
 		}
 
 		// tandy DAC setup

@@ -413,31 +413,7 @@ bool TIMER_GetOutput2() {
 static IO_ReadHandleObject ReadHandler[4];
 static IO_WriteHandleObject WriteHandler[4];
 
-void TIMER_Reset(Section*) {
-	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
-	assert(section != NULL);
-
-	// log
-	LOG(LOG_MISC,LOG_DEBUG)("TIMER_Reset(): Reinitializing PIT timer emulation");
-
-	PIC_RemoveEvents(PIT0_Event);
-
-	WriteHandler[0].Uninstall();
-	WriteHandler[1].Uninstall();
-	WriteHandler[2].Uninstall();
-	WriteHandler[3].Uninstall();
-	ReadHandler[0].Uninstall();
-	ReadHandler[1].Uninstall();
-	ReadHandler[2].Uninstall();
-	ReadHandler[3].Uninstall();
-
-	WriteHandler[0].Install(0x40,write_latch,IO_MB);
-//	WriteHandler[1].Install(0x41,write_latch,IO_MB);
-	WriteHandler[2].Install(0x42,write_latch,IO_MB);
-	WriteHandler[3].Install(0x43,write_p43,IO_MB);
-	ReadHandler[0].Install(0x40,read_latch,IO_MB);
-	ReadHandler[1].Install(0x41,read_latch,IO_MB);
-	ReadHandler[2].Install(0x42,read_latch,IO_MB);
+void TIMER_BIOS_INIT_Configure() {
 	/* Setup Timer 0 */
 	pit[0].cntr=0x10000;
 	pit[0].write_state = 3;
@@ -473,6 +449,52 @@ void TIMER_Reset(Section*) {
 	pit[1].delay=(1000.0f/((float)PIT_TICK_RATE/(float)pit[1].cntr));
 	pit[2].delay=(1000.0f/((float)PIT_TICK_RATE/(float)pit[2].cntr));
 
+	// program system timer
+	// timer 2
+	IO_Write(0x43,0xb6);
+	{
+		Section_prop *pcsec = static_cast<Section_prop *>(control->GetSection("speaker"));
+		int freq = pcsec->Get_int("initial frequency"); /* original code: 1320 */
+		int div;
+
+		if (freq < 18) {
+			div = 1;
+		}
+		else {
+			div = PIT_TICK_RATE / freq;
+			if (div > 65535) div = 65535;
+		}
+		IO_Write(0x42,div&0xff);
+		IO_Write(0x42,div>>8);
+	}
+}
+
+void TIMER_Reset(Section*) {
+	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+	assert(section != NULL);
+
+	// log
+	LOG(LOG_MISC,LOG_DEBUG)("TIMER_Reset(): Reinitializing PIT timer emulation");
+
+	PIC_RemoveEvents(PIT0_Event);
+
+	WriteHandler[0].Uninstall();
+	WriteHandler[1].Uninstall();
+	WriteHandler[2].Uninstall();
+	WriteHandler[3].Uninstall();
+	ReadHandler[0].Uninstall();
+	ReadHandler[1].Uninstall();
+	ReadHandler[2].Uninstall();
+	ReadHandler[3].Uninstall();
+
+	WriteHandler[0].Install(0x40,write_latch,IO_MB);
+//	WriteHandler[1].Install(0x41,write_latch,IO_MB);
+	WriteHandler[2].Install(0x42,write_latch,IO_MB);
+	WriteHandler[3].Install(0x43,write_p43,IO_MB);
+	ReadHandler[0].Install(0x40,read_latch,IO_MB);
+	ReadHandler[1].Install(0x41,read_latch,IO_MB);
+	ReadHandler[2].Install(0x42,read_latch,IO_MB);
+
 	latched_timerstatus_locked=false;
 	gate2 = false;
 	PIC_AddEvent(PIT0_Event,pit[0].delay);
@@ -483,7 +505,23 @@ void TIMER_Destroy(Section*) {
 }
 
 void TIMER_Init() {
+	Bitu i;
+
 	LOG(LOG_MISC,LOG_DEBUG)("TIMER_Init()");
+
+	for (i=0;i < 3;i++) {
+		pit[i].cntr = 0x10000;
+		pit[i].write_state = 0;
+		pit[i].read_state = 0;
+		pit[i].read_latch = 0;
+		pit[i].write_latch = 0;
+		pit[i].mode = 0;
+		pit[i].bcd = false;
+		pit[i].go_read_latch = false;
+		pit[i].counterstatus_set = false;
+		pit[i].update_count = false;
+		pit[i].delay = (1000.0f/((float)PIT_TICK_RATE/(float)pit[i].cntr));
+	}
 
 	AddExitFunction(AddExitFunctionFuncPair(TIMER_Destroy));
 	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(TIMER_Reset));
