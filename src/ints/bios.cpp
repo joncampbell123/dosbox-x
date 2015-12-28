@@ -4412,7 +4412,7 @@ void BIOS_Init() {
 
 	/* NTS: VM_EVENT_BIOS_INIT this callback must be first. */
 	AddExitFunction(AddExitFunctionFuncPair(BIOS_Destroy),false);
-	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(BIOS_OnPowerOn));
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(BIOS_OnPowerOn));
 	AddVMEventFunction(VM_EVENT_BIOS_INIT,AddVMEventFunctionFuncPair(BIOS_OnBIOSReinit)); // TODO: Variant of AddVMEventFunction that inserts the event at the head of the list
 }
 
