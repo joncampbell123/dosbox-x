@@ -327,8 +327,25 @@ public:
 static GUSChannels *guschan[32];
 static GUSChannels *curchan;
 
+static INLINE void GUS_CheckIRQ(void);
+
+static uint8_t GUS_reset_reg = 0;
+
 static void GUSReset(void) {
-	if((myGUS.gRegData & 0x1) == 0x1) {
+	/* NTS: From the Ultrasound SDK:
+	 *
+	 *      Global Data Low (3X4) is either a 16-bit transfer, or the low half of a 16-bit transfer with 8-bit I/O.
+	 *
+	 *      Global Data High (3X5) is either an 8-bit transfer for one of the GF registers or the high part of a 16-bit wide register with 8-bit I/O.
+	 *
+	 *      Prior to 2015/12/29 DOSBox and DOSBox-X contained a programming error here where reset and master IRQ enable were handled from the
+	 *      LOWER 8 bits, when the code should have been checking the UPPER 8 bits. Programming error #2 was the mis-interpetation of bit 0 (bit 8 of
+	 *      the gRegData). According to the SDK, clearing bit 0 triggers RESET, setting bit 0 starts the card running again. The original code had
+	 *      it backwards. */
+	GUS_reset_reg = myGUS.gRegData >> 8;
+
+	LOG(LOG_MISC,LOG_DEBUG)("GUS reset with 0x%04X",myGUS.gRegData);
+	if((myGUS.gRegData & 0x100) == 0x000) {
 		// Reset
 		adlib_commandreg = 85;
 		myGUS.IRQStatus = 0;
@@ -353,20 +370,25 @@ static void GUSReset(void) {
 			guschan[i]->WriteWaveCtrl(0x1);
 			guschan[i]->WriteRampCtrl(0x1);
 			guschan[i]->WritePanPot(0x7);
+			// FIXME: 60BR W by COMA is playing all of it's music hard panned to the left. Does it do this on real hardware?
 		}
 		myGUS.IRQChan = 0;
 	}
-	if ((myGUS.gRegData & 0x4) != 0) {
+	if ((myGUS.gRegData & 0x400) != 0x000) {
 		myGUS.irqenabled = true;
 	} else {
 		myGUS.irqenabled = false;
 	}
+	// TODO: We should also emulate the "DAC enable" (bit 1) control and silence/stop our output if not set.
+	//       And, if the card is in a reset state, to stop and withhold our DAC output and halt DMA transfers.
+	GUS_CheckIRQ();
 }
 
 static INLINE void GUS_CheckIRQ(void) {
-	if (myGUS.IRQStatus && (myGUS.mixControl & 0x08)) 
+	if (myGUS.irqenabled && myGUS.IRQStatus && (myGUS.mixControl & 0x08))
 		PIC_ActivateIRQ(myGUS.irq1);
-
+	else
+		PIC_DeActivateIRQ(myGUS.irq1);
 }
 
 static void CheckVoiceIrq(void) {
@@ -392,6 +414,7 @@ static Bit16u ExecuteReadRegister(void) {
 		tmpreg = myGUS.DMAControl & 0xbf;
 		tmpreg |= (myGUS.IRQStatus & 0x80) >> 1;
 		myGUS.IRQStatus&=0x7f;
+		GUS_CheckIRQ();
 		return (Bit16u)(tmpreg << 8);
 	case 0x42:  // Dma address register
 		return myGUS.dmaAddr;
@@ -401,6 +424,11 @@ static Bit16u ExecuteReadRegister(void) {
 	case 0x49:  // Dma sample register
 		tmpreg = myGUS.DMAControl & 0xbf;
 		tmpreg |= (myGUS.IRQStatus & 0x80) >> 1;
+		return (Bit16u)(tmpreg << 8);
+	case 0x4c:  // GUS reset register
+		// FIXME: This makes logical sense, but does real hardware let you read this??
+		// The Ultrasound SDK mentions writing the reg, but not necessarily the ability to read back.
+		tmpreg = (GUS_reset_reg & ~0x4) | (myGUS.irqenabled ? 0x4 : 0x0);
 		return (Bit16u)(tmpreg << 8);
 	case 0x80: // Channel voice control read register
 		if (curchan) return curchan->ReadWaveCtrl() << 8;
@@ -567,6 +595,7 @@ static void ExecuteGlobRegister(void) {
 		if (!myGUS.timers[0].raiseirq) myGUS.IRQStatus&=~0x04;
 		myGUS.timers[1].raiseirq=(myGUS.TimerControl & 0x08)>0;
 		if (!myGUS.timers[1].raiseirq) myGUS.IRQStatus&=~0x08;
+		GUS_CheckIRQ();
 		break;
 	case 0x46:  // Timer 1 control
 		myGUS.timers[0].value = (Bit8u)(myGUS.gRegData>>8);
@@ -715,6 +744,7 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 	}
 }
 
+/* TODO: Can we alter this to match ISA BUS DMA timing of the real hardware? */
 static void GUS_DMA_Callback(DmaChannel * chan,DMAEvent event) {
 	if (event!=DMA_UNMASKED) return;
 	Bitu dmaaddr = myGUS.dmaAddr << 4;
@@ -904,9 +934,13 @@ public:
 		}
 		// Register the Mixer CallBack 
 		gus_chan=MixerChan.Install(GUS_CallBack,GUS_RATE,"GUS");
-		myGUS.gRegData=0x1;
+
+		// FIXME: Could we leave the card in reset state until a fake ULTRINIT runs?
+		myGUS.gRegData=0x000/*reset*/;
 		GUSReset();
-		myGUS.gRegData=0x0;
+		myGUS.gRegData=0x700/*enable DAC output, run, master IRQ enable*/;
+		GUSReset();
+
 		int portat = 0x200+GUS_BASE;
 
 		// ULTRASND=Port,DMA1,DMA2,IRQ1,IRQ2
