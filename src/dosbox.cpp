@@ -1705,7 +1705,17 @@ void DOSBOX_SetupConfigSections(void) {
 	secprop=control->AddSection_prop("gus",&Null_Init,true); //done
 	Pbool = secprop->Add_bool("gus",Property::Changeable::WhenIdle,false); 	
 	Pbool->Set_help("Enable the Gravis Ultrasound emulation.");
-	
+
+	/* some DOS demos, especially where the programmers wrote their own tracker, forget to set "master IRQ enable" on the GUS,
+	 * and then wonder why music isn't playing. prior to some GUS bugfixes they happend to work anyway because DOSBox also
+	 * ignored master IRQ enable. you can restore that buggy behavior here.
+	 *
+	 * DOS games & demos that need this:
+	 *   - "Juice" by Psychic Link (writes 0x300 to GUS reset which only enables DAC and takes card out of reset, does not enable IRQ) */
+	Pbool = secprop->Add_bool("force master irq enable",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("Set this option if a DOS game or demo initializes the GUS but is unable to play any music.\n"
+			"Usually the cause is buggy GUS support that resets the GUS but fails to set the Master IRQ enable bit.");
+
 	Pstring = secprop->Add_string("gus panning table",Property::Changeable::WhenIdle,"default");
 	Pstring->Set_values(guspantables);
 	Pstring->Set_help("Controls which table or equation is used for the Gravis Ultrasound panning emulation.\n"

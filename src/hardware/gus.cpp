@@ -96,6 +96,7 @@ struct GFGus {
 
 	bool irqenabled;
 	bool ChangeIRQDMA;
+	bool force_master_irq_enable;
 	// IRQ status register values
 	Bit8u IRQStatus;
 	Bit32u ActiveMask;
@@ -374,7 +375,7 @@ static void GUSReset(void) {
 		}
 		myGUS.IRQChan = 0;
 	}
-	if ((myGUS.gRegData & 0x400) != 0x000) {
+	if ((myGUS.gRegData & 0x400) != 0x000 || myGUS.force_master_irq_enable) {
 		myGUS.irqenabled = true;
 	} else {
 		myGUS.irqenabled = false;
@@ -861,6 +862,10 @@ public:
 			gus_fixed_table = false;
 		else
 			gus_fixed_table = true;
+
+		myGUS.force_master_irq_enable=section->Get_bool("force master irq enable");
+		if (myGUS.force_master_irq_enable)
+			LOG(LOG_MISC,LOG_DEBUG)("GUS: Master IRQ enable will be forced on as instructed");
 
 		myGUS.rate=section->Get_int("gusrate");
 
