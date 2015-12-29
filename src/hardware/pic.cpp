@@ -604,6 +604,9 @@ bool PIC_RunQueue(void) {
 		CPU_CycleLeft-=CPU_Cycles;
 	}
 
+	if (PIC_IRQCheck)
+		PIC_runIRQs();
+
 	/* if we're out of cycles, then return false. don't execute any more instructions */
 	if ((CPU_CycleLeft+CPU_Cycles) <= 0)
 		return false;
