@@ -33,6 +33,7 @@
 #include "callback.h"
 #include "setup.h"
 #include "serialport.h"
+#include "mapper.h"
 #include "vga.h"
 extern bool PS1AudioCard;
 #include "parport.h"
@@ -4386,6 +4387,9 @@ void BIOS_OnBIOSReinit(Section* sec) {
 	LOG(LOG_MISC,LOG_DEBUG)("Reinitializing BIOS emulation");
 }
 
+void swapInNextDisk(bool pressed);
+void swapInNextCD(bool pressed);
+
 void BIOS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing BIOS");
 
@@ -4393,6 +4397,10 @@ void BIOS_Init() {
 	ISAPNP_SysDevNodeCount = 0;
 	ISAPNP_SysDevNodeLargest = 0;
 	for (int i=0;i < MAX_ISA_PNP_SYSDEVNODES;i++) ISAPNP_SysDevNodes[i] = NULL;
+
+	/* make sure CD swap and floppy swap mapper events are available */
+	MAPPER_AddHandler(swapInNextDisk,MK_f4,MMOD1,"swapimg","SwapFloppy"); /* Originally "Swap Image" but this version does not swap CDs */
+	MAPPER_AddHandler(swapInNextCD,MK_f3,MMOD1,"swapcd","SwapCD"); /* Variant of "Swap Image" for CDs */
 
 	/* NTS: VM_EVENT_BIOS_INIT this callback must be first. */
 	AddExitFunction(AddExitFunctionFuncPair(BIOS_Destroy),false);
