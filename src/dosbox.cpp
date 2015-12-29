@@ -1009,6 +1009,14 @@ void DOSBOX_SetupConfigSections(void) {
 			"or demo is not sensitive to I/O port and ISA bus timing, you can turn this option off\n"
 			"(set to 0) to increase game performance.");
 
+	Pint = secprop->Add_int("iodelay16", Property::Changeable::WhenIdle,-1);
+	Pint->SetMinMax(-1,100000);
+	Pint->Set_help(	"I/O delay for 16-bit transfers. -1 to use default, 0 to disable.");
+
+	Pint = secprop->Add_int("iodelay32", Property::Changeable::WhenIdle,-1);
+	Pint->SetMinMax(-1,100000);
+	Pint->Set_help(	"I/O delay for 32-bit transfers. -1 to use default, 0 to disable.");
+
 	Pstring = secprop->Add_string("acpi", Property::Changeable::OnlyAtStart,"off");
 	Pstring->Set_values(acpisettings);
 	Pstring->Set_help("ACPI emulation, and what version of the specification to follow.\n"
