@@ -738,7 +738,7 @@ void FPU_Selftest_32() {
 		}
 	}
 
-	LOG(LOG_FPU,LOG_NORMAL)("FPU32 selftest passed");
+	LOG(LOG_FPU,LOG_DEBUG)("FPU32 selftest passed");
 	return;
 dump:
 	LOG(LOG_FPU,LOG_WARN)("Result: t.v = %.10f t.s=%u t.exp=%d t.mantissa=%u",
@@ -798,7 +798,7 @@ void FPU_Selftest_64() {
 		}
 	}
 
-	LOG(LOG_FPU,LOG_NORMAL)("FPU64 selftest passed");
+	LOG(LOG_FPU,LOG_DEBUG)("FPU64 selftest passed");
 	return;
 dump:
 	LOG(LOG_FPU,LOG_WARN)("Result: t.v = %.10f t.s=%u t.exp=%d t.mantissa=%llu (0x%llx)",
@@ -872,7 +872,7 @@ void FPU_Selftest_80() {
 		}
 	}
 
-	LOG(LOG_FPU,LOG_NORMAL)("FPU80 selftest passed");
+	LOG(LOG_FPU,LOG_DEBUG)("FPU80 selftest passed");
 	return;
 dump:
 	LOG(LOG_FPU,LOG_WARN)("Result: t.v = %.10Lf t.s=%u t.exp=%d t.mantissa=%llu (0x%llx)",

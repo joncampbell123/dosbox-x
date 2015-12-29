@@ -842,9 +842,9 @@ public:
 			myGUS.memsize = (1024*1024);
 
 		if ((myGUS.memsize&((256 << 10) - 1)) != 0)
-			LOG_MSG("GUS emulation warning: %uKB onboard is an unusual value. Usually GUS cards have some multiple of 256KB RAM onboard",myGUS.memsize>>10);
+			LOG(LOG_MISC,LOG_WARN)("GUS emulation warning: %uKB onboard is an unusual value. Usually GUS cards have some multiple of 256KB RAM onboard",myGUS.memsize>>10);
 
-		LOG_MSG("GUS emulation: %uKB onboard",myGUS.memsize>>10);
+		LOG(LOG_MISC,LOG_DEBUG)("GUS emulation: %uKB onboard",myGUS.memsize>>10);
 
 		// FIXME: HUH?? Read the port number and subtract 0x200, then use GUS_BASE
 		// in other parts of the code to compare against 0x200 and 0x300? That's confusing. Fix!

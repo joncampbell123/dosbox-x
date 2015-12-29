@@ -167,7 +167,7 @@ public:
 
 		/* Sound font file required */
 		if (!conf || (conf[0] == '\0')) {
-			LOG_MSG("SYNTH: Specify .SF2 sound font file with config=");
+			LOG(LOG_MISC,LOG_DEBUG)("SYNTH: Specify .SF2 sound font file with config=");
 			return false;
 		}
 
@@ -181,7 +181,7 @@ public:
 		/* Create the settings. */
 		settings = new_fluid_settings();
 		if (settings == NULL) {
-			LOG_MSG("SYNTH: Error allocating MIDI soft synth settings");
+			LOG(LOG_MISC,LOG_WARN)("SYNTH: Error allocating MIDI soft synth settings");
 			return false;
 		}
 
@@ -200,7 +200,7 @@ public:
 		/* Create the synthesizer. */
 		synth_soft = new_fluid_synth(settings);
 		if (synth_soft == NULL) {
-			LOG_MSG("SYNTH: Error initialising MIDI soft synth");
+			LOG(LOG_MISC,LOG_WARN)("SYNTH: Error initialising MIDI soft synth");
 			delete_fluid_settings(settings);
 			return false;
 		}
@@ -219,7 +219,7 @@ public:
 		if (sfont_id == -1) {
 			sfont_id = fluid_synth_sfload(synth_soft, str, 0);
 			if (sfont_id == -1) {
-				LOG_MSG("SYNTH: Failed to load MIDI sound font file \"%s\"",
+				LOG(LOG_MISC,LOG_WARN)("SYNTH: Failed to load MIDI sound font file \"%s\"",
 				   conf);
 				delete_fluid_synth(synth_soft);
 				delete_fluid_settings(settings);
@@ -230,7 +230,7 @@ public:
 		/* Allocate one event to store the input data */
 		synth_parser = new_fluid_midi_parser();
 		if (synth_parser == NULL) {
-			LOG_MSG("SYNTH: Failed to allocate MIDI parser");
+			LOG(LOG_MISC,LOG_WARN)("SYNTH: Failed to allocate MIDI parser");
 			delete_fluid_synth(synth_soft);
 			delete_fluid_settings(settings);
 			return false;
@@ -240,7 +240,7 @@ public:
 					       fluid_synth_handle_midi_event,
 					       (void*)synth_soft);
 		if (router == NULL) {
-			LOG_MSG("SYNTH: Failed to initialise MIDI router");
+			LOG(LOG_MISC,LOG_WARN)("SYNTH: Failed to initialise MIDI router");
 			delete_fluid_midi_parser(synth_parser);
 			delete_fluid_synth(synth_soft);
 			delete_fluid_settings(settings);

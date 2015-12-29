@@ -2148,7 +2148,7 @@ static void CreateStringBind(char * line) {
 			goto foundevent;
 		}
 	}
-	LOG_MSG("Can't find matching event for %s",eventname);
+	LOG(LOG_MISC,LOG_WARN)("Can't find matching event for %s",eventname);
 	return ;
 foundevent:
 	CBind * bind;
@@ -2325,7 +2325,7 @@ static bool MAPPER_LoadBinds(void) {
 		CreateStringBind(linein);
 	}
 	fclose(loadfile);
-	LOG_MSG("MAPPER: Loading mapper settings from %s", mapper.filename.c_str());
+	LOG(LOG_MISC,LOG_NORMAL)("MAPPER: Loading mapper settings from %s", mapper.filename.c_str());
 	return true;
 }
 

@@ -632,7 +632,7 @@ void TIMER_ShutdownTickHandlers() {
 	}
 
 	if (leftovers != 0)
-		LOG_MSG("TIMER: %u leftover handlers (clean up!).\n",leftovers);
+		LOG(LOG_MISC,LOG_DEBUG)("TIMER: %u leftover handlers (clean up!).",leftovers);
 }
 
 void TIMER_DelTickHandler(TIMER_TickHandler handler) {

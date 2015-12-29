@@ -1250,8 +1250,8 @@ void Init_RAM() {
 	if (memory.pages < ((1024*1024)/4096))
 		memory.pages = ((1024*1024)/4096);
 
-	// DEBUG message (FIXME: later convert to LOG(LOG_MISC,LOG_DEBUG)
-	LOG_MSG("Memory: %u pages of RAM, %u reported to OS, %u (0x%x) pages of memory handlers",
+	// DEBUG message
+	LOG(LOG_MISC,LOG_DEBUG)("Memory: %u pages of RAM, %u reported to OS, %u (0x%x) pages of memory handlers",
 			(unsigned int)memory.pages,
 			(unsigned int)memory.reported_pages,
 			(unsigned int)memory.handler_pages,

@@ -618,7 +618,7 @@ public:
 		if (fullconf.find("delaysysex") != std::string::npos) {
 			midi.sysex.start = GetTicks();
 			fullconf.erase(fullconf.find("delaysysex"));
-			LOG_MSG("MIDI:Using delayed SysEx processing");
+			LOG(LOG_MISC,LOG_DEBUG)("MIDI:Using delayed SysEx processing");
 		}
 		std::remove(fullconf.begin(), fullconf.end(), ' ');
 		const char * conf = fullconf.c_str();
@@ -634,12 +634,12 @@ public:
                            synthsamplerate=section->Get_int("samplerate");
 #endif
 				if (!handler->Open(conf)) {
-					LOG_MSG("MIDI:Can't open device:%s with config:%s.",dev,conf);	
+					LOG(LOG_MISC,LOG_WARN)("MIDI:Can't open device:%s with config:%s.",dev,conf);	
 					goto getdefault;
 				}
 				midi.handler=handler;
 				midi.available=true;	
-				LOG_MSG("MIDI:Opened device:%s",handler->GetName());
+				LOG(LOG_MISC,LOG_DEBUG)("MIDI:Opened device:%s",handler->GetName());
 
 				// force reset to prevent crashes (when not properly shutdown)
 				// ex. Roland VSC = unexpected hard system crash
@@ -649,14 +649,14 @@ public:
 			}
 			handler=handler->next;
 		}
-		LOG_MSG("MIDI:Can't find device:%s, finding default handler.",dev);	
+		LOG(LOG_MISC,LOG_DEBUG)("MIDI:Can't find device:%s, finding default handler.",dev);	
 getdefault:	
 		handler=handler_list;
 		while (handler) {
 			if (handler->Open(conf)) {
 				midi.available=true;	
 				midi.handler=handler;
-				LOG_MSG("MIDI:Opened device:%s",handler->GetName());
+				LOG(LOG_MISC,LOG_DEBUG)("MIDI:Opened device:%s",handler->GetName());
 				return;
 			}
 			handler=handler->next;

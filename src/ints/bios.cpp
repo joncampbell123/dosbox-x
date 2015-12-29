@@ -817,7 +817,7 @@ void ISAPNP_Cfg_Reset(Section *sec) {
 	else//auto
 		APM_BIOS_minor_version = 2;
 
-	LOG_MSG("APM BIOS allow: real=%u pm16=%u pm32=%u version=1.%u\n",
+	LOG(LOG_MISC,LOG_DEBUG)("APM BIOS allow: real=%u pm16=%u pm32=%u version=1.%u",
 		APMBIOS_allow_realmode,
 		APMBIOS_allow_prot16,
 		APMBIOS_allow_prot32,
@@ -3957,7 +3957,7 @@ public:
 			ISAPNP_PNP_DATA_PORT->Install(0xA79,isapnp_write_port,IO_MB);
 			ISAPNP_PNP_READ_PORT = new IO_ReadHandleObject;
 			ISAPNP_PNP_READ_PORT->Install(ISA_PNP_WPORT,isapnp_read_port,IO_MB);
-			LOG_MSG("Registered ISA PnP read port at 0x%03x\n",ISA_PNP_WPORT);
+			LOG(LOG_MISC,LOG_DEBUG)("Registered ISA PnP read port at 0x%03x",ISA_PNP_WPORT);
 		}
 
 		if (enable_integration_device) {
@@ -4462,8 +4462,8 @@ void ROMBIOS_Init() {
 		rombios_minimum_size = 0x10000;
 	}
 
-	LOG(LOG_BIOS,LOG_NORMAL)("ROM BIOS range: 0x%05x-0xFFFFF",(int)rombios_minimum_location);
-	LOG(LOG_BIOS,LOG_DEBUG)("ROM BIOS range according to minimum size: 0x%05x-0xFFFFF",(int)(0x100000 - rombios_minimum_size));
+	LOG(LOG_BIOS,LOG_DEBUG)("ROM BIOS range: 0x%05X-0xFFFFF",(int)rombios_minimum_location);
+	LOG(LOG_BIOS,LOG_DEBUG)("ROM BIOS range according to minimum size: 0x%05X-0xFFFFF",(int)(0x100000 - rombios_minimum_size));
 
 	if (!MEM_map_ROM_physmem(rombios_minimum_location,0xFFFFF)) E_Exit("Unable to map ROM region as ROM");
 

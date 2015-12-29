@@ -58,15 +58,15 @@ private:
 	class MT32ReportHandler : public MT32Emu::ReportHandler {
 	protected:
 		virtual void onErrorControlROM() {
-			LOG_MSG("MT32: Couldn't open Control ROM file");
+			LOG(LOG_MISC,LOG_WARN)("MT32: Couldn't open Control ROM file");
 		}
 
 		virtual void onErrorPCMROM() {
-			LOG_MSG("MT32: Couldn't open PCM ROM file");
+			LOG(LOG_MISC,LOG_WARN)("MT32: Couldn't open PCM ROM file");
 		}
 
 		virtual void showLCDMessage(const char *message) {
-			LOG_MSG("MT32: LCD-Message: %s", message);
+			LOG(LOG_MISC,LOG_DEBUG)("MT32: LCD-Message: %s", message);
 		}
 
 		virtual void printDebug(const char *fmt, va_list list);
@@ -92,13 +92,13 @@ public:
 
 		if (!controlROMFile.open("CM32L_CONTROL.ROM")) {
 			if (!controlROMFile.open("MT32_CONTROL.ROM")) {
-				LOG_MSG("MT32: Control ROM file not found");
+				LOG(LOG_MISC,LOG_WARN)("MT32: Control ROM file not found");
 				return false;
 			}
 		}
 		if (!pcmROMFile.open("CM32L_PCM.ROM")) {
 			if (!pcmROMFile.open("MT32_PCM.ROM")) {
-				LOG_MSG("MT32: PCM ROM file not found");
+				LOG(LOG_MISC,LOG_WARN)("MT32: PCM ROM file not found");
 				return false;
 			}
 		}
@@ -106,7 +106,7 @@ public:
 		const MT32Emu::ROMImage *pcmROMImage = MT32Emu::ROMImage::makeROMImage(&pcmROMFile);
 		synth = new MT32Emu::Synth(&reportHandler);
 		if (!synth->open(*controlROMImage, *pcmROMImage)) {
-			LOG_MSG("MT32: Error initialising emulation");
+			LOG(LOG_MISC,LOG_WARN)("MT32: Error initialising emulation");
 			return false;
 		}
 
@@ -119,7 +119,7 @@ public:
 			synth->writeSysex(16, reverbsysex, 6);
 			synth->setReverbOverridden(true);
 		} else {
-			LOG_MSG("MT32: Using default reverb");
+			LOG(LOG_MISC,LOG_DEBUG)("MT32: Using default reverb");
 		}
 
 		if (strcmp(section->Get_string("mt32.dac"), "auto") != 0) {

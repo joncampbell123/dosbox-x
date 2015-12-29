@@ -763,12 +763,12 @@ void INT10_OnReset(Section *sec) {
 		E_Exit("VGA BIOS size too small");
 
 	if (VGA_BIOS_Size > 0) {
-		LOG_MSG("VGA BIOS occupies segment 0x%04x-0x%04x\n",(int)VGA_BIOS_SEG,(int)VGA_BIOS_SEG_END-1);
+		LOG(LOG_MISC,LOG_DEBUG)("VGA BIOS occupies segment 0x%04x-0x%04x",(int)VGA_BIOS_SEG,(int)VGA_BIOS_SEG_END-1);
 		if (!MEM_map_ROM_physmem(0xC0000,0xC0000+VGA_BIOS_Size-1))
-			LOG_MSG("INT 10 video: unable to map BIOS\n");
+			LOG(LOG_MISC,LOG_WARN)("INT 10 video: unable to map BIOS");
 	}
 	else {
-		LOG_MSG("Not mapping VGA BIOS\n");
+		LOG(LOG_MISC,LOG_DEBUG)("Not mapping VGA BIOS");
 	}
 
 	INT10_SetVideoMode(0x3);

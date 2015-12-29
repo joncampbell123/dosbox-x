@@ -337,7 +337,7 @@ static Bit8u EMM_AllocateSystemHandle(Bit16u pages/*NTS: EMS pages are 16KB, thi
 	if (!mem) E_Exit("EMS:System handle memory allocation failure");
 	emm_handles[handle].pages = pages;
 	emm_handles[handle].mem = mem;
-	LOG_MSG("EMS: OS handle allocated %u 16KB pages 0x%08lx-0x%08lx",
+	LOG(LOG_MISC,LOG_DEBUG)("EMS: OS handle allocated %u 16KB pages 0x%08lx-0x%08lx",
 		(unsigned int)pages,
 		(unsigned long)mem * 4096UL,
 		((unsigned long)mem * 4096UL) + (pages * 16384UL) - 1);
@@ -1321,7 +1321,7 @@ static void SetupVCPI() {
 	 * reasons we should enable the A20 gate now. This fixes random
 	 * crashes in v86 mode when a20=mask as opposed to a20=fast. */
 	if ((emm_handles[vcpi.ems_handle].mem<<12) & (1<<20)) {
-		LOG_MSG("EMS:EMM OS handle is associated with memory on an odd megabyte. Enabling A20 gate to avoid corrupting DOS state");
+		LOG(LOG_MISC,LOG_DEBUG)("EMS:EMM OS handle is associated with memory on an odd megabyte. Enabling A20 gate to avoid corrupting DOS state");
 		XMS_EnableA20(true);
 	}
 
@@ -1561,7 +1561,7 @@ public:
 
 		if (ENABLE_VCPI) {
 			assert(ems_type != EMS_BOARD);
-			LOG_MSG("Enabling VCPI emulation\n");
+			LOG(LOG_MISC,LOG_DEBUG)("Enabling VCPI emulation");
 
 			/* Install a callback that handles VCPI-requests in protected mode requests */
 			call_vcpi.Install(&VCPI_PM_Handler,CB_IRETD,"VCPI PM");
@@ -1597,7 +1597,7 @@ public:
 				/* our V86 state may require A20 enabled to run. the EMM OS handle
 				 * often resides on an odd megabyte */
 				if ((emm_handles[vcpi.ems_handle].mem<<12) & (1<<20)) {
-					LOG_MSG("EMS:EMM OS handle is associated with memory on an odd megabyte. Enabling A20 gate to safely enter V86 mode.");
+					LOG(LOG_MISC,LOG_DEBUG)("EMS:EMM OS handle is associated with memory on an odd megabyte. Enabling A20 gate to safely enter V86 mode.");
 					XMS_EnableA20(true);
 				}
 				vcpi_virtual_a20 = true;

@@ -1676,7 +1676,7 @@ public:
 		if ((int)MAXENV < 0) MAXENV = mainline_compatible_mapping ? 32768 : 65535;
 		if ((int)ENV_KEEPFREE < 0) ENV_KEEPFREE = mainline_compatible_mapping ? 83 : 1024;
 
-		LOG_MSG("DOS: MAXENV=%u ENV_KEEPFREE=%u",MAXENV,ENV_KEEPFREE);
+		LOG(LOG_MISC,LOG_DEBUG)("DOS: MAXENV=%u ENV_KEEPFREE=%u",MAXENV,ENV_KEEPFREE);
 
 		if (ENV_KEEPFREE < 83)
 			LOG_MSG("DOS: ENV_KEEPFREE is below 83 bytes. DOS programs that rely on undocumented data following the environment block may break.");
@@ -1738,7 +1738,7 @@ public:
 					DOS_PRIVATE_SEGMENT_END = (MEM_TotalPages() << (12 - 4)) - 1; /* NTS: Remember DOSBox's implementation reuses the last paragraph for UMB linkage */
 			}
 
-			LOG_MSG("Dynamic DOS kernel mode, structures will be allocated from pool 0x%04x-0x%04x\n",
+			LOG(LOG_MISC,LOG_DEBUG)("Dynamic DOS kernel mode, structures will be allocated from pool 0x%04x-0x%04x",
 				DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
 
 			DOS_FIRST_SHELL_SIZE = 19 + (dosbox_shell_env_size >> 4);
@@ -1770,7 +1770,7 @@ public:
 			DOS_FIRST_SHELL_END = DOS_MEM_START = 0x158;	 // regression to r3437 fixes nascar 2 colors
 
 			if (dosbox_shell_env_size != 0) {
-				LOG_MSG("WARNING: Shell environment block size setting is only available when dynamic dos kernel allocation is enabled\n");
+				LOG(LOG_MISC,LOG_WARN)("WARNING: Shell environment block size setting is only available when dynamic dos kernel allocation is enabled");
 				dosbox_shell_env_size = (DOS_FIRST_SHELL_END - (DOS_FIRST_SHELL+19)) << 4; /* see src/shell/shell.cpp line 722 for more information */
 			}
 
@@ -1790,20 +1790,20 @@ public:
 				DOS_PRIVATE_SEGMENT_END = segend;
 				DOS_MEM_START = DOS_PRIVATE_SEGMENT_END;
 				DOS_GetMemory_reset();
-				LOG_MSG("Private area, not stored in UMB on request, occupies 0x%04x-0x%04x\n",
+				LOG(LOG_MISC,LOG_DEBUG)("Private area, not stored in UMB on request, occupies 0x%04x-0x%04x",
 					DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
 			}
 		}
 
-		LOG_MSG("DOS kernel alloc:\n");
-		LOG_MSG("   IHSEG:        seg 0x%04x\n",DOS_IHSEG);
-		LOG_MSG("   infoblock:    seg 0x%04x\n",DOS_INFOBLOCK_SEG);
-		LOG_MSG("   condrv:       seg 0x%04x\n",DOS_CONDRV_SEG);
-		LOG_MSG("   constring:    seg 0x%04x\n",DOS_CONSTRING_SEG);
-		LOG_MSG("   SDA:          seg 0x%04x:0x%04x\n",DOS_SDA_SEG,DOS_SDA_OFS);
-		LOG_MSG("   CDS:          seg 0x%04x\n",DOS_CDS_SEG);
-		LOG_MSG("   first shell:  seg 0x%04x-0x%04x\n",DOS_FIRST_SHELL,DOS_FIRST_SHELL_END-1);
-		LOG_MSG("[private segment @ this point 0x%04x-0x%04x mem=0x%04lx]\n",
+		LOG(LOG_MISC,LOG_DEBUG)("DOS kernel alloc:");
+		LOG(LOG_MISC,LOG_DEBUG)("   IHSEG:        seg 0x%04x",DOS_IHSEG);
+		LOG(LOG_MISC,LOG_DEBUG)("   infoblock:    seg 0x%04x",DOS_INFOBLOCK_SEG);
+		LOG(LOG_MISC,LOG_DEBUG)("   condrv:       seg 0x%04x",DOS_CONDRV_SEG);
+		LOG(LOG_MISC,LOG_DEBUG)("   constring:    seg 0x%04x",DOS_CONSTRING_SEG);
+		LOG(LOG_MISC,LOG_DEBUG)("   SDA:          seg 0x%04x:0x%04x",DOS_SDA_SEG,DOS_SDA_OFS);
+		LOG(LOG_MISC,LOG_DEBUG)("   CDS:          seg 0x%04x",DOS_CDS_SEG);
+		LOG(LOG_MISC,LOG_DEBUG)("   first shell:  seg 0x%04x-0x%04x",DOS_FIRST_SHELL,DOS_FIRST_SHELL_END-1);
+		LOG(LOG_MISC,LOG_DEBUG)("[private segment @ this point 0x%04x-0x%04x mem=0x%04lx]",
 			DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END,
 			(unsigned long)(MEM_TotalPages() << (12 - 4)));
 
@@ -1895,7 +1895,7 @@ public:
 				DOS_MEM_START = 0x800;
 		}
 
-		LOG_MSG("   mem start:    seg 0x%04x\n",DOS_MEM_START);
+		LOG(LOG_MISC,LOG_DEBUG)("   mem start:    seg 0x%04x",DOS_MEM_START);
 
 		/* carry on setup */
 		DOS_SetupMemory();								/* Setup first MCB */

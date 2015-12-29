@@ -777,8 +777,8 @@ void SHELL_Init() {
 	envmcb.SetSize(DOS_FIRST_SHELL_END-env_seg);
 	envmcb.SetType(0x4d);
 
-	LOG_MSG("SHELL: psp_seg 0x%04x\n",psp_seg);
-	LOG_MSG("SHELL: env_seg 0x%04x\n",env_seg);
+	LOG(LOG_MISC,LOG_DEBUG)("SHELL: psp_seg 0x%04x",psp_seg);
+	LOG(LOG_MISC,LOG_DEBUG)("SHELL: env_seg 0x%04x",env_seg);
 	
 	/* Setup environment */
 	PhysPt env_write=PhysMake(env_seg,0);

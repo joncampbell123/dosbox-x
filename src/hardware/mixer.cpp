@@ -731,17 +731,18 @@ void MIXER_Init() {
 
 	mixer.tick_remain=0;
 	if (mixer.nosound) {
-		LOG_MSG("MIXER:No Sound Mode Selected.");
+		LOG(LOG_MISC,LOG_DEBUG)("MIXER:No Sound Mode Selected.");
 		mixer.tick_add=((mixer.freq) << MIXER_SHIFT)/1000;
 		TIMER_AddTickHandler(MIXER_Mix_NoSound);
 	} else if (SDL_OpenAudio(&spec, &obtained) <0 ) {
 		mixer.nosound = true;
-		LOG_MSG("MIXER:Can't open audio: %s , running in nosound mode.",SDL_GetError());
+		LOG(LOG_MISC,LOG_DEBUG)("MIXER:Can't open audio: %s , running in nosound mode.",SDL_GetError());
 		mixer.tick_add=((mixer.freq) << MIXER_SHIFT)/1000;
 		TIMER_AddTickHandler(MIXER_Mix_NoSound);
 	} else {
 		if(((Bitu)mixer.freq != (Bitu)obtained.freq) || ((Bitu)mixer.blocksize != (Bitu)obtained.samples))
-			LOG_MSG("MIXER:Got different values from SDL: freq %d, blocksize %d",(int)obtained.freq,(int)obtained.samples);
+			LOG(LOG_MISC,LOG_DEBUG)("MIXER:Got different values from SDL: freq %d, blocksize %d",(int)obtained.freq,(int)obtained.samples);
+
 		mixer.freq=obtained.freq;
 		mixer.blocksize=obtained.samples;
 		if (mixer.sampleaccurate) {

@@ -2810,7 +2810,7 @@ public:
 		cpu_double_fault_enable = section->Get_bool("double fault");
 		cpu_triple_fault_reset = section->Get_bool("reset on triple fault");
 		cpu_allow_big16 = section->Get_bool("realbig16");
-		if (cpu_allow_big16) LOG_MSG("WARNING: B (big) bit allowed in real mode\n");
+		if (cpu_allow_big16) LOG(LOG_CPU,LOG_DEBUG)("Emulation of the B (big) bit in real mode enabled\n");
 
 		always_report_double_fault = section->Get_bool("always report double fault");
 		always_report_triple_fault = section->Get_bool("always report triple fault");
