@@ -4740,7 +4740,9 @@ int main(int argc, char* argv[]) {
 		 *      which will then "boot" into the DOSBox kernel, and then the shell, by calling VM_Boot_DOSBox_Kernel() */
 		/* FIXME: throwing int() is a stupid and nondescriptive way to signal shutdown/reset. */
 		try {
+#if C_DEBUG
 			if (control->opt_break_start) DEBUG_EnableDebugger();
+#endif
 			DOSBOX_RunMachine();
 		} catch (int x) {
 			if (x == 2) { /* booting a guest OS. "boot" has already done the work to load the image and setup CPU registers */
