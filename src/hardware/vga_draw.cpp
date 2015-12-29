@@ -1727,7 +1727,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 	else {
 		// The screen refresh frequency
 		fps=(double)clock/(vtotal*htotal);
-		LOG(LOG_VGA,LOG_NORMAL)("VGA refresh rate is now, %.3f",vga_force_refresh_rate);
+		LOG(LOG_VGA,LOG_NORMAL)("VGA refresh rate is now, %.3f",fps);
 	}
 
 	/* clip display end to stay within vtotal ("Monolith" demo part 4 320x570 mode fix) */
