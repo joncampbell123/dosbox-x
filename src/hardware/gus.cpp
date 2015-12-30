@@ -387,7 +387,13 @@ static void GUSReset(void) {
 }
 
 static INLINE void GUS_CheckIRQ(void) {
-	if (myGUS.irqenabled && myGUS.IRQStatus && (myGUS.mixControl & 0x08))
+	bool dmaTC;
+	bool otherIRQ;
+
+	dmaTC = ((myGUS.IRQStatus & 0x80/*DMA TC IRQ*/)!=0) && ((myGUS.DMAControl & 0x20/*DMA IRQ Enable*/)!=0);
+	otherIRQ = (myGUS.IRQStatus & 0x7F/*all except DMA TC IRQ pending*/);
+
+	if (myGUS.irqenabled && (otherIRQ || dmaTC) && (myGUS.mixControl & 0x08)/*Enable latches*/)
 		PIC_ActivateIRQ(myGUS.irq1);
 	else
 		PIC_DeActivateIRQ(myGUS.irq1);
@@ -803,6 +809,9 @@ static void GUS_DMA_Callback(DmaChannel * chan,DMAEvent event) {
 			}
 		}
 
+		LOG(LOG_MISC,LOG_DEBUG)("GUS DMA transfer %lu bytes, GUS RAM address 0x%lx %u-bit",
+			(unsigned long)step,(unsigned long)dmaaddr,myGUS.DMAControl & 0x4 ? 16 : 8);
+
 		if (step > 0) {
 			dmaaddr += (unsigned int)step;
 
@@ -820,12 +829,12 @@ static void GUS_DMA_Callback(DmaChannel * chan,DMAEvent event) {
 
 	if (event == DMA_UNMASKED || event == DMA_REACHED_TC) {
 		if (chan->tcount) {
+			LOG(LOG_MISC,LOG_DEBUG)("GUS DMA: terminal count reached. DMAControl=0x%02x",myGUS.DMAControl);
+
 			/* Raise the TC irq if needed */
-			if((myGUS.DMAControl & 0x20) != 0) {
-				myGUS.dmaAddrOffset = 0;
-				myGUS.IRQStatus |= 0x80;
-				GUS_CheckIRQ();
-			}
+			myGUS.dmaAddrOffset = 0;
+			myGUS.IRQStatus |= 0x80;
+			GUS_CheckIRQ();
 			chan->Register_Callback(0);
 		}
 	}
