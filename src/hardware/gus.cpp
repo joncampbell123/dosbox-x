@@ -71,6 +71,7 @@ struct GFGus {
 
 	Bit8u DMAControl;
 	Bit16u dmaAddr;
+	Bit8u dmaAddrOffset; /* bits 0-3 of the addr */
 	Bit8u TimerControl;
 	Bit8u SampControl;
 	Bit8u mixControl;
@@ -747,8 +748,19 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 
 /* TODO: Can we alter this to match ISA BUS DMA timing of the real hardware? */
 static void GUS_DMA_Callback(DmaChannel * chan,DMAEvent event) {
+	int step;
+
 	if (event!=DMA_UNMASKED) return;
-	Bitu dmaaddr = myGUS.dmaAddr << 4;
+	Bitu dmaaddr = (myGUS.dmaAddr << 4) + myGUS.dmaAddrOffset;
+
+	// FIXME: The code in it's current form COULD overrun the 1MB GUS RAM buffer if
+	//        the DMA pointer is out far enough and the DMA transfer is large enough...
+
+	if (myGUS.DMAControl & 0x4) {
+		// 16-bit wide DMA
+		// TODO: 16-bit address translation (same translation when reading samples)
+	}
+
 	if((myGUS.DMAControl & 0x2) == 0) {
 		Bitu read=chan->Read(chan->currcnt+1,&GUSRam[dmaaddr]);
 		//Check for 16 or 8bit channel
@@ -764,12 +776,26 @@ static void GUS_DMA_Callback(DmaChannel * chan,DMAEvent event) {
 				for(i=dmaaddr+1;i<(dmaaddr+read);i+=2) GUSRam[i] ^= 0x80;
 			}
 		}
+
+		step = read;
 	} else {
 		//Read data out of UltraSound
-		chan->Write(chan->currcnt+1,&GUSRam[dmaaddr]);
+		int wd = chan->Write(chan->currcnt+1,&GUSRam[dmaaddr]);
+		//Check for 16 or 8bit channel
+		wd*=(chan->DMA16+1);
+
+		step = wd;
 	}
+
+	if (step > 0) {
+		dmaaddr += (unsigned int)step;
+		myGUS.dmaAddr = dmaaddr >> 4;
+		myGUS.dmaAddrOffset = dmaaddr & 0xF;
+	}
+
 	/* Raise the TC irq if needed */
 	if((myGUS.DMAControl & 0x20) != 0) {
+		myGUS.dmaAddrOffset = 0;
 		myGUS.IRQStatus |= 0x80;
 		GUS_CheckIRQ();
 	}
