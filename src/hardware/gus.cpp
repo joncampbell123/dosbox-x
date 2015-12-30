@@ -748,47 +748,71 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 
 /* TODO: Can we alter this to match ISA BUS DMA timing of the real hardware? */
 static void GUS_DMA_Callback(DmaChannel * chan,DMAEvent event) {
-	int step;
+	int step=0,docount=0;
 
 	if (event!=DMA_UNMASKED) return;
 	Bitu dmaaddr = (myGUS.dmaAddr << 4) + myGUS.dmaAddrOffset;
+	Bitu dmalimit = myGUS.memsize;
+	Bitu holdAddr;
 
-	// FIXME: The code in it's current form COULD overrun the 1MB GUS RAM buffer if
-	//        the DMA pointer is out far enough and the DMA transfer is large enough...
+	// FIXME: What does the GUS do if the DMA address goes beyond the end of memory?
 
 	if (myGUS.DMAControl & 0x4) {
-		// 16-bit wide DMA
-		// TODO: 16-bit address translation (same translation when reading samples)
+		// 16-bit wide DMA. The GUS SDK specifically mentions that 16-bit DMA is translated
+		// to GUS RAM the same way you translate the play pointer. Eugh. But this allows
+		// older demos to work properly even if you set the GUS DMA to a 16-bit channel (5)
+		// instead of the usual 8-bit channel (1).
+		holdAddr = dmaaddr & 0xc0000L;
+		dmaaddr = dmaaddr & 0x1ffffL;
+		dmaaddr = dmaaddr << 1;
+		dmaaddr = (holdAddr | dmaaddr);
+		dmalimit = ((dmaaddr & 0xc0000L) | 0x3FFFFL) + 1;
 	}
 
-	if((myGUS.DMAControl & 0x2) == 0) {
-		Bitu read=chan->Read(chan->currcnt+1,&GUSRam[dmaaddr]);
-		//Check for 16 or 8bit channel
-		read*=(chan->DMA16+1);
-		if((myGUS.DMAControl & 0x80) != 0) {
-			//Invert the MSB to convert twos compliment form
-			Bitu i;
-			if((myGUS.DMAControl & 0x40) == 0) {
-				// 8-bit data
-				for(i=dmaaddr;i<(dmaaddr+read);i++) GUSRam[i] ^= 0x80;
-			} else {
-				// 16-bit data
-				for(i=dmaaddr+1;i<(dmaaddr+read);i+=2) GUSRam[i] ^= 0x80;
+	if (dmaaddr < dmalimit)
+		docount = dmalimit - dmaaddr;
+
+	if (docount > 0) {
+		docount /= (chan->DMA16+1);
+		if (docount > (chan->currcnt+1)) docount = chan->currcnt+1;
+
+		if((myGUS.DMAControl & 0x2) == 0) {
+			Bitu read=chan->Read(docount,&GUSRam[dmaaddr]);
+			//Check for 16 or 8bit channel
+			read*=(chan->DMA16+1);
+			if((myGUS.DMAControl & 0x80) != 0) {
+				//Invert the MSB to convert twos compliment form
+				Bitu i;
+				if((myGUS.DMAControl & 0x40) == 0) {
+					// 8-bit data
+					for(i=dmaaddr;i<(dmaaddr+read);i++) GUSRam[i] ^= 0x80;
+				} else {
+					// 16-bit data
+					for(i=dmaaddr+1;i<(dmaaddr+read);i+=2) GUSRam[i] ^= 0x80;
+				}
 			}
+
+			step = read;
+		} else {
+			//Read data out of UltraSound
+			int wd = chan->Write(docount,&GUSRam[dmaaddr]);
+			//Check for 16 or 8bit channel
+			wd*=(chan->DMA16+1);
+
+			step = wd;
 		}
-
-		step = read;
-	} else {
-		//Read data out of UltraSound
-		int wd = chan->Write(chan->currcnt+1,&GUSRam[dmaaddr]);
-		//Check for 16 or 8bit channel
-		wd*=(chan->DMA16+1);
-
-		step = wd;
 	}
 
 	if (step > 0) {
 		dmaaddr += (unsigned int)step;
+
+		if (myGUS.DMAControl & 0x4) {
+			holdAddr = dmaaddr & 0xc0000L;
+			dmaaddr = dmaaddr & 0x3ffffL;
+			dmaaddr = dmaaddr >> 1;
+			dmaaddr = (holdAddr | dmaaddr);
+		}
+
 		myGUS.dmaAddr = dmaaddr >> 4;
 		myGUS.dmaAddrOffset = dmaaddr & 0xF;
 	}
