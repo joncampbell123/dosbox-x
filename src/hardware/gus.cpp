@@ -750,80 +750,85 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 static void GUS_DMA_Callback(DmaChannel * chan,DMAEvent event) {
 	int step=0,docount=0;
 
-	if (event!=DMA_UNMASKED) return;
-	Bitu dmaaddr = (myGUS.dmaAddr << 4) + myGUS.dmaAddrOffset;
-	Bitu dmalimit = myGUS.memsize;
-	Bitu holdAddr;
+	if (event == DMA_UNMASKED) {
+		Bitu dmaaddr = (myGUS.dmaAddr << 4) + myGUS.dmaAddrOffset;
+		Bitu dmalimit = myGUS.memsize;
+		Bitu holdAddr;
 
-	// FIXME: What does the GUS do if the DMA address goes beyond the end of memory?
-
-	if (myGUS.DMAControl & 0x4) {
-		// 16-bit wide DMA. The GUS SDK specifically mentions that 16-bit DMA is translated
-		// to GUS RAM the same way you translate the play pointer. Eugh. But this allows
-		// older demos to work properly even if you set the GUS DMA to a 16-bit channel (5)
-		// instead of the usual 8-bit channel (1).
-		holdAddr = dmaaddr & 0xc0000L;
-		dmaaddr = dmaaddr & 0x1ffffL;
-		dmaaddr = dmaaddr << 1;
-		dmaaddr = (holdAddr | dmaaddr);
-		dmalimit = ((dmaaddr & 0xc0000L) | 0x3FFFFL) + 1;
-	}
-
-	if (dmaaddr < dmalimit)
-		docount = dmalimit - dmaaddr;
-
-	if (docount > 0) {
-		docount /= (chan->DMA16+1);
-		if (docount > (chan->currcnt+1)) docount = chan->currcnt+1;
-
-		if((myGUS.DMAControl & 0x2) == 0) {
-			Bitu read=chan->Read(docount,&GUSRam[dmaaddr]);
-			//Check for 16 or 8bit channel
-			read*=(chan->DMA16+1);
-			if((myGUS.DMAControl & 0x80) != 0) {
-				//Invert the MSB to convert twos compliment form
-				Bitu i;
-				if((myGUS.DMAControl & 0x40) == 0) {
-					// 8-bit data
-					for(i=dmaaddr;i<(dmaaddr+read);i++) GUSRam[i] ^= 0x80;
-				} else {
-					// 16-bit data
-					for(i=dmaaddr+1;i<(dmaaddr+read);i+=2) GUSRam[i] ^= 0x80;
-				}
-			}
-
-			step = read;
-		} else {
-			//Read data out of UltraSound
-			int wd = chan->Write(docount,&GUSRam[dmaaddr]);
-			//Check for 16 or 8bit channel
-			wd*=(chan->DMA16+1);
-
-			step = wd;
-		}
-	}
-
-	if (step > 0) {
-		dmaaddr += (unsigned int)step;
+		// FIXME: What does the GUS do if the DMA address goes beyond the end of memory?
 
 		if (myGUS.DMAControl & 0x4) {
+			// 16-bit wide DMA. The GUS SDK specifically mentions that 16-bit DMA is translated
+			// to GUS RAM the same way you translate the play pointer. Eugh. But this allows
+			// older demos to work properly even if you set the GUS DMA to a 16-bit channel (5)
+			// instead of the usual 8-bit channel (1).
 			holdAddr = dmaaddr & 0xc0000L;
-			dmaaddr = dmaaddr & 0x3ffffL;
-			dmaaddr = dmaaddr >> 1;
+			dmaaddr = dmaaddr & 0x1ffffL;
+			dmaaddr = dmaaddr << 1;
 			dmaaddr = (holdAddr | dmaaddr);
+			dmalimit = ((dmaaddr & 0xc0000L) | 0x3FFFFL) + 1;
 		}
 
-		myGUS.dmaAddr = dmaaddr >> 4;
-		myGUS.dmaAddrOffset = dmaaddr & 0xF;
+		if (dmaaddr < dmalimit)
+			docount = dmalimit - dmaaddr;
+
+		if (docount > 0) {
+			docount /= (chan->DMA16+1);
+			if (docount > (chan->currcnt+1)) docount = chan->currcnt+1;
+
+			if((myGUS.DMAControl & 0x2) == 0) {
+				Bitu read=chan->Read(docount,&GUSRam[dmaaddr]);
+				//Check for 16 or 8bit channel
+				read*=(chan->DMA16+1);
+				if((myGUS.DMAControl & 0x80) != 0) {
+					//Invert the MSB to convert twos compliment form
+					Bitu i;
+					if((myGUS.DMAControl & 0x40) == 0) {
+						// 8-bit data
+						for(i=dmaaddr;i<(dmaaddr+read);i++) GUSRam[i] ^= 0x80;
+					} else {
+						// 16-bit data
+						for(i=dmaaddr+1;i<(dmaaddr+read);i+=2) GUSRam[i] ^= 0x80;
+					}
+				}
+
+				step = read;
+			} else {
+				//Read data out of UltraSound
+				int wd = chan->Write(docount,&GUSRam[dmaaddr]);
+				//Check for 16 or 8bit channel
+				wd*=(chan->DMA16+1);
+
+				step = wd;
+			}
+		}
+
+		if (step > 0) {
+			dmaaddr += (unsigned int)step;
+
+			if (myGUS.DMAControl & 0x4) {
+				holdAddr = dmaaddr & 0xc0000L;
+				dmaaddr = dmaaddr & 0x3ffffL;
+				dmaaddr = dmaaddr >> 1;
+				dmaaddr = (holdAddr | dmaaddr);
+			}
+
+			myGUS.dmaAddr = dmaaddr >> 4;
+			myGUS.dmaAddrOffset = dmaaddr & 0xF;
+		}
 	}
 
-	/* Raise the TC irq if needed */
-	if((myGUS.DMAControl & 0x20) != 0) {
-		myGUS.dmaAddrOffset = 0;
-		myGUS.IRQStatus |= 0x80;
-		GUS_CheckIRQ();
+	if (event == DMA_UNMASKED || event == DMA_REACHED_TC) {
+		if (chan->tcount) {
+			/* Raise the TC irq if needed */
+			if((myGUS.DMAControl & 0x20) != 0) {
+				myGUS.dmaAddrOffset = 0;
+				myGUS.IRQStatus |= 0x80;
+				GUS_CheckIRQ();
+			}
+			chan->Register_Callback(0);
+		}
 	}
-	chan->Register_Callback(0);
 }
 
 static void GUS_CallBack(Bitu len) {
