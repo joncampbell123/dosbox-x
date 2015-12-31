@@ -1623,7 +1623,11 @@ static void CTMIXER_Write(Bit8u val) {
 		sb.mixer.sbpro_stereo=(val & 0x2) > 0;
 		sb.mixer.filtered=(val & 0x20) > 0;
 		DSP_ChangeStereo(sb.mixer.stereo);
-		LOG(LOG_SB,LOG_WARN)("Mixer set to %s",sb.dma.stereo ? "STEREO" : "MONO");
+
+		/* if the user wonders why audio is not stereo, this can help them */
+		if (sb.type == SBT_16 && sb.sbpro_stereo_bit_strict_mode)
+			LOG(LOG_SB,LOG_WARN)("Mixer stereo/mono bit set to %s, which is not supported by sbtype=sb16",
+				(val & 0x2) ? "STEREO" : "MONO");
 		break;
 	case 0x22:		/* Master Volume (SBPRO) */
 		SETPROVOL(sb.mixer.master,val);
