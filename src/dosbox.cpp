@@ -1549,6 +1549,12 @@ void DOSBOX_SetupConfigSections(void) {
 	Pint->Set_values(irqssb);
 	Pint->Set_help("The IRQ number of the soundblaster. Set to -1 to start DOSBox with the IRQ unassigned");
 
+	Pint = secprop->Add_int("mindma",Property::Changeable::OnlyAtStart,-1);
+	Pint->Set_help(	"Minimum DMA transfer left to increase attention across DSP blocks, in milliseconds. Set to -1 for default.\n"
+			"There are some DOS games/demos that use single-cycle DSP playback in their music tracker and they micromanage\n"
+			"the DMA transfer per block poorly in a way that causes popping and artifacts. Setting this option to 0 for\n"
+			"such DOS applications may reduce audible popping and artifacts.");
+
 	/* Sound Blaster IRQ hacks.
 	 *
 	 * These hacks reduce emulation accuracy but can be set to work around bugs or mistakes in some old

@@ -35,6 +35,11 @@
  *
  *       As usual, expect this to be a dosbox.conf option --Jonathan C. */
 
+/* FIXME: Sound Blaster 16 hardware has a FIFO between the ISA BUS and DSP.
+ *        Could we update this code to read through a FIFO instead? How big is this
+ *        FIFO anyway, and which cards have it? Would it also be possible to eliminate
+ *        the need for sb.dma.min? */
+
 #include <iomanip>
 #include <sstream>
 #include <string.h>
@@ -138,6 +143,7 @@ struct SB_INFO {
 	Bit8u time_constant;
 	DSP_MODES mode;
 	SB_TYPES type;
+	int min_dma_user;
 	int busy_cycle_hz;
 	int busy_cycle_duty_percent;
 	int busy_cycle_io_hack;
@@ -834,7 +840,7 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo) {
 	}
 	if (sb.dma.stereo) sb.dma.mul*=2;
 	sb.dma.rate=(sb.dma_dac_srcrate*sb.dma.mul) >> SB_SH;
-	sb.dma.min=(sb.dma.rate*3)/1000;
+	sb.dma.min=(sb.dma.rate*(sb.min_dma_user >= 0 ? sb.min_dma_user : /*default*/3))/1000;
 	if (sb.dma_dac_mode && sb.goldplay_stereo)
 		sb.chan->SetFreq(sb.dma_dac_srcrate);
 	else
@@ -1566,12 +1572,12 @@ static void DSP_ChangeStereo(bool stereo) {
 		sb.chan->SetFreq(sb.freq/2);
 		sb.dma.mul*=2;
 		sb.dma.rate=(sb.freq*sb.dma.mul) >> SB_SH;
-		sb.dma.min=(sb.dma.rate*3)/1000;
+		sb.dma.min=(sb.dma.rate*(sb.min_dma_user >= 0 ? sb.min_dma_user : /*default*/3))/1000;
 	} else if (sb.dma.stereo && !stereo) {
 		sb.chan->SetFreq(sb.freq);
 		sb.dma.mul/=2;
 		sb.dma.rate=(sb.freq*sb.dma.mul) >> SB_SH;
-		sb.dma.min=(sb.dma.rate*3)/1000;
+		sb.dma.min=(sb.dma.rate*(sb.min_dma_user >= 0 ? sb.min_dma_user : /*default*/3))/1000;
 	}
 	sb.dma.stereo=stereo;
 }
@@ -2213,6 +2219,7 @@ public:
 
 		sb.hw.base=section->Get_hex("sbbase");
 		sb.goldplay=section->Get_bool("goldplay");
+		sb.min_dma_user=section->Get_int("mindma");
 		sb.goldplay_stereo=section->Get_bool("goldplay stereo");
 		sb.emit_blaster_var=section->Get_bool("blaster environment variable");
 		sb.sample_rate_limits=section->Get_bool("sample rate limits");
