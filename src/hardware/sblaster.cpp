@@ -333,7 +333,6 @@ static void DSP_DMA_CallBack(DmaChannel * chan, DMAEvent event) {
 	if (event==DMA_REACHED_TC) return;
 	else if (event==DMA_MASKED) {
 		if (sb.mode==MODE_DMA) {
-			if (!sb.dma_dac_mode) GenerateDMASound(sb.dma.min);
 			sb.mode=MODE_DMA_MASKED;
 //			DSP_ChangeMode(MODE_DMA_MASKED);
 			LOG(LOG_SB,LOG_NORMAL)("DMA masked,stopping output, left %d",chan->currcnt);
@@ -484,6 +483,9 @@ void SB_OnEndOfDMA(void) {
 
 static void GenerateDMASound(Bitu size) {
 	Bitu read=0;Bitu done=0;Bitu i=0;
+
+	// don't read if the DMA channel is masked
+	if (sb.dma.chan->masked) return;
 
 	if(sb.dma.autoinit) {
 		if (sb.dma.left <= size) size = sb.dma.left;
