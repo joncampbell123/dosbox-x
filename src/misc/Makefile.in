@@ -100,7 +100,8 @@ am__v_AR_1 =
 libmisc_a_AR = $(AR) $(ARFLAGS)
 libmisc_a_LIBADD =
 am_libmisc_a_OBJECTS = cross.$(OBJEXT) messages.$(OBJEXT) \
-	programs.$(OBJEXT) setup.$(OBJEXT) support.$(OBJEXT)
+	programs.$(OBJEXT) setup.$(OBJEXT) support.$(OBJEXT) \
+	regionalloctracking.$(OBJEXT)
 libmisc_a_OBJECTS = $(am_libmisc_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -267,7 +268,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CPPFLAGS = -I$(top_srcdir)/include
 noinst_LIBRARIES = libmisc.a
-libmisc_a_SOURCES = cross.cpp messages.cpp programs.cpp setup.cpp support.cpp
+libmisc_a_SOURCES = cross.cpp messages.cpp programs.cpp setup.cpp support.cpp regionalloctracking.cpp
 all: all-am
 
 .SUFFIXES:
@@ -320,6 +321,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cross.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/messages.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/programs.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/regionalloctracking.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/setup.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/support.Po@am__quote@
 
