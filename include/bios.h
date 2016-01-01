@@ -20,6 +20,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "regionalloctracking.h"
+
 #ifndef DOSBOX_BIOS_H
 #define DOSBOX_BIOS_H
 
@@ -122,6 +124,8 @@ extern Bitu BIOS_DEFAULT_RESET_LOCATION;	// RealMake(0xf000,0xe05b)
 extern Bitu BIOS_VIDEO_TABLE_SIZE;
 
 Bitu ROMBIOS_GetMemory(Bitu bytes,const char *who=NULL,Bitu alignment=1,Bitu must_be_at=0);
+
+extern RegionAllocTracking rombios_alloc;
 
 /* maximum of scancodes handled by keyboard bios routines */
 #define MAX_SCAN_CODE 0x58

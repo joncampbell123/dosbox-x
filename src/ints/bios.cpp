@@ -76,7 +76,7 @@ const char* const bios_date_string = "01/01/92";
 
 bool						APM_inactivity_timer = true;
 
-static RegionAllocTracking			rombios_alloc;
+RegionAllocTracking				rombios_alloc;
 
 Bitu						rombios_minimum_location = 0xF0000; /* minimum segment allowed */
 Bitu						rombios_minimum_size = 0x10000;
@@ -113,6 +113,10 @@ void ROMBIOS_FreeUnusedMinToLoc(Bitu phys) {
 	rombios_minimum_location = new_phys;
 	ROMBIOS_SanityCheck();
 	ROMBIOS_DumpMemory();
+}
+
+bool ROMBIOS_FreeMemory(Bitu phys) {
+	return rombios_alloc.freeMemory(phys);
 }
 
 Bitu ROMBIOS_GetMemory(Bitu bytes,const char *who,Bitu alignment,Bitu must_be_at) {

@@ -2,6 +2,10 @@
 #include "dosbox.h"
 
 #include <vector>
+#include <string>
+
+#ifndef DOSBOX_REGIONALLOCTRACKING_H
+#define DOSBOX_REGIONALLOCTRACKING_H
 
 /* rombios memory block */
 class RegionAllocTracking {
@@ -21,6 +25,7 @@ public:
 	Bitu					getMemory(Bitu bytes,const char *who,Bitu alignment,Bitu must_be_at);
 	void					initSetRange(Bitu start,Bitu end);
 	Bitu					freeUnusedMinToLoc(Bitu phys);
+	bool					freeMemory(Bitu offset);
 	Bitu					getMinAddress();	
 	void					sanityCheck();
 	void					logDump();
@@ -32,4 +37,6 @@ public:
 public:
 	static const Bitu			alloc_failed = ~((Bitu)0);
 };
+
+#endif /* DOSBOX_REGIONALLOCTRACKING_H */
 

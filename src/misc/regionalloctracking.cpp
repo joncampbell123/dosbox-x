@@ -265,3 +265,31 @@ Bitu RegionAllocTracking::freeUnusedMinToLoc(Bitu phys) {
 	return phys;
 }
 
+bool RegionAllocTracking::freeMemory(Bitu offset) {
+	size_t si=0;
+
+	if (offset < min || offset > max)
+		return false;
+
+	while (si < alist.size()) {
+		RegionAllocTracking::Block &blk = alist[si];
+
+		if (offset >= blk.start && offset <= blk.end) {
+			LOG(LOG_BIOS,LOG_DEBUG)("freeMemory in '%s' (address=0x%08lx block='%s' range=0x%08lx-0x%08lx) success",
+				name.c_str(),(unsigned long)offset,blk.who.c_str(),(unsigned long)blk.start,(unsigned long)blk.end);
+
+			if (!blk.free) {
+				blk.free = true;
+				blk.who.clear();
+			}
+
+			return true;
+		}
+
+		si++;
+	}
+
+	LOG(LOG_BIOS,LOG_DEBUG)("freeMemory in '%s' (address=0x%08lx) FAILED",name.c_str(),(unsigned long)offset);
+	return false;
+}
+
