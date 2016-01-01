@@ -414,13 +414,15 @@ static IO_ReadHandleObject ReadHandler[4];
 static IO_WriteHandleObject WriteHandler[4];
 
 void TIMER_BIOS_INIT_Configure() {
+	PIC_RemoveEvents(PIT0_Event);
+
 	/* Setup Timer 0 */
-	pit[0].cntr=0x10000;
+	pit[0].cntr = 0x10000;
 	pit[0].write_state = 3;
 	pit[0].read_state = 3;
-	pit[0].read_latch=0;
-	pit[0].write_latch=0;
-	pit[0].mode=3;
+	pit[0].read_latch = 0;
+	pit[0].write_latch = 0;
+	pit[0].mode = 3;
 	pit[0].bcd = false;
 	pit[0].go_read_latch = true;
 	pit[0].counterstatus_set = false;
@@ -435,23 +437,6 @@ void TIMER_BIOS_INIT_Configure() {
 	pit[1].write_state = 3;
 	pit[1].counterstatus_set = false;
 
-	pit[2].read_latch=1320;	/* MadTv1 */
-	pit[2].write_state = 3; /* Chuck Yeager */
-	pit[2].read_state = 3;
-	pit[2].mode=3;
-	pit[2].bcd=false;   
-	pit[2].cntr=1320;
-	pit[2].go_read_latch=true;
-	pit[2].counterstatus_set = false;
-	pit[2].counting = false;
-
-	pit[0].delay=(1000.0f/((float)PIT_TICK_RATE/(float)pit[0].cntr));
-	pit[1].delay=(1000.0f/((float)PIT_TICK_RATE/(float)pit[1].cntr));
-	pit[2].delay=(1000.0f/((float)PIT_TICK_RATE/(float)pit[2].cntr));
-
-	// program system timer
-	// timer 2
-	IO_Write(0x43,0xb6);
 	{
 		Section_prop *pcsec = static_cast<Section_prop *>(control->GetSection("speaker"));
 		int freq = pcsec->Get_int("initial frequency"); /* original code: 1320 */
@@ -464,17 +449,31 @@ void TIMER_BIOS_INIT_Configure() {
 			div = PIT_TICK_RATE / freq;
 			if (div > 65535) div = 65535;
 		}
-		IO_Write(0x42,div&0xff);
-		IO_Write(0x42,div>>8);
+
+		pit[2].cntr = div;
+		pit[2].read_latch = div;
+		pit[2].write_state = 3; /* Chuck Yeager */
+		pit[2].read_state = 3;
+		pit[2].mode = 3;
+		pit[2].bcd = false;
+		pit[2].go_read_latch = true;
+		pit[2].counterstatus_set = false;
+		pit[2].counting = false;
 	}
+
+	pit[0].delay=(1000.0f/((float)PIT_TICK_RATE/(float)pit[0].cntr));
+	pit[1].delay=(1000.0f/((float)PIT_TICK_RATE/(float)pit[1].cntr));
+	pit[2].delay=(1000.0f/((float)PIT_TICK_RATE/(float)pit[2].cntr));
+
+	PIC_AddEvent(PIT0_Event,pit[0].delay);
 }
 
-void TIMER_Reset(Section*) {
+void TIMER_OnPowerOn(Section*) {
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 	assert(section != NULL);
 
 	// log
-	LOG(LOG_MISC,LOG_DEBUG)("TIMER_Reset(): Reinitializing PIT timer emulation");
+	LOG(LOG_MISC,LOG_DEBUG)("TIMER_OnPowerOn(): Reinitializing PIT timer emulation");
 
 	PIC_RemoveEvents(PIT0_Event);
 
@@ -497,7 +496,6 @@ void TIMER_Reset(Section*) {
 
 	latched_timerstatus_locked=false;
 	gate2 = false;
-	PIC_AddEvent(PIT0_Event,pit[0].delay);
 }
 
 void TIMER_Destroy(Section*) {
@@ -524,7 +522,6 @@ void TIMER_Init() {
 	}
 
 	AddExitFunction(AddExitFunctionFuncPair(TIMER_Destroy));
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(TIMER_Reset));
-	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(TIMER_Reset));
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(TIMER_OnPowerOn));
 }
 
