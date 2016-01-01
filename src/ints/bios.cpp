@@ -3257,6 +3257,11 @@ private:
 		reg_esp = 0x5FC;
 		reg_ebp = 0;
 
+		/* Clear the Bios Data Area (0x400-0x5ff, 0x600- is accounted to DOS) (FIXME: Enable this code when the rest of DOSBox is ported to init the BIOS DATA AREA after BIOS POST */
+//		for (Bit16u i=0;i<0x200;i++) real_writeb(0x40,i,0);
+		/* Clear the vector table (FIXME: Enable this code when the rest of DOSBox is ported to init DOS/BIOS vectors AFTER BIOS POST */
+//		for (Bit16u i=0;i<0x400;i++) real_writeb(0x00,i,0);
+
 		TIMER_BIOS_INIT_Configure();
 
 		return CBRET_NONE;
@@ -3614,7 +3619,7 @@ public:
 		bool use_tandyDAC=(real_readb(0x40,0xd4)==0xff);
 		Bitu wo;
 
-		{
+		{ // TODO: Eventually, move this to BIOS POST or init phase
 			Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 
 			// TODO: motherboard init, especially when we get around to full Intel Triton/i440FX chipset emulation
@@ -3646,7 +3651,7 @@ public:
 		// Disney workaround
 		Bit16u disney_port = mem_readw(BIOS_ADDRESS_LPT1);
 
-		/* Clear the Bios Data Area (0x400-0x5ff, 0x600- is accounted to DOS) */
+		/* Clear the Bios Data Area (0x400-0x5ff, 0x600- is accounted to DOS) (FIXME: Remove this when other parts of DOSBox wait for BIOS init before touching the data area) */
 		for (Bit16u i=0;i<0x200;i++) real_writeb(0x40,i,0);
 
 		/* Setup all the interrupt handlers the bios controls */
@@ -3679,7 +3684,6 @@ public:
 		Bitu ulimit = 640;
 		Bitu t_conv = MEM_TotalPages() << 2; /* convert 4096/byte pages -> 1024/byte KB units */
 		if (allow_more_than_640kb) {
-
 			if (machine == MCH_CGA)
 				ulimit = 736;		/* 640KB + 64KB + 32KB  0x00000-0xB7FFF */
 			else if (machine == MCH_HERC)
@@ -4370,11 +4374,6 @@ void BIOS_Destroy(Section* /*sec*/){
 	}
 }
 
-// TODO: PowerOn should eventually become code that only creates a ROM BIOS image but does not initialize anything else.
-//       BIOS initialization and data area setup should be done in the VM_EVENT_BIOS_INIT handler instead.
-//       At this time a lot of DOSBox code relies on the VM_EVENT_POWERON handler to do it there.
-//       As you know, BIOSes don't magically have a data area and hardware initialized right at RESET, their code has
-//       to execute first!
 void BIOS_OnPowerOn(Section* sec) {
 	if (test) delete test;
 	test = new BIOS(control->GetSection("joystick"));
