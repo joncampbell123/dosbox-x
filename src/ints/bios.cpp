@@ -78,10 +78,7 @@ class RegionAllocTracking {
 public:
 	class Block {
 public:
-		Block() {
-			start = end = 0;
-			free = true;
-		}
+						Block();
 public:
 		std::string			who;
 		Bitu				start;		/* start-end of the block inclusive */
@@ -104,6 +101,9 @@ public:
 public:
 	static const Bitu			alloc_failed = ~((Bitu)0);
 };
+
+RegionAllocTracking::Block::Block() : start(0), end(0), free(true) {
+}
 
 RegionAllocTracking::RegionAllocTracking() : min(0), max(~((Bitu)0)), topDownAlloc(false) {
 }
