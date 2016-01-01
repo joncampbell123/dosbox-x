@@ -123,14 +123,15 @@ Bitu RegionAllocTracking::getMemory(Bitu bytes,const char *who,Bitu alignment,Bi
 	else if ((alignment & (alignment-1)) != 0)
 		E_Exit("getMemory called with non-power of 2 alignment value %u on '%s'",(int)alignment,name.c_str());
 
-	if (topDownAlloc) {
+	{
 		/* allocate downward from the top */
-		si = alist.size() - 1;
+		si = topDownAlloc ? (alist.size() - 1) : 0;
 		while (si >= 0) {
 			Block &blk = alist[si];
 
 			if (!blk.free || (blk.end+1-blk.start) < bytes) {
-				si--;
+				if (topDownAlloc) si--;
+				else si++;
 				continue;
 			}
 
@@ -139,7 +140,8 @@ Bitu RegionAllocTracking::getMemory(Bitu bytes,const char *who,Bitu alignment,Bi
 				/* well, is there room to fit the forced block? if it starts before
 				 * this block or the forced block would end past the block then, no. */
 				if (must_be_at < blk.start || (must_be_at+bytes-1) > blk.end) {
-					si--;
+					if (topDownAlloc) si--;
+					else si++;
 					continue;
 				}
 
@@ -179,41 +181,72 @@ Bitu RegionAllocTracking::getMemory(Bitu bytes,const char *who,Bitu alignment,Bi
 				}
 			}
 			else {
-				base = blk.end + 1 - bytes; /* allocate downward from the top */
-				assert(base >= blk.start);
+				if (topDownAlloc) {
+					base = blk.end + 1 - bytes; /* allocate downward from the top */
+					assert(base >= blk.start);
+				}
+				else {
+					base = blk.start; /* allocate upward from the bottom */
+					assert(base <= blk.end);
+					base += alignment - 1; /* alignment round up */
+				}
+
 				base &= ~(alignment - 1); /* NTS: alignment == 16 means ~0xF or 0xFFFF0 */
-				if (base < blk.start) { /* if not possible after alignment, then skip */
-					si--;
+				if (base < blk.start || (base+bytes-1) > blk.end) { /* if not possible after alignment, then skip */
+					if (topDownAlloc) si--;
+					else si++;
 					continue;
 				}
 
-				/* easy case: base matches start, just take the block! */
-				if (base == blk.start) {
+				if (topDownAlloc) {
+					/* easy case: base matches start, just take the block! */
+					if (base == blk.start) {
+						blk.free = false;
+						blk.who = who;
+						return blk.start;
+					}
+
+					/* not-so-easy: need to split the block and claim the upper half */
+					RegionAllocTracking::Block newblk = blk; /* this becomes the new block we insert */
+					newblk.start = base;
+					newblk.free = false;
+					newblk.who = who;
+					blk.end = base - 1;
+
+					if (blk.start > blk.end) {
+						sanityCheck();
+						abort();
+					}
+
+					alist.insert(alist.begin()+si+1,newblk);
+				}
+				else {
+					if ((base+bytes-1) == blk.end) {
+						blk.free = false;
+						blk.who = who;
+						return blk.start;
+					}
+
+					/* not-so-easy: need to split the block and claim the lower half */
+					RegionAllocTracking::Block newblk = blk; /* this becomes the new block we insert */
+					newblk.start = base+bytes;
 					blk.free = false;
 					blk.who = who;
-					return blk.start;
-				}
+					blk.end = base+bytes-1;
 
-				/* not-so-easy: need to split the block and claim the upper half */
-				RegionAllocTracking::Block newblk = blk; /* this becomes the new block we insert */
-				newblk.start = base;
-				newblk.free = false;
-				newblk.who = who;
-				blk.end = base - 1;
-				if (blk.start > blk.end) {
-					sanityCheck();
-					abort();
+					if (blk.start > blk.end) {
+						sanityCheck();
+						abort();
+					}
+
+					alist.insert(alist.begin()+si+1,newblk);
 				}
-				alist.insert(alist.begin()+si+1,newblk);
 			}
 
 			LOG(LOG_BIOS,LOG_DEBUG)("getMemory in '%s' (0x%05x bytes,\"%s\",align=%u,mustbe=0x%05x) = 0x%05x",name.c_str(),(int)bytes,who,(int)alignment,(int)must_be_at,(int)base);
 			sanityCheck();
 			return base;
 		}
-	}
-	else {
-		/*TODO*/
 	}
 
 	LOG(LOG_BIOS,LOG_DEBUG)("getMemory in '%s' (0x%05x bytes,\"%s\",align=%u,mustbe=0x%05x) = FAILED",name.c_str(),(int)bytes,who,(int)alignment,(int)must_be_at);
@@ -3703,11 +3736,11 @@ public:
 			BIOS_DEFAULT_IRQ2_LOCATION = RealMake(0xf000,0xff55);
 		}
 		else {
-			BIOS_DEFAULT_RESET_LOCATION = PhysToReal416(ROMBIOS_GetMemory(64/*several callbacks*/,"BIOS default reset location"));
-			BIOS_DEFAULT_HANDLER_LOCATION = PhysToReal416(ROMBIOS_GetMemory(1/*IRET*/,"BIOS default handler location"));
-			BIOS_DEFAULT_IRQ0_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x13/*see callback.cpp for IRQ0*/,"BIOS default IRQ0 location"));
-			BIOS_DEFAULT_IRQ1_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x15/*see callback.cpp for IRQ1*/,"BIOS default IRQ1 location"));
-			BIOS_DEFAULT_IRQ2_LOCATION = PhysToReal416(ROMBIOS_GetMemory(7/*see callback.cpp for EOI_PIC1*/,"BIOS default IRQ2 location"));
+			BIOS_DEFAULT_RESET_LOCATION = PhysToReal416(ROMBIOS_GetMemory(64/*several callbacks*/,"BIOS default reset location",/*align*/4));
+			BIOS_DEFAULT_HANDLER_LOCATION = PhysToReal416(ROMBIOS_GetMemory(1/*IRET*/,"BIOS default handler location",/*align*/4));
+			BIOS_DEFAULT_IRQ0_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x13/*see callback.cpp for IRQ0*/,"BIOS default IRQ0 location",/*align*/4));
+			BIOS_DEFAULT_IRQ1_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x15/*see callback.cpp for IRQ1*/,"BIOS default IRQ1 location",/*align*/4));
+			BIOS_DEFAULT_IRQ2_LOCATION = PhysToReal416(ROMBIOS_GetMemory(7/*see callback.cpp for EOI_PIC1*/,"BIOS default IRQ2 location",/*align*/4));
 		}
 
 		write_FFFF_signature();

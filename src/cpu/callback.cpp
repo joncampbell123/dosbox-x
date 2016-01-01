@@ -672,13 +672,13 @@ void CALLBACK_Init() {
 
 		LOG(LOG_MISC,LOG_DEBUG)("Initializing DOSBox callback instruction system");
 
-		o = ROMBIOS_GetMemory((CB_MAX*CB_SIZE)+(256*6),"DOSBox callback area",1);
+		o = ROMBIOS_GetMemory((CB_MAX*CB_SIZE)+(256*6),"DOSBox callback area",/*align*/4);
 		if (o == 0) E_Exit("Cannot allocate callback area");
 		CB_SOFFSET = o&0xFFFF;
 		CB_SEG = (o>>4)&0xF000;
 		if (((Bitu)CB_SOFFSET + (CB_MAX*CB_SIZE) + (256*6)) > 0x10000) E_Exit("Callback area spans 64KB segment");
 
-		o = ROMBIOS_GetMemory(14/*2+2+3+2+2+3*/,"DOSBox vm86 hack",1);
+		o = ROMBIOS_GetMemory(14/*2+2+3+2+2+3*/,"DOSBox vm86 hack",/*align*/4);
 		if (o == 0) E_Exit("Cannot allocate vm86 hack");
 		vm86_fake_io_off = o&0xFFFF;
 		vm86_fake_io_seg = (o>>4)&0xF000;
