@@ -4376,15 +4376,8 @@ void BIOS_Destroy(Section* /*sec*/){
 //       As you know, BIOSes don't magically have a data area and hardware initialized right at RESET, their code has
 //       to execute first!
 void BIOS_OnPowerOn(Section* sec) {
-	LOG(LOG_MISC,LOG_DEBUG)("BIOS power on");
-
 	if (test) delete test;
 	test = new BIOS(control->GetSection("joystick"));
-}
-
-// this must be FIRST callback for VM_EVENT_BIOS_INIT!
-void BIOS_OnBIOSReinit(Section* sec) {
-	LOG(LOG_MISC,LOG_DEBUG)("Reinitializing BIOS emulation");
 }
 
 void swapInNextDisk(bool pressed);
@@ -4405,7 +4398,6 @@ void BIOS_Init() {
 	/* NTS: VM_EVENT_BIOS_INIT this callback must be first. */
 	AddExitFunction(AddExitFunctionFuncPair(BIOS_Destroy),false);
 	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(BIOS_OnPowerOn));
-	AddVMEventFunction(VM_EVENT_BIOS_INIT,AddVMEventFunctionFuncPair(BIOS_OnBIOSReinit)); // TODO: Variant of AddVMEventFunction that inserts the event at the head of the list
 }
 
 void write_ID_version_string() {
