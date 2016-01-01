@@ -102,34 +102,15 @@ Bitu ROMBIOS_MinAllocatedLoc() {
 }
 
 void ROMBIOS_FreeUnusedMinToLoc(Bitu phys) {
-	Bitu max = 0x100000 - rombios_minimum_size;
-	assert(max <= 0xFE000);
+	Bitu new_phys;
 
-	if (phys <= rombios_minimum_location) return;
-	if (phys > max) phys = max;
-	phys &= ~0xFFF; /* page align */
+	if (rombios_minimum_location & 0xFFF) E_Exit("ROMBIOS: FreeUnusedMinToLoc minimum location not page aligned");
 
-	/* scan bottom-up */
-	while (rombios_alloc.alist.size() != 0) {
-		RegionAllocTracking::Block &blk = rombios_alloc.alist[0];
-		if (!blk.free) {
-			if (phys > blk.start) phys = blk.start;
-			break;
-		}
-		if (phys > blk.end) {
-			/* remove entirely */
-			rombios_alloc.alist.erase(rombios_alloc.alist.begin());
-			continue;
-		}
-		if (phys <= blk.start) break;
-		blk.start = phys;
-		break;
-	}
-
-	if (rombios_minimum_location < phys)
-		MEM_unmap_physmem(rombios_minimum_location,phys-1);
-
-	rombios_minimum_location = phys;
+	phys &= ~0xFFFUL;
+	new_phys = rombios_alloc.freeUnusedMinToLoc(phys) & (~0xFFFUL);
+	assert(new_phys >= phys);
+	if (phys < new_phys) MEM_unmap_physmem(phys,new_phys-1);
+	rombios_minimum_location = new_phys;
 	ROMBIOS_SanityCheck();
 	ROMBIOS_DumpMemory();
 }

@@ -20,6 +20,7 @@ public:
 public:
 	Bitu					getMemory(Bitu bytes,const char *who,Bitu alignment,Bitu must_be_at);
 	void					initSetRange(Bitu start,Bitu end);
+	Bitu					freeUnusedMinToLoc(Bitu phys);
 	Bitu					getMinAddress();	
 	void					sanityCheck();
 	void					logDump();

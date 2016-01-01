@@ -239,3 +239,29 @@ void RegionAllocTracking::sanityCheck() {
 	}
 }
 
+Bitu RegionAllocTracking::freeUnusedMinToLoc(Bitu phys) {
+	if (phys <= min) return min;
+	if ((max+(Bitu)1) != (Bitu)0 && phys > (max+1)) phys = max+1;
+
+	/* scan bottom-up */
+	while (alist.size() != 0) {
+		RegionAllocTracking::Block &blk = alist[0];
+		if (!blk.free) {
+			if (phys > blk.start) phys = blk.start;
+			break;
+		}
+		if (phys > blk.end) {
+			/* remove entirely */
+			alist.erase(alist.begin());
+			continue;
+		}
+		if (phys <= blk.start) break;
+		blk.start = phys;
+		break;
+	}
+
+	assert(phys >= min);
+	assert(max == (Bitu)0 || phys < max);
+	return phys;
+}
+
