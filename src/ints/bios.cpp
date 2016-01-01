@@ -3234,6 +3234,9 @@ private:
 		if (cpu.pmode) E_Exit("BIOS error: POST function called while in protected/vm86 mode");
 
 		/* we need A20 enabled for BIOS boot-up */
+		void A20Gate_OverrideOn(Section *sec);
+		void MEM_A20_Enable(bool enabled);
+		A20Gate_OverrideOn(NULL);
 		MEM_A20_Enable(true);
 
 		adapter_scan_start = 0xC0000;
