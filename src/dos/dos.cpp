@@ -1989,7 +1989,6 @@ void DOS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing DOS kernel (DOS_Init)");
 
 	AddExitFunction(AddExitFunctionFuncPair(DOS_ShutDown),false);
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(DOS_OnReset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(DOS_OnReset));
 }
 

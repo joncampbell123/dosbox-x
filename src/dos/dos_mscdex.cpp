@@ -1417,7 +1417,6 @@ void MSCDEX_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing MSCDEX.EXE emulation");
 
 	AddExitFunction(AddExitFunctionFuncPair(MSCDEX_ShutDown));
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(MSCDEX_OnReset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(MSCDEX_OnReset));
 }
 

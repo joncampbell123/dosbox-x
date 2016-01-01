@@ -1306,7 +1306,6 @@ void DOS_KeyboardLayout_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing DOS keyboard layout emulation");
 
 	AddExitFunction(AddExitFunctionFuncPair(DOS_KeyboardLayout_ShutDown),true);
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(DOS_KeyboardLayout_OnReset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(DOS_KeyboardLayout_OnReset));
 }
 

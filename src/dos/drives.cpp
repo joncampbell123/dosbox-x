@@ -263,7 +263,6 @@ void DRIVES_OnReset(Section *s) {
 void DRIVES_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing OOS drives");
 
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(DRIVES_OnReset));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(DRIVES_OnReset));
 }
 
