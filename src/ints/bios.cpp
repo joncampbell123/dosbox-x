@@ -119,11 +119,6 @@ Bitu ROMBIOS_GetMemory(Bitu bytes,const char *who,Bitu alignment,Bitu must_be_at
 	return rombios_alloc.getMemory(bytes,who,alignment,must_be_at);
 }
 
-Bit16u BIOS_GetMemory(Bit16u pages,const char *who) {
-	E_Exit("BIOS_GetMemory() is dead");
-	return 0;
-}
-
 static IO_ReadHandleObject *DOSBOX_INTEGRATION_PORT_READ[4] = {NULL};
 static IO_WriteHandleObject *DOSBOX_INTEGRATION_PORT_WRITE[4] = {NULL};
 static unsigned char dosbox_int_register_shf = 0;
