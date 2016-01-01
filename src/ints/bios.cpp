@@ -794,6 +794,7 @@ static Bitu INT15_Handler(void);
 
 // FIXME: This initializes both APM BIOS and ISA PNP emulation!
 //        Need to separate APM BIOS init from ISA PNP init from ISA PNP BIOS init!
+//        It might also be appropriate to move this into the BIOS init sequence.
 void ISAPNP_Cfg_Reset(Section *sec) {
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("cpu"));
 
