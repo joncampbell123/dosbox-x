@@ -74,65 +74,159 @@ const char* const bios_version_string = "DOSBox FakeBIOS v1.0";
 const char* const bios_date_string = "01/01/92";
 
 /* rombios memory block */
-class ROMBIOS_block {
+class RegionAllocTracking {
 public:
-	ROMBIOS_block() {
-		start = end = 0;
-		free = true;
-	}
+	class Block {
 public:
-	std::string	who;
-	Bitu		start;		/* start-end of the block inclusive */
-	Bitu		end;
-	bool		free;
+		Block() {
+			start = end = 0;
+			free = true;
+		}
+public:
+		std::string			who;
+		Bitu				start;		/* start-end of the block inclusive */
+		Bitu				end;
+		bool				free;
+	};
+public:
+						RegionAllocTracking();
+public:
+	Bitu					getMemory(Bitu bytes,const char *who,Bitu alignment,Bitu must_be_at);
+	void					initSetRange(Bitu start,Bitu end);
+	Bitu					getMinAddress();	
+	void					sanityCheck();
+	void					logDump();
+public:
+	std::string				name;
+	std::vector<Block>			alist;
+	Bitu					min,max;
+	bool					topDownAlloc;
+public:
+	static const Bitu			alloc_failed = ~((Bitu)0);
 };
 
-bool APM_inactivity_timer = true;
-
-static std::vector<ROMBIOS_block> rombios_alloc;
-Bitu rombios_minimum_location = 0xF0000; /* minimum segment allowed */
-Bitu rombios_minimum_size = 0x10000;
-
-bool MEM_map_ROM_physmem(Bitu start,Bitu end);
-bool MEM_unmap_physmem(Bitu start,Bitu end);
-
-void ROMBIOS_DumpMemory() {
-	size_t si;
-
-	LOG(LOG_BIOS,LOG_DEBUG)("ROMBIOS memory dump:");
-	for (si=0;si < rombios_alloc.size();si++) {
-		ROMBIOS_block &blk = rombios_alloc[si];
-		LOG(LOG_BIOS,LOG_DEBUG)("     0x%08x-0x%08x free=%u %s",(int)blk.start,(int)blk.end,blk.free?1:0,blk.who.c_str());
-	}
-	LOG(LOG_BIOS,LOG_DEBUG)("[end dump]");
+RegionAllocTracking::RegionAllocTracking() : min(0), max(~((Bitu)0)), topDownAlloc(false) {
 }
 
-void ROMBIOS_SanityCheck() {
-	ROMBIOS_block *pblk,*blk;
+Bitu RegionAllocTracking::getMemory(Bitu bytes,const char *who,Bitu alignment,Bitu must_be_at) {
 	size_t si;
+	Bitu base;
 
-	if (rombios_alloc.size() <= 1)
-		return;
+	if (bytes == 0) return alloc_failed;
+	if (alignment > 1 && must_be_at != 0) return alloc_failed; /* avoid nonsense! */
+	if (who == NULL) who = "";
+	if (alist.empty()) E_Exit("getMemory called when '%s' allocation list not initialized",name.c_str());
 
-	pblk = &rombios_alloc[0];
-	for (si=1;si < rombios_alloc.size();si++) {
-		blk = &rombios_alloc[si];
-		if (blk->start != (pblk->end+1) || blk->start > blk->end || blk->start < rombios_minimum_location ||
-			blk->end > 0xFFFF0) {
-			ROMBIOS_DumpMemory();
-			E_Exit("ROMBIOS sanity check failed");
+	/* alignment must be power of 2 */
+	if (alignment == 0)
+		alignment = 1;
+	else if ((alignment & (alignment-1)) != 0)
+		E_Exit("getMemory called with non-power of 2 alignment value %u on '%s'",(int)alignment,name.c_str());
+
+	if (topDownAlloc) {
+		/* allocate downward from the top */
+		si = alist.size() - 1;
+		while (si >= 0) {
+			Block &blk = alist[si];
+
+			if (!blk.free || (blk.end+1-blk.start) < bytes) {
+				si--;
+				continue;
+			}
+
+			/* if must_be_at != 0 the caller wants a block at a very specific location */
+			if (must_be_at != 0) {
+				/* well, is there room to fit the forced block? if it starts before
+				 * this block or the forced block would end past the block then, no. */
+				if (must_be_at < blk.start || (must_be_at+bytes-1) > blk.end) {
+					si--;
+					continue;
+				}
+
+				base = must_be_at;
+				if (base == blk.start && (base+bytes-1) == blk.end) { /* easy case: perfect match */
+					blk.free = false;
+					blk.who = who;
+				}
+				else if (base == blk.start) { /* need to split */
+					Block newblk = blk; /* this becomes the new block we insert */
+					blk.start = base+bytes;
+					newblk.end = base+bytes-1;
+					newblk.free = false;
+					newblk.who = who;
+					alist.insert(alist.begin()+si,newblk);
+				}
+				else if ((base+bytes-1) == blk.end) { /* need to split */
+					Block newblk = blk; /* this becomes the new block we insert */
+					blk.end = base-1;
+					newblk.start = base;
+					newblk.free = false;
+					newblk.who = who;
+					alist.insert(alist.begin()+si+1,newblk);
+				}
+				else { /* complex split */
+					Block newblk = blk,newblk2 = blk; /* this becomes the new block we insert */
+					Bitu orig_end = blk.end;
+					blk.end = base-1;
+					newblk.start = base+bytes;
+					newblk.end = orig_end;
+					alist.insert(alist.begin()+si+1,newblk);
+					newblk2.start = base;
+					newblk2.end = base+bytes-1;
+					newblk2.free = false;
+					newblk2.who = who;
+					alist.insert(alist.begin()+si+1,newblk2);
+				}
+			}
+			else {
+				base = blk.end + 1 - bytes; /* allocate downward from the top */
+				assert(base >= blk.start);
+				base &= ~(alignment - 1); /* NTS: alignment == 16 means ~0xF or 0xFFFF0 */
+				if (base < blk.start) { /* if not possible after alignment, then skip */
+					si--;
+					continue;
+				}
+
+				/* easy case: base matches start, just take the block! */
+				if (base == blk.start) {
+					blk.free = false;
+					blk.who = who;
+					return blk.start;
+				}
+
+				/* not-so-easy: need to split the block and claim the upper half */
+				RegionAllocTracking::Block newblk = blk; /* this becomes the new block we insert */
+				newblk.start = base;
+				newblk.free = false;
+				newblk.who = who;
+				blk.end = base - 1;
+				if (blk.start > blk.end) {
+					sanityCheck();
+					abort();
+				}
+				alist.insert(alist.begin()+si+1,newblk);
+			}
+
+			LOG(LOG_BIOS,LOG_DEBUG)("getMemory in '%s' (0x%05x bytes,\"%s\",align=%u,mustbe=0x%05x) = 0x%05x",name.c_str(),(int)bytes,who,(int)alignment,(int)must_be_at,(int)base);
+			sanityCheck();
+			return base;
 		}
-
-		pblk = blk;
 	}
+	else {
+		/*TODO*/
+	}
+
+	LOG(LOG_BIOS,LOG_DEBUG)("getMemory in '%s' (0x%05x bytes,\"%s\",align=%u,mustbe=0x%05x) = FAILED",name.c_str(),(int)bytes,who,(int)alignment,(int)must_be_at);
+	sanityCheck();
+	return alloc_failed;
 }
 
-Bitu ROMBIOS_MinAllocatedLoc() {
-	Bitu r = 0xFFFFF;
+Bitu RegionAllocTracking::getMinAddress() {
 	size_t si = 0;
+	Bitu r = max;
 
-	while (si < rombios_alloc.size()) {
-		ROMBIOS_block &blk = rombios_alloc[si];
+	while (si < alist.size()) {
+		Block &blk = alist[si];
 		if (blk.free) {
 			si++;
 			continue;
@@ -141,6 +235,76 @@ Bitu ROMBIOS_MinAllocatedLoc() {
 		r = blk.start;
 		break;
 	}
+
+	return r;
+}
+
+void RegionAllocTracking::initSetRange(Bitu start,Bitu end) {
+	Block x;
+
+	assert(start <= end);
+
+	alist.clear();
+	min = start;
+	max = end;
+
+	x.end = max;
+	x.free = true;
+	x.start = min;
+	alist.push_back(x);
+}
+
+void RegionAllocTracking::logDump() {
+	size_t si;
+
+	LOG(LOG_MISC,LOG_DEBUG)("%s dump:",name.c_str());
+	for (si=0;si < alist.size();si++) {
+		Block &blk = alist[si];
+		LOG(LOG_MISC,LOG_DEBUG)("     0x%08x-0x%08x free=%u %s",(int)blk.start,(int)blk.end,blk.free?1:0,blk.who.c_str());
+	}
+	LOG(LOG_MISC,LOG_DEBUG)("[end dump]");
+}
+
+void RegionAllocTracking::sanityCheck() {
+	Block *pblk,*blk;
+	size_t si;
+
+	if (alist.size() <= 1)
+		return;
+
+	pblk = &alist[0];
+	for (si=1;si < alist.size();si++) {
+		blk = &alist[si];
+		if (blk->start != (pblk->end+1) || blk->start > blk->end || blk->start < min || blk->end > max) {
+			LOG(LOG_MISC,LOG_DEBUG)("RegionAllocTracking sanity check failure in '%s'",name.c_str());
+			logDump();
+			E_Exit("ROMBIOS sanity check failed");
+		}
+
+		pblk = blk;
+	}
+}
+
+bool						APM_inactivity_timer = true;
+
+static RegionAllocTracking			rombios_alloc;
+
+Bitu						rombios_minimum_location = 0xF0000; /* minimum segment allowed */
+Bitu						rombios_minimum_size = 0x10000;
+
+bool MEM_map_ROM_physmem(Bitu start,Bitu end);
+bool MEM_unmap_physmem(Bitu start,Bitu end);
+
+void ROMBIOS_DumpMemory() {
+	rombios_alloc.logDump();
+}
+
+void ROMBIOS_SanityCheck() {
+	rombios_alloc.sanityCheck();
+}
+
+Bitu ROMBIOS_MinAllocatedLoc() {
+	Bitu r = rombios_alloc.getMinAddress();
 
 	if (r > (0x100000 - rombios_minimum_size))
 		r = (0x100000 - rombios_minimum_size);
@@ -157,15 +321,15 @@ void ROMBIOS_FreeUnusedMinToLoc(Bitu phys) {
 	phys &= ~0xFFF; /* page align */
 
 	/* scan bottom-up */
-	while (rombios_alloc.size() != 0) {
-		ROMBIOS_block &blk = rombios_alloc[0];
+	while (rombios_alloc.alist.size() != 0) {
+		RegionAllocTracking::Block &blk = rombios_alloc.alist[0];
 		if (!blk.free) {
 			if (phys > blk.start) phys = blk.start;
 			break;
 		}
 		if (phys > blk.end) {
 			/* remove entirely */
-			rombios_alloc.erase(rombios_alloc.begin());
+			rombios_alloc.alist.erase(rombios_alloc.alist.begin());
 			continue;
 		}
 		if (phys <= blk.start) break;
@@ -182,111 +346,7 @@ void ROMBIOS_FreeUnusedMinToLoc(Bitu phys) {
 }
 
 Bitu ROMBIOS_GetMemory(Bitu bytes,const char *who,Bitu alignment,Bitu must_be_at) {
-	size_t si;
-	Bitu base;
-
-	if (bytes == 0) return 0;
-	if (alignment > 1 && must_be_at != 0) return 0; /* avoid nonsense! */
-	if (who == NULL) who = "";
-	if (rombios_alloc.size() == 0) E_Exit("ROMBIOS_GetMemory called when rombios allocation list not initialized");
-
-	/* alignment must be power of 2 */
-	if (alignment == 0)
-		alignment = 1;
-	else if ((alignment & (alignment-1)) != 0)
-		E_Exit("ROMBIOS_GetMemory called with non-power of 2 alignment value %u",(int)alignment);
-
-	/* allocate downward from the top */
-	si = rombios_alloc.size() - 1;
-	while (si >= 0) {
-		ROMBIOS_block &blk = rombios_alloc[si];
-
-		if (!blk.free || (blk.end+1-blk.start) < bytes) {
-			si--;
-			continue;
-		}
-
-		/* if must_be_at != 0 the caller wants a block at a very specific location */
-		if (must_be_at != 0) {
-			/* well, is there room to fit the forced block? if it starts before
-			 * this block or the forced block would end past the block then, no. */
-			if (must_be_at < blk.start || (must_be_at+bytes-1) > blk.end) {
-				si--;
-				continue;
-			}
-
-			base = must_be_at;
-			if (base == blk.start && (base+bytes-1) == blk.end) { /* easy case: perfect match */
-				blk.free = false;
-				blk.who = who;
-			}
-			else if (base == blk.start) { /* need to split */
-				ROMBIOS_block newblk = blk; /* this becomes the new block we insert */
-				blk.start = base+bytes;
-				newblk.end = base+bytes-1;
-				newblk.free = false;
-				newblk.who = who;
-				rombios_alloc.insert(rombios_alloc.begin()+si,newblk);
-			}
-			else if ((base+bytes-1) == blk.end) { /* need to split */
-				ROMBIOS_block newblk = blk; /* this becomes the new block we insert */
-				blk.end = base-1;
-				newblk.start = base;
-				newblk.free = false;
-				newblk.who = who;
-				rombios_alloc.insert(rombios_alloc.begin()+si+1,newblk);
-			}
-			else { /* complex split */
-				ROMBIOS_block newblk = blk,newblk2 = blk; /* this becomes the new block we insert */
-				Bitu orig_end = blk.end;
-				blk.end = base-1;
-				newblk.start = base+bytes;
-				newblk.end = orig_end;
-				rombios_alloc.insert(rombios_alloc.begin()+si+1,newblk);
-				newblk2.start = base;
-				newblk2.end = base+bytes-1;
-				newblk2.free = false;
-				newblk2.who = who;
-				rombios_alloc.insert(rombios_alloc.begin()+si+1,newblk2);
-			}
-		}
-		else {
-			base = blk.end + 1 - bytes; /* allocate downward from the top */
-			assert(base >= blk.start);
-			base &= ~(alignment - 1); /* NTS: alignment == 16 means ~0xF or 0xFFFF0 */
-			if (base < blk.start) { /* if not possible after alignment, then skip */
-				si--;
-				continue;
-			}
-
-			/* easy case: base matches start, just take the block! */
-			if (base == blk.start) {
-				blk.free = false;
-				blk.who = who;
-				return blk.start;
-			}
-
-			/* not-so-easy: need to split the block and claim the upper half */
-			ROMBIOS_block newblk = blk; /* this becomes the new block we insert */
-			newblk.start = base;
-			newblk.free = false;
-			newblk.who = who;
-			blk.end = base - 1;
-			if (blk.start > blk.end) {
-				ROMBIOS_SanityCheck();
-				abort();
-			}
-			rombios_alloc.insert(rombios_alloc.begin()+si+1,newblk);
-		}
-
-		LOG(LOG_BIOS,LOG_DEBUG)("ROMBIOS_GetMemory(0x%05x bytes,\"%s\",align=%u,mustbe=0x%05x) = 0x%05x",(int)bytes,who,(int)alignment,(int)must_be_at,(int)base);
-		ROMBIOS_SanityCheck();
-		return base;
-	}
-
-	LOG(LOG_BIOS,LOG_DEBUG)("ROMBIOS_GetMemory(0x%05x bytes,\"%s\",align=%u,mustbe=0x%05x) = FAILED",(int)bytes,who,(int)alignment,(int)must_be_at);
-	ROMBIOS_SanityCheck();
-	return 0;
+	return rombios_alloc.getMemory(bytes,who,alignment,must_be_at);
 }
 
 Bit16u BIOS_GetMemory(Bit16u pages,const char *who) {
@@ -4489,14 +4549,9 @@ void ROMBIOS_Init() {
 	}
 
 	/* set up allocation */
-	{
-		ROMBIOS_block x;
-
-		x.start = rombios_minimum_location;
-		x.end = 0xFFFF0 - 1;
-		x.free = true;
-		rombios_alloc.push_back(x);
-	}
+	rombios_alloc.name = "ROM BIOS";
+	rombios_alloc.topDownAlloc = true;
+	rombios_alloc.initSetRange(rombios_minimum_location,0xFFFF0 - 1);
 
 	write_ID_version_string();
 
