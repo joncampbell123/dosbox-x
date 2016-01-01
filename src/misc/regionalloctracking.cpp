@@ -265,6 +265,27 @@ Bitu RegionAllocTracking::freeUnusedMinToLoc(Bitu phys) {
 	return phys;
 }
 
+void RegionAllocTracking::compactFree() {
+	size_t si=0;
+
+	while ((si+1) < alist.size()) {
+		RegionAllocTracking::Block &blk1 = alist[si];
+		RegionAllocTracking::Block &blk2 = alist[si+1];
+
+		if (blk1.free && blk2.free) {
+			if ((blk1.end+(Bitu)1) == blk2.start) {
+				blk1.end = blk2.end;
+				alist.erase(alist.begin()+si+1);
+				continue;
+			}
+		}
+
+		si++;
+	}
+
+	sanityCheck();
+}
+
 bool RegionAllocTracking::freeMemory(Bitu offset) {
 	size_t si=0;
 
@@ -281,6 +302,7 @@ bool RegionAllocTracking::freeMemory(Bitu offset) {
 			if (!blk.free) {
 				blk.free = true;
 				blk.who.clear();
+				compactFree();
 			}
 
 			return true;

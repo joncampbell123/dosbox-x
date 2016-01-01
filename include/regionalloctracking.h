@@ -27,6 +27,7 @@ public:
 	Bitu					freeUnusedMinToLoc(Bitu phys);
 	bool					freeMemory(Bitu offset);
 	Bitu					getMinAddress();	
+	void					compactFree();
 	void					sanityCheck();
 	void					logDump();
 public:
