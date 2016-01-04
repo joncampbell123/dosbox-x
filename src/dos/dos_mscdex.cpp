@@ -1393,14 +1393,17 @@ void MSCDEX_SetCDInterface(int intNr, int numCD) {
 }
 
 void MSCDEX_ShutDown(Section* /*sec*/) {
-	delete mscdex;
-	mscdex = 0;
+	if (mscdex != NULL) {
+		delete mscdex;
+		mscdex = NULL;
+	}
+
 	curReqheaderPtr = 0;
 }
 
-void MSCDEX_OnReset(Section* sec) {
+void MSCDEX_Startup(Section* sec) {
 	if (mscdex == NULL) {
-		LOG(LOG_MISC,LOG_DEBUG)("Allocationg MSCDEX.EXE emulation");
+		LOG(LOG_MISC,LOG_DEBUG)("Allocating MSCDEX.EXE emulation");
 
 		/* Register the mscdex device */
 		DOS_Device * newdev = new device_MSCDEX();
@@ -1417,6 +1420,9 @@ void MSCDEX_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing MSCDEX.EXE emulation");
 
 	AddExitFunction(AddExitFunctionFuncPair(MSCDEX_ShutDown));
-	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(MSCDEX_OnReset));
+
+	/* in any event that the DOS kernel is shutdown or abruptly wiped from memory */
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(MSCDEX_ShutDown));
+	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(MSCDEX_ShutDown));
 }
 
