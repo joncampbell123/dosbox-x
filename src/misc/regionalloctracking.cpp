@@ -26,7 +26,7 @@
 RegionAllocTracking::Block::Block() : start(0), end(0), free(true) {
 }
 
-RegionAllocTracking::RegionAllocTracking() : min(0), max(~((Bitu)0)), topDownAlloc(false) {
+RegionAllocTracking::RegionAllocTracking() : _min(0), _max(~((Bitu)0)), topDownAlloc(false) {
 }
 
 Bitu RegionAllocTracking::getMemory(Bitu bytes,const char *who,Bitu alignment,Bitu must_be_at) {
@@ -177,7 +177,7 @@ Bitu RegionAllocTracking::getMemory(Bitu bytes,const char *who,Bitu alignment,Bi
 
 Bitu RegionAllocTracking::getMinAddress() {
 	size_t si = 0;
-	Bitu r = max;
+	Bitu r = _max;
 
 	while (si < alist.size()) {
 		Block &blk = alist[si];
@@ -199,12 +199,12 @@ void RegionAllocTracking::initSetRange(Bitu start,Bitu end) {
 	assert(start <= end);
 
 	alist.clear();
-	min = start;
-	max = end;
+	_min = start;
+	_max = end;
 
-	x.end = max;
+	x.end = _max;
 	x.free = true;
-	x.start = min;
+	x.start = _min;
 	alist.push_back(x);
 }
 
@@ -229,7 +229,7 @@ void RegionAllocTracking::sanityCheck() {
 	pblk = &alist[0];
 	for (si=1;si < alist.size();si++) {
 		blk = &alist[si];
-		if (blk->start != (pblk->end+1) || blk->start > blk->end || blk->start < min || blk->end > max) {
+		if (blk->start != (pblk->end+1) || blk->start > blk->end || blk->start < _min || blk->end > _max) {
 			LOG(LOG_MISC,LOG_DEBUG)("RegionAllocTracking sanity check failure in '%s'",name.c_str());
 			logDump();
 			E_Exit("ROMBIOS sanity check failed");
@@ -240,8 +240,8 @@ void RegionAllocTracking::sanityCheck() {
 }
 
 Bitu RegionAllocTracking::freeUnusedMinToLoc(Bitu phys) {
-	if (phys <= min) return min;
-	if ((max+(Bitu)1) != (Bitu)0 && phys > (max+1)) phys = max+1;
+	if (phys <= _min) return _min;
+	if ((_max+(Bitu)1) != (Bitu)0 && phys > (_max+1)) phys = _max+1;
 
 	/* scan bottom-up */
 	while (alist.size() != 0) {
@@ -260,8 +260,8 @@ Bitu RegionAllocTracking::freeUnusedMinToLoc(Bitu phys) {
 		break;
 	}
 
-	assert(phys >= min);
-	assert(max == (Bitu)0 || phys < max);
+	assert(phys >= _min);
+	assert(_max == (Bitu)0 || phys < _max);
 	return phys;
 }
 
@@ -289,7 +289,7 @@ void RegionAllocTracking::compactFree() {
 bool RegionAllocTracking::freeMemory(Bitu offset) {
 	size_t si=0;
 
-	if (offset < min || offset > max)
+	if (offset < _min || offset > _max)
 		return false;
 
 	while (si < alist.size()) {

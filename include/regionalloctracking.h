@@ -33,7 +33,7 @@ public:
 public:
 	std::string				name;
 	std::vector<Block>			alist;
-	Bitu					min,max;
+	Bitu					_min,_max;
 	bool					topDownAlloc;
 public:
 	static const Bitu			alloc_failed = ~((Bitu)0);
