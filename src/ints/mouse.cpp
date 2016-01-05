@@ -1170,7 +1170,13 @@ Bitu MOUSE_UserInt_CB_Handler(void) {
 
 bool MouseTypeNone();
 
-void MOUSE_OnReset(Section *sec) {
+void MOUSE_ShutDown(Section *sec) {
+}
+
+// FIXME!!!! This contains both INT 33h (DOS-level) and INT 15h (BIOS-level) MOUSE initialization!
+//           We need to split the two up so INT 15h happens during BIOS init and INT 33h during
+//           DOS startup!
+void MOUSE_Startup(Section *sec) {
 	Section_prop *section=static_cast<Section_prop *>(control->GetSection("dos"));
 	RealPt i33loc=0;
 
@@ -1271,6 +1277,7 @@ void MOUSE_OnReset(Section *sec) {
 void MOUSE_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing mouse interface emulation");
 
-	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(MOUSE_OnReset));
+	// TODO: We need a DOSBox shutdown callback, and we need a shutdown callback for when the DOS kernel begins to unload and on system reset
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(MOUSE_ShutDown));
 }
 

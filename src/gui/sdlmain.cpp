@@ -4302,6 +4302,11 @@ bool VM_Boot_DOSBox_Kernel() {
 		void MSCDEX_Startup(Section* sec);
 		MSCDEX_Startup(NULL);
 
+		/* Some installations load the MOUSE.COM driver from AUTOEXEC.BAT as well */
+		/* TODO: Can we make this an option? Can we add a fake MOUSE.COM to the Z:\ drive as well? */
+		void MOUSE_Startup(Section *sec);
+		MOUSE_Startup(NULL);
+
 		DispatchVMEvent(VM_EVENT_DOS_INIT_AUTOEXEC_BAT_DONE); // <- we just finished executing AUTOEXEC.BAT
 		DispatchVMEvent(VM_EVENT_DOS_INIT_AT_PROMPT); // <- now, we're at the DOS prompt
 		SHELL_Run();
