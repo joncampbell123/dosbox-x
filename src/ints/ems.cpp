@@ -1482,12 +1482,12 @@ public:
 
 		dbg_zero_on_ems_allocmem = section->Get_bool("zero memory on ems memory allocation");
 		if (dbg_zero_on_ems_allocmem) {
-			LOG_MSG("Debug option enabled: EMS memory allocation will always clear memory block before returning\n");
+			LOG(LOG_MISC,LOG_DEBUG)("Debug option enabled: EMS memory allocation will always clear memory block before returning\n");
 		}
 
 		/* FIXME: VM86 monitor is not stable! */
 		if (ENABLE_V86_STARTUP) {
-			LOG_MSG("WARNING: EMM386 virtual 8086 monitor is not stable!");
+			LOG(LOG_MISC,LOG_WARN)("EMM386 virtual 8086 monitor is not stable! Use with caution!");
 		}
 
 		if (ems_type == EMS_BOARD && ENABLE_VCPI) {
@@ -1592,7 +1592,7 @@ public:
 			 *     - Does not detect Expanded memory because it doesn't detect virtual 8086 mode
 			 *     - Therefore, without this option, it is impossible to run the demo. */
 			if (ENABLE_V86_STARTUP) {
-				LOG_MSG("EMS: Now setting up the DOS environment to run in EMM386.EXE virtual 8086 mode");
+				LOG(LOG_MISC,LOG_DEBUG)("EMS: Now setting up the DOS environment to run in EMM386.EXE virtual 8086 mode");
 
 				/* our V86 state may require A20 enabled to run. the EMM OS handle
 				 * often resides on an odd megabyte */
