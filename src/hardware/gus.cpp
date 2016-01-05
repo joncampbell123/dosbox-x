@@ -79,12 +79,12 @@ struct GFGus {
 	Bit32u basefreq;
 
 	struct GusTimer {
+		float delay;
 		Bit8u value;
 		bool reached;
 		bool raiseirq;
 		bool masked;
 		bool running;
-		float delay;
 	} timers[2];
 	Bit32u rate;
 	Bitu portbase;
@@ -185,6 +185,7 @@ public:
 		RampEnd = 0;
 		RampCtrl = 3;
 		RampAdd = 0;
+		RampAddReal = 0;
 		RampVol = 0;
 		VolLeft = 0;
 		VolRight = 0;
@@ -326,10 +327,12 @@ public:
 	}
 };
 
-static GUSChannels *guschan[32];
-static GUSChannels *curchan;
+static GUSChannels *guschan[32] = {NULL};
+static GUSChannels *curchan = NULL;
 
 static INLINE void GUS_CheckIRQ(void);
+
+static void GUS_TimerEvent(Bitu val);
 
 static uint8_t GUS_reset_reg = 0;
 
@@ -346,25 +349,15 @@ static void GUSReset(void) {
 	 *      it backwards. */
 	GUS_reset_reg = myGUS.gRegData >> 8;
 
+	if ((myGUS.gRegData & 0x400) != 0x000 || myGUS.force_master_irq_enable)
+		myGUS.irqenabled = true;
+	else
+		myGUS.irqenabled = false;
+
+	GUS_CheckIRQ();
+
 	LOG(LOG_MISC,LOG_DEBUG)("GUS reset with 0x%04X",myGUS.gRegData);
 	if((myGUS.gRegData & 0x100) == 0x000) {
-		// Reset
-		adlib_commandreg = 85;
-		myGUS.IRQStatus = 0;
-		myGUS.timers[0].raiseirq = false;
-		myGUS.timers[1].raiseirq = false;
-		myGUS.timers[0].reached = false;
-		myGUS.timers[1].reached = false;
-		myGUS.timers[0].running = false;
-		myGUS.timers[1].running = false;
-
-		myGUS.timers[0].value = 0xff;
-		myGUS.timers[1].value = 0xff;
-		myGUS.timers[0].delay = 0.080f;
-		myGUS.timers[1].delay = 0.320f;
-
-		myGUS.ChangeIRQDMA = false;
-		myGUS.mixControl = 0x0b;	// latches enabled by default LINEs disabled
 		// Stop all channels
 		int i;
 		for(i=0;i<32;i++) {
@@ -372,17 +365,50 @@ static void GUSReset(void) {
 			guschan[i]->WriteWaveCtrl(0x1);
 			guschan[i]->WriteRampCtrl(0x1);
 			guschan[i]->WritePanPot(0x7);
-			// FIXME: 60BR W by COMA is playing all of it's music hard panned to the left. Does it do this on real hardware?
 		}
+
+		// Reset
+		adlib_commandreg = 85;
+		myGUS.IRQStatus = 0;
+		myGUS.RampIRQ = 0;
+		myGUS.WaveIRQ = 0;
 		myGUS.IRQChan = 0;
+
+		myGUS.timers[0].delay = 0.080f;
+		myGUS.timers[1].delay = 0.320f;
+		myGUS.timers[0].value = 0xff;
+		myGUS.timers[1].value = 0xff;
+		myGUS.timers[0].masked = false;
+		myGUS.timers[1].masked = false;
+		myGUS.timers[0].raiseirq = false;
+		myGUS.timers[1].raiseirq = false;
+		myGUS.timers[0].reached = true;
+		myGUS.timers[1].reached = true;
+		myGUS.timers[0].running = false;
+		myGUS.timers[1].running = false;
+
+		PIC_RemoveEvents(GUS_TimerEvent);
+
+		myGUS.ChangeIRQDMA = false;
+		myGUS.DMAControl = 0x00;
+		myGUS.mixControl = 0x0b;	// latches enabled by default LINEs disabled
+		myGUS.TimerControl = 0x00;
+		myGUS.SampControl = 0x00;
+		myGUS.ActiveChannels = 14;
+		myGUS.ActiveMask=0xffffffffU >> (32-myGUS.ActiveChannels);
+		myGUS.basefreq = (Bit32u)((float)1000000/(1.619695497*(float)(myGUS.ActiveChannels)));
+
+		myGUS.gCurChannel = 0;
+		curchan = guschan[myGUS.gCurChannel];
+
+		myGUS.dmaAddr = 0;
+		myGUS.irqenabled = 0;
+		myGUS.dmaAddrOffset = 0;
+		myGUS.gDramAddr = 0;
+		myGUS.gRegSelect = 0;
+		myGUS.gRegData = 0;
 	}
-	if ((myGUS.gRegData & 0x400) != 0x000 || myGUS.force_master_irq_enable) {
-		myGUS.irqenabled = true;
-	} else {
-		myGUS.irqenabled = false;
-	}
-	// TODO: We should also emulate the "DAC enable" (bit 1) control and silence/stop our output if not set.
-	//       And, if the card is in a reset state, to stop and withhold our DAC output and halt DMA transfers.
+
 	GUS_CheckIRQ();
 }
 
@@ -574,7 +600,6 @@ static void ExecuteGlobRegister(void) {
 		if(myGUS.ActiveChannels < 14) myGUS.ActiveChannels = 14;
 		if(myGUS.ActiveChannels > 32) myGUS.ActiveChannels = 32;
 		myGUS.ActiveMask=0xffffffffU >> (32-myGUS.ActiveChannels);
-		gus_chan->Enable(true);
 		myGUS.basefreq = (Bit32u)((float)1000000/(1.619695497*(float)(myGUS.ActiveChannels)));
 #if LOG_GUS
 		LOG_MSG("GUS set to %d channels", myGUS.ActiveChannels);
@@ -845,8 +870,16 @@ static void GUS_CallBack(Bitu len) {
 	Bitu i;
 	Bit16s * buf16 = (Bit16s *)MixTemp;
 	Bit32s * buf32 = (Bit32s *)MixTemp;
-	for(i=0;i<myGUS.ActiveChannels;i++) 
-		guschan[i]->generateSamples(buf32,len);
+
+	if ((GUS_reset_reg & 0x03/*DAC enable | !master reset*/) == 0x03) {
+		for(i=0;i<myGUS.ActiveChannels;i++)
+			guschan[i]->generateSamples(buf32,len);
+	}
+	else {
+		for(i=0;i<myGUS.ActiveChannels;i++)
+			buf32[i] = 0;
+	}
+
 	for(i=0;i<len*2;i++) {
 		Bit32s sample=((buf32[i] >> 13)*AutoAmp)>>9;
 		if (sample>32767) {
@@ -1007,8 +1040,8 @@ public:
 		// FIXME: Could we leave the card in reset state until a fake ULTRINIT runs?
 		myGUS.gRegData=0x000/*reset*/;
 		GUSReset();
-		myGUS.gRegData=0x700/*enable DAC output, run, master IRQ enable*/;
-		GUSReset();
+
+		gus_chan->Enable(true);
 
 		int portat = 0x200+GUS_BASE;
 
