@@ -4278,9 +4278,22 @@ bool VM_Boot_DOSBox_Kernel() {
 		DispatchVMEvent(VM_EVENT_DOS_BOOT); // <- just starting the DOS kernel now
 		dos_kernel_disabled = false; // FIXME: DOS_Init should install VM callback handler to set this
 		DispatchVMEvent(VM_EVENT_DOS_INIT_KERNEL_READY); // <- kernel is ready
+
+		/* Most MS-DOS installations have a DEVICE=C:\HIMEM.SYS somewhere near the top of their CONFIG.SYS */
+		void XMS_Startup(Section *sec);
+		XMS_Startup(NULL);
+
+		/* And then after that, usually a DEVICE=C:\EMM386.EXE just after HIMEM.SYS */
+		void EMS_Startup(Section* sec);
+		EMS_Startup(NULL);
+
 		DispatchVMEvent(VM_EVENT_DOS_INIT_CONFIG_SYS_DONE); // <- we just finished executing CONFIG.SYS
 		SHELL_Init(); // <- NTS: this will change CPU instruction pointer!
 		DispatchVMEvent(VM_EVENT_DOS_INIT_SHELL_READY); // <- we just finished loading the shell (COMMAND.COM)
+
+		/* it's time to init parsing AUTOEXEC.BAT */
+		void AUTOEXEC_Startup(Section *sec);
+		AUTOEXEC_Startup(NULL);
 
 		/* Most MS-DOS installations run MSCDEX.EXE from somewhere in AUTOEXEC.BAT. We do the same here, in a fashion. */
 		/* TODO: Can we make this an OPTION if the user doesn't want to make MSCDEX.EXE resident? */

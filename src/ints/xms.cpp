@@ -706,7 +706,7 @@ void XMS_ShutDown(Section* /*sec*/) {
 	XMS_DoShutDown();
 }
 
-void XMS_OnReset(Section *sec) {
+void XMS_Startup(Section *sec) {
 	if (test == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating XMS emulation");
 		test = new XMS(control->GetSection("dos"));
@@ -717,6 +717,7 @@ void XMS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing XMS extended memory services");
 
 	AddExitFunction(AddExitFunctionFuncPair(XMS_ShutDown),true);
-	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(XMS_OnReset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(XMS_ShutDown));
+	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(XMS_ShutDown));
 }
 

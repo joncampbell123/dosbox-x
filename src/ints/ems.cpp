@@ -1688,7 +1688,7 @@ void EMS_ShutDown(Section* /*sec*/) {
 	EMS_DoShutDown();
 }
 
-void EMS_OnReset(Section* sec) {
+void EMS_Startup(Section* sec) {
 	if (test == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating EMS emulation");
 		test = new EMS(control->GetSection("dos"));
@@ -1699,6 +1699,7 @@ void EMS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing EMS expanded memory services");
 
 	AddExitFunction(AddExitFunctionFuncPair(EMS_ShutDown),true);
-	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(EMS_OnReset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(EMS_ShutDown));
+	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(EMS_ShutDown));
 }
 
