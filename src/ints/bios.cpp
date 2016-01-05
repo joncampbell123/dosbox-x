@@ -3097,6 +3097,10 @@ private:
 
 		TIMER_BIOS_INIT_Configure();
 
+		/* PS/2 mouse */
+		void BIOS_PS2Mouse_Startup(Section *sec);
+		BIOS_PS2Mouse_Startup(NULL);
+
 		return CBRET_NONE;
 	}
 	CALLBACK_HandlerObject cb_bios_scan_video_bios;

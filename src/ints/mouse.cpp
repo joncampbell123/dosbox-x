@@ -1173,54 +1173,25 @@ bool MouseTypeNone();
 void MOUSE_ShutDown(Section *sec) {
 }
 
-// FIXME!!!! This contains both INT 33h (DOS-level) and INT 15h (BIOS-level) MOUSE initialization!
-//           We need to split the two up so INT 15h happens during BIOS init and INT 33h during
-//           DOS startup!
-void MOUSE_Startup(Section *sec) {
-	Section_prop *section=static_cast<Section_prop *>(control->GetSection("dos"));
-	RealPt i33loc=0;
+void BIOS_PS2MOUSE_ShutDown(Section *sec) {
+}
 
-	if ((en_int33=section->Get_bool("int33"))) {
-		LOG(LOG_KEYBOARD,LOG_NORMAL)("INT 33H emulation enabled");
-	}
+void BIOS_PS2Mouse_Startup(Section *sec) {
+	Section_prop *section=static_cast<Section_prop *>(control->GetSection("dos"));
 
 	/* NTS: This assumes MOUSE_Init() is called after KEYBOARD_Init() */
-	if ((en_bios_ps2mouse=section->Get_bool("biosps2"))) {
-		if (MouseTypeNone()) {
-			LOG(LOG_KEYBOARD,LOG_WARN)("INT 15H PS/2 emulation NOT enabled. biosps2=1 but mouse type=none");
-		}
-		else {
-			LOG(LOG_KEYBOARD,LOG_NORMAL)("INT 15H PS/2 emulation enabled");
-			bios_enable_ps2();
-		}
+	en_bios_ps2mouse = section->Get_bool("biosps2");
+	if (!en_bios_ps2mouse) return;
+
+	if (MouseTypeNone()) {
+		LOG(LOG_KEYBOARD,LOG_WARN)("INT 15H PS/2 emulation NOT enabled. biosps2=1 but mouse type=none");
+	}
+	else {
+		LOG(LOG_KEYBOARD,LOG_NORMAL)("INT 15H PS/2 emulation enabled");
+		bios_enable_ps2();
 	}
 
 	ps2_callback_save_regs = section->Get_bool("int15 mouse callback does not preserve registers");
-
-	if (en_int33) {
-		// Callback for mouse interrupt 0x33
-		call_int33=CALLBACK_Allocate();
-		// i33loc=RealMake(CB_SEG+1,(call_int33*CB_SIZE)-0x10);
-		i33loc=RealMake(DOS_GetMemory(0x1,"i33loc")-1,0x10);
-		CALLBACK_Setup(call_int33,&INT33_Handler,CB_MOUSE,Real2Phys(i33loc),"Mouse");
-		// Wasteland needs low(seg(int33))!=0 and low(ofs(int33))!=0
-		real_writed(0,0x33<<2,i33loc);
-	}
-	else {
-		call_int33=0;
-	}
-
-	call_mouse_bd=CALLBACK_Allocate();
-	CALLBACK_Setup(call_mouse_bd,&MOUSE_BD_Handler,CB_RETF8,
-		PhysMake(RealSeg(i33loc),RealOff(i33loc)+2),"MouseBD");
-	// pseudocode for CB_MOUSE (including the special backdoor entry point):
-	//	jump near i33hd
-	//	callback MOUSE_BD_Handler
-	//	retf 8
-	//  label i33hd:
-	//	callback INT33_Handler
-	//	iret
-
 
 	// Callback for ps2 irq
 	call_int74=CALLBACK_Allocate();
@@ -1255,6 +1226,39 @@ void MOUSE_Startup(Section *sec) {
  	call_ps2=CALLBACK_Allocate();
 	CALLBACK_Setup(call_ps2,&PS2_Handler,CB_RETF,"ps2 bios callback");
 	ps2_callback=CALLBACK_RealPointer(call_ps2);
+}
+
+void MOUSE_Startup(Section *sec) {
+	Section_prop *section=static_cast<Section_prop *>(control->GetSection("dos"));
+	RealPt i33loc=0;
+
+	/* TODO: Needs to check for mouse, and fail to do anything if neither PS/2 nor serial mouse emulation enabled */
+
+	en_int33=section->Get_bool("int33");
+	if (!en_int33) return;
+
+	LOG(LOG_KEYBOARD,LOG_NORMAL)("INT 33H emulation enabled");
+
+	// Callback for mouse interrupt 0x33
+	call_int33=CALLBACK_Allocate();
+
+	// i33loc=RealMake(CB_SEG+1,(call_int33*CB_SIZE)-0x10);
+	i33loc=RealMake(DOS_GetMemory(0x1,"i33loc")-1,0x10);
+	CALLBACK_Setup(call_int33,&INT33_Handler,CB_MOUSE,Real2Phys(i33loc),"Mouse");
+
+	// Wasteland needs low(seg(int33))!=0 and low(ofs(int33))!=0
+	real_writed(0,0x33<<2,i33loc);
+
+	call_mouse_bd=CALLBACK_Allocate();
+	CALLBACK_Setup(call_mouse_bd,&MOUSE_BD_Handler,CB_RETF8,
+		PhysMake(RealSeg(i33loc),RealOff(i33loc)+2),"MouseBD");
+	// pseudocode for CB_MOUSE (including the special backdoor entry point):
+	//	jump near i33hd
+	//	callback MOUSE_BD_Handler
+	//	retf 8
+	//  label i33hd:
+	//	callback INT33_Handler
+	//	iret
 
 	memset(&mouse,0,sizeof(mouse));
 	mouse.hidden = 1; //Hide mouse on startup
