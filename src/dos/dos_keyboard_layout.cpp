@@ -1292,10 +1292,13 @@ public:
 static DOS_KeyboardLayout* test;
 
 void DOS_KeyboardLayout_ShutDown(Section* /*sec*/) {
-	delete test;	
+	if (test != NULL) {
+		delete test;
+		test = NULL;
+	}
 }
 
-void DOS_KeyboardLayout_OnReset(Section* sec) {
+void DOS_KeyboardLayout_Startup(Section* sec) {
 	if (test == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("Reinitializing DOS keyboard layout support");
 		test = new DOS_KeyboardLayout(control->GetSection("dos"));
@@ -1306,6 +1309,7 @@ void DOS_KeyboardLayout_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing DOS keyboard layout emulation");
 
 	AddExitFunction(AddExitFunctionFuncPair(DOS_KeyboardLayout_ShutDown),true);
-	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(DOS_KeyboardLayout_OnReset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(DOS_KeyboardLayout_ShutDown));
+	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(DOS_KeyboardLayout_ShutDown));
 }
 

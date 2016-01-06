@@ -253,7 +253,7 @@ void DriveManager::Init(Section* s) {
 //	MAPPER_AddHandler(&CycleDrive, MK_f3, MMOD2, "cycledrive", "Cycle Drv");
 }
 
-void DRIVES_OnReset(Section *s) {
+void DRIVES_Startup(Section *s) {
 	if (!drivemanager_init) {
 		LOG(LOG_MISC,LOG_DEBUG)("Initializing drive system");
 		DriveManager::Init(control->GetSection("dos"));
@@ -263,7 +263,7 @@ void DRIVES_OnReset(Section *s) {
 void DRIVES_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing OOS drives");
 
-	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(DRIVES_OnReset));
+	// TODO: DOS kernel exit, reset, guest booting handler
 }
 
 char * DOS_Drive::GetBaseDir(void) {

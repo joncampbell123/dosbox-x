@@ -4277,7 +4277,16 @@ bool VM_Boot_DOSBox_Kernel() {
 	if (dos_kernel_disabled) {
 		DispatchVMEvent(VM_EVENT_DOS_BOOT); // <- just starting the DOS kernel now
 		dos_kernel_disabled = false; // FIXME: DOS_Init should install VM callback handler to set this
+
+		/* DOS kernel init, drives */
+		void DRIVES_Startup(Section *s);
+		DRIVES_Startup(NULL);
+
 		DispatchVMEvent(VM_EVENT_DOS_INIT_KERNEL_READY); // <- kernel is ready
+
+		/* keyboard mapping, at this point in CONFIG.SYS parsing, right? */
+		void DOS_KeyboardLayout_Startup(Section* sec);
+		DOS_KeyboardLayout_Startup(NULL);
 
 		/* Most MS-DOS installations have a DEVICE=C:\HIMEM.SYS somewhere near the top of their CONFIG.SYS */
 		void XMS_Startup(Section *sec);
