@@ -836,29 +836,29 @@ static void GUS_DMA_Callback(DmaChannel * chan,DMAEvent event) {
 		 *
 		 * MODE    XLATE?    NOTE
 		 * 0x00    NO        8-bit PCM, 8-bit DMA (Most DOS programs)
-		 * 0x04    DEPENDS   8-bit PCM, 16-bit DMA (Star Commander II, see comments below)
+		 * 0x04    DEPENDS   8-bit PCM, 16-bit DMA (Star Control II, see comments below)
 		 * 0x40    NO        16-bit PCM, 8-bit DMA (Windows 3.1, Quake, for 16-bit PCM over 8-bit DMA)
 		 * 0x44    YES       16-bit PCM, 16-bit DMA (Windows 3.1, Quake, for 16-bit PCM over 16-bit DMA)
 		 *
 		 * Mode 0x04 is marked DEPENDS. It DEPENDS on whether the assigned DMA channel is 8-bit (NO) or 16-bit (YES).
 		 * Mode 0x04 does not appear to be used by any other DOS application or Windows drivers, only by an erratic
-		 * bug in Star Commander II. FIXME: But, what does REAL hardware do? Drag out the old Pentium 100MHz with the
+		 * bug in Star Control II. FIXME: But, what does REAL hardware do? Drag out the old Pentium 100MHz with the
 		 * GUS classic and test! --J.C.
 		 *
-		 * Star Commander II has a bug where, if the GUS DMA channel is 8-bit (DMA channel 0-3), it will upload
+		 * Star Control II has a bug where, if the GUS DMA channel is 8-bit (DMA channel 0-3), it will upload
 		 * it's samples to GUS RAM, one DMA transfer per sample, and sometimes set bit 2. Setting bit 2 incorrectly
 		 * tells the GUS it's a 16-bit wide DMA transfer when the DMA channel is 8-bit. But, if the DMA channel is
-		 * 16-bit (DMA channel 5-7), Star Commander II will correctly set bit 2 in all cases and samples will
+		 * 16-bit (DMA channel 5-7), Star Control II will correctly set bit 2 in all cases and samples will
 		 * transfer correctly to GUS RAM.
 		 * */
 
-		/* FIXME: So, if the GUS DMA channel is 8-bit and Star Commander II writes mode 0x04 (8-bit PCM, 16-bit DMA), what does the GF1 do?
-		 *        I'm guessing so far that something happens within the GF1 to transfer as 8-bit anyway, clearly the developers of Star Commander II
+		/* FIXME: So, if the GUS DMA channel is 8-bit and Star Control II writes mode 0x04 (8-bit PCM, 16-bit DMA), what does the GF1 do?
+		 *        I'm guessing so far that something happens within the GF1 to transfer as 8-bit anyway, clearly the developers of Star Control II
 		 *        did not hear any audible sign that an invalid DMA control was being used. Perhaps the hardware engineers of the GF1 figured
 		 *        out that case and put something in the silicon to ignore the invalid DMA control state. I won't have any answers until
 		 *        I pull out an old Pentium box with a GUS classic and check. --J.C.
 		 *
-		 *        DMA transfers noted by Star Commander II that are the reason for this hack (gusdma=1):
+		 *        DMA transfers noted by Star Control II that are the reason for this hack (gusdma=1):
 		 *
 		 *        LOG:  157098507 DEBUG MISC:GUS DMA: terminal count reached. DMAControl=0x21
 		 *        LOG:  157098507 DEBUG MISC:GUS DMA transfer 1981 bytes, GUS RAM address 0x0 8-bit DMA 8-bit PCM (ctrl=0x21)
@@ -878,11 +878,11 @@ static void GUS_DMA_Callback(DmaChannel * chan,DMAEvent event) {
 		 *
 		 *        (end list)
 		 *
-		 *        Noted: Prior to this hack, the samples played by Star Commander II sounded more random and often involved leftover
+		 *        Noted: Prior to this hack, the samples played by Star Control II sounded more random and often involved leftover
 		 *               sample data in GUS RAM, where with this fix, the music now sounds identical to what is played when using
 		 *               it's Sound Blaster support. */
 		if (myGUS.dma1 < 4/*8-bit DMA channel*/ && (myGUS.DMAControl & 0x44) == 0x04/*8-bit PCM, 16-bit DMA*/)
-			dma16xlate = false; /* Star Commander II hack: 8-bit PCM, 8-bit DMA, ignore the bit that says it's 16-bit wide */
+			dma16xlate = false; /* Star Control II hack: 8-bit PCM, 8-bit DMA, ignore the bit that says it's 16-bit wide */
 		else
 			dma16xlate = (myGUS.DMAControl & 0x4) ? true : false;
 
