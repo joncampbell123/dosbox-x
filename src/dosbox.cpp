@@ -1713,6 +1713,10 @@ void DOSBOX_SetupConfigSections(void) {
 	Pbool = secprop->Add_bool("gus",Property::Changeable::WhenIdle,false); 	
 	Pbool->Set_help("Enable the Gravis Ultrasound emulation.");
 
+	Pbool = secprop->Add_bool("unmask dma",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("Start the DOS virtual machine with the DMA channel already unmasked at the controller.\n"
+			"Use this for DOS applications that expect to operate the GUS but forget to unmask the DMA channel.");
+
 	/* some DOS demos, especially where the programmers wrote their own tracker, forget to set "master IRQ enable" on the GUS,
 	 * and then wonder why music isn't playing. prior to some GUS bugfixes they happend to work anyway because DOSBox also
 	 * ignored master IRQ enable. you can restore that buggy behavior here.

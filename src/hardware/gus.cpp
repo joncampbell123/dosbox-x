@@ -97,6 +97,7 @@ struct GFGus {
 
 	bool irqenabled;
 	bool ChangeIRQDMA;
+	bool initUnmaskDMA;
 	bool force_master_irq_enable;
 	// IRQ status register values
 	Bit8u IRQStatus;
@@ -1058,6 +1059,10 @@ public:
 		else
 			gus_fixed_table = true;
 
+		myGUS.initUnmaskDMA = section->Get_bool("unmask dma");
+		if (myGUS.initUnmaskDMA)
+			LOG(LOG_MISC,LOG_DEBUG)("GUS: Unmasking DMA at boot time as requested");
+
 		myGUS.force_master_irq_enable=section->Get_bool("force master irq enable");
 		if (myGUS.force_master_irq_enable)
 			LOG(LOG_MISC,LOG_DEBUG)("GUS: Master IRQ enable will be forced on as instructed");
@@ -1138,6 +1143,9 @@ public:
 		// FIXME: Could we leave the card in reset state until a fake ULTRINIT runs?
 		myGUS.gRegData=0x000/*reset*/;
 		GUSReset();
+
+		if (myGUS.initUnmaskDMA)
+			GetDMAChannel(myGUS.dma1)->SetMask(false);
 
 		gus_chan->Enable(true);
 
