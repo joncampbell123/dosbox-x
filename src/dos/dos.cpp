@@ -1978,7 +1978,7 @@ void DOS_ShutDown(Section* /*sec*/) {
 	DOS_DoShutDown();
 }
 
-void DOS_OnReset(Section* sec) {
+void DOS_Startup(Section* sec) {
 	if (test == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating DOS kernel");
 		test = new DOS(control->GetSection("dos"));
@@ -1989,6 +1989,7 @@ void DOS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing DOS kernel (DOS_Init)");
 
 	AddExitFunction(AddExitFunctionFuncPair(DOS_ShutDown),false);
-	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(DOS_OnReset));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(DOS_ShutDown));
+	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(DOS_ShutDown));
 }
 

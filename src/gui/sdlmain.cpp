@@ -4276,9 +4276,12 @@ void Windows_DPI_Awareness_Init() {
 bool VM_Boot_DOSBox_Kernel() {
 	if (dos_kernel_disabled) {
 		DispatchVMEvent(VM_EVENT_DOS_BOOT); // <- just starting the DOS kernel now
-		dos_kernel_disabled = false; // FIXME: DOS_Init should install VM callback handler to set this
 
-		/* DOS kernel init, drives */
+		/* DOS kernel init */
+		dos_kernel_disabled = false; // FIXME: DOS_Init should install VM callback handler to set this
+		void DOS_Startup(Section* sec);
+		DOS_Startup(NULL);
+
 		void DRIVES_Startup(Section *s);
 		DRIVES_Startup(NULL);
 
