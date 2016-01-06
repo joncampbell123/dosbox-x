@@ -3097,6 +3097,9 @@ private:
 
 		TIMER_BIOS_INIT_Configure();
 
+		extern Bit8u BIOS_tandy_D4_flag;
+		real_writeb(0x40,0xd4,BIOS_tandy_D4_flag);
+
 		/* PS/2 mouse */
 		void BIOS_PS2Mouse_Startup(Section *sec);
 		BIOS_PS2Mouse_Startup(NULL);

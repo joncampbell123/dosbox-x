@@ -426,6 +426,7 @@ static void TandyDACUpdate(Bitu length) {
 	}
 }
 
+Bit8u BIOS_tandy_D4_flag = 0;
 
 class TANDYSOUND: public Module_base {
 private:
@@ -443,7 +444,7 @@ public:
 			enable_hw_tandy_dac=false;
 		}
 
-		real_writeb(0x40,0xd4,0x00);
+		BIOS_tandy_D4_flag = 0;
 		if (IS_TANDY_ARCH) {
 			/* enable tandy sound if tandy=true/auto */
 			if ((strcmp(section->Get_string("tandy"),"true")!=0) &&
@@ -497,7 +498,7 @@ public:
 
 
 		tandy.enabled=false;
-		real_writeb(0x40,0xd4,0xff);	/* BIOS Tandy DAC initialization value */
+		BIOS_tandy_D4_flag = 0xFF;
 
 		SN76496Reset( &sn, 3579545, sample_rate );
 	}
