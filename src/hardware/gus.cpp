@@ -245,29 +245,70 @@ public:
 	}
 	INLINE void WaveUpdate(void) {
 		if (WaveCtrl & 0x3) return;
-		Bit32s WaveLeft;
+		Bit32s WaveLeft,pWaveLeft;
 		if (WaveCtrl & 0x40) {
+			pWaveLeft=WaveStart-WaveAddr;
 			WaveAddr-=WaveAdd;
 			WaveLeft=WaveStart-WaveAddr;
 		} else {
+			pWaveLeft=WaveAddr-WaveEnd;
 			WaveAddr+=WaveAdd;
 			WaveLeft=WaveAddr-WaveEnd;
 		}
-		if (WaveLeft<0) return;
-		/* Generate an IRQ if needed */
-		if (WaveCtrl & 0x20) {
-			myGUS.WaveIRQ|=irqmask;
+
+		if ((RampCtrl & 0x04) && !(WaveCtrl & 0x08)) {
+			/* "roll over" condition and not looping.
+			 * Fire the IRQ only if we match or cross the start/end point, to avoid
+			 * firing an IRQ every sample we render once past the fence.
+			 * Note that implementing this is REQUIRED for our emulation to work with
+			 * the Windows 3.1 Ultrasound WAVE drivers or any other system that uses
+			 * the Ultrasound with "ping pong" buffer mode. */
+
+			/* Also note from the GUS SDK describing the "Roll over" bit:
+			 *
+			 * "Roll over condition. This bit pertains more towards the location of the voice rather than
+			 * its volume. Its purpose is to generate an IRQ and NOT stop (or loop). It will generate an IRQ and
+			 * the voice's address will continue to move through DRAM in the same direction. This can be a
+			 * very powerful feature. It allows the application to get an interrupt without having the sound stop.
+			 * This can be easily used to implement a ping-pong buffer algorithm so an application can keep
+			 * feeding it data and there will be no pops. Even if looping is enabled, it will not loop."
+			 *
+			 * Apparently this is wrong. If we faithfully emulated that fact, then the Windows 3.1 drivers
+			 * would fail to play audio properly because the wave address would wander out past the buffers
+			 * allocated by their WAVE driver. I noticed that instead, the GUS WAVE driver in Windows likes
+			 * to allocate 2 x 8KB buffers in GUS RAM, then ping-pong between them, with the first buffer
+			 * marked non-looping, and the second buffer marked looping. When the IRQ hits for the first
+			 * buffer, the GUS driver updates the Wave End address to the end of the second buffer and leaves
+			 * the Wave Start at zero with the apparent expectation we will hit the end and loop seamlessly
+			 * over to the start, even though it leaves the "roll over" bit set.
+			 *
+			 * Note that you could just as easily commented out the RampCtrl condition here and let the looping
+			 * code work below, and that would permit playback as well, but the automatic looping would introduce
+			 * minor pops and crackles in the audio. This emulation makes WAVE playback from Windows perfect
+			 * and flawless. */
+
+			if ((WaveLeft < 0 && pWaveLeft >= 0) || (WaveLeft >= 0 && pWaveLeft < 0)) {
+				/* Generate an IRQ if needed */
+				if (WaveCtrl & 0x20)
+					myGUS.WaveIRQ |= irqmask;
+			}
 		}
-		/* Check for not being in PCM operation */
-		if (RampCtrl & 0x04) return;
-		/* Check for looping */
-		if (WaveCtrl & 0x08) {
-			/* Bi-directional looping */
-			if (WaveCtrl & 0x10) WaveCtrl^=0x40;
-			WaveAddr = (WaveCtrl & 0x40) ? (WaveEnd-WaveLeft) : (WaveStart+WaveLeft);
-		} else {
-			WaveCtrl|=1;	//Stop the channel
-			WaveAddr = (WaveCtrl & 0x40) ? WaveStart : WaveEnd;
+		else {
+			if (WaveLeft<0) return;
+
+			/* Generate an IRQ if needed */
+			if (WaveCtrl & 0x20)
+				myGUS.WaveIRQ |= irqmask;
+
+			/* Check for looping */
+			if (WaveCtrl & 0x08) {
+				/* Bi-directional looping */
+				if (WaveCtrl & 0x10) WaveCtrl^=0x40;
+				WaveAddr = (WaveCtrl & 0x40) ? (WaveEnd-WaveLeft) : (WaveStart+WaveLeft);
+			} else {
+				WaveCtrl|=1;	//Stop the channel
+				WaveAddr = (WaveCtrl & 0x40) ? WaveStart : WaveEnd;
+			}
 		}
 	}
 	INLINE void UpdateVolumes(void) {
