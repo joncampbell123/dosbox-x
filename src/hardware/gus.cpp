@@ -663,6 +663,7 @@ static void ExecuteGlobRegister(void) {
 		myGUS.DMAControl = (Bit8u)(myGUS.gRegData>>8);
 		GUS_Update_DMA_Event_transfer();
 		if (myGUS.DMAControl & 1) GUS_StartDMA();
+		else GUS_StopDMA();
 		break;
 	case 0x42:  // Gravis DRAM DMA address register
 		myGUS.dmaAddr = myGUS.gRegData;
