@@ -357,6 +357,13 @@ DmaChannel::DmaChannel(Bit8u num, bool dma16) {
 Bitu DmaChannel::Read(Bitu want, Bit8u * buffer) {
 	Bitu done=0;
 	curraddr &= dma_wrapping;
+
+	/* ISA devices cannot cycle DMA if the controller has masked the channel! Fix your code! */
+	if (masked) {
+		LOG(LOG_DMACONTROL,LOG_WARN)("BUG: Attempted DMA channel read while channel masked");
+		return 0;
+	}
+
 again:
 	Bitu left=(currcnt+1);
 	if (want<left) {
@@ -401,6 +408,12 @@ again:
 Bitu DmaChannel::Write(Bitu want, Bit8u * buffer) {
 	Bitu done=0;
 	curraddr &= dma_wrapping;
+
+	/* ISA devices cannot cycle DMA if the controller has masked the channel! Fix your code! */
+	if (masked) {
+		LOG(LOG_DMACONTROL,LOG_WARN)("BUG: Attempted DMA channel write while channel masked");
+		return 0;
+	}
 
 	/* TODO: Implement DMA_BlockWriteBackwards() if you find a DOS program, any program, that
 	 *       transfers data backwards into system memory */
