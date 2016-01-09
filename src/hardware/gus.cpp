@@ -1135,7 +1135,7 @@ void GUS_StartDMA() {
 static void GUS_DMA_Callback(DmaChannel * chan,DMAEvent event) {
 	if (event == DMA_UNMASKED) {
 		LOG(LOG_MISC,LOG_DEBUG)("GUS: DMA unmasked");
-		GUS_StartDMA();
+		if (myGUS.DMAControl & 0x01/*DMA enable*/) GUS_StartDMA();
 	}
 	else if (event == DMA_MASKED) {
 		LOG(LOG_MISC,LOG_DEBUG)("GUS: DMA masked. Perhaps it will stop the DMA transfer event.");
