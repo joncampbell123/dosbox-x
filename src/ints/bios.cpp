@@ -3052,12 +3052,15 @@ static void BIOS_Int10RightJustifiedPrint(const int x,int &y,const char *msg) {
 	}
 }
 
+static Bitu ulimit = 0;
+static Bitu t_conv = 0;
+static bool bios_first_init=true;
 static bool bios_has_exec_vga_bios=false;
 static Bitu adapter_scan_start;
+static CALLBACK_HandlerObject callback[16]; /* <- fixme: this is stupid. just declare one per interrupt. */
+static CALLBACK_HandlerObject cb_bios_post;
 class BIOS:public Module_base{
 private:
-	CALLBACK_HandlerObject callback[16]; /* <- fixme: this is stupid. just declare one per interrupt. */
-	CALLBACK_HandlerObject cb_bios_post;
 	static Bitu cb_bios_post__func(void) {
 		void TIMER_BIOS_INIT_Configure();
 
@@ -3072,7 +3075,6 @@ private:
 		adapter_scan_start = 0xC0000;
 		bios_has_exec_vga_bios = false;
 		LOG(LOG_MISC,LOG_DEBUG)("BIOS: executing POST routine");
-		DispatchVMEvent(VM_EVENT_BIOS_INIT);
 
 		// TODO: Anything we can test in the CPU here?
 
@@ -3083,26 +3085,464 @@ private:
 		SegSet16(gs,0x0000);
 		SegSet16(ss,0x0000);
 
-		// FIXME: We have a problem: DOS kernel init still happens before our BIOS "POST" routine
-		//        because of code still not ported to the new design. If we set SS:SP to 0000:7FFC
-		//        we end up corrupting the DOS kernel or it's data. But so far, it looks like
-		//        0x500 to 0x5FF is free.
-		reg_esp = 0x5FC;
-		reg_ebp = 0;
+		{
+			Bitu sz = MEM_TotalPages();
 
-		/* Clear the Bios Data Area (0x400-0x5ff, 0x600- is accounted to DOS) (FIXME: Enable this code when the rest of DOSBox is ported to init the BIOS DATA AREA after BIOS POST */
-//		for (Bit16u i=0;i<0x200;i++) real_writeb(0x40,i,0);
-		/* Clear the vector table (FIXME: Enable this code when the rest of DOSBox is ported to init DOS/BIOS vectors AFTER BIOS POST */
-//		for (Bit16u i=0;i<0x400;i++) real_writeb(0x00,i,0);
+			/* The standard BIOS is said to put it's stack (at least at OS boot time) 512 bytes past the end of the boot sector
+			 * meaning that the boot sector loads to 0000:7C00 and the stack is set grow downward from 0000:8000 */
+
+			if (sz > 8) sz = 8; /* 4KB * 8 = 32KB = 0x8000 */
+			sz *= 4096;
+			reg_esp = sz - 4;
+			reg_ebp = 0;
+			LOG(LOG_MISC,LOG_DEBUG)("BIOS: POST stack set to 0000:%04x",reg_esp);
+		}
+
+		if (bios_first_init) {
+			/* clear the first 1KB-32KB */
+			for (Bit16u i=0x400;i<0x8000;i++) real_writeb(0x0,i,0);
+		}
+
+		extern Bitu call_default,call_default2;
+
+		/* Only setup default handler for first part of interrupt table */
+		for (Bit16u ct=0;ct<0x60;ct++) {
+			real_writed(0,ct*4,CALLBACK_RealPointer(call_default));
+		}
+		for (Bit16u ct=0x68;ct<0x70;ct++) {
+			real_writed(0,ct*4,CALLBACK_RealPointer(call_default));
+		}
+
+		// setup a few interrupt handlers that point to bios IRETs by default
+		real_writed(0,0x0e*4,CALLBACK_RealPointer(call_default2));	//design your own railroad
+		real_writed(0,0x66*4,CALLBACK_RealPointer(call_default));	//war2d
+		real_writed(0,0x67*4,CALLBACK_RealPointer(call_default));
+		real_writed(0,0x68*4,CALLBACK_RealPointer(call_default));
+		real_writed(0,0x5c*4,CALLBACK_RealPointer(call_default));	//Network stuff
+		//real_writed(0,0xf*4,0); some games don't like it
+
+		/* Clear the vector table */
+		for (Bit16u i=0x70*4;i<0x400;i++) real_writeb(0x00,i,0);
+
+		bios_first_init = false;
+
+		DispatchVMEvent(VM_EVENT_BIOS_INIT);
 
 		TIMER_BIOS_INIT_Configure();
+
+		void INT10_Startup(Section *sec);
+		INT10_Startup(NULL);
 
 		extern Bit8u BIOS_tandy_D4_flag;
 		real_writeb(0x40,0xd4,BIOS_tandy_D4_flag);
 
+		bool use_tandyDAC=(real_readb(0x40,0xd4)==0xff);
+
+		/* INT 13 Bios Disk Support */
+		BIOS_SetupDisks();
+
+		/* INT 16 Keyboard handled in another file */
+		BIOS_SetupKeyboard();
+
+		callback[1].Set_RealVec(0x11);
+		callback[2].Set_RealVec(0x12);
+		callback[3].Set_RealVec(0x14);
+		callback[4].Set_RealVec(0x15);
+		callback[5].Set_RealVec(0x17);
+		callback[6].Set_RealVec(0x1A);
+		callback[7].Set_RealVec(0x1C);
+		callback[8].Set_RealVec(0x70);
+		callback[9].Set_RealVec(0x71);
+		callback[10].Set_RealVec(0x19);
+		callback[11].Set_RealVec(0x76);
+		callback[12].Set_RealVec(0x77);
+		callback[13].Set_RealVec(0x0E);
+		callback[15].Set_RealVec(0x18);
+
+		mem_writew(BIOS_MEMORY_SIZE,t_conv);
+
+		RealSetVec(0x08,BIOS_DEFAULT_IRQ0_LOCATION);
+		// pseudocode for CB_IRQ0:
+		//	sti
+		//	callback INT8_Handler
+		//	push ds,ax,dx
+		//	int 0x1c
+		//	cli
+		//	mov al, 0x20
+		//	out 0x20, al
+		//	pop dx,ax,ds
+		//	iret
+
+		mem_writed(BIOS_TIMER,0);			//Calculate the correct time
+
+		RealSetVec(0x0a,BIOS_DEFAULT_IRQ2_LOCATION);
+
+		/* Some hardcoded vectors */
+		phys_writeb(Real2Phys(BIOS_DEFAULT_HANDLER_LOCATION),0xcf);	/* bios default interrupt vector location -> IRET */
+		phys_writew(Real2Phys(RealGetVec(0x12))+0x12,0x20); //Hack for Jurresic
+
+		// tandy DAC setup
+		tandy_sb.port=0;
+		tandy_dac.port=0;
+		if (use_tandyDAC) {
+			/* tandy DAC sound requested, see if soundblaster device is available */
+			Bitu tandy_dac_type = 0;
+			if (Tandy_InitializeSB()) {
+				tandy_dac_type = 1;
+			} else if (Tandy_InitializeTS()) {
+				tandy_dac_type = 2;
+			}
+			if (tandy_dac_type) {
+				real_writew(0x40,0xd0,0x0000);
+				real_writew(0x40,0xd2,0x0000);
+				real_writeb(0x40,0xd4,0xff);	/* tandy DAC init value */
+				real_writed(0x40,0xd6,0x00000000);
+				/* install the DAC callback handler */
+				tandy_DAC_callback[0]=new CALLBACK_HandlerObject();
+				tandy_DAC_callback[1]=new CALLBACK_HandlerObject();
+				tandy_DAC_callback[0]->Install(&IRQ_TandyDAC,CB_IRET,"Tandy DAC IRQ");
+				tandy_DAC_callback[1]->Install(NULL,CB_TDE_IRET,"Tandy DAC end transfer");
+				// pseudocode for CB_TDE_IRET:
+				//	push ax
+				//	mov ax, 0x91fb
+				//	int 15
+				//	cli
+				//	mov al, 0x20
+				//	out 0x20, al
+				//	pop ax
+				//	iret
+
+				Bit8u tandy_irq = 7;
+				if (tandy_dac_type==1) tandy_irq = tandy_sb.irq;
+				else if (tandy_dac_type==2) tandy_irq = tandy_dac.irq;
+				Bit8u tandy_irq_vector = tandy_irq;
+				if (tandy_irq_vector<8) tandy_irq_vector += 8;
+				else tandy_irq_vector += (0x70-8);
+
+				RealPt current_irq=RealGetVec(tandy_irq_vector);
+				real_writed(0x40,0xd6,current_irq);
+				for (Bit16u i=0; i<0x10; i++) phys_writeb(PhysMake(0xf000,0xa084+i),0x80);
+			} else real_writeb(0x40,0xd4,0x00);
+		}
+
+		/* Setup some stuff in 0x40 bios segment */
+		
+		// Disney workaround
+		Bit16u disney_port = mem_readw(BIOS_ADDRESS_LPT1);
+		// port timeouts
+		// always 1 second even if the port does not exist
+		BIOS_SetLPTPort(0, disney_port);
+		for(Bitu i = 1; i < 3; i++) BIOS_SetLPTPort(i, 0);
+		mem_writeb(BIOS_COM1_TIMEOUT,1);
+		mem_writeb(BIOS_COM2_TIMEOUT,1);
+		mem_writeb(BIOS_COM3_TIMEOUT,1);
+		mem_writeb(BIOS_COM4_TIMEOUT,1);
+		
+		/* Setup equipment list */
+		// look http://www.bioscentral.com/misc/bda.htm
+		
+		//Bit16u config=0x4400;	//1 Floppy, 2 serial and 1 parallel 
+		Bit16u config = 0x0;
+		
+#if (C_FPU)
+		extern bool enable_fpu;
+
+		//FPU
+		if (enable_fpu)
+			config|=0x2;
+#endif
+		switch (machine) {
+		case MCH_HERC:
+			//Startup monochrome
+			config|=0x30;
+			break;
+		case EGAVGA_ARCH_CASE:
+		case MCH_CGA:
+		case TANDY_ARCH_CASE:
+		case MCH_AMSTRAD:
+			//Startup 80x25 color
+			config|=0x20;
+			break;
+		default:
+			//EGA VGA
+			config|=0;
+			break;
+		}
+#if 0
+		// PS2 mouse
+		config |= 0x04;
+#endif
+		// Gameport
+		config |= 0x1000;
+		mem_writew(BIOS_CONFIGURATION,config);
+		CMOS_SetRegister(0x14,(Bit8u)(config&0xff)); //Should be updated on changes
+		/* Setup extended memory size */
+		IO_Write(0x70,0x30);
+		size_extended=IO_Read(0x71);
+		IO_Write(0x70,0x31);
+		size_extended|=(IO_Read(0x71) << 8);
+		BIOS_HostTimeSync();
+
 		/* PS/2 mouse */
 		void BIOS_PS2Mouse_Startup(Section *sec);
 		BIOS_PS2Mouse_Startup(NULL);
+
+		/* this belongs HERE not on-demand from INT 15h! */
+		biosConfigSeg = ROMBIOS_GetMemory(16/*one paragraph*/,"BIOS configuration (INT 15h AH=0xC0)",/*paragraph align*/16)>>4;
+		if (biosConfigSeg != 0) {
+			PhysPt data = PhysMake(biosConfigSeg,0);
+			phys_writew(data,8);						// 8 Bytes following
+			if (IS_TANDY_ARCH) {
+				if (machine==MCH_TANDY) {
+					// Model ID (Tandy)
+					phys_writeb(data+2,0xFF);
+				} else {
+					// Model ID (PCJR)
+					phys_writeb(data+2,0xFD);
+				}
+				phys_writeb(data+3,0x0A);					// Submodel ID
+				phys_writeb(data+4,0x10);					// Bios Revision
+				/* Tandy doesn't have a 2nd PIC, left as is for now */
+				phys_writeb(data+5,(1<<6)|(1<<5)|(1<<4));	// Feature Byte 1
+			} else {
+				if (PS1AudioCard) { /* FIXME: Won't work because BIOS_Init() comes before PS1SOUND_Init() */
+					phys_writeb(data+2,0xFC);					// Model ID (PC)
+					phys_writeb(data+3,0x0B);					// Submodel ID (PS/1).
+				} else {
+					phys_writeb(data+2,0xFC);					// Model ID (PC)
+					phys_writeb(data+3,0x00);					// Submodel ID
+				}
+				phys_writeb(data+4,0x01);					// Bios Revision
+				phys_writeb(data+5,(1<<6)|(1<<5)|(1<<4));	// Feature Byte 1
+			}
+			phys_writeb(data+6,(1<<6));				// Feature Byte 2
+			phys_writeb(data+7,0);					// Feature Byte 3
+			phys_writeb(data+8,0);					// Feature Byte 4
+			phys_writeb(data+9,0);					// Feature Byte 5
+		}
+
+		// ISA Plug & Play I/O ports
+		if (1) {
+			ISAPNP_PNP_ADDRESS_PORT = new IO_WriteHandleObject;
+			ISAPNP_PNP_ADDRESS_PORT->Install(0x279,isapnp_write_port,IO_MB);
+			ISAPNP_PNP_DATA_PORT = new IO_WriteHandleObject;
+			ISAPNP_PNP_DATA_PORT->Install(0xA79,isapnp_write_port,IO_MB);
+			ISAPNP_PNP_READ_PORT = new IO_ReadHandleObject;
+			ISAPNP_PNP_READ_PORT->Install(ISA_PNP_WPORT,isapnp_read_port,IO_MB);
+			LOG(LOG_MISC,LOG_DEBUG)("Registered ISA PnP read port at 0x%03x",ISA_PNP_WPORT);
+		}
+
+		if (enable_integration_device) {
+			for (Bitu i=0;i < 4;i++) {
+				DOSBOX_INTEGRATION_PORT_READ[i] = new IO_ReadHandleObject;
+				DOSBOX_INTEGRATION_PORT_WRITE[i] = new IO_WriteHandleObject;
+				DOSBOX_INTEGRATION_PORT_READ[i]->Install(0x28+i,dosbox_integration_port_r,IO_MA);
+				DOSBOX_INTEGRATION_PORT_WRITE[i]->Install(0x28+i,dosbox_integration_port_w,IO_MA);
+			}
+
+			/* DOSBox integration device */
+			ISA_PNP_devreg(new ISAPnPIntegrationDevice);
+		}
+
+		// ISA Plug & Play BIOS entrypoint
+		if (ISAPNPBIOS) {
+			int i;
+			Bitu base;
+			unsigned char c,tmp[256];
+
+			if (mainline_compatible_bios_mapping)
+				base = 0xFE100; /* take the unused space just after the fake BIOS signature */
+			else
+				base = ROMBIOS_GetMemory(0x21,"ISA Plug & Play BIOS struct",/*paragraph alignment*/0x10);
+
+			if (base == 0) E_Exit("Unable to allocate ISA PnP struct");
+			LOG_MSG("ISA Plug & Play BIOS enabled");
+
+			Bitu call_pnp_r = CALLBACK_Allocate();
+			Bitu call_pnp_rp = PNPentry_real = CALLBACK_RealPointer(call_pnp_r);
+			CALLBACK_Setup(call_pnp_r,ISAPNP_Handler_RM,CB_RETF,"ISA Plug & Play entry point (real)");
+			//LOG_MSG("real entry pt=%08lx\n",PNPentry_real);
+
+			Bitu call_pnp_p = CALLBACK_Allocate();
+			Bitu call_pnp_pp = PNPentry_prot = CALLBACK_RealPointer(call_pnp_p);
+			CALLBACK_Setup(call_pnp_p,ISAPNP_Handler_PM,CB_RETF,"ISA Plug & Play entry point (protected)");
+			//LOG_MSG("prot entry pt=%08lx\n",PNPentry_prot);
+
+			phys_writeb(base+0,'$');
+			phys_writeb(base+1,'P');
+			phys_writeb(base+2,'n');
+			phys_writeb(base+3,'P');
+			phys_writeb(base+4,0x10);		/* Version:		1.0 */
+			phys_writeb(base+5,0x21);		/* Length:		0x21 bytes */
+			phys_writew(base+6,0x0000);		/* Control field:	Event notification not supported */
+			/* skip checksum atm */
+			phys_writed(base+9,0);			/* Event notify flag addr: (none) */
+			phys_writed(base+0xD,call_pnp_rp);	/* Real-mode entry point */
+			phys_writew(base+0x11,call_pnp_pp&0xFFFF); /* Protected mode offset */
+			phys_writed(base+0x13,(call_pnp_pp >> 12) & 0xFFFF0); /* Protected mode code segment base */
+			phys_writed(base+0x17,ISAPNP_ID('D','O','S',0,7,4,0));		/* OEM device identifier (DOSBox 0.740, get it?) */
+			phys_writew(base+0x1B,0xF000);		/* real-mode data segment */
+			phys_writed(base+0x1D,0xF0000);		/* protected mode data segment address */
+			/* run checksum */
+			c=0;
+			for (i=0;i < 0x21;i++) {
+				if (i != 8) c += phys_readb(base+i);
+			}
+			phys_writeb(base+8,0x100-c);		/* checksum value: set so that summing bytes across the struct == 0 */
+
+			/* input device (keyboard) */
+			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_Keyboard,sizeof(ISAPNP_sysdev_Keyboard),true))
+				LOG_MSG("ISAPNP register failed\n");
+
+			/* input device (mouse) */
+			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_Mouse,sizeof(ISAPNP_sysdev_Mouse),true))
+				LOG_MSG("ISAPNP register failed\n");
+
+			/* DMA controller */
+			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_DMA_Controller,sizeof(ISAPNP_sysdev_DMA_Controller),true))
+				LOG_MSG("ISAPNP register failed\n");
+
+			/* Interrupt controller */
+			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_PIC,sizeof(ISAPNP_sysdev_PIC),true))
+				LOG_MSG("ISAPNP register failed\n");
+
+			/* Timer */
+			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_Timer,sizeof(ISAPNP_sysdev_Timer),true))
+				LOG_MSG("ISAPNP register failed\n");
+
+			/* Realtime clock */
+			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_RTC,sizeof(ISAPNP_sysdev_RTC),true))
+				LOG_MSG("ISAPNP register failed\n");
+
+			/* PC speaker */
+			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_PC_Speaker,sizeof(ISAPNP_sysdev_PC_Speaker),true))
+				LOG_MSG("ISAPNP register failed\n");
+
+			/* System board */
+			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_System_Board,sizeof(ISAPNP_sysdev_System_Board),true))
+				LOG_MSG("ISAPNP register failed\n");
+
+			/* Motherboard PNP resources and general */
+			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_General_ISAPNP,sizeof(ISAPNP_sysdev_General_ISAPNP),true))
+				LOG_MSG("ISAPNP register failed\n");
+
+			/* ISA bus, meaning, a computer with ISA slots.
+			 * The purpose of this device is to convince Windows 95 to automatically install it's
+			 * "ISA Plug and Play bus" so that PnP devices are recognized automatically */
+			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_ISA_BUS,sizeof(ISAPNP_sysdev_ISA_BUS),true))
+				LOG_MSG("ISAPNP register failed\n");
+
+			if (pcibus_enable) {
+				/* PCI bus, meaning, a computer with PCI slots.
+				 * The purpose of this device is to tell Windows 95 that a PCI bus is present. Without
+				 * this entry, PCI devices will not be recognized until you manually install the PCI driver. */
+				if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_PCI_BUS,sizeof(ISAPNP_sysdev_PCI_BUS),true))
+					LOG_MSG("ISAPNP register failed\n");
+			}
+
+			/* APM BIOS device. To help Windows 95 see our APM BIOS. */
+			if (APMBIOS && APMBIOS_pnp) {
+				LOG_MSG("Registering APM BIOS as ISA Plug & Play BIOS device node");
+				if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_APM_BIOS,sizeof(ISAPNP_sysdev_APM_BIOS),true))
+					LOG_MSG("ISAPNP register failed\n");
+			}
+
+#if (C_FPU)
+			/* Numeric Coprocessor */
+			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_Numeric_Coprocessor,sizeof(ISAPNP_sysdev_Numeric_Coprocessor),true))
+				LOG_MSG("ISAPNP register failed\n");
+#endif
+
+			/* RAM resources. we have to construct it */
+			/* NTS: We don't do this here, but I have an old Toshiba laptop who's PnP BIOS uses
+			 *      this device ID to report both RAM and ROM regions. */
+			{
+				Bitu max = MEM_TotalPages() * 4096;
+				const unsigned char h1[9] = {
+					ISAPNP_SYSDEV_HEADER(
+						ISAPNP_ID('P','N','P',0x0,0xC,0x0,0x1), /* PNP0C01 System device, motherboard resources */
+						ISAPNP_TYPE(0x05,0x00,0x00),		/* type: Memory, RAM, general */
+						0x0001 | 0x0002)
+				};
+
+				i = 0;
+				memcpy(tmp+i,h1,9); i += 9;			/* can't disable, can't configure */
+				/*----------allocated--------*/
+				tmp[i+0] = 0x80 | 6;				/* 32-bit memory range */
+				tmp[i+1] = 9;					/* length=9 */
+				tmp[i+2] = 0;
+				tmp[i+3] = 0x01;				/* writeable, no cache, 8-bit, not shadowable, not ROM */
+				host_writed(tmp+i+4,0x00000);			/* base */
+				host_writed(tmp+i+8,max > 0xA0000 ? 0xA0000 : 0x00000); /* length */
+				i += 9+3;
+
+				if (max > 0x100000) {
+					tmp[i+0] = 0x80 | 6;				/* 32-bit memory range */
+					tmp[i+1] = 9;					/* length=9 */
+					tmp[i+2] = 0;
+					tmp[i+3] = 0x01;
+					host_writed(tmp+i+4,0x100000);			/* base */
+					host_writed(tmp+i+8,max-0x100000);		/* length */
+					i += 9+3;
+				}
+
+				tmp[i+0] = 0x79;				/* END TAG */
+				tmp[i+1] = 0x00;
+				i += 2;
+				/*-------------possible-----------*/
+				tmp[i+0] = 0x79;				/* END TAG */
+				tmp[i+1] = 0x00;
+				i += 2;
+				/*-------------compatible---------*/
+				tmp[i+0] = 0x79;				/* END TAG */
+				tmp[i+1] = 0x00;
+				i += 2;
+
+				if (!ISAPNP_RegisterSysDev(tmp,i))
+					LOG_MSG("ISAPNP register failed\n");
+			}
+
+			/* register parallel ports */
+			for (Bitu portn=0;portn < 3;portn++) {
+				Bitu port = mem_readw(BIOS_ADDRESS_LPT1+(portn*2));
+				if (port != 0) {
+					const unsigned char h1[9] = {
+						ISAPNP_SYSDEV_HEADER(
+							ISAPNP_ID('P','N','P',0x0,0x4,0x0,0x0), /* PNP0400 Standard LPT printer port */
+							ISAPNP_TYPE(0x07,0x01,0x00),		/* type: General parallel port */
+							0x0001 | 0x0002)
+					};
+
+					i = 0;
+					memcpy(tmp+i,h1,9); i += 9;			/* can't disable, can't configure */
+					/*----------allocated--------*/
+					tmp[i+0] = (8 << 3) | 7;			/* IO resource */
+					tmp[i+1] = 0x01;				/* 16-bit decode */
+					host_writew(tmp+i+2,port);			/* min */
+					host_writew(tmp+i+4,port);			/* max */
+					tmp[i+6] = 0x10;				/* align */
+					tmp[i+7] = 0x03;				/* length */
+					i += 7+1;
+
+					/* TODO: If/when LPT emulation handles the IRQ, add IRQ resource here */
+
+					tmp[i+0] = 0x79;				/* END TAG */
+					tmp[i+1] = 0x00;
+					i += 2;
+					/*-------------possible-----------*/
+					tmp[i+0] = 0x79;				/* END TAG */
+					tmp[i+1] = 0x00;
+					i += 2;
+					/*-------------compatible---------*/
+					tmp[i+0] = 0x79;				/* END TAG */
+					tmp[i+1] = 0x00;
+					i += 2;
+
+					if (!ISAPNP_RegisterSysDev(tmp,i))
+						LOG_MSG("ISAPNP register failed\n");
+				}
+			}
+		}
 
 		return CBRET_NONE;
 	}
@@ -3456,7 +3896,6 @@ public:
 	}
 	BIOS(Section* configuration):Module_base(configuration){
 		/* tandy DAC can be requested in tandy_sound.cpp by initializing this field */
-		bool use_tandyDAC=(real_readb(0x40,0xd4)==0xff);
 		Bitu wo;
 
 		{ // TODO: Eventually, move this to BIOS POST or init phase
@@ -3488,41 +3927,20 @@ public:
 
 		write_FFFF_signature();
 
-		// Disney workaround
-		Bit16u disney_port = mem_readw(BIOS_ADDRESS_LPT1);
-
-		/* Clear the Bios Data Area (0x400-0x5ff, 0x600- is accounted to DOS) (FIXME: Remove this when other parts of DOSBox wait for BIOS init before touching the data area) */
-		for (Bit16u i=0;i<0x200;i++) real_writeb(0x40,i,0);
-
 		/* Setup all the interrupt handlers the bios controls */
 
 		/* INT 8 Clock IRQ Handler */
 		Bitu call_irq0=CALLBACK_Allocate();	
 		CALLBACK_Setup(call_irq0,INT8_Handler,CB_IRQ0,Real2Phys(BIOS_DEFAULT_IRQ0_LOCATION),"IRQ 0 Clock");
-		RealSetVec(0x08,BIOS_DEFAULT_IRQ0_LOCATION);
-		// pseudocode for CB_IRQ0:
-		//	sti
-		//	callback INT8_Handler
-		//	push ds,ax,dx
-		//	int 0x1c
-		//	cli
-		//	mov al, 0x20
-		//	out 0x20, al
-		//	pop dx,ax,ds
-		//	iret
-
-		mem_writed(BIOS_TIMER,0);			//Calculate the correct time
 
 		/* INT 11 Get equipment list */
 		callback[1].Install(&INT11_Handler,CB_IRET,"Int 11 Equipment");
-		callback[1].Set_RealVec(0x11);
 
 		/* INT 12 Memory Size default at 640 kb */
 		callback[2].Install(&INT12_Handler,CB_IRET,"Int 12 Memory");
-		callback[2].Set_RealVec(0x12);
 
-		Bitu ulimit = 640;
-		Bitu t_conv = MEM_TotalPages() << 2; /* convert 4096/byte pages -> 1024/byte KB units */
+		ulimit = 640;
+		t_conv = MEM_TotalPages() << 2; /* convert 4096/byte pages -> 1024/byte KB units */
 		if (allow_more_than_640kb) {
 			if (machine == MCH_CGA)
 				ulimit = 736;		/* 640KB + 64KB + 32KB  0x00000-0xB7FFF */
@@ -3564,45 +3982,29 @@ public:
 			if (start < end) MEM_ResetPageHandler_Unmapped(start,end-start);
 		}
 
-		mem_writew(BIOS_MEMORY_SIZE,t_conv);
-
-		/* INT 13 Bios Disk Support */
-		BIOS_SetupDisks();
-
 		/* INT 14 Serial Ports */
 		callback[3].Install(&INT14_Handler,CB_IRET_STI,"Int 14 COM-port");
-		callback[3].Set_RealVec(0x14);
 
 		/* INT 15 Misc Calls */
 		callback[4].Install(&INT15_Handler,CB_IRET,"Int 15 Bios");
-		callback[4].Set_RealVec(0x15);
-
-		/* INT 16 Keyboard handled in another file */
-		BIOS_SetupKeyboard();
 
 		/* INT 17 Printer Routines */
 		callback[5].Install(&INT17_Handler,CB_IRET_STI,"Int 17 Printer");
-		callback[5].Set_RealVec(0x17);
 
 		/* INT 1A TIME and some other functions */
 		callback[6].Install(&INT1A_Handler,CB_IRET_STI,"Int 1a Time");
-		callback[6].Set_RealVec(0x1A);
 
 		/* INT 1C System Timer tick called from INT 8 */
 		callback[7].Install(&INT1C_Handler,CB_IRET,"Int 1c Timer");
-		callback[7].Set_RealVec(0x1C);
 		
 		/* IRQ 8 RTC Handler */
 		callback[8].Install(&INT70_Handler,CB_IRET,"Int 70 RTC");
-		callback[8].Set_RealVec(0x70);
 
 		/* Irq 9 rerouted to irq 2 */
 		callback[9].Install(NULL,CB_IRQ9,"irq 9 bios");
-		callback[9].Set_RealVec(0x71);
 
 		// INT 19h: Boot function
 		callback[10].Install(&INT19_Handler,CB_IRET,"int 19");
-		callback[10].Set_RealVec(0x19);
 
 		// INT 76h: IDE IRQ 14
 		// This is just a dummy IRQ handler to prevent crashes when
@@ -3610,7 +4012,6 @@ public:
 		// the BIOS to handle the interrupt.
 		// FIXME: Shouldn't the IRQ send an ACK to the PIC as well?!?
 		callback[11].Install(&IRQ14_Dummy,CB_IRET,"irq 14 ide");
-		callback[11].Set_RealVec(0x76);
 
 		// INT 77h: IDE IRQ 15
 		// This is just a dummy IRQ handler to prevent crashes when
@@ -3618,11 +4019,9 @@ public:
 		// the BIOS to handle the interrupt.
 		// FIXME: Shouldn't the IRQ send an ACK to the PIC as well?!?
 		callback[12].Install(&IRQ15_Dummy,CB_IRET,"irq 15 ide");
-		callback[12].Set_RealVec(0x77);
 
 		// INT 0Eh: IDE IRQ 6
 		callback[13].Install(&IRQ15_Dummy,CB_IRET_EOI_PIC1,"irq 6 floppy");
-		callback[13].Set_RealVec(0x0E);
 
 		// Handler for FFFF:0000 (usually distinct from INT 19h).
 		callback[14].Install(&BIOS_RESET_FFFF_0000,CB_IRET,"BIOS entry point");
@@ -3630,18 +4029,12 @@ public:
 		// INT 18h: Enter BASIC
 		// Non-IBM BIOS would display "NO ROM BASIC" here
 		callback[15].Install(&INT18_Handler,CB_IRET,"int 18");
-		callback[15].Set_RealVec(0x18);
 
 		init_vm86_fake_io();
 
 		/* Irq 2 */
 		Bitu call_irq2=CALLBACK_Allocate();	
 		CALLBACK_Setup(call_irq2,NULL,CB_IRET_EOI_PIC1,Real2Phys(BIOS_DEFAULT_IRQ2_LOCATION),"irq 2 bios");
-		RealSetVec(0x0a,BIOS_DEFAULT_IRQ2_LOCATION);
-
-		/* Some hardcoded vectors */
-		phys_writeb(Real2Phys(BIOS_DEFAULT_HANDLER_LOCATION),0xcf);	/* bios default interrupt vector location -> IRET */
-		phys_writew(Real2Phys(RealGetVec(0x12))+0x12,0x20); //Hack for Jurresic
 
 		/* BIOS boot stages */
 		cb_bios_post.Install(&cb_bios_post__func,CB_RETF,"BIOS POST");
@@ -3692,363 +4085,6 @@ public:
 			phys_writeb(wo++,0xFE);
 
 			if (wo > wo_fence) E_Exit("BIOS boot callback overrun");
-		}
-
-		// tandy DAC setup
-		tandy_sb.port=0;
-		tandy_dac.port=0;
-		if (use_tandyDAC) {
-			/* tandy DAC sound requested, see if soundblaster device is available */
-			Bitu tandy_dac_type = 0;
-			if (Tandy_InitializeSB()) {
-				tandy_dac_type = 1;
-			} else if (Tandy_InitializeTS()) {
-				tandy_dac_type = 2;
-			}
-			if (tandy_dac_type) {
-				real_writew(0x40,0xd0,0x0000);
-				real_writew(0x40,0xd2,0x0000);
-				real_writeb(0x40,0xd4,0xff);	/* tandy DAC init value */
-				real_writed(0x40,0xd6,0x00000000);
-				/* install the DAC callback handler */
-				tandy_DAC_callback[0]=new CALLBACK_HandlerObject();
-				tandy_DAC_callback[1]=new CALLBACK_HandlerObject();
-				tandy_DAC_callback[0]->Install(&IRQ_TandyDAC,CB_IRET,"Tandy DAC IRQ");
-				tandy_DAC_callback[1]->Install(NULL,CB_TDE_IRET,"Tandy DAC end transfer");
-				// pseudocode for CB_TDE_IRET:
-				//	push ax
-				//	mov ax, 0x91fb
-				//	int 15
-				//	cli
-				//	mov al, 0x20
-				//	out 0x20, al
-				//	pop ax
-				//	iret
-
-				Bit8u tandy_irq = 7;
-				if (tandy_dac_type==1) tandy_irq = tandy_sb.irq;
-				else if (tandy_dac_type==2) tandy_irq = tandy_dac.irq;
-				Bit8u tandy_irq_vector = tandy_irq;
-				if (tandy_irq_vector<8) tandy_irq_vector += 8;
-				else tandy_irq_vector += (0x70-8);
-
-				RealPt current_irq=RealGetVec(tandy_irq_vector);
-				real_writed(0x40,0xd6,current_irq);
-				for (Bit16u i=0; i<0x10; i++) phys_writeb(PhysMake(0xf000,0xa084+i),0x80);
-			} else real_writeb(0x40,0xd4,0x00);
-		}
-	
-		/* Setup some stuff in 0x40 bios segment */
-		
-		// port timeouts
-		// always 1 second even if the port does not exist
-		BIOS_SetLPTPort(0, disney_port);
-		for(Bitu i = 1; i < 3; i++) BIOS_SetLPTPort(i, 0);
-		mem_writeb(BIOS_COM1_TIMEOUT,1);
-		mem_writeb(BIOS_COM2_TIMEOUT,1);
-		mem_writeb(BIOS_COM3_TIMEOUT,1);
-		mem_writeb(BIOS_COM4_TIMEOUT,1);
-		
-		/* Setup equipment list */
-		// look http://www.bioscentral.com/misc/bda.htm
-		
-		//Bit16u config=0x4400;	//1 Floppy, 2 serial and 1 parallel 
-		Bit16u config = 0x0;
-		
-#if (C_FPU)
-		extern bool enable_fpu;
-
-		//FPU
-		if (enable_fpu)
-			config|=0x2;
-#endif
-		switch (machine) {
-		case MCH_HERC:
-			//Startup monochrome
-			config|=0x30;
-			break;
-		case EGAVGA_ARCH_CASE:
-		case MCH_CGA:
-		case TANDY_ARCH_CASE:
-		case MCH_AMSTRAD:
-			//Startup 80x25 color
-			config|=0x20;
-			break;
-		default:
-			//EGA VGA
-			config|=0;
-			break;
-		}
-#if 0
-		// PS2 mouse
-		config |= 0x04;
-#endif
-		// Gameport
-		config |= 0x1000;
-		mem_writew(BIOS_CONFIGURATION,config);
-		CMOS_SetRegister(0x14,(Bit8u)(config&0xff)); //Should be updated on changes
-		/* Setup extended memory size */
-		IO_Write(0x70,0x30);
-		size_extended=IO_Read(0x71);
-		IO_Write(0x70,0x31);
-		size_extended|=(IO_Read(0x71) << 8);
-		BIOS_HostTimeSync();
-
-		// ISA Plug & Play I/O ports
-		if (1) {
-			ISAPNP_PNP_ADDRESS_PORT = new IO_WriteHandleObject;
-			ISAPNP_PNP_ADDRESS_PORT->Install(0x279,isapnp_write_port,IO_MB);
-			ISAPNP_PNP_DATA_PORT = new IO_WriteHandleObject;
-			ISAPNP_PNP_DATA_PORT->Install(0xA79,isapnp_write_port,IO_MB);
-			ISAPNP_PNP_READ_PORT = new IO_ReadHandleObject;
-			ISAPNP_PNP_READ_PORT->Install(ISA_PNP_WPORT,isapnp_read_port,IO_MB);
-			LOG(LOG_MISC,LOG_DEBUG)("Registered ISA PnP read port at 0x%03x",ISA_PNP_WPORT);
-		}
-
-		if (enable_integration_device) {
-			for (Bitu i=0;i < 4;i++) {
-				DOSBOX_INTEGRATION_PORT_READ[i] = new IO_ReadHandleObject;
-				DOSBOX_INTEGRATION_PORT_WRITE[i] = new IO_WriteHandleObject;
-				DOSBOX_INTEGRATION_PORT_READ[i]->Install(0x28+i,dosbox_integration_port_r,IO_MA);
-				DOSBOX_INTEGRATION_PORT_WRITE[i]->Install(0x28+i,dosbox_integration_port_w,IO_MA);
-			}
-
-			/* DOSBox integration device */
-			ISA_PNP_devreg(new ISAPnPIntegrationDevice);
-		}
-
-		// ISA Plug & Play BIOS entrypoint
-		if (ISAPNPBIOS) {
-			int i;
-			Bitu base;
-			unsigned char c,tmp[256];
-
-			if (mainline_compatible_bios_mapping)
-				base = 0xFE100; /* take the unused space just after the fake BIOS signature */
-			else
-				base = ROMBIOS_GetMemory(0x21,"ISA Plug & Play BIOS struct",/*paragraph alignment*/0x10);
-
-			if (base == 0) E_Exit("Unable to allocate ISA PnP struct");
-			LOG_MSG("ISA Plug & Play BIOS enabled");
-
-			Bitu call_pnp_r = CALLBACK_Allocate();
-			Bitu call_pnp_rp = PNPentry_real = CALLBACK_RealPointer(call_pnp_r);
-			CALLBACK_Setup(call_pnp_r,ISAPNP_Handler_RM,CB_RETF,"ISA Plug & Play entry point (real)");
-			//LOG_MSG("real entry pt=%08lx\n",PNPentry_real);
-
-			Bitu call_pnp_p = CALLBACK_Allocate();
-			Bitu call_pnp_pp = PNPentry_prot = CALLBACK_RealPointer(call_pnp_p);
-			CALLBACK_Setup(call_pnp_p,ISAPNP_Handler_PM,CB_RETF,"ISA Plug & Play entry point (protected)");
-			//LOG_MSG("prot entry pt=%08lx\n",PNPentry_prot);
-
-			phys_writeb(base+0,'$');
-			phys_writeb(base+1,'P');
-			phys_writeb(base+2,'n');
-			phys_writeb(base+3,'P');
-			phys_writeb(base+4,0x10);		/* Version:		1.0 */
-			phys_writeb(base+5,0x21);		/* Length:		0x21 bytes */
-			phys_writew(base+6,0x0000);		/* Control field:	Event notification not supported */
-			/* skip checksum atm */
-			phys_writed(base+9,0);			/* Event notify flag addr: (none) */
-			phys_writed(base+0xD,call_pnp_rp);	/* Real-mode entry point */
-			phys_writew(base+0x11,call_pnp_pp&0xFFFF); /* Protected mode offset */
-			phys_writed(base+0x13,(call_pnp_pp >> 12) & 0xFFFF0); /* Protected mode code segment base */
-			phys_writed(base+0x17,ISAPNP_ID('D','O','S',0,7,4,0));		/* OEM device identifier (DOSBox 0.740, get it?) */
-			phys_writew(base+0x1B,0xF000);		/* real-mode data segment */
-			phys_writed(base+0x1D,0xF0000);		/* protected mode data segment address */
-			/* run checksum */
-			c=0;
-			for (i=0;i < 0x21;i++) {
-				if (i != 8) c += phys_readb(base+i);
-			}
-			phys_writeb(base+8,0x100-c);		/* checksum value: set so that summing bytes across the struct == 0 */
-
-			/* input device (keyboard) */
-			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_Keyboard,sizeof(ISAPNP_sysdev_Keyboard),true))
-				LOG_MSG("ISAPNP register failed\n");
-
-			/* input device (mouse) */
-			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_Mouse,sizeof(ISAPNP_sysdev_Mouse),true))
-				LOG_MSG("ISAPNP register failed\n");
-
-			/* DMA controller */
-			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_DMA_Controller,sizeof(ISAPNP_sysdev_DMA_Controller),true))
-				LOG_MSG("ISAPNP register failed\n");
-
-			/* Interrupt controller */
-			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_PIC,sizeof(ISAPNP_sysdev_PIC),true))
-				LOG_MSG("ISAPNP register failed\n");
-
-			/* Timer */
-			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_Timer,sizeof(ISAPNP_sysdev_Timer),true))
-				LOG_MSG("ISAPNP register failed\n");
-
-			/* Realtime clock */
-			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_RTC,sizeof(ISAPNP_sysdev_RTC),true))
-				LOG_MSG("ISAPNP register failed\n");
-
-			/* PC speaker */
-			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_PC_Speaker,sizeof(ISAPNP_sysdev_PC_Speaker),true))
-				LOG_MSG("ISAPNP register failed\n");
-
-			/* System board */
-			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_System_Board,sizeof(ISAPNP_sysdev_System_Board),true))
-				LOG_MSG("ISAPNP register failed\n");
-
-			/* Motherboard PNP resources and general */
-			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_General_ISAPNP,sizeof(ISAPNP_sysdev_General_ISAPNP),true))
-				LOG_MSG("ISAPNP register failed\n");
-
-			/* ISA bus, meaning, a computer with ISA slots.
-			 * The purpose of this device is to convince Windows 95 to automatically install it's
-			 * "ISA Plug and Play bus" so that PnP devices are recognized automatically */
-			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_ISA_BUS,sizeof(ISAPNP_sysdev_ISA_BUS),true))
-				LOG_MSG("ISAPNP register failed\n");
-
-			if (pcibus_enable) {
-				/* PCI bus, meaning, a computer with PCI slots.
-				 * The purpose of this device is to tell Windows 95 that a PCI bus is present. Without
-				 * this entry, PCI devices will not be recognized until you manually install the PCI driver. */
-				if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_PCI_BUS,sizeof(ISAPNP_sysdev_PCI_BUS),true))
-					LOG_MSG("ISAPNP register failed\n");
-			}
-
-			/* APM BIOS device. To help Windows 95 see our APM BIOS. */
-			if (APMBIOS && APMBIOS_pnp) {
-				LOG_MSG("Registering APM BIOS as ISA Plug & Play BIOS device node");
-				if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_APM_BIOS,sizeof(ISAPNP_sysdev_APM_BIOS),true))
-					LOG_MSG("ISAPNP register failed\n");
-			}
-
-#if (C_FPU)
-			/* Numeric Coprocessor */
-			if (!ISAPNP_RegisterSysDev(ISAPNP_sysdev_Numeric_Coprocessor,sizeof(ISAPNP_sysdev_Numeric_Coprocessor),true))
-				LOG_MSG("ISAPNP register failed\n");
-#endif
-
-			/* RAM resources. we have to construct it */
-			/* NTS: We don't do this here, but I have an old Toshiba laptop who's PnP BIOS uses
-			 *      this device ID to report both RAM and ROM regions. */
-			{
-				Bitu max = MEM_TotalPages() * 4096;
-				const unsigned char h1[9] = {
-					ISAPNP_SYSDEV_HEADER(
-						ISAPNP_ID('P','N','P',0x0,0xC,0x0,0x1), /* PNP0C01 System device, motherboard resources */
-						ISAPNP_TYPE(0x05,0x00,0x00),		/* type: Memory, RAM, general */
-						0x0001 | 0x0002)
-				};
-
-				i = 0;
-				memcpy(tmp+i,h1,9); i += 9;			/* can't disable, can't configure */
-				/*----------allocated--------*/
-				tmp[i+0] = 0x80 | 6;				/* 32-bit memory range */
-				tmp[i+1] = 9;					/* length=9 */
-				tmp[i+2] = 0;
-				tmp[i+3] = 0x01;				/* writeable, no cache, 8-bit, not shadowable, not ROM */
-				host_writed(tmp+i+4,0x00000);			/* base */
-				host_writed(tmp+i+8,max > 0xA0000 ? 0xA0000 : 0x00000); /* length */
-				i += 9+3;
-
-				if (max > 0x100000) {
-					tmp[i+0] = 0x80 | 6;				/* 32-bit memory range */
-					tmp[i+1] = 9;					/* length=9 */
-					tmp[i+2] = 0;
-					tmp[i+3] = 0x01;
-					host_writed(tmp+i+4,0x100000);			/* base */
-					host_writed(tmp+i+8,max-0x100000);		/* length */
-					i += 9+3;
-				}
-
-				tmp[i+0] = 0x79;				/* END TAG */
-				tmp[i+1] = 0x00;
-				i += 2;
-				/*-------------possible-----------*/
-				tmp[i+0] = 0x79;				/* END TAG */
-				tmp[i+1] = 0x00;
-				i += 2;
-				/*-------------compatible---------*/
-				tmp[i+0] = 0x79;				/* END TAG */
-				tmp[i+1] = 0x00;
-				i += 2;
-
-				if (!ISAPNP_RegisterSysDev(tmp,i))
-					LOG_MSG("ISAPNP register failed\n");
-			}
-
-			/* register parallel ports */
-			for (Bitu portn=0;portn < 3;portn++) {
-				Bitu port = mem_readw(BIOS_ADDRESS_LPT1+(portn*2));
-				if (port != 0) {
-					const unsigned char h1[9] = {
-						ISAPNP_SYSDEV_HEADER(
-							ISAPNP_ID('P','N','P',0x0,0x4,0x0,0x0), /* PNP0400 Standard LPT printer port */
-							ISAPNP_TYPE(0x07,0x01,0x00),		/* type: General parallel port */
-							0x0001 | 0x0002)
-					};
-
-					i = 0;
-					memcpy(tmp+i,h1,9); i += 9;			/* can't disable, can't configure */
-					/*----------allocated--------*/
-					tmp[i+0] = (8 << 3) | 7;			/* IO resource */
-					tmp[i+1] = 0x01;				/* 16-bit decode */
-					host_writew(tmp+i+2,port);			/* min */
-					host_writew(tmp+i+4,port);			/* max */
-					tmp[i+6] = 0x10;				/* align */
-					tmp[i+7] = 0x03;				/* length */
-					i += 7+1;
-
-					/* TODO: If/when LPT emulation handles the IRQ, add IRQ resource here */
-
-					tmp[i+0] = 0x79;				/* END TAG */
-					tmp[i+1] = 0x00;
-					i += 2;
-					/*-------------possible-----------*/
-					tmp[i+0] = 0x79;				/* END TAG */
-					tmp[i+1] = 0x00;
-					i += 2;
-					/*-------------compatible---------*/
-					tmp[i+0] = 0x79;				/* END TAG */
-					tmp[i+1] = 0x00;
-					i += 2;
-
-					if (!ISAPNP_RegisterSysDev(tmp,i))
-						LOG_MSG("ISAPNP register failed\n");
-				}
-			}
-		}
-
-		/* this belongs HERE not on-demand from INT 15h! */
-		biosConfigSeg = ROMBIOS_GetMemory(16/*one paragraph*/,"BIOS configuration (INT 15h AH=0xC0)",/*paragraph align*/16)>>4;
-		if (biosConfigSeg != 0) {
-			PhysPt data = PhysMake(biosConfigSeg,0);
-			phys_writew(data,8);						// 8 Bytes following
-			if (IS_TANDY_ARCH) {
-				if (machine==MCH_TANDY) {
-					// Model ID (Tandy)
-					phys_writeb(data+2,0xFF);
-				} else {
-					// Model ID (PCJR)
-					phys_writeb(data+2,0xFD);
-				}
-				phys_writeb(data+3,0x0A);					// Submodel ID
-				phys_writeb(data+4,0x10);					// Bios Revision
-				/* Tandy doesn't have a 2nd PIC, left as is for now */
-				phys_writeb(data+5,(1<<6)|(1<<5)|(1<<4));	// Feature Byte 1
-			} else {
-				if (PS1AudioCard) { /* FIXME: Won't work because BIOS_Init() comes before PS1SOUND_Init() */
-					phys_writeb(data+2,0xFC);					// Model ID (PC)
-					phys_writeb(data+3,0x0B);					// Submodel ID (PS/1).
-				} else {
-					phys_writeb(data+2,0xFC);					// Model ID (PC)
-					phys_writeb(data+3,0x00);					// Submodel ID
-				}
-				phys_writeb(data+4,0x01);					// Bios Revision
-				phys_writeb(data+5,(1<<6)|(1<<5)|(1<<4));	// Feature Byte 1
-			}
-			phys_writeb(data+6,(1<<6));				// Feature Byte 2
-			phys_writeb(data+7,0);					// Feature Byte 3
-			phys_writeb(data+8,0);					// Feature Byte 4
-			phys_writeb(data+9,0);					// Feature Byte 5
 		}
 	}
 	~BIOS(){

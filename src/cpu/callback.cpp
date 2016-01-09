@@ -39,7 +39,7 @@ extern Bitu vm86_fake_io_off;
 CallBack_Handler CallBack_Handlers[CB_MAX] = {NULL};
 char* CallBack_Description[CB_MAX] = {NULL};
 
-static Bitu call_stop,call_idle,call_default,call_default2;
+Bitu call_stop,call_idle,call_default,call_default2;
 Bitu call_priv_io;
 
 static Bitu illegal_handler(void) {
@@ -580,6 +580,11 @@ Bitu CALLBACK_Setup(Bitu callback,CallBack_Handler handler,Bitu type,PhysPt addr
 }
 
 void CALLBACK_RemoveSetup(Bitu callback) {
+	if (MemBase == NULL) {
+		/* avoid crash */
+		return;
+	}
+
 	for (Bitu i = 0;i < CB_SIZE;i++) {
 		phys_writeb(CALLBACK_PhysPointer(callback)+i ,(Bit8u) 0x00);
 	}
@@ -588,7 +593,7 @@ void CALLBACK_RemoveSetup(Bitu callback) {
 void CALLBACK_HandlerObject::Uninstall(){
 	if(!installed) return;
 	if(m_type == CALLBACK_HandlerObject::SETUP) {
-		if(vectorhandler.installed){
+		if(vectorhandler.installed && MemBase != NULL){
 			//See if we are the current handler. if so restore the old one
 			if(RealGetVec(vectorhandler.interrupt) == Get_RealPointer()) {
 				RealSetVec(vectorhandler.interrupt,vectorhandler.old_vector);
@@ -716,13 +721,6 @@ void CALLBACK_Init() {
 	call_default2=CALLBACK_Allocate();
 	CALLBACK_Setup(call_default2,&default_handler,CB_IRET,"default");
 
-	/* Only setup default handler for first part of interrupt table */
-	for (Bit16u ct=0;ct<0x60;ct++) {
-		real_writed(0,ct*4,CALLBACK_RealPointer(call_default));
-	}
-	for (Bit16u ct=0x68;ct<0x70;ct++) {
-		real_writed(0,ct*4,CALLBACK_RealPointer(call_default));
-	}
 	/* Setup block of 0xCD 0xxx instructions */
 	PhysPt rint_base=CALLBACK_GetBase()+CB_MAX*CB_SIZE;
 	for (i=0;i<=0xff;i++) {
@@ -734,13 +732,6 @@ void CALLBACK_Init() {
 		rint_base+=6;
 
 	}
-	// setup a few interrupt handlers that point to bios IRETs by default
-	real_writed(0,0x0e*4,CALLBACK_RealPointer(call_default2));	//design your own railroad
-	real_writed(0,0x66*4,CALLBACK_RealPointer(call_default));	//war2d
-	real_writed(0,0x67*4,CALLBACK_RealPointer(call_default));
-	real_writed(0,0x68*4,CALLBACK_RealPointer(call_default));
-	real_writed(0,0x5c*4,CALLBACK_RealPointer(call_default));	//Network stuff
-	//real_writed(0,0xf*4,0); some games don't like it
 
 	call_priv_io=CALLBACK_Allocate();
 
