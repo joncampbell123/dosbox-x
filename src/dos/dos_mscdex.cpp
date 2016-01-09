@@ -931,6 +931,11 @@ static PhysPt curReqheaderPtr = 0;
 bool GetMSCDEXDrive(unsigned char drive_letter,CDROM_Interface **_cdrom) {
 	Bitu i;
 
+	if (mscdex == NULL) {
+		if (_cdrom) *_cdrom = NULL;
+		return false;
+	}
+
 	for (i=0;i < MSCDEX_MAX_DRIVES;i++) {
 		if (mscdex->cdrom[i] == NULL) continue;
 		if (mscdex->dinfo[i].drive == drive_letter) {
@@ -1401,6 +1406,13 @@ void MSCDEX_ShutDown(Section* /*sec*/) {
 	curReqheaderPtr = 0;
 }
 
+/* HACK: The IDE emulation is messily tied into calling MSCDEX.EXE!
+ *       We cannot shut down the mscdex object when booting into a guest OS!
+ *       Need to fix this, this is backwards! */
+void MSCDEX_DOS_ShutDown(Section* /*sec*/) {
+	curReqheaderPtr = 0;
+}
+
 void MSCDEX_Startup(Section* sec) {
 	if (mscdex == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating MSCDEX.EXE emulation");
@@ -1423,6 +1435,6 @@ void MSCDEX_Init() {
 
 	/* in any event that the DOS kernel is shutdown or abruptly wiped from memory */
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(MSCDEX_ShutDown));
-	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(MSCDEX_ShutDown));
+	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(MSCDEX_DOS_ShutDown));
 }
 
