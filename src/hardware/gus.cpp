@@ -339,9 +339,11 @@ public:
 		Bit32s RampLeft;
 		if (RampCtrl & 0x40) {
 			RampVol-=RampAdd;
+			if ((Bit32s)RampVol < (Bit32s)0) RampVol=0;
 			RampLeft=RampStart-RampVol;
 		} else {
 			RampVol+=RampAdd;
+			if (RampVol > ((4096 << RAMP_FRACT)-1)) RampVol=((4096 << RAMP_FRACT)-1);
 			RampLeft=RampVol-RampEnd;
 		}
 		if (RampLeft<0) {
@@ -361,6 +363,8 @@ public:
 			RampCtrl|=1;	//Stop the channel
 			RampVol = (RampCtrl & 0x40) ? RampStart : RampEnd;
 		}
+		if ((Bit32s)RampVol < (Bit32s)0) RampVol=0;
+		if (RampVol > ((4096 << RAMP_FRACT)-1)) RampVol=((4096 << RAMP_FRACT)-1);
 		UpdateVolumes();
 	}
 	void generateSamples(Bit32s * stream,Bit32u len) {
