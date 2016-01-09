@@ -32,6 +32,7 @@
 #include "control.h"
 
 bool pcibus_enable = false;
+bool log_pci = false;
 
 static Bit32u pci_caddress=0;			// current PCI addressing
 
@@ -46,19 +47,19 @@ static PCI_Device* pci_devices[PCI_MAX_PCIBUSSES][PCI_MAX_PCIDEVICES]={{NULL}};	
 //  7- 2 - config register #	(0x000000fc)
 
 static void write_pci_addr(Bitu port,Bitu val,Bitu iolen) {
-	LOG(LOG_PCI,LOG_DEBUG)("Write PCI address :=%x",(int)val);
+	if (log_pci) LOG(LOG_PCI,LOG_DEBUG)("Write PCI address :=%x",(int)val);
 	pci_caddress=val;
 }
 
 static void write_pci(Bitu port,Bitu val,Bitu iolen) {
-	LOG(LOG_PCI,LOG_DEBUG)("Write PCI data port %x :=%x (len %d)",(int)port,(int)val,(int)iolen);
+	if (log_pci) LOG(LOG_PCI,LOG_DEBUG)("Write PCI data port %x :=%x (len %d)",(int)port,(int)val,(int)iolen);
 
 	if (pci_caddress & 0x80000000) {
 		Bit8u busnum = (Bit8u)((pci_caddress >> 16) & 0xff);
 		Bit8u devnum = (Bit8u)((pci_caddress >> 11) & 0x1f);
 		Bit8u fctnum = (Bit8u)((pci_caddress >> 8) & 0x7);
 		Bit8u regnum = (Bit8u)((pci_caddress & 0xfc) + (port & 0x03));
-		LOG(LOG_PCI,LOG_DEBUG)("  Write to device %x register %x (function %x) (:=%x)",(int)devnum,(int)regnum,(int)fctnum,(int)val);
+		if (log_pci) LOG(LOG_PCI,LOG_DEBUG)("  Write to device %x register %x (function %x) (:=%x)",(int)devnum,(int)regnum,(int)fctnum,(int)val);
 
 		if (busnum >= PCI_MAX_PCIBUSSES) return;
 		if (devnum >= PCI_MAX_PCIDEVICES) return;
@@ -71,19 +72,19 @@ static void write_pci(Bitu port,Bitu val,Bitu iolen) {
 
 
 static Bitu read_pci_addr(Bitu port,Bitu iolen) {
-	LOG(LOG_PCI,LOG_DEBUG)("Read PCI address -> %x",pci_caddress);
+	if (log_pci) LOG(LOG_PCI,LOG_DEBUG)("Read PCI address -> %x",pci_caddress);
 	return pci_caddress;
 }
 
 static Bitu read_pci(Bitu port,Bitu iolen) {
-	LOG(LOG_PCI,LOG_DEBUG)("Read PCI data -> %x",pci_caddress);
+	if (log_pci) LOG(LOG_PCI,LOG_DEBUG)("Read PCI data -> %x",pci_caddress);
 
 	if (pci_caddress & 0x80000000) {
 		Bit8u busnum = (Bit8u)((pci_caddress >> 16) & 0xff);
 		Bit8u devnum = (Bit8u)((pci_caddress >> 11) & 0x1f);
 		Bit8u fctnum = (Bit8u)((pci_caddress >> 8) & 0x7);
 		Bit8u regnum = (Bit8u)((pci_caddress & 0xfc) + (port & 0x03));
-		LOG(LOG_PCI,LOG_DEBUG)("  Read from device %x register %x (function %x)",(int)devnum,(int)regnum,(int)fctnum);
+		if (log_pci) LOG(LOG_PCI,LOG_DEBUG)("  Read from device %x register %x (function %x)",(int)devnum,(int)regnum,(int)fctnum);
 
 		if (busnum >= PCI_MAX_PCIBUSSES) return ~0;
 		if (devnum >= PCI_MAX_PCIDEVICES) return ~0;

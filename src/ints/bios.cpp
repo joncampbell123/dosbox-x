@@ -1857,6 +1857,29 @@ static bool INT14_Wait(Bit16u port, Bit8u mask, Bit8u timeout, Bit8u* retval) {
 	return true;
 }
 
+static Bitu INT4B_Handler(void) {
+	/* TODO: This is where the Virtual DMA specification is accessed on modern systems.
+	 *       When we implement that, move this to EMM386 emulation code. */
+
+	if (reg_ax >= 0x8102 && reg_ax <= 0x810D) {
+		LOG(LOG_MISC,LOG_DEBUG)("Guest OS attempted Virtual DMA specification call (INT 4Bh AX=%04x BX=%04x CX=%04x DX=%04x",
+			reg_ax,reg_bx,reg_cx,reg_dx);
+	}
+	else if (reg_ah == 0x80) {
+		LOG(LOG_MISC,LOG_DEBUG)("Guest OS attempted IBM SCSI interface call");
+	}
+	else if (reg_ah <= 0x02) {
+		LOG(LOG_MISC,LOG_DEBUG)("Guest OS attempted TI Professional PC parallel port function AH=%02x",reg_ah);
+	}
+	else {
+		LOG(LOG_MISC,LOG_DEBUG)("Guest OS attempted unknown INT 4Bh call AX=%04x",reg_ax);
+	}
+	
+	/* Oh, I'm just a BIOS that doesn't know what the hell you're doing. CF=1 */
+	CALLBACK_SCF(true);
+	return CBRET_NONE;
+}
+
 static Bitu INT14_Handler(void) {
 	if (reg_ah > 0x3 || reg_dx > 0x3) {	// 0-3 serial port functions
 										// and no more than 4 serial ports
@@ -3057,8 +3080,12 @@ static Bitu t_conv = 0;
 static bool bios_first_init=true;
 static bool bios_has_exec_vga_bios=false;
 static Bitu adapter_scan_start;
+
+/* FIXME: At global scope their destructors are called after the rest of DOSBox has shut down. Move back into BIOS scope. */
+static CALLBACK_HandlerObject int4b_callback;
 static CALLBACK_HandlerObject callback[16]; /* <- fixme: this is stupid. just declare one per interrupt. */
 static CALLBACK_HandlerObject cb_bios_post;
+
 class BIOS:public Module_base{
 private:
 	static Bitu cb_bios_post__func(void) {
@@ -3144,6 +3171,7 @@ private:
 		/* INT 16 Keyboard handled in another file */
 		BIOS_SetupKeyboard();
 
+		int4b_callback.Set_RealVec(0x4B);
 		callback[1].Set_RealVec(0x11);
 		callback[2].Set_RealVec(0x12);
 		callback[3].Set_RealVec(0x14);
@@ -3981,6 +4009,11 @@ public:
 			Bitu end = ulimit/4;		/* end = 1KB to page round down */
 			if (start < end) MEM_ResetPageHandler_Unmapped(start,end-start);
 		}
+
+		/* INT 4B. Now we can safely signal error instead of printing "Invalid interrupt 4B"
+		 * whenever we install Windows 95. Note that Windows 95 would call INT 4Bh because
+		 * that is where the Virtual DMA API lies in relation to EMM386.EXE */
+		int4b_callback.Install(&INT4B_Handler,CB_IRET,"INT 4B");
 
 		/* INT 14 Serial Ports */
 		callback[3].Install(&INT14_Handler,CB_IRET_STI,"Int 14 COM-port");
