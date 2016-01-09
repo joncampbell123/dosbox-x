@@ -869,7 +869,8 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 			LOG(LOG_MISC,LOG_DEBUG)("GUS DMA reprogrammed: DMA1 %d, DMA2 %d",(int)myGUS.dma1,(int)myGUS.dma2);
 
 			// NTS: The Windows 3.1 Gravis Ultrasound drivers will program the same DMA channel into both without setting the "combining" bit,
-			//      even though their own SDK says not to!
+			//      even though their own SDK says not to, when Windows starts up. But it then immediately reprograms it normally, so no bus
+			//      conflicts actually occur. Strange.
 			if (!(val & 0x40) && (val & 7) == ((val >> 3) & 7))
 				LOG(LOG_MISC,LOG_WARN)("GUS warning: Both DMA channels set to the same channel WITHOUT combining! This is documented to cause bus conflicts on real hardware");
 		}
