@@ -99,6 +99,9 @@ struct GFGus {
 	bool ChangeIRQDMA;
 	bool initUnmaskDMA;
 	bool force_master_irq_enable;
+	bool clearTCIfPollingIRQStatus;
+	double lastIRQStatusPollAt;
+	int lastIRQStatusPollRapidCount;
 	// IRQ status register values
 	Bit8u IRQStatus;
 	Bit32u ActiveMask;
@@ -732,6 +735,37 @@ static Bitu read_gus(Bitu port,Bitu iolen) {
 //	LOG_MSG("read from gus port %x",port);
 	switch(port - GUS_BASE) {
 	case 0x206:
+		if (myGUS.clearTCIfPollingIRQStatus) {
+			double t = PIC_FullIndex();
+
+			/* Hack: "Warcraft II" by Blizzard entertainment.
+			 *
+			 * If you configure the game to use the Gravis Ultrasound for both music and sound, the GUS support code for digital
+			 * sound will cause the game to hang if music is playing at the same time within the main menu. The bug is that there
+			 * is code (in real mode no less) that polls the IRQ status register (2X6) and handles each IRQ event to clear it,
+			 * however there is no condition to handle clearing the DMA Terminal Count IRQ flag. The routine will not terminate
+			 * until all bits are cleared, hence, the game hangs after starting a sound effect. Most often, this is visible to
+			 * the user as causing the game to hang when you click on a button on the main menu.
+			 *
+			 * This hack attempts to detect the bug by looking for rapid polling of this register in a short period of time.
+			 * If detected, we clear the DMA IRQ flag to help the loop terminate so the game continues to run. */
+			if (t < (myGUS.lastIRQStatusPollAt + 0.1/*ms*/)) {
+				myGUS.lastIRQStatusPollAt = t;
+				myGUS.lastIRQStatusPollRapidCount++;
+				if (myGUS.clearTCIfPollingIRQStatus && (myGUS.IRQStatus & 0x80) && myGUS.lastIRQStatusPollRapidCount >= 500) {
+					LOG(LOG_MISC,LOG_DEBUG)("GUS: Clearing DMA TC IRQ status, DOS application appears to be stuck");
+					myGUS.lastIRQStatusPollRapidCount = 0;
+					myGUS.lastIRQStatusPollAt = t;
+					myGUS.IRQStatus &= 0x7F;
+					GUS_CheckIRQ();
+				}
+			}
+			else {
+				myGUS.lastIRQStatusPollAt = t;
+				myGUS.lastIRQStatusPollRapidCount = 0;
+			}
+		}
+
 		return myGUS.IRQStatus;
 	case 0x208:
 		Bit8u tmptime;
@@ -1258,6 +1292,13 @@ public:
 			gus_fixed_table = false;
 		else
 			gus_fixed_table = true;
+
+		myGUS.clearTCIfPollingIRQStatus = section->Get_bool("clear dma tc irq if excess polling");
+		if (myGUS.clearTCIfPollingIRQStatus)
+			LOG(LOG_MISC,LOG_DEBUG)("GUS: Will clear DMA TC IRQ if excess polling, as instructed");
+
+		myGUS.lastIRQStatusPollRapidCount = 0;
+		myGUS.lastIRQStatusPollAt = 0;
 
 		myGUS.initUnmaskDMA = section->Get_bool("unmask dma");
 		if (myGUS.initUnmaskDMA)

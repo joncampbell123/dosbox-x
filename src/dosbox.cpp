@@ -1717,6 +1717,13 @@ void DOSBOX_SetupConfigSections(void) {
 	Pbool->Set_help("Start the DOS virtual machine with the DMA channel already unmasked at the controller.\n"
 			"Use this for DOS applications that expect to operate the GUS but forget to unmask the DMA channel.");
 
+	Pbool = secprop->Add_bool("clear dma tc irq if excess polling",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("If the DOS application is seen polling the IRQ status register rapidly, automatically clear the DMA TC IRQ status.\n"
+			"This is a hack that should only be used with DOS applications that need it to avoid bugs in their GUS support code.\n"
+			"Needed for:\n"
+			"  Warcraft II by Blizzard ............. if using GUS for music and sound, set this option to prevent the game from\n"
+			"                                        hanging when you click on the buttons in the main menu.");
+
 	/* some DOS demos, especially where the programmers wrote their own tracker, forget to set "master IRQ enable" on the GUS,
 	 * and then wonder why music isn't playing. prior to some GUS bugfixes they happend to work anyway because DOSBox also
 	 * ignored master IRQ enable. you can restore that buggy behavior here.
