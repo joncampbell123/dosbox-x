@@ -284,7 +284,22 @@ public:
 			 * Note that you could just as easily commented out the RampCtrl condition here and let the looping
 			 * code work below, and that would permit playback as well, but the automatic looping would introduce
 			 * minor pops and crackles in the audio. This emulation makes WAVE playback from Windows perfect
-			 * and flawless. */
+			 * and flawless.
+			 *
+			 * UPDATE: A-ha! So they *do* acknowledge this in their SDK documentation:
+			 *
+			 * "3.11.
+			 * Rollover feature
+			 * Each voice has a 'rollover' feature that allows an application to be notified when a voice's playback position passes
+			 * over a particular place in DRAM.  This is very useful for getting seamless digital audio playback.  Basically, the GF1
+			 * will generate an IRQ when a voice's current position is  equal to the end position.  However, instead of stopping or
+			 * looping back to the start position, the voice will continue playing in the same direction.  This means that there will be
+			 * no pause (or gap) in the playback.  Note that this feature is enabled/disabled through the voice's VOLUME control
+			 * register (since there are no more bits available in the voice control registers).   A voice's loop enable bit takes
+			 * precedence over the rollover.  This means that if a voice's loop enable is on, it will loop when it hits the end position,
+			 * regardless of the state of the rollover enable.""
+			 *
+			 * Despite the confusing way their docs describe the rollover bit, this conditional check is in fact correct. */
 
 			if ((WaveLeft < 0 && pWaveLeft >= 0) || (WaveLeft >= 0 && pWaveLeft < 0)) {
 				/* Generate an IRQ if needed */
