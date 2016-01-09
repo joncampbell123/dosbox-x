@@ -1107,7 +1107,9 @@ static void MakeTables(void) {
 	 *      mono. */
 	if (gus_fixed_table) {
 		for (i=0;i < 16;i++)
-			pantable[i] = pantablePDF[15 - i/*FIXME: Is this backwards?*/] * 2048;
+			pantable[i] = pantablePDF[i] * 2048;
+
+		LOG(LOG_MISC,LOG_DEBUG)("GUS: using accurate (fixed) pantable");
 	}
 	else {
 		for (i=0;i < 8;i++)
@@ -1118,7 +1120,27 @@ static void MakeTables(void) {
 		/* if the program cranks the pan register all the way, ensure the
 		 * opposite channel is crushed to silence */
 		pantable[15] = 1UL << 30UL;
+
+		LOG(LOG_MISC,LOG_DEBUG)("GUS: using old (naive) pantable");
 	}
+
+	LOG(LOG_MISC,LOG_DEBUG)("GUS pantable (attenuation, left to right in dB): hard left -%.3f, -%.3f, -%.3f, -%.3f, -%.3f, -%.3f, -%.3f, center(7) -%.3f, center(8) -%.3f, -%.3f, -%.3f, -%.3f, -%.3f, -%.3f, -%.3f, hard right -%.3f",
+		((double)pantable[0]) / (1 << RAMP_FRACT),
+		((double)pantable[1]) / (1 << RAMP_FRACT),
+		((double)pantable[2]) / (1 << RAMP_FRACT),
+		((double)pantable[3]) / (1 << RAMP_FRACT),
+		((double)pantable[4]) / (1 << RAMP_FRACT),
+		((double)pantable[5]) / (1 << RAMP_FRACT),
+		((double)pantable[6]) / (1 << RAMP_FRACT),
+		((double)pantable[7]) / (1 << RAMP_FRACT),
+		((double)pantable[8]) / (1 << RAMP_FRACT),
+		((double)pantable[9]) / (1 << RAMP_FRACT),
+		((double)pantable[10]) / (1 << RAMP_FRACT),
+		((double)pantable[11]) / (1 << RAMP_FRACT),
+		((double)pantable[12]) / (1 << RAMP_FRACT),
+		((double)pantable[13]) / (1 << RAMP_FRACT),
+		((double)pantable[14]) / (1 << RAMP_FRACT),
+		((double)pantable[15]) / (1 << RAMP_FRACT));
 }
 
 class GUS:public Module_base{
