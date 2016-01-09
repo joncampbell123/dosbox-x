@@ -414,7 +414,7 @@ Bit8u Chip::Read( ) {
 			poll_counter = 0;
 		}
 		else if (++poll_counter >= 50) {
-			LOG_MSG("Adlib polling hack triggered. Forcing timers to reset. Hope this helps your DOS game to detect Adlib.");
+//			LOG_MSG("Adlib polling hack triggered. Forcing timers to reset. Hope this helps your DOS game to detect Adlib.");
 
 			poll_counter = 0;
 			if (!timer[0].overflow && timer[0].enabled) {
