@@ -190,6 +190,16 @@ static ROMPageHandler rom_page_handler;
 static ROMAliasPageHandler rom_page_alias_handler;
 
 void MEM_SetLFB(Bitu page, Bitu pages, PageHandler *handler, PageHandler *mmiohandler) {
+	LOG(LOG_MISC,LOG_DEBUG)("MEM: Linear framebuffer is now set to 0x%lx-0x%lx (%uKB)",
+		(unsigned long)(page*4096),
+		(unsigned long)(((page+pages)*4096)-1),
+		(unsigned int)(pages*4));
+	// FIXME: Because this code emulates S3 by hardcoding the MMIO address!
+	LOG(LOG_MISC,LOG_DEBUG)("MEM: Linear framebuffer MMIO is now set to 0x%lx-0x%lx (%uKB)",
+		(unsigned long)(page*4096)+0x01000000,
+		(unsigned long)(((page+16)*4096)+0x01000000-1),
+		(unsigned int)(16*4));
+
 	memory.lfb.handler=handler;
 	memory.lfb.mmiohandler=mmiohandler;
 	memory.lfb.start_page=page;
