@@ -885,6 +885,7 @@ public:
 	VGA_LFB_Handler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE|PFLAG_NOCODE) {}
 	HostPt GetHostReadPt( Bitu phys_page ) {
 		phys_page -= vga.lfb.page;
+		phys_page &= (vga.vmemsize >> 12) - 1;
 		return &vga.mem.linear[CHECKED3(phys_page * 4096)];
 	}
 	HostPt GetHostWritePt( Bitu phys_page ) {
