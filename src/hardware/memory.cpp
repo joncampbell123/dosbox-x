@@ -50,11 +50,6 @@ extern Bitu rombios_minimum_location;
 extern bool VIDEO_BIOS_always_carry_14_high_font;
 extern bool VIDEO_BIOS_always_carry_16_high_font;
 
-#define PAGES_IN_BLOCK	((1024*1024)/MEM_PAGE_SIZE)
-#define MAX_MEMORY	4096
-#define MAX_PAGE_ENTRIES (MAX_MEMORY*256)
-#define MAX_LINKS	((MAX_MEMORY*1024/4)+4096)		//Hopefully enough
-
 /* if set: mainline DOSBox behavior where adapter ROM (0xA0000-0xFFFFF) except for
  * areas explicitly mapped to the ROM handler, are mapped the same as system RAM.
  *
@@ -62,11 +57,6 @@ extern bool VIDEO_BIOS_always_carry_16_high_font;
  * VGA, with the Illegal handler (not mapped). Actual RAM behind the storage does
  * not show up and reads return 0xFF, just like real hardware. */
 bool adapter_rom_is_ram = false;
-
-struct LinkBlock {
-	Bitu used;
-	Bit32u pages[MAX_LINKS];
-};
 
 static struct MemoryBlock {
 	MemoryBlock() : pages(0), handler_pages(0), reported_pages(0), phandlers(NULL), mhandles(NULL), mem_alias_pagemask(0), mem_alias_pagemask_active(0), address_bits(0) { }
@@ -76,7 +66,6 @@ static struct MemoryBlock {
 	Bitu reported_pages;
 	PageHandler * * phandlers;
 	MemHandle * mhandles;
-	LinkBlock links;
 	struct	{
 		Bitu		start_page;
 		Bitu		end_page;
@@ -1217,31 +1206,34 @@ void Init_RAM() {
 	assert(memory.mem_alias_pagemask > 0xFF);
 
 	/* Setup the Physical Page Links */
-	Bitu memsize=section->Get_int("memsize");	
-	Bitu memsizekb=section->Get_int("memsizekb");
+	Bitu memsizekb = section->Get_int("memsizekb");
+	{
+		Bitu memsize = section->Get_int("memsize");
+
+		if (memsizekb == 0 && memsize < 1) memsize = 1;
+		else if (memsizekb != 0 && memsize < 0) memsize = 0;
+
+		/* round up memsizekb to 4KB multiple */
+		memsizekb = (memsizekb + 3) & (~3);
+
+		/* roll memsize into memsizekb, simplify this code */
+		memsizekb += memsize * 1024;
+	}
 
 	/* we can't have more memory than the memory aliasing allows */
 	if ((memory.mem_alias_pagemask+1) != 0/*32-bit integer overflow avoidance*/ &&
-		((memsize*256)+(memsizekb/4)) > (memory.mem_alias_pagemask+1)) {
-		LOG_MSG("%u-bit memory aliasing limits you to %uMB",
-				(int)memory.address_bits,(int)((memory.mem_alias_pagemask+1)/256));
-		memsize = (memory.mem_alias_pagemask+1)/256;
-		memsizekb = 0;
+		(memsizekb/4) > (memory.mem_alias_pagemask+1)) {
+		LOG_MSG("%u-bit memory aliasing limits you to %uKB",
+			(int)memory.address_bits,(int)((memory.mem_alias_pagemask+1)*4));
+		memsizekb = (memory.mem_alias_pagemask+1) * 4;
 	}
 
-	/* FIXME: hardcoding the max memory size is BAD. Use MAX_MEMORY. */
-	if (memsizekb > 524288) memsizekb = 524288;
-	if (memsizekb == 0 && memsize < 1) memsize = 1;
-	else if (memsizekb != 0 && memsize < 0) memsize = 0;
-
-	/* max 63 to solve problems with certain xms handlers */
-	if ((memsize+(memsizekb/1024)) > MAX_MEMORY-1) {
-		LOG_MSG("Maximum memory size is %d MB",MAX_MEMORY - 1);
-		memsize = MAX_MEMORY-1;
-		memsizekb = 0;
+	/* cap at just under 4GB */
+	if ((memsizekb/4) > ((1 << (32 - 10)) - 4)) {
+		LOG_MSG("Maximum memory size is %dKB",(1 << (32 - 10)) - 4);
+		memsizekb = (1 << (32 - 10)) - 4;
 	}
-	memory.reported_pages = memory.pages =
-		((memsize*1024*1024) + (memsizekb*1024))/4096;
+	memory.reported_pages = memory.pages = memsizekb/4;
 
 	// FIXME: Hopefully our refactoring will remove the need for this hack
 	/* if the config file asks for less than 1MB of memory
@@ -1251,11 +1243,14 @@ void Init_RAM() {
 		memory.pages = ((1024*1024)/4096);
 
 	// DEBUG message
-	LOG(LOG_MISC,LOG_DEBUG)("Memory: %u pages of RAM, %u reported to OS, %u (0x%x) pages of memory handlers",
-			(unsigned int)memory.pages,
-			(unsigned int)memory.reported_pages,
-			(unsigned int)memory.handler_pages,
-			(unsigned int)memory.handler_pages);
+	LOG(LOG_MISC,LOG_DEBUG)("Memory: %u pages (%uKB) of RAM, %u (%uKB) reported to OS, %u (0x%x) (%uKB) pages of memory handlers",
+		(unsigned int)memory.pages,
+		(unsigned int)memory.pages*4,
+		(unsigned int)memory.reported_pages,
+		(unsigned int)memory.reported_pages*4,
+		(unsigned int)memory.handler_pages,
+		(unsigned int)memory.handler_pages,
+		(unsigned int)memory.handler_pages*4);
 
 	// sanity check!
 	assert(memory.handler_pages >= memory.pages);
@@ -1266,7 +1261,7 @@ void Init_RAM() {
 	/* Allocate the RAM. We alloc as a large unsigned char array. new[] does not initialize the array,
 	 * so we then must zero the buffer. */
 	MemBase = new Bit8u[memory.pages*4096];
-	if (!MemBase) E_Exit("Can't allocate main memory of %d MB",(int)memsize);
+	if (!MemBase) E_Exit("Can't allocate main memory of %d KB",(int)memsizekb);
 	/* Clear the memory, as new doesn't always give zeroed memory
 	 * (Visual C debug mode). We want zeroed memory though. */
 	memset((void*)MemBase,0,memory.reported_pages*4096);
@@ -1428,9 +1423,6 @@ void Init_MemHandles() {
 
 	for (i = 0;i < memory.pages;i++)
 		memory.mhandles[i] = 0;				//Set to 0 for memory allocation
-
-	/* Reset some links */
-	memory.links.used = 0;
 }
 
 void Init_MemoryAccessArray() {
@@ -1448,10 +1440,8 @@ void Init_MemoryAccessArray() {
 	assert(memory.mem_alias_pagemask > 0xFF);
 
 	// we maintain a different page count for page handlers because we want to maintain a
-	// "cache" of sorts of what device responds to a given memory address. default to
-	// MAX_PAGE_ENTRIES, but bring it down if the memory alising reduces the range of
-	// addressable memory from the CPU's point of view.
-	memory.handler_pages = MAX_PAGE_ENTRIES;
+	// "cache" of sorts of what device responds to a given memory address.
+	memory.handler_pages = (1 << (32 - 12)); /* enough for 4GB */
 	if ((memory.mem_alias_pagemask+1) != 0/*integer overflow check*/ &&
 		memory.handler_pages > (memory.mem_alias_pagemask+1))
 		memory.handler_pages = (memory.mem_alias_pagemask+1);
