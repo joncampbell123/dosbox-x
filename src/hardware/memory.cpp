@@ -201,9 +201,9 @@ void MEM_SetLFB(Bitu page, Bitu pages, PageHandler *handler, PageHandler *mmioha
 /* TODO: at some point, the VGA card's linear framebuffer needs to register memory callbacks instead of special case code here */
 PageHandler * MEM_GetPageHandler(Bitu phys_page) {
 	phys_page &= memory.mem_alias_pagemask_active;
-	if ((phys_page>=memory.lfb.start_page) && (phys_page<memory.lfb.end_page)) {
+	if (memory.lfb.pages != 0 && (phys_page>=memory.lfb.start_page) && (phys_page<memory.lfb.end_page)) {
 		return memory.lfb.handler;
-	} else if ((phys_page>=memory.lfb.start_page+0x01000000/4096) &&
+	} else if (memory.lfb.pages != 0 && (phys_page>=memory.lfb.start_page+0x01000000/4096) &&
 		(phys_page<memory.lfb.start_page+0x01000000/4096+16)) {
 		return memory.lfb.mmiohandler;
 	} else if (VOODOO_PCI_CheckLFBPage(phys_page)) {
@@ -1427,6 +1427,13 @@ void Init_MemHandles() {
 
 void Init_MemoryAccessArray() {
 	Bitu i;
+
+	/* HACK: need to zero these! */
+	memory.lfb.handler=NULL;
+	memory.lfb.mmiohandler=NULL;
+	memory.lfb.start_page=0;
+	memory.lfb.end_page=0;
+	memory.lfb.pages=0;
 
 	if (!has_Init_MemoryAccessArray) {
 		has_Init_MemoryAccessArray = true;
