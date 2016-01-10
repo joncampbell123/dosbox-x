@@ -1607,7 +1607,14 @@ dac_text16:
 		}
 		IO_Write(crtc_base,0x3a);IO_Write(crtc_base+1,reg_3a);
 		IO_Write(crtc_base,0x31);IO_Write(crtc_base+1,reg_31);	//Enable banked memory and 256k+ access
-		IO_Write(crtc_base,0x58);IO_Write(crtc_base+1,0x3);		//Enable 8 mb of linear addressing
+
+		IO_Write(crtc_base,0x58);
+		if (vga.vmemsize >= (4*1024*1024))
+			IO_Write(crtc_base+1,0x3);		// 4+ MB window
+		else if (vga.vmemsize >= (2*1024*1024))
+			IO_Write(crtc_base+1,0x2);		// 2 MB window
+		else
+			IO_Write(crtc_base+1,0x1);		// 1 MB window
 
 		IO_Write(crtc_base,0x38);IO_Write(crtc_base+1,0x48);	//Register lock 1
 		IO_Write(crtc_base,0x39);IO_Write(crtc_base+1,0xa5);	//Register lock 2

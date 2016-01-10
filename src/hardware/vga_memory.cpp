@@ -1385,10 +1385,42 @@ range_done:
 }
 
 void VGA_StartUpdateLFB(void) {
-	vga.lfb.page = vga.s3.la_window << 4;
-	vga.lfb.addr = vga.s3.la_window << 16;
-	vga.lfb.handler = &vgaph.lfb;
-	MEM_SetLFB(vga.s3.la_window << 4 ,vga.vmemsize/4096, vga.lfb.handler, &vgaph.mmio);
+	/* please obey the Linear Address Window Size register!
+	 * Windows 3.1 S3 driver will reprogram the linear framebuffer down to 0xA0000 when entering a DOSBox
+	 * and assuming the full VRAM size will cause a LOT of problems! */
+	Bitu winsz = 0x10000;
+
+	switch (vga.s3.reg_58&3) {
+		case 1:
+			winsz = 1 << 20;	//1MB
+			break;
+		case 2:
+			winsz = 2 << 20;	//2MB
+			break;
+		case 3:
+			winsz = 4 << 20;	//4MB
+			break;
+		// FIXME: What about the 8MB window?
+	}
+
+	/* if the DOS application or Windows 3.1 driver attempts to put the linear framebuffer
+	 * below the top of memory, then we're probably entering a DOS VM and it's probably
+	 * a 64KB window. If it's not a 64KB window then print a warning. */
+	if ((vga.s3.la_window << 4) < MEM_TotalPages()) {
+		if (winsz != 0x10000) // 64KB window normal for entering a DOS VM in Windows 3.1 or legacy bank switching in DOS
+			LOG(LOG_MISC,LOG_WARN)("S3 warning: Window size != 64KB and address conflict with system RAM!");
+
+		vga.lfb.page = vga.s3.la_window << 4;
+		vga.lfb.addr = vga.s3.la_window << 16;
+		vga.lfb.handler = NULL;
+		MEM_SetLFB(0,0,NULL,NULL);
+	}
+	else {
+		vga.lfb.page = vga.s3.la_window << 4;
+		vga.lfb.addr = vga.s3.la_window << 16;
+		vga.lfb.handler = &vgaph.lfb;
+		MEM_SetLFB(vga.s3.la_window << 4 ,vga.vmemsize/4096, vga.lfb.handler, &vgaph.mmio);
+	}
 }
 
 static bool VGA_Memory_ShutDown_init = false;

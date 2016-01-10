@@ -245,6 +245,7 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
 		*/
 	case 0x58:	/* Linear Address Window Control */
 		vga.s3.reg_58=val;
+		VGA_StartUpdateLFB();
 		break;
 		/*
 			0-1	Linear Address Window Size. Must be less than or equal to video
