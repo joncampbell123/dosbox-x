@@ -403,12 +403,12 @@ public:
 	VGA_ChainedVGA_Handler() : PageHandler(PFLAG_NOCODE) {}
 	template <class Size>
 	static INLINE Bitu readHandler(PhysPt addr ) {
-		return hostRead<Size>( &vga.mem.linear[((addr&~3)<<2)+(addr&3)] );
+		return hostRead<Size>( &vga.mem.linear[((addr&0xFFFC)<<2)+(addr&3)] );
 	}
 	template <class Size>
 	static INLINE void writeHandler(PhysPt addr, Bitu val) {
 		// No need to check for compatible chains here, this one is only enabled if that bit is set
-		hostWrite<Size>( &vga.mem.linear[((addr&~3)<<2)+(addr&3)], val );
+		hostWrite<Size>( &vga.mem.linear[((addr&0xFFFC)<<2)+(addr&3)], val );
 	}
 	Bitu readb(PhysPt addr ) {
 		VGAMEM_USEC_read_delay();
