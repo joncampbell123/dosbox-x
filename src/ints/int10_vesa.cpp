@@ -275,7 +275,7 @@ foundit:
 	if (pageSize & 0xFFFF) {
 		// It is documented that many applications assume 64k-aligned page sizes
 		// VBETEST is one of them
-		pageSize += 0x10000;
+		pageSize +=  0xFFFF;
 		pageSize &= ~0xFFFF;
 	}
 	Bitu pages = 0;
