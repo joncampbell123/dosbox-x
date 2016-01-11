@@ -3822,7 +3822,7 @@ private:
 		}
 
 		if (APMBIOS) {
-			BIOS_Int10RightJustifiedPrint(x,y,"Advanced Power Management BIOS interface is active\n");
+			BIOS_Int10RightJustifiedPrint(x,y,"Advanced Power Management interface active\n");
 		}
 
 		if (ISAPNPBIOS) {
