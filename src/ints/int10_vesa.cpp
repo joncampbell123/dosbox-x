@@ -585,6 +585,7 @@ static Bitu VESA_PMSetStart(void) {
 
 
 
+extern int vesa_modelist_cap;
 
 void INT10_SetupVESA(void) {
 	/* BUGFIX: Generating VESA BIOS data when machine=ega or machine=vgaonly is dumb.
@@ -593,7 +594,7 @@ void INT10_SetupVESA(void) {
 	if (svgaCard == SVGA_None) return;
 
 	/* Put the mode list somewhere in memory */
-	Bitu i;
+	Bitu i,modecount=0;
 	i=0;
 	int10.rom.vesa_modes=RealMake(0xc000,int10.rom.used);
 //TODO Maybe add normal vga modes too, but only seems to complicate things
@@ -627,10 +628,15 @@ void INT10_SetupVESA(void) {
 				}
 			}
 		}
+
+		if (canuse_mode && vesa_modelist_cap > 0 && modecount >= vesa_modelist_cap)
+			canuse_mode = false;
+
 		if (ModeList_VGA[i].mode>=0x100 && canuse_mode) {
 			if ((!int10.vesa_oldvbe) || (ModeList_VGA[i].mode<0x120)) {
 				phys_writew(PhysMake(0xc000,int10.rom.used),ModeList_VGA[i].mode);
 				int10.rom.used+=2;
+				modecount++;
 			}
 		}
 		i++;

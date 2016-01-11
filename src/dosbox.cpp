@@ -1195,6 +1195,14 @@ void DOSBOX_SetupConfigSections(void) {
 			"the larger the number, the more averaging is applied. This is intended to emulate the inertia\n"
 			"of the electron beam in a CRT monitor");
 
+	Pint = secprop->Add_int("vesa modelist cap",Property::Changeable::Always,0);
+	Pint->Set_help("IF nonzero, the VESA modelist is capped so that it contains no more than the specified number of video modes.\n"
+			"Set this option to a value between 8 to 32 if the DOS application has problems with long modelists or a fixed\n"
+			"buffer for querying modes. Such programs may crash if given the entire modelist supported by DOSBox-X.\n"
+			"  Warcraft II by Blizzard ................ Set to a value between 8 and 16. This game has a fixed buffer that it\n"
+			"                                           reads the modelist into. DOSBox-X's normal modelist is too long and\n"
+			"                                           the game will overrun the buffer and crash without this setting.");
+
 	Pbool = secprop->Add_bool("vesa vbe 1.2 modes are 32bpp",Property::Changeable::Always,true);
 	Pbool->Set_help("If set, truecolor (16M color) VESA BIOS modes in the 0x100-0x11F range are 32bpp. If clear, they are 24bpp.\n"
 			"Some DOS games and demos assume one bit depth or the other and do not enumerate VESA BIOS modes, which is why this\n"
