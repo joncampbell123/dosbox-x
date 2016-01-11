@@ -141,6 +141,8 @@ VGA_Type vga;
 SVGA_Driver svga;
 int enableCGASnow;
 int vesa_modelist_cap = 0;
+int vesa_mode_width_cap = 0;
+int vesa_mode_height_cap = 0;
 bool vga_3da_polled = false;
 bool vga_page_flip_occurred = false;
 bool enable_page_flip_debugging_marker = false;
@@ -464,6 +466,8 @@ void VGA_Reset(Section*) {
 
 	enableCGASnow = section->Get_bool("cgasnow");
 	vesa_modelist_cap = section->Get_int("vesa modelist cap");
+	vesa_mode_width_cap = section->Get_int("vesa modelist width limit");
+	vesa_mode_height_cap = section->Get_int("vesa modelist height limit");
 	vga_enable_3C6_ramdac = section->Get_bool("sierra ramdac");
 	vga_enable_hpel_effects = section->Get_bool("allow hpel effects");
 	vga_sierra_lock_565 = section->Get_bool("sierra ramdac lock 565");

@@ -1203,6 +1203,14 @@ void DOSBOX_SetupConfigSections(void) {
 			"                                           reads the modelist into. DOSBox-X's normal modelist is too long and\n"
 			"                                           the game will overrun the buffer and crash without this setting.");
 
+	Pint = secprop->Add_int("vesa modelist width limit",Property::Changeable::Always,0);
+	Pint->Set_help("IF nonzero, VESA modes with horizontal resolution higher than the specified pixel count will not be listed.\n"
+			"This is another way the modelist can be capped for DOS applications that have trouble with long modelists.");
+
+	Pint = secprop->Add_int("vesa modelist height limit",Property::Changeable::Always,0);
+	Pint->Set_help("IF nonzero, VESA modes with vertical resolution higher than the specified pixel count will not be listed.\n"
+			"This is another way the modelist can be capped for DOS applications that have trouble with long modelists.");
+
 	Pbool = secprop->Add_bool("vesa vbe 1.2 modes are 32bpp",Property::Changeable::Always,true);
 	Pbool->Set_help("If set, truecolor (16M color) VESA BIOS modes in the 0x100-0x11F range are 32bpp. If clear, they are 24bpp.\n"
 			"Some DOS games and demos assume one bit depth or the other and do not enumerate VESA BIOS modes, which is why this\n"

@@ -30,6 +30,8 @@
 
 int hack_lfb_yadjust = 0;
 
+extern int vesa_mode_width_cap;
+extern int vesa_mode_height_cap;
 extern bool allow_vesa_lowres_modes;
 extern bool vesa12_modes_32bpp;
 extern bool allow_vesa_32bpp;
@@ -600,17 +602,20 @@ void INT10_SetupVESA(void) {
 //TODO Maybe add normal vga modes too, but only seems to complicate things
 	while (ModeList_VGA[i].mode!=0xffff) {
 		bool canuse_mode=false;
-		if (!svga.accepts_mode)
-			canuse_mode=true;
+
 		/* Hack for VBE 1.2 modes and 24/32bpp ambiguity */
-		else if (ModeList_VGA[i].mode >= 0x100 && ModeList_VGA[i].mode <= 0x11F &&
+		if (ModeList_VGA[i].mode >= 0x100 && ModeList_VGA[i].mode <= 0x11F &&
 			((ModeList_VGA[i].type == M_LIN32 && !vesa12_modes_32bpp) ||
 			 (ModeList_VGA[i].type == M_LIN24 && vesa12_modes_32bpp))) {
 			/* ignore */
 		}
 		else {
-			if (svga.accepts_mode(ModeList_VGA[i].mode)) {
+			if (!svga.accepts_mode)
 				canuse_mode=true;
+			else if (svga.accepts_mode(ModeList_VGA[i].mode))
+				canuse_mode=true;
+
+			if (canuse_mode) {
 				if (ModeList_VGA[i].mode >= 0x100) {
 					bool allow_res = allow_vesa_lowres_modes ||
 						(ModeList_VGA[i].swidth >= 640 && ModeList_VGA[i].sheight >= 400);
@@ -629,8 +634,16 @@ void INT10_SetupVESA(void) {
 			}
 		}
 
-		if (canuse_mode && vesa_modelist_cap > 0 && modecount >= vesa_modelist_cap)
+		if (canuse_mode && vesa_modelist_cap > 0 && (unsigned int)modecount >= (unsigned int)vesa_modelist_cap)
 			canuse_mode = false;
+
+		if (ModeList_VGA[i].type != M_TEXT) {
+			if (canuse_mode && vesa_mode_width_cap > 0 && (unsigned int)ModeList_VGA[i].swidth > (unsigned int)vesa_mode_width_cap)
+				canuse_mode = false;
+
+			if (canuse_mode && vesa_mode_height_cap > 0 && (unsigned int)ModeList_VGA[i].sheight > (unsigned int)vesa_mode_height_cap)
+				canuse_mode = false;
+		}
 
 		if (ModeList_VGA[i].mode>=0x100 && canuse_mode) {
 			if ((!int10.vesa_oldvbe) || (ModeList_VGA[i].mode<0x120)) {
@@ -639,6 +652,7 @@ void INT10_SetupVESA(void) {
 				modecount++;
 			}
 		}
+
 		i++;
 	}
 	phys_writew(PhysMake(0xc000,int10.rom.used),0xffff);
