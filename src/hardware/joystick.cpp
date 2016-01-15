@@ -145,6 +145,7 @@ static void write_p201_timed(Bitu port,Bitu val,Bitu iolen) {
 }
 
 void JOYSTICK_Enable(Bitu which,bool enabled) {
+	LOG(LOG_MISC,LOG_DEBUG)("JOYSTICK: Stick %u enable=%u",(int)which,enabled?1:0);
 	if (which<2) stick[which].enabled=enabled;
 }
 
