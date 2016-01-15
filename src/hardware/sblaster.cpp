@@ -170,6 +170,9 @@ struct SB_INFO {
 		bool require_irq_ack;
 		bool instant_direct_dac;
 		bool force_goldplay;
+		bool midi_rwpoll_mode; // DSP command 0x34/0x35 MIDI Read Poll & Write Poll (0x35 with interrupt)
+		bool midi_read_interrupt;
+		bool midi_read_with_timestamps;
 		unsigned int dsp_write_busy_time; /* when you write to the DSP, how long it signals "busy" */
 	} dsp;
 	struct {
@@ -1061,6 +1064,10 @@ static void DSP_Reset(void) {
 	sb.dma.remain_size=0;
 	if (sb.dma.chan) sb.dma.chan->Clear_Request();
 
+	sb.dsp.midi_rwpoll_mode = false;
+	sb.dsp.midi_read_interrupt = false;
+	sb.dsp.midi_read_with_timestamps = false;
+
 	sb.freq=22050;
 	sb.time_constant=45;
 	sb.dac.used=0;
@@ -1371,12 +1378,26 @@ static void DSP_DoCommand(void) {
 		DSP_FlushData();
 		DSP_AddData(0);
 		break;
-	case 0x30: case 0x31:
+	case 0x30: case 0x31: case 0x32: case 0x33:
 		LOG(LOG_SB,LOG_ERROR)("DSP:Unimplemented MIDI I/O command %2X",sb.dsp.cmd);
 		break;
-	case 0x34: case 0x35: case 0x36: case 0x37:
+	case 0x34: /* MIDI Read Poll & Write Poll */
 		DSP_SB2_ABOVE;
-		LOG(LOG_SB,LOG_ERROR)("DSP:Unimplemented MIDI UART command %2X",sb.dsp.cmd);
+		LOG(LOG_SB,LOG_DEBUG)("DSP:Entering MIDI Read/Write Poll mode");
+		sb.dsp.midi_rwpoll_mode = true;
+		break;
+	case 0x35: /* MIDI Read Interrupt & Write Poll */
+		DSP_SB2_ABOVE;
+		LOG(LOG_SB,LOG_DEBUG)("DSP:Entering MIDI Read Interrupt/Write Poll mode");
+		sb.dsp.midi_rwpoll_mode = true;
+		sb.dsp.midi_read_interrupt = true;
+		break;
+	case 0x37: /* MIDI Read Timestamp Interrupt & Write Poll */
+		DSP_SB2_ABOVE;
+		LOG(LOG_SB,LOG_DEBUG)("DSP:Entering MIDI Read Timstamp Interrupt/Write Poll mode");
+		sb.dsp.midi_rwpoll_mode = true;
+		sb.dsp.midi_read_interrupt = true;
+		sb.dsp.midi_read_with_timestamps = true;
 		break;
 	case 0x20:
 		DSP_AddData(0x7f);   // fake silent input for Creative parrot
@@ -1503,6 +1524,13 @@ static void DSP_DoWrite(Bit8u val) {
 		}
 
 //		LOG(LOG_SB,LOG_NORMAL)("DSP:Command %02x delay %u",val,delay);
+	}
+
+	if (sb.dsp.midi_rwpoll_mode) {
+		// DSP writes in this mode go to the MIDI port
+//		LOG(LOG_SB,LOG_DEBUG)("DSP MIDI read/write poll mode: sending 0x%02x",val);
+		if (sb.midi == true) MIDI_RawOutByte(val);
+		return;
 	}
 
 	switch (sb.dsp.cmd) {
@@ -2239,6 +2267,10 @@ public:
 			LOG_MSG("Sound Blaster goldplay mode is incompatible with mixer sample-accurate mode.");
 			sb.goldplay=false;
 		}
+
+		sb.dsp.midi_rwpoll_mode = false;
+		sb.dsp.midi_read_interrupt = false;
+		sb.dsp.midi_read_with_timestamps = false;
 
 		sb.busy_cycle_last_check=0;
 		sb.busy_cycle_io_hack=0;
