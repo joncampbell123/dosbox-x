@@ -192,16 +192,6 @@ private:
 public:
 	JOYSTICK(Section* configuration):Module_base(configuration){
 		Section_prop * section=static_cast<Section_prop *>(configuration);
-		const char * type=section->Get_string("joysticktype");
-		if (!strcasecmp(type,"none"))       joytype = JOY_NONE;
-		else if (!strcasecmp(type,"false")) joytype = JOY_NONE;
-		else if (!strcasecmp(type,"auto"))  joytype = JOY_AUTO;
-		else if (!strcasecmp(type,"2axis")) joytype = JOY_2AXIS;
-		else if (!strcasecmp(type,"4axis")) joytype = JOY_4AXIS;
-		else if (!strcasecmp(type,"4axis_2")) joytype = JOY_4AXIS_2;
-		else if (!strcasecmp(type,"fcs"))   joytype = JOY_FCS;
-		else if (!strcasecmp(type,"ch"))    joytype = JOY_CH;
-		else joytype = JOY_AUTO;
 
 		bool timed = section->Get_bool("timed");
 		if(timed) {
@@ -211,13 +201,6 @@ public:
 			ReadHandler.Install(0x201,read_p201,IO_MB);
 			WriteHandler.Install(0x201,write_p201,IO_MB);
 		}
-		autofire = section->Get_bool("autofire");
-		swap34 = section->Get_bool("swap34");
-		button_wrapping_enabled = section->Get_bool("buttonwrap");
-		stick[0].enabled = false;
-		stick[1].enabled = false;
-		stick[0].xtick = stick[0].ytick = stick[1].xtick =
-		                 stick[1].ytick = PIC_FullIndex();
 	}
 };
 
@@ -236,6 +219,32 @@ void JOYSTICK_OnReset(Section* sec) {
 
 void JOYSTICK_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing joystick emulation");
+
+	/* NTS: Joystick emulation does not work if we init joystick type AFTER mapper init.
+	 *      We cannot wait for poweron/reset signal for determination of joystick type.
+	 *      But, I/O port setup can happen later. */
+	{
+		Section_prop * section=static_cast<Section_prop *>(control->GetSection("joystick"));
+
+		const char * type=section->Get_string("joysticktype");
+		if (!strcasecmp(type,"none"))       joytype = JOY_NONE;
+		else if (!strcasecmp(type,"false")) joytype = JOY_NONE;
+		else if (!strcasecmp(type,"auto"))  joytype = JOY_AUTO;
+		else if (!strcasecmp(type,"2axis")) joytype = JOY_2AXIS;
+		else if (!strcasecmp(type,"4axis")) joytype = JOY_4AXIS;
+		else if (!strcasecmp(type,"4axis_2")) joytype = JOY_4AXIS_2;
+		else if (!strcasecmp(type,"fcs"))   joytype = JOY_FCS;
+		else if (!strcasecmp(type,"ch"))    joytype = JOY_CH;
+		else joytype = JOY_AUTO;
+
+		autofire = section->Get_bool("autofire");
+		swap34 = section->Get_bool("swap34");
+		button_wrapping_enabled = section->Get_bool("buttonwrap");
+		stick[0].enabled = false;
+		stick[1].enabled = false;
+		stick[0].xtick = stick[0].ytick = stick[1].xtick =
+		                 stick[1].ytick = PIC_FullIndex();
+	}
 
 	AddExitFunction(AddExitFunctionFuncPair(JOYSTICK_Destroy),true); 
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(JOYSTICK_OnReset));
