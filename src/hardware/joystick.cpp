@@ -210,7 +210,7 @@ void JOYSTICK_Destroy(Section* sec) {
 	delete test;
 }
 
-void JOYSTICK_OnReset(Section* sec) {
+void JOYSTICK_OnPowerOn(Section* sec) {
 	if (test == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating joystick emulation");
 		test = new JOYSTICK(control->GetSection("joystick"));
@@ -247,6 +247,6 @@ void JOYSTICK_Init() {
 	}
 
 	AddExitFunction(AddExitFunctionFuncPair(JOYSTICK_Destroy),true); 
-	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(JOYSTICK_OnReset));
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(JOYSTICK_OnPowerOn));
 }
 
