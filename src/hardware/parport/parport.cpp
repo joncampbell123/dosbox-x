@@ -344,7 +344,7 @@ void PARALLEL_Destroy (Section * sec) {
 	}
 }
 
-void PARALLEL_OnReset (Section * sec) {
+void PARALLEL_OnPowerOn (Section * sec) {
 	LOG(LOG_MISC,LOG_DEBUG)("Reinitializing parallel port emulation");
 
 	if (testParallelPortsBaseclass) delete testParallelPortsBaseclass;
@@ -355,5 +355,5 @@ void PARALLEL_Init () {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing parallel port emulation");
 
 	AddExitFunction(AddExitFunctionFuncPair(PARALLEL_Destroy),true);
-	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PARALLEL_OnReset));
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(PARALLEL_OnPowerOn));
 }
