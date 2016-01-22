@@ -253,6 +253,9 @@ public:
 
 	DOS_Device* mydosdevice;
 
+	void registerDOSDevice();
+	void unregisterDOSDevice();
+
 private:
 
 	// I used this spec: st16c450v420.pdf

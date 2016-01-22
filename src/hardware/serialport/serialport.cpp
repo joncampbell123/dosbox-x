@@ -1126,10 +1126,7 @@ CSerial::CSerial(Bitu id, CommandLine* cmd) {
 	rxfifo = new MyFifo(fifosize);
 	txfifo = new MyFifo(fifosize);
 
-// FIXME:
-//	mydosdevice=new device_COM(this);
-//	DOS_AddDevice(mydosdevice);
-
+	mydosdevice=NULL;
 	errormsg_pending=false;
 	framingErrors=0;
 	parityErrors=0;
@@ -1155,12 +1152,24 @@ bool CSerial::getBituSubstring(const char* name,Bitu* data, CommandLine* cmd) {
 	return true;
 }
 
+void CSerial::registerDOSDevice() {
+	if (mydosdevice == NULL) {
+		LOG(LOG_MISC,LOG_DEBUG)("COM%d: Registering DOS device",(int)idnumber+1);
+		mydosdevice = new device_COM(this);
+		DOS_AddDevice(mydosdevice);
+	}
+}
+
+void CSerial::unregisterDOSDevice() {
+	if (mydosdevice != NULL) {
+		LOG(LOG_MISC,LOG_DEBUG)("COM%d: Unregistering DOS device",(int)idnumber+1);
+		DOS_DelDevice(mydosdevice); // deletes the pointer for us!
+		mydosdevice=NULL;
+	}
+}
+
 CSerial::~CSerial(void) {
-//	if (mydosdevice != NULL) {
-// FIXME: Now we're called after DOS shutdown! This is causing a crash!
-//		DOS_DelDevice(mydosdevice);
-//		mydosdevice = NULL;
-//	}
+	unregisterDOSDevice();
 	for(Bitu i = 0; i <= SERIAL_BASE_EVENT_COUNT; i++)
 		removeEvent(i);
 
@@ -1245,13 +1254,44 @@ bool CSerial::Putchar(Bit8u data, bool wait_dsr, bool wait_cts, Bitu timeout) {
 	return true;
 }
 
-/* ints/bios.cpp */
 void BIOS_PnP_ComPortRegister(Bitu port,Bitu irq);
+void BIOS_SetCOMPort(Bitu port, Bit16u baseaddr);
+
+void BIOS_Post_register_comports_PNP() {
+	unsigned int i;
+
+	for (i=0;i < 4;i++) {
+		if (serialports[i] != NULL) {
+			BIOS_PnP_ComPortRegister(serial_baseaddr[i],serialports[i]->irq);
+		}
+	}
+}
+
+Bitu bios_post_comport_count() {
+	Bitu count = 0;
+	unsigned int i;
+
+	for (i=0;i < 4;i++) {
+		if (serialports[i] != NULL)
+			count++;
+	}
+
+	return count;
+}
+
+/* at BIOS POST stage, write serial ports to bios data area */
+void BIOS_Post_register_comports() {
+	unsigned int i;
+
+	for (i=0;i < 4;i++) {
+		if (serialports[i] != NULL)
+			BIOS_SetCOMPort(i,serial_baseaddr[i]);
+	}
+}
 
 class SERIALPORTS:public Module_base {
 public:
 	SERIALPORTS (Section * configuration):Module_base (configuration) {
-		Bit16u biosParameter[4] = { 0, 0, 0, 0 };
 		Section_prop *section = static_cast <Section_prop*>(configuration);
 
 		char s_property[] = "serialx"; 
@@ -1301,12 +1341,7 @@ public:
 				serialports[i] = NULL;
 				LOG_MSG("Invalid type for serial%d",(int)i+1);
 			}
-//			if(serialports[i]) {
-//				biosParameter[i] = serial_baseaddr[i];
-//				BIOS_PnP_ComPortRegister(serial_baseaddr[i],serialports[i]->irq);
-//			}
 		} // for 1-4
-//		BIOS_SetComPorts (biosParameter);
 	}
 
 	~SERIALPORTS () {
@@ -1335,10 +1370,44 @@ void SERIAL_OnPowerOn (Section * sec) {
 	testSerialPortsBaseclass = new SERIALPORTS (control->GetSection("serial"));
 }
 
+void SERIAL_OnDOSKernelInit (Section * sec) {
+	unsigned int i;
+
+	LOG(LOG_MISC,LOG_DEBUG)("DOS kernel initializing, creating COMx devices");
+
+	for (i=0;i < 3;i++) {
+		if (serialports[i] != NULL)
+			serialports[i]->registerDOSDevice();
+	}
+}
+
+void SERIAL_OnDOSKernelExit (Section * sec) {
+	unsigned int i;
+
+	for (i=0;i < 3;i++) {
+		if (serialports[i] != NULL)
+			serialports[i]->unregisterDOSDevice();
+	}
+}
+
+void SERIAL_OnReset (Section * sec) {
+	unsigned int i;
+
+	// FIXME: Unregister/destroy the DOS devices, but consider that the DOS kernel at reset is gone.
+	for (i=0;i < 3;i++) {
+		if (serialports[i] != NULL)
+			serialports[i]->unregisterDOSDevice();
+	}
+}
+
 void SERIAL_Init () {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing serial port emulation");
 
 	AddExitFunction(AddExitFunctionFuncPair(SERIAL_Destroy),true);
 	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(SERIAL_OnPowerOn));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(SERIAL_OnReset));
+	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(SERIAL_OnDOSKernelExit));
+	AddVMEventFunction(VM_EVENT_DOS_INIT_KERNEL_READY,AddVMEventFunctionFuncPair(SERIAL_OnDOSKernelInit));
+
 }
 

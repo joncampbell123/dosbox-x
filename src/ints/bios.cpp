@@ -3269,6 +3269,9 @@ private:
 		void BIOS_Post_register_parports();
 		BIOS_Post_register_parports();
 
+		void BIOS_Post_register_comports();
+		BIOS_Post_register_comports();
+
 		/* Setup equipment list */
 		// look http://www.bioscentral.com/misc/bda.htm
 		
@@ -3277,6 +3280,9 @@ private:
 
 		Bitu bios_post_parport_count();
 		config |= bios_post_parport_count() << 14;
+
+		Bitu bios_post_comport_count();
+		config |= bios_post_comport_count() << 9;
 		
 #if (C_FPU)
 		extern bool enable_fpu;
@@ -3579,6 +3585,9 @@ private:
 						LOG_MSG("ISAPNP register failed\n");
 				}
 			}
+
+			void BIOS_Post_register_comports_PNP();
+			BIOS_Post_register_comports_PNP();
 		}
 
 		return CBRET_NONE;
@@ -4183,24 +4192,25 @@ public:
 	}
 };
 
-// set com port data in bios data area
-// parameter: array of 4 com port base addresses, 0 = none
-void BIOS_SetComPorts(Bit16u baseaddr[]) {
-	Bit16u portcount=0;
-	Bit16u equipmentword;
-	for(Bitu i = 0; i < 4; i++) {
-		if(baseaddr[i]!=0) portcount++;
-		if(i==0)		mem_writew(BIOS_BASE_ADDRESS_COM1,baseaddr[i]);
-		else if(i==1)	mem_writew(BIOS_BASE_ADDRESS_COM2,baseaddr[i]);
-		else if(i==2)	mem_writew(BIOS_BASE_ADDRESS_COM3,baseaddr[i]);
-		else			mem_writew(BIOS_BASE_ADDRESS_COM4,baseaddr[i]);
+void BIOS_SetCOMPort(Bitu port, Bit16u baseaddr) {
+	switch(port) {
+	case 0:
+		mem_writew(BIOS_BASE_ADDRESS_COM1,baseaddr);
+		mem_writeb(BIOS_COM1_TIMEOUT, 10); // FIXME: Right??
+		break;
+	case 1:
+		mem_writew(BIOS_BASE_ADDRESS_COM2,baseaddr);
+		mem_writeb(BIOS_COM2_TIMEOUT, 10); // FIXME: Right??
+		break;
+	case 2:
+		mem_writew(BIOS_BASE_ADDRESS_COM3,baseaddr);
+		mem_writeb(BIOS_COM3_TIMEOUT, 10); // FIXME: Right??
+		break;
+	case 3:
+		mem_writew(BIOS_BASE_ADDRESS_COM4,baseaddr);
+		mem_writeb(BIOS_COM4_TIMEOUT, 10); // FIXME: Right??
+		break;
 	}
-	// set equipment word
-	equipmentword = mem_readw(BIOS_CONFIGURATION);
-	equipmentword &= (~0x0E00);
-	equipmentword |= (portcount << 9);
-	mem_writew(BIOS_CONFIGURATION,equipmentword);
-	CMOS_SetRegister(0x14,(Bit8u)(equipmentword&0xff)); //Should be updated on changes
 }
 
 void BIOS_SetLPTPort(Bitu port, Bit16u baseaddr) {
@@ -4218,17 +4228,6 @@ void BIOS_SetLPTPort(Bitu port, Bit16u baseaddr) {
 		mem_writeb(BIOS_LPT3_TIMEOUT, 10);
 		break;
 	}
-
-	// set equipment word: count ports
-	Bit16u portcount=0;
-	if(mem_readw(BIOS_ADDRESS_LPT1) != 0) portcount++;
-	if(mem_readw(BIOS_ADDRESS_LPT2) != 0) portcount++;
-	if(mem_readw(BIOS_ADDRESS_LPT3) != 0) portcount++;
-	
-	Bit16u equipmentword = mem_readw(BIOS_CONFIGURATION);
-	equipmentword &= (~0xC000);
-	equipmentword |= (portcount << 14);
-	mem_writew(BIOS_CONFIGURATION,equipmentword);
 }
 
 void BIOS_PnP_ComPortRegister(Bitu port,Bitu irq) {
