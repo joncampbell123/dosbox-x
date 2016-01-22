@@ -15,6 +15,7 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
+/* FIXME: At some point I would like to roll the Disney Sound Source emulation into this code */
 
 #include <string.h>
 #include <ctype.h>
@@ -126,7 +127,7 @@ static Bitu PARALLEL_Read (Bitu port, Bitu iolen) {
 }
 
 static void PARALLEL_Write (Bitu port, Bitu val, Bitu) {
-	for(Bitu i = 0; i < 4; i++) {
+	for(Bitu i = 0; i < 3; i++) {
 		if(parallel_baseaddr[i]==(port&0xfffc) && parallelPortObjects[i]) {
 #if PARALLEL_DEBUG
 			const char* const dbgtext[]={"DAT","IOS","CON","???"};
@@ -282,12 +283,20 @@ void CParallel::initialize()
 
 CParallel* parallelPortObjects[3]={NULL,NULL,NULL};
 
+bool DISNEY_HasInit();
+Bitu DISNEY_BasePort();
+bool DISNEY_ShouldInit();
+void DISNEY_Init(unsigned int base_port);
+
 Bitu bios_post_parport_count() {
 	Bitu count = 0;
 	unsigned int i;
 
 	for (i=0;i < 3;i++) {
-		if (parallelPortObjects[i] != NULL) count++;
+		if (parallelPortObjects[i] != NULL)
+			count++;
+		else if (DISNEY_HasInit() && parallel_baseaddr[i] == DISNEY_BasePort())
+			count++;
 	}
 
 	return count;
@@ -299,10 +308,12 @@ void BIOS_Post_register_parports() {
 
 	for (i=0;i < 3;i++) {
 		if (parallelPortObjects[i] != NULL)
-			BIOS_SetLPTPort(i,parallelPortObjects[i]->base);	
+			BIOS_SetLPTPort(i,parallelPortObjects[i]->base);
+		else if (DISNEY_HasInit() && parallel_baseaddr[i] == DISNEY_BasePort())
+			BIOS_SetLPTPort(i,DISNEY_BasePort());
 	}
 }
-
+	
 class PARPORTS:public Module_base {
 public:
 	
@@ -344,6 +355,14 @@ public:
 			else 
 			if(str=="disabled") {
 				parallelPortObjects[i] = 0;
+			} else if (str == "disney") {
+				if (!DISNEY_HasInit()) {
+					LOG_MSG("LPT%d: User explicitly assigned Disney Sound Source to this port",(int)i+1);
+					DISNEY_Init(parallel_baseaddr[i]);
+				}
+				else {
+					LOG_MSG("LPT%d: Disney Sound Source already initialized on a port, cannot init again",(int)i+1);
+				}
 			} else {
 				LOG_MSG ("Invalid type for LPT%d.",(int)i + 1);
 				parallelPortObjects[i] = 0;
@@ -376,6 +395,13 @@ void PARALLEL_OnPowerOn (Section * sec) {
 
 	if (testParallelPortsBaseclass) delete testParallelPortsBaseclass;
 	testParallelPortsBaseclass = new PARPORTS (control->GetSection("parallel"));
+
+	/* Mainline DOSBox 0.74 compatible support for "disney=true" setting.
+	 * But, don't allocate the Disney Sound Source if LPT1 is already taken. */
+	if (!DISNEY_HasInit() && DISNEY_ShouldInit() && parallelPortObjects[0] == NULL) {
+		LOG_MSG("LPT: LPT1 not taken, and dosbox.conf says to emulate Disney Sound Source");
+		DISNEY_Init(parallel_baseaddr[0]);
+	}
 }
 
 void PARALLEL_OnDOSKernelInit (Section * sec) {

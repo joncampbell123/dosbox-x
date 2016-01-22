@@ -30,7 +30,7 @@
 
 using namespace std;
 
-#define DISNEY_BASE 0x0378
+unsigned int DISNEY_BASE = 0x0378;
 
 #define DISNEY_SIZE 128
 
@@ -383,9 +383,7 @@ public:
 	DISNEY(Section* configuration):Module_base(configuration) {
 		Section_prop * section=static_cast<Section_prop *>(configuration);
 		if(!section->Get_bool("disney")) return;
-		if(mem_readw(BIOS_ADDRESS_LPT1) != 0) return;
-		BIOS_SetLPTPort(0,0x378);
-	
+
 		WriteHandler.Install(DISNEY_BASE,disney_write,IO_MB,3);
 		ReadHandler.Install(DISNEY_BASE,disney_read,IO_MB,3);
 		// see above //WriteHandler_cvm.Install(0x330,disney_write,IO_MB,1);
@@ -397,8 +395,6 @@ public:
 		disney.mo = new MixerObject();
 		disney.chan=disney.mo->Install(&DISNEY_CallBack,10000,"DISNEY");
 		DISNEY_disable(0);
-
-
 	}
 	~DISNEY(){
 		CPU_Snap_Back_To_Real_Mode();
@@ -418,9 +414,24 @@ static void DISNEY_ShutDown(Section* sec){
 	delete test;
 }
 
-void DISNEY_OnReset(Section* sec) {
+Bitu DISNEY_BasePort() {
+	return DISNEY_BASE;
+}
+
+bool DISNEY_ShouldInit() {
+	Section_prop *sec = (Section_prop*)control->GetSection("speaker");
+	return sec->Get_bool("disney");
+}
+
+bool DISNEY_HasInit() {
+	return (test != NULL);
+}
+
+// parallel port init code will call this depending on port allocation and config.
+void DISNEY_Init(unsigned int base_port) {
 	if (test == NULL) {
-		LOG(LOG_MISC,LOG_DEBUG)("Allocating Disney Sound emulation");
+		DISNEY_BASE = base_port;
+		LOG(LOG_MISC,LOG_DEBUG)("Allocating Disney Sound emulation on port %xh",DISNEY_BASE);
 		test = new DISNEY(control->GetSection("speaker"));
 	}
 }
@@ -429,6 +440,5 @@ void DISNEY_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing Disney Sound Source emulation");
 
 	AddExitFunction(AddExitFunctionFuncPair(DISNEY_ShutDown),true);
-	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(DISNEY_OnReset));
 }
 

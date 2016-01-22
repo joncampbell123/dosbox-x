@@ -1901,6 +1901,7 @@ void DOSBOX_SetupConfigSections(void) {
 			"	reallpt (direct parallel port passthrough),\n"
 			"	file (records data to a file or passes it to a device),\n"
 			"	printer (virtual dot-matrix printer, see [printer] section)\n"
+			"       disney (attach Disney Sound Source emulation to this port)\n"
 	        "Additional parameters must be in the same line in the form of\n"
 	        "parameter:value.\n"
 	        "  for reallpt:\n"
