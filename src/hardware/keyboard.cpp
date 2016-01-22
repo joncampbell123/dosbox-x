@@ -1424,6 +1424,10 @@ static void KEYBOARD_ShutDown(Section * sec) {
 	TIMER_DelTickHandler(&KEYBOARD_TickHandler);
 }
 
+bool KEYBOARD_Report_BIOS_PS2Mouse() {
+	return keyb.enable_aux && (keyb.ps2mouse.type != MOUSE_NONE);
+}
+
 void KEYBOARD_OnReset(Section *sec) {
 	Section_prop *section=static_cast<Section_prop *>(control->GetSection("keyboard"));
 

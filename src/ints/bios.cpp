@@ -3254,23 +3254,29 @@ private:
 		}
 
 		/* Setup some stuff in 0x40 bios segment */
-		
+
 		// Disney workaround
-		Bit16u disney_port = mem_readw(BIOS_ADDRESS_LPT1);
+//		Bit16u disney_port = mem_readw(BIOS_ADDRESS_LPT1);
 		// port timeouts
 		// always 1 second even if the port does not exist
-		BIOS_SetLPTPort(0, disney_port);
+//		BIOS_SetLPTPort(0, disney_port);
 		for(Bitu i = 1; i < 3; i++) BIOS_SetLPTPort(i, 0);
 		mem_writeb(BIOS_COM1_TIMEOUT,1);
 		mem_writeb(BIOS_COM2_TIMEOUT,1);
 		mem_writeb(BIOS_COM3_TIMEOUT,1);
 		mem_writeb(BIOS_COM4_TIMEOUT,1);
-		
+
+		void BIOS_Post_register_parports();
+		BIOS_Post_register_parports();
+
 		/* Setup equipment list */
 		// look http://www.bioscentral.com/misc/bda.htm
 		
 		//Bit16u config=0x4400;	//1 Floppy, 2 serial and 1 parallel 
 		Bit16u config = 0x0;
+
+		Bitu bios_post_parport_count();
+		config |= bios_post_parport_count() << 14;
 		
 #if (C_FPU)
 		extern bool enable_fpu;
@@ -3296,14 +3302,17 @@ private:
 			config|=0;
 			break;
 		}
-#if 0
+
 		// PS2 mouse
-		config |= 0x04;
-#endif
+		bool KEYBOARD_Report_BIOS_PS2Mouse();
+		if (KEYBOARD_Report_BIOS_PS2Mouse())
+			config |= 0x04;
+
 		// Gameport
 		config |= 0x1000;
 		mem_writew(BIOS_CONFIGURATION,config);
 		CMOS_SetRegister(0x14,(Bit8u)(config&0xff)); //Should be updated on changes
+
 		/* Setup extended memory size */
 		IO_Write(0x70,0x30);
 		size_extended=IO_Read(0x71);

@@ -218,7 +218,6 @@ CParallel::CParallel(CommandLine* cmd, Bitu portnr, Bit8u initirq) {
 		if (i != 1) WriteHandler[i].Install (i + base, PARALLEL_Write, IO_MB);
 		ReadHandler[i].Install (i + base, PARALLEL_Read, IO_MB);
 	}
-//	BIOS_SetLPTPort(portnr,base);
 
 // FIXME:
 //	mydosdevice=new device_LPT(portnr, this);
@@ -276,6 +275,28 @@ void CParallel::initialize()
 
 
 CParallel* parallelPortObjects[3]={NULL,NULL,NULL};
+
+Bitu bios_post_parport_count() {
+	Bitu count = 0;
+	unsigned int i;
+
+	for (i=0;i < 3;i++) {
+		if (parallelPortObjects[i] != NULL) count++;
+	}
+
+	return count;
+}
+
+/* at BIOS POST stage, write parallel ports to bios data area */
+void BIOS_Post_register_parports() {
+	unsigned int i;
+
+	for (i=0;i < 3;i++) {
+		if (parallelPortObjects[i] != NULL)
+			BIOS_SetLPTPort(i,parallelPortObjects[i]->base);	
+	}
+}
+
 class PARPORTS:public Module_base {
 public:
 	
