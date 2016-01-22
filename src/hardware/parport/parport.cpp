@@ -219,21 +219,27 @@ CParallel::CParallel(CommandLine* cmd, Bitu portnr, Bit8u initirq) {
 		ReadHandler[i].Install (i + base, PARALLEL_Read, IO_MB);
 	}
 
-// FIXME:
-//	mydosdevice=new device_LPT(portnr, this);
-//	DOS_AddDevice(mydosdevice);
+	mydosdevice = NULL;
 };
 
-CParallel::~CParallel(void) {
-//	LOG_MSG("~CParallel mydosdevice=%p\n",(void*)mydosdevice);
-//	BIOS_SetLPTPort(port_nr,0);
-//	if (mydosdevice != NULL) {
-//		LOG_MSG("~CParallel DOS_Device free\n");
+void CParallel::registerDOSDevice() {
+	if (mydosdevice == NULL) {
+		LOG(LOG_MISC,LOG_DEBUG)("LPT%d: Registering DOS device",(int)port_nr+1);
+		mydosdevice = new device_LPT(port_nr, this);
+		DOS_AddDevice(mydosdevice);
+	}
+}
 
-// FIXME: Now we're called after DOS shutdown. This causes a crash!
-//		DOS_DelDevice(mydosdevice);
-//		mydosdevice=NULL;
-//	}
+void CParallel::unregisterDOSDevice() {
+	if (mydosdevice != NULL) {
+		LOG(LOG_MISC,LOG_DEBUG)("LPT%d: Unregistering DOS device",(int)port_nr+1);
+		DOS_DelDevice(mydosdevice); // deletes the pointer for us!
+		mydosdevice=NULL;
+	}
+}
+
+CParallel::~CParallel(void) {
+	unregisterDOSDevice();
 };
 
 Bit8u CParallel::getPrinterStatus()
@@ -372,9 +378,43 @@ void PARALLEL_OnPowerOn (Section * sec) {
 	testParallelPortsBaseclass = new PARPORTS (control->GetSection("parallel"));
 }
 
+void PARALLEL_OnDOSKernelInit (Section * sec) {
+	unsigned int i;
+
+	LOG(LOG_MISC,LOG_DEBUG)("DOS kernel initializing, creating LPTx devices");
+
+	for (i=0;i < 3;i++) {
+		if (parallelPortObjects[i] != NULL)
+			parallelPortObjects[i]->registerDOSDevice();
+	}
+}
+
+void PARALLEL_OnDOSKernelExit (Section * sec) {
+	unsigned int i;
+
+	for (i=0;i < 3;i++) {
+		if (parallelPortObjects[i] != NULL)
+			parallelPortObjects[i]->unregisterDOSDevice();
+	}
+}
+
+void PARALLEL_OnReset (Section * sec) {
+	unsigned int i;
+
+	// FIXME: Unregister/destroy the DOS devices, but consider that the DOS kernel at reset is gone.
+	for (i=0;i < 3;i++) {
+		if (parallelPortObjects[i] != NULL)
+			parallelPortObjects[i]->unregisterDOSDevice();
+	}
+}
+
 void PARALLEL_Init () {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing parallel port emulation");
 
 	AddExitFunction(AddExitFunctionFuncPair(PARALLEL_Destroy),true);
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PARALLEL_OnReset));
 	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(PARALLEL_OnPowerOn));
+	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(PARALLEL_OnDOSKernelExit));
+	AddVMEventFunction(VM_EVENT_DOS_INIT_KERNEL_READY,AddVMEventFunctionFuncPair(PARALLEL_OnDOSKernelInit));
 }
+

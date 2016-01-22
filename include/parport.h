@@ -72,7 +72,10 @@ public:
 	void removeEvent(Bit16u type);
 	void handleEvent(Bit16u type);
 	virtual void handleUpperEvent(Bit16u type)=0;
-	
+
+	void registerDOSDevice();
+	void unregisterDOSDevice();
+
 	Bitu port_nr;
 	Bitu base;
 	Bitu irq;
