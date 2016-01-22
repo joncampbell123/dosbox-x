@@ -1301,12 +1301,12 @@ public:
 				serialports[i] = NULL;
 				LOG_MSG("Invalid type for serial%d",(int)i+1);
 			}
-			if(serialports[i]) {
-				biosParameter[i] = serial_baseaddr[i];
-				BIOS_PnP_ComPortRegister(serial_baseaddr[i],serialports[i]->irq);
-			}
+//			if(serialports[i]) {
+//				biosParameter[i] = serial_baseaddr[i];
+//				BIOS_PnP_ComPortRegister(serial_baseaddr[i],serialports[i]->irq);
+//			}
 		} // for 1-4
-		BIOS_SetComPorts (biosParameter);
+//		BIOS_SetComPorts (biosParameter);
 	}
 
 	~SERIALPORTS () {
@@ -1328,7 +1328,7 @@ void SERIAL_Destroy (Section * sec) {
 	}
 }
 
-void SERIAL_OnReset (Section * sec) {
+void SERIAL_OnPowerOn (Section * sec) {
 	// should never happen
 	LOG(LOG_MISC,LOG_DEBUG)("Reinitializing serial emulation");
 	if (testSerialPortsBaseclass) delete testSerialPortsBaseclass;
@@ -1339,6 +1339,6 @@ void SERIAL_Init () {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing serial port emulation");
 
 	AddExitFunction(AddExitFunctionFuncPair(SERIAL_Destroy),true);
-	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(SERIAL_OnReset));
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(SERIAL_OnPowerOn));
 }
 

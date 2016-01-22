@@ -218,7 +218,7 @@ CParallel::CParallel(CommandLine* cmd, Bitu portnr, Bit8u initirq) {
 		if (i != 1) WriteHandler[i].Install (i + base, PARALLEL_Write, IO_MB);
 		ReadHandler[i].Install (i + base, PARALLEL_Read, IO_MB);
 	}
-	BIOS_SetLPTPort(portnr,base);
+//	BIOS_SetLPTPort(portnr,base);
 
 // FIXME:
 //	mydosdevice=new device_LPT(portnr, this);
@@ -227,7 +227,7 @@ CParallel::CParallel(CommandLine* cmd, Bitu portnr, Bit8u initirq) {
 
 CParallel::~CParallel(void) {
 //	LOG_MSG("~CParallel mydosdevice=%p\n",(void*)mydosdevice);
-	BIOS_SetLPTPort(port_nr,0);
+//	BIOS_SetLPTPort(port_nr,0);
 //	if (mydosdevice != NULL) {
 //		LOG_MSG("~CParallel DOS_Device free\n");
 
