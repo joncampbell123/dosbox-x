@@ -436,7 +436,7 @@ bool PCI_IsInitialized() {
 	return IsInitialized();
 }
 
-void PCI_Reset(Section *sec) {
+void PCI_OnPowerOn(Section *sec) {
 	Section_prop * secprop=static_cast<Section_prop *>(control->GetSection("dosbox"));
 	assert(secprop != NULL);
 
@@ -462,6 +462,6 @@ void PCIBUS_Init() {
 			pci_devices[bus][devct]=NULL;
 
 	AddExitFunction(AddExitFunctionFuncPair(PCI_ShutDown),false);
-	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PCI_Reset));
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(PCI_OnPowerOn));
 }
 

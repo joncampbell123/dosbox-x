@@ -171,10 +171,16 @@ void VOODOO_Destroy(Section* /*sec*/) {
 	voodoo_dev=NULL;
 }
 
+void VOODOO_OnPowerOn(Section* /*sec*/) {
+	if (voodoo_dev == NULL) {
+		voodoo_current_lfb=(VOODOO_INITIAL_LFB&0xffff0000);
+		voodoo_dev = new VOODOO(control->GetSection("pci"));
+	}
+}
+
 void VOODOO_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing Voodoo/3DFX emulation");
 
-	voodoo_current_lfb=(VOODOO_INITIAL_LFB&0xffff0000);
-	voodoo_dev = new VOODOO(control->GetSection("pci"));
 	AddExitFunction(AddExitFunctionFuncPair(VOODOO_Destroy),true);
+	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(VOODOO_OnPowerOn));
 }
