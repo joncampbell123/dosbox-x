@@ -89,7 +89,7 @@ void Voodoo_PageHandler::writed(PhysPt addr,Bitu val) {
 	} else {
 		if (!(addr&1)) {
 			voodoo_w((addr>>2)&0x3FFFFF,val<<16,0xffff0000);
-			voodoo_w(((addr>>2)+1)&0x3FFFFF,val,0x0000ffff);
+			voodoo_w(((addr>>2)+1)&0x3FFFFF,val>>16,0x0000ffff);
 		} else {
 			Bit32u val1 = voodoo_r((addr>>2)&0x3FFFFF);
 			Bit32u val2 = voodoo_r(((addr>>2)+1)&0x3FFFFF);
