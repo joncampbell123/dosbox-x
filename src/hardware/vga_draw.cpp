@@ -42,6 +42,10 @@
 
 bool et4k_highcolor_half_pixel_rate();
 
+double vga_fps = 70;
+double vga_mode_time_base = -1;
+int vga_mode_frames_since_time_base = 0;
+
 extern bool vga_3da_polled;
 extern bool vga_page_flip_occurred;
 extern bool vga_enable_hpel_effects;
@@ -1043,7 +1047,10 @@ static void VGA_DrawSingleLine(Bitu /*blah*/) {
 	if (vga.draw.split_line==vga.draw.lines_done) VGA_ProcessSplit();
 	if (vga.draw.lines_done < vga.draw.lines_total) {
 		PIC_AddEvent(VGA_DrawSingleLine,(float)vga.draw.delay.singleline_delay);
-	} else RENDER_EndUpdate(false);
+	} else {
+		vga_mode_frames_since_time_base++;
+		RENDER_EndUpdate(false);
+	}
 
 	/* some VGA cards (ATI chipsets especially) do not double-buffer the
 	 * horizontal panning register. some DOS demos take advantage of that
@@ -1093,7 +1100,10 @@ static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
 	if (vga.draw.split_line==vga.draw.lines_done) VGA_ProcessSplit();
 	if (vga.draw.lines_done < vga.draw.lines_total) {
 		PIC_AddEvent(VGA_DrawEGASingleLine,(float)vga.draw.delay.singleline_delay);
-	} else RENDER_EndUpdate(false);
+	} else {
+		vga_mode_frames_since_time_base++;
+		RENDER_EndUpdate(false);
+	}
 }
 
 void VGA_SetBlinking(Bitu enabled) {
@@ -1137,10 +1147,21 @@ static void VGA_PanningLatch(Bitu /*val*/) {
 }
 
 static void VGA_VerticalTimer(Bitu /*val*/) {
-	vga.draw.delay.framestart = PIC_FullIndex();
+	double current_time = PIC_FullIndex();
+
+	vga.draw.delay.framestart = current_time; /* FIXME: Anyone use this?? If not, remove it */
 	vga_page_flip_occurred = false;
 	vga.draw.has_split = false;
 	vga_3da_polled = false;
+
+	/* compensate for floating point drift, make sure we're keeping the frame rate */
+	double shouldbe = (((double)vga_mode_frames_since_time_base * 1000.0) / vga_fps) + vga_mode_time_base;
+	double vsync_err = shouldbe - current_time; /* < 0 too slow     > 0 too fast */
+	double vsync_adj = (vsync_err < 0 ? -1 : 1) * vsync_err * vsync_err * 0.5;
+	if (vsync_adj < -20) vsync_adj = -20;
+	else if (vsync_adj > 20) vsync_adj = 20;
+
+//	LOG_MSG("Vsync err %.6fms adj=%.6fms",vsync_err,vsync_adj);
 
 	float vsynctimerval;
 	float vdisplayendtimerval;
@@ -1247,8 +1268,17 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 		vdisplayendtimerval	= (float)vga.draw.delay.vrstart;
 	}
 
-	PIC_AddEvent(VGA_VerticalTimer,vsynctimerval);
-	PIC_AddEvent(VGA_DisplayStartLatch,vdisplayendtimerval);
+	{
+		double fv;
+
+		fv = vsynctimerval + vsync_adj;
+		if (fv < 1) fv = 1;
+		PIC_AddEvent(VGA_VerticalTimer,fv);
+
+		fv = vdisplayendtimerval + vsync_adj;
+		if (fv < 1) fv = 1;
+		PIC_AddEvent(VGA_DisplayStartLatch,fv);
+	}
 	
 	switch(machine) {
 	case MCH_PCJR:
@@ -1400,6 +1430,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 				(int)(vga.draw.lines_total-vga.draw.lines_done));
 			if (vga.draw.mode==EGALINE) PIC_RemoveEvents(VGA_DrawEGASingleLine);
 			else PIC_RemoveEvents(VGA_DrawSingleLine);
+			vga_mode_frames_since_time_base++;
 			RENDER_EndUpdate(true);
 		}
 		vga.draw.lines_done = 0;
@@ -2156,7 +2187,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 #endif
 
 	// need to change the vertical timing?
-	if (fabs(vga.draw.delay.vtotal - 1000.0 / fps) > 0.0001)
+	if (vga_mode_time_base < 0 || fabs(vga.draw.delay.vtotal - 1000.0 / fps) > 0.0001)
 		fps_changed = true;
 
 	// need to resize the output window?
@@ -2178,11 +2209,14 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 			RENDER_SetSize(width,height,bpp,(float)fps,screenratio);
 
 		if (fps_changed) {
+			vga_mode_time_base = PIC_FullIndex();
+			vga_mode_frames_since_time_base = 0;
 			PIC_RemoveEvents(VGA_Other_VertInterrupt);
 			PIC_RemoveEvents(VGA_VerticalTimer);
 			PIC_RemoveEvents(VGA_PanningLatch);
 			PIC_RemoveEvents(VGA_DisplayStartLatch);
 			vga.draw.delay.vtotal = 1000.0 / fps;
+			vga_fps = fps;
 			VGA_VerticalTimer(0);
 		}
 
@@ -2194,7 +2228,10 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 void VGA_KillDrawing(void) {
 	PIC_RemoveEvents(VGA_DrawSingleLine);
 	PIC_RemoveEvents(VGA_DrawEGASingleLine);
-	if (!vga.draw.vga_override) RENDER_EndUpdate(true);
+	if (!vga.draw.vga_override) {
+		vga_mode_frames_since_time_base++;
+		RENDER_EndUpdate(true);
+	}
 }
 
 void VGA_SetOverride(bool vga_override) {
