@@ -1301,6 +1301,8 @@ void voodoo_ogl_texture_clear(UINT32 texbase, int TMU) {
 }
 
 void voodoo_ogl_draw_pixel(int x, int y, bool has_rgb, bool has_alpha, int r, int g, int b, int a) {
+	GLfloat x2, y2;
+
 	if (m_hProgramObject != 0) {
 		glUseProgramObjectARB(0);
 		m_hProgramObject = 0;
@@ -1320,9 +1322,12 @@ void voodoo_ogl_draw_pixel(int x, int y, bool has_rgb, bool has_alpha, int r, in
 
 	VOGL_SetAlphaMode(0, 0,0,0,0);
 
+	x2 = (GLfloat) x + 0.5;
+	y2 = (GLfloat) y + 0.5;
+
 	VOGL_BeginMode(GL_POINTS);
 	glColor4ub((GLubyte)(r&0xff), (GLubyte)(g&0xff), (GLubyte)(b&0xff), (GLubyte)(a&0xff));
-	glVertex2i(x, y);
+	glVertex2f(x2, y2);
 }
 
 void voodoo_ogl_draw_z(int x, int y, int z) {
@@ -1355,6 +1360,7 @@ void voodoo_ogl_draw_z(int x, int y, int z) {
 
 void voodoo_ogl_draw_pixel_pipeline(int x, int y, int r, int g, int b) {
 //	VOGL_ClearBeginMode();
+	GLfloat x2, y2;
 
 	// TODO redo everything //
 	if (m_hProgramObject != 0) {
@@ -1386,11 +1392,14 @@ void voodoo_ogl_draw_pixel_pipeline(int x, int y, int r, int g, int b) {
 		VOGL_SetAlphaMode(0, 0,0,0,0);
 	}
 
+	x2 = (GLfloat) x + 0.5;
+	y2 = (GLfloat) y + 0.5;
+
 	VOGL_BeginMode(GL_POINTS);
 //	glBegin(GL_POINTS);
 //	glColor3f((float)r/255.0f, (float)g/255.0f, (float)b/255.0f);
 	glColor3ub((GLubyte)(r&0xff), (GLubyte)(g&0xff), (GLubyte)(b&0xff));
-	glVertex2f((float)x, (float)y);
+	glVertex2f(x2, y2);
 //	glEnd();
 }
 
