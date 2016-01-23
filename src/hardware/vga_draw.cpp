@@ -2130,17 +2130,6 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 #endif
 
 	bool fps_changed = false;
-	// need to change the vertical timing?
-	if (fabs(vga.draw.delay.vtotal - 1000.0 / fps) > 0.0001) {
-		fps_changed = true;
-		vga.draw.delay.vtotal = 1000.0 / fps;
-		VGA_KillDrawing();
-		PIC_RemoveEvents(VGA_Other_VertInterrupt);
-		PIC_RemoveEvents(VGA_VerticalTimer);
-		PIC_RemoveEvents(VGA_PanningLatch);
-		PIC_RemoveEvents(VGA_DisplayStartLatch);
-		VGA_VerticalTimer(0);
-	}
 
 #if C_DEBUG
 	LOG(LOG_VGA,LOG_NORMAL)("h total %2.5f (%3.2fkHz) blank(%02.5f/%02.5f) retrace(%02.5f/%02.5f)",
@@ -2166,11 +2155,14 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		oscclock/1000000.0, mode_texts[vga.mode]);
 #endif
 
+	// need to change the vertical timing?
+	if (fabs(vga.draw.delay.vtotal - 1000.0 / fps) > 0.0001)
+		fps_changed = true;
+
 	// need to resize the output window?
 	if ((width != vga.draw.width) ||
 		(height != vga.draw.height) ||
 		(fabs(screenratio - vga.draw.screen_ratio) > 0.0001) ||
-		(fabs(vga.draw.delay.vtotal - 1000.0 / fps) > 0.0001) ||
 		(vga.draw.bpp != bpp) || fps_changed) {
 
 		VGA_KillDrawing();
@@ -2184,6 +2176,15 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 #endif
 		if (!vga.draw.vga_override)
 			RENDER_SetSize(width,height,bpp,(float)fps,screenratio);
+
+		if (fps_changed) {
+			PIC_RemoveEvents(VGA_Other_VertInterrupt);
+			PIC_RemoveEvents(VGA_VerticalTimer);
+			PIC_RemoveEvents(VGA_PanningLatch);
+			PIC_RemoveEvents(VGA_DisplayStartLatch);
+			vga.draw.delay.vtotal = 1000.0 / fps;
+			VGA_VerticalTimer(0);
+		}
 
 		VGA_DAC_UpdateColorPalette();
 	}
