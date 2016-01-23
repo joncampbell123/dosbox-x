@@ -442,7 +442,7 @@ void TIMER_BIOS_INIT_Configure() {
 		int freq = pcsec->Get_int("initial frequency"); /* original code: 1320 */
 		int div;
 
-		if (freq < 18) {
+		if (freq < 19) {
 			div = 1;
 		}
 		else {
@@ -465,6 +465,7 @@ void TIMER_BIOS_INIT_Configure() {
 	pit[1].delay=(1000.0f/((float)PIT_TICK_RATE/(float)pit[1].cntr));
 	pit[2].delay=(1000.0f/((float)PIT_TICK_RATE/(float)pit[2].cntr));
 
+	PCSPEAKER_SetCounter(pit[2].cntr,pit[2].mode);
 	PIC_AddEvent(PIT0_Event,pit[0].delay);
 }
 
