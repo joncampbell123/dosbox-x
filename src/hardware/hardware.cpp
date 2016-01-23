@@ -193,6 +193,12 @@ void CAPTURE_VideoEvent(bool pressed) {
 		LOG_MSG("Stopped capturing video.");	
 
 		if (capture.video.writer != NULL) {
+			if ( capture.video.audioused ) {
+				CAPTURE_AddAviChunk( "01wb", capture.video.audioused * 4, capture.video.audiobuf, 0, 1);
+				capture.video.audiowritten = capture.video.audioused*4;
+				capture.video.audioused = 0;
+			}
+
 			avi_writer_end_data(capture.video.writer);
 			avi_writer_finish(capture.video.writer);
 			avi_writer_close_file(capture.video.writer);
