@@ -1058,13 +1058,13 @@ skip_shot:
 			ffmpeg_vidrgb_frame->width = capture.video.width;
 			ffmpeg_vidrgb_frame->height = capture.video.height;
 			if (bpp == 8)
-			ffmpeg_vidrgb_frame->format = AV_PIX_FMT_PAL8;
+				ffmpeg_vidrgb_frame->format = AV_PIX_FMT_PAL8;
 			else if (bpp == 15)
 				ffmpeg_vidrgb_frame->format = (GFX_GetBShift() == 0) ? AV_PIX_FMT_BGR555LE : AV_PIX_FMT_RGB555LE;
 			else if (bpp == 16)
 				ffmpeg_vidrgb_frame->format = (GFX_GetBShift() == 0) ? AV_PIX_FMT_BGR565LE : AV_PIX_FMT_RGB565LE;
 			else if (bpp == 24)
-				ffmpeg_vidrgb_frame->format = (GFX_GetBShift() == 0) ? AV_PIX_FMT_BGR24 : AV_PIX_FMT_RGB24;
+				ffmpeg_vidrgb_frame->format = (GFX_GetBShift() == 0) ? AV_PIX_FMT_BGR24 : AV_PIX_FMT_RGB24; // UNTESTED!!
 			else if (bpp == 32)
 				ffmpeg_vidrgb_frame->format = (GFX_GetBShift() == 0) ? AV_PIX_FMT_BGRA : AV_PIX_FMT_RGBA;
 			else
