@@ -807,6 +807,7 @@ void DOSBOX_SetupConfigSections(void) {
 	const char* cyclest[] = { "auto","fixed","max","%u",0 };
 	const char* mputypes[] = { "intelligent", "uart", "none", 0 };
 	const char* vsyncmode[] = { "off", "on" ,"force", "host", 0 };
+	const char* captureformats[] = { "default", "avi-zmbv", "mpegts-h264", 0 };
 	const char* blocksizes[] = {"1024", "2048", "4096", "8192", "512", "256", 0};
 	const char* auxdevices[] = {"none","2button","3button","intellimouse","intellimouse45",0};
 	const char* cputype_values[] = {"auto", "8086", "8086_prefetch", "80186", "80186_prefetch", "286", "286_prefetch", "386", "386_prefetch", "486", "pentium", "pentium_mmx", 0};
@@ -931,6 +932,14 @@ void DOSBOX_SetupConfigSections(void) {
 
 	Pstring = secprop->Add_path("captures",Property::Changeable::Always,"capture");
 	Pstring->Set_help("Directory where things like wave, midi, screenshot get captured.");
+
+	Pstring = secprop->Add_string("capture format", Property::Changeable::OnlyAtStart,"default");
+	Pstring->Set_values(captureformats);
+	Pstring->Set_help("Capture format to use when capturing video. The availability of the format depends on how DOSBox-X was compiled.\n"
+			"default                     Use compiled-in default (avi-zmbv)\n"
+			"avi-zmbv                    Use DOSBox-style AVI + ZMBV codec with PCM audio\n"
+			"mpegts-h264                 Use MPEG transport stream + H.264 + AAC audio. Resolution & refresh rate changes can be contained\n"
+			"                            within one file with this choice, however not all software can support mid-stream format changes.");
 
 	Pbool = secprop->Add_bool("mainline compatible mapping",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("If set, arrange private areas, UMBs, and DOS kernel structures by default in the same way the mainline branch would do it.\n"

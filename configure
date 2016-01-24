@@ -749,6 +749,7 @@ with_alsa_inc_prefix
 enable_alsatest
 enable_debug
 enable_core_inline
+enable_avcodec
 enable_opengl
 enable_dynamic_core
 enable_dynamic_x86
@@ -1400,6 +1401,7 @@ Optional Features:
   --disable-alsatest      Do not try to compile and run a test Alsa program
   --enable-debug          Enable debug mode
   --enable-core-inline    Enable inlined memory handling in CPU Core
+  --disable-avcodec       Disable FFMPEG avcodec support
   --disable-opengl        Disable opengl support
   --disable-dynamic-core  Disable all dynamic cores
   --disable-dynamic-x86   Disable x86 dynamic cpu core
@@ -6919,6 +6921,73 @@ $as_echo "enabling inlined memory handling in CPU Core" >&6; }
 
 fi
 
+
+# FFMPEG output
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for avcodec_open2 in -lavcodec" >&5
+$as_echo_n "checking for avcodec_open2 in -lavcodec... " >&6; }
+if ${ac_cv_lib_avcodec_avcodec_open2+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lavcodec  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char avcodec_open2 ();
+int
+main ()
+{
+return avcodec_open2 ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_avcodec_avcodec_open2=yes
+else
+  ac_cv_lib_avcodec_avcodec_open2=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_avcodec_avcodec_open2" >&5
+$as_echo "$ac_cv_lib_avcodec_avcodec_open2" >&6; }
+if test "x$ac_cv_lib_avcodec_avcodec_open2" = xyes; then :
+  have_ffmpeg=yes
+else
+  have_ffmpeg=no
+fi
+
+ac_fn_c_check_header_mongrel "$LINENO" "avcodec/avcodec.h" "ac_cv_header_avcodec_avcodec_h" "$ac_includes_default"
+if test "x$ac_cv_header_avcodec_avcodec_h" = xyes; then :
+  have_avcodec_h=yes
+else
+  have_avcodec_h=no
+fi
+
+
+# Check whether --enable-avcodec was given.
+if test "${enable_avcodec+set}" = set; then :
+  enableval=$enable_avcodec;
+else
+  enable_ffmpeg=yes
+fi
+
+if test x$enable_avcodec = xyes; then
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	LIBS="$LIBS -lavcodec -lavformat -lavutil -lswscale"
+	$as_echo "#define C_AVCODEC 1" >>confdefs.h
+
+fi
 
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -lGL" >&5

@@ -282,6 +282,17 @@ AC_ARG_ENABLE(core-inline,AC_HELP_STRING([--enable-core-inline],[Enable inlined 
   fi
 ],)
 
+# FFMPEG output
+AH_TEMPLATE(C_AVCODEC,[Define to 1 to use FFMPEG libavcodec for video capture])
+AC_CHECK_LIB(avcodec,avcodec_open2,have_ffmpeg=yes,have_ffmpeg=no,)
+AC_CHECK_HEADER(avcodec/avcodec.h,have_avcodec_h=yes,have_avcodec_h=no,)
+AC_ARG_ENABLE(avcodec,AC_HELP_STRING([--disable-avcodec],[Disable FFMPEG avcodec support]),,enable_ffmpeg=yes)
+if test x$enable_avcodec = xyes; then
+	AC_MSG_RESULT(yes)
+	LIBS="$LIBS -lavcodec -lavformat -lavutil -lswscale"
+	AC_DEFINE(C_AVCODEC,1)
+fi
+
 AH_TEMPLATE(C_OPENGL,[Define to 1 to use opengl display output support])
 AC_CHECK_LIB(GL, main, have_gl_lib=yes, have_gl_lib=no , )
 AC_CHECK_LIB(opengl32, main, have_opengl32_lib=yes,have_opengl32_lib=no , )

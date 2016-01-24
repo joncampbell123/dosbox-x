@@ -686,6 +686,10 @@ uint32_t GFX_Amask;
 unsigned char GFX_Ashift;
 unsigned char GFX_bpp;
 
+unsigned int GFX_GetBShift() {
+	return sdl.surface->format->Bshift;
+}
+
 void GFX_LogSDLState(void) {
 	LOG(LOG_MISC,LOG_DEBUG)("SDL video mode: %ux%u (clip %ux%u with upper-left at %ux%u) %ubpp",
 		(unsigned)sdl.surface->w,(unsigned)sdl.surface->h,

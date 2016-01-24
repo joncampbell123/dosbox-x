@@ -32,6 +32,9 @@
 /* Determines if the compilers supports fastcall attribute. */
 #undef C_ATTRIBUTE_FASTCALL
 
+/* Define to 1 to use FFMPEG libavcodec for video capture */
+#undef C_AVCODEC
+
 /* Define to 1 to use inlined memory functions in cpu core */
 #undef C_CORE_INLINE
 
