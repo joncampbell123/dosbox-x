@@ -1335,14 +1335,16 @@ void DOSBOX_SetupConfigSections(void) {
 	Pbool->Set_help("Always report (to log file) triple faults if set. Else, a triple fault is reported only once. Set this option for debugging purposes.");
 
 	Pbool = secprop->Add_bool("enable msr",Property::Changeable::Always,true);
-	Pbool->Set_help("Allow RDMSR/WRMSR instructions. This option is only meaningful when cputype=pentium.");
+	Pbool->Set_help("Allow RDMSR/WRMSR instructions. This option is only meaningful when cputype=pentium.\n"
+			"WARNING: Leaving this option enabled while installing Windows 95/98/ME can cause crashes.");
 
 	Pbool = secprop->Add_bool("ignore undefined msr",Property::Changeable::Always,false);
 	Pbool->Set_help("Ignore RDMSR/WRMSR on undefined registers. Normally the CPU will fire an Invalid Opcode exception in that case.\n"
 			"This option is off by default, enable if using software or drivers that assumes the presence of\n"
 			"certain MSR registers without checking. If you are using certain versions of the 3Dfx glide drivers for MS-DOS\n"
 			"you will need to set this to TRUE as 3Dfx appears to have coded GLIDE2.OVL to assume the presence\n"
-			"of Pentium Pro/Pentium II MTRR registers.");
+			"of Pentium Pro/Pentium II MTRR registers.\n"
+			"WARNING: Leaving this option enabled while installing Windows 95/98/ME can cause crashes.");
 
 	/* NTS: This setting is honored by all cpu cores except dynamic core */
 	Pint = secprop->Add_int("interruptible rep string op",Property::Changeable::Always,-1);
