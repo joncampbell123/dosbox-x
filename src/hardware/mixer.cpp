@@ -424,10 +424,40 @@ static void MIXER_MixData(Bitu needed) {
 	mixer.done = needed;
 }
 
+unsigned long long mixer_sample_counter = 0;
+double mixer_start_pic_time = 0;
+
+/* you'd be surprised how off-time the mixer can get following the sound card vs the emulation */
+static int MIXER_CheckTimeSync() {
+	if( Mixer_irq_important() ) {
+		double time = PIC_FullIndex() - mixer_start_pic_time;
+		double should = ((double)mixer_sample_counter * 1000) / mixer.freq;
+		double error = should - time;
+		double adj = (error < 0 ? -1 : 1) * error * error * 0.075;
+		if (adj < -20) adj = -20;
+		else if (adj > 20) adj = 20;
+		int iadj = (int)((-adj * mixer.freq * (1 << MIXER_SHIFT)) / 1000);
+//		LOG_MSG("iadj=%d %.6f",iadj,(double)iadj / (1 << MIXER_SHIFT));
+		return iadj;
+	}
+	else {
+		mixer_start_pic_time = PIC_FullIndex();
+		mixer_sample_counter = 0;
+	}
+
+	return 0;
+}
+
 static void MIXER_MixPICEvent(Bitu val) {
+	int tick_adj = MIXER_CheckTimeSync();
+
 	SDL_LockAudio();
-	if (mixer.needed > 0) MIXER_MixData(mixer.needed);
-	mixer.tick_remain+=mixer.tick_add;
+	if (mixer.needed > 0) {
+		mixer_sample_counter += mixer.needed-mixer.done;
+		MIXER_MixData(mixer.needed);
+	}
+	mixer.tick_remain+=mixer.tick_add+tick_adj;
+	if ((Bit32s)mixer.tick_remain < 0) mixer.tick_remain = 0;
 	mixer.needed+=(mixer.tick_remain>>MIXER_SHIFT);
 	mixer.tick_remain&=MIXER_REMAIN;
 	SDL_UnlockAudio();
@@ -436,16 +466,25 @@ static void MIXER_MixPICEvent(Bitu val) {
 }
 
 static void MIXER_Mix(void) {
+	int tick_adj = MIXER_CheckTimeSync();
+
 	SDL_LockAudio();
-	MIXER_MixData(mixer.needed);
-	mixer.tick_remain+=mixer.tick_add;
+	if (mixer.needed > 0) {
+		mixer_sample_counter += mixer.needed-mixer.done;
+		MIXER_MixData(mixer.needed);
+	}
+	mixer.tick_remain+=mixer.tick_add+tick_adj;
+	if ((Bit32s)mixer.tick_remain < 0) mixer.tick_remain = 0;
 	mixer.needed+=(mixer.tick_remain>>MIXER_SHIFT);
 	mixer.tick_remain&=MIXER_REMAIN;
 	SDL_UnlockAudio();
 }
 
 static void MIXER_Mix_NoSound(void) {
-	MIXER_MixData(mixer.needed);
+	if (mixer.needed > 0) {
+		mixer_sample_counter += mixer.needed-mixer.done;
+		MIXER_MixData(mixer.needed);
+	}
 	/* Clear piece we've just generated */
 	for (Bitu i=0;i<mixer.needed;i++) {
 		mixer.work[mixer.pos][0]=0;
@@ -459,6 +498,7 @@ static void MIXER_Mix_NoSound(void) {
 	}
 	/* Set values for next tick */
 	mixer.tick_remain+=mixer.tick_add;
+	if ((Bit32s)mixer.tick_remain < 0) mixer.tick_remain = 0;
 	mixer.needed=mixer.tick_remain>>MIXER_SHIFT;
 	mixer.tick_remain&=MIXER_REMAIN;
 	mixer.done=0;
@@ -760,6 +800,8 @@ void MIXER_Init() {
 	mixer.min_needed=(mixer.freq*mixer.min_needed)/1000;
 	mixer.max_needed=mixer.blocksize * 2 + 2*mixer.min_needed;
 	mixer.needed=mixer.min_needed+1;
+	mixer_start_pic_time = PIC_FullIndex();
+	mixer_sample_counter = 0;
 
 	LOG(LOG_MISC,LOG_DEBUG)("Mixer: sample_accurate=%u blocksize=%u sdl_rate=%uHz mixer_rate=%uHz channels=%u samples=%u min/max/need=%u/%u/%u",
 		(unsigned int)mixer.sampleaccurate,
