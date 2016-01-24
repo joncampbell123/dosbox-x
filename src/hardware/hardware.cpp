@@ -66,14 +66,10 @@ SwsContext*		ffmpeg_sws_ctx = NULL;
 bool			ffmpeg_avformat_began = false;
 unsigned int		ffmpeg_aud_write = 0;
 Bit64u			ffmpeg_audio_sample_counter = 0;
+Bit64u			ffmpeg_video_frame_time_offset = 0;
+Bit64u			ffmpeg_video_frame_last_time = 0;
 
 void ffmpeg_closeall() {
-	if (ffmpeg_vid_ctx != NULL) {
-		/* TODO: Flush delayed frames to format */
-	}
-	if (ffmpeg_aud_ctx != NULL) {
-		/* TODO: Flush remainder of audio to format */
-	}
 	if (ffmpeg_fmt_ctx != NULL) {
 		if (ffmpeg_avformat_began) {
 			av_write_trailer(ffmpeg_fmt_ctx);
@@ -106,6 +102,8 @@ void ffmpeg_closeall() {
 		sws_freeContext(ffmpeg_sws_ctx);
 		ffmpeg_sws_ctx = NULL;
 	}
+	ffmpeg_video_frame_time_offset = 0;
+	ffmpeg_video_frame_last_time = 0;
 	ffmpeg_aud_codec = NULL;
 	ffmpeg_vid_codec = NULL;
 	ffmpeg_vid_stream = NULL;
@@ -201,6 +199,46 @@ void ffmpeg_take_audio(Bit16s *raw,unsigned int samples) {
 	}
 }
 
+void ffmpeg_reopen_video(double fps);
+
+void ffmpeg_flush_video() {
+	if (ffmpeg_fmt_ctx != NULL) {
+		if (ffmpeg_vid_frame != NULL) {
+			bool again;
+			AVPacket pkt;
+
+			do {
+				again=false;
+				av_init_packet(&pkt);
+				if (av_new_packet(&pkt,50000000/8) == 0) {
+					int gotit=0;
+					if (avcodec_encode_video2(ffmpeg_vid_ctx,&pkt,NULL,&gotit) == 0) {
+						if (gotit) {
+							Bit64u tm;
+
+							again = true;
+							tm = pkt.pts;
+							pkt.stream_index = ffmpeg_vid_stream->index;
+							av_packet_rescale_ts(&pkt,ffmpeg_vid_ctx->time_base,ffmpeg_vid_stream->time_base);
+							pkt.pts += ffmpeg_video_frame_time_offset;
+							pkt.dts += ffmpeg_video_frame_time_offset;
+
+							if (av_interleaved_write_frame(ffmpeg_fmt_ctx,&pkt) < 0)
+								LOG_MSG("WARNING: av_interleaved_write_frame failed");
+
+							pkt.pts = tm + 1;
+							pkt.dts = tm + 1;
+							av_packet_rescale_ts(&pkt,ffmpeg_vid_ctx->time_base,ffmpeg_vid_stream->time_base);
+							ffmpeg_video_frame_last_time = pkt.pts;
+						}
+					}
+				}
+				av_packet_unref(&pkt);
+			} while (again);
+		}
+	}
+}
+
 void ffmpeg_flushout() {
 	/* audio */
 	if (ffmpeg_fmt_ctx != NULL) {
@@ -234,30 +272,9 @@ void ffmpeg_flushout() {
 				av_packet_unref(&pkt);
 			} while (again);
 		}
-		if (ffmpeg_vid_frame != NULL) {
-			bool again;
-			AVPacket pkt;
-
-			do {
-				again=false;
-				av_init_packet(&pkt);
-				if (av_new_packet(&pkt,50000000/8) == 0) {
-					int gotit=0;
-					if (avcodec_encode_video2(ffmpeg_vid_ctx,&pkt,NULL,&gotit) == 0) {
-						if (gotit) {
-							again = true;
-							pkt.stream_index = ffmpeg_vid_stream->index;
-							av_packet_rescale_ts(&pkt,ffmpeg_vid_ctx->time_base,ffmpeg_vid_stream->time_base);
-
-							if (av_interleaved_write_frame(ffmpeg_fmt_ctx,&pkt) < 0)
-								LOG_MSG("WARNING: av_interleaved_write_frame failed");
-						}
-					}
-				}
-				av_packet_unref(&pkt);
-			} while (again);
-		}
 	}
+
+	ffmpeg_flush_video();
 }
 #endif
 
@@ -306,6 +323,117 @@ static struct {
 	} video;
 #endif
 } capture;
+
+#if (C_AVCODEC)
+void ffmpeg_reopen_video(double fps,const int bpp) {
+	if (ffmpeg_vid_ctx != NULL) {
+		avcodec_close(ffmpeg_vid_ctx);
+		ffmpeg_vid_ctx = NULL;
+	}
+	if (ffmpeg_vidrgb_frame != NULL) {
+		av_frame_free(&ffmpeg_vidrgb_frame);
+		ffmpeg_vidrgb_frame = NULL;
+	}
+	if (ffmpeg_vid_frame != NULL) {
+		av_frame_free(&ffmpeg_vid_frame);
+		ffmpeg_vid_frame = NULL;
+	}
+	if (ffmpeg_sws_ctx != NULL) {
+		sws_freeContext(ffmpeg_sws_ctx);
+		ffmpeg_sws_ctx = NULL;
+	}
+
+	LOG_MSG("Restarting video codec");
+
+	// FIXME: This is copypasta! Consolidate!
+	ffmpeg_vid_ctx = ffmpeg_vid_stream->codec = avcodec_alloc_context3(ffmpeg_vid_codec);
+	if (ffmpeg_vid_ctx == NULL) E_Exit("Error: Unable to reopen vid codec");
+	avcodec_get_context_defaults3(ffmpeg_vid_ctx,ffmpeg_vid_codec);
+	ffmpeg_vid_ctx->bit_rate = 25000000; // TODO: make configuration option!
+	ffmpeg_vid_ctx->keyint_min = 15; // TODO: make configuration option!
+	ffmpeg_vid_ctx->time_base.num = 1000000;
+	ffmpeg_vid_ctx->time_base.den = (uint32_t)(1000000 * fps);
+	ffmpeg_vid_ctx->width = capture.video.width;
+	ffmpeg_vid_ctx->height = capture.video.height;
+	ffmpeg_vid_ctx->gop_size = 15; // TODO: make config option
+	ffmpeg_vid_ctx->max_b_frames = 0;
+	ffmpeg_vid_ctx->pix_fmt = PIX_FMT_YUV444P;	// TODO: auto-choose according to what codec says is supported, and let user choose as well
+	ffmpeg_vid_ctx->thread_count = 0;		// auto-choose
+	ffmpeg_vid_ctx->flags2 = CODEC_FLAG2_FAST;
+	ffmpeg_vid_ctx->qmin = 1;
+	ffmpeg_vid_ctx->qmax = 63;
+	ffmpeg_vid_ctx->rc_max_rate = ffmpeg_vid_ctx->bit_rate;
+	ffmpeg_vid_ctx->rc_min_rate = ffmpeg_vid_ctx->bit_rate;
+	ffmpeg_vid_ctx->rc_buffer_size = (4*1024*1024);
+
+	/* 4:3 aspect ratio. FFMPEG thinks in terms of Pixel Aspect Ratio not Display Aspect Ratio */
+	ffmpeg_vid_ctx->sample_aspect_ratio.num = 4 * capture.video.height;
+	ffmpeg_vid_ctx->sample_aspect_ratio.den = 3 * capture.video.width;
+
+	{
+		AVDictionary *opts = NULL;
+
+		av_dict_set(&opts,"preset","superfast",1);
+		av_dict_set(&opts,"aud","1",1);
+
+		if (avcodec_open2(ffmpeg_vid_ctx,ffmpeg_vid_codec,&opts) < 0) {
+			E_Exit("Unable to open H.264 codec");
+		}
+
+		av_dict_free(&opts);
+	}
+
+	ffmpeg_vid_frame = av_frame_alloc();
+	ffmpeg_vidrgb_frame = av_frame_alloc();
+	if (ffmpeg_aud_frame == NULL || ffmpeg_vid_frame == NULL || ffmpeg_vidrgb_frame == NULL)
+		E_Exit(" ");
+
+	unsigned int GFX_GetBShift();
+
+	av_frame_set_colorspace(ffmpeg_vidrgb_frame,AVCOL_SPC_RGB);
+	ffmpeg_vidrgb_frame->width = capture.video.width;
+	ffmpeg_vidrgb_frame->height = capture.video.height;
+	if (bpp == 8)
+		ffmpeg_vidrgb_frame->format = AV_PIX_FMT_PAL8;
+	else if (bpp == 15)
+		ffmpeg_vidrgb_frame->format = (GFX_GetBShift() == 0) ? AV_PIX_FMT_BGR555LE : AV_PIX_FMT_RGB555LE;
+	else if (bpp == 16)
+		ffmpeg_vidrgb_frame->format = (GFX_GetBShift() == 0) ? AV_PIX_FMT_BGR565LE : AV_PIX_FMT_RGB565LE;
+	else if (bpp == 24)
+		ffmpeg_vidrgb_frame->format = (GFX_GetBShift() == 0) ? AV_PIX_FMT_BGR24 : AV_PIX_FMT_RGB24;
+	else if (bpp == 32)
+		ffmpeg_vidrgb_frame->format = (GFX_GetBShift() == 0) ? AV_PIX_FMT_BGRA : AV_PIX_FMT_RGBA;
+	else
+		abort();//whut?
+
+	if (av_frame_get_buffer(ffmpeg_vidrgb_frame,64) < 0) {
+		E_Exit(" ");
+	}
+
+	av_frame_set_colorspace(ffmpeg_vid_frame,AVCOL_SPC_SMPTE170M);
+	av_frame_set_color_range(ffmpeg_vidrgb_frame,AVCOL_RANGE_MPEG);
+	ffmpeg_vid_frame->width = capture.video.width;
+	ffmpeg_vid_frame->height = capture.video.height;
+	ffmpeg_vid_frame->format = ffmpeg_vid_ctx->pix_fmt;
+	if (av_frame_get_buffer(ffmpeg_vid_frame,64) < 0)
+		E_Exit(" ");
+
+	ffmpeg_sws_ctx = sws_getContext(
+			// source
+			ffmpeg_vidrgb_frame->width,
+			ffmpeg_vidrgb_frame->height,
+			(AVPixelFormat)ffmpeg_vidrgb_frame->format,
+			// dest
+			ffmpeg_vid_frame->width,
+			ffmpeg_vid_frame->height,
+			(AVPixelFormat)ffmpeg_vid_frame->format,
+			// and the rest
+			((ffmpeg_vid_frame->width == ffmpeg_vidrgb_frame->width && ffmpeg_vid_frame->height == ffmpeg_vidrgb_frame->height) ? SWS_POINT : SWS_BILINEAR),
+			NULL,NULL,NULL);
+	if (ffmpeg_sws_ctx == NULL)
+		E_Exit(" ");
+}
+#endif
 
 std::string GetCaptureFilePath(const char * type,const char * ext) {
 	if(capturedir.empty()) {
@@ -619,8 +747,18 @@ skip_shot:
 				CAPTURE_VideoEvent(true);
 #if (C_AVCODEC)
 			else if (export_ffmpeg && ffmpeg_fmt_ctx != NULL) {
-				/* TODO: flush the codecs, close them, reopen them with the new dimensions, and keep on writing frames */
-				CAPTURE_VideoEvent(true);
+				ffmpeg_flush_video();
+				ffmpeg_video_frame_time_offset += ffmpeg_video_frame_last_time;
+				ffmpeg_video_frame_last_time = 0;
+
+				capture.video.width = width;
+				capture.video.height = height;
+				capture.video.bpp = bpp;
+				capture.video.fps = fps;
+				capture.video.frames = 0;
+
+				ffmpeg_reopen_video(fps,bpp);
+//				CAPTURE_VideoEvent(true);
 			}
 #endif
 		}
@@ -1098,11 +1236,21 @@ skip_shot:
 				ffmpeg_vid_frame->key_frame = ((capture.video.frames % 15) == 0)?1:0;
 				if (avcodec_encode_video2(ffmpeg_vid_ctx,&pkt,ffmpeg_vid_frame,&gotit) == 0) {
 					if (gotit) {
+						Bit64u tm;
+
+						tm = pkt.pts;
 						pkt.stream_index = ffmpeg_vid_stream->index;
 						av_packet_rescale_ts(&pkt,ffmpeg_vid_ctx->time_base,ffmpeg_vid_stream->time_base);
+						pkt.pts += ffmpeg_video_frame_time_offset;
+						pkt.dts += ffmpeg_video_frame_time_offset;
 
 						if (av_interleaved_write_frame(ffmpeg_fmt_ctx,&pkt) < 0)
 							LOG_MSG("WARNING: av_interleaved_write_frame failed");
+
+						pkt.pts = tm + 1;
+						pkt.dts = tm + 1;
+						av_packet_rescale_ts(&pkt,ffmpeg_vid_ctx->time_base,ffmpeg_vid_stream->time_base);
+						ffmpeg_video_frame_last_time = pkt.pts;
 					}
 					else {
 						LOG_MSG("DEBUG: avcodec_encode_video2 delayed frame");
