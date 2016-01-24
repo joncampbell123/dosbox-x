@@ -1425,7 +1425,8 @@ void DOSBOX_SetupConfigSections(void) {
 	Pbool = secprop->Add_bool("apmbios allow 32-bit protected mode",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Allow guest OS to connect from 32-bit protected mode.\n"
 			"If you want power management in Windows 95/98/ME (beyond using the APM to shutdown the computer) you MUST enable this option.\n"
-			"Windows 95/98/ME does not support the 16-bit real and protected mode APM BIOS entry points.");
+			"Windows 95/98/ME does not support the 16-bit real and protected mode APM BIOS entry points.\n"
+			"Please note at this time that 32-bit APM is unstable under Windows 98SE/ME");
 
 	Pbool = secprop->Add_bool("integration device",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("Enable DOSBox integration I/O device. This can be used by the guest OS to match mouse pointer position, for example. EXPERIMENTAL!");
