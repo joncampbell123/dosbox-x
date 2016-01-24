@@ -2070,11 +2070,136 @@ class ViBRA_PnP : public ISAPnPDevice {
 	public:
 		ViBRA_PnP() : ISAPnPDevice() {
 			resource_ident = 0;
-			resource_data = (unsigned char*)ViBRA_sysdev;
-			resource_data_len = sizeof(ViBRA_sysdev);
 			host_writed(ident+0,ISAPNP_ID('C','T','L',0x0,0x0,0x7,0x0)); /* CTL0070: ViBRA C */
 			host_writed(ident+4,0xFFFFFFFFUL);
 			checksum_ident();
+
+			alloc(256 - 9/*ident*/); // Real ViBRA hardware acts as if PNP data is read from a 256-byte ROM
+
+			// this template taken from a real Creative ViBRA16C card
+			begin_write_res();
+			write_ISAPnP_version(/*version*/1,0,/*vendor*/0x10);
+			write_Identifier_String("Creative ViBRA16C PnP");
+
+			write_Logical_Device_ID('C','T','L',0x0,0x0,0x0,0x1); // CTL0001
+			write_Identifier_String("Audio");
+
+			write_Dependent_Function_Start(ISAPnPDevice::DependentFunctionConfig::PreferredDependentConfiguration);
+			write_IRQ_Format(
+				ISAPnPDevice::irq2mask(5));
+			write_DMA_Format(
+				ISAPnPDevice::dma2mask(1),
+				DMATransferType_8bitOnly,
+				false,/*not a bus master*/
+				true,/*byte mode */
+				false,/*word mode*/
+				DMASpeedSupported_Compat);
+			write_DMA_Format(
+				ISAPnPDevice::dma2mask(5),
+				DMATransferType_16bitOnly,
+				false,/*not a bus master*/
+				false,/*byte mode */
+				true,/*word mode*/
+				DMASpeedSupported_Compat);
+			write_IO_Port(/*min*/0x220,/*max*/0x220,/*count*/0x10,/*align*/0x01);
+			write_IO_Port(/*min*/0x330,/*max*/0x330,/*count*/0x02,/*align*/0x01);
+			write_IO_Port(/*min*/0x388,/*max*/0x388,/*count*/0x04,/*align*/0x01);
+
+			write_Dependent_Function_Start(ISAPnPDevice::DependentFunctionConfig::AcceptableDependentConfiguration,true);
+			write_IRQ_Format(
+				ISAPnPDevice::irq2mask(5,7,9,10));
+			write_DMA_Format(
+				ISAPnPDevice::dma2mask(1,3),
+				DMATransferType_8bitOnly,
+				false,/*not a bus master*/
+				true,/*byte mode */
+				false,/*word mode*/
+				DMASpeedSupported_Compat);
+			write_DMA_Format(
+				ISAPnPDevice::dma2mask(5,7),
+				DMATransferType_16bitOnly,
+				false,/*not a bus master*/
+				false,/*byte mode */
+				true,/*word mode*/
+				DMASpeedSupported_Compat);
+			write_IO_Port(/*min*/0x220,/*max*/0x280,/*count*/0x10,/*align*/0x20);
+			write_IO_Port(/*min*/0x300,/*max*/0x330,/*count*/0x02,/*align*/0x30);
+			write_IO_Port(/*min*/0x388,/*max*/0x388,/*count*/0x04,/*align*/0x01);
+
+			write_Dependent_Function_Start(ISAPnPDevice::DependentFunctionConfig::AcceptableDependentConfiguration,true);
+			write_IRQ_Format(
+				ISAPnPDevice::irq2mask(5,7,9,10));
+			write_DMA_Format(
+				ISAPnPDevice::dma2mask(1,3),
+				DMATransferType_8bitOnly,
+				false,/*not a bus master*/
+				true,/*byte mode */
+				false,/*word mode*/
+				DMASpeedSupported_Compat);
+			write_DMA_Format(
+				ISAPnPDevice::dma2mask(5,7),
+				DMATransferType_16bitOnly,
+				false,/*not a bus master*/
+				false,/*byte mode */
+				true,/*word mode*/
+				DMASpeedSupported_Compat);
+			write_IO_Port(/*min*/0x220,/*max*/0x280,/*count*/0x10,/*align*/0x20);
+			write_IO_Port(/*min*/0x300,/*max*/0x330,/*count*/0x02,/*align*/0x30);
+
+			write_Dependent_Function_Start(ISAPnPDevice::DependentFunctionConfig::SubOptimalDependentConfiguration);
+			write_IRQ_Format(
+				ISAPnPDevice::irq2mask(5,7,9,10));
+			write_DMA_Format(
+				ISAPnPDevice::dma2mask(1,3),
+				DMATransferType_8bitOnly,
+				false,/*not a bus master*/
+				true,/*byte mode */
+				false,/*word mode*/
+				DMASpeedSupported_Compat);
+			write_DMA_Format(
+				ISAPnPDevice::dma2mask(5,7),
+				DMATransferType_16bitOnly,
+				false,/*not a bus master*/
+				false,/*byte mode */
+				true,/*word mode*/
+				DMASpeedSupported_Compat);
+			write_IO_Port(/*min*/0x220,/*max*/0x280,/*count*/0x10,/*align*/0x20);
+
+			write_Dependent_Function_Start(ISAPnPDevice::DependentFunctionConfig::SubOptimalDependentConfiguration);
+			write_IRQ_Format(
+				ISAPnPDevice::irq2mask(5,7,9,10));
+			write_DMA_Format(
+				ISAPnPDevice::dma2mask(1,3),
+				DMATransferType_8bitOnly,
+				false,/*not a bus master*/
+				true,/*byte mode */
+				false,/*word mode*/
+				DMASpeedSupported_Compat);
+			write_IO_Port(/*min*/0x220,/*max*/0x280,/*count*/0x10,/*align*/0x20);
+			write_IO_Port(/*min*/0x300,/*max*/0x330,/*count*/0x02,/*align*/0x30);
+			write_IO_Port(/*min*/0x388,/*max*/0x388,/*count*/0x04,/*align*/0x01);
+
+			write_Dependent_Function_Start(ISAPnPDevice::DependentFunctionConfig::SubOptimalDependentConfiguration);
+			write_IRQ_Format(
+				ISAPnPDevice::irq2mask(5,7,9,10));
+			write_DMA_Format(
+				ISAPnPDevice::dma2mask(1,3),
+				DMATransferType_8bitOnly,
+				false,/*not a bus master*/
+				true,/*byte mode */
+				false,/*word mode*/
+				DMASpeedSupported_Compat);
+			write_IO_Port(/*min*/0x220,/*max*/0x280,/*count*/0x10,/*align*/0x20);
+
+			write_End_Dependent_Functions();
+
+			// NTS: DOSBox-X as coded now always has a joystick port at 0x201 even if no joystick
+			write_Logical_Device_ID('C','T','L',0x7,0x0,0x0,0x1); // CTL7001
+			write_Compatible_Device_ID('P','N','P',0xB,0x0,0x2,0xF); // PNPB02F
+			write_Identifier_String("Game");
+			write_IO_Port(/*min*/0x200,/*max*/0x200,/*count*/0x08);
+
+			end_write_res();		// END
 		}
 		void select_logical_device(Bitu val) {
 			logical_device = val;

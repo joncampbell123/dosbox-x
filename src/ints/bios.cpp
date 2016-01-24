@@ -339,10 +339,173 @@ ISAPnPDevice::ISAPnPDevice() {
 	memset(ident,0,sizeof(ident));
 	ident_bp = 0;
 	ident_2nd = 0;
+	resource_data_len = 0;
 	resource_data_pos = 0;
+	alloc_res = NULL;
+	alloc_write = 0;
+	alloc_sz = 0;
+}
+
+bool ISAPnPDevice::alloc(size_t sz) {
+	if (sz == alloc_sz)
+		return true;
+
+	if (alloc_res == resource_data) {
+		resource_data_len = 0;
+		resource_data_pos = 0;
+		resource_data = NULL;
+	}
+	if (alloc_res != NULL)
+		delete[] alloc_res;
+
+	alloc_res = NULL;
+	alloc_write = 0;
+	alloc_sz = 0;
+
+	if (sz == 0)
+		return true;
+	if (sz > 65536)
+		return false;
+
+	alloc_res = new unsigned char[sz];
+	if (alloc_res == NULL) return false;
+	memset(alloc_res,0xFF,sz);
+	alloc_sz = sz;
+	return true;
 }
 
 ISAPnPDevice::~ISAPnPDevice() {
+	alloc(0);
+}
+
+void ISAPnPDevice::begin_write_res() {
+	if (alloc_res == NULL) return;
+
+	resource_data_pos = 0;
+	resource_data_len = 0;
+	resource_data = NULL;
+	alloc_write = 0;
+}
+
+void ISAPnPDevice::write_byte(const unsigned char c) {
+	if (alloc_res == NULL || alloc_write >= alloc_sz) return;
+	alloc_res[alloc_write++] = c;
+}
+
+void ISAPnPDevice::write_begin_SMALLTAG(const ISAPnPDevice::SmallTags stag,unsigned char len) {
+	if (len >= 8 || (unsigned int)stag >= 0x10) return;
+	write_byte(((unsigned char)stag << 3) + len);
+}
+
+void ISAPnPDevice::write_begin_LARGETAG(const ISAPnPDevice::LargeTags stag,unsigned int len) {
+	if (len >= 4096) return;
+	write_byte(0x80 + ((unsigned char)stag));
+	write_byte(len & 0xFF);
+	write_byte(len >> 8);
+}
+
+void ISAPnPDevice::write_Device_ID(const char c1,const char c2,const char c3,const char c4,const char c5,const char c6,const char c7) {
+	write_byte((((unsigned char)c1 & 0x1FU) << 2) + (((unsigned char)c2 & 0x18U) >> 3));
+	write_byte((((unsigned char)c2 & 0x07U) << 5) + (((unsigned char)c3 & 0x1FU)     ));
+	write_byte((((unsigned char)c4 & 0x0FU) << 4) + (((unsigned char)c5 & 0x0FU)     ));
+	write_byte((((unsigned char)c6 & 0x0FU) << 4) + (((unsigned char)c7 & 0x0FU)     ));
+}
+
+void ISAPnPDevice::write_Logical_Device_ID(const char c1,const char c2,const char c3,const char c4,const char c5,const char c6,const char c7) {
+	write_begin_SMALLTAG(SmallTags::LogicalDeviceID,5);
+	write_Device_ID(c1,c2,c3,c4,c5,c6,c7);
+	write_byte(0x00);
+}
+
+void ISAPnPDevice::write_Compatible_Device_ID(const char c1,const char c2,const char c3,const char c4,const char c5,const char c6,const char c7) {
+	write_begin_SMALLTAG(SmallTags::CompatibleDeviceID,4);
+	write_Device_ID(c1,c2,c3,c4,c5,c6,c7);
+}
+
+void ISAPnPDevice::write_IRQ_Format(const uint16_t IRQ_mask,const unsigned char IRQ_signal_type) {
+	bool write_irq_info = (IRQ_signal_type != 0);
+
+	write_begin_SMALLTAG(SmallTags::IRQFormat,write_irq_info?3:2);
+	write_byte(IRQ_mask & 0xFF);
+	write_byte(IRQ_mask >> 8);
+	if (write_irq_info) write_byte(((unsigned char)IRQ_signal_type & 0x0F));
+}
+
+void ISAPnPDevice::write_DMA_Format(const uint8_t DMA_mask,const unsigned char transfer_type_preference,const bool is_bus_master,const bool byte_mode,const bool word_mode,const unsigned char speed_supported) {
+	write_begin_SMALLTAG(SmallTags::DMAFormat,2);
+	write_byte(DMA_mask);
+	write_byte(
+		(transfer_type_preference & 0x03) |
+		(is_bus_master ? 0x04 : 0x00) |
+		(byte_mode ? 0x08 : 0x00) |
+		(word_mode ? 0x10 : 0x00) |
+		((speed_supported & 3) << 5));
+}
+
+void ISAPnPDevice::write_IO_Port(const uint16_t min_port,const uint16_t max_port,const uint8_t count,const uint8_t alignment,const bool full16bitdecode) {
+	write_begin_SMALLTAG(SmallTags::IOPortDescriptor,7);
+	write_byte((full16bitdecode ? 0x01 : 0x00));
+	write_byte(min_port & 0xFF);
+	write_byte(min_port >> 8);
+	write_byte(max_port & 0xFF);
+	write_byte(max_port >> 8);
+	write_byte(alignment);
+	write_byte(count);
+}
+
+void ISAPnPDevice::write_Dependent_Function_Start(const ISAPnPDevice::DependentFunctionConfig cfg,const bool force) {
+	bool write_cfg_byte = force || (cfg != ISAPnPDevice::DependentFunctionConfig::AcceptableDependentConfiguration);
+
+	write_begin_SMALLTAG(SmallTags::StartDependentFunctions,write_cfg_byte ? 1 : 0);
+	if (write_cfg_byte) write_byte((unsigned char)cfg);
+}
+
+void ISAPnPDevice::write_End_Dependent_Functions() {
+	write_begin_SMALLTAG(SmallTags::EndDependentFunctions,0);
+}
+
+void ISAPnPDevice::write_nstring(const char *str,const size_t l) {
+	if (alloc_res == NULL || alloc_write >= alloc_sz) return;
+
+	while (*str != 0 && alloc_write < alloc_sz)
+		alloc_res[alloc_write++] = *str++;
+}
+
+void ISAPnPDevice::write_Identifier_String(const char *str) {
+	const size_t l = strlen(str);
+	if (l > 4096) return;
+
+	write_begin_LARGETAG(LargeTags::IdentifierStringANSI,l);
+	if (l != 0) write_nstring(str,l);
+}
+
+void ISAPnPDevice::write_ISAPnP_version(unsigned char major,unsigned char minor,unsigned char vendor) {
+	write_begin_SMALLTAG(SmallTags::PlugAndPlayVersionNumber,2);
+	write_byte((major << 4) + minor);
+	write_byte(vendor);
+}
+
+void ISAPnPDevice::write_END() {
+	unsigned char sum = 0;
+	size_t i;
+
+	write_begin_SMALLTAG(SmallTags::EndTag,/*length*/1);
+
+	for (i=0;i < alloc_write;i++) sum += alloc_res[i];
+	write_byte((0x100 - sum) & 0xFF);
+}
+
+void ISAPnPDevice::end_write_res() {
+	if (alloc_res == NULL) return;
+
+	write_END();
+
+	if (alloc_write >= alloc_sz) LOG(LOG_MISC,LOG_WARN)("ISA PNP generation overflow");
+
+	resource_data_pos = 0;
+	resource_data_len = alloc_sz; // the device usually has a reason for allocating the fixed size it does
+	resource_data = alloc_res;
+	alloc_write = 0;
 }
 
 void ISAPnPDevice::config(Bitu val) {
@@ -493,14 +656,26 @@ static Bitu isapnp_read_port(Bitu port,Bitu /*iolen*/) {
 			   if (ISA_PNP_selected) {
 				   if (ISA_PNP_selected->resource_ident < 9)
 					   ret = ISA_PNP_selected->ident[ISA_PNP_selected->resource_ident++];			   
-				   else if (ISA_PNP_selected->resource_data_pos < ISA_PNP_selected->resource_data_len)
-					   ret = ISA_PNP_selected->resource_data[ISA_PNP_selected->resource_data_pos++];
+				   else {
+					   /* real-world hardware testing shows that devices act as if there was some fixed block of ROM,
+					    * that repeats every 128, 256, 512, or 1024 bytes if you just blindly read from this port. */
+					   if (ISA_PNP_selected->resource_data_pos < ISA_PNP_selected->resource_data_len)
+						   ret = ISA_PNP_selected->resource_data[ISA_PNP_selected->resource_data_pos++];
+
+					   /* that means that if you read enough bytes the ROM loops back to returning the ident */
+					   if (ISA_PNP_selected->resource_data_pos >= ISA_PNP_selected->resource_data_len) {
+						   ISA_PNP_selected->resource_data_pos = 0;
+						   ISA_PNP_selected->resource_ident = 0;
+					   }
+				   }
 			   }
 			   break;
 		case 0x05:	/* read resource status */
 			   if (ISA_PNP_selected) {
-				   if (ISA_PNP_selected->resource_data_pos < ISA_PNP_selected->resource_data_len)
-					   ret = 0x01;	/* TODO: simulate hardware slowness */
+				   /* real-world hardware testing shows that devices act as if there was some fixed block of ROM,
+				    * that repeats every 128, 256, 512, or 1024 bytes if you just blindly read from this port.
+				    * therefore, there's always a byte to return. */
+				   ret = 0x01;	/* TODO: simulate hardware slowness */
 			   }
 			   break;
 		case 0x06:	/* card select number */
