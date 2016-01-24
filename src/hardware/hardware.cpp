@@ -912,7 +912,7 @@ skip_shot:
 		}
 #if (C_AVCODEC)
 		else if (export_ffmpeg && ffmpeg_fmt_ctx == NULL) {
-			std::string path = GetCaptureFilePath("Video",".mpegts");
+			std::string path = GetCaptureFilePath("Video",".mts"); // Use widely recognized .MTS extension
 			if (path == "")
 				goto skip_video;
 
