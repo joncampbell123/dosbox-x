@@ -2220,6 +2220,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 			PIC_RemoveEvents(VGA_PanningLatch);
 			PIC_RemoveEvents(VGA_DisplayStartLatch);
 			vga.draw.delay.vtotal = 1000.0 / fps;
+			vga.draw.lines_done = vga.draw.lines_total;
 			vga_fps = fps;
 			VGA_VerticalTimer(0);
 		}
@@ -2232,10 +2233,6 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 void VGA_KillDrawing(void) {
 	PIC_RemoveEvents(VGA_DrawSingleLine);
 	PIC_RemoveEvents(VGA_DrawEGASingleLine);
-	if (!vga.draw.vga_override) {
-		vga_mode_frames_since_time_base++;
-		RENDER_EndUpdate(true);
-	}
 }
 
 void VGA_SetOverride(bool vga_override) {
