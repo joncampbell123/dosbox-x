@@ -1730,6 +1730,10 @@ void DOSBOX_SetupConfigSections(void) {
 			"as the busy cycle rate in Hz. If zero, busy cycle will not be emulated. If -1, sound\n"
 			"blaster emulation will automatically choose a setting based on the sbtype= setting");
 
+	Pint = secprop->Add_int("dsp busy cycle always",Property::Changeable::WhenIdle,-1/*default*/);
+	Pint->Set_help("If set, the DSP busy cycle always happens. If clear, DSP busy cycle only happens when\n"
+			"audio playback is running. Default setting is to pick according to the sound card.");
+
 	Pint = secprop->Add_int("dsp busy cycle duty",Property::Changeable::WhenIdle,-1/*default*/);
 	Pint->Set_help("If emulating SB16 busy cycle, this value (0 to 100) controls the duty cycle of the busy cycle.\n"
 			"If this option is set to -1, Sound Blaster emulation will choose a value automatically according\n"

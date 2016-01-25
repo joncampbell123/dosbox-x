@@ -140,6 +140,7 @@ struct SB_INFO {
 			      The DMA emulation here does not handle that well. */
 	bool goldplay;
 	bool goldplay_stereo;
+	bool busy_cycle_always;
 	Bit8u time_constant;
 	DSP_MODES mode;
 	SB_TYPES type;
@@ -1456,11 +1457,15 @@ static void DSP_DoCommand(void) {
 	sb.dsp.in.pos=0;
 }
 
+static bool DSP_busy_cycle_active() {
+	return (sb.mode == MODE_DMA) || sb.busy_cycle_always;
+}
+
 static bool DSP_busy_cycle() {
 	double now;
 	int t;
 
-	if (sb.busy_cycle_hz <= 0) return false;
+	if (!DSP_busy_cycle_active()) return false;
 	if (sb.busy_cycle_duty_percent <= 0) return false;
 
 	/* NTS: DOSBox's I/O emulation doesn't yet attempt to accurately match ISA bus speeds or
@@ -2516,12 +2521,19 @@ public:
 		if (!(sb.type == SBT_1 || sb.type == SBT_2 || sb.type == SBT_GB)) sb.hw.sb_io_alias=false;
 
 		/* auto-pick busy cycle */
+		/* NOTE: SB16 cards appear to run a DSP busy cycle at all times.
+		 *       SB2 cards (and Pro?) appear to run a DSP busy cycle only when playing audio through DMA. */
 		if (sb.busy_cycle_hz < 0) {
 			if (sb.type == SBT_16) /* Guess: Pentium PCI-ISA SYSCLK=8.333MHz  /  (6 cycles per 8-bit I/O read  x  16 reads from DSP status) = about 86.805KHz? */
 				sb.busy_cycle_hz = 8333333 / 6 / 16;
-			else /* other SB cards as far as I know don't have this busy cycle */
-				sb.busy_cycle_hz = 0;
+			else /* Guess ???*/
+				sb.busy_cycle_hz = 8333333 / 6 / 16;
 		}
+
+		si = section->Get_int("dsp busy cycle always");
+		if (si >= 0) sb.busy_cycle_always= (si > 0) ? true : false;
+		else if (sb.type == SBT_16) sb.busy_cycle_always = true;
+		else sb.busy_cycle_always = false;
 
 		/* auto-pick busy duty cycle */
 		if (sb.busy_cycle_duty_percent < 0 || sb.busy_cycle_duty_percent > 100)
