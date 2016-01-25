@@ -346,7 +346,7 @@ int ffmpeg_bpp_pick_rgb_format(int bpp) {
 	// FIXME: Given the above explanation, this code needs to factor RGBA byte order vs host byte order
 	//        to correctly specify the color format on any platform.
 	if (bpp == 8)
-		return AV_PIX_FMT_PAL8;
+		return (GFX_GetBShift() == 0) ? AV_PIX_FMT_BGRA : AV_PIX_FMT_RGBA; // I can't get FFMPEG to do PAL8 -> YUV444P, so we'll just convert to RGBA on the fly
 	else if (bpp == 15)
 		return (GFX_GetBShift() == 0) ? AV_PIX_FMT_RGB555 : AV_PIX_FMT_BGR555; // <- not a typo! not a mistake!
 	else if (bpp == 16)
@@ -597,6 +597,8 @@ void CAPTURE_VideoEvent(bool pressed) {
 		CaptureState |= CAPTURE_VIDEO;
 	}
 }
+
+extern uint32_t GFX_palette32bpp[256];
 #endif
 
 void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags, float fps, Bit8u * data, Bit8u * pal) {
@@ -1188,41 +1190,62 @@ skip_shot:
 				Bitu x;
 
 				// copy from source to vidrgb frame
-				for (i=0;i<height;i++) {
-					dstline = ffmpeg_vidrgb_frame->data[0] + (i * ffmpeg_vidrgb_frame->linesize[0]);
-					assert((dstline+width) <= (ffmpeg_vidrgb_frame->data[0] + (ffmpeg_vidrgb_frame->height * ffmpeg_vidrgb_frame->linesize[0])));
+				if (bpp == 8 && ffmpeg_vidrgb_frame->format != AV_PIX_FMT_PAL8) {
+					for (i=0;i<height;i++) {
+						dstline = ffmpeg_vidrgb_frame->data[0] + (i * ffmpeg_vidrgb_frame->linesize[0]);
 
-					if (flags & CAPTURE_FLAG_DBLW) {
 						if (flags & CAPTURE_FLAG_DBLH)
 							srcline=(data+(i >> 1)*pitch);
 						else
 							srcline=(data+(i >> 0)*pitch);
 
-						switch (bpp) {
-							case 8:
-								for (x=0;x<countWidth;x++)
-									((Bit8u *)dstline)[x*2+0] =
-										((Bit8u *)dstline)[x*2+1] = ((Bit8u *)srcline)[x];
-								break;
-							case 15:
-							case 16:
-								for (x=0;x<countWidth;x++)
-									((Bit16u *)dstline)[x*2+0] =
-										((Bit16u *)dstline)[x*2+1] = ((Bit16u *)srcline)[x];
-								break;
-							case 32:
-								for (x=0;x<countWidth;x++)
-									((Bit32u *)dstline)[x*2+0] =
-										((Bit32u *)dstline)[x*2+1] = ((Bit32u *)srcline)[x];
-								break;
+						if (flags & CAPTURE_FLAG_DBLW) {
+							for (x=0;x < width;x++)
+								((Bit32u *)dstline)[(x*2)+0] =
+									((Bit32u *)dstline)[(x*2)+1] = GFX_palette32bpp[srcline[x]];
 						}
-					} else {
-						if (flags & CAPTURE_FLAG_DBLH)
-							srcline=(data+(i >> 1)*pitch);
-						else
-							srcline=(data+(i >> 0)*pitch);
+						else {
+							for (x=0;x < width;x++)
+								((Bit32u *)dstline)[x] = GFX_palette32bpp[srcline[x]];
+						}
+					}
+				}
+				else {
+					for (i=0;i<height;i++) {
+						dstline = ffmpeg_vidrgb_frame->data[0] + (i * ffmpeg_vidrgb_frame->linesize[0]);
 
-						memcpy(dstline,srcline,width*((bpp+7)/8));
+						if (flags & CAPTURE_FLAG_DBLW) {
+							if (flags & CAPTURE_FLAG_DBLH)
+								srcline=(data+(i >> 1)*pitch);
+							else
+								srcline=(data+(i >> 0)*pitch);
+
+							switch (bpp) {
+								case 8:
+									for (x=0;x<countWidth;x++)
+										((Bit8u *)dstline)[x*2+0] =
+											((Bit8u *)dstline)[x*2+1] = ((Bit8u *)srcline)[x];
+									break;
+								case 15:
+								case 16:
+									for (x=0;x<countWidth;x++)
+										((Bit16u *)dstline)[x*2+0] =
+											((Bit16u *)dstline)[x*2+1] = ((Bit16u *)srcline)[x];
+									break;
+								case 32:
+									for (x=0;x<countWidth;x++)
+										((Bit32u *)dstline)[x*2+0] =
+											((Bit32u *)dstline)[x*2+1] = ((Bit32u *)srcline)[x];
+									break;
+							}
+						} else {
+							if (flags & CAPTURE_FLAG_DBLH)
+								srcline=(data+(i >> 1)*pitch);
+							else
+								srcline=(data+(i >> 0)*pitch);
+
+							memcpy(dstline,srcline,width*((bpp+7)/8));
+						}
 					}
 				}
 

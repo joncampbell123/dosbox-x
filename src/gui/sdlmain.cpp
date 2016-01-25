@@ -2030,7 +2030,6 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
 	}
 }
 
-
 void GFX_SetPalette(Bitu start,Bitu count,GFX_PalEntry * entries) {
 	/* I should probably not change the GFX_PalEntry :) */
 	if (sdl.surface->flags & SDL_HWPALETTE) {

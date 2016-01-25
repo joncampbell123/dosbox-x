@@ -89,7 +89,24 @@ static void Check_Palette(void) {
 	render.pal.last=0;
 }
 
+uint32_t GFX_palette32bpp[256] = {0};
+
+unsigned int GFX_GetBShift();
+
 void RENDER_SetPal(Bit8u entry,Bit8u red,Bit8u green,Bit8u blue) {
+	if (GFX_GetBShift() == 0) {
+		GFX_palette32bpp[entry] =
+			((uint32_t)red << (uint32_t)16) +
+			((uint32_t)green << (uint32_t)8) +
+			((uint32_t)blue << (uint32_t)0);
+	}
+	else {
+		GFX_palette32bpp[entry] =
+			((uint32_t)blue << (uint32_t)16) +
+			((uint32_t)green << (uint32_t)8) +
+			((uint32_t)red << (uint32_t)0);
+	}
+
 	render.pal.rgb[entry].red=red;
 	render.pal.rgb[entry].green=green;
 	render.pal.rgb[entry].blue=blue;
