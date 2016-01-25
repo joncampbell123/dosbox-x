@@ -1292,6 +1292,24 @@ static void DSP_DoCommand(void) {
 		break;
 	case 0xd3:	/* Disable Speaker */
 		DSP_SetSpeaker(false);
+
+		/* There are demoscene productions that reinitialize sound between parts.
+		 * But instead of stopping playback, then starting it again, the demo leaves
+		 * DMA running through RAM and expects the "DSP Disable Speaker" command to
+		 * prevent the arbitrary contents of RAM from coming out the sound card as static
+		 * while it loads data. The problem is, DSP enable/disable speaker commands don't
+		 * do anything on Sound Blaster 16 cards. This is why such demos run fine when
+		 * sbtype=sbpro2, but emit static/noise between demo parts when sbtype=sb16.
+		 * The purpose of this warning is to clue the user on in this fact and suggest
+		 * a fix.
+		 *
+		 * Demoscene productions known to have this bug/problem with sb16:
+		 * - "Saga" by Dust (1993)                       noise/static between demo parts
+		 * - "Facts of life" by Witan (1992)             noise/static during star wars scroller at the beginning
+		 */
+		if (sb.type == SBT_16 && sb.mode == MODE_DMA)
+			LOG(LOG_MISC,LOG_WARN)("SB16 warning: DSP Disable Speaker command used while DMA is running, which has no effect on audio output on SB16 hardware. Audible noise/static may occur. You can eliminate the noise by setting sbtype=sbpro2");
+
 		break;
 	case 0xd8:  /* Speaker status */
 		DSP_SB2_ABOVE;
