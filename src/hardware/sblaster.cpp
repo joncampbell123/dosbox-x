@@ -2426,6 +2426,12 @@ public:
 		sb.mixer.enabled=section->Get_bool("sbmixer");
 		sb.mixer.stereo=false;
 
+		bv=section->Get_bool("pre-set sbpro stereo");
+		if (bv) {
+			LOG_MSG("Sound blaster: setting SB Pro mixer 'stereo' bit as instructed.");
+			sb.mixer.stereo=true;
+		}
+
 		Find_Type_And_Opl(section,sb.type,oplmode);
 		bool isCMSpassthrough = false;
 	

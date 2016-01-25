@@ -1620,6 +1620,12 @@ void DOSBOX_SetupConfigSections(void) {
 			"Option is needed for:\n"
 			"   Public NMI \"jump\" demo (1992)");
 
+	Pbool = secprop->Add_bool("pre-set sbpro stereo",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("Start the DOS virtual machine with the Sound Blaster Pro stereo bit set (in the mixer).\n"
+			"A few demos support Sound Blaster Pro but forget to set this bit.\n"
+			"Option is needed for:\n"
+			"   Inconexia by Iguana (1993)");
+
 	Pbool = secprop->Add_bool("sbmixer",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Allow the soundblaster mixer to modify the DOSBox mixer.");
 
