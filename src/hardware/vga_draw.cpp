@@ -1154,12 +1154,16 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 	vga.draw.has_split = false;
 	vga_3da_polled = false;
 
-	/* compensate for floating point drift, make sure we're keeping the frame rate */
+	// FIXME: While this code is quite good at keeping time, I'm seeing drift "reset" back to
+	//        14-30ms every video mode change. Is our INT 10h code that slow?
+	/* compensate for floating point drift, make sure we're keeping the frame rate.
+	 * be very gentle about it. generally the drift is very small, and large adjustments can cause
+	 * DOS games dependent on vsync to fail/hang. */
 	double shouldbe = (((double)vga_mode_frames_since_time_base * 1000.0) / vga_fps) + vga_mode_time_base;
 	double vsync_err = shouldbe - current_time; /* < 0 too slow     > 0 too fast */
-	double vsync_adj = (vsync_err < 0 ? -1 : 1) * vsync_err * vsync_err * 0.5;
-	if (vsync_adj < -20) vsync_adj = -20;
-	else if (vsync_adj > 20) vsync_adj = 20;
+	double vsync_adj = (vsync_err < 0 ? -1 : 1) * vsync_err * vsync_err * 0.05;
+	if (vsync_adj < -0.1) vsync_adj = -0.1;
+	else if (vsync_adj > 0.1) vsync_adj = 0.1;
 
 //	LOG_MSG("Vsync err %.6fms adj=%.6fms",vsync_err,vsync_adj);
 
