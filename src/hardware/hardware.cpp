@@ -325,6 +325,41 @@ static struct {
 } capture;
 
 #if (C_AVCODEC)
+unsigned int GFX_GetBShift();
+
+int ffmpeg_bpp_pick_rgb_format(int bpp) {
+	// NTS: This requires some explanation. FFMPEG's pixfmt.h documents RGB555 as (msb)5R 5G 5B(lsb).
+	//      So when we typecast two bytes in video ram as uint16_t we get XRRRRRGGGGGBBBBB.
+	//
+	//      But, RGB24 means that, byte by byte, we get R G B R G B ... which when typecast as uint32_t
+	//      on little endian hosts becomes 0xXXBBGGRR.
+	//
+	//      RGBA would mean byte order R G B A R G B A ... which when typecast as uint32_t little endian
+	//      becomes AABBGGRR.
+	//
+	//      Most of the platforms DOSBox-X runs on tend to arrange 24-bit bpp as uint32_t(0xRRGGBB) little
+	//      endian, and 32-bit bpp as uint32_t(0xAARRGGBB).
+	//
+	//      So if the above text makes any sense, the RGB/BGR switch-up between 15/16bpp and 24/32bpp is
+	//      NOT a coding error or a typo.
+
+	// FIXME: Given the above explanation, this code needs to factor RGBA byte order vs host byte order
+	//        to correctly specify the color format on any platform.
+	if (bpp == 8)
+		return AV_PIX_FMT_PAL8;
+	else if (bpp == 15)
+		return (GFX_GetBShift() == 0) ? AV_PIX_FMT_RGB555 : AV_PIX_FMT_BGR555; // <- not a typo! not a mistake!
+	else if (bpp == 16)
+		return (GFX_GetBShift() == 0) ? AV_PIX_FMT_RGB565 : AV_PIX_FMT_BGR565; // <- not a typo! not a mistake!
+	else if (bpp == 24)
+		return (GFX_GetBShift() == 0) ? AV_PIX_FMT_BGR24 : AV_PIX_FMT_RGB24;
+	else if (bpp == 32)
+		return (GFX_GetBShift() == 0) ? AV_PIX_FMT_BGRA : AV_PIX_FMT_RGBA;
+
+	abort();//whut?
+	return 0;
+}
+
 void ffmpeg_reopen_video(double fps,const int bpp) {
 	if (ffmpeg_vid_ctx != NULL) {
 		avcodec_close(ffmpeg_vid_ctx);
@@ -388,24 +423,10 @@ void ffmpeg_reopen_video(double fps,const int bpp) {
 	if (ffmpeg_aud_frame == NULL || ffmpeg_vid_frame == NULL || ffmpeg_vidrgb_frame == NULL)
 		E_Exit(" ");
 
-	unsigned int GFX_GetBShift();
-
 	av_frame_set_colorspace(ffmpeg_vidrgb_frame,AVCOL_SPC_RGB);
 	ffmpeg_vidrgb_frame->width = capture.video.width;
 	ffmpeg_vidrgb_frame->height = capture.video.height;
-	if (bpp == 8)
-		ffmpeg_vidrgb_frame->format = AV_PIX_FMT_PAL8;
-	else if (bpp == 15)
-		ffmpeg_vidrgb_frame->format = (GFX_GetBShift() == 0) ? AV_PIX_FMT_BGR555LE : AV_PIX_FMT_RGB555LE;
-	else if (bpp == 16)
-		ffmpeg_vidrgb_frame->format = (GFX_GetBShift() == 0) ? AV_PIX_FMT_BGR565LE : AV_PIX_FMT_RGB565LE;
-	else if (bpp == 24)
-		ffmpeg_vidrgb_frame->format = (GFX_GetBShift() == 0) ? AV_PIX_FMT_BGR24 : AV_PIX_FMT_RGB24;
-	else if (bpp == 32)
-		ffmpeg_vidrgb_frame->format = (GFX_GetBShift() == 0) ? AV_PIX_FMT_BGRA : AV_PIX_FMT_RGBA;
-	else
-		abort();//whut?
-
+	ffmpeg_vidrgb_frame->format = ffmpeg_bpp_pick_rgb_format(bpp);
 	if (av_frame_get_buffer(ffmpeg_vidrgb_frame,64) < 0) {
 		E_Exit(" ");
 	}
@@ -1057,19 +1078,7 @@ skip_shot:
 			av_frame_set_colorspace(ffmpeg_vidrgb_frame,AVCOL_SPC_RGB);
 			ffmpeg_vidrgb_frame->width = capture.video.width;
 			ffmpeg_vidrgb_frame->height = capture.video.height;
-			if (bpp == 8)
-				ffmpeg_vidrgb_frame->format = AV_PIX_FMT_PAL8;
-			else if (bpp == 15)
-				ffmpeg_vidrgb_frame->format = (GFX_GetBShift() == 0) ? AV_PIX_FMT_BGR555LE : AV_PIX_FMT_RGB555LE;
-			else if (bpp == 16)
-				ffmpeg_vidrgb_frame->format = (GFX_GetBShift() == 0) ? AV_PIX_FMT_BGR565LE : AV_PIX_FMT_RGB565LE;
-			else if (bpp == 24)
-				ffmpeg_vidrgb_frame->format = (GFX_GetBShift() == 0) ? AV_PIX_FMT_BGR24 : AV_PIX_FMT_RGB24; // UNTESTED!!
-			else if (bpp == 32)
-				ffmpeg_vidrgb_frame->format = (GFX_GetBShift() == 0) ? AV_PIX_FMT_BGRA : AV_PIX_FMT_RGBA;
-			else
-				abort();//whut?
-
+			ffmpeg_vidrgb_frame->format = ffmpeg_bpp_pick_rgb_format(bpp);
 			if (av_frame_get_buffer(ffmpeg_vidrgb_frame,64) < 0) {
 				LOG_MSG("Failed to alloc videorgb frame buffer");
 				goto skip_video;
