@@ -76,6 +76,7 @@ void ffmpeg_closeall() {
 			ffmpeg_avformat_began = false;
 		}
 		avio_close(ffmpeg_fmt_ctx->pb);
+		avformat_free_context(ffmpeg_fmt_ctx);
 		ffmpeg_fmt_ctx = NULL;
 	}
 	if (ffmpeg_vid_ctx != NULL) {
