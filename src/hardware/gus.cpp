@@ -481,8 +481,6 @@ static void GUSReset(void) {
 		myGUS.irqenabled = 0;
 		myGUS.dmaAddrOffset = 0;
 		myGUS.gDramAddr = 0;
-//		myGUS.gRegSelect = 0;
-		myGUS.gRegSelectData = 0;
 		myGUS.gRegData = 0;
 
 		GUS_Update_DMA_Event_transfer();
