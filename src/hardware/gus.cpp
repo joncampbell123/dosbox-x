@@ -405,6 +405,8 @@ void GUS_StartDMA();
 void GUS_Update_DMA_Event_transfer();
 
 static void GUSReset(void) {
+	unsigned char p_GUS_reset_reg = GUS_reset_reg;
+
 	/* NTS: From the Ultrasound SDK:
 	 *
 	 *      Global Data Low (3X4) is either a 16-bit transfer, or the low half of a 16-bit transfer with 8-bit I/O.
@@ -425,7 +427,7 @@ static void GUSReset(void) {
 	GUS_CheckIRQ();
 
 	LOG(LOG_MISC,LOG_DEBUG)("GUS reset with 0x%04X",myGUS.gRegData);
-	if((myGUS.gRegData & 0x100) == 0x000) {
+	if ((myGUS.gRegData & 0x100) == 0x000) {
 		// Stop all channels
 		int i;
 		for(i=0;i<32;i++) {
@@ -482,6 +484,31 @@ static void GUSReset(void) {
 		GUS_Update_DMA_Event_transfer();
 	}
 
+	/* if the card was just put into reset, or the card WAS in reset, bits 1-2 are cleared */
+	if ((GUS_reset_reg & 1) == 0 || (p_GUS_reset_reg & 1) == 0) {
+		/* GUS classic observed behavior: resetting the card, or even coming out of reset, clears bits 1-2.
+		 * That means, if you write any value to GUS RESET with bit 0 == 0, bits 1-2 become zero as well.
+		 * And if you take the card out of reset, bits 1-2 are zeroed.
+		 *
+		 * test 1:
+		 * outb(0x3X3,0x4C); outb(0x3X5,0x00);
+		 * outb(0x3X3,0x4C); c = inb(0x3X5);      <- you'll get 0x00 as expected
+		 * outb(0x3X3,0x4C); outb(0x3X5,0x07);
+		 * outb(0x3X3,0x4C); c = inb(0x3X5);      <- you'll get 0x01, not 0x07
+		 *
+		 * test 2:
+		 * outb(0x3X3,0x4C); outb(0x3X5,0x00);
+		 * outb(0x3X3,0x4C); c = inb(0x3X5);      <- you'll get 0x00 as expected
+		 * outb(0x3X3,0x4C); outb(0x3X5,0x01);
+		 * outb(0x3X3,0x4C); c = inb(0x3X5);      <- you'll get 0x01 as expected, card taken out of reset
+		 * outb(0x3X3,0x4C); outb(0x3X5,0x07);
+		 * outb(0x3X3,0x4C); c = inb(0x3X5);      <- you'll get 0x07 as expected
+		 * outb(0x3X3,0x4C); outb(0x3X5,0x06);    <- bit 0 == 0, we're trying to set bits 1-2
+		 * outb(0x3X3,0x4C); c = inb(0x3X5);      <- you'll get 0x00, not 0x06, card is in reset state */
+		myGUS.irqenabled = 0;
+		GUS_reset_reg &= 1;
+	}
+
 	GUS_CheckIRQ();
 }
 
@@ -536,7 +563,8 @@ static Bit16u ExecuteReadRegister(void) {
 		// FIXME: This makes logical sense, but does real hardware let you read this??
 		// The Ultrasound SDK mentions writing the reg, but not necessarily the ability to read back.
 		tmpreg = (GUS_reset_reg & ~0x4) | (myGUS.irqenabled ? 0x4 : 0x0);
-		return (Bit16u)(tmpreg << 8);
+		/* GUS Classic observed behavior: You can read Register 4Ch from both 3X4 and 3X5 and get the same 8-bit contents */
+		return ((Bit16u)(tmpreg << 8) | (Bit16u)tmpreg);
 	case 0x80: // Channel voice control read register
 		if (curchan) return curchan->ReadWaveCtrl() << 8;
 		else return 0x0300;
