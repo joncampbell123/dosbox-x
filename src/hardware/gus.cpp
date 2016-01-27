@@ -64,6 +64,9 @@ class GUSChannels;
 static void CheckVoiceIrq(void);
 
 struct GFGus {
+	Bit8u gRegSelectData;		// what is read back from 3X3. not necessarily the index selected, but
+					// apparently the last byte read OR written to ports 3X3-3X5 as seen
+					// on actual GUS hardware.
 	Bit8u gRegSelect;
 	Bit16u gRegData;
 	Bit32u gDramAddr;
@@ -479,6 +482,7 @@ static void GUSReset(void) {
 		myGUS.dmaAddrOffset = 0;
 		myGUS.gDramAddr = 0;
 		myGUS.gRegSelect = 0;
+		myGUS.gRegSelectData = 0;
 		myGUS.gRegData = 0;
 
 		GUS_Update_DMA_Event_transfer();
@@ -560,8 +564,6 @@ static Bit16u ExecuteReadRegister(void) {
 		tmpreg |= (myGUS.IRQStatus & 0x80) >> 1;
 		return (Bit16u)(tmpreg << 8);
 	case 0x4c:  // GUS reset register
-		// FIXME: This makes logical sense, but does real hardware let you read this??
-		// The Ultrasound SDK mentions writing the reg, but not necessarily the ability to read back.
 		tmpreg = (GUS_reset_reg & ~0x4) | (myGUS.irqenabled ? 0x4 : 0x0);
 		/* GUS Classic observed behavior: You can read Register 4Ch from both 3X4 and 3X5 and get the same 8-bit contents */
 		return ((Bit16u)(tmpreg << 8) | (Bit16u)tmpreg);
@@ -760,6 +762,8 @@ static void ExecuteGlobRegister(void) {
 
 
 static Bitu read_gus(Bitu port,Bitu iolen) {
+	Bit16u reg16;
+
 //	LOG_MSG("read from gus port %x",port);
 	switch(port - GUS_BASE) {
 	case 0x206:
@@ -809,12 +813,16 @@ static Bitu read_gus(Bitu port,Bitu iolen) {
 	case 0x302:
 		return (Bit8u)myGUS.gCurChannel;
 	case 0x303:
-		return myGUS.gRegSelect;
+		return myGUS.gRegSelectData;
 	case 0x304:
-		if (iolen==2) return ExecuteReadRegister() & 0xffff;
-		else return ExecuteReadRegister() & 0xff;
+		if (iolen==2) reg16 = ExecuteReadRegister() & 0xffff;
+		else reg16 = ExecuteReadRegister() & 0xff;
+		myGUS.gRegSelectData = reg16 & 0xFF;
+		return reg16;
 	case 0x305:
-		return ExecuteReadRegister() >> 8;
+		reg16 = ExecuteReadRegister() >> 8;
+		myGUS.gRegSelectData = reg16 & 0xFF;
+		return reg16;
 	case 0x307:
 		if(myGUS.gDramAddr < myGUS.memsize) {
 			return GUSRam[myGUS.gDramAddr];
@@ -961,16 +969,23 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 		curchan = guschan[myGUS.gCurChannel];
 		break;
 	case 0x303:
-		myGUS.gRegSelect = (Bit8u)val;
+		myGUS.gRegSelect = myGUS.gRegSelectData = (Bit8u)val;
 		myGUS.gRegData = 0;
 		break;
 	case 0x304:
 		if (iolen==2) {
+			// FIXME: right??
+			myGUS.gRegSelectData = val & 0xFF;
+
 			myGUS.gRegData=(Bit16u)val;
 			ExecuteGlobRegister();
-		} else myGUS.gRegData = (Bit16u)val;
+		} else {
+			myGUS.gRegSelectData = val;
+			myGUS.gRegData = (Bit16u)val;
+		}
 		break;
 	case 0x305:
+		myGUS.gRegSelectData = val;
 		myGUS.gRegData = (Bit16u)((0x00ff & myGUS.gRegData) | val << 8);
 		ExecuteGlobRegister();
 		break;
