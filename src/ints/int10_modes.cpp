@@ -983,7 +983,26 @@ bool INT10_SetVideoMode(Bit16u mode) {
 		IO_Write(0x3c4,ct);
 		IO_Write(0x3c5,seq_data[ct]);
 	}
-	vga.config.compatible_chain4 = true; // this may be changed by SVGA chipset emulation
+
+	/* NTS: S3 INT 10 modesetting code below sets this bit anyway when writing CRTC register 0x31.
+	 *      It needs to be done as I/O port write so that Windows 95 can virtualize it properly when
+	 *      we're called to set INT10 mode 3 (from within virtual 8086 mode) when opening a DOS box.
+	 *
+	 *      If we just set it directly, then the generic S3 driver in Windows 95 cannot trap the I/O
+	 *      and prevent our own INT 10h handler from setting the VGA memory mapping into "compatible
+	 *      chain 4" mode, and then any non accelerated drawing from the Windows driver becomes a
+	 *      garbled mess spread out across the screen (due to the weird way that VGA planar memory
+	 *      is "chained" on SVGA chipsets).
+	 *
+	 *      The S3 linear framebuffer isn't affected by VGA chained mode, which is why only the
+	 *      generic S3 driver was affected by this bug, since the generic S3 driver is the one that
+	 *      uses only VGA access (0xA0000-0xAFFFF) and SVGA bank switching while the more specific
+	 *      "S3 Trio32 PCI" driver uses the linear framebuffer.
+	 *
+	 *      But to avoid breaking other SVGA emulation in DOSBox-X, we still set this manually for
+	 *      other VGA/SVGA emulation cases, just not S3 Trio emulation. */
+	if (svgaCard != SVGA_S3Trio)
+		vga.config.compatible_chain4 = true; // this may be changed by SVGA chipset emulation
 
 	if( machine==MCH_AMSTRAD )
 	{
