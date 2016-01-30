@@ -12,10 +12,10 @@ endif
 	$(WINDRES) -o $@ $<
 
 dosbox_SOURCES = dosbox.cpp $(ico_stuff)
-dosbox_LDADD = debug/libdebug.a dos/libdos.a hardware/libhardware.a cpu/libcpu.a fpu/libfpu.a shell/libshell.a builtin/libbuiltin.a gui/libgui.a \
+dosbox_LDADD = debug/libdebug.a dos/libdos.a shell/libshell.a builtin/libbuiltin.a \
                ints/libints.a misc/libmisc.a hardware/serialport/libserial.a hardware/parport/libparallel.a \
-               libs/gui_tk/libgui_tk.a hardware/libhardware.a libs/porttalk/libporttalk.a hardware/reSID/libresid.a \
-               hardware/reSID/libresid.a hardware/libhardware.a gui/libgui.a
+               libs/porttalk/libporttalk.a gui/libgui.a libs/gui_tk/libgui_tk.a hardware/libhardware.a \
+	       cpu/libcpu.a hardware/reSID/libresid.a fpu/libfpu.a gui/libgui.a
 
 EXTRA_DIST = winres.rc dosbox.ico
 
