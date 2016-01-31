@@ -420,7 +420,7 @@ static void GUSReset(void) {
 	 *      LOWER 8 bits, when the code should have been checking the UPPER 8 bits. Programming error #2 was the mis-interpetation of bit 0 (bit 8 of
 	 *      the gRegData). According to the SDK, clearing bit 0 triggers RESET, setting bit 0 starts the card running again. The original code had
 	 *      it backwards. */
-	GUS_reset_reg = myGUS.gRegData >> 8;
+	GUS_reset_reg = (myGUS.gRegData >> 8) & 7;
 
 	if ((myGUS.gRegData & 0x400) != 0x000 || myGUS.force_master_irq_enable)
 		myGUS.irqenabled = true;
