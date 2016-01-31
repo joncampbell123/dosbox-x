@@ -79,6 +79,7 @@ struct GFGus {
 	Bit8u SampControl;
 	Bit8u mixControl;
 	Bit8u ActiveChannels;
+	Bit8u ActiveChannelsUser; /* what the guest wrote */
 	Bit32u basefreq;
 
 	struct GusTimer {
@@ -471,6 +472,7 @@ static void GUSReset(void) {
 		myGUS.TimerControl = 0x00;
 		myGUS.SampControl = 0x00;
 		myGUS.ActiveChannels = 14;
+		myGUS.ActiveChannelsUser = 14;
 		myGUS.ActiveMask=0xffffffffU >> (32-myGUS.ActiveChannels);
 		myGUS.basefreq = (Bit32u)((float)1000000/(1.619695497*(float)(myGUS.ActiveChannels)));
 
@@ -546,6 +548,9 @@ static Bit16u ExecuteReadRegister(void) {
 	Bit8u tmpreg;
 //	LOG_MSG("Read global reg %x",myGUS.gRegSelect);
 	switch (myGUS.gRegSelect) {
+	case 0x8E:  // read active channel register
+		// NTS: The GUS SDK documents the active channel count as bits 5-0, which is wrong. it's bits 4-0. bits 7-5 are always 1 on real hardware.
+		return ((Bit16u)(0xE0 | (myGUS.ActiveChannelsUser - 1))) << 8;
 	case 0x41: // Dma control register - read acknowledges DMA IRQ
 		tmpreg = myGUS.DMAControl & 0xbf;
 		tmpreg |= (myGUS.IRQStatus & 0x80) >> 1;
@@ -697,9 +702,25 @@ static void ExecuteGlobRegister(void) {
 		break;
 	case 0xE:  // Set active channel register
 		myGUS.gRegSelect = myGUS.gRegData>>8;		//JAZZ Jackrabbit seems to assume this?
-		myGUS.ActiveChannels = 1+((myGUS.gRegData>>8) & 63);
-		if(myGUS.ActiveChannels < 14) myGUS.ActiveChannels = 14;
+		myGUS.ActiveChannelsUser = 1+((myGUS.gRegData>>8) & 31); // NTS: The GUS SDK documents this field as bits 5-0, which is wrong, it's bits 4-0. 5-0 would imply 64 channels.
+
+		/* The GUS SDK claims that if a channel count less than 14 is written, then it caps to 14.
+		 * That's not true. Perhaps what the SDK is doing, but the actual hardware acts differently.
+		 * This implementation is based on what the Gravis Ultrasound MAX actually does with this
+		 * register. You can apparently achieve higher than 44.1KHz sample rates by programming less
+		 * than 14 channels, and the sample rate scale ramps up appropriately, except that values
+		 * 0 and 1 have the same effect as writing 2 and 3. Very useful undocumented behavior!
+		 * If Gravis were smart, they would have been able to claim 48KHz sample rates by allowing
+		 * less than 14 channels in their SDK! Not sure why they would cap it like that, unless
+		 * there are undocumented chipset instabilities with running at higher rates.
+		 *
+		 * So far only verified on a Gravis Ultrasound MAX. I have yet to verify on a Gravis Ultrasound
+		 * Plug & Play (Interwave) card. Anyone out there with an original Gravis Ultrasound to verify
+		 * this behavior? */
+		myGUS.ActiveChannels = myGUS.ActiveChannelsUser;
+		if(myGUS.ActiveChannels < 3) myGUS.ActiveChannels += 2;
 		if(myGUS.ActiveChannels > 32) myGUS.ActiveChannels = 32;
+
 		myGUS.ActiveMask=0xffffffffU >> (32-myGUS.ActiveChannels);
 		myGUS.basefreq = (Bit32u)((float)1000000/(1.619695497*(float)(myGUS.ActiveChannels)));
 #if LOG_GUS
