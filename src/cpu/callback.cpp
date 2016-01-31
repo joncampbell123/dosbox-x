@@ -555,6 +555,23 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
 		phys_writew(physAddress+0x02,(Bit16u)0x0ECD);		// int 0e
 		phys_writeb(physAddress+0x04,(Bit8u)0xCF);		//An IRET Instruction
 		return (use_cb?9:5);
+	case CB_IRET_EOI_PIC2:
+		if (use_cb) {
+			phys_writeb(physAddress+0x00,(Bit8u)0xFE);	//GRP 4
+			phys_writeb(physAddress+0x01,(Bit8u)0x38);	//Extra Callback instruction
+			phys_writew(physAddress+0x02,(Bit16u)callback);		//The immediate word
+			physAddress+=4;
+		}
+		phys_writeb(physAddress+0x00,(Bit8u)0x50);		// push ax
+		phys_writeb(physAddress+0x01,(Bit8u)0xb0);		// mov al, 0x20
+		phys_writeb(physAddress+0x02,(Bit8u)0x20);
+		phys_writeb(physAddress+0x03,(Bit8u)0xe6);		// out 0xA0, al
+		phys_writeb(physAddress+0x04,(Bit8u)0xA0);
+		phys_writeb(physAddress+0x05,(Bit8u)0xe6);		// out 0x20, al
+		phys_writeb(physAddress+0x06,(Bit8u)0x20);
+		phys_writeb(physAddress+0x07,(Bit8u)0x58);		// pop ax
+		phys_writeb(physAddress+0x08,(Bit8u)0xcf);		//An IRET Instruction
+		return (use_cb?0x0d:0x09);
 	default:
 		E_Exit("CALLBACK:Setup:Illegal type %u",(unsigned int)type);
 	}
