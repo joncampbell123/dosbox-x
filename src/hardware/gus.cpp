@@ -151,6 +151,8 @@ static INLINE Bit32s GetSample(Bit32u Delta, Bit32u CurAddr, bool eightbit) {
 	}
 }
 
+static uint8_t GUS_reset_reg = 0;
+
 class GUSChannels {
 public:
 	Bit32u WaveStart;
@@ -384,9 +386,13 @@ public:
 		for(i=0;i<(int)len;i++) {
 			// Get sample
 			tmpsamp = GetSample(WaveAdd, WaveAddr, eightbit);
-			// Output stereo sample
-			stream[i<<1]+= tmpsamp * VolLeft;
-			stream[(i<<1)+1]+= tmpsamp * VolRight;
+
+			// Output stereo sample if DAC enable on
+			if ((GUS_reset_reg & 0x02/*DAC enable*/) == 0x02) {
+				stream[i<<1]+= tmpsamp * VolLeft;
+				stream[(i<<1)+1]+= tmpsamp * VolRight;
+			}
+
 			WaveUpdate();
 			RampUpdate();
 		}
@@ -401,8 +407,6 @@ static INLINE void GUS_CheckIRQ(void);
 static void GUS_TimerEvent(Bitu val);
 
 static void GUS_DMA_Callback(DmaChannel * chan,DMAEvent event);
-
-static uint8_t GUS_reset_reg = 0;
 
 void GUS_StopDMA();
 void GUS_StartDMA();
@@ -1244,13 +1248,9 @@ static void GUS_CallBack(Bitu len) {
 	Bit16s * buf16 = (Bit16s *)MixTemp;
 	Bit32s * buf32 = (Bit32s *)MixTemp;
 
-	if ((GUS_reset_reg & 0x03/*DAC enable | !master reset*/) == 0x03) {
+	if ((GUS_reset_reg & 0x01/*!master reset*/) == 0x01) {
 		for(i=0;i<myGUS.ActiveChannels;i++)
 			guschan[i]->generateSamples(buf32,len);
-	}
-	else {
-		for(i=0;i<myGUS.ActiveChannels;i++)
-			buf32[i] = 0;
 	}
 
 	for(i=0;i<len*2;i++) {
