@@ -834,7 +834,7 @@ static Bitu read_gus(Bitu port,Bitu iolen) {
 	case 0x20a:
 		return adlib_commandreg;
 	case 0x302:
-		return (Bit8u)myGUS.gCurChannel;
+		return myGUS.gRegSelectData;
 	case 0x303:
 		return myGUS.gRegSelectData;
 	case 0x304:
@@ -988,7 +988,8 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 		}
 		break;
 	case 0x302:
-		myGUS.gCurChannel = val & 31 ;
+		myGUS.gCurChannel = val & 31;
+		myGUS.gRegSelectData = (Bit8u)val;
 		curchan = guschan[myGUS.gCurChannel];
 		break;
 	case 0x303:
