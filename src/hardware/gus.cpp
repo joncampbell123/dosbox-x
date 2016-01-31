@@ -513,7 +513,7 @@ static void GUSReset(void) {
 		 * outb(0x3X3,0x4C); c = inb(0x3X5);      <- you'll get 0x07 as expected
 		 * outb(0x3X3,0x4C); outb(0x3X5,0x06);    <- bit 0 == 0, we're trying to set bits 1-2
 		 * outb(0x3X3,0x4C); c = inb(0x3X5);      <- you'll get 0x00, not 0x06, card is in reset state */
-		myGUS.irqenabled = 0;
+		myGUS.irqenabled = myGUS.force_master_irq_enable; // IRQ enable resets, unless user specified we force it on
 		GUS_reset_reg &= 1;
 	}
 
