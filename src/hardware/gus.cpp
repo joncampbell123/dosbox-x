@@ -522,16 +522,17 @@ static void GUSReset(void) {
 
 static INLINE void GUS_CheckIRQ(void) {
 	bool dmaTC;
+	bool timerIRQ;
 	bool otherIRQ;
 
 	dmaTC = ((myGUS.IRQStatus & 0x80/*DMA TC IRQ*/)!=0) && ((myGUS.DMAControl & 0x20/*DMA IRQ Enable*/)!=0);
-	otherIRQ = (myGUS.IRQStatus & 0x7F/*all except DMA TC IRQ pending*/);
+	timerIRQ = ((myGUS.IRQStatus & 0x0C/*Timer 1&2 IRQ*/)!=0) && ((myGUS.TimerControl & 0x0C/*Timer 1&2 IRQ Enable*/)!=0);
+	otherIRQ = (myGUS.IRQStatus & 0x73/*all except DMA TC IRQ and timer pending*/);
 
 	if (myGUS.mixControl & 0x08/*Enable latches*/) {
 		/* Behavior observed on real GUS hardware: Master IRQ enable bit 2 of the reset register affects only voice/wave
-		 * IRQ signals from the GF1. It does not affect the DMA terminal count interrupt */
-		/* TODO: Does "Master IRQ Enable" effect the Adlib-style timers, or not? */
-		if (dmaTC)
+		 * IRQ signals from the GF1. It does not affect the DMA terminal count interrupt nor does it affect the Adlib timers. */
+		if (dmaTC || timerIRQ)
 			PIC_ActivateIRQ(myGUS.irq1);
 		else if (myGUS.irqenabled && otherIRQ)
 			PIC_ActivateIRQ(myGUS.irq1);
@@ -831,7 +832,7 @@ static Bitu read_gus(Bitu port,Bitu iolen) {
 			}
 		}
 
-		return myGUS.IRQStatus & (myGUS.irqenabled ? 0xFF : (0xFF-0x60/*wave/ramp*/));
+		return myGUS.IRQStatus & (myGUS.irqenabled ? 0xFF : (~0x60/*wave/ramp*/)) & ((myGUS.TimerControl & 0x0C/*timer 1 & 2*/)|(~0x0C));
 	case 0x208:
 		Bit8u tmptime;
 		tmptime = 0;
