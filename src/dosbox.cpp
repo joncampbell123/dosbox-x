@@ -1782,6 +1782,11 @@ void DOSBOX_SetupConfigSections(void) {
 	Pint->Set_values(rates);
 	Pint->Set_help("Sample rate of Ultrasound emulation.");
 
+	Pbool = secprop->Add_bool("gus fixed render rate",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("If set, Gravis Ultrasound audio output is rendered at a fixed sample rate specified by 'gusrate'. This can provide better quality than real hardware,\n"
+			"if desired. Else, Gravis Ultrasound emulation will change the sample rate of it's output according to the number of active channels, just like real hardware.\n"
+			"Note: DOSBox-X defaults to 'false', while mainline DOSBox SVN is currently hardcoded to render as if this setting is 'true'.");
+
 	Pint = secprop->Add_int("gusmemsize",Property::Changeable::WhenIdle,-1);
 	Pint->SetMinMax(-1,1024);
 	Pint->Set_help("Amount of RAM on the Gravis Ultrasound in KB. Set to -1 for default.");

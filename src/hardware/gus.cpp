@@ -103,6 +103,7 @@ struct GFGus {
 	bool ChangeIRQDMA;
 	bool initUnmaskDMA;
 	bool force_master_irq_enable;
+	bool fixed_sample_rate_output;
 	bool clearTCIfPollingIRQStatus;
 	double lastIRQStatusPollAt;
 	int lastIRQStatusPollRapidCount;
@@ -203,9 +204,14 @@ public:
 	};
 	void WriteWaveFreq(Bit16u val) {
 		WaveFreq = val;
-		double frameadd = double(val >> 1)/512.0;		//Samples / original gus frame
-		double realadd = (frameadd*(double)myGUS.basefreq/(double)GUS_RATE) * (double)(1 << WAVE_FRACT);
-		WaveAdd = (Bit32u)realadd;
+		if (myGUS.fixed_sample_rate_output) {
+			double frameadd = double(val >> 1)/512.0;		//Samples / original gus frame
+			double realadd = (frameadd*(double)myGUS.basefreq/(double)GUS_RATE) * (double)(1 << WAVE_FRACT);
+			WaveAdd = (Bit32u)realadd;
+		}
+		else {
+			WaveAdd = ((Bit32u)(val >> 1)) << ((Bit32u)(WAVE_FRACT-9));
+		}
 	}
 	void WriteWaveCtrl(Bit8u val) {
 		Bit32u oldirq=myGUS.WaveIRQ;
@@ -247,9 +253,25 @@ public:
 	}
 	void WriteRampRate(Bit8u val) {
 		RampRate = val;
-		double frameadd = (double)(RampRate & 63)/(double)(1 << (3*(val >> 6)));
-		double realadd = (frameadd*(double)myGUS.basefreq/(double)GUS_RATE) * (double)(1 << RAMP_FRACT);
-		RampAdd = (Bit32u)realadd;
+		if (myGUS.fixed_sample_rate_output) {
+			double frameadd = (double)(RampRate & 63)/(double)(1 << (3*(val >> 6)));
+			double realadd = (frameadd*(double)myGUS.basefreq/(double)GUS_RATE) * (double)(1 << RAMP_FRACT);
+			RampAdd = (Bit32u)realadd;
+		}
+		else {
+			/* NTS: Note RAMP_FRACT == 10, shift = 10 - (3*(val>>6)).
+			 * From the upper two bits, the possible shift values for 0, 1, 2, 3 are: 10, 7, 4, 1 */
+			RampAdd = ((Bit32u)(RampRate & 63)) << ((Bit32u)(RAMP_FRACT - (3*(val >> 6))));
+#if 0//SET TO 1 TO CHECK YOUR MATH!
+			double frameadd = (double)(RampRate & 63)/(double)(1 << (3*(val >> 6)));
+			double realadd = frameadd * (double)(1 << RAMP_FRACT);
+			Bit32u checkadd = (Bit32u)realadd;
+			signed long error = (signed long)checkadd - (signed long)RampAdd;
+
+			if (error < -1L || error > 1L)
+				LOG_MSG("RampAdd nonfixed error %ld (%lu != %lu)",error,(unsigned long)checkadd,(unsigned long)RampAdd);
+#endif
+		}
 	}
 	INLINE void WaveUpdate(void) {
 		if (WaveCtrl & 0x3) return;
@@ -479,6 +501,10 @@ static void GUSReset(void) {
 		myGUS.ActiveChannelsUser = 14;
 		myGUS.ActiveMask=0xffffffffU >> (32-myGUS.ActiveChannels);
 		myGUS.basefreq = (Bit32u)((float)1000000/(1.619695497*(float)(myGUS.ActiveChannels)));
+
+		gus_chan->FillUp();
+		if (!myGUS.fixed_sample_rate_output)	gus_chan->SetFreq(myGUS.basefreq);
+		else					gus_chan->SetFreq(GUS_RATE);
 
 		myGUS.gCurChannel = 0;
 		curchan = guschan[myGUS.gCurChannel];
@@ -738,8 +764,13 @@ static void ExecuteGlobRegister(void) {
 
 		myGUS.ActiveMask=0xffffffffU >> (32-myGUS.ActiveChannels);
 		myGUS.basefreq = (Bit32u)((float)1000000/(1.619695497*(float)(myGUS.ActiveChannels)));
+
+		gus_chan->FillUp();
+		if (!myGUS.fixed_sample_rate_output)	gus_chan->SetFreq(myGUS.basefreq);
+		else					gus_chan->SetFreq(GUS_RATE);
+
 #if LOG_GUS
-		LOG_MSG("GUS set to %d channels", myGUS.ActiveChannels);
+		LOG_MSG("GUS set to %d channels fixed=%u freq=%luHz", myGUS.ActiveChannels,myGUS.fixed_sample_rate_output,(unsigned long)myGUS.basefreq);
 #endif
 		for (i=0;i<myGUS.ActiveChannels;i++) guschan[i]->UpdateWaveRamp();
 		break;
@@ -1377,6 +1408,8 @@ public:
 		myGUS.initUnmaskDMA = section->Get_bool("unmask dma");
 		if (myGUS.initUnmaskDMA)
 			LOG(LOG_MISC,LOG_DEBUG)("GUS: Unmasking DMA at boot time as requested");
+
+		myGUS.fixed_sample_rate_output = section->Get_bool("gus fixed render rate");
 
 		myGUS.force_master_irq_enable=section->Get_bool("force master irq enable");
 		if (myGUS.force_master_irq_enable)
