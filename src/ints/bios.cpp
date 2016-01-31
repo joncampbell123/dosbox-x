@@ -55,7 +55,7 @@ Bit16u biosConfigSeg=0;
 
 Bitu BIOS_DEFAULT_IRQ0_LOCATION = ~0;		// (RealMake(0xf000,0xfea5))
 Bitu BIOS_DEFAULT_IRQ1_LOCATION = ~0;		// (RealMake(0xf000,0xe987))
-Bitu BIOS_DEFAULT_IRQ2_LOCATION = ~0;		// (RealMake(0xf000,0xff55))
+Bitu BIOS_DEFAULT_IRQ07_DEF_LOCATION = ~0;	// (RealMake(0xf000,0xff55))
 
 Bitu BIOS_DEFAULT_HANDLER_LOCATION = ~0;	// (RealMake(0xf000,0xff53))
 
@@ -3315,6 +3315,10 @@ private:
 			real_writed(0,ct*4,CALLBACK_RealPointer(call_default));
 		}
 
+		// default handler for IRQ 2-7
+		for (Bit16u ct=0x0A;ct <= 0x0F;ct++)
+			RealSetVec(ct,BIOS_DEFAULT_IRQ07_DEF_LOCATION);
+
 		// setup a few interrupt handlers that point to bios IRETs by default
 		real_writed(0,0x0e*4,CALLBACK_RealPointer(call_default2));	//design your own railroad
 		real_writed(0,0x66*4,CALLBACK_RealPointer(call_default));	//war2d
@@ -3377,8 +3381,6 @@ private:
 		//	iret
 
 		mem_writed(BIOS_TIMER,0);			//Calculate the correct time
-
-		RealSetVec(0x0a,BIOS_DEFAULT_IRQ2_LOCATION);
 
 		/* Some hardcoded vectors */
 		phys_writeb(Real2Phys(BIOS_DEFAULT_HANDLER_LOCATION),0xcf);	/* bios default interrupt vector location -> IRET */
@@ -4136,14 +4138,14 @@ public:
 			BIOS_DEFAULT_HANDLER_LOCATION = RealMake(0xf000,0xff53);
 			BIOS_DEFAULT_IRQ0_LOCATION = RealMake(0xf000,0xfea5);
 			BIOS_DEFAULT_IRQ1_LOCATION = RealMake(0xf000,0xe987);
-			BIOS_DEFAULT_IRQ2_LOCATION = RealMake(0xf000,0xff55);
+			BIOS_DEFAULT_IRQ07_DEF_LOCATION = RealMake(0xf000,0xff55);
 		}
 		else {
 			BIOS_DEFAULT_RESET_LOCATION = PhysToReal416(ROMBIOS_GetMemory(64/*several callbacks*/,"BIOS default reset location",/*align*/4));
 			BIOS_DEFAULT_HANDLER_LOCATION = PhysToReal416(ROMBIOS_GetMemory(1/*IRET*/,"BIOS default handler location",/*align*/4));
 			BIOS_DEFAULT_IRQ0_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x13/*see callback.cpp for IRQ0*/,"BIOS default IRQ0 location",/*align*/4));
 			BIOS_DEFAULT_IRQ1_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x15/*see callback.cpp for IRQ1*/,"BIOS default IRQ1 location",/*align*/4));
-			BIOS_DEFAULT_IRQ2_LOCATION = PhysToReal416(ROMBIOS_GetMemory(7/*see callback.cpp for EOI_PIC1*/,"BIOS default IRQ2 location",/*align*/4));
+			BIOS_DEFAULT_IRQ07_DEF_LOCATION = PhysToReal416(ROMBIOS_GetMemory(7/*see callback.cpp for EOI_PIC1*/,"BIOS default IRQ2 location",/*align*/4));
 		}
 
 		write_FFFF_signature();
@@ -4259,8 +4261,8 @@ public:
 		init_vm86_fake_io();
 
 		/* Irq 2 */
-		Bitu call_irq2=CALLBACK_Allocate();	
-		CALLBACK_Setup(call_irq2,NULL,CB_IRET_EOI_PIC1,Real2Phys(BIOS_DEFAULT_IRQ2_LOCATION),"irq 2 bios");
+		Bitu call_irq07default=CALLBACK_Allocate();
+		CALLBACK_Setup(call_irq07default,NULL,CB_IRET_EOI_PIC1,Real2Phys(BIOS_DEFAULT_IRQ07_DEF_LOCATION),"bios irq 0-7 default handler");
 
 		/* BIOS boot stages */
 		cb_bios_post.Install(&cb_bios_post__func,CB_RETF,"BIOS POST");
