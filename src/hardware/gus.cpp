@@ -1410,6 +1410,7 @@ public:
 			LOG(LOG_MISC,LOG_DEBUG)("GUS: Unmasking DMA at boot time as requested");
 
 		myGUS.fixed_sample_rate_output = section->Get_bool("gus fixed render rate");
+		LOG(LOG_MISC,LOG_DEBUG)("GUS: using %s sample rate output",myGUS.fixed_sample_rate_output?"fixed":"realistic");
 
 		myGUS.force_master_irq_enable=section->Get_bool("force master irq enable");
 		if (myGUS.force_master_irq_enable)
