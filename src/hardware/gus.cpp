@@ -868,7 +868,10 @@ static Bitu read_gus(Bitu port,Bitu iolen) {
 			}
 		}
 
-		return myGUS.IRQStatus & (myGUS.irqenabled ? 0xFF : (~0x60/*wave/ramp*/)) & ((myGUS.TimerControl & 0x0C/*timer 1 & 2*/)|(~0x0C));
+		return myGUS.IRQStatus &
+			(myGUS.irqenabled ? 0xFF : (~0x60/*wave/ramp*/)) &
+			((myGUS.TimerControl & 0x0C/*timer 1 & 2*/)|(~0x0C)) &
+			((myGUS.DMAControl & 0x20/*DMA TC*/ ? 0x80 : 0x00)|(~0x80));
 	case 0x208:
 		Bit8u tmptime;
 		tmptime = 0;
