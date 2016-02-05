@@ -454,8 +454,6 @@ static void GUSReset(void) {
 	else
 		myGUS.irqenabled = false;
 
-	GUS_CheckIRQ();
-
 	LOG(LOG_MISC,LOG_DEBUG)("GUS reset with 0x%04X",myGUS.gRegData);
 	if ((myGUS.gRegData & 0x100) == 0x000) {
 		// Stop all channels
@@ -574,8 +572,13 @@ static INLINE void GUS_CheckIRQ(void) {
 
 static void CheckVoiceIrq(void) {
 	myGUS.IRQStatus&=0x9f;
+
 	Bitu totalmask=(myGUS.RampIRQ|myGUS.WaveIRQ) & myGUS.ActiveMask;
-	if (!totalmask) return;
+	if (!totalmask) {
+		GUS_CheckIRQ();
+		return;
+	}
+
 	if (myGUS.RampIRQ) myGUS.IRQStatus|=0x40;
 	if (myGUS.WaveIRQ) myGUS.IRQStatus|=0x20;
 	GUS_CheckIRQ();
@@ -641,7 +644,7 @@ static Bit16u ExecuteReadRegister(void) {
 		tmpreg=myGUS.IRQChan|0x20;
 		Bit32u mask;
 		mask=1 << myGUS.IRQChan;
-        if (!(myGUS.RampIRQ & mask)) tmpreg|=0x40;
+		if (!(myGUS.RampIRQ & mask)) tmpreg|=0x40;
 		if (!(myGUS.WaveIRQ & mask)) tmpreg|=0x80;
 		myGUS.RampIRQ&=~mask;
 		myGUS.WaveIRQ&=~mask;
@@ -1068,6 +1071,7 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 	}
 }
 
+static Bitu GUS_Master_Clock = 617400; /* NOTE: This is 1000000Hz / 1.619695497. Seems to be a common base rate within the hardware. */
 static Bitu GUS_DMA_Event_transfer = 16; /* DMA words (8 or 16-bit) per interval */
 static Bitu GUS_DMA_Events_per_sec = 44100 / 4; /* cheat a little, to improve emulation performance */
 static double GUS_DMA_Event_interval = 1000.0 / GUS_DMA_Events_per_sec;
@@ -1077,7 +1081,7 @@ static bool GUS_DMA_Active = false;
 void GUS_Update_DMA_Event_transfer() {
 	/* NTS: From the GUS SDK, bits 3-4 of DMA Control divide the ISA DMA transfer rate down from "approx 650KHz".
 	 *      Bits 3-4 are documented as "DMA Rate divisor" */
-	GUS_DMA_Event_transfer = 650000 / GUS_DMA_Events_per_sec / (((myGUS.DMAControl >> 3) & 3) + 1);
+	GUS_DMA_Event_transfer = GUS_Master_Clock / GUS_DMA_Events_per_sec / (((myGUS.DMAControl >> 3) & 3) + 1);
 	GUS_DMA_Event_transfer &= ~1; /* make sure it's word aligned in case of 16-bit PCM */
 	if (GUS_DMA_Event_transfer == 0) GUS_DMA_Event_transfer = 2;
 }
