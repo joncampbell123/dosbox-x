@@ -868,6 +868,8 @@ static Bitu read_gus(Bitu port,Bitu iolen) {
 			}
 		}
 
+		/* NTS: Contrary to some false impressions, GUS hardware does not report "one at a time", it really is a bitmask.
+		 *      I had the funny idea you read this register "one at a time" just like reading the IRQ reason bits of the RS-232 port --J.C. */
 		return myGUS.IRQStatus &
 			(myGUS.irqenabled ? 0xFF : (~0x60/*wave/ramp*/)) &
 			((myGUS.TimerControl & 0x0C/*timer 1 & 2*/)|(~0x0C)) &
