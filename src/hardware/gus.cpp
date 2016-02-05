@@ -552,12 +552,14 @@ static INLINE void GUS_CheckIRQ(void) {
 	bool otherIRQ;
 
 	dmaTC = ((myGUS.IRQStatus & 0x80/*DMA TC IRQ*/)!=0) && ((myGUS.DMAControl & 0x20/*DMA IRQ Enable*/)!=0);
-	timerIRQ = ((myGUS.IRQStatus & 0x0C/*Timer 1&2 IRQ*/)!=0) && ((myGUS.TimerControl & 0x0C/*Timer 1&2 IRQ Enable*/)!=0);
+	timerIRQ = ((myGUS.IRQStatus/*Timer 1&2 IRQ*/ & myGUS.TimerControl/*Timer 1&2 IRQ Enable*/ & 0x0C)!=0);
 	otherIRQ = (myGUS.IRQStatus & 0x73/*all except DMA TC IRQ and timer pending*/);
 
 	if (myGUS.mixControl & 0x08/*Enable latches*/) {
 		/* Behavior observed on real GUS hardware: Master IRQ enable bit 2 of the reset register affects only voice/wave
-		 * IRQ signals from the GF1. It does not affect the DMA terminal count interrupt nor does it affect the Adlib timers. */
+		 * IRQ signals from the GF1. It does not affect the DMA terminal count interrupt nor does it affect the Adlib timers.
+		 * This is how "Juice" by Psychic Link is able to play music by GUS timer even though the demo never enables the
+		 * Master IRQ Enable bit. */
 		if (dmaTC || timerIRQ)
 			PIC_ActivateIRQ(myGUS.irq1);
 		else if (myGUS.irqenabled && otherIRQ)
