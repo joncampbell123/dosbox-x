@@ -626,6 +626,12 @@ static Bit16u ExecuteReadRegister(void) {
 	case 0x83: // Channel LSW start address register
 		if (curchan) return (Bit16u)(curchan->WaveStart >> WAVE_BITS);
 		else return 0x0000;
+	case 0x84: // Channel MSB end address register
+		if (curchan) return (Bit16u)(curchan->WaveEnd >> (WAVE_BITS+16));
+		else return 0x0000;
+	case 0x85: // Channel LSW end address register
+		if (curchan) return (Bit16u)(curchan->WaveEnd >> WAVE_BITS);
+		else return 0x0000;
 
 	case 0x89: // Channel volume register
 		if (curchan) return (Bit16u)((curchan->RampVol >> RAMP_FRACT) << 4);
