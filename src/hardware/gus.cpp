@@ -693,25 +693,25 @@ static void ExecuteGlobRegister(void) {
 		break;
 	case 0x2:  // Channel MSW start address register
 		if (curchan) {
-			Bit32u tmpaddr = (Bit32u)(myGUS.gRegData & 0x1fff) << (16+WAVE_BITS);
+			Bit32u tmpaddr = (Bit32u)(myGUS.gRegData & 0x1fff) << (16+WAVE_BITS); /* upper 13 bits of integer portion */
 			curchan->WaveStart = (curchan->WaveStart & WAVE_MSWMASK) | tmpaddr;
 		}
 		break;
 	case 0x3:  // Channel LSW start address register
 		if(curchan != NULL) {
-			Bit32u tmpaddr = (Bit32u)(myGUS.gRegData & 0xffe0) << WAVE_BITS;
+			Bit32u tmpaddr = (Bit32u)(myGUS.gRegData & 0xffe0) << WAVE_BITS; /* lower 7 bits of integer portion, and all 4 bits of fractional portion. bits 4-0 of the incoming 16-bit WORD are not used */
 			curchan->WaveStart = (curchan->WaveStart & WAVE_LSWMASK) | tmpaddr;
 		}
 		break;
 	case 0x4:  // Channel MSW end address register
 		if(curchan != NULL) {
-			Bit32u tmpaddr = (Bit32u)(myGUS.gRegData & 0x1fff) << (16+WAVE_BITS);
+			Bit32u tmpaddr = (Bit32u)(myGUS.gRegData & 0x1fff) << (16+WAVE_BITS); /* upper 13 bits of integer portion */
 			curchan->WaveEnd = (curchan->WaveEnd & WAVE_MSWMASK) | tmpaddr;
 		}
 		break;
 	case 0x5:  // Channel MSW end address register
 		if(curchan != NULL) {
-			Bit32u tmpaddr = (Bit32u)(myGUS.gRegData & 0xffe0) << WAVE_BITS;
+			Bit32u tmpaddr = (Bit32u)(myGUS.gRegData & 0xffe0) << WAVE_BITS; /* lower 7 bits of integer portion, and all 4 bits of fractional portion. bits 4-0 of the incoming 16-bit WORD are not used */
 			curchan->WaveEnd = (curchan->WaveEnd & WAVE_LSWMASK) | tmpaddr;
 		}
 		break;
@@ -742,13 +742,13 @@ static void ExecuteGlobRegister(void) {
 		break;
 	case 0xA:  // Channel MSW current address register
 		if(curchan != NULL) {
-			Bit32u tmpaddr = (Bit32u)(myGUS.gRegData & 0x1fff) << (16+WAVE_BITS);
+			Bit32u tmpaddr = (Bit32u)(myGUS.gRegData & 0x1fff) << (16+WAVE_BITS); /* upper 13 bits of integer portion */
 			curchan->WaveAddr = (curchan->WaveAddr & WAVE_MSWMASK) | tmpaddr;
 		}
 		break;
 	case 0xB:  // Channel LSW current address register
 		if(curchan != NULL) {
-			Bit32u tmpaddr = (Bit32u)(myGUS.gRegData & 0xffe0) << (WAVE_BITS);
+			Bit32u tmpaddr = (Bit32u)(myGUS.gRegData & 0xffe0) << (WAVE_BITS); /* lower 7 bits of integer portion, and all 4 bits of fractional portion. bits 4-0 of the incoming 16-bit WORD are not used */
 			curchan->WaveAddr = (curchan->WaveAddr & WAVE_LSWMASK) | tmpaddr;
 		}
 		break;
