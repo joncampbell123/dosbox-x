@@ -399,12 +399,18 @@ public:
 		UpdateVolumes();
 	}
 	void generateSamples(Bit32s * stream,Bit32u len) {
-		int i;
+		bool eightbit = ((WaveCtrl & 0x4) == 0);
 		Bit32s tmpsamp;
-		bool eightbit;
-		if (RampCtrl & WaveCtrl & 3) return;
-		eightbit = ((WaveCtrl & 0x4) == 0);
+		int i;
 
+		/* NTS: The GUS is *always* rendering the audio sample at the current position,
+		 *      even if the voice is stopped. This can be confirmed using DOSLIB, loading
+		 *      the Ultrasound test program, loading a WAV file into memory, then using
+		 *      the Ultrasound test program's voice control dialog to single-step the
+		 *      voice through RAM (abruptly change the current position) while the voice
+		 *      is stopped. You will hear "popping" noises come out the GUS audio output
+		 *      as the current position changes and the piece of the sample rendered
+		 *      abruptly changes as well. */
 		for(i=0;i<(int)len;i++) {
 			// Get sample
 			tmpsamp = GetSample(WaveAdd, WaveAddr, eightbit);
