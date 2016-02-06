@@ -55,7 +55,7 @@ Bit8u adlib_commandreg;
 static MixerChannel * gus_chan;
 static Bit8u const irqtable[8] = { 0/*invalid*/, 2, 5, 3, 7, 11, 12, 15 };
 static Bit8u const dmatable[8] = { 0/*NO DMA*/, 1, 3, 5, 6, 7, 0/*invalid*/, 0/*invalid*/ };
-static Bit8u GUSRam[1024*1024]; // 1024K of GUS Ram
+static Bit8u GUSRam[1024*1024 + 16/*safety margin*/]; // 1024K of GUS Ram
 static Bit32s AutoAmp = 512;
 static Bit16u vol16bit[4096];
 static Bit32u pantable[16];
@@ -274,85 +274,61 @@ public:
 		}
 	}
 	INLINE void WaveUpdate(void) {
-		if (WaveCtrl & 0x3) return;
-		Bit32s WaveLeft,pWaveLeft;
-		if (WaveCtrl & 0x40) {
-			pWaveLeft=WaveStart-WaveAddr;
-			WaveAddr-=WaveAdd;
-			WaveLeft=WaveStart-WaveAddr;
-		} else {
-			pWaveLeft=WaveAddr-WaveEnd;
-			WaveAddr+=WaveAdd;
-			WaveLeft=WaveAddr-WaveEnd;
-		}
+		Bit32u WaveExtra = 0;
+		bool endcondition;
 
-		if ((RampCtrl & 0x04) && !(WaveCtrl & 0x08)) {
-			/* "roll over" condition and not looping.
-			 * Fire the IRQ only if we match or cross the start/end point, to avoid
-			 * firing an IRQ every sample we render once past the fence.
-			 * Note that implementing this is REQUIRED for our emulation to work with
-			 * the Windows 3.1 Ultrasound WAVE drivers or any other system that uses
-			 * the Ultrasound with "ping pong" buffer mode. */
+		if (WaveCtrl & 0x3) return; /* stopped voices do not move, even if the GF1 continues to render the sample we're stopped at */
 
-			/* Also note from the GUS SDK describing the "Roll over" bit:
-			 *
-			 * "Roll over condition. This bit pertains more towards the location of the voice rather than
-			 * its volume. Its purpose is to generate an IRQ and NOT stop (or loop). It will generate an IRQ and
-			 * the voice's address will continue to move through DRAM in the same direction. This can be a
-			 * very powerful feature. It allows the application to get an interrupt without having the sound stop.
-			 * This can be easily used to implement a ping-pong buffer algorithm so an application can keep
-			 * feeding it data and there will be no pops. Even if looping is enabled, it will not loop."
-			 *
-			 * Apparently this is wrong. If we faithfully emulated that fact, then the Windows 3.1 drivers
-			 * would fail to play audio properly because the wave address would wander out past the buffers
-			 * allocated by their WAVE driver. I noticed that instead, the GUS WAVE driver in Windows likes
-			 * to allocate 2 x 8KB buffers in GUS RAM, then ping-pong between them, with the first buffer
-			 * marked non-looping, and the second buffer marked looping. When the IRQ hits for the first
-			 * buffer, the GUS driver updates the Wave End address to the end of the second buffer and leaves
-			 * the Wave Start at zero with the apparent expectation we will hit the end and loop seamlessly
-			 * over to the start, even though it leaves the "roll over" bit set.
-			 *
-			 * Note that you could just as easily commented out the RampCtrl condition here and let the looping
-			 * code work below, and that would permit playback as well, but the automatic looping would introduce
-			 * minor pops and crackles in the audio. This emulation makes WAVE playback from Windows perfect
-			 * and flawless.
-			 *
-			 * UPDATE: A-ha! So they *do* acknowledge this in their SDK documentation:
-			 *
-			 * "3.11.
-			 * Rollover feature
-			 * Each voice has a 'rollover' feature that allows an application to be notified when a voice's playback position passes
-			 * over a particular place in DRAM.  This is very useful for getting seamless digital audio playback.  Basically, the GF1
-			 * will generate an IRQ when a voice's current position is  equal to the end position.  However, instead of stopping or
-			 * looping back to the start position, the voice will continue playing in the same direction.  This means that there will be
-			 * no pause (or gap) in the playback.  Note that this feature is enabled/disabled through the voice's VOLUME control
-			 * register (since there are no more bits available in the voice control registers).   A voice's loop enable bit takes
-			 * precedence over the rollover.  This means that if a voice's loop enable is on, it will loop when it hits the end position,
-			 * regardless of the state of the rollover enable.""
-			 *
-			 * Despite the confusing way their docs describe the rollover bit, this conditional check is in fact correct. */
-
-			if ((WaveLeft < 0 && pWaveLeft >= 0) || (WaveLeft >= 0 && pWaveLeft < 0)) {
-				/* Generate an IRQ if needed */
-				if (WaveCtrl & 0x20)
-					myGUS.WaveIRQ |= irqmask;
-			}
+		/* NTS: WaveAddr and WaveAdd are unsigned.
+		 *      If WaveAddr <= WaveAdd going backwards, WaveAddr becomes negative, which as an unsigned integer,
+		 *      means carrying down from the highest possible value of the integer type. Which means that if the
+		 *      start position is less than WaveAdd the WaveAddr will skip over the start pointer and continue
+		 *      playing downward from the top of the GUS memory, without stopping/looping as expected.
+		 *
+		 *      This "bug" was implemented on purpose because real Gravis Ultrasound hardware acts this way. */
+		if (WaveCtrl & 0x40/*backwards (direction)*/) {
+			/* unsigned int subtract, mask, compare. will miss start pointer if WaveStart <= WaveAdd.
+			 * This bug is deliberate, accurate to real GUS hardware, do not fix. */
+			WaveAddr -= WaveAdd;
+			WaveAddr &= ((Bitu)1 << ((Bitu)WAVE_FRACT + (Bitu)20/*1MB*/)) - 1;
+			endcondition = (WaveAddr < WaveStart)?true:false;
+			if (endcondition) WaveExtra = WaveStart - WaveAddr;
 		}
 		else {
-			if (WaveLeft<0) return;
+			WaveAddr += WaveAdd;
+			endcondition = (WaveAddr > WaveEnd)?true:false;
+			WaveAddr &= ((Bitu)1 << ((Bitu)WAVE_FRACT + (Bitu)20/*1MB*/)) - 1;
+			if (endcondition) WaveExtra = WaveAddr - WaveEnd;
+		}
 
-			/* Generate an IRQ if needed */
-			if (WaveCtrl & 0x20)
+		if (endcondition) {
+			if (WaveCtrl & 0x20) /* generate an IRQ if requested */
 				myGUS.WaveIRQ |= irqmask;
 
-			/* Check for looping */
-			if (WaveCtrl & 0x08) {
-				/* Bi-directional looping */
-				if (WaveCtrl & 0x10) WaveCtrl^=0x40;
-				WaveAddr = (WaveCtrl & 0x40) ? (WaveEnd-WaveLeft) : (WaveStart+WaveLeft);
-			} else {
-				WaveCtrl|=1;	//Stop the channel
-				WaveAddr = (WaveCtrl & 0x40) ? WaveStart : WaveEnd;
+			if ((RampCtrl & 0x04/*roll over*/) && !(WaveCtrl & 0x08/*looping*/)) {
+				/* "3.11. Rollover feature
+				 * 
+				 * Each voice has a 'rollover' feature that allows an application to be notified when a voice's playback position passes
+				 * over a particular place in DRAM.  This is very useful for getting seamless digital audio playback.  Basically, the GF1
+				 * will generate an IRQ when a voice's current position is  equal to the end position.  However, instead of stopping or
+				 * looping back to the start position, the voice will continue playing in the same direction.  This means that there will be
+				 * no pause (or gap) in the playback.  Note that this feature is enabled/disabled through the voice's VOLUME control
+				 * register (since there are no more bits available in the voice control registers).   A voice's loop enable bit takes
+				 * precedence over the rollover.  This means that if a voice's loop enable is on, it will loop when it hits the end position,
+				 * regardless of the state of the rollover enable."
+				 *
+				 * Despite the confusing description above, that means that looping takes precedence over rollover. If not looping, then
+				 * rollover means to fire the IRQ but keep moving. If looping, then fire IRQ and carry out loop behavior. Gravis Ultrasound
+				 * Windows 3.1 drivers expect this behavior, else Windows WAVE output will not work correctly. */
+			}
+			else {
+				if (WaveCtrl & 0x08/*loop*/) {
+					if (WaveCtrl & 0x10/*bi-directional*/) WaveCtrl ^= 0x40/*change direction*/;
+					WaveAddr = (WaveCtrl & 0x40) ? (WaveEnd - WaveExtra) : (WaveStart + WaveExtra);
+				} else {
+					WaveCtrl |= 1; /* stop the channel */
+					WaveAddr = (WaveCtrl & 0x40) ? WaveStart : WaveEnd;
+				}
 			}
 		}
 	}
@@ -365,8 +341,8 @@ public:
 		VolRight=vol16bit[tempright >> RAMP_FRACT];
 	}
 	INLINE void RampUpdate(void) {
-		/* Check if ramping enabled */
-		if (RampCtrl & 0x3) return;
+		if (RampCtrl & 0x3) return; /* if the ramping is turned off, then don't change the ramp */
+
 		Bit32s RampLeft;
 		if (RampCtrl & 0x40) {
 			RampVol-=RampAdd;
