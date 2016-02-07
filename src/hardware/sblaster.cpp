@@ -656,6 +656,8 @@ static void DMA_DAC_Event(Bitu val) {
 		PIC_AddEvent(DMA_DAC_Event,1000.0 / sb.dma_dac_srcrate);
 		return;
 	}
+	if (!sb.dma.left)
+		return;
 
 	/* NTS: chan->Read() deals with DMA unit transfers.
 	 *      for 8-bit DMA, read/expct is in bytes, for 16-bit DMA, read/expct is in 16-bit words */
