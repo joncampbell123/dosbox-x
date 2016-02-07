@@ -156,6 +156,7 @@ struct SB_INFO {
 	} irq;
 	struct {
 		Bit8u state;
+		Bit8u last_cmd;
 		Bit8u cmd;
 		Bit8u cmd_len;
 		Bit8u cmd_in_pos;
@@ -1472,13 +1473,29 @@ static void DSP_DoCommand(void) {
 		LOG(LOG_SB,LOG_ERROR)("DSP:Unhandled (undocumented) command %2X",sb.dsp.cmd);
 		break;
 	}
+	sb.dsp.last_cmd=sb.dsp.cmd;
 	sb.dsp.cmd=DSP_NO_COMMAND;
 	sb.dsp.cmd_len=0;
 	sb.dsp.in.pos=0;
 }
 
 static bool DSP_busy_cycle_active() {
-	return (sb.mode == MODE_DMA) || sb.busy_cycle_always;
+	/* NTS: There is a TEMPORARY HACK here for "Saga" by Dust because of routines in the IRQ handler (?)
+	 *      that wait for DSP not busy then DSP busy. TODO we need to confirm exactly when pre-SB16 cards show a DSP busy cycle in action.
+	 *      Because, honestly, who puts code like THIS in their music and interrupt handler routines?
+	 *
+	 *      mov        dx,22C
+	 *   l1:in         al,dx             ; wait while not busy
+	 *      or         al,al
+	 *      jns        l1
+	 *   l2:in         al,dx             ; wait while busy
+	 *      or         al,al
+	 *      js         l2
+	 *
+	 *      Without this hack, there is a chance (one that increases in probability the higher the cycles count) that the
+	 *      demo will go to start a new DSP block, and get stuck in it's DSP routines because we are no longer toggling the
+	 *      busy cycle (sbtype=sbpro2) because, after all, audio stopped playing. */
+	return (sb.mode == MODE_DMA) || (sb.dsp.last_cmd == 0x14/*FIXME Temporary HACK for "Saga" by Dust*/) || sb.busy_cycle_always;
 }
 
 static bool DSP_busy_cycle() {
