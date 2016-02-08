@@ -217,39 +217,8 @@ public:
 		Bit32u oldirq=myGUS.WaveIRQ;
 		WaveCtrl = val & 0x7f;
 
-		// FIXME: Realtech "Dimension" 1994 demo likes to write 0xFF here to stop a voice?? Or is that a bug??
-		//        In any case the cause of the demo's crashing with GUS support is that all of a sudden it's
-		//        got wave IRQs (val & 0x20) it never expected to handle and the IRQ storm causes the demo to crash!
-		//
-		//        This line of code, and this comment, raises two questions that need to be tested against
-		//        real GUS hardware:
-		//
-		//        #1: "IRQ pending" is supposed to be a bit you read back. Why is this code here (inherited from DOSBox)
-		//            allowing the DOS demo to trigger a wave IRQ manually by allowing it to set bit 5 and bit 7 at the same time??
-		//            Does *real* GUS hardware allow that?
-		//
-		//        #2: Conversely, does the GUS allow you to clear a pending wave IRQ just by writing Wave Control?
-		//            If so, will it clear the IRQ if you clear bit 5? Or do you have to read register 0x8F to clear
-		//            a pending wave IRQ? Does writing this register (even if leaving bit 5 set) clear the wave IRQ
-		//            whether or not there is a pending wave IRQ? Does writing the register to clear bit 7 clear a
-		//            pending wave IRQ?
-		//
-		//        #3: What does real GUS hardware do if you write something nonsensical like 0xFF to this register?
-		//            What does real GUS hardware do if you write val such that you simultaneously stop a voice (val&3 == 3),
-		//            enable voice IRQ (bit 5=1) and set IRQ pending (bit 7=1)?
-		//
-		//        What confuses me about this hack vs this discovery is that on real hardware, the DOSLIB ultrasound
-		//        test program shows that when a voice hits the end condition and stops, and the IRQ is enabled, the
-		//        GUS will happily fire IRQs until the voice is handled.
-		//
-		//        Something about the current code here is not right with real hardware, else "Dimension" by RealTech
-		//        would have hard-crashed at the demo party attempting to play music on the Gravis Ultrasound. As implemented
-		//        by DOSBox-X now, this logic causes an IRQ storm that hard-crashes "Dimension".
-		// ** This part of the code is in dispute as to whether or not it matches real GUS hardware behavior! See Issue Tracker #157
-		if ((val & 3) == 0/*voice not stopped   FIXME HACK to prevent Realtech "Dimension" from crashing*/) {
-			if ((val & 0xa0)==0xa0) myGUS.WaveIRQ|=irqmask;
-			else myGUS.WaveIRQ&=~irqmask;
-		}
+		if ((val & 0xa0)==0xa0) myGUS.WaveIRQ|=irqmask;
+		else myGUS.WaveIRQ&=~irqmask;
 
 		if (oldirq != myGUS.WaveIRQ) 
 			CheckVoiceIrq();
