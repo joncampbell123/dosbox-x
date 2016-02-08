@@ -334,7 +334,7 @@ public:
 			}
 		}
 		else if ((WaveCtrl & 0x20)/*IRQ enabled*/) {
-			/* Undocumented behavior observer on real GUS hardware: A stopped voice will still rapid-fire IRQs
+			/* Undocumented behavior observed on real GUS hardware: A stopped voice will still rapid-fire IRQs
 			 * if IRQ enabled and current position <= start position OR current position >= end position */
 			if (WaveCtrl & 0x40/*backwards (direction)*/)
 				endcondition = (WaveAddr <= WaveStart)?true:false;
