@@ -539,24 +539,47 @@ static void GUSReset(void) {
 	GUS_CheckIRQ();
 }
 
+static uint8_t GUS_EffectiveIRQStatus(void) {
+	uint8_t ret = 0;
+
+	/* Behavior observed on real GUS hardware: Master IRQ enable bit 2 of the reset register affects only voice/wave
+	 * IRQ signals from the GF1. It does not affect the DMA terminal count interrupt nor does it affect the Adlib timers.
+	 * This is how "Juice" by Psychic Link is able to play music by GUS timer even though the demo never enables the
+	 * Master IRQ Enable bit. */
+
+	/* DMA */
+	if (myGUS.DMAControl & 0x20/*DMA IRQ Enable*/)
+		ret |= (myGUS.IRQStatus & 0x80/*DMA TC IRQ*/);
+
+	/* Timer 1 & 2 */
+	ret |= (myGUS.IRQStatus/*Timer 1&2 IRQ*/ & myGUS.TimerControl/*Timer 1&2 IRQ Enable*/ & 0x0C);
+
+	/* Voice IRQ */
+	if (myGUS.irqenabled)
+		ret |= (myGUS.IRQStatus & 0x60/*Wave/Ramp IRQ*/);
+
+	/* TODO: MIDI IRQ? */
+
+	return ret;
+}
+
+static uint8_t gus_prev_effective_irqstat = 0;
+
 static INLINE void GUS_CheckIRQ(void) {
-	bool dmaTC;
-	bool timerIRQ;
-	bool otherIRQ;
-
-	dmaTC = ((myGUS.IRQStatus & 0x80/*DMA TC IRQ*/)!=0) && ((myGUS.DMAControl & 0x20/*DMA IRQ Enable*/)!=0);
-	timerIRQ = ((myGUS.IRQStatus/*Timer 1&2 IRQ*/ & myGUS.TimerControl/*Timer 1&2 IRQ Enable*/ & 0x0C)!=0);
-	otherIRQ = (myGUS.IRQStatus & 0x73/*all except DMA TC IRQ and timer pending*/) && myGUS.irqenabled;
-
 	if (myGUS.mixControl & 0x08/*Enable latches*/) {
-		/* Behavior observed on real GUS hardware: Master IRQ enable bit 2 of the reset register affects only voice/wave
-		 * IRQ signals from the GF1. It does not affect the DMA terminal count interrupt nor does it affect the Adlib timers.
-		 * This is how "Juice" by Psychic Link is able to play music by GUS timer even though the demo never enables the
-		 * Master IRQ Enable bit. */
-		if (dmaTC || timerIRQ || otherIRQ)
-			PIC_ActivateIRQ(myGUS.irq1);
-		else
+		uint8_t irqstat = GUS_EffectiveIRQStatus();
+
+		if (irqstat != 0) {
+			/* fire an IRQ only if another event has happened.
+			 * do not re-fire existing events. Real GUS hardware appears to act in this manner. */
+			if ((irqstat & (~gus_prev_effective_irqstat)) != 0)
+				PIC_ActivateIRQ(myGUS.irq1);
+		}
+		else {
 			PIC_DeActivateIRQ(myGUS.irq1);
+		}
+
+		gus_prev_effective_irqstat = irqstat;
 	}
 	else {/*Enable latch disabled. Technically this would cause random interrupts by leaving the IRQ lines floating, but...*/
 		PIC_DeActivateIRQ(myGUS.irq1);
@@ -869,10 +892,7 @@ static Bitu read_gus(Bitu port,Bitu iolen) {
 
 		/* NTS: Contrary to some false impressions, GUS hardware does not report "one at a time", it really is a bitmask.
 		 *      I had the funny idea you read this register "one at a time" just like reading the IRQ reason bits of the RS-232 port --J.C. */
-		return myGUS.IRQStatus &
-			(myGUS.irqenabled ? 0xFF : (~0x60/*wave/ramp*/)) &
-			((myGUS.TimerControl & 0x0C/*timer 1 & 2*/)|(~0x0C)) &
-			((myGUS.DMAControl & 0x20/*DMA TC*/ ? 0x80 : 0x00)|(~0x80));
+		return GUS_EffectiveIRQStatus();
 	case 0x208:
 		Bit8u tmptime;
 		tmptime = 0;
