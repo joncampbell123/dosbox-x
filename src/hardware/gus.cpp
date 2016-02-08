@@ -587,8 +587,6 @@ static INLINE void GUS_CheckIRQ(void) {
 }
 
 static void CheckVoiceIrq(void) {
-	myGUS.IRQStatus&=0x9f;
-
 	Bitu totalmask=(myGUS.RampIRQ|myGUS.WaveIRQ) & myGUS.ActiveMask;
 	if (!totalmask) {
 		GUS_CheckIRQ();
@@ -670,6 +668,7 @@ static Bit16u ExecuteReadRegister(void) {
 		if (!(myGUS.WaveIRQ & mask)) tmpreg|=0x80;
 		myGUS.RampIRQ&=~mask;
 		myGUS.WaveIRQ&=~mask;
+		myGUS.IRQStatus&=0x9f;
 		CheckVoiceIrq();
 		return (Bit16u)(tmpreg << 8);
 	default:
