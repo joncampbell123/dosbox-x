@@ -279,59 +279,70 @@ public:
 		Bit32u WaveExtra = 0;
 		bool endcondition;
 
-		if (WaveCtrl & 0x3) return; /* stopped voices do not move, even if the GF1 continues to render the sample we're stopped at */
-
-		/* NTS: WaveAddr and WaveAdd are unsigned.
-		 *      If WaveAddr <= WaveAdd going backwards, WaveAddr becomes negative, which as an unsigned integer,
-		 *      means carrying down from the highest possible value of the integer type. Which means that if the
-		 *      start position is less than WaveAdd the WaveAddr will skip over the start pointer and continue
-		 *      playing downward from the top of the GUS memory, without stopping/looping as expected.
-		 *
-		 *      This "bug" was implemented on purpose because real Gravis Ultrasound hardware acts this way. */
-		if (WaveCtrl & 0x40/*backwards (direction)*/) {
-			/* unsigned int subtract, mask, compare. will miss start pointer if WaveStart <= WaveAdd.
-			 * This bug is deliberate, accurate to real GUS hardware, do not fix. */
-			WaveAddr -= WaveAdd;
-			WaveAddr &= ((Bitu)1 << ((Bitu)WAVE_FRACT + (Bitu)20/*1MB*/)) - 1;
-			endcondition = (WaveAddr < WaveStart)?true:false;
-			if (endcondition) WaveExtra = WaveStart - WaveAddr;
-		}
-		else {
-			WaveAddr += WaveAdd;
-			endcondition = (WaveAddr > WaveEnd)?true:false;
-			WaveAddr &= ((Bitu)1 << ((Bitu)WAVE_FRACT + (Bitu)20/*1MB*/)) - 1;
-			if (endcondition) WaveExtra = WaveAddr - WaveEnd;
-		}
-
-		if (endcondition) {
-			if (WaveCtrl & 0x20) /* generate an IRQ if requested */
-				myGUS.WaveIRQ |= irqmask;
-
-			if ((RampCtrl & 0x04/*roll over*/) && !(WaveCtrl & 0x08/*looping*/)) {
-				/* "3.11. Rollover feature
-				 * 
-				 * Each voice has a 'rollover' feature that allows an application to be notified when a voice's playback position passes
-				 * over a particular place in DRAM.  This is very useful for getting seamless digital audio playback.  Basically, the GF1
-				 * will generate an IRQ when a voice's current position is  equal to the end position.  However, instead of stopping or
-				 * looping back to the start position, the voice will continue playing in the same direction.  This means that there will be
-				 * no pause (or gap) in the playback.  Note that this feature is enabled/disabled through the voice's VOLUME control
-				 * register (since there are no more bits available in the voice control registers).   A voice's loop enable bit takes
-				 * precedence over the rollover.  This means that if a voice's loop enable is on, it will loop when it hits the end position,
-				 * regardless of the state of the rollover enable."
-				 *
-				 * Despite the confusing description above, that means that looping takes precedence over rollover. If not looping, then
-				 * rollover means to fire the IRQ but keep moving. If looping, then fire IRQ and carry out loop behavior. Gravis Ultrasound
-				 * Windows 3.1 drivers expect this behavior, else Windows WAVE output will not work correctly. */
+		if ((WaveCtrl & 0x3) == 0/*voice is running*/) {
+			/* NTS: WaveAddr and WaveAdd are unsigned.
+			 *      If WaveAddr <= WaveAdd going backwards, WaveAddr becomes negative, which as an unsigned integer,
+			 *      means carrying down from the highest possible value of the integer type. Which means that if the
+			 *      start position is less than WaveAdd the WaveAddr will skip over the start pointer and continue
+			 *      playing downward from the top of the GUS memory, without stopping/looping as expected.
+			 *
+			 *      This "bug" was implemented on purpose because real Gravis Ultrasound hardware acts this way. */
+			if (WaveCtrl & 0x40/*backwards (direction)*/) {
+				/* unsigned int subtract, mask, compare. will miss start pointer if WaveStart <= WaveAdd.
+				 * This bug is deliberate, accurate to real GUS hardware, do not fix. */
+				WaveAddr -= WaveAdd;
+				WaveAddr &= ((Bitu)1 << ((Bitu)WAVE_FRACT + (Bitu)20/*1MB*/)) - 1;
+				endcondition = (WaveAddr < WaveStart)?true:false;
+				if (endcondition) WaveExtra = WaveStart - WaveAddr;
 			}
 			else {
-				if (WaveCtrl & 0x08/*loop*/) {
-					if (WaveCtrl & 0x10/*bi-directional*/) WaveCtrl ^= 0x40/*change direction*/;
-					WaveAddr = (WaveCtrl & 0x40) ? (WaveEnd - WaveExtra) : (WaveStart + WaveExtra);
-				} else {
-					WaveCtrl |= 1; /* stop the channel */
-					WaveAddr = (WaveCtrl & 0x40) ? WaveStart : WaveEnd;
+				WaveAddr += WaveAdd;
+				endcondition = (WaveAddr > WaveEnd)?true:false;
+				WaveAddr &= ((Bitu)1 << ((Bitu)WAVE_FRACT + (Bitu)20/*1MB*/)) - 1;
+				if (endcondition) WaveExtra = WaveAddr - WaveEnd;
+			}
+
+			if (endcondition) {
+				if (WaveCtrl & 0x20) /* generate an IRQ if requested */
+					myGUS.WaveIRQ |= irqmask;
+
+				if ((RampCtrl & 0x04/*roll over*/) && !(WaveCtrl & 0x08/*looping*/)) {
+					/* "3.11. Rollover feature
+					 * 
+					 * Each voice has a 'rollover' feature that allows an application to be notified when a voice's playback position passes
+					 * over a particular place in DRAM.  This is very useful for getting seamless digital audio playback.  Basically, the GF1
+					 * will generate an IRQ when a voice's current position is  equal to the end position.  However, instead of stopping or
+					 * looping back to the start position, the voice will continue playing in the same direction.  This means that there will be
+					 * no pause (or gap) in the playback.  Note that this feature is enabled/disabled through the voice's VOLUME control
+					 * register (since there are no more bits available in the voice control registers).   A voice's loop enable bit takes
+					 * precedence over the rollover.  This means that if a voice's loop enable is on, it will loop when it hits the end position,
+					 * regardless of the state of the rollover enable."
+					 *
+					 * Despite the confusing description above, that means that looping takes precedence over rollover. If not looping, then
+					 * rollover means to fire the IRQ but keep moving. If looping, then fire IRQ and carry out loop behavior. Gravis Ultrasound
+					 * Windows 3.1 drivers expect this behavior, else Windows WAVE output will not work correctly. */
+				}
+				else {
+					if (WaveCtrl & 0x08/*loop*/) {
+						if (WaveCtrl & 0x10/*bi-directional*/) WaveCtrl ^= 0x40/*change direction*/;
+						WaveAddr = (WaveCtrl & 0x40) ? (WaveEnd - WaveExtra) : (WaveStart + WaveExtra);
+					} else {
+						WaveCtrl |= 1; /* stop the channel */
+						WaveAddr = (WaveCtrl & 0x40) ? WaveStart : WaveEnd;
+					}
 				}
 			}
+		}
+		else if ((WaveCtrl & 0x20)/*IRQ enabled*/) {
+			/* Undocumented behavior observer on real GUS hardware: A stopped voice will still rapid-fire IRQs
+			 * if IRQ enabled and current position <= start position OR current position >= end position */
+			if (WaveCtrl & 0x40/*backwards (direction)*/)
+				endcondition = (WaveAddr <= WaveStart)?true:false;
+			else
+				endcondition = (WaveAddr >= WaveEnd)?true:false;
+
+			if (endcondition)
+				myGUS.WaveIRQ |= irqmask;
 		}
 	}
 	INLINE void UpdateVolumes(void) {
