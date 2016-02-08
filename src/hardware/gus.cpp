@@ -570,9 +570,10 @@ static INLINE void GUS_CheckIRQ(void) {
 		uint8_t irqstat = GUS_EffectiveIRQStatus();
 
 		if (irqstat != 0) {
-			/* fire an IRQ only if another event has happened.
-			 * do not re-fire existing events. Real GUS hardware appears to act in this manner. */
-			if ((irqstat & (~gus_prev_effective_irqstat)) != 0)
+			/* The GUS fires an IRQ, then waits for the interrupt service routine to
+			 * clear all pending interrupt events before firing another one. if you
+			 * don't service all events, then you don't get another interrupt. */
+			if (gus_prev_effective_irqstat == 0)
 				PIC_ActivateIRQ(myGUS.irq1);
 		}
 		else {
