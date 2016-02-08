@@ -633,7 +633,9 @@ static Bit16u ExecuteReadRegister(void) {
 	case 0x80: // Channel voice control read register
 		if (curchan) return curchan->ReadWaveCtrl() << 8;
 		else return 0x0300;
-
+	case 0x81:  // Channel frequency control register
+		if(curchan) return (Bit16u)(curchan->WaveFreq);
+		else return 0x0000;;
 	case 0x82: // Channel MSB start address register
 		if (curchan) return (Bit16u)(curchan->WaveStart >> (WAVE_BITS+16));
 		else return 0x0000;
