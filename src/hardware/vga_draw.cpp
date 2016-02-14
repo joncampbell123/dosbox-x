@@ -1476,7 +1476,7 @@ void VGA_CheckScanLength(void) {
 			else {
 				/* Most (almost ALL) VGA clones render chained modes as 4 8-bit planes one DWORD apart.
 				 * They all act as if writes to chained VGA memory are translated as:
-				 * addr = ((addr & ~3) << 3) + (addr & 3) */
+				 * addr = ((addr & ~3) << 2) + (addr & 3) */
 				vga.draw.address_add=vga.config.scan_len*((2*4)<<vga.config.addr_shift);
 			}
 		}
