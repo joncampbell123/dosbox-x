@@ -32,6 +32,12 @@
 #include "regs.h"
 using namespace std;
 
+enum GUSType {
+	GUS_CLASSIC=0,
+	GUS_MAX,
+	GUS_INTERWAVE
+};
+
 //Extra bits of precision over normal gus
 #define WAVE_BITS 2
 #define WAVE_FRACT (9+WAVE_BITS)
@@ -59,6 +65,7 @@ static Bit8u GUSRam[1024*1024 + 16/*safety margin*/]; // 1024K of GUS Ram
 static Bit32s AutoAmp = 512;
 static Bit16u vol16bit[4096];
 static Bit32u pantable[16];
+static enum GUSType gus_type = GUS_CLASSIC;
 
 class GUSChannels;
 static void CheckVoiceIrq(void);
@@ -1434,6 +1441,24 @@ public:
 			gus_fixed_table = false;
 		else
 			gus_fixed_table = true;
+
+		string s_gustype = section->Get_string("gustype");
+		if (s_gustype == "classic") {
+			LOG(LOG_MISC,LOG_DEBUG)("GUS: Classic emulation");
+			gus_type = GUS_CLASSIC;
+		}
+		else if (s_gustype == "max") {
+			LOG(LOG_MISC,LOG_DEBUG)("GUS: MAX emulation");
+			gus_type = GUS_MAX;
+		}
+		else if (s_gustype == "interwave") {
+			LOG(LOG_MISC,LOG_DEBUG)("GUS: Interwave PnP emulation");
+			gus_type = GUS_INTERWAVE;
+		}
+		else {
+			LOG(LOG_MISC,LOG_DEBUG)("GUS: Classic emulation by default");
+			gus_type = GUS_CLASSIC;
+		}
 
 		myGUS.clearTCIfPollingIRQStatus = section->Get_bool("clear dma tc irq if excess polling");
 		if (myGUS.clearTCIfPollingIRQStatus)
