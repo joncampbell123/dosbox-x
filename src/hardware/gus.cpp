@@ -66,6 +66,7 @@ static Bit32s AutoAmp = 512;
 static Bit16u vol16bit[4096];
 static Bit32u pantable[16];
 static enum GUSType gus_type = GUS_CLASSIC;
+static bool gus_ics_mixer = false;
 
 class GUSChannels;
 static void CheckVoiceIrq(void);
@@ -1463,16 +1464,24 @@ public:
 		else
 			gus_fixed_table = true;
 
+		gus_ics_mixer = false;
 		string s_gustype = section->Get_string("gustype");
 		if (s_gustype == "classic") {
 			LOG(LOG_MISC,LOG_DEBUG)("GUS: Classic emulation");
 			gus_type = GUS_CLASSIC;
 		}
+		else if (s_gustype == "classic37") {
+			LOG(LOG_MISC,LOG_DEBUG)("GUS: Classic emulation");
+			gus_type = GUS_CLASSIC;
+			gus_ics_mixer = true;
+		}
 		else if (s_gustype == "max") {
+			// UltraMAX cards do not have the ICS mixer
 			LOG(LOG_MISC,LOG_DEBUG)("GUS: MAX emulation");
 			gus_type = GUS_MAX;
 		}
 		else if (s_gustype == "interwave") {
+			// Neither do Interwave cards
 			LOG(LOG_MISC,LOG_DEBUG)("GUS: Interwave PnP emulation");
 			gus_type = GUS_INTERWAVE;
 		}

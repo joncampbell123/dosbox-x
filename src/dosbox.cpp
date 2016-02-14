@@ -822,7 +822,7 @@ void DOSBOX_SetupConfigSections(void) {
 	const char *mt32reverbModes[] = {"0", "1", "2", "3", "auto",0};
 	const char *mt32reverbTimes[] = {"0", "1", "2", "3", "4", "5", "6", "7",0};
 	const char *mt32reverbLevels[] = {"0", "1", "2", "3", "4", "5", "6", "7",0};
-	const char* gustypes[] = { "classic", "max", "interwave", 0 };
+	const char* gustypes[] = { "classic", "classic37", "max", "interwave", 0 };
 	const char* sbtypes[] = { "sb1", "sb2", "sbpro1", "sbpro2", "sb16", "sb16vibra", "gb", "none", 0 };
 	const char* oplmodes[]={ "auto", "cms", "opl2", "dualopl2", "opl3", "none", "hardware", "hardwaregb", 0};
 	const char* serials[] = { "dummy", "disabled", "modem", "nullmodem", "serialmouse", "directserial",0 };
@@ -1808,6 +1808,7 @@ void DOSBOX_SetupConfigSections(void) {
 	Pstring->Set_values(gustypes);
 	Pstring->Set_help(	"Type of Gravis Ultrasound to emulate.\n"
 				"classic             Original Gravis Ultrasound chipset\n"
+				"classic37           Original Gravis Ultrasound with ICS Mixer (rev 3.7)\n"
 				"max                 Gravis Ultrasound MAX emulation (with CS4231 codec)\n"
 				"interwave           Gravis Ultrasound Plug & Play (interwave)");
 
