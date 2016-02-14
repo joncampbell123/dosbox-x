@@ -959,6 +959,15 @@ static Bitu read_gus(Bitu port,Bitu iolen) {
 		} else {
 			return 0;
 		}
+	case 0x306:
+	case 0x706:
+		if (gus_type >= GUS_MAX)
+			return 0x0B; /* UltraMax with CS4231 codec */
+		else if (gus_ics_mixer)
+			return 0x06; /* revision 3.7+ with ICS-2101 mixer */
+		else
+			return 0xFF;
+		break;
 	default:
 #if LOG_GUS
 		LOG_MSG("Read GUS at port 0x%x", port);
@@ -1159,6 +1168,30 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 		break;
 	case 0x307:
 		if(myGUS.gDramAddr < myGUS.memsize) GUSRam[myGUS.gDramAddr] = (Bit8u)val;
+		break;
+	case 0x306:
+	case 0x706:
+		if (gus_type >= GUS_MAX) {
+			/* Ultramax control register:
+			 *
+			 * bit 7: reserved
+			 * bit 6: codec enable
+			 * bit 5: playback channel type (1=16-bit 0=8-bit)
+			 * bit 4: capture channel type (1=16-bit 0=8-bit)
+			 * bits 3-0: Codec I/O port address decode bits 7-4.
+			 *
+			 * For example, to put the CS4231 codec at port 0x34C, and enable the codec, write 0x44 to this register.
+			 * If you want to move the codec to base I/O port 0x32C, write 0x42 here. */
+			LOG(LOG_MISC,LOG_DEBUG)("GUS TODO: GUS UltraMax Control Register write (%03xh) val=%02xh",(int)port,(int)val);
+		}
+		else if (gus_ics_mixer) {
+			if ((port - GUS_BASE) == 0x306) {
+				LOG(LOG_MISC,LOG_DEBUG)("GUS TODO: ICS-2101 Mixer Data Write (%03xh) val=%02xh",(int)port,(int)val);
+			}
+			else if ((port - GUS_BASE) == 0x706) {
+				LOG(LOG_MISC,LOG_DEBUG)("GUS TODO: ICS-2101 Mixer Control Write (%03xh) val=%02xh",(int)port,(int)val);
+			}
+		}
 		break;
 	default:
 #if LOG_GUS
@@ -1478,8 +1511,8 @@ static void MakeTables(void) {
 
 class GUS:public Module_base{
 private:
-	IO_ReadHandleObject ReadHandler[10];
-	IO_WriteHandleObject WriteHandler[10];
+	IO_ReadHandleObject ReadHandler[12];
+	IO_WriteHandleObject WriteHandler[12];
 	AutoexecObject autoexecline[2];
 	MixerObject MixerChan;
 public:
@@ -1615,6 +1648,12 @@ public:
 			 * which one is being talked to." */
 			ReadHandler[9].Install(0x20F + GUS_BASE,read_gus,IO_MB);
 			WriteHandler[9].Install(0x20F + GUS_BASE,write_gus,IO_MB);
+
+			/* FIXME: I'm not so sure Interwave PnP cards have this */
+			ReadHandler[10].Install(0x306 + GUS_BASE,read_gus,IO_MB); // Revision level
+			ReadHandler[11].Install(0x706 + GUS_BASE,read_gus,IO_MB); // Revision level
+			WriteHandler[10].Install(0x306 + GUS_BASE,write_gus,IO_MB); // Mixer control
+			WriteHandler[11].Install(0x706 + GUS_BASE,write_gus,IO_MB); // Mixer data / GUS UltraMAX Control register
 		}
 	
 	//	DmaChannels[myGUS.dma1]->Register_TC_Callback(GUS_DMA_TC_Callback);
