@@ -88,6 +88,7 @@ struct GFGus {
 	Bit8u mixControl;
 	Bit8u ActiveChannels;
 	Bit8u ActiveChannelsUser; /* what the guest wrote */
+	Bit8u gRegControl;
 	Bit32u basefreq;
 
 	struct GusTimer {
@@ -512,6 +513,7 @@ static void GUSReset(void) {
 
 		myGUS.dmaAddr = 0;
 		myGUS.irqenabled = 0;
+		myGUS.gRegControl = 0;
 		myGUS.dmaAddrOffset = 0;
 		myGUS.gDramAddr = 0;
 		myGUS.gRegData = 0;
@@ -928,6 +930,10 @@ static Bitu read_gus(Bitu port,Bitu iolen) {
 		return tmptime;
 	case 0x20a:
 		return adlib_commandreg;
+	case 0x20f:
+		if (gus_type >= GUS_MAX || gus_ics_mixer)
+			return 0x02; /* <- FIXME: What my GUS MAX returns. What does this mean? */
+		return ~0; // should not happen
 	case 0x302:
 		return myGUS.gRegSelectData;
 	case 0x303:
@@ -968,6 +974,7 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 //	LOG_MSG("Write gus port %x val %x",port,val);
 	switch(port - GUS_BASE) {
 	case 0x200:
+		myGUS.gRegControl = 0;
 		myGUS.mixControl = (Bit8u)val;
 		myGUS.ChangeIRQDMA = true;
 		return;
@@ -1000,92 +1007,122 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 	case 0x20b:
 		if (!myGUS.ChangeIRQDMA) break;
 		myGUS.ChangeIRQDMA=false;
-		if (myGUS.mixControl & 0x40) {
-			// GUS SDK: IRQ Control Register
-			//     Channel 1 GF1 IRQ selector (bits 2-0)
-			//       0=reserved, do not use
-			//       1=IRQ2
-			//       2=IRQ5
-			//       3=IRQ3
-			//       4=IRQ7
-			//       5=IRQ11
-			//       6=IRQ12
-			//       7=IRQ15
-			//     Channel 2 MIDI IRQ selector (bits 5-3)
-			//       0=no interrupt
-			//       1=IRQ2
-			//       2=IRQ5
-			//       3=IRQ3
-			//       4=IRQ7
-			//       5=IRQ11
-			//       6=IRQ12
-			//       7=IRQ15
-			//     Combine both IRQs using channel 1 (bit 6)
-			//     Reserved (bit 7)
-			//
-			//     "If both channels are sharing an IRQ, channel 2's IRQ must be set to 0 and turn on bit 6. A
-			//      bus conflict will occur if both latches are programmed with the same IRQ #."
-			if (irqtable[val & 0x7] != 0)
-				myGUS.irq1 = irqtable[val & 0x7];
 
-			if (val & 0x40) // "Combine both IRQs"
-				myGUS.irq2 = myGUS.irq1;
-			else if (((val >> 3) & 7) != 0)
-				myGUS.irq2 = irqtable[(val >> 3) & 0x7];
+		if (myGUS.gRegControl == 6) {
+			/* Jumper register:
+			 *
+			 * 7: reserved
+			 * 6: reserved
+			 * 5: reserved
+			 * 4: reserved
+			 * 3: reserved
+			 * 2: enable joystick port decode
+			 * 1: enable midi port address decode
+			 * 0: reserved */
+			/* TODO: */
+			LOG(LOG_MISC,LOG_DEBUG)("GUS: DOS application wrote to 2XB register control number 0x06 (Jumper) val=%02xh",(int)val);
+		}
+		else if (myGUS.gRegControl == 5) {
+			/* write a 0 to clear IRQs on power up (?) */
+			LOG(LOG_MISC,LOG_DEBUG)("GUS: DOS application wrote to 2XB register control number 0x05 (Clear IRQs) val=%02xh",(int)val);
+		}
+		else if (myGUS.gRegControl == 0) {
+			if (myGUS.mixControl & 0x40) {
+				// GUS SDK: IRQ Control Register
+				//     Channel 1 GF1 IRQ selector (bits 2-0)
+				//       0=reserved, do not use
+				//       1=IRQ2
+				//       2=IRQ5
+				//       3=IRQ3
+				//       4=IRQ7
+				//       5=IRQ11
+				//       6=IRQ12
+				//       7=IRQ15
+				//     Channel 2 MIDI IRQ selector (bits 5-3)
+				//       0=no interrupt
+				//       1=IRQ2
+				//       2=IRQ5
+				//       3=IRQ3
+				//       4=IRQ7
+				//       5=IRQ11
+				//       6=IRQ12
+				//       7=IRQ15
+				//     Combine both IRQs using channel 1 (bit 6)
+				//     Reserved (bit 7)
+				//
+				//     "If both channels are sharing an IRQ, channel 2's IRQ must be set to 0 and turn on bit 6. A
+				//      bus conflict will occur if both latches are programmed with the same IRQ #."
+				if (irqtable[val & 0x7] != 0)
+					myGUS.irq1 = irqtable[val & 0x7];
 
-			LOG(LOG_MISC,LOG_DEBUG)("GUS IRQ reprogrammed: GF1 IRQ %d, MIDI IRQ %d",(int)myGUS.irq1,(int)myGUS.irq2);
+				if (val & 0x40) // "Combine both IRQs"
+					myGUS.irq2 = myGUS.irq1;
+				else if (((val >> 3) & 7) != 0)
+					myGUS.irq2 = irqtable[(val >> 3) & 0x7];
 
-			if (!(val & 0x40) && (val & 7) == ((val >> 3) & 7))
-				LOG(LOG_MISC,LOG_WARN)("GUS warning: Both IRQs set to the same signal line WITHOUT combining! This is documented to cause bus conflicts on real hardware");
-		} else {
-			// GUS SDK: DMA Control Register
-			//     Channel 1 (bits 2-0)
-			//       0=NO DMA
-			//       1=DMA1
-			//       2=DMA3
-			//       3=DMA5
-			//       4=DMA6
-			//       5=DMA7
-			//       6=?
-			//       7=?
-			//     Channel 2 (bits 5-3)
-			//       0=NO DMA
-			//       1=DMA1
-			//       2=DMA3
-			//       3=DMA5
-			//       4=DMA6
-			//       5=DMA7
-			//       6=?
-			//       7=?
-			//     Combine both DMA channels using channel 1 (bit 6)
-			//     Reserved (bit 7)
-			//
-			//     "If both channels are sharing an DMA, channel 2's DMA must be set to 0 and turn on bit 6. A
-			//      bus conflict will occur if both latches are programmed with the same DMA #."
+				LOG(LOG_MISC,LOG_DEBUG)("GUS IRQ reprogrammed: GF1 IRQ %d, MIDI IRQ %d",(int)myGUS.irq1,(int)myGUS.irq2);
 
-			// NTS: This emulation does not use the second DMA channel... yet... which is why we do not bother
-			//      unregistering and reregistering the second DMA channel.
+				if (!(val & 0x40) && (val & 7) == ((val >> 3) & 7))
+					LOG(LOG_MISC,LOG_WARN)("GUS warning: Both IRQs set to the same signal line WITHOUT combining! This is documented to cause bus conflicts on real hardware");
+			} else {
+				// GUS SDK: DMA Control Register
+				//     Channel 1 (bits 2-0)
+				//       0=NO DMA
+				//       1=DMA1
+				//       2=DMA3
+				//       3=DMA5
+				//       4=DMA6
+				//       5=DMA7
+				//       6=?
+				//       7=?
+				//     Channel 2 (bits 5-3)
+				//       0=NO DMA
+				//       1=DMA1
+				//       2=DMA3
+				//       3=DMA5
+				//       4=DMA6
+				//       5=DMA7
+				//       6=?
+				//       7=?
+				//     Combine both DMA channels using channel 1 (bit 6)
+				//     Reserved (bit 7)
+				//
+				//     "If both channels are sharing an DMA, channel 2's DMA must be set to 0 and turn on bit 6. A
+				//      bus conflict will occur if both latches are programmed with the same DMA #."
 
-			GetDMAChannel(myGUS.dma1)->Register_Callback(0); // FIXME: On DMA conflict this could mean kicking other devices off!
+				// NTS: This emulation does not use the second DMA channel... yet... which is why we do not bother
+				//      unregistering and reregistering the second DMA channel.
 
-			// NTS: Contrary to an earlier commit, DMA channel 0 is not a valid choice
-			if (dmatable[val & 0x7] != 0)
-				myGUS.dma1 = dmatable[val & 0x7];
+				GetDMAChannel(myGUS.dma1)->Register_Callback(0); // FIXME: On DMA conflict this could mean kicking other devices off!
 
-			if (val & 0x40) // "Combine both DMA channels"
-				myGUS.dma2 = myGUS.dma1;
-			else if (dmatable[(val >> 3) & 0x7] != 0)
-				myGUS.dma2 = dmatable[(val >> 3) & 0x7];
+				// NTS: Contrary to an earlier commit, DMA channel 0 is not a valid choice
+				if (dmatable[val & 0x7] != 0)
+					myGUS.dma1 = dmatable[val & 0x7];
 
-			GetDMAChannel(myGUS.dma1)->Register_Callback(GUS_DMA_Callback);
+				if (val & 0x40) // "Combine both DMA channels"
+					myGUS.dma2 = myGUS.dma1;
+				else if (dmatable[(val >> 3) & 0x7] != 0)
+					myGUS.dma2 = dmatable[(val >> 3) & 0x7];
 
-			LOG(LOG_MISC,LOG_DEBUG)("GUS DMA reprogrammed: DMA1 %d, DMA2 %d",(int)myGUS.dma1,(int)myGUS.dma2);
+				GetDMAChannel(myGUS.dma1)->Register_Callback(GUS_DMA_Callback);
 
-			// NTS: The Windows 3.1 Gravis Ultrasound drivers will program the same DMA channel into both without setting the "combining" bit,
-			//      even though their own SDK says not to, when Windows starts up. But it then immediately reprograms it normally, so no bus
-			//      conflicts actually occur. Strange.
-			if (!(val & 0x40) && (val & 7) == ((val >> 3) & 7))
-				LOG(LOG_MISC,LOG_WARN)("GUS warning: Both DMA channels set to the same channel WITHOUT combining! This is documented to cause bus conflicts on real hardware");
+				LOG(LOG_MISC,LOG_DEBUG)("GUS DMA reprogrammed: DMA1 %d, DMA2 %d",(int)myGUS.dma1,(int)myGUS.dma2);
+
+				// NTS: The Windows 3.1 Gravis Ultrasound drivers will program the same DMA channel into both without setting the "combining" bit,
+				//      even though their own SDK says not to, when Windows starts up. But it then immediately reprograms it normally, so no bus
+				//      conflicts actually occur. Strange.
+				if (!(val & 0x40) && (val & 7) == ((val >> 3) & 7))
+					LOG(LOG_MISC,LOG_WARN)("GUS warning: Both DMA channels set to the same channel WITHOUT combining! This is documented to cause bus conflicts on real hardware");
+			}
+		}
+		else {
+			LOG(LOG_MISC,LOG_DEBUG)("GUS warning: Port 2XB register control %02xh written (unknown control reg) val=%02xh",(int)myGUS.gRegControl,(int)val);
+		}
+		break;
+	case 0x20f:
+		if (gus_type >= GUS_MAX || gus_ics_mixer) {
+			myGUS.gRegControl = val;
+			myGUS.ChangeIRQDMA = true;
 		}
 		break;
 	case 0x302:
@@ -1441,8 +1478,8 @@ static void MakeTables(void) {
 
 class GUS:public Module_base{
 private:
-	IO_ReadHandleObject ReadHandler[8];
-	IO_WriteHandleObject WriteHandler[9];
+	IO_ReadHandleObject ReadHandler[10];
+	IO_WriteHandleObject WriteHandler[10];
 	AutoexecObject autoexecline[2];
 	MixerObject MixerChan;
 public:
@@ -1570,6 +1607,15 @@ public:
 		WriteHandler[7].Install(0x200 + GUS_BASE,write_gus,IO_MB);
 		ReadHandler[7].Install(0x20A + GUS_BASE,read_gus,IO_MB);
 		WriteHandler[8].Install(0x20B + GUS_BASE,write_gus,IO_MB);
+
+		if (gus_type >= GUS_MAX || gus_ics_mixer/*classic with 3.7 mixer*/) {
+			/* "This register is only valid for UltraSound boards that are at or above revision 3.4. It is not valid for boards which
+			 * have a prior revision number.
+			 * On 3.4 and above boards, there is a bank of 6 registers that exist at location 2XB. Register 2XF is used to select
+			 * which one is being talked to." */
+			ReadHandler[9].Install(0x20F + GUS_BASE,read_gus,IO_MB);
+			WriteHandler[9].Install(0x20F + GUS_BASE,write_gus,IO_MB);
+		}
 	
 	//	DmaChannels[myGUS.dma1]->Register_TC_Callback(GUS_DMA_TC_Callback);
 	
