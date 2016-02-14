@@ -80,6 +80,7 @@ struct GFGus {
 	Bit32u gDramAddr;
 	Bit16u gCurChannel;
 
+	Bit8u gUltraMAXControl;
 	Bit8u DMAControl;
 	Bit16u dmaAddr;
 	Bit8u dmaAddrOffset; /* bits 0-3 of the addr */
@@ -878,6 +879,86 @@ static void ExecuteGlobRegister(void) {
 	return;
 }
 
+/* Gravis Ultrasound MAX Crystal Semiconductor CS4231A emulation */
+struct gus_cs4231 {
+public:
+	gus_cs4231() : address(0), mode2(false), ia4(false), trd(false), mce(false), init(false) {
+	}
+public:
+	void data_write(uint8_t addr,uint8_t val) {
+		LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 write data addr=%02xh val=%02xh",addr,val);
+	}
+	uint8_t data_read(uint8_t addr) {
+		LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 read data addr=%02xh",addr);
+		return 0;
+	}
+	void playio_data_write(uint8_t val) {
+		LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 Playback I/O write %02xh",val);
+	}
+	uint8_t capio_data_read(void) {
+		LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 Capture I/O read");
+		return 0;
+	}
+	uint8_t status_read(void) {
+		LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 Status read");
+		return 0;
+	}
+	void iowrite(uint8_t reg,uint8_t val) {
+		LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 write reg=%u val=%02xh",reg,val);
+
+		switch (reg) {
+			case 0x0: /* Index Address Register (R0) */
+				address = val & (mode2 ? 0x1F : 0x0F);
+				trd = (val & 0x20)?1:0;
+				mce = (val & 0x40)?1:0;
+				init = (val & 0x80)?1:0;
+				break;
+			case 0x1: /* Index Data Register (R1) */
+				data_write(address,val);
+				break;
+			case 0x2: /* Status Register (R2) */
+				break;
+			case 0x3: /* Playback I/O Data Register (R3) */
+				playio_data_write(val);
+				break;
+		}
+	}
+	uint8_t ioread(uint8_t reg) {
+		LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 write read=%u",reg);
+
+		switch (reg) {
+			case 0x0: /* Index Address Register (R0) */
+				return address | (trd?0x20:0x00) | (mce?0x40:0x00) | (init?0x80:0x00);
+			case 0x1: /* Index Data Register (R1) */
+				return data_read(address);
+			case 0x2: /* Status Register (R2) */
+				return status_read();
+			case 0x3: /* Capture I/O Data Register (R3) */
+				return capio_data_read();
+		}
+
+		return 0;
+	}
+public:
+	uint8_t		address;
+	bool		mode2; // read CS4231A datasheet for more information
+	bool		ia4;
+	bool		trd;
+	bool		mce;
+	bool		init;
+} GUS_CS4231;
+
+static Bitu read_gus_cs4231(Bitu port,Bitu iolen) {
+	if (myGUS.gUltraMAXControl & 0x40/*codec enable*/)
+		return GUS_CS4231.ioread((port - GUS_BASE) & 3); // FIXME: UltraMAX allows this to be relocatable
+
+	return 0xFF;
+}
+
+static void write_gus_cs4231(Bitu port,Bitu val,Bitu iolen) {
+	if (myGUS.gUltraMAXControl & 0x40/*codec enable*/)
+		GUS_CS4231.iowrite((port - GUS_BASE) & 3,val&0xFF);
+}
 
 static Bitu read_gus(Bitu port,Bitu iolen) {
 	Bit16u reg16;
@@ -1182,7 +1263,12 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 			 *
 			 * For example, to put the CS4231 codec at port 0x34C, and enable the codec, write 0x44 to this register.
 			 * If you want to move the codec to base I/O port 0x32C, write 0x42 here. */
-			LOG(LOG_MISC,LOG_DEBUG)("GUS TODO: GUS UltraMax Control Register write (%03xh) val=%02xh",(int)port,(int)val);
+			myGUS.gUltraMAXControl = val;
+
+			if (val & 0x40) {
+				if ((val & 0xF) != ((port >> 4) & 0xF))
+					LOG(LOG_MISC,LOG_WARN)("GUS WARNING: DOS application is attempting to relocate the CS4231 codec, which is not supported");
+			}
 		}
 		else if (gus_ics_mixer) {
 			if ((port - GUS_BASE) == 0x306) {
@@ -1513,7 +1599,9 @@ class GUS:public Module_base{
 private:
 	IO_ReadHandleObject ReadHandler[12];
 	IO_WriteHandleObject WriteHandler[12];
-	AutoexecObject autoexecline[2];
+	IO_ReadHandleObject ReadCS4231Handler[4];
+	IO_WriteHandleObject WriteCS4231Handler[4];
+	AutoexecObject autoexecline[3];
 	MixerObject MixerChan;
 public:
 	GUS(Section* configuration):Module_base(configuration){
@@ -1564,6 +1652,7 @@ public:
 		if (myGUS.clearTCIfPollingIRQStatus)
 			LOG(LOG_MISC,LOG_DEBUG)("GUS: Will clear DMA TC IRQ if excess polling, as instructed");
 
+		myGUS.gUltraMAXControl = 0;
 		myGUS.lastIRQStatusPollRapidCount = 0;
 		myGUS.lastIRQStatusPollAt = 0;
 
@@ -1655,6 +1744,14 @@ public:
 			WriteHandler[10].Install(0x306 + GUS_BASE,write_gus,IO_MB); // Mixer control
 			WriteHandler[11].Install(0x706 + GUS_BASE,write_gus,IO_MB); // Mixer data / GUS UltraMAX Control register
 		}
+		if (gus_type >= GUS_MAX) {
+			/* UltraMax has a CS4231 codec at 3XC-3XF */
+			/* FIXME: Does the Interwave have a CS4231? */
+			for (unsigned int i=0;i < 4;i++) {
+				ReadCS4231Handler[i].Install(0x30C + i + GUS_BASE,read_gus_cs4231,IO_MB);
+				WriteCS4231Handler[i].Install(0x30C + i + GUS_BASE,write_gus_cs4231,IO_MB);
+			}
+		}
 	
 	//	DmaChannels[myGUS.dma1]->Register_TC_Callback(GUS_DMA_TC_Callback);
 	
@@ -1688,11 +1785,20 @@ public:
 		// Create autoexec.bat lines
 		autoexecline[0].Install(temp.str());
 		autoexecline[1].Install(std::string("SET ULTRADIR=") + section->Get_string("ultradir"));
+
+		if (gus_type >= GUS_MAX) {
+			/* FIXME: Does the Interwave have a CS4231? */
+			ostringstream temp2;
+			temp2 << "SET ULTRA16=" << hex << setw(3) << (0x30C+GUS_BASE) << ","
+				<< "0,0,1,0" << ends; // FIXME What do these numbers mean?
+			autoexecline[2].Install(temp2.str());
+		}
 	}
 
 	void DOS_Shutdown() { /* very likely, we're booting into a guest OS where our environment variable has no meaning anymore */
 		autoexecline[0].Uninstall();
 		autoexecline[1].Uninstall();
+		autoexecline[2].Uninstall();
 	}
 
 	~GUS() {
