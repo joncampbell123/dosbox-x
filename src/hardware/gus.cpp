@@ -800,8 +800,17 @@ static void ExecuteGlobRegister(void) {
 		 *        You can write less than 14 channels to this register, but unlike the Classic and Max
 		 *        cards they will not run faster than 44.1KHz. */
 		myGUS.ActiveChannels = myGUS.ActiveChannelsUser;
-		if(myGUS.ActiveChannels < 3) myGUS.ActiveChannels += 2;
-		if(myGUS.ActiveChannels > 32) myGUS.ActiveChannels = 32;
+
+		if (gus_type < GUS_INTERWAVE) {
+			// GUS MAX behavior seen on real hardware
+			if(myGUS.ActiveChannels < 3) myGUS.ActiveChannels += 2;
+			if(myGUS.ActiveChannels > 32) myGUS.ActiveChannels = 32;
+		}
+		else {
+			// Interwave PnP behavior seen on real hardware
+			if(myGUS.ActiveChannels < 14) myGUS.ActiveChannels = 14;
+			if(myGUS.ActiveChannels > 32) myGUS.ActiveChannels = 32;
+		}
 
 		myGUS.ActiveMask=0xffffffffU >> (32-myGUS.ActiveChannels);
 		myGUS.basefreq = (Bit32u)((float)1000000/(1.619695497*(float)(myGUS.ActiveChannels)));
@@ -925,11 +934,17 @@ static Bitu read_gus(Bitu port,Bitu iolen) {
 	case 0x304:
 		if (iolen==2) reg16 = ExecuteReadRegister() & 0xffff;
 		else reg16 = ExecuteReadRegister() & 0xff;
-		myGUS.gRegSelectData = reg16 & 0xFF; // NTS: This is Gravis Ultrasound MAX behavior. GUS PnP Interwave cards do not do this.
+
+		if (gus_type < GUS_INTERWAVE) // Versions prior to the Interwave will reflect last I/O to 3X2-3X5 when read back from 3X3
+			myGUS.gRegSelectData = reg16 & 0xFF;
+
 		return reg16;
 	case 0x305:
 		reg16 = ExecuteReadRegister() >> 8;
-		myGUS.gRegSelectData = reg16 & 0xFF; // NTS: This is Gravis Ultrasound MAX behavior. GUS PnP Interwave cards do not do this.
+
+		if (gus_type < GUS_INTERWAVE) // Versions prior to the Interwave will reflect last I/O to 3X2-3X5 when read back from 3X3
+			myGUS.gRegSelectData = reg16 & 0xFF;
+
 		return reg16;
 	case 0x307:
 		if(myGUS.gDramAddr < myGUS.memsize) {
@@ -1074,7 +1089,9 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 		break;
 	case 0x302:
 		myGUS.gCurChannel = val & 31;
-		myGUS.gRegSelectData = (Bit8u)val;
+		if (gus_type < GUS_INTERWAVE) // Versions prior to the Interwave will reflect last I/O to 3X2-3X5 when read back from 3X3
+			myGUS.gRegSelectData = (Bit8u)val;
+
 		curchan = guschan[myGUS.gCurChannel];
 		break;
 	case 0x303:
@@ -1083,18 +1100,22 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 		break;
 	case 0x304:
 		if (iolen==2) {
-			// FIXME: right??
-			myGUS.gRegSelectData = val & 0xFF; // NTS: This is Gravis Ultrasound MAX behavior. GUS PnP Interwave cards do not do this.
+			if (gus_type < GUS_INTERWAVE) // Versions prior to the Interwave will reflect last I/O to 3X2-3X5 when read back from 3X3
+				myGUS.gRegSelectData = val & 0xFF;
 
 			myGUS.gRegData=(Bit16u)val;
 			ExecuteGlobRegister();
 		} else {
-			myGUS.gRegSelectData = val; // NTS: This is Gravis Ultrasound MAX behavior. GUS PnP Interwave cards do not do this.
+			if (gus_type < GUS_INTERWAVE) // Versions prior to the Interwave will reflect last I/O to 3X2-3X5 when read back from 3X3
+				myGUS.gRegSelectData = val;
+
 			myGUS.gRegData = (Bit16u)val;
 		}
 		break;
 	case 0x305:
-		myGUS.gRegSelectData = val; // NTS: This is Gravis Ultrasound MAX behavior. GUS PnP Interwave cards do not do this.
+		if (gus_type < GUS_INTERWAVE) // Versions prior to the Interwave will reflect last I/O to 3X2-3X5 when read back from 3X3
+			myGUS.gRegSelectData = val;
+
 		myGUS.gRegData = (Bit16u)((0x00ff & myGUS.gRegData) | val << 8);
 		ExecuteGlobRegister();
 		break;
