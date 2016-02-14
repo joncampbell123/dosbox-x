@@ -918,11 +918,11 @@ static Bitu read_gus(Bitu port,Bitu iolen) {
 	case 0x304:
 		if (iolen==2) reg16 = ExecuteReadRegister() & 0xffff;
 		else reg16 = ExecuteReadRegister() & 0xff;
-		myGUS.gRegSelectData = reg16 & 0xFF;
+		myGUS.gRegSelectData = reg16 & 0xFF; // NTS: This is Gravis Ultrasound MAX behavior. GUS PnP Interwave cards do not do this.
 		return reg16;
 	case 0x305:
 		reg16 = ExecuteReadRegister() >> 8;
-		myGUS.gRegSelectData = reg16 & 0xFF;
+		myGUS.gRegSelectData = reg16 & 0xFF; // NTS: This is Gravis Ultrasound MAX behavior. GUS PnP Interwave cards do not do this.
 		return reg16;
 	case 0x307:
 		if(myGUS.gDramAddr < myGUS.memsize) {
@@ -1077,17 +1077,17 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 	case 0x304:
 		if (iolen==2) {
 			// FIXME: right??
-			myGUS.gRegSelectData = val & 0xFF;
+			myGUS.gRegSelectData = val & 0xFF; // NTS: This is Gravis Ultrasound MAX behavior. GUS PnP Interwave cards do not do this.
 
 			myGUS.gRegData=(Bit16u)val;
 			ExecuteGlobRegister();
 		} else {
-			myGUS.gRegSelectData = val;
+			myGUS.gRegSelectData = val; // NTS: This is Gravis Ultrasound MAX behavior. GUS PnP Interwave cards do not do this.
 			myGUS.gRegData = (Bit16u)val;
 		}
 		break;
 	case 0x305:
-		myGUS.gRegSelectData = val;
+		myGUS.gRegSelectData = val; // NTS: This is Gravis Ultrasound MAX behavior. GUS PnP Interwave cards do not do this.
 		myGUS.gRegData = (Bit16u)((0x00ff & myGUS.gRegData) | val << 8);
 		ExecuteGlobRegister();
 		break;
