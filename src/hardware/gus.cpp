@@ -784,9 +784,14 @@ static void ExecuteGlobRegister(void) {
 		 * less than 14 channels in their SDK! Not sure why they would cap it like that, unless
 		 * there are undocumented chipset instabilities with running at higher rates.
 		 *
-		 * So far only verified on a Gravis Ultrasound MAX. I have yet to verify on a Gravis Ultrasound
-		 * Plug & Play (Interwave) card. Anyone out there with an original Gravis Ultrasound to verify
-		 * this behavior? */
+		 * So far only verified on a Gravis Ultrasound MAX.
+		 *
+		 * Does anyone out there have a Gravis Ultrasound Classic (original 1992 version) they can
+		 * test for this behavior?
+		 *
+		 * NOTED: Gravis Ultrasound Plug & Play (interwave) cards *do* enforce the 14-channel minimum.
+		 *        You can write less than 14 channels to this register, but unlike the Classic and Max
+		 *        cards they will not run faster than 44.1KHz. */
 		myGUS.ActiveChannels = myGUS.ActiveChannelsUser;
 		if(myGUS.ActiveChannels < 3) myGUS.ActiveChannels += 2;
 		if(myGUS.ActiveChannels > 32) myGUS.ActiveChannels = 32;
