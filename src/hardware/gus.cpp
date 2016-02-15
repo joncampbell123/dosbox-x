@@ -880,6 +880,21 @@ static void ExecuteGlobRegister(void) {
 }
 
 /* Gravis Ultrasound MAX Crystal Semiconductor CS4231A emulation */
+/* NOTES:
+ *
+ *    This 4-port I/O interface, implemented by Crystal Semiconductors, Analog Devices, etc. and used
+ *    by sound cards in the early 1990s, is the said to be the "standardized" hardware interface of
+ *    the "Windows Sound System" standard at the time.
+ *
+ *    According to an AD1848 datasheet, and a CS4231A datasheet, all I/O ports and indirect registers
+ *    appear to be the same, with the exception that Crystal Semiconductor adds 16 registers with the
+ *    "MODE 2" bit.
+ *
+ *    Perhaps at some point, we can untie this from GUS emulation and let it exist as it's own C++
+ *    class that covers CS4231A, AD1848, and other "WSS" chipset emulation on behalf of GUS and SB
+ *    emulation, much like the OPL3 emulation already present in this source tree for Sound Blaster.
+ *
+ */
 struct gus_cs4231 {
 public:
 	gus_cs4231() : address(0), mode2(false), ia4(false), trd(false), mce(true), init(false) {
