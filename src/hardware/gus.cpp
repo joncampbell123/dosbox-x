@@ -1766,6 +1766,9 @@ public:
 			WriteHandler[11].Install(0x706 + GUS_BASE,write_gus,IO_MB); // Mixer data / GUS UltraMAX Control register
 		}
 		if (gus_type >= GUS_MAX) {
+			LOG(LOG_MISC,LOG_WARN)("GUS caution: CS4231 UltraMax emulation is new and experimental at this time and it is not guaranteed to work.");
+			LOG(LOG_MISC,LOG_WARN)("GUS caution: CS4231 UltraMax emulation as it exists now may cause applications to hang or malfunction attempting to play through it.");
+
 			/* UltraMax has a CS4231 codec at 3XC-3XF */
 			/* FIXME: Does the Interwave have a CS4231? */
 			for (unsigned int i=0;i < 4;i++) {
