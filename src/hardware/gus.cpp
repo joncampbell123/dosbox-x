@@ -882,14 +882,32 @@ static void ExecuteGlobRegister(void) {
 /* Gravis Ultrasound MAX Crystal Semiconductor CS4231A emulation */
 struct gus_cs4231 {
 public:
-	gus_cs4231() : address(0), mode2(false), ia4(false), trd(false), mce(false), init(false) {
+	gus_cs4231() : address(0), mode2(false), ia4(false), trd(false), mce(true), init(false) {
 	}
 public:
 	void data_write(uint8_t addr,uint8_t val) {
-		LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 write data addr=%02xh val=%02xh",addr,val);
+//		LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 write data addr=%02xh val=%02xh",addr,val);
+
+		switch (addr) {
+			case 0x0C: /* MODE and ID (I12) */
+				mode2 = (val & 0x40)?1:0;
+				break;
+			default:
+				LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 unhandled data write addr=%02xh val=%02xh",addr,val);
+				break;
+		}
 	}
 	uint8_t data_read(uint8_t addr) {
-		LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 read data addr=%02xh",addr);
+//		LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 read data addr=%02xh",addr);
+
+		switch (addr) {
+			case 0x0C: /* MODE and ID (I12) */
+				return 0x80 | (mode2 ? 0x40 : 0x00) | 0xA/*1010 codec ID*/;
+			default:
+				LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 unhandled data read addr=%02xh",addr);
+				break;
+		}
+
 		return 0;
 	}
 	void playio_data_write(uint8_t val) {
@@ -904,27 +922,30 @@ public:
 		return 0;
 	}
 	void iowrite(uint8_t reg,uint8_t val) {
-		LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 write reg=%u val=%02xh",reg,val);
+//		LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 write reg=%u val=%02xh",reg,val);
 
 		switch (reg) {
 			case 0x0: /* Index Address Register (R0) */
-				address = val & (mode2 ? 0x1F : 0x0F);
-				trd = (val & 0x20)?1:0;
-				mce = (val & 0x40)?1:0;
-				init = (val & 0x80)?1:0;
+				if (!init) {
+					address = val & (mode2 ? 0x1F : 0x0F);
+					trd = (val & 0x20)?1:0;
+					mce = (val & 0x40)?1:0;
+					// FIXME: Is "init" writeable? It's documented as a bit you read to know if the CS4231 is initializing
+				}
 				break;
 			case 0x1: /* Index Data Register (R1) */
-				data_write(address,val);
+				if (!init) data_write(address,val);
 				break;
 			case 0x2: /* Status Register (R2) */
+				LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 attempted write to status register val=%02xh",val);
 				break;
 			case 0x3: /* Playback I/O Data Register (R3) */
-				playio_data_write(val);
+				if (!init) playio_data_write(val);
 				break;
 		}
 	}
 	uint8_t ioread(uint8_t reg) {
-		LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 write read=%u",reg);
+//		LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 write read=%u",reg);
 
 		switch (reg) {
 			case 0x0: /* Index Address Register (R0) */
