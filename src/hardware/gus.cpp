@@ -889,9 +889,20 @@ public:
 //		LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 write data addr=%02xh val=%02xh",addr,val);
 
 		switch (addr) {
+			case 0x00: /* Left ADC Input Control (I0) */
+				ADCInputControl[0] = val; break;
+			case 0x01: /* Right ADC Input Control (I1) */
+				ADCInputControl[1] = val; break;
+			case 0x02: /* Left Auxiliary #1 Input Control (I2) */
+				Aux1InputControl[0] = val; break;
+			case 0x03: /* Right Auxiliary #1 Input Control (I3) */
+				Aux1InputControl[1] = val; break;
+			case 0x06: /* Left DAC Output Control (I6) */
+				DACOutputControl[0] = val; break;
+			case 0x07: /* Left DAC Output Control (I7) */
+				DACOutputControl[1] = val; break;
 			case 0x0C: /* MODE and ID (I12) */
-				mode2 = (val & 0x40)?1:0;
-				break;
+				mode2 = (val & 0x40)?1:0; break;
 			default:
 				LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 unhandled data write addr=%02xh val=%02xh",addr,val);
 				break;
@@ -901,6 +912,18 @@ public:
 //		LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 read data addr=%02xh",addr);
 
 		switch (addr) {
+			case 0x00: /* Left ADC Input Control (I0) */
+				return ADCInputControl[0];
+			case 0x01: /* Right ADC Input Control (I1) */
+				return ADCInputControl[1];
+			case 0x02: /* Left Auxiliary #1 Input Control (I2) */
+				return Aux1InputControl[0];
+			case 0x03: /* Right Auxiliary #1 Input Control (I3) */
+				return Aux1InputControl[1];
+			case 0x06: /* Left DAC Output Control (I6) */
+				return DACOutputControl[0];
+			case 0x07: /* Left DAC Output Control (I7) */
+				return DACOutputControl[1];
 			case 0x0C: /* MODE and ID (I12) */
 				return 0x80 | (mode2 ? 0x40 : 0x00) | 0xA/*1010 codec ID*/;
 			default:
@@ -968,6 +991,10 @@ public:
 	bool		trd;
 	bool		mce;
 	bool		init;
+
+	uint8_t		ADCInputControl[2];	/* left (I0) and right (I1) ADC Input control. bits 7-6 select source. bit 5 is mic gain. bits 3-0 controls gain. */
+	uint8_t		Aux1InputControl[2];	/* left (I2) and right (I3) aux. input control. bits 5-0 control gain in 1.5dB steps. bit 7 is mute */
+	uint8_t		DACOutputControl[2];	/* left (I6) and right (I7) output control attenuation. bits 5-0 control in -1.5dB steps, bit 7 is mute */
 } GUS_CS4231;
 
 static Bitu read_gus_cs4231(Bitu port,Bitu iolen) {
