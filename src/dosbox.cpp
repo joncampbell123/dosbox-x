@@ -823,7 +823,7 @@ void DOSBOX_SetupConfigSections(void) {
 	const char *mt32reverbTimes[] = {"0", "1", "2", "3", "4", "5", "6", "7",0};
 	const char *mt32reverbLevels[] = {"0", "1", "2", "3", "4", "5", "6", "7",0};
 	const char* gustypes[] = { "classic", "classic37", "max", "interwave", 0 };
-	const char* sbtypes[] = { "sb1", "sb2", "sbpro1", "sbpro2", "sb16", "sb16vibra", "gb", "none", 0 };
+	const char* sbtypes[] = { "sb1", "sb2", "sbpro1", "sbpro2", "sb16", "sb16vibra", "gb", "ess688", "none", 0 };
 	const char* oplmodes[]={ "auto", "cms", "opl2", "dualopl2", "opl3", "none", "hardware", "hardwaregb", 0};
 	const char* serials[] = { "dummy", "disabled", "modem", "nullmodem", "serialmouse", "directserial",0 };
 	const char* acpi_rsd_ptr_settings[] = { "auto", "bios", "ebda", 0 };

@@ -88,6 +88,7 @@ bool MIDI_Available(void);
 enum {DSP_S_RESET,DSP_S_RESET_WAIT,DSP_S_NORMAL,DSP_S_HIGHSPEED};
 enum SB_TYPES {SBT_NONE=0,SBT_1=1,SBT_PRO1=2,SBT_2=3,SBT_PRO2=4,SBT_16=6,SBT_GB=7}; /* TODO: Need SB 2.0 vs SB 2.01 */
 enum SB_IRQS {SB_IRQ_8,SB_IRQ_16,SB_IRQ_MPU};
+enum ESS_TYPES {ESS_NONE=0,ESS_688=1};
 
 enum DSP_MODES {
 	MODE_NONE,
@@ -144,6 +145,8 @@ struct SB_INFO {
 	Bit8u time_constant;
 	DSP_MODES mode;
 	SB_TYPES type;
+	ESS_TYPES ess_type;	// ESS chipset emulation, to be set only if type == SBT_PRO2
+	bool ess_extended_mode;
 	int min_dma_user;
 	int busy_cycle_hz;
 	int busy_cycle_duty_percent;
@@ -233,6 +236,30 @@ static Bit8u const DSP_cmd_len_sb[256] = {
   0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0xb0
 
   0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0xc0
+  0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0xd0
+  1,0,1,0, 1,0,0,0, 0,0,0,0, 0,0,0,0,  // 0xe0
+  0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0   // 0xf0
+};
+
+// number of bytes in input for commands (sbpro2 compatible ESS)
+static Bit8u const DSP_cmd_len_ess[256] = {
+  0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0x00
+//  1,0,0,0, 2,0,2,2, 0,0,0,0, 0,0,0,0,  // 0x10
+  1,0,0,0, 2,2,2,2, 0,0,0,0, 0,0,0,0,  // 0x10 Wari hack
+  0,0,0,0, 2,0,0,0, 0,0,0,0, 0,0,0,0,  // 0x20
+  0,0,0,0, 0,0,0,0, 1,0,0,0, 0,0,0,0,  // 0x30
+
+  1,2,2,0, 0,0,0,0, 2,0,0,0, 0,0,0,0,  // 0x40
+  0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0x50
+  0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0x60
+  0,0,0,0, 2,2,2,2, 0,0,0,0, 0,0,0,0,  // 0x70
+
+  2,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0x80
+  0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0x90
+  1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1,  // 0xa0   ESS write register commands (0xA0-0xBF). Note this overlap with SB16 is
+  1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1,  // 0xb0   why ESS chipsets cannot emulate SB16 playback/record commands.
+
+  1,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0xc0   ESS additional commands.
   0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0xd0
   1,0,1,0, 1,0,0,0, 0,0,0,0, 0,0,0,0,  // 0xe0
   0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0   // 0xf0
@@ -1056,6 +1083,7 @@ static void DSP_Reset(void) {
 	sb.dsp.in.pos=0;
 	sb.dsp.out.pos=0;
 	sb.dsp.write_busy=0;
+	sb.ess_extended_mode = false;
 	PIC_RemoveEvents(DSP_FinishReset);
 	PIC_RemoveEvents(DSP_BusyComplete);
 
@@ -1125,6 +1153,17 @@ Bitu DEBUG_EnableDebugger(void);
 #define DSP_SB16_ONLY if (sb.type != SBT_16) { LOG(LOG_SB,LOG_ERROR)("DSP:Command %2X requires SB16",sb.dsp.cmd); break; }
 #define DSP_SB2_ABOVE if (sb.type <= SBT_1) { LOG(LOG_SB,LOG_ERROR)("DSP:Command %2X requires SB2 or above",sb.dsp.cmd); break; } 
 
+static void ESS_DoWrite(uint8_t reg,uint8_t data) {
+	// TODO
+	LOG(LOG_SB,LOG_DEBUG)("ESS register write reg=%02xh val=%02xh",reg,data);
+}
+
+static uint8_t ESS_DoRead(uint8_t reg) {
+	// TODO
+	LOG(LOG_SB,LOG_DEBUG)("ESS register read reg=%02xh",reg);
+	return 0xFF;
+}
+
 /* Demo notes for fixing:
  *
  *  - "Buttman"'s intro uses a timer and DSP command 0x10 to play the sound effects even in Pro mode.
@@ -1132,6 +1171,32 @@ Bitu DEBUG_EnableDebugger(void);
  */
 
 static void DSP_DoCommand(void) {
+	if (sb.ess_type != ESS_NONE && sb.dsp.cmd >= 0xA0 && sb.dsp.cmd <= 0xCF) {
+		// ESS overlap with SB16 commands. Handle it here, not mucking up the switch statement.
+
+		if (sb.dsp.cmd < 0xC0) { // write ESS register   (cmd=register data[0]=value to write)
+			if (sb.ess_extended_mode)
+				ESS_DoWrite(sb.dsp.cmd,sb.dsp.in.data[0]);
+		}
+		else if (sb.dsp.cmd == 0xC0) { // read ESS register   (data[0]=register to read)
+			DSP_FlushData();
+			if (sb.ess_extended_mode)
+				DSP_AddData(ESS_DoRead(sb.dsp.in.data[0]));
+		}
+		else if (sb.dsp.cmd == 0xC6 || sb.dsp.cmd == 0xC7) { // set(0xC6) clear(0xC7) extended mode
+			sb.ess_extended_mode = (sb.dsp.cmd == 0xC6);
+		}
+		else {
+			LOG(LOG_SB,LOG_DEBUG)("ESS: Unknown command %02xh",sb.dsp.cmd);
+		}
+
+		sb.dsp.last_cmd=sb.dsp.cmd;
+		sb.dsp.cmd=DSP_NO_COMMAND;
+		sb.dsp.cmd_len=0;
+		sb.dsp.in.pos=0;
+		return;
+	}
+
 //	LOG_MSG("DSP Command %X",sb.dsp.cmd);
 	switch (sb.dsp.cmd) {
 	case 0x04:
@@ -1349,7 +1414,13 @@ static void DSP_DoCommand(void) {
 		case SBT_PRO1:
 			DSP_AddData(0x3);DSP_AddData(0x0);break;
 		case SBT_PRO2:
-			DSP_AddData(0x3);DSP_AddData(0x2);break;
+			if (sb.ess_type != ESS_NONE) {
+				DSP_AddData(0x3);DSP_AddData(0x1);
+			}
+			else {
+				DSP_AddData(0x3);DSP_AddData(0x2);
+			}
+			break;
 		case SBT_16:
 			if (sb.vibra) {
 				DSP_AddData(4); /* SB16 ViBRA DSP 4.13 */
@@ -1377,13 +1448,28 @@ static void DSP_DoCommand(void) {
 	case 0xe3:	/* DSP Copyright */
 		{
 			DSP_FlushData();
-			for (size_t i=0;i<=strlen(copyright_string);i++) {
-				DSP_AddData(copyright_string[i]);
+			if (sb.ess_type != ESS_NONE) {
+				/* no response */
+				DSP_AddData(0);
+			}
+			else {
+				/* NTS: Yes, this writes the terminating NUL as well. Not a bug. */
+				for (size_t i=0;i<=strlen(copyright_string);i++) {
+					DSP_AddData(copyright_string[i]);
+				}
 			}
 		}
 		break;
 	case 0xe4:	/* Write Test Register */
 		sb.dsp.test_register=sb.dsp.in.data[0];
+		break;
+	case 0xe7:	/* ESS detect/read config */
+		if (sb.ess_type != ESS_NONE) {
+			DSP_FlushData();
+			DSP_AddData(0x68);
+			/* TODO: ESS 1869 will set bit 3 in this response */
+			DSP_AddData(0x80 | 0x01/*ESS 688 version 1*/);
+		}
 		break;
 	case 0xe8:	/* Read Test Register */
 		DSP_FlushData();
@@ -1578,8 +1664,13 @@ static void DSP_DoWrite(Bit8u val) {
 	switch (sb.dsp.cmd) {
 		case DSP_NO_COMMAND:
 			sb.dsp.cmd=val;
-			if (sb.type == SBT_16) sb.dsp.cmd_len=DSP_cmd_len_sb16[val];
-			else sb.dsp.cmd_len=DSP_cmd_len_sb[val];
+			if (sb.type == SBT_16)
+				sb.dsp.cmd_len=DSP_cmd_len_sb16[val];
+			else if (sb.ess_type != ESS_NONE) 
+				sb.dsp.cmd_len=DSP_cmd_len_ess[val];
+			else
+				sb.dsp.cmd_len=DSP_cmd_len_sb[val];
+
 			sb.dsp.in.pos=0;
 			if (!sb.dsp.cmd_len) DSP_DoCommand();
 			break;
@@ -2346,6 +2437,8 @@ private:
 	/* Support Functions */
 	void Find_Type_And_Opl(Section_prop* config,SB_TYPES& type, OPL_Mode& opl_mode){
 		sb.vibra = false;
+		sb.ess_type = ESS_NONE;
+		sb.ess_extended_mode = false;
 		const char * sbtype=config->Get_string("sbtype");
 		if (!strcasecmp(sbtype,"sb1")) type=SBT_1;
 		else if (!strcasecmp(sbtype,"sb2")) type=SBT_2;
@@ -2355,6 +2448,12 @@ private:
 		else if (!strcasecmp(sbtype,"sb16")) type=SBT_16;
 		else if (!strcasecmp(sbtype,"gb")) type=SBT_GB;
 		else if (!strcasecmp(sbtype,"none")) type=SBT_NONE;
+		else if (!strcasecmp(sbtype,"ess688")) {
+			type=SBT_PRO2;
+			sb.ess_type=ESS_688;
+			LOG(LOG_SB,LOG_DEBUG)("ESS 688 emulation enabled.");
+			LOG(LOG_SB,LOG_WARN)("ESS 688 emulation is EXPERIMENTAL at this time and should not yet be used for normal gaming");
+		}
 		else type=SBT_16;
 
 		if (type == SBT_16) {
