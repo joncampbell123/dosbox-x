@@ -924,28 +924,29 @@ public:
 	void iowrite(uint8_t reg,uint8_t val) {
 //		LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 write reg=%u val=%02xh",reg,val);
 
+		if (init) return;
+
 		switch (reg) {
 			case 0x0: /* Index Address Register (R0) */
-				if (!init) {
-					address = val & (mode2 ? 0x1F : 0x0F);
-					trd = (val & 0x20)?1:0;
-					mce = (val & 0x40)?1:0;
-					// FIXME: Is "init" writeable? It's documented as a bit you read to know if the CS4231 is initializing
-				}
+				address = val & (mode2 ? 0x1F : 0x0F);
+				trd = (val & 0x20)?1:0;
+				mce = (val & 0x40)?1:0;
 				break;
 			case 0x1: /* Index Data Register (R1) */
-				if (!init) data_write(address,val);
+				data_write(address,val);
 				break;
 			case 0x2: /* Status Register (R2) */
 				LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 attempted write to status register val=%02xh",val);
 				break;
 			case 0x3: /* Playback I/O Data Register (R3) */
-				if (!init) playio_data_write(val);
+				playio_data_write(val);
 				break;
 		}
 	}
 	uint8_t ioread(uint8_t reg) {
 //		LOG(LOG_MISC,LOG_DEBUG)("GUS CS4231 write read=%u",reg);
+
+		if (init) return 0x80;
 
 		switch (reg) {
 			case 0x0: /* Index Address Register (R0) */
