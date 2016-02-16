@@ -919,20 +919,6 @@ public:
 	};
 public:
 	gus_ICS2101() {
-		// pre-set ourself as if ULTRINIT and ULTRAMIX had been run
-		mixpair[MIC_IN_PORT].setAttenuation(0,0x7F);
-		mixpair[MIC_IN_PORT].setAttenuation(1,0x7F);
-		mixpair[LINE_IN_PORT].setAttenuation(0,0x7F);
-		mixpair[LINE_IN_PORT].setAttenuation(1,0x7F);
-		mixpair[CD_IN_PORT].setAttenuation(0,0x7F);
-		mixpair[CD_IN_PORT].setAttenuation(1,0x7F);
-		mixpair[GF1_OUT_PORT].setAttenuation(0,0x7F);
-		mixpair[GF1_OUT_PORT].setAttenuation(1,0x7F);
-		mixpair[MASTER_OUTPUT_PORT].setAttenuation(0,0x7F);
-		mixpair[MASTER_OUTPUT_PORT].setAttenuation(1,0x7F);
-
-		// master volume update, updates ALL pairs
-		updateVolPair(MASTER_OUTPUT_PORT);
 	}
 public:
 	void addressWrite(uint8_t addr) {
@@ -988,11 +974,18 @@ public:
 				updateVolPair(i);
 		}
 		else {
-			// copy not just attenuation but modify according to master volume
-			for (unsigned int ch=0;ch < 2;ch++)
-				volpair[pair].AttenDb[ch] = mixpair[pair].AttenDb[ch] + mixpair[MASTER_OUTPUT_PORT].AttenDb[ch];
+			float m[2];
 
-			volpair[pair].updateFixedMultiply();
+			assert(gus_chan != NULL);
+
+			// copy not just attenuation but modify according to master volume
+			for (unsigned int ch=0;ch < 2;ch++) {
+				volpair[pair].AttenDb[ch] = mixpair[pair].AttenDb[ch] + mixpair[MASTER_OUTPUT_PORT].AttenDb[ch];
+				m[ch] = powf(10.0f,volpair[pair].AttenDb[ch]/20.0f);
+			}
+
+			if (pair == GF1_OUT_PORT)
+				gus_chan->SetVolume(m[0],m[1]);
 		}
 	}
 public:
@@ -1028,13 +1021,6 @@ public:
 public:
 		volpair() {
 			AttenDb[0] = AttenDb[1] = 0;
-		}
-public:
-		void updateFixedMultiply() {
-			for (unsigned int ch=0;ch < 2;ch++) {
-				float m = powf(10.0f,AttenDb[ch]/20.0f);
-				Fix1616Mult[ch] = (uint32_t)(m * 0x10000);
-			}
 		}
 public:
 		float		AttenDb[2];
@@ -2025,6 +2011,22 @@ public:
 			temp2 << "SET ULTRA16=" << hex << setw(3) << (0x30C+GUS_BASE) << ","
 				<< "0,0,1,0" << ends; // FIXME What do these numbers mean?
 			autoexecline[2].Install(temp2.str());
+		}
+		if (gus_ics_mixer) {
+			// pre-set ourself as if ULTRINIT and ULTRAMIX had been run
+			GUS_ICS2101.mixpair[gus_ICS2101::MIC_IN_PORT].setAttenuation(0,0x7F);
+			GUS_ICS2101.mixpair[gus_ICS2101::MIC_IN_PORT].setAttenuation(1,0x7F);
+			GUS_ICS2101.mixpair[gus_ICS2101::LINE_IN_PORT].setAttenuation(0,0x7F);
+			GUS_ICS2101.mixpair[gus_ICS2101::LINE_IN_PORT].setAttenuation(1,0x7F);
+			GUS_ICS2101.mixpair[gus_ICS2101::CD_IN_PORT].setAttenuation(0,0x7F);
+			GUS_ICS2101.mixpair[gus_ICS2101::CD_IN_PORT].setAttenuation(1,0x7F);
+			GUS_ICS2101.mixpair[gus_ICS2101::GF1_OUT_PORT].setAttenuation(0,0x7F);
+			GUS_ICS2101.mixpair[gus_ICS2101::GF1_OUT_PORT].setAttenuation(1,0x7F);
+			GUS_ICS2101.mixpair[gus_ICS2101::MASTER_OUTPUT_PORT].setAttenuation(0,0x7F);
+			GUS_ICS2101.mixpair[gus_ICS2101::MASTER_OUTPUT_PORT].setAttenuation(1,0x7F);
+
+			// master volume update, updates ALL pairs
+			GUS_ICS2101.updateVolPair(gus_ICS2101::MASTER_OUTPUT_PORT);
 		}
 	}
 
