@@ -164,6 +164,8 @@ static INLINE Bit32s GetSample(Bit32u Delta, Bit32u CurAddr, bool eightbit) {
 
 static uint8_t GUS_reset_reg = 0;
 
+static inline uint8_t read_GF1_mapping_control(const unsigned int ch);
+
 class GUSChannels {
 public:
 	Bit32u WaveStart;
@@ -410,18 +412,46 @@ public:
 		 *      is stopped. You will hear "popping" noises come out the GUS audio output
 		 *      as the current position changes and the piece of the sample rendered
 		 *      abruptly changes as well. */
-		for(i=0;i<(int)len;i++) {
-			// Get sample
-			tmpsamp = GetSample(WaveAdd, WaveAddr, eightbit);
+		if (gus_ics_mixer) {
+			const unsigned char Lc = read_GF1_mapping_control(0);
+			const unsigned char Rc = read_GF1_mapping_control(1);
 
-			// Output stereo sample if DAC enable on
-			if ((GUS_reset_reg & 0x02/*DAC enable*/) == 0x02) {
-				stream[i<<1]+= tmpsamp * VolLeft;
-				stream[(i<<1)+1]+= tmpsamp * VolRight;
+			// output mapped through ICS mixer including channel remapping
+			for(i=0;i<(int)len;i++) {
+				// Get sample
+				tmpsamp = GetSample(WaveAdd, WaveAddr, eightbit);
+
+				// Output stereo sample if DAC enable on
+				if ((GUS_reset_reg & 0x02/*DAC enable*/) == 0x02) {
+					Bit32s * const sp = stream + (i << 1);
+					const Bit32s L = tmpsamp * VolLeft;
+					const Bit32s R = tmpsamp * VolRight;
+
+					if (Lc&1) sp[0] += L;
+					if (Lc&2) sp[1] += L;
+					if (Rc&1) sp[0] += R;
+					if (Rc&2) sp[1] += R;
+				}
+
+				WaveUpdate();
+				RampUpdate();
 			}
+		}
+		else {
+			// normal output
+			for(i=0;i<(int)len;i++) {
+				// Get sample
+				tmpsamp = GetSample(WaveAdd, WaveAddr, eightbit);
 
-			WaveUpdate();
-			RampUpdate();
+				// Output stereo sample if DAC enable on
+				if ((GUS_reset_reg & 0x02/*DAC enable*/) == 0x02) {
+					stream[i<<1]+= tmpsamp * VolLeft;
+					stream[(i<<1)+1]+= tmpsamp * VolRight;
+				}
+
+				WaveUpdate();
+				RampUpdate();
+			}
 		}
 	}
 };
@@ -937,10 +967,12 @@ public:
 			updateVolPair(addr_attenuator);
 		}
 		else if (addr_control & 4) { // pan/balance
-			LOG(LOG_MISC,LOG_DEBUG)("ICS warning: Pan/Balance emulation not implemented yet");
+			mixpair[addr_attenuator].Panning = val & 0xF;
+			// FIXME: Does the panning take effect immediately, or does the chip require the DOS program
+			//        to write attenuation again to apply the panning?
 		}
 		else {
-			mixpair[addr_attenuator].Control[addr_control&1] = val;
+			mixpair[addr_attenuator].setControl(addr_control&1,val);
 		}
 	}
 	const char *attenuatorName(const uint8_t c) const {
@@ -992,8 +1024,11 @@ public:
 	struct mixcontrol {
 	public:
 		mixcontrol() {
-			Control[0] = 0x00;
-			Control[1] = 0x00;
+			Panning = 8;
+			Control[0] = 0x01;
+			Control[1] = 0x02;
+			MapControl[0] = 0x01;
+			MapControl[1] = 0x02;
 			setAttenuation(0,0x7F); // FIXME: Because we want DOSBox to come up as if ULTRINIT/ULTRAMIX were run to configure the mixer
 			setAttenuation(1,0x7F);
 		}
@@ -1005,15 +1040,70 @@ public:
 			return gain;
 		}
 		// end borrow
+		void setControl(const unsigned int channel,const Bit8u val) {
+			Control[channel] = val;
+			updateMapControl();
+		}
+		void updateMapControl() {
+			/* control mode according to Left control register, according to datasheet */
+			switch (Control[0]&0xE) {
+				case 0: case 2: // normal mode
+					MapControl[0] = Control[0]&3;
+					MapControl[1] = Control[1]&3;
+					break;
+				case 4: // stereo (normal or reversed)
+					MapControl[0] = (Control[0]&1) ? 1 : 2;	// left -> left or left -> right if swapped
+					MapControl[1] = (Control[0]&1) ? 2 : 1; // right -> right or right -> left if swapped
+					break;
+				case 6: // Mono
+					MapControl[0] = 1; // Is this right??
+					MapControl[1] = 2; // Is this right??
+					break;
+				case 8: case 12: // Balance
+					MapControl[0] = (Control[0]&1) ? 1 : 2;	// left -> left or left -> right if swapped
+					MapControl[1] = (Control[0]&1) ? 2 : 1; // right -> right or right -> left if swapped
+					// fixme: Do we update attenuation to reflect panning? or does the ICS chip need the
+					// DOS program to write the attenuation registers again for the chip to apply balance/panning?
+					break;
+				case 10: case 14: // Pan
+					MapControl[0] = (Control[0]&1) ? 1 : 2;	// left -> left or left -> right if swapped
+					MapControl[1] = (Control[0]&1) ? 2 : 1; // right -> right or right -> left if swapped
+					// fixme: Do we update attenuation to reflect panning? or does the ICS chip need the
+					// DOS program to write the attenuation registers again for the chip to apply balance/panning?
+					break;
+			}
+		}
 		void setAttenuation(const unsigned int channel,const Bit8u val) {
-			Attenuation[channel] = val & 0x7F;
-			AttenDb[channel] = gain(Attenuation[channel]);
+			// FIXME: I am only able to test the "normal" mode since that's the only mode used by Gravis's DOS and Windows drivers.
+			//        The code below has not been tested in "Stereo" and "Pan/Balance" mode. If any DOS drivers use it, please direct
+			//        me to them so I or anyone else can test! ---J.C.
+
+			if ((Control[0]&0xC) == 0) {
+				Attenuation[channel] = val & 0x7F;
+				AttenDb[channel] = gain(Attenuation[channel]);
+			}
+			else {
+				// "stereo & balance use left control & gain, copies to right regs" says the Vogons patch I'm studying...
+				Attenuation[0] = Attenuation[1] = val & 0x7F;
+				AttenDb[0] = gain(Attenuation[0]);
+				AttenDb[1] = AttenDb[0];
+
+				// taken from the same Vogons patch, except potential access past array fixed
+				if ((Control[0]&0xC) == 8/*Balance/pan mode*/) {
+					static const float pan[16+1] = {-9,-9, -8.5, -6.5,-5.5,-4.5, -3.5,-3,-2.5,-2,-1.5,-1,-.5, 0,0,0,0};
+					AttenDb[0] += pan[Panning];
+					AttenDb[1] += pan[16-Panning];
+				}
+
+			}
 		}
 		void debugPrintMixer(const char *name) {
 			LOG(LOG_MISC,LOG_DEBUG)("GUS ICS control '%s': %.3fdB %.3fdB",name,AttenDb[0],AttenDb[1]);
 		}
 	public:
+		uint8_t		Panning;
 		uint8_t		Control[2];
+		uint8_t		MapControl[2];
 		uint8_t		Attenuation[2];		// 0x00-0x7F where 0x00 is mute (max atten) and 0x7F is full volume
 		float		AttenDb[2];		// in decibels
 	};
@@ -1032,6 +1122,10 @@ public:
 	uint8_t			addr_attenuator;	// which attenuator is selected
 	uint8_t			addr_control;		// which control is selected
 } GUS_ICS2101;
+
+static inline uint8_t read_GF1_mapping_control(const unsigned int ch) {
+	return GUS_ICS2101.mixpair[gus_ICS2101::GF1_OUT_PORT].MapControl[ch];
+}
 
 /* Gravis Ultrasound MAX Crystal Semiconductor CS4231A emulation */
 /* NOTES:
