@@ -1601,8 +1601,7 @@ static void DSP_DoCommand(void) {
 		if (sb.ess_type != ESS_NONE) {
 			DSP_FlushData();
 			DSP_AddData(0x68);
-			/* TODO: ESS 1869 will set bit 3 in this response */
-			DSP_AddData(0x80 | 0x01/*ESS 688 version 1*/);
+			DSP_AddData(0x80 | 0x05/*ESS 688 version*/);
 		}
 		break;
 	case 0xe8:	/* Read Test Register */
