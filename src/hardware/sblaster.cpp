@@ -510,9 +510,9 @@ void SB_OnEndOfDMA(void) {
 			sb.dsp.highspeed = false;
 			sb.mode=MODE_NONE;
 		}
-		else if (sb.dsp.require_irq_ack && was_irq) { /* Sound Blaster 16-style require IRQ ack before proceeding even with auto-init */
-			/* FIXME: ^ Is this accurate? Because this makes sense to me.
-			 *          Or, does the SB16 have a timeout from the IRQ instead? */
+		else if (sb.dsp.require_irq_ack && was_irq) {
+			/* Sound Blaster 16 behavior: If you do not acknowledge the IRQ, and the card goes to signal another IRQ, the DSP halts playback.
+			 * This is different from previous cards (and clone hardware) that continue playing whether or not you acknowledge the IRQ. */
 			LOG(LOG_SB,LOG_WARN)("DMA ended when previous IRQ had not yet been acked");
 			sb.mode=MODE_DMA_REQUIRE_IRQ_ACK;
 		}
