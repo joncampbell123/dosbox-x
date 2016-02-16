@@ -1153,14 +1153,148 @@ Bitu DEBUG_EnableDebugger(void);
 #define DSP_SB16_ONLY if (sb.type != SBT_16) { LOG(LOG_SB,LOG_ERROR)("DSP:Command %2X requires SB16",sb.dsp.cmd); break; }
 #define DSP_SB2_ABOVE if (sb.type <= SBT_1) { LOG(LOG_SB,LOG_ERROR)("DSP:Command %2X requires SB2 or above",sb.dsp.cmd); break; } 
 
+static unsigned char ESSregs[0x20] = {0}; /* 0xA0-0xBF */
+
+static unsigned char &ESSreg(uint8_t reg) {
+	assert(reg >= 0xA0 && reg <= 0xBF);
+	return ESSregs[reg-0xA0];
+}
+
+static unsigned int ESS_DMATransferCount() {
+	unsigned int r;
+
+	r = (unsigned int)ESSreg(0xA5) << 8U;
+	r |= (unsigned int)ESSreg(0xA4);
+
+	/* the 16-bit counter is a "two's complement" of the DMA count because it counts UP to 0 and triggers IRQ on overflow */
+	return 0x10000U-r;
+}
+
 static void ESS_DoWrite(uint8_t reg,uint8_t data) {
-	// TODO
+	uint8_t chg;
+
 	LOG(LOG_SB,LOG_DEBUG)("ESS register write reg=%02xh val=%02xh",reg,data);
+
+	switch (reg) {
+		case 0xA1: /* Extended Mode Sample Rate Generator */
+			ESSreg(reg) = data;
+			if (data & 0x80)
+				sb.freq = 795500UL / (256 - data);
+			else
+				sb.freq = 397700UL / (128 - data);
+			break;
+		case 0xA2: /* Filter divider (effectively, a hardware lowpass filter under S/W control) */
+			ESSreg(reg) = data;
+			/* TODO: Someday, I'll update the mixer code to support a "lowpass" filtering option as it resamples to emulate the ESS's filter */
+			break;
+		case 0xA4: /* DMA Transfer Count Reload (low) */
+		case 0xA5: /* DMA Transfer Count Reload (high) */
+			ESSreg(reg) = data;
+			sb.dma.total = ESS_DMATransferCount();
+			sb.dma.left = sb.dma.total;
+			break;
+		case 0xA8: /* Analog Control */
+			/* bits 7:5   0                  Reserved. Always write 0
+			 * bit  4     1                  Reserved. Always write 1
+			 * bit  3     Record monitor     1=Enable record monitor
+			 *            enable
+			 * bit  2     0                  Reserved. Always write 0
+			 * bits 1:0   Stereo/mono select 00=Reserved
+			 *                               01=Stereo
+			 *                               10=Mono
+			 *                               11=Reserved */
+			ESSreg(reg) = data;
+			/* TODO: If a format change happens and DMA is running, restart DMA */
+			break;
+		case 0xB1: /* Legacy Audio Interrupt Control */
+			ESSreg(reg) = (ESSreg(reg) & 0x0F) + (data & 0xF0); // lower 4 bits not writeable
+			break;
+		case 0xB2: /* DRQ Control */
+			ESSreg(reg) = (ESSreg(reg) & 0x0F) + (data & 0xF0); // lower 4 bits not writeable
+			break;
+		case 0xB5: /* DAC Direct Access Holding (low) */
+		case 0xB6: /* DAC Direct Access Holding (high) */
+			ESSreg(reg) = data;
+			break;
+		case 0xB7: /* Audio 1 Control 1 */
+			/* bit  7     Enable FIFO to/from codec
+			 * bit  6     Opposite from bit 3               Must be set opposite to bit 3
+			 * bit  5     FIFO signed mode                  1=Data is signed twos-complement   0=Data is unsigned
+			 * bit  4     Reserved                          Always write 1
+			 * bit  3     FIFO stereo mode                  1=Data is stereo
+			 * bit  2     FIFO 16-bit mode                  1=Data is 16-bit
+			 * bit  1     Reserved                          Always write 0
+			 * bit  0     Generate load signal */
+			ESSreg(reg) = data;
+			sb.dma.sign = (data&0x20)?1:0;
+			break;
+		case 0xB8: /* Audio 1 Control 2 */
+			/* bits 7:4   reserved
+			 * bit  3     CODEC mode         1=first DMA converter in ADC mode
+			 *                               0=first DMA converter in DAC mode
+			 * bit  2     DMA mode           1=auto-initialize mode
+			 *                               0=normal DMA mode
+			 * bit  1     DMA read enable    1=first DMA is read (for ADC)
+			 *                               0=first DMA is write (for DAC)
+			 * bit  0     DMA xfer enable    1=DMA is allowed to proceed */
+			data &= 0xF;
+			chg = ESSreg(reg) ^ data;
+			ESSreg(reg) = data;
+
+			sb.dma.autoinit = (data >> 2) & 1;
+			if (chg & 0xB) {
+				bool dma_en = (data & 1)?true:false;
+
+				// HACK: DOSBox does not yet support recording
+				if (data & 8/*ADC mode*/)
+					dma_en = false;
+				if (data & 2/*DMA read*/)
+					dma_en = false;
+
+				if (dma_en) {
+					// DMA start
+					if (chg & 1) {
+						LOG(LOG_SB,LOG_DEBUG)("ESS DMA start");
+						sb.dma_dac_mode = 0;
+						sb.dma.chan = GetDMAChannel(sb.hw.dma8);
+						// FIXME: Which bit(s) are responsible for signalling stereo?
+						//        Is it bit 3 of the Analog Control?
+						//        Is it bit 3/6 of the Audio Control 1?
+						//        Is it both?
+						// NTS: ESS chipsets always use the 8-bit DMA channel, even for 16-bit PCM.
+						// NTS: ESS chipsets also do not cap the sample rate, though if you drive them
+						//      too fast the ISA bus will effectively cap the sample rate at some
+						//      rate above 48KHz to 60KHz anyway.
+						DSP_DoDMATransfer(
+							(ESSreg(0xB7/*Audio Control 1*/)&4)?DSP_DMA_16_ALIASED:DSP_DMA_8,
+							sb.freq,(ESSreg(0xA8/*Analog control*/)&3)==1?1:0/*stereo*/);
+					}
+				}
+				else {
+					// DMA stop
+					DSP_ChangeMode(MODE_NONE);
+					if (sb.dma.chan) sb.dma.chan->Clear_Request();
+					PIC_RemoveEvents(END_DMA_Event);
+					PIC_RemoveEvents(DMA_DAC_Event);
+				}
+			}
+			break;
+		case 0xB9: /* Audio 1 Transfer Type */
+		case 0xBA: /* Left Channel ADC Offset Adjust */
+		case 0xBB: /* Right Channel ADC Offset Adjust */
+			ESSreg(reg) = data;
+			break;
+	};
 }
 
 static uint8_t ESS_DoRead(uint8_t reg) {
-	// TODO
 	LOG(LOG_SB,LOG_DEBUG)("ESS register read reg=%02xh",reg);
+
+	switch (reg) {
+		default:
+			return ESSreg(reg);
+	};
+
 	return 0xFF;
 }
 
@@ -2664,6 +2798,28 @@ public:
 				sb.busy_cycle_hz = 8333333 / 6 / 16;
 			else /* Guess ???*/
 				sb.busy_cycle_hz = 8333333 / 6 / 16;
+		}
+
+		if (sb.ess_type != ESS_NONE) {
+			uint8_t t;
+
+			/* legacy audio interrupt control */
+			t = 0x80;/*game compatible IRQ*/
+			switch (sb.hw.irq) {
+				case 5:		t |= 0x5; break;
+				case 7:		t |= 0xA; break;
+				case 10:	t |= 0xF; break;
+			};
+			ESSreg(0xB1) = t;
+
+			/* DRQ control */
+			t = 0x80;/*game compatible DRQ */
+			switch (sb.hw.dma8) {
+				case 0:		t |= 0x5; break;
+				case 1:		t |= 0xA; break;
+				case 3:		t |= 0xF; break;
+			};
+			ESSreg(0xB2) = t;
 		}
 
 		si = section->Get_int("dsp busy cycle always");
