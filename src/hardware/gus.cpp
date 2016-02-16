@@ -879,6 +879,53 @@ static void ExecuteGlobRegister(void) {
 	return;
 }
 
+/* Gravis Ultrasound ICS-2101 Digitally Controlled Audio Mixer emulation */
+struct gus_ICS2101 {
+public:
+	gus_ICS2101() {
+	}
+	void reset() {
+	}
+public:
+	void addressWrite(uint8_t addr) {
+		addr_attenuator = (addr >> 3) & 7;
+		addr_control = addr & 7;
+	}
+	void dataWrite(uint8_t val) {
+		LOG(LOG_MISC,LOG_DEBUG)("GUS ICS-2101 Mixer Data Write val=%02xh to attenuator=%u(%s) control=%u(%s)",
+			(int)val,
+			addr_attenuator,attenuatorName(addr_attenuator),
+			addr_control,controlName(addr_control));
+	}
+	const char *attenuatorName(const uint8_t c) const {
+		switch (c) {
+			case 0:	return "Pair 1";
+			case 1:	return "Pair 2";
+			case 2:	return "Pair 3";
+			case 3:	return "Pair 4";
+			case 4:	return "Pair 5";
+			case 5:	return "Master";
+		};
+
+		return "?";
+	}
+	const char *controlName(const uint8_t c) const {
+		switch (c) {
+			case 0:	return "Control Left";		// 000
+			case 1:	return "Control Right";		// 001
+			case 2:	return "Attenuator Left";	// 010
+			case 3:	return "Attenuator Right";	// 011
+			case 4: case 5:				// 10x
+				return "Pan/Balance";
+		};
+
+		return "?";
+	}
+public:
+	uint8_t		addr_attenuator;	// which attenuator is selected
+	uint8_t		addr_control;		// which control is selected
+} GUS_ICS2101;
+
 /* Gravis Ultrasound MAX Crystal Semiconductor CS4231A emulation */
 /* NOTES:
  *
@@ -1335,12 +1382,10 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 			}
 		}
 		else if (gus_ics_mixer) {
-			if ((port - GUS_BASE) == 0x306) {
-				LOG(LOG_MISC,LOG_DEBUG)("GUS TODO: ICS-2101 Mixer Data Write (%03xh) val=%02xh",(int)port,(int)val);
-			}
-			else if ((port - GUS_BASE) == 0x706) {
-				LOG(LOG_MISC,LOG_DEBUG)("GUS TODO: ICS-2101 Mixer Control Write (%03xh) val=%02xh",(int)port,(int)val);
-			}
+			if ((port - GUS_BASE) == 0x306)
+				GUS_ICS2101.dataWrite(val&0xFF);
+			else if ((port - GUS_BASE) == 0x706)
+				GUS_ICS2101.addressWrite(val&0xFF);
 		}
 		break;
 	default:
