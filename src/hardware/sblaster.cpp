@@ -1601,7 +1601,7 @@ static void DSP_DoCommand(void) {
 		if (sb.ess_type != ESS_NONE) {
 			DSP_FlushData();
 			DSP_AddData(0x68);
-			DSP_AddData(0x80 | 0x05/*ESS 688 version*/);
+			DSP_AddData(0x80 | 0x06/*ESS 688 version*/);
 		}
 		break;
 	case 0xe8:	/* Read Test Register */
