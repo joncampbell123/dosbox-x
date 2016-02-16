@@ -305,6 +305,8 @@ static void pc_xt_nmi_write(Bitu port,Bitu val,Bitu iolen) {
 	CPU_NMI_gate = (val & 0x80) ? true : false;
 }
 
+/* FIXME: This should be called something else that's true to the ISA bus, like PIC_PulseIRQ, not Activate IRQ.
+ *        ISA interrupts are edge triggered, not level triggered. */
 void PIC_ActivateIRQ(Bitu irq) {
 	/* Remember what was once IRQ 2 on PC/XT is IRQ 9 on PC/AT */
 	if (enable_slave_pic) { /* PC/AT emulation with slave PIC cascade to master */

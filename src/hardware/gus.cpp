@@ -617,14 +617,8 @@ static INLINE void GUS_CheckIRQ(void) {
 			if (gus_prev_effective_irqstat == 0)
 				PIC_ActivateIRQ(myGUS.irq1);
 		}
-		else {
-			PIC_DeActivateIRQ(myGUS.irq1);
-		}
 
 		gus_prev_effective_irqstat = irqstat;
-	}
-	else {/*Enable latch disabled. Technically this would cause random interrupts by leaving the IRQ lines floating, but...*/
-		PIC_DeActivateIRQ(myGUS.irq1);
 	}
 }
 
