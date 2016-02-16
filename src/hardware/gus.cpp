@@ -926,10 +926,22 @@ public:
 		addr_control = addr & 7;
 	}
 	void dataWrite(uint8_t val) {
-		LOG(LOG_MISC,LOG_DEBUG)("GUS ICS-2101 Mixer Data Write val=%02xh to attenuator=%u(%s) control=%u(%s)",
+		LOG(LOG_MISC,LOG_DEBUG)("GUS ICS-2101 Mixer Data Write val=%02xh to attensel=%u(%s) ctrlsel=%u(%s)",
 			(int)val,
 			addr_attenuator,attenuatorName(addr_attenuator),
 			addr_control,controlName(addr_control));
+
+		if (addr_control & 2) { // attenuator NTS: Only because an existing ICS patch for DOSBox does it this way... does hardware do it this way?
+			mixpair[addr_attenuator].setAttenuation(addr_control&1,val);
+			mixpair[addr_attenuator].updateMixer();
+			mixpair[addr_attenuator].debugPrintMixer(attenuatorName(addr_attenuator));
+		}
+		else if (addr_control & 4) { // pan/balance
+			LOG(LOG_MISC,LOG_DEBUG)("ICS warning: Pan/Balance emulation not implemented yet");
+		}
+		else {
+			mixpair[addr_attenuator].Control[addr_control&1] = val;
+		}
 	}
 	const char *attenuatorName(const uint8_t c) const {
 		switch (c) {
@@ -956,8 +968,40 @@ public:
 		return "?";
 	}
 public:
-	uint8_t		addr_attenuator;	// which attenuator is selected
-	uint8_t		addr_control;		// which control is selected
+	struct mixcontrol {
+	public:
+		mixcontrol() {
+			Control[0] = 0x00;
+			Control[1] = 0x00;
+			setAttenuation(0,0x7F); // FIXME: Because we want DOSBox to come up as if ULTRINIT/ULTRAMIX were run to configure the mixer
+			setAttenuation(1,0x7F);
+		}
+	public:
+		// gain() taken from an existing patch
+		float gain(Bit8u val) {  // in 0-127, out -90 to 0db, min to max
+			float gain=(127-val)*-0.5;
+			if(val<16) for(int i=0;i<(16-val);i++) gain+=-0.5-.13603*(i+1); // increasing rate of change, based on datasheet graph 
+			return gain;
+		}
+		// end borrow
+		void setAttenuation(const unsigned int channel,const Bit8u val) {
+			Attenuation[channel] = val & 0x7F;
+			AttenDb[channel] = gain(Attenuation[channel]);
+		}
+		void updateMixer() {
+		}
+		void debugPrintMixer(const char *name) {
+			LOG(LOG_MISC,LOG_DEBUG)("GUS ICS control '%s': %.3fDb %.3fDb",name,AttenDb[0],AttenDb[1]);
+		}
+	public:
+		uint8_t		Control[2];
+		uint8_t		Attenuation[2];		// 0x00-0x7F where 0x00 is mute (max atten) and 0x7F is full volume
+		float		AttenDb[2];		// in decibels
+	};
+public:
+	struct mixcontrol	mixpair[8];		// pairs 1-5 and Master
+	uint8_t			addr_attenuator;	// which attenuator is selected
+	uint8_t			addr_control;		// which control is selected
 } GUS_ICS2101;
 
 /* Gravis Ultrasound MAX Crystal Semiconductor CS4231A emulation */
