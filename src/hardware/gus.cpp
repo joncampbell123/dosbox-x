@@ -890,10 +890,10 @@ public:
 	//
 	//   Register defs for Integrated Circuit Systems, Inc. ICS-2101 mixer
 	//   chip, used on Gravis UltraSound cards.
-	//    
+	//
 	//   Block diagram:
 	//                                    port #
-	//                                         0 +----+
+	//                                       0 +----+
 	//    Mic in (Right/Left)        -->--->---|    |
 	//                                       1 |    |          amp --->---- amp out
 	//    Line in (Right/Left)       -->--->---|    |           |
@@ -907,7 +907,7 @@ public:
 	//                                       ICS 2101       |
 	//                                                      |
 	//               To GF1 Sample Input ---<---------------+
-	//                     
+	//
 	//    Master output volume: mixer channel #5
 	enum {
 		MIC_IN_PORT=0,
