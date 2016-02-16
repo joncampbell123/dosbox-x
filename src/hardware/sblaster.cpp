@@ -2136,9 +2136,13 @@ static Bit8u CTMIXER_Read(void) {
 
 
 static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
-	/* TODO: Does real SB 1.xx and 2.xx hardware (prior to the Pro) actually alias I/O ports like this?
-	 *       Because the EMF "Internal Damage" demo seems to depend on it when you select "Sound Blaster" output! */
-	if (sb.hw.sb_io_alias) port &= ~1;
+	/* All Creative hardware prior to Sound Blaster 16 appear to alias most of the I/O ports.
+	 * This has been confirmed on a Sound Blaster 2.0 and a Sound Blaster Pro (v3.1).
+	 * DSP aliasing is also faithfully emulated by the ESS AudioDrive. */
+	if (sb.hw.sb_io_alias) {
+		if ((port-sb.hw.base) < MIXER_INDEX || (port-sb.hw.base) > MIXER_DATA)
+			port &= ~1;
+	}
 
 	switch (port-sb.hw.base) {
 	case MIXER_INDEX:
@@ -2157,8 +2161,11 @@ static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
 		if (sb.mode == MODE_DMA_REQUIRE_IRQ_ACK)
 			sb.mode = MODE_DMA;
 
-		if (sb.dsp.out.used) return 0xff;
-		else return 0x7f;
+		if (sb.ess_type == ESS_NONE && (sb.type == SBT_1 || sb.type == SBT_2 || sb.type == SBT_PRO1 || sb.type == SBT_PRO2))
+			return sb.dsp.out.used ? 0xAA : 0x2A; /* observed return values on SB 2.0---any significance? */
+		else
+			return sb.dsp.out.used ? 0xFF : 0x7F; /* normal return values */
+		break;
 	case DSP_ACK_16BIT:
 		if (sb.mode == MODE_DMA_REQUIRE_IRQ_ACK)
 			sb.mode = MODE_DMA;
@@ -2183,7 +2190,7 @@ static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
 			else if (sb.dsp.write_busy || sb.dsp.highspeed)
 				busy = true;
 
-			if (sb.type == SBT_2) /* TODO: Same thing for SB 1.x too? What about Pro? */
+			if (sb.ess_type == ESS_NONE && (sb.type == SBT_1 || sb.type == SBT_2 || sb.type == SBT_PRO1 || sb.type == SBT_PRO2))
 				return busy ? 0xAA : 0x2A; /* observed return values on SB 2.0---any significance? */
 			else
 				return busy ? 0xFF : 0x7F; /* normal return values */
@@ -2204,9 +2211,13 @@ static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
 }
 
 static void write_sb(Bitu port,Bitu val,Bitu /*iolen*/) {
-	/* TODO: Does real SB 1.xx and 2.xx hardware (prior to the Pro) actually alias I/O ports like this?
-	 *       Because the EMF "Internal Damage" demo seems to depend on it when you select "Sound Blaster" output! */
-	if (sb.hw.sb_io_alias) port &= ~1;
+	/* All Creative hardware prior to Sound Blaster 16 appear to alias most of the I/O ports.
+	 * This has been confirmed on a Sound Blaster 2.0 and a Sound Blaster Pro (v3.1).
+	 * DSP aliasing is also faithfully emulated by the ESS AudioDrive. */
+	if (sb.hw.sb_io_alias) {
+		if ((port-sb.hw.base) < MIXER_INDEX || (port-sb.hw.base) > MIXER_DATA)
+			port &= ~1;
+	}
 
 	Bit8u val8=(Bit8u)(val&0xff);
 	switch (port-sb.hw.base) {
@@ -2783,11 +2794,19 @@ public:
 		if (si >= 0) sb.dsp.dsp_write_busy_time = si;
 		else sb.dsp.dsp_write_busy_time = 1000; /* FIXME: How long is the DSP busy on real hardware? */
 
-		/* sanity check. Pro and later cards have I/O port arrangements that obviously need
-		 * I/O ports on odd numbers, and therefore aliasing is impractical. */
-		/* TODO: Does the Sound Blaster 2.0 have the same aliasing problem? */
-		/* FIXME: We're going to assume the Game Blaster has the same problem since it pre-dates the Sound Blaster 1.x */
-		if (!(sb.type == SBT_1 || sb.type == SBT_2 || sb.type == SBT_GB)) sb.hw.sb_io_alias=false;
+		/* Sound Blaster (1.x and 2x) and Sound Blaster Pro (3.1) have the I/O port aliasing.
+		 * The aliasing is also faithfully emulated by the ESS AudioDrive. */
+		switch (sb.type) {
+			case SBT_1: /* guess */
+			case SBT_2: /* verified on real hardware */
+			case SBT_GB: /* FIXME: Right?? */
+			case SBT_PRO1: /* verified on real hardware */
+			case SBT_PRO2: /* guess */
+				break;
+			default:
+				sb.hw.sb_io_alias=false;
+				break;
+		}
 
 		/* auto-pick busy cycle */
 		/* NOTE: SB16 cards appear to run a DSP busy cycle at all times.
