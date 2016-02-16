@@ -535,7 +535,7 @@ static void write_p60(Bitu port,Bitu val,Bitu iolen) {
 		return;
 	case CMD_SETSCANSET:
 		keyb.command=CMD_NONE;
-                KEYBOARD_AddBuffer(0xfa);	/* Acknowledge */
+		KEYBOARD_AddBuffer(0xfa);	/* Acknowledge */
 		if (val == 0) { /* just asking */
 			if (keyb.cb_xlat) {
 				switch (keyb.scanset) {
