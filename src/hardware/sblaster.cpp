@@ -1583,8 +1583,14 @@ static void DSP_DoCommand(void) {
 		{
 			DSP_FlushData();
 			if (sb.ess_type != ESS_NONE) {
-				/* no response */
+				/* ESS chips do not return copyright string */
 				DSP_AddData(0);
+			}
+			else if (sb.type < SBT_PRO2) {
+				/* Sound Blaster DSP 2.0: No copyright string observed. */
+				/* Sound Blaster Pro DSP 3.1: No copyright string observed. */
+				/* I have yet to observe if a Sound Blaster Pro DSP 3.2 (SBT_PRO2) returns a copyright string. */
+				/* no response */
 			}
 			else {
 				/* NTS: Yes, this writes the terminating NUL as well. Not a bug. */
