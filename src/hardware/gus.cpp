@@ -884,6 +884,40 @@ static void ExecuteGlobRegister(void) {
  *      I do not have a Gravis Ultrasound card with this type of mixer to test against. --J.C. */
 struct gus_ICS2101 {
 public:
+	// ICS2101 and how Gravis wired up the input pairs when using it, according to some BSD and Linux kernel sources
+	//
+	// From the header file:
+	//
+	//   Register defs for Integrated Circuit Systems, Inc. ICS-2101 mixer
+	//   chip, used on Gravis UltraSound cards.
+	//    
+	//   Block diagram:
+	//                                    port #
+	//                                         0 +----+
+	//    Mic in (Right/Left)        -->--->---|    |
+	//                                       1 |    |          amp --->---- amp out
+	//    Line in (Right/Left)       -->--->---|    |           |
+	//                                       2 |    |           |
+	//    CD in (Right/Left)         -->--->---|    |--->---+---+----->---- line out
+	//                                       3 |    |       |
+	//    GF1 Out (Right/Left)       -->--->---|    |       |
+	//                                       4 |    |       |
+	//    Unused (Right/Left)        -->--->---|    |       |
+	//                                         +----+       v
+	//                                       ICS 2101       |
+	//                                                      |
+	//               To GF1 Sample Input ---<---------------+
+	//                     
+	//    Master output volume: mixer channel #5
+	enum {
+		MIC_IN_PORT=0,
+		LINE_IN_PORT=1,
+		CD_IN_PORT=2,
+		GF1_OUT_PORT=3,
+		UNUSED_PORT=4,
+		MASTER_OUTPUT_PORT=5
+	};
+public:
 	gus_ICS2101() {
 	}
 public:
@@ -899,12 +933,12 @@ public:
 	}
 	const char *attenuatorName(const uint8_t c) const {
 		switch (c) {
-			case 0:	return "Pair 1";
-			case 1:	return "Pair 2";
-			case 2:	return "Pair 3";
-			case 3:	return "Pair 4";
-			case 4:	return "Pair 5";
-			case 5:	return "Master";
+			case 0:	return "Mic in";
+			case 1:	return "Line in";
+			case 2:	return "CD in";
+			case 3:	return "GF1 out";
+			case 4:	return "Pair 5, unused";
+			case 5:	return "Master output";
 		};
 
 		return "?";
