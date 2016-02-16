@@ -919,6 +919,20 @@ public:
 	};
 public:
 	gus_ICS2101() {
+		// pre-set ourself as if ULTRINIT and ULTRAMIX had been run
+		mixpair[MIC_IN_PORT].setAttenuation(0,0x7F);
+		mixpair[MIC_IN_PORT].setAttenuation(1,0x7F);
+		mixpair[LINE_IN_PORT].setAttenuation(0,0x7F);
+		mixpair[LINE_IN_PORT].setAttenuation(1,0x7F);
+		mixpair[CD_IN_PORT].setAttenuation(0,0x7F);
+		mixpair[CD_IN_PORT].setAttenuation(1,0x7F);
+		mixpair[GF1_OUT_PORT].setAttenuation(0,0x7F);
+		mixpair[GF1_OUT_PORT].setAttenuation(1,0x7F);
+		mixpair[MASTER_OUTPUT_PORT].setAttenuation(0,0x7F);
+		mixpair[MASTER_OUTPUT_PORT].setAttenuation(1,0x7F);
+
+		// master volume update, updates ALL pairs
+		updateVolPair(MASTER_OUTPUT_PORT);
 	}
 public:
 	void addressWrite(uint8_t addr) {
@@ -933,8 +947,8 @@ public:
 
 		if (addr_control & 2) { // attenuator NTS: Only because an existing ICS patch for DOSBox does it this way... does hardware do it this way?
 			mixpair[addr_attenuator].setAttenuation(addr_control&1,val);
-			mixpair[addr_attenuator].updateMixer();
 			mixpair[addr_attenuator].debugPrintMixer(attenuatorName(addr_attenuator));
+			updateVolPair(addr_attenuator);
 		}
 		else if (addr_control & 4) { // pan/balance
 			LOG(LOG_MISC,LOG_DEBUG)("ICS warning: Pan/Balance emulation not implemented yet");
@@ -967,6 +981,20 @@ public:
 
 		return "?";
 	}
+	void updateVolPair(unsigned int pair) {
+		if (pair >= MASTER_OUTPUT_PORT) {
+			// master volume changes everyone else. do it, through 1 level of recursion.
+			for (unsigned int i=0;i < MASTER_OUTPUT_PORT;i++)
+				updateVolPair(i);
+		}
+		else {
+			// copy not just attenuation but modify according to master volume
+			for (unsigned int ch=0;ch < 2;ch++)
+				volpair[pair].AttenDb[ch] = mixpair[pair].AttenDb[ch] + mixpair[MASTER_OUTPUT_PORT].AttenDb[ch];
+
+			volpair[pair].updateFixedMultiply();
+		}
+	}
 public:
 	struct mixcontrol {
 	public:
@@ -988,8 +1016,6 @@ public:
 			Attenuation[channel] = val & 0x7F;
 			AttenDb[channel] = gain(Attenuation[channel]);
 		}
-		void updateMixer() {
-		}
 		void debugPrintMixer(const char *name) {
 			LOG(LOG_MISC,LOG_DEBUG)("GUS ICS control '%s': %.3fdB %.3fdB",name,AttenDb[0],AttenDb[1]);
 		}
@@ -998,8 +1024,25 @@ public:
 		uint8_t		Attenuation[2];		// 0x00-0x7F where 0x00 is mute (max atten) and 0x7F is full volume
 		float		AttenDb[2];		// in decibels
 	};
+	struct volpair {
+public:
+		volpair() {
+			AttenDb[0] = AttenDb[1] = 0;
+		}
+public:
+		void updateFixedMultiply() {
+			for (unsigned int ch=0;ch < 2;ch++) {
+				float m = powf(10.0f,AttenDb[ch]/20.0f);
+				Fix1616Mult[ch] = (uint32_t)(m * 0x10000);
+			}
+		}
+public:
+		float		AttenDb[2];
+		uint32_t	Fix1616Mult[2];		// linear multiply to apply volume
+	};
 public:
 	struct mixcontrol	mixpair[8];		// pairs 1-5 and Master
+	struct volpair		volpair[5];		// pairs 1-5 scaled by master
 	uint8_t			addr_attenuator;	// which attenuator is selected
 	uint8_t			addr_control;		// which control is selected
 } GUS_ICS2101;
