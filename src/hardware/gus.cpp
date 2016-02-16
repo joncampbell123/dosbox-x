@@ -991,7 +991,7 @@ public:
 		void updateMixer() {
 		}
 		void debugPrintMixer(const char *name) {
-			LOG(LOG_MISC,LOG_DEBUG)("GUS ICS control '%s': %.3fDb %.3fDb",name,AttenDb[0],AttenDb[1]);
+			LOG(LOG_MISC,LOG_DEBUG)("GUS ICS control '%s': %.3fdB %.3fdB",name,AttenDb[0],AttenDb[1]);
 		}
 	public:
 		uint8_t		Control[2];
