@@ -880,11 +880,11 @@ static void ExecuteGlobRegister(void) {
 }
 
 /* Gravis Ultrasound ICS-2101 Digitally Controlled Audio Mixer emulation */
+/* NTS: This was written and tested only through Ultrasound software and emulation.
+ *      I do not have a Gravis Ultrasound card with this type of mixer to test against. --J.C. */
 struct gus_ICS2101 {
 public:
 	gus_ICS2101() {
-	}
-	void reset() {
 	}
 public:
 	void addressWrite(uint8_t addr) {
