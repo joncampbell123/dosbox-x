@@ -1366,7 +1366,7 @@ static void DSP_DoCommand(void) {
 		}
 		else if (sb.dsp.cmd == 0xC0) { // read ESS register   (data[0]=register to read)
 			DSP_FlushData();
-			if (sb.ess_extended_mode)
+			if (sb.ess_extended_mode && sb.dsp.in.data[0] >= 0xA0 && sb.dsp.in.data[0] <= 0xBF)
 				DSP_AddData(ESS_DoRead(sb.dsp.in.data[0]));
 		}
 		else if (sb.dsp.cmd == 0xC6 || sb.dsp.cmd == 0xC7) { // set(0xC6) clear(0xC7) extended mode
@@ -1659,7 +1659,7 @@ static void DSP_DoCommand(void) {
 		if (sb.ess_type != ESS_NONE) {
 			DSP_FlushData();
 			DSP_AddData(0x68);
-			DSP_AddData(0x80 | 0x06/*ESS 688 version*/);
+			DSP_AddData(0x80 | 0x04/*ESS 688 version*/);
 		}
 		break;
 	case 0xe8:	/* Read Test Register */
