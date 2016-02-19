@@ -1780,7 +1780,7 @@ static bool DSP_busy_cycle() {
 	int t;
 
 	if (!DSP_busy_cycle_active()) return false;
-	if (sb.busy_cycle_duty_percent <= 0) return false;
+	if (sb.busy_cycle_duty_percent <= 0 || sb.busy_cycle_hz <= 0) return false;
 
 	/* NTS: DOSBox's I/O emulation doesn't yet attempt to accurately match ISA bus speeds or
 	 *      consider ISA bus cycles, but to emulate SB16 behavior we have to "time" it so
