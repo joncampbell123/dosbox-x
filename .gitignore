@@ -5,4 +5,8 @@ bin/*
 obj/
 obj/*
 *~
-
+dosbox.app/
+dosbox.app/*
+dosbox.icns
+dosbox.iconset/
+dosbox.iconset/*
