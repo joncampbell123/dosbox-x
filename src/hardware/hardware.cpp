@@ -307,7 +307,7 @@ static struct {
 	struct {
 		Bitu rowlen;
 	} image;
-#if (C_SSHOT)
+#if (C_SSHOT) || (C_AVCODEC)
 	struct {
 		avi_writer	*writer;
 		Bitu		frames;
