@@ -10,3 +10,6 @@ dosbox.app/*
 dosbox.icns
 dosbox.iconset/
 dosbox.iconset/*
+autom4te.cache/
+autom4te.cache/*
+.DS_Store
