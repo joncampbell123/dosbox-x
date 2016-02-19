@@ -882,7 +882,7 @@ void KEYBOARD_AddKey3(KBD_KEYS keytype,bool pressed) {
 	case KBD_kp7:ret=0x6c;break;
 	case KBD_kp8:ret=0x75;break;
 	case KBD_kp9:ret=0x7d;break;
-	case KBD_kpminus:ret=0x4e;break;
+	case KBD_kpminus:ret=0x84;break;
 	case KBD_kp4:ret=0x6b;break;
 	case KBD_kp5:ret=0x73;break;
 	case KBD_kp6:ret=0x74;break;
@@ -899,7 +899,7 @@ void KEYBOARD_AddKey3(KBD_KEYS keytype,bool pressed) {
 
 	case KBD_kpenter:ret=0x79;break;
 	case KBD_rightctrl:ret=0x58;break;
-	case KBD_kpdivide:ret=0x4a;break;
+	case KBD_kpdivide:ret=0x77;break;
 	case KBD_rightalt:ret=0x39;break;
 	case KBD_home:ret=0x6e;break;
 	case KBD_up:ret=0x63;break;
