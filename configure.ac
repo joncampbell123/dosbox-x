@@ -534,6 +534,10 @@ case "$host" in
        AC_DEFINE(MACOSX, 1, [Compiling on Mac OS X])
        LIBS="$LIBS -framework CoreMIDI -framework AudioUnit -framework AudioToolbox"
        AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
+       dnl El Capitan's refusal to allow sudo make install to /usr/include, and the failure of most open source to
+       dnl include from /usr/local/include is irritating and tiresome...
+       CFLAGS="$CFLAGS -I/usr/local/include"
+       CPPFLAGS="$CPPFLAGS -I/usr/local/include"
        ;;
     *-*-linux*)
        AC_DEFINE(LINUX, 1, [Compiling on GNU/Linux])
