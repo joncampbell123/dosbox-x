@@ -1215,10 +1215,6 @@ static void ESS_StopDMA() {
 
 static void ESS_UpdateDMATotal() {
 	sb.dma.total = ESS_DMATransferCount();
-	// ESS DMA counter is in bytes, even for 16-bit PCM.
-	// This Sound Blaster emulation counts DMA Total in 16-bit samples, not bytes.
-	// To fit into this emulation, we must convert bytes to samples for 16-bit PCM.
-	if (ESSreg(0xB7) & 4) sb.dma.total >>= 1;
 }
 
 static void ESS_CheckDMAEnable() {
