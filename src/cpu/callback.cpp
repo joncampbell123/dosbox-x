@@ -660,8 +660,8 @@ void CALLBACK_HandlerObject::Allocate(CallBack_Handler handler,const char* descr
 	} else E_Exit("Callback handler object already installed");
 }
 
-void CALLBACK_HandlerObject::Set_RealVec(Bit8u vec){
-	if(!vectorhandler.installed) {
+void CALLBACK_HandlerObject::Set_RealVec(Bit8u vec,bool reinstall){
+	if(!vectorhandler.installed || reinstall) {
 		vectorhandler.installed=true;
 		vectorhandler.interrupt=vec;
 		RealSetVec(vec,Get_RealPointer(),vectorhandler.old_vector);

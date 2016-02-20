@@ -3355,21 +3355,21 @@ private:
 		/* INT 16 Keyboard handled in another file */
 		BIOS_SetupKeyboard();
 
-		int4b_callback.Set_RealVec(0x4B);
-		callback[1].Set_RealVec(0x11);
-		callback[2].Set_RealVec(0x12);
-		callback[3].Set_RealVec(0x14);
-		callback[4].Set_RealVec(0x15);
-		callback[5].Set_RealVec(0x17);
-		callback[6].Set_RealVec(0x1A);
-		callback[7].Set_RealVec(0x1C);
-		callback[8].Set_RealVec(0x70);
-		callback[9].Set_RealVec(0x71);
-		callback[10].Set_RealVec(0x19);
-		callback[11].Set_RealVec(0x76);
-		callback[12].Set_RealVec(0x77);
-		callback[13].Set_RealVec(0x0E);
-		callback[15].Set_RealVec(0x18);
+		int4b_callback.Set_RealVec(0x4B,/*reinstall*/true);
+		callback[1].Set_RealVec(0x11,/*reinstall*/true);
+		callback[2].Set_RealVec(0x12,/*reinstall*/true);
+		callback[3].Set_RealVec(0x14,/*reinstall*/true);
+		callback[4].Set_RealVec(0x15,/*reinstall*/true);
+		callback[5].Set_RealVec(0x17,/*reinstall*/true);
+		callback[6].Set_RealVec(0x1A,/*reinstall*/true);
+		callback[7].Set_RealVec(0x1C,/*reinstall*/true);
+		callback[8].Set_RealVec(0x70,/*reinstall*/true);
+		callback[9].Set_RealVec(0x71,/*reinstall*/true);
+		callback[10].Set_RealVec(0x19,/*reinstall*/true);
+		callback[11].Set_RealVec(0x76,/*reinstall*/true);
+		callback[12].Set_RealVec(0x77,/*reinstall*/true);
+		callback[13].Set_RealVec(0x0E,/*reinstall*/true);
+		callback[15].Set_RealVec(0x18,/*reinstall*/true);
 
 		mem_writew(BIOS_MEMORY_SIZE,t_conv);
 

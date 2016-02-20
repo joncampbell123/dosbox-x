@@ -110,6 +110,6 @@ public:
 	RealPt Get_RealPointer() {
 		return CALLBACK_RealPointer(m_callback);
 	}
-	void Set_RealVec(Bit8u vec);
+	void Set_RealVec(Bit8u vec,bool reinstall=false);
 };
 #endif
