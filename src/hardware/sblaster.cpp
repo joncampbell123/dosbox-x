@@ -2208,7 +2208,9 @@ static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
 	 * This has been confirmed on a Sound Blaster 2.0 and a Sound Blaster Pro (v3.1).
 	 * DSP aliasing is also faithfully emulated by the ESS AudioDrive. */
 	if (sb.hw.sb_io_alias) {
-		if ((port-sb.hw.base) < MIXER_INDEX || (port-sb.hw.base) > MIXER_DATA)
+		if ((port-sb.hw.base) == DSP_ACK_16BIT && sb.ess_type != ESS_NONE)
+			{ } /* ESS AudioDrive does not alias DSP STATUS (0x22E) as seen on real hardware */
+		else if ((port-sb.hw.base) < MIXER_INDEX || (port-sb.hw.base) > MIXER_DATA)
 			port &= ~1;
 	}
 
@@ -2235,10 +2237,15 @@ static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
 			return sb.dsp.out.used ? 0xFF : 0x7F; /* normal return values */
 		break;
 	case DSP_ACK_16BIT:
-		if (sb.mode == MODE_DMA_REQUIRE_IRQ_ACK)
-			sb.mode = MODE_DMA;
+		if (sb.ess_type == ESS_NONE && sb.type == SBT_16) {
+			if (sb.irq.pending_16bit)  {
+				sb.irq.pending_16bit=false;
+				PIC_DeActivateIRQ(sb.hw.irq);
+			}
 
-		sb.irq.pending_16bit=false;
+			if (sb.mode == MODE_DMA_REQUIRE_IRQ_ACK)
+				sb.mode = MODE_DMA;
+		}
 		break;
 	case DSP_WRITE_STATUS:
 		switch (sb.dsp.state) {
@@ -2283,7 +2290,9 @@ static void write_sb(Bitu port,Bitu val,Bitu /*iolen*/) {
 	 * This has been confirmed on a Sound Blaster 2.0 and a Sound Blaster Pro (v3.1).
 	 * DSP aliasing is also faithfully emulated by the ESS AudioDrive. */
 	if (sb.hw.sb_io_alias) {
-		if ((port-sb.hw.base) < MIXER_INDEX || (port-sb.hw.base) > MIXER_DATA)
+		if ((port-sb.hw.base) == DSP_ACK_16BIT && sb.ess_type != ESS_NONE)
+			{ } /* ESS AudioDrive does not alias DSP STATUS (0x22E) as seen on real hardware */
+		else if ((port-sb.hw.base) < MIXER_INDEX || (port-sb.hw.base) > MIXER_DATA)
 			port &= ~1;
 	}
 
