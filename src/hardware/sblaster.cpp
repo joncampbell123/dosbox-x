@@ -502,7 +502,7 @@ void SB_OnEndOfDMA(void) {
 	bool was_irq=false;
 
 	PIC_RemoveEvents(END_DMA_Event);
-	if (sb.dma.mode >= DSP_DMA_16) {
+	if (sb.ess_type == ESS_NONE && sb.dma.mode >= DSP_DMA_16) {
 		was_irq = sb.irq.pending_16bit;
 		SB_RaiseIRQ(SB_IRQ_16);
 	}
@@ -1213,6 +1213,14 @@ static void ESS_StopDMA() {
 	PIC_RemoveEvents(DMA_DAC_Event);
 }
 
+static void ESS_UpdateDMATotal() {
+	sb.dma.total = ESS_DMATransferCount();
+	// ESS DMA counter is in bytes, even for 16-bit PCM.
+	// This Sound Blaster emulation counts DMA Total in 16-bit samples, not bytes.
+	// To fit into this emulation, we must convert bytes to samples for 16-bit PCM.
+	if (ESSreg(0xB7) & 4) sb.dma.total >>= 1;
+}
+
 static void ESS_CheckDMAEnable() {
 	bool dma_en = (ESSreg(0xB8) & 1)?true:false;
 
@@ -1258,7 +1266,7 @@ static void ESS_DoWrite(uint8_t reg,uint8_t data) {
 		case 0xA4: /* DMA Transfer Count Reload (low) */
 		case 0xA5: /* DMA Transfer Count Reload (high) */
 			ESSreg(reg) = data;
-			sb.dma.total = ESS_DMATransferCount();
+			ESS_UpdateDMATotal();
 			if (sb.dma.left == 0) sb.dma.left = sb.dma.total;
 			break;
 		case 0xA8: /* Analog Control */
@@ -1306,6 +1314,7 @@ static void ESS_DoWrite(uint8_t reg,uint8_t data) {
 			chg = ESSreg(reg) ^ data;
 			ESSreg(reg) = data;
 			sb.dma.sign = (data&0x20)?1:0;
+			if (chg & 0x04) ESS_UpdateDMATotal();
 			if (chg & 0x0C) {
 				if (sb.mode == MODE_DMA) {
 					ESS_StopDMA();
