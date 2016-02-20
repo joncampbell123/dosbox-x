@@ -1944,6 +1944,24 @@ static void DSP_ChangeStereo(bool stereo) {
 	sb.dma.stereo=stereo;
 }
 
+static inline uint8_t expand16to32(const uint8_t t) {
+	/* 4-bit -> 5-bit expansion.
+	 *
+	 * 0 -> 0
+	 * 1 -> 2
+	 * 2 -> 4
+	 * 3 -> 6
+	 * ....
+	 * 7 -> 14
+	 * 8 -> 17
+	 * 9 -> 19
+	 * 10 -> 21
+	 * 11 -> 23
+	 * ....
+	 * 15 -> 31 */
+	return (t << 1) | (t >> 3);
+}
+
 static void CTMIXER_Write(Bit8u val) {
 	switch (sb.mixer.index) {
 	case 0x00:		/* Reset */
@@ -1990,6 +2008,13 @@ static void CTMIXER_Write(Bit8u val) {
 		if (sb.type == SBT_16 && sb.sbpro_stereo_bit_strict_mode && (val&0x2) != 0)
 			LOG(LOG_SB,LOG_WARN)("Mixer stereo/mono bit is set. This is Sound Blaster Pro style Stereo which is not supported by sbtype=sb16, consider using sbtype=sbpro2 instead.");
 		break;
+	case 0x14:		/* Audio 1 Play Volume (ESS 688) */
+		if (sb.ess_type != ESS_NONE) {
+			sb.mixer.dac[0]=expand16to32((val>>4)&0xF);
+			sb.mixer.dac[1]=expand16to32(val&0xF);
+			CTMIXER_UpdateVolumes();
+		}
+		break;
 	case 0x22:		/* Master Volume (SBPRO) */
 		SETPROVOL(sb.mixer.master,val);
 		CTMIXER_UpdateVolumes();
@@ -2020,8 +2045,14 @@ static void CTMIXER_Write(Bit8u val) {
 		}
 		break;
 	case 0x32:		/* DAC Volume Left (SB16) */
+				/* Master Volume (ESS 688) */
 		if (sb.type==SBT_16) {
 			sb.mixer.dac[0]=val>>3;
+			CTMIXER_UpdateVolumes();
+		}
+		else if (sb.ess_type != ESS_NONE) {
+			sb.mixer.master[0]=expand16to32((val>>4)&0xF);
+			sb.mixer.master[1]=expand16to32(val&0xF);
 			CTMIXER_UpdateVolumes();
 		}
 		break;
@@ -2044,8 +2075,14 @@ static void CTMIXER_Write(Bit8u val) {
 		}
 		break;
 	case 0x36:		/* CD Volume Left (SB16) */
+				/* FM Volume (ESS 688) */
 		if (sb.type==SBT_16) {
 			sb.mixer.cda[0]=val>>3;
+			CTMIXER_UpdateVolumes();
+		}
+		else if (sb.ess_type != ESS_NONE) {
+			sb.mixer.fm[0]=expand16to32((val>>4)&0xF);
+			sb.mixer.fm[1]=expand16to32(val&0xF);
 			CTMIXER_UpdateVolumes();
 		}
 		break;
@@ -2056,13 +2093,26 @@ static void CTMIXER_Write(Bit8u val) {
 		}
 		break;
 	case 0x38:		/* Line-in Volume Left (SB16) */
-		if (sb.type==SBT_16) sb.mixer.lin[0]=val>>3;
+				/* AuxA (CD) Volume Register (ESS 688) */
+		if (sb.type==SBT_16)
+			sb.mixer.lin[0]=val>>3;
+		else if (sb.ess_type != ESS_NONE) {
+			sb.mixer.cda[0]=expand16to32((val>>4)&0xF);
+			sb.mixer.cda[1]=expand16to32(val&0xF);
+			CTMIXER_UpdateVolumes();
+		}
 		break;
 	case 0x39:		/* Line-in Volume Right (SB16) */
 		if (sb.type==SBT_16) sb.mixer.lin[1]=val>>3;
 		break;
 	case 0x3a:
 		if (sb.type==SBT_16) sb.mixer.mic=val>>3;
+		break;
+	case 0x3e:		/* Line Volume (ESS 688) */
+		if (sb.ess_type != ESS_NONE) {
+			sb.mixer.lin[0]=expand16to32((val>>4)&0xF);
+			sb.mixer.lin[1]=expand16to32(val&0xF);
+		}
 		break;
 	case 0x80:		/* IRQ Select */
 		if (sb.type==SBT_16 && !sb.vibra) { /* ViBRA PnP cards do not allow reconfiguration by this byte */
@@ -2116,6 +2166,9 @@ static Bit8u CTMIXER_Read(void) {
 		else return ((sb.mixer.mic >> 2) & (sb.type==SBT_16 ? 7:6));
 	case 0x0e:		/* Output/Stereo Select */
 		return 0x11|(sb.mixer.stereo ? 0x02 : 0x00)|(sb.mixer.filtered ? 0x20 : 0x00);
+	case 0x14:		/* Audio 1 Play Volume (ESS 688) */
+		if (sb.ess_type != ESS_NONE) return ((sb.mixer.dac[0] << 3) & 0xF0) + (sb.mixer.dac[1] >> 1);
+		break;
 	case 0x26:		/* FM Volume (SBPRO) */
 		return MAKEPROVOL(sb.mixer.fm);
 	case 0x28:		/* CD Audio Volume (SBPRO) */
@@ -2131,7 +2184,9 @@ static Bit8u CTMIXER_Read(void) {
 		ret=0xa;
 		break;
 	case 0x32:		/* DAC Volume Left (SB16) */
+				/* Master Volume (ESS 688) */
 		if (sb.type==SBT_16) return sb.mixer.dac[0]<<3;
+		if (sb.ess_type != ESS_NONE) return ((sb.mixer.master[0] << 3) & 0xF0) + (sb.mixer.master[1] >> 1);
 		ret=0xa;
 		break;
 	case 0x33:		/* DAC Volume Right (SB16) */
@@ -2147,7 +2202,9 @@ static Bit8u CTMIXER_Read(void) {
 		ret=0xa;
 		break;
 	case 0x36:		/* CD Volume Left (SB16) */
+				/* FM Volume (ESS 688) */
 		if (sb.type==SBT_16) return sb.mixer.cda[0]<<3;
+		if (sb.ess_type != ESS_NONE) return ((sb.mixer.fm[0] << 3) & 0xF0) + (sb.mixer.fm[1] >> 1);
 		ret=0xa;
 		break;
 	case 0x37:		/* CD Volume Right (SB16) */
@@ -2155,7 +2212,9 @@ static Bit8u CTMIXER_Read(void) {
 		ret=0xa;
 		break;
 	case 0x38:		/* Line-in Volume Left (SB16) */
+				/* AuxA (CD) Volume Register (ESS 688) */
 		if (sb.type==SBT_16) return sb.mixer.lin[0]<<3;
+		if (sb.ess_type != ESS_NONE) return ((sb.mixer.cda[0] << 3) & 0xF0) + (sb.mixer.cda[1] >> 1);
 		ret=0xa;
 		break;
 	case 0x39:		/* Line-in Volume Right (SB16) */
@@ -2165,6 +2224,9 @@ static Bit8u CTMIXER_Read(void) {
 	case 0x3a:		/* Mic Volume (SB16) */
 		if (sb.type==SBT_16) return sb.mixer.mic<<3;
 		ret=0xa;
+		break;
+	case 0x3e:		/* Line Volume (ESS 688) */
+		if (sb.ess_type != ESS_NONE) return ((sb.mixer.lin[0] << 3) & 0xF0) + (sb.mixer.lin[1] >> 1);
 		break;
 	case 0x80:		/* IRQ Select */
 		ret=0;
