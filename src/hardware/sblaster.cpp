@@ -520,6 +520,7 @@ void SB_OnEndOfDMA(void) {
 		if (sb.ess_playback_mode) {
 			LOG(LOG_SB,LOG_NORMAL)("ESS DMA stop");
 			ESSreg(0xB8) &= ~0x01; // automatically stop DMA (right?)
+			if (sb.dma.chan) sb.dma.chan->Clear_Request();
 		}
 	} else {
 		sb.dma.left=sb.dma.total;
