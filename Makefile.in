@@ -804,6 +804,18 @@ dosbox.app: src/dosbox src/dosbox.icns
 		cp -v $$Y dosbox.app/Contents/MacOS/; \
 		install_name_tool -change $$Y @executable_path/$$dylib dosbox.app/Contents/MacOS/DosBox; \
 	done
+# and the libs too
+	for pass in 1 2 3 4 5; do \
+		for dolib in dosbox.app/Contents/MacOS/*.dylib; do \
+			otool -L "$$dolib" | grep '/usr/local/lib' | while read X; do Y=`echo "$$X" | sed -E '/^ +/s///' | cut -d ' ' -f 1`; \
+				dylib=`basename $$Y`; \
+				cp -vn $$Y dosbox.app/Contents/MacOS/; \
+				echo "$$Y"; \
+				install_name_tool -change $$Y @executable_path/$$dylib "$$dolib"; \
+				install_name_tool -id @executable_path/$$dylib "$$dolib"; \
+			done; \
+		done; \
+	done
 
 src/dosbox.icns: src/dosbox.ico
 	rm -Rfv src/dosbox.iconset
