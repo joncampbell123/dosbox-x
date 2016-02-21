@@ -51,13 +51,19 @@ public:
 	void SetVolume(float _left,float _right);
 	void SetScale( float f );
 	void UpdateVolume(void);
-	void SetFreq(Bitu _freq);
-	void Mix(Bitu _needed);
+	void SetFreq(Bitu _freq,Bitu _den=1U);
+	void Mix(Bitu whole,Bitu frac);
 	void AddSilence(void);			//Fill up until needed
+	void EndFrame(Bitu samples);
+
+	template<class Type,bool stereo,bool signeddata,bool nativeorder>
+	void loadCurrentSample(Bitu &len, const Type* &data);
 
 	template<class Type,bool stereo,bool signeddata,bool nativeorder>
 	void AddSamples(Bitu len, const Type* data);
+	double timeSinceLastSample(void);
 
+	void finishSampleInterpolation(void);
 	void AddSamples_m8(Bitu len, const Bit8u * data);
 	void AddSamples_s8(Bitu len, const Bit8u * data);
 	void AddSamples_m8s(Bitu len, const Bit8s * data);
@@ -75,8 +81,6 @@ public:
 	void AddSamples_m32_nonnative(Bitu len, const Bit32s * data);
 	void AddSamples_s32_nonnative(Bitu len, const Bit32s * data);
 
-	void AddStretched(Bitu len,Bit16s * data);		//Strech block up into needed data
-	void AddStretchedStereo(Bitu len,Bit16s * data);		//Strech block up into needed data
 	void FillUp(void);
 	void Enable(bool _yesno);
 
@@ -87,9 +91,16 @@ public:
 	float volmain[2];
 	float scale;
 	Bit32s volmul[2];
-	Bitu freq_add,freq_index;
-	Bitu done,needed;
-	Bits last[2];
+	Bitu freq_f;
+	unsigned int rendering_to_n,rendering_to_d;
+	unsigned int rend_n,rend_d;
+	unsigned int freq_n,freq_d;
+	bool current_loaded;
+	Bits current[2],last[2];
+	Bit32s msbuffer[2048][2];		// more than enough for 1ms of audio, at mixer sample rate
+	Bits last_sample_write;
+	Bitu msbuffer_o;
+	Bitu msbuffer_i;
 	const char * name;
 	bool enabled;
 	MixerChannel * next;

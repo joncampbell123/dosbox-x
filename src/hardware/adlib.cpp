@@ -596,6 +596,11 @@ static Bitu OPL_Read(Bitu port,Bitu iolen) {
 }
 
 void OPL_Write(Bitu port,Bitu val,Bitu iolen) {
+	// if writing the data port, assume a change in OPL state that should be reflected immediately.
+	// this is a way to render "sample accurate" without needing "sample accurate" mode in the mixer.
+	// CHGOLF's Adlib digital audio hack works fine with this hack.
+	if (port&1) module->mixerChan->FillUp();
+
 	module->PortWrite( port, val, iolen );
 }
 

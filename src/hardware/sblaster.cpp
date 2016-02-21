@@ -182,9 +182,9 @@ struct SB_INFO {
 		unsigned int dsp_write_busy_time; /* when you write to the DSP, how long it signals "busy" */
 	} dsp;
 	struct {
-		Bit16s data[DSP_DACSIZE+1];
-		Bitu used;
+		double pdt;
 		Bit16s last;
+		double dac_t,dac_pt;
 	} dac;
 	struct {
 		Bit8u index;
@@ -385,14 +385,12 @@ static void DSP_DMA_CallBack(DmaChannel * chan, DMAEvent event) {
 	else if (event==DMA_MASKED) {
 		if (sb.mode==MODE_DMA) {
 			sb.mode=MODE_DMA_MASKED;
-//			DSP_ChangeMode(MODE_DMA_MASKED);
 			LOG(LOG_SB,LOG_NORMAL)("DMA masked,stopping output, left %d",chan->currcnt);
 		}
 	} else if (event==DMA_UNMASKED) {
 		if (sb.mode==MODE_DMA_MASKED && sb.dma.mode!=DSP_DMA_NONE) {
 			DSP_ChangeMode(MODE_DMA);
-//			sb.mode=MODE_DMA;
-			if (!sb.dma_dac_mode) CheckDMAEnd();
+			CheckDMAEnd();
 			LOG(LOG_SB,LOG_NORMAL)("DMA unmasked,starting output, auto %d block %d",chan->autoinit,chan->basecnt);
 		}
 	}
@@ -653,24 +651,6 @@ static void GenerateDMASound(Bitu size) {
 	if (!sb.dma.left) SB_OnEndOfDMA();
 }
 
-/* old version...
-static void GenerateDACSound(Bitu len) {
-	if (!sb.dac.used) {
-		sb.mode=MODE_NONE;
-		return;
-	}
-	Bitu dac_add=(sb.dac.used<<16)/len;
-	Bitu dac_pos=0;
-	Bit16s * out=(Bit16s *)MixTemp;
-	for (Bitu i=len;i;i--) {
-		*out++=sb.dac.data[0+(dac_pos>>16)];
-		dac_pos+=dac_add;
-	}
-	sb.dac.used=0;
-	sb.chan->AddSamples_m16(len,(Bit16s *)MixTemp);
-}
-*/
-
 static void DMA_Silent_Event(Bitu val) {
 	if (sb.dma.left<val) val=sb.dma.left;
 	Bitu read=sb.dma.chan->Read(val,sb.dma.buf.b8);
@@ -698,6 +678,7 @@ static void DMA_DAC_Event(Bitu val) {
 	unsigned char tmp[4];
 	Bitu read,expct;
 	signed int L,R;
+	Bit16s out[2];
 
 	if (sb.dma.chan->masked) {
 		PIC_AddEvent(DMA_DAC_Event,1000.0 / sb.dma_dac_srcrate);
@@ -711,7 +692,7 @@ static void DMA_DAC_Event(Bitu val) {
 	expct = (sb.dma.stereo ? 2 : 1) * (sb.dma.mode == DSP_DMA_16_ALIASED ? 2 : 1);
 	read = sb.dma.chan->Read(expct,tmp);
 	//if (read != expct)
-	//	LOG_MSG("DMA read was not sample aligned. Sound may swap channels or become static. On real hardware the same may happen unless audio is prepared specifically.\n");
+	//      LOG_MSG("DMA read was not sample aligned. Sound may swap channels or become static. On real hardware the same may happen unless audio is prepared specifically.\n");
 
 	if (sb.dma.mode == DSP_DMA_16 || sb.dma.mode == DSP_DMA_16_ALIASED) {
 		L = (int16_t)host_readw(&tmp[0]);
@@ -739,27 +720,26 @@ static void DMA_DAC_Event(Bitu val) {
 	}
 
 	if (sb.dma.stereo) {
-		if ((sb.dac.used+2) <= DSP_DACSIZE) {
-			sb.dac.data[sb.dac.used++]=L;
-			sb.dac.data[sb.dac.used++]=R;
-		}
+		out[0]=L;
+		out[1]=R;
+		sb.chan->AddSamples_s16(1,out);
 	}
 	else {
-		if (sb.dac.used < DSP_DACSIZE)
-			sb.dac.data[sb.dac.used++]=L;
+		out[0]=L;
+		sb.chan->AddSamples_m16(1,out);
 	}
 
 	/* NTS: The reason we check this is that sometimes the various "checks" performed by
-	 *      setup/configuration tools will setup impossible playback scenarios to test
-	 *      the card that would result in read > sb.dma.left. If read > sb.dma.left then
-	 *      the subtraction below would drive sb.dma.left below zero and the IRQ would
-	 *      never fire, and the test program would fail to detect SB16 emulation.
-	 *
-	 *      Bugfix for "Extreme Assault" that allows the game to detect Sound Blaster 16
-	 *      hardware. "Extreme Assault"'s SB16 test appears to configure a DMA transfer
-	 *      of 1 byte then attempt to play 16-bit signed stereo PCM (4 bytes) which prior
-	 *      to this fix would falsely trigger Goldplay then cause sb.dma.left to underrun
-	 *      and fail to fire the IRQ. */
+	   -        *      setup/configuration tools will setup impossible playback scenarios to test
+	   -        *      the card that would result in read > sb.dma.left. If read > sb.dma.left then
+	   -        *      the subtraction below would drive sb.dma.left below zero and the IRQ would
+	   -        *      never fire, and the test program would fail to detect SB16 emulation.
+	   -        *
+	   -        *      Bugfix for "Extreme Assault" that allows the game to detect Sound Blaster 16
+	   -        *      hardware. "Extreme Assault"'s SB16 test appears to configure a DMA transfer
+	   -        *      of 1 byte then attempt to play 16-bit signed stereo PCM (4 bytes) which prior
+	   -        *      to this fix would falsely trigger Goldplay then cause sb.dma.left to underrun
+	   -        *      and fail to fire the IRQ. */
 	if (sb.dma.left >= read)
 		sb.dma.left -= read;
 	else
@@ -839,6 +819,11 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo,bool dontInit
 	 *    Triton - Crystal Dream (1992) [SB and SB Pro modes]
 	 *    The Jungly (1992) [SB and SB Pro modes]
 	 */
+	fprintf(stderr,"goldplay=%u freq=%u basecnt=%u\n",
+		(unsigned int)sb.goldplay,
+		(unsigned int)sb.freq,
+		(unsigned int)sb.dma.chan->basecnt);
+
 	if (sb.dsp.force_goldplay) {
 		sb.dma_dac_srcrate=freq;
 		sb.dma_dac_mode=1;
@@ -1126,7 +1111,6 @@ static void DSP_Reset(void) {
 
 	sb.freq=22050;
 	sb.time_constant=45;
-	sb.dac.used=0;
 	sb.dac.last=0;
 	sb.e2.value=0xaa;
 	sb.e2.count=0;
@@ -1444,9 +1428,31 @@ static void DSP_DoCommand(void) {
 		break;
 	case 0x10:	/* Direct DAC */
 		DSP_ChangeMode(MODE_DAC);
-		if (sb.dac.used<DSP_DACSIZE) {
-			sb.dac.data[sb.dac.used++]=(Bit8s(sb.dsp.in.data[0] ^ 0x80)) << 8;
-			sb.dac.data[sb.dac.used++]=(Bit8s(sb.dsp.in.data[0] ^ 0x80)) << 8;
+
+		sb.dac.dac_pt = sb.dac.dac_t;
+		sb.dac.dac_t = PIC_FullIndex();
+		{
+			double dt = sb.dac.dac_t - sb.dac.dac_pt; // time in milliseconds since last direct DAC output
+			double rt = 1000 / dt; // estimated sample rate according to dt
+			int s,sc = 1;
+
+			// cap rate estimate to sanity. <= 1KHz means rendering once per timer tick in DOSBox,
+			// so there's no point below that rate in additional rendering.
+			if (rt < 2000) rt = 2000;
+
+			// Direct DAC playback could be thought of as application-driven 8-bit output up to 23KHz.
+			// The sound card isn't given any hint what the actual sample rate is, only that it's given
+			// instruction when to change the 8-bit value being output to the DAC which is why older DOS
+			// games using this method tend to sound "grungy" compared to DMA playback. I'm trying to recreate
+			// the effect here through sample duplication.
+			while ((rt*sc) <= 15000) sc++;
+			sb.chan->SetFreq((Bitu)((rt*sc) * 0x100),0x100);
+
+			// avoid popping/crackling artifacts through the mixer by ensuring the render output is prefilled enough
+			if (sb.chan->msbuffer_o < 40/*FIXME: ask the mixer code!*/) sc += 2/*FIXME: use mixer rate / rate math*/;
+
+			// do it
+			for (s=0;s < sc;s++) sb.chan->AddSamples_m8(1,(Bit8u*)(&sb.dsp.in.data[0]));
 		}
 		break;
 	case 0x24:	/* Singe Cycle 8-Bit DMA ADC */
@@ -2403,33 +2409,14 @@ static void SBLASTER_CallBack(Bitu len) {
 		sb.chan->AddSilence();
 		break;
 	case MODE_DAC:
-//		GenerateDACSound(len);
-//		break;
-		if (!sb.dac.used) {
-			sb.mode=MODE_NONE;
-			return;
-		}
-		sb.chan->AddStretched(sb.dac.used,sb.dac.data);
-		sb.dac.used=0;
+		sb.mode = MODE_NONE;
 		break;
 	case MODE_DMA:
-		if (sb.dma_dac_mode) { /* might as well treat the micro-DMA transfers the same way we treat direct DAC output */
-			if (sb.dac.used != 0) {
-				if (sb.dma.stereo) sb.chan->AddStretchedStereo(sb.dac.used/2,sb.dac.data);
-				else sb.chan->AddStretched(sb.dac.used,sb.dac.data);
-				sb.dac.used=0;
-			}
-			else {
-				sb.chan->AddSilence();
-			}
-		}
-		else {
-			len*=sb.dma.mul;
-			if (len&SB_SH_MASK) len+=1 << SB_SH;
-			len>>=SB_SH;
-			if (len>sb.dma.left) len=sb.dma.left;
-			GenerateDMASound(len);
-		}
+		len*=sb.dma.mul;
+		if (len&SB_SH_MASK) len+=1 << SB_SH;
+		len>>=SB_SH;
+		if (len>sb.dma.left) len=sb.dma.left;
+		GenerateDMASound(len);
 		break;
 	}
 }
@@ -2880,6 +2867,8 @@ public:
 		if (sb.type==SBT_NONE || sb.type==SBT_GB) return;
 
 		sb.chan=MixerChan.Install(&SBLASTER_CallBack,22050,"SB");
+		sb.dac.pdt = -1;
+		sb.dac.dac_pt = sb.dac.dac_t = 0;
 		sb.dsp.state=DSP_S_NORMAL;
 		sb.dsp.out.lastval=0xaa;
 		sb.dma.chan=NULL;
@@ -2902,7 +2891,7 @@ public:
 		// or disabled. Real SBPro2 has it disabled. 
 		sb.speaker=false;
 		// On SB16 the speaker flag does not affect actual speaker state.
-		if (sb.type == SBT_16) sb.chan->Enable(true);
+		if (sb.type == SBT_16 || sb.ess_type != ESS_NONE) sb.chan->Enable(true);
 		else sb.chan->Enable(false);
 
 		if (sb.emit_blaster_var) {

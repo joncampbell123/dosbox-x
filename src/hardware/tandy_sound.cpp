@@ -253,6 +253,10 @@ static void TandySN76496Write(Bitu port,Bitu data,Bitu iolen) {
 		tandy.enabled=true;
 	}
 
+	// assume state change, always.
+	// this hack allows sample accurate rendering without enabling sample accurate mode in the mixer.
+	tandy.chan->FillUp();
+
 	SN76496Write(R,port,data);
 }
 

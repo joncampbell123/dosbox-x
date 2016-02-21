@@ -733,9 +733,11 @@ static void ExecuteGlobRegister(void) {
 //	if (myGUS.gRegSelect|1!=0x44) LOG_MSG("write global register %x with %x", myGUS.gRegSelect, myGUS.gRegData);
 	switch(myGUS.gRegSelect) {
 	case 0x0:  // Channel voice control register
+		gus_chan->FillUp();
 		if(curchan) curchan->WriteWaveCtrl((Bit16u)myGUS.gRegData>>8);
 		break;
 	case 0x1:  // Channel frequency control register
+		gus_chan->FillUp();
 		if(curchan) curchan->WriteWaveFreq(myGUS.gRegData);
 		break;
 	case 0x2:  // Channel MSW start address register
@@ -763,6 +765,7 @@ static void ExecuteGlobRegister(void) {
 		}
 		break;
 	case 0x6:  // Channel volume ramp rate register
+		gus_chan->FillUp();
 		if(curchan != NULL) {
 			Bit8u tmpdata = (Bit16u)myGUS.gRegData>>8;
 			curchan->WriteRampRate(tmpdata);
@@ -781,6 +784,7 @@ static void ExecuteGlobRegister(void) {
 		}
 		break;
 	case 0x9:  // Channel current volume register
+		gus_chan->FillUp();
 		if(curchan != NULL) {
 			Bit16u tmpdata = (Bit16u)myGUS.gRegData >> 4;
 			curchan->RampVol = tmpdata << RAMP_FRACT;
@@ -788,24 +792,29 @@ static void ExecuteGlobRegister(void) {
 		}
 		break;
 	case 0xA:  // Channel MSW current address register
+		gus_chan->FillUp();
 		if(curchan != NULL) {
 			Bit32u tmpaddr = (Bit32u)(myGUS.gRegData & 0x1fff) << (16+WAVE_BITS); /* upper 13 bits of integer portion */
 			curchan->WaveAddr = (curchan->WaveAddr & WAVE_MSWMASK) | tmpaddr;
 		}
 		break;
 	case 0xB:  // Channel LSW current address register
+		gus_chan->FillUp();
 		if(curchan != NULL) {
 			Bit32u tmpaddr = (Bit32u)(myGUS.gRegData & 0xffff) << (WAVE_BITS); /* lower 7 bits of integer portion, and all 9 bits of fractional portion */
 			curchan->WaveAddr = (curchan->WaveAddr & WAVE_LSWMASK) | tmpaddr;
 		}
 		break;
 	case 0xC:  // Channel pan pot register
+		gus_chan->FillUp();
 		if(curchan) curchan->WritePanPot((Bit16u)myGUS.gRegData>>8);
 		break;
 	case 0xD:  // Channel volume control register
+		gus_chan->FillUp();
 		if(curchan) curchan->WriteRampCtrl((Bit16u)myGUS.gRegData>>8);
 		break;
 	case 0xE:  // Set active channel register
+		gus_chan->FillUp();
 		myGUS.gRegSelect = myGUS.gRegData>>8;		//JAZZ Jackrabbit seems to assume this?
 		myGUS.ActiveChannelsUser = 1+((myGUS.gRegData>>8) & 31); // NTS: The GUS SDK documents this field as bits 5-0, which is wrong, it's bits 4-0. 5-0 would imply 64 channels.
 
@@ -843,7 +852,6 @@ static void ExecuteGlobRegister(void) {
 		myGUS.ActiveMask=0xffffffffU >> (32-myGUS.ActiveChannels);
 		myGUS.basefreq = (Bit32u)((float)1000000/(1.619695497*(float)(myGUS.ActiveChannels)));
 
-		gus_chan->FillUp();
 		if (!myGUS.fixed_sample_rate_output)	gus_chan->SetFreq(myGUS.basefreq);
 		else					gus_chan->SetFreq(GUS_RATE);
 

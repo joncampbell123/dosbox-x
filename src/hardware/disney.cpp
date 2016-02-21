@@ -305,6 +305,7 @@ static void DISNEY_PlayStereo(Bitu len, Bit8u* l, Bit8u* r) {
 
 static void DISNEY_CallBack(Bitu len) {
 	if (!len) return;
+	if (disney.leader == NULL) return;
 
 	// get the smaller used
 	Bitu real_used;
@@ -383,6 +384,13 @@ public:
 	DISNEY(Section* configuration):Module_base(configuration) {
 		Section_prop * section=static_cast<Section_prop *>(configuration);
 		if(!section->Get_bool("disney")) return;
+
+		for(int i = 0; i < 2; i++) {
+			disney.da[i].used = 0;
+			disney.da[i].speedcheck_sum = 0;
+			disney.da[i].speedcheck_failed = false;
+			disney.da[i].speedcheck_init = false;
+		}
 
 		WriteHandler.Install(DISNEY_BASE,disney_write,IO_MB,3);
 		ReadHandler.Install(DISNEY_BASE,disney_read,IO_MB,3);
