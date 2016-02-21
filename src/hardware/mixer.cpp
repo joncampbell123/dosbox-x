@@ -220,6 +220,8 @@ void MixerChannel::Mix(Bitu whole,Bitu frac) {
 	if (msbuffer_o < whole) {
 		finishSampleInterpolation();
 		if (msbuffer_o < whole) {
+			if (freq_f > freq_d) freq_f = freq_d; // this is an abrupt stop, so interpolation must not carry over, to help avoid popping artifacts
+
 			while (msbuffer_o < whole) {
 				msbuffer[msbuffer_o][0] = current[0];
 				msbuffer[msbuffer_o][1] = current[1];
