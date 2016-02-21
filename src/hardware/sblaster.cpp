@@ -1438,7 +1438,7 @@ static void DSP_DoCommand(void) {
 
 			// cap rate estimate to sanity. <= 1KHz means rendering once per timer tick in DOSBox,
 			// so there's no point below that rate in additional rendering.
-			if (rt < 2000) rt = 2000;
+			if (rt < 1000) rt = 1000;
 
 			// Direct DAC playback could be thought of as application-driven 8-bit output up to 23KHz.
 			// The sound card isn't given any hint what the actual sample rate is, only that it's given
