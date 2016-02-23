@@ -25,11 +25,12 @@ using namespace std;
 
 //Public function to read a QCow2 header.
 	QCow2Image::QCow2Header QCow2Image::read_header(FILE* qcow2File){
-		QCow2Header header = QCow2Header();
-		if (1 != fseek(qcow2File, 0, SEEK_SET)){
-			clearerr(qcow2File);
+		QCow2Header header;
+		fseek(qcow2File, 0, SEEK_SET);
+		if (1 != fread(&header, sizeof header, 1, qcow2File)){
+			clearerr(qcow2File);  /*If we fail, reset the file stream's status*/
+			return QCow2Header(); /*Return an empty header*/
 		}
-		fread(&header, sizeof header, 1, qcow2File);
 		header.magic = host_read32(header.magic);
 		header.version = host_read32(header.version);
 		header.backing_file_offset = host_read64(header.backing_file_offset);
