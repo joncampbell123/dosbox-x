@@ -782,6 +782,8 @@ static void DSP_RaiseIRQEvent(Bitu /*val*/) {
 	SB_RaiseIRQ(SB_IRQ_8);
 }
 
+void updateSoundBlasterFilter(Bitu rate);
+
 static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo,bool dontInitLeft=false) {
 	char const * type;
 
@@ -881,10 +883,14 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo,bool dontInit
 	if (sb.dma.stereo) sb.dma.mul*=2;
 	sb.dma.rate=(sb.dma_dac_srcrate*sb.dma.mul) >> SB_SH;
 	sb.dma.min=(sb.dma.rate*(sb.min_dma_user >= 0 ? sb.min_dma_user : /*default*/3))/1000;
-	if (sb.dma_dac_mode && sb.goldplay_stereo)
+	if (sb.dma_dac_mode && sb.goldplay_stereo) {
 		sb.chan->SetFreq(sb.dma_dac_srcrate);
-	else
+		updateSoundBlasterFilter(sb.dma_dac_srcrate);
+	}
+	else {
 		sb.chan->SetFreq(freq);
+		updateSoundBlasterFilter(freq);
+	}
 	sb.dma.mode=mode;
 	PIC_RemoveEvents(DMA_DAC_Event);
 	PIC_RemoveEvents(END_DMA_Event);
@@ -1118,6 +1124,7 @@ static void DSP_Reset(void) {
 	sb.irq.pending_8bit=false;
 	sb.irq.pending_16bit=false;
 	sb.chan->SetFreq(22050);
+	sb.chan->SetSlewFreq(23000);
 //	DSP_SetSpeaker(false);
 	PIC_RemoveEvents(END_DMA_Event);
 	PIC_RemoveEvents(DMA_DAC_Event);
@@ -1221,6 +1228,16 @@ static void ESS_CheckDMAEnable() {
 	}
 }
 
+static void ESSUpdateFilterFromSB(void) {
+	if (sb.freq >= 22050)
+		ESSreg(0xA1) = 256 - (795500UL / sb.freq);
+	else
+		ESSreg(0xA1) = 128 - (397700UL / sb.freq);
+
+	unsigned int freq = ((sb.freq * 4) / (5 * 2)); /* 80% of 1/2 the sample rate */
+	ESSreg(0xA2) = 256 - (7160000 / (freq * 82));
+}
+
 static void ESS_DoWrite(uint8_t reg,uint8_t data) {
 	uint8_t chg;
 
@@ -1241,7 +1258,7 @@ static void ESS_DoWrite(uint8_t reg,uint8_t data) {
 			break;
 		case 0xA2: /* Filter divider (effectively, a hardware lowpass filter under S/W control) */
 			ESSreg(reg) = data;
-			/* TODO: Someday, I'll update the mixer code to support a "lowpass" filtering option as it resamples to emulate the ESS's filter */
+			updateSoundBlasterFilter(sb.freq);
 			break;
 		case 0xA4: /* DMA Transfer Count Reload (low) */
 		case 0xA5: /* DMA Transfer Count Reload (high) */
@@ -1440,13 +1457,18 @@ static void DSP_DoCommand(void) {
 			// so there's no point below that rate in additional rendering.
 			if (rt < 1000) rt = 1000;
 
+			// FIXME: What does the ESS AudioDrive do to it's filter/sample rate divider registers when emulating this Sound Blaster command?
+			ESSreg(0xA1) = 128 - (397700 / 22050);
+			ESSreg(0xA2) = 256 - (7160000 / (82 * ((4 * 22050) / 10)));
+
 			// Direct DAC playback could be thought of as application-driven 8-bit output up to 23KHz.
 			// The sound card isn't given any hint what the actual sample rate is, only that it's given
 			// instruction when to change the 8-bit value being output to the DAC which is why older DOS
-			// games using this method tend to sound "grungy" compared to DMA playback. I'm trying to recreate
-			// the effect here through sample duplication.
-			while ((rt*sc) <= 15000) sc++;
-			sb.chan->SetFreq((Bitu)((rt*sc) * 0x100),0x100);
+			// games using this method tend to sound "grungy" compared to DMA playback. We recreate the
+			// effect here by asking the mixer to do it's linear interpolation as if at 23KHz while
+			// rendering the audio at whatever rate the DOS game is giving it to us.
+			sb.chan->SetFreq((Bitu)(rt * 0x100),0x100);
+			updateSoundBlasterFilter(sb.freq);
 
 			// avoid popping/crackling artifacts through the mixer by ensuring the render output is prefilled enough
 			if (sb.chan->msbuffer_o < 40/*FIXME: ask the mixer code!*/) sc += 2/*FIXME: use mixer rate / rate math*/;
@@ -1482,6 +1504,7 @@ static void DSP_DoCommand(void) {
 		if (sb.dma.mode != DSP_DMA_NONE && sb.dma.autoinit) {
 			DSP_PrepareDMA_Old(sb.dma.mode,sb.dma.autoinit,sb.dma.sign);
 		}
+		if (sb.ess_type != ESS_NONE) ESSUpdateFilterFromSB();
 		break;
 	case 0x41:	/* Set Output Samplerate */
 	case 0x42:	/* Set Input Samplerate */
@@ -1931,14 +1954,47 @@ static void CTMIXER_Reset(void) {
 #define MAKEPROVOL(_WHICH_)			\
 	((((_WHICH_[0] & 0x1e) << 3) | ((_WHICH_[1] & 0x1e) >> 1)) & (sb.type==SBT_16 ? 0xff:0xee))
 
+
+void updateSoundBlasterFilter(Bitu rate) {
+	/* different sound cards filter their output differently */
+	if (sb.ess_type != ESS_NONE) {
+		/* ESS AudioDrive lets the driver decide what the cutoff/rolloff to use */
+		/* "The ratio of the roll-off frequency to the clock frequency is 1:82. In other words,
+		 * first determine the desired roll off frequency by taking 80% of the sample rate
+		 * divided by 2, the multiply by 82 to find the desired filter clock frequency" */
+		Bitu filter_hz = (7160000UL / (256 - ESSreg(0xA2))) / 82;
+		// TODO: When the mixer code gains a lowpass filter, use that too!
+		sb.chan->SetSlewFreq(filter_hz * 2 * sb.chan->freq_d_orig);
+	}
+	else if (sb.type == SBT_16) {
+		if (sb.mode == MODE_DAC)
+			sb.chan->SetSlewFreq((sb.vibra ? 24000 : 23000) * sb.chan->freq_d_orig);
+		else
+			sb.chan->SetSlewFreq(0/*normal linear interpolation*/);
+	}
+	else if (sb.type == SBT_PRO1 || sb.type == SBT_PRO2) {
+		// TODO: When the mixer code gains a lowpass filter, use that too!
+		if (sb.mixer.filtered/*Output "filter" bit in mixer register 0x0E*/)
+			sb.chan->SetSlewFreq(11000/*FIXME: Guess*/ * sb.chan->freq_d_orig);
+		else
+			sb.chan->SetSlewFreq(23000 * sb.chan->freq_d_orig);
+	}
+	else {
+		// TODO: When the mixer code gains a lowpass filter, use that too!
+		sb.chan->SetSlewFreq(23000 * sb.chan->freq_d_orig);
+	}
+}
+
 static void DSP_ChangeStereo(bool stereo) {
 	if (!sb.dma.stereo && stereo) {
 		sb.chan->SetFreq(sb.freq/2);
+		updateSoundBlasterFilter(sb.freq/2);
 		sb.dma.mul*=2;
 		sb.dma.rate=(sb.freq*sb.dma.mul) >> SB_SH;
 		sb.dma.min=(sb.dma.rate*(sb.min_dma_user >= 0 ? sb.min_dma_user : /*default*/3))/1000;
 	} else if (sb.dma.stereo && !stereo) {
 		sb.chan->SetFreq(sb.freq);
+		updateSoundBlasterFilter(sb.freq);
 		sb.dma.mul/=2;
 		sb.dma.rate=(sb.freq*sb.dma.mul) >> SB_SH;
 		sb.dma.min=(sb.dma.rate*(sb.min_dma_user >= 0 ? sb.min_dma_user : /*default*/3))/1000;
@@ -2005,6 +2061,7 @@ static void CTMIXER_Write(Bit8u val) {
 		sb.mixer.sbpro_stereo=(val & 0x2) > 0;
 		sb.mixer.filtered=(val & 0x20) > 0;
 		DSP_ChangeStereo(sb.mixer.stereo);
+		updateSoundBlasterFilter(sb.freq);
 
 		/* help the user out if they leave sbtype=sb16 and then wonder why their DOS game is producing scratchy monural audio. */
 		if (sb.type == SBT_16 && sb.sbpro_stereo_bit_strict_mode && (val&0x2) != 0)
