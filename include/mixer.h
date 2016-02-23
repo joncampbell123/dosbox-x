@@ -101,7 +101,7 @@ public:
 	unsigned int freq_nslew,freq_nslew_want;
 	unsigned int rendering_to_n,rendering_to_d;
 	unsigned int rend_n,rend_d;
-	unsigned int freq_n,freq_d;
+	unsigned int freq_n,freq_d,freq_d_orig;
 	bool current_loaded;
 	Bits current[2],last[2],delta[2],max_change;
 	Bit32s msbuffer[2048][2];		// more than enough for 1ms of audio, at mixer sample rate

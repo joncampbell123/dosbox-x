@@ -118,6 +118,7 @@ MixerChannel * MIXER_AddChannel(MIXER_Handler handler,Bitu freq,const char * nam
 	chan->msbuffer_i = 0;
 	chan->msbuffer_o = 0;
 	chan->freq_n = chan->freq_d = 1;
+	chan->freq_d_orig = 1;
 	chan->freq_f = 0;
 	chan->SetFreq(freq);
 	chan->next=mixer.channels;
@@ -183,16 +184,17 @@ void MixerChannel::SetSlewFreq(Bitu _freq) {
 }
 
 void MixerChannel::SetFreq(Bitu _freq,Bitu _den) {
-	if (freq_n == _freq && freq_d == (_den * mixer.freq))
+	if (freq_n == _freq && freq_d == freq_d_orig)
 		return;
 
-	if (freq_d != _den) {
+	if (freq_d_orig != _den) {
 		Bit64u tmp = (Bit64u)freq_f * (Bit64u)_den * (Bit64u)mixer.freq;
-		freq_f = freq_fslew = (unsigned int)(tmp / (Bit64u)freq_d);
+		freq_f = freq_fslew = (unsigned int)(tmp / (Bit64u)freq_d_orig);
 	}
 
 	freq_n = _freq;
 	freq_d = _den * mixer.freq;
+	freq_d_orig = _den;
 	updateSlew();
 }
 
