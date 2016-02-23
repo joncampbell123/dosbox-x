@@ -48,7 +48,7 @@ using namespace std;
 
 
 //Public Constructor.
-	QCow2Image::QCow2Image(QCow2Image::QCow2Header qcow2_header, FILE *qcow2File) : file(qcow2File), header(qcow2_header)
+	QCow2Image::QCow2Image(QCow2Image::QCow2Header qcow2_header, FILE *qcow2File) : file(qcow2File), header(qcow2_header), backing_image(NULL)
 	{
 		cluster_mask = mask64(header.cluster_bits);
 		cluster_size = cluster_mask + 1;

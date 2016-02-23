@@ -117,7 +117,7 @@ private:
 	Bit64u l1_bits;
 	Bit64u refcount_mask;
 	Bit64u refcount_bits;
-	QCow2Image* backing_image = NULL;
+	QCow2Image* backing_image;
 };
 
 class QCow2Disk : public imageDisk{
