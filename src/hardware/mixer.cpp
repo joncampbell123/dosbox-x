@@ -351,26 +351,25 @@ inline void MixerChannel::AddSamples(Bitu len, const Type* data) {
 
 	last_sample_write = mixer.samples_rendered_ms.w;
 
+	if (msbuffer_o >= 2048) {
+		fprintf(stderr,"WARNING: addSample overrun (immediate)\n");
+		return;
+	}
+
+	if (!current_loaded) {
+		if (len == 0) return;
+
+		loadCurrentSample<Type,stereo,signeddata,nativeorder>(len,data);
+		if (len == 0) {
+			freq_f = freq_d; /* encourage loading next round */
+			return;
+		}
+
+		loadCurrentSample<Type,stereo,signeddata,nativeorder>(len,data);
+		freq_f = 0; /* interpolate now from what we just loaded */
+	}
+
 	for (;;) {
-		if (msbuffer_o >= 2048) {
-			fprintf(stderr,"WARNING: addSample overrun\n");
-			break;
-		}
-
-		if (!current_loaded) {
-			if (len == 0) break;
-
-			loadCurrentSample<Type,stereo,signeddata,nativeorder>(len,data);
-			if (len == 0) {
-				freq_f = freq_d; /* encourage loading next round */
-				break;
-			}
-
-			loadCurrentSample<Type,stereo,signeddata,nativeorder>(len,data);
-			freq_f = 0; /* interpolate now from what we just loaded */
-			continue;
-		}
-
 		if (freq_f >= freq_d) {
 			if (len == 0) break;
 			loadCurrentSample<Type,stereo,signeddata,nativeorder>(len,data);
@@ -388,8 +387,11 @@ inline void MixerChannel::AddSamples(Bitu len, const Type* data) {
 			else {
 				msbuffer[msbuffer_o][1] = msbuffer[msbuffer_o][0];
 			}
-			msbuffer_o++;
 			freq_f += freq_n;
+			if ((++msbuffer_o) >= 2048) {
+				fprintf(stderr,"WARNING: addSample overrun\n");
+				break;
+			}
 		}
 	}
 }
