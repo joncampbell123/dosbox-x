@@ -166,8 +166,8 @@ void MixerChannel::SetFreq(Bitu _freq,Bitu _den) {
 		return;
 
 	if (freq_d != _den) {
-		freq_f *= _den * mixer.freq;
-		freq_f /= freq_d;
+		Bit64u tmp = (Bit64u)freq_f * (Bit64u)_den * (Bit64u)mixer.freq;
+		freq_f = (unsigned int)(tmp / (Bit64u)freq_d);
 	}
 
 	freq_n = _freq;

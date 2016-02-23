@@ -95,7 +95,7 @@ public:
 	float volmain[2];
 	float scale;
 	Bit32s volmul[2];
-	Bitu freq_f;
+	unsigned int freq_f;
 	unsigned int rendering_to_n,rendering_to_d;
 	unsigned int rend_n,rend_d;
 	unsigned int freq_n,freq_d;
