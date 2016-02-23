@@ -51,6 +51,7 @@ public:
 	void SetVolume(float _left,float _right);
 	void SetScale( float f );
 	void UpdateVolume(void);
+	void SetSlewFreq(Bitu _freq); // denominator provided by call to SetFreq. call with _freq == 0 to disable
 	void SetFreq(Bitu _freq,Bitu _den=1U);
 	void Mix(Bitu whole,Bitu frac);
 	void AddSilence(void);			//Fill up until needed
@@ -66,6 +67,7 @@ public:
 	template<bool stereo>
 	bool runSampleInterpolation(const Bitu upto);
 
+	void updateSlew(void);
 	void padFillSampleInterpolation(const Bitu upto);
 	void finishSampleInterpolation(const Bitu upto);
 	void AddSamples_m8(Bitu len, const Bit8u * data);
@@ -95,12 +97,13 @@ public:
 	float volmain[2];
 	float scale;
 	Bit32s volmul[2];
-	unsigned int freq_f;
+	unsigned int freq_f,freq_fslew;
+	unsigned int freq_nslew,freq_nslew_want;
 	unsigned int rendering_to_n,rendering_to_d;
 	unsigned int rend_n,rend_d;
 	unsigned int freq_n,freq_d;
 	bool current_loaded;
-	Bits current[2],last[2],delta[2];
+	Bits current[2],last[2],delta[2],max_change;
 	Bit32s msbuffer[2048][2];		// more than enough for 1ms of audio, at mixer sample rate
 	Bits last_sample_write;
 	Bitu msbuffer_o;

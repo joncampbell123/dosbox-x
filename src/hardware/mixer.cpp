@@ -92,9 +92,25 @@ bool Mixer_SampleAccurate() {
 
 Bit8u MixTemp[MIXER_BUFSIZE];
 
+inline void MixerChannel::updateSlew(void) {
+	/* "slew" affects the linear interpolation ramp.
+	 * but, our implementation can only shorten the linear interpolation
+	 * period, it cannot extend it beyond one sample period */
+	freq_nslew = freq_nslew_want;
+	if (freq_nslew < freq_n) freq_nslew = freq_n;
+
+	if (freq_nslew_want > 0 && freq_nslew_want < freq_n)
+		max_change = ((Bit64u)freq_nslew_want * (Bit64u)0x8000) / (Bit64u)freq_n;
+	else
+		max_change = 0x7FFFFFFFUL;
+}
+
 MixerChannel * MIXER_AddChannel(MIXER_Handler handler,Bitu freq,const char * name) {
 	MixerChannel * chan=new MixerChannel();
 	chan->scale = 1.0;
+	chan->freq_fslew = 0;
+	chan->freq_nslew_want = 0;
+	chan->freq_nslew = 0;
 	chan->last_sample_write = 0;
 	chan->current_loaded = false;
 	chan->handler=handler;
@@ -161,17 +177,23 @@ void MixerChannel::Enable(bool _yesno) {
 	if (!enabled) freq_f=0;
 }
 
+void MixerChannel::SetSlewFreq(Bitu _freq) {
+	freq_nslew_want = _freq;
+	updateSlew();
+}
+
 void MixerChannel::SetFreq(Bitu _freq,Bitu _den) {
 	if (freq_n == _freq && freq_d == (_den * mixer.freq))
 		return;
 
 	if (freq_d != _den) {
 		Bit64u tmp = (Bit64u)freq_f * (Bit64u)_den * (Bit64u)mixer.freq;
-		freq_f = (unsigned int)(tmp / (Bit64u)freq_d);
+		freq_f = freq_fslew = (unsigned int)(tmp / (Bit64u)freq_d);
 	}
 
 	freq_n = _freq;
 	freq_d = _den * mixer.freq;
+	updateSlew();
 }
 
 void MixerChannel::EndFrame(Bitu samples) {
@@ -307,6 +329,16 @@ inline void MixerChannel::loadCurrentSample(Bitu &len, const Type* &data) {
 		delta[1] = delta[0] = current[0] - last[0];
 	}
 
+	if (freq_nslew_want != 0) {
+		if (delta[0] < -max_change)	delta[0] = -max_change;
+		else if (delta[0] > max_change)	delta[0] = max_change;
+
+		if (stereo) {
+			if (delta[1] < -max_change)	delta[1] = -max_change;
+			else if (delta[1] > max_change)	delta[1] = max_change;
+		}
+	}
+
 	current_loaded = true;
 }
 
@@ -340,16 +372,31 @@ inline bool MixerChannel::runSampleInterpolation(const Bitu upto) {
 	if (msbuffer_o >= upto)
 		return false;
 
-	while (freq_f < freq_d) {
-		sample = last[0] + (int)(((int64_t)delta[0] * (int64_t)freq_f) / (int64_t)freq_d);
+	while (freq_fslew < freq_d) {
+		sample = last[0] + (int)(((int64_t)delta[0] * (int64_t)freq_fslew) / (int64_t)freq_d);
 		msbuffer[msbuffer_o][0] = sample * volmul[0];
 		if (stereo) {
-			sample = last[1] + (int)(((int64_t)delta[1] * (int64_t)freq_f) / (int64_t)freq_d);
+			sample = last[1] + (int)(((int64_t)delta[1] * (int64_t)freq_fslew) / (int64_t)freq_d);
 			msbuffer[msbuffer_o][1] = sample * volmul[1];
 		}
 		else {
 			msbuffer[msbuffer_o][1] = msbuffer[msbuffer_o][0];
 		}
+
+		freq_f += freq_n;
+		freq_fslew += freq_nslew;
+		if ((++msbuffer_o) >= upto)
+			return false;
+	}
+
+	current[0] = last[0] + delta[0];
+	current[1] = last[1] + delta[1];
+	while (freq_f < freq_d) {
+		msbuffer[msbuffer_o][0] = current[0] * volmul[0];
+		if (stereo)
+			msbuffer[msbuffer_o][1] = current[1] * volmul[1];
+		else
+			msbuffer[msbuffer_o][1] = msbuffer[msbuffer_o][0];
 
 		freq_f += freq_n;
 		if ((++msbuffer_o) >= upto)
@@ -373,12 +420,12 @@ inline void MixerChannel::AddSamples(Bitu len, const Type* data) {
 
 		loadCurrentSample<Type,stereo,signeddata,nativeorder>(len,data);
 		if (len == 0) {
-			freq_f = freq_d; /* encourage loading next round */
+			freq_f = freq_fslew = freq_d; /* encourage loading next round */
 			return;
 		}
 
 		loadCurrentSample<Type,stereo,signeddata,nativeorder>(len,data);
-		freq_f = 0; /* interpolate now from what we just loaded */
+		freq_f = freq_fslew = 0; /* interpolate now from what we just loaded */
 	}
 
 	for (;;) {
@@ -386,6 +433,7 @@ inline void MixerChannel::AddSamples(Bitu len, const Type* data) {
 			if (len == 0) break;
 			loadCurrentSample<Type,stereo,signeddata,nativeorder>(len,data);
 			freq_f -= freq_d;
+			freq_fslew = freq_f;
 		}
 		if (!runSampleInterpolation<stereo>(2048))
 			break;
