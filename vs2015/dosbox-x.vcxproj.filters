@@ -387,6 +387,9 @@
     <ClCompile Include="..\src\hardware\ps1_sound.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\ints\qcow2_disk.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\gui\render.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -851,6 +851,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\ints\qcow2_disk.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\src\gui\render.cpp"
 				>
 			</File>

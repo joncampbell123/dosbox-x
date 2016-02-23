@@ -28,6 +28,7 @@
 #include "cross.h"
 #include "bios.h"
 #include "bios_disk.h"
+#include "qcow2_disk.h"
 
 #define IMGTYPE_FLOPPY 0
 #define IMGTYPE_ISO    1
@@ -654,11 +655,19 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
 
 	diskfile = fopen64(sysFilename, "rb+");
 	if(!diskfile) {created_successfully = false;return;}
-	fseeko64(diskfile, 0L, SEEK_END);
-	filesize = (Bit32u)(ftello64(diskfile) / 1024L);
+	
+	QCow2Image::QCow2Header qcow2_header = QCow2Image::read_header(diskfile);
+	
+	if (qcow2_header.magic == QCow2Image::magic && (qcow2_header.version == 2 || qcow2_header.version == 3)){
+		filesize = (Bit32u)(qcow2_header.size / 1024L);
+		loadedDisk = new QCow2Disk(qcow2_header, diskfile, (Bit8u *)sysFilename, filesize, (filesize > 2880));
+	}
+	else{
+		fseeko64(diskfile, 0L, SEEK_END);
+		filesize = (Bit32u)(ftello64(diskfile) / 1024L);
+		loadedDisk = new imageDisk(diskfile, (Bit8u *)sysFilename, filesize, (filesize > 2880));
+	}
 
-	/* Load disk image */
-	loadedDisk = new imageDisk(diskfile, (Bit8u *)sysFilename, filesize, (filesize > 2880));
 	if(!loadedDisk) {
 		created_successfully = false;
 		return;

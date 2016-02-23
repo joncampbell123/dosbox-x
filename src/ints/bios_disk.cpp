@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-
 #include "dosbox.h"
 #include "callback.h"
 #include "bios.h"
@@ -65,7 +64,6 @@ Bits swapPosition;
 imageDisk *GetINT13FloppyDrive(unsigned char drv) {
 	if (drv >= 2)
 		return NULL;
-
 	return imageDiskList[drv];
 }
 

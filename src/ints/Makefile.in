@@ -105,7 +105,7 @@ am_libints_a_OBJECTS = mouse.$(OBJEXT) xms.$(OBJEXT) ems.$(OBJEXT) \
 	int10_vesa.$(OBJEXT) int10_pal.$(OBJEXT) \
 	int10_put_pixel.$(OBJEXT) int10_video_state.$(OBJEXT) \
 	int10_vptable.$(OBJEXT) bios.$(OBJEXT) bios_disk.$(OBJEXT) \
-	bios_keyboard.$(OBJEXT)
+	bios_keyboard.$(OBJEXT) qcow2_disk.$(OBJEXT)
 libints_a_OBJECTS = $(am_libints_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -287,7 +287,7 @@ noinst_LIBRARIES = libints.a
 libints_a_SOURCES = mouse.cpp xms.cpp xms.h ems.cpp \
                     int10.cpp int10.h int10_char.cpp int10_memory.cpp int10_misc.cpp int10_modes.cpp \
                     int10_vesa.cpp int10_pal.cpp int10_put_pixel.cpp int10_video_state.cpp int10_vptable.cpp \
-                    bios.cpp bios_disk.cpp bios_keyboard.cpp 
+                    bios.cpp bios_disk.cpp bios_keyboard.cpp qcow2_disk.cpp
 
 all: all-am
 
@@ -353,6 +353,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/int10_video_state.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/int10_vptable.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mouse.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/qcow2_disk.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xms.Po@am__quote@
 
 .cpp.o:
