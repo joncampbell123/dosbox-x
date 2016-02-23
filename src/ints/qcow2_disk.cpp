@@ -49,7 +49,7 @@ using namespace std;
 
 
 //Public Constructor.
-	QCow2Image::QCow2Image(QCow2Image::QCow2Header qcow2_header, FILE *qcow2File) : file(qcow2File), header(qcow2_header), backing_image(NULL)
+	QCow2Image::QCow2Image(QCow2Image::QCow2Header qcow2Header, FILE *qcow2File, Bit8u* imageName) : file(qcow2File), header(qcow2Header), backing_image(NULL)
 	{
 		cluster_mask = mask64(header.cluster_bits);
 		cluster_size = cluster_mask + 1;
@@ -61,12 +61,17 @@ using namespace std;
 		refcount_bits = header.cluster_bits - 1;
 		refcount_mask = mask64(refcount_bits);
 		if (header.backing_file_offset != 0 && header.backing_file_size != 0){
-			char* backing_file_name = new char[header.backing_file_size];
+			char* backing_file_name = new char[header.backing_file_size + 1];
+			backing_file_name[header.backing_file_size] = 0;
 			fseek(file, header.backing_file_offset, SEEK_SET);
 			fread(backing_file_name, header.backing_file_size, 1, file);
 			FILE* backing_file = fopen(backing_file_name, "rb");
-			QCow2Header backing_header = read_header(backing_file);
-			backing_image = new QCow2Image(backing_header, backing_file);
+			if (backing_file != NULL){
+				QCow2Header backing_header = read_header(backing_file);
+				backing_image = new QCow2Image(backing_header, backing_file, (Bit8u*)backing_file_name);
+			} else {
+				LOG_MSG("Failed to load QCow2 backing image: %s", backing_file_name);
+			}
 			delete[] backing_file_name;
 		}
 	}
@@ -173,17 +178,17 @@ using namespace std;
 #if defined(WORDS_BIGENDIAN) || !defined(C_UNALIGNED_MEMORY)
 
 
-	Bit16u QCow2Image::host_read16(Bit16u buffer) {
+	inline Bit16u QCow2Image::host_read16(Bit16u buffer) {
 		return buffer;
 	}
 
 
-	Bit32u QCow2Image::host_read32(Bit32u buffer) {
+	inline Bit32u QCow2Image::host_read32(Bit32u buffer) {
 		return buffer;
 	}
 
 
-	Bit64u QCow2Image::host_read64(Bit64u buffer) {
+	inline Bit64u QCow2Image::host_read64(Bit64u buffer) {
 		return buffer;
 	}
 
@@ -191,19 +196,19 @@ using namespace std;
 #else
 
 
-	Bit16u QCow2Image::host_read16(Bit16u buffer) {
+	inline Bit16u QCow2Image::host_read16(Bit16u buffer) {
 		Bit8u* b = (Bit8u*)&buffer;
 		return  b[1] | (b[0] << 8);
 	}
 
 
-	Bit32u QCow2Image::host_read32(Bit32u buffer) {
+	inline Bit32u QCow2Image::host_read32(Bit32u buffer) {
 		Bit8u* b = (Bit8u*)&buffer;
 		return b[3] | (b[2] << 8) | (b[1] << 16) | (b[0] << 24);
 	}
 
 
-	Bit64u QCow2Image::host_read64(Bit64u buffer) {
+	inline Bit64u QCow2Image::host_read64(Bit64u buffer) {
 		Bit8u* b = (Bit8u*)&buffer;
 		return b[7] | (b[6] << 8) | (b[5] << 16) | (b[4] << 24) |  ((Bit64u)b[3] << 32) | ((Bit64u)b[2] << 40) | ((Bit64u)b[1] << 48) | ((Bit64u)b[0] << 56);
 	}
@@ -213,7 +218,7 @@ using namespace std;
 
 
 //Generate a mask for a given number of bits.
-	Bit64u QCow2Image::mask64(Bit64u bits){
+	inline Bit64u QCow2Image::mask64(Bit64u bits){
 		return (1 << bits) - 1;
 	}
 
@@ -251,7 +256,7 @@ using namespace std;
 
 
 //Read an entire cluster that may or may not be allocated in the image file.
-	inline Bit8u QCow2Image::read_cluster(Bit64u data_cluster_number, Bit8u* data)
+	Bit8u QCow2Image::read_cluster(Bit64u data_cluster_number, Bit8u* data)
 	{
 		const Bit64u address = data_cluster_number * cluster_size;
 		if (address >= header.size){
@@ -328,7 +333,7 @@ using namespace std;
 	}
 
 //Update the reference count for a cluster.
-	inline Bit8u QCow2Image::update_reference_count(Bit64u cluster_offset, Bit8u* cluster_buffer){
+	Bit8u QCow2Image::update_reference_count(Bit64u cluster_offset, Bit8u* cluster_buffer){
 		Bit64u refcount_cluster_offset;
 		if (0 != read_refcount_table(cluster_offset, refcount_cluster_offset)){
 			return 0x05;
@@ -354,7 +359,7 @@ using namespace std;
 
 
 //Write data of arbitrary length to the image file.
-	inline Bit8u QCow2Image::write_data(Bit64u file_offset, Bit8u* data, Bit64u data_size){
+	Bit8u QCow2Image::write_data(Bit64u file_offset, Bit8u* data, Bit64u data_size){
 		if (0 != fseek(file, file_offset, SEEK_SET)){
 			return 0x05;
 		}
@@ -402,7 +407,7 @@ using namespace std;
 
 
 //Public Constructor.
-	QCow2Disk::QCow2Disk(QCow2Image::QCow2Header header, FILE *qcow2File, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk) : imageDisk(qcow2File, imgName, imgSizeK, isHardDisk), qcowImage(header, qcow2File){
+	QCow2Disk::QCow2Disk(QCow2Image::QCow2Header qcow2Header, FILE *qcow2File, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk) : imageDisk(qcow2File, imgName, imgSizeK, isHardDisk), qcowImage(qcow2Header, qcow2File, imgName){
 	}
 
 
