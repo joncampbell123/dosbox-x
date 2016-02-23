@@ -29,6 +29,7 @@ paging.h \
 pci_bus.h \
 pic.h \
 programs.h \
+qcow2_disk.h \
 render.h \
 regs.h \
 render.h \

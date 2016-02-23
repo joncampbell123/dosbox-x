@@ -37,7 +37,8 @@
 #include "bios.h"
 #include "inout.h"
 #include "dma.h"
-#include "bios_disk.h" 
+#include "bios_disk.h"
+#include "qcow2_disk.h"
 #include "setup.h"
 #include "control.h"
 #include <time.h>
@@ -2658,18 +2659,28 @@ public:
 					return;
 				}
 
-				FILE *newDisk = fopen64(temp_line.c_str(), "rb+");
-				fseeko64(newDisk,0L, SEEK_END);
-
 				/* auto-fill: sector size */
 				if (sizes[0] == 0) sizes[0] = 512;
 
-				Bit64u sectors = (Bit64u)ftello64(newDisk) / (Bit64u)sizes[0];
+				FILE *newDisk = fopen64(temp_line.c_str(), "rb+");
 
-				imagesize = (Bit32u)(sectors / 2); /* orig. code wants it in KBs */
-				setbuf(newDisk,NULL);
-
-				newImage = new imageDisk(newDisk, (Bit8u *)temp_line.c_str(), imagesize, (imagesize > 2880));
+				QCow2Image::QCow2Header qcow2_header = QCow2Image::read_header(newDisk);
+				
+				Bit64u sectors;
+				if (qcow2_header.magic == QCow2Image::magic && (qcow2_header.version == 2 || qcow2_header.version == 3)){
+					sectors = qcow2_header.size / 512; /* TODO: Currently only supporting 512 byte sectors */
+					imagesize = (Bit32u)(sectors / 2);
+					setbuf(newDisk,NULL);
+					newImage = new QCow2Disk(qcow2_header, newDisk, (Bit8u *)temp_line.c_str(), imagesize, (imagesize > 2880));
+				}
+				else{
+					fseeko64(newDisk,0L, SEEK_END);
+					sectors = (Bit64u)ftello64(newDisk) / (Bit64u)sizes[0];
+					imagesize = (Bit32u)(sectors / 2); /* orig. code wants it in KBs */
+					setbuf(newDisk,NULL);
+					newImage = new imageDisk(newDisk, (Bit8u *)temp_line.c_str(), imagesize, (imagesize > 2880));
+				}
+				
 				newImage->Addref();
 
 				/* auto-fill: sector/track count */
