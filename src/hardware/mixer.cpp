@@ -217,18 +217,8 @@ void MixerChannel::Mix(Bitu whole,Bitu frac) {
 		if (--patience == 0) break;
 	}
 
-	if (msbuffer_o < whole) {
-		finishSampleInterpolation();
-		if (msbuffer_o < whole) {
-			if (freq_f > freq_d) freq_f = freq_d; // this is an abrupt stop, so interpolation must not carry over, to help avoid popping artifacts
-
-			while (msbuffer_o < whole) {
-				msbuffer[msbuffer_o][0] = current[0];
-				msbuffer[msbuffer_o][1] = current[1];
-				msbuffer_o++;
-			}
-		}
-	}
+	if (msbuffer_o < whole)
+		padFillSampleInterpolation(whole);
 
 	if (mixer.swapstereo) {
 		while (rend_n < whole && msbuffer_i < msbuffer_o) {
@@ -311,33 +301,22 @@ inline void MixerChannel::loadCurrentSample(Bitu &len, const Type* &data) {
 	current_loaded = true;
 }
 
-void MixerChannel::finishSampleInterpolation(void) {
-	int d,sample;
+inline void MixerChannel::padFillSampleInterpolation(const Bitu upto) {
+	finishSampleInterpolation(upto);
+	if (msbuffer_o < upto) {
+		if (freq_f > freq_d) freq_f = freq_d; // this is an abrupt stop, so interpolation must not carry over, to help avoid popping artifacts
 
-	if (!current_loaded) return;
-
-	for (;;) {
-		if (msbuffer_o >= 2048) {
-			fprintf(stderr,"WARNING: addSample overrun\n");
-			break;
-		}
-
-		if (freq_f < freq_d) {
-			d = current[0] - last[0];
-			sample = last[0] + (int)(((int64_t)d * (int64_t)freq_f) / (int64_t)freq_d);
-			msbuffer[msbuffer_o][0] = sample * volmul[0];
-
-			d = current[1] - last[1];
-			sample = last[1] + (int)(((int64_t)d * (int64_t)freq_f) / (int64_t)freq_d);
-			msbuffer[msbuffer_o][1] = sample * volmul[1];
-
+		while (msbuffer_o < upto) {
+			msbuffer[msbuffer_o][0] = current[0];
+			msbuffer[msbuffer_o][1] = current[1];
 			msbuffer_o++;
-			freq_f += freq_n;
-		}
-		else {
-			break;
 		}
 	}
+}
+
+void MixerChannel::finishSampleInterpolation(const Bitu upto) {
+	if (!current_loaded) return;
+	runSampleInterpolation</*stereo*/true>(upto);
 }
 
 double MixerChannel::timeSinceLastSample(void) {
@@ -345,10 +324,36 @@ double MixerChannel::timeSinceLastSample(void) {
 	return ((double)delta) / mixer.freq;
 }
 
-template<class Type,bool stereo,bool signeddata,bool nativeorder>
-inline void MixerChannel::AddSamples(Bitu len, const Type* data) {
+template<bool stereo>
+inline bool MixerChannel::runSampleInterpolation(const Bitu upto) {
 	int d,sample;
 
+	if (msbuffer_o >= upto)
+		return false;
+
+	while (freq_f < freq_d) {
+		d = current[0] - last[0];
+		sample = last[0] + (int)(((int64_t)d * (int64_t)freq_f) / (int64_t)freq_d);
+		msbuffer[msbuffer_o][0] = sample * volmul[0];
+		if (stereo) {
+			d = current[1] - last[1];
+			sample = last[1] + (int)(((int64_t)d * (int64_t)freq_f) / (int64_t)freq_d);
+			msbuffer[msbuffer_o][1] = sample * volmul[1];
+		}
+		else {
+			msbuffer[msbuffer_o][1] = msbuffer[msbuffer_o][0];
+		}
+
+		freq_f += freq_n;
+		if ((++msbuffer_o) >= upto)
+			return false;
+	}
+
+	return true;
+}
+
+template<class Type,bool stereo,bool signeddata,bool nativeorder>
+inline void MixerChannel::AddSamples(Bitu len, const Type* data) {
 	last_sample_write = mixer.samples_rendered_ms.w;
 
 	if (msbuffer_o >= 2048) {
@@ -375,24 +380,8 @@ inline void MixerChannel::AddSamples(Bitu len, const Type* data) {
 			loadCurrentSample<Type,stereo,signeddata,nativeorder>(len,data);
 			freq_f -= freq_d;
 		}
-		if (freq_f < freq_d) {
-			d = current[0] - last[0];
-			sample = last[0] + (int)(((int64_t)d * (int64_t)freq_f) / (int64_t)freq_d);
-			msbuffer[msbuffer_o][0] = sample * volmul[0];
-			if (stereo) {
-				d = current[1] - last[1];
-				sample = last[1] + (int)(((int64_t)d * (int64_t)freq_f) / (int64_t)freq_d);
-				msbuffer[msbuffer_o][1] = sample * volmul[1];
-			}
-			else {
-				msbuffer[msbuffer_o][1] = msbuffer[msbuffer_o][0];
-			}
-			freq_f += freq_n;
-			if ((++msbuffer_o) >= 2048) {
-				fprintf(stderr,"WARNING: addSample overrun\n");
-				break;
-			}
-		}
+		if (!runSampleInterpolation<stereo>(2048))
+			break;
 	}
 }
 

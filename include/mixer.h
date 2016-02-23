@@ -63,7 +63,11 @@ public:
 	void AddSamples(Bitu len, const Type* data);
 	double timeSinceLastSample(void);
 
-	void finishSampleInterpolation(void);
+	template<bool stereo>
+	bool runSampleInterpolation(const Bitu upto);
+
+	void padFillSampleInterpolation(const Bitu upto);
+	void finishSampleInterpolation(const Bitu upto);
 	void AddSamples_m8(Bitu len, const Bit8u * data);
 	void AddSamples_s8(Bitu len, const Bit8u * data);
 	void AddSamples_m8s(Bitu len, const Bit8s * data);
