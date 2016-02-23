@@ -108,6 +108,7 @@ MixerChannel * MIXER_AddChannel(MIXER_Handler handler,Bitu freq,const char * nam
 	chan->SetVolume(1,1);
 	chan->enabled=false;
 	chan->last[0] = chan->last[1] = 0;
+	chan->delta[0] = chan->delta[1] = 0;
 	chan->current[0] = chan->current[1] = 0;
 	mixer.channels=chan;
 	return chan;
@@ -298,6 +299,14 @@ inline void MixerChannel::loadCurrentSample(Bitu &len, const Type* &data) {
 		len = 0;
 	}
 
+	if (stereo) {
+		delta[0] = current[0] - last[0];
+		delta[1] = current[1] - last[1];
+	}
+	else {
+		delta[1] = delta[0] = current[0] - last[0];
+	}
+
 	current_loaded = true;
 }
 
@@ -326,18 +335,16 @@ double MixerChannel::timeSinceLastSample(void) {
 
 template<bool stereo>
 inline bool MixerChannel::runSampleInterpolation(const Bitu upto) {
-	int d,sample;
+	int sample;
 
 	if (msbuffer_o >= upto)
 		return false;
 
 	while (freq_f < freq_d) {
-		d = current[0] - last[0];
-		sample = last[0] + (int)(((int64_t)d * (int64_t)freq_f) / (int64_t)freq_d);
+		sample = last[0] + (int)(((int64_t)delta[0] * (int64_t)freq_f) / (int64_t)freq_d);
 		msbuffer[msbuffer_o][0] = sample * volmul[0];
 		if (stereo) {
-			d = current[1] - last[1];
-			sample = last[1] + (int)(((int64_t)d * (int64_t)freq_f) / (int64_t)freq_d);
+			sample = last[1] + (int)(((int64_t)delta[1] * (int64_t)freq_f) / (int64_t)freq_d);
 			msbuffer[msbuffer_o][1] = sample * volmul[1];
 		}
 		else {
