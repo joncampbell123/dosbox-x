@@ -23,6 +23,7 @@
 using namespace std;
 
 
+//Public constant.
 	const Bit32u QCow2Image::magic = 0x514649FB;
 
 
@@ -177,7 +178,7 @@ using namespace std;
 	}
 
 
-//Private constants
+//Private constants.
 	const Bit64u QCow2Image::copy_flag = 0x8000000000000000;
 	const Bit64u QCow2Image::empty_mask = 0xFFFFFFFFFFFFFFFF;
 	const Bit32u QCow2Image::sector_size = 512;
