@@ -52,7 +52,7 @@ public:
 	
 	static QCow2Header read_header(FILE* qcow2File);
 
-	QCow2Image(QCow2Header qcow2Header, FILE *qcow2File, Bit8u* imageName);
+	QCow2Image(QCow2Header qcow2Header, FILE *qcow2File, const char* imageName);
 
 	virtual ~QCow2Image();
 	

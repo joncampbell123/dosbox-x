@@ -53,7 +53,7 @@ using namespace std;
 
 
 //Public Constructor.
-	QCow2Image::QCow2Image(QCow2Image::QCow2Header qcow2Header, FILE *qcow2File, Bit8u* imageName) : file(qcow2File), header(qcow2Header), backing_image(NULL)
+	QCow2Image::QCow2Image(QCow2Image::QCow2Header qcow2Header, FILE *qcow2File, const char* imageName) : file(qcow2File), header(qcow2Header), backing_image(NULL)
 	{
 		cluster_mask = mask64(header.cluster_bits);
 		cluster_size = cluster_mask + 1;
@@ -69,10 +69,28 @@ using namespace std;
 			backing_file_name[header.backing_file_size] = 0;
 			fseek(file, header.backing_file_offset, SEEK_SET);
 			fread(backing_file_name, header.backing_file_size, 1, file);
+			if (backing_file_name[0] != 0x2F){
+				for (int image_name_index = (int)strlen(imageName); image_name_index > -1; image_name_index--){
+					if (imageName[image_name_index] == 0x2F){
+						int full_name_length = header.backing_file_size + image_name_index + 2;
+						char* full_name = new char[full_name_length];
+						for(int full_name_index = 0; full_name_index < full_name_length; full_name_index++){
+							if (full_name_index <= image_name_index){
+								full_name[full_name_index] = imageName[full_name_index];
+							} else {
+								full_name[full_name_index] = backing_file_name[full_name_index - (image_name_index + 1)];
+							}
+						}
+						delete[] backing_file_name;
+						backing_file_name = full_name;
+						break;
+					}
+				}
+			}
 			FILE* backing_file = fopen(backing_file_name, "rb");
 			if (backing_file != NULL){
 				QCow2Header backing_header = read_header(backing_file);
-				backing_image = new QCow2Image(backing_header, backing_file, (Bit8u*)backing_file_name);
+				backing_image = new QCow2Image(backing_header, backing_file, backing_file_name);
 			} else {
 				LOG_MSG("Failed to load QCow2 backing image: %s", backing_file_name);
 			}
@@ -418,7 +436,7 @@ using namespace std;
 
 
 //Public Constructor.
-	QCow2Disk::QCow2Disk(QCow2Image::QCow2Header qcow2Header, FILE *qcow2File, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk) : imageDisk(qcow2File, imgName, imgSizeK, isHardDisk), qcowImage(qcow2Header, qcow2File, imgName){
+	QCow2Disk::QCow2Disk(QCow2Image::QCow2Header qcow2Header, FILE *qcow2File, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk) : imageDisk(qcow2File, imgName, imgSizeK, isHardDisk), qcowImage(qcow2Header, qcow2File, (const char*) imgName){
 	}
 
 
