@@ -32,7 +32,7 @@ class QCow2Image{
 
 public:
 
-	static const Bit32u magic = 0x514649FB;
+	static const Bit32u magic;
 	
 	typedef struct QCow2Header {
 		Bit32u magic;
@@ -61,6 +61,23 @@ public:
 	Bit8u write_sector(Bit32u sectnum, Bit8u* data);
 	
 private:
+
+	FILE* file;
+	QCow2Header header;
+	static const Bit64u copy_flag;
+	static const Bit64u empty_mask;
+	static const Bit32u sector_size;
+	static const Bit64u table_entry_mask;
+	Bit64u cluster_mask;
+	Bit64u cluster_size;
+	Bit64u sectors_per_cluster;
+	Bit64u disk_sectors_total;
+	Bit64u l2_mask;
+	Bit64u l2_bits;
+	Bit64u l1_bits;
+	Bit64u refcount_mask;
+	Bit64u refcount_bits;
+	QCow2Image* backing_image;
 
 	static Bit16u host_read16(Bit16u buffer);
 
@@ -101,23 +118,6 @@ private:
 	Bit8u write_refcount_table_entry(Bit64u cluster_offset, Bit64u refcount_cluster_offset);
 
 	Bit8u write_table_entry(Bit64u entry_offset, Bit64u entry_value);
-
-	FILE* file;
-	QCow2Header header;
-	static const Bit64u copy_flag = 0x8000000000000000;
-	static const Bit64u empty_mask = 0xFFFFFFFFFFFFFFFF;
-	static const Bit32u sector_size = 512;
-	static const Bit64u table_entry_mask = 0x00FFFFFFFFFFFFFF;
-	Bit64u cluster_mask;
-	Bit64u cluster_size;
-	Bit64u sectors_per_cluster;
-	Bit64u disk_sectors_total;
-	Bit64u l2_mask;
-	Bit64u l2_bits;
-	Bit64u l1_bits;
-	Bit64u refcount_mask;
-	Bit64u refcount_bits;
-	QCow2Image* backing_image;
 };
 
 class QCow2Disk : public imageDisk{
