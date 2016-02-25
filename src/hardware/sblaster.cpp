@@ -1975,7 +1975,7 @@ void updateSoundBlasterFilter(Bitu rate) {
 	}
 
 	/* different sound cards filter their output differently */
-	if (sb.ess_type != ESS_NONE) {
+	if (sb.ess_type != ESS_NONE) { // FIXME: Fine-tune!
 		/* ESS AudioDrive lets the driver decide what the cutoff/rolloff to use */
 		/* "The ratio of the roll-off frequency to the clock frequency is 1:82. In other words,
 		 * first determine the desired roll off frequency by taking 80% of the sample rate
@@ -1984,23 +1984,23 @@ void updateSoundBlasterFilter(Bitu rate) {
 		sb.chan->SetSlewFreq(44100 * sb.chan->freq_d_orig);
 		sb.chan->SetLowpassFreq(filter_hz,/*order*/3);
 	}
-	else if (sb.type == SBT_16) {
-		sb.chan->SetLowpassFreq(20000); // documented on Creative's site: 20Hz-20KHz [http://support.creative.com/kb/ShowArticle.aspx?sid=5800]
+	else if (sb.type == SBT_16) { // FIXME: Test!
+		sb.chan->SetLowpassFreq(24000);
 		if (sb.mode == MODE_DAC)
 			sb.chan->SetSlewFreq((sb.vibra ? 24000 : 23000) * sb.chan->freq_d_orig);
 		else
 			sb.chan->SetSlewFreq(0/*normal linear interpolation*/);
 	}
-	else if (sb.type == SBT_PRO1 || sb.type == SBT_PRO2) {
+	else if (sb.type == SBT_PRO1 || sb.type == SBT_PRO2) { // Sound Blaster Pro (DSP 3.x). Tested against real hardware (CT1600) by Jonathan C.
 		sb.chan->SetSlewFreq(23000 * sb.chan->freq_d_orig);
-		if (sb.mixer.filtered/*Output "filter" bit in mixer register 0x0E*/)
-			sb.chan->SetLowpassFreq(10000); // documented on Creative's site: 100Hz-10KHz frequency response [http://support.creative.com/kb/ShowArticle.aspx?sid=5800]
+		if (sb.mixer.filtered/*setting the bit means to bypass the lowpass filter*/)
+			sb.chan->SetLowpassFreq(23000); // max sample rate 46000Hz. slew rate filter does the rest of the filtering for us.
 		else
 			sb.chan->SetLowpassFreq(3800); // NOT documented by Creative, guess based on listening tests with a CT1600, and documented Input filter freqs
 	}
-	else {
+	else if (sb.type == SBT_1 || sb.type == SBT_2) { // Sound Blaster DSP 1.x and 2.x (not Pro)
 		sb.chan->SetSlewFreq(23000 * sb.chan->freq_d_orig);
-		sb.chan->SetLowpassFreq(10000); // documented on Creative's site: 100Hz-10KHz frequency response [http://support.creative.com/kb/ShowArticle.aspx?sid=5800]
+		sb.chan->SetLowpassFreq(23000); // FIXME: Test!
 	}
 }
 
