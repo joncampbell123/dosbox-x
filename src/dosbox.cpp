@@ -1621,6 +1621,11 @@ void DOSBOX_SetupConfigSections(void) {
 			"Option is needed for:\n"
 			"   Public NMI \"jump\" demo (1992)");
 
+	Pbool = secprop->Add_bool("disable filtering",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("By default DOSBox-X filters Sound Blaster output to emulate lowpass filters and analog output limitations.\n"
+			"Set this option to true to disable filtering. Note that doing so disables emulation of the Sound Blaster Pro\n"
+			"output filter and ESS AudioDrive lowpass filter.");
+
 	Pbool = secprop->Add_bool("dsp write buffer status must return 0x7f or 0xff",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("If set, force port 22Ch (DSP write buffer status) to return 0x7F or 0xFF. If not set, the port\n"
 			"may return 0x7F or 0xFF depending on what type of Sound Blaster is being emulated.\n"

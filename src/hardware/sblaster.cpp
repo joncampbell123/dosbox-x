@@ -144,6 +144,7 @@ struct SB_INFO {
 	bool write_status_must_return_7f; // WRITE_STATUS (port base+0xC) must return 0x7F or 0xFF if set. Some very early demos rely on it.
 	bool busy_cycle_always;
 	bool ess_playback_mode;
+	bool no_filtering;
 	Bit8u time_constant;
 	DSP_MODES mode;
 	SB_TYPES type;
@@ -1965,6 +1966,13 @@ static void CTMIXER_Reset(void) {
 
 
 void updateSoundBlasterFilter(Bitu rate) {
+	/* "No filtering" option for those who don't want it, or are used to the way things sound in plain vanilla DOSBox */
+	if (sb.no_filtering) {
+		sb.chan->SetLowpassFreq(0/*off*/);
+		sb.chan->SetSlewFreq(0/*normal linear interpolation*/);
+		return;
+	}
+
 	/* different sound cards filter their output differently */
 	if (sb.ess_type != ESS_NONE) {
 		/* ESS AudioDrive lets the driver decide what the cutoff/rolloff to use */
@@ -2865,6 +2873,7 @@ public:
 		sb.dsp.instant_direct_dac=section->Get_bool("instant direct dac");
 		sb.dsp.force_goldplay=section->Get_bool("force goldplay");
 		sb.dma.force_autoinit=section->Get_bool("force dsp auto-init");
+		sb.no_filtering=section->Get_bool("disable filtering");
 
 		/* Explanation: If the user set this option, the write status port must return 0x7F or 0xFF.
 		 *              Else, we're free to return whatever with bit 7 to indicate busy.
