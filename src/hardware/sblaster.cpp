@@ -942,12 +942,12 @@ static Bit8u DSP_RateLimitedFinalTC_Old() {
 			if (sb.type == SBT_2) u_limit = 189; /* 15KHz */
 			else u_limit = 165; /* 11KHz */
 		}
-		else if (sb.type == SBT_16) /* Sound Blaster 16: Apparently you no longer need to issue highspeed commands, DSP playback commands can go up to max sample rate */
+		else if (sb.type == SBT_16) /* Sound Blaster 16. Highspeed commands are treated like an alias to normal DSP commands */
 			u_limit = sb.vibra ? 234/*46KHz*/ : 233/*44.1KHz*/;
-		else if (sb.type == SBT_2) /* Sound Blaster 2.0: According to a DSP 2.1 card I own, there are some different limits than documented (FIXME: not anomolies?) */
-			u_limit = (sb.dsp.highspeed ? 234/*46KHz*/ : 210/*22.5KHz*/);
+		else if (sb.type == SBT_2) /* Sound Blaster 2.0 */
+			u_limit = (sb.dsp.highspeed ? 233/*44.1KHz*/ : 210/*22.5KHz*/);
 		else
-			u_limit = (sb.dsp.highspeed ? 233/*44.1KHz*/ : 212/*23KHz*/);
+			u_limit = (sb.dsp.highspeed ? 233/*44.1KHz*/ : 212/*22.5KHz*/);
 
 		/* NTS: Don't forget: Sound Blaster Pro "stereo" is programmed with a time constant divided by
 		 *      two times the sample rate, which is what we get back here. That's why here we don't need
@@ -1027,7 +1027,7 @@ static void DSP_PrepareDMA_New(DMA_MODES mode,Bitu length,bool autoinit,bool ste
 
 	sb.dsp.highspeed = false;
 	if (sb.sample_rate_limits) { /* enforce speed limits documented by Creative */
-		unsigned int u_limit=23000,l_limit=4000; /* NTS: Recording vs playback is not considered because DOSBox only emulates playback */
+		unsigned int u_limit,l_limit=4000; /* NTS: Recording vs playback is not considered because DOSBox only emulates playback */
 
 		if (sb.vibra) u_limit = 46000;
 		else u_limit = 44100;
@@ -2008,9 +2008,10 @@ void updateSoundBlasterFilter(Bitu rate) {
 		else
 			sb.chan->SetLowpassFreq(3800); // NOT documented by Creative, guess based on listening tests with a CT1600, and documented Input filter freqs
 	}
-	else if (sb.type == SBT_1 || sb.type == SBT_2) { // Sound Blaster DSP 1.x and 2.x (not Pro)
+	else if (sb.type == SBT_1 || sb.type == SBT_2) { // Sound Blaster DSP 1.x and 2.x (not Pro). Tested against real hardware (CT1350B) by Jonathan C.
+		/* As far as I can tell the DAC outputs sample-by-sample with no filtering whatsoever, aside from the limitations of analog audio */
 		sb.chan->SetSlewFreq(23000 * sb.chan->freq_d_orig);
-		sb.chan->SetLowpassFreq(23000); // FIXME: Test!
+		sb.chan->SetLowpassFreq(23000);
 	}
 }
 
