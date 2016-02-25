@@ -1982,7 +1982,7 @@ void updateSoundBlasterFilter(Bitu rate) {
 		 * divided by 2, the multiply by 82 to find the desired filter clock frequency" */
 		Bitu filter_hz = (7160000UL / (256 - ESSreg(0xA2))) / 82;
 		sb.chan->SetSlewFreq(44100 * sb.chan->freq_d_orig);
-		sb.chan->SetLowpassFreq(filter_hz);
+		sb.chan->SetLowpassFreq(filter_hz,/*order*/3);
 	}
 	else if (sb.type == SBT_16) {
 		sb.chan->SetLowpassFreq(20000); // documented on Creative's site: 20Hz-20KHz [http://support.creative.com/kb/ShowArticle.aspx?sid=5800]

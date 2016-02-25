@@ -227,14 +227,16 @@ inline Bit32s MixerChannel::lowpassStep(Bit32s in,const unsigned int iteration,c
 }
 
 inline void MixerChannel::lowpassProc(Bit32s ch[2]) {
-	for (unsigned int i=0;i < LOWPASS_ORDER;i++) {
+	for (unsigned int i=0;i < lowpass_order;i++) {
 		for (unsigned int c=0;c < 2;c++)
 			ch[c] = lowpassStep(ch[c],i,c);
 	}
 }
 
-void MixerChannel::SetLowpassFreq(Bitu _freq) {
-	if (_freq == lowpass_freq) return;
+void MixerChannel::SetLowpassFreq(Bitu _freq,unsigned int order) {
+	if (order > LOWPASS_ORDER) order = LOWPASS_ORDER;
+	if (_freq == lowpass_freq && lowpass_order == order) return;
+	lowpass_order = order;
 	lowpass_freq = _freq;
 	lowpassUpdate();
 }

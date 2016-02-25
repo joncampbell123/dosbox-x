@@ -53,7 +53,7 @@ public:
 	void SetVolume(float _left,float _right);
 	void SetScale( float f );
 	void UpdateVolume(void);
-	void SetLowpassFreq(Bitu _freq); // _freq / 1 Hz. call with _freq == 0 to disable
+	void SetLowpassFreq(Bitu _freq,unsigned int order=2); // _freq / 1 Hz. call with _freq == 0 to disable
 	void SetSlewFreq(Bitu _freq); // denominator provided by call to SetFreq. call with _freq == 0 to disable
 	void SetFreq(Bitu _freq,Bitu _den=1U);
 	void Mix(Bitu whole,Bitu frac);
@@ -107,6 +107,7 @@ public:
 	Bit32s lowpass[LOWPASS_ORDER][2];	// lowpass filter
 	Bit32s lowpass_alpha;			// "alpha" multiplier for lowpass (16.16 fixed point)
 	Bitu lowpass_freq;
+	unsigned int lowpass_order;
 	bool lowpass_on_load;			// apply lowpass on sample load (if source rate > mixer rate)
 	bool lowpass_on_out;			// apply lowpass on rendered output (if source rate <= mixer rate)
 	unsigned int freq_f,freq_fslew;
