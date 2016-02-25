@@ -1938,7 +1938,7 @@ static void CTMIXER_UpdateVolumes(void) {
 }
 
 static void CTMIXER_Reset(void) {
-	sb.mixer.filtered=1; // is this right?
+	sb.mixer.filtered=0; // Creative Documentation: filtered bit 0 by default
 	sb.mixer.fm[0]=
 	sb.mixer.fm[1]=
 	sb.mixer.cda[0]=
@@ -1982,7 +1982,11 @@ void updateSoundBlasterFilter(Bitu rate) {
 		if (sb.mixer.filtered/*Output "filter" bit in mixer register 0x0E*/)
 			sb.chan->SetLowpassFreq(20000); // bypass filter
 		else
-			sb.chan->SetLowpassFreq(3200); // Creative Sound Blaster series docs say it's a 3.2KHz filter
+			sb.chan->SetLowpassFreq(8800);
+
+		// FIXME: Creative doesn't say what the Output Filter's frequency cutoff is, but they document
+		//        the input filter as having 3.2KHz and 8.8KHz cutoffs (selectable by mixer reg 0x0C)
+		//        so we're guessing the output filter is 8.8KHz
 	}
 	else {
 		sb.chan->SetSlewFreq(23000 * sb.chan->freq_d_orig);
