@@ -118,6 +118,16 @@ MixerChannel * MIXER_AddChannel(MIXER_Handler handler,Bitu freq,const char * nam
 	chan->msbuffer_i = 0;
 	chan->msbuffer_o = 0;
 	chan->freq_n = chan->freq_d = 1;
+	chan->lowpass_freq = 0;
+	chan->lowpass_alpha = 0;
+
+	for (unsigned int i=0;i < LOWPASS_ORDER;i++) {
+		for (unsigned int j=0;j < 2;j++)
+			chan->lowpass[i][j] = 0;
+	}
+
+	chan->lowpass_on_load = false;
+	chan->lowpass_on_out = false;
 	chan->freq_d_orig = 1;
 	chan->freq_f = 0;
 	chan->SetFreq(freq);
@@ -127,6 +137,7 @@ MixerChannel * MIXER_AddChannel(MIXER_Handler handler,Bitu freq,const char * nam
 	chan->last[0] = chan->last[1] = 0;
 	chan->delta[0] = chan->delta[1] = 0;
 	chan->current[0] = chan->current[1] = 0;
+
 	mixer.channels=chan;
 	return chan;
 }
@@ -178,6 +189,56 @@ void MixerChannel::Enable(bool _yesno) {
 	if (!enabled) freq_f=0;
 }
 
+void MixerChannel::lowpassUpdate() {
+	if (lowpass_freq != 0) {
+		double timeInterval;
+		double tau,talpha;
+
+		if (freq_n > freq_d) { // source -> dest mixer rate ratio is > 100%
+			timeInterval = (double)freq_d_orig / freq_n; // will filter on sample load at source rate
+			lowpass_on_load = true;
+			lowpass_on_out = false;
+		}
+		else {
+			timeInterval = (double)1.0 / mixer.freq; // will filter mixer output at mixer rate
+			lowpass_on_load = false;
+			lowpass_on_out = true;
+		}
+
+		tau = 1.0 / (lowpass_freq * 2 * M_PI);
+		talpha = timeInterval / (tau + timeInterval);
+		lowpass_alpha = (Bitu)(talpha * 0x10000); // double -> 16.16 fixed point
+
+//		LOG_MSG("Lowpass freq_n=%u freq_d=%u timeInterval=%.12f tau=%.12f alpha=%.6f onload=%u onout=%u",
+//			freq_n,freq_d_orig,timeInterval,tau,talpha,lowpass_on_load,lowpass_on_out);
+	}
+	else {
+		lowpass_on_load = false;
+		lowpass_on_out = false;
+	}
+}
+
+inline Bit32s MixerChannel::lowpassStep(Bit32s in,const unsigned int iteration,const unsigned int channel) {
+	const Bit64s m1 = (Bit64s)in * (Bit64s)lowpass_alpha;
+	const Bit64s m2 = ((Bit64s)lowpass[iteration][channel] << ((Bit64s)16)) - ((Bit64s)lowpass[iteration][channel] * (Bit64s)lowpass_alpha);
+	const Bit32s ns = (Bit32s)((m1 + m2) >> (Bit64s)16);
+	lowpass[iteration][channel] = ns;
+	return ns;
+}
+
+inline void MixerChannel::lowpassProc(Bit32s ch[2]) {
+	for (unsigned int i=0;i < LOWPASS_ORDER;i++) {
+		for (unsigned int c=0;c < 2;c++)
+			ch[c] = lowpassStep(ch[c],i,c);
+	}
+}
+
+void MixerChannel::SetLowpassFreq(Bitu _freq) {
+	if (_freq == lowpass_freq) return;
+	lowpass_freq = _freq;
+	lowpassUpdate();
+}
+
 void MixerChannel::SetSlewFreq(Bitu _freq) {
 	freq_nslew_want = _freq;
 	updateSlew();
@@ -196,6 +257,7 @@ void MixerChannel::SetFreq(Bitu _freq,Bitu _den) {
 	freq_d = _den * mixer.freq;
 	freq_d_orig = _den;
 	updateSlew();
+	lowpassUpdate();
 }
 
 void MixerChannel::EndFrame(Bitu samples) {
@@ -216,6 +278,7 @@ void MixerChannel::EndFrame(Bitu samples) {
 
 void MixerChannel::Mix(Bitu whole,Bitu frac) {
 	unsigned int patience = 2;
+	Bitu upto;
 
 	if (whole <= rend_n) return;
 	assert(whole <= mixer.samples_this_ms.w);
@@ -245,8 +308,22 @@ void MixerChannel::Mix(Bitu whole,Bitu frac) {
 	if (msbuffer_o < whole)
 		padFillSampleInterpolation(whole);
 
+	upto = whole;
+	if (upto > msbuffer_o) upto = msbuffer_o;
+
+	if (lowpass_on_out) { /* before rendering out to mixer, process samples with lowpass filter */
+		Bitu t_rend_n = rend_n;
+		Bitu t_msbuffer_i = msbuffer_i;
+
+		while (t_rend_n < whole && t_msbuffer_i < upto) {
+			lowpassProc(msbuffer[t_msbuffer_i]);
+			t_msbuffer_i++;
+			t_rend_n++;
+		}
+	}
+
 	if (mixer.swapstereo) {
-		while (rend_n < whole && msbuffer_i < msbuffer_o) {
+		while (rend_n < whole && msbuffer_i < upto) {
 			*outptr++ += msbuffer[msbuffer_i][1];
 			*outptr++ += msbuffer[msbuffer_i][0];
 			msbuffer_i++;
@@ -254,7 +331,7 @@ void MixerChannel::Mix(Bitu whole,Bitu frac) {
 		}
 	}
 	else {
-		while (rend_n < whole && msbuffer_i < msbuffer_o) {
+		while (rend_n < whole && msbuffer_i < upto) {
 			*outptr++ += msbuffer[msbuffer_i][0];
 			*outptr++ += msbuffer[msbuffer_i][1];
 			msbuffer_i++;
@@ -269,7 +346,7 @@ void MixerChannel::Mix(Bitu whole,Bitu frac) {
 void MixerChannel::AddSilence(void) {
 }
 
-template<class Type,bool stereo,bool signeddata,bool nativeorder>
+template<class Type,bool stereo,bool signeddata,bool nativeorder,bool lowpass>
 inline void MixerChannel::loadCurrentSample(Bitu &len, const Type* &data) {
 	last[0] = current[0];
 	last[1] = current[1];
@@ -322,6 +399,9 @@ inline void MixerChannel::loadCurrentSample(Bitu &len, const Type* &data) {
 		current[0] = current[1] = 0;
 		len = 0;
 	}
+
+	if (lowpass && lowpass_on_load)
+		lowpassProc(current);
 
 	if (stereo) {
 		delta[0] = current[0] - last[0];
@@ -420,25 +500,39 @@ inline void MixerChannel::AddSamples(Bitu len, const Type* data) {
 	if (!current_loaded) {
 		if (len == 0) return;
 
-		loadCurrentSample<Type,stereo,signeddata,nativeorder>(len,data);
+		loadCurrentSample<Type,stereo,signeddata,nativeorder,false>(len,data);
 		if (len == 0) {
 			freq_f = freq_fslew = freq_d; /* encourage loading next round */
 			return;
 		}
 
-		loadCurrentSample<Type,stereo,signeddata,nativeorder>(len,data);
+		loadCurrentSample<Type,stereo,signeddata,nativeorder,false>(len,data);
 		freq_f = freq_fslew = 0; /* interpolate now from what we just loaded */
 	}
 
-	for (;;) {
-		if (freq_f >= freq_d) {
-			if (len == 0) break;
-			loadCurrentSample<Type,stereo,signeddata,nativeorder>(len,data);
-			freq_f -= freq_d;
-			freq_fslew = freq_f;
+	if (lowpass_on_load) {
+		for (;;) {
+			if (freq_f >= freq_d) {
+				if (len == 0) break;
+				loadCurrentSample<Type,stereo,signeddata,nativeorder,true>(len,data);
+				freq_f -= freq_d;
+				freq_fslew = freq_f;
+			}
+			if (!runSampleInterpolation<stereo>(2048))
+				break;
 		}
-		if (!runSampleInterpolation<stereo>(2048))
-			break;
+	}
+	else {
+		for (;;) {
+			if (freq_f >= freq_d) {
+				if (len == 0) break;
+				loadCurrentSample<Type,stereo,signeddata,nativeorder,false>(len,data);
+				freq_f -= freq_d;
+				freq_fslew = freq_f;
+			}
+			if (!runSampleInterpolation<stereo>(2048))
+				break;
+		}
 	}
 }
 

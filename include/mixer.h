@@ -46,18 +46,25 @@ extern Bit8u MixTemp[MIXER_BUFSIZE];
 #define MAX_AUDIO ((1<<(16-1))-1)
 #define MIN_AUDIO -(1<<(16-1))
 
+#define LOWPASS_ORDER 3
+
 class MixerChannel {
 public:
 	void SetVolume(float _left,float _right);
 	void SetScale( float f );
 	void UpdateVolume(void);
+	void SetLowpassFreq(Bitu _freq); // denominator provided by call to SetFreq. call with _freq == 0 to disable
 	void SetSlewFreq(Bitu _freq); // denominator provided by call to SetFreq. call with _freq == 0 to disable
 	void SetFreq(Bitu _freq,Bitu _den=1U);
 	void Mix(Bitu whole,Bitu frac);
 	void AddSilence(void);			//Fill up until needed
 	void EndFrame(Bitu samples);
 
-	template<class Type,bool stereo,bool signeddata,bool nativeorder>
+	void lowpassUpdate();
+	Bit32s lowpassStep(Bit32s in,const unsigned int iteration,const unsigned int channel);
+	void lowpassProc(Bit32s ch[2]);
+
+	template<class Type,bool stereo,bool signeddata,bool nativeorder,bool lowpass>
 	void loadCurrentSample(Bitu &len, const Type* &data);
 
 	template<class Type,bool stereo,bool signeddata,bool nativeorder>
@@ -97,13 +104,18 @@ public:
 	float volmain[2];
 	float scale;
 	Bit32s volmul[2];
+	Bit32s lowpass[LOWPASS_ORDER][2];	// lowpass filter
+	Bit32s lowpass_alpha;			// "alpha" multiplier for lowpass (16.16 fixed point)
+	Bitu lowpass_freq;
+	bool lowpass_on_load;			// apply lowpass on sample load (if source rate > mixer rate)
+	bool lowpass_on_out;			// apply lowpass on rendered output (if source rate <= mixer rate)
 	unsigned int freq_f,freq_fslew;
 	unsigned int freq_nslew,freq_nslew_want;
 	unsigned int rendering_to_n,rendering_to_d;
 	unsigned int rend_n,rend_d;
 	unsigned int freq_n,freq_d,freq_d_orig;
 	bool current_loaded;
-	Bits current[2],last[2],delta[2],max_change;
+	Bit32s current[2],last[2],delta[2],max_change;
 	Bit32s msbuffer[2048][2];		// more than enough for 1ms of audio, at mixer sample rate
 	Bits last_sample_write;
 	Bitu msbuffer_o;
