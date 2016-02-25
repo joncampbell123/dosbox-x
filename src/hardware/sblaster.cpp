@@ -1965,7 +1965,7 @@ void updateSoundBlasterFilter(Bitu rate) {
 		Bitu filter_hz = (7160000UL / (256 - ESSreg(0xA2))) / 82;
 		if (filter_hz > 22050) sb.chan->SetSlewFreq(44100);
 		else sb.chan->SetSlewFreq(22050);
-		sb.chan->SetLowpassFreq(filter_hz * 2 * sb.chan->freq_d_orig);
+		sb.chan->SetLowpassFreq(filter_hz * sb.chan->freq_d_orig);
 	}
 	else if (sb.type == SBT_16) {
 		sb.chan->SetLowpassFreq(0/*off*/);
