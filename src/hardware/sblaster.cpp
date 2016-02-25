@@ -1124,7 +1124,7 @@ static void DSP_Reset(void) {
 	sb.irq.pending_8bit=false;
 	sb.irq.pending_16bit=false;
 	sb.chan->SetFreq(22050);
-	sb.chan->SetSlewFreq(23000);
+	updateSoundBlasterFilter(22050);
 //	DSP_SetSpeaker(false);
 	PIC_RemoveEvents(END_DMA_Event);
 	PIC_RemoveEvents(DMA_DAC_Event);
@@ -1963,25 +1963,27 @@ void updateSoundBlasterFilter(Bitu rate) {
 		 * first determine the desired roll off frequency by taking 80% of the sample rate
 		 * divided by 2, the multiply by 82 to find the desired filter clock frequency" */
 		Bitu filter_hz = (7160000UL / (256 - ESSreg(0xA2))) / 82;
-		// TODO: When the mixer code gains a lowpass filter, use that too!
-		sb.chan->SetSlewFreq(filter_hz * 2 * sb.chan->freq_d_orig);
+		if (filter_hz > 22050) sb.chan->SetSlewFreq(44100);
+		else sb.chan->SetSlewFreq(22050);
+		sb.chan->SetLowpassFreq(filter_hz * 2 * sb.chan->freq_d_orig);
 	}
 	else if (sb.type == SBT_16) {
+		sb.chan->SetLowpassFreq(0);
 		if (sb.mode == MODE_DAC)
 			sb.chan->SetSlewFreq((sb.vibra ? 24000 : 23000) * sb.chan->freq_d_orig);
 		else
 			sb.chan->SetSlewFreq(0/*normal linear interpolation*/);
 	}
 	else if (sb.type == SBT_PRO1 || sb.type == SBT_PRO2) {
-		// TODO: When the mixer code gains a lowpass filter, use that too!
+		sb.chan->SetSlewFreq(23000 * sb.chan->freq_d_orig);
 		if (sb.mixer.filtered/*Output "filter" bit in mixer register 0x0E*/)
-			sb.chan->SetSlewFreq(11000/*FIXME: Guess*/ * sb.chan->freq_d_orig);
+			sb.chan->SetLowpassFreq(20000); // bypass filter
 		else
-			sb.chan->SetSlewFreq(23000 * sb.chan->freq_d_orig);
+			sb.chan->SetLowpassFreq(3200); // Creative Sound Blaster series docs say it's a 3.2KHz filter
 	}
 	else {
-		// TODO: When the mixer code gains a lowpass filter, use that too!
 		sb.chan->SetSlewFreq(23000 * sb.chan->freq_d_orig);
+		sb.chan->SetLowpassFreq(20000);
 	}
 }
 
