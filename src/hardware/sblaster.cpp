@@ -1965,6 +1965,7 @@ static void CTMIXER_Reset(void) {
 	((((_WHICH_[0] & 0x1e) << 3) | ((_WHICH_[1] & 0x1e) >> 1)) & (sb.type==SBT_16 ? 0xff:0xee))
 
 
+// TODO: Put out the various hardware listed here, do some listening tests to confirm the emulation is accurate.
 void updateSoundBlasterFilter(Bitu rate) {
 	/* "No filtering" option for those who don't want it, or are used to the way things sound in plain vanilla DOSBox */
 	if (sb.no_filtering) {
@@ -1980,12 +1981,11 @@ void updateSoundBlasterFilter(Bitu rate) {
 		 * first determine the desired roll off frequency by taking 80% of the sample rate
 		 * divided by 2, the multiply by 82 to find the desired filter clock frequency" */
 		Bitu filter_hz = (7160000UL / (256 - ESSreg(0xA2))) / 82;
-		if (filter_hz > 22050) sb.chan->SetSlewFreq(44100 * sb.chan->freq_d_orig);
-		else sb.chan->SetSlewFreq(22050 * sb.chan->freq_d_orig);
+		sb.chan->SetSlewFreq(44100 * sb.chan->freq_d_orig);
 		sb.chan->SetLowpassFreq(filter_hz);
 	}
 	else if (sb.type == SBT_16) {
-		sb.chan->SetLowpassFreq(0/*off*/);
+		sb.chan->SetLowpassFreq(40000); // documented on Creative's site: 20Hz-20KHz [http://support.creative.com/kb/ShowArticle.aspx?sid=5800]
 		if (sb.mode == MODE_DAC)
 			sb.chan->SetSlewFreq((sb.vibra ? 24000 : 23000) * sb.chan->freq_d_orig);
 		else
@@ -1994,7 +1994,7 @@ void updateSoundBlasterFilter(Bitu rate) {
 	else if (sb.type == SBT_PRO1 || sb.type == SBT_PRO2) {
 		sb.chan->SetSlewFreq(23000 * sb.chan->freq_d_orig);
 		if (sb.mixer.filtered/*Output "filter" bit in mixer register 0x0E*/)
-			sb.chan->SetLowpassFreq(20000); // bypass filter
+			sb.chan->SetLowpassFreq(20000); // documented on Creative's site: 100Hz-10KHz frequency response [http://support.creative.com/kb/ShowArticle.aspx?sid=5800]
 		else
 			sb.chan->SetLowpassFreq(8800);
 
@@ -2004,7 +2004,7 @@ void updateSoundBlasterFilter(Bitu rate) {
 	}
 	else {
 		sb.chan->SetSlewFreq(23000 * sb.chan->freq_d_orig);
-		sb.chan->SetLowpassFreq(20000);
+		sb.chan->SetLowpassFreq(20000); // documented on Creative's site: 100Hz-10KHz frequency response [http://support.creative.com/kb/ShowArticle.aspx?sid=5800]
 	}
 }
 
