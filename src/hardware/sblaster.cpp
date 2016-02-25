@@ -1964,7 +1964,7 @@ void updateSoundBlasterFilter(Bitu rate) {
 		 * first determine the desired roll off frequency by taking 80% of the sample rate
 		 * divided by 2, the multiply by 82 to find the desired filter clock frequency" */
 		Bitu filter_hz = (7160000UL / (256 - ESSreg(0xA2))) / 82;
-		if (filter_hz > 22050) sb.chan->SetSlewFreq(44100);
+		if (filter_hz > 22050) sb.chan->SetSlewFreq(44100 * sb.chan->freq_d_orig);
 		else sb.chan->SetSlewFreq(22050 * sb.chan->freq_d_orig);
 		sb.chan->SetLowpassFreq(filter_hz);
 	}
