@@ -53,7 +53,7 @@ public:
 	void SetVolume(float _left,float _right);
 	void SetScale( float f );
 	void UpdateVolume(void);
-	void SetLowpassFreq(Bitu _freq); // denominator provided by call to SetFreq. call with _freq == 0 to disable
+	void SetLowpassFreq(Bitu _freq); // _freq / 1 Hz. call with _freq == 0 to disable
 	void SetSlewFreq(Bitu _freq); // denominator provided by call to SetFreq. call with _freq == 0 to disable
 	void SetFreq(Bitu _freq,Bitu _den=1U);
 	void Mix(Bitu whole,Bitu frac);

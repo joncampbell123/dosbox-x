@@ -1968,7 +1968,7 @@ void updateSoundBlasterFilter(Bitu rate) {
 		sb.chan->SetLowpassFreq(filter_hz * 2 * sb.chan->freq_d_orig);
 	}
 	else if (sb.type == SBT_16) {
-		sb.chan->SetLowpassFreq(0);
+		sb.chan->SetLowpassFreq(0/*off*/);
 		if (sb.mode == MODE_DAC)
 			sb.chan->SetSlewFreq((sb.vibra ? 24000 : 23000) * sb.chan->freq_d_orig);
 		else
