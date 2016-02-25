@@ -1984,7 +1984,7 @@ void updateSoundBlasterFilter(Bitu rate) {
 		sb.chan->SetSlewFreq(44100 * sb.chan->freq_d_orig);
 		sb.chan->SetLowpassFreq(filter_hz,/*order*/3);
 	}
-	else if (sb.type == SBT_16) { // Sound Blaster 16 (DSP 4.xx). Tested against real hardware by Jonathan C.
+	else if (sb.type == SBT_16) { // Sound Blaster 16 (DSP 4.xx). Tested against real hardware (CT4180 ViBRA 16C PnP) by Jonathan C.
 		// My notes: The DSP automatically applies filtering at low sample rates. But the DSP has to know
 		//           what the sample rate is to filter. If you use direct DAC output (DSP command 0x10)
 		//           then no filtering is applied and the sound comes out grungy, just like older Sound
