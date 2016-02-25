@@ -1996,11 +1996,7 @@ void updateSoundBlasterFilter(Bitu rate) {
 		if (sb.mixer.filtered/*Output "filter" bit in mixer register 0x0E*/)
 			sb.chan->SetLowpassFreq(10000); // documented on Creative's site: 100Hz-10KHz frequency response [http://support.creative.com/kb/ShowArticle.aspx?sid=5800]
 		else
-			sb.chan->SetLowpassFreq(8800);
-
-		// FIXME: Creative doesn't say what the Output Filter's frequency cutoff is, but they document
-		//        the input filter as having 3.2KHz and 8.8KHz cutoffs (selectable by mixer reg 0x0C)
-		//        so we're guessing the output filter is 8.8KHz
+			sb.chan->SetLowpassFreq(3800); // NOT documented by Creative, guess based on listening tests with a CT1600, and documented Input filter freqs
 	}
 	else {
 		sb.chan->SetSlewFreq(23000 * sb.chan->freq_d_orig);
