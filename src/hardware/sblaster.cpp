@@ -1985,7 +1985,7 @@ void updateSoundBlasterFilter(Bitu rate) {
 		sb.chan->SetLowpassFreq(filter_hz);
 	}
 	else if (sb.type == SBT_16) {
-		sb.chan->SetLowpassFreq(40000); // documented on Creative's site: 20Hz-20KHz [http://support.creative.com/kb/ShowArticle.aspx?sid=5800]
+		sb.chan->SetLowpassFreq(20000); // documented on Creative's site: 20Hz-20KHz [http://support.creative.com/kb/ShowArticle.aspx?sid=5800]
 		if (sb.mode == MODE_DAC)
 			sb.chan->SetSlewFreq((sb.vibra ? 24000 : 23000) * sb.chan->freq_d_orig);
 		else
@@ -1994,7 +1994,7 @@ void updateSoundBlasterFilter(Bitu rate) {
 	else if (sb.type == SBT_PRO1 || sb.type == SBT_PRO2) {
 		sb.chan->SetSlewFreq(23000 * sb.chan->freq_d_orig);
 		if (sb.mixer.filtered/*Output "filter" bit in mixer register 0x0E*/)
-			sb.chan->SetLowpassFreq(20000); // documented on Creative's site: 100Hz-10KHz frequency response [http://support.creative.com/kb/ShowArticle.aspx?sid=5800]
+			sb.chan->SetLowpassFreq(10000); // documented on Creative's site: 100Hz-10KHz frequency response [http://support.creative.com/kb/ShowArticle.aspx?sid=5800]
 		else
 			sb.chan->SetLowpassFreq(8800);
 
@@ -2004,7 +2004,7 @@ void updateSoundBlasterFilter(Bitu rate) {
 	}
 	else {
 		sb.chan->SetSlewFreq(23000 * sb.chan->freq_d_orig);
-		sb.chan->SetLowpassFreq(20000); // documented on Creative's site: 100Hz-10KHz frequency response [http://support.creative.com/kb/ShowArticle.aspx?sid=5800]
+		sb.chan->SetLowpassFreq(10000); // documented on Creative's site: 100Hz-10KHz frequency response [http://support.creative.com/kb/ShowArticle.aspx?sid=5800]
 	}
 }
 
