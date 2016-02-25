@@ -1982,7 +1982,7 @@ void updateSoundBlasterFilter(Bitu rate) {
 		 * divided by 2, the multiply by 82 to find the desired filter clock frequency" */
 		Bitu filter_hz = (7160000UL / (256 - ESSreg(0xA2))) / 82;
 		sb.chan->SetSlewFreq(44100 * sb.chan->freq_d_orig);
-		sb.chan->SetLowpassFreq(filter_hz,/*order*/3);
+		sb.chan->SetLowpassFreq(filter_hz,/*order*/2);
 	}
 	else if (sb.type == SBT_16) { // Sound Blaster 16 (DSP 4.xx). Tested against real hardware (CT4180 ViBRA 16C PnP) by Jonathan C.
 		// My notes: The DSP automatically applies filtering at low sample rates. But the DSP has to know
