@@ -1937,6 +1937,7 @@ static void CTMIXER_UpdateVolumes(void) {
 }
 
 static void CTMIXER_Reset(void) {
+	sb.mixer.filtered=1; // is this right?
 	sb.mixer.fm[0]=
 	sb.mixer.fm[1]=
 	sb.mixer.cda[0]=
