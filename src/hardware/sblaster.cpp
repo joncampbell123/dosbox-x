@@ -943,7 +943,7 @@ static Bit8u DSP_RateLimitedFinalTC_Old() {
 			else u_limit = 165; /* 11KHz */
 		}
 		else if (sb.type == SBT_16) /* Sound Blaster 16: Apparently you no longer need to issue highspeed commands, DSP playback commands can go up to max sample rate */
-			u_limit = sb.vibra ? 235/*48KHz*/ : 233/*44.1KHz*/;
+			u_limit = sb.vibra ? 234/*46KHz*/ : 233/*44.1KHz*/;
 		else if (sb.type == SBT_2) /* Sound Blaster 2.0: According to a DSP 2.1 card I own, there are some different limits than documented (FIXME: not anomolies?) */
 			u_limit = (sb.dsp.highspeed ? 234/*46KHz*/ : 210/*22.5KHz*/);
 		else
@@ -1029,7 +1029,7 @@ static void DSP_PrepareDMA_New(DMA_MODES mode,Bitu length,bool autoinit,bool ste
 	if (sb.sample_rate_limits) { /* enforce speed limits documented by Creative */
 		unsigned int u_limit=23000,l_limit=4000; /* NTS: Recording vs playback is not considered because DOSBox only emulates playback */
 
-		if (sb.vibra) u_limit = 48000;
+		if (sb.vibra) u_limit = 46000;
 		else u_limit = 44100;
 
 		if (sb.freq < l_limit)
@@ -1874,7 +1874,7 @@ static void DSP_DoWrite(Bit8u val) {
 			unsigned int limit = 23000; /* documented max sample rate for SB16/SBPro and earlier */
 
 			if (sb.type == SBT_16 && sb.vibra)
-				limit = 24000; /* DSP maxes out at 48KHz not 44.1KHz on ViBRA cards */
+				limit = 23000; /* DSP maxes out at 46KHz not 44.1KHz on ViBRA cards */
 
 			if (sb.dsp.cmd == DSP_NO_COMMAND && val == 0x10/*DSP direct DAC, command*/)
 				delay = (625000000UL / limit) - sb.dsp.dsp_write_busy_time;
@@ -1984,12 +1984,22 @@ void updateSoundBlasterFilter(Bitu rate) {
 		sb.chan->SetSlewFreq(44100 * sb.chan->freq_d_orig);
 		sb.chan->SetLowpassFreq(filter_hz,/*order*/3);
 	}
-	else if (sb.type == SBT_16) { // FIXME: Test!
-		sb.chan->SetLowpassFreq(24000);
-		if (sb.mode == MODE_DAC)
-			sb.chan->SetSlewFreq((sb.vibra ? 24000 : 23000) * sb.chan->freq_d_orig);
-		else
+	else if (sb.type == SBT_16) { // Sound Blaster 16 (DSP 4.xx). Tested against real hardware by Jonathan C.
+		// My notes: The DSP automatically applies filtering at low sample rates. But the DSP has to know
+		//           what the sample rate is to filter. If you use direct DAC output (DSP command 0x10)
+		//           then no filtering is applied and the sound comes out grungy, just like older Sound
+		//           Blaster cards.
+		//
+		//           I can also confirm the SB16's reputation for hiss and noise is true, it's noticeable
+		//           with earbuds and the mixer volume at normal levels. --Jonathan C.
+		if (sb.mode == MODE_DAC) {
+			sb.chan->SetLowpassFreq(23000);
+			sb.chan->SetSlewFreq(23000 * sb.chan->freq_d_orig);
+		}
+		else {
+			sb.chan->SetLowpassFreq(rate/2,1);
 			sb.chan->SetSlewFreq(0/*normal linear interpolation*/);
+		}
 	}
 	else if (sb.type == SBT_PRO1 || sb.type == SBT_PRO2) { // Sound Blaster Pro (DSP 3.x). Tested against real hardware (CT1600) by Jonathan C.
 		sb.chan->SetSlewFreq(23000 * sb.chan->freq_d_orig);
