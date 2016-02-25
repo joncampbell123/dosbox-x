@@ -1621,6 +1621,13 @@ void DOSBOX_SetupConfigSections(void) {
 			"Option is needed for:\n"
 			"   Public NMI \"jump\" demo (1992)");
 
+	Pbool = secprop->Add_bool("dsp write buffer status must return 0x7f or 0xff",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("If set, force port 22Ch (DSP write buffer status) to return 0x7F or 0xFF. If not set, the port\n"
+			"may return 0x7F or 0xFF depending on what type of Sound Blaster is being emulated.\n"
+			"Set this option for some early DOS demos that make that assumption about port 22Ch.\n"
+			"Option is needed for:\n"
+			"   Overload by Hysteria (1992) - Audio will crackle/saturate (8-bit overflow) except when sbtype=sb16");
+
 	Pbool = secprop->Add_bool("pre-set sbpro stereo",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("Start the DOS virtual machine with the Sound Blaster Pro stereo bit set (in the mixer).\n"
 			"A few demos support Sound Blaster Pro but forget to set this bit.\n"

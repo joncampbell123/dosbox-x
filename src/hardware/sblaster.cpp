@@ -141,6 +141,7 @@ struct SB_INFO {
 			      The DMA emulation here does not handle that well. */
 	bool goldplay;
 	bool goldplay_stereo;
+	bool write_status_must_return_7f; // WRITE_STATUS (port base+0xC) must return 0x7F or 0xFF if set. Some very early demos rely on it.
 	bool busy_cycle_always;
 	bool ess_playback_mode;
 	Bit8u time_constant;
@@ -2390,7 +2391,7 @@ static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
 			else if (sb.dsp.write_busy || sb.dsp.highspeed)
 				busy = true;
 
-			if (sb.ess_type == ESS_NONE && (sb.type == SBT_1 || sb.type == SBT_2 || sb.type == SBT_PRO1 || sb.type == SBT_PRO2))
+			if (!sb.write_status_must_return_7f && sb.ess_type == ESS_NONE && (sb.type == SBT_2 || sb.type == SBT_PRO1 || sb.type == SBT_PRO2))
 				return busy ? 0xAA : 0x2A; /* observed return values on SB 2.0---any significance? */
 			else
 				return busy ? 0xFF : 0x7F; /* normal return values */
@@ -2854,6 +2855,44 @@ public:
 		sb.dsp.instant_direct_dac=section->Get_bool("instant direct dac");
 		sb.dsp.force_goldplay=section->Get_bool("force goldplay");
 		sb.dma.force_autoinit=section->Get_bool("force dsp auto-init");
+
+		/* Explanation: If the user set this option, the write status port must return 0x7F or 0xFF.
+		 *              Else, we're free to return whatever with bit 7 to indicate busy.
+		 *              The reason for this setting is that there exist some very early DOS demoscene productions
+		 *              that assume the I/O port returns 0x7F or 0xFF, and will have various problems if that
+		 *              is not the case.
+		 *
+		 *              Overload by Hysteria (1992):
+		 *                 - This demo's Sound Blaster routines use the unusual space-saving assembly language
+		 *                   trick of reading port 22Ch to wait for bit 7 to clear (which is normal), then
+		 *                   using the value it read (left over from AL) as the byte to sum it's audio output
+		 *                   to before sending out to the DAC. This is why, if the write status port returns
+		 *                   a different value like 0x2A, the audio crackes with saturation errors.
+		 *
+		 *                   Overload's Sound Blaster output code:
+		 *
+		 *                   090D:5F50  EC                  in   al,dx
+		 *                   090D:5F51  A880                test al,80
+		 *                   090D:5F53  75FB                jne  00005F50 ($-5)         (no jmp)
+		 *                   090D:5F55  FEC0                inc  al
+		 *                   ; various code to render and sum audio samples to AL
+		 *                   090D:5FC7  EE                  out  dx,al
+		 *
+		 *                   Notice it assumes AL is 0x7F and it assumes (++AL) == 0x80.
+		 *
+		 *                   It's also funny to note the demo's readme file mentions this problem with Sound
+		 *                   Blaster Pro:
+		 *
+		 *                   "I have been told this works with the soundblaster however, this demo does
+		 *                   not seem to work the soundblaster pro.
+		 *
+		 *                   If the music sounds bad and you want to know what it really sounds like
+		 *                   let me know and I can send you the MOD format of the music.
+		 *
+		 *                   dmw@sioux.ee.ufl.edu"
+		 *
+		 */
+		sb.write_status_must_return_7f=section->Get_bool("dsp write buffer status must return 0x7f or 0xff");
 
 		bool Mixer_SampleAccurate();
 		if (Mixer_SampleAccurate() && sb.goldplay) {
