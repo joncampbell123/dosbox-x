@@ -547,6 +547,12 @@ static void GenerateDMASound(Bitu size) {
 		if (sb.dma.left <= size) size = sb.dma.left;
 	} else if (sb.dma.left <= sb.dma.min) size = sb.dma.left;
 
+	if (size > DMA_BUFSIZE) {
+		/* Maybe it's time to consider rendering intervals based on what the mixer wants rather than odd 1ms DMA packet calculations... */
+		LOG(LOG_SB,LOG_WARN)("Whoah! GenerateDMASound asked to render too much audio (%u > %u). Read could have overrun the DMA buffer!",(unsigned int)size,DMA_BUFSIZE);
+		size = DMA_BUFSIZE;
+	}
+
 	switch (sb.dma.mode) {
 	case DSP_DMA_2:
 		read=sb.dma.chan->Read(size,sb.dma.buf.b8);
