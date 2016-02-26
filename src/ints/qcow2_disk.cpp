@@ -30,7 +30,7 @@ using namespace std;
 //Public function to read a QCow2 header.
 	QCow2Image::QCow2Header QCow2Image::read_header(FILE* qcow2File){
 		QCow2Header header;
-		fseek(qcow2File, 0, SEEK_SET);
+		fseeko64(qcow2File, 0, SEEK_SET);
 		if (1 != fread(&header, sizeof header, 1, qcow2File)){
 			clearerr(qcow2File);  /*If we fail, reset the file stream's status*/
 			return QCow2Header(); /*Return an empty header*/
@@ -67,7 +67,7 @@ using namespace std;
 		if (header.backing_file_offset != 0 && header.backing_file_size != 0){
 			char* backing_file_name = new char[header.backing_file_size + 1];
 			backing_file_name[header.backing_file_size] = 0;
-			fseek(file, header.backing_file_offset, SEEK_SET);
+			fseeko64(file, header.backing_file_offset, SEEK_SET);
 			fread(backing_file_name, header.backing_file_size, 1, file);
 			if (backing_file_name[0] != 0x2F){
 				for (int image_name_index = (int)strlen(imageName); image_name_index > -1; image_name_index--){
@@ -254,10 +254,10 @@ using namespace std;
 
 //Pad a file with zeros if it doesn't end on a cluster boundary.
 	Bit8u QCow2Image::pad_file(Bit64u& new_file_length){
-		if (0 != fseek(file, 0, SEEK_END)){
+		if (0 != fseeko64(file, 0, SEEK_END)){
 			return 0x05;
 		}
-		const Bit64u old_file_length = ftell(file);
+		const Bit64u old_file_length = ftello64(file);
 		const Bit64u padding_size = (cluster_size - (old_file_length % cluster_size)) % cluster_size;
 		new_file_length = old_file_length + padding_size;
 		if (0 == padding_size){
@@ -274,7 +274,7 @@ using namespace std;
 //Read data of arbitrary length that is present in the image file.
 	Bit8u QCow2Image::read_allocated_data(Bit64u file_offset, Bit8u* data, Bit64u data_size)
 	{
-		if (0 != fseek(file, file_offset, SEEK_SET)){
+		if (0 != fseeko64(file, file_offset, SEEK_SET)){
 			return 0x05;
 		}
 		if (1 != fread(data, data_size, 1, file)){
@@ -389,7 +389,7 @@ using namespace std;
 
 //Write data of arbitrary length to the image file.
 	Bit8u QCow2Image::write_data(Bit64u file_offset, Bit8u* data, Bit64u data_size){
-		if (0 != fseek(file, file_offset, SEEK_SET)){
+		if (0 != fseeko64(file, file_offset, SEEK_SET)){
 			return 0x05;
 		}
 		if (1 != fwrite(data, data_size, 1, file)){
