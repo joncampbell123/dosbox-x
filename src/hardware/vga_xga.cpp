@@ -355,14 +355,14 @@ void XGA_DrawLineBresenham(Bitu val) {
 	// Probably a lot easier way to do this, but this works.
 
 	dminor = (Bits)((Bit16s)xga.desty);
-	if(xga.desty&0x2000) dminor |= 0xffffe000;
+	if(xga.desty&0x2000) dminor |= ~((Bits)0x1fff);
 	dminor >>= 1;
 
 	destxtmp=(Bits)((Bit16s)xga.destx);
-	if(xga.destx&0x2000) destxtmp |= 0xffffe000;
+	if(xga.destx&0x2000) destxtmp |= ~((Bits)0x1fff);
 
 
-	dmajor = -(destxtmp - (dminor << 1)) >> 1;
+	dmajor = -(destxtmp - (dminor << (Bits)1)) >> (Bits)1;
 	
 	dx = dmajor;
 	if((val >> 5) & 0x1) {
@@ -377,7 +377,7 @@ void XGA_DrawLineBresenham(Bitu val) {
 		sy = -1;
 	}
 	e = (Bits)((Bit16s)xga.ErrTerm);
-	if(xga.ErrTerm&0x2000) e |= 0xffffe000;
+	if(xga.ErrTerm&0x2000) e |= ~((Bits)0x1fff); /* sign extend 13-bit error term */
 	xat = xga.curx;
 	yat = xga.cury;
 
@@ -389,7 +389,8 @@ void XGA_DrawLineBresenham(Bitu val) {
 		steep = true;
 	}
     
-	//LOG_MSG("XGA: Bresenham: ASC %d, LPDSC %d, sx %d, sy %d, err %d, steep %d, length %d, dmajor %d, dminor %d, xstart %d, ystart %d", dx, dy, sx, sy, e, steep, xga.MAPcount, dmajor, dminor,xat,yat);
+//	LOG_MSG("XGA: Bresenham: ASC %ld, LPDSC %ld, sx %ld, sy %ld, err %ld, steep %ld, length %ld, dmajor %ld, dminor %ld, xstart %ld, ystart %ld",
+//		dx, dy, sx, sy, e, (unsigned long)steep, (unsigned long)xga.MAPcount, dmajor, dminor, xat, yat);
 
 	for (i=0;i<=xga.MAPcount;i++) { 
 			Bitu mixmode = (xga.pix_cntl >> 6) & 0x3;
