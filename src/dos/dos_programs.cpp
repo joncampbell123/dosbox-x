@@ -2668,10 +2668,15 @@ public:
 				
 				Bit64u sectors;
 				if (qcow2_header.magic == QCow2Image::magic && (qcow2_header.version == 2 || qcow2_header.version == 3)){
-					sectors = qcow2_header.size / 512; /* TODO: Currently only supporting 512 byte sectors */
-					imagesize = (Bit32u)(sectors / 2);
+					Bit32u cluster_size = 1 << qcow2_header.cluster_bits;
+					if ( cluster_size % sizes[0] != 0){
+						WriteOut("Sector size must evenly divide the image cluster size %lu.\n", cluster_size);
+						return;
+					}
+					sectors = (Bit64u)qcow2_header.size / (Bit64u)sizes[0];
+					imagesize = (Bit32u)(qcow2_header.size / 1024L);
 					setbuf(newDisk,NULL);
-					newImage = new QCow2Disk(qcow2_header, newDisk, (Bit8u *)temp_line.c_str(), imagesize, (imagesize > 2880));
+					newImage = new QCow2Disk(qcow2_header, newDisk, (Bit8u *)temp_line.c_str(), imagesize, sizes[0], (imagesize > 2880));
 				}
 				else{
 					fseeko64(newDisk,0L, SEEK_END);
