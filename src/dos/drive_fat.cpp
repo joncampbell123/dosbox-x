@@ -659,8 +659,13 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
 	QCow2Image::QCow2Header qcow2_header = QCow2Image::read_header(diskfile);
 	
 	if (qcow2_header.magic == QCow2Image::magic && (qcow2_header.version == 2 || qcow2_header.version == 3)){
+		Bit32u cluster_size = 1 << qcow2_header.cluster_bits;
+		if ( cluster_size % bytesector != 0){
+			created_successfully = false;
+			return;
+		}
 		filesize = (Bit32u)(qcow2_header.size / 1024L);
-		loadedDisk = new QCow2Disk(qcow2_header, diskfile, (Bit8u *)sysFilename, filesize, (filesize > 2880));
+		loadedDisk = new QCow2Disk(qcow2_header, diskfile, (Bit8u *)sysFilename, filesize, bytesector, (filesize > 2880));
 	}
 	else{
 		fseeko64(diskfile, 0L, SEEK_END);

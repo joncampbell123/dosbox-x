@@ -53,12 +53,11 @@ using namespace std;
 
 
 //Public Constructor.
-	QCow2Image::QCow2Image(QCow2Image::QCow2Header qcow2Header, FILE *qcow2File, const char* imageName) : file(qcow2File), header(qcow2Header), backing_image(NULL)
+	QCow2Image::QCow2Image(QCow2Image::QCow2Header qcow2Header, FILE *qcow2File, const char* imageName, Bit32u sectorSizeBytes) : file(qcow2File), header(qcow2Header), backing_image(NULL), sector_size(sectorSizeBytes)
 	{
 		cluster_mask = mask64(header.cluster_bits);
 		cluster_size = cluster_mask + 1;
 		sectors_per_cluster = cluster_size / sector_size;
-		disk_sectors_total = header.size/sector_size;
 		l2_bits = header.cluster_bits - 3;
 		l2_mask = mask64(l2_bits);
 		l1_bits = header.cluster_bits + l2_bits;
@@ -90,7 +89,7 @@ using namespace std;
 			FILE* backing_file = fopen(backing_file_name, "rb");
 			if (backing_file != NULL){
 				QCow2Header backing_header = read_header(backing_file);
-				backing_image = new QCow2Image(backing_header, backing_file, backing_file_name);
+				backing_image = new QCow2Image(backing_header, backing_file, backing_file_name, sectorSizeBytes);
 			} else {
 				LOG_MSG("Failed to load QCow2 backing image: %s", backing_file_name);
 			}
@@ -199,7 +198,6 @@ using namespace std;
 //Private constants.
 	const Bit64u QCow2Image::copy_flag = 0x8000000000000000;
 	const Bit64u QCow2Image::empty_mask = 0xFFFFFFFFFFFFFFFF;
-	const Bit32u QCow2Image::sector_size = 512;
 	const Bit64u QCow2Image::table_entry_mask = 0x00FFFFFFFFFFFFFF;
 
 
@@ -436,7 +434,7 @@ using namespace std;
 
 
 //Public Constructor.
-	QCow2Disk::QCow2Disk(QCow2Image::QCow2Header qcow2Header, FILE *qcow2File, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk) : imageDisk(qcow2File, imgName, imgSizeK, isHardDisk), qcowImage(qcow2Header, qcow2File, (const char*) imgName){
+	QCow2Disk::QCow2Disk(QCow2Image::QCow2Header qcow2Header, FILE *qcow2File, Bit8u *imgName, Bit32u imgSizeK, Bit32u sectorSizeBytes, bool isHardDisk) : imageDisk(qcow2File, imgName, imgSizeK, isHardDisk), qcowImage(qcow2Header, qcow2File, (const char*) imgName, sectorSizeBytes){
 	}
 
 

@@ -52,7 +52,7 @@ public:
 	
 	static QCow2Header read_header(FILE* qcow2File);
 
-	QCow2Image(QCow2Header qcow2Header, FILE *qcow2File, const char* imageName);
+	QCow2Image(QCow2Header qcow2Header, FILE *qcow2File, const char* imageName, Bit32u sectorSizeBytes);
 
 	virtual ~QCow2Image();
 	
@@ -66,12 +66,11 @@ private:
 	QCow2Header header;
 	static const Bit64u copy_flag;
 	static const Bit64u empty_mask;
-	static const Bit32u sector_size;
 	static const Bit64u table_entry_mask;
+	Bit32u sector_size;
 	Bit64u cluster_mask;
 	Bit64u cluster_size;
 	Bit64u sectors_per_cluster;
-	Bit64u disk_sectors_total;
 	Bit64u l2_mask;
 	Bit64u l2_bits;
 	Bit64u l1_bits;
@@ -124,7 +123,7 @@ class QCow2Disk : public imageDisk{
 
 public:
 	
-	QCow2Disk(QCow2Image::QCow2Header qcow2Header, FILE *qcow2File, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk);
+	QCow2Disk(QCow2Image::QCow2Header qcow2Header, FILE *qcow2File, Bit8u *imgName, Bit32u imgSizeK, Bit32u sectorSizeBytes, bool isHardDisk);
 
 	virtual ~QCow2Disk();
 	
