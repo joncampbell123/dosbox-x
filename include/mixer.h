@@ -46,7 +46,7 @@ extern Bit8u MixTemp[MIXER_BUFSIZE];
 #define MAX_AUDIO ((1<<(16-1))-1)
 #define MIN_AUDIO -(1<<(16-1))
 
-#define LOWPASS_ORDER 3
+#define LOWPASS_ORDER 8
 
 class MixerChannel {
 public:

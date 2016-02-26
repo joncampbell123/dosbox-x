@@ -1975,14 +1975,25 @@ void updateSoundBlasterFilter(Bitu rate) {
 	}
 
 	/* different sound cards filter their output differently */
-	if (sb.ess_type != ESS_NONE) { // FIXME: Fine-tune!
+	if (sb.ess_type != ESS_NONE) { // ESS AudioDrive. Tested against real hardware (ESS 688) by Jonathan C.
 		/* ESS AudioDrive lets the driver decide what the cutoff/rolloff to use */
 		/* "The ratio of the roll-off frequency to the clock frequency is 1:82. In other words,
 		 * first determine the desired roll off frequency by taking 80% of the sample rate
-		 * divided by 2, the multiply by 82 to find the desired filter clock frequency" */
-		Bitu filter_hz = (7160000UL / (256 - ESSreg(0xA2))) / 82;
-		sb.chan->SetSlewFreq(44100 * sb.chan->freq_d_orig);
-		sb.chan->SetLowpassFreq(filter_hz,/*order*/2);
+		 * divided by 2, the multiply by 82 to find the desired filter clock frequency"
+		 *
+		 * Try to approximate the ESS's filter by undoing the calculation then feeding our own lowpass filter with it.
+		 *
+		 * This implementation is matched aginst real hardware by ear, even though the reference hardware is a
+		 * laptop with a cheap tinny amplifier */
+		Bit64u filter_raw = (Bit64u)7160000UL / (256 - ESSreg(0xA2));
+		Bit64u filter_hz = (filter_raw * (Bit64u)11) / (Bit64u)(82 * 4); /* match lowpass by ear compared to real hardware */
+
+		if ((filter_hz * 2) > sb.freq)
+			sb.chan->SetSlewFreq(filter_hz * 2 * sb.chan->freq_d_orig);
+		else
+			sb.chan->SetSlewFreq(0);
+
+		sb.chan->SetLowpassFreq(filter_hz,/*order*/8);
 	}
 	else if (sb.type == SBT_16) { // Sound Blaster 16 (DSP 4.xx). Tested against real hardware (CT4180 ViBRA 16C PnP) by Jonathan C.
 		// My notes: The DSP automatically applies filtering at low sample rates. But the DSP has to know
