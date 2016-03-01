@@ -1,0 +1,2282 @@
+diff -rupN dosbox-PREV//src/hardware/pci_bus.cpp dosbox-RECENT//src/hardware/pci_bus.cpp
+--- dosbox-PREV//src/hardware/pci_bus.cpp	2016-01-11 01:47:36 -0500
++++ dosbox-RECENT//src/hardware/pci_bus.cpp	2016-02-29 04:33:47 -0500
+@@ -117,7 +117,7 @@ PCI_Device::PCI_Device(Bit16u vendor, Bi
+ class PCI_VGADevice:public PCI_Device {
+ private:
+ 	static const Bit16u vendor=0x5333;		// S3
+-	static const Bit16u device=0x8811;		// trio64
++	static const Bit16u device=0x5631;		// Virge
+ //	static const Bit16u device=0x8810;		// trio32
+ public:
+ 	PCI_VGADevice():PCI_Device(vendor,device) {
+diff -rupN dosbox-PREV//src/hardware/vga_memory.cpp dosbox-RECENT//src/hardware/vga_memory.cpp
+--- dosbox-PREV//src/hardware/vga_memory.cpp	2016-01-11 20:24:47 -0500
++++ dosbox-RECENT//src/hardware/vga_memory.cpp	2016-03-01 22:45:49 -0500
+@@ -1062,7 +1062,7 @@ void VGA_SetupMemory(Section* sec) {
+ 	vga.svga.bank_read = vga.svga.bank_write = 0;
+ 	vga.svga.bank_read_full = vga.svga.bank_write_full = 0;
+ 
+-	Bit32u vga_allocsize=vga.vmemsize;
++	Bit32u vga_allocsize= 0x8000000; // was vga.vmemsize ; allows writing beyond fb display
+ 	// Keep lower limit at 512k
+ 	if (vga_allocsize<512*1024) vga_allocsize=512*1024;
+ 
+diff -rupN dosbox-PREV//src/hardware/vga_s3.cpp dosbox-RECENT//src/hardware/vga_s3.cpp
+--- dosbox-PREV//src/hardware/vga_s3.cpp	2016-01-11 02:29:10 -0500
++++ dosbox-RECENT//src/hardware/vga_s3.cpp	2016-02-29 02:31:04 -0500
+@@ -371,9 +371,9 @@ Bitu SVGA_S3_ReadCRTC( Bitu reg, Bitu io
+ 	case 0x26:
+ 		return ((vga.attr.disabled & 1)?0x00:0x20) | (vga.attr.index & 0x1f);
+ 	case 0x2d:	/* Extended Chip ID (high byte of PCI device ID) */
+-		return 0x88;
++		return 0x56;	// Virge
+ 	case 0x2e:	/* New Chip ID  (low byte of PCI device ID) */
+-		return 0x11;	// Trio64	
++		return 0x31;	// Virge	
+ 	case 0x2f:	/* Revision */
+ 		return 0x00;	// Trio64 (exact value?)
+ //		return 0x44;	// Trio64 V+
+@@ -580,7 +580,7 @@ void SVGA_Setup_S3Trio(void) {
+ 	}
+ 
+ 	// S3 ROM signature
+-	phys_writes(PhysMake(0xc000,0)+0x003f, "S3 86C764", 10);
++	phys_writes(PhysMake(0xc000,0)+0x003f, "S3 86C325", 10);	// Virge
+ 
+ 	PCI_AddSVGAS3_Device();
+ }
+diff -rupN dosbox-PREV//src/hardware/vga_xga.cpp dosbox-RECENT//src/hardware/vga_xga.cpp
+--- dosbox-PREV//src/hardware/vga_xga.cpp	2016-03-01 23:21:08 -0500
++++ dosbox-RECENT//src/hardware/vga_xga.cpp	2016-03-01 23:20:51 -0500
+@@ -72,6 +72,182 @@ struct XGAStatus {
+ 
+ } xga;
+ 
++struct s3d {
++	uint32_t src_base;
++	uint32_t dest_base;
++	int clip_l, clip_r, clip_t, clip_b;
++	int dest_str, src_str;
++	uint32_t mono_pat_0;
++	uint32_t mono_pat_1;
++	uint32_t pat_bg_clr;
++	uint32_t pat_fg_clr;
++	uint32_t src_bg_clr;
++	uint32_t src_fg_clr;
++	uint32_t cmd_set;
++	int r_width, r_height;
++	int rsrc_x, rsrc_y;
++	int rdest_x, rdest_y;
++	
++	int lxend0, lxend1;
++	int32_t ldx;
++	uint32_t lxstart, lystart;
++	int lycnt;
++	int line_dir;
++	
++	int src_x, src_y;
++	int dest_x, dest_y;
++	int w, h;
++	uint8_t rop;
++	
++	int data_left_count;
++	uint32_t data_left;
++	
++	uint32_t pattern_8[8*8];
++	uint32_t pattern_16[8*8];
++
++	uint32_t prdx;
++	uint32_t prxstart;
++	uint32_t pldx;
++	uint32_t plxstart;
++	uint32_t pystart;
++	uint32_t pycnt;
++	uint32_t dest_l, dest_r;
++} s3d;
++
++struct s3d_tri
++{
++        uint32_t cmd_set;
++        int clip_l, clip_r, clip_t, clip_b;
++                
++        uint32_t dest_base;
++        uint32_t dest_str;
++        
++        uint32_t z_base;
++        uint32_t z_str;
++
++        uint32_t tex_base;
++        uint32_t tex_bdr_clr;
++        uint32_t tbv, tbu;
++        int32_t TdVdX, TdUdX;
++        int32_t TdVdY, TdUdY;
++        uint32_t tus, tvs;
++
++        int32_t TdZdX, TdZdY;
++        uint32_t tzs;
++
++        int32_t TdWdX, TdWdY;
++        uint32_t tws;
++                
++        int32_t TdDdX, TdDdY;
++        uint32_t tds;
++                
++        int16_t TdGdX, TdBdX, TdRdX, TdAdX;
++        int16_t TdGdY, TdBdY, TdRdY, TdAdY;
++        uint32_t tgs, tbs, trs, tas;
++                                
++        uint32_t TdXdY12;
++        uint32_t txend12;
++        uint32_t TdXdY01;
++        uint32_t txend01;
++        uint32_t TdXdY02;
++        uint32_t txs;
++        uint32_t tys;
++        int ty01, ty12, tlr;
++} s3d_tri;
++
++typedef struct rgba_t
++{
++        int r, g, b, a;
++} rgba_t;
++
++typedef struct s3d_texture_state_t
++{
++        int level;
++        int texture_shift;
++        
++        int32_t u, v;
++} s3d_texture_state_t;
++
++typedef struct s3d_state_t
++{
++        int32_t r, g, b, a, u, v, d, w;
++
++        int32_t base_r, base_g, base_b, base_a, base_u, base_v, base_d, base_w;
++        
++        uint32_t base_z;
++
++        uint32_t tbu, tbv;
++
++        uint32_t cmd_set;
++        int max_d;
++        
++        uint16_t *texture[10];
++        
++        uint32_t tex_bdr_clr;
++        
++        int32_t x1, x2;
++        int y;
++        
++        rgba_t dest_rgba;
++} s3d_state_t;
++
++static int s3d_busy, pixel_count;
++static bool dithering_enabled=true, is_375=false, bilinear_enabled=true;
++
++static int dither[4][4] =
++{
++        0,  4,  1,  5,
++        6,  2,  7,  3,
++        1,  5,  0,  4,
++        7,  3,  6,  2,
++};
++
++enum
++{
++        CMD_SET_AE = 1,
++        CMD_SET_HC = (1 << 1),
++        
++        CMD_SET_FORMAT_MASK = (7 << 2),
++        CMD_SET_FORMAT_8 = (0 << 2),
++        CMD_SET_FORMAT_16 = (1 << 2),
++        
++        CMD_SET_MS = (1 << 6),
++        CMD_SET_IDS = (1 << 7),
++        CMD_SET_MP = (1 << 8),
++        CMD_SET_TP = (1 << 9),
++        
++        CMD_SET_ITA_MASK = (3 << 10),
++        CMD_SET_ITA_BYTE = (0 << 10),
++        CMD_SET_ITA_WORD = (1 << 10),
++        CMD_SET_ITA_DWORD = (2 << 10),
++        
++        CMD_SET_ZUP = (1 << 23),
++        
++        CMD_SET_ZB_MODE = (3 << 24),
++
++        CMD_SET_XP = (1 << 25),
++        CMD_SET_YP = (1 << 26),
++        
++        CMD_SET_COMMAND_MASK = (15 << 27)
++};
++
++#define CMD_SET_ABC_SRC    (1 << 18)
++#define CMD_SET_ABC_ENABLE (1 << 19)
++#define CMD_SET_TWE        (1 << 26)
++
++enum
++{
++        CMD_SET_COMMAND_BITBLT = (0 << 27),
++        CMD_SET_COMMAND_RECTFILL = (2 << 27),
++        CMD_SET_COMMAND_LINE = (3 << 27),
++        CMD_SET_COMMAND_POLY = (5 << 27),
++        CMD_SET_COMMAND_NOP = (15 << 27)
++};
++
++static void s3_virge_bitblt(int count, uint32_t cpu_dat);
++static void s3_virge_triangle();
++static void tri(s3d_state_t *state, int yc, int32_t dx1, int32_t dx2);
++
+ void XGA_Write_Multifunc(Bitu val, Bitu len) {
+ 	Bitu regselect = val >> 12;
+ 	Bitu dataval = val & 0xfff;
+@@ -1035,9 +1211,17 @@ extern void vga_write_p3d5(Bitu port,Bit
+ extern Bitu vga_read_p3d5(Bitu port,Bitu iolen);
+ 
+ void XGA_Write(Bitu port, Bitu val, Bitu len) {
+-//	LOG_MSG("XGA: Write to port %x, val %8x, len %x", port,val, len);
++	// LOG_MSG("XGA: Write to port %x, val %8x, len %x", port,val, len);
+ 
+-	switch(port) {
++        if ((port & 0xffff) < 0x8000)
++        {
++                if (s3d.cmd_set & CMD_SET_MS)
++                        s3_virge_bitblt(32, ((val & 0xff000000) >> 24) | ((val & 0x00ff0000) >> 8) | ((val & 0x0000ff00) << 8) | ((val & 0x000000ff) << 24));
++                else
++                        s3_virge_bitblt(32, val);
++        }else{
++
++	switch(port & 0xffff) {
+ 		case 0x8100:// drawing control: row (low word), column (high word)
+ 					// "CUR_X" and "CUR_Y" (see PORT 82E8h,PORT 86E8h)
+ 			xga.cury = val & 0x0fff;
+@@ -1166,10 +1350,10 @@ void XGA_Write(Bitu port, Bitu val, Bitu
+ 			XGA_DrawWait(val, len);
+ 			break;
+ 		case 0x83d4:
+-			if(len==1) vga_write_p3d4(0,val,1);
++			if(len==1) vga_write_p3d4(port & 0x3ff, val, 1); // vga_write_p3d4(0,val,1);	// this change untested
+ 			else if(len==2) {
+-				vga_write_p3d4(0,val&0xff,1);
+-				vga_write_p3d5(0,val>>8,1);
++				vga_write_p3d4(port, val, 1); // vga_write_p3d4(0,val&0xff,1);		// this change untested
++				vga_write_p3d5(port + 1, val >> 8, 2); // vga_write_p3d5(0,val>>8,1);	// this change untested
+ 			}
+ 			else E_Exit("unimplemented XGA MMIO");
+ 			break;
+@@ -1177,20 +1361,304 @@ void XGA_Write(Bitu port, Bitu val, Bitu
+ 			if(len==1) vga_write_p3d5(0,val,1);
+ 			else E_Exit("unimplemented XGA MMIO");
+ 			break;
++                case 0xa4d4: case 0xa8d4:
++                	s3d.src_base = val & 0x3ffff8;
++                	break;
++                case 0xa4d8: case 0xa8d8:
++                	s3d.dest_base = val & 0x3ffff8;
++                	break;
++                case 0xa4dc: case 0xa8dc:
++                	s3d.clip_l = (val >> 16) & 0x7ff;
++                	s3d.clip_r = val & 0x7ff;
++                	break;
++                case 0xa4e0: case 0xa8e0:
++                	s3d.clip_t = (val >> 16) & 0x7ff;
++                	s3d.clip_b = val & 0x7ff;
++                	break;
++                case 0xa4e4: case 0xa8e4:
++                	s3d.dest_str = (val >> 16) & 0xff8;
++                	s3d.src_str = val & 0xff8;
++                	break;
++                case 0xa4e8: case 0xace8:
++                	s3d.mono_pat_0 = val;
++                	break;
++                case 0xa4ec: case 0xacec:
++                	s3d.mono_pat_1 = val;
++                	break;
++                case 0xa4f0: case 0xacf0:
++                	s3d.pat_bg_clr = val;
++                	break;
++                case 0xa4f4: case 0xa8f4: case 0xacf4:
++                	s3d.pat_fg_clr = val;
++                	break;
++                case 0xa4f8:
++                	s3d.src_bg_clr = val;
++                	break;
++                case 0xa4fc:
++                	s3d.src_fg_clr = val;
++                	break;
++                case 0xa500: case 0xa900:
++                	s3d.cmd_set = val;
++                	if (!(val & CMD_SET_AE)){
++                        	s3_virge_bitblt(-1, 0);
++			}
++	               	break;
++                case 0xa504:
++                	s3d.r_width = (val >> 16) & 0x7ff;
++                	s3d.r_height = val & 0x7ff;
++                	break;
++                case 0xa508:
++                	s3d.rsrc_x = (val >> 16) & 0x7ff;
++                	s3d.rsrc_y = val & 0x7ff;
++                	break;
++                case 0xa50c:
++                	s3d.rdest_x = (val >> 16) & 0x7ff;
++                	s3d.rdest_y = val & 0x7ff;
++                	if (s3d.cmd_set & CMD_SET_AE){
++                       		s3_virge_bitblt(-1, 0);
++			}
++                	break;
++                case 0xa000: case 0xa004: case 0xa008: case 0xa00c:
++                case 0xa010: case 0xa014: case 0xa018: case 0xa01c:
++                case 0xa020: case 0xa024: case 0xa028: case 0xa02c:
++                case 0xa030: case 0xa034: case 0xa038: case 0xa03c:
++                case 0xa040: case 0xa044: case 0xa048: case 0xa04c:
++                case 0xa050: case 0xa054: case 0xa058: case 0xa05c:
++                case 0xa060: case 0xa064: case 0xa068: case 0xa06c:
++                case 0xa070: case 0xa074: case 0xa078: case 0xa07c:
++                case 0xa080: case 0xa084: case 0xa088: case 0xa08c:
++                case 0xa090: case 0xa094: case 0xa098: case 0xa09c:
++                case 0xa0a0: case 0xa0a4: case 0xa0a8: case 0xa0ac:
++                case 0xa0b0: case 0xa0b4: case 0xa0b8: case 0xa0bc:
++                case 0xa0c0: case 0xa0c4: case 0xa0c8: case 0xa0cc:
++                case 0xa0d0: case 0xa0d4: case 0xa0d8: case 0xa0dc:
++                case 0xa0e0: case 0xa0e4: case 0xa0e8: case 0xa0ec:
++                case 0xa0f0: case 0xa0f4: case 0xa0f8: case 0xa0fc:
++                case 0xa100: case 0xa104: case 0xa108: case 0xa10c:
++                case 0xa110: case 0xa114: case 0xa118: case 0xa11c:
++                case 0xa120: case 0xa124: case 0xa128: case 0xa12c:
++                case 0xa130: case 0xa134: case 0xa138: case 0xa13c:
++                case 0xa140: case 0xa144: case 0xa148: case 0xa14c:
++                case 0xa150: case 0xa154: case 0xa158: case 0xa15c:
++                case 0xa160: case 0xa164: case 0xa168: case 0xa16c:
++                case 0xa170: case 0xa174: case 0xa178: case 0xa17c:
++                case 0xa180: case 0xa184: case 0xa188: case 0xa18c:
++                case 0xa190: case 0xa194: case 0xa198: case 0xa19c:
++                case 0xa1a0: case 0xa1a4: case 0xa1a8: case 0xa1ac:
++                case 0xa1b0: case 0xa1b4: case 0xa1b8: case 0xa1bc:
++                case 0xa1c0: case 0xa1c4: case 0xa1c8: case 0xa1cc:
++                case 0xa1d0: case 0xa1d4: case 0xa1d8: case 0xa1dc:
++                case 0xa1e0: case 0xa1e4: case 0xa1e8: case 0xa1ec:
++                case 0xa1f0: case 0xa1f4: case 0xa1f8: case 0xa1fc:
++                {
++                        int x = port & 4;
++                        int y = (port >> 3) & 7;
++                        s3d.pattern_8[y*8 + x]     = val & 0xff;
++                        s3d.pattern_8[y*8 + x + 1] = val >> 8;
++                        s3d.pattern_8[y*8 + x + 2] = val >> 16;
++                        s3d.pattern_8[y*8 + x + 3] = val >> 24;
++                        
++                        x = (port >> 1) & 6;
++                        y = (port >> 4) & 7;
++                        s3d.pattern_16[y*8 + x]     = val & 0xffff;
++                        s3d.pattern_16[y*8 + x + 1] = val >> 16;
++                }
++                break;
++                case 0xa96c:
++                	s3d.lxend0 = (val >> 16) & 0x7ff;
++                	s3d.lxend1 = val & 0x7ff;
++                	break;
++                case 0xa970:
++                	s3d.ldx = (int32_t)val;
++                	break;
++                case 0xa974:
++                	s3d.lxstart = val;
++                	break;
++                case 0xa978:
++                	s3d.lystart = val & 0x7ff;
++                	break;
++                case 0xa97c:
++                	s3d.lycnt = val & 0x7ff;
++                	s3d.line_dir = val >> 31;
++                	if (s3d.cmd_set & CMD_SET_AE)
++                        	s3_virge_bitblt(-1, 0);
++                	break;
++                case 0xad00:
++                	s3d.cmd_set = val;
++                	if (!(val & CMD_SET_AE))
++                        	s3_virge_bitblt(-1, 0);
++                	break;
++                case 0xad68:
++                	s3d.prdx = val;
++                	break;
++                case 0xad6c:
++                	s3d.prxstart = val;
++                	break;
++                case 0xad70:
++                	s3d.pldx = val;
++                	break;
++                case 0xad74:
++               	s3d.plxstart = val;
++                	break;
++                case 0xad78:
++                	s3d.pystart = val & 0x7ff;
++                	break;
++                case 0xad7c:
++                	s3d.pycnt = val & 0x300007ff;
++                	if (s3d.cmd_set & CMD_SET_AE)
++                        	s3_virge_bitblt(-1, 0);
++                	break;
++              	case 0xb4d4:
++			s3d_tri.z_base = val & 0x3ffff8;
++			break;
++                case 0xb4d8:
++			s3d_tri.dest_base = val & 0x3ffff8;
++			break;
++                case 0xb4dc:
++			s3d_tri.clip_l = (val >> 16) & 0x7ff;
++			s3d_tri.clip_r = val & 0x7ff;
++                	break;
++                case 0xb4e0:
++                	s3d_tri.clip_t = (val >> 16) & 0x7ff;
++                	s3d_tri.clip_b = val & 0x7ff;
++                	break;
++                case 0xb4e4:
++                	s3d_tri.dest_str = (val >> 16) & 0xff8;
++                	s3d.src_str = val & 0xff8;
++                	break;
++                case 0xb4e8:
++                	s3d_tri.z_str = val & 0xff8;
++                	break;
++                case 0xb4ec:
++                	s3d_tri.tex_base = val & 0x3ffff8;
++                	break;
++                case 0xb4f0:
++                	s3d_tri.tex_bdr_clr = val & 0xffffff;
++                	break;
++                case 0xb500:
++	                s3d_tri.cmd_set = val;
++        	        if (!(val & CMD_SET_AE))
++                	        s3_virge_triangle();
++                	break;
++                case 0xb504:
++                	s3d_tri.tbv = val & 0xfffff;
++                	break;
++                case 0xb508:
++                	s3d_tri.tbu = val & 0xfffff;
++                	break;
++                case 0xb50c:
++                	s3d_tri.TdWdX = val;
++                	break;
++                case 0xb510:
++                	s3d_tri.TdWdY = val;
++                	break;
++                case 0xb514:
++                	s3d_tri.tws = val;
++                	break;
++                case 0xb518:
++                	s3d_tri.TdDdX = val;
++                	break;
++                case 0xb51c:
++                	s3d_tri.TdVdX = val;
++                	break;
++                case 0xb520:
++                	s3d_tri.TdUdX = val;
++                	break;
++                case 0xb524:
++                	s3d_tri.TdDdY = val;
++                	break;
++                case 0xb528:
++               	s3d_tri.TdVdY = val;
++                	break;
++                case 0xb52c:
++               	s3d_tri.TdUdY = val;
++                	break;
++                case 0xb530:
++                	s3d_tri.tds = val;
++                	break;
++                case 0xb534:
++                	s3d_tri.tvs = val;
++                	break;
++                case 0xb538:
++                	s3d_tri.tus = val;
++                	break;
++                case 0xb53c:
++                	s3d_tri.TdGdX = val >> 16;
++                	s3d_tri.TdBdX = val & 0xffff;
++                	break;
++                case 0xb540:
++                	s3d_tri.TdAdX = val >> 16;
++                	s3d_tri.TdRdX = val & 0xffff;
++               		break;
++                case 0xb544:
++                	s3d_tri.TdGdY = val >> 16;
++                	s3d_tri.TdBdY = val & 0xffff;
++                	break;
++                case 0xb548:
++                	s3d_tri.TdAdY = val >> 16;
++                	s3d_tri.TdRdY = val & 0xffff;
++                	break;
++                case 0xb54c:
++                	s3d_tri.tgs = (val >> 16) & 0xffff;
++                	s3d_tri.tbs = val & 0xffff;
++                	break;
++                case 0xb550:
++                	s3d_tri.tas = (val >> 16) & 0xffff;
++                	s3d_tri.trs = val & 0xffff;
++                	break;
++                case 0xb554:
++                	s3d_tri.TdZdX = val;
++                	break;
++                case 0xb558:
++                	s3d_tri.TdZdY = val;
++                	break;
++                case 0xb55c:
++                	s3d_tri.tzs = val;
++                	break;
++                case 0xb560:
++                	s3d_tri.TdXdY12 = val;
++                	break;
++                case 0xb564:
++                	s3d_tri.txend12 = val;
++                	break;
++                case 0xb568:
++                	s3d_tri.TdXdY01 = val;
++                	break;
++                case 0xb56c:
++                	s3d_tri.txend01 = val;
++                	break;
++                case 0xb570:
++                	s3d_tri.TdXdY02 = val;
++                	break;
++                case 0xb574:
++                	s3d_tri.txs = val;
++                	break;
++                case 0xb578:
++                	s3d_tri.tys = val;
++                	break;
++                case 0xb57c:
++                	s3d_tri.ty01 = (val >> 16) & 0x7ff;
++                	s3d_tri.ty12 = val & 0x7ff;
++                	s3d_tri.tlr = val >> 31;
++                if (s3d_tri.cmd_set & CMD_SET_AE)
++                        s3_virge_triangle();
+ 		default:
+-			if(port <= 0x4000) {
+-				//LOG_MSG("XGA: Wrote to port %4x with %08x, len %x", port, val, len);
++			/* if(port <= 0x4000) {
++				// LOG_MSG("XGA: Wrote to port %4x with %08x, len %x", port, val, len);
+ 				xga.waitcmd.newline = false;
+ 				XGA_DrawWait(val, len);
+ 				
+ 			}
+-			else LOG_MSG("XGA: Wrote to port %x with %x, len %x", (int)port, (int)val, (int)len);
++			else LOG_MSG("XGA: Wrote to port %x with %x, len %x", (int)port, (int)val, (int)len); */
+ 			break;
+ 	}
++	}
+ }
+ 
+ Bitu XGA_Read(Bitu port, Bitu len) {
+-	switch(port) {
++	// LOG_MSG("XGA: Read from port %x, len %x", port, len);
++
++	switch(port & 0xffff) {
+ 		case 0x8118:
+ 		case 0x9ae8:
+ 			return 0x400; // nothing busy
+@@ -1208,11 +1676,11 @@ Bitu XGA_Read(Bitu port, Bitu len) {
+ 				break;
+ 			}
+ 		case 0x83d4:
+-			if(len==1) return vga_read_p3d4(0,0);
++			if(len==1) return vga_read_p3d4(port & 0x3ff, 1); // vga_read_p3d4(0,0);	// this change untested
+ 			else E_Exit("unimplemented XGA MMIO");
+ 			break;
+ 		case 0x83d5:
+-			if(len==1) return vga_read_p3d5(0,0);
++			if(len==1) return vga_read_p3d4(port & 0x3ff, 1); // return vga_read_p3d5(0,0);	// this change untested
+ 			else E_Exit("unimplemented XGA MMIO");
+ 			break;
+ 		case 0x9ae9:
+@@ -1232,8 +1700,60 @@ Bitu XGA_Read(Bitu port, Bitu len) {
+ 		case 0xaee8:
+ 			return XGA_GetDualReg(xga.readmask);
+ 			break;
++		case 0x8504:
++			if (s3d_busy){
++				return (0x10 << 8);
++			}else{
++				return (0x10 << 8) | (1 << 13);
++			}
++			break;
++                case 0xa4d4: case 0xa8d4:
++               	return s3d.src_base;
++                	break;
++                case 0xa4d8: case 0xa8d8:
++                	return s3d.dest_base;
++                	break;
++                case 0xa4dc: case 0xa8dc:
++                	return (s3d.clip_l << 16) | (s3d.clip_r);
++                	break;
++                case 0xa4e0: case 0xa8e0:
++                	return (s3d.clip_t << 16) | (s3d.clip_b);
++                	break;
++                case 0xa4e4: case 0xa8e4:
++                	return (s3d.dest_str << 16) | (s3d.src_str);
++                	break;
++                case 0xa4e8: case 0xace8:
++                	return s3d.mono_pat_0;
++                	break;
++                case 0xa4ec: case 0xacec:
++                	return s3d.mono_pat_1;
++                	break;
++                case 0xa4f0:
++                	return s3d.pat_bg_clr;
++                	break;
++                case 0xa4f4: case 0xa8f4: case 0xacf4:
++                	return s3d.pat_fg_clr;
++                	break;
++                case 0xa4f8:
++                	return s3d.src_bg_clr;
++                	break;
++                case 0xa4fc:
++                	return s3d.src_fg_clr;
++                	break;
++                case 0xa500:
++                	return s3d.cmd_set;
++               	break;
++                case 0xa504:
++                	return (s3d.r_width << 16) | (s3d.r_height);
++                	break;
++                case 0xa508:
++                	return (s3d.rsrc_x << 16) | (s3d.rsrc_y);
++                	break;
++                case 0xa50c:
++                	return (s3d.rdest_x << 16) | (s3d.rdest_y);
++                	break;
+ 		default:
+-			//LOG_MSG("XGA: Read from port %x, len %x", port, len);
++			LOG_MSG("XGA: Read from port %x, len %x", port, len);
+ 			break;
+ 	}
+ 	return 0xffffffff; 
+@@ -1338,3 +1858,1628 @@ void VGA_SetupXGA(void) {
+ 	IO_RegisterWriteHandler(0xe2ea,&XGA_Write,IO_MB | IO_MW | IO_MD);
+ 	IO_RegisterReadHandler(0xe2ea,&XGA_Read,IO_MB | IO_MW | IO_MD);
+ }
++
++
++/* DEFINITIONS FOR BLITTER */
++
++#define READ(addr, val)                                                                         \
++        {                                                                                       \
++                switch (bpp)                                                                    \
++                {                                                                               \
++                        case 0: /*8 bpp*/                                                       \
++                        val=vga.mem.linear[addr & 0x3fffff];                                	 \
++                        break;                                                                  \
++                        case 1: /*16 bpp*/                                                      \
++                        val=((Bit16u*)(vga.mem.linear))[addr & 0x3fffff];   			 \
++                        break;                                                                  \
++                }                                                                             	 \
++	}  
++
++#define Z_READ(addr) ((Bit16u*)(vga.mem.linear))[addr & 0x3fffff]
++
++#define Z_WRITE(addr, val) if (!(s3d_tri.cmd_set & CMD_SET_ZB_MODE)) ((Bit16u*)(vga.mem.linear))[addr & 0x3fffff] = val
++
++#define CLIP(x, y)                                              \
++        {                                                       \
++                if ((s3d.cmd_set & CMD_SET_HC) &&     \
++                    (x < s3d.clip_l ||                \
++                     x > s3d.clip_r ||                \
++                     y < s3d.clip_t ||                \
++                     y > s3d.clip_b))                 \
++                        update = 0;                   \
++		}          
++
++#define CLIP_3D(x, y)                                          \
++        {                                                      \
++                if ((s3d_tri.cmd_set & CMD_SET_HC) &&        	\
++                    (x < s3d_tri.clip_l ||                   	\
++                     x > s3d_tri.clip_r ||                   	\
++                     y < s3d_tri.clip_t ||                   	\
++                     y > s3d_tri.clip_b))                    	\
++                        update = 0;                            \
++	} 
++
++#define Z_CLIP(Zzb, Zs)                                                 		\
++        {                                                              		\
++                if (!(s3d_tri.cmd_set & CMD_SET_ZB_MODE))            			\
++                switch ((s3d_tri.cmd_set >> 20) & 7)                 			\
++                {                                                       		\
++                        case 0: update = 0; break;                      		\
++                        case 1: if (Zs <= Zzb) update = 0; else Zzb = Zs; break;       	\
++                        case 2: if (Zs != Zzb) update = 0; else Zzb = Zs; break;       	\
++                        case 3: if (Zs <  Zzb) update = 0; else Zzb = Zs; break;       	\
++                        case 4: if (Zs >= Zzb) update = 0; else Zzb = Zs; break;       	\
++                        case 5: if (Zs == Zzb) update = 0; else Zzb = Zs; break;       	\
++                        case 6: if (Zs >  Zzb) update = 0; else Zzb = Zs; break;       	\
++                        case 7: update = 1; Zzb = Zs; break;                      	\
++                }                                                       		\
++	}
++        
++#define MIX()                                                   \
++        {                                                       \
++                int c;                                          \
++                for (c = 0; c < 24; c++)                        \
++                {                                               \
++                        int d = (dest & (1 << c)) ? 1 : 0;      \
++                        if (source & (1 << c))  d |= 2;         \
++                        if (pattern & (1 << c)) d |= 4;         \
++                        if (s3d.rop & (1 << d)) out |= (1 << c);\
++                }						 \
++	}
++
++#define WRITE(addr, val)                                                                        \
++        {                                                                                       \
++                switch (bpp)                                                                    \
++                {                                                                               \
++                        case 0: /*8 bpp*/                                                       \
++			 vga.mem.linear[addr & 0x3fffff]=val;					 \
++                        break;                                                                  \
++                        case 1: /*16 bpp*/                                                      \
++			 ((Bit16u*)(vga.mem.linear))[addr & 0x3fffff]=val; 			 \
++                        break;                                                                  \
++                }										 \
++	}
++
++/* END OF DEFINITIONS FOR BLITTER */
++
++void s3_virge_bitblt(int count, uint32_t cpu_dat)
++{
++        uint32_t mono_pattern[64];
++        int count_mask;
++        int x_inc = (s3d.cmd_set & CMD_SET_XP) ? 1 : -1;
++        int y_inc = (s3d.cmd_set & CMD_SET_YP) ? 1 : -1;
++        int bpp;
++        int x_mul;
++        int cpu_dat_shift;
++        uint32_t *pattern_data;
++        
++        switch (s3d.cmd_set & CMD_SET_FORMAT_MASK)
++        {
++                case CMD_SET_FORMAT_8:
++                bpp = 0;
++                x_mul = 1;
++                cpu_dat_shift = 8;
++                pattern_data = s3d.pattern_8;
++                break;
++                case CMD_SET_FORMAT_16:
++                bpp = 1;
++                x_mul = 2;
++                cpu_dat_shift = 16;
++                pattern_data = s3d.pattern_16;
++                break;
++        }
++        if (s3d.cmd_set & CMD_SET_MP)
++                pattern_data = mono_pattern;
++        
++        switch (s3d.cmd_set & CMD_SET_ITA_MASK)
++        {
++                case CMD_SET_ITA_BYTE:
++                count_mask = ~0x7;
++                break;
++                case CMD_SET_ITA_WORD:
++                count_mask = ~0xf;
++                break;
++                case CMD_SET_ITA_DWORD:
++                default:
++                count_mask = ~0x1f;
++                break;
++        }
++        if (s3d.cmd_set & CMD_SET_MP)
++        {
++                int x, y;
++                for (y = 0; y < 4; y++)
++                {
++                        for (x = 0; x < 8; x++)
++                        {
++                                if (s3d.mono_pat_0 & (1 << (x + y*8)))
++                                        mono_pattern[y*8 + x] = s3d.pat_fg_clr;
++                                else
++                                        mono_pattern[y*8 + x] = s3d.pat_bg_clr;
++                                if (s3d.mono_pat_1 & (1 << (x + y*8)))
++                                        mono_pattern[(y+4)*8 + x] = s3d.pat_fg_clr;
++                                else
++                                        mono_pattern[(y+4)*8 + x] = s3d.pat_bg_clr;
++                        }
++                }
++        }
++        switch (s3d.cmd_set & CMD_SET_COMMAND_MASK)
++        {
++                case CMD_SET_COMMAND_NOP:
++                break;
++                
++                case CMD_SET_COMMAND_BITBLT:
++                if (count == -1)
++                {
++                        s3d.src_x = s3d.rsrc_x;
++                        s3d.src_y = s3d.rsrc_y;
++                        s3d.dest_x = s3d.rdest_x;
++                        s3d.dest_y = s3d.rdest_y;
++                        s3d.w = s3d.r_width;
++                        s3d.h = s3d.r_height;
++                        s3d.rop = (s3d.cmd_set >> 17) & 0xff;
++                        s3d.data_left_count = 0;
++                        
++/*                        LOG_MSG("BitBlt start %i,%i %i,%i %i,%i %02X %x %x\n",
++                                                                 s3d.src_x,
++                                                                 s3d.src_y,
++                                                                 s3d.dest_x,
++                                                                 s3d.dest_y,
++                                                                 s3d.w,
++                                                                 s3d.h,
++                                                                 s3d.rop,
++                                                                 s3d.src_base,
++                                                                 s3d.dest_base);*/
++                        
++                        if (s3d.cmd_set & CMD_SET_IDS)
++                                return;
++                }
++                if (!s3d.h)
++                        return;
++                while (count)
++                {
++                        uint32_t src_addr;
++			 src_addr = s3d.src_base + (s3d.src_x * x_mul) + (s3d.src_y * s3d.src_str);
++                        uint32_t dest_addr;
++			 dest_addr = s3d.dest_base + (s3d.dest_x * x_mul) + (s3d.dest_y * s3d.dest_str);
++                        uint32_t source, dest, pattern;
++                        uint32_t out = 0;
++                        int update = 1;
++
++                        switch (s3d.cmd_set & (CMD_SET_MS | CMD_SET_IDS))
++                        {
++                                case 0:
++                                case CMD_SET_MS:
++                                READ(src_addr, source);
++                                if ((s3d.cmd_set & CMD_SET_TP) && source == s3d.src_fg_clr)
++                                        update = 0;
++                                break;
++                                case CMD_SET_IDS:
++                                if (s3d.data_left_count)
++                                {
++                                        /*Handle shifting for 24-bit data*/
++                                        source = s3d.data_left;
++                                        source |= ((cpu_dat << s3d.data_left_count) & ~0xff000000);
++                                        cpu_dat >>= (cpu_dat_shift - s3d.data_left_count);
++                                        count -= (cpu_dat_shift - s3d.data_left_count);
++                                        s3d.data_left_count = 0;
++                                        if (count < cpu_dat_shift)
++                                        {
++                                                s3d.data_left = cpu_dat;
++                                                s3d.data_left_count = count;
++                                                count = 0;
++                                        }
++                                }
++                                else
++                                {
++                                        source = cpu_dat;
++                                        cpu_dat >>= cpu_dat_shift;
++                                        count -= cpu_dat_shift;
++                                        if (count < cpu_dat_shift)
++                                        {
++                                                s3d.data_left = cpu_dat;
++                                                s3d.data_left_count = count;
++                                                count = 0;
++                                        }
++                                }
++                                if ((s3d.cmd_set & CMD_SET_TP) && source == s3d.src_fg_clr)
++                                        update = 0;
++                                break;
++                                case CMD_SET_IDS | CMD_SET_MS:
++                                source = (cpu_dat & (1 << 31)) ? s3d.src_fg_clr : s3d.src_bg_clr;
++                                if ((s3d.cmd_set & CMD_SET_TP) && !(cpu_dat & (1 << 31)))
++                                        update = 0;
++                                cpu_dat <<= 1;
++                                count--;
++                                break;
++                        }
++
++                        CLIP(s3d.dest_x, s3d.dest_y);
++
++                        if (update)
++                        {
++                                READ(dest_addr, dest);
++                                pattern = pattern_data[(s3d.dest_y & 7)*8 + (s3d.dest_x & 7)];
++                                MIX();
++
++                                WRITE(dest_addr, out);
++                        }
++                
++                        s3d.src_x += x_inc;
++                        s3d.dest_x += x_inc;
++                        if (!s3d.w)
++                        {
++                                s3d.src_x = s3d.rsrc_x;
++                                s3d.dest_x = s3d.rdest_x;
++                                s3d.w = s3d.r_width;
++
++                                s3d.src_y += y_inc;
++                                s3d.dest_y += y_inc;
++                                s3d.h--;
++                                
++                                switch (s3d.cmd_set & (CMD_SET_MS | CMD_SET_IDS))
++                                {
++                                        case CMD_SET_IDS:
++                                        cpu_dat >>= (count - (count & count_mask));
++                                        count &= count_mask;
++                                        s3d.data_left_count = 0;
++                                        break;
++
++                                        case CMD_SET_IDS | CMD_SET_MS:
++                                        cpu_dat <<= (count - (count & count_mask));
++                                        count &= count_mask;
++                                        break;
++                                }
++                                if (!s3d.h)
++                                {
++                                        return;
++                                }
++                        }
++                        else
++                                s3d.w--;                        
++                }
++                break;
++                
++                case CMD_SET_COMMAND_RECTFILL:
++                /*No source, pattern = pat_fg_clr*/
++                if (count == -1)
++                {
++                        s3d.src_x = s3d.rsrc_x;
++                        s3d.src_y = s3d.rsrc_y;
++                        s3d.dest_x = s3d.rdest_x;
++                        s3d.dest_y = s3d.rdest_y;
++                        s3d.w = s3d.r_width;
++                        s3d.h = s3d.r_height;
++                        s3d.rop = (s3d.cmd_set >> 17) & 0xff;
++                        
++/*                        LOG_MSG("RctFll start %i,%i %i,%i %02X %08x\n", s3d.dest_x,
++                                                                 s3d.dest_y,
++                                                                 s3d.w,
++                                                                 s3d.h,
++                                                                 s3d.rop, s3d.dest_base);*/
++                }
++
++                while (count && s3d.h)
++                {
++                        uint32_t dest_addr;
++			 dest_addr = s3d.dest_base + (s3d.dest_x * x_mul) + (s3d.dest_y * s3d.dest_str);
++                        uint32_t source, pattern, out, dest;
++			 int update;
++			 source = 0;
++			 pattern = s3d.pat_fg_clr;
++                        out = 0;
++                        update = 1;
++
++                        CLIP(s3d.dest_x, s3d.dest_y);
++
++                        if (update)
++                        {
++                                READ(dest_addr, dest);
++
++                                MIX();
++
++                                WRITE(dest_addr, out);
++                        }
++
++                        s3d.src_x += x_inc;
++                        s3d.dest_x += x_inc;
++                        if (!s3d.w)
++                        {
++                                s3d.src_x = s3d.rsrc_x;
++                                s3d.dest_x = s3d.rdest_x;
++                                s3d.w = s3d.r_width;
++
++                                s3d.src_y += y_inc;
++                                s3d.dest_y += y_inc;
++                                s3d.h--;
++                                if (!s3d.h)
++                                {
++                                        return;
++                                }
++                        }
++                        else
++                                s3d.w--;                        
++                        count--;
++                }
++                break;
++                
++                case CMD_SET_COMMAND_LINE:
++                if (count == -1)
++                {
++                        s3d.dest_x = s3d.lxstart;
++                        s3d.dest_y = s3d.lystart;
++                        s3d.h = s3d.lycnt;
++                        s3d.rop = (s3d.cmd_set >> 17) & 0xff;
++                }
++                while (s3d.h)
++                {
++                        int x;
++                        int new_x;
++                        int first_pixel;
++			 first_pixel = 1;
++                        
++                        x = s3d.dest_x >> 20;
++
++                        if (s3d.h == s3d.lycnt &&
++                           ((s3d.line_dir && x > s3d.lxend0) ||
++                           (!s3d.line_dir && x < s3d.lxend0)))
++                                x = s3d.lxend0;
++
++                        if (s3d.h == 1)
++                                new_x = s3d.lxend1 + (s3d.line_dir ? 1 : -1);
++                        else
++                                new_x = (s3d.dest_x + s3d.ldx) >> 20;
++
++                        
++                        if ((s3d.line_dir && x > new_x) ||
++                            (!s3d.line_dir && x < new_x))
++                                goto skip_line;
++                                
++                        do
++                        {
++                                uint32_t dest_addr;
++				 dest_addr = s3d.dest_base + (x * x_mul) + (s3d.dest_y * s3d.dest_str);
++                                uint32_t source, dest, pattern, out;
++				 source = 0;
++                                out = 0;
++                                int update;
++				 update = 1;
++
++                                if ((s3d.h == s3d.lycnt || !first_pixel) &&
++                                   ((s3d.line_dir && x < s3d.lxend0) ||
++                                   (!s3d.line_dir && x > s3d.lxend0)))
++                                        update = 0;
++
++                                if ((s3d.h == 1  || !first_pixel) &&
++                                   ((s3d.line_dir && x > s3d.lxend1) ||
++                                   (!s3d.line_dir && x < s3d.lxend1)))
++                                        update = 0;
++
++                                CLIP(x, s3d.dest_y);
++
++                                if (update)
++                                {
++                                        READ(dest_addr, dest);
++                                        pattern = s3d.pat_fg_clr;
++
++                                        MIX();
++
++                                        WRITE(dest_addr, out);
++                                }
++                                
++                                if (x < new_x)
++                                        x++;
++                                else if (x > new_x)
++                                        x--;
++                                first_pixel = 0;
++                        } while (x != new_x);
++
++skip_line:
++                        s3d.dest_x += s3d.ldx;
++                        s3d.dest_y--;
++                        s3d.h--;
++                }
++                break;
++
++                case CMD_SET_COMMAND_POLY:
++                /*No source*/
++                if (s3d.pycnt & (1 << 28))
++                        s3d.dest_r = s3d.prxstart;
++                if (s3d.pycnt & (1 << 29))
++                        s3d.dest_l = s3d.plxstart;
++                s3d.h = s3d.pycnt & 0x7ff;
++                s3d.rop = (s3d.cmd_set >> 17) & 0xff;
++                //LOG_MSG("Start poly - l=%08x r=%08x h=%i rop=%02x\n", s3d.dest_l, s3d.dest_r, s3d.h, s3d.rop);
++                while (s3d.h)
++                {
++                        int x, xend, y, xdir;
++			 x = s3d.dest_l >> 20;
++                        xend = s3d.dest_r >> 20;
++                        y = s3d.pystart & 0x7ff;
++                        xdir = (x < xend) ? 1 : -1;
++                        //LOG_MSG(" %03i: %i - %i  %08x-%08x\n", y, x, xend, s3d.dest_l, s3d.dest_r);
++                        do
++                        {
++                                uint32_t dest_addr;
++				 dest_addr = s3d.dest_base + (x * x_mul) + (y * s3d.dest_str);
++                                uint32_t source, dest, pattern, out;
++				 source = 0;
++                                out = 0;
++                                int update;
++				 update = 1;
++
++                                CLIP(x, y);
++
++                                if (update)
++                                {
++                                        READ(dest_addr, dest);
++                                        pattern = pattern_data[(y & 7)*8 + (x & 7)];
++                                        MIX();
++
++                                        WRITE(dest_addr, out);
++                                }
++                                
++                                x = (x + xdir) & 0x7ff;
++                        }
++                        while (x != (xend + xdir));
++
++                        s3d.dest_l += s3d.pldx;
++                        s3d.dest_r += s3d.prdx;
++                        s3d.h--;
++                        s3d.pystart = (s3d.pystart - 1) & 0x7ff;
++                }
++                break;
++
++                default:
++                E_Exit("s3_virge_bitblt : blit command %i %08x\n", (s3d.cmd_set >> 27) & 0xf, s3d.cmd_set);
++        }
++}
++
++
++#define RGB15_TO_24(val, r, g, b) b = ((val & 0x001f) << 3) | ((val & 0x001f) >> 2);     \
++                                  g = ((val & 0x03e0) >> 2) | ((val & 0x03e0) >> 7);     \
++                                  r = ((val & 0x7c00) >> 7) | ((val & 0x7c00) >> 12);
++
++#define RGB24_TO_24(val, r, g, b) b = val & 0xff;             \
++                                  g = (val & 0xff00) >> 8;    \
++                                  r = (val & 0xff0000) >> 16
++
++#define RGB15(r, g, b, dest) \
++        if (dithering_enabled)                           \
++        {                                                       \
++                int add = dither[_y & 3][_x & 3];               \
++                int _r = (r > 248) ? 248 : r+add;               \
++                int _g = (g > 248) ? 248 : g+add;               \
++                int _b = (b > 248) ? 248 : b+add;               \
++                dest = ((_b >> 3) & 0x1f) | (((_g >> 3) & 0x1f) << 5) | (((_r >> 3) & 0x1f) << 10);     \
++        }                                                                                               \
++        else                                                                                            \
++                dest = ((b >> 3) & 0x1f) | (((g >> 3) & 0x1f) << 5) | (((r >> 3) & 0x1f) << 10)
++
++#define RGB24(r, g, b) ((b) | ((g) << 8) | ((r) << 16))
++
++static void (*tex_read)(s3d_state_t *state, s3d_texture_state_t *texture_state, rgba_t *out);
++static void (*tex_sample)(s3d_state_t *state);
++static void (*dest_pixel)(s3d_state_t *state);
++
++#define MAX(a, b) ((a) > (b) ? (a) : (b))
++#define MIN(a, b) ((a) < (b) ? (a) : (b))
++
++static int _x, _y;
++
++static void tex_ARGB1555(s3d_state_t *state, s3d_texture_state_t *texture_state, rgba_t *out)
++{
++        int offset = ((texture_state->u & 0x7fc0000) >> texture_state->texture_shift) +
++                     (((texture_state->v & 0x7fc0000) >> texture_state->texture_shift) << texture_state->level);
++        uint16_t val = state->texture[texture_state->level][offset];
++
++        out->r = ((val & 0x7c00) >> 7) | ((val & 0x7000) >> 12);
++        out->g = ((val & 0x03e0) >> 2) | ((val & 0x0380) >> 7);
++        out->b = ((val & 0x001f) << 3) | ((val & 0x001c) >> 2);
++        out->a = (val & 0x8000) ? 0xff : 0;
++}
++
++static void tex_ARGB1555_nowrap(s3d_state_t *state, s3d_texture_state_t *texture_state, rgba_t *out)
++{
++        int offset = ((texture_state->u & 0x7fc0000) >> texture_state->texture_shift) +
++                     (((texture_state->v & 0x7fc0000) >> texture_state->texture_shift) << texture_state->level);
++        uint16_t val = state->texture[texture_state->level][offset];
++
++        if (((texture_state->u | texture_state->v) & 0xf8000000) == 0xf8000000)
++                val = state->tex_bdr_clr;
++
++        out->r = ((val & 0x7c00) >> 7) | ((val & 0x7000) >> 12);
++        out->g = ((val & 0x03e0) >> 2) | ((val & 0x0380) >> 7);
++        out->b = ((val & 0x001f) << 3) | ((val & 0x001c) >> 2);
++        out->a = (val & 0x8000) ? 0xff : 0;
++}
++
++static void tex_ARGB4444(s3d_state_t *state, s3d_texture_state_t *texture_state, rgba_t *out)
++{
++        int offset = ((texture_state->u & 0x7fc0000) >> texture_state->texture_shift) +
++                     (((texture_state->v & 0x7fc0000) >> texture_state->texture_shift) << texture_state->level);
++        uint16_t val = state->texture[texture_state->level][offset];
++
++        out->r = ((val & 0x0f00) >> 4) | ((val & 0x0f00) >> 8);
++        out->g = (val & 0x00f0) | ((val & 0x00f0) >> 4);
++        out->b = ((val & 0x000f) << 4) | (val & 0x000f);
++        out->a = ((val & 0xf000) >> 8) | ((val & 0xf000) >> 12);
++}
++
++static void tex_ARGB4444_nowrap(s3d_state_t *state, s3d_texture_state_t *texture_state, rgba_t *out)
++{
++        int offset = ((texture_state->u & 0x7fc0000) >> texture_state->texture_shift) +
++                     (((texture_state->v & 0x7fc0000) >> texture_state->texture_shift) << texture_state->level);
++        uint16_t val = state->texture[texture_state->level][offset];
++
++        if (((texture_state->u | texture_state->v) & 0xf8000000) == 0xf8000000)
++                val = state->tex_bdr_clr;
++
++        out->r = ((val & 0x0f00) >> 4) | ((val & 0x0f00) >> 8);
++        out->g = (val & 0x00f0) | ((val & 0x00f0) >> 4);
++        out->b = ((val & 0x000f) << 4) | (val & 0x000f);
++        out->a = ((val & 0xf000) >> 8) | ((val & 0xf000) >> 12);
++}
++
++static void tex_ARGB8888(s3d_state_t *state, s3d_texture_state_t *texture_state, rgba_t *out)
++{
++        int offset = ((texture_state->u & 0x7fc0000) >> texture_state->texture_shift) +
++                     (((texture_state->v & 0x7fc0000) >> texture_state->texture_shift) << texture_state->level);
++        uint32_t val = ((uint32_t *)state->texture[texture_state->level])[offset];
++
++        out->r = (val >> 16) & 0xff;
++        out->g = (val >> 8)  & 0xff;
++        out->b =  val        & 0xff;
++        out->a = (val >> 24) & 0xff;
++}
++static void tex_ARGB8888_nowrap(s3d_state_t *state, s3d_texture_state_t *texture_state, rgba_t *out)
++{
++        int offset = ((texture_state->u & 0x7fc0000) >> texture_state->texture_shift) +
++                     (((texture_state->v & 0x7fc0000) >> texture_state->texture_shift) << texture_state->level);
++        uint32_t val = ((uint32_t *)state->texture[texture_state->level])[offset];
++
++        if (((texture_state->u | texture_state->v) & 0xf8000000) == 0xf8000000)
++                val = state->tex_bdr_clr;
++
++        out->r = (val >> 16) & 0xff;
++        out->g = (val >> 8)  & 0xff;
++        out->b =  val        & 0xff;
++        out->a = (val >> 24) & 0xff;
++}
++
++static void tex_sample_normal(s3d_state_t *state)
++{
++        s3d_texture_state_t texture_state;
++        
++        texture_state.level = state->max_d;
++        texture_state.texture_shift = 18 + (9 - texture_state.level);
++        texture_state.u = state->u + state->tbu;
++        texture_state.v = state->v + state->tbv;
++
++        tex_read(state, &texture_state, &state->dest_rgba);
++}
++
++static void tex_sample_normal_filter(s3d_state_t *state)
++{
++        s3d_texture_state_t texture_state;
++        int tex_offset;
++        rgba_t tex_samples[4];
++        int du, dv;
++        int d[4];
++
++        texture_state.level = state->max_d;
++        texture_state.texture_shift = 18 + (9 - texture_state.level);
++        tex_offset = 1 << texture_state.texture_shift;
++
++        texture_state.u = state->u + state->tbu;
++        texture_state.v = state->v + state->tbv;
++        tex_read(state, &texture_state, &tex_samples[0]);
++        du = (texture_state.u >> (texture_state.texture_shift - 8)) & 0xff;
++        dv = (texture_state.v >> (texture_state.texture_shift - 8)) & 0xff;
++
++        texture_state.u = state->u + state->tbu + tex_offset;
++        texture_state.v = state->v + state->tbv;
++        tex_read(state, &texture_state, &tex_samples[1]);
++
++        texture_state.u = state->u + state->tbu;
++        texture_state.v = state->v + state->tbv + tex_offset;
++        tex_read(state, &texture_state, &tex_samples[2]);
++
++        texture_state.u = state->u + state->tbu + tex_offset;
++        texture_state.v = state->v + state->tbv + tex_offset;
++        tex_read(state, &texture_state, &tex_samples[3]);
++        
++        d[0] = (256 - du) * (256 - dv);
++        d[1] =  du * (256 - dv);
++        d[2] = (256 - du) * dv;
++        d[3] = du * dv;
++        
++        state->dest_rgba.r = (tex_samples[0].r * d[0] + tex_samples[1].r * d[1] + tex_samples[2].r * d[2] + tex_samples[3].r * d[3]) >> 16;
++        state->dest_rgba.g = (tex_samples[0].g * d[0] + tex_samples[1].g * d[1] + tex_samples[2].g * d[2] + tex_samples[3].g * d[3]) >> 16;
++        state->dest_rgba.b = (tex_samples[0].b * d[0] + tex_samples[1].b * d[1] + tex_samples[2].b * d[2] + tex_samples[3].b * d[3]) >> 16;
++        state->dest_rgba.a = (tex_samples[0].a * d[0] + tex_samples[1].a * d[1] + tex_samples[2].a * d[2] + tex_samples[3].a * d[3]) >> 16;
++}
++
++static void tex_sample_mipmap(s3d_state_t *state)
++{
++        s3d_texture_state_t texture_state;
++
++        texture_state.level = (state->d < 0) ? state->max_d : state->max_d - ((state->d >> 27) & 0xf);
++        if (texture_state.level < 0)
++                texture_state.level = 0;
++        texture_state.texture_shift = 18 + (9 - texture_state.level);
++        texture_state.u = state->u + state->tbu;
++        texture_state.v = state->v + state->tbv;
++
++        tex_read(state, &texture_state, &state->dest_rgba);
++}
++
++static void tex_sample_mipmap_filter(s3d_state_t *state)
++{
++        s3d_texture_state_t texture_state;
++        int tex_offset;
++        rgba_t tex_samples[4];
++        int du, dv;
++        int d[4];
++
++        texture_state.level = (state->d < 0) ? state->max_d : state->max_d - ((state->d >> 27) & 0xf);
++        if (texture_state.level < 0)
++                texture_state.level = 0;
++        texture_state.texture_shift = 18 + (9 - texture_state.level);
++        tex_offset = 1 << texture_state.texture_shift;
++        
++        texture_state.u = state->u + state->tbu;
++        texture_state.v = state->v + state->tbv;
++        tex_read(state, &texture_state, &tex_samples[0]);
++        du = (texture_state.u >> (texture_state.texture_shift - 8)) & 0xff;
++        dv = (texture_state.v >> (texture_state.texture_shift - 8)) & 0xff;
++
++        texture_state.u = state->u + state->tbu + tex_offset;
++        texture_state.v = state->v + state->tbv;
++        tex_read(state, &texture_state, &tex_samples[1]);
++
++        texture_state.u = state->u + state->tbu;
++        texture_state.v = state->v + state->tbv + tex_offset;
++        tex_read(state, &texture_state, &tex_samples[2]);
++
++        texture_state.u = state->u + state->tbu + tex_offset;
++        texture_state.v = state->v + state->tbv + tex_offset;
++        tex_read(state, &texture_state, &tex_samples[3]);
++
++        d[0] = (256 - du) * (256 - dv);
++        d[1] =  du * (256 - dv);
++        d[2] = (256 - du) * dv;
++        d[3] = du * dv;
++        
++        state->dest_rgba.r = (tex_samples[0].r * d[0] + tex_samples[1].r * d[1] + tex_samples[2].r * d[2] + tex_samples[3].r * d[3]) >> 16;
++        state->dest_rgba.g = (tex_samples[0].g * d[0] + tex_samples[1].g * d[1] + tex_samples[2].g * d[2] + tex_samples[3].g * d[3]) >> 16;
++        state->dest_rgba.b = (tex_samples[0].b * d[0] + tex_samples[1].b * d[1] + tex_samples[2].b * d[2] + tex_samples[3].b * d[3]) >> 16;
++        state->dest_rgba.a = (tex_samples[0].a * d[0] + tex_samples[1].a * d[1] + tex_samples[2].a * d[2] + tex_samples[3].a * d[3]) >> 16;
++}
++
++static void tex_sample_persp_normal(s3d_state_t *state)
++{
++        s3d_texture_state_t texture_state;
++        int32_t w = 0;
++
++        if (state->w)
++                w = (int32_t)(((1ULL << 27) << 19) / (int64_t)state->w);
++        
++        texture_state.level = state->max_d;
++        texture_state.texture_shift = 18 + (9 - texture_state.level);      
++        texture_state.u = (int32_t)(((int64_t)state->u * (int64_t)w) >> (12 + state->max_d)) + state->tbu;
++        texture_state.v = (int32_t)(((int64_t)state->v * (int64_t)w) >> (12 + state->max_d)) + state->tbv;
++
++        tex_read(state, &texture_state, &state->dest_rgba);
++}
++
++static void tex_sample_persp_normal_filter(s3d_state_t *state)
++{
++        s3d_texture_state_t texture_state;
++        int32_t w = 0, u, v;
++        int tex_offset;
++        rgba_t tex_samples[4];
++        int du, dv;
++        int d[4];
++
++        if (state->w)
++                w = (int32_t)(((1ULL << 27) << 19) / (int64_t)state->w);
++
++        u = (int32_t)(((int64_t)state->u * (int64_t)w) >> (12 + state->max_d)) + state->tbu;
++        v = (int32_t)(((int64_t)state->v * (int64_t)w) >> (12 + state->max_d)) + state->tbv;
++
++        texture_state.level = state->max_d;
++        texture_state.texture_shift = 18 + (9 - texture_state.level);
++        tex_offset = 1 << texture_state.texture_shift;
++        
++        texture_state.u = u;
++        texture_state.v = v;
++        tex_read(state, &texture_state, &tex_samples[0]);
++        du = (u >> (texture_state.texture_shift - 8)) & 0xff;
++        dv = (v >> (texture_state.texture_shift - 8)) & 0xff;
++
++        texture_state.u = u + tex_offset;
++        texture_state.v = v;
++        tex_read(state, &texture_state, &tex_samples[1]);
++
++        texture_state.u = u;
++        texture_state.v = v + tex_offset;
++        tex_read(state, &texture_state, &tex_samples[2]);
++
++        texture_state.u = u + tex_offset;
++        texture_state.v = v + tex_offset;
++        tex_read(state, &texture_state, &tex_samples[3]);
++
++        d[0] = (256 - du) * (256 - dv);
++        d[1] =  du * (256 - dv);
++        d[2] = (256 - du) * dv;
++        d[3] = du * dv;
++        
++        state->dest_rgba.r = (tex_samples[0].r * d[0] + tex_samples[1].r * d[1] + tex_samples[2].r * d[2] + tex_samples[3].r * d[3]) >> 16;
++        state->dest_rgba.g = (tex_samples[0].g * d[0] + tex_samples[1].g * d[1] + tex_samples[2].g * d[2] + tex_samples[3].g * d[3]) >> 16;
++        state->dest_rgba.b = (tex_samples[0].b * d[0] + tex_samples[1].b * d[1] + tex_samples[2].b * d[2] + tex_samples[3].b * d[3]) >> 16;
++        state->dest_rgba.a = (tex_samples[0].a * d[0] + tex_samples[1].a * d[1] + tex_samples[2].a * d[2] + tex_samples[3].a * d[3]) >> 16;
++}
++
++static void tex_sample_persp_normal_375(s3d_state_t *state)
++{
++        s3d_texture_state_t texture_state;
++        int32_t w = 0;
++
++        if (state->w)
++                w = (int32_t)(((1ULL << 27) << 19) / (int64_t)state->w);
++        
++        texture_state.level = state->max_d;
++        texture_state.texture_shift = 18 + (9 - texture_state.level);      
++        texture_state.u = (int32_t)(((int64_t)state->u * (int64_t)w) >> (8 + state->max_d)) + state->tbu;
++        texture_state.v = (int32_t)(((int64_t)state->v * (int64_t)w) >> (8 + state->max_d)) + state->tbv;
++
++        tex_read(state, &texture_state, &state->dest_rgba);
++}
++
++static void tex_sample_persp_normal_filter_375(s3d_state_t *state)
++{
++        s3d_texture_state_t texture_state;
++        int32_t w = 0, u, v;
++        int tex_offset;
++        rgba_t tex_samples[4];
++        int du, dv;
++        int d[4];
++
++        if (state->w)
++                w = (int32_t)(((1ULL << 27) << 19) / (int64_t)state->w);
++
++        u = (int32_t)(((int64_t)state->u * (int64_t)w) >> (8 + state->max_d)) + state->tbu;
++        v = (int32_t)(((int64_t)state->v * (int64_t)w) >> (8 + state->max_d)) + state->tbv;
++        
++        texture_state.level = state->max_d;
++        texture_state.texture_shift = 18 + (9 - texture_state.level);
++        tex_offset = 1 << texture_state.texture_shift;
++
++        texture_state.u = u;
++        texture_state.v = v;
++        tex_read(state, &texture_state, &tex_samples[0]);
++        du = (u >> (texture_state.texture_shift - 8)) & 0xff;
++        dv = (v >> (texture_state.texture_shift - 8)) & 0xff;
++
++        texture_state.u = u + tex_offset;
++        texture_state.v = v;
++        tex_read(state, &texture_state, &tex_samples[1]);
++
++        texture_state.u = u;
++        texture_state.v = v + tex_offset;
++        tex_read(state, &texture_state, &tex_samples[2]);
++
++        texture_state.u = u + tex_offset;
++        texture_state.v = v + tex_offset;
++        tex_read(state, &texture_state, &tex_samples[3]);
++
++        d[0] = (256 - du) * (256 - dv);
++        d[1] =  du * (256 - dv);
++        d[2] = (256 - du) * dv;
++        d[3] = du * dv;
++        
++        state->dest_rgba.r = (tex_samples[0].r * d[0] + tex_samples[1].r * d[1] + tex_samples[2].r * d[2] + tex_samples[3].r * d[3]) >> 16;
++        state->dest_rgba.g = (tex_samples[0].g * d[0] + tex_samples[1].g * d[1] + tex_samples[2].g * d[2] + tex_samples[3].g * d[3]) >> 16;
++        state->dest_rgba.b = (tex_samples[0].b * d[0] + tex_samples[1].b * d[1] + tex_samples[2].b * d[2] + tex_samples[3].b * d[3]) >> 16;
++        state->dest_rgba.a = (tex_samples[0].a * d[0] + tex_samples[1].a * d[1] + tex_samples[2].a * d[2] + tex_samples[3].a * d[3]) >> 16;
++}
++
++
++static void tex_sample_persp_mipmap(s3d_state_t *state)
++{
++        s3d_texture_state_t texture_state;
++        int32_t w = 0;
++
++        if (state->w)
++                w = (int32_t)(((1ULL << 27) << 19) / (int64_t)state->w);
++        
++        texture_state.level = (state->d < 0) ? state->max_d : state->max_d - ((state->d >> 27) & 0xf);
++        if (texture_state.level < 0)
++                texture_state.level = 0;
++        texture_state.texture_shift = 18 + (9 - texture_state.level);
++        texture_state.u = (int32_t)(((int64_t)state->u * (int64_t)w) >> (12 + state->max_d)) + state->tbu;
++        texture_state.v = (int32_t)(((int64_t)state->v * (int64_t)w) >> (12 + state->max_d)) + state->tbv;
++
++        tex_read(state, &texture_state, &state->dest_rgba);
++}
++
++static void tex_sample_persp_mipmap_filter(s3d_state_t *state)
++{
++        s3d_texture_state_t texture_state;
++        int32_t w = 0, u, v;
++        int tex_offset;
++        rgba_t tex_samples[4];
++        int du, dv;
++        int d[4];
++
++        if (state->w)
++                w = (int32_t)(((1ULL << 27) << 19) / (int64_t)state->w);
++
++        u = (int32_t)(((int64_t)state->u * (int64_t)w) >> (12 + state->max_d)) + state->tbu;
++        v = (int32_t)(((int64_t)state->v * (int64_t)w) >> (12 + state->max_d)) + state->tbv;
++        
++        texture_state.level = (state->d < 0) ? state->max_d : state->max_d - ((state->d >> 27) & 0xf);
++        if (texture_state.level < 0)
++                texture_state.level = 0;
++        texture_state.texture_shift = 18 + (9 - texture_state.level);
++        tex_offset = 1 << texture_state.texture_shift;
++
++        texture_state.u = u;
++        texture_state.v = v;
++        tex_read(state, &texture_state, &tex_samples[0]);
++        du = (u >> (texture_state.texture_shift - 8)) & 0xff;
++        dv = (v >> (texture_state.texture_shift - 8)) & 0xff;
++
++        texture_state.u = u + tex_offset;
++        texture_state.v = v;
++        tex_read(state, &texture_state, &tex_samples[1]);
++
++        texture_state.u = u;
++        texture_state.v = v + tex_offset;
++        tex_read(state, &texture_state, &tex_samples[2]);
++
++        texture_state.u = u + tex_offset;
++        texture_state.v = v + tex_offset;
++        tex_read(state, &texture_state, &tex_samples[3]);
++
++        d[0] = (256 - du) * (256 - dv);
++        d[1] =  du * (256 - dv);
++        d[2] = (256 - du) * dv;
++        d[3] = du * dv;
++        
++        state->dest_rgba.r = (tex_samples[0].r * d[0] + tex_samples[1].r * d[1] + tex_samples[2].r * d[2] + tex_samples[3].r * d[3]) >> 16;
++        state->dest_rgba.g = (tex_samples[0].g * d[0] + tex_samples[1].g * d[1] + tex_samples[2].g * d[2] + tex_samples[3].g * d[3]) >> 16;
++        state->dest_rgba.b = (tex_samples[0].b * d[0] + tex_samples[1].b * d[1] + tex_samples[2].b * d[2] + tex_samples[3].b * d[3]) >> 16;
++        state->dest_rgba.a = (tex_samples[0].a * d[0] + tex_samples[1].a * d[1] + tex_samples[2].a * d[2] + tex_samples[3].a * d[3]) >> 16;
++}
++
++static void tex_sample_persp_mipmap_375(s3d_state_t *state)
++{
++        s3d_texture_state_t texture_state;
++        int32_t w = 0;
++
++        if (state->w)
++                w = (int32_t)(((1ULL << 27) << 19) / (int64_t)state->w);
++        
++        texture_state.level = (state->d < 0) ? state->max_d : state->max_d - ((state->d >> 27) & 0xf);
++        if (texture_state.level < 0)
++                texture_state.level = 0;
++        texture_state.texture_shift = 18 + (9 - texture_state.level);
++        texture_state.u = (int32_t)(((int64_t)state->u * (int64_t)w) >> (8 + state->max_d)) + state->tbu;
++        texture_state.v = (int32_t)(((int64_t)state->v * (int64_t)w) >> (8 + state->max_d)) + state->tbv;
++
++        tex_read(state, &texture_state, &state->dest_rgba);
++}
++
++static void tex_sample_persp_mipmap_filter_375(s3d_state_t *state)
++{
++        s3d_texture_state_t texture_state;
++        int32_t w = 0, u, v;
++        int tex_offset;
++        rgba_t tex_samples[4];
++        int du, dv;
++        int d[4];
++
++        if (state->w)
++                w = (int32_t)(((1ULL << 27) << 19) / (int64_t)state->w);
++
++        u = (int32_t)(((int64_t)state->u * (int64_t)w) >> (8 + state->max_d)) + state->tbu;
++        v = (int32_t)(((int64_t)state->v * (int64_t)w) >> (8 + state->max_d)) + state->tbv;
++        
++        texture_state.level = (state->d < 0) ? state->max_d : state->max_d - ((state->d >> 27) & 0xf);
++        if (texture_state.level < 0)
++                texture_state.level = 0;
++        texture_state.texture_shift = 18 + (9 - texture_state.level);
++        tex_offset = 1 << texture_state.texture_shift;
++        
++        texture_state.u = u;
++        texture_state.v = v;
++        tex_read(state, &texture_state, &tex_samples[0]);
++        du = (u >> (texture_state.texture_shift - 8)) & 0xff;
++        dv = (v >> (texture_state.texture_shift - 8)) & 0xff;
++
++        texture_state.u = u + tex_offset;
++        texture_state.v = v;
++        tex_read(state, &texture_state, &tex_samples[1]);
++
++        texture_state.u = u;
++        texture_state.v = v + tex_offset;
++        tex_read(state, &texture_state, &tex_samples[2]);
++
++        texture_state.u = u + tex_offset;
++        texture_state.v = v + tex_offset;
++        tex_read(state, &texture_state, &tex_samples[3]);
++
++        d[0] = (256 - du) * (256 - dv);
++        d[1] =  du * (256 - dv);
++        d[2] = (256 - du) * dv;
++        d[3] = du * dv;
++        
++        state->dest_rgba.r = (tex_samples[0].r * d[0] + tex_samples[1].r * d[1] + tex_samples[2].r * d[2] + tex_samples[3].r * d[3]) >> 16;
++        state->dest_rgba.g = (tex_samples[0].g * d[0] + tex_samples[1].g * d[1] + tex_samples[2].g * d[2] + tex_samples[3].g * d[3]) >> 16;
++        state->dest_rgba.b = (tex_samples[0].b * d[0] + tex_samples[1].b * d[1] + tex_samples[2].b * d[2] + tex_samples[3].b * d[3]) >> 16;
++        state->dest_rgba.a = (tex_samples[0].a * d[0] + tex_samples[1].a * d[1] + tex_samples[2].a * d[2] + tex_samples[3].a * d[3]) >> 16;
++}
++
++
++#define CLAMP(x)                                     \
++        {                                               \
++                if ((x) & ~0xff)                        \
++                        x = ((x) < 0) ? 0 : 0xff;       \
++        }                               \
++        
++
++#define CLAMP_RGBA(r, g, b, a)        \
++                if ((r) & ~0xff)                        \
++                        r = ((r) < 0) ? 0 : 0xff;       \
++                if ((g) & ~0xff)                        \
++                        g = ((g) < 0) ? 0 : 0xff;       \
++                if ((b) & ~0xff)                        \
++                        b = ((b) < 0) ? 0 : 0xff;       \
++                if ((a) & ~0xff)                        \
++                        a = ((a) < 0) ? 0 : 0xff;
++        
++#define CLAMP_RGB(r, g, b)           \
++        {                               \
++                if ((r) < 0)            \
++                        r = 0;          \
++                if ((r) > 0xff)         \
++                        r = 0xff;       \
++                if ((g) < 0)            \
++                        g = 0;          \
++                if ((g) > 0xff)         \
++                        g = 0xff;       \
++                if ((b) < 0)            \
++                        b = 0;          \
++                if ((b) > 0xff)         \
++                        b = 0xff;       \
++        }                               \
++        
++
++static void dest_pixel_gouraud_shaded_triangle(s3d_state_t *state)
++{
++        state->dest_rgba.r = state->r >> 7;
++        CLAMP(state->dest_rgba.r);
++
++        state->dest_rgba.g = state->g >> 7;
++        CLAMP(state->dest_rgba.g);
++
++        state->dest_rgba.b = state->b >> 7;
++        CLAMP(state->dest_rgba.b);
++
++        state->dest_rgba.a = state->a >> 7;
++        CLAMP(state->dest_rgba.a);
++}
++
++static void dest_pixel_unlit_texture_triangle(s3d_state_t *state)
++{
++        tex_sample(state);
++
++        if (state->cmd_set & CMD_SET_ABC_SRC)
++                state->dest_rgba.a = state->a >> 7;
++}
++
++static void dest_pixel_lit_texture_decal(s3d_state_t *state)
++{
++        tex_sample(state);
++
++        if (state->cmd_set & CMD_SET_ABC_SRC)
++                state->dest_rgba.a = state->a >> 7;
++}
++
++static void dest_pixel_lit_texture_reflection(s3d_state_t *state)
++{
++        tex_sample(state);
++
++        state->dest_rgba.r += (state->r >> 7);
++        state->dest_rgba.g += (state->g >> 7);
++        state->dest_rgba.b += (state->b >> 7);
++        if (state->cmd_set & CMD_SET_ABC_SRC)
++                state->dest_rgba.a += (state->a >> 7);
++
++        CLAMP_RGBA(state->dest_rgba.r, state->dest_rgba.g, state->dest_rgba.b, state->dest_rgba.a);
++}
++
++static void dest_pixel_lit_texture_modulate(s3d_state_t *state)
++{
++        int r = state->r >> 7, g = state->g >> 7, b = state->b >> 7, a = state->a >> 7;
++        
++        tex_sample(state);
++        
++        CLAMP_RGBA(r, g, b, a);
++        
++        state->dest_rgba.r = ((state->dest_rgba.r) * r) >> 8;
++        state->dest_rgba.g = ((state->dest_rgba.g) * g) >> 8;
++        state->dest_rgba.b = ((state->dest_rgba.b) * b) >> 8;
++
++        if (state->cmd_set & CMD_SET_ABC_SRC)
++                state->dest_rgba.a = a;
++}
++
++void tri(s3d_state_t *state, int yc, int32_t dx1, int32_t dx2)
++{
++	int x_dir = s3d_tri.tlr ? 1 : -1;
++        
++	int use_z;
++        use_z = !(s3d_tri.cmd_set & CMD_SET_ZB_MODE);
++
++        int y_count = yc;
++        
++        int bpp = (s3d_tri.cmd_set >> 2) & 7;
++        
++        uint32_t dest_offset, z_offset;
++
++        if (s3d_tri.cmd_set & CMD_SET_HC)
++        {
++                if (state->y < s3d_tri.clip_t)
++                        return;
++                if (state->y > s3d_tri.clip_b)
++                {
++                        int diff_y = state->y - s3d_tri.clip_b;
++                        
++                        if (diff_y > y_count)
++                                diff_y = y_count;
++                        
++                        state->base_u += (s3d_tri.TdUdY * diff_y);
++                        state->base_v += (s3d_tri.TdVdY * diff_y);
++                        state->base_z += (s3d_tri.TdZdY * diff_y);
++                        state->base_r += (s3d_tri.TdRdY * diff_y);
++                        state->base_g += (s3d_tri.TdGdY * diff_y);
++                        state->base_b += (s3d_tri.TdBdY * diff_y);
++                        state->base_a += (s3d_tri.TdAdY * diff_y);
++                        state->base_d += (s3d_tri.TdDdY * diff_y);
++                        state->base_w += (s3d_tri.TdWdY * diff_y);
++                        state->x1 += (dx1 * diff_y);
++                        state->x2 += (dx2 * diff_y);
++                        state->y -= diff_y;
++                        dest_offset -= s3d_tri.dest_str;
++                        z_offset -= s3d_tri.z_str;
++                        y_count -= diff_y;
++                }
++                if ((state->y - y_count) < s3d_tri.clip_t)
++                        y_count = state->y - s3d_tri.clip_t;
++        }
++
++        dest_offset = s3d_tri.dest_base + (state->y * s3d_tri.dest_str);
++        z_offset = s3d_tri.z_base + (state->y * s3d_tri.z_str);
++        
++        for (; y_count > 0; y_count--)
++        {
++                int x  = (state->x1 + ((1 << 20) - 1)) >> 20;
++                int xe = (state->x2 + ((1 << 20) - 1)) >> 20;
++                uint32_t z = (state->base_z > 0) ? (state->base_z << 1) : 0;
++                if (x_dir < 0)
++                {
++                        x--;
++                        xe--;
++                }
++
++                if (x != xe && (x_dir > 0 && x < xe) || (x_dir < 0 && x > xe))
++                {
++                        uint32_t dest_addr, z_addr;
++                        int dx = (x_dir > 0) ? ((31 - ((state->x1-1) >> 15)) & 0x1f) : (((state->x1-1) >> 15) & 0x1f);
++                        int x_offset = x_dir * (bpp + 1);
++                        int xz_offset = x_dir << 1;
++                        if (x_dir > 0)
++                                dx += 1;
++                        state->r = state->base_r + ((s3d_tri.TdRdX * dx) >> 5);
++                        state->g = state->base_g + ((s3d_tri.TdGdX * dx) >> 5);
++                        state->b = state->base_b + ((s3d_tri.TdBdX * dx) >> 5);
++                        state->a = state->base_a + ((s3d_tri.TdAdX * dx) >> 5);
++                        state->u = state->base_u + ((s3d_tri.TdUdX * dx) >> 5);
++                        state->v = state->base_v + ((s3d_tri.TdVdX * dx) >> 5);
++                        state->w = state->base_w + ((s3d_tri.TdWdX * dx) >> 5);
++                        state->d = state->base_d + ((s3d_tri.TdDdX * dx) >> 5);
++                        z += ((s3d_tri.TdZdX * dx) >> 5);
++
++//                        LOG_MSG("Draw Y=%i X=%i to XE=%i  %i   %08x %08x %08x %08x  %08x %08x %08x %08x  %i %08x\n", state->y, x, xe, dx, state->x1, state->x2, dx1, s3d.TdWdX, state->u, state->v, s3d.TdUdX, s3d.TdUdY, dx, (s3d.TdUdX * dx) >> 4);
++
++                        if (s3d_tri.cmd_set & CMD_SET_HC)
++                        {
++                                if (x_dir > 0)
++                                {
++                                        if (x > s3d_tri.clip_r)
++                                                goto tri_skip_line;
++                                        if (xe < s3d_tri.clip_l)
++                                                goto tri_skip_line;
++                                        if (xe > s3d_tri.clip_r)
++                                                xe = s3d_tri.clip_r;
++                                        if (x < s3d_tri.clip_l)
++                                        {
++                                                int diff_x = s3d_tri.clip_l - x;
++                                                
++                                                z += (s3d_tri.TdZdX * diff_x);
++                                                state->u += (s3d_tri.TdUdX * diff_x);
++                                                state->v += (s3d_tri.TdVdX * diff_x);
++                                                state->r += (s3d_tri.TdRdX * diff_x);
++                                                state->g += (s3d_tri.TdGdX * diff_x);
++                                                state->b += (s3d_tri.TdBdX * diff_x);
++                                                state->a += (s3d_tri.TdAdX * diff_x);
++                                                state->d += (s3d_tri.TdDdX * diff_x);
++                                                state->w += (s3d_tri.TdWdX * diff_x);
++                                                
++                                                x = s3d_tri.clip_l;
++                                        }
++                                }
++                                else
++                                {
++                                        if (x < s3d_tri.clip_l)
++                                                goto tri_skip_line;
++                                        if (xe > s3d_tri.clip_r)
++                                                goto tri_skip_line;
++                                        if (xe < s3d_tri.clip_l)
++                                                xe = s3d_tri.clip_l;
++                                        if (x > s3d_tri.clip_r)
++                                        {
++                                                int diff_x = x - s3d_tri.clip_r;
++                                                
++                                                z += (s3d_tri.TdZdX * diff_x);
++                                                state->u += (s3d_tri.TdUdX * diff_x);
++                                                state->v += (s3d_tri.TdVdX * diff_x);
++                                                state->r += (s3d_tri.TdRdX * diff_x);
++                                                state->g += (s3d_tri.TdGdX * diff_x);
++                                                state->b += (s3d_tri.TdBdX * diff_x);
++                                                state->a += (s3d_tri.TdAdX * diff_x);
++                                                state->d += (s3d_tri.TdDdX * diff_x);
++                                                state->w += (s3d_tri.TdWdX * diff_x);
++                                                
++                                                x = s3d_tri.clip_r;
++                                        }
++                                }
++                        }
++
++                        dest_addr = dest_offset + (x * (bpp + 1));
++                        z_addr = z_offset + (x << 1);
++
++                        for (; x != xe; x = (x + x_dir) & 0xfff)
++                        {
++                                int update = 1;
++                                uint16_t src_z;
++                                _x = x; _y = state->y;
++
++                                if (use_z)
++                                {
++                                        src_z = Z_READ(z_addr);
++                                        Z_CLIP(src_z, z >> 16);
++                                }
++
++                                if (update)
++                                {
++                                        uint32_t dest_col;
++
++                                        dest_pixel(state);
++
++                                        if (s3d_tri.cmd_set & CMD_SET_ABC_ENABLE)
++                                        {
++                                                uint32_t src_col;
++                                                int src_r, src_g, src_b;
++                                                
++                                                switch (bpp)
++                                                {
++                                                        case 1: /*16 bpp*/
++							src_col = vga.mem.linear[dest_addr];
++                                                        RGB15_TO_24(src_col, src_r, src_g, src_b);
++                                                        break;
++                                                }
++
++                                                state->dest_rgba.r = ((state->dest_rgba.r * state->dest_rgba.a) + (src_r * (255 - state->dest_rgba.a))) / 255;
++                                                state->dest_rgba.g = ((state->dest_rgba.g * state->dest_rgba.a) + (src_g * (255 - state->dest_rgba.a))) / 255;
++                                                state->dest_rgba.b = ((state->dest_rgba.b * state->dest_rgba.a) + (src_b * (255 - state->dest_rgba.a))) / 255;
++                                        }
++
++                                        switch (bpp)
++                                        {
++                                                case 1: /*16 bpp*/
++                                                RGB15(state->dest_rgba.r, state->dest_rgba.g, state->dest_rgba.b, dest_col);
++                                                // *(uint16_t *)&vram[dest_addr] = dest_col;
++						vga.mem.linear[dest_addr] = dest_col;
++                                                break;
++                                        }
++
++                                        if (use_z && (s3d_tri.cmd_set & CMD_SET_ZUP))
++                                                Z_WRITE(z_addr, src_z);
++                                }
++
++                                z += s3d_tri.TdZdX;
++                                state->u += s3d_tri.TdUdX;
++                                state->v += s3d_tri.TdVdX;
++                                state->r += s3d_tri.TdRdX;
++                                state->g += s3d_tri.TdGdX;
++                                state->b += s3d_tri.TdBdX;
++                                state->a += s3d_tri.TdAdX;
++                                state->d += s3d_tri.TdDdX;
++                                state->w += s3d_tri.TdWdX;
++                                dest_addr += x_offset;
++                                z_addr += xz_offset;
++                                pixel_count++;
++                        }
++                }
++tri_skip_line:
++                state->x1 += dx1;
++                state->x2 += dx2;
++                state->base_u += s3d_tri.TdUdY;
++                state->base_v += s3d_tri.TdVdY;
++                state->base_z += s3d_tri.TdZdY;
++                state->base_r += s3d_tri.TdRdY;
++                state->base_g += s3d_tri.TdGdY;
++                state->base_b += s3d_tri.TdBdY;
++                state->base_a += s3d_tri.TdAdY;
++                state->base_d += s3d_tri.TdDdY;
++                state->base_w += s3d_tri.TdWdY;
++                state->y--;
++                dest_offset -= s3d_tri.dest_str;
++                z_offset -= s3d_tri.z_str;
++        }
++}
++
++static int tex_size[8] =
++{
++        4*2,
++        2*2,
++        2*2,
++        1*2,
++        2/1,
++        2/1,
++        1*2,
++        1*2
++};
++
++void s3_virge_triangle()
++{
++        s3d_state_t state;
++
++        uint32_t tex_base;
++        int c;
++
++        state.tbu = s3d_tri.tbu << 11;
++        state.tbv = s3d_tri.tbv << 11;
++        
++        state.max_d = (s3d_tri.cmd_set >> 8) & 15;
++        
++        state.tex_bdr_clr = s3d_tri.tex_bdr_clr;
++        
++        state.cmd_set = s3d_tri.cmd_set;
++
++        state.base_u = s3d_tri.tus;
++        state.base_v = s3d_tri.tvs;
++        state.base_z = s3d_tri.tzs;
++        state.base_r = (int32_t)s3d_tri.trs;
++        state.base_g = (int32_t)s3d_tri.tgs;
++        state.base_b = (int32_t)s3d_tri.tbs;
++        state.base_a = (int32_t)s3d_tri.tas;
++        state.base_d = s3d_tri.tds;
++        state.base_w = s3d_tri.tws;
++        
++        tex_base = s3d_tri.tex_base;
++        for (c = 9; c >= 0; c--)
++        {
++               // state.texture[c] = (uint16_t *)&svga.vram[tex_base];
++		// verify the types are correct
++		state.texture[c] = (uint16_t *)&vga.mem.linear[tex_base];
++                if (c <= state.max_d)
++                        tex_base += ((1 << (c*2)) * tex_size[(s3d_tri.cmd_set >> 5) & 7]) / 2;
++        }
++
++        switch ((s3d_tri.cmd_set >> 27) & 0xf)
++        {
++                case 0:
++                dest_pixel = dest_pixel_gouraud_shaded_triangle;
++//              LOG_MSG("dest_pixel_gouraud_shaded_triangle\n");
++                break;
++                case 1:
++                case 5:
++                switch ((s3d_tri.cmd_set >> 15) & 0x3)
++                {
++                        case 0:
++                        dest_pixel = dest_pixel_lit_texture_reflection;
++//                        LOG_MSG("dest_pixel_lit_texture_reflection\n");
++                        break;
++                        case 1:
++                        dest_pixel = dest_pixel_lit_texture_modulate;
++//                        LOG_MSG("dest_pixel_lit_texture_modulate\n");
++                        break;
++                        case 2:
++                        dest_pixel = dest_pixel_lit_texture_decal;
++//                        LOG_MSG("dest_pixel_lit_texture_decal\n");
++                        break;
++                        default:
++                        LOG_MSG("bad triangle type %x\n", (s3d_tri.cmd_set >> 27) & 0xf);
++                        return;
++                }
++                break;
++                case 2:
++                case 6:
++                dest_pixel = dest_pixel_unlit_texture_triangle;
++//                LOG_MSG("dest_pixel_unlit_texture_triangle\n");
++                break;
++                default:
++                LOG_MSG("bad triangle type %x\n", (s3d_tri.cmd_set >> 27) & 0xf);
++                return;
++        }        
++        
++        switch (((s3d_tri.cmd_set >> 12) & 7) | ((s3d_tri.cmd_set & (1 << 29)) ? 8 : 0))
++        {
++                case 0: case 1:
++                tex_sample = tex_sample_mipmap;
++//                LOG_MSG("use tex_sample_mipmap\n");
++                break;
++                case 2: case 3:
++                tex_sample = bilinear_enabled ? tex_sample_mipmap_filter : tex_sample_mipmap;
++//                LOG_MSG("use tex_sample_mipmap_filter\n");
++                break;
++                case 4: case 5:
++                tex_sample = tex_sample_normal;
++//                LOG_MSG("use tex_sample_normal\n");
++                break;
++                case 6: case 7:
++                tex_sample = bilinear_enabled ? tex_sample_normal_filter : tex_sample_normal;
++//                LOG_MSG("use tex_sample_normal_filter\n");
++                break;
++                case (0 | 8): case (1 | 8):
++                if (is_375)
++                        tex_sample = tex_sample_persp_mipmap_375;
++                else
++                        tex_sample = tex_sample_persp_mipmap;
++//                LOG_MSG("use tex_sample_persp_mipmap\n");
++                break;
++                case (2 | 8): case (3 | 8):
++                if (is_375)
++                        tex_sample = bilinear_enabled ? tex_sample_persp_mipmap_filter_375 : tex_sample_persp_mipmap_375;
++                else
++                        tex_sample = bilinear_enabled ? tex_sample_persp_mipmap_filter : tex_sample_persp_mipmap;
++//                LOG_MSG("use tex_sample_persp_mipmap_filter\n");
++                break;
++                case (4 | 8): case (5 | 8):
++                if (is_375)
++                        tex_sample = tex_sample_persp_normal_375;
++                else
++                        tex_sample = tex_sample_persp_normal;
++//                LOG_MSG("use tex_sample_persp_normal\n");
++                break;
++                case (6 | 8): case (7 | 8):
++                if (is_375)
++                        tex_sample = bilinear_enabled ? tex_sample_persp_normal_filter_375 : tex_sample_persp_normal_375;
++                else
++                        tex_sample = bilinear_enabled ? tex_sample_persp_normal_filter : tex_sample_persp_normal;
++//                LOG_MSG("use tex_sample_persp_normal_filter\n");
++                break;
++        }
++        
++        switch ((s3d_tri.cmd_set >> 5) & 7)
++        {
++                case 0:
++                tex_read = (s3d_tri.cmd_set & CMD_SET_TWE) ? tex_ARGB8888 : tex_ARGB8888_nowrap;
++                break;
++                case 1:
++                tex_read = (s3d_tri.cmd_set & CMD_SET_TWE) ? tex_ARGB4444 : tex_ARGB4444_nowrap;
++//                LOG_MSG("tex_ARGB4444\n");
++                break;
++                case 2:
++                tex_read = (s3d_tri.cmd_set & CMD_SET_TWE) ? tex_ARGB1555 : tex_ARGB1555_nowrap;
++//                LOG_MSG("tex_ARGB1555 %i\n", (s3d_tri.cmd_set >> 5) & 7);
++                break;
++                default:
++                LOG_MSG("bad texture type %i\n", (s3d_tri.cmd_set >> 5) & 7);
++                tex_read = (s3d_tri.cmd_set & CMD_SET_TWE) ? tex_ARGB1555 : tex_ARGB1555_nowrap;
++                break;
++        }
++        
++//        LOG_MSG("Triangle %i %i,%i to %i,%i  %08x\n", y, x1 >> 20, y, s3d_tri.txend01 >> 20, y - (s3d_tri.ty01 + s3d_tri.ty12), state.cmd_set);
++
++        state.y  = s3d_tri.tys;
++        state.x1 = s3d_tri.txs;
++        state.x2 = s3d_tri.txend01;
++        tri(&state, s3d_tri.ty01, s3d_tri.TdXdY02, s3d_tri.TdXdY01);
++        state.x2 = s3d_tri.txend12;
++        tri(&state, s3d_tri.ty12, s3d_tri.TdXdY02, s3d_tri.TdXdY12);
++}
++
++#define DECODE_YCbCr()                                                  \
++        {                                                               \
++                int c;                                                  \
++                                                                        \
++                for (c = 0; c < 2; c++)                                 \
++                {                                                       \
++                        uint8_t y1, y2;                                 \
++                        int8_t Cr, Cb;                                  \
++                        int dR, dG, dB;                                 \
++                                                                        \
++                        y1 = src[0];                                    \
++                        Cr = src[1] - 0x80;                             \
++                        y2 = src[2];                                    \
++                        Cb = src[3] - 0x80;                             \
++                        src += 4;                                       \
++                                                                        \
++                        dR = (359*Cr) >> 8;                             \
++                        dG = (88*Cb + 183*Cr) >> 8;                     \
++                        dB = (453*Cb) >> 8;                             \
++                                                                        \
++                        r[x_write] = y1 + dR;                           \
++                        CLAMP(r[x_write]);                              \
++                        g[x_write] = y1 - dG;                           \
++                        CLAMP(g[x_write]);                              \
++                        b[x_write] = y1 + dB;                           \
++                        CLAMP(b[x_write]);                              \
++                                                                        \
++                        r[x_write+1] = y2 + dR;                         \
++                        CLAMP(r[x_write+1]);                            \
++                        g[x_write+1] = y2 - dG;                         \
++                        CLAMP(g[x_write+1]);                            \
++                        b[x_write+1] = y2 + dB;                         \
++                        CLAMP(b[x_write+1]);                            \
++                                                                        \
++                        x_write = (x_write + 2) & 7;                    \
++                }                                                       \
++        } 
++
++/*Both YUV formats are untested*/
++#define DECODE_YUV211()                                         \
++        {                                                       \
++                uint8_t y1, y2, y3, y4;                         \
++                int8_t U, V;                                    \
++                int dR, dG, dB;                                 \
++                                                                \
++                U = src[0] - 0x80;                              \
++                y1 = (298 * (src[1] - 16)) >> 8;                \
++                y2 = (298 * (src[2] - 16)) >> 8;                \
++                V = src[3] - 0x80;                              \
++                y3 = (298 * (src[4] - 16)) >> 8;                \
++                y4 = (298 * (src[5] - 16)) >> 8;                \
++                src += 6;                                       \
++                                                                \
++                dR = (309*V) >> 8;                              \
++                dG = (100*U + 208*V) >> 8;                      \
++                dB = (516*U) >> 8;                              \
++                                                                \
++                r[x_write] = y1 + dR;                           \
++                CLAMP(r[x_write]);                              \
++                g[x_write] = y1 - dG;                           \
++                CLAMP(g[x_write]);                              \
++                b[x_write] = y1 + dB;                           \
++                CLAMP(b[x_write]);                              \
++                                                                \
++                r[x_write+1] = y2 + dR;                         \
++                CLAMP(r[x_write+1]);                            \
++                g[x_write+1] = y2 - dG;                         \
++                CLAMP(g[x_write+1]);                            \
++                b[x_write+1] = y2 + dB;                         \
++                CLAMP(b[x_write+1]);                            \
++                                                                \
++                r[x_write+2] = y2 + dR;                         \
++                CLAMP(r[x_write+2]);                            \
++                g[x_write+2] = y2 - dG;                         \
++                CLAMP(g[x_write+2]);                            \
++                b[x_write+2] = y2 + dB;                         \
++                CLAMP(b[x_write+2]);                            \
++                                                                \
++                r[x_write+3] = y2 + dR;                         \
++                CLAMP(r[x_write+3]);                            \
++                g[x_write+3] = y2 - dG;                         \
++                CLAMP(g[x_write+3]);                            \
++                b[x_write+3] = y2 + dB;                         \
++                CLAMP(b[x_write+3]);                            \
++                                                                \
++                x_write = (x_write + 4) & 7;                    \
++        } 
++
++#define DECODE_YUV422()                                                 \
++        {                                                               \
++                int c;                                                  \
++                                                                        \
++                for (c = 0; c < 2; c++)                                 \
++                {                                                       \
++                        uint8_t y1, y2;                                 \
++                        int8_t U, V;                                    \
++                        int dR, dG, dB;                                 \
++                                                                        \
++                        U = src[0] - 0x80;                              \
++                        y1 = (298 * (src[1] - 16)) >> 8;                \
++                        V = src[2] - 0x80;                              \
++                        y2 = (298 * (src[3] - 16)) >> 8;                \
++                        src += 4;                                       \
++                                                                        \
++                        dR = (309*V) >> 8;                              \
++                        dG = (100*U + 208*V) >> 8;                      \
++                        dB = (516*U) >> 8;                              \
++                                                                        \
++                        r[x_write] = y1 + dR;                           \
++                        CLAMP(r[x_write]);                              \
++                        g[x_write] = y1 - dG;                           \
++                        CLAMP(g[x_write]);                              \
++                        b[x_write] = y1 + dB;                           \
++                        CLAMP(b[x_write]);                              \
++                                                                        \
++                        r[x_write+1] = y2 + dR;                         \
++                        CLAMP(r[x_write+1]);                            \
++                        g[x_write+1] = y2 - dG;                         \
++                        CLAMP(g[x_write+1]);                            \
++                        b[x_write+1] = y2 + dB;                         \
++                        CLAMP(b[x_write+1]);                            \
++                                                                        \
++                        x_write = (x_write + 2) & 7;                    \
++                }                                                       \
++        } 
++
++#define DECODE_RGB555()                                                 \
++        {                                                               \
++                int c;                                                  \
++                                                                        \
++                for (c = 0; c < 4; c++)                                 \
++                {                                                       \
++                        uint16_t dat;                                   \
++                                                                        \
++                        dat = *(uint16_t *)src;                         \
++                        src += 2;                                       \
++                                                                        \
++                        r[x_write + c] = ((dat & 0x001f) << 3) | ((dat & 0x001f) >> 2); \
++                        g[x_write + c] = ((dat & 0x03e0) >> 2) | ((dat & 0x03e0) >> 7); \
++                        b[x_write + c] = ((dat & 0x7c00) >> 7) | ((dat & 0x7c00) >> 12); \
++                }                                                       \
++                x_write = (x_write + 4) & 7;                            \
++        } 
++
++#define DECODE_RGB565()                                                 \
++        {                                                               \
++                int c;                                                  \
++                                                                        \
++                for (c = 0; c < 4; c++)                                 \
++                {                                                       \
++                        uint16_t dat;                                   \
++                                                                        \
++                        dat = *(uint16_t *)src;                         \
++                        src += 2;                                       \
++                                                                        \
++                        r[x_write + c] = ((dat & 0x001f) << 3) | ((dat & 0x001f) >> 2); \
++                        g[x_write + c] = ((dat & 0x07e0) >> 3) | ((dat & 0x07e0) >> 9); \
++                        b[x_write + c] = ((dat & 0xf800) >> 8) | ((dat & 0xf800) >> 13); \
++                }                                                       \
++                x_write = (x_write + 4) & 7;                            \
++        } 
++
++#define DECODE_RGB888()                                                 \
++        {                                                               \
++                int c;                                                  \
++                                                                        \
++                for (c = 0; c < 4; c++)                                 \
++                {                                                       \
++                        r[x_write + c] = src[0];                        \
++                        g[x_write + c] = src[1];                        \
++                        b[x_write + c] = src[2];                        \
++                        src += 3;                                       \
++                }                                                       \
++                x_write = (x_write + 4) & 7;                            \
++        } 
++
++#define DECODE_XRGB8888()                                               \
++        {                                                               \
++                int c;                                                  \
++                                                                        \
++                for (c = 0; c < 4; c++)                                 \
++                {                                                       \
++                        r[x_write + c] = src[0];                        \
++                        g[x_write + c] = src[1];                        \
++                        b[x_write + c] = src[2];                        \
++                        src += 4;                                       \
++                }                                                       \
++                x_write = (x_write + 4) & 7;                            \
++        }
