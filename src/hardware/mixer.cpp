@@ -35,6 +35,10 @@
 #include <mmsystem.h>
 #endif
 
+#if !defined(M_PI)
+# define M_PI (3.141592654)
+#endif
+
 #include "SDL.h"
 #include "mem.h"
 #include "pic.h"
