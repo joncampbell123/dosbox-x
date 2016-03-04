@@ -24,6 +24,7 @@
 
 #include <string.h>
 #include <sys/types.h>
+#define _USE_MATH_DEFINES // needed for M_PI in Visual Studio as documented [https://msdn.microsoft.com/en-us/library/4hwaceh6.aspx]
 #include <math.h>
 
 #if defined (WIN32)
