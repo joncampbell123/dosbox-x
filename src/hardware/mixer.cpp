@@ -446,7 +446,7 @@ inline void MixerChannel::padFillSampleInterpolation(const Bitu upto) {
 
 void MixerChannel::finishSampleInterpolation(const Bitu upto) {
 	if (!current_loaded) return;
-	runSampleInterpolation</*stereo*/true>(upto);
+	runSampleInterpolation(upto);
 }
 
 double MixerChannel::timeSinceLastSample(void) {
@@ -454,7 +454,6 @@ double MixerChannel::timeSinceLastSample(void) {
 	return ((double)delta) / mixer.freq;
 }
 
-template<bool stereo>
 inline bool MixerChannel::runSampleInterpolation(const Bitu upto) {
 	int sample;
 
@@ -464,13 +463,8 @@ inline bool MixerChannel::runSampleInterpolation(const Bitu upto) {
 	while (freq_fslew < freq_d) {
 		sample = last[0] + (int)(((int64_t)delta[0] * (int64_t)freq_fslew) / (int64_t)freq_d);
 		msbuffer[msbuffer_o][0] = sample * volmul[0];
-		if (stereo) {
-			sample = last[1] + (int)(((int64_t)delta[1] * (int64_t)freq_fslew) / (int64_t)freq_d);
-			msbuffer[msbuffer_o][1] = sample * volmul[1];
-		}
-		else {
-			msbuffer[msbuffer_o][1] = msbuffer[msbuffer_o][0];
-		}
+		sample = last[1] + (int)(((int64_t)delta[1] * (int64_t)freq_fslew) / (int64_t)freq_d);
+		msbuffer[msbuffer_o][1] = sample * volmul[1];
 
 		freq_f += freq_n;
 		freq_fslew += freq_nslew;
@@ -482,10 +476,7 @@ inline bool MixerChannel::runSampleInterpolation(const Bitu upto) {
 	current[1] = last[1] + delta[1];
 	while (freq_f < freq_d) {
 		msbuffer[msbuffer_o][0] = current[0] * volmul[0];
-		if (stereo)
-			msbuffer[msbuffer_o][1] = current[1] * volmul[1];
-		else
-			msbuffer[msbuffer_o][1] = msbuffer[msbuffer_o][0];
+		msbuffer[msbuffer_o][1] = current[1] * volmul[1];
 
 		freq_f += freq_n;
 		if ((++msbuffer_o) >= upto)
@@ -525,7 +516,7 @@ inline void MixerChannel::AddSamples(Bitu len, const Type* data) {
 				freq_f -= freq_d;
 				freq_fslew = freq_f;
 			}
-			if (!runSampleInterpolation<stereo>(2048))
+			if (!runSampleInterpolation(2048))
 				break;
 		}
 	}
@@ -537,7 +528,7 @@ inline void MixerChannel::AddSamples(Bitu len, const Type* data) {
 				freq_f -= freq_d;
 				freq_fslew = freq_f;
 			}
-			if (!runSampleInterpolation<stereo>(2048))
+			if (!runSampleInterpolation(2048))
 				break;
 		}
 	}

@@ -71,7 +71,6 @@ public:
 	void AddSamples(Bitu len, const Type* data);
 	double timeSinceLastSample(void);
 
-	template<bool stereo>
 	bool runSampleInterpolation(const Bitu upto);
 
 	void updateSlew(void);
