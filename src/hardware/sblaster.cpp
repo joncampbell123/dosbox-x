@@ -1931,7 +1931,11 @@ static Bit8u DSP_ReadData(void) {
 #define CALCVOL(_VAL) (float)pow(10.0f,((float)(31-_VAL)*-1.3f)/20)
 static void CTMIXER_UpdateVolumes(void) {
 	if (!sb.mixer.enabled) return;
+
+	sb.chan->FillUp();
+
 	MixerChannel * chan;
+
 	//adjust to get linear master volume slider in trackers
 	chan=MIXER_FindChannel("SB");
 	if (chan) chan->SetVolume(float(sb.mixer.master[0])/31.0f*CALCVOL(sb.mixer.dac[0]),
