@@ -95,12 +95,14 @@
       <PreprocessToFile>false</PreprocessToFile>
       <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
       <MinimalRebuild>true</MinimalRebuild>
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <ProgramDataBaseFileName>$(OutDir)$(ProjectName).pdb</ProgramDataBaseFileName>
+      <StringPooling>false</StringPooling>
+      <ControlFlowGuard>false</ControlFlowGuard>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;Iphlpapi.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -123,12 +125,14 @@
       <PreprocessToFile>false</PreprocessToFile>
       <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
       <MinimalRebuild>true</MinimalRebuild>
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <ProgramDataBaseFileName>$(OutDir)$(ProjectName).pdb</ProgramDataBaseFileName>
+      <StringPooling>false</StringPooling>
+      <ControlFlowGuard>false</ControlFlowGuard>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;Iphlpapi.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -146,12 +150,15 @@
       <AdditionalIncludeDirectories>$(SolutionDir)/..;$(SolutionDir)/../include;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/sdl/include;$(SolutionDir)/libpng;$(SolutionDir)/sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;__WIN32__;%(PreprocessorDefinitions);_FILE_OFFSET_BITS=64</PreprocessorDefinitions>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <ProgramDataBaseFileName>$(OutDir)$(ProjectName).pdb</ProgramDataBaseFileName>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <StringPooling>true</StringPooling>
+      <ControlFlowGuard>false</ControlFlowGuard>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;Iphlpapi.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -174,12 +181,15 @@
       <AdditionalIncludeDirectories>$(SolutionDir)/..;$(SolutionDir)/../include;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/sdl/include;$(SolutionDir)/libpng;$(SolutionDir)/sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;__WIN32__;%(PreprocessorDefinitions);_FILE_OFFSET_BITS=64</PreprocessorDefinitions>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <ProgramDataBaseFileName>$(OutDir)$(ProjectName).pdb</ProgramDataBaseFileName>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <StringPooling>true</StringPooling>
+      <ControlFlowGuard>false</ControlFlowGuard>
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;Iphlpapi.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
