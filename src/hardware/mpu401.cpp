@@ -95,6 +95,9 @@ static struct {
 	} clock;
 } mpu;
 
+int MPU401_GetIRQ() {
+	return (int)mpu.irq;
+}
 
 static void QueueByte(Bit8u data) {
 	if (mpu.state.block_ack) {mpu.state.block_ack=false;return;}

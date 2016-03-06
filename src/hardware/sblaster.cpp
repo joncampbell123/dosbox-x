@@ -87,6 +87,7 @@ bool MIDI_Available(void);
 
 enum {DSP_S_RESET,DSP_S_RESET_WAIT,DSP_S_NORMAL,DSP_S_HIGHSPEED};
 enum SB_TYPES {SBT_NONE=0,SBT_1=1,SBT_PRO1=2,SBT_2=3,SBT_PRO2=4,SBT_16=6,SBT_GB=7}; /* TODO: Need SB 2.0 vs SB 2.01 */
+enum REVEAL_SC_TYPES {RSC_NONE=0,RSC_SC400=1};
 enum SB_IRQS {SB_IRQ_8,SB_IRQ_16,SB_IRQ_MPU};
 enum ESS_TYPES {ESS_NONE=0,ESS_688=1};
 
@@ -145,9 +146,14 @@ struct SB_INFO {
 	bool busy_cycle_always;
 	bool ess_playback_mode;
 	bool no_filtering;
+	Bit8u sc400_cfg;
 	Bit8u time_constant;
+	Bit8u sc400_dsp_major,sc400_dsp_minor;
+	Bit8u sc400_jumper_status_1;
+	Bit8u sc400_jumper_status_2;
 	DSP_MODES mode;
 	SB_TYPES type;
+	REVEAL_SC_TYPES reveal_sc_type; // Reveal SC400 type
 	ESS_TYPES ess_type;	// ESS chipset emulation, to be set only if type == SBT_PRO2
 	bool ess_extended_mode;
 	int min_dma_user;
@@ -239,6 +245,30 @@ static Bit8u const DSP_cmd_len_sb[256] = {
   0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0xb0
 
   0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0xc0
+  0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0xd0
+  1,0,1,0, 1,0,0,0, 0,0,0,0, 0,0,0,0,  // 0xe0
+  0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0   // 0xf0
+};
+
+// number of bytes in input for commands (sb/sbpro compatible Reveal SC400)
+static Bit8u const DSP_cmd_len_sc400[256] = {
+  0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0x00
+//  1,0,0,0, 2,0,2,2, 0,0,0,0, 0,0,0,0,  // 0x10
+  1,0,0,0, 2,2,2,2, 0,0,0,0, 0,0,0,0,  // 0x10 Wari hack
+  0,0,0,0, 2,0,0,0, 0,0,0,0, 0,0,0,0,  // 0x20
+  0,0,0,0, 0,0,0,0, 1,0,0,0, 0,0,0,0,  // 0x30
+
+  1,2,2,0, 0,0,0,0, 2,0,0,0, 0,0,0,0,  // 0x40
+  1,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0x50
+  0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,2,0,  // 0x60
+  0,0,0,0, 2,2,2,2, 0,0,0,0, 0,0,0,0,  // 0x70
+
+  2,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0x80
+  0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0x90
+  0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0xa0
+  3,3,3,3, 3,3,3,3, 3,3,3,3, 3,3,3,3,  // 0xb0
+
+  3,3,3,3, 3,3,3,3, 3,3,3,3, 3,3,3,3,  // 0xc0
   0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0,  // 0xd0
   1,0,1,0, 1,0,0,0, 0,0,0,0, 0,0,0,0,  // 0xe0
   0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0   // 0xf0
@@ -502,7 +532,7 @@ void SB_OnEndOfDMA(void) {
 	bool was_irq=false;
 
 	PIC_RemoveEvents(END_DMA_Event);
-	if (sb.ess_type == ESS_NONE && sb.dma.mode >= DSP_DMA_16) {
+	if (sb.ess_type == ESS_NONE && sb.reveal_sc_type == RSC_NONE && sb.dma.mode >= DSP_DMA_16) {
 		was_irq = sb.irq.pending_16bit;
 		SB_RaiseIRQ(SB_IRQ_16);
 	}
@@ -1160,6 +1190,21 @@ static void DSP_E2_DMA_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
 	}
 }
 
+Bitu DEBUG_EnableDebugger(void);
+
+static void DSP_SC400_E6_DMA_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
+	if (event==DMA_UNMASKED) {
+		static const char *string = "\x01\x02\x04\x08\x10\x20\x40\x80"; /* Confirmed response via DMA from actual Reveal SC400 card */
+		DmaChannel * chan=GetDMAChannel(sb.hw.dma8);
+		LOG(LOG_SB,LOG_DEBUG)("SC400 returning DMA test pattern on DMA channel=%u",sb.hw.dma8);
+		chan->Register_Callback(0);
+		chan->Write(8,(Bit8u*)string);
+		chan->Clear_Request();
+		if (!chan->tcount) LOG(LOG_SB,LOG_DEBUG)("SC400 warning: DMA did not reach terminal count");
+		SB_RaiseIRQ(SB_IRQ_8);
+	}
+}
+
 static void DSP_ADC_CallBack(DmaChannel * /*chan*/, DMAEvent event) {
 	if (event!=DMA_UNMASKED) return;
 	Bit8u val=128;
@@ -1365,6 +1410,8 @@ static uint8_t ESS_DoRead(uint8_t reg) {
 	return 0xFF;
 }
 
+int MPU401_GetIRQ();
+
 /* Demo notes for fixing:
  *
  *  - "Buttman"'s intro uses a timer and DSP command 0x10 to play the sound effects even in Pro mode.
@@ -1517,7 +1564,13 @@ static void DSP_DoCommand(void) {
 		break;
 	case 0x41:	/* Set Output Samplerate */
 	case 0x42:	/* Set Input Samplerate */
-		DSP_SB16_ONLY;
+		if (sb.reveal_sc_type == RSC_SC400) {
+			/* Despite reporting itself as Sound Blaster Pro compatible, the Reveal SC400 supports some SB16 commands like this one */
+		}
+		else {
+			DSP_SB16_ONLY;
+		}
+
 		sb.freq=(sb.dsp.in.data[0] << 8)  | sb.dsp.in.data[1];
 		break;
 	case 0x48:	/* Set DMA Block Size */
@@ -1563,7 +1616,21 @@ static void DSP_DoCommand(void) {
 	case 0xb8:	case 0xb9:	case 0xba:	case 0xbb:  case 0xbc:	case 0xbd:	case 0xbe:	case 0xbf:
 	case 0xc0:	case 0xc1:	case 0xc2:	case 0xc3:  case 0xc4:	case 0xc5:	case 0xc6:	case 0xc7:
 	case 0xc8:	case 0xc9:	case 0xca:	case 0xcb:  case 0xcc:	case 0xcd:	case 0xce:	case 0xcf:
-		DSP_SB16_ONLY;
+		if (sb.reveal_sc_type == RSC_SC400) {
+			/* Despite reporting itself as Sound Blaster Pro, the Reveal SC400 cards do support *some* SB16 DSP commands! */
+			/* BUT, it only recognizes a subset of this range. */
+			if (sb.dsp.cmd == 0xB0 || sb.dsp.cmd == 0xB8 || sb.dsp.cmd == 0xBE || sb.dsp.cmd == 0xB6 ||
+				sb.dsp.cmd == 0xC0 || sb.dsp.cmd == 0xC8 || sb.dsp.cmd == 0xCE || sb.dsp.cmd == 0xC6) {
+				/* OK! */
+			}
+			else {
+				LOG(LOG_SB,LOG_DEBUG)("SC400: SB16 playback command not recognized");
+			}
+		}
+		else {
+			DSP_SB16_ONLY;
+		}
+
 		/* Generic 8/16 bit DMA */
 //		DSP_SetSpeaker(true);		//SB16 always has speaker enabled
 		sb.dma.sign=(sb.dsp.in.data[0] & 0x10) > 0;
@@ -1647,6 +1714,9 @@ static void DSP_DoCommand(void) {
 			if (sb.ess_type != ESS_NONE) {
 				DSP_AddData(0x3);DSP_AddData(0x1);
 			}
+			else if (sb.reveal_sc_type == RSC_SC400) { // SC400 cards report as v3.5 by default, but there is a DSP command to change the version!
+				DSP_AddData(sb.sc400_dsp_major);DSP_AddData(sb.sc400_dsp_minor);
+			}
 			else {
 				DSP_AddData(0x3);DSP_AddData(0x2);
 			}
@@ -1682,7 +1752,15 @@ static void DSP_DoCommand(void) {
 				/* ESS chips do not return copyright string */
 				DSP_AddData(0);
 			}
-			else if (sb.type < SBT_PRO2) {
+			else if (sb.reveal_sc_type == RSC_SC400) {
+				static const char *gallant = "SC-6000";
+
+				/* NTS: Yes, this writes the terminating NUL as well. Not a bug. */
+				for (size_t i=0;i<=strlen(gallant);i++) {
+					DSP_AddData(gallant[i]);
+				}
+			}
+			else if (sb.type <= SBT_PRO2) {
 				/* Sound Blaster DSP 2.0: No copyright string observed. */
 				/* Sound Blaster Pro DSP 3.1: No copyright string observed. */
 				/* I have yet to observe if a Sound Blaster Pro DSP 3.2 (SBT_PRO2) returns a copyright string. */
@@ -1749,6 +1827,65 @@ static void DSP_DoCommand(void) {
 	case 0x98: case 0x99: /* Documented only for DSP 2.x and 3.x */
 	case 0xa0: case 0xa8: /* Documented only for DSP 3.x */
 		LOG(LOG_SB,LOG_ERROR)("DSP:Unimplemented input command %2X",sb.dsp.cmd);
+		break;
+	case 0x88: /* Reveal SC400 ??? (used by TESTSC.EXE) */
+		if (sb.reveal_sc_type != RSC_SC400) break;
+		/* ??? */
+		break;
+	case 0xE6: /* Reveal SC400 DMA trigger */
+		if (sb.reveal_sc_type != RSC_SC400) break;
+		GetDMAChannel(sb.hw.dma8)->Register_Callback(DSP_SC400_E6_DMA_CallBack);
+		sb.dsp.out.lastval = 0x80;
+		sb.dsp.out.used = 0;
+		break;
+	case 0x50: /* Reveal SC400 write configuration */
+		if (sb.reveal_sc_type != RSC_SC400) break;
+		sb.sc400_cfg = sb.dsp.in.data[0];
+
+		switch (sb.dsp.in.data[0]&3) {
+			case 0:	sb.hw.dma8 = -1; break;
+			case 1:	sb.hw.dma8 =  0; break;
+			case 2:	sb.hw.dma8 =  1; break;
+			case 3:	sb.hw.dma8 =  3; break;
+		};
+		switch ((sb.dsp.in.data[0]>>3)&7) {
+			case 0:	sb.hw.irq = -1; break;
+			case 1:	sb.hw.irq =  7; break;
+			case 2:	sb.hw.irq =  9; break;
+			case 3:	sb.hw.irq = 10; break;
+			case 4:	sb.hw.irq = 11; break;
+			case 5:	sb.hw.irq =  5; break;
+			case 6:	sb.hw.irq = -1; break;
+			case 7:	sb.hw.irq = -1; break;
+		};
+		{
+			int irq;
+
+			if (sb.dsp.in.data[0]&0x04) /* MPU IRQ enable bit */
+				irq = (sb.dsp.in.data[0]&0x80) ? 9 : 5;
+			else
+				irq = -1;
+
+			if (irq != MPU401_GetIRQ())
+				LOG(LOG_SB,LOG_WARN)("SC400 warning: MPU401 emulation does not yet support changing the IRQ through configuration commands");
+		}
+
+		LOG(LOG_SB,LOG_DEBUG)("SC400: New configuration byte %02x irq=%d dma=%d",
+			sb.dsp.in.data[0],(int)sb.hw.irq,(int)sb.hw.dma8);
+
+		break;
+	case 0x58: /* Reveal SC400 read configuration */
+		if (sb.reveal_sc_type != RSC_SC400) break;
+		DSP_AddData(sb.sc400_jumper_status_1);
+		DSP_AddData(sb.sc400_jumper_status_2);
+		DSP_AddData(sb.sc400_cfg);
+		break;
+	case 0x6E: /* Reveal SC400 SBPRO.EXE set DSP version */
+		if (sb.reveal_sc_type != RSC_SC400) break;
+		sb.sc400_dsp_major = sb.dsp.in.data[0];
+		sb.sc400_dsp_minor = sb.dsp.in.data[1];
+		LOG(LOG_SB,LOG_DEBUG)("SC400: DSP version changed to %u.%u",
+			sb.sc400_dsp_major,sb.sc400_dsp_minor);
 		break;
 	case 0xf9:	/* SB16 ASP ??? */
 		if (sb.type == SBT_16) {
@@ -1903,6 +2040,8 @@ static void DSP_DoWrite(Bit8u val) {
 				sb.dsp.cmd_len=DSP_cmd_len_sb16[val];
 			else if (sb.ess_type != ESS_NONE) 
 				sb.dsp.cmd_len=DSP_cmd_len_ess[val];
+			else if (sb.reveal_sc_type != RSC_NONE)
+				sb.dsp.cmd_len=DSP_cmd_len_sc400[val];
 			else
 				sb.dsp.cmd_len=DSP_cmd_len_sb[val];
 
@@ -1999,7 +2138,8 @@ void updateSoundBlasterFilter(Bitu rate) {
 
 		sb.chan->SetLowpassFreq(filter_hz,/*order*/8);
 	}
-	else if (sb.type == SBT_16) { // Sound Blaster 16 (DSP 4.xx). Tested against real hardware (CT4180 ViBRA 16C PnP) by Jonathan C.
+	else if (sb.type == SBT_16 || // Sound Blaster 16 (DSP 4.xx). Tested against real hardware (CT4180 ViBRA 16C PnP) by Jonathan C.
+		sb.reveal_sc_type == RSC_SC400) { // Reveal SC400 (DSP 3.5). Tested against real hardware by Jonathan C.
 		// My notes: The DSP automatically applies filtering at low sample rates. But the DSP has to know
 		//           what the sample rate is to filter. If you use direct DAC output (DSP command 0x10)
 		//           then no filtering is applied and the sound comes out grungy, just like older Sound
@@ -2791,6 +2931,7 @@ class ViBRA_PnP : public ISAPnPDevice {
 		}
 };
 
+bool JOYSTICK_IsEnabled(Bitu which);
 extern void HARDOPL_Init(Bitu hardwareaddr, Bitu sbbase, bool isCMS);
 
 class SBLASTER: public Module_base {
@@ -2806,6 +2947,7 @@ private:
 	void Find_Type_And_Opl(Section_prop* config,SB_TYPES& type, OPL_Mode& opl_mode){
 		sb.vibra = false;
 		sb.ess_type = ESS_NONE;
+		sb.reveal_sc_type = RSC_NONE;
 		sb.ess_extended_mode = false;
 		const char * sbtype=config->Get_string("sbtype");
 		if (!strcasecmp(sbtype,"sb1")) type=SBT_1;
@@ -2821,6 +2963,13 @@ private:
 			sb.ess_type=ESS_688;
 			LOG(LOG_SB,LOG_DEBUG)("ESS 688 emulation enabled.");
 			LOG(LOG_SB,LOG_WARN)("ESS 688 emulation is EXPERIMENTAL at this time and should not yet be used for normal gaming");
+		}
+		else if (!strcasecmp(sbtype,"reveal_sc400")) {
+			type=SBT_PRO2;
+			sb.reveal_sc_type=RSC_SC400;
+			LOG(LOG_SB,LOG_DEBUG)("Reveal SC400 emulation enabled.");
+			LOG(LOG_SB,LOG_WARN)("Reveal SC400 emulation is EXPERIMENTAL at this time and should not yet be used for normal gaming.");
+			LOG(LOG_SB,LOG_WARN)("Additional WARNING: This code only emulates the Sound Blaster portion of the card. Attempting to use the Windows Sound System part of the card (i.e. the Voyetra/SC400 Windows drivers) will not work!");
 		}
 		else type=SBT_16;
 
@@ -3032,7 +3181,7 @@ public:
 		// or disabled. Real SBPro2 has it disabled. 
 		sb.speaker=false;
 		// On SB16 the speaker flag does not affect actual speaker state.
-		if (sb.type == SBT_16 || sb.ess_type != ESS_NONE) sb.chan->Enable(true);
+		if (sb.type == SBT_16 || sb.ess_type != ESS_NONE || sb.reveal_sc_type != RSC_NONE) sb.chan->Enable(true);
 		else sb.chan->Enable(false);
 
 		if (sb.emit_blaster_var) {
@@ -3103,6 +3252,68 @@ public:
 				case 3:		t |= 0xF; break;
 			};
 			ESSreg(0xB2) = t;
+		}
+
+		/* first configuration byte returned by 0x58.
+		 *
+		 * bits 7-5: ???
+		 * bit    4: Windows Sound System (Crystal Semiconductor CS4231A) I/O base port (1=0xE80  0=0x530)
+		 * bits 3-2: ???
+		 * bit    1: gameport disable (1=disabled 0=enabled)
+		 * bit    0: jumper assigns Sound Blaster base port 240h (right??) */
+		sb.sc400_jumper_status_1 = 0x2C + ((sb.hw.base == 0x240) ? 0x1 : 0x0);
+		if (!JOYSTICK_IsEnabled(0) && !JOYSTICK_IsEnabled(1)) sb.sc400_jumper_status_1 += 0x02; // set bit 1
+		/* second configuration byte returned by 0x58.
+		 *
+		 * bits 7-5: 110b ???
+		 * bits 4-0: bits 8-4 of the CD-ROM I/O port base. For example, to put the CD-ROM controller at 0x230 you would set this to 0x3.
+		 *           TESTSC.EXE ignores the value unless it represents one of the supported base I/O ports for the CD-ROM, which are:
+		 *
+		 *           0x03 -> 0x230
+		 *           0x05 -> 0x250
+		 *           0x11 -> 0x310
+		 *           0x12 -> 0x320
+		 *           0x13 -> 0x330
+		 *           0x14 -> 0x340
+		 *           0x15 -> 0x350
+		 *           0x16 -> 0x360
+		 *
+		 *           TODO: The CD-ROM interface is said to be designed for Panasonic or Goldstar CD-ROM drives. Can we emulate that someday,
+		 *                 and allow the user to configure the base I/O port? */
+		sb.sc400_jumper_status_2 = 0xC0 | (((sb.hw.base + 0x10) >> 4) & 0xF);
+
+		sb.sc400_dsp_major = 3;
+		sb.sc400_dsp_minor = 5;
+		sb.sc400_cfg = 0;
+		/* bit 7:    MPU IRQ select  (1=IRQ 9  0=IRQ 5)
+		 * bit 6:    ???
+		 * bit 5-3:  IRQ select
+		 * bit 2:    MPU IRQ enable
+		 * bit 1-0:  DMA select */
+		switch (sb.hw.dma8) {
+			case 0:	sb.sc400_cfg |= (1 << 0); break;
+			case 1:	sb.sc400_cfg |= (2 << 0); break;
+			case 3:	sb.sc400_cfg |= (3 << 0); break;
+		};
+		switch (sb.hw.irq) {
+			case 5:	sb.sc400_cfg |= (5 << 3); break;
+			case 7:	sb.sc400_cfg |= (1 << 3); break;
+			case 9:	sb.sc400_cfg |= (2 << 3); break;
+			case 10:sb.sc400_cfg |= (3 << 3); break;
+			case 11:sb.sc400_cfg |= (4 << 3); break;
+		};
+		switch (MPU401_GetIRQ()) { // SC400: bit 7 and bit 2 control MPU IRQ
+			case 5:	sb.sc400_cfg |= (0 << 7) + (1 << 2); break;	// bit 7=0 bit 2=1   MPU IRQ 5
+			case 9:	sb.sc400_cfg |= (1 << 7) + (1 << 2); break;	// bit 7=1 bit 2=1   MPU IRQ 9
+			default: break;						// bit 7=0 bit 2=0   MPU IRQ disabled
+		};
+
+		if (sb.reveal_sc_type != RSC_NONE) {
+			// SC400 cards always use 8-bit DMA even for 16-bit PCM
+			if (sb.hw.dma16 != sb.hw.dma8) {
+				LOG(LOG_SB,LOG_DEBUG)("SC400: DMA is always 8-bit, setting 16-bit == 8-bit");
+				sb.hw.dma16 = sb.hw.dma8;
+			}
 		}
 
 		si = section->Get_int("dsp busy cycle always");
