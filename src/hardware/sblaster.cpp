@@ -1832,7 +1832,7 @@ static void DSP_DoCommand(void) {
 		if (sb.reveal_sc_type != RSC_SC400) break;
 		/* ??? */
 		break;
-	case 0xE6: /* Reveal SC400 DMA trigger */
+	case 0xE6: /* Reveal SC400 DMA test */
 		if (sb.reveal_sc_type != RSC_SC400) break;
 		GetDMAChannel(sb.hw.dma8)->Register_Callback(DSP_SC400_E6_DMA_CallBack);
 		sb.dsp.out.lastval = 0x80;
