@@ -1848,6 +1848,7 @@ static void DSP_DoCommand(void) {
 			case 2:	sb.hw.dma8 =  1; break;
 			case 3:	sb.hw.dma8 =  3; break;
 		};
+		sb.hw.dma16 = sb.hw.dma8;
 		switch ((sb.dsp.in.data[0]>>3)&7) {
 			case 0:	sb.hw.irq = -1; break;
 			case 1:	sb.hw.irq =  7; break;
