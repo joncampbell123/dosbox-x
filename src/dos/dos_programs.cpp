@@ -2669,8 +2669,8 @@ public:
 				Bit64u sectors;
 				if (qcow2_header.magic == QCow2Image::magic && (qcow2_header.version == 2 || qcow2_header.version == 3)){
 					Bit32u cluster_size = 1 << qcow2_header.cluster_bits;
-					if ( cluster_size % sizes[0] != 0){
-						WriteOut("Sector size must evenly divide the image cluster size %lu.\n", cluster_size);
+					if ((sizes[0] < 512) || ((cluster_size % sizes[0]) != 0)){
+						WriteOut("Sector size must be larger than 512 bytes and evenly divide the image cluster size of %lu bytes.\n", cluster_size);
 						return;
 					}
 					sectors = (Bit64u)qcow2_header.size / (Bit64u)sizes[0];

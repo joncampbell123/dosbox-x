@@ -660,7 +660,7 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
 	
 	if (qcow2_header.magic == QCow2Image::magic && (qcow2_header.version == 2 || qcow2_header.version == 3)){
 		Bit32u cluster_size = 1 << qcow2_header.cluster_bits;
-		if ( cluster_size % bytesector != 0){
+		if ((bytesector < 512) || ((cluster_size % bytesector) != 0)){
 			created_successfully = false;
 			return;
 		}
