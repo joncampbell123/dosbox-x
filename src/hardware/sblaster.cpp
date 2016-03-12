@@ -1673,9 +1673,8 @@ static void DSP_DoCommand(void) {
 		}
 		break;
 	case 0x47:  /* Continue Autoinitialize 16-bit */
-		DSP_SB16_ONLY;
 	case 0x45:	/* Continue Autoinitialize 8-bit */
-		DSP_SB2_ABOVE;
+		DSP_SB16_ONLY;
 		sb.chan->FillUp();
 		sb.dma.autoinit=true;
 		if (sb.mode==MODE_DMA_PAUSE) {
