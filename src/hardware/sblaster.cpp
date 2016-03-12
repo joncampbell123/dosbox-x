@@ -1682,7 +1682,11 @@ static void DSP_DoCommand(void) {
 			if (sb.dma.chan!=NULL) sb.dma.chan->Register_Callback(DSP_DMA_CallBack);
 		}
 		else if (sb.mode!=MODE_DMA) {
-			DSP_PrepareDMA_Old(sb.dma.mode_assigned,sb.dma.autoinit,sb.dma.sign,sb.dsp.highspeed);
+			if (sb.dma.mode_assigned == DSP_DMA_16 || sb.dma.mode_assigned == DSP_DMA_16_ALIASED)
+				DSP_PrepareDMA_New(sb.dma.mode_assigned,sb.dma.total,sb.dma.autoinit,sb.dma.sign);
+			else
+				DSP_PrepareDMA_Old(sb.dma.mode_assigned,sb.dma.autoinit,sb.dma.sign,sb.dsp.highspeed);
+
 			if (sb.dma.chan!=NULL) sb.dma.chan->Register_Callback(DSP_DMA_CallBack);
 		}
 		break;
