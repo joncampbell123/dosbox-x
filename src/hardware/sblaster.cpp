@@ -1675,9 +1675,10 @@ static void DSP_DoCommand(void) {
 		DSP_SB16_ONLY;
 	case 0x45:	/* Continue Autoinitialize 8-bit */
 		DSP_SB2_ABOVE;
+		sb.chan->FillUp();
 		sb.dma.autoinit=true;
-		// FIXME: So what does the sound card do here if the single-cycle block already ended?
-		//        Does it auto-start playback or does the DOS program have to use Continue DMA commands to start it again?
+		/* TODO: How do we continue the last DMA transfer even if the single block exited? */
+		LOG(LOG_SB,LOG_NORMAL)("Command 0x45/0x47 Continue auto-init DMA not fully implemented");
 		break;
 	case 0xd9:  /* Exit Autoinitialize 16-bit */
 		DSP_SB16_ONLY;
