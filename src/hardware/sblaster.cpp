@@ -859,11 +859,6 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo,bool dontInit
 	 *    Triton - Crystal Dream (1992) [SB and SB Pro modes]
 	 *    The Jungly (1992) [SB and SB Pro modes]
 	 */
-	fprintf(stderr,"goldplay=%u freq=%u basecnt=%u\n",
-		(unsigned int)sb.goldplay,
-		(unsigned int)sb.freq,
-		(unsigned int)sb.dma.chan->basecnt);
-
 	if (sb.dsp.force_goldplay) {
 		sb.dma_dac_srcrate=freq;
 		sb.dma_dac_mode=1;
@@ -1534,11 +1529,12 @@ static void DSP_DoCommand(void) {
 		if (sb.midi == true) MIDI_RawOutByte(sb.dsp.in.data[0]);
 		break;
 	case 0x40:	/* Set Timeconstant */
+		sb.chan->FillUp();
 		sb.freq=(256000000 / (65536 - (sb.dsp.in.data[0] << 8)));
 		sb.timeconst=sb.dsp.in.data[0];
 
 		/* Nasty kind of hack to allow runtime changing of frequency */
-		if (sb.dma.mode != DSP_DMA_NONE && sb.dma.autoinit)
+		if (sb.dma.mode != DSP_DMA_NONE && sb.mode != MODE_DMA_PAUSE && sb.dma.autoinit)
 			DSP_PrepareDMA_Old(sb.dma.mode,sb.dma.autoinit,sb.dma.sign,sb.dsp.highspeed);
 
 		if (sb.ess_type != ESS_NONE) ESSUpdateFilterFromSB();
@@ -1624,6 +1620,7 @@ static void DSP_DoCommand(void) {
 	case 0xd5:	/* Halt 16-bit DMA */
 		DSP_SB16_ONLY;
 	case 0xd0:	/* Halt 8-bit DMA */
+		sb.chan->FillUp();
 //		DSP_ChangeMode(MODE_NONE);
 //		Games sometimes already program a new dma before stopping, gives noise
 		if (sb.mode==MODE_NONE) {
@@ -1634,9 +1631,11 @@ static void DSP_DoCommand(void) {
 		PIC_RemoveEvents(DMA_DAC_Event);
 		break;
 	case 0xd1:	/* Enable Speaker */
+		sb.chan->FillUp();
 		DSP_SetSpeaker(true);
 		break;
 	case 0xd3:	/* Disable Speaker */
+		sb.chan->FillUp();
 		DSP_SetSpeaker(false);
 
 		/* There are demoscene productions that reinitialize sound between parts.
@@ -1666,6 +1665,7 @@ static void DSP_DoCommand(void) {
 	case 0xd6:	/* Continue DMA 16-bit */
 		DSP_SB16_ONLY;
 	case 0xd4:	/* Continue DMA 8-bit*/
+		sb.chan->FillUp();
 		if (sb.mode==MODE_DMA_PAUSE) {
 			sb.mode=MODE_DMA_MASKED;
 			if (sb.dma.chan!=NULL) sb.dma.chan->Register_Callback(DSP_DMA_CallBack);
@@ -1677,6 +1677,7 @@ static void DSP_DoCommand(void) {
 		DSP_SB2_ABOVE;
 		/* Set mode to single transfer so it ends with current block */
 		sb.dma.autoinit=false;		//Should stop itself
+		sb.chan->FillUp();
 		break;
 	case 0xe0:	/* DSP Identification - SB2.0+ */
 		DSP_FlushData();
