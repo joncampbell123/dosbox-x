@@ -1671,6 +1671,14 @@ static void DSP_DoCommand(void) {
 			if (sb.dma.chan!=NULL) sb.dma.chan->Register_Callback(DSP_DMA_CallBack);
 		}
 		break;
+	case 0x47:  /* Continue Autoinitialize 16-bit */
+		DSP_SB16_ONLY;
+	case 0x45:	/* Continue Autoinitialize 8-bit */
+		DSP_SB2_ABOVE;
+		sb.dma.autoinit=true;
+		// FIXME: So what does the sound card do here if the single-cycle block already ended?
+		//        Does it auto-start playback or does the DOS program have to use Continue DMA commands to start it again?
+		break;
 	case 0xd9:  /* Exit Autoinitialize 16-bit */
 		DSP_SB16_ONLY;
 	case 0xda:	/* Exit Autoinitialize 8-bit */
