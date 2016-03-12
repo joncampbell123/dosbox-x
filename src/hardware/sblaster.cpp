@@ -988,35 +988,16 @@ static Bit8u DSP_RateLimitedFinalTC_Old() {
 	return sb.timeconst;
 }
 
-static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign) {
+static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign,bool hispeed) {
 	Bit8u final_tc;
 
 	if (sb.dma.force_autoinit)
 		autoinit = true;
 
-	/* Hack for Crystal Dream and any other bozo implementation that spams the DSP
-	 * with command 0x14: if we're already playing audio, don't setup audio playback
-	 * again. the reason this is important is that this setup process sets the mode
-	 * to DMA_MASKED, which gives the mixer callback an opportunity to insert silence
-	 * and cause popping and crackling. */
-	if (sb.mode == MODE_DMA) {
-		sb.dma.total=1+sb.dsp.in.data[0]+(sb.dsp.in.data[1] << 8);
-		sb.dma.left=sb.dma.total;
-		sb.dma.autoinit=autoinit;
-		return;
-	}
-
-	if (sb.dsp.cmd == 0x90 || sb.dsp.cmd == 0x91) { /* highspeed modes */
-		if (sb.type == SBT_1) /* Ignore high-speed DAC commands if Sound Blaster 1.xx */
-			return;
-		else if (sb.type == SBT_16) /* Sound Blaster 16: There is no high-speed mode, hispeed commands are aliases of non-hispeed commands effectively */
-			sb.dsp.highspeed = false;
-		else			/* SB 2.0 and Pro: note it and emulate it */
-			sb.dsp.highspeed = true;
-	}
-	else {
-		sb.dsp.highspeed = false;
-	}
+	sb.dma.total=1+sb.dsp.in.data[0]+(sb.dsp.in.data[1] << 8);
+	sb.dma.autoinit=autoinit;
+	sb.dsp.highspeed=hispeed;
+	sb.dma.sign=sign;
 
 	/* BUGFIX: Instead of direct rate-limiting the DSP time constant, keep the original
 	 *         value written intact and rate-limit a copy. Bugfix for Optic Nerve and
@@ -1029,9 +1010,6 @@ static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign) {
 	sb.freq = (256000000 / (65536 - (final_tc << 8)));
 
 	sb.dma_dac_mode=0;
-	sb.dma.autoinit=autoinit;
-	sb.dma.sign=sign;
-	sb.dma.total=1+sb.dsp.in.data[0]+(sb.dsp.in.data[1] << 8);
 	sb.ess_playback_mode = false;
 	sb.dma.chan=GetDMAChannel(sb.hw.dma8);
 	DSP_DoDMATransfer(mode,sb.freq / (sb.mixer.stereo ? 2 : 1),sb.mixer.stereo);
@@ -1539,16 +1517,18 @@ static void DSP_DoCommand(void) {
 		LOG(LOG_SB,LOG_ERROR)("DSP:Faked ADC for %d bytes",(int)sb.dma.total);
 		GetDMAChannel(sb.hw.dma8)->Register_Callback(DSP_ADC_CallBack);
 		break;
+	case 0x91:	/* Singe Cycle 8-Bit DMA High speed DAC */
+		DSP_SB2_ABOVE;
+		/* fall through */
 	case 0x14:	/* Singe Cycle 8-Bit DMA DAC */
 	case 0x15:	/* Wari hack. Waru uses this one instead of 0x14, but some weird stuff going on there anyway */
-	case 0x91:	/* Singe Cycle 8-Bit DMA High speed DAC */
 		/* Note: 0x91 is documented only for DSP ver.2.x and 3.x, not 4.x */
-		DSP_PrepareDMA_Old(DSP_DMA_8,false,false);
+		DSP_PrepareDMA_Old(DSP_DMA_8,false,false,/*hispeed*/(sb.dsp.cmd&0x80)!=0);
 		break;
 	case 0x90:	/* Auto Init 8-bit DMA High Speed */
 	case 0x1c:	/* Auto Init 8-bit DMA */
 		DSP_SB2_ABOVE; /* Note: 0x90 is documented only for DSP ver.2.x and 3.x, not 4.x */
-		DSP_PrepareDMA_Old(DSP_DMA_8,true,false);
+		DSP_PrepareDMA_Old(DSP_DMA_8,true,false,/*hispeed*/(sb.dsp.cmd&0x80)!=0);
 		break;
 	case 0x38:  /* Write to SB MIDI Output */
 		if (sb.midi == true) MIDI_RawOutByte(sb.dsp.in.data[0]);
@@ -1556,10 +1536,11 @@ static void DSP_DoCommand(void) {
 	case 0x40:	/* Set Timeconstant */
 		sb.freq=(256000000 / (65536 - (sb.dsp.in.data[0] << 8)));
 		sb.timeconst=sb.dsp.in.data[0];
+
 		/* Nasty kind of hack to allow runtime changing of frequency */
-		if (sb.dma.mode != DSP_DMA_NONE && sb.dma.autoinit) {
-			DSP_PrepareDMA_Old(sb.dma.mode,sb.dma.autoinit,sb.dma.sign);
-		}
+		if (sb.dma.mode != DSP_DMA_NONE && sb.dma.autoinit)
+			DSP_PrepareDMA_Old(sb.dma.mode,sb.dma.autoinit,sb.dma.sign,sb.dsp.highspeed);
+
 		if (sb.ess_type != ESS_NONE) ESSUpdateFilterFromSB();
 		break;
 	case 0x41:	/* Set Output Samplerate */
@@ -1581,32 +1562,32 @@ static void DSP_DoCommand(void) {
 	case 0x75:	/* 075h : Single Cycle 4-bit ADPCM Reference */
 		sb.adpcm.haveref=true;
 	case 0x74:	/* 074h : Single Cycle 4-bit ADPCM */	
-		DSP_PrepareDMA_Old(DSP_DMA_4,false,false);
+		DSP_PrepareDMA_Old(DSP_DMA_4,false,false,false);
 		break;
 	case 0x77:	/* 077h : Single Cycle 3-bit(2.6bit) ADPCM Reference*/
 		sb.adpcm.haveref=true;
 	case 0x76:  /* 074h : Single Cycle 3-bit(2.6bit) ADPCM */
-		DSP_PrepareDMA_Old(DSP_DMA_3,false,false);
+		DSP_PrepareDMA_Old(DSP_DMA_3,false,false,false);
 		break;
 	case 0x7d:	/* Auto Init 4-bit ADPCM Reference */
 		DSP_SB2_ABOVE;
 		sb.adpcm.haveref=true;
-		DSP_PrepareDMA_Old(DSP_DMA_4,true,false);
+		DSP_PrepareDMA_Old(DSP_DMA_4,true,false,false);
 		break;
 	case 0x7f:	/* Auto Init 3-bit(2.6bit) ADPCM Reference */
 		DSP_SB2_ABOVE;
 		sb.adpcm.haveref=true;
-		DSP_PrepareDMA_Old(DSP_DMA_3,true,false);
+		DSP_PrepareDMA_Old(DSP_DMA_3,true,false,false);
 		break;
 	case 0x1f:	/* Auto Init 2-bit ADPCM Reference */
 		DSP_SB2_ABOVE;
 		sb.adpcm.haveref=true;
-		DSP_PrepareDMA_Old(DSP_DMA_2,true,false);
+		DSP_PrepareDMA_Old(DSP_DMA_2,true,false,false);
 		break;
 	case 0x17:	/* 017h : Single Cycle 2-bit ADPCM Reference*/
 		sb.adpcm.haveref=true;
 	case 0x16:  /* 074h : Single Cycle 2-bit ADPCM */
-		DSP_PrepareDMA_Old(DSP_DMA_2,false,false);
+		DSP_PrepareDMA_Old(DSP_DMA_2,false,false,false);
 		break;
 	case 0x80:	/* Silence DAC */
 		PIC_AddEvent(&DSP_RaiseIRQEvent,
@@ -1976,7 +1957,7 @@ static bool DSP_busy_cycle() {
 }
 
 static void DSP_DoWrite(Bit8u val) {
-	if (sb.dsp.write_busy || sb.dsp.highspeed) {
+	if (sb.dsp.write_busy || (sb.dsp.highspeed && sb.type != SBT_16 && sb.ess_type == ESS_NONE && sb.reveal_sc_type == RSC_NONE)) {
 		LOG(LOG_SB,LOG_WARN)("DSP:Command write %2X ignored, DSP not ready. DOS game or OS is not polling status",val);
 		return;
 	}
@@ -2554,7 +2535,7 @@ static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
 			sb.busy_cycle_io_hack++; /* NTS: busy cycle I/O timing hack! */
 			if (DSP_busy_cycle())
 				busy = true;
-			else if (sb.dsp.write_busy || sb.dsp.highspeed)
+			else if (sb.dsp.write_busy || (sb.dsp.highspeed && sb.type != SBT_16 && sb.ess_type == ESS_NONE && sb.reveal_sc_type == RSC_NONE))
 				busy = true;
 
 			if (!sb.write_status_must_return_7f && sb.ess_type == ESS_NONE && (sb.type == SBT_2 || sb.type == SBT_PRO1 || sb.type == SBT_PRO2))
