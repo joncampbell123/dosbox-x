@@ -117,6 +117,7 @@ struct SB_INFO {
 	struct {
 		bool stereo,sign,autoinit;
 		bool force_autoinit;
+		DMA_MODES mode_assigned;
 		DMA_MODES mode;
 		Bitu rate,mul;
 		Bitu total,left,min;
@@ -699,7 +700,7 @@ static void DMA_Silent_Event(Bitu val) {
 		if (sb.dma.autoinit) sb.dma.left=sb.dma.total;
 		else {
 			sb.mode=MODE_NONE;
-			sb.dma.mode=DSP_DMA_NONE;
+			sb.dma.mode=sb.dma.mode_assigned=DSP_DMA_NONE;
 		}
 	}
 	if (sb.dma.left) {
@@ -880,7 +881,7 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo,bool dontInit
 	if (!dontInitLeft)
 		sb.dma.left=sb.dma.total;
 
-	sb.dma.mode=mode;
+	sb.dma.mode=sb.dma.mode_assigned=mode;
 	sb.dma.stereo=stereo;
 	sb.irq.pending_8bit=false;
 	sb.irq.pending_16bit=false;
@@ -924,7 +925,7 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo,bool dontInit
 		sb.chan->SetFreq(freq);
 		updateSoundBlasterFilter(freq);
 	}
-	sb.dma.mode=mode;
+	sb.dma.mode=sb.dma.mode_assigned=mode;
 	PIC_RemoveEvents(DMA_DAC_Event);
 	PIC_RemoveEvents(END_DMA_Event);
 
@@ -1118,7 +1119,7 @@ static void DSP_Reset(void) {
 	sb.dma.stereo=false;
 	sb.dma.sign=false;
 	sb.dma.autoinit=false;
-	sb.dma.mode=DSP_DMA_NONE;
+	sb.dma.mode=sb.dma.mode_assigned=DSP_DMA_NONE;
 	sb.dma.remain_size=0;
 	if (sb.dma.chan) sb.dma.chan->Clear_Request();
 
@@ -1677,8 +1678,14 @@ static void DSP_DoCommand(void) {
 		DSP_SB2_ABOVE;
 		sb.chan->FillUp();
 		sb.dma.autoinit=true;
-		/* TODO: How do we continue the last DMA transfer even if the single block exited? */
-		LOG(LOG_SB,LOG_NORMAL)("Command 0x45/0x47 Continue auto-init DMA not fully implemented");
+		if (sb.mode==MODE_DMA_PAUSE) {
+			sb.mode=MODE_DMA_MASKED;
+			if (sb.dma.chan!=NULL) sb.dma.chan->Register_Callback(DSP_DMA_CallBack);
+		}
+		else if (sb.mode!=MODE_DMA) {
+			DSP_PrepareDMA_Old(sb.dma.mode_assigned,sb.dma.autoinit,sb.dma.sign,sb.dsp.highspeed);
+			if (sb.dma.chan!=NULL) sb.dma.chan->Register_Callback(DSP_DMA_CallBack);
+		}
 		break;
 	case 0xd9:  /* Exit Autoinitialize 16-bit */
 		DSP_SB16_ONLY;
