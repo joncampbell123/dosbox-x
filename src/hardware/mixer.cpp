@@ -426,6 +426,9 @@ inline void MixerChannel::loadCurrentSample(Bitu &len, const Type* &data) {
 			if (delta[1] < -max_change)	delta[1] = -max_change;
 			else if (delta[1] > max_change)	delta[1] = max_change;
 		}
+		else {
+			delta[1] = delta[0];
+		}
 	}
 
 	current_loaded = true;
