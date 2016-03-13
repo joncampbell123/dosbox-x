@@ -132,7 +132,7 @@ static unsigned char dosbox_int_regsel_shf = 0;
 static uint32_t dosbox_int_regsel = 0;
 static bool dosbox_int_error = false;
 static bool dosbox_int_busy = false;
-static const char *dosbox_int_version = "DOSBox-X integration device";
+static const char *dosbox_int_version = "DOSBox-X integration device v1.0";
 static const char *dosbox_int_ver_read = NULL;
 
 /* read triggered, update the regsel */
