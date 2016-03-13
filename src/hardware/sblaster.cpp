@@ -1676,15 +1676,7 @@ static void DSP_DoCommand(void) {
 	case 0x45:	/* Continue Autoinitialize 8-bit */
 		DSP_SB16_ONLY;
 		sb.chan->FillUp();
-		sb.dma.autoinit=true;
-		if (sb.mode==MODE_DMA_PAUSE) {
-			sb.mode=MODE_DMA_MASKED;
-			if (sb.dma.chan!=NULL) sb.dma.chan->Register_Callback(DSP_DMA_CallBack);
-		}
-		else if (sb.mode!=MODE_DMA) {
-			DSP_PrepareDMA_New(sb.dma.mode_assigned,sb.dma.total,sb.dma.autoinit,sb.dma.stereo);
-			if (sb.dma.chan!=NULL) sb.dma.chan->Register_Callback(DSP_DMA_CallBack);
-		}
+		sb.dma.autoinit=true; // No. This DSP command does not resume DMA playback
 		break;
 	case 0xd9:  /* Exit Autoinitialize 16-bit */
 		DSP_SB16_ONLY;
