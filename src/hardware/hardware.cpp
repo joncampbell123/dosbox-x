@@ -393,7 +393,7 @@ void ffmpeg_reopen_video(double fps,const int bpp) {
 	ffmpeg_vid_ctx->height = capture.video.height;
 	ffmpeg_vid_ctx->gop_size = 15; // TODO: make config option
 	ffmpeg_vid_ctx->max_b_frames = 0;
-	ffmpeg_vid_ctx->pix_fmt = PIX_FMT_YUV444P;	// TODO: auto-choose according to what codec says is supported, and let user choose as well
+	ffmpeg_vid_ctx->pix_fmt = AV_PIX_FMT_YUV444P;	// TODO: auto-choose according to what codec says is supported, and let user choose as well
 	ffmpeg_vid_ctx->thread_count = 0;		// auto-choose
 	ffmpeg_vid_ctx->flags2 = CODEC_FLAG2_FAST;
 	ffmpeg_vid_ctx->qmin = 1;
@@ -957,8 +957,8 @@ skip_shot:
 				avcodec_register_all();
 			}
 
-			ffmpeg_aud_codec = avcodec_find_encoder(CODEC_ID_AAC);
-			ffmpeg_vid_codec = avcodec_find_encoder(CODEC_ID_H264);
+			ffmpeg_aud_codec = avcodec_find_encoder(AV_CODEC_ID_AAC);
+			ffmpeg_vid_codec = avcodec_find_encoder(AV_CODEC_ID_H264);
 			if (ffmpeg_aud_codec == NULL || ffmpeg_vid_codec == NULL) {
 				LOG_MSG("H.264 or AAC encoder not available");
 				goto skip_video;
@@ -993,7 +993,7 @@ skip_shot:
 			ffmpeg_vid_ctx->height = capture.video.height;
 			ffmpeg_vid_ctx->gop_size = 15; // TODO: make config option
 			ffmpeg_vid_ctx->max_b_frames = 0;
-			ffmpeg_vid_ctx->pix_fmt = PIX_FMT_YUV444P;	// TODO: auto-choose according to what codec says is supported, and let user choose as well
+			ffmpeg_vid_ctx->pix_fmt = AV_PIX_FMT_YUV444P;	// TODO: auto-choose according to what codec says is supported, and let user choose as well
 			ffmpeg_vid_ctx->thread_count = 0;		// auto-choose
 			ffmpeg_vid_ctx->flags2 = CODEC_FLAG2_FAST;
 			ffmpeg_vid_ctx->qmin = 1;
