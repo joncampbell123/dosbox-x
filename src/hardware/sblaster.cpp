@@ -1407,7 +1407,6 @@ static void DSP_DoCommand(void) {
 		}
 		else if (sb.dsp.cmd == 0xC6 || sb.dsp.cmd == 0xC7) { // set(0xC6) clear(0xC7) extended mode
 			sb.ess_extended_mode = (sb.dsp.cmd == 0xC6);
-			// TODO: ESS chipsets in extended mode tend to ignore standard Sound Blaster commands
 		}
 		else {
 			LOG(LOG_SB,LOG_DEBUG)("ESS: Unknown command %02xh",sb.dsp.cmd);
