@@ -2097,6 +2097,9 @@ bool CPU_READ_CRX(Bitu cr,Bit32u & retvalue) {
 	/* Check if privileged to access control registers */
 	if (cpu.pmode && (cpu.cpl>0)) return CPU_PrepareException(EXCEPTION_GP,0);
 	if ((cr==1) || (cr>4)) return CPU_PrepareException(EXCEPTION_UD,0);
+	if (CPU_ArchitectureType<CPU_ARCHTYPE_486OLD) {
+		if (cr==4) return CPU_PrepareException(EXCEPTION_UD,0);
+	}
 	retvalue=CPU_GET_CRX(cr);
 	return false;
 }
