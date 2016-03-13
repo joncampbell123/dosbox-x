@@ -159,6 +159,9 @@ void dosbox_integration_trigger_read() {
 				dosbox_int_register += ((uint32_t)((unsigned char)(*dosbox_int_ver_read++))) << (uint32_t)(i * 8);
 			}
 			break;
+		case 3: /* version number */
+			dosbox_int_register = (0x01U/*major*/) + (0x00U/*minor*/ << 8U) + (0x00U/*subver*/ << 16U) + (0x01U/*bump*/ << 24U);
+			break;
 		default:
 			dosbox_int_register = 0xAA55AA55;
 			dosbox_int_error = true;
