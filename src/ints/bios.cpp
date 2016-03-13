@@ -162,6 +162,10 @@ void dosbox_integration_trigger_read() {
 		case 3: /* version number */
 			dosbox_int_register = (0x01U/*major*/) + (0x00U/*minor*/ << 8U) + (0x00U/*subver*/ << 16U) + (0x01U/*bump*/ << 24U);
 			break;
+
+		case 0xAA55BB66UL: /* interface reset result */
+			break;
+
 		default:
 			dosbox_int_register = 0xAA55AA55;
 			dosbox_int_error = true;
@@ -213,7 +217,7 @@ static Bitu dosbox_integration_port_r(Bitu port,Bitu iolen) {
 		case 0: /* index */
 			ret = 0;
 			while (iolen > 0) {
-				ret += (dosbox_int_regsel >> (dosbox_int_regsel_shf * 8)) << (retb * 8);
+				ret += ((dosbox_int_regsel >> (dosbox_int_regsel_shf * 8)) & 0xFFU) << (retb * 8);
 				if ((++dosbox_int_regsel_shf) >= 4) dosbox_int_regsel_shf = 0;
 				iolen--;
 				retb++;
@@ -223,7 +227,7 @@ static Bitu dosbox_integration_port_r(Bitu port,Bitu iolen) {
 			ret = 0;
 			while (iolen > 0) {
 				if (dosbox_int_register_shf == 0) dosbox_integration_trigger_read();
-				ret += (dosbox_int_register >> (dosbox_int_register_shf * 8)) << (retb * 8);
+				ret += ((dosbox_int_register >> (dosbox_int_register_shf * 8)) & 0xFFU) << (retb * 8);
 				if ((++dosbox_int_register_shf) >= 4) dosbox_int_register_shf = 0;
 				iolen--;
 				retb++;
@@ -270,9 +274,15 @@ void dosbox_integration_port_w(Bitu port,Bitu val,Bitu iolen) {
 			break;
 		case 2: /* command */
 			switch (val) {
-				case 0x00: /* switch latch */
+				case 0x00: /* reset latch */
 					dosbox_int_register_shf = 0;
 					dosbox_int_regsel_shf = 0;
+					break;
+				case 0xFF: /* reset interface */
+					dosbox_int_busy = false;
+					dosbox_int_error = false;
+					dosbox_int_regsel = 0xAA55BB66;
+					dosbox_int_register = 0xD05B0C5;
 					break;
 			};
 			break;
