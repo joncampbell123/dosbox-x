@@ -233,7 +233,7 @@ static Bitu dosbox_integration_port_r(Bitu port,Bitu iolen) {
 			 *   1 = error
 			 *   0 = busy */
 			ret = (dosbox_int_regsel_shf << 6) + (dosbox_int_register_shf << 4) +
-				(dosbox_int_error ? 1 : 0) + (dosbox_int_busy ? 1 : 0);
+				(dosbox_int_error ? 2 : 0) + (dosbox_int_busy ? 1 : 0);
 			break;
 		default:
 			break;
