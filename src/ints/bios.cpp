@@ -135,6 +135,8 @@ static bool dosbox_int_busy = false;
 static const char *dosbox_int_version = "DOSBox-X integration device v1.0";
 static const char *dosbox_int_ver_read = NULL;
 
+static std::string dosbox_int_debug_out;
+
 /* read triggered, update the regsel */
 void dosbox_integration_trigger_read() {
 	dosbox_int_error = false;
@@ -189,9 +191,32 @@ void dosbox_integration_trigger_write() {
 	switch (dosbox_int_regsel) {
 		case 1: /* test */
 			break;
+
 		case 2: /* version string */
 			dosbox_int_ver_read = NULL;
 			break;
+
+		case 0xDEB0: /* debug output (to log) */
+			for (unsigned int b=0;b < 4;b++) {
+				unsigned char c = (unsigned char)(dosbox_int_register >> (b * 8U));
+				if (c == '\n' || dosbox_int_debug_out.length() >= 200) {
+					LOG_MSG("Client debug message: %s\n",dosbox_int_debug_out.c_str());
+					dosbox_int_debug_out.clear();
+				}
+				else if (c != 0) {
+					dosbox_int_debug_out += ((char)c);
+				}
+				else {
+					break;
+				}
+			}
+			dosbox_int_register = 0;
+			break;
+
+		case 0xBEB1: /* debug output clear */
+			dosbox_int_debug_out.clear();
+			break;
+
 		default:
 			dosbox_int_register = 0x55AA55AA;
 			dosbox_int_error = true;
@@ -277,6 +302,12 @@ void dosbox_integration_port_w(Bitu port,Bitu val,Bitu iolen) {
 				case 0x00: /* reset latch */
 					dosbox_int_register_shf = 0;
 					dosbox_int_regsel_shf = 0;
+					break;
+				case 0x01: /* flush write */
+					if (dosbox_int_register_shf != 0) {
+						dosbox_integration_trigger_write();
+						dosbox_int_register_shf = 0;
+					}
 					break;
 				case 0xFF: /* reset interface */
 					dosbox_int_busy = false;
