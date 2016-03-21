@@ -174,7 +174,7 @@ void dosbox_integration_trigger_read() {
 			break;
 	};
 
-	LOG_MSG("DOSBox integration read 0x%08lx got 0x%08lx (err=%u)\n",
+	LOG(LOG_MISC,LOG_DEBUG)("DOSBox integration read 0x%08lx got 0x%08lx (err=%u)\n",
 		(unsigned long)dosbox_int_regsel,
 		(unsigned long)dosbox_int_register,
 		dosbox_int_error?1:0);
@@ -184,7 +184,7 @@ void dosbox_integration_trigger_read() {
 void dosbox_integration_trigger_write() {
 	dosbox_int_error = false;
 
-	LOG_MSG("DOSBox integration write 0x%08lx val 0x%08lx\n",
+	LOG(LOG_MISC,LOG_DEBUG)("DOSBox integration write 0x%08lx val 0x%08lx\n",
 		(unsigned long)dosbox_int_regsel,
 		(unsigned long)dosbox_int_register);
 
