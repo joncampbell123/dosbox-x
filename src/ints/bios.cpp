@@ -213,7 +213,7 @@ void dosbox_integration_trigger_write() {
 			dosbox_int_register = 0;
 			break;
 
-		case 0xBEB1: /* debug output clear */
+		case 0xDEB1: /* debug output clear */
 			dosbox_int_debug_out.clear();
 			break;
 
