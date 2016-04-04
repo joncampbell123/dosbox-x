@@ -609,7 +609,12 @@ bool Section_prop::HandleInputline(string const& gegevens){
 	trim(name);trim(val);
 	for(it tel=properties.begin();tel!=properties.end();tel++){
 		if(!strcasecmp((*tel)->propname.c_str(),name.c_str())){
-			return (*tel)->SetValue(val);
+			if (!((*tel)->SetValue(val))) return false;
+
+			for (std::list<SectionFunction>::iterator i=onpropchange.begin();i!=onpropchange.end();i++)
+				(*i)(this);
+
+			return true;
 		}
 	}
 	return false;

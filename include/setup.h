@@ -258,6 +258,8 @@ public:
 	virtual bool HandleInputline(std::string const& _line)=0;
 	virtual void PrintData(FILE* outfile,bool everything=false) = 0;
 	virtual ~Section() { /*Children must call executedestroy ! */ }
+
+	std::list<SectionFunction> onpropchange;
 };
 
 /* list of functions to call (in list order) when DOSBox-X exits.

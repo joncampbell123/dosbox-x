@@ -3098,8 +3098,14 @@ void CPU_OnReset(Section* sec) {
 	}
 }
 
+void CPU_OnSectionPropChange(Section *x) {
+	if (test != NULL) test->Change_Config(x);
+}
+
 void CPU_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing CPU");
+
+	control->GetSection("cpu")->onpropchange.push_back(&CPU_OnSectionPropChange);
 
 	test = new CPU(control->GetSection("cpu"));
 	AddExitFunction(AddExitFunctionFuncPair(CPU_ShutDown),true);
