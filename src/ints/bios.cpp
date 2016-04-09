@@ -238,17 +238,19 @@ void dosbox_integration_trigger_write() {
 #if (C_SSHOT)
 			void CAPTURE_ScreenShotEvent(bool pressed);
 			void CAPTURE_VideoEvent(bool pressed);
+#endif
 			void CAPTURE_WaveEvent(bool pressed);
 
 			/* TODO: It would be wise to grant/deny access to this register through another dosbox.conf option
 			 *       so that rogue DOS development cannot shit-spam the capture folder */
+#if (C_SSHOT)
 			if (dosbox_int_register & 1)
 				CAPTURE_ScreenShotEvent(true);
 			if (dosbox_int_register & 2)
 				CAPTURE_VideoEvent(true);
+#endif
 			if (dosbox_int_register & 4)
 				CAPTURE_WaveEvent(true);
-#endif
 			break;
 
 		default:
