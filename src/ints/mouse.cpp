@@ -554,6 +554,10 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
 	Mouse_AddEvent(MOUSE_HAS_MOVED);
 }
 
+uint8_t Mouse_GetButtonState(void) {
+	return mouse.buttons;
+}
+
 void Mouse_ButtonPressed(Bit8u button) {
 	if (KEYBOARD_AUX_Active()) {
 		switch (button) {

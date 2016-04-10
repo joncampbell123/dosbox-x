@@ -133,7 +133,11 @@ static struct {
 	bool rightctrl_pressed;
 } keyb;
 
+uint8_t Mouse_GetButtonState(void);
+
 uint32_t Keyb_ig_status() {
+	uint8_t mousebtn = Mouse_GetButtonState() & 7;
+
 	return	((uint32_t)keyb.led_state     << (uint32_t)0 ) |
 		((uint32_t)keyb.scanset       << (uint32_t)8 ) |
 		((uint32_t)keyb.reset         << (uint32_t)10) |
@@ -148,7 +152,8 @@ uint32_t Keyb_ig_status() {
 		((uint32_t)keyb.ps2mouse.m    << (uint32_t)19) |
 		((uint32_t)keyb.ps2mouse.r    << (uint32_t)20) |
 		((uint32_t)keyb.ps2mouse.reporting << (uint32_t)21) |
-		((uint32_t)(keyb.ps2mouse.mode == MM_STREAM ? 1 : 0) << (uint32_t)22);
+		((uint32_t)(keyb.ps2mouse.mode == MM_STREAM ? 1 : 0) << (uint32_t)22) |
+		((uint32_t)mousebtn           << (uint32_t)23);
 }
 
 bool MouseTypeNone() {

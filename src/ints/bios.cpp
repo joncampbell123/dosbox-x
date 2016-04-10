@@ -243,6 +243,9 @@ void dosbox_integration_trigger_write() {
 			break;
 
 		case 0x804200: /* keyboard input injection */
+			void Mouse_ButtonPressed(Bit8u button);
+			void Mouse_ButtonReleased(Bit8u button);
+			void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate);
 			void KEYBOARD_AUX_Event(float x,float y,Bitu buttons,int scrollwheel);
 			void KEYBOARD_AddBuffer(Bit16u data);
 
@@ -254,16 +257,17 @@ void dosbox_integration_trigger_write() {
 					KEYBOARD_AddBuffer((dosbox_int_register&0xFF)|0x100/*AUX*/);
 					break;
 				case 0x08: // mouse button injection
-					KEYBOARD_AUX_Event(0,0,dosbox_int_register&0xFF,0);
+					if (dosbox_int_register&0x80) Mouse_ButtonPressed(dosbox_int_register&0x7F);
+					else Mouse_ButtonPressed(dosbox_int_register&0x7F);
 					break;
 				case 0x09: // mouse movement injection (X)
-					KEYBOARD_AUX_Event(((dosbox_int_register>>16UL) / 256.0f) - 1.0f,0,0,0);
+					Mouse_CursorMoved(((dosbox_int_register>>16UL) / 256.0f) - 1.0f,0,0,0,true);
 					break;
 				case 0x0A: // mouse movement injection (Y)
-					KEYBOARD_AUX_Event(0,((dosbox_int_register>>16UL) / 256.0f) - 1.0f,0,0);
+					Mouse_CursorMoved(0,((dosbox_int_register>>16UL) / 256.0f) - 1.0f,0,0,true);
 					break;
 				case 0x0B: // mouse scrollwheel injection
-					KEYBOARD_AUX_Event(0,0,0,(int)(dosbox_int_register & 0xFF) - 0x80);
+					// TODO
 					break;
 				default:
 					dosbox_int_error = true;
