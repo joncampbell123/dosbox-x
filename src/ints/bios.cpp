@@ -258,7 +258,7 @@ void dosbox_integration_trigger_write() {
 					break;
 				case 0x08: // mouse button injection
 					if (dosbox_int_register&0x80) Mouse_ButtonPressed(dosbox_int_register&0x7F);
-					else Mouse_ButtonPressed(dosbox_int_register&0x7F);
+					else Mouse_ButtonReleased(dosbox_int_register&0x7F);
 					break;
 				case 0x09: // mouse movement injection (X)
 					Mouse_CursorMoved(((dosbox_int_register>>16UL) / 256.0f) - 1.0f,0,0,0,true);
