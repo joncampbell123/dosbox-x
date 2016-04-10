@@ -39,7 +39,7 @@
 void AUX_Reset();
 void KEYBOARD_Reset();
 static void KEYBOARD_SetPort60(Bit16u val);
-static void KEYBOARD_AddBuffer(Bit16u data);
+void KEYBOARD_AddBuffer(Bit16u data);
 static void KEYBOARD_Add8042Response(Bit8u data);
 void KEYBOARD_SetLEDs(Bit8u bits);
 
@@ -132,6 +132,24 @@ static struct {
 	bool leftctrl_pressed;
 	bool rightctrl_pressed;
 } keyb;
+
+uint32_t Keyb_ig_status() {
+	return	((uint32_t)keyb.led_state     << (uint32_t)0 ) |
+		((uint32_t)keyb.scanset       << (uint32_t)8 ) |
+		((uint32_t)keyb.reset         << (uint32_t)10) |
+		((uint32_t)keyb.active        << (uint32_t)11) |
+		((uint32_t)keyb.scanning      << (uint32_t)12) |
+		((uint32_t)keyb.auxactive     << (uint32_t)13) |
+		((uint32_t)keyb.scheduled     << (uint32_t)14) |
+		((uint32_t)keyb.p60changed    << (uint32_t)15) |
+		((uint32_t)keyb.auxchanged    << (uint32_t)16) |
+		((uint32_t)keyb.cb_xlat       << (uint32_t)17) |
+		((uint32_t)keyb.ps2mouse.l    << (uint32_t)18) |
+		((uint32_t)keyb.ps2mouse.m    << (uint32_t)19) |
+		((uint32_t)keyb.ps2mouse.r    << (uint32_t)20) |
+		((uint32_t)keyb.ps2mouse.reporting << (uint32_t)21) |
+		((uint32_t)(keyb.ps2mouse.mode == MM_STREAM ? 1 : 0) << (uint32_t)22);
+}
 
 bool MouseTypeNone() {
 	return (keyb.ps2mouse.type == MOUSE_NONE);
@@ -269,7 +287,7 @@ static void KEYBOARD_Add8042Response(Bit8u data) {
 	PIC_AddEvent(KEYBOARD_TransferBuffer,KEYDELAY);
 }
 
-static void KEYBOARD_AddBuffer(Bit16u data) {
+void KEYBOARD_AddBuffer(Bit16u data) {
 	if (keyb.used>=KEYBUFSIZE) {
 		LOG(LOG_KEYBOARD,LOG_NORMAL)("Buffer full, dropping code");
 		KEYBOARD_ClrBuffer(); return;

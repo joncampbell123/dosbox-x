@@ -165,6 +165,14 @@ void dosbox_integration_trigger_read() {
 			dosbox_int_register = (0x01U/*major*/) + (0x00U/*minor*/ << 8U) + (0x00U/*subver*/ << 16U) + (0x01U/*bump*/ << 24U);
 			break;
 
+//		case 0x804200: /* keyboard input injection -- not supposed to read */
+//			break;
+
+		case 0x804201: /* keyboard status */
+			uint32_t Keyb_ig_status();
+			dosbox_int_register = Keyb_ig_status();
+			break;
+
 		case 0xC54010: /* Screenshot/capture trigger */
 			/* TODO: This should also be hidden behind an enable switch, so that rogue DOS development
 			 *       can't retaliate if the user wants to capture video or screenshots. */
@@ -233,6 +241,38 @@ void dosbox_integration_trigger_write() {
 		case 0xDEB1: /* debug output clear */
 			dosbox_int_debug_out.clear();
 			break;
+
+		case 0x804200: /* keyboard input injection */
+			void KEYBOARD_AUX_Event(float x,float y,Bitu buttons,int scrollwheel);
+			void KEYBOARD_AddBuffer(Bit16u data);
+
+			switch ((dosbox_int_register>>8)&0xFF) {
+				case 0x00: // keyboard
+					KEYBOARD_AddBuffer(dosbox_int_register&0xFF);
+					break;
+				case 0x01: // AUX
+					KEYBOARD_AddBuffer((dosbox_int_register&0xFF)|0x100/*AUX*/);
+					break;
+				case 0x08: // mouse button injection
+					KEYBOARD_AUX_Event(0,0,dosbox_int_register&0xFF,0);
+					break;
+				case 0x09: // mouse movement injection (X)
+					KEYBOARD_AUX_Event(((dosbox_int_register>>16UL) / 256.0f) - 1.0f,0,0,0);
+					break;
+				case 0x0A: // mouse movement injection (Y)
+					KEYBOARD_AUX_Event(0,((dosbox_int_register>>16UL) / 256.0f) - 1.0f,0,0);
+					break;
+				case 0x0B: // mouse scrollwheel injection
+					KEYBOARD_AUX_Event(0,0,0,(int)(dosbox_int_register & 0xFF) - 0x80);
+					break;
+				default:
+					dosbox_int_error = true;
+					break;
+			}
+			break;
+
+//		case 0x804201: /* keyboard status do not write */
+//			break;
 
 		case 0xC54010: /* Screenshot/capture trigger */
 #if (C_SSHOT)
@@ -344,6 +384,9 @@ void dosbox_integration_port_w(Bitu port,Bitu val,Bitu iolen) {
 						dosbox_integration_trigger_write();
 						dosbox_int_register_shf = 0;
 					}
+					break;
+				case 0xFE: /* clear error */
+					dosbox_int_error = false;
 					break;
 				case 0xFF: /* reset interface */
 					dosbox_int_busy = false;
