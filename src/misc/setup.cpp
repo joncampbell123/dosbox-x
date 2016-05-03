@@ -283,6 +283,21 @@ bool Prop_double::SetValue(std::string const& input){
 	return SetVal(val,false,/*warn*/true);
 }
 
+bool Prop_double::CheckValue(Value const& in, bool warn)
+{
+	if (suggested_values.empty() && Property::CheckValue(in, warn)) return true;
+	double mi = min;
+	double ma = max;
+	double va = static_cast<double>(Value(in));
+	auto same = [](double a, double b, double epsilon) { return fabs(a - b < epsilon); };
+	double tolerance = 0.000001; // TODO any way to make this public ?
+	if (same(mi, -1.0, tolerance) && same(ma, -1.0, tolerance)) return true;
+	if (mi == -1.0 && ma == -1.0) return true;
+	if (va >= mi && va <= ma) return true;
+	if (warn) LOG_MSG("%s lies outside the range %s-%s for variable: %s.\nIt might now be reset to the default value: %s", in.ToString().c_str(), min.ToString().c_str(), max.ToString().c_str(), propname.c_str(), default_value.ToString().c_str());
+	return false;
+}
+
 bool Prop_int::SetValue(std::string const& input){;
 	Value val;
 	if(!val.SetValue(input,Value::V_INT)) return false;

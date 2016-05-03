@@ -181,9 +181,23 @@ public:
 	Prop_double(std::string const & _propname, Changeable::Value when, double _value)
 		:Property(_propname,when){
 		default_value = value = _value;
+		min = max = -1.0;
 	}
+	Prop_double(std::string const& _propname, Changeable::Value when, double _min, double _max, double _value)
+		:Property(_propname, when)
+	{
+		default_value = value = _value;
+		min = _min;
+		max = _max;
+	}
+	double getMin() { return min; }
+	double getMax() { return max; }
+	void SetMinMax(Value const& min, Value const& max) { this->min = min; this->max = max; }
 	bool SetValue(std::string const& input);
 	virtual ~Prop_double(){ }
+	virtual bool CheckValue(Value const& in, bool warn);
+private:
+	Value min, max;
 };
 
 class Prop_bool:public Property {
