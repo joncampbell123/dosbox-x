@@ -1,0 +1,48 @@
+Overview of latest joystick parameters in dosbox.conf
+=====================================================
+
+Sample configuration:
+
+[joystick]
+joy1deadzone1=0.26
+joy1deadzone2=0.26
+joy2deadzone1=0.26
+joy1response1=3.00
+joy1response2=3.00
+joy2response1=3.00
+
+
+General usage
+=============
+
+Mapping layout according selected joystick type
+-----------------------------------------------
+
+2axis:
+- joy1[deadzone|response]1 -> targets player 1 thumbstick
+- joy2[deadzone|response]1 -> targets player 2 thumbstick
+
+all other modes:
+- joy1[deadzone|response]1 -> targets player 1 thumbstick 1
+- joy1[deadzone|response]2 -> targets player 1 thumbstick 2
+
+Note:
+By 'thumbstick' we mean a pair of axes, not the tumbsticks themselves on your device, whether they map to your physical thumbstick is driver-specific (i.e. Xbox One Controller left thumbstick is axes 0/1, triggers are axes 2/3, right thumbstick is axes 4/5; what turns out to be unintuitive).
+
+
+Deadzone
+--------
+
+Allows an axis to be at rest below a certain threshold. As a result, axis value at rest will stay fairly stable whereas previously lot of jittering could be seen. A default value of 0.26 will do fine on contemporary gamepads (e.g. Xbox One Controller). A higher value might be needed for not-brand-new devices as they tend to loosen over time.
+
+
+Response
+--------
+
+Smoothing of joystick movement. Player input is smoothed using a power function, 'response' being the exponent parameter. A value of 1.0 produces a linear (unfiltered) input. A value of 3.0 produces a cubic interpolation (good for aiming). Beware though that as you increase the exponent, the produced input is less uniform overall. As exponent increases, you gain precision at center but lose precision at edges; also the overall circle shape that a linear input produces 'morphs' to a rhombus shape. Recommended range is between 1.0 and 5.0.
+
+Tip 1:
+Setting a negative value will generate the opposite behavior.
+
+Tip 2:
+Do not set to 0.0 as this will invariably generate a movement, see https://en.wikipedia.org/wiki/Exponentiation for more details.
