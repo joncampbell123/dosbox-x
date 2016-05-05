@@ -1,5 +1,8 @@
+*.suo
+*.user
+*.VC.db
+*.VC.VC.opendb
 *.sdf
-vs2015/*.sdf
 bin/
 bin/*
 obj/
