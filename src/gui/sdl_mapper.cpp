@@ -101,6 +101,64 @@ typedef std::vector<CBindGroup *>::iterator CBindGroup_it;
 
 static CBindList holdlist;
 
+// Get value sign, i.e. less than zero: -1, zero: 0, greater than zero: 1.
+template <typename T> int sgn(T val) {
+
+	// http://stackoverflow.com/questions/1903954/is-there-a-standard-sign-function-signum-sgn-in-c-c
+	return (T(0) < val) - (val < T(0));
+}
+
+// Floating-point vector with 2 components.
+struct Vector2
+{
+	float X, Y;
+
+	Vector2(float x, float y) : X(x), Y(y)
+	{
+
+	}
+
+	Vector2() : Vector2(0.0f, 0.0f)
+	{
+
+	}
+
+	Vector2 clamp(Vector2 min, Vector2 max) const
+	{
+		float x = this->X;
+		float y = this->Y;
+		float xmin = min.X;
+		float xmax = max.X;
+		float ymin = min.Y;
+		float ymax = max.Y;
+		x = x < xmin ? xmin : x > xmax ? xmax : x;
+		y = y < ymin ? ymin : y > ymax ? ymax : y;
+		Vector2 clamp = Vector2(x, y);
+		return clamp;
+	}
+
+	float magnitude() const
+	{
+		return sqrt(sqrMagnitude());
+	}
+
+	float sqrMagnitude() const
+	{
+		return X * X + Y * Y;
+	}
+
+	Vector2 normalized() const
+	{
+		float m = this->magnitude();
+		return m > 0.0f ? Vector2(this->X / m, this->Y / m) : Vector2();
+	}
+
+	Vector2 operator*(float f) const
+	{
+		return Vector2(this->X * f, this->Y * f);
+	}
+};
+
 class CEvent {
 public:
 	CEvent(char const * const _entry) {
@@ -735,6 +793,15 @@ public:
 		if (button_wrap > MAXBUTTON) button_wrap = MAXBUTTON;
 
 		LOG_MSG("Using joystick %s with %d axes, %d buttons and %d hat(s)",SDL_JoystickName(stick),(int)axes,(int)buttons,(int)hats);
+
+		// fetching these at every call simply freezes DOSBox at times so we do it once
+		// (game tested : Terminal Velocity @ joystick calibration page)
+		joy1dz1 = static_cast<float>(GetAxisDeadzone(0, 0));
+		joy1rs1 = static_cast<float>(GetAxisResponse(0, 0));
+		joy1dz2 = static_cast<float>(GetAxisDeadzone(0, 1));
+		joy1rs2 = static_cast<float>(GetAxisResponse(0, 1));
+		joy2dz1 = static_cast<float>(GetAxisDeadzone(1, 0));
+		joy2rs1 = static_cast<float>(GetAxisResponse(1, 0));
 	}
 	virtual ~CStickBindGroup() {
 		SDL_JoystickClose(sdl_joystick);
@@ -833,8 +900,9 @@ public:
 				JOYSTICK_Button(emustick,i,button_pressed[i]);
 		}
 
-		JOYSTICK_Move_X(emustick,((float)virtual_joysticks[emustick].axis_pos[0])/32768.0f);
-		JOYSTICK_Move_Y(emustick,((float)virtual_joysticks[emustick].axis_pos[1])/32768.0f);
+		auto v = GetJoystickVector(emustick, 0, 0, 1);
+		JOYSTICK_Move_X(emustick, v.X);
+		JOYSTICK_Move_Y(emustick, v.Y);
 	}
 
 	void ActivateJoystickBoundEvents() {
@@ -915,6 +983,8 @@ public:
 	}
 
 private:
+	float joy1dz1, joy1rs1, joy1dz2, joy1rs2, joy2dz1, joy2rs1;
+
 	CBind * CreateAxisBind(Bitu axis,bool positive) {
 		if (axis<axes) {
 			if (positive) return new CJAxisBind(&pos_axis_lists[axis],this,axis,positive);
@@ -944,6 +1014,39 @@ private:
 		else return "[missing joystick]";
 	}
 
+	static float GetAxisDeadzone(int joystick, int thumbStick)
+	{
+		auto section = control->GetSection("joystick");
+		auto prop = static_cast<Section_prop*>(section);
+		auto name = "joy" + std::to_string(joystick + 1) + "deadzone" + std::to_string(thumbStick + 1);
+		auto deadzone = static_cast<float>(prop->Get_double(name));
+		return deadzone;
+	}
+	
+	static float GetAxisResponse(int joystick, int thumbStick)
+	{
+		auto section = control->GetSection("joystick");
+		auto prop = static_cast<Section_prop*>(section);
+		auto name = "joy" + std::to_string(joystick + 1) + "response" + std::to_string(thumbStick + 1);
+		auto response = static_cast<float>(prop->Get_double(name));
+		return response;
+	}
+
+	static void ProcessInput(Bit16s x, Bit16s y, float deadzone, Vector2& joy)
+	{
+		// http://www.third-helix.com/2013/04/12/doing-thumbstick-dead-zones-right.html
+
+		joy = Vector2((x + 0.5f) / 32767.5f, (y + 0.5f) / 32767.5f);
+
+		float m = joy.magnitude();
+		Vector2 n = joy.normalized();
+		joy = m < deadzone ? Vector2() : n * ((m - deadzone) / (1.0f - deadzone));
+
+		Vector2 min = Vector2(-1.0f, -1.0f);
+		Vector2 max = Vector2(+1.0f, +1.0f);
+		joy = joy.clamp(min, max);
+	}
+	
 protected:
 	CBindList * pos_axis_lists;
 	CBindList * neg_axis_lists;
@@ -959,6 +1062,38 @@ protected:
 	bool old_neg_axis_state[MAXAXIS];
 	Uint8 old_hat_state[16];
 	bool is_dummy;
+
+	Vector2 GetJoystickVector(int joystick, int thumbStick, int xAxis, int yAxis) const
+	{
+		Bit16s x = virtual_joysticks[joystick].axis_pos[xAxis];
+		Bit16s y = virtual_joysticks[joystick].axis_pos[yAxis];
+		float deadzone;
+		float response;
+		if (joystick == 0)
+		{
+			if (thumbStick == 0)
+			{
+				deadzone = joy1dz1;
+				response = joy1rs1;
+			}
+			else
+			{
+				deadzone = joy1dz2;
+				response = joy1rs2;
+			}
+		}
+		else
+		{
+			deadzone = joy2dz1;
+			response = joy2rs1;
+		}
+		Vector2 v;
+		ProcessInput(x, y, deadzone, v);
+		float x1 = sgn(v.X) * abs(pow(v.X, response));
+		float y1 = sgn(v.Y) * abs(pow(v.Y, response));
+		Vector2 v1(x1, y1);
+		return v1;
+	}
 };
 
 class C4AxisBindGroup : public  CStickBindGroup {
@@ -1025,10 +1160,12 @@ public:
 				JOYSTICK_Button(i>>1,i&1,button_pressed[i]);
 		}
 
-		JOYSTICK_Move_X(0,((float)virtual_joysticks[0].axis_pos[0])/32768.0f);
-		JOYSTICK_Move_Y(0,((float)virtual_joysticks[0].axis_pos[1])/32768.0f);
-		JOYSTICK_Move_X(1,((float)virtual_joysticks[0].axis_pos[2])/32768.0f);
-		JOYSTICK_Move_Y(1,((float)virtual_joysticks[0].axis_pos[3])/32768.0f);
+		auto v1 = GetJoystickVector(0, 0, 0, 1);
+		auto v2 = GetJoystickVector(0, 1, 2, 3);
+		JOYSTICK_Move_X(0, v1.X);
+		JOYSTICK_Move_Y(0, v1.Y);
+		JOYSTICK_Move_X(1, v2.X);
+		JOYSTICK_Move_Y(1, v2.Y);
 	}
 };
 
@@ -1106,9 +1243,11 @@ public:
 				JOYSTICK_Button(i>>1,i&1,button_pressed[i]);
 		}
 
-		JOYSTICK_Move_X(0,((float)virtual_joysticks[0].axis_pos[0])/32768.0f);
-		JOYSTICK_Move_Y(0,((float)virtual_joysticks[0].axis_pos[1])/32768.0f);
-		JOYSTICK_Move_X(1,((float)virtual_joysticks[0].axis_pos[2])/32768.0f);
+		auto v1 = GetJoystickVector(0, 0, 0, 1);
+		auto v2 = GetJoystickVector(0, 1, 2, 3);
+		JOYSTICK_Move_X(0, v1.X);
+		JOYSTICK_Move_Y(0, v1.Y);
+		JOYSTICK_Move_X(1, v2.X);
 
 		Uint8 hat_pos=0;
 		if (virtual_joysticks[0].hat_pressed[0]) hat_pos|=SDL_HAT_UP;
@@ -1253,10 +1392,12 @@ public:
 		/* query SDL joystick and activate bindings */
 		ActivateJoystickBoundEvents();
 
-		JOYSTICK_Move_X(0,((float)virtual_joysticks[0].axis_pos[0])/32768.0f);
-		JOYSTICK_Move_Y(0,((float)virtual_joysticks[0].axis_pos[1])/32768.0f);
-		JOYSTICK_Move_X(1,((float)virtual_joysticks[0].axis_pos[2])/32768.0f);
-		JOYSTICK_Move_Y(1,((float)virtual_joysticks[0].axis_pos[3])/32768.0f);
+		auto v1 = GetJoystickVector(0, 0, 0, 1);
+		auto v2 = GetJoystickVector(0, 1, 2, 3);
+		JOYSTICK_Move_X(0, v1.X);
+		JOYSTICK_Move_X(0, v1.Y);
+		JOYSTICK_Move_X(1, v2.X);
+		JOYSTICK_Move_X(1, v2.Y);
 
 		Bitu bt_state=15;
 
