@@ -38,6 +38,7 @@
 #include <assert.h>
 #include <stdarg.h>
 #include <sys/types.h>
+#include <algorithm> // std::transform
 #ifdef WIN32
 # include <signal.h>
 # include <process.h>
@@ -4007,6 +4008,9 @@ bool DOSBOX_parse_argv() {
 
 	control->cmdline->BeginOpt();
 	while (control->cmdline->GetOpt(optname)) {
+
+		std::transform(optname.begin(), optname.end(), optname.begin(), ::tolower);
+
 		if (optname == "version") {
 			DOSBox_ShowConsole();
 
