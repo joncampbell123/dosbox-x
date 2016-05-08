@@ -1504,6 +1504,23 @@ int Reflect_Menu(void) {
 	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_Z, ID_MOUNT_FLOPPY_Z, ID_MOUNT_LOCAL_Z, ID_MOUNT_IMAGE_Z, ID_AUTOMOUNT_Z, ID_UMOUNT_Z, 'Z');
 }
 
+// Sets the scaler to use.
+void SetScaler(scalerOperation_t op, Bitu size, std::string prefix)
+{
+	auto value = prefix + (render.scale.forced ? " forced" : "");
+	SetVal("render", "scaler", value);
+	render.scale.size = size;
+	render.scale.op = op;
+	RENDER_CallBack(GFX_CallBackReset);
+}
+
+// Sets the scaler 'forced' flag.
+void SetScaleForced(bool forced)
+{
+	render.scale.forced = forced;
+	RENDER_CallBack(GFX_CallBackReset);
+}
+
 void MSG_Loop(void) {
 	if (!menu.gui || GetSetSDLValue(1, "desktop.fullscreen", 0)) return;
 	if (!GetMenu(GetHWND())) return;
@@ -1576,61 +1593,32 @@ void MSG_Loop(void) {
 				GFX_SetTitle(CPU_CycleMax, -1, -1, false);
 				break;
 			case ID_TOGGLE: ToggleMenu(true); break;
-			case ID_NONE: SCALER_SW(scalerOpNormal, 1) break; SetVal("render", "scaler", !render.scale.forced ? "none" : "none forced"); break;
-			case ID_NORMAL2X: SCALER_SW(scalerOpNormal, 2) break; SetVal("render", "scaler", !render.scale.forced ? "normal2x" : "normal2x forced"); break;
-			case ID_NORMAL3X: SCALER_SW(scalerOpNormal, 3) break; SetVal("render", "scaler", !render.scale.forced ? "normal3x" : "normal3x forced"); break;
-			case ID_NORMAL4X: SCALER_SW(scalerOpNormal, 4) break; SetVal("render", "scaler", !render.scale.forced ? "normal4x" : "normal4x forced"); break;
-			case ID_NORMAL5X: SCALER_SW(scalerOpNormal, 5) break; SetVal("render", "scaler", !render.scale.forced ? "normal5x" : "normal5x forced"); break;
-			case ID_HARDWARE_NONE: SCALER_HW(scalerOpNormal, 1) break; SetVal("render", "scaler", !render.scale.forced ? "hardware_none" : "hardware_none forced"); break;
-			case ID_HARDWARE2X: SCALER_HW(scalerOpNormal, 4) break; SetVal("render", "scaler", !render.scale.forced ? "hardware2x" : "hardware2x forced"); break;
-			case ID_HARDWARE3X: SCALER_HW(scalerOpNormal, 6) break; SetVal("render", "scaler", !render.scale.forced ? "hardware3x" : "hardware3x forced"); break;
-			case ID_HARDWARE4X: SCALER_HW(scalerOpNormal, 8) break; SetVal("render", "scaler", !render.scale.forced ? "hardware4x" : "hardware4x forced"); break;
-			case ID_HARDWARE5X: SCALER_HW(scalerOpNormal, 10) break; SetVal("render", "scaler", !render.scale.forced ? "hardware5x" : "hardware5x forced"); break;
-			case ID_ADVMAME2X: SCALER(scalerOpAdvMame, 2) break; SetVal("render", "scaler", !render.scale.forced ? "advmame2x" : "advmame2x forced"); break;
-			case ID_ADVMAME3X: SCALER(scalerOpAdvMame, 3) break; SetVal("render", "scaler", !render.scale.forced ? "advmame3x" : "advmame3x forced"); break;
-			case ID_ADVINTERP2X: SCALER(scalerOpAdvInterp, 2) break; SetVal("render", "scaler", !render.scale.forced ? "advinterp2x" : "advinterp2x forced"); break;
-			case ID_ADVINTERP3X: SCALER(scalerOpAdvInterp, 3) break; SetVal("render", "scaler", !render.scale.forced ? "advinterp3x" : "advinterp3x forced"); break;
-			case ID_HQ2X: SCALER(scalerOpHQ, 2) break; SetVal("render", "scaler", !render.scale.forced ? "hq2x" : "hq2x forced"); break;
-			case ID_HQ3X: SCALER(scalerOpHQ, 3) break; SetVal("render", "scaler", !render.scale.forced ? "hq3x" : "hq3x forced"); break;
-			case ID_2XSAI: SCALER(scalerOpSaI, 2) break; SetVal("render", "scaler", !render.scale.forced ? "2xsai" : "2xsai forced"); break;
-			case ID_SUPER2XSAI: SCALER(scalerOpSuperSaI, 2) break; SetVal("render", "scaler", !render.scale.forced ? "super2xsai" : "super2xsai forced"); break;
-			case ID_SUPEREAGLE: SCALER(scalerOpSuperEagle, 2) break; SetVal("render", "scaler", !render.scale.forced ? "supereagle" : "supereagle forced"); break;
-			case ID_TV2X: SCALER(scalerOpTV, 2) break; SetVal("render", "scaler", !render.scale.forced ? "tv2x" : "tv2x forced"); break;
-			case ID_TV3X: SCALER(scalerOpTV, 3) break; SetVal("render", "scaler", !render.scale.forced ? "tv3x" : "tv3x forced"); break;
-			case ID_RGB2X: SCALER(scalerOpRGB, 2) break; SetVal("render", "scaler", !render.scale.forced ? "rgb2x" : "rgb2x forced"); break;
-			case ID_RGB3X: SCALER(scalerOpRGB, 3) break; SetVal("render", "scaler", !render.scale.forced ? "rgb3x" : "rgb3x forced"); break;
-			case ID_SCAN2X: SCALER(scalerOpScan, 2) break; SetVal("render", "scaler", !render.scale.forced ? "scan2x" : "scan2x forced"); break;
-			case ID_SCAN3X: SCALER(scalerOpScan, 3) break; SetVal("render", "scaler", !render.scale.forced ? "scan3x" : "scan3x forced"); break;
-			case ID_FORCESCALER: {
-				SCALER_SW(scalerOpNormal, 1) SetVal("render", "scaler", render.scale.forced ? "none" : "none forced"); else
-					SCALER_HW(scalerOpNormal, 1) SetVal("render", "scaler", render.scale.forced ? "hardware_none" : "hardware_none forced"); else
-					SCALER_HW(scalerOpNormal, 4) SetVal("render", "scaler", render.scale.forced ? "hardware2x" : "hardware2x forced"); else
-					SCALER_HW(scalerOpNormal, 6) SetVal("render", "scaler", render.scale.forced ? "hardware3x" : "hardware3x forced"); else
-					SCALER_HW(scalerOpNormal, 8) SetVal("render", "scaler", render.scale.forced ? "hardware4x" : "hardware4x forced"); else
-					SCALER_HW(scalerOpNormal, 10) SetVal("render", "scaler", render.scale.forced ? "hardware5x" : "hardware5x forced"); else
-					SCALER(scalerOpNormal, 2) SetVal("render", "scaler", render.scale.forced ? "normal2x" : "normal2x forced"); else
-					SCALER(scalerOpNormal, 3) SetVal("render", "scaler", render.scale.forced ? "normal3x" : "normal3x forced"); else
-					SCALER_SW(scalerOpNormal, 4) SetVal("render", "scaler", render.scale.forced ? "normal4x" : "normal4x forced"); else
-					SCALER_SW(scalerOpNormal, 5) SetVal("render", "scaler", render.scale.forced ? "normal5x" : "normal5x forced"); else
-					SCALER(scalerOpAdvMame, 2) SetVal("render", "scaler", render.scale.forced ? "advmame2x" : "advmame2x forced"); else
-					SCALER(scalerOpAdvMame, 3) SetVal("render", "scaler", render.scale.forced ? "advmame3x" : "advmame3x forced"); else
-					SCALER(scalerOpAdvInterp, 2) SetVal("render", "scaler", render.scale.forced ? "advinterp2x" : "advinterp2x forced"); else
-					SCALER(scalerOpAdvInterp, 3) SetVal("render", "scaler", render.scale.forced ? "advinterp3x" : "advinterp3x forced"); else
-					SCALER(scalerOpHQ, 2) SetVal("render", "scaler", render.scale.forced ? "hq2x" : "hq2x forced"); else
-					SCALER(scalerOpHQ, 3) SetVal("render", "scaler", render.scale.forced ? "hq3x" : "hq3x forced"); else
-					SCALER(scalerOpSaI, 2) SetVal("render", "scaler", render.scale.forced ? "2xsai" : "2xsai forced"); else
-					SCALER(scalerOpSuperSaI, 2) SetVal("render", "scaler", render.scale.forced ? "super2xsai" : "super2xsai forced"); else
-					SCALER(scalerOpSuperEagle, 2) SetVal("render", "scaler", render.scale.forced ? "supereagle" : "supereagle forced"); else
-					SCALER(scalerOpTV, 2) SetVal("render", "scaler", render.scale.forced ? "tv2x" : "tv2x forced"); else
-					SCALER(scalerOpTV, 3) SetVal("render", "scaler", render.scale.forced ? "tv3x" : "tv3x forced"); else
-					SCALER(scalerOpRGB, 2) SetVal("render", "scaler", render.scale.forced ? "rgb2x" : "rgb2x forced"); else
-					SCALER(scalerOpRGB, 3) SetVal("render", "scaler", render.scale.forced ? "rgb3x" : "rgb3x forced"); else
-					SCALER(scalerOpScan, 2) SetVal("render", "scaler", render.scale.forced ? "scan2x" : "scan2x forced"); else
-					SCALER(scalerOpScan, 3) SetVal("render", "scaler", render.scale.forced ? "scan3x" : "scan3x forced");
-				break;
-				}
-				break;
-
+			case ID_NONE:			SetScaler(scalerOpNormal,			1, "normal1x");			break;
+			case ID_NORMAL2X:		SetScaler(scalerOpNormal,			2, "normal2x");			break;
+			case ID_NORMAL3X:		SetScaler(scalerOpNormal,			3, "normal3x");			break;
+			case ID_NORMAL4X:		SetScaler(scalerOpNormal,			4, "normal4x");			break;
+			case ID_NORMAL5X:		SetScaler(scalerOpNormal,			5, "normal5x");			break;
+			case ID_HARDWARE_NONE:	SetScaler(scalerOpNormal,			1, "hardware_none");	break;
+			case ID_HARDWARE2X:		SetScaler(scalerOpNormal,			2, "hardware2x");		break;
+			case ID_HARDWARE3X:		SetScaler(scalerOpNormal,			3, "hardware3x");		break;
+			case ID_HARDWARE4X:		SetScaler(scalerOpNormal,			4, "hardware4x");		break;
+			case ID_HARDWARE5X:		SetScaler(scalerOpNormal,			4, "hardware5x");		break;
+			case ID_ADVMAME2X:		SetScaler(scalerOpAdvMame,			2, "advmame2x");		break;
+			case ID_ADVMAME3X:		SetScaler(scalerOpAdvMame,			3, "advmame3x");		break;
+			case ID_ADVINTERP2X:	SetScaler(scalerOpAdvInterp,		2, "advinterp2x");		break;
+			case ID_ADVINTERP3X:	SetScaler(scalerOpAdvInterp,		3, "advinterp3x");		break;
+			case ID_HQ2X:			SetScaler(scalerOpHQ,				2, "hq2x");				break;
+			case ID_HQ3X:			SetScaler(scalerOpHQ,				3, "hq3x");				break;
+			case ID_2XSAI:			SetScaler(scalerOpSaI,				2, "2xsai");			break;
+			case ID_SUPER2XSAI:		SetScaler(scalerOpSuperSaI,			2, "super2xsai");		break;
+			case ID_SUPEREAGLE:		SetScaler(scalerOpSuperEagle,		2, "supereagle");		break;
+			case ID_TV2X:			SetScaler(scalerOpTV,				2, "tv2x");				break;
+			case ID_TV3X:			SetScaler(scalerOpTV,				3, "tv3x");				break;
+			case ID_RGB2X:			SetScaler(scalerOpRGB,				2, "rgb2x");			break;
+			case ID_RGB3X:			SetScaler(scalerOpRGB,				3, "rgb3x");			break;
+			case ID_SCAN2X:			SetScaler(scalerOpScan,				2, "scan2x");			break;
+			case ID_SCAN3X:			SetScaler(scalerOpScan,				3, "scan3x");			break;
+			case ID_FORCESCALER:	SetScaleForced(!render.scale.forced);						break;
 			case ID_CYCLE: GUI_Shortcut(16); break;
 			case ID_CPU_TURBO: extern void DOSBOX_UnlockSpeed2(bool pressed); DOSBOX_UnlockSpeed2(1); break;
 			case ID_SKIP_0: SetVal("render", "frameskip", "0"); break;
