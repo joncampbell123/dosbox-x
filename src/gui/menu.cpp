@@ -1593,7 +1593,7 @@ void MSG_Loop(void) {
 				GFX_SetTitle(CPU_CycleMax, -1, -1, false);
 				break;
 			case ID_TOGGLE: ToggleMenu(true); break;
-			case ID_NONE:			SetScaler(scalerOpNormal,			1, "normal1x");			break;
+			case ID_NONE:			SetScaler(scalerOpNormal,			1, "none");				break;
 			case ID_NORMAL2X:		SetScaler(scalerOpNormal,			2, "normal2x");			break;
 			case ID_NORMAL3X:		SetScaler(scalerOpNormal,			3, "normal3x");			break;
 			case ID_NORMAL4X:		SetScaler(scalerOpNormal,			4, "normal4x");			break;
