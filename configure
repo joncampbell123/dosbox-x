@@ -629,6 +629,8 @@ LIBOBJS
 HAVE_WINDRES_FALSE
 HAVE_WINDRES_TRUE
 WINDRES
+LINUX_FALSE
+LINUX_TRUE
 CXXCPP
 ALSA_LIBS
 ALSA_CFLAGS
@@ -7857,6 +7859,14 @@ $as_echo "#define C_DIRECTSERIAL 1" >>confdefs.h
 
        ;;
     *-*-linux*)
+        if true; then
+  LINUX_TRUE=
+  LINUX_FALSE='#'
+else
+  LINUX_TRUE='#'
+  LINUX_FALSE=
+fi
+
 
 $as_echo "#define LINUX 1" >>confdefs.h
 
@@ -8135,6 +8145,10 @@ if test -z "${am__fastdepCXX_TRUE}" && test -z "${am__fastdepCXX_FALSE}"; then
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 
+if test -z "${LINUX_TRUE}" && test -z "${LINUX_FALSE}"; then
+  as_fn_error $? "conditional \"LINUX\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
 if test -z "${HAVE_WINDRES_TRUE}" && test -z "${HAVE_WINDRES_FALSE}"; then
   as_fn_error $? "conditional \"HAVE_WINDRES\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
