@@ -78,7 +78,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-bin_PROGRAMS = dosbox$(EXEEXT)
+bin_PROGRAMS = dosbox-x$(EXEEXT)
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/depcomp
@@ -93,11 +93,11 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am__dosbox_SOURCES_DIST = dosbox.cpp winres.rc
+am__dosbox_x_SOURCES_DIST = dosbox.cpp winres.rc
 @HAVE_WINDRES_TRUE@am__objects_1 = winres.$(OBJEXT)
-am_dosbox_OBJECTS = dosbox.$(OBJEXT) $(am__objects_1)
-dosbox_OBJECTS = $(am_dosbox_OBJECTS)
-dosbox_DEPENDENCIES = debug/libdebug.a dos/libdos.a shell/libshell.a \
+am_dosbox_x_OBJECTS = dosbox.$(OBJEXT) $(am__objects_1)
+dosbox_x_OBJECTS = $(am_dosbox_x_OBJECTS)
+dosbox_x_DEPENDENCIES = debug/libdebug.a dos/libdos.a shell/libshell.a \
 	builtin/libbuiltin.a ints/libints.a misc/libmisc.a \
 	hardware/serialport/libserial.a hardware/parport/libparallel.a \
 	libs/porttalk/libporttalk.a gui/libgui.a \
@@ -132,8 +132,8 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(dosbox_SOURCES)
-DIST_SOURCES = $(am__dosbox_SOURCES_DIST)
+SOURCES = $(dosbox_x_SOURCES)
+DIST_SOURCES = $(am__dosbox_x_SOURCES_DIST)
 RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
 	ctags-recursive dvi-recursive html-recursive info-recursive \
 	install-data-recursive install-dvi-recursive \
@@ -311,8 +311,8 @@ top_srcdir = @top_srcdir@
 AM_CPPFLAGS = -I$(top_srcdir)/include
 SUBDIRS = cpu debug dos fpu gui hardware libs ints misc shell builtin platform 
 @HAVE_WINDRES_TRUE@ico_stuff = winres.rc
-dosbox_SOURCES = dosbox.cpp $(ico_stuff)
-dosbox_LDADD = debug/libdebug.a dos/libdos.a shell/libshell.a builtin/libbuiltin.a \
+dosbox_x_SOURCES = dosbox.cpp $(ico_stuff)
+dosbox_x_LDADD = debug/libdebug.a dos/libdos.a shell/libshell.a builtin/libbuiltin.a \
                ints/libints.a misc/libmisc.a hardware/serialport/libserial.a hardware/parport/libparallel.a \
                libs/porttalk/libporttalk.a gui/libgui.a libs/gui_tk/libgui_tk.a hardware/libhardware.a \
 	       cpu/libcpu.a hardware/reSID/libresid.a fpu/libfpu.a gui/libgui.a
@@ -395,9 +395,9 @@ uninstall-binPROGRAMS:
 clean-binPROGRAMS:
 	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
 
-dosbox$(EXEEXT): $(dosbox_OBJECTS) $(dosbox_DEPENDENCIES) $(EXTRA_dosbox_DEPENDENCIES) 
-	@rm -f dosbox$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(dosbox_OBJECTS) $(dosbox_LDADD) $(LIBS)
+dosbox-x$(EXEEXT): $(dosbox_x_OBJECTS) $(dosbox_x_DEPENDENCIES) $(EXTRA_dosbox_x_DEPENDENCIES) 
+	@rm -f dosbox-x$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(dosbox_x_OBJECTS) $(dosbox_x_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
