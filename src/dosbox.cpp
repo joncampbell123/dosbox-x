@@ -540,7 +540,7 @@ void notifyError(const std::string& message)
 #ifdef WIN32
     ::MessageBox(0, message.c_str(), "Error", 0);
 #endif
-    LOG_MSG(message.c_str());
+    LOG_MSG("%s",message.c_str());
 }
 
 /* TODO: move to utility header */
