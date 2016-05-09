@@ -1607,6 +1607,15 @@ static void openglhq_init(void) {
 	sdl.desktop.want_type=SCREEN_OPENGLHQ;
 }
 
+void GetDesktopResolution(int* width, int* height)
+{
+	RECT rDdesk;
+	auto hDesk = GetDesktopWindow();
+	GetWindowRect(hDesk, &rDdesk);
+	*width = rDdesk.right - rDdesk.left;
+	*height = rDdesk.bottom - rDdesk.top;
+}
+
 void res_init(void) {
 	if(sdl.desktop.want_type==SCREEN_OPENGLHQ) return;
 	Section * sec = control->GetSection("sdl");
@@ -1650,7 +1659,15 @@ void res_init(void) {
 	}
 	sdl.desktop.doublebuf=section->Get_bool("fulldouble");
 
-	int width=1024, height=768;
+	int width = 1024;
+	int height = 768;
+	
+	// fullresolution == desktop -> get/set desktop size
+	auto sdlSection = control->GetSection("sdl");
+	auto sdlSectionProp = static_cast<Section_prop*>(sdlSection);
+	auto fullRes = sdlSectionProp->Get_string("fullresolution");
+	if (!strcmp(fullRes, "desktop")) GetDesktopResolution(&width, &height);
+	
 	if (!sdl.desktop.full.width) {
 		sdl.desktop.full.width=width;
 	}
@@ -1783,30 +1800,61 @@ void change_output(int output) {
 }
 
 
-void GFX_SwitchFullScreen(void) {
-    menu.resizeusing=true;
-	sdl.desktop.fullscreen=!sdl.desktop.fullscreen;
-	if (sdl.desktop.fullscreen) {
-		if(sdl.desktop.want_type != SCREEN_OPENGLHQ) { if(menu.gui) SetMenu(GetHWND(),NULL); }
-		if (!sdl.mouse.locked) GFX_CaptureMouse();
-#if defined (WIN32)
-		sticky_keys(false); //disable sticky keys in fullscreen mode
-#endif
-	} else {
-		if (sdl.mouse.locked) GFX_CaptureMouse();
-#if defined (WIN32)		
-		sticky_keys(true); //restore sticky keys to default state in windowed mode.
-#endif
-	}
-	GFX_ResetScreen();
-#ifdef WIN32
-	if(menu.startup) {
-		Section_prop * sec=static_cast<Section_prop *>(control->GetSection("vsync"));
-		if(sec) {
-			if(!strcmp(sec->Get_string("vsyncmode"),"host")) SetVal("vsync","vsyncmode","host");
+void GFX_SwitchFullScreen(void)
+{
+	menu.resizeusing = true;
+
+	sdl.desktop.fullscreen = !sdl.desktop.fullscreen;
+
+	auto full = sdl.desktop.fullscreen;
+
+	// if we're going fullscreen and current scaler exceeds screen size,
+	// cancel the fullscreen change -> fixes scaler crashes
+	// TODO this will need further changes to accomodate different outputs (e.g. stretched)
+	if (full)
+	{
+		int width, height;
+		GetDesktopResolution(&width, &height);
+		auto width1 = sdl.draw.width;
+		auto height1 = sdl.draw.height;
+		if (width < width1 || height < height1) {
+			sdl.desktop.fullscreen = false;
+			LOG_MSG("WARNING: full screen canceled, surface size (%ix%i) exceeds screen size (%ix%i).",
+				width1, height1, width, height);
+			return;
 		}
 	}
-#endif //WIN32
+
+	LOG_MSG("INFO: switched to %s mode", full ? "full screen" : "window");
+
+	// (re-)assign menu to window
+	if (full && sdl.desktop.want_type != SCREEN_OPENGLHQ && menu.gui) SetMenu(GetHWND(), nullptr);
+
+	// ensure mouse capture when fullscreen || (re-)capture if user said so when windowed
+	auto locked = sdl.mouse.locked;
+	if (full && !locked || !full && locked) GFX_CaptureMouse();
+
+	// disable/enable sticky keys for fullscreen/desktop
+#if defined (WIN32)		
+	sticky_keys(!full);
+#endif
+
+	GFX_ResetScreen();
+
+	// set vsync to host
+	// NOTE why forcing ???
+#ifdef WIN32
+	if (menu.startup) // NOTE should be always true I suppose ???
+	{
+		auto vsync = static_cast<Section_prop *>(control->GetSection("vsync"));
+		if (vsync)
+		{
+			auto vsyncMode = vsync->Get_string("vsyncmode");
+			if (!strcmp(vsyncMode, "host")) SetVal("vsync", "vsyncmode", "host");
+		}
+	}
+#endif
+
 }
 
 static void SwitchFullScreen(bool pressed) {
