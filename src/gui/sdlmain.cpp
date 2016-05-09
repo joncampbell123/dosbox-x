@@ -1609,11 +1609,19 @@ static void openglhq_init(void) {
 
 void GetDesktopResolution(int* width, int* height)
 {
+#ifdef WIN32
 	RECT rDdesk;
 	auto hDesk = GetDesktopWindow();
 	GetWindowRect(hDesk, &rDdesk);
 	*width = rDdesk.right - rDdesk.left;
 	*height = rDdesk.bottom - rDdesk.top;
+#elif defined(LINUX)
+	void Linux_GetDesktopResolution(int *width,int *height);
+	Linux_GetDesktopResolution(width,height); /* this is MESSY but there's too much namespace collision going on here */
+#else
+	*width = 1024; // guess
+	*height = 768;
+#endif
 }
 
 void res_init(void) {

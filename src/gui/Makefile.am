@@ -23,3 +23,7 @@ libgui_a_SOURCES = sdlmain.cpp sdl_mapper.cpp dosbox_logo.h \
 	./sha1/sha1.cpp ./sha1/sha1.h ROMInfo.cpp ROMInfo.h \
 	guid.cpp ksdataformat.cpp riff.cpp riff_wav_writer.cpp avi_rw_iobuf.cpp avi_writer.cpp
 
+if LINUX
+libgui_a_SOURCES += sdlmain_linux.cpp
+endif
+
