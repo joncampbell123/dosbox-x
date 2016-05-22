@@ -4497,6 +4497,10 @@ public:
 		 * a page fault. */
 		CPU_Snap_Back_To_Real_Mode();
 
+		if (BOCHS_PORT_E9) {
+			delete BOCHS_PORT_E9;
+			BOCHS_PORT_E9=NULL;
+		}
 		if (ISAPNP_PNP_ADDRESS_PORT) {
 			delete ISAPNP_PNP_ADDRESS_PORT;
 			ISAPNP_PNP_ADDRESS_PORT=NULL;
