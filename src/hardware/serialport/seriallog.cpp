@@ -26,10 +26,11 @@
 
 CSerialLog::CSerialLog(Bitu id,	CommandLine* cmd):CSerial(id, cmd) {
 	CSerial::Init_Registers();
+	// DSR+CTS on to make sure the DOS COM device will not get stuck waiting for them
 	setRI(false);
-	setDSR(false);
 	setCD(false);
-	setCTS(false);
+	setDSR(true);
+	setCTS(true);
 	InstallationSuccessful=true;
 }
 
@@ -96,15 +97,13 @@ void CSerialLog::setRTSDTR(bool rts, bool dtr) {
 	setRTS(rts);
 	setDTR(dtr);
 }
+
 void CSerialLog::setRTS(bool val) {
-#ifdef CHECKIT_TESTPLUG
 	setCTS(val);
-#endif
 }
+
 void CSerialLog::setDTR(bool val) {
-#ifdef CHECKIT_TESTPLUG
 	setDSR(val);
 	setRI(val);
 	setCD(val);
-#endif
 }
