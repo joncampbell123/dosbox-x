@@ -48,6 +48,7 @@ extern bool pcibus_enable;
 
 bool VM_Boot_DOSBox_Kernel();
 
+bool bochs_port_e9 = false;
 bool isa_memory_hole_512kb = false;
 bool int15_wait_force_unmask_irq = false;
 
@@ -84,6 +85,26 @@ Bitu						rombios_minimum_size = 0x10000;
 
 bool MEM_map_ROM_physmem(Bitu start,Bitu end);
 bool MEM_unmap_physmem(Bitu start,Bitu end);
+
+static std::string bochs_port_e9_line;
+
+static void bochs_port_e9_flush() {
+	if (!bochs_port_e9_line.empty()) {
+		LOG_MSG("Bochs port E9h: %s",bochs_port_e9_line.c_str());
+		bochs_port_e9_line.clear();
+	}
+}
+
+void bochs_port_e9_write(Bitu port,Bitu val,Bitu /*iolen*/) {
+	if (val == '\n' || val == '\r') {
+		bochs_port_e9_flush();
+	}
+	else {
+		bochs_port_e9_line += (char)val;
+		if (bochs_port_e9_line.length() >= 256)
+			bochs_port_e9_flush();
+	}
+}
 
 void ROMBIOS_DumpMemory() {
 	rombios_alloc.logDump();
@@ -414,6 +435,7 @@ static unsigned int ISA_PNP_WPORT_BIOS = 0;
 static IO_ReadHandleObject *ISAPNP_PNP_READ_PORT = NULL;		/* 0x200-0x3FF range */
 static IO_WriteHandleObject *ISAPNP_PNP_ADDRESS_PORT = NULL;		/* 0x279 */
 static IO_WriteHandleObject *ISAPNP_PNP_DATA_PORT = NULL;		/* 0xA79 */
+static IO_WriteHandleObject *BOCHS_PORT_E9 = NULL;
 //static unsigned char ISA_PNP_CUR_CSN = 0;
 static unsigned char ISA_PNP_CUR_ADDR = 0;
 static unsigned char ISA_PNP_CUR_STATE = 0;
@@ -4256,12 +4278,28 @@ public:
 		{ // TODO: Eventually, move this to BIOS POST or init phase
 			Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 
+			bochs_port_e9 = section->Get_bool("bochs debug port e9");
+
 			// TODO: motherboard init, especially when we get around to full Intel Triton/i440FX chipset emulation
 			isa_memory_hole_512kb = section->Get_bool("isa memory hole at 512kb");
 
 			// FIXME: Erm, well this couldv'e been named better. It refers to the amount of conventional memory
 			//        made available to the operating system below 1MB, which is usually DOS.
 			dos_conventional_limit = section->Get_int("dos mem limit");
+		}
+
+		if (bochs_port_e9) {
+			if (BOCHS_PORT_E9 == NULL) {
+				BOCHS_PORT_E9 = new IO_WriteHandleObject;
+				BOCHS_PORT_E9->Install(0xE9,bochs_port_e9_write,IO_MB);
+			}
+			LOG(LOG_MISC,LOG_DEBUG)("Bochs port E9h emulation is active");
+		}
+		else {
+			if (BOCHS_PORT_E9 != NULL) {
+				delete BOCHS_PORT_E9;
+				BOCHS_PORT_E9 = NULL;
+			}
 		}
 
 		/* pick locations */
