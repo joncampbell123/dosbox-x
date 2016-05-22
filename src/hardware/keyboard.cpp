@@ -649,7 +649,7 @@ static Bit8u port_61_data = 0;
 static Bitu read_p61(Bitu, Bitu) {
 	unsigned char dbg;
 	dbg = ((port_61_data & 0xF) |
-		(TIMER_GetOutput2()? 0x20:0) |
+		((TIMER_GetOutput2() || (port_61_data&1) == 0)? 0x20:0) | // NTS: Timer 2 doesn't cycle if Port 61 gate turned off, and it becomes '1' when turned off
 		((fmod(PIC_FullIndex(),0.030) > 0.015)? 0x10:0));
 	return dbg;
 }
