@@ -35,6 +35,7 @@
 #include "serialdummy.h"
 #include "softmodem.h"
 #include "nullmodem.h"
+#include "seriallog.h"
 
 #include "cpu.h"
 
@@ -1305,6 +1306,9 @@ public:
 			// detect the type
 			if (type=="dummy") {
 				serialports[i] = new CSerialDummy (i, &cmd);
+			}
+			else if (type=="log") {
+				serialports[i] = new CSerialLog (i, &cmd);
 			}
 			else if (type=="serialmouse") {
 				serialports[i] = new CSerialMouse (i, &cmd);

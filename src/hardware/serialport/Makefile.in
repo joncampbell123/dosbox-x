@@ -100,8 +100,9 @@ am__v_AR_1 =
 libserial_a_AR = $(AR) $(ARFLAGS)
 libserial_a_LIBADD =
 am_libserial_a_OBJECTS = directserial.$(OBJEXT) libserial.$(OBJEXT) \
-	serialdummy.$(OBJEXT) serialport.$(OBJEXT) softmodem.$(OBJEXT) \
-	misc_util.$(OBJEXT) nullmodem.$(OBJEXT) serialmouse.$(OBJEXT)
+	serialdummy.$(OBJEXT) serialport.$(OBJEXT) seriallog.$(OBJEXT) \
+	softmodem.$(OBJEXT) misc_util.$(OBJEXT) nullmodem.$(OBJEXT) \
+	serialmouse.$(OBJEXT)
 libserial_a_OBJECTS = $(am_libserial_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -282,7 +283,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/include
 noinst_LIBRARIES = libserial.a
 libserial_a_SOURCES = directserial.cpp directserial.h \
 						libserial.cpp libserial.h \
-						serialdummy.cpp serialdummy.h serialport.cpp \
+						serialdummy.cpp serialdummy.h serialport.cpp seriallog.cpp \
 						softmodem.cpp softmodem.h misc_util.cpp misc_util.h \
 						nullmodem.cpp nullmodem.h serialmouse.cpp serialmouse.h
 
@@ -340,6 +341,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/misc_util.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nullmodem.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/serialdummy.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/seriallog.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/serialmouse.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/serialport.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/softmodem.Po@am__quote@
