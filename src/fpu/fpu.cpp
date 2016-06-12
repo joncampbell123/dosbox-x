@@ -876,12 +876,14 @@ void FPU_Selftest_80() {
 		{"-4.0L",		-4.0,		2,				1,		0x8000000000000000ULL}	// 1.0 x 2^2 = 1.0 x 4 = 4.0
 	};
 	static const size_t tests = sizeof(test) / sizeof(test[0]);
+#endif
 	FPU_Reg_80 ft;
 
 	if (sizeof(ft) < 10) {
 		LOG(LOG_FPU,LOG_WARN)("FPU80 sizeof(reg80) < 10 bytes");
 		return;
 	}
+#if defined(HAS_LONG_DOUBLE)
 	if (sizeof(long double) == sizeof(double)) {
 		LOG(LOG_FPU,LOG_WARN)("FPU80 sizeof(long double) == sizeof(double) so your compiler just makes it an alias. skipping tests. please recompile with proper config.");
 		return;
@@ -892,6 +894,7 @@ void FPU_Selftest_80() {
 		LOG(LOG_FPU,LOG_WARN)("FPU80 sizeof(float) < 10 bytes your host is weird");
 		return;
 	}
+#endif
 
 	// make sure bitfields line up
 	ft.raw.l = 0;
@@ -913,6 +916,7 @@ void FPU_Selftest_80() {
 		return;
 	}
 
+#if defined(HAS_LONG_DOUBLE)
 	for (size_t t=0;t < tests;t++) {
 		ft.v = test[t].val; FPU_Reg_m_barrier();
 		if (((int)ft.f.exponent - FPU_Reg_80_exponent_bias) != test[t].exponent ||
