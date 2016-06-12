@@ -40,7 +40,13 @@ void FPU_ESC6_EA(Bitu func,PhysPt ea);
 void FPU_ESC7_Normal(Bitu rm);
 void FPU_ESC7_EA(Bitu func,PhysPt ea);
 
-
+/* Floating point register, in the form the native host uses for "double".
+ * This is slightly less precise than the 80-bit extended IEEE used by Intel,
+ * but can be faster using the host processor "double" support. Most DOS games
+ * using the FPU for 3D rendering are unaffected by the loss of precision.
+ * However, there are cases where the full 80-bit precision is required such
+ * as the "Fast Pentium memcpy trick" using the 80-bit versions of FLD/FST to
+ * copy memory. */
 typedef union {
     double d;
 #ifndef WORDS_BIGENDIAN
@@ -57,6 +63,7 @@ typedef union {
     Bit64s ll;
 } FPU_Reg;
 
+// dynamic x86 core needs this
 typedef struct {
     Bit32u m1;
     Bit32u m2;
@@ -148,6 +155,7 @@ enum FPU_Round {
 typedef struct {
 	FPU_Reg		regs[9];
 	FPU_Reg_80	regs_80[9];
+	bool		use80[9];		// if set, use the 80-bit precision version
 	FPU_Tag		tags[9];
 	Bit16u		cw,cw_mask_all;
 	Bit16u		sw;

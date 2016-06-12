@@ -342,6 +342,7 @@ void FPU_ESC2_Normal(Bitu rm) {
 void FPU_ESC3_EA(Bitu rm,PhysPt addr) {
 	Bitu group=(rm >> 3) & 7;
 	Bitu sub=(rm & 7);
+
 	switch(group){
 	case 0x00:	/* FILD */
 		{
