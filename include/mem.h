@@ -23,6 +23,13 @@
 #include "dosbox.h"
 #endif
 
+#ifndef _MSC_VER
+# ifndef _BSD_SOURCE
+#  define _BSD_SOURCE		/* for htole16, etc. endian.h functions */
+# endif
+# include <endian.h>
+#endif
+
 typedef Bit8u *HostPt;		/* host (virtual) memory address aka ptr */
 
 typedef Bit32u PhysPt;		/* guest physical memory pointer */
@@ -61,29 +68,38 @@ MemHandle MEM_NextHandleAt(MemHandle handle,Bitu where);
 	Working on big or little endian machines 
 */
 
-#if defined(WORDS_BIGENDIAN) || !defined(C_UNALIGNED_MEMORY)
+#if !defined(C_UNALIGNED_MEMORY)
+/* meaning: we're probably being compiled for a processor that doesn't like unaligned WORD access,
+            on such processors typecasting memory as uint16_t and higher can cause a fault if the
+	    address is not aligned to that datatype when we read/write through it. */
 
 static INLINE Bit8u host_readb(HostPt off) {
-	return off[0];
+	return *off;
 }
 static INLINE Bit16u host_readw(HostPt off) {
-	return off[0] | (off[1] << 8);
+	return (Bit16u)host_readb(off) + ((Bit16u)host_readb(off+1) << (Bit16u)8);
 }
 static INLINE Bit32u host_readd(HostPt off) {
-	return off[0] | (off[1] << 8) | (off[2] << 16) | (off[3] << 24);
+	return (Bit32u)host_readw(off) + ((Bit32u)host_readw(off+2) << (Bit32u)16);
 }
+static INLINE Bit64u host_readq(HostPt off) {
+	return (Bit64u)host_readd(off) + ((Bit64u)host_readd(off+4) << (Bit64u)32);
+}
+
 static INLINE void host_writeb(HostPt off,Bit8u val) {
-	off[0]=val;
+	*off = val;
 }
 static INLINE void host_writew(HostPt off,Bit16u val) {
-	off[0]=(Bit8u)(val);
-	off[1]=(Bit8u)(val >> 8);
+	host_writeb(off,(Bit8u)(val));
+	host_writeb(off+1,(Bit8u)(val >> (Bit16u)8));
 }
 static INLINE void host_writed(HostPt off,Bit32u val) {
-	off[0]=(Bit8u)(val);
-	off[1]=(Bit8u)(val >> 8);
-	off[2]=(Bit8u)(val >> 16);
-	off[3]=(Bit8u)(val >> 24);
+	host_writew(off,(Bit16u)(val));
+	host_writew(off+2,(Bit16u)(val >> (Bit32u)16));
+}
+static INLINE void host_writeq(HostPt off,Bit64u val) {
+	host_writed(off,(Bit32u)(val));
+	host_writed(off+4,(Bit32u)(val >> (Bit64u)32));
 }
 
 #else
@@ -92,26 +108,26 @@ static INLINE Bit8u host_readb(HostPt off) {
 	return *(Bit8u *)off;
 }
 static INLINE Bit16u host_readw(HostPt off) {
-	return *(Bit16u *)off;
+	return le16toh((*(Bit16u *)off)); // BSD endian.h
 }
 static INLINE Bit32u host_readd(HostPt off) {
-	return *(Bit32u *)off;
+	return le32toh((*(Bit32u *)off)); // BSD endian.h
 }
 static INLINE Bit64u host_readq(HostPt off) {
-	return *(Bit64u *)off;
+	return le64toh((*(Bit64u *)off)); // BSD endian.h
 }
 
 static INLINE void host_writeb(HostPt off,Bit8u val) {
-	*(Bit8u *)(off)=val;
+	*(Bit8u *)(off) = val;
 }
 static INLINE void host_writew(HostPt off,Bit16u val) {
-	*(Bit16u *)(off)=val;
+	*(Bit16u *)(off) = htole16(val);
 }
 static INLINE void host_writed(HostPt off,Bit32u val) {
-	*(Bit32u *)(off)=val;
+	*(Bit32u *)(off) = htole32(val);
 }
 static INLINE void host_writeq(HostPt off,Bit64u val) {
-	*(Bit64u *)(off)=val;
+	*(Bit64u *)(off) = htole64(val);
 }
 
 #endif
