@@ -947,6 +947,22 @@ dump:
 }
 
 void FPU_Selftest() {
+	FPU_Reg freg;
+
+	/* byte order test */
+	freg.ll = 0x0123456789ABCDEFULL;
+#ifndef WORDS_BIGENDIAN
+	if (freg.l.lower != 0x89ABCDEFUL || freg.l.upper != 0x01234567UL) {
+		LOG(LOG_FPU,LOG_WARN)("FPU_Reg field order is wrong. ll=0x%16llx l=0x%08lx h=0x%08lx",
+			(unsigned long long)freg.ll,	(unsigned long)freg.l.lower,	(unsigned long)freg.l.upper);
+	}
+#else
+	if (freg.l.upper != 0x89ABCDEFUL || freg.l.lower != 0x01234567UL) {
+		LOG(LOG_FPU,LOG_WARN)("FPU_Reg field order is wrong. ll=0x%16llx l=0x%08lx h=0x%08lx",
+			(unsigned long long)freg.ll,	(unsigned long)freg.l.lower,	(unsigned long)freg.l.upper);
+	}
+#endif
+
 	FPU_Selftest_32();
 	FPU_Selftest_64();
 	FPU_Selftest_80();
