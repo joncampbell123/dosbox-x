@@ -36,6 +36,14 @@
 # define pref_struct_stat	struct stat
 #endif
 
+// TODO: The autoconf script should test the size of long double
+#if defined(_MSC_VER)
+// Microsoft C++ sizeof(long double) == sizeof(double)
+#else
+// GCC, other compilers, have sizeof(long double) == 10 80-bit IEEE
+# define HAS_LONG_DOUBLE		1
+#endif
+
 #define UPDATED_STR			"April 9, 2015"
 
 GCC_ATTRIBUTE(noreturn) void		E_Exit(const char * message,...) GCC_ATTRIBUTE( __format__(__printf__, 1, 2));

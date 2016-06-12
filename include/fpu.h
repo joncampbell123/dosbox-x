@@ -86,7 +86,9 @@ typedef union {
 		unsigned int	exponent:15;		// [78:64]
 		unsigned int	sign:1;			// [79:79]
 	} f;
+#if defined(HAS_LONG_DOUBLE)
 	long double		v;			// [79:0]
+#endif
 } FPU_Reg_80;
 // ^ Remember that in 80-bit extended, the mantissa contains both the fraction and integer bit. There is no
 //   "implied bit" like 32-bit and 64-bit formats.

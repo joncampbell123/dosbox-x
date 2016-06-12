@@ -814,6 +814,7 @@ dump:
 // floating point value (if the host is i686, x86_64, or any other
 // host with the same definition of long double).
 void FPU_Selftest_80() {
+#if defined(HAS_LONG_DOUBLE)
 	// we're assuming "long double" means the Intel 80x87 extended precision format, which is true when using
 	// GCC on Linux i686 and x86_64 hosts.
 	//
@@ -881,6 +882,9 @@ dump:
 		(int)ft.f.exponent - FPU_Reg_64_exponent_bias,
 		(unsigned long long)ft.f.mantissa,
 		(unsigned long long)ft.f.mantissa);
+#else
+	LOG(LOG_FPU,LOG_DEBUG)("FPU80 selftest skipped, compiler does not have long double as 80-bit IEEE");
+#endif
 }
 
 void FPU_Selftest() {
