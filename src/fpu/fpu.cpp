@@ -724,6 +724,24 @@ void FPU_Selftest_32() {
 		return;
 	}
 
+	// make sure bitfields line up
+	ft.raw = 1UL << 31UL;
+	if (ft.f.sign != 1 || ft.f.exponent != 0 || ft.f.mantissa != 0) {
+		LOG(LOG_FPU,LOG_WARN)("FPU32 bitfield test #1 failed");
+		return;
+	}
+	ft.raw = 1UL << 23UL;
+	if (ft.f.sign != 0 || ft.f.exponent != 1 || ft.f.mantissa != 0) {
+		LOG(LOG_FPU,LOG_WARN)("FPU32 bitfield test #2 failed");
+		return;
+	}
+	ft.raw = 1UL << 0UL;
+	if (ft.f.sign != 0 || ft.f.exponent != 0 || ft.f.mantissa != 1) {
+		LOG(LOG_FPU,LOG_WARN)("FPU32 bitfield test #3 failed");
+		return;
+	}
+
+	// carry out tests
 	for (size_t t=0;t < tests;t++) {
 		ft.v = test[t].val; FPU_Reg_m_barrier();
 		if (((int)ft.f.exponent - FPU_Reg_32_exponent_bias) != test[t].exponent ||
@@ -780,6 +798,23 @@ void FPU_Selftest_64() {
 	}
 	if (sizeof(double) != 8) {
 		LOG(LOG_FPU,LOG_WARN)("FPU64 sizeof(float) != 8 bytes your host is weird");
+		return;
+	}
+
+	// make sure bitfields line up
+	ft.raw = 1ULL << 63ULL;
+	if (ft.f.sign != 1 || ft.f.exponent != 0 || ft.f.mantissa != 0) {
+		LOG(LOG_FPU,LOG_WARN)("FPU64 bitfield test #1 failed");
+		return;
+	}
+	ft.raw = 1ULL << 52ULL;
+	if (ft.f.sign != 0 || ft.f.exponent != 1 || ft.f.mantissa != 0) {
+		LOG(LOG_FPU,LOG_WARN)("FPU64 bitfield test #2 failed");
+		return;
+	}
+	ft.raw = 1ULL << 0ULL;
+	if (ft.f.sign != 0 || ft.f.exponent != 0 || ft.f.mantissa != 1) {
+		LOG(LOG_FPU,LOG_WARN)("FPU64 bitfield test #3 failed");
 		return;
 	}
 
@@ -855,6 +890,26 @@ void FPU_Selftest_80() {
 		// NTS: We can't assume 10 bytes. GCC on i686 makes long double 12 or 16 bytes long for alignment
 		//      even though only 80 bits (10 bytes) are used.
 		LOG(LOG_FPU,LOG_WARN)("FPU80 sizeof(float) < 10 bytes your host is weird");
+		return;
+	}
+
+	// make sure bitfields line up
+	ft.raw.l = 0;
+	ft.raw.h = 1U << 15U;
+	if (ft.f.sign != 1 || ft.f.exponent != 0 || ft.f.mantissa != 0) {
+		LOG(LOG_FPU,LOG_WARN)("FPU80 bitfield test #1 failed. h=%04x l=%016llx",(unsigned int)ft.raw.h,(unsigned long long)ft.raw.l);
+		return;
+	}
+	ft.raw.l = 0;
+	ft.raw.h = 1U << 0U;
+	if (ft.f.sign != 0 || ft.f.exponent != 1 || ft.f.mantissa != 0) {
+		LOG(LOG_FPU,LOG_WARN)("FPU80 bitfield test #2 failed. h=%04x l=%016llx",(unsigned int)ft.raw.h,(unsigned long long)ft.raw.l);
+		return;
+	}
+	ft.raw.l = 1ULL << 0ULL;
+	ft.raw.h = 0;
+	if (ft.f.sign != 0 || ft.f.exponent != 0 || ft.f.mantissa != 1) {
+		LOG(LOG_FPU,LOG_WARN)("FPU80 bitfield test #3 failed. h=%04x l=%016llx",(unsigned int)ft.raw.h,(unsigned long long)ft.raw.l);
 		return;
 	}
 

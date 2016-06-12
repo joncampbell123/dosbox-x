@@ -77,6 +77,7 @@ typedef struct {
 # define FPU_Reg_m_barrier()
 #endif
 
+#pragma pack(push,1)
 typedef union {
 // TODO: The configure script needs to use "long double" on x86/x86_64 and verify sizeof(long double) == 10,
 //       else undef a macro to let the code emulate long double 80-bit IEEE. Also needs to determine host
@@ -89,12 +90,18 @@ typedef union {
 #if defined(HAS_LONG_DOUBLE)
 	long double		v;			// [79:0]
 #endif
+	struct {
+		uint64_t	l;
+		uint16_t	h;
+	} raw;
 } FPU_Reg_80;
 // ^ Remember that in 80-bit extended, the mantissa contains both the fraction and integer bit. There is no
 //   "implied bit" like 32-bit and 64-bit formats.
+#pragma pack(pop)
 
 #define FPU_Reg_80_exponent_bias	(16383)
 
+#pragma pack(push,1)
 typedef union {
 	struct {
 		uint64_t	mantissa:52;		// [51:0]
@@ -102,11 +109,14 @@ typedef union {
 		uint64_t	sign:1;			// [63:63]
 	} f;
 	double			v;
+	uint64_t		raw;
 } FPU_Reg_64;
+#pragma pack(pop)
 
 #define FPU_Reg_64_exponent_bias	(1023)
 static const uint64_t FPU_Reg_64_implied_bit = ((uint64_t)1ULL << (uint64_t)52ULL);
 
+#pragma pack(push,1)
 typedef union {
 	struct {
 		uint32_t	mantissa:23;		// [22:0]
@@ -114,7 +124,9 @@ typedef union {
 		uint32_t	sign:1;			// [31:31]
 	} f;
 	float			v;
+	uint32_t		raw;
 } FPU_Reg_32;
+#pragma pack(pop)
 
 #define FPU_Reg_32_exponent_bias	(127)
 static const uint32_t FPU_Reg_32_implied_bit = ((uint32_t)1UL << (uint32_t)23UL);
