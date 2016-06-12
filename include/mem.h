@@ -24,6 +24,10 @@
 #endif
 
 #ifndef _MSC_VER
+/* NOTE to VS2015 users:
+ *   This code primarily uses htoleXX BSD endian functions to convert to/from little endian.
+ *   Windows is predominately little endian, so you could get away with #define macros of the
+ *   same name that pass the value through unchanged. */
 # ifndef _BSD_SOURCE
 #  define _BSD_SOURCE		/* for htole16, etc. endian.h functions */
 # endif
