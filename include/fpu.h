@@ -133,7 +133,6 @@ enum FPU_Round {
 
 typedef struct {
 	FPU_Reg		regs[9];
-	FPU_P_Reg	p_regs[9];
 	FPU_Reg_80	regs_80[9];
 	FPU_Tag		tags[9];
 	Bit16u		cw,cw_mask_all;
