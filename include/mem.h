@@ -97,6 +97,10 @@ static INLINE Bit16u host_readw(HostPt off) {
 static INLINE Bit32u host_readd(HostPt off) {
 	return *(Bit32u *)off;
 }
+static INLINE Bit64u host_readq(HostPt off) {
+	return *(Bit64u *)off;
+}
+
 static INLINE void host_writeb(HostPt off,Bit8u val) {
 	*(Bit8u *)(off)=val;
 }
@@ -105,6 +109,9 @@ static INLINE void host_writew(HostPt off,Bit16u val) {
 }
 static INLINE void host_writed(HostPt off,Bit32u val) {
 	*(Bit32u *)(off)=val;
+}
+static INLINE void host_writeq(HostPt off,Bit64u val) {
+	*(Bit64u *)(off)=val;
 }
 
 #endif
@@ -120,6 +127,10 @@ static INLINE void var_write(Bit16u * var, Bit16u val) {
 
 static INLINE void var_write(Bit32u * var, Bit32u val) {
 	host_writed((HostPt)var, val);
+}
+
+static INLINE void var_write(Bit64u * var, Bit64u val) {
+	host_writeq((HostPt)var, val);
 }
 
 /* The Folowing six functions are slower but they recognize the paged memory system */
