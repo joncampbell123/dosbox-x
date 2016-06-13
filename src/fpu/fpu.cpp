@@ -37,8 +37,10 @@ void FPU_FLDCW(PhysPt addr){
 
 Bit16u FPU_GetTag(void){
 	Bit16u tag=0;
-	for(Bitu i=0;i<8;i++)
-		tag |= ( (fpu.tags[i]&3) <<(2*i));
+
+	for (Bitu i=0;i<8;i++)
+		tag |= (fpu.tags[i]&3) << (2*i);
+
 	return tag;
 }
 
