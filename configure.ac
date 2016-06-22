@@ -284,13 +284,21 @@ AC_ARG_ENABLE(core-inline,AC_HELP_STRING([--enable-core-inline],[Enable inlined 
 
 # FFMPEG output
 AH_TEMPLATE(C_AVCODEC,[Define to 1 to use FFMPEG libavcodec for video capture])
-AC_CHECK_LIB(avcodec,avcodec_open2,have_ffmpeg=yes,have_ffmpeg=no,)
-AC_CHECK_HEADER(avcodec/avcodec.h,have_avcodec_h=yes,have_avcodec_h=no,)
 AC_ARG_ENABLE(avcodec,AC_HELP_STRING([--disable-avcodec],[Disable FFMPEG avcodec support]),,enable_ffmpeg=yes)
 if test x$enable_avcodec = xyes; then
-	AC_MSG_RESULT(yes)
-	LIBS="$LIBS -lavcodec -lavformat -lavutil -lswscale"
-	AC_DEFINE(C_AVCODEC,1)
+	CFLAGS="$CFLAGS "`pkg-config libavcodec --cflags`
+	CPPFLAGS="$CPPFLAGS "`pkg-config libavcodec --cflags`
+	LIBS="$LIBS -lavcodec -lavformat -lavutil -lswscale "`pkg-config libavcodec --libs`
+fi
+AC_CHECK_LIB(avcodec,avcodec_open2,have_ffmpeg=yes,have_ffmpeg=no,)
+AC_CHECK_HEADER(libavcodec/avcodec.h,have_avcodec_h=yes,have_avcodec_h=no,)
+if test x$enable_avcodec = xyes; then
+    if test x$have_ffmpeg = xyes; then
+        if test x$have_avcodec_h = xyes; then
+            AC_MSG_RESULT(yes)
+            AC_DEFINE(C_AVCODEC,1)
+        fi
+    fi
 fi
 
 AH_TEMPLATE(C_OPENGL,[Define to 1 to use opengl display output support])
