@@ -130,6 +130,7 @@ struct SB_INFO {
 		DmaChannel * chan;
 		Bitu remain_size;
 	} dma;
+    bool freq_derived_from_tc;      // if set, sb.freq was derived from SB/SBpro time constant
 	bool speaker;
 	bool midi;
 	bool vibra;
@@ -984,6 +985,23 @@ static Bit8u DSP_RateLimitedFinalTC_Old() {
 	return sb.timeconst;
 }
 
+static unsigned int DSP_RateLimitedFinalSB16Freq_New(unsigned int freq) {
+    // sample rate was set by SB16 DSP command 0x41/0x42, not SB/SBpro command 0x40 (unusual case)
+    if (sb.sample_rate_limits) { /* enforce speed limits documented by Creative */
+        unsigned int u_limit,l_limit=4000; /* NTS: Recording vs playback is not considered because DOSBox only emulates playback */
+
+        if (sb.vibra) u_limit = 46000;
+        else u_limit = 44100;
+
+        if (freq < l_limit)
+            freq = l_limit;
+        if (freq > u_limit)
+            freq = u_limit;
+    }
+
+    return freq;
+}
+
 static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign,bool hispeed) {
 	Bit8u final_tc;
 
@@ -995,15 +1013,31 @@ static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign,bool hispe
 	sb.dsp.highspeed=hispeed;
 	sb.dma.sign=sign;
 
-	/* BUGFIX: Instead of direct rate-limiting the DSP time constant, keep the original
-	 *         value written intact and rate-limit a copy. Bugfix for Optic Nerve and
-	 *         sbtype=sbpro2. On initialization the demo first sends DSP command 0x14
-	 *         with a 2-byte playback interval, then sends command 0x91 to begin
-	 *         playback. Rate-limiting the copy means the 45454Hz time constant written
-	 *         by the demo stays intact despite being limited to 22050Hz during the first
-	 *         DSP block (command 0x14). */
-	final_tc = DSP_RateLimitedFinalTC_Old();
-	sb.freq = (256000000 / (65536 - (final_tc << 8)));
+    /* BUGFIX: There is code out there that uses SB16 sample rate commands mixed with SB/SBPro
+     *         playback commands. In order to handle these cases properly we need to use the
+     *         SB16 sample rate if that is what was given to us, else the sample rate will
+     *         come out wrong.
+     *
+     *         Test cases:
+     *
+     *         #1: Silpheed (vogons user newrisingsun amatorial patch)
+     */
+    if (sb.freq_derived_from_tc) {
+        // sample rate was set by SB/SBpro command 0x40 Set Time Constant (very common case)
+        /* BUGFIX: Instead of direct rate-limiting the DSP time constant, keep the original
+         *         value written intact and rate-limit a copy. Bugfix for Optic Nerve and
+         *         sbtype=sbpro2. On initialization the demo first sends DSP command 0x14
+         *         with a 2-byte playback interval, then sends command 0x91 to begin
+         *         playback. Rate-limiting the copy means the 45454Hz time constant written
+         *         by the demo stays intact despite being limited to 22050Hz during the first
+         *         DSP block (command 0x14). */
+        final_tc = DSP_RateLimitedFinalTC_Old();
+        sb.freq = (256000000 / (65536 - (final_tc << 8)));
+    }
+    else {
+        LOG(LOG_SB,LOG_DEBUG)("Guest is using non-SB16 playback commands after using SB16 commands to set sample rate");
+        sb.freq = DSP_RateLimitedFinalSB16Freq_New(sb.freq);
+    }
 
 	sb.dma_dac_mode=0;
 	sb.ess_playback_mode = false;
@@ -1030,19 +1064,9 @@ static void DSP_PrepareDMA_New(DMA_MODES mode,Bitu length,bool autoinit,bool ste
 	}
 
 	sb.dsp.highspeed = false;
-	if (sb.sample_rate_limits) { /* enforce speed limits documented by Creative */
-		unsigned int u_limit,l_limit=4000; /* NTS: Recording vs playback is not considered because DOSBox only emulates playback */
-
-		if (sb.vibra) u_limit = 46000;
-		else u_limit = 44100;
-
-		if (sb.freq < l_limit)
-			sb.freq = l_limit;
-		if (sb.freq > u_limit)
-			sb.freq = u_limit;
-	}
-
+    sb.freq = DSP_RateLimitedFinalSB16Freq_New(sb.freq);
 	sb.timeconst = (65536 - (256000000 / sb.freq)) >> 8;
+    sb.freq_derived_from_tc = false;
 
 	Bitu freq=sb.freq;
 	//equal length if data format and dma channel are both 16-bit or 8-bit
@@ -1128,6 +1152,7 @@ static void DSP_Reset(void) {
 	sb.dsp.midi_read_with_timestamps = false;
 
 	sb.freq=22050;
+    sb.freq_derived_from_tc=true;
 	sb.time_constant=45;
 	sb.dac.last=0;
 	sb.e2.value=0xaa;
@@ -1278,6 +1303,7 @@ static void ESS_DoWrite(uint8_t reg,uint8_t data) {
 			else
 				sb.freq = 397700UL / (128 - data);
 
+            sb.freq_derived_from_tc = false;
 			if (sb.mode == MODE_DMA) {
 				ESS_StopDMA();
 				ESS_StartDMA();
@@ -1476,6 +1502,7 @@ static void DSP_DoCommand(void) {
 		DSP_ChangeMode(MODE_DAC);
 
 		sb.freq = 22050;
+        sb.freq_derived_from_tc = true;
 		sb.dac.dac_pt = sb.dac.dac_t;
 		sb.dac.dac_t = PIC_FullIndex();
 		{
@@ -1533,6 +1560,7 @@ static void DSP_DoCommand(void) {
 		sb.chan->FillUp();
 		sb.freq=(256000000 / (65536 - (sb.dsp.in.data[0] << 8)));
 		sb.timeconst=sb.dsp.in.data[0];
+        sb.freq_derived_from_tc=true;
 
 		/* Nasty kind of hack to allow runtime changing of frequency */
 		if (sb.dma.mode != DSP_DMA_NONE && sb.mode != MODE_DMA_PAUSE && sb.dma.autoinit)
@@ -1550,6 +1578,7 @@ static void DSP_DoCommand(void) {
 		}
 
 		sb.freq=(sb.dsp.in.data[0] << 8)  | sb.dsp.in.data[1];
+        sb.freq_derived_from_tc=false;
 		break;
 	case 0x48:	/* Set DMA Block Size */
 		DSP_SB2_ABOVE;
