@@ -6926,6 +6926,18 @@ fi
 
 # FFMPEG output
 
+# Check whether --enable-avcodec was given.
+if test "${enable_avcodec+set}" = set; then :
+  enableval=$enable_avcodec;
+else
+  enable_ffmpeg=yes
+fi
+
+if test x$enable_avcodec = xyes; then
+	CFLAGS="$CFLAGS "`pkg-config libavcodec --cflags`
+	CPPFLAGS="$CPPFLAGS "`pkg-config libavcodec --cflags`
+	LIBS="$LIBS -lavcodec -lavformat -lavutil -lswscale "`pkg-config libavcodec --libs`
+fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for avcodec_open2 in -lavcodec" >&5
 $as_echo_n "checking for avcodec_open2 in -lavcodec... " >&6; }
 if ${ac_cv_lib_avcodec_avcodec_open2+:} false; then :
@@ -6968,27 +6980,23 @@ else
   have_ffmpeg=no
 fi
 
-ac_fn_c_check_header_mongrel "$LINENO" "avcodec/avcodec.h" "ac_cv_header_avcodec_avcodec_h" "$ac_includes_default"
-if test "x$ac_cv_header_avcodec_avcodec_h" = xyes; then :
+ac_fn_c_check_header_mongrel "$LINENO" "libavcodec/avcodec.h" "ac_cv_header_libavcodec_avcodec_h" "$ac_includes_default"
+if test "x$ac_cv_header_libavcodec_avcodec_h" = xyes; then :
   have_avcodec_h=yes
 else
   have_avcodec_h=no
 fi
 
 
-# Check whether --enable-avcodec was given.
-if test "${enable_avcodec+set}" = set; then :
-  enableval=$enable_avcodec;
-else
-  enable_ffmpeg=yes
-fi
-
 if test x$enable_avcodec = xyes; then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+    if test x$have_ffmpeg = xyes; then
+        if test x$have_avcodec_h = xyes; then
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-	LIBS="$LIBS -lavcodec -lavformat -lavutil -lswscale"
-	$as_echo "#define C_AVCODEC 1" >>confdefs.h
+            $as_echo "#define C_AVCODEC 1" >>confdefs.h
 
+        fi
+    fi
 fi
 
 
