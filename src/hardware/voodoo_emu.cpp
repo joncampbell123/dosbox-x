@@ -2219,7 +2219,7 @@ void lfb_w(UINT32 offset, UINT32 data, UINT32 mem_mask) {
 					if (has_rgb || has_alpha) {
 						// if enabling dithering: output is 565 not 888 anymore
 //						APPLY_DITHER(v->reg[fbzMode].u, x, dither_lookup, sr[pix], sg[pix], sb[pix]);
-						voodoo_ogl_draw_pixel(x, scry+1, has_rgb, has_alpha, sr[pix], sg[pix], sb[pix], sa[pix]);
+						voodoo_ogl_draw_pixel(x, scry, has_rgb, has_alpha, sr[pix], sg[pix], sb[pix], sa[pix]);
 					}
 					if (has_depth) {
 						voodoo_ogl_draw_z(x, scry+1, sw[pix]);
@@ -2578,7 +2578,7 @@ void lfb_w(UINT32 offset, UINT32 data, UINT32 mem_mask) {
 				if (v->ogl && v->active) {
 					if (FBZMODE_RGB_BUFFER_MASK(v->reg[fbzMode].u)) {
 //						APPLY_DITHER(FBZMODE, XX, DITHER_LOOKUP, r, g, b);
-						voodoo_ogl_draw_pixel_pipeline(x, scry+1, r, g, b);
+						voodoo_ogl_draw_pixel_pipeline(x, scry, r, g, b);
 					}
 /*					if (depth && FBZMODE_AUX_BUFFER_MASK(v->reg[fbzMode].u)) {
 						if (FBZMODE_ENABLE_ALPHA_PLANES(v->reg[fbzMode].u) == 0)
