@@ -1445,6 +1445,11 @@ static void DSP_DoCommand(void) {
 		return;
 	}
 
+    // TODO: There are more SD16 ASP commands we can implement, by name even, with microcode download,
+    //       using as reference the Linux kernel driver code:
+    //
+    //       http://lxr.free-electrons.com/source/sound/isa/sb/sb16_csp.c
+
 //	LOG_MSG("DSP Command %X",sb.dsp.cmd);
 	switch (sb.dsp.cmd) {
 	case 0x04:
