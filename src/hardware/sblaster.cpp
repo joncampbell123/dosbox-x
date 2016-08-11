@@ -1467,13 +1467,14 @@ static void DSP_DoCommand(void) {
 		}
 		break;
 	case 0x05:	/* SB16 ASP set codec parameter */
-		LOG(LOG_SB,LOG_NORMAL)("DSP Unhandled SB16ASP command %X (set codec parameter)",sb.dsp.cmd);
+		LOG(LOG_SB,LOG_NORMAL)("DSP Unhandled SB16ASP command %X (set codec parameter) value=0x%02x parameter=0x%02x",
+            sb.dsp.cmd,sb.dsp.in.data[0],sb.dsp.in.data[1]);
 		break;
 	case 0x08:	/* SB16 ASP get version */
-		LOG(LOG_SB,LOG_NORMAL)("DSP Unhandled SB16ASP command %X sub %X",sb.dsp.cmd,sb.dsp.in.data[0]);
 		if (sb.type == SBT_16) {
 			switch (sb.dsp.in.data[0]) {
 				case 0x03:
+		            LOG(LOG_SB,LOG_DEBUG)("DSP SB16ASP command %X sub %X (get chip version)",sb.dsp.cmd,sb.dsp.in.data[0]);
 					DSP_AddData(0x18);	// version ID (??)
 					break;
 				default:
@@ -1486,7 +1487,7 @@ static void DSP_DoCommand(void) {
 		break;
 	case 0x0e:	/* SB16 ASP set register */
 		if (sb.type == SBT_16) {
-//			LOG(LOG_SB,LOG_NORMAL)("SB16 ASP set register %X := %X",sb.dsp.in.data[0],sb.dsp.in.data[1]);
+			LOG(LOG_SB,LOG_DEBUG)("SB16 ASP set register reg=0x%02x val=0x%02x",sb.dsp.in.data[0],sb.dsp.in.data[1]);
 			ASP_regs[sb.dsp.in.data[0]] = sb.dsp.in.data[1];
 		} else {
 			LOG(LOG_SB,LOG_NORMAL)("DSP Unhandled SB16ASP command %X (set register)",sb.dsp.cmd);
@@ -1497,8 +1498,8 @@ static void DSP_DoCommand(void) {
 			if ((ASP_init_in_progress) && (sb.dsp.in.data[0]==0x83)) {
 				ASP_regs[0x83] = ~ASP_regs[0x83];
 			}
-//			LOG(LOG_SB,LOG_NORMAL)("SB16 ASP get register %X == %X",sb.dsp.in.data[0],ASP_regs[sb.dsp.in.data[0]]);
 			DSP_AddData(ASP_regs[sb.dsp.in.data[0]]);
+			LOG(LOG_SB,LOG_DEBUG)("SB16 ASP get register reg=0x%02x, returning 0x%02x",sb.dsp.in.data[0],ASP_regs[sb.dsp.in.data[0]]);
 		} else {
 			LOG(LOG_SB,LOG_NORMAL)("DSP Unhandled SB16ASP command %X (get register)",sb.dsp.cmd);
 		}
