@@ -1624,6 +1624,10 @@ void DOSBOX_SetupConfigSections(void) {
 			"Option is needed for:\n"
 			"   Public NMI \"jump\" demo (1992)");
 
+	Pbool = secprop->Add_bool("enable asp",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("If set, emulate the presence of the Sound Blaster 16 Advanced Sound Processor/Creative Sound Processor chip.\n"
+            "NOTE: This only emulates it's presence and the basic DSP commands to communicate with it. Actual ASP/CSP functions are not yet implemented.");
+
 	Pbool = secprop->Add_bool("disable filtering",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("By default DOSBox-X filters Sound Blaster output to emulate lowpass filters and analog output limitations.\n"
 			"Set this option to true to disable filtering. Note that doing so disables emulation of the Sound Blaster Pro\n"

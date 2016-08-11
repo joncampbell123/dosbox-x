@@ -131,6 +131,7 @@ struct SB_INFO {
 		Bitu remain_size;
 	} dma;
     bool freq_derived_from_tc;      // if set, sb.freq was derived from SB/SBpro time constant
+    bool enable_asp;
 	bool speaker;
 	bool midi;
 	bool vibra;
@@ -1475,7 +1476,11 @@ static void DSP_DoCommand(void) {
 			switch (sb.dsp.in.data[0]) {
 				case 0x03:
 		            LOG(LOG_SB,LOG_DEBUG)("DSP SB16ASP command %X sub %X (get chip version)",sb.dsp.cmd,sb.dsp.in.data[0]);
-					DSP_AddData(0x18);	// version ID (??)
+
+                    if (sb.enable_asp)
+    					DSP_AddData(0x18);	// version ID (??)
+                    else
+                        DSP_AddData(0xFF);  // NTS: This is what a SB16 ViBRA PnP card with no ASP returns when queried in this way
 					break;
 				default:
 					LOG(LOG_SB,LOG_NORMAL)("DSP Unhandled SB16ASP command %X sub %X",sb.dsp.cmd,sb.dsp.in.data[0]);
@@ -1488,18 +1493,27 @@ static void DSP_DoCommand(void) {
 	case 0x0e:	/* SB16 ASP set register */
 		if (sb.type == SBT_16) {
 			LOG(LOG_SB,LOG_DEBUG)("SB16 ASP set register reg=0x%02x val=0x%02x",sb.dsp.in.data[0],sb.dsp.in.data[1]);
-			ASP_regs[sb.dsp.in.data[0]] = sb.dsp.in.data[1];
+
+            if (sb.enable_asp)
+			    ASP_regs[sb.dsp.in.data[0]] = sb.dsp.in.data[1];
 		} else {
 			LOG(LOG_SB,LOG_NORMAL)("DSP Unhandled SB16ASP command %X (set register)",sb.dsp.cmd);
 		}
 		break;
 	case 0x0f:	/* SB16 ASP get register */
 		if (sb.type == SBT_16) {
-			if ((ASP_init_in_progress) && (sb.dsp.in.data[0]==0x83)) {
-				ASP_regs[0x83] = ~ASP_regs[0x83];
-			}
-			DSP_AddData(ASP_regs[sb.dsp.in.data[0]]);
-			LOG(LOG_SB,LOG_DEBUG)("SB16 ASP get register reg=0x%02x, returning 0x%02x",sb.dsp.in.data[0],ASP_regs[sb.dsp.in.data[0]]);
+            if (sb.enable_asp) {
+                if ((ASP_init_in_progress) && (sb.dsp.in.data[0]==0x83))
+                    ASP_regs[0x83] = ~ASP_regs[0x83];
+
+                DSP_AddData(ASP_regs[sb.dsp.in.data[0]]);
+                LOG(LOG_SB,LOG_DEBUG)("SB16 ASP get register reg=0x%02x, returning 0x%02x",sb.dsp.in.data[0],ASP_regs[sb.dsp.in.data[0]]);
+            }
+            else {
+                DSP_AddData(0xFF);  // NTS: This is what a SB16 ViBRA PnP card with no ASP returns when queried in this way
+                LOG(LOG_SB,LOG_DEBUG)("SB16 ASP get register reg=0x%02x, returning 0xFF (ASP not present)",sb.dsp.in.data[0]);
+            }
+
 		} else {
 			LOG(LOG_SB,LOG_NORMAL)("DSP Unhandled SB16ASP command %X (get register)",sb.dsp.cmd);
 		}
@@ -3055,6 +3069,7 @@ public:
 		sb.dsp.force_goldplay=section->Get_bool("force goldplay");
 		sb.dma.force_autoinit=section->Get_bool("force dsp auto-init");
 		sb.no_filtering=section->Get_bool("disable filtering");
+        sb.enable_asp=section->Get_bool("enable asp");
 
 		/* Explanation: If the user set this option, the write status port must return 0x7F or 0xFF.
 		 *              Else, we're free to return whatever with bit 7 to indicate busy.
@@ -3342,6 +3357,15 @@ public:
 				PIC_Set_IRQ_hack(sb.hw.irq,PIC_parse_IRQ_hack_string(s.c_str()));
 			}
 		}
+
+        // ASP emulation
+        if (sb.enable_asp && sb.type != SBT_16) {
+            LOG(LOG_SB,LOG_WARN)("ASP emulation requires you to select SB16 emulation");
+            sb.enable_asp = false;
+        }
+
+        if (sb.enable_asp)
+            LOG(LOG_SB,LOG_WARN)("ASP emulation at this stage is extremely limited and only covers DSP command responses.");
 
 		/* Soundblaster midi interface */
 		if (!MIDI_Available()) sb.midi = false;
