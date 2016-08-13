@@ -1701,30 +1701,34 @@ static void DSP_DoCommand(void) {
 		break;
 	case 0x0e:	/* SB16 ASP set register */
 		if (sb.type == SBT_16) {
-            if (sb.enable_asp)
-			    ASP_regs[sb.dsp.in.data[0]] = sb.dsp.in.data[1];
+            if (sb.enable_asp) {
+                ASP_regs[sb.dsp.in.data[0]] = sb.dsp.in.data[1];
 
-            if (sb.dsp.in.data[0] == 0x83) {
-                if (ASP_mode == 0xF9) {
-                    // mode 0xF9: register contents to RAM, but does not increment index
-                    LOG(LOG_SB,LOG_DEBUG)("SB16 ASP write internal RAM byte index=0x%03x val=0x%02x",sb16asp_ram_contents_index,sb.dsp.in.data[1]);
-                    sb16asp_write_current_RAM_byte(sb.dsp.in.data[1]);
-                }
-                else if (ASP_mode == 0xFA) {
-                    // SB16 ASP observed behavior: mode 0xFA means write reg contents to RAM, increment index. reading does not increment index
-                    LOG(LOG_SB,LOG_DEBUG)("SB16 ASP write internal RAM byte index=0x%03x val=0x%02x",sb16asp_ram_contents_index,sb.dsp.in.data[1]);
-                    sb16asp_write_next_RAM_byte(sb.dsp.in.data[1]);
-                }
-                else if (ASP_mode == 0xFC) {
-                    // do nothing. Linux kernel and DOSLIB in this mode read/write the register as part of CSP detection
-                    LOG(LOG_SB,LOG_DEBUG)("SB16 ASP write mode 0xFC scratch register (detection test) val=0x%02x",sb.dsp.in.data[1]);
+                if (sb.dsp.in.data[0] == 0x83) {
+                    if (ASP_mode == 0xF9) {
+                        // mode 0xF9: register contents to RAM, but does not increment index
+                        LOG(LOG_SB,LOG_DEBUG)("SB16 ASP write internal RAM byte index=0x%03x val=0x%02x",sb16asp_ram_contents_index,sb.dsp.in.data[1]);
+                        sb16asp_write_current_RAM_byte(sb.dsp.in.data[1]);
+                    }
+                    else if (ASP_mode == 0xFA) {
+                        // SB16 ASP observed behavior: mode 0xFA means write reg contents to RAM, increment index. reading does not increment index
+                        LOG(LOG_SB,LOG_DEBUG)("SB16 ASP write internal RAM byte index=0x%03x val=0x%02x",sb16asp_ram_contents_index,sb.dsp.in.data[1]);
+                        sb16asp_write_next_RAM_byte(sb.dsp.in.data[1]);
+                    }
+                    else if (ASP_mode == 0xFC) {
+                        // do nothing. Linux kernel and DOSLIB in this mode read/write the register as part of CSP detection
+                        LOG(LOG_SB,LOG_DEBUG)("SB16 ASP write mode 0xFC scratch register (detection test) val=0x%02x",sb.dsp.in.data[1]);
+                    }
+                    else {
+                        LOG(LOG_SB,LOG_WARN)("SB16 ASP set register 0x83 not implemented for mode=0x%02x",ASP_mode);
+                    }
                 }
                 else {
-                    LOG(LOG_SB,LOG_WARN)("SB16 ASP set register 0x83 not implemented for mode=0x%02x",ASP_mode);
+                    LOG(LOG_SB,LOG_DEBUG)("SB16 ASP set register reg=0x%02x val=0x%02x",sb.dsp.in.data[0],sb.dsp.in.data[1]);
                 }
             }
             else {
-			    LOG(LOG_SB,LOG_DEBUG)("SB16 ASP set register reg=0x%02x val=0x%02x",sb.dsp.in.data[0],sb.dsp.in.data[1]);
+                LOG(LOG_SB,LOG_DEBUG)("SB16 ASP set register reg=0x%02x val=0x%02x ignored, ASP not enabled",sb.dsp.in.data[0],sb.dsp.in.data[1]);
             }
 		} else {
 			LOG(LOG_SB,LOG_NORMAL)("DSP Unhandled SB16ASP command %X (set register)",sb.dsp.cmd);
