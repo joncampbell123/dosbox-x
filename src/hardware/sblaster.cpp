@@ -3450,7 +3450,14 @@ public:
 			ReadHandler[i].Install(sb.hw.base+i,read_sb,IO_MB);
 			WriteHandler[i].Install(sb.hw.base+i,write_sb,IO_MB);
 		}
-		for (i=0;i<256;i++) ASP_regs[i] = 0;
+
+        // NTS: Unknown/undefined registers appear to return the register index you requested rather than the actual contents,
+        //      according to real SB16 CSP/ASP hardware (chip version id 0x10).
+        //
+        //      Registers 0x00-0x1F are defined. Registers 0x80-0x83 are defined.
+		for (i=0;i<256;i++) ASP_regs[i] = i;
+        for (i=0x00;i < 0x20;i++) ASP_regs[i] = 0;
+        for (i=0x80;i < 0x84;i++) ASP_regs[i] = 0;
 		ASP_regs[5] = 0x01;
 		ASP_regs[9] = 0xf8;
 
