@@ -333,7 +333,7 @@ static unsigned char &ESSreg(uint8_t reg) {
 }
 
 static Bit8u ASP_regs[256];
-static Bit8u ASP_mode = 0xFC;
+static Bit8u ASP_mode = 0x00;
 
 static int const E2_incr_table[4][9] = {
   {  0x01, -0x02, -0x04,  0x08, -0x10,  0x20,  0x40, -0x80, -106 },
@@ -1476,19 +1476,13 @@ static void DSP_DoCommand(void) {
 			/* SB16 ASP set mode register */
             ASP_mode = sb.dsp.in.data[0];
 
-            if ((ASP_mode&0xF8) == 0xF8) { // setting mode 0xF8-0xFF enables some kind of memory access mode.
-                // writing mode with bit 2 set (mode >= 0xFC) resets memory index == 0
-                // bits 0 and 1 are not used here, but in register 0x83 as follows:
-                // on read of register 0x83, if bit 0 is set, memory index increments
-                // on write of register 0x83, if bit 1 is set, memory index increments
-                // you can increment on read AND write by setting mode == 0xFB!
-
-                if (ASP_mode & 4)
-                    sb16asp_ram_contents_index = 0;
-            }
-            else if (ASP_mode == 0x00) {
-                ASP_regs[0x83] = 0x10; /* chip version ID */
-            }
+            // bit 7: if set, enables bit 3 and memory access.
+            // bit 3: if set, and bit 7 is set, register 0x83 can be used to read/write ASP internal memory. if clear, register 0x83 contains chip version ID
+            // bit 2: if set, memory index is reset to 0. doesn't matter if memory access or not.
+            // bit 1: if set, writing register 0x83 increments memory index. doesn't matter if memory access or not.
+            // bit 0: if set, reading register 0x83 increments memory index. doesn't matter if memory access or not.
+            if (ASP_mode&4)
+                sb16asp_ram_contents_index = 0;
 
 			LOG(LOG_SB,LOG_DEBUG)("SB16ASP set mode register to %X",sb.dsp.in.data[0]);
 		} else {
@@ -1528,20 +1522,12 @@ static void DSP_DoCommand(void) {
                 ASP_regs[sb.dsp.in.data[0]] = sb.dsp.in.data[1];
 
                 if (sb.dsp.in.data[0] == 0x83) {
-                    if ((ASP_mode&0xF8) == 0xF8) { // memory access mode
-                        // observed behavior:
-                        // 0xFF: reset memory index == 0. reading/writing register 0x83 modifies first byte, does not increment
-                        // 0xFE: reset memory index == 0. reading/writing register 0x83 modifies first byte, does not increment
-                        // 0xFD: reset memory index == 0. reading/writing register 0x83 modifies first byte, does not increment
-                        // 0xFC: reset memory index == 0. reading/writing register 0x83 modifies first byte, does not increment
-                        // 0xFB: reading/writing register 0x83 modifies memory at index, increments index
-                        // 0xFA: writing register 0x83 modifies memory at index, increments index. reading reads memory at index, does not increment
-                        // 0xF9: writing register 0x83 modifies memory at index, does not increment. reading reads memory at index, increments index
-                        // 0xF8: reading/writing register 0x83 modifies memory at index, does not increment
-
+                    if ((ASP_mode&0x88) == 0x88) { // bit 3 and bit 7 must be set
+                        // memory access mode
                         if (ASP_mode & 4) // NTS: As far as I can tell...
                             sb16asp_ram_contents_index = 0;
 
+                        // log it, write it
                         LOG(LOG_SB,LOG_DEBUG)("SB16 ASP write internal RAM byte index=0x%03x val=0x%02x",sb16asp_ram_contents_index,sb.dsp.in.data[1]);
                         sb16asp_write_current_RAM_byte(sb.dsp.in.data[1]);
 
@@ -1549,7 +1535,8 @@ static void DSP_DoCommand(void) {
                             sb16asp_next_RAM_byte();
                     }
                     else {
-                        LOG(LOG_SB,LOG_WARN)("SB16 ASP set register 0x83 not implemented for mode=0x%02x",ASP_mode);
+                        // unknown. nothing, I assume?
+                        LOG(LOG_SB,LOG_WARN)("SB16 ASP set register 0x83 not implemented for non-memory mode (unknown behavior)\n");
                     }
                 }
                 else {
@@ -1567,32 +1554,21 @@ static void DSP_DoCommand(void) {
 		if (sb.type == SBT_16) {
             if (sb.enable_asp) {
                 if (sb.dsp.in.data[0] == 0x83) {
-                    if ((ASP_mode&0xF8) == 0xF8) { // memory access mode
-                        // observed behavior:
-                        // 0xFF: reset memory index == 0. reading/writing register 0x83 modifies first byte, does not increment
-                        // 0xFE: reset memory index == 0. reading/writing register 0x83 modifies first byte, does not increment
-                        // 0xFD: reset memory index == 0. reading/writing register 0x83 modifies first byte, does not increment
-                        // 0xFC: reset memory index == 0. reading/writing register 0x83 modifies first byte, does not increment
-                        // 0xFB: reading/writing register 0x83 modifies memory at index, increments index
-                        // 0xFA: writing register 0x83 modifies memory at index, increments index. reading reads memory at index, does not increment
-                        // 0xF9: writing register 0x83 modifies memory at index, does not increment. reading reads memory at index, increments index
-                        // 0xF8: reading/writing register 0x83 modifies memory at index, does not increment
-
+                    if ((ASP_mode&0x88) == 0x88) { // bit 3 and bit 7 must be set
+                        // memory access mode
                         if (ASP_mode & 4) // NTS: As far as I can tell...
                             sb16asp_ram_contents_index = 0;
 
-                        LOG(LOG_SB,LOG_DEBUG)("SB16 ASP read internal RAM byte index=0x%03x => val=0x%02x",sb16asp_ram_contents_index,ASP_regs[0x83]);
+                        // log it, read it
                         ASP_regs[0x83] = sb16asp_read_current_RAM_byte();
+                        LOG(LOG_SB,LOG_DEBUG)("SB16 ASP read internal RAM byte index=0x%03x => val=0x%02x",sb16asp_ram_contents_index,ASP_regs[0x83]);
 
                         if (ASP_mode & 1) // if bit 0 of the mode is set, memory index increment on read
                             sb16asp_next_RAM_byte();
                     }
-                    else if (ASP_mode == 0x00) {
-                        // SB16 ASP observed behavior: mode 0x00 seems to return chip version ID
-                        ASP_regs[0x83] = 0x10;
-                    }
                     else {
-                        LOG(LOG_SB,LOG_DEBUG)("SB16 ASP get register 0x83 not implemented for mode=0x%02x",ASP_mode);
+                        // chip version ID
+                        ASP_regs[0x83] = 0x10;
                     }
                 }
                 else {
