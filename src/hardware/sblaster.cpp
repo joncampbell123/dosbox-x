@@ -1418,7 +1418,7 @@ int MPU401_GetIRQ();
 static unsigned int sb16asp_ram_contents_index = 0;
 static unsigned char sb16asp_ram_contents[2048];
 static const unsigned char sb16asp_initial_ram_contents[2048] = {
-  0x00, 0xff, 0x00, 0xff, 0xff, 0x7f, 0xff, 0xff, 0xbf, 0xde, 0xff, 0xdf,
+  0xff, 0xff, 0xff, 0xff, 0xff, 0x7f, 0xff, 0xff, 0xbf, 0xde, 0xff, 0xdf,
   0xfd, 0xbb, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
   0xff, 0xff, 0xff, 0xff, 0xfd, 0xff, 0xff, 0xff, 0xfe, 0xff, 0xfb, 0xfd,
   0xff, 0xff, 0x7b, 0x5f, 0xff, 0xf7, 0xff, 0xff, 0xff, 0xff, 0xdf, 0xff,
@@ -1595,24 +1595,13 @@ static void sb16asp_write_current_RAM_byte(const uint8_t r) {
     sb16asp_ram_contents[sb16asp_ram_contents_index] = r;
 }
 
-static void sb16asp_write_next_RAM_byte(const uint8_t r) {
-    sb16asp_ram_contents[sb16asp_ram_contents_index] = r;
-
-    if ((++sb16asp_ram_contents_index) >= 2048)
-        sb16asp_ram_contents_index = 0;
-}
-
-static uint8_t sb16asp_latch_current_RAM_byte(void) {
+static uint8_t sb16asp_read_current_RAM_byte(void) {
     return sb16asp_ram_contents[sb16asp_ram_contents_index];
 }
 
-static uint8_t sb16asp_latch_next_RAM_byte(void) {
-    uint8_t r = sb16asp_ram_contents[sb16asp_ram_contents_index];
-
+static void sb16asp_next_RAM_byte(void) {
     if ((++sb16asp_ram_contents_index) >= 2048)
         sb16asp_ram_contents_index = 0;
-
-    return r;
 }
 
 /* Demo notes for fixing:
@@ -1660,8 +1649,15 @@ static void DSP_DoCommand(void) {
 			/* SB16 ASP set mode register */
             ASP_mode = sb.dsp.in.data[0];
 
-            if (ASP_mode == 0xFC) {
-                sb16asp_ram_contents_index = 0;
+            if ((ASP_mode&0xF8) == 0xF8) { // setting mode 0xF8-0xFF enables some kind of memory access mode.
+                // writing mode with bit 2 set (mode >= 0xFC) resets memory index == 0
+                // bits 0 and 1 are not used here, but in register 0x83 as follows:
+                // on read of register 0x83, if bit 0 is set, memory index increments
+                // on write of register 0x83, if bit 1 is set, memory index increments
+                // you can increment on read AND write by setting mode == 0xFB!
+
+                if (ASP_mode & 4)
+                    sb16asp_ram_contents_index = 0;
             }
             else if (ASP_mode == 0x00) {
                 ASP_regs[0x83] = 0x10; /* chip version ID */
@@ -1705,19 +1701,25 @@ static void DSP_DoCommand(void) {
                 ASP_regs[sb.dsp.in.data[0]] = sb.dsp.in.data[1];
 
                 if (sb.dsp.in.data[0] == 0x83) {
-                    if (ASP_mode == 0xF9) {
-                        // mode 0xF9: register contents to RAM, but does not increment index
+                    if ((ASP_mode&0xF8) == 0xF8) { // memory access mode
+                        // observed behavior:
+                        // 0xFF: reset memory index == 0. reading/writing register 0x83 modifies first byte, does not increment
+                        // 0xFE: reset memory index == 0. reading/writing register 0x83 modifies first byte, does not increment
+                        // 0xFD: reset memory index == 0. reading/writing register 0x83 modifies first byte, does not increment
+                        // 0xFC: reset memory index == 0. reading/writing register 0x83 modifies first byte, does not increment
+                        // 0xFB: reading/writing register 0x83 modifies memory at index, increments index
+                        // 0xFA: writing register 0x83 modifies memory at index, increments index. reading reads memory at index, does not increment
+                        // 0xF9: writing register 0x83 modifies memory at index, does not increment. reading reads memory at index, increments index
+                        // 0xF8: reading/writing register 0x83 modifies memory at index, does not increment
+
+                        if (ASP_mode & 4) // NTS: As far as I can tell...
+                            sb16asp_ram_contents_index = 0;
+
                         LOG(LOG_SB,LOG_DEBUG)("SB16 ASP write internal RAM byte index=0x%03x val=0x%02x",sb16asp_ram_contents_index,sb.dsp.in.data[1]);
                         sb16asp_write_current_RAM_byte(sb.dsp.in.data[1]);
-                    }
-                    else if (ASP_mode == 0xFA) {
-                        // SB16 ASP observed behavior: mode 0xFA means write reg contents to RAM, increment index. reading does not increment index
-                        LOG(LOG_SB,LOG_DEBUG)("SB16 ASP write internal RAM byte index=0x%03x val=0x%02x",sb16asp_ram_contents_index,sb.dsp.in.data[1]);
-                        sb16asp_write_next_RAM_byte(sb.dsp.in.data[1]);
-                    }
-                    else if (ASP_mode == 0xFC) {
-                        // do nothing. Linux kernel and DOSLIB in this mode read/write the register as part of CSP detection
-                        LOG(LOG_SB,LOG_DEBUG)("SB16 ASP write mode 0xFC scratch register (detection test) val=0x%02x",sb.dsp.in.data[1]);
+
+                        if (ASP_mode & 2) // if bit 1 of the mode is set, memory index increment on write
+                            sb16asp_next_RAM_byte();
                     }
                     else {
                         LOG(LOG_SB,LOG_WARN)("SB16 ASP set register 0x83 not implemented for mode=0x%02x",ASP_mode);
@@ -1738,21 +1740,25 @@ static void DSP_DoCommand(void) {
 		if (sb.type == SBT_16) {
             if (sb.enable_asp) {
                 if (sb.dsp.in.data[0] == 0x83) {
-                    if (ASP_mode == 0xF9) {
-                        // SB16 ASP observed behavior: mode 0xF9 means latch another RAM byte, increment index
-                        unsigned int index = sb16asp_ram_contents_index;
-                        ASP_regs[0x83] = sb16asp_latch_next_RAM_byte();
-                        LOG(LOG_SB,LOG_DEBUG)("SB16 ASP read internal RAM byte index=0x%03x => val=0x%02x",index,ASP_regs[0x83]);
-                    }
-                    else if (ASP_mode == 0xFA) {
-                        // mode 0xFA return reg contents, does not increment index
-                        unsigned int index = sb16asp_ram_contents_index;
-                        ASP_regs[0x83] = sb16asp_latch_current_RAM_byte();
-                        LOG(LOG_SB,LOG_DEBUG)("SB16 ASP read internal RAM byte index=0x%03x => val=0x%02x",index,ASP_regs[0x83]);
-                    }
-                    else if (ASP_mode == 0xFC) {
-                        // do nothing. Linux kernel and DOSLIB in this mode read/write the register as part of CSP detection
-                        LOG(LOG_SB,LOG_DEBUG)("SB16 ASP read mode 0xFC scratch register (detection test) return val=0x%02x",ASP_regs[0x83]);
+                    if ((ASP_mode&0xF8) == 0xF8) { // memory access mode
+                        // observed behavior:
+                        // 0xFF: reset memory index == 0. reading/writing register 0x83 modifies first byte, does not increment
+                        // 0xFE: reset memory index == 0. reading/writing register 0x83 modifies first byte, does not increment
+                        // 0xFD: reset memory index == 0. reading/writing register 0x83 modifies first byte, does not increment
+                        // 0xFC: reset memory index == 0. reading/writing register 0x83 modifies first byte, does not increment
+                        // 0xFB: reading/writing register 0x83 modifies memory at index, increments index
+                        // 0xFA: writing register 0x83 modifies memory at index, increments index. reading reads memory at index, does not increment
+                        // 0xF9: writing register 0x83 modifies memory at index, does not increment. reading reads memory at index, increments index
+                        // 0xF8: reading/writing register 0x83 modifies memory at index, does not increment
+
+                        if (ASP_mode & 4) // NTS: As far as I can tell...
+                            sb16asp_ram_contents_index = 0;
+
+                        LOG(LOG_SB,LOG_DEBUG)("SB16 ASP read internal RAM byte index=0x%03x => val=0x%02x",sb16asp_ram_contents_index,ASP_regs[0x83]);
+                        ASP_regs[0x83] = sb16asp_read_current_RAM_byte();
+
+                        if (ASP_mode & 1) // if bit 0 of the mode is set, memory index increment on read
+                            sb16asp_next_RAM_byte();
                     }
                     else if (ASP_mode == 0x00) {
                         // SB16 ASP observed behavior: mode 0x00 seems to return chip version ID
