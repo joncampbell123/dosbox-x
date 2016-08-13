@@ -1591,11 +1591,19 @@ static const unsigned char sb16asp_initial_ram_contents[2048] = {
   0xfb, 0xfc, 0xff, 0xff, 0xf7, 0xff, 0xef, 0xff
 };
 
+static void sb16asp_write_current_RAM_byte(const uint8_t r) {
+    sb16asp_ram_contents[sb16asp_ram_contents_index] = r;
+}
+
 static void sb16asp_write_next_RAM_byte(const uint8_t r) {
     sb16asp_ram_contents[sb16asp_ram_contents_index] = r;
 
     if ((++sb16asp_ram_contents_index) >= 2048)
         sb16asp_ram_contents_index = 0;
+}
+
+static uint8_t sb16asp_latch_current_RAM_byte(void) {
+    return sb16asp_ram_contents[sb16asp_ram_contents_index];
 }
 
 static uint8_t sb16asp_latch_next_RAM_byte(void) {
@@ -1659,7 +1667,7 @@ static void DSP_DoCommand(void) {
                 ASP_regs[0x83] = 0x10; /* chip version ID */
             }
 
-			LOG(LOG_SB,LOG_NORMAL)("DSP Unhandled SB16ASP command %X (set mode register to %X)",sb.dsp.cmd,sb.dsp.in.data[0]);
+			LOG(LOG_SB,LOG_DEBUG)("SB16ASP set mode register to %X",sb.dsp.in.data[0]);
 		} else {
 			/* DSP Status SB 2.0/pro version. NOT SB16. */
 			DSP_FlushData();
@@ -1693,17 +1701,30 @@ static void DSP_DoCommand(void) {
 		break;
 	case 0x0e:	/* SB16 ASP set register */
 		if (sb.type == SBT_16) {
-			LOG(LOG_SB,LOG_DEBUG)("SB16 ASP set register reg=0x%02x val=0x%02x",sb.dsp.in.data[0],sb.dsp.in.data[1]);
-
             if (sb.enable_asp)
 			    ASP_regs[sb.dsp.in.data[0]] = sb.dsp.in.data[1];
 
             if (sb.dsp.in.data[0] == 0x83) {
-                if (ASP_mode == 0xFA) {
+                if (ASP_mode == 0xF9) {
+                    // mode 0xF9: register contents to RAM, but does not increment index
+                    LOG(LOG_SB,LOG_DEBUG)("SB16 ASP write internal RAM byte index=0x%03x val=0x%02x",sb16asp_ram_contents_index,sb.dsp.in.data[1]);
+                    sb16asp_write_current_RAM_byte(sb.dsp.in.data[1]);
+                }
+                else if (ASP_mode == 0xFA) {
                     // SB16 ASP observed behavior: mode 0xFA means write reg contents to RAM, increment index. reading does not increment index
+                    LOG(LOG_SB,LOG_DEBUG)("SB16 ASP write internal RAM byte index=0x%03x val=0x%02x",sb16asp_ram_contents_index,sb.dsp.in.data[1]);
                     sb16asp_write_next_RAM_byte(sb.dsp.in.data[1]);
                 }
-                // mode 0xF9: register contents to RAM, but does not increment index
+                else if (ASP_mode == 0xFC) {
+                    // do nothing. Linux kernel and DOSLIB in this mode read/write the register as part of CSP detection
+                    LOG(LOG_SB,LOG_DEBUG)("SB16 ASP write mode 0xFC scratch register (detection test) val=0x%02x",sb.dsp.in.data[1]);
+                }
+                else {
+                    LOG(LOG_SB,LOG_WARN)("SB16 ASP set register 0x83 not implemented for mode=0x%02x",ASP_mode);
+                }
+            }
+            else {
+			    LOG(LOG_SB,LOG_DEBUG)("SB16 ASP set register reg=0x%02x val=0x%02x",sb.dsp.in.data[0],sb.dsp.in.data[1]);
             }
 		} else {
 			LOG(LOG_SB,LOG_NORMAL)("DSP Unhandled SB16ASP command %X (set register)",sb.dsp.cmd);
@@ -1715,13 +1736,33 @@ static void DSP_DoCommand(void) {
                 if (sb.dsp.in.data[0] == 0x83) {
                     if (ASP_mode == 0xF9) {
                         // SB16 ASP observed behavior: mode 0xF9 means latch another RAM byte, increment index
+                        unsigned int index = sb16asp_ram_contents_index;
                         ASP_regs[0x83] = sb16asp_latch_next_RAM_byte();
+                        LOG(LOG_SB,LOG_DEBUG)("SB16 ASP read internal RAM byte index=0x%03x => val=0x%02x",index,ASP_regs[0x83]);
                     }
-                    // mode 0xFA return reg contents, does not increment index
+                    else if (ASP_mode == 0xFA) {
+                        // mode 0xFA return reg contents, does not increment index
+                        unsigned int index = sb16asp_ram_contents_index;
+                        ASP_regs[0x83] = sb16asp_latch_current_RAM_byte();
+                        LOG(LOG_SB,LOG_DEBUG)("SB16 ASP read internal RAM byte index=0x%03x => val=0x%02x",index,ASP_regs[0x83]);
+                    }
+                    else if (ASP_mode == 0xFC) {
+                        // do nothing. Linux kernel and DOSLIB in this mode read/write the register as part of CSP detection
+                        LOG(LOG_SB,LOG_DEBUG)("SB16 ASP read mode 0xFC scratch register (detection test) return val=0x%02x",ASP_regs[0x83]);
+                    }
+                    else if (ASP_mode == 0x00) {
+                        // SB16 ASP observed behavior: mode 0x00 seems to return chip version ID
+                        ASP_regs[0x83] = 0x10;
+                    }
+                    else {
+                        LOG(LOG_SB,LOG_DEBUG)("SB16 ASP get register 0x83 not implemented for mode=0x%02x",ASP_mode);
+                    }
+                }
+                else {
+                    LOG(LOG_SB,LOG_DEBUG)("SB16 ASP get register reg=0x%02x, returning 0x%02x",sb.dsp.in.data[0],ASP_regs[sb.dsp.in.data[0]]);
                 }
 
                 DSP_AddData(ASP_regs[sb.dsp.in.data[0]]);
-                LOG(LOG_SB,LOG_DEBUG)("SB16 ASP get register reg=0x%02x, returning 0x%02x",sb.dsp.in.data[0],ASP_regs[sb.dsp.in.data[0]]);
             }
             else {
                 DSP_AddData(0xFF);  // NTS: This is what a SB16 ViBRA PnP card with no ASP returns when queried in this way
