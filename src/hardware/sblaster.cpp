@@ -1720,6 +1720,7 @@ static void DSP_DoCommand(void) {
 			}
 			else {
 				LOG(LOG_SB,LOG_DEBUG)("SC400: SB16 playback command not recognized");
+                break;
 			}
 		}
 		else {
