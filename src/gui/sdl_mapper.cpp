@@ -27,7 +27,6 @@
 
 
 #include "SDL.h"
-#include "SDL_thread.h"
 
 #include "dosbox.h"
 #include "video.h"
