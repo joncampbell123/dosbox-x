@@ -1737,7 +1737,7 @@ do																				\
 		oow = fast_reciplog((ITERW), &lod);										\
 		s = (INT32)((oow * (ITERS)) >> 29);										\
 		t = (INT32)((oow * (ITERT)) >> 29);										\
-		lod += (LODBASE);														\
+		lod = (LODBASE);														\
 	}																			\
 	else																		\
 	{																			\
