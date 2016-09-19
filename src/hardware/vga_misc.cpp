@@ -41,11 +41,8 @@ Bitu vga_read_p3da(Bitu port,Bitu iolen) {
 	// bit   0  Horizontal or Vertical blanking
 	//       3  Vertical sync
 
-	if (timeInFrame >= vga.draw.delay.vrstart &&
-		timeInFrame <= vga.draw.delay.vrend)
-		retval |= 8;
 	if (timeInFrame >= vga.draw.delay.vdend) {
-		retval |= 1;
+		retval |= 9;
 	} else {
 		double timeInLine=fmod(timeInFrame,vga.draw.delay.htotal);
 		if (timeInLine >= vga.draw.delay.hblkstart && 
