@@ -349,7 +349,7 @@ DmaChannel::DmaChannel(Bit8u num, bool dma16) {
     if (isadma128k >= 0)
         Set128KMode(isadma128k > 0); // user's choice
     else
-        Set128KMode(!has_pcibus_enable()); // auto, based on whether PCI bus is present
+        Set128KMode(true); // most hardware seems to implement the 128K case
 
     LOG(LOG_DMACONTROL,LOG_DEBUG)("DMA channel %u. DMA16_PAGESHIFT=%u DMA16_ADDRMASK=0x%lx",
         (unsigned int)channum,(unsigned int)DMA16_PAGESHIFT,(unsigned long)DMA16_ADDRMASK);
