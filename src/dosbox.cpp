@@ -843,6 +843,7 @@ void DOSBOX_SetupConfigSections(void) {
 	const char *qualityno[] = { "0", "1", "2", "3", 0 };
 	const char* tandys[] = { "auto", "on", "off", 0};
 	const char* ps1opt[] = { "on", "off", 0};
+	const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", 0};
 
 	const char* irqssbhack[] = {
 		"none", "cs_equ_ds", 0
@@ -1156,6 +1157,12 @@ void DOSBOX_SetupConfigSections(void) {
 	Pbool = secprop->Add_bool("allow dma address decrement",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("If set, allow increment & decrement modes as specified in the 8237 datasheet.\n"
 			"If clear, always increment the address (as if to emulate clone 8237 implementations that skipped the inc/dec bit).");
+
+	Pstring = secprop->Add_string("enable 128k capable 16-bit dma", Property::Changeable::OnlyAtStart,"auto");
+	Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_help("If true, DMA controller emulation models ISA hardware that permits 16-bit DMA to span 128KB.\n"
+                    "If false, DMA controller emulation models PCI hardware that limits 16-bit DMA to 64KB boundaries.\n"
+                    "If auto, the choice is made according to other factors in hardware emulation");
 
 	Pbool = secprop->Add_bool("enable dma extra page registers",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("If set, emulate the extra page registers (I/O ports 0x80, 0x84-0x86, 0x88, 0x8C-0x8E), like actual hardware.\n"

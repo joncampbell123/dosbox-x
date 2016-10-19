@@ -34,6 +34,10 @@
 bool pcibus_enable = false;
 bool log_pci = false;
 
+bool has_pcibus_enable(void) {
+    return pcibus_enable;
+}
+
 static Bit32u pci_caddress=0;			// current PCI addressing
 
 static PCI_Device* pci_devices[PCI_MAX_PCIBUSSES][PCI_MAX_PCIDEVICES]={{NULL}};		// registered PCI devices

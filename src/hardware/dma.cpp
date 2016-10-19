@@ -27,6 +27,8 @@
 #include "setup.h"
 #include "control.h"
 
+bool has_pcibus_enable(void);
+
 DmaController *DmaControllers[2]={NULL};
 unsigned char dma_extra_page_registers[16]={0}; /* 0x80-0x8F */
 bool enable_dma_extra_page_registers = true;
@@ -40,6 +42,7 @@ static Bit32u dma_wrapping = 0xffff;
 bool enable_1st_dma = true;
 bool enable_2nd_dma = true;
 bool allow_decrement_mode = true;
+int isadma128k = -1;
 
 static void UpdateEMSMapping(void) {
 	/* if EMS is not present, this will result in a 1:1 mapping */
@@ -50,12 +53,12 @@ static void UpdateEMSMapping(void) {
 }
 
 /* read a block from physical memory */
-static void DMA_BlockRead(PhysPt spage,PhysPt offset,void * data,Bitu size,Bit8u dma16) {
+static void DMA_BlockRead(PhysPt spage,PhysPt offset,void * data,Bitu size,Bit8u dma16,const Bit32u DMA16_ADDRMASK) {
 	Bit8u * write=(Bit8u *) data;
 	Bitu highpart_addr_page = spage>>12;
 	size <<= dma16;
 	offset <<= dma16;
-	Bit32u dma_wrap = ((0xffff<<dma16)+dma16) | dma_wrapping;
+	Bit32u dma_wrap = (((0xffff<<dma16)+dma16)&DMA16_ADDRMASK) | dma_wrapping;
 	for ( ; size ; size--, offset++) {
 		offset &= dma_wrap;
 		Bitu page = highpart_addr_page+(offset >> 12);
@@ -73,13 +76,13 @@ static void DMA_BlockRead(PhysPt spage,PhysPt offset,void * data,Bitu size,Bit8u
  * NTS: Don't forget, from 8237 datasheet: The DMA chip transfers a byte (or word if 16-bit) of data,
  *      and THEN increments or decrements the address. So in decrement mode, "address" is still the
  *      first byte before decrementing. */
-static void DMA_BlockReadBackwards(PhysPt spage,PhysPt offset,void * data,Bitu size,Bit8u dma16) {
+static void DMA_BlockReadBackwards(PhysPt spage,PhysPt offset,void * data,Bitu size,Bit8u dma16,const Bit32u DMA16_ADDRMASK) {
 	Bit8u * write=(Bit8u *) data;
 	Bitu highpart_addr_page = spage>>12;
 
 	size <<= dma16;
 	offset <<= dma16;
-	Bit32u dma_wrap = ((0xffff<<dma16)+dma16) | dma_wrapping;
+	Bit32u dma_wrap = (((0xffff<<dma16)+dma16)&DMA16_ADDRMASK) | dma_wrapping;
 
 	if (dma16) {
 		/* I'm going to assume by how ISA DMA works that you can't just copy bytes backwards,
@@ -114,12 +117,12 @@ static void DMA_BlockReadBackwards(PhysPt spage,PhysPt offset,void * data,Bitu s
 }
 
 /* write a block into physical memory */
-static void DMA_BlockWrite(PhysPt spage,PhysPt offset,void * data,Bitu size,Bit8u dma16) {
+static void DMA_BlockWrite(PhysPt spage,PhysPt offset,void * data,Bitu size,Bit8u dma16,const Bit32u DMA16_ADDRMASK) {
 	Bit8u * read=(Bit8u *) data;
 	Bitu highpart_addr_page = spage>>12;
 	size <<= dma16;
 	offset <<= dma16;
-	Bit32u dma_wrap = ((0xffff<<dma16)+dma16) | dma_wrapping;
+	Bit32u dma_wrap = (((0xffff<<dma16)+dma16)&DMA16_ADDRMASK) | dma_wrapping;
 	for ( ; size ; size--, offset++) {
 		if (offset>(dma_wrapping<<dma16)) {
 			LOG_MSG("DMA segbound wrapping (write): %x:%x size %x [%x] wrap %x",(int)spage,(int)offset,(int)size,dma16,(int)dma_wrapping);
@@ -342,7 +345,15 @@ DmaChannel::DmaChannel(Bit8u num, bool dma16) {
 	if(num == 4) return;
 	channum = num;
 	DMA16 = dma16 ? 0x1 : 0x0;
-	pagenum = 0;
+
+    if (isadma128k >= 0)
+        Set128KMode(isadma128k > 0); // user's choice
+    else
+        Set128KMode(has_pcibus_enable()); // auto, based on whether PCI bus is present
+
+    LOG(LOG_DMACONTROL,LOG_DEBUG)("DMA channel %u. DMA16_PAGESHIFT=%u DMA16_ADDRMASK=0x%lx",
+        (unsigned int)channum,(unsigned int)DMA16_PAGESHIFT,(unsigned long)DMA16_ADDRMASK);
+    pagenum = 0;
 	pagebase = 0;
 	baseaddr = 0;
 	curraddr = 0;
@@ -368,11 +379,11 @@ again:
 	Bitu left=(currcnt+1);
 	if (want<left) {
 		if (increment) {
-			DMA_BlockRead(pagebase,curraddr,buffer,want,DMA16);
+			DMA_BlockRead(pagebase,curraddr,buffer,want,DMA16,DMA16_ADDRMASK);
 			curraddr+=want;
 		}
 		else {
-			DMA_BlockReadBackwards(pagebase,curraddr,buffer,want,DMA16);
+			DMA_BlockReadBackwards(pagebase,curraddr,buffer,want,DMA16,DMA16_ADDRMASK);
 			curraddr-=want;
 		}
 
@@ -380,9 +391,9 @@ again:
 		done+=want;
 	} else {
 		if (increment)
-			DMA_BlockRead(pagebase,curraddr,buffer,want,DMA16);
+			DMA_BlockRead(pagebase,curraddr,buffer,want,DMA16,DMA16_ADDRMASK);
 		else
-			DMA_BlockReadBackwards(pagebase,curraddr,buffer,want,DMA16);
+			DMA_BlockReadBackwards(pagebase,curraddr,buffer,want,DMA16,DMA16_ADDRMASK);
 
 		buffer+=left << DMA16;
 		want-=left;
@@ -425,12 +436,12 @@ Bitu DmaChannel::Write(Bitu want, Bit8u * buffer) {
 again:
 	Bitu left=(currcnt+1);
 	if (want<left) {
-		DMA_BlockWrite(pagebase,curraddr,buffer,want,DMA16);
+		DMA_BlockWrite(pagebase,curraddr,buffer,want,DMA16,DMA16_ADDRMASK);
 		done+=want;
 		curraddr+=want;
 		currcnt-=want;
 	} else {
-		DMA_BlockWrite(pagebase,curraddr,buffer,left,DMA16);
+		DMA_BlockWrite(pagebase,curraddr,buffer,left,DMA16,DMA16_ADDRMASK);
 		buffer+=left << DMA16;
 		want-=left;
 		done+=left;
@@ -490,6 +501,17 @@ void DMA_Reset(Section* /*sec*/) {
 	enable_dma_extra_page_registers = section->Get_bool("enable dma extra page registers");
 	dma_page_register_writeonly = section->Get_bool("dma page registers write-only");
 	allow_decrement_mode = section->Get_bool("allow dma address decrement");
+
+    {
+        std::string s = section->Get_string("enable 128k capable 16-bit dma");
+
+        if (s == "true" || s == "1")
+            isadma128k = 1;
+        else if (s == "false" || s == "0")
+            isadma128k = 0;
+        else
+            isadma128k = -1;
+    }
 
 	if (enable_1st_dma)
 		DmaControllers[0] = new DmaController(0);

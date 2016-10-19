@@ -40,6 +40,8 @@ public:
 	Bit16u currcnt;
 	Bit8u channum;
 	Bit8u pagenum;
+    Bit8u DMA16_PAGESHIFT;
+    Bit32u DMA16_ADDRMASK;
 	Bit8u DMA16;
 	bool increment;
 	bool autoinit;
@@ -57,6 +59,16 @@ public:
 		masked=_mask;
 		DoCallBack(masked ? DMA_MASKED : DMA_UNMASKED);
 	}
+    void Set128KMode(bool en) {
+        // 128KB mode (legacy ISA) (en=true):
+        //    page shift = 1        (discard bit 0 of page register)
+        //    addr mask = 0x1FFFF   (all bits 0-15 become bits 1-16, bit 15 of addr takes the place of page register bit 0)
+        // 64KB mode (modern PCI including Intel chipsets) (en=false):
+        //    page shift = 0        (all 8 bits of page register are used)
+        //    addr mask = 0xFFFF    (discard bit 15, bits 0-14 become bits 1-15 on ISA bus)
+        DMA16_PAGESHIFT = (en && DMA16) ? 0x1 : 0x0; // nonzero if we're to discard bit 0 of page register
+        DMA16_ADDRMASK = (1UL << ((en && DMA16) ? 17UL : 16UL)) - 1UL; // nonzero if (addrreg << 1) to cover 128KB, zero if (addrreg << 1) to discard MSB, limit to 64KB
+    }
 	void Register_Callback(DMA_CallBack _cb) { 
 		callback = _cb; 
 		SetMask(masked);
@@ -69,7 +81,7 @@ public:
 	}
 	void SetPage(Bit8u val) {
 		pagenum=val;
-		pagebase=(pagenum >> DMA16) << (16+DMA16);
+		pagebase=(pagenum >> DMA16_PAGESHIFT) << (16+DMA16_PAGESHIFT);
 	}
 	void Raise_Request(void) {
 		request=true;
