@@ -42,12 +42,16 @@ Bitu vga_read_p3da(Bitu port,Bitu iolen) {
 	//       3  Vertical sync
 
 	if (timeInFrame >= vga.draw.delay.vdend) {
-		retval |= 9;
+		retval |= 1; // vertical blanking
+        if (timeInFrame >= vga.draw.delay.vrstart &&
+            timeInFrame <= vga.draw.delay.vrend) {
+            retval |= 8; // vertical retrace
+        }
 	} else {
 		double timeInLine=fmod(timeInFrame,vga.draw.delay.htotal);
 		if (timeInLine >= vga.draw.delay.hblkstart && 
 			timeInLine <= vga.draw.delay.hblkend) {
-			retval |= 1;
+			retval |= 1; // horizontal blanking
 		}
 	}
 
