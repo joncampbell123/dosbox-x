@@ -43,10 +43,6 @@ Bitu vga_read_p3da(Bitu port,Bitu iolen) {
 
 	if (timeInFrame >= vga.draw.delay.vdend) {
 		retval |= 1; // vertical blanking
-        if (timeInFrame >= vga.draw.delay.vrstart &&
-            timeInFrame <= vga.draw.delay.vrend) {
-            retval |= 8; // vertical retrace
-        }
 	} else {
 		double timeInLine=fmod(timeInFrame,vga.draw.delay.htotal);
 		if (timeInLine >= vga.draw.delay.hblkstart && 
@@ -54,6 +50,11 @@ Bitu vga_read_p3da(Bitu port,Bitu iolen) {
 			retval |= 1; // horizontal blanking
 		}
 	}
+
+    if (timeInFrame >= vga.draw.delay.vrstart &&
+        timeInFrame <= vga.draw.delay.vrend) {
+        retval |= 8; // vertical retrace
+    }
 
 	vsync_poll_debug_notify();
 	return retval;
