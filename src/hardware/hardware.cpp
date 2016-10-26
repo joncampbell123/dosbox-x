@@ -1437,8 +1437,6 @@ void CAPTURE_MultiTrackAddWave(Bit32u freq, Bit32u len, Bit16s * data,const char
                     if (!avi_writer_stream_set_format(astream,&fmt,sizeof(fmt)))
                         goto skip_mt_wav;
 
-                    /* FIXME: The AVI format specifies that among the strl chunk you can put the name of the stream in a 'strn' chunk (NUL-terminated ASCII) */
-
                     if (c->name != NULL && *(c->name) != 0) {
 			            LOG_MSG("multitrack audio, mixer channel '%s' is AVI stream %d",c->name,astream->index);
                         capture.multitrack_wave.name_to_stream_index[c->name] = (size_t)astream->index;
