@@ -31,6 +31,7 @@ enum OPL_Mode {
 #define CAPTURE_MIDI	0x04
 #define CAPTURE_IMAGE	0x08
 #define CAPTURE_VIDEO	0x10
+#define CAPTURE_MULTITRACK_WAVE 0x20 /* like CAPTURE_WAVE, but one AVI audio track per mixer channel for pro video production */
 
 extern Bitu CaptureState;
 
