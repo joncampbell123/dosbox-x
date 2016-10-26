@@ -310,6 +310,17 @@ int avi_writer_begin_header(avi_writer *w) {
 			assert((int)riff_stack_write(w->riff,riff_stack_top(w->riff),s->format,(int)s->format_len) == (int)s->format_len);
 		riff_stack_pop(w->riff);
 
+        /* [5] strn (if name given) */
+        if (s->name != NULL) {
+            size_t len = strlen(s->name) + 1; /* must include NUL */
+
+            assert(riff_stack_begin_new_chunk_here(w->riff,&chunk));
+            assert(riff_stack_set_chunk_data_type(&chunk,riff_fourcc_const('s','t','r','n')));
+            assert(riff_stack_push(w->riff,&chunk)); /* NTS: we can reuse chunk, the stack copies it here */
+            assert((int)riff_stack_write(w->riff,riff_stack_top(w->riff),s->name,(int)len) == (int)len);
+            riff_stack_pop(w->riff);
+        }
+
 		if (w->enable_opendml_index) {
 			unsigned char tmp[512];
 			int i;

@@ -22,6 +22,7 @@ typedef struct avi_writer_stream {
 	int				index;
 	riff_strh_AVISTREAMHEADER	header;
 	riff_indx_AVISUPERINDEX		superindex;
+    const char*         name;
 	void*				format;
 	size_t				format_len;
 	riff_chunk			strh,indx,indx_junk;
