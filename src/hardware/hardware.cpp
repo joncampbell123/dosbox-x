@@ -72,6 +72,21 @@ Bit64u			ffmpeg_audio_sample_counter = 0;
 Bit64u			ffmpeg_video_frame_time_offset = 0;
 Bit64u			ffmpeg_video_frame_last_time = 0;
 
+int             ffmpeg_yuv_format_choice = -1;  // -1 default  4 = 444   2 = 422   0 = 420
+
+AVPixelFormat ffmpeg_choose_pixfmt(const int x) {
+    if (ffmpeg_yuv_format_choice == 4)
+        return AV_PIX_FMT_YUV444P;
+    else if (ffmpeg_yuv_format_choice == 2)
+        return AV_PIX_FMT_YUV422P;
+    else if (ffmpeg_yuv_format_choice == 0)
+        return AV_PIX_FMT_YUV420P;
+
+    // default
+    // TODO: but this default should also be affected by what the codec supports!
+    return AV_PIX_FMT_YUV444P;
+}
+
 void ffmpeg_closeall() {
 	if (ffmpeg_fmt_ctx != NULL) {
 		if (ffmpeg_avformat_began) {
@@ -401,7 +416,7 @@ void ffmpeg_reopen_video(double fps,const int bpp) {
 	ffmpeg_vid_ctx->height = capture.video.height;
 	ffmpeg_vid_ctx->gop_size = 15; // TODO: make config option
 	ffmpeg_vid_ctx->max_b_frames = 0;
-	ffmpeg_vid_ctx->pix_fmt = AV_PIX_FMT_YUV444P;	// TODO: auto-choose according to what codec says is supported, and let user choose as well
+	ffmpeg_vid_ctx->pix_fmt = ffmpeg_choose_pixfmt(ffmpeg_yuv_format_choice);
 	ffmpeg_vid_ctx->thread_count = 0;		// auto-choose
 	ffmpeg_vid_ctx->flags2 = CODEC_FLAG2_FAST;
 	ffmpeg_vid_ctx->qmin = 1;
@@ -1001,7 +1016,7 @@ skip_shot:
 			ffmpeg_vid_ctx->height = capture.video.height;
 			ffmpeg_vid_ctx->gop_size = 15; // TODO: make config option
 			ffmpeg_vid_ctx->max_b_frames = 0;
-			ffmpeg_vid_ctx->pix_fmt = AV_PIX_FMT_YUV444P;	// TODO: auto-choose according to what codec says is supported, and let user choose as well
+			ffmpeg_vid_ctx->pix_fmt = ffmpeg_choose_pixfmt(ffmpeg_yuv_format_choice); // TODO: auto-choose according to what codec says is supported, and let user choose as well
 			ffmpeg_vid_ctx->thread_count = 0;		// auto-choose
 			ffmpeg_vid_ctx->flags2 = CODEC_FLAG2_FAST;
 			ffmpeg_vid_ctx->qmin = 1;
@@ -1699,6 +1714,16 @@ void CAPTURE_Init() {
 	Prop_path *proppath = section->Get_path("captures");
 	assert(proppath != NULL);
 	capturedir = proppath->realpath;
+
+    std::string ffmpeg_pixfmt = section->Get_string("capture chroma format");
+    if (ffmpeg_pixfmt == "4:4:4")
+        ffmpeg_yuv_format_choice = 4;
+    else if (ffmpeg_pixfmt == "4:2:2")
+        ffmpeg_yuv_format_choice = 2;
+    else if (ffmpeg_pixfmt == "4:2:0")
+        ffmpeg_yuv_format_choice = 0;
+    else
+        ffmpeg_yuv_format_choice = -1;
 
 	std::string capfmt = section->Get_string("capture format");
 	if (capfmt == "mpegts-h264") {
