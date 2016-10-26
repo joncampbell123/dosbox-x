@@ -576,7 +576,7 @@ void CAPTURE_VideoEvent(bool pressed) {
 
 		if (capture.video.writer != NULL) {
 			if ( capture.video.audioused ) {
-				CAPTURE_AddAviChunk( "01wb", capture.video.audioused * 4, capture.video.audiobuf, 0, 1);
+				CAPTURE_AddAviChunk( "01wb", capture.video.audioused * 4, capture.video.audiobuf, 0x10, 1);
 				capture.video.audiowritten = capture.video.audioused*4;
 				capture.video.audioused = 0;
 			}
@@ -1183,7 +1183,7 @@ skip_shot:
 			capture.video.frames++;
 
 			if ( capture.video.audioused ) {
-				CAPTURE_AddAviChunk( "01wb", capture.video.audioused * 4, capture.video.audiobuf, 0, 1);
+				CAPTURE_AddAviChunk( "01wb", capture.video.audioused * 4, capture.video.audiobuf, /*keyframe*/0x10, 1);
 				capture.video.audiowritten = capture.video.audioused*4;
 				capture.video.audioused = 0;
 			}
@@ -1461,7 +1461,7 @@ void CAPTURE_MultiTrackAddWave(Bit32u freq, Bit32u len, Bit16s * data,const char
 
                 if (index < (size_t)capture.multitrack_wave.writer->avi_stream_alloc) {
                     avi_writer_stream *os = capture.multitrack_wave.writer->avi_stream + index;
-			        avi_writer_stream_write(capture.multitrack_wave.writer,os,data,len * 2 * 2,0);
+			        avi_writer_stream_write(capture.multitrack_wave.writer,os,data,len * 2 * 2,/*keyframe*/0x10);
                 }
                 else {
                     LOG_MSG("Multitrack: Ignoring unknown track '%s', out of range\n",name);
