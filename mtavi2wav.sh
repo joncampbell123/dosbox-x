@@ -6,7 +6,7 @@
 
 # get the track names. DOSBox-X always writes track names
 declare -a NAMES
-for x in `ffprobe dosbox_000.mt.avi 2>&1 | grep title | cut -d ':' -f 2 | sed -e 's/^ *//'`; do
+for x in `ffprobe "$1" 2>&1 | grep title | cut -d ':' -f 2 | sed -e 's/^ *//'`; do
     NAMES=("${NAMES[@]}" "$x")
 done
 
