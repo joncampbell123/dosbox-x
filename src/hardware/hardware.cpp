@@ -833,6 +833,9 @@ skip_shot:
 			if (!avi_writer_open_file(capture.video.writer,path.c_str()))
 				goto skip_video;
 
+            if (!avi_writer_set_stream_writing(capture.video.writer))
+                goto skip_video;
+
 			capture.video.codec = new VideoCodec();
 			if (!capture.video.codec)
 				goto skip_video;
@@ -1390,6 +1393,9 @@ void CAPTURE_MultiTrackAddWave(Bit32u freq, Bit32u len, Bit16s * data,const char
 
 			if (!avi_writer_open_file(capture.multitrack_wave.writer,path.c_str()))
 				goto skip_mt_wav;
+
+            if (!avi_writer_set_stream_writing(capture.multitrack_wave.writer))
+                goto skip_mt_wav;
 
 			riff_avih_AVIMAINHEADER *mheader = avi_writer_main_header(capture.multitrack_wave.writer);
 			if (mheader == NULL)
