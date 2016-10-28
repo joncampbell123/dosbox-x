@@ -20,7 +20,7 @@
 #include "control.h"
 #include "callback.h"
 #include "bios_disk.h"
-#include "../src/dos/cdrom.h"
+// #include "../src/dos/cdrom.h"
 
 #ifdef _MSC_VER
 # define MIN(a,b) ((a) < (b) ? (a) : (b))

@@ -1,4 +1,4 @@
-
+#if 0
 #include "config.h"
 
 #ifdef LINUX
@@ -7,12 +7,12 @@
 #include "SDL_version.h"
 #include "SDL_syswm.h"
 
-void Linux_GetDesktopResolution(int *width,int *height) {
+void Linux_GetDesktopResolution(SDL_Window *window, int *width,int *height) {
 	/* We're most likely running on an X-windows desktop (through SDL). */
 	SDL_SysWMinfo wminfo;
 	memset(&wminfo,0,sizeof(wminfo));
 	SDL_VERSION(&wminfo.version);
-	if (SDL_GetWMInfo(&wminfo) >= 0) {
+	if (SDL_GetWindowWMInfo(window, &wminfo) >= 0) {
 		if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
 			LOG_MSG("GetDesktopResolution reading X11 desktop resolution");
 
@@ -49,4 +49,4 @@ void Linux_GetDesktopResolution(int *width,int *height) {
 	}
 }
 #endif
-
+#endif

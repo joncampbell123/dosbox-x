@@ -678,7 +678,7 @@ void localFile::Flush(void) {
 // ********************************************
 // CDROM DRIVE
 // ********************************************
-
+#if 0
 int  MSCDEX_RemoveDrive(char driveLetter);
 int  MSCDEX_AddDrive(char driveLetter, const char* physicalPath, Bit8u& subUnit);
 bool MSCDEX_HasMediaChanged(Bit8u subUnit);
@@ -777,3 +777,4 @@ Bits cdromDrive::UnMount(void) {
 	}
 	return 2;
 }
+#endif

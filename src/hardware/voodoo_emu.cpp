@@ -69,7 +69,7 @@ iterated Z    = 20.12 [32 bits]
 iterated W    = 18.32 [48 bits]
 
 **************************************************************************/
-
+#if 0
 
 #include <stdlib.h>
 #include <math.h>
@@ -3819,3 +3819,4 @@ void voodoo_update_dimensions(void) {
 		voodoo_ogl_update_dimensions();
 	}
 }
+#endif

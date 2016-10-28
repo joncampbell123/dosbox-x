@@ -16,7 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-
+#if 0
 #include <stdlib.h>
 #include <string.h>
 
@@ -184,3 +184,4 @@ void VOODOO_Init() {
 	AddExitFunction(AddExitFunctionFuncPair(VOODOO_Destroy),true);
 	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(VOODOO_OnPowerOn));
 }
+#endif

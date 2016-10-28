@@ -16,8 +16,8 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-
-#include "SDL.h"
+#if 0
+#include "SDLL.h"
 #include "menu.h"
 #include "../libs/gui_tk/gui_tk.h"
 
@@ -129,8 +129,9 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 		w *=2; h *=2;
 	}
 
-	old_unicode = SDL_EnableUNICODE(1);
-	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY,SDL_DEFAULT_REPEAT_INTERVAL);
+	/* These don't exist in SDL2 */
+//	old_unicode = SDL_EnableUNICODE(1);
+//	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY,SDL_DEFAULT_REPEAT_INTERVAL);
 	screenshot = SDL_CreateRGBSurface(SDL_SWSURFACE, w, h, 32, GUI::Color::RedMask, GUI::Color::GreenMask, GUI::Color::BlueMask, 0);
 
 	// create screenshot for fade effect
@@ -176,7 +177,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 	mousetoggle = mouselocked;
 	if (mouselocked) GFX_CaptureMouse();
 
-	SDL_Surface* sdlscreen = SDL_SetVideoMode(w, h, 32, SDL_SWSURFACE|(fs?SDL_FULLSCREEN:SDL_RESIZABLE));
+	SDL_Surface* sdlscreen = SDL_SetVideoMode(w, h, 32, SDL_SWSURFACE|(fs?SDL_WINDOW_FULLSCREEN:SDL_WINDOW_RESIZABLE));
 	if (sdlscreen == NULL) E_Exit("Could not initialize video mode %ix%ix32 for UI: %s", w, h, SDL_GetError());
 
 	// fade out
@@ -212,10 +213,10 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
 	// Jonathan C: do it FASTER!
 	SDL_Event event;
 	for (int i = 0x00; i < 0xff; i += 0x30) {
-		SDL_SetAlpha(screenshot, SDL_SRCALPHA, i);
+		SDL_SetSurfaceAlphaMod(screenshot, i);
 		SDL_BlitSurface(background, NULL, sdlscreen, NULL);
 		SDL_BlitSurface(screenshot, NULL, sdlscreen, NULL);
-		SDL_UpdateRect(sdlscreen, 0, 0, 0, 0);
+		SDL_UpdateWindowSurfaceRects(sdlscreen, 0, 0, 0, 0);
 		while (SDL_PollEvent(&event)) {};
 		SDL_Delay(40); 
 	}
@@ -239,12 +240,12 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
 	GFX_ResetScreen();
 #endif
 #endif
-	SDL_EnableUNICODE(old_unicode);
-	SDL_EnableKeyRepeat(0,0);
+//	SDL_EnableUNICODE(old_unicode);
+//	SDL_EnableKeyRepeat(0,0);
 	GFX_SetTitle(-1,-1,-1,false);
 
-	void GFX_ForceRedrawScreen(void);
-	GFX_ForceRedrawScreen();
+//	void GFX_ForceRedrawScreen(void);
+//	GFX_ForceRedrawScreen();
 }
 
 static void UI_RunCommands(GUI::ScreenSDL *s, const std::string &cmds) {
@@ -802,7 +803,7 @@ static void UI_Execute(GUI::ScreenSDL *screen) {
 		sdlscreen = screen->getSurface();
 		SDL_BlitSurface(background, NULL, sdlscreen, NULL);
 		screen->update(screen->getTime());
-		SDL_UpdateRect(sdlscreen, 0, 0, 0, 0);
+		SDL_UpdateWindowSurfaceRects(sdlscreen, 0, 0, 0, 0);
 
 		SDL_Delay(40);
 	}
@@ -936,3 +937,4 @@ void GUI_Run(bool pressed) {
 	UI_Shutdown(screen);
 	delete screen;
 }
+#endif
