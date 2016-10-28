@@ -147,10 +147,6 @@ MixerChannel * MIXER_AddChannel(MIXER_Handler handler,Bitu freq,const char * nam
 	return chan;
 }
 
-MixerChannel * MIXER_FirstChannel(void) {
-    return mixer.channels;
-}
-
 MixerChannel * MIXER_FindChannel(const char * name) {
 	MixerChannel * chan=mixer.channels;
 	while (chan) {
@@ -271,35 +267,7 @@ void MixerChannel::SetFreq(Bitu _freq,Bitu _den) {
 	lowpassUpdate();
 }
 
-void CAPTURE_MultiTrackAddWave(Bit32u freq, Bit32u len, Bit16s * data,const char *name);
-
 void MixerChannel::EndFrame(Bitu samples) {
-    if (CaptureState & CAPTURE_MULTITRACK_WAVE) {// TODO: should be a separate call!
-		Bit16s convert[1024][2];
-        Bitu cnv = msbuffer_o;
-        Bitu padding = 0;
-
-        if (cnv > samples)
-            cnv = samples;
-        else
-            padding = samples - cnv;
-
-        if (cnv > 0) {
-            if (cnv > 1024) cnv = 1024;
-            for (Bitu i=0;i<cnv;i++) {
-                convert[i][0]=MIXER_CLIP(msbuffer[i][0] >> MIXER_VOLSHIFT);
-                convert[i][1]=MIXER_CLIP(msbuffer[i][1] >> MIXER_VOLSHIFT);
-            }
-            CAPTURE_MultiTrackAddWave(mixer.freq,cnv,(Bit16s*)convert,name);
-        }
-
-        if (padding > 0) {
-            if (padding > 1024) padding = 1024;
-            memset(&convert[0][0],0,padding*sizeof(Bit16s)*2);
-            CAPTURE_MultiTrackAddWave(mixer.freq,padding,(Bit16s*)convert,name);
-        }
-    }
-
 	rend_n = rend_d = 0;
 	if (msbuffer_o <= samples) {
 		msbuffer_o = 0;
@@ -622,7 +590,7 @@ extern bool ticksLocked;
 static inline bool Mixer_irq_important(void) {
 	/* In some states correct timing of the irqs is more important then 
 	 * non stuttering audo */
-	return (ticksLocked || (CaptureState & (CAPTURE_WAVE|CAPTURE_VIDEO|CAPTURE_MULTITRACK_WAVE)));
+	return (ticksLocked || (CaptureState & (CAPTURE_WAVE|CAPTURE_VIDEO)));
 }
 
 unsigned long long mixer_sample_counter = 0;

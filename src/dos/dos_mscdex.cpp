@@ -16,7 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-
+#if 0
 #include <string.h>
 #include <ctype.h>
 #include "regs.h"
@@ -28,7 +28,7 @@
 #include "bios_disk.h"
 #include "cpu.h"
 
-#include "cdrom.h"
+//#include "cdrom.h"
 
 #define MSCDEX_LOG LOG(LOG_MISC,LOG_ERROR)
 //#define MSCDEX_LOG
@@ -48,7 +48,7 @@
 #define	REQUEST_STATUS_ERROR	0x8000
 
 // Use cdrom Interface
-int useCdromInterface	= CDROM_USE_SDL;
+//int useCdromInterface	= CDROM_USE_SDL;
 int forceCD				= -1;
 
 static Bitu MSCDEX_Strategy_Handler(void); 
@@ -102,7 +102,7 @@ public:
 	bool		PlayAudioSector		(Bit8u subUnit, Bit32u start, Bit32u length);
 	bool		PlayAudioMSF		(Bit8u subUnit, Bit32u start, Bit32u length);
 	bool		StopAudio			(Bit8u subUnit);
-	bool		GetAudioStatus		(Bit8u subUnit, bool& playing, bool& pause, TMSF& start, TMSF& end);
+//	bool		GetAudioStatus		(Bit8u subUnit, bool& playing, bool& pause, TMSF& start, TMSF& end);
 
 	bool		GetSubChannelData	(Bit8u subUnit, Bit8u& attr, Bit8u& track, Bit8u &index, TMSF& rel, TMSF& abs);
 
@@ -1437,4 +1437,4 @@ void MSCDEX_Init() {
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(MSCDEX_ShutDown));
 	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(MSCDEX_DOS_ShutDown));
 }
-
+#endif

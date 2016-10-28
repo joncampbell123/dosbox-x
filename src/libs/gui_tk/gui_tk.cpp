@@ -28,8 +28,8 @@
  *  Also contained is a small test program that demonstrates all features of
  *  gui_tk. It is enabled by defining the preprocessor macro TESTING.
  */
-
-#include <SDL.h>
+#if 0
+#include "SDL.h"
 #include "gui_tk.h"
 
 namespace GUI {
@@ -1012,8 +1012,6 @@ void Button::paint(Drawable &d) const
 bool Checkbox::keyDown(const Key &key)
 {
 	switch (key.special) {
-	case Key::None:
-		if (key.character != ' ') return false;
 	case Key::Enter:
 		break;
 	default: return false;
@@ -1024,7 +1022,7 @@ bool Checkbox::keyDown(const Key &key)
 
 bool Checkbox::keyUp(const Key &key)
 {
-	if (key.ctrl || key.alt || key.windows || (key.character != ' ' && key.special != Key::Enter)) return false;
+	if (key.ctrl || key.alt || key.windows || (key.special != Key::Enter)) return false;
 	mouseUp(0,0,Left);
 	mouseClicked(0,0,Left);
 	return true;
@@ -1069,8 +1067,6 @@ Radiobox::Radiobox(Frame *parent, int x, int y, int w, int h) : BorderedWindow(s
 bool Radiobox::keyDown(const Key &key)
 {
 	switch (key.special) {
-	case Key::None:
-		if (key.character != ' ') return false;
 	case Key::Enter:
 		break;
 	default: return false;
@@ -1081,7 +1077,7 @@ bool Radiobox::keyDown(const Key &key)
 
 bool Radiobox::keyUp(const Key &key)
 {
-	if (key.ctrl || key.alt || key.windows || (key.character != ' ' && key.special != Key::Enter)) return false;
+	if (key.ctrl || key.alt || key.windows || (key.special != Key::Enter)) return false;
 	mouseUp(0,0,Left);
 	mouseClicked(0,0,Left);
 	return true;
@@ -1200,8 +1196,6 @@ void Menubar::paint(Drawable &d) const
 bool Button::keyDown(const Key &key)
 {
 	switch (key.special) {
-	case Key::None:
-		if (key.character != ' ') return false;
 	case Key::Enter:
 		break;
 	default: return false;
@@ -1212,7 +1206,7 @@ bool Button::keyDown(const Key &key)
 
 bool Button::keyUp(const Key &key)
 {
-	if (key.ctrl || key.alt || key.windows || (key.character != ' ' && key.special != Key::Enter)) return false;
+	if (key.ctrl || key.alt || key.windows || (key.special != Key::Enter)) return false;
 	mouseUp(0,0,Left);
 	mouseClicked(0,0,Left);
 	return true;
@@ -1388,13 +1382,13 @@ static MouseButton SDL_to_GUI(const int button)
 	case SDL_BUTTON_LEFT:      return GUI::Left;
 	case SDL_BUTTON_RIGHT:     return GUI::Right;
 	case SDL_BUTTON_MIDDLE:    return GUI::Middle;
-	case SDL_BUTTON_WHEELUP:   return GUI::WheelUp;
-	case SDL_BUTTON_WHEELDOWN: return GUI::WheelDown;
+//	case SDL_BUTTON_WHEELUP:   return GUI::WheelUp;
+//	case SDL_BUTTON_WHEELDOWN: return GUI::WheelDown;
 	default: return GUI::NoButton;
 	}
 }
 
-static const Key SDL_to_GUI(const SDL_keysym &key)
+static const Key SDL_to_GUI(const SDL_Keysym &key)
 {
 	GUI::Key::Special ksym = GUI::Key::None;
 	switch (key.sym) {
@@ -1413,22 +1407,21 @@ static const Key SDL_to_GUI(const SDL_keysym &key)
 	case SDLK_MENU: ksym = GUI::Key::Menu; break;
 	case SDLK_PAGEUP: ksym = GUI::Key::PageUp; break;
 	case SDLK_PAGEDOWN: ksym = GUI::Key::PageDown; break;
-	case SDLK_PRINT: ksym = GUI::Key::Print; break;
+	case SDLK_PRINTSCREEN: ksym = GUI::Key::Print; break;
 	case SDLK_PAUSE: ksym = GUI::Key::Pause; break;
-	case SDLK_BREAK: ksym = GUI::Key::Break; break;
 	case SDLK_CAPSLOCK: ksym = GUI::Key::CapsLock; break;
-	case SDLK_NUMLOCK: ksym = GUI::Key::NumLock; break;
-	case SDLK_SCROLLOCK: ksym = GUI::Key::ScrollLock; break;
+	case SDLK_NUMLOCKCLEAR: ksym = GUI::Key::NumLock; break;
+	case SDLK_SCROLLLOCK: ksym = GUI::Key::ScrollLock; break;
 	case SDLK_F1:case SDLK_F2:case SDLK_F3:case SDLK_F4:case SDLK_F5:case SDLK_F6:
 	case SDLK_F7:case SDLK_F8:case SDLK_F9:case SDLK_F10:case SDLK_F11:case SDLK_F12:
 		ksym = (GUI::Key::Special)(GUI::Key::F1 + key.sym-SDLK_F1);
 	default: break;
 	}
-	return Key(key.unicode, ksym,
+	return Key(ksym,
 		(key.mod&KMOD_SHIFT)>0,
 		(key.mod&KMOD_CTRL)>0,
 		(key.mod&KMOD_ALT)>0,
-		(key.mod&KMOD_META)>0);
+		(key.mod&KMOD_GUI)>0);
 }
 
 /** \brief Internal class that handles different screen bit depths and layouts the SDL way */
@@ -1438,7 +1431,6 @@ protected:
 
 public:
 	SDL_Drawable(int width, int height, RGB clear = Color::Transparent) : Drawable(width, height, clear), surface(SDL_CreateRGBSurfaceFrom(buffer, width, height, 32, width*4, Color::RedMask, Color::GreenMask, Color::BlueMask, Color::AlphaMask)) {
-	    surface->flags |= SDL_SRCALPHA;
 	}
 
 	~SDL_Drawable() {
@@ -1537,4 +1529,4 @@ bool ScreenSDL::event(const SDL_Event &event) {
 }
 
 } /* end namespace GUI */
-
+#endif

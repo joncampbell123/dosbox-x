@@ -53,7 +53,7 @@ static void Check_Palette(void) {
 	Bitu i;
 	switch (render.scale.outMode) {
 	case scalerMode8:
-		GFX_SetPalette(render.pal.first,render.pal.last-render.pal.first+1,(GFX_PalEntry *)&render.pal.rgb[render.pal.first]);
+//		GFX_SetPalette(render.pal.first,render.pal.last-render.pal.first+1,(GFX_PalEntry *)&render.pal.rgb[render.pal.first]);
 		break;
 	case scalerMode15:
 	case scalerMode16:
@@ -472,7 +472,7 @@ forcenormal:
 			gfx_flags |= GFX_LOVE_32;
 			break;
 	}
-	gfx_flags=GFX_GetBestMode(gfx_flags);
+//	gfx_flags=GFX_GetBestMode(gfx_flags);
 	if (!gfx_flags) {
 		if (!complexBlock && simpleBlock == &ScaleNormal1x) 
 			E_Exit("Failed to create a rendering output");
