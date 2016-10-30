@@ -57,7 +57,10 @@
 #include "fpu.h"
 #include "control.h"
 
-#define MAPPERFILE "mapper-" VERSION ".map"
+// HACK: Scan codes between SDL and SDL2 are very different.
+//       Using SDL1-based DOSBox-X mapper and then running SDL2-based DOSBox-X
+//       will result in non-working keyboard input!
+#define MAPPERFILE "mapper-" VERSION ".sdl2.map"
 //#define DISABLE_JOYSTICK
 
 extern bool keep_umb_on_boot;
@@ -137,7 +140,8 @@ static inline int int_log2(int val) {
     return log;
 }
 
-#define MAPPERFILE				"mapper-" VERSION ".map"
+// FIXME: Why is this defined twice?
+#define MAPPERFILE "mapper-" VERSION ".sdl2.map"
 
 void						GUI_LoadFonts();
 void						GUI_Run(bool);
