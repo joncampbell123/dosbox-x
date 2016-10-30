@@ -204,16 +204,16 @@ public:
 				case 0x11:
 				case 0x12:
 				case 0x13:
-//					VOODOO_PCI_SetLFB(host_readd(config+0x10)&0xfffffff0UL); /* need to act on the new (masked off) value */
+					VOODOO_PCI_SetLFB(host_readd(config+0x10)&0xfffffff0UL); /* need to act on the new (masked off) value */
 					break;
 				case 0x40:
-//					VOODOO_PCI_InitEnable(value&7);
+					VOODOO_PCI_InitEnable(value&7);
 					break;
 				case 0xc0:
-//					VOODOO_PCI_Enable(true);
+					VOODOO_PCI_Enable(true);
 					break;
 				case 0xe0:
-//					VOODOO_PCI_Enable(false);
+					VOODOO_PCI_Enable(false);
 					break;
 				default:
 					break;

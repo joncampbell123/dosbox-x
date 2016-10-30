@@ -28,6 +28,7 @@
 #include "mem.h"
 #include "mapper.h"
 #include "pic.h"
+#include "mixer.h"
 #include "render.h"
 #include "cross.h"
 
@@ -39,6 +40,8 @@
 #include "riff_wav_writer.h"
 #include "avi_writer.h"
 #include "rawint.h"
+
+#include <map>
 
 #if (C_AVCODEC)
 extern "C" {
@@ -68,6 +71,21 @@ unsigned int		ffmpeg_aud_write = 0;
 Bit64u			ffmpeg_audio_sample_counter = 0;
 Bit64u			ffmpeg_video_frame_time_offset = 0;
 Bit64u			ffmpeg_video_frame_last_time = 0;
+
+int             ffmpeg_yuv_format_choice = -1;  // -1 default  4 = 444   2 = 422   0 = 420
+
+AVPixelFormat ffmpeg_choose_pixfmt(const int x) {
+    if (ffmpeg_yuv_format_choice == 4)
+        return AV_PIX_FMT_YUV444P;
+    else if (ffmpeg_yuv_format_choice == 2)
+        return AV_PIX_FMT_YUV422P;
+    else if (ffmpeg_yuv_format_choice == 0)
+        return AV_PIX_FMT_YUV420P;
+
+    // default
+    // TODO: but this default should also be affected by what the codec supports!
+    return AV_PIX_FMT_YUV444P;
+}
 
 void ffmpeg_closeall() {
 	if (ffmpeg_fmt_ctx != NULL) {
@@ -297,7 +315,12 @@ static struct {
 		Bitu used;
 		Bit32u length;
 		Bit32u freq;
-	} wave; 
+	} wave;
+    struct {
+        avi_writer  *writer;
+		Bitu		audiorate;
+        std::map<std::string,size_t> name_to_stream_index;
+    } multitrack_wave;
 	struct {
 		FILE * handle;
 		Bit8u buffer[MIDI_BUF];
@@ -393,7 +416,7 @@ void ffmpeg_reopen_video(double fps,const int bpp) {
 	ffmpeg_vid_ctx->height = capture.video.height;
 	ffmpeg_vid_ctx->gop_size = 15; // TODO: make config option
 	ffmpeg_vid_ctx->max_b_frames = 0;
-	ffmpeg_vid_ctx->pix_fmt = AV_PIX_FMT_YUV444P;	// TODO: auto-choose according to what codec says is supported, and let user choose as well
+	ffmpeg_vid_ctx->pix_fmt = ffmpeg_choose_pixfmt(ffmpeg_yuv_format_choice);
 	ffmpeg_vid_ctx->thread_count = 0;		// auto-choose
 	ffmpeg_vid_ctx->flags2 = CODEC_FLAG2_FAST;
 	ffmpeg_vid_ctx->qmin = 1;
@@ -568,7 +591,7 @@ void CAPTURE_VideoEvent(bool pressed) {
 
 		if (capture.video.writer != NULL) {
 			if ( capture.video.audioused ) {
-				CAPTURE_AddAviChunk( "01wb", capture.video.audioused * 4, capture.video.audiobuf, 0, 1);
+				CAPTURE_AddAviChunk( "01wb", capture.video.audioused * 4, capture.video.audiobuf, 0x10, 1);
 				capture.video.audiowritten = capture.video.audioused*4;
 				capture.video.audioused = 0;
 			}
@@ -996,7 +1019,7 @@ skip_shot:
 			ffmpeg_vid_ctx->height = capture.video.height;
 			ffmpeg_vid_ctx->gop_size = 15; // TODO: make config option
 			ffmpeg_vid_ctx->max_b_frames = 0;
-			ffmpeg_vid_ctx->pix_fmt = AV_PIX_FMT_YUV444P;	// TODO: auto-choose according to what codec says is supported, and let user choose as well
+			ffmpeg_vid_ctx->pix_fmt = ffmpeg_choose_pixfmt(ffmpeg_yuv_format_choice); // TODO: auto-choose according to what codec says is supported, and let user choose as well
 			ffmpeg_vid_ctx->thread_count = 0;		// auto-choose
 			ffmpeg_vid_ctx->flags2 = CODEC_FLAG2_FAST;
 			ffmpeg_vid_ctx->qmin = 1;
@@ -1178,7 +1201,7 @@ skip_shot:
 			capture.video.frames++;
 
 			if ( capture.video.audioused ) {
-				CAPTURE_AddAviChunk( "01wb", capture.video.audioused * 4, capture.video.audiobuf, 0, 1);
+				CAPTURE_AddAviChunk( "01wb", capture.video.audioused * 4, capture.video.audiobuf, /*keyframe*/0x10, 1);
 				capture.video.audiowritten = capture.video.audioused*4;
 				capture.video.audioused = 0;
 			}
@@ -1336,6 +1359,145 @@ void CAPTURE_ScreenShotEvent(bool pressed) {
 }
 #endif
 
+MixerChannel * MIXER_FirstChannel(void);
+
+void CAPTURE_MultiTrackAddWave(Bit32u freq, Bit32u len, Bit16s * data,const char *name) {
+    if (CaptureState & CAPTURE_MULTITRACK_WAVE) {
+		if (capture.multitrack_wave.writer == NULL) {
+            unsigned int streams = 0;
+
+            {
+                MixerChannel *c = MIXER_FirstChannel();
+                while (c != NULL) {
+                    streams++;
+                    c = c->next;
+                }
+            }
+
+            if (streams == 0) {
+                LOG_MSG("Not starting multitrack wave, no streams");
+                goto skip_mt_wav;
+            }
+
+			std::string path = GetCaptureFilePath("Multitrack Wave",".mt.avi");
+			if (path == "") {
+                LOG_MSG("Cannot determine capture path");
+				goto skip_mt_wav;
+            }
+
+		    capture.multitrack_wave.audiorate = freq;
+
+			capture.multitrack_wave.writer = avi_writer_create();
+			if (capture.multitrack_wave.writer == NULL)
+				goto skip_mt_wav;
+
+			if (!avi_writer_open_file(capture.multitrack_wave.writer,path.c_str()))
+				goto skip_mt_wav;
+
+            if (!avi_writer_set_stream_writing(capture.multitrack_wave.writer))
+                goto skip_mt_wav;
+
+			riff_avih_AVIMAINHEADER *mheader = avi_writer_main_header(capture.multitrack_wave.writer);
+			if (mheader == NULL)
+				goto skip_mt_wav;
+
+			memset(mheader,0,sizeof(*mheader));
+			__w_le_u32(&mheader->dwMicroSecPerFrame,(uint32_t)(1000000 / 30)); /* NTS: int divided by double FIXME GUESS */
+			__w_le_u32(&mheader->dwMaxBytesPerSec,0);
+			__w_le_u32(&mheader->dwPaddingGranularity,0);
+			__w_le_u32(&mheader->dwFlags,0x110);                     /* Flags,0x10 has index, 0x100 interleaved */
+			__w_le_u32(&mheader->dwTotalFrames,0);			/* AVI writer updates this automatically on finish */
+			__w_le_u32(&mheader->dwInitialFrames,0);
+			__w_le_u32(&mheader->dwStreams,streams);
+			__w_le_u32(&mheader->dwSuggestedBufferSize,0);
+			__w_le_u32(&mheader->dwWidth,0);
+			__w_le_u32(&mheader->dwHeight,0);
+
+            capture.multitrack_wave.name_to_stream_index.clear();
+            {
+                MixerChannel *c = MIXER_FirstChannel();
+                while (c != NULL) {
+                    /* for each channel in the mixer now, make a stream in the AVI file */
+                    avi_writer_stream *astream = avi_writer_new_stream(capture.multitrack_wave.writer);
+                    if (astream == NULL)
+                        goto skip_mt_wav;
+
+                    riff_strh_AVISTREAMHEADER *asheader = avi_writer_stream_header(astream);
+                    if (asheader == NULL)
+                        goto skip_mt_wav;
+
+                    memset(asheader,0,sizeof(*asheader));
+                    __w_le_u32(&asheader->fccType,avi_fccType_audio);
+                    __w_le_u32(&asheader->fccHandler,0);
+                    __w_le_u32(&asheader->dwFlags,0);
+                    __w_le_u16(&asheader->wPriority,0);
+                    __w_le_u16(&asheader->wLanguage,0);
+                    __w_le_u32(&asheader->dwInitialFrames,0);
+                    __w_le_u32(&asheader->dwScale,1);
+                    __w_le_u32(&asheader->dwRate,capture.multitrack_wave.audiorate);
+                    __w_le_u32(&asheader->dwStart,0);
+                    __w_le_u32(&asheader->dwLength,0);			/* AVI writer updates this automatically */
+                    __w_le_u32(&asheader->dwSuggestedBufferSize,0);
+                    __w_le_u32(&asheader->dwQuality,~0);
+                    __w_le_u32(&asheader->dwSampleSize,2*2);
+                    __w_le_u16(&asheader->rcFrame.left,0);
+                    __w_le_u16(&asheader->rcFrame.top,0);
+                    __w_le_u16(&asheader->rcFrame.right,0);
+                    __w_le_u16(&asheader->rcFrame.bottom,0);
+
+                    windows_WAVEFORMAT fmt;
+
+                    memset(&fmt,0,sizeof(fmt));
+                    __w_le_u16(&fmt.wFormatTag,windows_WAVE_FORMAT_PCM);
+                    __w_le_u16(&fmt.nChannels,2);			/* stereo */
+                    __w_le_u32(&fmt.nSamplesPerSec,capture.multitrack_wave.audiorate);
+                    __w_le_u16(&fmt.wBitsPerSample,16);		/* 16-bit/sample */
+                    __w_le_u16(&fmt.nBlockAlign,2*2);
+                    __w_le_u32(&fmt.nAvgBytesPerSec,capture.multitrack_wave.audiorate*2*2);
+
+                    if (!avi_writer_stream_set_format(astream,&fmt,sizeof(fmt)))
+                        goto skip_mt_wav;
+
+                    if (c->name != NULL && *(c->name) != 0) {
+			            LOG_MSG("multitrack audio, mixer channel '%s' is AVI stream %d",c->name,astream->index);
+                        capture.multitrack_wave.name_to_stream_index[c->name] = (size_t)astream->index;
+                        astream->name = c->name;
+                    }
+
+                    c = c->next;
+                }
+            }
+
+			if (!avi_writer_begin_header(capture.multitrack_wave.writer) || !avi_writer_begin_data(capture.multitrack_wave.writer))
+				goto skip_mt_wav;
+
+			LOG_MSG("Started capturing multitrack audio (%u channels).",streams);
+		}
+
+        if (capture.multitrack_wave.writer != NULL) {
+            std::map<std::string,size_t>::iterator ni = capture.multitrack_wave.name_to_stream_index.find(name);
+            if (ni != capture.multitrack_wave.name_to_stream_index.end()) {
+                size_t index = ni->second;
+
+                if (index < (size_t)capture.multitrack_wave.writer->avi_stream_alloc) {
+                    avi_writer_stream *os = capture.multitrack_wave.writer->avi_stream + index;
+			        avi_writer_stream_write(capture.multitrack_wave.writer,os,data,len * 2 * 2,/*keyframe*/0x10);
+                }
+                else {
+                    LOG_MSG("Multitrack: Ignoring unknown track '%s', out of range\n",name);
+                }
+            }
+            else {
+                LOG_MSG("Multitrack: Ignoring unknown track '%s'\n",name);
+            }
+        }
+    }
+
+    return;
+skip_mt_wav:
+	capture.video.writer = avi_writer_destroy(capture.video.writer);
+}
+
 void CAPTURE_AddWave(Bit32u freq, Bit32u len, Bit16s * data) {
 #if (C_SSHOT)
 	if (CaptureState & CAPTURE_VIDEO) {
@@ -1408,22 +1570,46 @@ void CAPTURE_AddWave(Bit32u freq, Bit32u len, Bit16s * data) {
 		}
 	}
 }
+
+void CAPTURE_MTWaveEvent(bool pressed) {
+	if (!pressed)
+		return;
+
+    if (CaptureState & CAPTURE_MULTITRACK_WAVE) {
+        if (capture.multitrack_wave.writer != NULL) {
+            LOG_MSG("Stopped capturing multitrack wave output.");
+            capture.multitrack_wave.name_to_stream_index.clear();
+            avi_writer_end_data(capture.multitrack_wave.writer);
+            avi_writer_finish(capture.multitrack_wave.writer);
+            avi_writer_close_file(capture.multitrack_wave.writer);
+            capture.multitrack_wave.writer = avi_writer_destroy(capture.multitrack_wave.writer);
+            CaptureState &= ~CAPTURE_MULTITRACK_WAVE;
+        }
+    }
+    else {
+        CaptureState |= CAPTURE_MULTITRACK_WAVE;
+    }
+}
+
 void CAPTURE_WaveEvent(bool pressed) {
 	if (!pressed)
 		return;
-	/* Check for previously opened wave file */
-	if (capture.wave.writer != NULL) {
-		LOG_MSG("Stopped capturing wave output.");
-		/* Write last piece of audio in buffer */
-		riff_wav_writer_data_write(capture.wave.writer,capture.wave.buf,2*2*capture.wave.used);
-		capture.wave.length+=capture.wave.used*4;
-		riff_wav_writer_end_data(capture.wave.writer);
-		capture.wave.writer = riff_wav_writer_destroy(capture.wave.writer);
-		CaptureState &= ~CAPTURE_WAVE;
-	} 
-	else {
-		CaptureState ^= CAPTURE_WAVE;
-	}
+
+    if (CaptureState & CAPTURE_WAVE) {
+        /* Check for previously opened wave file */
+        if (capture.wave.writer != NULL) {
+            LOG_MSG("Stopped capturing wave output.");
+            /* Write last piece of audio in buffer */
+            riff_wav_writer_data_write(capture.wave.writer,capture.wave.buf,2*2*capture.wave.used);
+            capture.wave.length+=capture.wave.used*4;
+            riff_wav_writer_end_data(capture.wave.writer);
+            capture.wave.writer = riff_wav_writer_destroy(capture.wave.writer);
+            CaptureState &= ~CAPTURE_WAVE;
+        }
+    }
+    else {
+        CaptureState |= CAPTURE_WAVE;
+    }
 }
 
 /* MIDI capturing */
@@ -1519,6 +1705,7 @@ void CAPTURE_Destroy(Section *sec) {
 #if (C_SSHOT)
 	if (capture.video.writer != NULL) CAPTURE_VideoEvent(true);
 #endif
+    if (capture.multitrack_wave.writer) CAPTURE_MTWaveEvent(true);
 	if (capture.wave.writer) CAPTURE_WaveEvent(true);
 	if (capture.midi.handle) CAPTURE_MidiEvent(true);
 }
@@ -1533,6 +1720,16 @@ void CAPTURE_Init() {
 	Prop_path *proppath = section->Get_path("captures");
 	assert(proppath != NULL);
 	capturedir = proppath->realpath;
+
+    std::string ffmpeg_pixfmt = section->Get_string("capture chroma format");
+    if (ffmpeg_pixfmt == "4:4:4")
+        ffmpeg_yuv_format_choice = 4;
+    else if (ffmpeg_pixfmt == "4:2:2")
+        ffmpeg_yuv_format_choice = 2;
+    else if (ffmpeg_pixfmt == "4:2:0")
+        ffmpeg_yuv_format_choice = 0;
+    else
+        ffmpeg_yuv_format_choice = -1;
 
 	std::string capfmt = section->Get_string("capture format");
 	if (capfmt == "mpegts-h264") {
@@ -1561,6 +1758,7 @@ void CAPTURE_Init() {
 
 	// mapper shortcuts for capture
 	MAPPER_AddHandler(CAPTURE_WaveEvent,MK_f6,MMOD1,"recwave","Rec Wave");
+	MAPPER_AddHandler(CAPTURE_MTWaveEvent,MK_f7,MMOD1,"recmtwave","Rec MTrk Wav");
 	MAPPER_AddHandler(CAPTURE_MidiEvent,MK_f8,MMOD1|MMOD2,"caprawmidi","Cap MIDI");
 #if (C_SSHOT)
 	MAPPER_AddHandler(CAPTURE_ScreenShotEvent,MK_f5,MMOD1,"scrshot","Screenshot");

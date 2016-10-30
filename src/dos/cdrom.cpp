@@ -21,7 +21,6 @@
 // SDL CDROM 
 // ******************************************************
 
-#if 0
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -226,4 +225,4 @@ bool CDROM_Interface_Fake::ReadSectorsHost(void *buffer, bool raw, unsigned long
 	return false;/*TODO*/
 };
 
-#endif
+

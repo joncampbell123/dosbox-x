@@ -1,6 +1,6 @@
 #include "mt32emu.h"
-#include "SDL_thread.h"
-#include "SDL_timer.h"
+#include <SDL_thread.h>
+#include <SDL_timer.h>
 #include "mixer.h"
 #include "control.h"
 
@@ -146,7 +146,7 @@ public:
 			synthMutex = SDL_CreateMutex();
 			procIdleSem = SDL_CreateSemaphore(0);
 			mixerReqSem = SDL_CreateSemaphore(0);
-			thread = SDL_CreateThread(processingThread, "ProcessingThread", (void *)NULL);
+			thread = SDL_CreateThread(processingThread, NULL);
 			//if (thread == NULL || synthMutex == NULL || sleepMutex == NULL) renderInThread = false;
 		}
 		chan->Enable(true);

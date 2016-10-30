@@ -16,7 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
  
-#if 0
+
 #include <string.h>
 #include "cdrom.h"
 #include "support.h"
@@ -99,5 +99,4 @@ bool CDROM_Interface_Ioctl::ReadSectorsHost(void *buffer, bool raw, unsigned lon
 	return false;/*TODO*/
 };
 
-#endif
 #endif

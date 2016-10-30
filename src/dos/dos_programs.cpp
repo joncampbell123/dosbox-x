@@ -31,8 +31,7 @@
 #include "ide.h"
 #include "cpu.h"
 #include "callback.h"
-// #include "cdrom.h"
-#include "SDL_endian.h"
+#include "cdrom.h"
 #include "dos_system.h"
 #include "dos_inc.h"
 #include "bios.h"
@@ -236,11 +235,11 @@ public:
 		}
 		/* Show list of cdroms */
 		if (cmd->FindExist("-cd",false)) {
-/*			int num = SDL_CDNumDrives();
+			int num = SDL_CDNumDrives();
    			WriteOut(MSG_Get("PROGRAM_MOUNT_CDROMS_FOUND"),num);
 			for (int i=0; i<num; i++) {
 				WriteOut("%2d. %s\n",i,SDL_CDName(i));
-			}; */
+			};
 			return;
 		}
 
@@ -382,17 +381,17 @@ public:
 				cmd->FindInt("-usecd",num,true);
 				int error = 0;
 				if (cmd->FindExist("-aspi",false)) {
-//					MSCDEX_SetCDInterface(CDROM_USE_ASPI, num);
+					MSCDEX_SetCDInterface(CDROM_USE_ASPI, num);
 				} else if (cmd->FindExist("-ioctl_dio",false)) {
-//					MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DIO, num);
+					MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DIO, num);
 				} else if (cmd->FindExist("-ioctl_dx",false)) {
-//					MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DX, num);
+					MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DX, num);
 #if defined (WIN32)
 				} else if (cmd->FindExist("-ioctl_mci",false)) {
 					MSCDEX_SetCDInterface(CDROM_USE_IOCTL_MCI, num);
 #endif
 				} else if (cmd->FindExist("-noioctl",false)) {
-//					MSCDEX_SetCDInterface(CDROM_USE_SDL, num);
+					MSCDEX_SetCDInterface(CDROM_USE_SDL, num);
 				} else {
 #if defined (WIN32)
 					// Check OS
@@ -406,13 +405,13 @@ public:
 						MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DIO, num);
 					}
 #else
-//					MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DIO, num);
+					MSCDEX_SetCDInterface(CDROM_USE_IOCTL_DIO, num);
 #endif
 				}
 				if (is_physfs) {
 					LOG_MSG("ERROR:This build does not support physfs");
 				} else {
-//					newdrive  = new cdromDrive(drive,temp_line.c_str(),sizes[0],bit8size,sizes[2],0,mediaid,error);
+					newdrive  = new cdromDrive(drive,temp_line.c_str(),sizes[0],bit8size,sizes[2],0,mediaid,error);
 				}
 				// Check Mscdex, if it worked out...
 				switch (error) {
@@ -502,7 +501,7 @@ void GUI_Run(bool pressed);
 class SHOWGUI : public Program {
 public:
 	void Run(void) {
-//		GUI_Run(false); /* So that I don't have to run the keymapper on every setup of mine just to get the GUI --J.C */
+		GUI_Run(false); /* So that I don't have to run the keymapper on every setup of mine just to get the GUI --J.C */
 	}
 };
 
@@ -1374,8 +1373,8 @@ restart_int:
 				}
 			} else {
 				// got -size
-//				std::istringstream stream(isize);
-//				stream >> size;
+				std::istringstream stream(isize);
+				stream >> size;
 				size *= 1024*1024LL; // size in megabytes
 				// low limit: 3 megs, high limit: 2 gigs
 				// Int13 limit would be 8 gigs
@@ -1915,32 +1914,32 @@ static void INTRO_ProgramStart(Program * * make) {
 	*make=new INTRO;
 }
 
-//bool ElTorito_ScanForBootRecord(CDROM_Interface *drv,unsigned long &boot_record,unsigned long &el_torito_base) {
-//	char buffer[2048];
-//	unsigned int sec;
-//
-//	for (sec=16;sec < 32;sec++) {
-//		if (!drv->ReadSectorsHost(buffer,false,sec,1))
-//			break;
-//
-//		/* stop at terminating volume record */
-//		if (buffer[0] == 0xFF) break;
-//
-//		/* match boot record and whether it conforms to El Torito */
-//		if (buffer[0] == 0x00 && memcmp(buffer+1,"CD001",5) == 0 && buffer[6] == 0x01 &&
-//			memcmp(buffer+7,"EL TORITO SPECIFICATION\0\0\0\0\0\0\0\0\0",32) == 0) {
-//			boot_record = sec;
-//			el_torito_base = (unsigned long)buffer[71] +
-//					((unsigned long)buffer[72] << 8UL) +
-//					((unsigned long)buffer[73] << 16UL) +
-//					((unsigned long)buffer[74] << 24UL);
-//
-//			return true;
-//		}
-//	}
-//
-//	return false;
-//}
+bool ElTorito_ScanForBootRecord(CDROM_Interface *drv,unsigned long &boot_record,unsigned long &el_torito_base) {
+	char buffer[2048];
+	unsigned int sec;
+
+	for (sec=16;sec < 32;sec++) {
+		if (!drv->ReadSectorsHost(buffer,false,sec,1))
+			break;
+
+		/* stop at terminating volume record */
+		if (buffer[0] == 0xFF) break;
+
+		/* match boot record and whether it conforms to El Torito */
+		if (buffer[0] == 0x00 && memcmp(buffer+1,"CD001",5) == 0 && buffer[6] == 0x01 &&
+			memcmp(buffer+7,"EL TORITO SPECIFICATION\0\0\0\0\0\0\0\0\0",32) == 0) {
+			boot_record = sec;
+			el_torito_base = (unsigned long)buffer[71] +
+					((unsigned long)buffer[72] << 8UL) +
+					((unsigned long)buffer[73] << 16UL) +
+					((unsigned long)buffer[74] << 24UL);
+
+			return true;
+		}
+	}
+
+	return false;
+}
 
 
 /* C++ class implementing El Torito floppy emulation */
@@ -1951,13 +1950,13 @@ public:
 	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data) {
 		unsigned char buffer[2048];
 
-//		bool GetMSCDEXDrive(unsigned char drive_letter,CDROM_Interface **_cdrom);
+		bool GetMSCDEXDrive(unsigned char drive_letter,CDROM_Interface **_cdrom);
 
-//		CDROM_Interface *src_drive=NULL;
-//		if (!GetMSCDEXDrive(CDROM_drive-'A',&src_drive)) return 0x05;
+		CDROM_Interface *src_drive=NULL;
+		if (!GetMSCDEXDrive(CDROM_drive-'A',&src_drive)) return 0x05;
 
-//		if (!src_drive->ReadSectorsHost(buffer,false,cdrom_sector_offset+(sectnum>>2)/*512 byte/sector to 2048 byte/sector conversion*/,1))
-//			return 0x05;
+		if (!src_drive->ReadSectorsHost(buffer,false,cdrom_sector_offset+(sectnum>>2)/*512 byte/sector to 2048 byte/sector conversion*/,1))
+			return 0x05;
 
 		memcpy(data,buffer+((sectnum&3)*512),512);
 		return 0x00;
@@ -2113,14 +2112,14 @@ public:
 				return;
 			}
 
-//			bool GetMSCDEXDrive(unsigned char drive_letter,CDROM_Interface **_cdrom);
+			bool GetMSCDEXDrive(unsigned char drive_letter,CDROM_Interface **_cdrom);
 
 			/* get the CD-ROM drive */
-//			CDROM_Interface *src_drive=NULL;
-//			if (!GetMSCDEXDrive(el_torito_cd_drive-'A',&src_drive)) {
-//				WriteOut("-el-torito CD-ROM drive specified is not actually a CD-ROM drive\n");
-//				return;
-//			}
+			CDROM_Interface *src_drive=NULL;
+			if (!GetMSCDEXDrive(el_torito_cd_drive-'A',&src_drive)) {
+				WriteOut("-el-torito CD-ROM drive specified is not actually a CD-ROM drive\n");
+				return;
+			}
 
 			/* FIXME: We only support the floppy emulation mode at this time.
 			 *        "Superfloppy" or hard disk emulation modes are not yet implemented */
@@ -2131,19 +2130,19 @@ public:
 
 			/* Okay. Step #1: Scan the volume descriptors for the Boot Record. */
 			unsigned long el_torito_base = 0,boot_record_sector = 0;
-//			if (!ElTorito_ScanForBootRecord(src_drive,boot_record_sector,el_torito_base)) {
-//				WriteOut("El Torito boot record not found\n");
-//				return;
-//			}
+			if (!ElTorito_ScanForBootRecord(src_drive,boot_record_sector,el_torito_base)) {
+				WriteOut("El Torito boot record not found\n");
+				return;
+			}
 
 			LOG_MSG("El Torito emulation: Found ISO 9660 Boot Record in sector %lu, pointing to sector %lu\n",
 				boot_record_sector,el_torito_base);
 
 			/* Step #2: Parse the records. Each one is 32 bytes long */
-//			if (!src_drive->ReadSectorsHost(entries,false,el_torito_base,1)) {
-//				WriteOut("El Torito entries unreadable\n");
-//				return;
-//			}
+			if (!src_drive->ReadSectorsHost(entries,false,el_torito_base,1)) {
+				WriteOut("El Torito entries unreadable\n");
+				return;
+			}
 
 			/* for more information about what this loop is doing, read:
 			 * http://download.intel.com/support/motherboards/desktop/sb/specscdrom.pdf
@@ -2605,15 +2604,15 @@ public:
 					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_ALREADY_MOUNTED"));
 					return;
 				}
-//				MSCDEX_SetCDInterface(CDROM_USE_SDL, -1);
+				MSCDEX_SetCDInterface(CDROM_USE_SDL, -1);
 				// create new drives for all images
 				std::vector<DOS_Drive*> isoDisks;
 				std::vector<std::string>::size_type i;
 				std::vector<DOS_Drive*>::size_type ct;
 				for (i = 0; i < paths.size(); i++) {
 					int error = -1;
-//					DOS_Drive* newDrive = new isoDrive(drive, paths[i].c_str(), mediaid, error);
-//					isoDisks.push_back(newDrive);
+					DOS_Drive* newDrive = new isoDrive(drive, paths[i].c_str(), mediaid, error);
+					isoDisks.push_back(newDrive);
 					switch (error) {
 						case 0  :	break;
 						case 1  :	WriteOut(MSG_Get("MSCDEX_ERROR_MULTIPLE_CDROMS"));	break;
@@ -2642,7 +2641,7 @@ public:
 				mem_writeb(Real2Phys(dos.tables.mediaid) + (drive - 'A') * 2, mediaid);
 				
 				// If instructed, attach to IDE controller as ATAPI CD-ROM device
-//				if (ide_index >= 0) IDE_CDROM_Attach(ide_index,ide_slave,drive - 'A');
+				if (ide_index >= 0) IDE_CDROM_Attach(ide_index,ide_slave,drive - 'A');
 
 				// Print status message (success)
 				WriteOut(MSG_Get("MSCDEX_SUCCESS"));

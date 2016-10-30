@@ -2774,7 +2774,7 @@ case $host_os in *\ *) host_os=`echo "$host_os" | sed 's/ /-/g'`;; esac
 
 
 
-am__api_version='1.15'
+am__api_version='1.14'
 
 # Find a good install program.  We prefer a C program (faster),
 # so one script is as good as another.  But avoid the broken or
@@ -2946,8 +2946,8 @@ test "$program_suffix" != NONE &&
 ac_script='s/[\\$]/&&/g;s/;s,x,x,$//'
 program_transform_name=`$as_echo "$program_transform_name" | sed "$ac_script"`
 
-# Expand $ac_aux_dir to an absolute path.
-am_aux_dir=`cd "$ac_aux_dir" && pwd`
+# expand $ac_aux_dir to an absolute path
+am_aux_dir=`cd $ac_aux_dir && pwd`
 
 if test x"${MISSING+set}" != xset; then
   case $am_aux_dir in
@@ -2966,7 +2966,7 @@ else
 $as_echo "$as_me: WARNING: 'missing' script is too old or missing" >&2;}
 fi
 
-if test x"${install_sh+set}" != xset; then
+if test x"${install_sh}" != xset; then
   case $am_aux_dir in
   *\ * | *\	*)
     install_sh="\${SHELL} '$am_aux_dir/install-sh'" ;;
@@ -3294,8 +3294,8 @@ MAKEINFO=${MAKEINFO-"${am_missing_run}makeinfo"}
 # <http://lists.gnu.org/archive/html/automake/2012-07/msg00014.html>
 mkdir_p='$(MKDIR_P)'
 
-# We need awk for the "check" target (and possibly the TAP driver).  The
-# system "awk" is bad on some platforms.
+# We need awk for the "check" target.  The system "awk" is bad on
+# some platforms.
 # Always define AMTAR for backward compatibility.  Yes, it's still used
 # in the wild :-(  We should find a proper way to deprecate it ...
 AMTAR='$${TAR-tar}'
@@ -3352,7 +3352,6 @@ END
     as_fn_error $? "Your 'rm' program is bad, sorry." "$LINENO" 5
   fi
 fi
-
 ac_config_headers="$ac_config_headers config.h"
 
 
@@ -5067,7 +5066,7 @@ if test x$host = xi386-pc-os2-emx ; then
     LIBS="$LIBS -los2me"
 fi
 
-SDL_VERSION=2.0.0
+SDL_VERSION=1.2.0
 
 
 # Check whether --with-sdl-prefix was given.
@@ -5096,18 +5095,18 @@ fi
   if test x$sdl_exec_prefix != x ; then
      sdl_args="$sdl_args --exec-prefix=$sdl_exec_prefix"
      if test x${SDL_CONFIG+set} != xset ; then
-        SDL_CONFIG=$sdl_exec_prefix/bin/sdl2-config
+        SDL_CONFIG=$sdl_exec_prefix/bin/sdl-config
      fi
   fi
   if test x$sdl_prefix != x ; then
      sdl_args="$sdl_args --prefix=$sdl_prefix"
      if test x${SDL_CONFIG+set} != xset ; then
-        SDL_CONFIG=$sdl_prefix/bin/sdl2-config
+        SDL_CONFIG=$sdl_prefix/bin/sdl-config
      fi
   fi
 
-  # Extract the first word of "sdl2-config", so it can be a program name with args.
-set dummy sdl2-config; ac_word=$2
+  # Extract the first word of "sdl-config", so it can be a program name with args.
+set dummy sdl-config; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
 if ${ac_cv_path_SDL_CONFIG+:} false; then :
@@ -5221,11 +5220,11 @@ int main (int argc, char *argv[])
     }
   else
     {
-      printf("\n*** 'sdl2-config --version' returned %d.%d.%d, but the minimum version\n", $sdl_major_version, $sdl_minor_version, $sdl_micro_version);
-      printf("*** of SDL required is %d.%d.%d. If sdl2-config is correct, then it is\n", major, minor, micro);
+      printf("\n*** 'sdl-config --version' returned %d.%d.%d, but the minimum version\n", $sdl_major_version, $sdl_minor_version, $sdl_micro_version);
+      printf("*** of SDL required is %d.%d.%d. If sdl-config is correct, then it is\n", major, minor, micro);
       printf("*** best to upgrade to the required version.\n");
-      printf("*** If sdl2-config was wrong, set the environment variable SDL_CONFIG\n");
-      printf("*** to point to the correct copy of sdl2-config, and remove the file\n");
+      printf("*** If sdl-config was wrong, set the environment variable SDL_CONFIG\n");
+      printf("*** to point to the correct copy of sdl-config, and remove the file\n");
       printf("*** config.cache before re-running configure\n");
       return 1;
     }
@@ -5254,10 +5253,10 @@ $as_echo "yes" >&6; }
      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
      if test "$SDL_CONFIG" = "no" ; then
-       echo "*** The sdl2-config script installed by SDL could not be found"
+       echo "*** The sdl-config script installed by SDL could not be found"
        echo "*** If SDL was installed in PREFIX, make sure PREFIX/bin is in"
        echo "*** your path, or set the SDL_CONFIG environment variable to the"
-       echo "*** full path to sdl2-config."
+       echo "*** full path to sdl-config."
      else
        if test -f conf.sdltest ; then
         :
@@ -5293,7 +5292,7 @@ else
    echo "*** The test program failed to compile or link. See the file config.log for the"
           echo "*** exact error that occured. This usually means SDL was incorrectly installed"
           echo "*** or that you have moved SDL since it was installed. In the latter case, you"
-          echo "*** may want to edit the sdl2-config script: $SDL_CONFIG"
+          echo "*** may want to edit the sdl-config script: $SDL_CONFIG"
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
@@ -5313,15 +5312,15 @@ rm -f core conftest.err conftest.$ac_objext \
 LIBS="$LIBS $SDL_LIBS"
 CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking SDL version only being 2.0.X" >&5
-$as_echo_n "checking SDL version only being 2.0.X... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking SDL version only being 1.2.X" >&5
+$as_echo_n "checking SDL version only being 1.2.X... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 #include "SDL.h"
 void blah(){
-#if SDL_MINOR_VERSION != 0
-#error "Only SDL 2.0 supported"
+#if SDL_MINOR_VERSION != 2
+#error "Only SDL 1.2 supported"
 #endif
 ;
 }
@@ -5334,7 +5333,7 @@ else
 
  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
- as_fn_error $? "Only libSDL 2.0.X supported" "$LINENO" 5
+ as_fn_error $? "Only libSDL 1.2.X supported" "$LINENO" 5
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
@@ -7363,8 +7362,8 @@ fi
 
 
 
-ac_fn_c_check_header_mongrel "$LINENO" "SDL2/SDL_net.h" "ac_cv_header_SDL2_SDL_net_h" "$ac_includes_default"
-if test "x$ac_cv_header_SDL2_SDL_net_h" = xyes; then :
+ac_fn_c_check_header_mongrel "$LINENO" "SDL_net.h" "ac_cv_header_SDL_net_h" "$ac_includes_default"
+if test "x$ac_cv_header_SDL_net_h" = xyes; then :
   have_sdl_net_h=yes
 fi
 
@@ -7374,10 +7373,10 @@ if test x$host = xi386-pc-os2-emx ; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for SDLNet_Init in SDL_net" >&5
 $as_echo_n "checking for SDLNet_Init in SDL_net... " >&6; };
   LIBS_BACKUP=$LIBS;
-  LIBS="$LIBS -lSDL2_net";
+  LIBS="$LIBS -lSDL_Net";
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-#include "SDL_net.h"
+#include <SDL_Net.h>
 int
 main ()
 {
@@ -7441,7 +7440,7 @@ fi
 
 fi
 if test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
-   LIBS="$LIBS -lSDL2_net"
+   LIBS="$LIBS -lSDL_net"
    $as_echo "#define C_SDL_NET 1" >>confdefs.h
 
    $as_echo "#define C_MODEM 1" >>confdefs.h

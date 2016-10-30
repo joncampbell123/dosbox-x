@@ -21,7 +21,7 @@
 #include "control.h"
 #include "callback.h"
 #include "bios_disk.h"
-// #include "../src/dos/cdrom.h"
+#include "../src/dos/cdrom.h"
 
 #ifdef _MSC_VER
 # define MIN(a,b) ((a) < (b) ? (a) : (b))
@@ -58,10 +58,8 @@ static void ide_altio_w(Bitu port,Bitu val,Bitu iolen);
 static Bitu ide_altio_r(Bitu port,Bitu iolen);
 static void ide_baseio_w(Bitu port,Bitu val,Bitu iolen);
 static Bitu ide_baseio_r(Bitu port,Bitu iolen);
-
-#if 0
 bool GetMSCDEXDrive(unsigned char drive_letter,CDROM_Interface **_cdrom);
-#endif
+
 enum IDEDeviceType {
 	IDE_TYPE_NONE,
 	IDE_TYPE_HDD=1,
@@ -200,7 +198,7 @@ public:
 	std::string id_firmware_rev;
 	std::string id_model;
 	unsigned char drive_index;
-//	CDROM_Interface *getMSCDEXDrive();
+	CDROM_Interface *getMSCDEXDrive();
 	void update_from_cdrom();
 	virtual Bitu data_read(Bitu iolen);	/* read from 1F0h data port from IDE device */
 	virtual void data_write(Bitu v,Bitu iolen);/* write to 1F0h data port to IDE device */
@@ -276,7 +274,7 @@ static IDEController* idecontroller[MAX_IDE_CONTROLLERS]={NULL,NULL,NULL,NULL,NU
 
 static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/);
 static IDEController* GetIDEController(Bitu idx);
-#if 0
+
 static void IDE_ATAPI_SpinDown(Bitu idx/*which IDE controller*/) {
 	IDEController *ctrl = GetIDEController(idx);
 	if (ctrl == NULL) return;
@@ -416,14 +414,14 @@ void IDEATAPICDROMDevice::read_subchannel() {
 	unsigned char *write;
 	unsigned char astat;
 	bool playing,pause;
-//	TMSF rel,abs;
+	TMSF rel,abs;
 
-//	CDROM_Interface *cdrom = getMSCDEXDrive();
-//	if (cdrom == NULL) {
-//		LOG_MSG("WARNING: ATAPI READ TOC unable to get CDROM drive\n");
-//		prepare_read(0,8);
-//		return;
-//	}
+	CDROM_Interface *cdrom = getMSCDEXDrive();
+	if (cdrom == NULL) {
+		LOG_MSG("WARNING: ATAPI READ TOC unable to get CDROM drive\n");
+		prepare_read(0,8);
+		return;
+	}
 
 	if (paramList == 0 || paramList > 3) {
 		LOG_MSG("ATAPI READ SUBCHANNEL unknown param list\n");
@@ -470,24 +468,24 @@ void IDEATAPICDROMDevice::read_subchannel() {
 		*write++ = index;
 		if (TIME) {
 			*write++ = 0x00;
-//			*write++ = abs.min;
-//			*write++ = abs.sec;
-//			*write++ = abs.fr;
+			*write++ = abs.min;
+			*write++ = abs.sec;
+			*write++ = abs.fr;
 			*write++ = 0x00;
-//			*write++ = rel.min;
-//			*write++ = rel.sec;
-//			*write++ = rel.fr;
+			*write++ = rel.min;
+			*write++ = rel.sec;
+			*write++ = rel.fr;
 		}
 		else {
 			uint32_t sec;
 
-//			sec = (abs.min*60*75)+(abs.sec*75)+abs.fr - 150;
+			sec = (abs.min*60*75)+(abs.sec*75)+abs.fr - 150;
 			*write++ = (unsigned char)(sec >> 24);
 			*write++ = (unsigned char)(sec >> 16);
 			*write++ = (unsigned char)(sec >> 8);
 			*write++ = (unsigned char)(sec >> 0);
 
-//			sec = (rel.min*60*75)+(rel.sec*75)+rel.fr - 150;
+			sec = (rel.min*60*75)+(rel.sec*75)+rel.fr - 150;
 			*write++ = (unsigned char)(sec >> 24);
 			*write++ = (unsigned char)(sec >> 16);
 			*write++ = (unsigned char)(sec >> 8);
@@ -698,7 +696,6 @@ void IDEATAPICDROMDevice::play_audio10() {
 
 	sector_total = 0;
 }
-#endif
 
 #if 0 /* TODO move to library */
 static unsigned char dec2bcd(unsigned char c) {
@@ -706,7 +703,6 @@ static unsigned char dec2bcd(unsigned char c) {
 }
 #endif
 
-#if 0
 void IDEATAPICDROMDevice::read_toc() {
 	/* NTS: The SCSI MMC standards say we're allowed to indicate the return data
 	 *      is longer than it's allocation length. But here's the thing: some MS-DOS
@@ -1274,7 +1270,7 @@ void IDEATAPICDROMDevice::io_completion() {
 			break;
 	}
 }
-#endif
+
 bool IDEATADevice::increment_current_address(Bitu count) {
 	if (count == 0) return false;
 
@@ -1444,7 +1440,7 @@ Bitu IDEATAPICDROMDevice::data_read(Bitu iolen) {
 
 	return w;
 }
-#if 0
+
 /* TODO: Your code should also be paying attention to the "transfer length" field
          in many of the commands here. Right now it doesn't matter. */
 void IDEATAPICDROMDevice::atapi_cmd_completion() {
@@ -1707,7 +1703,7 @@ void IDEATAPICDROMDevice::data_write(Bitu v,Bitu iolen) {
 			io_completion();
 	}
 }
-#endif
+
 Bitu IDEATADevice::data_read(Bitu iolen) {
 	Bitu w = ~0;
 
@@ -1772,7 +1768,7 @@ void IDEATADevice::data_write(Bitu v,Bitu iolen) {
 	if (sector_i >= sector_total)
 		io_completion();
 }
-#if 0	
+		
 void IDEATAPICDROMDevice::prepare_read(Bitu offset,Bitu size) {
 	/* I/O must be WORD ALIGNED */
 	assert((offset&1) == 0);
@@ -1794,7 +1790,7 @@ void IDEATAPICDROMDevice::prepare_write(Bitu offset,Bitu size) {
 	assert(sector_i <= sector_total);
 	assert(sector_total <= sizeof(sector));
 }
-#endif
+
 void IDEATADevice::prepare_write(Bitu offset,Bitu size) {
 	/* I/O must be WORD ALIGNED */
 	assert((offset&1) == 0);
@@ -1816,7 +1812,7 @@ void IDEATADevice::prepare_read(Bitu offset,Bitu size) {
 	assert(sector_i <= sector_total);
 	assert(sector_total <= sizeof(sector));
 }
-#if 0
+
 void IDEATAPICDROMDevice::generate_mmc_inquiry() {
 	Bitu i;
 
@@ -1898,7 +1894,7 @@ void IDEATAPICDROMDevice::generate_identify_device() {
 	csum = 0; for (i=0;i < 511;i++) csum += sector[i];
 	sector[511] = 0 - csum;
 }
-#endif
+
 void IDEATADevice::generate_identify_device() {
 //	imageDisk *disk = getBIOSdisk();
 	unsigned char csum;
@@ -2009,7 +2005,7 @@ imageDisk *IDEATADevice::getBIOSdisk() {
 	if (bios_disk_index >= (2 + MAX_HDD_IMAGES)) return NULL;
 	return imageDiskList[bios_disk_index];
 }
-#if 0
+
 CDROM_Interface *IDEATAPICDROMDevice::getMSCDEXDrive() {
 	CDROM_Interface *cdrom=NULL;
 
@@ -2026,7 +2022,7 @@ void IDEATAPICDROMDevice::update_from_cdrom() {
 		return;
 	}
 }
-#endif
+
 void IDEATADevice::update_from_biosdisk() {
 	imageDisk *dsk = getBIOSdisk();
 	if (dsk == NULL) {
@@ -2108,7 +2104,7 @@ void IDE_Auto(signed char &index,bool &slave) {
 		}
 	}
 }
-#if 0
+
 /* drive_index = drive letter 0...A to 25...Z */
 void IDE_ATAPI_MediaChangeNotify(unsigned char drive_index) {
 	for (unsigned int ide=0;ide < MAX_IDE_CONTROLLERS;ide++) {
@@ -2157,7 +2153,7 @@ void IDE_CDROM_Attach(signed char index,bool slave,unsigned char drive_index) {
 	dev->update_from_cdrom();
 	c->device[slave?1:0] = (IDEDevice*)dev;
 }
-#endif
+
 /* bios_disk_index = index into BIOS INT 13h disk array: imageDisk *imageDiskList[MAX_DISK_IMAGES]; */
 void IDE_Hard_Disk_Attach(signed char index,bool slave,unsigned char bios_disk_index/*not INT13h, the index into DOSBox's BIOS drive emulation*/) {
 	IDEController *c;
@@ -3173,7 +3169,7 @@ void IDEDevice::writecommand(uint8_t cmd) {
 			break;
 	}
 }
-#if 0
+
 void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
 	if (!command_interruption_ok(cmd))
 		return;
@@ -3257,7 +3253,7 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
 			break;
 	}
 }
-#endif
+
 void IDEATADevice::writecommand(uint8_t cmd) {
 	if (!command_interruption_ok(cmd))
 		return;

@@ -16,7 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#if 0
+
 #include <stdlib.h>
 #include <math.h>
 #include <map>
@@ -32,9 +32,7 @@
 
 #include "voodoo_def.h"
 
-SDL_Surface *ogl_surface = NULL;
-SDL_Window *ogl_window = NULL;
-SDL_Renderer *ogl_renderer = NULL;
+SDL_Surface* ogl_surface = NULL;
 
 INT32 cached_line_front_y=-1;
 INT32 cached_line_front_width = -1;
@@ -296,9 +294,7 @@ void ogl_get_vertex_data(INT32 x, INT32 y, const void *extradata, ogl_vertex_dat
 	vd->x = (((float)x) - (1.0f/16.0f)) / 16.0f;
 	vd->y = (((float)y) - (1.0f/16.0f)) / 16.0f;
 }
-#endif
 
-#if 0
 static UINT32 crc_32_tab[] = { /* CRC polynomial 0xedb88320 */
 0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f,
 0xe963a535, 0x9e6495a3, 0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988,
@@ -1271,14 +1267,14 @@ void voodoo_ogl_draw_triangle(poly_extra_data *extra) {
 }
 
 
-void voodoo_ogl_swap_buffer(SDL_Window *window) {
+void voodoo_ogl_swap_buffer() {
 	if (GFX_LazyFullscreenRequested()) {
 		v->ogl_dimchange = true;
 	}
 
 	VOGL_ClearBeginMode();
 
-	SDL_GL_SwapWindow(window);
+	SDL_GL_SwapBuffers();
 
 	cached_line_front_y=-1;
 	cached_line_back_y=-1;
@@ -1649,17 +1645,17 @@ void voodoo_ogl_reset_videomode(void) {
 		ogl_surface = NULL;
 	}
 
-	Uint32 sdl_flags = SDL_WINDOW_OPENGL;
+	Uint32 sdl_flags = SDL_OPENGL;
 
 	if (GFX_LazyFullscreenRequested()) GFX_SwitchFullscreenNoReset();
 
 	if (GFX_IsFullscreen()) {
-		sdl_flags |= SDL_WINDOW_FULLSCREEN;
+		sdl_flags |= SDL_FULLSCREEN;
 	} else {
 		ogl_surface = SDL_SetVideoMode(v->fbi.width, v->fbi.height, 32, sdl_flags);
 	}
 
-	if ((ogl_surface != NULL) && (sdl_flags & SDL_WINDOW_FULLSCREEN)) SDL_Delay(1000);
+	if ((ogl_surface != NULL) && (sdl_flags & SDL_FULLSCREEN)) SDL_Delay(1000);
 
 	if (ogl_surface == NULL) {
 		if (full_sdl_restart) {
@@ -1674,8 +1670,8 @@ void voodoo_ogl_reset_videomode(void) {
 				has_stencil = false;
 				SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);
 				if (SDL_SetVideoMode(v->fbi.width, v->fbi.height, 32, sdl_flags) == 0) {
-					if (sdl_flags & SDL_WINDOW_FULLSCREEN) {
-						sdl_flags &= ~(SDL_WINDOW_FULLSCREEN);
+					if (sdl_flags & SDL_FULLSCREEN) {
+						sdl_flags &= ~(SDL_FULLSCREEN);
 						if (SDL_SetVideoMode(v->fbi.width, v->fbi.height, 32, sdl_flags) == 0) {
 							E_Exit("VOODOO: opengl init error");
 						}
@@ -1730,7 +1726,7 @@ void voodoo_ogl_reset_videomode(void) {
 		LOG_MSG("VOODOO: OpenGL: invalid depth size %d",depth_csize);
 	}
 
-	LOG_MSG("VOODOO: OpenGL: mode set, resolution %d:%d %s", v->fbi.width, v->fbi.height, (sdl_flags & SDL_WINDOW_FULLSCREEN) ? "(fullscreen)" : "");
+	LOG_MSG("VOODOO: OpenGL: mode set, resolution %d:%d %s", v->fbi.width, v->fbi.height, (sdl_flags & SDL_FULLSCREEN) ? "(fullscreen)" : "");
 }
 
 void voodoo_ogl_update_dimensions(void) {
@@ -1925,5 +1921,4 @@ void voodoo_ogl_draw_triangle(poly_extra_data *extra) {
 }
 
 
-#endif
 #endif

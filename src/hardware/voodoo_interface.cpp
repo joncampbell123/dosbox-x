@@ -16,7 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#if 0
+
 #include <stdlib.h>
 #include <math.h>
 
@@ -315,4 +315,3 @@ PageHandler* Voodoo_GetPageHandler() {
 // save state support
 void *Voodoo_UpdateScreen_PIC_Event = (void*)Voodoo_UpdateScreen;
 void *Voodoo_VerticalTimer_PIC_Event = (void*)Voodoo_VerticalTimer;
-#endif
