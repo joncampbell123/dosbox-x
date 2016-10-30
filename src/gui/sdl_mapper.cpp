@@ -486,6 +486,11 @@ public:
 		emustick=_emustick;	// the number of the emulated device
 		sprintf(configname,"stick_%d",emustick);
 
+		pos_axis_lists=NULL;
+		neg_axis_lists=NULL;
+		button_lists=NULL;
+		hat_lists=NULL;
+	
 		sdl_joystick=NULL;
 		axes=0;	buttons=0; hats=0;
 		button_wrap=0;
