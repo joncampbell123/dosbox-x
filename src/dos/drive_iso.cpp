@@ -16,7 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-
+#if 0
 #include <cctype>
 #include <cstring>
 #include "cdrom.h"
@@ -569,4 +569,4 @@ void IDE_ATAPI_MediaChangeNotify(unsigned char drive_index);
 void isoDrive :: MediaChange() {
 	IDE_ATAPI_MediaChangeNotify(toupper(driveLetter) - 'A'); /* ewwww */
 }
-
+#endif

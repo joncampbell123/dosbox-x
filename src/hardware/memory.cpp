@@ -226,8 +226,8 @@ PageHandler * MEM_GetPageHandler(Bitu phys_page) {
 	} else if (memory.lfb.pages != 0 && (phys_page>=memory.lfb.start_page+0x01000000/4096) &&
 		(phys_page<memory.lfb.start_page+0x01000000/4096+16)) {
 		return memory.lfb.mmiohandler;
-	} else if (VOODOO_PCI_CheckLFBPage(phys_page)) {
-		return VOODOO_GetPageHandler();
+//	} else if (VOODOO_PCI_CheckLFBPage(phys_page)) {
+//		return VOODOO_GetPageHandler();
 	} else if (phys_page<memory.handler_pages) {
 		return memory.phandlers[phys_page];
 	}

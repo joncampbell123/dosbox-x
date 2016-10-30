@@ -8,7 +8,7 @@ AC_CANONICAL_HOST
 AC_CANONICAL_BUILD
 
 dnl Setup for automake
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([subdir-objects])
 AC_CONFIG_HEADER(config.h)
 
 dnl Checks for programs.
@@ -78,7 +78,7 @@ if test x$host = xi386-pc-os2-emx ; then
 fi
 
 dnl Check for SDL
-SDL_VERSION=1.2.0
+SDL_VERSION=2.0.0
 AM_PATH_SDL($SDL_VERSION,
             :,
 	    AC_MSG_ERROR([*** SDL version $SDL_VERSION not found!])
@@ -86,19 +86,19 @@ AM_PATH_SDL($SDL_VERSION,
 LIBS="$LIBS $SDL_LIBS"
 CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
 
-dnl Check if SDL is 1.2.x (1.3 not supported)
-AC_MSG_CHECKING([SDL version only being 1.2.X])
+dnl Check if SDL is 2.0.x
+AC_MSG_CHECKING([SDL version only being 2.0.X])
 AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 #include "SDL.h"
 void blah(){
-#if SDL_MINOR_VERSION != 2
-#error "Only SDL 1.2 supported"
+#if SDL_MINOR_VERSION != 0
+#error "Only SDL 2.0 supported"
 #endif
 ;
 }
 ])],AC_MSG_RESULT([yes]),[
  AC_MSG_RESULT([no]) 
- AC_MSG_ERROR([Only libSDL 1.2.X supported])])
+ AC_MSG_ERROR([Only libSDL 2.0.X supported])])
 
 dnl Checks for header files.
 
@@ -436,13 +436,13 @@ fi
 AH_TEMPLATE(C_SDL_NET,[Indicate whether SDL_net is present])
 AH_TEMPLATE(C_MODEM,[Define to 1 to enable internal modem support, requires SDL_net])
 AH_TEMPLATE(C_IPX,[Define to 1 to enable IPX over Internet networking, requires SDL_net])
-AC_CHECK_HEADER(SDL_net.h,have_sdl_net_h=yes,)
+AC_CHECK_HEADER(SDL2/SDL_net.h,have_sdl_net_h=yes,)
 
 if test x$host = xi386-pc-os2-emx ; then
   AC_MSG_CHECKING(for SDLNet_Init in SDL_net);
   LIBS_BACKUP=$LIBS;
-  LIBS="$LIBS -lSDL_Net";
-  AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <SDL_Net.h>]],[[
+  LIBS="$LIBS -lSDL2_net";
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include "SDL_net.h"]],[[
 	SDLNet_Init ();
   ]])], [AC_MSG_RESULT(yes); have_sdl_net_lib=yes], AC_MSG_RESULT(no))
   LIBS=$LIBS_BACKUP
@@ -450,7 +450,7 @@ else
 AC_CHECK_LIB(SDL_net, SDLNet_Init, have_sdl_net_lib=yes, , )
 fi
 if test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
-   LIBS="$LIBS -lSDL_net"
+   LIBS="$LIBS -lSDL2_net"
    AC_DEFINE(C_SDL_NET,1)
    AC_DEFINE(C_MODEM,1)
    AC_DEFINE(C_IPX,1)
