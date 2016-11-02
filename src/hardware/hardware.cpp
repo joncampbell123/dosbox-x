@@ -1722,6 +1722,8 @@ void CAPTURE_Init() {
 	capturedir = proppath->realpath;
 
     std::string ffmpeg_pixfmt = section->Get_string("capture chroma format");
+
+#if (C_AVCODEC)
     if (ffmpeg_pixfmt == "4:4:4")
         ffmpeg_yuv_format_choice = 4;
     else if (ffmpeg_pixfmt == "4:2:2")
@@ -1730,6 +1732,7 @@ void CAPTURE_Init() {
         ffmpeg_yuv_format_choice = 0;
     else
         ffmpeg_yuv_format_choice = -1;
+#endif
 
 	std::string capfmt = section->Get_string("capture format");
 	if (capfmt == "mpegts-h264") {
