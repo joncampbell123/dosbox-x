@@ -4411,14 +4411,14 @@ public:
 		// IDE emulation fires the IRQ and OS's like Win95 expect
 		// the BIOS to handle the interrupt.
 		// FIXME: Shouldn't the IRQ send an ACK to the PIC as well?!?
-		callback[11].Install(&IRQ14_Dummy,CB_IRET,"irq 14 ide");
+		callback[11].Install(&IRQ14_Dummy,CB_IRET_EOI_PIC2,"irq 14 ide");
 
 		// INT 77h: IDE IRQ 15
 		// This is just a dummy IRQ handler to prevent crashes when
 		// IDE emulation fires the IRQ and OS's like Win95 expect
 		// the BIOS to handle the interrupt.
 		// FIXME: Shouldn't the IRQ send an ACK to the PIC as well?!?
-		callback[12].Install(&IRQ15_Dummy,CB_IRET,"irq 15 ide");
+		callback[12].Install(&IRQ15_Dummy,CB_IRET_EOI_PIC2,"irq 15 ide");
 
 		// INT 0Eh: IDE IRQ 6
 		callback[13].Install(&IRQ15_Dummy,CB_IRET_EOI_PIC1,"irq 6 floppy");
