@@ -235,6 +235,16 @@ bool CNullModem::ServerConnect() {
 #if SERIAL_DEBUG
 	log_ser(dbg_aux,"Nullmodem: A client (%s) has connected.", peeripbuf);
 #endif
+
+    /* FIXME: It would be nice if the SDL net library had a bind() call to bind only to a specific interface.
+     *        Or maybe it does... what am I missing? */
+    if (!nonlocal && strcmp((char*)peeripbuf,"127.0.0.1") != 0) {
+        LOG_MSG("Serial%d: Non-localhost client (%s) dropped by nonlocal:0 policy. To accept connections from network, set nonlocal:1",(int)COMNUMBER,peeripbuf);
+        delete clientsocket;
+        clientsocket = NULL;
+        return false;
+    }
+
 	clientsocket->SetSendBufferSize(256);
 	rx_state=N_RX_IDLE;
 	setEvent(SERIAL_POLLING_EVENT, 1);
