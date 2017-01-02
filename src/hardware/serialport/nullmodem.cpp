@@ -44,6 +44,7 @@ CNullModem::CNullModem(Bitu id, CommandLine* cmd):CSerial (id, cmd) {
 	tx_block=false;
 	receiveblock=false;
 	transparent=false;
+    nonlocal=false;
 	telnet=false;
 	
 	Bitu bool_temp=0;
@@ -63,6 +64,13 @@ CNullModem::CNullModem(Bitu id, CommandLine* cmd):CSerial (id, cmd) {
 	if (getBituSubstring("transparent:", &bool_temp, cmd)) {
 		if (bool_temp==1) transparent=true;
 		else transparent=false;
+	}
+    // nonlocal: enable connections not originating from localhost.
+    //           otherwise, connections not coming from localhost are rejected for security reasons.
+    if (getBituSubstring("nonlocal:", &bool_temp, cmd)) {
+        if (bool_temp==1) {
+            nonlocal=true;
+        }
 	}
 	// telnet: interpret telnet commands.
 	if (getBituSubstring("telnet:", &bool_temp, cmd)) {

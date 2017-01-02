@@ -1939,7 +1939,8 @@ void DOSBOX_SetupConfigSections(void) {
 		"                 (realport:COM1 realport:ttyS0).\n"
 		"for modem: listenport (optional).\n"
 		"for nullmodem: server, rxdelay, txdelay, telnet, usedtr,\n"
-		"               transparent, port, inhsocket (all optional).\n"
+		"               transparent, port, inhsocket, nonlocal (all optional).\n"
+        "               connections are limited to localhost unless you specify nonlocal:1\n"
 		"Example: serial1=modem listenport:5000");
 
 	Pmulti_remain = secprop->Add_multiremain("serial2",Property::Changeable::WhenIdle," ");
