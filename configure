@@ -7884,6 +7884,7 @@ $as_echo "#define C_DIRECTSERIAL 1" >>confdefs.h
 
 $as_echo "#define C_DIRECTLPT 1" >>confdefs.h
 
+       CXXFLAGS="$CXXFLAGS -D_XOPEN_SOURCE=700 -D_POSIX_C_SOURCE=200809L"
        ;;
     *-*-freebsd* | *-*-dragonfly* | *-*-netbsd* | *-*-openbsd*)
 
