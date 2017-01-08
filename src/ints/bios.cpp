@@ -156,6 +156,8 @@ static bool dosbox_int_busy = false;
 static const char *dosbox_int_version = "DOSBox-X integration device v1.0";
 static const char *dosbox_int_ver_read = NULL;
 
+extern int user_cursor_x,user_cursor_y;
+
 static std::string dosbox_int_debug_out;
 
 /* read triggered, update the regsel */
@@ -193,6 +195,10 @@ void dosbox_integration_trigger_read() {
 			uint32_t Keyb_ig_status();
 			dosbox_int_register = Keyb_ig_status();
 			break;
+
+        case 0x434D55: /* read user mouse cursor position */
+            dosbox_int_register = ((user_cursor_y & 0xFFFFUL) << 16UL) | (user_cursor_x & 0xFFFFUL);
+            break;
 
 		case 0xC54010: /* Screenshot/capture trigger */
 			/* TODO: This should also be hidden behind an enable switch, so that rogue DOS development
