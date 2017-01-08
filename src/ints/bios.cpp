@@ -263,6 +263,11 @@ void dosbox_integration_trigger_write() {
 			dosbox_int_debug_out.clear();
 			break;
 
+		case 0x52434D: /* release mouse capture 'MCR' */
+            void GFX_ReleaseMouse(void);
+            GFX_ReleaseMouse();
+            break;
+
 		case 0x804200: /* keyboard input injection */
 			void Mouse_ButtonPressed(Bit8u button);
 			void Mouse_ButtonReleased(Bit8u button);

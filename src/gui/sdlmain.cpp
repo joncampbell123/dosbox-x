@@ -1479,6 +1479,11 @@ void DoExtendedKeyboardHook(bool enable) {
 #endif
 }
 
+void GFX_ReleaseMouse(void) {
+	if (sdl.mouse.locked)
+        GFX_CaptureMouse();
+}
+
 void GFX_CaptureMouse(void) {
 	sdl.mouse.locked=!sdl.mouse.locked;
 	if (sdl.mouse.locked) {
