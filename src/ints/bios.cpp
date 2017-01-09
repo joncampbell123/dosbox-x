@@ -243,6 +243,10 @@ void dosbox_integration_trigger_read() {
 		dosbox_int_error?1:0);
 }
 
+unsigned int mouse_notify_mode = 0;
+// 0 = off
+// 1 = trigger as PS/2 mouse interrupt
+
 /* write triggered */
 void dosbox_integration_trigger_write() {
 	dosbox_int_error = false;
@@ -321,6 +325,13 @@ void dosbox_integration_trigger_write() {
 //		case 0x804201: /* keyboard status do not write */
 //			break;
 
+        /* this command is used to enable notification of mouse movement over the windows even if the mouse isn't captured */
+        case 0x434D55: /* read user mouse cursor position */
+        case 0x434D56: /* read user mouse cursor position (normalized for Windows 3.x) */
+            mouse_notify_mode = dosbox_int_register & 0xFF;
+            LOG(LOG_MISC,LOG_DEBUG)("Mouse notify mode=%u",mouse_notify_mode);
+            break;
+ 
 		case 0xC54010: /* Screenshot/capture trigger */
 #if (C_SSHOT)
 			void CAPTURE_ScreenShotEvent(bool pressed);

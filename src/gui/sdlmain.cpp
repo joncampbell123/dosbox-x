@@ -2635,6 +2635,8 @@ static void HandleVideoResize(void * event) {
 #endif
 }
 
+extern unsigned int mouse_notify_mode;
+
 int user_cursor_x = 0,user_cursor_y = 0;
 int user_cursor_sw = 640,user_cursor_sh = 480;
 
@@ -2650,6 +2652,8 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
 						  (float)(motion->x-sdl.clip.x)/(sdl.clip.w-1)*sdl.mouse.sensitivity/100.0f,
 						  (float)(motion->y-sdl.clip.y)/(sdl.clip.h-1)*sdl.mouse.sensitivity/100.0f,
 						  sdl.mouse.locked);
+    else if (mouse_notify_mode != 0) /* for mouse integration driver */
+		Mouse_CursorMoved(0,0,0,0,sdl.mouse.locked);
 }
 
 static void HandleMouseButton(SDL_MouseButtonEvent * button) {
