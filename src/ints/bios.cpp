@@ -157,6 +157,7 @@ static const char *dosbox_int_version = "DOSBox-X integration device v1.0";
 static const char *dosbox_int_ver_read = NULL;
 
 extern int user_cursor_x,user_cursor_y;
+extern int user_cursor_sw,user_cursor_sh;
 
 static std::string dosbox_int_debug_out;
 
@@ -199,6 +200,16 @@ void dosbox_integration_trigger_read() {
         case 0x434D55: /* read user mouse cursor position */
             dosbox_int_register = ((user_cursor_y & 0xFFFFUL) << 16UL) | (user_cursor_x & 0xFFFFUL);
             break;
+
+        case 0x434D56: { /* read user mouse cursor position (normalized for Windows 3.x) */
+            signed long long x = ((signed long long)user_cursor_x << 16LL) / (signed long long)(user_cursor_sw-1);
+            signed long long y = ((signed long long)user_cursor_y << 16LL) / (signed long long)(user_cursor_sh-1);
+            if (x < 0x0000LL) x = 0x0000LL;
+            if (x > 0xFFFFLL) x = 0xFFFFLL;
+            if (y < 0x0000LL) y = 0x0000LL;
+            if (y > 0xFFFFLL) y = 0xFFFFLL;
+            dosbox_int_register = ((unsigned int)y << 16UL) | (unsigned int)x;
+            } break;
 
 		case 0xC54010: /* Screenshot/capture trigger */
 			/* TODO: This should also be hidden behind an enable switch, so that rogue DOS development

@@ -2636,10 +2636,13 @@ static void HandleVideoResize(void * event) {
 }
 
 int user_cursor_x = 0,user_cursor_y = 0;
+int user_cursor_sw = 640,user_cursor_sh = 480;
 
 static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
     user_cursor_x = motion->x - sdl.clip.x;
     user_cursor_y = motion->y - sdl.clip.y;
+    user_cursor_sw = sdl.clip.w;
+    user_cursor_sh = sdl.clip.h;
 
 	if (sdl.mouse.locked || !sdl.mouse.autoenable)
 		Mouse_CursorMoved((float)motion->xrel*sdl.mouse.sensitivity/100.0f,
