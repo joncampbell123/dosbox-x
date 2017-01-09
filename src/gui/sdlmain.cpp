@@ -2659,12 +2659,12 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
 static void HandleMouseButton(SDL_MouseButtonEvent * button) {
 	switch (button->state) {
 	case SDL_PRESSED:
-		if (sdl.mouse.requestlock && !sdl.mouse.locked) {
+		if (sdl.mouse.requestlock && !sdl.mouse.locked && mouse_notify_mode == 0) {
 			GFX_CaptureMouse();
 			// Dont pass klick to mouse handler
 			break;
 		}
-		if (!sdl.mouse.autoenable && sdl.mouse.autolock && button->button == SDL_BUTTON_MIDDLE) {
+		if (!sdl.mouse.autoenable && sdl.mouse.autolock && mouse_notify_mode == 0 && button->button == SDL_BUTTON_MIDDLE) {
 			GFX_CaptureMouse();
 			break;
 		}
