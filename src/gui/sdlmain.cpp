@@ -2652,8 +2652,13 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
 						  (float)(motion->x-sdl.clip.x)/(sdl.clip.w-1)*sdl.mouse.sensitivity/100.0f,
 						  (float)(motion->y-sdl.clip.y)/(sdl.clip.h-1)*sdl.mouse.sensitivity/100.0f,
 						  sdl.mouse.locked);
-    else if (mouse_notify_mode != 0) /* for mouse integration driver */
+    else if (mouse_notify_mode != 0) { /* for mouse integration driver */
 		Mouse_CursorMoved(0,0,0,0,sdl.mouse.locked);
+		SDL_ShowCursor(SDL_DISABLE); /* TODO: If guest has not read mouse cursor position within 250ms show cursor again */
+    }
+    else {
+		SDL_ShowCursor(SDL_ENABLE);
+    }
 }
 
 static void HandleMouseButton(SDL_MouseButtonEvent * button) {
