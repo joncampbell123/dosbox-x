@@ -156,6 +156,63 @@ static bool dosbox_int_busy = false;
 static const char *dosbox_int_version = "DOSBox-X integration device v1.0";
 static const char *dosbox_int_ver_read = NULL;
 
+struct dosbox_int_saved_state {
+    unsigned char   dosbox_int_register_shf;
+    uint32_t        dosbox_int_register;
+    unsigned char   dosbox_int_regsel_shf;
+    uint32_t        dosbox_int_regsel;
+    bool            dosbox_int_error;
+    bool            dosbox_int_busy;
+};
+
+#define DOSBOX_INT_SAVED_STATE_MAX      4
+
+struct dosbox_int_saved_state       dosbox_int_saved[DOSBOX_INT_SAVED_STATE_MAX];
+int                                 dosbox_int_saved_sp = -1;
+
+/* for use with interrupt handlers in DOS/Windows that need to save IG state
+ * to ensure that IG state is restored on return in order to not interfere
+ * with anything userspace is doing (as an alternative to wrapping all access
+ * in CLI/STI or PUSHF/CLI/POPF) */
+bool dosbox_int_push_save_state(void) {
+
+    if (dosbox_int_saved_sp >= (DOSBOX_INT_SAVED_STATE_MAX-1))
+        return false;
+
+    struct dosbox_int_saved_state *ss = &dosbox_int_saved[++dosbox_int_saved_sp];
+
+    ss->dosbox_int_register_shf =       dosbox_int_register_shf;
+    ss->dosbox_int_register =           dosbox_int_register;
+    ss->dosbox_int_regsel_shf =         dosbox_int_regsel_shf;
+    ss->dosbox_int_regsel =             dosbox_int_regsel;
+    ss->dosbox_int_error =              dosbox_int_error;
+    ss->dosbox_int_busy =               dosbox_int_busy;
+    return true;
+}
+
+bool dosbox_int_pop_save_state(void) {
+    if (dosbox_int_saved_sp < 0)
+        return false;
+
+    struct dosbox_int_saved_state *ss = &dosbox_int_saved[dosbox_int_saved_sp--];
+
+    dosbox_int_register_shf =           ss->dosbox_int_register_shf;
+    dosbox_int_register =               ss->dosbox_int_register;
+    dosbox_int_regsel_shf =             ss->dosbox_int_regsel_shf;
+    dosbox_int_regsel =                 ss->dosbox_int_regsel;
+    dosbox_int_error =                  ss->dosbox_int_error;
+    dosbox_int_busy =                   ss->dosbox_int_busy;
+    return true;
+}
+
+bool dosbox_int_discard_save_state(void) {
+    if (dosbox_int_saved_sp < 0)
+        return false;
+
+    dosbox_int_saved_sp--;
+    return true;
+}
+
 extern int user_cursor_x,user_cursor_y;
 extern int user_cursor_sw,user_cursor_sh;
 
@@ -443,6 +500,42 @@ void dosbox_integration_port_w(Bitu port,Bitu val,Bitu iolen) {
 						dosbox_int_register_shf = 0;
 					}
 					break;
+                case 0x20: /* push state */
+                    if (dosbox_int_push_save_state()) {
+                        dosbox_int_register_shf = 0;
+                        dosbox_int_regsel_shf = 0;
+                        dosbox_int_error = false;
+                        dosbox_int_busy = false;
+                        dosbox_int_regsel = 0xAA55BB66;
+                        dosbox_int_register = 0xD05B0C5;
+                        LOG(LOG_MISC,LOG_DEBUG)("DOSBOX IG state saved");
+                    }
+                    else {
+                        LOG(LOG_MISC,LOG_DEBUG)("DOSBOX IG unable to push state, stack overflow");
+                        dosbox_int_error = true;
+                    }
+                    break;
+                case 0x21: /* pop state */
+                    if (dosbox_int_pop_save_state()) {
+                        LOG(LOG_MISC,LOG_DEBUG)("DOSBOX IG state restored");
+                    }
+                    else {
+                        LOG(LOG_MISC,LOG_DEBUG)("DOSBOX IG unable to pop state, stack underflow");
+                        dosbox_int_error = true;
+                    }
+                    break;
+                case 0x22: /* discard state */
+                    if (dosbox_int_discard_save_state()) {
+                        LOG(LOG_MISC,LOG_DEBUG)("DOSBOX IG state discarded");
+                    }
+                    else {
+                        LOG(LOG_MISC,LOG_DEBUG)("DOSBOX IG unable to discard state, stack underflow");
+                        dosbox_int_error = true;
+                    }
+                    break;
+                case 0x23: /* discard all state */
+                    while (dosbox_int_discard_save_state());
+                    break;
 				case 0xFE: /* clear error */
 					dosbox_int_error = false;
 					break;
