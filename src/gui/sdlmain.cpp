@@ -2637,12 +2637,14 @@ static void HandleVideoResize(void * event) {
 
 extern unsigned int mouse_notify_mode;
 
+bool user_cursor_locked = false;
 int user_cursor_x = 0,user_cursor_y = 0;
 int user_cursor_sw = 640,user_cursor_sh = 480;
 
 static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
     user_cursor_x = motion->x - sdl.clip.x;
     user_cursor_y = motion->y - sdl.clip.y;
+    user_cursor_locked = sdl.mouse.locked;
     user_cursor_sw = sdl.clip.w;
     user_cursor_sh = sdl.clip.h;
 

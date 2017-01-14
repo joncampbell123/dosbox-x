@@ -213,6 +213,7 @@ bool dosbox_int_discard_save_state(void) {
     return true;
 }
 
+extern bool user_cursor_locked;
 extern int user_cursor_x,user_cursor_y;
 extern int user_cursor_sw,user_cursor_sh;
 
@@ -253,6 +254,11 @@ void dosbox_integration_trigger_read() {
 			uint32_t Keyb_ig_status();
 			dosbox_int_register = Keyb_ig_status();
 			break;
+
+        case 0x434D54: /* read user mouse status */
+            dosbox_int_register =
+                (user_cursor_locked ? (1UL << 0UL) : 0UL);      /* bit 0 = mouse capture lock */
+            break;
 
         case 0x434D55: /* read user mouse cursor position */
             dosbox_int_register = ((user_cursor_y & 0xFFFFUL) << 16UL) | (user_cursor_x & 0xFFFFUL);
