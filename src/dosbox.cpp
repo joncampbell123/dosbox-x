@@ -1367,6 +1367,10 @@ void DOSBOX_SetupConfigSections(void) {
 	Pbool->Set_help("Allow RDMSR/WRMSR instructions. This option is only meaningful when cputype=pentium.\n"
 			"WARNING: Leaving this option enabled while installing Windows 95/98/ME can cause crashes.");
 
+	Pbool = secprop->Add_bool("enable cmpxchg8b",Property::Changeable::Always,true);
+	Pbool->Set_help("Enable Pentium CMPXCHG8B instruction. Enable this explicitly if using software that uses this instruction.\n"
+			"You must enable this option to run Windows ME because portions of the kernel rely on this instruction.");
+
 	Pbool = secprop->Add_bool("ignore undefined msr",Property::Changeable::Always,false);
 	Pbool->Set_help("Ignore RDMSR/WRMSR on undefined registers. Normally the CPU will fire an Invalid Opcode exception in that case.\n"
 			"This option is off by default, enable if using software or drivers that assumes the presence of\n"
