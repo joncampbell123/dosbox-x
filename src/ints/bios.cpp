@@ -3356,7 +3356,7 @@ static Bitu INT15_Handler(void) {
 				}
 				break;
 			default:
-				LOG(LOG_BIOS,LOG_ERROR)("INT15:Unknown call %4X",reg_ax);
+				LOG(LOG_BIOS,LOG_ERROR)("INT15:Unknown E8 call ax=%4X",reg_ax);
 				reg_ah=0x86;
 				CALLBACK_SCF(true);
 				if ((IS_EGAVGA_ARCH) || (machine==MCH_CGA) || (machine==MCH_AMSTRAD)) {
@@ -3366,7 +3366,7 @@ static Bitu INT15_Handler(void) {
 		}
 		break;
 	default:
-		LOG(LOG_BIOS,LOG_ERROR)("INT15:Unknown call %4X",reg_ax);
+		LOG(LOG_BIOS,LOG_ERROR)("INT15:Unknown call ax=%4X",reg_ax);
 		reg_ah=0x86;
 		CALLBACK_SCF(true);
 		if ((IS_EGAVGA_ARCH) || (machine==MCH_CGA) || (machine==MCH_AMSTRAD)) {
