@@ -2758,7 +2758,7 @@ void OpenFileDialog( char * path_arg ) {
 	OpenFileName.lStructSize = sizeof( OPENFILENAME );
 	OpenFileName.hwndOwner = NULL;
 	if(DOSBox_Kor())
-		OpenFileName.lpstrFilter = "角青 颇老(*.com, *.exe, *.bat)\0*.com;*.exe;*.bat\0葛电 颇老(*.*)\0*.*\0";
+		OpenFileName.lpstrFilter = "鞁ろ枆 韺岇澕(*.com, *.exe, *.bat)\0*.com;*.exe;*.bat\0氇摖 韺岇澕(*.*)\0*.*\0";
 	else
 		OpenFileName.lpstrFilter = "Executable files(*.com, *.exe, *.bat)\0*.com;*.exe;*.bat\0All files(*.*)\0*.*\0";
 	OpenFileName.lpstrCustomFilter = NULL;
@@ -2875,7 +2875,7 @@ void Go_Boot(const char boot_drive[_MAX_DRIVE]) {
 	OpenFileName.hwndOwner = NULL;
 
 	if(DOSBox_Kor())
-		OpenFileName.lpstrFilter = "捞固瘤 颇老(*.img, *.ima, *.pcjr, *.jrc)\0*.pcjr;*.img;*.ima;*.jrc\0葛电 颇老(*.*)\0*.*\0";
+		OpenFileName.lpstrFilter = "鞚措歆� 韺岇澕(*.img, *.ima, *.pcjr, *.jrc)\0*.pcjr;*.img;*.ima;*.jrc\0氇摖 韺岇澕(*.*)\0*.*\0";
 	else
 		OpenFileName.lpstrFilter = "Image files(*.img, *.ima, *.pcjr, *.jrc)\0*.pcjr;*.img;*.ima;*.jrc\0All files(*.*)\0*.*\0";
 
@@ -3046,7 +3046,7 @@ void OpenFileDialog_Img( char drive ) {
 	OpenFileName.hwndOwner = NULL;
 
 	if(DOSBox_Kor())
-		OpenFileName.lpstrFilter = "捞固瘤/ZIP 颇老(*.ima, *.img, *.iso, *.cue, *.bin, *.mdf, *.zip, *.7z)\0*.ima;*.img;*.iso;*.mdf;*.zip;*.cue;*.bin;*.7z\0葛电 颇老(*.*)\0*.*\0";
+		OpenFileName.lpstrFilter = "鞚措歆�/ZIP 韺岇澕(*.ima, *.img, *.iso, *.cue, *.bin, *.mdf, *.zip, *.7z)\0*.ima;*.img;*.iso;*.mdf;*.zip;*.cue;*.bin;*.7z\0氇摖 韺岇澕(*.*)\0*.*\0";
 	else
 		OpenFileName.lpstrFilter = "Image/Zip files(*.ima, *.img, *.iso, *.cue, *.bin, *.mdf, *.zip, *.7z)\0*.ima;*.img;*.iso;*.mdf;*.zip;*.cue;*.bin;*.7z\0All files(*.*)\0*.*\0";
 
@@ -3109,7 +3109,7 @@ void D3D_PS(void) {
 	OpenFileName.lStructSize = sizeof( OPENFILENAME );
 	OpenFileName.hwndOwner = NULL;
 	if(DOSBox_Kor())
-		OpenFileName.lpstrFilter = "瓤苞 颇老(*.fx)\0*.fx\0葛电 颇老(*.*)\0*.*\0";
+		OpenFileName.lpstrFilter = "須臣 韺岇澕(*.fx)\0*.fx\0氇摖 韺岇澕(*.*)\0*.*\0";
 	else
 		OpenFileName.lpstrFilter = "Effect files(*.fx)\0*.fx\0All files(*.*)\0*.*\0";
 	OpenFileName.lpstrCustomFilter = NULL;
