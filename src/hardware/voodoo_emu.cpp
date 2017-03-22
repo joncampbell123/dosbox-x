@@ -70,7 +70,7 @@ iterated W    = 18.32 [48 bits]
 
 **************************************************************************/
 
-
+#include <string.h>
 #include <stdlib.h>
 #include <math.h>
 
