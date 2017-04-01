@@ -652,8 +652,8 @@ static Bit8u * VGA_Draw_LIN32_Line_HWMouse(Bitu vidstart, Bitu /*line*/) {
 }
 
 static const Bit32u* VGA_Planar_Memwrap(Bitu vidstart) {
-	vidstart &= vga.draw.linear_mask;
-	return (Bit32u*)(&vga.mem.linear[vidstart<<2]);
+	vidstart &= vga.draw.planar_mask;
+	return (Bit32u*)(&vga.mem.linear[vidstart << 2]);
 }
 
 static const Bit8u* VGA_Text_Memwrap(Bitu vidstart) {
@@ -1928,6 +1928,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 	}
 	vga.draw.linear_base = vga.mem.linear;
 	vga.draw.linear_mask = vga.vmemwrap - 1;
+    vga.draw.planar_mask = vga.draw.linear_mask >> 2;
 	Bitu pix_per_char = 8;
 	switch (vga.mode) {
 	case M_VGA:

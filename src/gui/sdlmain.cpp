@@ -4857,6 +4857,7 @@ int main(int argc, char* argv[]) {
 		bool reboot_machine;
 		bool dos_kernel_shutdown;
 
+fresh_boot:
 		run_machine = false;
 		reboot_machine = false;
 		dos_kernel_shutdown = false;
@@ -4983,8 +4984,8 @@ int main(int argc, char* argv[]) {
 			DispatchVMEvent(VM_EVENT_RESET);
 			DispatchVMEvent(VM_EVENT_RESET_END);
 
-			/* restart DOSBox (NOTE: Yuck) */
-			restart_program(control->startup_params);
+            /* run again */
+            goto fresh_boot;
 		}
 
 		/* and then shutdown */
