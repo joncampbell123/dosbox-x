@@ -801,7 +801,7 @@ const char *VM_EVENT_string[VM_EVENT_MAX] = {
 	"DOS exit, kernel exit",
 	"DOS exit, reboot begin",
 
-	"DOS exit, kernel reboot exit"      // 15
+	"DOS exit, kernel reboot exit",     // 15
     "DOS surprise reboot"
 };
 
