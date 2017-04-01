@@ -1339,6 +1339,7 @@ void ShutDownMemHandles(Section * sec) {
 void A20Gate_OnReset(Section *sec) {
 	void A20Gate_OverrideOn(Section *sec);
 
+	memory.a20.controlport = 0;
 	A20Gate_OverrideOn(sec);
 	MEM_A20_Enable(true);
 }
