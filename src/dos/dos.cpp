@@ -1967,11 +1967,14 @@ void DOS_ShutdownDrives() {
 	}
 }
 
+void DOS_UnsetupMemory();
+
 void DOS_DoShutDown() {
 	if (test != NULL) {
 		delete test;
 		test = NULL;
 	}
+    DOS_UnsetupMemory();
 }
 
 void DOS_ShutDown(Section* /*sec*/) {
