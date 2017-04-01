@@ -53,6 +53,11 @@ void DOS_GetMemory_reset() {
 	dos_memseg = 0;
 }
 
+void DOS_GetMemory_reinit() {
+    DOS_GetMemory_unmapped = false;
+    DOS_GetMemory_reset();
+}
+
 void DOS_GetMemory_unmap() {
 	if (DOS_PRIVATE_SEGMENT != 0) {
 		LOG(LOG_MISC,LOG_DEBUG)("Unmapping DOS private segment 0x%04x-0x%04x",DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
