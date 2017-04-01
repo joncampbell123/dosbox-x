@@ -3307,18 +3307,6 @@ public:
 		if (sb.type == SBT_16 || sb.ess_type != ESS_NONE || sb.reveal_sc_type != RSC_NONE) sb.chan->Enable(true);
 		else sb.chan->Enable(false);
 
-		if (sb.emit_blaster_var) {
-			// Create set blaster line
-			ostringstream temp;
-			temp << "SET BLASTER=A" << setw(3) << hex << sb.hw.base;
-			if (sb.hw.irq != 0xFF) temp << " I" << dec << (Bitu)sb.hw.irq;
-			if (sb.hw.dma8 != 0xFF) temp << " D" << (Bitu)sb.hw.dma8;
-			if (sb.type==SBT_16 && sb.hw.dma16 != 0xFF) temp << " H" << (Bitu)sb.hw.dma16;
-			temp << " T" << static_cast<unsigned int>(sb.type) << ends;
-
-			autoexecline.Install(temp.str());
-		}
-
 		s=section->Get_string("dsp require interrupt acknowledge");
 		if (s == "true" || s == "1" || s == "on")
 			sb.dsp.require_irq_ack = 1;
@@ -3482,6 +3470,20 @@ public:
 	void DOS_Shutdown() { /* very likely, we're booting into a guest OS where our environment variable has no meaning anymore */
 		autoexecline.Uninstall();
 	}
+
+    void DOS_Startup() {
+		if (sb.emit_blaster_var) {
+			// Create set blaster line
+			ostringstream temp;
+			temp << "SET BLASTER=A" << setw(3) << hex << sb.hw.base;
+			if (sb.hw.irq != 0xFF) temp << " I" << dec << (Bitu)sb.hw.irq;
+			if (sb.hw.dma8 != 0xFF) temp << " D" << (Bitu)sb.hw.dma8;
+			if (sb.type==SBT_16 && sb.hw.dma16 != 0xFF) temp << " H" << (Bitu)sb.hw.dma16;
+			temp << " T" << static_cast<unsigned int>(sb.type) << ends;
+
+			autoexecline.Install(temp.str());
+		}
+    }
 	
 	~SBLASTER() {
 		switch (oplmode) {
@@ -3522,10 +3524,19 @@ void SBLASTER_ShutDown(Section* /*sec*/) {
 }
 
 void SBLASTER_OnReset(Section *sec) {
-	if (test == NULL) {
+    SBLASTER_DOS_Shutdown();
+    if (test == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating Sound Blaster emulation");
 		test = new SBLASTER(control->GetSection("sblaster"));
 	}
+}
+
+void SBLASTER_DOS_Exit(Section *sec) {
+    SBLASTER_DOS_Shutdown();
+}
+
+void SBLASTER_DOS_Boot(Section *sec) {
+    if (test != NULL) test->DOS_Startup();
 }
 
 void SBLASTER_Init() {
@@ -3533,5 +3544,8 @@ void SBLASTER_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(SBLASTER_ShutDown),true);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(SBLASTER_OnReset));
+	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(SBLASTER_DOS_Exit));
+	AddVMEventFunction(VM_EVENT_DOS_EXIT_REBOOT_BEGIN,AddVMEventFunctionFuncPair(SBLASTER_DOS_Exit));
+    AddVMEventFunction(VM_EVENT_DOS_INIT_SHELL_READY,AddVMEventFunctionFuncPair(SBLASTER_DOS_Boot));
 }
 
