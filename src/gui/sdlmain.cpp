@@ -4870,80 +4870,92 @@ fresh_boot:
 			if (control->opt_break_start) DEBUG_EnableDebugger();
 #endif
 			DOSBOX_RunMachine();
-		} catch (int x) {
-			if (x == 2) { /* booting a guest OS. "boot" has already done the work to load the image and setup CPU registers */
-				LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to boot guest OS");
+        } catch (int x) {
+            if (x == 2) { /* booting a guest OS. "boot" has already done the work to load the image and setup CPU registers */
+                LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to boot guest OS");
 
-				run_machine = true; /* make note. don't run the whole shebang from an exception handler! */
-				dos_kernel_shutdown = true;
-			}
-			else if (x == 3) { /* reboot the system */
-				LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to reboot the system");
+                run_machine = true; /* make note. don't run the whole shebang from an exception handler! */
+                dos_kernel_shutdown = true;
+            }
+            else if (x == 3) { /* reboot the system */
+                LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to reboot the system");
 
-				reboot_machine = true;
-			}
-			else {
-				LOG(LOG_MISC,LOG_DEBUG)("Emulation threw DOSBox kill switch signal");
+                reboot_machine = true;
+                dos_kernel_shutdown = true;
+            }
+            else {
+                LOG(LOG_MISC,LOG_DEBUG)("Emulation threw DOSBox kill switch signal");
 
-				// kill switch (see instances of throw(0) and throw(1) elsewhere in DOSBox)
-				run_machine = false;
-				dos_kernel_shutdown = false;
-			}
-		}
-		catch (...) {
-			throw;
-		}
+                // kill switch (see instances of throw(0) and throw(1) elsewhere in DOSBox)
+                run_machine = false;
+                dos_kernel_shutdown = false;
+            }
+        }
+        catch (...) {
+            throw;
+        }
 
-		if (dos_kernel_shutdown) {
-			/* new code: fire event */
-			DispatchVMEvent(VM_EVENT_DOS_EXIT_BEGIN);
+        if (dos_kernel_shutdown) {
+            /* NTS: we take different paths depending on whether we're just shutting down DOS
+             *      or doing a hard reboot. */
 
-			/* older shutdown code */
-			RemoveEMSPageFrame();
+            /* new code: fire event */
+            if (reboot_machine)
+                DispatchVMEvent(VM_EVENT_DOS_EXIT_REBOOT_BEGIN);
+            else
+                DispatchVMEvent(VM_EVENT_DOS_EXIT_BEGIN);
 
-			/* remove UMB block */
-			if (!keep_umb_on_boot) RemoveUMBBlock();
+            /* older shutdown code */
+            RemoveEMSPageFrame();
 
-			/* disable INT 33h mouse services. it can interfere with guest OS paging and control of the mouse */
-			DisableINT33();
+            /* remove UMB block */
+            if (!keep_umb_on_boot) RemoveUMBBlock();
 
-			/* unmap the DOSBox kernel private segment. if the user told us not to,
-			 * but the segment exists below 640KB, then we must, because the guest OS
-			 * will trample it and assume control of that region of RAM. */
-			if (!keep_private_area_on_boot)
-				DOS_GetMemory_unmap();
-			else if (DOS_PRIVATE_SEGMENT < 0xA000)
-				DOS_GetMemory_unmap();
+            /* disable INT 33h mouse services. it can interfere with guest OS paging and control of the mouse */
+            DisableINT33();
 
-			/* revector some dos-allocated interrupts */
-			real_writed(0,0x01*4,BIOS_DEFAULT_HANDLER_LOCATION);
-			real_writed(0,0x03*4,BIOS_DEFAULT_HANDLER_LOCATION);
+            /* unmap the DOSBox kernel private segment. if the user told us not to,
+             * but the segment exists below 640KB, then we must, because the guest OS
+             * will trample it and assume control of that region of RAM. */
+            if (!keep_private_area_on_boot || reboot_machine)
+                DOS_GetMemory_unmap();
+            else if (DOS_PRIVATE_SEGMENT < 0xA000)
+                DOS_GetMemory_unmap();
 
-			/* shutdown DOSBox's virtual drive Z */
-			VFILE_Shutdown();
+            /* revector some dos-allocated interrupts */
+            if (!reboot_machine) {
+                real_writed(0,0x01*4,BIOS_DEFAULT_HANDLER_LOCATION);
+                real_writed(0,0x03*4,BIOS_DEFAULT_HANDLER_LOCATION);
+            }
 
-			/* shutdown the programs */
-			PROGRAMS_Shutdown();		/* FIXME: Is this safe? Or will this cause use-after-free bug? */
+            /* shutdown DOSBox's virtual drive Z */
+            VFILE_Shutdown();
 
-			/* remove environment variables for some components */
-			DOS_UninstallMisc();
-			SBLASTER_DOS_Shutdown();
-			GUS_DOS_Shutdown();
-			/* disable Expanded Memory. EMM is a DOS API, not a BIOS API */
-			EMS_DoShutDown();
-			/* and XMS, also a DOS API */
-			XMS_DoShutDown();
-			/* and the DOS API in general */
-			DOS_DoShutDown();
+            /* shutdown the programs */
+            PROGRAMS_Shutdown();		/* FIXME: Is this safe? Or will this cause use-after-free bug? */
 
-			/* set the "disable DOS kernel" flag so other parts of this program
-			 * do not attempt to manipulate now-defunct parts of the kernel
-			 * such as the environment block */
-			dos_kernel_disabled = true;
+            /* remove environment variables for some components */
+            DOS_UninstallMisc();
+            SBLASTER_DOS_Shutdown();
+            GUS_DOS_Shutdown();
+            /* disable Expanded Memory. EMM is a DOS API, not a BIOS API */
+            EMS_DoShutDown();
+            /* and XMS, also a DOS API */
+            XMS_DoShutDown();
+            /* and the DOS API in general */
+            DOS_DoShutDown();
 
-			/* new code: fire event */
-			DispatchVMEvent(VM_EVENT_DOS_EXIT_KERNEL);
-		}
+            /* set the "disable DOS kernel" flag so other parts of this program
+             * do not attempt to manipulate now-defunct parts of the kernel
+             * such as the environment block */
+            dos_kernel_disabled = true;
+
+            /* new code: fire event */
+            if (reboot_machine)
+                DispatchVMEvent(VM_EVENT_DOS_EXIT_REBOOT_KERNEL);
+            else
+                DispatchVMEvent(VM_EVENT_DOS_EXIT_KERNEL);
+        }
 
 		if (run_machine) {
 			/* new code: fire event */

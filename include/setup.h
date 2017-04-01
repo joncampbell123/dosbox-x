@@ -294,6 +294,9 @@ enum vm_event {
 	VM_EVENT_DOS_INIT_AT_PROMPT,		// DOS kernel init complete. After this event, the user is immediately given the DOS prompt.
 	VM_EVENT_DOS_EXIT_BEGIN,		// DOS kernel is just starting to exit (user used BOOT command)
 	VM_EVENT_DOS_EXIT_KERNEL,		// DOS kernel has just finished exiting
+	VM_EVENT_DOS_EXIT_REBOOT_BEGIN,		// DOS kernel is just starting to exit (hard reset, outside of DOS's control)
+
+	VM_EVENT_DOS_EXIT_REBOOT_KERNEL=15,	// DOS kernel has just finished exiting (hard reset)
 
 	VM_EVENT_MAX
 };
