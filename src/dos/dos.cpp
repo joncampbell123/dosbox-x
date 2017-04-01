@@ -1990,6 +1990,6 @@ void DOS_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(DOS_ShutDown),false);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(DOS_ShutDown));
-	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(DOS_ShutDown));
+	AddVMEventFunction(VM_EVENT_DOS_EXIT_KERNEL,AddVMEventFunctionFuncPair(DOS_ShutDown));
 }
 
