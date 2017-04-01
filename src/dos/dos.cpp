@@ -1990,7 +1990,8 @@ void DOS_OnReset(Section* /*sec*/) {
 
 void DOS_Startup(Section* sec) {
 	if (test == NULL) {
-		LOG(LOG_MISC,LOG_DEBUG)("Allocating DOS kernel");
+        DOS_GetMemory_reinit();
+        LOG(LOG_MISC,LOG_DEBUG)("Allocating DOS kernel");
 		test = new DOS(control->GetSection("dos"));
 	}
 }
