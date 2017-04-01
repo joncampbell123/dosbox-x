@@ -3341,16 +3341,6 @@ static Bitu IRQ15_Dummy(void) {
 
 void On_Software_CPU_Reset();
 
-static Bitu BIOS_RESET_FFFF_0000(void) {
-	LOG_MSG("Restart by jumping to BIOS entry point (FFFF:0000) requested\n");
-	/* NTS: It's worth noting on an old Pentium 100MHz system of mine, that the BIOS decompresses
-	 * itself from ROM into shadow RAM and then puts an "INT 19h" at FFFF:0000. Many other motherboards
-	 * that did not shadow their ROM BIOS put actual initialization code in place there. --J.C. */
-	On_Software_CPU_Reset();
-	/* does not return */
-	return CBRET_NONE;
-}
-
 static Bitu INT18_Handler(void) {
 	LOG_MSG("Restart by INT 18h requested\n");
 	On_Software_CPU_Reset();
@@ -4554,9 +4544,6 @@ public:
 
 		// INT 0Eh: IDE IRQ 6
 		callback[13].Install(&IRQ15_Dummy,CB_IRET_EOI_PIC1,"irq 6 floppy");
-
-		// Handler for FFFF:0000 (usually distinct from INT 19h).
-		callback[14].Install(&BIOS_RESET_FFFF_0000,CB_IRET,"BIOS entry point");
 
 		// INT 18h: Enter BASIC
 		// Non-IBM BIOS would display "NO ROM BASIC" here

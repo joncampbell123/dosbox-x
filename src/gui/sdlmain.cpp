@@ -4361,6 +4361,25 @@ void Windows_DPI_Awareness_Init() {
 #endif
 
 bool VM_Boot_DOSBox_Kernel() {
+	if (!dos_kernel_disabled) {
+        RemoveEMSPageFrame();
+        RemoveUMBBlock();
+        DisableINT33();
+        DOS_GetMemory_unmap();
+        VFILE_Shutdown();
+        PROGRAMS_Shutdown();
+        DOS_UninstallMisc();
+        SBLASTER_DOS_Shutdown();
+        GUS_DOS_Shutdown();
+        EMS_DoShutDown();
+        XMS_DoShutDown();
+        DOS_DoShutDown();
+
+        DispatchVMEvent(VM_EVENT_DOS_SURPRISE_REBOOT); // <- apparently we rebooted without any notification (such as jmp'ing to FFFF:0000)
+
+        dos_kernel_disabled = true;
+    }
+
 	if (dos_kernel_disabled) {
 		DispatchVMEvent(VM_EVENT_DOS_BOOT); // <- just starting the DOS kernel now
 
