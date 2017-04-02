@@ -3619,8 +3619,6 @@ private:
             }
         }
 
-        ISA_PNP_FreeAllDevs();
-
 		if (bios_first_init) {
 			/* clear the first 1KB-32KB */
 			for (Bit16u i=0x400;i<0x8000;i++) real_writeb(0x0,i,0);
