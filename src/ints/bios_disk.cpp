@@ -44,7 +44,7 @@ diskGeo DiskGeometryList[] = {
 	{0, 0, 0, 0, 0}
 };
 
-Bitu call_int13;
+Bitu call_int13 = 0;
 Bitu diskparm0, diskparm1;
 static Bit8u last_status;
 static Bit8u last_drive;
@@ -767,6 +767,14 @@ static Bitu INT13_DiskHandler(void) {
 	return CBRET_NONE;
 }
 
+void CALLBACK_DeAllocate(Bitu in);
+
+void BIOS_UnsetupDisks(void) {
+    if (call_int13 != 0) {
+        CALLBACK_DeAllocate(call_int13);
+        call_int13 = 0;
+    }
+}
 
 void BIOS_SetupDisks(void) {
 	int i;
