@@ -742,6 +742,13 @@ extern Bitu VGA_BIOS_SEG;
 extern Bitu VGA_BIOS_SEG_END;
 extern bool VIDEO_BIOS_disable;
 
+bool MEM_unmap_physmem(Bitu start,Bitu end);
+
+void INT10_OnResetComplete() {
+    if (VGA_BIOS_Size > 0)
+        MEM_unmap_physmem(0xC0000,0xC0000+VGA_BIOS_Size-1);
+}
+
 void INT10_Startup(Section *sec) {
 	LOG(LOG_MISC,LOG_DEBUG)("INT 10h reinitializing");
 
@@ -762,6 +769,7 @@ void INT10_Startup(Section *sec) {
 	if (int10.rom.used > VGA_BIOS_Size) /* <- this is fatal, it means the Setup() functions scrozzled over the adjacent ROM or RAM area */
 		E_Exit("VGA BIOS size too small");
 
+    /* NTS: Uh, this does seem bass-ackwards... INT 10h making the VGA BIOS appear. Can we refactor this a bit? */
 	if (VGA_BIOS_Size > 0) {
 		LOG(LOG_MISC,LOG_DEBUG)("VGA BIOS occupies segment 0x%04x-0x%04x",(int)VGA_BIOS_SEG,(int)VGA_BIOS_SEG_END-1);
 		if (!MEM_map_ROM_physmem(0xC0000,0xC0000+VGA_BIOS_Size-1))

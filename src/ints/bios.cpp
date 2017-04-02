@@ -4775,6 +4775,12 @@ void BIOS_OnPowerOn(Section* sec) {
 void swapInNextDisk(bool pressed);
 void swapInNextCD(bool pressed);
 
+void INT10_OnResetComplete();
+
+void BIOS_OnResetComplete(Section *x) {
+    INT10_OnResetComplete();
+}
+
 void BIOS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing BIOS");
 
@@ -4790,6 +4796,7 @@ void BIOS_Init() {
 	/* NTS: VM_EVENT_BIOS_INIT this callback must be first. */
 	AddExitFunction(AddExitFunctionFuncPair(BIOS_Destroy),false);
 	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(BIOS_OnPowerOn));
+	AddVMEventFunction(VM_EVENT_RESET_END,AddVMEventFunctionFuncPair(BIOS_OnResetComplete));
 }
 
 void write_ID_version_string() {
