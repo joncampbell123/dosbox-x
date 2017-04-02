@@ -26,7 +26,7 @@
 #include "setup.h"
 
 Int10Data int10;
-static Bitu call_10;
+static Bitu call_10 = 0;
 static bool warned_ff=false;
 
 static Bitu INT10_Handler(void) {
@@ -748,6 +748,7 @@ bool ROMBIOS_FreeMemory(Bitu phys);
 Bitu RealToPhys(Bitu x);
 
 bool MEM_unmap_physmem(Bitu start,Bitu end);
+void CALLBACK_DeAllocate(Bitu in);
 
 void INT10_OnResetComplete() {
     if (VGA_BIOS_Size > 0)
@@ -759,6 +760,14 @@ void INT10_OnResetComplete() {
         LOG(LOG_MISC,LOG_DEBUG)("INT 10h freeing BIOS VIDEO TABLE LOCATION");
         ROMBIOS_FreeMemory(RealToPhys(BIOS_VIDEO_TABLE_LOCATION));
         BIOS_VIDEO_TABLE_LOCATION = ~0;		// RealMake(0xf000,0xf0a4)
+    }
+
+    void VESA_OnReset_Clear_Callbacks(void);
+    VESA_OnReset_Clear_Callbacks();
+
+    if (call_10 != 0) {
+        CALLBACK_DeAllocate(call_10);
+        call_10 = 0;
     }
 }
 
