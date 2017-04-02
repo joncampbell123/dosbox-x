@@ -855,6 +855,8 @@ class ISAPnPIntegrationDevice : public ISAPnPDevice {
 		}
 };
 
+ISAPnPIntegrationDevice *isapnpigdevice = NULL;
+
 class ISAPNP_SysDevNode {
 public:
 	ISAPNP_SysDevNode(const unsigned char *ir,int len,bool already_alloc=false) {
@@ -3589,6 +3591,36 @@ private:
             isapnp_biosstruct_base = 0;
         }
 
+		if (BOCHS_PORT_E9) {
+			delete BOCHS_PORT_E9;
+			BOCHS_PORT_E9=NULL;
+		}
+		if (ISAPNP_PNP_ADDRESS_PORT) {
+			delete ISAPNP_PNP_ADDRESS_PORT;
+			ISAPNP_PNP_ADDRESS_PORT=NULL;
+		}
+		if (ISAPNP_PNP_DATA_PORT) {
+			delete ISAPNP_PNP_DATA_PORT;
+			ISAPNP_PNP_DATA_PORT=NULL;
+		}
+		if (ISAPNP_PNP_READ_PORT) {
+			delete ISAPNP_PNP_READ_PORT;
+			ISAPNP_PNP_READ_PORT=NULL;
+		}
+
+        for (Bitu i=0;i < 4;i++) {
+            if (DOSBOX_INTEGRATION_PORT_READ[i] != NULL) {
+                delete DOSBOX_INTEGRATION_PORT_READ[i];
+                DOSBOX_INTEGRATION_PORT_READ[i] = NULL;
+            }
+            if (DOSBOX_INTEGRATION_PORT_WRITE[i] != NULL) {
+                delete DOSBOX_INTEGRATION_PORT_WRITE[i];
+                DOSBOX_INTEGRATION_PORT_WRITE[i] = NULL;
+            }
+        }
+
+        ISA_PNP_FreeAllDevs();
+
 		if (bios_first_init) {
 			/* clear the first 1KB-32KB */
 			for (Bit16u i=0x400;i<0x8000;i++) real_writeb(0x0,i,0);
@@ -3853,8 +3885,11 @@ private:
 				DOSBOX_INTEGRATION_PORT_WRITE[i]->Install(0x28+i,dosbox_integration_port_w,IO_MA);
 			}
 
-			/* DOSBox integration device */
-			ISA_PNP_devreg(new ISAPnPIntegrationDevice);
+            /* DOSBox integration device */
+            if (isapnpigdevice == NULL) {
+                isapnpigdevice = new ISAPnPIntegrationDevice;
+                ISA_PNP_devreg(isapnpigdevice);
+            }
 		}
 
 		// ISA Plug & Play BIOS entrypoint
@@ -4651,6 +4686,21 @@ public:
 			delete ISAPNP_PNP_READ_PORT;
 			ISAPNP_PNP_READ_PORT=NULL;
 		}
+        if (isapnpigdevice) {
+            /* ISA PnP will auto-free it */
+            isapnpigdevice=NULL;
+        }
+
+        for (Bitu i=0;i < 4;i++) {
+            if (DOSBOX_INTEGRATION_PORT_READ[i] != NULL) {
+                delete DOSBOX_INTEGRATION_PORT_READ[i];
+                DOSBOX_INTEGRATION_PORT_READ[i] = NULL;
+            }
+            if (DOSBOX_INTEGRATION_PORT_WRITE[i] != NULL) {
+                delete DOSBOX_INTEGRATION_PORT_WRITE[i];
+                DOSBOX_INTEGRATION_PORT_WRITE[i] = NULL;
+            }
+        }
 
 		/* abort DAC playing */
 		if (tandy_sb.port) {
