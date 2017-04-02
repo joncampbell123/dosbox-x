@@ -5044,6 +5044,9 @@ fresh_dos_exit:
 		 * freed resources. */
 	}
 
+    void CALLBACK_Dump(void);
+    CALLBACK_Dump();
+
 	/* GUI font registry shutdown */
 	GUI::Font::registry_freeall();
 	DOS_ShutdownDrives();
