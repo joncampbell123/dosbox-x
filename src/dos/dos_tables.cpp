@@ -25,6 +25,8 @@
 
 extern Bitu DOS_PRIVATE_SEGMENT_Size;
 
+void CALLBACK_DeAllocate(Bitu in);
+
 #ifdef _MSC_VER
 #pragma pack(1)
 #endif
@@ -42,7 +44,14 @@ RealPt DOS_TableLowCase;
 
 extern bool mainline_compatible_mapping;
 
-static Bitu call_casemap;
+static Bitu call_casemap = 0;
+
+void DOS_Casemap_Free(void) {
+    if (call_casemap != 0) {
+        CALLBACK_DeAllocate(call_casemap);
+        call_casemap = 0;
+    }
+}
 
 static Bit16u dos_memseg=0;//DOS_PRIVATE_SEGMENT;
 

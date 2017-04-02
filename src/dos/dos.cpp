@@ -1968,6 +1968,7 @@ void DOS_ShutdownDrives() {
 }
 
 void DOS_UnsetupMemory();
+void DOS_Casemap_Free();
 
 void DOS_DoShutDown() {
 	if (test != NULL) {
@@ -1975,6 +1976,7 @@ void DOS_DoShutDown() {
 		test = NULL;
 	}
     DOS_UnsetupMemory();
+    DOS_Casemap_Free();
 }
 
 void DOS_ShutDown(Section* /*sec*/) {
