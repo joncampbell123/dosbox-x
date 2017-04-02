@@ -4914,7 +4914,6 @@ fresh_boot:
             throw;
         }
 
-fresh_dos_exit:
         if (dos_kernel_shutdown) {
             /* NTS: we take different paths depending on whether we're just shutting down DOS
              *      or doing a hard reboot. */
@@ -4987,43 +4986,19 @@ fresh_dos_exit:
 				SegValue(ss),reg_sp,
 				reg_ax,reg_bx,reg_cx,reg_dx);
 
-			try {
-				/* go! */
-				while (1/*execute until some other part of DOSBox throws exception*/)
-					DOSBOX_RunMachine();
-			}
-            catch (int x) {
-                if (x == 2) { /* booting a guest OS. "boot" has already done the work to load the image and setup CPU registers */
-                    LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to boot guest OS");
-
-                    run_machine = false;
-                    reboot_machine = false;
-                    dos_kernel_shutdown = false;
-
-                    run_machine = true; /* make note. don't run the whole shebang from an exception handler! */
-                    dos_kernel_shutdown = true;
-                    goto fresh_dos_exit;
-                }
-                else if (x == 3) { /* reboot the machine */
-                    LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to reboot the system");
-
-                    reboot_machine = true;
-                }
-                else {
-                    LOG(LOG_MISC,LOG_DEBUG)("Emulation threw DOSBox kill switch signal");
-
-                    // kill switch (see instances of throw(0) and throw(1) elsewhere in DOSBox)
-                }
-			}
-			catch (...) {
-				throw;
-			}
+            /* run again */
+            goto fresh_boot;
 		}
 
 		if (reboot_machine) {
 			LOG_MSG("Rebooting the system\n");
 
-			/* new code: fire event (FIXME: DOSBox's current method of "rebooting" the emulator makes this meaningless!) */
+            void CPU_Snap_Back_Forget();
+            /* Shutdown everything. For shutdown to work properly we must force CPU to real mode */
+            CPU_Snap_Back_To_Real_Mode();
+            CPU_Snap_Back_Forget();
+
+			/* new code: fire event */
 			DispatchVMEvent(VM_EVENT_RESET);
 			DispatchVMEvent(VM_EVENT_RESET_END);
 
