@@ -1430,6 +1430,8 @@ void setup_EMS_none() {
 	}
 }
 
+Bitu call_int67 = 0;
+
 class EMS: public Module_base {
 private:
 	Bit16u ems_baseseg;
@@ -1437,7 +1439,6 @@ private:
 	unsigned int oshandle_memsize_16kb;
 	RealPt old4b_pointer,old67_pointer;
 	CALLBACK_HandlerObject call_vdma,call_vcpi,call_v86mon;
-	Bitu call_int67;
 
 public:
 	EMS(Section* configuration):Module_base(configuration) {
@@ -1677,11 +1678,17 @@ public:
 		
 static EMS* test = NULL;
 
+void CALLBACK_DeAllocate(Bitu in);
+
 void EMS_DoShutDown() {
 	if (test != NULL) {
 		delete test;
 		test = NULL;
 	}
+    if (call_int67 != 0) {
+        CALLBACK_DeAllocate(call_int67);
+        call_int67 = 0;
+    }
 }
 
 void EMS_ShutDown(Section* /*sec*/) {
