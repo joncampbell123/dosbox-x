@@ -748,6 +748,7 @@ bool ROMBIOS_FreeMemory(Bitu phys);
 Bitu RealToPhys(Bitu x);
 
 void BIOS_UnsetupDisks(void);
+void BIOS_UnsetupKeyboard(void);
 bool MEM_unmap_physmem(Bitu start,Bitu end);
 void CALLBACK_DeAllocate(Bitu in);
 
@@ -772,6 +773,7 @@ void INT10_OnResetComplete() {
     }
 
     BIOS_UnsetupDisks();
+    BIOS_UnsetupKeyboard();
 }
 
 void INT10_Startup(Section *sec) {

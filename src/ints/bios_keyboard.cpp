@@ -36,7 +36,7 @@
  * The proper way is in the mapper, but the repeating key is an unwanted side effect for lower versions of SDL */
 #endif
 
-static Bitu call_int16,call_irq1,irq1_ret_ctrlbreak_callback,call_irq6;
+static Bitu call_int16 = 0,call_irq1 = 0,irq1_ret_ctrlbreak_callback = 0,call_irq6 = 0;
 
 /* Nice table from BOCHS i should feel bad for ripping this */
 #define none 0
@@ -651,6 +651,27 @@ static void InitBiosSegment(void) {
 	mem_writeb(BIOS_KEYBOARD_FLAGS3,16); /* Enhanced keyboard installed */	
 	mem_writeb(BIOS_KEYBOARD_TOKEN,0);
 	mem_writeb(BIOS_KEYBOARD_LEDS,leds);
+}
+
+void CALLBACK_DeAllocate(Bitu in);
+
+void BIOS_UnsetupKeyboard(void) {
+    if (call_int16 != 0) {
+        CALLBACK_DeAllocate(call_int16);
+        call_int16 = 0;
+    }
+    if (call_irq1 != 0) {
+        CALLBACK_DeAllocate(call_irq1);
+        call_irq1 = 0;
+    }
+    if (call_irq6 != 0) {
+        CALLBACK_DeAllocate(call_irq6);
+        call_irq6 = 0;
+    }
+    if (irq1_ret_ctrlbreak_callback != 0) {
+        CALLBACK_DeAllocate(irq1_ret_ctrlbreak_callback);
+        irq1_ret_ctrlbreak_callback = 0;
+    }
 }
 
 void BIOS_SetupKeyboard(void) {
