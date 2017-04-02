@@ -3893,6 +3893,7 @@ private:
 		}
 
 		// ISA Plug & Play BIOS entrypoint
+        // NTS: Apparently, Windows 95, 98, and ME will re-enumerate and re-install PnP devices if our entry point changes it's address.
 		if (ISAPNPBIOS) {
 			int i;
 			Bitu base;
