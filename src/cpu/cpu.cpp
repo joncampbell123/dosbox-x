@@ -1971,22 +1971,24 @@ static Bit32u snap_cpu_saved_cr3;
  * by the guest OS, but that's something we'll clean up
  * later. */
 void CPU_Snap_Back_To_Real_Mode() {
-	if (snap_cpu_snapped) return;
+    if (snap_cpu_snapped) return;
 
-	SETFLAGBIT(IF,false);	/* forcibly clear interrupt flag */
+    SETFLAGBIT(IF,false);	/* forcibly clear interrupt flag */
 
     cpu.code.big = false;   /* force back to 16-bit */
     cpu.stack.big = false;
+    cpu.stack.mask = 0xffff;
+    cpu.stack.notmask = 0xffff0000;
 
-	snap_cpu_saved_cr0 = cpu.cr0;
-	snap_cpu_saved_cr2 = paging.cr2;
-	snap_cpu_saved_cr3 = paging.cr3;
+    snap_cpu_saved_cr0 = cpu.cr0;
+    snap_cpu_saved_cr2 = paging.cr2;
+    snap_cpu_saved_cr3 = paging.cr3;
 
-	CPU_SET_CRX(0,0);	/* force CPU to real mode */
-	CPU_SET_CRX(2,0);	/* disable paging */
-	CPU_SET_CRX(3,0);	/* clear the page table dir */
+    CPU_SET_CRX(0,0);	/* force CPU to real mode */
+    CPU_SET_CRX(2,0);	/* disable paging */
+    CPU_SET_CRX(3,0);	/* clear the page table dir */
 
-	snap_cpu_snapped = true;
+    snap_cpu_snapped = true;
 }
 
 void CPU_Snap_Back_Restore() {
