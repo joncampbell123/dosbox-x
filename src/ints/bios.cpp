@@ -3533,6 +3533,8 @@ static CALLBACK_HandlerObject int4b_callback;
 static CALLBACK_HandlerObject callback[16]; /* <- fixme: this is stupid. just declare one per interrupt. */
 static CALLBACK_HandlerObject cb_bios_post;
 
+Bitu isapnp_biosstruct_base;
+
 class BIOS:public Module_base{
 private:
 	static Bitu cb_bios_post__func(void) {
@@ -3571,6 +3573,11 @@ private:
 			reg_ebp = 0;
 			LOG(LOG_MISC,LOG_DEBUG)("BIOS: POST stack set to 0000:%04x",reg_esp);
 		}
+
+        if (isapnp_biosstruct_base != 0) {
+            ROMBIOS_FreeMemory(isapnp_biosstruct_base);
+            isapnp_biosstruct_base = 0;
+        }
 
 		if (bios_first_init) {
 			/* clear the first 1KB-32KB */
@@ -3847,9 +3854,9 @@ private:
 			unsigned char c,tmp[256];
 
 			if (mainline_compatible_bios_mapping)
-				base = 0xFE100; /* take the unused space just after the fake BIOS signature */
+				isapnp_biosstruct_base = base = 0xFE100; /* take the unused space just after the fake BIOS signature */
 			else
-				base = ROMBIOS_GetMemory(0x21,"ISA Plug & Play BIOS struct",/*paragraph alignment*/0x10);
+				isapnp_biosstruct_base = base = ROMBIOS_GetMemory(0x21,"ISA Plug & Play BIOS struct",/*paragraph alignment*/0x10);
 
 			if (base == 0) E_Exit("Unable to allocate ISA PnP struct");
 			LOG_MSG("ISA Plug & Play BIOS enabled");
@@ -4396,6 +4403,8 @@ public:
 	BIOS(Section* configuration):Module_base(configuration){
 		/* tandy DAC can be requested in tandy_sound.cpp by initializing this field */
 		Bitu wo;
+
+        isapnp_biosstruct_base = 0;
 
 		{ // TODO: Eventually, move this to BIOS POST or init phase
 			Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
