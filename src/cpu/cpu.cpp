@@ -1975,6 +1975,9 @@ void CPU_Snap_Back_To_Real_Mode() {
 
 	SETFLAGBIT(IF,false);	/* forcibly clear interrupt flag */
 
+    cpu.code.big = false;   /* force back to 16-bit */
+    cpu.stack.big = false;
+
 	snap_cpu_saved_cr0 = cpu.cr0;
 	snap_cpu_saved_cr2 = paging.cr2;
 	snap_cpu_saved_cr3 = paging.cr3;
