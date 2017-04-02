@@ -740,6 +740,9 @@ void PIC_Reset(Section *sec) {
 	master.vector_base = 0x08;
 	slave.vector_base = 0x70;
 
+    for (Bitu i=0;i < 16;i++)
+        PIC_SetIRQMask(i,true);
+
 	PIC_SetIRQMask(0,false);					/* Enable system timer */
 	PIC_SetIRQMask(1,false);					/* Enable system timer */
 	PIC_SetIRQMask(2,false);					/* Enable second pic */
