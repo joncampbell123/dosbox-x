@@ -3533,7 +3533,15 @@ static CALLBACK_HandlerObject int4b_callback;
 static CALLBACK_HandlerObject callback[16]; /* <- fixme: this is stupid. just declare one per interrupt. */
 static CALLBACK_HandlerObject cb_bios_post;
 
-Bitu isapnp_biosstruct_base;
+Bitu call_pnp_r = ~0UL;
+Bitu call_pnp_rp = 0;
+
+Bitu call_pnp_p = ~0UL;
+Bitu call_pnp_pp = 0;
+
+Bitu isapnp_biosstruct_base = 0;
+
+void BIOS_OnResetComplete(Section *x);
 
 class BIOS:public Module_base{
 private:
@@ -3547,6 +3555,8 @@ private:
 		void MEM_A20_Enable(bool enabled);
 		A20Gate_OverrideOn(NULL);
 		MEM_A20_Enable(true);
+
+        BIOS_OnResetComplete(NULL);
 
 		adapter_scan_start = 0xC0000;
 		bios_has_exec_vga_bios = false;
@@ -3861,13 +3871,13 @@ private:
 			if (base == 0) E_Exit("Unable to allocate ISA PnP struct");
 			LOG_MSG("ISA Plug & Play BIOS enabled");
 
-			Bitu call_pnp_r = CALLBACK_Allocate();
-			Bitu call_pnp_rp = PNPentry_real = CALLBACK_RealPointer(call_pnp_r);
+			call_pnp_r = CALLBACK_Allocate();
+			call_pnp_rp = PNPentry_real = CALLBACK_RealPointer(call_pnp_r);
 			CALLBACK_Setup(call_pnp_r,ISAPNP_Handler_RM,CB_RETF,"ISA Plug & Play entry point (real)");
 			//LOG_MSG("real entry pt=%08lx\n",PNPentry_real);
 
-			Bitu call_pnp_p = CALLBACK_Allocate();
-			Bitu call_pnp_pp = PNPentry_prot = CALLBACK_RealPointer(call_pnp_p);
+			call_pnp_p = CALLBACK_Allocate();
+			call_pnp_pp = PNPentry_prot = CALLBACK_RealPointer(call_pnp_p);
 			CALLBACK_Setup(call_pnp_p,ISAPNP_Handler_PM,CB_RETF,"ISA Plug & Play entry point (protected)");
 			//LOG_MSG("prot entry pt=%08lx\n",PNPentry_prot);
 
@@ -4785,6 +4795,7 @@ void swapInNextDisk(bool pressed);
 void swapInNextCD(bool pressed);
 
 void INT10_OnResetComplete();
+void CALLBACK_DeAllocate(Bitu in);
 
 void BIOS_OnResetComplete(Section *x) {
     INT10_OnResetComplete();
@@ -4792,6 +4803,18 @@ void BIOS_OnResetComplete(Section *x) {
     if (biosConfigSeg != 0) {
         ROMBIOS_FreeMemory(biosConfigSeg << 4); /* remember it was alloc'd paragraph aligned, then saved >> 4 */
         biosConfigSeg = 0;
+    }
+
+    call_pnp_rp = 0;
+    if (call_pnp_r != ~0UL) {
+        CALLBACK_DeAllocate(call_pnp_r);
+        call_pnp_r = ~0UL;
+    }
+
+    call_pnp_pp = 0;
+    if (call_pnp_p != ~0UL) {
+        CALLBACK_DeAllocate(call_pnp_p);
+        call_pnp_p = ~0UL;
     }
 }
 

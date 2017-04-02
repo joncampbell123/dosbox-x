@@ -67,6 +67,9 @@ Bitu CALLBACK_Allocate(void) {
 }
 
 void CALLBACK_DeAllocate(Bitu in) {
+    assert(in != 0);
+    assert(in < CB_MAX);
+
 	CallBack_Handlers[in]=&illegal_handler;
 	CALLBACK_SetDescription(in,NULL);
 }
