@@ -888,6 +888,18 @@ static ISAPNP_SysDevNode*	ISAPNP_SysDevNodes[MAX_ISA_PNP_SYSDEVNODES] = {NULL};
 static Bitu			ISAPNP_SysDevNodeLargest=0;
 static Bitu			ISAPNP_SysDevNodeCount=0;
 
+void ISA_PNP_FreeAllSysNodeDevs() {
+	Bitu i;
+
+	for (i=0;i < MAX_ISA_PNP_SYSDEVNODES;i++) {
+		if (ISAPNP_SysDevNodes[i] != NULL) delete ISAPNP_SysDevNodes[i];
+		ISAPNP_SysDevNodes[i] = NULL;
+	}
+
+	ISAPNP_SysDevNodeLargest=0;
+	ISAPNP_SysDevNodeCount=0;
+}
+
 void ISA_PNP_FreeAllDevs() {
 	Bitu i;
 
@@ -4871,6 +4883,8 @@ void BIOS_OnResetComplete(Section *x) {
 
     MOUSE_Unsetup_DOS();
     MOUSE_Unsetup_BIOS();
+
+    ISA_PNP_FreeAllSysNodeDevs();
 }
 
 void BIOS_Init() {
