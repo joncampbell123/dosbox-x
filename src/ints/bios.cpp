@@ -4779,6 +4779,11 @@ void INT10_OnResetComplete();
 
 void BIOS_OnResetComplete(Section *x) {
     INT10_OnResetComplete();
+
+    if (biosConfigSeg != 0) {
+        ROMBIOS_FreeMemory(biosConfigSeg << 4); /* remember it was alloc'd paragraph aligned, then saved >> 4 */
+        biosConfigSeg = 0;
+    }
 }
 
 void BIOS_Init() {
