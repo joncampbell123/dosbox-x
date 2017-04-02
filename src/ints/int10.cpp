@@ -741,12 +741,25 @@ extern Bitu VGA_BIOS_Size;
 extern Bitu VGA_BIOS_SEG;
 extern Bitu VGA_BIOS_SEG_END;
 extern bool VIDEO_BIOS_disable;
+extern Bitu BIOS_VIDEO_TABLE_LOCATION;
+extern Bitu BIOS_VIDEO_TABLE_SIZE;
+
+bool ROMBIOS_FreeMemory(Bitu phys);
+Bitu RealToPhys(Bitu x);
 
 bool MEM_unmap_physmem(Bitu start,Bitu end);
 
 void INT10_OnResetComplete() {
     if (VGA_BIOS_Size > 0)
         MEM_unmap_physmem(0xC0000,0xC0000+VGA_BIOS_Size-1);
+
+    /* free the table */
+    BIOS_VIDEO_TABLE_SIZE = 0;
+    if (BIOS_VIDEO_TABLE_LOCATION != (~0U) && BIOS_VIDEO_TABLE_LOCATION != 0) {
+        LOG(LOG_MISC,LOG_DEBUG)("INT 10h freeing BIOS VIDEO TABLE LOCATION");
+        ROMBIOS_FreeMemory(RealToPhys(BIOS_VIDEO_TABLE_LOCATION));
+        BIOS_VIDEO_TABLE_LOCATION = ~0;		// RealMake(0xf000,0xf0a4)
+    }
 }
 
 void INT10_Startup(Section *sec) {
