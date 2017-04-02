@@ -1988,6 +1988,9 @@ void CPU_Snap_Back_To_Real_Mode() {
     CPU_SET_CRX(2,0);	/* disable paging */
     CPU_SET_CRX(3,0);	/* clear the page table dir */
 
+    cpu.idt.SetBase(0);         /* or ELSE weird things will happen when INTerrupts are run */
+    cpu.idt.SetLimit(1023);
+
     snap_cpu_snapped = true;
 }
 
