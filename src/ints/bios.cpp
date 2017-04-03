@@ -1126,7 +1126,7 @@ void ISAPNP_Cfg_Reset(Section *sec) {
 		APM_BIOS_minor_version);
 
 	if (APMBIOS && (APMBIOS_allow_prot16 || APMBIOS_allow_prot32) && INT15_apm_pmentry == 0) {
-		Bitu cb;
+		Bitu cb,base;
 
 		/* NTS: This is... kind of a terrible hack. It basically tricks Windows into executing our
 		 *      INT 15h handler as if the APM entry point. Except that instead of an actual INT 15h
@@ -1140,7 +1140,48 @@ void ISAPNP_Cfg_Reset(Section *sec) {
 		INT15_apm_pmentry = CALLBACK_RealPointer(cb);
 		LOG_MSG("Allocated APM BIOS pm entry point at %04x:%04x\n",INT15_apm_pmentry>>16,INT15_apm_pmentry&0xFFFF);
 		CALLBACK_Setup(cb,INT15_Handler,CB_RETF,"APM BIOS protected mode entry point");
-	}
+
+        /* NTS: Actually INT15_Handler is written to act like an interrupt (IRETF) type callback.
+         *      Prior versions hacked this into something that responds by CB_RETF, however some
+         *      poking around reveals that CALLBACK_SCF and friends still assume an interrupt
+         *      stack, thus, the cause of random crashes in Windows was simply that we were
+         *      flipping flag bits in the middle of the return address on the stack. The other
+         *      source of random crashes is that the CF/ZF manipulation in INT 15h wasn't making
+         *      it's way back to Windows, meaning that when APM BIOS emulation intended to return
+         *      an error (by setting CF), Windows didn't get the memo (CF wasn't set on return)
+         *      and acted as if the call succeeded, or worse, CF happened to be set on entry and
+         *      was never cleared by APM BIOS emulation.
+         *
+         *      So what we need is:
+         *
+         *      PUSHF           ; put flags in right place
+         *      PUSH    BP      ; dummy FAR pointer
+         *      PUSH    BP      ; again
+         *      <callback>
+         *      POP     BP      ; drop it
+         *      POP     BP      ; drop it
+         *      POPF
+         *      RETF
+         *
+         *      Then CALLBACK_SCF can work normally this way.
+         *
+         * NTS: We *still* need to separate APM BIOS calls from the general INT 15H emulation though... */
+        base = Real2Phys(INT15_apm_pmentry);
+        LOG_MSG("Writing code to %05x\n",(unsigned int)base);
+
+        phys_writeb(base+0x00,0x9C);                             /* pushf */
+        phys_writeb(base+0x01,0x55);                             /* push (e)bp */
+        phys_writeb(base+0x02,0x55);                             /* push (e)bp */
+
+        phys_writeb(base+0x03,(Bit8u)0xFE);						//GRP 4
+        phys_writeb(base+0x04,(Bit8u)0x38);						//Extra Callback instruction
+        phys_writew(base+0x05,(Bit16u)cb);               		//The immediate word
+
+        phys_writeb(base+0x07,0x5D);                             /* pop (e)bp */
+        phys_writeb(base+0x08,0x5D);                             /* pop (e)bp */
+        phys_writeb(base+0x09,0x9D);                             /* popf */
+        phys_writeb(base+0x0A,0xCB);                             /* retf */
+    }
 }
 
 void ISAPNP_Cfg_Init() {
@@ -2886,7 +2927,7 @@ static Bitu INT15_Handler(void) {
 		break;
 	case 0x53: // APM BIOS
 		if (APMBIOS) {
-//			LOG_MSG("APM BIOS call AX=%04x BX=0x%04x CX=0x%04x\n",reg_ax,reg_bx,reg_cx);
+			LOG(LOG_BIOS,LOG_DEBUG)("APM BIOS call AX=%04x BX=0x%04x CX=0x%04x\n",reg_ax,reg_bx,reg_cx);
 			switch(reg_al) {
 				case 0x00: // installation check
 					reg_ah = 1;				// major

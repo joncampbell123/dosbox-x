@@ -152,24 +152,54 @@ void CALLBACK_RunRealInt(Bit8u intnum) {
 }
 
 void CALLBACK_SZF(bool val) {
-	Bit16u tempf = mem_readw(SegPhys(ss)+reg_sp+4);
-	if (val) tempf |= FLAG_ZF;
-	else tempf &= ~FLAG_ZF;
-	mem_writew(SegPhys(ss)+reg_sp+4,tempf);
+    Bitu tempf;
+
+    if (cpu.stack.big)
+        tempf = mem_readd(SegPhys(ss)+reg_esp+8); // first word past FAR 32:32
+    else
+        tempf = mem_readw(SegPhys(ss)+reg_sp+4); // first word past FAR 16:16
+
+    if (val) tempf |= FLAG_ZF;
+    else tempf &= ~FLAG_ZF;
+
+    if (cpu.stack.big)
+        mem_writed(SegPhys(ss)+reg_esp+8,tempf);
+    else
+        mem_writew(SegPhys(ss)+reg_sp+4,tempf);
 }
 
 void CALLBACK_SCF(bool val) {
-	Bit16u tempf = mem_readw(SegPhys(ss)+reg_sp+4);
-	if (val) tempf |= FLAG_CF;
-	else tempf &= ~FLAG_CF;
-	mem_writew(SegPhys(ss)+reg_sp+4,tempf);
+    Bitu tempf;
+
+    if (cpu.stack.big)
+        tempf = mem_readd(SegPhys(ss)+reg_esp+8); // first word past FAR 32:32
+    else
+        tempf = mem_readw(SegPhys(ss)+reg_sp+4); // first word past FAR 16:16
+
+    if (val) tempf |= FLAG_CF;
+    else tempf &= ~FLAG_CF;
+
+    if (cpu.stack.big)
+        mem_writed(SegPhys(ss)+reg_esp+8,tempf);
+    else
+        mem_writew(SegPhys(ss)+reg_sp+4,tempf);
 }
 
 void CALLBACK_SIF(bool val) {
-	Bit16u tempf = mem_readw(SegPhys(ss)+reg_sp+4);
-	if (val) tempf |= FLAG_IF;
-	else tempf &= ~FLAG_IF;
-	mem_writew(SegPhys(ss)+reg_sp+4,tempf);
+    Bitu tempf;
+
+    if (cpu.stack.big)
+        tempf = mem_readd(SegPhys(ss)+reg_esp+8); // first word past FAR 32:32
+    else
+        tempf = mem_readw(SegPhys(ss)+reg_sp+4); // first word past FAR 16:16
+
+    if (val) tempf |= FLAG_IF;
+    else tempf &= ~FLAG_IF;
+
+    if (cpu.stack.big)
+        mem_writed(SegPhys(ss)+reg_esp+8,tempf);
+    else
+        mem_writew(SegPhys(ss)+reg_sp+4,tempf);
 }
 
 void CALLBACK_SetDescription(Bitu nr, const char* descr) {
