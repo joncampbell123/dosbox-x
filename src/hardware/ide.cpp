@@ -247,6 +247,7 @@ public:
 	bool int13fakev86io;		/* on certain INT 13h calls in virtual 8086 mode, trigger fake CPU I/O traps */
 	bool enable_pio32;		/* enable 32-bit PIO (if disabled, attempts at 32-bit PIO are handled as if two 16-bit I/O) */
 	bool ignore_pio32;		/* if 32-bit PIO enabled, but ignored, writes do nothing, reads return 0xFFFFFFFF */
+	bool register_pnp;
 	unsigned short alt_io;
 	unsigned short base_io;
 	unsigned char interface_index;
@@ -264,6 +265,7 @@ public:
 	double cd_insertion_time;
 public:
 	IDEController(Section* configuration,unsigned char index);
+    void register_isapnp();
 	void install_io_port();
 	void raise_irq();
 	void lower_irq();
@@ -3444,7 +3446,6 @@ void IDEDevice::select(uint8_t ndh,bool switched_to) {
 
 IDEController::IDEController(Section* configuration,unsigned char index):Module_base(configuration){
 	Section_prop * section=static_cast<Section_prop *>(configuration);
-	bool register_pnp = false;
 	int i;
 
 	register_pnp = section->Get_bool("pnp");
@@ -3486,7 +3487,9 @@ IDEController::IDEController(Section* configuration,unsigned char index):Module_
 		if (IRQ < 0 || alt_io == 0 || base_io == 0)
 			LOG_MSG("WARNING: IDE interface %u: Insufficient resources assigned by dosbox.conf, and no appropriate default resources for this interface.",index);
 	}
+}
 
+void IDEController::register_isapnp() {
 	if (register_pnp && base_io > 0 && alt_io > 0) {
 		unsigned char tmp[256];
 		unsigned int i;
@@ -3888,5 +3891,12 @@ void IDE_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing IDE controllers");
 
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(IDE_OnReset));
+}
+
+void BIOS_Post_register_IDE() {
+	for (size_t i=0;i < MAX_IDE_CONTROLLERS;i++) {
+        if (idecontroller[i] != NULL)
+            idecontroller[i]->register_isapnp();
+    }
 }
 

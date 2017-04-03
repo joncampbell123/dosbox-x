@@ -4145,6 +4145,9 @@ private:
 
 			void BIOS_Post_register_comports_PNP();
 			BIOS_Post_register_comports_PNP();
+
+            void BIOS_Post_register_IDE();
+            BIOS_Post_register_IDE();
 		}
 
 		return CBRET_NONE;
