@@ -861,6 +861,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 		switch (atapi_cmd[0]) {
 			case 0x00: /* TEST UNIT READY */
 			case 0x03: /* REQUEST SENSE */
+                allow_writing = true;
 				break; /* do not delay */
 			default:
 				PIC_AddEvent(IDE_DelayedCommand,100/*ms*/,controller->interface_index);
@@ -871,6 +872,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 		switch (atapi_cmd[0]) {
 			case 0x00: /* TEST UNIT READY */
 			case 0x03: /* REQUEST SENSE */
+                allow_writing = true;
 				break; /* do not delay */
 			default:
 				if (!common_spinup_response(/*spin up*/true,/*wait*/false)) {
@@ -879,7 +881,8 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 					feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
 					status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
 					controller->raise_irq();
-					return;
+                    allow_writing = true;
+                    return;
 				}
 				break;
 		}
@@ -899,7 +902,8 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			lba[1] = sector_total;
 
 			controller->raise_irq();
-			break;
+            allow_writing = true;
+            break;
 		case 0x1E: /* PREVENT ALLOW MEDIUM REMOVAL */
 			count = 0x03;
 			feature = 0x00;
@@ -914,6 +918,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			lba[1] = sector_total;
 
 			controller->raise_irq();
+            allow_writing = true;
 			break;
 		case 0x25: /* READ CAPACITY */ {
 			const unsigned int secsize = 2048;
@@ -947,6 +952,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			lba[1] = sector_total;
 
 			controller->raise_irq();
+            allow_writing = true;
 			} break;
 		case 0x2B: /* SEEK */
 			count = 0x03;
@@ -980,6 +986,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			lba[1] = sector_total;
 
 			controller->raise_irq();
+            allow_writing = true;
 			break;
 		case 0x12: /* INQUIRY */
 			/* NTS: the state of atapi_to_host doesn't seem to matter. */
@@ -995,6 +1002,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			lba[1] = sector_total;
 
 			controller->raise_irq();
+            allow_writing = true;
 			break;
 		case 0x28: /* READ(10) */
 		case 0xA8: /* READ(12) */
@@ -1035,6 +1043,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			lba[1] = sector_total;
 
 			controller->raise_irq();
+            allow_writing = true;
 			break;
 		case 0x42: /* READ SUB-CHANNEL */
 			read_subchannel();
@@ -1048,6 +1057,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			lba[1] = sector_total;
 
 			controller->raise_irq();
+            allow_writing = true;
 			break;
 		case 0x43: /* READ TOC */
 			read_toc();
@@ -1061,6 +1071,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			lba[1] = sector_total;
 
 			controller->raise_irq();
+            allow_writing = true;
 			break;
 		case 0x45: /* PLAY AUDIO(10) */
 			play_audio10();
@@ -1076,6 +1087,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			lba[1] = sector_total;
 
 			controller->raise_irq();
+            allow_writing = true;
 			break;
 		case 0x47: /* PLAY AUDIO MSF */
 			play_audio_msf();
@@ -1091,6 +1103,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			lba[1] = sector_total;
 
 			controller->raise_irq();
+            allow_writing = true;
 			break;
 		case 0x4B: /* PAUSE/RESUME */
 			pause_resume();
@@ -1106,6 +1119,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			lba[1] = sector_total;
 
 			controller->raise_irq();
+            allow_writing = true;
 			break;
 		case 0x55: /* MODE SELECT(10) */
 			/* we need the data written first, will act in I/O completion routine */
@@ -1128,6 +1142,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			state = IDE_DEV_DATA_WRITE;
 			status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ|IDE_STATUS_DRIVE_SEEK_COMPLETE;
 			controller->raise_irq();
+            allow_writing = true;
 			break;
 		case 0x5A: /* MODE SENSE(10) */
 			mode_sense();
@@ -1141,11 +1156,13 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			lba[1] = sector_total;
 
 			controller->raise_irq();
+            allow_writing = true;
 			break;
 		default:
 			LOG_MSG("Unknown ATAPI command after busy wait. Why?\n");
 			abort_error();
 			controller->raise_irq();
+            allow_writing = true;
 			break;
 	};
 
@@ -1463,6 +1480,7 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 			feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
 			status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
 			controller->raise_irq();
+			allow_writing = true;
 			break;
 		case 0x03: /* REQUEST SENSE */
 			count = 0x02;
@@ -1496,7 +1514,8 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 				feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
 				status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
 				controller->raise_irq();
-			}
+                allow_writing = true;
+            }
 			break;
 		case 0x12: /* INQUIRY */
 			count = 0x02;
@@ -1542,7 +1561,8 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 				feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
 				status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
 				controller->raise_irq();
-			}
+                allow_writing = true;
+            }
 			break;
 		case 0x28: /* READ(10) */
 			if (common_spinup_response(/*spin up*/true,/*wait*/true)) {
@@ -1580,7 +1600,8 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 				feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
 				status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
 				controller->raise_irq();
-			}
+                allow_writing = true;
+            }
 			break;
 		case 0x42: /* READ SUB-CHANNEL */
 			if (common_spinup_response(/*spin up*/true,/*wait*/true)) {
@@ -1597,7 +1618,8 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 				feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
 				status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
 				controller->raise_irq();
-			}
+                allow_writing = true;
+            }
 			break;
 		case 0x43: /* READ TOC */
 			if (common_spinup_response(/*spin up*/true,/*wait*/true)) {
@@ -1614,7 +1636,8 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 				feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
 				status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
 				controller->raise_irq();
-			}
+                allow_writing = true;
+            }
 			break;
 		case 0x45: /* PLAY AUDIO (1) */
 		case 0x47: /* PLAY AUDIO MSF */
@@ -1633,7 +1656,8 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 				feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
 				status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
 				controller->raise_irq();
-			}
+                allow_writing = true;
+            }
 			break;
 		case 0x55: /* MODE SELECT(10) */
 			count = 0x00;	/* we will be accepting data */
@@ -1657,6 +1681,7 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 			count = 0x03; /* no more data (command/data=1, input/output=1) */
 			feature = 0xF4;
 			controller->raise_irq();
+			allow_writing = true;
 			break;
 	};
 }
