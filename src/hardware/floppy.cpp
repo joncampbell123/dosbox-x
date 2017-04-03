@@ -70,6 +70,7 @@ public:
 	bool busy_status;		/* 0x3F4 bit 4 (BUSY). By "busy" the floppy controller is in the middle of an instruction */
 	bool positioning[4];		/* 0x3F4 bit 0-3 floppy A...D in positioning mode */
 	bool irq_pending;
+	bool register_pnp;
 /* FDC internal registers */
 	uint8_t ST[4];			/* ST0..ST3 */
 	uint8_t current_cylinder[4];
@@ -86,6 +87,7 @@ public:
 	bool in_cmd_state;
 	bool out_res_state;
 public:
+    void register_isapnp();
 	bool dma_irq_enabled();
 	int drive_selected();
 	void reset_cmd();
@@ -350,57 +352,7 @@ void FloppyController::reset_res() {
 	out_res_state=false;
 }
 
-FloppyController::FloppyController(Section* configuration,unsigned char index):Module_base(configuration){
-	Section_prop * section=static_cast<Section_prop *>(configuration);
-	bool register_pnp = false;
-	int i;
-
-	fdc_motor_step_delay = 400.0f / 80; /* FIXME: Based on 400ms seek time from track 0 to 80 */
-	interface_index = index;
-	data_register_ready = 1;
-	data_read_expected = 0;
-	non_dma_mode = 0;
-	busy_status = 0;
-	for (i=0;i < 4;i++) positioning[i] = false;
-	for (i=0;i < 4;i++) ST[i] = 0x00;
-	reset_io();
-
-	digital_output_register = 0;
-	device[0] = NULL;
-	device[1] = NULL;
-	device[2] = NULL;
-	device[3] = NULL;
-	base_io = 0;
-	IRQ = -1;
-	DMA = -1;
-
-	update_ST3();
-
-	int13fakev86io = section->Get_bool("int13fakev86io");
-	instant_mode = section->Get_bool("instant mode");
-	register_pnp = section->Get_bool("pnp");
-
-	i = section->Get_int("irq");
-	if (i > 0 && i <= 15) IRQ = i;
-
-	i = section->Get_int("dma");
-	if (i >= 0 && i <= 15) DMA = i;
-
-	i = section->Get_hex("io");
-	if (i >= 0x100 && i <= 0x3FF) base_io = i & ~7;
-
-	if (IRQ < 0) IRQ = 6;
-	if (DMA < 0) DMA = 2;
-
-	dma = GetDMAChannel(DMA);
-
-	if (base_io == 0) {
-		if (index == 0) base_io = 0x3F0;
-	}
-	else if (base_io == 1) {
-		if (index == 0) base_io = 0x370;
-	}
-
+void FloppyController::register_isapnp() {
 	if (register_pnp && base_io > 0) {
 		unsigned char tmp[256];
 		unsigned int i;
@@ -459,6 +411,57 @@ FloppyController::FloppyController(Section* configuration,unsigned char index):M
 
 		if (!ISAPNP_RegisterSysDev(tmp,i))
 			LOG_MSG("ISAPNP register failed\n");
+	}
+}
+
+FloppyController::FloppyController(Section* configuration,unsigned char index):Module_base(configuration){
+	Section_prop * section=static_cast<Section_prop *>(configuration);
+	int i;
+
+	fdc_motor_step_delay = 400.0f / 80; /* FIXME: Based on 400ms seek time from track 0 to 80 */
+	interface_index = index;
+	data_register_ready = 1;
+	data_read_expected = 0;
+	non_dma_mode = 0;
+	busy_status = 0;
+	for (i=0;i < 4;i++) positioning[i] = false;
+	for (i=0;i < 4;i++) ST[i] = 0x00;
+	reset_io();
+
+	digital_output_register = 0;
+	device[0] = NULL;
+	device[1] = NULL;
+	device[2] = NULL;
+	device[3] = NULL;
+	base_io = 0;
+	IRQ = -1;
+	DMA = -1;
+
+	update_ST3();
+
+	int13fakev86io = section->Get_bool("int13fakev86io");
+	instant_mode = section->Get_bool("instant mode");
+	register_pnp = section->Get_bool("pnp");
+
+	i = section->Get_int("irq");
+	if (i > 0 && i <= 15) IRQ = i;
+
+	i = section->Get_int("dma");
+	if (i >= 0 && i <= 15) DMA = i;
+
+	i = section->Get_hex("io");
+	if (i >= 0x100 && i <= 0x3FF) base_io = i & ~7;
+
+	if (IRQ < 0) IRQ = 6;
+	if (DMA < 0) DMA = 2;
+
+	dma = GetDMAChannel(DMA);
+
+	if (base_io == 0) {
+		if (index == 0) base_io = 0x3F0;
+	}
+	else if (base_io == 1) {
+		if (index == 0) base_io = 0x370;
 	}
 }
 
@@ -1258,5 +1261,12 @@ void FloppyController::raise_irq() {
 void FloppyController::lower_irq() {
 	irq_pending = false;
 	if (IRQ >= 0) PIC_DeActivateIRQ(IRQ);
+}
+
+void BIOS_Post_register_FDC() {
+	for (size_t i=0;i < MAX_FLOPPY_CONTROLLERS;i++) {
+        if (floppycontroller[i] != NULL)
+            floppycontroller[i]->register_isapnp();
+    }
 }
 

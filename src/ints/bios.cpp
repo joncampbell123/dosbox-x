@@ -4148,6 +4148,9 @@ private:
 
             void BIOS_Post_register_IDE();
             BIOS_Post_register_IDE();
+
+            void BIOS_Post_register_FDC();
+            BIOS_Post_register_FDC();
 		}
 
 		return CBRET_NONE;
