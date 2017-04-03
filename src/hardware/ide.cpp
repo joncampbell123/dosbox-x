@@ -3747,6 +3747,16 @@ static void ide_baseio_w(Bitu port,Bitu val,Bitu iolen) {
 		}
 	}
 
+#if 0
+    if (ide == idecontroller[1])
+        LOG_MSG("IDE: baseio write port %u val %02x\n",(unsigned int)port,(unsigned int)val);
+#endif
+
+    if (port >= 1 && port <= 5 && dev && !dev->allow_writing) {
+        LOG_MSG("IDE WARNING: Write to port %u val %02x when device not ready to accept writing\n",
+            (unsigned int)port,(unsigned int)val);
+    }
+
 	switch (port) {
 		case 0:	/* 1F0 */
 			if (dev) dev->data_write(val,iolen); /* <- TODO: what about 32-bit PIO modes? */
