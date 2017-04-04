@@ -2081,7 +2081,18 @@ ASP>
 }
 
 static bool DSP_busy_cycle_active() {
-	return (sb.mode == MODE_DMA) || sb.busy_cycle_always;
+    /* NTS: Busy cycle happens on SB16 at all times, or on earlier cards, only when the DSP is
+     *      fetching/writing data via the ISA DMA channel. So a non-auto-init DSP block that's
+     *      just finished fetching ISA DMA and is playing from the FIFO doesn't count.
+     *
+     *      sb.dma.left >= sb.dma.min condition causes busy cycle to stop 3ms early (by default).
+     *      This helps realism.
+     *
+     *      This also helps Crystal Dream, which uses the busy cycle to detect when the Sound
+     *      Blaster is about to finish playing the DSP block and therefore needs the same 3ms
+     *      "dmamin" hack to reissue another playback command without any audible hiccups in
+     *      the audio. */
+	return (sb.mode == MODE_DMA && (sb.dma.autoinit || sb.dma.left >= sb.dma.min)) || sb.busy_cycle_always;
 }
 
 static bool DSP_busy_cycle() {
