@@ -919,9 +919,22 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo,bool dontInit
 	if (sb.dma.stereo) sb.dma.mul*=2;
 	sb.dma.rate=(sb.dma_dac_srcrate*sb.dma.mul) >> SB_SH;
 	sb.dma.min=(sb.dma.rate*(sb.min_dma_user >= 0 ? sb.min_dma_user : /*default*/3))/1000;
-	if (sb.dma_dac_mode && sb.goldplay_stereo) {
-		sb.chan->SetFreq(sb.dma_dac_srcrate);
-		updateSoundBlasterFilter(sb.dma_dac_srcrate);
+	if (sb.dma_dac_mode && sb.goldplay_stereo && (stereo || sb.mixer.sbpro_stereo)) {
+        /* explanation: the purpose of Goldplay stereo mode is to compensate for the fact
+         * that demos using this method of playback know to set the SB Pro stereo bit, BUT,
+         * apparently did not know that they needed to double the sample rate when
+         * computing the DSP time constant. Such demos sound "OK" on Sound Blaster Pro but
+         * have audible aliasing artifacts because of this. The Goldplay Stereo hack
+         * detects this condition and doubles the sample rate to better capture what the
+         * demo is *trying* to do. NTS: sb.freq is the raw sample rate given by the
+         * program, before it is divided by two for stereo.
+         *
+         * Of course, some demos like Crystal Dream take the approach of just setting the
+         * sample rate to the max supported by the card and then letting it's timer interrupt
+         * define the sample rate. So of course anything below 44.1KHz sounds awful. */
+//        LOG(LOG_SB,LOG_DEBUG)("Goldplay stereo hack. freq=%u rawfreq=%u",(unsigned int)freq,(unsigned int)sb.freq);
+		sb.chan->SetFreq(sb.freq);
+		updateSoundBlasterFilter(freq); /* BUT, you still filter like the actual sample rate */
 	}
 	else {
 		sb.chan->SetFreq(freq);
