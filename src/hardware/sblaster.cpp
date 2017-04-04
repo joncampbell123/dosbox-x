@@ -138,6 +138,7 @@ struct SB_INFO {
 	bool emit_blaster_var;
 	bool sbpro_stereo_bit_strict_mode; /* if set, stereo bit in mixer can only be set if emulating a Pro. if clear, SB16 can too */
 	bool sample_rate_limits; /* real SB hardware has limits on the sample rate */
+    bool single_sample_dma;
 	bool dma_dac_mode; /* some very old DOS demos "play" sound by setting the DMA terminal count to 0.
 			      normally that would mean the DMA controller transmitting the same byte at the sample rate,
 			      except that the program creates sound by overwriting that byte periodically.
@@ -862,14 +863,19 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo,bool dontInit
 	 *    Triton - Crystal Dream (1992) [SB and SB Pro modes]
 	 *    The Jungly (1992) [SB and SB Pro modes]
 	 */
+    if (sb.dma.chan != NULL &&
+		sb.dma.chan->basecnt < ((mode==DSP_DMA_16_ALIASED?2:1)*((stereo || sb.mixer.sbpro_stereo)?2:1))/*size of one sample in DMA counts*/)
+        sb.single_sample_dma = 1;
+    else
+        sb.single_sample_dma = 0;
+
 	if (sb.dsp.force_goldplay) {
 		sb.dma_dac_srcrate=freq;
 		sb.dma_dac_mode=1;
 	}
 	/* NTS: Besides computing sample size from stereo we also take into consideration whether
 	 *      or not the DOS game is TRYING to use sbpro stereo (even if we're ignoring it) */
-	else if (sb.goldplay && sb.freq > 0 && sb.dma.chan != NULL &&
-		sb.dma.chan->basecnt < ((mode==DSP_DMA_16_ALIASED?2:1)*((stereo || sb.mixer.sbpro_stereo)?2:1))/*size of one sample in DMA counts*/) {
+	else if (sb.goldplay && sb.freq > 0 && sb.single_sample_dma) {
 		sb.dma_dac_srcrate=sb.freq;
 		sb.dma_dac_mode=1;
 	}
@@ -919,7 +925,7 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo,bool dontInit
 	if (sb.dma.stereo) sb.dma.mul*=2;
 	sb.dma.rate=(sb.dma_dac_srcrate*sb.dma.mul) >> SB_SH;
 	sb.dma.min=(sb.dma.rate*(sb.min_dma_user >= 0 ? sb.min_dma_user : /*default*/3))/1000;
-	if (sb.dma_dac_mode && sb.goldplay_stereo && (stereo || sb.mixer.sbpro_stereo)) {
+	if (sb.dma_dac_mode && sb.goldplay_stereo && (stereo || sb.mixer.sbpro_stereo) && sb.single_sample_dma) {
         /* explanation: the purpose of Goldplay stereo mode is to compensate for the fact
          * that demos using this method of playback know to set the SB Pro stereo bit, BUT,
          * apparently did not know that they needed to double the sample rate when
@@ -1149,7 +1155,9 @@ static void DSP_Reset(void) {
 	sb.dsp.write_busy=0;
 	sb.ess_extended_mode = false;
 	sb.ess_playback_mode = false;
-	PIC_RemoveEvents(DSP_FinishReset);
+    sb.single_sample_dma = 0;
+    sb.dma_dac_mode = 0;
+    PIC_RemoveEvents(DSP_FinishReset);
 	PIC_RemoveEvents(DSP_BusyComplete);
 
 	sb.dma.left=0;
