@@ -1915,16 +1915,19 @@ private:
 	IO_WriteHandleObject WriteCS4231Handler[4];
 	AutoexecObject autoexecline[3];
 	MixerObject MixerChan;
+    bool gus_enable;
 public:
 	GUS(Section* configuration):Module_base(configuration){
 		int x;
 
-		if(!IS_EGAVGA_ARCH) return;
-		Section_prop * section=static_cast<Section_prop *>(configuration);
-		if(!section->Get_bool("gus")) return;
-	
-		memset(&myGUS,0,sizeof(myGUS));
-		memset(GUSRam,0,1024*1024);
+        gus_enable = false;
+        if(!IS_EGAVGA_ARCH) return;
+        Section_prop * section=static_cast<Section_prop *>(configuration);
+        if(!section->Get_bool("gus")) return;
+
+        gus_enable = true;
+        memset(&myGUS,0,sizeof(myGUS));
+        memset(GUSRam,0,1024*1024);
 
 		string s_pantable = section->Get_string("gus panning table");
 		if (s_pantable == "default" || s_pantable == "" || s_pantable == "accurate")
@@ -2111,6 +2114,8 @@ public:
 
     void DOS_Startup() {
 		int portat = 0x200+GUS_BASE;
+
+        if (!gus_enable) return;
 
 		// ULTRASND=Port,DMA1,DMA2,IRQ1,IRQ2
 		// [GUS port], [GUS DMA (recording)], [GUS DMA (playback)], [GUS IRQ (playback)], [GUS IRQ (MIDI)]
