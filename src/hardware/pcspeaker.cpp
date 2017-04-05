@@ -394,7 +394,6 @@ void PCSPEAKER_SetType(bool pit_clock_gate_enabled, bool pit_output_enabled) {
 	bool pit_trigger = pit_clock_gate_enabled && !spkr.pit_clock_gate_enabled;
 	spkr.pit_clock_gate_enabled = pit_clock_gate_enabled;
 	spkr.pit_output_enabled     = pit_output_enabled;
-	spkr.last_ticks = PIC_Ticks;
 	if (pit_trigger) {
 		switch (spkr.pit_mode) {
 		case 1:
