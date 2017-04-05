@@ -3503,6 +3503,8 @@ public:
 	}
 
     void DOS_Startup() {
+		if (sb.type==SBT_NONE || sb.type==SBT_GB) return;
+
 		if (sb.emit_blaster_var) {
 			// Create set blaster line
 			ostringstream temp;
