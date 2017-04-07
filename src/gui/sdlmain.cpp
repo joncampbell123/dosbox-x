@@ -724,7 +724,9 @@ void GFX_LogSDLState(void) {
 static SDL_Surface * GFX_SetupSurfaceScaled(Bit32u sdl_flags, Bit32u bpp) {
 	Bit16u fixedWidth;
 	Bit16u fixedHeight;
-
+	if (sdl.desktop.want_type == SCREEN_OPENGL) {
+		sdl_flags |= SDL_OPENGL;
+	}
 	if (sdl.desktop.fullscreen) {
 		fixedWidth = sdl.desktop.full.fixed ? sdl.desktop.full.width : 0;
 		fixedHeight = sdl.desktop.full.fixed ? sdl.desktop.full.height : 0;
@@ -804,6 +806,7 @@ Bitu GFX_SetSize(Bitu width,Bitu height,Bitu flags,double scalex,double scaley,G
 
 	Bitu bpp=0;
 	Bitu retFlags = 0;
+	Uint32 sdl_flags;
 
 	if (sdl.blit.surface) {
 		SDL_FreeSurface(sdl.blit.surface);
@@ -855,7 +858,8 @@ Bitu GFX_SetSize(Bitu width,Bitu height,Bitu flags,double scalex,double scaley,G
 		    sdl.clip.y=(Sint16)((height-sdl.clip.h)/2);
 		}
 		putenv(scale);
-		sdl.surface=SDL_SetVideoMode(width,height,bpp,(sdl.desktop.fullscreen?SDL_FULLSCREEN:0)|SDL_HWSURFACE|SDL_ANYFORMAT);
+		sdl_flags = (sdl.desktop.fullscreen?SDL_FULLSCREEN:0)|SDL_HWSURFACE|SDL_ANYFORMAT;
+		sdl.surface=SDL_SetVideoMode(width,height,bpp,sdl_flags);
 		if (sdl.surface) {
 		    switch (sdl.surface->format->BitsPerPixel) {
 			case 8:retFlags = GFX_CAN_8;break;
@@ -1038,14 +1042,10 @@ dosurface:
 		} else if (sdl.opengl.framebuf) {
 			free(sdl.opengl.framebuf);
 		}
+		SDLScreen_Reset();
+
 		sdl.opengl.framebuf=0;
-		//if (!(flags&GFX_CAN_32) || (flags & GFX_RGBONLY)) goto dosurface;
-		// SDLScreen_Reset();
-		int texsize=2 << int_log2(width > height ? width : height);
-		if (texsize>sdl.opengl.max_texsize) {
-			LOG_MSG("SDL:OPENGL:No support for texturesize of %d (max size is %d), falling back to surface",texsize,sdl.opengl.max_texsize);
-			goto dosurface;
-		}
+
 		SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
 #if SDL_VERSION_ATLEAST(1, 2, 11)
 		Section_prop * sec=static_cast<Section_prop *>(control->GetSection("vsync"));
@@ -1053,9 +1053,18 @@ dosurface:
 			SDL_GL_SetAttribute( SDL_GL_SWAP_CONTROL, (!strcmp(sec->Get_string("vsyncmode"),"host"))?1:0 );
 		}
 #endif
-		GFX_SetupSurfaceScaled(SDL_OPENGL|SDL_RESIZABLE,0);
+		GFX_SetupSurfaceScaled(SDL_RESIZABLE, 0);
 		if (!sdl.surface || sdl.surface->format->BitsPerPixel<15) {
 			LOG_MSG("SDL:OPENGL:Can't open drawing surface, are you running in 16bpp(or higher) mode?");
+			goto dosurface;
+		}
+
+		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &sdl.opengl.max_texsize);
+
+		//if (!(flags&GFX_CAN_32) || (flags & GFX_RGBONLY)) goto dosurface;
+		int texsize=2 << int_log2(width > height ? width : height);
+		if (texsize>sdl.opengl.max_texsize) {
+			LOG_MSG("SDL:OPENGL:No support for texturesize of %d (max size is %d), falling back to surface",texsize,sdl.opengl.max_texsize);
 			goto dosurface;
 		}
 		/* Create the texture and display list */
