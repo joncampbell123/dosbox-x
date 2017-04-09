@@ -809,7 +809,6 @@ static void DrawCode(void) {
 		saveSel = false;
 		if (has_colors()) {
 			if ((codeViewData.useCS==SegValue(cs)) && (disEIP == reg_eip)) {
-				wattrset(dbg.win_code,COLOR_PAIR(PAIR_GREEN_BLACK));			
 				if (codeViewData.cursorPos==-1) {
 					codeViewData.cursorPos = i; // Set Cursor 
 				}
@@ -818,7 +817,12 @@ static void DrawCode(void) {
 					codeViewData.cursorOfs = disEIP;
 				}
 				saveSel = (i == codeViewData.cursorPos);
-			} else if (i == codeViewData.cursorPos) {
+
+                if (i == codeViewData.cursorPos)
+                    wattrset(dbg.win_code,COLOR_PAIR(PAIR_BLACK_GREEN));
+                else
+                    wattrset(dbg.win_code,COLOR_PAIR(PAIR_GREEN_BLACK));
+            } else if (i == codeViewData.cursorPos) {
 				wattrset(dbg.win_code,COLOR_PAIR(PAIR_BLACK_GREY));			
 				codeViewData.cursorSeg = codeViewData.useCS;
 				codeViewData.cursorOfs = disEIP;
