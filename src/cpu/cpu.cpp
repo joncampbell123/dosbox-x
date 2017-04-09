@@ -3325,8 +3325,8 @@ void CPU_CMPXCHG8B(PhysPt eaa) {
     uint32_t hi,lo;
 
     /* NTS: We assume that, if reading doesn't cause a page fault, writing won't either */
-    hi = (uint64_t)mem_readd(eaa+(PhysPt)4);
-    lo = (uint64_t)mem_readd(eaa);
+    hi = (uint32_t)mem_readd(eaa+(PhysPt)4);
+    lo = (uint32_t)mem_readd(eaa);
 
     LOG_MSG("Experimental CMPXCHG8B implementation executed. EDX:EAX=0x%08lx%08lx ECX:EBX=0x%08lx%08lx EA=0x%08lx MEM64=0x%08lx%08lx",
         (unsigned long)reg_edx,
