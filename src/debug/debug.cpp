@@ -694,32 +694,57 @@ static void DrawData(void) {
 	wrefresh(dbg.win_data);
 };
 
+void DrawRegistersUpdateOld(void) {
+	/* Main Registers */
+	oldregs.eax=reg_eax;
+	oldregs.ebx=reg_ebx;
+	oldregs.ecx=reg_ecx;
+	oldregs.edx=reg_edx;
+
+	oldregs.esi=reg_esi;
+	oldregs.edi=reg_edi;
+	oldregs.ebp=reg_ebp;
+	oldregs.esp=reg_esp;
+	oldregs.eip=reg_eip;
+
+	oldsegs[ds].val=SegValue(ds);
+	oldsegs[es].val=SegValue(es);
+	oldsegs[fs].val=SegValue(fs);
+	oldsegs[gs].val=SegValue(gs);
+	oldsegs[ss].val=SegValue(ss);
+	oldsegs[cs].val=SegValue(cs);
+
+	/*Individual flags*/
+	oldflags = reg_flags;
+
+	oldcpucpl=cpu.cpl;
+}
+
 static void DrawRegisters(void) {
 	if (dbg.win_main == NULL || dbg.win_reg == NULL)
 		return;
 
 	/* Main Registers */
-	SetColor(reg_eax!=oldregs.eax);oldregs.eax=reg_eax;mvwprintw (dbg.win_reg,0,4,"%08X",reg_eax);
-	SetColor(reg_ebx!=oldregs.ebx);oldregs.ebx=reg_ebx;mvwprintw (dbg.win_reg,1,4,"%08X",reg_ebx);
-	SetColor(reg_ecx!=oldregs.ecx);oldregs.ecx=reg_ecx;mvwprintw (dbg.win_reg,2,4,"%08X",reg_ecx);
-	SetColor(reg_edx!=oldregs.edx);oldregs.edx=reg_edx;mvwprintw (dbg.win_reg,3,4,"%08X",reg_edx);
+	SetColor(reg_eax!=oldregs.eax);mvwprintw (dbg.win_reg,0,4,"%08X",reg_eax);
+	SetColor(reg_ebx!=oldregs.ebx);mvwprintw (dbg.win_reg,1,4,"%08X",reg_ebx);
+	SetColor(reg_ecx!=oldregs.ecx);mvwprintw (dbg.win_reg,2,4,"%08X",reg_ecx);
+	SetColor(reg_edx!=oldregs.edx);mvwprintw (dbg.win_reg,3,4,"%08X",reg_edx);
 
-	SetColor(reg_esi!=oldregs.esi);oldregs.esi=reg_esi;mvwprintw (dbg.win_reg,0,18,"%08X",reg_esi);
-	SetColor(reg_edi!=oldregs.edi);oldregs.edi=reg_edi;mvwprintw (dbg.win_reg,1,18,"%08X",reg_edi);
-	SetColor(reg_ebp!=oldregs.ebp);oldregs.ebp=reg_ebp;mvwprintw (dbg.win_reg,2,18,"%08X",reg_ebp);
-	SetColor(reg_esp!=oldregs.esp);oldregs.esp=reg_esp;mvwprintw (dbg.win_reg,3,18,"%08X",reg_esp);
-	SetColor(reg_eip!=oldregs.eip);oldregs.eip=reg_eip;mvwprintw (dbg.win_reg,1,42,"%08X",reg_eip);
-	
-	SetColor(SegValue(ds)!=oldsegs[ds].val);oldsegs[ds].val=SegValue(ds);mvwprintw (dbg.win_reg,0,31,"%04X",SegValue(ds));
-	SetColor(SegValue(es)!=oldsegs[es].val);oldsegs[es].val=SegValue(es);mvwprintw (dbg.win_reg,0,41,"%04X",SegValue(es));
-	SetColor(SegValue(fs)!=oldsegs[fs].val);oldsegs[fs].val=SegValue(fs);mvwprintw (dbg.win_reg,0,51,"%04X",SegValue(fs));
-	SetColor(SegValue(gs)!=oldsegs[gs].val);oldsegs[gs].val=SegValue(gs);mvwprintw (dbg.win_reg,0,61,"%04X",SegValue(gs));
-	SetColor(SegValue(ss)!=oldsegs[ss].val);oldsegs[ss].val=SegValue(ss);mvwprintw (dbg.win_reg,0,71,"%04X",SegValue(ss));
-	SetColor(SegValue(cs)!=oldsegs[cs].val);oldsegs[cs].val=SegValue(cs);mvwprintw (dbg.win_reg,1,31,"%04X",SegValue(cs));
+	SetColor(reg_esi!=oldregs.esi);mvwprintw (dbg.win_reg,0,18,"%08X",reg_esi);
+	SetColor(reg_edi!=oldregs.edi);mvwprintw (dbg.win_reg,1,18,"%08X",reg_edi);
+	SetColor(reg_ebp!=oldregs.ebp);mvwprintw (dbg.win_reg,2,18,"%08X",reg_ebp);
+	SetColor(reg_esp!=oldregs.esp);mvwprintw (dbg.win_reg,3,18,"%08X",reg_esp);
+	SetColor(reg_eip!=oldregs.eip);mvwprintw (dbg.win_reg,1,42,"%08X",reg_eip);
+
+	SetColor(SegValue(ds)!=oldsegs[ds].val);mvwprintw (dbg.win_reg,0,31,"%04X",SegValue(ds));
+	SetColor(SegValue(es)!=oldsegs[es].val);mvwprintw (dbg.win_reg,0,41,"%04X",SegValue(es));
+	SetColor(SegValue(fs)!=oldsegs[fs].val);mvwprintw (dbg.win_reg,0,51,"%04X",SegValue(fs));
+	SetColor(SegValue(gs)!=oldsegs[gs].val);mvwprintw (dbg.win_reg,0,61,"%04X",SegValue(gs));
+	SetColor(SegValue(ss)!=oldsegs[ss].val);mvwprintw (dbg.win_reg,0,71,"%04X",SegValue(ss));
+	SetColor(SegValue(cs)!=oldsegs[cs].val);mvwprintw (dbg.win_reg,1,31,"%04X",SegValue(cs));
 
 	/*Individual flags*/
 	Bitu changed_flags = reg_flags ^ oldflags;
-	oldflags = reg_flags;
 
 	SetColor(changed_flags&FLAG_CF);
 	mvwprintw (dbg.win_reg,1,53,"%01X",GETFLAG(CF) ? 1:0);
@@ -748,7 +773,6 @@ static void DrawRegisters(void) {
 
 	SetColor(cpu.cpl ^ oldcpucpl);
 	mvwprintw (dbg.win_reg,2,78,"%01X",cpu.cpl);
-	oldcpucpl=cpu.cpl;
 
 	if (cpu.pmode) {
 		if (reg_flags & FLAG_VM) mvwprintw(dbg.win_reg,0,76,"VM86");
@@ -1643,6 +1667,7 @@ Bit32u DEBUG_CheckKeys(void) {
 				codeViewData.inputPos = strlen(codeViewData.inputStr);
 				break; 
 		case KEY_F(5):	// Run Program
+                DrawRegistersUpdateOld();
 				debugging=false;
 				CBreakpoint::ActivateBreakpoints(SegPhys(cs)+reg_eip,true);						
 				ignoreAddressOnce = SegPhys(cs)+reg_eip;
@@ -1661,6 +1686,7 @@ Bit32u DEBUG_CheckKeys(void) {
 				}
 				break;
 		case KEY_F(10):	// Step over inst
+                DrawRegistersUpdateOld();
 				if (StepOver()) return 0;
 				else {
 					exitLoop = false;
@@ -1672,6 +1698,7 @@ Bit32u DEBUG_CheckKeys(void) {
 				}
 				break;
 		case KEY_F(11):	// trace into
+                DrawRegistersUpdateOld();
 				exitLoop = false;
 				skipFirstInstruction = true; // for heavy debugger
 				CPU_Cycles = 1;
@@ -1758,7 +1785,8 @@ Bitu DEBUG_Loop(void) {
 		CBreakpoint::ActivateBreakpoints(SegPhys(cs)+reg_eip,true);
 		debugging=false;
 		DOSBOX_SetNormalLoop();
-		return 0;
+        DrawRegistersUpdateOld();
+        return 0;
 	}
 	return DEBUG_CheckKeys();
 }
@@ -1772,7 +1800,8 @@ void DEBUG_Enable(bool pressed) {
     CPU_Cycles=0;
 
 	debugging=true;
-	DEBUG_SetupConsole();
+    DrawRegistersUpdateOld();
+    DEBUG_SetupConsole();
 	SetCodeWinStart();
 	DEBUG_DrawScreen();
 	DOSBOX_SetLoop(&DEBUG_Loop);
