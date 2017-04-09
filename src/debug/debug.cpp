@@ -123,6 +123,7 @@ static Bitu oldflags,oldcpucpl;
 DBGBlock dbg;
 extern Bitu cycle_count;
 static bool debugging = false;
+static bool check_rescroll = false;
 
 
 static void SetColor(Bitu test) {
@@ -1788,6 +1789,21 @@ Bitu DEBUG_Loop(void) {
         DrawRegistersUpdateOld();
         return 0;
 	}
+
+    /* between DEBUG_Enable and DEBUG_Loop CS:EIP can change */
+    if (check_rescroll) {
+        Bitu ocs,oip;
+
+        check_rescroll = false;
+		ocs = codeViewData.useCS;
+		oip = codeViewData.useEIP;
+        SetCodeWinStart();
+        if (ocs != codeViewData.useCS ||
+            oip != codeViewData.useEIP) {
+            DEBUG_DrawScreen();
+        }
+    }
+
 	return DEBUG_CheckKeys();
 }
 
@@ -1800,6 +1816,7 @@ void DEBUG_Enable(bool pressed) {
     CPU_Cycles=0;
 
 	debugging=true;
+    check_rescroll=true;
     DrawRegistersUpdateOld();
     DEBUG_SetupConsole();
 	SetCodeWinStart();
