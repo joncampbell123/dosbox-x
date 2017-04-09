@@ -1792,15 +1792,20 @@ Bitu DEBUG_Loop(void) {
 
     /* between DEBUG_Enable and DEBUG_Loop CS:EIP can change */
     if (check_rescroll) {
-        Bitu ocs,oip;
+        Bitu ocs,oip,ocr;
 
         check_rescroll = false;
 		ocs = codeViewData.useCS;
 		oip = codeViewData.useEIP;
+        ocr = codeViewData.cursorPos;
         SetCodeWinStart();
         if (ocs != codeViewData.useCS ||
             oip != codeViewData.useEIP) {
             DEBUG_DrawScreen();
+        }
+        else {
+            /* SetCodeWinStart() resets cursor position */
+            codeViewData.cursorPos = ocr;
         }
     }
 
