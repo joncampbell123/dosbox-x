@@ -1,7 +1,9 @@
 AM_CPPFLAGS = -I$(top_srcdir)/include
 
 noinst_LIBRARIES = libgui.a
-libgui_a_SOURCES = sdlmain.cpp sdl_mapper.cpp dosbox_logo.h \
+libgui_a_SOURCES = \
+	sdlmain_linux.cpp \
+	sdlmain.cpp sdl_mapper.cpp dosbox_logo.h \
 	render.cpp render_scalers.cpp render_scalers.h \
 	render_templates.h render_loops.h render_simple.h \
 	render_templates_sai.h render_templates_hq.h \
@@ -22,8 +24,4 @@ libgui_a_SOURCES = sdlmain.cpp sdl_mapper.cpp dosbox_logo.h \
 	./freeverb/revmodel.h ./freeverb/tuning.h midi_mt32.h \
 	./sha1/sha1.cpp ./sha1/sha1.h ROMInfo.cpp ROMInfo.h \
 	guid.cpp ksdataformat.cpp riff.cpp riff_wav_writer.cpp avi_rw_iobuf.cpp avi_writer.cpp
-
-if LINUX
-libgui_a_SOURCES += sdlmain_linux.cpp
-endif
 
