@@ -202,10 +202,10 @@ void DEBUG_ShowMsg(char const* format,...) {
 		stderrlog = true;
 
 #if C_DEBUG
-	if (dbg.win_out == NULL)
-		stderrlog = true;
-#else
-	stderrlog = true;
+	if (dbg.win_out != NULL)
+		stderrlog = false;
+    else
+        stderrlog = true;
 #endif
 
 	if (debuglog != NULL) {
