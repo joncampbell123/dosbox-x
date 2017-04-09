@@ -129,6 +129,9 @@ static void MakeSubWindows(void) {
 	/* Make all the subwindows */
 	int win_main_maxy, win_main_maxx; getmaxyx(dbg.win_main,win_main_maxy,win_main_maxx);
 	int outy=1; //Match values with above
+
+    LOG_MSG("DEBUG: MakeSubWindows dim x=%u y=%u",win_main_maxx,win_main_maxy);
+
 	/* The Register window  */
 	dbg.win_reg=subwin(dbg.win_main,4,win_main_maxx,outy,0);
 	outy+=5; // 6
@@ -142,7 +145,7 @@ static void MakeSubWindows(void) {
 	dbg.win_var=subwin(dbg.win_main,4,win_main_maxx,outy,0);
 	outy+=5; // 34
 	/* The Output Window */	
-	dbg.win_out=subwin(dbg.win_main,win_main_maxy-outy-2,win_main_maxx,outy,0);
+	dbg.win_out=subwin(dbg.win_main,win_main_maxy-outy,win_main_maxx,outy,0);
 	if(!dbg.win_reg ||!dbg.win_data || !dbg.win_code || !dbg.win_var || !dbg.win_out) E_Exit("Setting up windows failed");
 //	dbg.input_y=win_main_maxy-1;
 	scrollok(dbg.win_out,TRUE);
@@ -169,9 +172,6 @@ void DBGUI_StartUp(void) {
 	nodelay(dbg.win_main,true);
 	keypad(dbg.win_main,true);
 	#ifndef WIN32
-	printf("\e[8;50;80t");
-	fflush(NULL);
-	resizeterm(50,80);
 	touchwin(dbg.win_main);
 	#endif
 	old_cursor_state = curs_set(0);
