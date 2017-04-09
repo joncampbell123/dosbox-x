@@ -122,7 +122,7 @@ static Segment oldsegs[6];
 static Bitu oldflags,oldcpucpl;
 DBGBlock dbg;
 extern Bitu cycle_count;
-static bool debugging;
+static bool debugging = false;
 
 
 static void SetColor(Bitu test) {
@@ -1767,6 +1767,10 @@ void DEBUG_Enable(bool pressed) {
 	if (!pressed)
 		return;
 	static bool showhelp=false;
+
+    CPU_CycleLeft+=CPU_Cycles;
+    CPU_Cycles=0;
+
 	debugging=true;
 	DEBUG_SetupConsole();
 	SetCodeWinStart();
@@ -2132,7 +2136,6 @@ void DEBUG_SetupConsole(void) {
 #else
 		tcgetattr(0,&consolesettings);
 #endif	
-		debugging=false;
 		//	dbg.active_win=3;
 		/* Start the Debug Gui */
 		DBGUI_StartUp();
@@ -2164,8 +2167,6 @@ Bitu debugCallback;
 void DEBUG_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing debug system");
 
-//	MSG_Add("DEBUG_CONFIGFILE_HELP","Debugger related options.\n");
-	DEBUG_DrawScreen();
 	/* Add some keyhandlers */
 	MAPPER_AddHandler(DEBUG_Enable,MK_pause,MMOD2,"debugger","Debugger");
 	/* Reset code overview and input line */
