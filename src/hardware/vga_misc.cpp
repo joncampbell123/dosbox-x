@@ -30,8 +30,19 @@ Bitu vga_read_p3d4(Bitu port,Bitu iolen);
 void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen);
 Bitu vga_read_p3d5(Bitu port,Bitu iolen);
 
+/* allow the user to specify that undefined bits in 3DA/3BA be set to some nonzero value.
+ * this is needed for "JOOP #2" by Europe demo, which has some weird retrace tracking code
+ * like this:
+ *
+ *        in    al,dx       ; <- dx = 3DAh
+ * l1:    shr   al,1        ; AL >>= 1, CF = bit shifted out
+ *        jnc   l1
+ *
+ * of course, if AL == 0, it becomes an infinite loop. this is why this option exists. */
+unsigned char vga_p3da_undefined_bits = 0;
+
 Bitu vga_read_p3da(Bitu port,Bitu iolen) {
-	Bit8u retval=0;
+	Bit8u retval = vga_p3da_undefined_bits;
 	double timeInFrame = PIC_FullIndex()-vga.draw.delay.framestart;
 
 	vga.internal.attrindex=false;
