@@ -2115,6 +2115,9 @@ void DOSBOX_SetupConfigSections(void) {
 	Pbool = secprop->Add_bool("vcpi",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("If set and expanded memory is enabled, also emulate VCPI.");
 
+	Pbool = secprop->Add_bool("unmask timer on disk io",Property::Changeable::OnlyAtStart,false);
+	Pbool->Set_help("If set, INT 21h emulation will unmask IRQ 0 (timer interrupt) when the application opens/closes/reads/writes files.");
+
 	Pbool = secprop->Add_bool("zero int 67h if no ems",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("If ems=false, leave interrupt vector 67h zeroed out (default true).\n"
 			"This is a workaround for games or demos that try to detect EMS by whether or not INT 67h is 0000:0000 rather than a proper test.\n"

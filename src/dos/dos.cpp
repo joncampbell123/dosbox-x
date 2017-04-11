@@ -325,8 +325,47 @@ void DOS_BreakAction() {
 	DOS_BreakFlag = true;
 }
 
+/* unmask IRQ 0 automatically on disk I/O functions.
+ * there exist old DOS games and demos that rely on very selective IRQ masking,
+ * but, their code also assumes that calling into DOS or the BIOS will unmask the IRQ.
+ *
+ * This fixes "Rebel by Arkham" which masks IRQ 0-7 (PIC port 21h) in a VERY stingy manner!
+ *
+ *    Pseudocode (early in demo init):
+ *
+ *             in     al,21h
+ *             or     al,3Bh        ; mask IRQ 0, 1, 3, 4, and 5
+ *             out    21h,al
+ *
+ *    Later:
+ *
+ *             mov    ah,3Dh        ; open file
+ *             ...
+ *             int    21h
+ *             ...                  ; demo apparently assumes that INT 21h will unmask IRQ 0 when reading, because ....
+ *             in     al,21h
+ *             or     al,3Ah        ; mask IRQ 1, 3, 4, and 5
+ *             out    21h,al
+ *
+ * The demo runs fine anyway, but if we do not unmask IRQ 0 at the INT 21h call, the timer never ticks and the
+ * demo does not play any music (goldplay style, of course).
+ *
+ * This means several things. One is that a disk cache (which may provide the file without using INT 13h) could
+ * mysteriously prevent the demo from playing music. Future OS changes, where IRQ unmasking during INT 21h could
+ * not occur, would also prevent it from working. I don't know what the programmer was thinking, but side
+ * effects like that are not to be relied on!
+ *
+ * On the other hand, perhaps masking the keyboard (IRQ 1) was intended as an anti-debugger trick? You can't break
+ * into the demo if you can't trigger the debugger, after all! The demo can still poll the keyboard controller
+ * for ESC or whatever.
+ *
+ * --J.C. */
+bool disk_io_unmask_irq0 = true;
+
 #define DOSNAMEBUF 256
 static Bitu DOS_21Handler(void) {
+    bool unmask_irq0 = false;
+
 	if (((reg_ah != 0x50) && (reg_ah != 0x51) && (reg_ah != 0x62) && (reg_ah != 0x64)) && (reg_ah<0x6c)) {
 		DOS_PSP psp(dos.psp());
 		psp.SetStack(RealMake(SegValue(ss),reg_sp-18));
@@ -972,6 +1011,7 @@ static Bitu DOS_21Handler(void) {
 		}
 		break;
 	case 0x3c:		/* CREATE Create of truncate file */
+        unmask_irq0 |= disk_io_unmask_irq0;
 		MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
 		if (DOS_CreateFile(name1,reg_cx,&reg_ax)) {
 			CALLBACK_SCF(false);
@@ -981,6 +1021,7 @@ static Bitu DOS_21Handler(void) {
 		}
 		break;
 	case 0x3d:		/* OPEN Open existing file */
+        unmask_irq0 |= disk_io_unmask_irq0;
 		MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
 		if (DOS_OpenFile(name1,reg_al,&reg_ax)) {
 			CALLBACK_SCF(false);
@@ -990,6 +1031,7 @@ static Bitu DOS_21Handler(void) {
 		}
 		break;
 	case 0x3e:		/* CLOSE Close file */
+        unmask_irq0 |= disk_io_unmask_irq0;
 		if (DOS_CloseFile(reg_bx)) {
 //			reg_al=0x01;	/* al destroyed. Refcount */
 			CALLBACK_SCF(false);
@@ -999,6 +1041,7 @@ static Bitu DOS_21Handler(void) {
 		}
 		break;
 	case 0x3f:		/* READ Read from file or device */
+        unmask_irq0 |= disk_io_unmask_irq0;
 		/* TODO: If handle is STDIN and not binary do CTRL+C checking */
 		{ 
 			Bit16u toread=reg_cx;
@@ -1016,6 +1059,7 @@ static Bitu DOS_21Handler(void) {
 			break;
 		}
 	case 0x40:					/* WRITE Write to file or device */
+        unmask_irq0 |= disk_io_unmask_irq0;
 		{
 			Bit16u towrite=reg_cx;
 			MEM_BlockRead(SegPhys(ds)+reg_dx,dos_copybuf,towrite);
@@ -1030,6 +1074,7 @@ static Bitu DOS_21Handler(void) {
 			break;
 		};
 	case 0x41:					/* UNLINK Delete file */
+        unmask_irq0 |= disk_io_unmask_irq0;
 		MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
 		if (DOS_UnlinkFile(name1)) {
 			CALLBACK_SCF(false);
@@ -1039,6 +1084,7 @@ static Bitu DOS_21Handler(void) {
 		}
 		break;
 	case 0x42:					/* LSEEK Set current file position */
+        unmask_irq0 |= disk_io_unmask_irq0;
 		{
 			Bit32u pos=(reg_cx<<16) + reg_dx;
 			if (DOS_SeekFile(reg_bx,&pos,reg_al)) {
@@ -1052,6 +1098,7 @@ static Bitu DOS_21Handler(void) {
 			break;
 		}
 	case 0x43:					/* Get/Set file attributes */
+        unmask_irq0 |= disk_io_unmask_irq0;
 		MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
 		switch (reg_al) {
 		case 0x00:				/* Get */
@@ -1568,6 +1615,17 @@ static Bitu DOS_21Handler(void) {
 		break;
 	};
 
+    /* if INT 21h involves any BIOS calls that need the timer, emulate the fact that tbe
+     * BIOS might unmask IRQ 0 as part of the job (especially INT 13h disk I/O).
+     *
+     * Some DOS games & demos mask interrupts at the PIC level in a stingy manner that
+     * apparently assumes DOS/BIOS will unmask some when called.
+     *
+     * Examples:
+     *   Rebel by Arkham (without this fix, timer interrupt will not fire during demo and therefore music will not play). */
+    if (unmask_irq0)
+        PIC_SetIRQMask(0,false); /* Enable system timer */
+
 	return CBRET_NONE;
 }
 
@@ -1672,6 +1730,7 @@ public:
 		enable_dummy_loadfix_padding = section->Get_bool("enable loadfix padding");
 		enable_dummy_device_mcb = section->Get_bool("enable dummy device mcb");
 		int15_wait_force_unmask_irq = section->Get_bool("int15 wait force unmask irq");
+        disk_io_unmask_irq0 = section->Get_bool("unmask timer on disk io");
 
 		if ((int)MAXENV < 0) MAXENV = mainline_compatible_mapping ? 32768 : 65535;
 		if ((int)ENV_KEEPFREE < 0) ENV_KEEPFREE = mainline_compatible_mapping ? 83 : 1024;
