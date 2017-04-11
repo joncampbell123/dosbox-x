@@ -18,6 +18,7 @@
 
 
 #include "dosbox.h"
+#include "control.h"
 #include "mem.h"
 #include "callback.h"
 #include "regs.h"
@@ -776,8 +777,12 @@ void INT10_OnResetComplete() {
     BIOS_UnsetupKeyboard();
 }
 
+extern bool unmask_irq0_on_int10_setmode;
+
 void INT10_Startup(Section *sec) {
 	LOG(LOG_MISC,LOG_DEBUG)("INT 10h reinitializing");
+
+    unmask_irq0_on_int10_setmode = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("unmask timer on int 10 setmode");
 
 	INT10_InitVGA();
 	if (IS_TANDY_ARCH) SetupTandyBios();

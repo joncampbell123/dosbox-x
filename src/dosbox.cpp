@@ -1159,6 +1159,9 @@ void DOSBOX_SetupConfigSections(void) {
                    "The purpose of this hack is to deal with demos that read and handle port 3DAh in ways that might crash if all are zero.\n"
                    "By default, this value is zero.");
 
+	Pbool = secprop->Add_bool("unmask timer on int 10 setmode",Property::Changeable::OnlyAtStart,false);
+	Pbool->Set_help("If set, INT 10h will unmask IRQ 0 (timer) when setting video modes.");
+
 	Pbool = secprop->Add_bool("allow port 92 reset",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("If set (default), allow the application to reset the CPU through port 92h");
 
