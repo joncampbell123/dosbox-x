@@ -1162,6 +1162,10 @@ void DOSBOX_SetupConfigSections(void) {
 	Pbool = secprop->Add_bool("unmask timer on int 10 setmode",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("If set, INT 10h will unmask IRQ 0 (timer) when setting video modes.");
 
+	Pint = secprop->Add_int("irq delay",Property::Changeable::OnlyAtStart,-1);
+	Pint->Set_help("If 0 or greater, apply a delay (in cycles) to IRQ handling in the CPU. A value of -1 means to use a default value.\n"
+                   "There are some old DOS games and demos that have race conditions with IRQs that need a nonzero value here to work properly.");
+
 	Pbool = secprop->Add_bool("allow port 92 reset",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("If set (default), allow the application to reset the CPU through port 92h");
 
