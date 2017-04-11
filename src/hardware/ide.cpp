@@ -2322,10 +2322,11 @@ void IDE_EmuINT13DiskReadByBIOS_LBA(unsigned char disk,uint64_t lba) {
 						IDE_SelfIO_Out(ide,ide->base_io+7,0x20,1);	/* issue READ */
 
 						do {
-							/* TODO: Timeout needed */
-							unsigned int i = IDE_SelfIO_In(ide,ide->base_io+7,1);
-							if ((i&0x80) == 0) break;
-						} while (1);
+                            /* TODO: Timeout needed */
+                            unsigned int i = IDE_SelfIO_In(ide,ide->alt_io,1);
+                            if ((i&0x80) == 0) break;
+                        } while (1);
+                        IDE_SelfIO_In(ide,ide->base_io+7,1);
 
 						/* for brevity assume it worked. we're here to bullshit Windows 95 after all */
 						for (unsigned int i=0;i < 256;i++)
@@ -2340,6 +2341,7 @@ void IDE_EmuINT13DiskReadByBIOS_LBA(unsigned char disk,uint64_t lba) {
 						else
 							IDE_SelfIO_Out(ide,0x20,0x60+ide->IRQ,1);		/* specific EOI */
 
+                        ata->abort_normal();
 						dev->faked_command = false;
 					}
 					else {
@@ -2489,10 +2491,11 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
 						IDE_SelfIO_Out(ide,ide->base_io+7,0x20,1);	/* issue READ */
 
 						do {
-							/* TODO: Timeout needed */
-							unsigned int i = IDE_SelfIO_In(ide,ide->base_io+7,1);
-							if ((i&0x80) == 0) break;
-						} while (1);
+                            /* TODO: Timeout needed */
+                            unsigned int i = IDE_SelfIO_In(ide,ide->alt_io,1);
+                            if ((i&0x80) == 0) break;
+                        } while (1);
+                        IDE_SelfIO_In(ide,ide->base_io+7,1);
 
 						/* for brevity assume it worked. we're here to bullshit Windows 95 after all */
 						for (unsigned int i=0;i < 256;i++)
@@ -2507,6 +2510,7 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
 						else
 							IDE_SelfIO_Out(ide,0x20,0x60+ide->IRQ,1);		/* specific EOI */
 
+                        ata->abort_normal();
 						dev->faked_command = false;
 					}
 					else {
