@@ -533,6 +533,7 @@ static Bitu INT16_Handler(void) {
 	Bit16u temp=0;
 	switch (reg_ah) {
 	case 0x00: /* GET KEYSTROKE */
+        PIC_SetIRQMask(1,false); /* unmask keyboard */
 		if ((get_key(temp)) && (!IsEnhancedKey(temp))) {
 			/* normal key found, return translated key in ax */
 			reg_ax=temp;
@@ -542,6 +543,7 @@ static Bitu INT16_Handler(void) {
 		}
 		break;
 	case 0x10: /* GET KEYSTROKE (enhanced keyboards only) */
+        PIC_SetIRQMask(1,false); /* unmask keyboard */
 		if (get_key(temp)) {
 			if (((temp&0xff)==0xf0) && (temp>>8)) {
 				/* special enhanced key, clear low part before returning key */
@@ -555,6 +557,7 @@ static Bitu INT16_Handler(void) {
 		break;
 	case 0x01: /* CHECK FOR KEYSTROKE */
 		// enable interrupt-flag after IRET of this int16
+        PIC_SetIRQMask(1,false); /* unmask keyboard */
 		CALLBACK_SIF(true);
 		for (;;) {
 			if (check_key(temp)) {
@@ -577,6 +580,7 @@ static Bitu INT16_Handler(void) {
 		break;
 	case 0x11: /* CHECK FOR KEYSTROKE (enhanced keyboards only) */
 		// enable interrupt-flag after IRET of this int16
+        PIC_SetIRQMask(1,false); /* unmask keyboard */
 		CALLBACK_SIF(true);
 		if (!check_key(temp)) {
 			CALLBACK_SZF(true);
