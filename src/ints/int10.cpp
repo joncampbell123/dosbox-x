@@ -778,11 +778,13 @@ void INT10_OnResetComplete() {
 }
 
 extern bool unmask_irq0_on_int10_setmode;
+extern bool int16_unmask_irq1_on_read;
 
 void INT10_Startup(Section *sec) {
 	LOG(LOG_MISC,LOG_DEBUG)("INT 10h reinitializing");
 
     unmask_irq0_on_int10_setmode = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("unmask timer on int 10 setmode");
+	int16_unmask_irq1_on_read = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("unmask keyboard on int 16 read");
 
 	INT10_InitVGA();
 	if (IS_TANDY_ARCH) SetupTandyBios();
