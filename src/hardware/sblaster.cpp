@@ -139,6 +139,7 @@ struct SB_INFO {
 	bool sbpro_stereo_bit_strict_mode; /* if set, stereo bit in mixer can only be set if emulating a Pro. if clear, SB16 can too */
 	bool sample_rate_limits; /* real SB hardware has limits on the sample rate */
     bool single_sample_dma;
+    bool directdac_warn_speaker_off; /* if set, warn if DSP command 0x10 is being used while the speaker is turned off */
 	bool dma_dac_mode; /* some very old DOS demos "play" sound by setting the DMA terminal count to 0.
 			      normally that would mean the DMA controller transmitting the same byte at the sample rate,
 			      except that the program creates sound by overwriting that byte periodically.
@@ -1151,6 +1152,7 @@ static void DSP_Reset(void) {
 	sb.ess_playback_mode = false;
     sb.single_sample_dma = 0;
     sb.dma_dac_mode = 0;
+    sb.directdac_warn_speaker_off = true;
     PIC_RemoveEvents(DSP_FinishReset);
 	PIC_RemoveEvents(DSP_BusyComplete);
 
@@ -1603,6 +1605,12 @@ static void DSP_DoCommand(void) {
 		break;
 	case 0x10:	/* Direct DAC */
 		DSP_ChangeMode(MODE_DAC);
+
+        /* just in case something is trying to play direct DAC audio while the speaker is turned off... */
+        if (!sb.speaker && sb.directdac_warn_speaker_off) {
+            LOG(LOG_SB,LOG_DEBUG)("DSP direct DAC sample written while speaker turned off. Program should use DSP command 0xD1 to turn it on.");
+            sb.directdac_warn_speaker_off = false;
+        }
 
 		sb.freq = 22050;
         sb.freq_derived_from_tc = true;
@@ -2784,6 +2792,8 @@ bool SB_Get_Address(Bitu& sbaddr, Bitu& sbirq, Bitu& sbdma) {
 }
 
 static void SBLASTER_CallBack(Bitu len) {
+    sb.directdac_warn_speaker_off = true;
+
 	switch (sb.mode) {
 	case MODE_NONE:
 	case MODE_DMA_PAUSE:
