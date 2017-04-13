@@ -530,6 +530,7 @@ static bool IsEnhancedKey(Bit16u &key) {
 }
 
 bool int16_unmask_irq1_on_read = true;
+bool int16_ah_01_cf_undoc = true;
 
 static Bitu INT16_Handler(void) {
 	Bit16u temp=0;
@@ -572,6 +573,7 @@ static Bitu INT16_Handler(void) {
 				if (!IsEnhancedKey(temp)) {
 					/* normal key, return translated key in ax */
 					CALLBACK_SZF(false);
+                    if (int16_ah_01_cf_undoc) CALLBACK_SCF(true);
 					reg_ax=temp;
 					break;
 				} else {
@@ -581,6 +583,7 @@ static Bitu INT16_Handler(void) {
 			} else {
 				/* no key available */
 				CALLBACK_SZF(true);
+                if (int16_ah_01_cf_undoc) CALLBACK_SCF(false);
 				break;
 			}
 //			CALLBACK_Idle();
