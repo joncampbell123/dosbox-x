@@ -1668,6 +1668,13 @@ void DOSBOX_SetupConfigSections(void) {
 			"Option is needed for:\n"
 			"   Public NMI \"jump\" demo (1992)");
 
+	Pbool = secprop->Add_bool("enable speaker",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("Start the DOS virtual machine with the sound blaster speaker enabled.\n"
+                    "Sound Blaster Pro and older cards have a speaker disable/enable command.\n"
+                    "Normally the card boots up with the speaker disabled. If a DOS game or demo\n"
+                    "attempts to play without enabling the speaker, set this option to true to\n"
+                    "compensate. This setting has no meaning if emulating a Sound Blaster 16 card.");
+
 	Pbool = secprop->Add_bool("enable asp",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("If set, emulate the presence of the Sound Blaster 16 Advanced Sound Processor/Creative Sound Processor chip.\n"
             "NOTE: This only emulates it's presence and the basic DSP commands to communicate with it. Actual ASP/CSP functions are not yet implemented.");

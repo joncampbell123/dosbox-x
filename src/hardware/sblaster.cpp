@@ -131,6 +131,7 @@ struct SB_INFO {
 		Bitu remain_size;
 	} dma;
     bool freq_derived_from_tc;      // if set, sb.freq was derived from SB/SBpro time constant
+    bool def_enable_speaker;        // start emulation with SB speaker enabled
     bool enable_asp;
 	bool speaker;
 	bool midi;
@@ -3196,6 +3197,7 @@ public:
 		sb.dsp.force_goldplay=section->Get_bool("force goldplay");
 		sb.dma.force_autoinit=section->Get_bool("force dsp auto-init");
 		sb.no_filtering=section->Get_bool("disable filtering");
+        sb.def_enable_speaker=section->Get_bool("enable speaker");
         sb.enable_asp=section->Get_bool("enable asp");
 
         if (!sb.goldplay && sb.dsp.force_goldplay) {
@@ -3347,6 +3349,9 @@ public:
 		// On SB16 the speaker flag does not affect actual speaker state.
 		if (sb.type == SBT_16 || sb.ess_type != ESS_NONE || sb.reveal_sc_type != RSC_NONE) sb.chan->Enable(true);
 		else sb.chan->Enable(false);
+
+        if (sb.def_enable_speaker)
+            DSP_SetSpeaker(true);
 
 		s=section->Get_string("dsp require interrupt acknowledge");
 		if (s == "true" || s == "1" || s == "on")
