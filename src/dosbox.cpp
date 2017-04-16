@@ -319,173 +319,172 @@ extern bool allow_keyb_reset;
 extern bool DOSBox_Paused();
 
 static Bitu Normal_Loop(void) {
-	Bit32u ticksNew;
+    bool saved_allow = dosbox_allow_nonrecursive_page_fault;
+    Bit32u ticksNew;
 	Bits ret;
 
-    while (1) {
-        if (PIC_RunQueue()) {
-            ticksNew = GetTicks();
-            if (ticksNew >= Ticks) {
-                Ticks = ticksNew + 500;		// next update in 500ms
-                frames *= 2;			// compensate for 500ms interval
-                if(!menu.hidecycles) GFX_SetTitle(CPU_CycleMax,-1,-1,false);
-                frames = 0;
-            }
+    try {
+        while (1) {
+            if (PIC_RunQueue()) {
+                ticksNew = GetTicks();
+                if (ticksNew >= Ticks) {
+                    Ticks = ticksNew + 500;		// next update in 500ms
+                    frames *= 2;			// compensate for 500ms interval
+                    if(!menu.hidecycles) GFX_SetTitle(CPU_CycleMax,-1,-1,false);
+                    frames = 0;
+                }
 
-            /* now is the time to check for the NMI (Non-maskable interrupt) */
-            CPU_Check_NMI();
+                /* now is the time to check for the NMI (Non-maskable interrupt) */
+                CPU_Check_NMI();
 
-            /* FIXME: we check some registers to make sure page fault handling doesn't trip up */
-            bool saved_allow = dosbox_allow_nonrecursive_page_fault;
-
-            dosbox_allow_nonrecursive_page_fault = true;
-            try {
+                saved_allow = dosbox_allow_nonrecursive_page_fault;
+                dosbox_allow_nonrecursive_page_fault = true;
                 ret = (*cpudecoder)();
                 dosbox_allow_nonrecursive_page_fault = saved_allow;
-            }
-            catch (GuestPageFaultException &pf) {
-                Bitu FillFlags(void);
 
-                ret = 0;
-                FillFlags();
-                dosbox_allow_nonrecursive_page_fault = false;
-#if 0 //TODO make option
-                LOG_MSG("Guest page fault exception! Alternate method will be used. Wish me luck.\n");
-#endif
-                CPU_Exception(EXCEPTION_PF,pf.faultcode);
-                dosbox_allow_nonrecursive_page_fault = saved_allow;
-            }
-            catch (int x) {
-                dosbox_allow_nonrecursive_page_fault = saved_allow;
-                if (x == 4/*CMOS shutdown*/) {
-                    ret = 0;
-//					LOG_MSG("CMOS shutdown reset acknowledged");
+                if (GCC_UNLIKELY(ret<0))
+                    return 1;
+
+                if (ret>0) {
+                    if (GCC_UNLIKELY(ret >= CB_MAX))
+                        return 0;
+
+                    dosbox_allow_nonrecursive_page_fault = false;
+                    Bitu blah = (*CallBack_Handlers[ret])();
+                    dosbox_allow_nonrecursive_page_fault = saved_allow;
+                    if (GCC_UNLIKELY(blah))
+                        return blah;
                 }
-                else {
-                    throw;
-                }
-            }
-
-            if (GCC_UNLIKELY(ret<0))
-                return 1;
-
-            if (ret>0) {
-                if (GCC_UNLIKELY(ret >= CB_MAX))
-                    return 0;
-
-                dosbox_allow_nonrecursive_page_fault = false;
-                Bitu blah = (*CallBack_Handlers[ret])();
-                dosbox_allow_nonrecursive_page_fault = saved_allow;
-                if (GCC_UNLIKELY(blah))
-                    return blah;
-            }
 #if C_DEBUG
-            if (DEBUG_ExitLoop())
-                return 0;
+                if (DEBUG_ExitLoop())
+                    return 0;
 #endif
-        } else {
-#ifdef __WIN32__
-            MSG_Loop();
-#endif
-            GFX_Events();
-            if (DOSBox_Paused() == false && ticksRemain > 0) {
-                TIMER_AddTick();
-                ticksRemain--;
             } else {
-                goto increaseticks;
+#ifdef __WIN32__
+                MSG_Loop();
+#endif
+                GFX_Events();
+                if (DOSBox_Paused() == false && ticksRemain > 0) {
+                    TIMER_AddTick();
+                    ticksRemain--;
+                } else {
+                    goto increaseticks;
+                }
+            }
+        }
+increaseticks:
+        if (GCC_UNLIKELY(ticksLocked)) {
+            ticksRemain=5;
+            /* Reset any auto cycle guessing for this frame */
+            ticksLast = GetTicks();
+            ticksAdded = 0;
+            ticksDone = 0;
+            ticksScheduled = 0;
+        } else {
+            Bit32u ticksNew;
+            ticksNew=GetTicks();
+            ticksScheduled += ticksAdded;
+            if (ticksNew > ticksLast) {
+                ticksRemain = ticksNew-ticksLast;
+                ticksLast = ticksNew;
+                ticksDone += ticksRemain;
+                if ( ticksRemain > 20 ) {
+                    ticksRemain = 20;
+                }
+                ticksAdded = ticksRemain;
+                if (CPU_CycleAutoAdjust && !CPU_SkipCycleAutoAdjust) {
+                    if (ticksScheduled >= 250 || ticksDone >= 250 || (ticksAdded > 15 && ticksScheduled >= 5) ) {
+                        if(ticksDone < 1) ticksDone = 1; // Protect against div by zero
+                        /* ratio we are aiming for is around 90% usage*/
+                        Bit32s ratio = (ticksScheduled * (CPU_CyclePercUsed*90*1024/100/100)) / ticksDone;
+                        Bit32s new_cmax = CPU_CycleMax;
+                        Bit64s cproc = (Bit64s)CPU_CycleMax * (Bit64s)ticksScheduled;
+                        if (cproc > 0) {
+                            /* ignore the cycles added due to the IO delay code in order
+                               to have smoother auto cycle adjustments */
+                            double ratioremoved = (double) CPU_IODelayRemoved / (double) cproc;
+                            if (ratioremoved < 1.0) {
+                                ratio = (Bit32s)((double)ratio * (1 - ratioremoved));
+                                /* Don't allow very high ratio which can cause us to lock as we don't scale down
+                                 * for very low ratios. High ratio might result because of timing resolution */
+                                if (ticksScheduled >= 250 && ticksDone < 10 && ratio > 20480) 
+                                    ratio = 20480;
+                                Bit64s cmax_scaled = (Bit64s)CPU_CycleMax * (Bit64s)ratio;
+                                /* The auto cycle code seems reliable enough to disable the fast cut back code.
+                                 * This should improve the fluency of complex games.
+                                 if (ratio <= 1024) 
+                                 new_cmax = (Bit32s)(cmax_scaled / (Bit64s)1024);
+                                 else 
+                                 */
+                                new_cmax = (Bit32s)(1 + (CPU_CycleMax >> 1) + cmax_scaled / (Bit64s)2048);
+                            }
+                        }
+
+                        if (new_cmax<CPU_CYCLES_LOWER_LIMIT)
+                            new_cmax=CPU_CYCLES_LOWER_LIMIT;
+
+                        /*
+                           LOG_MSG("cyclelog: current %6d   cmax %6d   ratio  %5d  done %3d   sched %3d",
+                           CPU_CycleMax,
+                           new_cmax,
+                           ratio,
+                           ticksDone,
+                           ticksScheduled);
+                           */  
+                        /* ratios below 1% are considered to be dropouts due to
+                           temporary load imbalance, the cycles adjusting is skipped */
+                        if (ratio>10) {
+                            /* ratios below 12% along with a large time since the last update
+                               has taken place are most likely caused by heavy load through a
+                               different application, the cycles adjusting is skipped as well */
+                            if ((ratio>120) || (ticksDone<700)) {
+                                CPU_CycleMax = new_cmax;
+                                if (CPU_CycleLimit > 0) {
+                                    if (CPU_CycleMax>CPU_CycleLimit) CPU_CycleMax = CPU_CycleLimit;
+                                }
+                            }
+                        }
+                        CPU_IODelayRemoved = 0;
+                        ticksDone = 0;
+                        ticksScheduled = 0;
+                    } else if (ticksAdded > 15) {
+                        /* ticksAdded > 15 but ticksScheduled < 5, lower the cycles
+                           but do not reset the scheduled/done ticks to take them into
+                           account during the next auto cycle adjustment */
+                        CPU_CycleMax /= 3;
+                        if (CPU_CycleMax < CPU_CYCLES_LOWER_LIMIT)
+                            CPU_CycleMax = CPU_CYCLES_LOWER_LIMIT;
+                    }
+                }
+            } else {
+                ticksAdded = 0;
+                SDL_Delay(1);
+                ticksDone -= GetTicks() - ticksNew;
+                if (ticksDone < 0)
+                    ticksDone = 0;
             }
         }
     }
-increaseticks:
-    if (GCC_UNLIKELY(ticksLocked)) {
-        ticksRemain=5;
-        /* Reset any auto cycle guessing for this frame */
-        ticksLast = GetTicks();
-        ticksAdded = 0;
-        ticksDone = 0;
-        ticksScheduled = 0;
-    } else {
-        Bit32u ticksNew;
-        ticksNew=GetTicks();
-        ticksScheduled += ticksAdded;
-        if (ticksNew > ticksLast) {
-            ticksRemain = ticksNew-ticksLast;
-            ticksLast = ticksNew;
-            ticksDone += ticksRemain;
-            if ( ticksRemain > 20 ) {
-                ticksRemain = 20;
-            }
-            ticksAdded = ticksRemain;
-            if (CPU_CycleAutoAdjust && !CPU_SkipCycleAutoAdjust) {
-                if (ticksScheduled >= 250 || ticksDone >= 250 || (ticksAdded > 15 && ticksScheduled >= 5) ) {
-                    if(ticksDone < 1) ticksDone = 1; // Protect against div by zero
-                    /* ratio we are aiming for is around 90% usage*/
-                    Bit32s ratio = (ticksScheduled * (CPU_CyclePercUsed*90*1024/100/100)) / ticksDone;
-                    Bit32s new_cmax = CPU_CycleMax;
-                    Bit64s cproc = (Bit64s)CPU_CycleMax * (Bit64s)ticksScheduled;
-                    if (cproc > 0) {
-                        /* ignore the cycles added due to the IO delay code in order
-                           to have smoother auto cycle adjustments */
-                        double ratioremoved = (double) CPU_IODelayRemoved / (double) cproc;
-                        if (ratioremoved < 1.0) {
-                            ratio = (Bit32s)((double)ratio * (1 - ratioremoved));
-                            /* Don't allow very high ratio which can cause us to lock as we don't scale down
-                             * for very low ratios. High ratio might result because of timing resolution */
-                            if (ticksScheduled >= 250 && ticksDone < 10 && ratio > 20480) 
-                                ratio = 20480;
-                            Bit64s cmax_scaled = (Bit64s)CPU_CycleMax * (Bit64s)ratio;
-                            /* The auto cycle code seems reliable enough to disable the fast cut back code.
-                             * This should improve the fluency of complex games.
-                             if (ratio <= 1024) 
-                             new_cmax = (Bit32s)(cmax_scaled / (Bit64s)1024);
-                             else 
-                             */
-                            new_cmax = (Bit32s)(1 + (CPU_CycleMax >> 1) + cmax_scaled / (Bit64s)2048);
-                        }
-                    }
+    catch (GuestPageFaultException &pf) {
+        Bitu FillFlags(void);
 
-                    if (new_cmax<CPU_CYCLES_LOWER_LIMIT)
-                        new_cmax=CPU_CYCLES_LOWER_LIMIT;
-
-                    /*
-                       LOG_MSG("cyclelog: current %6d   cmax %6d   ratio  %5d  done %3d   sched %3d",
-                       CPU_CycleMax,
-                       new_cmax,
-                       ratio,
-                       ticksDone,
-                       ticksScheduled);
-                       */  
-                    /* ratios below 1% are considered to be dropouts due to
-                       temporary load imbalance, the cycles adjusting is skipped */
-                    if (ratio>10) {
-                        /* ratios below 12% along with a large time since the last update
-                           has taken place are most likely caused by heavy load through a
-                           different application, the cycles adjusting is skipped as well */
-                        if ((ratio>120) || (ticksDone<700)) {
-                            CPU_CycleMax = new_cmax;
-                            if (CPU_CycleLimit > 0) {
-                                if (CPU_CycleMax>CPU_CycleLimit) CPU_CycleMax = CPU_CycleLimit;
-                            }
-                        }
-                    }
-                    CPU_IODelayRemoved = 0;
-                    ticksDone = 0;
-                    ticksScheduled = 0;
-                } else if (ticksAdded > 15) {
-                    /* ticksAdded > 15 but ticksScheduled < 5, lower the cycles
-                       but do not reset the scheduled/done ticks to take them into
-                       account during the next auto cycle adjustment */
-                    CPU_CycleMax /= 3;
-                    if (CPU_CycleMax < CPU_CYCLES_LOWER_LIMIT)
-                        CPU_CycleMax = CPU_CYCLES_LOWER_LIMIT;
-                }
-            }
-        } else {
-            ticksAdded = 0;
-            SDL_Delay(1);
-            ticksDone -= GetTicks() - ticksNew;
-            if (ticksDone < 0)
-                ticksDone = 0;
+        ret = 0;
+        FillFlags();
+        dosbox_allow_nonrecursive_page_fault = false;
+#if 0 //TODO make option
+        LOG_MSG("Guest page fault exception! Alternate method will be used. Wish me luck.\n");
+#endif
+        CPU_Exception(EXCEPTION_PF,pf.faultcode);
+        dosbox_allow_nonrecursive_page_fault = saved_allow;
+    }
+    catch (int x) {
+        dosbox_allow_nonrecursive_page_fault = saved_allow;
+        if (x == 4/*CMOS shutdown*/) {
+            ret = 0;
+//			LOG_MSG("CMOS shutdown reset acknowledged");
+        }
+        else {
+            throw;
         }
     }
 
