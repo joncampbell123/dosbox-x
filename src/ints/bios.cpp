@@ -4444,18 +4444,13 @@ private:
 			}
 		}
 
-		while (wait_for_user) {
-			reg_eax = 0x0100;
-			CALLBACK_RunRealInt(0x16);
+        while (wait_for_user) {
+            reg_eax = 0x0000;
+            CALLBACK_RunRealInt(0x16);
 
-			if (!GETFLAG(ZF)) {
-				reg_eax = 0x0000;
-				CALLBACK_RunRealInt(0x16);
-
-				if (reg_al == 27/*ESC*/ || reg_al == 13/*ENTER*/)
-					break;
-			}
-		}
+            if (reg_al == 27/*ESC*/ || reg_al == 13/*ENTER*/)
+                break;
+        }
 
 		// restore 80x25 text mode
 		reg_eax = 3;
