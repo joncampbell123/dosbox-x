@@ -194,6 +194,9 @@ void DEBUG_ShowMsg(char const* format,...) {
 	len = vsnprintf(buf,sizeof(buf)-2,format,msg); /* <- NTS: Did you know sprintf/vsnprintf returns number of chars written? */
 	va_end(msg);
 
+    /* remove newlines if present */
+    while (len > 0 && buf[len-1] == '\n') buf[--len] = 0;
+
 	/* Add newline if not present */
 	if (len > 0 && buf[len-1] != '\n') buf[len++] = '\n';
 	buf[len] = 0;
