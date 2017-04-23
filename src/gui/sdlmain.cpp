@@ -389,7 +389,7 @@ void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
             sprintf(p,", FPS %2d",(int)frames);
         }
 
-	    if (control->opt_showrt) {
+	    if (menu.showrt) {
             char *p = title + strlen(title); // append to end of string
 
             sprintf(p,", %2d%%/RT",(int)floor((rtdelta / 10) + 0.5));
@@ -4753,6 +4753,7 @@ int main(int argc, char* argv[]) {
 
 		// Shows menu bar (window)
 		menu.startup = true;
+        menu.showrt = control->opt_showrt;
 		menu.hidecycles = (control->opt_showcycles ? false : true);
 		if (sdl.desktop.want_type == SCREEN_OPENGLHQ) {
 			menu.gui=false; DOSBox_SetOriginalIcon();
