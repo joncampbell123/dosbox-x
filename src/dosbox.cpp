@@ -381,7 +381,6 @@ increaseticks:
             ticksDone = 0;
             ticksScheduled = 0;
         } else {
-            Bit32u ticksNew;
             ticksNew=GetTicks();
             ticksScheduled += ticksAdded;
             if (ticksNew > ticksLast) {
