@@ -327,7 +327,7 @@ static Bitu Normal_Loop(void) {
     Bit32u ticksNew;
 	Bits ret;
 
-    if (!menu.hidecycles || control->opt_showrt) { /* sdlmain.cpp/render.cpp doesn't even maintain the frames count when hiding cycles! */
+    if (!menu.hidecycles || menu.showrt) { /* sdlmain.cpp/render.cpp doesn't even maintain the frames count when hiding cycles! */
         ticksNew = GetTicks();
         if (ticksNew >= Ticks) {
             Bit32u interval = ticksNew - ticksLastFramecounter;
@@ -342,7 +342,7 @@ static Bitu Normal_Loop(void) {
             ticksLastFramecounter = Ticks;
             Ticks = ticksNew + 500;		// next update in 500ms
             frames = (frames * 1000) / interval; // compensate for interval, be more exact (FIXME: so can we adjust for fractional frame rates)
-            if(!menu.hidecycles) GFX_SetTitle(CPU_CycleMax,-1,-1,false);
+            GFX_SetTitle(CPU_CycleMax,-1,-1,false);
             frames = 0;
         }
     }
