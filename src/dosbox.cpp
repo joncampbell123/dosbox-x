@@ -187,6 +187,7 @@ Bitu				VGA_BIOS_Size = 0x8000;
 
 static Bit32u			ticksRemain;
 static Bit32u			ticksLast;
+static Bit32u           ticksLastFramecounter;
 static Bit32u			ticksAdded;
 static Bit32u			Ticks = 0;
 static LoopHandler*		loop;
@@ -323,17 +324,22 @@ static Bitu Normal_Loop(void) {
     Bit32u ticksNew;
 	Bits ret;
 
+    ticksNew = GetTicks();
+    if (ticksNew >= Ticks) {
+        Bit32u interval = ticksNew - ticksLastFramecounter;
+
+        if (interval == 0) interval = 1; // avoid divide by zero
+
+        ticksLastFramecounter = Ticks;
+        Ticks = ticksNew + 500;		// next update in 500ms
+        frames = (frames * 1000) / interval; // compensate for interval, be more exact (FIXME: so can we adjust for fractional frame rates)
+        if(!menu.hidecycles) GFX_SetTitle(CPU_CycleMax,-1,-1,false);
+        frames = 0;
+    }
+
     try {
         while (1) {
             if (PIC_RunQueue()) {
-                ticksNew = GetTicks();
-                if (ticksNew >= Ticks) {
-                    Ticks = ticksNew + 500;		// next update in 500ms
-                    frames *= 2;			// compensate for 500ms interval
-                    if(!menu.hidecycles) GFX_SetTitle(CPU_CycleMax,-1,-1,false);
-                    frames = 0;
-                }
-
                 /* now is the time to check for the NMI (Non-maskable interrupt) */
                 CPU_Check_NMI();
 
@@ -612,6 +618,7 @@ void DOSBOX_InitTickLoop() {
 	ticksRemain = 0;
 	ticksLocked = false;
 	ticksLast = GetTicks();
+    ticksLastFramecounter = GetTicks() + 500;
 	DOSBOX_SetLoop(&Normal_Loop);
 }
 
