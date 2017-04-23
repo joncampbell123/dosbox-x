@@ -378,30 +378,30 @@ void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
 	if (frameskip != -1) internal_frameskip = frameskip;
 
 	if (!menu_startup) {
-		sprintf(title,"%s%sDOSBox %s, CPU speed: %8d cycles, Frameskip %2d, %8s",
+		sprintf(title,"%s%sDOSBox %s, %d cyc/ms, %s",
 			dosbox_title.c_str(),dosbox_title.empty()?"":": ",
-			VERSION,(int)internal_cycles,(int)internal_frameskip,RunningProgram);
+			VERSION,(int)internal_cycles,RunningProgram);
 		SDL_WM_SetCaption(title,VERSION);
 		return;
 	}
 	if (menu.hidecycles) {
 		if (CPU_CycleAutoAdjust) {
-			sprintf(title,"%s%sDOSBox %s, CPU speed: max %3d%% cycles, Frameskip %2d, %8s",
+			sprintf(title,"%s%sDOSBox %s, max %3d%% cyc/ms, %s",
 				dosbox_title.c_str(),dosbox_title.empty()?"":": ",
-				VERSION,(int)CPU_CyclePercUsed,(int)internal_frameskip,RunningProgram);
+				VERSION,(int)CPU_CyclePercUsed,RunningProgram);
 		}
 		else {
-			sprintf(title,"%s%sDOSBox %s, CPU speed: %8d cycles, Frameskip %2d, %8s",
+			sprintf(title,"%s%sDOSBox %s, %d cyc/ms, %s",
 				dosbox_title.c_str(),dosbox_title.empty()?"":": ",
-				VERSION,(int)internal_cycles,(int)internal_frameskip,RunningProgram);
+				VERSION,(int)internal_cycles,RunningProgram);
 		}
 	} else if (CPU_CycleAutoAdjust) {
-		sprintf(title,"%s%sDOSBox %s, CPU : %s %8d%% = max %3d, %d FPS - %2d %8s %i.%i%%",
+		sprintf(title,"%s%sDOSBox %s, CPU : %s %d%% = max %3d, %d FPS - %2d %8s %i.%i%%",
 			dosbox_title.c_str(),dosbox_title.empty()?"":": ",
 			VERSION,core_mode,(int)CPU_CyclePercUsed,(int)internal_cycles,(int)frames,
 			(int)internal_frameskip,RunningProgram,(int)(internal_timing/100),(int)(internal_timing%100/10));
 	} else {
-		sprintf(title,"%s%sDOSBox %s, CPU : %s %8d = %8d, %d FPS - %2d %8s %i.%i%%",
+		sprintf(title,"%s%sDOSBox %s, CPU : %s %d = %8d, %d FPS - %2d %8s %i.%i%%",
 			dosbox_title.c_str(),dosbox_title.empty()?"":": ",
 			VERSION,core_mode,(int)0,(int)internal_cycles,(int)frames,(int)internal_frameskip,
 			RunningProgram,(int)(internal_timing/100),(int)((internal_timing%100)/10));
