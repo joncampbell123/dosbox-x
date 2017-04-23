@@ -196,6 +196,7 @@ extern char**					environ;
 #endif
 
 Bitu						frames = 0;
+double                      rtdelta = 0;
 bool						emu_paused = false;
 bool						mouselocked = false; //Global variable for mapper
 bool						load_videodrv = true;
@@ -386,6 +387,12 @@ void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
             char *p = title + strlen(title); // append to end of string
 
             sprintf(p,", FPS %2d",(int)frames);
+        }
+
+	    if (control->opt_showrt) {
+            char *p = title + strlen(title); // append to end of string
+
+            sprintf(p,", %2d%%/RT",(int)floor((rtdelta / 10) + 0.5));
         }
 
 		SDL_WM_SetCaption(title,VERSION);
@@ -4146,6 +4153,7 @@ bool DOSBOX_parse_argv() {
 			fprintf(stderr,"  -startui -startgui                      Start DOSBox-X with UI\n");
 			fprintf(stderr,"  -startmapper                            Start DOSBox-X with mapper\n");
 			fprintf(stderr,"  -showcycles                             Show cycles count\n");
+            fprintf(stderr,"  -showrt                                 Show emulation speed relative to realtime\n");
 			fprintf(stderr,"  -fullscreen                             Start in fullscreen\n");
 			fprintf(stderr,"  -savedir <path>                         Save path\n");
 			fprintf(stderr,"  -disable-numlock-check                  Disable numlock check (win32 only)\n");
@@ -4193,6 +4201,9 @@ bool DOSBOX_parse_argv() {
 		else if (optname == "date-host-forced" || optname == "date_host_forced") {
 			control->opt_date_host_forced = true;
 		}
+        else if (optname == "showrt") {
+            control->opt_showrt = true;
+        }
 		else if (optname == "showcycles") {
 			control->opt_showcycles = true;
 		}

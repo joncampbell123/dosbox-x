@@ -72,6 +72,7 @@ public:
 		opt_debug = false;
 		opt_nogui = false;
 		opt_nomenu = false;
+        opt_showrt = false;
 		opt_startui = false;
 		initialised = false;
 		opt_console = false;
@@ -130,6 +131,7 @@ public:
 	bool opt_userconf;
 	bool opt_console;
 	bool opt_startui;
+    bool opt_showrt;
 	bool opt_nomenu;
 	bool opt_debug;
 	bool opt_nogui;

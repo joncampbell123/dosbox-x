@@ -188,8 +188,11 @@ Bitu				VGA_BIOS_Size = 0x8000;
 static Bit32u			ticksRemain;
 static Bit32u			ticksLast;
 static Bit32u           ticksLastFramecounter;
+static Bit32u           ticksLastRTcounter;
+static double           ticksLastRTtime;
 static Bit32u			ticksAdded;
 static Bit32u			Ticks = 0;
+extern double           rtdelta;
 static LoopHandler*		loop;
 
 /* The whole load of startups for all the subfunctions */
@@ -324,13 +327,18 @@ static Bitu Normal_Loop(void) {
     Bit32u ticksNew;
 	Bits ret;
 
-    if (!menu.hidecycles) { /* sdlmain.cpp/render.cpp doesn't even maintain the frames count when hiding cycles! */
+    if (!menu.hidecycles || control->opt_showrt) { /* sdlmain.cpp/render.cpp doesn't even maintain the frames count when hiding cycles! */
         ticksNew = GetTicks();
         if (ticksNew >= Ticks) {
             Bit32u interval = ticksNew - ticksLastFramecounter;
+            double rtnow = PIC_FullIndex();
 
             if (interval == 0) interval = 1; // avoid divide by zero
 
+            rtdelta = rtnow - ticksLastRTtime;
+            rtdelta = (rtdelta * 1000) / interval;
+
+            ticksLastRTtime = rtnow;
             ticksLastFramecounter = Ticks;
             Ticks = ticksNew + 500;		// next update in 500ms
             frames = (frames * 1000) / interval; // compensate for interval, be more exact (FIXME: so can we adjust for fractional frame rates)
@@ -619,8 +627,10 @@ void DOSBOX_InitTickLoop() {
 
 	ticksRemain = 0;
 	ticksLocked = false;
+    ticksLastRTtime = 0;
 	ticksLast = GetTicks();
-    ticksLastFramecounter = GetTicks() + 500;
+    ticksLastRTcounter = GetTicks();
+    ticksLastFramecounter = GetTicks();
 	DOSBOX_SetLoop(&Normal_Loop);
 }
 
