@@ -381,9 +381,17 @@ void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
 		sprintf(title,"%s%sDOSBox %s, %d cyc/ms, %s",
 			dosbox_title.c_str(),dosbox_title.empty()?"":": ",
 			VERSION,(int)internal_cycles,RunningProgram);
+
+	    if (!menu.hidecycles) {
+            char *p = title + strlen(title); // append to end of string
+
+            sprintf(p,", FPS %2d",(int)frames);
+        }
+
 		SDL_WM_SetCaption(title,VERSION);
 		return;
 	}
+
 	if (menu.hidecycles) {
 		if (CPU_CycleAutoAdjust) {
 			sprintf(title,"%s%sDOSBox %s, max %3d%% cyc/ms, %s",
