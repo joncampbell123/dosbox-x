@@ -530,7 +530,7 @@ int main(int argc,char * argv[]) {
 dnl Some target detection and actions for them
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
-       LIBS="$LIBS -lwinmm"
+       LIBS="$LIBS -lwinmm -limm32"
        AH_TEMPLATE(C_D3DSHADERS,[Define to 1 to use Direct3D shaders, requires d3d9.h and libd3dx9])
        AC_ARG_WITH(dx-headers,[  --with-dx-headers=DIR   DirectX include files location],
 		   dx_headers="$withval", dx_headers="")
