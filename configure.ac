@@ -531,44 +531,50 @@ dnl Some target detection and actions for them
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
        LIBS="$LIBS -lwinmm -limm32"
-       AH_TEMPLATE(C_D3DSHADERS,[Define to 1 to use Direct3D shaders, requires d3d9.h and libd3dx9])
-       AC_ARG_WITH(dx-headers,[  --with-dx-headers=DIR   DirectX include files location],
-		   dx_headers="$withval", dx_headers="")
-       AC_ARG_WITH(dx-libs,[  --with-dx-libs=DIR      DirectX library location],
-		   dx_libs="$withval", dx_libs="")
-       ac_save_CPPFLAGS=$CPPFLAGS
-       if test x$dx_headers != x ; then
-        CPPFLAGS="$CPPFLAGS -I$dx_headers"
-       fi
-       AC_LANG(C++)
-       AC_CHECK_HEADERS(ddraw.h)
-       AC_CHECK_HEADERS(d3d9.h,have_d3d9_h=yes,)
-       AC_MSG_CHECKING(whether direct3d display output will be enabled)
-       if test x$have_d3d9_h = xyes ; then
-        AC_MSG_RESULT(yes)
-        AC_ARG_ENABLE(shaders,AC_HELP_STRING([--disable-shaders],[Disable d3d pixelshader support (which requires libd3dx9)]),,[
-		AC_MSG_CHECKING(whether direct3d pixelshaders will be enabled)
-		ac_save_LIBS=$LIBS
-		if test x$dx_libs != x ; then
-		 dx_libs=" -L$dx_libs"
-		fi
-		LIBS="$LIBS$dx_libs -ld3dx9"
-		AC_TRY_LINK([#include <d3d9.h>
-			     #include <d3dx9.h>
-			     extern "C" int main();],D3DXCreateEffect(0, 0, 0, 0, 0, 0, 0, 0, 0), have_d3dx9_lib=yes,)
-		if test x$have_d3dx9_lib = xyes ; then
-		 AC_MSG_RESULT(yes)
-		 AC_DEFINE(C_D3DSHADERS,1)
-		else
-		 LIBS=$ac_save_LIBS
-		 AC_MSG_RESULT(no)
-		 AC_MSG_WARN([Can't find libd3dx9, pixelshader support disabled])
-		fi
-	],)
-       else
-        CPPFLAGS=$ac_save_CPPFLAGS
-        AC_MSG_RESULT(no)
-       fi
+
+dnl @FIXME:
+dnl
+dnl   GCC 5.4 is producing binaries that segfault at runtime during DirectX initialization.
+dnl
+dnl
+dnl       AH_TEMPLATE(C_D3DSHADERS,[Define to 1 to use Direct3D shaders, requires d3d9.h and libd3dx9])
+dnl       AC_ARG_WITH(dx-headers,[  --with-dx-headers=DIR   DirectX include files location],
+dnl		   dx_headers="$withval", dx_headers="")
+dnl       AC_ARG_WITH(dx-libs,[  --with-dx-libs=DIR      DirectX library location],
+dnl		   dx_libs="$withval", dx_libs="")
+dnl       ac_save_CPPFLAGS=$CPPFLAGS
+dnl       if test x$dx_headers != x ; then
+dnl        CPPFLAGS="$CPPFLAGS -I$dx_headers"
+dnl       fi
+dnl       AC_LANG(C++)
+dnl       AC_CHECK_HEADERS(ddraw.h)
+dnl       AC_CHECK_HEADERS(d3d9.h,have_d3d9_h=yes,)
+dnl       AC_MSG_CHECKING(whether direct3d display output will be enabled)
+dnl       if test x$have_d3d9_h = xyes ; then
+dnl        AC_MSG_RESULT(yes)
+dnl        AC_ARG_ENABLE(shaders,AC_HELP_STRING([--disable-shaders],[Disable d3d pixelshader support (which requires libd3dx9)]),,[
+dnl		AC_MSG_CHECKING(whether direct3d pixelshaders will be enabled)
+dnl		ac_save_LIBS=$LIBS
+dnl		if test x$dx_libs != x ; then
+dnl		 dx_libs=" -L$dx_libs"
+dnl		fi
+dnl		LIBS="$LIBS$dx_libs -ld3dx9"
+dnl		AC_TRY_LINK([#include <d3d9.h>
+dnl			     #include <d3dx9.h>
+dnl			     extern "C" int main();],D3DXCreateEffect(0, 0, 0, 0, 0, 0, 0, 0, 0), have_d3dx9_lib=yes,)
+dnl		if test x$have_d3dx9_lib = xyes ; then
+dnl		 AC_MSG_RESULT(yes)
+dnl		 AC_DEFINE(C_D3DSHADERS,1)
+dnl		else
+dnl		 LIBS=$ac_save_LIBS
+dnl		 AC_MSG_RESULT(no)
+dnl		 AC_MSG_WARN([Can't find libd3dx9, pixelshader support disabled])
+dnl		fi
+dnl	],)
+dnl       else
+dnl       CPPFLAGS=$ac_save_CPPFLAGS
+dnl        AC_MSG_RESULT(no)
+dnl       fi
        AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2 only).])
        AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel passthrough support (Win32 only).])
        if test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
