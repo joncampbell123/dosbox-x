@@ -531,6 +531,7 @@ dnl Some target detection and actions for them
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
        LIBS="$LIBS -lwinmm -limm32"
+       CXXFLAGS="$CXXFLAGS -mno-ms-bitfields"
 
 dnl @FIXME:
 dnl
