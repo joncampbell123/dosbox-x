@@ -23,19 +23,8 @@
 #include "dosbox.h"
 #endif
 
-#if !defined (_MSC_VER) && !defined(__APPLE__)
-/* NOTE to VS2015 users:
- *   This code primarily uses htoleXX BSD endian functions to convert to/from little endian.
- *   Windows is predominately little endian, so you could get away with #define macros of the
- *   same name that pass the value through unchanged. */
-# ifndef _BSD_SOURCE
-#  define _BSD_SOURCE		/* for htole16, etc. endian.h functions */
-# endif
-# include <endian.h>
-#endif
-
 #if defined(__APPLE__)
-/* This is a simple compatibility shim to convert
+ /* This is a simple compatibility shim to convert
  * BSD/Linux endian macros to the Mac OS X equivalents. */
 #include <libkern/OSByteOrder.h>
 #define htobe16(x) OSSwapHostToBigInt16(x)
@@ -52,6 +41,62 @@
 #define htole64(x) OSSwapHostToLittleInt64(x)
 #define be64toh(x) OSSwapBigToHostInt64(x)
 #define le64toh(x) OSSwapLittleToHostInt64(x)
+
+#elif defined(__linux__) || defined(__CYGWIN__)
+
+#include <endian.h>
+
+#elif defined(__OpenBSD__)
+
+#include <sys/endian.h>
+
+#elif defined(__NetBSD__) || defined(__FreeBSD__) || defined(__DragonFly__)
+
+#include <sys/endian.h>
+
+#define be16toh(x) betoh16(x)
+#define le16toh(x) letoh16(x)
+
+#define be32toh(x) betoh32(x)
+#define le32toh(x) letoh32(x)
+
+#define be64toh(x) betoh64(x)
+#define le64toh(x) letoh64(x)
+
+#elif defined(_MSC_VER) //Microsoft
+#if BYTE_ORDER == LITTLE_ENDIAN
+
+#define htobe16(x) htons(x)
+#define htole16(x) (x)
+#define be16toh(x) ntohs(x)
+#define le16toh(x) (x)
+
+#define htobe32(x) htonl(x)
+#define htole32(x) (x)
+#define be32toh(x) ntohl(x)
+#define le32toh(x) (x)
+
+#define htobe64(x) htonll(x)
+#define htole64(x) (x)
+#define be64toh(x) ntohll(x)
+#define le64toh(x) (x)
+
+#elif BYTE_ORDER == BIG_ENDIAN
+#define htobe16(x) (x)
+#define htole16(x) __builtin_bswap16(x)
+#define be16toh(x) (x)
+#define le16toh(x) __builtin_bswap16(x)
+
+#define htobe32(x) (x)
+#define htole32(x) __builtin_bswap32(x)
+#define be32toh(x) (x)
+#define le32toh(x) __builtin_bswap32(x)
+
+#define htobe64(x) (x)
+#define htole64(x) __builtin_bswap64(x)
+#define be64toh(x) (x)
+#define le64toh(x) __builtin_bswap64(x)
+#endif
 #endif
 
 typedef Bit8u *HostPt;		/* host (virtual) memory address aka ptr */
