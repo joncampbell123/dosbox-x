@@ -106,7 +106,7 @@ public:
  *      move on to the next device or mark the I/O port as empty. */
 class IO_CalloutObject: private IO_Base {
 public:
-    IO_CalloutObject() : IO_Base(), io_mask(0xFFFFU), range_mask(0U), alias_mask(0xFFFFU), getcounter(0), alloc(false) {};
+    IO_CalloutObject() : IO_Base(), io_mask(0xFFFFU), range_mask(0U), alias_mask(0xFFFFU), getcounter(0), m_r_handler(NULL), m_w_handler(NULL), alloc(false) {};
     void InvalidateCachedHandlers(void);
 	void Install(Bitu port,Bitu portmask/*IOMASK_ISA_10BIT, etc.*/,IO_ReadCalloutHandler *r_handler,IO_WriteCalloutHandler *w_handler);
 	void Uninstall();
@@ -115,6 +115,8 @@ public:
     Bit16u range_mask;
     Bit16u alias_mask;
     unsigned int getcounter;
+    IO_ReadCalloutHandler *m_r_handler;
+    IO_WriteCalloutHandler *m_w_handler;
     bool alloc;
 public:
     inline bool MatchPort(const Bit16u p) {

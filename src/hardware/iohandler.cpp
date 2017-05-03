@@ -90,28 +90,80 @@ void IO_WriteDefault(Bitu port,Bitu val,Bitu iolen) {
 	}
 }
 
-unsigned int IO_Motherboard_Callout_Read(Bitu &ret,IO_ReadHandler* &f,Bitu port,Bitu iolen) {
-    return 0;
+template <enum IO_Type_t iotype> static unsigned int IO_Gen_Callout_Read(Bitu &ret,IO_ReadHandler* &f,Bitu port,Bitu iolen) {
+    IO_callout_vector &vec = IO_callouts[iotype - IO_TYPE_MIN];
+    unsigned int match = 0;
+    IO_ReadHandler *t_f;
+    size_t scan = 0;
+
+    while (scan < vec.size()) {
+        IO_CalloutObject &obj = vec[scan++];
+        if (!obj.isInstalled()) continue;
+        if (obj.m_r_handler == NULL) continue;
+
+        t_f = obj.m_r_handler(port,iolen);
+        if (t_f != NULL) {
+            if (match != 0) {
+                if (iotype == IO_TYPE_ISA)
+                    ret &= t_f(port,iolen); /* ISA pullup resisters vs ISA devices pulling data lines down */
+            }
+            else {
+                ret = (/*assign and call*/f=t_f)(port,iolen);
+            }
+
+            match++;
+            if (iotype == IO_TYPE_PCI) /* PCI bus only one device can respond, no conflicts */
+                break;
+        }
+    }
+
+    return match;
 }
 
-unsigned int IO_PCI_Callout_Read(Bitu &ret,IO_ReadHandler* &f,Bitu port,Bitu iolen) {
-    return 0;
+template <enum IO_Type_t iotype> static unsigned int IO_Gen_Callout_Write(IO_WriteHandler* &f,Bitu port,Bitu val,Bitu iolen) {
+    IO_callout_vector &vec = IO_callouts[iotype - IO_TYPE_MIN];
+    unsigned int match = 0;
+    IO_WriteHandler *t_f;
+    size_t scan = 0;
+
+    while (scan < vec.size()) {
+        IO_CalloutObject &obj = vec[scan++];
+        if (!obj.isInstalled()) continue;
+        if (obj.m_w_handler == NULL) continue;
+
+        t_f = obj.m_w_handler(port,iolen);
+        if (t_f != NULL) {
+            t_f(port,val,iolen);
+            if (match == 0) f = t_f;
+            match++;
+        }
+    }
+
+    return match;
 }
 
-unsigned int IO_ISA_Callout_Read(Bitu &ret,IO_ReadHandler* &f,Bitu port,Bitu iolen) {
-    return 0;
+static unsigned int IO_Motherboard_Callout_Read(Bitu &ret,IO_ReadHandler* &f,Bitu port,Bitu iolen) {
+    return IO_Gen_Callout_Read<IO_TYPE_MB>(ret,f,port,iolen);
 }
 
-unsigned int IO_Motherboard_Callout_Write(IO_WriteHandler* &f,Bitu port,Bitu val,Bitu iolen) {
-    return 0;
+static unsigned int IO_PCI_Callout_Read(Bitu &ret,IO_ReadHandler* &f,Bitu port,Bitu iolen) {
+    return IO_Gen_Callout_Read<IO_TYPE_PCI>(ret,f,port,iolen);
 }
 
-unsigned int IO_PCI_Callout_Write(IO_WriteHandler* &f,Bitu port,Bitu val,Bitu iolen) {
-    return 0;
+static unsigned int IO_ISA_Callout_Read(Bitu &ret,IO_ReadHandler* &f,Bitu port,Bitu iolen) {
+    return IO_Gen_Callout_Read<IO_TYPE_ISA>(ret,f,port,iolen);
 }
 
-unsigned int IO_ISA_Callout_Write(IO_WriteHandler* &f,Bitu port,Bitu val,Bitu iolen) {
-    return 0;
+static unsigned int IO_Motherboard_Callout_Write(IO_WriteHandler* &f,Bitu port,Bitu val,Bitu iolen) {
+    return IO_Gen_Callout_Write<IO_TYPE_MB>(f,port,val,iolen);
+}
+
+static unsigned int IO_PCI_Callout_Write(IO_WriteHandler* &f,Bitu port,Bitu val,Bitu iolen) {
+    return IO_Gen_Callout_Write<IO_TYPE_PCI>(f,port,val,iolen);
+}
+
+static unsigned int IO_ISA_Callout_Write(IO_WriteHandler* &f,Bitu port,Bitu val,Bitu iolen) {
+    return IO_Gen_Callout_Write<IO_TYPE_ISA>(f,port,val,iolen);
 }
 
 static Bitu IO_ReadSlowPath(Bitu port,Bitu iolen) {
@@ -637,6 +689,8 @@ void IO_CalloutObject::Install(Bitu port,Bitu portmask/*IOMASK_ISA_10BIT, etc.*/
 		m_mask=0; /* not used */
 		m_range=0; /* not used */
         io_mask=portmask;
+        m_r_handler=r_handler;
+        m_w_handler=w_handler;
 
         /* add this object to the callout array.
          * don't register any I/O handlers. those will be registered during the "slow path"
