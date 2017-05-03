@@ -537,10 +537,6 @@ void IO_CalloutObject::Install(Bitu port,Bitu portmask/*IOMASK_ISA_10BIT, etc.*/
             LOG(LOG_MISC,LOG_ERROR)("IO_CalloutObject::Install: Port mask %x is invalid",(unsigned int)portmask);
             return;
         }
-        if (m_port & portmask) {
-            LOG(LOG_MISC,LOG_ERROR)("IO_CalloutObject::Install: m_port %x and port mask %x not aligned",(unsigned int)port,(unsigned int)portmask);
-            return;
-        }
 
         /* we need a mask for the distance between aliases of the port, and the range of I/O ports. */
         /* only the low part of the mask where bits are zero, not the upper.
@@ -608,6 +604,12 @@ void IO_CalloutObject::Install(Bitu port,Bitu portmask/*IOMASK_ISA_10BIT, etc.*/
                     (unsigned int)range_mask,
                     (unsigned int)alias_mask,
                     (unsigned int)(portmask ^ range_mask ^ alias_mask));
+                return;
+            }
+
+            if (port & range_mask) {
+                LOG(LOG_MISC,LOG_ERROR)("IO_CalloutObject::Install: port %x and port mask %x not aligned (range_mask %x)",
+                    (unsigned int)port,(unsigned int)portmask,(unsigned int)range_mask);
                 return;
             }
         }
