@@ -515,7 +515,20 @@ void IO_Init() {
 }
 
 void IO_CalloutObject::InvalidateCachedHandlers(void) {
-    /* TODO */
+    Bitu p;
+
+    /* NTS: Worst case scenario might be a 10-bit ISA device with 16 I/O ports,
+     *      which would then require resetting 1024 entries of the array.
+     *
+     *      A 10-bit decode ignores the upper 6 bits = 1 << 6 = 64
+     *
+     *      64 * 16 = 1024 I/O ports to be reset.
+     *
+     *      Not too bad, really. */
+
+    /* for both the base I/O, as well as it's aliases, revert the I/O ports back to "slow path" */
+    for (p=m_port;p < 0x10000;p += alias_mask+1)
+        IO_InvalidateCachedHandler(p,range_mask+1);
 }
 
 void IO_CalloutObject::Install(Bitu port,Bitu portmask/*IOMASK_ISA_10BIT, etc.*/,IO_ReadCalloutHandler *r_handler,IO_WriteCalloutHandler *w_handler) {
