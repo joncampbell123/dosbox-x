@@ -53,7 +53,7 @@ static Bitu IO_ReadDefault(Bitu port,Bitu iolen) {
 			(io_readhandlers[1][port+0](port+0,2) << 0) |
 			(io_readhandlers[1][port+2](port+2,2) << 16);
 	}
-	return 0;
+	return ~0;
 }
 
 void IO_WriteDefault(Bitu port,Bitu val,Bitu iolen) {
@@ -71,6 +71,47 @@ void IO_WriteDefault(Bitu port,Bitu val,Bitu iolen) {
 		io_writehandlers[1][port+2](port+2,(val >> 16) & 0xffff,2);
 		break;
 	}
+}
+
+static Bitu IO_ReadSlowPath(Bitu port,Bitu iolen) {
+    IO_ReadHandler *f = iolen > 1 ? IO_ReadDefault : IO_ReadBlocked;
+    unsigned int match = 0;
+    unsigned int porti;
+    Bitu ret = ~0;
+
+    /* TODO: Ask all ISA/PCI devices if they respond to this device range */
+    /* TODO: For any ISA device that responds, call each IO handler,
+     *       take the return value and AND it against ret to simulate ISA
+     *       bus pullup resisters vs multiple devices driving data lines.
+     *       Not sure what happens if multiple PCI devices respond the same. */
+
+    /* if nothing matched, assign default handler to IO handler slot.
+     * if one device responded, assign it's handler to the IO handler slot.
+     * if more than one responded, then do not update the IO handler slot. */
+    assert(iolen >= 1 && iolen <= 4);
+    porti = (iolen >= 4) ? 2 : (iolen - 1); /* 1 2 x 4 -> 0 1 1 2 */
+    LOG(LOG_MISC,LOG_DEBUG)("IO read slow path port=%x iolen=%u: device matches=%u",(unsigned int)port,(unsigned int)iolen,(unsigned int)match);
+    if (match == 0) ret = f(port,iolen); /* if nobody responded, then call the default */
+    if (match <= 1) io_readhandlers[porti][port] = f;
+
+	return ret;
+}
+
+void IO_WriteSlowPath(Bitu port,Bitu val,Bitu iolen) {
+    IO_WriteHandler *f = iolen > 1 ? IO_WriteDefault : IO_WriteBlocked;
+    unsigned int match = 0;
+    unsigned int porti;
+
+    /* TODO: Ask all ISA/PCI devices if they respond to this device range */
+
+    /* if nothing matched, assign default handler to IO handler slot.
+     * if one device responded, assign it's handler to the IO handler slot.
+     * if more than one responded, then do not update the IO handler slot. */
+    assert(iolen >= 1 && iolen <= 4);
+    porti = (iolen >= 4) ? 2 : (iolen - 1); /* 1 2 x 4 -> 0 1 1 2 */
+    LOG(LOG_MISC,LOG_DEBUG)("IO write slow path port=%x data=%x iolen=%u: device matches=%u",(unsigned int)port,(unsigned int)val,(unsigned int)iolen,(unsigned int)match);
+    if (match == 0) f(port,val,iolen); /* if nobody responded, then call the default */
+    if (match <= 1) io_writehandlers[porti][port] = f;
 }
 
 void IO_RegisterReadHandler(Bitu port,IO_ReadHandler * handler,Bitu mask,Bitu range) {
@@ -93,18 +134,18 @@ void IO_RegisterWriteHandler(Bitu port,IO_WriteHandler * handler,Bitu mask,Bitu 
 
 void IO_FreeReadHandler(Bitu port,Bitu mask,Bitu range) {
 	while (range--) {
-		if (mask&IO_MB) io_readhandlers[0][port]=IO_ReadDefault;
-		if (mask&IO_MW) io_readhandlers[1][port]=IO_ReadDefault;
-		if (mask&IO_MD) io_readhandlers[2][port]=IO_ReadDefault;
+		if (mask&IO_MB) io_readhandlers[0][port]=IO_ReadSlowPath;
+		if (mask&IO_MW) io_readhandlers[1][port]=IO_ReadSlowPath;
+		if (mask&IO_MD) io_readhandlers[2][port]=IO_ReadSlowPath;
 		port++;
 	}
 }
 
 void IO_FreeWriteHandler(Bitu port,Bitu mask,Bitu range) {
 	while (range--) {
-		if (mask&IO_MB) io_writehandlers[0][port]=IO_WriteDefault;
-		if (mask&IO_MW) io_writehandlers[1][port]=IO_WriteDefault;
-		if (mask&IO_MD) io_writehandlers[2][port]=IO_WriteDefault;
+		if (mask&IO_MB) io_writehandlers[0][port]=IO_WriteSlowPath;
+		if (mask&IO_MW) io_writehandlers[1][port]=IO_WriteSlowPath;
+		if (mask&IO_MD) io_writehandlers[2][port]=IO_WriteSlowPath;
 		port++;
 	}
 }
