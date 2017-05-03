@@ -20,6 +20,8 @@
 #ifndef DOSBOX_INOUT_H
 #define DOSBOX_INOUT_H
 
+#include <stdio.h>
+
 #define IO_MAX (64*1024+3)
 
 #define IO_MB	0x1
@@ -36,8 +38,8 @@ extern IO_ReadHandler * io_readhandlers[3][IO_MAX];
 void IO_RegisterReadHandler(Bitu port,IO_ReadHandler * handler,Bitu mask,Bitu range=1);
 void IO_RegisterWriteHandler(Bitu port,IO_WriteHandler * handler,Bitu mask,Bitu range=1);
 
-void IO_FreeReadHandler(Bitu port,Bitu mask,Bitu range=1);
-void IO_FreeWriteHandler(Bitu port,Bitu mask,Bitu range=1);
+void IO_FreeReadHandler(Bitu port,Bitu mask,Bitu range=1,IO_ReadHandler * handler=NULL);
+void IO_FreeWriteHandler(Bitu port,Bitu mask,Bitu range=1,IO_WriteHandler * handler=NULL);
 
 void IO_WriteB(Bitu port,Bitu val);
 void IO_WriteW(Bitu port,Bitu val);
@@ -54,19 +56,25 @@ protected:
 	bool installed;
 	Bitu m_port, m_mask,m_range;
 public:
-	IO_Base():installed(false){};
+	IO_Base() : installed(false), m_port(0), m_mask(0), m_range(0) {};
 };
-class IO_ReadHandleObject: private IO_Base{
+class IO_ReadHandleObject: private IO_Base {
 public:
+    IO_ReadHandleObject() : IO_Base(), handler(NULL) {};
 	void Install(Bitu port,IO_ReadHandler * handler,Bitu mask,Bitu range=1);
 	void Uninstall();
 	~IO_ReadHandleObject();
+private:
+    IO_ReadHandler *handler;
 };
 class IO_WriteHandleObject: private IO_Base{
 public:
+    IO_WriteHandleObject() : IO_Base(), handler(NULL) {};
 	void Install(Bitu port,IO_WriteHandler * handler,Bitu mask,Bitu range=1);
 	void Uninstall();
 	~IO_WriteHandleObject();
+private:
+    IO_WriteHandler *handler;
 };
 
 static INLINE void IO_Write(Bitu port,Bit8u val) {
