@@ -58,6 +58,33 @@ static const Bitu IOMASK_ISA_10BIT = 0x3FFU; /* ISA 10-bit decode */
 static const Bitu IOMASK_ISA_12BIT = 0xFFFU; /* ISA 12-bit decode */
 static const Bitu IOMASK_FULL = 0xFFFFU; /* full 16-bit decode */
 
+/* WARNING: Will only produce a correct result if 'x' is a nonzero power of two.
+ * For use with IOMASK_Combine.
+ *
+ * A device with 16 I/O ports would produce a range mask of:
+ *
+ *       ~(16 - 1) = ~15 = ~0xF = 0xFFFFFFF0
+ *
+ *       or
+ *
+ *       ~(0x10 - 1) = ~0xF = 0xFFFFFFF0
+ *
+ */
+static inline const Bitu IOMASK_Range(const Bitu x) {
+    return ~(x - 1);
+}
+
+/* combine range mask with IOMASK value.
+ *
+ * Example: Sound Blaster 10-bit decode with 16 I/O ports:
+ *
+ *     IOMASK_Combine(IOMASK_ISA_10BIT,IOMASK_Range(16));
+ *
+ */
+static inline const Bitu IOMASK_Combine(const Bitu a,const Bitu b) {
+    return a & b;
+}
+
 /* Classes to manage the IO objects created by the various devices.
  * The io objects will remove itself on destruction.*/
 class IO_Base{
