@@ -512,6 +512,9 @@ void IO_Init() {
 
 	/* please call our reset function on power-on and reset */
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(IO_Reset));
+
+    /* prepare callouts */
+    IO_InitCallouts();
 }
 
 void IO_CalloutObject::InvalidateCachedHandlers(void) {
@@ -637,7 +640,117 @@ void IO_CalloutObject::Uninstall() {
     installed=false;
 }
 
-IO_CalloutObject::~IO_CalloutObject() {
-    Uninstall();
+#include <vector>
+
+class IO_callout_vector : public std::vector<IO_CalloutObject> {
+public:
+    IO_callout_vector() : std::vector<IO_CalloutObject>(), getcounter(0), alloc_from(0) { };
+public:
+    unsigned int getcounter;
+    unsigned int alloc_from;
+};
+
+#define IO_callouts_max (IO_TYPE_MAX - IO_TYPE_MIN)
+#define IO_callouts_index(t) (t - IO_TYPE_MIN)
+
+static IO_callout_vector IO_callouts[IO_callouts_max];
+
+void IO_InitCallouts(void) {
+    /* make sure each vector has enough for a typical load */
+    IO_callouts[IO_callouts_index(IO_TYPE_ISA)].resize(64);
+    IO_callouts[IO_callouts_index(IO_TYPE_PCI)].resize(64);
+    IO_callouts[IO_callouts_index(IO_TYPE_MB)].resize(64);
+}
+
+/* callers maintain a handle to it.
+ * if they need to touch it, they get a pointer, which they then have to put back.
+ * The way DOSBox/DOSbox-X code handles IO callbacks it's common to declare an IO object,
+ * call the install, but then never touch it again, so this should work fine.
+ *
+ * this allows us to maintain ready-made IO callout objects to return quickly rather
+ * than write more complicated code where the caller has to make an IO_CalloutObject
+ * and then call install and we have to add it's pointer to a list/vector/whatever.
+ * It also avoids problems where if we have to resize the vector, the pointers become
+ * invalid, because callers have only handles and they have to put all the pointers
+ * back in order for us to resize the vector. */
+IO_Callout_t IO_AllocateCallout(IO_Type_t t) {
+    if (t < IO_TYPE_MIN || t >= IO_TYPE_MAX)
+        return IO_Callout_t_none;
+
+    IO_callout_vector &vec = IO_callouts[t - IO_TYPE_MIN];
+
+try_again:
+    while (vec.alloc_from < vec.size()) {
+        IO_CalloutObject &obj = vec[vec.alloc_from];
+
+        if (!obj.alloc) {
+            obj.alloc = true;
+            assert(obj.isInstalled() == false);
+            return IO_Callout_t_comb(t,vec.alloc_from++); /* make combination, then increment alloc_from */
+        }
+
+        vec.alloc_from++;
+    }
+
+    /* okay, double the size of the vector within reason.
+     * if anyone has pointers out to our elements, then we cannot resize. vector::resize() may invalidate them. */
+    if (vec.size() < 4096 && vec.getcounter == 0) {
+        size_t nsz = vec.size() * 2;
+
+        LOG(LOG_MISC,LOG_WARN)("IO_AllocateCallout type %u expanding array to %u",(unsigned int)t,(unsigned int)nsz);
+        vec.alloc_from = vec.size(); /* allocate from end of old vector size */
+        vec.resize(nsz);
+        goto try_again;
+    }
+
+    LOG(LOG_MISC,LOG_WARN)("IO_AllocateCallout type %u no free entries",(unsigned int)t);
+    return IO_Callout_t_none;
+}
+
+void IO_FreeCallout(IO_Callout_t c) {
+    enum IO_Type_t t = IO_Callout_t_type(c);
+
+    if (t < IO_TYPE_MIN || t >= IO_TYPE_MAX)
+        return;
+
+    IO_callout_vector &vec = IO_callouts[t - IO_TYPE_MIN];
+    uint32_t idx = IO_Callout_t_index(c);
+
+    if (idx >= vec.size())
+        return;
+
+    IO_CalloutObject &obj = vec[idx];
+    if (!obj.alloc) return;
+
+    if (obj.isInstalled())
+        obj.Uninstall();
+
+    obj.alloc = false;
+    vec.alloc_from = idx; /* an empty slot just opened up, you can alloc from there */
+}
+
+IO_CalloutObject *IO_GetCallout(IO_Callout_t c) {
+    enum IO_Type_t t = IO_Callout_t_type(c);
+
+    if (t < IO_TYPE_MIN || t >= IO_TYPE_MAX)
+        return NULL;
+
+    IO_callout_vector &vec = IO_callouts[t - IO_TYPE_MIN];
+    uint32_t idx = IO_Callout_t_index(c);
+
+    if (idx >= vec.size())
+        return NULL;
+
+    IO_CalloutObject &obj = vec[idx];
+    if (!obj.alloc) return NULL;
+    obj.getcounter++;
+
+    return &obj;
+}
+
+void IO_PutCallout(IO_CalloutObject *obj) {
+    if (obj == NULL) return;
+    if (obj->getcounter == 0) return;
+    obj->getcounter--;
 }
 

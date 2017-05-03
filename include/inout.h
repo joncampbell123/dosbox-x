@@ -21,6 +21,7 @@
 #define DOSBOX_INOUT_H
 
 #include <stdio.h>
+#include <stdint.h>
 
 #define IO_MAX (64*1024+3)
 
@@ -105,15 +106,16 @@ public:
  *      move on to the next device or mark the I/O port as empty. */
 class IO_CalloutObject: private IO_Base {
 public:
-    IO_CalloutObject() : IO_Base(), io_mask(0xFFFFU), range_mask(0U), alias_mask(0xFFFFU) {};
+    IO_CalloutObject() : IO_Base(), io_mask(0xFFFFU), range_mask(0U), alias_mask(0xFFFFU), getcounter(0), alloc(false) {};
     void InvalidateCachedHandlers(void);
 	void Install(Bitu port,Bitu portmask/*IOMASK_ISA_10BIT, etc.*/,IO_ReadCalloutHandler *r_handler,IO_WriteCalloutHandler *w_handler);
 	void Uninstall();
-    ~IO_CalloutObject();
 public:
     Bit16u io_mask;
     Bit16u range_mask;
     Bit16u alias_mask;
+    unsigned int getcounter;
+    bool alloc;
 public:
     inline bool MatchPort(const Bit16u p) {
         /* (p & io_mask) == (m_port & io_mask) but this also works.
@@ -121,6 +123,9 @@ public:
          * for this to work, m_port must be a multiple of the I/O range. For example, if the I/O
          * range is 16 ports, then m_port must be a multiple of 16. */
         return ((p - m_port) & io_mask) == 0;
+    }
+    inline bool isInstalled(void) {
+        return installed;
     }
 };
 class IO_ReadHandleObject: private IO_Base {
@@ -144,5 +149,38 @@ static INLINE void IO_Write(Bitu port,Bit8u val) {
 static INLINE Bit8u IO_Read(Bitu port){
 	return (Bit8u)IO_ReadB(port);
 }
+
+enum IO_Type_t {
+    IO_TYPE_NONE=0,
+    IO_TYPE_MIN=1,
+    IO_TYPE_ISA=1,
+    IO_TYPE_PCI,
+    IO_TYPE_MB,
+
+    IO_TYPE_MAX
+};
+
+void IO_InitCallouts(void);
+
+typedef uint32_t IO_Callout_t;
+
+static inline uint32_t IO_Callout_t_comb(const enum IO_Type_t t,const uint32_t idx) {
+    return ((uint32_t)t << (uint32_t)28) + idx;
+}
+
+static inline enum IO_Type_t IO_Callout_t_type(const IO_Callout_t t) {
+    return (enum IO_Type_t)(t >> 28);
+}
+
+static inline uint32_t IO_Callout_t_index(const IO_Callout_t t) {
+    return t & (((uint32_t)1 << (uint32_t)28) - (uint32_t)1);
+}
+
+static const IO_Callout_t IO_Callout_t_none = (IO_Callout_t)0;
+
+IO_Callout_t IO_AllocateCallout(IO_Type_t t);
+void IO_FreeCallout(IO_Callout_t c);
+IO_CalloutObject *IO_GetCallout(IO_Callout_t c);
+void IO_PutCallout(IO_CalloutObject *obj);
 
 #endif
