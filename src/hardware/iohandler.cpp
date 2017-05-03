@@ -105,7 +105,7 @@ template <enum IO_Type_t iotype> static unsigned int IO_Gen_Callout_Read(Bitu &r
         if (t_f != NULL) {
             if (match != 0) {
                 if (iotype == IO_TYPE_ISA)
-                    ret &= t_f(port,iolen); /* ISA pullup resisters vs ISA devices pulling data lines down */
+                    ret &= t_f(port,iolen); /* ISA pullup resisters vs ISA devices pulling data lines down (two conflicting devices) */
             }
             else {
                 ret = (/*assign and call*/f=t_f)(port,iolen);
