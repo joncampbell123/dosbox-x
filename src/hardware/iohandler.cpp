@@ -28,6 +28,8 @@
 
 //#define ENABLE_PORTLOG
 
+extern bool pcibus_enable;
+
 IO_WriteHandler * io_writehandlers[3][IO_MAX];
 IO_ReadHandler * io_readhandlers[3][IO_MAX];
 
@@ -73,17 +75,80 @@ void IO_WriteDefault(Bitu port,Bitu val,Bitu iolen) {
 	}
 }
 
+unsigned int IO_Motherboard_Callout_Read(Bitu &ret,IO_ReadHandler* &f,Bitu port,Bitu iolen) {
+    return 0;
+}
+
+unsigned int IO_PCI_Callout_Read(Bitu &ret,IO_ReadHandler* &f,Bitu port,Bitu iolen) {
+    return 0;
+}
+
+unsigned int IO_ISA_Callout_Read(Bitu &ret,IO_ReadHandler* &f,Bitu port,Bitu iolen) {
+    return 0;
+}
+
+unsigned int IO_Motherboard_Callout_Write(IO_WriteHandler* &f,Bitu port,Bitu val,Bitu iolen) {
+    return 0;
+}
+
+unsigned int IO_PCI_Callout_Write(IO_WriteHandler* &f,Bitu port,Bitu val,Bitu iolen) {
+    return 0;
+}
+
+unsigned int IO_ISA_Callout_Write(IO_WriteHandler* &f,Bitu port,Bitu val,Bitu iolen) {
+    return 0;
+}
+
 static Bitu IO_ReadSlowPath(Bitu port,Bitu iolen) {
     IO_ReadHandler *f = iolen > 1 ? IO_ReadDefault : IO_ReadBlocked;
     unsigned int match = 0;
     unsigned int porti;
     Bitu ret = ~0;
 
-    /* TODO: Ask all ISA/PCI devices if they respond to this device range */
-    /* TODO: For any ISA device that responds, call each IO handler,
-     *       take the return value and AND it against ret to simulate ISA
-     *       bus pullup resisters vs multiple devices driving data lines.
-     *       Not sure what happens if multiple PCI devices respond the same. */
+    /* check motherboard devices */
+    if ((port & 0xFF00) == 0x0000) /* motherboard-level I/O */
+        match = IO_Motherboard_Callout_Read(/*&*/ret,/*&*/f,port,iolen);
+
+    if (match == 0) {
+        /* first PCI bus device, then ISA.
+         *
+         * Note that calling out ISA devices that conflict with PCI
+         * is based on experience with an old Pentium system of mine in the late 1990s
+         * when I had a Sound Blaster Live PCI! and a Sound Blaster clone both listening
+         * to ports 220h-22Fh in Windows 98, in which both cards responded to a DOS
+         * game in the DOS box even though read-wise only the Live PCI!'s data was returned.
+         * Both cards responded to I/O writes.
+         *
+         * Based on that experience, my guess is that to keep ISA from going too slow Intel
+         * designed the PIIX PCI/ISA bridge to listen for I/O and start an ISA I/O cycle
+         * even while another PCI device is preparing to respond to it. Then if nobody takes
+         * it, the PCI/ISA bridge completes the ISA bus cycle and takes up the PCI bus
+         * transaction. If another PCI device took the I/O write, then the cycle completes
+         * quietly and the result is discarded.
+         *
+         * That's what I think happened, anyway.
+         *
+         * I wish I had tools to watch I/O transactions on the ISA bus to verify this. --J.C. */
+        if (pcibus_enable) {
+            /* PCI and PCI/ISA bridge emulation */
+            match = IO_PCI_Callout_Read(/*&*/ret,/*&*/f,port,iolen);
+
+            if (match == 0) {
+                /* PCI didn't take it, ask ISA bus */
+                match = IO_ISA_Callout_Read(/*&*/ret,/*&*/f,port,iolen);
+            }
+            else {
+                Bitu dummy;
+
+                /* PCI did match. Based on behavior noted above, probe ISA bus anyway and discard data. */
+                match += IO_ISA_Callout_Read(/*&*/dummy,/*&*/f,port,iolen);
+            }
+        }
+        else {
+            /* Pure ISA emulation */
+            match = IO_ISA_Callout_Read(/*&*/ret,/*&*/f,port,iolen);
+        }
+    }
 
     /* if nothing matched, assign default handler to IO handler slot.
      * if one device responded, assign it's handler to the IO handler slot.
@@ -102,7 +167,48 @@ void IO_WriteSlowPath(Bitu port,Bitu val,Bitu iolen) {
     unsigned int match = 0;
     unsigned int porti;
 
-    /* TODO: Ask all ISA/PCI devices if they respond to this device range */
+    /* check motherboard devices */
+    if ((port & 0xFF00) == 0x0000) /* motherboard-level I/O */
+        match = IO_Motherboard_Callout_Write(/*&*/f,port,val,iolen);
+
+    if (match == 0) {
+        /* first PCI bus device, then ISA.
+         *
+         * Note that calling out ISA devices that conflict with PCI
+         * is based on experience with an old Pentium system of mine in the late 1990s
+         * when I had a Sound Blaster Live PCI! and a Sound Blaster clone both listening
+         * to ports 220h-22Fh in Windows 98, in which both cards responded to a DOS
+         * game in the DOS box even though read-wise only the Live PCI!'s data was returned.
+         * Both cards responded to I/O writes.
+         *
+         * Based on that experience, my guess is that to keep ISA from going too slow Intel
+         * designed the PIIX PCI/ISA bridge to listen for I/O and start an ISA I/O cycle
+         * even while another PCI device is preparing to respond to it. Then if nobody takes
+         * it, the PCI/ISA bridge completes the ISA bus cycle and takes up the PCI bus
+         * transaction. If another PCI device took the I/O write, then the cycle completes
+         * quietly and the result is discarded.
+         *
+         * That's what I think happened, anyway.
+         *
+         * I wish I had tools to watch I/O transactions on the ISA bus to verify this. --J.C. */
+        if (pcibus_enable) {
+            /* PCI and PCI/ISA bridge emulation */
+            match = IO_PCI_Callout_Write(/*&*/f,port,val,iolen);
+
+            if (match == 0) {
+                /* PCI didn't take it, ask ISA bus */
+                match = IO_ISA_Callout_Write(/*&*/f,port,val,iolen);
+            }
+            else {
+                /* PCI did match. Based on behavior noted above, probe ISA bus anyway and discard data. */
+                match += IO_ISA_Callout_Write(/*&*/f,port,val,iolen);
+            }
+        }
+        else {
+            /* Pure ISA emulation */
+            match = IO_ISA_Callout_Write(/*&*/f,port,val,iolen);
+        }
+    }
 
     /* if nothing matched, assign default handler to IO handler slot.
      * if one device responded, assign it's handler to the IO handler slot.
