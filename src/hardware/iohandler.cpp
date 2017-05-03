@@ -132,20 +132,20 @@ void IO_RegisterWriteHandler(Bitu port,IO_WriteHandler * handler,Bitu mask,Bitu 
 	}
 }
 
-void IO_FreeReadHandler(Bitu port,Bitu mask,Bitu range,IO_ReadHandler * handler) {
+void IO_FreeReadHandler(Bitu port,Bitu mask,Bitu range) {
 	while (range--) {
-		if ((mask&IO_MB) && (handler == NULL || handler == io_readhandlers[0][port])) io_readhandlers[0][port]=IO_ReadSlowPath;
-		if ((mask&IO_MW) && (handler == NULL || handler == io_readhandlers[1][port])) io_readhandlers[1][port]=IO_ReadSlowPath;
-		if ((mask&IO_MD) && (handler == NULL || handler == io_readhandlers[2][port])) io_readhandlers[2][port]=IO_ReadSlowPath;
+		if (mask&IO_MB) io_readhandlers[0][port]=IO_ReadSlowPath;
+		if (mask&IO_MW) io_readhandlers[1][port]=IO_ReadSlowPath;
+		if (mask&IO_MD) io_readhandlers[2][port]=IO_ReadSlowPath;
 		port++;
 	}
 }
 
-void IO_FreeWriteHandler(Bitu port,Bitu mask,Bitu range,IO_WriteHandler * handler) {
+void IO_FreeWriteHandler(Bitu port,Bitu mask,Bitu range) {
 	while (range--) {
-		if ((mask&IO_MB) && (handler == NULL || handler == io_writehandlers[0][port])) io_writehandlers[0][port]=IO_WriteSlowPath;
-		if ((mask&IO_MW) && (handler == NULL || handler == io_writehandlers[1][port])) io_writehandlers[1][port]=IO_WriteSlowPath;
-		if ((mask&IO_MD) && (handler == NULL || handler == io_writehandlers[2][port])) io_writehandlers[2][port]=IO_WriteSlowPath;
+		if (mask&IO_MB) io_writehandlers[0][port]=IO_WriteSlowPath;
+		if (mask&IO_MW) io_writehandlers[1][port]=IO_WriteSlowPath;
+		if (mask&IO_MD) io_writehandlers[2][port]=IO_WriteSlowPath;
 		port++;
 	}
 }
@@ -163,7 +163,7 @@ void IO_ReadHandleObject::Install(Bitu port,IO_ReadHandler * _handler,Bitu mask,
 
 void IO_ReadHandleObject::Uninstall(){
 	if(!installed) return;
-	IO_FreeReadHandler(m_port,m_mask,m_range,handler);
+	IO_FreeReadHandler(m_port,m_mask,m_range);
 	installed=false;
     handler=NULL;
 }
@@ -185,7 +185,7 @@ void IO_WriteHandleObject::Install(Bitu port,IO_WriteHandler * _handler,Bitu mas
 
 void IO_WriteHandleObject::Uninstall() {
 	if(!installed) return;
-	IO_FreeWriteHandler(m_port,m_mask,m_range,handler);
+	IO_FreeWriteHandler(m_port,m_mask,m_range);
 	installed=false;
     handler=NULL;
 }
