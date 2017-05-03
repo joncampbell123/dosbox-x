@@ -593,7 +593,8 @@ void IO_CalloutObject::Install(Bitu port,Bitu portmask/*IOMASK_ISA_10BIT, etc.*/
                 LOG(LOG_MISC,LOG_ERROR)("IO_CalloutObject::Install: portmask(%x) ^ range_mask(%x) ^ alias_mask(%x) != 0 (%x). Invalid portmask.",
                     (unsigned int)portmask,
                     (unsigned int)range_mask,
-                    (unsigned int)(portmask & range_mask));
+                    (unsigned int)alias_mask,
+                    (unsigned int)(portmask ^ range_mask ^ alias_mask));
                 return;
             }
         }
@@ -610,12 +611,15 @@ void IO_CalloutObject::Install(Bitu port,Bitu portmask/*IOMASK_ISA_10BIT, etc.*/
          * we invalidate the I/O ranges */
         LOG(LOG_MISC,LOG_DEBUG)("IO_CalloutObject::Install added device with port=0x%x io_mask=0x%x rangemask=0x%x aliasmask=0x%x",
             (unsigned int)port,(unsigned int)io_mask,(unsigned int)range_mask,(unsigned int)alias_mask);
-	}
+
+        InvalidateCachedHandlers();
+    }
 }
 
 void IO_CalloutObject::Uninstall() {
 	if(!installed) return;
-	installed=false;
+    InvalidateCachedHandlers();
+    installed=false;
 }
 
 IO_CalloutObject::~IO_CalloutObject() {
