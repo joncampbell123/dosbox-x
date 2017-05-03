@@ -28,10 +28,25 @@
 
 //#define ENABLE_PORTLOG
 
+#include <vector>
+
 extern bool pcibus_enable;
+
+#define IO_callouts_max (IO_TYPE_MAX - IO_TYPE_MIN)
+#define IO_callouts_index(t) (t - IO_TYPE_MIN)
+
+class IO_callout_vector : public std::vector<IO_CalloutObject> {
+public:
+    IO_callout_vector() : std::vector<IO_CalloutObject>(), getcounter(0), alloc_from(0) { };
+public:
+    unsigned int getcounter;
+    unsigned int alloc_from;
+};
 
 IO_WriteHandler * io_writehandlers[3][IO_MAX];
 IO_ReadHandler * io_readhandlers[3][IO_MAX];
+
+static IO_callout_vector IO_callouts[IO_callouts_max];
 
 static Bitu IO_ReadBlocked(Bitu /*port*/,Bitu /*iolen*/) {
 	return ~0;
@@ -639,21 +654,6 @@ void IO_CalloutObject::Uninstall() {
     InvalidateCachedHandlers();
     installed=false;
 }
-
-#include <vector>
-
-class IO_callout_vector : public std::vector<IO_CalloutObject> {
-public:
-    IO_callout_vector() : std::vector<IO_CalloutObject>(), getcounter(0), alloc_from(0) { };
-public:
-    unsigned int getcounter;
-    unsigned int alloc_from;
-};
-
-#define IO_callouts_max (IO_TYPE_MAX - IO_TYPE_MIN)
-#define IO_callouts_index(t) (t - IO_TYPE_MIN)
-
-static IO_callout_vector IO_callouts[IO_callouts_max];
 
 void IO_InitCallouts(void) {
     /* make sure each vector has enough for a typical load */
