@@ -221,6 +221,7 @@ void IO_WriteSlowPath(Bitu port,Bitu val,Bitu iolen) {
 }
 
 void IO_RegisterReadHandler(Bitu port,IO_ReadHandler * handler,Bitu mask,Bitu range) {
+    assert((port+range) <= IO_MAX);
 	while (range--) {
 		if (mask&IO_MB) io_readhandlers[0][port]=handler;
 		if (mask&IO_MW) io_readhandlers[1][port]=handler;
@@ -230,6 +231,7 @@ void IO_RegisterReadHandler(Bitu port,IO_ReadHandler * handler,Bitu mask,Bitu ra
 }
 
 void IO_RegisterWriteHandler(Bitu port,IO_WriteHandler * handler,Bitu mask,Bitu range) {
+    assert((port+range) <= IO_MAX);
 	while (range--) {
 		if (mask&IO_MB) io_writehandlers[0][port]=handler;
 		if (mask&IO_MW) io_writehandlers[1][port]=handler;
@@ -239,6 +241,7 @@ void IO_RegisterWriteHandler(Bitu port,IO_WriteHandler * handler,Bitu mask,Bitu 
 }
 
 void IO_FreeReadHandler(Bitu port,Bitu mask,Bitu range) {
+    assert((port+range) <= IO_MAX);
 	while (range--) {
 		if (mask&IO_MB) io_readhandlers[0][port]=IO_ReadSlowPath;
 		if (mask&IO_MW) io_readhandlers[1][port]=IO_ReadSlowPath;
@@ -248,6 +251,7 @@ void IO_FreeReadHandler(Bitu port,Bitu mask,Bitu range) {
 }
 
 void IO_FreeWriteHandler(Bitu port,Bitu mask,Bitu range) {
+    assert((port+range) <= IO_MAX);
 	while (range--) {
 		if (mask&IO_MB) io_writehandlers[0][port]=IO_WriteSlowPath;
 		if (mask&IO_MW) io_writehandlers[1][port]=IO_WriteSlowPath;
@@ -256,13 +260,23 @@ void IO_FreeWriteHandler(Bitu port,Bitu mask,Bitu range) {
 	}
 }
 
-void IO_ReadHandleObject::Install(Bitu port,IO_ReadHandler * _handler,Bitu mask,Bitu range) {
+void IO_InvalidateCachedHandler(Bitu port,Bitu range) {
+    Bitu mb,r,p;
+
+    assert((port+range) <= IO_MAX);
+    for (mb=0;mb <= 2;mb++) {
+        p = port;
+        r = range;
+        while (r--) io_writehandlers[mb][p++]=IO_WriteSlowPath;
+    }
+}
+
+void IO_ReadHandleObject::Install(Bitu port,IO_ReadHandler * handler,Bitu mask,Bitu range) {
 	if(!installed) {
 		installed=true;
 		m_port=port;
 		m_mask=mask;
 		m_range=range;
-        handler=_handler;
 		IO_RegisterReadHandler(port,handler,mask,range);
 	} else E_Exit("IO_readHandler already installed port %x",(int)port);
 }
@@ -271,20 +285,18 @@ void IO_ReadHandleObject::Uninstall(){
 	if(!installed) return;
 	IO_FreeReadHandler(m_port,m_mask,m_range);
 	installed=false;
-    handler=NULL;
 }
 
 IO_ReadHandleObject::~IO_ReadHandleObject(){
 	Uninstall();
 }
 
-void IO_WriteHandleObject::Install(Bitu port,IO_WriteHandler * _handler,Bitu mask,Bitu range) {
+void IO_WriteHandleObject::Install(Bitu port,IO_WriteHandler * handler,Bitu mask,Bitu range) {
 	if(!installed) {
 		installed=true;
 		m_port=port;
 		m_mask=mask;
 		m_range=range;
-        handler=_handler;
 		IO_RegisterWriteHandler(port,handler,mask,range);
 	} else E_Exit("IO_writeHandler already installed port %x",(int)port);
 }
@@ -293,7 +305,6 @@ void IO_WriteHandleObject::Uninstall() {
 	if(!installed) return;
 	IO_FreeWriteHandler(m_port,m_mask,m_range);
 	installed=false;
-    handler=NULL;
 }
 
 IO_WriteHandleObject::~IO_WriteHandleObject(){
@@ -501,5 +512,113 @@ void IO_Init() {
 
 	/* please call our reset function on power-on and reset */
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(IO_Reset));
+}
+
+void IO_CalloutObject::InvalidateCachedHandlers(void) {
+    /* TODO */
+}
+
+void IO_CalloutObject::Install(Bitu port,Bitu portmask/*IOMASK_ISA_10BIT, etc.*/,IO_ReadCalloutHandler *r_handler,IO_WriteCalloutHandler *w_handler) {
+	if(!installed) {
+        if (portmask == 0 || (portmask & ~0xFFFFU)) {
+            LOG(LOG_MISC,LOG_ERROR)("IO_CalloutObject::Install: Port mask %x is invalid",(unsigned int)portmask);
+            return;
+        }
+        if (m_port & portmask) {
+            LOG(LOG_MISC,LOG_ERROR)("IO_CalloutObject::Install: m_port %x and port mask %x not aligned",(unsigned int)port,(unsigned int)portmask);
+            return;
+        }
+
+        /* we need a mask for the distance between aliases of the port, and the range of I/O ports. */
+        /* only the low part of the mask where bits are zero, not the upper.
+         * This loop is the reason portmask cannot be ~0 else it would become an infinite loop.
+         * This also serves to check that the mask is a proper combination of ISA masking and
+         * I/O port range (example: IOMASK_ISA_10BIT & (~0x3) == 0x3FF & 0xFFFFFFFC = 0x3FC for a device with 4 I/O ports).
+         * A proper mask has (from MSB to LSB):
+         *   - zero or more 0 bits from MSB
+         *   - 1 or more 1 bits in the middle
+         *   - zero or more 0 bits to LSB */
+        {
+            Bitu m = 1;
+            Bitu test;
+
+            /* compute range mask from zero bits at LSB */
+            range_mask = 0;
+            test = portmask ^ 0xFFFFU;
+            while ((test & m) == m) {
+                range_mask = m;
+                m = (m << 1) + 1;
+            }
+
+            /* DEBUG */
+            if ((portmask & range_mask) != 0 ||
+                ((range_mask + 1) & range_mask) != 0/* should be a mask, therefore AND by itself + 1 should be zero (think (0xF + 1) & 0xF = 0x10 & 0xF = 0x0) */) {
+                LOG(LOG_MISC,LOG_ERROR)("IO_CalloutObject::Install: portmask(%x) & range_mask(%x) != 0 (%x). You found a corner case that broke this code, fix it.",
+                    (unsigned int)portmask,
+                    (unsigned int)range_mask,
+                    (unsigned int)(portmask & range_mask));
+                return;
+            }
+
+            /* compute alias mask from middle 1 bits */
+            alias_mask = range_mask;
+            test = portmask + range_mask; /* will break if portmask & range_mask != 0 */
+            while ((test & m) == m) {
+                alias_mask = m;
+                m = (m << 1) + 1;
+            }
+
+            /* any bits after that should be zero. */
+            /* confirm this by XORing portmask by (alias_mask ^ range_mask). */
+            /* we already confirmed that portmask & range_mask == 0. */
+            /* Example:
+             *
+             *    Sound Blaster at port 220-22Fh with 10-bit ISA decode would be 0x03F0 therefore:
+             *      portmask =    0x03F0
+             *      range_mask =  0x000F
+             *      alias_mask =  0x03FF
+             *
+             *      portmask ^ range_mask = 0x3FF
+             *      portmask ^ range_mask ^ alias_mask = 0x0000
+             *
+             * Example of invalid portmask 0x13F0:
+             *      portmask =    0x13F0
+             *      range_mask =  0x000F
+             *      alias_mask =  0x03FF
+             *
+             *      portmask ^ range_mask = 0x13FF
+             *      portmask ^ range_mask ^ alias_mask = 0x1000 */
+            if ((portmask ^ range_mask ^ alias_mask) != 0 ||
+                ((alias_mask + 1) & alias_mask) != 0/* should be a mask, therefore AND by itself + 1 should be zero */) {
+                LOG(LOG_MISC,LOG_ERROR)("IO_CalloutObject::Install: portmask(%x) ^ range_mask(%x) ^ alias_mask(%x) != 0 (%x). Invalid portmask.",
+                    (unsigned int)portmask,
+                    (unsigned int)range_mask,
+                    (unsigned int)(portmask & range_mask));
+                return;
+            }
+        }
+
+		installed=true;
+		m_port=port;
+		m_mask=0; /* not used */
+		m_range=0; /* not used */
+        io_mask=portmask;
+
+        /* add this object to the callout array.
+         * don't register any I/O handlers. those will be registered during the "slow path"
+         * callout process when the CPU goes to access them. to encourage that to happen,
+         * we invalidate the I/O ranges */
+        LOG(LOG_MISC,LOG_DEBUG)("IO_CalloutObject::Install added device with port=0x%x io_mask=0x%x rangemask=0x%x aliasmask=0x%x",
+            (unsigned int)port,(unsigned int)io_mask,(unsigned int)range_mask,(unsigned int)alias_mask);
+	}
+}
+
+void IO_CalloutObject::Uninstall() {
+	if(!installed) return;
+	installed=false;
+}
+
+IO_CalloutObject::~IO_CalloutObject() {
+    Uninstall();
 }
 
