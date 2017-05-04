@@ -435,7 +435,7 @@ static Bitu dosbox_integration_port_r(Bitu port,Bitu iolen) {
 	Bitu ret = ~0;
 	Bitu retb = 0;
 
-	switch (port-0x28) {
+	switch (port&3) {
 		case 0: /* index */
 			ret = 0;
 			while (iolen > 0) {
@@ -483,7 +483,7 @@ static IO_ReadHandler* dosbox_integration_cb_port_r(IO_CalloutObject &co,Bitu po
 static void dosbox_integration_port_w(Bitu port,Bitu val,Bitu iolen) {
 	uint32_t msk;
 
-	switch (port-0x28) {
+	switch (port&3) {
 		case 0: /* index */
 			while (iolen > 0) {
 				msk = 0xFFU << (dosbox_int_regsel_shf * 8);
