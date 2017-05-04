@@ -471,7 +471,7 @@ static Bitu dosbox_integration_port_r(Bitu port,Bitu iolen) {
 	return ret;
 }
 
-static IO_ReadHandler* dosbox_integration_cb_port_r(Bitu port,Bitu iolen) {
+static IO_ReadHandler* dosbox_integration_cb_port_r(IO_CalloutObject &co,Bitu port,Bitu iolen) {
     return dosbox_integration_port_r;
 }
 
@@ -562,7 +562,7 @@ static void dosbox_integration_port_w(Bitu port,Bitu val,Bitu iolen) {
 	};
 }
 
-static IO_WriteHandler* dosbox_integration_cb_port_w(Bitu port,Bitu iolen) {
+static IO_WriteHandler* dosbox_integration_cb_port_w(IO_CalloutObject &co,Bitu port,Bitu iolen) {
     return dosbox_integration_port_w;
 }
 

@@ -30,11 +30,13 @@
 #define IO_MD	0x4
 #define IO_MA	(IO_MB | IO_MW | IO_MD )
 
+class IO_CalloutObject;
+
 typedef Bitu IO_ReadHandler(Bitu port,Bitu iolen);
 typedef void IO_WriteHandler(Bitu port,Bitu val,Bitu iolen);
 
-typedef IO_ReadHandler* (IO_ReadCalloutHandler)(Bitu port,Bitu iolen);
-typedef IO_WriteHandler* (IO_WriteCalloutHandler)(Bitu port,Bitu iolen);
+typedef IO_ReadHandler* (IO_ReadCalloutHandler)(IO_CalloutObject &co,Bitu port,Bitu iolen);
+typedef IO_WriteHandler* (IO_WriteCalloutHandler)(IO_CalloutObject &co,Bitu port,Bitu iolen);
 
 extern IO_WriteHandler * io_writehandlers[3][IO_MAX];
 extern IO_ReadHandler * io_readhandlers[3][IO_MAX];

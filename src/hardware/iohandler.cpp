@@ -101,7 +101,7 @@ template <enum IO_Type_t iotype> static unsigned int IO_Gen_Callout_Read(Bitu &r
         if (!obj.isInstalled()) continue;
         if (obj.m_r_handler == NULL) continue;
 
-        t_f = obj.m_r_handler(port,iolen);
+        t_f = obj.m_r_handler(obj,port,iolen);
         if (t_f != NULL) {
             if (match != 0) {
                 if (iotype == IO_TYPE_ISA)
@@ -131,7 +131,7 @@ template <enum IO_Type_t iotype> static unsigned int IO_Gen_Callout_Write(IO_Wri
         if (!obj.isInstalled()) continue;
         if (obj.m_w_handler == NULL) continue;
 
-        t_f = obj.m_w_handler(port,iolen);
+        t_f = obj.m_w_handler(obj,port,iolen);
         if (t_f != NULL) {
             t_f(port,val,iolen);
             if (match == 0) f = t_f;
