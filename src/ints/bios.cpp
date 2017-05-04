@@ -472,7 +472,12 @@ static Bitu dosbox_integration_port_r(Bitu port,Bitu iolen) {
 }
 
 static IO_ReadHandler* dosbox_integration_cb_port_r(IO_CalloutObject &co,Bitu port,Bitu iolen) {
-    return dosbox_integration_port_r;
+    port &= 3; /* decodes only low 2 bits of port */
+
+    if (port < 3) /* only I/O ports 0-2 exist */
+        return dosbox_integration_port_r;
+
+    return NULL;
 }
 
 static void dosbox_integration_port_w(Bitu port,Bitu val,Bitu iolen) {
@@ -563,7 +568,12 @@ static void dosbox_integration_port_w(Bitu port,Bitu val,Bitu iolen) {
 }
 
 static IO_WriteHandler* dosbox_integration_cb_port_w(IO_CalloutObject &co,Bitu port,Bitu iolen) {
-    return dosbox_integration_port_w;
+    port &= 3; /* decodes only low 2 bits of port */
+
+    if (port < 3) /* only I/O ports 0-2 exist */
+        return dosbox_integration_port_w;
+
+    return NULL;
 }
 
 /* if mem_systems 0 then size_extended is reported as the real size else 
