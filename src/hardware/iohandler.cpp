@@ -100,6 +100,7 @@ template <enum IO_Type_t iotype> static unsigned int IO_Gen_Callout_Read(Bitu &r
         IO_CalloutObject &obj = vec[scan++];
         if (!obj.isInstalled()) continue;
         if (obj.m_r_handler == NULL) continue;
+        if (!obj.MatchPort(port)) continue;
 
         t_f = obj.m_r_handler(obj,port,iolen);
         if (t_f != NULL) {
@@ -130,6 +131,7 @@ template <enum IO_Type_t iotype> static unsigned int IO_Gen_Callout_Write(IO_Wri
         IO_CalloutObject &obj = vec[scan++];
         if (!obj.isInstalled()) continue;
         if (obj.m_w_handler == NULL) continue;
+        if (!obj.MatchPort(port)) continue;
 
         t_f = obj.m_w_handler(obj,port,iolen);
         if (t_f != NULL) {
