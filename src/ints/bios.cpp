@@ -145,8 +145,8 @@ Bitu ROMBIOS_GetMemory(Bitu bytes,const char *who,Bitu alignment,Bitu must_be_at
 	return rombios_alloc.getMemory(bytes,who,alignment,must_be_at);
 }
 
-static IO_ReadHandleObject *DOSBOX_INTEGRATION_PORT_READ[4] = {NULL};
-static IO_WriteHandleObject *DOSBOX_INTEGRATION_PORT_WRITE[4] = {NULL};
+static IO_Callout_t dosbox_int_iocallout = IO_Callout_t_none;
+
 static unsigned char dosbox_int_register_shf = 0;
 static uint32_t dosbox_int_register = 0;
 static unsigned char dosbox_int_regsel_shf = 0;
@@ -471,7 +471,11 @@ static Bitu dosbox_integration_port_r(Bitu port,Bitu iolen) {
 	return ret;
 }
 
-void dosbox_integration_port_w(Bitu port,Bitu val,Bitu iolen) {
+static IO_ReadHandler* dosbox_integration_cb_port_r(Bitu port,Bitu iolen) {
+    return dosbox_integration_port_r;
+}
+
+static void dosbox_integration_port_w(Bitu port,Bitu val,Bitu iolen) {
 	uint32_t msk;
 
 	switch (port-0x28) {
@@ -556,6 +560,10 @@ void dosbox_integration_port_w(Bitu port,Bitu val,Bitu iolen) {
 		default:
 			break;
 	};
+}
+
+static IO_WriteHandler* dosbox_integration_cb_port_w(Bitu port,Bitu iolen) {
+    return dosbox_integration_port_w;
 }
 
 /* if mem_systems 0 then size_extended is reported as the real size else 
@@ -3639,6 +3647,11 @@ private:
 			LOG(LOG_MISC,LOG_DEBUG)("BIOS: POST stack set to 0000:%04x",reg_esp);
 		}
 
+        if (dosbox_int_iocallout != IO_Callout_t_none) {
+            IO_FreeCallout(dosbox_int_iocallout);
+            dosbox_int_iocallout = IO_Callout_t_none;
+        }
+
         if (isapnp_biosstruct_base != 0) {
             ROMBIOS_FreeMemory(isapnp_biosstruct_base);
             isapnp_biosstruct_base = 0;
@@ -3660,17 +3673,6 @@ private:
 			delete ISAPNP_PNP_READ_PORT;
 			ISAPNP_PNP_READ_PORT=NULL;
 		}
-
-        for (Bitu i=0;i < 4;i++) {
-            if (DOSBOX_INTEGRATION_PORT_READ[i] != NULL) {
-                delete DOSBOX_INTEGRATION_PORT_READ[i];
-                DOSBOX_INTEGRATION_PORT_READ[i] = NULL;
-            }
-            if (DOSBOX_INTEGRATION_PORT_WRITE[i] != NULL) {
-                delete DOSBOX_INTEGRATION_PORT_WRITE[i];
-                DOSBOX_INTEGRATION_PORT_WRITE[i] = NULL;
-            }
-        }
 
 		if (bios_first_init) {
 			/* clear the first 1KB-32KB */
@@ -3929,12 +3931,16 @@ private:
 		}
 
 		if (enable_integration_device) {
-			for (Bitu i=0;i < 4;i++) {
-				DOSBOX_INTEGRATION_PORT_READ[i] = new IO_ReadHandleObject;
-				DOSBOX_INTEGRATION_PORT_WRITE[i] = new IO_WriteHandleObject;
-				DOSBOX_INTEGRATION_PORT_READ[i]->Install(0x28+i,dosbox_integration_port_r,IO_MA);
-				DOSBOX_INTEGRATION_PORT_WRITE[i]->Install(0x28+i,dosbox_integration_port_w,IO_MA);
-			}
+            /* integration device callout */
+            if (dosbox_int_iocallout == IO_Callout_t_none)
+                dosbox_int_iocallout = IO_AllocateCallout(IO_TYPE_MB);
+
+            {
+                IO_CalloutObject *obj = IO_GetCallout(dosbox_int_iocallout);
+                if (obj == NULL) E_Exit("Failed to get dosbox integration IO callout");
+                obj->Install(0x28,IOMASK_Combine(IOMASK_FULL,IOMASK_Range(4)),dosbox_integration_cb_port_r,dosbox_integration_cb_port_w);
+                IO_PutCallout(obj);
+            }
 
             /* DOSBox integration device */
             if (isapnpigdevice == NULL) {
@@ -4744,15 +4750,9 @@ public:
             isapnpigdevice=NULL;
         }
 
-        for (Bitu i=0;i < 4;i++) {
-            if (DOSBOX_INTEGRATION_PORT_READ[i] != NULL) {
-                delete DOSBOX_INTEGRATION_PORT_READ[i];
-                DOSBOX_INTEGRATION_PORT_READ[i] = NULL;
-            }
-            if (DOSBOX_INTEGRATION_PORT_WRITE[i] != NULL) {
-                delete DOSBOX_INTEGRATION_PORT_WRITE[i];
-                DOSBOX_INTEGRATION_PORT_WRITE[i] = NULL;
-            }
+        if (dosbox_int_iocallout != IO_Callout_t_none) {
+            IO_FreeCallout(dosbox_int_iocallout);
+            dosbox_int_iocallout = IO_Callout_t_none;
         }
 
 		/* abort DAC playing */
