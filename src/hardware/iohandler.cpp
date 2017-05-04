@@ -336,7 +336,11 @@ void IO_InvalidateCachedHandler(Bitu port,Bitu range) {
     for (mb=0;mb <= 2;mb++) {
         p = port;
         r = range;
-        while (r--) io_writehandlers[mb][p++]=IO_WriteSlowPath;
+        while (r--) {
+            io_writehandlers[mb][p]=IO_WriteSlowPath;
+            io_readhandlers[mb][p]=IO_ReadSlowPath;
+            p++;
+        }
     }
 }
 
