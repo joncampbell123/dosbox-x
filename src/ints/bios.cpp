@@ -3949,6 +3949,8 @@ private:
             /* integration device callout */
             if (dosbox_int_iocallout == IO_Callout_t_none)
                 dosbox_int_iocallout = IO_AllocateCallout(IO_TYPE_MB);
+            if (dosbox_int_iocallout == IO_Callout_t_none)
+                E_Exit("Failed to get dosbox integration IO callout handle");
 
             {
                 IO_CalloutObject *obj = IO_GetCallout(dosbox_int_iocallout);
