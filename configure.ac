@@ -77,12 +77,15 @@ if test x$enable_mt32 = xyes ; then
       AC_DEFINE(C_MT32,1)
       ;;
     *)
+      enable_mt32=no
       AC_MSG_RESULT(no)
       ;;
   esac
-else 
+else
+  enable_mt32=no
   AC_MSG_RESULT(no)
 fi 
+AM_CONDITIONAL(C_MT32, test "x$enable_mt32" == "xyes")
 
 dnl Scalars in the code use MMX/SSE intrinsics
 case "$host_cpu" in

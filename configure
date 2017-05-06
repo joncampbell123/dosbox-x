@@ -637,6 +637,8 @@ GREP
 SDL_LIBS
 SDL_CFLAGS
 SDL_CONFIG
+C_MT32_FALSE
+C_MT32_TRUE
 RANLIB
 am__fastdepCXX_FALSE
 am__fastdepCXX_TRUE
@@ -5081,14 +5083,24 @@ $as_echo "yes" >&6; }
 
       ;;
     *)
+      enable_mt32=no
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
       ;;
   esac
 else
+  enable_mt32=no
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 fi
+ if test "x$enable_mt32" == "xyes"; then
+  C_MT32_TRUE=
+  C_MT32_FALSE='#'
+else
+  C_MT32_TRUE='#'
+  C_MT32_FALSE=
+fi
+
 
 case "$host_cpu" in
   x86_64 | amd64)
@@ -8184,6 +8196,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${am__fastdepCXX_TRUE}" && test -z "${am__fastdepCXX_FALSE}"; then
   as_fn_error $? "conditional \"am__fastdepCXX\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${C_MT32_TRUE}" && test -z "${C_MT32_FALSE}"; then
+  as_fn_error $? "conditional \"C_MT32\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 

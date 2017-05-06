@@ -12,6 +12,11 @@ libgui_a_SOURCES = \
 	direct3d.cpp direct3d.h \
 	hq2x_d3d.cpp hq2x_d3d.h \
 	midi_coremidi.h sdl_gui.cpp dosbox_splash.h menu.cpp \
+	./sha1/sha1.cpp ./sha1/sha1.h \
+	guid.cpp ksdataformat.cpp riff.cpp riff_wav_writer.cpp avi_rw_iobuf.cpp avi_writer.cpp
+
+if C_MT32
+libgui_a_SOURCES += \
 	DelayReverb.cpp DelayReverb.h File.cpp File.h \
 	fmath.h FreeverbModel.cpp FreeverbModel.h BReverbModel.cpp BReverbModel.h \
 	mt32emu.h Part.cpp Part.h Partial.cpp Partial.h PartialManager.cpp \
@@ -21,7 +26,6 @@ libgui_a_SOURCES = \
 	LA32WaveGenerator.cpp LA32WaveGenerator.h LegacyWaveGenerator.cpp LegacyWaveGenerator.h \
 	./freeverb/allpass.cpp ./freeverb/allpass.h ./freeverb/comb.cpp \
 	./freeverb/comb.h ./freeverb/denormals.h ./freeverb/revmodel.cpp \
-	./freeverb/revmodel.h ./freeverb/tuning.h midi_mt32.h \
-	./sha1/sha1.cpp ./sha1/sha1.h ROMInfo.cpp ROMInfo.h \
-	guid.cpp ksdataformat.cpp riff.cpp riff_wav_writer.cpp avi_rw_iobuf.cpp avi_writer.cpp
+	./freeverb/revmodel.h ./freeverb/tuning.h midi_mt32.h ROMInfo.cpp ROMInfo.h
+endif
 
