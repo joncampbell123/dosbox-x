@@ -49,6 +49,7 @@ Bit32u inportd(Bit32u portid) {
 }
 # endif
 #else
+# if defined(__i386__) || defined(__amd64__) || defined(__x86_64__)
 void outportb(Bit32u portid, Bit8u value) {
    __asm__ volatile (
       "movl   %0,%%edx   \n"
@@ -71,6 +72,7 @@ Bit8u inportb(Bit32u portid) {
    );
   return value;
 }
+# endif
 #endif
 
 #if defined(WIN32) && defined(_M_IX86)/*WIN32 x86 only*/
