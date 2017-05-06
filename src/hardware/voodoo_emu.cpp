@@ -2222,7 +2222,9 @@ void lfb_w(UINT32 offset, UINT32 data, UINT32 mem_mask) {
 						voodoo_ogl_draw_pixel(x, scry, has_rgb, has_alpha, sr[pix], sg[pix], sb[pix], sa[pix]);
 					}
 					if (has_depth) {
+#if C_OPENGL
 						voodoo_ogl_draw_z(x, scry+1, sw[pix]);
+#endif
 					}
 				} else {
 					/* write to the RGB buffer */
@@ -3794,7 +3796,9 @@ void voodoo_set_window(void) {
 
 void voodoo_leave(void) {
 	if (v->ogl) {
+#if C_OPENGL
 		voodoo_ogl_leave(true);
+#endif
 	}
 	v->active = false;
 }
@@ -3816,6 +3820,8 @@ void voodoo_update_dimensions(void) {
 	v->ogl_dimchange = false;
 
 	if (v->ogl) {
+#if C_OPENGL
 		voodoo_ogl_update_dimensions();
+#endif
 	}
 }
