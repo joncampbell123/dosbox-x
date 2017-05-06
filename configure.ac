@@ -61,10 +61,17 @@ fi
 ])# AC_CHECK_CXXFLAGS
 
 dnl Need GCC to know this code is using C++ lamda functions
-CXXFLAGS="$CXXFLAGS -Wall"
+CXXFLAGS="$CXXFLAGS -Wall -D_FILE_OFFSET_BITS=64"
 
 dnl Scalars in the code use MMX/SSE intrinsics
-CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2 -D_FILE_OFFSET_BITS=64"
+case "$host_cpu" in
+  x86_64 | amd64)
+    CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
+    ;;
+  i?86)
+    CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
+    ;;
+esac
 
 dnl Stop reporting "type punning" warnings, I'm sick of hearing about it.
 CXXFLAGS="$CXXFLAGS -Wno-strict-aliasing"

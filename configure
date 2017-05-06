@@ -5052,9 +5052,16 @@ fi
 # if so, they are added to the CXXFLAGS
 # AC_CHECK_CXXFLAGS
 
-CXXFLAGS="$CXXFLAGS -Wall"
+CXXFLAGS="$CXXFLAGS -Wall -D_FILE_OFFSET_BITS=64"
 
-CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2 -D_FILE_OFFSET_BITS=64"
+case "$host_cpu" in
+  x86_64 | amd64)
+    CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
+    ;;
+  i?86)
+    CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
+    ;;
+esac
 
 CXXFLAGS="$CXXFLAGS -Wno-strict-aliasing"
 
