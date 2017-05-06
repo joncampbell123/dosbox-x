@@ -82,6 +82,9 @@
 /* Define to 1 to enable internal modem support, requires SDL_net */
 #undef C_MODEM
 
+/* Define to 1 to enable MT32 emulation (x86/x86_64 only) */
+#undef C_MT32
+
 /* Define to 1 to enable NE2000 ethernet passthrough, requires libpcap */
 #undef C_NE2000
 

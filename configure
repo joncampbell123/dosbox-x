@@ -740,6 +740,7 @@ ac_user_opts='
 enable_option_checking
 enable_silent_rules
 enable_dependency_tracking
+enable_mt32
 with_sdl_prefix
 with_sdl_exec_prefix
 enable_sdltest
@@ -1396,6 +1397,7 @@ Optional Features:
                           do not reject slow dependency extractors
   --disable-dependency-tracking
                           speeds up one-time build
+  --disable-mt32          Disable MT32 emulation
   --disable-sdltest       Do not try to compile and run a test SDL program
   --enable-alsa-midi      compile with alsa midi support (default yes)
   --disable-alsatest      Do not try to compile and run a test Alsa program
@@ -5053,6 +5055,40 @@ fi
 # AC_CHECK_CXXFLAGS
 
 CXXFLAGS="$CXXFLAGS -Wall -D_FILE_OFFSET_BITS=64"
+
+
+# Check whether --enable-mt32 was given.
+if test "${enable_mt32+set}" = set; then :
+  enableval=$enable_mt32;
+else
+  enable_mt32=yes
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether MT32 emulation will be enabled" >&5
+$as_echo_n "checking whether MT32 emulation will be enabled... " >&6; }
+if test x$enable_mt32 = xyes ; then
+  case "$host_cpu" in
+    x86_64 | amd64)
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+      $as_echo "#define C_MT32 1" >>confdefs.h
+
+      ;;
+    i?86)
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+      $as_echo "#define C_MT32 1" >>confdefs.h
+
+      ;;
+    *)
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+      ;;
+  esac
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
 
 case "$host_cpu" in
   x86_64 | amd64)

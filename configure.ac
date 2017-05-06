@@ -63,6 +63,27 @@ fi
 dnl Need GCC to know this code is using C++ lamda functions
 CXXFLAGS="$CXXFLAGS -Wall -D_FILE_OFFSET_BITS=64"
 
+AH_TEMPLATE(C_MT32,[Define to 1 to enable MT32 emulation (x86/x86_64 only)])
+AC_ARG_ENABLE(mt32,AC_HELP_STRING([--disable-mt32],[Disable MT32 emulation]),,enable_mt32=yes)
+AC_MSG_CHECKING(whether MT32 emulation will be enabled) 
+if test x$enable_mt32 = xyes ; then 
+  case "$host_cpu" in
+    x86_64 | amd64)
+      AC_MSG_RESULT(yes)
+      AC_DEFINE(C_MT32,1)
+      ;;
+    i?86)
+      AC_MSG_RESULT(yes)
+      AC_DEFINE(C_MT32,1)
+      ;;
+    *)
+      AC_MSG_RESULT(no)
+      ;;
+  esac
+else 
+  AC_MSG_RESULT(no)
+fi 
+
 dnl Scalars in the code use MMX/SSE intrinsics
 case "$host_cpu" in
   x86_64 | amd64)
