@@ -496,65 +496,63 @@ private:
 		PAGING_ClearTLB(); // TODO got a better idea?
 	}
 
-    Bitu readb_through(PhysPt addr) {
-        Bitu lin_page = addr >> 12;
-        Bit32u phys_page = paging.tlb.phys_page[lin_page] & PHYSPAGE_ADDR;
-        PageHandler* handler = MEM_GetPageHandler(phys_page);
-        if (handler->getFlags() & PFLAG_READABLE)
-            return host_readb(handler->GetHostReadPt(phys_page) + (addr&0xfff));
-        else
-            return handler->readb((phys_page<<12UL) + (addr&0xfff));
-    }
+	Bitu readb_through(PhysPt addr) {
+		Bitu lin_page = addr >> 12;
+		Bit32u phys_page = paging.tlb.phys_page[lin_page] & PHYSPAGE_ADDR;
+		PageHandler* handler = MEM_GetPageHandler(phys_page);
+		if (handler->getFlags() & PFLAG_READABLE) {
+			return host_readb(handler->GetHostReadPt(phys_page) + (addr&0xfff));
+			}
+		else return handler->readb(addr);
+					}
+	Bitu readw_through(PhysPt addr) {
+		Bitu lin_page = addr >> 12;
+		Bit32u phys_page = paging.tlb.phys_page[lin_page] & PHYSPAGE_ADDR;
+		PageHandler* handler = MEM_GetPageHandler(phys_page);
+		if (handler->getFlags() & PFLAG_READABLE) {
+			return host_readw(handler->GetHostReadPt(phys_page) + (addr&0xfff));
+				}
+		else return handler->readw(addr);
+			}
+	Bitu readd_through(PhysPt addr) {
+		Bitu lin_page = addr >> 12;
+		Bit32u phys_page = paging.tlb.phys_page[lin_page] & PHYSPAGE_ADDR;
+		PageHandler* handler = MEM_GetPageHandler(phys_page);
+		if (handler->getFlags() & PFLAG_READABLE) {
+			return host_readd(handler->GetHostReadPt(phys_page) + (addr&0xfff));
+		}
+		else return handler->readd(addr);
+			}
 
-    Bitu readw_through(PhysPt addr) {
-        Bitu lin_page = addr >> 12;
-        Bit32u phys_page = paging.tlb.phys_page[lin_page] & PHYSPAGE_ADDR;
-        PageHandler* handler = MEM_GetPageHandler(phys_page);
-        if (handler->getFlags() & PFLAG_READABLE)
-            return host_readw(handler->GetHostReadPt(phys_page) + (addr&0xfff));
-        else
-            return handler->readw((phys_page<<12UL) + (addr&0xfff));
-    }
+	void writeb_through(PhysPt addr, Bitu val) {
+		Bitu lin_page = addr >> 12;
+		Bit32u phys_page = paging.tlb.phys_page[lin_page] & PHYSPAGE_ADDR;
+		PageHandler* handler = MEM_GetPageHandler(phys_page);
+		if (handler->getFlags() & PFLAG_WRITEABLE) {
+			return host_writeb(handler->GetHostWritePt(phys_page) + (addr&0xfff), (Bit8u)val);
+		}
+		else return handler->writeb(addr, val);
+			}
 
-    Bitu readd_through(PhysPt addr) {
-        Bitu lin_page = addr >> 12;
-        Bit32u phys_page = paging.tlb.phys_page[lin_page] & PHYSPAGE_ADDR;
-        PageHandler* handler = MEM_GetPageHandler(phys_page);
-        if (handler->getFlags() & PFLAG_READABLE)
-            return host_readd(handler->GetHostReadPt(phys_page) + (addr&0xfff));
-        else
-            return handler->readd((phys_page<<12UL) + (addr&0xfff));
-    }
+	void writew_through(PhysPt addr, Bitu val) {
+		Bitu lin_page = addr >> 12;
+		Bit32u phys_page = paging.tlb.phys_page[lin_page] & PHYSPAGE_ADDR;
+		PageHandler* handler = MEM_GetPageHandler(phys_page);
+		if (handler->getFlags() & PFLAG_WRITEABLE) {
+			return host_writew(handler->GetHostWritePt(phys_page) + (addr&0xfff), (Bit16u)val);
+		}
+		else return handler->writew(addr, val);
+	}
 
-    void writeb_through(PhysPt addr, Bitu val) {
-        Bitu lin_page = addr >> 12;
-        Bit32u phys_page = paging.tlb.phys_page[lin_page] & PHYSPAGE_ADDR;
-        PageHandler* handler = MEM_GetPageHandler(phys_page);
-        if (handler->getFlags() & PFLAG_WRITEABLE)
-            return host_writeb(handler->GetHostWritePt(phys_page) + (addr&0xfff), (Bit8u)val);
-        else
-            return handler->writeb((phys_page<<12UL) + (addr&0xfff), val);
-    }
-
-    void writew_through(PhysPt addr, Bitu val) {
-        Bitu lin_page = addr >> 12;
-        Bit32u phys_page = paging.tlb.phys_page[lin_page] & PHYSPAGE_ADDR;
-        PageHandler* handler = MEM_GetPageHandler(phys_page);
-        if (handler->getFlags() & PFLAG_WRITEABLE)
-            return host_writew(handler->GetHostWritePt(phys_page) + (addr&0xfff), (Bit16u)val);
-        else
-            return handler->writew((phys_page<<12UL) + (addr&0xfff), val);
-    }
-
-    void writed_through(PhysPt addr, Bitu val) {
-        Bitu lin_page = addr >> 12;
-        Bit32u phys_page = paging.tlb.phys_page[lin_page] & PHYSPAGE_ADDR;
-        PageHandler* handler = MEM_GetPageHandler(phys_page);
-        if (handler->getFlags() & PFLAG_WRITEABLE)
-            return host_writed(handler->GetHostWritePt(phys_page) + (addr&0xfff), val);
-        else
-            return handler->writed((phys_page<<12UL) + (addr&0xfff), val);
-    }
+	void writed_through(PhysPt addr, Bitu val) {
+		Bitu lin_page = addr >> 12;
+		Bit32u phys_page = paging.tlb.phys_page[lin_page] & PHYSPAGE_ADDR;
+		PageHandler* handler = MEM_GetPageHandler(phys_page);
+		if (handler->getFlags() & PFLAG_WRITEABLE) {
+			return host_writed(handler->GetHostWritePt(phys_page) + (addr&0xfff), val);
+		}
+		else return handler->writed(addr, val);
+			}
 
 public:
 	ExceptionPageHandler() : PageHandler(PFLAG_INIT|PFLAG_NOCODE) {}
