@@ -640,21 +640,16 @@ void MEM_SetLFB(Bitu page, Bitu pages, PageHandler *handler, PageHandler *mmioha
 	PAGING_ClearTLB();
 }
 
-/* TODO: at some point, the VGA card's linear framebuffer needs to register memory callbacks instead of special case code here */
 PageHandler * MEM_GetPageHandler(Bitu phys_page) {
-    /* NTS: The new slow path check may slow things down slightly for a bit, but,
-     *      we'll speed things up slightly as well when we can remove these
-     *      additional range checks */
-	phys_page &= memory.mem_alias_pagemask_active;
-    if (VOODOO_PCI_CheckLFBPage(phys_page)) {
-		return VOODOO_GetPageHandler();
-	} else if (phys_page<memory.handler_pages) {
-        if (memory.phandlers[phys_page] != NULL)/*likely*/
+    phys_page &= memory.mem_alias_pagemask_active;
+    if (phys_page<memory.handler_pages) {
+        if (memory.phandlers[phys_page] != NULL) /*likely*/
             return memory.phandlers[phys_page];
 
         return MEM_SlowPath(phys_page); /* will also fill in phandlers[] if zero or one matches, so the next access is very fast */
-	}
-	return &illegal_page_handler;
+    }
+
+    return &illegal_page_handler;
 }
 
 void MEM_SetPageHandler(Bitu phys_page,Bitu pages,PageHandler * handler) {
