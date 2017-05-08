@@ -288,11 +288,11 @@ static void FDC_Destroy(Section* sec) {
 	init_floppy = 0;
 }
 
-static void FDC_Init(Section* sec,unsigned char interface) {
+static void FDC_Init(Section* sec,unsigned char fdc_interface) {
 	Section_prop *section=static_cast<Section_prop *>(sec);
 	FloppyController *fdc;
 
-	assert(interface < MAX_FLOPPY_CONTROLLERS);
+	assert(fdc_interface < MAX_FLOPPY_CONTROLLERS);
 
 	if (!section->Get_bool("enable"))
 		return;
@@ -302,9 +302,9 @@ static void FDC_Init(Section* sec,unsigned char interface) {
 		init_floppy = 1;
 	}
 
-	LOG(LOG_MISC,LOG_DEBUG)("Initializing floppy controller interface %u",interface);
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing floppy controller interface %u",fdc_interface);
 
-	fdc = floppycontroller[interface] = new FloppyController(sec,interface);
+	fdc = floppycontroller[fdc_interface] = new FloppyController(sec,fdc_interface);
 	fdc->install_io_port();
 
 	PIC_SetIRQMask(fdc->IRQ,false);
