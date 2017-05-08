@@ -1,6 +1,6 @@
 #!/bin/bash
 git checkout master-win-ci || break
 git merge origin/master || break
-git push master-win-ci || break
+git push origin master-win-ci || break
 git checkout master || break
 
