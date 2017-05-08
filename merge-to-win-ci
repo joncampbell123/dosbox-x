@@ -1,6 +1,12 @@
 #!/bin/bash
-git checkout master-win-ci || exit 1
-git merge --commit -m 'update' origin/master || exit 1
-git push origin master-win-ci || exit 1
+
+doit() {
+    git checkout master-win-ci || exit 1
+    git merge --commit -m 'update' origin/master || exit 1
+    git push origin master-win-ci || exit 1
+    exit 0
+}
+
+doit || exit 1
 git checkout master || exit 1
 
