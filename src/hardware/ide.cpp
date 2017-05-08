@@ -3847,11 +3847,11 @@ static void IDE_Destroy(Section* sec) {
 	init_ide = 0;
 }
 
-static void IDE_Init(Section* sec,unsigned char interface) {
+static void IDE_Init(Section* sec,unsigned char ide_interface) {
 	Section_prop *section=static_cast<Section_prop *>(sec);
 	IDEController *ide;
 
-	assert(interface < MAX_IDE_CONTROLLERS);
+	assert(ide_interface < MAX_IDE_CONTROLLERS);
 
 	if (!section->Get_bool("enable"))
 		return;
@@ -3861,14 +3861,14 @@ static void IDE_Init(Section* sec,unsigned char interface) {
 		init_ide = 1;
 	}
 
-	LOG(LOG_MISC,LOG_DEBUG)("Initializing IDE controller %u",interface);
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing IDE controller %u",ide_interface);
 
-    if (idecontroller[interface] != NULL) {
-        delete idecontroller[interface];
-        idecontroller[interface] = NULL;
+    if (idecontroller[ide_interface] != NULL) {
+        delete idecontroller[ide_interface];
+        idecontroller[ide_interface] = NULL;
     }
 
-	ide = idecontroller[interface] = new IDEController(sec,interface);
+	ide = idecontroller[ide_interface] = new IDEController(sec,ide_interface);
 	ide->install_io_port();
 
 	PIC_SetIRQMask(ide->IRQ,false);
