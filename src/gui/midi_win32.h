@@ -112,13 +112,13 @@ public:
 
 #if WIN32_MIDI_PORT_PROTECT
 				if( midi_dll == false || strcmp( mididev.szPname, "Roland VSC" ) != 0 )
-					res = midiOutOpen(&m_out, nummer, (DWORD)m_event, 0, CALLBACK_EVENT);
+					res = midiOutOpen(&m_out, nummer, PtrToUlong(m_event), 0, CALLBACK_EVENT);
 				else {
 					// Roland VSC - crash protection
 					res = MidiHelper_Start(nummer);
 				}
 #else
-				res = midiOutOpen(&m_out, nummer, (DWORD)m_event, 0, CALLBACK_EVENT);
+				res = midiOutOpen(&m_out, nummer, PtrToUlong(m_event), 0, CALLBACK_EVENT);
 #endif
 
 
@@ -127,12 +127,12 @@ public:
 
 					if( nummer != 0 ) {
 						LOG_MSG("MIDI:win32 selected %s","default");
-						res = midiOutOpen(&m_out, MIDI_MAPPER, (DWORD)m_event, 0, CALLBACK_EVENT);
+						res = midiOutOpen(&m_out, MIDI_MAPPER, PtrToUlong(m_event), 0, CALLBACK_EVENT);
 					}
 				}
 			}
 		} else {
-			res = midiOutOpen(&m_out, MIDI_MAPPER, (DWORD)m_event, 0, CALLBACK_EVENT);
+			res = midiOutOpen(&m_out, MIDI_MAPPER, PtrToUlong(m_event), 0, CALLBACK_EVENT);
 		}
 		if (res != MMSYSERR_NOERROR) return false;
 

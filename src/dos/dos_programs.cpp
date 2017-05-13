@@ -1267,7 +1267,7 @@ restart_int:
 #ifdef WIN32
 		// read from real floppy?
 		if(cmd->FindString("-source",src,true)) {
-			Bits retries = 10;
+			int retries = 10;
 			cmd->FindInt("-retries",retries,true);
 			if((retries < 1)||(retries > 99))  {
 				printHelp();
