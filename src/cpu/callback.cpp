@@ -619,6 +619,9 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
 		phys_writeb(physAddress+0x07,(Bit8u)0x58);		// pop ax
 		phys_writeb(physAddress+0x08,(Bit8u)0xcf);		//An IRET Instruction
 		return (use_cb?0x0d:0x09);
+	case CB_CPM:
+		phys_writeb(physAddress+0x00,(Bit8u)0x9C);		//PUSHF
+		return CALLBACK_SetupExtra(callback,CB_INT21,physAddress+1,use_cb)+1;
 	default:
 		E_Exit("CALLBACK:Setup:Illegal type %u",(unsigned int)type);
 	}

@@ -23,6 +23,7 @@
 #include "dosbox.h"
 #include "bios.h"
 #include "mem.h"
+#include "paging.h"
 #include "callback.h"
 #include "regs.h"
 #include "dos_inc.h"
@@ -1647,6 +1648,23 @@ static Bitu DOS_20Handler(void) {
 	return CBRET_NONE;
 }
 
+static Bitu DOS_CPMHandler(void) {
+	// Convert a CPM-style call to a normal DOS call
+	Bit16u flags=CPU_Pop16();
+	CPU_Pop16();
+	Bit16u caller_seg=CPU_Pop16();
+	Bit16u caller_off=CPU_Pop16();
+	CPU_Push16(flags);
+	CPU_Push16(caller_seg);
+	CPU_Push16(caller_off);
+	if (reg_cl>0x24) {
+		reg_al=0;
+		return CBRET_NONE;
+	}
+	reg_ah=reg_cl;
+	return DOS_21Handler();
+}
+
 static Bitu DOS_27Handler(void) {
 	// Terminate & stay resident
 	Bit16u para = (reg_dx/16)+((reg_dx % 16)>0);
@@ -1705,7 +1723,9 @@ extern bool dbg_zero_on_dos_allocmem;
 
 class DOS:public Module_base{
 private:
-	CALLBACK_HandlerObject callback[8];
+	CALLBACK_HandlerObject callback[9];
+	RealPt int30,int31;
+
 public:
 	DOS(Section* configuration):Module_base(configuration){
 		Section_prop * section=static_cast<Section_prop *>(configuration);
@@ -1902,6 +1922,15 @@ public:
 		callback[7].Install(BIOS_1BHandler,CB_IRET,"BIOS 1Bh");
 		callback[7].Set_RealVec(0x1B);
 
+		callback[8].Install(DOS_CPMHandler,CB_CPM,"DOS/CPM Int 30-31");
+		int30=RealGetVec(0x30);
+		int31=RealGetVec(0x31);
+		mem_writeb(0x30*4,(Bit8u)0xea);		// jmpf
+		mem_unalignedwrited(0x30*4+1,callback[8].Get_RealPointer());
+		// pseudocode for CB_CPM:
+		//	pushf
+		//	... the rest is like int 21
+
 		DOS_FILES = section->Get_int("files");
 		DOS_SetupFiles();								/* Setup system File tables */
 		DOS_SetupDevices();							/* Setup dos devices */
@@ -2001,6 +2030,8 @@ public:
 		DOS_ShutdownFiles();
 		void DOS_ShutdownDevices(void);
 		DOS_ShutdownDevices();
+		RealSetVec(0x30,int30);
+		RealSetVec(0x31,int31);
 	}
 };
 
