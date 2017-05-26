@@ -170,6 +170,8 @@ Bit32u DOS_InfoBlock::GetDeviceChain(void) {
 
 Bit16u DOS_PSP::rootpsp = 0;
 
+#define CPM_MAX_SEG_SIZE	0xfff
+
 void DOS_PSP::MakeNew(Bit16u mem_size) {
 	/* get previous */
 //	DOS_PSP prevpsp(dos.psp());
@@ -179,10 +181,11 @@ void DOS_PSP::MakeNew(Bit16u mem_size) {
 	// Set size
 	sSave(sPSP,next_seg,seg+mem_size);
 	/* far call opcode */
-	sSave(sPSP,far_call,0xea);
-	// far call to interrupt 0x21 - faked for bill & ted 
-	// lets hope nobody really uses this address
-	sSave(sPSP,cpm_entry,RealMake(0xDEAD,0xFFFF));
+	sSave(sPSP,far_call,0x9a);
+	/* cpm_entry is an alias for the int 30 vector (0:c0 = c:0); the offset is also the maximum program size */
+	if (mem_size>CPM_MAX_SEG_SIZE) mem_size=CPM_MAX_SEG_SIZE;
+	mem_size-=0x10;
+	sSave(sPSP,cpm_entry,RealMake(0xc-mem_size,mem_size<<4));
 	/* Standard blocks,int 20  and int21 retf */
 	sSave(sPSP,exit[0],0xcd);
 	sSave(sPSP,exit[1],0x20);
