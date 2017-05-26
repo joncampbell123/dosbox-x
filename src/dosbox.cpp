@@ -1017,6 +1017,11 @@ void DOSBOX_SetupConfigSections(void) {
 			  "  off_fake                     Lock A20 gate off but allow bit to toggle (hope your DOS game tests the HMA!)\n"
 			  "  on_fake                      Lock A20 gate on but allow bit to toggle");
 
+    Pbool = secprop->Add_bool("turn off a20 gate on boot",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If enabled, A20 gate is switched off when booting a guest OS.\n"
+                    "Enabled by default. Recommended for MS-DOS when HIMEM.SYS is not installed in the guest OS.\n"
+                    "If disabled, and MS-DOS does not load HIMEM.SYS, programs and features that rely on the 1MB wraparound will fail.");
+
 	Pstring = secprop->Add_string("isa bus clock",Property::Changeable::WhenIdle,"std8.3");
 	Pstring->Set_help("ISA BCLK frequency.\n"
 			  "WARNING: In future revisions, PCI/motherboard chipset emulation will allow the guest OS/program to alter this value at runtime.\n"

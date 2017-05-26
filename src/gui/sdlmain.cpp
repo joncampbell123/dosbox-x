@@ -5012,6 +5012,11 @@ fresh_boot:
         }
 
 		if (run_machine) {
+            bool disable_a20 = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("turn off a20 gate on boot");
+
+            /* if instructed, turn off A20 at boot */
+            if (disable_a20) MEM_A20_Enable(false);
+
 			/* new code: fire event */
 			DispatchVMEvent(VM_EVENT_GUEST_OS_BOOT);
 
