@@ -1718,6 +1718,7 @@ Bit16u DOS_IHSEG = 0;
 
 void DOS_GetMemory_reset();
 void DOS_GetMemory_Choose();
+Bitu MEM_PageMask(void);
 
 #include <assert.h>
 
@@ -1735,8 +1736,8 @@ public:
         // HMA mirror of CP/M entry point.
         // this is needed for "F01D:FEF0" to be a valid jmp whether or not A20 is enabled
         if (dos_in_hma &&
-                cpm_compat_mode != CPM_COMPAT_OFF &&
-                cpm_compat_mode != CPM_COMPAT_DIRECT) {
+            cpm_compat_mode != CPM_COMPAT_OFF &&
+            cpm_compat_mode != CPM_COMPAT_DIRECT) {
             LOG(LOG_MISC,LOG_DEBUG)("Writing HMA mirror of CP/M entry point");
 
             Bitu was_a20 = XMS_GetEnabledA20();
@@ -1985,6 +1986,15 @@ public:
 		// pseudocode for CB_CPM:
 		//	pushf
 		//	... the rest is like int 21
+
+        /* NTS: HMA support requires XMS. EMS support may switch on A20 if VCPI emulation requires the odd megabyte */
+        if ((!dos_in_hma || !section->Get_bool("xms")) && (MEM_A20_Enabled() || strcmp(section->Get_string("ems"),"false") != 0) &&
+            cpm_compat_mode != CPM_COMPAT_OFF && cpm_compat_mode != CPM_COMPAT_DIRECT) {
+            /* hold on, only if more than 1MB of RAM and memory access permits it */
+            if (MEM_TotalPages() > 0x100 && MEM_PageMask() > 0xff/*more than 20-bit decoding*/) {
+                LOG(LOG_MISC,LOG_WARN)("DOS not in HMA or XMS is disabled. This may break programs using the CP/M compatibility call method if the A20 gate is switched on.");
+            }
+        }
 
 		DOS_FILES = section->Get_int("files");
 		DOS_SetupFiles();								/* Setup system File tables */

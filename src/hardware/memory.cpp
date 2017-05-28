@@ -1785,6 +1785,8 @@ void A20Gate_TakeUserSetting(Section *sec) {
 
 	memory.a20.enabled = 0;
 	a20_fake_changeable = false;
+    a20_guest_changeable = true;
+	a20_full_masking = false;
 
 	// TODO: A20 gate control should also be handled by a motherboard init routine
 	std::string ss = section->Get_string("a20");
@@ -1923,5 +1925,9 @@ void Init_PCJR_CartridgeROM() {
 	 * Don't call this function unless emulating PCjr! */
 	for (i=0xe0;i<0xf0;i++)
 		memory.phandlers[i] = &rom_page_handler;
+}
+
+Bitu MEM_PageMask(void) {
+    return memory.mem_alias_pagemask;
 }
 
