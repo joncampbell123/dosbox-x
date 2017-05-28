@@ -1497,6 +1497,7 @@ public:
                 return;
             }
 
+			ENABLE_V86_STARTUP = false;
             ENABLE_VCPI = false;
         }
 
