@@ -686,6 +686,10 @@ static Bitu DOS_21Handler(void) {
 		RealSetVec(reg_al,RealMakeSeg(ds,reg_dx));
 		break;
 	case 0x26:		/* Create new PSP */
+        /* TODO: DEBUG.EXE/DEBUG.COM as shipped with MS-DOS seems to reveal a bug where,
+         *       when DEBUG.EXE calls this function and you're NOT loading a program to debug,
+         *       the CP/M CALL FAR instruction's offset field will be off by 2. When does
+         *       that happen, and how do we emulate that? */
 		DOS_NewPSP(reg_dx,DOS_PSP(dos.psp()).GetSize());
 		reg_al=0xf0;	/* al destroyed */		
 		break;
