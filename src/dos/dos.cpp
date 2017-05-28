@@ -65,7 +65,7 @@ Bit32u DOS_HMA_FREE_START() {
 	if (!DOS_IS_IN_HMA()) return 0;
 
 	if (dos_hma_allocator == 0) {
-		dos_hma_allocator = 0x100000 + dos_initial_hma_free; /* start from 1MB marker */
+		dos_hma_allocator = 0x110000 - 16 - dos_initial_hma_free;
 		LOG(LOG_MISC,LOG_DEBUG)("Starting HMA allocation from physical address 0x%06x (FFFF:%04x)",
 			dos_hma_allocator,(dos_hma_allocator+0x10)&0xFFFF);
 	}
@@ -1751,6 +1751,9 @@ public:
 		enable_dummy_device_mcb = section->Get_bool("enable dummy device mcb");
 		int15_wait_force_unmask_irq = section->Get_bool("int15 wait force unmask irq");
         disk_io_unmask_irq0 = section->Get_bool("unmask timer on disk io");
+
+        if (dos_initial_hma_free > 0x10000)
+            dos_initial_hma_free = 0x10000;
 
 		if ((int)MAXENV < 0) MAXENV = mainline_compatible_mapping ? 32768 : 65535;
 		if ((int)ENV_KEEPFREE < 0) ENV_KEEPFREE = mainline_compatible_mapping ? 83 : 1024;
