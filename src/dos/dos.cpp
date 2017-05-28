@@ -33,6 +33,8 @@
 #include "serialport.h"
 #include "dos_network.h"
 
+unsigned char cpm_compat_mode = CPM_COMPAT_MSDOS5;
+
 bool dos_in_hma = true;
 bool DOS_BreakFlag = false;
 bool enable_dbcs_tables = true;
@@ -44,6 +46,8 @@ extern bool int15_wait_force_unmask_irq;
 
 Bit32u dos_hma_allocator = 0; /* physical memory addr */
 
+Bitu XMS_EnableA20(bool enable);
+Bitu XMS_GetEnabledA20(void);
 bool XMS_IS_ACTIVE();
 bool XMS_HMA_EXISTS();
 
@@ -1727,6 +1731,25 @@ private:
 	RealPt int30,int31;
 
 public:
+    void DOS_Write_HMA_CPM_jmp(void) {
+        // HMA mirror of CP/M entry point.
+        // this is needed for "F01D:FEF0" to be a valid jmp whether or not A20 is enabled
+        if (dos_in_hma &&
+                cpm_compat_mode != CPM_COMPAT_OFF &&
+                cpm_compat_mode != CPM_COMPAT_DIRECT) {
+            LOG(LOG_MISC,LOG_DEBUG)("Writing HMA mirror of CP/M entry point");
+
+            Bitu was_a20 = XMS_GetEnabledA20();
+
+            XMS_EnableA20(true);
+
+            mem_writeb(0x1000C0,(Bit8u)0xea);		// jmpf
+            mem_unalignedwrited(0x1000C0+1,callback[8].Get_RealPointer());
+
+            if (!was_a20) XMS_EnableA20(false);
+        }
+    }
+
 	DOS(Section* configuration):Module_base(configuration){
 		Section_prop * section=static_cast<Section_prop *>(configuration);
 
@@ -1754,6 +1777,35 @@ public:
 
         if (dos_initial_hma_free > 0x10000)
             dos_initial_hma_free = 0x10000;
+
+        std::string cpmcompat = section->Get_string("cpm compatibility mode");
+
+        if (cpmcompat == "")
+            cpmcompat = "auto";
+
+        if (cpmcompat == "msdos2")
+            cpm_compat_mode = CPM_COMPAT_MSDOS2;
+        else if (cpmcompat == "msdos5")
+            cpm_compat_mode = CPM_COMPAT_MSDOS5;
+        else if (cpmcompat == "direct")
+            cpm_compat_mode = CPM_COMPAT_DIRECT;
+        else if (cpmcompat == "auto")
+            cpm_compat_mode = CPM_COMPAT_MSDOS5; /* MS-DOS 5.x is default */
+        else
+            cpm_compat_mode = CPM_COMPAT_OFF;
+
+        /* msdos 2.x and msdos 5.x modes, if HMA is involved, require us to take the first 256 bytes of HMA
+         * in order for "F01D:FEF0" to work properly whether or not A20 is enabled. Our direct mode doesn't
+         * jump through that address, and therefore doesn't need it. */
+        if (dos_in_hma &&
+            cpm_compat_mode != CPM_COMPAT_OFF &&
+            cpm_compat_mode != CPM_COMPAT_DIRECT) {
+            LOG(LOG_MISC,LOG_DEBUG)("DOS: CP/M compatibility method with DOS in HMA requires mirror of entry point in HMA.");
+            if (dos_initial_hma_free > 0xFF00) {
+                dos_initial_hma_free = 0xFF00;
+                LOG(LOG_MISC,LOG_DEBUG)("DOS: CP/M compatibility method requires reduction of HMA free space to accomodate.");
+            }
+        }
 
 		if ((int)MAXENV < 0) MAXENV = mainline_compatible_mapping ? 32768 : 65535;
 		if ((int)ENV_KEEPFREE < 0) ENV_KEEPFREE = mainline_compatible_mapping ? 83 : 1024;
@@ -2039,6 +2091,11 @@ public:
 };
 
 static DOS* test = NULL;
+
+void DOS_Write_HMA_CPM_jmp(void) {
+    assert(test != NULL);
+    test->DOS_Write_HMA_CPM_jmp();
+}
 
 void DOS_ShutdownFiles() {
 	if (Files != NULL) {

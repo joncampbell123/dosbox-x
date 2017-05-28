@@ -118,6 +118,8 @@ struct XMS_MemMove{
 
 static int xms_local_enable_count = 0;
 
+void DOS_Write_HMA_CPM_jmp(void);
+
 Bitu XMS_EnableA20(bool enable) {
 	Bit8u val = IO_Read	(0x92);
 	if (enable) IO_Write(0x92,val | 2);
@@ -666,6 +668,9 @@ public:
 		bool ems_available = GetEMSType(section)>0;
 		DOS_BuildUMBChain(umb_available,ems_available);
 		umb_init = true;
+
+        /* CP/M compat will break unless a copy of the JMP instruction is mirrored in HMA */
+        DOS_Write_HMA_CPM_jmp();
 	}
 
 	~XMS(){
