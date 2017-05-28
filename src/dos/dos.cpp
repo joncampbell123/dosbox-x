@@ -1751,6 +1751,10 @@ public:
         }
     }
 
+    Bitu DOS_Get_CPM_entry_direct(void) {
+        return callback[8].Get_RealPointer();
+    }
+
 	DOS(Section* configuration):Module_base(configuration){
 		Section_prop * section=static_cast<Section_prop *>(configuration);
 
@@ -2105,6 +2109,11 @@ static DOS* test = NULL;
 void DOS_Write_HMA_CPM_jmp(void) {
     assert(test != NULL);
     test->DOS_Write_HMA_CPM_jmp();
+}
+
+Bitu DOS_Get_CPM_entry_direct(void) {
+    assert(test != NULL);
+    return test->DOS_Get_CPM_entry_direct();
 }
 
 void DOS_ShutdownFiles() {
