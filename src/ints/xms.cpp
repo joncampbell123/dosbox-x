@@ -711,6 +711,10 @@ void XMS_ShutDown(Section* /*sec*/) {
 	XMS_DoShutDown();
 }
 
+bool XMS_Active(void) {
+    return (test != NULL) && xms_init;
+}
+
 void XMS_Startup(Section *sec) {
 	if (test == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating XMS emulation");
