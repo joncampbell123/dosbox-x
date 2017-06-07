@@ -18,6 +18,7 @@
 
 
 #include "dosbox.h"
+#include "control.h"
 #include "mem.h"
 #include "callback.h"
 #include "regs.h"
@@ -26,7 +27,7 @@
 #include "setup.h"
 
 Int10Data int10;
-static Bitu call_10;
+static Bitu call_10 = 0;
 static bool warned_ff=false;
 
 static Bitu INT10_Handler(void) {
@@ -741,9 +742,51 @@ extern Bitu VGA_BIOS_Size;
 extern Bitu VGA_BIOS_SEG;
 extern Bitu VGA_BIOS_SEG_END;
 extern bool VIDEO_BIOS_disable;
+extern Bitu BIOS_VIDEO_TABLE_LOCATION;
+extern Bitu BIOS_VIDEO_TABLE_SIZE;
+
+bool ROMBIOS_FreeMemory(Bitu phys);
+Bitu RealToPhys(Bitu x);
+
+void BIOS_UnsetupDisks(void);
+void BIOS_UnsetupKeyboard(void);
+bool MEM_unmap_physmem(Bitu start,Bitu end);
+void CALLBACK_DeAllocate(Bitu in);
+
+void INT10_OnResetComplete() {
+    if (VGA_BIOS_Size > 0)
+        MEM_unmap_physmem(0xC0000,0xC0000+VGA_BIOS_Size-1);
+
+    /* free the table */
+    BIOS_VIDEO_TABLE_SIZE = 0;
+    if (BIOS_VIDEO_TABLE_LOCATION != (~0U) && BIOS_VIDEO_TABLE_LOCATION != 0) {
+        LOG(LOG_MISC,LOG_DEBUG)("INT 10h freeing BIOS VIDEO TABLE LOCATION");
+        ROMBIOS_FreeMemory(RealToPhys(BIOS_VIDEO_TABLE_LOCATION));
+        BIOS_VIDEO_TABLE_LOCATION = ~0;		// RealMake(0xf000,0xf0a4)
+    }
+
+    void VESA_OnReset_Clear_Callbacks(void);
+    VESA_OnReset_Clear_Callbacks();
+
+    if (call_10 != 0) {
+        CALLBACK_DeAllocate(call_10);
+        call_10 = 0;
+    }
+
+    BIOS_UnsetupDisks();
+    BIOS_UnsetupKeyboard();
+}
+
+extern bool unmask_irq0_on_int10_setmode;
+extern bool int16_unmask_irq1_on_read;
+extern bool int16_ah_01_cf_undoc;
 
 void INT10_Startup(Section *sec) {
 	LOG(LOG_MISC,LOG_DEBUG)("INT 10h reinitializing");
+
+    unmask_irq0_on_int10_setmode = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("unmask timer on int 10 setmode");
+	int16_unmask_irq1_on_read = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("unmask keyboard on int 16 read");
+    int16_ah_01_cf_undoc = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("int16 keyboard polling undocumented cf behavior");
 
 	INT10_InitVGA();
 	if (IS_TANDY_ARCH) SetupTandyBios();
@@ -762,6 +805,7 @@ void INT10_Startup(Section *sec) {
 	if (int10.rom.used > VGA_BIOS_Size) /* <- this is fatal, it means the Setup() functions scrozzled over the adjacent ROM or RAM area */
 		E_Exit("VGA BIOS size too small");
 
+    /* NTS: Uh, this does seem bass-ackwards... INT 10h making the VGA BIOS appear. Can we refactor this a bit? */
 	if (VGA_BIOS_Size > 0) {
 		LOG(LOG_MISC,LOG_DEBUG)("VGA BIOS occupies segment 0x%04x-0x%04x",(int)VGA_BIOS_SEG,(int)VGA_BIOS_SEG_END-1);
 		if (!MEM_map_ROM_physmem(0xC0000,0xC0000+VGA_BIOS_Size-1))

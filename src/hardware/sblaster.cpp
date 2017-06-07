@@ -131,6 +131,7 @@ struct SB_INFO {
 		Bitu remain_size;
 	} dma;
     bool freq_derived_from_tc;      // if set, sb.freq was derived from SB/SBpro time constant
+    bool def_enable_speaker;        // start emulation with SB speaker enabled
     bool enable_asp;
 	bool speaker;
 	bool midi;
@@ -138,6 +139,8 @@ struct SB_INFO {
 	bool emit_blaster_var;
 	bool sbpro_stereo_bit_strict_mode; /* if set, stereo bit in mixer can only be set if emulating a Pro. if clear, SB16 can too */
 	bool sample_rate_limits; /* real SB hardware has limits on the sample rate */
+    bool single_sample_dma;
+    bool directdac_warn_speaker_off; /* if set, warn if DSP command 0x10 is being used while the speaker is turned off */
 	bool dma_dac_mode; /* some very old DOS demos "play" sound by setting the DMA terminal count to 0.
 			      normally that would mean the DMA controller transmitting the same byte at the sample rate,
 			      except that the program creates sound by overwriting that byte periodically.
@@ -862,21 +865,32 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo,bool dontInit
 	 *    Triton - Crystal Dream (1992) [SB and SB Pro modes]
 	 *    The Jungly (1992) [SB and SB Pro modes]
 	 */
-	if (sb.dsp.force_goldplay) {
-		sb.dma_dac_srcrate=freq;
+    if (sb.dma.chan != NULL &&
+		sb.dma.chan->basecnt < ((mode==DSP_DMA_16_ALIASED?2:1)*((stereo || sb.mixer.sbpro_stereo)?2:1))/*size of one sample in DMA counts*/)
+        sb.single_sample_dma = 1;
+    else
+        sb.single_sample_dma = 0;
+
+    sb.dma_dac_srcrate=freq;
+	if (sb.dsp.force_goldplay || (sb.goldplay && sb.freq > 0 && sb.single_sample_dma))
 		sb.dma_dac_mode=1;
-	}
-	/* NTS: Besides computing sample size from stereo we also take into consideration whether
-	 *      or not the DOS game is TRYING to use sbpro stereo (even if we're ignoring it) */
-	else if (sb.goldplay && sb.freq > 0 && sb.dma.chan != NULL &&
-		sb.dma.chan->basecnt < ((mode==DSP_DMA_16_ALIASED?2:1)*((stereo || sb.mixer.sbpro_stereo)?2:1))/*size of one sample in DMA counts*/) {
-		sb.dma_dac_srcrate=sb.freq;
-		sb.dma_dac_mode=1;
-	}
-	else {
-		sb.dma_dac_srcrate=sb.freq;
+	else
 		sb.dma_dac_mode=0;
-	}
+
+    /* explanation: the purpose of Goldplay stereo mode is to compensate for the fact
+     * that demos using this method of playback know to set the SB Pro stereo bit, BUT,
+     * apparently did not know that they needed to double the sample rate when
+     * computing the DSP time constant. Such demos sound "OK" on Sound Blaster Pro but
+     * have audible aliasing artifacts because of this. The Goldplay Stereo hack
+     * detects this condition and doubles the sample rate to better capture what the
+     * demo is *trying* to do. NTS: sb.freq is the raw sample rate given by the
+     * program, before it is divided by two for stereo.
+     *
+     * Of course, some demos like Crystal Dream take the approach of just setting the
+     * sample rate to the max supported by the card and then letting it's timer interrupt
+     * define the sample rate. So of course anything below 44.1KHz sounds awful. */
+    if (sb.dma_dac_mode && sb.goldplay_stereo && (stereo || sb.mixer.sbpro_stereo) && sb.single_sample_dma)
+        sb.dma_dac_srcrate = sb.freq;
 
 	sb.chan->FillUp();
 
@@ -919,9 +933,10 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo,bool dontInit
 	if (sb.dma.stereo) sb.dma.mul*=2;
 	sb.dma.rate=(sb.dma_dac_srcrate*sb.dma.mul) >> SB_SH;
 	sb.dma.min=(sb.dma.rate*(sb.min_dma_user >= 0 ? sb.min_dma_user : /*default*/3))/1000;
-	if (sb.dma_dac_mode && sb.goldplay_stereo) {
+	if (sb.dma_dac_mode && sb.goldplay_stereo && (stereo || sb.mixer.sbpro_stereo) && sb.single_sample_dma) {
+//        LOG(LOG_SB,LOG_DEBUG)("Goldplay stereo hack. freq=%u rawfreq=%u dacrate=%u",(unsigned int)freq,(unsigned int)sb.freq,(unsigned int)sb.dma_dac_srcrate);
 		sb.chan->SetFreq(sb.dma_dac_srcrate);
-		updateSoundBlasterFilter(sb.dma_dac_srcrate);
+		updateSoundBlasterFilter(freq); /* BUT, you still filter like the actual sample rate */
 	}
 	else {
 		sb.chan->SetFreq(freq);
@@ -1136,7 +1151,10 @@ static void DSP_Reset(void) {
 	sb.dsp.write_busy=0;
 	sb.ess_extended_mode = false;
 	sb.ess_playback_mode = false;
-	PIC_RemoveEvents(DSP_FinishReset);
+    sb.single_sample_dma = 0;
+    sb.dma_dac_mode = 0;
+    sb.directdac_warn_speaker_off = true;
+    PIC_RemoveEvents(DSP_FinishReset);
 	PIC_RemoveEvents(DSP_BusyComplete);
 
 	sb.dma.left=0;
@@ -1588,6 +1606,12 @@ static void DSP_DoCommand(void) {
 		break;
 	case 0x10:	/* Direct DAC */
 		DSP_ChangeMode(MODE_DAC);
+
+        /* just in case something is trying to play direct DAC audio while the speaker is turned off... */
+        if (!sb.speaker && sb.directdac_warn_speaker_off) {
+            LOG(LOG_SB,LOG_DEBUG)("DSP direct DAC sample written while speaker turned off. Program should use DSP command 0xD1 to turn it on.");
+            sb.directdac_warn_speaker_off = false;
+        }
 
 		sb.freq = 22050;
         sb.freq_derived_from_tc = true;
@@ -2068,7 +2092,18 @@ ASP>
 }
 
 static bool DSP_busy_cycle_active() {
-	return (sb.mode == MODE_DMA) || sb.busy_cycle_always;
+    /* NTS: Busy cycle happens on SB16 at all times, or on earlier cards, only when the DSP is
+     *      fetching/writing data via the ISA DMA channel. So a non-auto-init DSP block that's
+     *      just finished fetching ISA DMA and is playing from the FIFO doesn't count.
+     *
+     *      sb.dma.left >= sb.dma.min condition causes busy cycle to stop 3ms early (by default).
+     *      This helps realism.
+     *
+     *      This also helps Crystal Dream, which uses the busy cycle to detect when the Sound
+     *      Blaster is about to finish playing the DSP block and therefore needs the same 3ms
+     *      "dmamin" hack to reissue another playback command without any audible hiccups in
+     *      the audio. */
+	return (sb.mode == MODE_DMA && (sb.dma.autoinit || sb.dma.left >= sb.dma.min)) || sb.busy_cycle_always;
 }
 
 static bool DSP_busy_cycle() {
@@ -2758,6 +2793,8 @@ bool SB_Get_Address(Bitu& sbaddr, Bitu& sbirq, Bitu& sbdma) {
 }
 
 static void SBLASTER_CallBack(Bitu len) {
+    sb.directdac_warn_speaker_off = true;
+
 	switch (sb.mode) {
 	case MODE_NONE:
 	case MODE_DMA_PAUSE:
@@ -3160,7 +3197,13 @@ public:
 		sb.dsp.force_goldplay=section->Get_bool("force goldplay");
 		sb.dma.force_autoinit=section->Get_bool("force dsp auto-init");
 		sb.no_filtering=section->Get_bool("disable filtering");
+        sb.def_enable_speaker=section->Get_bool("enable speaker");
         sb.enable_asp=section->Get_bool("enable asp");
+
+        if (!sb.goldplay && sb.dsp.force_goldplay) {
+            sb.goldplay = true;
+            LOG_MSG("force goldplay = true but goldplay = false, enabling Goldplay mode anyway");
+        }
 
 		/* Explanation: If the user set this option, the write status port must return 0x7F or 0xFF.
 		 *              Else, we're free to return whatever with bit 7 to indicate busy.
@@ -3307,17 +3350,8 @@ public:
 		if (sb.type == SBT_16 || sb.ess_type != ESS_NONE || sb.reveal_sc_type != RSC_NONE) sb.chan->Enable(true);
 		else sb.chan->Enable(false);
 
-		if (sb.emit_blaster_var) {
-			// Create set blaster line
-			ostringstream temp;
-			temp << "SET BLASTER=A" << setw(3) << hex << sb.hw.base;
-			if (sb.hw.irq != 0xFF) temp << " I" << dec << (Bitu)sb.hw.irq;
-			if (sb.hw.dma8 != 0xFF) temp << " D" << (Bitu)sb.hw.dma8;
-			if (sb.type==SBT_16 && sb.hw.dma16 != 0xFF) temp << " H" << (Bitu)sb.hw.dma16;
-			temp << " T" << static_cast<unsigned int>(sb.type) << ends;
-
-			autoexecline.Install(temp.str());
-		}
+        if (sb.def_enable_speaker)
+            DSP_SetSpeaker(true);
 
 		s=section->Get_string("dsp require interrupt acknowledge");
 		if (s == "true" || s == "1" || s == "on")
@@ -3482,6 +3516,22 @@ public:
 	void DOS_Shutdown() { /* very likely, we're booting into a guest OS where our environment variable has no meaning anymore */
 		autoexecline.Uninstall();
 	}
+
+    void DOS_Startup() {
+		if (sb.type==SBT_NONE || sb.type==SBT_GB) return;
+
+		if (sb.emit_blaster_var) {
+			// Create set blaster line
+			ostringstream temp;
+			temp << "SET BLASTER=A" << setw(3) << hex << sb.hw.base;
+			if (sb.hw.irq != 0xFF) temp << " I" << dec << (Bitu)sb.hw.irq;
+			if (sb.hw.dma8 != 0xFF) temp << " D" << (Bitu)sb.hw.dma8;
+			if (sb.type==SBT_16 && sb.hw.dma16 != 0xFF) temp << " H" << (Bitu)sb.hw.dma16;
+			temp << " T" << static_cast<unsigned int>(sb.type) << ends;
+
+			autoexecline.Install(temp.str());
+		}
+    }
 	
 	~SBLASTER() {
 		switch (oplmode) {
@@ -3522,10 +3572,19 @@ void SBLASTER_ShutDown(Section* /*sec*/) {
 }
 
 void SBLASTER_OnReset(Section *sec) {
-	if (test == NULL) {
+    SBLASTER_DOS_Shutdown();
+    if (test == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating Sound Blaster emulation");
 		test = new SBLASTER(control->GetSection("sblaster"));
 	}
+}
+
+void SBLASTER_DOS_Exit(Section *sec) {
+    SBLASTER_DOS_Shutdown();
+}
+
+void SBLASTER_DOS_Boot(Section *sec) {
+    if (test != NULL) test->DOS_Startup();
 }
 
 void SBLASTER_Init() {
@@ -3533,5 +3592,9 @@ void SBLASTER_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(SBLASTER_ShutDown),true);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(SBLASTER_OnReset));
+	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(SBLASTER_DOS_Exit));
+	AddVMEventFunction(VM_EVENT_DOS_SURPRISE_REBOOT,AddVMEventFunctionFuncPair(SBLASTER_DOS_Exit));
+	AddVMEventFunction(VM_EVENT_DOS_EXIT_REBOOT_BEGIN,AddVMEventFunctionFuncPair(SBLASTER_DOS_Exit));
+    AddVMEventFunction(VM_EVENT_DOS_INIT_SHELL_READY,AddVMEventFunctionFuncPair(SBLASTER_DOS_Boot));
 }
 

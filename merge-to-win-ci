@@ -1,0 +1,12 @@
+#!/bin/bash
+
+doit() {
+    git checkout master-win-ci || return 1
+    git merge --commit -m 'update' origin/master || return 1
+    git push origin master-win-ci || return 1
+    return 0
+}
+
+doit || exit 1
+git checkout master || exit 1
+

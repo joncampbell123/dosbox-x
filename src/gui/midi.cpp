@@ -25,6 +25,7 @@
 #include "SDL.h"
 
 #include "dosbox.h"
+#include "control.h"
 #include "cross.h"
 #include "support.h"
 #include "setup.h"
@@ -121,7 +122,9 @@ static struct {
 
 /* Include different midi drivers, lowest ones get checked first for default */
 
+#if C_MT32
 #include "midi_mt32.h"
+#endif
 
 #if C_FLUIDSYNTH
 #include "midi_synth.h"

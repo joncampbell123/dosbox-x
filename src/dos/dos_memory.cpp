@@ -636,3 +636,7 @@ void DOS_SetupMemory(void) {
 	dos_infoblock.SetFirstMCB(DOS_MEM_START);
 }
 
+void DOS_UnsetupMemory() {
+    callbackhandler.Uninstall();
+}
+

@@ -157,6 +157,7 @@ extern char**					environ;
 #endif
 
 Bitu						frames = 0;
+double                      rtdelta = 0;
 bool						emu_paused = false;
 bool						mouselocked = false; //Global variable for mapper
 bool						load_videodrv = true;
@@ -308,48 +309,62 @@ void GFX_SetIcon(void) {
 
 extern std::string dosbox_title;
 
-void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused) {
-    static Bits internal_frameskip=0;
-    static Bit32s internal_cycles=0;
-    static Bits internal_timing=0;
-    char title[200] = {0};
+void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
+	static Bits internal_frameskip=0;
+	static Bit32s internal_cycles=0;
+	static Bits internal_timing=0;
+	char title[200] = {0};
 
-    if (cycles != -1) internal_cycles = cycles;
-    if (timing != -1) internal_timing = timing;
-    if (frameskip != -1) internal_frameskip = frameskip;
+	if (cycles != -1) internal_cycles = cycles;
+	if (timing != -1) internal_timing = timing;
+	if (frameskip != -1) internal_frameskip = frameskip;
 
-    if (!menu_startup) {
-        sprintf(title,"%s%sDOSBox %s, CPU speed: %8d cycles, Frameskip %2d, %8s",
-                dosbox_title.c_str(),dosbox_title.empty()?"":": ",
-                VERSION,(int)internal_cycles,(int)internal_frameskip,RunningProgram);
-        SDL_SetWindowTitle(sdl.window,title);
-        return;
-    }
-    if (menu.hidecycles) {
-        if (CPU_CycleAutoAdjust) {
-            sprintf(title,"%s%sDOSBox %s, CPU speed: max %3d%% cycles, Frameskip %2d, %8s",
-                    dosbox_title.c_str(),dosbox_title.empty()?"":": ",
-                    VERSION,(int)CPU_CyclePercUsed,(int)internal_frameskip,RunningProgram);
+	if (!menu_startup) {
+		sprintf(title,"%s%sDOSBox-X %s, %d cyc/ms, %s",
+			dosbox_title.c_str(),dosbox_title.empty()?"":": ",
+			VERSION,(int)internal_cycles,RunningProgram);
+
+	    if (!menu.hidecycles) {
+            char *p = title + strlen(title); // append to end of string
+
+            sprintf(p,", FPS %2d",(int)frames);
         }
-        else {
-            sprintf(title,"%s%sDOSBox %s, CPU speed: %8d cycles, Frameskip %2d, %8s",
-                    dosbox_title.c_str(),dosbox_title.empty()?"":": ",
-                    VERSION,(int)internal_cycles,(int)internal_frameskip,RunningProgram);
-        }
-    } else if (CPU_CycleAutoAdjust) {
-        sprintf(title,"%s%sDOSBox %s, CPU : %s %8d%% = max %3d, %d FPS - %2d %8s %i.%i%%",
-                dosbox_title.c_str(),dosbox_title.empty()?"":": ",
-                VERSION,core_mode,(int)CPU_CyclePercUsed,(int)internal_cycles,(int)frames,
-                (int)internal_frameskip,RunningProgram,(int)(internal_timing/100),(int)(internal_timing%100/10));
-    } else {
-        sprintf(title,"%s%sDOSBox %s, CPU : %s %8d = %8d, %d FPS - %2d %8s %i.%i%%",
-                dosbox_title.c_str(),dosbox_title.empty()?"":": ",
-                VERSION,core_mode,(int)0,(int)internal_cycles,(int)frames,(int)internal_frameskip,
-                RunningProgram,(int)(internal_timing/100),(int)((internal_timing%100)/10));
-    }
 
-    if (paused) strcat(title," PAUSED");
-    SDL_SetWindowTitle(sdl.window,title);
+	    if (menu.showrt) {
+            char *p = title + strlen(title); // append to end of string
+
+            sprintf(p,", %2d%%/RT",(int)floor((rtdelta / 10) + 0.5));
+        }
+
+		SDL_WM_SetCaption(title,VERSION);
+		return;
+	}
+
+	if (menu.hidecycles) {
+		if (CPU_CycleAutoAdjust) {
+			sprintf(title,"%s%sDOSBox-X %s, max %3d%% cyc/ms, %s",
+				dosbox_title.c_str(),dosbox_title.empty()?"":": ",
+				VERSION,(int)CPU_CyclePercUsed,RunningProgram);
+		}
+		else {
+			sprintf(title,"%s%sDOSBox-X %s, %d cyc/ms, %s",
+				dosbox_title.c_str(),dosbox_title.empty()?"":": ",
+				VERSION,(int)internal_cycles,RunningProgram);
+		}
+	} else if (CPU_CycleAutoAdjust) {
+		sprintf(title,"%s%sDOSBox-X %s, CPU : %s %d%% = max %3d, %d FPS - %2d %8s %i.%i%%",
+			dosbox_title.c_str(),dosbox_title.empty()?"":": ",
+			VERSION,core_mode,(int)CPU_CyclePercUsed,(int)internal_cycles,(int)frames,
+			(int)internal_frameskip,RunningProgram,(int)(internal_timing/100),(int)(internal_timing%100/10));
+	} else {
+		sprintf(title,"%s%sDOSBox-X %s, CPU : %s %d = %8d, %d FPS - %2d %8s %i.%i%%",
+			dosbox_title.c_str(),dosbox_title.empty()?"":": ",
+			VERSION,core_mode,(int)0,(int)internal_cycles,(int)frames,(int)internal_frameskip,
+			RunningProgram,(int)(internal_timing/100),(int)((internal_timing%100)/10));
+	}
+
+	if (paused) strcat(title," PAUSED");
+	SDL_WM_SetCaption(title,VERSION);
 }
 
 bool warn_on_mem_write = false;
@@ -593,90 +608,51 @@ void GFX_LogSDLState(void) {
     }
 }
 
-static SDL_Window * GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES screenType) {
-    static SCREEN_TYPES lastType = SCREEN_SURFACE;
-    if (sdl.renderer) {
-        SDL_DestroyRenderer(sdl.renderer);
-        sdl.renderer=0;
-    }
-    if (sdl.texture.pixelFormat) {
-        SDL_FreeFormat(sdl.texture.pixelFormat);
-        sdl.texture.pixelFormat = 0;
-    }
-    if (sdl.texture.texture) {
-        SDL_DestroyTexture(sdl.texture.texture);
-        sdl.texture.texture=0;
-    }
-#if C_OPENGL
-    if (sdl.opengl.context) {
-        SDL_GL_DeleteContext(sdl.opengl.context);
-        sdl.opengl.context=0;
-    }
-#endif
-    sdl.window_desired_width = width;
-    sdl.window_desired_height = height;
-    int currWidth, currHeight;
-    if (sdl.window) {
-        //SDL_GetWindowSize(sdl.window, &currWidth, &currHeight);
-        if (!sdl.update_window) {
-            SDL_GetWindowSize(sdl.window, &currWidth, &currHeight);
-            sdl.update_display_contents = ((width == currWidth) && (height == currHeight));
-            return sdl.window;
-        }
-    }
-    /* If we change screen type, recreate the window. Furthermore, if
-     * it is our very first time then we simply create a new window.
-     */
-    if (!sdl.window
-            || (lastType != screenType)
-//          || (currWidth != width) || (currHeight != height)
-//          || (glwindow != (0 != (SDL_GetWindowFlags(sdl.window) & SDL_WINDOW_OPENGL)))
-//          || (fullscreen && (0 == (SDL_GetWindowFlags(sdl.window) & SDL_WINDOW_FULLSCREEN)))
-//          || (fullscreen != (SDL_WINDOW_FULLSCREEN == (SDL_GetWindowFlags(sdl.window) & SDL_WINDOW_FULLSCREEN)))
-//          || (fullscreen && ((width != currWidth) || (height != currHeight)))
-       ) {
-        lastType = screenType;
-        if (sdl.window) {
-            SDL_DestroyWindow(sdl.window);
-        }
-        sdl.window = SDL_CreateWindow("",
-                                      SDL_WINDOWPOS_UNDEFINED_DISPLAY(sdl.displayNumber),
-                                      SDL_WINDOWPOS_UNDEFINED_DISPLAY(sdl.displayNumber),
-                                      width, height,
-                                      (GFX_IsFullscreen() ? (sdl.desktop.full.display_res ? SDL_WINDOW_FULLSCREEN_DESKTOP : SDL_WINDOW_FULLSCREEN) : 0)
-                                      | ((screenType == SCREEN_OPENGL) ? SDL_WINDOW_OPENGL : 0) | SDL_WINDOW_SHOWN);
-        if (sdl.window) {
-            GFX_SetTitle(-1, -1, -1, false); //refresh title.
-        }
-        SDL_GetWindowSize(sdl.window, &currWidth, &currHeight);
-        sdl.update_display_contents = ((width == currWidth) && (height == currHeight));
-        return sdl.window;
-    }
-    /* Fullscreen mode switching has its limits, and is also problematic on
-     * some window managers. For now, the following may work up to some
-     * level. On X11, SDL_VIDEO_X11_LEGACY_FULLSCREEN=1 can also help,
-     * although it has its own issues.
-     * Suggestion: Use the desktop res if possible, with output=surface
-     * if one is not interested in scaling.
-     * On Android, desktop res is the only way.
-     */
-    if (GFX_IsFullscreen()) {
-        SDL_DisplayMode displayMode;
-        SDL_GetWindowDisplayMode(sdl.window, &displayMode);
-        displayMode.w = width;
-        displayMode.h = height;
-        SDL_SetWindowDisplayMode(sdl.window, &displayMode);
+static SDL_Surface * GFX_SetupSurfaceScaled(Bit32u sdl_flags, Bit32u bpp) {
+	Bit16u fixedWidth;
+	Bit16u fixedHeight;
+	if (sdl.desktop.want_type == SCREEN_OPENGL) {
+		sdl_flags |= SDL_OPENGL;
+	}
+	if (sdl.desktop.fullscreen) {
+		fixedWidth = sdl.desktop.full.fixed ? sdl.desktop.full.width : 0;
+		fixedHeight = sdl.desktop.full.fixed ? sdl.desktop.full.height : 0;
+		sdl_flags |= SDL_FULLSCREEN|SDL_HWSURFACE;
+	} else {
+		fixedWidth = sdl.desktop.window.width;
+		fixedHeight = sdl.desktop.window.height;
+		sdl_flags |= SDL_HWSURFACE;
+	}
+	if (fixedWidth && fixedHeight) {
+		double ratio_w=(double)fixedWidth/(sdl.draw.width*sdl.draw.scalex);
+		double ratio_h=(double)fixedHeight/(sdl.draw.height*sdl.draw.scaley);
+		if ( ratio_w < ratio_h) {
+			sdl.clip.w=fixedWidth;
+			sdl.clip.h=(Bit16u)(sdl.draw.height*sdl.draw.scaley*ratio_w);
+		} else {
+			sdl.clip.w=(Bit16u)(sdl.draw.width*sdl.draw.scalex*ratio_h);
+			sdl.clip.h=(Bit16u)fixedHeight;
+		}
+		if (sdl.desktop.fullscreen)
+			sdl.surface = SDL_SetVideoMode(fixedWidth,fixedHeight,bpp,sdl_flags);
+		else
+			sdl.surface = SDL_SetVideoMode(sdl.clip.w,sdl.clip.h,bpp,sdl_flags);
+		if (sdl.surface && sdl.surface->flags & SDL_FULLSCREEN) {
+			sdl.clip.x=(Sint16)((sdl.surface->w-sdl.clip.w)/2);
+			sdl.clip.y=(Sint16)((sdl.surface->h-sdl.clip.h)/2);
+		} else {
+			sdl.clip.x = 0;
+			sdl.clip.y = 0;
+		}
+	} else {
+		sdl.clip.x=0;sdl.clip.y=0;
+		sdl.clip.w=(Bit16u)(sdl.draw.width*sdl.draw.scalex);
+		sdl.clip.h=(Bit16u)(sdl.draw.height*sdl.draw.scaley);
+		sdl.surface=SDL_SetVideoMode(sdl.clip.w,sdl.clip.h,bpp,sdl_flags);
+	}
 
-        SDL_SetWindowFullscreen(sdl.window, SDL_WINDOW_FULLSCREEN_DESKTOP);
-    } else {
-        SDL_SetWindowFullscreen(sdl.window, 0);
-
-        SDL_SetWindowSize(sdl.window, width, height);
-    }
-    /* Maybe some requested fullscreen resolution is unsupported? */
-    SDL_GetWindowSize(sdl.window, &currWidth, &currHeight);
-    sdl.update_display_contents = ((width == currWidth) && (height == currHeight));
-    return sdl.window;
+	GFX_LogSDLState();
+	return sdl.surface;
 }
 
 // Used for the mapper UI and more: Creates a fullscreen window with desktop res
@@ -765,19 +741,174 @@ static void GFX_ResetSDL() {
 
 
 Bitu GFX_SetSize(Bitu width,Bitu height,Bitu flags,double scalex,double scaley,GFX_CallBack_t callback) {
-    EndSplashScreen();
-    if (sdl.updating)
-        GFX_EndUpdate( 0 );
+	EndSplashScreen();
+	if (sdl.updating)
+		GFX_EndUpdate( 0 );
 
-    sdl.draw.width=width;
-    sdl.draw.height=height;
-    sdl.draw.callback=callback;
-    sdl.draw.scalex=scalex;
-    sdl.draw.scaley=scaley;
+	sdl.draw.width=width;
+	sdl.draw.height=height;
+	sdl.draw.flags=flags;
+	sdl.draw.callback=callback;
+	sdl.draw.scalex=scalex;
+	sdl.draw.scaley=scaley;
 
-    Bitu retFlags = 0;
-    switch (sdl.desktop.want_type) {
-    case SCREEN_SURFACE:
+	Bitu bpp=0;
+	Bitu retFlags = 0;
+	Uint32 sdl_flags;
+
+	if (sdl.blit.surface) {
+		SDL_FreeSurface(sdl.blit.surface);
+		sdl.blit.surface=0;
+	}
+	switch (sdl.desktop.want_type) {
+	case SCREEN_OPENGLHQ:
+		static char scale[64];
+		if (flags & GFX_CAN_8) bpp=8;
+		if (flags & GFX_CAN_15) bpp=15;
+		if (flags & GFX_CAN_16) bpp=16;
+		if (flags & GFX_CAN_32) bpp=32;
+		sdl.desktop.type=SCREEN_SURFACE;
+		sdl.clip.x=0;
+		sdl.clip.y=0;
+		if(!sdl.desktop.fullscreen) {
+		    if(sdl.desktop.window.width && sdl.desktop.window.height) {
+			scalex=(double)sdl.desktop.window.width/(sdl.draw.width*sdl.draw.scalex);
+			scaley=(double)sdl.desktop.window.height/(sdl.draw.height*sdl.draw.scaley);
+			if(scalex < scaley) {
+			    sdl.clip.w=sdl.desktop.window.width;
+			    sdl.clip.h=(Bit16u)(sdl.draw.height*sdl.draw.scaley*scalex);
+			} else {
+			    sdl.clip.w=(Bit16u)(sdl.draw.width*sdl.draw.scalex*scaley);
+			    sdl.clip.h=(Bit16u)sdl.desktop.window.height;
+			}
+		    } else {
+			sdl.clip.w=(Bit16u)(sdl.draw.width*sdl.draw.scalex);
+			sdl.clip.h=(Bit16u)(sdl.draw.height*sdl.draw.scaley);
+		    }
+		    snprintf(scale,64,"SDL_OPENGLHQ_WINRES=%dx%d",sdl.clip.w,sdl.clip.h);
+		    sdl.clip.w=width; sdl.clip.h=height;
+
+    		} else if(!sdl.desktop.full.fixed) {
+		    snprintf(scale,64,"SDL_OPENGLHQ_FULLRES=%dx%d",sdl.draw.width*(Uint16)sdl.draw.scalex,
+								sdl.draw.height*(Uint16)sdl.draw.scaley);
+		    sdl.clip.w=width; sdl.clip.h=height;
+		} else {
+		    snprintf(scale,64,"SDL_OPENGLHQ_FULLRES=%dx%d",sdl.desktop.full.width,sdl.desktop.full.height);
+		    scalex=(double)sdl.desktop.full.width/(sdl.draw.width*sdl.draw.scalex);
+		    scaley=(double)sdl.desktop.full.height/(sdl.draw.height*sdl.draw.scaley);
+		    sdl.clip.w=width; sdl.clip.h=height;
+
+		    if (scalex < scaley)
+			height *= scaley/scalex;
+		    else
+			width *= scalex/scaley;
+		    sdl.clip.x=(Sint16)((width-sdl.clip.w)/2);
+		    sdl.clip.y=(Sint16)((height-sdl.clip.h)/2);
+		}
+		putenv(scale);
+		sdl_flags = (sdl.desktop.fullscreen?SDL_FULLSCREEN:0)|SDL_HWSURFACE|SDL_ANYFORMAT;
+		sdl.surface=SDL_SetVideoMode(width,height,bpp,sdl_flags);
+		if (sdl.surface) {
+		    switch (sdl.surface->format->BitsPerPixel) {
+			case 8:retFlags = GFX_CAN_8;break;
+			case 15:retFlags = GFX_CAN_15;break;
+			case 16:retFlags = GFX_CAN_16;break;
+			case 32:retFlags = GFX_CAN_32;break;
+			default:break;
+		    }
+		    if (retFlags) {
+			if (sdl.surface->flags & SDL_HWSURFACE)
+			    retFlags |= GFX_HARDWARE;
+			retFlags |= GFX_SCALING;
+		    }
+		}
+		break;
+	case SCREEN_SURFACE:
+		GFX_ResetSDL();
+dosurface:
+		if (flags & GFX_CAN_8) bpp=8;
+		if (flags & GFX_CAN_15) bpp=15;
+		if (flags & GFX_CAN_16) bpp=16;
+		if (flags & GFX_CAN_32) bpp=32;
+		sdl.desktop.type=SCREEN_SURFACE;
+		sdl.clip.w=width;
+		sdl.clip.h=height;
+		SDLScreen_Reset();
+		if (sdl.desktop.fullscreen) {
+			Uint32 wflags = SDL_FULLSCREEN | SDL_HWPALETTE |
+				((flags & GFX_CAN_RANDOM) ? SDL_SWSURFACE : SDL_HWSURFACE) |
+				(sdl.desktop.doublebuf ? SDL_DOUBLEBUF|SDL_ASYNCBLIT : 0);
+			if (sdl.desktop.full.fixed
+			) {
+				sdl.clip.x=(Sint16)((sdl.desktop.full.width-width)/2);
+				sdl.clip.y=(Sint16)((sdl.desktop.full.height-height)/2);
+				sdl.surface=SDL_SetVideoMode(sdl.desktop.full.width,
+					sdl.desktop.full.height, bpp, wflags);
+			} else {
+				sdl.clip.x=0;sdl.clip.y=0;
+				sdl.surface=SDL_SetVideoMode(width, height, bpp, wflags);
+			}
+			if (sdl.surface == NULL) {
+				LOG_MSG("Fullscreen not supported: %s", SDL_GetError());
+				sdl.desktop.fullscreen=false;
+				GFX_CaptureMouse();
+				goto dosurface;
+			}
+		} else {
+			sdl.clip.x=sdl.overscan_width;sdl.clip.y=sdl.overscan_width;
+			sdl.surface=SDL_SetVideoMode(width+2*sdl.overscan_width,height+2*sdl.overscan_width,bpp,(flags & GFX_CAN_RANDOM) ? SDL_SWSURFACE | SDL_RESIZABLE : SDL_HWSURFACE | SDL_RESIZABLE);
+#ifdef WIN32
+			if (sdl.surface == NULL) {
+				SDL_QuitSubSystem(SDL_INIT_VIDEO);
+				if (!sdl.using_windib) {
+					LOG_MSG("Failed to create hardware surface.\nRestarting video subsystem with windib enabled.");
+					putenv("SDL_VIDEODRIVER=windib");
+					sdl.using_windib=true;
+				} else {
+					LOG_MSG("Failed to create hardware surface.\nRestarting video subsystem with directx enabled.");
+					putenv("SDL_VIDEODRIVER=directx");
+					sdl.using_windib=false;
+				}
+				SDL_InitSubSystem(SDL_INIT_VIDEO);
+				GFX_SetIcon(); //Set Icon again
+				sdl.surface = SDL_SetVideoMode(width,height,bpp,SDL_HWSURFACE);
+				if(sdl.surface) GFX_SetTitle(-1,-1,-1,false); //refresh title.
+			}
+#endif
+			if (sdl.surface == NULL)
+				E_Exit("Could not set windowed video mode %ix%i-%i: %s",(int)width,(int)height,(int)bpp,SDL_GetError());
+		}
+		if (sdl.surface) {
+			switch (sdl.surface->format->BitsPerPixel) {
+			case 8:
+				retFlags = GFX_CAN_8;
+                break;
+			case 15:
+				retFlags = GFX_CAN_15;
+				break;
+			case 16:
+				retFlags = GFX_CAN_16;
+                break;
+			case 32:
+				retFlags = GFX_CAN_32;
+                break;
+			}
+			if (retFlags && (sdl.surface->flags & SDL_HWSURFACE))
+				retFlags |= GFX_HARDWARE;
+			if (retFlags && (sdl.surface->flags & SDL_DOUBLEBUF)) {
+				sdl.blit.surface=SDL_CreateRGBSurface(SDL_HWSURFACE,
+					sdl.draw.width, sdl.draw.height,
+					sdl.surface->format->BitsPerPixel,
+					sdl.surface->format->Rmask,
+					sdl.surface->format->Gmask,
+					sdl.surface->format->Bmask,
+				0);
+				/* If this one fails be ready for some flickering... */
+			}
+		}
+		break;
+#if (HAVE_DDRAW_H) && defined(WIN32)
+	case SCREEN_SURFACE_DDRAW:
     {
         GFX_ResetSDL();
 dosurface:
@@ -893,107 +1024,109 @@ dosurface:
         break;
     }
 #if C_OPENGL
-    case SCREEN_OPENGL:
-    {
-        GFX_ResetSDL();
-        if (sdl.opengl.pixel_buffer_object) {
-            glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
-            if (sdl.opengl.buffer) glDeleteBuffersARB(1, &sdl.opengl.buffer);
-        } else if (sdl.opengl.framebuf) {
-            free(sdl.opengl.framebuf);
-        }
-        sdl.opengl.framebuf=0;
-        if (!(flags&GFX_CAN_32) || (flags & GFX_RGBONLY)) goto dosurface; // BGRA otherwise
-        int texsize=2 << int_log2(width > height ? width : height);
-        if (texsize>sdl.opengl.max_texsize) {
-            LOG_MSG("SDL:OPENGL: No support for texturesize of %d, falling back to surface",texsize);
-            goto dosurface;
-        }
-        SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
-        GFX_SetupWindowScaled(sdl.desktop.want_type);
-        if (!sdl.window || SDL_BYTESPERPIXEL(SDL_GetWindowPixelFormat(sdl.window))<2) {
-            LOG_MSG("SDL:OPENGL:Can't open drawing window, are you running in 16bpp(or higher) mode?");
-            goto dosurface;
-        }
-        sdl.opengl.context = SDL_GL_CreateContext(sdl.window);
-        if (sdl.opengl.context == NULL) {
-            LOG_MSG("SDL:OPENGL:Can't create OpenGL context, falling back to surface");
-            goto dosurface;
-        }
-        /* Sync to VBlank if desired */
-        SDL_GL_SetSwapInterval(sdl.desktop.vsync ? 1 : 0 );
-        /* Create the texture and display list */
-        if (sdl.opengl.pixel_buffer_object) {
-            glGenBuffersARB(1, &sdl.opengl.buffer);
-            glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, sdl.opengl.buffer);
-            glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_EXT, width*height*4, NULL, GL_STREAM_DRAW_ARB);
-            glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
-        } else
-        {
-            sdl.opengl.framebuf=malloc(width*height*4);		//32 bit color
-        }
-        sdl.opengl.pitch=width*4;
-        int windowHeight;
-        SDL_GetWindowSize(sdl.window, NULL, &windowHeight);
-        glViewport(sdl.clip.x,sdl.clip.y,sdl.clip.w,sdl.clip.h);
-        glMatrixMode (GL_PROJECTION);
-        glDeleteTextures(1,&sdl.opengl.texture);
-        glGenTextures(1,&sdl.opengl.texture);
-        glBindTexture(GL_TEXTURE_2D,sdl.opengl.texture);
-        // No borders
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-        if (sdl.opengl.bilinear) {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        } else {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        }
+	case SCREEN_OPENGL:
+	{
+		GFX_ResetSDL();
+		if (sdl.opengl.pixel_buffer_object) {
+			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
+			if (sdl.opengl.buffer) glDeleteBuffersARB(1, &sdl.opengl.buffer);
+		} else if (sdl.opengl.framebuf) {
+			free(sdl.opengl.framebuf);
+		}
+		SDLScreen_Reset();
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texsize, texsize, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, 0);
+		sdl.opengl.framebuf=0;
 
-        glClearColor (0.0, 0.0, 0.0, 1.0);
-        glClear(GL_COLOR_BUFFER_BIT);
-        SDL_GL_SwapWindow(sdl.window);
-        glClear(GL_COLOR_BUFFER_BIT);
-        glShadeModel (GL_FLAT);
-        glDisable (GL_DEPTH_TEST);
-        glDisable (GL_LIGHTING);
-        glDisable(GL_CULL_FACE);
-        glEnable(GL_TEXTURE_2D);
-        glMatrixMode (GL_MODELVIEW);
-        glLoadIdentity ();
+		SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
+#if SDL_VERSION_ATLEAST(1, 2, 11)
+		Section_prop * sec=static_cast<Section_prop *>(control->GetSection("vsync"));
+		if(sec) {
+			SDL_GL_SetAttribute( SDL_GL_SWAP_CONTROL, (!strcmp(sec->Get_string("vsyncmode"),"host"))?1:0 );
+		}
+#endif
+		GFX_SetupSurfaceScaled(SDL_RESIZABLE, 0);
+		if (!sdl.surface || sdl.surface->format->BitsPerPixel<15) {
+			LOG_MSG("SDL:OPENGL:Can't open drawing surface, are you running in 16bpp(or higher) mode?");
+			goto dosurface;
+		}
 
-        GLfloat tex_width=((GLfloat)(width)/(GLfloat)texsize);
-        GLfloat tex_height=((GLfloat)(height)/(GLfloat)texsize);
+		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &sdl.opengl.max_texsize);
 
-        //if (glIsList(sdl.opengl.displaylist)) glDeleteLists(sdl.opengl.displaylist, 1);
-        //sdl.opengl.displaylist = glGenLists(1);
-        sdl.opengl.displaylist = 1;
-        glNewList(sdl.opengl.displaylist, GL_COMPILE);
-        glBindTexture(GL_TEXTURE_2D, sdl.opengl.texture);
-        glBegin(GL_QUADS);
-        // lower left
-        glTexCoord2f(0,tex_height);
-        glVertex2f(-1.0f,-1.0f);
-        // lower right
-        glTexCoord2f(tex_width,tex_height);
-        glVertex2f(1.0f, -1.0f);
-        // upper right
-        glTexCoord2f(tex_width,0);
-        glVertex2f(1.0f, 1.0f);
-        // upper left
-        glTexCoord2f(0,0);
-        glVertex2f(-1.0f, 1.0f);
-        glEnd();
-        glEndList();
-        sdl.desktop.type=SCREEN_OPENGL;
-        retFlags = GFX_CAN_32 | GFX_SCALING;
-        if (sdl.opengl.pixel_buffer_object)
-            retFlags |= GFX_HARDWARE;
-        break;
-    }//OPENGL
+		//if (!(flags&GFX_CAN_32) || (flags & GFX_RGBONLY)) goto dosurface;
+		int texsize=2 << int_log2(width > height ? width : height);
+		if (texsize>sdl.opengl.max_texsize) {
+			LOG_MSG("SDL:OPENGL:No support for texturesize of %d (max size is %d), falling back to surface",texsize,sdl.opengl.max_texsize);
+			goto dosurface;
+		}
+		/* Create the texture and display list */
+		if (sdl.opengl.pixel_buffer_object) {
+			glGenBuffersARB(1, &sdl.opengl.buffer);
+			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, sdl.opengl.buffer);
+			glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_EXT, width*height*4, NULL, GL_STREAM_DRAW_ARB);
+			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
+		} else {
+			sdl.opengl.framebuf=malloc(width*height*4);		//32 bit color
+		}
+		sdl.opengl.pitch=width*4;
+
+		//correction for viewport if 640x400
+		if(sdl.clip.h < 480 && sdl.desktop.fullscreen) sdl.clip.y=(480-sdl.clip.h)/2;
+
+		glViewport(sdl.clip.x,sdl.clip.y,sdl.clip.w,sdl.clip.h);
+		glMatrixMode (GL_PROJECTION);
+		glDeleteTextures(1,&sdl.opengl.texture);
+ 		glGenTextures(1,&sdl.opengl.texture);
+		glBindTexture(GL_TEXTURE_2D,sdl.opengl.texture);
+		// No borders
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		if (sdl.opengl.bilinear) {
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		} else {
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		}
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texsize, texsize, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, 0);
+
+		glClearColor (0.0, 0.0, 0.0, 1.0);
+		glClear(GL_COLOR_BUFFER_BIT);
+		SDL_GL_SwapBuffers();
+		glClear(GL_COLOR_BUFFER_BIT);
+		glShadeModel (GL_FLAT);
+		glDisable (GL_DEPTH_TEST);
+		glDisable (GL_LIGHTING);
+		glDisable(GL_CULL_FACE);
+		glEnable(GL_TEXTURE_2D);
+		glMatrixMode (GL_MODELVIEW);
+		glLoadIdentity ();
+
+		GLfloat tex_width=((GLfloat)(width)/(GLfloat)texsize);
+		GLfloat tex_height=((GLfloat)(height)/(GLfloat)texsize);
+
+		//if (glIsList(sdl.opengl.displaylist)) glDeleteLists(sdl.opengl.displaylist, 1);
+		//sdl.opengl.displaylist = glGenLists(1);
+		sdl.opengl.displaylist = 1;
+		glNewList(sdl.opengl.displaylist, GL_COMPILE);
+		glBindTexture(GL_TEXTURE_2D, sdl.opengl.texture);
+		glBegin(GL_QUADS);
+		// lower left
+		glTexCoord2f(0,tex_height); glVertex2f(-1.0f,-1.0f);
+		// lower right
+		glTexCoord2f(tex_width,tex_height); glVertex2f(1.0f, -1.0f);
+		// upper right
+		glTexCoord2f(tex_width,0); glVertex2f(1.0f, 1.0f);
+		// upper left
+		glTexCoord2f(0,0); glVertex2f(-1.0f, 1.0f);
+		glEnd();
+		glEndList();
+		sdl.desktop.type=SCREEN_OPENGL;
+		retFlags = GFX_CAN_32 | GFX_SCALING;
+		if (sdl.opengl.pixel_buffer_object)
+			retFlags |= GFX_HARDWARE;
+	break;
+		}//OPENGL
 #endif	//C_OPENGL
     default:
         goto dosurface;
@@ -1027,6 +1160,144 @@ static bool on_capture_scroll_lock_was_on = false;
 static bool on_capture_caps_lock_was_on = false;
 
 static bool exthook_enabled = false;
+#if defined(WIN32)
+static HHOOK exthook_winhook = NULL;
+
+#if !defined(__MINGW32__)
+extern "C" void SDL_DOSBox_X_Hack_Set_Toggle_Key_WM_USER_Hack(unsigned char x);
+#endif
+
+static LRESULT CALLBACK WinExtHookKeyboardHookProc(int nCode,WPARAM wParam,LPARAM lParam) {
+	if (nCode == HC_ACTION) {
+		HWND myHwnd = GetHWND();
+
+		if (exthook_enabled && GetFocus() == myHwnd) { /* intercept only if DOSBox-X is the focus and the keyboard is hooked */
+			if (wParam == WM_SYSKEYDOWN || wParam == WM_KEYDOWN || wParam == WM_SYSKEYUP || wParam == WM_KEYUP) {
+				KBDLLHOOKSTRUCT *st_hook = (KBDLLHOOKSTRUCT*)lParam;
+
+				if (st_hook->flags & LLKHF_INJECTED) {
+					// injected keys are automatically allowed, especially if we are injecting keyboard input into ourself
+					// to control Num/Scroll/Caps Lock LEDs. If we don't check this we cannot control the LEDs. Injecting
+					// keydown/keyup for Num Lock is the only means provided by Windows to control those LEDs.
+				}
+				else if (st_hook->vkCode == VK_MENU/*alt*/ || st_hook->vkCode == VK_CONTROL ||
+					st_hook->vkCode == VK_LSHIFT || st_hook->vkCode == VK_RSHIFT) {
+					// always allow modifier keys through, so other applications are not left with state inconsistent from
+					// actual keyboard state.
+				}
+				else {
+					bool nopass = enable_hook_everything; // if the user wants us to hook ALL keys then that's where this signals it
+					bool alternate_message = false; // send as WM_USER+0x100 instead of WM_KEYDOWN
+
+					if (!nopass) {
+						// hook only certain keys Windows is likely to act on by itself.
+
+						// FIXME: Hooking the keyboard does NOT prevent Fn+SPACE (zoom) from triggering screen resolution
+						//        changes in Windows 10! How do we stop that?
+
+						// FIXME: It might be nice to let the user decide whether or not Print Screen is intercepted.
+
+						// TODO: We do not hook the volume up/down/mute keys. This is to be kind to the user. They may
+						// appreciate the ability to dial down the volume if a loud DOS program comes up. But
+						// if the user WANTS us to, we should allow hooking those keys.
+
+						// TODO: Allow (if instructed) hooking the VK_SLEEP key so pushing the sleep key (the
+						// one with the icon of the moon on Microsoft keyboards) can be sent instead to the
+						// guest OS. Also add code where if we're not hooking the key, then we should listen
+						// for signals the guest OS is suspending or hibernating and auto-disconnect the
+						// mouse capture and keyboard hook.
+
+						switch (st_hook->vkCode) {
+						case VK_LWIN:	// left Windows key (normally triggers Start menu)
+						case VK_RWIN:	// right Windows key (normally triggers Start menu)
+						case VK_APPS:	// Application key (normally open to the user, but just in case)
+						case VK_PAUSE:	// pause key
+						case VK_SNAPSHOT: // print screen
+						case VK_TAB:	// try to catch ALT+TAB too (not blocking VK_TAB will allow host OS to switch tasks)
+						case VK_ESCAPE:	// try to catch CTRL+ESC as well (so Windows 95 Start Menu is accessible)
+						case VK_SPACE:	// and space (catching VK_ZOOM isn't enough to prevent Windows 10 from changing res)
+						// these keys have no meaning to DOSBox and so we hook them by default to allow the guest OS to use them
+						case VK_BROWSER_BACK: // Browser Back key
+						case VK_BROWSER_FORWARD: // Browser Forward key
+						case VK_BROWSER_REFRESH: // Browser Refresh key
+						case VK_BROWSER_STOP: // Browser Stop key
+						case VK_BROWSER_SEARCH: // Browser Search key
+						case VK_BROWSER_FAVORITES: // Browser Favorites key
+						case VK_BROWSER_HOME: // Browser Start and Home key
+						case VK_MEDIA_NEXT_TRACK: // Next Track key
+						case VK_MEDIA_PREV_TRACK: // Previous Track key
+						case VK_MEDIA_STOP: // Stop Media key
+						case VK_MEDIA_PLAY_PAUSE: // Play / Pause Media key
+						case VK_LAUNCH_MAIL: // Start Mail key
+						case VK_LAUNCH_MEDIA_SELECT: // Select Media key
+						case VK_LAUNCH_APP1: // Start Application 1 key
+						case VK_LAUNCH_APP2: // Start Application 2 key
+						case VK_PLAY: // Play key
+						case VK_ZOOM: // Zoom key (the (+) magnifying glass keyboard shortcut laptops have these days on the spacebar?)
+							nopass = true;
+							break;
+
+							// IME Hiragana key, otherwise inaccessible to us
+						case 0xF2:
+							nopass = true; // FIXME: This doesn't (yet) cause a SDL key event.
+							break;
+
+							// we allow hooking Num/Scroll/Caps Lock keys so that pressing them does not toggle the LED.
+							// we then take Num/Scroll/Caps LED state from the guest and let THAT control the LED state.
+						case VK_CAPITAL:
+						case VK_NUMLOCK:
+						case VK_SCROLL:
+							nopass = enable_hook_lock_toggle_keys;
+							alternate_message = true;
+							break;
+						}
+					}
+
+					if (nopass) {
+						// convert WM_KEYDOWN/WM_KEYUP if obfuscating the message to distinguish between real and injected events
+						if (alternate_message) {
+							if (wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN)
+								wParam = WM_USER + 0x100;
+							else if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP)
+								wParam = WM_USER + 0x101;
+						}
+
+						// catch the keystroke, post it to ourself, do not pass it on
+						PostMessage(myHwnd, wParam, st_hook->vkCode,
+							(st_hook->flags & 0x80/*transition state*/) ? 0x0000 : 0xA000/*bits 13&15 are set*/);
+						return TRUE;
+					}
+				}
+			}
+		}
+	}
+
+	return CallNextHookEx(exthook_winhook, nCode, wParam, lParam);
+}
+
+// Microsoft doesn't have an outright "set toggle key state" call, they expect you
+// to know the state and then fake input to toggle. Blegh. Fine.
+void WinSetKeyToggleState(unsigned int vkCode, bool state) {
+	bool curState = (GetKeyState(vkCode) & 1) ? true : false;
+	INPUT inps;
+
+	// if we're already in that state, then there is nothing to do.
+	if (curState == state) return;
+
+	// fake keyboard input.
+	memset(&inps, 0, sizeof(inps));
+	inps.type = INPUT_KEYBOARD;
+	inps.ki.wVk = vkCode;
+	inps.ki.dwFlags = KEYEVENTF_EXTENDEDKEY; // pressed, use wVk.
+	SendInput(1, &inps, sizeof(INPUT));
+
+	memset(&inps, 0, sizeof(inps));
+	inps.type = INPUT_KEYBOARD;
+	inps.ki.wVk = vkCode;
+	inps.ki.dwFlags = KEYEVENTF_EXTENDEDKEY | KEYEVENTF_KEYUP; // release, use wVk.
+	SendInput(1, &inps, sizeof(INPUT));
+}
+#endif
 
 Bitu Keyboard_Guest_LED_State();
 void UpdateKeyboardLEDState(Bitu led_state/* in the same bitfield arrangement as using command 0xED on PS/2 keyboards */);
@@ -1035,9 +1306,98 @@ void UpdateKeyboardLEDState(Bitu led_state/* in the same bitfield arrangement as
 }
 
 void DoExtendedKeyboardHook(bool enable) {
-    if (exthook_enabled == enable)
-        return;
+	if (exthook_enabled == enable)
+		return;
 
+#if defined(WIN32)
+	if (enable) {
+		if (!exthook_winhook) {
+			exthook_winhook = SetWindowsHookEx(WH_KEYBOARD_LL, WinExtHookKeyboardHookProc, GetModuleHandle(NULL), NULL);
+			if (exthook_winhook == NULL) return;
+		}
+
+		// it's on
+		exthook_enabled = enable;
+
+		// flush out and handle pending keyboard I/O
+		{
+			MSG msg;
+
+			while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+			}
+		}
+
+#if !defined(__MINGW32__)
+		// Enable the SDL hack for Win32 to handle Num/Scroll/Caps
+		SDL_DOSBox_X_Hack_Set_Toggle_Key_WM_USER_Hack(1);
+#endif
+
+		// if hooking Num/Scroll/Caps Lock then record the toggle state of those keys.
+		// then read from the keyboard emulation the LED state set by the guest and apply it to the host keyboard.
+		if (enable_hook_lock_toggle_keys) {
+			// record state
+			on_capture_num_lock_was_on = (GetKeyState(VK_NUMLOCK) & 1) ? true : false;
+			on_capture_scroll_lock_was_on = (GetKeyState(VK_SCROLL) & 1) ? true : false;
+			on_capture_caps_lock_was_on = (GetKeyState(VK_CAPITAL) & 1) ? true : false;
+			// change to guest state (FIXME: Read emulated keyboard state and apply!)
+			UpdateKeyboardLEDState(Keyboard_Guest_LED_State());
+		}
+	}
+	else {
+		if (exthook_winhook) {
+			if (enable_hook_lock_toggle_keys) {
+				// restore state
+				WinSetKeyToggleState(VK_NUMLOCK, on_capture_num_lock_was_on);
+				WinSetKeyToggleState(VK_SCROLL, on_capture_scroll_lock_was_on);
+				WinSetKeyToggleState(VK_CAPITAL, on_capture_caps_lock_was_on);
+			}
+
+			{
+				MSG msg;
+
+				// before we disable the SDL hack make sure we flush out and handle any pending keyboard events.
+				// if we don't do this the posted Num/Scroll/Caps events will stay in the queue and will be handled
+				// by SDL after turning off the toggle key hack.
+				Sleep(1); // make sure Windows posts the keystrokes
+				while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+					TranslateMessage(&msg);
+					DispatchMessage(&msg);
+				}
+			}
+
+#if !defined(__MINGW32__)
+			// Disable the SDL hack for Win32 to handle Num/Scroll/Caps
+			SDL_DOSBox_X_Hack_Set_Toggle_Key_WM_USER_Hack(0);
+#endif
+
+			UnhookWindowsHookEx(exthook_winhook);
+			exthook_winhook = NULL;
+		}
+
+		exthook_enabled = enable;
+	}
+#endif
+}
+
+void GFX_ReleaseMouse(void) {
+	if (sdl.mouse.locked)
+        GFX_CaptureMouse();
+}
+
+void GFX_CaptureMouse(void) {
+	sdl.mouse.locked=!sdl.mouse.locked;
+	if (sdl.mouse.locked) {
+		SDL_WM_GrabInput(SDL_GRAB_ON);
+		if (enable_hook_special_keys) DoExtendedKeyboardHook(true);
+		SDL_ShowCursor(SDL_DISABLE);
+	} else {
+		DoExtendedKeyboardHook(false);
+		SDL_WM_GrabInput(SDL_GRAB_OFF);
+		if (sdl.mouse.autoenable || !sdl.mouse.autolock) SDL_ShowCursor(SDL_ENABLE);
+	}
+        mouselocked=sdl.mouse.locked;
 }
 
 /* Toggles the mouse capture */
@@ -1949,82 +2309,548 @@ static void RedrawScreen(Bit32u nWidth, Bit32u nHeight) {
     RENDER_CallBack( GFX_CallBackReset);
 }
 
-static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
-    if (sdl.mouse.locked || !sdl.mouse.autoenable)
-        Mouse_CursorMoved((float)motion->xrel*sdl.mouse.sensitivity/100.0f,
-                          (float)motion->yrel*sdl.mouse.sensitivity/100.0f,
-                          (float)(motion->x-sdl.clip.x)/(sdl.clip.w-1)*sdl.mouse.sensitivity/100.0f,
-                          (float)(motion->y-sdl.clip.y)/(sdl.clip.h-1)*sdl.mouse.sensitivity/100.0f,
-                          sdl.mouse.locked);
+static void HandleVideoResize(void * event) {
+	if(sdl.desktop.fullscreen) return;
+
+	SDL_ResizeEvent* ResizeEvent = (SDL_ResizeEvent*)event;
+	RedrawScreen(ResizeEvent->w, ResizeEvent->h);
+/*	if(sdl.desktop.want_type!=SCREEN_DIRECT3D) {
+		HWND hwnd=GetHWND();
+		RECT myrect;
+		GetClientRect(hwnd,&myrect);
+		if(myrect.right==GetSystemMetrics(SM_CXSCREEN)) 
+			GFX_SwitchFullScreen();
+	} */
+#ifdef WIN32
+	menu.resizeusing=false;
+#endif
 }
 
-static void HandleMouseButton(SDL_MouseButtonEvent * button) {
-    switch (button->state) {
-    case SDL_PRESSED:
-        if (sdl.mouse.requestlock && !sdl.mouse.locked) {
-            GFX_CaptureMouse();
-            // Dont pass klick to mouse handler
-            break;
-        }
-        if (!sdl.mouse.autoenable && sdl.mouse.autolock && button->button == SDL_BUTTON_MIDDLE) {
-            GFX_CaptureMouse();
-            break;
-        }
-        switch (button->button) {
-        case SDL_BUTTON_LEFT:
-            Mouse_ButtonPressed(0);
-            break;
-        case SDL_BUTTON_RIGHT:
-            Mouse_ButtonPressed(1);
-            break;
-        case SDL_BUTTON_MIDDLE:
-            Mouse_ButtonPressed(2);
-            break;
-//        case SDL_BUTTON_WHEELUP: /* Ick, really SDL? */
-//            Mouse_ButtonPressed(100-1);
-//            break;
-//        case SDL_BUTTON_WHEELDOWN: /* Ick, really SDL? */
-//            Mouse_ButtonPressed(100+1);
-//            break;
-        }
-        break;
-    case SDL_RELEASED:
-        switch (button->button) {
-        case SDL_BUTTON_LEFT:
-            Mouse_ButtonReleased(0);
-            break;
-        case SDL_BUTTON_RIGHT:
-            Mouse_ButtonReleased(1);
-            break;
-        case SDL_BUTTON_MIDDLE:
-            Mouse_ButtonReleased(2);
-            break;
-//        case SDL_BUTTON_WHEELUP: /* Ick, really SDL? */
-//           Mouse_ButtonReleased(100-1);
-//            break;
-//        case SDL_BUTTON_WHEELDOWN: /* Ick, really SDL? */
-//            Mouse_ButtonReleased(100+1);
-//            break;
-        }
-        break;
+extern unsigned int mouse_notify_mode;
+
+bool user_cursor_locked = false;
+int user_cursor_x = 0,user_cursor_y = 0;
+int user_cursor_sw = 640,user_cursor_sh = 480;
+
+static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
+    user_cursor_x = motion->x - sdl.clip.x;
+    user_cursor_y = motion->y - sdl.clip.y;
+    user_cursor_locked = sdl.mouse.locked;
+    user_cursor_sw = sdl.clip.w;
+    user_cursor_sh = sdl.clip.h;
+
+	if (sdl.mouse.locked || !sdl.mouse.autoenable)
+		Mouse_CursorMoved((float)motion->xrel*sdl.mouse.sensitivity/100.0f,
+						  (float)motion->yrel*sdl.mouse.sensitivity/100.0f,
+						  (float)(motion->x-sdl.clip.x)/(sdl.clip.w-1)*sdl.mouse.sensitivity/100.0f,
+						  (float)(motion->y-sdl.clip.y)/(sdl.clip.h-1)*sdl.mouse.sensitivity/100.0f,
+						  sdl.mouse.locked);
+    else if (mouse_notify_mode != 0) { /* for mouse integration driver */
+		Mouse_CursorMoved(0,0,0,0,sdl.mouse.locked);
+		SDL_ShowCursor(SDL_DISABLE); /* TODO: If guest has not read mouse cursor position within 250ms show cursor again */
+    }
+    else {
+		SDL_ShowCursor(SDL_ENABLE);
     }
 }
 
+static void HandleMouseButton(SDL_MouseButtonEvent * button) {
+	switch (button->state) {
+	case SDL_PRESSED:
+		if (sdl.mouse.requestlock && !sdl.mouse.locked && mouse_notify_mode == 0) {
+			GFX_CaptureMouse();
+			// Dont pass klick to mouse handler
+			break;
+		}
+		if (!sdl.mouse.autoenable && sdl.mouse.autolock && mouse_notify_mode == 0 && button->button == SDL_BUTTON_MIDDLE) {
+			GFX_CaptureMouse();
+			break;
+		}
+		switch (button->button) {
+		case SDL_BUTTON_LEFT:
+			Mouse_ButtonPressed(0);
+			break;
+		case SDL_BUTTON_RIGHT:
+			Mouse_ButtonPressed(1);
+			break;
+		case SDL_BUTTON_MIDDLE:
+			Mouse_ButtonPressed(2);
+			break;
+		case SDL_BUTTON_WHEELUP: /* Ick, really SDL? */
+			Mouse_ButtonPressed(100-1);
+			break;
+		case SDL_BUTTON_WHEELDOWN: /* Ick, really SDL? */
+			Mouse_ButtonPressed(100+1);
+			break;
+		}
+		break;
+	case SDL_RELEASED:
+		switch (button->button) {
+		case SDL_BUTTON_LEFT:
+			Mouse_ButtonReleased(0);
+			break;
+		case SDL_BUTTON_RIGHT:
+			Mouse_ButtonReleased(1);
+			break;
+		case SDL_BUTTON_MIDDLE:
+			Mouse_ButtonReleased(2);
+			break;
+		case SDL_BUTTON_WHEELUP: /* Ick, really SDL? */
+			Mouse_ButtonReleased(100-1);
+			break;
+		case SDL_BUTTON_WHEELDOWN: /* Ick, really SDL? */
+			Mouse_ButtonReleased(100+1);
+			break;
+		}
+		break;
+	}
+}
+
 void GFX_LosingFocus(void) {
-    sdl.laltstate=SDL_KEYUP;
-    sdl.raltstate=SDL_KEYUP;
-    MAPPER_LosingFocus();
-    DoExtendedKeyboardHook(false);
+	sdl.laltstate=SDL_KEYUP;
+	sdl.raltstate=SDL_KEYUP;
+	MAPPER_LosingFocus();
+	DoExtendedKeyboardHook(false);
 }
 
-bool GFX_IsFullscreen() {
-    uint32_t windowFlags = SDL_GetWindowFlags(sdl.window);
-    if (windowFlags & SDL_WINDOW_FULLSCREEN_DESKTOP) return true;
-    return false;
+static bool PasteClipboardNext(); // added emendelson from dbDOS
+
+bool GFX_IsFullscreen(void) {
+	return sdl.desktop.fullscreen;
 }
 
-static bool IsFullscreen() {
-    return GFX_IsFullscreen();
+#ifdef __WIN32__
+void OpenFileDialog( char * path_arg ) {
+	if(control->SecureMode()) {
+		LOG_MSG(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
+		return;
+	}
+	DOS_MCB mcb(dos.psp()-1);
+	static char pcname[9];
+	mcb.GetFileName(pcname);
+	if(strlen(pcname)) return;
+
+	OPENFILENAME OpenFileName;
+	char szFile[MAX_PATH];
+	char CurrentDir[MAX_PATH];
+	const char * Temp_CurrentDir = CurrentDir;
+
+	if (Drives['C'-'A']) {
+		if (MessageBox(GetHWND(),
+			"Quick launch automatically mounts drive C in DOSBox.\nDrive C has already been mounted. Do you want to continue?",
+			"Warning",MB_YESNO)==IDNO) return;
+	}
+
+	if(path_arg) goto search;
+	szFile[0] = 0;
+
+	GetCurrentDirectory( MAX_PATH, CurrentDir );
+
+	OpenFileName.lStructSize = sizeof( OPENFILENAME );
+	OpenFileName.hwndOwner = NULL;
+	if(DOSBox_Kor())
+		OpenFileName.lpstrFilter = "실행 파일(*.com, *.exe, *.bat)\0*.com;*.exe;*.bat\0모든 파일(*.*)\0*.*\0";
+	else
+		OpenFileName.lpstrFilter = "Executable files(*.com, *.exe, *.bat)\0*.com;*.exe;*.bat\0All files(*.*)\0*.*\0";
+	OpenFileName.lpstrCustomFilter = NULL;
+	OpenFileName.nMaxCustFilter = 0;
+	OpenFileName.nFilterIndex = 0;
+	OpenFileName.lpstrFile = szFile;
+	OpenFileName.nMaxFile = sizeof( szFile );
+	OpenFileName.lpstrFileTitle = NULL;
+	OpenFileName.nMaxFileTitle = 0;
+	OpenFileName.lpstrInitialDir = CurrentDir;
+	OpenFileName.lpstrTitle = "Select an executable";
+	OpenFileName.nFileOffset = 0;
+	OpenFileName.nFileExtension = 0;
+	OpenFileName.lpstrDefExt = NULL;
+	OpenFileName.lCustData = 0;
+	OpenFileName.lpfnHook = NULL;
+	OpenFileName.lpTemplateName = NULL;
+	OpenFileName.Flags = OFN_EXPLORER;
+
+search:
+	if(GetOpenFileName( &OpenFileName ) || path_arg) {
+		WIN32_FIND_DATA FindFileData;
+		HANDLE hFind;
+		char drive	[_MAX_DRIVE]; 
+		char dir	[_MAX_DIR]; 
+		char fname	[_MAX_FNAME]; 
+		char ext	[_MAX_EXT]; 
+		char * path = 0;
+		if(path_arg) {
+			szFile[0] = 0;
+			sprintf(szFile,path_arg);
+		}
+		path = szFile;
+		_splitpath (path, drive, dir, fname, ext);
+		char ext_temp [_MAX_EXT]; ext_temp[0] = 0; sprintf(ext_temp,ext);
+
+		hFind = FindFirstFile(szFile, &FindFileData);
+		if (hFind == INVALID_HANDLE_VALUE) {
+			if(strcasecmp(ext,"")) goto search;
+			szFile[0] = 0;
+			ext[0] = 0; sprintf(ext,".com");
+			sprintf(szFile,"%s%s%s%s",drive,dir,fname,".com");
+			hFind = FindFirstFile(szFile, &FindFileData);
+			if (hFind == INVALID_HANDLE_VALUE) {
+				szFile[0] = 0;
+				ext[0] = 0; sprintf(ext,".exe");
+				sprintf(szFile,"%s%s%s%s",drive,dir,fname,".exe");
+				hFind = FindFirstFile(szFile, &FindFileData);
+				if (hFind == INVALID_HANDLE_VALUE) {
+					szFile[0] = 0;
+					ext[0] = 0; sprintf(ext,".bat");
+					sprintf(szFile,"%s%s%s%s",drive,dir,fname,".bat");
+					hFind = FindFirstFile(szFile, &FindFileData);
+					if (hFind == INVALID_HANDLE_VALUE) {
+						szFile[0] = 0;
+						ext[0]=0;
+						goto search;
+					}
+				}
+			}
+		}
+
+		if((!strcmp(ext,".com")) || (!strcmp(ext,".exe")) || (!strcmp(ext,".bat"))) {
+			char pathname[DOS_PATHLENGTH];
+			sprintf(pathname,"%s%s",drive,dir);
+			MountDrive_2('C',pathname,"LOCAL");
+			DOS_SetDrive(toupper('C') - 'A');
+		} else {
+			LOG_MSG("GUI: Unsupported filename extension.");
+			goto godefault;
+		}
+
+		#define DOSNAMEBUF 256
+		char name1[DOSNAMEBUF+1];
+		sprintf(name1,"%s%s",fname,ext);
+		Bit16u n=1; Bit8u c='\n';
+		DOS_WriteFile(STDOUT,&c,&n);
+
+		DOS_Shell shell;
+		DOS_MCB mcb(dos.psp()-1);
+		static char name[9];
+		mcb.GetFileName(name);
+
+		SetCurrentDirectory( Temp_CurrentDir );
+		do {
+			shell.Execute(name1," ");
+			if(!strcmp(ext,".bat")) shell.RunInternal();
+			if (!strlen(name)) break;
+		} while (1);
+
+		if(strcmp(ext,".bat")) DOS_WriteFile(STDOUT,&c,&n);
+		shell.ShowPrompt();
+	}
+
+godefault:
+	SetCurrentDirectory( Temp_CurrentDir );
+	return;
+}
+
+void Go_Boot(const char boot_drive[_MAX_DRIVE]) {
+		if(control->SecureMode()) {
+			LOG_MSG(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
+			return;
+		}
+
+	OPENFILENAME OpenFileName;
+	char szFile[MAX_PATH];
+	char CurrentDir[MAX_PATH];
+	const char * Temp_CurrentDir = CurrentDir;
+	szFile[0] = 0;
+	GetCurrentDirectory( MAX_PATH, CurrentDir );
+
+	OpenFileName.lStructSize = sizeof( OPENFILENAME );
+	OpenFileName.hwndOwner = NULL;
+
+	if(DOSBox_Kor())
+		OpenFileName.lpstrFilter = "이미지 파일(*.img, *.ima, *.pcjr, *.jrc)\0*.pcjr;*.img;*.ima;*.jrc\0모든 파일(*.*)\0*.*\0";
+	else
+		OpenFileName.lpstrFilter = "Image files(*.img, *.ima, *.pcjr, *.jrc)\0*.pcjr;*.img;*.ima;*.jrc\0All files(*.*)\0*.*\0";
+
+	OpenFileName.lpstrCustomFilter = NULL;
+	OpenFileName.nMaxCustFilter = 0;
+	OpenFileName.nFilterIndex = 0;
+	OpenFileName.lpstrFile = szFile;
+	OpenFileName.nMaxFile = sizeof( szFile );
+	OpenFileName.lpstrFileTitle = NULL;
+	OpenFileName.nMaxFileTitle = 0;
+	OpenFileName.lpstrInitialDir = CurrentDir;
+	OpenFileName.lpstrTitle = "Select an image file";
+	OpenFileName.nFileOffset = 0;
+	OpenFileName.nFileExtension = 0;
+	OpenFileName.lpstrDefExt = NULL;
+	OpenFileName.lCustData = 0;
+	OpenFileName.lpfnHook = NULL;
+	OpenFileName.lpTemplateName = NULL;
+	OpenFileName.Flags = OFN_EXPLORER;
+search:
+	if(GetOpenFileName( &OpenFileName )) {
+		WIN32_FIND_DATA FindFileData;
+		HANDLE hFind;
+		char drive	[_MAX_DRIVE]; 
+		char dir	[_MAX_DIR]; 
+		char fname	[_MAX_FNAME]; 
+		char ext	[_MAX_EXT]; 
+		char * path = 0;
+		path = szFile;
+		_splitpath (path, drive, dir, fname, ext);
+		char ext_temp [_MAX_EXT]; ext_temp[0] = 0; sprintf(ext_temp,ext);
+
+		hFind = FindFirstFile(szFile, &FindFileData);
+		if (hFind == INVALID_HANDLE_VALUE) goto search;
+
+		if((!strcmp(ext,".img")) || (!strcmp(ext,".pcjr")) || (!strcmp(ext,".jrc")) || (!strcmp(ext,".ima"))) {
+			extern Bitu ZDRIVE_NUM;
+			char root[4] = {'A'+ZDRIVE_NUM,':','\\',0};
+			char cmd[20];
+			DOS_Shell shell;
+			Bit16u n=1; Bit8u c='\n';
+			if(strcmp(boot_drive,"a")) {
+				char szFile_pre[MAX_PATH];
+				szFile_pre[0] = 0;
+				strcpy(szFile_pre,boot_drive);
+				strcat(szFile_pre," -t hdd "); 
+				strcat(szFile_pre,szFile);
+				DOS_WriteFile(STDOUT,&c,&n);
+				cmd[0] = 0;
+				strcpy(cmd,root);
+				strcat(cmd,"imgmount.com");
+				shell.Execute(cmd,szFile_pre);
+				shell.RunInternal();
+			}
+			DOS_WriteFile(STDOUT,&c,&n);
+			strcat(szFile," -l ");
+			strcat(szFile,boot_drive);
+			cmd[0] = 0;
+			strcpy(cmd,root);
+			strcat(cmd,"boot.com");
+			shell.Execute(cmd,szFile);
+			shell.RunInternal();
+			DOS_WriteFile(STDOUT,&c,&n);
+			shell.ShowPrompt(); // if failed
+		} else {
+			LOG_MSG("GUI: Unsupported filename extension.");
+			goto godefault;
+		}
+	}
+
+godefault:
+	SetCurrentDirectory( Temp_CurrentDir );
+	return;
+}
+
+void Go_Boot2(const char boot_drive[_MAX_DRIVE]) {
+	Bit16u n=1; Bit8u c='\n';
+	DOS_WriteFile(STDOUT,&c,&n);
+	char temp[7];
+	extern Bitu ZDRIVE_NUM;
+	char root[4] = {'A'+ZDRIVE_NUM,':','\\',0};
+	char cmd[20];
+	temp[0] = 0;
+	cmd[0] = 0;
+	strcpy(cmd,root);
+	strcat(cmd,"boot.com");
+	strcpy(temp,"-l ");
+	strcat(temp,boot_drive);
+	DOS_Shell shell;
+	shell.Execute(cmd,temp);
+	shell.RunInternal();
+	DOS_WriteFile(STDOUT,&c,&n);
+	shell.ShowPrompt(); // if failed
+}
+
+void Drag_Drop( char * path_arg ) {
+	if(control->SecureMode()) {
+		LOG_MSG(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
+		return;
+	}
+	DOS_MCB mcb(dos.psp()-1);
+	static char name[9];
+	mcb.GetFileName(name);
+	if((!path_arg) || (strlen(name)))  return;
+	WIN32_FIND_DATA FindFileData;
+	HANDLE hFind;
+	char drive	[_MAX_DRIVE]; 
+	char dir	[_MAX_DIR]; 
+	char fname	[_MAX_FNAME]; 
+	char ext	[_MAX_EXT]; 
+	char szFile[MAX_PATH];
+
+	szFile[0] = 0;
+	sprintf(szFile,path_arg);
+	char * path = szFile;
+	_splitpath (path, drive, dir, fname, ext);
+	char ext_temp [_MAX_EXT];
+	ext_temp[0] = 0;
+	sprintf(ext_temp,ext);
+
+	hFind = FindFirstFile(szFile, &FindFileData);
+	if (hFind == INVALID_HANDLE_VALUE) return;
+
+	if((!strcmp(ext,".com")) || (!strcmp(ext,".exe")) || (!strcmp(ext,".bat")))
+		OpenFileDialog(path_arg);
+	else
+		LOG_MSG("GUI: Unsupported filename extension.");
+}
+
+HHOOK hhk;
+LRESULT CALLBACK CBTProc(INT nCode, WPARAM wParam, LPARAM lParam) {
+	lParam;
+	if( HCBT_ACTIVATE == nCode ) {
+		HWND hChildWnd;
+		hChildWnd = (HWND)wParam;
+		SetDlgItemText(hChildWnd,IDYES,"CD-ROM");
+		SetDlgItemText(hChildWnd,IDNO,"Floppy");
+		SetDlgItemText(hChildWnd,IDCANCEL,"Harddisk");
+		UnhookWindowsHookEx(hhk);
+	}
+	CallNextHookEx(hhk, nCode, wParam, lParam);
+	return 0;
+}
+
+int MountMessageBox( HWND hWnd, LPCTSTR lpText, LPCTSTR lpCaption, UINT uType ) {
+	hhk = SetWindowsHookEx( WH_CBT, &CBTProc, 0, GetCurrentThreadId() );
+	const int iRes = MessageBox( hWnd, lpText, lpCaption, uType | MB_SETFOREGROUND );
+		return iRes;
+}
+
+void OpenFileDialog_Img( char drive ) {
+		if(control->SecureMode()) {
+			LOG_MSG(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
+			return;
+		}
+	if (Drives[drive-'A']) {
+		LOG_MSG("GUI: Unmount drive %c first, and then try again.",drive);
+		return;
+	}
+	OPENFILENAME OpenFileName;
+	char szFile[MAX_PATH];
+	char CurrentDir[MAX_PATH];
+	const char * Temp_CurrentDir = CurrentDir;
+
+	szFile[0] = 0;
+	GetCurrentDirectory( MAX_PATH, CurrentDir );
+	OpenFileName.lStructSize = sizeof( OPENFILENAME );
+	OpenFileName.hwndOwner = NULL;
+
+	if(DOSBox_Kor())
+		OpenFileName.lpstrFilter = "이미지/ZIP 파일(*.ima, *.img, *.iso, *.cue, *.bin, *.mdf, *.zip, *.7z)\0*.ima;*.img;*.iso;*.mdf;*.zip;*.cue;*.bin;*.7z\0모든 파일(*.*)\0*.*\0";
+	else
+		OpenFileName.lpstrFilter = "Image/Zip files(*.ima, *.img, *.iso, *.cue, *.bin, *.mdf, *.zip, *.7z)\0*.ima;*.img;*.iso;*.mdf;*.zip;*.cue;*.bin;*.7z\0All files(*.*)\0*.*\0";
+
+	OpenFileName.lpstrCustomFilter = NULL;
+	OpenFileName.nMaxCustFilter = 0;
+	OpenFileName.nFilterIndex = 0;
+	OpenFileName.lpstrFile = szFile;
+	OpenFileName.nMaxFile = sizeof( szFile );
+	OpenFileName.lpstrFileTitle = NULL;
+	OpenFileName.nMaxFileTitle = 0;
+	OpenFileName.lpstrInitialDir = CurrentDir;
+	OpenFileName.lpstrTitle = "Select an image file";
+	OpenFileName.nFileOffset = 0;
+	OpenFileName.nFileExtension = 0;
+	OpenFileName.lpstrDefExt = NULL;
+	OpenFileName.lCustData = 0;
+	OpenFileName.lpfnHook = NULL;
+	OpenFileName.lpTemplateName = NULL;
+	OpenFileName.Flags = OFN_EXPLORER;
+
+search:
+	if(GetOpenFileName( &OpenFileName )) {
+		WIN32_FIND_DATA FindFileData;
+		HANDLE hFind;
+		hFind = FindFirstFile(szFile, &FindFileData);
+		if (hFind == INVALID_HANDLE_VALUE) goto search;
+		char drive2	[_MAX_DRIVE]; 
+		char dir	[_MAX_DIR]; 
+		char fname	[_MAX_FNAME]; 
+		char ext	[_MAX_EXT]; 
+		char * path = szFile;
+
+		_splitpath (path, drive2, dir, fname, ext);
+
+		if((!strcmp(ext,".img")) || (!strcmp(ext,".iso")) || (!strcmp(ext,".cue")) || (!strcmp(ext,".bin")) || (!strcmp(ext,".mdf"))) {
+			if(!strcmp(ext,".img")) {
+				int whichval=MountMessageBox(GetHWND(),"Drive type:","Mount as Image",MB_YESNOCANCEL);
+				if(whichval == IDYES) Mount_Img(drive,path);// CD-ROM
+				else if(whichval == IDNO) Mount_Img_Floppy(drive,path); // Floppy
+				else if(whichval == IDCANCEL)  Mount_Img_HDD(drive,path);// Harddisk
+			} else
+				Mount_Img(drive,path);
+		} else if(!strcmp(ext,".ima")) {
+			Mount_Img_Floppy(drive,path);
+		} else
+			LOG_MSG("GUI: Unsupported filename extension.");
+	}
+	SetCurrentDirectory( Temp_CurrentDir );
+}
+
+void D3D_PS(void) {
+	OPENFILENAME OpenFileName;
+	char szFile[MAX_PATH];
+	char CurrentDir[MAX_PATH];
+	const char * Temp_CurrentDir = CurrentDir;
+	szFile[0] = 0;
+
+	GetCurrentDirectory( MAX_PATH, CurrentDir );
+
+	OpenFileName.lStructSize = sizeof( OPENFILENAME );
+	OpenFileName.hwndOwner = NULL;
+	if(DOSBox_Kor())
+		OpenFileName.lpstrFilter = "효과 파일(*.fx)\0*.fx\0모든 파일(*.*)\0*.*\0";
+	else
+		OpenFileName.lpstrFilter = "Effect files(*.fx)\0*.fx\0All files(*.*)\0*.*\0";
+	OpenFileName.lpstrCustomFilter = NULL;
+	OpenFileName.nMaxCustFilter = 0;
+	OpenFileName.nFilterIndex = 0;
+	OpenFileName.lpstrFile = szFile;
+	OpenFileName.nMaxFile = sizeof( szFile );
+	OpenFileName.lpstrFileTitle = NULL;
+	OpenFileName.nMaxFileTitle = 0;
+	OpenFileName.lpstrInitialDir = ".\\Shaders";;
+	OpenFileName.lpstrTitle = "Select an effect file";
+	OpenFileName.nFileOffset = 0;
+	OpenFileName.nFileExtension = 0;
+	OpenFileName.lpstrDefExt = NULL;
+	OpenFileName.lCustData = 0;
+	OpenFileName.lpfnHook = NULL;
+	OpenFileName.lpTemplateName = NULL;
+	OpenFileName.Flags = OFN_EXPLORER;
+
+search:
+	if(GetOpenFileName( &OpenFileName )) {
+		WIN32_FIND_DATA FindFileData;
+		HANDLE hFind;
+		char drive	[_MAX_DRIVE]; 
+		char dir	[_MAX_DIR]; 
+		char fname	[_MAX_FNAME]; 
+		char ext	[_MAX_EXT]; 
+		char * path = 0;
+		path = szFile;
+		_splitpath (path, drive, dir, fname, ext);
+
+		if(!strcmp(ext,".fx")) {
+			if(!strcmp(fname,"none")) { SetVal("sdl","pixelshader","none"); goto godefault; }
+			if (sdl.desktop.want_type != SCREEN_DIRECT3D) MessageBox(GetHWND(),
+				"Set output to Direct3D for the changes to take effect", "Warning", 0);
+			if (MessageBox(GetHWND(),
+				"Always enable this pixelshader under any circumstances in Direct3D?" \
+				"\nIf yes, the shader will be used even if the result might not be desired.",
+				fname, MB_YESNO) == IDYES) strcat(fname, ".fx forced");
+			else strcat(fname, ".fx");
+			SetVal("sdl","pixelshader",fname);
+		} else {
+			LOG_MSG("GUI: Unsupported filename extension.");
+			goto godefault;
+		}
+	}
+
+godefault:
+	SetCurrentDirectory( Temp_CurrentDir );
+	return;
 }
 
 void GFX_HandleVideoResize(int width, int height) {
@@ -2494,172 +3320,185 @@ void DOSBox_ConsolePauseWait() {
 }
 
 bool DOSBOX_parse_argv() {
-    std::string optname,tmp;
+	std::string optname,tmp;
 
-    assert(control != NULL);
-    assert(control->cmdline != NULL);
+	assert(control != NULL);
+	assert(control->cmdline != NULL);
 
-    control->cmdline->BeginOpt();
-    while (control->cmdline->GetOpt(optname)) {
+	control->cmdline->BeginOpt();
+	while (control->cmdline->GetOpt(optname)) {
 
-        std::transform(optname.begin(), optname.end(), optname.begin(), ::tolower);
+		std::transform(optname.begin(), optname.end(), optname.begin(), ::tolower);
 
-        if (optname == "version") {
-            DOSBox_ShowConsole();
+		if (optname == "version") {
+			DOSBox_ShowConsole();
 
-            fprintf(stderr,"\nDOSBox version %s, copyright 2002-2015 DOSBox Team.\n\n",VERSION);
-            fprintf(stderr,"DOSBox is written by the DOSBox Team (See AUTHORS file))\n");
-            fprintf(stderr,"DOSBox comes with ABSOLUTELY NO WARRANTY.  This is free software,\n");
-            fprintf(stderr,"and you are welcome to redistribute it under certain conditions;\n");
-            fprintf(stderr,"please read the COPYING file thoroughly before doing so.\n\n");
+			fprintf(stderr,"\nDOSBox version %s, copyright 2002-2015 DOSBox Team.\n\n",VERSION);
+			fprintf(stderr,"DOSBox is written by the DOSBox Team (See AUTHORS file))\n");
+			fprintf(stderr,"DOSBox comes with ABSOLUTELY NO WARRANTY.  This is free software,\n");
+			fprintf(stderr,"and you are welcome to redistribute it under certain conditions;\n");
+			fprintf(stderr,"please read the COPYING file thoroughly before doing so.\n\n");
 
-            return 0;
-        }
-        else if (optname == "h" || optname == "help") {
-            DOSBox_ShowConsole();
+#if defined(WIN32)
+			DOSBox_ConsolePauseWait();
+#endif
 
-            fprintf(stderr,"\ndosbox [options]\n");
-            fprintf(stderr,"\nDOSBox version %s, copyright 2002-2015 DOSBox Team.\n\n",VERSION);
-            fprintf(stderr,"  -h     -help                            Show this help\n");
-            fprintf(stderr,"  -editconf                               Launch editor\n");
-            fprintf(stderr,"  -opencaptures <param>                   Launch captures\n");
-            fprintf(stderr,"  -opensaves <param>                      Launch saves\n");
-            fprintf(stderr,"  -eraseconf                              Erase config file\n");
-            fprintf(stderr,"  -resetconf                              Erase config file\n");
-            fprintf(stderr,"  -printconf                              Print config file location\n");
-            fprintf(stderr,"  -erasemapper                            Erase mapper file\n");
-            fprintf(stderr,"  -resetmapper                            Erase mapper file\n");
-            fprintf(stderr,"  -console                                Show console (win32)\n");
-            fprintf(stderr,"  -noconsole                              Don't show console (debug+win32 only)\n");
-            fprintf(stderr,"  -nogui                                  Don't show gui (win32 only)\n");
-            fprintf(stderr,"  -nomenu                                 Don't show menu (win32 only)\n");
-            fprintf(stderr,"  -userconf                               Create user level config file\n");
-            fprintf(stderr,"  -conf <param>                           Use config file <param>\n");
-            fprintf(stderr,"  -startui -startgui                      Start DOSBox-X with UI\n");
-            fprintf(stderr,"  -startmapper                            Start DOSBox-X with mapper\n");
-            fprintf(stderr,"  -showcycles                             Show cycles count\n");
-            fprintf(stderr,"  -fullscreen                             Start in fullscreen\n");
-            fprintf(stderr,"  -savedir <path>                         Save path\n");
-            fprintf(stderr,"  -disable-numlock-check                  Disable numlock check (win32 only)\n");
-            fprintf(stderr,"  -date-host-forced                       Force synchronization of date with host\n");
-            fprintf(stderr,"  -debug                                  Set all logging levels to debug\n");
-            fprintf(stderr,"  -early-debug                            Log early initialization messages in DOSBox (implies -console)\n");
-            fprintf(stderr,"  -keydbg                                 Log all SDL key events (debugging)\n");
-            fprintf(stderr,"  -lang <message file>                    Use specific message file instead of language= setting\n");
-            fprintf(stderr,"  -nodpiaware                             Ignore (don't signal) Windows DPI awareness\n");
-            fprintf(stderr,"  -securemode                             Enable secure mode\n");
-            fprintf(stderr,"  -noautoexec                             Don't execute AUTOEXEC.BAT config section\n");
-            fprintf(stderr,"  -exit                                   Exit after executing AUTOEXEC.BAT\n");
-            fprintf(stderr,"  -c <command string>                     Execute this command in addition to AUTOEXEC.BAT.\n");
-            fprintf(stderr,"                                          Make sure to surround the command in quotes to cover spaces.\n");
-            fprintf(stderr,"  -break-start                            Break into debugger at startup\n");
+			return 0;
+		}
+		else if (optname == "h" || optname == "help") {
+			DOSBox_ShowConsole();
 
-            return 0;
+			fprintf(stderr,"\ndosbox [options]\n");
+			fprintf(stderr,"\nDOSBox version %s, copyright 2002-2015 DOSBox Team.\n\n",VERSION);
+			fprintf(stderr,"  -h     -help                            Show this help\n");
+			fprintf(stderr,"  -editconf                               Launch editor\n");
+			fprintf(stderr,"  -opencaptures <param>                   Launch captures\n");
+			fprintf(stderr,"  -opensaves <param>                      Launch saves\n");
+			fprintf(stderr,"  -eraseconf                              Erase config file\n");
+			fprintf(stderr,"  -resetconf                              Erase config file\n");
+			fprintf(stderr,"  -printconf                              Print config file location\n");
+			fprintf(stderr,"  -erasemapper                            Erase mapper file\n");
+			fprintf(stderr,"  -resetmapper                            Erase mapper file\n");
+			fprintf(stderr,"  -console                                Show console (win32)\n");
+			fprintf(stderr,"  -noconsole                              Don't show console (debug+win32 only)\n");
+			fprintf(stderr,"  -nogui                                  Don't show gui (win32 only)\n");
+			fprintf(stderr,"  -nomenu                                 Don't show menu (win32 only)\n");
+			fprintf(stderr,"  -userconf                               Create user level config file\n");
+			fprintf(stderr,"  -conf <param>                           Use config file <param>\n");
+			fprintf(stderr,"  -startui -startgui                      Start DOSBox-X with UI\n");
+			fprintf(stderr,"  -startmapper                            Start DOSBox-X with mapper\n");
+			fprintf(stderr,"  -showcycles                             Show cycles count\n");
+            fprintf(stderr,"  -showrt                                 Show emulation speed relative to realtime\n");
+			fprintf(stderr,"  -fullscreen                             Start in fullscreen\n");
+			fprintf(stderr,"  -savedir <path>                         Save path\n");
+			fprintf(stderr,"  -disable-numlock-check                  Disable numlock check (win32 only)\n");
+			fprintf(stderr,"  -date-host-forced                       Force synchronization of date with host\n");
+			fprintf(stderr,"  -debug                                  Set all logging levels to debug\n");
+			fprintf(stderr,"  -early-debug                            Log early initialization messages in DOSBox (implies -console)\n");
+			fprintf(stderr,"  -keydbg                                 Log all SDL key events (debugging)\n");
+			fprintf(stderr,"  -lang <message file>                    Use specific message file instead of language= setting\n");
+			fprintf(stderr,"  -nodpiaware                             Ignore (don't signal) Windows DPI awareness\n");
+			fprintf(stderr,"  -securemode                             Enable secure mode\n");
+			fprintf(stderr,"  -noautoexec                             Don't execute AUTOEXEC.BAT config section\n");
+			fprintf(stderr,"  -exit                                   Exit after executing AUTOEXEC.BAT\n");
+			fprintf(stderr,"  -c <command string>                     Execute this command in addition to AUTOEXEC.BAT.\n");
+			fprintf(stderr,"                                          Make sure to surround the command in quotes to cover spaces.\n");
+			fprintf(stderr,"  -break-start                            Break into debugger at startup\n");
+
+#if defined(WIN32)
+			DOSBox_ConsolePauseWait();
+#endif
+
+			return 0;
+		}
+		else if (optname == "c") {
+			if (!control->cmdline->NextOptArgv(tmp)) return false;
+			control->opt_c.push_back(tmp);
+		}
+		else if (optname == "break-start") {
+			control->opt_break_start = true;
+		}
+		else if (optname == "exit") {
+			control->opt_exit = true;
+		}
+		else if (optname == "noautoexec") {
+			control->opt_noautoexec = true;
+		}
+		else if (optname == "securemode") {
+			control->opt_securemode = true;
+		}
+		else if (optname == "nodpiaware") {
+			control->opt_disable_dpi_awareness = true;
+		}
+		else if (optname == "keydbg") {
+			log_keyboard_scan_codes = true;
+		}
+		else if (optname == "date-host-forced" || optname == "date_host_forced") {
+			control->opt_date_host_forced = true;
+		}
+        else if (optname == "showrt") {
+            control->opt_showrt = true;
         }
-        else if (optname == "c") {
-            if (!control->cmdline->NextOptArgv(tmp)) return false;
-            control->opt_c.push_back(tmp);
-        }
-        else if (optname == "break-start") {
-            control->opt_break_start = true;
-        }
-        else if (optname == "exit") {
-            control->opt_exit = true;
-        }
-        else if (optname == "noautoexec") {
-            control->opt_noautoexec = true;
-        }
-        else if (optname == "securemode") {
-            control->opt_securemode = true;
-        }
-        else if (optname == "nodpiaware") {
-            control->opt_disable_dpi_awareness = true;
-        }
-        else if (optname == "keydbg") {
-            log_keyboard_scan_codes = true;
-        }
-        else if (optname == "date-host-forced" || optname == "date_host_forced") {
-            control->opt_date_host_forced = true;
-        }
-        else if (optname == "showcycles") {
-            control->opt_showcycles = true;
-        }
-        else if (optname == "startmapper") {
-            control->opt_startmapper = true;
-        }
-        else if (optname == "fullscreen") {
-            control->opt_fullscreen = true;
-        }
-        else if (optname == "startui" || optname == "startgui") {
-            control->opt_startui = true;
-        }
-        else if (optname == "disable-numlock-check" || optname == "disable_numlock_check") {
-            /* mainline DOSBox expects -disable_numlock_check so we support that here too */
-            control->opt_disable_numlock_check = true;
-        }
-        else if (optname == "savedir") {
-            if (!control->cmdline->NextOptArgv(custom_savedir)) return false;
-        }
-        else if (optname == "userconf") {
-            control->opt_userconf = true;
-        }
-        else if (optname == "lang") {
-            if (!control->cmdline->NextOptArgv(control->opt_lang)) return false;
-        }
-        else if (optname == "conf") {
-            if (!control->cmdline->NextOptArgv(tmp)) return false;
-            control->config_file_list.push_back(tmp);
-        }
-        else if (optname == "editconf") {
-            if (!control->cmdline->NextOptArgv(control->opt_editconf)) return false;
-        }
-        else if (optname == "opencaptures") {
-            if (!control->cmdline->NextOptArgv(control->opt_opencaptures)) return false;
-        }
-        else if (optname == "opensaves") {
-            if (!control->cmdline->NextOptArgv(control->opt_opensaves)) return false;
-        }
-        else if (optname == "eraseconf") {
-            control->opt_eraseconf = true;
-        }
-        else if (optname == "resetconf") {
-            control->opt_resetconf = true;
-        }
-        else if (optname == "printconf") {
-            control->opt_printconf = true;
-        }
-        else if (optname == "erasemapper") {
-            control->opt_erasemapper = true;
-        }
-        else if (optname == "resetmapper") {
-            control->opt_resetmapper = true;
-        }
-        else if (optname == "noconsole") {
-            control->opt_noconsole = true;
-            control->opt_console = false;
-        }
-        else if (optname == "console") {
-            control->opt_noconsole = false;
-            control->opt_console = true;
-        }
-        else if (optname == "nomenu") {
-            control->opt_nomenu = true;
-        }
-        else if (optname == "nogui") {
-            control->opt_nogui = true;
-        }
-        else if (optname == "debug") {
-            control->opt_debug = true;
-        }
-        else if (optname == "early-debug") {
-            control->opt_earlydebug = true;
-            control->opt_console = true;
-        }
-        else {
-            printf("WARNING: Unknown option %s (first parsing stage)\n",optname.c_str());
-        }
-    }
-    return true;
+		else if (optname == "showcycles") {
+			control->opt_showcycles = true;
+		}
+		else if (optname == "startmapper") {
+			control->opt_startmapper = true;
+		}
+		else if (optname == "fullscreen") {
+			control->opt_fullscreen = true;
+		}
+		else if (optname == "startui" || optname == "startgui") {
+			control->opt_startui = true;
+		}
+		else if (optname == "disable-numlock-check" || optname == "disable_numlock_check") {
+			/* mainline DOSBox expects -disable_numlock_check so we support that here too */
+			control->opt_disable_numlock_check = true;
+		}
+		else if (optname == "savedir") {
+			if (!control->cmdline->NextOptArgv(custom_savedir)) return false;
+		}
+		else if (optname == "userconf") {
+			control->opt_userconf = true;
+		}
+		else if (optname == "lang") {
+			if (!control->cmdline->NextOptArgv(control->opt_lang)) return false;
+		}
+		else if (optname == "conf") {
+			if (!control->cmdline->NextOptArgv(tmp)) return false;
+			control->config_file_list.push_back(tmp);
+		}
+		else if (optname == "editconf") {
+			if (!control->cmdline->NextOptArgv(control->opt_editconf)) return false;
+		}
+		else if (optname == "opencaptures") {
+			if (!control->cmdline->NextOptArgv(control->opt_opencaptures)) return false;
+		}
+		else if (optname == "opensaves") {
+			if (!control->cmdline->NextOptArgv(control->opt_opensaves)) return false;
+		}
+		else if (optname == "eraseconf") {
+			control->opt_eraseconf = true;
+		}
+		else if (optname == "resetconf") {
+			control->opt_resetconf = true;
+		}
+		else if (optname == "printconf") {
+			control->opt_printconf = true;
+		}
+		else if (optname == "erasemapper") {
+			control->opt_erasemapper = true;
+		}
+		else if (optname == "resetmapper") {
+			control->opt_resetmapper = true;
+		}
+		else if (optname == "noconsole") {
+			control->opt_noconsole = true;
+			control->opt_console = false;
+		}
+		else if (optname == "console") {
+			control->opt_noconsole = false;
+			control->opt_console = true;
+		}
+		else if (optname == "nomenu") {
+			control->opt_nomenu = true;
+		}
+		else if (optname == "nogui") {
+			control->opt_nogui = true;
+		}
+		else if (optname == "debug") {
+			control->opt_debug = true;
+		}
+		else if (optname == "early-debug") {
+			control->opt_earlydebug = true;
+			control->opt_console = true;
+		}
+		else {
+			printf("WARNING: Unknown option %s (first parsing stage)\n",optname.c_str());
+		}
+	}
+
+	return true;
 }
 
 void MSG_Init();
@@ -2731,55 +3570,74 @@ void FDC_Primary_Init();
 void AUTOEXEC_Init();
 
 bool VM_Boot_DOSBox_Kernel() {
-    if (dos_kernel_disabled) {
-        DispatchVMEvent(VM_EVENT_DOS_BOOT); // <- just starting the DOS kernel now
+	if (!dos_kernel_disabled) {
+        RemoveEMSPageFrame();
+        RemoveUMBBlock();
+        DisableINT33();
+        DOS_GetMemory_unmap();
+        VFILE_Shutdown();
+        PROGRAMS_Shutdown();
+        DOS_UninstallMisc();
+        SBLASTER_DOS_Shutdown();
+        GUS_DOS_Shutdown();
+        EMS_DoShutDown();
+        XMS_DoShutDown();
+        DOS_DoShutDown();
 
-        /* DOS kernel init */
-        dos_kernel_disabled = false; // FIXME: DOS_Init should install VM callback handler to set this
-        void DOS_Startup(Section* sec);
-        DOS_Startup(NULL);
+        DispatchVMEvent(VM_EVENT_DOS_SURPRISE_REBOOT); // <- apparently we rebooted without any notification (such as jmp'ing to FFFF:0000)
 
-        void DRIVES_Startup(Section *s);
-        DRIVES_Startup(NULL);
-
-        DispatchVMEvent(VM_EVENT_DOS_INIT_KERNEL_READY); // <- kernel is ready
-
-        /* keyboard mapping, at this point in CONFIG.SYS parsing, right? */
-        void DOS_KeyboardLayout_Startup(Section* sec);
-        DOS_KeyboardLayout_Startup(NULL);
-
-        /* Most MS-DOS installations have a DEVICE=C:\HIMEM.SYS somewhere near the top of their CONFIG.SYS */
-        void XMS_Startup(Section *sec);
-        XMS_Startup(NULL);
-
-        /* And then after that, usually a DEVICE=C:\EMM386.EXE just after HIMEM.SYS */
-        void EMS_Startup(Section* sec);
-        EMS_Startup(NULL);
-
-        DispatchVMEvent(VM_EVENT_DOS_INIT_CONFIG_SYS_DONE); // <- we just finished executing CONFIG.SYS
-        SHELL_Init(); // <- NTS: this will change CPU instruction pointer!
-        DispatchVMEvent(VM_EVENT_DOS_INIT_SHELL_READY); // <- we just finished loading the shell (COMMAND.COM)
-
-        /* it's time to init parsing AUTOEXEC.BAT */
-        void AUTOEXEC_Startup(Section *sec);
-        AUTOEXEC_Startup(NULL);
-
-        /* Most MS-DOS installations run MSCDEX.EXE from somewhere in AUTOEXEC.BAT. We do the same here, in a fashion. */
-        /* TODO: Can we make this an OPTION if the user doesn't want to make MSCDEX.EXE resident? */
-        /* TODO: When we emulate executing AUTOEXEC.BAT between INIT_SHELL_READY and AUTOEXEC_BAT_DONE, can we make a fake MSCDEX.EXE within drive Z:\
-         *       and auto-add a Z:\MSCDEX.EXE to the top of AUTOEXEC.BAT, command line switches and all. if the user has not already added it? */
-//        void MSCDEX_Startup(Section* sec);
-//        MSCDEX_Startup(NULL);
-
-        /* Some installations load the MOUSE.COM driver from AUTOEXEC.BAT as well */
-        /* TODO: Can we make this an option? Can we add a fake MOUSE.COM to the Z:\ drive as well? */
-        void MOUSE_Startup(Section *sec);
-        MOUSE_Startup(NULL);
-
-        DispatchVMEvent(VM_EVENT_DOS_INIT_AUTOEXEC_BAT_DONE); // <- we just finished executing AUTOEXEC.BAT
-        DispatchVMEvent(VM_EVENT_DOS_INIT_AT_PROMPT); // <- now, we're at the DOS prompt
-        SHELL_Run();
+        dos_kernel_disabled = true;
     }
+
+	if (dos_kernel_disabled) {
+		DispatchVMEvent(VM_EVENT_DOS_BOOT); // <- just starting the DOS kernel now
+
+		/* DOS kernel init */
+		dos_kernel_disabled = false; // FIXME: DOS_Init should install VM callback handler to set this
+		void DOS_Startup(Section* sec);
+		DOS_Startup(NULL);
+
+		void DRIVES_Startup(Section *s);
+		DRIVES_Startup(NULL);
+
+		DispatchVMEvent(VM_EVENT_DOS_INIT_KERNEL_READY); // <- kernel is ready
+
+		/* keyboard mapping, at this point in CONFIG.SYS parsing, right? */
+		void DOS_KeyboardLayout_Startup(Section* sec);
+		DOS_KeyboardLayout_Startup(NULL);
+
+		/* Most MS-DOS installations have a DEVICE=C:\HIMEM.SYS somewhere near the top of their CONFIG.SYS */
+		void XMS_Startup(Section *sec);
+		XMS_Startup(NULL);
+
+		/* And then after that, usually a DEVICE=C:\EMM386.EXE just after HIMEM.SYS */
+		void EMS_Startup(Section* sec);
+		EMS_Startup(NULL);
+
+		DispatchVMEvent(VM_EVENT_DOS_INIT_CONFIG_SYS_DONE); // <- we just finished executing CONFIG.SYS
+		SHELL_Init(); // <- NTS: this will change CPU instruction pointer!
+		DispatchVMEvent(VM_EVENT_DOS_INIT_SHELL_READY); // <- we just finished loading the shell (COMMAND.COM)
+
+		/* it's time to init parsing AUTOEXEC.BAT */
+		void AUTOEXEC_Startup(Section *sec);
+		AUTOEXEC_Startup(NULL);
+
+		/* Most MS-DOS installations run MSCDEX.EXE from somewhere in AUTOEXEC.BAT. We do the same here, in a fashion. */
+		/* TODO: Can we make this an OPTION if the user doesn't want to make MSCDEX.EXE resident? */
+		/* TODO: When we emulate executing AUTOEXEC.BAT between INIT_SHELL_READY and AUTOEXEC_BAT_DONE, can we make a fake MSCDEX.EXE within drive Z:\
+		 *       and auto-add a Z:\MSCDEX.EXE to the top of AUTOEXEC.BAT, command line switches and all. if the user has not already added it? */
+		void MSCDEX_Startup(Section* sec);
+		MSCDEX_Startup(NULL);
+
+		/* Some installations load the MOUSE.COM driver from AUTOEXEC.BAT as well */
+		/* TODO: Can we make this an option? Can we add a fake MOUSE.COM to the Z:\ drive as well? */
+		void MOUSE_Startup(Section *sec);
+		MOUSE_Startup(NULL);
+
+		DispatchVMEvent(VM_EVENT_DOS_INIT_AUTOEXEC_BAT_DONE); // <- we just finished executing AUTOEXEC.BAT
+		DispatchVMEvent(VM_EVENT_DOS_INIT_AT_PROMPT); // <- now, we're at the DOS prompt
+		SHELL_Run();
+	}
 
     return true;
 }
@@ -3076,11 +3934,17 @@ int main(int argc, char* argv[]) {
         /* finally, the mapper */
         MAPPER_Init();
 
-        /* stop at this point, and show the mapper, if instructed */
-        if (control->opt_startmapper) {
-            LOG(LOG_MISC,LOG_DEBUG)("Running mapper interface, during startup, as instructed");
-            MAPPER_RunInternal();
-        }
+		// Shows menu bar (window)
+		menu.startup = true;
+        menu.showrt = control->opt_showrt;
+		menu.hidecycles = (control->opt_showcycles ? false : true);
+		if (sdl.desktop.want_type == SCREEN_OPENGLHQ) {
+			menu.gui=false; DOSBox_SetOriginalIcon();
+			if (!render.scale.hardware) {
+				LOG(LOG_MISC,LOG_DEBUG)("Desktop wants SCREEN_OPENGLHQ, without hardware scaling. Forcing scalar.");
+				SetVal("render","scaler",!render.scale.forced?"hardware2x":"hardware2x forced");
+			}
+		}
 
         /* The machine just "powered on", and then reset finished */
         if (!VM_PowerOn()) E_Exit("VM failed to power on");
@@ -3093,25 +3957,74 @@ int main(int argc, char* argv[]) {
         reboot_machine = false;
         dos_kernel_shutdown = false;
 
-        /* NTS: CPU reset handler, and BIOS init, has the instruction pointer poised to run through BIOS initialization,
-         *      which will then "boot" into the DOSBox kernel, and then the shell, by calling VM_Boot_DOSBox_Kernel() */
-        /* FIXME: throwing int() is a stupid and nondescriptive way to signal shutdown/reset. */
-        try {
-#if C_DEBUG
-            if (control->opt_break_start) DEBUG_EnableDebugger();
+		/* If PCjr emulation, map cartridge ROM */
+		if (machine == MCH_PCJR)
+			Init_PCJR_CartridgeROM();
+
+		/* let's assume motherboards are sane on boot because A20 gate is ENABLED on first boot */
+		MEM_A20_Enable(true);
+
+		/* OS init now */
+		DOS_Init();
+		DRIVES_Init();
+		DOS_KeyboardLayout_Init();
+		MOUSE_Init(); // FIXME: inits INT 15h and INT 33h at the same time. Also uses DOS_GetMemory() which is why DOS_Init must come first
+		XMS_Init();
+		EMS_Init();
+		AUTOEXEC_Init();
+#if C_IPX
+		IPX_Init();
 #endif
-            DOSBOX_RunMachine();
+		MSCDEX_Init();
+
+		/* Init memhandle system. This part is used by DOSBox's XMS/EMS emulation to associate handles
+		 * per page. FIXME: I would like to push this down to the point that it's never called until
+		 * XMS/EMS emulation needs it. I would also like the code to free the mhandle array immediately
+		 * upon booting into a guest OS, since memory handles no longer have meaning in the guest OS
+		 * memory layout. */
+		Init_MemHandles();
+
+		/* finally, the mapper */
+		MAPPER_Init();
+
+		/* stop at this point, and show the mapper, if instructed */
+		if (control->opt_startmapper) {
+			LOG(LOG_MISC,LOG_DEBUG)("Running mapper interface, during startup, as instructed");
+			MAPPER_RunInternal();
+		}
+
+		/* The machine just "powered on", and then reset finished */
+		if (!VM_PowerOn()) E_Exit("VM failed to power on");
+
+		bool run_machine;
+		bool reboot_machine;
+		bool dos_kernel_shutdown;
+
+fresh_boot:
+		run_machine = false;
+		reboot_machine = false;
+		dos_kernel_shutdown = false;
+
+		/* NTS: CPU reset handler, and BIOS init, has the instruction pointer poised to run through BIOS initialization,
+		 *      which will then "boot" into the DOSBox kernel, and then the shell, by calling VM_Boot_DOSBox_Kernel() */
+		/* FIXME: throwing int() is a stupid and nondescriptive way to signal shutdown/reset. */
+		try {
+#if C_DEBUG
+			if (control->opt_break_start) DEBUG_EnableDebugger();
+#endif
+			DOSBOX_RunMachine();
         } catch (int x) {
             if (x == 2) { /* booting a guest OS. "boot" has already done the work to load the image and setup CPU registers */
                 LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to boot guest OS");
 
                 run_machine = true; /* make note. don't run the whole shebang from an exception handler! */
-                dos_kernel_shutdown = true;
+                dos_kernel_shutdown = !dos_kernel_disabled; /* only if DOS kernel enabled */
             }
             else if (x == 3) { /* reboot the system */
                 LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to reboot the system");
 
                 reboot_machine = true;
+                dos_kernel_shutdown = !dos_kernel_disabled; /* only if DOS kernel enabled */
             }
             else {
                 LOG(LOG_MISC,LOG_DEBUG)("Emulation threw DOSBox kill switch signal");
@@ -3126,8 +4039,14 @@ int main(int argc, char* argv[]) {
         }
 
         if (dos_kernel_shutdown) {
+            /* NTS: we take different paths depending on whether we're just shutting down DOS
+             *      or doing a hard reboot. */
+
             /* new code: fire event */
-            DispatchVMEvent(VM_EVENT_DOS_EXIT_BEGIN);
+            if (reboot_machine)
+                DispatchVMEvent(VM_EVENT_DOS_EXIT_REBOOT_BEGIN);
+            else
+                DispatchVMEvent(VM_EVENT_DOS_EXIT_BEGIN);
 
             /* older shutdown code */
             RemoveEMSPageFrame();
@@ -3141,14 +4060,16 @@ int main(int argc, char* argv[]) {
             /* unmap the DOSBox kernel private segment. if the user told us not to,
              * but the segment exists below 640KB, then we must, because the guest OS
              * will trample it and assume control of that region of RAM. */
-            if (!keep_private_area_on_boot)
+            if (!keep_private_area_on_boot || reboot_machine)
                 DOS_GetMemory_unmap();
             else if (DOS_PRIVATE_SEGMENT < 0xA000)
                 DOS_GetMemory_unmap();
 
             /* revector some dos-allocated interrupts */
-            real_writed(0,0x01*4,BIOS_DEFAULT_HANDLER_LOCATION);
-            real_writed(0,0x03*4,BIOS_DEFAULT_HANDLER_LOCATION);
+            if (!reboot_machine) {
+                real_writed(0,0x01*4,BIOS_DEFAULT_HANDLER_LOCATION);
+                real_writed(0,0x03*4,BIOS_DEFAULT_HANDLER_LOCATION);
+            }
 
             /* shutdown DOSBox's virtual drive Z */
             VFILE_Shutdown();
@@ -3173,71 +4094,69 @@ int main(int argc, char* argv[]) {
             dos_kernel_disabled = true;
 
             /* new code: fire event */
-            DispatchVMEvent(VM_EVENT_DOS_EXIT_KERNEL);
+            if (reboot_machine)
+                DispatchVMEvent(VM_EVENT_DOS_EXIT_REBOOT_KERNEL);
+            else
+                DispatchVMEvent(VM_EVENT_DOS_EXIT_KERNEL);
         }
 
-        if (run_machine) {
-            /* new code: fire event */
-            DispatchVMEvent(VM_EVENT_GUEST_OS_BOOT);
+		if (run_machine) {
+            bool disable_a20 = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("turn off a20 gate on boot");
 
-            LOG_MSG("Alright: DOS kernel shutdown, booting a guest OS\n");
-            LOG_MSG("  CS:IP=%04x:%04x SS:SP=%04x:%04x AX=%04x BX=%04x CX=%04x DX=%04x\n",
-                    SegValue(cs),reg_ip,
-                    SegValue(ss),reg_sp,
-                    reg_ax,reg_bx,reg_cx,reg_dx);
+            /* if instructed, turn off A20 at boot */
+            if (disable_a20) MEM_A20_Enable(false);
 
-            try {
-                /* go! */
-                while (1/*execute until some other part of DOSBox throws exception*/)
-                    DOSBOX_RunMachine();
-            }
-            catch (int x) {
-                if (x == 3) { /* reboot the machine */
-                    LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to reboot the system");
+			/* new code: fire event */
+			DispatchVMEvent(VM_EVENT_GUEST_OS_BOOT);
 
-                    reboot_machine = true;
-                }
-                else {
-                    LOG(LOG_MISC,LOG_DEBUG)("Emulation threw DOSBox kill switch signal");
+			LOG_MSG("Alright: DOS kernel shutdown, booting a guest OS\n");
+			LOG_MSG("  CS:IP=%04x:%04x SS:SP=%04x:%04x AX=%04x BX=%04x CX=%04x DX=%04x\n",
+				SegValue(cs),reg_ip,
+				SegValue(ss),reg_sp,
+				reg_ax,reg_bx,reg_cx,reg_dx);
 
-                    // kill switch (see instances of throw(0) and throw(1) elsewhere in DOSBox)
-                }
-            }
-            catch (...) {
-                throw;
-            }
-        }
+            /* run again */
+            goto fresh_boot;
+		}
 
-        if (reboot_machine) {
-            LOG_MSG("Rebooting the system\n");
+		if (reboot_machine) {
+			LOG_MSG("Rebooting the system\n");
 
-            /* new code: fire event (FIXME: DOSBox's current method of "rebooting" the emulator makes this meaningless!) */
-            DispatchVMEvent(VM_EVENT_RESET);
-            DispatchVMEvent(VM_EVENT_RESET_END);
+            void CPU_Snap_Back_Forget();
+            /* Shutdown everything. For shutdown to work properly we must force CPU to real mode */
+            CPU_Snap_Back_To_Real_Mode();
+            CPU_Snap_Back_Forget();
 
-            /* restart DOSBox (NOTE: Yuck) */
-            restart_program(control->startup_params);
-        }
+			/* new code: fire event */
+			DispatchVMEvent(VM_EVENT_RESET);
+			DispatchVMEvent(VM_EVENT_RESET_END);
 
-        /* and then shutdown */
-        GFX_ShutDown();
+            /* run again */
+            goto fresh_boot;
+		}
 
-        void CPU_Snap_Back_Forget();
-        /* Shutdown everything. For shutdown to work properly we must force CPU to real mode */
-        CPU_Snap_Back_To_Real_Mode();
-        CPU_Snap_Back_Forget();
+		/* and then shutdown */
+		GFX_ShutDown();
 
-        /* NTS: The "control" object destructor is called here because the "myconf" object leaves scope.
-         * The destructor calls all section destroy functions here. After this point, all sections have
-         * freed resources. */
-    }
+		void CPU_Snap_Back_Forget();
+		/* Shutdown everything. For shutdown to work properly we must force CPU to real mode */
+		CPU_Snap_Back_To_Real_Mode();
+		CPU_Snap_Back_Forget();
 
-    /* GUI font registry shutdown */
-//    GUI::Font::registry_freeall();
-    DOS_ShutdownDrives();
-    DOS_ShutdownFiles();
-    DOS_ShutdownDevices();
-    CALLBACK_Shutdown();
+		/* NTS: The "control" object destructor is called here because the "myconf" object leaves scope.
+		 * The destructor calls all section destroy functions here. After this point, all sections have
+		 * freed resources. */
+	}
+
+    void CALLBACK_Dump(void);
+    CALLBACK_Dump();
+
+	/* GUI font registry shutdown */
+	GUI::Font::registry_freeall();
+	DOS_ShutdownDrives();
+	DOS_ShutdownFiles();
+	DOS_ShutdownDevices();
+	CALLBACK_Shutdown();
 #if C_DYNAMIC_X86
     CPU_Core_Dyn_X86_Shutdown();
 #endif

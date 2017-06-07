@@ -725,6 +725,9 @@ void RENDER_Init() {
 	bool scalerforced = render.scale.forced;
 	scalerOperation_t scaleOp = render.scale.op;
 
+    render.scale.cacheRead = NULL;
+    render.scale.outWrite = NULL;
+
 	render.pal.first=0;
 	render.pal.last=255;
 	render.aspect=section->Get_bool("aspect");

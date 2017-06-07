@@ -189,6 +189,7 @@ public:
 	bool	ReadSector		(Bit8u *buffer, bool raw, unsigned long sector);
 	bool	HasDataTrack		(void);
 	
+static bool images_init;
 static	CDROM_Interface_Image* images[26];
 
 private:

@@ -35,6 +35,10 @@
 #include <pwd.h>
 #endif
 
+#if defined __MINGW32__
+#define _mkdir(x) mkdir(x)
+#endif
+
 #ifdef WIN32
 static void W32_ConfDir(std::string& in,bool create) {
 	int c = create?1:0;

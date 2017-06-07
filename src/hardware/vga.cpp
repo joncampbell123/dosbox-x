@@ -664,6 +664,9 @@ void VGA_Init() {
 	string str;
 	Bitu i,j;
 
+	vga.tandy.draw_base = NULL;
+	vga.tandy.mem_base = NULL;
+    vga.vmemsize_alloced = 0;
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing VGA");
 
 	VGA_TweakUserVsyncOffset(0.0f);

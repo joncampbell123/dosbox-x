@@ -305,6 +305,8 @@ static void pc_xt_nmi_write(Bitu port,Bitu val,Bitu iolen) {
 	CPU_NMI_gate = (val & 0x80) ? true : false;
 }
 
+int PIC_irq_delay = 2;
+
 /* FIXME: This should be called something else that's true to the ISA bus, like PIC_PulseIRQ, not Activate IRQ.
  *        ISA interrupts are edge triggered, not level triggered. */
 void PIC_ActivateIRQ(Bitu irq) {
@@ -323,23 +325,19 @@ void PIC_ActivateIRQ(Bitu irq) {
 	Bitu t = irq>7 ? (irq - 8): irq;
 	PIC_Controller * pic=&pics[irq>7 ? 1 : 0];
 
-	Bit32s OldCycles = CPU_Cycles;
 	pic->raise_irq(t); //Will set the CPU_Cycles to zero if this IRQ will be handled directly
 
-	if (GCC_UNLIKELY(OldCycles != CPU_Cycles)) {
-		// if CPU_Cycles have changed, this means that the interrupt was triggered by an I/O
-		// register write rather than an event.
-		// Real hardware executes 0 to ~13 NOPs or comparable instructions
-		// before the processor picks up the interrupt. Let's try with 2
-		// cycles here.
-		// Required by Panic demo (irq0), It came from the desert (MPU401)
-		// Does it matter if CPU_CycleLeft becomes negative?
+    // Real hardware executes 0 to ~13 NOPs or comparable instructions
+    // before the processor picks up the interrupt. Let's try with 2
+    // cycles here.
+    // Required by Panic demo (irq0), It came from the desert (MPU401),
+    // Pizza by Port Mortem (SB IRQ detection),
+    // Does it matter if CPU_CycleLeft becomes negative?
 
-		// It might be an idea to do this always in order to simulate this
-		// So on write mask and EOI as well. (so inside the activate function)
-		CPU_CycleLeft += (CPU_Cycles-2);
-		CPU_Cycles = 2;
-	}
+    // It might be an idea to do this always in order to simulate this
+    // So on write mask and EOI as well. (so inside the activate function)
+    CPU_CycleLeft += (CPU_Cycles-PIC_irq_delay);
+    CPU_Cycles = PIC_irq_delay;
 }
 
 void PIC_DeActivateIRQ(Bitu irq) {
@@ -604,10 +602,10 @@ bool PIC_RunQueue(void) {
 			}
 		} else CPU_Cycles=CPU_CycleLeft;
 		CPU_CycleLeft-=CPU_Cycles;
-	}
 
-	if (PIC_IRQCheck)
-		PIC_runIRQs();
+        if (PIC_IRQCheck)
+            PIC_runIRQs();
+    }
 
 	/* if we're out of cycles, then return false. don't execute any more instructions */
 	if ((CPU_CycleLeft+CPU_Cycles) <= 0)
@@ -721,6 +719,8 @@ void PIC_Reset(Section *sec) {
 
 	enable_slave_pic = section->Get_bool("enable slave pic");
 	enable_pc_xt_nmi_mask = section->Get_bool("enable pc nmi mask");
+    PIC_irq_delay = section->Get_int("irq delay");
+    if (PIC_irq_delay < 0) PIC_irq_delay = 2; /* default */
 
 	/* Setup pic0 and pic1 with initial values like DOS has normally */
 	PIC_Ticks=0;
@@ -739,6 +739,9 @@ void PIC_Reset(Section *sec) {
 	}
 	master.vector_base = 0x08;
 	slave.vector_base = 0x70;
+
+    for (Bitu i=0;i < 16;i++)
+        PIC_SetIRQMask(i,true);
 
 	PIC_SetIRQMask(0,false);					/* Enable system timer */
 	PIC_SetIRQMask(1,false);					/* Enable system timer */

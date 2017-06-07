@@ -249,6 +249,7 @@ public:
 	bool int13fakev86io;		/* on certain INT 13h calls in virtual 8086 mode, trigger fake CPU I/O traps */
 	bool enable_pio32;		/* enable 32-bit PIO (if disabled, attempts at 32-bit PIO are handled as if two 16-bit I/O) */
 	bool ignore_pio32;		/* if 32-bit PIO enabled, but ignored, writes do nothing, reads return 0xFFFFFFFF */
+	bool register_pnp;
 	unsigned short alt_io;
 	unsigned short base_io;
 	unsigned char interface_index;
@@ -266,6 +267,7 @@ public:
 	double cd_insertion_time;
 public:
 	IDEController(Section* configuration,unsigned char index);
+    void register_isapnp();
 	void install_io_port();
 	void raise_irq();
 	void lower_irq();
@@ -863,6 +865,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 		switch (atapi_cmd[0]) {
 			case 0x00: /* TEST UNIT READY */
 			case 0x03: /* REQUEST SENSE */
+                allow_writing = true;
 				break; /* do not delay */
 			default:
 				PIC_AddEvent(IDE_DelayedCommand,100/*ms*/,controller->interface_index);
@@ -873,6 +876,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 		switch (atapi_cmd[0]) {
 			case 0x00: /* TEST UNIT READY */
 			case 0x03: /* REQUEST SENSE */
+                allow_writing = true;
 				break; /* do not delay */
 			default:
 				if (!common_spinup_response(/*spin up*/true,/*wait*/false)) {
@@ -881,7 +885,8 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 					feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
 					status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
 					controller->raise_irq();
-					return;
+                    allow_writing = true;
+                    return;
 				}
 				break;
 		}
@@ -901,7 +906,8 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			lba[1] = sector_total;
 
 			controller->raise_irq();
-			break;
+            allow_writing = true;
+            break;
 		case 0x1E: /* PREVENT ALLOW MEDIUM REMOVAL */
 			count = 0x03;
 			feature = 0x00;
@@ -916,6 +922,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			lba[1] = sector_total;
 
 			controller->raise_irq();
+            allow_writing = true;
 			break;
 		case 0x25: /* READ CAPACITY */ {
 			const unsigned int secsize = 2048;
@@ -949,6 +956,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			lba[1] = sector_total;
 
 			controller->raise_irq();
+            allow_writing = true;
 			} break;
 		case 0x2B: /* SEEK */
 			count = 0x03;
@@ -982,6 +990,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			lba[1] = sector_total;
 
 			controller->raise_irq();
+            allow_writing = true;
 			break;
 		case 0x12: /* INQUIRY */
 			/* NTS: the state of atapi_to_host doesn't seem to matter. */
@@ -997,6 +1006,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			lba[1] = sector_total;
 
 			controller->raise_irq();
+            allow_writing = true;
 			break;
 		case 0x28: /* READ(10) */
 		case 0xA8: /* READ(12) */
@@ -1037,6 +1047,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			lba[1] = sector_total;
 
 			controller->raise_irq();
+            allow_writing = true;
 			break;
 		case 0x42: /* READ SUB-CHANNEL */
 			read_subchannel();
@@ -1050,6 +1061,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			lba[1] = sector_total;
 
 			controller->raise_irq();
+            allow_writing = true;
 			break;
 		case 0x43: /* READ TOC */
 			read_toc();
@@ -1063,6 +1075,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			lba[1] = sector_total;
 
 			controller->raise_irq();
+            allow_writing = true;
 			break;
 		case 0x45: /* PLAY AUDIO(10) */
 			play_audio10();
@@ -1078,6 +1091,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			lba[1] = sector_total;
 
 			controller->raise_irq();
+            allow_writing = true;
 			break;
 		case 0x47: /* PLAY AUDIO MSF */
 			play_audio_msf();
@@ -1093,6 +1107,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			lba[1] = sector_total;
 
 			controller->raise_irq();
+            allow_writing = true;
 			break;
 		case 0x4B: /* PAUSE/RESUME */
 			pause_resume();
@@ -1108,6 +1123,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			lba[1] = sector_total;
 
 			controller->raise_irq();
+            allow_writing = true;
 			break;
 		case 0x55: /* MODE SELECT(10) */
 			/* we need the data written first, will act in I/O completion routine */
@@ -1130,6 +1146,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			state = IDE_DEV_DATA_WRITE;
 			status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ|IDE_STATUS_DRIVE_SEEK_COMPLETE;
 			controller->raise_irq();
+            allow_writing = true;
 			break;
 		case 0x5A: /* MODE SENSE(10) */
 			mode_sense();
@@ -1143,11 +1160,13 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
 			lba[1] = sector_total;
 
 			controller->raise_irq();
+            allow_writing = true;
 			break;
 		default:
 			LOG_MSG("Unknown ATAPI command after busy wait. Why?\n");
 			abort_error();
 			controller->raise_irq();
+            allow_writing = true;
 			break;
 	};
 
@@ -1465,6 +1484,7 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 			feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
 			status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
 			controller->raise_irq();
+			allow_writing = true;
 			break;
 		case 0x03: /* REQUEST SENSE */
 			count = 0x02;
@@ -1498,7 +1518,8 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 				feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
 				status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
 				controller->raise_irq();
-			}
+                allow_writing = true;
+            }
 			break;
 		case 0x12: /* INQUIRY */
 			count = 0x02;
@@ -1544,7 +1565,8 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 				feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
 				status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
 				controller->raise_irq();
-			}
+                allow_writing = true;
+            }
 			break;
 		case 0x28: /* READ(10) */
 			if (common_spinup_response(/*spin up*/true,/*wait*/true)) {
@@ -1582,7 +1604,8 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 				feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
 				status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
 				controller->raise_irq();
-			}
+                allow_writing = true;
+            }
 			break;
 		case 0x42: /* READ SUB-CHANNEL */
 			if (common_spinup_response(/*spin up*/true,/*wait*/true)) {
@@ -1599,7 +1622,8 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 				feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
 				status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
 				controller->raise_irq();
-			}
+                allow_writing = true;
+            }
 			break;
 		case 0x43: /* READ TOC */
 			if (common_spinup_response(/*spin up*/true,/*wait*/true)) {
@@ -1616,7 +1640,8 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 				feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
 				status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
 				controller->raise_irq();
-			}
+                allow_writing = true;
+            }
 			break;
 		case 0x45: /* PLAY AUDIO (1) */
 		case 0x47: /* PLAY AUDIO MSF */
@@ -1635,7 +1660,8 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 				feature = ((sense[2]&0xF) << 4) | (sense[2]&0xF ? 0x04/*abort*/ : 0x00);
 				status = IDE_STATUS_DRIVE_READY|(sense[2]&0xF ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
 				controller->raise_irq();
-			}
+                allow_writing = true;
+            }
 			break;
 		case 0x55: /* MODE SELECT(10) */
 			count = 0x00;	/* we will be accepting data */
@@ -1659,6 +1685,7 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
 			count = 0x03; /* no more data (command/data=1, input/output=1) */
 			feature = 0xF4;
 			controller->raise_irq();
+			allow_writing = true;
 			break;
 	};
 }
@@ -2299,10 +2326,11 @@ void IDE_EmuINT13DiskReadByBIOS_LBA(unsigned char disk,uint64_t lba) {
 						IDE_SelfIO_Out(ide,ide->base_io+7,0x20,1);	/* issue READ */
 
 						do {
-							/* TODO: Timeout needed */
-							unsigned int i = IDE_SelfIO_In(ide,ide->base_io+7,1);
-							if ((i&0x80) == 0) break;
-						} while (1);
+                            /* TODO: Timeout needed */
+                            unsigned int i = IDE_SelfIO_In(ide,ide->alt_io,1);
+                            if ((i&0x80) == 0) break;
+                        } while (1);
+                        IDE_SelfIO_In(ide,ide->base_io+7,1);
 
 						/* for brevity assume it worked. we're here to bullshit Windows 95 after all */
 						for (unsigned int i=0;i < 256;i++)
@@ -2317,6 +2345,7 @@ void IDE_EmuINT13DiskReadByBIOS_LBA(unsigned char disk,uint64_t lba) {
 						else
 							IDE_SelfIO_Out(ide,0x20,0x60+ide->IRQ,1);		/* specific EOI */
 
+                        ata->abort_normal();
 						dev->faked_command = false;
 					}
 					else {
@@ -2466,10 +2495,11 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
 						IDE_SelfIO_Out(ide,ide->base_io+7,0x20,1);	/* issue READ */
 
 						do {
-							/* TODO: Timeout needed */
-							unsigned int i = IDE_SelfIO_In(ide,ide->base_io+7,1);
-							if ((i&0x80) == 0) break;
-						} while (1);
+                            /* TODO: Timeout needed */
+                            unsigned int i = IDE_SelfIO_In(ide,ide->alt_io,1);
+                            if ((i&0x80) == 0) break;
+                        } while (1);
+                        IDE_SelfIO_In(ide,ide->base_io+7,1);
 
 						/* for brevity assume it worked. we're here to bullshit Windows 95 after all */
 						for (unsigned int i=0;i < 256;i++)
@@ -2484,6 +2514,7 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
 						else
 							IDE_SelfIO_Out(ide,0x20,0x60+ide->IRQ,1);		/* specific EOI */
 
+                        ata->abort_normal();
 						dev->faked_command = false;
 					}
 					else {
@@ -3448,7 +3479,6 @@ void IDEDevice::select(uint8_t ndh,bool switched_to) {
 
 IDEController::IDEController(Section* configuration,unsigned char index):Module_base(configuration){
 	Section_prop * section=static_cast<Section_prop *>(configuration);
-	bool register_pnp = false;
 	int i;
 
 	register_pnp = section->Get_bool("pnp");
@@ -3490,7 +3520,9 @@ IDEController::IDEController(Section* configuration,unsigned char index):Module_
 		if (IRQ < 0 || alt_io == 0 || base_io == 0)
 			LOG_MSG("WARNING: IDE interface %u: Insufficient resources assigned by dosbox.conf, and no appropriate default resources for this interface.",index);
 	}
+}
 
+void IDEController::register_isapnp() {
 	if (register_pnp && base_io > 0 && alt_io > 0) {
 		unsigned char tmp[256];
 		unsigned int i;
@@ -3748,6 +3780,16 @@ static void ide_baseio_w(Bitu port,Bitu val,Bitu iolen) {
 		}
 	}
 
+#if 0
+    if (ide == idecontroller[1])
+        LOG_MSG("IDE: baseio write port %u val %02x\n",(unsigned int)port,(unsigned int)val);
+#endif
+
+    if (port >= 1 && port <= 5 && dev && !dev->allow_writing) {
+        LOG_MSG("IDE WARNING: Write to port %u val %02x when device not ready to accept writing\n",
+            (unsigned int)port,(unsigned int)val);
+    }
+
 	switch (port) {
 		case 0:	/* 1F0 */
 			if (dev) dev->data_write(val,iolen); /* <- TODO: what about 32-bit PIO modes? */
@@ -3809,11 +3851,11 @@ static void IDE_Destroy(Section* sec) {
 	init_ide = 0;
 }
 
-static void IDE_Init(Section* sec,unsigned char interface) {
+static void IDE_Init(Section* sec,unsigned char ide_interface) {
 	Section_prop *section=static_cast<Section_prop *>(sec);
 	IDEController *ide;
 
-	assert(interface < MAX_IDE_CONTROLLERS);
+	assert(ide_interface < MAX_IDE_CONTROLLERS);
 
 	if (!section->Get_bool("enable"))
 		return;
@@ -3823,9 +3865,14 @@ static void IDE_Init(Section* sec,unsigned char interface) {
 		init_ide = 1;
 	}
 
-	LOG(LOG_MISC,LOG_DEBUG)("Initializing IDE controller %u",interface);
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing IDE controller %u",ide_interface);
 
-	ide = idecontroller[interface] = new IDEController(sec,interface);
+    if (idecontroller[ide_interface] != NULL) {
+        delete idecontroller[ide_interface];
+        idecontroller[ide_interface] = NULL;
+    }
+
+	ide = idecontroller[ide_interface] = new IDEController(sec,ide_interface);
 	ide->install_io_port();
 
 	PIC_SetIRQMask(ide->IRQ,false);
@@ -3892,5 +3939,12 @@ void IDE_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing IDE controllers");
 
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(IDE_OnReset));
+}
+
+void BIOS_Post_register_IDE() {
+	for (size_t i=0;i < MAX_IDE_CONTROLLERS;i++) {
+        if (idecontroller[i] != NULL)
+            idecontroller[i]->register_isapnp();
+    }
 }
 

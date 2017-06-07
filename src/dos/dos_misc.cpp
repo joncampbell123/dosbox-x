@@ -79,7 +79,7 @@ static Bitu INT2F_Handler(void) {
 	for(Multiplex_it it = Multiplex.begin();it != Multiplex.end();it++)
 		if( (*it)() ) return CBRET_NONE;
    
-	LOG(LOG_DOSMISC,LOG_ERROR)("DOS:Multiplex Unhandled call %4X",reg_ax);
+	LOG(LOG_DOSMISC,LOG_ERROR)("DOS:INT 2F Unhandled call AX=%4X",reg_ax);
 	return CBRET_NONE;
 }
 
@@ -88,6 +88,7 @@ static Bitu INT2A_Handler(void) {
 	return CBRET_NONE;
 }
 
+// INT 2F
 static bool DOS_MultiplexFunctions(void) {
 	switch (reg_ax) {
 	/* ert, 20100711: Locking extensions */
@@ -332,7 +333,8 @@ static bool DOS_MultiplexFunctions(void) {
 
 		Bit32u start = DOS_HMA_FREE_START();
 		if ((start+reg_bx) > limit) {
-			LOG(LOG_MISC,LOG_DEBUG)("HMA allocation: rejected (not enough room) for %u bytes",reg_bx);
+			LOG(LOG_MISC,LOG_DEBUG)("HMA allocation: rejected (not enough room) for %u bytes (0x%x + 0x%x > 0x%x)",reg_bx,
+                (unsigned int)start,(unsigned int)reg_bx,(unsigned int)limit);
 			reg_bx = 0;
 			reg_di = 0xFFFF;
 			SegSet16(es,0xFFFF);
@@ -340,7 +342,7 @@ static bool DOS_MultiplexFunctions(void) {
 		}
 
 		/* convert the start to segment:offset, normalized to FFFF:offset */
-		reg_di = (start - 0x10) & 0xFFFF;
+		reg_di = (start + 0x10) & 0xFFFF;
 		SegSet16(es,0xFFFF);
 
 		/* let HMA emulation know what was claimed */

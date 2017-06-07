@@ -2269,7 +2269,7 @@ static void InitializeJoysticks(void) {
 	mapper.sticks.num_groups=0;
 	if (joytype != JOY_NONE) {
 		mapper.sticks.num=SDL_NumJoysticks();
-		LOG(LOG_MISC,LOG_DEBUG)("Joystick type != none, SDL reports %u sticks",mapper.sticks.num);
+		LOG(LOG_MISC,LOG_DEBUG)("Joystick type != none, SDL reports %u sticks",(unsigned int)mapper.sticks.num);
 		if (joytype==JOY_AUTO) {
 			// try to figure out what joystick type to select
 			// depending on the number of physically attached joysticks

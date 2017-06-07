@@ -36,7 +36,7 @@
  * The proper way is in the mapper, but the repeating key is an unwanted side effect for lower versions of SDL */
 #endif
 
-static Bitu call_int16,call_irq1,irq1_ret_ctrlbreak_callback,call_irq6;
+static Bitu call_int16 = 0,call_irq1 = 0,irq1_ret_ctrlbreak_callback = 0,call_irq6 = 0;
 
 /* Nice table from BOCHS i should feel bad for ripping this */
 #define none 0
@@ -529,10 +529,16 @@ static bool IsEnhancedKey(Bit16u &key) {
 	return false;
 }
 
+bool int16_unmask_irq1_on_read = true;
+bool int16_ah_01_cf_undoc = true;
+
 static Bitu INT16_Handler(void) {
 	Bit16u temp=0;
 	switch (reg_ah) {
 	case 0x00: /* GET KEYSTROKE */
+        if (int16_unmask_irq1_on_read)
+            PIC_SetIRQMask(1,false); /* unmask keyboard */
+
 		if ((get_key(temp)) && (!IsEnhancedKey(temp))) {
 			/* normal key found, return translated key in ax */
 			reg_ax=temp;
@@ -542,6 +548,9 @@ static Bitu INT16_Handler(void) {
 		}
 		break;
 	case 0x10: /* GET KEYSTROKE (enhanced keyboards only) */
+        if (int16_unmask_irq1_on_read)
+            PIC_SetIRQMask(1,false); /* unmask keyboard */
+
 		if (get_key(temp)) {
 			if (((temp&0xff)==0xf0) && (temp>>8)) {
 				/* special enhanced key, clear low part before returning key */
@@ -556,11 +565,15 @@ static Bitu INT16_Handler(void) {
 	case 0x01: /* CHECK FOR KEYSTROKE */
 		// enable interrupt-flag after IRET of this int16
 		CALLBACK_SIF(true);
+        if (int16_unmask_irq1_on_read)
+            PIC_SetIRQMask(1,false); /* unmask keyboard */
+
 		for (;;) {
 			if (check_key(temp)) {
 				if (!IsEnhancedKey(temp)) {
 					/* normal key, return translated key in ax */
 					CALLBACK_SZF(false);
+                    if (int16_ah_01_cf_undoc) CALLBACK_SCF(true);
 					reg_ax=temp;
 					break;
 				} else {
@@ -570,6 +583,7 @@ static Bitu INT16_Handler(void) {
 			} else {
 				/* no key available */
 				CALLBACK_SZF(true);
+                if (int16_ah_01_cf_undoc) CALLBACK_SCF(false);
 				break;
 			}
 //			CALLBACK_Idle();
@@ -578,6 +592,9 @@ static Bitu INT16_Handler(void) {
 	case 0x11: /* CHECK FOR KEYSTROKE (enhanced keyboards only) */
 		// enable interrupt-flag after IRET of this int16
 		CALLBACK_SIF(true);
+        if (int16_unmask_irq1_on_read)
+            PIC_SetIRQMask(1,false); /* unmask keyboard */
+
 		if (!check_key(temp)) {
 			CALLBACK_SZF(true);
 		} else {
@@ -651,6 +668,27 @@ static void InitBiosSegment(void) {
 	mem_writeb(BIOS_KEYBOARD_FLAGS3,16); /* Enhanced keyboard installed */	
 	mem_writeb(BIOS_KEYBOARD_TOKEN,0);
 	mem_writeb(BIOS_KEYBOARD_LEDS,leds);
+}
+
+void CALLBACK_DeAllocate(Bitu in);
+
+void BIOS_UnsetupKeyboard(void) {
+    if (call_int16 != 0) {
+        CALLBACK_DeAllocate(call_int16);
+        call_int16 = 0;
+    }
+    if (call_irq1 != 0) {
+        CALLBACK_DeAllocate(call_irq1);
+        call_irq1 = 0;
+    }
+    if (call_irq6 != 0) {
+        CALLBACK_DeAllocate(call_irq6);
+        call_irq6 = 0;
+    }
+    if (irq1_ret_ctrlbreak_callback != 0) {
+        CALLBACK_DeAllocate(irq1_ret_ctrlbreak_callback);
+        irq1_ret_ctrlbreak_callback = 0;
+    }
 }
 
 void BIOS_SetupKeyboard(void) {

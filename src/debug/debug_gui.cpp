@@ -129,6 +129,9 @@ static void MakeSubWindows(void) {
 	/* Make all the subwindows */
 	int win_main_maxy, win_main_maxx; getmaxyx(dbg.win_main,win_main_maxy,win_main_maxx);
 	int outy=1; //Match values with above
+
+    LOG_MSG("DEBUG: MakeSubWindows dim x=%u y=%u",win_main_maxx,win_main_maxy);
+
 	/* The Register window  */
 	dbg.win_reg=subwin(dbg.win_main,4,win_main_maxx,outy,0);
 	outy+=5; // 6
@@ -142,7 +145,7 @@ static void MakeSubWindows(void) {
 	dbg.win_var=subwin(dbg.win_main,4,win_main_maxx,outy,0);
 	outy+=5; // 34
 	/* The Output Window */	
-	dbg.win_out=subwin(dbg.win_main,win_main_maxy-outy-2,win_main_maxx,outy,0);
+	dbg.win_out=subwin(dbg.win_main,win_main_maxy-outy,win_main_maxx,outy,0);
 	if(!dbg.win_reg ||!dbg.win_data || !dbg.win_code || !dbg.win_var || !dbg.win_out) E_Exit("Setting up windows failed");
 //	dbg.input_y=win_main_maxy-1;
 	scrollok(dbg.win_out,TRUE);
@@ -157,6 +160,7 @@ static void MakePairs(void) {
 	init_pair(PAIR_GREEN_BLACK, COLOR_GREEN /*| FOREGROUND_INTENSITY */, COLOR_BLACK);
 	init_pair(PAIR_BLACK_GREY, COLOR_BLACK /*| FOREGROUND_INTENSITY */, COLOR_WHITE);
 	init_pair(PAIR_GREY_RED, COLOR_WHITE/*| FOREGROUND_INTENSITY */, COLOR_RED);
+    init_pair(PAIR_BLACK_GREEN, COLOR_BLACK, COLOR_GREEN);
 }
 
 void DBGUI_StartUp(void) {
@@ -169,9 +173,6 @@ void DBGUI_StartUp(void) {
 	nodelay(dbg.win_main,true);
 	keypad(dbg.win_main,true);
 	#ifndef WIN32
-	printf("\e[8;50;80t");
-	fflush(NULL);
-	resizeterm(50,80);
 	touchwin(dbg.win_main);
 	#endif
 	old_cursor_state = curs_set(0);
@@ -193,6 +194,9 @@ void DEBUG_ShowMsg(char const* format,...) {
 	len = vsnprintf(buf,sizeof(buf)-2,format,msg); /* <- NTS: Did you know sprintf/vsnprintf returns number of chars written? */
 	va_end(msg);
 
+    /* remove newlines if present */
+    while (len > 0 && buf[len-1] == '\n') buf[--len] = 0;
+
 	/* Add newline if not present */
 	if (len > 0 && buf[len-1] != '\n') buf[len++] = '\n';
 	buf[len] = 0;
@@ -201,10 +205,10 @@ void DEBUG_ShowMsg(char const* format,...) {
 		stderrlog = true;
 
 #if C_DEBUG
-	if (dbg.win_out == NULL)
-		stderrlog = true;
-#else
-	stderrlog = true;
+	if (dbg.win_out != NULL)
+		stderrlog = false;
+    else
+        stderrlog = true;
 #endif
 
 	if (debuglog != NULL) {

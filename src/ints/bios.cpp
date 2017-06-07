@@ -145,8 +145,8 @@ Bitu ROMBIOS_GetMemory(Bitu bytes,const char *who,Bitu alignment,Bitu must_be_at
 	return rombios_alloc.getMemory(bytes,who,alignment,must_be_at);
 }
 
-static IO_ReadHandleObject *DOSBOX_INTEGRATION_PORT_READ[4] = {NULL};
-static IO_WriteHandleObject *DOSBOX_INTEGRATION_PORT_WRITE[4] = {NULL};
+static IO_Callout_t dosbox_int_iocallout = IO_Callout_t_none;
+
 static unsigned char dosbox_int_register_shf = 0;
 static uint32_t dosbox_int_register = 0;
 static unsigned char dosbox_int_regsel_shf = 0;
@@ -155,6 +155,67 @@ static bool dosbox_int_error = false;
 static bool dosbox_int_busy = false;
 static const char *dosbox_int_version = "DOSBox-X integration device v1.0";
 static const char *dosbox_int_ver_read = NULL;
+
+struct dosbox_int_saved_state {
+    unsigned char   dosbox_int_register_shf;
+    uint32_t        dosbox_int_register;
+    unsigned char   dosbox_int_regsel_shf;
+    uint32_t        dosbox_int_regsel;
+    bool            dosbox_int_error;
+    bool            dosbox_int_busy;
+};
+
+#define DOSBOX_INT_SAVED_STATE_MAX      4
+
+struct dosbox_int_saved_state       dosbox_int_saved[DOSBOX_INT_SAVED_STATE_MAX];
+int                                 dosbox_int_saved_sp = -1;
+
+/* for use with interrupt handlers in DOS/Windows that need to save IG state
+ * to ensure that IG state is restored on return in order to not interfere
+ * with anything userspace is doing (as an alternative to wrapping all access
+ * in CLI/STI or PUSHF/CLI/POPF) */
+bool dosbox_int_push_save_state(void) {
+
+    if (dosbox_int_saved_sp >= (DOSBOX_INT_SAVED_STATE_MAX-1))
+        return false;
+
+    struct dosbox_int_saved_state *ss = &dosbox_int_saved[++dosbox_int_saved_sp];
+
+    ss->dosbox_int_register_shf =       dosbox_int_register_shf;
+    ss->dosbox_int_register =           dosbox_int_register;
+    ss->dosbox_int_regsel_shf =         dosbox_int_regsel_shf;
+    ss->dosbox_int_regsel =             dosbox_int_regsel;
+    ss->dosbox_int_error =              dosbox_int_error;
+    ss->dosbox_int_busy =               dosbox_int_busy;
+    return true;
+}
+
+bool dosbox_int_pop_save_state(void) {
+    if (dosbox_int_saved_sp < 0)
+        return false;
+
+    struct dosbox_int_saved_state *ss = &dosbox_int_saved[dosbox_int_saved_sp--];
+
+    dosbox_int_register_shf =           ss->dosbox_int_register_shf;
+    dosbox_int_register =               ss->dosbox_int_register;
+    dosbox_int_regsel_shf =             ss->dosbox_int_regsel_shf;
+    dosbox_int_regsel =                 ss->dosbox_int_regsel;
+    dosbox_int_error =                  ss->dosbox_int_error;
+    dosbox_int_busy =                   ss->dosbox_int_busy;
+    return true;
+}
+
+bool dosbox_int_discard_save_state(void) {
+    if (dosbox_int_saved_sp < 0)
+        return false;
+
+    dosbox_int_saved_sp--;
+    return true;
+}
+
+extern bool user_cursor_locked;
+extern int user_cursor_x,user_cursor_y;
+extern int user_cursor_sw,user_cursor_sh;
 
 static std::string dosbox_int_debug_out;
 
@@ -194,6 +255,25 @@ void dosbox_integration_trigger_read() {
 			dosbox_int_register = Keyb_ig_status();
 			break;
 
+        case 0x434D54: /* read user mouse status */
+            dosbox_int_register =
+                (user_cursor_locked ? (1UL << 0UL) : 0UL);      /* bit 0 = mouse capture lock */
+            break;
+
+        case 0x434D55: /* read user mouse cursor position */
+            dosbox_int_register = ((user_cursor_y & 0xFFFFUL) << 16UL) | (user_cursor_x & 0xFFFFUL);
+            break;
+
+        case 0x434D56: { /* read user mouse cursor position (normalized for Windows 3.x) */
+            signed long long x = ((signed long long)user_cursor_x << 16LL) / (signed long long)(user_cursor_sw-1);
+            signed long long y = ((signed long long)user_cursor_y << 16LL) / (signed long long)(user_cursor_sh-1);
+            if (x < 0x0000LL) x = 0x0000LL;
+            if (x > 0xFFFFLL) x = 0xFFFFLL;
+            if (y < 0x0000LL) y = 0x0000LL;
+            if (y > 0xFFFFLL) y = 0xFFFFLL;
+            dosbox_int_register = ((unsigned int)y << 16UL) | (unsigned int)x;
+            } break;
+
 		case 0xC54010: /* Screenshot/capture trigger */
 			/* TODO: This should also be hidden behind an enable switch, so that rogue DOS development
 			 *       can't retaliate if the user wants to capture video or screenshots. */
@@ -225,6 +305,10 @@ void dosbox_integration_trigger_read() {
 		(unsigned long)dosbox_int_register,
 		dosbox_int_error?1:0);
 }
+
+unsigned int mouse_notify_mode = 0;
+// 0 = off
+// 1 = trigger as PS/2 mouse interrupt
 
 /* write triggered */
 void dosbox_integration_trigger_write() {
@@ -263,6 +347,11 @@ void dosbox_integration_trigger_write() {
 			dosbox_int_debug_out.clear();
 			break;
 
+		case 0x52434D: /* release mouse capture 'MCR' */
+            void GFX_ReleaseMouse(void);
+            GFX_ReleaseMouse();
+            break;
+
 		case 0x804200: /* keyboard input injection */
 			void Mouse_ButtonPressed(Bit8u button);
 			void Mouse_ButtonReleased(Bit8u button);
@@ -299,6 +388,13 @@ void dosbox_integration_trigger_write() {
 //		case 0x804201: /* keyboard status do not write */
 //			break;
 
+        /* this command is used to enable notification of mouse movement over the windows even if the mouse isn't captured */
+        case 0x434D55: /* read user mouse cursor position */
+        case 0x434D56: /* read user mouse cursor position (normalized for Windows 3.x) */
+            mouse_notify_mode = dosbox_int_register & 0xFF;
+            LOG(LOG_MISC,LOG_DEBUG)("Mouse notify mode=%u",mouse_notify_mode);
+            break;
+ 
 		case 0xC54010: /* Screenshot/capture trigger */
 #if (C_SSHOT)
 			void CAPTURE_ScreenShotEvent(bool pressed);
@@ -335,95 +431,154 @@ void dosbox_integration_trigger_write() {
  *      I/O read will read the entire register, while four 8-bit reads will
  *      read one byte out of 4. */
 
-static Bitu dosbox_integration_port_r(Bitu port,Bitu iolen) {
-	Bitu ret = ~0;
+static Bitu dosbox_integration_port00_index_r(Bitu port,Bitu iolen) {
 	Bitu retb = 0;
+	Bitu ret = 0;
 
-	switch (port-0x28) {
-		case 0: /* index */
-			ret = 0;
-			while (iolen > 0) {
-				ret += ((dosbox_int_regsel >> (dosbox_int_regsel_shf * 8)) & 0xFFU) << (retb * 8);
-				if ((++dosbox_int_regsel_shf) >= 4) dosbox_int_regsel_shf = 0;
-				iolen--;
-				retb++;
-			}
-			break;
-		case 1: /* data */
-			ret = 0;
-			while (iolen > 0) {
-				if (dosbox_int_register_shf == 0) dosbox_integration_trigger_read();
-				ret += ((dosbox_int_register >> (dosbox_int_register_shf * 8)) & 0xFFU) << (retb * 8);
-				if ((++dosbox_int_register_shf) >= 4) dosbox_int_register_shf = 0;
-				iolen--;
-				retb++;
-			}
-			break;
-		case 2: /* status */
-			/* 7:6 = regsel byte index
-			 * 5:4 = register byte index
-			 * 3:2 = reserved
-			 *   1 = error
-			 *   0 = busy */
-			ret = (dosbox_int_regsel_shf << 6) + (dosbox_int_register_shf << 4) +
-				(dosbox_int_error ? 2 : 0) + (dosbox_int_busy ? 1 : 0);
-			break;
-		default:
-			break;
-	};
+    while (iolen > 0) {
+        ret += ((dosbox_int_regsel >> (dosbox_int_regsel_shf * 8)) & 0xFFU) << (retb * 8);
+        if ((++dosbox_int_regsel_shf) >= 4) dosbox_int_regsel_shf = 0;
+        iolen--;
+        retb++;
+    }
 
-	return ret;
+    return ret;
 }
 
-void dosbox_integration_port_w(Bitu port,Bitu val,Bitu iolen) {
+static void dosbox_integration_port00_index_w(Bitu port,Bitu val,Bitu iolen) {
 	uint32_t msk;
 
-	switch (port-0x28) {
-		case 0: /* index */
-			while (iolen > 0) {
-				msk = 0xFFU << (dosbox_int_regsel_shf * 8);
-				dosbox_int_regsel = (dosbox_int_regsel & ~msk) + ((val & 0xFF) << (dosbox_int_regsel_shf * 8));
-				if ((++dosbox_int_regsel_shf) >= 4) dosbox_int_regsel_shf = 0;
-				val >>= 8U;
-				iolen--;
-			}
-			break;
-		case 1: /* data */
-			while (iolen > 0) {
-				msk = 0xFFU << (dosbox_int_register_shf * 8);
-				dosbox_int_register = (dosbox_int_register & ~msk) + ((val & 0xFF) << (dosbox_int_register_shf * 8));
-				if ((++dosbox_int_register_shf) >= 4) dosbox_int_register_shf = 0;
-				if (dosbox_int_register_shf == 0) dosbox_integration_trigger_write();
-				val >>= 8U;
-				iolen--;
-			}
-			break;
-		case 2: /* command */
-			switch (val) {
-				case 0x00: /* reset latch */
-					dosbox_int_register_shf = 0;
-					dosbox_int_regsel_shf = 0;
-					break;
-				case 0x01: /* flush write */
-					if (dosbox_int_register_shf != 0) {
-						dosbox_integration_trigger_write();
-						dosbox_int_register_shf = 0;
-					}
-					break;
-				case 0xFE: /* clear error */
-					dosbox_int_error = false;
-					break;
-				case 0xFF: /* reset interface */
-					dosbox_int_busy = false;
-					dosbox_int_error = false;
-					dosbox_int_regsel = 0xAA55BB66;
-					dosbox_int_register = 0xD05B0C5;
-					break;
-			};
-			break;
-		default:
-			break;
-	};
+    while (iolen > 0) {
+        msk = 0xFFU << (dosbox_int_regsel_shf * 8);
+        dosbox_int_regsel = (dosbox_int_regsel & ~msk) + ((val & 0xFF) << (dosbox_int_regsel_shf * 8));
+        if ((++dosbox_int_regsel_shf) >= 4) dosbox_int_regsel_shf = 0;
+        val >>= 8U;
+        iolen--;
+    }
+}
+
+static Bitu dosbox_integration_port01_data_r(Bitu port,Bitu iolen) {
+	Bitu retb = 0;
+	Bitu ret = 0;
+
+    while (iolen > 0) {
+        if (dosbox_int_register_shf == 0) dosbox_integration_trigger_read();
+        ret += ((dosbox_int_register >> (dosbox_int_register_shf * 8)) & 0xFFU) << (retb * 8);
+        if ((++dosbox_int_register_shf) >= 4) dosbox_int_register_shf = 0;
+        iolen--;
+        retb++;
+    }
+
+    return ret;
+}
+
+static void dosbox_integration_port01_data_w(Bitu port,Bitu val,Bitu iolen) {
+	uint32_t msk;
+
+    while (iolen > 0) {
+        msk = 0xFFU << (dosbox_int_register_shf * 8);
+        dosbox_int_register = (dosbox_int_register & ~msk) + ((val & 0xFF) << (dosbox_int_register_shf * 8));
+        if ((++dosbox_int_register_shf) >= 4) dosbox_int_register_shf = 0;
+        if (dosbox_int_register_shf == 0) dosbox_integration_trigger_write();
+        val >>= 8U;
+        iolen--;
+    }
+}
+
+static Bitu dosbox_integration_port02_status_r(Bitu port,Bitu iolen) {
+	/* status */
+    /* 7:6 = regsel byte index
+     * 5:4 = register byte index
+     * 3:2 = reserved
+     *   1 = error
+     *   0 = busy */
+    return (dosbox_int_regsel_shf << 6) + (dosbox_int_register_shf << 4) +
+        (dosbox_int_error ? 2 : 0) + (dosbox_int_busy ? 1 : 0);
+}
+
+static void dosbox_integration_port02_command_w(Bitu port,Bitu val,Bitu iolen) {
+    switch (val) {
+        case 0x00: /* reset latch */
+            dosbox_int_register_shf = 0;
+            dosbox_int_regsel_shf = 0;
+            break;
+        case 0x01: /* flush write */
+            if (dosbox_int_register_shf != 0) {
+                dosbox_integration_trigger_write();
+                dosbox_int_register_shf = 0;
+            }
+            break;
+        case 0x20: /* push state */
+            if (dosbox_int_push_save_state()) {
+                dosbox_int_register_shf = 0;
+                dosbox_int_regsel_shf = 0;
+                dosbox_int_error = false;
+                dosbox_int_busy = false;
+                dosbox_int_regsel = 0xAA55BB66;
+                dosbox_int_register = 0xD05B0C5;
+                LOG(LOG_MISC,LOG_DEBUG)("DOSBOX IG state saved");
+            }
+            else {
+                LOG(LOG_MISC,LOG_DEBUG)("DOSBOX IG unable to push state, stack overflow");
+                dosbox_int_error = true;
+            }
+            break;
+        case 0x21: /* pop state */
+            if (dosbox_int_pop_save_state()) {
+                LOG(LOG_MISC,LOG_DEBUG)("DOSBOX IG state restored");
+            }
+            else {
+                LOG(LOG_MISC,LOG_DEBUG)("DOSBOX IG unable to pop state, stack underflow");
+                dosbox_int_error = true;
+            }
+            break;
+        case 0x22: /* discard state */
+            if (dosbox_int_discard_save_state()) {
+                LOG(LOG_MISC,LOG_DEBUG)("DOSBOX IG state discarded");
+            }
+            else {
+                LOG(LOG_MISC,LOG_DEBUG)("DOSBOX IG unable to discard state, stack underflow");
+                dosbox_int_error = true;
+            }
+            break;
+        case 0x23: /* discard all state */
+            while (dosbox_int_discard_save_state());
+            break;
+        case 0xFE: /* clear error */
+            dosbox_int_error = false;
+            break;
+        case 0xFF: /* reset interface */
+            dosbox_int_busy = false;
+            dosbox_int_error = false;
+            dosbox_int_regsel = 0xAA55BB66;
+            dosbox_int_register = 0xD05B0C5;
+            break;
+        default:
+            dosbox_int_error = true;
+            break;
+    }
+}
+
+static const IO_ReadHandler* dosbox_integration_cb_ports_r[4] = {
+    dosbox_integration_port00_index_r,
+    dosbox_integration_port01_data_r,
+    dosbox_integration_port02_status_r,
+    NULL
+};
+
+static IO_ReadHandler* dosbox_integration_cb_port_r(IO_CalloutObject &co,Bitu port,Bitu iolen) {
+    return dosbox_integration_cb_ports_r[port&3];
+}
+
+static const IO_WriteHandler* dosbox_integration_cb_ports_w[4] = {
+    dosbox_integration_port00_index_w,
+    dosbox_integration_port01_data_w,
+    dosbox_integration_port02_command_w,
+    NULL
+};
+
+static IO_WriteHandler* dosbox_integration_cb_port_w(IO_CalloutObject &co,Bitu port,Bitu iolen) {
+    return dosbox_integration_cb_ports_w[port&3];
 }
 
 /* if mem_systems 0 then size_extended is reported as the real size else 
@@ -723,6 +878,8 @@ class ISAPnPIntegrationDevice : public ISAPnPDevice {
 		}
 };
 
+ISAPnPIntegrationDevice *isapnpigdevice = NULL;
+
 class ISAPNP_SysDevNode {
 public:
 	ISAPNP_SysDevNode(const unsigned char *ir,int len,bool already_alloc=false) {
@@ -753,6 +910,18 @@ public:
 static ISAPNP_SysDevNode*	ISAPNP_SysDevNodes[MAX_ISA_PNP_SYSDEVNODES] = {NULL};
 static Bitu			ISAPNP_SysDevNodeLargest=0;
 static Bitu			ISAPNP_SysDevNodeCount=0;
+
+void ISA_PNP_FreeAllSysNodeDevs() {
+	Bitu i;
+
+	for (i=0;i < MAX_ISA_PNP_SYSDEVNODES;i++) {
+		if (ISAPNP_SysDevNodes[i] != NULL) delete ISAPNP_SysDevNodes[i];
+		ISAPNP_SysDevNodes[i] = NULL;
+	}
+
+	ISAPNP_SysDevNodeLargest=0;
+	ISAPNP_SysDevNodeCount=0;
+}
 
 void ISA_PNP_FreeAllDevs() {
 	Bitu i;
@@ -980,7 +1149,7 @@ void ISAPNP_Cfg_Reset(Section *sec) {
 		APM_BIOS_minor_version);
 
 	if (APMBIOS && (APMBIOS_allow_prot16 || APMBIOS_allow_prot32) && INT15_apm_pmentry == 0) {
-		Bitu cb;
+		Bitu cb,base;
 
 		/* NTS: This is... kind of a terrible hack. It basically tricks Windows into executing our
 		 *      INT 15h handler as if the APM entry point. Except that instead of an actual INT 15h
@@ -994,7 +1163,48 @@ void ISAPNP_Cfg_Reset(Section *sec) {
 		INT15_apm_pmentry = CALLBACK_RealPointer(cb);
 		LOG_MSG("Allocated APM BIOS pm entry point at %04x:%04x\n",INT15_apm_pmentry>>16,INT15_apm_pmentry&0xFFFF);
 		CALLBACK_Setup(cb,INT15_Handler,CB_RETF,"APM BIOS protected mode entry point");
-	}
+
+        /* NTS: Actually INT15_Handler is written to act like an interrupt (IRETF) type callback.
+         *      Prior versions hacked this into something that responds by CB_RETF, however some
+         *      poking around reveals that CALLBACK_SCF and friends still assume an interrupt
+         *      stack, thus, the cause of random crashes in Windows was simply that we were
+         *      flipping flag bits in the middle of the return address on the stack. The other
+         *      source of random crashes is that the CF/ZF manipulation in INT 15h wasn't making
+         *      it's way back to Windows, meaning that when APM BIOS emulation intended to return
+         *      an error (by setting CF), Windows didn't get the memo (CF wasn't set on return)
+         *      and acted as if the call succeeded, or worse, CF happened to be set on entry and
+         *      was never cleared by APM BIOS emulation.
+         *
+         *      So what we need is:
+         *
+         *      PUSHF           ; put flags in right place
+         *      PUSH    BP      ; dummy FAR pointer
+         *      PUSH    BP      ; again
+         *      <callback>
+         *      POP     BP      ; drop it
+         *      POP     BP      ; drop it
+         *      POPF
+         *      RETF
+         *
+         *      Then CALLBACK_SCF can work normally this way.
+         *
+         * NTS: We *still* need to separate APM BIOS calls from the general INT 15H emulation though... */
+        base = Real2Phys(INT15_apm_pmentry);
+        LOG_MSG("Writing code to %05x\n",(unsigned int)base);
+
+        phys_writeb(base+0x00,0x9C);                             /* pushf */
+        phys_writeb(base+0x01,0x55);                             /* push (e)bp */
+        phys_writeb(base+0x02,0x55);                             /* push (e)bp */
+
+        phys_writeb(base+0x03,(Bit8u)0xFE);						//GRP 4
+        phys_writeb(base+0x04,(Bit8u)0x38);						//Extra Callback instruction
+        phys_writew(base+0x05,(Bit16u)cb);               		//The immediate word
+
+        phys_writeb(base+0x07,0x5D);                             /* pop (e)bp */
+        phys_writeb(base+0x08,0x5D);                             /* pop (e)bp */
+        phys_writeb(base+0x09,0x9D);                             /* popf */
+        phys_writeb(base+0x0A,0xCB);                             /* retf */
+    }
 }
 
 void ISAPNP_Cfg_Init() {
@@ -2740,7 +2950,7 @@ static Bitu INT15_Handler(void) {
 		break;
 	case 0x53: // APM BIOS
 		if (APMBIOS) {
-//			LOG_MSG("APM BIOS call AX=%04x BX=0x%04x CX=0x%04x\n",reg_ax,reg_bx,reg_cx);
+			LOG(LOG_BIOS,LOG_DEBUG)("APM BIOS call AX=%04x BX=0x%04x CX=0x%04x\n",reg_ax,reg_bx,reg_cx);
 			switch(reg_al) {
 				case 0x00: // installation check
 					reg_ah = 1;				// major
@@ -3169,7 +3379,7 @@ static Bitu INT15_Handler(void) {
 				}
 				break;
 			default:
-				LOG(LOG_BIOS,LOG_ERROR)("INT15:Unknown call %4X",reg_ax);
+				LOG(LOG_BIOS,LOG_ERROR)("INT15:Unknown call ah=E8, al=%2X",reg_al);
 				reg_ah=0x86;
 				CALLBACK_SCF(true);
 				if ((IS_EGAVGA_ARCH) || (machine==MCH_CGA) || (machine==MCH_AMSTRAD)) {
@@ -3179,7 +3389,7 @@ static Bitu INT15_Handler(void) {
 		}
 		break;
 	default:
-		LOG(LOG_BIOS,LOG_ERROR)("INT15:Unknown call %4X",reg_ax);
+		LOG(LOG_BIOS,LOG_ERROR)("INT15:Unknown call ax=%4X",reg_ax);
 		reg_ah=0x86;
 		CALLBACK_SCF(true);
 		if ((IS_EGAVGA_ARCH) || (machine==MCH_CGA) || (machine==MCH_AMSTRAD)) {
@@ -3208,16 +3418,6 @@ static Bitu IRQ15_Dummy(void) {
 }
 
 void On_Software_CPU_Reset();
-
-static Bitu BIOS_RESET_FFFF_0000(void) {
-	LOG_MSG("Restart by jumping to BIOS entry point (FFFF:0000) requested\n");
-	/* NTS: It's worth noting on an old Pentium 100MHz system of mine, that the BIOS decompresses
-	 * itself from ROM into shadow RAM and then puts an "INT 19h" at FFFF:0000. Many other motherboards
-	 * that did not shadow their ROM BIOS put actual initialization code in place there. --J.C. */
-	On_Software_CPU_Reset();
-	/* does not return */
-	return CBRET_NONE;
-}
 
 static Bitu INT18_Handler(void) {
 	LOG_MSG("Restart by INT 18h requested\n");
@@ -3411,6 +3611,16 @@ static CALLBACK_HandlerObject int4b_callback;
 static CALLBACK_HandlerObject callback[16]; /* <- fixme: this is stupid. just declare one per interrupt. */
 static CALLBACK_HandlerObject cb_bios_post;
 
+Bitu call_pnp_r = ~0UL;
+Bitu call_pnp_rp = 0;
+
+Bitu call_pnp_p = ~0UL;
+Bitu call_pnp_pp = 0;
+
+Bitu isapnp_biosstruct_base = 0;
+
+void BIOS_OnResetComplete(Section *x);
+
 class BIOS:public Module_base{
 private:
 	static Bitu cb_bios_post__func(void) {
@@ -3423,6 +3633,8 @@ private:
 		void MEM_A20_Enable(bool enabled);
 		A20Gate_OverrideOn(NULL);
 		MEM_A20_Enable(true);
+
+        BIOS_OnResetComplete(NULL);
 
 		adapter_scan_start = 0xC0000;
 		bios_has_exec_vga_bios = false;
@@ -3448,6 +3660,33 @@ private:
 			reg_esp = sz - 4;
 			reg_ebp = 0;
 			LOG(LOG_MISC,LOG_DEBUG)("BIOS: POST stack set to 0000:%04x",reg_esp);
+		}
+
+        if (dosbox_int_iocallout != IO_Callout_t_none) {
+            IO_FreeCallout(dosbox_int_iocallout);
+            dosbox_int_iocallout = IO_Callout_t_none;
+        }
+
+        if (isapnp_biosstruct_base != 0) {
+            ROMBIOS_FreeMemory(isapnp_biosstruct_base);
+            isapnp_biosstruct_base = 0;
+        }
+
+		if (BOCHS_PORT_E9) {
+			delete BOCHS_PORT_E9;
+			BOCHS_PORT_E9=NULL;
+		}
+		if (ISAPNP_PNP_ADDRESS_PORT) {
+			delete ISAPNP_PNP_ADDRESS_PORT;
+			ISAPNP_PNP_ADDRESS_PORT=NULL;
+		}
+		if (ISAPNP_PNP_DATA_PORT) {
+			delete ISAPNP_PNP_DATA_PORT;
+			ISAPNP_PNP_DATA_PORT=NULL;
+		}
+		if (ISAPNP_PNP_READ_PORT) {
+			delete ISAPNP_PNP_READ_PORT;
+			ISAPNP_PNP_READ_PORT=NULL;
 		}
 
 		if (bios_first_init) {
@@ -3707,38 +3946,48 @@ private:
 		}
 
 		if (enable_integration_device) {
-			for (Bitu i=0;i < 4;i++) {
-				DOSBOX_INTEGRATION_PORT_READ[i] = new IO_ReadHandleObject;
-				DOSBOX_INTEGRATION_PORT_WRITE[i] = new IO_WriteHandleObject;
-				DOSBOX_INTEGRATION_PORT_READ[i]->Install(0x28+i,dosbox_integration_port_r,IO_MA);
-				DOSBOX_INTEGRATION_PORT_WRITE[i]->Install(0x28+i,dosbox_integration_port_w,IO_MA);
-			}
+            /* integration device callout */
+            if (dosbox_int_iocallout == IO_Callout_t_none)
+                dosbox_int_iocallout = IO_AllocateCallout(IO_TYPE_MB);
+            if (dosbox_int_iocallout == IO_Callout_t_none)
+                E_Exit("Failed to get dosbox integration IO callout handle");
 
-			/* DOSBox integration device */
-			ISA_PNP_devreg(new ISAPnPIntegrationDevice);
+            {
+                IO_CalloutObject *obj = IO_GetCallout(dosbox_int_iocallout);
+                if (obj == NULL) E_Exit("Failed to get dosbox integration IO callout");
+                obj->Install(0x28,IOMASK_Combine(IOMASK_FULL,IOMASK_Range(4)),dosbox_integration_cb_port_r,dosbox_integration_cb_port_w);
+                IO_PutCallout(obj);
+            }
+
+            /* DOSBox integration device */
+            if (isapnpigdevice == NULL) {
+                isapnpigdevice = new ISAPnPIntegrationDevice;
+                ISA_PNP_devreg(isapnpigdevice);
+            }
 		}
 
 		// ISA Plug & Play BIOS entrypoint
+        // NTS: Apparently, Windows 95, 98, and ME will re-enumerate and re-install PnP devices if our entry point changes it's address.
 		if (ISAPNPBIOS) {
 			int i;
 			Bitu base;
 			unsigned char c,tmp[256];
 
 			if (mainline_compatible_bios_mapping)
-				base = 0xFE100; /* take the unused space just after the fake BIOS signature */
+				isapnp_biosstruct_base = base = 0xFE100; /* take the unused space just after the fake BIOS signature */
 			else
-				base = ROMBIOS_GetMemory(0x21,"ISA Plug & Play BIOS struct",/*paragraph alignment*/0x10);
+				isapnp_biosstruct_base = base = ROMBIOS_GetMemory(0x21,"ISA Plug & Play BIOS struct",/*paragraph alignment*/0x10);
 
 			if (base == 0) E_Exit("Unable to allocate ISA PnP struct");
 			LOG_MSG("ISA Plug & Play BIOS enabled");
 
-			Bitu call_pnp_r = CALLBACK_Allocate();
-			Bitu call_pnp_rp = PNPentry_real = CALLBACK_RealPointer(call_pnp_r);
+			call_pnp_r = CALLBACK_Allocate();
+			call_pnp_rp = PNPentry_real = CALLBACK_RealPointer(call_pnp_r);
 			CALLBACK_Setup(call_pnp_r,ISAPNP_Handler_RM,CB_RETF,"ISA Plug & Play entry point (real)");
 			//LOG_MSG("real entry pt=%08lx\n",PNPentry_real);
 
-			Bitu call_pnp_p = CALLBACK_Allocate();
-			Bitu call_pnp_pp = PNPentry_prot = CALLBACK_RealPointer(call_pnp_p);
+			call_pnp_p = CALLBACK_Allocate();
+			call_pnp_pp = PNPentry_prot = CALLBACK_RealPointer(call_pnp_p);
 			CALLBACK_Setup(call_pnp_p,ISAPNP_Handler_PM,CB_RETF,"ISA Plug & Play entry point (protected)");
 			//LOG_MSG("prot entry pt=%08lx\n",PNPentry_prot);
 
@@ -3919,6 +4168,12 @@ private:
 
 			void BIOS_Post_register_comports_PNP();
 			BIOS_Post_register_comports_PNP();
+
+            void BIOS_Post_register_IDE();
+            BIOS_Post_register_IDE();
+
+            void BIOS_Post_register_FDC();
+            BIOS_Post_register_FDC();
 		}
 
 		return CBRET_NONE;
@@ -4010,7 +4265,7 @@ private:
 	}
 	CALLBACK_HandlerObject cb_bios_startup_screen;
 	static Bitu cb_bios_startup_screen__func(void) {
-		const char *msg = PACKAGE_STRING " (C) 2002-2015 The DOSBox Team\nA fork of DOSBox 0.74 by TheGreatCodeholio\nFor more info visit http://dosbox-x.com\nBased on DOSBox (http://dosbox.com)\n\n";
+		const char *msg = PACKAGE_STRING " (C) 2002-2017 The DOSBox Team\nA fork of DOSBox 0.74 by TheGreatCodeholio\nFor more info visit http://dosbox-x.com\nBased on DOSBox (http://dosbox.com)\n\n";
 		int logo_x,logo_y,x,y,rowheight=8;
 
 		y = 2;
@@ -4212,18 +4467,13 @@ private:
 			}
 		}
 
-		while (wait_for_user) {
-			reg_eax = 0x0100;
-			CALLBACK_RunRealInt(0x16);
+        while (wait_for_user) {
+            reg_eax = 0x0000;
+            CALLBACK_RunRealInt(0x16);
 
-			if (!GETFLAG(ZF)) {
-				reg_eax = 0x0000;
-				CALLBACK_RunRealInt(0x16);
-
-				if (reg_al == 27/*ESC*/ || reg_al == 13/*ENTER*/)
-					break;
-			}
-		}
+            if (reg_al == 27/*ESC*/ || reg_al == 13/*ENTER*/)
+                break;
+        }
 
 		// restore 80x25 text mode
 		reg_eax = 3;
@@ -4274,6 +4524,8 @@ public:
 	BIOS(Section* configuration):Module_base(configuration){
 		/* tandy DAC can be requested in tandy_sound.cpp by initializing this field */
 		Bitu wo;
+
+        isapnp_biosstruct_base = 0;
 
 		{ // TODO: Eventually, move this to BIOS POST or init phase
 			Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
@@ -4411,20 +4663,17 @@ public:
 		// IDE emulation fires the IRQ and OS's like Win95 expect
 		// the BIOS to handle the interrupt.
 		// FIXME: Shouldn't the IRQ send an ACK to the PIC as well?!?
-		callback[11].Install(&IRQ14_Dummy,CB_IRET,"irq 14 ide");
+		callback[11].Install(&IRQ14_Dummy,CB_IRET_EOI_PIC2,"irq 14 ide");
 
 		// INT 77h: IDE IRQ 15
 		// This is just a dummy IRQ handler to prevent crashes when
 		// IDE emulation fires the IRQ and OS's like Win95 expect
 		// the BIOS to handle the interrupt.
 		// FIXME: Shouldn't the IRQ send an ACK to the PIC as well?!?
-		callback[12].Install(&IRQ15_Dummy,CB_IRET,"irq 15 ide");
+		callback[12].Install(&IRQ15_Dummy,CB_IRET_EOI_PIC2,"irq 15 ide");
 
 		// INT 0Eh: IDE IRQ 6
 		callback[13].Install(&IRQ15_Dummy,CB_IRET_EOI_PIC1,"irq 6 floppy");
-
-		// Handler for FFFF:0000 (usually distinct from INT 19h).
-		callback[14].Install(&BIOS_RESET_FFFF_0000,CB_IRET,"BIOS entry point");
 
 		// INT 18h: Enter BASIC
 		// Non-IBM BIOS would display "NO ROM BASIC" here
@@ -4513,6 +4762,15 @@ public:
 			delete ISAPNP_PNP_READ_PORT;
 			ISAPNP_PNP_READ_PORT=NULL;
 		}
+        if (isapnpigdevice) {
+            /* ISA PnP will auto-free it */
+            isapnpigdevice=NULL;
+        }
+
+        if (dosbox_int_iocallout != IO_Callout_t_none) {
+            IO_FreeCallout(dosbox_int_iocallout);
+            dosbox_int_iocallout = IO_Callout_t_none;
+        }
 
 		/* abort DAC playing */
 		if (tandy_sb.port) {
@@ -4656,6 +4914,38 @@ void BIOS_OnPowerOn(Section* sec) {
 void swapInNextDisk(bool pressed);
 void swapInNextCD(bool pressed);
 
+void INT10_OnResetComplete();
+void CALLBACK_DeAllocate(Bitu in);
+
+void MOUSE_Unsetup_DOS(void);
+void MOUSE_Unsetup_BIOS(void);
+
+void BIOS_OnResetComplete(Section *x) {
+    INT10_OnResetComplete();
+
+    if (biosConfigSeg != 0) {
+        ROMBIOS_FreeMemory(biosConfigSeg << 4); /* remember it was alloc'd paragraph aligned, then saved >> 4 */
+        biosConfigSeg = 0;
+    }
+
+    call_pnp_rp = 0;
+    if (call_pnp_r != ~0UL) {
+        CALLBACK_DeAllocate(call_pnp_r);
+        call_pnp_r = ~0UL;
+    }
+
+    call_pnp_pp = 0;
+    if (call_pnp_p != ~0UL) {
+        CALLBACK_DeAllocate(call_pnp_p);
+        call_pnp_p = ~0UL;
+    }
+
+    MOUSE_Unsetup_DOS();
+    MOUSE_Unsetup_BIOS();
+
+    ISA_PNP_FreeAllSysNodeDevs();
+}
+
 void BIOS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing BIOS");
 
@@ -4671,6 +4961,7 @@ void BIOS_Init() {
 	/* NTS: VM_EVENT_BIOS_INIT this callback must be first. */
 	AddExitFunction(AddExitFunctionFuncPair(BIOS_Destroy),false);
 	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(BIOS_OnPowerOn));
+	AddVMEventFunction(VM_EVENT_RESET_END,AddVMEventFunctionFuncPair(BIOS_OnResetComplete));
 }
 
 void write_ID_version_string() {
