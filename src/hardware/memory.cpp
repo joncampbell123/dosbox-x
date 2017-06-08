@@ -37,22 +37,6 @@
 
 #include <string.h>
 
-static MEM_Callout_t lfb_mem_cb = MEM_Callout_t_none;
-static MEM_Callout_t lfb_mmio_cb = MEM_Callout_t_none;
-
-#define MEM_callouts_max (MEM_TYPE_MAX - MEM_TYPE_MIN)
-#define MEM_callouts_index(t) (t - MEM_TYPE_MIN)
-
-class MEM_callout_vector : public std::vector<MEM_CalloutObject> {
-public:
-    MEM_callout_vector() : std::vector<MEM_CalloutObject>(), getcounter(0), alloc_from(0) { };
-public:
-    unsigned int getcounter;
-    unsigned int alloc_from;
-};
-
-static MEM_callout_vector MEM_callouts[MEM_callouts_max];
-
 bool a20_guest_changeable = true;
 bool a20_full_masking = false;
 bool a20_fake_changeable = false;
@@ -82,18 +66,13 @@ static struct MemoryBlock {
 	Bitu reported_pages;
 	PageHandler * * phandlers;
 	MemHandle * mhandles;
-	struct {
+	struct	{
 		Bitu		start_page;
 		Bitu		end_page;
 		Bitu		pages;
 		PageHandler *handler;
+		PageHandler *mmiohandler;
 	} lfb;
-    struct {
-		Bitu		start_page;
-		Bitu		end_page;
-		Bitu		pages;
-		PageHandler *handler;
-    } lfb_mmio;
 	struct {
 		bool enabled;
 		Bit8u controlport;
@@ -210,422 +189,16 @@ static RAMPageHandler ram_page_handler;
 static ROMPageHandler rom_page_handler;
 static ROMAliasPageHandler rom_page_alias_handler;
 
-
-extern bool pcibus_enable;
-
-template <enum MEM_Type_t iotype> static unsigned int MEM_Gen_Callout(Bitu &ret,PageHandler* &f,Bitu page) {
-    MEM_callout_vector &vec = MEM_callouts[iotype - MEM_TYPE_MIN];
-    unsigned int match = 0;
-    PageHandler *t_f;
-    size_t scan = 0;
-
-    while (scan < vec.size()) {
-        MEM_CalloutObject &obj = vec[scan++];
-        if (!obj.isInstalled()) continue;
-        if (obj.m_handler == NULL) continue;
-        if (!obj.MatchPage(page)) continue;
-
-        t_f = obj.m_handler(obj,page);
-        if (t_f != NULL) {
-            if (match == 0) {
-                f = t_f;
-            }
-            else {
-                /* device conflict! */
-                /* TODO: to handle it properly, we would need to know whether this was a memory read or memory write,
-                 *       and then have some way for the slow mem page handler to call each page handler one by one
-                 *       and either write to each or read from each and combine. */
-                /* TODO: as usual, if iotype is PCI, multiple writes are permitted, but break out after finding one match for read. */
-                break;
-            }
-            match++;
-        }
-    }
-
-    return match;
-}
-
-static unsigned int MEM_Motherboard_Callout(Bitu &ret,PageHandler* &f,Bitu page) {
-    return MEM_Gen_Callout<MEM_TYPE_MB>(ret,f,page);
-}
-
-static unsigned int MEM_PCI_Callout(Bitu &ret,PageHandler* &f,Bitu page) {
-    return MEM_Gen_Callout<MEM_TYPE_PCI>(ret,f,page);
-}
-
-static unsigned int MEM_ISA_Callout(Bitu &ret,PageHandler* &f,Bitu page) {
-    return MEM_Gen_Callout<MEM_TYPE_ISA>(ret,f,page);
-}
-
-static PageHandler *MEM_SlowPath(Bitu page) {
-    PageHandler *f = &unmapped_page_handler;
-    unsigned int match = 0;
-    Bitu ret = ~0;
-
-	if (page >= memory.handler_pages)
-        return &illegal_page_handler;
-
-    /* TEMPORARY, REMOVE LATER. SHOULD NOT HAPPEN. */
-    if (page < memory.reported_pages) {
-        LOG(LOG_MISC,LOG_WARN)("MEM_SlowPath called within system RAM at page %x",(unsigned int)page);
-        f = (PageHandler*)(&ram_page_handler);
-    }
-
-    /* check motherboard devices (ROM BIOS, system RAM, etc.) */
-    match = MEM_Motherboard_Callout(/*&*/ret,/*&*/f,page);
-
-    if (match == 0) {
-        /* first PCI bus device, then ISA. */
-        if (pcibus_enable) {
-            /* PCI and PCI/ISA bridge emulation */
-            match = MEM_PCI_Callout(/*&*/ret,/*&*/f,page);
-            if (match == 0) {
-                /* PCI didn't take it, ask ISA bus */
-                match = MEM_ISA_Callout(/*&*/ret,/*&*/f,page);
-            }
-        }
-        else {
-            /* Pure ISA emulation */
-            match = MEM_ISA_Callout(/*&*/ret,/*&*/f,page);
-        }
-    }
-
-    /* if nothing matched, assign default handler to MEM handler slot.
-     * if one device responded, assign it's handler to the MEM handler slot.
-     * if more than one responded, then do not update the MEM handler slot. */
-//    assert(iolen >= 1 && iolen <= 4);
-//    porti = (iolen >= 4) ? 2 : (iolen - 1); /* 1 2 x 4 -> 0 1 1 2 */
-    LOG(LOG_MISC,LOG_DEBUG)("MEM slow path page=%x: device matches=%u",(unsigned int)page,(unsigned int)match);
-	if (match <= 1) memory.phandlers[page] = f;
-
-    return f;
-}
-
-void MEM_RegisterHandler(Bitu phys_page,PageHandler * handler,Bitu page_range) {
-    assert((phys_page+page_range) <= memory.handler_pages);
-	while (page_range--) memory.phandlers[phys_page++]=handler;
-}
-
-void MEM_InvalidateCachedHandler(Bitu phys_page,Bitu range) {
-    assert((phys_page+range) <= memory.handler_pages);
-	while (range--) memory.phandlers[phys_page++]=NULL;
-}
-
-void MEM_FreeHandler(Bitu phys_page,Bitu page_range) {
-    MEM_InvalidateCachedHandler(phys_page,page_range);
-}
-
-void MEM_CalloutObject::InvalidateCachedHandlers(void) {
-    Bitu p;
-
-    /* for both the base page, as well as it's aliases, revert the pages back to "slow path" */
-    for (p=m_base;p < memory.handler_pages;p += alias_mask+1)
-        MEM_InvalidateCachedHandler(p,range_mask+1);
-}
-
-void MEM_CalloutObject::Install(Bitu page,Bitu pagemask/*MEMMASK_ISA_10BIT, etc.*/,MEM_CalloutHandler *handler) {
-	if(!installed) {
-        if (pagemask == 0 || (pagemask & ~0xFFFFFFFU)) {
-            LOG(LOG_MISC,LOG_ERROR)("MEM_CalloutObject::Install: Page mask %x is invalid",(unsigned int)pagemask);
-            return;
-        }
-
-        /* we need a mask for the distance between aliases of the port, and the range of I/O ports. */
-        /* only the low part of the mask where bits are zero, not the upper.
-         * This loop is the reason portmask cannot be ~0 else it would become an infinite loop.
-         * This also serves to check that the mask is a proper combination of ISA masking and
-         * I/O port range (example: IOMASK_ISA_10BIT & (~0x3) == 0x3FF & 0xFFFFFFFC = 0x3FC for a device with 4 I/O ports).
-         * A proper mask has (from MSB to LSB):
-         *   - zero or more 0 bits from MSB
-         *   - 1 or more 1 bits in the middle
-         *   - zero or more 0 bits to LSB */
-        {
-            Bitu m = 1;
-            Bitu test;
-
-            /* compute range mask from zero bits at LSB */
-            range_mask = 0;
-            test = pagemask ^ 0xFFFFFFFU;
-            while ((test & m) == m) {
-                range_mask = m;
-                m = (m << 1) + 1;
-            }
-
-            /* DEBUG */
-            if ((pagemask & range_mask) != 0 ||
-                ((range_mask + 1) & range_mask) != 0/* should be a mask, therefore AND by itself + 1 should be zero (think (0xF + 1) & 0xF = 0x10 & 0xF = 0x0) */) {
-                LOG(LOG_MISC,LOG_ERROR)("MEM_CalloutObject::Install: pagemask(%x) & range_mask(%x) != 0 (%x). You found a corner case that broke this code, fix it.",
-                    (unsigned int)pagemask,
-                    (unsigned int)range_mask,
-                    (unsigned int)(pagemask & range_mask));
-                return;
-            }
-
-            /* compute alias mask from middle 1 bits */
-            alias_mask = range_mask;
-            test = pagemask + range_mask; /* will break if portmask & range_mask != 0 */
-            while ((test & m) == m) {
-                alias_mask = m;
-                m = (m << 1) + 1;
-            }
-
-            /* any bits after that should be zero. */
-            /* confirm this by XORing portmask by (alias_mask ^ range_mask). */
-            /* we already confirmed that portmask & range_mask == 0. */
-            /* Example:
-             *
-             *    Sound Blaster at port 220-22Fh with 10-bit ISA decode would be 0x03F0 therefore:
-             *      portmask =    0x03F0
-             *      range_mask =  0x000F
-             *      alias_mask =  0x03FF
-             *
-             *      portmask ^ range_mask = 0x3FF
-             *      portmask ^ range_mask ^ alias_mask = 0x0000
-             *
-             * Example of invalid portmask 0x13F0:
-             *      portmask =    0x13F0
-             *      range_mask =  0x000F
-             *      alias_mask =  0x03FF
-             *
-             *      portmask ^ range_mask = 0x13FF
-             *      portmask ^ range_mask ^ alias_mask = 0x1000 */
-            if ((pagemask ^ range_mask ^ alias_mask) != 0 ||
-                ((alias_mask + 1) & alias_mask) != 0/* should be a mask, therefore AND by itself + 1 should be zero */) {
-                LOG(LOG_MISC,LOG_ERROR)("MEM_CalloutObject::Install: pagemask(%x) ^ range_mask(%x) ^ alias_mask(%x) != 0 (%x). Invalid portmask.",
-                    (unsigned int)pagemask,
-                    (unsigned int)range_mask,
-                    (unsigned int)alias_mask,
-                    (unsigned int)(pagemask ^ range_mask ^ alias_mask));
-                return;
-            }
-
-            if (page & range_mask) {
-                LOG(LOG_MISC,LOG_ERROR)("MEM_CalloutObject::Install: page %x and page mask %x not aligned (range_mask %x)",
-                    (unsigned int)page,(unsigned int)pagemask,(unsigned int)range_mask);
-                return;
-            }
-        }
-
-		installed=true;
-		m_base=page;
-        mem_mask=pagemask;
-        m_handler=handler;
-
-        /* add this object to the callout array.
-         * don't register any I/O handlers. those will be registered during the "slow path"
-         * callout process when the CPU goes to access them. to encourage that to happen,
-         * we invalidate the I/O ranges */
-        LOG(LOG_MISC,LOG_DEBUG)("MEM_CalloutObject::Install added device with page=0x%x mem_mask=0x%x rangemask=0x%x aliasmask=0x%x",
-            (unsigned int)page,(unsigned int)mem_mask,(unsigned int)range_mask,(unsigned int)alias_mask);
-
-        InvalidateCachedHandlers();
-    }
-}
-
-void MEM_CalloutObject::Uninstall() {
-	if(!installed) return;
-    InvalidateCachedHandlers();
-    installed=false;
-}
-
-/* callers maintain a handle to it.
- * if they need to touch it, they get a pointer, which they then have to put back.
- * The way DOSBox/DOSbox-X code handles MEM callbacks it's common to declare an MEM object,
- * call the install, but then never touch it again, so this should work fine.
- *
- * this allows us to maintain ready-made MEM callout objects to return quickly rather
- * than write more complicated code where the caller has to make an MEM_CalloutObject
- * and then call install and we have to add it's pointer to a list/vector/whatever.
- * It also avoids problems where if we have to resize the vector, the pointers become
- * invalid, because callers have only handles and they have to put all the pointers
- * back in order for us to resize the vector. */
-MEM_Callout_t MEM_AllocateCallout(MEM_Type_t t) {
-    if (t < MEM_TYPE_MIN || t >= MEM_TYPE_MAX)
-        return MEM_Callout_t_none;
-
-    MEM_callout_vector &vec = MEM_callouts[t - MEM_TYPE_MIN];
-
-try_again:
-    while (vec.alloc_from < vec.size()) {
-        MEM_CalloutObject &obj = vec[vec.alloc_from];
-
-        if (!obj.alloc) {
-            obj.alloc = true;
-            assert(obj.isInstalled() == false);
-            return MEM_Callout_t_comb(t,vec.alloc_from++); /* make combination, then increment alloc_from */
-        }
-
-        vec.alloc_from++;
-    }
-
-    /* okay, double the size of the vector within reason.
-     * if anyone has pointers out to our elements, then we cannot resize. vector::resize() may invalidate them. */
-    if (vec.size() < 4096 && vec.getcounter == 0) {
-        size_t nsz = vec.size() * 2;
-
-        LOG(LOG_MISC,LOG_WARN)("MEM_AllocateCallout type %u expanding array to %u",(unsigned int)t,(unsigned int)nsz);
-        vec.alloc_from = vec.size(); /* allocate from end of old vector size */
-        vec.resize(nsz);
-        goto try_again;
-    }
-
-    LOG(LOG_MISC,LOG_WARN)("MEM_AllocateCallout type %u no free entries",(unsigned int)t);
-    return MEM_Callout_t_none;
-}
-
-void MEM_FreeCallout(MEM_Callout_t c) {
-    enum MEM_Type_t t = MEM_Callout_t_type(c);
-
-    if (t < MEM_TYPE_MIN || t >= MEM_TYPE_MAX)
-        return;
-
-    MEM_callout_vector &vec = MEM_callouts[t - MEM_TYPE_MIN];
-    uint32_t idx = MEM_Callout_t_index(c);
-
-    if (idx >= vec.size())
-        return;
-
-    MEM_CalloutObject &obj = vec[idx];
-    if (!obj.alloc) return;
-
-    if (obj.isInstalled())
-        obj.Uninstall();
-
-    obj.alloc = false;
-    vec.alloc_from = idx; /* an empty slot just opened up, you can alloc from there */
-}
-
-MEM_CalloutObject *MEM_GetCallout(MEM_Callout_t c) {
-    enum MEM_Type_t t = MEM_Callout_t_type(c);
-
-    if (t < MEM_TYPE_MIN || t >= MEM_TYPE_MAX)
-        return NULL;
-
-    MEM_callout_vector &vec = MEM_callouts[t - MEM_TYPE_MIN];
-    uint32_t idx = MEM_Callout_t_index(c);
-
-    if (idx >= vec.size())
-        return NULL;
-
-    MEM_CalloutObject &obj = vec[idx];
-    if (!obj.alloc) return NULL;
-    obj.getcounter++;
-
-    return &obj;
-}
-
-void MEM_PutCallout(MEM_CalloutObject *obj) {
-    if (obj == NULL) return;
-    if (obj->getcounter == 0) return;
-    obj->getcounter--;
-}
-
-void lfb_mem_cb_free(void) {
-    if (lfb_mem_cb != MEM_Callout_t_none) {
-        MEM_FreeCallout(lfb_mem_cb);
-        lfb_mem_cb = MEM_Callout_t_none;
-    }
-    if (lfb_mmio_cb != MEM_Callout_t_none) {
-        MEM_FreeCallout(lfb_mmio_cb);
-        lfb_mmio_cb = MEM_Callout_t_none;
-    }
-}
-
-PageHandler* lfb_memio_cb(MEM_CalloutObject &co,Bitu phys_page) {
-    if (memory.lfb.start_page == 0 || memory.lfb.pages == 0)
-        return NULL;
-    if (phys_page >= memory.lfb.start_page || phys_page < memory.lfb.end_page)
-        return memory.lfb.handler;
-    if (phys_page >= memory.lfb_mmio.start_page || phys_page < memory.lfb_mmio.end_page)
-        return memory.lfb_mmio.handler;
-
-    return NULL;
-}
-
-void lfb_mem_cb_init() {
-    if (lfb_mem_cb == MEM_Callout_t_none) {
-        lfb_mem_cb = MEM_AllocateCallout(pcibus_enable ? MEM_TYPE_PCI : MEM_TYPE_ISA);
-        if (lfb_mem_cb == MEM_Callout_t_none) E_Exit("Unable to allocate mem cb for LFB");
-    }
-    if (lfb_mmio_cb == MEM_Callout_t_none) {
-        lfb_mmio_cb = MEM_AllocateCallout(pcibus_enable ? MEM_TYPE_PCI : MEM_TYPE_ISA);
-        if (lfb_mmio_cb == MEM_Callout_t_none) E_Exit("Unable to allocate mmio cb for LFB");
-    }
-
-    {
-        MEM_CalloutObject *cb = MEM_GetCallout(lfb_mem_cb);
-        Bitu p2sz = 1;
-
-        assert(cb != NULL);
-
-        cb->Uninstall();
-
-        if (memory.lfb.pages != 0) {
-            /* make p2sz the largest power of 2 that covers the LFB */
-            while (p2sz < memory.lfb.pages) p2sz <<= (Bitu)1;
-            cb->Install(memory.lfb.start_page,MEMMASK_Combine(MEMMASK_FULL,MEMMASK_Range(p2sz)),lfb_memio_cb);
-        }
-
-        MEM_PutCallout(cb);
-    }
-
-    {
-        MEM_CalloutObject *cb = MEM_GetCallout(lfb_mmio_cb);
-        Bitu p2sz = 1;
-
-        assert(cb != NULL);
-
-        cb->Uninstall();
-        if (memory.lfb_mmio.pages != 0) {
-            /* make p2sz the largest power of 2 that covers the LFB */
-            while (p2sz < memory.lfb_mmio.pages) p2sz <<= (Bitu)1;
-            cb->Install(memory.lfb_mmio.start_page,MEMMASK_Combine(MEMMASK_FULL,MEMMASK_Range(p2sz)),lfb_memio_cb);
-        }
-
-        MEM_PutCallout(cb);
-    }
-}
-
-/* TODO: At some point, this common code needs to be removed and the S3 emulation (or whatever else)
- *       needs to provide LFB and/or MMIO mapping. */
 void MEM_SetLFB(Bitu page, Bitu pages, PageHandler *handler, PageHandler *mmiohandler) {
 	if (page == memory.lfb.start_page && memory.lfb.end_page == (page+pages) &&
 		memory.lfb.pages == pages && memory.lfb.handler == handler &&
-		memory.lfb_mmio.handler == mmiohandler)
+		memory.lfb.mmiohandler == mmiohandler)
 		return;
 
-	memory.lfb.handler=handler;
-    if (handler != NULL) {
-        memory.lfb.start_page=page;
-        memory.lfb.end_page=page+pages;
-        memory.lfb.pages=pages;
-    }
-    else {
-        memory.lfb.start_page=0;
-        memory.lfb.end_page=0;
-        memory.lfb.pages=0;
-    }
-
-	memory.lfb_mmio.handler=mmiohandler;
-    if (mmiohandler != NULL) {
-        /* FIXME: Why is this hard-coded? There's more than just S3 emulation in this code's future! */
-        memory.lfb_mmio.start_page=page+(0x01000000/4096);
-        memory.lfb_mmio.end_page=page+(0x01000000/4096)+16;
-        memory.lfb_mmio.pages=16;
-    }
-    else {
-        memory.lfb_mmio.start_page=0;
-        memory.lfb_mmio.end_page=0;
-        memory.lfb_mmio.pages=0;
-    }
-
 	if (pages == 0 || page == 0) {
-        lfb_mem_cb_free();
 		LOG(LOG_MISC,LOG_DEBUG)("MEM: Linear framebuffer disabled");
 	}
 	else {
-        lfb_mem_cb_init();
-
 		LOG(LOG_MISC,LOG_DEBUG)("MEM: Linear framebuffer is now set to 0x%lx-0x%lx (%uKB)",
 			(unsigned long)(page*4096),
 			(unsigned long)(((page+pages)*4096)-1),
@@ -637,19 +210,28 @@ void MEM_SetLFB(Bitu page, Bitu pages, PageHandler *handler, PageHandler *mmioha
 			(unsigned int)(16*4));
 	}
 
+	memory.lfb.handler=handler;
+	memory.lfb.mmiohandler=mmiohandler;
+	memory.lfb.start_page=page;
+	memory.lfb.end_page=page+pages;
+	memory.lfb.pages=pages;
 	PAGING_ClearTLB();
 }
 
+/* TODO: at some point, the VGA card's linear framebuffer needs to register memory callbacks instead of special case code here */
 PageHandler * MEM_GetPageHandler(Bitu phys_page) {
-    phys_page &= memory.mem_alias_pagemask_active;
-    if (phys_page<memory.handler_pages) {
-        if (memory.phandlers[phys_page] != NULL) /*likely*/
-            return memory.phandlers[phys_page];
-
-        return MEM_SlowPath(phys_page); /* will also fill in phandlers[] if zero or one matches, so the next access is very fast */
-    }
-
-    return &illegal_page_handler;
+	phys_page &= memory.mem_alias_pagemask_active;
+	if (memory.lfb.pages != 0 && (phys_page>=memory.lfb.start_page) && (phys_page<memory.lfb.end_page)) {
+		return memory.lfb.handler;
+	} else if (memory.lfb.pages != 0 && (phys_page>=memory.lfb.start_page+0x01000000/4096) &&
+		(phys_page<memory.lfb.start_page+0x01000000/4096+16)) {
+		return memory.lfb.mmiohandler;
+//	} else if (VOODOO_PCI_CheckLFBPage(phys_page)) {
+//		return VOODOO_GetPageHandler();
+	} else if (phys_page<memory.handler_pages) {
+		return memory.phandlers[phys_page];
+	}
+	return &illegal_page_handler;
 }
 
 void MEM_SetPageHandler(Bitu phys_page,Bitu pages,PageHandler * handler) {
@@ -1435,7 +1017,7 @@ bool MEM_map_ROM_physmem(Bitu start,Bitu end) {
 			__FUNCTION__,(unsigned long)start,(unsigned long)end,(unsigned long)memory.handler_pages);
 
 	for (p=start;p <= end;p++) {
-		if (memory.phandlers[p] != NULL && memory.phandlers[p] != &illegal_page_handler && memory.phandlers[p] != &unmapped_page_handler)
+		if (memory.phandlers[p] != &illegal_page_handler && memory.phandlers[p] != &unmapped_page_handler)
 			return false;
 	}
 
@@ -1460,7 +1042,7 @@ bool MEM_map_ROM_alias_physmem(Bitu start,Bitu end) {
 			__FUNCTION__,(unsigned long)start,(unsigned long)end,(unsigned long)memory.handler_pages);
 
 	for (p=start;p <= end;p++) {
-		if (memory.phandlers[p] != NULL && memory.phandlers[p] != &illegal_page_handler && memory.phandlers[p] != &unmapped_page_handler)
+		if (memory.phandlers[p] != &illegal_page_handler && memory.phandlers[p] != &unmapped_page_handler)
 			return false;
 	}
 
@@ -1627,13 +1209,6 @@ void ShutDownRAM(Section * sec) {
 	}
 }
 
-void MEM_InitCallouts(void) {
-    /* make sure each vector has enough for a typical load */
-    MEM_callouts[MEM_callouts_index(MEM_TYPE_ISA)].resize(64);
-    MEM_callouts[MEM_callouts_index(MEM_TYPE_PCI)].resize(64);
-    MEM_callouts[MEM_callouts_index(MEM_TYPE_MB)].resize(64);
-}
-
 void Init_RAM() {
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 	Bitu i;
@@ -1643,9 +1218,6 @@ void Init_RAM() {
 		AddExitFunction(AddExitFunctionFuncPair(ShutDownRAM));
 		has_Init_RAM = true;
 	}
-
-    /* prepare callouts */
-    MEM_InitCallouts();
 
 	// LOG
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing RAM emulation (system memory)");
@@ -1733,14 +1305,14 @@ void Init_RAM() {
 	for (i=0;i < memory.reported_pages;i++)
 		memory.phandlers[i] = ram_ptr;
 	for (;i < memory.handler_pages;i++)
-		memory.phandlers[i] = NULL;//&illegal_page_handler;
+		memory.phandlers[i] = &illegal_page_handler;
 
 	if (!adapter_rom_is_ram) {
 		/* FIXME: VGA emulation will selectively respond to 0xA0000-0xBFFFF according to the video mode,
 		 *        what we want however is for the VGA emulation to assign illegal_page_handler for
 		 *        address ranges it is not responding to when mapping changes. */
 		for (i=0xa0;i<0x100;i++) /* we want to make sure adapter ROM is unmapped entirely! */
-			memory.phandlers[i] = NULL;//&unmapped_page_handler;
+			memory.phandlers[i] = &unmapped_page_handler;
 	}
 }
 
@@ -1767,7 +1339,6 @@ void ShutDownMemHandles(Section * sec) {
 void A20Gate_OnReset(Section *sec) {
 	void A20Gate_OverrideOn(Section *sec);
 
-	memory.a20.controlport = 0;
 	A20Gate_OverrideOn(sec);
 	MEM_A20_Enable(true);
 }
@@ -1785,8 +1356,6 @@ void A20Gate_TakeUserSetting(Section *sec) {
 
 	memory.a20.enabled = 0;
 	a20_fake_changeable = false;
-    a20_guest_changeable = true;
-	a20_full_masking = false;
 
 	// TODO: A20 gate control should also be handled by a motherboard init routine
 	std::string ss = section->Get_string("a20");
@@ -1881,14 +1450,10 @@ void Init_MemoryAccessArray() {
 
 	/* HACK: need to zero these! */
 	memory.lfb.handler=NULL;
+	memory.lfb.mmiohandler=NULL;
 	memory.lfb.start_page=0;
 	memory.lfb.end_page=0;
 	memory.lfb.pages=0;
-
-	memory.lfb_mmio.handler=NULL;
-	memory.lfb_mmio.start_page=0;
-	memory.lfb_mmio.end_page=0;
-	memory.lfb_mmio.pages=0;
 
 	if (!has_Init_MemoryAccessArray) {
 		has_Init_MemoryAccessArray = true;
@@ -1912,7 +1477,7 @@ void Init_MemoryAccessArray() {
 		memory.phandlers = new PageHandler* [memory.handler_pages];
 
 	for (i=0;i < memory.handler_pages;i++) // FIXME: This will eventually init all pages to the "slow path" for device lookup
-		memory.phandlers[i] = NULL;//&illegal_page_handler;
+		memory.phandlers[i] = &illegal_page_handler;
 }
 
 void Init_PCJR_CartridgeROM() {
@@ -1925,9 +1490,5 @@ void Init_PCJR_CartridgeROM() {
 	 * Don't call this function unless emulating PCjr! */
 	for (i=0xe0;i<0xf0;i++)
 		memory.phandlers[i] = &rom_page_handler;
-}
-
-Bitu MEM_PageMask(void) {
-    return memory.mem_alias_pagemask;
 }
 

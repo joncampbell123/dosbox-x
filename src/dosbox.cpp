@@ -187,12 +187,8 @@ Bitu				VGA_BIOS_Size = 0x8000;
 
 static Bit32u			ticksRemain;
 static Bit32u			ticksLast;
-static Bit32u           ticksLastFramecounter;
-static Bit32u           ticksLastRTcounter;
-static double           ticksLastRTtime;
 static Bit32u			ticksAdded;
 static Bit32u			Ticks = 0;
-extern double           rtdelta;
 static LoopHandler*		loop;
 
 /* The whole load of startups for all the subfunctions */
@@ -323,187 +319,176 @@ extern bool allow_keyb_reset;
 extern bool DOSBox_Paused();
 
 static Bitu Normal_Loop(void) {
-    bool saved_allow = dosbox_allow_nonrecursive_page_fault;
-    Bit32u ticksNew;
+	Bit32u ticksNew;
 	Bits ret;
 
-    if (!menu.hidecycles || menu.showrt) { /* sdlmain.cpp/render.cpp doesn't even maintain the frames count when hiding cycles! */
-        ticksNew = GetTicks();
-        if (ticksNew >= Ticks) {
-            Bit32u interval = ticksNew - ticksLastFramecounter;
-            double rtnow = PIC_FullIndex();
+	while (1) {
+		if (PIC_RunQueue()) {
+			ticksNew = GetTicks();
+			if (ticksNew >= Ticks) {
+				Ticks = ticksNew + 500;		// next update in 500ms
+				frames *= 2;			// compensate for 500ms interval
+				if(!menu.hidecycles) GFX_SetTitle(CPU_CycleMax,-1,-1,false);
+				frames = 0;
+			}
 
-            if (interval == 0) interval = 1; // avoid divide by zero
+			/* now is the time to check for the NMI (Non-maskable interrupt) */
+			CPU_Check_NMI();
 
-            rtdelta = rtnow - ticksLastRTtime;
-            rtdelta = (rtdelta * 1000) / interval;
+			/* FIXME: we check some registers to make sure page fault handling doesn't trip up */
+			bool saved_allow = dosbox_allow_nonrecursive_page_fault;
 
-            ticksLastRTtime = rtnow;
-            ticksLastFramecounter = Ticks;
-            Ticks = ticksNew + 500;		// next update in 500ms
-            frames = (frames * 1000) / interval; // compensate for interval, be more exact (FIXME: so can we adjust for fractional frame rates)
-            GFX_SetTitle(CPU_CycleMax,-1,-1,false);
-            frames = 0;
-        }
-    }
+			dosbox_allow_nonrecursive_page_fault = true;
+			try {
+				ret = (*cpudecoder)();
+				dosbox_allow_nonrecursive_page_fault = saved_allow;
+			}
+			catch (GuestPageFaultException &pf) {
+				Bitu FillFlags(void);
 
-    try {
-        while (1) {
-            if (PIC_RunQueue()) {
-                /* now is the time to check for the NMI (Non-maskable interrupt) */
-                CPU_Check_NMI();
-
-                saved_allow = dosbox_allow_nonrecursive_page_fault;
-                dosbox_allow_nonrecursive_page_fault = true;
-                ret = (*cpudecoder)();
-                dosbox_allow_nonrecursive_page_fault = saved_allow;
-
-                if (GCC_UNLIKELY(ret<0))
-                    return 1;
-
-                if (ret>0) {
-                    if (GCC_UNLIKELY(ret >= CB_MAX))
-                        return 0;
-
-                    dosbox_allow_nonrecursive_page_fault = false;
-                    Bitu blah = (*CallBack_Handlers[ret])();
-                    dosbox_allow_nonrecursive_page_fault = saved_allow;
-                    if (GCC_UNLIKELY(blah))
-                        return blah;
-                }
-#if C_DEBUG
-                if (DEBUG_ExitLoop())
-                    return 0;
-#endif
-            } else {
-#ifdef __WIN32__
-                MSG_Loop();
-#endif
-                GFX_Events();
-                if (DOSBox_Paused() == false && ticksRemain > 0) {
-                    TIMER_AddTick();
-                    ticksRemain--;
-                } else {
-                    goto increaseticks;
-                }
-            }
-        }
-increaseticks:
-        if (GCC_UNLIKELY(ticksLocked)) {
-            ticksRemain=5;
-            /* Reset any auto cycle guessing for this frame */
-            ticksLast = GetTicks();
-            ticksAdded = 0;
-            ticksDone = 0;
-            ticksScheduled = 0;
-        } else {
-            ticksNew=GetTicks();
-            ticksScheduled += ticksAdded;
-            if (ticksNew > ticksLast) {
-                ticksRemain = ticksNew-ticksLast;
-                ticksLast = ticksNew;
-                ticksDone += ticksRemain;
-                if ( ticksRemain > 20 ) {
-                    ticksRemain = 20;
-                }
-                ticksAdded = ticksRemain;
-                if (CPU_CycleAutoAdjust && !CPU_SkipCycleAutoAdjust) {
-                    if (ticksScheduled >= 250 || ticksDone >= 250 || (ticksAdded > 15 && ticksScheduled >= 5) ) {
-                        if(ticksDone < 1) ticksDone = 1; // Protect against div by zero
-                        /* ratio we are aiming for is around 90% usage*/
-                        Bit32s ratio = (ticksScheduled * (CPU_CyclePercUsed*90*1024/100/100)) / ticksDone;
-                        Bit32s new_cmax = CPU_CycleMax;
-                        Bit64s cproc = (Bit64s)CPU_CycleMax * (Bit64s)ticksScheduled;
-                        if (cproc > 0) {
-                            /* ignore the cycles added due to the IO delay code in order
-                               to have smoother auto cycle adjustments */
-                            double ratioremoved = (double) CPU_IODelayRemoved / (double) cproc;
-                            if (ratioremoved < 1.0) {
-                                ratio = (Bit32s)((double)ratio * (1 - ratioremoved));
-                                /* Don't allow very high ratio which can cause us to lock as we don't scale down
-                                 * for very low ratios. High ratio might result because of timing resolution */
-                                if (ticksScheduled >= 250 && ticksDone < 10 && ratio > 20480) 
-                                    ratio = 20480;
-                                Bit64s cmax_scaled = (Bit64s)CPU_CycleMax * (Bit64s)ratio;
-                                /* The auto cycle code seems reliable enough to disable the fast cut back code.
-                                 * This should improve the fluency of complex games.
-                                 if (ratio <= 1024) 
-                                 new_cmax = (Bit32s)(cmax_scaled / (Bit64s)1024);
-                                 else 
-                                 */
-                                new_cmax = (Bit32s)(1 + (CPU_CycleMax >> 1) + cmax_scaled / (Bit64s)2048);
-                            }
-                        }
-
-                        if (new_cmax<CPU_CYCLES_LOWER_LIMIT)
-                            new_cmax=CPU_CYCLES_LOWER_LIMIT;
-
-                        /*
-                           LOG_MSG("cyclelog: current %6d   cmax %6d   ratio  %5d  done %3d   sched %3d",
-                           CPU_CycleMax,
-                           new_cmax,
-                           ratio,
-                           ticksDone,
-                           ticksScheduled);
-                           */  
-                        /* ratios below 1% are considered to be dropouts due to
-                           temporary load imbalance, the cycles adjusting is skipped */
-                        if (ratio>10) {
-                            /* ratios below 12% along with a large time since the last update
-                               has taken place are most likely caused by heavy load through a
-                               different application, the cycles adjusting is skipped as well */
-                            if ((ratio>120) || (ticksDone<700)) {
-                                CPU_CycleMax = new_cmax;
-                                if (CPU_CycleLimit > 0) {
-                                    if (CPU_CycleMax>CPU_CycleLimit) CPU_CycleMax = CPU_CycleLimit;
-                                }
-                            }
-                        }
-                        CPU_IODelayRemoved = 0;
-                        ticksDone = 0;
-                        ticksScheduled = 0;
-                    } else if (ticksAdded > 15) {
-                        /* ticksAdded > 15 but ticksScheduled < 5, lower the cycles
-                           but do not reset the scheduled/done ticks to take them into
-                           account during the next auto cycle adjustment */
-                        CPU_CycleMax /= 3;
-                        if (CPU_CycleMax < CPU_CYCLES_LOWER_LIMIT)
-                            CPU_CycleMax = CPU_CYCLES_LOWER_LIMIT;
-                    }
-                }
-            } else {
-                ticksAdded = 0;
-                SDL_Delay(1);
-                ticksDone -= GetTicks() - ticksNew;
-                if (ticksDone < 0)
-                    ticksDone = 0;
-            }
-        }
-    }
-    catch (GuestPageFaultException &pf) {
-        Bitu FillFlags(void);
-
-        ret = 0;
-        FillFlags();
-        dosbox_allow_nonrecursive_page_fault = false;
+				ret = 0;
+				FillFlags();
+				dosbox_allow_nonrecursive_page_fault = false;
 #if 0 //TODO make option
-        LOG_MSG("Guest page fault exception! Alternate method will be used. Wish me luck.\n");
+				LOG_MSG("Guest page fault exception! Alternate method will be used. Wish me luck.\n");
 #endif
-        CPU_Exception(EXCEPTION_PF,pf.faultcode);
-        dosbox_allow_nonrecursive_page_fault = saved_allow;
-    }
-    catch (int x) {
-        dosbox_allow_nonrecursive_page_fault = saved_allow;
-        if (x == 4/*CMOS shutdown*/) {
-            ret = 0;
-//			LOG_MSG("CMOS shutdown reset acknowledged");
-        }
-        else {
-            throw;
-        }
-    }
+				CPU_Exception(EXCEPTION_PF,pf.faultcode);
+				dosbox_allow_nonrecursive_page_fault = saved_allow;
+			}
+			catch (int x) {
+				dosbox_allow_nonrecursive_page_fault = saved_allow;
+				if (x == 4/*CMOS shutdown*/) {
+					ret = 0;
+//					LOG_MSG("CMOS shutdown reset acknowledged");
+				}
+				else {
+					throw;
+				}
+			}
 
-    return 0;
+			if (GCC_UNLIKELY(ret<0))
+				return 1;
+
+			if (ret>0) {
+				if (GCC_UNLIKELY(ret >= CB_MAX))
+					return 0;
+
+				dosbox_allow_nonrecursive_page_fault = false;
+				Bitu blah = (*CallBack_Handlers[ret])();
+				dosbox_allow_nonrecursive_page_fault = saved_allow;
+				if (GCC_UNLIKELY(blah))
+					return blah;
+			}
+#if C_DEBUG
+			if (DEBUG_ExitLoop())
+				return 0;
+#endif
+		} else {
+#ifdef __WIN32__
+			MSG_Loop();
+#endif
+			GFX_Events();
+			if (DOSBox_Paused() == false && ticksRemain > 0) {
+				TIMER_AddTick();
+				ticksRemain--;
+			} else {
+				goto increaseticks;
+			}
+		}
+	}
+increaseticks:
+	if (GCC_UNLIKELY(ticksLocked)) {
+		ticksRemain=5;
+		/* Reset any auto cycle guessing for this frame */
+		ticksLast = GetTicks();
+		ticksAdded = 0;
+		ticksDone = 0;
+		ticksScheduled = 0;
+	} else {
+		Bit32u ticksNew;
+		ticksNew=GetTicks();
+		ticksScheduled += ticksAdded;
+		if (ticksNew > ticksLast) {
+			ticksRemain = ticksNew-ticksLast;
+			ticksLast = ticksNew;
+			ticksDone += ticksRemain;
+			if ( ticksRemain > 20 ) {
+				ticksRemain = 20;
+			}
+			ticksAdded = ticksRemain;
+			if (CPU_CycleAutoAdjust && !CPU_SkipCycleAutoAdjust) {
+				if (ticksScheduled >= 250 || ticksDone >= 250 || (ticksAdded > 15 && ticksScheduled >= 5) ) {
+					if(ticksDone < 1) ticksDone = 1; // Protect against div by zero
+					/* ratio we are aiming for is around 90% usage*/
+					Bit32s ratio = (ticksScheduled * (CPU_CyclePercUsed*90*1024/100/100)) / ticksDone;
+					Bit32s new_cmax = CPU_CycleMax;
+					Bit64s cproc = (Bit64s)CPU_CycleMax * (Bit64s)ticksScheduled;
+					if (cproc > 0) {
+						/* ignore the cycles added due to the IO delay code in order
+						   to have smoother auto cycle adjustments */
+						double ratioremoved = (double) CPU_IODelayRemoved / (double) cproc;
+						if (ratioremoved < 1.0) {
+							ratio = (Bit32s)((double)ratio * (1 - ratioremoved));
+							/* Don't allow very high ratio which can cause us to lock as we don't scale down
+							 * for very low ratios. High ratio might result because of timing resolution */
+							if (ticksScheduled >= 250 && ticksDone < 10 && ratio > 20480) 
+								ratio = 20480;
+							Bit64s cmax_scaled = (Bit64s)CPU_CycleMax * (Bit64s)ratio;
+							/* The auto cycle code seems reliable enough to disable the fast cut back code.
+							 * This should improve the fluency of complex games.
+							if (ratio <= 1024) 
+								new_cmax = (Bit32s)(cmax_scaled / (Bit64s)1024);
+							else 
+							 */
+							new_cmax = (Bit32s)(1 + (CPU_CycleMax >> 1) + cmax_scaled / (Bit64s)2048);
+						}
+					}
+
+					if (new_cmax<CPU_CYCLES_LOWER_LIMIT)
+						new_cmax=CPU_CYCLES_LOWER_LIMIT;
+
+					/*
+					LOG_MSG("cyclelog: current %6d   cmax %6d   ratio  %5d  done %3d   sched %3d",
+						CPU_CycleMax,
+						new_cmax,
+						ratio,
+						ticksDone,
+						ticksScheduled);
+					*/  
+					/* ratios below 1% are considered to be dropouts due to
+					   temporary load imbalance, the cycles adjusting is skipped */
+					if (ratio>10) {
+						/* ratios below 12% along with a large time since the last update
+						   has taken place are most likely caused by heavy load through a
+						   different application, the cycles adjusting is skipped as well */
+						if ((ratio>120) || (ticksDone<700)) {
+							CPU_CycleMax = new_cmax;
+							if (CPU_CycleLimit > 0) {
+								if (CPU_CycleMax>CPU_CycleLimit) CPU_CycleMax = CPU_CycleLimit;
+							}
+						}
+					}
+					CPU_IODelayRemoved = 0;
+					ticksDone = 0;
+					ticksScheduled = 0;
+				} else if (ticksAdded > 15) {
+					/* ticksAdded > 15 but ticksScheduled < 5, lower the cycles
+					   but do not reset the scheduled/done ticks to take them into
+					   account during the next auto cycle adjustment */
+					CPU_CycleMax /= 3;
+					if (CPU_CycleMax < CPU_CYCLES_LOWER_LIMIT)
+						CPU_CycleMax = CPU_CYCLES_LOWER_LIMIT;
+				}
+			}
+		} else {
+			ticksAdded = 0;
+			SDL_Delay(1);
+			ticksDone -= GetTicks() - ticksNew;
+			if (ticksDone < 0)
+				ticksDone = 0;
+		}
+	}
+	return 0;
 }
 
 void DOSBOX_SetLoop(LoopHandler * handler) {
@@ -627,10 +612,7 @@ void DOSBOX_InitTickLoop() {
 
 	ticksRemain = 0;
 	ticksLocked = false;
-    ticksLastRTtime = 0;
 	ticksLast = GetTicks();
-    ticksLastRTcounter = GetTicks();
-    ticksLastFramecounter = GetTicks();
 	DOSBOX_SetLoop(&Normal_Loop);
 }
 
@@ -730,10 +712,6 @@ void DOSBOX_RealInit() {
 
 	// TODO: should be parsed by motherboard emulation
 	allow_port_92_reset = section->Get_bool("allow port 92 reset");
-
-    // CGA/EGA/VGA-specific
-    extern unsigned char vga_p3da_undefined_bits;
-    vga_p3da_undefined_bits = section->Get_hex("vga 3da undefined bits");
 
 	// TODO: should be parsed by motherboard emulation or lower level equiv..?
 	std::string cmd_machine;
@@ -850,13 +828,12 @@ void DOSBOX_SetupConfigSections(void) {
 	const char* oplmodes[]={ "auto", "cms", "opl2", "dualopl2", "opl3", "none", "hardware", "hardwaregb", 0};
 	const char* serials[] = { "dummy", "disabled", "modem", "nullmodem", "serialmouse", "directserial", "log", 0 };
 	const char* acpi_rsd_ptr_settings[] = { "auto", "bios", "ebda", 0 };
-    const char* cpm_compat_modes[] = { "auto", "off", "msdos2", "msdos5", "direct", 0 };
 	const char* dosv_settings[] = { "off", "japanese", "chinese", "korean", 0 };
 	const char* acpisettings[] = { "off", "1.0", "1.0b", "2.0", "2.0a", "2.0b", "2.0c", "3.0", "3.0a", "3.0b", "4.0", "4.0a", "5.0", "5.0a", "6.0", 0 };
 	const char* guspantables[] = { "old", "accurate", "default", 0 };
 	const char *sidbaseno[] = { "240", "220", "260", "280", "2a0", "2c0", "2e0", "300", 0 };
 	const char* joytypes[] = { "auto", "2axis", "4axis", "4axis_2", "fcs", "ch", "none",0};
-	const char* iosgus[] = { "240", "220", "260", "280", "2a0", "2c0", "2e0", "300", "210", "230", "250", 0 };
+	const char* iosgus[] = { "240", "220", "260", "280", "2a0", "2c0", "2e0", "300", 0 };
 	const char* ios[] = { "220", "240", "260", "280", "2a0", "2c0", "2e0", "300", 0 };
 	const char* ems_settings[] = { "true", "emsboard", "emm386", "false", 0};
 	const char* irqsgus[] = { "5", "3", "7", "9", "10", "11", "12", 0 };
@@ -1018,11 +995,6 @@ void DOSBOX_SetupConfigSections(void) {
 			  "  off_fake                     Lock A20 gate off but allow bit to toggle (hope your DOS game tests the HMA!)\n"
 			  "  on_fake                      Lock A20 gate on but allow bit to toggle");
 
-    Pbool = secprop->Add_bool("turn off a20 gate on boot",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If enabled, A20 gate is switched off when booting a guest OS.\n"
-                    "Enabled by default. Recommended for MS-DOS when HIMEM.SYS is not installed in the guest OS.\n"
-                    "If disabled, and MS-DOS does not load HIMEM.SYS, programs and features that rely on the 1MB wraparound will fail.");
-
 	Pstring = secprop->Add_string("isa bus clock",Property::Changeable::WhenIdle,"std8.3");
 	Pstring->Set_help("ISA BCLK frequency.\n"
 			  "WARNING: In future revisions, PCI/motherboard chipset emulation will allow the guest OS/program to alter this value at runtime.\n"
@@ -1177,26 +1149,6 @@ void DOSBOX_SetupConfigSections(void) {
 
 	Pbool = secprop->Add_bool("cgasnow",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("When machine=cga, determines whether or not to emulate CGA snow in 80x25 text mode");
-
-	Phex = secprop->Add_hex("vga 3da undefined bits",Property::Changeable::WhenIdle,0);
-	Phex->Set_help("VGA status port 3BA/3DAh only defines bits 0 and 3. This setting allows you to assign a bit pattern to the undefined bits.\n"
-                   "The purpose of this hack is to deal with demos that read and handle port 3DAh in ways that might crash if all are zero.\n"
-                   "By default, this value is zero.");
-
-	Pbool = secprop->Add_bool("unmask timer on int 10 setmode",Property::Changeable::OnlyAtStart,false);
-	Pbool->Set_help("If set, INT 10h will unmask IRQ 0 (timer) when setting video modes.");
-
-	Pbool = secprop->Add_bool("unmask keyboard on int 16 read",Property::Changeable::OnlyAtStart,false);
-	Pbool->Set_help("If set, INT 16h will unmask IRQ 1 (keyboard) when asked to read keyboard input.");
-
-	Pbool = secprop->Add_bool("int16 keyboard polling undocumented cf behavior",Property::Changeable::OnlyAtStart,false);
-	Pbool->Set_help("If set, INT 16h function AH=01h will also set/clear the carry flag depending on whether input was available.\n"
-                    "There are some old DOS games and demos that rely on this behavior to sense keyboard input, and this behavior\n"
-                    "has been verified to occur on some old (early 90s) BIOSes.");
-
-	Pint = secprop->Add_int("irq delay",Property::Changeable::OnlyAtStart,-1);
-	Pint->Set_help("If 0 or greater, apply a delay (in cycles) to IRQ handling in the CPU. A value of -1 means to use a default value.\n"
-                   "There are some old DOS games and demos that have race conditions with IRQs that need a nonzero value here to work properly.");
 
 	Pbool = secprop->Add_bool("allow port 92 reset",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("If set (default), allow the application to reset the CPU through port 92h");
@@ -1415,10 +1367,6 @@ void DOSBOX_SetupConfigSections(void) {
 	Pbool->Set_help("Allow RDMSR/WRMSR instructions. This option is only meaningful when cputype=pentium.\n"
 			"WARNING: Leaving this option enabled while installing Windows 95/98/ME can cause crashes.");
 
-	Pbool = secprop->Add_bool("enable cmpxchg8b",Property::Changeable::Always,true);
-	Pbool->Set_help("Enable Pentium CMPXCHG8B instruction. Enable this explicitly if using software that uses this instruction.\n"
-			"You must enable this option to run Windows ME because portions of the kernel rely on this instruction.");
-
 	Pbool = secprop->Add_bool("ignore undefined msr",Property::Changeable::Always,false);
 	Pbool->Set_help("Ignore RDMSR/WRMSR on undefined registers. Normally the CPU will fire an Invalid Opcode exception in that case.\n"
 			"This option is off by default, enable if using software or drivers that assumes the presence of\n"
@@ -1507,7 +1455,7 @@ void DOSBOX_SetupConfigSections(void) {
 	Pbool->Set_help("Allow guest OS to connect from 32-bit protected mode.\n"
 			"If you want power management in Windows 95/98/ME (beyond using the APM to shutdown the computer) you MUST enable this option.\n"
 			"Windows 95/98/ME does not support the 16-bit real and protected mode APM BIOS entry points.\n"
-			"Please note at this time that 32-bit APM is unstable under Windows ME");
+			"Please note at this time that 32-bit APM is unstable under Windows 98SE/ME");
 
 	Pbool = secprop->Add_bool("integration device",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("Enable DOSBox integration I/O device. This can be used by the guest OS to match mouse pointer position, for example. EXPERIMENTAL!");
@@ -1691,13 +1639,6 @@ void DOSBOX_SetupConfigSections(void) {
 			"setting this option.\n"
 			"Option is needed for:\n"
 			"   Public NMI \"jump\" demo (1992)");
-
-	Pbool = secprop->Add_bool("enable speaker",Property::Changeable::WhenIdle,false);
-	Pbool->Set_help("Start the DOS virtual machine with the sound blaster speaker enabled.\n"
-                    "Sound Blaster Pro and older cards have a speaker disable/enable command.\n"
-                    "Normally the card boots up with the speaker disabled. If a DOS game or demo\n"
-                    "attempts to play without enabling the speaker, set this option to true to\n"
-                    "compensate. This setting has no meaning if emulating a Sound Blaster 16 card.");
 
 	Pbool = secprop->Add_bool("enable asp",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("If set, emulate the presence of the Sound Blaster 16 Advanced Sound Processor/Creative Sound Processor chip.\n"
@@ -1998,8 +1939,7 @@ void DOSBOX_SetupConfigSections(void) {
 		"                 (realport:COM1 realport:ttyS0).\n"
 		"for modem: listenport (optional).\n"
 		"for nullmodem: server, rxdelay, txdelay, telnet, usedtr,\n"
-		"               transparent, port, inhsocket, nonlocal (all optional).\n"
-        "               connections are limited to localhost unless you specify nonlocal:1\n"
+		"               transparent, port, inhsocket (all optional).\n"
 		"Example: serial1=modem listenport:5000");
 
 	Pmulti_remain = secprop->Add_multiremain("serial2",Property::Changeable::WhenIdle," ");
@@ -2082,20 +2022,6 @@ void DOSBOX_SetupConfigSections(void) {
 	Pint->Set_help("Controls the amount of free space available in HMA. This setting is not meaningful unless the\n"
 			"DOS kernel occupies HMA and the emulated DOS version is at least 5.0.");
 
-    Pstring = secprop->Add_string("cpm compatibility mode",Property::Changeable::WhenIdle,"auto");
-	Pstring->Set_values(cpm_compat_modes);
-    Pstring->Set_help(
-            "This controls how the DOS kernel sets up the CP/M compatibility code in the PSP segment.\n"
-            "Several options are provided to emulate one of several undocumented behaviors related to the CP/M entry point.\n"
-            "If set to auto, DOSBox-X will pick the best option to allow it to work properly.\n"
-            "Unless set to 'off', this option will require the DOS kernel to occupy the first 256 bytes of the HMA memory area\n"
-            "to prevent crashes when the A20 gate is switched on.\n"
-            "   auto      Pick the best option\n"
-            "   off       Turn off the CP/M entry point (program will abort if called)\n"
-            "   msdos2    MS-DOS 2.x behavior, offset field also doubles as data segment size\n"
-            "   msdos5    MS-DOS 5.x behavior, entry point becomes one of two fixed addresses\n"
-            "   direct    Non-standard behavior, encode the CALL FAR directly to the entry point rather than indirectly");
-
 	Pbool = secprop->Add_bool("share",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Report SHARE.EXE as resident. Does not actually emulate SHARE functions.");
 
@@ -2174,9 +2100,6 @@ void DOSBOX_SetupConfigSections(void) {
 
 	Pbool = secprop->Add_bool("vcpi",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("If set and expanded memory is enabled, also emulate VCPI.");
-
-	Pbool = secprop->Add_bool("unmask timer on disk io",Property::Changeable::OnlyAtStart,false);
-	Pbool->Set_help("If set, INT 21h emulation will unmask IRQ 0 (timer interrupt) when the application opens/closes/reads/writes files.");
 
 	Pbool = secprop->Add_bool("zero int 67h if no ems",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("If ems=false, leave interrupt vector 67h zeroed out (default true).\n"

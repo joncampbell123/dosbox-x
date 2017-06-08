@@ -78,18 +78,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-@C_MT32_TRUE@am__append_1 = \
-@C_MT32_TRUE@	DelayReverb.cpp DelayReverb.h File.cpp File.h \
-@C_MT32_TRUE@	fmath.h FreeverbModel.cpp FreeverbModel.h BReverbModel.cpp BReverbModel.h \
-@C_MT32_TRUE@	mt32emu.h Part.cpp Part.h Partial.cpp Partial.h PartialManager.cpp \
-@C_MT32_TRUE@	mmath.h PartialManager.h Poly.cpp Poly.h Structures.h Synth.cpp FileStream.cpp FileStream.h \
-@C_MT32_TRUE@	Synth.h Tables.cpp Tables.h TVA.cpp TVA.h TVF.cpp TVF.h TVP.cpp \
-@C_MT32_TRUE@	LA32Ramp.cpp LA32Ramp.h TVP.h AReverbModel.cpp AReverbModel.h \
-@C_MT32_TRUE@	LA32WaveGenerator.cpp LA32WaveGenerator.h LegacyWaveGenerator.cpp LegacyWaveGenerator.h \
-@C_MT32_TRUE@	./freeverb/allpass.cpp ./freeverb/allpass.h ./freeverb/comb.cpp \
-@C_MT32_TRUE@	./freeverb/comb.h ./freeverb/denormals.h ./freeverb/revmodel.cpp \
-@C_MT32_TRUE@	./freeverb/revmodel.h ./freeverb/tuning.h midi_mt32.h ROMInfo.cpp ROMInfo.h
-
+@LINUX_TRUE@am__append_1 = sdlmain_linux.cpp
 subdir = src/gui
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/depcomp
@@ -111,16 +100,14 @@ am__v_AR_0 = @echo "  AR      " $@;
 am__v_AR_1 = 
 libgui_a_AR = $(AR) $(ARFLAGS)
 libgui_a_LIBADD =
-am__libgui_a_SOURCES_DIST = sdlmain_linux.cpp sdlmain.cpp \
-	sdl_mapper.cpp dosbox_logo.h render.cpp render_scalers.cpp \
-	render_scalers.h render_templates.h render_loops.h \
-	render_simple.h render_templates_sai.h render_templates_hq.h \
+am__libgui_a_SOURCES_DIST = sdlmain.cpp sdl_mapper.cpp dosbox_logo.h \
+	render.cpp render_scalers.cpp render_scalers.h \
+	render_templates.h render_loops.h render_simple.h \
+	render_templates_sai.h render_templates_hq.h \
 	render_templates_hq2x.h render_templates_hq3x.h midi.cpp \
 	midi_win32.h midi_oss.h midi_coreaudio.h midi_alsa.h \
 	direct3d.cpp direct3d.h hq2x_d3d.cpp hq2x_d3d.h \
 	midi_coremidi.h sdl_gui.cpp dosbox_splash.h menu.cpp \
-	./sha1/sha1.cpp ./sha1/sha1.h guid.cpp ksdataformat.cpp \
-	riff.cpp riff_wav_writer.cpp avi_rw_iobuf.cpp avi_writer.cpp \
 	DelayReverb.cpp DelayReverb.h File.cpp File.h fmath.h \
 	FreeverbModel.cpp FreeverbModel.h BReverbModel.cpp \
 	BReverbModel.h mt32emu.h Part.cpp Part.h Partial.cpp Partial.h \
@@ -133,23 +120,24 @@ am__libgui_a_SOURCES_DIST = sdlmain_linux.cpp sdlmain.cpp \
 	./freeverb/allpass.cpp ./freeverb/allpass.h \
 	./freeverb/comb.cpp ./freeverb/comb.h ./freeverb/denormals.h \
 	./freeverb/revmodel.cpp ./freeverb/revmodel.h \
-	./freeverb/tuning.h midi_mt32.h ROMInfo.cpp ROMInfo.h
-@C_MT32_TRUE@am__objects_1 = DelayReverb.$(OBJEXT) File.$(OBJEXT) \
-@C_MT32_TRUE@	FreeverbModel.$(OBJEXT) BReverbModel.$(OBJEXT) \
-@C_MT32_TRUE@	Part.$(OBJEXT) Partial.$(OBJEXT) \
-@C_MT32_TRUE@	PartialManager.$(OBJEXT) Poly.$(OBJEXT) \
-@C_MT32_TRUE@	Synth.$(OBJEXT) FileStream.$(OBJEXT) \
-@C_MT32_TRUE@	Tables.$(OBJEXT) TVA.$(OBJEXT) TVF.$(OBJEXT) \
-@C_MT32_TRUE@	TVP.$(OBJEXT) LA32Ramp.$(OBJEXT) \
-@C_MT32_TRUE@	AReverbModel.$(OBJEXT) \
-@C_MT32_TRUE@	LA32WaveGenerator.$(OBJEXT) \
-@C_MT32_TRUE@	LegacyWaveGenerator.$(OBJEXT) allpass.$(OBJEXT) \
-@C_MT32_TRUE@	comb.$(OBJEXT) revmodel.$(OBJEXT) \
-@C_MT32_TRUE@	ROMInfo.$(OBJEXT)
-am_libgui_a_OBJECTS = sdlmain_linux.$(OBJEXT) sdlmain.$(OBJEXT) \
-	sdl_mapper.$(OBJEXT) render.$(OBJEXT) render_scalers.$(OBJEXT) \
-	midi.$(OBJEXT) direct3d.$(OBJEXT) hq2x_d3d.$(OBJEXT) \
-	sdl_gui.$(OBJEXT) menu.$(OBJEXT) sha1.$(OBJEXT) guid.$(OBJEXT) \
+	./freeverb/tuning.h midi_mt32.h ./sha1/sha1.cpp ./sha1/sha1.h \
+	ROMInfo.cpp ROMInfo.h guid.cpp ksdataformat.cpp riff.cpp \
+	riff_wav_writer.cpp avi_rw_iobuf.cpp avi_writer.cpp \
+	sdlmain_linux.cpp
+am__dirstamp = $(am__leading_dot)dirstamp
+@LINUX_TRUE@am__objects_1 = sdlmain_linux.$(OBJEXT)
+am_libgui_a_OBJECTS = sdlmain.$(OBJEXT) sdl_mapper.$(OBJEXT) \
+	render.$(OBJEXT) render_scalers.$(OBJEXT) midi.$(OBJEXT) \
+	direct3d.$(OBJEXT) hq2x_d3d.$(OBJEXT) sdl_gui.$(OBJEXT) \
+	menu.$(OBJEXT) DelayReverb.$(OBJEXT) File.$(OBJEXT) \
+	FreeverbModel.$(OBJEXT) BReverbModel.$(OBJEXT) Part.$(OBJEXT) \
+	Partial.$(OBJEXT) PartialManager.$(OBJEXT) Poly.$(OBJEXT) \
+	Synth.$(OBJEXT) FileStream.$(OBJEXT) Tables.$(OBJEXT) \
+	TVA.$(OBJEXT) TVF.$(OBJEXT) TVP.$(OBJEXT) LA32Ramp.$(OBJEXT) \
+	AReverbModel.$(OBJEXT) LA32WaveGenerator.$(OBJEXT) \
+	LegacyWaveGenerator.$(OBJEXT) ./freeverb/allpass.$(OBJEXT) \
+	./freeverb/comb.$(OBJEXT) ./freeverb/revmodel.$(OBJEXT) \
+	./sha1/sha1.$(OBJEXT) ROMInfo.$(OBJEXT) guid.$(OBJEXT) \
 	ksdataformat.$(OBJEXT) riff.$(OBJEXT) \
 	riff_wav_writer.$(OBJEXT) avi_rw_iobuf.$(OBJEXT) \
 	avi_writer.$(OBJEXT) $(am__objects_1)
@@ -237,6 +225,7 @@ CFLAGS = @CFLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@
+CXXCPP = @CXXCPP@
 CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
@@ -330,17 +319,29 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CPPFLAGS = -I$(top_srcdir)/include
 noinst_LIBRARIES = libgui.a
-libgui_a_SOURCES = sdlmain_linux.cpp sdlmain.cpp sdl_mapper.cpp \
-	dosbox_logo.h render.cpp render_scalers.cpp render_scalers.h \
-	render_templates.h render_loops.h render_simple.h \
-	render_templates_sai.h render_templates_hq.h \
-	render_templates_hq2x.h render_templates_hq3x.h midi.cpp \
-	midi_win32.h midi_oss.h midi_coreaudio.h midi_alsa.h \
-	direct3d.cpp direct3d.h hq2x_d3d.cpp hq2x_d3d.h \
-	midi_coremidi.h sdl_gui.cpp dosbox_splash.h menu.cpp \
-	./sha1/sha1.cpp ./sha1/sha1.h guid.cpp ksdataformat.cpp \
-	riff.cpp riff_wav_writer.cpp avi_rw_iobuf.cpp avi_writer.cpp \
-	$(am__append_1)
+libgui_a_SOURCES = sdlmain.cpp sdl_mapper.cpp dosbox_logo.h render.cpp \
+	render_scalers.cpp render_scalers.h render_templates.h \
+	render_loops.h render_simple.h render_templates_sai.h \
+	render_templates_hq.h render_templates_hq2x.h \
+	render_templates_hq3x.h midi.cpp midi_win32.h midi_oss.h \
+	midi_coreaudio.h midi_alsa.h direct3d.cpp direct3d.h \
+	hq2x_d3d.cpp hq2x_d3d.h midi_coremidi.h sdl_gui.cpp \
+	dosbox_splash.h menu.cpp DelayReverb.cpp DelayReverb.h \
+	File.cpp File.h fmath.h FreeverbModel.cpp FreeverbModel.h \
+	BReverbModel.cpp BReverbModel.h mt32emu.h Part.cpp Part.h \
+	Partial.cpp Partial.h PartialManager.cpp mmath.h \
+	PartialManager.h Poly.cpp Poly.h Structures.h Synth.cpp \
+	FileStream.cpp FileStream.h Synth.h Tables.cpp Tables.h \
+	TVA.cpp TVA.h TVF.cpp TVF.h TVP.cpp LA32Ramp.cpp LA32Ramp.h \
+	TVP.h AReverbModel.cpp AReverbModel.h LA32WaveGenerator.cpp \
+	LA32WaveGenerator.h LegacyWaveGenerator.cpp \
+	LegacyWaveGenerator.h ./freeverb/allpass.cpp \
+	./freeverb/allpass.h ./freeverb/comb.cpp ./freeverb/comb.h \
+	./freeverb/denormals.h ./freeverb/revmodel.cpp \
+	./freeverb/revmodel.h ./freeverb/tuning.h midi_mt32.h \
+	./sha1/sha1.cpp ./sha1/sha1.h ROMInfo.cpp ROMInfo.h guid.cpp \
+	ksdataformat.cpp riff.cpp riff_wav_writer.cpp avi_rw_iobuf.cpp \
+	avi_writer.cpp $(am__append_1)
 all: all-am
 
 .SUFFIXES:
@@ -467,62 +468,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
-
-sha1.o: ./sha1/sha1.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sha1.o -MD -MP -MF $(DEPDIR)/sha1.Tpo -c -o sha1.o `test -f './sha1/sha1.cpp' || echo '$(srcdir)/'`./sha1/sha1.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sha1.Tpo $(DEPDIR)/sha1.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='./sha1/sha1.cpp' object='sha1.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sha1.o `test -f './sha1/sha1.cpp' || echo '$(srcdir)/'`./sha1/sha1.cpp
-
-sha1.obj: ./sha1/sha1.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sha1.obj -MD -MP -MF $(DEPDIR)/sha1.Tpo -c -o sha1.obj `if test -f './sha1/sha1.cpp'; then $(CYGPATH_W) './sha1/sha1.cpp'; else $(CYGPATH_W) '$(srcdir)/./sha1/sha1.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sha1.Tpo $(DEPDIR)/sha1.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='./sha1/sha1.cpp' object='sha1.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sha1.obj `if test -f './sha1/sha1.cpp'; then $(CYGPATH_W) './sha1/sha1.cpp'; else $(CYGPATH_W) '$(srcdir)/./sha1/sha1.cpp'; fi`
-
-allpass.o: ./freeverb/allpass.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT allpass.o -MD -MP -MF $(DEPDIR)/allpass.Tpo -c -o allpass.o `test -f './freeverb/allpass.cpp' || echo '$(srcdir)/'`./freeverb/allpass.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/allpass.Tpo $(DEPDIR)/allpass.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='./freeverb/allpass.cpp' object='allpass.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o allpass.o `test -f './freeverb/allpass.cpp' || echo '$(srcdir)/'`./freeverb/allpass.cpp
-
-allpass.obj: ./freeverb/allpass.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT allpass.obj -MD -MP -MF $(DEPDIR)/allpass.Tpo -c -o allpass.obj `if test -f './freeverb/allpass.cpp'; then $(CYGPATH_W) './freeverb/allpass.cpp'; else $(CYGPATH_W) '$(srcdir)/./freeverb/allpass.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/allpass.Tpo $(DEPDIR)/allpass.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='./freeverb/allpass.cpp' object='allpass.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o allpass.obj `if test -f './freeverb/allpass.cpp'; then $(CYGPATH_W) './freeverb/allpass.cpp'; else $(CYGPATH_W) '$(srcdir)/./freeverb/allpass.cpp'; fi`
-
-comb.o: ./freeverb/comb.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT comb.o -MD -MP -MF $(DEPDIR)/comb.Tpo -c -o comb.o `test -f './freeverb/comb.cpp' || echo '$(srcdir)/'`./freeverb/comb.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/comb.Tpo $(DEPDIR)/comb.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='./freeverb/comb.cpp' object='comb.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o comb.o `test -f './freeverb/comb.cpp' || echo '$(srcdir)/'`./freeverb/comb.cpp
-
-comb.obj: ./freeverb/comb.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT comb.obj -MD -MP -MF $(DEPDIR)/comb.Tpo -c -o comb.obj `if test -f './freeverb/comb.cpp'; then $(CYGPATH_W) './freeverb/comb.cpp'; else $(CYGPATH_W) '$(srcdir)/./freeverb/comb.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/comb.Tpo $(DEPDIR)/comb.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='./freeverb/comb.cpp' object='comb.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o comb.obj `if test -f './freeverb/comb.cpp'; then $(CYGPATH_W) './freeverb/comb.cpp'; else $(CYGPATH_W) '$(srcdir)/./freeverb/comb.cpp'; fi`
-
-revmodel.o: ./freeverb/revmodel.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT revmodel.o -MD -MP -MF $(DEPDIR)/revmodel.Tpo -c -o revmodel.o `test -f './freeverb/revmodel.cpp' || echo '$(srcdir)/'`./freeverb/revmodel.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/revmodel.Tpo $(DEPDIR)/revmodel.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='./freeverb/revmodel.cpp' object='revmodel.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o revmodel.o `test -f './freeverb/revmodel.cpp' || echo '$(srcdir)/'`./freeverb/revmodel.cpp
-
-revmodel.obj: ./freeverb/revmodel.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT revmodel.obj -MD -MP -MF $(DEPDIR)/revmodel.Tpo -c -o revmodel.obj `if test -f './freeverb/revmodel.cpp'; then $(CYGPATH_W) './freeverb/revmodel.cpp'; else $(CYGPATH_W) '$(srcdir)/./freeverb/revmodel.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/revmodel.Tpo $(DEPDIR)/revmodel.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='./freeverb/revmodel.cpp' object='revmodel.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o revmodel.obj `if test -f './freeverb/revmodel.cpp'; then $(CYGPATH_W) './freeverb/revmodel.cpp'; else $(CYGPATH_W) '$(srcdir)/./freeverb/revmodel.cpp'; fi`
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique

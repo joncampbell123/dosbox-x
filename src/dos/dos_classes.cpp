@@ -170,10 +170,6 @@ Bit32u DOS_InfoBlock::GetDeviceChain(void) {
 
 Bit16u DOS_PSP::rootpsp = 0;
 
-#define CPM_MAX_SEG_SIZE	0xfff
-
-extern unsigned char cpm_compat_mode;
-
 void DOS_PSP::MakeNew(Bit16u mem_size) {
 	/* get previous */
 //	DOS_PSP prevpsp(dos.psp());
@@ -182,45 +178,11 @@ void DOS_PSP::MakeNew(Bit16u mem_size) {
 	for (i=0;i<sizeof(sPSP);i++) mem_writeb(pt+i,0);
 	// Set size
 	sSave(sPSP,next_seg,seg+mem_size);
-    /* cpm_entry is an alias for the int 30 vector (0:c0 = c:0); the offset is also the maximum program size */
-    if (cpm_compat_mode == CPM_COMPAT_MSDOS2) { /* MS-DOS 2.x behavior, where offset is the memory size (for some reason) */
-	    /* far call opcode */
-        sSave(sPSP,far_call,0x9a);
-        /* and where to call to */
-        if (mem_size>CPM_MAX_SEG_SIZE) mem_size=CPM_MAX_SEG_SIZE;
-        mem_size-=0x10;
-        sSave(sPSP,cpm_entry,RealMake(0xc-mem_size,mem_size<<4));
-    }
-    else if (cpm_compat_mode == CPM_COMPAT_MSDOS5) { /* MS-DOS 5.x behavior, for whatever reason */
-	    /* far call opcode */
-        sSave(sPSP,far_call,0x9a);
-        /* and where to call to.
-         * if 64KB or more, call far to F01D:FEF0.
-         * else, call far to 0000:00C0.
-         * don't ask me why MS-DOS 5.0 does this, ask Microsoft. */
-        if (mem_size >= CPM_MAX_SEG_SIZE)
-            sSave(sPSP,cpm_entry,RealMake(0xF01D,0xFEF0));
-        else
-            sSave(sPSP,cpm_entry,RealMake(0x0000,0x00C0));
-    }
-    else if (cpm_compat_mode == CPM_COMPAT_DIRECT) {
-        /* direct and to the point, though impossible to hook INT 21h without patching all PSP segments
-         * which is probably why Microsoft never did this in the DOS kernel. Choosing this method
-         * removes the need for the copy of INT 30h in the HMA area, and therefore opens up all 64KB of
-         * HMA if you want. */
-        Bitu DOS_Get_CPM_entry_direct(void);
-
-	    /* far call opcode */
-        sSave(sPSP,far_call,0x9a);
-        /* and where to call to */
-        sSave(sPSP,cpm_entry,DOS_Get_CPM_entry_direct());
-    }
-    else { /* off */
-        /* stick an INT 20h in there to make calling the CP/M entry point an immediate exit */
-        /* this is NOT default, but an option for users who are absolutely certain no CP/M code is going to run in their DOS box. */
-        sSave(sPSP,far_call,0xCD);      // INT 20h + NOP NOP NOP
-        sSave(sPSP,cpm_entry,0x90909020);
-    }
+	/* far call opcode */
+	sSave(sPSP,far_call,0xea);
+	// far call to interrupt 0x21 - faked for bill & ted 
+	// lets hope nobody really uses this address
+	sSave(sPSP,cpm_entry,RealMake(0xDEAD,0xFFFF));
 	/* Standard blocks,int 20  and int21 retf */
 	sSave(sPSP,exit[0],0xcd);
 	sSave(sPSP,exit[1],0x20);

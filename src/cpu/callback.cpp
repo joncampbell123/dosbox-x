@@ -47,20 +47,6 @@ static Bitu illegal_handler(void) {
 	return 1;
 }
 
-void CALLBACK_Dump(void) {
-	LOG(LOG_CPU,LOG_DEBUG)("Callback dump");
-    for (Bitu i=0;i < CB_MAX;i++) {
-        if (CallBack_Handlers[i] == &illegal_handler)
-            continue;
-
-        LOG(LOG_CPU,LOG_DEBUG)("  [%u] func=%p desc='%s'",
-            (unsigned int)i,
-            (void*)CallBack_Handlers[i],
-            CallBack_Description[i] != NULL ? CallBack_Description[i] : "");
-    }
-	LOG(LOG_CPU,LOG_DEBUG)("--------------");
-}
-
 void CALLBACK_Shutdown(void) {
 	for (Bitu i=1;(i<CB_MAX);i++) {
 		CallBack_Handlers[i] = &illegal_handler;
@@ -81,9 +67,6 @@ Bitu CALLBACK_Allocate(void) {
 }
 
 void CALLBACK_DeAllocate(Bitu in) {
-    assert(in != 0);
-    assert(in < CB_MAX);
-
 	CallBack_Handlers[in]=&illegal_handler;
 	CALLBACK_SetDescription(in,NULL);
 }
@@ -152,54 +135,24 @@ void CALLBACK_RunRealInt(Bit8u intnum) {
 }
 
 void CALLBACK_SZF(bool val) {
-    Bitu tempf;
-
-    if (cpu.stack.big)
-        tempf = mem_readd(SegPhys(ss)+reg_esp+8); // first word past FAR 32:32
-    else
-        tempf = mem_readw(SegPhys(ss)+reg_sp+4); // first word past FAR 16:16
-
-    if (val) tempf |= FLAG_ZF;
-    else tempf &= ~FLAG_ZF;
-
-    if (cpu.stack.big)
-        mem_writed(SegPhys(ss)+reg_esp+8,tempf);
-    else
-        mem_writew(SegPhys(ss)+reg_sp+4,tempf);
+	Bit16u tempf = mem_readw(SegPhys(ss)+reg_sp+4);
+	if (val) tempf |= FLAG_ZF;
+	else tempf &= ~FLAG_ZF;
+	mem_writew(SegPhys(ss)+reg_sp+4,tempf);
 }
 
 void CALLBACK_SCF(bool val) {
-    Bitu tempf;
-
-    if (cpu.stack.big)
-        tempf = mem_readd(SegPhys(ss)+reg_esp+8); // first word past FAR 32:32
-    else
-        tempf = mem_readw(SegPhys(ss)+reg_sp+4); // first word past FAR 16:16
-
-    if (val) tempf |= FLAG_CF;
-    else tempf &= ~FLAG_CF;
-
-    if (cpu.stack.big)
-        mem_writed(SegPhys(ss)+reg_esp+8,tempf);
-    else
-        mem_writew(SegPhys(ss)+reg_sp+4,tempf);
+	Bit16u tempf = mem_readw(SegPhys(ss)+reg_sp+4);
+	if (val) tempf |= FLAG_CF;
+	else tempf &= ~FLAG_CF;
+	mem_writew(SegPhys(ss)+reg_sp+4,tempf);
 }
 
 void CALLBACK_SIF(bool val) {
-    Bitu tempf;
-
-    if (cpu.stack.big)
-        tempf = mem_readd(SegPhys(ss)+reg_esp+8); // first word past FAR 32:32
-    else
-        tempf = mem_readw(SegPhys(ss)+reg_sp+4); // first word past FAR 16:16
-
-    if (val) tempf |= FLAG_IF;
-    else tempf &= ~FLAG_IF;
-
-    if (cpu.stack.big)
-        mem_writed(SegPhys(ss)+reg_esp+8,tempf);
-    else
-        mem_writew(SegPhys(ss)+reg_sp+4,tempf);
+	Bit16u tempf = mem_readw(SegPhys(ss)+reg_sp+4);
+	if (val) tempf |= FLAG_IF;
+	else tempf &= ~FLAG_IF;
+	mem_writew(SegPhys(ss)+reg_sp+4,tempf);
 }
 
 void CALLBACK_SetDescription(Bitu nr, const char* descr) {
@@ -619,9 +572,6 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
 		phys_writeb(physAddress+0x07,(Bit8u)0x58);		// pop ax
 		phys_writeb(physAddress+0x08,(Bit8u)0xcf);		//An IRET Instruction
 		return (use_cb?0x0d:0x09);
-	case CB_CPM:
-		phys_writeb(physAddress+0x00,(Bit8u)0x9C);		//PUSHF
-		return CALLBACK_SetupExtra(callback,CB_INT21,physAddress+1,use_cb)+1;
 	default:
 		E_Exit("CALLBACK:Setup:Illegal type %u",(unsigned int)type);
 	}

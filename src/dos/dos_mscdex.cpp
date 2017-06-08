@@ -1193,7 +1193,7 @@ static bool MSCDEX_Handler(void) {
 	if (mscdex->rootDriverHeaderSeg==0) return false;	// not handled if MSCDEX not installed
 
 	PhysPt data = PhysMake(SegValue(es),reg_bx);
-	MSCDEX_LOG("MSCDEX: INT 2F AX=%04X BX=%04X CX=%04X",reg_ax,reg_bx,reg_cx);
+	MSCDEX_LOG("MSCDEX: INT 2F %04X BX= %04X CX=%04X",reg_ax,reg_bx,reg_cx);
 	switch (reg_ax) {
 	
 		case 0x1500:	/* Install check */

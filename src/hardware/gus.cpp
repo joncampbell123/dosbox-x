@@ -1915,19 +1915,16 @@ private:
 	IO_WriteHandleObject WriteCS4231Handler[4];
 	AutoexecObject autoexecline[3];
 	MixerObject MixerChan;
-    bool gus_enable;
 public:
 	GUS(Section* configuration):Module_base(configuration){
 		int x;
 
-        gus_enable = false;
-        if(!IS_EGAVGA_ARCH) return;
-        Section_prop * section=static_cast<Section_prop *>(configuration);
-        if(!section->Get_bool("gus")) return;
-
-        gus_enable = true;
-        memset(&myGUS,0,sizeof(myGUS));
-        memset(GUSRam,0,1024*1024);
+		if(!IS_EGAVGA_ARCH) return;
+		Section_prop * section=static_cast<Section_prop *>(configuration);
+		if(!section->Get_bool("gus")) return;
+	
+		memset(&myGUS,0,sizeof(myGUS));
+		memset(GUSRam,0,1024*1024);
 
 		string s_pantable = section->Get_string("gus panning table");
 		if (s_pantable == "default" || s_pantable == "" || s_pantable == "accurate")
@@ -1983,8 +1980,6 @@ public:
 			LOG(LOG_MISC,LOG_DEBUG)("GUS: Master IRQ enable will be forced on as instructed");
 
 		myGUS.rate=section->Get_int("gusrate");
-
-        ultradir = section->Get_string("ultradir");
 
 		x = section->Get_int("gusmemsize");
 		if (x >= 0) myGUS.memsize = x*1024;
@@ -2094,6 +2089,25 @@ public:
 
 		GetDMAChannel(myGUS.dma1)->Register_Callback(GUS_DMA_Callback);
 
+		int portat = 0x200+GUS_BASE;
+
+		// ULTRASND=Port,DMA1,DMA2,IRQ1,IRQ2
+		// [GUS port], [GUS DMA (recording)], [GUS DMA (playback)], [GUS IRQ (playback)], [GUS IRQ (MIDI)]
+		ostringstream temp;
+		temp << "SET ULTRASND=" << hex << setw(3) << portat << ","
+		     << dec << (Bitu)myGUS.dma1 << "," << (Bitu)myGUS.dma2 << ","
+		     << (Bitu)myGUS.irq1 << "," << (Bitu)myGUS.irq2 << ends;
+		// Create autoexec.bat lines
+		autoexecline[0].Install(temp.str());
+		autoexecline[1].Install(std::string("SET ULTRADIR=") + section->Get_string("ultradir"));
+
+		if (gus_type >= GUS_MAX) {
+			/* FIXME: Does the Interwave have a CS4231? */
+			ostringstream temp2;
+			temp2 << "SET ULTRA16=" << hex << setw(3) << (0x30C+GUS_BASE) << ","
+				<< "0,0,1,0" << ends; // FIXME What do these numbers mean?
+			autoexecline[2].Install(temp2.str());
+		}
 		if (gus_ics_mixer) {
 			// pre-set ourself as if ULTRINIT and ULTRAMIX had been run
 			GUS_ICS2101.mixpair[gus_ICS2101::MIC_IN_PORT].setAttenuation(0,0x7F);
@@ -2111,32 +2125,6 @@ public:
 			GUS_ICS2101.updateVolPair(gus_ICS2101::MASTER_OUTPUT_PORT);
 		}
 	}
-
-    void DOS_Startup() {
-		int portat = 0x200+GUS_BASE;
-
-        if (!gus_enable) return;
-
-		// ULTRASND=Port,DMA1,DMA2,IRQ1,IRQ2
-		// [GUS port], [GUS DMA (recording)], [GUS DMA (playback)], [GUS IRQ (playback)], [GUS IRQ (MIDI)]
-		ostringstream temp;
-		temp << "SET ULTRASND=" << hex << setw(3) << portat << ","
-		     << dec << (Bitu)myGUS.dma1 << "," << (Bitu)myGUS.dma2 << ","
-		     << (Bitu)myGUS.irq1 << "," << (Bitu)myGUS.irq2 << ends;
-		// Create autoexec.bat lines
-		autoexecline[0].Install(temp.str());
-		autoexecline[1].Install(std::string("SET ULTRADIR=") + ultradir);
-
-		if (gus_type >= GUS_MAX) {
-			/* FIXME: Does the Interwave have a CS4231? */
-			ostringstream temp2;
-			temp2 << "SET ULTRA16=" << hex << setw(3) << (0x30C+GUS_BASE) << ","
-				<< "0,0,1,0" << ends; // FIXME What do these numbers mean?
-			autoexecline[2].Install(temp2.str());
-		}
-    }
-
-    std::string ultradir;
 
 	void DOS_Shutdown() { /* very likely, we're booting into a guest OS where our environment variable has no meaning anymore */
 		autoexecline[0].Uninstall();
@@ -2182,22 +2170,10 @@ void GUS_OnReset(Section *sec) {
 	}
 }
 
-void GUS_DOS_Exit(Section *sec) {
-    GUS_DOS_Shutdown();
-}
-
-void GUS_DOS_Boot(Section *sec) {
-    if (test != NULL) test->DOS_Startup();
-}
-
 void GUS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing Gravis Ultrasound emulation");
 
 	AddExitFunction(AddExitFunctionFuncPair(GUS_ShutDown),true);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(GUS_OnReset));
-	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(GUS_DOS_Exit));
-	AddVMEventFunction(VM_EVENT_DOS_SURPRISE_REBOOT,AddVMEventFunctionFuncPair(GUS_DOS_Exit));
-	AddVMEventFunction(VM_EVENT_DOS_EXIT_REBOOT_BEGIN,AddVMEventFunctionFuncPair(GUS_DOS_Exit));
-    AddVMEventFunction(VM_EVENT_DOS_INIT_SHELL_READY,AddVMEventFunctionFuncPair(GUS_DOS_Boot));
 }
 

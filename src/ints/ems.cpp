@@ -1430,8 +1430,6 @@ void setup_EMS_none() {
 	}
 }
 
-Bitu call_int67 = 0;
-
 class EMS: public Module_base {
 private:
 	Bit16u ems_baseseg;
@@ -1439,6 +1437,7 @@ private:
 	unsigned int oshandle_memsize_16kb;
 	RealPt old4b_pointer,old67_pointer;
 	CALLBACK_HandlerObject call_vdma,call_vcpi,call_v86mon;
+	Bitu call_int67;
 
 public:
 	EMS(Section* configuration):Module_base(configuration) {
@@ -1479,29 +1478,6 @@ public:
 			ENABLE_VCPI = false;
 		}
 
-        bool XMS_Active(void);
-
-        /* if XMS is not enabled, EMM386 emulation is impossible.
-         * Real MS-DOS EMM386.EXE will flat out refuse to load if HIMEM.SYS is not loaded.
-         * that also prevents VCPI from working. */
-        if (!XMS_Active() && ems_type != EMS_BOARD) {
-            if (ems_type == EMS_MIXED) {
-                LOG_MSG("EMS changed to board mode and VCPI disabled, because XMS is not enabled.");
-                ems_type = EMS_BOARD;
-            }
-            else if (ems_type == EMS_EMM386) {
-                /* do as MS-DOS does */
-                setup_EMS_none();
-                ems_type = EMS_NONE;
-                LOG_MSG("EMS disabled, EMM386 emulation is impossible when XMS is not enabled");
-                return;
-            }
-
-			ENABLE_V86_STARTUP = false;
-            ENABLE_VCPI = false;
-        }
-
-        /* FIXME: Why zero the BIOS memory size if emulating EMS board mode? */
 		BIOS_ZeroExtendedSize(true);
 
 		dbg_zero_on_ems_allocmem = section->Get_bool("zero memory on ems memory allocation");
@@ -1701,17 +1677,11 @@ public:
 		
 static EMS* test = NULL;
 
-void CALLBACK_DeAllocate(Bitu in);
-
 void EMS_DoShutDown() {
 	if (test != NULL) {
 		delete test;
 		test = NULL;
 	}
-    if (call_int67 != 0) {
-        CALLBACK_DeAllocate(call_int67);
-        call_int67 = 0;
-    }
 }
 
 void EMS_ShutDown(Section* /*sec*/) {

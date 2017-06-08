@@ -15,13 +15,6 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-/* FIXME: This code... well... it could be done better.
- *        It was written back when all mixer callbacks were potentially done from
- *        the SDL audio thread. DOSBox-X has since moved to a model where within
- *        the timer tick, audio can be rendered up to the "current time" at any
- *        time. So while the event queue idea was appropriate at the time, it's
- *        no longer needed and just like the GUS and SB code could be written to
- *        trigger a mixer render "up-to" for every change instead. --J.C. */
  
 //#define SPKR_DEBUGGING
 #include <math.h>
@@ -109,7 +102,6 @@ inline static void AddDelayEntry(float index, bool new_output_level) {
 	}
 	previous_output_level = new_output_level;
 	if (spkr.used == SPKR_ENTRIES) {
-        LOG(LOG_MISC,LOG_WARN)("PC speaker delay entry queue overrun");
 		return;
 	}
 	spkr.entries[spkr.used].index=index;
@@ -449,17 +441,6 @@ void PCSPEAKER_SetType(bool pit_clock_gate_enabled, bool pit_output_enabled) {
 	}
 }
 
-/* NTS: This code stinks. Sort of. The way it handles the delay entry queue
- *      could have been done better. The event queue idea isn't needed anymore because
- *      DOSBox-X allows any code to render audio "up to" the current time.
- *
- *      Second, looking at this code tells me why it didn't work properly with the
- *      "sample accurate" mixer mode. This code assumes that whatever length of
- *      audio there is to render, that all events within the 1ms tick interval are
- *      to be squashed and stretched to fill it. In the new DOSBox-X model mixer
- *      callback code must not assume the call is for 1ms of audio, because any
- *      code at any time can trigger a mixer render "up to" the current time with
- *      the tick. */
 static void PCSPEAKER_CallBack(Bitu len) {
 	Bit16s * stream=(Bit16s*)MixTemp;
 	ForwardPIT(1);
@@ -543,28 +524,12 @@ static void PCSPEAKER_CallBack(Bitu len) {
 		
 		}
 	}
-	if (spkr.used != 0) {
-        if (pos != 0) {
-            /* well then roll the queue back */
-            for (Bitu i=0;i < spkr.used;i++)
-                spkr.entries[i] = spkr.entries[pos+i];
-        }
-
-        /* hack: some indexes come out at 1.001, fix that for the next round.
-         *       this is a consequence of DOSBox-X allowing the CPU cycles
-         *       count use to overrun slightly for accuracy. if we DONT fix
-         *       this the delay queue will get stuck and PC speaker output
-         *       will stop. */
-        for (Bitu i=0;i < spkr.used;i++) {
-            if (spkr.entries[i].index >= 1.000)
-                spkr.entries[i].index -= 1.000;
-            else
-                break;
-        }
-
-        LOG(LOG_MISC,LOG_DEBUG)("PC speaker queue render, %u entries left, %u rendered",(unsigned int)spkr.used,(unsigned int)pos);
-        LOG(LOG_MISC,LOG_DEBUG)("Next entry waits for index %.3f, stopped at %.3f",spkr.entries[0].index,sample_base);
+#ifdef SPKR_DEBUGGING
+	if (spkr.used) {
+		LOG_MSG("PCSPEAKER_CallBack: DelayEntries not emptied (%u) at %f", spkr.used, PIC_FullIndex());
 	}
+#endif
+
 }
 class PCSPEAKER:public Module_base {
 private:

@@ -439,23 +439,6 @@
 			else {GetEAa;*rmrd=LoadMd(eaa);SaveMd(eaa,LoadMd(eaa)+oldrmrd);}
 			break;
 		}
-    CASE_0F_D(0xc7)
-        {
-            extern bool enable_cmpxchg8b;
-            void CPU_CMPXCHG8B(PhysPt eaa);
-
-            if (!enable_cmpxchg8b || CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUM) goto illegal_opcode;
-            GetRM;
-            if (((rm >> 3) & 7) == 1) { // CMPXCHG8B /1 r/m
-                if (rm >= 0xc0 ) goto illegal_opcode;
-                GetEAa;
-                CPU_CMPXCHG8B(eaa);
-            }
-            else {
-                goto illegal_opcode;
-            }
-            break;
-        }
 	CASE_0F_D(0xc8)												/* BSWAP EAX */
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_486OLD) goto illegal_opcode;
 		BSWAPD(reg_eax);break;

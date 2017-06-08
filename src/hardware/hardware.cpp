@@ -1495,7 +1495,7 @@ void CAPTURE_MultiTrackAddWave(Bit32u freq, Bit32u len, Bit16s * data,const char
 
     return;
 skip_mt_wav:
-	capture.multitrack_wave.writer = avi_writer_destroy(capture.multitrack_wave.writer);
+	capture.video.writer = avi_writer_destroy(capture.video.writer);
 }
 
 void CAPTURE_AddWave(Bit32u freq, Bit32u len, Bit16s * data) {

@@ -37,7 +37,6 @@ struct MENU_Block {
 	bool toggle;      // toggle menu bar
 	bool startup;     // verify if DOSBox is started with menu patch
 	bool hidecycles;  // toggle cycles, fps, cpu usage information on title bar
-    bool showrt;      // show realtime percentage
 	bool boot;        // verify if boot is being used (if enabled, it is unable to mount drives)
 	bool gui;         // enable or disable gui system (if disabled, it is unable to use/toggle menu bar)
 	bool resizeusing; // check if resizable window can be used

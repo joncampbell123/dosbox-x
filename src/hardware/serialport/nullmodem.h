@@ -97,8 +97,6 @@ private:
 
 	bool telnet;		// Do Telnet parsing.
 
-    bool nonlocal;      // Enable connections NOT originating from localhost
-
 	// Telnet's brain
 #define TEL_CLIENT 0
 #define TEL_SERVER 1

@@ -655,12 +655,6 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
 
 	diskfile = fopen64(sysFilename, "rb+");
 	if(!diskfile) {created_successfully = false;return;}
-
-    // all disk I/O is in sector-sized blocks.
-    // modern OSes have good caching.
-    // there are plenty of cases where this code aborts, exits, or re-execs itself (such as reboot)
-    // where stdio buffering can cause loss of data.
-    setbuf(diskfile,NULL);
 	
 	QCow2Image::QCow2Header qcow2_header = QCow2Image::read_header(diskfile);
 	

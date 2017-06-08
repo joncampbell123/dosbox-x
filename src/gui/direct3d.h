@@ -20,7 +20,6 @@
 #define __DIRECT3D_H_
 
 #include <d3d9.h>
-#include <d3dx9math.h>
 #include "dosbox.h"
 #include "hq2x_d3d.h"
 

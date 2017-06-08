@@ -38,6 +38,9 @@
 /* Define to 1 to use inlined memory functions in cpu core */
 #undef C_CORE_INLINE
 
+/* Define to 1 to use Direct3D shaders, requires d3d9.h and libd3dx9 */
+#undef C_D3DSHADERS
+
 /* Define to 1 to enable internal debugger, requires libcurses */
 #undef C_DEBUG
 
@@ -79,9 +82,6 @@
 /* Define to 1 to enable internal modem support, requires SDL_net */
 #undef C_MODEM
 
-/* Define to 1 to enable MT32 emulation (x86/x86_64 only) */
-#undef C_MT32
-
 /* Define to 1 to enable NE2000 ethernet passthrough, requires libpcap */
 #undef C_NE2000
 
@@ -120,6 +120,12 @@
 
 /* Define to 1 to use ALSA for MIDI */
 #undef HAVE_ALSA
+
+/* Define to 1 if you have the <d3d9.h> header file. */
+#undef HAVE_D3D9_H
+
+/* Define to 1 if you have the <ddraw.h> header file. */
+#undef HAVE_DDRAW_H
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H

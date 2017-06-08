@@ -139,7 +139,6 @@ typedef struct {
 	Bitu bytes_skip;
 	Bit8u *linear_base;
 	Bitu linear_mask;
-    Bitu planar_mask;
 	Bitu address_add;
 	Bitu line_length;
 	Bitu address_line_total;
@@ -430,7 +429,6 @@ typedef struct {
 	VGA_Memory mem;
 	Bit32u vmemwrap; /* this is assumed to be power of 2 */
 	Bit32u vmemsize;
-    Bit32u vmemsize_alloced;
 	VGA_LFB lfb;
 } VGA_Type;
 

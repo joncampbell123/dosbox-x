@@ -54,9 +54,7 @@ static struct {
 	Bitu pmStart;
 	Bitu pmWindow;
 	Bitu pmPalette;
-} callback = {0};
-
-void CALLBACK_DeAllocate(Bitu in);
+} callback;
 
 static char string_oem[]="S3 Incorporated. Trio64";
 static char string_vendorname[]="DOSBox Development Team";
@@ -105,24 +103,7 @@ struct MODE_INFO{
 #pragma pack()
 #endif
 
-void VESA_OnReset_Clear_Callbacks(void) {
-    if (callback.setwindow != 0) {
-        CALLBACK_DeAllocate(callback.setwindow);
-        callback.setwindow = 0;
-    }
-    if (callback.pmPalette != 0) {
-        CALLBACK_DeAllocate(callback.pmPalette);
-        callback.pmPalette = 0;
-    }
-    if (callback.pmStart != 0) {
-        CALLBACK_DeAllocate(callback.pmStart);
-        callback.pmStart = 0;
-    }
-    if (callback.pmWindow != 0) {
-        CALLBACK_DeAllocate(callback.pmWindow);
-        callback.pmWindow = 0;
-    }
-}
+
 
 Bit8u VESA_GetSVGAInformation(Bit16u seg,Bit16u off) {
 	/* Fill 256 byte buffer with VESA information */
@@ -682,6 +663,8 @@ void INT10_SetupVESA(void) {
 		phys_writeb(0xc0000+int10.rom.used++,string_oem[i]);
 	}
 	callback.setwindow=CALLBACK_Allocate();
+	callback.pmPalette=CALLBACK_Allocate();
+	callback.pmStart=CALLBACK_Allocate();
 	CALLBACK_Setup(callback.setwindow,VESA_SetWindow,CB_RETF, "VESA Real Set Window");
 	/* Prepare the pmode interface */
 	int10.rom.pmode_interface=RealMake(0xc000,int10.rom.used);

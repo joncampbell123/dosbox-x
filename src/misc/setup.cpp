@@ -798,11 +798,7 @@ const char *VM_EVENT_string[VM_EVENT_MAX] = {
 	"DOS Init, AUTOEXEC.BAT done",		// 10
 	"DOS Init, at promot",
 	"DOS exit, begin",
-	"DOS exit, kernel exit",
-	"DOS exit, reboot begin",
-
-	"DOS exit, kernel reboot exit",     // 15
-    "DOS surprise reboot"
+	"DOS exit, kernel exit"
 };
 
 VMDispatchState vm_dispatch_state;

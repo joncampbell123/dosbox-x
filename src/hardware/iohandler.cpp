@@ -28,25 +28,8 @@
 
 //#define ENABLE_PORTLOG
 
-#include <vector>
-
-extern bool pcibus_enable;
-
-#define IO_callouts_max (IO_TYPE_MAX - IO_TYPE_MIN)
-#define IO_callouts_index(t) (t - IO_TYPE_MIN)
-
-class IO_callout_vector : public std::vector<IO_CalloutObject> {
-public:
-    IO_callout_vector() : std::vector<IO_CalloutObject>(), getcounter(0), alloc_from(0) { };
-public:
-    unsigned int getcounter;
-    unsigned int alloc_from;
-};
-
 IO_WriteHandler * io_writehandlers[3][IO_MAX];
 IO_ReadHandler * io_readhandlers[3][IO_MAX];
-
-static IO_callout_vector IO_callouts[IO_callouts_max];
 
 static Bitu IO_ReadBlocked(Bitu /*port*/,Bitu /*iolen*/) {
 	return ~0;
@@ -70,7 +53,7 @@ static Bitu IO_ReadDefault(Bitu port,Bitu iolen) {
 			(io_readhandlers[1][port+0](port+0,2) << 0) |
 			(io_readhandlers[1][port+2](port+2,2) << 16);
 	}
-	return ~0;
+	return 0;
 }
 
 void IO_WriteDefault(Bitu port,Bitu val,Bitu iolen) {
@@ -90,207 +73,7 @@ void IO_WriteDefault(Bitu port,Bitu val,Bitu iolen) {
 	}
 }
 
-template <enum IO_Type_t iotype> static unsigned int IO_Gen_Callout_Read(Bitu &ret,IO_ReadHandler* &f,Bitu port,Bitu iolen) {
-    IO_callout_vector &vec = IO_callouts[iotype - IO_TYPE_MIN];
-    unsigned int match = 0;
-    IO_ReadHandler *t_f;
-    size_t scan = 0;
-
-    while (scan < vec.size()) {
-        IO_CalloutObject &obj = vec[scan++];
-        if (!obj.isInstalled()) continue;
-        if (obj.m_r_handler == NULL) continue;
-        if (!obj.MatchPort(port)) continue;
-
-        t_f = obj.m_r_handler(obj,port,iolen);
-        if (t_f != NULL) {
-            if (match != 0) {
-                if (iotype == IO_TYPE_ISA)
-                    ret &= t_f(port,iolen); /* ISA pullup resisters vs ISA devices pulling data lines down (two conflicting devices) */
-            }
-            else {
-                ret = (/*assign and call*/f=t_f)(port,iolen);
-            }
-
-            match++;
-            if (iotype == IO_TYPE_PCI) /* PCI bus only one device can respond, no conflicts */
-                break;
-        }
-    }
-
-    return match;
-}
-
-template <enum IO_Type_t iotype> static unsigned int IO_Gen_Callout_Write(IO_WriteHandler* &f,Bitu port,Bitu val,Bitu iolen) {
-    IO_callout_vector &vec = IO_callouts[iotype - IO_TYPE_MIN];
-    unsigned int match = 0;
-    IO_WriteHandler *t_f;
-    size_t scan = 0;
-
-    while (scan < vec.size()) {
-        IO_CalloutObject &obj = vec[scan++];
-        if (!obj.isInstalled()) continue;
-        if (obj.m_w_handler == NULL) continue;
-        if (!obj.MatchPort(port)) continue;
-
-        t_f = obj.m_w_handler(obj,port,iolen);
-        if (t_f != NULL) {
-            t_f(port,val,iolen);
-            if (match == 0) f = t_f;
-            match++;
-        }
-    }
-
-    return match;
-}
-
-static unsigned int IO_Motherboard_Callout_Read(Bitu &ret,IO_ReadHandler* &f,Bitu port,Bitu iolen) {
-    return IO_Gen_Callout_Read<IO_TYPE_MB>(ret,f,port,iolen);
-}
-
-static unsigned int IO_PCI_Callout_Read(Bitu &ret,IO_ReadHandler* &f,Bitu port,Bitu iolen) {
-    return IO_Gen_Callout_Read<IO_TYPE_PCI>(ret,f,port,iolen);
-}
-
-static unsigned int IO_ISA_Callout_Read(Bitu &ret,IO_ReadHandler* &f,Bitu port,Bitu iolen) {
-    return IO_Gen_Callout_Read<IO_TYPE_ISA>(ret,f,port,iolen);
-}
-
-static unsigned int IO_Motherboard_Callout_Write(IO_WriteHandler* &f,Bitu port,Bitu val,Bitu iolen) {
-    return IO_Gen_Callout_Write<IO_TYPE_MB>(f,port,val,iolen);
-}
-
-static unsigned int IO_PCI_Callout_Write(IO_WriteHandler* &f,Bitu port,Bitu val,Bitu iolen) {
-    return IO_Gen_Callout_Write<IO_TYPE_PCI>(f,port,val,iolen);
-}
-
-static unsigned int IO_ISA_Callout_Write(IO_WriteHandler* &f,Bitu port,Bitu val,Bitu iolen) {
-    return IO_Gen_Callout_Write<IO_TYPE_ISA>(f,port,val,iolen);
-}
-
-static Bitu IO_ReadSlowPath(Bitu port,Bitu iolen) {
-    IO_ReadHandler *f = iolen > 1 ? IO_ReadDefault : IO_ReadBlocked;
-    unsigned int match = 0;
-    unsigned int porti;
-    Bitu ret = ~0;
-
-    /* check motherboard devices */
-    if ((port & 0xFF00) == 0x0000) /* motherboard-level I/O */
-        match = IO_Motherboard_Callout_Read(/*&*/ret,/*&*/f,port,iolen);
-
-    if (match == 0) {
-        /* first PCI bus device, then ISA.
-         *
-         * Note that calling out ISA devices that conflict with PCI
-         * is based on experience with an old Pentium system of mine in the late 1990s
-         * when I had a Sound Blaster Live PCI! and a Sound Blaster clone both listening
-         * to ports 220h-22Fh in Windows 98, in which both cards responded to a DOS
-         * game in the DOS box even though read-wise only the Live PCI!'s data was returned.
-         * Both cards responded to I/O writes.
-         *
-         * Based on that experience, my guess is that to keep ISA from going too slow Intel
-         * designed the PIIX PCI/ISA bridge to listen for I/O and start an ISA I/O cycle
-         * even while another PCI device is preparing to respond to it. Then if nobody takes
-         * it, the PCI/ISA bridge completes the ISA bus cycle and takes up the PCI bus
-         * transaction. If another PCI device took the I/O write, then the cycle completes
-         * quietly and the result is discarded.
-         *
-         * That's what I think happened, anyway.
-         *
-         * I wish I had tools to watch I/O transactions on the ISA bus to verify this. --J.C. */
-        if (pcibus_enable) {
-            /* PCI and PCI/ISA bridge emulation */
-            match = IO_PCI_Callout_Read(/*&*/ret,/*&*/f,port,iolen);
-
-            if (match == 0) {
-                /* PCI didn't take it, ask ISA bus */
-                match = IO_ISA_Callout_Read(/*&*/ret,/*&*/f,port,iolen);
-            }
-            else {
-                Bitu dummy;
-
-                /* PCI did match. Based on behavior noted above, probe ISA bus anyway and discard data. */
-                match += IO_ISA_Callout_Read(/*&*/dummy,/*&*/f,port,iolen);
-            }
-        }
-        else {
-            /* Pure ISA emulation */
-            match = IO_ISA_Callout_Read(/*&*/ret,/*&*/f,port,iolen);
-        }
-    }
-
-    /* if nothing matched, assign default handler to IO handler slot.
-     * if one device responded, assign it's handler to the IO handler slot.
-     * if more than one responded, then do not update the IO handler slot. */
-    assert(iolen >= 1 && iolen <= 4);
-    porti = (iolen >= 4) ? 2 : (iolen - 1); /* 1 2 x 4 -> 0 1 1 2 */
-    LOG(LOG_MISC,LOG_DEBUG)("IO read slow path port=%x iolen=%u: device matches=%u",(unsigned int)port,(unsigned int)iolen,(unsigned int)match);
-    if (match == 0) ret = f(port,iolen); /* if nobody responded, then call the default */
-    if (match <= 1) io_readhandlers[porti][port] = f;
-
-	return ret;
-}
-
-void IO_WriteSlowPath(Bitu port,Bitu val,Bitu iolen) {
-    IO_WriteHandler *f = iolen > 1 ? IO_WriteDefault : IO_WriteBlocked;
-    unsigned int match = 0;
-    unsigned int porti;
-
-    /* check motherboard devices */
-    if ((port & 0xFF00) == 0x0000) /* motherboard-level I/O */
-        match = IO_Motherboard_Callout_Write(/*&*/f,port,val,iolen);
-
-    if (match == 0) {
-        /* first PCI bus device, then ISA.
-         *
-         * Note that calling out ISA devices that conflict with PCI
-         * is based on experience with an old Pentium system of mine in the late 1990s
-         * when I had a Sound Blaster Live PCI! and a Sound Blaster clone both listening
-         * to ports 220h-22Fh in Windows 98, in which both cards responded to a DOS
-         * game in the DOS box even though read-wise only the Live PCI!'s data was returned.
-         * Both cards responded to I/O writes.
-         *
-         * Based on that experience, my guess is that to keep ISA from going too slow Intel
-         * designed the PIIX PCI/ISA bridge to listen for I/O and start an ISA I/O cycle
-         * even while another PCI device is preparing to respond to it. Then if nobody takes
-         * it, the PCI/ISA bridge completes the ISA bus cycle and takes up the PCI bus
-         * transaction. If another PCI device took the I/O write, then the cycle completes
-         * quietly and the result is discarded.
-         *
-         * That's what I think happened, anyway.
-         *
-         * I wish I had tools to watch I/O transactions on the ISA bus to verify this. --J.C. */
-        if (pcibus_enable) {
-            /* PCI and PCI/ISA bridge emulation */
-            match = IO_PCI_Callout_Write(/*&*/f,port,val,iolen);
-
-            if (match == 0) {
-                /* PCI didn't take it, ask ISA bus */
-                match = IO_ISA_Callout_Write(/*&*/f,port,val,iolen);
-            }
-            else {
-                /* PCI did match. Based on behavior noted above, probe ISA bus anyway and discard data. */
-                match += IO_ISA_Callout_Write(/*&*/f,port,val,iolen);
-            }
-        }
-        else {
-            /* Pure ISA emulation */
-            match = IO_ISA_Callout_Write(/*&*/f,port,val,iolen);
-        }
-    }
-
-    /* if nothing matched, assign default handler to IO handler slot.
-     * if one device responded, assign it's handler to the IO handler slot.
-     * if more than one responded, then do not update the IO handler slot. */
-    assert(iolen >= 1 && iolen <= 4);
-    porti = (iolen >= 4) ? 2 : (iolen - 1); /* 1 2 x 4 -> 0 1 1 2 */
-    LOG(LOG_MISC,LOG_DEBUG)("IO write slow path port=%x data=%x iolen=%u: device matches=%u",(unsigned int)port,(unsigned int)val,(unsigned int)iolen,(unsigned int)match);
-    if (match == 0) f(port,val,iolen); /* if nobody responded, then call the default */
-    if (match <= 1) io_writehandlers[porti][port] = f;
-}
-
 void IO_RegisterReadHandler(Bitu port,IO_ReadHandler * handler,Bitu mask,Bitu range) {
-    assert((port+range) <= IO_MAX);
 	while (range--) {
 		if (mask&IO_MB) io_readhandlers[0][port]=handler;
 		if (mask&IO_MW) io_readhandlers[1][port]=handler;
@@ -300,7 +83,6 @@ void IO_RegisterReadHandler(Bitu port,IO_ReadHandler * handler,Bitu mask,Bitu ra
 }
 
 void IO_RegisterWriteHandler(Bitu port,IO_WriteHandler * handler,Bitu mask,Bitu range) {
-    assert((port+range) <= IO_MAX);
 	while (range--) {
 		if (mask&IO_MB) io_writehandlers[0][port]=handler;
 		if (mask&IO_MW) io_writehandlers[1][port]=handler;
@@ -310,38 +92,21 @@ void IO_RegisterWriteHandler(Bitu port,IO_WriteHandler * handler,Bitu mask,Bitu 
 }
 
 void IO_FreeReadHandler(Bitu port,Bitu mask,Bitu range) {
-    assert((port+range) <= IO_MAX);
 	while (range--) {
-		if (mask&IO_MB) io_readhandlers[0][port]=IO_ReadSlowPath;
-		if (mask&IO_MW) io_readhandlers[1][port]=IO_ReadSlowPath;
-		if (mask&IO_MD) io_readhandlers[2][port]=IO_ReadSlowPath;
+		if (mask&IO_MB) io_readhandlers[0][port]=IO_ReadDefault;
+		if (mask&IO_MW) io_readhandlers[1][port]=IO_ReadDefault;
+		if (mask&IO_MD) io_readhandlers[2][port]=IO_ReadDefault;
 		port++;
 	}
 }
 
 void IO_FreeWriteHandler(Bitu port,Bitu mask,Bitu range) {
-    assert((port+range) <= IO_MAX);
 	while (range--) {
-		if (mask&IO_MB) io_writehandlers[0][port]=IO_WriteSlowPath;
-		if (mask&IO_MW) io_writehandlers[1][port]=IO_WriteSlowPath;
-		if (mask&IO_MD) io_writehandlers[2][port]=IO_WriteSlowPath;
+		if (mask&IO_MB) io_writehandlers[0][port]=IO_WriteDefault;
+		if (mask&IO_MW) io_writehandlers[1][port]=IO_WriteDefault;
+		if (mask&IO_MD) io_writehandlers[2][port]=IO_WriteDefault;
 		port++;
 	}
-}
-
-void IO_InvalidateCachedHandler(Bitu port,Bitu range) {
-    Bitu mb,r,p;
-
-    assert((port+range) <= IO_MAX);
-    for (mb=0;mb <= 2;mb++) {
-        p = port;
-        r = range;
-        while (r--) {
-            io_writehandlers[mb][p]=IO_WriteSlowPath;
-            io_readhandlers[mb][p]=IO_ReadSlowPath;
-            p++;
-        }
-    }
 }
 
 void IO_ReadHandleObject::Install(Bitu port,IO_ReadHandler * handler,Bitu mask,Bitu range) {
@@ -585,232 +350,5 @@ void IO_Init() {
 
 	/* please call our reset function on power-on and reset */
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(IO_Reset));
-
-    /* prepare callouts */
-    IO_InitCallouts();
-}
-
-void IO_CalloutObject::InvalidateCachedHandlers(void) {
-    Bitu p;
-
-    /* NTS: Worst case scenario might be a 10-bit ISA device with 16 I/O ports,
-     *      which would then require resetting 1024 entries of the array.
-     *
-     *      A 10-bit decode ignores the upper 6 bits = 1 << 6 = 64
-     *
-     *      64 * 16 = 1024 I/O ports to be reset.
-     *
-     *      Not too bad, really. */
-
-    /* for both the base I/O, as well as it's aliases, revert the I/O ports back to "slow path" */
-    for (p=m_port;p < 0x10000;p += alias_mask+1)
-        IO_InvalidateCachedHandler(p,range_mask+1);
-}
-
-void IO_CalloutObject::Install(Bitu port,Bitu portmask/*IOMASK_ISA_10BIT, etc.*/,IO_ReadCalloutHandler *r_handler,IO_WriteCalloutHandler *w_handler) {
-	if(!installed) {
-        if (portmask == 0 || (portmask & ~0xFFFFU)) {
-            LOG(LOG_MISC,LOG_ERROR)("IO_CalloutObject::Install: Port mask %x is invalid",(unsigned int)portmask);
-            return;
-        }
-
-        /* we need a mask for the distance between aliases of the port, and the range of I/O ports. */
-        /* only the low part of the mask where bits are zero, not the upper.
-         * This loop is the reason portmask cannot be ~0 else it would become an infinite loop.
-         * This also serves to check that the mask is a proper combination of ISA masking and
-         * I/O port range (example: IOMASK_ISA_10BIT & (~0x3) == 0x3FF & 0xFFFFFFFC = 0x3FC for a device with 4 I/O ports).
-         * A proper mask has (from MSB to LSB):
-         *   - zero or more 0 bits from MSB
-         *   - 1 or more 1 bits in the middle
-         *   - zero or more 0 bits to LSB */
-        {
-            Bitu m = 1;
-            Bitu test;
-
-            /* compute range mask from zero bits at LSB */
-            range_mask = 0;
-            test = portmask ^ 0xFFFFU;
-            while ((test & m) == m) {
-                range_mask = m;
-                m = (m << 1) + 1;
-            }
-
-            /* DEBUG */
-            if ((portmask & range_mask) != 0 ||
-                ((range_mask + 1) & range_mask) != 0/* should be a mask, therefore AND by itself + 1 should be zero (think (0xF + 1) & 0xF = 0x10 & 0xF = 0x0) */) {
-                LOG(LOG_MISC,LOG_ERROR)("IO_CalloutObject::Install: portmask(%x) & range_mask(%x) != 0 (%x). You found a corner case that broke this code, fix it.",
-                    (unsigned int)portmask,
-                    (unsigned int)range_mask,
-                    (unsigned int)(portmask & range_mask));
-                return;
-            }
-
-            /* compute alias mask from middle 1 bits */
-            alias_mask = range_mask;
-            test = portmask + range_mask; /* will break if portmask & range_mask != 0 */
-            while ((test & m) == m) {
-                alias_mask = m;
-                m = (m << 1) + 1;
-            }
-
-            /* any bits after that should be zero. */
-            /* confirm this by XORing portmask by (alias_mask ^ range_mask). */
-            /* we already confirmed that portmask & range_mask == 0. */
-            /* Example:
-             *
-             *    Sound Blaster at port 220-22Fh with 10-bit ISA decode would be 0x03F0 therefore:
-             *      portmask =    0x03F0
-             *      range_mask =  0x000F
-             *      alias_mask =  0x03FF
-             *
-             *      portmask ^ range_mask = 0x3FF
-             *      portmask ^ range_mask ^ alias_mask = 0x0000
-             *
-             * Example of invalid portmask 0x13F0:
-             *      portmask =    0x13F0
-             *      range_mask =  0x000F
-             *      alias_mask =  0x03FF
-             *
-             *      portmask ^ range_mask = 0x13FF
-             *      portmask ^ range_mask ^ alias_mask = 0x1000 */
-            if ((portmask ^ range_mask ^ alias_mask) != 0 ||
-                ((alias_mask + 1) & alias_mask) != 0/* should be a mask, therefore AND by itself + 1 should be zero */) {
-                LOG(LOG_MISC,LOG_ERROR)("IO_CalloutObject::Install: portmask(%x) ^ range_mask(%x) ^ alias_mask(%x) != 0 (%x). Invalid portmask.",
-                    (unsigned int)portmask,
-                    (unsigned int)range_mask,
-                    (unsigned int)alias_mask,
-                    (unsigned int)(portmask ^ range_mask ^ alias_mask));
-                return;
-            }
-
-            if (port & range_mask) {
-                LOG(LOG_MISC,LOG_ERROR)("IO_CalloutObject::Install: port %x and port mask %x not aligned (range_mask %x)",
-                    (unsigned int)port,(unsigned int)portmask,(unsigned int)range_mask);
-                return;
-            }
-        }
-
-		installed=true;
-		m_port=port;
-		m_mask=0; /* not used */
-		m_range=0; /* not used */
-        io_mask=portmask;
-        m_r_handler=r_handler;
-        m_w_handler=w_handler;
-
-        /* add this object to the callout array.
-         * don't register any I/O handlers. those will be registered during the "slow path"
-         * callout process when the CPU goes to access them. to encourage that to happen,
-         * we invalidate the I/O ranges */
-        LOG(LOG_MISC,LOG_DEBUG)("IO_CalloutObject::Install added device with port=0x%x io_mask=0x%x rangemask=0x%x aliasmask=0x%x",
-            (unsigned int)port,(unsigned int)io_mask,(unsigned int)range_mask,(unsigned int)alias_mask);
-
-        InvalidateCachedHandlers();
-    }
-}
-
-void IO_CalloutObject::Uninstall() {
-	if(!installed) return;
-    InvalidateCachedHandlers();
-    installed=false;
-}
-
-void IO_InitCallouts(void) {
-    /* make sure each vector has enough for a typical load */
-    IO_callouts[IO_callouts_index(IO_TYPE_ISA)].resize(64);
-    IO_callouts[IO_callouts_index(IO_TYPE_PCI)].resize(64);
-    IO_callouts[IO_callouts_index(IO_TYPE_MB)].resize(64);
-}
-
-/* callers maintain a handle to it.
- * if they need to touch it, they get a pointer, which they then have to put back.
- * The way DOSBox/DOSbox-X code handles IO callbacks it's common to declare an IO object,
- * call the install, but then never touch it again, so this should work fine.
- *
- * this allows us to maintain ready-made IO callout objects to return quickly rather
- * than write more complicated code where the caller has to make an IO_CalloutObject
- * and then call install and we have to add it's pointer to a list/vector/whatever.
- * It also avoids problems where if we have to resize the vector, the pointers become
- * invalid, because callers have only handles and they have to put all the pointers
- * back in order for us to resize the vector. */
-IO_Callout_t IO_AllocateCallout(IO_Type_t t) {
-    if (t < IO_TYPE_MIN || t >= IO_TYPE_MAX)
-        return IO_Callout_t_none;
-
-    IO_callout_vector &vec = IO_callouts[t - IO_TYPE_MIN];
-
-try_again:
-    while (vec.alloc_from < vec.size()) {
-        IO_CalloutObject &obj = vec[vec.alloc_from];
-
-        if (!obj.alloc) {
-            obj.alloc = true;
-            assert(obj.isInstalled() == false);
-            return IO_Callout_t_comb(t,vec.alloc_from++); /* make combination, then increment alloc_from */
-        }
-
-        vec.alloc_from++;
-    }
-
-    /* okay, double the size of the vector within reason.
-     * if anyone has pointers out to our elements, then we cannot resize. vector::resize() may invalidate them. */
-    if (vec.size() < 4096 && vec.getcounter == 0) {
-        size_t nsz = vec.size() * 2;
-
-        LOG(LOG_MISC,LOG_WARN)("IO_AllocateCallout type %u expanding array to %u",(unsigned int)t,(unsigned int)nsz);
-        vec.alloc_from = vec.size(); /* allocate from end of old vector size */
-        vec.resize(nsz);
-        goto try_again;
-    }
-
-    LOG(LOG_MISC,LOG_WARN)("IO_AllocateCallout type %u no free entries",(unsigned int)t);
-    return IO_Callout_t_none;
-}
-
-void IO_FreeCallout(IO_Callout_t c) {
-    enum IO_Type_t t = IO_Callout_t_type(c);
-
-    if (t < IO_TYPE_MIN || t >= IO_TYPE_MAX)
-        return;
-
-    IO_callout_vector &vec = IO_callouts[t - IO_TYPE_MIN];
-    uint32_t idx = IO_Callout_t_index(c);
-
-    if (idx >= vec.size())
-        return;
-
-    IO_CalloutObject &obj = vec[idx];
-    if (!obj.alloc) return;
-
-    if (obj.isInstalled())
-        obj.Uninstall();
-
-    obj.alloc = false;
-    vec.alloc_from = idx; /* an empty slot just opened up, you can alloc from there */
-}
-
-IO_CalloutObject *IO_GetCallout(IO_Callout_t c) {
-    enum IO_Type_t t = IO_Callout_t_type(c);
-
-    if (t < IO_TYPE_MIN || t >= IO_TYPE_MAX)
-        return NULL;
-
-    IO_callout_vector &vec = IO_callouts[t - IO_TYPE_MIN];
-    uint32_t idx = IO_Callout_t_index(c);
-
-    if (idx >= vec.size())
-        return NULL;
-
-    IO_CalloutObject &obj = vec[idx];
-    if (!obj.alloc) return NULL;
-    obj.getcounter++;
-
-    return &obj;
-}
-
-void IO_PutCallout(IO_CalloutObject *obj) {
-    if (obj == NULL) return;
-    if (obj->getcounter == 0) return;
-    obj->getcounter--;
 }
 

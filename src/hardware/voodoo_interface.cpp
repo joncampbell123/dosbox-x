@@ -48,11 +48,7 @@ void Voodoo_PageHandler::writeb(PhysPt addr,Bitu val) {
 
 Bitu Voodoo_PageHandler::readw(PhysPt addr) {
 	addr = PAGING_GetPhysicalAddress(addr);
-    if (addr&1) {
-        LOG_MSG("voodoo readw unaligned");
-        return (Bitu)-1;
-    }
-
+	if (addr&1) E_Exit("voodoo readw unaligned");
 	Bitu retval=voodoo_r((addr>>2)&0x3FFFFF);
 	if (addr&3)
 		retval >>= 16;
@@ -63,11 +59,7 @@ Bitu Voodoo_PageHandler::readw(PhysPt addr) {
 
 void Voodoo_PageHandler::writew(PhysPt addr,Bitu val) {
 	addr = PAGING_GetPhysicalAddress(addr);
-	if (addr&1) {
-        LOG_MSG("voodoo writew unaligned");
-        return;
-    }
-
+	if (addr&1) E_Exit("voodoo writew unaligned");
 	if (addr&3)
 		voodoo_w((addr>>2)&0x3FFFFF,val<<16,0xffff0000);
 	else
@@ -84,7 +76,7 @@ Bitu Voodoo_PageHandler::readd(PhysPt addr) {
 			Bitu high = voodoo_r(((addr>>2)+1)&0x3FFFFF);
 			return (low>>16) | (high<<16);
 		} else {
-			LOG_MSG("voodoo readd unaligned");
+			E_Exit("voodoo readd unaligned");
 		}
 	}
 	return 0xffffffff;

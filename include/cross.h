@@ -58,7 +58,7 @@
 #define CROSS_NONE	0
 #define CROSS_FILE	1
 #define CROSS_DIR	2
-#if defined (WIN32) && !defined (__MINGW32__)
+#if defined (WIN32)
 #define ftruncate(blah,blah2) chsize(blah,blah2)
 #endif
 

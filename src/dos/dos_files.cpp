@@ -357,7 +357,7 @@ bool DOS_FindNext(void) {
 
 
 bool DOS_ReadFile(Bit16u entry,Bit8u * data,Bit16u * amount) {
-#if defined(WIN32) && !defined(__MINGW32__)
+#ifdef WIN32
 	if(Network_IsActiveResource(entry))
 		return Network_ReadFile(entry,data,amount);
 #endif
@@ -383,7 +383,7 @@ bool DOS_ReadFile(Bit16u entry,Bit8u * data,Bit16u * amount) {
 }
 
 bool DOS_WriteFile(Bit16u entry,Bit8u * data,Bit16u * amount) {
-#if defined(WIN32) && !defined(__MINGW32__)
+#ifdef WIN32
 	if(Network_IsActiveResource(entry))
 		return Network_WriteFile(entry,data,amount);
 #endif
@@ -440,7 +440,7 @@ bool DOS_LockFile(Bit16u entry,Bit8u mode,Bit32u pos,Bit32u size) {
 }
 
 bool DOS_CloseFile(Bit16u entry) {
-#if defined(WIN32) && !defined(__MINGW32__)
+#ifdef WIN32
 	if(Network_IsActiveResource(entry))
 		return Network_CloseFile(entry);
 #endif
@@ -542,7 +542,7 @@ bool DOS_CreateFile(char const * name,Bit16u attributes,Bit16u * entry) {
 }
 
 bool DOS_OpenFile(char const * name,Bit8u flags,Bit16u * entry) {
-#if defined(WIN32) && !defined(__MINGW32__)
+#ifdef WIN32
 	if(Network_IsNetworkResource(const_cast<char *>(name)))
 		return Network_OpenFile(const_cast<char *>(name),flags,entry);
 #endif

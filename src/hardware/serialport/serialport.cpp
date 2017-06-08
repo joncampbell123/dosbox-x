@@ -1083,15 +1083,6 @@ CSerial::CSerial(Bitu id, CommandLine* cmd) {
 	idnumber=id;
 	Bit16u base = serial_baseaddr[id];
 
-    d_cts=false;		// bit0: deltaCTS
-    d_dsr=false;		// bit1: deltaDSR
-    d_ri=false;			// bit2: deltaRI
-    d_cd=false;			// bit3: deltaCD
-    cts=false;			// bit4: CTS
-    dsr=false;			// bit5: DSR
-    ri=false;			// bit6: RI
-    cd=false;			// bit7: CD
-
 	irq = serial_defaultirq[id];
 	getBituSubstring("irq:",&irq, cmd);
 	if (irq < 2 || irq > 15) irq = serial_defaultirq[id];

@@ -358,7 +358,6 @@
     <ClCompile Include="..\src\hardware\serialport\misc_util.cpp" />
     <ClCompile Include="..\src\hardware\serialport\nullmodem.cpp" />
     <ClCompile Include="..\src\hardware\serialport\serialdummy.cpp" />
-    <ClCompile Include="..\src\hardware\serialport\seriallog.cpp" />
     <ClCompile Include="..\src\hardware\serialport\serialmouse.cpp" />
     <ClCompile Include="..\src\hardware\serialport\serialport.cpp" />
     <ClCompile Include="..\src\hardware\serialport\softmodem.cpp" />

@@ -1434,25 +1434,14 @@ static void VGA_Memory_ShutDown(Section * /*sec*/) {
 }
 
 void VGA_SetupMemory() {
+	VGA_Memory_ShutDown(NULL);
+
 	vga.svga.bank_read = vga.svga.bank_write = 0;
 	vga.svga.bank_read_full = vga.svga.bank_write_full = 0;
 
-    if (1 || vga.vmemsize_alloced != vga.vmemsize) {
-        VGA_Memory_ShutDown(NULL);
-
-        vga.mem.linear_orgptr = new Bit8u[vga.vmemsize+32];
-        memset(vga.mem.linear_orgptr,0,vga.vmemsize+32);
-        vga.mem.linear=(Bit8u*)(((uintptr_t)vga.mem.linear_orgptr + 16-1) & ~(16-1));
-        vga.vmemsize_alloced = vga.vmemsize;
-
-        /* HACK. try to avoid stale pointers */
-	    vga.draw.linear_base = vga.mem.linear;
-        vga.tandy.draw_base = vga.mem.linear;
-        vga.tandy.mem_base = vga.mem.linear;
-
-        /* may be related */
-        VGA_SetupHandlers();
-    }
+	vga.mem.linear_orgptr = new Bit8u[vga.vmemsize+32];
+	memset(vga.mem.linear_orgptr,0,vga.vmemsize+32);
+	vga.mem.linear=(Bit8u*)(((uintptr_t)vga.mem.linear_orgptr + 16-1) & ~(16-1));
 
 	// In most cases these values stay the same. Assumptions: vmemwrap is power of 2, vmemwrap <= vmemsize
 	vga.vmemwrap = vga.vmemsize;

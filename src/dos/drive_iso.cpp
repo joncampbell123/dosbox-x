@@ -145,16 +145,11 @@ void MSCDEX_ReplaceDrive(CDROM_Interface* cdrom, Bit8u subUnit);
 bool MSCDEX_HasDrive(char driveLetter);
 bool MSCDEX_GetVolumeName(Bit8u subUnit, char* name);
 
-bool CDROM_Interface_Image::images_init = false;
-
 isoDrive::isoDrive(char driveLetter, const char *fileName, Bit8u mediaid, int &error) {
 	size_t i;
 
-    if (!CDROM_Interface_Image::images_init) {
-        CDROM_Interface_Image::images_init = true;
-        for (i=0;i < 26;i++)
-            CDROM_Interface_Image::images[i] = NULL;
-    }
+	for (i=0;i < 26;i++)
+		CDROM_Interface_Image::images[i] = NULL;
 
 	subUnit = 0;
 	nextFreeDirIterator = 0;

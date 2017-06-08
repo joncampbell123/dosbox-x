@@ -12,7 +12,7 @@ August 8 2005		cyberwalker
 
 */
 
-#if defined(WIN32) && !defined(__MINGW32__)
+#ifdef WIN32
 
 #include <windows.h>
 
@@ -171,4 +171,5 @@ extern Bit16u	NetworkHandleList[127];	/*in dos_files.cpp*/
 
 
 
-#endif // defined(WIN32) && !defined(__MINGW32__)
+#endif	//WIN32
+

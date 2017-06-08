@@ -1,5 +1,5 @@
 dnl Init.
-AC_INIT(dosbox-x,0.81,[https://github.com/joncampbell123/dosbox-x/issues],[],[http://dosbox-x.software])
+AC_INIT(dosbox-x,0.801,[https://github.com/joncampbell123/dosbox-x/issues],[],[http://dosbox-x.software])
 AC_PREREQ(2.50)
 AC_CONFIG_SRCDIR(README)
 
@@ -61,41 +61,10 @@ fi
 ])# AC_CHECK_CXXFLAGS
 
 dnl Need GCC to know this code is using C++ lamda functions
-CXXFLAGS="$CXXFLAGS -Wall -D_FILE_OFFSET_BITS=64"
-
-AH_TEMPLATE(C_MT32,[Define to 1 to enable MT32 emulation (x86/x86_64 only)])
-AC_ARG_ENABLE(mt32,AC_HELP_STRING([--disable-mt32],[Disable MT32 emulation]),,enable_mt32=yes)
-AC_MSG_CHECKING(whether MT32 emulation will be enabled) 
-if test x$enable_mt32 = xyes ; then 
-  case "$host_cpu" in
-    x86_64 | amd64)
-      AC_MSG_RESULT(yes)
-      AC_DEFINE(C_MT32,1)
-      ;;
-    i?86)
-      AC_MSG_RESULT(yes)
-      AC_DEFINE(C_MT32,1)
-      ;;
-    *)
-      enable_mt32=no
-      AC_MSG_RESULT(no)
-      ;;
-  esac
-else
-  enable_mt32=no
-  AC_MSG_RESULT(no)
-fi 
-AM_CONDITIONAL(C_MT32, test "x$enable_mt32" == "xyes")
+CXXFLAGS="$CXXFLAGS -Wall"
 
 dnl Scalars in the code use MMX/SSE intrinsics
-case "$host_cpu" in
-  x86_64 | amd64)
-    CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
-    ;;
-  i?86)
-    CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
-    ;;
-esac
+CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2 -D_FILE_OFFSET_BITS=64"
 
 dnl Stop reporting "type punning" warnings, I'm sick of hearing about it.
 CXXFLAGS="$CXXFLAGS -Wno-strict-aliasing"
@@ -313,6 +282,54 @@ AC_ARG_ENABLE(core-inline,AC_HELP_STRING([--enable-core-inline],[Enable inlined 
   fi
 ],)
 
+# FFMPEG output
+AH_TEMPLATE(C_AVCODEC,[Define to 1 to use FFMPEG libavcodec for video capture])
+AC_ARG_ENABLE(avcodec,AC_HELP_STRING([--disable-avcodec],[Disable FFMPEG avcodec support]),,enable_ffmpeg=yes)
+if test x$enable_avcodec = xyes; then
+	CFLAGS="$CFLAGS "`pkg-config libavcodec --cflags`
+	CPPFLAGS="$CPPFLAGS "`pkg-config libavcodec --cflags`
+	LIBS="$LIBS -lavcodec -lavformat -lavutil -lswscale "`pkg-config libavcodec --libs`
+fi
+AC_CHECK_LIB(avcodec,avcodec_open2,have_ffmpeg=yes,have_ffmpeg=no,)
+AC_CHECK_HEADER(libavcodec/avcodec.h,have_avcodec_h=yes,have_avcodec_h=no,)
+if test x$enable_avcodec = xyes; then
+    if test x$have_ffmpeg = xyes; then
+        if test x$have_avcodec_h = xyes; then
+            AC_MSG_RESULT(yes)
+            AC_DEFINE(C_AVCODEC,1)
+        fi
+    fi
+fi
+
+AH_TEMPLATE(C_OPENGL,[Define to 1 to use opengl display output support])
+AC_CHECK_LIB(GL, main, have_gl_lib=yes, have_gl_lib=no , )
+AC_CHECK_LIB(opengl32, main, have_opengl32_lib=yes,have_opengl32_lib=no , )
+AC_CHECK_HEADER(GL/gl.h, have_gl_h=yes , have_gl_h=no , )
+AC_ARG_ENABLE(opengl,AC_HELP_STRING([--disable-opengl],[Disable opengl support]),,enable_opengl=yes)
+AC_MSG_CHECKING(whether opengl display output will be enabled) 
+if test x$enable_opengl = xyes; then
+case "$host" in
+    *-*-darwin*)
+       AC_MSG_RESULT(yes)
+       LIBS="$LIBS -framework OpenGL"
+       AC_DEFINE(C_OPENGL,1)
+       ;;
+    *)
+       if test x$have_gl_h = xyes -a x$have_gl_lib = xyes ; then 
+         AC_MSG_RESULT(yes)
+         LIBS="$LIBS -lGL"
+         AC_DEFINE(C_OPENGL,1)
+       elif test x$have_gl_h = xyes -a x$have_opengl32_lib = xyes ; then 
+         AC_MSG_RESULT(yes)
+         LIBS="$LIBS -lopengl32"
+         AC_DEFINE(C_OPENGL,1)
+       else
+         AC_MSG_RESULT(no)
+       fi
+       ;;
+esac
+fi
+
 dnl The target cpu checks for dynamic cores
 AH_TEMPLATE(C_TARGETCPU,[The type of cpu this target has])
 AC_MSG_CHECKING(for target cpu type) 
@@ -463,54 +480,6 @@ else
   AC_MSG_WARN([fluidsynth MIDI synthesis not available])
 fi
 
-# FFMPEG output
-AH_TEMPLATE(C_AVCODEC,[Define to 1 to use FFMPEG libavcodec for video capture])
-AC_ARG_ENABLE(avcodec,AC_HELP_STRING([--disable-avcodec],[Disable FFMPEG avcodec support]),,enable_ffmpeg=yes)
-if test x$enable_avcodec = xyes; then
-	CFLAGS="$CFLAGS "`pkg-config libavcodec --cflags`
-	CPPFLAGS="$CPPFLAGS "`pkg-config libavcodec --cflags`
-	LIBS="$LIBS -lavcodec -lavformat -lavutil -lswscale "`pkg-config libavcodec --libs`
-fi
-AC_CHECK_LIB(avcodec,avcodec_open2,have_ffmpeg=yes,have_ffmpeg=no,)
-AC_CHECK_HEADER(libavcodec/avcodec.h,have_avcodec_h=yes,have_avcodec_h=no,)
-if test x$enable_avcodec = xyes; then
-    if test x$have_ffmpeg = xyes; then
-        if test x$have_avcodec_h = xyes; then
-            AC_MSG_RESULT(yes)
-            AC_DEFINE(C_AVCODEC,1)
-        fi
-    fi
-fi
-
-AH_TEMPLATE(C_OPENGL,[Define to 1 to use opengl display output support])
-AC_CHECK_LIB(GL, main, have_gl_lib=yes, have_gl_lib=no , )
-AC_CHECK_LIB(opengl32, main, have_opengl32_lib=yes,have_opengl32_lib=no , )
-AC_CHECK_HEADER(GL/gl.h, have_gl_h=yes , have_gl_h=no , )
-AC_ARG_ENABLE(opengl,AC_HELP_STRING([--disable-opengl],[Disable opengl support]),,enable_opengl=yes)
-AC_MSG_CHECKING(whether opengl display output will be enabled)
-if test x$enable_opengl = xyes; then
-case "$host" in
-    *-*-darwin*)
-       AC_MSG_RESULT(yes)
-       LIBS="$LIBS -framework OpenGL"
-       AC_DEFINE(C_OPENGL,1)
-       ;;
-    *)
-       if test x$have_gl_h = xyes -a x$have_gl_lib = xyes ; then
-         AC_MSG_RESULT(yes)
-         LIBS="$LIBS -lGL"
-         AC_DEFINE(C_OPENGL,1)
-       elif test x$have_gl_h = xyes -a x$have_opengl32_lib = xyes ; then
-         AC_MSG_RESULT(yes)
-         LIBS="$LIBS -lopengl32"
-         AC_DEFINE(C_OPENGL,1)
-       else
-         AC_MSG_RESULT(no)
-       fi
-       ;;
-esac
-fi
-
 dnl Check for mprotect. Needed for 64 bits linux 
 AH_TEMPLATE(C_HAVE_MPROTECT,[Define to 1 if you have the mprotect function])
 AC_CHECK_HEADER([sys/mman.h], [
@@ -530,52 +499,45 @@ int main(int argc,char * argv[]) {
 dnl Some target detection and actions for them
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
-       LIBS="$LIBS -lwinmm -limm32"
-       CXXFLAGS="$CXXFLAGS -mno-ms-bitfields"
-
-dnl @FIXME:
-dnl
-dnl   GCC 5.4 is producing binaries that segfault at runtime during DirectX initialization.
-dnl
-dnl
-dnl       AH_TEMPLATE(C_D3DSHADERS,[Define to 1 to use Direct3D shaders, requires d3d9.h and libd3dx9])
-dnl       AC_ARG_WITH(dx-headers,[  --with-dx-headers=DIR   DirectX include files location],
-dnl		   dx_headers="$withval", dx_headers="")
-dnl       AC_ARG_WITH(dx-libs,[  --with-dx-libs=DIR      DirectX library location],
-dnl		   dx_libs="$withval", dx_libs="")
-dnl       ac_save_CPPFLAGS=$CPPFLAGS
-dnl       if test x$dx_headers != x ; then
-dnl        CPPFLAGS="$CPPFLAGS -I$dx_headers"
-dnl       fi
-dnl       AC_LANG(C++)
-dnl       AC_CHECK_HEADERS(ddraw.h)
-dnl       AC_CHECK_HEADERS(d3d9.h,have_d3d9_h=yes,)
-dnl       AC_MSG_CHECKING(whether direct3d display output will be enabled)
-dnl       if test x$have_d3d9_h = xyes ; then
-dnl        AC_MSG_RESULT(yes)
-dnl        AC_ARG_ENABLE(shaders,AC_HELP_STRING([--disable-shaders],[Disable d3d pixelshader support (which requires libd3dx9)]),,[
-dnl		AC_MSG_CHECKING(whether direct3d pixelshaders will be enabled)
-dnl		ac_save_LIBS=$LIBS
-dnl		if test x$dx_libs != x ; then
-dnl		 dx_libs=" -L$dx_libs"
-dnl		fi
-dnl		LIBS="$LIBS$dx_libs -ld3dx9"
-dnl		AC_TRY_LINK([#include <d3d9.h>
-dnl			     #include <d3dx9.h>
-dnl			     extern "C" int main();],D3DXCreateEffect(0, 0, 0, 0, 0, 0, 0, 0, 0), have_d3dx9_lib=yes,)
-dnl		if test x$have_d3dx9_lib = xyes ; then
-dnl		 AC_MSG_RESULT(yes)
-dnl		 AC_DEFINE(C_D3DSHADERS,1)
-dnl		else
-dnl		 LIBS=$ac_save_LIBS
-dnl		 AC_MSG_RESULT(no)
-dnl		 AC_MSG_WARN([Can't find libd3dx9, pixelshader support disabled])
-dnl		fi
-dnl	],)
-dnl       else
-dnl       CPPFLAGS=$ac_save_CPPFLAGS
-dnl        AC_MSG_RESULT(no)
-dnl       fi
+       LIBS="$LIBS -lwinmm"
+       AH_TEMPLATE(C_D3DSHADERS,[Define to 1 to use Direct3D shaders, requires d3d9.h and libd3dx9])
+       AC_ARG_WITH(dx-headers,[  --with-dx-headers=DIR   DirectX include files location],
+		   dx_headers="$withval", dx_headers="")
+       AC_ARG_WITH(dx-libs,[  --with-dx-libs=DIR      DirectX library location],
+		   dx_libs="$withval", dx_libs="")
+       ac_save_CPPFLAGS=$CPPFLAGS
+       if test x$dx_headers != x ; then
+        CPPFLAGS="$CPPFLAGS -I$dx_headers"
+       fi
+       AC_LANG(C++)
+       AC_CHECK_HEADERS(ddraw.h)
+       AC_CHECK_HEADERS(d3d9.h,have_d3d9_h=yes,)
+       AC_MSG_CHECKING(whether direct3d display output will be enabled)
+       if test x$have_d3d9_h = xyes ; then
+        AC_MSG_RESULT(yes)
+        AC_ARG_ENABLE(shaders,AC_HELP_STRING([--disable-shaders],[Disable d3d pixelshader support (which requires libd3dx9)]),,[
+		AC_MSG_CHECKING(whether direct3d pixelshaders will be enabled)
+		ac_save_LIBS=$LIBS
+		if test x$dx_libs != x ; then
+		 dx_libs=" -L$dx_libs"
+		fi
+		LIBS="$LIBS$dx_libs -ld3dx9"
+		AC_TRY_LINK([#include <d3d9.h>
+			     #include <d3dx9.h>
+			     extern "C" int main();],D3DXCreateEffect(0, 0, 0, 0, 0, 0, 0, 0, 0), have_d3dx9_lib=yes,)
+		if test x$have_d3dx9_lib = xyes ; then
+		 AC_MSG_RESULT(yes)
+		 AC_DEFINE(C_D3DSHADERS,1)
+		else
+		 LIBS=$ac_save_LIBS
+		 AC_MSG_RESULT(no)
+		 AC_MSG_WARN([Can't find libd3dx9, pixelshader support disabled])
+		fi
+	],)
+       else
+        CPPFLAGS=$ac_save_CPPFLAGS
+        AC_MSG_RESULT(no)
+       fi
        AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2 only).])
        AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel passthrough support (Win32 only).])
        if test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
@@ -592,10 +554,10 @@ dnl       fi
        AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
        ;;
     *-*-linux*)
+       AM_CONDITIONAL(LINUX, [true])
        AC_DEFINE(LINUX, 1, [Compiling on GNU/Linux])
        AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
        AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel passthrough support (Win32, Linux).])
-       CXXFLAGS="$CXXFLAGS -D_XOPEN_SOURCE=700 -D_POSIX_C_SOURCE=200809L"
        ;;
     *-*-freebsd* | *-*-dragonfly* | *-*-netbsd* | *-*-openbsd*)
        dnl Disabled directserial for now. It doesn't do anything without

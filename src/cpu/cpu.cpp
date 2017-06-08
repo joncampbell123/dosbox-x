@@ -59,7 +59,6 @@ bool do_seg_limits = false;
 
 bool enable_fpu = true;
 bool enable_msr = true;
-bool enable_cmpxchg8b = true;
 bool ignore_undefined_msr = true;
 
 extern bool ignore_opcode_63;
@@ -1971,27 +1970,19 @@ static Bit32u snap_cpu_saved_cr3;
  * by the guest OS, but that's something we'll clean up
  * later. */
 void CPU_Snap_Back_To_Real_Mode() {
-    if (snap_cpu_snapped) return;
+	if (snap_cpu_snapped) return;
 
-    SETFLAGBIT(IF,false);	/* forcibly clear interrupt flag */
+	SETFLAGBIT(IF,false);	/* forcibly clear interrupt flag */
 
-    cpu.code.big = false;   /* force back to 16-bit */
-    cpu.stack.big = false;
-    cpu.stack.mask = 0xffff;
-    cpu.stack.notmask = 0xffff0000;
+	snap_cpu_saved_cr0 = cpu.cr0;
+	snap_cpu_saved_cr2 = paging.cr2;
+	snap_cpu_saved_cr3 = paging.cr3;
 
-    snap_cpu_saved_cr0 = cpu.cr0;
-    snap_cpu_saved_cr2 = paging.cr2;
-    snap_cpu_saved_cr3 = paging.cr3;
+	CPU_SET_CRX(0,0);	/* force CPU to real mode */
+	CPU_SET_CRX(2,0);	/* disable paging */
+	CPU_SET_CRX(3,0);	/* clear the page table dir */
 
-    CPU_SET_CRX(0,0);	/* force CPU to real mode */
-    CPU_SET_CRX(2,0);	/* disable paging */
-    CPU_SET_CRX(3,0);	/* clear the page table dir */
-
-    cpu.idt.SetBase(0);         /* or ELSE weird things will happen when INTerrupts are run */
-    cpu.idt.SetLimit(1023);
-
-    snap_cpu_snapped = true;
+	snap_cpu_snapped = true;
 }
 
 void CPU_Snap_Back_Restore() {
@@ -2516,14 +2507,12 @@ bool CPU_CPUID(void) {
 			reg_ecx=0;			/* No features */
 			reg_edx=0x00000010|(enable_fpu?1:0);	/* FPU+TimeStamp/RDTSC */
 			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
-            if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
 		} else if (CPU_ArchitectureType==CPU_ARCHTYPE_P55CSLOW) {
 			reg_eax=0x543;		/* intel pentium mmx (P55C) */
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
-			reg_edx=0x00800010|(enable_fpu?1:0);	/* FPU+TimeStamp/RDTSC+MMX+ModelSpecific/MSR */
+			reg_edx=0x00800030|(enable_fpu?1:0);	/* FPU+TimeStamp/RDTSC+MMX+ModelSpecific/MSR */
 			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
-            if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
 		} else {
 			return false;
 		}
@@ -2913,8 +2902,6 @@ public:
 		cpu_rep_max=section->Get_int("interruptible rep string op");
 		ignore_undefined_msr=section->Get_bool("ignore undefined msr");
 		enable_msr=section->Get_bool("enable msr");
-        enable_cmpxchg8b=section->Get_bool("enable cmpxchg8b");
-        if (enable_cmpxchg8b) LOG_MSG("Pentium CMPXCHG8B emulation is enabled");
 		CPU_CycleUp=section->Get_int("cycleup");
 		CPU_CycleDown=section->Get_int("cycledown");
 		std::string core(section->Get_string("core"));
@@ -3318,37 +3305,5 @@ bool CPU_WRMSR() {
 
 	if (ignore_undefined_msr) return true; /* ignore */
 	return false; /* unknown reg, signal illegal opcode */
-}
-
-/* NTS: Hopefully by implementing this Windows ME can stop randomly crashing when cputype=pentium */
-void CPU_CMPXCHG8B(PhysPt eaa) {
-    uint32_t hi,lo;
-
-    /* NTS: We assume that, if reading doesn't cause a page fault, writing won't either */
-    hi = (uint32_t)mem_readd(eaa+(PhysPt)4);
-    lo = (uint32_t)mem_readd(eaa);
-
-    LOG_MSG("Experimental CMPXCHG8B implementation executed. EDX:EAX=0x%08lx%08lx ECX:EBX=0x%08lx%08lx EA=0x%08lx MEM64=0x%08lx%08lx",
-        (unsigned long)reg_edx,
-        (unsigned long)reg_eax,
-        (unsigned long)reg_ecx,
-        (unsigned long)reg_ebx,
-        (unsigned long)eaa,
-        (unsigned long)hi,
-        (unsigned long)lo);
-
-    /* Compare EDX:EAX with 64-bit DWORD at memaddr 'eaa'.
-     * if they match, ZF=1 and write ECX:EBX to memaddr 'eaa'.
-     * else, ZF=0 and load memaddr 'eaa' into EDX:EAX */
-    if (reg_edx == hi && reg_eax == lo) {
-        mem_writed(eaa+(PhysPt)4,reg_ecx);
-        mem_writed(eaa,          reg_ebx);
-		SETFLAGBIT(ZF,true);
-    }
-    else {
-		SETFLAGBIT(ZF,false);
-        reg_edx = hi;
-        reg_eax = lo;
-    }
 }
 

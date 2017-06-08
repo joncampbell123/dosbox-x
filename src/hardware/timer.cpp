@@ -415,7 +415,6 @@ static IO_WriteHandleObject WriteHandler[4];
 
 void TIMER_BIOS_INIT_Configure() {
 	PIC_RemoveEvents(PIT0_Event);
-	PIC_DeActivateIRQ(0);
 
 	/* Setup Timer 0 */
 	pit[0].cntr = 0x10000;
@@ -428,7 +427,6 @@ void TIMER_BIOS_INIT_Configure() {
 	pit[0].go_read_latch = true;
 	pit[0].counterstatus_set = false;
 	pit[0].update_count = false;
-	pit[0].start = PIC_FullIndex();
 
 	pit[1].bcd = false;
 	pit[1].write_state = 1;
@@ -438,7 +436,6 @@ void TIMER_BIOS_INIT_Configure() {
 	pit[1].mode = 2;
 	pit[1].write_state = 3;
 	pit[1].counterstatus_set = false;
-	pit[1].start = PIC_FullIndex();
 
 	{
 		Section_prop *pcsec = static_cast<Section_prop *>(control->GetSection("speaker"));
@@ -462,7 +459,6 @@ void TIMER_BIOS_INIT_Configure() {
 		pit[2].go_read_latch = true;
 		pit[2].counterstatus_set = false;
 		pit[2].counting = false;
-	    pit[2].start = PIC_FullIndex();
 	}
 
 	pit[0].delay=(1000.0f/((float)PIT_TICK_RATE/(float)pit[0].cntr));

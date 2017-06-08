@@ -28,9 +28,7 @@
 #include "support.h"
 #include "builtin.h"
 
-void CALLBACK_DeAllocate(Bitu in);
-
-Bitu call_shellstop = 0;
+Bitu call_shellstop;
 /* Larger scope so shell_del autoexec can use it to
  * remove things from the environment */
 Program * first_shell = 0; 
@@ -473,14 +471,6 @@ static void AUTOEXEC_ShutDown(Section * sec) {
 		delete test;
 		test = NULL;
 	}
-    if (first_shell != NULL) {
-		delete first_shell;
-		first_shell = 0;//Make clear that it shouldn't be used anymore
-    }
-    if (call_shellstop != 0) {
-        CALLBACK_DeAllocate(call_shellstop);
-        call_shellstop = 0;
-    }
 }
 
 void AUTOEXEC_Startup(Section *sec) {
@@ -496,8 +486,6 @@ void AUTOEXEC_Init() {
 	AddExitFunction(AddExitFunctionFuncPair(AUTOEXEC_ShutDown));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(AUTOEXEC_ShutDown));
 	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(AUTOEXEC_ShutDown));
-	AddVMEventFunction(VM_EVENT_DOS_EXIT_REBOOT_BEGIN,AddVMEventFunctionFuncPair(AUTOEXEC_ShutDown));
-	AddVMEventFunction(VM_EVENT_DOS_SURPRISE_REBOOT,AddVMEventFunctionFuncPair(AUTOEXEC_ShutDown));
 }
 
 static char const * const path_string="PATH=Z:\\";

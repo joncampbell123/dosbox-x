@@ -44,8 +44,8 @@ diskGeo DiskGeometryList[] = {
 	{0, 0, 0, 0, 0}
 };
 
-Bitu call_int13 = 0;
-Bitu diskparm0 = 0, diskparm1 = 0;
+Bitu call_int13;
+Bitu diskparm0, diskparm1;
 static Bit8u last_status;
 static Bit8u last_drive;
 Bit16u imgDTASeg;
@@ -767,22 +767,6 @@ static Bitu INT13_DiskHandler(void) {
 	return CBRET_NONE;
 }
 
-void CALLBACK_DeAllocate(Bitu in);
-
-void BIOS_UnsetupDisks(void) {
-    if (call_int13 != 0) {
-        CALLBACK_DeAllocate(call_int13);
-        call_int13 = 0;
-    }
-    if (diskparm0 != 0) {
-        CALLBACK_DeAllocate(diskparm0);
-        diskparm0 = 0;
-    }
-    if (diskparm1 != 0) {
-        CALLBACK_DeAllocate(diskparm1);
-        diskparm1 = 0;
-    }
-}
 
 void BIOS_SetupDisks(void) {
 	int i;
@@ -797,11 +781,8 @@ void BIOS_SetupDisks(void) {
 	for(i=0;i<MAX_SWAPPABLE_DISKS;i++)
 		diskSwap[i] = NULL;
 
-    /* FIXME: Um... these aren't callbacks. Why are they allocated as callbacks? We have ROM general allocation now. */
 	diskparm0 = CALLBACK_Allocate();
-	CALLBACK_SetDescription(diskparm0,"BIOS Disk 0 parameter table");
 	diskparm1 = CALLBACK_Allocate();
-	CALLBACK_SetDescription(diskparm1,"BIOS Disk 1 parameter table");
 	swapPosition = 0;
 
 	RealSetVec(0x41,CALLBACK_RealPointer(diskparm0));
