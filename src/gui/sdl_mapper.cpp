@@ -1673,6 +1673,9 @@ public:
 		case MK_kpminus:
 			key=SDLK_KP_MINUS;
 			break;
+        case MK_kpplus:
+			key=SDLK_KP_PLUS;
+			break;
 		case MK_equals:
 			key=SDLK_EQUALS;
 			break;
