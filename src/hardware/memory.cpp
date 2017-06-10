@@ -1410,7 +1410,9 @@ bool MEM_map_RAM_physmem(Bitu start,Bitu end) {
 			__FUNCTION__,(unsigned long)start,(unsigned long)end,(unsigned long)memory.handler_pages);
 
 	for (p=start;p <= end;p++) {
-		if (memory.phandlers[p] != &illegal_page_handler && memory.phandlers[p] != &unmapped_page_handler)
+		if (memory.phandlers[p] != NULL && memory.phandlers[p] != &illegal_page_handler &&
+            memory.phandlers[p] != &unmapped_page_handler && memory.phandlers[p] != &ram_page_handler &&
+            memory.phandlers[p] != &ram_alias_page_handler)
 			return false;
 	}
 
@@ -1435,7 +1437,8 @@ bool MEM_map_ROM_physmem(Bitu start,Bitu end) {
 			__FUNCTION__,(unsigned long)start,(unsigned long)end,(unsigned long)memory.handler_pages);
 
 	for (p=start;p <= end;p++) {
-		if (memory.phandlers[p] != NULL && memory.phandlers[p] != &illegal_page_handler && memory.phandlers[p] != &unmapped_page_handler)
+		if (memory.phandlers[p] != NULL && memory.phandlers[p] != &illegal_page_handler &&
+            memory.phandlers[p] != &unmapped_page_handler && memory.phandlers[p] != &rom_page_handler)
 			return false;
 	}
 
