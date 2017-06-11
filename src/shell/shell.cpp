@@ -609,7 +609,11 @@ void SHELL_Init() {
 	        "\xBA                                                                    \xBA\n"
 	);
 	MSG_Add("SHELL_STARTUP_DEBUG",
+	#if defined(MACOSX)
+	        "\xBA Debugger is available, use \033[31malt-F12\033[37m to enter.                       \xBA\n"
+	#else
 	        "\xBA Debugger is available, use \033[31malt-Pause\033[37m to enter.                     \xBA\n"
+	#endif
 	        "\xBA                                                                    \xBA\n"
 	);
 	MSG_Add("SHELL_STARTUP_END",
