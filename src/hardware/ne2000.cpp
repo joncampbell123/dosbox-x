@@ -50,8 +50,6 @@
 
 #include "ne2000.h"
 
-#define HAVE_REMOTE
-
 #include "pcap.h"
 // Handle to WinPCap device
 pcap_t *adhandle = 0;
