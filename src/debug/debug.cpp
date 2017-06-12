@@ -2223,7 +2223,13 @@ void DEBUG_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing debug system");
 
 	/* Add some keyhandlers */
-	MAPPER_AddHandler(DEBUG_Enable,MK_pause,MMOD2,"debugger","Debugger");
+	#if defined(MACOSX)
+		// OSX NOTE: ALT-F12 to launch debugger. pause maps to F16 on macOS,
+		// which is not easy to input on a modern mac laptop
+		MAPPER_AddHandler(DEBUG_Enable,MK_f12,MMOD2,"debugger","Debugger");
+	#else
+		MAPPER_AddHandler(DEBUG_Enable,MK_pause,MMOD2,"debugger","Debugger");
+	#endif
 	/* Reset code overview and input line */
 	memset((void*)&codeViewData,0,sizeof(codeViewData));
 	/* setup debug.com */
