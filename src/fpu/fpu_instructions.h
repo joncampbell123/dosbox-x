@@ -313,7 +313,7 @@ static void FPU_FBST(PhysPt addr) {
 	mem_writeb(addr+9,p);
 }
 
-#if defined(WIN32) && defined(_MSC_VER)
+#if defined(WIN32) && defined(_MSC_VER) && (_MSC_VER < 1910)
 /* std::isinf is C99 standard how could you NOT have this VS2008??? */
 # include <math.h>
 /* the purpose of this macro is to test for -/+inf. NaN is not inf. If finite or NaN it's not infinity */
