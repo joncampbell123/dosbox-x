@@ -2544,7 +2544,6 @@ bool DOSBOX_parse_argv() {
 
     control->cmdline->BeginOpt();
     while (control->cmdline->GetOpt(optname)) {
-
         std::transform(optname.begin(), optname.end(), optname.begin(), ::tolower);
 
         if (optname == "version") {
@@ -2555,6 +2554,10 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"DOSBox comes with ABSOLUTELY NO WARRANTY.  This is free software,\n");
             fprintf(stderr,"and you are welcome to redistribute it under certain conditions;\n");
             fprintf(stderr,"please read the COPYING file thoroughly before doing so.\n\n");
+
+#if defined(WIN32)
+            DOSBox_ConsolePauseWait();
+#endif
 
             return 0;
         }
@@ -2581,6 +2584,7 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -startui -startgui                      Start DOSBox-X with UI\n");
             fprintf(stderr,"  -startmapper                            Start DOSBox-X with mapper\n");
             fprintf(stderr,"  -showcycles                             Show cycles count\n");
+            fprintf(stderr,"  -showrt                                 Show emulation speed relative to realtime\n");
             fprintf(stderr,"  -fullscreen                             Start in fullscreen\n");
             fprintf(stderr,"  -savedir <path>                         Save path\n");
             fprintf(stderr,"  -disable-numlock-check                  Disable numlock check (win32 only)\n");
@@ -2596,6 +2600,10 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -c <command string>                     Execute this command in addition to AUTOEXEC.BAT.\n");
             fprintf(stderr,"                                          Make sure to surround the command in quotes to cover spaces.\n");
             fprintf(stderr,"  -break-start                            Break into debugger at startup\n");
+
+#if defined(WIN32)
+            DOSBox_ConsolePauseWait();
+#endif
 
             return 0;
         }
@@ -2623,6 +2631,9 @@ bool DOSBOX_parse_argv() {
         }
         else if (optname == "date-host-forced" || optname == "date_host_forced") {
             control->opt_date_host_forced = true;
+        }
+        else if (optname == "showrt") {
+            control->opt_showrt = true;
         }
         else if (optname == "showcycles") {
             control->opt_showcycles = true;
@@ -2702,6 +2713,7 @@ bool DOSBOX_parse_argv() {
             printf("WARNING: Unknown option %s (first parsing stage)\n",optname.c_str());
         }
     }
+
     return true;
 }
 
@@ -3031,6 +3043,7 @@ int main(int argc, char* argv[]) {
 
         // Shows menu bar (window)
         menu.startup = true;
+        menu.showrt = control->opt_showrt;
         menu.hidecycles = (control->opt_showcycles ? false : true);
 
         MSG_Init();
