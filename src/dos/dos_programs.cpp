@@ -891,6 +891,8 @@ public:
 				}
 			}
 		} else {
+            extern const char* RunningProgram;
+
 			if (max_seg < 0x0800) {
 				/* TODO: For the adventerous, add a configuration option or command line switch to "BOOT"
 				 *       that allows us to boot the guest OS anyway in a manner that is non-standard. */
@@ -924,6 +926,7 @@ public:
 
 			/* debug */
 			LOG_MSG("Booting guest OS stack_seg=0x%04x load_seg=0x%04x\n",(int)stack_seg,(int)load_seg);
+            RunningProgram = "Guest OS";
  
 			/* create appearance of floppy drive DMA usage (Demon's Forge) */
 			if (!IS_TANDY_ARCH && floppysize!=0) GetDMAChannel(2)->tcount=true;
@@ -1265,7 +1268,7 @@ restart_int:
 #ifdef WIN32
 		// read from real floppy?
 		if(cmd->FindString("-source",src,true)) {
-			Bits retries = 10;
+			int retries = 10;
 			cmd->FindInt("-retries",retries,true);
 			if((retries < 1)||(retries > 99))  {
 				printHelp();
