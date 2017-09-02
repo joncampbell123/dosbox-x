@@ -1955,65 +1955,88 @@ static void RedrawScreen(Bit32u nWidth, Bit32u nHeight) {
     RENDER_CallBack( GFX_CallBackReset);
 }
 
+extern unsigned int mouse_notify_mode;
+
+bool user_cursor_locked = false;
+int user_cursor_x = 0,user_cursor_y = 0;
+int user_cursor_sw = 640,user_cursor_sh = 480;
+
 static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
-    if (sdl.mouse.locked || !sdl.mouse.autoenable)
-        Mouse_CursorMoved((float)motion->xrel*sdl.mouse.sensitivity/100.0f,
-                          (float)motion->yrel*sdl.mouse.sensitivity/100.0f,
-                          (float)(motion->x-sdl.clip.x)/(sdl.clip.w-1)*sdl.mouse.sensitivity/100.0f,
-                          (float)(motion->y-sdl.clip.y)/(sdl.clip.h-1)*sdl.mouse.sensitivity/100.0f,
-                          sdl.mouse.locked);
+    user_cursor_x = motion->x - sdl.clip.x;
+    user_cursor_y = motion->y - sdl.clip.y;
+    user_cursor_locked = sdl.mouse.locked;
+    user_cursor_sw = sdl.clip.w;
+    user_cursor_sh = sdl.clip.h;
+
+	if (sdl.mouse.locked || !sdl.mouse.autoenable)
+		Mouse_CursorMoved((float)motion->xrel*sdl.mouse.sensitivity/100.0f,
+						  (float)motion->yrel*sdl.mouse.sensitivity/100.0f,
+						  (float)(motion->x-sdl.clip.x)/(sdl.clip.w-1)*sdl.mouse.sensitivity/100.0f,
+						  (float)(motion->y-sdl.clip.y)/(sdl.clip.h-1)*sdl.mouse.sensitivity/100.0f,
+						  sdl.mouse.locked);
+    else if (mouse_notify_mode != 0) { /* for mouse integration driver */
+		Mouse_CursorMoved(0,0,0,0,sdl.mouse.locked);
+		SDL_ShowCursor(SDL_DISABLE); /* TODO: If guest has not read mouse cursor position within 250ms show cursor again */
+    }
+    else {
+		SDL_ShowCursor(SDL_ENABLE);
+    }
 }
 
 static void HandleMouseButton(SDL_MouseButtonEvent * button) {
-    switch (button->state) {
-    case SDL_PRESSED:
-        if (sdl.mouse.requestlock && !sdl.mouse.locked) {
-            GFX_CaptureMouse();
-            // Dont pass klick to mouse handler
-            break;
-        }
-        if (!sdl.mouse.autoenable && sdl.mouse.autolock && button->button == SDL_BUTTON_MIDDLE) {
-            GFX_CaptureMouse();
-            break;
-        }
-        switch (button->button) {
-        case SDL_BUTTON_LEFT:
-            Mouse_ButtonPressed(0);
-            break;
-        case SDL_BUTTON_RIGHT:
-            Mouse_ButtonPressed(1);
-            break;
-        case SDL_BUTTON_MIDDLE:
-            Mouse_ButtonPressed(2);
-            break;
-//        case SDL_BUTTON_WHEELUP: /* Ick, really SDL? */
-//            Mouse_ButtonPressed(100-1);
-//            break;
-//        case SDL_BUTTON_WHEELDOWN: /* Ick, really SDL? */
-//            Mouse_ButtonPressed(100+1);
-//            break;
-        }
-        break;
-    case SDL_RELEASED:
-        switch (button->button) {
-        case SDL_BUTTON_LEFT:
-            Mouse_ButtonReleased(0);
-            break;
-        case SDL_BUTTON_RIGHT:
-            Mouse_ButtonReleased(1);
-            break;
-        case SDL_BUTTON_MIDDLE:
-            Mouse_ButtonReleased(2);
-            break;
-//        case SDL_BUTTON_WHEELUP: /* Ick, really SDL? */
-//           Mouse_ButtonReleased(100-1);
-//            break;
-//        case SDL_BUTTON_WHEELDOWN: /* Ick, really SDL? */
-//            Mouse_ButtonReleased(100+1);
-//            break;
-        }
-        break;
-    }
+	switch (button->state) {
+	case SDL_PRESSED:
+		if (sdl.mouse.requestlock && !sdl.mouse.locked && mouse_notify_mode == 0) {
+			GFX_CaptureMouse();
+			// Dont pass klick to mouse handler
+			break;
+		}
+		if (!sdl.mouse.autoenable && sdl.mouse.autolock && mouse_notify_mode == 0 && button->button == SDL_BUTTON_MIDDLE) {
+			GFX_CaptureMouse();
+			break;
+		}
+		switch (button->button) {
+		case SDL_BUTTON_LEFT:
+			Mouse_ButtonPressed(0);
+			break;
+		case SDL_BUTTON_RIGHT:
+			Mouse_ButtonPressed(1);
+			break;
+		case SDL_BUTTON_MIDDLE:
+			Mouse_ButtonPressed(2);
+			break;
+#if 0
+		case SDL_BUTTON_WHEELUP: /* Ick, really SDL? */
+			Mouse_ButtonPressed(100-1);
+			break;
+		case SDL_BUTTON_WHEELDOWN: /* Ick, really SDL? */
+			Mouse_ButtonPressed(100+1);
+			break;
+#endif
+		}
+		break;
+	case SDL_RELEASED:
+		switch (button->button) {
+		case SDL_BUTTON_LEFT:
+			Mouse_ButtonReleased(0);
+			break;
+		case SDL_BUTTON_RIGHT:
+			Mouse_ButtonReleased(1);
+			break;
+		case SDL_BUTTON_MIDDLE:
+			Mouse_ButtonReleased(2);
+			break;
+#if 0
+		case SDL_BUTTON_WHEELUP: /* Ick, really SDL? */
+			Mouse_ButtonReleased(100-1);
+			break;
+		case SDL_BUTTON_WHEELDOWN: /* Ick, really SDL? */
+			Mouse_ButtonReleased(100+1);
+			break;
+#endif
+		}
+		break;
+	}
 }
 
 void GFX_LosingFocus(void) {
@@ -2058,10 +2081,6 @@ void GFX_HandleVideoResize(int width, int height) {
     GFX_ResetScreen();
     sdl.update_window = true;
 }
-
-bool user_cursor_locked = false;
-int user_cursor_x = 0,user_cursor_y = 0;
-int user_cursor_sw = 640,user_cursor_sh = 480;
 
 void GFX_Events() {
     SDL_Event event;
