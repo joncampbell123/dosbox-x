@@ -4481,20 +4481,17 @@ bool VM_PowerOn() {
 
 //extern void UI_Init(void);
 int main(int argc, char* argv[]) {
-	CommandLine com_line(argc,argv);
+    CommandLine com_line(argc,argv);
+    Config myconf(&com_line);
 
+    control=&myconf;
 #if defined(WIN32)
-	/* Microsoft's IME does not play nice with DOSBox */
-	ImmDisableIME((DWORD)(-1));
+    /* Microsoft's IME does not play nice with DOSBox */
+    ImmDisableIME((DWORD)(-1));
 #endif
 
-	{
-		/* NTS: Warning, do NOT move the Config myconf() object out of this scope.
-		 * The destructor relies on executing section destruction code as part of
-		 * DOSBox shutdown. */
-		std::string tmp,config_path;
-		Config myconf(&com_line);
-		control=&myconf;
+    {
+        std::string tmp,config_path;
 
 		/* -- parse command line arguments */
 		if (!DOSBOX_parse_argv()) return 1;
