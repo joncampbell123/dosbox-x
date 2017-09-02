@@ -32,7 +32,35 @@
 // NOTE: does not work with the dynamic core (dynrec is fine)
 #define USE_FULL_TLB
 
+class PageHandler;
+class MEM_CalloutObject;
+
 class PageDirectory;
+
+typedef PageHandler* (MEM_CalloutHandler)(MEM_CalloutObject &co,Bitu phys_page);
+
+void MEM_RegisterHandler(Bitu phys_page,PageHandler *handler,Bitu phys_range=1);
+
+void MEM_FreeHandler(Bitu phys_page,Bitu phys_range=1);
+
+void MEM_InvalidateCachedHandler(Bitu phys_page,Bitu phys_range=1);
+
+static const Bitu MEMMASK_ISA_20BIT = 0x000000FFU; /* ISA 20-bit decode (20 - 12 = 8) */
+static const Bitu MEMMASK_ISA_24BIT = 0x00000FFFU; /* ISA 24-bit decode (24 - 12 = 12) */
+static const Bitu MEMMASK_FULL      = 0x000FFFFFU; /* full 32-bit decode (32 - 12 = 20) */
+
+/* WARNING: Will only produce a correct result if 'x' is a nonzero power of two.
+ * For use with MEMMASK_Combine. 'x' is in units of PAGES not BYTES.
+ */
+static inline const Bitu MEMMASK_Range(const Bitu x) {
+    return ~(x - 1);
+}
+
+/* combine range mask with MEMMASK value.
+ */
+static inline const Bitu MEMMASK_Combine(const Bitu a,const Bitu b) {
+    return a & b;
+}
 
 #define MEM_PAGE_SIZE	(4096)
 #define XMS_START		(0x110)
@@ -90,6 +118,76 @@ private:
 	PageHandler& operator=(const PageHandler&);
 
 };
+
+/* NTS: To explain the Install() method, the caller not only provides the IOMASK_.. value, but ANDs
+ *      the least significant bits to define the range of I/O ports to respond to. An ISA Sound Blaster
+ *      for example would set portmask = (IOMASK_ISA_10BIT & (~0xF)) in order to respond to 220h-22Fh,
+ *      240h-24Fh, etc. At I/O callout time, the callout object is tested
+ *      if (cpu_ioport & io_mask) == (m_port & io_mask)
+ *
+ *      This does not prevent emulation of devices that start on non-aligned ports or strange port ranges,
+ *      because the callout handler is free to decline the I/O request, leading the callout process to
+ *      move on to the next device or mark the I/O port as empty. */
+class MEM_CalloutObject {
+public:
+    MEM_CalloutObject() : installed(false), mem_mask(0xFFFFFFFFU), range_mask(0U), alias_mask(0xFFFFFFFFU), getcounter(0), m_handler(NULL), m_base(0), alloc(false) {};
+    void InvalidateCachedHandlers(void);
+	void Install(Bitu page,Bitu pagemask/*MEMMASK_ISA_24BIT, etc.*/,MEM_CalloutHandler *handler);
+	void Uninstall();
+public:
+	bool installed;
+    Bitu mem_mask;
+    Bitu range_mask;
+    Bitu alias_mask;
+    unsigned int getcounter;
+    MEM_CalloutHandler *m_handler;
+	Bitu m_base;
+    bool alloc;
+public:
+    inline bool MatchPage(const Bitu p) {
+        /* (p & io_mask) == (m_port & io_mask) but this also works.
+         * apparently modern x86 processors are faster at addition/subtraction than bitmasking.
+         * for this to work, m_port must be a multiple of the I/O range. For example, if the I/O
+         * range is 16 ports, then m_port must be a multiple of 16. */
+        return ((p - m_base) & mem_mask) == 0;
+    }
+    inline bool isInstalled(void) {
+        return installed;
+    }
+};
+
+enum MEM_Type_t {
+    MEM_TYPE_NONE=0,
+    MEM_TYPE_MIN=1,
+    MEM_TYPE_ISA=1,
+    MEM_TYPE_PCI,
+    MEM_TYPE_MB,
+
+    MEM_TYPE_MAX
+};
+
+void MEM_InitCallouts(void);
+
+typedef uint32_t MEM_Callout_t;
+
+static inline uint32_t MEM_Callout_t_comb(const enum MEM_Type_t t,const uint32_t idx) {
+    return ((uint32_t)t << (uint32_t)28) + idx;
+}
+
+static inline enum MEM_Type_t MEM_Callout_t_type(const MEM_Callout_t t) {
+    return (enum MEM_Type_t)(t >> 28);
+}
+
+static inline uint32_t MEM_Callout_t_index(const MEM_Callout_t t) {
+    return t & (((uint32_t)1 << (uint32_t)28) - (uint32_t)1);
+}
+
+static const MEM_Callout_t MEM_Callout_t_none = (MEM_Callout_t)0;
+
+MEM_Callout_t MEM_AllocateCallout(MEM_Type_t t);
+void MEM_FreeCallout(MEM_Callout_t c);
+MEM_CalloutObject *MEM_GetCallout(MEM_Callout_t c);
+void MEM_PutCallout(MEM_CalloutObject *obj);
 
 /* Some other functions */
 void PAGING_Enable(bool enabled);
