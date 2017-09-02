@@ -59,10 +59,42 @@ void DisableINT33() {
 	}
 }
 
-static Bitu call_int33,call_int74,int74_ret_callback,call_mouse_bd;
+void CALLBACK_DeAllocate(Bitu in);
+
+static Bitu int74_ret_callback = 0;
+static Bitu call_mouse_bd = 0;
+static Bitu call_int33 = 0;
+static Bitu call_int74 = 0;
+static Bitu call_ps2 = 0;
+
+void MOUSE_Unsetup_DOS(void) {
+    if (call_mouse_bd != 0) {
+        CALLBACK_DeAllocate(call_mouse_bd);
+        call_mouse_bd = 0;
+    }
+    if (call_int33 != 0) {
+        CALLBACK_DeAllocate(call_int33);
+        call_int33 = 0;
+    }
+}
+
+void MOUSE_Unsetup_BIOS(void) {
+    if (int74_ret_callback != 0) {
+        CALLBACK_DeAllocate(int74_ret_callback);
+        int74_ret_callback = 0;
+    }
+    if (call_int74 != 0) {
+        CALLBACK_DeAllocate(call_int74);
+        call_int74 = 0;
+    }
+    if (call_ps2 != 0) {
+        CALLBACK_DeAllocate(call_ps2);
+        call_ps2 = 0;
+    }
+}
+
 static Bit16u ps2cbseg,ps2cbofs;
 static bool useps2callback,ps2callbackinit;
-static Bitu call_ps2;
 static RealPt ps2_callback;
 static Bit16s oldmouseX, oldmouseY;
 // forward

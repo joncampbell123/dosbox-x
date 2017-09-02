@@ -1041,6 +1041,11 @@ void DoExtendedKeyboardHook(bool enable) {
 
 }
 
+void GFX_ReleaseMouse(void) {
+	if (sdl.mouse.locked)
+        GFX_CaptureMouse();
+}
+
 /* Toggles the mouse capture */
 void GFX_CaptureMouse(void) {
     sdl.mouse.locked=!sdl.mouse.locked;
@@ -2053,6 +2058,10 @@ void GFX_HandleVideoResize(int width, int height) {
     GFX_ResetScreen();
     sdl.update_window = true;
 }
+
+bool user_cursor_locked = false;
+int user_cursor_x = 0,user_cursor_y = 0;
+int user_cursor_sw = 640,user_cursor_sh = 480;
 
 void GFX_Events() {
     SDL_Event event;
