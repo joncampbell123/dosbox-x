@@ -309,47 +309,61 @@ void GFX_SetIcon(void) {
 
 extern std::string dosbox_title;
 
-void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused) {
-    static Bits internal_frameskip=0;
-    static Bit32s internal_cycles=0;
-    static Bits internal_timing=0;
-    char title[200] = {0};
+void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
+	static Bits internal_frameskip=0;
+	static Bit32s internal_cycles=0;
+	static Bits internal_timing=0;
+	char title[200] = {0};
 
-    if (cycles != -1) internal_cycles = cycles;
-    if (timing != -1) internal_timing = timing;
-    if (frameskip != -1) internal_frameskip = frameskip;
+	if (cycles != -1) internal_cycles = cycles;
+	if (timing != -1) internal_timing = timing;
+	if (frameskip != -1) internal_frameskip = frameskip;
 
-    if (!menu_startup) {
-        sprintf(title,"%s%sDOSBox %s, CPU speed: %8d cycles, Frameskip %2d, %8s",
-                dosbox_title.c_str(),dosbox_title.empty()?"":": ",
-                VERSION,(int)internal_cycles,(int)internal_frameskip,RunningProgram);
+	if (!menu_startup) {
+		sprintf(title,"%s%sDOSBox-X %s, %d cyc/ms, %s",
+			dosbox_title.c_str(),dosbox_title.empty()?"":": ",
+			VERSION,(int)internal_cycles,RunningProgram);
+
+	    if (!menu.hidecycles) {
+            char *p = title + strlen(title); // append to end of string
+
+            sprintf(p,", FPS %2d",(int)frames);
+        }
+
+	    if (menu.showrt) {
+            char *p = title + strlen(title); // append to end of string
+
+            sprintf(p,", %2d%%/RT",(int)floor((rtdelta / 10) + 0.5));
+        }
+
         SDL_SetWindowTitle(sdl.window,title);
-        return;
-    }
-    if (menu.hidecycles) {
-        if (CPU_CycleAutoAdjust) {
-            sprintf(title,"%s%sDOSBox %s, CPU speed: max %3d%% cycles, Frameskip %2d, %8s",
-                    dosbox_title.c_str(),dosbox_title.empty()?"":": ",
-                    VERSION,(int)CPU_CyclePercUsed,(int)internal_frameskip,RunningProgram);
-        }
-        else {
-            sprintf(title,"%s%sDOSBox %s, CPU speed: %8d cycles, Frameskip %2d, %8s",
-                    dosbox_title.c_str(),dosbox_title.empty()?"":": ",
-                    VERSION,(int)internal_cycles,(int)internal_frameskip,RunningProgram);
-        }
-    } else if (CPU_CycleAutoAdjust) {
-        sprintf(title,"%s%sDOSBox %s, CPU : %s %8d%% = max %3d, %d FPS - %2d %8s %i.%i%%",
-                dosbox_title.c_str(),dosbox_title.empty()?"":": ",
-                VERSION,core_mode,(int)CPU_CyclePercUsed,(int)internal_cycles,(int)frames,
-                (int)internal_frameskip,RunningProgram,(int)(internal_timing/100),(int)(internal_timing%100/10));
-    } else {
-        sprintf(title,"%s%sDOSBox %s, CPU : %s %8d = %8d, %d FPS - %2d %8s %i.%i%%",
-                dosbox_title.c_str(),dosbox_title.empty()?"":": ",
-                VERSION,core_mode,(int)0,(int)internal_cycles,(int)frames,(int)internal_frameskip,
-                RunningProgram,(int)(internal_timing/100),(int)((internal_timing%100)/10));
-    }
+		return;
+	}
 
-    if (paused) strcat(title," PAUSED");
+	if (menu.hidecycles) {
+		if (CPU_CycleAutoAdjust) {
+			sprintf(title,"%s%sDOSBox-X %s, max %3d%% cyc/ms, %s",
+				dosbox_title.c_str(),dosbox_title.empty()?"":": ",
+				VERSION,(int)CPU_CyclePercUsed,RunningProgram);
+		}
+		else {
+			sprintf(title,"%s%sDOSBox-X %s, %d cyc/ms, %s",
+				dosbox_title.c_str(),dosbox_title.empty()?"":": ",
+				VERSION,(int)internal_cycles,RunningProgram);
+		}
+	} else if (CPU_CycleAutoAdjust) {
+		sprintf(title,"%s%sDOSBox-X %s, CPU : %s %d%% = max %3d, %d FPS - %2d %8s %i.%i%%",
+			dosbox_title.c_str(),dosbox_title.empty()?"":": ",
+			VERSION,core_mode,(int)CPU_CyclePercUsed,(int)internal_cycles,(int)frames,
+			(int)internal_frameskip,RunningProgram,(int)(internal_timing/100),(int)(internal_timing%100/10));
+	} else {
+		sprintf(title,"%s%sDOSBox-X %s, CPU : %s %d = %8d, %d FPS - %2d %8s %i.%i%%",
+			dosbox_title.c_str(),dosbox_title.empty()?"":": ",
+			VERSION,core_mode,(int)0,(int)internal_cycles,(int)frames,(int)internal_frameskip,
+			RunningProgram,(int)(internal_timing/100),(int)((internal_timing%100)/10));
+	}
+
+	if (paused) strcat(title," PAUSED");
     SDL_SetWindowTitle(sdl.window,title);
 }
 
