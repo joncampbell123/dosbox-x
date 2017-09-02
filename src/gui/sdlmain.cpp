@@ -2786,69 +2786,88 @@ void FDC_Primary_Init();
 void AUTOEXEC_Init();
 
 bool VM_Boot_DOSBox_Kernel() {
-    if (dos_kernel_disabled) {
-        DispatchVMEvent(VM_EVENT_DOS_BOOT); // <- just starting the DOS kernel now
+	if (!dos_kernel_disabled) {
+        RemoveEMSPageFrame();
+        RemoveUMBBlock();
+        DisableINT33();
+        DOS_GetMemory_unmap();
+        VFILE_Shutdown();
+        PROGRAMS_Shutdown();
+        DOS_UninstallMisc();
+        SBLASTER_DOS_Shutdown();
+        GUS_DOS_Shutdown();
+        EMS_DoShutDown();
+        XMS_DoShutDown();
+        DOS_DoShutDown();
 
-        /* DOS kernel init */
-        dos_kernel_disabled = false; // FIXME: DOS_Init should install VM callback handler to set this
-        void DOS_Startup(Section* sec);
-        DOS_Startup(NULL);
+        DispatchVMEvent(VM_EVENT_DOS_SURPRISE_REBOOT); // <- apparently we rebooted without any notification (such as jmp'ing to FFFF:0000)
 
-        void DRIVES_Startup(Section *s);
-        DRIVES_Startup(NULL);
-
-        DispatchVMEvent(VM_EVENT_DOS_INIT_KERNEL_READY); // <- kernel is ready
-
-        /* keyboard mapping, at this point in CONFIG.SYS parsing, right? */
-        void DOS_KeyboardLayout_Startup(Section* sec);
-        DOS_KeyboardLayout_Startup(NULL);
-
-        /* Most MS-DOS installations have a DEVICE=C:\HIMEM.SYS somewhere near the top of their CONFIG.SYS */
-        void XMS_Startup(Section *sec);
-        XMS_Startup(NULL);
-
-        /* And then after that, usually a DEVICE=C:\EMM386.EXE just after HIMEM.SYS */
-        void EMS_Startup(Section* sec);
-        EMS_Startup(NULL);
-
-        DispatchVMEvent(VM_EVENT_DOS_INIT_CONFIG_SYS_DONE); // <- we just finished executing CONFIG.SYS
-        SHELL_Init(); // <- NTS: this will change CPU instruction pointer!
-        DispatchVMEvent(VM_EVENT_DOS_INIT_SHELL_READY); // <- we just finished loading the shell (COMMAND.COM)
-
-        /* it's time to init parsing AUTOEXEC.BAT */
-        void AUTOEXEC_Startup(Section *sec);
-        AUTOEXEC_Startup(NULL);
-
-        /* Most MS-DOS installations run MSCDEX.EXE from somewhere in AUTOEXEC.BAT. We do the same here, in a fashion. */
-        /* TODO: Can we make this an OPTION if the user doesn't want to make MSCDEX.EXE resident? */
-        /* TODO: When we emulate executing AUTOEXEC.BAT between INIT_SHELL_READY and AUTOEXEC_BAT_DONE, can we make a fake MSCDEX.EXE within drive Z:\
-         *       and auto-add a Z:\MSCDEX.EXE to the top of AUTOEXEC.BAT, command line switches and all. if the user has not already added it? */
-//        void MSCDEX_Startup(Section* sec);
-//        MSCDEX_Startup(NULL);
-
-        /* Some installations load the MOUSE.COM driver from AUTOEXEC.BAT as well */
-        /* TODO: Can we make this an option? Can we add a fake MOUSE.COM to the Z:\ drive as well? */
-        void MOUSE_Startup(Section *sec);
-        MOUSE_Startup(NULL);
-
-        DispatchVMEvent(VM_EVENT_DOS_INIT_AUTOEXEC_BAT_DONE); // <- we just finished executing AUTOEXEC.BAT
-        DispatchVMEvent(VM_EVENT_DOS_INIT_AT_PROMPT); // <- now, we're at the DOS prompt
-        SHELL_Run();
+        dos_kernel_disabled = true;
     }
 
-    return true;
+	if (dos_kernel_disabled) {
+		DispatchVMEvent(VM_EVENT_DOS_BOOT); // <- just starting the DOS kernel now
+
+		/* DOS kernel init */
+		dos_kernel_disabled = false; // FIXME: DOS_Init should install VM callback handler to set this
+		void DOS_Startup(Section* sec);
+		DOS_Startup(NULL);
+
+		void DRIVES_Startup(Section *s);
+		DRIVES_Startup(NULL);
+
+		DispatchVMEvent(VM_EVENT_DOS_INIT_KERNEL_READY); // <- kernel is ready
+
+		/* keyboard mapping, at this point in CONFIG.SYS parsing, right? */
+		void DOS_KeyboardLayout_Startup(Section* sec);
+		DOS_KeyboardLayout_Startup(NULL);
+
+		/* Most MS-DOS installations have a DEVICE=C:\HIMEM.SYS somewhere near the top of their CONFIG.SYS */
+		void XMS_Startup(Section *sec);
+		XMS_Startup(NULL);
+
+		/* And then after that, usually a DEVICE=C:\EMM386.EXE just after HIMEM.SYS */
+		void EMS_Startup(Section* sec);
+		EMS_Startup(NULL);
+
+		DispatchVMEvent(VM_EVENT_DOS_INIT_CONFIG_SYS_DONE); // <- we just finished executing CONFIG.SYS
+		SHELL_Init(); // <- NTS: this will change CPU instruction pointer!
+		DispatchVMEvent(VM_EVENT_DOS_INIT_SHELL_READY); // <- we just finished loading the shell (COMMAND.COM)
+
+		/* it's time to init parsing AUTOEXEC.BAT */
+		void AUTOEXEC_Startup(Section *sec);
+		AUTOEXEC_Startup(NULL);
+
+		/* Most MS-DOS installations run MSCDEX.EXE from somewhere in AUTOEXEC.BAT. We do the same here, in a fashion. */
+		/* TODO: Can we make this an OPTION if the user doesn't want to make MSCDEX.EXE resident? */
+		/* TODO: When we emulate executing AUTOEXEC.BAT between INIT_SHELL_READY and AUTOEXEC_BAT_DONE, can we make a fake MSCDEX.EXE within drive Z:\
+		 *       and auto-add a Z:\MSCDEX.EXE to the top of AUTOEXEC.BAT, command line switches and all. if the user has not already added it? */
+//		void MSCDEX_Startup(Section* sec);
+//		MSCDEX_Startup(NULL);
+
+		/* Some installations load the MOUSE.COM driver from AUTOEXEC.BAT as well */
+		/* TODO: Can we make this an option? Can we add a fake MOUSE.COM to the Z:\ drive as well? */
+		void MOUSE_Startup(Section *sec);
+		MOUSE_Startup(NULL);
+
+		DispatchVMEvent(VM_EVENT_DOS_INIT_AUTOEXEC_BAT_DONE); // <- we just finished executing AUTOEXEC.BAT
+		DispatchVMEvent(VM_EVENT_DOS_INIT_AT_PROMPT); // <- now, we're at the DOS prompt
+		SHELL_Run();
+	}
+
+	return true;
 }
 
 bool VM_PowerOn() {
-    if (!guest_machine_power_on) {
-        // powering on means power on event, followed by reset assert, then reset deassert
-        guest_machine_power_on = true;
-        DispatchVMEvent(VM_EVENT_POWERON);
-        DispatchVMEvent(VM_EVENT_RESET);
-        DispatchVMEvent(VM_EVENT_RESET_END);
-    }
+	if (!guest_machine_power_on) {
+		// powering on means power on event, followed by reset assert, then reset deassert
+		guest_machine_power_on = true;
+		DispatchVMEvent(VM_EVENT_POWERON);
+		DispatchVMEvent(VM_EVENT_RESET);
+		DispatchVMEvent(VM_EVENT_RESET_END);
+	}
 
-    return true;
+	return true;
 }
 
 //extern void UI_Init(void);
