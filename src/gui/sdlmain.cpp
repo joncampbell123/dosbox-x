@@ -2873,320 +2873,354 @@ bool VM_PowerOn() {
 //extern void UI_Init(void);
 int main(int argc, char* argv[]) {
     CommandLine com_line(argc,argv);
+    Config myconf(&com_line);
+
+    control=&myconf;
+#if defined(WIN32)
+    /* Microsoft's IME does not play nice with DOSBox */
+    ImmDisableIME((DWORD)(-1));
+#endif
+
     {
-        /* NTS: Warning, do NOT move the Config myconf() object out of this scope.
-         * The destructor relies on executing section destruction code as part of
-         * DOSBox shutdown. */
         std::string tmp,config_path;
-        Config myconf(&com_line);
-        control=&myconf;
-        /* -- parse command line arguments */
-        if (!DOSBOX_parse_argv()) return 1;
-        if (control->opt_console)
-            DOSBox_ShowConsole();
-        /* -- Handle some command line options */
-        if (control->opt_eraseconf || control->opt_resetconf)
-            eraseconfigfile();
-        if (control->opt_printconf)
-            printconfiglocation();
-        if (control->opt_erasemapper || control->opt_resetmapper)
-            erasemapperfile();
 
-        /* -- Early logging init, in case these details are needed to debug problems at this level */
-        /*    If --early-debug was given this opens up logging to STDERR until Log::Init() */
-        LOG::EarlyInit();
+		/* -- parse command line arguments */
+		if (!DOSBOX_parse_argv()) return 1;
 
-        /* -- Init the configuration system and add default values */
-        CheckNumLockState();
+		if (control->opt_console)
+			DOSBox_ShowConsole();
 
-        /* -- setup the config sections for config parsing */
-        LOG::SetupConfigSection();
-        SDL_SetupConfigSection();
-        DOSBOX_SetupConfigSections();
-        /* -- Parse configuration files */
-        Cross::GetPlatformConfigDir(config_path);
-        /* -- -- first the user config file */
-        if (control->opt_userconf) {
-            tmp.clear();
+		/* -- Handle some command line options */
+		if (control->opt_eraseconf || control->opt_resetconf)
+			eraseconfigfile();
+		if (control->opt_printconf)
+			printconfiglocation();
+		if (control->opt_erasemapper || control->opt_resetmapper)
+			erasemapperfile();
 
-            Cross::GetPlatformConfigDir(config_path);
-            Cross::GetPlatformConfigName(tmp);
-            config_path += tmp;
-            LOG(LOG_MISC,LOG_DEBUG)("Loading config file according to -userconf from %s",config_path.c_str());
-            control->ParseConfigFile(config_path.c_str());
-            if (!control->configfiles.size()) {
-                //Try to create the userlevel configfile.
-                tmp.clear();
-                Cross::CreatePlatformConfigDir(config_path);
-                Cross::GetPlatformConfigName(tmp);
-                config_path += tmp;
+		/* -- Early logging init, in case these details are needed to debug problems at this level */
+		/*    If --early-debug was given this opens up logging to STDERR until Log::Init() */
+		LOG::EarlyInit();
 
-                LOG(LOG_MISC,LOG_DEBUG)("Attempting to write config file according to -userconf, to %s",config_path.c_str());
-                if (control->PrintConfig(config_path.c_str())) {
-                    LOG(LOG_MISC,LOG_NORMAL)("Generating default configuration. Writing it to %s",config_path.c_str());
-                    //Load them as well. Makes relative paths much easier
-                    control->ParseConfigFile(config_path.c_str());
-                }
-            }
-        }
+		/* -- Init the configuration system and add default values */
+		CheckNumLockState();
 
-        /* -- -- second the -conf switches from the command line */
-        for (size_t si=0; si < control->config_file_list.size(); si++) {
-            std::string &cfg = control->config_file_list[si];
-            if (!control->ParseConfigFile(cfg.c_str())) {
-                // try to load it from the user directory
-                control->ParseConfigFile((config_path + cfg).c_str());
-            }
-        }
+		/* -- setup the config sections for config parsing */
+		LOG::SetupConfigSection();
+		SDL_SetupConfigSection();
+		DOSBOX_SetupConfigSections();
 
-        /* -- -- if none found, use dosbox.conf */
-        if(!control->configfiles.size()) control->ParseConfigFile("dosbox.conf");
+		/* -- Parse configuration files */
+		Cross::GetPlatformConfigDir(config_path);
 
-        /* -- -- if none found, use userlevel conf */
-        if (!control->configfiles.size()) {
-            tmp.clear();
-            Cross::GetPlatformConfigName(tmp);
-            control->ParseConfigFile((config_path + tmp).c_str());
-        }
+		/* -- -- first the user config file */
+		if (control->opt_userconf) {
+			tmp.clear();
+			Cross::GetPlatformConfigDir(config_path);
+			Cross::GetPlatformConfigName(tmp);
+			config_path += tmp;
+
+			LOG(LOG_MISC,LOG_DEBUG)("Loading config file according to -userconf from %s",config_path.c_str());
+			control->ParseConfigFile(config_path.c_str());
+			if (!control->configfiles.size()) {
+				//Try to create the userlevel configfile.
+				tmp.clear();
+				Cross::CreatePlatformConfigDir(config_path);
+				Cross::GetPlatformConfigName(tmp);
+				config_path += tmp;
+
+				LOG(LOG_MISC,LOG_DEBUG)("Attempting to write config file according to -userconf, to %s",config_path.c_str());
+				if (control->PrintConfig(config_path.c_str())) {
+					LOG(LOG_MISC,LOG_NORMAL)("Generating default configuration. Writing it to %s",config_path.c_str());
+					//Load them as well. Makes relative paths much easier
+					control->ParseConfigFile(config_path.c_str());
+				}
+			}
+		}
+
+		/* -- -- second the -conf switches from the command line */
+		for (size_t si=0;si < control->config_file_list.size();si++) {
+			std::string &cfg = control->config_file_list[si];
+			if (!control->ParseConfigFile(cfg.c_str())) {
+				// try to load it from the user directory
+				control->ParseConfigFile((config_path + cfg).c_str());
+			}
+		}
+
+		/* -- -- if none found, use dosbox.conf */
+		if (!control->configfiles.size()) control->ParseConfigFile("dosbox.conf");
+
+		/* -- -- if none found, use userlevel conf */
+		if (!control->configfiles.size()) {
+			tmp.clear();
+			Cross::GetPlatformConfigName(tmp);
+			control->ParseConfigFile((config_path + tmp).c_str());
+		}
 
 #if (ENVIRON_LINKED)
-        /* -- parse environment block (why?) */
-        control->ParseEnv(environ);
+		/* -- parse environment block (why?) */
+		control->ParseEnv(environ);
 #endif
 
-        /* -- initialize logging first, so that higher level inits can report problems to the log file */
-        LOG::Init();
+		/* -- initialize logging first, so that higher level inits can report problems to the log file */
+		LOG::Init();
 
-        /* -- Welcome to DOSBox-X! */
-        LOG_MSG("DOSBox-X version %s",VERSION);
-        LOG(LOG_MISC,LOG_NORMAL)("Copyright 2002-2015 enhanced branch by The Great Codeholio, forked from the main project by the DOSBox Team, published under GNU GPL.");
+		/* -- Welcome to DOSBox-X! */
+		LOG_MSG("DOSBox-X version %s",VERSION);
+		LOG(LOG_MISC,LOG_NORMAL)("Copyright 2002-2015 enhanced branch by The Great Codeholio, forked from the main project by the DOSBox Team, published under GNU GPL.");
 
-        {
-            int id, major, minor;
-
-            DOSBox_CheckOS(id, major, minor);
-            if (id == 1) menu.compatible=true;
-
-            /* use all variables to shut up the compiler about unused vars */
-            LOG(LOG_MISC,LOG_DEBUG)("DOSBox_CheckOS results: id=%u major=%u minor=%u",id,major,minor);
-        }
-
-        /* -- SDL init hackery */
-#if SDL_VERSION_ATLEAST(1, 2, 14)
-        /* hack: On debian/ubuntu with older libsdl version as they have done this themselves, but then differently.
-         * with this variable they will work correctly. I've only tested the 1.2.14 behaviour against the windows version of libsdl */
-        putenv(const_cast<char*>("SDL_DISABLE_LOCK_KEYS=1"));
-        LOG(LOG_GUI,LOG_DEBUG)("SDL 1.2.14 hack: SDL_DISABLE_LOCK_KEYS=1");
-#endif
-
-        /* -- SDL init */
-        if (SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_TIMER|/*SDL_INIT_CDROM|*/SDL_INIT_NOPARACHUTE) >= 0)
-            sdl.inited = true;
-        else
-            E_Exit("Can't init SDL %s",SDL_GetError());
-
-        /* -- -- decide whether to show menu in GUI */
-        if (control->opt_nogui || menu.compatible)
-            menu.gui=false;
-
-        /* -- -- decide whether to set menu */
-        if (menu_gui && !control->opt_nomenu)
-            DOSBox_SetMenu();
-
-        /* -- -- helpful advice */
-        LOG(LOG_GUI,LOG_NORMAL)("Press Ctrl-F10 to capture/release mouse, Alt-F10 for configuration.");
-
-        /* -- -- Initialise Joystick seperately. This way we can warn when it fails instead of exiting the application */
-        LOG(LOG_MISC,LOG_DEBUG)("Initializing SDL joystick subsystem...");
-        if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) >= 0) {
-            sdl.num_joysticks = SDL_NumJoysticks();
-            LOG(LOG_MISC,LOG_DEBUG)("SDL reports %u joysticks",(unsigned int)sdl.num_joysticks);
-        }
-        else {
-            LOG(LOG_GUI,LOG_WARN)("Failed to init joystick support");
-            sdl.num_joysticks = 0;
-        }
-
-        /* assume L+R ALT keys are up */
-        sdl.laltstate = SDL_KEYUP;
-        sdl.raltstate = SDL_KEYUP;
-
-        /* GUI init */
-        GUI_StartUp();
-
-        /* FIXME: We need a more general "init list", outside of the section-based design,
-         *        that we then execute serially here. */
-        /* TODO: Each section currently uses "AddDestroyFunction" per section. We need to
-         *       change over that code to a global destroy callback list instead. */
-        /* TODO: Get rid of "init" and "destroy" callback lists per section. */
-        /* TODO: Add a global (within the Config object) init and destroy callback list.
-         *       On each call, init functions are added to the end of the list, and
-         *       destroy functions added to the beginning of the list. That way, init
-         *       is lowest level to highest, destroy is highest level to lowest. */
-        /* TODO: Config object should also have a "reset" callback list. On system
-         *       reset each device would be notified so that it can emulate hardware
-         *       reset (the RESET line on ISA/PCI bus), lowest level to highest. */
-        /* TODO: Each "init" function should do the work of getting the section object,
-         *       whatever section it wants to read, instead of us doing the work. When
-         *       that's complete, the call to init should be without parameters (void).
-         *       The hope is that the init functions can read whatever sections it wants,
-         *       both newer DOSBox-X sections and existing DOSBox (mainline) compatible
-         *       sections. */
-
-        /* The order is important here:
-         * Init functions are called low-level first to high level last,
-         * because some init functions rely on others. */
-
-//        if (control->opt_startui)
-//            GUI_Run(false);
-        if (control->opt_editconf.length() != 0)
-            launcheditor(control->opt_editconf);
-        if (control->opt_opencaptures.length() != 0)
-            launchcaptures(control->opt_opencaptures);
-        if (control->opt_opensaves.length() != 0)
-            launchsaves(control->opt_opensaves);
-
-        {
-            /* Some extra SDL Functions */
-            Section_prop *sdl_sec = static_cast<Section_prop*>(control->GetSection("sdl"));
-
-            if (control->opt_fullscreen || sdl_sec->Get_bool("fullscreen")) {
-                LOG(LOG_MISC,LOG_DEBUG)("Going fullscreen immediately, during startup");
-
-                //only switch if not already in fullscreen
-                if (!IsFullscreen()) GFX_SwitchFullScreen();
-            }
-        }
-
-        /* Start up main machine */
-
-        // Shows menu bar (window)
-        menu.startup = true;
-        menu.showrt = control->opt_showrt;
-        menu.hidecycles = (control->opt_showcycles ? false : true);
-
-        MSG_Init();
-        MAPPER_StartUp();
-        DOSBOX_InitTickLoop();
-        DOSBOX_RealInit();
-        RENDER_Init();
-        CAPTURE_Init();
-        IO_Init();
-        HARDWARE_Init();
-        Init_AddressLimitAndGateMask(); /* <- need to init address mask so Init_RAM knows the maximum amount of RAM possible */
-        Init_MemoryAccessArray(); /* <- NTS: In DOSBox-X this is the "cache" of devices that responded to memory access */
-        Init_A20_Gate(); // FIXME: Should be handled by motherboard!
-        Init_PS2_Port_92h(); // FIXME: Should be handled by motherboard!
-        Init_RAM();
-        Init_DMA();
-        Init_PIC();
-        TIMER_Init();
-        PCIBUS_Init();
-        PAGING_Init(); /* <- NTS: At this time, must come before memory init because paging is so well integrated into emulation code */
-        CMOS_Init();
-        ROMBIOS_Init();
-        CALLBACK_Init(); /* <- NTS: This relies on ROM BIOS allocation and it must happen AFTER ROMBIOS init */
+		/* -- [debug] setup console */
 #if C_DEBUG
-        DEBUG_Init(); /* <- NTS: Relies on callback system */
+# if defined(WIN32)
+		/* Can't disable the console with debugger enabled */
+		if (control->opt_noconsole) {
+			LOG(LOG_MISC,LOG_DEBUG)("-noconsole: hiding Win32 console window");
+			ShowWindow(GetConsoleWindow(), SW_HIDE);
+			DestroyWindow(GetConsoleWindow());
+		}
+# endif
 #endif
-        Init_VGABIOS();
+
+#if defined(WIN32)
+		/* -- Windows: set console control handler */
+		SetConsoleCtrlHandler((PHANDLER_ROUTINE) ConsoleEventHandler,TRUE);
+#endif
+
+		{
+			int id, major, minor;
+
+			DOSBox_CheckOS(id, major, minor);
+			if (id == 1) menu.compatible=true;
+
+			/* use all variables to shut up the compiler about unused vars */
+			LOG(LOG_MISC,LOG_DEBUG)("DOSBox_CheckOS results: id=%u major=%u minor=%u",id,major,minor);
+		}
+
+		/* -- SDL init hackery */
+#if SDL_VERSION_ATLEAST(1, 2, 14)
+		/* hack: On debian/ubuntu with older libsdl version as they have done this themselves, but then differently.
+		 * with this variable they will work correctly. I've only tested the 1.2.14 behaviour against the windows version of libsdl */
+		putenv(const_cast<char*>("SDL_DISABLE_LOCK_KEYS=1"));
+		LOG(LOG_GUI,LOG_DEBUG)("SDL 1.2.14 hack: SDL_DISABLE_LOCK_KEYS=1");
+#endif
+
+#ifdef WIN32
+		/* Windows Vista/7/8/10 DPI awareness. If we don't tell Windows we're high DPI aware, the DWM will
+		 * upscale our window to emulate a 96 DPI display which on high res screen will make our UI look blurry.
+		 * But we obey the user if they don't want us to do that. */
+		Windows_DPI_Awareness_Init();
+#endif
+
+		/* -- SDL init */
+		if (SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_TIMER|/*SDL_INIT_CDROM|*/SDL_INIT_NOPARACHUTE) >= 0)
+			sdl.inited = true;
+		else
+			E_Exit("Can't init SDL %s",SDL_GetError());
+
+		/* -- -- decide whether to show menu in GUI */
+		if (control->opt_nogui || menu.compatible)
+			menu.gui=false;
+
+		/* -- -- decide whether to set menu */
+		if (menu_gui && !control->opt_nomenu)
+			DOSBox_SetMenu();
+
+		/* -- -- helpful advice */
+		LOG(LOG_GUI,LOG_NORMAL)("Press Ctrl-F10 to capture/release mouse, Alt-F10 for configuration.");
+
+		/* -- -- Initialise Joystick seperately. This way we can warn when it fails instead of exiting the application */
+		LOG(LOG_MISC,LOG_DEBUG)("Initializing SDL joystick subsystem...");
+		if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) >= 0) {
+			sdl.num_joysticks = SDL_NumJoysticks();
+			LOG(LOG_MISC,LOG_DEBUG)("SDL reports %u joysticks",(unsigned int)sdl.num_joysticks);
+		}
+		else {
+			LOG(LOG_GUI,LOG_WARN)("Failed to init joystick support");
+			sdl.num_joysticks = 0;
+		}
+
+		/* assume L+R ALT keys are up */
+		sdl.laltstate = SDL_KEYUP;
+		sdl.raltstate = SDL_KEYUP;
+
+		/* GUI init */
+		GUI_StartUp();
+
+		/* FIXME: We need a more general "init list", outside of the section-based design,
+		 *        that we then execute serially here. */
+		/* TODO: Each section currently uses "AddDestroyFunction" per section. We need to
+		 *       change over that code to a global destroy callback list instead. */
+		/* TODO: Get rid of "init" and "destroy" callback lists per section. */
+		/* TODO: Add a global (within the Config object) init and destroy callback list.
+		 *       On each call, init functions are added to the end of the list, and
+		 *       destroy functions added to the beginning of the list. That way, init
+		 *       is lowest level to highest, destroy is highest level to lowest. */
+		/* TODO: Config object should also have a "reset" callback list. On system
+		 *       reset each device would be notified so that it can emulate hardware
+		 *       reset (the RESET line on ISA/PCI bus), lowest level to highest. */
+		/* TODO: Each "init" function should do the work of getting the section object,
+		 *       whatever section it wants to read, instead of us doing the work. When
+		 *       that's complete, the call to init should be without parameters (void).
+		 *       The hope is that the init functions can read whatever sections it wants,
+		 *       both newer DOSBox-X sections and existing DOSBox (mainline) compatible
+		 *       sections. */
+
+		/* The order is important here:
+		 * Init functions are called low-level first to high level last,
+		 * because some init functions rely on others. */
+
+//		if (control->opt_startui)
+//			GUI_Run(false);
+		if (control->opt_editconf.length() != 0)
+			launcheditor(control->opt_editconf);
+		if (control->opt_opencaptures.length() != 0)
+			launchcaptures(control->opt_opencaptures);
+		if (control->opt_opensaves.length() != 0)
+			launchsaves(control->opt_opensaves);
+
+		{
+			/* Some extra SDL Functions */
+			Section_prop *sdl_sec = static_cast<Section_prop*>(control->GetSection("sdl"));
+
+			if (control->opt_fullscreen || sdl_sec->Get_bool("fullscreen")) {
+				LOG(LOG_MISC,LOG_DEBUG)("Going fullscreen immediately, during startup");
+
+				//only switch if not already in fullscreen
+                if (!IsFullscreen()) GFX_SwitchFullScreen();
+			}
+		}
+
+		/* Start up main machine */
+
+		// Shows menu bar (window)
+		menu.startup = true;
+        menu.showrt = control->opt_showrt;
+		menu.hidecycles = (control->opt_showcycles ? false : true);
+
+		MSG_Init();
+		MAPPER_StartUp();
+		DOSBOX_InitTickLoop();
+		DOSBOX_RealInit();
+		RENDER_Init();
+		CAPTURE_Init();
+		IO_Init();
+		HARDWARE_Init();
+		Init_AddressLimitAndGateMask(); /* <- need to init address mask so Init_RAM knows the maximum amount of RAM possible */
+		Init_MemoryAccessArray(); /* <- NTS: In DOSBox-X this is the "cache" of devices that responded to memory access */
+		Init_A20_Gate(); // FIXME: Should be handled by motherboard!
+		Init_PS2_Port_92h(); // FIXME: Should be handled by motherboard!
+		Init_RAM();
+		Init_DMA();
+		Init_PIC();
+		TIMER_Init();
+		PCIBUS_Init();
+		PAGING_Init(); /* <- NTS: At this time, must come before memory init because paging is so well integrated into emulation code */
+		CMOS_Init();
+		ROMBIOS_Init();
+		CALLBACK_Init(); /* <- NTS: This relies on ROM BIOS allocation and it must happen AFTER ROMBIOS init */
+#if C_DEBUG
+		DEBUG_Init(); /* <- NTS: Relies on callback system */
+#endif
+		Init_VGABIOS();
 //        VOODOO_Init();
-        PROGRAMS_Init(); /* <- NTS: Does not init programs, it inits the callback used later when creating the .COM programs on drive Z: */
-        PCSPEAKER_Init();
-        TANDYSOUND_Init();
-        MPU401_Init();
-        MIXER_Init();
-        MIDI_Init();
-        CPU_Init();
+		PROGRAMS_Init(); /* <- NTS: Does not init programs, it inits the callback used later when creating the .COM programs on drive Z: */
+		PCSPEAKER_Init();
+		TANDYSOUND_Init();
+		MPU401_Init();
+		MIXER_Init();
+		MIDI_Init();
+		CPU_Init();
 #if C_FPU
-        FPU_Init();
+		FPU_Init();
 #endif
-        VGA_Init();
-        ISAPNP_Cfg_Init();
-        FDC_Primary_Init();
-        KEYBOARD_Init();
-        SBLASTER_Init();
-        JOYSTICK_Init();
-        PS1SOUND_Init();
-        DISNEY_Init();
-        GUS_Init();
-        IDE_Init();
-        INNOVA_Init();
-        BIOS_Init();
-        INT10_Init();
-        SERIAL_Init();
-        DONGLE_Init();
-        PARALLEL_Init();
+		VGA_Init();
+		ISAPNP_Cfg_Init();
+		FDC_Primary_Init();
+		KEYBOARD_Init();
+		SBLASTER_Init();
+		JOYSTICK_Init();
+		PS1SOUND_Init();
+		DISNEY_Init();
+		GUS_Init();
+		IDE_Init();
+		INNOVA_Init();
+		BIOS_Init();
+		INT10_Init();
+		SERIAL_Init();
+		DONGLE_Init();
+		PARALLEL_Init();
 #if C_NE2000
-        NE2K_Init();
+		NE2K_Init();
 #endif
 
-        /* If PCjr emulation, map cartridge ROM */
-        if (machine == MCH_PCJR)
-            Init_PCJR_CartridgeROM();
+		/* If PCjr emulation, map cartridge ROM */
+		if (machine == MCH_PCJR)
+			Init_PCJR_CartridgeROM();
 
-        /* let's assume motherboards are sane on boot because A20 gate is ENABLED on first boot */
-        MEM_A20_Enable(true);
+		/* let's assume motherboards are sane on boot because A20 gate is ENABLED on first boot */
+		MEM_A20_Enable(true);
 
-        /* OS init now */
-        DOS_Init();
-        DRIVES_Init();
-        DOS_KeyboardLayout_Init();
-        MOUSE_Init(); // FIXME: inits INT 15h and INT 33h at the same time. Also uses DOS_GetMemory() which is why DOS_Init must come first
-        XMS_Init();
-        EMS_Init();
-        AUTOEXEC_Init();
+		/* OS init now */
+		DOS_Init();
+		DRIVES_Init();
+		DOS_KeyboardLayout_Init();
+		MOUSE_Init(); // FIXME: inits INT 15h and INT 33h at the same time. Also uses DOS_GetMemory() which is why DOS_Init must come first
+		XMS_Init();
+		EMS_Init();
+		AUTOEXEC_Init();
 #if C_IPX
-        IPX_Init();
+		IPX_Init();
 #endif
 //        MSCDEX_Init();
 
-        /* Init memhandle system. This part is used by DOSBox's XMS/EMS emulation to associate handles
-         * per page. FIXME: I would like to push this down to the point that it's never called until
-         * XMS/EMS emulation needs it. I would also like the code to free the mhandle array immediately
-         * upon booting into a guest OS, since memory handles no longer have meaning in the guest OS
-         * memory layout. */
-        Init_MemHandles();
+		/* Init memhandle system. This part is used by DOSBox's XMS/EMS emulation to associate handles
+		 * per page. FIXME: I would like to push this down to the point that it's never called until
+		 * XMS/EMS emulation needs it. I would also like the code to free the mhandle array immediately
+		 * upon booting into a guest OS, since memory handles no longer have meaning in the guest OS
+		 * memory layout. */
+		Init_MemHandles();
 
-        /* finally, the mapper */
-        MAPPER_Init();
+		/* finally, the mapper */
+		MAPPER_Init();
 
-        /* stop at this point, and show the mapper, if instructed */
-        if (control->opt_startmapper) {
-            LOG(LOG_MISC,LOG_DEBUG)("Running mapper interface, during startup, as instructed");
-            MAPPER_RunInternal();
-        }
+		/* stop at this point, and show the mapper, if instructed */
+		if (control->opt_startmapper) {
+			LOG(LOG_MISC,LOG_DEBUG)("Running mapper interface, during startup, as instructed");
+			MAPPER_RunInternal();
+		}
 
-        /* The machine just "powered on", and then reset finished */
-        if (!VM_PowerOn()) E_Exit("VM failed to power on");
+		/* The machine just "powered on", and then reset finished */
+		if (!VM_PowerOn()) E_Exit("VM failed to power on");
 
-        bool run_machine;
-        bool reboot_machine;
-        bool dos_kernel_shutdown;
+		bool run_machine;
+		bool reboot_machine;
+		bool dos_kernel_shutdown;
 
-        run_machine = false;
-        reboot_machine = false;
-        dos_kernel_shutdown = false;
+fresh_boot:
+		run_machine = false;
+		reboot_machine = false;
+		dos_kernel_shutdown = false;
 
-        /* NTS: CPU reset handler, and BIOS init, has the instruction pointer poised to run through BIOS initialization,
-         *      which will then "boot" into the DOSBox kernel, and then the shell, by calling VM_Boot_DOSBox_Kernel() */
-        /* FIXME: throwing int() is a stupid and nondescriptive way to signal shutdown/reset. */
-        try {
+		/* NTS: CPU reset handler, and BIOS init, has the instruction pointer poised to run through BIOS initialization,
+		 *      which will then "boot" into the DOSBox kernel, and then the shell, by calling VM_Boot_DOSBox_Kernel() */
+		/* FIXME: throwing int() is a stupid and nondescriptive way to signal shutdown/reset. */
+		try {
 #if C_DEBUG
-            if (control->opt_break_start) DEBUG_EnableDebugger();
+			if (control->opt_break_start) DEBUG_EnableDebugger();
 #endif
-            DOSBOX_RunMachine();
+			DOSBOX_RunMachine();
         } catch (int x) {
             if (x == 2) { /* booting a guest OS. "boot" has already done the work to load the image and setup CPU registers */
                 LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to boot guest OS");
 
                 run_machine = true; /* make note. don't run the whole shebang from an exception handler! */
-                dos_kernel_shutdown = true;
+                dos_kernel_shutdown = !dos_kernel_disabled; /* only if DOS kernel enabled */
             }
             else if (x == 3) { /* reboot the system */
                 LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to reboot the system");
 
                 reboot_machine = true;
+                dos_kernel_shutdown = !dos_kernel_disabled; /* only if DOS kernel enabled */
             }
             else {
                 LOG(LOG_MISC,LOG_DEBUG)("Emulation threw DOSBox kill switch signal");
@@ -3201,8 +3235,14 @@ int main(int argc, char* argv[]) {
         }
 
         if (dos_kernel_shutdown) {
+            /* NTS: we take different paths depending on whether we're just shutting down DOS
+             *      or doing a hard reboot. */
+
             /* new code: fire event */
-            DispatchVMEvent(VM_EVENT_DOS_EXIT_BEGIN);
+            if (reboot_machine)
+                DispatchVMEvent(VM_EVENT_DOS_EXIT_REBOOT_BEGIN);
+            else
+                DispatchVMEvent(VM_EVENT_DOS_EXIT_BEGIN);
 
             /* older shutdown code */
             RemoveEMSPageFrame();
@@ -3216,14 +3256,16 @@ int main(int argc, char* argv[]) {
             /* unmap the DOSBox kernel private segment. if the user told us not to,
              * but the segment exists below 640KB, then we must, because the guest OS
              * will trample it and assume control of that region of RAM. */
-            if (!keep_private_area_on_boot)
+            if (!keep_private_area_on_boot || reboot_machine)
                 DOS_GetMemory_unmap();
             else if (DOS_PRIVATE_SEGMENT < 0xA000)
                 DOS_GetMemory_unmap();
 
             /* revector some dos-allocated interrupts */
-            real_writed(0,0x01*4,BIOS_DEFAULT_HANDLER_LOCATION);
-            real_writed(0,0x03*4,BIOS_DEFAULT_HANDLER_LOCATION);
+            if (!reboot_machine) {
+                real_writed(0,0x01*4,BIOS_DEFAULT_HANDLER_LOCATION);
+                real_writed(0,0x03*4,BIOS_DEFAULT_HANDLER_LOCATION);
+            }
 
             /* shutdown DOSBox's virtual drive Z */
             VFILE_Shutdown();
@@ -3248,99 +3290,97 @@ int main(int argc, char* argv[]) {
             dos_kernel_disabled = true;
 
             /* new code: fire event */
-            DispatchVMEvent(VM_EVENT_DOS_EXIT_KERNEL);
+            if (reboot_machine)
+                DispatchVMEvent(VM_EVENT_DOS_EXIT_REBOOT_KERNEL);
+            else
+                DispatchVMEvent(VM_EVENT_DOS_EXIT_KERNEL);
         }
 
-        if (run_machine) {
-            /* new code: fire event */
-            DispatchVMEvent(VM_EVENT_GUEST_OS_BOOT);
+		if (run_machine) {
+            bool disable_a20 = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("turn off a20 gate on boot");
 
-            LOG_MSG("Alright: DOS kernel shutdown, booting a guest OS\n");
-            LOG_MSG("  CS:IP=%04x:%04x SS:SP=%04x:%04x AX=%04x BX=%04x CX=%04x DX=%04x\n",
-                    SegValue(cs),reg_ip,
-                    SegValue(ss),reg_sp,
-                    reg_ax,reg_bx,reg_cx,reg_dx);
+            /* if instructed, turn off A20 at boot */
+            if (disable_a20) MEM_A20_Enable(false);
 
-            try {
-                /* go! */
-                while (1/*execute until some other part of DOSBox throws exception*/)
-                    DOSBOX_RunMachine();
-            }
-            catch (int x) {
-                if (x == 3) { /* reboot the machine */
-                    LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to reboot the system");
+			/* new code: fire event */
+			DispatchVMEvent(VM_EVENT_GUEST_OS_BOOT);
 
-                    reboot_machine = true;
-                }
-                else {
-                    LOG(LOG_MISC,LOG_DEBUG)("Emulation threw DOSBox kill switch signal");
+			LOG_MSG("Alright: DOS kernel shutdown, booting a guest OS\n");
+			LOG_MSG("  CS:IP=%04x:%04x SS:SP=%04x:%04x AX=%04x BX=%04x CX=%04x DX=%04x\n",
+				SegValue(cs),reg_ip,
+				SegValue(ss),reg_sp,
+				reg_ax,reg_bx,reg_cx,reg_dx);
 
-                    // kill switch (see instances of throw(0) and throw(1) elsewhere in DOSBox)
-                }
-            }
-            catch (...) {
-                throw;
-            }
-        }
+            /* run again */
+            goto fresh_boot;
+		}
 
-        if (reboot_machine) {
-            LOG_MSG("Rebooting the system\n");
+		if (reboot_machine) {
+			LOG_MSG("Rebooting the system\n");
 
-            /* new code: fire event (FIXME: DOSBox's current method of "rebooting" the emulator makes this meaningless!) */
-            DispatchVMEvent(VM_EVENT_RESET);
-            DispatchVMEvent(VM_EVENT_RESET_END);
+            void CPU_Snap_Back_Forget();
+            /* Shutdown everything. For shutdown to work properly we must force CPU to real mode */
+            CPU_Snap_Back_To_Real_Mode();
+            CPU_Snap_Back_Forget();
 
-            /* restart DOSBox (NOTE: Yuck) */
-            restart_program(control->startup_params);
-        }
+			/* new code: fire event */
+			DispatchVMEvent(VM_EVENT_RESET);
+			DispatchVMEvent(VM_EVENT_RESET_END);
 
-        /* and then shutdown */
-        GFX_ShutDown();
+            /* run again */
+            goto fresh_boot;
+		}
 
-        void CPU_Snap_Back_Forget();
-        /* Shutdown everything. For shutdown to work properly we must force CPU to real mode */
-        CPU_Snap_Back_To_Real_Mode();
-        CPU_Snap_Back_Forget();
+		/* and then shutdown */
+		GFX_ShutDown();
 
-        /* NTS: The "control" object destructor is called here because the "myconf" object leaves scope.
-         * The destructor calls all section destroy functions here. After this point, all sections have
-         * freed resources. */
-    }
+		void CPU_Snap_Back_Forget();
+		/* Shutdown everything. For shutdown to work properly we must force CPU to real mode */
+		CPU_Snap_Back_To_Real_Mode();
+		CPU_Snap_Back_Forget();
 
-    /* GUI font registry shutdown */
-//    GUI::Font::registry_freeall();
-    DOS_ShutdownDrives();
-    DOS_ShutdownFiles();
-    DOS_ShutdownDevices();
-    CALLBACK_Shutdown();
+		/* NTS: The "control" object destructor is called here because the "myconf" object leaves scope.
+		 * The destructor calls all section destroy functions here. After this point, all sections have
+		 * freed resources. */
+	}
+
+    void CALLBACK_Dump(void);
+    CALLBACK_Dump();
+
+	/* GUI font registry shutdown */
+//	GUI::Font::registry_freeall();
+	DOS_ShutdownDrives();
+	DOS_ShutdownFiles();
+	DOS_ShutdownDevices();
+	CALLBACK_Shutdown();
 #if C_DYNAMIC_X86
-    CPU_Core_Dyn_X86_Shutdown();
+	CPU_Core_Dyn_X86_Shutdown();
 #endif
-    FreeBIOSDiskList();
-    MAPPER_Shutdown();
-    VFILE_Shutdown();
-    PROGRAMS_Shutdown();
-    TIMER_ShutdownTickHandlers();
+	FreeBIOSDiskList();
+	MAPPER_Shutdown();
+	VFILE_Shutdown();
+	PROGRAMS_Shutdown();
+	TIMER_ShutdownTickHandlers();
 #if C_DEBUG
-    DEBUG_ShutDown(NULL);
+	DEBUG_ShutDown(NULL);
 #endif
 
-    //Force visible mouse to end user. Somehow this sometimes doesn't happen
+	//Force visible mouse to end user. Somehow this sometimes doesn't happen
     SDL_SetRelativeMouseMode(SDL_FALSE);
-    SDL_ShowCursor(SDL_ENABLE);
+	SDL_ShowCursor(SDL_ENABLE);
 
-    /* Exit functions */
-    while (!exitfunctions.empty()) {
-        Function_wrapper &ent = exitfunctions.front();
+	/* Exit functions */
+	while (!exitfunctions.empty()) {
+		Function_wrapper &ent = exitfunctions.front();
 
-        LOG(LOG_MISC,LOG_DEBUG)("Calling exit function (%p) '%s'",(void*)ent.function,ent.name.c_str());
-        ent.function(NULL);
-        exitfunctions.pop_front();
-    }
+		LOG(LOG_MISC,LOG_DEBUG)("Calling exit function (%p) '%s'",(void*)ent.function,ent.name.c_str()); 
+		ent.function(NULL);
+		exitfunctions.pop_front();
+	}
 
-    LOG::Exit();
-    SDL_Quit();//Let's hope sdl will quit as well when it catches an exception
-    return 0;
+	LOG::Exit();
+	SDL_Quit();//Let's hope sdl will quit as well when it catches an exception
+	return 0;
 }
 
 void GFX_GetSize(int &width, int &height, bool &fullscreen) {
