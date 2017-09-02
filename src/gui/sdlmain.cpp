@@ -157,6 +157,7 @@ extern char**					environ;
 #endif
 
 Bitu						frames = 0;
+double                      rtdelta = 0;
 bool						emu_paused = false;
 bool						mouselocked = false; //Global variable for mapper
 bool						load_videodrv = true;

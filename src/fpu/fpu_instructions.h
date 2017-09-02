@@ -16,7 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-
+#include <math.h> /* for isinf, etc */
 
 static void FPU_FINIT(void) {
 	unsigned int i;
@@ -313,7 +313,7 @@ static void FPU_FBST(PhysPt addr) {
 	mem_writeb(addr+9,p);
 }
 
-#if defined(WIN32) && defined(_MSC_VER)
+#if defined(WIN32) && defined(_MSC_VER) && (_MSC_VER < 1910)
 /* std::isinf is C99 standard how could you NOT have this VS2008??? */
 # include <math.h>
 /* the purpose of this macro is to test for -/+inf. NaN is not inf. If finite or NaN it's not infinity */
@@ -454,7 +454,7 @@ static void FPU_FCOM(Bitu st, Bitu other){
 	 *       "none" for no FPU, 287 or 387 for cputype=286 and cputype=386, or "auto" to match the CPU (8086 => 8087).
 	 *       If the FPU type is 387 or auto, then skip this hack. Else for 8087 and 287, use this hack. */
 	if (CPU_ArchitectureType<CPU_ARCHTYPE_386) {
-		if (isinf(fpu.regs[st].d) && isinf(fpu.regs[other].d)) {
+		if (std::isinf(fpu.regs[st].d) && std::isinf(fpu.regs[other].d)) {
 			/* 8087/287 consider -inf == +inf and that's what DOS programs test for to detect 287 vs 387 */
 			FPU_SET_C3(1);FPU_SET_C2(0);FPU_SET_C0(0);return;
 		}

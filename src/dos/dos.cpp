@@ -23,6 +23,7 @@
 #include "dosbox.h"
 #include "bios.h"
 #include "mem.h"
+#include "paging.h"
 #include "callback.h"
 #include "regs.h"
 #include "dos_inc.h"
@@ -31,6 +32,8 @@
 #include "parport.h"
 #include "serialport.h"
 #include "dos_network.h"
+
+unsigned char cpm_compat_mode = CPM_COMPAT_MSDOS5;
 
 bool dos_in_hma = true;
 bool DOS_BreakFlag = false;
@@ -43,6 +46,8 @@ extern bool int15_wait_force_unmask_irq;
 
 Bit32u dos_hma_allocator = 0; /* physical memory addr */
 
+Bitu XMS_EnableA20(bool enable);
+Bitu XMS_GetEnabledA20(void);
 bool XMS_IS_ACTIVE();
 bool XMS_HMA_EXISTS();
 
@@ -64,7 +69,7 @@ Bit32u DOS_HMA_FREE_START() {
 	if (!DOS_IS_IN_HMA()) return 0;
 
 	if (dos_hma_allocator == 0) {
-		dos_hma_allocator = 0x100000 + dos_initial_hma_free; /* start from 1MB marker */
+		dos_hma_allocator = 0x110000 - 16 - dos_initial_hma_free;
 		LOG(LOG_MISC,LOG_DEBUG)("Starting HMA allocation from physical address 0x%06x (FFFF:%04x)",
 			dos_hma_allocator,(dos_hma_allocator+0x10)&0xFFFF);
 	}
@@ -325,8 +330,47 @@ void DOS_BreakAction() {
 	DOS_BreakFlag = true;
 }
 
+/* unmask IRQ 0 automatically on disk I/O functions.
+ * there exist old DOS games and demos that rely on very selective IRQ masking,
+ * but, their code also assumes that calling into DOS or the BIOS will unmask the IRQ.
+ *
+ * This fixes "Rebel by Arkham" which masks IRQ 0-7 (PIC port 21h) in a VERY stingy manner!
+ *
+ *    Pseudocode (early in demo init):
+ *
+ *             in     al,21h
+ *             or     al,3Bh        ; mask IRQ 0, 1, 3, 4, and 5
+ *             out    21h,al
+ *
+ *    Later:
+ *
+ *             mov    ah,3Dh        ; open file
+ *             ...
+ *             int    21h
+ *             ...                  ; demo apparently assumes that INT 21h will unmask IRQ 0 when reading, because ....
+ *             in     al,21h
+ *             or     al,3Ah        ; mask IRQ 1, 3, 4, and 5
+ *             out    21h,al
+ *
+ * The demo runs fine anyway, but if we do not unmask IRQ 0 at the INT 21h call, the timer never ticks and the
+ * demo does not play any music (goldplay style, of course).
+ *
+ * This means several things. One is that a disk cache (which may provide the file without using INT 13h) could
+ * mysteriously prevent the demo from playing music. Future OS changes, where IRQ unmasking during INT 21h could
+ * not occur, would also prevent it from working. I don't know what the programmer was thinking, but side
+ * effects like that are not to be relied on!
+ *
+ * On the other hand, perhaps masking the keyboard (IRQ 1) was intended as an anti-debugger trick? You can't break
+ * into the demo if you can't trigger the debugger, after all! The demo can still poll the keyboard controller
+ * for ESC or whatever.
+ *
+ * --J.C. */
+bool disk_io_unmask_irq0 = true;
+
 #define DOSNAMEBUF 256
 static Bitu DOS_21Handler(void) {
+    bool unmask_irq0 = false;
+
 	if (((reg_ah != 0x50) && (reg_ah != 0x51) && (reg_ah != 0x62) && (reg_ah != 0x64)) && (reg_ah<0x6c)) {
 		DOS_PSP psp(dos.psp());
 		psp.SetStack(RealMake(SegValue(ss),reg_sp-18));
@@ -642,6 +686,10 @@ static Bitu DOS_21Handler(void) {
 		RealSetVec(reg_al,RealMakeSeg(ds,reg_dx));
 		break;
 	case 0x26:		/* Create new PSP */
+        /* TODO: DEBUG.EXE/DEBUG.COM as shipped with MS-DOS seems to reveal a bug where,
+         *       when DEBUG.EXE calls this function and you're NOT loading a program to debug,
+         *       the CP/M CALL FAR instruction's offset field will be off by 2. When does
+         *       that happen, and how do we emulate that? */
 		DOS_NewPSP(reg_dx,DOS_PSP(dos.psp()).GetSize());
 		reg_al=0xf0;	/* al destroyed */		
 		break;
@@ -972,6 +1020,7 @@ static Bitu DOS_21Handler(void) {
 		}
 		break;
 	case 0x3c:		/* CREATE Create of truncate file */
+        unmask_irq0 |= disk_io_unmask_irq0;
 		MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
 		if (DOS_CreateFile(name1,reg_cx,&reg_ax)) {
 			CALLBACK_SCF(false);
@@ -981,6 +1030,7 @@ static Bitu DOS_21Handler(void) {
 		}
 		break;
 	case 0x3d:		/* OPEN Open existing file */
+        unmask_irq0 |= disk_io_unmask_irq0;
 		MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
 		if (DOS_OpenFile(name1,reg_al,&reg_ax)) {
 			CALLBACK_SCF(false);
@@ -990,6 +1040,7 @@ static Bitu DOS_21Handler(void) {
 		}
 		break;
 	case 0x3e:		/* CLOSE Close file */
+        unmask_irq0 |= disk_io_unmask_irq0;
 		if (DOS_CloseFile(reg_bx)) {
 //			reg_al=0x01;	/* al destroyed. Refcount */
 			CALLBACK_SCF(false);
@@ -999,6 +1050,7 @@ static Bitu DOS_21Handler(void) {
 		}
 		break;
 	case 0x3f:		/* READ Read from file or device */
+        unmask_irq0 |= disk_io_unmask_irq0;
 		/* TODO: If handle is STDIN and not binary do CTRL+C checking */
 		{ 
 			Bit16u toread=reg_cx;
@@ -1016,6 +1068,7 @@ static Bitu DOS_21Handler(void) {
 			break;
 		}
 	case 0x40:					/* WRITE Write to file or device */
+        unmask_irq0 |= disk_io_unmask_irq0;
 		{
 			Bit16u towrite=reg_cx;
 			MEM_BlockRead(SegPhys(ds)+reg_dx,dos_copybuf,towrite);
@@ -1030,6 +1083,7 @@ static Bitu DOS_21Handler(void) {
 			break;
 		};
 	case 0x41:					/* UNLINK Delete file */
+        unmask_irq0 |= disk_io_unmask_irq0;
 		MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
 		if (DOS_UnlinkFile(name1)) {
 			CALLBACK_SCF(false);
@@ -1039,6 +1093,7 @@ static Bitu DOS_21Handler(void) {
 		}
 		break;
 	case 0x42:					/* LSEEK Set current file position */
+        unmask_irq0 |= disk_io_unmask_irq0;
 		{
 			Bit32u pos=(reg_cx<<16) + reg_dx;
 			if (DOS_SeekFile(reg_bx,&pos,reg_al)) {
@@ -1052,6 +1107,7 @@ static Bitu DOS_21Handler(void) {
 			break;
 		}
 	case 0x43:					/* Get/Set file attributes */
+        unmask_irq0 |= disk_io_unmask_irq0;
 		MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
 		switch (reg_al) {
 		case 0x00:				/* Get */
@@ -1568,6 +1624,17 @@ static Bitu DOS_21Handler(void) {
 		break;
 	};
 
+    /* if INT 21h involves any BIOS calls that need the timer, emulate the fact that tbe
+     * BIOS might unmask IRQ 0 as part of the job (especially INT 13h disk I/O).
+     *
+     * Some DOS games & demos mask interrupts at the PIC level in a stingy manner that
+     * apparently assumes DOS/BIOS will unmask some when called.
+     *
+     * Examples:
+     *   Rebel by Arkham (without this fix, timer interrupt will not fire during demo and therefore music will not play). */
+    if (unmask_irq0)
+        PIC_SetIRQMask(0,false); /* Enable system timer */
+
 	return CBRET_NONE;
 }
 
@@ -1587,6 +1654,23 @@ static Bitu DOS_20Handler(void) {
 	reg_ah=0x00;
 	DOS_21Handler();
 	return CBRET_NONE;
+}
+
+static Bitu DOS_CPMHandler(void) {
+	// Convert a CPM-style call to a normal DOS call
+	Bit16u flags=CPU_Pop16();
+	CPU_Pop16();
+	Bit16u caller_seg=CPU_Pop16();
+	Bit16u caller_off=CPU_Pop16();
+	CPU_Push16(flags);
+	CPU_Push16(caller_seg);
+	CPU_Push16(caller_off);
+	if (reg_cl>0x24) {
+		reg_al=0;
+		return CBRET_NONE;
+	}
+	reg_ah=reg_cl;
+	return DOS_21Handler();
 }
 
 static Bitu DOS_27Handler(void) {
@@ -1638,6 +1722,7 @@ Bit16u DOS_IHSEG = 0;
 
 void DOS_GetMemory_reset();
 void DOS_GetMemory_Choose();
+Bitu MEM_PageMask(void);
 
 #include <assert.h>
 
@@ -1647,8 +1732,33 @@ extern bool dbg_zero_on_dos_allocmem;
 
 class DOS:public Module_base{
 private:
-	CALLBACK_HandlerObject callback[8];
+	CALLBACK_HandlerObject callback[9];
+	RealPt int30,int31;
+
 public:
+    void DOS_Write_HMA_CPM_jmp(void) {
+        // HMA mirror of CP/M entry point.
+        // this is needed for "F01D:FEF0" to be a valid jmp whether or not A20 is enabled
+        if (dos_in_hma &&
+            cpm_compat_mode != CPM_COMPAT_OFF &&
+            cpm_compat_mode != CPM_COMPAT_DIRECT) {
+            LOG(LOG_MISC,LOG_DEBUG)("Writing HMA mirror of CP/M entry point");
+
+            Bitu was_a20 = XMS_GetEnabledA20();
+
+            XMS_EnableA20(true);
+
+            mem_writeb(0x1000C0,(Bit8u)0xea);		// jmpf
+            mem_unalignedwrited(0x1000C0+1,callback[8].Get_RealPointer());
+
+            if (!was_a20) XMS_EnableA20(false);
+        }
+    }
+
+    Bitu DOS_Get_CPM_entry_direct(void) {
+        return callback[8].Get_RealPointer();
+    }
+
 	DOS(Section* configuration):Module_base(configuration){
 		Section_prop * section=static_cast<Section_prop *>(configuration);
 
@@ -1672,6 +1782,39 @@ public:
 		enable_dummy_loadfix_padding = section->Get_bool("enable loadfix padding");
 		enable_dummy_device_mcb = section->Get_bool("enable dummy device mcb");
 		int15_wait_force_unmask_irq = section->Get_bool("int15 wait force unmask irq");
+        disk_io_unmask_irq0 = section->Get_bool("unmask timer on disk io");
+
+        if (dos_initial_hma_free > 0x10000)
+            dos_initial_hma_free = 0x10000;
+
+        std::string cpmcompat = section->Get_string("cpm compatibility mode");
+
+        if (cpmcompat == "")
+            cpmcompat = "auto";
+
+        if (cpmcompat == "msdos2")
+            cpm_compat_mode = CPM_COMPAT_MSDOS2;
+        else if (cpmcompat == "msdos5")
+            cpm_compat_mode = CPM_COMPAT_MSDOS5;
+        else if (cpmcompat == "direct")
+            cpm_compat_mode = CPM_COMPAT_DIRECT;
+        else if (cpmcompat == "auto")
+            cpm_compat_mode = CPM_COMPAT_MSDOS5; /* MS-DOS 5.x is default */
+        else
+            cpm_compat_mode = CPM_COMPAT_OFF;
+
+        /* msdos 2.x and msdos 5.x modes, if HMA is involved, require us to take the first 256 bytes of HMA
+         * in order for "F01D:FEF0" to work properly whether or not A20 is enabled. Our direct mode doesn't
+         * jump through that address, and therefore doesn't need it. */
+        if (dos_in_hma &&
+            cpm_compat_mode != CPM_COMPAT_OFF &&
+            cpm_compat_mode != CPM_COMPAT_DIRECT) {
+            LOG(LOG_MISC,LOG_DEBUG)("DOS: CP/M compatibility method with DOS in HMA requires mirror of entry point in HMA.");
+            if (dos_initial_hma_free > 0xFF00) {
+                dos_initial_hma_free = 0xFF00;
+                LOG(LOG_MISC,LOG_DEBUG)("DOS: CP/M compatibility method requires reduction of HMA free space to accomodate.");
+            }
+        }
 
 		if ((int)MAXENV < 0) MAXENV = mainline_compatible_mapping ? 32768 : 65535;
 		if ((int)ENV_KEEPFREE < 0) ENV_KEEPFREE = mainline_compatible_mapping ? 83 : 1024;
@@ -1843,6 +1986,24 @@ public:
 		callback[7].Install(BIOS_1BHandler,CB_IRET,"BIOS 1Bh");
 		callback[7].Set_RealVec(0x1B);
 
+		callback[8].Install(DOS_CPMHandler,CB_CPM,"DOS/CPM Int 30-31");
+		int30=RealGetVec(0x30);
+		int31=RealGetVec(0x31);
+		mem_writeb(0x30*4,(Bit8u)0xea);		// jmpf
+		mem_unalignedwrited(0x30*4+1,callback[8].Get_RealPointer());
+		// pseudocode for CB_CPM:
+		//	pushf
+		//	... the rest is like int 21
+
+        /* NTS: HMA support requires XMS. EMS support may switch on A20 if VCPI emulation requires the odd megabyte */
+        if ((!dos_in_hma || !section->Get_bool("xms")) && (MEM_A20_Enabled() || strcmp(section->Get_string("ems"),"false") != 0) &&
+            cpm_compat_mode != CPM_COMPAT_OFF && cpm_compat_mode != CPM_COMPAT_DIRECT) {
+            /* hold on, only if more than 1MB of RAM and memory access permits it */
+            if (MEM_TotalPages() > 0x100 && MEM_PageMask() > 0xff/*more than 20-bit decoding*/) {
+                LOG(LOG_MISC,LOG_WARN)("DOS not in HMA or XMS is disabled. This may break programs using the CP/M compatibility call method if the A20 gate is switched on.");
+            }
+        }
+
 		DOS_FILES = section->Get_int("files");
 		DOS_SetupFiles();								/* Setup system File tables */
 		DOS_SetupDevices();							/* Setup dos devices */
@@ -1942,10 +2103,22 @@ public:
 		DOS_ShutdownFiles();
 		void DOS_ShutdownDevices(void);
 		DOS_ShutdownDevices();
+		RealSetVec(0x30,int30);
+		RealSetVec(0x31,int31);
 	}
 };
 
 static DOS* test = NULL;
+
+void DOS_Write_HMA_CPM_jmp(void) {
+    assert(test != NULL);
+    test->DOS_Write_HMA_CPM_jmp();
+}
+
+Bitu DOS_Get_CPM_entry_direct(void) {
+    assert(test != NULL);
+    return test->DOS_Get_CPM_entry_direct();
+}
 
 void DOS_ShutdownFiles() {
 	if (Files != NULL) {
@@ -1967,20 +2140,33 @@ void DOS_ShutdownDrives() {
 	}
 }
 
+void DOS_UnsetupMemory();
+void DOS_Casemap_Free();
+
 void DOS_DoShutDown() {
 	if (test != NULL) {
 		delete test;
 		test = NULL;
 	}
+    DOS_UnsetupMemory();
+    DOS_Casemap_Free();
 }
 
 void DOS_ShutDown(Section* /*sec*/) {
 	DOS_DoShutDown();
 }
 
+void DOS_GetMemory_reinit();
+
+void DOS_OnReset(Section* /*sec*/) {
+	DOS_DoShutDown();
+    DOS_GetMemory_reinit();
+}
+
 void DOS_Startup(Section* sec) {
 	if (test == NULL) {
-		LOG(LOG_MISC,LOG_DEBUG)("Allocating DOS kernel");
+        DOS_GetMemory_reinit();
+        LOG(LOG_MISC,LOG_DEBUG)("Allocating DOS kernel");
 		test = new DOS(control->GetSection("dos"));
 	}
 }
@@ -1989,7 +2175,9 @@ void DOS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing DOS kernel (DOS_Init)");
 
 	AddExitFunction(AddExitFunctionFuncPair(DOS_ShutDown),false);
-	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(DOS_ShutDown));
-	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(DOS_ShutDown));
+	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(DOS_OnReset));
+	AddVMEventFunction(VM_EVENT_DOS_EXIT_KERNEL,AddVMEventFunctionFuncPair(DOS_ShutDown));
+	AddVMEventFunction(VM_EVENT_DOS_EXIT_REBOOT_KERNEL,AddVMEventFunctionFuncPair(DOS_ShutDown));
+	AddVMEventFunction(VM_EVENT_DOS_SURPRISE_REBOOT,AddVMEventFunctionFuncPair(DOS_OnReset));
 }
 
