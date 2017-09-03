@@ -165,10 +165,11 @@ bool						dos_kernel_disabled = true;
 bool						startup_state_numlock = false; // Global for keyboard initialisation
 bool						startup_state_capslock = false; // Global for keyboard initialisation
 
+#ifdef WIN32
 #define STDOUT_FILE	TEXT("stdout.txt")
 #define STDERR_FILE	TEXT("stderr.txt")
 #define DEFAULT_CONFIG_FILE "/dosbox.conf"
-#if defined(MACOSX)
+#elif defined(MACOSX)
 #define DEFAULT_CONFIG_FILE			"/Library/Preferences/DOSBox Preferences"
 #else /*linux freebsd*/
 #define DEFAULT_CONFIG_FILE			"/.dosboxrc"
