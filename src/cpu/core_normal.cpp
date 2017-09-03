@@ -23,6 +23,7 @@
 #if defined(LINUX)
 # include <sys/types.h>
 # include <sys/ptrace.h>
+# include <sys/prctl.h>
 # include <sys/mman.h>
 # include <sys/wait.h>
 # include <signal.h>
@@ -446,6 +447,7 @@ void ptrace_process_halt(void) {
 }
 
 int ptrace_process(void *x) {
+    prctl(PR_SET_TSC,PR_TSC_SIGSEGV); /* make sure guest cannot read TSC directly */
     while (ptrace_process_wait) {
         ptrace_process_waiting = 1;
         usleep(100000); /* try not to burn CPU while waiting */
