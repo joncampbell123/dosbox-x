@@ -234,6 +234,9 @@ void raster_generic(UINT32 TMUS, UINT32 TEXMODE0, UINT32 TEXMODE1, void *destbas
 		rgb_union texel = { 0 };
 		rgb_union color;
 
+        /* unused variable? */
+        (void)color;
+
 		/* pixel pipeline part 1 handles depth testing and stippling */
 		PIXEL_PIPELINE_BEGIN(v, x, y, v->reg[fbzColorPath].u, v->reg[fbzMode].u, iterz, iterw);
 
