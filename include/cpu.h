@@ -74,6 +74,9 @@ extern Bitu CPU_PrefetchQueueSize;
 typedef Bits (CPU_Decoder)(void);
 extern CPU_Decoder * cpudecoder;
 
+#ifdef LINUX
+Bits CPU_Core_Ptrace_Run(void);
+#endif
 Bits CPU_Core_Normal_Run(void);
 Bits CPU_Core_Normal_Trap_Run(void);
 Bits CPU_Core_Simple_Run(void);

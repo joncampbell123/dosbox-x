@@ -2930,7 +2930,7 @@ public:
 			cpudecoder=&CPU_Core_Full_Run;
 #if defined(LINUX)
         } else if (core == "ptrace") {
-            E_Exit("Ptrace not ready");
+			cpudecoder=&CPU_Core_Ptrace_Run;
 #endif
 		} else if (core == "auto") {
 			cpudecoder=&CPU_Core_Normal_Run;
