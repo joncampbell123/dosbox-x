@@ -164,7 +164,7 @@ void ffmpeg_audio_frame_send() {
 void ffmpeg_take_audio(Bit16s *raw,unsigned int samples) {
 	if (ffmpeg_aud_codec == NULL || ffmpeg_aud_frame == NULL || ffmpeg_fmt_ctx == NULL) return;
 
-	if (ffmpeg_aud_write >= ffmpeg_aud_frame->nb_samples) {
+	if ((unsigned long)ffmpeg_aud_write >= (unsigned long)ffmpeg_aud_frame->nb_samples) {
 		ffmpeg_audio_frame_send();
 		ffmpeg_aud_write = 0;
 	}
@@ -185,7 +185,7 @@ void ffmpeg_take_audio(Bit16s *raw,unsigned int samples) {
 				op--;
 			}
 
-			if (ffmpeg_aud_write >= ffmpeg_aud_frame->nb_samples) {
+			if ((unsigned long)ffmpeg_aud_write >= (unsigned long)ffmpeg_aud_frame->nb_samples) {
 				ffmpeg_audio_frame_send();
 				ffmpeg_aud_write = 0;
 			}
@@ -207,7 +207,7 @@ void ffmpeg_take_audio(Bit16s *raw,unsigned int samples) {
 				op--;
 			}
 
-			if (ffmpeg_aud_write >= ffmpeg_aud_frame->nb_samples) {
+			if ((unsigned long)ffmpeg_aud_write >= (unsigned long)ffmpeg_aud_frame->nb_samples) {
 				ffmpeg_audio_frame_send();
 				ffmpeg_aud_write = 0;
 			}
