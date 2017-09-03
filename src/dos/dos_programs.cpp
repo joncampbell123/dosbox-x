@@ -2446,7 +2446,7 @@ public:
 						}
 
 						LOG_MSG("VHD image detected: %u,%u,%u,%u",
-						    sizes[0], sizes[1], sizes[2], sizes[3]);
+						    (unsigned int)sizes[0], (unsigned int)sizes[1], (unsigned int)sizes[2], (unsigned int)sizes[3]);
 						if(sizes[3]>1023) LOG_MSG("WARNING: cylinders>1023, INT13 will not work unless extensions are used");
 						yet_detected = true;
 					}
