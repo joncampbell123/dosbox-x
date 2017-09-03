@@ -232,9 +232,38 @@ void CPU_Core_Normal_Init(void) {
 }
 
 #if defined(LINUX)
+bool ptrace_compatible_segment(const uint16_t sv) {
+    return (sv == 0/*NULL descriptor*/ || (sv & 7) == 7/*LDT ring-3 descriptor*/);
+}
+
+/* TODO: Move to it's own source file */
+bool cpu_state_ptrace_compatible(void) {
+    /* The CPU is in a ptrace-compatible state IF:
+     * - The CPU is in protected mode
+     * - The CPU is NOT running in virtual 8086 mode
+     * - All segment registers contain either NULL or a ring-3 LDT descriptor */
+    if (!cpu.pmode) return false;   // Protected mode or bust
+    if (GETFLAG(VM)) return false;  // Virtual 8086 is not supported
+
+    if (!ptrace_compatible_segment(Segs.val[cs])) return false;
+    if (!ptrace_compatible_segment(Segs.val[ds])) return false;
+    if (!ptrace_compatible_segment(Segs.val[es])) return false;
+    if (!ptrace_compatible_segment(Segs.val[fs])) return false;
+
+    if (CPU_ArchitectureType >= CPU_ARCHTYPE_386) {
+        if (!ptrace_compatible_segment(Segs.val[gs])) return false;
+        if (!ptrace_compatible_segment(Segs.val[ss])) return false;
+    }
+
+    return true;
+}
+
 /* TODO: Move to it's own source file */
 Bits CPU_Core_Ptrace_Run(void) {
-//    LOG_MSG("Ptrace");
+    if (cpu_state_ptrace_compatible()) {
+//        LOG_MSG("Ptrace");
+    }
+
     return CPU_Core_Normal_Run();
 }
 #endif
