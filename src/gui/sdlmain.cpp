@@ -416,7 +416,7 @@ static void SDL_Overscan(void) {
             rect->y = sdl.clip.y;
             rect->w = sdl.clip.x;
             rect->h = sdl.draw.height; // left
-            if (rect->w > sdl.overscan_width) {
+            if ((unsigned int)rect->w > (unsigned int)sdl.overscan_width) {
                 rect->x += (rect->w-sdl.overscan_width);
                 rect->w = sdl.overscan_width;
             }
@@ -425,7 +425,7 @@ static void SDL_Overscan(void) {
             rect->y = sdl.clip.y;
             rect->w = sdl.clip.x;
             rect->h = sdl.draw.height; // right
-            if (rect->w > sdl.overscan_width) {
+            if ((unsigned int)rect->w > (unsigned int)sdl.overscan_width) {
                 rect->w = sdl.overscan_width;
             }
             rect = &sdl.updateRects[3];
@@ -825,7 +825,7 @@ dosurface:
             sdl.window=GFX_SetSDLWindowMode(width+2*sdl.overscan_width, height+2*sdl.overscan_width,
                                             sdl.desktop.type);
             if (sdl.window == NULL)
-                E_Exit("Could not set windowed video mode %ix%i-%i: %s",(int)width,(int)height,SDL_GetError());
+                E_Exit("Could not set windowed video mode %ix%i: %s",(int)width,(int)height,SDL_GetError());
         }
         sdl.surface = SDL_GetWindowSurface(sdl.window);
         if (sdl.surface == NULL)
@@ -1021,8 +1021,10 @@ dosurface:
     return retFlags;
 }
 
+#ifdef WIN32
 // WARNING: Not recommended, there is danger you cannot exit emulator because mouse+keyboard are taken
 static bool enable_hook_everything = false;
+#endif
 
 // Whether or not to hook the keyboard and block special keys.
 // Setting this is recommended so that your keyboard is fully usable in the guest OS when you
@@ -1030,16 +1032,20 @@ static bool enable_hook_everything = false;
 // danger you become trapped in the DOSBox emulator!
 static bool enable_hook_special_keys = true;
 
+#ifdef WIN32
 // Whether or not to hook Num/Scroll/Caps lock in order to give the guest OS full control of the
 // LEDs on the keyboard (i.e. the LEDs do not change until the guest OS changes their state).
 // This flag also enables code to set the LEDs to guest state when setting mouse+keyboard capture,
 // and restoring LED state when releasing capture.
 static bool enable_hook_lock_toggle_keys = true;
+#endif
 
+#ifdef WIN32
 // and this is where we store host LED state when capture is set.
 static bool on_capture_num_lock_was_on = true; // reasonable guess
 static bool on_capture_scroll_lock_was_on = false;
 static bool on_capture_caps_lock_was_on = false;
+#endif
 
 static bool exthook_enabled = false;
 
@@ -1147,6 +1153,7 @@ void res_init(void) {
     auto sdlSection = control->GetSection("sdl");
     auto sdlSectionProp = static_cast<Section_prop*>(sdlSection);
     auto fullRes = sdlSectionProp->Get_string("fullresolution");
+    (void)fullRes;
 //    if (!strcmp(fullRes, "desktop")) GetDesktopResolution(&width, &height);
 
     if (!sdl.desktop.full.width) {
@@ -1256,8 +1263,7 @@ void GFX_SwitchFullScreen(void)
 
     // ensure mouse capture when fullscreen || (re-)capture if user said so when windowed
     auto locked = sdl.mouse.locked;
-    if (GFX_IsFullscreen() && !locked || !GFX_IsFullscreen() && locked) GFX_CaptureMouse();
-
+    if ((GFX_IsFullscreen() && !locked) || (!GFX_IsFullscreen() && locked)) GFX_CaptureMouse();
 
     GFX_ResetScreen();
 }
@@ -1759,7 +1765,7 @@ static void GUI_StartUp() {
     if (!GFX_SetSDLSurfaceWindow(640,400))
         E_Exit("Could not initialize video: %s",SDL_GetError());
     sdl.surface = SDL_GetWindowSurface(sdl.window);
-    SDL_Rect splash_rect=GFX_GetSDLSurfaceSubwindowDims(640,400);
+//    SDL_Rect splash_rect=GFX_GetSDLSurfaceSubwindowDims(640,400);
     sdl.desktop.pixelFormat = SDL_GetWindowPixelFormat(sdl.window);
     LOG_MSG("SDL:Current window pixel format: %s", SDL_GetPixelFormatName(sdl.desktop.pixelFormat));
     sdl.desktop.bpp=8*SDL_BYTESPERPIXEL(sdl.desktop.pixelFormat);
@@ -1772,17 +1778,6 @@ static void GUI_StartUp() {
     GFX_LogSDLState();
     GFX_Stop();
     SDL_SetWindowTitle(sdl.window,"DOSBox");
-
-//* The endian part is intentionally disabled as somehow it produces correct results without according to rhoenie*/
-//#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-//    Bit32u rmask = 0xff000000;
-//    Bit32u gmask = 0x00ff0000;
-//    Bit32u bmask = 0x0000ff00;
-//#else
-    Bit32u rmask = 0x000000ff;
-    Bit32u gmask = 0x0000ff00;
-    Bit32u bmask = 0x00ff0000;
-//#endif
 
     /* Please leave the Splash screen stuff in working order in DOSBox. We spend a lot of time making DOSBox. */
     //ShowSplashScreen();	/* I will keep the splash screen alive. But now, the BIOS will do it --J.C. */
@@ -1811,99 +1806,6 @@ void Mouse_AutoLock(bool enable) {
         SDL_ShowCursor(enable?SDL_DISABLE:SDL_ENABLE);
         sdl.mouse.requestlock=false;
     }
-}
-
-static void RedrawScreen(Bit32u nWidth, Bit32u nHeight) {
-    int width;
-    int height;
-    width=sdl.draw.width;
-    height=sdl.draw.height;
-    void RENDER_CallBack( GFX_CallBackFunctions_t function );
-    while (GFX_IsFullscreen()) {
-        int temp_size;
-        temp_size=render.scale.size;
-        if(!GFX_IsFullscreen()) {
-            render.scale.size=temp_size;
-            RENDER_CallBack( GFX_CallBackReset);
-            return;
-        }
-    }
-    if((Bitu)nWidth == (Bitu)width && (Bitu)nHeight == (Bitu)height) {
-        RENDER_CallBack( GFX_CallBackReset);
-        return;
-    }
-    Section_prop * section=static_cast<Section_prop *>(control->GetSection("sdl"));
-    if ((!strcmp(section->Get_string("windowresolution"),"original") || (!strcmp(section->Get_string("windowresolution"),"desktop"))) && (render.src.dblw && render.src.dblh)) {
-        switch (render.scale.op) {
-        case scalerOpNormal:
-            if(!render.scale.hardware) {
-                if((Bitu)nWidth>(Bitu)width || (Bitu)nHeight>(Bitu)height) {
-                    if (render.scale.size <= 4 && render.scale.size >=1) ++render.scale.size;
-                    break;
-                } else {
-                    if (render.scale.size <= 5 && render.scale.size >= 2) --render.scale.size;
-                    break;
-                }
-            } else {
-                if((Bitu)nWidth>(Bitu)width || (Bitu)nHeight>(Bitu)height) {
-                    if (render.scale.size == 1) {
-                        render.scale.size=4;
-                        break;
-                    }
-                    if (render.scale.size == 4) {
-                        render.scale.size=6;
-                        break;
-                    }
-                    if (render.scale.size == 6) {
-                        render.scale.size=8;
-                        break;
-                    }
-                    if (render.scale.size == 8) {
-                        render.scale.size=10;
-                        break;
-                    }
-                }
-                if((Bitu)nWidth<(Bitu)width || (Bitu)nHeight<(Bitu)height) {
-                    if (render.scale.size == 10) {
-                        render.scale.size=8;
-                        break;
-                    }
-                    if (render.scale.size == 8) {
-                        render.scale.size=6;
-                        break;
-                    }
-                    if (render.scale.size == 6) {
-                        render.scale.size=4;
-                        break;
-                    }
-                    if (render.scale.size == 4) {
-                        render.scale.size=1;
-                        break;
-                    }
-                }
-            }
-            break;
-        case scalerOpAdvMame:
-        case scalerOpHQ:
-        case scalerOpAdvInterp:
-        case scalerOpTV:
-        case scalerOpRGB:
-        case scalerOpScan:
-            if((Bitu)nWidth>(Bitu)width || (Bitu)nHeight>(Bitu)height) {
-                if (render.scale.size == 2) ++render.scale.size;
-            }
-            if((Bitu)nWidth<(Bitu)width || (Bitu)nHeight<(Bitu)height) {
-                if (render.scale.size == 3) --render.scale.size;
-            }
-            break;
-        case scalerOpSaI:
-        case scalerOpSuperSaI:
-        case scalerOpSuperEagle:
-        default: // other scalers
-            break;
-        }
-    }
-    RENDER_CallBack( GFX_CallBackReset);
 }
 
 extern unsigned int mouse_notify_mode;
