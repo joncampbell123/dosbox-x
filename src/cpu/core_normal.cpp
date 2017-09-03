@@ -22,6 +22,7 @@
 
 #if defined(LINUX)
 # include <sys/types.h>
+# include <sys/ptrace.h>
 # include <sys/wait.h>
 # include <signal.h>
 # include <errno.h>
@@ -272,13 +273,15 @@ unsigned char ptrace_process_stack[4096];/*enough to get going*/
 bool ptrace_failed = false;
 pid_t ptrace_pid = -1;
 
-volatile unsigned int pthread_process_wait = 0;
+volatile unsigned int ptrace_process_wait = 0;
+volatile unsigned int ptrace_process_waiting = 0;
 
 bool ptrace_process_stopped(void) {
     if (ptrace_pid >= 0) {
         if (waitpid(ptrace_pid,NULL,WNOHANG) == ptrace_pid) {
             /* we just reaped it */
-            pthread_process_wait = 0;
+            ptrace_process_waiting = 0;
+            ptrace_process_wait = 0;
             ptrace_pid = -1;
             return true;
         }
@@ -289,7 +292,8 @@ bool ptrace_process_stopped(void) {
 
 void ptrace_process_halt(void) {
     if (ptrace_pid >= 0) {
-        pthread_process_wait = 0;
+        ptrace_process_waiting = 0;
+        ptrace_process_wait = 0;
 
         LOG_MSG("Ptrace core: Stopping process");
         kill(ptrace_pid,SIGKILL);
@@ -305,7 +309,11 @@ void ptrace_process_halt(void) {
 }
 
 int ptrace_process(void *x) {
-    while (pthread_process_wait) usleep(100000); /* try not to burn CPU while waiting */
+    while (ptrace_process_wait) {
+        ptrace_process_waiting = 1;
+        usleep(100000); /* try not to burn CPU while waiting */
+    }
+    ptrace_process_waiting = 0;
     return 0;
 }
 
@@ -313,7 +321,8 @@ bool ptrace_pid_start(void) {
     if (ptrace_pid >= 0)
         return true;
 
-    pthread_process_wait = 1;
+    ptrace_process_waiting = 0;
+    ptrace_process_wait = 1;
 
     ptrace_pid = clone(ptrace_process,ptrace_process_stack+sizeof(ptrace_process_stack)-16,SIGCHLD | CLONE_VM | CLONE_UNTRACED,NULL);
     if (ptrace_pid < 0) {
@@ -325,26 +334,41 @@ bool ptrace_pid_start(void) {
     return true;
 }
 
-void ptrace_sync(void) {
+bool ptrace_sync(void) {
     if (ptrace_pid < 0) {
         if (!ptrace_pid_start()) {
             LOG_MSG("Ptrace core: failed to start PID\n");
             ptrace_failed = true;
+            return false;
         }
     }
     else {
         if (ptrace_process_stopped()) {
             LOG_MSG("Ptrace core: WARNING, process stopped\n");
-            return;
+            return false;
+        }
+
+        if (ptrace_process_waiting) {
+            if (ptrace_process_wait) {
+                LOG_MSG("Ptrace core: PID is ready, waiting.\n");
+                ptrace_process_wait = false;
+            }
+
+            return false;
         }
     }
+
+    return true;
 }
 
 /* TODO: Move to it's own source file */
 Bits CPU_Core_Ptrace_Run(void) {
     if (!ptrace_failed) {
         if (cpu_state_ptrace_compatible()) {
-            ptrace_sync();
+            if (!ptrace_sync())
+                return CPU_Core_Normal_Run();
+
+            return CBRET_NONE;
         }
     }
 
