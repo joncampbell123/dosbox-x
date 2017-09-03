@@ -274,6 +274,11 @@ void CPU_Core_Normal_Init(void) {
  * between us and ptrace_pid *probably* means that both of us will have the
  * same LDT table and therefore modifications from THIS process will take effect
  * in the ptrace process. */
+/* Update: sys_clone is handled by do_fork() in the Linux kernel. do_fork() if
+ *         CLONE_VM is set will addref the current task's mm struct and assign
+ *         directly to the new task, instead of calling dup_mm(). Therefore
+ *         when CLONE_VM is set, both parent and child have the same memory
+ *         map and therefore the same LDT table. */
 
 bool ptrace_compatible_segment(const uint16_t sv) {
     return (sv == 0/*NULL descriptor*/ || (sv & 7) == 7/*LDT ring-3 descriptor*/);
