@@ -2154,6 +2154,63 @@ void BIND_MappingEvents(void) {
 	static CButton *lastHoveredButton = NULL;
 	while (SDL_PollEvent(&event)) {
 		switch (event.type) {
+        case SDL_FINGERDOWN:
+			isButtonPressed = true;
+			/* Further check where are we pointing at right now */
+        case SDL_FINGERMOTION:
+			if (!isButtonPressed)
+				break;
+			/* Normalize position in case a scaled sub-window is used (say on Android) */
+			event.tfinger.x=(event.tfinger.x-mapper.draw_rect.x)*mapper.draw_surface->w/mapper.draw_rect.w;
+			if ((event.tfinger.x<0) || (event.tfinger.x>=mapper.draw_surface->w))
+				break;
+			event.tfinger.y=(event.tfinger.y-mapper.draw_rect.y)*mapper.draw_surface->h/mapper.draw_rect.h;
+			if ((event.tfinger.y<0) || (event.tfinger.y>=mapper.draw_surface->h))
+				break;
+			/* Maybe we have been pointing at
+			a specific for a little while  */
+			if (lastHoveredButton) {
+				if (lastHoveredButton->OnTop(event.tfinger.x,event.tfinger.y))
+					break; /* No change for now */
+				if (lastHoveredButton == last_clicked)
+					lastHoveredButton->SetColor(CLR_GREEN);
+				else
+					lastHoveredButton->SetColor(CLR_WHITE);
+				mapper.redraw=true;
+				lastHoveredButton=NULL;
+			}
+			/* Check which button are we currently pointing at */
+			for (CButton_it but_it = buttons.begin();but_it!=buttons.end();but_it++) {
+				if ((*but_it)->OnTop(event.tfinger.x,event.tfinger.y)) {
+					(*but_it)->SetColor(CLR_RED);
+					mapper.redraw=true;
+					lastHoveredButton=*but_it;
+					break;
+				}
+			}
+            break;
+        case SDL_FINGERUP:
+			isButtonPressed = false;
+			if (lastHoveredButton) {
+				lastHoveredButton->SetColor(CLR_WHITE);
+				mapper.redraw=true;
+				lastHoveredButton = NULL;
+			}
+			/* Normalize position in case a scaled sub-window is used (say on Android) */
+			event.tfinger.x=(event.tfinger.x-mapper.draw_rect.x)*mapper.draw_surface->w/mapper.draw_rect.w;
+			if ((event.tfinger.x<0) || (event.tfinger.x>=mapper.draw_surface->w))
+				break;
+			event.tfinger.y=(event.tfinger.y-mapper.draw_rect.y)*mapper.draw_surface->h/mapper.draw_rect.h;
+			if ((event.tfinger.y<0) || (event.tfinger.y>=mapper.draw_surface->h))
+				break;
+			/* Check the press */
+			for (CButton_it but_it = buttons.begin();but_it!=buttons.end();but_it++) {
+				if ((*but_it)->OnTop(event.tfinger.x,event.tfinger.y)) {
+					(*but_it)->Click();
+					break;
+				}
+			}
+            break;
 		case SDL_MOUSEBUTTONDOWN:
 			isButtonPressed = true;
 			/* Further check where are we pointing at right now */
