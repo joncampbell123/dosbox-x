@@ -16,7 +16,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#if 0
+
 #include <cctype>
 #include <cstring>
 #include "cdrom.h"
@@ -145,11 +145,16 @@ void MSCDEX_ReplaceDrive(CDROM_Interface* cdrom, Bit8u subUnit);
 bool MSCDEX_HasDrive(char driveLetter);
 bool MSCDEX_GetVolumeName(Bit8u subUnit, char* name);
 
+bool CDROM_Interface_Image::images_init = false;
+
 isoDrive::isoDrive(char driveLetter, const char *fileName, Bit8u mediaid, int &error) {
 	size_t i;
 
+    if (!CDROM_Interface_Image::images_init) {
+        CDROM_Interface_Image::images_init = true;
 	for (i=0;i < 26;i++)
 		CDROM_Interface_Image::images[i] = NULL;
+    }
 
 	subUnit = 0;
 	nextFreeDirIterator = 0;
@@ -567,6 +572,6 @@ bool isoDrive :: lookup(isoDirEntry *de, const char *path) {
 void IDE_ATAPI_MediaChangeNotify(unsigned char drive_index);
 
 void isoDrive :: MediaChange() {
-	IDE_ATAPI_MediaChangeNotify(toupper(driveLetter) - 'A'); /* ewwww */
+//	IDE_ATAPI_MediaChangeNotify(toupper(driveLetter) - 'A'); /* ewwww */
 }
-#endif
+
