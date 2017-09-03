@@ -291,11 +291,11 @@ bool cpu_state_ptrace_compatible(void) {
     if (!ptrace_compatible_segment(Segs.val[cs])) return false;
     if (!ptrace_compatible_segment(Segs.val[ds])) return false;
     if (!ptrace_compatible_segment(Segs.val[es])) return false;
-    if (!ptrace_compatible_segment(Segs.val[fs])) return false;
+    if (!ptrace_compatible_segment(Segs.val[ss])) return false;
 
     if (CPU_ArchitectureType >= CPU_ARCHTYPE_386) {
+        if (!ptrace_compatible_segment(Segs.val[fs])) return false;
         if (!ptrace_compatible_segment(Segs.val[gs])) return false;
-        if (!ptrace_compatible_segment(Segs.val[ss])) return false;
     }
 
     return true;
