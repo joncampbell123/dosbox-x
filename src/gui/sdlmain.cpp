@@ -1997,6 +1997,43 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
     }
 }
 
+static void FingerToFakeMouseMotion(SDL_TouchFingerEvent * finger) {
+    SDL_MouseMotionEvent fake;
+
+    memset(&fake,0,sizeof(fake));
+    fake.x = finger->x;     /* Contrary to SDL_events.h the x/y coordinates are NOT normalized to 0...1 */
+    fake.y = finger->y;     /* Contrary to SDL_events.h the x/y coordinates are NOT normalized to 0...1 */
+    fake.xrel = finger->dx;
+    fake.yrel = finger->dy;
+    HandleMouseMotion(&fake);
+}
+
+static void HandleTouchscreenFinger(SDL_TouchFingerEvent * finger) {
+    /* Now that SDL2 can tell my mouse from my laptop touchscreen, let's
+     * map tap events to the left mouse button. Now I can use my laptop
+     * touchscreen with Windows 3.11 again! --J.C. */
+    /* TODO: The common convention these days is to map finger taps to
+     *       the left mouse button, and "press and hold" to trigger
+     *       right mouse button events. We should do that too. --J.C. */
+    /* Now let's handle The Finger (har har) */
+
+    /* TODO: For multi-touch devices, add code to emulate mouse events
+     *       if ONLY ONE FINGER is acting on the screen. We should not
+     *       map touch events to mouse if multiple fingers are on the
+     *       screen. */
+    if (finger->type == SDL_FINGERDOWN) {
+        FingerToFakeMouseMotion(finger);
+        Mouse_ButtonPressed(0);
+    }
+    else if (finger->type == SDL_FINGERUP) {
+        FingerToFakeMouseMotion(finger);
+        Mouse_ButtonReleased(0);
+    }
+    else if (finger->type == SDL_FINGERMOTION) {
+        FingerToFakeMouseMotion(finger);
+    }
+}
+
 static void HandleMouseButton(SDL_MouseButtonEvent * button) {
 	switch (button->state) {
 	case SDL_PRESSED:
@@ -2197,6 +2234,11 @@ void GFX_Events() {
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP:
             HandleMouseButton(&event.button);
+            break;
+        case SDL_FINGERDOWN:
+        case SDL_FINGERUP:
+        case SDL_FINGERMOTION:
+            HandleTouchscreenFinger(&event.tfinger);
             break;
         case SDL_QUIT:
             throw(0);
