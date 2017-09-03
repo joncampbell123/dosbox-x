@@ -336,17 +336,6 @@ static Bit8u * VGA_Draw_Linear_Line(Bitu vidstart, Bitu /*line*/) {
 	return ret;
 }
 
-/* NTS: Unused in this code. I intend to keep this around */
-static Bit8u * VGA_Draw_Xlat16_Linear_Line(Bitu vidstart, Bitu /*line*/) {
-	Bit8u *ret = &vga.draw.linear_base[ vidstart & vga.draw.linear_mask ];
-	Bit16u* temps = (Bit16u*) TempLine;
-
-	for(Bitu i = 0; i < (vga.draw.line_length>>1); i++)
-		temps[i]=vga.dac.xlat16[ret[i]];
-
-	return TempLine;
-}
-
 /* WARNING: This routine assumes (vidstart&3) == 0 */
 static Bit8u * VGA_Draw_Xlat32_VGA_CRTC_bmode_Line(Bitu vidstart, Bitu /*line*/) {
 	Bit32u* temps = (Bit32u*) TempLine;

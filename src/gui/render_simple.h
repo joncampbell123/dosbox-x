@@ -19,9 +19,12 @@
 
 #if defined (SCALERLINEAR)
 static void conc4d(SCALERNAME,SBPP,DBPP,L)(const void *s) {
+    (void)conc4d(SCALERNAME,SBPP,DBPP,L);
 #else
 static void conc4d(SCALERNAME,SBPP,DBPP,R)(const void *s) {
+    (void)conc4d(SCALERNAME,SBPP,DBPP,R);
 #endif
+
 #ifdef RENDER_NULL_INPUT
 	if (!s) {
 		render.scale.cacheRead += render.scale.cachePitch;
