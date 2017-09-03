@@ -87,6 +87,8 @@
 
 inline void conc2d(Hq2x,SBPP)(PTYPE * line0, PTYPE * line1, const PTYPE * fc)
 {
+    (void)conc2d(Hq2x,SBPP);
+
 	if (_RGBtoYUV == 0) conc2d(InitLUTs,SBPP)();
 
 	Bit32u pattern = 0;

@@ -65,6 +65,8 @@ static inline void conc2d(InitLUTs,SBPP)(void)
 	int r, g, b;
 	int Y, u, v;
 
+    (void)conc2d(InitLUTs,SBPP);
+
 	_RGBtoYUV = (Bit32u *)malloc(65536 * sizeof(Bit32u));
 
 	for (int color = 0; color < 65536; ++color) {
