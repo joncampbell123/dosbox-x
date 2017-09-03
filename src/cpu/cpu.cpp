@@ -32,6 +32,7 @@
 #include "lazyflags.h"
 #include "support.h"
 #include "control.h"
+#include "config.h"
 
 /* caution: do not uncomment unless you want a lot of spew */
 //#define CPU_DEBUG_SPEW
@@ -2927,6 +2928,10 @@ public:
 			cpudecoder=&CPU_Core_Simple_Run;
 		} else if (core == "full") {
 			cpudecoder=&CPU_Core_Full_Run;
+#if defined(LINUX)
+        } else if (core == "ptrace") {
+            E_Exit("Ptrace not ready");
+#endif
 		} else if (core == "auto") {
 			cpudecoder=&CPU_Core_Normal_Run;
 #if (C_DYNAMIC_X86)
