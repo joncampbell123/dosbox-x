@@ -744,11 +744,11 @@ static void MIXER_CallBack(void * userdata, Uint8 *stream, int len) {
 	remains = (int)mixer.work_in - (int)mixer.work_out;
 	if (remains < 0) remains += mixer.work_wrap;
 
-	if (remains >= (mixer.blocksize*2)) {
+	if ((unsigned long)remains >= (mixer.blocksize*2UL)) {
 		/* drop some samples to keep time */
 		unsigned int drop;
 
-		if (remains >= (mixer.blocksize*3)) // hard drop
+		if ((unsigned long)remains >= (mixer.blocksize*3UL)) // hard drop
 			drop = ((unsigned int)remains - (unsigned int)(mixer.blocksize));
 		else // subtle drop
 			drop = (((unsigned int)remains - (unsigned int)(mixer.blocksize*2)) / 50U) + 1;

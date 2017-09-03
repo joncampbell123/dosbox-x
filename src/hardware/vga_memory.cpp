@@ -1406,7 +1406,7 @@ void VGA_StartUpdateLFB(void) {
 	/* if the DOS application or Windows 3.1 driver attempts to put the linear framebuffer
 	 * below the top of memory, then we're probably entering a DOS VM and it's probably
 	 * a 64KB window. If it's not a 64KB window then print a warning. */
-	if ((vga.s3.la_window << 4) < MEM_TotalPages()) {
+	if ((unsigned long)(vga.s3.la_window << 4UL) < (unsigned long)MEM_TotalPages()) {
 		if (winsz != 0x10000) // 64KB window normal for entering a DOS VM in Windows 3.1 or legacy bank switching in DOS
 			LOG(LOG_MISC,LOG_WARN)("S3 warning: Window size != 64KB and address conflict with system RAM!");
 
