@@ -184,7 +184,6 @@ enum PRIORITY_LEVELS {
 
 void						GUI_LoadFonts();
 void						GUI_Run(bool);
-void						EndSplashScreen();
 void						Restart(bool pressed);
 bool						RENDER_GetAspect(void);
 bool						RENDER_GetAutofit(void);
@@ -808,7 +807,6 @@ static void GFX_ResetSDL() {
 }
 
 Bitu GFX_SetSize(Bitu width,Bitu height,Bitu flags,double scalex,double scaley,GFX_CallBack_t callback) {
-	EndSplashScreen();
 	if (sdl.updating)
 		GFX_EndUpdate( 0 );
 
@@ -1260,8 +1258,10 @@ dosurface:
 	return retFlags;
 }
 
+#if defined(WIN32)
 // WARNING: Not recommended, there is danger you cannot exit emulator because mouse+keyboard are taken
 static bool enable_hook_everything = false;
+#endif
 
 // Whether or not to hook the keyboard and block special keys.
 // Setting this is recommended so that your keyboard is fully usable in the guest OS when you
@@ -1269,16 +1269,20 @@ static bool enable_hook_everything = false;
 // danger you become trapped in the DOSBox emulator!
 static bool enable_hook_special_keys = true;
 
+#if defined(WIN32)
 // Whether or not to hook Num/Scroll/Caps lock in order to give the guest OS full control of the
 // LEDs on the keyboard (i.e. the LEDs do not change until the guest OS changes their state).
 // This flag also enables code to set the LEDs to guest state when setting mouse+keyboard capture,
 // and restoring LED state when releasing capture.
 static bool enable_hook_lock_toggle_keys = true;
+#endif
 
+#if defined(WIN32)
 // and this is where we store host LED state when capture is set.
 static bool on_capture_num_lock_was_on = true; // reasonable guess
 static bool on_capture_scroll_lock_was_on = false;
 static bool on_capture_caps_lock_was_on = false;
+#endif
 
 static bool exthook_enabled = false;
 #if defined(WIN32)
@@ -2259,74 +2263,6 @@ static void OutputString(Bitu x,Bitu y,const char * text,Bit32u color,Bit32u col
 		text++;
 		draw+=8;
 	}
-}
-
-#include "dosbox_splash.h"
-
-/* The endian part is intentionally disabled as somehow it produces correct results without according to rhoenie*/
-//#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-//    Bit32u rmask = 0xff000000;
-//    Bit32u gmask = 0x00ff0000;
-//    Bit32u bmask = 0x0000ff00;
-//#else
-    Bit32u rmask = 0x000000ff;
-    Bit32u gmask = 0x0000ff00;
-    Bit32u bmask = 0x00ff0000;
-//#endif
-
-static SDL_Surface* splash_surf;
-static bool			splash_active;
-static Bit8u*		splash_tmpbuf;
-static Bit32u		splash_startticks;
-
-static void ShowSplashScreen() {
-	splash_surf = SDL_CreateRGBSurface(SDL_SWSURFACE, 640, 400, 32, rmask, gmask, bmask, 0);
-	if (splash_surf) {
-		splash_active=true;
-		SDL_FillRect(splash_surf, NULL, SDL_MapRGB(splash_surf->format, 0, 0, 0));
-		splash_tmpbuf = new Bit8u[640*400*3];
-		GIMP_IMAGE_RUN_LENGTH_DECODE(splash_tmpbuf,gimp_image.rle_pixel_data,640*400,3);
-		for (Bitu y=0; y<400; y++) {
-
-			Bit8u* tmpbuf = splash_tmpbuf + y*640*3;
-			Bit32u * draw=(Bit32u*)(((Bit8u *)splash_surf->pixels)+((y)*splash_surf->pitch));
-			for (Bitu x=0; x<640; x++) {
-//#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-//				*draw++ = tmpbuf[x*3+2]+tmpbuf[x*3+1]*0x100+tmpbuf[x*3+0]*0x10000+0x00000000;
-//#else
-				*draw++ = tmpbuf[x*3+0]+tmpbuf[x*3+1]*0x100+tmpbuf[x*3+2]*0x10000+0x00000000;
-//#endif
-			}
-		}
-		Bit32u lasttick=GetTicks();
-		for(Bitu i = 0; i <=5; i++) {
-			if((GetTicks()-lasttick)>20) i++;
-			while((GetTicks()-lasttick)<15) SDL_Delay(5);
-			lasttick = GetTicks();
-			SDL_SetAlpha(splash_surf, SDL_SRCALPHA,(Bit8u)(51*i));
-			SDL_BlitSurface(splash_surf, NULL, sdl.surface, NULL);
-			SDL_Flip(sdl.surface);
-		}
-
-		splash_startticks=GetTicks();
-	} else {
-		splash_active=false;
-		splash_startticks=0;
-
-	}
-}
-
-void EndSplashScreen() {
-	if(!splash_active) return;
-	//SDL_FillRect(splash_surf, NULL, SDL_MapRGB(sdl.surface->format, 0, 0, 0));
-	//SDL_BlitSurface(splash_surf, NULL, sdl.surface, NULL);
-	//SDL_Flip(sdl.surface);
-	while((GetTicks()-splash_startticks)< 500) SDL_Delay(10);
-	
-	SDL_FreeSurface(splash_surf);
-	delete [] splash_tmpbuf;
-	splash_active=false;
-
 }
 
 #if (HAVE_D3D9_H) && defined(WIN32)
