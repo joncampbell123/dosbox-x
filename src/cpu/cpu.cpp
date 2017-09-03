@@ -3067,6 +3067,13 @@ public:
 			}
 		}
 
+#if defined(LINUX)
+        /* the ptrace core has some additional constraints */
+		if (cpudecoder == &CPU_Core_Ptrace_Run) {
+            /* If the memory was not allocated with shared memory or memfd, cancel the ptrace core */
+        }
+#endif
+
 		if (cpu_rep_max < 0) cpu_rep_max = 4;	/* compromise to help emulation speed without too much loss of accuracy */
 
 		if(CPU_CycleMax <= 0) CPU_CycleMax = 3000;
@@ -3118,6 +3125,25 @@ void CPU_OnReset(Section* sec) {
 
 void CPU_OnSectionPropChange(Section *x) {
 	if (test != NULL) test->Change_Config(x);
+}
+
+bool CoreRequiresMmap(void) {
+#if defined(LINUX)
+	if (cpudecoder == &CPU_Core_Ptrace_Run)
+        return true;
+#endif
+
+    return false;
+}
+
+void CPU_PreInit() {
+    Section_prop * section=static_cast<Section_prop *>(control->GetSection("cpu"));
+    std::string core(section->Get_string("core"));
+
+#if defined(LINUX)
+    if (core == "ptrace")
+        cpudecoder=&CPU_Core_Ptrace_Run;
+#endif
 }
 
 void CPU_Init() {

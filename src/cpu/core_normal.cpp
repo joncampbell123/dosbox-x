@@ -234,7 +234,7 @@ void CPU_Core_Normal_Init(void) {
 #if defined(LINUX)
 /* TODO: Move to it's own source file */
 Bits CPU_Core_Ptrace_Run(void) {
-    LOG_MSG("Ptrace");
+//    LOG_MSG("Ptrace");
     return CPU_Core_Normal_Run();
 }
 #endif

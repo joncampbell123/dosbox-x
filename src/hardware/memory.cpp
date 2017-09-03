@@ -16,6 +16,14 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include "config.h"
+
+#if defined(LINUX)
+# include <sys/types.h>
+# include <sys/mman.h>
+# include <unistd.h>
+# include <fcntl.h>
+#endif
 
 #include <stdint.h>
 #include <assert.h>
@@ -107,7 +115,12 @@ Bit32u MEM_get_address_bits() {
 	return memory.address_bits;
 }
 
+bool CoreRequiresMmap(void);
+
 HostPt MemBase = NULL;
+#if defined(LINUX)
+int MemBaseFd = -1;
+#endif
 
 class UnmappedPageHandler : public PageHandler {
 public:
@@ -1624,6 +1637,18 @@ void Init_AddressLimitAndGateMask() {
 }
 
 void ShutDownRAM(Section * sec) {
+#if defined(LINUX)
+    if (MemBaseFd >= 0) {
+        if (MemBase != NULL) {
+            munmap(MemBase,(size_t)memory.pages * (size_t)4096);
+            MemBase = NULL;
+        }
+
+        close(MemBaseFd);
+        MemBaseFd = -1;
+    }
+#endif
+
 	if (MemBase != NULL) {
 		delete [] MemBase;
 		MemBase = NULL;
@@ -1711,7 +1736,29 @@ void Init_RAM() {
 
 	/* Allocate the RAM. We alloc as a large unsigned char array. new[] does not initialize the array,
 	 * so we then must zero the buffer. */
-	MemBase = new Bit8u[memory.pages*4096];
+    if (CoreRequiresMmap()) {
+        char tmp[128];
+
+        LOG_MSG("Core requires mmap memory allocation");
+
+        sprintf(tmp,"dosbox-x(%u)(mem)",(unsigned int)getpid());
+
+        MemBaseFd = shm_open(tmp,O_RDWR|O_CREAT|O_EXCL,0600);
+        if (MemBaseFd < 0) E_Exit("shm_open failed for memory named '%s'",tmp);
+
+        /* this is a temp file, remove asap */
+        shm_unlink(tmp);
+
+        off_t sz = (off_t)memory.reported_pages * (off_t)4096;
+        if (ftruncate(MemBaseFd,sz) < 0) E_Exit("shm failed to truncate to %llu bytes",(unsigned long long)sz);
+
+        MemBase = (Bit8u*)mmap(NULL,(size_t)sz,PROT_READ|PROT_WRITE,MAP_SHARED,MemBaseFd,0);
+        if (MemBase == (Bit8u*)MAP_FAILED) E_Exit("shm mmap failed");
+    }
+    else {
+        MemBase = new Bit8u[memory.pages*4096];
+    }
+
 	if (!MemBase) E_Exit("Can't allocate main memory of %d KB",(int)memsizekb);
 	/* Clear the memory, as new doesn't always give zeroed memory
 	 * (Visual C debug mode). We want zeroed memory though. */

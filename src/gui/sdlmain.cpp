@@ -4255,6 +4255,7 @@ void TIMER_Init();
 void CMOS_Init();
 void VGA_Init();
 void CPU_Init();
+void CPU_PreInit();
 void ISAPNP_Cfg_Init();
 #if C_FPU
 void FPU_Init();
@@ -4744,6 +4745,7 @@ int main(int argc, char* argv[]) {
 		}
 #endif
 
+        CPU_PreInit();
 		MSG_Init();
 		MAPPER_StartUp();
 		DOSBOX_InitTickLoop();
