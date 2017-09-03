@@ -1860,7 +1860,7 @@ void GFX_SwitchFullScreen(void)
 		GetDesktopResolution(&width, &height);
 		auto width1 = sdl.draw.width;
 		auto height1 = sdl.draw.height;
-		if (width < width1 || height < height1) {
+		if ((unsigned int)width < width1 || (unsigned int)height < height1) {
 			sdl.desktop.fullscreen = false;
 			LOG_MSG("WARNING: full screen canceled, surface size (%ix%i) exceeds screen size (%ix%i).",
 				width1, height1, width, height);
@@ -1875,7 +1875,7 @@ void GFX_SwitchFullScreen(void)
 
 	// ensure mouse capture when fullscreen || (re-)capture if user said so when windowed
 	auto locked = sdl.mouse.locked;
-	if (full && !locked || !full && locked) GFX_CaptureMouse();
+	if ((full && !locked) || (!full && locked)) GFX_CaptureMouse();
 
 	// disable/enable sticky keys for fullscreen/desktop
 #if defined (WIN32)		
