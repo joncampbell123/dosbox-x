@@ -23,6 +23,7 @@
 #if defined(LINUX)
 # include <sys/types.h>
 # include <sys/ptrace.h>
+# include <sys/mman.h>
 # include <sys/wait.h>
 # include <signal.h>
 # include <errno.h>
@@ -269,12 +270,74 @@ bool cpu_state_ptrace_compatible(void) {
     return true;
 }
 
+size_t ptrace_user_size = 0;
+unsigned char *ptrace_user_base = NULL;
+
 unsigned char ptrace_process_stack[4096];/*enough to get going*/
 bool ptrace_failed = false;
 pid_t ptrace_pid = -1;
 
 volatile unsigned int ptrace_process_wait = 0;
 volatile unsigned int ptrace_process_waiting = 0;
+
+size_t ptrace_user_determine_size(void) {
+    if (ptrace_user_size == 0) {
+#if defined(__x86_64__)
+        ptrace_user_size = (4096UL * 1024UL * 1024UL); // the full 4GB is available
+#elif defined(__i386__)
+        ptrace_user_size = (512UL * 1024UL * 1024UL); // take a conservative 512MB
+#endif
+    }
+
+    return ptrace_user_size;
+}
+
+// i.e. clearing the cache
+bool ptrace_user_map_reset(void) {
+    if (ptrace_user_base == NULL)
+        return true;
+
+    if (mprotect(ptrace_user_base,ptrace_user_size,PROT_NONE)) {
+        LOG_MSG("Ptrace core: mprotect failed (clearing user map)");
+        ptrace_user_base = NULL;
+        ptrace_failed = true;
+        return false;
+    }
+
+    return true;
+}
+
+bool ptrace_user_map(void) {
+    if (ptrace_user_determine_size() == 0)
+        return false;
+
+    if (ptrace_user_base != NULL)
+        return true;
+
+    ptrace_user_base = (unsigned char*)mmap(NULL,ptrace_user_size,PROT_NONE,MAP_PRIVATE|MAP_ANONYMOUS,-1,0);
+    if (ptrace_user_base == (unsigned char*)MAP_FAILED) {
+        LOG_MSG("Ptrace core: mmap failed, cannot determine user base");
+        ptrace_user_base = NULL;
+        return false;
+    }
+
+    LOG_MSG("Ptrace core: user area mapped at %p-%p (%luMB)",
+        (void*)ptrace_user_base,(void*)(ptrace_user_base+ptrace_user_size-1UL),(ptrace_user_size + 0xFFFFFUL) >> 20UL);
+
+    /* testing */
+    if (!ptrace_user_map_reset())
+        return false;
+
+    return true;
+}
+
+void ptrace_user_unmap(void) {
+    if (ptrace_user_base != NULL) {
+        LOG_MSG("Ptrace core: user area unmapped");
+        munmap(ptrace_user_base,ptrace_user_size);
+        ptrace_user_base = NULL;
+    }
+}
 
 bool ptrace_process_stopped(void) {
     if (ptrace_pid >= 0) {
@@ -303,6 +366,8 @@ void ptrace_process_halt(void) {
             if (errno == ECHILD) break;
             usleep(1000);
         }
+
+        ptrace_user_unmap();
 
         ptrace_pid = -1;
     }
@@ -336,6 +401,12 @@ bool ptrace_pid_start(void) {
 
 bool ptrace_sync(void) {
     if (ptrace_pid < 0) {
+        if (!ptrace_user_map()) {
+            LOG_MSG("Ptrace core: cannot determine user map\n");
+            ptrace_failed = true;
+            return false;
+        }
+
         if (!ptrace_pid_start()) {
             LOG_MSG("Ptrace core: failed to start PID\n");
             ptrace_failed = true;
