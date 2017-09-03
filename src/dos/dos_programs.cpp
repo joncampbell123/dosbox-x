@@ -31,7 +31,7 @@
 #include "ide.h"
 #include "cpu.h"
 #include "callback.h"
-// #include "cdrom.h"
+#include "cdrom.h"
 #include "SDL_endian.h"
 #include "dos_system.h"
 #include "dos_inc.h"

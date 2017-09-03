@@ -16,7 +16,6 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#if 0
 #include <string.h>
 #include <ctype.h>
 #include "regs.h"
@@ -28,7 +27,7 @@
 #include "bios_disk.h"
 #include "cpu.h"
 
-//#include "cdrom.h"
+#include "cdrom.h"
 
 #define MSCDEX_LOG LOG(LOG_MISC,LOG_ERROR)
 //#define MSCDEX_LOG
@@ -102,7 +101,7 @@ public:
 	bool		PlayAudioSector		(Bit8u subUnit, Bit32u start, Bit32u length);
 	bool		PlayAudioMSF		(Bit8u subUnit, Bit32u start, Bit32u length);
 	bool		StopAudio			(Bit8u subUnit);
-//	bool		GetAudioStatus		(Bit8u subUnit, bool& playing, bool& pause, TMSF& start, TMSF& end);
+	bool		GetAudioStatus		(Bit8u subUnit, bool& playing, bool& pause, TMSF& start, TMSF& end);
 
 	bool		GetSubChannelData	(Bit8u subUnit, Bit8u& attr, Bit8u& track, Bit8u &index, TMSF& rel, TMSF& abs);
 
@@ -256,48 +255,8 @@ int CMscdex::AddDrive(Bit16u _drive, char* physicalPath, Bit8u& subUnit)
 	int result = 0;
 	// Get Mounttype and init needed cdrom interface
 	switch (CDROM_GetMountType(physicalPath,forceCD)) {
-	case 0x00: {	
-		LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: Mounting physical cdrom: %s"	,physicalPath);
-#if defined (WIN32)
-		// Check OS
-		OSVERSIONINFO osi;
-		osi.dwOSVersionInfoSize = sizeof(osi);
-		GetVersionEx(&osi);
-		if ((osi.dwPlatformId==VER_PLATFORM_WIN32_NT) && (osi.dwMajorVersion>4)) {
-			// only WIN NT/200/XP
-			if (useCdromInterface==CDROM_USE_IOCTL_DIO) {
-//				cdrom[numDrives] = new CDROM_Interface_Ioctl(CDROM_Interface_Ioctl::CDIOCTL_CDA_DIO);
-//				LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: IOCTL Interface.");
-//				break;
-			}
-			if (useCdromInterface==CDROM_USE_IOCTL_DX) {
-//				cdrom[numDrives] = new CDROM_Interface_Ioctl(CDROM_Interface_Ioctl::CDIOCTL_CDA_DX);
-//				LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: IOCTL Interface (digital audio extraction).");
-//				break;
-			}
-			if (useCdromInterface==CDROM_USE_IOCTL_MCI) {
-//				cdrom[numDrives] = new CDROM_Interface_Ioctl(CDROM_Interface_Ioctl::CDIOCTL_CDA_MCI);
-//				LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: IOCTL Interface (media control interface).");
-//				break;
-			}
-		}
-		if (useCdromInterface==CDROM_USE_ASPI) {
-			// all Wins - ASPI
-//			cdrom[numDrives] = new CDROM_Interface_Aspi();
-//			LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: ASPI Interface.");
-//			break;
-		}
-#endif
-#if defined (LINUX) || defined(OS2)
-		// Always use IOCTL in Linux or OS/2
-		cdrom[numDrives] = new CDROM_Interface_Ioctl();
-		LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: IOCTL Interface.");
-#else
-		// Default case windows and other oses
-		cdrom[numDrives] = new CDROM_Interface_SDL();
-		LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: SDL Interface.");
-#endif
-		} break;
+	case 0x00:
+        return 6;
 	case 0x01:	// iso cdrom interface	
 		LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: Mounting iso file as cdrom: %s", physicalPath);
 		cdrom[numDrives] = new CDROM_Interface_Image((Bit8u)numDrives);
@@ -1393,7 +1352,7 @@ bool MSCDEX_HasMediaChanged(Bit8u subUnit)
 }
 
 void MSCDEX_SetCDInterface(int intNr, int numCD) {
-	useCdromInterface = intNr;
+//	useCdromInterface = intNr;
 	forceCD	= numCD;
 }
 
@@ -1437,4 +1396,4 @@ void MSCDEX_Init() {
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(MSCDEX_ShutDown));
 	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(MSCDEX_DOS_ShutDown));
 }
-#endif
+
