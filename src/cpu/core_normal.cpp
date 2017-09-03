@@ -28,6 +28,8 @@
 # include <signal.h>
 # include <errno.h>
 # include <string.h>
+# include <unistd.h>
+# include <fcntl.h>
 #endif
 
 #include "dosbox.h"
@@ -272,6 +274,7 @@ bool cpu_state_ptrace_compatible(void) {
 
 size_t ptrace_user_size = 0;
 unsigned char *ptrace_user_base = NULL;
+std::vector<bool> ptrace_user_mapped;
 
 unsigned char ptrace_process_stack[4096];/*enough to get going*/
 bool ptrace_failed = false;
@@ -292,14 +295,48 @@ size_t ptrace_user_determine_size(void) {
     return ptrace_user_size;
 }
 
+bool ptrace_user_ptr_mapped(const void * const p) {
+    if (p < ptrace_user_base || p >= (const void*)((const unsigned char*)ptrace_user_base+ptrace_user_size))
+        return false;
+
+    size_t elem = (size_t)(((uintptr_t)p - (uintptr_t)ptrace_user_base) >> (uintptr_t)12);
+
+    if (elem >= ptrace_user_mapped.size())
+        return false;
+
+    return ptrace_user_mapped[elem];
+}
+
+void ptrace_user_ptr_mapset(const void * const p,const bool flag) {
+    if (p < ptrace_user_base || p >= (const void*)((const unsigned char*)ptrace_user_base+ptrace_user_size))
+        return;
+
+    size_t elem = (size_t)(((uintptr_t)p - (uintptr_t)ptrace_user_base) >> (uintptr_t)12);
+
+    if (elem >= ptrace_user_mapped.size()) {
+        ptrace_user_mapped.resize(elem+1);
+        assert(elem < ptrace_user_mapped.size());
+    }
+
+    ptrace_user_mapped[elem] = flag;
+}
+
 // i.e. clearing the cache
 bool ptrace_user_map_reset(void) {
     if (ptrace_user_base == NULL)
         return true;
 
+    ptrace_user_mapped.clear();
     if (mprotect(ptrace_user_base,ptrace_user_size,PROT_NONE)) {
         LOG_MSG("Ptrace core: mprotect failed (clearing user map)");
         ptrace_user_base = NULL;
+        ptrace_failed = true;
+        return false;
+    }
+
+    // we expect PROT_NONE to cause msync to fail. does it?
+    if (ptrace_user_ptr_mapped(ptrace_user_base)) {
+        LOG_MSG("Ptrace core: mmap PROT_NONE is still valid according to ptr test");
         ptrace_failed = true;
         return false;
     }
@@ -314,6 +351,7 @@ bool ptrace_user_map(void) {
     if (ptrace_user_base != NULL)
         return true;
 
+    ptrace_user_mapped.clear();
     ptrace_user_base = (unsigned char*)mmap(NULL,ptrace_user_size,PROT_NONE,MAP_PRIVATE|MAP_ANONYMOUS,-1,0);
     if (ptrace_user_base == (unsigned char*)MAP_FAILED) {
         LOG_MSG("Ptrace core: mmap failed, cannot determine user base");
