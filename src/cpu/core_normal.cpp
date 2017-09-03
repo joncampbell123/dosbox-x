@@ -246,6 +246,35 @@ void CPU_Core_Normal_Init(void) {
 }
 
 #if defined(LINUX)
+/* Next development step:
+ *
+ * Instead of actually copying the entire LDT, we generate LDTs only for
+ * the segment registers of the CPU that match their values. After execution,
+ * we clear the LDT entries. 32-bit programs generally do not reload registers.
+ * 16-bit programs generally do, but, when they load a different register we'll
+ * catch it as an exception and update the LDT to match. */
+
+/* Possible problem:
+ *
+ * We're going to modify the LDT in THIS process,
+ * expecting it to take effect in the ptrace process.
+ * Does that work?
+ *
+ * Remember that when we called clone() we asked Linux to keep the memory map the
+ * same between us and the ptrace process.
+ *
+ * A cursory scan of the Linux kernel source suggests that the "mm" member of the
+ * process is the memory map/state.
+ *
+ * On context switch, the Linux kernel will call switch_mm if changing memory maps.
+ *
+ * modify_ldt allocates/updates the LDT table which is kept in the mm structure.
+ *
+ * Therefore, though nobody has confirmed this yet, having the same memory map
+ * between us and ptrace_pid *probably* means that both of us will have the
+ * same LDT table and therefore modifications from THIS process will take effect
+ * in the ptrace process. */
+
 bool ptrace_compatible_segment(const uint16_t sv) {
     return (sv == 0/*NULL descriptor*/ || (sv & 7) == 7/*LDT ring-3 descriptor*/);
 }
