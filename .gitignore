@@ -8,6 +8,9 @@ bin/*
 obj/
 obj/*
 *~
+*.o
+*.a
+*.la
 dosbox.app/
 dosbox.app/*
 dosbox.icns
