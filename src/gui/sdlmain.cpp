@@ -4993,6 +4993,9 @@ fresh_boot:
 		 * freed resources. */
 	}
 
+    void ptrace_process_halt(void);
+    ptrace_process_halt();
+
     void CALLBACK_Dump(void);
     CALLBACK_Dump();
 

@@ -16,7 +16,17 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include "config.h"
+
 #include <stdio.h>
+
+#if defined(LINUX)
+# include <sys/types.h>
+# include <sys/wait.h>
+# include <signal.h>
+# include <errno.h>
+# include <string.h>
+#endif
 
 #include "dosbox.h"
 #include "mem.h"
@@ -258,10 +268,84 @@ bool cpu_state_ptrace_compatible(void) {
     return true;
 }
 
+unsigned char ptrace_process_stack[4096];/*enough to get going*/
+bool ptrace_failed = false;
+pid_t ptrace_pid = -1;
+
+volatile unsigned int pthread_process_wait = 0;
+
+bool ptrace_process_stopped(void) {
+    if (ptrace_pid >= 0) {
+        if (waitpid(ptrace_pid,NULL,WNOHANG) == ptrace_pid) {
+            /* we just reaped it */
+            pthread_process_wait = 0;
+            ptrace_pid = -1;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void ptrace_process_halt(void) {
+    if (ptrace_pid >= 0) {
+        pthread_process_wait = 0;
+
+        LOG_MSG("Ptrace core: Stopping process");
+        kill(ptrace_pid,SIGKILL);
+
+        LOG_MSG("Ptrace core: Waiting for process to stop");
+        while (waitpid(ptrace_pid,NULL,0) != ptrace_pid) {
+            if (errno == ECHILD) break;
+            usleep(1000);
+        }
+
+        ptrace_pid = -1;
+    }
+}
+
+int ptrace_process(void *x) {
+    while (pthread_process_wait) usleep(100000); /* try not to burn CPU while waiting */
+    return 0;
+}
+
+bool ptrace_pid_start(void) {
+    if (ptrace_pid >= 0)
+        return true;
+
+    pthread_process_wait = 1;
+
+    ptrace_pid = clone(ptrace_process,ptrace_process_stack+sizeof(ptrace_process_stack)-16,SIGCHLD | CLONE_VM | CLONE_UNTRACED,NULL);
+    if (ptrace_pid < 0) {
+        LOG_MSG("Ptrace core: failed to clone, %s",strerror(errno));
+        return false;
+    }
+    LOG_MSG("Ptrace core: Ptrace process pid %lu",(unsigned long)ptrace_pid);
+
+    return true;
+}
+
+void ptrace_sync(void) {
+    if (ptrace_pid < 0) {
+        if (!ptrace_pid_start()) {
+            LOG_MSG("Ptrace core: failed to start PID\n");
+            ptrace_failed = true;
+        }
+    }
+    else {
+        if (ptrace_process_stopped()) {
+            LOG_MSG("Ptrace core: WARNING, process stopped\n");
+            return;
+        }
+    }
+}
+
 /* TODO: Move to it's own source file */
 Bits CPU_Core_Ptrace_Run(void) {
-    if (cpu_state_ptrace_compatible()) {
-//        LOG_MSG("Ptrace");
+    if (!ptrace_failed) {
+        if (cpu_state_ptrace_compatible()) {
+            ptrace_sync();
+        }
     }
 
     return CPU_Core_Normal_Run();
