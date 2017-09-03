@@ -1847,29 +1847,44 @@ static void FingerToFakeMouseMotion(SDL_TouchFingerEvent * finger) {
     HandleMouseMotion(&fake);
 }
 
+static const SDL_TouchID no_touch_id = (SDL_TouchID)(~0ULL);
+static const SDL_FingerID no_finger_id = (SDL_FingerID)(~0ULL);
+static SDL_FingerID touchscreen_finger_lock = no_finger_id;
+static SDL_TouchID touchscreen_touch_lock = no_touch_id;
+
 static void HandleTouchscreenFinger(SDL_TouchFingerEvent * finger) {
     /* Now that SDL2 can tell my mouse from my laptop touchscreen, let's
      * map tap events to the left mouse button. Now I can use my laptop
      * touchscreen with Windows 3.11 again! --J.C. */
-    /* TODO: The common convention these days is to map finger taps to
-     *       the left mouse button, and "press and hold" to trigger
-     *       right mouse button events. We should do that too. --J.C. */
     /* Now let's handle The Finger (har har) */
 
-    /* TODO: For multi-touch devices, add code to emulate mouse events
-     *       if ONLY ONE FINGER is acting on the screen. We should not
-     *       map touch events to mouse if multiple fingers are on the
-     *       screen. */
+    /* NTS: This code is written to map ONLY one finger to the mouse.
+     *      If multiple fingers are touching the screen, this code will
+     *      only respond to the first finger that touched the screen. */
+
     if (finger->type == SDL_FINGERDOWN) {
-        FingerToFakeMouseMotion(finger);
-        Mouse_ButtonPressed(0);
+        if (touchscreen_finger_lock == no_finger_id &&
+            touchscreen_touch_lock == no_touch_id) {
+            touchscreen_finger_lock = finger->fingerId;
+            touchscreen_touch_lock = finger->touchId;
+            FingerToFakeMouseMotion(finger);
+            Mouse_ButtonPressed(0);
+        }
     }
     else if (finger->type == SDL_FINGERUP) {
-        FingerToFakeMouseMotion(finger);
-        Mouse_ButtonReleased(0);
+        if (touchscreen_finger_lock == finger->fingerId &&
+            touchscreen_touch_lock == finger->touchId) {
+            touchscreen_finger_lock = no_finger_id;
+            touchscreen_touch_lock = no_touch_id;
+            FingerToFakeMouseMotion(finger);
+            Mouse_ButtonReleased(0);
+        }
     }
     else if (finger->type == SDL_FINGERMOTION) {
-        FingerToFakeMouseMotion(finger);
+        if (touchscreen_finger_lock == finger->fingerId &&
+            touchscreen_touch_lock == finger->touchId) {
+            FingerToFakeMouseMotion(finger);
+        }
     }
 }
 
