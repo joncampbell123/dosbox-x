@@ -312,3 +312,8 @@ autom4te.cache/
 autom4te.cache/*
 .DS_Store
 windows-installer/DOSBox-X-setup-*.exe
+
+*.o
+*.a
+*.la
+
