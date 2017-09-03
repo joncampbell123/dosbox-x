@@ -2540,7 +2540,8 @@ static void CTMIXER_Write(Bit8u val) {
 }
 
 static Bit8u CTMIXER_Read(void) {
-	Bit8u ret;
+	Bit8u ret = 0;
+
 //	if ( sb.mixer.index< 0x80) LOG_MSG("Read mixer %x",sb.mixer.index);
 	switch (sb.mixer.index) {
 	case 0x00:		/* RESET */
@@ -2655,6 +2656,7 @@ static Bit8u CTMIXER_Read(void) {
 			ret=0xa;
 		LOG(LOG_SB,LOG_WARN)("MIXER:Read from unhandled index %X",sb.mixer.index);
 	}
+
 	return ret;
 }
 
