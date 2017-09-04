@@ -293,9 +293,11 @@ bool ptrace_compatible_segment(const uint16_t sv) {
 /* TODO: Move to it's own source file */
 bool cpu_state_ptrace_compatible(void) {
     /* The CPU is in a ptrace-compatible state IF:
+     * - A20 gate must be enabled
      * - The CPU is in protected mode
      * - The CPU is NOT running in virtual 8086 mode
      * - All segment registers contain either NULL or a ring-3 LDT descriptor */
+    if (!MEM_A20_Enabled()) return false; // A20 must be enabled
     if (!cpu.pmode) return false;   // Protected mode or bust
     if (GETFLAG(VM)) return false;  // Virtual 8086 is not supported
 
@@ -676,6 +678,7 @@ bool ptrace_sync(void) {
         }
     }
 
+try_again:
     if (ptrace_pid >= 0 && !ptrace_process_wait && !ptrace_process_waiting) {
         for (unsigned int sr=0;sr <= gs;sr++) { /* NTS: include/regs. es=0 gs=last */
             if (!ptrace_ldt_load(/*&*/ldt_current_sreg[sr],sr)) {
@@ -765,6 +768,89 @@ bool ptrace_sync(void) {
             }
             else if (status != -1) {
                 break;
+            }
+        }
+
+        if (WIFSTOPPED(status)) {
+            /* most common case: it stopped because of a page fault (SIGSEGV) which is probably
+             * our fault since we don't map pages in by default. */
+            if (WSTOPSIG(status) == SIGSEGV) {
+                siginfo_t si;
+
+                if (ptrace(PTRACE_GETSIGINFO,ptrace_pid,&si,&si) == 0) {
+                    void *fixed_si_addr = si.si_addr;
+
+#if defined(__x86_64__)
+                    /* 32-bit on x86_64 hack.
+                     * when a 32-bit segment faults the Linux kernel fills in si_addr with only the low 32 bits
+                     * even though the segment base is far above the 4GB boundary. */
+                    if ((uintptr_t)fixed_si_addr < 0x100000000ULL)
+                        fixed_si_addr = (void*)((uintptr_t)fixed_si_addr | ((uintptr_t)ptrace_user_base & ~0xFFFFFFFFULL));
+#endif
+
+                    if ((unsigned char*)fixed_si_addr >= ptrace_user_base &&
+                        (unsigned char*)fixed_si_addr < (ptrace_user_base+ptrace_user_size)) {
+                        uintptr_t guest_vma = (uintptr_t)fixed_si_addr - (uintptr_t)ptrace_user_base;
+                        uintptr_t guest_vma_page = guest_vma & ~((uintptr_t)0xFFFUL);
+                        LOG_MSG("Guest SIGSEGV at %p (page %p) (flat %p)",(void*)guest_vma,(void*)guest_vma_page,fixed_si_addr);
+
+                        /* if we already took care of it, then it's something the normal core needs to run */
+                        if (ptrace_user_ptr_mapped(fixed_si_addr)) {
+                            DEBUG_EnableDebugger();
+
+                            LOG_MSG("normal core needs to handle this");
+                            return false;
+                        }
+
+                        bool HandlerIsMem(PageHandler *ph);
+
+                        extern HostPt MemBase;
+                        extern int MemBaseFd;
+
+                        /* okay, let's try to handle it.
+                         * what memory page does that correspond to? */
+                        uintptr_t guest_pma_page = PAGING_GetPhysicalPage(guest_vma_page);
+                        PageHandler *ph = MEM_GetPageHandler(guest_pma_page >> 12UL);
+                        if (ph == NULL) {
+                            LOG_MSG("unable to get page handler. normal core needs to handle this");
+                            return false;
+                        }
+                        /* currently we can only allow system memory, because system memory is known to hold the
+                         * file handle we need for mapping */
+                        else if (HandlerIsMem(ph) && (guest_vma>>12UL) < MEM_TotalPages() && MemBase != NULL && MemBaseFd >= 0) {
+                            LOG_MSG("page handler is system memory! we can do this. vma=%p pma=%p",(void*)guest_vma_page,(void*)guest_pma_page);
+
+                            /* make sure contents make it */
+                            msync(ptrace_user_base + guest_vma_page,4096,MS_INVALIDATE | MS_SYNC);
+
+                            /* unmap the affected region */
+                            munmap(ptrace_user_base + guest_vma_page,4096);
+                            /* map in the system memory */
+                            /* FIXME: We need to read guest page tables, enforce read-only, read-write, executable bits */
+                            if (mmap(ptrace_user_base + guest_vma_page,4096,PROT_READ|PROT_WRITE|PROT_EXEC,MAP_SHARED|MAP_FIXED,MemBaseFd,guest_pma_page) == MAP_FAILED) {
+                                LOG_MSG("failed to map in system memory page, error=%p",strerror(errno));
+                                return false;
+                            }
+
+                            /* go back and try again! */
+                            ptrace_user_ptr_mapset(fixed_si_addr,true);
+                            goto try_again;
+                        }
+                        else {
+                            LOG_MSG("page handler not recognized. normal core needs to handle this");
+                            return false;
+                        }
+                    }
+                    else {
+                        LOG_MSG("Unexpected SIGSEGV outside of guest area at %p (guest %p-%p)",
+                            fixed_si_addr,
+                            ptrace_user_base,
+                            ptrace_user_base+ptrace_user_size-1);
+                    }
+                }
+                else {
+                    LOG_MSG("Ptrace core: SIGSEGV but unable to get siginfo");
+                }
             }
         }
 
