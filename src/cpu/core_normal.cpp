@@ -361,6 +361,13 @@ bool ptrace_ldt_load(uint16_t &seg,unsigned int sreg) {
         return true;
     }
 
+    /* the base MUST fit within 32 bits and within user area */
+    uintptr_t newbase = (uintptr_t)ptrace_user_base + (uintptr_t)Segs.phys[sreg];
+    if (newbase > (uintptr_t)0xFFFFFFFFUL)
+        return false;
+    if (newbase > ((uintptr_t)ptrace_user_base+(uintptr_t)ptrace_user_size))
+        return false;
+
     /* even if the segment value is the same, the guest COULD change the LDT descriptor's state */
     struct user_desc ud;
 
@@ -372,8 +379,12 @@ bool ptrace_ldt_load(uint16_t &seg,unsigned int sreg) {
     if (sreg == cs)
         ud.contents |= 2;       // code segment (else, data)
     // FIXME: How do we detect if the guest marked the segment as conforming/expand-down?
-    ud.base_addr = (uintptr_t)ptrace_user_base + (uintptr_t)Segs.phys[sreg];
+    ud.base_addr = newbase;
     ud.limit = Segs.limit[sreg];
+    // must cap the limit to stay within our user mapping
+    if (((uintptr_t)ud.base_addr+(uintptr_t)ud.limit) >= ((uintptr_t)ptrace_user_base+(uintptr_t)ptrace_user_size))
+        ud.limit = ((uintptr_t)ptrace_user_base+(uintptr_t)ptrace_user_size-(uintptr_t)ud.base_addr) - 1;
+
     if (ud.limit > 0xFFFFUL) {
         unsigned long nl = ((unsigned long)ud.limit + 0xFFFUL) >> 12UL;
         if (nl > 0xFFFFFUL) nl = 0xFFFFFUL;
@@ -385,9 +396,14 @@ bool ptrace_ldt_load(uint16_t &seg,unsigned int sreg) {
     else
         ud.seg_32bit = cpu.stack.big?1:0;
 
+    // we're having issues with 16-bit code?
+    if (!ud.seg_32bit)
+        return false;
+
     ud.useable = 1;
 
     if (modify_ldt(1,&ud,sizeof(ud)) == 0) {
+        LOG_MSG("Ptrace core: sreg=%u seg=0x%x base=0x%lx limit=0x%lx in_pages=%u",(unsigned int)sreg,(unsigned int)seg,(unsigned long)ud.base_addr,(unsigned long)ud.limit,(unsigned int)ud.limit_in_pages);
         seg = Segs.val[sreg];
     }
     else {
@@ -401,7 +417,7 @@ bool ptrace_ldt_load(uint16_t &seg,unsigned int sreg) {
 size_t ptrace_user_determine_size(void) {
     if (ptrace_user_size == 0) {
 #if defined(__x86_64__)
-        ptrace_user_size = (4096UL * 1024UL * 1024UL); // the full 4GB is available
+        ptrace_user_size = (512UL * 1024UL * 1024UL); // take a conservative 512MB, must exist below 4GB
 #elif defined(__i386__)
         ptrace_user_size = (512UL * 1024UL * 1024UL); // take a conservative 512MB
 #endif
@@ -466,8 +482,9 @@ bool ptrace_user_map(void) {
     if (ptrace_user_base != NULL)
         return true;
 
+    /* we MUST make sure the mapping is below 4GB. modify_ldt() only supports 32-bit wide base addresses for the LDT selector */
     ptrace_user_mapped.clear();
-    ptrace_user_base = (unsigned char*)mmap(NULL,ptrace_user_size,PROT_NONE,MAP_PRIVATE|MAP_ANONYMOUS,-1,0);
+    ptrace_user_base = (unsigned char*)mmap(NULL,ptrace_user_size,PROT_NONE,MAP_PRIVATE|MAP_ANONYMOUS|MAP_32BIT,-1,0);
     if (ptrace_user_base == (unsigned char*)MAP_FAILED) {
         LOG_MSG("Ptrace core: mmap failed, cannot determine user base");
         ptrace_user_base = NULL;
@@ -678,12 +695,16 @@ bool ptrace_sync(void) {
         }
     }
 
-try_again:
+    if (ptrace_pid >= 0) {
+        if (!ptrace_user_map_reset())
+            return false;
+    }
+
     if (ptrace_pid >= 0 && !ptrace_process_wait && !ptrace_process_waiting) {
         for (unsigned int sr=0;sr <= gs;sr++) { /* NTS: include/regs. es=0 gs=last */
             if (!ptrace_ldt_load(/*&*/ldt_current_sreg[sr],sr)) {
-                LOG_MSG("Ptrace core: failed to load segreg register from guest into LDT\n");
-                ptrace_failed = true;
+//                LOG_MSG("Ptrace core: failed to load segreg register from guest into LDT\n");
+                /* non-fatal */
                 return false;
             }
         }
@@ -746,12 +767,17 @@ try_again:
 # error unsupported target
 #endif
 
+try_again:
+        LOG_MSG("ptrace core");
+
         /* GO! */
         if (ptrace(PTRACE_CONT,ptrace_pid,NULL,NULL)) {
             LOG_MSG("Ptrace core: failed to start ptrace process");
             ptrace_failed = true;
             return false;
         }
+
+		PAGING_ClearTLB();
 
         // NTS: Obviously the only thing this subprocess is going to do is page fault (SIGSEGV) a
         //      lot because I haven't yet gotten the code to map pages in!
@@ -771,7 +797,39 @@ try_again:
             }
         }
 
-        if (WIFSTOPPED(status)) {
+        if (status != -1 && WIFSTOPPED(status)) {
+            struct user_regs_struct r;
+
+            /* flush back into ours */
+            if (msync(ptrace_user_base,ptrace_user_size,MS_INVALIDATE | MS_SYNC))
+                LOG_MSG("msync error %s",strerror(errno));
+
+            /* copy CPU state back into ours */
+            if (ptrace(PTRACE_GETREGS,ptrace_pid,&r,&r) < 0) {
+                LOG_MSG("Ptrace core: failed to read CPU state from ptrace process. err=%s",strerror(errno));
+                ptrace_failed = true;
+                return false;
+            }
+
+            CPU_SetSegGeneral(cs,r.cs);
+            CPU_SetSegGeneral(ds,r.ds);
+            CPU_SetSegGeneral(es,r.es);
+            CPU_SetSegGeneral(fs,r.fs);
+            CPU_SetSegGeneral(gs,r.gs);
+            CPU_SetSegGeneral(ss,r.ss);
+            reg_flags = r.eflags;
+            reg_esp = r.rsp;
+            reg_eip = r.rip;
+            reg_eax = r.rax;
+            reg_ebx = r.rbx;
+            reg_ecx = r.rcx;
+            reg_edx = r.rdx;
+            reg_esi = r.rsi;
+            reg_edi = r.rdi;
+            reg_ebp = r.rbp;
+
+            LOG_MSG("cs:ip %04X:%04lX after",(unsigned int)r.cs,(unsigned long)r.rip);
+
             /* most common case: it stopped because of a page fault (SIGSEGV) which is probably
              * our fault since we don't map pages in by default. */
             if (WSTOPSIG(status) == SIGSEGV) {
@@ -780,15 +838,8 @@ try_again:
                 if (ptrace(PTRACE_GETSIGINFO,ptrace_pid,&si,&si) == 0) {
                     void *fixed_si_addr = si.si_addr;
 
-#if defined(__x86_64__)
-                    /* 32-bit on x86_64 hack.
-                     * when a 32-bit segment faults the Linux kernel fills in si_addr with only the low 32 bits
-                     * even though the segment base is far above the 4GB boundary. */
-                    if ((uintptr_t)fixed_si_addr < 0x100000000ULL)
-                        fixed_si_addr = (void*)((uintptr_t)fixed_si_addr | ((uintptr_t)ptrace_user_base & ~0xFFFFFFFFULL));
-#endif
-
-                    if ((unsigned char*)fixed_si_addr >= ptrace_user_base &&
+                    if (si.si_signo == SIGSEGV && si.si_code == SEGV_ACCERR &&
+                        (unsigned char*)fixed_si_addr >= ptrace_user_base &&
                         (unsigned char*)fixed_si_addr < (ptrace_user_base+ptrace_user_size)) {
                         uintptr_t guest_vma = (uintptr_t)fixed_si_addr - (uintptr_t)ptrace_user_base;
                         uintptr_t guest_vma_page = guest_vma & ~((uintptr_t)0xFFFUL);
@@ -841,16 +892,48 @@ try_again:
                             return false;
                         }
                     }
+                    else if (si.si_code == 0x80) {
+                        /* Linux doesn't give the address of the INT instruction, just si.si_addr == 0, so... */
+                        uintptr_t fault_addr = (uintptr_t)Segs.phys[cs] + (uintptr_t)reg_eip + (uintptr_t)ptrace_user_base;
+                        /* undocumented behavior: SIGSEGV with code == 0 or 0x80 can mean the guest attempted the INT instruction */
+                        unsigned int opcode = ptrace(PTRACE_PEEKDATA,ptrace_pid,(void*)fault_addr,NULL);
+
+                        /* is it an INT instruction? */
+                        if ((opcode & 0xFF) == 0xCD) {
+                            DEBUG_EnableDebugger();
+                            LOG_MSG("Ptrace core: Guest attempted INT %02x AX=%x at %p",
+                                (opcode >> 8) & 0xFF,
+                                reg_ax,
+                                (void*)(fault_addr - (uintptr_t)ptrace_user_base));
+                            CPU_Cycles = 1;
+                            return false; // let the normal core handle it!
+                        }
+                        /* CLI/STI? */
+                        else if ((opcode & 0xFF) == 0xFB || (opcode && 0xFF) == 0xFA) {
+                        DEBUG_EnableDebugger();
+                            LOG_MSG("Ptrace core: Guest attempted CLI/STI at %p",(void*)(fault_addr - (uintptr_t)ptrace_user_base));
+                            CPU_Cycles = 1;
+                            return false; // let the normal core handle it!
+                        }
+
+                        DEBUG_EnableDebugger();
+                        LOG_MSG("SIGSEGV fault other than page, fault=%p opcode=0x%x",(void*)fault_addr,opcode);
+                    }
                     else {
-                        LOG_MSG("Unexpected SIGSEGV outside of guest area at %p (guest %p-%p)",
+                        DEBUG_EnableDebugger();
+                        LOG_MSG("Unexpected SIGSEGV outside of guest area at %p (guest %p-%p) code=%u",
                             fixed_si_addr,
                             ptrace_user_base,
-                            ptrace_user_base+ptrace_user_size-1);
+                            ptrace_user_base+ptrace_user_size-1,
+                            si.si_code);
                     }
                 }
                 else {
                     LOG_MSG("Ptrace core: SIGSEGV but unable to get siginfo");
                 }
+            }
+            else if (WSTOPSIG(status) != SIGSTOP) {
+                LOG_MSG("Ptrace core: Stopped by some other signal %u",WSTOPSIG(status));
             }
         }
 
@@ -864,9 +947,41 @@ try_again:
                 /* and then we have to pick it up */
                 ptrace_process_check(&status,true/*wait*/);
             }
+
+            {
+                struct user_regs_struct r;
+
+                /* flush back into ours */
+                if (msync(ptrace_user_base,ptrace_user_size,MS_INVALIDATE | MS_SYNC))
+                    LOG_MSG("msync error %s",strerror(errno));
+
+                /* copy CPU state back into ours */
+                if (ptrace(PTRACE_GETREGS,ptrace_pid,&r,&r) < 0) {
+                    LOG_MSG("Ptrace core: failed to read CPU state from ptrace process. err=%s",strerror(errno));
+                    ptrace_failed = true;
+                    return false;
+                }
+
+                CPU_SetSegGeneral(cs,r.cs);
+                CPU_SetSegGeneral(ds,r.ds);
+                CPU_SetSegGeneral(es,r.es);
+                CPU_SetSegGeneral(fs,r.fs);
+                CPU_SetSegGeneral(gs,r.gs);
+                CPU_SetSegGeneral(ss,r.ss);
+                reg_flags = r.eflags;
+                reg_esp = r.rsp;
+                reg_eip = r.rip;
+                reg_eax = r.rax;
+                reg_ebx = r.rbx;
+                reg_ecx = r.rcx;
+                reg_edx = r.rdx;
+                reg_esi = r.rsi;
+                reg_edi = r.rdi;
+                reg_ebp = r.rbp;
+            }
         }
 
-//        return true;
+        return true;
     }
 
     return false;
