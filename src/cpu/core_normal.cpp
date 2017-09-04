@@ -505,7 +505,7 @@ bool ptrace_process_check(int *status,bool wait=false) {
                 LOG_MSG("Ptrace core: ptrace process stopped by signal %u",WSTOPSIG(*status));
             }
             else if (WIFSIGNALED(*status)) {
-                LOG_MSG("Ptrace core: ptrace process stopped by signal %u",WTERMSIG(*status));
+                LOG_MSG("Ptrace core: ptrace process stopped/signalled by signal %u",WTERMSIG(*status));
             }
             else {
                 LOG_MSG("Ptrace core: ptrace event status 0x%08lx",(unsigned long)(*status));
