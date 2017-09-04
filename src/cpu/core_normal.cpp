@@ -26,11 +26,16 @@
 # include <sys/prctl.h>
 # include <sys/mman.h>
 # include <sys/wait.h>
+# include <sys/user.h>
+# include <asm/ldt.h> /* user_desc */
+# include <syscall.h>
 # include <signal.h>
 # include <errno.h>
 # include <string.h>
 # include <unistd.h>
 # include <fcntl.h>
+
+# include "timer.h"
 #endif
 
 #include "dosbox.h"
@@ -318,6 +323,79 @@ pid_t ptrace_pid = -1;
 volatile unsigned int ptrace_process_wait = 0;
 volatile unsigned int ptrace_process_waiting = 0;
 
+uint16_t ldt_current_sreg[gs+1]; /* NTS: include/regs.h es=0 gs=last */
+
+int modify_ldt(int func,void *ptr,unsigned long bytecount) {
+    return (int)syscall(__NR_modify_ldt,func,ptr,bytecount);
+}
+
+bool ptrace_clear_ldt_segment(uint16_t &seg) {
+    if (seg == 0 || (seg&7) != 7)
+        return true;
+
+    struct user_desc ud;
+
+    memset(&ud,0,sizeof(ud));
+    ud.entry_number = seg >> 3;
+    ud.seg_not_present = 1;
+    ud.read_exec_only = 1;
+
+    if (modify_ldt(1,&ud,sizeof(ud)) == 0) {
+        seg = 0;
+    }
+    else {
+        LOG_MSG("Ptrace core: warning, clear_ldt_segment failed for segment 0x%x",seg);
+        return false;
+    }
+
+    return true;
+}
+
+bool ptrace_ldt_load(uint16_t &seg,unsigned int sreg) {
+    if (Segs.val[sreg] == 0) {
+        if (seg != 0)
+            return ptrace_clear_ldt_segment(seg);
+
+        return true;
+    }
+
+    /* even if the segment value is the same, the guest COULD change the LDT descriptor's state */
+    struct user_desc ud;
+
+    memset(&ud,0,sizeof(ud));
+    ud.entry_number = Segs.val[sreg] >> 3;
+    ud.seg_not_present = 0;     // FIXME: How do we detect if the guest has marked the segment not present?
+    ud.read_exec_only = 0;      // FIXME: How do we detect if the guest marked the segment read/execute only?
+    ud.contents = 0;            // bits [1:0] of contents become bits [3:2] of type field
+    if (sreg == cs)
+        ud.contents |= 2;       // code segment (else, data)
+    // FIXME: How do we detect if the guest marked the segment as conforming/expand-down?
+    ud.base_addr = (uintptr_t)ptrace_user_base + (uintptr_t)Segs.phys[sreg];
+    ud.limit = Segs.limit[sreg];
+    if (ud.limit > 0xFFFFUL) {
+        unsigned long nl = ((unsigned long)ud.limit + 0xFFFUL) >> 12UL;
+        if (nl > 0xFFFFFUL) nl = 0xFFFFFUL;
+        ud.limit_in_pages = 1;
+    }
+
+    if (sreg == cs)
+        ud.seg_32bit = cpu.code.big?1:0;
+    else
+        ud.seg_32bit = cpu.stack.big?1:0;
+
+    ud.useable = 1;
+
+    if (modify_ldt(1,&ud,sizeof(ud)) == 0) {
+        seg = Segs.val[sreg];
+    }
+    else {
+        LOG_MSG("Ptrace core: warning, clear_ldt_segment failed for segment 0x%x",seg);
+        return false;
+    }
+
+    return true;
+}
+
 size_t ptrace_user_determine_size(void) {
     if (ptrace_user_size == 0) {
 #if defined(__x86_64__)
@@ -412,14 +490,52 @@ void ptrace_user_unmap(void) {
     }
 }
 
+bool ptrace_process_check(int *status,bool wait=false) {
+    *status = -1;
+    if (ptrace_pid >= 0) {
+        if (waitpid(ptrace_pid,status,WUNTRACED | (wait ? 0 : WNOHANG)) == ptrace_pid) {
+            if (WIFEXITED(*status)) {
+                /* we just reaped it */
+                ptrace_process_waiting = 0;
+                ptrace_process_wait = 0;
+                ptrace_pid = -1;
+                return true;
+            }
+            else if (WIFSTOPPED(*status)) {
+                LOG_MSG("Ptrace core: ptrace process stopped by signal %u",WSTOPSIG(*status));
+            }
+            else if (WIFSIGNALED(*status)) {
+                LOG_MSG("Ptrace core: ptrace process stopped by signal %u",WTERMSIG(*status));
+            }
+            else {
+                LOG_MSG("Ptrace core: ptrace event status 0x%08lx",(unsigned long)(*status));
+            }
+        }
+    }
+
+    return false;
+}
+
 bool ptrace_process_stopped(void) {
     if (ptrace_pid >= 0) {
-        if (waitpid(ptrace_pid,NULL,WNOHANG) == ptrace_pid) {
-            /* we just reaped it */
-            ptrace_process_waiting = 0;
-            ptrace_process_wait = 0;
-            ptrace_pid = -1;
-            return true;
+        int status;
+        if (waitpid(ptrace_pid,&status,WNOHANG) == ptrace_pid) {
+            if (WIFEXITED(status)) {
+                /* we just reaped it */
+                ptrace_process_waiting = 0;
+                ptrace_process_wait = 0;
+                ptrace_pid = -1;
+                return true;
+            }
+            else if (WIFSTOPPED(status)) {
+                LOG_MSG("Ptrace core: ptrace process stopped by signal %u",WSTOPSIG(status));
+            }
+            else if (WIFSIGNALED(status)) {
+                LOG_MSG("Ptrace core: ptrace process stopped by signal %u",WTERMSIG(status));
+            }
+            else {
+                LOG_MSG("Ptrace core: ptrace event status 0x%08lx",(unsigned long)status);
+            }
         }
     }
 
@@ -442,6 +558,10 @@ void ptrace_process_halt(void) {
 
         ptrace_user_unmap();
 
+        for (unsigned int sr=0;sr <= gs;sr++) { /* NTS: include/regs. es=0 gs=last */
+            ptrace_clear_ldt_segment(/*&*/ldt_current_sreg[sr]);
+        }
+
         ptrace_pid = -1;
     }
 }
@@ -452,7 +572,7 @@ int ptrace_process(void *x) {
         ptrace_process_waiting = 1;
         usleep(100000); /* try not to burn CPU while waiting */
     }
-    ptrace_process_waiting = 0;
+    /* main process will use ptrace() to redirect our execution */
     return 0;
 }
 
@@ -469,6 +589,36 @@ bool ptrace_pid_start(void) {
         return false;
     }
     LOG_MSG("Ptrace core: Ptrace process pid %lu",(unsigned long)ptrace_pid);
+
+    return true;
+}
+
+/* WARNING: this code ASSUMES SIGSTOP is pending! */
+bool ptrace_wait_SIGSTOP(void) {
+    int sign=0;
+
+    while (waitpid(ptrace_pid,&sign,WUNTRACED) != ptrace_pid) {
+        if (WIFSTOPPED(sign)) {
+            if (WSTOPSIG(sign) == SIGSTOP) {
+                LOG_MSG("PTrace core: ptrace process SIGSTOP'd");
+            }
+            else {
+                LOG_MSG("PTrace core: ptrace process stopped by another signal. Giving up.");
+                ptrace_failed = true;
+                return false;
+            }
+        }
+        else if (WIFEXITED(sign)) {
+            ptrace_process_stopped();
+            LOG_MSG("PTrace core: ptrace process stopped normally, unexpectedly");
+            return false;
+        }
+        else {
+            LOG_MSG("PTrace core: ptrace process stopped by reasons other than SIGSTOP. Giving up.");
+            ptrace_failed = true;
+            return false;
+        }
+    }
 
     return true;
 }
@@ -496,14 +646,144 @@ bool ptrace_sync(void) {
         if (ptrace_process_waiting) {
             if (ptrace_process_wait) {
                 LOG_MSG("Ptrace core: PID is ready, waiting.\n");
+
+                /* make sure the process is ready for our control.
+                 * assuming it's stopped, properly, waitpid() will not return SIGSTOP */
+                if (kill(ptrace_pid,SIGSTOP)) {
+                    LOG_MSG("Ptrace core: failed to SIGSTOP ptrace process\n");
+                    ptrace_failed = true;
+                    return false;
+                }
+
+                // the child process is sent SIGSTOP, but not right away.
+                if (!ptrace_wait_SIGSTOP())
+                    return false;
+
+                if (ptrace(PTRACE_ATTACH,ptrace_pid,NULL,NULL)) {
+                    LOG_MSG("PTrace core: failed to attach to process via ptrace");
+                    ptrace_failed = true;
+                    return false;
+                }
+
+                // the child process is sent SIGSTOP, but not right away.
+                if (!ptrace_wait_SIGSTOP())
+                    return false;
+
+                LOG_MSG("PTrace core: successfully attached to process via ptrace");
+                ptrace_process_waiting = false;
                 ptrace_process_wait = false;
             }
-
-            return false;
         }
     }
 
-    return true;
+    if (ptrace_pid >= 0 && !ptrace_process_wait && !ptrace_process_waiting) {
+        for (unsigned int sr=0;sr <= gs;sr++) { /* NTS: include/regs. es=0 gs=last */
+            if (!ptrace_ldt_load(/*&*/ldt_current_sreg[sr],sr)) {
+                LOG_MSG("Ptrace core: failed to load segreg register from guest into LDT\n");
+                ptrace_failed = true;
+                return false;
+            }
+        }
+
+        if (ptrace_process_stopped()) {
+            LOG_MSG("Ptrace core: WARNING, process stopped\n");
+            return false;
+        }
+
+        {
+            int status;
+            ptrace_process_check(&status,false/*wait*/);
+        }
+
+        /* copy our CPU state into the process state */
+#if defined(__x86_64__)
+        {
+            struct user_regs_struct r;
+
+            if (ptrace(PTRACE_GETREGS,ptrace_pid,&r,&r) < 0) {
+                LOG_MSG("Ptrace core: failed to read CPU state from ptrace process. err=%s",strerror(errno));
+                ptrace_failed = true;
+                return false;
+            }
+
+            r.cs = ldt_current_sreg[cs];
+            r.ds = ldt_current_sreg[ds];
+            r.es = ldt_current_sreg[es];
+            r.fs = ldt_current_sreg[fs];
+            r.gs = ldt_current_sreg[gs];
+            r.ss = ldt_current_sreg[ss];
+            r.eflags = reg_flags;
+            r.fs_base = 0;
+            r.gs_base = 0;
+            r.rsp = reg_esp;
+            r.rip = reg_eip;
+            r.rax = r.orig_rax = reg_eax;
+            r.rbx = reg_ebx;
+            r.rcx = reg_ecx;
+            r.rdx = reg_edx;
+            r.rsi = reg_esi;
+            r.rdi = reg_edi;
+            r.rbp = reg_ebp;
+
+            if (ptrace(PTRACE_SETREGS,ptrace_pid,&r,&r) < 0) {
+                LOG_MSG("Ptrace core: failed to copy CPU state to ptrace process. err=%s",strerror(errno));
+                ptrace_failed = true;
+                return false;
+            }
+
+            if (ptrace(PTRACE_GETREGS,ptrace_pid,&r,&r) < 0) {
+                LOG_MSG("Ptrace core: failed to read CPU state from ptrace process. err=%s",strerror(errno));
+                ptrace_failed = true;
+                return false;
+            }
+
+            LOG_MSG("cs:ip %04X:%04lX before",(unsigned int)r.cs,(unsigned long)r.rip);
+        }
+#else
+# error unsupported target
+#endif
+
+        /* GO! */
+        if (ptrace(PTRACE_CONT,ptrace_pid,NULL,NULL)) {
+            LOG_MSG("Ptrace core: failed to start ptrace process");
+            ptrace_failed = true;
+            return false;
+        }
+
+        // NTS: Obviously the only thing this subprocess is going to do is page fault (SIGSEGV) a
+        //      lot because I haven't yet gotten the code to map pages in!
+
+        /* run for one millsecond or until fault */
+        Bitu bt = GetTicks();
+        int status = 0;
+
+        while (GetTicks() == bt) {
+            usleep(100);
+            if (ptrace_process_check(&status,false/*wait*/)) {
+                LOG_MSG("Ptrace core: WARNING, process stopped\n");
+                return false;
+            }
+            else if (status != -1) {
+                break;
+            }
+        }
+
+        if (status == -1) {
+            /* nothing happened, therefore loop ran for 1ms */
+            CPU_Cycles = 1; // FIXME we can be more precise than this!
+
+            if (!WIFSTOPPED(status)) {
+                kill(ptrace_pid,SIGSTOP);
+
+                /* and then we have to pick it up */
+                ptrace_process_check(&status,true/*wait*/);
+            }
+        }
+
+//        return true;
+    }
+
+    return false;
 }
 
 /* TODO: Move to it's own source file */
