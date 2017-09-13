@@ -260,6 +260,57 @@ bool CPU_WRMSR();
 			reg_eax=(Bit32u)(tsc&0xffffffff);
 		}
 		break;
+
+	// Pentium Pro Conditional Moves
+	CASE_0F_W(0x40)												/* CMOVO */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PPROSLOW) goto illegal_opcode;
+		MoveCond16(TFLG_O); break;
+	CASE_0F_W(0x41)												/* CMOVNO */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PPROSLOW) goto illegal_opcode;
+		MoveCond16(TFLG_NO); break;
+	CASE_0F_W(0x42)												/* CMOVB */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PPROSLOW) goto illegal_opcode;
+		MoveCond16(TFLG_B); break;
+	CASE_0F_W(0x43)												/* CMOVNB */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PPROSLOW) goto illegal_opcode;
+		MoveCond16(TFLG_NB); break;
+	CASE_0F_W(0x44)												/* CMOVZ */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PPROSLOW) goto illegal_opcode;
+		MoveCond16(TFLG_Z); break;
+	CASE_0F_W(0x45)												/* CMOVNZ */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PPROSLOW) goto illegal_opcode;
+		MoveCond16(TFLG_NZ); break;
+	CASE_0F_W(0x46)												/* CMOVBE */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PPROSLOW) goto illegal_opcode;
+		MoveCond16(TFLG_BE); break;
+	CASE_0F_W(0x47)												/* CMOVNBE */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PPROSLOW) goto illegal_opcode;
+		MoveCond16(TFLG_NBE); break;
+	CASE_0F_W(0x48)												/* CMOVS */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PPROSLOW) goto illegal_opcode;
+		MoveCond16(TFLG_S); break;
+	CASE_0F_W(0x49)												/* CMOVNS */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PPROSLOW) goto illegal_opcode;
+		MoveCond16(TFLG_NS); break;
+	CASE_0F_W(0x4A)												/* CMOVP */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PPROSLOW) goto illegal_opcode;
+		MoveCond16(TFLG_P); break;
+	CASE_0F_W(0x4B)												/* CMOVNP */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PPROSLOW) goto illegal_opcode;
+		MoveCond16(TFLG_NP); break;
+	CASE_0F_W(0x4C)												/* CMOVL */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PPROSLOW) goto illegal_opcode;
+		MoveCond16(TFLG_L); break;
+	CASE_0F_W(0x4D)												/* CMOVNL */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PPROSLOW) goto illegal_opcode;
+		MoveCond16(TFLG_NL); break;
+	CASE_0F_W(0x4E)												/* CMOVLE */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PPROSLOW) goto illegal_opcode;
+		MoveCond16(TFLG_LE); break;
+	CASE_0F_W(0x4F)												/* CMOVNLE */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PPROSLOW) goto illegal_opcode;
+		MoveCond16(TFLG_NLE); break;
+
 	CASE_0F_B(0x32)												/* RDMSR */
 		{
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUM) goto illegal_opcode;
