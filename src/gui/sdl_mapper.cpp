@@ -565,6 +565,7 @@ public:
 		}
 #endif
 
+		if (key == 0) printf("----- FCUK -----\n");
 		if (event->type==SDL_KEYDOWN) ActivateBindList(&lists[key],0x7fff,true);
 		else DeactivateBindList(&lists[key],true);
 		return 0;
