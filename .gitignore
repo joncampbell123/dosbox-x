@@ -313,6 +313,7 @@ autom4te.cache/*
 .DS_Store
 windows-installer/DOSBox-X-standalone-*
 windows-installer/DOSBox-X-setup-*.exe
+windows-installer/DOSBox-X-setup-*.zip
 
 *.o
 *.a

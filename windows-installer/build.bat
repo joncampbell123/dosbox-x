@@ -21,24 +21,28 @@ if not exist %DOSBOX64% (
 echo ***************************************
 echo * Building DOSBox-X standalone ...    *
 echo ***************************************
-del dosbox-x-standalone-win*.7z
-7za a -mx9 dosbox-x-standalone-win32-%DOSBOXDATE% %DOSBOX32%
-7za a -mx9 dosbox-x-standalone-win64-%DOSBOXDATE% %DOSBOX64%
+del dosbox-x-standalone-win*.zip
+7za a dosbox-x-standalone-win32-%DOSBOXDATE%.zip %DOSBOX32%
+7za a dosbox-x-standalone-win64-%DOSBOXDATE%.zip %DOSBOX64%
 
 echo.
 
 echo ***************************************
 echo * Building DOSBox-X installers ...    *
 echo ***************************************
+del dosbox-x-setup-win*.zip
 if not exist %ISCC% (
 	echo Inno Setup 5 not found at %ISCC%, skipping ...
 	goto success
 )
-del dosbox-x-setup-win*.exe
 %ISCC% DOSBox-X-setup-win32.iss
 %ISCC% DOSBox-X-setup-win64.iss
 ren DOSBox-X-setup-win32.exe DOSBox-X-setup-win32-%DOSBOXDATE%.exe
 ren DOSBox-X-setup-win64.exe DOSBox-X-setup-win64-%DOSBOXDATE%.exe
+7za a dosbox-x-setup-win32-%DOSBOXDATE%.zip DOSBox-X-setup-win32-%DOSBOXDATE%.exe
+7za a dosbox-x-setup-win64-%DOSBOXDATE%.zip DOSBox-X-setup-win64-%DOSBOXDATE%.exe
+del dosbox-x-setup-win*.exe
+
 goto success
 
 :error
