@@ -18,21 +18,22 @@ if not exist %DOSBOX64% (
 	goto error
 )
 
-if not exist %ISCC% (
-	echo Couldn't find Inno Setup 5 at %ISCC%
-	goto error
-)
-
-echo ************************************
-echo * Building DOSBox-X standalone ... *
-echo ************************************
+echo ***************************************
+echo * Building DOSBox-X standalone ...    *
+echo ***************************************
 del dosbox-x-standalone-win*.7z
 7za a -mx9 dosbox-x-standalone-win32-%DOSBOXDATE% %DOSBOX32%
 7za a -mx9 dosbox-x-standalone-win64-%DOSBOXDATE% %DOSBOX64%
 
-echo ************************************
-echo * Building DOSBox-X installers ... *
-echo ************************************
+echo.
+
+echo ***************************************
+echo * Building DOSBox-X installers ...    *
+echo ***************************************
+if not exist %ISCC% (
+	echo Inno Setup 5 not found at %ISCC%, skipping ...
+	goto success
+)
 del dosbox-x-setup-win*.exe
 %ISCC% DOSBox-X-setup-win32.iss
 %ISCC% DOSBox-X-setup-win64.iss
@@ -41,11 +42,17 @@ ren DOSBox-X-setup-win64.exe DOSBox-X-setup-win64-%DOSBOXDATE%.exe
 goto success
 
 :error
-echo An error has occurred, aborting ...
+echo.
+echo ***************************************
+echo * An error has occurred, aborting ... *
+echo ***************************************
 goto end
 
 :success
-echo Success !
+echo.
+echo ***************************************
+echo * Success !                           *
+echo ***************************************
 goto end
 
 :end
