@@ -363,7 +363,7 @@ static SDLKey sdlkey_map[]={
 	/*78-7C*/ SDLK_F2, SDLK_PAGEDOWN, SDLK_F1, SDLK_LEFT, SDLK_RIGHT,
 	/*7D-7E*/ SDLK_DOWN, SDLK_UP,
 
-	/*7F-7F*/ Z,
+	/*7F-7F*/ SDLK_a,  // avoid using zero
 
 	/* 4 extra keys that don't really exist, but are needed for
 	 * round-trip mapping (dosbox uses RMETA only for hotkeys, it's
@@ -436,6 +436,11 @@ Bitu GetKeyCode(SDL_keysym keysym) {
 //	LOG_MSG("GetKeyCode %X %X %X",keysym.scancode,keysym.sym,keysym.mod);
 	if (usescancodes) {
 		Bitu key=(Bitu)keysym.scancode;
+
+#if defined (MACOSX)
+		if (key == 0) key = 0x7f;  // zero value makes the keyboar crazy
+#endif
+
 		if (key==0
 #if defined (MACOSX)
 		    /* On Mac on US keyboards, scancode 0 is actually the 'a'
@@ -564,8 +569,6 @@ public:
 			return 0; // ignore up event
 		}
 #endif
-
-		if (key == 0) printf("----- FCUK -----\n");
 		if (event->type==SDL_KEYDOWN) ActivateBindList(&lists[key],0x7fff,true);
 		else DeactivateBindList(&lists[key],true);
 		return 0;
