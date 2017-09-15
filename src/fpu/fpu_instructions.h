@@ -470,6 +470,29 @@ static void FPU_FCOM(Bitu st, Bitu other){
 	FPU_SET_C3(0);FPU_SET_C2(0);FPU_SET_C0(0);return;
 }
 
+static void FPU_FCOMI(Bitu st, Bitu other){
+	if(((fpu.tags[st] != TAG_Valid) && (fpu.tags[st] != TAG_Zero)) || 
+		((fpu.tags[other] != TAG_Valid) && (fpu.tags[other] != TAG_Zero))){
+		SETFLAGBIT(ZF,true);SETFLAGBIT(PF,true);SETFLAGBIT(CF,true);return;
+	}
+
+	if (CPU_ArchitectureType<CPU_ARCHTYPE_386) {
+		if (std::isinf(fpu.regs[st].d) && std::isinf(fpu.regs[other].d)) {
+			SETFLAGBIT(ZF,true);SETFLAGBIT(PF,false);SETFLAGBIT(CF,false);return;
+		}
+	}
+
+	if(fpu.regs[st].d == fpu.regs[other].d){
+		SETFLAGBIT(ZF,true);SETFLAGBIT(PF,false);SETFLAGBIT(CF,false);return;
+	}
+	if(fpu.regs[st].d < fpu.regs[other].d){
+		SETFLAGBIT(ZF,false);SETFLAGBIT(PF,false);SETFLAGBIT(CF,true);return;
+	}
+	// st > other
+	SETFLAGBIT(ZF,false);SETFLAGBIT(PF,false);SETFLAGBIT(CF,false);return;
+}
+
+
 static void FPU_FUCOM(Bitu st, Bitu other){
 	//does atm the same as fcom 
 	FPU_FCOM(st,other);
