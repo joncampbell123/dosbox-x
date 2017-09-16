@@ -418,6 +418,12 @@ void FPU_ESC3_Normal(Bitu rm) {
 			E_Exit("ESC 3:ILLEGAL OPCODE group %d subfunction %d",(int)group,(int)sub);
 		}
 		break;
+	case 0x05:		/* FUCOMI STi */
+		FPU_FUCOMI(TOP,STV(sub));
+		break;
+	case 0x06:		/* FCOMI STi */
+		FPU_FCOMI(TOP,STV(sub));
+		break;
 	default:
 		LOG(LOG_FPU,LOG_WARN)("ESC 3:Unhandled group %d subfunction %d",(int)group,(int)sub);
 		break;
@@ -685,6 +691,14 @@ void FPU_ESC7_Normal(Bitu rm) {
 				LOG(LOG_FPU,LOG_WARN)("ESC 7:Unhandled group %d subfunction %d",(int)group,(int)sub);
 				break;
 		}
+		break;
+	case 0x05:		/* FUCOMIP STi */
+		FPU_FUCOMI(TOP,STV(sub));
+		FPU_FPOP();
+		break;
+	case 0x06:		/* FCOMIP STi */
+		FPU_FCOMI(TOP,STV(sub));
+		FPU_FPOP();
 		break;
 	default:
 		LOG(LOG_FPU,LOG_WARN)("ESC 7:Unhandled group %d subfunction %d",(int)group,(int)sub);

@@ -498,6 +498,11 @@ static void FPU_FUCOM(Bitu st, Bitu other){
 	FPU_FCOM(st,other);
 }
 
+static void FPU_FUCOMI(Bitu st, Bitu other){
+	//does atm the same as fcomi
+	FPU_FCOMI(st,other);
+}
+
 static void FPU_FRNDINT(void){
 	Bit64s temp= static_cast<Bit64s>(FROUND(fpu.regs[TOP].d));
 	fpu.regs[TOP].d=static_cast<double>(temp);
