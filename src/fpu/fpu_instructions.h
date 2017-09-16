@@ -442,6 +442,13 @@ static void FPU_FST(Bitu st, Bitu other){
 	fpu.regs[other] = fpu.regs[st];
 }
 
+static void FPU_FCMOV(Bitu st, Bitu other){
+	fpu.regs_80[st] = fpu.regs_80[other];
+	fpu.use80[st] = fpu.use80[other];
+	fpu.tags[st] = fpu.tags[other];
+	fpu.regs[st] = fpu.regs[other];
+}
+
 static void FPU_FCOM(Bitu st, Bitu other){
 	if(((fpu.tags[st] != TAG_Valid) && (fpu.tags[st] != TAG_Zero)) || 
 		((fpu.tags[other] != TAG_Valid) && (fpu.tags[other] != TAG_Zero))){
