@@ -476,7 +476,7 @@ static void FPU_FCOMI(Bitu st, Bitu other){
 		SETFLAGBIT(ZF,true);SETFLAGBIT(PF,true);SETFLAGBIT(CF,true);return;
 	}
 
-	if (CPU_ArchitectureType<CPU_ARCHTYPE_386) {
+	if (CPU_ArchitectureType<CPU_ARCHTYPE_PPROSLOW) {
 		if (std::isinf(fpu.regs[st].d) && std::isinf(fpu.regs[other].d)) {
 			SETFLAGBIT(ZF,true);SETFLAGBIT(PF,false);SETFLAGBIT(CF,false);return;
 		}
