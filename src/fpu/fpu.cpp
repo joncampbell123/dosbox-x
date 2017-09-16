@@ -419,9 +419,11 @@ void FPU_ESC3_Normal(Bitu rm) {
 		}
 		break;
 	case 0x05:		/* FUCOMI STi */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PPROSLOW) goto illegal_opcode;
 		FPU_FUCOMI(TOP,STV(sub));
 		break;
 	case 0x06:		/* FCOMI STi */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PPROSLOW) goto illegal_opcode;
 		FPU_FCOMI(TOP,STV(sub));
 		break;
 	default:
@@ -693,10 +695,12 @@ void FPU_ESC7_Normal(Bitu rm) {
 		}
 		break;
 	case 0x05:		/* FUCOMIP STi */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PPROSLOW) goto illegal_opcode;
 		FPU_FUCOMI(TOP,STV(sub));
 		FPU_FPOP();
 		break;
 	case 0x06:		/* FCOMIP STi */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PPROSLOW) goto illegal_opcode;
 		FPU_FCOMI(TOP,STV(sub));
 		FPU_FPOP();
 		break;

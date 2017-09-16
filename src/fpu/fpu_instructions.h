@@ -476,12 +476,6 @@ static void FPU_FCOMI(Bitu st, Bitu other){
 		SETFLAGBIT(ZF,true);SETFLAGBIT(PF,true);SETFLAGBIT(CF,true);return;
 	}
 
-	if (CPU_ArchitectureType<CPU_ARCHTYPE_PPROSLOW) {
-		if (std::isinf(fpu.regs[st].d) && std::isinf(fpu.regs[other].d)) {
-			SETFLAGBIT(ZF,true);SETFLAGBIT(PF,false);SETFLAGBIT(CF,false);return;
-		}
-	}
-
 	if(fpu.regs[st].d == fpu.regs[other].d){
 		SETFLAGBIT(ZF,true);SETFLAGBIT(PF,false);SETFLAGBIT(CF,false);return;
 	}
@@ -491,7 +485,6 @@ static void FPU_FCOMI(Bitu st, Bitu other){
 	// st > other
 	SETFLAGBIT(ZF,false);SETFLAGBIT(PF,false);SETFLAGBIT(CF,false);return;
 }
-
 
 static void FPU_FUCOM(Bitu st, Bitu other){
 	//does atm the same as fcom 
