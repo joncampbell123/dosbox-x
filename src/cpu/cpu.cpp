@@ -2742,6 +2742,55 @@ void CPU_Reset_AutoAdjust(void) {
 	ticksScheduled = 0;
 }
 
+class Weitek_PageHandler : public PageHandler {
+public:
+	Weitek_PageHandler(HostPt /*addr*/){
+		flags=PFLAG_NOCODE;
+	}
+
+	~Weitek_PageHandler() {
+	}
+
+	Bitu readb(PhysPt addr);
+	void writeb(PhysPt addr,Bitu val);
+	Bitu readw(PhysPt addr);
+	void writew(PhysPt addr,Bitu val);
+	Bitu readd(PhysPt addr);
+	void writed(PhysPt addr,Bitu val);
+};
+
+Bitu Weitek_PageHandler::readb(PhysPt addr) {
+    LOG_MSG("Weitek stub: readb at 0x%lx",(unsigned long)addr);
+	return (Bitu)-1;
+}
+void Weitek_PageHandler::writeb(PhysPt addr,Bitu val) {
+    LOG_MSG("Weitek stub: writeb at 0x%lx val=0x%lx",(unsigned long)addr,(unsigned long)val);
+}
+
+Bitu Weitek_PageHandler::readw(PhysPt addr) {
+    LOG_MSG("Weitek stub: readw at 0x%lx",(unsigned long)addr);
+	return (Bitu)-1;
+}
+
+void Weitek_PageHandler::writew(PhysPt addr,Bitu val) {
+    LOG_MSG("Weitek stub: writew at 0x%lx val=0x%lx",(unsigned long)addr,(unsigned long)val);
+}
+
+Bitu Weitek_PageHandler::readd(PhysPt addr) {
+    LOG_MSG("Weitek stub: readd at 0x%lx",(unsigned long)addr);
+	return (Bitu)-1;
+}
+
+void Weitek_PageHandler::writed(PhysPt addr,Bitu val) {
+    LOG_MSG("Weitek stub: writed at 0x%lx val=0x%lx",(unsigned long)addr,(unsigned long)val);
+}
+
+Weitek_PageHandler weitek_pagehandler(0);
+
+PageHandler* weitek_memio_cb(MEM_CalloutObject &co,Bitu phys_page) {
+    return &weitek_pagehandler;
+}
+
 class CPU: public Module_base {
 private:
 	static bool inited;
@@ -3069,7 +3118,30 @@ public:
 	        Section_prop *dsection = static_cast<Section_prop *>(control->GetSection("dosbox"));
 
             enable_weitek = dsection->Get_bool("weitek");
-            if (enable_weitek) LOG_MSG("Weitek coprocessor emulation enabled");
+            if (enable_weitek) {
+                LOG_MSG("Weitek coprocessor emulation enabled");
+
+                static Bitu weitek_lfb = 0xC0000000UL;
+                static Bitu weitek_lfb_pages = 0x2000000UL >> 12UL; /* "The coprocessor will respond to memory addresses 0xC0000000-0xC1FFFFFF" */
+                static MEM_Callout_t weitek_lfb_cb = MEM_Callout_t_none;
+
+                if (weitek_lfb_cb == MEM_Callout_t_none) {
+                    weitek_lfb_cb = MEM_AllocateCallout(MEM_TYPE_PCI);
+                    if (weitek_lfb_cb == MEM_Callout_t_none) E_Exit("Unable to allocate weitek cb for LFB");
+                }
+
+                {
+                    MEM_CalloutObject *cb = MEM_GetCallout(weitek_lfb_cb);
+
+                    assert(cb != NULL);
+
+                    cb->Uninstall();
+
+                    cb->Install(weitek_lfb>>12UL,MEMMASK_Combine(MEMMASK_FULL,MEMMASK_Range(weitek_lfb_pages)),weitek_memio_cb);
+
+                    MEM_PutCallout(cb);
+                }
+            }
         }
         else {
             enable_weitek = false;
