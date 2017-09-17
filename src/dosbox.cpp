@@ -127,6 +127,8 @@ extern bool			VIDEO_BIOS_enable_CGA_8x8_second_half;
 extern bool			allow_more_than_640kb;
 extern bool			adapter_rom_is_ram;
 
+bool                enable_pc98_jump = false;
+
 bool				dos_con_use_int16_to_detect_input = true;
 
 bool				dbg_zero_on_dos_allocmem = true;
@@ -809,8 +811,18 @@ void DOSBOX_RealInit() {
 	clockdom_ISA_BCLK.set_name("ISA BCLK");
 	clockdom_PCI_BCLK.set_name("PCI BCLK");
 
-	// TODO: When we begin to flesh out any kind of NEC PC-98 emulation, remove this abort
-	if (IS_PC98_ARCH) E_Exit("Sorry, NEC PC-98 emulation not implemented. Coming soon.");
+    /* the changes are so large to begin supporting PC-98 that it's probably better
+     * to boot up in IBM PC/XT/AT mode and then switch into PC-98 */
+	if (IS_PC98_ARCH) {
+        LOG_MSG("PC-9801 WARNING: Implementation is very early, and not the initial state.");
+        LOG_MSG("You will need to run a command to jump into PC-98 mode.");
+
+        enable_pc98_jump = true;
+        int10.vesa_nolfb = false;
+        int10.vesa_oldvbe = false;
+        svgaCard = SVGA_None;
+        machine = MCH_VGA;
+    }
 }
 
 void DOSBOX_SetupConfigSections(void) {
