@@ -52,6 +52,8 @@ public:
 # endif
 #endif
 
+bool enable_weitek = false;
+
 bool CPU_NMI_gate = true;
 bool CPU_NMI_active = false;
 bool CPU_NMI_pending = false;
@@ -3061,6 +3063,17 @@ public:
 				_LOG(LOG_CPU,LOG_NORMAL)("normal/prefetch core requires nonrecursive page fault handling, turning it on");
 			}
 		}
+
+    // weitek coprocessor emulation?
+        if (CPU_ArchitectureType == CPU_ARCHTYPE_386 || CPU_ArchitectureType == CPU_ARCHTYPE_486OLD || CPU_ArchitectureType == CPU_ARCHTYPE_486NEW) {
+	        Section_prop *dsection = static_cast<Section_prop *>(control->GetSection("dosbox"));
+
+            enable_weitek = dsection->Get_bool("weitek");
+            if (enable_weitek) LOG_MSG("Weitek coprocessor emulation enabled");
+        }
+        else {
+            enable_weitek = false;
+        }
 
 		if (cpu_rep_max < 0) cpu_rep_max = 4;	/* compromise to help emulation speed without too much loss of accuracy */
 

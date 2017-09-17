@@ -935,6 +935,9 @@ void DOSBOX_SetupConfigSections(void) {
 			"If it is not set, Windows Vista/7/8/10 and higher may upscale the DOSBox window\n"
 			"on higher resolution monitors which is probably not what you want.");
 
+	Pbool = secprop->Add_bool("weitek",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("If set, emulate the Weitek coprocessor. This option only has effect if cputype=386 or cputype=486.");
+
 	Pbool = secprop->Add_bool("bochs debug port e9",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("If set, emulate Bochs debug port E9h. ASCII text written to this I/O port is assumed to be debug output, and logged.");
 
