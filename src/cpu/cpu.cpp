@@ -2965,7 +2965,6 @@ public:
 		ignore_undefined_msr=section->Get_bool("ignore undefined msr");
 		enable_msr=section->Get_bool("enable msr");
         enable_cmpxchg8b=section->Get_bool("enable cmpxchg8b");
-        if (enable_cmpxchg8b) LOG_MSG("Pentium CMPXCHG8B emulation is enabled");
 		CPU_CycleUp=section->Get_int("cycleup");
 		CPU_CycleDown=section->Get_int("cycledown");
 		std::string core(section->Get_string("core"));
@@ -3152,6 +3151,8 @@ public:
 		if(CPU_CycleMax <= 0) CPU_CycleMax = 3000;
 		if(CPU_CycleUp <= 0)   CPU_CycleUp = 500;
 		if(CPU_CycleDown <= 0) CPU_CycleDown = 20;
+
+        if (enable_cmpxchg8b && CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUM) LOG_MSG("Pentium CMPXCHG8B emulation is enabled");
 
 		if (CPU_CycleAutoAdjust) GFX_SetTitle(CPU_CyclePercUsed,-1,-1,false);
 		else GFX_SetTitle(CPU_CycleMax,-1,-1,false);
