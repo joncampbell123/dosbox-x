@@ -1830,17 +1830,53 @@ static void GUS_CallBack(Bitu len) {
 			guschan[i]->generateSamples(buf32,len);
 	}
 
-	for(i=0;i<len*2;i++) {
-		Bit32s sample=((buf32[i] >> 13)*AutoAmp)>>9;
-		if (sample>32767) {
-			sample=32767;                       
-			AutoAmp--;
-		} else if (sample<-32768) {
-			sample=-32768;
-			AutoAmp--;
-		}
-		buf16[i] = (Bit16s)(sample);
-	}
+    // FIXME: I wonder if the GF1 chip DAC had more than 16 bits precision
+    //        to render louder than 100% volume without clipping, and if so,
+    //        how many extra bits?
+    //
+    //        If not, then perhaps clipping and saturation were not a problem
+    //        unless the volume was set to maximum?
+    //
+    //        Time to pull out the GUS MAX and test this theory: what happens
+    //        if you play samples that would saturate at maximum volume at 16-bit
+    //        precision? Does it audibly clip or is there some headroom like some
+    //        sort of 17-bit DAC?
+    //
+    //        One way to test is to play a sample on one channel while another
+    //        channel is set to play a single sample at maximum volume (to see
+    //        if it makes the audio grungy like a waveform railed to one side).
+    //
+    //        Past experience with GUS cards says that at full volume their line
+    //        out jacks can be quite loud when connected to a speaker.
+    //
+    //        In any case maybe it would be a nice option to allow dosbox.conf
+    //        to determine whether we do this AutoAmp audio compression or not.
+    //
+    //        While improving this code, a better audio compression function
+    //        could be implemented that does proper envelope tracking and volume
+    //        control for better results than this.
+    //
+    //        Also, AddSamples_s32() takes 16-bit sample range with support
+    //        for louder than 100%, if that would help emulation.
+    //
+    //        --J.C.
+
+    for(i=0;i<len*2;i++) {
+        Bit32s sample=((buf32[i] >> 13)*AutoAmp)>>9;
+        if (sample>32767) {
+            sample=32767;
+            AutoAmp -= 4; /* dampen faster than recovery */
+        } else if (sample<-32768) {
+            sample=-32768;
+            AutoAmp -= 4; /* dampen faster than recovery */
+        }
+        else if (AutoAmp < 512) {
+            AutoAmp++; /* recovery back to 100% normal volume */
+        }
+
+        buf16[i] = (Bit16s)(sample);
+    }
+
 	gus_chan->AddSamples_s16(len,buf16);
 	CheckVoiceIrq();
 }
