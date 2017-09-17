@@ -3126,7 +3126,7 @@ public:
                 static MEM_Callout_t weitek_lfb_cb = MEM_Callout_t_none;
 
                 if (weitek_lfb_cb == MEM_Callout_t_none) {
-                    weitek_lfb_cb = MEM_AllocateCallout(MEM_TYPE_PCI);
+                    weitek_lfb_cb = MEM_AllocateCallout(MEM_TYPE_MB);
                     if (weitek_lfb_cb == MEM_Callout_t_none) E_Exit("Unable to allocate weitek cb for LFB");
                 }
 
