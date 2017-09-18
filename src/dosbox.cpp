@@ -1861,6 +1861,11 @@ void DOSBOX_SetupConfigSections(void) {
 	Pbool = secprop->Add_bool("gus",Property::Changeable::WhenIdle,false); 	
 	Pbool->Set_help("Enable the Gravis Ultrasound emulation.");
 
+	Pbool = secprop->Add_bool("autoamp",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("If set, GF1 output will reduce in volume automatically if the sum of all channels exceeds full volume.\n"
+                    "If not set, then loud music will clip to full volume just as it would on real hardware.\n"
+                    "Enable this option for loud music if you want a more pleasing rendition without saturation and distortion.");
+
 	Pbool = secprop->Add_bool("unmask dma",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("Start the DOS virtual machine with the DMA channel already unmasked at the controller.\n"
 			"Use this for DOS applications that expect to operate the GUS but forget to unmask the DMA channel.");

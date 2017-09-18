@@ -63,6 +63,7 @@ static Bit8u const irqtable[8] = { 0/*invalid*/, 2, 5, 3, 7, 11, 12, 15 };
 static Bit8u const dmatable[8] = { 0/*NO DMA*/, 1, 3, 5, 6, 7, 0/*invalid*/, 0/*invalid*/ };
 static Bit8u GUSRam[1024*1024 + 16/*safety margin*/]; // 1024K of GUS Ram
 static Bit32s AutoAmp = 512;
+static bool enable_autoamp = false;
 static Bit16u vol16bit[4096];
 static Bit32u pantable[16];
 static enum GUSType gus_type = GUS_CLASSIC;
@@ -1849,15 +1850,9 @@ static void GUS_CallBack(Bitu len) {
     //        Past experience with GUS cards says that at full volume their line
     //        out jacks can be quite loud when connected to a speaker.
     //
-    //        In any case maybe it would be a nice option to allow dosbox.conf
-    //        to determine whether we do this AutoAmp audio compression or not.
-    //
     //        While improving this code, a better audio compression function
     //        could be implemented that does proper envelope tracking and volume
     //        control for better results than this.
-    //
-    //        Also, AddSamples_s32() takes 16-bit sample range with support
-    //        for louder than 100%, if that would help emulation.
     //
     //        --J.C.
 
@@ -1865,10 +1860,10 @@ static void GUS_CallBack(Bitu len) {
         Bit32s sample=((buf32[i] >> 13)*AutoAmp)>>9;
         if (sample>32767) {
             sample=32767;
-            AutoAmp -= 4; /* dampen faster than recovery */
+            if (enable_autoamp) AutoAmp -= 4; /* dampen faster than recovery */
         } else if (sample<-32768) {
             sample=-32768;
-            AutoAmp -= 4; /* dampen faster than recovery */
+            if (enable_autoamp) AutoAmp -= 4; /* dampen faster than recovery */
         }
         else if (AutoAmp < 512) {
             AutoAmp++; /* recovery back to 100% normal volume */
@@ -1964,6 +1959,8 @@ public:
         gus_enable = true;
         memset(&myGUS,0,sizeof(myGUS));
         memset(GUSRam,0,1024*1024);
+
+        enable_autoamp = section->Get_bool("autoamp");
 
 		string s_pantable = section->Get_string("gus panning table");
 		if (s_pantable == "default" || s_pantable == "" || s_pantable == "accurate")
