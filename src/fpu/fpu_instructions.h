@@ -484,6 +484,7 @@ static void FPU_FUCOM(Bitu st, Bitu other){
 
 static void FPU_FUCOMI(Bitu st, Bitu other){
 	
+	FillFlags();
 	SETFLAGBIT(OF,false);
 
 	printf("[%d]=%f vs [%d]=%f \n",st,fpu.regs[st].d,other,fpu.regs[other].d);
