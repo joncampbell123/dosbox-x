@@ -27,7 +27,7 @@
 #include "mem.h"
 #include "fpu.h"
 #include "cpu.h"
-#include "lazyflags.h"
+#include "../cpu/lazyflags.h"
 
 FPU_rec fpu;
 
