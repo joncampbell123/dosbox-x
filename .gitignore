@@ -316,3 +316,9 @@ windows-installer/DOSBox-X-setup-*.exe
 *.a
 *.deps
 dosbox-x
+Makefile
+p
+s
+config.h
+config.status
+stamp-h1
