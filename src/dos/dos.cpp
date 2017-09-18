@@ -1889,7 +1889,6 @@ public:
 			if (!mainline_compatible_mapping) DOS_IHSEG = DOS_GetMemory(1,"DOS_IHSEG");
 
             /* DOS_INFOBLOCK_SEG reaches backwards 0x26 bytes as well (see include/dos_inc.h) */
-                                DOS_GetMemory(0x30,"DOS_INFOBLOCK_SEG lower half");
 			DOS_INFOBLOCK_SEG = DOS_GetMemory(0x80,"DOS_INFOBLOCK_SEG");	// was 0x80
 
 			DOS_CONDRV_SEG = DOS_GetMemory(0x08,"DOS_CONDRV_SEG");		// was 0xA0
