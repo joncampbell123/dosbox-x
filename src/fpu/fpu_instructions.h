@@ -482,16 +482,6 @@ static void FPU_FUCOM(Bitu st, Bitu other){
 	FPU_FCOM(st,other);
 }
 
-static void FPU_FCOMI(Bitu st, Bitu other){
-	FPU_FUCOMI(st,other);
-
-	if(((fpu.tags[st] != TAG_Valid) && (fpu.tags[st] != TAG_Zero)) || 
-		((fpu.tags[other] != TAG_Valid) && (fpu.tags[other] != TAG_Zero))){
-		SETFLAGBIT(ZF,true);SETFLAGBIT(PF,true);SETFLAGBIT(CF,true);return;
-	}
-
-}
-
 static void FPU_FUCOMI(Bitu st, Bitu other){
 	SETFLAGBIT(OF,false);
 	if(fpu.regs[st].d == fpu.regs[other].d){
@@ -502,6 +492,16 @@ static void FPU_FUCOMI(Bitu st, Bitu other){
 	}
 	// st > other
 	SETFLAGBIT(ZF,false);SETFLAGBIT(PF,false);SETFLAGBIT(CF,false);return;
+}
+
+static void FPU_FCOMI(Bitu st, Bitu other){
+	FPU_FUCOMI(st,other);
+
+	if(((fpu.tags[st] != TAG_Valid) && (fpu.tags[st] != TAG_Zero)) || 
+		((fpu.tags[other] != TAG_Valid) && (fpu.tags[other] != TAG_Zero))){
+		SETFLAGBIT(ZF,true);SETFLAGBIT(PF,true);SETFLAGBIT(CF,true);return;
+	}
+
 }
 
 static void FPU_FRNDINT(void){
