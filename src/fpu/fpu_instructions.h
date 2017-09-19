@@ -487,17 +487,12 @@ static void FPU_FUCOMI(Bitu st, Bitu other){
 	FillFlags();
 	SETFLAGBIT(OF,false);
 
-	printf("[%d]=%f vs [%d]=%f \n",st,fpu.regs[st].d,other,fpu.regs[other].d);
-
 	if(fpu.regs[st].d == fpu.regs[other].d){
-		printf("EQ, te barom! \n");
 		SETFLAGBIT(ZF,true);SETFLAGBIT(PF,false);SETFLAGBIT(CF,false);return;
 	}
 	if(fpu.regs[st].d < fpu.regs[other].d){
-		printf("LT, te barom! \n");
 		SETFLAGBIT(ZF,false);SETFLAGBIT(PF,false);SETFLAGBIT(CF,true);return;
 	}
-	printf("GT, te barom! \n");
 	// st > other
 	SETFLAGBIT(ZF,false);SETFLAGBIT(PF,false);SETFLAGBIT(CF,false);return;
 }
