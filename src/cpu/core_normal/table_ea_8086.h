@@ -101,7 +101,7 @@ static GetEAHandler EATable[512]={
 	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0
 };
 
-#define GetEADirect							\
+#define GetEADirect(sz)							\
 	PhysPt eaa;								\
 	eaa=BaseDS+Fetchw();				\
 

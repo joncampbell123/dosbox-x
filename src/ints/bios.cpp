@@ -4181,7 +4181,6 @@ private:
 	CALLBACK_HandlerObject cb_bios_scan_video_bios;
 	static Bitu cb_bios_scan_video_bios__func(void) {
 		unsigned long size;
-		Bit32u c1;
 
 		if (cpu.pmode) E_Exit("BIOS error: VIDEO BIOS SCAN function called while in protected/vm86 mode");
 
@@ -4193,27 +4192,15 @@ private:
 					LOG(LOG_MISC,LOG_DEBUG)("BIOS VIDEO ROM SCAN found VGA BIOS (size=%lu)",size);
 					adapter_scan_start = 0xC0000 + size;
 
-					/* HACK: DOSbox's current VGA BIOS emulation doesn't have a valid entry point at C000:0003
-					 *       where a normal VGA BIOS (like Bochs' VGA BIOS) would have code or at least a JMP
-					 *       instruction there to make a valid entry point. Fortunately, we can detect this
-					 *       by whether or not the bytes there are zeros. */
-					c1 = mem_readd(0xC0003);
-					if (c1 != 0UL) {
-						LOG(LOG_MISC,LOG_DEBUG)("Running VGA BIOS entry point");
+                    // step back into the callback instruction that triggered this call
+                    reg_eip -= 4;
 
-						// step back into the callback instruction that triggered this call
-						reg_eip -= 4;
-
-						// FAR CALL into the VGA BIOS
-						CPU_CALL(false,0xC000,0x0003,reg_eip);
-						return CBRET_NONE;
-					}
-					else {
-						LOG(LOG_MISC,LOG_DEBUG)("FIXME: VGA BIOS does not have valid code at ROM BIOS entry point (bytes are all zeros at C000:0003). Not executing entry point.");
-					}
-				}
-				else {
-					LOG(LOG_MISC,LOG_WARN)("BIOS VIDEO ROM SCAN did not find VGA BIOS");
+                    // FAR CALL into the VGA BIOS
+                    CPU_CALL(false,0xC000,0x0003,reg_eip);
+                    return CBRET_NONE;
+                }
+                else {
+                    LOG(LOG_MISC,LOG_WARN)("BIOS VIDEO ROM SCAN did not find VGA BIOS");
 				}
 			}
 			else {

@@ -37,6 +37,8 @@ static inline int conc2d(GetResult,SBPP)(PTYPE A, PTYPE B, PTYPE C, PTYPE D) {
 
 inline void conc2d(Super2xSaI,SBPP)(PTYPE * line0, PTYPE * line1, const PTYPE * fc)
 {
+    (void)conc2d(Super2xSaI,SBPP);
+
 	//--------------------------------------
 	if (C7 == C5 && C4 != C8) {
 		line1[1] = line0[1] = C7;

@@ -907,7 +907,7 @@
 		}
 		else {
 			Bit8u rm=Fetchb();
-			if (rm<0xc0) GetEAa;
+			if (rm<0xc0) { GetEAa; (void)eaa; }
 		}
 		break;
 	CASE_B(0xd9)												/* FPU ESC 1 */
@@ -916,7 +916,7 @@
 		}
 		else {
 			Bit8u rm=Fetchb();
-			if (rm<0xc0) GetEAa;
+			if (rm<0xc0) { GetEAa; (void)eaa; }
 		}
 		break;
 	CASE_B(0xda)												/* FPU ESC 2 */
@@ -925,7 +925,7 @@
 		}
 		else {
 			Bit8u rm=Fetchb();
-			if (rm<0xc0) GetEAa;
+			if (rm<0xc0) { GetEAa; (void)eaa; }
 		}
 		break;
 	CASE_B(0xdb)												/* FPU ESC 3 */
@@ -934,7 +934,7 @@
 		}
 		else {
 			Bit8u rm=Fetchb();
-			if (rm<0xc0) GetEAa;
+			if (rm<0xc0) { GetEAa; (void)eaa; }
 		}
 		break;
 	CASE_B(0xdc)												/* FPU ESC 4 */
@@ -943,7 +943,7 @@
 		}
 		else {
 			Bit8u rm=Fetchb();
-			if (rm<0xc0) GetEAa;
+			if (rm<0xc0) { GetEAa; (void)eaa; }
 		}
 		break;
 	CASE_B(0xdd)												/* FPU ESC 5 */
@@ -952,7 +952,7 @@
 		}
 		else {
 			Bit8u rm=Fetchb();
-			if (rm<0xc0) GetEAa;
+			if (rm<0xc0) { GetEAa; (void)eaa; }
 		}
 		break;
 	CASE_B(0xde)												/* FPU ESC 6 */
@@ -961,7 +961,7 @@
 		}
 		else {
 			Bit8u rm=Fetchb();
-			if (rm<0xc0) GetEAa;
+			if (rm<0xc0) { GetEAa; (void)eaa; }
 		}
 		break;
 	CASE_B(0xdf)												/* FPU ESC 7 */
@@ -970,7 +970,7 @@
 		}
 		else {
 			Bit8u rm=Fetchb();
-			if (rm<0xc0) GetEAa;
+			if (rm<0xc0) { GetEAa; (void)eaa; }
 		}
 		break;
 #else 

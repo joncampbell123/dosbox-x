@@ -494,7 +494,8 @@ public:
 		Bit8u	lastdrive;		//  0x21 lastdrive
 		Bit32u	nulNextDriver;	//  0x22 NUL driver next pointer
 		Bit16u	nulAttributes;	//  0x26 NUL driver aattributes
-		Bit32u	nulStrategy;	//  0x28 NUL driver strategy routine
+        Bit16u  nulStrategy;    //  0x28 NUL driver strategy routine
+        Bit16u  nulInterrupt;   //  0x2A NUL driver interrupt routine
 		Bit8u	nulString[8];	//  0x2c NUL driver name string
 		Bit8u	joindedDrives;		//  0x34 joined drives
 		Bit16u	specialCodeSeg;		//  0x35 special code segment

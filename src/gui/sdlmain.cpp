@@ -184,7 +184,6 @@ enum PRIORITY_LEVELS {
 
 void						GUI_LoadFonts();
 void						GUI_Run(bool);
-void						EndSplashScreen();
 void						Restart(bool pressed);
 bool						RENDER_GetAspect(void);
 bool						RENDER_GetAutofit(void);
@@ -808,7 +807,6 @@ static void GFX_ResetSDL() {
 }
 
 Bitu GFX_SetSize(Bitu width,Bitu height,Bitu flags,double scalex,double scaley,GFX_CallBack_t callback) {
-	EndSplashScreen();
 	if (sdl.updating)
 		GFX_EndUpdate( 0 );
 
@@ -1260,8 +1258,10 @@ dosurface:
 	return retFlags;
 }
 
+#if defined(WIN32)
 // WARNING: Not recommended, there is danger you cannot exit emulator because mouse+keyboard are taken
 static bool enable_hook_everything = false;
+#endif
 
 // Whether or not to hook the keyboard and block special keys.
 // Setting this is recommended so that your keyboard is fully usable in the guest OS when you
@@ -1269,16 +1269,20 @@ static bool enable_hook_everything = false;
 // danger you become trapped in the DOSBox emulator!
 static bool enable_hook_special_keys = true;
 
+#if defined(WIN32)
 // Whether or not to hook Num/Scroll/Caps lock in order to give the guest OS full control of the
 // LEDs on the keyboard (i.e. the LEDs do not change until the guest OS changes their state).
 // This flag also enables code to set the LEDs to guest state when setting mouse+keyboard capture,
 // and restoring LED state when releasing capture.
 static bool enable_hook_lock_toggle_keys = true;
+#endif
 
+#if defined(WIN32)
 // and this is where we store host LED state when capture is set.
 static bool on_capture_num_lock_was_on = true; // reasonable guess
 static bool on_capture_scroll_lock_was_on = false;
 static bool on_capture_caps_lock_was_on = false;
+#endif
 
 static bool exthook_enabled = false;
 #if defined(WIN32)
@@ -1860,7 +1864,7 @@ void GFX_SwitchFullScreen(void)
 		GetDesktopResolution(&width, &height);
 		auto width1 = sdl.draw.width;
 		auto height1 = sdl.draw.height;
-		if (width < width1 || height < height1) {
+		if ((unsigned int)width < width1 || (unsigned int)height < height1) {
 			sdl.desktop.fullscreen = false;
 			LOG_MSG("WARNING: full screen canceled, surface size (%ix%i) exceeds screen size (%ix%i).",
 				width1, height1, width, height);
@@ -1875,7 +1879,7 @@ void GFX_SwitchFullScreen(void)
 
 	// ensure mouse capture when fullscreen || (re-)capture if user said so when windowed
 	auto locked = sdl.mouse.locked;
-	if (full && !locked || !full && locked) GFX_CaptureMouse();
+	if ((full && !locked) || (!full && locked)) GFX_CaptureMouse();
 
 	// disable/enable sticky keys for fullscreen/desktop
 #if defined (WIN32)		
@@ -2259,74 +2263,6 @@ static void OutputString(Bitu x,Bitu y,const char * text,Bit32u color,Bit32u col
 		text++;
 		draw+=8;
 	}
-}
-
-#include "dosbox_splash.h"
-
-/* The endian part is intentionally disabled as somehow it produces correct results without according to rhoenie*/
-//#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-//    Bit32u rmask = 0xff000000;
-//    Bit32u gmask = 0x00ff0000;
-//    Bit32u bmask = 0x0000ff00;
-//#else
-    Bit32u rmask = 0x000000ff;
-    Bit32u gmask = 0x0000ff00;
-    Bit32u bmask = 0x00ff0000;
-//#endif
-
-static SDL_Surface* splash_surf;
-static bool			splash_active;
-static Bit8u*		splash_tmpbuf;
-static Bit32u		splash_startticks;
-
-static void ShowSplashScreen() {
-	splash_surf = SDL_CreateRGBSurface(SDL_SWSURFACE, 640, 400, 32, rmask, gmask, bmask, 0);
-	if (splash_surf) {
-		splash_active=true;
-		SDL_FillRect(splash_surf, NULL, SDL_MapRGB(splash_surf->format, 0, 0, 0));
-		splash_tmpbuf = new Bit8u[640*400*3];
-		GIMP_IMAGE_RUN_LENGTH_DECODE(splash_tmpbuf,gimp_image.rle_pixel_data,640*400,3);
-		for (Bitu y=0; y<400; y++) {
-
-			Bit8u* tmpbuf = splash_tmpbuf + y*640*3;
-			Bit32u * draw=(Bit32u*)(((Bit8u *)splash_surf->pixels)+((y)*splash_surf->pitch));
-			for (Bitu x=0; x<640; x++) {
-//#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-//				*draw++ = tmpbuf[x*3+2]+tmpbuf[x*3+1]*0x100+tmpbuf[x*3+0]*0x10000+0x00000000;
-//#else
-				*draw++ = tmpbuf[x*3+0]+tmpbuf[x*3+1]*0x100+tmpbuf[x*3+2]*0x10000+0x00000000;
-//#endif
-			}
-		}
-		Bit32u lasttick=GetTicks();
-		for(Bitu i = 0; i <=5; i++) {
-			if((GetTicks()-lasttick)>20) i++;
-			while((GetTicks()-lasttick)<15) SDL_Delay(5);
-			lasttick = GetTicks();
-			SDL_SetAlpha(splash_surf, SDL_SRCALPHA,(Bit8u)(51*i));
-			SDL_BlitSurface(splash_surf, NULL, sdl.surface, NULL);
-			SDL_Flip(sdl.surface);
-		}
-
-		splash_startticks=GetTicks();
-	} else {
-		splash_active=false;
-		splash_startticks=0;
-
-	}
-}
-
-void EndSplashScreen() {
-	if(!splash_active) return;
-	//SDL_FillRect(splash_surf, NULL, SDL_MapRGB(sdl.surface->format, 0, 0, 0));
-	//SDL_BlitSurface(splash_surf, NULL, sdl.surface, NULL);
-	//SDL_Flip(sdl.surface);
-	while((GetTicks()-splash_startticks)< 500) SDL_Delay(10);
-	
-	SDL_FreeSurface(splash_surf);
-	delete [] splash_tmpbuf;
-	splash_active=false;
-
 }
 
 #if (HAVE_D3D9_H) && defined(WIN32)
@@ -4111,185 +4047,184 @@ void DOSBox_ConsolePauseWait() {
 }
 
 bool DOSBOX_parse_argv() {
-	std::string optname,tmp;
+    std::string optname,tmp;
 
-	assert(control != NULL);
-	assert(control->cmdline != NULL);
+    assert(control != NULL);
+    assert(control->cmdline != NULL);
 
-	control->cmdline->BeginOpt();
-	while (control->cmdline->GetOpt(optname)) {
+    control->cmdline->BeginOpt();
+    while (control->cmdline->GetOpt(optname)) {
+        std::transform(optname.begin(), optname.end(), optname.begin(), ::tolower);
 
-		std::transform(optname.begin(), optname.end(), optname.begin(), ::tolower);
+        if (optname == "version") {
+            DOSBox_ShowConsole();
 
-		if (optname == "version") {
-			DOSBox_ShowConsole();
-
-			fprintf(stderr,"\nDOSBox version %s, copyright 2002-2015 DOSBox Team.\n\n",VERSION);
-			fprintf(stderr,"DOSBox is written by the DOSBox Team (See AUTHORS file))\n");
-			fprintf(stderr,"DOSBox comes with ABSOLUTELY NO WARRANTY.  This is free software,\n");
-			fprintf(stderr,"and you are welcome to redistribute it under certain conditions;\n");
-			fprintf(stderr,"please read the COPYING file thoroughly before doing so.\n\n");
+            fprintf(stderr,"\nDOSBox version %s, copyright 2002-2015 DOSBox Team.\n\n",VERSION);
+            fprintf(stderr,"DOSBox is written by the DOSBox Team (See AUTHORS file))\n");
+            fprintf(stderr,"DOSBox comes with ABSOLUTELY NO WARRANTY.  This is free software,\n");
+            fprintf(stderr,"and you are welcome to redistribute it under certain conditions;\n");
+            fprintf(stderr,"please read the COPYING file thoroughly before doing so.\n\n");
 
 #if defined(WIN32)
-			DOSBox_ConsolePauseWait();
+            DOSBox_ConsolePauseWait();
 #endif
 
-			return 0;
-		}
-		else if (optname == "h" || optname == "help") {
-			DOSBox_ShowConsole();
+            return 0;
+        }
+        else if (optname == "h" || optname == "help") {
+            DOSBox_ShowConsole();
 
-			fprintf(stderr,"\ndosbox [options]\n");
-			fprintf(stderr,"\nDOSBox version %s, copyright 2002-2015 DOSBox Team.\n\n",VERSION);
-			fprintf(stderr,"  -h     -help                            Show this help\n");
-			fprintf(stderr,"  -editconf                               Launch editor\n");
-			fprintf(stderr,"  -opencaptures <param>                   Launch captures\n");
-			fprintf(stderr,"  -opensaves <param>                      Launch saves\n");
-			fprintf(stderr,"  -eraseconf                              Erase config file\n");
-			fprintf(stderr,"  -resetconf                              Erase config file\n");
-			fprintf(stderr,"  -printconf                              Print config file location\n");
-			fprintf(stderr,"  -erasemapper                            Erase mapper file\n");
-			fprintf(stderr,"  -resetmapper                            Erase mapper file\n");
-			fprintf(stderr,"  -console                                Show console (win32)\n");
-			fprintf(stderr,"  -noconsole                              Don't show console (debug+win32 only)\n");
-			fprintf(stderr,"  -nogui                                  Don't show gui (win32 only)\n");
-			fprintf(stderr,"  -nomenu                                 Don't show menu (win32 only)\n");
-			fprintf(stderr,"  -userconf                               Create user level config file\n");
-			fprintf(stderr,"  -conf <param>                           Use config file <param>\n");
-			fprintf(stderr,"  -startui -startgui                      Start DOSBox-X with UI\n");
-			fprintf(stderr,"  -startmapper                            Start DOSBox-X with mapper\n");
-			fprintf(stderr,"  -showcycles                             Show cycles count\n");
+            fprintf(stderr,"\ndosbox [options]\n");
+            fprintf(stderr,"\nDOSBox version %s, copyright 2002-2015 DOSBox Team.\n\n",VERSION);
+            fprintf(stderr,"  -h     -help                            Show this help\n");
+            fprintf(stderr,"  -editconf                               Launch editor\n");
+            fprintf(stderr,"  -opencaptures <param>                   Launch captures\n");
+            fprintf(stderr,"  -opensaves <param>                      Launch saves\n");
+            fprintf(stderr,"  -eraseconf                              Erase config file\n");
+            fprintf(stderr,"  -resetconf                              Erase config file\n");
+            fprintf(stderr,"  -printconf                              Print config file location\n");
+            fprintf(stderr,"  -erasemapper                            Erase mapper file\n");
+            fprintf(stderr,"  -resetmapper                            Erase mapper file\n");
+            fprintf(stderr,"  -console                                Show console (win32)\n");
+            fprintf(stderr,"  -noconsole                              Don't show console (debug+win32 only)\n");
+            fprintf(stderr,"  -nogui                                  Don't show gui (win32 only)\n");
+            fprintf(stderr,"  -nomenu                                 Don't show menu (win32 only)\n");
+            fprintf(stderr,"  -userconf                               Create user level config file\n");
+            fprintf(stderr,"  -conf <param>                           Use config file <param>\n");
+            fprintf(stderr,"  -startui -startgui                      Start DOSBox-X with UI\n");
+            fprintf(stderr,"  -startmapper                            Start DOSBox-X with mapper\n");
+            fprintf(stderr,"  -showcycles                             Show cycles count\n");
             fprintf(stderr,"  -showrt                                 Show emulation speed relative to realtime\n");
-			fprintf(stderr,"  -fullscreen                             Start in fullscreen\n");
-			fprintf(stderr,"  -savedir <path>                         Save path\n");
-			fprintf(stderr,"  -disable-numlock-check                  Disable numlock check (win32 only)\n");
-			fprintf(stderr,"  -date-host-forced                       Force synchronization of date with host\n");
-			fprintf(stderr,"  -debug                                  Set all logging levels to debug\n");
-			fprintf(stderr,"  -early-debug                            Log early initialization messages in DOSBox (implies -console)\n");
-			fprintf(stderr,"  -keydbg                                 Log all SDL key events (debugging)\n");
-			fprintf(stderr,"  -lang <message file>                    Use specific message file instead of language= setting\n");
-			fprintf(stderr,"  -nodpiaware                             Ignore (don't signal) Windows DPI awareness\n");
-			fprintf(stderr,"  -securemode                             Enable secure mode\n");
-			fprintf(stderr,"  -noautoexec                             Don't execute AUTOEXEC.BAT config section\n");
-			fprintf(stderr,"  -exit                                   Exit after executing AUTOEXEC.BAT\n");
-			fprintf(stderr,"  -c <command string>                     Execute this command in addition to AUTOEXEC.BAT.\n");
-			fprintf(stderr,"                                          Make sure to surround the command in quotes to cover spaces.\n");
-			fprintf(stderr,"  -break-start                            Break into debugger at startup\n");
+            fprintf(stderr,"  -fullscreen                             Start in fullscreen\n");
+            fprintf(stderr,"  -savedir <path>                         Save path\n");
+            fprintf(stderr,"  -disable-numlock-check                  Disable numlock check (win32 only)\n");
+            fprintf(stderr,"  -date-host-forced                       Force synchronization of date with host\n");
+            fprintf(stderr,"  -debug                                  Set all logging levels to debug\n");
+            fprintf(stderr,"  -early-debug                            Log early initialization messages in DOSBox (implies -console)\n");
+            fprintf(stderr,"  -keydbg                                 Log all SDL key events (debugging)\n");
+            fprintf(stderr,"  -lang <message file>                    Use specific message file instead of language= setting\n");
+            fprintf(stderr,"  -nodpiaware                             Ignore (don't signal) Windows DPI awareness\n");
+            fprintf(stderr,"  -securemode                             Enable secure mode\n");
+            fprintf(stderr,"  -noautoexec                             Don't execute AUTOEXEC.BAT config section\n");
+            fprintf(stderr,"  -exit                                   Exit after executing AUTOEXEC.BAT\n");
+            fprintf(stderr,"  -c <command string>                     Execute this command in addition to AUTOEXEC.BAT.\n");
+            fprintf(stderr,"                                          Make sure to surround the command in quotes to cover spaces.\n");
+            fprintf(stderr,"  -break-start                            Break into debugger at startup\n");
 
 #if defined(WIN32)
-			DOSBox_ConsolePauseWait();
+            DOSBox_ConsolePauseWait();
 #endif
 
-			return 0;
-		}
-		else if (optname == "c") {
-			if (!control->cmdline->NextOptArgv(tmp)) return false;
-			control->opt_c.push_back(tmp);
-		}
-		else if (optname == "break-start") {
-			control->opt_break_start = true;
-		}
-		else if (optname == "exit") {
-			control->opt_exit = true;
-		}
-		else if (optname == "noautoexec") {
-			control->opt_noautoexec = true;
-		}
-		else if (optname == "securemode") {
-			control->opt_securemode = true;
-		}
-		else if (optname == "nodpiaware") {
-			control->opt_disable_dpi_awareness = true;
-		}
-		else if (optname == "keydbg") {
-			log_keyboard_scan_codes = true;
-		}
-		else if (optname == "date-host-forced" || optname == "date_host_forced") {
-			control->opt_date_host_forced = true;
-		}
+            return 0;
+        }
+        else if (optname == "c") {
+            if (!control->cmdline->NextOptArgv(tmp)) return false;
+            control->opt_c.push_back(tmp);
+        }
+        else if (optname == "break-start") {
+            control->opt_break_start = true;
+        }
+        else if (optname == "exit") {
+            control->opt_exit = true;
+        }
+        else if (optname == "noautoexec") {
+            control->opt_noautoexec = true;
+        }
+        else if (optname == "securemode") {
+            control->opt_securemode = true;
+        }
+        else if (optname == "nodpiaware") {
+            control->opt_disable_dpi_awareness = true;
+        }
+        else if (optname == "keydbg") {
+            log_keyboard_scan_codes = true;
+        }
+        else if (optname == "date-host-forced" || optname == "date_host_forced") {
+            control->opt_date_host_forced = true;
+        }
         else if (optname == "showrt") {
             control->opt_showrt = true;
         }
-		else if (optname == "showcycles") {
-			control->opt_showcycles = true;
-		}
-		else if (optname == "startmapper") {
-			control->opt_startmapper = true;
-		}
-		else if (optname == "fullscreen") {
-			control->opt_fullscreen = true;
-		}
-		else if (optname == "startui" || optname == "startgui") {
-			control->opt_startui = true;
-		}
-		else if (optname == "disable-numlock-check" || optname == "disable_numlock_check") {
-			/* mainline DOSBox expects -disable_numlock_check so we support that here too */
-			control->opt_disable_numlock_check = true;
-		}
-		else if (optname == "savedir") {
-			if (!control->cmdline->NextOptArgv(custom_savedir)) return false;
-		}
-		else if (optname == "userconf") {
-			control->opt_userconf = true;
-		}
-		else if (optname == "lang") {
-			if (!control->cmdline->NextOptArgv(control->opt_lang)) return false;
-		}
-		else if (optname == "conf") {
-			if (!control->cmdline->NextOptArgv(tmp)) return false;
-			control->config_file_list.push_back(tmp);
-		}
-		else if (optname == "editconf") {
-			if (!control->cmdline->NextOptArgv(control->opt_editconf)) return false;
-		}
-		else if (optname == "opencaptures") {
-			if (!control->cmdline->NextOptArgv(control->opt_opencaptures)) return false;
-		}
-		else if (optname == "opensaves") {
-			if (!control->cmdline->NextOptArgv(control->opt_opensaves)) return false;
-		}
-		else if (optname == "eraseconf") {
-			control->opt_eraseconf = true;
-		}
-		else if (optname == "resetconf") {
-			control->opt_resetconf = true;
-		}
-		else if (optname == "printconf") {
-			control->opt_printconf = true;
-		}
-		else if (optname == "erasemapper") {
-			control->opt_erasemapper = true;
-		}
-		else if (optname == "resetmapper") {
-			control->opt_resetmapper = true;
-		}
-		else if (optname == "noconsole") {
-			control->opt_noconsole = true;
-			control->opt_console = false;
-		}
-		else if (optname == "console") {
-			control->opt_noconsole = false;
-			control->opt_console = true;
-		}
-		else if (optname == "nomenu") {
-			control->opt_nomenu = true;
-		}
-		else if (optname == "nogui") {
-			control->opt_nogui = true;
-		}
-		else if (optname == "debug") {
-			control->opt_debug = true;
-		}
-		else if (optname == "early-debug") {
-			control->opt_earlydebug = true;
-			control->opt_console = true;
-		}
-		else {
-			printf("WARNING: Unknown option %s (first parsing stage)\n",optname.c_str());
-		}
-	}
+        else if (optname == "showcycles") {
+            control->opt_showcycles = true;
+        }
+        else if (optname == "startmapper") {
+            control->opt_startmapper = true;
+        }
+        else if (optname == "fullscreen") {
+            control->opt_fullscreen = true;
+        }
+        else if (optname == "startui" || optname == "startgui") {
+            control->opt_startui = true;
+        }
+        else if (optname == "disable-numlock-check" || optname == "disable_numlock_check") {
+            /* mainline DOSBox expects -disable_numlock_check so we support that here too */
+            control->opt_disable_numlock_check = true;
+        }
+        else if (optname == "savedir") {
+            if (!control->cmdline->NextOptArgv(custom_savedir)) return false;
+        }
+        else if (optname == "userconf") {
+            control->opt_userconf = true;
+        }
+        else if (optname == "lang") {
+            if (!control->cmdline->NextOptArgv(control->opt_lang)) return false;
+        }
+        else if (optname == "conf") {
+            if (!control->cmdline->NextOptArgv(tmp)) return false;
+            control->config_file_list.push_back(tmp);
+        }
+        else if (optname == "editconf") {
+            if (!control->cmdline->NextOptArgv(control->opt_editconf)) return false;
+        }
+        else if (optname == "opencaptures") {
+            if (!control->cmdline->NextOptArgv(control->opt_opencaptures)) return false;
+        }
+        else if (optname == "opensaves") {
+            if (!control->cmdline->NextOptArgv(control->opt_opensaves)) return false;
+        }
+        else if (optname == "eraseconf") {
+            control->opt_eraseconf = true;
+        }
+        else if (optname == "resetconf") {
+            control->opt_resetconf = true;
+        }
+        else if (optname == "printconf") {
+            control->opt_printconf = true;
+        }
+        else if (optname == "erasemapper") {
+            control->opt_erasemapper = true;
+        }
+        else if (optname == "resetmapper") {
+            control->opt_resetmapper = true;
+        }
+        else if (optname == "noconsole") {
+            control->opt_noconsole = true;
+            control->opt_console = false;
+        }
+        else if (optname == "console") {
+            control->opt_noconsole = false;
+            control->opt_console = true;
+        }
+        else if (optname == "nomenu") {
+            control->opt_nomenu = true;
+        }
+        else if (optname == "nogui") {
+            control->opt_nogui = true;
+        }
+        else if (optname == "debug") {
+            control->opt_debug = true;
+        }
+        else if (optname == "early-debug") {
+            control->opt_earlydebug = true;
+            control->opt_console = true;
+        }
+        else {
+            printf("WARNING: Unknown option %s (first parsing stage)\n",optname.c_str());
+        }
+    }
 
-	return true;
+    return true;
 }
 
 void MSG_Init();
@@ -4481,20 +4416,17 @@ bool VM_PowerOn() {
 
 //extern void UI_Init(void);
 int main(int argc, char* argv[]) {
-	CommandLine com_line(argc,argv);
+    CommandLine com_line(argc,argv);
+    Config myconf(&com_line);
 
+    control=&myconf;
 #if defined(WIN32)
-	/* Microsoft's IME does not play nice with DOSBox */
-	ImmDisableIME((DWORD)(-1));
+    /* Microsoft's IME does not play nice with DOSBox */
+    ImmDisableIME((DWORD)(-1));
 #endif
 
-	{
-		/* NTS: Warning, do NOT move the Config myconf() object out of this scope.
-		 * The destructor relies on executing section destruction code as part of
-		 * DOSBox shutdown. */
-		std::string tmp,config_path;
-		Config myconf(&com_line);
-		control=&myconf;
+    {
+        std::string tmp,config_path;
 
 		/* -- parse command line arguments */
 		if (!DOSBOX_parse_argv()) return 1;

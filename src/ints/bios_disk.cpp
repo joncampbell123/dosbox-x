@@ -222,13 +222,13 @@ Bit8u imageDisk::Read_AbsoluteSector(Bit32u sectnum, void * data) {
 	fseeko64(diskimg,bytenum,SEEK_SET);
 	res = ftello64(diskimg);
 	if (res != bytenum) {
-		LOG_MSG("fseek() failed in Read_AbsoluteSector for sector %lu. Want=%I64u Got=%I64u\n",
+		LOG_MSG("fseek() failed in Read_AbsoluteSector for sector %lu. Want=%llu Got=%llu\n",
 			(unsigned long)sectnum,(unsigned long long)bytenum,(unsigned long long)res);
 		return 0x05;
 	}
 
 	got = fread(data, 1, sector_size, diskimg);
-	if (got != sector_size) {
+	if ((unsigned int)got != sector_size) {
 		LOG_MSG("fread() failed in Read_AbsoluteSector for sector %lu. Want=%u got=%d\n",
 			(unsigned long)sectnum,(unsigned int)sector_size,(unsigned int)got);
 		return 0x05;

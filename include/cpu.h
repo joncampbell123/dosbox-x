@@ -66,6 +66,8 @@ extern Bitu CPU_CyclesCur;
 extern Bit32s CPU_CyclesSet;
 extern char core_mode[16];
 
+extern bool enable_weitek;
+
 extern Bitu CPU_ArchitectureType;
 
 extern Bitu CPU_PrefetchQueueSize;

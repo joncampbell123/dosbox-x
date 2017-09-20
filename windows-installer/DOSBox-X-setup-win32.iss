@@ -3,7 +3,7 @@
 [Setup]
 AppId={{A8B56D99-2ECA-4D82-B161-958006195B58}
 AppName={#MyAppName}
-OutputBaseFilename=DOSBox-X-setup-win32_{#MyAppBuildDate}
+OutputBaseFilename=DOSBox-X-setup-win32
 UninstallDisplayName={#MyAppName} {#MyAppVersion} 32-bit
 DefaultDirName={sd}\{#MyAppName} {#MyAppVersion} 32-bit
 
