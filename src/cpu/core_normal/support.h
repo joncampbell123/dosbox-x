@@ -84,6 +84,17 @@ static INLINE Bit32s Fetchds() {
 	continue;							\
 }
 
+#define MoveCond16(COND) {							\
+	GetRMrw;										\
+	if (rm >= 0xc0 ) {GetEArw; if (COND) *rmrw=*earw;}\
+	else {GetEAa; if (COND) *rmrw=LoadMw(eaa);}		\
+}
+
+#define MoveCond32(COND) {							\
+	GetRMrd;										\
+	if (rm >= 0xc0 ) {GetEArd; if (COND) *rmrd=*eard;}\
+	else {GetEAa; if (COND) *rmrd=LoadMd(eaa);}		\
+}
 
 #define SETcc(cc)							\
 	{								\

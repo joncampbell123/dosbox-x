@@ -2497,7 +2497,7 @@ bool CPU_PopSeg(SegNames seg,bool use32) {
 extern bool enable_fpu;
 
 bool CPU_CPUID(void) {
-	if (CPU_ArchitectureType<CPU_ARCHTYPE_486NEW) return false;
+	if (CPU_ArchitectureType < CPU_ARCHTYPE_486NEW) return false;
 	switch (reg_eax) {
 	case 0:	/* Vendor ID String and maximum level? */
 		reg_eax=1;  /* Maximum level */ 
@@ -2506,26 +2506,31 @@ bool CPU_CPUID(void) {
 		reg_ecx='n' | ('t' << 8) | ('e' << 16) | ('l'<< 24); 
 		break;
 	case 1:	/* get processor type/family/model/stepping and feature flags */
-		if ((CPU_ArchitectureType==CPU_ARCHTYPE_486NEW) ||
-			(CPU_ArchitectureType==CPU_ARCHTYPE_MIXED)) {
+		if ((CPU_ArchitectureType == CPU_ARCHTYPE_486NEW) ||
+			(CPU_ArchitectureType == CPU_ARCHTYPE_MIXED)) {
 			reg_eax=0x402;		/* intel 486dx */
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
 			reg_edx=enable_fpu?1:0;	/* FPU */
-		} else if (CPU_ArchitectureType==CPU_ARCHTYPE_PENTIUM) {
+		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUM) {
 			reg_eax=0x513;		/* intel pentium */
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
 			reg_edx=0x00000010|(enable_fpu?1:0);	/* FPU+TimeStamp/RDTSC */
 			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
             if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
-		} else if (CPU_ArchitectureType==CPU_ARCHTYPE_P55CSLOW) {
+		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_P55CSLOW) {
 			reg_eax=0x543;		/* intel pentium mmx (P55C) */
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
 			reg_edx=0x00800010|(enable_fpu?1:0);	/* FPU+TimeStamp/RDTSC+MMX+ModelSpecific/MSR */
 			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
             if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
+		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW) {
+			reg_eax=0x612;		/* intel pentium pro */
+			reg_ebx=0;			/* Not Supported */
+			reg_ecx=0;			/* No features */
+			reg_edx=0x00008011;	/* FPU+TimeStamp/RDTSC */
 		} else {
 			return false;
 		}
@@ -3091,6 +3096,8 @@ public:
 			CPU_ArchitectureType = CPU_ARCHTYPE_PENTIUM;
 		} else if (cputype == "pentium_mmx") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_P55CSLOW;
+		} else if (cputype == "ppro_slow") {
+			CPU_ArchitectureType = CPU_ARCHTYPE_PPROSLOW;
  		}
 
 		/* WARNING */
