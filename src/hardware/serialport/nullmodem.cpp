@@ -155,7 +155,7 @@ CNullModem::CNullModem(Bitu id, CommandLine* cmd):CSerial (id, cmd) {
 	setCTS(dtrrespect||transparent);
 	setDSR(dtrrespect||transparent);
 	setRI(false);
-	setCD(clientsocket > 0); // CD on if connection established
+	setCD(clientsocket != 0); // CD on if connection established
 }
 
 CNullModem::~CNullModem() {
