@@ -1738,8 +1738,8 @@ static void DSP_DoCommand(void) {
 		if (sb.reveal_sc_type == RSC_SC400) {
 			/* Despite reporting itself as Sound Blaster Pro, the Reveal SC400 cards do support *some* SB16 DSP commands! */
 			/* BUT, it only recognizes a subset of this range. */
-			if (sb.dsp.cmd == 0xB0 || sb.dsp.cmd == 0xB8 || sb.dsp.cmd == 0xBE || sb.dsp.cmd == 0xB6 ||
-				sb.dsp.cmd == 0xC0 || sb.dsp.cmd == 0xC8 || sb.dsp.cmd == 0xCE || sb.dsp.cmd == 0xC6) {
+			if (sb.dsp.cmd == 0xBE || sb.dsp.cmd == 0xB6 ||
+				sb.dsp.cmd == 0xCE || sb.dsp.cmd == 0xC6) {
 				/* OK! */
 			}
 			else {
