@@ -1087,7 +1087,7 @@ dosurface:
 			glBufferDataARB(GL_PIXEL_UNPACK_BUFFER_EXT, width*height*4, NULL, GL_STREAM_DRAW_ARB);
 			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
 		} else {
-			sdl.opengl.framebuf=malloc(width*height*4);		//32 bit color
+			sdl.opengl.framebuf=calloc(width*height, 4);		//32 bit color
 		}
 		sdl.opengl.pitch=width*4;
 
@@ -1143,6 +1143,7 @@ dosurface:
 		glTexCoord2f(0,0); glVertex2f(-1.0f, 1.0f);
 		glEnd();
 		glEndList();
+
 		sdl.desktop.type=SCREEN_OPENGL;
 		retFlags = GFX_CAN_32 | GFX_SCALING;
 		if (sdl.opengl.pixel_buffer_object)
@@ -2102,7 +2103,14 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
 					Bitu height = changedLines[index];
 					glTexSubImage2D(GL_TEXTURE_2D, 0, 0, y,
 						sdl.draw.width, height, GL_BGRA_EXT,
-						GL_UNSIGNED_INT_8_8_8_8_REV, pixels );
+						#if defined (MACOSX)
+							// needed for proper looking graphics on macOS 10.12, 10.13
+							GL_UNSIGNED_INT_8_8_8_8,
+						#else
+							// works on Linux
+							GL_UNSIGNED_INT_8_8_8_8_REV,
+						#endif
+						pixels );
 					y += height;
 				}
 				index++;
