@@ -86,6 +86,16 @@ public:
 		return "mt32";
 	}
 
+    void user_romhelp(void) {
+        /* don't just grunt and say "ROM file not found", help the user get the ROMs in place so we can work! */
+        /* we're now 25 years past the era of limited RAM and "error code -25" we have more than enough disk and RAM
+         * to contain explanatory text where the user went wrong! */
+        LOG_MSG("MT32 emulation cannot work without the PCM and CONTROL ROM files.");
+        LOG_MSG("To eliminate this error message, either change mididevice= to something else, or");
+        LOG_MSG("place the ROM files in the root directory of your DOS game.");
+        LOG_MSG("The ROM files are: CM32L_CONTROL.ROM, MT32_CONTROL.ROM, CM32L_PCM.ROM, MT32_PCM.ROM");
+    }
+
 	bool Open(const char *conf) {
 		MT32Emu::FileStream controlROMFile;
 		MT32Emu::FileStream pcmROMFile;
@@ -93,15 +103,18 @@ public:
 		if (!controlROMFile.open("CM32L_CONTROL.ROM")) {
 			if (!controlROMFile.open("MT32_CONTROL.ROM")) {
 				LOG(LOG_MISC,LOG_WARN)("MT32: Control ROM file not found");
+                user_romhelp();
 				return false;
 			}
 		}
 		if (!pcmROMFile.open("CM32L_PCM.ROM")) {
 			if (!pcmROMFile.open("MT32_PCM.ROM")) {
 				LOG(LOG_MISC,LOG_WARN)("MT32: PCM ROM file not found");
+                user_romhelp();
 				return false;
 			}
 		}
+
 		const MT32Emu::ROMImage *controlROMImage = MT32Emu::ROMImage::makeROMImage(&controlROMFile);
 		const MT32Emu::ROMImage *pcmROMImage = MT32Emu::ROMImage::makeROMImage(&pcmROMFile);
 		synth = new MT32Emu::Synth(&reportHandler);
