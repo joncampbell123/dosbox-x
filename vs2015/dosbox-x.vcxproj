@@ -326,6 +326,7 @@
     <ClCompile Include="..\src\hardware\mixer.cpp" />
     <ClCompile Include="..\src\hardware\mpu401.cpp" />
     <ClCompile Include="..\src\hardware\ne2000.cpp" />
+    <ClCompile Include="..\src\hardware\nukedopl.cpp" />
     <ClCompile Include="..\src\hardware\opl.cpp" />
     <ClCompile Include="..\src\hardware\parport\directlpt_win32.cpp" />
     <ClCompile Include="..\src\hardware\parport\filelpt.cpp" />
