@@ -70,21 +70,29 @@
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(IncludePath);%DXSDK_DIR%\Include;</IncludePath>
+    <LibraryPath>$(LibraryPath);%DXSDK_DIR%\Lib;</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(IncludePath);%DXSDK_DIR%\Include;</IncludePath>
+    <LibraryPath>$(LibraryPath);%DXSDK_DIR%\Lib;</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(IncludePath);%DXSDK_DIR%\Include;</IncludePath>
+    <LibraryPath>$(LibraryPath);%DXSDK_DIR%\Lib;</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
+    <IncludePath>$(IncludePath);%DXSDK_DIR%\Include;</IncludePath>
+    <LibraryPath>$(LibraryPath);%DXSDK_DIR%\Lib;</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -295,6 +303,7 @@
     <ClCompile Include="..\src\gui\riff.cpp" />
     <ClCompile Include="..\src\gui\riff_wav_writer.cpp" />
     <ClCompile Include="..\src\gui\ROMInfo.cpp" />
+    <ClCompile Include="..\src\gui\ScalingEffect.cpp" />
     <ClCompile Include="..\src\gui\sdlmain.cpp" />
     <ClCompile Include="..\src\gui\sdl_gui.cpp" />
     <ClCompile Include="..\src\gui\sdl_mapper.cpp" />
