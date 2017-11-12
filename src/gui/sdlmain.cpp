@@ -1579,7 +1579,7 @@ void sticky_keys(bool restore){
 
 #ifdef __WIN32__
 static void d3d_init(void) {
-#if 0
+#if !(HAVE_D3D9_H)
 	E_Exit("D3D not supported");
 #else
 	void change_output(int output);
