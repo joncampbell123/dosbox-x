@@ -36,7 +36,7 @@
 #define C_CORE_INLINE	1
 
 /* Define to 1 to use Direct3D shaders, requires d3d9.h and libd3dx9 */
-#undef C_D3DSHADERS
+#define C_D3DSHADERS 1
 
 /* Define to 1 to enable internal debugger, requires libcurses */
 #undef C_DEBUG
@@ -120,7 +120,7 @@
 #undef HAVE_ALSA
 
 /* Define to 1 if you have the <d3d9.h> header file. */
-#undef HAVE_D3D9_H
+#define HAVE_D3D9_H 1
 
 /* Define to 1 if you have the <ddraw.h> header file. */
 #define HAVE_DDRAW_H 1
