@@ -199,6 +199,12 @@ static void counter_latch(Bitu counter) {
 
 static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 //LOG(LOG_PIT,LOG_ERROR)("port %X write:%X state:%X",port,val,pit[port-0x40].write_state);
+
+    // HACK: Port translation for this code PC-98 mode.
+    //       0x71,0x73,0x75,0x77 => 0x40-0x43
+    if (IS_PC98_ARCH)
+        port = ((port - 0x71) >> 1) + 0x40;
+
 	Bitu counter=port-0x40;
 	PIT_Block * p=&pit[counter];
 	if(p->bcd == true) BIN2BCD(p->write_latch);
@@ -256,6 +262,12 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 
 static Bitu read_latch(Bitu port,Bitu /*iolen*/) {
 //LOG(LOG_PIT,LOG_ERROR)("port read %X",port);
+
+    // HACK: Port translation for this code PC-98 mode.
+    //       0x71,0x73,0x75,0x77 => 0x40-0x43
+    if (IS_PC98_ARCH)
+        port = ((port - 0x71) >> 1) + 0x40;
+
 	Bit32u counter=port-0x40;
 	Bit8u ret=0;
 	if(GCC_UNLIKELY(pit[counter].counterstatus_set)){
@@ -523,14 +535,24 @@ void TIMER_OnEnterPC98(Section*) {
     /* TODO: PC-98 has two different rates: 5/10MHz base or 8MHz base. Let the user choose via dosbox.conf */
     PIT_TICK_RATE = PIT_TICK_RATE_PC98_5MHZ;
 
-    /* TODO: Change IO ports to PC-98 numbers when callback setup code has been updated to generate PC-98 EOI code in PC-98 mode */
-	WriteHandler[0].Install(0x40,write_latch,IO_MB);
-//	WriteHandler[1].Install(0x41,write_latch,IO_MB);
-	WriteHandler[2].Install(0x42,write_latch,IO_MB);
-	WriteHandler[3].Install(0x43,write_p43,IO_MB);
-	ReadHandler[0].Install(0x40,read_latch,IO_MB);
-	ReadHandler[1].Install(0x41,read_latch,IO_MB);
-	ReadHandler[2].Install(0x42,read_latch,IO_MB);
+    /* I/O port map (8254)
+     *
+     * IBM PC/XT/AT      NEC-PC98     A1-A0
+     * -----------------------------------
+     *  0x40              0x71        0
+     *  0x41              0x73        1
+     *  0x42              0x75        2
+     *  0x43              0x77        3
+     */
+
+    /* This code is written to eventually copy-paste out in general */
+	WriteHandler[0].Install(IS_PC98_ARCH ? 0x71 : 0x40,write_latch,IO_MB);
+//	WriteHandler[1].Install(IS_PC98_ARCH ? 0x73 : 0x41,write_latch,IO_MB);
+	WriteHandler[2].Install(IS_PC98_ARCH ? 0x75 : 0x42,write_latch,IO_MB);
+	WriteHandler[3].Install(IS_PC98_ARCH ? 0x77 : 0x43,write_p43,IO_MB);
+	ReadHandler[0].Install(IS_PC98_ARCH ? 0x71 : 0x40,read_latch,IO_MB);
+	ReadHandler[1].Install(IS_PC98_ARCH ? 0x73 : 0x41,read_latch,IO_MB);
+	ReadHandler[2].Install(IS_PC98_ARCH ? 0x75 : 0x42,read_latch,IO_MB);
 
 	latched_timerstatus_locked=false;
 	gate2 = false;
