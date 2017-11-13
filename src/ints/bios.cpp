@@ -4818,6 +4818,14 @@ public:
         CALLBACK_Setup(call_irq07default,NULL,CB_IRET_EOI_PIC1,Real2Phys(BIOS_DEFAULT_IRQ07_DEF_LOCATION),"bios irq 0-7 default handler");
         CALLBACK_Setup(call_irq815default,NULL,CB_IRET_EOI_PIC2,Real2Phys(BIOS_DEFAULT_IRQ815_DEF_LOCATION),"bios irq 8-15 default handler");
 
+        /* IRQ 8 is nothing special */
+        callback[8].Uninstall();
+        callback[8].Install(NULL,CB_IRET_EOI_PIC2,"irq 8");
+
+        /* IRQ 9 is nothing special */
+        callback[9].Uninstall();
+        callback[9].Install(NULL,CB_IRET_EOI_PIC2,"irq 9");
+
         BIOS_UnsetupKeyboard();
         BIOS_SetupKeyboard();
     }
