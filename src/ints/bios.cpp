@@ -3619,6 +3619,8 @@ Bitu call_pnp_pp = 0;
 
 Bitu isapnp_biosstruct_base = 0;
 
+Bitu BIOS_boot_code_offset = 0;
+
 void BIOS_OnResetComplete(Section *x);
 
 class BIOS:public Module_base{
@@ -4715,6 +4717,7 @@ public:
 			wo += 4;
 
 			// boot
+            BIOS_boot_code_offset = wo;
 			phys_writeb(wo+0x00,(Bit8u)0xFE);						//GRP 4
 			phys_writeb(wo+0x01,(Bit8u)0x38);						//Extra Callback instruction
 			phys_writew(wo+0x02,(Bit16u)cb_bios_boot.Get_callback());			//The immediate word
@@ -4793,6 +4796,14 @@ public:
 		CPU_Snap_Back_Restore();
 	}
 };
+
+void BIOS_Enter_Boot_Phase(void) {
+    /* direct CS:IP right to the instruction that leads to the boot process */
+    /* note that since it's a callback instruction it doesn't really matter
+     * what CS:IP is as long as it points to the instruction */
+    reg_eip = BIOS_boot_code_offset & 0xFUL;
+	CPU_SetSegGeneral(cs, BIOS_boot_code_offset >> 4UL);
+}
 
 void BIOS_SetCOMPort(Bitu port, Bit16u baseaddr) {
 	switch(port) {

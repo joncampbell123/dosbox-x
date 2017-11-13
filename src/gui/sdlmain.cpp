@@ -5005,8 +5005,9 @@ fresh_boot:
 
             DispatchVMEvent(VM_EVENT_BIOS_BOOT);
 
-            // Begin booting the DOSBox shell. NOTE: VM_Boot_DOSBox_Kernel will change CS:IP instruction pointer!
-            if (!VM_Boot_DOSBox_Kernel()) E_Exit("BIOS error: BOOT function failed to boot DOSBox kernel");
+            /* begin booting DOS again. */
+            void BIOS_Enter_Boot_Phase(void);
+            BIOS_Enter_Boot_Phase();
 
             /* run again */
             goto fresh_boot;
