@@ -554,6 +554,9 @@ void TIMER_OnEnterPC98(Section*) {
 	ReadHandler[1].Install(IS_PC98_ARCH ? 0x73 : 0x41,read_latch,IO_MB);
 	ReadHandler[2].Install(IS_PC98_ARCH ? 0x75 : 0x42,read_latch,IO_MB);
 
+    /* BIOS data area at 0x501 tells the DOS application which clock rate to use */
+    phys_writeb(0x501,0x00);    /* bit 7: 1=8MHz  0=5MHz/10MHz */
+
 	latched_timerstatus_locked=false;
 	gate2 = false;
 
