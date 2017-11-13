@@ -171,10 +171,20 @@ public:
 	}
 };
 
-static DONGLE* test;
+static DONGLE* test = NULL;
 
 static void DONGLE_ShutDown(Section* sec){
-	delete test;
+    if (test) {
+        delete test;
+        test = NULL;
+    }
+}
+
+static void DONGLE_OnEnterPC98(Section* sec){
+    if (test) {
+        delete test;
+        test = NULL;
+    }
 }
 
 void DONGLE_OnReset(Section* sec) {
@@ -189,4 +199,5 @@ void DONGLE_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(DONGLE_ShutDown),true);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(DONGLE_OnReset));
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(DONGLE_OnEnterPC98));
 }
