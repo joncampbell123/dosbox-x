@@ -4825,6 +4825,12 @@ public:
 
         /* remove some IBM-style BIOS interrupts that don't exist on PC-98 */
         /* TODO: Not *ALL*, not yet. We have to change more underlying code first! */
+		callback[1].Uninstall(); /* INT 11h */
+        RealSetVec(0x11,0);
+
+		callback[2].Uninstall(); /* INT 12h */
+        RealSetVec(0x12,0);
+
 		callback[3].Uninstall(); /* INT 14h */
         RealSetVec(0x14,0);
 
