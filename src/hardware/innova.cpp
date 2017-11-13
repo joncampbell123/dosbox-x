@@ -112,10 +112,21 @@ public:
 	}
 };
 
-static INNOVA* test;
+static INNOVA* test = NULL;
 
 static void INNOVA_ShutDown(Section* sec){
-	delete test;
+    if (test != NULL) {
+        delete test;
+        test = NULL;
+    }
+}
+
+static void INNOVA_OnEnterPC98(Section* sec){
+    /* No such device on PC-98 */
+    if (test != NULL) {
+        delete test;
+        test = NULL;
+    }
 }
 
 void INNOVA_OnReset(Section *sec) {
@@ -130,5 +141,7 @@ void INNOVA_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(INNOVA_ShutDown),true);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(INNOVA_OnReset));
+
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(INNOVA_OnEnterPC98));
 }
 
