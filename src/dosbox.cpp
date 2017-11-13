@@ -772,6 +772,8 @@ void DOSBOX_RealInit() {
 	else if (mtype == "vgaonly")       { svgaCard = SVGA_None; }
 	else if (mtype == "amstrad")       { machine = MCH_AMSTRAD; }
 	else if (mtype == "pc98")          { machine = MCH_PC98; }
+	else if (mtype == "pc9801")        { machine = MCH_PC98; } /* Future differentiation */
+	else if (mtype == "pc9821")        { machine = MCH_PC98; } /* Future differentiation */
 	else E_Exit("DOSBOX:Unknown machine type %s",mtype.c_str());
 
 	// TODO: should be parsed by motherboard emulation
@@ -814,7 +816,7 @@ void DOSBOX_RealInit() {
     /* the changes are so large to begin supporting PC-98 that it's probably better
      * to boot up in IBM PC/XT/AT mode and then switch into PC-98 */
 	if (IS_PC98_ARCH) {
-        LOG_MSG("PC-9801 WARNING: Implementation is very early, and not the initial state.");
+        LOG_MSG("PC-98 WARNING: Implementation is very early, and not the initial state.");
         LOG_MSG("You will need to run a command to jump into PC-98 mode.");
 
         enable_pc98_jump = true;
@@ -889,7 +891,7 @@ void DOSBOX_SetupConfigSections(void) {
 	const char* machines[] = {
 		"hercules", "cga", "cga_mono", "cga_rgb", "cga_composite", "cga_composite2", "tandy", "pcjr", "ega",
 		"vgaonly", "svga_s3", "svga_et3000", "svga_et4000",
-		"svga_paradise", "vesa_nolfb", "vesa_oldvbe", "amstrad", "pc98", 0 };
+		"svga_paradise", "vesa_nolfb", "vesa_oldvbe", "amstrad", "pc98", "pc9801", "pc9821", 0 };
 
 	const char* scalers[] = { 
 		"none", "normal2x", "normal3x", "normal4x", "normal5x",
