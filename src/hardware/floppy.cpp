@@ -313,10 +313,25 @@ void FDC_OnReset(Section *sec) {
 	FDC_Init(control->GetSection("fdc, primary"),0);
 }
 
+void FDC_OnEnterPC98(Section *sec) {
+	for (unsigned int i=0;i < MAX_FLOPPY_CONTROLLERS;i++) {
+		if (floppycontroller[i] != NULL) {
+			delete floppycontroller[i];
+			floppycontroller[i] = NULL;
+		}
+	}
+
+	init_floppy = 0;
+}
+
 void FDC_Primary_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing floppy controller emulation");
 
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(FDC_OnReset));
+
+    // TODO: I *think* the floppy controller is the same NEC chipset as used on IBM.
+    //       However I don't know what the I/O ports and IRQ are yet.
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(FDC_OnEnterPC98));
 }
 
 void FloppyController::update_ST3() {
