@@ -3402,6 +3402,7 @@ static Bitu INT15_Handler(void) {
 
 void BIOS_UnsetupKeyboard(void);
 void BIOS_SetupKeyboard(void);
+void BIOS_UnsetupDisks(void);
 void BIOS_SetupDisks(void);
 void CPU_Snap_Back_To_Real_Mode();
 void CPU_Snap_Back_Restore();
@@ -4865,6 +4866,9 @@ public:
 
         BIOS_UnsetupKeyboard();
         BIOS_SetupKeyboard();
+
+        BIOS_UnsetupDisks();
+        BIOS_SetupDisks(); /* In PC-98 mode, will zero INT 13h */
     }
 public:
     Bitu call_irq0;

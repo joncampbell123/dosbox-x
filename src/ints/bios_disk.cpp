@@ -787,11 +787,18 @@ void BIOS_UnsetupDisks(void) {
 void BIOS_SetupDisks(void) {
 	int i;
 
+    if (IS_PC98_ARCH) {
+        // TODO
+        RealSetVec(0x13,0); /* zero INT 13h for now */
+        return;
+    }
+
 /* TODO Start the time correctly */
 	call_int13=CALLBACK_Allocate();	
 	CALLBACK_Setup(call_int13,&INT13_DiskHandler,CB_INT13,"Int 13 Bios disk");
 	RealSetVec(0x13,CALLBACK_RealPointer(call_int13));
 
+    /* FIXME: I see a potential problem here: We're just zeroing out the array. Didn't I rewrite disk images with refcounting? --J.C. */
 	for(i=0;i<MAX_DISK_IMAGES;i++)
 		imageDiskList[i] = NULL;
 	for(i=0;i<MAX_SWAPPABLE_DISKS;i++)
