@@ -4814,9 +4814,46 @@ public:
 	}
     /* PC-98 change code */
     void rewrite_IRQ_handlers(void) {
-        CALLBACK_Setup(call_irq0,INT8_Handler,CB_IRQ0,Real2Phys(BIOS_DEFAULT_IRQ0_LOCATION),"IRQ 0 Clock");
+        CALLBACK_Setup(call_irq0,INT8_Handler,CB_IRET_EOI_PIC1,Real2Phys(BIOS_DEFAULT_IRQ0_LOCATION),"IRQ 0 Clock");
         CALLBACK_Setup(call_irq07default,NULL,CB_IRET_EOI_PIC1,Real2Phys(BIOS_DEFAULT_IRQ07_DEF_LOCATION),"bios irq 0-7 default handler");
         CALLBACK_Setup(call_irq815default,NULL,CB_IRET_EOI_PIC2,Real2Phys(BIOS_DEFAULT_IRQ815_DEF_LOCATION),"bios irq 8-15 default handler");
+
+        /* no such INT 4Bh */
+		int4b_callback.Uninstall();
+        RealSetVec(0x4B,0);
+
+        /* remove some IBM-style BIOS interrupts that don't exist on PC-98 */
+        /* TODO: Not *ALL*, not yet. We have to change more underlying code first! */
+		callback[3].Uninstall(); /* INT 14h */
+        RealSetVec(0x14,0);
+
+		callback[4].Uninstall(); /* INT 15h */
+        RealSetVec(0x15,0);
+
+		callback[5].Uninstall(); /* INT 17h */
+        RealSetVec(0x17,0);
+
+        callback[6].Uninstall(); /* INT 1Ah */
+        RealSetVec(0x1A,0);
+
+        callback[7].Uninstall(); /* INT 1Ch */
+        RealSetVec(0x1C,0);
+
+		callback[10].Uninstall(); /* INT 19h */
+        RealSetVec(0x19,0);
+
+		callback[11].Uninstall(); /* INT 76h: IDE IRQ 14 */
+        RealSetVec(0x76,0);
+
+		callback[12].Uninstall(); /* INT 77h: IDE IRQ 15 */
+        RealSetVec(0x77,0);
+
+		callback[15].Uninstall(); /* INT 18h: Enter BASIC */
+        RealSetVec(0x18,0);
+
+        /* IRQ 6 is nothing special */
+		callback[13].Uninstall(); /* INT 0Eh: IDE IRQ 6 */
+        callback[13].Install(NULL,CB_IRET_EOI_PIC1,"irq 6");
 
         /* IRQ 8 is nothing special */
         callback[8].Uninstall();
