@@ -143,7 +143,8 @@ static void counter_latch(Bitu counter) {
 	p->go_read_latch=false;
 
 	//If gate2 is disabled don't update the read_latch
-	if (counter == 2 && !gate2 && p->mode !=1) return;
+	if (counter == (IS_PC98_ARCH ? 1 : 2) && !gate2 && p->mode !=1) return;
+
 	if (GCC_UNLIKELY(p->new_mode)) {
 		double passed_time = PIC_FullIndex() - p->start;
 		Bitu ticks_since_then = (Bitu)(passed_time / (1000.0/PIT_TICK_RATE));
@@ -250,10 +251,15 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 			} else LOG(LOG_PIT,LOG_NORMAL)("PIT 0 Timer set without new control word");
 			LOG(LOG_PIT,LOG_NORMAL)("PIT 0 Timer at %.4f Hz mode %d",1000.0/p->delay,p->mode);
 			break;
-		case 0x02:			/* Timer hooked to PC-Speaker */
-			PCSPEAKER_SetCounter(p->cntr,p->mode);
-			break;
-		default:
+        case 0x01:          /* Timer hooked to PC-Speaker (NEC-PC98) */
+            if (IS_PC98_ARCH)
+                PCSPEAKER_SetCounter(p->cntr,p->mode);
+            break;
+        case 0x02:			/* Timer hooked to PC-Speaker (IBM PC) */
+            if (!IS_PC98_ARCH)
+                PCSPEAKER_SetCounter(p->cntr,p->mode);
+            break;
+        default:
 			LOG(LOG_PIT,LOG_ERROR)("PIT:Illegal timer selected for writing");
 		}
 		p->new_mode=false;
@@ -361,7 +367,7 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 				}
 			}
 			pit[latch].new_mode = true;
-			if (latch == 2) {
+			if (latch == (IS_PC98_ARCH ? 1 : 2)) {
 				// notify pc speaker code that the control word was written
 				PCSPEAKER_SetPITControl(mode);
 			}
@@ -454,6 +460,18 @@ void TIMER_BIOS_INIT_Configure() {
 	pit[1].counterstatus_set = false;
 	pit[1].start = PIC_FullIndex();
 
+	pit[2].bcd = false;
+	pit[2].write_state = 1;
+	pit[2].read_state = 1;
+	pit[2].go_read_latch = true;
+	pit[2].cntr = 18;
+	pit[2].mode = 2;
+	pit[2].write_state = 3;
+	pit[2].counterstatus_set = false;
+	pit[2].start = PIC_FullIndex();
+
+    int pcspeaker_pit = IS_PC98_ARCH ? 1 : 2; /* IBM: PC speaker on output 2   PC-98: PC speaker on output 1 */
+
 	{
 		Section_prop *pcsec = static_cast<Section_prop *>(control->GetSection("speaker"));
 		int freq = pcsec->Get_int("initial frequency"); /* original code: 1320 */
@@ -467,23 +485,23 @@ void TIMER_BIOS_INIT_Configure() {
 			if (div > 65535) div = 65535;
 		}
 
-		pit[2].cntr = div;
-		pit[2].read_latch = div;
-		pit[2].write_state = 3; /* Chuck Yeager */
-		pit[2].read_state = 3;
-		pit[2].mode = 3;
-		pit[2].bcd = false;
-		pit[2].go_read_latch = true;
-		pit[2].counterstatus_set = false;
-		pit[2].counting = false;
-	    pit[2].start = PIC_FullIndex();
+		pit[pcspeaker_pit].cntr = div;
+		pit[pcspeaker_pit].read_latch = div;
+		pit[pcspeaker_pit].write_state = 3; /* Chuck Yeager */
+		pit[pcspeaker_pit].read_state = 3;
+		pit[pcspeaker_pit].mode = 3;
+		pit[pcspeaker_pit].bcd = false;
+		pit[pcspeaker_pit].go_read_latch = true;
+		pit[pcspeaker_pit].counterstatus_set = false;
+		pit[pcspeaker_pit].counting = false;
+	    pit[pcspeaker_pit].start = PIC_FullIndex();
 	}
 
 	pit[0].delay=(1000.0f/((float)PIT_TICK_RATE/(float)pit[0].cntr));
 	pit[1].delay=(1000.0f/((float)PIT_TICK_RATE/(float)pit[1].cntr));
 	pit[2].delay=(1000.0f/((float)PIT_TICK_RATE/(float)pit[2].cntr));
 
-	PCSPEAKER_SetCounter(pit[2].cntr,pit[2].mode);
+	PCSPEAKER_SetCounter(pit[pcspeaker_pit].cntr,pit[pcspeaker_pit].mode);
 	PIC_AddEvent(PIT0_Event,pit[0].delay);
 }
 
@@ -547,7 +565,7 @@ void TIMER_OnEnterPC98(Section*) {
 
     /* This code is written to eventually copy-paste out in general */
 	WriteHandler[0].Install(IS_PC98_ARCH ? 0x71 : 0x40,write_latch,IO_MB);
-//	WriteHandler[1].Install(IS_PC98_ARCH ? 0x73 : 0x41,write_latch,IO_MB);
+	WriteHandler[1].Install(IS_PC98_ARCH ? 0x73 : 0x41,write_latch,IO_MB);
 	WriteHandler[2].Install(IS_PC98_ARCH ? 0x75 : 0x42,write_latch,IO_MB);
 	WriteHandler[3].Install(IS_PC98_ARCH ? 0x77 : 0x43,write_p43,IO_MB);
 	ReadHandler[0].Install(IS_PC98_ARCH ? 0x71 : 0x40,read_latch,IO_MB);
