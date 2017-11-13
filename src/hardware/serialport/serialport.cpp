@@ -1413,6 +1413,30 @@ void SERIAL_OnReset (Section * sec) {
 	}
 }
 
+void SERIAL_OnEnterPC98Mode (Section * sec) {
+    // TODO: PC-98 systems do have serial port(s).
+    //
+    //       I will update the code to match when I better understand them.
+    //
+    //       Note that up to two different chipsets are involved.
+    //
+    //       COM1 is usually an Intel 8251, which is completely different from the 8250/16550 used on IBM PC.
+    //
+    //       COM2 however, is usually an 16550.
+	unsigned int i;
+
+	for (i=0;i < 3;i++) {
+		if (serialports[i] != NULL)
+			serialports[i]->unregisterDOSDevice();
+	}
+
+    if (testSerialPortsBaseclass) {
+		LOG(LOG_MISC,LOG_DEBUG)("Deleting serial port base class");
+		delete testSerialPortsBaseclass;
+		testSerialPortsBaseclass = NULL;
+	}
+}
+
 void SERIAL_Init () {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing serial port emulation");
 
@@ -1422,5 +1446,6 @@ void SERIAL_Init () {
 	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(SERIAL_OnDOSKernelExit));
 	AddVMEventFunction(VM_EVENT_DOS_INIT_KERNEL_READY,AddVMEventFunctionFuncPair(SERIAL_OnDOSKernelInit));
 
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(SERIAL_OnEnterPC98Mode));
 }
 
