@@ -5011,8 +5011,11 @@ fresh_boot:
             CPU_Snap_Back_Forget();
 
             /* all hardware devices need to know to reregister themselves PC-98 style */
-            if (enter_pc98)
+            if (enter_pc98) {
+                machine = MCH_PC98;
+                enable_pc98_jump = false;
     			DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE);
+            }
 
             /* begin booting DOS again. */
             void BIOS_Enter_Boot_Phase(void);
