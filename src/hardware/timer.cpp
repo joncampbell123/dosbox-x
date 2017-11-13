@@ -560,6 +560,7 @@ void TIMER_OnEnterPC98_Phase1(Section*) {
 void TIMER_OnEnterPC98_Phase2(Section*) {
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 	assert(section != NULL);
+    int pc98rate;
 
 	PIC_RemoveEvents(PIT0_Event);
 
@@ -572,8 +573,18 @@ void TIMER_OnEnterPC98_Phase2(Section*) {
 	ReadHandler[2].Uninstall();
 	ReadHandler[3].Uninstall();
 
-    /* TODO: PC-98 has two different rates: 5/10MHz base or 8MHz base. Let the user choose via dosbox.conf */
-    PIT_TICK_RATE = PIT_TICK_RATE_PC98_10MHZ;
+    /* PC-98 has two different rates: 5/10MHz base or 8MHz base. Let the user choose via dosbox.conf */
+    pc98rate = section->Get_int("pc-98 timer master frequency");
+    if (pc98rate == 0) pc98rate = 10; /* Pick the most likely to work with DOS games (FIXME: This is a GUESS!! Is this correct?) */
+    else if (pc98rate < 9) pc98rate = 8;
+    else pc98rate = 10;
+
+    if (pc98rate >= 10)
+        PIT_TICK_RATE = PIT_TICK_RATE_PC98_10MHZ;
+    else
+        PIT_TICK_RATE = PIT_TICK_RATE_PC98_8MHZ;
+
+    LOG_MSG("PC-98 PIT master clock rate %luHz",PIT_TICK_RATE);
 
     /* I/O port map (8254)
      *
@@ -606,7 +617,9 @@ void TIMER_OnEnterPC98_Phase2(Section*) {
 	ReadHandler[2].Install(IS_PC98_ARCH ? 0x75 : 0x42,read_latch,IO_MB);
 
     /* BIOS data area at 0x501 tells the DOS application which clock rate to use */
-    phys_writeb(0x501,0x00);    /* bit 7: 1=8MHz  0=5MHz/10MHz */
+    phys_writeb(0x501,
+        ((PIT_TICK_RATE == PIT_TICK_RATE_PC98_8MHZ) ? 0x80 : 0x00)      /* bit 7: 1=8MHz  0=5MHz/10MHz */
+    );
 
 	latched_timerstatus_locked=false;
 	gate2 = false;

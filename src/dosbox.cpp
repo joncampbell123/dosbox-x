@@ -1151,6 +1151,16 @@ void DOSBOX_SetupConfigSections(void) {
 		"        or 386DX and 486 systems where the CPU communicated directly with the ISA bus (A24-A31 tied off)\n"
 		"    26: 64MB aliasing. Some 486s had only 26 external address bits, some motherboards tied off A26-A31");
 
+	Pint = secprop->Add_int("pc-98 timer master frequency", Property::Changeable::WhenIdle,0);
+	Pint->SetMinMax(0,2457600);
+	Pint->Set_help("8254 timer clock frequency (NEC PC-98). Depending on the CPU frequency the clock frequency is one of two common values.\n"
+                   "If your setting is neither of the below the closest appropriate value will be chosen.\n"
+                   "This setting affects the master clock rate that DOS applications must divide down from to program the timer\n"
+                   "at the correct rate, which affects timer interrupt, PC speaker, and the COM1 RS-232C serial port baud rate.\n"
+                   "    0: Use default (auto)\n"
+                   "    8: 1.996MHz (as if 8MHz or multiple thereof CPU clock)\n"
+                   "   10: 2.457MHz (as if 5MHz/10MHz or multiple thereof CPU clock)");
+
 	Pint = secprop->Add_int("vga bios size override", Property::Changeable::WhenIdle,0);
 	Pint->SetMinMax(512,65536);
 	Pint->Set_help("VGA BIOS size override. Override the size of the VGA BIOS (normally 32KB in compatible or 12KB in non-compatible).");
