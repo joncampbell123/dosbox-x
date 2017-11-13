@@ -551,7 +551,7 @@ void TIMER_OnEnterPC98(Section*) {
 	ReadHandler[3].Uninstall();
 
     /* TODO: PC-98 has two different rates: 5/10MHz base or 8MHz base. Let the user choose via dosbox.conf */
-    PIT_TICK_RATE = PIT_TICK_RATE_PC98_5MHZ;
+    PIT_TICK_RATE = PIT_TICK_RATE_PC98_10MHZ;
 
     /* I/O port map (8254)
      *
