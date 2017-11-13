@@ -434,6 +434,22 @@ void PARALLEL_OnReset (Section * sec) {
 	}
 }
 
+void PARALLEL_OnPC98Enter (Section * sec) {
+    /* TODO: PC-98 systems do have parallel ports.
+     *       Update this code to match when I figure out how they work and what I/O ports are involved. */
+    unsigned int i;
+
+    for (i=0;i < 3;i++) {
+        if (parallelPortObjects[i] != NULL)
+            parallelPortObjects[i]->unregisterDOSDevice();
+    }
+
+    if (testParallelPortsBaseclass != NULL) {
+        delete testParallelPortsBaseclass;
+        testParallelPortsBaseclass = NULL;
+    }
+}
+
 void PARALLEL_Init () {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing parallel port emulation");
 
@@ -442,5 +458,7 @@ void PARALLEL_Init () {
 	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(PARALLEL_OnPowerOn));
 	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(PARALLEL_OnDOSKernelExit));
 	AddVMEventFunction(VM_EVENT_DOS_INIT_KERNEL_READY,AddVMEventFunctionFuncPair(PARALLEL_OnDOSKernelInit));
+
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(PARALLEL_OnPC98Enter));
 }
 
