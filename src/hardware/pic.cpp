@@ -738,8 +738,11 @@ void PIC_Reset(Section *sec) {
 		pics[i].isrr = pics[i].imr = 0xff;
 		pics[i].active_irq = 8;
 	}
+
+    /* IBM: IRQ 0-15 is INT 0x08-0x0F, 0x70-0x7F
+     * PC-98: IRQ 0-15 is INT 0x08-0x17 */
 	master.vector_base = 0x08;
-	slave.vector_base = 0x70;
+	slave.vector_base = IS_PC98_ARCH ? 0x10 : 0x70;
 
     for (Bitu i=0;i < 16;i++)
         PIC_SetIRQMask(i,true);

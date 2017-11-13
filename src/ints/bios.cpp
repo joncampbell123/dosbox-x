@@ -4897,6 +4897,12 @@ public:
         callback[9].Uninstall();
         callback[9].Install(NULL,CB_IRET_EOI_PIC2,"irq 9");
 
+        /* PIC emulation (correctly) moves IRQ 8-15 down to INT 0x10-0x17 to match PC-98 */
+		for (Bit16u ct=0x10;ct <= 0x17;ct++) /* write default IRQ handlers down here */
+			RealSetVec(ct,BIOS_DEFAULT_IRQ815_DEF_LOCATION);
+		for (Bit16u ct=0x70;ct <= 0x77;ct++) /* zero out IBM PC IRQ 8-15 vectors */
+			RealSetVec(ct,0);
+
         BIOS_UnsetupKeyboard();
         BIOS_SetupKeyboard();
 
