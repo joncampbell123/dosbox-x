@@ -4851,8 +4851,10 @@ int main(int argc, char* argv[]) {
 		bool run_machine;
 		bool reboot_machine;
 		bool dos_kernel_shutdown;
+        bool enter_pc98;
 
 fresh_boot:
+        enter_pc98 = false;
         reboot_dos = false;
 		run_machine = false;
 		reboot_machine = false;
@@ -4883,6 +4885,7 @@ fresh_boot:
                 LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to enter PC-98 mode");
 
                 reboot_dos = true;
+                enter_pc98 = true;
                 dos_kernel_shutdown = !dos_kernel_disabled; /* only if DOS kernel enabled */
             }
             else {
@@ -5001,9 +5004,8 @@ fresh_boot:
             CPU_Snap_Back_To_Real_Mode();
             CPU_Snap_Back_Forget();
 
-            /* TODO: Fire VM event notifying all devices we're jumping into PC-98 mode */
-
-            DispatchVMEvent(VM_EVENT_BIOS_BOOT);
+            /* all hardware devices need to know to reregister themselves PC-98 style */
+			DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE);
 
             /* begin booting DOS again. */
             void BIOS_Enter_Boot_Phase(void);
