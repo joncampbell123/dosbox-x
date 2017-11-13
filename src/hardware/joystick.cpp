@@ -204,17 +204,27 @@ public:
 	}
 };
 
-static JOYSTICK* test;
+static JOYSTICK* test = NULL;
 
 void JOYSTICK_Destroy(Section* sec) {
-	delete test;
+    if (test != NULL) {
+        delete test;
+        test = NULL;
+    }
 }
 
 void JOYSTICK_OnPowerOn(Section* sec) {
-	if (test == NULL) {
-		LOG(LOG_MISC,LOG_DEBUG)("Allocating joystick emulation");
-		test = new JOYSTICK(control->GetSection("joystick"));
-	}
+    if (test == NULL) {
+        LOG(LOG_MISC,LOG_DEBUG)("Allocating joystick emulation");
+        test = new JOYSTICK(control->GetSection("joystick"));
+    }
+}
+
+void JOYSTICK_OnEnterPC98(Section* sec) {
+    if (test != NULL) {
+        delete test;
+        test = NULL;
+    }
 }
 
 void JOYSTICK_Init() {
@@ -248,5 +258,7 @@ void JOYSTICK_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(JOYSTICK_Destroy),true); 
 	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(JOYSTICK_OnPowerOn));
+
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(JOYSTICK_OnEnterPC98));
 }
 
