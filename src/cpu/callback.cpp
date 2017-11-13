@@ -316,11 +316,23 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
 	case CB_IRQ1:	// keyboard int9
 		phys_writeb(physAddress+0x00,(Bit8u)0x50);			// push ax
 		phys_writew(physAddress+0x01,(Bit16u)0x60e4);		// in al, 0x60
-		phys_writew(physAddress+0x03,(Bit16u)0x4fb4);		// mov ah, 0x4f
-		phys_writeb(physAddress+0x05,(Bit8u)0xf9);			// stc
-		phys_writew(physAddress+0x06,(Bit16u)0x15cd);		// int 15
+        if (IS_PC98_ARCH) {
+            phys_writew(physAddress+0x03,(Bit16u)0x9090);		// nop, nop
+            phys_writeb(physAddress+0x05,(Bit8u)0x90);			// nop
+            phys_writew(physAddress+0x06,(Bit16u)0x9090);		// nop, nop (PC-98 does not have INT 15h keyboard hook)
+        }
+        else {
+            phys_writew(physAddress+0x03,(Bit16u)0x4fb4);		// mov ah, 0x4f
+            phys_writeb(physAddress+0x05,(Bit8u)0xf9);			// stc
+            phys_writew(physAddress+0x06,(Bit16u)0x15cd);		// int 15
+        }
+
 		if (use_cb) {
-			phys_writew(physAddress+0x08,(Bit16u)0x0473);	// jc skip
+            if (IS_PC98_ARCH)
+                phys_writew(physAddress+0x08,(Bit16u)0x9090);	// nop nop
+            else
+                phys_writew(physAddress+0x08,(Bit16u)0x0473);	// jc skip
+
 			phys_writeb(physAddress+0x0a,(Bit8u)0xFE);		//GRP 4
 			phys_writeb(physAddress+0x0b,(Bit8u)0x38);		//Extra Callback instruction
 			phys_writew(physAddress+0x0c,(Bit16u)callback);			//The immediate word
