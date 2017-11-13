@@ -386,10 +386,20 @@ public:
 	~PS1SOUND(){ }
 };
 
-static PS1SOUND* test;
+static PS1SOUND* test = NULL;
 
 void PS1SOUND_ShutDown(Section* sec) {
-	delete test;	
+    if (test) {
+        delete test;
+        test = NULL;
+    }
+}
+
+void PS1SOUND_OnEnterPC98(Section* sec) {
+    if (test) {
+        delete test;
+        test = NULL;
+    }
 }
 
 void PS1SOUND_OnReset(Section* sec) {
@@ -404,5 +414,7 @@ void PS1SOUND_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(PS1SOUND_ShutDown),true);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PS1SOUND_OnReset));
+
+    AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(PS1SOUND_OnEnterPC98));
 }
 
