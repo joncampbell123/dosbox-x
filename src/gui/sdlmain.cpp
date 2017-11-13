@@ -4847,11 +4847,13 @@ int main(int argc, char* argv[]) {
 		/* The machine just "powered on", and then reset finished */
 		if (!VM_PowerOn()) E_Exit("VM failed to power on");
 
+        bool reboot_dos;
 		bool run_machine;
 		bool reboot_machine;
 		bool dos_kernel_shutdown;
 
 fresh_boot:
+        reboot_dos = false;
 		run_machine = false;
 		reboot_machine = false;
 		dos_kernel_shutdown = false;
@@ -4875,6 +4877,12 @@ fresh_boot:
                 LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to reboot the system");
 
                 reboot_machine = true;
+                dos_kernel_shutdown = !dos_kernel_disabled; /* only if DOS kernel enabled */
+            }
+            else if (x == 5) { /* go to PC-98 mode */
+                LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to enter PC-98 mode");
+
+                reboot_dos = true;
                 dos_kernel_shutdown = !dos_kernel_disabled; /* only if DOS kernel enabled */
             }
             else {
@@ -4981,6 +4989,24 @@ fresh_boot:
 			/* new code: fire event */
 			DispatchVMEvent(VM_EVENT_RESET);
 			DispatchVMEvent(VM_EVENT_RESET_END);
+
+            /* run again */
+            goto fresh_boot;
+		}
+        else if (reboot_dos) { /* typically (at this time) to enter/exit PC-98 mode */
+			LOG_MSG("Rebooting DOS\n");
+
+            void CPU_Snap_Back_Forget();
+            /* Shutdown everything. For shutdown to work properly we must force CPU to real mode */
+            CPU_Snap_Back_To_Real_Mode();
+            CPU_Snap_Back_Forget();
+
+            /* TODO: Fire VM event notifying all devices we're jumping into PC-98 mode */
+
+            DispatchVMEvent(VM_EVENT_BIOS_BOOT);
+
+            // Begin booting the DOSBox shell. NOTE: VM_Boot_DOSBox_Kernel will change CS:IP instruction pointer!
+            if (!VM_Boot_DOSBox_Kernel()) E_Exit("BIOS error: BOOT function failed to boot DOSBox kernel");
 
             /* run again */
             goto fresh_boot;
