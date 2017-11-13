@@ -4888,6 +4888,12 @@ fresh_boot:
                 enter_pc98 = true;
                 dos_kernel_shutdown = !dos_kernel_disabled; /* only if DOS kernel enabled */
             }
+            else if (x == 6) { /* reboot DOS kernel */
+                LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to reboot DOS kernel");
+
+                reboot_dos = true;
+                dos_kernel_shutdown = !dos_kernel_disabled; /* only if DOS kernel enabled */
+            }
             else {
                 LOG(LOG_MISC,LOG_DEBUG)("Emulation threw DOSBox kill switch signal");
 
@@ -5005,7 +5011,8 @@ fresh_boot:
             CPU_Snap_Back_Forget();
 
             /* all hardware devices need to know to reregister themselves PC-98 style */
-			DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE);
+            if (enter_pc98)
+    			DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE);
 
             /* begin booting DOS again. */
             void BIOS_Enter_Boot_Phase(void);
