@@ -27,6 +27,8 @@
 
 extern bool DOS_BreakFlag;
 
+Bitu INT10_Handler(void);
+
 class device_CON : public DOS_Device {
 public:
 	device_CON();
@@ -66,7 +68,15 @@ private:
 		reg_dh=row;
 		reg_dl=col;
 		reg_bh=page;
-		CALLBACK_RunRealInt(0x10);
+
+        /* FIXME: PC-98 emulation should eventually use CONIO emulation that
+         *        better emulates the actual platform. The purpose of this
+         *        hack is to allow our code to call into INT 10h without
+         *        setting up an INT 10h vector */
+        if (IS_PC98_ARCH)
+            INT10_Handler();
+        else
+            CALLBACK_RunRealInt(0x10);
 
 		reg_ax=oldax;
 		reg_bx=oldbx;
@@ -83,7 +93,15 @@ private:
 		reg_ah=0xE;
 		reg_al=xChar;
 		reg_bl=xAttr;
-		CALLBACK_RunRealInt(0x10);
+
+        /* FIXME: PC-98 emulation should eventually use CONIO emulation that
+         *        better emulates the actual platform. The purpose of this
+         *        hack is to allow our code to call into INT 10h without
+         *        setting up an INT 10h vector */
+        if (IS_PC98_ARCH)
+            INT10_Handler();
+        else
+            CALLBACK_RunRealInt(0x10);
 
 		reg_ax=oldax;
 		reg_bx=oldbx;
@@ -108,7 +126,15 @@ private:
 		if(useattr)
 				reg_ah=0x9;
 		else	reg_ah=0x0A;
-		CALLBACK_RunRealInt(0x10);
+
+        /* FIXME: PC-98 emulation should eventually use CONIO emulation that
+         *        better emulates the actual platform. The purpose of this
+         *        hack is to allow our code to call into INT 10h without
+         *        setting up an INT 10h vector */
+        if (IS_PC98_ARCH)
+            INT10_Handler();
+        else
+            CALLBACK_RunRealInt(0x10);
 
 		reg_ax=oldax;
 		reg_bx=oldbx;

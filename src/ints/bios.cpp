@@ -4826,7 +4826,6 @@ public:
         /* remove some IBM-style BIOS interrupts that don't exist on PC-98 */
         /* TODO: Not *ALL*, not yet. We have to change more underlying code first! */
         /* Yet to remove for phase #1:
-         *   - INT 10h VIDEO BIOS
          *   - INT 16h KEYBOARD INPUT
          *
          * Once removed, Phase #1 can begin where IRQ 8-15 are relocated to match PC-98 IRQ arrangement.
@@ -4855,6 +4854,10 @@ public:
          * As part of the change the IRQ cascade emulation needs to change for PC-98 as well.
          * IBM uses IRQ 2 for cascade.
          * PC-98 uses IRQ 7 for cascade. */
+
+        void INT10_EnterPC98(Section *sec);
+        INT10_EnterPC98(NULL); /* INT 10h */
+
 		callback[1].Uninstall(); /* INT 11h */
         RealSetVec(0x11,0);
 

@@ -30,7 +30,7 @@ Int10Data int10;
 static Bitu call_10 = 0;
 static bool warned_ff=false;
 
-static Bitu INT10_Handler(void) {
+Bitu INT10_Handler(void) {
 	// NTS: We do have to check the "current video mode" from the BIOS data area every call.
 	//      Some OSes like Windows 95 rely on overwriting the "current video mode" byte in
 	//      the BIOS data area to play tricks with the BIOS. If we don't call this, tricks
@@ -780,6 +780,15 @@ void INT10_OnResetComplete() {
 extern bool unmask_irq0_on_int10_setmode;
 extern bool int16_unmask_irq1_on_read;
 extern bool int16_ah_01_cf_undoc;
+
+void INT10_EnterPC98(Section *sec) {
+    /* shut down INT 10h for PC-98 mode */
+    if (call_10 != 0) {
+        CALLBACK_DeAllocate(call_10);
+        RealSetVec(0x10,0);
+        call_10 = 0;
+    }
+}
 
 void INT10_Startup(Section *sec) {
 	LOG(LOG_MISC,LOG_DEBUG)("INT 10h reinitializing");
