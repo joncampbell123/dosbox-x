@@ -288,8 +288,8 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
 		phys_writeb(physAddress+0x00,(Bit8u)0x50);		// push ax
 		phys_writeb(physAddress+0x01,(Bit8u)0xb0);		// mov al, 0x20
 		phys_writeb(physAddress+0x02,(Bit8u)0x20);
-		phys_writeb(physAddress+0x03,(Bit8u)0xe6);		// out 0x20, al
-		phys_writeb(physAddress+0x04,(Bit8u)0x20);
+		phys_writeb(physAddress+0x03,(Bit8u)0xe6);		// out 0x20, al (IBM) / out 0x00, al (PC-98)
+		phys_writeb(physAddress+0x04,(Bit8u)(IS_PC98_ARCH ? 0x00 : 0x20));
 		phys_writeb(physAddress+0x05,(Bit8u)0x58);		// pop ax
 		phys_writeb(physAddress+0x06,(Bit8u)0xcf);		//An IRET Instruction
 		return (use_cb?0x0b:0x07);
@@ -307,7 +307,7 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
 		phys_writew(physAddress+0x04,(Bit16u)0x1ccd);	// int 1c
 		phys_writeb(physAddress+0x06,(Bit8u)0xfa);		// cli
 		phys_writew(physAddress+0x07,(Bit16u)0x20b0);	// mov al, 0x20
-		phys_writew(physAddress+0x09,(Bit16u)0x20e6);	// out 0x20, al
+		phys_writew(physAddress+0x09,(Bit16u)(IS_PC98_ARCH ? 0x00e6 : 0x20e6));	// out 0x20, al / out 0x00, al (PC-98) (FIXME: PC-98 does not have INT 1Ch)
 		phys_writeb(physAddress+0x0b,(Bit8u)0x5a);		// pop dx
 		phys_writeb(physAddress+0x0c,(Bit8u)0x58);		// pop ax
 		phys_writeb(physAddress+0x0d,(Bit8u)0x1f);		// pop ds
@@ -329,7 +329,7 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
 		}
 		phys_writeb(physAddress+0x08,(Bit8u)0xfa);			// cli
 		phys_writew(physAddress+0x09,(Bit16u)0x20b0);		// mov al, 0x20
-		phys_writew(physAddress+0x0b,(Bit16u)0x20e6);		// out 0x20, al
+		phys_writew(physAddress+0x0b,(Bit16u)(IS_PC98_ARCH ? 0x00e6 : 0x20e6));		// out 0x20, al
 		phys_writeb(physAddress+0x0d,(Bit8u)0x58);			// pop ax
 		phys_writeb(physAddress+0x0e,(Bit8u)0xcf);			//An IRET Instruction
 		return (use_cb?0x15:0x0f);
@@ -343,7 +343,7 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
 			physAddress+=4;
 		}
 		phys_writew(physAddress+0x03,(Bit16u)0x20b0);		// mov al, 0x20
-		phys_writew(physAddress+0x05,(Bit16u)0x20e6);		// out 0x20, al
+		phys_writew(physAddress+0x05,(Bit16u)(IS_PC98_ARCH ? 0x00e6 : 0x20e6));		// out 0x20, al
 		phys_writeb(physAddress+0x07,(Bit8u)0x58);			// pop ax
 		phys_writeb(physAddress+0x08,(Bit8u)0xcf);			//An IRET Instruction
 		return (use_cb?0x0d:0x09);
@@ -612,10 +612,10 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
 		phys_writeb(physAddress+0x00,(Bit8u)0x50);		// push ax
 		phys_writeb(physAddress+0x01,(Bit8u)0xb0);		// mov al, 0x20
 		phys_writeb(physAddress+0x02,(Bit8u)0x20);
-		phys_writeb(physAddress+0x03,(Bit8u)0xe6);		// out 0xA0, al
-		phys_writeb(physAddress+0x04,(Bit8u)0xA0);
-		phys_writeb(physAddress+0x05,(Bit8u)0xe6);		// out 0x20, al
-		phys_writeb(physAddress+0x06,(Bit8u)0x20);
+		phys_writeb(physAddress+0x03,(Bit8u)0xe6);		// out 0xA0, al (IBM) / out 0x08, al (PC-98)
+		phys_writeb(physAddress+0x04,(Bit8u)(IS_PC98_ARCH ? 0x08 : 0xA0));
+		phys_writeb(physAddress+0x05,(Bit8u)0xe6);		// out 0x20, al (IBM) / out 0x00, al (PC-98)
+		phys_writeb(physAddress+0x06,(Bit8u)(IS_PC98_ARCH ? 0x00 : 0x20));
 		phys_writeb(physAddress+0x07,(Bit8u)0x58);		// pop ax
 		phys_writeb(physAddress+0x08,(Bit8u)0xcf);		//An IRET Instruction
 		return (use_cb?0x0d:0x09);

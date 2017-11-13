@@ -191,7 +191,7 @@ static struct {
 } pic_queue;
 
 static void write_command(Bitu port,Bitu val,Bitu iolen) {
-	PIC_Controller * pic=&pics[port==0x20 ? 0 : 1];
+	PIC_Controller * pic=&pics[(port==0x20/*IBM*/ || port==0x00/*PC-98*/) ? 0 : 1];
 
 	if (GCC_UNLIKELY(val&0x10)) {		// ICW1 issued
 		if (val&0x04) LOG_MSG("PIC: 4 byte interval not handled");
@@ -242,7 +242,8 @@ static void write_command(Bitu port,Bitu val,Bitu iolen) {
 }
 
 static void write_data(Bitu port,Bitu val,Bitu iolen) {
-	PIC_Controller * pic=&pics[port==0x21 ? 0 : 1];
+	PIC_Controller * pic=&pics[(port==0x21/*IBM*/ || port==0x02/*PC-98*/) ? 0 : 1];
+
 	switch(pic->icw_index) {
 	case 0:                        /* mask register */
 		pic->set_imr(val);
@@ -283,7 +284,7 @@ static void write_data(Bitu port,Bitu val,Bitu iolen) {
 
 
 static Bitu read_command(Bitu port,Bitu iolen) {
-	PIC_Controller * pic=&pics[port==0x20 ? 0 : 1];
+	PIC_Controller * pic=&pics[(port==0x20/*IBM*/ || port==0x00/*PC-98*/) ? 0 : 1];
 	if (pic->request_issr){
 		return pic->isr;
 	} else { 
@@ -293,7 +294,7 @@ static Bitu read_command(Bitu port,Bitu iolen) {
 
 
 static Bitu read_data(Bitu port,Bitu iolen) {
-	PIC_Controller * pic=&pics[port==0x21 ? 0 : 1];
+	PIC_Controller * pic=&pics[(port==0x21/*IBM*/ || port==0x02/*PC-98*/) ? 0 : 1];
 	return pic->imr;
 }
 
@@ -748,24 +749,38 @@ void PIC_Reset(Section *sec) {
 	PIC_SetIRQMask(2,false);					/* Enable second pic */
 	PIC_SetIRQMask(8,false);					/* Enable RTC IRQ */
 
-	ReadHandler[0].Install(0x20,read_command,IO_MB);
-	ReadHandler[1].Install(0x21,read_data,IO_MB);
-	WriteHandler[0].Install(0x20,write_command,IO_MB);
-	WriteHandler[1].Install(0x21,write_data,IO_MB);
+    /* I/O port map
+     *
+     * IBM PC/XT/AT     NEC PC-98        A0
+     * ---------------------------------------
+     * 0x20             0x00             0
+     * 0x21             0x02             1
+     * 0xA0             0x08             0
+     * 0xA1             0x0A             1
+     */
+
+	ReadHandler[0].Install(IS_PC98_ARCH ? 0x00 : 0x20,read_command,IO_MB);
+	ReadHandler[1].Install(IS_PC98_ARCH ? 0x02 : 0x21,read_data,IO_MB);
+	WriteHandler[0].Install(IS_PC98_ARCH ? 0x00 : 0x20,write_command,IO_MB);
+	WriteHandler[1].Install(IS_PC98_ARCH ? 0x02 : 0x21,write_data,IO_MB);
 
 	/* the secondary slave PIC takes priority over PC/XT NMI mask emulation */
 	if (enable_slave_pic) {
-		ReadHandler[2].Install(0xa0,read_command,IO_MB);
-		ReadHandler[3].Install(0xa1,read_data,IO_MB);
-		WriteHandler[2].Install(0xa0,write_command,IO_MB);
-		WriteHandler[3].Install(0xa1,write_data,IO_MB);
+		ReadHandler[2].Install(IS_PC98_ARCH ? 0x08 : 0xa0,read_command,IO_MB);
+		ReadHandler[3].Install(IS_PC98_ARCH ? 0x0A : 0xa1,read_data,IO_MB);
+		WriteHandler[2].Install(IS_PC98_ARCH ? 0x08 : 0xa0,write_command,IO_MB);
+		WriteHandler[3].Install(IS_PC98_ARCH ? 0x0A : 0xa1,write_data,IO_MB);
 	}
-	else if (enable_pc_xt_nmi_mask) {
+	else if (!IS_PC98_ARCH && enable_pc_xt_nmi_mask) {
 		PCXT_NMI_WriteHandler.Install(0xa0,pc_xt_nmi_write,IO_MB);
 	}
 }
 
 void PIC_Destroy(Section* sec) {
+}
+
+void PIC_EnterPC98(Section* sec) {
+    PIC_Reset(sec);
 }
 
 void Init_PIC() {
@@ -786,5 +801,6 @@ void Init_PIC() {
 
 	AddExitFunction(AddExitFunctionFuncPair(PIC_Destroy));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PIC_Reset));
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(PIC_EnterPC98));
 }
 

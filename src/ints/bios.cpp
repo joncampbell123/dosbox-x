@@ -3400,6 +3400,7 @@ static Bitu INT15_Handler(void) {
 	return CBRET_NONE;
 }
 
+void BIOS_UnsetupKeyboard(void);
 void BIOS_SetupKeyboard(void);
 void BIOS_SetupDisks(void);
 void CPU_Snap_Back_To_Real_Mode();
@@ -4582,7 +4583,7 @@ public:
 		/* Setup all the interrupt handlers the bios controls */
 
 		/* INT 8 Clock IRQ Handler */
-		Bitu call_irq0=CALLBACK_Allocate();	
+		call_irq0=CALLBACK_Allocate();	
 		CALLBACK_Setup(call_irq0,INT8_Handler,CB_IRQ0,Real2Phys(BIOS_DEFAULT_IRQ0_LOCATION),"IRQ 0 Clock");
 
 		/* INT 11 Get equipment list */
@@ -4687,11 +4688,11 @@ public:
 		init_vm86_fake_io();
 
 		/* Irq 2-7 */
-		Bitu call_irq07default=CALLBACK_Allocate();
+		call_irq07default=CALLBACK_Allocate();
 		CALLBACK_Setup(call_irq07default,NULL,CB_IRET_EOI_PIC1,Real2Phys(BIOS_DEFAULT_IRQ07_DEF_LOCATION),"bios irq 0-7 default handler");
 
 		/* Irq 8-15 */
-		Bitu call_irq815default=CALLBACK_Allocate();
+		call_irq815default=CALLBACK_Allocate();
 		CALLBACK_Setup(call_irq815default,NULL,CB_IRET_EOI_PIC2,Real2Phys(BIOS_DEFAULT_IRQ815_DEF_LOCATION),"bios irq 8-15 default handler");
 
 		/* BIOS boot stages */
@@ -4811,6 +4812,19 @@ public:
 		/* done */
 		CPU_Snap_Back_Restore();
 	}
+    /* PC-98 change code */
+    void rewrite_IRQ_handlers(void) {
+        CALLBACK_Setup(call_irq0,INT8_Handler,CB_IRQ0,Real2Phys(BIOS_DEFAULT_IRQ0_LOCATION),"IRQ 0 Clock");
+        CALLBACK_Setup(call_irq07default,NULL,CB_IRET_EOI_PIC1,Real2Phys(BIOS_DEFAULT_IRQ07_DEF_LOCATION),"bios irq 0-7 default handler");
+        CALLBACK_Setup(call_irq815default,NULL,CB_IRET_EOI_PIC2,Real2Phys(BIOS_DEFAULT_IRQ815_DEF_LOCATION),"bios irq 8-15 default handler");
+
+        BIOS_UnsetupKeyboard();
+        BIOS_SetupKeyboard();
+    }
+public:
+    Bitu call_irq0;
+    Bitu call_irq07default;
+    Bitu call_irq815default;
 };
 
 void BIOS_Enter_Boot_Phase(void) {
@@ -4926,7 +4940,10 @@ void BIOS_OnPowerOn(Section* sec) {
 }
 
 void BIOS_OnEnterPC98Mode(Section* sec) {
-    if (test) test->write_FFFF_PC98_signature();
+    if (test) {
+        test->write_FFFF_PC98_signature();
+        test->rewrite_IRQ_handlers();
+    }
 }
 
 void swapInNextDisk(bool pressed);
