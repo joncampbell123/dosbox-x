@@ -4510,6 +4510,22 @@ public:
 		// signature
 		phys_writeb(0xfffff,0x55);
 	}
+    void write_FFFF_PC98_signature() {
+        /* this may overwrite the existing signature.
+         * PC-98 systems DO NOT have an ASCII date at F000:FFF5
+         * and the WORD value at F000:FFFE is said to be a checksum of the BIOS */
+ 
+		// The farjump at the processor reset entry point (jumps to POST routine)
+		phys_writeb(0xffff0,0xEA);					// FARJMP
+		phys_writew(0xffff1,RealOff(BIOS_DEFAULT_RESET_LOCATION));	// offset
+		phys_writew(0xffff3,RealSeg(BIOS_DEFAULT_RESET_LOCATION));	// segment
+
+		// write nothing (not used)
+		for(Bitu i = 0; i < 9; i++) phys_writeb(0xffff5+i,0);
+
+        // fake BIOS checksum
+        phys_writew(0xffffe,0xABCD);
+    }
 	BIOS(Section* configuration):Module_base(configuration){
 		/* tandy DAC can be requested in tandy_sound.cpp by initializing this field */
 		Bitu wo;
@@ -4909,6 +4925,10 @@ void BIOS_OnPowerOn(Section* sec) {
 	test = new BIOS(control->GetSection("joystick"));
 }
 
+void BIOS_OnEnterPC98Mode(Section* sec) {
+    if (test) test->write_FFFF_PC98_signature();
+}
+
 void swapInNextDisk(bool pressed);
 void swapInNextCD(bool pressed);
 
@@ -4960,6 +4980,9 @@ void BIOS_Init() {
 	AddExitFunction(AddExitFunctionFuncPair(BIOS_Destroy),false);
 	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(BIOS_OnPowerOn));
 	AddVMEventFunction(VM_EVENT_RESET_END,AddVMEventFunctionFuncPair(BIOS_OnResetComplete));
+
+    /* PC-98 support */
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(BIOS_OnEnterPC98Mode));
 }
 
 void write_ID_version_string() {
