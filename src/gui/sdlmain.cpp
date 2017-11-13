@@ -5014,7 +5014,8 @@ fresh_boot:
             if (enter_pc98) {
                 machine = MCH_PC98;
                 enable_pc98_jump = false;
-    			DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE);
+    			DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE); /* IBM PC unregistration/shutdown */
+    			DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE_END); /* PC-98 registration/startup */
             }
 
             /* begin booting DOS again. */

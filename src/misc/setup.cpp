@@ -803,7 +803,8 @@ const char *VM_EVENT_string[VM_EVENT_MAX] = {
 
 	"DOS exit, kernel reboot exit",     // 15
     "DOS surprise reboot",
-    "Reboot into PC-98 emulation"
+    "Reboot into PC-98 emulation phase 1",
+    "Reboot into PC-98 emulation phase 2"
 };
 
 VMDispatchState vm_dispatch_state;
