@@ -1449,6 +1449,92 @@ bool KEYBOARD_Report_BIOS_PS2Mouse() {
 	return keyb.enable_aux && (keyb.ps2mouse.type != MOUSE_NONE);
 }
 
+static IO_ReadHandleObject ReadHandler_8255_PC98[4];
+static IO_WriteHandleObject WriteHandler_8255_PC98[4];
+
+/* PC-98 8255 port A. B, C connections.
+ *
+ * Port A: (31h)
+ *   bit [7:0] DIP switch 2-8 (bit 7) to 2-1 (bit 0)
+ *
+ * Port B: (33h)
+ *   bit 7: RS-232C CI signal
+ *   bit 6: RS-232C CS signal
+ *   bit 5: RS-232C CD signal
+ *   bit 4: Expansion bus INT 3 signal
+ *   bit 3: CRT type (1=high 0=normal) DIP switch 1-1
+ *   bit 2: internal memory parity error
+ *   bit 1: external memory (expansion) parity error
+ *   bit 0: CDAT (??)
+ *
+ * Port C: (35h)
+ *   (varies)
+ *   bit 3: buzzer (PC speaker gate) (1=stop 0=ring) [R/W]
+ *   bit 2: Interrupt request from TXRDY of 8251A (RS-232C)
+ *   bit 1: Interrupt request from TXEMPTY of 8251A
+ *   bit 0: Interrupt request from RXRE of 8251
+ *
+ * Control register (37h)
+ */
+
+static void pc98_8255_write(Bitu port,Bitu val,Bitu /*iolen*/) {
+    switch (port) {
+        case 0x31:
+            LOG_MSG("PC-98 8255 FIXME: DIP switch port A not supported yet");
+            break;
+        case 0x33:
+            LOG_MSG("PC-98 8255 FIXME: Port B not supported yet");
+            break;
+        case 0x35:
+            /* HACK: Re-use IBM speaker gate variable for PC speaker in PC-98 enable.
+             *       Remember PC-98 buzzer gate is a DISABLE, not IBM style ENABLE */
+            port_61_data = (val & 0x08) ? 0 : 3;
+            PCSPEAKER_SetType(!!port_61_data,!!port_61_data);
+            break;
+        case 0x37:
+            LOG_MSG("PC-98 8255 FIXME: Control register not supported yet");
+            break;
+    };
+}
+
+static Bitu pc98_8255_read(Bitu port,Bitu /*iolen*/) {
+    switch (port) {
+        case 0x31:
+            LOG_MSG("PC-98 8255 FIXME: DIP switch port A not supported yet");
+            return 0x00;
+        case 0x33:
+            LOG_MSG("PC-98 8255 FIXME: Port B not supported yet");
+            return 0x00;
+        case 0x35:
+            /* HACK: Re-use the IBM port 61h gate enable here for buzzer inhibit.
+             *       Remember that on the IBM platform the PC gate is an ENABLE (1=on)
+             *       and PC-98 the gate is a DISABLE (1=off) */
+            return
+                ((port_61_data & 1) ? 0x00 : 0x08);
+    };
+
+    LOG_MSG("PC-98 8255 unexpected read port 0x%02X",(unsigned int)port);
+    return 0x00; /* NTS: Playing with real PC-98 hardware shows that undefined ports return 0x00 where IBM returns 0xFF */
+}
+
+void KEYBOARD_OnEnterPC98(Section *sec) {
+    unsigned int i;
+
+    /* TODO: Keyboard interface change, layout change. */
+
+    /* PC-98 uses the 8255 programmable peripheral interface. Install that here.
+     * Sometime in the future, move 8255 emulation to a separate file.
+     *
+     * The 8255 appears at I/O ports 0x31, 0x33, 0x35, 0x37 */
+    for (i=0;i < 4;i++) {
+        ReadHandler_8255_PC98[i].Uninstall();
+        ReadHandler_8255_PC98[i].Install(0x31 + (i * 2),pc98_8255_read,IO_MB);
+
+        WriteHandler_8255_PC98[i].Uninstall();
+        WriteHandler_8255_PC98[i].Install(0x31 + (i * 2),pc98_8255_write,IO_MB);
+    }
+}
+
 void KEYBOARD_OnReset(Section *sec) {
 	Section_prop *section=static_cast<Section_prop *>(control->GetSection("keyboard"));
 
@@ -1502,6 +1588,8 @@ void KEYBOARD_Init() {
 	AddExitFunction(AddExitFunctionFuncPair(KEYBOARD_ShutDown));
 
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(KEYBOARD_OnReset));
+
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(KEYBOARD_OnEnterPC98));
 }
 
 void AUX_Reset() {
