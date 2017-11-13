@@ -4824,13 +4824,7 @@ public:
         RealSetVec(0x4B,0);
 
         /* remove some IBM-style BIOS interrupts that don't exist on PC-98 */
-        /* TODO: Not *ALL*, not yet. We have to change more underlying code first! */
-        /* Yet to remove for phase #1:
-         *   - INT 16h KEYBOARD INPUT
-         *
-         * Once removed, Phase #1 can begin where IRQ 8-15 are relocated to match PC-98 IRQ arrangement.
-         *
-         * IRQ to INT arrangement
+        /* IRQ to INT arrangement
          *
          * IBM          PC-98           IRQ
          * --------------------------------
