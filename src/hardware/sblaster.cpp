@@ -3589,6 +3589,17 @@ void SBLASTER_DOS_Boot(Section *sec) {
     if (test != NULL) test->DOS_Startup();
 }
 
+void SBLASTER_OnEnterPC98(Section *sec) {
+    /* PC-98 does not have Sound Blaster (that I'm aware of anyway).
+     * Upon entry, remove all I/O ports and shutdown emulation */
+    SBLASTER_DOS_Shutdown();
+	if (test != NULL) {
+		delete test;	
+		test = NULL;
+	}
+	HWOPL_Cleanup();
+}
+
 void SBLASTER_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing Sound Blaster emulation");
 
@@ -3598,5 +3609,7 @@ void SBLASTER_Init() {
 	AddVMEventFunction(VM_EVENT_DOS_SURPRISE_REBOOT,AddVMEventFunctionFuncPair(SBLASTER_DOS_Exit));
 	AddVMEventFunction(VM_EVENT_DOS_EXIT_REBOOT_BEGIN,AddVMEventFunctionFuncPair(SBLASTER_DOS_Exit));
     AddVMEventFunction(VM_EVENT_DOS_INIT_SHELL_READY,AddVMEventFunctionFuncPair(SBLASTER_DOS_Boot));
+
+    AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(SBLASTER_OnEnterPC98));
 }
 
