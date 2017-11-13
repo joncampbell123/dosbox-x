@@ -657,7 +657,7 @@ static Bitu read_p61(Bitu, Bitu) {
 static void write_p61(Bitu, Bitu val, Bitu) {
 	Bit8u diff = port_61_data ^ (Bit8u)val;
 	if (diff & 0x1) TIMER_SetGate2(val & 0x1);
-	if (diff & 0x3) {
+	if ((diff & 0x3) && !IS_PC98_ARCH) {
 		bool pit_clock_gate_enabled = val & 0x1;
 		bool pit_output_enabled = !!(val & 0x2);
 		PCSPEAKER_SetType(pit_clock_gate_enabled, pit_output_enabled);
