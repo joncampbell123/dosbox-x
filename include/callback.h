@@ -65,6 +65,7 @@ void CALLBACK_Idle(void);
 
 void CALLBACK_RunRealInt(Bit8u intnum);
 void CALLBACK_RunRealFar(Bit16u seg,Bit16u off);
+void CALLBACK_RunRealFarInt(Bit16u seg,Bit16u off);
 
 bool CALLBACK_Setup(Bitu callback,CallBack_Handler handler,Bitu type,const char* descr);
 Bitu CALLBACK_Setup(Bitu callback,CallBack_Handler handler,Bitu type,PhysPt addr,const char* descr);

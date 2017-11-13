@@ -28,6 +28,7 @@
 extern bool DOS_BreakFlag;
 
 Bitu INT10_Handler(void);
+Bitu INT16_Handler_Wrap(void);
 
 class device_CON : public DOS_Device {
 public:
@@ -223,7 +224,16 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
 	}
 	while (*size>count) {
 		reg_ah=(IS_EGAVGA_ARCH)?0x10:0x0;
-		CALLBACK_RunRealInt(0x16);
+
+        /* FIXME: PC-98 emulation should eventually use CONIO emulation that
+         *        better emulates the actual platform. The purpose of this
+         *        hack is to allow our code to call into INT 16h without
+         *        setting up an INT 16h vector */
+        if (IS_PC98_ARCH)
+            INT16_Handler_Wrap();
+        else
+            CALLBACK_RunRealInt(0x16);
+
 		switch(reg_al) {
 		case 13:
 			data[count++]=0x0D;
@@ -570,7 +580,16 @@ Bit16u device_CON::GetInformation(void) {
 		Bitu saved_ax = reg_ax;
 
 		reg_ah = (IS_EGAVGA_ARCH)?0x11:0x1; // check for keystroke
-		CALLBACK_RunRealInt(0x16);
+
+        /* FIXME: PC-98 emulation should eventually use CONIO emulation that
+         *        better emulates the actual platform. The purpose of this
+         *        hack is to allow our code to call into INT 16h without
+         *        setting up an INT 16h vector */
+        if (IS_PC98_ARCH)
+            INT16_Handler_Wrap();
+        else
+            CALLBACK_RunRealInt(0x16);
+
 		if (!GETFLAG(ZF)) { /* key is present, waiting to be returned on AH=0x10 or AH=0x00 */
 			ret = 0x8093; /* Key Available */
 		}

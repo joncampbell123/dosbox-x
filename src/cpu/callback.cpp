@@ -114,7 +114,23 @@ static Bitu stop_handler(void) {
 	return CBRET_STOP;
 }
 
+Bitu FillFlags(void);
 
+void CALLBACK_RunRealFarInt(Bit16u seg,Bit16u off) {
+	FillFlags();
+
+	reg_sp-=6;
+	mem_writew(SegPhys(ss)+reg_sp,RealOff(CALLBACK_RealPointer(call_stop)));
+	mem_writew(SegPhys(ss)+reg_sp+2,RealSeg(CALLBACK_RealPointer(call_stop)));
+	mem_writew(SegPhys(ss)+reg_sp+4,reg_flags);
+	Bit32u oldeip=reg_eip;
+	Bit16u oldcs=SegValue(cs);
+	reg_eip=off;
+	SegSet16(cs,seg);
+	DOSBOX_RunMachine();
+	reg_eip=oldeip;
+	SegSet16(cs,oldcs);
+}
 
 void CALLBACK_RunRealFar(Bit16u seg,Bit16u off) {
 	reg_sp-=4;

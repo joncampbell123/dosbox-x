@@ -532,7 +532,7 @@ static bool IsEnhancedKey(Bit16u &key) {
 bool int16_unmask_irq1_on_read = true;
 bool int16_ah_01_cf_undoc = true;
 
-static Bitu INT16_Handler(void) {
+Bitu INT16_Handler(void) {
 	Bit16u temp=0;
 	switch (reg_ah) {
 	case 0x00: /* GET KEYSTROKE */
@@ -643,6 +643,18 @@ static Bitu INT16_Handler(void) {
 	return CBRET_NONE;
 }
 
+/* The INT16h handler manipulates reg_ip and expects it to work
+ * based on the layout of the callback. So to allow calling
+ * directly we have to save/restore CS:IP and run the DOS
+ * machine. */
+Bitu INT16_Handler_Wrap(void) {
+    Bitu proc;
+
+    proc = CALLBACK_RealPointer(call_int16);
+    CALLBACK_RunRealFarInt(proc >> 16/*seg*/,proc & 0xFFFFU/*off*/);
+    return 0;
+}
+
 //Keyboard initialisation. src/gui/sdlmain.cpp
 extern bool startup_state_numlock;
 extern bool startup_state_capslock;
@@ -675,6 +687,7 @@ void CALLBACK_DeAllocate(Bitu in);
 void BIOS_UnsetupKeyboard(void) {
     if (call_int16 != 0) {
         CALLBACK_DeAllocate(call_int16);
+        RealSetVec(0x16,0);
         call_int16 = 0;
     }
     if (call_irq1 != 0) {
@@ -695,10 +708,19 @@ void BIOS_SetupKeyboard(void) {
 	/* Init the variables */
 	InitBiosSegment();
 
-	/* Allocate/setup a callback for int 0x16 and for standard IRQ 1 handler */
-	call_int16=CALLBACK_Allocate();	
-	CALLBACK_Setup(call_int16,&INT16_Handler,CB_INT16,"Keyboard");
-	RealSetVec(0x16,CALLBACK_RealPointer(call_int16));
+    if (IS_PC98_ARCH) {
+        /* HACK */
+        /* Allocate/setup a callback for int 0x16 and for standard IRQ 1 handler */
+        call_int16=CALLBACK_Allocate();	
+        CALLBACK_Setup(call_int16,&INT16_Handler,CB_INT16,"Keyboard");
+        /* DO NOT set up an INT 16h vector. This exists only for the DOS CONIO emulation. */
+    }
+    else {
+        /* Allocate/setup a callback for int 0x16 and for standard IRQ 1 handler */
+        call_int16=CALLBACK_Allocate();	
+        CALLBACK_Setup(call_int16,&INT16_Handler,CB_INT16,"Keyboard");
+        RealSetVec(0x16,CALLBACK_RealPointer(call_int16));
+    }
 
 	call_irq1=CALLBACK_Allocate();
 	if (machine == MCH_PCJR) { /* PCjr keyboard interrupt connected to NMI */
