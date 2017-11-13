@@ -562,6 +562,17 @@ void TIMER_OnEnterPC98(Section*) {
      *  0x42              0x75        2
      *  0x43              0x77        3
      */
+    /* Timer output connection
+     * 
+     * IBM PC/XT/AT      NEC-PC98     Timer
+     * ------------------------------------
+     * Timer int.        Timer int.   0
+     * DRAM refresh      Speaker      1
+     * Speaker           RS-232C clk  2
+     *
+     * If I read documentation correctly, PC-98 wires timer output 2
+     * to the clock pin of the 8251 UART for COM1 as a way to set the
+     * baud rate. */
 
     /* This code is written to eventually copy-paste out in general */
 	WriteHandler[0].Install(IS_PC98_ARCH ? 0x71 : 0x40,write_latch,IO_MB);
