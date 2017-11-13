@@ -488,12 +488,16 @@ public:
 };
 
 
-static CMS* test;
+static CMS* test = NULL;
    
 void CMS_Init(Section* sec) {
-	test = new CMS(sec);
+    if (test == NULL)
+    	test = new CMS(sec);
 }
 void CMS_ShutDown(Section* sec) {
-	delete test;	       
+    if (test) {
+        delete test;
+        test = NULL;
+    }
 }
 
