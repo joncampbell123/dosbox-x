@@ -1489,6 +1489,7 @@ static void pc98_8255_write(Bitu port,Bitu val,Bitu /*iolen*/) {
             /* HACK: Re-use IBM speaker gate variable for PC speaker in PC-98 enable.
              *       Remember PC-98 buzzer gate is a DISABLE, not IBM style ENABLE */
             port_61_data = (val & 0x08) ? 0 : 3;
+            TIMER_SetGate2(!!port_61_data);
             PCSPEAKER_SetType(!!port_61_data,!!port_61_data);
             break;
         case 0x37:
