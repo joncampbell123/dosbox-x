@@ -66,6 +66,8 @@ static Bit8u latched_timerstatus;
 // reprogrammed.
 static bool latched_timerstatus_locked;
 
+unsigned long PIT_TICK_RATE = PIT_TICK_RATE_IBM;
+
 static void PIT0_Event(Bitu /*val*/) {
 	PIC_ActivateIRQ(0);
 	if (pit[0].mode != 0) {
@@ -503,6 +505,39 @@ void TIMER_OnPowerOn(Section*) {
 	gate2 = false;
 }
 
+void TIMER_OnEnterPC98(Section*) {
+	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+	assert(section != NULL);
+
+	PIC_RemoveEvents(PIT0_Event);
+
+	WriteHandler[0].Uninstall();
+	WriteHandler[1].Uninstall();
+	WriteHandler[2].Uninstall();
+	WriteHandler[3].Uninstall();
+	ReadHandler[0].Uninstall();
+	ReadHandler[1].Uninstall();
+	ReadHandler[2].Uninstall();
+	ReadHandler[3].Uninstall();
+
+    /* TODO: PC-98 has two different rates: 5/10MHz base or 8MHz base. Let the user choose via dosbox.conf */
+    PIT_TICK_RATE = PIT_TICK_RATE_PC98_5MHZ;
+
+    /* TODO: Change IO ports to PC-98 numbers when callback setup code has been updated to generate PC-98 EOI code in PC-98 mode */
+	WriteHandler[0].Install(0x40,write_latch,IO_MB);
+//	WriteHandler[1].Install(0x41,write_latch,IO_MB);
+	WriteHandler[2].Install(0x42,write_latch,IO_MB);
+	WriteHandler[3].Install(0x43,write_p43,IO_MB);
+	ReadHandler[0].Install(0x40,read_latch,IO_MB);
+	ReadHandler[1].Install(0x41,read_latch,IO_MB);
+	ReadHandler[2].Install(0x42,read_latch,IO_MB);
+
+	latched_timerstatus_locked=false;
+	gate2 = false;
+
+    TIMER_BIOS_INIT_Configure();
+}
+
 void TIMER_Destroy(Section*) {
 	PIC_RemoveEvents(PIT0_Event);
 }
@@ -511,6 +546,8 @@ void TIMER_Init() {
 	Bitu i;
 
 	LOG(LOG_MISC,LOG_DEBUG)("TIMER_Init()");
+
+    PIT_TICK_RATE = PIT_TICK_RATE_IBM;
 
 	for (i=0;i < 3;i++) {
 		pit[i].cntr = 0x10000;
@@ -528,5 +565,6 @@ void TIMER_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(TIMER_Destroy));
 	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(TIMER_OnPowerOn));
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(TIMER_OnEnterPC98));
 }
 
