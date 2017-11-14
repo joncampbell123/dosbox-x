@@ -335,11 +335,6 @@ static Bitu read_p60(Bitu port,Bitu iolen) {
 	return keyb.p60data;
 }
 
-/* HACK */
-unsigned char AT_read_60(void) {
-    return (unsigned char)read_p60(0x60,1);
-}
-
 unsigned char KEYBOARD_AUX_GetType() {
 	/* and then the ID */
 	if (keyb.ps2mouse.intellimouse_btn45)
