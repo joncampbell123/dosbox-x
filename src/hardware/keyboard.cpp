@@ -1487,9 +1487,10 @@ static void pc98_8255_write(Bitu port,Bitu val,Bitu /*iolen*/) {
             break;
         case 0x35:
             /* HACK: Re-use IBM speaker gate variable for PC speaker in PC-98 enable.
-             *       Remember PC-98 buzzer gate is a DISABLE, not IBM style ENABLE */
-            /* FIXME: Does the timer continue ticking if inhibited on real hardware
-             *        or does it stop entirely (like IBM hardware with gate2)? */
+             *       Remember PC-98 buzzer gate is a DISABLE, not IBM style ENABLE.
+             *
+             *       I have verified on real hardware that this also gates whether or
+             *       not the timer output even counts down. */
             port_61_data = (val & 0x08) ? 0 : 3;
             TIMER_SetGate2(!!port_61_data);
             PCSPEAKER_SetType(!!port_61_data,!!port_61_data);
