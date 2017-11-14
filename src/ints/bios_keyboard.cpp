@@ -497,24 +497,114 @@ static Bitu IRQ1_Handler_PC98(void) {
     if (status & 2/*RxRDY*/) {
         sc_8251 = IO_ReadB(0x41); /* 8251 data */
 
+        Bit8u flags1,flags2,flags3,leds,leds_orig;
+        flags1=mem_readb(BIOS_KEYBOARD_FLAGS1);
+        flags2=mem_readb(BIOS_KEYBOARD_FLAGS2);
+        flags3=mem_readb(BIOS_KEYBOARD_FLAGS3);
+        leds  =mem_readb(BIOS_KEYBOARD_LEDS); 
+
 //        LOG_MSG("IRQ1 read %02X",(unsigned int)sc_8251);
 
         pressed = !(sc_8251 & 0x80);
         sc_8251 &= 0x7F;
 
         switch (sc_8251) {
-            case 0x00:  if (pressed) add_key(27); break;     // ESC
-            case 0x01:  if (pressed) add_key('1'); break;    // 1
-            case 0x02:  if (pressed) add_key('2'); break;    // 2
-            case 0x03:  if (pressed) add_key('3'); break;    // 3
-            case 0x04:  if (pressed) add_key('4'); break;    // 4
-            case 0x05:  if (pressed) add_key('5'); break;    // 5
-            case 0x06:  if (pressed) add_key('6'); break;    // 6
-            case 0x07:  if (pressed) add_key('7'); break;    // 7
-            case 0x08:  if (pressed) add_key('8'); break;    // 8
-            case 0x09:  if (pressed) add_key('9'); break;    // 9
-            case 0x0A:  if (pressed) add_key('0'); break;    // 0
+            case 0x00: // ESC
+                if (pressed) {
+                    add_key(27);
+                }
+                break;
+            case 0x01: // 1
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('!');
+                    else
+                        add_key('1');
+                }
+                break;
+            case 0x02: // 2
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('@');
+                    else
+                        add_key('2');
+                }
+                break;
+            case 0x03: // 3
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('#');
+                    else
+                        add_key('3');
+                }
+                break;
+            case 0x04: // 4
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('$');
+                    else
+                        add_key('4');
+                }
+                break;
+            case 0x05: // 5
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('%');
+                    else
+                        add_key('5');
+                }
+                break;
+            case 0x06: // 6
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('^');
+                    else
+                        add_key('6');
+                }
+                break;
+            case 0x07: // 7
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('&');
+                    else
+                        add_key('7');
+                }
+                break;
+            case 0x08: // 8
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('*');
+                    else
+                        add_key('8');
+                }
+                break;
+            case 0x09: // 9
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('(');
+                    else
+                        add_key('9');
+                }
+                break;
+            case 0x0A: // 0
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('(');
+                    else
+                        add_key('0');
+                }
+                break;
+
+            case 0x70: // left/right shift
+                flags1 &= ~3; // emulate AT BIOS l+r shift with PC-98 shift
+                flags1 |= pressed ? 3 : 0;
+                break;
         }
+
+        mem_writeb(BIOS_KEYBOARD_FLAGS1,flags1);
+        mem_writeb(BIOS_KEYBOARD_FLAGS2,flags2);
+        mem_writeb(BIOS_KEYBOARD_FLAGS3,flags3);
+        mem_writeb(BIOS_KEYBOARD_LEDS,leds);
     }
 
     return CBRET_NONE;
