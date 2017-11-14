@@ -470,6 +470,15 @@ void TIMER_BIOS_INIT_Configure() {
 	pit[2].counterstatus_set = false;
 	pit[2].start = PIC_FullIndex();
 
+    /* TODO: I have observed that on real PC-98 hardware:
+     * 
+     *   Output 1 (speaker) does not cycle if inhibited by port 35h
+     *
+     *   Output 2 (RS232C) does not cycle until programmed to cycle
+     *   to operate the 8251 for data transfer. It is configured by
+     *   the BIOS to countdown and stop, thus the UART is not cycling
+     *   until put into active use. */
+
     int pcspeaker_pit = IS_PC98_ARCH ? 1 : 2; /* IBM: PC speaker on output 2   PC-98: PC speaker on output 1 */
 
 	{
