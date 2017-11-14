@@ -490,14 +490,13 @@ irq1_end:
 unsigned char AT_read_60(void);
 
 static Bitu IRQ1_Handler_PC98(void) {
-    Bitu old_eax = reg_eax;
+    Bitu sc_8251,status;
 
-    /* TODO: Eventually this will parse scan codes itself, after reading from 8251 keyboard UART */
-    reg_eax = AT_read_60();
-
-    IRQ1_Handler();
-
-    reg_eax = old_eax;
+    status = IO_ReadB(0x43); /* 8251 status */
+    if (status & 2/*RxRDY*/) {
+        sc_8251 = IO_ReadB(0x41); /* 8251 data */
+        LOG_MSG("IRQ1 read %02X",(unsigned int)sc_8251);
+    }
 
     return CBRET_NONE;
 }

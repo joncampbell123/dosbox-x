@@ -1182,6 +1182,49 @@ void KEYBOARD_AddKey2(KBD_KEYS keytype,bool pressed) {
 	}
 }
 
+void pc98_keyboard_send(const unsigned char b);
+
+/* this version sends to the PC-98 8251 emulation NOT the AT 8042 emulation */
+void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
+	Bit8u ret=0;
+
+    switch (keytype) {
+	case KBD_esc:ret=0x00;break;
+	case KBD_1:ret=0x01;break;
+	case KBD_2:ret=0x02;break;
+	case KBD_3:ret=0x03;break;		
+	case KBD_4:ret=0x04;break;
+	case KBD_5:ret=0x05;break;
+	case KBD_6:ret=0x06;break;		
+	case KBD_7:ret=0x07;break;
+	case KBD_8:ret=0x08;break;
+	case KBD_9:ret=0x09;break;		
+	case KBD_0:ret=0x0A;break;
+    default: return;
+    };
+
+    /* PC-98 keyboards appear to repeat make/break codes when the key is held down */
+    if (pressed && keyb.repeat.key == keytype)
+        pc98_keyboard_send(ret | 0x80);
+
+	/* Add the actual key in the keyboard queue */
+	if (pressed) {
+		if (keyb.repeat.key == keytype) keyb.repeat.wait = keyb.repeat.rate;		
+		else keyb.repeat.wait = keyb.repeat.pause;
+		keyb.repeat.key = keytype;
+	} else {
+		if (keyb.repeat.key == keytype) {
+			/* repeated key being released */
+			keyb.repeat.key  = KBD_NONE;
+			keyb.repeat.wait = 0;
+		}
+	}
+
+    if (!pressed) ret |= 0x80;
+
+    pc98_keyboard_send(ret | (!pressed ? 0x80 : 0x00));
+}
+
 void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
 	Bit8u ret=0,ret2=0;bool extend=false;
 
@@ -1432,7 +1475,10 @@ static void KEYBOARD_TickHandler(void) {
 }
 
 void KEYBOARD_AddKey(KBD_KEYS keytype,bool pressed) {
-	if (keyb.cb_xlat) {
+    if (IS_PC98_ARCH) {
+        KEYBOARD_PC98_AddKey(keytype,pressed);
+    }
+    else if (keyb.cb_xlat) {
 		/* emulate typical setup where keyboard generates scan set 2 and controller translates to scan set 1 */
 		/* yeah I know... yuck */
 		KEYBOARD_AddKey1(keytype,pressed);
@@ -1526,6 +1572,249 @@ static Bitu pc98_8255_read(Bitu port,Bitu /*iolen*/) {
     return 0x00; /* NTS: Playing with real PC-98 hardware shows that undefined ports return 0x00 where IBM returns 0xFF */
 }
 
+static struct pc98_keyboard {
+    pc98_keyboard() : caps(false), kana(false), num(false) {
+    }
+
+    bool                        caps;
+    bool                        kana;
+    bool                        num;
+} pc98_keyboard_state;
+
+void uart_rx_load(Bitu val);
+void uart_tx_load(Bitu val);
+void pc98_keyboard_recv_byte(Bitu val);
+
+static struct pc98_8251_keyboard_uart {
+    enum cmdreg_state {
+        MODE_STATE=0,
+        SYNC_CHAR1,
+        SYNC_CHAR2,
+        COMMAND_STATE
+    };
+
+    unsigned char               data;
+    unsigned char               txdata;
+    enum cmdreg_state           state;
+    unsigned char               mode_byte;
+    bool                        keyboard_reset;
+    bool                        rx_enable;
+    bool                        tx_enable;
+    bool                        valid_state;
+
+    bool                        rx_busy;
+    bool                        rx_ready;
+    bool                        tx_busy;
+    bool                        tx_empty;
+
+    /* io_delay in milliseconds for use with PIC delay code */
+    double                      io_delay_ms;
+    double                      tx_load_ms;
+
+    /* recv data from keyboard */
+    unsigned char               recv_buffer[32];
+    unsigned char               recv_in,recv_out;
+
+    pc98_8251_keyboard_uart() : data(0xFF), txdata(0xFF), state(MODE_STATE), mode_byte(0), keyboard_reset(false), rx_enable(false), tx_enable(false), valid_state(false), rx_busy(false), rx_ready(false), tx_busy(false), tx_empty(true), recv_in(0), recv_out(0) {
+        io_delay_ms = (((1/*start*/+8/*data*/+1/*parity*/+1/*stop*/) * 1000.0) / 19200);
+        tx_load_ms = (((1/*start*/+8/*data*/) * 1000.0) / 19200);
+    }
+
+    void reset(void) {
+        PIC_RemoveEvents(uart_tx_load);
+        PIC_RemoveEvents(uart_rx_load);
+        PIC_RemoveEvents(pc98_keyboard_recv_byte);
+
+        state = MODE_STATE;
+        rx_busy = false;
+        rx_ready = false;
+        tx_empty = true;
+        tx_busy = false;
+        mode_byte = 0;
+        recv_out = 0;
+        recv_in = 0;
+    }
+
+    void device_send_data(unsigned char b) {
+        unsigned char nidx;
+
+        nidx = (recv_in + 1) % 32;
+        if (nidx == recv_out) {
+            LOG_MSG("8251 device send recv overrun");
+            return;
+        }
+
+        recv_buffer[recv_in] = b;
+        recv_in = nidx;
+
+        if (!rx_busy) {
+            rx_busy = true;
+            PIC_AddEvent(uart_rx_load,io_delay_ms,0);
+        }
+    }
+
+    unsigned char read_data(void) {
+        rx_ready = false;
+        return data;
+    }
+
+    void write_data(unsigned char b) {
+        if (!valid_state)
+            return;
+
+        if (!tx_busy) {
+            txdata = b;
+            tx_busy = true;
+
+            PIC_AddEvent(uart_tx_load,tx_load_ms,0);
+            PIC_AddEvent(pc98_keyboard_recv_byte,io_delay_ms,txdata);
+        }
+    }
+
+    void tx_load_complete(void) {
+        tx_busy = false;
+    }
+
+    void rx_load_complete(void) {
+        if (!rx_ready) {
+            rx_ready = true;
+            data = recv_buffer[recv_out];
+            recv_out = (recv_out + 1) % 32;
+
+//            LOG_MSG("8251 recv %02X",data);
+            PIC_ActivateIRQ(1);
+
+            if (recv_out != recv_in) {
+                PIC_AddEvent(uart_rx_load,io_delay_ms,0);
+                rx_busy = true;
+            }
+            else {
+                rx_busy = false;
+            }
+        }
+        else {
+            LOG_MSG("8251 warning: RX overrun");
+        }
+    }
+
+    void xmit_finish(void) {
+        tx_empty = true;
+        tx_busy = false;
+    }
+
+    unsigned char read_status(void) {
+        unsigned char r = 0;
+
+        /* bit[7:7] = DSR (1=DSR at zero level)
+         * bit[6:6] = syndet/brkdet
+         * bit[5:5] = framing error
+         * bit[4:4] = overrun error
+         * bit[3:3] = parity error
+         * bit[2:2] = TxEMPTY
+         * bit[1:1] = RxRDY
+         * bit[0:0] = TxRDY */
+        r |= (!tx_busy ? 0x01 : 0x00) |
+             (rx_ready ? 0x02 : 0x00) |
+             (tx_empty ? 0x04 : 0x00);
+
+        return r;
+    }
+
+    void writecmd(const unsigned char b) { /* write to command register */
+        if (state == MODE_STATE) {
+            mode_byte = b;
+
+            if ((b&3) != 0) {
+                /* bit[7:6] = number of stop bits  (0=invalid 1=1-bit 2=1.5-bit 3=2-bit)
+                 * bit[5:5] = even/odd parity      (1=even 0=odd)
+                 * bit[4:4] = parity enable        (1=enable 0=disable)
+                 * bit[3:2] = character length     (0=5  1=6  2=7  3=8)
+                 * bit[1:0] = baud rate factor     (0=sync mode   1=1X   2=16X   3=64X)
+                 *
+                 * note that "baud rate factor" means how much to divide the baud rate clock to determine
+                 * the bit rate that bits are transmitted. Typical PC-98 programming practice is to set
+                 * the baud rate clock fed to the chip at 16X the baud rate and then specify 16X baud rate factor. */
+                /* async mode */
+                state = COMMAND_STATE;
+
+                /* keyboard must operate at 19200 baud 8 bits odd parity 16X baud rate factor */
+                valid_state = (b == 0x5E); /* bit[7:0] = 01 0 1 11 10 */
+                                           /*            |  | | |  |  */
+                                           /*            |  | | |  +---- 16X baud rate factor */
+                                           /*            |  | | +------- 8 bits per character */
+                                           /*            |  | +--------- parity enable */
+                                           /*            |  +----------- odd parity */
+                                           /*            +-------------- 1 stop bit */
+            }
+            else {
+                /* bit[7:7] = single character sync(1=single  0=double)
+                 * bit[6:6] = external sync detect (1=syndet is an input   0=syndet is an output)
+                 * bit[5:5] = even/odd parity      (1=even 0=odd)
+                 * bit[4:4] = parity enable        (1=enable 0=disable)
+                 * bit[3:2] = character length     (0=5  1=6  2=7  3=8)
+                 * bit[1:0] = baud rate factor     (0=sync mode)
+                 *
+                 * I don't think anything uses the keyboard in this manner, therefore, not supported in this emulation. */
+                LOG_MSG("8251 keyboard warning: Mode byte synchronous mode not supported");
+                state = SYNC_CHAR1;
+                valid_state = false;
+            }
+        }
+        else if (state == COMMAND_STATE) {
+            /* bit[7:7] = Enter hunt mode (not used here)
+             * bit[6:6] = internal reset (8251 resets, prepares to accept mode byte)
+             * bit[5:5] = RTS inhibit (1=force RTS to zero, else RTS reflects RxRDY state of the chip)
+             * bit[4:4] = error reset
+             * bit[3:3] = send break character (0=normal  1=force TxD low). On PC-98 keyboard this is wired to reset pin of the keyboard CPU.
+             * bit[2:2] = receive enable
+             * bit[1:1] = DTR inhibit (1=force DTR to zero). Connected to PC-98 RTY pin.
+             * bit[0:0] = transmit enable */
+            if (b & 0x40) {
+                /* internal reset, returns 8251 to mode state */
+                state = MODE_STATE;
+            }
+
+            /* TODO: Does the 8251 take any other bits if bit 6 was set to reset the 8251? */
+            keyboard_reset = !!(b & 0x08);
+            rx_enable = !!(b & 0x04);
+            tx_enable = !!(b & 0x01);
+        }
+    }
+} pc98_8251_keyboard_uart_state;
+
+void uart_tx_load(Bitu val) {
+    pc98_8251_keyboard_uart_state.tx_load_complete();
+}
+
+void uart_rx_load(Bitu val) {
+    pc98_8251_keyboard_uart_state.rx_load_complete();
+}
+
+void pc98_keyboard_send(const unsigned char b) {
+    pc98_8251_keyboard_uart_state.device_send_data(b);
+}
+
+void pc98_keyboard_recv_byte(Bitu val) {
+    pc98_8251_keyboard_uart_state.xmit_finish();
+    LOG_MSG("PC-98 recv 0x%02x",(unsigned int)val);
+}
+
+static Bitu keyboard_pc98_8251_uart_41_read(Bitu port,Bitu /*iolen*/) {
+    return pc98_8251_keyboard_uart_state.read_data();
+}
+
+static void keyboard_pc98_8251_uart_41_write(Bitu port,Bitu val,Bitu /*iolen*/) {
+    pc98_8251_keyboard_uart_state.write_data((unsigned char)val);
+}
+
+static Bitu keyboard_pc98_8251_uart_43_read(Bitu port,Bitu /*iolen*/) {
+    return pc98_8251_keyboard_uart_state.read_status();
+}
+
+static void keyboard_pc98_8251_uart_43_write(Bitu port,Bitu val,Bitu /*iolen*/) {
+    pc98_8251_keyboard_uart_state.writecmd((unsigned char)val);
+}
+
 void KEYBOARD_OnEnterPC98(Section *sec) {
     unsigned int i;
 
@@ -1552,7 +1841,11 @@ void KEYBOARD_OnEnterPC98(Section *sec) {
 void KEYBOARD_OnEnterPC98_phase2(Section *sec) {
     unsigned int i;
 
-    /* TODO: Keyboard interface change, layout change. */
+    /* Keyboard UART (8251) is at 0x41, 0x43. */
+    IO_RegisterWriteHandler(0x41,keyboard_pc98_8251_uart_41_write,IO_MB);
+    IO_RegisterReadHandler(0x41,keyboard_pc98_8251_uart_41_read,IO_MB);
+    IO_RegisterWriteHandler(0x43,keyboard_pc98_8251_uart_43_write,IO_MB);
+    IO_RegisterReadHandler(0x43,keyboard_pc98_8251_uart_43_read,IO_MB);
 
     /* PC-98 uses the 8255 programmable peripheral interface. Install that here.
      * Sometime in the future, move 8255 emulation to a separate file.
