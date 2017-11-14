@@ -490,12 +490,31 @@ irq1_end:
 unsigned char AT_read_60(void);
 
 static Bitu IRQ1_Handler_PC98(void) {
-    Bitu sc_8251,status;
+    unsigned char sc_8251,status;
+    bool pressed;
 
     status = IO_ReadB(0x43); /* 8251 status */
     if (status & 2/*RxRDY*/) {
         sc_8251 = IO_ReadB(0x41); /* 8251 data */
-        LOG_MSG("IRQ1 read %02X",(unsigned int)sc_8251);
+
+//        LOG_MSG("IRQ1 read %02X",(unsigned int)sc_8251);
+
+        pressed = !(sc_8251 & 0x80);
+        sc_8251 &= 0x7F;
+
+        switch (sc_8251) {
+            case 0x00:  if (pressed) add_key(27); break;     // ESC
+            case 0x01:  if (pressed) add_key('1'); break;    // 1
+            case 0x02:  if (pressed) add_key('2'); break;    // 2
+            case 0x03:  if (pressed) add_key('3'); break;    // 3
+            case 0x04:  if (pressed) add_key('4'); break;    // 4
+            case 0x05:  if (pressed) add_key('5'); break;    // 5
+            case 0x06:  if (pressed) add_key('6'); break;    // 6
+            case 0x07:  if (pressed) add_key('7'); break;    // 7
+            case 0x08:  if (pressed) add_key('8'); break;    // 8
+            case 0x09:  if (pressed) add_key('9'); break;    // 9
+            case 0x0A:  if (pressed) add_key('0'); break;    // 0
+        }
     }
 
     return CBRET_NONE;
