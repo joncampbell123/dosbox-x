@@ -1537,10 +1537,7 @@ void KEYBOARD_OnEnterPC98(Section *sec) {
      * The 8255 appears at I/O ports 0x31, 0x33, 0x35, 0x37 */
     for (i=0;i < 4;i++) {
         ReadHandler_8255_PC98[i].Uninstall();
-        ReadHandler_8255_PC98[i].Install(0x31 + (i * 2),pc98_8255_read,IO_MB);
-
         WriteHandler_8255_PC98[i].Uninstall();
-        WriteHandler_8255_PC98[i].Install(0x31 + (i * 2),pc98_8255_write,IO_MB);
     }
 
     /* remove 60h-63h */
@@ -1550,6 +1547,24 @@ void KEYBOARD_OnEnterPC98(Section *sec) {
     IO_FreeReadHandler(0x61,IO_MB);
     IO_FreeWriteHandler(0x64,IO_MB);
     IO_FreeReadHandler(0x64,IO_MB);
+}
+
+void KEYBOARD_OnEnterPC98_phase2(Section *sec) {
+    unsigned int i;
+
+    /* TODO: Keyboard interface change, layout change. */
+
+    /* PC-98 uses the 8255 programmable peripheral interface. Install that here.
+     * Sometime in the future, move 8255 emulation to a separate file.
+     *
+     * The 8255 appears at I/O ports 0x31, 0x33, 0x35, 0x37 */
+    for (i=0;i < 4;i++) {
+        ReadHandler_8255_PC98[i].Uninstall();
+        ReadHandler_8255_PC98[i].Install(0x31 + (i * 2),pc98_8255_read,IO_MB);
+
+        WriteHandler_8255_PC98[i].Uninstall();
+        WriteHandler_8255_PC98[i].Install(0x31 + (i * 2),pc98_8255_write,IO_MB);
+    }
 }
 
 void KEYBOARD_OnReset(Section *sec) {
@@ -1608,6 +1623,7 @@ void KEYBOARD_Init() {
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(KEYBOARD_OnReset));
 
 	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(KEYBOARD_OnEnterPC98));
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE_END,AddVMEventFunctionFuncPair(KEYBOARD_OnEnterPC98_phase2));
 }
 
 void AUX_Reset() {
