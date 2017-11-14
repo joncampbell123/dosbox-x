@@ -487,6 +487,21 @@ irq1_end:
 	return CBRET_NONE;
 }
 
+unsigned char AT_read_60(void);
+
+static Bitu IRQ1_Handler_PC98(void) {
+    Bitu old_eax = reg_eax;
+
+    /* TODO: Eventually this will parse scan codes itself, after reading from 8251 keyboard UART */
+    reg_eax = AT_read_60();
+
+    IRQ1_Handler();
+
+    reg_eax = old_eax;
+
+    return CBRET_NONE;
+}
+
 static Bitu PCjr_NMI_Keyboard_Handler(void) {
 	while (IO_ReadB(0x64) & 1) { /* while data is available */
 		reg_al=IO_ReadB(0x60);
@@ -728,6 +743,10 @@ void BIOS_SetupKeyboard(void) {
 		CALLBACK_Setup(call_irq1,&PCjr_NMI_Keyboard_Handler,CB_IRET,"PCjr NMI Keyboard");
 		RealSetVec(0x02/*NMI*/,CALLBACK_RealPointer(call_irq1));
 	}
+    else if (IS_PC98_ARCH) {
+		CALLBACK_Setup(call_irq1,&IRQ1_Handler_PC98,CB_IRET_EOI_PIC1,Real2Phys(BIOS_DEFAULT_IRQ1_LOCATION),"IRQ 1 Keyboard PC-98");
+		RealSetVec(0x09/*IRQ 1*/,BIOS_DEFAULT_IRQ1_LOCATION);
+    }
 	else {
 		CALLBACK_Setup(call_irq1,&IRQ1_Handler,CB_IRQ1,Real2Phys(BIOS_DEFAULT_IRQ1_LOCATION),"IRQ 1 Keyboard");
 		RealSetVec(0x09/*IRQ 1*/,BIOS_DEFAULT_IRQ1_LOCATION);

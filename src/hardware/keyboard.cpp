@@ -335,6 +335,11 @@ static Bitu read_p60(Bitu port,Bitu iolen) {
 	return keyb.p60data;
 }
 
+/* HACK */
+unsigned char AT_read_60(void) {
+    return (unsigned char)read_p60(0x60,1);
+}
+
 unsigned char KEYBOARD_AUX_GetType() {
 	/* and then the ID */
 	if (keyb.ps2mouse.intellimouse_btn45)
@@ -1537,6 +1542,14 @@ void KEYBOARD_OnEnterPC98(Section *sec) {
         WriteHandler_8255_PC98[i].Uninstall();
         WriteHandler_8255_PC98[i].Install(0x31 + (i * 2),pc98_8255_write,IO_MB);
     }
+
+    /* remove 60h-63h */
+    IO_FreeWriteHandler(0x60,IO_MB);
+    IO_FreeReadHandler(0x60,IO_MB);
+    IO_FreeWriteHandler(0x61,IO_MB);
+    IO_FreeReadHandler(0x61,IO_MB);
+    IO_FreeWriteHandler(0x64,IO_MB);
+    IO_FreeReadHandler(0x64,IO_MB);
 }
 
 void KEYBOARD_OnReset(Section *sec) {
@@ -1574,12 +1587,13 @@ void KEYBOARD_OnReset(Section *sec) {
 		}
 	}
 
-	IO_RegisterWriteHandler(0x60,write_p60,IO_MB);
-	IO_RegisterReadHandler(0x60,read_p60,IO_MB);
-	IO_RegisterWriteHandler(0x61,write_p61,IO_MB);
-	IO_RegisterReadHandler(0x61,read_p61,IO_MB);
-	IO_RegisterWriteHandler(0x64,write_p64,IO_MB);
-	IO_RegisterReadHandler(0x64,read_p64,IO_MB);
+    IO_RegisterWriteHandler(0x60,write_p60,IO_MB);
+    IO_RegisterReadHandler(0x60,read_p60,IO_MB);
+    IO_RegisterWriteHandler(0x61,write_p61,IO_MB);
+    IO_RegisterReadHandler(0x61,read_p61,IO_MB);
+    IO_RegisterWriteHandler(0x64,write_p64,IO_MB);
+    IO_RegisterReadHandler(0x64,read_p64,IO_MB);
+
 	TIMER_AddTickHandler(&KEYBOARD_TickHandler);
 	write_p61(0,0,0);
 	KEYBOARD_Reset();
