@@ -1200,6 +1200,11 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
 	case KBD_8:ret=0x08;break;
 	case KBD_9:ret=0x09;break;		
 	case KBD_0:ret=0x0A;break;
+    case KBD_minus:ret=0x0B;break;
+    case KBD_equals:ret=0x0C;break;
+    case KBD_backslash:ret=0x0D;break;
+    case KBD_backspace:ret=0x0E;break;
+    case KBD_tab:ret=0x0F;break;
     case KBD_leftshift:ret=0x70;break;
     case KBD_rightshift:ret=0x70;break;
     default: return;

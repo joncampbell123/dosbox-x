@@ -508,6 +508,16 @@ static Bitu IRQ1_Handler_PC98(void) {
         pressed = !(sc_8251 & 0x80);
         sc_8251 &= 0x7F;
 
+        /* FIXME: I'm fully aware of obvious problems with this code so far:
+         *        - This is coded around my American keyboard layout
+         *        - No support for CAPS or KANA modes.
+         *
+         *        As this code develops refinements will occur.
+         *
+         *        - Scan codes will be mapped to unshifted/shifted/kana modes
+         *          as laid out on Japanese keyboards.
+         *        - This will use a lookup table with special cases such as
+         *          modifier keys. */
         switch (sc_8251) {
             case 0x00: // ESC
                 if (pressed) {
@@ -592,6 +602,40 @@ static Bitu IRQ1_Handler_PC98(void) {
                         add_key('(');
                     else
                         add_key('0');
+                }
+                break;
+            case 0x0B: // -
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('_');
+                    else
+                        add_key('-');
+                }
+                break;
+            case 0x0C: // =
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('+');
+                    else
+                        add_key('=');
+                }
+                break;
+            case 0x0D: // \ backslash
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('|');
+                    else
+                        add_key('\\');
+                }
+                break;
+            case 0x0E: // backspace
+                if (pressed) {
+                    add_key(8);
+                }
+                break;
+            case 0x0F: // tab
+                if (pressed) {
+                    add_key(9);
                 }
                 break;
 
