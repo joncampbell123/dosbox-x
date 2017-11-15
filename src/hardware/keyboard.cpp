@@ -1237,6 +1237,7 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_comma:         ret=0x30;break;     // ,  <  ネ ､
     case KBD_period:        ret=0x31;break;     // .  >  ル ｡
     case KBD_slash:         ret=0x32;break;     // /  ?  メ ･
+/*  case KBD_???????:       ret=0x33;break; */  //    _  ロ
     case KBD_space:         ret=0x34;break;     // SPACEBAR
 /*  case KBD_???????:       ret=0x35;break; */  // XFER
     case KBD_pageup:        ret=0x36;break;     // ROLL UP
