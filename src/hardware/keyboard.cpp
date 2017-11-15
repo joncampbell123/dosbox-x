@@ -1220,6 +1220,13 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_j:ret=0x23;break;
     case KBD_k:ret=0x24;break;
     case KBD_l:ret=0x25;break;
+    case KBD_z:ret=0x29;break;
+    case KBD_x:ret=0x2A;break;
+    case KBD_c:ret=0x2B;break;
+    case KBD_v:ret=0x2C;break;
+    case KBD_b:ret=0x2D;break;
+    case KBD_n:ret=0x2E;break;
+    case KBD_m:ret=0x2F;break;
 
     case KBD_leftshift:ret=0x70;break;
     case KBD_rightshift:ret=0x70;break;

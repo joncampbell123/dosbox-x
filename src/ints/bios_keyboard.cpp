@@ -797,6 +797,63 @@ static Bitu IRQ1_Handler_PC98(void) {
                 }
                 break;
 
+            case 0x29: // Z
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('Z');
+                    else
+                        add_key('z');
+                }
+                break;
+            case 0x2A: // X
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('X');
+                    else
+                        add_key('x');
+                }
+                break;
+            case 0x2B: // C
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('C');
+                    else
+                        add_key('c');
+                }
+                break;
+            case 0x2C: // V
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('V');
+                    else
+                        add_key('v');
+                }
+                break;
+            case 0x2D: // B
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('B');
+                    else
+                        add_key('b');
+                }
+                break;
+            case 0x2E: // N
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('N');
+                    else
+                        add_key('n');
+                }
+                break;
+            case 0x2F: // M
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('M');
+                    else
+                        add_key('m');
+                }
+                break;
+
             case 0x70: // left/right shift
                 flags1 &= ~3; // emulate AT BIOS l+r shift with PC-98 shift
                 flags1 |= pressed ? 3 : 0;
