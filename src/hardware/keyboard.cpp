@@ -1244,6 +1244,10 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_pagedown:      ret=0x37;break;     // ROLL DOWN
     case KBD_insert:        ret=0x38;break;     // INS
     case KBD_delete:        ret=0x39;break;     // DEL
+    case KBD_up:            ret=0x3A;break;     // UP ARROW
+    case KBD_left:          ret=0x3B;break;     // LEFT ARROW
+    case KBD_right:         ret=0x3C;break;     // RIGHT ARROW
+    case KBD_down:          ret=0x3D;break;     // DOWN ARROW
     case KBD_home:          ret=0x3E;break;     // HOME / CLR
 /*  case KBD_???????:       ret=0x3F;break; */  // HELP
 /*  case KBD_???????:       ret=0x51;break; */  // NFER
