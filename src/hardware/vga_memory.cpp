@@ -1263,6 +1263,7 @@ void VGA_SetupHandlers(void) {
 		MEM_SetPageHandler( 0xb8, 8, &vgaph.ams );
 		goto range_done;
 	case EGAVGA_ARCH_CASE:
+    case PC98_ARCH_CASE:
 		break;
 	default:
 		LOG_MSG("Illegal machine type %d", machine );

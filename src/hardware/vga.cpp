@@ -659,11 +659,14 @@ void VGA_Reset(Section*) {
 }
 
 extern void VGA_TweakUserVsyncOffset(float val);
+void INT10_PC98_CurMode_Relocate(void);
 void VGA_UnsetupMisc(void);
 void VGA_UnsetupAttr(void);
 void VGA_UnsetupDAC(void);
 void VGA_UnsetupGFX(void);
 void VGA_UnsetupSEQ(void);
+
+#define gfx(blah) vga.gfx.blah
 
 void VGA_OnEnterPC98(Section *sec) {
     VGA_UnsetupMisc();
@@ -671,6 +674,14 @@ void VGA_OnEnterPC98(Section *sec) {
     VGA_UnsetupDAC();
     VGA_UnsetupGFX();
     VGA_UnsetupSEQ();
+
+    // as a transition to PC-98 GDC emulation, move VGA alphanumeric buffer
+    // down to A0000-AFFFFh.
+    gfx(miscellaneous) &= ~0x0C;
+    gfx(miscellaneous) |=  0x04; /* bits[3:2] = 1 to map A0000-AFFFF */
+    VGA_DetermineMode();
+    VGA_SetupHandlers();
+    INT10_PC98_CurMode_Relocate(); /* make sure INT 10h knows */
 }
 
 void VGA_Init() {
