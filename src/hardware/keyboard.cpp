@@ -1232,16 +1232,21 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_period:        ret=0x31;break;     // .  >  ル ｡
     case KBD_slash:         ret=0x32;break;     // /  ?  メ ･
     case KBD_space:         ret=0x34;break;     // SPACEBAR
+/*  case KBD_???????:       ret=0x35;break; */  // XFER
     case KBD_pageup:        ret=0x36;break;     // ROLL UP
     case KBD_pagedown:      ret=0x37;break;     // ROLL DOWN
     case KBD_insert:        ret=0x38;break;     // INS
     case KBD_delete:        ret=0x39;break;     // DEL
+    case KBD_home:          ret=0x3E;break;     // HOME / CLR
+/*  case KBD_???????:       ret=0x3F;break; */  // HELP
+/*  case KBD_???????:       ret=0x51;break; */  // NFER
 /*  case KBD_???????:       ret=0x52;break; */  // vf･1
 /*  case KBD_???????:       ret=0x53;break; */  // vf･2
 /*  case KBD_???????:       ret=0x54;break; */  // vf･3
 /*  case KBD_???????:       ret=0x55;break; */  // vf･4
 /*  case KBD_???????:       ret=0x56;break; */  // vf･5
 /*  case KBD_???????:       ret=0x60;break; */  // STOP
+/*  case KBD_???????:       ret=0x61;break; */  // COPY
     case KBD_f1:            ret=0x62;break;     // f･1
     case KBD_f2:            ret=0x63;break;     // f･2
     case KBD_f3:            ret=0x64;break;     // f･3
@@ -1254,6 +1259,12 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_f10:           ret=0x6B;break;     // f･10
     case KBD_leftshift:     ret=0x70;break;     // SHIFT
     case KBD_rightshift:    ret=0x70;break;     // SHIFT
+    case KBD_leftalt:       ret=0x73;break;     // GRPH (handled by Windows as if ALT key)
+    case KBD_rightalt:      ret=0x73;break;     // GRPH (handled by Windows as if ALT key)
+    case KBD_leftctrl:      ret=0x74;break;     // CTRL
+    case KBD_rightctrl:     ret=0x74;break;     // CTRL
+
+    case KBD_num:           return;             // NUM (does not return scancode) TODO: Toggle NUM lock and update internal flags
 
     default: return;
     };
