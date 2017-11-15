@@ -1265,7 +1265,7 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_leftctrl:      ret=0x74;break;     // CTRL
     case KBD_rightctrl:     ret=0x74;break;     // CTRL
 
-    case KBD_num:           return;             // NUM (does not return scancode) TODO: Toggle NUM lock and update internal flags
+    case KBD_numlock:       return;             // NUM (does not return scancode) TODO: Toggle NUM lock and update internal flags
 
     default: return;
     };
