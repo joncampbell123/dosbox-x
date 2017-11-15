@@ -1307,6 +1307,13 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
         pc98_numlock_toggle();
         return;
 
+/*  case KBD_???????:                           // KANA
+ *      if (pressed) {                          // sends only on keypress, does not resend if held down
+ *                                              // TODO: Scan code 0x72, make if switched on, break if switched off
+ *      }
+ *      return;
+ */
+
     default: return;
     };
 
