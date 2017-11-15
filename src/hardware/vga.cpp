@@ -659,6 +659,11 @@ void VGA_Reset(Section*) {
 }
 
 extern void VGA_TweakUserVsyncOffset(float val);
+void VGA_UnsetupAttr(void);
+
+void VGA_OnEnterPC98(Section *sec) {
+    VGA_UnsetupAttr();
+}
 
 void VGA_Init() {
 	string str;
@@ -720,6 +725,7 @@ void VGA_Init() {
 	}
 
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(VGA_Reset));
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(VGA_OnEnterPC98));
 }
 
 void SVGA_Setup_Driver(void) {
