@@ -1218,6 +1218,7 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
 /*  case KBD_???????:       ret=0x1A;break; */  // @  ~  ﾞ
     case KBD_leftbracket:   ret=0x1B;break;     // [  {  ﾟ  ｢
     case KBD_enter:         ret=0x1C;break;     // ENTER/RETURN
+    case KBD_kpenter:       ret=0x1C;break;     // ENTER/RETURN (KEYPAD)
     case KBD_a:             ret=0x1D;break;     // a  A  チ
     case KBD_s:             ret=0x1E;break;     // s  S  ト
     case KBD_d:             ret=0x1F;break;     // d  D  シ
@@ -1253,6 +1254,23 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_down:          ret=0x3D;break;     // DOWN ARROW
     case KBD_home:          ret=0x3E;break;     // HOME / CLR
 /*  case KBD_???????:       ret=0x3F;break; */  // HELP
+    case KBD_kpminus:       ret=0x40;break;     // - (KEYPAD)
+    case KBD_kpdivide:      ret=0x41;break;     // / (KEYPAD)
+    case KBD_kp7:           ret=0x42;break;     // 7 (KEYPAD)
+    case KBD_kp8:           ret=0x43;break;     // 8 (KEYPAD)
+    case KBD_kp9:           ret=0x44;break;     // 9 (KEYPAD)
+    case KBD_kpmultiply:    ret=0x45;break;     // * (KEYPAD)
+    case KBD_kp4:           ret=0x46;break;     // 4 (KEYPAD)
+    case KBD_kp5:           ret=0x47;break;     // 5 (KEYPAD)
+    case KBD_kp6:           ret=0x48;break;     // 6 (KEYPAD)
+    case KBD_kpplus:        ret=0x49;break;     // + (KEYPAD)
+    case KBD_kp1:           ret=0x4A;break;     // 1 (KEYPAD)
+    case KBD_kp2:           ret=0x4B;break;     // 2 (KEYPAD)
+    case KBD_kp3:           ret=0x4C;break;     // 3 (KEYPAD)
+    case KBD_kpequals:      ret=0x4D;break;     // = (KEYPAD)
+    case KBD_kp0:           ret=0x4E;break;     // 0 (KEYPAD)
+/*  case KBD_???????:       ret=0x4F;break; */  // , (KEYPAD)
+    case KBD_kpperiod:      ret=0x50;break;     // . (KEYPAD)
 /*  case KBD_???????:       ret=0x51;break; */  // NFER
 /*  case KBD_???????:       ret=0x52;break; */  // vf･1
 /*  case KBD_???????:       ret=0x53;break; */  // vf･2
