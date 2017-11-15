@@ -178,12 +178,10 @@ void VGA_SetupMisc(void) {
 }
 
 void VGA_UnsetupMisc(void) {
-#if 0 // TODO: Later when DOS console I/O updated to no longer use INT 10h
     IO_FreeWriteHandler(0x3b4,IO_MB);
     IO_FreeReadHandler(0x3b4,IO_MB);
     IO_FreeWriteHandler(0x3b5,IO_MB);
     IO_FreeReadHandler(0x3b5,IO_MB);
-#endif
     IO_FreeWriteHandler(0x3c2,IO_MB);
     IO_FreeReadHandler(0x3c2,IO_MB);
     IO_FreeWriteHandler(0x3c8,IO_MB);
@@ -192,12 +190,10 @@ void VGA_UnsetupMisc(void) {
     IO_FreeReadHandler(0x3ca,IO_MB);
     IO_FreeWriteHandler(0x3cc,IO_MB);
     IO_FreeReadHandler(0x3cc,IO_MB);
-#if 0 // TODO: Later when DOS console I/O updated to no longer use INT 10h
     IO_FreeWriteHandler(0x3d4,IO_MB);
     IO_FreeReadHandler(0x3d4,IO_MB);
     IO_FreeWriteHandler(0x3d5,IO_MB);
     IO_FreeReadHandler(0x3d5,IO_MB);
-#endif
     IO_FreeWriteHandler(0x3da,IO_MB);
     IO_FreeReadHandler(0x3da,IO_MB);
 }

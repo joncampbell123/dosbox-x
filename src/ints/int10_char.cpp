@@ -380,6 +380,8 @@ dowrite:
 	IO_Write(base,0xb);IO_Write(base+1,last);
 }
 
+void vga_pc98_direct_cursor_pos(Bit16u address);
+
 void INT10_SetCursorPos(Bit8u row,Bit8u col,Bit8u page) {
 	Bit16u address;
 
@@ -395,12 +397,17 @@ void INT10_SetCursorPos(Bit8u row,Bit8u col,Bit8u page) {
 		// Calculate the address knowing nbcols nbrows and page num
 		// NOTE: BIOSMEM_CURRENT_START counts in colour/flag pairs
 		address=(ncols*row)+col+real_readw(BIOSMEM_SEG,BIOSMEM_CURRENT_START)/2;
-		// CRTC regs 0x0e and 0x0f
-		Bit16u base=real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
-		IO_Write(base,0x0e);
-		IO_Write(base+1,(Bit8u)(address>>8));
-		IO_Write(base,0x0f);
-		IO_Write(base+1,(Bit8u)address);
+        if (IS_PC98_ARCH) {
+            vga_pc98_direct_cursor_pos(address);
+        }
+        else {
+            // CRTC regs 0x0e and 0x0f
+            Bit16u base=real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS);
+            IO_Write(base,0x0e);
+            IO_Write(base+1,(Bit8u)(address>>8));
+            IO_Write(base,0x0f);
+            IO_Write(base+1,(Bit8u)address);
+        }
 	}
 }
 
