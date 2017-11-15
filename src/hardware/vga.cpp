@@ -663,12 +663,14 @@ void VGA_UnsetupMisc(void);
 void VGA_UnsetupAttr(void);
 void VGA_UnsetupDAC(void);
 void VGA_UnsetupGFX(void);
+void VGA_UnsetupSEQ(void);
 
 void VGA_OnEnterPC98(Section *sec) {
     VGA_UnsetupMisc();
     VGA_UnsetupAttr();
     VGA_UnsetupDAC();
     VGA_UnsetupGFX();
+    VGA_UnsetupSEQ();
 }
 
 void VGA_Init() {
