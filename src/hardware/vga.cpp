@@ -688,6 +688,10 @@ void VGA_OnEnterPC98(Section *sec) {
     seq(clocking_mode) |= 1; /* 8-bit wide char */
 	vga.misc_output &= ~0x0C; /* bits[3:2] = 0 25MHz clock */
     VGA_StartResize();
+
+    /* now, switch to PC-98 video emulation */
+    vga.mode=M_PC98;
+    VGA_SetupHandlers();
 }
 
 void VGA_Init() {

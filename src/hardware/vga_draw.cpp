@@ -888,6 +888,7 @@ static void VGA_ProcessSplit() {
 		vga.draw.address = vga.draw.byte_panning_shift*vga.draw.bytes_skip;
 		if (machine != MCH_EGA) {
 			switch (vga.mode) {
+                case M_PC98:
 				case M_TEXT:
 				case M_EGA:
 				case M_LIN4:
@@ -1067,6 +1068,7 @@ static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
 		Bitu address = vga.draw.address;
 		if (machine != MCH_EGA) {
 			switch (vga.mode) {
+                case M_PC98:
 				case M_TEXT:
 				case M_EGA:
 				case M_LIN4:
@@ -1350,7 +1352,8 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 		vga.draw.address *= vga.draw.byte_panning_shift;
 		vga.draw.address += vga.draw.panning;
 		break;
-	case M_TEXT:
+    case M_PC98:
+    case M_TEXT:
 		vga.draw.byte_panning_shift = 2;
 		vga.draw.address += vga.draw.bytes_skip;
 		// fall-through
@@ -1476,7 +1479,8 @@ void VGA_CheckScanLength(void) {
 			vga.draw.address_add=vga.config.scan_len*(2<<vga.config.addr_shift);
 		}
 		break;
-	case M_TEXT:
+    case M_PC98:
+    case M_TEXT:
 	case M_CGA2:
 	case M_CGA4:
 	case M_CGA16:
@@ -1875,7 +1879,8 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		case M_CGA16:
 		case M_CGA2:
 		case M_CGA4:
-		case M_TEXT:
+        case M_PC98:
+        case M_TEXT:
 			// these use line_total internal
 			// doublescanning needs to be emulated by renderer doubleheight
 			// EGA has no doublescanning bit at 0x80
@@ -2008,6 +2013,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		}
 		break;
 	case M_TEXT:
+    case M_PC98:
 		vga.draw.blocks=width;
 		// if char9_set is true, allow 9-pixel wide fonts
 		if ((vga.seq.clocking_mode&0x01) || !vga.draw.char9_set) {
@@ -2180,6 +2186,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		"M_TEXT",
 		"M_HERC_GFX", "M_HERC_TEXT",
 		"M_CGA16", "M_TANDY2", "M_TANDY4", "M_TANDY16", "M_TANDY_TEXT",
+        "M_AMSTRAD", "M_PC98",
 		"M_ERROR"
 	};
 
