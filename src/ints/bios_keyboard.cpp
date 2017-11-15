@@ -804,6 +804,14 @@ static Bitu IRQ1_Handler_PC98(void) {
                         add_key('l');
                 }
                 break;
+            case 0x26: // ;
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(':');
+                    else
+                        add_key(';');
+                }
+                break;
 
             case 0x29: // Z
                 if (pressed) {
