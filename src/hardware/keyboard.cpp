@@ -1227,6 +1227,12 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_b:ret=0x2D;break;
     case KBD_n:ret=0x2E;break;
     case KBD_m:ret=0x2F;break;
+    case KBD_comma:ret=0x30;break;
+    case KBD_period:ret=0x31;break;
+    case KBD_slash:ret=0x32;break;
+    case KBD_space:ret=0x34;break;
+    case KBD_pageup:ret=0x36;break;
+    case KBD_pagedown:ret=0x37;break;
 
     case KBD_leftshift:ret=0x70;break;
     case KBD_rightshift:ret=0x70;break;

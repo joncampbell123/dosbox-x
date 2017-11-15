@@ -853,6 +853,35 @@ static Bitu IRQ1_Handler_PC98(void) {
                         add_key('m');
                 }
                 break;
+            case 0x30: // ,
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('<');
+                    else
+                        add_key(',');
+                }
+                break;
+            case 0x31: // .
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('>');
+                    else
+                        add_key('.');
+                }
+                break;
+            case 0x32: // /
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('?');
+                    else
+                        add_key('/');
+                }
+                break;
+            case 0x34: // <space>
+                if (pressed) {
+                    add_key(' ');
+                }
+                break;
 
             case 0x70: // left/right shift
                 flags1 &= ~3; // emulate AT BIOS l+r shift with PC-98 shift
