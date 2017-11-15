@@ -874,6 +874,51 @@ static Bit8u* VGA_TEXT_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 	return TempLine+(16*4);
 }
 
+static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
+	// keep it aligned:
+	Bit32u* draw = ((Bit32u*)TempLine);
+	Bitu blocks = vga.draw.blocks;
+    Bit32u vidmem = vidstart;
+	if (vga.draw.panning) blocks++; // if the text is panned part of an 
+									// additional character becomes visible
+
+	while (blocks--) { // for each character in the line
+		Bit16u chr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x0000U];
+		Bit16u attr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x2000U];
+		// the font pattern
+		Bitu font = vga.draw.font_tables[0][((chr&0xFFU)<<5)+line];
+
+        Bitu foreground = 15;
+        Bitu background = 0;
+
+        for (Bitu n = 0; n < 8; n++) {
+            *draw++ = vga.dac.xlat32[(font&0x80)? foreground:background];
+            font <<= 1;
+        }
+
+        vidmem++;
+    }
+
+	// draw the text mode cursor if needed
+	if ((vga.draw.cursor.count&0x8) && (line >= vga.draw.cursor.sline) &&
+		(line <= vga.draw.cursor.eline) && vga.draw.cursor.enabled) {
+		// the adress of the attribute that makes up the cell the cursor is in
+		Bits attr_addr = (vga.draw.cursor.address - vidstart);
+		if (attr_addr >= 0 && attr_addr < (Bits)vga.draw.blocks) {
+			Bitu index = attr_addr * 8 * 4;
+			draw = (Bit32u*)(&TempLine[index]);
+			
+			Bitu foreground = 15;
+
+			for (Bitu i = 0; i < 8; i++) {
+				*draw++ = vga.dac.xlat32[foreground];
+			}
+		}
+	}
+
+	return TempLine;
+}
+
 static void VGA_ProcessSplit() {
 	vga.draw.has_split = true;
 	if (vga.attr.mode_control&0x20) {
@@ -1353,10 +1398,15 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 		vga.draw.address += vga.draw.panning;
 		break;
     case M_PC98:
+        vga.draw.linear_mask = 0xfff; // 1 page
+		vga.draw.byte_panning_shift = 2;
+		vga.draw.address += vga.draw.bytes_skip;
+        vga.draw.cursor.address = vga.config.cursor_start;
+        break;
     case M_TEXT:
 		vga.draw.byte_panning_shift = 2;
 		vga.draw.address += vga.draw.bytes_skip;
-		// fall-through
+        // fall-through
 	case M_TANDY_TEXT:
 	case M_HERC_TEXT:
 		if (machine==MCH_HERC) vga.draw.linear_mask = 0xfff; // 1 page
@@ -1480,6 +1530,8 @@ void VGA_CheckScanLength(void) {
 		}
 		break;
     case M_PC98:
+        vga.draw.address_add=vga.draw.blocks;
+        break;
     case M_TEXT:
 	case M_CGA2:
 	case M_CGA4:
@@ -2017,8 +2069,13 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 			VGA_DrawLine=VGA_Draw_1BPP_Line;
 		}
 		break;
-	case M_TEXT:
     case M_PC98:
+		vga.draw.blocks=width;
+        vga.draw.char9dot = false;
+        VGA_DrawLine=VGA_PC98_Xlat32_Draw_Line;
+        bpp = 32;
+        break;
+    case M_TEXT:
 		vga.draw.blocks=width;
 		// if char9_set is true, allow 9-pixel wide fonts
 		if ((vga.seq.clocking_mode&0x01) || !vga.draw.char9_set) {

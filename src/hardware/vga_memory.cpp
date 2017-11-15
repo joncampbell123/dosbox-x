@@ -743,6 +743,44 @@ public:
 	}
 };
 
+/* The NEC display is documented to have:
+ *
+ * A0000-A3FFF      T-RAM (text) (8KB)
+ *   A0000-A1FFF      Characters (4KB)
+ *   A2000-A3FFF      Attributes (4KB)
+ * A8000-BFFFF      G-RAM (graphics) (96KB)
+ *
+ * T-RAM character display RAM is 16-bits per character.
+ * ASCII text has upper 8 bits zero.
+ * SHIFT-JIS doublewide characters use the upper byte for non-ASCII. */
+
+class VGA_PC98_PageHandler : public PageHandler {
+public:
+	VGA_PC98_PageHandler() : PageHandler(PFLAG_NOCODE) {}
+	Bitu readb(PhysPt addr) {
+		VGAMEM_USEC_read_delay(); // FIXME: VRAM delay? How fast is the VRAM compared to the CPU?
+
+		addr = PAGING_GetPhysicalAddress(addr) & 0x1FFFF;
+
+        // FIXME: Until I test otherwise, I assume that the undocumented area A4000-A7FFF is just a mirror of A0000-A3FFF
+        if ((addr & 0xFC000) == 0x04000) /* A4000-A7FFF? */
+            addr &= 0x3FFF; /* alias to A0000-A3FFF */
+
+		return vga.mem.linear[addr];
+	}
+	void writeb(PhysPt addr,Bitu val){
+		VGAMEM_USEC_read_delay(); // FIXME: VRAM delay? How fast is the VRAM compared to the CPU?
+
+		addr = PAGING_GetPhysicalAddress(addr) & 0x1FFFF;
+
+        // FIXME: Until I test otherwise, I assume that the undocumented area A4000-A7FFF is just a mirror of A0000-A3FFF
+        if ((addr & 0xFC000) == 0x04000) /* A4000-A7FFF? */
+            addr &= 0x3FFF; /* alias to A0000-A3FFF */
+
+		vga.mem.linear[addr] = val;
+	}
+};
+
 class VGA_TEXT_PageHandler : public PageHandler {
 public:
 	VGA_TEXT_PageHandler() : PageHandler(PFLAG_NOCODE) {}
@@ -1191,6 +1229,7 @@ static struct vg {
 	VGA_LFB_Handler				lfb;
 	VGA_MMIO_Handler			mmio;
 	VGA_AMS_Handler				ams;
+    VGA_PC98_PageHandler        pc98;
 	VGA_Empty_Handler			empty;
 } vgaph;
 
@@ -1327,6 +1366,9 @@ void VGA_SetupHandlers(void) {
 	case M_CGA4:
 		newHandler = &vgaph.text;
 		break;
+    case M_PC98:
+		newHandler = &vgaph.pc98;
+        break;
 	case M_AMSTRAD:
 		newHandler = &vgaph.map;
 		break;

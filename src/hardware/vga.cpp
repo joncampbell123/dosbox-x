@@ -678,19 +678,21 @@ void VGA_OnEnterPC98(Section *sec) {
 
     // as a transition to PC-98 GDC emulation, move VGA alphanumeric buffer
     // down to A0000-AFFFFh.
-    gfx(miscellaneous) &= ~0x0C;
-    gfx(miscellaneous) |=  0x04; /* bits[3:2] = 1 to map A0000-AFFFF */
+    gfx(miscellaneous) &= ~0x0C; /* bits[3:2] = 0 to map A0000-BFFFF */
     VGA_DetermineMode();
     VGA_SetupHandlers();
     INT10_PC98_CurMode_Relocate(); /* make sure INT 10h knows */
 
     /* 8-char wide mode. change to 25MHz clock to match. */
+	vga.config.addr_shift = 0;
     seq(clocking_mode) |= 1; /* 8-bit wide char */
 	vga.misc_output &= ~0x0C; /* bits[3:2] = 0 25MHz clock */
     VGA_StartResize();
 
     /* now, switch to PC-98 video emulation */
     vga.mode=M_PC98;
+    assert(vga.vmemsize >= 0x20000);
+    memset(vga.mem.linear,0,0x20000);
     VGA_SetupHandlers();
 }
 
