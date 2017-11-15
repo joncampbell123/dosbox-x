@@ -667,6 +667,7 @@ void VGA_UnsetupGFX(void);
 void VGA_UnsetupSEQ(void);
 
 #define gfx(blah) vga.gfx.blah
+#define seq(blah) vga.seq.blah
 
 void VGA_OnEnterPC98(Section *sec) {
     VGA_UnsetupMisc();
@@ -682,6 +683,11 @@ void VGA_OnEnterPC98(Section *sec) {
     VGA_DetermineMode();
     VGA_SetupHandlers();
     INT10_PC98_CurMode_Relocate(); /* make sure INT 10h knows */
+
+    /* 8-char wide mode. change to 25MHz clock to match. */
+    seq(clocking_mode) |= 1; /* 8-bit wide char */
+	vga.misc_output &= ~0x0C; /* bits[3:2] = 0 25MHz clock */
+    VGA_StartResize();
 }
 
 void VGA_Init() {
