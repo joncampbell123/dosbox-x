@@ -1179,6 +1179,10 @@ void KEYBOARD_AddKey2(KBD_KEYS keytype,bool pressed) {
 
 void pc98_keyboard_send(const unsigned char b);
 
+/* PC-98 state */
+bool pc98_numlock = false;
+bool pc98_caps_on = false;
+
 /* this version sends to the PC-98 8251 emulation NOT the AT 8042 emulation */
 void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
 	Bit8u ret=0;
@@ -1275,7 +1279,16 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_leftctrl:      ret=0x74;break;     // CTRL
     case KBD_rightctrl:     ret=0x74;break;     // CTRL
 
-    case KBD_numlock:       return;             // NUM (does not return scancode) TODO: Toggle NUM lock and update internal flags
+    case KBD_capslock:                          // CAPS
+        if (pressed) {                          // sends only on keypress, does not resend if held down
+            pc98_caps_on = !pc98_caps_on;
+            pc98_keyboard_send(0x71 | (!pc98_caps_on ? 0x80 : 0x00)); // make code if caps switched on, break if caps switched off
+        }
+        return;
+
+    case KBD_numlock:                           // NUM
+        pc98_numlock = !pc98_numlock;           // does not send scan code for NUM
+        return;
 
     default: return;
     };
