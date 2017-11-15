@@ -972,6 +972,7 @@ static void VGA_DrawSingleLine(Bitu /*blah*/) {
 			break;
 		case MCH_EGA:
 		case MCH_VGA:
+        case MCH_PC98:
 			// DoWhackaDo, Alien Carnage, TV sports Football
 			// when disabled by attribute index bit 5:
 			//  ET3000, ET4000, Paradise display the border color
@@ -1289,6 +1290,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 		VGA_DisplayStartLatch(0);
 		break;
 	case MCH_VGA:
+    case MCH_PC98:
 		PIC_AddEvent(VGA_DisplayStartLatch, (float)vga.draw.delay.vrstart);
 		PIC_AddEvent(VGA_PanningLatch, (float)vga.draw.delay.vrend);
 		// EGA: 82c435 datasheet: interrupt happens at display end
@@ -1479,7 +1481,7 @@ void VGA_CheckScanLength(void) {
 	case M_CGA4:
 	case M_CGA16:
 	case M_AMSTRAD:	// Next line.
-		if (IS_EGAVGA_ARCH)
+		if (IS_EGAVGA_ARCH || IS_PC98_ARCH)
 			vga.draw.address_add=vga.config.scan_len*(2<<vga.config.addr_shift);
 		else
 			vga.draw.address_add=vga.draw.blocks;
@@ -1572,6 +1574,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		vga.draw.mode = EGALINE;
 		break;
 	case MCH_VGA:
+    case MCH_PC98:
 		if (svgaCard==SVGA_None) {
 			vga.draw.mode = LINE;
 			break;
@@ -1589,7 +1592,11 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 	Bitu hbend_mask, vbend_mask;
 	Bitu vblank_skip;
 
-	if (IS_EGAVGA_ARCH) {
+    /* NTS: PC-98 emulation re-uses VGA state FOR NOW.
+     *      This will slowly change to accomodate PC-98 display controller over time
+     *      and IS_PC98_ARCH will become it's own case statement. */
+
+	if (IS_EGAVGA_ARCH || IS_PC98_ARCH) {
 		htotal = vga.crtc.horizontal_total;
 		hdend = vga.crtc.horizontal_display_end;
 		hbend = vga.crtc.end_horizontal_blanking&0x1F;
@@ -1601,7 +1608,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		vbstart = vga.crtc.start_vertical_blanking | ((vga.crtc.overflow & 0x08) << 5);
 		vrstart = vga.crtc.vertical_retrace_start + ((vga.crtc.overflow & 0x04) << 6);
 		
-		if (IS_VGA_ARCH) {
+		if (IS_VGA_ARCH || IS_PC98_ARCH) {
 			// additional bits only present on vga cards
 			htotal |= (vga.s3.ex_hor_overflow & 0x1) << 8;
 			htotal += 3;
@@ -1777,7 +1784,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 
 	// Vertical blanking tricks
 	vblank_skip = 0;
-	if (IS_VGA_ARCH && !ignore_vblank_wraparound) { // others need more investigation
+	if ((IS_VGA_ARCH || IS_PC98_ARCH) && !ignore_vblank_wraparound) { // others need more investigation
 		if (vbstart < vtotal) { // There will be no blanking at all otherwise
 			if (vbend > vtotal) {
 				// blanking wraps to the start of the screen
@@ -1857,12 +1864,12 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 
 	//Check to prevent useless black areas
 	if (hbstart<hdend) hdend=hbstart;
-	if ((!IS_VGA_ARCH) && (vbstart<vdend)) vdend=vbstart;
+	if ((!(IS_VGA_ARCH || IS_PC98_ARCH)) && (vbstart<vdend)) vdend=vbstart;
 
 	Bitu width=hdend;
 	Bitu height=vdend;
 
-	if (IS_EGAVGA_ARCH) {
+	if (IS_EGAVGA_ARCH || IS_PC98_ARCH) {
 		vga.draw.address_line_total=(vga.crtc.maximum_scan_line&0x1f)+1;
 		switch(vga.mode) {
 		case M_CGA16:
@@ -1979,7 +1986,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		VGA_DrawLine=VGA_Draw_CGA16_Line;
 		break;
 	case M_CGA4:
-		if (IS_EGAVGA_ARCH) {
+		if (IS_EGAVGA_ARCH || IS_PC98_ARCH) {
 			vga.draw.blocks=width;
 			VGA_DrawLine=VGA_Draw_2BPP_Line_as_VGA;
 			bpp = 32;
@@ -1990,7 +1997,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		}
 		break;
 	case M_CGA2:
-		if (IS_EGAVGA_ARCH) {
+		if (IS_EGAVGA_ARCH || IS_PC98_ARCH) {
 			vga.draw.blocks=width;
 			VGA_DrawLine=VGA_Draw_1BPP_Line_as_VGA;
 			bpp = 32;

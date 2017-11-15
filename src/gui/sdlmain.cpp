@@ -5012,6 +5012,14 @@ fresh_boot:
 
             /* all hardware devices need to know to reregister themselves PC-98 style */
             if (enter_pc98) {
+                void CALLBACK_RunRealInt(Bit8u intnum);
+
+                /* reset VGA mode to 80x25 text before switching */
+                reg_ax = 3;
+                reg_sp = 0x7FFE;
+                CPU_SetSegGeneral(ss,0);
+                CALLBACK_RunRealInt(0x10);
+
                 machine = MCH_PC98;
                 enable_pc98_jump = false;
     			DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE); /* IBM PC unregistration/shutdown */
