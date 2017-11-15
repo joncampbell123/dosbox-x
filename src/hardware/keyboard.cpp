@@ -1199,6 +1199,7 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_minus:         ret=0x0B;break;     // -  =  ホ
     case KBD_equals:        ret=0x0C;break;     // ^  `  ヘ
     case KBD_backslash:     ret=0x0D;break;     // ¥  |  ｰ
+    case KBD_jp_yen:        ret=0x0D;break;     // ¥  |  ｰ
     case KBD_backspace:     ret=0x0E;break;     // BS (BACKSPACE)
     case KBD_tab:           ret=0x0F;break;     // TAB
     case KBD_q:             ret=0x10;break;     // q  Q  タ
