@@ -187,6 +187,10 @@ static bool get_key(Bit16u &code) {
 	return true;
 }
 
+bool INT16_get_key(Bit16u &code) {
+    return get_key(code);
+}
+
 static bool check_key(Bit16u &code) {
 	Bit16u head,tail;
 	head =mem_readw(BIOS_KEYBOARD_BUFFER_HEAD);
@@ -194,6 +198,10 @@ static bool check_key(Bit16u &code) {
 	if (head==tail) return false;
 	code = real_readw(0x40,head);
 	return true;
+}
+
+bool INT16_peek_key(Bit16u &code) {
+    return check_key(code);
 }
 
 static void empty_keyboard_buffer() {

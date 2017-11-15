@@ -2230,6 +2230,78 @@ static Bitu INT1A_Handler(void) {
 	return CBRET_NONE;
 }	
 
+bool INT16_get_key(Bit16u &code);
+bool INT16_peek_key(Bit16u &code);
+
+static Bitu INT18_PC98_Handler(void) {
+    Bit16u temp16;
+
+    /* NTS: Based on information gleaned from Neko Project II source code including comments which
+     *      I've run through GNU iconv to convert from SHIFT-JIS to UTF-8 here in case Google Translate
+     *      got anything wrong. */
+    switch (reg_ah) {
+        case 0x00: /* Reading of key data (キー・データの読みだし) */
+            /* FIXME: We use the IBM PC/AT keyboard buffer to fake this call.
+             *        This will be replaced with PROPER emulation once the PC-98 keyboard handler has been
+             *        updated to write the buffer the way PC-98 BIOSes do it.
+             *
+             *        IBM PC/AT keyboard buffer at 40:1E-40:3D
+             *
+             *        PC-98 keyboard buffer at 50:02-50:21 */
+            /* This call blocks until keyboard input */
+            if (INT16_get_key(temp16)) {
+                reg_ax = temp16;
+            }
+            else {
+                reg_ip += 1; /* step over IRET, to NOPs which then JMP back to callback */
+            }
+            break;
+        case 0x01: /* Sense of key buffer state (キー・バッファ状態のセンス) */
+            /* This call returns whether or not there is input waiting.
+             * The waiting data is read, but NOT discarded from the buffer. */
+            if (INT16_peek_key(temp16)) {
+                reg_ax = temp16;
+                reg_bh = 1;
+            }
+            else {
+                reg_bh = 0;
+            }
+            break;
+        case 0x02: /* Sense of shift key state (シフト・キー状態のセンス) */
+            reg_al = 0x00; /* TODO */
+            break;
+        case 0x03: /* Initialization of keyboard interface (キーボード・インタフェイスの初期化) */
+            /* TODO */
+            break;
+        case 0x04: /* Sense of key input state (キー入力状態のセンス) */
+            reg_ah = 0x00; /* TODO */
+            /* As far as I can tell from Neko Project II, this reads from a part of the BIOS data area
+             * that holds a bitmap that represents which keys are down at this moment. It returns the
+             * whole 8-bit byte, so it's up to the program to pick off the bit of interest.
+             *
+             * From xnp2: CPU_AH = mem[MEMX_KB_KY_STS + (CPU_AL & 0x0F)]; */
+            break;
+        case 0x05: /* Key input sense (キー入力センス) */
+            /* This appears to return a key from the buffer (and remove from
+             * buffer) or return BH == 0 to signal no key was pending. */
+            if (INT16_get_key(temp16)) {
+                reg_ax = temp16;
+                reg_bh = 1;
+            }
+            else {
+                reg_bh = 0;
+            }
+            break;
+        /* From this point on the INT 18h call list appears to wander off from the keyboard into CRT/GDC/display management. */
+        default:
+            LOG_MSG("PC-98 INT 18h AH=0x%02X TODO unknown call",reg_ah);
+            break;
+    };
+
+    /* FIXME: What do actual BIOSes do when faced with an unknown INT 18h call? */
+    return CBRET_NONE;
+}
+
 static Bitu INT11_Handler(void) {
 	reg_ax=mem_readw(BIOS_CONFIGURATION);
 	return CBRET_NONE;
@@ -4914,6 +4986,10 @@ public:
 
         BIOS_SetupKeyboard();
         BIOS_SetupDisks(); /* In PC-98 mode, will zero INT 13h */
+
+		/* INT 18h keyboard and video display functions */
+		callback[1].Install(&INT18_PC98_Handler,CB_INT16,"Int 18 keyboard and display");
+		callback[1].Set_RealVec(0x18,/*reinstall*/true);
     }
 public:
     Bitu call_irq0;
