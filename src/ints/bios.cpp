@@ -4870,8 +4870,14 @@ public:
         callback[6].Uninstall(); /* INT 1Ah */
         RealSetVec(0x1A,0);
 
+        RealSetVec(0x1B,0);     /* INT 1Bh */
+
         callback[7].Uninstall(); /* INT 1Ch */
         RealSetVec(0x1C,0);
+
+        RealSetVec(0x1D,0);     /* INT 1Dh */
+        RealSetVec(0x1E,0);     /* INT 1Eh */
+        RealSetVec(0x1F,0);     /* INT 1Fh */
 
 		callback[10].Uninstall(); /* INT 19h */
         RealSetVec(0x19,0);

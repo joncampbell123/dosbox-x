@@ -1985,9 +1985,11 @@ public:
 		//	pop ax
 		//	iret
 
-		/* DOS installs a handler for INT 1Bh */
-		callback[7].Install(BIOS_1BHandler,CB_IRET,"BIOS 1Bh");
-		callback[7].Set_RealVec(0x1B);
+        if (!IS_PC98_ARCH) {
+            /* DOS installs a handler for INT 1Bh */
+            callback[7].Install(BIOS_1BHandler,CB_IRET,"BIOS 1Bh");
+            callback[7].Set_RealVec(0x1B);
+        }
 
 		callback[8].Install(DOS_CPMHandler,CB_CPM,"DOS/CPM Int 30-31");
 		int30=RealGetVec(0x30);
