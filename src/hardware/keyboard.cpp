@@ -1234,6 +1234,22 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_space:         ret=0x34;break;     // SPACEBAR
     case KBD_pageup:        ret=0x36;break;     // ROLL UP
     case KBD_pagedown:      ret=0x37;break;     // ROLL DOWN
+/*  case KBD_???????:       ret=0x52;break; */  // vf･1
+/*  case KBD_???????:       ret=0x53;break; */  // vf･2
+/*  case KBD_???????:       ret=0x54;break; */  // vf･3
+/*  case KBD_???????:       ret=0x55;break; */  // vf･4
+/*  case KBD_???????:       ret=0x56;break; */  // vf･5
+/*  case KBD_???????:       ret=0x60;break; */  // STOP
+    case KBD_f1:            ret=0x62;break;     // f･1
+    case KBD_f2:            ret=0x63;break;     // f･2
+    case KBD_f3:            ret=0x64;break;     // f･3
+    case KBD_f4:            ret=0x65;break;     // f･4
+    case KBD_f5:            ret=0x66;break;     // f･5
+    case KBD_f6:            ret=0x67;break;     // f･6
+    case KBD_f7:            ret=0x68;break;     // f･7
+    case KBD_f8:            ret=0x69;break;     // f･8
+    case KBD_f9:            ret=0x6A;break;     // f･9
+    case KBD_f10:           ret=0x6B;break;     // f･10
     case KBD_leftshift:     ret=0x70;break;     // SHIFT
     case KBD_rightshift:    ret=0x70;break;     // SHIFT
 
