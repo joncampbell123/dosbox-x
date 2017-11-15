@@ -1234,6 +1234,8 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_space:         ret=0x34;break;     // SPACEBAR
     case KBD_pageup:        ret=0x36;break;     // ROLL UP
     case KBD_pagedown:      ret=0x37;break;     // ROLL DOWN
+    case KBD_insert:        ret=0x38;break;     // INS
+    case KBD_delete:        ret=0x39;break;     // DEL
 /*  case KBD_???????:       ret=0x52;break; */  // vf･1
 /*  case KBD_???????:       ret=0x53;break; */  // vf･2
 /*  case KBD_???????:       ret=0x54;break; */  // vf･3
