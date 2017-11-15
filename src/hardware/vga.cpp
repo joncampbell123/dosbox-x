@@ -661,10 +661,12 @@ void VGA_Reset(Section*) {
 extern void VGA_TweakUserVsyncOffset(float val);
 void VGA_UnsetupAttr(void);
 void VGA_UnsetupDAC(void);
+void VGA_UnsetupGFX(void);
 
 void VGA_OnEnterPC98(Section *sec) {
     VGA_UnsetupAttr();
     VGA_UnsetupDAC();
+    VGA_UnsetupGFX();
 }
 
 void VGA_Init() {
