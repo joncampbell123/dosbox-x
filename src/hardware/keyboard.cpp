@@ -1231,13 +1231,12 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_comma:         ret=0x30;break;     // ,  <  ネ ､
     case KBD_period:        ret=0x31;break;     // .  >  ル ｡
     case KBD_slash:         ret=0x32;break;     // /  ?  メ ･
+    case KBD_space:         ret=0x34;break;     // SPACEBAR
+    case KBD_pageup:        ret=0x36;break;     // ROLL UP
+    case KBD_pagedown:      ret=0x37;break;     // ROLL DOWN
+    case KBD_leftshift:     ret=0x70;break;     // SHIFT
+    case KBD_rightshift:    ret=0x70;break;     // SHIFT
 
-    case KBD_space:ret=0x34;break;
-    case KBD_pageup:ret=0x36;break;
-    case KBD_pagedown:ret=0x37;break;
-
-    case KBD_leftshift:ret=0x70;break;
-    case KBD_rightshift:ret=0x70;break;
     default: return;
     };
 
