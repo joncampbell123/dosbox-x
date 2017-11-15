@@ -1183,22 +1183,24 @@ void pc98_keyboard_send(const unsigned char b);
 void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
 	Bit8u ret=0;
 
-    switch (keytype) {
-	case KBD_esc:ret=0x00;break;
-	case KBD_1:ret=0x01;break;
-	case KBD_2:ret=0x02;break;
-	case KBD_3:ret=0x03;break;		
-	case KBD_4:ret=0x04;break;
-	case KBD_5:ret=0x05;break;
-	case KBD_6:ret=0x06;break;		
-	case KBD_7:ret=0x07;break;
-	case KBD_8:ret=0x08;break;
-	case KBD_9:ret=0x09;break;		
-	case KBD_0:ret=0x0A;break;
-    case KBD_minus:ret=0x0B;break;
-    case KBD_equals:ret=0x0C;break;
-    case KBD_backslash:ret=0x0D;break;
-    case KBD_backspace:ret=0x0E;break;
+    switch (keytype) {                          // NAME or
+                                                // NM SH KA KA+SH       NM=no-mod SH=shift KA=kana KA+SH=kana+shift
+    case KBD_esc:           ret=0x00;break;     // ESC
+    case KBD_1:             ret=0x01;break;     // 1  !  ヌ
+    case KBD_2:             ret=0x02;break;     // 2  "  フ
+    case KBD_3:             ret=0x03;break;     // 3  #  ア ァ
+    case KBD_4:             ret=0x04;break;     // 4  $  ウ ゥ
+    case KBD_5:             ret=0x05;break;     // 5  %  エ ェ
+    case KBD_6:             ret=0x06;break;     // 6  &  オ ォ
+    case KBD_7:             ret=0x07;break;     // 7  '  ヤ ャ
+    case KBD_8:             ret=0x08;break;     // 8  (  ユ ュ
+    case KBD_9:             ret=0x09;break;     // 9  )  ヨ ョ
+    case KBD_0:             ret=0x0A;break;     // 0     ワ ヲ
+    case KBD_minus:         ret=0x0B;break;     // -  =  ホ
+    case KBD_equals:        ret=0x0C;break;     // ^  `  ヘ
+    case KBD_backslash:     ret=0x0D;break;     // ¥  |  ｰ
+    case KBD_backspace:     ret=0x0E;break;     // BACKSPACE
+
     case KBD_tab:ret=0x0F;break;
     case KBD_q:ret=0x10;break;
     case KBD_w:ret=0x11;break;
