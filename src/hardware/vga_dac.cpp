@@ -261,3 +261,14 @@ void VGA_SetupDAC(void) {
 	}
 }
 
+void VGA_UnsetupDAC(void) {
+    IO_FreeWriteHandler(0x3c6,IO_MB);
+    IO_FreeReadHandler(0x3c6,IO_MB);
+    IO_FreeWriteHandler(0x3c7,IO_MB);
+    IO_FreeReadHandler(0x3c7,IO_MB);
+    IO_FreeWriteHandler(0x3c8,IO_MB);
+    IO_FreeReadHandler(0x3c8,IO_MB);
+    IO_FreeWriteHandler(0x3c9,IO_MB);
+    IO_FreeReadHandler(0x3c9,IO_MB);
+}
+
