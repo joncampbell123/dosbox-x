@@ -1224,6 +1224,9 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_j:             ret=0x23;break;     // j  J  マ
     case KBD_k:             ret=0x24;break;     // k  K  ノ
     case KBD_l:             ret=0x25;break;     // l  L  リ
+    case KBD_semicolon:     ret=0x26;break;     // ;  +  レ
+/*  case KBD_???????:       ret=0x27;break; */  // :  *  ケ
+    case KBD_rightbracket:  ret=0x28;break;     // ]  }  ム ｣
     case KBD_z:             ret=0x29;break;     // z  Z  ツ ッ
     case KBD_x:             ret=0x2A;break;     // x  X  サ
     case KBD_c:             ret=0x2B;break;     // c  C  ソ
