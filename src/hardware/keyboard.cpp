@@ -1221,17 +1221,17 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_j:             ret=0x23;break;     // j  J  マ
     case KBD_k:             ret=0x24;break;     // k  K  ノ
     case KBD_l:             ret=0x25;break;     // l  L  リ
+    case KBD_z:             ret=0x29;break;     // z  Z  ツ ッ
+    case KBD_x:             ret=0x2A;break;     // x  X  サ
+    case KBD_c:             ret=0x2B;break;     // c  C  ソ
+    case KBD_v:             ret=0x2C;break;     // v  V  ヒ
+    case KBD_b:             ret=0x2D;break;     // b  B  コ
+    case KBD_n:             ret=0x2E;break;     // n  N  ミ
+    case KBD_m:             ret=0x2F;break;     // m  M  モ
+    case KBD_comma:         ret=0x30;break;     // ,  <  ネ ､
+    case KBD_period:        ret=0x31;break;     // .  >  ル ｡
+    case KBD_slash:         ret=0x32;break;     // /  ?  メ ･
 
-    case KBD_z:ret=0x29;break;
-    case KBD_x:ret=0x2A;break;
-    case KBD_c:ret=0x2B;break;
-    case KBD_v:ret=0x2C;break;
-    case KBD_b:ret=0x2D;break;
-    case KBD_n:ret=0x2E;break;
-    case KBD_m:ret=0x2F;break;
-    case KBD_comma:ret=0x30;break;
-    case KBD_period:ret=0x31;break;
-    case KBD_slash:ret=0x32;break;
     case KBD_space:ret=0x34;break;
     case KBD_pageup:ret=0x36;break;
     case KBD_pagedown:ret=0x37;break;
