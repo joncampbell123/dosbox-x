@@ -724,6 +724,78 @@ static Bitu IRQ1_Handler_PC98(void) {
                     add_key(13);
                 }
                 break;
+            case 0x1D: // A
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('A');
+                    else
+                        add_key('a');
+                }
+                break;
+            case 0x1E: // S
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('S');
+                    else
+                        add_key('s');
+                }
+                break;
+            case 0x1F: // D
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('D');
+                    else
+                        add_key('d');
+                }
+                break;
+            case 0x20: // F
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('F');
+                    else
+                        add_key('f');
+                }
+                break;
+            case 0x21: // G
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('G');
+                    else
+                        add_key('g');
+                }
+                break;
+            case 0x22: // H
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('H');
+                    else
+                        add_key('h');
+                }
+                break;
+            case 0x23: // J
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('J');
+                    else
+                        add_key('j');
+                }
+                break;
+            case 0x24: // K
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('K');
+                    else
+                        add_key('k');
+                }
+                break;
+            case 0x25: // L
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key('L');
+                    else
+                        add_key('l');
+                }
+                break;
 
             case 0x70: // left/right shift
                 flags1 &= ~3; // emulate AT BIOS l+r shift with PC-98 shift
