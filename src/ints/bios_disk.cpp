@@ -772,6 +772,7 @@ void CALLBACK_DeAllocate(Bitu in);
 void BIOS_UnsetupDisks(void) {
     if (call_int13 != 0) {
         CALLBACK_DeAllocate(call_int13);
+        RealSetVec(0x13,0); /* zero INT 13h for now */
         call_int13 = 0;
     }
     if (diskparm0 != 0) {
@@ -789,7 +790,6 @@ void BIOS_SetupDisks(void) {
 
     if (IS_PC98_ARCH) {
         // TODO
-        RealSetVec(0x13,0); /* zero INT 13h for now */
         return;
     }
 

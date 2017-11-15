@@ -4819,6 +4819,9 @@ public:
         CALLBACK_Setup(call_irq07default,NULL,CB_IRET_EOI_PIC1,Real2Phys(BIOS_DEFAULT_IRQ07_DEF_LOCATION),"bios irq 0-7 default handler");
         CALLBACK_Setup(call_irq815default,NULL,CB_IRET_EOI_PIC2,Real2Phys(BIOS_DEFAULT_IRQ815_DEF_LOCATION),"bios irq 8-15 default handler");
 
+        BIOS_UnsetupKeyboard();
+        BIOS_UnsetupDisks();
+
         /* no such INT 4Bh */
 		int4b_callback.Uninstall();
         RealSetVec(0x4B,0);
@@ -4909,10 +4912,7 @@ public:
 		for (Bit16u ct=0x70;ct <= 0x77;ct++) /* zero out IBM PC IRQ 8-15 vectors */
 			RealSetVec(ct,0);
 
-        BIOS_UnsetupKeyboard();
         BIOS_SetupKeyboard();
-
-        BIOS_UnsetupDisks();
         BIOS_SetupDisks(); /* In PC-98 mode, will zero INT 13h */
     }
 public:
@@ -5036,6 +5036,11 @@ void BIOS_OnPowerOn(Section* sec) {
 void BIOS_OnEnterPC98Mode(Section* sec) {
     if (test) {
         test->write_FFFF_PC98_signature();
+    }
+}
+
+void BIOS_OnEnterPC98Mode_phase2(Section* sec) {
+    if (test) {
         test->rewrite_IRQ_handlers();
     }
 }
@@ -5094,6 +5099,7 @@ void BIOS_Init() {
 
     /* PC-98 support */
 	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(BIOS_OnEnterPC98Mode));
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE_END,AddVMEventFunctionFuncPair(BIOS_OnEnterPC98Mode_phase2));
 }
 
 void write_ID_version_string() {
