@@ -1177,11 +1177,10 @@ void KEYBOARD_AddKey2(KBD_KEYS keytype,bool pressed) {
 	}
 }
 
+bool pc98_caps(void);
+void pc98_caps_toggle(void);
+void pc98_numlock_toggle(void);
 void pc98_keyboard_send(const unsigned char b);
-
-/* PC-98 state */
-bool pc98_numlock = false;
-bool pc98_caps_on = false;
 
 /* this version sends to the PC-98 8251 emulation NOT the AT 8042 emulation */
 void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
@@ -1281,13 +1280,13 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
 
     case KBD_capslock:                          // CAPS
         if (pressed) {                          // sends only on keypress, does not resend if held down
-            pc98_caps_on = !pc98_caps_on;
-            pc98_keyboard_send(0x71 | (!pc98_caps_on ? 0x80 : 0x00)); // make code if caps switched on, break if caps switched off
+            pc98_caps_toggle();
+            pc98_keyboard_send(0x71 | (!pc98_caps() ? 0x80 : 0x00)); // make code if caps switched on, break if caps switched off
         }
         return;
 
     case KBD_numlock:                           // NUM
-        pc98_numlock = !pc98_numlock;           // does not send scan code for NUM
+        pc98_numlock_toggle();
         return;
 
     default: return;
@@ -1670,6 +1669,18 @@ static struct pc98_keyboard {
     bool                        kana;
     bool                        num;
 } pc98_keyboard_state;
+
+bool pc98_caps(void) {
+    return pc98_keyboard_state.caps;
+}
+
+void pc98_caps_toggle(void) {
+    pc98_keyboard_state.caps = !pc98_keyboard_state.caps;
+}
+
+void pc98_numlock_toggle(void) {
+    pc98_keyboard_state.num = !pc98_keyboard_state.num;
+}
 
 void uart_rx_load(Bitu val);
 void uart_tx_load(Bitu val);
