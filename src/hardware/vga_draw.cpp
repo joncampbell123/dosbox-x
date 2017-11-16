@@ -888,6 +888,9 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 		// the font pattern
 		Bitu font = vga.draw.font_tables[0][((chr&0xFFU)<<5)+line];
 
+        /* the character is not rendered if "secret" (bit 0) is not set */
+        if (!(attr & 1)) font = 0;
+
         Bitu foreground = (attr >> 5) & 7; /* bits[7:5] are GRB foreground color */
         Bitu background = 0; // FIXME: How do you do non-black background?
 

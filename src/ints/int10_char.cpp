@@ -202,7 +202,8 @@ static unsigned char VGA_FG_to_PC98(unsigned char vga_attr) {
     return
         ((vga_attr & 2/*VGA green*/) ? 0x80/*PC-98 green*/ : 0) +
         ((vga_attr & 4/*VGA red  */) ? 0x40/*PC-98 red*/   : 0) +
-        ((vga_attr & 1/*VGA blue */) ? 0x20/*PC-98 blue*/  : 0);
+        ((vga_attr & 1/*VGA blue */) ? 0x20/*PC-98 blue*/  : 0) +
+        1/* ~secret*/;
 }
 
 static void PC98_FillRow(Bit8u cleft,Bit8u cright,Bit8u row,PhysPt base,Bit8u attr) {
