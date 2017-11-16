@@ -669,6 +669,8 @@ void VGA_UnsetupSEQ(void);
 #define gfx(blah) vga.gfx.blah
 #define seq(blah) vga.seq.blah
 
+void VGA_DAC_UpdateColor( Bitu index );
+
 void VGA_OnEnterPC98(Section *sec) {
     VGA_UnsetupMisc();
     VGA_UnsetupAttr();
@@ -690,9 +692,18 @@ void VGA_OnEnterPC98(Section *sec) {
     VGA_StartResize();
 
     /* now, switch to PC-98 video emulation */
+    for (unsigned int i=0;i < 16;i++) VGA_ATTR_SetPalette(i,i);
+    for (unsigned int i=0;i < 16;i++) {
+        /* GRB order palette */
+		vga.dac.rgb[i].red = (i & 2) ? 63 : 0;
+		vga.dac.rgb[i].green = (i & 4) ? 63 : 0;
+        vga.dac.rgb[i].blue = (i & 1) ? 63 : 0;
+        VGA_DAC_UpdateColor(i);
+    }
     vga.mode=M_PC98;
     assert(vga.vmemsize >= 0x20000);
     memset(vga.mem.linear,0,0x20000);
+    for (unsigned int i=0x2000;i < 0x3fe0;i += 2) vga.mem.linear[i] = 0xE0; /* attribute GRBxxxxx = 11100000 (white) */
     VGA_SetupHandlers();
 }
 

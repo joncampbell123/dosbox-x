@@ -884,12 +884,12 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 
 	while (blocks--) { // for each character in the line
 		Bit16u chr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x0000U];
-		Bit16u attr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x2000U];
+		Bit16u attr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x1000U];
 		// the font pattern
 		Bitu font = vga.draw.font_tables[0][((chr&0xFFU)<<5)+line];
 
-        Bitu foreground = 15;
-        Bitu background = 0;
+        Bitu foreground = (attr >> 5) & 7; /* bits[7:5] are GRB foreground color */
+        Bitu background = 0; // FIXME: How do you do non-black background?
 
         for (Bitu n = 0; n < 8; n++) {
             *draw++ = vga.dac.xlat32[(font&0x80)? foreground:background];
@@ -907,8 +907,10 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 		if (attr_addr >= 0 && attr_addr < (Bits)vga.draw.blocks) {
 			Bitu index = attr_addr * 8 * 4;
 			draw = (Bit32u*)(&TempLine[index]);
-			
-			Bitu foreground = 15;
+
+            Bit16u attr = ((Bit16u*)vga.mem.linear)[(vga.draw.cursor.address & 0xFFFU) + 0x1000U];
+
+            Bitu foreground = (attr >> 5) & 7; /* bits[7:5] are GRB foreground color */
 
 			for (Bitu i = 0; i < 8; i++) {
 				*draw++ = vga.dac.xlat32[foreground];
