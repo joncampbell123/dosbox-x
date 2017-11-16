@@ -891,6 +891,12 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
         Bitu foreground = (attr >> 5) & 7; /* bits[7:5] are GRB foreground color */
         Bitu background = 0; // FIXME: How do you do non-black background?
 
+        if (attr & 0x04/*reverse*/) {
+            Bitu tmp = foreground;
+            foreground = background;
+            background = tmp;
+        }
+
         for (Bitu n = 0; n < 8; n++) {
             *draw++ = vga.dac.xlat32[(font&0x80)? foreground:background];
             font <<= 1;
@@ -911,6 +917,10 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
             Bit16u attr = ((Bit16u*)vga.mem.linear)[(vga.draw.cursor.address & 0xFFFU) + 0x1000U];
 
             Bitu foreground = (attr >> 5) & 7; /* bits[7:5] are GRB foreground color */
+
+            if (attr & 0x04/*reverse*/) {
+                foreground = 0;
+            }
 
 			for (Bitu i = 0; i < 8; i++) {
 				*draw++ = vga.dac.xlat32[foreground];
