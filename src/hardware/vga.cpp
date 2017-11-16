@@ -668,6 +668,7 @@ void VGA_UnsetupSEQ(void);
 
 #define gfx(blah) vga.gfx.blah
 #define seq(blah) vga.seq.blah
+#define crtc(blah) vga.crtc.blah
 
 void VGA_DAC_UpdateColor( Bitu index );
 
@@ -690,6 +691,13 @@ void VGA_OnEnterPC98(Section *sec) {
     seq(clocking_mode) |= 1; /* 8-bit wide char */
 	vga.misc_output &= ~0x0C; /* bits[3:2] = 0 25MHz clock */
     VGA_StartResize();
+
+    /* PC-98 seems to favor a block cursor */
+    vga.draw.cursor.enabled = true;
+    crtc(cursor_start) = 0;
+    vga.draw.cursor.sline = 0;
+    crtc(cursor_end) = 15;
+    vga.draw.cursor.eline = 15;
 
     /* now, switch to PC-98 video emulation */
     for (unsigned int i=0;i < 16;i++) VGA_ATTR_SetPalette(i,i);

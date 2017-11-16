@@ -210,7 +210,7 @@ static void PC98_FillRow(Bit8u cleft,Bit8u cright,Bit8u row,PhysPt base,Bit8u at
 	PhysPt dest;
 	dest=base+(row*CurMode->twidth+cleft)*2;
 	Bit16u fill=' ';
-    Bit16u fattr=VGA_FG_to_PC98(attr);
+    Bit16u fattr=VGA_FG_to_PC98(attr ? attr : 7);
 	for (Bit8u x=0;x<(cright-cleft);x++) {
 		mem_writew(dest,fill);
 		mem_writew(dest+0x2000,fattr);
