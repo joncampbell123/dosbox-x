@@ -2308,6 +2308,13 @@ static Bitu INT19_PC98_Handler(void) {
 }
 
 static Bitu INT1A_PC98_Handler(void) {
+    /* HACK: This makes the "test" program in DOSLIB work.
+     *       We'll remove this when we implement INT 1Ah */
+    if (reg_ax == 0x1000) {
+        CALLBACK_SCF(false);
+        reg_ax = 0;
+    }
+
     LOG_MSG("PC-98 INT 1Ah not implemented AX=0x%04x",reg_ax);
     return CBRET_NONE;
 }
