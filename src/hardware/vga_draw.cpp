@@ -905,8 +905,11 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
         vidmem++;
     }
 
-	// draw the text mode cursor if needed
-	if ((vga.draw.cursor.count&0x8) && (line >= vga.draw.cursor.sline) &&
+	// draw the text mode cursor if needed.
+    // based on real hardware, the cursor doesn't blink.
+    // in fact, I'm not even sure there's even a hardware cursor.... ?
+    // it's possible the NEC MS-DOS CON driver draws it by itself? Need to verify this --J.C.
+	if ((line >= vga.draw.cursor.sline) &&
 		(line <= vga.draw.cursor.eline) && vga.draw.cursor.enabled) {
 		// the adress of the attribute that makes up the cell the cursor is in
 		Bits attr_addr = (vga.draw.cursor.address - vidstart);
