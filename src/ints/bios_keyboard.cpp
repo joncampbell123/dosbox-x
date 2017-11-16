@@ -499,6 +499,7 @@ unsigned char AT_read_60(void);
 
 static Bitu IRQ1_Handler_PC98(void) {
     unsigned char sc_8251,status;
+    Bit16u scan_add;
     bool pressed;
 
     status = IO_ReadB(0x43); /* 8251 status */
@@ -516,6 +517,10 @@ static Bitu IRQ1_Handler_PC98(void) {
         pressed = !(sc_8251 & 0x80);
         sc_8251 &= 0x7F;
 
+        /* Testing on real hardware shows INT 18h AH=0 returns raw scancode in upper half, ASCII in lower half.
+         * Just like INT 16h on IBM PC hardware */
+        scan_add = sc_8251 << 8U;
+
         /* FIXME: I'm fully aware of obvious problems with this code so far:
          *        - This is coded around my American keyboard layout
          *        - No support for CAPS or KANA modes.
@@ -529,373 +534,373 @@ static Bitu IRQ1_Handler_PC98(void) {
         switch (sc_8251) {
             case 0x00: // ESC
                 if (pressed) {
-                    add_key(27);
+                    add_key(scan_add + 27);
                 }
                 break;
             case 0x01: // 1
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('!');
+                        add_key(scan_add + '!');
                     else
-                        add_key('1');
+                        add_key(scan_add + '1');
                 }
                 break;
             case 0x02: // 2
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('@');
+                        add_key(scan_add + '@');
                     else
-                        add_key('2');
+                        add_key(scan_add + '2');
                 }
                 break;
             case 0x03: // 3
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('#');
+                        add_key(scan_add + '#');
                     else
-                        add_key('3');
+                        add_key(scan_add + '3');
                 }
                 break;
             case 0x04: // 4
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('$');
+                        add_key(scan_add + '$');
                     else
-                        add_key('4');
+                        add_key(scan_add + '4');
                 }
                 break;
             case 0x05: // 5
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('%');
+                        add_key(scan_add + '%');
                     else
-                        add_key('5');
+                        add_key(scan_add + '5');
                 }
                 break;
             case 0x06: // 6
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('^');
+                        add_key(scan_add + '^');
                     else
-                        add_key('6');
+                        add_key(scan_add + '6');
                 }
                 break;
             case 0x07: // 7
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('&');
+                        add_key(scan_add + '&');
                     else
-                        add_key('7');
+                        add_key(scan_add + '7');
                 }
                 break;
             case 0x08: // 8
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('*');
+                        add_key(scan_add + '*');
                     else
-                        add_key('8');
+                        add_key(scan_add + '8');
                 }
                 break;
             case 0x09: // 9
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('(');
+                        add_key(scan_add + '(');
                     else
-                        add_key('9');
+                        add_key(scan_add + '9');
                 }
                 break;
             case 0x0A: // 0
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('(');
+                        add_key(scan_add + '(');
                     else
-                        add_key('0');
+                        add_key(scan_add + '0');
                 }
                 break;
             case 0x0B: // -
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('_');
+                        add_key(scan_add + '_');
                     else
-                        add_key('-');
+                        add_key(scan_add + '-');
                 }
                 break;
             case 0x0C: // =
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('+');
+                        add_key(scan_add + '+');
                     else
-                        add_key('=');
+                        add_key(scan_add + '=');
                 }
                 break;
             case 0x0D: // \ backslash
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('|');
+                        add_key(scan_add + '|');
                     else
-                        add_key('\\');
+                        add_key(scan_add + '\\');
                 }
                 break;
             case 0x0E: // backspace
                 if (pressed) {
-                    add_key(8);
+                    add_key(scan_add + 8);
                 }
                 break;
             case 0x0F: // tab
                 if (pressed) {
-                    add_key(9);
+                    add_key(scan_add + 9);
                 }
                 break;
             case 0x10: // q
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('Q');
+                        add_key(scan_add + 'Q');
                     else
-                        add_key('q');
+                        add_key(scan_add + 'q');
                 }
                 break;
             case 0x11: // w
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('W');
+                        add_key(scan_add + 'W');
                     else
-                        add_key('w');
+                        add_key(scan_add + 'w');
                 }
                 break;
             case 0x12: // e
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('E');
+                        add_key(scan_add + 'E');
                     else
-                        add_key('e');
+                        add_key(scan_add + 'e');
                 }
                 break;
             case 0x13: // r
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('R');
+                        add_key(scan_add + 'R');
                     else
-                        add_key('r');
+                        add_key(scan_add + 'r');
                 }
                 break;
             case 0x14: // t
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('T');
+                        add_key(scan_add + 'T');
                     else
-                        add_key('t');
+                        add_key(scan_add + 't');
                 }
                 break;
             case 0x15: // y
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('Y');
+                        add_key(scan_add + 'Y');
                     else
-                        add_key('y');
+                        add_key(scan_add + 'y');
                 }
                 break;
             case 0x16: // u
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('U');
+                        add_key(scan_add + 'U');
                     else
-                        add_key('u');
+                        add_key(scan_add + 'u');
                 }
                 break;
             case 0x17: // i
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('I');
+                        add_key(scan_add + 'I');
                     else
-                        add_key('i');
+                        add_key(scan_add + 'i');
                 }
                 break;
             case 0x18: // o
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('O');
+                        add_key(scan_add + 'O');
                     else
-                        add_key('o');
+                        add_key(scan_add + 'o');
                 }
                 break;
             case 0x19: // p
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('P');
+                        add_key(scan_add + 'P');
                     else
-                        add_key('p');
+                        add_key(scan_add + 'p');
                 }
                 break;
 
             case 0x1C: // Enter
                 if (pressed) {
-                    add_key(13);
+                    add_key(scan_add + 13);
                 }
                 break;
             case 0x1D: // A
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('A');
+                        add_key(scan_add + 'A');
                     else
-                        add_key('a');
+                        add_key(scan_add + 'a');
                 }
                 break;
             case 0x1E: // S
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('S');
+                        add_key(scan_add + 'S');
                     else
-                        add_key('s');
+                        add_key(scan_add + 's');
                 }
                 break;
             case 0x1F: // D
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('D');
+                        add_key(scan_add + 'D');
                     else
-                        add_key('d');
+                        add_key(scan_add + 'd');
                 }
                 break;
             case 0x20: // F
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('F');
+                        add_key(scan_add + 'F');
                     else
-                        add_key('f');
+                        add_key(scan_add + 'f');
                 }
                 break;
             case 0x21: // G
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('G');
+                        add_key(scan_add + 'G');
                     else
-                        add_key('g');
+                        add_key(scan_add + 'g');
                 }
                 break;
             case 0x22: // H
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('H');
+                        add_key(scan_add + 'H');
                     else
-                        add_key('h');
+                        add_key(scan_add + 'h');
                 }
                 break;
             case 0x23: // J
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('J');
+                        add_key(scan_add + 'J');
                     else
-                        add_key('j');
+                        add_key(scan_add + 'j');
                 }
                 break;
             case 0x24: // K
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('K');
+                        add_key(scan_add + 'K');
                     else
-                        add_key('k');
+                        add_key(scan_add + 'k');
                 }
                 break;
             case 0x25: // L
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('L');
+                        add_key(scan_add + 'L');
                     else
-                        add_key('l');
+                        add_key(scan_add + 'l');
                 }
                 break;
             case 0x26: // ;
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key(':');
+                        add_key(scan_add + ':');
                     else
-                        add_key(';');
+                        add_key(scan_add + ';');
                 }
                 break;
 
             case 0x29: // Z
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('Z');
+                        add_key(scan_add + 'Z');
                     else
-                        add_key('z');
+                        add_key(scan_add + 'z');
                 }
                 break;
             case 0x2A: // X
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('X');
+                        add_key(scan_add + 'X');
                     else
-                        add_key('x');
+                        add_key(scan_add + 'x');
                 }
                 break;
             case 0x2B: // C
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('C');
+                        add_key(scan_add + 'C');
                     else
-                        add_key('c');
+                        add_key(scan_add + 'c');
                 }
                 break;
             case 0x2C: // V
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('V');
+                        add_key(scan_add + 'V');
                     else
-                        add_key('v');
+                        add_key(scan_add + 'v');
                 }
                 break;
             case 0x2D: // B
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('B');
+                        add_key(scan_add + 'B');
                     else
-                        add_key('b');
+                        add_key(scan_add + 'b');
                 }
                 break;
             case 0x2E: // N
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('N');
+                        add_key(scan_add + 'N');
                     else
-                        add_key('n');
+                        add_key(scan_add + 'n');
                 }
                 break;
             case 0x2F: // M
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('M');
+                        add_key(scan_add + 'M');
                     else
-                        add_key('m');
+                        add_key(scan_add + 'm');
                 }
                 break;
             case 0x30: // ,
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('<');
+                        add_key(scan_add + '<');
                     else
-                        add_key(',');
+                        add_key(scan_add + ',');
                 }
                 break;
             case 0x31: // .
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('>');
+                        add_key(scan_add + '>');
                     else
-                        add_key('.');
+                        add_key(scan_add + '.');
                 }
                 break;
             case 0x32: // /
                 if (pressed) {
                     if (flags1 & 3) /* shift */
-                        add_key('?');
+                        add_key(scan_add + '?');
                     else
-                        add_key('/');
+                        add_key(scan_add + '/');
                 }
                 break;
             case 0x34: // <space>
                 if (pressed) {
-                    add_key(' ');
+                    add_key(scan_add + ' ');
                 }
                 break;
 
