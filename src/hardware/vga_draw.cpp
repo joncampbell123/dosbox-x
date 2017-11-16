@@ -880,6 +880,7 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 	Bitu blocks = vga.draw.blocks;
     Bit32u vidmem = vidstart;
     Bit16u chr = 0,attr = 0;
+    Bit16u lineoverlay = 0; // vertical + underline overlay over the character cell, but apparently with a 4-pixel delay
     bool doublewide = false;
     Bit16u font;
 
@@ -912,6 +913,8 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
             font = vga.draw.font_tables[0][((chr&0xFFU)<<5)+line];
         }
 
+        lineoverlay <<= 8;
+
         /* the character is not rendered if "~secret" (bit 0) is not set */
         if (!(attr & 1)) font = 0;
 
@@ -924,10 +927,13 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
         if (attr & 0x04/*reverse*/) font ^= 0xFF;
 
         /* "vertical line" bit puts a vertical line on the 4th pixel of the cell */
-        if (attr & 0x10) font |= 1U << 4U;
+        if (attr & 0x10) lineoverlay |= 1U << 7U;
 
         /* underline fills the row to underline the text */
-        if ((attr & 0x08) && line == (vga.crtc.maximum_scan_line & 0x1FU)) font |= 0xFF;
+        if ((attr & 0x08) && line == (vga.crtc.maximum_scan_line & 0x1FU)) lineoverlay |= 0xFFU;
+
+        /* lineoverlay overlays font with 4-pixel delay */
+        font |= (lineoverlay >> 4) & 0xFFU;
 
         Bitu foreground = (attr >> 5) & 7; /* bits[7:5] are GRB foreground color */
         Bitu background = 0; // FIXME: How do you do non-black background?
