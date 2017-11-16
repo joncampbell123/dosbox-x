@@ -2322,6 +2322,11 @@ static Bitu INT1C_PC98_Handler(void) {
     return CBRET_NONE;
 }
 
+static Bitu INT1F_PC98_Handler(void) {
+    LOG_MSG("PC-98 INT 1Fh not implemented AX=0x%04x",reg_ax);
+    return CBRET_NONE;
+}
+
 static Bitu INT11_Handler(void) {
 	reg_ax=mem_readw(BIOS_CONFIGURATION);
 	return CBRET_NONE;
@@ -5026,6 +5031,10 @@ public:
 		/* INT 1Ch *STUB* */
 		callback[5].Install(&INT1C_PC98_Handler,CB_IRET,"Int 1C ???");
 		callback[5].Set_RealVec(0x1C,/*reinstall*/true);
+
+		/* INT 1Fh *STUB* */
+		callback[6].Install(&INT1F_PC98_Handler,CB_IRET,"Int 1F ???");
+		callback[6].Set_RealVec(0x1F,/*reinstall*/true);
     }
 public:
     Bitu call_irq0;
