@@ -874,6 +874,26 @@ static Bit8u* VGA_TEXT_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 	return TempLine+(16*4);
 }
 
+unsigned int pc98_map_charfont(Bit16u chr,unsigned char line,unsigned char righthalf/*if fullwidth*/) {
+    unsigned int index;
+
+    if (chr & 0xFF00) {
+        /* 16-bit code bit[14:8] + bit[6:0] => bit[13:0] 14-bit code */
+        index  = ((chr & 0x7F00) >> 1) + (chr & 0x7F);
+        if (index < 0x80) index += 0x4000;
+        index *= 16 * 2;
+        index += line * 2;
+        index += righthalf;
+    }
+    else {
+        index  = chr;
+        index *= 16;
+        index += line;
+    }
+
+    return index;
+}
+
 static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 	// keep it aligned:
 	Bit32u* draw = ((Bit32u*)TempLine);
@@ -907,12 +927,9 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
             if ((chr & 0xFF00) != 0 && (chr & 0x7CU) != 0x08) {
                 // left half of doublewide char. it appears only bits[14:8] and bits[6:0] have any real effect on which char is displayed.
                 doublewide = true;
-                font = vga.draw.font_tables[0][(((chr>>8)&0x7FU)<<5)+line];
             }
-            else {
-                // single char
-                font = vga.draw.font_tables[0][((chr&0xFFU)<<5)+line];
-            }
+
+            font = vga.draw.font_tables[0][pc98_map_charfont(chr,line,0)];
         }
         else {
             // right half of doublewide char.
@@ -928,7 +945,7 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
             if ((chr&0x78U) == 0x08 || (chr&0x7FU) >= 0x54)
                 chr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x0000U];
 
-            font = vga.draw.font_tables[0][((chr&0x7FU)<<5)+line];
+            font = vga.draw.font_tables[0][pc98_map_charfont(chr,line,1)];
         }
 
         lineoverlay <<= 8;
