@@ -879,16 +879,40 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 	Bit32u* draw = ((Bit32u*)TempLine);
 	Bitu blocks = vga.draw.blocks;
     Bit32u vidmem = vidstart;
-	if (vga.draw.panning) blocks++; // if the text is panned part of an 
+    Bit16u chr = 0,attr = 0;
+    bool doublewide = false;
+    Bit16u font;
+
+    if (vga.draw.panning) blocks++; // if the text is panned part of an 
 									// additional character becomes visible
 
-	while (blocks--) { // for each character in the line
-		Bit16u chr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x0000U];
-		Bit16u attr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x1000U];
-		// the font pattern
-		Bitu font = vga.draw.font_tables[0][((chr&0xFFU)<<5)+line];
+    while (blocks--) { // for each character in the line
+        if (!doublewide) {
+            chr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x0000U];
+            attr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x1000U];
 
-        /* the character is not rendered if "secret" (bit 0) is not set */
+            // NTS: The display handles single-wide vs double-wide by whether or not the 8 bits are nonzero.
+            //      If zero, the char is one cell wide.
+            //      If nonzero, the char is two cells wide (doublewide) and the current character is rendered
+            //      into both cells (the character code in the next cell is ignored). The attribute (as far
+            //      as I know) repeats for both.
+            if ((chr & 0xFF00) != 0) {
+                // left half of doublewide char. it appears only bits[14:0] have any real effect on which char is displayed.
+                doublewide = true;
+                font = vga.draw.font_tables[0][(((chr>>8)&0x7FU)<<5)+line];
+            }
+            else {
+                // single char
+                font = vga.draw.font_tables[0][((chr&0xFFU)<<5)+line];
+            }
+        }
+        else {
+            // right half of doublewide char
+            doublewide = false;
+            font = vga.draw.font_tables[0][((chr&0xFFU)<<5)+line];
+        }
+
+        /* the character is not rendered if "~secret" (bit 0) is not set */
         if (!(attr & 1)) font = 0;
 
         Bitu foreground = (attr >> 5) & 7; /* bits[7:5] are GRB foreground color */
