@@ -915,6 +915,11 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
         /* the character is not rendered if "~secret" (bit 0) is not set */
         if (!(attr & 1)) font = 0;
 
+        /* "blink" seems to count at the same speed as the cursor blink rate,
+         * through a 4-cycle pattern in which the character is invisible only
+         * at the first count. */
+        if ((attr & 0x02/*blink*/) && (vga.draw.cursor.count&0x60) == 0) font = 0;
+
         /* reverse attribute. seems to take effect BEFORE vertical & underline attributes */
         if (attr & 0x04/*reverse*/) font ^= 0xFF;
 
