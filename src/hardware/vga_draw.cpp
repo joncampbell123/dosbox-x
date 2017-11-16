@@ -915,6 +915,9 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
         /* the character is not rendered if "~secret" (bit 0) is not set */
         if (!(attr & 1)) font = 0;
 
+        /* reverse attribute. seems to take effect BEFORE vertical & underline attributes */
+        if (attr & 0x04/*reverse*/) font ^= 0xFF;
+
         /* "vertical line" bit puts a vertical line on the 4th pixel of the cell */
         if (attr & 0x10) font |= 1U << 4U;
 
@@ -923,12 +926,6 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 
         Bitu foreground = (attr >> 5) & 7; /* bits[7:5] are GRB foreground color */
         Bitu background = 0; // FIXME: How do you do non-black background?
-
-        if (attr & 0x04/*reverse*/) {
-            Bitu tmp = foreground;
-            foreground = background;
-            background = tmp;
-        }
 
         for (Bitu n = 0; n < 8; n++) {
             *draw++ = vga.dac.xlat32[(font&0x80)? foreground:background];
