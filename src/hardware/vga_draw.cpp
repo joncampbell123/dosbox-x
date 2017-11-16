@@ -915,6 +915,12 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
         /* the character is not rendered if "~secret" (bit 0) is not set */
         if (!(attr & 1)) font = 0;
 
+        /* "vertical line" bit puts a vertical line on the 4th pixel of the cell */
+        if (attr & 0x10) font |= 1U << 4U;
+
+        /* underline fills the row to underline the text */
+        if ((attr & 0x08) && line == (vga.crtc.maximum_scan_line & 0x1FU)) font |= 0xFF;
+
         Bitu foreground = (attr >> 5) & 7; /* bits[7:5] are GRB foreground color */
         Bitu background = 0; // FIXME: How do you do non-black background?
 
