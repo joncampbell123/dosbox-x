@@ -788,6 +788,10 @@ void INT10_EnterPC98(Section *sec) {
         RealSetVec(0x10,0);
         call_10 = 0;
     }
+
+    /* remove VGA BIOS */
+    void INT10_RemoveVGABIOS(void);
+    INT10_RemoveVGABIOS();
 }
 
 void INT10_Startup(Section *sec) {

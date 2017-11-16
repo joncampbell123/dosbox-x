@@ -123,6 +123,18 @@ Bitu VGA_ROM_BIOS_ENTRY_callback_func(void) {
     return CBRET_NONE;
 }
 
+bool MEM_unmap_physmem(Bitu start,Bitu end);
+
+void INT10_RemoveVGABIOS(void) { /* PC-98 does not have VGA BIOS */
+    if (VGA_BIOS_Size != 0) {
+        for (unsigned int i=0;i < VGA_BIOS_Size;i++)
+            phys_writeb(0xC0000+i,0xFF);
+
+        MEM_unmap_physmem(0xC0000,0xC0000+VGA_BIOS_Size-1);
+        VGA_BIOS_Size = 0;
+    }
+}
+
 void INT10_SetupRomMemory(void) {
 	/* if no space allocated for video BIOS (such as machine=cga) then return immediately */
 	if (VGA_BIOS_Size == 0) {
