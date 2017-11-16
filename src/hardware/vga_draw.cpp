@@ -897,6 +897,10 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
             //      If nonzero, the char is two cells wide (doublewide) and the current character is rendered
             //      into both cells (the character code in the next cell is ignored). The attribute (as far
             //      as I know) repeats for both.
+            //
+            //      NTS: It seems different character ROM is used between single and double wide chars.
+            //           Contrary to what this suggests, (chr & 0xFF00) == 0x8000 is doublewide but not the
+            //           same as single-wide (chr & 0xFF00) == 0x0000.
             if ((chr & 0xFF00) != 0) {
                 // left half of doublewide char. it appears only bits[14:8] and bits[6:0] have any real effect on which char is displayed.
                 doublewide = true;
