@@ -106,6 +106,18 @@ static void TEXT_CopyRow(Bit8u cleft,Bit8u cright,Bit8u rold,Bit8u rnew,PhysPt b
 	MEM_BlockCopy(dest,src,(cright-cleft)*2);
 }
 
+static void PC98_CopyRow(Bit8u cleft,Bit8u cright,Bit8u rold,Bit8u rnew,PhysPt base) {
+	PhysPt src,dest;
+
+    /* character data */
+	src=base+(rold*CurMode->twidth+cleft)*2;
+	dest=base+(rnew*CurMode->twidth+cleft)*2;
+	MEM_BlockCopy(dest,src,(cright-cleft)*2);
+
+    /* attribute data */
+	MEM_BlockCopy(dest+0x2000,src+0x2000,(cright-cleft)*2);
+}
+
 static void CGA2_FillRow(Bit8u cleft,Bit8u cright,Bit8u row,PhysPt base,Bit8u attr) {
 	Bit8u cheight = real_readb(BIOSMEM_SEG,BIOSMEM_CHAR_HEIGHT);
 	PhysPt dest=base+((CurMode->twidth*row)*(cheight/2)+cleft);
@@ -182,6 +194,30 @@ static void VGA_FillRow(Bit8u cleft,Bit8u cright,Bit8u row,PhysPt base,Bit8u att
 	}
 }
 
+static unsigned char VGA_FG_to_PC98(unsigned char vga_attr) {
+    /* VGA:
+     *    bbbb ffff        b=background color (irgb)    f=foreground color (irgb)
+     * PC-98:
+     *    grb xxxxx        g=green r=red b=blue xxxxxx dont care */
+    return
+        ((vga_attr & 2/*VGA green*/) ? 0x80/*PC-98 green*/ : 0) +
+        ((vga_attr & 4/*VGA red  */) ? 0x40/*PC-98 red*/   : 0) +
+        ((vga_attr & 1/*VGA blue */) ? 0x20/*PC-98 blue*/  : 0);
+}
+
+static void PC98_FillRow(Bit8u cleft,Bit8u cright,Bit8u row,PhysPt base,Bit8u attr) {
+	/* Do some filing */
+	PhysPt dest;
+	dest=base+(row*CurMode->twidth+cleft)*2;
+	Bit16u fill=' ';
+    Bit16u fattr=VGA_FG_to_PC98(attr);
+	for (Bit8u x=0;x<(cright-cleft);x++) {
+		mem_writew(dest,fill);
+		mem_writew(dest+0x2000,fattr);
+		dest+=2;
+	}
+}
+
 static void TEXT_FillRow(Bit8u cleft,Bit8u cright,Bit8u row,PhysPt base,Bit8u attr) {
 	/* Do some filing */
 	PhysPt dest;
@@ -240,6 +276,8 @@ void INT10_ScrollWindow(Bit8u rul,Bit8u cul,Bit8u rlr,Bit8u clr,Bit8s nlines,Bit
 	while (start!=end) {
 		start+=next;
 		switch (CurMode->type) {
+		case M_PC98:
+			PC98_CopyRow(cul,clr,start,start+nlines,base);break;
 		case M_TEXT:
 			TEXT_CopyRow(cul,clr,start,start+nlines,base);break;
 		case M_CGA2:
@@ -273,6 +311,8 @@ filling:
 	}
 	for (;nlines>0;nlines--) {
 		switch (CurMode->type) {
+		case M_PC98:
+			PC98_FillRow(cul,clr,start,base,attr);break;
 		case M_TEXT:
 			TEXT_FillRow(cul,clr,start,base,attr);break;
 		case M_CGA2:
@@ -482,6 +522,7 @@ void INT10_ReadCharAttr(Bit16u * result,Bit8u page) {
 void INT10_PC98_CurMode_Relocate(void) {
     assert(CurMode != NULL);
     CurMode->pstart = 0xA0000;
+    CurMode->type = M_PC98;
 }
 
 void WriteChar(Bit16u col,Bit16u row,Bit8u page,Bit8u chr,Bit8u attr,bool useattr) {
@@ -503,6 +544,19 @@ void WriteChar(Bit16u col,Bit16u row,Bit8u page,Bit8u chr,Bit8u attr,bool useatt
 			}
 		}
 		return;
+    case M_PC98:
+        {
+			// Compute the address  
+			Bit16u address=page*real_readw(BIOSMEM_SEG,BIOSMEM_PAGE_SIZE);
+			address+=(row*real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)+col)*2;
+			// Write the char 
+			PhysPt where = CurMode->pstart+address;
+			mem_writeb(where,chr);
+			if (useattr) {
+				mem_writeb(where+0x2000,VGA_FG_to_PC98(attr));
+			}
+        }
+        return;
 	case M_CGA4:
 	case M_CGA2:
 	case M_TANDY16:
