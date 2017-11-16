@@ -2302,6 +2302,26 @@ static Bitu INT18_PC98_Handler(void) {
     return CBRET_NONE;
 }
 
+static Bitu INT19_PC98_Handler(void) {
+    LOG_MSG("PC-98 INT 19h not implemented AX=0x%04x",reg_ax);
+    return CBRET_NONE;
+}
+
+static Bitu INT1A_PC98_Handler(void) {
+    LOG_MSG("PC-98 INT 1Ah not implemented AX=0x%04x",reg_ax);
+    return CBRET_NONE;
+}
+
+static Bitu INT1B_PC98_Handler(void) {
+    LOG_MSG("PC-98 INT 1Bh not implemented AX=0x%04x",reg_ax);
+    return CBRET_NONE;
+}
+
+static Bitu INT1C_PC98_Handler(void) {
+    LOG_MSG("PC-98 INT 1Ch not implemented AX=0x%04x",reg_ax);
+    return CBRET_NONE;
+}
+
 static Bitu INT11_Handler(void) {
 	reg_ax=mem_readw(BIOS_CONFIGURATION);
 	return CBRET_NONE;
@@ -4990,6 +5010,22 @@ public:
 		/* INT 18h keyboard and video display functions */
 		callback[1].Install(&INT18_PC98_Handler,CB_INT16,"Int 18 keyboard and display");
 		callback[1].Set_RealVec(0x18,/*reinstall*/true);
+
+		/* INT 19h *STUB* */
+		callback[2].Install(&INT19_PC98_Handler,CB_IRET,"Int 19 ???");
+		callback[2].Set_RealVec(0x19,/*reinstall*/true);
+
+		/* INT 1Ah *STUB* */
+		callback[3].Install(&INT1A_PC98_Handler,CB_IRET,"Int 1A ???");
+		callback[3].Set_RealVec(0x1A,/*reinstall*/true);
+
+		/* INT 1Bh *STUB* */
+		callback[4].Install(&INT1B_PC98_Handler,CB_IRET,"Int 1B ???");
+		callback[4].Set_RealVec(0x1B,/*reinstall*/true);
+
+		/* INT 1Ch *STUB* */
+		callback[5].Install(&INT1C_PC98_Handler,CB_IRET,"Int 1C ???");
+		callback[5].Set_RealVec(0x1C,/*reinstall*/true);
     }
 public:
     Bitu call_irq0;
