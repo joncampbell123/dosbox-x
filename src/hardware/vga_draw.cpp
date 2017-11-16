@@ -898,7 +898,7 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
             //      into both cells (the character code in the next cell is ignored). The attribute (as far
             //      as I know) repeats for both.
             if ((chr & 0xFF00) != 0) {
-                // left half of doublewide char. it appears only bits[14:0] have any real effect on which char is displayed.
+                // left half of doublewide char. it appears only bits[14:8] and bits[6:0] have any real effect on which char is displayed.
                 doublewide = true;
                 font = vga.draw.font_tables[0][(((chr>>8)&0x7FU)<<5)+line];
             }
@@ -910,7 +910,7 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
         else {
             // right half of doublewide char
             doublewide = false;
-            font = vga.draw.font_tables[0][((chr&0xFFU)<<5)+line];
+            font = vga.draw.font_tables[0][((chr&0x7FU)<<5)+line];
         }
 
         lineoverlay <<= 8;
