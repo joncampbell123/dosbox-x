@@ -901,7 +901,10 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
             //      NTS: It seems different character ROM is used between single and double wide chars.
             //           Contrary to what this suggests, (chr & 0xFF00) == 0x8000 is doublewide but not the
             //           same as single-wide (chr & 0xFF00) == 0x0000.
-            if ((chr & 0xFF00) != 0) {
+            //
+            //      Specific ranges that would be fullwidth where bits[6:0] are 0x08 to 0x0B inclusive are
+            //      apparently not fullwidth (the halfwidth char repeats) if both cells filled in.
+            if ((chr & 0xFF00) != 0 && (chr & 0x7CU) != 0x08) {
                 // left half of doublewide char. it appears only bits[14:8] and bits[6:0] have any real effect on which char is displayed.
                 doublewide = true;
                 font = vga.draw.font_tables[0][(((chr>>8)&0x7FU)<<5)+line];
@@ -912,8 +915,19 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
             }
         }
         else {
-            // right half of doublewide char
+            // right half of doublewide char.
+            //
+            // NTS: Strange idiosyncratic behavior observed on real hardware shows that MOST fullwidth codes
+            //      fill two cells and ignore the other cell, EXCEPT, that specific ranges require you to
+            //      enter the same fullwidth code in both cells.
             doublewide = false;
+
+            // It seems that for any fullwidth char, you need the same code in both cells for bit[6:0] values
+            // from 0x08 to 0x0F inclusive. 0x08 to 0x0B inclusive are not fullwidth, apparently.
+            // Same applies 0x54 to 0x5F.
+            if ((chr&0x78U) == 0x08 || (chr&0x7FU) >= 0x54)
+                chr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x0000U];
+
             font = vga.draw.font_tables[0][((chr&0x7FU)<<5)+line];
         }
 
