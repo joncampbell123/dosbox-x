@@ -745,9 +745,11 @@ public:
 
 /* The NEC display is documented to have:
  *
- * A0000-A3FFF      T-RAM (text) (8KB)
- *   A0000-A1FFF      Characters (4KB)
- *   A2000-A3FFF      Attributes (4KB)
+ * A0000-A3FFF      T-RAM (text) (8KB WORDs)
+ *   A0000-A1FFF      Characters (4KB WORDs)
+ *   A2000-A3FFF      Attributes (4KB WORDs). For each 16-bit WORD only the lower 8 bits are read/writeable.
+ *   A4000-A5FFF      Unknown ?? (4KB WORDs)
+ *   A6000-A7FFF      Not present (4KB WORDs)
  * A8000-BFFFF      G-RAM (graphics) (96KB)
  *
  * T-RAM character display RAM is 16-bits per character.
@@ -762,9 +764,19 @@ public:
 
 		addr = PAGING_GetPhysicalAddress(addr) & 0x1FFFF;
 
-        // FIXME: Until I test otherwise, I assume that the undocumented area A4000-A7FFF is just a mirror of A0000-A3FFF
-        if ((addr & 0xFC000) == 0x04000) /* A4000-A7FFF? */
-            addr &= 0x3FFF; /* alias to A0000-A3FFF */
+        switch (addr>>13) {
+            case 0:     /* A0000-A1FFF Character RAM */
+                break;
+            case 1:     /* A2000-A3FFF Attribute RAM */
+                if (addr & 1) return ~0; /* ignore odd bytes */
+                break;
+            case 2:     /* A4000-A5FFF Unknown ?? */
+                break;
+            case 3:     /* A6000-A7FFF Not present */
+                return ~0;
+            default:    /* A8000-BFFFF G-RAM */
+                break;
+        };
 
 		return vga.mem.linear[addr];
 	}
@@ -773,9 +785,19 @@ public:
 
 		addr = PAGING_GetPhysicalAddress(addr) & 0x1FFFF;
 
-        // FIXME: Until I test otherwise, I assume that the undocumented area A4000-A7FFF is just a mirror of A0000-A3FFF
-        if ((addr & 0xFC000) == 0x04000) /* A4000-A7FFF? */
-            addr &= 0x3FFF; /* alias to A0000-A3FFF */
+        switch (addr>>13) {
+            case 0:     /* A0000-A1FFF Character RAM */
+                break;
+            case 1:     /* A2000-A3FFF Attribute RAM */
+                if (addr & 1) return; /* ignore odd bytes */
+                break;
+            case 2:     /* A4000-A5FFF Unknown ?? */
+                break;
+            case 3:     /* A6000-A7FFF Not present */
+                return;
+            default:    /* A8000-BFFFF G-RAM */
+                break;
+        };
 
 		vga.mem.linear[addr] = val;
 	}
