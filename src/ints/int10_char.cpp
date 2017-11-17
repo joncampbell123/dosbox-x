@@ -544,7 +544,7 @@ struct ShiftJISDecoder {
          *   s1 = ((j1 + 1) / 2) + 176
          * 
          * if (j1 & 1)    <- is odd
-         *   s2 = j2 + 31
+         *   s2 = j2 + 31 + (j2 / 96)
          * else           <- is even
          *   s2 = j2 + 126
          */ 
@@ -583,6 +583,7 @@ struct ShiftJISDecoder {
             else if (c >= 0x40) { /* j1 is odd */
                 b1--; /* (j1 + 1) / 2 */
                 b2 = c - 31;
+                if (c >= 0x80) b2--; /* gap at 0x7F */
             }
             else {
                 // ???
