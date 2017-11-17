@@ -859,7 +859,7 @@ bool Load_Anex86_Font(void) {
                 unsigned int o;
 
                 /* NTS: fullwidth is 16x16 128 chars across.
-                 * each row of the char bitmap is TWO bytes. */
+                 * each column of the char bitmap is TWO bytes. */
                 i = (lowbyte*2)+((15-r/*upside-down!*/)*(2048/8));
                 o = ((((hibyte*128)+lowbyte)*16)+r)*2;
 
