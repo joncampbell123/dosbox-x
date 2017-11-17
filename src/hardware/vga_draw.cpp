@@ -879,8 +879,9 @@ unsigned int pc98_map_charfont(Bit16u chr,unsigned char line,unsigned char right
 
     if (chr & 0xFF00) {
         /* 16-bit code bit[14:8] + bit[6:0] => bit[13:0] 14-bit code */
+        /* NTS: Fullwidth references that wrap back to 0x0000 do not map to the same characters as single-wide */
         index  = ((chr & 0x7F00) >> 1) + (chr & 0x7F);
-        if (index < 0x80) index += 0x4000;
+        if (index < 0x80) index += 0x4000; /* the last 4KB row @512KB */
         index *= 16 * 2;
         index += line * 2;
         index += righthalf;
