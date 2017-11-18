@@ -967,6 +967,15 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
             /* reverse attribute. seems to take effect BEFORE vertical & underline attributes */
             if (attr & 0x04/*reverse*/) font ^= 0xFF;
 
+            /* based on real hardware, the cursor seems to act like a reverse attribute */
+            if (vidmem == vga.draw.cursor.address &&
+                pc98_gdc[GDC_MASTER].cursor_enable &&
+                ((!pc98_gdc[GDC_MASTER].cursor_blink) || (pc98_gdc[GDC_MASTER].cursor_blink_state&1)) &&
+                (line >= vga.draw.cursor.sline) &&
+                (line <= vga.draw.cursor.eline)) {
+                font ^= 0xFF;
+            }
+
             /* "vertical line" bit puts a vertical line on the 4th pixel of the cell */
             if (attr & 0x10) lineoverlay |= 1U << 7U;
 
@@ -993,31 +1002,6 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
             }
 
             vidmem++;
-        }
-
-        // draw the text mode cursor if needed.
-        // based on real hardware, the cursor blinks slower than on PC hardware.
-        if (((!pc98_gdc[GDC_MASTER].cursor_blink) || (pc98_gdc[GDC_MASTER].cursor_blink_state&1)) &&
-            (line >= vga.draw.cursor.sline) &&
-            (line <= vga.draw.cursor.eline) && pc98_gdc[GDC_MASTER].cursor_enable) {
-            // the address of the attribute that makes up the cell the cursor is in
-            Bits attr_addr = (vga.draw.cursor.address - vidstart);
-            if (attr_addr >= 0 && attr_addr < (Bits)vga.draw.blocks) {
-                Bitu index = attr_addr * 8 * 4;
-                draw = (Bit32u*)(&TempLine[index]);
-
-                Bit16u attr = ((Bit16u*)vga.mem.linear)[(vga.draw.cursor.address & 0xFFFU) + 0x1000U];
-
-                Bitu foreground = (attr >> 5) & 7; /* bits[7:5] are GRB foreground color */
-
-                if (attr & 0x04/*reverse*/) {
-                    foreground = 0;
-                }
-
-                for (Bitu i = 0; i < 8; i++) {
-                    *draw++ = vga.dac.xlat32[foreground];
-                }
-            }
         }
     }
 
