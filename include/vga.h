@@ -77,6 +77,7 @@ struct PC98_GDC_state {
              * IS = 01 = invalid
              * IS = 10 = interlaced repeat field for character displays
              * IS = 11 = interlaced */
+    uint8_t                 current_command;
     bool                    draw_only_during_retrace;   /* F bits */
     bool                    dynamic_ram_refresh;        /* D bits */
     bool                    master_sync;                /* master source generation */

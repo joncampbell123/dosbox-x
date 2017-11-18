@@ -675,6 +675,7 @@ void VGA_DAC_UpdateColor( Bitu index );
 #include "inout.h"
 
 PC98_GDC_state::PC98_GDC_state() {
+    current_command = 0;
     display_enable = true;
     display_mode = 0;
     video_framing = 0;
