@@ -27,6 +27,56 @@
 
 #define VGA_LFB_MAPPED
 
+#define PC98_GDC_FIFO_SIZE      32      /* taken from Neko Project II, but what is it really? */
+#define GDC_COMMAND_BYTE        0x100
+
+enum {
+    GDC_MASTER=0,
+    GDC_SLAVE=1
+};
+
+struct PC98_GDC_state {
+    PC98_GDC_state();
+    void reset_fifo(void);
+    void reset_rfifo(void);
+    void flush_fifo_old(void);
+    bool write_fifo(const uint16_t c);
+    bool write_fifo_command(const unsigned char c);
+    bool write_fifo_param(const unsigned char c);
+    bool rfifo_has_content(void);
+    uint8_t read_status(void);
+    uint8_t rfifo_read_data(void);
+
+    uint8_t                 rfifo[PC98_GDC_FIFO_SIZE];
+    uint8_t                 rfifo_read,rfifo_write;
+
+    uint16_t                fifo[PC98_GDC_FIFO_SIZE];   /* NTS: Neko Project II uses one big FIFO for command and data, which makes sense to me */
+    uint8_t                 fifo_read,fifo_write;
+
+    uint16_t                active_display_lines;       /* AL (translated) */
+    uint16_t                active_display_words_per_line;/* AW bits (translated) */
+    uint8_t                 horizontal_sync_width;      /* HS (translated) */
+    uint8_t                 vertical_sync_width;        /* VS (translated) */
+    uint8_t                 horizontal_front_porch_width;/* HFP (translated) */
+    uint8_t                 horizontal_back_porch_width;/* HBP (translated) */
+    uint8_t                 vertical_front_porch_width; /* VFP (translated) */
+    uint8_t                 vertical_back_porch_width;  /* VBP (translated) */
+    uint8_t                 display_mode;               /* CG bits */
+            /* CG = 00 = mixed graphics & character
+             * CG = 01 = graphics mode
+             * CG = 10 = character mode
+             * CG = 11 = invalid */
+    uint8_t                 video_framing;              /* IS bits */
+            /* IS = 00 = non-interlaced
+             * IS = 01 = invalid
+             * IS = 10 = interlaced repeat field for character displays
+             * IS = 11 = interlaced */
+    bool                    draw_only_during_retrace;   /* F bits */
+    bool                    dynamic_ram_refresh;        /* D bits */
+    bool                    master_sync;                /* master source generation */
+    bool                    display_enable;
+};
+
 class PageHandler;
 
 enum VGAModes {
