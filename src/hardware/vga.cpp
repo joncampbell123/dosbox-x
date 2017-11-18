@@ -713,6 +713,7 @@ PC98_GDC_state::PC98_GDC_state() {
 enum {
     GDC_CMD_RESET = 0x00,                       // 0   0   0   0   0   0   0   0
     GDC_CMD_SYNC = 0x0E,                        // 0   0   0   0   1   1   1   DE
+    GDC_CMD_CURSOR_CHAR_SETUP = 0x4B,           // 0   1   0   0   1   0   1   1
     GDC_CMD_VERTICAL_SYNC_MODE = 0x6E           // 0   1   1   0   1   1   1   M
 };
 
@@ -794,6 +795,32 @@ void PC98_GDC_state::apply_to_video_output(void) {
     // TODO
 }
 
+void PC98_GDC_state::take_cursor_char_setup(unsigned char bi) {
+    /* P1 = param[0] =
+     *   DC = [7:7] = display cursor if set
+     *   0 = [6:5] = 0
+     *   LR = [4:0] = lines per character row - 1 */
+    if (bi == 1) {
+        vga.draw.cursor.enabled = !!(cmd_parm_tmp[0] & 0x80);
+
+		vga.crtc.maximum_scan_line = cmd_parm_tmp[0] & 0x1F;
+		vga.draw.address_line_total = vga.crtc.maximum_scan_line + 1;
+    }
+
+    /* P2 = param[1] =
+     *   BR[1:0] = [7:6] = blink rate
+     *   SC = [5:5] = 1=steady cursor  0=blinking cursor
+     *   CTOP = [4:0] = cursor top line number in the row */
+
+    /* P3 = param[2] =
+     *   CBOT = [7:3] = cursor bottom line number in the row CBOT < LR
+     *   BR[4:2] = [2:0] = blink rate */
+
+    /* blink-on time + blink-off time = 2 x BR (video frames).
+     * attribute blink rate is 3/4 on 1/4 off duty cycle.
+     * for interlaced graphics modes, set BR[1:0] = 3 */
+}
+
 void PC98_GDC_state::idle_proc(void) {
     Bit16u val;
 
@@ -817,6 +844,9 @@ void PC98_GDC_state::idle_proc(void) {
                 display_enable = !!(current_command & 1); // bit 0 = display enable
                 LOG_MSG("GDC: sync");
                 break;
+            case GDC_CMD_CURSOR_CHAR_SETUP:   // 0x4B        0 1 0 0 1 0 1 1
+                LOG_MSG("GDC: cursor setup");
+                break;
             case GDC_CMD_VERTICAL_SYNC_MODE:  // 0x6E        0 1 1 0 1 1 1 M
             case GDC_CMD_VERTICAL_SYNC_MODE+1:// 0x6F        M=generate and output vertical sync (0=or else accept external vsync)
                 master_sync = !!(current_command & 1);
@@ -838,6 +868,14 @@ void PC98_GDC_state::idle_proc(void) {
                     if ((++proc_step) == 8) {
                         take_reset_sync_parameters();
                         if (master_sync) apply_to_video_output();
+                    }
+                }
+                break;
+            case GDC_CMD_CURSOR_CHAR_SETUP:
+                if (proc_step < 3) {
+                    cmd_parm_tmp[proc_step++] = (uint8_t)val;
+                    if (proc_step == 1 || proc_step == 3) {
+                        take_cursor_char_setup(proc_step);
                     }
                 }
                 break;
