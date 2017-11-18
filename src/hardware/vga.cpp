@@ -835,6 +835,7 @@ void PC98_GDC_state::take_cursor_char_setup(unsigned char bi) {
     if (bi == 3) {
         cursor_blink_rate  = (cmd_parm_tmp[1] >> 6) & 3;
         cursor_blink_rate += (cmd_parm_tmp[2] & 7) << 2;
+        cursor_blink_rate *= 2;
 
         cursor_blink = !(cmd_parm_tmp[1] & 0x20);
 
