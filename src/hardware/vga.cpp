@@ -705,15 +705,15 @@ void PC98_GDC_state::flush_fifo_old(void) {
     }
 }
 
-    bool PC98_GDC_state::write_fifo(const uint16_t c) {
-        if (fifo_write >= PC98_GDC_FIFO_SIZE)
-            flush_fifo_old();
-        if (fifo_write >= PC98_GDC_FIFO_SIZE)
-            return false;
+bool PC98_GDC_state::write_fifo(const uint16_t c) {
+    if (fifo_write >= PC98_GDC_FIFO_SIZE)
+        flush_fifo_old();
+    if (fifo_write >= PC98_GDC_FIFO_SIZE)
+        return false;
 
-        fifo[fifo_write++] = c;
-        return true;
-    }
+    fifo[fifo_write++] = c;
+    return true;
+}
 
 bool PC98_GDC_state::write_fifo_command(const unsigned char c) {
     return write_fifo(c | GDC_COMMAND_BYTE);
