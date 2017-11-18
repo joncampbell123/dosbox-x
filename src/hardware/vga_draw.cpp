@@ -905,106 +905,120 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     bool doublewide = false;
     Bit16u font;
 
-    if (vga.draw.panning) blocks++; // if the text is panned part of an 
-									// additional character becomes visible
+    // this rendering is layered, zero the scanline first
+    memset(TempLine,0,4 * 8 * blocks);
 
-    while (blocks--) { // for each character in the line
-        if (!doublewide) {
-            chr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x0000U];
-            attr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x1000U];
+    // Text RAM layer
+    if (pc98_gdc[GDC_MASTER].display_enable) {
+        draw = ((Bit32u*)TempLine);
+        blocks = vga.draw.blocks;
+        vidmem = vidstart;
+        while (blocks--) { // for each character in the line
+            if (!doublewide) {
+                chr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x0000U];
+                attr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x1000U];
 
-            // NTS: The display handles single-wide vs double-wide by whether or not the 8 bits are nonzero.
-            //      If zero, the char is one cell wide.
-            //      If nonzero, the char is two cells wide (doublewide) and the current character is rendered
-            //      into both cells (the character code in the next cell is ignored). The attribute (as far
-            //      as I know) repeats for both.
-            //
-            //      NTS: It seems different character ROM is used between single and double wide chars.
-            //           Contrary to what this suggests, (chr & 0xFF00) == 0x8000 is doublewide but not the
-            //           same as single-wide (chr & 0xFF00) == 0x0000.
-            //
-            //      Specific ranges that would be fullwidth where bits[6:0] are 0x08 to 0x0B inclusive are
-            //      apparently not fullwidth (the halfwidth char repeats) if both cells filled in.
-            if ((chr & 0xFF00) != 0 && (chr & 0x7CU) != 0x08) {
-                // left half of doublewide char. it appears only bits[14:8] and bits[6:0] have any real effect on which char is displayed.
-                doublewide = true;
+                // NTS: The display handles single-wide vs double-wide by whether or not the 8 bits are nonzero.
+                //      If zero, the char is one cell wide.
+                //      If nonzero, the char is two cells wide (doublewide) and the current character is rendered
+                //      into both cells (the character code in the next cell is ignored). The attribute (as far
+                //      as I know) repeats for both.
+                //
+                //      NTS: It seems different character ROM is used between single and double wide chars.
+                //           Contrary to what this suggests, (chr & 0xFF00) == 0x8000 is doublewide but not the
+                //           same as single-wide (chr & 0xFF00) == 0x0000.
+                //
+                //      Specific ranges that would be fullwidth where bits[6:0] are 0x08 to 0x0B inclusive are
+                //      apparently not fullwidth (the halfwidth char repeats) if both cells filled in.
+                if ((chr & 0xFF00) != 0 && (chr & 0x7CU) != 0x08) {
+                    // left half of doublewide char. it appears only bits[14:8] and bits[6:0] have any real effect on which char is displayed.
+                    doublewide = true;
+                }
+
+                font = vga.draw.font_tables[0][pc98_map_charfont(chr,line,0)];
+            }
+            else {
+                // right half of doublewide char.
+                //
+                // NTS: Strange idiosyncratic behavior observed on real hardware shows that MOST fullwidth codes
+                //      fill two cells and ignore the other cell, EXCEPT, that specific ranges require you to
+                //      enter the same fullwidth code in both cells.
+                doublewide = false;
+
+                // It seems that for any fullwidth char, you need the same code in both cells for bit[6:0] values
+                // from 0x08 to 0x0F inclusive. 0x08 to 0x0B inclusive are not fullwidth, apparently.
+                // Same applies 0x54 to 0x5F.
+                if ((chr&0x78U) == 0x08 || (chr&0x7FU) >= 0x54)
+                    chr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x0000U];
+
+                font = vga.draw.font_tables[0][pc98_map_charfont(chr,line,1)];
             }
 
-            font = vga.draw.font_tables[0][pc98_map_charfont(chr,line,0)];
-        }
-        else {
-            // right half of doublewide char.
-            //
-            // NTS: Strange idiosyncratic behavior observed on real hardware shows that MOST fullwidth codes
-            //      fill two cells and ignore the other cell, EXCEPT, that specific ranges require you to
-            //      enter the same fullwidth code in both cells.
-            doublewide = false;
+            lineoverlay <<= 8;
 
-            // It seems that for any fullwidth char, you need the same code in both cells for bit[6:0] values
-            // from 0x08 to 0x0F inclusive. 0x08 to 0x0B inclusive are not fullwidth, apparently.
-            // Same applies 0x54 to 0x5F.
-            if ((chr&0x78U) == 0x08 || (chr&0x7FU) >= 0x54)
-                chr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x0000U];
+            /* the character is not rendered if "~secret" (bit 0) is not set */
+            if (!(attr & 1)) font = 0;
 
-            font = vga.draw.font_tables[0][pc98_map_charfont(chr,line,1)];
-        }
+            /* "blink" seems to count at the same speed as the cursor blink rate,
+             * through a 4-cycle pattern in which the character is invisible only
+             * at the first count. */
+            if ((attr & 0x02/*blink*/) && (vga.draw.cursor.count&0x60) == 0) font = 0;
 
-        lineoverlay <<= 8;
+            /* reverse attribute. seems to take effect BEFORE vertical & underline attributes */
+            if (attr & 0x04/*reverse*/) font ^= 0xFF;
 
-        /* the character is not rendered if "~secret" (bit 0) is not set */
-        if (!(attr & 1)) font = 0;
+            /* "vertical line" bit puts a vertical line on the 4th pixel of the cell */
+            if (attr & 0x10) lineoverlay |= 1U << 7U;
 
-        /* "blink" seems to count at the same speed as the cursor blink rate,
-         * through a 4-cycle pattern in which the character is invisible only
-         * at the first count. */
-        if ((attr & 0x02/*blink*/) && (vga.draw.cursor.count&0x60) == 0) font = 0;
+            /* underline fills the row to underline the text */
+            if ((attr & 0x08) && line == (vga.crtc.maximum_scan_line & 0x1FU)) lineoverlay |= 0xFFU;
 
-        /* reverse attribute. seems to take effect BEFORE vertical & underline attributes */
-        if (attr & 0x04/*reverse*/) font ^= 0xFF;
-
-        /* "vertical line" bit puts a vertical line on the 4th pixel of the cell */
-        if (attr & 0x10) lineoverlay |= 1U << 7U;
-
-        /* underline fills the row to underline the text */
-        if ((attr & 0x08) && line == (vga.crtc.maximum_scan_line & 0x1FU)) lineoverlay |= 0xFFU;
-
-        /* lineoverlay overlays font with 4-pixel delay */
-        font |= (lineoverlay >> 4) & 0xFFU;
-
-        Bitu foreground = (attr >> 5) & 7; /* bits[7:5] are GRB foreground color */
-        Bitu background = 0; // FIXME: How do you do non-black background?
-
-        for (Bitu n = 0; n < 8; n++) {
-            *draw++ = vga.dac.xlat32[(font&0x80)? foreground:background];
-            font <<= 1;
-        }
-
-        vidmem++;
-    }
-
-	// draw the text mode cursor if needed.
-    // based on real hardware, the cursor blinks slower than on PC hardware.
-	if ((vga.draw.cursor.count&0x20) && (line >= vga.draw.cursor.sline) &&
-		(line <= vga.draw.cursor.eline) && vga.draw.cursor.enabled) {
-		// the adress of the attribute that makes up the cell the cursor is in
-		Bits attr_addr = (vga.draw.cursor.address - vidstart);
-		if (attr_addr >= 0 && attr_addr < (Bits)vga.draw.blocks) {
-			Bitu index = attr_addr * 8 * 4;
-			draw = (Bit32u*)(&TempLine[index]);
-
-            Bit16u attr = ((Bit16u*)vga.mem.linear)[(vga.draw.cursor.address & 0xFFFU) + 0x1000U];
+            /* lineoverlay overlays font with 4-pixel delay */
+            font |= (lineoverlay >> 4) & 0xFFU;
 
             Bitu foreground = (attr >> 5) & 7; /* bits[7:5] are GRB foreground color */
+            Bitu background = 0; // FIXME: How do you do non-black background?
+            unsigned char color;
 
-            if (attr & 0x04/*reverse*/) {
-                foreground = 0;
+            for (Bitu n = 0; n < 8; n++) {
+                color = (font&0x80) ? foreground:background;
+
+                // FIXME: Is this really how the master text GDC overlays the slave graphics GDC? This is a GUESS
+                if (color != 0)
+                    *draw++ = vga.dac.xlat32[color];
+                else
+                    draw++;
+
+                font <<= 1;
             }
 
-			for (Bitu i = 0; i < 8; i++) {
-				*draw++ = vga.dac.xlat32[foreground];
-			}
-		}
-	}
+            vidmem++;
+        }
+
+        // draw the text mode cursor if needed.
+        // based on real hardware, the cursor blinks slower than on PC hardware.
+        if ((vga.draw.cursor.count&0x20) && (line >= vga.draw.cursor.sline) &&
+                (line <= vga.draw.cursor.eline) && vga.draw.cursor.enabled) {
+            // the adress of the attribute that makes up the cell the cursor is in
+            Bits attr_addr = (vga.draw.cursor.address - vidstart);
+            if (attr_addr >= 0 && attr_addr < (Bits)vga.draw.blocks) {
+                Bitu index = attr_addr * 8 * 4;
+                draw = (Bit32u*)(&TempLine[index]);
+
+                Bit16u attr = ((Bit16u*)vga.mem.linear)[(vga.draw.cursor.address & 0xFFFU) + 0x1000U];
+
+                Bitu foreground = (attr >> 5) & 7; /* bits[7:5] are GRB foreground color */
+
+                if (attr & 0x04/*reverse*/) {
+                    foreground = 0;
+                }
+
+                for (Bitu i = 0; i < 8; i++) {
+                    *draw++ = vga.dac.xlat32[foreground];
+                }
+            }
+        }
+    }
 
 	return TempLine;
 }
