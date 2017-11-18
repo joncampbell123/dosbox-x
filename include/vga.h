@@ -99,6 +99,7 @@ struct PC98_GDC_state {
     bool                    master_sync;                /* master source generation */
     bool                    display_enable;
     bool                    cursor_blink;
+    bool                    idle;
 };
 
 extern struct PC98_GDC_state       pc98_gdc[2];

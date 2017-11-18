@@ -710,14 +710,17 @@ PC98_GDC_state::PC98_GDC_state() {
     draw_only_during_retrace = 0;
     dynamic_ram_refresh = 0;
     cursor_blink = true;
+    idle = false;
     reset_fifo();
     reset_rfifo();
 }
 
 enum {
     GDC_CMD_RESET = 0x00,                       // 0   0   0   0   0   0   0   0
+    GDC_CMD_DISPLAY_BLANK = 0x0C,               // 0   0   0   0   1   1   0   DE
     GDC_CMD_SYNC = 0x0E,                        // 0   0   0   0   1   1   1   DE
     GDC_CMD_CURSOR_CHAR_SETUP = 0x4B,           // 0   1   0   0   1   0   1   1
+    GDC_CMD_START_DISPLAY = 0x6B,               // 0   1   1   0   1   0   1   1
     GDC_CMD_VERTICAL_SYNC_MODE = 0x6E           // 0   1   1   0   1   1   1   M
 };
 
@@ -861,8 +864,13 @@ void PC98_GDC_state::idle_proc(void) {
             case GDC_CMD_RESET: // 0x00         0 0 0 0 0 0 0 0
                 LOG_MSG("GDC: reset");
                 display_enable = false;
+                idle = true;
                 reset_fifo();
                 reset_rfifo();
+                break;
+            case GDC_CMD_DISPLAY_BLANK:  // 0x0C   0 0 0 0 1 1 0 DE
+            case GDC_CMD_DISPLAY_BLANK+1:// 0x0D   DE=display enable
+                display_enable = !!(current_command & 1); // bit 0 = display enable
                 break;
             case GDC_CMD_SYNC:  // 0x0E         0 0 0 0 0 0 0 DE
             case GDC_CMD_SYNC+1:// 0x0F         DE=display enable
@@ -871,6 +879,9 @@ void PC98_GDC_state::idle_proc(void) {
                 break;
             case GDC_CMD_CURSOR_CHAR_SETUP:   // 0x4B        0 1 0 0 1 0 1 1
                 LOG_MSG("GDC: cursor setup");
+                break;
+            case GDC_CMD_START_DISPLAY:       // 0x6B        0 1 1 0 1 0 1 1
+                idle = false;
                 break;
             case GDC_CMD_VERTICAL_SYNC_MODE:  // 0x6E        0 1 1 0 1 1 1 M
             case GDC_CMD_VERTICAL_SYNC_MODE+1:// 0x6F        M=generate and output vertical sync (0=or else accept external vsync)
