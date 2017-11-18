@@ -672,6 +672,178 @@ void VGA_UnsetupSEQ(void);
 
 void VGA_DAC_UpdateColor( Bitu index );
 
+#include "inout.h"
+
+#define PC98_GDC_FIFO_SIZE      32      /* taken from Neko Project II, but what is it really? */
+#define GDC_COMMAND_BYTE        0x100
+
+struct PC98_GDC_state {
+    PC98_GDC_state() {
+        display_mode = 0;
+        video_framing = 0;
+        master_sync = false;
+        draw_only_during_retrace = 0;
+        dynamic_ram_refresh = 0;
+        reset_fifo();
+        reset_rfifo();
+    }
+    void reset_fifo(void) {
+        fifo_read = fifo_write = 0;
+    }
+    void reset_rfifo(void) {
+        rfifo_read = rfifo_write = 0;
+    }
+    void flush_fifo_old(void) {
+        if (fifo_read != 0) {
+            unsigned int sz = (fifo_read <= fifo_write) ? (fifo_write - fifo_read) : 0;
+
+            for (unsigned int i=0;i < sz;i++)
+                fifo[i] = fifo[i+fifo_read];
+
+            fifo_read = 0;
+            fifo_write = sz;
+        }
+    }
+    bool write_fifo(const uint16_t c) {
+        if (fifo_write >= PC98_GDC_FIFO_SIZE)
+            flush_fifo_old();
+        if (fifo_write >= PC98_GDC_FIFO_SIZE)
+            return false;
+
+        fifo[fifo_write++] = c;
+        return true;
+    }
+    bool write_fifo_command(const unsigned char c) {
+        return write_fifo(c | GDC_COMMAND_BYTE);
+    }
+    bool write_fifo_param(const unsigned char c) {
+        return write_fifo(c);
+    }
+    bool rfifo_has_content(void) {
+        return (rfifo_read < rfifo_write);
+    }
+    uint8_t read_status(void) {
+        double timeInFrame = PIC_FullIndex()-vga.draw.delay.framestart;
+		double timeInLine=fmod(timeInFrame,vga.draw.delay.htotal);
+        uint8_t ret;
+	
+        ret  = 0x80; // light pen
+
+		if (timeInLine >= vga.draw.delay.hblkstart && 
+			timeInLine <= vga.draw.delay.hblkend)
+			ret |= 0x40; // horizontal blanking
+
+        if (timeInFrame >= vga.draw.delay.vrstart &&
+            timeInFrame <  vga.draw.delay.vrend)
+            ret |= 0x20; // vertical retrace sync
+
+        // TODO: 0x10 bit 4 DMA execute
+
+        // TODO: 0x08 bit 3 drawing in progress
+
+        if (fifo_read == fifo_write)
+            ret |= 0x04; // FIFO empty
+        if (fifo_write >= PC98_GDC_FIFO_SIZE)
+            ret |= 0x02; // FIFO full
+        if (rfifo_has_content())
+            ret |= 0x01; // data ready
+
+        return ret;
+    }
+    uint8_t rfifo_read_data(void) {
+        uint8_t ret;
+
+        ret = rfifo[rfifo_read];
+        if (rfifo_read < rfifo_write) {
+            if (++rfifo_read >= rfifo_write) {
+                rfifo_read = rfifo_write = 0;
+                rfifo[0] = ret;
+            }
+        }
+
+        return ret;
+    }
+
+    uint8_t                 rfifo[PC98_GDC_FIFO_SIZE];
+    uint8_t                 rfifo_read,rfifo_write;
+
+    uint16_t                fifo[PC98_GDC_FIFO_SIZE];   /* NTS: Neko Project II uses one big FIFO for command and data, which makes sense to me */
+    uint8_t                 fifo_read,fifo_write;
+
+    uint16_t                active_display_lines;       /* AL (translated) */
+    uint16_t                active_display_words_per_line;/* AW bits (translated) */
+    uint8_t                 horizontal_sync_width;      /* HS (translated) */
+    uint8_t                 vertical_sync_width;        /* VS (translated) */
+    uint8_t                 horizontal_front_porch_width;/* HFP (translated) */
+    uint8_t                 horizontal_back_porch_width;/* HBP (translated) */
+    uint8_t                 vertical_front_porch_width; /* VFP (translated) */
+    uint8_t                 vertical_back_porch_width;  /* VBP (translated) */
+    uint8_t                 display_mode;               /* CG bits */
+            /* CG = 00 = mixed graphics & character
+             * CG = 01 = graphics mode
+             * CG = 10 = character mode
+             * CG = 11 = invalid */
+    uint8_t                 video_framing;              /* IS bits */
+            /* IS = 00 = non-interlaced
+             * IS = 01 = invalid
+             * IS = 10 = interlaced repeat field for character displays
+             * IS = 11 = interlaced */
+    bool                    draw_only_during_retrace;   /* F bits */
+    bool                    dynamic_ram_refresh;        /* D bits */
+    bool                    master_sync;                /* master source generation */
+};
+
+enum {
+    GDC_MASTER=0,
+    GDC_SLAVE=1
+};
+
+struct PC98_GDC_state       pc98_gdc[2];
+
+void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
+    PC98_GDC_state *gdc;
+
+    if (port >= 0xA0)
+        gdc = &pc98_gdc[GDC_SLAVE];
+    else
+        gdc = &pc98_gdc[GDC_MASTER];
+
+    switch (port&0xE) {
+        case 0x00:      /* 0x60/0xA0 param write fifo */
+            if (!gdc->write_fifo_param(val))
+                LOG_MSG("GDC warning: FIFO param overrun");
+            break;
+        case 0x02:      /* 0x62/0xA2 command write fifo */
+            if (!gdc->write_fifo_command(val))
+                LOG_MSG("GDC warning: FIFO command overrun");
+            break;
+        default:
+            LOG_MSG("GDC unexpected write to port 0x%x val=0x%x",(unsigned int)port,(unsigned int)val);
+    };
+}
+
+Bitu pc98_gdc_read(Bitu port,Bitu iolen) {
+    PC98_GDC_state *gdc;
+
+    if (port >= 0xA0)
+        gdc = &pc98_gdc[GDC_SLAVE];
+    else
+        gdc = &pc98_gdc[GDC_MASTER];
+
+    switch (port&0xE) {
+        case 0x00:      /* 0x60/0xA0 read status */
+            return gdc->read_status();
+        case 0x02:      /* 0x62/0xA2 read fifo */
+            if (!gdc->rfifo_has_content())
+                LOG_MSG("GDC warning: FIFO read underrun");
+            return gdc->rfifo_read_data();
+        default:
+            LOG_MSG("GDC unexpected read from port 0x%x",(unsigned int)port);
+    };
+
+    return ~0;
+}
+
 void VGA_OnEnterPC98(Section *sec) {
     VGA_UnsetupMisc();
     VGA_UnsetupAttr();
@@ -719,7 +891,18 @@ void VGA_OnEnterPC98(Section *sec) {
     assert(vga.vmemsize >= 0x20000);
     memset(vga.mem.linear,0,0x20000);
     for (unsigned int i=0x2000;i < 0x3fe0;i += 2) vga.mem.linear[i] = 0xE0; /* attribute GRBxxxxx = 11100000 (white) */
+}
+
+void VGA_OnEnterPC98_phase2(Section *sec) {
     VGA_SetupHandlers();
+
+    /* master GDC at 0x60-0x6F (even) */
+    for (unsigned int i=0x60;i <= 0xA0;i += 0x40) {
+        for (unsigned int j=0;j < 0x10;j += 2) {
+            IO_RegisterWriteHandler(i+j,pc98_gdc_write,IO_MB);
+            IO_RegisterReadHandler(i+j,pc98_gdc_read,IO_MB);
+        }
+    }
 }
 
 void VGA_Init() {
@@ -783,6 +966,7 @@ void VGA_Init() {
 
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(VGA_Reset));
 	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(VGA_OnEnterPC98));
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE_END,AddVMEventFunctionFuncPair(VGA_OnEnterPC98_phase2));
 }
 
 void SVGA_Setup_Driver(void) {
