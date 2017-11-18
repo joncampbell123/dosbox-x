@@ -98,6 +98,7 @@ struct PC98_GDC_state {
     bool                    dynamic_ram_refresh;        /* D bits */
     bool                    master_sync;                /* master source generation */
     bool                    display_enable;
+    bool                    cursor_enable;
     bool                    cursor_blink;
     bool                    idle;
 };

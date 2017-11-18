@@ -997,8 +997,9 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 
         // draw the text mode cursor if needed.
         // based on real hardware, the cursor blinks slower than on PC hardware.
-        if ((pc98_gdc[GDC_MASTER].cursor_blink_state&1) && (line >= vga.draw.cursor.sline) &&
-                (line <= vga.draw.cursor.eline) && vga.draw.cursor.enabled) {
+        if (((!pc98_gdc[GDC_MASTER].cursor_blink) || (pc98_gdc[GDC_MASTER].cursor_blink_state&1)) &&
+            (line >= vga.draw.cursor.sline) &&
+            (line <= vga.draw.cursor.eline) && pc98_gdc[GDC_MASTER].cursor_enable) {
             // the adress of the attribute that makes up the cell the cursor is in
             Bits attr_addr = (vga.draw.cursor.address - vidstart);
             if (attr_addr >= 0 && attr_addr < (Bits)vga.draw.blocks) {

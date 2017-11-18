@@ -702,6 +702,7 @@ PC98_GDC_state::PC98_GDC_state() {
     proc_step = 0xFF;
     display_enable = true;
     display_mode = 0;
+    cursor_enable = true;
     cursor_blink_state = 0;
     cursor_blink_count = 0;
     cursor_blink_rate = 0x20;
@@ -817,7 +818,7 @@ void PC98_GDC_state::take_cursor_char_setup(unsigned char bi) {
      *   0 = [6:5] = 0
      *   LR = [4:0] = lines per character row - 1 */
     if (bi == 1) {
-        vga.draw.cursor.enabled = !!(cmd_parm_tmp[0] & 0x80);
+        cursor_enable = !!(cmd_parm_tmp[0] & 0x80);
 
 		vga.crtc.maximum_scan_line = cmd_parm_tmp[0] & 0x1F;
 		vga.draw.address_line_total = vga.crtc.maximum_scan_line + 1;
