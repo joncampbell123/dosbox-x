@@ -46,6 +46,10 @@ struct PC98_GDC_state {
     bool rfifo_has_content(void);
     uint8_t read_status(void);
     uint8_t rfifo_read_data(void);
+    void idle_proc(void);
+
+    bool fifo_empty(void);
+    Bit16u read_fifo(void);
 
     /* NTS:
      *
@@ -78,6 +82,7 @@ struct PC98_GDC_state {
              * IS = 10 = interlaced repeat field for character displays
              * IS = 11 = interlaced */
     uint8_t                 current_command;
+    uint8_t                 proc_step;
     bool                    draw_only_during_retrace;   /* F bits */
     bool                    dynamic_ram_refresh;        /* D bits */
     bool                    master_sync;                /* master source generation */

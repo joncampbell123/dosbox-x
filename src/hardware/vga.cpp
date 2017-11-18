@@ -670,12 +670,36 @@ void VGA_UnsetupSEQ(void);
 #define seq(blah) vga.seq.blah
 #define crtc(blah) vga.crtc.blah
 
+double gdc_proc_delay = 0.001; /* time from FIFO to processing in GDC (1us) FIXME: Is this right? */
+bool gdc_proc_delay_set = false;
+
+void GDC_ProcDelay(Bitu /*val*/);
+
+void gdc_proc_schedule_delay(void) {
+    if (!gdc_proc_delay_set) {
+        PIC_AddEvent(GDC_ProcDelay,(float)gdc_proc_delay);
+        gdc_proc_delay_set = false;
+    }
+}
+
+void gdc_proc_schedule_cancel(void) {
+    if (gdc_proc_delay_set) {
+        PIC_RemoveEvents(GDC_ProcDelay);
+        gdc_proc_delay_set = false;
+    }
+}
+
+void gdc_proc_schedule_done(void) {
+    gdc_proc_delay_set = false;
+}
+
 void VGA_DAC_UpdateColor( Bitu index );
 
 #include "inout.h"
 
 PC98_GDC_state::PC98_GDC_state() {
-    current_command = 0;
+    current_command = 0xFF;
+    proc_step = 0xFF;
     display_enable = true;
     display_mode = 0;
     video_framing = 0;
@@ -684,6 +708,33 @@ PC98_GDC_state::PC98_GDC_state() {
     dynamic_ram_refresh = 0;
     reset_fifo();
     reset_rfifo();
+}
+
+void PC98_GDC_state::idle_proc(void) {
+    Bit16u val;
+
+    if (fifo_empty())
+        return;
+
+    val = read_fifo();
+    LOG_MSG("GDC word 0x%x",val);
+
+    if (!fifo_empty())
+        gdc_proc_schedule_delay();
+}
+
+bool PC98_GDC_state::fifo_empty(void) {
+    return (fifo_read >= fifo_write);
+}
+
+Bit16u PC98_GDC_state::read_fifo(void) {
+    Bit16u val;
+
+    val = fifo[fifo_read];
+    if (fifo_read < fifo_write)
+        fifo_read++;
+
+    return val;
 }
 
 void PC98_GDC_state::reset_fifo(void) {
@@ -713,6 +764,7 @@ bool PC98_GDC_state::write_fifo(const uint16_t c) {
         return false;
 
     fifo[fifo_write++] = c;
+    gdc_proc_schedule_delay();
     return true;
 }
 
@@ -772,6 +824,13 @@ uint8_t PC98_GDC_state::rfifo_read_data(void) {
 }
 
 struct PC98_GDC_state       pc98_gdc[2];
+
+void GDC_ProcDelay(Bitu /*val*/) {
+    gdc_proc_schedule_done();
+
+    for (unsigned int i=0;i < 2;i++)
+        pc98_gdc[i].idle_proc(); // may schedule another delayed proc
+}
 
 void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
     PC98_GDC_state *gdc;
