@@ -48,6 +48,10 @@ struct PC98_GDC_state {
     uint8_t rfifo_read_data(void);
     void idle_proc(void);
 
+    void take_reset_sync_parameters(void);
+    void apply_to_video_output(void);
+
+    size_t fifo_can_read(void);
     bool fifo_empty(void);
     Bit16u read_fifo(void);
 
@@ -56,6 +60,8 @@ struct PC98_GDC_state {
      * We're following the Neko Project II method of FIFO emulation BUT
      * I wonder if the GDC maintains two FIFOs and allows stacking params
      * in one and commands in another....? */
+
+    uint8_t                 cmd_parm_tmp[8];            /* temp storage before accepting params */
 
     uint8_t                 rfifo[PC98_GDC_FIFO_SIZE];
     uint8_t                 rfifo_read,rfifo_write;
@@ -88,6 +94,8 @@ struct PC98_GDC_state {
     bool                    master_sync;                /* master source generation */
     bool                    display_enable;
 };
+
+extern struct PC98_GDC_state       pc98_gdc[2];
 
 class PageHandler;
 

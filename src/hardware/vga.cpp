@@ -710,6 +710,89 @@ PC98_GDC_state::PC98_GDC_state() {
     reset_rfifo();
 }
 
+enum {
+    GDC_CMD_RESET = 0x00,
+    GDC_CMD_SYNC = 0x0E
+};
+
+size_t PC98_GDC_state::fifo_can_read(void) {
+    return fifo_write - fifo_read;
+}
+
+void PC98_GDC_state::take_reset_sync_parameters(void) {
+    /* P1 = param[0] = 0 0 C F I D G S
+     *  CG = [1:0] = display mode
+     *  IS = [1:0] = video framing
+     *   F = drawing time window
+     *   D = dynamic RAM refresh cycles enable */
+    draw_only_during_retrace =      !!(cmd_parm_tmp[0] & 0x10); /* F */
+    dynamic_ram_refresh =           !!(cmd_parm_tmp[0] & 0x04); /* D */
+    display_mode = /* CG = [1:0] */
+        ((cmd_parm_tmp[0] & 0x20) ? 2 : 0) +
+        ((cmd_parm_tmp[0] & 0x02) ? 1 : 0);
+    video_framing = /* IS = [1:0] */
+        ((cmd_parm_tmp[0] & 0x08) ? 2 : 0) +
+        ((cmd_parm_tmp[0] & 0x01) ? 1 : 0);
+
+    /* P2 = param[1] = AW = active display words per line - 2. must be even number. */
+    active_display_words_per_line = (uint16_t)cmd_parm_tmp[1] + 2u;
+
+    /* P3 = param[2] =
+     *   VS(L)[2:0] = [7:5] = low bits of VS
+     *   HS = [4:0] = horizontal sync width - 1 */
+    horizontal_sync_width = (cmd_parm_tmp[2] & 0x1F) + 1;
+    vertical_sync_width = (cmd_parm_tmp[2] >> 5);
+
+    /* P4 = param[3] =
+     *   HFP = [7:2] = horizontal front porch width - 1
+     *   VS(H)[4:3] = [1:0] = high bits of VS
+     *
+     *   VS = vertical sync width */
+    vertical_sync_width += (cmd_parm_tmp[3] & 3) << 3;
+    horizontal_front_porch_width = (cmd_parm_tmp[3] >> 2) + 1;
+
+    /* P5 = param[4] =
+     *   0 = [7:6] = 0
+     *   HBP = [5:0] = horizontal back porch width - 1 */
+    horizontal_back_porch_width = (cmd_parm_tmp[4] & 0x3F) + 1;
+
+    /* P6 = param[5] =
+     *   0 = [7:6] = 0
+     *   VFP = [5:0] = vertical front porch width */
+    vertical_front_porch_width = (cmd_parm_tmp[5] & 0x3F);
+
+    /* P7 = param[6] =
+     *   AL(L)[7:0] = [7:0] = Active Display Lines per video field, low bits */
+    active_display_lines = (cmd_parm_tmp[6] & 0xFF);
+
+    /* P8 = parm[7] =
+     *   VBP = [7:2] = vertical back porch width
+     *   AL(H)[9:8] = [1:0] = Active Display Lines per video field, high bits */
+    active_display_lines += (cmd_parm_tmp[7] & 3) << 8;
+    vertical_back_porch_width = cmd_parm_tmp[7] >> 2;
+
+    LOG_MSG("GDC: RESET/SYNC DOOR=%u DRAM=%u DISP=%u VFRAME=%u AW=%u HS=%u VS=%u HFP=%u HBP=%u VFP=%u AL=%u VBP=%u",
+        draw_only_during_retrace?1:0,
+        dynamic_ram_refresh?1:0,
+        display_mode,
+        video_framing,
+        active_display_words_per_line,
+        horizontal_sync_width,
+        vertical_sync_width,
+        horizontal_front_porch_width,
+        horizontal_back_porch_width,
+        vertical_front_porch_width,
+        active_display_lines,
+        vertical_back_porch_width);
+}
+
+void PC98_GDC_state::apply_to_video_output(void) {
+    /* take our SYNC parameters and feed it into the incumbent VGA raster emulation.
+     * do not call this function unless this GDC runs as the master sync source. */
+
+    // TODO
+}
+
 void PC98_GDC_state::idle_proc(void) {
     Bit16u val;
 
@@ -717,7 +800,43 @@ void PC98_GDC_state::idle_proc(void) {
         return;
 
     val = read_fifo();
-    LOG_MSG("GDC word 0x%x",val);
+    if (val & 0x100) { // command
+        current_command = val & 0xFF;
+        proc_step = 0;
+
+        switch (current_command) {
+            case GDC_CMD_RESET: // 0x00         0 0 0 0 0 0 0 0
+                LOG_MSG("GDC: reset");
+                display_enable = false;
+                reset_fifo();
+                reset_rfifo();
+                break;
+            case GDC_CMD_SYNC:  // 0x0E         0 0 0 0 0 0 0 DE
+            case GDC_CMD_SYNC+1:// 0x0F         DE=display enable
+                display_enable = !!(current_command & 1); // bit 0 = display enable
+                LOG_MSG("GFC: sync");
+                break;
+            default:
+                LOG_MSG("GDC: Unknown command 0x%x",current_command);
+                break;
+        };
+    }
+    else {
+        /* parameter parsing */
+        switch (current_command) {
+            /* RESET and SYNC take the same 8 byte parameters */
+            case GDC_CMD_RESET:
+            case GDC_CMD_SYNC:
+                if (proc_step < 8) {
+                    cmd_parm_tmp[proc_step] = (uint8_t)val;
+                    if ((++proc_step) == 8) {
+                        take_reset_sync_parameters();
+                        if (master_sync) apply_to_video_output();
+                    }
+                }
+                break;
+        };
+    }
 
     if (!fifo_empty())
         gdc_proc_schedule_delay();
