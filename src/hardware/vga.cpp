@@ -720,6 +720,7 @@ enum {
     GDC_CMD_RESET = 0x00,                       // 0   0   0   0   0   0   0   0
     GDC_CMD_DISPLAY_BLANK = 0x0C,               // 0   0   0   0   1   1   0   DE
     GDC_CMD_SYNC = 0x0E,                        // 0   0   0   0   1   1   1   DE
+    GDC_CMD_CURSOR_POSITION = 0x49,             // 0   1   0   0   1   0   0   1
     GDC_CMD_CURSOR_CHAR_SETUP = 0x4B,           // 0   1   0   0   1   0   1   1
     GDC_CMD_START_DISPLAY = 0x6B,               // 0   1   1   0   1   0   1   1
     GDC_CMD_VERTICAL_SYNC_MODE = 0x6E           // 0   1   1   0   1   1   1   M
@@ -816,6 +817,31 @@ void PC98_GDC_state::cursor_advance(void) {
     }
 }
 
+void PC98_GDC_state::take_cursor_pos(unsigned char bi) {
+    /* P1 = param[0] = EAD(L) = address[7:0]
+     *
+     * P2 = param[1] = EAD(M) = address[15:0]
+     *
+     * P3 = param[2]
+     *   dAD = [7:4] = Dot address within the word
+     *   0 = [3:2] = 0
+     *   EAD(H) = [1:0] = address[17:16] */
+    if (bi == 1) {
+		vga.config.cursor_start &= ~(0xFF << 0);
+		vga.config.cursor_start |=  cmd_parm_tmp[0] << 0;
+    }
+    else if (bi == 2) {
+		vga.config.cursor_start &= ~(0xFF << 8);
+		vga.config.cursor_start |=  cmd_parm_tmp[1] << 8;
+    }
+    else if (bi == 3) {
+		vga.config.cursor_start &= ~(0x03 << 16);
+		vga.config.cursor_start |=  (cmd_parm_tmp[2] & 3) << 16;
+
+        // TODO: "dot address within the word"
+    }
+}
+
 void PC98_GDC_state::take_cursor_char_setup(unsigned char bi) {
     /* P1 = param[0] =
      *   DC = [7:7] = display cursor if set
@@ -884,6 +910,9 @@ void PC98_GDC_state::idle_proc(void) {
                 display_enable = !!(current_command & 1); // bit 0 = display enable
                 LOG_MSG("GDC: sync");
                 break;
+            case GDC_CMD_CURSOR_POSITION:     // 0x49        0 1 0 0 1 0 0 1
+                LOG_MSG("GDC: cursor pos");
+                break;
             case GDC_CMD_CURSOR_CHAR_SETUP:   // 0x4B        0 1 0 0 1 0 1 1
                 LOG_MSG("GDC: cursor setup");
                 break;
@@ -912,6 +941,12 @@ void PC98_GDC_state::idle_proc(void) {
                         take_reset_sync_parameters();
                         if (master_sync) apply_to_video_output();
                     }
+                }
+                break;
+            case GDC_CMD_CURSOR_POSITION:
+                if (proc_step < 3) {
+                    cmd_parm_tmp[proc_step++] = (uint8_t)val;
+                    take_cursor_pos(proc_step);
                 }
                 break;
             case GDC_CMD_CURSOR_CHAR_SETUP:

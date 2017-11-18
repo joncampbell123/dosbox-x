@@ -49,6 +49,7 @@ struct PC98_GDC_state {
     void idle_proc(void);
 
     void take_cursor_char_setup(unsigned char bi);
+    void take_cursor_pos(unsigned char bi);
     void take_reset_sync_parameters(void);
     void apply_to_video_output(void);
     void cursor_advance(void);
