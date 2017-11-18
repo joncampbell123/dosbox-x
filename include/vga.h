@@ -47,6 +47,12 @@ struct PC98_GDC_state {
     uint8_t read_status(void);
     uint8_t rfifo_read_data(void);
 
+    /* NTS:
+     *
+     * We're following the Neko Project II method of FIFO emulation BUT
+     * I wonder if the GDC maintains two FIFOs and allows stacking params
+     * in one and commands in another....? */
+
     uint8_t                 rfifo[PC98_GDC_FIFO_SIZE];
     uint8_t                 rfifo_read,rfifo_write;
 
