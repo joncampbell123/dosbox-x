@@ -903,7 +903,7 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     Bit16u chr = 0,attr = 0;
     Bit16u lineoverlay = 0; // vertical + underline overlay over the character cell, but apparently with a 4-pixel delay
     bool doublewide = false;
-    Bit16u font;
+    unsigned char font,foreground;
 
     // this rendering is layered, zero the scanline first
     memset(TempLine,0,4 * 8 * blocks);
@@ -985,16 +985,15 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
             /* lineoverlay overlays font with 4-pixel delay */
             font |= (lineoverlay >> 4) & 0xFFU;
 
-            Bitu foreground = (attr >> 5) & 7; /* bits[7:5] are GRB foreground color */
-            Bitu background = 0; // FIXME: How do you do non-black background?
-            unsigned char color;
+            /* color? */
+            foreground = (attr >> 5) & 7; /* bits[7:5] are GRB foreground color */
 
+            /* draw it!
+             * NTS: Based on real hardware (and this is probably why there's no provisions for both fore and background color)
+             *      any bit in the font overlays the graphic output (after reverse, etc) or else does not output anything. */
             for (Bitu n = 0; n < 8; n++) {
-                color = (font&0x80) ? foreground:background;
-
-                // FIXME: Is this really how the master text GDC overlays the slave graphics GDC? This is a GUESS
-                if (color != 0)
-                    *draw++ = vga.dac.xlat32[color];
+                if (font & 0x80)
+                    *draw++ = vga.dac.xlat32[foreground];
                 else
                     draw++;
 
