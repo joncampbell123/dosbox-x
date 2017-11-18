@@ -1817,6 +1817,16 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 
         if (svga.get_clock) {
 			oscclock = svga.get_clock();
+        } else if (vga.mode == M_PC98) {
+            if (false/*future 15KHz hsync*/) {
+                oscclock = 14318180;
+            }
+            else if (true/*24KHz hsync*/) {
+                oscclock = 21052600;
+            }
+            else {/*31KHz VGA-like hsync*/
+                oscclock = 25175000;
+            }
 		} else {
 			switch ((vga.misc_output >> 2) & 3) {
 			case 0:	
@@ -2327,7 +2337,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		vga.draw.delay.hblkstart,vga.draw.delay.hblkend,
 		vga.draw.delay.hrstart,vga.draw.delay.hrend);
 	LOG(LOG_VGA,LOG_NORMAL)("v total %2.5f (%3.2fHz) blank(%02.5f/%02.5f) retrace(%02.5f/%02.5f)",
-		vga.draw.delay.vtotal,(1000.0/vga.draw.delay.vtotal),
+        vga.draw.delay.vtotal,(1000.0/vga.draw.delay.vtotal),
 		vga.draw.delay.vblkstart,vga.draw.delay.vblkend,
 		vga.draw.delay.vrstart,vga.draw.delay.vrend);
 

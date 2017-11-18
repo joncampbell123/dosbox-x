@@ -686,6 +686,12 @@ void VGA_OnEnterPC98(Section *sec) {
     VGA_SetupHandlers();
     INT10_PC98_CurMode_Relocate(); /* make sure INT 10h knows */
 
+    /* Set up 24KHz hsync 56.42Hz rate */
+    vga.crtc.horizontal_total = 106 - 5;
+    vga.crtc.vertical_total = (440 - 2) & 0xFF;
+    vga.crtc.overflow |=  0x01;
+    vga.crtc.overflow &= ~0x20;
+
     /* 8-char wide mode. change to 25MHz clock to match. */
 	vga.config.addr_shift = 0;
     seq(clocking_mode) |= 1; /* 8-bit wide char */
