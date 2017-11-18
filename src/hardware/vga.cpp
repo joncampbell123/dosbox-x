@@ -805,13 +805,14 @@ void PC98_GDC_state::apply_to_video_output(void) {
 
 void PC98_GDC_state::cursor_advance(void) {
     cursor_blink_count++;
-    cursor_blink_count &= 0x3F;
-
     if (cursor_blink_count == cursor_blink_rate) {
         cursor_blink_count = 0;
 
         if ((++cursor_blink_state) >= 4)
             cursor_blink_state = 0;
+    }
+    else if (cursor_blink_count & 0x40) {
+        cursor_blink_count = 0;
     }
 }
 
