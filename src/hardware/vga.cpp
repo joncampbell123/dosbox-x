@@ -711,8 +711,9 @@ PC98_GDC_state::PC98_GDC_state() {
 }
 
 enum {
-    GDC_CMD_RESET = 0x00,
-    GDC_CMD_SYNC = 0x0E
+    GDC_CMD_RESET = 0x00,                       // 0   0   0   0   0   0   0   0
+    GDC_CMD_SYNC = 0x0E,                        // 0   0   0   0   1   1   1   DE
+    GDC_CMD_VERTICAL_SYNC_MODE = 0x6E           // 0   1   1   0   1   1   1   M
 };
 
 size_t PC98_GDC_state::fifo_can_read(void) {
@@ -814,7 +815,12 @@ void PC98_GDC_state::idle_proc(void) {
             case GDC_CMD_SYNC:  // 0x0E         0 0 0 0 0 0 0 DE
             case GDC_CMD_SYNC+1:// 0x0F         DE=display enable
                 display_enable = !!(current_command & 1); // bit 0 = display enable
-                LOG_MSG("GFC: sync");
+                LOG_MSG("GDC: sync");
+                break;
+            case GDC_CMD_VERTICAL_SYNC_MODE:  // 0x6E        0 1 1 0 1 1 1 M
+            case GDC_CMD_VERTICAL_SYNC_MODE+1:// 0x6F        M=generate and output vertical sync (0=or else accept external vsync)
+                master_sync = !!(current_command & 1);
+                LOG_MSG("GDC: vsyncmode master=%u",master_sync);
                 break;
             default:
                 LOG_MSG("GDC: Unknown command 0x%x",current_command);
