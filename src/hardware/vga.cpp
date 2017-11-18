@@ -702,10 +702,14 @@ PC98_GDC_state::PC98_GDC_state() {
     proc_step = 0xFF;
     display_enable = true;
     display_mode = 0;
+    cursor_blink_state = 0;
+    cursor_blink_count = 0;
+    cursor_blink_rate = 0x20;
     video_framing = 0;
     master_sync = false;
     draw_only_during_retrace = 0;
     dynamic_ram_refresh = 0;
+    cursor_blink = true;
     reset_fifo();
     reset_rfifo();
 }
@@ -795,6 +799,15 @@ void PC98_GDC_state::apply_to_video_output(void) {
     // TODO
 }
 
+void PC98_GDC_state::cursor_advance(void) {
+    if ((++cursor_blink_count) >= cursor_blink_rate) {
+        cursor_blink_count = 0;
+
+        if ((++cursor_blink_state) >= 4)
+            cursor_blink_state = 0;
+    }
+}
+
 void PC98_GDC_state::take_cursor_char_setup(unsigned char bi) {
     /* P1 = param[0] =
      *   DC = [7:7] = display cursor if set
@@ -815,6 +828,18 @@ void PC98_GDC_state::take_cursor_char_setup(unsigned char bi) {
     /* P3 = param[2] =
      *   CBOT = [7:3] = cursor bottom line number in the row CBOT < LR
      *   BR[4:2] = [2:0] = blink rate */
+    if (bi == 3) {
+        cursor_blink_rate  = (cmd_parm_tmp[1] >> 6) & 3;
+        cursor_blink_rate += (cmd_parm_tmp[2] & 7) << 2;
+
+        cursor_blink = !(cmd_parm_tmp[1] & 0x20);
+
+		vga.crtc.cursor_start = (cmd_parm_tmp[1] & 0x1F);
+		vga.draw.cursor.sline = vga.crtc.cursor_start;
+
+		vga.crtc.cursor_end   = (cmd_parm_tmp[2] >> 3) & 0x1F;
+		vga.draw.cursor.eline = vga.crtc.cursor_end;
+    }
 
     /* blink-on time + blink-off time = 2 x BR (video frames).
      * attribute blink rate is 3/4 on 1/4 off duty cycle.

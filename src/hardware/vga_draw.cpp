@@ -962,7 +962,7 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
             /* "blink" seems to count at the same speed as the cursor blink rate,
              * through a 4-cycle pattern in which the character is invisible only
              * at the first count. */
-            if ((attr & 0x02/*blink*/) && (vga.draw.cursor.count&0x60) == 0) font = 0;
+            if ((attr & 0x02/*blink*/) && pc98_gdc[GDC_MASTER].cursor_blink_state == 0) font = 0;
 
             /* reverse attribute. seems to take effect BEFORE vertical & underline attributes */
             if (attr & 0x04/*reverse*/) font ^= 0xFF;
@@ -997,7 +997,7 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 
         // draw the text mode cursor if needed.
         // based on real hardware, the cursor blinks slower than on PC hardware.
-        if ((vga.draw.cursor.count&0x20) && (line >= vga.draw.cursor.sline) &&
+        if ((pc98_gdc[GDC_MASTER].cursor_blink_state&1) && (line >= vga.draw.cursor.sline) &&
                 (line <= vga.draw.cursor.eline) && vga.draw.cursor.enabled) {
             // the adress of the attribute that makes up the cell the cursor is in
             Bits attr_addr = (vga.draw.cursor.address - vidstart);
@@ -1462,6 +1462,11 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 	}
 	// for same blinking frequency with higher frameskip
 	vga.draw.cursor.count++;
+
+    if (IS_PC98_ARCH) {
+        for (unsigned int i=0;i < 2;i++)
+            pc98_gdc[i].cursor_advance();
+    }
 
 	//Check if we can actually render, else skip the rest
 	if (vga.draw.vga_override || !RENDER_StartUpdate()) return;

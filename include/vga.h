@@ -51,6 +51,7 @@ struct PC98_GDC_state {
     void take_cursor_char_setup(unsigned char bi);
     void take_reset_sync_parameters(void);
     void apply_to_video_output(void);
+    void cursor_advance(void);
 
     size_t fifo_can_read(void);
     bool fifo_empty(void);
@@ -90,10 +91,14 @@ struct PC98_GDC_state {
              * IS = 11 = interlaced */
     uint8_t                 current_command;
     uint8_t                 proc_step;
+    uint8_t                 cursor_blink_state;
+    uint8_t                 cursor_blink_count;         /* count from 0 to BR - 1 */
+    uint8_t                 cursor_blink_rate;          /* BR */
     bool                    draw_only_during_retrace;   /* F bits */
     bool                    dynamic_ram_refresh;        /* D bits */
     bool                    master_sync;                /* master source generation */
     bool                    display_enable;
+    bool                    cursor_blink;
 };
 
 extern struct PC98_GDC_state       pc98_gdc[2];
