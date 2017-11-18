@@ -791,6 +791,7 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
             break;
         default:
             LOG_MSG("GDC unexpected write to port 0x%x val=0x%x",(unsigned int)port,(unsigned int)val);
+            break;
     };
 }
 
@@ -811,6 +812,7 @@ Bitu pc98_gdc_read(Bitu port,Bitu iolen) {
             return gdc->rfifo_read_data();
         default:
             LOG_MSG("GDC unexpected read from port 0x%x",(unsigned int)port);
+            break;
     };
 
     return ~0;
