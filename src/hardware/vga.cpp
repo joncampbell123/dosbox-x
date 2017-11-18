@@ -689,6 +689,7 @@ void VGA_OnEnterPC98(Section *sec) {
     /* Set up 24KHz hsync 56.42Hz rate */
     vga.crtc.horizontal_total = 106 - 5;
     vga.crtc.vertical_total = (440 - 2) & 0xFF;
+    vga.crtc.end_vertical_blanking = (440 - 2 - 8) & 0xFF; // FIXME
     vga.crtc.overflow |=  0x01;
     vga.crtc.overflow &= ~0x20;
 
