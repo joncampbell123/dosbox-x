@@ -679,6 +679,7 @@ void VGA_DAC_UpdateColor( Bitu index );
 
 struct PC98_GDC_state {
     PC98_GDC_state() {
+        display_enable = true;
         display_mode = 0;
         video_framing = 0;
         master_sync = false;
@@ -791,6 +792,7 @@ struct PC98_GDC_state {
     bool                    draw_only_during_retrace;   /* F bits */
     bool                    dynamic_ram_refresh;        /* D bits */
     bool                    master_sync;                /* master source generation */
+    bool                    display_enable;
 };
 
 enum {
@@ -850,6 +852,11 @@ void VGA_OnEnterPC98(Section *sec) {
     VGA_UnsetupDAC();
     VGA_UnsetupGFX();
     VGA_UnsetupSEQ();
+
+    pc98_gdc[GDC_MASTER].master_sync = true;
+    pc98_gdc[GDC_MASTER].display_enable = true;
+    pc98_gdc[GDC_SLAVE].master_sync = false;
+    pc98_gdc[GDC_SLAVE].display_enable = false;//FIXME
 
     // as a transition to PC-98 GDC emulation, move VGA alphanumeric buffer
     // down to A0000-AFFFFh.
