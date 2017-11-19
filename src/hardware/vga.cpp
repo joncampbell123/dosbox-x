@@ -1065,6 +1065,9 @@ uint8_t PC98_GDC_state::read_status(void) {
 
     // TODO: 0x08 bit 3 drawing in progress
 
+    if (fifo_write >= PC98_GDC_FIFO_SIZE)
+        flush_fifo_old();
+
     if (fifo_read == fifo_write)
         ret |= 0x04; // FIFO empty
     if (fifo_write >= PC98_GDC_FIFO_SIZE)
