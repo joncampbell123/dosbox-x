@@ -760,6 +760,8 @@ class VGA_PC98_PageHandler : public PageHandler {
 public:
 	VGA_PC98_PageHandler() : PageHandler(PFLAG_NOCODE) {}
 	Bitu readb(PhysPt addr) {
+        unsigned int vop_offset = 0;
+
 		addr = PAGING_GetPhysicalAddress(addr);
 
         if (addr >= 0xE0000) /* the 4th bitplane (EGC 16-color mode) */
@@ -778,6 +780,7 @@ public:
             case 3:     /* A6000-A7FFF Not present */
                 return ~0;
             default:    /* A8000-BFFFF G-RAM */
+                vop_offset = (pc98_gdc_vramop & (1 << VOPBIT_ACCESS)) ? 0x20000 : 0;
                 break;
         };
 
@@ -790,7 +793,7 @@ public:
             case 0x05:
             case 0x06:
             case 0x07:
-                return vga.mem.linear[addr];
+                return vga.mem.linear[addr + vop_offset];
             case 0x08: /* ???? */
             case 0x09: /* This is a guess. It seems to work. The "OR VRAM xor TILE NEGate return" stuff
                           is what Neko Project II does in it's handler. Since this mode's write puts the
@@ -808,25 +811,25 @@ public:
                     addr &= 0x7FFF;
 
                     if (!(pc98_gdc_modereg & 1)) { // blue channel
-                        b = vga.mem.linear[addr + 0x8000];
+                        b = vga.mem.linear[addr + 0x8000 + vop_offset];
                         r |= b ^ pc98_gdc_tiles[0].b[addr&1];
                         pc98_gdc_tiles[0].b[addr&1] = b;
                     }
 
                     if (!(pc98_gdc_modereg & 2)) { // red channel
-                        b = vga.mem.linear[addr + 0x10000];
+                        b = vga.mem.linear[addr + 0x10000 + vop_offset];
                         r |= b ^ pc98_gdc_tiles[1].b[addr&1];
                         pc98_gdc_tiles[1].b[addr&1] = b;
                     }
 
                     if (!(pc98_gdc_modereg & 4)) { // green channel
-                        b = vga.mem.linear[addr + 0x18000];
+                        b = vga.mem.linear[addr + 0x18000 + vop_offset];
                         r |= b ^ pc98_gdc_tiles[2].b[addr&1];
                         pc98_gdc_tiles[2].b[addr&1] = b;
                     }
 
                     if (!(pc98_gdc_modereg & 8)) { // extended channel
-                        b = vga.mem.linear[addr + 0x20000];
+                        b = vga.mem.linear[addr + 0x20000 + vop_offset];
                         r |= b ^ pc98_gdc_tiles[3].b[addr&1];
                         pc98_gdc_tiles[3].b[addr&1] = b;
                     }
@@ -835,15 +838,17 @@ public:
                 }
             case 0x0C:
             case 0x0D:
-                return vga.mem.linear[addr];
+                return vga.mem.linear[addr + vop_offset];
             default:
                 LOG_MSG("PC-98 VRAM read warning: Unsupported opmode 0x%X",pc98_gdc_vramop);
-                return vga.mem.linear[addr];
+                return vga.mem.linear[addr + vop_offset];
         };
 
 		return ~0;
 	}
 	void writeb(PhysPt addr,Bitu val){
+        unsigned int vop_offset = 0;
+
 		addr = PAGING_GetPhysicalAddress(addr);
 
         if (addr >= 0xE0000) /* the 4th bitplane (EGC 16-color mode) */
@@ -862,6 +867,7 @@ public:
             case 3:     /* A6000-A7FFF Not present */
                 return;
             default:    /* A8000-BFFFF G-RAM */
+                vop_offset = (pc98_gdc_vramop & (1 << VOPBIT_ACCESS)) ? 0x20000 : 0;
                 break;
         };
 
@@ -874,7 +880,7 @@ public:
             case 0x05:
             case 0x06:
             case 0x07:
-                vga.mem.linear[addr] = val;
+                vga.mem.linear[addr + vop_offset] = val;
                 break;
             case 0x08:  /* write tile data, no masking */
             case 0x09:
@@ -884,16 +890,16 @@ public:
                     addr &= 0x7FFF;
 
                     if (!(pc98_gdc_modereg & 1)) // blue channel
-                        vga.mem.linear[addr + 0x8000] = pc98_gdc_tiles[0].b[addr&1];
+                        vga.mem.linear[addr + 0x8000 + vop_offset] = pc98_gdc_tiles[0].b[addr&1];
 
                     if (!(pc98_gdc_modereg & 2)) // red channel
-                        vga.mem.linear[addr + 0x10000] = pc98_gdc_tiles[1].b[addr&1];
+                        vga.mem.linear[addr + 0x10000 + vop_offset] = pc98_gdc_tiles[1].b[addr&1];
 
                     if (!(pc98_gdc_modereg & 4)) // green channel
-                        vga.mem.linear[addr + 0x18000] = pc98_gdc_tiles[2].b[addr&1];
+                        vga.mem.linear[addr + 0x18000 + vop_offset] = pc98_gdc_tiles[2].b[addr&1];
 
                     if (!(pc98_gdc_modereg & 8)) // extended channel
-                        vga.mem.linear[addr + 0x20000] = pc98_gdc_tiles[3].b[addr&1];
+                        vga.mem.linear[addr + 0x20000 + vop_offset] = pc98_gdc_tiles[3].b[addr&1];
                 }
                 break;
             case 0x0C:  /* read/modify/write from tile with masking */
@@ -905,29 +911,29 @@ public:
                     addr &= 0x7FFF;
 
                     if (!(pc98_gdc_modereg & 1)) { // blue channel
-                        vga.mem.linear[addr + 0x8000] &= mask;
-                        vga.mem.linear[addr + 0x8000] |= val & pc98_gdc_tiles[0].b[addr&1];
+                        vga.mem.linear[addr + 0x8000 + vop_offset] &= mask;
+                        vga.mem.linear[addr + 0x8000 + vop_offset] |= val & pc98_gdc_tiles[0].b[addr&1];
                     }
 
                     if (!(pc98_gdc_modereg & 2)) { // red channel
-                        vga.mem.linear[addr + 0x10000] &= mask;
-                        vga.mem.linear[addr + 0x10000] |= val & pc98_gdc_tiles[1].b[addr&1];
+                        vga.mem.linear[addr + 0x10000 + vop_offset] &= mask;
+                        vga.mem.linear[addr + 0x10000 + vop_offset] |= val & pc98_gdc_tiles[1].b[addr&1];
                     }
 
                     if (!(pc98_gdc_modereg & 4)) { // green channel
-                        vga.mem.linear[addr + 0x18000] &= mask;
-                        vga.mem.linear[addr + 0x18000] |= val & pc98_gdc_tiles[2].b[addr&1];
+                        vga.mem.linear[addr + 0x18000 + vop_offset] &= mask;
+                        vga.mem.linear[addr + 0x18000 + vop_offset] |= val & pc98_gdc_tiles[2].b[addr&1];
                     }
 
                     if (!(pc98_gdc_modereg & 8)) { // extended channel
-                        vga.mem.linear[addr + 0x20000] &= mask;
-                        vga.mem.linear[addr + 0x20000] |= val & pc98_gdc_tiles[3].b[addr&1];
+                        vga.mem.linear[addr + 0x20000 + vop_offset] &= mask;
+                        vga.mem.linear[addr + 0x20000 + vop_offset] |= val & pc98_gdc_tiles[3].b[addr&1];
                     }
                 }
                 break;
             default:
                 LOG_MSG("PC-98 VRAM write warning: Unsupported opmode 0x%X",pc98_gdc_vramop);
-                vga.mem.linear[addr] = val;
+                vga.mem.linear[addr + vop_offset] = val;
                 break;
         };
 	}

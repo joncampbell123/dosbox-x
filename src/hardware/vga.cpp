@@ -589,7 +589,12 @@ void VGA_Reset(Section*) {
 			else vga.vmemsize = _KB_bytes(256);
 			break;
 		case MCH_VGA:
-			if (vga.vmemsize < _KB_bytes(256)) vga.vmemsize = _KB_bytes(256);
+            if (enable_pc98_jump) {
+                if (vga.vmemsize < _KB_bytes(512)) vga.vmemsize = _KB_bytes(512);
+            }
+            else {
+                if (vga.vmemsize < _KB_bytes(256)) vga.vmemsize = _KB_bytes(256);
+            }
 			break;
 		case MCH_AMSTRAD:
 			if (vga.vmemsize < _KB_bytes(64)) vga.vmemsize = _KB_bytes(64); /* FIXME: Right? */
@@ -1252,6 +1257,14 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
             if (port == 0x64)
                 GDC_vsync_interrupt = true;
             break;
+        case 0x06:      /* 0x66: ??
+                           0xA6: Bit 0 appears to select between two 'banks' of VRAM.
+                                 Many games rely on this for redraw, or they leave artifacts. */
+            if (port == 0xA6) {
+                pc98_gdc_vramop &= ~(1 << VOPBIT_ACCESS);
+                pc98_gdc_vramop |=  (val&1) << VOPBIT_ACCESS;
+            }
+            break;
         case 0x08:      /* 0xA8: One of two meanings, depending on 8 or 16/256--color mode */
                         /*         8-color: 0xA8-0xAB are 8 4-bit packed fields remapping the 3-bit GRB colors. This defines colors #3 [7:4] and #7 [3:0]
                          *         16-color: GRB color palette index */
@@ -1374,8 +1387,8 @@ void VGA_OnEnterPC98(Section *sec) {
         VGA_DAC_UpdateColor(i);
     }
     vga.mode=M_PC98;
-    assert(vga.vmemsize >= 0x20000);
-    memset(vga.mem.linear,0,0x20000);
+    assert(vga.vmemsize >= 0x80000);
+    memset(vga.mem.linear,0,0x80000);
     for (unsigned int i=0x2000;i < 0x3fe0;i += 2) vga.mem.linear[i] = 0xE0; /* attribute GRBxxxxx = 11100000 (white) */
 }
 
