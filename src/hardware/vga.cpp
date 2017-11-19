@@ -722,6 +722,7 @@ enum {
     GDC_CMD_SYNC = 0x0E,                        // 0   0   0   0   1   1   1   DE
     GDC_CMD_CURSOR_POSITION = 0x49,             // 0   1   0   0   1   0   0   1
     GDC_CMD_CURSOR_CHAR_SETUP = 0x4B,           // 0   1   0   0   1   0   1   1
+    GDC_CMD_PITCH_SPEC = 0x47,                  // 0   1   0   0   0   1   1   1
     GDC_CMD_START_DISPLAY = 0x6B,               // 0   1   1   0   1   0   1   1
     GDC_CMD_VERTICAL_SYNC_MODE = 0x6E           // 0   1   1   0   1   1   1   M
 };
@@ -910,6 +911,8 @@ void PC98_GDC_state::idle_proc(void) {
                 display_enable = !!(current_command & 1); // bit 0 = display enable
                 LOG_MSG("GDC: sync");
                 break;
+            case GDC_CMD_PITCH_SPEC:          // 0x47        0 1 0 0 0 1 1 1
+                break;
             case GDC_CMD_CURSOR_POSITION:     // 0x49        0 1 0 0 1 0 0 1
                 LOG_MSG("GDC: cursor pos");
                 break;
@@ -942,6 +945,10 @@ void PC98_GDC_state::idle_proc(void) {
                         if (master_sync) apply_to_video_output();
                     }
                 }
+                break;
+            case GDC_CMD_PITCH_SPEC:
+                if (proc_step < 1)
+                    active_display_words_per_line = (val != 0) ? val : 0x100;
                 break;
             case GDC_CMD_CURSOR_POSITION:
                 if (proc_step < 3) {
