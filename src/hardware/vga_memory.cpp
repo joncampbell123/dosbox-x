@@ -762,8 +762,12 @@ public:
 	Bitu readb(PhysPt addr) {
 		VGAMEM_USEC_read_delay(); // FIXME: VRAM delay? How fast is the VRAM compared to the CPU?
 
-		addr = PAGING_GetPhysicalAddress(addr) & 0x1FFFF;
+		addr = PAGING_GetPhysicalAddress(addr);
 
+        /* FIXME: What exactly is at E0000-E7FFF? */
+        if (addr >= 0xE0000) return ~0;
+
+        addr &= 0x1FFFF;
         switch (addr>>13) {
             case 0:     /* A0000-A1FFF Character RAM */
                 break;
@@ -783,8 +787,12 @@ public:
 	void writeb(PhysPt addr,Bitu val){
 		VGAMEM_USEC_read_delay(); // FIXME: VRAM delay? How fast is the VRAM compared to the CPU?
 
-		addr = PAGING_GetPhysicalAddress(addr) & 0x1FFFF;
+		addr = PAGING_GetPhysicalAddress(addr);
 
+        /* FIXME: What exactly is at E0000-E7FFF? */
+        if (addr >= 0xE0000) return;
+
+        addr &= 0x1FFFF;
         switch (addr>>13) {
             case 0:     /* A0000-A1FFF Character RAM */
                 break;
@@ -1390,6 +1398,10 @@ void VGA_SetupHandlers(void) {
 		break;
     case M_PC98:
 		newHandler = &vgaph.pc98;
+
+        /* We need something to catch access to E0000-E7FFF */
+        MEM_SetPageHandler(0xE0, 8, newHandler );
+
         break;
 	case M_AMSTRAD:
 		newHandler = &vgaph.map;
