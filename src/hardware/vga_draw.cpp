@@ -905,8 +905,38 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     bool doublewide = false;
     unsigned char font,foreground;
 
-    // this rendering is layered, zero the scanline first
-    memset(TempLine,0,4 * 8 * blocks);
+    // Graphic RAM layer (or blank)
+    // Think of it as a 3-plane GRB color graphics mode, each plane is 1 bit per pixel.
+    // G-RAM is addressed 16 bits per RAM cycle.
+    if (pc98_gdc[GDC_SLAVE].display_enable) {
+        Bit16u g16,r16,b16;
+
+        draw = ((Bit32u*)TempLine);
+        blocks = (vga.draw.blocks+1)>>1;
+        vidmem = vidstart << 1;
+        while (blocks--) {
+            g16 = ((Bit16u*)vga.mem.linear)[(vidmem & 0x3FFFU) + 0xC000U]; /* B8000-BFFFF */
+            r16 = ((Bit16u*)vga.mem.linear)[(vidmem & 0x3FFFU) + 0x8000U]; /* B0000-B7FFF */
+            b16 = ((Bit16u*)vga.mem.linear)[(vidmem & 0x3FFFU) + 0x4000U]; /* A8000-AFFFF */
+
+            for (unsigned char i=0;i < 16;i++) {
+                foreground  = (g16 & 1) << 2;
+                foreground += (r16 & 1) << 1;
+                foreground += (b16 & 1);
+
+                g16 >>= 1;
+                r16 >>= 1;
+                b16 >>= 1;
+
+                *draw++ = vga.dac.xlat32[foreground];
+            }
+
+            vidmem++;
+        }
+    }
+    else {
+        memset(TempLine,0,4 * 8 * blocks);
+    }
 
     // Text RAM layer
     if (pc98_gdc[GDC_MASTER].display_enable) {
