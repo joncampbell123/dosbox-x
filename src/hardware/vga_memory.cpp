@@ -760,8 +760,6 @@ class VGA_PC98_PageHandler : public PageHandler {
 public:
 	VGA_PC98_PageHandler() : PageHandler(PFLAG_NOCODE) {}
 	Bitu readb(PhysPt addr) {
-		VGAMEM_USEC_read_delay(); // FIXME: VRAM delay? How fast is the VRAM compared to the CPU?
-
 		addr = PAGING_GetPhysicalAddress(addr);
 
         if (addr >= 0xE0000) /* the 4th bitplane (EGC 16-color mode) */
@@ -793,9 +791,52 @@ public:
             case 0x06:
             case 0x07:
                 return vga.mem.linear[addr];
-            case 0x08:
-            case 0x09:
-                return vga.mem.linear[addr];
+            case 0x08: /* ???? */
+            case 0x09: /* This is a guess. It seems to work. The "OR VRAM xor TILE NEGate return" stuff
+                          is what Neko Project II does in it's handler. Since this mode's write puts the
+                          tile data directly into VRAM without considering the CPU data byte, my guess
+                          here is that this is the PC-98 variation of VGA write mode 2 in which reading
+                          loads the tile RAM from VRAM and writing loads tile RAM into VRAM.
+                         
+                          One clue that suggests this READ loads the tile registers is the way Touhou
+                          Project appears to stick tiles on the right hand side of the screen. Without
+                          this code, Touhou Project is unable to render the background at all. */
+                {
+                    unsigned char r = 0,b;
+
+                    /* this reads multiple bitplanes at once */
+                    addr &= 0x7FFF;
+
+                    if (!(pc98_gdc_modereg & 1)) { // blue channel
+                        b = vga.mem.linear[addr + 0x8000];
+                        r |= b ^ pc98_gdc_tiles[0].b[0];
+                        pc98_gdc_tiles[0].b[0] = b;
+                        pc98_gdc_tiles[0].b[1] = b;
+                    }
+
+                    if (!(pc98_gdc_modereg & 2)) { // red channel
+                        b = vga.mem.linear[addr + 0x10000];
+                        r |= b ^ pc98_gdc_tiles[1].b[0];
+                        pc98_gdc_tiles[1].b[0] = b;
+                        pc98_gdc_tiles[1].b[1] = b;
+                    }
+
+                    if (!(pc98_gdc_modereg & 4)) { // green channel
+                        b = vga.mem.linear[addr + 0x18000];
+                        r |= b ^ pc98_gdc_tiles[2].b[0];
+                        pc98_gdc_tiles[2].b[0] = b;
+                        pc98_gdc_tiles[2].b[1] = b;
+                    }
+
+                    if (!(pc98_gdc_modereg & 8)) { // extended channel
+                        b = vga.mem.linear[addr + 0x20000];
+                        r |= b ^ pc98_gdc_tiles[3].b[0];
+                        pc98_gdc_tiles[3].b[0] = b;
+                        pc98_gdc_tiles[3].b[1] = b;
+                    }
+
+                    return (r ^ 0xFF);
+                }
             case 0x0C:
             case 0x0D:
                 return vga.mem.linear[addr];
@@ -807,8 +848,6 @@ public:
 		return ~0;
 	}
 	void writeb(PhysPt addr,Bitu val){
-		VGAMEM_USEC_read_delay(); // FIXME: VRAM delay? How fast is the VRAM compared to the CPU?
-
 		addr = PAGING_GetPhysicalAddress(addr);
 
         if (addr >= 0xE0000) /* the 4th bitplane (EGC 16-color mode) */
