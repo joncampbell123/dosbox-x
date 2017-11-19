@@ -4598,6 +4598,11 @@ private:
 		if (cpu.pmode) E_Exit("BIOS error: BOOT function called while in protected/vm86 mode");
 		DispatchVMEvent(VM_EVENT_BIOS_BOOT);
 
+        /* if we're supposed to run in PC-98 mode, then do it NOW.
+         * sdlmain.cpp will come back around when it's made the change to this call. */
+        if (enable_pc98_jump)
+            throw int(5);
+
 		// TODO: If instructed to, follow the INT 19h boot pattern, perhaps follow the BIOS Boot Specification, etc.
 
 		// TODO: If instructed to boot a guest OS...

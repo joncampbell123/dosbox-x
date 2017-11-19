@@ -1510,20 +1510,6 @@ void REDOS_ProgramStart(Program * * make) {
 	*make=new REDOS;
 }
 
-class GOTOPC98 : public Program {
-public:
-	void Run(void) {
-        if (enable_pc98_jump)
-            throw int(5);
-        else /* SHOULD NOT HAPPEN */
-			WriteOut("PC-98 mode not available in your configuration\n");
-	}
-};
-
-void GOTOPC98_ProgramStart(Program * * make) {
-	*make=new GOTOPC98;
-}
-
 class A20GATE : public Program {
 public:
 	void Run(void) {
