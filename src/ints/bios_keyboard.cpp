@@ -521,6 +521,21 @@ static Bitu IRQ1_Handler_PC98(void) {
          * Just like INT 16h on IBM PC hardware */
         scan_add = sc_8251 << 8U;
 
+        /* According to Neko Project II, the BIOS maintains a "pressed key" bitmap at 0x50:0x2A.
+         * Without this bitmap many PC-98 games are unplayable. */
+        {
+            unsigned int o = 0x52A + (sc_8251 >> 3);
+            unsigned char c = mem_readb(o);
+            unsigned char b = 1 << (sc_8251 & 7);
+
+            if (pressed)
+                c |= b;
+            else
+                c &= ~b;
+
+            mem_writeb(o,c);
+        }
+
         /* FIXME: I'm fully aware of obvious problems with this code so far:
          *        - This is coded around my American keyboard layout
          *        - No support for CAPS or KANA modes.

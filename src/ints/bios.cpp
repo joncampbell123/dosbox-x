@@ -5182,6 +5182,9 @@ void BIOS_OnPowerOn(Section* sec) {
 void BIOS_OnEnterPC98Mode(Section* sec) {
     if (test) {
         test->write_FFFF_PC98_signature();
+
+        /* clear out 0x50 segment */
+        for (unsigned int i=0;i < 0x100;i++) phys_writeb(0x500+i,0);
     }
 }
 
