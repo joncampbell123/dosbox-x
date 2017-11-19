@@ -1093,6 +1093,7 @@ uint8_t PC98_GDC_state::rfifo_read_data(void) {
 }
 
 struct PC98_GDC_state       pc98_gdc[2];
+bool                        GDC_vsync_interrupt = false;
 
 void GDC_ProcDelay(Bitu /*val*/) {
     gdc_proc_schedule_done();
@@ -1117,6 +1118,11 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
         case 0x02:      /* 0x62/0xA2 command write fifo */
             if (!gdc->write_fifo_command(val))
                 LOG_MSG("GDC warning: FIFO command overrun");
+            break;
+        case 0x04:      /* 0x64: set trigger to signal vsync interrupt (IRQ 2) */
+                        /* 0xA4: ?? */
+            if (port == 0x64)
+                GDC_vsync_interrupt = true;
             break;
         default:
             LOG_MSG("GDC unexpected write to port 0x%x val=0x%x",(unsigned int)port,(unsigned int)val);

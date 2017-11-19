@@ -1293,6 +1293,8 @@ static void VGA_Other_VertInterrupt(Bitu val) {
 	else PIC_DeActivateIRQ(5);
 }
 
+extern bool                        GDC_vsync_interrupt;
+
 static void VGA_DisplayStartLatch(Bitu /*val*/) {
 	/* hretrace fx support: store the hretrace value at start of picture so we have
 	 * a point of reference how far to displace the scanline when wavy effects are
@@ -1300,6 +1302,14 @@ static void VGA_DisplayStartLatch(Bitu /*val*/) {
 	vga_display_start_hretrace = vga.crtc.start_horizontal_retrace;
 	vga.config.real_start=vga.config.display_start & (vga.vmemwrap-1);
 	vga.draw.bytes_skip = vga.config.bytes_skip;
+
+    /* PC-98: If port 0x64 was written, fire IRQ 2 at vertical retrace */
+    if (IS_PC98_ARCH) {
+        if (GDC_vsync_interrupt) {
+            GDC_vsync_interrupt = false;
+            PIC_ActivateIRQ(2);
+        }
+    }
 }
  
 static void VGA_PanningLatch(Bitu /*val*/) {

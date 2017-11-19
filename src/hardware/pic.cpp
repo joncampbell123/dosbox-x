@@ -137,7 +137,7 @@ void PIC_Controller::activate() {
 		CPU_Cycles = 0;
 		//maybe when coming from a EOI, give a tiny delay. (for the cpu to pick it up) (see PIC_Activate_IRQ)
 	} else {
-		master.raise_irq(2);
+		master.raise_irq(IS_PC98_ARCH ? 7 : 2);
 	}
 }
 
@@ -312,7 +312,9 @@ int PIC_irq_delay = 2;
  *        ISA interrupts are edge triggered, not level triggered. */
 void PIC_ActivateIRQ(Bitu irq) {
 	/* Remember what was once IRQ 2 on PC/XT is IRQ 9 on PC/AT */
-	if (enable_slave_pic) { /* PC/AT emulation with slave PIC cascade to master */
+    if (IS_PC98_ARCH) {
+    }
+    else if (enable_slave_pic) { /* PC/AT emulation with slave PIC cascade to master */
 		if (irq == 2) irq = 9;
 	}
 	else { /* PC/XT emulation with only master PIC */
@@ -343,7 +345,9 @@ void PIC_ActivateIRQ(Bitu irq) {
 
 void PIC_DeActivateIRQ(Bitu irq) {
 	/* Remember what was once IRQ 2 on PC/XT is IRQ 9 on PC/AT */
-	if (enable_slave_pic) { /* PC/AT emulation with slave PIC cascade to master */
+    if (IS_PC98_ARCH) {
+    }
+    else if (enable_slave_pic) { /* PC/AT emulation with slave PIC cascade to master */
 		if (irq == 2) irq = 9;
 	}
 	else { /* PC/XT emulation with only master PIC */
@@ -440,7 +444,7 @@ void PIC_runIRQs(void) {
 				if (!IRQ_hack_check_cs_equ_ds(i))
 					continue; // skip IRQ
 
-			if (i==2 && enable_slave_pic) { //second pic
+			if (i==(IS_PC98_ARCH ? 7 : 2) && enable_slave_pic) { //second pic
 				slave_startIRQ();
 			} else {
 				master_startIRQ(i);
