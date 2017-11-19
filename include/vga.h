@@ -57,6 +57,9 @@ struct PC98_GDC_state {
     void begin_frame(void);
     void next_line(void);
 
+    void load_display_partition(void);
+    void next_display_partition(void);
+
     size_t fifo_can_read(void);
     bool fifo_empty(void);
     Bit16u read_fifo(void);
@@ -75,9 +78,15 @@ struct PC98_GDC_state {
     uint16_t                fifo[PC98_GDC_FIFO_SIZE];   /* NTS: Neko Project II uses one big FIFO for command and data, which makes sense to me */
     uint8_t                 fifo_read,fifo_write;
 
+    uint8_t                 param_ram[16];
+    uint8_t                 param_ram_wptr;
+
     uint16_t                scan_address;
     uint8_t                 row_height;
     uint8_t                 row_line;
+
+    uint8_t                 display_partition;
+    uint16_t                display_partition_rem_lines;
 
     uint16_t                active_display_lines;       /* AL (translated) */
     uint16_t                active_display_words_per_line;/* AW bits (translated) */

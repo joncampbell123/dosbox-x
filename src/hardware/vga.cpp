@@ -698,6 +698,16 @@ void VGA_DAC_UpdateColor( Bitu index );
 #include "inout.h"
 
 PC98_GDC_state::PC98_GDC_state() {
+    memset(param_ram,0,sizeof(param_ram));
+
+    // make a display partition area to cover the screen, whatever it is.
+    param_ram[0] = 0x00;        // SAD=0
+    param_ram[1] = 0x00;        // SAD=0
+    param_ram[2] = 0xF0;        // LEN=3FF
+    param_ram[3] = 0x3F;        // LEN=3FF WD1=0
+
+    param_ram_wptr = 0;
+    display_partition = 0;
     row_line = 0;
     row_height = 16;
     scan_address = 0;
@@ -727,7 +737,8 @@ enum {
     GDC_CMD_CURSOR_CHAR_SETUP = 0x4B,           // 0   1   0   0   1   0   1   1
     GDC_CMD_PITCH_SPEC = 0x47,                  // 0   1   0   0   0   1   1   1
     GDC_CMD_START_DISPLAY = 0x6B,               // 0   1   1   0   1   0   1   1
-    GDC_CMD_VERTICAL_SYNC_MODE = 0x6E           // 0   1   1   0   1   1   1   M
+    GDC_CMD_VERTICAL_SYNC_MODE = 0x6E,          // 0   1   1   0   1   1   1   M
+    GDC_CMD_PARAMETER_RAM_LOAD = 0x70           // 0   1   1   1   S   S   S   S    S[3:0] = starting address in parameter RAM
 };
 
 size_t PC98_GDC_state::fifo_can_read(void) {
@@ -930,6 +941,25 @@ void PC98_GDC_state::idle_proc(void) {
                 master_sync = !!(current_command & 1);
                 LOG_MSG("GDC: vsyncmode master=%u",master_sync);
                 break;
+            case GDC_CMD_PARAMETER_RAM_LOAD:   // 0x70       0 1 1 1 S S S S
+            case GDC_CMD_PARAMETER_RAM_LOAD+1: // 0x71       S=starting byte in parameter RAM
+            case GDC_CMD_PARAMETER_RAM_LOAD+2: // 0x72       S=starting byte in parameter RAM
+            case GDC_CMD_PARAMETER_RAM_LOAD+3: // 0x73       S=starting byte in parameter RAM
+            case GDC_CMD_PARAMETER_RAM_LOAD+4: // 0x74       S=starting byte in parameter RAM
+            case GDC_CMD_PARAMETER_RAM_LOAD+5: // 0x75       S=starting byte in parameter RAM
+            case GDC_CMD_PARAMETER_RAM_LOAD+6: // 0x76       S=starting byte in parameter RAM
+            case GDC_CMD_PARAMETER_RAM_LOAD+7: // 0x77       S=starting byte in parameter RAM
+            case GDC_CMD_PARAMETER_RAM_LOAD+8: // 0x78       S=starting byte in parameter RAM
+            case GDC_CMD_PARAMETER_RAM_LOAD+9: // 0x79       S=starting byte in parameter RAM
+            case GDC_CMD_PARAMETER_RAM_LOAD+10:// 0x7A       S=starting byte in parameter RAM
+            case GDC_CMD_PARAMETER_RAM_LOAD+11:// 0x7B       S=starting byte in parameter RAM
+            case GDC_CMD_PARAMETER_RAM_LOAD+12:// 0x7C       S=starting byte in parameter RAM
+            case GDC_CMD_PARAMETER_RAM_LOAD+13:// 0x7D       S=starting byte in parameter RAM
+            case GDC_CMD_PARAMETER_RAM_LOAD+14:// 0x7E       S=starting byte in parameter RAM
+            case GDC_CMD_PARAMETER_RAM_LOAD+15:// 0x7F       S=starting byte in parameter RAM
+                param_ram_wptr = current_command & 0xF;
+                current_command = GDC_CMD_PARAMETER_RAM_LOAD;
+                break;
             default:
                 LOG_MSG("GDC: Unknown command 0x%x",current_command);
                 break;
@@ -967,6 +997,10 @@ void PC98_GDC_state::idle_proc(void) {
                     }
                 }
                 break;
+            case GDC_CMD_PARAMETER_RAM_LOAD:
+                param_ram[param_ram_wptr] = (uint8_t)val;
+                if ((++param_ram_wptr) >= 16) param_ram_wptr = 0;
+                break;
         };
     }
 
@@ -996,11 +1030,64 @@ void PC98_GDC_state::next_line(void) {
     else if (row_line & 0x20) {
         row_line = 0;
     }
+
+    if (--display_partition_rem_lines == 0) {
+        next_display_partition();
+        load_display_partition();
+    }
 }
 
 void PC98_GDC_state::begin_frame(void) {
     row_line = 0;
-    scan_address = 0; /* TODO: Nonzero offset? */
+    scan_address = 0;
+    display_partition = 0;
+
+    /* the actual starting address is determined by the display partition in paramter RAM */
+    load_display_partition();
+}
+
+void PC98_GDC_state::load_display_partition(void) {
+    unsigned char *pram = param_ram + (display_partition * 4);
+
+    scan_address  =  pram[0];
+    scan_address +=  pram[1]         << 8;
+    scan_address += (pram[2] & 0x03) << 16;
+
+    display_partition_rem_lines  =  pram[2]         >> 4;
+    display_partition_rem_lines += (pram[3] & 0x3F) << 4;
+
+    if (master_sync) { /* character mode */
+    /* RAM+0 = SAD1 (L)
+     *
+     * RAM+1 = 0 0 0 SAH1 (M) [4:0]
+     *
+     * RAM+2 = LEN1 (L) [7:4]  0 0 0 0
+     *
+     * RAM+3 = WD1 0 LEN1 (H) [5:0] */
+        scan_address &= 0x1FFF;
+    }
+    else { /* graphics mode */
+    /* RAM+0 = SAD1 (L)
+     *
+     * RAM+1 = SAH1 (M)
+     *
+     * RAM+2 = LEN1 (L) [7:4]  0 0   SAD1 (H) [1:0]
+     *
+     * RAM+3 = WD1 IM LEN1 (H) [5:0] */
+    }
+}
+
+void PC98_GDC_state::next_display_partition(void) {
+    if (master_sync) { // FIXME: Based on TEXT, not whether we are master
+        /* character mode: 4 partitions defined */
+        if ((++display_partition) == 4)
+            display_partition = 0;
+    }
+    else { // FIXME: Based on GRAPHICS, not whether we are slave
+        /* graphics mode: 2 partitions defined */
+        if ((++display_partition) == 2)
+            display_partition = 0;
+    }
 }
 
 void PC98_GDC_state::reset_fifo(void) {
