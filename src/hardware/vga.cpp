@@ -1183,6 +1183,17 @@ uint8_t PC98_GDC_state::rfifo_read_data(void) {
 
 struct PC98_GDC_state       pc98_gdc[2];
 bool                        GDC_vsync_interrupt = false;
+uint8_t                     pc98_16col_analog_rgb_palette_index = 0;
+
+/* 4-bit to 6-bit expansion */
+static inline unsigned char dac_4to6(unsigned char c4) {
+    /* a b c d . .
+     *
+     * becomes
+     *
+     * a b c d a b */
+    return (c4 << 2) | (c4 >> 2);
+}
 
 void GDC_ProcDelay(Bitu /*val*/) {
     gdc_proc_schedule_done();
@@ -1212,6 +1223,41 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
                         /* 0xA4: ?? */
             if (port == 0x64)
                 GDC_vsync_interrupt = true;
+            break;
+        case 0x08:      /* 0xA8: One of two meanings, depending on 8 or 16/256--color mode */
+                        /*         8-color: 0xA8-0xAB are 8 4-bit packed fields remapping the 3-bit GRB colors. This defines colors #3 [7:4] and #7 [3:0]
+                         *         16-color: GRB color palette index */
+                        /* 0x68: ?? */
+                        /* NTS: Sadly, "undocumented PC-98" reference does not mention the analog 16-color palette. */
+            if (port == 0xA8) /* TODO: If 8-color mode.... else if 16-color mode... */
+                pc98_16col_analog_rgb_palette_index = val; /* it takes all 8 bits I assume because of 256-color mode */
+            break;
+        case 0x0A:      /* 0xAA:
+                           8-color: Defines color #1 [7:4] and color #5 [3:0] (FIXME: Or is it 2 and 6, by undocumented PC-98???)
+                           16-color: 4-bit green intensity. Color index is low 4 bits of palette index.
+                           256-color: 4-bit green intensity. Color index is 8-bit palette index. */
+            if (port == 0xAA) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
+                vga.dac.rgb[pc98_16col_analog_rgb_palette_index & 0xF].green = dac_4to6(val&0xF); /* re-use VGA DAC */
+                VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index & 0xF);
+            }
+            break;
+        case 0x0C:      /* 0xAC:
+                           8-color: Defines color #2 [7:4] and color #6 [3:0] (FIXME: Or is it 1 and 4, by undocumented PC-98???)
+                           16-color: 4-bit red intensity. Color index is low 4 bits of palette index.
+                           256-color: 4-bit red intensity. Color index is 8-bit palette index. */
+            if (port == 0xAC) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
+                vga.dac.rgb[pc98_16col_analog_rgb_palette_index & 0xF].red = dac_4to6(val&0xF); /* re-use VGA DAC */
+                VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index & 0xF);
+            }
+            break;
+        case 0x0E:      /* 0xAE:
+                           8-color: Defines color #2 [7:4] and color #6 [3:0] (FIXME: Or is it 1 and 4, by undocumented PC-98???)
+                           16-color: 4-bit blue intensity. Color index is low 4 bits of palette index.
+                           256-color: 4-bit blue intensity. Color index is 8-bit palette index. */
+            if (port == 0xAE) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
+                vga.dac.rgb[pc98_16col_analog_rgb_palette_index & 0xF].blue = dac_4to6(val&0xF); /* re-use VGA DAC */
+                VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index & 0xF);
+            }
             break;
         default:
             LOG_MSG("GDC unexpected write to port 0x%x val=0x%x",(unsigned int)port,(unsigned int)val);
