@@ -764,8 +764,7 @@ public:
 
 		addr = PAGING_GetPhysicalAddress(addr);
 
-        /* FIXME: What exactly is at E0000-E7FFF? */
-        if (addr >= 0xE0000)
+        if (addr >= 0xE0000) /* the 4th bitplane (EGC 16-color mode) */
             addr = (addr & 0x7FFF) + 0x20000;
         else
             addr &= 0x1FFFF;
@@ -791,8 +790,7 @@ public:
 
 		addr = PAGING_GetPhysicalAddress(addr);
 
-        /* FIXME: What exactly is at E0000-E7FFF? */
-        if (addr >= 0xE0000)
+        if (addr >= 0xE0000) /* the 4th bitplane (EGC 16-color mode) */
             addr = (addr & 0x7FFF) + 0x20000;
         else
             addr &= 0x1FFFF;
