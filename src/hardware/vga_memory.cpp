@@ -809,30 +809,26 @@ public:
 
                     if (!(pc98_gdc_modereg & 1)) { // blue channel
                         b = vga.mem.linear[addr + 0x8000];
-                        r |= b ^ pc98_gdc_tiles[0].b[0];
-                        pc98_gdc_tiles[0].b[0] = b;
-                        pc98_gdc_tiles[0].b[1] = b;
+                        r |= b ^ pc98_gdc_tiles[0].b[addr&1];
+                        pc98_gdc_tiles[0].b[addr&1] = b;
                     }
 
                     if (!(pc98_gdc_modereg & 2)) { // red channel
                         b = vga.mem.linear[addr + 0x10000];
-                        r |= b ^ pc98_gdc_tiles[1].b[0];
-                        pc98_gdc_tiles[1].b[0] = b;
-                        pc98_gdc_tiles[1].b[1] = b;
+                        r |= b ^ pc98_gdc_tiles[1].b[addr&1];
+                        pc98_gdc_tiles[1].b[addr&1] = b;
                     }
 
                     if (!(pc98_gdc_modereg & 4)) { // green channel
                         b = vga.mem.linear[addr + 0x18000];
-                        r |= b ^ pc98_gdc_tiles[2].b[0];
-                        pc98_gdc_tiles[2].b[0] = b;
-                        pc98_gdc_tiles[2].b[1] = b;
+                        r |= b ^ pc98_gdc_tiles[2].b[addr&1];
+                        pc98_gdc_tiles[2].b[addr&1] = b;
                     }
 
                     if (!(pc98_gdc_modereg & 8)) { // extended channel
                         b = vga.mem.linear[addr + 0x20000];
-                        r |= b ^ pc98_gdc_tiles[3].b[0];
-                        pc98_gdc_tiles[3].b[0] = b;
-                        pc98_gdc_tiles[3].b[1] = b;
+                        r |= b ^ pc98_gdc_tiles[3].b[addr&1];
+                        pc98_gdc_tiles[3].b[addr&1] = b;
                     }
 
                     return (r ^ 0xFF);
@@ -888,16 +884,16 @@ public:
                     addr &= 0x7FFF;
 
                     if (!(pc98_gdc_modereg & 1)) // blue channel
-                        vga.mem.linear[addr + 0x8000] = pc98_gdc_tiles[0].b[0];
+                        vga.mem.linear[addr + 0x8000] = pc98_gdc_tiles[0].b[addr&1];
 
                     if (!(pc98_gdc_modereg & 2)) // red channel
-                        vga.mem.linear[addr + 0x10000] = pc98_gdc_tiles[1].b[0];
+                        vga.mem.linear[addr + 0x10000] = pc98_gdc_tiles[1].b[addr&1];
 
                     if (!(pc98_gdc_modereg & 4)) // green channel
-                        vga.mem.linear[addr + 0x18000] = pc98_gdc_tiles[2].b[0];
+                        vga.mem.linear[addr + 0x18000] = pc98_gdc_tiles[2].b[addr&1];
 
                     if (!(pc98_gdc_modereg & 8)) // extended channel
-                        vga.mem.linear[addr + 0x20000] = pc98_gdc_tiles[3].b[0];
+                        vga.mem.linear[addr + 0x20000] = pc98_gdc_tiles[3].b[addr&1];
                 }
                 break;
             case 0x0C:  /* read/modify/write from tile with masking */
@@ -910,22 +906,22 @@ public:
 
                     if (!(pc98_gdc_modereg & 1)) { // blue channel
                         vga.mem.linear[addr + 0x8000] &= mask;
-                        vga.mem.linear[addr + 0x8000] |= val & pc98_gdc_tiles[0].b[0];
+                        vga.mem.linear[addr + 0x8000] |= val & pc98_gdc_tiles[0].b[addr&1];
                     }
 
                     if (!(pc98_gdc_modereg & 2)) { // red channel
                         vga.mem.linear[addr + 0x10000] &= mask;
-                        vga.mem.linear[addr + 0x10000] |= val & pc98_gdc_tiles[1].b[0];
+                        vga.mem.linear[addr + 0x10000] |= val & pc98_gdc_tiles[1].b[addr&1];
                     }
 
                     if (!(pc98_gdc_modereg & 4)) { // green channel
                         vga.mem.linear[addr + 0x18000] &= mask;
-                        vga.mem.linear[addr + 0x18000] |= val & pc98_gdc_tiles[2].b[0];
+                        vga.mem.linear[addr + 0x18000] |= val & pc98_gdc_tiles[2].b[addr&1];
                     }
 
                     if (!(pc98_gdc_modereg & 8)) { // extended channel
                         vga.mem.linear[addr + 0x20000] &= mask;
-                        vga.mem.linear[addr + 0x20000] |= val & pc98_gdc_tiles[3].b[0];
+                        vga.mem.linear[addr + 0x20000] |= val & pc98_gdc_tiles[3].b[addr&1];
                     }
                 }
                 break;
