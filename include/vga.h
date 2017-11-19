@@ -54,6 +54,9 @@ struct PC98_GDC_state {
     void apply_to_video_output(void);
     void cursor_advance(void);
 
+    void begin_frame(void);
+    void next_line(void);
+
     size_t fifo_can_read(void);
     bool fifo_empty(void);
     Bit16u read_fifo(void);
@@ -71,6 +74,10 @@ struct PC98_GDC_state {
 
     uint16_t                fifo[PC98_GDC_FIFO_SIZE];   /* NTS: Neko Project II uses one big FIFO for command and data, which makes sense to me */
     uint8_t                 fifo_read,fifo_write;
+
+    uint16_t                scan_address;
+    uint8_t                 row_height;
+    uint8_t                 row_line;
 
     uint16_t                active_display_lines;       /* AL (translated) */
     uint16_t                active_display_words_per_line;/* AW bits (translated) */

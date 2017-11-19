@@ -909,24 +909,24 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     // Think of it as a 3-plane GRB color graphics mode, each plane is 1 bit per pixel.
     // G-RAM is addressed 16 bits per RAM cycle.
     if (pc98_gdc[GDC_SLAVE].display_enable) {
-        Bit16u g16,r16,b16;
+        Bit8u g8,r8,b8;
 
         draw = ((Bit32u*)TempLine);
-        blocks = (vga.draw.blocks+1)>>1;
-        vidmem = vidstart << 1;
+        blocks = vga.draw.blocks;
+        vidmem = pc98_gdc[GDC_SLAVE].scan_address << 1;
         while (blocks--) {
-            g16 = ((Bit16u*)vga.mem.linear)[(vidmem & 0x3FFFU) + 0xC000U]; /* B8000-BFFFF */
-            r16 = ((Bit16u*)vga.mem.linear)[(vidmem & 0x3FFFU) + 0x8000U]; /* B0000-B7FFF */
-            b16 = ((Bit16u*)vga.mem.linear)[(vidmem & 0x3FFFU) + 0x4000U]; /* A8000-AFFFF */
+            g8 = vga.mem.linear[(vidmem & 0x7FFFU) + 0x18000U]; /* B8000-BFFFF */
+            r8 = vga.mem.linear[(vidmem & 0x7FFFU) + 0x10000U]; /* B0000-B7FFF */
+            b8 = vga.mem.linear[(vidmem & 0x7FFFU) + 0x08000U]; /* A8000-AFFFF */
 
-            for (unsigned char i=0;i < 16;i++) {
-                foreground  = (g16 & 1) << 2;
-                foreground += (r16 & 1) << 1;
-                foreground += (b16 & 1);
+            for (unsigned char i=0;i < 8;i++) {
+                foreground  = (g8 & 0x80) ? 4 : 0;
+                foreground += (r8 & 0x80) ? 2 : 0;
+                foreground += (b8 & 0x80) ? 1 : 0;
 
-                g16 >>= 1;
-                r16 >>= 1;
-                b16 >>= 1;
+                g8 <<= 1;
+                r8 <<= 1;
+                b8 <<= 1;
 
                 *draw++ = vga.dac.xlat32[foreground];
             }
@@ -942,7 +942,7 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     if (pc98_gdc[GDC_MASTER].display_enable) {
         draw = ((Bit32u*)TempLine);
         blocks = vga.draw.blocks;
-        vidmem = vidstart;
+        vidmem = pc98_gdc[GDC_MASTER].scan_address;
         while (blocks--) { // for each character in the line
             if (!doublewide) {
                 chr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x0000U];
@@ -965,7 +965,7 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
                     doublewide = true;
                 }
 
-                font = vga.draw.font_tables[0][pc98_map_charfont(chr,line,0)];
+                font = vga.draw.font_tables[0][pc98_map_charfont(chr,pc98_gdc[GDC_MASTER].row_line,0)];
             }
             else {
                 // right half of doublewide char.
@@ -981,7 +981,7 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
                 if ((chr&0x78U) == 0x08 || (chr&0x7FU) >= 0x54)
                     chr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x0000U];
 
-                font = vga.draw.font_tables[0][pc98_map_charfont(chr,line,1)];
+                font = vga.draw.font_tables[0][pc98_map_charfont(chr,pc98_gdc[GDC_MASTER].row_line,1)];
             }
 
             lineoverlay <<= 8;
@@ -1205,6 +1205,11 @@ static void VGA_DrawSingleLine(Bitu /*blah*/) {
 		vga_mode_frames_since_time_base++;
 		RENDER_EndUpdate(false);
 	}
+
+    if (IS_PC98_ARCH) {
+        for (unsigned int i=0;i < 2;i++)
+            pc98_gdc[i].next_line();
+    }
 
 	/* some VGA cards (ATI chipsets especially) do not double-buffer the
 	 * horizontal panning register. some DOS demos take advantage of that
@@ -1525,6 +1530,9 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 		vga.draw.byte_panning_shift = 2;
 		vga.draw.address += vga.draw.bytes_skip;
         vga.draw.cursor.address = vga.config.cursor_start;
+
+        for (unsigned int i=0;i < 2;i++)
+            pc98_gdc[i].begin_frame();
         break;
     case M_TEXT:
 		vga.draw.byte_panning_shift = 2;

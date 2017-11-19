@@ -698,6 +698,9 @@ void VGA_DAC_UpdateColor( Bitu index );
 #include "inout.h"
 
 PC98_GDC_state::PC98_GDC_state() {
+    row_line = 0;
+    row_height = 16;
+    scan_address = 0;
     current_command = 0xFF;
     proc_step = 0xFF;
     display_enable = true;
@@ -985,6 +988,21 @@ Bit16u PC98_GDC_state::read_fifo(void) {
     return val;
 }
 
+void PC98_GDC_state::next_line(void) {
+    if ((++row_line) == row_height) {
+        scan_address += active_display_words_per_line;
+        row_line = 0;
+    }
+    else if (row_line & 0x20) {
+        row_line = 0;
+    }
+}
+
+void PC98_GDC_state::begin_frame(void) {
+    row_line = 0;
+    scan_address = 0; /* TODO: Nonzero offset? */
+}
+
 void PC98_GDC_state::reset_fifo(void) {
     fifo_read = fifo_write = 0;
 }
@@ -1135,8 +1153,13 @@ void VGA_OnEnterPC98(Section *sec) {
 
     pc98_gdc[GDC_MASTER].master_sync = true;
     pc98_gdc[GDC_MASTER].display_enable = true;
+    pc98_gdc[GDC_MASTER].row_height = 16;
+    pc98_gdc[GDC_MASTER].active_display_words_per_line = 80;
+
     pc98_gdc[GDC_SLAVE].master_sync = false;
     pc98_gdc[GDC_SLAVE].display_enable = false;//FIXME
+    pc98_gdc[GDC_SLAVE].row_height = 1;
+    pc98_gdc[GDC_SLAVE].active_display_words_per_line = 40; /* 40 16-bit WORDs per line */
 
     // as a transition to PC-98 GDC emulation, move VGA alphanumeric buffer
     // down to A0000-AFFFFh.
