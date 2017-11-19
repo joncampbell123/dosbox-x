@@ -765,9 +765,11 @@ public:
 		addr = PAGING_GetPhysicalAddress(addr);
 
         /* FIXME: What exactly is at E0000-E7FFF? */
-        if (addr >= 0xE0000) return ~0;
+        if (addr >= 0xE0000)
+            addr = (addr & 0x7FFF) + 0x20000;
+        else
+            addr &= 0x1FFFF;
 
-        addr &= 0x1FFFF;
         switch (addr>>13) {
             case 0:     /* A0000-A1FFF Character RAM */
                 break;
@@ -790,9 +792,11 @@ public:
 		addr = PAGING_GetPhysicalAddress(addr);
 
         /* FIXME: What exactly is at E0000-E7FFF? */
-        if (addr >= 0xE0000) return;
+        if (addr >= 0xE0000)
+            addr = (addr & 0x7FFF) + 0x20000;
+        else
+            addr &= 0x1FFFF;
 
-        addr &= 0x1FFFF;
         switch (addr>>13) {
             case 0:     /* A0000-A1FFF Character RAM */
                 break;
