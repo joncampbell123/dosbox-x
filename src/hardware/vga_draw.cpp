@@ -909,21 +909,24 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     // Think of it as a 3-plane GRB color graphics mode, each plane is 1 bit per pixel.
     // G-RAM is addressed 16 bits per RAM cycle.
     if (pc98_gdc[GDC_SLAVE].display_enable) {
-        Bit8u g8,r8,b8;
+        Bit8u g8,r8,b8,e8;
 
         draw = ((Bit32u*)TempLine);
         blocks = vga.draw.blocks;
         vidmem = pc98_gdc[GDC_SLAVE].scan_address << 1;
         while (blocks--) {
+            e8 = vga.mem.linear[(vidmem & 0x7FFFU) + 0x20000U]; /* E0000-E7FFF */
             g8 = vga.mem.linear[(vidmem & 0x7FFFU) + 0x18000U]; /* B8000-BFFFF */
             r8 = vga.mem.linear[(vidmem & 0x7FFFU) + 0x10000U]; /* B0000-B7FFF */
             b8 = vga.mem.linear[(vidmem & 0x7FFFU) + 0x08000U]; /* A8000-AFFFF */
 
             for (unsigned char i=0;i < 8;i++) {
-                foreground  = (g8 & 0x80) ? 4 : 0;
+                foreground  = (e8 & 0x80) ? 8 : 0;
+                foreground += (g8 & 0x80) ? 4 : 0;
                 foreground += (r8 & 0x80) ? 2 : 0;
                 foreground += (b8 & 0x80) ? 1 : 0;
 
+                e8 <<= 1;
                 g8 <<= 1;
                 r8 <<= 1;
                 b8 <<= 1;
