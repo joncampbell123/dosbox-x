@@ -1186,6 +1186,7 @@ uint8_t PC98_GDC_state::rfifo_read_data(void) {
     return ret;
 }
 
+uint32_t                    pc98_text_palette[8];
 uint8_t                     pc98_gdc_tile_counter=0;
 uint8_t                     pc98_gdc_modereg=0;
 uint8_t                     pc98_gdc_vramop=0;
@@ -1335,6 +1336,18 @@ void VGA_OnEnterPC98(Section *sec) {
     VGA_UnsetupDAC();
     VGA_UnsetupGFX();
     VGA_UnsetupSEQ();
+
+    {
+        unsigned char r,g,b;
+
+        for (unsigned int i=0;i < 8;i++) {
+            r = (i & 2) ? 255 : 0;
+            g = (i & 4) ? 255 : 0;
+            b = (i & 1) ? 255 : 0;
+
+            pc98_text_palette[i] = (b << GFX_Bshift) | (g << GFX_Gshift) | (r << GFX_Rshift) | GFX_Amask;
+        }
+    }
 
     pc98_gdc_tile_counter=0;
     pc98_gdc_modereg=0;

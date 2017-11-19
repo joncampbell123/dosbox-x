@@ -125,6 +125,8 @@ union pc98_tile {
     uint16_t                w;
 };
 
+extern uint32_t                    pc98_text_palette[8];
+
 extern struct PC98_GDC_state       pc98_gdc[2];
 extern union pc98_tile             pc98_gdc_tiles[4];
 extern uint8_t                     pc98_gdc_vramop;

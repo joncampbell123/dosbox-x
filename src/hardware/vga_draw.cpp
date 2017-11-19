@@ -1024,9 +1024,10 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
             /* draw it!
              * NTS: Based on real hardware (and this is probably why there's no provisions for both fore and background color)
              *      any bit in the font overlays the graphic output (after reverse, etc) or else does not output anything. */
+            /* NTS: Apparently (correct me if I'm wrong) the analog color palette applies to the graphics layer, NOT the text layer. */
             for (Bitu n = 0; n < 8; n++) {
                 if (font & 0x80)
-                    *draw++ = vga.dac.xlat32[foreground];
+                    *draw++ = pc98_text_palette[foreground];
                 else
                     draw++;
 
