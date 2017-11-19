@@ -1055,6 +1055,8 @@ void PC98_GDC_state::load_display_partition(void) {
 
     display_partition_rem_lines  =  pram[2]         >> 4;
     display_partition_rem_lines += (pram[3] & 0x3F) << 4;
+    if (display_partition_rem_lines == 0)
+        display_partition_rem_lines = 0x400;
 
     if (master_sync) { /* character mode */
     /* RAM+0 = SAD1 (L)
