@@ -783,7 +783,28 @@ public:
                 break;
         };
 
-		return vga.mem.linear[addr];
+        switch (pc98_gdc_vramop & 0xF) {
+            case 0x00:
+            case 0x01:
+            case 0x02:
+            case 0x03:
+            case 0x04:
+            case 0x05:
+            case 0x06:
+            case 0x07:
+                return vga.mem.linear[addr];
+            case 0x08:
+            case 0x09:
+                return vga.mem.linear[addr];
+            case 0x0C:
+            case 0x0D:
+                return vga.mem.linear[addr];
+            default:
+                LOG_MSG("PC-98 VRAM read warning: Unsupported opmode 0x%X",pc98_gdc_vramop);
+                return vga.mem.linear[addr];
+        };
+
+		return ~0;
 	}
 	void writeb(PhysPt addr,Bitu val){
 		VGAMEM_USEC_read_delay(); // FIXME: VRAM delay? How fast is the VRAM compared to the CPU?
@@ -809,7 +830,71 @@ public:
                 break;
         };
 
-		vga.mem.linear[addr] = val;
+        switch (pc98_gdc_vramop & 0xF) {
+            case 0x00:
+            case 0x01:
+            case 0x02:
+            case 0x03:
+            case 0x04:
+            case 0x05:
+            case 0x06:
+            case 0x07:
+                vga.mem.linear[addr] = val;
+                break;
+            case 0x08:  /* write tile data, no masking */
+            case 0x09:
+                {
+                    /* this writes to multiple bitplanes at once.
+                     * notice that the value written has no meaning, only the tile data and memory address. */
+                    addr &= 0x7FFF;
+
+                    if (!(pc98_gdc_modereg & 1)) // blue channel
+                        vga.mem.linear[addr + 0x8000] = pc98_gdc_tiles[0].b[0];
+
+                    if (!(pc98_gdc_modereg & 2)) // red channel
+                        vga.mem.linear[addr + 0x10000] = pc98_gdc_tiles[1].b[0];
+
+                    if (!(pc98_gdc_modereg & 4)) // green channel
+                        vga.mem.linear[addr + 0x18000] = pc98_gdc_tiles[2].b[0];
+
+                    if (!(pc98_gdc_modereg & 8)) // extended channel
+                        vga.mem.linear[addr + 0x20000] = pc98_gdc_tiles[3].b[0];
+                }
+                break;
+            case 0x0C:  /* read/modify/write from tile with masking */
+            case 0x0D:  /* a lot of PC-98 games seem to rely on this for sprite rendering */
+                {
+                    const unsigned char mask = (unsigned char)(~val);
+
+                    /* this writes to multiple bitplanes at once */
+                    addr &= 0x7FFF;
+
+                    if (!(pc98_gdc_modereg & 1)) { // blue channel
+                        vga.mem.linear[addr + 0x8000] &= mask;
+                        vga.mem.linear[addr + 0x8000] |= val & pc98_gdc_tiles[0].b[0];
+                    }
+
+                    if (!(pc98_gdc_modereg & 2)) { // red channel
+                        vga.mem.linear[addr + 0x10000] &= mask;
+                        vga.mem.linear[addr + 0x10000] |= val & pc98_gdc_tiles[1].b[0];
+                    }
+
+                    if (!(pc98_gdc_modereg & 4)) { // green channel
+                        vga.mem.linear[addr + 0x18000] &= mask;
+                        vga.mem.linear[addr + 0x18000] |= val & pc98_gdc_tiles[2].b[0];
+                    }
+
+                    if (!(pc98_gdc_modereg & 8)) { // extended channel
+                        vga.mem.linear[addr + 0x20000] &= mask;
+                        vga.mem.linear[addr + 0x20000] |= val & pc98_gdc_tiles[3].b[0];
+                    }
+                }
+                break;
+            default:
+                LOG_MSG("PC-98 VRAM write warning: Unsupported opmode 0x%X",pc98_gdc_vramop);
+                vga.mem.linear[addr] = val;
+                break;
+        };
 	}
 };
 

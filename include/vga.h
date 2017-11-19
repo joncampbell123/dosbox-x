@@ -120,7 +120,32 @@ struct PC98_GDC_state {
     bool                    idle;
 };
 
+union pc98_tile {
+    uint8_t                 b[2];
+    uint16_t                w;
+};
+
 extern struct PC98_GDC_state       pc98_gdc[2];
+extern union pc98_tile             pc98_gdc_tiles[4];
+extern uint8_t                     pc98_gdc_vramop;
+extern uint8_t                     pc98_gdc_modereg;
+
+// VOPBIT_* source: Neko Project II
+
+// operate:		bit0	access page
+//				bit1	egc enable
+//				bit2	grcg bit6
+//				bit3	grcg bit7
+//				bit4	analog enable
+//				bit5	pc9821 vga
+
+enum {
+	VOPBIT_ACCESS	= 0,
+	VOPBIT_EGC		= 1,
+	VOPBIT_GRCG		= 2,
+	VOPBIT_ANALOG	= 4,
+	VOPBIT_VGA		= 5
+};
 
 class PageHandler;
 

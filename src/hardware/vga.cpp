@@ -1181,6 +1181,10 @@ uint8_t PC98_GDC_state::rfifo_read_data(void) {
     return ret;
 }
 
+uint8_t                     pc98_gdc_tile_counter=0;
+uint8_t                     pc98_gdc_modereg=0;
+uint8_t                     pc98_gdc_vramop=0;
+union pc98_tile             pc98_gdc_tiles[4];
 struct PC98_GDC_state       pc98_gdc[2];
 bool                        GDC_vsync_interrupt = false;
 uint8_t                     pc98_16col_analog_rgb_palette_index = 0;
@@ -1200,6 +1204,30 @@ void GDC_ProcDelay(Bitu /*val*/) {
 
     for (unsigned int i=0;i < 2;i++)
         pc98_gdc[i].idle_proc(); // may schedule another delayed proc
+}
+
+void pc98_crtc_write(Bitu port,Bitu val,Bitu iolen) {
+    switch (port&0xE) {
+        case 0x0C:      // 0x7C: mode reg / vram operation mode (also, reset tile counter)
+            pc98_gdc_tile_counter = 0;
+            pc98_gdc_modereg = val;
+            pc98_gdc_vramop &= ~(3 << VOPBIT_GRCG);
+            pc98_gdc_vramop |= (val & 0xC0) >> (6 - VOPBIT_GRCG);
+            break;
+        case 0x0E:      // 0x7E: tile data
+            pc98_gdc_tiles[pc98_gdc_tile_counter].b[0] = val;
+            pc98_gdc_tiles[pc98_gdc_tile_counter].b[1] = val;
+            pc98_gdc_tile_counter = (pc98_gdc_tile_counter + 1) & 3;
+            break;
+        default:
+            LOG_MSG("PC98 CRTC w: port=0x%02X val=0x%02X unknown",(unsigned int)port,(unsigned int)val);
+            break;
+    };
+}
+
+Bitu pc98_crtc_read(Bitu port,Bitu iolen) {
+    LOG_MSG("PC98 CRTC r: port=0x%02X unknown",(unsigned int)port);
+    return ~0;
 }
 
 void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
@@ -1295,6 +1323,10 @@ void VGA_OnEnterPC98(Section *sec) {
     VGA_UnsetupGFX();
     VGA_UnsetupSEQ();
 
+    pc98_gdc_tile_counter=0;
+    pc98_gdc_modereg=0;
+    for (unsigned int i=0;i < 4;i++) pc98_gdc_tiles[i].w = 0;
+
     pc98_gdc[GDC_MASTER].master_sync = true;
     pc98_gdc[GDC_MASTER].display_enable = true;
     pc98_gdc[GDC_MASTER].row_height = 16;
@@ -1350,12 +1382,19 @@ void VGA_OnEnterPC98(Section *sec) {
 void VGA_OnEnterPC98_phase2(Section *sec) {
     VGA_SetupHandlers();
 
-    /* master GDC at 0x60-0x6F (even) */
+    /* master GDC at 0x60-0x6F (even)
+     * slave GDC at 0xA0-0xAF (even) */
     for (unsigned int i=0x60;i <= 0xA0;i += 0x40) {
         for (unsigned int j=0;j < 0x10;j += 2) {
             IO_RegisterWriteHandler(i+j,pc98_gdc_write,IO_MB);
             IO_RegisterReadHandler(i+j,pc98_gdc_read,IO_MB);
         }
+    }
+
+    /* CRTC at 0x70-0x7F (even) */
+    for (unsigned int j=0x70;j < 0x80;j += 2) {
+        IO_RegisterWriteHandler(j,pc98_crtc_write,IO_MB);
+        IO_RegisterReadHandler(j,pc98_crtc_read,IO_MB);
     }
 }
 
