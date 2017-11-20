@@ -1343,6 +1343,14 @@ void VGA_OnEnterPC98(Section *sec) {
     VGA_UnsetupGFX();
     VGA_UnsetupSEQ();
 
+    /* Some PC-98 game behavior seems to suggest the BIOS data area stretches all the way from segment 0x40:0x00 to segment 0x7F:0x0F inclusive.
+     * Compare that to IBM PC platform, where segment fills only 0x40:0x00 to 0x50:0x00 inclusive and extra state is held in the "Extended BIOS Data Area".
+     */
+
+    /* number of text rows on the screen.
+     * Touhou Project will not clear/format the text layer properly without this variable. */
+    mem_writeb(0x712,25 - 1); /* number of rows - 1 */
+
     {
         unsigned char r,g,b;
 
