@@ -2288,6 +2288,12 @@ static Bitu INT18_PC98_Handler(void) {
             }
             break;
         /* From this point on the INT 18h call list appears to wander off from the keyboard into CRT/GDC/display management. */
+        case 0x40: /* Start displaying the graphics screen (グラフィック画面の表示開始) */
+            pc98_gdc[GDC_SLAVE].display_enable = true;
+            break;
+        case 0x41: /* Stop displaying the graphics screen (グラフィック画面の表示終了) */
+            pc98_gdc[GDC_SLAVE].display_enable = false;
+            break;
         default:
             LOG_MSG("PC-98 INT 18h unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
                 reg_ax,
