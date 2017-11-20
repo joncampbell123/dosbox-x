@@ -2297,7 +2297,7 @@ static Bitu INT18_PC98_Handler(void) {
         case 0x42: /* Display area setup (表示領域の設定) */
             /* TODO: Something in CH has meaning. */
             /* reset scroll area of graphics */
-            if ((reg_ch & 0xC0) == 0x80) { /* 640x200 G-RAM lower half */
+            if ((reg_ch & 0xC0) == 0x40) { /* 640x200 G-RAM upper half */
                 pc98_gdc[GDC_SLAVE].param_ram[0] = (200*40) & 0xFF;
                 pc98_gdc[GDC_SLAVE].param_ram[1] = (200*40) >> 8;
             }
