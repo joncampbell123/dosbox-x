@@ -2294,6 +2294,15 @@ static Bitu INT18_PC98_Handler(void) {
         case 0x41: /* Stop displaying the graphics screen (グラフィック画面の表示終了) */
             pc98_gdc[GDC_SLAVE].display_enable = false;
             break;
+        case 0x42: /* Display area setup (表示領域の設定) */
+            /* TODO: Something in CH has meaning. */
+            /* reset scroll area of graphics */
+            pc98_gdc[GDC_SLAVE].param_ram[0] = 0;
+            pc98_gdc[GDC_SLAVE].param_ram[1] = 0;
+            pc98_gdc[GDC_SLAVE].param_ram[2] = 0xF0;
+            pc98_gdc[GDC_SLAVE].param_ram[3] = 0x3F;
+            pc98_gdc[GDC_SLAVE].active_display_words_per_line = 40; /* 40 x 16 = 640 pixel wide graphics */
+            break;
         default:
             LOG_MSG("PC-98 INT 18h unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
                 reg_ax,
