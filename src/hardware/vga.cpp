@@ -1375,6 +1375,9 @@ void VGA_OnEnterPC98(Section *sec) {
     vga.crtc.horizontal_total = 106 - 5;
     vga.crtc.vertical_total = (440 - 2) & 0xFF;
     vga.crtc.end_vertical_blanking = (440 - 2 - 8) & 0xFF; // FIXME
+    vga.crtc.vertical_retrace_start = (440 - 2 - 30) & 0xFF; // FIXME
+    vga.crtc.vertical_retrace_end = (440 - 2 - 28) & 0xFF; // FIXME
+    vga.crtc.start_vertical_blanking = (400 + 8) & 0xFF; // FIXME
     vga.crtc.overflow |=  0x01;
     vga.crtc.overflow &= ~0x20;
 
