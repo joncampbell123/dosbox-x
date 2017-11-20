@@ -1285,19 +1285,27 @@ void VGA_SetBlinking(Bitu enabled) {
 	for (Bitu i=0;i<8;i++) TXT_BG_Table[i+8]=(b+i) | ((b+i) << 8)| ((b+i) <<16) | ((b+i) << 24);
 }
 
+extern bool                        GDC_vsync_interrupt;
+
 static void VGA_VertInterrupt(Bitu /*val*/) {
-	if ((!vga.draw.vret_triggered) && ((vga.crtc.vertical_retrace_end&0x30)==0x10)) {
-		vga.draw.vret_triggered=true;
-		if (GCC_UNLIKELY(machine==MCH_EGA)) PIC_ActivateIRQ(9);
-	}
+    if (IS_PC98_ARCH) {
+        if (GDC_vsync_interrupt) {
+            GDC_vsync_interrupt = false;
+            PIC_ActivateIRQ(2);
+        }
+    }
+    else {
+        if ((!vga.draw.vret_triggered) && ((vga.crtc.vertical_retrace_end&0x30)==0x10)) {
+            vga.draw.vret_triggered=true;
+            if (GCC_UNLIKELY(machine==MCH_EGA)) PIC_ActivateIRQ(9);
+        }
+    }
 }
 
 static void VGA_Other_VertInterrupt(Bitu val) {
 	if (val) PIC_ActivateIRQ(5);
 	else PIC_DeActivateIRQ(5);
 }
-
-extern bool                        GDC_vsync_interrupt;
 
 static void VGA_DisplayStartLatch(Bitu /*val*/) {
 	/* hretrace fx support: store the hretrace value at start of picture so we have
@@ -1306,14 +1314,6 @@ static void VGA_DisplayStartLatch(Bitu /*val*/) {
 	vga_display_start_hretrace = vga.crtc.start_horizontal_retrace;
 	vga.config.real_start=vga.config.display_start & (vga.vmemwrap-1);
 	vga.draw.bytes_skip = vga.config.bytes_skip;
-
-    /* PC-98: If port 0x64 was written, fire IRQ 2 at vertical retrace */
-    if (IS_PC98_ARCH) {
-        if (GDC_vsync_interrupt) {
-            GDC_vsync_interrupt = false;
-            PIC_ActivateIRQ(2);
-        }
-    }
 }
  
 static void VGA_PanningLatch(Bitu /*val*/) {
