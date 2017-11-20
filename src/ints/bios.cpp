@@ -2302,6 +2302,19 @@ static Bitu INT18_PC98_Handler(void) {
             pc98_gdc[GDC_SLAVE].param_ram[2] = 0xF0;
             pc98_gdc[GDC_SLAVE].param_ram[3] = 0x3F;
             pc98_gdc[GDC_SLAVE].active_display_words_per_line = 40; /* 40 x 16 = 640 pixel wide graphics */
+
+            // FIXME: This is a guess. I have no idea as to actual behavior, yet.
+            //        This seems to help with clearing the text layer when games start the graphics.
+            //        This is ALSO how we will detect games that switch on the 200-line double-scan mode vs 400-line mode.
+            if ((reg_ch & 0xC0) != 0) {
+                memset(vga.mem.linear,0,0x40000); // text + graphics
+                pc98_gdc[GDC_MASTER].cursor_enable = false;
+            }
+            else {
+                pc98_gdc[GDC_MASTER].cursor_enable = true;
+            }
+
+            LOG_MSG("PC-98 INT 18 AH=42h CH=0x%02X",reg_ch);
             break;
         default:
             LOG_MSG("PC-98 INT 18h unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
