@@ -1148,13 +1148,18 @@ uint8_t PC98_GDC_state::read_status(void) {
 
     ret  = 0x80; // light pen
 
-    if (timeInLine >= vga.draw.delay.hblkstart && 
-        timeInLine <= vga.draw.delay.hblkend)
-        ret |= 0x40; // horizontal blanking
+	if (timeInFrame >= vga.draw.delay.vdend) {
+        ret |= 0x40; // vertical blanking
+    }
+    else {
+        if (timeInLine >= vga.draw.delay.hblkstart && 
+            timeInLine <= vga.draw.delay.hblkend)
+            ret |= 0x40; // horizontal blanking
+    }
 
     if (timeInFrame >= vga.draw.delay.vrstart &&
-        timeInFrame <  vga.draw.delay.vrend)
-        ret |= 0x20; // vertical retrace sync
+        timeInFrame <= vga.draw.delay.vrend)
+        ret |= 0x20; // vertical retrace
 
     // TODO: 0x10 bit 4 DMA execute
 
