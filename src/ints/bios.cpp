@@ -2274,12 +2274,7 @@ static Bitu INT18_PC98_Handler(void) {
             /* TODO */
             break;
         case 0x04: /* Sense of key input state (キー入力状態のセンス) */
-            reg_ah = 0x00; /* TODO */
-            /* As far as I can tell from Neko Project II, this reads from a part of the BIOS data area
-             * that holds a bitmap that represents which keys are down at this moment. It returns the
-             * whole 8-bit byte, so it's up to the program to pick off the bit of interest.
-             *
-             * From xnp2: CPU_AH = mem[MEMX_KB_KY_STS + (CPU_AL & 0x0F)]; */
+            reg_ah = mem_readb(0x52A + (reg_al & 0x0F));
             break;
         case 0x05: /* Key input sense (キー入力センス) */
             /* This appears to return a key from the buffer (and remove from
