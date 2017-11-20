@@ -711,6 +711,7 @@ PC98_GDC_state::PC98_GDC_state() {
     param_ram[2] = 0xF0;        // LEN=3FF
     param_ram[3] = 0x3F;        // LEN=3FF WD1=0
 
+    doublescan = false;
     param_ram_wptr = 0;
     display_partition = 0;
     row_line = 0;

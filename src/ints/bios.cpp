@@ -2297,11 +2297,24 @@ static Bitu INT18_PC98_Handler(void) {
         case 0x42: /* Display area setup (表示領域の設定) */
             /* TODO: Something in CH has meaning. */
             /* reset scroll area of graphics */
-            pc98_gdc[GDC_SLAVE].param_ram[0] = 0;
-            pc98_gdc[GDC_SLAVE].param_ram[1] = 0;
+            if ((reg_ch & 0xC0) == 0x80) { /* 640x200 G-RAM lower half */
+                pc98_gdc[GDC_SLAVE].param_ram[0] = (200*40) & 0xFF;
+                pc98_gdc[GDC_SLAVE].param_ram[1] = (200*40) >> 8;
+            }
+            else {
+                pc98_gdc[GDC_SLAVE].param_ram[0] = 0;
+                pc98_gdc[GDC_SLAVE].param_ram[1] = 0;
+            }
             pc98_gdc[GDC_SLAVE].param_ram[2] = 0xF0;
             pc98_gdc[GDC_SLAVE].param_ram[3] = 0x3F;
             pc98_gdc[GDC_SLAVE].active_display_words_per_line = 40; /* 40 x 16 = 640 pixel wide graphics */
+
+            // CH
+            //   [7:6] = G-RAM setup
+            //           00 = no graphics (?)
+            //           01 = 640x200 upper half
+            //           10 = 640x200 lower half
+            //           11 = 640x400
 
             // FIXME: This is a guess. I have no idea as to actual behavior, yet.
             //        This seems to help with clearing the text layer when games start the graphics.
@@ -2309,9 +2322,13 @@ static Bitu INT18_PC98_Handler(void) {
             if ((reg_ch & 0xC0) != 0) {
                 memset(vga.mem.linear,0,0x40000); // text + graphics
                 pc98_gdc[GDC_MASTER].cursor_enable = false;
+                pc98_gdc[GDC_SLAVE].doublescan = ((reg_ch & 0xC0) == 0x40) || ((reg_ch & 0xC0) == 0x80);
+                pc98_gdc[GDC_SLAVE].row_height = pc98_gdc[GDC_SLAVE].doublescan ? 2 : 1;
             }
             else {
                 pc98_gdc[GDC_MASTER].cursor_enable = true;
+                pc98_gdc[GDC_SLAVE].doublescan = false;
+                pc98_gdc[GDC_SLAVE].row_height = 1;
             }
 
             LOG_MSG("PC-98 INT 18 AH=42h CH=0x%02X",reg_ch);

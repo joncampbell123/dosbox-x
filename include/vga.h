@@ -118,6 +118,8 @@ struct PC98_GDC_state {
     bool                    cursor_enable;
     bool                    cursor_blink;
     bool                    idle;
+
+    bool                    doublescan;                 /* 200-line as 400-line */
 };
 
 union pc98_tile {
