@@ -1661,7 +1661,7 @@ static void pc98_8255_write(Bitu port,Bitu val,Bitu /*iolen*/) {
             PCSPEAKER_SetType(!!port_61_data,!!port_61_data);
             break;
         case 0x37:
-            LOG_MSG("PC-98 8255 FIXME: Control register not supported yet");
+            LOG_MSG("PC-98 8255 FIXME: Control register not supported yet (val=0x%02x)",val);
             break;
     };
 }

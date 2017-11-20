@@ -1146,7 +1146,7 @@ uint8_t PC98_GDC_state::read_status(void) {
     double timeInLine=fmod(timeInFrame,vga.draw.delay.htotal);
     uint8_t ret;
 
-    ret  = 0x80; // light pen
+    ret  = 0x00; // light pen not present
 
 	if (timeInFrame >= vga.draw.delay.vdend) {
         ret |= 0x40; // vertical blanking

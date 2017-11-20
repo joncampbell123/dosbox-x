@@ -2233,6 +2233,8 @@ static Bitu INT1A_Handler(void) {
 bool INT16_get_key(Bit16u &code);
 bool INT16_peek_key(Bit16u &code);
 
+unsigned char prev_pc98_mode42 = 0;
+
 static Bitu INT18_PC98_Handler(void) {
     Bit16u temp16;
 
@@ -2320,7 +2322,6 @@ static Bitu INT18_PC98_Handler(void) {
             //        This seems to help with clearing the text layer when games start the graphics.
             //        This is ALSO how we will detect games that switch on the 200-line double-scan mode vs 400-line mode.
             if ((reg_ch & 0xC0) != 0) {
-                memset(vga.mem.linear,0,0x40000); // text + graphics
                 pc98_gdc[GDC_MASTER].cursor_enable = false;
                 pc98_gdc[GDC_SLAVE].doublescan = ((reg_ch & 0xC0) == 0x40) || ((reg_ch & 0xC0) == 0x80);
                 pc98_gdc[GDC_SLAVE].row_height = pc98_gdc[GDC_SLAVE].doublescan ? 2 : 1;
@@ -2330,6 +2331,28 @@ static Bitu INT18_PC98_Handler(void) {
                 pc98_gdc[GDC_SLAVE].doublescan = false;
                 pc98_gdc[GDC_SLAVE].row_height = 1;
             }
+
+            // clear on mode change
+            if (((reg_ch ^ prev_pc98_mode42) & 0xC0) != 0x00) {
+                // but not if merely switching between 640x200 halves
+                if (((reg_ch - 0x40) & 0x80) == 0) { // if 01 or 10 (becomes 00 or 01) 640x200
+                    if (((reg_ch ^ prev_pc98_mode42) & 0xC0) == 0xC0) { // 01 to 10   or 10 to 01  either case (prev ^ cur) == 11
+                        // do nothing
+                    }
+                    else {
+                        memset(vga.mem.linear+0x8000,0,0x20000); // text + graphics
+                    }
+                }
+                else {
+                    memset(vga.mem.linear+0x8000,0,0x20000); // text + graphics
+                }
+            }
+
+            // graphics selection clears text??
+            if ((reg_ch & 0xC0) != 0x00)
+                memset(vga.mem.linear,0,0x8000);
+
+            prev_pc98_mode42 = reg_ch;
 
             LOG_MSG("PC-98 INT 18 AH=42h CH=0x%02X",reg_ch);
             break;
