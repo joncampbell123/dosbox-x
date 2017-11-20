@@ -771,12 +771,12 @@ public:
 
         switch (addr>>13) {
             case 0:     /* A0000-A1FFF Character RAM */
-                break;
+                return vga.mem.linear[addr];
             case 1:     /* A2000-A3FFF Attribute RAM */
                 if (addr & 1) return ~0; /* ignore odd bytes */
-                break;
+                return vga.mem.linear[addr];
             case 2:     /* A4000-A5FFF Unknown ?? */
-                break;
+                return vga.mem.linear[addr];
             case 3:     /* A6000-A7FFF Not present */
                 return ~0;
             default:    /* A8000-BFFFF G-RAM */
@@ -858,12 +858,15 @@ public:
 
         switch (addr>>13) {
             case 0:     /* A0000-A1FFF Character RAM */
-                break;
+                vga.mem.linear[addr] = val;
+                return;
             case 1:     /* A2000-A3FFF Attribute RAM */
-                if (addr & 1) return; /* ignore odd bytes */
-                break;
+                if (!(addr & 1)) /* ignore odd bytes */
+                    vga.mem.linear[addr] = val;
+                return;
             case 2:     /* A4000-A5FFF Unknown ?? */
-                break;
+                vga.mem.linear[addr] = val;
+                return;
             case 3:     /* A6000-A7FFF Not present */
                 return;
             default:    /* A8000-BFFFF G-RAM */
