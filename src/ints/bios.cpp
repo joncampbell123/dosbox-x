@@ -2289,7 +2289,15 @@ static Bitu INT18_PC98_Handler(void) {
             break;
         /* From this point on the INT 18h call list appears to wander off from the keyboard into CRT/GDC/display management. */
         default:
-            LOG_MSG("PC-98 INT 18h AH=0x%02X TODO unknown call",reg_ah);
+            LOG_MSG("PC-98 INT 18h unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+                reg_ax,
+                reg_bx,
+                reg_cx,
+                reg_dx,
+                reg_si,
+                reg_di,
+                SegValue(ds),
+                SegValue(es));
             break;
     };
 
@@ -2298,7 +2306,16 @@ static Bitu INT18_PC98_Handler(void) {
 }
 
 static Bitu INT19_PC98_Handler(void) {
-    LOG_MSG("PC-98 INT 19h not implemented AX=0x%04x",reg_ax);
+    LOG_MSG("PC-98 INT 19h unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+        reg_ax,
+        reg_bx,
+        reg_cx,
+        reg_dx,
+        reg_si,
+        reg_di,
+        SegValue(ds),
+        SegValue(es));
+
     return CBRET_NONE;
 }
 
@@ -2310,32 +2327,86 @@ static Bitu INT1A_PC98_Handler(void) {
         reg_ax = 0;
     }
 
-    LOG_MSG("PC-98 INT 1Ah not implemented AX=0x%04x",reg_ax);
+    LOG_MSG("PC-98 INT 1Ah unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+        reg_ax,
+        reg_bx,
+        reg_cx,
+        reg_dx,
+        reg_si,
+        reg_di,
+        SegValue(ds),
+        SegValue(es));
+
     return CBRET_NONE;
 }
 
 static Bitu INT1B_PC98_Handler(void) {
-    LOG_MSG("PC-98 INT 1Bh not implemented AX=0x%04x",reg_ax);
+    LOG_MSG("PC-98 INT 1Bh unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+        reg_ax,
+        reg_bx,
+        reg_cx,
+        reg_dx,
+        reg_si,
+        reg_di,
+        SegValue(ds),
+        SegValue(es));
+
     return CBRET_NONE;
 }
 
 static Bitu INT1C_PC98_Handler(void) {
-    LOG_MSG("PC-98 INT 1Ch not implemented AX=0x%04x",reg_ax);
+    LOG_MSG("PC-98 INT 1Ch unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+        reg_ax,
+        reg_bx,
+        reg_cx,
+        reg_dx,
+        reg_si,
+        reg_di,
+        SegValue(ds),
+        SegValue(es));
+
     return CBRET_NONE;
 }
 
 static Bitu INT1D_PC98_Handler(void) {
-    LOG_MSG("PC-98 INT 1Dh not implemented AX=0x%04x",reg_ax);
+    LOG_MSG("PC-98 INT 1Dh unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+        reg_ax,
+        reg_bx,
+        reg_cx,
+        reg_dx,
+        reg_si,
+        reg_di,
+        SegValue(ds),
+        SegValue(es));
+
     return CBRET_NONE;
 }
 
 static Bitu INT1E_PC98_Handler(void) {
-    LOG_MSG("PC-98 INT 1Eh not implemented AX=0x%04x",reg_ax);
+    LOG_MSG("PC-98 INT 1Eh unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+        reg_ax,
+        reg_bx,
+        reg_cx,
+        reg_dx,
+        reg_si,
+        reg_di,
+        SegValue(ds),
+        SegValue(es));
+
     return CBRET_NONE;
 }
 
 static Bitu INT1F_PC98_Handler(void) {
-    LOG_MSG("PC-98 INT 1Fh not implemented AX=0x%04x",reg_ax);
+    LOG_MSG("PC-98 INT 1Fh unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+        reg_ax,
+        reg_bx,
+        reg_cx,
+        reg_dx,
+        reg_si,
+        reg_di,
+        SegValue(ds),
+        SegValue(es));
+
     return CBRET_NONE;
 }
 
