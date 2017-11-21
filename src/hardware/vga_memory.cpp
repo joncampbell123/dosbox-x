@@ -776,8 +776,8 @@ public:
 
         b = *((AWT*)(vga.mem.linear + vramoff));
         r = b ^ *((AWT*)pc98_gdc_tiles[plane].b);
-        for (size_t i=0;i < sizeof(pc98_gdc_tiles[plane].b);i++)
-            pc98_gdc_tiles[plane].b[i] = b >> ((i & (sizeof(AWT) - 1)) * 8U);
+        for (size_t i=0;i < sizeof(pc98_gdc_tiles[plane].b);i += sizeof(AWT))
+            *((AWT*)(pc98_gdc_tiles[plane].b+i)) = b;
 
         return r;
     }
