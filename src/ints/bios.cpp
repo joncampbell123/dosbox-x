@@ -2295,14 +2295,19 @@ static Bitu INT18_PC98_Handler(void) {
 
                 /* DX = code (must be 0x76xx or 0x7700)
                  * BX:CX = 34-byte region to read from */
-                i = (reg_bx << 4) + reg_cx + 2;
-                for (r=0;r < 16;r++) {
-                    o = (((((reg_dl)*128)+((reg_dh - 0x20) & 0x7F))*16)+r)*2;
+                if ((reg_dh & 0x7E) == 0x76) {
+                    i = (reg_bx << 4) + reg_cx + 2;
+                    for (r=0;r < 16;r++) {
+                        o = (((((reg_dl)*128)+((reg_dh - 0x20) & 0x7F))*16)+r)*2;
 
-                    assert((o+2) <= sizeof(vga.draw.font));
+                        assert((o+2) <= sizeof(vga.draw.font));
 
-                    vga.draw.font[o+0] = mem_readb(i+(r*2)+0);
-                    vga.draw.font[o+1] = mem_readb(i+(r*2)+1);
+                        vga.draw.font[o+0] = mem_readb(i+(r*2)+0);
+                        vga.draw.font[o+1] = mem_readb(i+(r*2)+1);
+                    }
+                }
+                else {
+                    LOG_MSG("PC-98 INT 18h AH=1Ah font RAM load ignored, code 0x%04x out of range",reg_dx);
                 }
             }
             break;
