@@ -763,7 +763,7 @@ public:
         /* DEBUG: address must be aligned to datatype.
          *        Code that calls us must enforce that or subdivide
          *        to a small datatype that can follow this rule. */
-        PhysPt chk = ((1UL << (sizeof(AWT) / (size_t)8U)) - 1);
+        PhysPt chk = (1UL << (sizeof(AWT) - 1)) - 1;
         /* uint8_t:  chk = 0
          * uint16_t: chk = 1
          * TODO: Do you suppose later generation PC-9821's supported DWORD size bitplane transfers?
@@ -859,7 +859,9 @@ public:
                     if (!(pc98_gdc_modereg & 8)) // extended channel
                         r |= mode8_r<AWT>(/*plane*/3,addr + 0x20000 + vop_offset);
 
-                    return (r ^ 0xFF);
+                    /* NTS: Apparently returning this value correctly really matters to the
+                     *      sprite engine in "Edge", else visual errors occur. */
+                    return ~r;
                 }
             case 0x0C:
             case 0x0D:
