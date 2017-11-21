@@ -1242,6 +1242,23 @@ Bitu pc98_crtc_read(Bitu port,Bitu iolen) {
 uint16_t a1_font_load_addr = 0;
 uint8_t a1_font_char_offset = 0;
 
+Bitu pc98_a1_read(Bitu port,Bitu iolen) {
+    switch (port) {
+        case 0xA9: // an 8-bit I/O port to access font RAM by...
+            {
+                unsigned int o = a1_font_load_addr * 16 * 2;
+                o += (a1_font_char_offset & 0xF) * 2; // translate their terms into ours
+                o += (a1_font_char_offset & 0x20) ? 0 : 1;
+                return vga.draw.font_tables[0][o];
+            }
+            break;
+        default:
+            break;
+    };
+
+    return ~0;
+}
+
 /* unknown font RAM loading system (combined with A4000-A4FFF) */
 void pc98_a1_write(Bitu port,Bitu val,Bitu iolen) {
     switch (port) {
@@ -1477,6 +1494,8 @@ void VGA_OnEnterPC98_phase2(Section *sec) {
     for (unsigned int i=0xA1;i <= 0xA9;i += 2) {
         IO_RegisterWriteHandler(i,pc98_a1_write,IO_MB);
     }
+    /* Touhou Project appears to read font RAM as well */
+    IO_RegisterReadHandler(0xA9,pc98_a1_read,IO_MB);
 
     /* CRTC at 0x70-0x7F (even) */
     for (unsigned int j=0x70;j < 0x80;j += 2) {
