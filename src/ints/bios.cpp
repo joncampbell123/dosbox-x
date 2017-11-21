@@ -2289,6 +2289,23 @@ static Bitu INT18_PC98_Handler(void) {
                 reg_bh = 0;
             }
             break;
+        case 0x1A: /* load FONT RAM */
+            {
+                unsigned int i,o,r;
+
+                /* DX = code (must be 0x76xx or 0x7700)
+                 * BX:CX = 34-byte region to read from */
+                i = (reg_bx << 4) + reg_cx + 2;
+                for (r=0;r < 16;r++) {
+                    o = (((((reg_dl)*128)+((reg_dh - 0x20) & 0x7F))*16)+r)*2;
+
+                    assert((o+2) <= sizeof(vga.draw.font));
+
+                    vga.draw.font[o+0] = mem_readb(i+(r*2)+0);
+                    vga.draw.font[o+1] = mem_readb(i+(r*2)+1);
+                }
+            }
+            break;
         /* From this point on the INT 18h call list appears to wander off from the keyboard into CRT/GDC/display management. */
         case 0x40: /* Start displaying the graphics screen (グラフィック画面の表示開始) */
             pc98_gdc[GDC_SLAVE].display_enable = true;
