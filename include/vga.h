@@ -48,6 +48,7 @@ struct PC98_GDC_state {
     uint8_t rfifo_read_data(void);
     void idle_proc(void);
 
+    void force_fifo_complete(void);
     void take_cursor_char_setup(unsigned char bi);
     void take_cursor_pos(unsigned char bi);
     void take_reset_sync_parameters(void);

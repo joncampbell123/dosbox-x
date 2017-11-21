@@ -2329,13 +2329,16 @@ static Bitu INT18_PC98_Handler(void) {
             break;
         /* From this point on the INT 18h call list appears to wander off from the keyboard into CRT/GDC/display management. */
         case 0x40: /* Start displaying the graphics screen (グラフィック画面の表示開始) */
+            pc98_gdc[GDC_SLAVE].force_fifo_complete();
             pc98_gdc[GDC_SLAVE].display_enable = true;
             break;
         case 0x41: /* Stop displaying the graphics screen (グラフィック画面の表示終了) */
+            pc98_gdc[GDC_SLAVE].force_fifo_complete();
             pc98_gdc[GDC_SLAVE].display_enable = false;
             break;
         case 0x42: /* Display area setup (表示領域の設定) */
-            /* TODO: Something in CH has meaning. */
+            pc98_gdc[GDC_MASTER].force_fifo_complete();
+            pc98_gdc[GDC_SLAVE].force_fifo_complete();
             /* reset scroll area of graphics */
             if ((reg_ch & 0xC0) == 0x40) { /* 640x200 G-RAM upper half */
                 pc98_gdc[GDC_SLAVE].param_ram[0] = (200*40) & 0xFF;

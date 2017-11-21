@@ -1085,6 +1085,11 @@ void PC98_GDC_state::load_display_partition(void) {
     }
 }
 
+void PC98_GDC_state::force_fifo_complete(void) {
+    while (!fifo_empty())
+        idle_proc();
+}
+
 void PC98_GDC_state::next_display_partition(void) {
     if ((++display_partition) == 4)
         display_partition = 0;
