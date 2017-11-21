@@ -2314,7 +2314,7 @@ static Bitu INT18_PC98_Handler(void) {
                 if ((reg_dh & 0x7E) == 0x76) {
                     i = (reg_bx << 4) + reg_cx + 2;
                     for (r=0;r < 16;r++) {
-                        o = (((((reg_dl)*128)+((reg_dh - 0x20) & 0x7F))*16)+r)*2;
+                        o = (((((reg_dl & 0x7F)*128)+((reg_dh - 0x20) & 0x7F))*16)+r)*2;
 
                         assert((o+2) <= sizeof(vga.draw.font));
 
