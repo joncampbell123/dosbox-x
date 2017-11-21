@@ -1239,6 +1239,40 @@ Bitu pc98_crtc_read(Bitu port,Bitu iolen) {
     return ~0;
 }
 
+uint16_t a1_font_load_addr = 0;
+uint8_t a1_font_char_offset = 0;
+
+/* unknown font RAM loading system (combined with A4000-A4FFF) */
+void pc98_a1_write(Bitu port,Bitu val,Bitu iolen) {
+    switch (port) {
+        case 0xA1:
+            a1_font_load_addr &= 0x007F;
+            a1_font_load_addr |= (val & 0x7F) << 7;
+            break;
+        case 0xA3:
+            a1_font_load_addr &= 0xFF80;
+            a1_font_load_addr |= (val & 0x7F);
+            break;
+        case 0xA5:
+            a1_font_char_offset = val; // or at least, writing 0x00 is common...
+            break;
+        case 0xA9: // an 8-bit I/O port to access font RAM by...
+                   // this is what Touhou Project uses to load fonts.
+                   // never mind decompiling INT 18h on real hardware shows instead
+                   // a similar sequence with REP MOVSW to A400:0000...
+            {
+                unsigned int o = a1_font_load_addr * 16 * 2;
+                o += (a1_font_char_offset & 0xF) * 2; // translate their terms into ours
+                o += (a1_font_char_offset & 0x20) ? 0 : 1;
+                vga.draw.font_tables[0][o] = val;
+            }
+            break;
+        default:
+            LOG_MSG("A1 port %lx val %lx unexpected",port,val);
+            break;
+    };
+}
+
 void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
     PC98_GDC_state *gdc;
 
@@ -1429,6 +1463,19 @@ void VGA_OnEnterPC98_phase2(Section *sec) {
             IO_RegisterWriteHandler(i+j,pc98_gdc_write,IO_MB);
             IO_RegisterReadHandler(i+j,pc98_gdc_read,IO_MB);
         }
+    }
+
+    /* There are some font character RAM controls at 0xA1-0xA5 (odd)
+     * combined with A4000-A4FFF. Found by unknown I/O tracing in DOSBox-X
+     * and by tracing INT 18h AH=1Ah on an actual system using DEBUG.COM.
+     *
+     * If I find documentation on what exactly these ports are, I will
+     * list them as such.
+     *
+     * Some games (Touhou Project) load font RAM directly through these
+     * ports instead of using the BIOS. */
+    for (unsigned int i=0xA1;i <= 0xA9;i += 2) {
+        IO_RegisterWriteHandler(i,pc98_a1_write,IO_MB);
     }
 
     /* CRTC at 0x70-0x7F (even) */
