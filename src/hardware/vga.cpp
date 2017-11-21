@@ -1240,15 +1240,21 @@ Bitu pc98_crtc_read(Bitu port,Bitu iolen) {
 }
 
 uint16_t a1_font_load_addr = 0;
+uint8_t a1_font_load_addr8 = 0;
 uint8_t a1_font_char_offset = 0;
 
 Bitu pc98_a1_read(Bitu port,Bitu iolen) {
     switch (port) {
         case 0xA9: // an 8-bit I/O port to access font RAM by...
-            {
+            if (a1_font_load_addr & 0xFF80) {
                 unsigned int o = a1_font_load_addr * 16 * 2;
                 o += (a1_font_char_offset & 0xF) * 2; // translate their terms into ours
                 o += (a1_font_char_offset & 0x20) ? 0 : 1;
+                return vga.draw.font_tables[0][o];
+            }
+            else { // single wide char (HACK for DGA.EXE)
+                unsigned int o = a1_font_load_addr8 * 16;
+                o += (a1_font_char_offset & 0xF);
                 return vga.draw.font_tables[0][o];
             }
             break;
@@ -1269,6 +1275,7 @@ void pc98_a1_write(Bitu port,Bitu val,Bitu iolen) {
         case 0xA3:
             a1_font_load_addr &= 0xFF80;
             a1_font_load_addr |= (val & 0x7F);
+            a1_font_load_addr8 = val;
             break;
         case 0xA5:
             a1_font_char_offset = val; // or at least, writing 0x00 is common...
@@ -1277,10 +1284,15 @@ void pc98_a1_write(Bitu port,Bitu val,Bitu iolen) {
                    // this is what Touhou Project uses to load fonts.
                    // never mind decompiling INT 18h on real hardware shows instead
                    // a similar sequence with REP MOVSW to A400:0000...
-            {
+            if (a1_font_load_addr & 0xFF80) {
                 unsigned int o = a1_font_load_addr * 16 * 2;
                 o += (a1_font_char_offset & 0xF) * 2; // translate their terms into ours
                 o += (a1_font_char_offset & 0x20) ? 0 : 1;
+                vga.draw.font_tables[0][o] = val;
+            }
+            else { // single wide char (HACK for DGA.EXE)
+                unsigned int o = a1_font_load_addr8 * 16;
+                o += (a1_font_char_offset & 0xF);
                 vga.draw.font_tables[0][o] = val;
             }
             break;
