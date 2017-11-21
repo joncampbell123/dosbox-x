@@ -2289,6 +2289,22 @@ static Bitu INT18_PC98_Handler(void) {
                 reg_bh = 0;
             }
             break;
+        case 0x16: /* fill screen with chr + attr */
+            {
+                /* DL = character
+                 * DH = attribute */
+                unsigned int i;
+
+                for (i=0;i < 0x2000;i += 2) {
+                    vga.mem.linear[i+0] = reg_dl;
+                    vga.mem.linear[i+1] = 0x00;
+                }
+                for (   ;i < 0x3FE0;i += 2) {
+                    vga.mem.linear[i+0] = reg_dh;
+                    vga.mem.linear[i+1] = 0x00;
+                }
+            }
+            break;
         case 0x1A: /* load FONT RAM */
             {
                 unsigned int i,o,r;
