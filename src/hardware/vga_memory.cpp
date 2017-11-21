@@ -759,7 +759,7 @@ public:
 class VGA_PC98_PageHandler : public PageHandler {
 public:
 	VGA_PC98_PageHandler() : PageHandler(PFLAG_NOCODE) {}
-	Bitu readb(PhysPt addr) {
+	template <class AWT> AWT readc(PhysPt addr) {
         unsigned int vop_offset = 0;
 
 		addr = PAGING_GetPhysicalAddress(addr);
@@ -846,7 +846,7 @@ public:
 
 		return ~0;
 	}
-	void writeb(PhysPt addr,Bitu val){
+	template <class AWT> void writec(PhysPt addr,AWT val){
         unsigned int vop_offset = 0;
 
 		addr = PAGING_GetPhysicalAddress(addr);
@@ -940,6 +940,13 @@ public:
                 break;
         };
 	}
+
+	Bitu readb(PhysPt addr) {
+        return readc<uint8_t>(addr);
+    }
+	void writeb(PhysPt addr,Bitu val) {
+        writec<uint8_t>(addr,(uint8_t)val);
+    }
 };
 
 class VGA_TEXT_PageHandler : public PageHandler {
