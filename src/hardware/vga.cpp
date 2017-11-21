@@ -1086,16 +1086,8 @@ void PC98_GDC_state::load_display_partition(void) {
 }
 
 void PC98_GDC_state::next_display_partition(void) {
-    if (master_sync) { // FIXME: Based on TEXT, not whether we are master
-        /* character mode: 4 partitions defined */
-        if ((++display_partition) == 4)
-            display_partition = 0;
-    }
-    else { // FIXME: Based on GRAPHICS, not whether we are slave
-        /* graphics mode: 2 partitions defined */
-        if ((++display_partition) == 2)
-            display_partition = 0;
-    }
+    if ((++display_partition) == 4)
+        display_partition = 0;
 }
 
 void PC98_GDC_state::reset_fifo(void) {
