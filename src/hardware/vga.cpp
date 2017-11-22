@@ -1240,9 +1240,23 @@ Bitu pc98_crtc_read(Bitu port,Bitu iolen) {
     return ~0;
 }
 
+bool pc98_graphics_hide_odd_raster_200line = false;
+
 /* Character Generator (CG) font access state */
 uint16_t a1_font_load_addr = 0;
 uint8_t a1_font_char_offset = 0;
+
+/* Port 0x68 command handling */
+void pc98_port68_command_write(unsigned char b) {
+    switch (b) {
+        case 0x08: // 200-line mode: show odd raster
+        case 0x09: //                don't show odd raster
+            pc98_graphics_hide_odd_raster_200line = !!(b&1);
+            break;
+        default:
+            LOG_MSG("PC-98 port 68h unknown command 0x%02x",b);
+    };
+}
 
 /* Character Generator ports.
  * This is in fact officially documented by NEC in
@@ -1334,12 +1348,12 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
         case 0x08:      /* 0xA8: One of two meanings, depending on 8 or 16/256--color mode */
                         /*         8-color: 0xA8-0xAB are 8 4-bit packed fields remapping the 3-bit GRB colors. This defines colors #3 [7:4] and #7 [3:0]
                          *         16-color: GRB color palette index */
-                        /* 0x68: ?? */
+                        /* 0x68: A command */
                         /* NTS: Sadly, "undocumented PC-98" reference does not mention the analog 16-color palette. */
             if (port == 0xA8) /* TODO: If 8-color mode.... else if 16-color mode... */
                 pc98_16col_analog_rgb_palette_index = val; /* it takes all 8 bits I assume because of 256-color mode */
             else
-                goto unknown;
+                pc98_port68_command_write(val);
             break;
         case 0x0A:      /* 0xAA:
                            8-color: Defines color #1 [7:4] and color #5 [3:0] (FIXME: Or is it 2 and 6, by undocumented PC-98???)
@@ -1447,6 +1461,10 @@ void VGA_OnEnterPC98(Section *sec) {
     pc98_gdc[GDC_SLAVE].display_enable = false;//FIXME
     pc98_gdc[GDC_SLAVE].row_height = 1;
     pc98_gdc[GDC_SLAVE].active_display_words_per_line = 40; /* 40 16-bit WORDs per line */
+
+    /* 200-line tradition on PC-98 seems to be to render only every other scanline */
+    /* TODO: Allow user to override this bit if the "raster" effect is undesired */
+    pc98_graphics_hide_odd_raster_200line = true;
 
     // as a transition to PC-98 GDC emulation, move VGA alphanumeric buffer
     // down to A0000-AFFFFh.

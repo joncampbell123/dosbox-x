@@ -875,6 +875,7 @@ static Bit8u* VGA_TEXT_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 }
 
 extern uint8_t GDC_display_plane;
+extern bool pc98_graphics_hide_odd_raster_200line;
 
 static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 	// keep it aligned:
@@ -885,11 +886,16 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     Bit16u lineoverlay = 0; // vertical + underline overlay over the character cell, but apparently with a 4-pixel delay
     bool doublewide = false;
     unsigned char font,foreground;
+    bool ok_raster = true;
+
+    // 200-line modes: The BIOS or DOS game can elect to hide odd raster lines
+    if (pc98_gdc[GDC_SLAVE].doublescan && pc98_graphics_hide_odd_raster_200line)
+        ok_raster = (vga.draw.lines_done & 1) == 0;
 
     // Graphic RAM layer (or blank)
     // Think of it as a 3-plane GRB color graphics mode, each plane is 1 bit per pixel.
     // G-RAM is addressed 16 bits per RAM cycle.
-    if (pc98_gdc[GDC_SLAVE].display_enable) {
+    if (pc98_gdc[GDC_SLAVE].display_enable && ok_raster) {
         unsigned int disp_base;
         Bit8u g8,r8,b8,e8;
 
