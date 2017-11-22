@@ -1239,9 +1239,13 @@ Bitu pc98_crtc_read(Bitu port,Bitu iolen) {
     return ~0;
 }
 
+/* Character Generator (CG) font access state */
 uint16_t a1_font_load_addr = 0;
 uint8_t a1_font_char_offset = 0;
 
+/* Character Generator ports.
+ * This is in fact officially documented by NEC in
+ * a 1986 book published about NEC BIOS and BASIC ROM. */
 Bitu pc98_a1_read(Bitu port,Bitu iolen) {
     switch (port) {
         case 0xA9: // an 8-bit I/O port to access font RAM by...
@@ -1253,9 +1257,12 @@ Bitu pc98_a1_read(Bitu port,Bitu iolen) {
     return ~0;
 }
 
-/* unknown font RAM loading system (combined with A4000-A4FFF) */
+/* Character Generator ports.
+ * This is in fact officially documented by NEC in
+ * a 1986 book published about NEC BIOS and BASIC ROM. */
 void pc98_a1_write(Bitu port,Bitu val,Bitu iolen) {
     switch (port) {
+        /* A3,A1 (out only) two JIS bytes that make up the char code */
         case 0xA1:
             a1_font_load_addr &= 0x00FF;
             a1_font_load_addr |= (val & 0xFF) << 8;
@@ -1265,8 +1272,18 @@ void pc98_a1_write(Bitu port,Bitu val,Bitu iolen) {
             a1_font_load_addr |= (val & 0xFF);
             break;
         case 0xA5:
-            a1_font_char_offset = val; // or at least, writing 0x00 is common...
+            /* From documentation:
+             *
+             *    bit [7:6] = Dont care
+             *    bit [5]   = L/R
+             *    bit [4]   = 0
+             *    bit [3:0] = C3-C0
+             *
+             * This so far is consistent with real hardware behavior */
+            a1_font_char_offset = val;
             break;
+        // TODO: "Edge" is writing 0x00 to port 0xA7 for some reason.
+        //       Anything there?
         case 0xA9: // an 8-bit I/O port to access font RAM by...
                    // this is what Touhou Project uses to load fonts.
                    // never mind decompiling INT 18h on real hardware shows instead
