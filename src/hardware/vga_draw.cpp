@@ -964,8 +964,8 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 
                 // It seems that for any fullwidth char, you need the same code in both cells for bit[6:0] values
                 // from 0x08 to 0x0F inclusive. 0x08 to 0x0B inclusive are not fullwidth, apparently.
-                // Same applies 0x54 to 0x5F.
-                if ((chr&0x78U) == 0x08 || (chr&0x7FU) >= 0x54) {
+                // Same applies 0x58 to 0x5F.
+                if ((chr&0x78U) == 0x08 || (chr&0x7FU) >= 0x58) {
                     chr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x0000U];
                     attr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x1000U];
                 }
