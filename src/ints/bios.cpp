@@ -2381,22 +2381,6 @@ static Bitu INT18_PC98_Handler(void) {
                 pc98_gdc[GDC_SLAVE].row_height = 1;
             }
 
-            // clear on mode change
-            if (((reg_ch ^ prev_pc98_mode42) & 0xC0) != 0x00) {
-                // but not if merely switching between 640x200 halves
-                if (((reg_ch - 0x40) & 0x80) == 0) { // if 01 or 10 (becomes 00 or 01) 640x200
-                    if (((reg_ch ^ prev_pc98_mode42) & 0xC0) == 0xC0) { // 01 to 10   or 10 to 01  either case (prev ^ cur) == 11
-                        // do nothing
-                    }
-                    else {
-                        memset(vga.mem.linear+0x8000,0,0x20000); // text + graphics
-                    }
-                }
-                else {
-                    memset(vga.mem.linear+0x8000,0,0x20000); // text + graphics
-                }
-            }
-
             // graphics selection clears text??
             if ((reg_ch & 0xC0) != 0x00)
                 memset(vga.mem.linear,0,0x8000);
