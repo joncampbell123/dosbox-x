@@ -1300,13 +1300,13 @@ static void VGA_DisplayStartLatch(Bitu /*val*/) {
 	vga_display_start_hretrace = vga.crtc.start_horizontal_retrace;
 	vga.config.real_start=vga.config.display_start & (vga.vmemwrap-1);
 	vga.draw.bytes_skip = vga.config.bytes_skip;
-
-    for (unsigned int i=0;i < 2;i++)
-        pc98_gdc[i].begin_frame();
 }
  
 static void VGA_PanningLatch(Bitu /*val*/) {
 	vga.draw.panning = vga.config.pel_panning;
+
+    for (unsigned int i=0;i < 2;i++)
+        pc98_gdc[i].begin_frame();
 }
 
 static void VGA_VerticalTimer(Bitu /*val*/) {
