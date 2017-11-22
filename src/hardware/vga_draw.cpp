@@ -1300,6 +1300,9 @@ static void VGA_DisplayStartLatch(Bitu /*val*/) {
 	vga_display_start_hretrace = vga.crtc.start_horizontal_retrace;
 	vga.config.real_start=vga.config.display_start & (vga.vmemwrap-1);
 	vga.draw.bytes_skip = vga.config.bytes_skip;
+
+    for (unsigned int i=0;i < 2;i++)
+        pc98_gdc[i].begin_frame();
 }
  
 static void VGA_PanningLatch(Bitu /*val*/) {
@@ -1530,9 +1533,6 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 		vga.draw.byte_panning_shift = 2;
 		vga.draw.address += vga.draw.bytes_skip;
         vga.draw.cursor.address = vga.config.cursor_start;
-
-        for (unsigned int i=0;i < 2;i++)
-            pc98_gdc[i].begin_frame();
         break;
     case M_TEXT:
 		vga.draw.byte_panning_shift = 2;
