@@ -1303,7 +1303,30 @@ void pc98_a1_write(Bitu port,Bitu val,Bitu iolen) {
                    // this is what Touhou Project uses to load fonts.
                    // never mind decompiling INT 18h on real hardware shows instead
                    // a similar sequence with REP MOVSW to A400:0000...
-            pc98_font_char_write(a1_font_load_addr,a1_font_char_offset & 0xF,(a1_font_char_offset & 0x20) ? 0 : 1,val);
+                   //
+                   // there's a restriction noted with INT 18h AH=1Ah where the only
+                   // codes you can overwrite are 0xxx76 and 0xxx77. I'm guessing that
+                   // having 512KB of RAM out there dedicated to nothing but fonts
+                   // is probably not economical to NEC's bottom line, and this
+                   // restriction makes me wonder if the font is held in ROM except
+                   // for this narrow sliver of codes, which map to about 8KB of RAM
+                   // (128*2*16) * 2 = 8192 bytes
+                   //
+                   // I'm also guessing that this RAM is not involved with the single-wide
+                   // character set, which is why writes to 0x0056/0x0057 are redirected to
+                   // 0x8056/0x8057. Without this hack, Touhou Project 2 will overwrite
+                   // the letter 'W' when loading it's font data (Level 1 will show "Eastern  ind"
+                   // instead of "Eastern Wind" for the music title as a result).
+                   //
+                   // This implementation is based on the idea that when writing the port,
+                   // NEC may have wired the hardware to route only some of the address
+                   // lines to the RAM chip. But for debugging, a warning is printed if
+                   // you attempt to write outside this apparent user-defined area.
+            pc98_font_char_write((a1_font_load_addr & 0x7F01) | 0x8056/*force doublewide, to 0xxx56/0xxx57 range*/,
+                a1_font_char_offset & 0xF,(a1_font_char_offset & 0x20) ? 0 : 1,val);
+
+            if ((a1_font_load_addr & 0x007E) != 0x0056/*outside 0xxx56/0xxx57 area*/)
+                LOG_MSG("A1 port attempt to write FONT ROM char 0x%x",a1_font_load_addr);
             break;
         default:
             LOG_MSG("A1 port %lx val %lx unexpected",port,val);
