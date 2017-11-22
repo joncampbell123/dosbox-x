@@ -874,27 +874,6 @@ static Bit8u* VGA_TEXT_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 	return TempLine+(16*4);
 }
 
-unsigned int pc98_map_charfont(Bit16u chr,unsigned char line,unsigned char righthalf/*if fullwidth*/) {
-    unsigned int index;
-
-    if (chr & 0xFF00) {
-        /* 16-bit code bit[14:8] + bit[6:0] => bit[13:0] 14-bit code */
-        /* NTS: Fullwidth references that wrap back to 0x0000 do not map to the same characters as single-wide */
-        index  = ((chr & 0x7F00) >> 1) + (chr & 0x7F);
-        if (index < 0x80) index += 0x4000; /* the last 4KB row @512KB */
-        index *= 16 * 2;
-        index += line * 2;
-        index += righthalf;
-    }
-    else {
-        index  = chr;
-        index *= 16;
-        index += line;
-    }
-
-    return index;
-}
-
 static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 	// keep it aligned:
 	Bit32u* draw = ((Bit32u*)TempLine);
@@ -968,7 +947,7 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
                     doublewide = true;
                 }
 
-                font = vga.draw.font_tables[0][pc98_map_charfont(chr,pc98_gdc[GDC_MASTER].row_line,0)];
+                font = pc98_font_char_read(chr,pc98_gdc[GDC_MASTER].row_line,0);
             }
             else {
                 // right half of doublewide char.
@@ -984,7 +963,7 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
                 if ((chr&0x78U) == 0x08 || (chr&0x7FU) >= 0x54)
                     chr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x0000U];
 
-                font = vga.draw.font_tables[0][pc98_map_charfont(chr,pc98_gdc[GDC_MASTER].row_line,1)];
+                font = pc98_font_char_read(chr,pc98_gdc[GDC_MASTER].row_line,1);
             }
 
             lineoverlay <<= 8;
