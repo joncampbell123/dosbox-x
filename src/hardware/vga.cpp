@@ -1327,6 +1327,9 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
                 pc98_gdc_vramop &= ~(1 << VOPBIT_ACCESS);
                 pc98_gdc_vramop |=  (val&1) << VOPBIT_ACCESS;
             }
+            else {
+                goto unknown;
+            }
             break;
         case 0x08:      /* 0xA8: One of two meanings, depending on 8 or 16/256--color mode */
                         /*         8-color: 0xA8-0xAB are 8 4-bit packed fields remapping the 3-bit GRB colors. This defines colors #3 [7:4] and #7 [3:0]
@@ -1335,6 +1338,8 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
                         /* NTS: Sadly, "undocumented PC-98" reference does not mention the analog 16-color palette. */
             if (port == 0xA8) /* TODO: If 8-color mode.... else if 16-color mode... */
                 pc98_16col_analog_rgb_palette_index = val; /* it takes all 8 bits I assume because of 256-color mode */
+            else
+                goto unknown;
             break;
         case 0x0A:      /* 0xAA:
                            8-color: Defines color #1 [7:4] and color #5 [3:0] (FIXME: Or is it 2 and 6, by undocumented PC-98???)
@@ -1343,6 +1348,9 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
             if (port == 0xAA) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
                 vga.dac.rgb[pc98_16col_analog_rgb_palette_index & 0xF].green = dac_4to6(val&0xF); /* re-use VGA DAC */
                 VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index & 0xF);
+            }
+            else {
+                goto unknown;
             }
             break;
         case 0x0C:      /* 0xAC:
@@ -1353,6 +1361,9 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
                 vga.dac.rgb[pc98_16col_analog_rgb_palette_index & 0xF].red = dac_4to6(val&0xF); /* re-use VGA DAC */
                 VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index & 0xF);
             }
+            else {
+                goto unknown;
+            }
             break;
         case 0x0E:      /* 0xAE:
                            8-color: Defines color #2 [7:4] and color #6 [3:0] (FIXME: Or is it 1 and 4, by undocumented PC-98???)
@@ -1362,8 +1373,12 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
                 vga.dac.rgb[pc98_16col_analog_rgb_palette_index & 0xF].blue = dac_4to6(val&0xF); /* re-use VGA DAC */
                 VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index & 0xF);
             }
+            else {
+                goto unknown;
+            }
             break;
         default:
+            unknown:
             LOG_MSG("GDC unexpected write to port 0x%x val=0x%x",(unsigned int)port,(unsigned int)val);
             break;
     };
