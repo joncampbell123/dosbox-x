@@ -1196,6 +1196,7 @@ uint8_t                     pc98_gdc_vramop=0;
 union pc98_tile             pc98_gdc_tiles[4];
 struct PC98_GDC_state       pc98_gdc[2];
 bool                        GDC_vsync_interrupt = false;
+uint8_t                     GDC_display_plane = false;
 uint8_t                     pc98_16col_analog_rgb_palette_index = 0;
 
 /* 4-bit to 6-bit expansion */
@@ -1314,13 +1315,14 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
                 LOG_MSG("GDC warning: FIFO command overrun");
             break;
         case 0x04:      /* 0x64: set trigger to signal vsync interrupt (IRQ 2) */
-                        /* 0xA4: ?? */
+                        /* 0xA4: Bit 0 select display "plane" */
             if (port == 0x64)
                 GDC_vsync_interrupt = true;
+            else
+                GDC_display_plane = (val&1);
             break;
         case 0x06:      /* 0x66: ??
-                           0xA6: Bit 0 appears to select between two 'banks' of VRAM.
-                                 Many games rely on this for redraw, or they leave artifacts. */
+                           0xA6: Bit 0 select CPU access "plane" */
             if (port == 0xA6) {
                 pc98_gdc_vramop &= ~(1 << VOPBIT_ACCESS);
                 pc98_gdc_vramop |=  (val&1) << VOPBIT_ACCESS;

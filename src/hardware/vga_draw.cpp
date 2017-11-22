@@ -874,6 +874,8 @@ static Bit8u* VGA_TEXT_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 	return TempLine+(16*4);
 }
 
+extern uint8_t GDC_display_plane;
+
 static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 	// keep it aligned:
 	Bit32u* draw = ((Bit32u*)TempLine);
@@ -888,16 +890,19 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     // Think of it as a 3-plane GRB color graphics mode, each plane is 1 bit per pixel.
     // G-RAM is addressed 16 bits per RAM cycle.
     if (pc98_gdc[GDC_SLAVE].display_enable) {
+        unsigned int disp_base;
         Bit8u g8,r8,b8,e8;
 
         draw = ((Bit32u*)TempLine);
         blocks = vga.draw.blocks;
         vidmem = pc98_gdc[GDC_SLAVE].scan_address << 1;
+        disp_base = GDC_display_plane ? 0x20000U : 0x00000U;
+
         while (blocks--) {
-            e8 = vga.mem.linear[(vidmem & 0x7FFFU) + 0x20000U]; /* E0000-E7FFF */
-            g8 = vga.mem.linear[(vidmem & 0x7FFFU) + 0x18000U]; /* B8000-BFFFF */
-            r8 = vga.mem.linear[(vidmem & 0x7FFFU) + 0x10000U]; /* B0000-B7FFF */
-            b8 = vga.mem.linear[(vidmem & 0x7FFFU) + 0x08000U]; /* A8000-AFFFF */
+            e8 = vga.mem.linear[(vidmem & 0x7FFFU) + 0x20000U + disp_base]; /* E0000-E7FFF */
+            g8 = vga.mem.linear[(vidmem & 0x7FFFU) + 0x18000U + disp_base]; /* B8000-BFFFF */
+            r8 = vga.mem.linear[(vidmem & 0x7FFFU) + 0x10000U + disp_base]; /* B0000-B7FFF */
+            b8 = vga.mem.linear[(vidmem & 0x7FFFU) + 0x08000U + disp_base]; /* A8000-AFFFF */
 
             for (unsigned char i=0;i < 8;i++) {
                 foreground  = (e8 & 0x80) ? 8 : 0;
