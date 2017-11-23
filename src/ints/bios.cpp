@@ -2233,6 +2233,8 @@ static Bitu INT1A_Handler(void) {
 bool INT16_get_key(Bit16u &code);
 bool INT16_peek_key(Bit16u &code);
 
+extern uint8_t                     GDC_display_plane;
+
 unsigned char prev_pc98_mode42 = 0;
 
 static Bitu INT18_PC98_Handler(void) {
@@ -2386,6 +2388,10 @@ static Bitu INT18_PC98_Handler(void) {
                 memset(vga.mem.linear,0,0x8000);
 
             prev_pc98_mode42 = reg_ch;
+
+            GDC_display_plane = 0;
+            pc98_gdc[GDC_SLAVE].display_enable = true;
+            pc98_gdc_vramop &= ~(1 << VOPBIT_ACCESS);
 
             LOG_MSG("PC-98 INT 18 AH=42h CH=0x%02X",reg_ch);
             break;
