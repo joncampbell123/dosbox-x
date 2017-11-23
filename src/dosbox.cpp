@@ -1166,6 +1166,14 @@ void DOSBOX_SetupConfigSections(void) {
                    "    8: 1.996MHz (as if 8MHz or multiple thereof CPU clock)\n"
                    "   10: 2.457MHz (as if 5MHz/10MHz or multiple thereof CPU clock)");
 
+	Pint = secprop->Add_int("pc-98 allow 4 display partition graphics", Property::Changeable::WhenIdle,-1);
+	Pint->SetMinMax(-1,1);
+	Pint->Set_help("According to NEC graphics controller documentation, graphics mode is supposed to support only\n"
+                   "2 display partitions. Some games rely on hardware flaws that allowed 4 partitions.\n"
+                   "   -1: Default (choose automatically)\n"
+                   "    0: Disable\n"
+                   "    1: Enable");
+
 	Pint = secprop->Add_int("vga bios size override", Property::Changeable::WhenIdle,0);
 	Pint->SetMinMax(512,65536);
 	Pint->Set_help("VGA BIOS size override. Override the size of the VGA BIOS (normally 32KB in compatible or 12KB in non-compatible).");

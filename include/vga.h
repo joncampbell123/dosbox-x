@@ -88,6 +88,7 @@ struct PC98_GDC_state {
 
     uint8_t                 display_partition;
     uint16_t                display_partition_rem_lines;
+    uint8_t                 display_partition_mask;
 
     uint16_t                active_display_lines;       /* AL (translated) */
     uint16_t                active_display_words_per_line;/* AW bits (translated) */

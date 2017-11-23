@@ -437,16 +437,23 @@ extern bool pcibus_enable;
 extern int hack_lfb_yadjust;
 
 bool pc98_allow_scanline_effect = true;
+bool pc98_allow_4_display_partitions = false;
 
 void VGA_VsyncUpdateMode(VGA_Vsync vsyncmode);
 
 void VGA_Reset(Section*) {
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 	string str;
+    int i;
 
 	LOG(LOG_MISC,LOG_DEBUG)("VGA_Reset() reinitializing VGA emulation");
 
     pc98_allow_scanline_effect = section->Get_bool("pc-98 allow scanline effect");
+
+    i = section->Get_int("pc-98 allow 4 display partition graphics");
+    pc98_allow_4_display_partitions = (i < 0/*auto*/ || i == 1/*on*/);
+    // TODO: "auto" will default to true if old PC-9801, false if PC-9821, or
+    //       a more refined automatic choice according to actual hardware.
 
 	vga_force_refresh_rate = -1;
 	str=section->Get_string("forcerate");
@@ -715,6 +722,7 @@ PC98_GDC_state::PC98_GDC_state() {
     param_ram[2] = 0xF0;        // LEN=3FF
     param_ram[3] = 0x3F;        // LEN=3FF WD1=0
 
+    display_partition_mask = 3;
     doublescan = false;
     param_ram_wptr = 0;
     display_partition = 0;
@@ -1095,8 +1103,7 @@ void PC98_GDC_state::force_fifo_complete(void) {
 }
 
 void PC98_GDC_state::next_display_partition(void) {
-    if ((++display_partition) == 4)
-        display_partition = 0;
+    display_partition = (display_partition + 1) & display_partition_mask;
 }
 
 void PC98_GDC_state::reset_fifo(void) {
@@ -1483,11 +1490,13 @@ void VGA_OnEnterPC98(Section *sec) {
     pc98_gdc[GDC_MASTER].display_enable = true;
     pc98_gdc[GDC_MASTER].row_height = 16;
     pc98_gdc[GDC_MASTER].active_display_words_per_line = 80;
+    pc98_gdc[GDC_MASTER].display_partition_mask = 3;
 
     pc98_gdc[GDC_SLAVE].master_sync = false;
     pc98_gdc[GDC_SLAVE].display_enable = false;//FIXME
     pc98_gdc[GDC_SLAVE].row_height = 1;
     pc98_gdc[GDC_SLAVE].active_display_words_per_line = 40; /* 40 16-bit WORDs per line */
+    pc98_gdc[GDC_SLAVE].display_partition_mask = pc98_allow_4_display_partitions ? 3 : 1;
 
     /* 200-line tradition on PC-98 seems to be to render only every other scanline */
     /* TODO: Allow user to override this bit if the "raster" effect is undesired */
