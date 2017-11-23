@@ -436,6 +436,8 @@ static inline int int_log2(int val) {
 extern bool pcibus_enable;
 extern int hack_lfb_yadjust;
 
+bool pc98_allow_scanline_effect = true;
+
 void VGA_VsyncUpdateMode(VGA_Vsync vsyncmode);
 
 void VGA_Reset(Section*) {
@@ -443,6 +445,8 @@ void VGA_Reset(Section*) {
 	string str;
 
 	LOG(LOG_MISC,LOG_DEBUG)("VGA_Reset() reinitializing VGA emulation");
+
+    pc98_allow_scanline_effect = section->Get_bool("pc-98 allow scanline effect");
 
 	vga_force_refresh_rate = -1;
 	str=section->Get_string("forcerate");

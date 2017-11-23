@@ -1151,6 +1151,11 @@ void DOSBOX_SetupConfigSections(void) {
 		"        or 386DX and 486 systems where the CPU communicated directly with the ISA bus (A24-A31 tied off)\n"
 		"    26: 64MB aliasing. Some 486s had only 26 external address bits, some motherboards tied off A26-A31");
 
+	Pbool = secprop->Add_bool("pc-98 allow scanline effect",Property::Changeable::WhenIdle,true);
+	Pbool->Set_help("If set, PC-98 emulation will allow the DOS application to enable the 'scanline effect'\n"
+                    "in 200-line graphics modes upconverted to 400-line raster display. When enabled, odd\n"
+                    "numbered scanlines are blanked instead of doubled");
+
 	Pint = secprop->Add_int("pc-98 timer master frequency", Property::Changeable::WhenIdle,0);
 	Pint->SetMinMax(0,2457600);
 	Pint->Set_help("8254 timer clock frequency (NEC PC-98). Depending on the CPU frequency the clock frequency is one of two common values.\n"

@@ -876,6 +876,7 @@ static Bit8u* VGA_TEXT_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 
 extern uint8_t GDC_display_plane;
 extern bool pc98_graphics_hide_odd_raster_200line;
+extern bool pc98_allow_scanline_effect;
 
 static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 	// keep it aligned:
@@ -889,7 +890,7 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     bool ok_raster = true;
 
     // 200-line modes: The BIOS or DOS game can elect to hide odd raster lines
-    if (pc98_gdc[GDC_SLAVE].doublescan && pc98_graphics_hide_odd_raster_200line)
+    if (pc98_gdc[GDC_SLAVE].doublescan && pc98_graphics_hide_odd_raster_200line && pc98_allow_scanline_effect)
         ok_raster = (vga.draw.lines_done & 1) == 0;
 
     // Graphic RAM layer (or blank)
