@@ -2240,6 +2240,7 @@ unsigned char prev_pc98_mode42 = 0;
 static Bitu INT18_PC98_Handler(void) {
     Bit16u temp16;
 
+#if 0
     if (reg_ah >= 0x0A) {
             LOG_MSG("PC-98 INT 18h unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
                 reg_ax,
@@ -2251,6 +2252,7 @@ static Bitu INT18_PC98_Handler(void) {
                 SegValue(ds),
                 SegValue(es));
     }
+#endif
  
     /* NTS: Based on information gleaned from Neko Project II source code including comments which
      *      I've run through GNU iconv to convert from SHIFT-JIS to UTF-8 here in case Google Translate
