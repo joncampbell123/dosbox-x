@@ -1649,7 +1649,19 @@ void VGA_OnEnterPC98(Section *sec) {
 
     /* number of text rows on the screen.
      * Touhou Project will not clear/format the text layer properly without this variable. */
+    mem_writeb(0x710,25 - 1); /* cursor position Y coordinate */
+    mem_writeb(0x711,1); /* function definition display status flag */
     mem_writeb(0x712,25 - 1); /* number of rows - 1 */
+    mem_writeb(0x713,1); /* normal 25 lines */
+    mem_writeb(0x714,0xE1); /* content erase attribute */
+
+    mem_writeb(0x719,0x20); /* content erase character */
+
+    mem_writeb(0x71B,0x01); /* cursor displayed */
+
+    mem_writeb(0x71D,0xE1); /* content display attribute */
+
+    mem_writeb(0x71F,0x01); /* scrolling speed is normal */
 
     {
         unsigned char r,g,b;
