@@ -2383,15 +2383,12 @@ static Bitu INT18_PC98_Handler(void) {
                 pc98_gdc[GDC_SLAVE].row_height = 1;
             }
 
-            // graphics selection clears text??
-            if ((reg_ch & 0xC0) != 0x00)
-                memset(vga.mem.linear,0,0x8000);
+            // Real hardware behavior: graphics selection disables graphic display.
+            pc98_gdc[GDC_SLAVE].display_enable = false;
+            pc98_gdc_vramop &= ~(1 << VOPBIT_ACCESS);
+            GDC_display_plane = 0;
 
             prev_pc98_mode42 = reg_ch;
-
-            GDC_display_plane = 0;
-            pc98_gdc[GDC_SLAVE].display_enable = true;
-            pc98_gdc_vramop &= ~(1 << VOPBIT_ACCESS);
 
             LOG_MSG("PC-98 INT 18 AH=42h CH=0x%02X",reg_ch);
             break;
