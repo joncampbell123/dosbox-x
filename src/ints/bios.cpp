@@ -2240,6 +2240,18 @@ unsigned char prev_pc98_mode42 = 0;
 static Bitu INT18_PC98_Handler(void) {
     Bit16u temp16;
 
+    if (reg_ah >= 0x0A) {
+            LOG_MSG("PC-98 INT 18h unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+                reg_ax,
+                reg_bx,
+                reg_cx,
+                reg_dx,
+                reg_si,
+                reg_di,
+                SegValue(ds),
+                SegValue(es));
+    }
+ 
     /* NTS: Based on information gleaned from Neko Project II source code including comments which
      *      I've run through GNU iconv to convert from SHIFT-JIS to UTF-8 here in case Google Translate
      *      got anything wrong. */
@@ -2341,10 +2353,20 @@ static Bitu INT18_PC98_Handler(void) {
         case 0x40: /* Start displaying the graphics screen (グラフィック画面の表示開始) */
             pc98_gdc[GDC_SLAVE].force_fifo_complete();
             pc98_gdc[GDC_SLAVE].display_enable = true;
+ 
+            {
+                unsigned char b = mem_readb(0x54C/*MEMB_PRXCRT*/);
+                mem_writeb(0x54C/*MEMB_PRXCRT*/,b | 0x80);
+            }
             break;
         case 0x41: /* Stop displaying the graphics screen (グラフィック画面の表示終了) */
             pc98_gdc[GDC_SLAVE].force_fifo_complete();
             pc98_gdc[GDC_SLAVE].display_enable = false;
+
+            {
+                unsigned char b = mem_readb(0x54C/*MEMB_PRXCRT*/);
+                mem_writeb(0x54C/*MEMB_PRXCRT*/,b & (~0x80));
+            }
             break;
         case 0x42: /* Display area setup (表示領域の設定) */
             pc98_gdc[GDC_MASTER].force_fifo_complete();
@@ -2383,8 +2405,13 @@ static Bitu INT18_PC98_Handler(void) {
                 pc98_gdc[GDC_SLAVE].row_height = 1;
             }
 
-            // Real hardware behavior: graphics selection disables graphic display.
-            pc98_gdc[GDC_SLAVE].display_enable = false;
+            {
+                unsigned char b = mem_readb(0x54C/*MEMB_PRXCRT*/);
+
+                // Real hardware behavior: graphics selection updated by BIOS to reflect MEMB_PRXCRT state
+                pc98_gdc[GDC_SLAVE].display_enable = !!(b & 0x80);
+            }
+
             pc98_gdc_vramop &= ~(1 << VOPBIT_ACCESS);
             GDC_display_plane = 0;
 
@@ -5360,6 +5387,9 @@ void BIOS_OnEnterPC98Mode(Section* sec) {
 
         /* clear out 0x50 segment */
         for (unsigned int i=0;i < 0x100;i++) phys_writeb(0x500+i,0);
+
+        /* set up some default state */
+        mem_writeb(0x54C/*MEMB_PRXCRT*/,0x4F); /* default graphics layer off, 24KHz hsync */
     }
 }
 
