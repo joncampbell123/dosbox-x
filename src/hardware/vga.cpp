@@ -1625,9 +1625,16 @@ void VGA_OnEnterPC98(Section *sec) {
         pc98_pal_analog[(i*3) + 1] = (i & 2) ? 0x0F : 0x00;
         pc98_pal_analog[(i*3) + 2] = (i & 1) ? 0x0F : 0x00;
 
-        pc98_pal_analog[((i+8)*3) + 0] = (i & 4) ? 0x0A : 0x00;
-        pc98_pal_analog[((i+8)*3) + 1] = (i & 2) ? 0x0A : 0x00;
-        pc98_pal_analog[((i+8)*3) + 2] = (i & 1) ? 0x0A : 0x00;
+        if (i != 0) {
+            pc98_pal_analog[((i+8)*3) + 0] = (i & 4) ? 0x0A : 0x00;
+            pc98_pal_analog[((i+8)*3) + 1] = (i & 2) ? 0x0A : 0x00;
+            pc98_pal_analog[((i+8)*3) + 2] = (i & 1) ? 0x0A : 0x00;
+        }
+        else {
+            pc98_pal_analog[((i+8)*3) + 0] = 0x07;
+            pc98_pal_analog[((i+8)*3) + 1] = 0x07;
+            pc98_pal_analog[((i+8)*3) + 2] = 0x07;
+        }
     }
 
     pc98_update_palette();
