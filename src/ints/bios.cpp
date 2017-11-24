@@ -2397,12 +2397,10 @@ static Bitu INT18_PC98_Handler(void) {
             //        This seems to help with clearing the text layer when games start the graphics.
             //        This is ALSO how we will detect games that switch on the 200-line double-scan mode vs 400-line mode.
             if ((reg_ch & 0xC0) != 0) {
-                pc98_gdc[GDC_MASTER].cursor_enable = false;
                 pc98_gdc[GDC_SLAVE].doublescan = ((reg_ch & 0xC0) == 0x40) || ((reg_ch & 0xC0) == 0x80);
                 pc98_gdc[GDC_SLAVE].row_height = pc98_gdc[GDC_SLAVE].doublescan ? 2 : 1;
             }
             else {
-                pc98_gdc[GDC_MASTER].cursor_enable = true;
                 pc98_gdc[GDC_SLAVE].doublescan = false;
                 pc98_gdc[GDC_SLAVE].row_height = 1;
             }
