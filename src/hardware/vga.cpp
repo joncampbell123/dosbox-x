@@ -1325,6 +1325,11 @@ void pc98_port6A_command_write(unsigned char b) {
 Bitu pc98_a1_read(Bitu port,Bitu iolen) {
     switch (port) {
         case 0xA9: // an 8-bit I/O port to access font RAM by...
+            // NOTES: On a PC-9821 Lt2 laptop, the character ROM doesn't seem to latch valid data beyond
+            //        0xxx5D. Often this reads back as zero, but depending on whatever random data is floating
+            //        on the bus can read back nonzero. This doesn't apply to 0x0000-0x00FF of course (single wide
+            //        characters), but only to the double-wide character set where (c & 0x007F) >= 0x5D.
+            //        This behavior should be emulated. */
             return pc98_font_char_read(a1_font_load_addr,a1_font_char_offset & 0xF,(a1_font_char_offset & 0x20) ? 0 : 1);
         default:
             break;
@@ -1379,14 +1384,13 @@ void pc98_a1_write(Bitu port,Bitu val,Bitu iolen) {
                    // the letter 'W' when loading it's font data (Level 1 will show "Eastern  ind"
                    // instead of "Eastern Wind" for the music title as a result).
                    //
-                   // This implementation is based on the idea that when writing the port,
-                   // NEC may have wired the hardware to route only some of the address
-                   // lines to the RAM chip. But for debugging, a warning is printed if
-                   // you attempt to write outside this apparent user-defined area.
-            pc98_font_char_write((a1_font_load_addr & 0x7F01) | 0x8056/*force doublewide, to 0xxx56/0xxx57 range*/,
-                a1_font_char_offset & 0xF,(a1_font_char_offset & 0x20) ? 0 : 1,val);
-
-            if ((a1_font_load_addr & 0x007E) != 0x0056/*outside 0xxx56/0xxx57 area*/)
+                   // On real hardware it seems, attempts to write anywhere outside 0xxx56/0xxx57
+                   // are ignored. They are not remapped. Attempts to write to 0x0056 are ignored
+                   // by the hardware (since that conflicts with single-wide chars) but you can
+                   // write to that cell if you write to 0x8056 instead.
+            if ((a1_font_load_addr & 0x007E) == 0x0056 && (a1_font_load_addr & 0xFF00) != 0x0000)
+                pc98_font_char_write(a1_font_load_addr,a1_font_char_offset & 0xF,(a1_font_char_offset & 0x20) ? 0 : 1,val);
+            else
                 LOG_MSG("A1 port attempt to write FONT ROM char 0x%x",a1_font_load_addr);
             break;
         default:
