@@ -1363,6 +1363,35 @@ void pc98_a1_write(Bitu port,Bitu val,Bitu iolen) {
     };
 }
 
+uint8_t pc98_pal_analog[256*3]; /* G R B    0x0..0xF */
+uint8_t pc98_pal_digital[8];    /* G R B    0x0..0x7 */
+
+void pc98_update_digpal(unsigned char ent) {
+    unsigned char grb = pc98_pal_digital[ent];
+
+    vga.dac.rgb[ent].green = (grb & 4) ? 0x3F : 0x00;
+    vga.dac.rgb[ent].red =   (grb & 2) ? 0x3F : 0x00;
+    vga.dac.rgb[ent].blue =  (grb & 1) ? 0x3F : 0x00;
+    VGA_DAC_UpdateColor(ent);
+}
+
+void pc98_set_digpal_entry(unsigned char ent,unsigned char grb) {
+    pc98_pal_digital[ent] = grb;
+
+    if (!(pc98_gdc_vramop & VOPBIT_ANALOG))
+        pc98_update_digpal(ent);
+}
+
+void pc98_set_digpal_pair(unsigned char start,unsigned char pair) {
+    /* assume start 0..3 */
+    pc98_set_digpal_entry(start,  pair >> 4);
+    pc98_set_digpal_entry(start+4,pair & 0xF);
+}
+
+unsigned char pc98_get_digpal_pair(unsigned char start) {
+    return (pc98_pal_digital[start] << 4) + pc98_pal_digital[start+4];
+}
+
 void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
     PC98_GDC_state *gdc;
 
@@ -1402,18 +1431,31 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
                          *         16-color: GRB color palette index */
                         /* 0x68: A command */
                         /* NTS: Sadly, "undocumented PC-98" reference does not mention the analog 16-color palette. */
-            if (port == 0xA8) /* TODO: If 8-color mode.... else if 16-color mode... */
-                pc98_16col_analog_rgb_palette_index = val; /* it takes all 8 bits I assume because of 256-color mode */
-            else
+            if (port == 0xA8) {
+                if (pc98_gdc_vramop & VOPBIT_ANALOG) { /* 16/256-color mode */
+                    pc98_16col_analog_rgb_palette_index = val; /* it takes all 8 bits I assume because of 256-color mode */
+                }
+                else {
+                    pc98_set_digpal_pair(3,val);
+                }
+            }
+            else {
                 pc98_port68_command_write(val);
+            }
             break;
         case 0x0A:      /* 0xAA:
                            8-color: Defines color #1 [7:4] and color #5 [3:0] (FIXME: Or is it 2 and 6, by undocumented PC-98???)
                            16-color: 4-bit green intensity. Color index is low 4 bits of palette index.
                            256-color: 4-bit green intensity. Color index is 8-bit palette index. */
             if (port == 0xAA) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
-                vga.dac.rgb[pc98_16col_analog_rgb_palette_index & 0xF].green = dac_4to6(val&0xF); /* re-use VGA DAC */
-                VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index & 0xF);
+                if (pc98_gdc_vramop & VOPBIT_ANALOG) { /* 16/256-color mode */
+                    pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 0] = val&0x0F;
+                    vga.dac.rgb[pc98_16col_analog_rgb_palette_index & 0xF].green = dac_4to6(val&0xF); /* re-use VGA DAC */
+                    VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index & 0xF);
+                }
+                else {
+                    pc98_set_digpal_pair(1,val);
+                }
             }
             else {
                 pc98_port6A_command_write(val);
@@ -1424,8 +1466,14 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
                            16-color: 4-bit red intensity. Color index is low 4 bits of palette index.
                            256-color: 4-bit red intensity. Color index is 8-bit palette index. */
             if (port == 0xAC) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
-                vga.dac.rgb[pc98_16col_analog_rgb_palette_index & 0xF].red = dac_4to6(val&0xF); /* re-use VGA DAC */
-                VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index & 0xF);
+                if (pc98_gdc_vramop & VOPBIT_ANALOG) { /* 16/256-color mode */
+                    pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 1] = val&0x0F;
+                    vga.dac.rgb[pc98_16col_analog_rgb_palette_index & 0xF].red = dac_4to6(val&0xF); /* re-use VGA DAC */
+                    VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index & 0xF);
+                }
+                else {
+                    pc98_set_digpal_pair(2,val);
+                }
             }
             else {
                 goto unknown;
@@ -1436,8 +1484,14 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
                            16-color: 4-bit blue intensity. Color index is low 4 bits of palette index.
                            256-color: 4-bit blue intensity. Color index is 8-bit palette index. */
             if (port == 0xAE) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
-                vga.dac.rgb[pc98_16col_analog_rgb_palette_index & 0xF].blue = dac_4to6(val&0xF); /* re-use VGA DAC */
-                VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index & 0xF);
+                if (pc98_gdc_vramop & VOPBIT_ANALOG) { /* 16/256-color mode */
+                    pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 2] = val&0x0F;
+                    vga.dac.rgb[pc98_16col_analog_rgb_palette_index & 0xF].blue = dac_4to6(val&0xF); /* re-use VGA DAC */
+                    VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index & 0xF);
+                }
+                else {
+                    pc98_set_digpal_pair(0,val);
+                }
             }
             else {
                 goto unknown;
@@ -1465,7 +1519,61 @@ Bitu pc98_gdc_read(Bitu port,Bitu iolen) {
             if (!gdc->rfifo_has_content())
                 LOG_MSG("GDC warning: FIFO read underrun");
             return gdc->rfifo_read_data();
+
+        case 0x08:
+            if (port == 0xA8) {
+                if (pc98_gdc_vramop & VOPBIT_ANALOG) { /* 16/256-color mode */
+                    return pc98_16col_analog_rgb_palette_index;
+                }
+                else {
+                    return pc98_get_digpal_pair(3);
+                }
+            }
+            else {
+                goto unknown;
+            }
+            break;
+        case 0x0A:
+            if (port == 0xAA) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
+                if (pc98_gdc_vramop & VOPBIT_ANALOG) { /* 16/256-color mode */
+                    return pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 0];
+                }
+                else {
+                    return pc98_get_digpal_pair(1);
+                }
+            }
+            else {
+                goto unknown;
+            }
+            break;
+        case 0x0C:
+            if (port == 0xAC) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
+                if (pc98_gdc_vramop & VOPBIT_ANALOG) { /* 16/256-color mode */
+                    return pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 1];
+                }
+                else {
+                    return pc98_get_digpal_pair(2);
+                }
+            }
+            else {
+                goto unknown;
+            }
+            break;
+        case 0x0E:
+            if (port == 0xAE) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
+                if (pc98_gdc_vramop & VOPBIT_ANALOG) { /* 16/256-color mode */
+                    return pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 2];
+                }
+                else {
+                    return pc98_get_digpal_pair(0);
+                }
+            }
+            else {
+                goto unknown;
+            }
+            break;
         default:
+            unknown:
             LOG_MSG("GDC unexpected read from port 0x%x",(unsigned int)port);
             break;
     };
@@ -1479,6 +1587,9 @@ void VGA_OnEnterPC98(Section *sec) {
     VGA_UnsetupDAC();
     VGA_UnsetupGFX();
     VGA_UnsetupSEQ();
+
+    for (unsigned int i=0;i < 8;i++)
+        pc98_pal_digital[i] = i;
 
     /* Some PC-98 game behavior seems to suggest the BIOS data area stretches all the way from segment 0x40:0x00 to segment 0x7F:0x0F inclusive.
      * Compare that to IBM PC platform, where segment fills only 0x40:0x00 to 0x50:0x00 inclusive and extra state is held in the "Extended BIOS Data Area".
