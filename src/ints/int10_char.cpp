@@ -637,8 +637,10 @@ void WriteChar(Bit16u col,Bit16u row,Bit8u page,Bit16u chr,Bit8u attr,bool useat
 			if (useattr) {
 				mem_writeb(where+0x2000,VGA_FG_to_PC98(attr));
 			}
+#if 0
             // seems to reenable the cursor, too
             pc98_gdc[GDC_MASTER].cursor_enable = true;
+#endif
         }
         return;
 	case M_CGA4:
