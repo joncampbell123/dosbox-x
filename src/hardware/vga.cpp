@@ -1270,14 +1270,18 @@ void pc98_port68_command_write(unsigned char b) {
     };
 }
 
+bool gdc_analog = true;
+
 /* Port 0x6A command handling */
 void pc98_port6A_command_write(unsigned char b) {
     switch (b) {
         case 0x00: // 16-color (analog) disable
+            gdc_analog = false;
             pc98_gdc_vramop &= ~VOPBIT_ANALOG;
             VGA_SetupHandlers(); // confirmed on real hardware: this disables access to E000:0000
             break;
         case 0x01: // or enable
+            gdc_analog = true;
             pc98_gdc_vramop |= VOPBIT_ANALOG;
             VGA_SetupHandlers(); // confirmed on real hardware: this enables access to E000:0000
             break;
@@ -1378,7 +1382,7 @@ void pc98_update_digpal(unsigned char ent) {
 void pc98_set_digpal_entry(unsigned char ent,unsigned char grb) {
     pc98_pal_digital[ent] = grb;
 
-    if (!(pc98_gdc_vramop & VOPBIT_ANALOG))
+    if (!gdc_analog)
         pc98_update_digpal(ent);
 }
 
@@ -1432,7 +1436,7 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
                         /* 0x68: A command */
                         /* NTS: Sadly, "undocumented PC-98" reference does not mention the analog 16-color palette. */
             if (port == 0xA8) {
-                if (pc98_gdc_vramop & VOPBIT_ANALOG) { /* 16/256-color mode */
+                if (gdc_analog) { /* 16/256-color mode */
                     pc98_16col_analog_rgb_palette_index = val; /* it takes all 8 bits I assume because of 256-color mode */
                 }
                 else {
@@ -1448,7 +1452,7 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
                            16-color: 4-bit green intensity. Color index is low 4 bits of palette index.
                            256-color: 4-bit green intensity. Color index is 8-bit palette index. */
             if (port == 0xAA) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
-                if (pc98_gdc_vramop & VOPBIT_ANALOG) { /* 16/256-color mode */
+                if (gdc_analog) { /* 16/256-color mode */
                     pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 0] = val&0x0F;
                     vga.dac.rgb[pc98_16col_analog_rgb_palette_index & 0xF].green = dac_4to6(val&0xF); /* re-use VGA DAC */
                     VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index & 0xF);
@@ -1466,7 +1470,7 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
                            16-color: 4-bit red intensity. Color index is low 4 bits of palette index.
                            256-color: 4-bit red intensity. Color index is 8-bit palette index. */
             if (port == 0xAC) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
-                if (pc98_gdc_vramop & VOPBIT_ANALOG) { /* 16/256-color mode */
+                if (gdc_analog) { /* 16/256-color mode */
                     pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 1] = val&0x0F;
                     vga.dac.rgb[pc98_16col_analog_rgb_palette_index & 0xF].red = dac_4to6(val&0xF); /* re-use VGA DAC */
                     VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index & 0xF);
@@ -1484,7 +1488,7 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
                            16-color: 4-bit blue intensity. Color index is low 4 bits of palette index.
                            256-color: 4-bit blue intensity. Color index is 8-bit palette index. */
             if (port == 0xAE) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
-                if (pc98_gdc_vramop & VOPBIT_ANALOG) { /* 16/256-color mode */
+                if (gdc_analog) { /* 16/256-color mode */
                     pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 2] = val&0x0F;
                     vga.dac.rgb[pc98_16col_analog_rgb_palette_index & 0xF].blue = dac_4to6(val&0xF); /* re-use VGA DAC */
                     VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index & 0xF);
@@ -1522,7 +1526,7 @@ Bitu pc98_gdc_read(Bitu port,Bitu iolen) {
 
         case 0x08:
             if (port == 0xA8) {
-                if (pc98_gdc_vramop & VOPBIT_ANALOG) { /* 16/256-color mode */
+                if (gdc_analog) { /* 16/256-color mode */
                     return pc98_16col_analog_rgb_palette_index;
                 }
                 else {
@@ -1535,7 +1539,7 @@ Bitu pc98_gdc_read(Bitu port,Bitu iolen) {
             break;
         case 0x0A:
             if (port == 0xAA) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
-                if (pc98_gdc_vramop & VOPBIT_ANALOG) { /* 16/256-color mode */
+                if (gdc_analog) { /* 16/256-color mode */
                     return pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 0];
                 }
                 else {
@@ -1548,7 +1552,7 @@ Bitu pc98_gdc_read(Bitu port,Bitu iolen) {
             break;
         case 0x0C:
             if (port == 0xAC) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
-                if (pc98_gdc_vramop & VOPBIT_ANALOG) { /* 16/256-color mode */
+                if (gdc_analog) { /* 16/256-color mode */
                     return pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 1];
                 }
                 else {
@@ -1561,7 +1565,7 @@ Bitu pc98_gdc_read(Bitu port,Bitu iolen) {
             break;
         case 0x0E:
             if (port == 0xAE) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
-                if (pc98_gdc_vramop & VOPBIT_ANALOG) { /* 16/256-color mode */
+                if (gdc_analog) { /* 16/256-color mode */
                     return pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 2];
                 }
                 else {
@@ -1633,6 +1637,7 @@ void VGA_OnEnterPC98(Section *sec) {
 
     // as a transition to PC-98 GDC emulation, move VGA alphanumeric buffer
     // down to A0000-AFFFFh.
+    gdc_analog = false;
     pc98_gdc_vramop &= ~VOPBIT_ANALOG;
     gfx(miscellaneous) &= ~0x0C; /* bits[3:2] = 0 to map A0000-BFFFF */
     VGA_DetermineMode();
