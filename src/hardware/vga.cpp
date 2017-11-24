@@ -1266,6 +1266,24 @@ void pc98_port68_command_write(unsigned char b) {
             break;
         default:
             LOG_MSG("PC-98 port 68h unknown command 0x%02x",b);
+            break;
+    };
+}
+
+/* Port 0x6A command handling */
+void pc98_port6A_command_write(unsigned char b) {
+    switch (b) {
+        case 0x00: // 16-color (analog) disable
+            pc98_gdc_vramop &= ~VOPBIT_ANALOG;
+            VGA_SetupHandlers(); // confirmed on real hardware: this disables access to E000:0000
+            break;
+        case 0x01: // or enable
+            pc98_gdc_vramop |= VOPBIT_ANALOG;
+            VGA_SetupHandlers(); // confirmed on real hardware: this enables access to E000:0000
+            break;
+        default:
+            LOG_MSG("PC-98 port 6Ah unknown command 0x%02x",b);
+            break;
     };
 }
 
@@ -1398,7 +1416,7 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
                 VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index & 0xF);
             }
             else {
-                goto unknown;
+                pc98_port6A_command_write(val);
             }
             break;
         case 0x0C:      /* 0xAC:
@@ -1504,6 +1522,7 @@ void VGA_OnEnterPC98(Section *sec) {
 
     // as a transition to PC-98 GDC emulation, move VGA alphanumeric buffer
     // down to A0000-AFFFFh.
+    pc98_gdc_vramop &= ~VOPBIT_ANALOG;
     gfx(miscellaneous) &= ~0x0C; /* bits[3:2] = 0 to map A0000-BFFFF */
     VGA_DetermineMode();
     VGA_SetupHandlers();
@@ -1546,6 +1565,8 @@ void VGA_OnEnterPC98(Section *sec) {
     memset(vga.mem.linear,0,0x80000);
     for (unsigned int i=0x2000;i < 0x3fe0;i += 2) vga.mem.linear[i] = 0xE0; /* attribute GRBxxxxx = 11100000 (white) */
 }
+
+void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages);
 
 void VGA_OnEnterPC98_phase2(Section *sec) {
     VGA_SetupHandlers();

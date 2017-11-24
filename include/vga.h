@@ -142,7 +142,7 @@ extern uint8_t                     pc98_gdc_modereg;
 //				bit1	egc enable
 //				bit2	grcg bit6
 //				bit3	grcg bit7
-//				bit4	analog enable
+//				bit4	analog enable (16/256-color mode). 8-color mode if not.
 //				bit5	pc9821 vga
 
 enum {

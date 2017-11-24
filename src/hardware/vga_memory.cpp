@@ -1579,8 +1579,11 @@ void VGA_SetupHandlers(void) {
     case M_PC98:
 		newHandler = &vgaph.pc98;
 
-        /* We need something to catch access to E0000-E7FFF */
-        MEM_SetPageHandler(0xE0, 8, newHandler );
+        /* We need something to catch access to E0000-E7FFF IF 16/256-color mode */
+        if (pc98_gdc_vramop & VOPBIT_ANALOG)
+            MEM_SetPageHandler(0xE0, 8, newHandler );
+        else
+            MEM_ResetPageHandler_Unmapped(0xE0, 8);
 
         break;
 	case M_AMSTRAD:
