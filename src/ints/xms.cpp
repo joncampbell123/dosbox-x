@@ -651,7 +651,7 @@ public:
         /* UMB cannot interfere with EGC 4th graphics bitplane on PC-98 */
         /* TODO: Allow UMB into E000:xxxx if emulating a PC-98 that lacks 16-color mode. */
         if (IS_PC98_ARCH && first_umb_size >= 0xE000) {
-            LOG(LOG_MISC,LOG_DEBUG)("UMB overlaps PC-98 EGC 4th gaphics bitplane, truncating region");
+            LOG(LOG_MISC,LOG_DEBUG)("UMB overlaps PC-98 EGC 4th graphics bitplane, truncating region");
             first_umb_size = 0xDFFF;
         }
 		if (first_umb_size < first_umb_seg) {
