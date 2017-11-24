@@ -877,6 +877,7 @@ static Bit8u* VGA_TEXT_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 extern uint8_t GDC_display_plane;
 extern bool pc98_graphics_hide_odd_raster_200line;
 extern bool pc98_allow_scanline_effect;
+extern bool gdc_analog;
 
 static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 	// keep it aligned:
@@ -906,7 +907,13 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
         disp_base = GDC_display_plane ? 0x20000U : 0x00000U;
 
         while (blocks--) {
-            e8 = vga.mem.linear[(vidmem & 0x7FFFU) + 0x20000U + disp_base]; /* E0000-E7FFF */
+            // NTS: Testing on real hardware shows that, when you switch the GDC back to 8-color mode,
+            //      the 4th bitplane is no longer rendered.
+            if (gdc_analog)
+                e8 = vga.mem.linear[(vidmem & 0x7FFFU) + 0x20000U + disp_base]; /* E0000-E7FFF */
+            else
+                e8 = 0x00;
+
             g8 = vga.mem.linear[(vidmem & 0x7FFFU) + 0x18000U + disp_base]; /* B8000-BFFFF */
             r8 = vga.mem.linear[(vidmem & 0x7FFFU) + 0x10000U + disp_base]; /* B0000-B7FFF */
             b8 = vga.mem.linear[(vidmem & 0x7FFFU) + 0x08000U + disp_base]; /* A8000-AFFFF */
