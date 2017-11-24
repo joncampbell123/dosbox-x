@@ -1272,18 +1272,46 @@ void pc98_port68_command_write(unsigned char b) {
 
 bool gdc_analog = true;
 
+void pc98_update_digpal(unsigned char ent);
+
+uint8_t pc98_pal_analog[256*3]; /* G R B    0x0..0xF */
+uint8_t pc98_pal_digital[8];    /* G R B    0x0..0x7 */
+
+void pc98_update_palette(void) {
+    if (pc98_gdc_vramop & VOPBIT_ANALOG) {
+        for (unsigned int i=0;i < 16;i++) {
+            vga.dac.rgb[i].green = dac_4to6(pc98_pal_analog[(3*i) + 0]&0xF); /* re-use VGA DAC */
+            vga.dac.rgb[i].red   = dac_4to6(pc98_pal_analog[(3*i) + 1]&0xF); /* re-use VGA DAC */
+            vga.dac.rgb[i].blue  = dac_4to6(pc98_pal_analog[(3*i) + 2]&0xF); /* re-use VGA DAC */
+            VGA_DAC_UpdateColor(i);
+        }
+    }
+    else {
+        for (unsigned int i=0;i < 8;i++) {
+            pc98_update_digpal(i);
+            VGA_DAC_UpdateColor(i);
+        }
+    }
+}
+
 /* Port 0x6A command handling */
 void pc98_port6A_command_write(unsigned char b) {
     switch (b) {
         case 0x00: // 16-color (analog) disable
             gdc_analog = false;
             pc98_gdc_vramop &= ~VOPBIT_ANALOG;
-            VGA_SetupHandlers(); // confirmed on real hardware: this disables access to E000:0000
+            VGA_SetupHandlers();   // confirmed on real hardware: this disables access to E000:0000
+            pc98_update_palette(); // Testing on real hardware shows that the "digital" and "analog" palettes are completely different.
+                                   // They're both there in hardware, but one or another is active depending on analog enable.
+                                   // Also, the 4th bitplane at E000:0000 disappears when switched off from the display and from CPU access.
             break;
         case 0x01: // or enable
             gdc_analog = true;
             pc98_gdc_vramop |= VOPBIT_ANALOG;
-            VGA_SetupHandlers(); // confirmed on real hardware: this enables access to E000:0000
+            VGA_SetupHandlers();   // confirmed on real hardware: this enables access to E000:0000
+            pc98_update_palette(); // Testing on real hardware shows that the "digital" and "analog" palettes are completely different.
+                                   // They're both there in hardware, but one or another is active depending on analog enable.
+                                   // Also, the 4th bitplane at E000:0000 disappears when switched off from the display and from CPU access.
             break;
         default:
             LOG_MSG("PC-98 port 6Ah unknown command 0x%02x",b);
@@ -1366,9 +1394,6 @@ void pc98_a1_write(Bitu port,Bitu val,Bitu iolen) {
             break;
     };
 }
-
-uint8_t pc98_pal_analog[256*3]; /* G R B    0x0..0xF */
-uint8_t pc98_pal_digital[8];    /* G R B    0x0..0x7 */
 
 void pc98_update_digpal(unsigned char ent) {
     unsigned char grb = pc98_pal_digital[ent];
@@ -1594,6 +1619,18 @@ void VGA_OnEnterPC98(Section *sec) {
 
     for (unsigned int i=0;i < 8;i++)
         pc98_pal_digital[i] = i;
+
+    for (unsigned int i=0;i < 8;i++) {
+        pc98_pal_analog[(i*3) + 0] = (i & 4) ? 0x0F : 0x00;
+        pc98_pal_analog[(i*3) + 1] = (i & 2) ? 0x0F : 0x00;
+        pc98_pal_analog[(i*3) + 2] = (i & 1) ? 0x0F : 0x00;
+
+        pc98_pal_analog[((i+8)*3) + 0] = (i & 4) ? 0x0A : 0x00;
+        pc98_pal_analog[((i+8)*3) + 1] = (i & 2) ? 0x0A : 0x00;
+        pc98_pal_analog[((i+8)*3) + 2] = (i & 1) ? 0x0A : 0x00;
+    }
+
+    pc98_update_palette();
 
     /* Some PC-98 game behavior seems to suggest the BIOS data area stretches all the way from segment 0x40:0x00 to segment 0x7F:0x0F inclusive.
      * Compare that to IBM PC platform, where segment fills only 0x40:0x00 to 0x50:0x00 inclusive and extra state is held in the "Extended BIOS Data Area".
