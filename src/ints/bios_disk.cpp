@@ -303,6 +303,7 @@ imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHard
 				heads = DiskGeometryList[i].headscyl;
 				cylinders = DiskGeometryList[i].cylcount;
 				sectors = DiskGeometryList[i].secttrack;
+                sector_size = DiskGeometryList[i].bytespersect;
 				break;
 			}
 			i++;
