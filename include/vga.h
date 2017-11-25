@@ -91,6 +91,7 @@ struct PC98_GDC_state {
 
     uint16_t                active_display_lines;       /* AL (translated) */
     uint16_t                active_display_words_per_line;/* AW bits (translated) */
+    uint16_t                display_pitch;
     uint8_t                 horizontal_sync_width;      /* HS (translated) */
     uint8_t                 vertical_sync_width;        /* VS (translated) */
     uint8_t                 horizontal_front_porch_width;/* HFP (translated) */

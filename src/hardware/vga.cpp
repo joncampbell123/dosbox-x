@@ -779,7 +779,7 @@ void PC98_GDC_state::take_reset_sync_parameters(void) {
         ((cmd_parm_tmp[0] & 0x01) ? 1 : 0);
 
     /* P2 = param[1] = AW = active display words per line - 2. must be even number. */
-    active_display_words_per_line = (uint16_t)cmd_parm_tmp[1] + 2u;
+    display_pitch = active_display_words_per_line = (uint16_t)cmd_parm_tmp[1] + 2u;
 
     /* P3 = param[2] =
      *   VS(L)[2:0] = [7:5] = low bits of VS
@@ -828,6 +828,8 @@ void PC98_GDC_state::take_reset_sync_parameters(void) {
         vertical_front_porch_width,
         active_display_lines,
         vertical_back_porch_width);
+
+    VGA_StartResize();
 }
 
 void PC98_GDC_state::cursor_advance(void) {
@@ -930,10 +932,12 @@ void PC98_GDC_state::idle_proc(void) {
             case GDC_CMD_DISPLAY_BLANK:  // 0x0C   0 0 0 0 1 1 0 DE
             case GDC_CMD_DISPLAY_BLANK+1:// 0x0D   DE=display enable
                 display_enable = !!(current_command & 1); // bit 0 = display enable
+                current_command &= ~1;
                 break;
             case GDC_CMD_SYNC:  // 0x0E         0 0 0 0 0 0 0 DE
             case GDC_CMD_SYNC+1:// 0x0F         DE=display enable
                 display_enable = !!(current_command & 1); // bit 0 = display enable
+                current_command &= ~1;
                 LOG_MSG("GDC: sync");
                 break;
             case GDC_CMD_PITCH_SPEC:          // 0x47        0 1 0 0 0 1 1 1
@@ -950,6 +954,7 @@ void PC98_GDC_state::idle_proc(void) {
             case GDC_CMD_VERTICAL_SYNC_MODE:  // 0x6E        0 1 1 0 1 1 1 M
             case GDC_CMD_VERTICAL_SYNC_MODE+1:// 0x6F        M=generate and output vertical sync (0=or else accept external vsync)
                 master_sync = !!(current_command & 1);
+                current_command &= ~1;
                 LOG_MSG("GDC: vsyncmode master=%u",master_sync);
                 break;
             case GDC_CMD_PARAMETER_RAM_LOAD:   // 0x70       0 1 1 1 S S S S
@@ -991,7 +996,7 @@ void PC98_GDC_state::idle_proc(void) {
                 break;
             case GDC_CMD_PITCH_SPEC:
                 if (proc_step < 1)
-                    active_display_words_per_line = (val != 0) ? val : 0x100;
+                    display_pitch = (val != 0) ? val : 0x100;
                 break;
             case GDC_CMD_CURSOR_POSITION:
                 if (proc_step < 3) {
@@ -1034,7 +1039,7 @@ Bit16u PC98_GDC_state::read_fifo(void) {
 
 void PC98_GDC_state::next_line(void) {
     if ((++row_line) == row_height) {
-        scan_address += active_display_words_per_line;
+        scan_address += display_pitch;
         row_line = 0;
     }
     else if (row_line & 0x20) {
@@ -1671,18 +1676,6 @@ void VGA_OnEnterPC98(Section *sec) {
     pc98_gdc_modereg=0;
     for (unsigned int i=0;i < 4;i++) pc98_gdc_tiles[i].w = 0;
 
-    pc98_gdc[GDC_MASTER].master_sync = true;
-    pc98_gdc[GDC_MASTER].display_enable = true;
-    pc98_gdc[GDC_MASTER].row_height = 16;
-    pc98_gdc[GDC_MASTER].active_display_words_per_line = 80;
-    pc98_gdc[GDC_MASTER].display_partition_mask = 3;
-
-    pc98_gdc[GDC_SLAVE].master_sync = false;
-    pc98_gdc[GDC_SLAVE].display_enable = false;//FIXME
-    pc98_gdc[GDC_SLAVE].row_height = 1;
-    pc98_gdc[GDC_SLAVE].active_display_words_per_line = 40; /* 40 16-bit WORDs per line */
-    pc98_gdc[GDC_SLAVE].display_partition_mask = pc98_allow_4_display_partitions ? 3 : 1;
-
     /* 200-line tradition on PC-98 seems to be to render only every other scanline */
     /* TODO: Allow user to override this bit if the "raster" effect is undesired */
     pc98_graphics_hide_odd_raster_200line = true;
@@ -1710,7 +1703,6 @@ void VGA_OnEnterPC98(Section *sec) {
 	vga.config.addr_shift = 0;
     seq(clocking_mode) |= 1; /* 8-bit wide char */
 	vga.misc_output &= ~0x0C; /* bits[3:2] = 0 25MHz clock */
-    VGA_StartResize();
 
     /* PC-98 seems to favor a block cursor */
     vga.draw.cursor.enabled = true;
@@ -1732,6 +1724,8 @@ void VGA_OnEnterPC98(Section *sec) {
     assert(vga.vmemsize >= 0x80000);
     memset(vga.mem.linear,0,0x80000);
     for (unsigned int i=0x2000;i < 0x3fe0;i += 2) vga.mem.linear[i] = 0xE0; /* attribute GRBxxxxx = 11100000 (white) */
+
+    VGA_StartResize();
 }
 
 void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages);
@@ -1768,6 +1762,46 @@ void VGA_OnEnterPC98_phase2(Section *sec) {
         IO_RegisterWriteHandler(j,pc98_crtc_write,IO_MB);
         IO_RegisterReadHandler(j,pc98_crtc_read,IO_MB);
     }
+
+    pc98_gdc[GDC_MASTER].master_sync = true;
+    pc98_gdc[GDC_MASTER].display_enable = true;
+    pc98_gdc[GDC_MASTER].row_height = 16;
+    pc98_gdc[GDC_MASTER].active_display_words_per_line = 80;
+    pc98_gdc[GDC_MASTER].display_partition_mask = 3;
+
+    pc98_gdc[GDC_MASTER].force_fifo_complete();
+    pc98_gdc[GDC_MASTER].write_fifo_command(0x0F/*sync DE=1*/);
+    pc98_gdc[GDC_MASTER].write_fifo_param(0x10);
+    pc98_gdc[GDC_MASTER].write_fifo_param(0x4E);
+    pc98_gdc[GDC_MASTER].write_fifo_param(0x07);
+    pc98_gdc[GDC_MASTER].write_fifo_param(0x25);
+    pc98_gdc[GDC_MASTER].force_fifo_complete();
+    pc98_gdc[GDC_MASTER].write_fifo_param(0x07);
+    pc98_gdc[GDC_MASTER].write_fifo_param(0x07);
+    pc98_gdc[GDC_MASTER].write_fifo_param(0x90);
+    pc98_gdc[GDC_MASTER].write_fifo_param(0x65);
+    pc98_gdc[GDC_MASTER].force_fifo_complete();
+
+    pc98_gdc[GDC_SLAVE].master_sync = false;
+    pc98_gdc[GDC_SLAVE].display_enable = false;//FIXME
+    pc98_gdc[GDC_SLAVE].row_height = 1;
+    pc98_gdc[GDC_SLAVE].active_display_words_per_line = 40; /* 40 16-bit WORDs per line */
+    pc98_gdc[GDC_SLAVE].display_partition_mask = pc98_allow_4_display_partitions ? 3 : 1;
+
+    pc98_gdc[GDC_SLAVE].force_fifo_complete();
+    pc98_gdc[GDC_SLAVE].write_fifo_command(0x0F/*sync DE=1*/);
+    pc98_gdc[GDC_SLAVE].write_fifo_param(0x02);
+    pc98_gdc[GDC_SLAVE].write_fifo_param(0x26);
+    pc98_gdc[GDC_SLAVE].write_fifo_param(0x03);
+    pc98_gdc[GDC_SLAVE].write_fifo_param(0x11);
+    pc98_gdc[GDC_SLAVE].force_fifo_complete();
+    pc98_gdc[GDC_SLAVE].write_fifo_param(0x83);
+    pc98_gdc[GDC_SLAVE].write_fifo_param(0x07);
+    pc98_gdc[GDC_SLAVE].write_fifo_param(0x90);
+    pc98_gdc[GDC_SLAVE].write_fifo_param(0x65);
+    pc98_gdc[GDC_SLAVE].force_fifo_complete();
+
+    VGA_StartResize();
 }
 
 void VGA_Init() {

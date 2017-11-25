@@ -1797,7 +1797,39 @@ void VGA_SetupDrawing(Bitu /*val*/) {
      *      This will slowly change to accomodate PC-98 display controller over time
      *      and IS_PC98_ARCH will become it's own case statement. */
 
-	if (IS_EGAVGA_ARCH || IS_PC98_ARCH) {
+    if (IS_PC98_ARCH) {
+        hdend = pc98_gdc[GDC_MASTER].active_display_words_per_line;
+        hbstart = hdend;
+        hrstart = hdend + pc98_gdc[GDC_MASTER].horizontal_front_porch_width;
+        hrend = hrstart + pc98_gdc[GDC_MASTER].horizontal_sync_width;
+        htotal = hrend + pc98_gdc[GDC_MASTER].horizontal_back_porch_width;
+        hbend = htotal;
+
+        vdend = pc98_gdc[GDC_MASTER].active_display_lines;
+        vbstart = vdend;
+        vrstart = vdend + pc98_gdc[GDC_MASTER].vertical_front_porch_width;
+        vrend = vrstart + pc98_gdc[GDC_MASTER].vertical_sync_width;
+        vtotal = vrend + pc98_gdc[GDC_MASTER].vertical_back_porch_width;
+        vbend = vtotal;
+
+        // TODO: Found a monitor document that lists two different scan rates for PC-98:
+        //
+        //       640x400  25.175MHz dot clock  70.15Hz refresh  31.5KHz horizontal refresh (basically, VGA)
+        //       640x400  21.05MHz dot clock   56.42Hz refresh  24.83Hz horizontal refresh (original spec?)
+
+        if (false/*future 15KHz hsync*/) {
+            oscclock = 14318180;
+        }
+        else if (true/*24KHz hsync*/) {
+            oscclock = 21052600;
+        }
+        else {/*31KHz VGA-like hsync*/
+            oscclock = 25175000;
+        }
+
+        clock = oscclock / 8;
+    }
+    else if (IS_EGAVGA_ARCH) {
 		htotal = vga.crtc.horizontal_total;
 		hdend = vga.crtc.horizontal_display_end;
 		hbend = vga.crtc.end_horizontal_blanking&0x1F;
