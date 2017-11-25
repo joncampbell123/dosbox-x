@@ -138,9 +138,16 @@ static struct {
       };
 
 bool BIOS_AddKeyToBuffer(Bit16u code) {
-	if (mem_readb(BIOS_KEYBOARD_FLAGS2)&8) return true;
+    if (!IS_PC98_ARCH) {
+        if (mem_readb(BIOS_KEYBOARD_FLAGS2)&8) return true;
+    }
+
 	Bit16u start,end,head,tail,ttail;
-	if (machine==MCH_PCJR) {
+    if (IS_PC98_ARCH) {
+        start=0x502;
+        end=0x522;
+    }
+	else if (machine==MCH_PCJR) {
 		/* should be done for cga and others as well, to be tested */
 		start=0x1e;
 		end=0x3e;
@@ -148,8 +155,16 @@ bool BIOS_AddKeyToBuffer(Bit16u code) {
 		start=mem_readw(BIOS_KEYBOARD_BUFFER_START);
 		end	 =mem_readw(BIOS_KEYBOARD_BUFFER_END);
 	}
-	head =mem_readw(BIOS_KEYBOARD_BUFFER_HEAD);
-	tail =mem_readw(BIOS_KEYBOARD_BUFFER_TAIL);
+
+    if (IS_PC98_ARCH) {
+        head =mem_readw(0x524/*head*/);
+        tail =mem_readw(0x526/*tail*/);
+    }
+    else {
+        head =mem_readw(BIOS_KEYBOARD_BUFFER_HEAD);
+        tail =mem_readw(BIOS_KEYBOARD_BUFFER_TAIL);
+    }
+
 	ttail=tail+2;
 	if (ttail>=end) {
 		ttail=start;
@@ -157,8 +172,16 @@ bool BIOS_AddKeyToBuffer(Bit16u code) {
 	/* Check for buffer Full */
 	//TODO Maybe beeeeeeep or something although that should happend when internal buffer is full
 	if (ttail==head) return false;
-	real_writew(0x40,tail,code);
-	mem_writew(BIOS_KEYBOARD_BUFFER_TAIL,ttail);
+
+    if (IS_PC98_ARCH) {
+        real_writew(0x0,tail,code);
+        mem_writew(0x526/*tail*/,ttail);
+    }
+    else {
+        real_writew(0x40,tail,code);
+        mem_writew(BIOS_KEYBOARD_BUFFER_TAIL,ttail);
+    }
+
 	return true;
 }
 
@@ -168,7 +191,11 @@ static void add_key(Bit16u code) {
 
 static bool get_key(Bit16u &code) {
 	Bit16u start,end,head,tail,thead;
-	if (machine==MCH_PCJR) {
+    if (IS_PC98_ARCH) {
+        start=0x502;
+        end=0x522;
+    }
+    else if (machine==MCH_PCJR) {
 		/* should be done for cga and others as well, to be tested */
 		start=0x1e;
 		end=0x3e;
@@ -176,14 +203,29 @@ static bool get_key(Bit16u &code) {
 		start=mem_readw(BIOS_KEYBOARD_BUFFER_START);
 		end	 =mem_readw(BIOS_KEYBOARD_BUFFER_END);
 	}
-	head =mem_readw(BIOS_KEYBOARD_BUFFER_HEAD);
-	tail =mem_readw(BIOS_KEYBOARD_BUFFER_TAIL);
+
+    if (IS_PC98_ARCH) {
+        head =mem_readw(0x524/*head*/);
+        tail =mem_readw(0x526/*tail*/);
+    }
+    else {
+        head =mem_readw(BIOS_KEYBOARD_BUFFER_HEAD);
+        tail =mem_readw(BIOS_KEYBOARD_BUFFER_TAIL);
+    }
 
 	if (head==tail) return false;
 	thead=head+2;
 	if (thead>=end) thead=start;
-	mem_writew(BIOS_KEYBOARD_BUFFER_HEAD,thead);
-	code = real_readw(0x40,head);
+
+    if (IS_PC98_ARCH) {
+        mem_writew(0x524/*head*/,thead);
+        code = real_readw(0x0,head);
+    }
+    else {
+        mem_writew(BIOS_KEYBOARD_BUFFER_HEAD,thead);
+        code = real_readw(0x40,head);
+    }
+
 	return true;
 }
 

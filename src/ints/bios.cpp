@@ -5454,6 +5454,10 @@ void BIOS_OnEnterPC98Mode(Section* sec) {
 
         /* set up some default state */
         mem_writeb(0x54C/*MEMB_PRXCRT*/,0x4F); /* default graphics layer off, 24KHz hsync */
+
+        /* keyboard buffer */
+        mem_writew(0x524/*tail*/,0x502);
+        mem_writew(0x526/*tail*/,0x502);
     }
 }
 
