@@ -77,6 +77,7 @@ public:
 	Bit32u heads,cylinders,sectors;
 	Bit32u reserved_cylinders;
 	Bit64u current_fpos;
+    Bit64u image_base;
 
 	volatile int refcount;
 	bool auto_delete_on_refcount_zero;

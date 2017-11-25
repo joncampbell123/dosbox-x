@@ -43,6 +43,8 @@ diskGeo DiskGeometryList[] = {
     {1440, 18, 2, 80, 4, 512},      // IBM PC high density 3.5" double-sided 1.44MB
     {2880, 36, 2, 80, 6, 512},      // IBM PC high density 3.5" double-sided 2.88MB
 
+    {1232,  8, 2, 77, 7, 1024},     // NEC PC-98 high density 3.5" double-sided 1.2MB "3-mode"
+
     {0, 0, 0, 0, 0, 0}
 };
 
@@ -218,6 +220,7 @@ Bit8u imageDisk::Read_AbsoluteSector(Bit32u sectnum, void * data) {
 	int got;
 
 	bytenum = (Bit64u)sectnum * (Bit64u)sector_size;
+    bytenum += image_base;
 
 	//LOG_MSG("Reading sectors %ld at bytenum %I64d", sectnum, bytenum);
 
@@ -252,6 +255,7 @@ Bit8u imageDisk::Write_AbsoluteSector(Bit32u sectnum, void *data) {
 	Bit64u bytenum;
 
 	bytenum = (Bit64u)sectnum * sector_size;
+    bytenum += image_base;
 
 	//LOG_MSG("Writing sectors to %ld at bytenum %d", sectnum, bytenum);
 
@@ -276,7 +280,8 @@ Bit32u imageDisk::Get_Reserved_Cylinders() {
 imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk) {
 	heads = 0;
 	cylinders = 0;
-	sectors = 0;
+    image_base = 0;
+    sectors = 0;
 	refcount = 0;
 	sector_size = 512;
 	reserved_cylinders = 0;
@@ -292,6 +297,22 @@ imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHard
 	if(!isHardDisk) {
 		Bit8u i=0;
 		bool founddisk = false;
+
+        {
+            char *ext = strrchr((char*)imgName,'.');
+            if (ext != NULL) {
+                if (!strcasecmp(ext,".fdi")) {
+                    if (imgSizeK >= 160) {
+                        // PC-98 .FDI images appear to be 4096 bytes of unknown and mostly zeros,
+                        // followed by a straight sector dump of the disk.
+                        imgSizeK -= 4; // minus 4K
+                        image_base += 4096; // +4K
+                        LOG_MSG("Image file has .FDI extension, assuming 4K offset");
+                    }
+                }
+            }
+        }
+
 		while (DiskGeometryList[i].ksize!=0x0) {
 			if ((DiskGeometryList[i].ksize==imgSizeK) ||
 				(DiskGeometryList[i].ksize+1==imgSizeK)) {
@@ -304,6 +325,8 @@ imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHard
 				cylinders = DiskGeometryList[i].cylcount;
 				sectors = DiskGeometryList[i].secttrack;
                 sector_size = DiskGeometryList[i].bytespersect;
+                LOG_MSG("Identified '%s' as C/H/S %u/%u/%u %u bytes/sector",
+                    imgName,cylinders,heads,sectors,sector_size);
 				break;
 			}
 			i++;
