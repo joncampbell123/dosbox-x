@@ -40,6 +40,7 @@ struct diskGeo {
 	Bit16u headscyl;  /* Heads per cylinder */
 	Bit16u cylcount;  /* Cylinders per side */
 	Bit16u biosval;   /* Type to return from BIOS */
+    Bit16u bytespersect; /* Bytes per sector */
 };
 extern diskGeo DiskGeometryList[];
 
