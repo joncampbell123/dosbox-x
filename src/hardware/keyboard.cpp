@@ -1661,7 +1661,7 @@ static void pc98_8255_write(Bitu port,Bitu val,Bitu /*iolen*/) {
             PCSPEAKER_SetType(!!port_61_data,!!port_61_data);
             break;
         case 0x37:
-            LOG_MSG("PC-98 8255 FIXME: Control register not supported yet (val=0x%02x)",val);
+            LOG_MSG("PC-98 8255 FIXME: Control register not supported yet (val=0x%02x)",(unsigned int)val);
             break;
     };
 }
@@ -1670,16 +1670,16 @@ static Bitu pc98_8255_read(Bitu port,Bitu /*iolen*/) {
     switch (port) {
         case 0x31:
             LOG_MSG("PC-98 8255 FIXME: DIP switch port A not supported yet");
-            return 0x00;
+            return 0x63; // taken from a PC-9821 Lt2
         case 0x33:
             LOG_MSG("PC-98 8255 FIXME: Port B not supported yet");
-            return 0x00;
+            return 0xF9; // taken from a PC-9821 Lt2
         case 0x35:
             /* HACK: Re-use the IBM port 61h gate enable here for buzzer inhibit.
              *       Remember that on the IBM platform the PC gate is an ENABLE (1=on)
              *       and PC-98 the gate is a DISABLE (1=off) */
             return
-                ((port_61_data & 1) ? 0x00 : 0x08);
+                ((port_61_data & 1) ? 0x00 : 0x08) | 0xB0; // taken from a PC-9821 Lt2
     };
 
     LOG_MSG("PC-98 8255 unexpected read port 0x%02X",(unsigned int)port);
