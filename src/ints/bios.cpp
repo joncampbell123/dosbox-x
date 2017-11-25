@@ -2551,8 +2551,36 @@ static Bitu INT1F_PC98_Handler(void) {
     return CBRET_NONE;
 }
 
+static Bitu INTGEN_PC98_Handler(void) {
+    LOG_MSG("PC-98 INT stub unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+        reg_ax,
+        reg_bx,
+        reg_cx,
+        reg_dx,
+        reg_si,
+        reg_di,
+        SegValue(ds),
+        SegValue(es));
+
+    return CBRET_NONE;
+}
+
 static Bitu INTDC_PC98_Handler(void) {
     LOG_MSG("PC-98 INT DCh unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+        reg_ax,
+        reg_bx,
+        reg_cx,
+        reg_dx,
+        reg_si,
+        reg_di,
+        SegValue(ds),
+        SegValue(es));
+
+    return CBRET_NONE;
+}
+
+static Bitu INTF2_PC98_Handler(void) {
+    LOG_MSG("PC-98 INT F2h unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
         reg_ax,
         reg_bx,
         reg_cx,
@@ -5252,6 +5280,10 @@ public:
 		for (Bit16u ct=0x70;ct <= 0x77;ct++) /* zero out IBM PC IRQ 8-15 vectors */
 			RealSetVec(ct,0);
 
+		/* INT 40h-FFh generic stub routine */
+		callback[18].Install(&INTGEN_PC98_Handler,CB_IRET,"Int stub ???");
+        for (unsigned int i=0x40;i < 0x100;i++) RealSetVec(i,callback[18].Get_RealPointer());
+
         BIOS_SetupKeyboard();
         BIOS_SetupDisks(); /* In PC-98 mode, will zero INT 13h */
 
@@ -5287,10 +5319,13 @@ public:
 		callback[10].Install(&INT1F_PC98_Handler,CB_IRET,"Int 1F ???");
 		callback[10].Set_RealVec(0x1F,/*reinstall*/true);
 
-
 		/* INT DCh *STUB* */
 		callback[16].Install(&INTDC_PC98_Handler,CB_IRET,"Int DC ???");
 		callback[16].Set_RealVec(0xDC,/*reinstall*/true);
+
+		/* INT F2h *STUB* */
+		callback[17].Install(&INTF2_PC98_Handler,CB_IRET,"Int F2 ???");
+		callback[17].Set_RealVec(0xF2,/*reinstall*/true);
     }
 public:
     Bitu call_irq0;
