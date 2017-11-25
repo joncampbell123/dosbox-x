@@ -2551,6 +2551,20 @@ static Bitu INT1F_PC98_Handler(void) {
     return CBRET_NONE;
 }
 
+static Bitu INTDC_PC98_Handler(void) {
+    LOG_MSG("PC-98 INT DCh unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+        reg_ax,
+        reg_bx,
+        reg_cx,
+        reg_dx,
+        reg_si,
+        reg_di,
+        SegValue(ds),
+        SegValue(es));
+
+    return CBRET_NONE;
+}
+
 static Bitu INT11_Handler(void) {
 	reg_ax=mem_readw(BIOS_CONFIGURATION);
 	return CBRET_NONE;
@@ -3931,7 +3945,7 @@ static Bitu adapter_scan_start;
 
 /* FIXME: At global scope their destructors are called after the rest of DOSBox has shut down. Move back into BIOS scope. */
 static CALLBACK_HandlerObject int4b_callback;
-static CALLBACK_HandlerObject callback[16]; /* <- fixme: this is stupid. just declare one per interrupt. */
+static CALLBACK_HandlerObject callback[20]; /* <- fixme: this is stupid. just declare one per interrupt. */
 static CALLBACK_HandlerObject cb_bios_post;
 
 Bitu call_pnp_r = ~0UL;
@@ -5272,6 +5286,11 @@ public:
 		/* INT 1Fh *STUB* */
 		callback[10].Install(&INT1F_PC98_Handler,CB_IRET,"Int 1F ???");
 		callback[10].Set_RealVec(0x1F,/*reinstall*/true);
+
+
+		/* INT DCh *STUB* */
+		callback[16].Install(&INTDC_PC98_Handler,CB_IRET,"Int DC ???");
+		callback[16].Set_RealVec(0xDC,/*reinstall*/true);
     }
 public:
     Bitu call_irq0;
