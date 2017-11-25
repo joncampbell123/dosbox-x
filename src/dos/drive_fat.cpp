@@ -684,13 +684,13 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
 		return;
 	}
 
+	loadedDisk->Addref();
+
     /* too much code here assumes 512 bytes per sector or less */
     if (loadedDisk->getSectSize() > 512) {
         LOG_MSG("Disk sector/bytes (%u) is too large, not attempting FAT filesystem access",loadedDisk->getSectSize());
         return;
     }
-
-	loadedDisk->Addref();
 
 	if(filesize > 2880) {
 		/* Set user specified harddrive parameters */
