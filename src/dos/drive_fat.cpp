@@ -768,6 +768,25 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
 		return;
 	}
 
+    /* too much of this code assumes 512 bytes per sector or more.
+     * MS-DOS itself as I understand it relies on bytes per sector being a power of 2.
+     * this is to protect against errant FAT structures and to help prep this code
+     * later to work with the 1024 bytes/sector used by PC-98 floppy formats.
+     * When done, this code should be able to then handle the FDI/FDD images
+     * PC-98 games are normally distributed in on the internet.
+     *
+     * The value "128" comes from the smallest sector size possible on the floppy
+     * controller of MS-DOS based systems. */
+    /* NTS: Power of 2 test: A number is a power of 2 if (x & (x - 1)) == 0
+     *
+     * 15        15 & 14       01111 AND 01110     RESULT: 01110 (15)
+     * 16        16 & 15       10000 AND 01111     RESULT: 00000 (0)
+     * 17        17 & 16       10001 AND 10000     RESULT: 10000 (16) */
+    if (bootbuffer.bytespersector < 128 || bootbuffer.bytespersector > 512 ||
+        (bootbuffer.bytespersector & (bootbuffer.bytespersector - 1)) != 0/*not a power of 2*/) {
+        LOG_MSG("FAT bytes/sector value %u not supported",bootbuffer.bytespersector);
+        return;
+    }
 
 	/* Determine FAT format, 12, 16 or 32 */
 
