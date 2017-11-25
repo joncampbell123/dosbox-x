@@ -235,10 +235,23 @@ bool INT16_get_key(Bit16u &code) {
 
 static bool check_key(Bit16u &code) {
 	Bit16u head,tail;
-	head =mem_readw(BIOS_KEYBOARD_BUFFER_HEAD);
-	tail =mem_readw(BIOS_KEYBOARD_BUFFER_TAIL);
+
+    if (IS_PC98_ARCH) {
+        head =mem_readw(0x524/*head*/);
+        tail =mem_readw(0x526/*tail*/);
+    }
+    else {
+        head =mem_readw(BIOS_KEYBOARD_BUFFER_HEAD);
+        tail =mem_readw(BIOS_KEYBOARD_BUFFER_TAIL);
+    }
+
 	if (head==tail) return false;
-	code = real_readw(0x40,head);
+
+    if (IS_PC98_ARCH)
+        code = real_readw(0x0,head);
+    else
+        code = real_readw(0x40,head);
+
 	return true;
 }
 
