@@ -830,13 +830,6 @@ void PC98_GDC_state::take_reset_sync_parameters(void) {
         vertical_back_porch_width);
 }
 
-void PC98_GDC_state::apply_to_video_output(void) {
-    /* take our SYNC parameters and feed it into the incumbent VGA raster emulation.
-     * do not call this function unless this GDC runs as the master sync source. */
-
-    // TODO
-}
-
 void PC98_GDC_state::cursor_advance(void) {
     cursor_blink_count++;
     if (cursor_blink_count == cursor_blink_rate) {
@@ -993,7 +986,6 @@ void PC98_GDC_state::idle_proc(void) {
                     cmd_parm_tmp[proc_step] = (uint8_t)val;
                     if ((++proc_step) == 8) {
                         take_reset_sync_parameters();
-                        if (master_sync) apply_to_video_output();
                     }
                 }
                 break;
