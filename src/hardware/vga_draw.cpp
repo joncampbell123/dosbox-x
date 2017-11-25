@@ -1812,6 +1812,18 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         vtotal = vrend + pc98_gdc[GDC_MASTER].vertical_back_porch_width;
         vbend = vtotal;
 
+        // perhaps if the game makes a custom mode, it might choose different active display regions
+        // for text and graphics. allow that here.
+        // NTS: Remember that the graphics (slave) GDC is programmed in "words" which in graphics mode
+        //      means 16-pixel wide units.
+        if (hdend < (pc98_gdc[GDC_SLAVE].active_display_words_per_line * 2))
+            hdend = (pc98_gdc[GDC_SLAVE].active_display_words_per_line * 2);
+        if (vdend < (pc98_gdc[GDC_SLAVE].active_display_lines))
+            vdend = (pc98_gdc[GDC_SLAVE].active_display_lines);
+
+        // TODO: The GDC rendering should allow different active display regions to render
+        //       properly over one another.
+
         // TODO: Found a monitor document that lists two different scan rates for PC-98:
         //
         //       640x400  25.175MHz dot clock  70.15Hz refresh  31.5KHz horizontal refresh (basically, VGA)
