@@ -780,10 +780,13 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
 		}
 	}
 
-	if ((bootbuffer.magic1 != 0x55) || (bootbuffer.magic2 != 0xaa)) {
-		/* Not a FAT filesystem */
-		LOG_MSG("Loaded image has no valid magicnumbers at the end!");
-	}
+    /* NTS: PC-98 floppies (the 1024 byte/sector format) do not have magic bytes */
+    if (loadedDisk->getSectSize() == 512) {
+        if ((bootbuffer.magic1 != 0x55) || (bootbuffer.magic2 != 0xaa)) {
+            /* Not a FAT filesystem */
+            LOG_MSG("Loaded image has no valid magicnumbers at the end!");
+        }
+    }
 
 	if(!bootbuffer.sectorsperfat) {
 		/* FAT32 not implemented yet */
