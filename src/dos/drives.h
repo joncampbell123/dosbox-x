@@ -152,6 +152,12 @@ struct bootstrap {
 	Bit8u  bootcode[474];
 	Bit8u  magic1; /* 0x55 */
 	Bit8u  magic2; /* 0xaa */
+#ifndef SECTOR_SIZE_MAX
+# pragma warning SECTOR_SIZE_MAX not defined
+#endif
+#if SECTOR_SIZE_MAX > 512
+    Bit8u  extra[SECTOR_SIZE_MAX - 512];
+#endif
 } GCC_ATTRIBUTE(packed);
 
 struct direntry {

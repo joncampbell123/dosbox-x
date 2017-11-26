@@ -21,11 +21,13 @@
 #include <string.h>
 #include <ctype.h>
 #include "dosbox.h"
+#include "dos_inc.h"
 #include "bios.h"
 #include "mem.h"
 #include "paging.h"
 #include "callback.h"
 #include "regs.h"
+#include "drives.h"
 #include "dos_inc.h"
 #include "setup.h"
 #include "support.h"
@@ -2237,6 +2239,8 @@ void DOS_Startup(Section* sec) {
 
 void DOS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing DOS kernel (DOS_Init)");
+    LOG(LOG_MISC,LOG_DEBUG)("sizeof(union bootSector) = %u",(unsigned int)sizeof(union bootSector));
+    LOG(LOG_MISC,LOG_DEBUG)("sizeof(struct bootstrap) = %u",(unsigned int)sizeof(struct bootstrap));
 
 	AddExitFunction(AddExitFunctionFuncPair(DOS_ShutDown),false);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(DOS_OnReset));
