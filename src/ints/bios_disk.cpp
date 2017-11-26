@@ -900,7 +900,7 @@ Bit8u imageDiskVFD::Read_AbsoluteSector(Bit32u sectnum, void * data) {
     unsigned int c,h,s;
 
     s = (sectnum % sectors) + 1;
-    h = (sectnum / sectors);
+    h = (sectnum / sectors) % heads;
     c = (sectnum / sectors / heads);
     return Read_Sector(h,c,s,data);
 }
