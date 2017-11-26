@@ -1030,12 +1030,16 @@ bool fatDrive::FindNextInternal(Bit32u dirClustNumber, DOS_DTA &dta, direntry *f
 	char find_name[DOS_NAMELENGTH_ASCII];
 	char extension[4];
 
+    size_t dirent_per_sector = loadedDisk->getSectSize() / sizeof(direntry);
+    assert(dirent_per_sector <= MAX_DIRENTS_PER_SECTOR);
+    assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
+
 	dta.GetSearchParams(attrs, srch_pattern);
 	dirPos = dta.GetDirID();
 
 nextfile:
-	logentsector = dirPos / 16;
-	entryoffset = dirPos % 16;
+	logentsector = dirPos / dirent_per_sector;
+	entryoffset = dirPos % dirent_per_sector;
 
 	if(dirClustNumber==0) {
 		if(dirPos >= bootbuffer.rootdirentries) {
@@ -1143,10 +1147,14 @@ bool fatDrive::directoryBrowse(Bit32u dirClustNumber, direntry *useEntry, Bit32s
 	Bit32u tmpsector;
 	Bit16u dirPos = 0;
 
+    size_t dirent_per_sector = loadedDisk->getSectSize() / sizeof(direntry);
+    assert(dirent_per_sector <= MAX_DIRENTS_PER_SECTOR);
+    assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
+
 	while(entNum>=0) {
 
-		logentsector = dirPos / 16;
-		entryoffset = dirPos % 16;
+		logentsector = dirPos / dirent_per_sector;
+		entryoffset = dirPos % dirent_per_sector;
 
 		if(dirClustNumber==0) {
 			if(dirPos >= bootbuffer.rootdirentries) return false;
@@ -1177,10 +1185,14 @@ bool fatDrive::directoryChange(Bit32u dirClustNumber, direntry *useEntry, Bit32s
 	Bit32u tmpsector = 0;
 	Bit16u dirPos = 0;
 	
+    size_t dirent_per_sector = loadedDisk->getSectSize() / sizeof(direntry);
+    assert(dirent_per_sector <= MAX_DIRENTS_PER_SECTOR);
+    assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
+
 	while(entNum>=0) {
 		
-		logentsector = dirPos / 16;
-		entryoffset = dirPos % 16;
+		logentsector = dirPos / dirent_per_sector;
+		entryoffset = dirPos % dirent_per_sector;
 
 		if(dirClustNumber==0) {
 			if(dirPos >= bootbuffer.rootdirentries) return false;
@@ -1215,10 +1227,14 @@ bool fatDrive::addDirectoryEntry(Bit32u dirClustNumber, direntry useEntry) {
 	Bit32u tmpsector;
 	Bit16u dirPos = 0;
 	
+    size_t dirent_per_sector = loadedDisk->getSectSize() / sizeof(direntry);
+    assert(dirent_per_sector <= MAX_DIRENTS_PER_SECTOR);
+    assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
+
 	for(;;) {
 		
-		logentsector = dirPos / 16;
-		entryoffset = dirPos % 16;
+		logentsector = dirPos / dirent_per_sector;
+		entryoffset = dirPos % dirent_per_sector;
 
 		if(dirClustNumber==0) {
 			if(dirPos >= bootbuffer.rootdirentries) return false;
