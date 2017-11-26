@@ -260,7 +260,7 @@ private:
 	Bit32u cwdDirCluster;
 	Bit32u dirPosition; /* Position in directory search */
 
-	Bit8u fatSectBuffer[1024];
+	Bit8u fatSectBuffer[SECTOR_SIZE_MAX * 2];
 	Bit32u curFatSect;
 };
 
