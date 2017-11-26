@@ -715,6 +715,12 @@ public:
 		}
 
 		bootSector bootarea;
+
+        if (imageDiskList[drive-65]->getSectSize() > sizeof(bootarea)) {
+            WriteOut("Bytes/sector too large");
+            return;
+        }
+
 		imageDiskList[drive-65]->Read_Sector(0,0,1,(Bit8u *)&bootarea);
 
 		Bitu pcjr_hdr_length = 0;
