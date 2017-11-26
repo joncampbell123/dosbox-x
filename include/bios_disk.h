@@ -48,7 +48,8 @@ class imageDisk {
 public:
 	enum {
 		ID_BASE=0,
-		ID_EL_TORITO_FLOPPY
+		ID_EL_TORITO_FLOPPY,
+        ID_VFD
 	};
 public:
 	virtual Bit8u Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data);
@@ -62,8 +63,9 @@ public:
 	virtual void Get_Geometry(Bit32u * getHeads, Bit32u *getCyl, Bit32u *getSect, Bit32u *getSectSize);
 	virtual Bit8u GetBiosType(void);
 	virtual Bit32u getSectSize(void);
+    imageDisk();
 	imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk);
-	virtual ~imageDisk() { if(diskimg != NULL) { fclose(diskimg); }	};
+	virtual ~imageDisk() { if(diskimg != NULL) { fclose(diskimg); diskimg=NULL; } };
 
 	int class_id;
 
@@ -94,6 +96,40 @@ public:
 		if (ret == 0 && auto_delete_on_refcount_zero) delete this;
 		return ret;
 	}
+};
+
+class imageDiskVFD : public imageDisk {
+public:
+	virtual Bit8u Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data);
+	virtual Bit8u Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data);
+	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data);
+	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, void * data);
+
+	imageDiskVFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk);
+	virtual ~imageDiskVFD();
+
+    struct vfdentry {
+        uint8_t         track,head,sector,sizebyte;
+        uint8_t         fillbyte;
+
+        uint32_t        data_offset;
+
+        bool hasSectorData(void) const {
+            return fillbyte == 0xFF;
+        }
+
+        bool hasFill(void) const {
+            return fillbyte != 0xFF;
+        }
+
+        uint16_t getSectorSize(void) const {
+            return 128 << sizebyte;
+        }
+    };
+
+    vfdentry *findSector(Bit8u head,Bit8u track,Bit8u sector/*TODO: physical head?*/);
+
+    std::vector<vfdentry> dents;
 };
 
 void updateDPT(void);

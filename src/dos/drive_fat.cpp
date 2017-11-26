@@ -665,9 +665,9 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
     // there are plenty of cases where this code aborts, exits, or re-execs itself (such as reboot)
     // where stdio buffering can cause loss of data.
     setbuf(diskfile,NULL);
-	
+
 	QCow2Image::QCow2Header qcow2_header = QCow2Image::read_header(diskfile);
-	
+
 	if (qcow2_header.magic == QCow2Image::magic && (qcow2_header.version == 2 || qcow2_header.version == 3)){
 		Bit32u cluster_size = 1 << qcow2_header.cluster_bits;
 		if ((bytesector < 512) || ((cluster_size % bytesector) != 0)){
@@ -678,9 +678,20 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
 		loadedDisk = new QCow2Disk(qcow2_header, diskfile, (Bit8u *)sysFilename, filesize, bytesector, (filesize > 2880));
 	}
 	else{
-		fseeko64(diskfile, 0L, SEEK_END);
-		filesize = (Bit32u)(ftello64(diskfile) / 1024L);
-		loadedDisk = new imageDisk(diskfile, (Bit8u *)sysFilename, filesize, (filesize > 2880));
+		fseeko64(diskfile, 0L, SEEK_SET);
+        assert(sizeof(bootbuffer.bootcode) >= 256);
+        fread(bootbuffer.bootcode,256,1,diskfile); // look for magic signatures
+
+        if (!memcmp(bootbuffer.bootcode,"VFD1.",5)) { /* FDD files */
+            fseeko64(diskfile, 0L, SEEK_END);
+            filesize = (Bit32u)(ftello64(diskfile) / 1024L);
+            loadedDisk = new imageDiskVFD(diskfile, (Bit8u *)sysFilename, filesize, (filesize > 2880));
+        }
+        else {
+            fseeko64(diskfile, 0L, SEEK_END);
+            filesize = (Bit32u)(ftello64(diskfile) / 1024L);
+            loadedDisk = new imageDisk(diskfile, (Bit8u *)sysFilename, filesize, (filesize > 2880));
+        }
 	}
 
 	if(!loadedDisk) {
