@@ -736,6 +736,8 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
 
 	loadedDisk->Read_AbsoluteSector(0+partSectOff,&bootbuffer);
 
+    LOG_MSG("FAT: BPB says %u sectors/track %u heads",bootbuffer.sectorspertrack,bootbuffer.headcount);
+
 	/* Check for DOS 1.x format floppy */
 	if ((bootbuffer.mediadescriptor & 0xf0) != 0xf0 && filesize <= 360 && loadedDisk->getSectSize() == 512) {
 
