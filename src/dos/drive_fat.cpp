@@ -795,6 +795,16 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
         return;
     }
 
+    /* another fault of this code is that it assumes the sector size of the medium matches
+     * the bytespersector value of the MS-DOS filesystem. if they don't match, problems
+     * will result. */
+    if (bootbuffer.bytespersector != loadedDisk->getSectSize()) {
+        LOG_MSG("FAT bytes/sector %u does not match disk image bytes/sector %u",
+            (unsigned int)bootbuffer.bytespersector,
+            (unsigned int)loadedDisk->getSectSize());
+        return;
+    }
+
 	/* Determine FAT format, 12, 16 or 32 */
 
 	/* Get size of root dir in sectors */
