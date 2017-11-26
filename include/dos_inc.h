@@ -86,6 +86,8 @@ typedef unsigned int        UINT32, *PUINT32;
 }
 #endif
 
+#define SECTOR_SIZE_MAX     512
+
 #ifdef _MSC_VER
 #pragma pack (1)
 #endif
@@ -96,9 +98,8 @@ union bootSector {
 		Bit16u bytesect;
 		Bit8u sectclust;
 		Bit16u reserve_sect;
-		Bit8u misc[496];
 	} bootdata;
-	Bit8u rawdata[512];
+	Bit8u rawdata[SECTOR_SIZE_MAX];
 } GCC_ATTRIBUTE(packed);
 #ifdef _MSC_VER
 #pragma pack ()
