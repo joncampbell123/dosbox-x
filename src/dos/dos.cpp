@@ -2241,6 +2241,12 @@ void DOS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing DOS kernel (DOS_Init)");
     LOG(LOG_MISC,LOG_DEBUG)("sizeof(union bootSector) = %u",(unsigned int)sizeof(union bootSector));
     LOG(LOG_MISC,LOG_DEBUG)("sizeof(struct bootstrap) = %u",(unsigned int)sizeof(struct bootstrap));
+    LOG(LOG_MISC,LOG_DEBUG)("sizeof(direntry) = %u",(unsigned int)sizeof(direntry));
+
+    /* this code makes assumptions! */
+    assert(sizeof(direntry) == 32);
+    assert((SECTOR_SIZE_MAX % sizeof(direntry)) == 0);
+    assert((MAX_DIRENTS_PER_SECTOR * sizeof(direntry)) == SECTOR_SIZE_MAX);
 
 	AddExitFunction(AddExitFunctionFuncPair(DOS_ShutDown),false);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(DOS_OnReset));

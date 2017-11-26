@@ -175,6 +175,8 @@ struct direntry {
 	Bit32u entrysize;
 } GCC_ATTRIBUTE(packed);
 
+#define MAX_DIRENTS_PER_SECTOR (SECTOR_SIZE_MAX / sizeof(direntry))
+
 struct partTable {
 	Bit8u booter[446];
 	struct {

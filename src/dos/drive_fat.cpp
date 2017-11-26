@@ -1020,7 +1020,7 @@ char* trimString(char* str) {
 }
 
 bool fatDrive::FindNextInternal(Bit32u dirClustNumber, DOS_DTA &dta, direntry *foundEntry) {
-	direntry sectbuf[16]; /* 16 directory entries per sector */
+	direntry sectbuf[MAX_DIRENTS_PER_SECTOR]; /* 16 directory entries per 512 byte sector */
 	Bit32u logentsector; /* Logical entry sector */
 	Bit32u entryoffset;  /* Index offset within sector */
 	Bit32u tmpsector;
@@ -1137,7 +1137,7 @@ bool fatDrive::GetFileAttr(const char *name, Bit16u *attr) {
 }
 
 bool fatDrive::directoryBrowse(Bit32u dirClustNumber, direntry *useEntry, Bit32s entNum, Bit32s start/*=0*/) {
-	direntry sectbuf[16];	/* 16 directory entries per sector */
+	direntry sectbuf[MAX_DIRENTS_PER_SECTOR];	/* 16 directory entries per 512 byte sector */
 	Bit32u logentsector;	/* Logical entry sector */
 	Bit32u entryoffset = 0;	/* Index offset within sector */
 	Bit32u tmpsector;
@@ -1171,7 +1171,7 @@ bool fatDrive::directoryBrowse(Bit32u dirClustNumber, direntry *useEntry, Bit32s
 }
 
 bool fatDrive::directoryChange(Bit32u dirClustNumber, direntry *useEntry, Bit32s entNum) {
-	direntry sectbuf[16];	/* 16 directory entries per sector */
+	direntry sectbuf[MAX_DIRENTS_PER_SECTOR];	/* 16 directory entries per 512 byte sector */
 	Bit32u logentsector;	/* Logical entry sector */
 	Bit32u entryoffset = 0;	/* Index offset within sector */
 	Bit32u tmpsector = 0;
@@ -1209,7 +1209,7 @@ bool fatDrive::directoryChange(Bit32u dirClustNumber, direntry *useEntry, Bit32s
 }
 
 bool fatDrive::addDirectoryEntry(Bit32u dirClustNumber, direntry useEntry) {
-	direntry sectbuf[16]; /* 16 directory entries per sector */
+	direntry sectbuf[MAX_DIRENTS_PER_SECTOR]; /* 16 directory entries per 512 byte sector */
 	Bit32u logentsector; /* Logical entry sector */
 	Bit32u entryoffset;  /* Index offset within sector */
 	Bit32u tmpsector;
