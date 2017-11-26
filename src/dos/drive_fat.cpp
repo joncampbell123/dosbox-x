@@ -687,7 +687,7 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
 	loadedDisk->Addref();
 
     /* too much code here assumes 512 bytes per sector or less */
-    if (loadedDisk->getSectSize() > 512) {
+    if (loadedDisk->getSectSize() > sizeof(bootbuffer)) {
         LOG_MSG("Disk sector/bytes (%u) is too large, not attempting FAT filesystem access",loadedDisk->getSectSize());
         return;
     }
@@ -789,7 +789,7 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
      * 15        15 & 14       01111 AND 01110     RESULT: 01110 (15)
      * 16        16 & 15       10000 AND 01111     RESULT: 00000 (0)
      * 17        17 & 16       10001 AND 10000     RESULT: 10000 (16) */
-    if (bootbuffer.bytespersector < 128 || bootbuffer.bytespersector > 512 ||
+    if (bootbuffer.bytespersector < 128 || bootbuffer.bytespersector > sizeof(bootbuffer) ||
         (bootbuffer.bytespersector & (bootbuffer.bytespersector - 1)) != 0/*not a power of 2*/) {
         LOG_MSG("FAT bytes/sector value %u not supported",bootbuffer.bytespersector);
         return;
