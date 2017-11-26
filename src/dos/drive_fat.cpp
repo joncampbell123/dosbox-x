@@ -736,8 +736,6 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
 
 	loadedDisk->Read_AbsoluteSector(0+partSectOff,&bootbuffer);
 
-    LOG_MSG("FAT: BPB says %u sectors/track %u heads",bootbuffer.sectorspertrack,bootbuffer.headcount);
-
 	/* Check for DOS 1.x format floppy */
 	if ((bootbuffer.mediadescriptor & 0xf0) != 0xf0 && filesize <= 360 && loadedDisk->getSectSize() == 512) {
 
@@ -779,6 +777,15 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
 			}
 		}
 	}
+
+    LOG_MSG("FAT: BPB says %u sectors/track %u heads",bootbuffer.sectorspertrack,bootbuffer.headcount);
+
+    /* a clue that we're not really looking at FAT is invalid or weird values in the boot sector */
+    if (bootbuffer.sectorspertrack == 0 || bootbuffer.sectorspertrack > 40 ||
+        bootbuffer.headcount == 0 || bootbuffer.headcount > 64) {
+        LOG_MSG("Rejecting image, boot sector has weird values not consistent with FAT filesystem");
+        return;
+    }
 
     /* NTS: PC-98 floppies (the 1024 byte/sector format) do not have magic bytes */
     if (loadedDisk->getSectSize() == 512) {
