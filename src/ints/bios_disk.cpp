@@ -899,6 +899,9 @@ Bit8u imageDiskVFD::Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void *
 Bit8u imageDiskVFD::Read_AbsoluteSector(Bit32u sectnum, void * data) {
     unsigned int c,h,s;
 
+    if (sectors == 0 || heads == 0)
+        return 0x05;
+
     s = (sectnum % sectors) + 1;
     h = (sectnum / sectors) % heads;
     c = (sectnum / sectors / heads);
@@ -1036,6 +1039,23 @@ imageDiskVFD::imageDiskVFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
                 if (ent->sizebyte <= 3) /* x <= 1024 */
                     sector_size = ent->getSectorSize();
             }
+
+            /* oh yeah right, sure.
+             * I suppose you're one of those FDD images where the sector size is 128 bytes/sector
+             * in the boot sector and the rest is 256 bytes/sector elsewhere. I have no idea why
+             * but quite a few FDD images have this arrangement. */
+            if (sector_size != 0 && sector_size < 512) {
+                ent = findSector(/*head*/0,/*track*/1,/*sector*/1+i);
+                if (ent != NULL) {
+                    if (ent->sizebyte <= 3) { /* x <= 1024 */
+                        unsigned int nsz = ent->getSectorSize();
+                        if (sector_size != nsz)
+                            LOG_MSG("VFD warning: sector size changes between track 0 and 1");
+                        if (sector_size < nsz)
+                            sector_size = nsz;
+                    }
+                }
+           }
 
             if (sector_size != 0) {
                 i=0;
