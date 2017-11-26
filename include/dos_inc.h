@@ -86,7 +86,7 @@ typedef unsigned int        UINT32, *PUINT32;
 }
 #endif
 
-#define SECTOR_SIZE_MAX     512
+#define SECTOR_SIZE_MAX     1024
 
 #ifdef _MSC_VER
 #pragma pack (1)
