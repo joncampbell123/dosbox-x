@@ -127,7 +127,7 @@ Bitu XMS_EnableA20(bool enable) {
         // NEC PC-98: Unmask (enable) A20 by writing to port 0xF2.
         //            Mask (disable) A20 by writing to port 0xF6.
         val = IO_Read(0xF2);
-        if (enable) IO_Write(0xF2,val); // writing ANYTHING to 0xF2 to "cancel" the A20 mask
+        if (enable) IO_Write(0xF2,val); // writing ANYTHING to 0xF2 will "cancel" the A20 mask
         else        IO_Write(0xF6,val); // writing ANYTHING to 0xF6 will mask A20
     }
     else {
