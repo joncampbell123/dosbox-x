@@ -893,7 +893,7 @@ Bit8u imageDiskVFD::Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void *
         return 0x00;
     }
 
-	return 0x05; // NOTIMPL
+	return 0x05;
 }
 
 Bit8u imageDiskVFD::Read_AbsoluteSector(Bit32u sectnum, void * data) {
@@ -926,9 +926,28 @@ imageDiskVFD::vfdentry *imageDiskVFD::findSector(Bit8u head,Bit8u track,Bit8u se
 }
 
 Bit8u imageDiskVFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data) {
-	return 0x05; // NOTIMPL
-}
+    vfdentry *ent;
 
+    LOG_MSG("VFD write sector: CHS %u/%u/%u",cylinder,head,sector);
+
+    ent = findSector(head,cylinder,sector);
+    if (ent == NULL) return 0x05;
+    if (ent->getSectorSize() != sector_size) return 0x05;
+
+    if (ent->hasSectorData()) {
+        fseek(diskimg,ent->data_offset,SEEK_SET);
+        if (ftell(diskimg) != ent->data_offset) return 0x05;
+        if (fwrite(data,sector_size,1,diskimg) != 1) return 0x05;
+        return 0;
+    }
+    else if (ent->hasFill()) {
+        // TODO: Write sector to end of image, take offset, update vfdentry
+        //       and write back to table.
+        LOG_MSG("VFD write warning: Support for writing fill sectors not yet implemented");
+    }
+
+	return 0x05;
+}
 
 Bit8u imageDiskVFD::Write_AbsoluteSector(Bit32u sectnum, void *data) {
     unsigned int c,h,s;
