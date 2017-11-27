@@ -931,7 +931,15 @@ Bit8u imageDiskVFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void 
 
 
 Bit8u imageDiskVFD::Write_AbsoluteSector(Bit32u sectnum, void *data) {
-    return 0x05; // NOTIMPL
+    unsigned int c,h,s;
+
+    if (sectors == 0 || heads == 0)
+        return 0x05;
+
+    s = (sectnum % sectors) + 1;
+    h = (sectnum / sectors) % heads;
+    c = (sectnum / sectors / heads);
+    return Write_Sector(h,c,s,data);
 }
 
 imageDiskVFD::imageDiskVFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk) : imageDisk() {
@@ -975,6 +983,7 @@ imageDiskVFD::imageDiskVFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
 		Bit8u i=0;
 		bool founddisk = false;
         uint32_t stop_at = 0xC3FC;
+        unsigned long entof;
 
         // load table.
         // we have to determine as we go where to stop reading.
@@ -983,7 +992,7 @@ imageDiskVFD::imageDiskVFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
         // that OR the first sector offset whichever is smaller.
         // the table seems to trail off into a long series of 0xFF at the end.
         fseek(diskimg,0xDC,SEEK_SET);
-        while ((ftell(diskimg)+12) <= stop_at) {
+        while ((entof=(ftell(diskimg)+12)) <= stop_at) {
             memset(tmp,0xFF,12);
             fread(tmp,12,1,diskimg);
 
@@ -1000,6 +1009,7 @@ imageDiskVFD::imageDiskVFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
             v.sizebyte = tmp[3];
             v.fillbyte = tmp[4];
             v.data_offset = *((uint32_t*)(tmp+8));
+            v.entry_offset = (uint32_t)entof;
 
             // maybe the table can end sooner than 0xC3FC?
             // if we see sectors appear at an offset lower than our stop_at point
@@ -1012,14 +1022,16 @@ imageDiskVFD::imageDiskVFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool 
 
             dents.push_back(v);
 
-            LOG_MSG("VFD entry: track=%u head=%u sector=%u size=%u fill=0x%2X has_data=%u has_fill=%u",
+            LOG_MSG("VFD entry: track=%u head=%u sector=%u size=%u fill=0x%2X has_data=%u has_fill=%u entoff=%lu dataoff=%lu",
                 v.track,
                 v.head,
                 v.sector,
                 v.getSectorSize(),
                 v.fillbyte,
                 v.hasSectorData(),
-                v.hasFill());
+                v.hasFill(),
+                (unsigned long)v.entry_offset,
+                (unsigned long)v.data_offset);
         }
 
         if (!dents.empty()) {

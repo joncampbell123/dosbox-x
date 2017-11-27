@@ -113,6 +113,10 @@ public:
         uint8_t         fillbyte;
 
         uint32_t        data_offset;
+        uint32_t        entry_offset; // offset of the 12-byte entry this came from (if nonzero)
+
+        vfdentry() : track(0), head(0), sector(0), sizebyte(0), fillbyte(0xFF), data_offset(0), entry_offset(0) {
+        }
 
         bool hasSectorData(void) const {
             return fillbyte == 0xFF;
