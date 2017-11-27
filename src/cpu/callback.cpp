@@ -508,6 +508,7 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
 		phys_writeb(physAddress+0x02,(Bit8u)0xcf);		// An IRET Instruction
 		return (0x04);*/
 	case CB_INT29:	// fast console output
+        if (IS_PC98_ARCH) LOG_MSG("WARNING: CB_INT29 callback setup not appropriate for PC-98 mode (INT 10h no longer BIOS call)");
 		if (use_cb) {
 			phys_writeb(physAddress+0x00,(Bit8u)0xFE);	//GRP 4
 			phys_writeb(physAddress+0x01,(Bit8u)0x38);	//Extra Callback instruction
