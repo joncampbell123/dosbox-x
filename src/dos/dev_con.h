@@ -47,6 +47,7 @@ private:
 	struct ansi { /* should create a constructor, which would fill them with the appropriate values */
 		bool esc;
 		bool sci;
+        bool pc98rab;       // PC-98 ESC [ > ...    (right angle bracket) I will rename this variable if MS-DOS ANSI.SYS also supports this sequence
 		bool enabled;
 		Bit8u attr;
 		Bit8u data[NUMBER_ANSI_DATA];
@@ -286,261 +287,290 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
 
 
 bool device_CON::Write(Bit8u * data,Bit16u * size) {
-	Bit16u count=0;
-	Bitu i;
-	Bit8u col,row;
-	Bit8u tempdata;
-	INT10_SetCurMode();
-	while (*size>count) {
-		if (!ansi.esc){
-			if(data[count]=='\033') {
-				/*clear the datastructure */
-				ClearAnsi();
-				/* start the sequence */
-				ansi.esc=true;
-				count++;
-				continue;
-			} else { 
-				/* Some sort of "hack" now that '\n' doesn't set col to 0 (int10_char.cpp old chessgame) */
-				if((data[count] == '\n') && (lastwrite != '\r')) Real_INT10_TeletypeOutputAttr('\r',ansi.attr,ansi.enabled);
-				/* use ansi attribute if ansi is enabled, otherwise use DOS default attribute*/
-				Real_INT10_TeletypeOutputAttr(data[count],ansi.enabled?ansi.attr:7,true);
-				lastwrite = data[count++];
-				continue;
-		}
-	}
+    Bit16u count=0;
+    Bitu i;
+    Bit8u col,row;
+    Bit8u tempdata;
+    INT10_SetCurMode();
+    while (*size>count) {
+        if (!ansi.esc){
+            if(data[count]=='\033') {
+                /*clear the datastructure */
+                ClearAnsi();
+                /* start the sequence */
+                ansi.esc=true;
+                count++;
+                continue;
+            } else { 
+                /* Some sort of "hack" now that '\n' doesn't set col to 0 (int10_char.cpp old chessgame) */
+                if((data[count] == '\n') && (lastwrite != '\r')) Real_INT10_TeletypeOutputAttr('\r',ansi.attr,ansi.enabled);
+                /* use ansi attribute if ansi is enabled, otherwise use DOS default attribute*/
+                Real_INT10_TeletypeOutputAttr(data[count],ansi.enabled?ansi.attr:7,true);
+                lastwrite = data[count++];
+                continue;
+            }
+        }
 
-	if(!ansi.sci){
-            
-		switch(data[count]){
-		case '[': 
-			ansi.sci=true;
-			break;
-		case '7': /* save cursor pos + attr */
-		case '8': /* restore this  (Wonder if this is actually used) */
-		case 'D':/* scrolling DOWN*/
-		case 'M':/* scrolling UP*/ 
-		default:
-			LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: unknown char %c after a esc",data[count]); /*prob () */
-			ClearAnsi();
-			break;
-		}
-		count++;
-		continue;
-	}
-	/*ansi.esc and ansi.sci are true */
-	Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-	switch(data[count]){
-		case '0':
-		case '1':
-		case '2':
-		case '3':
-		case '4':
-		case '5':
-		case '6':
-		case '7':
-		case '8':
-		case '9':
+        if(!ansi.sci){
+
+            switch(data[count]){
+                case '[': 
+                    ansi.sci=true;
+                    break;
+                case '7': /* save cursor pos + attr */
+                case '8': /* restore this  (Wonder if this is actually used) */
+                case 'D':/* scrolling DOWN*/
+                case 'M':/* scrolling UP*/ 
+                default:
+                    LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: unknown char %c after a esc",data[count]); /*prob () */
+                    ClearAnsi();
+                    break;
+            }
+            count++;
+            continue;
+        }
+        /*ansi.esc and ansi.sci are true */
+        Bit8u page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+        if (isdigit(data[count])) {
             assert(ansi.numberofarg < NUMBER_ANSI_DATA);
             ansi.data[ansi.numberofarg]=10*ansi.data[ansi.numberofarg]+(data[count]-'0');
-            break;
-		case ';': /* till a max of NUMBER_ANSI_DATA */
+        }
+        else if (data[count] == ';') {
             if ((ansi.numberofarg+1) < NUMBER_ANSI_DATA)
-    			ansi.numberofarg++;
-			break;
-		case 'm':               /* SGR */
-			for(i=0;i<=ansi.numberofarg;i++){ 
-				ansi.enabled=true;
-				switch(ansi.data[i]){
-				case 0: /* normal */
-					ansi.attr=0x07;//Real ansi does this as well. (should do current defaults)
-					ansi.enabled=false;
-					break;
-				case 1: /* bold mode on*/
-					ansi.attr|=0x08;
-					break;
-				case 4: /* underline */
-					LOG(LOG_IOCTL,LOG_NORMAL)("ANSI:no support for underline yet");
-					break;
-				case 5: /* blinking */
-					ansi.attr|=0x80;
-					break;
-				case 7: /* reverse */
-					ansi.attr=0x70;//Just like real ansi. (should do use current colors reversed)
-					break;
-				case 30: /* fg color black */
-					ansi.attr&=0xf8;
-					ansi.attr|=0x0;
-					break;
-				case 31:  /* fg color red */
-					ansi.attr&=0xf8;
-					ansi.attr|=0x4;
-					break;
-				case 32:  /* fg color green */
-					ansi.attr&=0xf8;
-					ansi.attr|=0x2;
-					break;
-				case 33: /* fg color yellow */
-					ansi.attr&=0xf8;
-					ansi.attr|=0x6;
-					break;
-				case 34: /* fg color blue */
-					ansi.attr&=0xf8;
-					ansi.attr|=0x1;
-					break;
-				case 35: /* fg color magenta */
-					ansi.attr&=0xf8;
-					ansi.attr|=0x5;
-					break;
-				case 36: /* fg color cyan */
-					ansi.attr&=0xf8;
-					ansi.attr|=0x3;
-					break;
-				case 37: /* fg color white */
-					ansi.attr&=0xf8;
-					ansi.attr|=0x7;
-					break;
-				case 40:
-					ansi.attr&=0x8f;
-					ansi.attr|=0x0;
-					break;
-				case 41:
-					ansi.attr&=0x8f;
-					ansi.attr|=0x40;
-					break;
-				case 42:
-					ansi.attr&=0x8f;
-					ansi.attr|=0x20;
-					break;
-				case 43:
-					ansi.attr&=0x8f;
-					ansi.attr|=0x60;
-					break;
-				case 44:
-					ansi.attr&=0x8f;
-					ansi.attr|=0x10;
-					break;
-				case 45:
-					ansi.attr&=0x8f;
-					ansi.attr|=0x50;
-					break;
-				case 46:
-					ansi.attr&=0x8f;
-					ansi.attr|=0x30;
-					break;	
-				case 47:
-					ansi.attr&=0x8f;
-					ansi.attr|=0x70;
-					break;
-				default:
-					break;
-				}
-			}
-			ClearAnsi();
-			break;
-		case 'f':
-		case 'H':/* Cursor Pos*/
-			if(!ansi.warned) { //Inform the debugger that ansi is used.
-				ansi.warned = true;
-				LOG(LOG_IOCTL,LOG_WARN)("ANSI SEQUENCES USED");
-			}
-			/* Turn them into positions that are on the screen */
-			if(ansi.data[0] == 0) ansi.data[0] = 1;
-			if(ansi.data[1] == 0) ansi.data[1] = 1;
-			if(ansi.data[0] > ansi.nrows) ansi.data[0] = (Bit8u)ansi.nrows;
-			if(ansi.data[1] > ansi.ncols) ansi.data[1] = (Bit8u)ansi.ncols;
-			Real_INT10_SetCursorPos(--(ansi.data[0]),--(ansi.data[1]),page); /*ansi=1 based, int10 is 0 based */
-			ClearAnsi();
-			break;
-			/* cursor up down and forward and backward only change the row or the col not both */
-		case 'A': /* cursor up*/
-			col=CURSOR_POS_COL(page) ;
-			row=CURSOR_POS_ROW(page) ;
-			tempdata = (ansi.data[0]? ansi.data[0] : 1);
-			if(tempdata > row) { row=0; } 
-			else { row-=tempdata;}
-			Real_INT10_SetCursorPos(row,col,page);
-			ClearAnsi();
-			break;
-		case 'B': /*cursor Down */
-			col=CURSOR_POS_COL(page) ;
-			row=CURSOR_POS_ROW(page) ;
-			tempdata = (ansi.data[0]? ansi.data[0] : 1);
-			if(tempdata + static_cast<Bitu>(row) >= ansi.nrows)
-				{ row = ansi.nrows - 1;}
-			else	{ row += tempdata; }
-			Real_INT10_SetCursorPos(row,col,page);
-			ClearAnsi();
-			break;
-		case 'C': /*cursor forward */
-			col=CURSOR_POS_COL(page);
-			row=CURSOR_POS_ROW(page);
-			tempdata=(ansi.data[0]? ansi.data[0] : 1);
-			if(tempdata + static_cast<Bitu>(col) >= ansi.ncols) 
-				{ col = ansi.ncols - 1;} 
-			else	{ col += tempdata;}
-			Real_INT10_SetCursorPos(row,col,page);
-			ClearAnsi();
-			break;
-		case 'D': /*Cursor Backward  */
-			col=CURSOR_POS_COL(page);
-			row=CURSOR_POS_ROW(page);
-			tempdata=(ansi.data[0]? ansi.data[0] : 1);
-			if(tempdata > col) {col = 0;}
-			else { col -= tempdata;}
-			Real_INT10_SetCursorPos(row,col,page);
-			ClearAnsi();
-			break;
-		case 'J': /*erase screen and move cursor home*/
-			if(ansi.data[0]==0) ansi.data[0]=2;
-			if(ansi.data[0]!=2) {/* every version behaves like type 2 */
-				LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: esc[%dJ called : not supported handling as 2",ansi.data[0]);
-			}
-			INT10_ScrollWindow(0,0,255,255,0,ansi.attr,page);
-			ClearAnsi();
-			Real_INT10_SetCursorPos(0,0,page);
-			break;
-		case 'h': /* SET   MODE (if code =7 enable linewrap) */
-		case 'I': /* RESET MODE */
-			LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: set/reset mode called(not supported)");
-			ClearAnsi();
-			break;
-		case 'u': /* Restore Cursor Pos */
-			Real_INT10_SetCursorPos(ansi.saverow,ansi.savecol,page);
-			ClearAnsi();
-			break;
-		case 's': /* SAVE CURSOR POS */
-			ansi.savecol=CURSOR_POS_COL(page);
-			ansi.saverow=CURSOR_POS_ROW(page);
-			ClearAnsi();
-			break;
-		case 'K': /* erase till end of line (don't touch cursor) */
-			col = CURSOR_POS_COL(page);
-			row = CURSOR_POS_ROW(page);
-			INT10_WriteChar(' ',ansi.attr,page,ansi.ncols-col,true); //Real_WriteChar(ansi.ncols-col,row,page,' ',ansi.attr,true);
+                ansi.numberofarg++;
+        }
+        else if (ansi.pc98rab) {
+            assert(IS_PC98_ARCH);
 
-			//for(i = col;i<(Bitu) ansi.ncols; i++) INT10_TeletypeOutputAttr(' ',ansi.attr,true);
-			Real_INT10_SetCursorPos(row,col,page);
-			ClearAnsi();
-			break;
-		case 'M': /* delete line (NANSI) */
-			col = CURSOR_POS_COL(page);
-			row = CURSOR_POS_ROW(page);
-			INT10_ScrollWindow(row,0,ansi.nrows-1,ansi.ncols-1,ansi.data[0]? -ansi.data[0] : -1,ansi.attr,0xFF);
-			ClearAnsi();
-			break;
-		case 'l':/* (if code =7) disable linewrap */
-		case 'p':/* reassign keys (needs strings) */
-		case 'i':/* printer stuff */
-		default:
-			LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: unhandled char %c in esc[",data[count]);
-			ClearAnsi();
-			break;
-		}
-		count++;
-	}
-	*size=count;
-	return true;
+            switch(data[count]){
+                case 'h': /* SET   MODE (if code =7 enable linewrap) */
+                case 'l': /* RESET MODE */
+                    switch (ansi.data[0]) {
+                        case 1: // show/hide function key row
+                            // not implemented, TODO
+                            break;
+                        case 5: // show/hide cursor
+                            void PC98_show_cursor(bool show);
+                            PC98_show_cursor(data[count] == 'l');
+                            break;
+                        default:
+                            LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: unhandled esc [ > %d %c",ansi.data[0],data[count]);
+                            break;
+                    };
+
+                    ClearAnsi();
+                    break;
+                default:
+                    LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: unhandled char %c in esc [ >",data[count]);
+                    ClearAnsi();
+                    break;
+            }
+        }
+        else {
+            switch(data[count]){
+                case 'm':               /* SGR */
+                    for(i=0;i<=ansi.numberofarg;i++){ 
+                        ansi.enabled=true;
+                        switch(ansi.data[i]){
+                            case 0: /* normal */
+                                ansi.attr=0x07;//Real ansi does this as well. (should do current defaults)
+                                ansi.enabled=false;
+                                break;
+                            case 1: /* bold mode on*/
+                                ansi.attr|=0x08;
+                                break;
+                            case 4: /* underline */
+                                LOG(LOG_IOCTL,LOG_NORMAL)("ANSI:no support for underline yet");
+                                break;
+                            case 5: /* blinking */
+                                ansi.attr|=0x80;
+                                break;
+                            case 7: /* reverse */
+                                ansi.attr=0x70;//Just like real ansi. (should do use current colors reversed)
+                                break;
+                            case 30: /* fg color black */
+                                ansi.attr&=0xf8;
+                                ansi.attr|=0x0;
+                                break;
+                            case 31:  /* fg color red */
+                                ansi.attr&=0xf8;
+                                ansi.attr|=0x4;
+                                break;
+                            case 32:  /* fg color green */
+                                ansi.attr&=0xf8;
+                                ansi.attr|=0x2;
+                                break;
+                            case 33: /* fg color yellow */
+                                ansi.attr&=0xf8;
+                                ansi.attr|=0x6;
+                                break;
+                            case 34: /* fg color blue */
+                                ansi.attr&=0xf8;
+                                ansi.attr|=0x1;
+                                break;
+                            case 35: /* fg color magenta */
+                                ansi.attr&=0xf8;
+                                ansi.attr|=0x5;
+                                break;
+                            case 36: /* fg color cyan */
+                                ansi.attr&=0xf8;
+                                ansi.attr|=0x3;
+                                break;
+                            case 37: /* fg color white */
+                                ansi.attr&=0xf8;
+                                ansi.attr|=0x7;
+                                break;
+                            case 40:
+                                ansi.attr&=0x8f;
+                                ansi.attr|=0x0;
+                                break;
+                            case 41:
+                                ansi.attr&=0x8f;
+                                ansi.attr|=0x40;
+                                break;
+                            case 42:
+                                ansi.attr&=0x8f;
+                                ansi.attr|=0x20;
+                                break;
+                            case 43:
+                                ansi.attr&=0x8f;
+                                ansi.attr|=0x60;
+                                break;
+                            case 44:
+                                ansi.attr&=0x8f;
+                                ansi.attr|=0x10;
+                                break;
+                            case 45:
+                                ansi.attr&=0x8f;
+                                ansi.attr|=0x50;
+                                break;
+                            case 46:
+                                ansi.attr&=0x8f;
+                                ansi.attr|=0x30;
+                                break;	
+                            case 47:
+                                ansi.attr&=0x8f;
+                                ansi.attr|=0x70;
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    ClearAnsi();
+                    break;
+                case 'f':
+                case 'H':/* Cursor Pos*/
+                    if(!ansi.warned) { //Inform the debugger that ansi is used.
+                        ansi.warned = true;
+                        LOG(LOG_IOCTL,LOG_WARN)("ANSI SEQUENCES USED");
+                    }
+                    /* Turn them into positions that are on the screen */
+                    if(ansi.data[0] == 0) ansi.data[0] = 1;
+                    if(ansi.data[1] == 0) ansi.data[1] = 1;
+                    if(ansi.data[0] > ansi.nrows) ansi.data[0] = (Bit8u)ansi.nrows;
+                    if(ansi.data[1] > ansi.ncols) ansi.data[1] = (Bit8u)ansi.ncols;
+                    Real_INT10_SetCursorPos(--(ansi.data[0]),--(ansi.data[1]),page); /*ansi=1 based, int10 is 0 based */
+                    ClearAnsi();
+                    break;
+                    /* cursor up down and forward and backward only change the row or the col not both */
+                case 'A': /* cursor up*/
+                    col=CURSOR_POS_COL(page) ;
+                    row=CURSOR_POS_ROW(page) ;
+                    tempdata = (ansi.data[0]? ansi.data[0] : 1);
+                    if(tempdata > row) { row=0; } 
+                    else { row-=tempdata;}
+                    Real_INT10_SetCursorPos(row,col,page);
+                    ClearAnsi();
+                    break;
+                case 'B': /*cursor Down */
+                    col=CURSOR_POS_COL(page) ;
+                    row=CURSOR_POS_ROW(page) ;
+                    tempdata = (ansi.data[0]? ansi.data[0] : 1);
+                    if(tempdata + static_cast<Bitu>(row) >= ansi.nrows)
+                    { row = ansi.nrows - 1;}
+                    else	{ row += tempdata; }
+                    Real_INT10_SetCursorPos(row,col,page);
+                    ClearAnsi();
+                    break;
+                case 'C': /*cursor forward */
+                    col=CURSOR_POS_COL(page);
+                    row=CURSOR_POS_ROW(page);
+                    tempdata=(ansi.data[0]? ansi.data[0] : 1);
+                    if(tempdata + static_cast<Bitu>(col) >= ansi.ncols) 
+                    { col = ansi.ncols - 1;} 
+                    else	{ col += tempdata;}
+                    Real_INT10_SetCursorPos(row,col,page);
+                    ClearAnsi();
+                    break;
+                case 'D': /*Cursor Backward  */
+                    col=CURSOR_POS_COL(page);
+                    row=CURSOR_POS_ROW(page);
+                    tempdata=(ansi.data[0]? ansi.data[0] : 1);
+                    if(tempdata > col) {col = 0;}
+                    else { col -= tempdata;}
+                    Real_INT10_SetCursorPos(row,col,page);
+                    ClearAnsi();
+                    break;
+                case 'J': /*erase screen and move cursor home*/
+                    if(ansi.data[0]==0) ansi.data[0]=2;
+                    if(ansi.data[0]!=2) {/* every version behaves like type 2 */
+                        LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: esc[%dJ called : not supported handling as 2",ansi.data[0]);
+                    }
+                    INT10_ScrollWindow(0,0,255,255,0,ansi.attr,page);
+                    ClearAnsi();
+                    Real_INT10_SetCursorPos(0,0,page);
+                    break;
+                case 'h': /* SET   MODE (if code =7 enable linewrap) */
+                case 'I': /* RESET MODE */
+                    LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: set/reset mode called(not supported)");
+                    ClearAnsi();
+                    break;
+                case 'u': /* Restore Cursor Pos */
+                    Real_INT10_SetCursorPos(ansi.saverow,ansi.savecol,page);
+                    ClearAnsi();
+                    break;
+                case 's': /* SAVE CURSOR POS */
+                    ansi.savecol=CURSOR_POS_COL(page);
+                    ansi.saverow=CURSOR_POS_ROW(page);
+                    ClearAnsi();
+                    break;
+                case 'K': /* erase till end of line (don't touch cursor) */
+                    col = CURSOR_POS_COL(page);
+                    row = CURSOR_POS_ROW(page);
+                    INT10_WriteChar(' ',ansi.attr,page,ansi.ncols-col,true); //Real_WriteChar(ansi.ncols-col,row,page,' ',ansi.attr,true);
+
+                    //for(i = col;i<(Bitu) ansi.ncols; i++) INT10_TeletypeOutputAttr(' ',ansi.attr,true);
+                    Real_INT10_SetCursorPos(row,col,page);
+                    ClearAnsi();
+                    break;
+                case 'M': /* delete line (NANSI) */
+                    col = CURSOR_POS_COL(page);
+                    row = CURSOR_POS_ROW(page);
+                    INT10_ScrollWindow(row,0,ansi.nrows-1,ansi.ncols-1,ansi.data[0]? -ansi.data[0] : -1,ansi.attr,0xFF);
+                    ClearAnsi();
+                    break;
+                case '>':/* proprietary NEC PC-98 MS-DOS codes (??) */
+                    if (IS_PC98_ARCH) {
+                        ansi.pc98rab = true;
+                    }
+                    else {
+                        LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: ESC [ > not supported outside PC-98 mode");
+                        ClearAnsi();
+                    }
+                    break;
+                case 'l':/* (if code =7) disable linewrap */
+                case 'p':/* reassign keys (needs strings) */
+                case 'i':/* printer stuff */
+                default:
+                    LOG(LOG_IOCTL,LOG_NORMAL)("ANSI: unhandled char %c in esc[",data[count]);
+                    ClearAnsi();
+                    break;
+            }
+        }
+        count++;
+    }
+    *size=count;
+    return true;
 }
 
 bool device_CON::Seek(Bit32u * pos,Bit32u type) {
@@ -634,6 +664,7 @@ device_CON::device_CON() {
 
 void device_CON::ClearAnsi(void){
 	for(Bit8u i=0; i<NUMBER_ANSI_DATA;i++) ansi.data[i]=0;
+    ansi.pc98rab=false;
 	ansi.esc=false;
 	ansi.sci=false;
 	ansi.numberofarg=0;

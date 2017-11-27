@@ -747,6 +747,10 @@ PC98_GDC_state::PC98_GDC_state() {
     reset_rfifo();
 }
 
+void PC98_show_cursor(bool show) {
+    pc98_gdc[GDC_MASTER].cursor_enable = show;
+}
+
 enum {
     GDC_CMD_RESET = 0x00,                       // 0   0   0   0   0   0   0   0
     GDC_CMD_DISPLAY_BLANK = 0x0C,               // 0   0   0   0   1   1   0   DE
