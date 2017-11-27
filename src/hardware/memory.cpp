@@ -1353,6 +1353,22 @@ static Bitu read_p92(Bitu port,Bitu iolen) {
 	return memory.a20.controlport | (memory.a20.enabled ? 0x02 : 0);
 }
 
+static Bitu read_pc98_a20(Bitu port,Bitu iolen) {
+    if (port == 0xF2)
+    	return (memory.a20.enabled ? 0x00 : 0x01); // bit 0 indicates whether A20 is MASKED, not ENABLED
+
+    return ~0;
+}
+
+static void write_pc98_a20(Bitu port,Bitu val,Bitu iolen) {
+    if (port == 0xF2) {
+	    MEM_A20_Enable(1); // writing port 0xF2 unmasks (enables) A20 regardless of value
+    }
+    else if (port == 0xF6) {
+	    MEM_A20_Enable(0); // writing port 0xF6 masks (disables) A20 regardless of value
+    }
+}
+
 void RemoveEMSPageFrame(void) {
 	LOG(LOG_MISC,LOG_DEBUG)("Removing EMS page frame");
 
@@ -1760,6 +1776,7 @@ void Init_RAM() {
 
 static IO_ReadHandleObject PS2_Port_92h_ReadHandler;
 static IO_WriteHandleObject PS2_Port_92h_WriteHandler;
+static IO_WriteHandleObject PS2_Port_92h_WriteHandler2;
 
 void ShutDownMemoryAccessArray(Section * sec) {
 	if (memory.phandlers != NULL) {
@@ -1851,23 +1868,35 @@ void Init_A20_Gate() {
 void PS2Port92_OnReset(Section *sec) {
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 
+	PS2_Port_92h_WriteHandler2.Uninstall();
 	PS2_Port_92h_WriteHandler.Uninstall();
 	PS2_Port_92h_ReadHandler.Uninstall();
 
-	// TODO: this should be handled in a motherboard init routine
-	enable_port92 = section->Get_bool("enable port 92");
-	if (enable_port92) {
-		// A20 Line - PS/2 system control port A
-		// TODO: This should exist in the motherboard emulation code yet to come! The motherboard
-		//       determines A20 gating, not the RAM!
-		LOG(LOG_MISC,LOG_DEBUG)("Port 92h installed, emulating PS/2 system control port A");
-		PS2_Port_92h_WriteHandler.Install(0x92,write_p92,IO_MB);
-		PS2_Port_92h_ReadHandler.Install(0x92,read_p92,IO_MB);
-	}
+    if (IS_PC98_ARCH) {
+        // TODO: add separate dosbox.conf variable for A20 gate control on PC-98
+        enable_port92 = true;
+        if (enable_port92) {
+            PS2_Port_92h_WriteHandler2.Install(0xF6,write_pc98_a20,IO_MB);
+            PS2_Port_92h_WriteHandler.Install(0xF2,write_pc98_a20,IO_MB);
+            PS2_Port_92h_ReadHandler.Install(0xF2,read_pc98_a20,IO_MB);
+        }
+    }
+    else {
+        // TODO: this should be handled in a motherboard init routine
+        enable_port92 = section->Get_bool("enable port 92");
+        if (enable_port92) {
+            // A20 Line - PS/2 system control port A
+            // TODO: This should exist in the motherboard emulation code yet to come! The motherboard
+            //       determines A20 gating, not the RAM!
+            LOG(LOG_MISC,LOG_DEBUG)("Port 92h installed, emulating PS/2 system control port A");
+            PS2_Port_92h_WriteHandler.Install(0x92,write_p92,IO_MB);
+            PS2_Port_92h_ReadHandler.Install(0x92,read_p92,IO_MB);
+        }
+    }
 }
 
 void PS2Port92_OnEnterPC98(Section *sec) {
-    /* No such port on PC-98 */
+	PS2_Port_92h_WriteHandler2.Uninstall();
 	PS2_Port_92h_WriteHandler.Uninstall();
 	PS2_Port_92h_ReadHandler.Uninstall();
 }
@@ -1878,6 +1907,7 @@ void Init_PS2_Port_92h() {
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PS2Port92_OnReset));
 
 	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(PS2Port92_OnEnterPC98));
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE_END,AddVMEventFunctionFuncPair(PS2Port92_OnReset));
 }
 
 void Init_MemHandles() {
