@@ -781,8 +781,8 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
     LOG_MSG("FAT: BPB says %u sectors/track %u heads",bootbuffer.sectorspertrack,bootbuffer.headcount);
 
     /* a clue that we're not really looking at FAT is invalid or weird values in the boot sector */
-    if (bootbuffer.sectorspertrack == 0 || bootbuffer.sectorspertrack > 40 ||
-        bootbuffer.headcount == 0 || bootbuffer.headcount > 64) {
+    if (bootbuffer.sectorspertrack == 0 || (bootbuffer.sectorspertrack > ((filesize <= 3000) ? 40 : 255)) ||
+        bootbuffer.headcount == 0 || (bootbuffer.headcount > ((filesize <= 3000) ? 64 : 255))) {
         LOG_MSG("Rejecting image, boot sector has weird values not consistent with FAT filesystem");
         return;
     }
