@@ -2330,6 +2330,13 @@ static Bitu INT18_PC98_Handler(void) {
             pc98_gdc[GDC_MASTER].force_fifo_complete();
             pc98_gdc[GDC_MASTER].cursor_enable = false;
             break;
+        case 0x13: /* set cursor position (DX=byte position) */
+            void vga_pc98_direct_cursor_pos(Bit16u address);
+
+            pc98_gdc[GDC_MASTER].force_fifo_complete();
+            vga_pc98_direct_cursor_pos(reg_dx >> 1);
+            pc98_gdc[GDC_MASTER].cursor_enable = true; // FIXME: Right?
+            break;
         case 0x16: /* fill screen with chr + attr */
             {
                 /* DL = character
