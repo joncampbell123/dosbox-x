@@ -494,8 +494,11 @@ bool localFile::Read(Bit8u * data,Bit16u * size) {
 	/* Fake harddrive motion. Inspector Gadget with soundblaster compatible */
 	/* Same for Igor */
 	/* hardrive motion => unmask irq 2. Only do it when it's masked as unmasking is realitively heavy to emulate */
-	Bit8u mask = IO_Read(0x21);
-	if(mask & 0x4 ) IO_Write(0x21,mask&0xfb);
+    if (!IS_PC98_ARCH) {
+        Bit8u mask = IO_Read(0x21);
+        if(mask & 0x4 ) IO_Write(0x21,mask&0xfb);
+    }
+
 	return true;
 }
 
