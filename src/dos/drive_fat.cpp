@@ -395,7 +395,7 @@ void fatDrive::setClusterValue(Bit32u clustNum, Bit32u clustValue) {
 	for(int fc=0;fc<bootbuffer.fatcopies;fc++) {
 		loadedDisk->Write_AbsoluteSector(fatsectnum + (fc * bootbuffer.sectorsperfat), &fatSectBuffer[0]);
 		if (fattype==FAT12) {
-			if (fatentoff>=511)
+			if (fatentoff >= (bootbuffer.bytespersector-1))
 				loadedDisk->Write_AbsoluteSector(fatsectnum+1+(fc * bootbuffer.sectorsperfat), &fatSectBuffer[bootbuffer.bytespersector]);
 		}
 	}
