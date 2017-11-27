@@ -2307,13 +2307,20 @@ static Bitu INT18_PC98_Handler(void) {
             break;
         // TODO: "Edge" is using INT 18h AH=06h, what is that?
         //       Neko Project is also unaware of such a call.
-        case 0x0C: /* graphics layer enable */
-            pc98_gdc[GDC_SLAVE].force_fifo_complete();
-            pc98_gdc[GDC_SLAVE].display_enable = true;
+        case 0x0C: /* text layer enable */
+            pc98_gdc[GDC_MASTER].force_fifo_complete();
+            pc98_gdc[GDC_MASTER].display_enable = true;
             break;
-        case 0x0D: /* graphics layer disable */
-            pc98_gdc[GDC_SLAVE].force_fifo_complete();
-            pc98_gdc[GDC_SLAVE].display_enable = false;
+        case 0x0D: /* text layer disable */
+            pc98_gdc[GDC_MASTER].force_fifo_complete();
+            pc98_gdc[GDC_MASTER].display_enable = false;
+            break;
+        case 0x0E: /* set text display area (DX=byte offset) */
+            pc98_gdc[GDC_MASTER].force_fifo_complete();
+            pc98_gdc[GDC_MASTER].param_ram[0] = (reg_dx >> 1) & 0xFF;
+            pc98_gdc[GDC_MASTER].param_ram[1] = (reg_dx >> 9) & 0xFF;
+            pc98_gdc[GDC_MASTER].param_ram[2] = (400 << 4) & 0xFF;
+            pc98_gdc[GDC_MASTER].param_ram[3] = (400 << 4) >> 8;
             break;
         case 0x11: /* show cursor */
             pc98_gdc[GDC_MASTER].force_fifo_complete();
