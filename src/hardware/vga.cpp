@@ -1422,6 +1422,12 @@ unsigned char pc98_get_digpal_pair(unsigned char start) {
     return (pc98_pal_digital[start] << 4) + pc98_pal_digital[start+4];
 }
 
+void pc98_wait_write(Bitu port,Bitu val,Bitu iolen) {
+    unsigned int wait_cycles = (unsigned int)(CPU_CycleMax * 0.0006); /* 0.6us = 0.0006ms */
+
+    CPU_Cycles -= wait_cycles;
+}
+
 void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
     PC98_GDC_state *gdc;
 
@@ -1732,6 +1738,9 @@ void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages);
 
 void VGA_OnEnterPC98_phase2(Section *sec) {
     VGA_SetupHandlers();
+
+    /* delay I/O port at 0x5F (0.6us) */
+    IO_RegisterWriteHandler(0x5F,pc98_wait_write,IO_MB);
 
     /* master GDC at 0x60-0x6F (even)
      * slave GDC at 0xA0-0xAF (even) */
