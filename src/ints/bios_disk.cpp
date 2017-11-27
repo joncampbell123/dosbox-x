@@ -926,6 +926,8 @@ imageDiskVFD::vfdentry *imageDiskVFD::findSector(Bit8u head,Bit8u track,Bit8u se
 }
 
 Bit8u imageDiskVFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data) {
+    unsigned long new_offset;
+    unsigned char tmp[12];
     vfdentry *ent;
 
     LOG_MSG("VFD write sector: CHS %u/%u/%u",cylinder,head,sector);
@@ -941,9 +943,37 @@ Bit8u imageDiskVFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void 
         return 0;
     }
     else if (ent->hasFill()) {
-        // TODO: Write sector to end of image, take offset, update vfdentry
-        //       and write back to table.
-        LOG_MSG("VFD write warning: Support for writing fill sectors not yet implemented");
+        if (ent->entry_offset == 0) return 0x05;
+
+        fseek(diskimg,0,SEEK_END);
+        new_offset = ftell(diskimg);
+
+        /* we have to change it from a fill sector to an actual sector */
+        LOG_MSG("VFD write: changing 'fill' sector to one with data (data at %lu)",(unsigned long)new_offset);
+
+        fseek(diskimg,ent->entry_offset,SEEK_SET);
+        if (ftell(diskimg) != ent->entry_offset) return 0x05;
+        if (fread(tmp,12,1,diskimg) != 1) return 0x05;
+
+        tmp[0x00] = ent->track;
+        tmp[0x01] = ent->head;
+        tmp[0x02] = ent->sector;
+        tmp[0x03] = ent->sizebyte;
+        tmp[0x04] = 0xFF; // no longer a fill byte
+        tmp[0x05] = 0x00; // TODO ??
+        tmp[0x06] = 0x00; // TODO ??
+        tmp[0x07] = 0x00; // TODO ??
+        *((uint32_t*)(tmp+8)) = new_offset;
+        ent->fillbyte = 0xFF;
+        ent->data_offset = (uint32_t)new_offset;
+
+        fseek(diskimg,ent->entry_offset,SEEK_SET);
+        if (ftell(diskimg) != ent->entry_offset) return 0x05;
+        if (fwrite(tmp,12,1,diskimg) != 1) return 0x05;
+
+        fseek(diskimg,ent->data_offset,SEEK_SET);
+        if (ftell(diskimg) != ent->data_offset) return 0x05;
+        if (fwrite(data,sector_size,1,diskimg) != 1) return 0x05;
     }
 
 	return 0x05;
