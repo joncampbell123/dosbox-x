@@ -554,7 +554,7 @@ bool device_CON::Close() {
 extern bool dos_con_use_int16_to_detect_input;
 
 Bit16u device_CON::GetInformation(void) {
-	if (dos_con_use_int16_to_detect_input) {
+	if (dos_con_use_int16_to_detect_input || IS_PC98_ARCH) {
 		Bit16u ret = 0x80D3; /* No Key Available */
 
 		/* DOSBox-X behavior: Use INT 16h AH=0x11 Query keyboard status/preview key.
