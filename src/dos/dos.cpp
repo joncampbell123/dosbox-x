@@ -1686,6 +1686,19 @@ static Bitu DOS_27Handler(void) {
 	return CBRET_NONE;
 }
 
+extern DOS_Device *DOS_CON;
+
+static Bitu INT29_HANDLER(void) {
+    if (DOS_CON != NULL) {
+        unsigned char b = reg_al;
+        Bit16u sz = 1;
+
+        DOS_CON->Write(&b,&sz);
+    }
+
+    return CBRET_NONE;
+}
+
 static Bitu DOS_25Handler(void) {
 	if (Drives[reg_al] == 0){
 		reg_ax = 0x8002;
@@ -2037,14 +2050,26 @@ public:
 		callback[5].Install(NULL,CB_IRET/*CB_INT28*/,"DOS idle");
 		callback[5].Set_RealVec(0x28);
 
-		callback[6].Install(NULL,CB_INT29,"CON Output Int 29");
-		callback[6].Set_RealVec(0x29);
-		// pseudocode for CB_INT29:
-		//	push ax
-		//	mov ah, 0x0e
-		//	int 0x10
-		//	pop ax
-		//	iret
+        if (IS_PC98_ARCH) {
+            // PC-98 also has INT 29h but the behavior of some games suggest that it is handled
+            // the same as CON device output. Apparently the reason Touhou Project has been unable
+            // to clear the screen is that it uses INT 29h to directly send ANSI codes rather than
+            // standard I/O calls to write to the CON device.
+            callback[6].Install(INT29_HANDLER,CB_IRET,"CON Output Int 29");
+            callback[6].Set_RealVec(0x29);
+        }
+        else {
+            // FIXME: Really? Considering the main CON device emulation has ANSI.SYS emulation
+            //        you'd think that this would route it through the same.
+            callback[6].Install(NULL,CB_INT29,"CON Output Int 29");
+            callback[6].Set_RealVec(0x29);
+            // pseudocode for CB_INT29:
+            //	push ax
+            //	mov ah, 0x0e
+            //	int 0x10
+            //	pop ax
+            //	iret
+        }
 
         if (!IS_PC98_ARCH) {
             /* DOS installs a handler for INT 1Bh */
