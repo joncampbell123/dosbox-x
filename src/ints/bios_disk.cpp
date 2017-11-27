@@ -943,37 +943,72 @@ Bit8u imageDiskVFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void 
         return 0;
     }
     else if (ent->hasFill()) {
+        bool isfill = false;
+
+        /* well, is the data provided one character repeated?
+         * note the format cannot represent a fill byte of 0xFF */
+        if (((unsigned char*)data)[0] != 0xFF) {
+            unsigned int i=1;
+
+            do {
+                if (((unsigned char*)data)[i] == ((unsigned char*)data)[0]) {
+                    if ((++i) == sector_size) {
+                        isfill = true;
+                        break; // yes!
+                    }
+                }
+                else {
+                    break; // nope
+                }
+            } while (1);
+        }
+
         if (ent->entry_offset == 0) return 0x05;
 
-        fseek(diskimg,0,SEEK_END);
-        new_offset = ftell(diskimg);
+        if (isfill) {
+            fseek(diskimg,ent->entry_offset,SEEK_SET);
+            if (ftell(diskimg) != ent->entry_offset) return 0x05;
+            if (fread(tmp,12,1,diskimg) != 1) return 0x05;
 
-        /* we have to change it from a fill sector to an actual sector */
-        LOG_MSG("VFD write: changing 'fill' sector to one with data (data at %lu)",(unsigned long)new_offset);
+            tmp[0x04] = ((unsigned char*)data)[0]; // change the fill byte
 
-        fseek(diskimg,ent->entry_offset,SEEK_SET);
-        if (ftell(diskimg) != ent->entry_offset) return 0x05;
-        if (fread(tmp,12,1,diskimg) != 1) return 0x05;
+            LOG_MSG("VFD write: 'fill' sector changing fill byte to 0x%x",tmp[0x04]);
 
-        tmp[0x00] = ent->track;
-        tmp[0x01] = ent->head;
-        tmp[0x02] = ent->sector;
-        tmp[0x03] = ent->sizebyte;
-        tmp[0x04] = 0xFF; // no longer a fill byte
-        tmp[0x05] = 0x00; // TODO ??
-        tmp[0x06] = 0x00; // TODO ??
-        tmp[0x07] = 0x00; // TODO ??
-        *((uint32_t*)(tmp+8)) = new_offset;
-        ent->fillbyte = 0xFF;
-        ent->data_offset = (uint32_t)new_offset;
+            fseek(diskimg,ent->entry_offset,SEEK_SET);
+            if (ftell(diskimg) != ent->entry_offset) return 0x05;
+            if (fwrite(tmp,12,1,diskimg) != 1) return 0x05;
+        }
+        else {
+            fseek(diskimg,0,SEEK_END);
+            new_offset = ftell(diskimg);
 
-        fseek(diskimg,ent->entry_offset,SEEK_SET);
-        if (ftell(diskimg) != ent->entry_offset) return 0x05;
-        if (fwrite(tmp,12,1,diskimg) != 1) return 0x05;
+            /* we have to change it from a fill sector to an actual sector */
+            LOG_MSG("VFD write: changing 'fill' sector to one with data (data at %lu)",(unsigned long)new_offset);
 
-        fseek(diskimg,ent->data_offset,SEEK_SET);
-        if (ftell(diskimg) != ent->data_offset) return 0x05;
-        if (fwrite(data,sector_size,1,diskimg) != 1) return 0x05;
+            fseek(diskimg,ent->entry_offset,SEEK_SET);
+            if (ftell(diskimg) != ent->entry_offset) return 0x05;
+            if (fread(tmp,12,1,diskimg) != 1) return 0x05;
+
+            tmp[0x00] = ent->track;
+            tmp[0x01] = ent->head;
+            tmp[0x02] = ent->sector;
+            tmp[0x03] = ent->sizebyte;
+            tmp[0x04] = 0xFF; // no longer a fill byte
+            tmp[0x05] = 0x00; // TODO ??
+            tmp[0x06] = 0x00; // TODO ??
+            tmp[0x07] = 0x00; // TODO ??
+            *((uint32_t*)(tmp+8)) = new_offset;
+            ent->fillbyte = 0xFF;
+            ent->data_offset = (uint32_t)new_offset;
+
+            fseek(diskimg,ent->entry_offset,SEEK_SET);
+            if (ftell(diskimg) != ent->entry_offset) return 0x05;
+            if (fwrite(tmp,12,1,diskimg) != 1) return 0x05;
+
+            fseek(diskimg,ent->data_offset,SEEK_SET);
+            if (ftell(diskimg) != ent->data_offset) return 0x05;
+            if (fwrite(data,sector_size,1,diskimg) != 1) return 0x05;
+        }
     }
 
 	return 0x05;
