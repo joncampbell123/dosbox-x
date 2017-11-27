@@ -1740,6 +1740,8 @@ void VGA_OnEnterPC98(Section *sec) {
 
 void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages);
 
+void PC98_FM_OnEnterPC98(Section *sec);
+
 void VGA_OnEnterPC98_phase2(Section *sec) {
     VGA_SetupHandlers();
 
@@ -1879,6 +1881,9 @@ void VGA_Init() {
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(VGA_Reset));
 	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(VGA_OnEnterPC98));
 	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE_END,AddVMEventFunctionFuncPair(VGA_OnEnterPC98_phase2));
+
+    // TODO: Move to separate file
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE_END,AddVMEventFunctionFuncPair(PC98_FM_OnEnterPC98));
 }
 
 void SVGA_Setup_Driver(void) {
@@ -1901,5 +1906,25 @@ void SVGA_Setup_Driver(void) {
 		vga.vmemwrap = 256*1024;
 		break;
 	}
+}
+
+int pc98_fm_irq = 3; /* TODO: Make configurable */
+unsigned int pc98_fm_base = 0x188; /* TODO: Make configurable */
+
+void pc98_fm_write(Bitu port,Bitu val,Bitu iolen) {
+    LOG_MSG("PC-98 FM: Write port 0x%x val 0x%x",(unsigned int)port,(unsigned int)val);
+}
+
+Bitu pc98_fm_read(Bitu port,Bitu iolen) {
+    LOG_MSG("PC-98 FM: Read port 0x%x",(unsigned int)port);
+    return ~0;
+}
+
+void PC98_FM_OnEnterPC98(Section *sec) {
+    LOG_MSG("Initializing FM board at base 0x%x",pc98_fm_base);
+    for (unsigned int i=0;i < 8;i += 2) {
+        IO_RegisterWriteHandler(pc98_fm_base+i,pc98_fm_write,IO_MB);
+        IO_RegisterReadHandler(pc98_fm_base+i,pc98_fm_read,IO_MB);
+    }
 }
 
