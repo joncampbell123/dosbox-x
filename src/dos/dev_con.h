@@ -341,11 +341,11 @@ bool device_CON::Write(Bit8u * data,Bit16u * size) {
 		case '7':
 		case '8':
 		case '9':
-            if (ansi.numberofarg < NUMBER_ANSI_DATA)
-                ansi.data[ansi.numberofarg]=10*ansi.data[ansi.numberofarg]+(data[count]-'0');
-			break;
+            assert(ansi.numberofarg < NUMBER_ANSI_DATA);
+            ansi.data[ansi.numberofarg]=10*ansi.data[ansi.numberofarg]+(data[count]-'0');
+            break;
 		case ';': /* till a max of NUMBER_ANSI_DATA */
-            if (ansi.numberofarg < NUMBER_ANSI_DATA)
+            if ((ansi.numberofarg+1) < NUMBER_ANSI_DATA)
     			ansi.numberofarg++;
 			break;
 		case 'm':               /* SGR */
