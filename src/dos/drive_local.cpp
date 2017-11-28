@@ -57,6 +57,49 @@ private:
 	enum { NONE,READ,WRITE } last_action;
 };
 
+#include "cp437_uni.h"
+
+static char cpcnv_temp[4096];
+
+template <class MT> bool String_SBCS_TO_HOST(char *d/*CROSS_LEN*/,char *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
+    char *df = d + CROSS_LEN - 1;
+    char *sf = s + CROSS_LEN - 1;
+    unsigned char ic;
+    MT wc;
+
+    while (*s != 0 && s < sf) {
+        ic = (unsigned char)(*s++);
+        if (ic >= map_max) return false; // non-representable
+        wc = map[ic]; // output: unicode character
+
+        if (utf8_encode(&d,df,(uint32_t)wc) < 0) // will advance d by however many UTF-8 bytes are needed
+            return false; // non-representable, or probably just out of room
+    }
+
+    assert(d <= df);
+    *d = 0;
+
+    return true;
+}
+
+bool CodePageGuestToHost(char *d/*CROSS_LEN*/,char *s/*CROSS_LEN*/) {
+    switch (dos.loaded_codepage) {
+        case 437:
+            return String_SBCS_TO_HOST<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+        default:
+            LOG_MSG("WARNING: No translation support for code page %u",dos.loaded_codepage);
+            break;
+    }
+
+    return false;
+}
+
+char *CodePageGuestToHost(char *s) {
+    if (!CodePageGuestToHost(cpcnv_temp,s))
+        return NULL;
+
+    return cpcnv_temp;
+}
 
 bool localDrive::FileCreate(DOS_File * * file,const char * name,Bit16u /*attributes*/) {
 //TODO Maybe care for attributes but not likely
@@ -67,8 +110,16 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,Bit16u /*attribu
 	char* temp_name = dirCache.GetExpandName(newname); //Can only be used in till a new drive_cache action is preformed */
 	/* Test if file exists (so we need to truncate it). don't add to dirCache then */
 	bool existing_file=false;
-	
-	FILE * test=fopen(temp_name,"rb+");
+
+    // guest to host code page translation
+    char *n_temp_name = CodePageGuestToHost(temp_name);
+    if (n_temp_name == NULL) {
+        LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newname);
+        return false;
+    }
+    temp_name = n_temp_name;
+
+    FILE * test=fopen(temp_name,"rb+");
 	if(test) {
 		fclose(test);
 		existing_file=true;
@@ -128,6 +179,14 @@ bool localDrive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
 		}
 	}
 
+    // guest to host code page translation
+    char *n_temp_name = CodePageGuestToHost(newname);
+    if (n_temp_name == NULL) {
+        LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newname);
+        return false;
+    }
+    strcpy(newname,n_temp_name);
+
 	FILE * hand=fopen(newname,type);
 //	Bit32u err=errno;
 	if (!hand) { 
@@ -155,6 +214,14 @@ FILE * localDrive::GetSystemFilePtr(char const * const name, char const * const 
 	CROSS_FILENAME(newname);
 	dirCache.ExpandName(newname);
 
+    // guest to host code page translation
+    char *n_temp_name = CodePageGuestToHost(newname);
+    if (n_temp_name == NULL) {
+        LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newname);
+        return false;
+    }
+    strcpy(newname,n_temp_name);
+
 	return fopen(newname,type);
 }
 
@@ -164,6 +231,15 @@ bool localDrive::GetSystemFilename(char *sysName, char const * const dosName) {
 	strcat(sysName, dosName);
 	CROSS_FILENAME(sysName);
 	dirCache.ExpandName(sysName);
+
+    // guest to host code page translation
+    char *n_temp_name = CodePageGuestToHost(sysName);
+    if (n_temp_name == NULL) {
+        LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,sysName);
+        return false;
+    }
+    strcpy(sysName,n_temp_name);
+
 	return true;
 }
 
@@ -173,6 +249,15 @@ bool localDrive::FileUnlink(const char * name) {
 	strcat(newname,name);
 	CROSS_FILENAME(newname);
 	char *fullname = dirCache.GetExpandName(newname);
+
+    // guest to host code page translation
+    char *n_temp_name = CodePageGuestToHost(fullname);
+    if (n_temp_name == NULL) {
+        LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,fullname);
+        return false;
+    }
+    strcpy(fullname,n_temp_name);
+
 	if (unlink(fullname)) {
 		//Unlink failed for some reason try finding it.
 		struct stat buffer;
@@ -324,6 +409,14 @@ bool localDrive::GetFileAttr(const char * name,Bit16u * attr) {
 	CROSS_FILENAME(newname);
 	dirCache.ExpandName(newname);
 
+    // guest to host code page translation
+    char *n_temp_name = CodePageGuestToHost(newname);
+    if (n_temp_name == NULL) {
+        LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newname);
+        return false;
+    }
+    strcpy(newname,n_temp_name);
+
 	struct stat status;
 	if (stat(newname,&status)==0) {
 		*attr=DOS_ATTR_ARCHIVE;
@@ -339,6 +432,15 @@ bool localDrive::MakeDir(const char * dir) {
 	strcpy(newdir,basedir);
 	strcat(newdir,dir);
 	CROSS_FILENAME(newdir);
+
+    // guest to host code page translation
+    char *n_temp_name = CodePageGuestToHost(newdir);
+    if (n_temp_name == NULL) {
+        LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newdir);
+        return false;
+    }
+    strcpy(newdir,n_temp_name);
+
 #if defined (WIN32)						/* MS Visual C++ */
 	int temp=mkdir(dirCache.GetExpandName(newdir));
 #else
@@ -354,6 +456,15 @@ bool localDrive::RemoveDir(const char * dir) {
 	strcpy(newdir,basedir);
 	strcat(newdir,dir);
 	CROSS_FILENAME(newdir);
+
+    // guest to host code page translation
+    char *n_temp_name = CodePageGuestToHost(newdir);
+    if (n_temp_name == NULL) {
+        LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newdir);
+        return false;
+    }
+    strcpy(newdir,n_temp_name);
+
 	int temp=rmdir(dirCache.GetExpandName(newdir));
 	if (temp==0) dirCache.DeleteEntry(newdir,true);
 	return (temp==0);
@@ -365,6 +476,15 @@ bool localDrive::TestDir(const char * dir) {
 	strcat(newdir,dir);
 	CROSS_FILENAME(newdir);
 	dirCache.ExpandName(newdir);
+
+    // guest to host code page translation
+    char *n_temp_name = CodePageGuestToHost(newdir);
+    if (n_temp_name == NULL) {
+        LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newdir);
+        return false;
+    }
+    strcpy(newdir,n_temp_name);
+
 	// Skip directory test, if "\"
 	size_t len = strlen(newdir);
 	if (len && (newdir[len-1]!='\\')) {
@@ -388,6 +508,15 @@ bool localDrive::Rename(const char * oldname,const char * newname) {
 	strcpy(newnew,basedir);
 	strcat(newnew,newname);
 	CROSS_FILENAME(newnew);
+
+    // guest to host code page translation
+    char *n_temp_name = CodePageGuestToHost(newnew);
+    if (n_temp_name == NULL) {
+        LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newnew);
+        return false;
+    }
+    strcpy(newnew,n_temp_name);
+
 	int temp=rename(newold,dirCache.GetExpandName(newnew));
 	if (temp==0) dirCache.CacheOut(newnew);
 	return (temp==0);
@@ -408,6 +537,15 @@ bool localDrive::FileExists(const char* name) {
 	strcat(newname,name);
 	CROSS_FILENAME(newname);
 	dirCache.ExpandName(newname);
+
+    // guest to host code page translation
+    char *n_temp_name = CodePageGuestToHost(newname);
+    if (n_temp_name == NULL) {
+        LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newname);
+        return false;
+    }
+    strcpy(newname,n_temp_name);
+
 	struct stat temp_stat;
 	if(stat(newname,&temp_stat)!=0) return false;
 	if(temp_stat.st_mode & S_IFDIR) return false;
@@ -420,6 +558,15 @@ bool localDrive::FileStat(const char* name, FileStat_Block * const stat_block) {
 	strcat(newname,name);
 	CROSS_FILENAME(newname);
 	dirCache.ExpandName(newname);
+
+    // guest to host code page translation
+    char *n_temp_name = CodePageGuestToHost(newname);
+    if (n_temp_name == NULL) {
+        LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newname);
+        return false;
+    }
+    strcpy(newname,n_temp_name);
+
 	struct stat temp_stat;
 	if(stat(newname,&temp_stat)!=0) return false;
 	/* Convert the stat to a FileStat */
