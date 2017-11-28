@@ -1934,6 +1934,8 @@ typedef void* NP2CFG;
 #define TRUE 1
 #define FALSE 0
 
+MixerChannel *pc98_mixer = NULL;
+
 static inline void ZeroMemory(void *p,size_t l) {
     memset(p,0,l);
 }
@@ -1947,7 +1949,7 @@ static inline void pcm86io_bind(void) {
 }
 
 static inline void sound_sync(void) {
-    // TODO: MIXER_FillUp()
+    if (pc98_mixer) pc98_mixer->FillUp();
 }
 
 // opngen.h
@@ -2121,8 +2123,6 @@ static const UINT clk20_128[] = {
 
 
 	PCM86CFG	pcm86cfg;
-
-MixerChannel *pc98_mixer = NULL;
 
 void pcm86_cb(NEVENTITEM item);
 
