@@ -227,7 +227,8 @@ static void MPU401_WriteCommand(Bitu port,Bitu val,Bitu iolen) {
 			QueueByte(mpu.clock.tempo);
 			return;
 		case 0xb1:	/* Reset relative tempo */
-			mpu.clock.tempo_rel=40;
+            mpu.clock.old_tempo_rel=mpu.clock.tempo_rel;
+            mpu.clock.tempo_rel=0x40;
 			break;
 		case 0xb9:	/* Clear play map */
 		case 0xb8:	/* Clear play counters */
@@ -308,8 +309,9 @@ static void MPU401_WriteData(Bitu port,Bitu val,Bitu iolen) {
 			return;
 		case 0xe1:	/* Set relative tempo */
 			mpu.state.command_byte=0;
-			if (val!=0x40) //default value
-				LOG(LOG_MISC,LOG_ERROR)("MPU-401:Relative tempo change not implemented");
+            mpu.clock.old_tempo_rel=mpu.clock.tempo_rel;
+            mpu.clock.tempo_rel=val;
+            if (val != 0x40) LOG(LOG_MISC,LOG_ERROR)("MPU-401:Relative tempo change value 0x%x (%.3f)",val,(double)val / 0x40);
 			return;
 		case 0xe7:	/* Set internal clock to host interval */
 			mpu.state.command_byte=0;
@@ -544,7 +546,7 @@ static void MPU401_Event(Bitu val) {
 next_event:
 	PIC_RemoveEvents(MPU401_Event);
 	Bitu new_time;
-	if ((new_time=mpu.clock.tempo*mpu.clock.timebase)==0) return;
+	if ((new_time=((mpu.clock.tempo*mpu.clock.timebase*mpu.clock.tempo_rel)/0x40))==0) return;
 	PIC_AddEvent(MPU401_Event,MPU401_TIMECONSTANT/new_time);
 }
 
@@ -605,7 +607,7 @@ static void MPU401_Reset(void) {
 	mpu.state.block_ack=false;
 	mpu.clock.tempo=mpu.clock.old_tempo=100;
 	mpu.clock.timebase=mpu.clock.old_timebase=120;
-	mpu.clock.tempo_rel=mpu.clock.old_tempo_rel=40;
+	mpu.clock.tempo_rel=mpu.clock.old_tempo_rel=0x40;
 	mpu.clock.tempo_grad=0;
 	mpu.clock.clock_to_host=false;
 	mpu.clock.cth_rate=60;
