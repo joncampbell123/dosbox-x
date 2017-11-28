@@ -160,7 +160,7 @@ void PIC_Controller::deactivate() {
 	} else {
 		/* just because ONE IRQ on the slave finished doesn't mean there aren't any others needing service! */
 		if ((irr&imrr) == 0)
-			master.lower_irq(2);
+			master.lower_irq(IS_PC98_ARCH ? 7 : 2);
 		else
 			LOG_MSG("Slave PIC: still to handle irr=%02x imrr=%02x isrr=%02x",irr,imrr,isrr);
 	}
@@ -414,12 +414,12 @@ static void slave_startIRQ(){
 		 * what was once IRQ 2 on PC/XT is routed to IRQ 9 on AT systems, because IRQ 8-15
 		 * cascade to IRQ 2 on such systems. but it's nothing to E_Exit() over. */
 		LOG(LOG_PIC,LOG_ERROR)("ISA PIC problem: IRQ 2 is active on master PIC without active IRQ 8-15 on slave PIC.");
-		slave.lower_irq(2); /* clear it */
+		slave.lower_irq(IS_PC98_ARCH ? 7 : 2); /* clear it */
 		return;
 	}
 
 	slave.start_irq(pic1_irq);
-	master.start_irq(2);
+	master.start_irq(IS_PC98_ARCH ? 7 : 2);
 	CPU_HW_Interrupt(slave.vector_base + pic1_irq);
 }
 
