@@ -1921,7 +1921,9 @@ typedef uint8_t UINT8;
 typedef int8_t SINT8;
 typedef uint32_t UINT;
 typedef uint32_t REG8; /* GLIB guint32 -> UINT -> REG8 */
+#ifndef WIN32
 typedef uint8_t BOOL;
+#endif
 typedef char OEMCHAR;
 typedef void* NEVENTITEM;
 typedef void* NP2CFG;
@@ -1936,6 +1938,11 @@ typedef void* NP2CFG;
 
 MixerChannel *pc98_mixer = NULL;
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
+#ifndef WIN32
 static inline void ZeroMemory(void *p,size_t l) {
     memset(p,0,l);
 }
@@ -1943,6 +1950,7 @@ static inline void ZeroMemory(void *p,size_t l) {
 static inline void FillMemory(void *p,size_t l,unsigned char c) {
     memset(p,c,l);
 }
+#endif
 
 static inline void pcm86io_bind(void) {
     /* dummy */
