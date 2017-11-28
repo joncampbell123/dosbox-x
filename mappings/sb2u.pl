@@ -69,5 +69,5 @@ for ($y=0;$y < 256;$y += $colwidth) {
 
     print "\n";
 }
-print "}\n";
+print "};\n";
 
