@@ -5902,7 +5902,6 @@ void PC98_FM_OnEnterPC98(Section *sec) {
     //  - Give the user a choice which board to emulate (the borrowed code can emulate 10 different cards)
     //  - Give the user a choice which IRQ to attach it to
     //  - Give the user a choice of base I/O address (0x088 or 0x188)
-    //  - Figure out why running a game against FM, exiting to DOS, and then running the game again fails to detect or work with FM.
     //  - Move this code out into it's own file. This is SOUND code. It does not belong in vga.cpp.
     //  - Register the TMS3631, OPNA, PSG, RHYTHM, etc. outputs as individual mixer channels, where
     //    each can then run at their own sample rate, and the user can use DOSBox-X mixer controls to
