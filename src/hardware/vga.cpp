@@ -4767,36 +4767,34 @@ BOOL pcm86gen_intrq(void) {
 
 void fmport_a(NEVENTITEM item) {
 
-	BOOL	intreq = FALSE;
+    BOOL	intreq = FALSE;
 
-		intreq = pcm86gen_intrq();
-		if (fmtimer.reg & 0x04) {
-			fmtimer.status |= 0x01;
-			intreq = TRUE;
-		}
-		if (intreq) {
-            PIC_ActivateIRQ(pc98_fm_irq);
-//            LOG_MSG("FM A IRQ");
-		}
+    intreq = pcm86gen_intrq();
+    if (fmtimer.reg & 0x04) {
+        fmtimer.status |= 0x01;
+        intreq = TRUE;
+    }
 
-		set_fmtimeraevent(FALSE);
+    if (intreq)
+        PIC_ActivateIRQ(pc98_fm_irq);
+
+    set_fmtimeraevent(FALSE);
 }
 
 void fmport_b(NEVENTITEM item) {
 
-	BOOL	intreq = FALSE;
+    BOOL	intreq = FALSE;
 
-		intreq = pcm86gen_intrq();
-		if (fmtimer.reg & 0x08) {
-			fmtimer.status |= 0x02;
-			intreq = TRUE;
-		}
-		if (intreq) {
-            PIC_ActivateIRQ(pc98_fm_irq);
- //           LOG_MSG("FM B IRQ");
-		}
+    intreq = pcm86gen_intrq();
+    if (fmtimer.reg & 0x08) {
+        fmtimer.status |= 0x02;
+        intreq = TRUE;
+    }
 
-		set_fmtimerbevent(FALSE);
+    if (intreq)
+        PIC_ActivateIRQ(pc98_fm_irq);
+
+    set_fmtimerbevent(FALSE);
 }
 
 static void set_fmtimeraevent(BOOL absolute) {
@@ -4878,15 +4876,17 @@ void fmtimer_setreg(UINT reg, REG8 value) {
                 if (!FMPORT_EventA_set)
                     set_fmtimeraevent(0);
             }
-			else {
+            else {
+                FMPORT_EventA_set = false;
                 PIC_RemoveEvents(FMPORT_EventA);
-			}
+            }
 
-			if (value & 0x02) {
+            if (value & 0x02) {
                 if (!FMPORT_EventB_set)
                     set_fmtimerbevent(0);
             }
-			else {
+            else {
+                FMPORT_EventB_set = false;
                 PIC_RemoveEvents(FMPORT_EventB);
             }
 
