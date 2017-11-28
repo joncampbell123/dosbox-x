@@ -1820,6 +1820,7 @@ static struct pc98_8251_keyboard_uart {
         }
         else {
             LOG_MSG("8251 warning: RX overrun");
+            rx_busy = false;
         }
     }
 
