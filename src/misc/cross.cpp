@@ -162,7 +162,7 @@ dir_information* open_directoryw(const wchar_t* dirname) {
 dir_information* open_directory(const char* dirname) {
 	if (dirname == NULL) return NULL;
 
-	size_t len = strlen(dirname);
+	size_t len = wcslen(dirname);
 	if (len == 0) return NULL;
 
 	static dir_information dir;
