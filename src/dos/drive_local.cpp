@@ -422,14 +422,25 @@ FILE * localDrive::GetSystemFilePtr(char const * const name, char const * const 
 	dirCache.ExpandName(newname);
 
     // guest to host code page translation
-    char *n_temp_name = CodePageGuestToHost(newname);
-    if (n_temp_name == NULL) {
+    char *host_name = CodePageGuestToHost(newname);
+    if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newname);
         return false;
     }
-    strcpy(newname,n_temp_name);
 
-	return fopen(newname,type);
+#ifdef host_cnv_use_wchar
+    wchar_t wtype[8];
+    unsigned int tis;
+
+    // "type" always has ANSI chars (like "rb"), nothing fancy
+    for (tis=0;type[tis] != 0 && tis < 7;tis++) wtype[tis] = (wchar_t)type[tis];
+    assert(tis < 7); // guard
+    wtype[tis] = 0;
+
+	return _wfopen(host_name,wtype);
+#else
+	return fopen(host_name,type);
+#endif
 }
 
 bool localDrive::GetSystemFilename(char *sysName, char const * const dosName) {
