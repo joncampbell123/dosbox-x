@@ -67,9 +67,11 @@ private:
 //       widechar functions are missing.
 typedef wchar_t host_cnv_char_t;
 # define host_cnv_use_wchar
+# define _HT(x) L##x
 #else
 // Linux: Use UTF-8
 typedef char host_cnv_char_t;
+# define _HT(x) x
 #endif
 
 static host_cnv_char_t cpcnv_temp[4096];
@@ -345,12 +347,12 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,Bit16u /*attribu
 }
 
 bool localDrive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
-	const char* type;
+	const host_cnv_char_t * type;
 	switch (flags&0xf) {
-	case OPEN_READ:        type = "rb" ; break;
-	case OPEN_WRITE:       type = "rb+"; break;
-	case OPEN_READWRITE:   type = "rb+"; break;
-	case OPEN_READ_NO_MOD: type = "rb" ; break; //No modification of dates. LORD4.07 uses this
+	case OPEN_READ:        type = _HT("rb");  break;
+	case OPEN_WRITE:       type = _HT("rb+"); break;
+	case OPEN_READWRITE:   type = _HT("rb+"); break;
+	case OPEN_READ_NO_MOD: type = _HT("rb");  break; //No modification of dates. LORD4.07 uses this
 	default:
 		DOS_SetError(DOSERR_ACCESS_CODE_INVALID);
 		return false;
@@ -378,21 +380,28 @@ bool localDrive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
 	}
 
     // guest to host code page translation
-    char *n_temp_name = CodePageGuestToHost(newname);
-    if (n_temp_name == NULL) {
+    host_cnv_char_t *host_name = CodePageGuestToHost(newname);
+    if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newname);
         return false;
     }
-    strcpy(newname,n_temp_name);
 
-	FILE * hand=fopen(newname,type);
+#ifdef host_cnv_use_wchar
+	FILE * hand=_wfopen(host_name,type);
+#else
+	FILE * hand=fopen(host_name,type);
+#endif
 //	Bit32u err=errno;
 	if (!hand) { 
 		if((flags&0xf) != OPEN_READ) {
-			FILE * hmm=fopen(newname,"rb");
+#ifdef host_cnv_use_wchar
+			FILE * hmm=_wfopen(host_name,L"rb");
+#else
+			FILE * hmm=fopen(host_name,"rb");
+#endif
 			if (hmm) {
 				fclose(hmm);
-				LOG_MSG("Warning: file %s exists and failed to open in write mode.\nPlease Remove write-protection",newname);
+				LOG_MSG("Warning: file %s exists and failed to open in write mode.\nPlease Remove write-protection",host_name);
 			}
 		}
 		return false;
@@ -400,7 +409,7 @@ bool localDrive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
 
 	*file=new localFile(name,hand);
 	(*file)->flags=flags;  //for the inheritance flag and maybe check for others.
-//	(*file)->SetFileName(newname);
+//	(*file)->SetFileName(host_name);
 	return true;
 }
 
