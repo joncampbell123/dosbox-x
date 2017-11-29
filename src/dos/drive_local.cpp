@@ -573,6 +573,14 @@ bool localDrive::Rename(const char * oldname,const char * newname) {
 	CROSS_FILENAME(newnew);
 
     // guest to host code page translation
+    char *o_temp_name = CodePageGuestToHost(newold);
+    if (o_temp_name == NULL) {
+        LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newold);
+        return false;
+    }
+    strcpy(newold,o_temp_name);
+
+    // guest to host code page translation
     char *n_temp_name = CodePageGuestToHost(newnew);
     if (n_temp_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newnew);
