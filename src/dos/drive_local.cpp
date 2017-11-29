@@ -90,6 +90,29 @@ typedef char host_cnv_char_t;
 
 static host_cnv_char_t cpcnv_temp[4096];
 
+bool String_ASCII_TO_HOST(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
+	host_cnv_char_t *df = d + CROSS_LEN - 1;
+	const char *sf = s + CROSS_LEN - 1;
+    unsigned char ic;
+
+    while (*s != 0 && s < sf) {
+        ic = (unsigned char)(*s++);
+        if (ic < 32 || ic > 127) return false; // non-representable
+
+#if defined(host_cnv_use_wchar)
+        *d++ = (host_cnv_char_t)ic;
+#else
+        if (utf8_encode(&d,df,(uint32_t)ic) < 0) // will advance d by however many UTF-8 bytes are needed
+            return false; // non-representable, or probably just out of room
+#endif
+    }
+
+    assert(d <= df);
+    *d = 0;
+
+    return true;
+}
+
 template <class MT> bool String_SBCS_TO_HOST(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
 	host_cnv_char_t *df = d + CROSS_LEN - 1;
 	const char *sf = s + CROSS_LEN - 1;
@@ -243,6 +266,32 @@ template <class MT> bool String_HOST_TO_SBCS(char *d/*CROSS_LEN*/,const host_cnv
     return true;
 }
 
+bool String_HOST_TO_ASCII(char *d/*CROSS_LEN*/,const host_cnv_char_t *s/*CROSS_LEN*/) {
+    const host_cnv_char_t *sf = s + CROSS_LEN - 1;
+    char *df = d + CROSS_LEN - 1;
+    int ic;
+
+    while (*s != 0 && s < sf) {
+#if defined(host_cnv_use_wchar)
+        ic = (int)(*s++);
+#else
+        if ((ic=utf8_decode(&s,sf)) < 0)
+            return false; // non-representable
+#endif
+
+        if (ic < 32 || ic > 127)
+            return false; // non-representable
+
+        if (d >= df) return false;
+        *d++ = (unsigned char)ic;
+    }
+
+    assert(d <= df);
+    *d = 0;
+
+    return true;
+}
+
 bool cpwarn_once = false;
 
 bool CodePageHostToGuest(char *d/*CROSS_LEN*/,const host_cnv_char_t *s/*CROSS_LEN*/) {
@@ -252,19 +301,13 @@ bool CodePageHostToGuest(char *d/*CROSS_LEN*/,const host_cnv_char_t *s/*CROSS_LE
         case 932:
             return String_HOST_TO_DBCS_SHIFTJIS<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
         default:
-#if defined(host_cnv_use_wchar)
-            // TODO: Use Windows wide to multibyte functions to copy string 'd' from 's'
-            break; // sorry
-#else
             /* at this time, it would be cruel and unusual to not allow any file I/O just because
              * our code page support is so limited. */
             if (!cpwarn_once) {
                 cpwarn_once = true;
                 LOG_MSG("WARNING: No translation support (to guest) for code page %u",dos.loaded_codepage);
             }
-            strcpy(d,s);
-            return true;
-#endif
+            return String_HOST_TO_ASCII(d,s);
     }
 
     return false;
@@ -277,19 +320,13 @@ bool CodePageGuestToHost(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LE
         case 932:
             return String_DBCS_TO_HOST_SHIFTJIS<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
         default:
-#if defined(host_cnv_use_wchar)
-            // TODO: Use Windows multibyte to wide functions to copy string 'd' from 's'
-            break; // sorry
-#else
             /* at this time, it would be cruel and unusual to not allow any file I/O just because
              * our code page support is so limited. */
             if (!cpwarn_once) {
                 cpwarn_once = true;
                 LOG_MSG("WARNING: No translation support (to host) for code page %u",dos.loaded_codepage);
             }
-            strcpy(d,s);
-            return true;
-#endif
+            return String_ASCII_TO_HOST(d,s);
     }
 
     return false;
