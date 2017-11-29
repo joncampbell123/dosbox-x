@@ -236,6 +236,10 @@ bool CodePageHostToGuest(char *d/*CROSS_LEN*/,const host_cnv_char_t *s/*CROSS_LE
         case 932:
             return String_HOST_TO_DBCS_SHIFTJIS<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
         default:
+#if defined(host_cnv_use_wchar)
+            // TODO: Use Windows wide to multibyte functions to copy string 'd' from 's'
+            break; // sorry
+#else
             /* at this time, it would be cruel and unusual to not allow any file I/O just because
              * our code page support is so limited. */
             if (!cpwarn_once) {
@@ -244,6 +248,7 @@ bool CodePageHostToGuest(char *d/*CROSS_LEN*/,const host_cnv_char_t *s/*CROSS_LE
             }
             strcpy(d,s);
             return true;
+#endif
     }
 
     return false;
@@ -256,6 +261,10 @@ bool CodePageGuestToHost(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LE
         case 932:
             return String_DBCS_TO_HOST_SHIFTJIS<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
         default:
+#if defined(host_cnv_use_wchar)
+            // TODO: Use Windows multibyte to wide functions to copy string 'd' from 's'
+            break; // sorry
+#else
             /* at this time, it would be cruel and unusual to not allow any file I/O just because
              * our code page support is so limited. */
             if (!cpwarn_once) {
@@ -264,6 +273,7 @@ bool CodePageGuestToHost(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LE
             }
             strcpy(d,s);
             return true;
+#endif
     }
 
     return false;
