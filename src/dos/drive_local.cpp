@@ -91,8 +91,8 @@ typedef char host_cnv_char_t;
 static host_cnv_char_t cpcnv_temp[4096];
 
 template <class MT> bool String_SBCS_TO_HOST(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
-    const char *sf = s + CROSS_LEN - 1;
-    char *df = d + CROSS_LEN - 1;
+	host_cnv_char_t *df = d + CROSS_LEN - 1;
+	const char *sf = s + CROSS_LEN - 1;
     unsigned char ic;
     MT wc;
 
@@ -116,8 +116,8 @@ template <class MT> bool String_SBCS_TO_HOST(host_cnv_char_t *d/*CROSS_LEN*/,con
 }
 
 template <class MT> bool String_DBCS_TO_HOST_SHIFTJIS(host_cnv_char_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
-    const char *sf = s + CROSS_LEN - 1;
-    char *df = d + CROSS_LEN - 1;
+	host_cnv_char_t *df = d + CROSS_LEN - 1;
+	const char *sf = s + CROSS_LEN - 1;
     uint16_t ic;
     MT rawofs;
     MT wc;
@@ -181,7 +181,7 @@ template <class MT> int DBCS_SHIFTJIS_From_Host_Find(int c,const MT *hitbl,const
 }
 
 template <class MT> bool String_HOST_TO_DBCS_SHIFTJIS(char *d/*CROSS_LEN*/,const host_cnv_char_t *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
-    const char *sf = s + CROSS_LEN - 1;
+    const host_cnv_char_t *sf = s + CROSS_LEN - 1;
     char *df = d + CROSS_LEN - 1;
     int ic;
     int oc;
@@ -216,7 +216,7 @@ template <class MT> bool String_HOST_TO_DBCS_SHIFTJIS(char *d/*CROSS_LEN*/,const
 }
 
 template <class MT> bool String_HOST_TO_SBCS(char *d/*CROSS_LEN*/,const host_cnv_char_t *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
-    const char *sf = s + CROSS_LEN - 1;
+    const host_cnv_char_t *sf = s + CROSS_LEN - 1;
     char *df = d + CROSS_LEN - 1;
     int ic;
     int oc;

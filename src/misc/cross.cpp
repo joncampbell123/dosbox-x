@@ -156,7 +156,7 @@ dir_information* open_directoryw(const wchar_t* dirname) {
     dir.wide = true;
 	dir.handle = INVALID_HANDLE_VALUE;
 
-	return (_access(dirname,0) ? NULL : &dir);
+	return (_waccess(dirname,0) ? NULL : &dir);
 }
 
 dir_information* open_directory(const char* dirname) {
