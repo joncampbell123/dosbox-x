@@ -83,6 +83,40 @@ template <class MT> bool String_SBCS_TO_HOST(char *d/*CROSS_LEN*/,const char *s/
     return true;
 }
 
+template <class MT> bool String_DBCS_TO_HOST_SHIFTJIS(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
+    const char *sf = s + CROSS_LEN - 1;
+    char *df = d + CROSS_LEN - 1;
+    uint16_t ic;
+    MT rawofs;
+    MT wc;
+
+    while (*s != 0 && s < sf) {
+        ic = (unsigned char)(*s++);
+        if ((ic & 0xE0) == 0x80 || (ic & 0xF0) == 0xE0) {
+            if (*s == 0) return false;
+            ic <<= 8U;
+            ic += (unsigned char)(*s++);
+        }
+
+        rawofs = hitbl[ic >> 6];
+        if (rawofs == 0xFFFF)
+            return false;
+
+        assert((size_t)(rawofs+0x40) <= rawtbl_max);
+        wc = rawtbl[rawofs + (ic & 0x3F)];
+        if (wc == 0x0000)
+            return false;
+
+        if (utf8_encode(&d,df,(uint32_t)wc) < 0) // will advance d by however many UTF-8 bytes are needed
+            return false; // non-representable, or probably just out of room
+    }
+
+    assert(d <= df);
+    *d = 0;
+
+    return true;
+}
+
 // TODO: This is SLOW. Optimize.
 template <class MT> int SBCS_From_Host_Find(int c,const MT *map,const size_t map_max) {
     for (size_t i=0;i < map_max;i++) {
@@ -91,6 +125,62 @@ template <class MT> int SBCS_From_Host_Find(int c,const MT *map,const size_t map
     }
 
     return -1;
+}
+
+// TODO: This is SLOW. Optimize.
+template <class MT> int DBCS_SHIFTJIS_From_Host_Find(int c,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
+    for (size_t h=0;h < 1024;h++) {
+        MT ofs = hitbl[h];
+
+        if (ofs == 0xFFFF) continue;
+        assert((size_t)(ofs+0x40) <= rawtbl_max);
+
+        for (size_t l=0;l < 0x40;l++) {
+            if ((MT)c == rawtbl[ofs+l])
+                return (h << 6) + l;
+        }
+    }
+
+    return -1;
+}
+
+template <class MT> bool String_HOST_TO_DBCS_SHIFTJIS(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
+    const char *sf = s + CROSS_LEN - 1;
+    char *df = d + CROSS_LEN - 1;
+    int ic;
+    int oc;
+
+    while (*s != 0 && s < sf) {
+        const char *is = s;
+
+        if ((ic=utf8_decode(&s,sf)) < 0)
+            return false; // non-representable
+
+        oc = DBCS_SHIFTJIS_From_Host_Find<MT>(ic,hitbl,rawtbl,rawtbl_max);
+        if (oc < 0)
+            return false; // non-representable
+
+        {
+            char tmp[16];
+            memcpy(tmp,is,(size_t)(s-is));
+            tmp[(size_t)(s-is)] = 0;
+        }
+
+        if (oc >= 0x100) {
+            if ((d+1) >= df) return false;
+            *d++ = (unsigned char)(oc >> 8U);
+            *d++ = (unsigned char)oc;
+        }
+        else {
+            if (d >= df) return false;
+            *d++ = (unsigned char)oc;
+        }
+    }
+
+    assert(d <= df);
+    *d = 0;
+
+    return true;
 }
 
 template <class MT> bool String_HOST_TO_SBCS(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
@@ -123,6 +213,8 @@ bool CodePageHostToGuest(char *d/*CROSS_LEN*/,char *s/*CROSS_LEN*/) {
     switch (dos.loaded_codepage) {
         case 437:
             return String_HOST_TO_SBCS<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+        case 932:
+            return String_HOST_TO_DBCS_SHIFTJIS<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
         default:
             /* at this time, it would be cruel and unusual to not allow any file I/O just because
              * our code page support is so limited. */
@@ -141,6 +233,8 @@ bool CodePageGuestToHost(char *d/*CROSS_LEN*/,char *s/*CROSS_LEN*/) {
     switch (dos.loaded_codepage) {
         case 437:
             return String_SBCS_TO_HOST<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+        case 932:
+            return String_DBCS_TO_HOST_SHIFTJIS<uint16_t>(d,s,cp932_to_unicode_hitbl,cp932_to_unicode_raw,sizeof(cp932_to_unicode_raw)/sizeof(cp932_to_unicode_raw[0]));
         default:
             /* at this time, it would be cruel and unusual to not allow any file I/O just because
              * our code page support is so limited. */
