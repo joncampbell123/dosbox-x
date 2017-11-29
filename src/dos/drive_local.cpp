@@ -71,6 +71,7 @@ typedef wchar_t host_cnv_char_t;
 # define ht_stat_t struct _stat64i32 /* WTF Microsoft?? Why aren't _stat and _wstat() consistent on stat struct type? */
 # define ht_stat(x,y) _wstat64i32(x,y)
 # define ht_access(x,y) _waccess(x,y)
+# define ht_strdup(x) _wcsdup(x)
 # define ht_unlink(x) _wunlink(x)
 #else
 // Linux: Use UTF-8
@@ -79,6 +80,7 @@ typedef char host_cnv_char_t;
 # define ht_stat_t struct stat
 # define ht_stat(x,y) stat(x,y)
 # define ht_access(x,y) access(x,y)
+# define ht_strdup(x) strdup(x)
 # define ht_unlink(x) unlink(x)
 #endif
 
@@ -747,6 +749,8 @@ bool localDrive::TestDir(const char * dir) {
 }
 
 bool localDrive::Rename(const char * oldname,const char * newname) {
+    host_cnv_char_t *ht;
+
 	char newold[CROSS_LEN];
 	strcpy(newold,basedir);
 	strcat(newold,oldname);
@@ -757,25 +761,36 @@ bool localDrive::Rename(const char * oldname,const char * newname) {
 	strcpy(newnew,basedir);
 	strcat(newnew,newname);
 	CROSS_FILENAME(newnew);
+    dirCache.ExpandName(newnew);
 
     // guest to host code page translation
-    char *o_temp_name = CodePageGuestToHost(newold);
-    if (o_temp_name == NULL) {
+    ht = CodePageGuestToHost(newold);
+    if (ht == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newold);
         return false;
     }
-    strcpy(newold,o_temp_name);
+    host_cnv_char_t *o_temp_name = ht_strdup(ht);
 
     // guest to host code page translation
-    char *n_temp_name = CodePageGuestToHost(newnew);
-    if (n_temp_name == NULL) {
+    ht = CodePageGuestToHost(newnew);
+    if (ht == NULL) {
+        free(o_temp_name);
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newnew);
         return false;
     }
-    strcpy(newnew,n_temp_name);
+    host_cnv_char_t *n_temp_name = ht_strdup(ht);
 
-	int temp=rename(newold,dirCache.GetExpandName(newnew));
+#ifdef host_cnv_use_wchar
+	int temp=_wrename(o_temp_name,n_temp_name);
+#else
+	int temp=rename(o_temp_name,n_temp_name);
+#endif
+
 	if (temp==0) dirCache.CacheOut(newnew);
+
+    free(o_temp_name);
+    free(n_temp_name);
+
 	return (temp==0);
 
 }
