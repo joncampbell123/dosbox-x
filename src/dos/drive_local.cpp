@@ -92,7 +92,7 @@ template <class MT> bool String_DBCS_TO_HOST_SHIFTJIS(char *d/*CROSS_LEN*/,const
 
     while (*s != 0 && s < sf) {
         ic = (unsigned char)(*s++);
-        if ((ic & 0xE0) == 0x80 || (ic & 0xF0) == 0xE0) {
+        if ((ic & 0xE0) == 0x80 || (ic & 0xE0) == 0xE0) {
             if (*s == 0) return false;
             ic <<= 8U;
             ic += (unsigned char)(*s++);
