@@ -116,13 +116,21 @@ template <class MT> bool String_HOST_TO_SBCS(char *d/*CROSS_LEN*/,const char *s/
     return true;
 }
 
+bool cpwarn_once = false;
+
 bool CodePageHostToGuest(char *d/*CROSS_LEN*/,char *s/*CROSS_LEN*/) {
     switch (dos.loaded_codepage) {
         case 437:
             return String_HOST_TO_SBCS<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
         default:
-            LOG_MSG("WARNING: No translation support for code page %u",dos.loaded_codepage);
-            break;
+            /* at this time, it would be cruel and unusual to not allow any file I/O just because
+             * our code page support is so limited. */
+            if (!cpwarn_once) {
+                cpwarn_once = true;
+                LOG_MSG("WARNING: No translation support (to guest) for code page %u",dos.loaded_codepage);
+            }
+            strcpy(d,s);
+            return true;
     }
 
     return false;
@@ -133,8 +141,14 @@ bool CodePageGuestToHost(char *d/*CROSS_LEN*/,char *s/*CROSS_LEN*/) {
         case 437:
             return String_SBCS_TO_HOST<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
         default:
-            LOG_MSG("WARNING: No translation support for code page %u",dos.loaded_codepage);
-            break;
+            /* at this time, it would be cruel and unusual to not allow any file I/O just because
+             * our code page support is so limited. */
+            if (!cpwarn_once) {
+                cpwarn_once = true;
+                LOG_MSG("WARNING: No translation support (to host) for code page %u",dos.loaded_codepage);
+            }
+            strcpy(d,s);
+            return true;
     }
 
     return false;
