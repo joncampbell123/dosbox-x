@@ -1629,6 +1629,44 @@ Bitu pc98_gdc_read(Bitu port,Bitu iolen) {
     return ~0;
 }
 
+Bitu pc98_egc4a0_read(Bitu port,Bitu iolen) {
+    /* assume: (port & 1) == 0 [even] and iolen == 2 */
+    switch (port & 0x0E) {
+        default:
+            LOG_MSG("PC-98 EGC: Unhandled read from 0x%x",(unsigned int)port);
+    };
+
+    return ~0;
+}
+
+void pc98_egc4a0_write(Bitu port,Bitu val,Bitu iolen) {
+    /* assume: (port & 1) == 0 [even] and iolen == 2 */
+    switch (port & 0x0E) {
+        case 0x0: /* 0x4A0 */
+            /* bits [15:8] = 0xFF
+             * bits [7:0] = enable writing to plane (NTS: only bits 3-0 have meaning in 16-color mode).
+             * as far as I can tell, bits [7:0] correspond to the same enable bits as port 0x7C [3:0] */
+            pc98_gdc_modereg = val & 0xFF;
+            break;
+        default:
+            LOG_MSG("PC-98 EGC: Unhandled write to 0x%x val 0x%x",(unsigned int)port,(unsigned int)val);
+    };
+}
+
+// I/O access to 0x4A0-0x4AF must be WORD sized and even port, or the system hangs if you try.
+Bitu pc98_egc4a0_read_warning(Bitu port,Bitu iolen) {
+    LOG_MSG("PC-98 EGC warning: I/O read from port 0x%x (len=%u) known to possibly hang the system on real hardware",
+        (unsigned int)port,(unsigned int)iolen);
+
+    return ~0;
+}
+
+// I/O access to 0x4A0-0x4AF must be WORD sized and even port, or the system hangs if you try.
+void pc98_egc4a0_write_warning(Bitu port,Bitu val,Bitu iolen) {
+    LOG_MSG("PC-98 EGC warning: I/O write to port 0x%x (val=0x%x len=%u) known to possibly hang the system on real hardware",
+        (unsigned int)port,(unsigned int)val,(unsigned int)iolen);
+}
+
 void VGA_OnEnterPC98(Section *sec) {
     VGA_UnsetupMisc();
     VGA_UnsetupAttr();
@@ -1784,6 +1822,21 @@ void VGA_OnEnterPC98_phase2(Section *sec) {
     for (unsigned int j=0x70;j < 0x80;j += 2) {
         IO_RegisterWriteHandler(j,pc98_crtc_write,IO_MB);
         IO_RegisterReadHandler(j,pc98_crtc_read,IO_MB);
+    }
+
+    /* EGC at 0x4A0-0x4AF (even).
+     * All I/O ports are 16-bit.
+     * NTS: On real hardware, doing 8-bit I/O on these ports will often hang the system. */
+    for (unsigned int i=0;i < 0x10;i += 2) {
+        IO_RegisterWriteHandler(i+0x4A0,pc98_egc4a0_write_warning,IO_MB);
+        IO_RegisterWriteHandler(i+0x4A0,pc98_egc4a0_write,        IO_MW);
+        IO_RegisterWriteHandler(i+0x4A1,pc98_egc4a0_write_warning,IO_MB);
+        IO_RegisterWriteHandler(i+0x4A1,pc98_egc4a0_write_warning,IO_MW);
+
+        IO_RegisterReadHandler(i+0x4A0,pc98_egc4a0_read_warning,IO_MB);
+        IO_RegisterReadHandler(i+0x4A0,pc98_egc4a0_read,        IO_MW);
+        IO_RegisterReadHandler(i+0x4A1,pc98_egc4a0_read_warning,IO_MB);
+        IO_RegisterReadHandler(i+0x4A1,pc98_egc4a0_read_warning,IO_MW);
     }
 
     pc98_gdc[GDC_MASTER].master_sync = true;
