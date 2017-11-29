@@ -1316,6 +1316,12 @@ void pc98_port6A_command_write(unsigned char b) {
                                    // They're both there in hardware, but one or another is active depending on analog enable.
                                    // Also, the 4th bitplane at E000:0000 disappears when switched off from the display and from CPU access.
             break;
+        case 0x04: // TODO
+        case 0x05: // TODO
+        case 0x06: // TODO
+        case 0x07: // TODO
+            // TODO
+            break;
         default:
             LOG_MSG("PC-98 port 6Ah unknown command 0x%02x",b);
             break;
