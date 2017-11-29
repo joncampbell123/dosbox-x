@@ -700,15 +700,20 @@ bool localDrive::RemoveDir(const char * dir) {
 	strcat(newdir,dir);
 	CROSS_FILENAME(newdir);
 
+    char *temp_name = dirCache.GetExpandName(newdir);
+
     // guest to host code page translation
-    char *n_temp_name = CodePageGuestToHost(newdir);
-    if (n_temp_name == NULL) {
+    host_cnv_char_t *host_name = CodePageGuestToHost(temp_name);
+    if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newdir);
         return false;
     }
-    strcpy(newdir,n_temp_name);
 
-	int temp=rmdir(dirCache.GetExpandName(newdir));
+#if defined (WIN32)						/* MS Visual C++ */
+	int temp=_wrmdir(host_name);
+#else
+	int temp=rmdir(host_name);
+#endif
 	if (temp==0) dirCache.DeleteEntry(newdir,true);
 	return (temp==0);
 }
