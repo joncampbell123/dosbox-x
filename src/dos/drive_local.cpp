@@ -811,15 +811,14 @@ bool localDrive::FileExists(const char* name) {
 	dirCache.ExpandName(newname);
 
     // guest to host code page translation
-    char *n_temp_name = CodePageGuestToHost(newname);
-    if (n_temp_name == NULL) {
+    host_cnv_char_t *host_name = CodePageGuestToHost(newname);
+    if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newname);
         return false;
     }
-    strcpy(newname,n_temp_name);
 
-	struct stat temp_stat;
-	if(stat(newname,&temp_stat)!=0) return false;
+	ht_stat_t temp_stat;
+	if(ht_stat(host_name,&temp_stat)!=0) return false;
 	if(temp_stat.st_mode & S_IFDIR) return false;
 	return true;
 }
@@ -832,15 +831,15 @@ bool localDrive::FileStat(const char* name, FileStat_Block * const stat_block) {
 	dirCache.ExpandName(newname);
 
     // guest to host code page translation
-    char *n_temp_name = CodePageGuestToHost(newname);
-    if (n_temp_name == NULL) {
+    char *host_name = CodePageGuestToHost(newname);
+    if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newname);
         return false;
     }
-    strcpy(newname,n_temp_name);
 
-	struct stat temp_stat;
-	if(stat(newname,&temp_stat)!=0) return false;
+	ht_stat_t temp_stat;
+	if(ht_stat(host_name,&temp_stat)!=0) return false;
+
 	/* Convert the stat to a FileStat */
 	struct tm *time;
 	if((time=localtime(&temp_stat.st_mtime))!=0) {
