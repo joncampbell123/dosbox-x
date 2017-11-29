@@ -115,12 +115,15 @@ for ($y=0;$y < 1024;$y++) {
         $rawbase =  0xFFFFFF;
     }
 
+    $comma = ',';
+    $comma = ' ' if $y == 1023;
+
     if (($y*$pagesize) >= $codebase) {
-        print "\t".sprintf("0x%04x",$rawbase)." /* ".sprintf("0x%04x-0x%04X",$codebase,$codebase+$pagesize-1)." */\n";
+        print "\t".sprintf("0x%04x",$rawbase)."$comma /* ".sprintf("0x%04x-0x%04X",$codebase,$codebase+$pagesize-1)." */\n";
         $t++;
     }
     else {
-        print "\t".sprintf("0x%04x",0xFFFF)." /* ".sprintf("0x%04x-0x%04X",$y*$pagesize,$y*$pagesize+$pagesize-1)." NOT PRESENT */\n";
+        print "\t".sprintf("0x%04x",0xFFFF)."$comma /* ".sprintf("0x%04x-0x%04X",$y*$pagesize,$y*$pagesize+$pagesize-1)." NOT PRESENT */\n";
     }
 }
 print "};\n";

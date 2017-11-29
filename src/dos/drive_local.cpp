@@ -58,6 +58,7 @@ private:
 };
 
 #include "cp437_uni.h"
+#include "cp932_uni.h"
 
 static char cpcnv_temp[4096];
 
