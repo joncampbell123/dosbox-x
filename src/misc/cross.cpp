@@ -169,7 +169,7 @@ bool read_directory_firstw(dir_information* dirp, wchar_t* entry_name, bool& is_
     dirp->wide = true;
 
     // TODO: offer a config.h option to opt out of Windows widechar functions
-	wcsncpy(entry_name,dirp->search_data.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
+	wcsncpy(entry_name,dirp->search_data.w.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
 
 	if (dirp->search_data.w.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) is_directory = true;
 	else is_directory = false;
@@ -185,7 +185,7 @@ bool read_directory_nextw(dir_information* dirp, wchar_t* entry_name, bool& is_d
 	if (result==0) return false;
 
     // TODO: offer a config.h option to opt out of Windows widechar functions
-	wcsncpy(entry_name,dirp->search_data.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
+	wcsncpy(entry_name,dirp->search_data.w.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
 
 	if (dirp->search_data.w.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) is_directory = true;
 	else is_directory = false;
