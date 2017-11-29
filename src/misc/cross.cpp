@@ -153,36 +153,75 @@ dir_information* open_directory(const char* dirname) {
 	if (dirname[len-1] == '\\') strcat(dir.base_path,"*.*");
 	else                        strcat(dir.base_path,"\\*.*");
 
+    dir.wide = false;
 	dir.handle = INVALID_HANDLE_VALUE;
 
 	return (_access(dirname,0) ? NULL : &dir);
 }
 
-bool read_directory_first(dir_information* dirp, wchar_t* entry_name, bool& is_directory) {
+bool read_directory_firstw(dir_information* dirp, wchar_t* entry_name, bool& is_directory) {
     // TODO: offer a config.h option to opt out of Windows widechar functions
-	dirp->handle = FindFirstFileW(dirp->base_path, &dirp->search_data);
+	dirp->handle = FindFirstFileW(dirp->base_path, &dirp->search_data.w);
 	if (INVALID_HANDLE_VALUE == dirp->handle) {
 		return false;
 	}
 
+    dir->wide = true;
+
     // TODO: offer a config.h option to opt out of Windows widechar functions
 	safe_wcsncpy(entry_name,dirp->search_data.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
 
-	if (dirp->search_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) is_directory = true;
+	if (dirp->search_data.w.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) is_directory = true;
 	else is_directory = false;
 
 	return true;
 }
 
-bool read_directory_next(dir_information* dirp, wchar_t* entry_name, bool& is_directory) {
+bool read_directory_nextw(dir_information* dirp, wchar_t* entry_name, bool& is_directory) {
+    if (!dir->wide) return false;
+
     // TODO: offer a config.h option to opt out of Windows widechar functions
-	int result = FindNextFileW(dirp->handle, &dirp->search_data);
+	int result = FindNextFileW(dirp->handle, &dirp->search_data.w);
 	if (result==0) return false;
 
     // TODO: offer a config.h option to opt out of Windows widechar functions
 	safe_wcsncpy(entry_name,dirp->search_data.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
 
-	if (dirp->search_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) is_directory = true;
+	if (dirp->search_data.w.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) is_directory = true;
+	else is_directory = false;
+
+	return true;
+}
+
+bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_directory) {
+    // TODO: offer a config.h option to opt out of Windows widechar functions
+	dirp->handle = FindFirstFileA(dirp->base_path, &dirp->search_data.a);
+	if (INVALID_HANDLE_VALUE == dirp->handle) {
+		return false;
+	}
+
+    dirp->wide = false;
+
+    // TODO: offer a config.h option to opt out of Windows widechar functions
+	safe_strncpy(entry_name,dirp->search_data.a.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
+
+	if (dirp->search_data.a.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) is_directory = true;
+	else is_directory = false;
+
+	return true;
+}
+
+bool read_directory_next(dir_information* dirp, char* entry_name, bool& is_directory) {
+    if (dirp->wide) return false;
+
+    // TODO: offer a config.h option to opt out of Windows widechar functions
+	int result = FindNextFileA(dirp->handle, &dirp->search_data.a);
+	if (result==0) return false;
+
+    // TODO: offer a config.h option to opt out of Windows widechar functions
+	safe_strncpy(entry_name,dirp->search_data.a.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
+
+	if (dirp->search_data.a.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) is_directory = true;
 	else is_directory = false;
 
 	return true;
