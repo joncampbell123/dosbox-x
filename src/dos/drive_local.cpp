@@ -451,12 +451,18 @@ bool localDrive::GetSystemFilename(char *sysName, char const * const dosName) {
 	dirCache.ExpandName(sysName);
 
     // guest to host code page translation
-    char *n_temp_name = CodePageGuestToHost(sysName);
-    if (n_temp_name == NULL) {
+    host_cnv_char_t *host_name = CodePageGuestToHost(sysName);
+    if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,sysName);
         return false;
     }
-    strcpy(sysName,n_temp_name);
+
+#ifdef host_cnv_use_wchar
+    // FIXME: GetSystemFilename as implemented cannot return the wide char filename
+    return false;
+#else
+    strcpy(sysName,host_name);
+#endif
 
 	return true;
 }
