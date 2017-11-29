@@ -347,7 +347,8 @@ bool device_CON::Write(Bit8u * data,Bit16u * size) {
                 case 'l': /* RESET MODE */
                     switch (ansi.data[0]) {
                         case 1: // show/hide function key row
-                            // not implemented, TODO
+                            void update_pc98_function_row(bool enable);
+                            update_pc98_function_row(data[count] == 'l');
                             break;
                         case 5: // show/hide cursor
                             void PC98_show_cursor(bool show);

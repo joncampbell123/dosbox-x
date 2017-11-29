@@ -2237,6 +2237,92 @@ extern uint8_t                     GDC_display_plane;
 
 unsigned char prev_pc98_mode42 = 0;
 
+bool pc98_function_row = true;
+
+const char *pc98_func_key[10] = {
+    "  C1  ",
+    "  CU  ",
+    "  CA  ",
+    "  S1  ",
+    "  SU  ",
+
+    " VOID ",
+    " NWL  ",
+    " INS  ",
+    " REP  ",
+    "  ^Z  "
+};
+
+#include "int10.h"
+
+void update_pc98_function_row(bool enable) {
+    pc98_function_row = enable;
+
+    mem_writeb(0x712,25 - 1 - (pc98_function_row ? 1 : 0));
+    real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,25 - 1 - (pc98_function_row ? 1 : 0));
+
+	unsigned char c = real_readb(BIOSMEM_SEG,BIOSMEM_CURSOR_POS);
+	unsigned char r = real_readb(BIOSMEM_SEG,BIOSMEM_CURSOR_POS+1);
+    unsigned int o = 80 * 24;
+
+    if (pc98_function_row) {
+        if (r > 23) r = 23;
+
+        /* draw the function row.
+         * based on on real hardware:
+         *
+         * The function key is 72 chars wide. 4 blank chars on each side of the screen.
+         * It is divided into two halves, 36 chars each.
+         * Within each half, aligned to it's side, is 5 x 7 regions.
+         * 6 of the 7 are inverted. centered in the white block is the function key. */
+        for (unsigned int i=0;i < 40;) {
+            mem_writew(0xA0000+((o+i)*2),0x0000);
+            mem_writeb(0xA2000+((o+i)*2),0xE1);
+
+            mem_writew(0xA0000+((o+(79-i))*2),0x0000);
+            mem_writeb(0xA2000+((o+(79-i))*2),0xE1);
+
+            if (i >= 3 && i < 38)
+                i += 7;
+            else
+                i++;
+        }
+
+        for (unsigned int i=0;i < 5;i++) {
+            unsigned int co = 4 + (i * 7);
+            const char *str = pc98_func_key[i];
+
+            for (unsigned int j=0;j < 6;j++) {
+                mem_writew(0xA0000+((o+co+j)*2),str[j]);
+                mem_writeb(0xA2000+((o+co+j)*2),0xE5); // white  reverse  visible
+           }
+        }
+
+        for (unsigned int i=5;i < 10;i++) {
+            unsigned int co = 42 + ((i - 5) * 7);
+            const char *str = pc98_func_key[i];
+
+            for (unsigned int j=0;j < 6;j++) {
+                mem_writew(0xA0000+((o+co+j)*2),str[j]);
+                mem_writeb(0xA2000+((o+co+j)*2),0xE5); // white  reverse  visible
+           }
+        }
+    }
+    else {
+        /* erase the function row */
+        for (unsigned int i=0;i < 80;i++) {
+            mem_writew(0xA0000+((o+i)*2),0x0000);
+            mem_writeb(0xA2000+((o+i)*2),0xE1);
+        }
+    }
+
+    real_writeb(BIOSMEM_SEG,BIOSMEM_CURSOR_POS,c);
+    real_writeb(BIOSMEM_SEG,BIOSMEM_CURSOR_POS+1,r);
+
+    void vga_pc98_direct_cursor_pos(Bit16u address);
+    vga_pc98_direct_cursor_pos((r*80)+c);
+}
+
 static Bitu INT18_PC98_Handler(void) {
     Bit16u temp16;
 
