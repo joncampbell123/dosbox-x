@@ -1639,7 +1639,8 @@ Bitu pc98_egc4a0_read(Bitu port,Bitu iolen) {
     /* assume: (port & 1) == 0 [even] and iolen == 2 */
     switch (port & 0x0E) {
         default:
-            LOG_MSG("PC-98 EGC: Unhandled read from 0x%x",(unsigned int)port);
+            // LOG_MSG("PC-98 EGC: Unhandled read from 0x%x",(unsigned int)port);
+            break;
     };
 
     return ~0;
@@ -1691,7 +1692,8 @@ void pc98_egc4a0_write(Bitu port,Bitu val,Bitu iolen) {
             pc98_egc_rop = (val & 0xFF);
             break;
         default:
-            LOG_MSG("PC-98 EGC: Unhandled write to 0x%x val 0x%x",(unsigned int)port,(unsigned int)val);
+            // LOG_MSG("PC-98 EGC: Unhandled write to 0x%x val 0x%x",(unsigned int)port,(unsigned int)val);
+            break;
     };
 }
 
