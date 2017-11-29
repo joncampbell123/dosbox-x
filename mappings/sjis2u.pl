@@ -47,27 +47,81 @@ $type = "uint32_t" if $sz == 4;
 
 $prfmt = "0x%0".($sz*2)."x";
 
+$pagesize = 0x40;
 $colwidth = 8;
 
-print "/* single-byte charset to unicode. 0x0000 means no mapping */\n";
-print "const $type $arrayname"."[65536] = {\n";
-for ($y=0;$y < 65536;$y += $colwidth) {
-    print "\t";
-    for ($x=0;$x < $colwidth;$x++) {
-        $i = $y + $x;
+my @tbl;
+my @rbl;
+my $rawsz = 0;
 
-        print sprintf($prfmt,$map[$i]);
-        if ($i != 65535) {
-            print ",";
-        }
-        else {
-            print " ";
+for ($y=0;$y < 65536;$y += $pagesize) {
+    $c = 0;
+    for ($x=0;$x < $pagesize;$x++) {
+        if ($map[$y+$x] != 0) {
+            $c++;
+            last;
         }
     }
 
-    print " /* ".sprintf("0x%02X-0x%02X",$y,$y+$colwidth-1)." */";
+    if ($c != 0) {
+        push(@tbl,$y);
+        push(@rbl,$rawsz);
+        $rawsz += $pagesize;
+    }
+}
 
-    print "\n";
+print "/* double-byte SHIFT-JIS charset to unicode. 0x0000 means no mapping */\n";
+print "/* hi = (code >> 6) */\n";
+print "/* lo = code & 0x3F */\n";
+print "/* rawoff = $arrayname"."_hitbl[hi] */\n";
+print "/* if (rawoff != 0xFFFF) ucode = _raw[rawoff+lo] */\n";
+print "const $type $arrayname"."_raw[$rawsz] = {\n";
+for ($t=0;$t < @rbl;$t++) {
+    $codebase = $tbl[$t];
+    $rawbase = $rbl[$t];
+
+    print "\t/* codebase=".sprintf("0x%04x",$codebase)." rawbase=".sprintf("0x%04x",$rawbase)." */\n";
+
+    for ($y=0;$y < $pagesize;$y += $colwidth) {
+        print "\t";
+        for ($x=0;$x < $colwidth;$x++) {
+            $i = $codebase + $y + $x;
+
+            print sprintf($prfmt,$map[$i]);
+            if ($i != ($pagesize-1) || ($t+1) != @rbl) {
+                print ",";
+            }
+            else {
+                print " ";
+            }
+        }
+
+        print " /* ".sprintf("0x%04X-0x%04X",$codebase+$y,$codebase+$y+$colwidth-1)." */";
+
+        print "\n";
+    }
+}
+print "};\n";
+
+print "const uint16_t $arrayname"."_hitbl[1024] = {\n";
+$t = 0;
+for ($y=0;$y < 1024;$y++) {
+    if ($t < @tbl) {
+        $codebase = $tbl[$t];
+        $rawbase = $rbl[$t];
+    }
+    else {
+        $codebase = 0xFFFFFF;
+        $rawbase =  0xFFFFFF;
+    }
+
+    if (($y*$pagesize) >= $codebase) {
+        print "\t".sprintf("0x%04x",$rawbase)." /* ".sprintf("0x%04x-0x%04X",$codebase,$codebase+$pagesize-1)." */\n";
+        $t++;
+    }
+    else {
+        print "\t".sprintf("0x%04x",0xFFFF)." /* ".sprintf("0x%04x-0x%04X",$y*$pagesize,$y*$pagesize+$pagesize-1)." NOT PRESENT */\n";
+    }
 }
 print "};\n";
 
