@@ -582,7 +582,7 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 bool localDrive::FindNext(DOS_DTA & dta) {
 
 	char * dir_ent;
-	struct stat stat_block;
+	ht_stat_t stat_block;
 	char full_name[CROSS_LEN];
 	char dir_entcopy[CROSS_LEN];
 
@@ -610,13 +610,13 @@ again:
     char *temp_name = dirCache.GetExpandName(full_name);
 
     // guest to host code page translation
-    char *n_temp_name = CodePageGuestToHost(temp_name);
-    if (n_temp_name == NULL) {
+    host_cnv_char_t *host_name = CodePageGuestToHost(temp_name);
+    if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,temp_name);
 		goto again;//No symlinks and such
     }
 
-	if (stat(n_temp_name,&stat_block)!=0) { 
+	if (ht_stat(host_name,&stat_block)!=0) { 
 		goto again;//No symlinks and such
 	}	
 
