@@ -68,10 +68,14 @@ private:
 typedef wchar_t host_cnv_char_t;
 # define host_cnv_use_wchar
 # define _HT(x) L##x
+# define ht_stat(x,y) _wstat(x,y)
+# define ht_unlink(x) _wunlink(x)
 #else
 // Linux: Use UTF-8
 typedef char host_cnv_char_t;
 # define _HT(x) x
+# define ht_stat(x,y) stat(x,y)
+# define ht_unlink(x) unlink(x)
 #endif
 
 static host_cnv_char_t cpcnv_temp[4096];
@@ -475,19 +479,22 @@ bool localDrive::FileUnlink(const char * name) {
 	char *fullname = dirCache.GetExpandName(newname);
 
     // guest to host code page translation
-    char *n_temp_name = CodePageGuestToHost(fullname);
-    if (n_temp_name == NULL) {
+    host_cnv_char_t *host_name = CodePageGuestToHost(fullname);
+    if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,fullname);
         return false;
     }
-    strcpy(fullname,n_temp_name);
 
-	if (unlink(fullname)) {
+	if (ht_unlink(host_name)) {
 		//Unlink failed for some reason try finding it.
 		struct stat buffer;
-		if(stat(fullname,&buffer)) return false; // File not found.
+		if(ht_stat(host_name,&buffer)) return false; // File not found.
 
-		FILE* file_writable = fopen(fullname,"rb+");
+#ifdef host_cnv_use_wchar
+		FILE* file_writable = _wfopen(host_name,L"rb+");
+#else
+		FILE* file_writable = fopen(host_name,"rb+");
+#endif
 		if(!file_writable) return false; //No acces ? ERROR MESSAGE NOT SET. FIXME ?
 		fclose(file_writable);
 
@@ -506,7 +513,7 @@ bool localDrive::FileUnlink(const char * name) {
 			}
 		}
 		if(!found_file) return false;
-		if (!unlink(fullname)) {
+		if (!ht_unlink(host_name)) {
 			dirCache.DeleteEntry(newname);
 			return true;
 		}
