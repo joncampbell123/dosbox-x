@@ -150,8 +150,8 @@ dir_information* open_directoryw(const wchar_t* dirname) {
 
 	wcsncpy(dir.wbase_path(),dirname,MAX_PATH);
 
-	if (dirname[len-1] == '\\') strcat(dir.base_path,"*.*");
-	else                        strcat(dir.base_path,"\\*.*");
+	if (dirname[len-1] == '\\') wcscat(dir.wbase_path(),L"*.*");
+	else                        wcscat(dir.wbase_path(),L"\\*.*");
 
     dir.wide = true;
 	dir.handle = INVALID_HANDLE_VALUE;
