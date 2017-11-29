@@ -1274,6 +1274,12 @@ void pc98_port68_command_write(unsigned char b) {
 }
 
 bool gdc_analog = true;
+ 
+uint8_t pc98_egc_compare_lead = 0;
+uint8_t pc98_egc_lightsource = 0;
+uint8_t pc98_egc_shiftinput = 0;
+uint8_t pc98_egc_regload = 0;
+uint8_t pc98_egc_rop = 0xF0;
 
 void pc98_update_digpal(unsigned char ent);
 
@@ -1647,6 +1653,42 @@ void pc98_egc4a0_write(Bitu port,Bitu val,Bitu iolen) {
              * bits [7:0] = enable writing to plane (NTS: only bits 3-0 have meaning in 16-color mode).
              * as far as I can tell, bits [7:0] correspond to the same enable bits as port 0x7C [3:0] */
             pc98_gdc_modereg = val & 0xFF;
+            break;
+        case 0x4: /* 0x4A4 */
+            /* bits [15:14] = 0 (unused)
+             * bits [13:13] = 0=compare lead plane  1=don't
+             * bits [12:11] = light source
+             *    11 = invalid
+             *    10 = write the contents of the palette register
+             *    01 = write the result of the raster operation
+             *    00 = write CPU data
+             * bits [10:10] = read source
+             *    1 = shifter input is CPU write data
+             *    0 = shifter input is VRAM data
+             * bits [9:8] = register load
+             *    11 = invalid
+             *    10 = load VRAM data before writing on VRAM write
+             *    01 = load VRAM data into pattern/tile register on VRAM read
+             *    00 = Do not change pattern/tile register
+             * bits [7:0] = ROP
+             *    shifter:       11110000
+             *    destination:   11001100
+             *    pattern reg:   10101010
+             *
+             *    examples:
+             *    11110000 = VRAM transfer
+             *    00001111 = VRAM reverse transfer
+             *    11001100 = NOP
+             *    00110011 = VRAM inversion
+             *    11111111 = VRAM fill
+             *    00000000 = VRAM erase
+             *    10101010 = Pattern fill
+             *    01010101 = Pattern reversal fill */
+            pc98_egc_compare_lead = ((val >> 13) & 1) ^ 1;
+            pc98_egc_lightsource = (val >> 11) & 3;
+            pc98_egc_shiftinput = (val >> 10) & 1;
+            pc98_egc_regload = (val >> 8) & 3;
+            pc98_egc_rop = (val & 0xFF);
             break;
         default:
             LOG_MSG("PC-98 EGC: Unhandled write to 0x%x val 0x%x",(unsigned int)port,(unsigned int)val);

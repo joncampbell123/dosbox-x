@@ -743,6 +743,12 @@ public:
 	}
 };
 
+extern uint8_t pc98_egc_compare_lead;
+extern uint8_t pc98_egc_lightsource;
+extern uint8_t pc98_egc_shiftinput;
+extern uint8_t pc98_egc_regload;
+extern uint8_t pc98_egc_rop;
+
 /* The NEC display is documented to have:
  *
  * A0000-A3FFF      T-RAM (text) (8KB WORDs)
@@ -776,8 +782,11 @@ public:
 
         b = *((AWT*)(vga.mem.linear + vramoff));
         r = b ^ *((AWT*)pc98_gdc_tiles[plane].b);
-        for (size_t i=0;i < sizeof(pc98_gdc_tiles[plane].b);i += sizeof(AWT))
-            *((AWT*)(pc98_gdc_tiles[plane].b+i)) = b;
+
+        if (pc98_egc_regload == 1) {
+            for (size_t i=0;i < sizeof(pc98_gdc_tiles[plane].b);i += sizeof(AWT))
+                *((AWT*)(pc98_gdc_tiles[plane].b+i)) = b;
+        }
 
         return r;
     }
