@@ -166,7 +166,7 @@ bool read_directory_firstw(dir_information* dirp, wchar_t* entry_name, bool& is_
 		return false;
 	}
 
-    dir->wide = true;
+    dirp->wide = true;
 
     // TODO: offer a config.h option to opt out of Windows widechar functions
 	safe_wcsncpy(entry_name,dirp->search_data.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
@@ -178,7 +178,7 @@ bool read_directory_firstw(dir_information* dirp, wchar_t* entry_name, bool& is_
 }
 
 bool read_directory_nextw(dir_information* dirp, wchar_t* entry_name, bool& is_directory) {
-    if (!dir->wide) return false;
+    if (!dirp->wide) return false;
 
     // TODO: offer a config.h option to opt out of Windows widechar functions
 	int result = FindNextFileW(dirp->handle, &dirp->search_data.w);
