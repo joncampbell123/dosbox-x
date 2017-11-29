@@ -61,9 +61,9 @@ private:
 
 static char cpcnv_temp[4096];
 
-template <class MT> bool String_SBCS_TO_HOST(char *d/*CROSS_LEN*/,char *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
+template <class MT> bool String_SBCS_TO_HOST(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
+    const char *sf = s + CROSS_LEN - 1;
     char *df = d + CROSS_LEN - 1;
-    char *sf = s + CROSS_LEN - 1;
     unsigned char ic;
     MT wc;
 
@@ -82,6 +82,52 @@ template <class MT> bool String_SBCS_TO_HOST(char *d/*CROSS_LEN*/,char *s/*CROSS
     return true;
 }
 
+// TODO: This is SLOW. Optimize.
+template <class MT> int SBCS_Find(int c,const MT *map,const size_t map_max) {
+    for (size_t i=0;i < map_max;i++) {
+        if ((MT)c == map[i])
+            return i;
+    }
+
+    return -1;
+}
+
+template <class MT> bool String_HOST_TO_SBCS(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
+    const char *sf = s + CROSS_LEN - 1;
+    char *df = d + CROSS_LEN - 1;
+    int ic;
+    int oc;
+
+    while (*s != 0 && s < sf) {
+        if ((ic=utf8_decode(&s,sf)) < 0)
+            return false; // non-representable
+
+        oc = SBCS_Find<MT>(ic,map,map_max);
+        if (oc < 0)
+            return false; // non-representable
+
+        if (d >= df) return false;
+        *d++ = (unsigned char)oc;
+    }
+
+    assert(d <= df);
+    *d = 0;
+
+    return true;
+}
+
+bool CodePageHostToGuest(char *d/*CROSS_LEN*/,char *s/*CROSS_LEN*/) {
+    switch (dos.loaded_codepage) {
+        case 437:
+            return String_HOST_TO_SBCS<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+        default:
+            LOG_MSG("WARNING: No translation support for code page %u",dos.loaded_codepage);
+            break;
+    }
+
+    return false;
+}
+
 bool CodePageGuestToHost(char *d/*CROSS_LEN*/,char *s/*CROSS_LEN*/) {
     switch (dos.loaded_codepage) {
         case 437:
@@ -96,6 +142,13 @@ bool CodePageGuestToHost(char *d/*CROSS_LEN*/,char *s/*CROSS_LEN*/) {
 
 char *CodePageGuestToHost(char *s) {
     if (!CodePageGuestToHost(cpcnv_temp,s))
+        return NULL;
+
+    return cpcnv_temp;
+}
+
+char *CodePageHostToGuest(char *s) {
+    if (!CodePageHostToGuest(cpcnv_temp,s))
         return NULL;
 
     return cpcnv_temp;
@@ -373,7 +426,17 @@ again:
 	//and due to its design dir_ent might be lost.)
 	//Copying dir_ent first
 	strcpy(dir_entcopy,dir_ent);
-	if (stat(dirCache.GetExpandName(full_name),&stat_block)!=0) { 
+
+    char *temp_name = dirCache.GetExpandName(full_name);
+
+    // guest to host code page translation
+    char *n_temp_name = CodePageGuestToHost(temp_name);
+    if (n_temp_name == NULL) {
+        LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,temp_name);
+		goto again;//No symlinks and such
+    }
+
+	if (stat(n_temp_name,&stat_block)!=0) { 
 		goto again;//No symlinks and such
 	}	
 
@@ -609,11 +672,33 @@ void localDrive::closedir(void *handle) {
 }
 
 bool localDrive::read_directory_first(void *handle, char* entry_name, bool& is_directory) {
-	return ::read_directory_first((dir_information*)handle, entry_name, is_directory);
+    if (::read_directory_first((dir_information*)handle, entry_name, is_directory)) {
+        // guest to host code page translation
+        char *n_temp_name = CodePageHostToGuest(entry_name);
+        if (n_temp_name == NULL) {
+            LOG_MSG("%s: Filename '%s' from host is non-representable on the guest filesystem through code page conversion",__FUNCTION__,entry_name);
+            return false;
+        }
+        strcpy(entry_name,n_temp_name);
+        return true;
+    }
+
+    return false;
 }
 
 bool localDrive::read_directory_next(void *handle, char* entry_name, bool& is_directory) {
-	return ::read_directory_next((dir_information*)handle, entry_name, is_directory);
+    if (::read_directory_next((dir_information*)handle, entry_name, is_directory)) {
+        // guest to host code page translation
+        char *n_temp_name = CodePageHostToGuest(entry_name);
+        if (n_temp_name == NULL) {
+            LOG_MSG("%s: Filename '%s' from host is non-representable on the guest filesystem through code page conversion",__FUNCTION__,entry_name);
+            return false;
+        }
+        strcpy(entry_name,n_temp_name);
+        return true;
+    }
+
+    return false;
 }
 
 localDrive::localDrive(const char * startdir,Bit16u _bytes_sector,Bit8u _sectors_cluster,Bit16u _total_clusters,Bit16u _free_clusters,Bit8u _mediaid) {
