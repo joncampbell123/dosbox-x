@@ -87,8 +87,13 @@ public:
 typedef struct dir_struct {
 	HANDLE          handle;
 	char            base_path[MAX_PATH+4];
-	WIN32_FIND_DATA search_data;
+    // TODO: offer a config.h option to opt out of Windows widechar functions
+	WIN32_FIND_DATAW search_data;
 } dir_information;
+
+// TODO: offer a config.h option to opt out of Windows widechar functions
+bool read_directory_first(dir_information* dirp, wchar_t* entry_name, bool& is_directory);
+bool read_directory_next(dir_information* dirp, wchar_t* entry_name, bool& is_directory);
 
 #else
 
@@ -100,11 +105,12 @@ typedef struct dir_struct {
 	char base_path[CROSS_LEN];
 } dir_information;
 
+bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_directory);
+bool read_directory_next(dir_information* dirp, char* entry_name, bool& is_directory);
+
 #endif
 
 dir_information* open_directory(const char* dirname);
-bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_directory);
-bool read_directory_next(dir_information* dirp, char* entry_name, bool& is_directory);
 void close_directory(dir_information* dirp);
 
 #endif

@@ -158,13 +158,15 @@ dir_information* open_directory(const char* dirname) {
 	return (_access(dirname,0) ? NULL : &dir);
 }
 
-bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_directory) {
-	dirp->handle = FindFirstFile(dirp->base_path, &dirp->search_data);
+bool read_directory_first(dir_information* dirp, wchar_t* entry_name, bool& is_directory) {
+    // TODO: offer a config.h option to opt out of Windows widechar functions
+	dirp->handle = FindFirstFileW(dirp->base_path, &dirp->search_data);
 	if (INVALID_HANDLE_VALUE == dirp->handle) {
 		return false;
 	}
 
-	safe_strncpy(entry_name,dirp->search_data.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
+    // TODO: offer a config.h option to opt out of Windows widechar functions
+	safe_wcsncpy(entry_name,dirp->search_data.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
 
 	if (dirp->search_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) is_directory = true;
 	else is_directory = false;
@@ -172,11 +174,13 @@ bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_dire
 	return true;
 }
 
-bool read_directory_next(dir_information* dirp, char* entry_name, bool& is_directory) {
-	int result = FindNextFile(dirp->handle, &dirp->search_data);
+bool read_directory_next(dir_information* dirp, wchar_t* entry_name, bool& is_directory) {
+    // TODO: offer a config.h option to opt out of Windows widechar functions
+	int result = FindNextFileW(dirp->handle, &dirp->search_data);
 	if (result==0) return false;
 
-	safe_strncpy(entry_name,dirp->search_data.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
+    // TODO: offer a config.h option to opt out of Windows widechar functions
+	safe_wcsncpy(entry_name,dirp->search_data.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
 
 	if (dirp->search_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) is_directory = true;
 	else is_directory = false;
