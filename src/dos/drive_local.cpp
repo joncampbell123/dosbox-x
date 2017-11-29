@@ -70,6 +70,7 @@ typedef wchar_t host_cnv_char_t;
 # define _HT(x) L##x
 # define ht_stat_t struct _stat64i32 /* WTF Microsoft?? Why aren't _stat and _wstat() consistent on stat struct type? */
 # define ht_stat(x,y) _wstat64i32(x,y)
+# define ht_access(x,y) _waccess(x,y)
 # define ht_unlink(x) _wunlink(x)
 #else
 // Linux: Use UTF-8
@@ -77,6 +78,7 @@ typedef char host_cnv_char_t;
 # define _HT(x) x
 # define ht_stat_t struct stat
 # define ht_stat(x,y) stat(x,y)
+# define ht_access(x,y) access(x,y)
 # define ht_unlink(x) unlink(x)
 #endif
 
@@ -726,22 +728,21 @@ bool localDrive::TestDir(const char * dir) {
 	dirCache.ExpandName(newdir);
 
     // guest to host code page translation
-    char *n_temp_name = CodePageGuestToHost(newdir);
-    if (n_temp_name == NULL) {
+    char *host_name = CodePageGuestToHost(newdir);
+    if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newdir);
         return false;
     }
-    strcpy(newdir,n_temp_name);
 
 	// Skip directory test, if "\"
 	size_t len = strlen(newdir);
 	if (len && (newdir[len-1]!='\\')) {
 		// It has to be a directory !
-		struct stat test;
-		if (stat(newdir,&test))			return false;
+		ht_stat_t test;
+		if (ht_stat(host_name,&test))		return false;
 		if ((test.st_mode & S_IFDIR)==0)	return false;
 	};
-	int temp=access(newdir,F_OK);
+	int temp=ht_access(host_name,F_OK);
 	return (temp==0);
 }
 
