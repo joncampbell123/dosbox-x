@@ -85,8 +85,12 @@ template <class MT> bool String_SBCS_TO_HOST(host_cnv_char_t *d/*CROSS_LEN*/,con
         if (ic >= map_max) return false; // non-representable
         wc = map[ic]; // output: unicode character
 
+#if defined(host_cnv_use_wchar)
+        *d++ = (host_cnv_char_t)wc;
+#else
         if (utf8_encode(&d,df,(uint32_t)wc) < 0) // will advance d by however many UTF-8 bytes are needed
             return false; // non-representable, or probably just out of room
+#endif
     }
 
     assert(d <= df);
@@ -119,8 +123,12 @@ template <class MT> bool String_DBCS_TO_HOST_SHIFTJIS(host_cnv_char_t *d/*CROSS_
         if (wc == 0x0000)
             return false;
 
+#if defined(host_cnv_use_wchar)
+        *d++ = (host_cnv_char_t)wc;
+#else
         if (utf8_encode(&d,df,(uint32_t)wc) < 0) // will advance d by however many UTF-8 bytes are needed
             return false; // non-representable, or probably just out of room
+#endif
     }
 
     assert(d <= df);
@@ -165,8 +173,12 @@ template <class MT> bool String_HOST_TO_DBCS_SHIFTJIS(char *d/*CROSS_LEN*/,const
     while (*s != 0 && s < sf) {
         const char *is = s;
 
+#if defined(host_cnv_use_wchar)
+        ic = (int)(*s++);
+#else
         if ((ic=utf8_decode(&s,sf)) < 0)
             return false; // non-representable
+#endif
 
         oc = DBCS_SHIFTJIS_From_Host_Find<MT>(ic,hitbl,rawtbl,rawtbl_max);
         if (oc < 0)
@@ -202,8 +214,12 @@ template <class MT> bool String_HOST_TO_SBCS(char *d/*CROSS_LEN*/,const host_cnv
     int oc;
 
     while (*s != 0 && s < sf) {
+#if defined(host_cnv_use_wchar)
+        ic = (int)(*s++);
+#else
         if ((ic=utf8_decode(&s,sf)) < 0)
             return false; // non-representable
+#endif
 
         oc = SBCS_From_Host_Find<MT>(ic,map,map_max);
         if (oc < 0)
