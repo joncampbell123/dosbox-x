@@ -653,15 +653,14 @@ bool localDrive::GetFileAttr(const char * name,Bit16u * attr) {
 	dirCache.ExpandName(newname);
 
     // guest to host code page translation
-    char *n_temp_name = CodePageGuestToHost(newname);
-    if (n_temp_name == NULL) {
+    char *host_name = CodePageGuestToHost(newname);
+    if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newname);
         return false;
     }
-    strcpy(newname,n_temp_name);
 
-	struct stat status;
-	if (stat(newname,&status)==0) {
+	ht_stat_t status;
+	if (ht_stat(host_name,&status)==0) {
 		*attr=DOS_ATTR_ARCHIVE;
 		if(status.st_mode & S_IFDIR) *attr|=DOS_ATTR_DIRECTORY;
 		return true;
