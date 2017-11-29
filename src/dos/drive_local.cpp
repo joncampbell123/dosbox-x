@@ -876,7 +876,14 @@ Bits localDrive::UnMount(void) {
 
 /* helper functions for drive cache */
 void *localDrive::opendir(const char *name) {
-	return open_directory(name);
+    // guest to host code page translation
+    host_cnv_char_t *host_name = CodePageGuestToHost(name);
+    if (host_name == NULL) {
+        LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,name);
+        return false;
+    }
+
+	return open_directoryw(host_name);
 }
 
 void localDrive::closedir(void *handle) {
