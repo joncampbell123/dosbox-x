@@ -68,12 +68,14 @@ private:
 typedef wchar_t host_cnv_char_t;
 # define host_cnv_use_wchar
 # define _HT(x) L##x
-# define ht_stat(x,y) _wstat(x,y)
+# define ht_stat_t struct _stat64i32 /* WTF Microsoft?? Why aren't _stat and _wstat() consistent on stat struct type? */
+# define ht_stat(x,y) _wstat64i32(x,y)
 # define ht_unlink(x) _wunlink(x)
 #else
 // Linux: Use UTF-8
 typedef char host_cnv_char_t;
 # define _HT(x) x
+# define ht_stat_t struct stat
 # define ht_stat(x,y) stat(x,y)
 # define ht_unlink(x) unlink(x)
 #endif
@@ -487,7 +489,7 @@ bool localDrive::FileUnlink(const char * name) {
 
 	if (ht_unlink(host_name)) {
 		//Unlink failed for some reason try finding it.
-		struct stat buffer;
+		ht_stat_t buffer;
 		if(ht_stat(host_name,&buffer)) return false; // File not found.
 
 #ifdef host_cnv_use_wchar
