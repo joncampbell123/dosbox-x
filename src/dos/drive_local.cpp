@@ -83,7 +83,7 @@ template <class MT> bool String_SBCS_TO_HOST(char *d/*CROSS_LEN*/,const char *s/
 }
 
 // TODO: This is SLOW. Optimize.
-template <class MT> int SBCS_Find(int c,const MT *map,const size_t map_max) {
+template <class MT> int SBCS_From_Host_Find(int c,const MT *map,const size_t map_max) {
     for (size_t i=0;i < map_max;i++) {
         if ((MT)c == map[i])
             return i;
@@ -102,7 +102,7 @@ template <class MT> bool String_HOST_TO_SBCS(char *d/*CROSS_LEN*/,const char *s/
         if ((ic=utf8_decode(&s,sf)) < 0)
             return false; // non-representable
 
-        oc = SBCS_Find<MT>(ic,map,map_max);
+        oc = SBCS_From_Host_Find<MT>(ic,map,map_max);
         if (oc < 0)
             return false; // non-representable
 
