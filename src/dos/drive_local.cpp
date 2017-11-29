@@ -60,6 +60,10 @@ private:
 #include "cp437_uni.h"
 #include "cp932_uni.h"
 
+#if defined(PATH_MAX) && !defined(MAX_PATH)
+#define MAX_PATH PATH_MAX
+#endif
+
 #if defined(WIN32)
 // Windows: Use UTF-16 (wide char)
 // TODO: Offer an option to NOT use wide char on Windows if directed by config.h
@@ -880,7 +884,7 @@ void localDrive::closedir(void *handle) {
 }
 
 bool localDrive::read_directory_first(void *handle, char* entry_name, bool& is_directory) {
-    host_cnv_char_t tmp[PATH_MAX+1];
+    host_cnv_char_t tmp[MAX_PATH+1];
 
     if (::read_directory_firstw((dir_information*)handle, tmp, is_directory)) {
         // guest to host code page translation
@@ -897,7 +901,7 @@ bool localDrive::read_directory_first(void *handle, char* entry_name, bool& is_d
 }
 
 bool localDrive::read_directory_next(void *handle, char* entry_name, bool& is_directory) {
-    host_cnv_char_t tmp[PATH_MAX+1];
+    host_cnv_char_t tmp[MAX_PATH+1];
 
     if (::read_directory_nextw((dir_information*)handle, tmp, is_directory)) {
         // guest to host code page translation
