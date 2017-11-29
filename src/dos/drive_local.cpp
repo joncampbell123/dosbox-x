@@ -171,8 +171,6 @@ template <class MT> bool String_HOST_TO_DBCS_SHIFTJIS(char *d/*CROSS_LEN*/,const
     int oc;
 
     while (*s != 0 && s < sf) {
-        const char *is = s;
-
 #if defined(host_cnv_use_wchar)
         ic = (int)(*s++);
 #else
@@ -183,12 +181,6 @@ template <class MT> bool String_HOST_TO_DBCS_SHIFTJIS(char *d/*CROSS_LEN*/,const
         oc = DBCS_SHIFTJIS_From_Host_Find<MT>(ic,hitbl,rawtbl,rawtbl_max);
         if (oc < 0)
             return false; // non-representable
-
-        {
-            char tmp[16];
-            memcpy(tmp,is,(size_t)(s-is));
-            tmp[(size_t)(s-is)] = 0;
-        }
 
         if (oc >= 0x100) {
             if ((d+1) >= df) return false;
