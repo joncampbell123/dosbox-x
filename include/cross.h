@@ -86,7 +86,10 @@ public:
 
 typedef struct dir_struct {
 	HANDLE          handle;
-	char            base_path[MAX_PATH+4];
+	char            base_path[(MAX_PATH+4)*sizeof(wchar_t)];
+    wchar_t *wbase_path(void) {
+        return (wchar_t*)base_path;
+    }
     // TODO: offer a config.h option to opt out of Windows widechar functions
     union {
         WIN32_FIND_DATAA a;
@@ -96,8 +99,10 @@ typedef struct dir_struct {
 } dir_information;
 
 // TODO: offer a config.h option to opt out of Windows widechar functions
+dir_information* open_directory(const char* dirname);
 bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_directory);
 bool read_directory_next(dir_information* dirp, char* entry_name, bool& is_directory);
+dir_information* open_directoryw(const wchar_t* dirname);
 bool read_directory_firstw(dir_information* dirp, wchar_t* entry_name, bool& is_directory);
 bool read_directory_nextw(dir_information* dirp, wchar_t* entry_name, bool& is_directory);
 
@@ -111,14 +116,15 @@ typedef struct dir_struct {
 	char base_path[CROSS_LEN];
 } dir_information;
 
+dir_information* open_directory(const char* dirname);
 bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_directory);
 bool read_directory_next(dir_information* dirp, char* entry_name, bool& is_directory);
+#define open_directoryw open_directory
 #define read_directory_firstw read_directory_first
 #define read_directory_nextw read_directory_next
 
 #endif
 
-dir_information* open_directory(const char* dirname);
 void close_directory(dir_information* dirp);
 
 #endif

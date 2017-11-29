@@ -140,6 +140,25 @@ bool Cross::IsPathAbsolute(std::string const& in) {
 
 #if defined (WIN32)
 
+dir_information* open_directoryw(const wchar_t* dirname) {
+	if (dirname == NULL) return NULL;
+
+	size_t len = strlen(dirname);
+	if (len == 0) return NULL;
+
+	static dir_information dir;
+
+	wcsncpy(dir.wbase_path(),dirname,MAX_PATH);
+
+	if (dirname[len-1] == '\\') strcat(dir.base_path,"*.*");
+	else                        strcat(dir.base_path,"\\*.*");
+
+    dir.wide = true;
+	dir.handle = INVALID_HANDLE_VALUE;
+
+	return (_access(dirname,0) ? NULL : &dir);
+}
+
 dir_information* open_directory(const char* dirname) {
 	if (dirname == NULL) return NULL;
 
@@ -160,13 +179,13 @@ dir_information* open_directory(const char* dirname) {
 }
 
 bool read_directory_firstw(dir_information* dirp, wchar_t* entry_name, bool& is_directory) {
+    if (!dirp->wide) return false;
+
     // TODO: offer a config.h option to opt out of Windows widechar functions
-	dirp->handle = FindFirstFileW(dirp->base_path, &dirp->search_data.w);
+	dirp->handle = FindFirstFileW(dirp->wbase_path(), &dirp->search_data.w);
 	if (INVALID_HANDLE_VALUE == dirp->handle) {
 		return false;
 	}
-
-    dirp->wide = true;
 
     // TODO: offer a config.h option to opt out of Windows widechar functions
 	wcsncpy(entry_name,dirp->search_data.w.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
@@ -194,13 +213,13 @@ bool read_directory_nextw(dir_information* dirp, wchar_t* entry_name, bool& is_d
 }
 
 bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_directory) {
+    if (dirp->wide) return false;
+
     // TODO: offer a config.h option to opt out of Windows widechar functions
 	dirp->handle = FindFirstFileA(dirp->base_path, &dirp->search_data.a);
 	if (INVALID_HANDLE_VALUE == dirp->handle) {
 		return false;
 	}
-
-    dirp->wide = false;
 
     // TODO: offer a config.h option to opt out of Windows widechar functions
 	safe_strncpy(entry_name,dirp->search_data.a.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
