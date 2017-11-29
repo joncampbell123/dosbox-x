@@ -422,7 +422,7 @@ FILE * localDrive::GetSystemFilePtr(char const * const name, char const * const 
 	dirCache.ExpandName(newname);
 
     // guest to host code page translation
-    char *host_name = CodePageGuestToHost(newname);
+    host_cnv_char_t *host_name = CodePageGuestToHost(newname);
     if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newname);
         return false;
