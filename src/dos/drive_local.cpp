@@ -60,7 +60,19 @@ private:
 #include "cp437_uni.h"
 #include "cp932_uni.h"
 
-static char cpcnv_temp[4096];
+#if defined(WIN32)
+// Windows: Use UTF-16 (wide char)
+// TODO: Offer an option to NOT use wide char on Windows if directed by config.h
+//       for people who compile this code for Windows 95 or earlier where some
+//       widechar functions are missing.
+typedef wchar_t host_cnv_char_t;
+# define host_cnv_use_wchar
+#else
+// Linux: Use UTF-8
+typedef char host_cnv_char_t;
+#endif
+
+static host_cnv_char_t cpcnv_temp[4096];
 
 template <class MT> bool String_SBCS_TO_HOST(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
     const char *sf = s + CROSS_LEN - 1;
@@ -209,7 +221,7 @@ template <class MT> bool String_HOST_TO_SBCS(char *d/*CROSS_LEN*/,const char *s/
 
 bool cpwarn_once = false;
 
-bool CodePageHostToGuest(char *d/*CROSS_LEN*/,char *s/*CROSS_LEN*/) {
+bool CodePageHostToGuest(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
     switch (dos.loaded_codepage) {
         case 437:
             return String_HOST_TO_SBCS<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
@@ -229,7 +241,7 @@ bool CodePageHostToGuest(char *d/*CROSS_LEN*/,char *s/*CROSS_LEN*/) {
     return false;
 }
 
-bool CodePageGuestToHost(char *d/*CROSS_LEN*/,char *s/*CROSS_LEN*/) {
+bool CodePageGuestToHost(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
     switch (dos.loaded_codepage) {
         case 437:
             return String_SBCS_TO_HOST<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
@@ -249,18 +261,18 @@ bool CodePageGuestToHost(char *d/*CROSS_LEN*/,char *s/*CROSS_LEN*/) {
     return false;
 }
 
-char *CodePageGuestToHost(char *s) {
+host_cnv_char_t *CodePageGuestToHost(const char *s) {
     if (!CodePageGuestToHost(cpcnv_temp,s))
         return NULL;
 
     return cpcnv_temp;
 }
 
-char *CodePageHostToGuest(char *s) {
-    if (!CodePageHostToGuest(cpcnv_temp,s))
+char *CodePageHostToGuest(const host_cnv_char_t *s) {
+    if (!CodePageHostToGuest((char*)cpcnv_temp,s))
         return NULL;
 
-    return cpcnv_temp;
+    return (char*)cpcnv_temp;
 }
 
 bool localDrive::FileCreate(DOS_File * * file,const char * name,Bit16u /*attributes*/) {
@@ -274,21 +286,27 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,Bit16u /*attribu
 	bool existing_file=false;
 
     // guest to host code page translation
-    char *n_temp_name = CodePageGuestToHost(temp_name);
-    if (n_temp_name == NULL) {
+    host_cnv_char_t *host_name = CodePageGuestToHost(temp_name);
+    if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newname);
         return false;
     }
-    temp_name = n_temp_name;
 
-    FILE * test=fopen(temp_name,"rb+");
+#ifdef host_cnv_use_wchar
+    FILE * test=_wfopen(host_name,L"rb+");
+#else
+    FILE * test=fopen(host_name,"rb+");
+#endif
 	if(test) {
 		fclose(test);
 		existing_file=true;
-
 	}
 	
-	FILE * hand=fopen(temp_name,"wb+");
+#ifdef host_cnv_use_wchar
+	FILE * hand=_wfopen(host_name,L"wb+");
+#else
+	FILE * hand=fopen(host_name,"wb+");
+#endif
 	if (!hand){
 		LOG_MSG("Warning: file creation failed: %s",newname);
 		return false;
