@@ -817,7 +817,6 @@ void DOSBOX_RealInit() {
      * to boot up in IBM PC/XT/AT mode and then switch into PC-98 */
 	if (IS_PC98_ARCH) {
         LOG_MSG("PC-98 WARNING: Implementation is very early, and not the initial state.");
-        LOG_MSG("You will need to run a command to jump into PC-98 mode.");
 
         enable_pc98_jump = true;
         int10.vesa_nolfb = false;
