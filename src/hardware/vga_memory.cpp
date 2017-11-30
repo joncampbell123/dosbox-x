@@ -1589,7 +1589,7 @@ void VGA_SetupHandlers(void) {
 		newHandler = &vgaph.pc98;
 
         /* We need something to catch access to E0000-E7FFF IF 16/256-color mode */
-        if (pc98_gdc_vramop & VOPBIT_ANALOG)
+        if (pc98_gdc_vramop & (1 << VOPBIT_ANALOG))
             MEM_SetPageHandler(0xE0, 8, newHandler );
         else
             MEM_ResetPageHandler_Unmapped(0xE0, 8);

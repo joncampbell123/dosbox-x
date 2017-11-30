@@ -1287,7 +1287,7 @@ uint8_t pc98_pal_analog[256*3]; /* G R B    0x0..0xF */
 uint8_t pc98_pal_digital[8];    /* G R B    0x0..0x7 */
 
 void pc98_update_palette(void) {
-    if (pc98_gdc_vramop & VOPBIT_ANALOG) {
+    if (pc98_gdc_vramop & (1 << VOPBIT_ANALOG)) {
         for (unsigned int i=0;i < 16;i++) {
             vga.dac.rgb[i].green = dac_4to6(pc98_pal_analog[(3*i) + 0]&0xF); /* re-use VGA DAC */
             vga.dac.rgb[i].red   = dac_4to6(pc98_pal_analog[(3*i) + 1]&0xF); /* re-use VGA DAC */
@@ -1787,7 +1787,7 @@ void VGA_OnEnterPC98(Section *sec) {
     // as a transition to PC-98 GDC emulation, move VGA alphanumeric buffer
     // down to A0000-AFFFFh.
     gdc_analog = false;
-    pc98_gdc_vramop &= ~VOPBIT_ANALOG;
+    pc98_gdc_vramop &= ~(1 << VOPBIT_ANALOG);
     gfx(miscellaneous) &= ~0x0C; /* bits[3:2] = 0 to map A0000-BFFFF */
     VGA_DetermineMode();
     VGA_SetupHandlers();
