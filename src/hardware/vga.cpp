@@ -1308,7 +1308,7 @@ void pc98_port6A_command_write(unsigned char b) {
     switch (b) {
         case 0x00: // 16-color (analog) disable
             gdc_analog = false;
-            pc98_gdc_vramop &= ~VOPBIT_ANALOG;
+            pc98_gdc_vramop &= ~(1 << VOPBIT_ANALOG);
             VGA_SetupHandlers();   // confirmed on real hardware: this disables access to E000:0000
             pc98_update_palette(); // Testing on real hardware shows that the "digital" and "analog" palettes are completely different.
                                    // They're both there in hardware, but one or another is active depending on analog enable.
@@ -1316,14 +1316,18 @@ void pc98_port6A_command_write(unsigned char b) {
             break;
         case 0x01: // or enable
             gdc_analog = true;
-            pc98_gdc_vramop |= VOPBIT_ANALOG;
+            pc98_gdc_vramop |= (1 << VOPBIT_ANALOG);
             VGA_SetupHandlers();   // confirmed on real hardware: this enables access to E000:0000
             pc98_update_palette(); // Testing on real hardware shows that the "digital" and "analog" palettes are completely different.
                                    // They're both there in hardware, but one or another is active depending on analog enable.
                                    // Also, the 4th bitplane at E000:0000 disappears when switched off from the display and from CPU access.
             break;
-        case 0x04: // TODO
-        case 0x05: // TODO
+        case 0x04: // TODO compatble GRGC mode
+//            pc98_gdc_vramop &= ~(1 << VOPBIT_EGC);
+            break;
+        case 0x05: // TODO extended EGC mode
+//            pc98_gdc_vramop |= (1 << VOPBIT_EGC);
+            break;
         case 0x06: // TODO
         case 0x07: // TODO
             // TODO
