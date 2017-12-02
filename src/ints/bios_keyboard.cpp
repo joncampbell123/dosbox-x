@@ -590,6 +590,31 @@ static Bitu IRQ1_Handler_PC98(void) {
             mem_writeb(o,c);
         }
 
+        /* NOTES:
+         *  - SHIFT scan code changes
+         *
+         *      Key       Unshifted      Shifted
+         *      --------------------------------
+         *      F1        0x62           0x82
+         *      F2        0x63           0x83
+         *      F3        0x64           0x84
+         *      F4        0x65           0x85
+         *      F5        0x66           0x86
+         *      F6        0x67           0x87
+         *      F7        0x68           0x88
+         *      F8        0x69           0x89
+         *      F9        0x6A           0x8A
+         *      F10       0x6B           0x8B
+         *      HOME/CLR  0x3E           0xAE
+         *      XFER      0x35           0xA5
+         *      NFER      0x51           0xA1
+         *      VF1       0x52           0xC2
+         *      VF2       0x53           0xC3
+         *      VF3       0x54           0xC4
+         *      VF4       0x55           0xC5
+         *      VF5       0x56           0xC6
+         */
+
         /* FIXME: I'm fully aware of obvious problems with this code so far:
          *        - This is coded around my American keyboard layout
          *        - No support for CAPS or KANA modes.
