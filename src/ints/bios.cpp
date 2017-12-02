@@ -2372,7 +2372,7 @@ static Bitu INT18_PC98_Handler(void) {
             }
             break;
         case 0x02: /* Sense of shift key state (シフト・キー状態のセンス) */
-            reg_al = 0x00; /* TODO */
+            reg_al = mem_readb(0x52A + 0x0E); /* FIXME: Seems to match 14th bitmap byte. Does real hardware do this?? */
             break;
         case 0x03: /* Initialization of keyboard interface (キーボード・インタフェイスの初期化) */
             /* TODO */

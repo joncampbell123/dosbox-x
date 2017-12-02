@@ -575,6 +575,23 @@ static Bitu IRQ1_Handler_PC98(void) {
          * Just like INT 16h on IBM PC hardware */
         scan_add = sc_8251 << 8U;
 
+        /* NOTES:
+         *  - The bitmap also tracks CAPS, and KANA state. It does NOT track NUM state.
+         *    The bit corresponding to the key code will show a bit set if in that state.
+         *  - The STS byte returned by INT 18h AH=02h seems to match the 14th byte of the bitmap... so far.
+         *
+         *  STS layout (based on real hardware):
+         *
+         *    bit[7] = ?
+         *    bit[6] = ?
+         *    bit[5] = ?
+         *    bit[4] = CTRL is down
+         *    bit[3] = GRPH is down
+         *    bit[2] = KANA engaged
+         *    bit[1] = CAPS engaged
+         *    bit[0] = SHIFT is down
+         */
+
         /* According to Neko Project II, the BIOS maintains a "pressed key" bitmap at 0x50:0x2A.
          * Without this bitmap many PC-98 games are unplayable. */
         {
