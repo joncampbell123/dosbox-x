@@ -212,7 +212,40 @@ private:
 	}//void Real_INT10_TeletypeOutputAttr(Bit8u chr,Bit8u attr,bool useattr) 
 };
 
-
+// NEC-PC98 keyboard input notes
+//
+// on a system with KKCFUNC.SYS, NECAIK1.SYS, NECAIK2.SYS, NECAI.SYS loaded
+//
+// Key      Normal      Shift       CTRL
+// -------------------------------------
+// ESC      0x1B        0x1B        0x1B
+// TAB      0x09        0x09        0x09
+// F1       0x1B 0x53   <shortcut>  --
+// F2       0x1B 0x54   <shortcut>  --
+// F3       0x1B 0x55   <shortcut>  --
+// F4       0x1B 0x56   <shortcut>  Toggles 'g'
+// F5       0x1B 0x57   <shortcut>  --
+// F6       0x1B 0x45   <shortcut>  Toggle 20/25-line text mode
+// F7       0x1B 0x4A   <shortcut>  Toggle function row (C1/CU/etc, shortcuts, or off)
+// F8       0x1B 0x50   <shortcut>  Clear screen, home cursor
+// F9       0x1B 0x51   <shortcut>  --
+// F10      0x1B 0x5A   <shortcut>  --
+// INS      0x1B 0x50   0x1B 0x50   0x1B 0x50
+// DEL      0x1B 0x44   0x1B 0x44   0x1B 0x44
+// ROLL UP  --          --          --
+// POLL DOWN--          --          --
+// COPY     --          --          --
+// HOME/CLR 0x1A        0x1E        --
+// HELP     --          --          --
+// UP ARROW 0x0B        0x0B        0x0B
+// LF ARROW 0x08        0x08        0x08
+// RT ARROW 0x0C        0x0C        0x0C
+// DN ARROW 0x0A        0x0A        0x0A
+// VF1      --          --          --
+// VF2      --          --          --
+// VF3      --          --          --
+// VF4      --          --          --
+// VF5      --          --          --
 
 bool device_CON::Read(Bit8u * data,Bit16u * size) {
 	Bit16u oldax=reg_ax;

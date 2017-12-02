@@ -2253,6 +2253,22 @@ const char *pc98_func_key[10] = {
     "  ^Z  "
 };
 
+// shortcuts offered by SHIFT F1-F10. You can bring this onscreen using CTRL+F7. This row shows '*' in col 2.
+// [0] is onscreen display, [1] is what is entered to STDIN.
+const char *pc98_shcut_key[10][2] = {
+    "dir a:",   "dir a:\x0D",
+    "dir b:",   "dir b:\x0D",
+    "copy  ",   "copy ",
+    "del   ",   "del ",
+    "ren   ",   "ren ",
+
+    "chkdsk",   "chkdsk a:\x0D",
+    "chkdsk",   "chkdsk b:\x0D",
+    "type  ",   "type ",
+    "date\x0D ","date\x0D",         // display includes CR
+    "time\x0D ","time\x0D"
+};
+
 #include "int10.h"
 
 void update_pc98_function_row(bool enable) {
