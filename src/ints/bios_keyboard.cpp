@@ -591,28 +591,30 @@ static Bitu IRQ1_Handler_PC98(void) {
         }
 
         /* NOTES:
-         *  - SHIFT scan code changes
+         *  - SHIFT/CTRL scan code changes (no scan code emitted if GRPH is held down for these keys)
          *
-         *      Key       Unshifted      Shifted
-         *      --------------------------------
-         *      F1        0x62           0x82
-         *      F2        0x63           0x83
-         *      F3        0x64           0x84
-         *      F4        0x65           0x85
-         *      F5        0x66           0x86
-         *      F6        0x67           0x87
-         *      F7        0x68           0x88
-         *      F8        0x69           0x89
-         *      F9        0x6A           0x8A
-         *      F10       0x6B           0x8B
-         *      HOME/CLR  0x3E           0xAE
-         *      XFER      0x35           0xA5
-         *      NFER      0x51           0xA1
-         *      VF1       0x52           0xC2
-         *      VF2       0x53           0xC3
-         *      VF3       0x54           0xC4
-         *      VF4       0x55           0xC5
-         *      VF5       0x56           0xC6
+         *    CTRL apparently takes precedence over SHIFT.
+         *
+         *      Key       Unshifted      Shifted        CTRL
+         *      --------------------------------------------
+         *      F1        0x62           0x82           0x92
+         *      F2        0x63           0x83           0x93
+         *      F3        0x64           0x84           0x94
+         *      F4        0x65           0x85           0x95
+         *      F5        0x66           0x86           0x96
+         *      F6        0x67           0x87           0x97
+         *      F7        0x68           0x88           0x98
+         *      F8        0x69           0x89           0x99
+         *      F9        0x6A           0x8A           0x9A
+         *      F10       0x6B           0x8B           0x9B
+         *      HOME/CLR  0x3E           0xAE           <none>
+         *      XFER      0x35           0xA5           0xB5
+         *      NFER      0x51           0xA1           0xB1
+         *      VF1       0x52           0xC2           0xD2
+         *      VF2       0x53           0xC3           0xD3
+         *      VF3       0x54           0xC4           0xD4
+         *      VF4       0x55           0xC5           0xD5
+         *      VF5       0x56           0xC6           0xD6
          */
 
         /* FIXME: I'm fully aware of obvious problems with this code so far:
