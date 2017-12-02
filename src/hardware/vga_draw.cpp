@@ -946,6 +946,7 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
         vidmem = pc98_gdc[GDC_MASTER].scan_address;
         while (blocks--) { // for each character in the line
             if (!doublewide) {
+interrupted_char_begin:
                 chr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x0000U];
                 attr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x1000U];
 
@@ -978,10 +979,25 @@ static Bit8u* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 
                 // It seems that for any fullwidth char, you need the same code in both cells for bit[6:0] values
                 // from 0x08 to 0x0F inclusive. 0x08 to 0x0B inclusive are not fullwidth, apparently.
-                // Same applies 0x58 to 0x5F.
-                if ((chr&0x78U) == 0x08 || (chr&0x7FU) >= 0x58) {
-                    chr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x0000U];
+                // Same applies 0x56 to 0x5F.
+                //
+                // Real hardware seems to show that this code will show the other half of the character IF the
+                // character code matches. If it does not match, then it will show the first half of the new code.
+                //
+                // This fix is needed for Touhou Project to show some level titles correctly. The reason this fix
+                // affects it, is that the text RAM covering the playfield is not space or any traditionally empty
+                // cell but a custom character code that is generally empty, but the character cell bitmap is animated
+                // (changed per frame) when doing fade/wipe transitions between levels. Some of the level titles
+                // are displayed starting at an odd column cell number, which means that the Kanji intended for
+                // display "interrupts" the blank custom character cell code. TH02 ~idnight bug fix.
+                if ((chr&0x78U) == 0x08 || (chr&0x7FU) >= 0x56) {
+                    uint16_t n_chr;
+
+                    n_chr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x0000U];
                     attr = ((Bit16u*)vga.mem.linear)[(vidmem & 0xFFFU) + 0x1000U];
+
+                    if ((chr&0x7F7F) != (n_chr&0x7F7F))
+                        goto interrupted_char_begin;
                 }
 
                 font = pc98_font_char_read(chr,pc98_gdc[GDC_MASTER].row_line,1);
