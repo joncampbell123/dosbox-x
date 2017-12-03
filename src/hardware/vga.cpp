@@ -1653,7 +1653,7 @@ Bitu pc98_egc4a0_read(Bitu port,Bitu iolen) {
     /* Neko Project II suggests the I/O ports disappear when not in EGC mode.
      * Is that true? */
     if (!(pc98_gdc_vramop & (1 << VOPBIT_EGC))) {
-        LOG_MSG("EGC 4A0 read port 0x%x when EGC not enabled",(unsigned int)port);
+//        LOG_MSG("EGC 4A0 read port 0x%x when EGC not enabled",(unsigned int)port);
         return ~0;
     }
 
@@ -1671,7 +1671,7 @@ void pc98_egc4a0_write(Bitu port,Bitu val,Bitu iolen) {
     /* Neko Project II suggests the I/O ports disappear when not in EGC mode.
      * Is that true? */
     if (!(pc98_gdc_vramop & (1 << VOPBIT_EGC))) {
-        LOG_MSG("EGC 4A0 write port 0x%x when EGC not enabled",(unsigned int)port);
+//        LOG_MSG("EGC 4A0 write port 0x%x when EGC not enabled",(unsigned int)port);
         return;
     }
 
