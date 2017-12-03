@@ -792,6 +792,10 @@ public:
     }
 
     template <class AWT> static inline void mode8_w(const unsigned int plane,const PhysPt vramoff) {
+        /* Neko Project II code suggests that the first byte is repeated. */
+        if (sizeof(AWT) > 1)
+            pc98_gdc_tiles[plane].b[1] = pc98_gdc_tiles[plane].b[0];
+
         *((AWT*)(vga.mem.linear + vramoff)) = *((AWT*)pc98_gdc_tiles[plane].b);
     }
 
