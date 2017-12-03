@@ -1646,6 +1646,9 @@ Bitu pc98_gdc_read(Bitu port,Bitu iolen) {
     return ~0;
 }
 
+extern egc_quad pc98_egc_bgcm;
+extern egc_quad pc98_egc_fgcm;
+
 Bitu pc98_egc4a0_read(Bitu port,Bitu iolen) {
     /* Neko Project II suggests the I/O ports disappear when not in EGC mode.
      * Is that true? */
@@ -1744,10 +1747,14 @@ void pc98_egc4a0_write(Bitu port,Bitu val,Bitu iolen) {
              *   bits [15:8] = 0
              *   bits [7:0] = foreground color (all 8 bits used in 256-color mode) */
             pc98_egc_foreground_color = val;
+            pc98_egc_fgcm[0].w = (val & 1) ? 0xFFFF : 0x0000;
+            pc98_egc_fgcm[1].w = (val & 2) ? 0xFFFF : 0x0000;
+            pc98_egc_fgcm[2].w = (val & 4) ? 0xFFFF : 0x0000;
+            pc98_egc_fgcm[3].w = (val & 8) ? 0xFFFF : 0x0000;
             break;
         case 0x8: /* 0x4A8 */
-            // TODO: Neko Project II rejects the value if some some bits are set in the "foreground" register
-            *((uint16_t*)pc98_egc_mask) = val;
+            if (pc98_egc_compare_lead == 0)
+                *((uint16_t*)pc98_egc_mask) = val;
             break;
         case 0xA: /* 0x4AA */
             /* If FGC = 0 and BGC = 0:
@@ -1756,6 +1763,10 @@ void pc98_egc4a0_write(Bitu port,Bitu val,Bitu iolen) {
              *   bits [15:8] = 0
              *   bits [7:0] = foreground color (all 8 bits used in 256-color mode) */
             pc98_egc_background_color = val;
+            pc98_egc_bgcm[0].w = (val & 1) ? 0xFFFF : 0x0000;
+            pc98_egc_bgcm[1].w = (val & 2) ? 0xFFFF : 0x0000;
+            pc98_egc_bgcm[2].w = (val & 4) ? 0xFFFF : 0x0000;
+            pc98_egc_bgcm[3].w = (val & 8) ? 0xFFFF : 0x0000;
             break;
         default:
             // LOG_MSG("PC-98 EGC: Unhandled write to 0x%x val 0x%x",(unsigned int)port,(unsigned int)val);

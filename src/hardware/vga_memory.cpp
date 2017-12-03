@@ -756,12 +756,68 @@ extern uint8_t pc98_egc_shiftinput;
 extern uint8_t pc98_egc_regload;
 extern uint8_t pc98_egc_rop;
 
+egc_quad pc98_egc_src;
+egc_quad pc98_egc_bgcm;
+egc_quad pc98_egc_fgcm;
+egc_quad pc98_egc_data;
 egc_quad pc98_egc_last_vram;
 
 template <class AWT> static egc_quad &egc_ope(const PhysPt vramoff, const AWT val) {
     *((uint16_t*)pc98_egc_maskef) = *((uint16_t*)pc98_egc_mask);
 
-    return pc98_egc_last_vram;
+    /* 4A4h
+     * bits [12:11] = light source
+     *    11 = invalid
+     *    10 = write the contents of the palette register
+     *    01 = write the result of the raster operation
+     *    00 = write CPU data
+     *
+     * 4A2h
+     * bits [14:13] = foreground, background color
+     *    11 = invalid
+     *    10 = foreground color
+     *    01 = background color
+     *    00 = pattern register
+     */
+    switch (pc98_egc_lightsource) {
+        case 1: /* 0x0800 */
+            /* TODO: EGC OP */
+            LOG_MSG("EGC ROP");
+            return pc98_egc_last_vram;
+        case 2: /* 0x1000 */
+            if (pc98_egc_fgc == 1)
+                return pc98_egc_bgcm;
+            else if (pc98_egc_fgc == 2)
+                return pc98_egc_fgcm;
+
+            /* TODO: Shift val bits in, through shifter,
+             *       and back out to egc_src according to Neko Project II.
+             *       Byte access seems to shift each individual byte of the word.
+             *       Word access??? */
+            if (pc98_egc_shiftinput) {
+                *((AWT*)pc98_egc_src[0].b) = val;
+                *((AWT*)pc98_egc_src[1].b) = val;
+                *((AWT*)pc98_egc_src[2].b) = val;
+                *((AWT*)pc98_egc_src[3].b) = val;
+            }
+ 
+            return pc98_egc_src;
+        default: {
+            uint16_t tmp = (uint16_t)val;
+
+            if (sizeof(AWT) < 2) {
+                tmp &= 0xFFU;
+                tmp |= tmp << 8U;
+            }
+
+            pc98_egc_data[0].w = tmp;
+            pc98_egc_data[1].w = tmp;
+            pc98_egc_data[2].w = tmp;
+            pc98_egc_data[3].w = tmp;
+            } break;
+    };
+
+    return pc98_egc_data;
 }
 
 /* The NEC display is documented to have:
@@ -833,7 +889,14 @@ public:
          *    0 = shifter input is VRAM data */
         /* Neko Project II: if ((egc.ope & 0x0400) == 0) ... */
         if (!pc98_egc_shiftinput) {
-            /* TODO: shift input stuff according to EGC control */
+            /* TODO: Shift val bits in, through shifter,
+             *       and back out to egc_src according to Neko Project II.
+             *       Byte access seems to shift each individual byte of the word.
+             *       Word access??? */
+            *((AWT*)pc98_egc_src[0].b) = *((AWT*)(pc98_egc_last_vram[0].b+(vramoff&1)));
+            *((AWT*)pc98_egc_src[1].b) = *((AWT*)(pc98_egc_last_vram[1].b+(vramoff&1)));
+            *((AWT*)pc98_egc_src[2].b) = *((AWT*)(pc98_egc_last_vram[2].b+(vramoff&1)));
+            *((AWT*)pc98_egc_src[3].b) = *((AWT*)(pc98_egc_last_vram[3].b+(vramoff&1)));
         }
 
         /* 0x4A4:
