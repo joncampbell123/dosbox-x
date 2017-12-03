@@ -1209,6 +1209,8 @@ uint8_t                     pc98_gdc_modereg=0;
 uint8_t                     pc98_egc_access=0;
 uint8_t                     pc98_gdc_vramop=0;
 union pc98_tile             pc98_gdc_tiles[4];
+uint8_t                     pc98_egc_maskef[2]; /* effective (Neko: egc.mask2) */
+uint8_t                     pc98_egc_mask[2]; /* host given (Neko: egc.mask) */
 struct PC98_GDC_state       pc98_gdc[2];
 bool                        GDC_vsync_interrupt = false;
 uint8_t                     GDC_display_plane = false;
@@ -1696,6 +1698,10 @@ void pc98_egc4a0_write(Bitu port,Bitu val,Bitu iolen) {
             pc98_egc_regload = (val >> 8) & 3;
             pc98_egc_rop = (val & 0xFF);
             break;
+        case 0x8: /* 0x4A8 */
+            // TODO: Neko Project II rejects the value if some some bits are set in the "foreground" register
+            *((uint16_t*)pc98_egc_mask) = val;
+            break;
         default:
             // LOG_MSG("PC-98 EGC: Unhandled write to 0x%x val 0x%x",(unsigned int)port,(unsigned int)val);
             break;
@@ -1722,6 +1728,11 @@ void VGA_OnEnterPC98(Section *sec) {
     VGA_UnsetupDAC();
     VGA_UnsetupGFX();
     VGA_UnsetupSEQ();
+
+    pc98_egc_maskef[0] = 0xFF;
+    pc98_egc_maskef[1] = 0xFF;
+    pc98_egc_mask[0] = 0xFF;
+    pc98_egc_mask[1] = 0xFF;
 
     for (unsigned int i=0;i < 8;i++)
         pc98_pal_digital[i] = i;

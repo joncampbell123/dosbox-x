@@ -743,6 +743,8 @@ public:
 	}
 };
 
+extern uint8_t pc98_egc_maskef[2]; /* effective (Neko: egc.mask2) */
+extern uint8_t pc98_egc_mask[2]; /* host given (Neko: egc.mask) */
 extern uint8_t pc98_egc_access;
 extern uint8_t pc98_egc_compare_lead;
 extern uint8_t pc98_egc_lightsource;
@@ -851,18 +853,25 @@ public:
         }
 
         /* TODO: EGC ROP */
-
-        /* TODO: EGC mask */
+        *((uint16_t*)pc98_egc_maskef) = *((uint16_t*)pc98_egc_mask);
 
         /* FIXME: We just copy the whole byte at the moment */
-        if (!(pc98_egc_access & 1))
-            *((AWT*)(vga.mem.linear+vramoff+0x08000)) = *((AWT*)(pc98_egc_last_vram[0]+(vramoff&1)));
-        if (!(pc98_egc_access & 2))
-            *((AWT*)(vga.mem.linear+vramoff+0x10000)) = *((AWT*)(pc98_egc_last_vram[1]+(vramoff&1)));
-        if (!(pc98_egc_access & 4))
-            *((AWT*)(vga.mem.linear+vramoff+0x18000)) = *((AWT*)(pc98_egc_last_vram[2]+(vramoff&1)));
-        if (!(pc98_egc_access & 8))
-            *((AWT*)(vga.mem.linear+vramoff+0x20000)) = *((AWT*)(pc98_egc_last_vram[3]+(vramoff&1)));
+        if (!(pc98_egc_access & 1)) {
+            *((AWT*)(vga.mem.linear+vramoff+0x08000)) &= ~( *((AWT*)(pc98_egc_maskef+(vramoff&1))) );
+            *((AWT*)(vga.mem.linear+vramoff+0x08000)) |=    *((AWT*)(pc98_egc_last_vram[0]+(vramoff&1)));
+        }
+        if (!(pc98_egc_access & 2)) {
+            *((AWT*)(vga.mem.linear+vramoff+0x10000)) &= ~( *((AWT*)(pc98_egc_maskef+(vramoff&1))) );
+            *((AWT*)(vga.mem.linear+vramoff+0x10000)) |=    *((AWT*)(pc98_egc_last_vram[1]+(vramoff&1)));
+        }
+        if (!(pc98_egc_access & 4)) {
+            *((AWT*)(vga.mem.linear+vramoff+0x18000)) &= ~( *((AWT*)(pc98_egc_maskef+(vramoff&1))) );
+            *((AWT*)(vga.mem.linear+vramoff+0x18000)) |=    *((AWT*)(pc98_egc_last_vram[2]+(vramoff&1)));
+        }
+        if (!(pc98_egc_access & 8)) {
+            *((AWT*)(vga.mem.linear+vramoff+0x20000)) &= ~( *((AWT*)(pc98_egc_maskef+(vramoff&1))) );
+            *((AWT*)(vga.mem.linear+vramoff+0x20000)) |=    *((AWT*)(pc98_egc_last_vram[3]+(vramoff&1)));
+        }
     }
 
     template <class AWT> AWT readc(PhysPt addr) {
