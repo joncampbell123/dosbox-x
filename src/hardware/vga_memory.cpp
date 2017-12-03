@@ -769,6 +769,12 @@ static egc_quad &ope_xx(uint8_t ope, const PhysPt ad) {
     return pc98_egc_last_vram;
 }
 
+static egc_quad &ope_f0(uint8_t ope, const PhysPt vramoff) {
+	(void)ope;
+	(void)vramoff;
+	return pc98_egc_src;
+}
+
 static egc_quad &ope_fc(uint8_t ope, const PhysPt vramoff) {
 	egc_quad dst;
 
@@ -824,7 +830,7 @@ static const PC98_OPEFN pc98_egc_opfn[256] = {
 			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
 			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
 			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
-			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_f0, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
 			ope_xx, ope_xx, ope_xx, ope_xx, ope_fc, ope_xx, ope_xx, ope_xx};
 
 template <class AWT> static egc_quad &egc_ope(const PhysPt vramoff, const AWT val) {
