@@ -783,11 +783,6 @@ public:
         b = *((AWT*)(vga.mem.linear + vramoff));
         r = b ^ *((AWT*)pc98_gdc_tiles[plane].b);
 
-        if (pc98_egc_regload == 1) {
-            for (size_t i=0;i < sizeof(pc98_gdc_tiles[plane].b);i += sizeof(AWT))
-                *((AWT*)(pc98_gdc_tiles[plane].b+i)) = b;
-        }
-
         return r;
     }
 
@@ -801,6 +796,15 @@ public:
         t  = *((AWT*)(vga.mem.linear + vramoff)) & mask;
         t |= val & *((AWT*)pc98_gdc_tiles[plane].b);
         *((AWT*)(vga.mem.linear + vramoff)) = t;
+    }
+
+    template <class AWT> static inline AWT modeEGC_r(const PhysPt vramoff) {
+        /* TODO */
+        return 0;
+    }
+
+    template <class AWT> static inline void modeEGC_w(const PhysPt vramoff,const AWT val) {
+        /* TODO */
     }
 
     template <class AWT> AWT readc(PhysPt addr) {
@@ -840,16 +844,8 @@ public:
             case 0x06:
             case 0x07:
                 return *((AWT*)(vga.mem.linear+addr+vop_offset));
-            case 0x08: /* ???? */
-            case 0x09: /* This is a guess. It seems to work. The "OR VRAM xor TILE NEGate return" stuff
-                          is what Neko Project II does in it's handler. Since this mode's write puts the
-                          tile data directly into VRAM without considering the CPU data byte, my guess
-                          here is that this is the PC-98 variation of VGA write mode 2 in which reading
-                          loads the tile RAM from VRAM and writing loads tile RAM into VRAM.
-                         
-                          One clue that suggests this READ loads the tile registers is the way Touhou
-                          Project appears to stick tiles on the right hand side of the screen. Without
-                          this code, Touhou Project is unable to render the background at all. */
+            case 0x08: /* TCR/TDW */
+            case 0x09:
                 {
                     AWT r = 0;
 
@@ -875,7 +871,14 @@ public:
             case 0x0C:
             case 0x0D:
                 return *((AWT*)(vga.mem.linear+addr+vop_offset));
-            default:
+            case 0x0A: /* EGC read */
+            case 0x0B:
+            case 0x0E:
+            case 0x0F:
+                /* this reads multiple bitplanes at once */
+                addr &= 0x7FFF;
+                return modeEGC_r<AWT>(addr + vop_offset);
+            default: /* should not happen */
                 LOG_MSG("PC-98 VRAM read warning: Unsupported opmode 0x%X",pc98_gdc_vramop);
                 return *((AWT*)(vga.mem.linear+addr+vop_offset));
         };
@@ -924,7 +927,7 @@ public:
             case 0x07:
                 *((AWT*)(vga.mem.linear+addr+vop_offset)) = val;
                 break;
-            case 0x08:  /* write tile data, no masking */
+            case 0x08:  /* TCR/TDW write tile data, no masking */
             case 0x09:
                 {
                     /* this writes to multiple bitplanes at once.
@@ -965,7 +968,15 @@ public:
                         modeC_w<AWT>(3/*plane*/,addr + 0x20000 + vop_offset,mask,val);
                 }
                 break;
-            default:
+            case 0x0A: /* EGC write */
+            case 0x0B:
+            case 0x0E:
+            case 0x0F:
+                /* this reads multiple bitplanes at once */
+                addr &= 0x7FFF;
+                modeEGC_w<AWT>(addr + vop_offset,val);
+                break;
+            default: /* Should no longer happen */
                 LOG_MSG("PC-98 VRAM write warning: Unsupported opmode 0x%X",pc98_gdc_vramop);
                 *((AWT*)(vga.mem.linear+addr+vop_offset)) = val;
                 break;

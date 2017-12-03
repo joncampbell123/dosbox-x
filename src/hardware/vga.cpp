@@ -1323,10 +1323,10 @@ void pc98_port6A_command_write(unsigned char b) {
                                    // Also, the 4th bitplane at E000:0000 disappears when switched off from the display and from CPU access.
             break;
         case 0x04: // TODO compatble GRGC mode
-//            pc98_gdc_vramop &= ~(1 << VOPBIT_EGC);
+            pc98_gdc_vramop &= ~(1 << VOPBIT_EGC);
             break;
         case 0x05: // TODO extended EGC mode
-//            pc98_gdc_vramop |= (1 << VOPBIT_EGC);
+            pc98_gdc_vramop |= (1 << VOPBIT_EGC);
             break;
         case 0x06: // TODO
         case 0x07: // TODO
