@@ -1208,7 +1208,7 @@ uint8_t                     pc98_gdc_tile_counter=0;
 uint8_t                     pc98_gdc_modereg=0;
 uint8_t                     pc98_egc_access=0;
 uint8_t                     pc98_gdc_vramop=0;
-union pc98_tile             pc98_gdc_tiles[4];
+egc_quad                    pc98_gdc_tiles;
 uint8_t                     pc98_egc_maskef[2]; /* effective (Neko: egc.mask2) */
 uint8_t                     pc98_egc_mask[2]; /* host given (Neko: egc.mask) */
 struct PC98_GDC_state       pc98_gdc[2];
