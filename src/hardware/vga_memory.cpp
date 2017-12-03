@@ -743,11 +743,14 @@ public:
 	}
 };
 
+extern uint8_t pc98_egc_access;
 extern uint8_t pc98_egc_compare_lead;
 extern uint8_t pc98_egc_lightsource;
 extern uint8_t pc98_egc_shiftinput;
 extern uint8_t pc98_egc_regload;
 extern uint8_t pc98_egc_rop;
+
+uint8_t pc98_egc_last_vram[4][2];
 
 /* The NEC display is documented to have:
  *
@@ -799,12 +802,67 @@ public:
     }
 
     template <class AWT> static inline AWT modeEGC_r(const PhysPt vramoff) {
-        /* TODO */
+        /* assume: vramoff is even IF AWT is 16-bit wide */
+        *((AWT*)(pc98_egc_last_vram[0]+(vramoff&1))) = *((AWT*)(vga.mem.linear+vramoff+0x08000));
+        *((AWT*)(pc98_egc_last_vram[1]+(vramoff&1))) = *((AWT*)(vga.mem.linear+vramoff+0x10000));
+        *((AWT*)(pc98_egc_last_vram[2]+(vramoff&1))) = *((AWT*)(vga.mem.linear+vramoff+0x18000));
+        *((AWT*)(pc98_egc_last_vram[3]+(vramoff&1))) = *((AWT*)(vga.mem.linear+vramoff+0x20000));
+
+        /* TODO: shift input stuff according to EGC control */
+
+        /* 0x4A4:
+         * ...
+         * bits [9:8] = register load (pc98_egc_regload[1:0])
+         *    11 = invalid
+         *    10 = load VRAM data before writing on VRAM write
+         *    01 = load VRAM data into pattern/tile register on VRAM read
+         *    00 = Do not change pattern/tile register
+         * ...
+         */
+        /* Neko Project II: if ((egc.ope & 0x0300) == 0x0100) ... */
+        if (pc98_egc_regload & 1) { /* load VRAM data into pattern/tile... (or INVALID) */
+            *((AWT*)(pc98_gdc_tiles[0].b+(vramoff&1))) = *((AWT*)(pc98_egc_last_vram[0]+(vramoff&1)));
+            *((AWT*)(pc98_gdc_tiles[1].b+(vramoff&1))) = *((AWT*)(pc98_egc_last_vram[1]+(vramoff&1)));
+            *((AWT*)(pc98_gdc_tiles[2].b+(vramoff&1))) = *((AWT*)(pc98_egc_last_vram[2]+(vramoff&1)));
+            *((AWT*)(pc98_gdc_tiles[3].b+(vramoff&1))) = *((AWT*)(pc98_egc_last_vram[3]+(vramoff&1)));
+        }
+
         return 0;
     }
 
     template <class AWT> static inline void modeEGC_w(const PhysPt vramoff,const AWT val) {
-        /* TODO */
+        /* assume: vramoff is even IF AWT is 16-bit wide */
+
+        /* 0x4A4:
+         * ...
+         * bits [9:8] = register load (pc98_egc_regload[1:0])
+         *    11 = invalid
+         *    10 = load VRAM data before writing on VRAM write
+         *    01 = load VRAM data into pattern/tile register on VRAM read
+         *    00 = Do not change pattern/tile register
+         * ...
+         */
+        /* Neko Project II: if ((egc.ope & 0x0300) == 0x0200) ... */
+        if (pc98_egc_regload & 2) { /* load VRAM data before writing on VRAM write (or INVALID) */
+            *((AWT*)(pc98_gdc_tiles[0].b+(vramoff&1))) = *((AWT*)(vga.mem.linear+vramoff+0x08000));
+            *((AWT*)(pc98_gdc_tiles[1].b+(vramoff&1))) = *((AWT*)(vga.mem.linear+vramoff+0x10000));
+            *((AWT*)(pc98_gdc_tiles[2].b+(vramoff&1))) = *((AWT*)(vga.mem.linear+vramoff+0x18000));
+            *((AWT*)(pc98_gdc_tiles[3].b+(vramoff&1))) = *((AWT*)(vga.mem.linear+vramoff+0x20000));
+        }
+
+        /* TODO: EGC ROP */
+
+        /* TODO: EGC mask */
+
+        /* FIXME: We just copy the whole byte at the moment */
+        if (!(pc98_egc_access & 1))
+            *((AWT*)(vga.mem.linear+vramoff+0x08000)) = *((AWT*)(pc98_egc_last_vram[0]+(vramoff&1)));
+        if (!(pc98_egc_access & 2))
+            *((AWT*)(vga.mem.linear+vramoff+0x10000)) = *((AWT*)(pc98_egc_last_vram[1]+(vramoff&1)));
+        if (!(pc98_egc_access & 4))
+            *((AWT*)(vga.mem.linear+vramoff+0x18000)) = *((AWT*)(pc98_egc_last_vram[2]+(vramoff&1)));
+        if (!(pc98_egc_access & 8))
+            *((AWT*)(vga.mem.linear+vramoff+0x20000)) = *((AWT*)(pc98_egc_last_vram[3]+(vramoff&1)));
     }
 
     template <class AWT> AWT readc(PhysPt addr) {

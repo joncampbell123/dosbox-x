@@ -1206,6 +1206,7 @@ uint8_t PC98_GDC_state::rfifo_read_data(void) {
 uint32_t                    pc98_text_palette[8];
 uint8_t                     pc98_gdc_tile_counter=0;
 uint8_t                     pc98_gdc_modereg=0;
+uint8_t                     pc98_egc_access=0;
 uint8_t                     pc98_gdc_vramop=0;
 union pc98_tile             pc98_gdc_tiles[4];
 struct PC98_GDC_state       pc98_gdc[2];
@@ -1657,7 +1658,7 @@ void pc98_egc4a0_write(Bitu port,Bitu val,Bitu iolen) {
             /* bits [15:8] = 0xFF
              * bits [7:0] = enable writing to plane (NTS: only bits 3-0 have meaning in 16-color mode).
              * as far as I can tell, bits [7:0] correspond to the same enable bits as port 0x7C [3:0] */
-            pc98_gdc_modereg = val & 0xFF;
+            pc98_egc_access = val & 0xFF;
             break;
         case 0x4: /* 0x4A4 */
             /* bits [15:14] = 0 (unused)
