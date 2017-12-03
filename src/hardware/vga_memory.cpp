@@ -769,6 +769,30 @@ static egc_quad &ope_xx(uint8_t ope, const PhysPt ad) {
     return pc98_egc_last_vram;
 }
 
+static egc_quad &ope_fc(uint8_t ope, const PhysPt vramoff) {
+	egc_quad dst;
+
+    /* assume: ad is word aligned */
+
+	dst[0].w = *((uint16_t*)(vga.mem.linear+vramoff+0x08000));
+	dst[1].w = *((uint16_t*)(vga.mem.linear+vramoff+0x10000));
+	dst[2].w = *((uint16_t*)(vga.mem.linear+vramoff+0x18000));
+	dst[3].w = *((uint16_t*)(vga.mem.linear+vramoff+0x20000));
+
+	pc98_egc_data[0].w  =    pc98_egc_src[0].w;
+	pc98_egc_data[0].w |= ((~pc98_egc_src[0].w) & dst[0].w);
+	pc98_egc_data[1].w  =    pc98_egc_src[1].w;
+	pc98_egc_data[1].w |= ((~pc98_egc_src[1].w) & dst[1].w);
+	pc98_egc_data[2].w  =    pc98_egc_src[2].w;
+	pc98_egc_data[2].w |= ((~pc98_egc_src[2].w) & dst[2].w);
+	pc98_egc_data[3].w  =    pc98_egc_src[3].w;
+	pc98_egc_data[3].w |= ((~pc98_egc_src[3].w) & dst[3].w);
+
+	(void)ope;
+	(void)vramoff;
+	return pc98_egc_data;
+}
+
 static const PC98_OPEFN pc98_egc_opfn[256] = {
 			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
 			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
@@ -801,7 +825,7 @@ static const PC98_OPEFN pc98_egc_opfn[256] = {
 			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
 			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
 			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
-			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx};
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_fc, ope_xx, ope_xx, ope_xx};
 
 template <class AWT> static egc_quad &egc_ope(const PhysPt vramoff, const AWT val) {
     *((uint16_t*)pc98_egc_maskef) = *((uint16_t*)pc98_egc_mask);
@@ -822,6 +846,17 @@ template <class AWT> static egc_quad &egc_ope(const PhysPt vramoff, const AWT va
      */
     switch (pc98_egc_lightsource) {
         case 1: /* 0x0800 */
+            /* TODO: Shift val bits in, through shifter,
+             *       and back out to egc_src according to Neko Project II.
+             *       Byte access seems to shift each individual byte of the word.
+             *       Word access??? */
+            if (pc98_egc_shiftinput) {
+                *((AWT*)pc98_egc_src[0].b) = val;
+                *((AWT*)pc98_egc_src[1].b) = val;
+                *((AWT*)pc98_egc_src[2].b) = val;
+                *((AWT*)pc98_egc_src[3].b) = val;
+            }
+
             return pc98_egc_opfn[pc98_egc_rop](pc98_egc_rop, vramoff & (~1U));
         case 2: /* 0x1000 */
             if (pc98_egc_fgc == 1)
