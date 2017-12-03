@@ -1121,13 +1121,10 @@ public:
          *    1 = shifter input is CPU write data
          *    0 = shifter input is VRAM data */
         if (pc98_egc_compare_lead) {
-            if (!pc98_egc_shiftinput) {
-                /* TODO */
-                return 0;
-            }
-            else {
+            if (!pc98_egc_shiftinput)
+                return *((AWT*)(pc98_egc_src[pc98_egc_lead_plane&3].b));
+            else
                 return *((AWT*)(vga.mem.linear+vramoff+0x08000+((pc98_egc_lead_plane&3)*0x8000)));
-            }
         }
 
         return *((AWT*)(vga.mem.linear+fulloff));
