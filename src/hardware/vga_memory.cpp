@@ -758,6 +758,12 @@ extern uint8_t pc98_egc_rop;
 
 egc_quad pc98_egc_last_vram;
 
+template <class AWT> static egc_quad &egc_ope(const PhysPt vramoff, const AWT val) {
+    *((uint16_t*)pc98_egc_maskef) = *((uint16_t*)pc98_egc_mask);
+
+    return pc98_egc_last_vram;
+}
+
 /* The NEC display is documented to have:
  *
  * A0000-A3FFF      T-RAM (text) (8KB WORDs)
@@ -890,24 +896,23 @@ public:
         }
 
         /* TODO: EGC ROP */
-        *((uint16_t*)pc98_egc_maskef) = *((uint16_t*)pc98_egc_mask);
+        egc_quad &ropdata = egc_ope<AWT>(vramoff, val);
 
-        /* FIXME: We just copy the whole byte at the moment */
         if (!(pc98_egc_access & 1)) {
             *((AWT*)(vga.mem.linear+vramoff+0x08000)) &= ~( *((AWT*)(pc98_egc_maskef+(vramoff&1))) );
-            *((AWT*)(vga.mem.linear+vramoff+0x08000)) |=    *((AWT*)(pc98_egc_last_vram[0].b+(vramoff&1)));
+            *((AWT*)(vga.mem.linear+vramoff+0x08000)) |=    *((AWT*)(ropdata[0].b+(vramoff&1)));
         }
         if (!(pc98_egc_access & 2)) {
             *((AWT*)(vga.mem.linear+vramoff+0x10000)) &= ~( *((AWT*)(pc98_egc_maskef+(vramoff&1))) );
-            *((AWT*)(vga.mem.linear+vramoff+0x10000)) |=    *((AWT*)(pc98_egc_last_vram[1].b+(vramoff&1)));
+            *((AWT*)(vga.mem.linear+vramoff+0x10000)) |=    *((AWT*)(ropdata[1].b+(vramoff&1)));
         }
         if (!(pc98_egc_access & 4)) {
             *((AWT*)(vga.mem.linear+vramoff+0x18000)) &= ~( *((AWT*)(pc98_egc_maskef+(vramoff&1))) );
-            *((AWT*)(vga.mem.linear+vramoff+0x18000)) |=    *((AWT*)(pc98_egc_last_vram[2].b+(vramoff&1)));
+            *((AWT*)(vga.mem.linear+vramoff+0x18000)) |=    *((AWT*)(ropdata[2].b+(vramoff&1)));
         }
         if (!(pc98_egc_access & 8)) {
             *((AWT*)(vga.mem.linear+vramoff+0x20000)) &= ~( *((AWT*)(pc98_egc_maskef+(vramoff&1))) );
-            *((AWT*)(vga.mem.linear+vramoff+0x20000)) |=    *((AWT*)(pc98_egc_last_vram[3].b+(vramoff&1)));
+            *((AWT*)(vga.mem.linear+vramoff+0x20000)) |=    *((AWT*)(ropdata[3].b+(vramoff&1)));
         }
     }
 
