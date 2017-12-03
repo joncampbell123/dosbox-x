@@ -762,6 +762,47 @@ egc_quad pc98_egc_fgcm;
 egc_quad pc98_egc_data;
 egc_quad pc98_egc_last_vram;
 
+typedef egc_quad & (*PC98_OPEFN)(uint8_t ope, const PhysPt ad);
+
+static egc_quad &ope_xx(uint8_t ope, const PhysPt ad) {
+    LOG_MSG("EGC ROP 0x%2x not impl",ope);
+    return pc98_egc_last_vram;
+}
+
+static const PC98_OPEFN pc98_egc_opfn[256] = {
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx};
+
 template <class AWT> static egc_quad &egc_ope(const PhysPt vramoff, const AWT val) {
     *((uint16_t*)pc98_egc_maskef) = *((uint16_t*)pc98_egc_mask);
 
@@ -781,9 +822,7 @@ template <class AWT> static egc_quad &egc_ope(const PhysPt vramoff, const AWT va
      */
     switch (pc98_egc_lightsource) {
         case 1: /* 0x0800 */
-            /* TODO: EGC OP */
-            LOG_MSG("EGC ROP");
-            return pc98_egc_last_vram;
+            return pc98_egc_opfn[pc98_egc_rop](pc98_egc_rop, vramoff & (~1U));
         case 2: /* 0x1000 */
             if (pc98_egc_fgc == 1)
                 return pc98_egc_bgcm;
@@ -958,7 +997,6 @@ public:
             *((AWT*)(pc98_gdc_tiles[3].b+(vramoff&1))) = *((AWT*)(vga.mem.linear+vramoff+0x20000));
         }
 
-        /* TODO: EGC ROP */
         egc_quad &ropdata = egc_ope<AWT>(vramoff, val);
 
         if (!(pc98_egc_access & 1)) {
