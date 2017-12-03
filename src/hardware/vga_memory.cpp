@@ -746,6 +746,10 @@ public:
 extern uint8_t pc98_egc_maskef[2]; /* effective (Neko: egc.mask2) */
 extern uint8_t pc98_egc_mask[2]; /* host given (Neko: egc.mask) */
 extern uint8_t pc98_egc_access;
+extern uint8_t pc98_egc_fgc;
+extern uint8_t pc98_egc_foreground_color;
+extern uint8_t pc98_egc_background_color;
+extern uint8_t pc98_egc_lead_plane;
 extern uint8_t pc98_egc_compare_lead;
 extern uint8_t pc98_egc_lightsource;
 extern uint8_t pc98_egc_shiftinput;

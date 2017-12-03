@@ -1277,13 +1277,17 @@ void pc98_port68_command_write(unsigned char b) {
 }
 
 bool gdc_analog = true;
- 
+
+uint8_t pc98_egc_fgc = 0;
+uint8_t pc98_egc_lead_plane = 0;
 uint8_t pc98_egc_compare_lead = 0;
 uint8_t pc98_egc_lightsource = 0;
 uint8_t pc98_egc_shiftinput = 0;
 uint8_t pc98_egc_regload = 0;
 uint8_t pc98_egc_rop = 0xF0;
-
+uint8_t pc98_egc_foreground_color = 0;
+uint8_t pc98_egc_background_color = 0;
+ 
 void pc98_update_digpal(unsigned char ent);
 
 uint8_t pc98_pal_analog[256*3]; /* G R B    0x0..0xF */
@@ -1662,6 +1666,27 @@ void pc98_egc4a0_write(Bitu port,Bitu val,Bitu iolen) {
              * as far as I can tell, bits [7:0] correspond to the same enable bits as port 0x7C [3:0] */
             pc98_egc_access = val & 0xFF;
             break;
+        case 0x2: /* 0x4A2 */
+            /* bits [15:15] = 0
+             * bits [14:13] = foreground, background color
+             *    11 = invalid
+             *    10 = foreground color
+             *    01 = background color
+             *    00 = pattern register
+             * bits [12:12] = 0
+             * bits [11:8] = lead plane
+             *    0111 = VRAM plane #7
+             *    0110 = VRAM plane #6
+             *    0101 = VRAM plane #5
+             *    0100 = VRAM plane #4
+             *    0011 = VRAM plane #3
+             *    0010 = VRAM plane #2
+             *    0001 = VRAM plane #1
+             *    0000 = VRAM plane #0
+             * bits [7:0] = unused (0xFF) */
+            pc98_egc_fgc = (val >> 13) & 3;
+            pc98_egc_lead_plane = (val >> 8) & 15;
+            break;
         case 0x4: /* 0x4A4 */
             /* bits [15:14] = 0 (unused)
              * bits [13:13] = 0=compare lead plane  1=don't
@@ -1698,9 +1723,25 @@ void pc98_egc4a0_write(Bitu port,Bitu val,Bitu iolen) {
             pc98_egc_regload = (val >> 8) & 3;
             pc98_egc_rop = (val & 0xFF);
             break;
+        case 0x6: /* 0x4A6 */
+            /* If FGC = 0 and BGC = 0:
+             *   bits [15:0] = 0
+             * If FGC = 1 or BGC = 1:
+             *   bits [15:8] = 0
+             *   bits [7:0] = foreground color (all 8 bits used in 256-color mode) */
+            pc98_egc_foreground_color = val;
+            break;
         case 0x8: /* 0x4A8 */
             // TODO: Neko Project II rejects the value if some some bits are set in the "foreground" register
             *((uint16_t*)pc98_egc_mask) = val;
+            break;
+        case 0xA: /* 0x4AA */
+            /* If FGC = 0 and BGC = 0:
+             *   bits [15:0] = 0
+             * If FGC = 1 or BGC = 1:
+             *   bits [15:8] = 0
+             *   bits [7:0] = foreground color (all 8 bits used in 256-color mode) */
+            pc98_egc_background_color = val;
             break;
         default:
             // LOG_MSG("PC-98 EGC: Unhandled write to 0x%x val 0x%x",(unsigned int)port,(unsigned int)val);
