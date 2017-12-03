@@ -815,14 +815,20 @@ public:
         *((AWT*)(vga.mem.linear + vramoff)) = t;
     }
 
-    template <class AWT> static inline AWT modeEGC_r(const PhysPt vramoff) {
+    template <class AWT> static inline AWT modeEGC_r(const PhysPt vramoff,const PhysPt fulloff) {
         /* assume: vramoff is even IF AWT is 16-bit wide */
         *((AWT*)(pc98_egc_last_vram[0]+(vramoff&1))) = *((AWT*)(vga.mem.linear+vramoff+0x08000));
         *((AWT*)(pc98_egc_last_vram[1]+(vramoff&1))) = *((AWT*)(vga.mem.linear+vramoff+0x10000));
         *((AWT*)(pc98_egc_last_vram[2]+(vramoff&1))) = *((AWT*)(vga.mem.linear+vramoff+0x18000));
         *((AWT*)(pc98_egc_last_vram[3]+(vramoff&1))) = *((AWT*)(vga.mem.linear+vramoff+0x20000));
 
-        /* TODO: shift input stuff according to EGC control */
+        /* bits [10:10] = read source
+         *    1 = shifter input is CPU write data
+         *    0 = shifter input is VRAM data */
+        /* Neko Project II: if ((egc.ope & 0x0400) == 0) ... */
+        if (!pc98_egc_shiftinput) {
+            /* TODO: shift input stuff according to EGC control */
+        }
 
         /* 0x4A4:
          * ...
@@ -841,7 +847,23 @@ public:
             *((AWT*)(pc98_gdc_tiles[3].b+(vramoff&1))) = *((AWT*)(pc98_egc_last_vram[3]+(vramoff&1)));
         }
 
-        return 0;
+        /* 0x4A4:
+         * bits [13:13] = 0=compare lead plane  1=don't
+         *
+         * bits [10:10] = read source
+         *    1 = shifter input is CPU write data
+         *    0 = shifter input is VRAM data */
+        if (pc98_egc_compare_lead) {
+            if (!pc98_egc_shiftinput) {
+                /* TODO */
+                return 0;
+            }
+            else {
+                return *((AWT*)(vga.mem.linear+vramoff+0x08000+((pc98_egc_lead_plane&3)*0x8000)));
+            }
+        }
+
+        return *((AWT*)(vga.mem.linear+fulloff));
     }
 
     template <class AWT> static inline void modeEGC_w(const PhysPt vramoff,const AWT val) {
@@ -955,8 +977,7 @@ public:
             case 0x0E:
             case 0x0F:
                 /* this reads multiple bitplanes at once */
-                addr &= 0x7FFF;
-                return modeEGC_r<AWT>(addr + vop_offset);
+                return modeEGC_r<AWT>((addr&0x7FFF) + vop_offset,addr + vop_offset);
             default: /* should not happen */
                 LOG_MSG("PC-98 VRAM read warning: Unsupported opmode 0x%X",pc98_gdc_vramop);
                 return *((AWT*)(vga.mem.linear+addr+vop_offset));
