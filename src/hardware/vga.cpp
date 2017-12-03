@@ -1329,10 +1329,10 @@ void pc98_port6A_command_write(unsigned char b) {
                                    // They're both there in hardware, but one or another is active depending on analog enable.
                                    // Also, the 4th bitplane at E000:0000 disappears when switched off from the display and from CPU access.
             break;
-        case 0x04: // TODO compatble GRGC mode
+        case 0x04:
             pc98_gdc_vramop &= ~(1 << VOPBIT_EGC);
             break;
-        case 0x05: // TODO extended EGC mode
+        case 0x05:
             pc98_gdc_vramop |= (1 << VOPBIT_EGC);
             break;
         case 0x06: // TODO
@@ -1647,6 +1647,13 @@ Bitu pc98_gdc_read(Bitu port,Bitu iolen) {
 }
 
 Bitu pc98_egc4a0_read(Bitu port,Bitu iolen) {
+    /* Neko Project II suggests the I/O ports disappear when not in EGC mode.
+     * Is that true? */
+    if (!(pc98_gdc_vramop & (1 << VOPBIT_EGC))) {
+        LOG_MSG("EGC 4A0 read port 0x%x when EGC not enabled",(unsigned int)port);
+        return ~0;
+    }
+
     /* assume: (port & 1) == 0 [even] and iolen == 2 */
     switch (port & 0x0E) {
         default:
@@ -1658,6 +1665,13 @@ Bitu pc98_egc4a0_read(Bitu port,Bitu iolen) {
 }
 
 void pc98_egc4a0_write(Bitu port,Bitu val,Bitu iolen) {
+    /* Neko Project II suggests the I/O ports disappear when not in EGC mode.
+     * Is that true? */
+    if (!(pc98_gdc_vramop & (1 << VOPBIT_EGC))) {
+        LOG_MSG("EGC 4A0 write port 0x%x when EGC not enabled",(unsigned int)port);
+        return;
+    }
+
     /* assume: (port & 1) == 0 [even] and iolen == 2 */
     switch (port & 0x0E) {
         case 0x0: /* 0x4A0 */
