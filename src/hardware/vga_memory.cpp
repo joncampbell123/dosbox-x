@@ -774,8 +774,6 @@ struct pc98_egc_shifter {
         dstbit = pc98_egc_shift_destbit;
         srcbit = pc98_egc_shift_srcbit;
         bufi = bufo = decrement ? 12 : 0;
-
-//        LOG_MSG("SHIFT REINIT bufi=%u bufo=%u sz=%zu",bufi,bufo,sizeof(buffer));
     }
 
     bool                decrement;
@@ -820,8 +818,6 @@ struct pc98_egc_shifter {
     }
 
     template <class AWT> inline void input(const AWT a,const AWT b,const AWT c,const AWT d) {
-//        LOG_MSG("SHIFT IN sz=%zu bufi=%u bufo=%u sz=%zu",sizeof(AWT),bufi,bufo,sizeof(buffer));
-
         bi<AWT>( 0,a);
         bi<AWT>( 4,b);
         bi<AWT>( 8,c);
@@ -830,8 +826,6 @@ struct pc98_egc_shifter {
     }
 
     template <class AWT> inline void output(AWT &a,AWT &b,AWT &c,AWT &d) {
-//        LOG_MSG("SHIFT OUT sz=%zu bufi=%u bufo=%u sz=%zu",sizeof(AWT),bufi,bufo,sizeof(buffer));
-
         a = bo<AWT>( 0);
         b = bo<AWT>( 4);
         c = bo<AWT>( 8);
