@@ -788,6 +788,7 @@ struct pc98_egc_shifter {
             shft8bitl = 0;
         }
 
+        shft8load = 0;
         o_srcbit = srcbit & 7;
         o_dstbit = dstbit & 7;
     }
@@ -802,6 +803,7 @@ struct pc98_egc_shifter {
     uint8_t             buffer[4*4];
     uint16_t            bufi,bufo;
 
+    uint8_t             shft8load;
     uint8_t             shft8bitr;
     uint8_t             shft8bitl;
 
@@ -843,23 +845,39 @@ struct pc98_egc_shifter {
         bi<AWT>( 4,b);
         bi<AWT>( 8,c);
         bi<AWT>(12,d);
-        bi_adv<AWT>();
 
-        if (sizeof(AWT) == 2) {
-            if (srcbit >= 8) bo_adv<uint8_t>();
-            srcbit = 0;
-        }
-        else {
-            if (srcbit >= 8) srcbit -= 8;
-            else srcbit = 0;
+        if (shft8load <= 16) {
+            bi_adv<AWT>();
+
+            if (sizeof(AWT) == 2) {
+                if (srcbit >= 8) bo_adv<uint8_t>();
+                shft8load += (16 - srcbit);
+                srcbit = 0;
+            }
+            else {
+                if (srcbit >= 8)
+                    srcbit -= 8;
+                else {
+                    shft8load += (8 - srcbit);
+                    srcbit = 0;
+                }
+            }
         }
     }
 
-    template <class AWT> inline void output(AWT &a,AWT &b,AWT &c,AWT &d) {
+    template <class AWT> inline void output(AWT &a,AWT &b,AWT &c,AWT &d,bool recursive=false) {
         if (sizeof(AWT) == 2) {
-            output<uint8_t>(((uint8_t*)(&a))[0],((uint8_t*)(&b))[0],((uint8_t*)(&c))[0],((uint8_t*)(&d))[0]);
-            output<uint8_t>(((uint8_t*)(&a))[1],((uint8_t*)(&b))[1],((uint8_t*)(&c))[1],((uint8_t*)(&d))[1]);
+            if (shft8load < (16 - dstbit)) return;
+            shft8load -= (16 - dstbit);
+
+            output<uint8_t>(((uint8_t*)(&a))[0],((uint8_t*)(&b))[0],((uint8_t*)(&c))[0],((uint8_t*)(&d))[0],true);
+            output<uint8_t>(((uint8_t*)(&a))[1],((uint8_t*)(&b))[1],((uint8_t*)(&c))[1],((uint8_t*)(&d))[1],true);
             return;
+        }
+
+        if (!recursive) {
+            if (shft8load < (8 - dstbit)) return;
+            shft8load -= (8 - dstbit);
         }
 
         if (dstbit >= 8) {
