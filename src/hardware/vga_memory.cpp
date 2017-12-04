@@ -792,6 +792,9 @@ struct pc98_egc_shifter {
         shft8load = 0;
         o_srcbit = srcbit & 7;
         o_dstbit = dstbit & 7;
+
+        pc98_egc_srcmask[0] = 0xFF;
+        pc98_egc_srcmask[1] = 0xFF;
     }
 
     bool                decrement;
