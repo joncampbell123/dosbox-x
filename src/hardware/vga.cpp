@@ -1649,6 +1649,11 @@ Bitu pc98_gdc_read(Bitu port,Bitu iolen) {
 extern egc_quad pc98_egc_bgcm;
 extern egc_quad pc98_egc_fgcm;
 
+bool pc98_egc_shift_descend = false;
+uint8_t pc98_egc_shift_destbit = 0;
+uint8_t pc98_egc_shift_srcbit = 0;
+uint16_t pc98_egc_shift_length = 0xF;
+
 Bitu pc98_egc4a0_read(Bitu port,Bitu iolen) {
     /* Neko Project II suggests the I/O ports disappear when not in EGC mode.
      * Is that true? */
@@ -1660,7 +1665,7 @@ Bitu pc98_egc4a0_read(Bitu port,Bitu iolen) {
     /* assume: (port & 1) == 0 [even] and iolen == 2 */
     switch (port & 0x0E) {
         default:
-            // LOG_MSG("PC-98 EGC: Unhandled read from 0x%x",(unsigned int)port);
+            LOG_MSG("PC-98 EGC: Unhandled read from 0x%x",(unsigned int)port);
             break;
     };
 
@@ -1767,6 +1772,21 @@ void pc98_egc4a0_write(Bitu port,Bitu val,Bitu iolen) {
             pc98_egc_bgcm[1].w = (val & 2) ? 0xFFFF : 0x0000;
             pc98_egc_bgcm[2].w = (val & 4) ? 0xFFFF : 0x0000;
             pc98_egc_bgcm[3].w = (val & 8) ? 0xFFFF : 0x0000;
+            break;
+        case 0xC: /* 0x4AC */
+            /* bits[15:13] = 0
+             * bits[12:12] = shift direction 0=ascend 1=descend
+             * bits[11:8] = 0
+             * bits[7:4] = destination bit address
+             * bits[3:0] = source bit address */
+            pc98_egc_shift_descend = !!((val >> 12) & 1);
+            pc98_egc_shift_destbit = (val >> 4) & 0xF;
+            pc98_egc_shift_srcbit = val & 0xF;
+            break;
+        case 0xE: /* 0x4AE */
+            /* bits[15:12] = 0
+             * bits[11:0] = bit length (0 to 4095) */
+            pc98_egc_shift_length = val & 0xFFF;
             break;
         default:
             // LOG_MSG("PC-98 EGC: Unhandled write to 0x%x val 0x%x",(unsigned int)port,(unsigned int)val);
