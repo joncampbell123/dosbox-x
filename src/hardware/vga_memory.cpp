@@ -870,7 +870,10 @@ struct pc98_egc_shifter {
 
     template <class AWT> inline void output(AWT &a,AWT &b,AWT &c,AWT &d,uint8_t odd,bool recursive=false) {
         if (sizeof(AWT) == 2) {
-            if (shft8load < (16 - dstbit)) return;
+            if (shft8load < (16 - dstbit)) {
+                *((AWT*)(pc98_egc_srcmask+odd)) = 0;
+                return;
+            }
             shft8load -= (16 - dstbit);
 
             /* assume odd == false and output is to even byte offset */
@@ -880,12 +883,16 @@ struct pc98_egc_shifter {
         }
 
         if (!recursive) {
-            if (shft8load < (8 - dstbit)) return;
+            if (shft8load < (8 - dstbit)) {
+                *((AWT*)(pc98_egc_srcmask+odd)) = 0;
+                return;
+            }
             shft8load -= (8 - dstbit);
         }
 
         if (dstbit >= 8) {
             dstbit -= 8;
+            *((AWT*)(pc98_egc_srcmask+odd)) = 0;
             return;
         }
 
