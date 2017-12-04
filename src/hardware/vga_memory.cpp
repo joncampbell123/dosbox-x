@@ -774,15 +774,36 @@ struct pc98_egc_shifter {
         dstbit = pc98_egc_shift_destbit;
         srcbit = pc98_egc_shift_srcbit;
         bufi = bufo = decrement ? 12 : 0;
+
+        if ((srcbit&7) < (dstbit&7)) {
+            shft8bitr = (dstbit&7) - (srcbit&7);
+            shft8bitl = 8 - shft8bitr;
+        }
+        else if ((srcbit&7) > (dstbit&7)) {
+            shft8bitl = (srcbit&7) - (dstbit&7);
+            shft8bitr = 8 - shft8bitl;
+        }
+        else {
+            shft8bitr = 0;
+            shft8bitl = 0;
+        }
+
+        o_srcbit = srcbit & 7;
+        o_dstbit = dstbit & 7;
     }
 
     bool                decrement;
     uint16_t            remain;
     uint16_t            srcbit;
     uint16_t            dstbit;
+    uint16_t            o_srcbit;
+    uint16_t            o_dstbit;
 
     uint8_t             buffer[4*4];
     uint8_t             bufi,bufo;
+
+    uint8_t             shft8bitr;
+    uint8_t             shft8bitl;
 
     template <class AWT> inline void bi(const uint8_t ofs,const AWT val) {
         size_t ip = (bufi + ofs) & 0xF;
@@ -823,14 +844,73 @@ struct pc98_egc_shifter {
         bi<AWT>( 8,c);
         bi<AWT>(12,d);
         bi_adv<AWT>();
+
+        if (sizeof(AWT) == 2) {
+            if (srcbit >= 8) bo_adv<uint8_t>();
+            srcbit = 0;
+        }
+        else {
+            if (srcbit >= 8) srcbit -= 8;
+            else srcbit = 0;
+        }
     }
 
     template <class AWT> inline void output(AWT &a,AWT &b,AWT &c,AWT &d) {
-        a = bo<AWT>( 0);
-        b = bo<AWT>( 4);
-        c = bo<AWT>( 8);
-        d = bo<AWT>(12);
-        bo_adv<AWT>();
+        if (sizeof(AWT) == 2) {
+            output<uint8_t>(((uint8_t*)(&a))[0],((uint8_t*)(&b))[0],((uint8_t*)(&c))[0],((uint8_t*)(&d))[0]);
+            output<uint8_t>(((uint8_t*)(&a))[1],((uint8_t*)(&b))[1],((uint8_t*)(&c))[1],((uint8_t*)(&d))[1]);
+            return;
+        }
+
+        if (dstbit >= 8) {
+            dstbit -= 8;
+            a = b = c = d = 0;
+            return;
+        }
+
+        if (o_srcbit < o_dstbit) {
+            if (dstbit != 0) {
+                if (pc98_egc_shift_descend) {
+                    a = bo<AWT>( 0) << shft8bitr;
+                    b = bo<AWT>( 4) << shft8bitr;
+                    c = bo<AWT>( 8) << shft8bitr;
+                    d = bo<AWT>(12) << shft8bitr;
+                }
+                else {
+                    a = bo<AWT>( 0) >> shft8bitr;
+                    b = bo<AWT>( 4) >> shft8bitr;
+                    c = bo<AWT>( 8) >> shft8bitr;
+                    d = bo<AWT>(12) >> shft8bitr;
+                }
+
+                dstbit = 0;
+            }
+            else {
+                if (pc98_egc_shift_descend) {
+                    a = (bo<AWT>( 0) >> shft8bitl) | (bo<AWT>( 0+1) << shft8bitr);
+                    b = (bo<AWT>( 4) >> shft8bitl) | (bo<AWT>( 4+1) << shft8bitr);
+                    c = (bo<AWT>( 8) >> shft8bitl) | (bo<AWT>( 8+1) << shft8bitr);
+                    d = (bo<AWT>(12) >> shft8bitl) | (bo<AWT>(12+1) << shft8bitr);
+                }
+                else {
+                    a = (bo<AWT>( 0) << shft8bitl) | (bo<AWT>( 0+1) >> shft8bitr);
+                    b = (bo<AWT>( 4) << shft8bitl) | (bo<AWT>( 4+1) >> shft8bitr);
+                    c = (bo<AWT>( 8) << shft8bitl) | (bo<AWT>( 8+1) >> shft8bitr);
+                    d = (bo<AWT>(12) << shft8bitl) | (bo<AWT>(12+1) >> shft8bitr);
+                }
+
+                bo_adv<AWT>();
+            }
+        }
+        else {
+            dstbit = 0;
+
+            a = bo<AWT>( 0);
+            b = bo<AWT>( 4);
+            c = bo<AWT>( 8);
+            d = bo<AWT>(12);
+            bo_adv<AWT>();
+        }
     }
 };
 
