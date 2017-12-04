@@ -800,13 +800,13 @@ struct pc98_egc_shifter {
     uint16_t            o_dstbit;
 
     uint8_t             buffer[4*4];
-    uint8_t             bufi,bufo;
+    uint16_t            bufi,bufo;
 
     uint8_t             shft8bitr;
     uint8_t             shft8bitl;
 
-    template <class AWT> inline void bi(const uint8_t ofs,const AWT val) {
-        size_t ip = (bufi + ofs) & 0xF;
+    template <class AWT> inline void bi(const uint16_t ofs,const AWT val) {
+        size_t ip = (bufi + ofs) & (sizeof(buffer) - 1);
 
         for (size_t i=0;i < sizeof(AWT);) {
             buffer[ip] = (uint8_t)(val >> ((AWT)(i * 8U)));
@@ -816,12 +816,12 @@ struct pc98_egc_shifter {
     }
 
     template <class AWT> inline void bi_adv(void) {
-        bufi += pc98_egc_shift_descend ? (0x100 - sizeof(AWT)) : sizeof(AWT);
-        bufi &= 0xF;
+        bufi += pc98_egc_shift_descend ? (sizeof(buffer) - sizeof(AWT)) : sizeof(AWT);
+        bufi &= (sizeof(buffer) - 1);
     }
 
-    template <class AWT> inline AWT bo(const uint8_t ofs) {
-        size_t op = (bufo + ofs) & 0xF;
+    template <class AWT> inline AWT bo(const uint16_t ofs) {
+        size_t op = (bufo + ofs) & (sizeof(buffer) - 1);
         AWT ret = 0;
 
         for (size_t i=0;i < sizeof(AWT);) {
@@ -834,8 +834,8 @@ struct pc98_egc_shifter {
     }
 
     template <class AWT> inline void bo_adv(void) {
-        bufo += pc98_egc_shift_descend ? (0x100 - sizeof(AWT)) : sizeof(AWT);
-        bufo &= 0xF;
+        bufo += pc98_egc_shift_descend ? (sizeof(buffer) - sizeof(AWT)) : sizeof(AWT);
+        bufo &= (sizeof(buffer) - 1);
     }
 
     template <class AWT> inline void input(const AWT a,const AWT b,const AWT c,const AWT d) {
