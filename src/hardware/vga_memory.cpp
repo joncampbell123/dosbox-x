@@ -1394,21 +1394,23 @@ public:
 
         const AWT accmask = *((AWT*)(pc98_egc_maskef+(vramoff&1)));
 
-        if (!(pc98_egc_access & 1)) {
-            *((AWT*)(vga.mem.linear+vramoff+0x08000)) &= ~accmask;
-            *((AWT*)(vga.mem.linear+vramoff+0x08000)) |=  accmask & *((AWT*)(ropdata[0].b+(vramoff&1)));
-        }
-        if (!(pc98_egc_access & 2)) {
-            *((AWT*)(vga.mem.linear+vramoff+0x10000)) &= ~accmask;
-            *((AWT*)(vga.mem.linear+vramoff+0x10000)) |=  accmask & *((AWT*)(ropdata[1].b+(vramoff&1)));
-        }
-        if (!(pc98_egc_access & 4)) {
-            *((AWT*)(vga.mem.linear+vramoff+0x18000)) &= ~accmask;
-            *((AWT*)(vga.mem.linear+vramoff+0x18000)) |=  accmask & *((AWT*)(ropdata[2].b+(vramoff&1)));
-        }
-        if (!(pc98_egc_access & 8)) {
-            *((AWT*)(vga.mem.linear+vramoff+0x20000)) &= ~accmask;
-            *((AWT*)(vga.mem.linear+vramoff+0x20000)) |=  accmask & *((AWT*)(ropdata[3].b+(vramoff&1)));
+        if (accmask != 0) {
+            if (!(pc98_egc_access & 1)) {
+                *((AWT*)(vga.mem.linear+vramoff+0x08000)) &= ~accmask;
+                *((AWT*)(vga.mem.linear+vramoff+0x08000)) |=  accmask & *((AWT*)(ropdata[0].b+(vramoff&1)));
+            }
+            if (!(pc98_egc_access & 2)) {
+                *((AWT*)(vga.mem.linear+vramoff+0x10000)) &= ~accmask;
+                *((AWT*)(vga.mem.linear+vramoff+0x10000)) |=  accmask & *((AWT*)(ropdata[1].b+(vramoff&1)));
+            }
+            if (!(pc98_egc_access & 4)) {
+                *((AWT*)(vga.mem.linear+vramoff+0x18000)) &= ~accmask;
+                *((AWT*)(vga.mem.linear+vramoff+0x18000)) |=  accmask & *((AWT*)(ropdata[2].b+(vramoff&1)));
+            }
+            if (!(pc98_egc_access & 8)) {
+                *((AWT*)(vga.mem.linear+vramoff+0x20000)) &= ~accmask;
+                *((AWT*)(vga.mem.linear+vramoff+0x20000)) |=  accmask & *((AWT*)(ropdata[3].b+(vramoff&1)));
+            }
         }
     }
 
