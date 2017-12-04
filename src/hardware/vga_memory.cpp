@@ -761,13 +761,98 @@ extern uint8_t pc98_egc_shift_destbit;
 extern uint8_t pc98_egc_shift_srcbit;
 extern uint16_t pc98_egc_shift_length;
 
+/* I don't think we necessarily need the full 4096 bit buffer
+ * Neko Project II uses to render things, though that is
+ * probably faster to execute. It makes it hard to make sense
+ * of the code though. */
+struct pc98_egc_shifter {
+    pc98_egc_shifter() : decrement(false), remain(0x10), srcbit(0), dstbit(0) { }
+
+    void reinit(void) { /* from global vars set by guest */
+        decrement = pc98_egc_shift_descend;
+        remain = pc98_egc_shift_length + 1; /* the register is length - 1 apparently */
+        dstbit = pc98_egc_shift_destbit;
+        srcbit = pc98_egc_shift_srcbit;
+        bufi = bufo = decrement ? 12 : 0;
+
+//        LOG_MSG("SHIFT REINIT bufi=%u bufo=%u sz=%zu",bufi,bufo,sizeof(buffer));
+    }
+
+    bool                decrement;
+    uint16_t            remain;
+    uint16_t            srcbit;
+    uint16_t            dstbit;
+
+    uint8_t             buffer[4*4];
+    uint8_t             bufi,bufo;
+
+    template <class AWT> inline void bi(const uint8_t ofs,const AWT val) {
+        size_t ip = (bufi + ofs) & 0xF;
+
+        for (size_t i=0;i < sizeof(AWT);) {
+            buffer[ip] = (uint8_t)(val >> ((AWT)(i * 8U)));
+            if ((++ip) == sizeof(buffer)) ip = 0;
+            i++;
+        }
+    }
+
+    template <class AWT> inline void bi_adv(void) {
+        bufi += pc98_egc_shift_descend ? (0x100 - sizeof(AWT)) : sizeof(AWT);
+        bufi &= 0xF;
+    }
+
+    template <class AWT> inline AWT bo(const uint8_t ofs) {
+        size_t op = (bufo + ofs) & 0xF;
+        AWT ret = 0;
+
+        for (size_t i=0;i < sizeof(AWT);) {
+            ret += ((AWT)buffer[op]) << ((AWT)(i * 8U));
+            if ((++op) == sizeof(buffer)) op = 0;
+            i++;
+        }
+
+        return ret;
+    }
+
+    template <class AWT> inline void bo_adv(void) {
+        bufo += pc98_egc_shift_descend ? (0x100 - sizeof(AWT)) : sizeof(AWT);
+        bufo &= 0xF;
+    }
+
+    template <class AWT> inline void input(const AWT a,const AWT b,const AWT c,const AWT d) {
+//        LOG_MSG("SHIFT IN sz=%zu bufi=%u bufo=%u sz=%zu",sizeof(AWT),bufi,bufo,sizeof(buffer));
+
+        bi<AWT>( 0,a);
+        bi<AWT>( 4,b);
+        bi<AWT>( 8,c);
+        bi<AWT>(12,d);
+        bi_adv<AWT>();
+    }
+
+    template <class AWT> inline void output(AWT &a,AWT &b,AWT &c,AWT &d) {
+//        LOG_MSG("SHIFT OUT sz=%zu bufi=%u bufo=%u sz=%zu",sizeof(AWT),bufi,bufo,sizeof(buffer));
+
+        a = bo<AWT>( 0);
+        b = bo<AWT>( 4);
+        c = bo<AWT>( 8);
+        d = bo<AWT>(12);
+        bo_adv<AWT>();
+    }
+};
+
 egc_quad pc98_egc_src;
 egc_quad pc98_egc_bgcm;
 egc_quad pc98_egc_fgcm;
 egc_quad pc98_egc_data;
 egc_quad pc98_egc_last_vram;
 
+pc98_egc_shifter pc98_egc_shift;
+
 typedef egc_quad & (*PC98_OPEFN)(uint8_t ope, const PhysPt ad);
+
+void pc98_egc_shift_reinit() {
+    pc98_egc_shift.reinit();
+}
 
 static egc_quad &ope_xx(uint8_t ope, const PhysPt ad) {
     LOG_MSG("EGC ROP 0x%2x not impl",ope);
@@ -973,15 +1058,18 @@ template <class AWT> static egc_quad &egc_ope(const PhysPt vramoff, const AWT va
      */
     switch (pc98_egc_lightsource) {
         case 1: /* 0x0800 */
-            /* TODO: Shift val bits in, through shifter,
-             *       and back out to egc_src according to Neko Project II.
-             *       Byte access seems to shift each individual byte of the word.
-             *       Word access??? */
             if (pc98_egc_shiftinput) {
-                *((AWT*)pc98_egc_src[0].b) = val;
-                *((AWT*)pc98_egc_src[1].b) = val;
-                *((AWT*)pc98_egc_src[2].b) = val;
-                *((AWT*)pc98_egc_src[3].b) = val;
+                pc98_egc_shift.input<AWT>(
+                    val,
+                    val,
+                    val,
+                    val);
+
+                pc98_egc_shift.output<AWT>(
+                    *((AWT*)(pc98_egc_src[0].b+(vramoff&1))),
+                    *((AWT*)(pc98_egc_src[1].b+(vramoff&1))),
+                    *((AWT*)(pc98_egc_src[2].b+(vramoff&1))),
+                    *((AWT*)(pc98_egc_src[3].b+(vramoff&1))));
             }
 
             return pc98_egc_opfn[pc98_egc_rop](pc98_egc_rop, vramoff & (~1U));
@@ -991,15 +1079,18 @@ template <class AWT> static egc_quad &egc_ope(const PhysPt vramoff, const AWT va
             else if (pc98_egc_fgc == 2)
                 return pc98_egc_fgcm;
 
-            /* TODO: Shift val bits in, through shifter,
-             *       and back out to egc_src according to Neko Project II.
-             *       Byte access seems to shift each individual byte of the word.
-             *       Word access??? */
             if (pc98_egc_shiftinput) {
-                *((AWT*)pc98_egc_src[0].b) = val;
-                *((AWT*)pc98_egc_src[1].b) = val;
-                *((AWT*)pc98_egc_src[2].b) = val;
-                *((AWT*)pc98_egc_src[3].b) = val;
+                pc98_egc_shift.input<AWT>(
+                    val,
+                    val,
+                    val,
+                    val);
+
+                pc98_egc_shift.output<AWT>(
+                    *((AWT*)(pc98_egc_src[0].b+(vramoff&1))),
+                    *((AWT*)(pc98_egc_src[1].b+(vramoff&1))),
+                    *((AWT*)(pc98_egc_src[2].b+(vramoff&1))),
+                    *((AWT*)(pc98_egc_src[3].b+(vramoff&1))));
             }
  
             return pc98_egc_src;
@@ -1090,14 +1181,17 @@ public:
          *    0 = shifter input is VRAM data */
         /* Neko Project II: if ((egc.ope & 0x0400) == 0) ... */
         if (!pc98_egc_shiftinput) {
-            /* TODO: Shift val bits in, through shifter,
-             *       and back out to egc_src according to Neko Project II.
-             *       Byte access seems to shift each individual byte of the word.
-             *       Word access??? */
-            *((AWT*)pc98_egc_src[0].b) = *((AWT*)(pc98_egc_last_vram[0].b+(vramoff&1)));
-            *((AWT*)pc98_egc_src[1].b) = *((AWT*)(pc98_egc_last_vram[1].b+(vramoff&1)));
-            *((AWT*)pc98_egc_src[2].b) = *((AWT*)(pc98_egc_last_vram[2].b+(vramoff&1)));
-            *((AWT*)pc98_egc_src[3].b) = *((AWT*)(pc98_egc_last_vram[3].b+(vramoff&1)));
+            pc98_egc_shift.input<AWT>(
+                *((AWT*)(pc98_egc_last_vram[0].b+(vramoff&1))),
+                *((AWT*)(pc98_egc_last_vram[1].b+(vramoff&1))),
+                *((AWT*)(pc98_egc_last_vram[2].b+(vramoff&1))),
+                *((AWT*)(pc98_egc_last_vram[3].b+(vramoff&1))));
+
+            pc98_egc_shift.output<AWT>(
+                *((AWT*)(pc98_egc_src[0].b+(vramoff&1))),
+                *((AWT*)(pc98_egc_src[1].b+(vramoff&1))),
+                *((AWT*)(pc98_egc_src[2].b+(vramoff&1))),
+                *((AWT*)(pc98_egc_src[3].b+(vramoff&1))));
         }
 
         /* 0x4A4:
