@@ -743,6 +743,7 @@ public:
 	}
 };
 
+extern uint8_t pc98_egc_srcmask[2]; /* host given (Neko: egc.srcmask) */
 extern uint8_t pc98_egc_maskef[2]; /* effective (Neko: egc.mask2) */
 extern uint8_t pc98_egc_mask[2]; /* host given (Neko: egc.mask) */
 extern uint8_t pc98_egc_access;
@@ -882,7 +883,6 @@ struct pc98_egc_shifter {
 
         if (dstbit >= 8) {
             dstbit -= 8;
-            a = b = c = d = 0;
             return;
         }
 
@@ -1176,6 +1176,8 @@ template <class AWT> static egc_quad &egc_ope(const PhysPt vramoff, const AWT va
                     val,
                     val);
 
+                *((AWT*)(pc98_egc_srcmask+(vramoff&1))) = ~0;
+
                 pc98_egc_shift.output<AWT>(
                     *((AWT*)(pc98_egc_src[0].b+(vramoff&1))),
                     *((AWT*)(pc98_egc_src[1].b+(vramoff&1))),
@@ -1183,6 +1185,7 @@ template <class AWT> static egc_quad &egc_ope(const PhysPt vramoff, const AWT va
                     *((AWT*)(pc98_egc_src[3].b+(vramoff&1))));
             }
 
+            *((uint16_t*)pc98_egc_maskef) &= *((uint16_t*)pc98_egc_srcmask);
             return pc98_egc_opfn[pc98_egc_rop](pc98_egc_rop, vramoff & (~1U));
         case 2: /* 0x1000 */
             if (pc98_egc_fgc == 1)
@@ -1197,6 +1200,8 @@ template <class AWT> static egc_quad &egc_ope(const PhysPt vramoff, const AWT va
                     val,
                     val);
 
+                *((AWT*)(pc98_egc_srcmask+(vramoff&1))) = ~0;
+
                 pc98_egc_shift.output<AWT>(
                     *((AWT*)(pc98_egc_src[0].b+(vramoff&1))),
                     *((AWT*)(pc98_egc_src[1].b+(vramoff&1))),
@@ -1204,6 +1209,7 @@ template <class AWT> static egc_quad &egc_ope(const PhysPt vramoff, const AWT va
                     *((AWT*)(pc98_egc_src[3].b+(vramoff&1))));
             }
  
+            *((uint16_t*)pc98_egc_maskef) &= *((uint16_t*)pc98_egc_srcmask);
             return pc98_egc_src;
         default: {
             uint16_t tmp = (uint16_t)val;
@@ -1297,6 +1303,8 @@ public:
                 *((AWT*)(pc98_egc_last_vram[1].b+(vramoff&1))),
                 *((AWT*)(pc98_egc_last_vram[2].b+(vramoff&1))),
                 *((AWT*)(pc98_egc_last_vram[3].b+(vramoff&1))));
+
+            *((AWT*)(pc98_egc_srcmask+(vramoff&1))) = ~0;
 
             pc98_egc_shift.output<AWT>(
                 *((AWT*)(pc98_egc_src[0].b+(vramoff&1))),
