@@ -869,8 +869,7 @@ struct pc98_egc_shifter {
     }
 
     inline uint8_t dstbit_mask(void) {
-        if (dstbit >= 8) return 0xFF;
-
+        /* assume dstbit < 8 */
         if (!pc98_egc_shift_descend)
             return 0xFF >> (uint8_t)dstbit; /* 0xFF 0x7F 0x3F 0x1F ... */
         else
