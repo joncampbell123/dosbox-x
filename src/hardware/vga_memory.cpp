@@ -841,7 +841,7 @@ struct pc98_egc_shifter {
         bufo &= (sizeof(buffer) - 1);
     }
 
-    template <class AWT> inline void input(const AWT a,const AWT b,const AWT c,const AWT d) {
+    template <class AWT> inline void input(const AWT a,const AWT b,const AWT c,const AWT d,uint8_t odd) {
         bi<AWT>( 0,a);
         bi<AWT>( 4,b);
         bi<AWT>( 8,c);
@@ -864,15 +864,18 @@ struct pc98_egc_shifter {
                 }
             }
         }
+
+        *((AWT*)(pc98_egc_srcmask+odd)) = ~0;
     }
 
-    template <class AWT> inline void output(AWT &a,AWT &b,AWT &c,AWT &d,bool recursive=false) {
+    template <class AWT> inline void output(AWT &a,AWT &b,AWT &c,AWT &d,uint8_t odd,bool recursive=false) {
         if (sizeof(AWT) == 2) {
             if (shft8load < (16 - dstbit)) return;
             shft8load -= (16 - dstbit);
 
-            output<uint8_t>(((uint8_t*)(&a))[0],((uint8_t*)(&b))[0],((uint8_t*)(&c))[0],((uint8_t*)(&d))[0],true);
-            output<uint8_t>(((uint8_t*)(&a))[1],((uint8_t*)(&b))[1],((uint8_t*)(&c))[1],((uint8_t*)(&d))[1],true);
+            /* assume odd == false and output is to even byte offset */
+            output<uint8_t>(((uint8_t*)(&a))[0],((uint8_t*)(&b))[0],((uint8_t*)(&c))[0],((uint8_t*)(&d))[0],false,true);
+            output<uint8_t>(((uint8_t*)(&a))[1],((uint8_t*)(&b))[1],((uint8_t*)(&c))[1],((uint8_t*)(&d))[1],true,true);
             return;
         }
 
@@ -1174,15 +1177,15 @@ template <class AWT> static egc_quad &egc_ope(const PhysPt vramoff, const AWT va
                     val,
                     val,
                     val,
-                    val);
-
-                *((AWT*)(pc98_egc_srcmask+(vramoff&1))) = ~0;
+                    val,
+                    vramoff&1);
 
                 pc98_egc_shift.output<AWT>(
                     *((AWT*)(pc98_egc_src[0].b+(vramoff&1))),
                     *((AWT*)(pc98_egc_src[1].b+(vramoff&1))),
                     *((AWT*)(pc98_egc_src[2].b+(vramoff&1))),
-                    *((AWT*)(pc98_egc_src[3].b+(vramoff&1))));
+                    *((AWT*)(pc98_egc_src[3].b+(vramoff&1))),
+                    vramoff&1);
             }
 
             *((uint16_t*)pc98_egc_maskef) &= *((uint16_t*)pc98_egc_srcmask);
@@ -1198,15 +1201,15 @@ template <class AWT> static egc_quad &egc_ope(const PhysPt vramoff, const AWT va
                     val,
                     val,
                     val,
-                    val);
-
-                *((AWT*)(pc98_egc_srcmask+(vramoff&1))) = ~0;
+                    val,
+                    vramoff&1);
 
                 pc98_egc_shift.output<AWT>(
                     *((AWT*)(pc98_egc_src[0].b+(vramoff&1))),
                     *((AWT*)(pc98_egc_src[1].b+(vramoff&1))),
                     *((AWT*)(pc98_egc_src[2].b+(vramoff&1))),
-                    *((AWT*)(pc98_egc_src[3].b+(vramoff&1))));
+                    *((AWT*)(pc98_egc_src[3].b+(vramoff&1))),
+                    vramoff&1);
             }
  
             *((uint16_t*)pc98_egc_maskef) &= *((uint16_t*)pc98_egc_srcmask);
@@ -1302,15 +1305,15 @@ public:
                 *((AWT*)(pc98_egc_last_vram[0].b+(vramoff&1))),
                 *((AWT*)(pc98_egc_last_vram[1].b+(vramoff&1))),
                 *((AWT*)(pc98_egc_last_vram[2].b+(vramoff&1))),
-                *((AWT*)(pc98_egc_last_vram[3].b+(vramoff&1))));
-
-            *((AWT*)(pc98_egc_srcmask+(vramoff&1))) = ~0;
+                *((AWT*)(pc98_egc_last_vram[3].b+(vramoff&1))),
+                vramoff&1);
 
             pc98_egc_shift.output<AWT>(
                 *((AWT*)(pc98_egc_src[0].b+(vramoff&1))),
                 *((AWT*)(pc98_egc_src[1].b+(vramoff&1))),
                 *((AWT*)(pc98_egc_src[2].b+(vramoff&1))),
-                *((AWT*)(pc98_egc_src[3].b+(vramoff&1))));
+                *((AWT*)(pc98_egc_src[3].b+(vramoff&1))),
+                vramoff&1);
         }
 
         /* 0x4A4:
