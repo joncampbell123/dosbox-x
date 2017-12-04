@@ -868,6 +868,16 @@ struct pc98_egc_shifter {
         *((AWT*)(pc98_egc_srcmask+odd)) = ~0;
     }
 
+    template <class AWT> inline AWT dstbit_mask(void) {
+        const size_t m = 8U * sizeof(AWT);
+        if (dstbit >= m) return (AWT)(~0UL);
+
+        if (!pc98_egc_shift_descend)
+            return ((AWT)(~0UL)) >> ((AWT)dstbit); /* 0xFF 0x7F 0x3F 0x1F ... */
+        else
+            return ((AWT)(~0UL)) << ((AWT)dstbit); /* 0xFF 0xFE 0xFC 0xF8 ... */
+    }
+
     template <class AWT> inline void output(AWT &a,AWT &b,AWT &c,AWT &d,uint8_t odd,bool recursive=false) {
         if (sizeof(AWT) == 2) {
             if (shft8load < (16 - dstbit)) {
@@ -895,6 +905,8 @@ struct pc98_egc_shifter {
             *((AWT*)(pc98_egc_srcmask+odd)) = 0;
             return;
         }
+
+        *((AWT*)(pc98_egc_srcmask+odd)) = dstbit_mask<AWT>();
 
         if (o_srcbit < o_dstbit) {
             if (dstbit != 0) {
@@ -931,8 +943,7 @@ struct pc98_egc_shifter {
             }
         }
         else if (o_srcbit > o_dstbit) {
-            if (dstbit != 0)
-                dstbit = 0;
+            dstbit = 0;
 
             if (pc98_egc_shift_descend) {
                 bo_adv<AWT>();
@@ -1381,21 +1392,23 @@ public:
 
         egc_quad &ropdata = egc_ope<AWT>(vramoff, val);
 
+        const AWT accmask = *((AWT*)(pc98_egc_maskef+(vramoff&1)));
+
         if (!(pc98_egc_access & 1)) {
-            *((AWT*)(vga.mem.linear+vramoff+0x08000)) &= ~( *((AWT*)(pc98_egc_maskef+(vramoff&1))) );
-            *((AWT*)(vga.mem.linear+vramoff+0x08000)) |=    *((AWT*)(ropdata[0].b+(vramoff&1)));
+            *((AWT*)(vga.mem.linear+vramoff+0x08000)) &= ~accmask;
+            *((AWT*)(vga.mem.linear+vramoff+0x08000)) |=  accmask & *((AWT*)(ropdata[0].b+(vramoff&1)));
         }
         if (!(pc98_egc_access & 2)) {
-            *((AWT*)(vga.mem.linear+vramoff+0x10000)) &= ~( *((AWT*)(pc98_egc_maskef+(vramoff&1))) );
-            *((AWT*)(vga.mem.linear+vramoff+0x10000)) |=    *((AWT*)(ropdata[1].b+(vramoff&1)));
+            *((AWT*)(vga.mem.linear+vramoff+0x10000)) &= ~accmask;
+            *((AWT*)(vga.mem.linear+vramoff+0x10000)) |=  accmask & *((AWT*)(ropdata[1].b+(vramoff&1)));
         }
         if (!(pc98_egc_access & 4)) {
-            *((AWT*)(vga.mem.linear+vramoff+0x18000)) &= ~( *((AWT*)(pc98_egc_maskef+(vramoff&1))) );
-            *((AWT*)(vga.mem.linear+vramoff+0x18000)) |=    *((AWT*)(ropdata[2].b+(vramoff&1)));
+            *((AWT*)(vga.mem.linear+vramoff+0x18000)) &= ~accmask;
+            *((AWT*)(vga.mem.linear+vramoff+0x18000)) |=  accmask & *((AWT*)(ropdata[2].b+(vramoff&1)));
         }
         if (!(pc98_egc_access & 8)) {
-            *((AWT*)(vga.mem.linear+vramoff+0x20000)) &= ~( *((AWT*)(pc98_egc_maskef+(vramoff&1))) );
-            *((AWT*)(vga.mem.linear+vramoff+0x20000)) |=    *((AWT*)(ropdata[3].b+(vramoff&1)));
+            *((AWT*)(vga.mem.linear+vramoff+0x20000)) &= ~accmask;
+            *((AWT*)(vga.mem.linear+vramoff+0x20000)) |=  accmask & *((AWT*)(ropdata[3].b+(vramoff&1)));
         }
     }
 
