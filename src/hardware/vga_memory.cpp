@@ -868,14 +868,13 @@ struct pc98_egc_shifter {
         *((AWT*)(pc98_egc_srcmask+odd)) = ~0;
     }
 
-    template <class AWT> inline AWT dstbit_mask(void) {
-        const size_t m = 8U * sizeof(AWT);
-        if (dstbit >= m) return (AWT)(~0UL);
+    inline uint8_t dstbit_mask(void) {
+        if (dstbit >= 8) return 0xFF;
 
         if (!pc98_egc_shift_descend)
-            return ((AWT)(~0UL)) >> ((AWT)dstbit); /* 0xFF 0x7F 0x3F 0x1F ... */
+            return 0xFF >> (uint8_t)dstbit; /* 0xFF 0x7F 0x3F 0x1F ... */
         else
-            return ((AWT)(~0UL)) << ((AWT)dstbit); /* 0xFF 0xFE 0xFC 0xF8 ... */
+            return 0xFF << (uint8_t)dstbit; /* 0xFF 0xFE 0xFC 0xF8 ... */
     }
 
     template <class AWT> inline void output(AWT &a,AWT &b,AWT &c,AWT &d,uint8_t odd,bool recursive=false) {
@@ -906,7 +905,7 @@ struct pc98_egc_shifter {
             return;
         }
 
-        *((AWT*)(pc98_egc_srcmask+odd)) = dstbit_mask<AWT>();
+        *((AWT*)(pc98_egc_srcmask+odd)) = dstbit_mask();
 
         if (o_srcbit < o_dstbit) {
             if (dstbit != 0) {
