@@ -756,6 +756,11 @@ extern uint8_t pc98_egc_shiftinput;
 extern uint8_t pc98_egc_regload;
 extern uint8_t pc98_egc_rop;
 
+extern bool pc98_egc_shift_descend;
+extern uint8_t pc98_egc_shift_destbit;
+extern uint8_t pc98_egc_shift_srcbit;
+extern uint16_t pc98_egc_shift_length;
+
 egc_quad pc98_egc_src;
 egc_quad pc98_egc_bgcm;
 egc_quad pc98_egc_fgcm;
