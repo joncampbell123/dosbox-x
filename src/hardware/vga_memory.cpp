@@ -1322,7 +1322,7 @@ public:
         return *((AWT*)(vga.mem.linear+fulloff));
     }
 
-    template <class AWT> static inline void modeEGC_w(const PhysPt vramoff,const AWT val) {
+    template <class AWT> static inline void modeEGC_w(const PhysPt vramoff,const PhysPt fulloff,const AWT val) {
         /* assume: vramoff is even IF AWT is 16-bit wide */
 
         /* 0x4A4:
@@ -1528,8 +1528,7 @@ public:
             case 0x0E:
             case 0x0F:
                 /* this reads multiple bitplanes at once */
-                addr &= 0x7FFF;
-                modeEGC_w<AWT>(addr + vop_offset,val);
+                modeEGC_w<AWT>((addr&0x7FFF) + vop_offset,addr + vop_offset,val);
                 break;
             default: /* Should no longer happen */
                 LOG_MSG("PC-98 VRAM write warning: Unsupported opmode 0x%X",pc98_gdc_vramop);
