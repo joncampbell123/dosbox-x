@@ -792,9 +792,6 @@ struct pc98_egc_shifter {
         shft8load = 0;
         o_srcbit = srcbit & 7;
         o_dstbit = dstbit & 7;
-
-        pc98_egc_srcmask[0] = 0xFF;
-        pc98_egc_srcmask[1] = 0xFF;
     }
 
     bool                decrement;
@@ -872,11 +869,19 @@ struct pc98_egc_shifter {
     }
 
     inline uint8_t dstbit_mask(void) {
+        uint8_t rm,mb;
+
+        /* assume remain > 0 */
+        if (remain >= 8)
+            mb = 0xFF;
+        else
+            mb = 0xFF << (uint8_t)(8 - remain); /* 0x80 0xC0 0xE0 0xF0 ... */
+
         /* assume dstbit < 8 */
         if (!pc98_egc_shift_descend)
-            return 0xFF >> (uint8_t)dstbit; /* 0xFF 0x7F 0x3F 0x1F ... */
+            return mb >> (uint8_t)dstbit; /* 0xFF 0x7F 0x3F 0x1F ... */
         else
-            return 0xFF << (uint8_t)dstbit; /* 0xFF 0xFE 0xFC 0xF8 ... */
+            return mb << (uint8_t)dstbit; /* 0xFF 0xFE 0xFC 0xF8 ... */
     }
 
     template <class AWT> inline void output(AWT &a,AWT &b,AWT &c,AWT &d,uint8_t odd,bool recursive=false) {
@@ -890,6 +895,7 @@ struct pc98_egc_shifter {
             /* assume odd == false and output is to even byte offset */
             output<uint8_t>(((uint8_t*)(&a))[0],((uint8_t*)(&b))[0],((uint8_t*)(&c))[0],((uint8_t*)(&d))[0],0,true);
             if (remain != 0) output<uint8_t>(((uint8_t*)(&a))[1],((uint8_t*)(&b))[1],((uint8_t*)(&c))[1],((uint8_t*)(&d))[1],1,true);
+            else pc98_egc_srcmask[1] = 0;
 
             if (remain == 0)
                 reinit();
