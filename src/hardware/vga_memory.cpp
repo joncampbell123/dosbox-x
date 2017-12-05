@@ -889,7 +889,11 @@ struct pc98_egc_shifter {
 
             /* assume odd == false and output is to even byte offset */
             output<uint8_t>(((uint8_t*)(&a))[0],((uint8_t*)(&b))[0],((uint8_t*)(&c))[0],((uint8_t*)(&d))[0],0,true);
-            output<uint8_t>(((uint8_t*)(&a))[1],((uint8_t*)(&b))[1],((uint8_t*)(&c))[1],((uint8_t*)(&d))[1],1,true);
+            if (remain != 0) output<uint8_t>(((uint8_t*)(&a))[1],((uint8_t*)(&b))[1],((uint8_t*)(&c))[1],((uint8_t*)(&d))[1],1,true);
+
+            if (remain == 0)
+                reinit();
+
             return;
         }
 
@@ -908,6 +912,21 @@ struct pc98_egc_shifter {
         }
 
         *((AWT*)(pc98_egc_srcmask+odd)) = dstbit_mask();
+
+        if (dstbit > 0) {
+            const uint8_t bc = 8 - dstbit;
+
+            if (remain >= bc)
+                remain -= bc;
+            else
+                remain = 0;
+        }
+        else {
+            if (remain >= 8)
+                remain -= 8;
+            else
+                remain = 0;
+        }
 
         if (o_srcbit < o_dstbit) {
             if (dstbit != 0) {
@@ -970,6 +989,9 @@ struct pc98_egc_shifter {
             d = bo<AWT>(12);
             bo_adv<AWT>();
         }
+
+        if (!recursive && remain == 0)
+            reinit();
     }
 };
 
