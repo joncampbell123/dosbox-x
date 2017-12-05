@@ -171,6 +171,8 @@ bool allow_vesa_8bpp = true;
 bool allow_vesa_4bpp = true;
 bool allow_vesa_tty = true;
 
+bool gdc_5mhz_mode = true;
+
 void page_flip_debug_notify() {
 	if (enable_page_flip_debugging_marker)
 		vga_page_flip_occurred = true;
@@ -1820,6 +1822,17 @@ void VGA_OnEnterPC98(Section *sec) {
     VGA_UnsetupGFX();
     VGA_UnsetupSEQ();
 
+    // whether the GDC is running at 2.5MHz or 5.0MHz.
+    // Some games require the GDC to run at 5.0MHz.
+    // To enable these games we default to 5.0MHz.
+    // TODO: Make a dosbox.conf option.
+    // TODO: Add an option whether it can be switched on.
+    // TODO: Add port I/O commands to allow it to be turned on/off.
+    gdc_5mhz_mode = true;
+
+    LOG_MSG("PC-98: GDC is running at %.1fMHz.",gdc_5mhz_mode ? 5.0 : 2.5);
+    LOG_MSG("Some games require the 5MHz mode, switch the setting accordingly");
+
     pc98_egc_srcmask[0] = 0xFF;
     pc98_egc_srcmask[1] = 0xFF;
     pc98_egc_maskef[0] = 0xFF;
@@ -1943,6 +1956,9 @@ void PC98_FM_OnEnterPC98(Section *sec);
 
 void VGA_OnEnterPC98_phase2(Section *sec) {
     VGA_SetupHandlers();
+
+    /* GDC 2.5/5.0MHz setting is also reflected in BIOS data area and DIP switch registers */
+    mem_writeb(0x54D,(mem_readb(0x54D) & (~0x04)) | (gdc_5mhz_mode ? 0x04 : 0x00));
 
     /* delay I/O port at 0x5F (0.6us) */
     IO_RegisterWriteHandler(0x5F,pc98_wait_write,IO_MB);

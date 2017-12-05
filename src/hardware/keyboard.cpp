@@ -1666,11 +1666,14 @@ static void pc98_8255_write(Bitu port,Bitu val,Bitu /*iolen*/) {
     };
 }
 
+extern bool gdc_5mhz_mode;
+
 static Bitu pc98_8255_read(Bitu port,Bitu /*iolen*/) {
     switch (port) {
         case 0x31:
             LOG_MSG("PC-98 8255 FIXME: DIP switch port A not supported yet");
-            return 0x63; // taken from a PC-9821 Lt2
+            // bit 7 apparently reflects whether the GDC is running at 5MHz or not
+            return 0x63 | (gdc_5mhz_mode ? 0x80 : 0x00); // taken from a PC-9821 Lt2
         case 0x33:
             LOG_MSG("PC-98 8255 FIXME: Port B not supported yet");
             return 0xF9; // taken from a PC-9821 Lt2
