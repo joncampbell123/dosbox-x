@@ -1828,7 +1828,8 @@ void VGA_OnEnterPC98(Section *sec) {
     // TODO: Make a dosbox.conf option.
     // TODO: Add an option whether it can be switched on.
     // TODO: Add port I/O commands to allow it to be turned on/off.
-    gdc_5mhz_mode = true;
+    // TODO: Some games (TH03) actually refuse to run if the GDC is at 5MHz????
+    gdc_5mhz_mode = false;
 
     LOG_MSG("PC-98: GDC is running at %.1fMHz.",gdc_5mhz_mode ? 5.0 : 2.5);
     LOG_MSG("Some games require the 5MHz mode, switch the setting accordingly");
