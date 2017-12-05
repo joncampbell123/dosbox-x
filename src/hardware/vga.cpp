@@ -454,6 +454,15 @@ void VGA_Reset(Section*) {
 
     pc98_allow_scanline_effect = section->Get_bool("pc-98 allow scanline effect");
 
+    // whether the GDC is running at 2.5MHz or 5.0MHz.
+    // Some games require the GDC to run at 5.0MHz.
+    // To enable these games we default to 5.0MHz.
+    // TODO: Make a dosbox.conf option.
+    // TODO: Add an option whether it can be switched on.
+    // TODO: Add port I/O commands to allow it to be turned on/off.
+    // TODO: Some games (TH03) actually refuse to run if the GDC is at 5MHz????
+    gdc_5mhz_mode = section->Get_bool("pc-98 start gdc at 5mhz");
+
     i = section->Get_int("pc-98 allow 4 display partition graphics");
     pc98_allow_4_display_partitions = (i < 0/*auto*/ || i == 1/*on*/);
     // TODO: "auto" will default to true if old PC-9801, false if PC-9821, or
@@ -1821,15 +1830,6 @@ void VGA_OnEnterPC98(Section *sec) {
     VGA_UnsetupDAC();
     VGA_UnsetupGFX();
     VGA_UnsetupSEQ();
-
-    // whether the GDC is running at 2.5MHz or 5.0MHz.
-    // Some games require the GDC to run at 5.0MHz.
-    // To enable these games we default to 5.0MHz.
-    // TODO: Make a dosbox.conf option.
-    // TODO: Add an option whether it can be switched on.
-    // TODO: Add port I/O commands to allow it to be turned on/off.
-    // TODO: Some games (TH03) actually refuse to run if the GDC is at 5MHz????
-    gdc_5mhz_mode = false;
 
     LOG_MSG("PC-98: GDC is running at %.1fMHz.",gdc_5mhz_mode ? 5.0 : 2.5);
     LOG_MSG("Some games require the 5MHz mode, switch the setting accordingly");
