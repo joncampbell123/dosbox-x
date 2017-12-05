@@ -173,6 +173,10 @@ bool allow_vesa_tty = true;
 
 bool gdc_5mhz_mode = true;
 
+void gdc_5mhz_mode_update_vars(void) {
+    mem_writeb(0x54D,(mem_readb(0x54D) & (~0x04)) | (gdc_5mhz_mode ? 0x04 : 0x00));
+}
+
 void page_flip_debug_notify() {
 	if (enable_page_flip_debugging_marker)
 		vga_page_flip_occurred = true;
@@ -1832,7 +1836,6 @@ void VGA_OnEnterPC98(Section *sec) {
     VGA_UnsetupSEQ();
 
     LOG_MSG("PC-98: GDC is running at %.1fMHz.",gdc_5mhz_mode ? 5.0 : 2.5);
-    LOG_MSG("Some games require the 5MHz mode, switch the setting accordingly");
 
     pc98_egc_srcmask[0] = 0xFF;
     pc98_egc_srcmask[1] = 0xFF;
@@ -1959,7 +1962,7 @@ void VGA_OnEnterPC98_phase2(Section *sec) {
     VGA_SetupHandlers();
 
     /* GDC 2.5/5.0MHz setting is also reflected in BIOS data area and DIP switch registers */
-    mem_writeb(0x54D,(mem_readb(0x54D) & (~0x04)) | (gdc_5mhz_mode ? 0x04 : 0x00));
+    gdc_5mhz_mode_update_vars();
 
     /* delay I/O port at 0x5F (0.6us) */
     IO_RegisterWriteHandler(0x5F,pc98_wait_write,IO_MB);
@@ -6184,5 +6187,46 @@ void PC98_FM_OnEnterPC98(Section *sec) {
 	pcm86gen_setvol(128);
 
     board86c_bind();
+}
+
+class PC98UTIL : public Program {
+public:
+	void Run(void) {
+        string arg;
+
+        cmd->BeginOpt();
+        while (cmd->GetOpt(/*&*/arg)) {
+            if (arg == "?" || arg == "help") {
+                doHelp();
+                break;
+            }
+            else if (arg == "gdc25") {
+                gdc_5mhz_mode = false;
+                gdc_5mhz_mode_update_vars();
+                LOG_MSG("PC-98: GDC is running at %.1fMHz.",gdc_5mhz_mode ? 5.0 : 2.5);
+                WriteOut("GDC is now running at 2.5MHz\n");
+            }
+            else if (arg == "gdc50") {
+                gdc_5mhz_mode = true;
+                gdc_5mhz_mode_update_vars();
+                LOG_MSG("PC-98: GDC is running at %.1fMHz.",gdc_5mhz_mode ? 5.0 : 2.5);
+                WriteOut("GDC is now running at 5MHz\n");
+            }
+            else {
+                WriteOut("Unknown switch %s",arg.c_str());
+                break;
+            }
+        }
+        cmd->EndOpt();
+	}
+    void doHelp(void) {
+        WriteOut("PC98UTIL PC-98 emulation utility\n");
+        WriteOut("  /gdc25     Set GDC to 2.5MHz\n");
+        WriteOut("  /gdc50     Set GDC to 5.0MHz\n");
+    }
+};
+
+void PC98UTIL_ProgramStart(Program * * make) {
+	*make=new PC98UTIL;
 }
 
