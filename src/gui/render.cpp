@@ -713,8 +713,14 @@ void RENDER_SetForceUpdate(bool f) {
 void RENDER_OnSectionPropChange(Section *x) {
 	Section_prop * section = static_cast<Section_prop *>(control->GetSection("render"));
 
+	bool p_aspect = render.aspect;
+
 	render.aspect = section->Get_bool("aspect");
 	render.frameskip.max = section->Get_int("frameskip");
+
+	if (render.aspect != p_aspect) {
+		RENDER_CallBack(GFX_CallBackReset);
+	}
 }
 
 void RENDER_Init() {
