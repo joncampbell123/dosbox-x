@@ -1587,7 +1587,10 @@ void MSG_Loop(void) {
 			case ID_CAPMOUSE: GFX_CaptureMouse(); break;
 			case ID_REFRESH: GUI_Shortcut(1); break;
 			case ID_FULLSCREEN: GFX_SwitchFullScreen(); break;
-			case ID_ASPECT: SetVal("render", "aspect", render.aspect ? "false" : "true"); break;
+			case ID_ASPECT:
+				SetVal("render", "aspect", render.aspect ? "false" : "true");
+				Reflect_Menu();
+				break;
 			case ID_HIDECYCL:
 				menu.hidecycles = !menu.hidecycles;
 				GFX_SetTitle(CPU_CycleMax, -1, -1, false);

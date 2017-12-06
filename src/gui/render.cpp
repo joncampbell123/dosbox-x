@@ -710,10 +710,19 @@ void RENDER_SetForceUpdate(bool f) {
 	render.forceUpdate = f;
 }
 
+void RENDER_OnSectionPropChange(Section *x) {
+	Section_prop * section = static_cast<Section_prop *>(control->GetSection("render"));
+
+	render.aspect = section->Get_bool("aspect");
+	render.frameskip.max = section->Get_int("frameskip");
+}
+
 void RENDER_Init() {
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("render"));
 
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing renderer");
+
+	control->GetSection("render")->onpropchange.push_back(&RENDER_OnSectionPropChange);
 
 	vga.draw.doublescan_set=section->Get_bool("doublescan");
 	vga.draw.char9_set=section->Get_bool("char9");
