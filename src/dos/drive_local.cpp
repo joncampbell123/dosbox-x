@@ -476,7 +476,7 @@ FILE * localDrive::GetSystemFilePtr(char const * const name, char const * const 
     host_cnv_char_t *host_name = CodePageGuestToHost(newname);
     if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newname);
-        return false;
+        return NULL;
     }
 
 #ifdef host_cnv_use_wchar
@@ -917,7 +917,7 @@ void *localDrive::opendir(const char *name) {
     host_cnv_char_t *host_name = CodePageGuestToHost(name);
     if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,name);
-        return false;
+        return NULL;
     }
 
 	return open_directoryw(host_name);
