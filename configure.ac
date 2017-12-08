@@ -344,9 +344,11 @@ AC_CHECK_LIB(png, png_get_io_ptr, have_png_lib=yes, ,-lz)
 
 dnl LIBRARY TEST: libpcap
 AC_CHECK_HEADER(pcap.h,have_pcap_h=yes,)
+AC_CHECK_LIB(pcap, pcap_open_live, have_pcap_lib=yes, ,-lz)
 
 dnl LIBRARY TEST: SDLnet 1.x
 AC_CHECK_HEADER(SDL_net.h,have_sdl_net_h=yes,)
+AC_CHECK_LIB(SDL_net, SDLNet_Init, have_sdl_net_lib=yes, , )
 
 dnl FEATURE: MIDI through ALSA
 AC_ARG_ENABLE(alsa-midi,
@@ -484,7 +486,6 @@ else
 fi
 
 AH_TEMPLATE(C_NE2000,[Define to 1 to enable NE2000 ethernet passthrough, requires libpcap])
-AC_CHECK_LIB(pcap, pcap_open_live, have_pcap_lib=yes, ,-lz)
 if test x$have_pcap_lib = xyes -a x$have_pcap_h = xyes ; then
   LIBS="$LIBS -lpcap";
   AC_DEFINE(C_NE2000,1)
@@ -505,7 +506,6 @@ if test x$host = xi386-pc-os2-emx ; then
   ]])], [AC_MSG_RESULT(yes); have_sdl_net_lib=yes], AC_MSG_RESULT(no))
   LIBS=$LIBS_BACKUP
 else
-AC_CHECK_LIB(SDL_net, SDLNet_Init, have_sdl_net_lib=yes, , )
 fi
 if test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
    LIBS="$LIBS -lSDL_net"
