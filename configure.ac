@@ -68,6 +68,9 @@ AC_PREFIX_DEFAULT([/usr/local])
 dnl this code needs large file support on 32-bit systems
 AC_SYS_LARGEFILE
 
+#Check for big endian machine, should #define WORDS_BIGENDIAN if so
+AC_C_BIGENDIAN
+
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_C_INLINE
@@ -121,6 +124,97 @@ dnl our code adds -std=gnu++0x if not supported where the function would not do 
 AC_MSG_CHECKING([checking for C++11 support])
 AC_CHECK_CXXFLAGS([ -std=gnu++11 ], [  ], [ CXXFLAGS="$CXXFLAGS -std=gnu++0x" ])
 
+dnl TEST: Environ can be included
+AC_MSG_CHECKING(if environ can be included)
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+#include <unistd.h>
+#include <stdlib.h>]],[[*environ;]])],
+[AC_MSG_RESULT(yes);AC_DEFINE(ENVIRON_INCLUDED,1,[environ can be included])],AC_MSG_RESULT(no))
+
+dnl TEST: Environ can be linked
+AC_MSG_CHECKING(if environ can be linked)
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[extern char ** environ;]],[[*environ;]])],
+[AC_MSG_RESULT(yes);AC_DEFINE(ENVIRON_LINKED,1,[environ can be linked])],AC_MSG_RESULT(no))
+
+dnl TEST: dirent includes d_type
+AC_MSG_CHECKING([if dirent includes d_type])
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+#include <sys/types.h>
+#include <dirent.h>
+void blah(){
+struct dirent d_test;
+d_test.d_type = 0;
+}])],[AC_MSG_RESULT(yes);AC_DEFINE(DIRENT_HAS_D_TYPE,1,[struct dirent has d_type])],AC_MSG_RESULT(no))
+
+dnl TEST: Check for powf
+AC_MSG_CHECKING(for powf in libm);
+LIBS_BACKUP=$LIBS;
+LIBS="$LIBS -lm";
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <math.h>]],[[
+        powf(1.0f, 1.0f);
+]])], [AC_MSG_RESULT(yes)], [AC_DEFINE([DB_HAVE_NO_POWF],[1],[libm doesn't include powf])])
+LIBS=$LIBS_BACKUP
+
+dnl TEST: Check if the compiler support attributes
+AH_TEMPLATE([C_HAS_ATTRIBUTE],[Determines if the compilers supports attributes for structures.])
+AC_MSG_CHECKING(if compiler allows __attribute__)
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+typedef struct { } __attribute__((packed)) junk;]],
+[[ ]])],[ AC_MSG_RESULT(yes);AC_DEFINE(C_HAS_ATTRIBUTE)],AC_MSG_RESULT(no))
+
+dnl TEST: Check if the compiler supports certain attributes
+OLDCFLAGS="$CFLAGS"
+CFLAGS="-Werror"
+
+AH_TEMPLATE([C_ATTRIBUTE_ALWAYS_INLINE],[Determines if the compilers supports always_inline attribute.])
+AC_MSG_CHECKING(if compiler allows __attribute__((always_inline)) )
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([ void __attribute__((always_inline)) test(){}
+])],[ AC_MSG_RESULT(yes);AC_DEFINE(C_ATTRIBUTE_ALWAYS_INLINE)],AC_MSG_RESULT(no))
+
+AH_TEMPLATE([C_ATTRIBUTE_FASTCALL],[Determines if the compilers supports fastcall attribute.])
+AC_MSG_CHECKING(if compiler allows __attribute__((fastcall)) )
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([ void __attribute__((fastcall)) test(){}
+])],[ AC_MSG_RESULT(yes);AC_DEFINE(C_ATTRIBUTE_FASTCALL)],AC_MSG_RESULT(no))
+
+CFLAGS="$OLDCFLAGS"
+
+dnl TEST: Check if the compiler supports __builtin_expect
+#Switch language to c++
+AC_LANG_PUSH(C++)
+AH_TEMPLATE([C_HAS_BUILTIN_EXPECT],[Determines if the compilers supports __builtin_expect for branch prediction.])
+AC_MSG_CHECKING(if compiler allows __builtin_expect)
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]],[[
+int x=10;if( __builtin_expect ((x==1),0) ) ;
+]])], [ AC_MSG_RESULT(yes);AC_DEFINE(C_HAS_BUILTIN_EXPECT)],AC_MSG_RESULT(no))
+#switch language back
+AC_LANG_POP(C++)
+
+dnl Check for mprotect. Needed for 64 bits linux 
+AH_TEMPLATE(C_HAVE_MPROTECT,[Define to 1 if you have the mprotect function])
+AC_CHECK_HEADER([sys/mman.h], [
+AC_CHECK_FUNC([mprotect],[AC_DEFINE(C_HAVE_MPROTECT,1)])
+])
+
+dnl Setpriority
+AH_TEMPLATE(C_SET_PRIORITY,[Define to 1 if you have setpriority support])
+AC_MSG_CHECKING(for setpriority support)
+AC_LINK_IFELSE([AC_LANG_SOURCE([
+#include <sys/resource.h>
+int main(int argc,char * argv[]) {
+	return setpriority (PRIO_PROCESS, 0,PRIO_MIN+PRIO_MAX);
+};
+])],AC_MSG_RESULT(yes);AC_DEFINE(C_SET_PRIORITY,1),AC_MSG_RESULT(no))
+
+dnl Some target detection and actions for them
+case "$host" in
+    *-*-darwin*)
+       dnl El Capitan's refusal to allow sudo make install to /usr/include, and the failure of most open source to
+       dnl include from /usr/local/include is irritating and tiresome...
+       CFLAGS="$CFLAGS -I/usr/local/include"
+       CPPFLAGS="$CPPFLAGS -I/usr/local/include"
+       ;;
+esac
+
 dnl Scalars in the code use MMX/SSE intrinsics on x86 and x86_64
 case "$host_cpu" in
   x86_64 | amd64)
@@ -143,6 +237,14 @@ dnl Stop reporting "type punning" warnings, I'm sick of hearing about it.
 AC_CHECK_CXXFLAGS([ -Wno-strict-aliasing ])
 
 dnl TODO: Need GCC to know this code is using C++ lamda functions
+
+
+
+
+
+
+
+
 
 AH_TEMPLATE(C_MT32,[Define to 1 to enable MT32 emulation (x86/x86_64 only)])
 AC_ARG_ENABLE(mt32,AC_HELP_STRING([--disable-mt32],[Disable MT32 emulation]),,enable_mt32=yes)
@@ -191,77 +293,6 @@ void blah(){
  AC_MSG_RESULT([no]) 
  AC_MSG_ERROR([Only libSDL 1.2.X supported])])
 
-dnl Checks for header files.
-
-AC_MSG_CHECKING(if environ can be included)
-AC_LINK_IFELSE([AC_LANG_PROGRAM([[
-#include <unistd.h>
-#include <stdlib.h>]],[[*environ;]])],
-[AC_MSG_RESULT(yes);AC_DEFINE(ENVIRON_INCLUDED,1,[environ can be included])],AC_MSG_RESULT(no))
-
-AC_MSG_CHECKING(if environ can be linked)
-AC_LINK_IFELSE([AC_LANG_PROGRAM([[extern char ** environ;]],[[*environ;]])],
-[AC_MSG_RESULT(yes);AC_DEFINE(ENVIRON_LINKED,1,[environ can be linked])],AC_MSG_RESULT(no))
-
-AC_MSG_CHECKING([if dirent includes d_type])
-AC_COMPILE_IFELSE([AC_LANG_SOURCE([
-#include <sys/types.h>
-#include <dirent.h>
-void blah(){
-struct dirent d_test;
-d_test.d_type = 0;
-}])],[AC_MSG_RESULT(yes);AC_DEFINE(DIRENT_HAS_D_TYPE,1,[struct dirent has d_type])],AC_MSG_RESULT(no))
-
-
-dnl Check for powf
-AC_MSG_CHECKING(for powf in libm);
-LIBS_BACKUP=$LIBS;
-LIBS="$LIBS -lm";
-AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <math.h>]],[[
-        powf(1.0f, 1.0f);
-]])], [AC_MSG_RESULT(yes)], [AC_DEFINE([DB_HAVE_NO_POWF],[1],[libm doesn't include powf])])
-LIBS=$LIBS_BACKUP
-
-
-dnl Checks for libraries.
-
-#Check if the compiler support attributes
-AH_TEMPLATE([C_HAS_ATTRIBUTE],[Determines if the compilers supports attributes for structures.])
-AC_MSG_CHECKING(if compiler allows __attribute__)
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-typedef struct { } __attribute__((packed)) junk;]],
-[[ ]])],[ AC_MSG_RESULT(yes);AC_DEFINE(C_HAS_ATTRIBUTE)],AC_MSG_RESULT(no))
-
-
-#Check if the compiler supports certain attributes
-OLDCFLAGS="$CFLAGS"
-CFLAGS="-Werror"
-
-AH_TEMPLATE([C_ATTRIBUTE_ALWAYS_INLINE],[Determines if the compilers supports always_inline attribute.])
-AC_MSG_CHECKING(if compiler allows __attribute__((always_inline)) )
-AC_COMPILE_IFELSE([AC_LANG_SOURCE([ void __attribute__((always_inline)) test(){}
-])],[ AC_MSG_RESULT(yes);AC_DEFINE(C_ATTRIBUTE_ALWAYS_INLINE)],AC_MSG_RESULT(no))
-
-AH_TEMPLATE([C_ATTRIBUTE_FASTCALL],[Determines if the compilers supports fastcall attribute.])
-AC_MSG_CHECKING(if compiler allows __attribute__((fastcall)) )
-AC_COMPILE_IFELSE([AC_LANG_SOURCE([ void __attribute__((fastcall)) test(){}
-])],[ AC_MSG_RESULT(yes);AC_DEFINE(C_ATTRIBUTE_FASTCALL)],AC_MSG_RESULT(no))
-
-
-CFLAGS="$OLDCFLAGS"
-
-
-#Check if the compiler supports __builtin_expect
-#Switch language to c++
-AC_LANG_PUSH(C++)
-AH_TEMPLATE([C_HAS_BUILTIN_EXPECT],[Determines if the compilers supports __builtin_expect for branch prediction.])
-AC_MSG_CHECKING(if compiler allows __builtin_expect)
-AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]],[[
-int x=10;if( __builtin_expect ((x==1),0) ) ;
-]])], [ AC_MSG_RESULT(yes);AC_DEFINE(C_HAS_BUILTIN_EXPECT)],AC_MSG_RESULT(no))
-#switch language back
-AC_LANG_POP(C++)
-
 dnl enable disable alsa and pass it's cflags to CXXFLAGS
 AC_ARG_ENABLE(alsa-midi,
 AC_HELP_STRING([--enable-alsa-midi],[compile with alsa midi support (default yes)]),
@@ -274,9 +305,6 @@ if test x$alsa_midi = xtrue ; then
   AM_PATH_ALSA(0.9.0, AC_DEFINE(HAVE_ALSA,1,[Define to 1 to use ALSA for MIDI]) , : )
   CXXFLAGS="$CXXFLAGS $ALSA_CFLAGS"
 fi
-
-#Check for big endian machine, should #define WORDS_BIGENDIAN if so
-AC_C_BIGENDIAN
 
 #Features to enable/disable
 AH_TEMPLATE(C_DEBUG,[Define to 1 to enable internal debugger, requires libcurses])
@@ -390,16 +418,6 @@ if test x$enable_unaligned_memory = xyes -a x$c_unalignedmemory = xyes; then
 else
   AC_MSG_RESULT(no)
 fi
-
-dnl Some target detection and actions for them
-case "$host" in
-    *-*-darwin*)
-       dnl El Capitan's refusal to allow sudo make install to /usr/include, and the failure of most open source to
-       dnl include from /usr/local/include is irritating and tiresome...
-       CFLAGS="$CFLAGS -I/usr/local/include"
-       CPPFLAGS="$CPPFLAGS -I/usr/local/include"
-       ;;
-esac
 
 AH_TEMPLATE(C_LIBPNG,[Define to 1 if you have libpng])
 AH_TEMPLATE(C_SSHOT,[Define to 1 to enable screenshots, requires libpng])
@@ -517,22 +535,6 @@ case "$host" in
        ;;
 esac
 fi
-
-dnl Check for mprotect. Needed for 64 bits linux 
-AH_TEMPLATE(C_HAVE_MPROTECT,[Define to 1 if you have the mprotect function])
-AC_CHECK_HEADER([sys/mman.h], [
-AC_CHECK_FUNC([mprotect],[AC_DEFINE(C_HAVE_MPROTECT,1)])
-])
-
-dnl Setpriority
-AH_TEMPLATE(C_SET_PRIORITY,[Define to 1 if you have setpriority support])
-AC_MSG_CHECKING(for setpriority support)
-AC_LINK_IFELSE([AC_LANG_SOURCE([
-#include <sys/resource.h>
-int main(int argc,char * argv[]) {
-	return setpriority (PRIO_PROCESS, 0,PRIO_MIN+PRIO_MAX);
-};
-])],AC_MSG_RESULT(yes);AC_DEFINE(C_SET_PRIORITY,1),AC_MSG_RESULT(no))
 
 dnl Some target detection and actions for them
 case "$host" in
