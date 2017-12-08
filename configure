@@ -752,11 +752,11 @@ enable_alsatest
 with_sdl2_prefix
 with_sdl2_exec_prefix
 enable_sdl2test
-enable_sdl2enable
+enable_sdl2
 with_sdl_prefix
 with_sdl_exec_prefix
 enable_sdltest
-enable_sdlenable
+enable_sdl
 enable_alsa_midi
 enable_mt32
 enable_debug
@@ -6787,9 +6787,9 @@ else
   enable_sdl2test=yes
 fi
 
-# Check whether --enable-sdl2enable was given.
-if test "${enable_sdl2enable+set}" = set; then :
-  enableval=$enable_sdl2enable; enable_sdl2enable=$enableval
+# Check whether --enable-sdl2 was given.
+if test "${enable_sdl2+set}" = set; then :
+  enableval=$enable_sdl2; enable_sdl2enable=$enableval
 else
   enable_sdl2enable=no
 fi
@@ -6895,9 +6895,9 @@ else
   enable_sdltest=yes
 fi
 
-# Check whether --enable-sdlenable was given.
-if test "${enable_sdlenable+set}" = set; then :
-  enableval=$enable_sdlenable; enable_sdlenable=$enableval
+# Check whether --enable-sdl was given.
+if test "${enable_sdl+set}" = set; then :
+  enableval=$enable_sdl; enable_sdlenable=$enableval
 else
   enable_sdlenable=yes
 fi
