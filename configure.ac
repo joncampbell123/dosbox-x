@@ -320,6 +320,18 @@ esac
 
 dnl TODO: Need GCC to know this code is using C++ lamda functions
 
+dnl LIBRARY TEST: ALSA
+AM_PATH_ALSA(0.9.0, AC_DEFINE(HAVE_ALSA,1,[Define to 1 to use ALSA for MIDI]) , : )
+
+dnl LIBRARY TEST: SDL 1.x
+SDL_VERSION=1.2.0
+AM_PATH_SDL($SDL_VERSION,
+            :,
+	    AC_MSG_ERROR([*** SDL version $SDL_VERSION not found!])
+)
+LIBS="$LIBS $SDL_LIBS"
+CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
+
 dnl FEATURE: MIDI through ALSA
 AC_ARG_ENABLE(alsa-midi,
 AC_HELP_STRING([--enable-alsa-midi],[compile with alsa midi support (default yes)]),
@@ -329,7 +341,6 @@ AC_HELP_STRING([--enable-alsa-midi],[compile with alsa midi support (default yes
 esac],
 [alsa_midi=true])
 if test x$alsa_midi = xtrue ; then 
-  AM_PATH_ALSA(0.9.0, AC_DEFINE(HAVE_ALSA,1,[Define to 1 to use ALSA for MIDI]) , : )
   CXXFLAGS="$CXXFLAGS $ALSA_CFLAGS"
 fi
 
@@ -448,28 +459,8 @@ dnl FEATURE: Whether to support direct parallel port passthrough
 AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel passthrough support (Win32, Linux).])
 
 
-dnl Check for SDL
-SDL_VERSION=1.2.0
-AM_PATH_SDL($SDL_VERSION,
-            :,
-	    AC_MSG_ERROR([*** SDL version $SDL_VERSION not found!])
-)
-LIBS="$LIBS $SDL_LIBS"
-CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
 
-dnl Check if SDL is 1.2.x (1.3 not supported)
-AC_MSG_CHECKING([SDL version only being 1.2.X])
-AC_COMPILE_IFELSE([AC_LANG_SOURCE([
-#include "SDL.h"
-void blah(){
-#if SDL_MINOR_VERSION != 2
-#error "Only SDL 1.2 supported"
-#endif
-;
-}
-])],AC_MSG_RESULT([yes]),[
- AC_MSG_RESULT([no]) 
- AC_MSG_ERROR([Only libSDL 1.2.X supported])])
+
 
 AH_TEMPLATE(C_LIBPNG,[Define to 1 if you have libpng])
 AH_TEMPLATE(C_SSHOT,[Define to 1 to enable screenshots, requires libpng])

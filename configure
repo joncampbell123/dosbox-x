@@ -627,13 +627,13 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIBOBJS
-ALSA_LIBS
-ALSA_CFLAGS
+C_MT32_FALSE
+C_MT32_TRUE
 SDL_LIBS
 SDL_CFLAGS
 SDL_CONFIG
-C_MT32_FALSE
-C_MT32_TRUE
+ALSA_LIBS
+ALSA_CFLAGS
 HAVE_WINDRES_FALSE
 HAVE_WINDRES_TRUE
 WINDRES
@@ -743,14 +743,14 @@ enable_option_checking
 enable_silent_rules
 enable_dependency_tracking
 enable_largefile
-enable_mt32
+with_alsa_prefix
+with_alsa_inc_prefix
+enable_alsatest
 with_sdl_prefix
 with_sdl_exec_prefix
 enable_sdltest
 enable_alsa_midi
-with_alsa_prefix
-with_alsa_inc_prefix
-enable_alsatest
+enable_mt32
 enable_debug
 enable_core_inline
 enable_dynamic_core
@@ -1397,10 +1397,10 @@ Optional Features:
   --disable-dependency-tracking
                           speeds up one-time build
   --disable-largefile     omit support for large files
-  --disable-mt32          Disable MT32 emulation
+  --disable-alsatest      Do not try to compile and run a test Alsa program
   --disable-sdltest       Do not try to compile and run a test SDL program
   --enable-alsa-midi      compile with alsa midi support (default yes)
-  --disable-alsatest      Do not try to compile and run a test Alsa program
+  --disable-mt32          Disable MT32 emulation
   --enable-debug          Enable debug mode
   --enable-core-inline    Enable inlined memory handling in CPU Core
   --disable-dynamic-core  Disable all dynamic cores
@@ -1414,10 +1414,10 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-sdl-prefix=PFX   Prefix where SDL is installed (optional)
-  --with-sdl-exec-prefix=PFX Exec prefix where SDL is installed (optional)
   --with-alsa-prefix=PFX  Prefix where Alsa library is installed(optional)
   --with-alsa-inc-prefix=PFX  Prefix where include libraries are (optional)
+  --with-sdl-prefix=PFX   Prefix where SDL is installed (optional)
+  --with-sdl-exec-prefix=PFX Exec prefix where SDL is installed (optional)
 
 Some influential environment variables:
   CC          C compiler command
@@ -6541,56 +6541,212 @@ $as_echo "unknown" >&6; }
 esac
 
 
+alsa_save_CFLAGS="$CFLAGS"
+alsa_save_LDFLAGS="$LDFLAGS"
+alsa_save_LIBS="$LIBS"
+alsa_found=yes
 
 
-
-
-
-
-
-
-
-# Check whether --enable-mt32 was given.
-if test "${enable_mt32+set}" = set; then :
-  enableval=$enable_mt32;
+# Check whether --with-alsa-prefix was given.
+if test "${with_alsa_prefix+set}" = set; then :
+  withval=$with_alsa_prefix; alsa_prefix="$withval"
 else
-  enable_mt32=yes
+  alsa_prefix=""
 fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether MT32 emulation will be enabled" >&5
-$as_echo_n "checking whether MT32 emulation will be enabled... " >&6; }
-if test x$enable_mt32 = xyes ; then
-  case "$host_cpu" in
-    x86_64 | amd64)
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-      $as_echo "#define C_MT32 1" >>confdefs.h
 
-      ;;
-    i?86)
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-      $as_echo "#define C_MT32 1" >>confdefs.h
 
-      ;;
-    *)
-      enable_mt32=no
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-      ;;
-  esac
+# Check whether --with-alsa-inc-prefix was given.
+if test "${with_alsa_inc_prefix+set}" = set; then :
+  withval=$with_alsa_inc_prefix; alsa_inc_prefix="$withval"
 else
-  enable_mt32=no
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
+  alsa_inc_prefix=""
 fi
- if test "x$enable_mt32" == "xyes"; then
-  C_MT32_TRUE=
-  C_MT32_FALSE='#'
+
+
+# Check whether --enable-alsatest was given.
+if test "${enable_alsatest+set}" = set; then :
+  enableval=$enable_alsatest; enable_alsatest=no
 else
-  C_MT32_TRUE='#'
-  C_MT32_FALSE=
+  enable_alsatest=yes
 fi
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ALSA CFLAGS" >&5
+$as_echo_n "checking for ALSA CFLAGS... " >&6; }
+if test "$alsa_inc_prefix" != "" ; then
+	ALSA_CFLAGS="$ALSA_CFLAGS -I$alsa_inc_prefix"
+	CFLAGS="$CFLAGS -I$alsa_inc_prefix"
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ALSA_CFLAGS" >&5
+$as_echo "$ALSA_CFLAGS" >&6; }
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ALSA LDFLAGS" >&5
+$as_echo_n "checking for ALSA LDFLAGS... " >&6; }
+if test "$alsa_prefix" != "" ; then
+	ALSA_LIBS="$ALSA_LIBS -L$alsa_prefix"
+	LDFLAGS="$LDFLAGS $ALSA_LIBS"
+fi
+
+ALSA_LIBS="$ALSA_LIBS -lasound -lm -ldl -lpthread"
+LIBS=`echo $LIBS | sed 's/-lm//'`
+LIBS=`echo $LIBS | sed 's/-ldl//'`
+LIBS=`echo $LIBS | sed 's/-lpthread//'`
+LIBS=`echo $LIBS | sed 's/  //'`
+LIBS="$ALSA_LIBS $LIBS"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ALSA_LIBS" >&5
+$as_echo "$ALSA_LIBS" >&6; }
+
+min_alsa_version=0.9.0
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libasound headers version >= $min_alsa_version" >&5
+$as_echo_n "checking for libasound headers version >= $min_alsa_version... " >&6; }
+no_alsa=""
+    alsa_min_major_version=`echo $min_alsa_version | \
+           sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\1/'`
+    alsa_min_minor_version=`echo $min_alsa_version | \
+           sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\2/'`
+    alsa_min_micro_version=`echo $min_alsa_version | \
+           sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\3/'`
+
+
+ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <alsa/asoundlib.h>
+
+int
+main ()
+{
+
+/* ensure backward compatibility */
+#if !defined(SND_LIB_MAJOR) && defined(SOUNDLIB_VERSION_MAJOR)
+#define SND_LIB_MAJOR SOUNDLIB_VERSION_MAJOR
+#endif
+#if !defined(SND_LIB_MINOR) && defined(SOUNDLIB_VERSION_MINOR)
+#define SND_LIB_MINOR SOUNDLIB_VERSION_MINOR
+#endif
+#if !defined(SND_LIB_SUBMINOR) && defined(SOUNDLIB_VERSION_SUBMINOR)
+#define SND_LIB_SUBMINOR SOUNDLIB_VERSION_SUBMINOR
+#endif
+
+#  if(SND_LIB_MAJOR > $alsa_min_major_version)
+  exit(0);
+#  else
+#    if(SND_LIB_MAJOR < $alsa_min_major_version)
+#       error not present
+#    endif
+
+#   if(SND_LIB_MINOR > $alsa_min_minor_version)
+  exit(0);
+#   else
+#     if(SND_LIB_MINOR < $alsa_min_minor_version)
+#          error not present
+#      endif
+
+#      if(SND_LIB_SUBMINOR < $alsa_min_micro_version)
+#        error not present
+#      endif
+#    endif
+#  endif
+exit(0);
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: found." >&5
+$as_echo "found." >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: not present." >&5
+$as_echo "not present." >&6; }
+
+   alsa_found=no
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for snd_ctl_open in -lasound" >&5
+$as_echo_n "checking for snd_ctl_open in -lasound... " >&6; }
+if ${ac_cv_lib_asound_snd_ctl_open+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lasound  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char snd_ctl_open ();
+int
+main ()
+{
+return snd_ctl_open ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_asound_snd_ctl_open=yes
+else
+  ac_cv_lib_asound_snd_ctl_open=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_asound_snd_ctl_open" >&5
+$as_echo "$ac_cv_lib_asound_snd_ctl_open" >&6; }
+if test "x$ac_cv_lib_asound_snd_ctl_open" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBASOUND 1
+_ACEOF
+
+  LIBS="-lasound $LIBS"
+
+else
+
+	 alsa_found=no
+
+fi
+
+
+if test "x$alsa_found" = "xyes" ; then
+
+$as_echo "#define HAVE_ALSA 1" >>confdefs.h
+
+   LIBS=`echo $LIBS | sed 's/-lasound//g'`
+   LIBS=`echo $LIBS | sed 's/  //'`
+   LIBS="-lasound $LIBS"
+fi
+if test "x$alsa_found" = "xno" ; then
+   :
+   CFLAGS="$alsa_save_CFLAGS"
+   LDFLAGS="$alsa_save_LDFLAGS"
+   LIBS="$alsa_save_LIBS"
+   ALSA_CFLAGS=""
+   ALSA_LIBS=""
+fi
+
+
+
 
 
 SDL_VERSION=1.2.0
@@ -6838,31 +6994,6 @@ rm -f core conftest.err conftest.$ac_objext \
 LIBS="$LIBS $SDL_LIBS"
 CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking SDL version only being 1.2.X" >&5
-$as_echo_n "checking SDL version only being 1.2.X... " >&6; }
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include "SDL.h"
-void blah(){
-#if SDL_MINOR_VERSION != 2
-#error "Only SDL 1.2 supported"
-#endif
-;
-}
-
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-else
-
- { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
- as_fn_error $? "Only libSDL 1.2.X supported" "$LINENO" 5
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
 # Check whether --enable-alsa-midi was given.
 if test "${enable_alsa_midi+set}" = set; then :
   enableval=$enable_alsa_midi;  case "${enableval}" in
@@ -6874,217 +7005,53 @@ else
 fi
 
 if test x$alsa_midi = xtrue ; then
-  alsa_save_CFLAGS="$CFLAGS"
-alsa_save_LDFLAGS="$LDFLAGS"
-alsa_save_LIBS="$LIBS"
-alsa_found=yes
-
-
-# Check whether --with-alsa-prefix was given.
-if test "${with_alsa_prefix+set}" = set; then :
-  withval=$with_alsa_prefix; alsa_prefix="$withval"
-else
-  alsa_prefix=""
-fi
-
-
-
-# Check whether --with-alsa-inc-prefix was given.
-if test "${with_alsa_inc_prefix+set}" = set; then :
-  withval=$with_alsa_inc_prefix; alsa_inc_prefix="$withval"
-else
-  alsa_inc_prefix=""
-fi
-
-
-# Check whether --enable-alsatest was given.
-if test "${enable_alsatest+set}" = set; then :
-  enableval=$enable_alsatest; enable_alsatest=no
-else
-  enable_alsatest=yes
-fi
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ALSA CFLAGS" >&5
-$as_echo_n "checking for ALSA CFLAGS... " >&6; }
-if test "$alsa_inc_prefix" != "" ; then
-	ALSA_CFLAGS="$ALSA_CFLAGS -I$alsa_inc_prefix"
-	CFLAGS="$CFLAGS -I$alsa_inc_prefix"
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ALSA_CFLAGS" >&5
-$as_echo "$ALSA_CFLAGS" >&6; }
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ALSA LDFLAGS" >&5
-$as_echo_n "checking for ALSA LDFLAGS... " >&6; }
-if test "$alsa_prefix" != "" ; then
-	ALSA_LIBS="$ALSA_LIBS -L$alsa_prefix"
-	LDFLAGS="$LDFLAGS $ALSA_LIBS"
-fi
-
-ALSA_LIBS="$ALSA_LIBS -lasound -lm -ldl -lpthread"
-LIBS=`echo $LIBS | sed 's/-lm//'`
-LIBS=`echo $LIBS | sed 's/-ldl//'`
-LIBS=`echo $LIBS | sed 's/-lpthread//'`
-LIBS=`echo $LIBS | sed 's/  //'`
-LIBS="$ALSA_LIBS $LIBS"
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ALSA_LIBS" >&5
-$as_echo "$ALSA_LIBS" >&6; }
-
-min_alsa_version=0.9.0
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libasound headers version >= $min_alsa_version" >&5
-$as_echo_n "checking for libasound headers version >= $min_alsa_version... " >&6; }
-no_alsa=""
-    alsa_min_major_version=`echo $min_alsa_version | \
-           sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\1/'`
-    alsa_min_minor_version=`echo $min_alsa_version | \
-           sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\2/'`
-    alsa_min_micro_version=`echo $min_alsa_version | \
-           sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\3/'`
-
-
-ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
-
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <alsa/asoundlib.h>
-
-int
-main ()
-{
-
-/* ensure backward compatibility */
-#if !defined(SND_LIB_MAJOR) && defined(SOUNDLIB_VERSION_MAJOR)
-#define SND_LIB_MAJOR SOUNDLIB_VERSION_MAJOR
-#endif
-#if !defined(SND_LIB_MINOR) && defined(SOUNDLIB_VERSION_MINOR)
-#define SND_LIB_MINOR SOUNDLIB_VERSION_MINOR
-#endif
-#if !defined(SND_LIB_SUBMINOR) && defined(SOUNDLIB_VERSION_SUBMINOR)
-#define SND_LIB_SUBMINOR SOUNDLIB_VERSION_SUBMINOR
-#endif
-
-#  if(SND_LIB_MAJOR > $alsa_min_major_version)
-  exit(0);
-#  else
-#    if(SND_LIB_MAJOR < $alsa_min_major_version)
-#       error not present
-#    endif
-
-#   if(SND_LIB_MINOR > $alsa_min_minor_version)
-  exit(0);
-#   else
-#     if(SND_LIB_MINOR < $alsa_min_minor_version)
-#          error not present
-#      endif
-
-#      if(SND_LIB_SUBMINOR < $alsa_min_micro_version)
-#        error not present
-#      endif
-#    endif
-#  endif
-exit(0);
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: found." >&5
-$as_echo "found." >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: not present." >&5
-$as_echo "not present." >&6; }
-
-   alsa_found=no
-
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for snd_ctl_open in -lasound" >&5
-$as_echo_n "checking for snd_ctl_open in -lasound... " >&6; }
-if ${ac_cv_lib_asound_snd_ctl_open+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lasound  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char snd_ctl_open ();
-int
-main ()
-{
-return snd_ctl_open ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_asound_snd_ctl_open=yes
-else
-  ac_cv_lib_asound_snd_ctl_open=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_asound_snd_ctl_open" >&5
-$as_echo "$ac_cv_lib_asound_snd_ctl_open" >&6; }
-if test "x$ac_cv_lib_asound_snd_ctl_open" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBASOUND 1
-_ACEOF
-
-  LIBS="-lasound $LIBS"
-
-else
-
-	 alsa_found=no
-
-fi
-
-
-if test "x$alsa_found" = "xyes" ; then
-
-$as_echo "#define HAVE_ALSA 1" >>confdefs.h
-
-   LIBS=`echo $LIBS | sed 's/-lasound//g'`
-   LIBS=`echo $LIBS | sed 's/  //'`
-   LIBS="-lasound $LIBS"
-fi
-if test "x$alsa_found" = "xno" ; then
-   :
-   CFLAGS="$alsa_save_CFLAGS"
-   LDFLAGS="$alsa_save_LDFLAGS"
-   LIBS="$alsa_save_LIBS"
-   ALSA_CFLAGS=""
-   ALSA_LIBS=""
-fi
-
-
-
-
   CXXFLAGS="$CXXFLAGS $ALSA_CFLAGS"
 fi
 
-#Features to enable/disable
+
+# Check whether --enable-mt32 was given.
+if test "${enable_mt32+set}" = set; then :
+  enableval=$enable_mt32;
+else
+  enable_mt32=yes
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether MT32 emulation will be enabled" >&5
+$as_echo_n "checking whether MT32 emulation will be enabled... " >&6; }
+if test x$enable_mt32 = xyes ; then
+  case "$host_cpu" in
+    x86_64 | amd64)
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+      $as_echo "#define C_MT32 1" >>confdefs.h
+
+      ;;
+    i?86)
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+      $as_echo "#define C_MT32 1" >>confdefs.h
+
+      ;;
+    *)
+      enable_mt32=no
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+      ;;
+  esac
+else
+  enable_mt32=no
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+ if test "x$enable_mt32" == "xyes"; then
+  C_MT32_TRUE=
+  C_MT32_FALSE='#'
+else
+  C_MT32_TRUE='#'
+  C_MT32_FALSE=
+fi
+
+
 
 
 # Check whether --enable-debug was given.
@@ -7337,6 +7304,18 @@ else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 fi
+
+
+$as_echo "#define C_DIRECTSERIAL 1" >>confdefs.h
+
+
+
+$as_echo "#define C_DIRECTLPT 1" >>confdefs.h
+
+
+
+
+
 
 
 
@@ -7854,13 +7833,6 @@ $as_echo "no" >&6; }
        ;;
 esac
 fi
-
-
-$as_echo "#define C_DIRECTSERIAL 1" >>confdefs.h
-
-
-$as_echo "#define C_DIRECTLPT 1" >>confdefs.h
-
 
 ac_config_files="$ac_config_files Makefile src/Makefile src/cpu/Makefile src/cpu/core_full/Makefile src/cpu/core_normal/Makefile src/cpu/core_dyn_x86/Makefile src/debug/Makefile src/dos/Makefile src/fpu/Makefile src/gui/Makefile src/hardware/Makefile src/hardware/serialport/Makefile src/hardware/reSID/Makefile src/hardware/parport/Makefile src/ints/Makefile src/libs/Makefile src/libs/zmbv/Makefile src/libs/gui_tk/Makefile src/libs/porttalk/Makefile src/builtin/Makefile src/misc/Makefile src/shell/Makefile src/platform/Makefile include/Makefile"
 
