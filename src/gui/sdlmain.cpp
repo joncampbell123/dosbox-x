@@ -271,6 +271,9 @@ struct SDL_Block {
 			Bit16u width, height;
 		} window;
 		Bit8u bpp;
+#if defined(C_SDL2)
+        Bit32u pixelFormat;
+#endif
 		bool fullscreen;
 		bool lazy_fullscreen;
 		bool lazy_fullscreen_req;
@@ -529,6 +532,18 @@ bool DOSBox_Paused()
 }
 
 bool pause_on_vsync = false;
+
+#if defined(C_SDL2)
+bool GFX_IsFullscreen() {
+    uint32_t windowFlags = SDL_GetWindowFlags(sdl.window);
+    if (windowFlags & SDL_WINDOW_FULLSCREEN_DESKTOP) return true;
+    return false;
+}
+
+static bool IsFullscreen() {
+    return GFX_IsFullscreen();
+}
+#endif
 
 void PauseDOSBox(bool pressed) {
 	bool paused = true;
@@ -2055,6 +2070,8 @@ void change_output(int output) {
 
 	if (sdl.draw.callback)
 		(sdl.draw.callback)( GFX_CallBackReset );
+
+#if !defined(C_SDL2)
 	if(sdl.desktop.want_type==SCREEN_OPENGLHQ) {
 		if(!render.scale.hardware) SetVal("render","scaler",!render.scale.forced?"hardware2x":"hardware2x forced");
 		if(!menu.compatible) {
@@ -2077,6 +2094,8 @@ void change_output(int output) {
 		}
 		SDL_FreeSurface(screen_surf);
 	}
+#endif
+
 	GFX_SetTitle(CPU_CycleMax,-1,-1,false);
 	GFX_LogSDLState();
 }
@@ -2204,12 +2223,14 @@ bool GFX_StartUpdate(Bit8u * & pixels,Bitu & pitch) {
 		sdl.updating=true;
 		return true;
 #endif
+#if !defined(C_SDL2)
 	case SCREEN_OVERLAY:
 		if (SDL_LockYUVOverlay(sdl.overlay)) return false;
 		pixels=(Bit8u *)*(sdl.overlay->pixels);
 		pitch=*(sdl.overlay->pitches);
 		sdl.updating=true;
 		return true;
+#endif
 #if C_OPENGL
 	case SCREEN_OPENGL:
 		if(sdl.opengl.pixel_buffer_object) {
@@ -2258,7 +2279,9 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
 	if(changedLines && (changedLines[0] == sdl.draw.height)) 
 	return; 
 	if(!menu.hidecycles && !sdl.desktop.fullscreen) frames++;
+#if !defined(C_SDL2)
 			SDL_Flip(sdl.surface);
+#endif
 		} else if (changedLines) {
 	if(changedLines[0] == sdl.draw.height) 
 	return; 
@@ -2278,7 +2301,11 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
 				index++;
 			}
 			if (rectCount)
+#if defined(C_SDL2)
+                SDL_UpdateWindowSurfaceRects( sdl.window, sdl.updateRects, rectCount );
+#else
 				SDL_UpdateRects( sdl.surface, rectCount, sdl.updateRects );
+#endif
 		}
 		break;
 #if (HAVE_DDRAW_H) && defined(WIN32)
@@ -2304,6 +2331,7 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
 		SDL_Flip(sdl.surface);
 		break;
 #endif
+#if !defined(C_SDL2)
 	case SCREEN_OVERLAY:
 		SDL_UnlockYUVOverlay(sdl.overlay);
 		if(changedLines && (changedLines[0] == sdl.draw.height)) 
@@ -2311,6 +2339,7 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
 		if(!menu.hidecycles && !sdl.desktop.fullscreen) frames++; 
 		SDL_DisplayYUVOverlay(sdl.overlay,&sdl.clip);
 		break;
+#endif
 #if C_OPENGL
 	case SCREEN_OPENGL:
 		if (sdl.opengl.pixel_buffer_object) {
@@ -2369,6 +2398,7 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
 }
 
 void GFX_SetPalette(Bitu start,Bitu count,GFX_PalEntry * entries) {
+#if !defined(C_SDL2)
 	/* I should probably not change the GFX_PalEntry :) */
 	if (sdl.surface->flags & SDL_HWPALETTE) {
 		if (!SDL_SetPalette(sdl.surface,SDL_PHYSPAL,(SDL_Color *)entries,start,count)) {
@@ -2379,6 +2409,7 @@ void GFX_SetPalette(Bitu start,Bitu count,GFX_PalEntry * entries) {
 			E_Exit("SDL:Can't set palette");
 		}
 	}
+#endif
 }
 
 Bitu GFX_GetRGB(Bit8u red,Bit8u green,Bit8u blue) {
@@ -2612,7 +2643,8 @@ static void GUI_StartUp() {
 		}
 	}
 	sdl.desktop.doublebuf=section->Get_bool("fulldouble");
-#if SDL_VERSION_ATLEAST(1, 2, 10)
+#if !defined(C_SDL2)
+  #if SDL_VERSION_ATLEAST(1, 2, 10)
 	if (!sdl.desktop.full.width || !sdl.desktop.full.height){
 		//Can only be done on the very first call! Not restartable.
 		const SDL_VideoInfo* vidinfo = SDL_GetVideoInfo();
@@ -2621,6 +2653,7 @@ static void GUI_StartUp() {
 			sdl.desktop.full.height = vidinfo->current_h;
 		}
 	}
+  #endif
 #endif
 
 	int width=1024;// int height=768;
@@ -2685,6 +2718,22 @@ static void GUI_StartUp() {
 	sdl.overscan_width=section->Get_int("overscan");
 //	sdl.overscan_color=section->Get_int("overscancolor");
 
+#if defined(C_SDL2)
+    /* Initialize screen for first time */
+    if (!GFX_SetSDLSurfaceWindow(640,400))
+        E_Exit("Could not initialize video: %s",SDL_GetError());
+    sdl.surface = SDL_GetWindowSurface(sdl.window);
+//    SDL_Rect splash_rect=GFX_GetSDLSurfaceSubwindowDims(640,400);
+    sdl.desktop.pixelFormat = SDL_GetWindowPixelFormat(sdl.window);
+    LOG_MSG("SDL:Current window pixel format: %s", SDL_GetPixelFormatName(sdl.desktop.pixelFormat));
+    sdl.desktop.bpp=8*SDL_BYTESPERPIXEL(sdl.desktop.pixelFormat);
+    if (SDL_BITSPERPIXEL(sdl.desktop.pixelFormat) == 24) {
+        LOG_MSG("SDL: You are running in 24 bpp mode, this will slow down things!");
+    }
+    if (sdl.desktop.bpp==24) {
+        LOG_MSG("SDL: You are running in 24 bpp mode, this will slow down things!");
+    }
+#else
 	sdl.overlay=0;
 	/* Initialize screen for first time */
 	sdl.surface=SDL_SetVideoMode(640,400,0,SDL_RESIZABLE);
@@ -2693,6 +2742,7 @@ static void GUI_StartUp() {
 	if (sdl.desktop.bpp==24) {
 		LOG_MSG("SDL:You are running in 24 bpp mode, this will slow down things!");
 	}
+#endif
 #if (HAVE_D3D9_H) && defined(WIN32)
 	if(sdl.desktop.want_type==SCREEN_DIRECT3D) {
 	    SDL_SysWMinfo wmi;
@@ -2719,7 +2769,12 @@ static void GUI_StartUp() {
 	GFX_LogSDLState();
 
 	GFX_Stop();
+
+#if defined(C_SDL2)
+    SDL_SetWindowTitle(sdl.window,"DOSBox");
+#else
 	SDL_WM_SetCaption("DOSBox",VERSION);
+#endif
 
 	/* Please leave the Splash screen stuff in working order in DOSBox. We spend a lot of time making DOSBox. */
 	//ShowSplashScreen();	/* I will keep the splash screen alive. But now, the BIOS will do it --J.C. */
@@ -2742,7 +2797,11 @@ static void GUI_StartUp() {
 #endif
 	MAPPER_AddHandler(&GUI_Run, MK_f10, MMOD2, "gui", "ShowGUI");
 	/* Get Keyboard state of numlock and capslock */
+#if defined(C_SDL2)
+    SDL_Keymod keystate = SDL_GetModState();
+#else
 	SDLMod keystate = SDL_GetModState();
+#endif
 	if(keystate&KMOD_NUM) startup_state_numlock = true;
 	if(keystate&KMOD_CAPS) startup_state_capslock = true;
 }
@@ -2826,6 +2885,33 @@ static void RedrawScreen(Bit32u nWidth, Bit32u nHeight) {
     RENDER_CallBack( GFX_CallBackReset);
 }
 
+#if defined(C_SDL2)
+void GFX_HandleVideoResize(int width, int height) {
+    /* Maybe a screen rotation has just occurred, so we simply resize.
+       There may be a different cause for a forced resized, though.    */
+    if (sdl.desktop.full.display_res && IsFullscreen()) {
+        /* Note: We should not use GFX_ObtainDisplayDimensions
+           (SDL_GetDisplayBounds) on Android after a screen rotation:
+           The older values from application startup are returned. */
+        sdl.desktop.full.width = width;
+        sdl.desktop.full.height = height;
+    }
+    /* Even if the new window's dimensions are actually the desired ones
+     * we may still need to re-obtain a new window surface or do
+     * a different thing. So we basically call GFX_SetSize, but without
+     * touching the window itself (or else we may end in an infinite loop).
+     *
+     * Furthermore, if the new dimensions are *not* the desired ones, we
+     * don't fight it. Rather than attempting to resize it back, we simply
+     * keep the window as-is and disable screen updates. This is done
+     * in SDL_SetSDLWindowSurface by setting sdl.update_display_contents
+     * to false.
+     */
+    sdl.update_window = false;
+    GFX_ResetScreen();
+    sdl.update_window = true;
+}
+#else
 static void HandleVideoResize(void * event) {
 	if(sdl.desktop.fullscreen) return;
 
@@ -2842,6 +2928,7 @@ static void HandleVideoResize(void * event) {
 	menu.resizeusing=false;
 #endif
 }
+#endif
 
 extern unsigned int mouse_notify_mode;
 
