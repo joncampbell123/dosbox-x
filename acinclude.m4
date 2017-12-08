@@ -350,6 +350,8 @@ AH_BOTTOM([#if C_HAS_BUILTIN_EXPECT
 #define GCC_LIKELY(x) (x)
 #endif])
 
+dnl These custom typedefs are unnecessary and should be deprecated.
+dnl Linux systems for ages now have had stdint.h to define uint8_t, etc.
 AH_BOTTOM([
 typedef         double     Real64;
 
