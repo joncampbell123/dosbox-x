@@ -350,6 +350,14 @@ dnl LIBRARY TEST: SDLnet 1.x
 AC_CHECK_HEADER(SDL_net.h,have_sdl_net_h=yes,)
 AC_CHECK_LIB(SDL_net, SDLNet_Init, have_sdl_net_lib=yes, , )
 
+dnl LIBRARY TEST: X11 Xlib support
+AC_CHECK_LIB(X11, main, have_x11_lib=yes, have_x11_lib=no, )
+AC_CHECK_HEADER(X11/XKBlib.h, have_x11_h=yes, have_x11_h=no, )
+
+dnl LIBRARY TEST: Fluidsynth support
+AC_CHECK_HEADER(fluidsynth.h,have_fluidsynth_h=yes,)
+AC_CHECK_LIB(fluidsynth, new_fluid_synth, have_fluidsynth_lib=yes,,)
+
 dnl ================== SDL net special test for OS/2
 if test x$host = xi386-pc-os2-emx ; then
   LIBS_BACKUP=$LIBS;
@@ -515,9 +523,8 @@ else
   AC_MSG_WARN([Can't find libpcap, NE2000 ethernet passthrough disabled])
 fi
 
+dnl FEATURE: Whether to use X11 XKBlib
 AH_TEMPLATE(C_X11_XKB,[define to 1 if you have XKBlib.h and X11 lib])
-AC_CHECK_LIB(X11, main, have_x11_lib=yes, have_x11_lib=no, )
-AC_CHECK_HEADER(X11/XKBlib.h, have_x11_h=yes, have_x11_h=no, )
 AC_MSG_CHECKING(for XKBlib support)
 if test x$have_x11_lib = xyes -a x$have_x11_h = xyes ; then
    LIBS="$LIBS -lX11"
@@ -527,9 +534,8 @@ else
    AC_MSG_RESULT(no)
 fi
 
+dnl FEATURE: Whether to use Fluidsynth
 AH_TEMPLATE(C_FLUIDSYNTH,[Define to 1 to enable fluidsynth MIDI synthesis])
-AC_CHECK_HEADER(fluidsynth.h,have_fluidsynth_h=yes,)
-AC_CHECK_LIB(fluidsynth, new_fluid_synth, have_fluidsynth_lib=yes,,)
 if test x$have_fluidsynth_lib = xyes -a x$have_fluidsynth_h = xyes ; then
   LIBS="$LIBS -lfluidsynth"
   AC_DEFINE(C_FLUIDSYNTH,1)

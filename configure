@@ -7262,6 +7262,98 @@ if test "x$ac_cv_lib_SDL_net_SDLNet_Init" = xyes; then :
 fi
 
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -lX11" >&5
+$as_echo_n "checking for main in -lX11... " >&6; }
+if ${ac_cv_lib_X11_main+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lX11  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+int
+main ()
+{
+return main ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_X11_main=yes
+else
+  ac_cv_lib_X11_main=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_X11_main" >&5
+$as_echo "$ac_cv_lib_X11_main" >&6; }
+if test "x$ac_cv_lib_X11_main" = xyes; then :
+  have_x11_lib=yes
+else
+  have_x11_lib=no
+fi
+
+ac_fn_c_check_header_mongrel "$LINENO" "X11/XKBlib.h" "ac_cv_header_X11_XKBlib_h" "$ac_includes_default"
+if test "x$ac_cv_header_X11_XKBlib_h" = xyes; then :
+  have_x11_h=yes
+else
+  have_x11_h=no
+fi
+
+
+
+ac_fn_c_check_header_mongrel "$LINENO" "fluidsynth.h" "ac_cv_header_fluidsynth_h" "$ac_includes_default"
+if test "x$ac_cv_header_fluidsynth_h" = xyes; then :
+  have_fluidsynth_h=yes
+fi
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for new_fluid_synth in -lfluidsynth" >&5
+$as_echo_n "checking for new_fluid_synth in -lfluidsynth... " >&6; }
+if ${ac_cv_lib_fluidsynth_new_fluid_synth+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lfluidsynth  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char new_fluid_synth ();
+int
+main ()
+{
+return new_fluid_synth ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_fluidsynth_new_fluid_synth=yes
+else
+  ac_cv_lib_fluidsynth_new_fluid_synth=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_fluidsynth_new_fluid_synth" >&5
+$as_echo "$ac_cv_lib_fluidsynth_new_fluid_synth" >&6; }
+if test "x$ac_cv_lib_fluidsynth_new_fluid_synth" = xyes; then :
+  have_fluidsynth_lib=yes
+fi
+
+
 if test x$host = xi386-pc-os2-emx ; then
   LIBS_BACKUP=$LIBS;
   LIBS="$LIBS -lSDL_Net";
@@ -7523,50 +7615,6 @@ $as_echo "$as_me: WARNING: Can't find libpcap, NE2000 ethernet passthrough disab
 fi
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -lX11" >&5
-$as_echo_n "checking for main in -lX11... " >&6; }
-if ${ac_cv_lib_X11_main+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lX11  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-
-int
-main ()
-{
-return main ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_X11_main=yes
-else
-  ac_cv_lib_X11_main=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_X11_main" >&5
-$as_echo "$ac_cv_lib_X11_main" >&6; }
-if test "x$ac_cv_lib_X11_main" = xyes; then :
-  have_x11_lib=yes
-else
-  have_x11_lib=no
-fi
-
-ac_fn_c_check_header_mongrel "$LINENO" "X11/XKBlib.h" "ac_cv_header_X11_XKBlib_h" "$ac_includes_default"
-if test "x$ac_cv_header_X11_XKBlib_h" = xyes; then :
-  have_x11_h=yes
-else
-  have_x11_h=no
-fi
-
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for XKBlib support" >&5
 $as_echo_n "checking for XKBlib support... " >&6; }
 if test x$have_x11_lib = xyes -a x$have_x11_h = xyes ; then
@@ -7580,52 +7628,6 @@ else
 $as_echo "no" >&6; }
 fi
 
-
-ac_fn_c_check_header_mongrel "$LINENO" "fluidsynth.h" "ac_cv_header_fluidsynth_h" "$ac_includes_default"
-if test "x$ac_cv_header_fluidsynth_h" = xyes; then :
-  have_fluidsynth_h=yes
-fi
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for new_fluid_synth in -lfluidsynth" >&5
-$as_echo_n "checking for new_fluid_synth in -lfluidsynth... " >&6; }
-if ${ac_cv_lib_fluidsynth_new_fluid_synth+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lfluidsynth  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char new_fluid_synth ();
-int
-main ()
-{
-return new_fluid_synth ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_fluidsynth_new_fluid_synth=yes
-else
-  ac_cv_lib_fluidsynth_new_fluid_synth=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_fluidsynth_new_fluid_synth" >&5
-$as_echo "$ac_cv_lib_fluidsynth_new_fluid_synth" >&6; }
-if test "x$ac_cv_lib_fluidsynth_new_fluid_synth" = xyes; then :
-  have_fluidsynth_lib=yes
-fi
 
 if test x$have_fluidsynth_lib = xyes -a x$have_fluidsynth_h = xyes ; then
   LIBS="$LIBS -lfluidsynth"
