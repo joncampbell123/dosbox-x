@@ -335,8 +335,8 @@ struct SDL_Block {
 	bool using_windib;
 #endif
 	// state of alt-keys for certain special handlings
-	Bit8u laltstate;
-	Bit8u raltstate;
+	Bit16u laltstate;
+	Bit16u raltstate;
 };
 
 static SDL_Block sdl;
