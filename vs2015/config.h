@@ -96,7 +96,7 @@
 #define C_SDL1 1
 
 /* Set to 1 to enable SDL 2.x support */
-#undef C_SDL2
+/* #undef C_SDL2 */
 
 /* Define to 1 if you have setpriority support */
 #undef C_SET_PRIORITY
