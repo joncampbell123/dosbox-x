@@ -3262,11 +3262,7 @@ fresh_boot:
 #endif
 
 	//Force visible mouse to end user. Somehow this sometimes doesn't happen
-#if defined(C_SDL2)
-    SDL_WM_GrabInput(SDL_GRAB_OFF);
-#else
     SDL_SetRelativeMouseMode(SDL_FALSE);
-#endif
 	SDL_ShowCursor(SDL_ENABLE);
 
 	/* Exit functions */
