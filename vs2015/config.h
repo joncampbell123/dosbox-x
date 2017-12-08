@@ -90,7 +90,9 @@
 #undef C_NE2000
 
 /* Define to 1 to use opengl display output support */
+#if !defined(C_SDL2)
 #define C_OPENGL 1
+#endif
 
 /* Set to 1 to enable SDL 1.x support */
 #define C_SDL1 1
@@ -126,10 +128,14 @@
 #undef HAVE_ALSA
 
 /* Define to 1 if you have the <d3d9.h> header file. */
+#if !defined(C_SDL2)
 #define HAVE_D3D9_H 1
+#endif
 
 /* Define to 1 if you have the <ddraw.h> header file. */
+#if !defined(C_SDL2)
 #define HAVE_DDRAW_H 1
+#endif
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
