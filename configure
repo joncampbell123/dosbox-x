@@ -6994,6 +6994,194 @@ rm -f core conftest.err conftest.$ac_objext \
 LIBS="$LIBS $SDL_LIBS"
 CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
 
+ac_fn_c_check_header_mongrel "$LINENO" "curses.h" "ac_cv_header_curses_h" "$ac_includes_default"
+if test "x$ac_cv_header_curses_h" = xyes; then :
+  have_curses_h=yes
+fi
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for initscr in -lcurses" >&5
+$as_echo_n "checking for initscr in -lcurses... " >&6; }
+if ${ac_cv_lib_curses_initscr+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lcurses  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char initscr ();
+int
+main ()
+{
+return initscr ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_curses_initscr=yes
+else
+  ac_cv_lib_curses_initscr=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_curses_initscr" >&5
+$as_echo "$ac_cv_lib_curses_initscr" >&6; }
+if test "x$ac_cv_lib_curses_initscr" = xyes; then :
+  have_curses_lib=yes
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for initscr in -lncurses" >&5
+$as_echo_n "checking for initscr in -lncurses... " >&6; }
+if ${ac_cv_lib_ncurses_initscr+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lncurses  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char initscr ();
+int
+main ()
+{
+return initscr ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_ncurses_initscr=yes
+else
+  ac_cv_lib_ncurses_initscr=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ncurses_initscr" >&5
+$as_echo "$ac_cv_lib_ncurses_initscr" >&6; }
+if test "x$ac_cv_lib_ncurses_initscr" = xyes; then :
+  have_ncurses_lib=yes
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for initscr in -lpdcurses" >&5
+$as_echo_n "checking for initscr in -lpdcurses... " >&6; }
+if ${ac_cv_lib_pdcurses_initscr+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lpdcurses  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char initscr ();
+int
+main ()
+{
+return initscr ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_pdcurses_initscr=yes
+else
+  ac_cv_lib_pdcurses_initscr=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pdcurses_initscr" >&5
+$as_echo "$ac_cv_lib_pdcurses_initscr" >&6; }
+if test "x$ac_cv_lib_pdcurses_initscr" = xyes; then :
+  have_pdcurses_lib=yes
+fi
+
+
+ac_fn_c_check_header_mongrel "$LINENO" "png.h" "ac_cv_header_png_h" "$ac_includes_default"
+if test "x$ac_cv_header_png_h" = xyes; then :
+  have_png_h=yes
+fi
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for png_get_io_ptr in -lpng" >&5
+$as_echo_n "checking for png_get_io_ptr in -lpng... " >&6; }
+if ${ac_cv_lib_png_png_get_io_ptr+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lpng -lz $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char png_get_io_ptr ();
+int
+main ()
+{
+return png_get_io_ptr ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_png_png_get_io_ptr=yes
+else
+  ac_cv_lib_png_png_get_io_ptr=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_png_png_get_io_ptr" >&5
+$as_echo "$ac_cv_lib_png_png_get_io_ptr" >&6; }
+if test "x$ac_cv_lib_png_png_get_io_ptr" = xyes; then :
+  have_png_lib=yes
+fi
+
+
+ac_fn_c_check_header_mongrel "$LINENO" "pcap.h" "ac_cv_header_pcap_h" "$ac_includes_default"
+if test "x$ac_cv_header_pcap_h" = xyes; then :
+  have_pcap_h=yes
+fi
+
+
+
+ac_fn_c_check_header_mongrel "$LINENO" "SDL_net.h" "ac_cv_header_SDL_net_h" "$ac_includes_default"
+if test "x$ac_cv_header_SDL_net_h" = xyes; then :
+  have_sdl_net_h=yes
+fi
+
+
+
 # Check whether --enable-alsa-midi was given.
 if test "${enable_alsa_midi+set}" = set; then :
   enableval=$enable_alsa_midi;  case "${enableval}" in
@@ -7057,133 +7245,6 @@ fi
 # Check whether --enable-debug was given.
 if test "${enable_debug+set}" = set; then :
   enableval=$enable_debug;
-   ac_fn_c_check_header_mongrel "$LINENO" "curses.h" "ac_cv_header_curses_h" "$ac_includes_default"
-if test "x$ac_cv_header_curses_h" = xyes; then :
-  have_curses_h=yes
-fi
-
-
-   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for initscr in -lcurses" >&5
-$as_echo_n "checking for initscr in -lcurses... " >&6; }
-if ${ac_cv_lib_curses_initscr+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lcurses  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char initscr ();
-int
-main ()
-{
-return initscr ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_curses_initscr=yes
-else
-  ac_cv_lib_curses_initscr=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_curses_initscr" >&5
-$as_echo "$ac_cv_lib_curses_initscr" >&6; }
-if test "x$ac_cv_lib_curses_initscr" = xyes; then :
-  have_curses_lib=yes
-fi
-
-   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for initscr in -lncurses" >&5
-$as_echo_n "checking for initscr in -lncurses... " >&6; }
-if ${ac_cv_lib_ncurses_initscr+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lncurses  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char initscr ();
-int
-main ()
-{
-return initscr ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_ncurses_initscr=yes
-else
-  ac_cv_lib_ncurses_initscr=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ncurses_initscr" >&5
-$as_echo "$ac_cv_lib_ncurses_initscr" >&6; }
-if test "x$ac_cv_lib_ncurses_initscr" = xyes; then :
-  have_ncurses_lib=yes
-fi
-
-   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for initscr in -lpdcurses" >&5
-$as_echo_n "checking for initscr in -lpdcurses... " >&6; }
-if ${ac_cv_lib_pdcurses_initscr+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lpdcurses  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char initscr ();
-int
-main ()
-{
-return initscr ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_pdcurses_initscr=yes
-else
-  ac_cv_lib_pdcurses_initscr=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pdcurses_initscr" >&5
-$as_echo "$ac_cv_lib_pdcurses_initscr" >&6; }
-if test "x$ac_cv_lib_pdcurses_initscr" = xyes; then :
-  have_pdcurses_lib=yes
-fi
-
-
    if test x$enable_debug = xno; then
      { $as_echo "$as_me:${as_lineno-$LINENO}: result: Debugger not enabled" >&5
 $as_echo "Debugger not enabled" >&6; }
@@ -7319,52 +7380,6 @@ $as_echo "#define C_DIRECTLPT 1" >>confdefs.h
 
 
 
-ac_fn_c_check_header_mongrel "$LINENO" "png.h" "ac_cv_header_png_h" "$ac_includes_default"
-if test "x$ac_cv_header_png_h" = xyes; then :
-  have_png_h=yes
-fi
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for png_get_io_ptr in -lpng" >&5
-$as_echo_n "checking for png_get_io_ptr in -lpng... " >&6; }
-if ${ac_cv_lib_png_png_get_io_ptr+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lpng -lz $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char png_get_io_ptr ();
-int
-main ()
-{
-return png_get_io_ptr ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_png_png_get_io_ptr=yes
-else
-  ac_cv_lib_png_png_get_io_ptr=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_png_png_get_io_ptr" >&5
-$as_echo "$ac_cv_lib_png_png_get_io_ptr" >&6; }
-if test "x$ac_cv_lib_png_png_get_io_ptr" = xyes; then :
-  have_png_lib=yes
-fi
-
 if test x$have_png_lib = xyes -a x$have_png_h = xyes ; then
   LIBS="$LIBS -lpng -lz"
   $as_echo "#define C_LIBPNG 1" >>confdefs.h
@@ -7374,12 +7389,6 @@ if test x$have_png_lib = xyes -a x$have_png_h = xyes ; then
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Can't find libpng, screenshot support disabled" >&5
 $as_echo "$as_me: WARNING: Can't find libpng, screenshot support disabled" >&2;}
-fi
-
-
-ac_fn_c_check_header_mongrel "$LINENO" "pcap.h" "ac_cv_header_pcap_h" "$ac_includes_default"
-if test "x$ac_cv_header_pcap_h" = xyes; then :
-  have_pcap_h=yes
 fi
 
 
@@ -7433,12 +7442,6 @@ $as_echo "$as_me: WARNING: Can't find libpcap, NE2000 ethernet passthrough disab
 fi
 
 
-
-
-ac_fn_c_check_header_mongrel "$LINENO" "SDL_net.h" "ac_cv_header_SDL_net_h" "$ac_includes_default"
-if test "x$ac_cv_header_SDL_net_h" = xyes; then :
-  have_sdl_net_h=yes
-fi
 
 
 

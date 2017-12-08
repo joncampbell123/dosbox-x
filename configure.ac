@@ -332,6 +332,22 @@ AM_PATH_SDL($SDL_VERSION,
 LIBS="$LIBS $SDL_LIBS"
 CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
 
+dnl LIBRARY TEST: ncurses
+AC_CHECK_HEADER(curses.h,have_curses_h=yes,)
+AC_CHECK_LIB(curses, initscr, have_curses_lib=yes, , )
+AC_CHECK_LIB(ncurses, initscr, have_ncurses_lib=yes, , )
+AC_CHECK_LIB(pdcurses, initscr, have_pdcurses_lib=yes, , )
+
+dnl LIBRARY TEST: libpng
+AC_CHECK_HEADER(png.h,have_png_h=yes,)
+AC_CHECK_LIB(png, png_get_io_ptr, have_png_lib=yes, ,-lz)
+
+dnl LIBRARY TEST: libpcap
+AC_CHECK_HEADER(pcap.h,have_pcap_h=yes,)
+
+dnl LIBRARY TEST: SDLnet 1.x
+AC_CHECK_HEADER(SDL_net.h,have_sdl_net_h=yes,)
+
 dnl FEATURE: MIDI through ALSA
 AC_ARG_ENABLE(alsa-midi,
 AC_HELP_STRING([--enable-alsa-midi],[compile with alsa midi support (default yes)]),
@@ -373,11 +389,6 @@ dnl FEATURE: DEBUG and HEAVY DEBUG options (debugger)
 AH_TEMPLATE(C_DEBUG,[Define to 1 to enable internal debugger, requires libcurses])
 AH_TEMPLATE(C_HEAVY_DEBUG,[Define to 1 to enable heavy debugging, also have to enable C_DEBUG])
 AC_ARG_ENABLE(debug,AC_HELP_STRING([--enable-debug],[Enable debug mode]),[
-   AC_CHECK_HEADER(curses.h,have_curses_h=yes,)
-   AC_CHECK_LIB(curses, initscr, have_curses_lib=yes, , )
-   AC_CHECK_LIB(ncurses, initscr, have_ncurses_lib=yes, , )
-   AC_CHECK_LIB(pdcurses, initscr, have_pdcurses_lib=yes, , )
-
    if test x$enable_debug = xno; then
      AC_MSG_RESULT([Debugger not enabled])
    elif test x$have_curses_lib = xyes -a x$have_curses_h = xyes ; then
@@ -464,8 +475,6 @@ AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel passthrough support
 
 AH_TEMPLATE(C_LIBPNG,[Define to 1 if you have libpng])
 AH_TEMPLATE(C_SSHOT,[Define to 1 to enable screenshots, requires libpng])
-AC_CHECK_HEADER(png.h,have_png_h=yes,)
-AC_CHECK_LIB(png, png_get_io_ptr, have_png_lib=yes, ,-lz)
 if test x$have_png_lib = xyes -a x$have_png_h = xyes ; then
   LIBS="$LIBS -lpng -lz"
   AC_DEFINE(C_LIBPNG,1)
@@ -475,7 +484,6 @@ else
 fi
 
 AH_TEMPLATE(C_NE2000,[Define to 1 to enable NE2000 ethernet passthrough, requires libpcap])
-AC_CHECK_HEADER(pcap.h,have_pcap_h=yes,)
 AC_CHECK_LIB(pcap, pcap_open_live, have_pcap_lib=yes, ,-lz)
 if test x$have_pcap_lib = xyes -a x$have_pcap_h = xyes ; then
   LIBS="$LIBS -lpcap";
@@ -487,7 +495,6 @@ fi
 AH_TEMPLATE(C_SDL_NET,[Indicate whether SDL_net is present])
 AH_TEMPLATE(C_MODEM,[Define to 1 to enable internal modem support, requires SDL_net])
 AH_TEMPLATE(C_IPX,[Define to 1 to enable IPX over Internet networking, requires SDL_net])
-AC_CHECK_HEADER(SDL_net.h,have_sdl_net_h=yes,)
 
 if test x$host = xi386-pc-os2-emx ; then
   AC_MSG_CHECKING(for SDLNet_Init in SDL_net);
