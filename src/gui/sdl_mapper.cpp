@@ -1400,7 +1400,11 @@ static void DrawText(Bitu x,Bitu y,const char * text,Bit8u color) {
 				else *(draw_line+j)=CLR_BLACK;
 				map<<=1;
 			}
+#if defined(C_SDL2)
+			draw_line+=mapper.draw_surface->w;
+#else
 			draw_line+=mapper.surface->pitch;
+#endif
 		}
 		text++;draw+=8;
 	}
@@ -1428,7 +1432,11 @@ public:
 			} else {
 				*point=color;*(point+dx-1)=color;
 			}
+#if defined(C_SDL2)
+			point+=mapper.draw_surface->w;
+#else
 			point+=mapper.surface->pitch;
+#endif
 		}
 	}
 	virtual bool OnTop(Bitu _x,Bitu _y) {
@@ -1589,7 +1597,11 @@ public:
 #endif
 			for (Bitu lines=0;lines<(dy-4);lines++)  {
 				memset(point,color,dy-4);
+#if defined(C_SDL2)
+				point+=mapper.draw_surface->w;
+#else
 				point+=mapper.surface->pitch;
+#endif
 			}
 		}
 		CTextButton::Draw();
