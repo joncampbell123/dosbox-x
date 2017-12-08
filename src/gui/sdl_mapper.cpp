@@ -550,13 +550,15 @@ public:
 		if (strncasecmp(buf,configname,strlen(configname))) return 0;
 		StripWord(buf);char * num=StripWord(buf);
 		Bitu code=ConvDecWord(num);
-#if !defined(C_SDL2)
+#if defined(C_SDL2)
+        CBind * bind=CreateKeyBind((SDL_Scancode)code);
+#else
 		if (usescancodes) {
 			if (code<MAX_SDLKEYS) code=scancode_map[code];
 			else code=0;
 		}
-#endif
 		CBind * bind=CreateKeyBind((SDLKey)code);
+#endif
 		return bind;
 	}
 	CBind * CreateEventBind(SDL_Event * event) {
