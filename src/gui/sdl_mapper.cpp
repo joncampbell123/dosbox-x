@@ -2825,10 +2825,19 @@ void MAPPER_RunInternal() {
 		if (mapper.redraw) {
 			mapper.redraw=false;		
 			DrawButtons();
-		}
+        } else {
+#if defined(C_SDL2)
+            SDL_UpdateWindowSurface(mapper.window);
+#endif
+        }
 		BIND_MappingEvents();
 		SDL_Delay(1);
 	}
+#if defined(C_SDL2)
+    SDL_FreeSurface(mapper.draw_surface);
+    SDL_FreeSurface(mapper.draw_surface_nonpaletted);
+    SDL_FreePalette(sdl2_map_pal_ptr);
+#endif
 #if defined (REDUCE_JOYSTICK_POLLING)
 	SDL_JoystickEventState(SDL_DISABLE);
 #endif
