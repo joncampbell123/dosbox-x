@@ -4258,7 +4258,13 @@ static void show_warning(char const * const message) {
 #endif
 	LOG_MSG( "Warning: %s", message);
 	if(textonly) return;
+#if defined(C_SDL2)
+    if (!sdl.window)
+        if (!GFX_SetSDLSurfaceWindow(640,400)) return;
+    sdl.surface = SDL_GetWindowSurface(sdl.window);
+#else
 	if(!sdl.surface) sdl.surface = SDL_SetVideoMode(640,400,0,SDL_RESIZABLE);
+#endif
 	if(!sdl.surface) return;
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 	Bit32u rmask = 0xff000000;
@@ -4287,7 +4293,11 @@ static void show_warning(char const * const message) {
 	}
    
 	SDL_BlitSurface(splash_surf, NULL, sdl.surface, NULL);
+#if defined(C_SDL2)
+    SDL_UpdateWindowSurface(sdl.window);
+#else
 	SDL_Flip(sdl.surface);
+#endif
 	SDL_Delay(12000);
 }
    
@@ -5084,7 +5094,11 @@ int main(int argc, char* argv[]) {
 #endif
 
 		/* -- SDL init */
+#if defined(C_SDL2)
+        if (SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_TIMER|/*SDL_INIT_CDROM|*/SDL_INIT_NOPARACHUTE) >= 0)
+#else
 		if (SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_CDROM|SDL_INIT_NOPARACHUTE) >= 0)
+#endif
 			sdl.inited = true;
 		else
 			E_Exit("Can't init SDL %s",SDL_GetError());
@@ -5585,7 +5599,11 @@ fresh_boot:
 	sticky_keys(true); //Might not be needed if the shutdown function switches to windowed mode, but it doesn't hurt
 
 	//Force visible mouse to end user. Somehow this sometimes doesn't happen
+#if defined(C_SDL2)
+    SDL_SetRelativeMouseMode(SDL_FALSE);
+#else
 	SDL_WM_GrabInput(SDL_GRAB_OFF);
+#endif
 	SDL_ShowCursor(SDL_ENABLE);
 
 	/* Exit functions */
