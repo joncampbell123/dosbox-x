@@ -283,6 +283,41 @@ case "$host" in
        ;;
 esac
 
+dnl The target cpu checks for dynamic cores
+AH_TEMPLATE(C_TARGETCPU,[The type of cpu this target has])
+AC_MSG_CHECKING(for target cpu type) 
+case "$host_cpu" in
+  x86_64 | amd64)
+    AC_DEFINE(C_TARGETCPU,X86_64)
+    AC_MSG_RESULT(x86-64 bit compatible)
+    c_targetcpu="x86_64"
+    c_unalignedmemory=yes
+    ;;
+  i?86)
+    AC_DEFINE(C_TARGETCPU,X86)
+    AC_MSG_RESULT(x86 compatible)
+    c_targetcpu="x86"
+    c_unalignedmemory=yes
+    ;;
+   powerpc*)
+    AC_DEFINE(C_TARGETCPU,POWERPC)
+    AC_MSG_RESULT(Power PC)
+    c_targetcpu="powerpc"
+    c_unalignedmemory=yes
+    ;;
+   m68k*)
+    AC_DEFINE(C_TARGETCPU,M68K)
+    AC_MSG_RESULT(Motorola 68000)
+    c_targetcpu="m68k"
+    c_unalignedmemory=yes
+    ;;
+   *)
+    AC_DEFINE(C_TARGETCPU,UNKNOWN)
+    AC_MSG_RESULT(unknown)
+    c_unalignedmemory=no
+    ;;
+esac
+
 dnl TODO: Need GCC to know this code is using C++ lamda functions
 
 
@@ -394,41 +429,6 @@ AC_ARG_ENABLE(core-inline,AC_HELP_STRING([--enable-core-inline],[Enable inlined 
     AC_DEFINE(C_CORE_INLINE,1)
   fi
 ],)
-
-dnl The target cpu checks for dynamic cores
-AH_TEMPLATE(C_TARGETCPU,[The type of cpu this target has])
-AC_MSG_CHECKING(for target cpu type) 
-case "$host_cpu" in
-  x86_64 | amd64)
-    AC_DEFINE(C_TARGETCPU,X86_64)
-    AC_MSG_RESULT(x86-64 bit compatible)
-    c_targetcpu="x86_64"
-    c_unalignedmemory=yes
-    ;;
-  i?86)
-    AC_DEFINE(C_TARGETCPU,X86)
-    AC_MSG_RESULT(x86 compatible)
-    c_targetcpu="x86"
-    c_unalignedmemory=yes
-    ;;
-   powerpc*)
-    AC_DEFINE(C_TARGETCPU,POWERPC)
-    AC_MSG_RESULT(Power PC)
-    c_targetcpu="powerpc"
-    c_unalignedmemory=yes
-    ;;
-   m68k*)
-    AC_DEFINE(C_TARGETCPU,M68K)
-    AC_MSG_RESULT(Motorola 68000)
-    c_targetcpu="m68k"
-    c_unalignedmemory=yes
-    ;;
-   *)
-    AC_DEFINE(C_TARGETCPU,UNKNOWN)
-    AC_MSG_RESULT(unknown)
-    c_unalignedmemory=no
-    ;;
-esac
 
 AC_ARG_ENABLE(dynamic-core,AC_HELP_STRING([--disable-dynamic-core],[Disable all dynamic cores]),,enable_dynamic_core=yes)
 
