@@ -522,13 +522,16 @@ AH_TEMPLATE(C_SDL_NET,[Indicate whether SDL_net is present])
 AH_TEMPLATE(C_MODEM,[Define to 1 to enable internal modem support, requires SDL_net])
 AH_TEMPLATE(C_IPX,[Define to 1 to enable IPX over Internet networking, requires SDL_net])
 
-if test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
+# HACK: Don't enable SDL2 net if SDL2
+if test -n "$SDL2_LIBS"; then
+  if test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
    LIBS="$LIBS -lSDL_net"
    AC_DEFINE(C_SDL_NET,1)
    AC_DEFINE(C_MODEM,1)
    AC_DEFINE(C_IPX,1)
-else 
+  else 
    AC_MSG_WARN([Can't find SDL_net, internal modem and ipx disabled])
+  fi
 fi
 
 dnl FEATURE: Whether to support libpng, and enable snapshots
