@@ -2734,9 +2734,6 @@ static void GUI_StartUp() {
     if (SDL_BITSPERPIXEL(sdl.desktop.pixelFormat) == 24) {
         LOG_MSG("SDL: You are running in 24 bpp mode, this will slow down things!");
     }
-    if (sdl.desktop.bpp==24) {
-        LOG_MSG("SDL: You are running in 24 bpp mode, this will slow down things!");
-    }
 #else
 	sdl.overlay=0;
 	/* Initialize screen for first time */
