@@ -320,14 +320,20 @@ esac
 
 dnl TODO: Need GCC to know this code is using C++ lamda functions
 
+dnl FEATURE: MIDI through ALSA
+AC_ARG_ENABLE(alsa-midi,
+AC_HELP_STRING([--enable-alsa-midi],[compile with alsa midi support (default yes)]),
+[ case "${enableval}" in
+ yes) alsa_midi=true;;
+ no)  alsa_midi=false;;
+esac],
+[alsa_midi=true])
+if test x$alsa_midi = xtrue ; then 
+  AM_PATH_ALSA(0.9.0, AC_DEFINE(HAVE_ALSA,1,[Define to 1 to use ALSA for MIDI]) , : )
+  CXXFLAGS="$CXXFLAGS $ALSA_CFLAGS"
+fi
 
-
-
-
-
-
-
-
+dnl FEATURE: MT32 (MUNT) emulation
 AH_TEMPLATE(C_MT32,[Define to 1 to enable MT32 emulation (x86/x86_64 only)])
 AC_ARG_ENABLE(mt32,AC_HELP_STRING([--disable-mt32],[Disable MT32 emulation]),,enable_mt32=yes)
 AC_MSG_CHECKING(whether MT32 emulation will be enabled) 
@@ -352,43 +358,7 @@ else
 fi 
 AM_CONDITIONAL(C_MT32, test "x$enable_mt32" == "xyes")
 
-dnl Check for SDL
-SDL_VERSION=1.2.0
-AM_PATH_SDL($SDL_VERSION,
-            :,
-	    AC_MSG_ERROR([*** SDL version $SDL_VERSION not found!])
-)
-LIBS="$LIBS $SDL_LIBS"
-CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
-
-dnl Check if SDL is 1.2.x (1.3 not supported)
-AC_MSG_CHECKING([SDL version only being 1.2.X])
-AC_COMPILE_IFELSE([AC_LANG_SOURCE([
-#include "SDL.h"
-void blah(){
-#if SDL_MINOR_VERSION != 2
-#error "Only SDL 1.2 supported"
-#endif
-;
-}
-])],AC_MSG_RESULT([yes]),[
- AC_MSG_RESULT([no]) 
- AC_MSG_ERROR([Only libSDL 1.2.X supported])])
-
-dnl enable disable alsa and pass it's cflags to CXXFLAGS
-AC_ARG_ENABLE(alsa-midi,
-AC_HELP_STRING([--enable-alsa-midi],[compile with alsa midi support (default yes)]),
-[ case "${enableval}" in
- yes) alsa_midi=true;;
- no)  alsa_midi=false;;
-esac],
-[alsa_midi=true])
-if test x$alsa_midi = xtrue ; then 
-  AM_PATH_ALSA(0.9.0, AC_DEFINE(HAVE_ALSA,1,[Define to 1 to use ALSA for MIDI]) , : )
-  CXXFLAGS="$CXXFLAGS $ALSA_CFLAGS"
-fi
-
-#Features to enable/disable
+dnl FEATURE: DEBUG and HEAVY DEBUG options (debugger)
 AH_TEMPLATE(C_DEBUG,[Define to 1 to enable internal debugger, requires libcurses])
 AH_TEMPLATE(C_HEAVY_DEBUG,[Define to 1 to enable heavy debugging, also have to enable C_DEBUG])
 AC_ARG_ENABLE(debug,AC_HELP_STRING([--enable-debug],[Enable debug mode]),[
@@ -422,6 +392,7 @@ AC_ARG_ENABLE(debug,AC_HELP_STRING([--enable-debug],[Enable debug mode]),[
    fi
 ],)
 
+dnl FEATURE: Whether to use inline functions for memory access
 AH_TEMPLATE(C_CORE_INLINE,[Define to 1 to use inlined memory functions in cpu core])
 AC_ARG_ENABLE(core-inline,AC_HELP_STRING([--enable-core-inline],[Enable inlined memory handling in CPU Core]),[
   if test x$enable_core_inline = xyes ; then 
@@ -430,8 +401,10 @@ AC_ARG_ENABLE(core-inline,AC_HELP_STRING([--enable-core-inline],[Enable inlined 
   fi
 ],)
 
+dnl FEATURE: Whether to enable dynamic core
 AC_ARG_ENABLE(dynamic-core,AC_HELP_STRING([--disable-dynamic-core],[Disable all dynamic cores]),,enable_dynamic_core=yes)
 
+dnl FEATURE: Whether to enable x86 dynamic core
 AH_TEMPLATE(C_DYNAMIC_X86,[Define to 1 to use x86 dynamic cpu core])
 AC_ARG_ENABLE(dynamic-x86,AC_HELP_STRING([--disable-dynamic-x86],[Disable x86 dynamic cpu core]),,enable_dynamic_x86=yes)
 AC_MSG_CHECKING(whether x86 dynamic cpu core will be enabled) 
@@ -446,6 +419,7 @@ else
   fi
 fi
 
+dnl FEATURE: Whether to emulate the floating point unit
 AH_TEMPLATE(C_FPU,[Define to 1 to enable floating point emulation])
 AC_ARG_ENABLE(fpu,AC_HELP_STRING([--disable-fpu],[Disable fpu support]),,enable_fpu=yes)
 AC_MSG_CHECKING(whether fpu emulation will be enabled) 
@@ -456,6 +430,7 @@ else
   AC_MSG_RESULT(no)
 fi 
 
+dnl FEATURE: Whether to enable unaligned memory access
 AH_TEMPLATE(C_UNALIGNED_MEMORY,[Define to 1 to use a unaligned memory access])
 AC_ARG_ENABLE(unaligned_memory,AC_HELP_STRING([--disable-unaligned-memory],[Disable unaligned memory access]),,enable_unaligned_memory=yes)
 AC_MSG_CHECKING(whether to enable unaligned memory access) 
@@ -465,6 +440,36 @@ if test x$enable_unaligned_memory = xyes -a x$c_unalignedmemory = xyes; then
 else
   AC_MSG_RESULT(no)
 fi
+
+dnl FEATURE: Whether to support direct serial port passthrough
+AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
+
+dnl FEATURE: Whether to support direct parallel port passthrough
+AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel passthrough support (Win32, Linux).])
+
+
+dnl Check for SDL
+SDL_VERSION=1.2.0
+AM_PATH_SDL($SDL_VERSION,
+            :,
+	    AC_MSG_ERROR([*** SDL version $SDL_VERSION not found!])
+)
+LIBS="$LIBS $SDL_LIBS"
+CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
+
+dnl Check if SDL is 1.2.x (1.3 not supported)
+AC_MSG_CHECKING([SDL version only being 1.2.X])
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+#include "SDL.h"
+void blah(){
+#if SDL_MINOR_VERSION != 2
+#error "Only SDL 1.2 supported"
+#endif
+;
+}
+])],AC_MSG_RESULT([yes]),[
+ AC_MSG_RESULT([no]) 
+ AC_MSG_ERROR([Only libSDL 1.2.X supported])])
 
 AH_TEMPLATE(C_LIBPNG,[Define to 1 if you have libpng])
 AH_TEMPLATE(C_SSHOT,[Define to 1 to enable screenshots, requires libpng])
@@ -582,9 +587,6 @@ case "$host" in
        ;;
 esac
 fi
-
-AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
-AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel passthrough support (Win32, Linux).])
 
 AC_CONFIG_FILES([ 
 Makefile
