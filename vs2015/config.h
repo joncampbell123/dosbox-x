@@ -78,7 +78,9 @@
 #undef C_HEAVY_DEBUG
 
 /* Define to 1 to enable IPX over Internet networking, requires SDL_net */
+#if !defined(C_SDL2)
 #define C_IPX 1
+#endif
 
 /* Define to 1 if you have libpng */
 #define C_LIBPNG 1
