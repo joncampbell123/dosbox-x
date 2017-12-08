@@ -312,6 +312,12 @@ protected:
 
 };
 
+#if defined(C_SDL2) /* SDL 2.x */
+
+/* HACK */
+typedef SDL_Scancode SDLKey;
+
+#else /* !defined(C_SDL2) SDL 1.x */
 
 #define MAX_SDLKEYS 323
 
@@ -502,6 +508,7 @@ Bitu GetKeyCode(SDL_keysym keysym) {
 	}
 }
 
+#endif /* !defined(C_SDL2) */
 
 class CKeyBind;
 class CKeyBindGroup;
@@ -513,10 +520,18 @@ public:
 	}
 	virtual ~CKeyBind() {}
 	void BindName(char * buf) {
+#if defined(C_SDL2)
+        sprintf(buf,"Key %s",SDL_GetScancodeName(key));
+#else
 		sprintf(buf,"Key %s",SDL_GetKeyName(MapSDLCode((Bitu)key)));
+#endif
 	}
 	void ConfigName(char * buf) {
+#if defined(C_SDL2)
+        sprintf(buf,"key %d",key);
+#else
 		sprintf(buf,"key %d",MapSDLCode((Bitu)key));
+#endif
 	}
 public:
 	SDLKey key;
@@ -535,20 +550,30 @@ public:
 		if (strncasecmp(buf,configname,strlen(configname))) return 0;
 		StripWord(buf);char * num=StripWord(buf);
 		Bitu code=ConvDecWord(num);
+#if !defined(C_SDL2)
 		if (usescancodes) {
 			if (code<MAX_SDLKEYS) code=scancode_map[code];
 			else code=0;
 		}
+#endif
 		CBind * bind=CreateKeyBind((SDLKey)code);
 		return bind;
 	}
 	CBind * CreateEventBind(SDL_Event * event) {
 		if (event->type!=SDL_KEYDOWN) return 0;
+#if defined(C_SDL2)
+        return CreateKeyBind(event->key.keysym.scancode);
+#else
 		return CreateKeyBind((SDLKey)GetKeyCode(event->key.keysym));
+#endif
 	};
 	bool CheckEvent(SDL_Event * event) {
 		if (event->type!=SDL_KEYDOWN && event->type!=SDL_KEYUP) return false;
+#if defined(C_SDL2)
+        Bitu key = event->key.keysym.scancode;
+#else
 		Bitu key=GetKeyCode(event->key.keysym);
+#endif
 //		LOG_MSG("key type %i is %x [%x %x]",event->type,key,event->key.keysym.sym,event->key.keysym.scancode);
 		assert(Bitu(event->key.keysym.sym)<keys);
 
@@ -574,7 +599,9 @@ public:
 		return 0;
 	}
 	CBind * CreateKeyBind(SDLKey _key) {
+#if !defined(C_SDL2)
 		if (!usescancodes) assert((Bitu)_key<keys);
+#endif
 		return new CKeyBind(&lists[(Bitu)_key],_key);
 	}
 private:
@@ -737,7 +764,11 @@ public:
 		}
 		if (button_wrap > MAXBUTTON) button_wrap = MAXBUTTON;
 
-		LOG_MSG("Using joystick %s with %d axes, %d buttons and %d hat(s)",SDL_JoystickName(stick),(int)axes,(int)buttons,(int)hats);
+#if defined(C_SDL2)
+        LOG_MSG("Using joystick %s with %d axes, %d buttons and %d hat(s)",SDL_JoystickNameForIndex(stick),(int)axes,(int)buttons,(int)hats);
+#else
+        LOG_MSG("Using joystick %s with %d axes, %d buttons and %d hat(s)",SDL_JoystickName(stick),(int)axes,(int)buttons,(int)hats);
+#endif
 	}
 	virtual ~CStickBindGroup() {
 		SDL_JoystickClose(sdl_joystick);
@@ -943,8 +974,12 @@ private:
 		return configname;
 	}
 	const char * BindStart(void) {
-		if (sdl_joystick!=NULL) return SDL_JoystickName(stick);
-		else return "[missing joystick]";
+#if defined(C_SDL2)
+        if (sdl_joystick!=NULL) return SDL_JoystickNameForIndex(stick);
+#else
+        if (sdl_joystick!=NULL) return SDL_JoystickName(stick);
+#endif
+        else return "[missing joystick]";
 	}
 
 protected:
@@ -1305,6 +1340,10 @@ protected:
 };
 
 static struct CMapper {
+#if defined(C_SDL2)
+    SDL_Window * window;
+    SDL_Rect draw_rect;
+#endif
 	SDL_Surface * surface;
 	SDL_Surface * draw_surface;
 	bool exit;
@@ -1684,13 +1723,21 @@ public:
 			key=SDLK_EQUALS;
 			break;
 		case MK_scrolllock:
+#if defined(C_SDL2)
+			key=SDLK_SCROLLLOCK;
+#else
 			key=SDLK_SCROLLOCK;
+#endif
 			break;
 		case MK_pause:
 			key=SDLK_PAUSE;
 			break;
 		case MK_printscreen:
+#if defined(C_SDL2)
+			key=SDLK_PRINTSCREEN;
+#else
 			key=SDLK_PRINT;
+#endif
 			break;
 		case MK_home: 
 			key=SDLK_HOME; 
@@ -1791,12 +1838,22 @@ static void SetActiveEvent(CEvent * event) {
 
 static void DrawButtons(void) {
 	SDL_FillRect(mapper.surface,0,0);
+#if !defined(C_SDL2)
 	SDL_LockSurface(mapper.surface);
+#endif
 	for (CButton_it but_it = buttons.begin();but_it!=buttons.end();but_it++) {
 		(*but_it)->Draw();
 	}
+#if defined(C_SDL2)
+    // We can't just use SDL_BlitScaled (say for Android) in one step
+//    SDL_BlitSurface(mapper.draw_surface, NULL, mapper.draw_surface_nonpaletted, NULL);
+//    SDL_BlitScaled(mapper.draw_surface_nonpaletted, NULL, mapper.surface, &mapper.draw_rect);
+    SDL_BlitSurface(mapper.draw_surface, NULL, mapper.surface, NULL);
+    SDL_UpdateWindowSurface(mapper.window);
+#else
 	SDL_UnlockSurface(mapper.surface);
 	SDL_Flip(mapper.surface);
+#endif
 }
 
 static CKeyEvent * AddKeyButtonEvent(Bitu x,Bitu y,Bitu dx,Bitu dy,char const * const title,char const * const entry,KBD_KEYS key) {
@@ -2197,14 +2254,33 @@ static struct {
 	{"quote", SDLK_QUOTE},	{"backslash",SDLK_BACKSLASH},	{"lshift",SDLK_LSHIFT},
 	{"rshift",SDLK_RSHIFT},	{"lalt",SDLK_LALT},			{"ralt",SDLK_RALT},
 	{"lctrl",SDLK_LCTRL},	{"rctrl",SDLK_RCTRL},		{"comma",SDLK_COMMA},
-	{"period",SDLK_PERIOD},	{"slash",SDLK_SLASH},		{"printscreen",SDLK_PRINT},
-	{"scrolllock",SDLK_SCROLLOCK},	{"pause",SDLK_PAUSE},		{"pagedown",SDLK_PAGEDOWN},
+	{"period",SDLK_PERIOD},	{"slash",SDLK_SLASH},
+
+#if defined(C_SDL2)
+    {"printscreen",SDLK_PRINTSCREEN},
+    {"scrolllock",SDLK_SCROLLLOCK},
+#else
+    {"printscreen",SDLK_PRINT},
+    {"scrolllock",SDLK_SCROLLOCK},
+#endif
+
+    {"pause",SDLK_PAUSE},		{"pagedown",SDLK_PAGEDOWN},
 	{"pageup",SDLK_PAGEUP},	{"insert",SDLK_INSERT},		{"home",SDLK_HOME},
 	{"delete",SDLK_DELETE},	{"end",SDLK_END},			{"up",SDLK_UP},
 	{"left",SDLK_LEFT},		{"down",SDLK_DOWN},			{"right",SDLK_RIGHT},
+
+#if defined(C_SDL2)
+	{"kp_0",SDLK_KP_0},	{"kp_1",SDLK_KP_1},	{"kp_2",SDLK_KP_2},	{"kp_3",SDLK_KP_3},
+	{"kp_4",SDLK_KP_4},	{"kp_5",SDLK_KP_5},	{"kp_6",SDLK_KP_6},	{"kp_7",SDLK_KP_7},
+	{"kp_8",SDLK_KP_8},	{"kp_9",SDLK_KP_9},
+    {"numlock",SDLK_NUMLOCKCLEAR},
+#else
 	{"kp_0",SDLK_KP0},	{"kp_1",SDLK_KP1},	{"kp_2",SDLK_KP2},	{"kp_3",SDLK_KP3},
 	{"kp_4",SDLK_KP4},	{"kp_5",SDLK_KP5},	{"kp_6",SDLK_KP6},	{"kp_7",SDLK_KP7},
-	{"kp_8",SDLK_KP8},	{"kp_9",SDLK_KP9},	{"numlock",SDLK_NUMLOCK},
+	{"kp_8",SDLK_KP8},	{"kp_9",SDLK_KP9},
+    {"numlock",SDLK_NUMLOCK},
+#endif
+
 	{"kp_divide",SDLK_KP_DIVIDE},	{"kp_multiply",SDLK_KP_MULTIPLY},
 	{"kp_minus",SDLK_KP_MINUS},		{"kp_plus",SDLK_KP_PLUS},
 	{"kp_period",SDLK_KP_PERIOD},	{"kp_enter",SDLK_KP_ENTER},
@@ -2214,9 +2290,13 @@ static struct {
 	 *      to use theirs as a normal equals sign. */
 	{"kp_equals",SDLK_KP_EQUALS},
 
+#if defined(C_SDL2)
+    // TODO??
+#else
 	/* Windows 95 keyboard stuff */
 	{"lwindows",SDLK_LSUPER},
 	{"rwindows",SDLK_RSUPER},
+#endif
 	{"rwinmenu",SDLK_MENU},
 
 #if defined (MACOSX)
@@ -2226,6 +2306,9 @@ static struct {
 	{"lessthan",SDLK_LESS},
 #endif
 
+#if defined(C_SDL2)
+    // TODO??
+#else
 	/* hack for Japanese keyboards with \ and _ */
 	{"jp_bckslash",SDLK_WORLD_10},	// FIXME: Apparently there's a name length limit in the mapper?
 	/* hack for Japanese keyboards with Yen and | */
@@ -2235,6 +2318,7 @@ static struct {
 	{"jp_muhenkan", SDLK_WORLD_13 },
 	{"jp_henkan", SDLK_WORLD_14 },
 	{"jp_hiragana", SDLK_WORLD_15 },
+#endif
 
 	{0,0}
 };
@@ -2548,6 +2632,24 @@ void MAPPER_RunInternal() {
 
 	/* Be sure that there is no update in progress */
 	GFX_EndUpdate( 0 );
+#if defined(C_SDL2)
+    mapper.window=GFX_SetSDLSurfaceWindow(640,480);
+    if (mapper.window == NULL) E_Exit("Could not initialize video mode for mapper: %s",SDL_GetError());
+    mapper.surface=SDL_GetWindowSurface(mapper.window);
+    if (mapper.surface == NULL) E_Exit("Could not initialize video mode for mapper: %s",SDL_GetError());
+    mapper.draw_surface=SDL_CreateRGBSurface(0,640,480,8,0,0,0,0);
+    // Needed for SDL_BlitScaled
+    mapper.draw_surface_nonpaletted=SDL_CreateRGBSurface(0,640,480,32,0x0000ff00,0x00ff0000,0xff000000,0);
+    mapper.draw_rect=GFX_GetSDLSurfaceSubwindowDims(640,480);
+    // Sorry, but SDL_SetSurfacePalette requires a full palette.
+    SDL_Palette *sdl2_map_pal_ptr = SDL_AllocPalette(256);
+    SDL_SetPaletteColors(sdl2_map_pal_ptr, map_pal, 0, 6);
+    SDL_SetSurfacePalette(mapper.draw_surface, sdl2_map_pal_ptr);
+    if (last_clicked) {
+        last_clicked->BindColor();
+        last_clicked=NULL;
+    }
+#else
 	mapper.surface=SDL_SetVideoMode(640,480,8,SDL_RESIZABLE);
 	if (mapper.surface == NULL) E_Exit("Could not initialize video mode for mapper: %s",SDL_GetError());
 
@@ -2557,6 +2659,7 @@ void MAPPER_RunInternal() {
 		last_clicked->SetColor(CLR_WHITE);
 		last_clicked=NULL;
 	}
+#endif
 	/* Go in the event loop */
 	mapper.exit=false;	
 	mapper.redraw=true;
