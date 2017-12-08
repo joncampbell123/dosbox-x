@@ -88,6 +88,12 @@
 /* Define to 1 to use opengl display output support */
 #undef C_OPENGL
 
+/* Set to 1 to enable SDL 1.x support */
+#undef C_SDL1
+
+/* Set to 1 to enable SDL 2.x support */
+#undef C_SDL2
+
 /* Indicate whether SDL_net is present */
 #undef C_SDL_NET
 
