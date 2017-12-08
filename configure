@@ -632,13 +632,13 @@ HAVE_WINDRES_TRUE
 WINDRES
 ALSA_LIBS
 ALSA_CFLAGS
-EGREP
-GREP
 SDL_LIBS
 SDL_CFLAGS
 SDL_CONFIG
 C_MT32_FALSE
 C_MT32_TRUE
+EGREP
+GREP
 RANLIB
 am__fastdepCXX_FALSE
 am__fastdepCXX_TRUE
@@ -1625,94 +1625,6 @@ fi
 
 } # ac_fn_cxx_try_compile
 
-# ac_fn_c_try_run LINENO
-# ----------------------
-# Try to link conftest.$ac_ext, and return whether this succeeded. Assumes
-# that executables *can* be run.
-ac_fn_c_try_run ()
-{
-  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
-  if { { ac_try="$ac_link"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
-$as_echo "$ac_try_echo"; } >&5
-  (eval "$ac_link") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; } && { ac_try='./conftest$ac_exeext'
-  { { case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
-$as_echo "$ac_try_echo"; } >&5
-  (eval "$ac_try") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; }; then :
-  ac_retval=0
-else
-  $as_echo "$as_me: program exited with status $ac_status" >&5
-       $as_echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-       ac_retval=$ac_status
-fi
-  rm -rf conftest.dSYM conftest_ipa8_conftest.oo
-  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
-  as_fn_set_status $ac_retval
-
-} # ac_fn_c_try_run
-
-# ac_fn_c_try_link LINENO
-# -----------------------
-# Try to link conftest.$ac_ext, and return whether this succeeded.
-ac_fn_c_try_link ()
-{
-  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
-  rm -f conftest.$ac_objext conftest$ac_exeext
-  if { { ac_try="$ac_link"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
-$as_echo "$ac_try_echo"; } >&5
-  (eval "$ac_link") 2>conftest.err
-  ac_status=$?
-  if test -s conftest.err; then
-    grep -v '^ *+' conftest.err >conftest.er1
-    cat conftest.er1 >&5
-    mv -f conftest.er1 conftest.err
-  fi
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; } && {
-	 test -z "$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest$ac_exeext && {
-	 test "$cross_compiling" = yes ||
-	 test -x conftest$ac_exeext
-       }; then :
-  ac_retval=0
-else
-  $as_echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
-
-	ac_retval=1
-fi
-  # Delete the IPA/IPO (Inter Procedural Analysis/Optimization) information
-  # created by the PGI compiler (conftest_ipa8_conftest.oo), as it would
-  # interfere with the next link command; also delete a directory that is
-  # left behind by Apple's compiler.  We do this before executing the actions.
-  rm -rf conftest.dSYM conftest_ipa8_conftest.oo
-  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
-  as_fn_set_status $ac_retval
-
-} # ac_fn_c_try_link
-
 # ac_fn_c_check_type LINENO TYPE VAR INCLUDES
 # -------------------------------------------
 # Tests whether TYPE exists after having included INCLUDES, setting cache
@@ -1766,6 +1678,48 @@ $as_echo "$ac_res" >&6; }
   eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
 
 } # ac_fn_c_check_type
+
+# ac_fn_c_try_run LINENO
+# ----------------------
+# Try to link conftest.$ac_ext, and return whether this succeeded. Assumes
+# that executables *can* be run.
+ac_fn_c_try_run ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  if { { ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
+$as_echo "$ac_try_echo"; } >&5
+  (eval "$ac_link") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; } && { ac_try='./conftest$ac_exeext'
+  { { case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
+$as_echo "$ac_try_echo"; } >&5
+  (eval "$ac_try") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }; then :
+  ac_retval=0
+else
+  $as_echo "$as_me: program exited with status $ac_status" >&5
+       $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+       ac_retval=$ac_status
+fi
+  rm -rf conftest.dSYM conftest_ipa8_conftest.oo
+  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
+  as_fn_set_status $ac_retval
+
+} # ac_fn_c_try_run
 
 # ac_fn_c_check_header_compile LINENO HEADER VAR INCLUDES
 # -------------------------------------------------------
@@ -2071,6 +2025,52 @@ fi
   eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
 
 } # ac_fn_c_check_header_mongrel
+
+# ac_fn_c_try_link LINENO
+# -----------------------
+# Try to link conftest.$ac_ext, and return whether this succeeded.
+ac_fn_c_try_link ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  rm -f conftest.$ac_objext conftest$ac_exeext
+  if { { ac_try="$ac_link"
+case "(($ac_try" in
+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
+  *) ac_try_echo=$ac_try;;
+esac
+eval ac_try_echo="\"\$as_me:${as_lineno-$LINENO}: $ac_try_echo\""
+$as_echo "$ac_try_echo"; } >&5
+  (eval "$ac_link") 2>conftest.err
+  ac_status=$?
+  if test -s conftest.err; then
+    grep -v '^ *+' conftest.err >conftest.er1
+    cat conftest.er1 >&5
+    mv -f conftest.er1 conftest.err
+  fi
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; } && {
+	 test -z "$ac_c_werror_flag" ||
+	 test ! -s conftest.err
+       } && test -s conftest$ac_exeext && {
+	 test "$cross_compiling" = yes ||
+	 test -x conftest$ac_exeext
+       }; then :
+  ac_retval=0
+else
+  $as_echo "$as_me: failed program was:" >&5
+sed 's/^/| /' conftest.$ac_ext >&5
+
+	ac_retval=1
+fi
+  # Delete the IPA/IPO (Inter Procedural Analysis/Optimization) information
+  # created by the PGI compiler (conftest_ipa8_conftest.oo), as it would
+  # interfere with the next link command; also delete a directory that is
+  # left behind by Apple's compiler.  We do this before executing the actions.
+  rm -rf conftest.dSYM conftest_ipa8_conftest.oo
+  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
+  as_fn_set_status $ac_retval
+
+} # ac_fn_c_try_link
 
 # ac_fn_c_check_func LINENO FUNC VAR
 # ----------------------------------
@@ -2491,6 +2491,21 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
+
+
+
+# AC_CHECK_CPPFLAGS(ADDITIONAL-CPPFLAGS, ACTION-IF-FOUND, ACTION-IF-NOT-FOUND)
+#
+# checks whether the $(C) compiler accepts the ADDITIONAL-CPPFLAGS
+# if so, they are added to the CPPFLAGS
+# AC_CHECK_CPPFLAGS
+
+
+# AC_CHECK_CXXFLAGS(ADDITIONAL-CXXFLAGS, ACTION-IF-FOUND, ACTION-IF-NOT-FOUND)
+#
+# checks whether the $(CXX) (c++) compiler accepts the ADDITIONAL-CXXFLAGS
+# if so, they are added to the CXXFLAGS
+# AC_CHECK_CXXFLAGS
 
 
 ac_aux_dir=
@@ -5065,353 +5080,6 @@ rm -rf conftest*
 fi
 
 
-
-# AC_CHECK_CPPFLAGS(ADDITIONAL-CPPFLAGS, ACTION-IF-FOUND, ACTION-IF-NOT-FOUND)
-#
-# checks whether the $(C) compiler accepts the ADDITIONAL-CPPFLAGS
-# if so, they are added to the CPPFLAGS
-# AC_CHECK_CPPFLAGS
-
-
-# AC_CHECK_CXXFLAGS(ADDITIONAL-CXXFLAGS, ACTION-IF-FOUND, ACTION-IF-NOT-FOUND)
-#
-# checks whether the $(CXX) (c++) compiler accepts the ADDITIONAL-CXXFLAGS
-# if so, they are added to the CXXFLAGS
-# AC_CHECK_CXXFLAGS
-
-
-
-# Check whether --enable-mt32 was given.
-if test "${enable_mt32+set}" = set; then :
-  enableval=$enable_mt32;
-else
-  enable_mt32=yes
-fi
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether MT32 emulation will be enabled" >&5
-$as_echo_n "checking whether MT32 emulation will be enabled... " >&6; }
-if test x$enable_mt32 = xyes ; then
-  case "$host_cpu" in
-    x86_64 | amd64)
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-      $as_echo "#define C_MT32 1" >>confdefs.h
-
-      ;;
-    i?86)
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-      $as_echo "#define C_MT32 1" >>confdefs.h
-
-      ;;
-    *)
-      enable_mt32=no
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-      ;;
-  esac
-else
-  enable_mt32=no
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
- if test "x$enable_mt32" == "xyes"; then
-  C_MT32_TRUE=
-  C_MT32_FALSE='#'
-else
-  C_MT32_TRUE='#'
-  C_MT32_FALSE=
-fi
-
-
-case "$host_cpu" in
-  x86_64 | amd64)
-    CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
-    ;;
-  i?86)
-    CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
-    ;;
-esac
-
-CXXFLAGS="$CXXFLAGS -Wno-strict-aliasing"
-
-if test x$host = xi386-pc-os2-emx ; then
-    CXXFLAGS="$CXXFLAGS -Zmt"
-    LDFLAGS="$LDFLAGS -Zomf -Zmt"
-    LIBS="$LIBS -los2me"
-fi
-
-SDL_VERSION=1.2.0
-
-# Check whether --with-sdl-prefix was given.
-if test "${with_sdl_prefix+set}" = set; then :
-  withval=$with_sdl_prefix; sdl_prefix="$withval"
-else
-  sdl_prefix=""
-fi
-
-
-# Check whether --with-sdl-exec-prefix was given.
-if test "${with_sdl_exec_prefix+set}" = set; then :
-  withval=$with_sdl_exec_prefix; sdl_exec_prefix="$withval"
-else
-  sdl_exec_prefix=""
-fi
-
-# Check whether --enable-sdltest was given.
-if test "${enable_sdltest+set}" = set; then :
-  enableval=$enable_sdltest;
-else
-  enable_sdltest=yes
-fi
-
-
-  if test x$sdl_exec_prefix != x ; then
-     sdl_args="$sdl_args --exec-prefix=$sdl_exec_prefix"
-     if test x${SDL_CONFIG+set} != xset ; then
-        SDL_CONFIG=$sdl_exec_prefix/bin/sdl-config
-     fi
-  fi
-  if test x$sdl_prefix != x ; then
-     sdl_args="$sdl_args --prefix=$sdl_prefix"
-     if test x${SDL_CONFIG+set} != xset ; then
-        SDL_CONFIG=$sdl_prefix/bin/sdl-config
-     fi
-  fi
-
-  # Extract the first word of "sdl-config", so it can be a program name with args.
-set dummy sdl-config; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_SDL_CONFIG+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  case $SDL_CONFIG in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_SDL_CONFIG="$SDL_CONFIG" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_SDL_CONFIG="$as_dir/$ac_word$ac_exec_ext"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_path_SDL_CONFIG" && ac_cv_path_SDL_CONFIG="no"
-  ;;
-esac
-fi
-SDL_CONFIG=$ac_cv_path_SDL_CONFIG
-if test -n "$SDL_CONFIG"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $SDL_CONFIG" >&5
-$as_echo "$SDL_CONFIG" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-  min_sdl_version=$SDL_VERSION
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for SDL - version >= $min_sdl_version" >&5
-$as_echo_n "checking for SDL - version >= $min_sdl_version... " >&6; }
-  no_sdl=""
-  if test "$SDL_CONFIG" = "no" ; then
-    no_sdl=yes
-  else
-    SDL_CFLAGS=`$SDL_CONFIG $sdlconf_args --cflags`
-    SDL_LIBS=`$SDL_CONFIG $sdlconf_args --libs`
-
-    sdl_major_version=`$SDL_CONFIG $sdl_args --version | \
-           sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\1/'`
-    sdl_minor_version=`$SDL_CONFIG $sdl_args --version | \
-           sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\2/'`
-    sdl_micro_version=`$SDL_CONFIG $sdl_config_args --version | \
-           sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\3/'`
-    if test "x$enable_sdltest" = "xyes" ; then
-      ac_save_CFLAGS="$CFLAGS"
-      ac_save_LIBS="$LIBS"
-      CFLAGS="$CFLAGS $SDL_CFLAGS"
-      LIBS="$LIBS $SDL_LIBS"
-      rm -f conf.sdltest
-      if test "$cross_compiling" = yes; then :
-  echo $ac_n "cross compiling; assumed OK... $ac_c"
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "SDL.h"
-
-char*
-my_strdup (char *str)
-{
-  char *new_str;
-
-  if (str)
-    {
-      new_str = (char *)malloc ((strlen (str) + 1) * sizeof(char));
-      strcpy (new_str, str);
-    }
-  else
-    new_str = NULL;
-
-  return new_str;
-}
-
-int main (int argc, char *argv[])
-{
-  int major, minor, micro;
-  char *tmp_version;
-
-  /* This hangs on some systems (?)
-  system ("touch conf.sdltest");
-  */
-  { FILE *fp = fopen("conf.sdltest", "a"); if ( fp ) fclose(fp); }
-
-  /* HP/UX 9 (%@#!) writes to sscanf strings */
-  tmp_version = my_strdup("$min_sdl_version");
-  if (sscanf(tmp_version, "%d.%d.%d", &major, &minor, &micro) != 3) {
-     printf("%s, bad version string\n", "$min_sdl_version");
-     exit(1);
-   }
-
-   if (($sdl_major_version > major) ||
-      (($sdl_major_version == major) && ($sdl_minor_version > minor)) ||
-      (($sdl_major_version == major) && ($sdl_minor_version == minor) && ($sdl_micro_version >= micro)))
-    {
-      return 0;
-    }
-  else
-    {
-      printf("\n*** 'sdl-config --version' returned %d.%d.%d, but the minimum version\n", $sdl_major_version, $sdl_minor_version, $sdl_micro_version);
-      printf("*** of SDL required is %d.%d.%d. If sdl-config is correct, then it is\n", major, minor, micro);
-      printf("*** best to upgrade to the required version.\n");
-      printf("*** If sdl-config was wrong, set the environment variable SDL_CONFIG\n");
-      printf("*** to point to the correct copy of sdl-config, and remove the file\n");
-      printf("*** config.cache before re-running configure\n");
-      return 1;
-    }
-}
-
-
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-
-else
-  no_sdl=yes
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-       CFLAGS="$ac_save_CFLAGS"
-       LIBS="$ac_save_LIBS"
-     fi
-  fi
-  if test "x$no_sdl" = x ; then
-     { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-     :
-  else
-     { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-     if test "$SDL_CONFIG" = "no" ; then
-       echo "*** The sdl-config script installed by SDL could not be found"
-       echo "*** If SDL was installed in PREFIX, make sure PREFIX/bin is in"
-       echo "*** your path, or set the SDL_CONFIG environment variable to the"
-       echo "*** full path to sdl-config."
-     else
-       if test -f conf.sdltest ; then
-        :
-       else
-          echo "*** Could not run SDL test program, checking why..."
-          CFLAGS="$CFLAGS $SDL_CFLAGS"
-          LIBS="$LIBS $SDL_LIBS"
-          cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <stdio.h>
-#include "SDL.h"
-
-int
-main ()
-{
- return 0;
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-   echo "*** The test program compiled, but did not run. This usually means"
-          echo "*** that the run-time linker is not finding SDL or finding the wrong"
-          echo "*** version of SDL. If it is not finding SDL, you'll need to set your"
-          echo "*** LD_LIBRARY_PATH environment variable, or edit /etc/ld.so.conf to point"
-          echo "*** to the installed location  Also, make sure you have run ldconfig if that"
-          echo "*** is required on your system"
-	  echo "***"
-          echo "*** If you have an old version installed, it is best to remove it, although"
-          echo "*** you may also be able to get things to work by modifying LD_LIBRARY_PATH"
-else
-   echo "*** The test program failed to compile or link. See the file config.log for the"
-          echo "*** exact error that occured. This usually means SDL was incorrectly installed"
-          echo "*** or that you have moved SDL since it was installed. In the latter case, you"
-          echo "*** may want to edit the sdl-config script: $SDL_CONFIG"
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-          CFLAGS="$ac_save_CFLAGS"
-          LIBS="$ac_save_LIBS"
-       fi
-     fi
-     SDL_CFLAGS=""
-     SDL_LIBS=""
-     as_fn_error $? "*** SDL version $SDL_VERSION not found!" "$LINENO" 5
-
-  fi
-
-
-  rm -f conf.sdltest
-
-LIBS="$LIBS $SDL_LIBS"
-CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking SDL version only being 1.2.X" >&5
-$as_echo_n "checking SDL version only being 1.2.X... " >&6; }
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include "SDL.h"
-void blah(){
-#if SDL_MINOR_VERSION != 2
-#error "Only SDL 1.2 supported"
-#endif
-;
-}
-
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-else
-
- { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
- as_fn_error $? "Only libSDL 1.2.X supported" "$LINENO" 5
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for an ANSI C-conforming const" >&5
 $as_echo_n "checking for an ANSI C-conforming const... " >&6; }
 if ${ac_cv_c_const+:} false; then :
@@ -6148,6 +5816,376 @@ else
 $as_echo "no" >&6; }
    CXXFLAGS="$CXXFLAGS -std=gnu++0x"
 fi
+
+
+case "$host_cpu" in
+  x86_64 | amd64)
+    CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
+    ;;
+  i?86)
+    CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
+    ;;
+esac
+
+if test x$host = xi386-pc-os2-emx ; then
+    CXXFLAGS="$CXXFLAGS -Zmt"
+    LDFLAGS="$LDFLAGS -Zomf -Zmt"
+    LIBS="$LIBS -los2me"
+fi
+
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $CXX accepts \" -Wno-strict-aliasing \"" >&5
+$as_echo_n "checking whether $CXX accepts \" -Wno-strict-aliasing \"... " >&6; }
+cat > conftest.c++ << EOF
+int main(){
+  return 0;
+}
+EOF
+if $CXX $CPPFLAGS $CXXFLAGS -o conftest.o conftest.c++  -Wno-strict-aliasing  > /dev/null 2>&1
+then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+  CXXFLAGS="${CXXFLAGS}  -Wno-strict-aliasing "
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether $CPP accepts \" -Wno-strict-aliasing \"" >&5
+$as_echo_n "checking whether $CPP accepts \" -Wno-strict-aliasing \"... " >&6; }
+  temp_check_cppflags="${CPPFLAGS}"
+  CPPFLAGS=" -Wno-strict-aliasing  ${CPPFLAGS}"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+int main(void){return 0;}
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }; CPPFLAGS="${temp_check_cppflags}"
+fi
+rm -f conftest.err conftest.i conftest.$ac_ext
+
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+fi
+
+
+
+
+# Check whether --enable-mt32 was given.
+if test "${enable_mt32+set}" = set; then :
+  enableval=$enable_mt32;
+else
+  enable_mt32=yes
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether MT32 emulation will be enabled" >&5
+$as_echo_n "checking whether MT32 emulation will be enabled... " >&6; }
+if test x$enable_mt32 = xyes ; then
+  case "$host_cpu" in
+    x86_64 | amd64)
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+      $as_echo "#define C_MT32 1" >>confdefs.h
+
+      ;;
+    i?86)
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+      $as_echo "#define C_MT32 1" >>confdefs.h
+
+      ;;
+    *)
+      enable_mt32=no
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+      ;;
+  esac
+else
+  enable_mt32=no
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+ if test "x$enable_mt32" == "xyes"; then
+  C_MT32_TRUE=
+  C_MT32_FALSE='#'
+else
+  C_MT32_TRUE='#'
+  C_MT32_FALSE=
+fi
+
+
+SDL_VERSION=1.2.0
+
+# Check whether --with-sdl-prefix was given.
+if test "${with_sdl_prefix+set}" = set; then :
+  withval=$with_sdl_prefix; sdl_prefix="$withval"
+else
+  sdl_prefix=""
+fi
+
+
+# Check whether --with-sdl-exec-prefix was given.
+if test "${with_sdl_exec_prefix+set}" = set; then :
+  withval=$with_sdl_exec_prefix; sdl_exec_prefix="$withval"
+else
+  sdl_exec_prefix=""
+fi
+
+# Check whether --enable-sdltest was given.
+if test "${enable_sdltest+set}" = set; then :
+  enableval=$enable_sdltest;
+else
+  enable_sdltest=yes
+fi
+
+
+  if test x$sdl_exec_prefix != x ; then
+     sdl_args="$sdl_args --exec-prefix=$sdl_exec_prefix"
+     if test x${SDL_CONFIG+set} != xset ; then
+        SDL_CONFIG=$sdl_exec_prefix/bin/sdl-config
+     fi
+  fi
+  if test x$sdl_prefix != x ; then
+     sdl_args="$sdl_args --prefix=$sdl_prefix"
+     if test x${SDL_CONFIG+set} != xset ; then
+        SDL_CONFIG=$sdl_prefix/bin/sdl-config
+     fi
+  fi
+
+  # Extract the first word of "sdl-config", so it can be a program name with args.
+set dummy sdl-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_SDL_CONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $SDL_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_SDL_CONFIG="$SDL_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_SDL_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_SDL_CONFIG" && ac_cv_path_SDL_CONFIG="no"
+  ;;
+esac
+fi
+SDL_CONFIG=$ac_cv_path_SDL_CONFIG
+if test -n "$SDL_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $SDL_CONFIG" >&5
+$as_echo "$SDL_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+  min_sdl_version=$SDL_VERSION
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for SDL - version >= $min_sdl_version" >&5
+$as_echo_n "checking for SDL - version >= $min_sdl_version... " >&6; }
+  no_sdl=""
+  if test "$SDL_CONFIG" = "no" ; then
+    no_sdl=yes
+  else
+    SDL_CFLAGS=`$SDL_CONFIG $sdlconf_args --cflags`
+    SDL_LIBS=`$SDL_CONFIG $sdlconf_args --libs`
+
+    sdl_major_version=`$SDL_CONFIG $sdl_args --version | \
+           sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\1/'`
+    sdl_minor_version=`$SDL_CONFIG $sdl_args --version | \
+           sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\2/'`
+    sdl_micro_version=`$SDL_CONFIG $sdl_config_args --version | \
+           sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\3/'`
+    if test "x$enable_sdltest" = "xyes" ; then
+      ac_save_CFLAGS="$CFLAGS"
+      ac_save_LIBS="$LIBS"
+      CFLAGS="$CFLAGS $SDL_CFLAGS"
+      LIBS="$LIBS $SDL_LIBS"
+      rm -f conf.sdltest
+      if test "$cross_compiling" = yes; then :
+  echo $ac_n "cross compiling; assumed OK... $ac_c"
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "SDL.h"
+
+char*
+my_strdup (char *str)
+{
+  char *new_str;
+
+  if (str)
+    {
+      new_str = (char *)malloc ((strlen (str) + 1) * sizeof(char));
+      strcpy (new_str, str);
+    }
+  else
+    new_str = NULL;
+
+  return new_str;
+}
+
+int main (int argc, char *argv[])
+{
+  int major, minor, micro;
+  char *tmp_version;
+
+  /* This hangs on some systems (?)
+  system ("touch conf.sdltest");
+  */
+  { FILE *fp = fopen("conf.sdltest", "a"); if ( fp ) fclose(fp); }
+
+  /* HP/UX 9 (%@#!) writes to sscanf strings */
+  tmp_version = my_strdup("$min_sdl_version");
+  if (sscanf(tmp_version, "%d.%d.%d", &major, &minor, &micro) != 3) {
+     printf("%s, bad version string\n", "$min_sdl_version");
+     exit(1);
+   }
+
+   if (($sdl_major_version > major) ||
+      (($sdl_major_version == major) && ($sdl_minor_version > minor)) ||
+      (($sdl_major_version == major) && ($sdl_minor_version == minor) && ($sdl_micro_version >= micro)))
+    {
+      return 0;
+    }
+  else
+    {
+      printf("\n*** 'sdl-config --version' returned %d.%d.%d, but the minimum version\n", $sdl_major_version, $sdl_minor_version, $sdl_micro_version);
+      printf("*** of SDL required is %d.%d.%d. If sdl-config is correct, then it is\n", major, minor, micro);
+      printf("*** best to upgrade to the required version.\n");
+      printf("*** If sdl-config was wrong, set the environment variable SDL_CONFIG\n");
+      printf("*** to point to the correct copy of sdl-config, and remove the file\n");
+      printf("*** config.cache before re-running configure\n");
+      return 1;
+    }
+}
+
+
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+
+else
+  no_sdl=yes
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+       CFLAGS="$ac_save_CFLAGS"
+       LIBS="$ac_save_LIBS"
+     fi
+  fi
+  if test "x$no_sdl" = x ; then
+     { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+     :
+  else
+     { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+     if test "$SDL_CONFIG" = "no" ; then
+       echo "*** The sdl-config script installed by SDL could not be found"
+       echo "*** If SDL was installed in PREFIX, make sure PREFIX/bin is in"
+       echo "*** your path, or set the SDL_CONFIG environment variable to the"
+       echo "*** full path to sdl-config."
+     else
+       if test -f conf.sdltest ; then
+        :
+       else
+          echo "*** Could not run SDL test program, checking why..."
+          CFLAGS="$CFLAGS $SDL_CFLAGS"
+          LIBS="$LIBS $SDL_LIBS"
+          cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <stdio.h>
+#include "SDL.h"
+
+int
+main ()
+{
+ return 0;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+   echo "*** The test program compiled, but did not run. This usually means"
+          echo "*** that the run-time linker is not finding SDL or finding the wrong"
+          echo "*** version of SDL. If it is not finding SDL, you'll need to set your"
+          echo "*** LD_LIBRARY_PATH environment variable, or edit /etc/ld.so.conf to point"
+          echo "*** to the installed location  Also, make sure you have run ldconfig if that"
+          echo "*** is required on your system"
+	  echo "***"
+          echo "*** If you have an old version installed, it is best to remove it, although"
+          echo "*** you may also be able to get things to work by modifying LD_LIBRARY_PATH"
+else
+   echo "*** The test program failed to compile or link. See the file config.log for the"
+          echo "*** exact error that occured. This usually means SDL was incorrectly installed"
+          echo "*** or that you have moved SDL since it was installed. In the latter case, you"
+          echo "*** may want to edit the sdl-config script: $SDL_CONFIG"
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+          CFLAGS="$ac_save_CFLAGS"
+          LIBS="$ac_save_LIBS"
+       fi
+     fi
+     SDL_CFLAGS=""
+     SDL_LIBS=""
+     as_fn_error $? "*** SDL version $SDL_VERSION not found!" "$LINENO" 5
+
+  fi
+
+
+  rm -f conf.sdltest
+
+LIBS="$LIBS $SDL_LIBS"
+CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking SDL version only being 1.2.X" >&5
+$as_echo_n "checking SDL version only being 1.2.X... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include "SDL.h"
+void blah(){
+#if SDL_MINOR_VERSION != 2
+#error "Only SDL 1.2 supported"
+#endif
+;
+}
+
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+else
+
+ { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+ as_fn_error $? "Only libSDL 1.2.X supported" "$LINENO" 5
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking if environ can be included" >&5

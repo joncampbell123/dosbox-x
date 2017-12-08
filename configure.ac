@@ -3,26 +3,6 @@ AC_INIT(dosbox-x,0.82,[https://github.com/joncampbell123/dosbox-x/issues],[],[ht
 AC_PREREQ(2.60)
 AC_CONFIG_SRCDIR(README)
 
-dnl Detect the canonical host and target build environment
-AC_CANONICAL_HOST
-AC_CANONICAL_BUILD
-
-dnl Setup for automake
-AM_INIT_AUTOMAKE([foreign subdir-objects])
-AC_CONFIG_HEADER(config.h)
-
-dnl Checks for programs.
-AC_PROG_MAKE_SET
-AC_PROG_CC
-AC_PROG_CPP
-AC_PROG_CXX
-AC_PROG_INSTALL
-AC_PROG_RANLIB
-AC_PREFIX_DEFAULT([/usr/local])
-
-dnl this code needs large file support on 32-bit systems
-AC_SYS_LARGEFILE
-
 dnl Utility function ============================
 
 # AC_CHECK_CPPFLAGS(ADDITIONAL-CPPFLAGS, ACTION-IF-FOUND, ACTION-IF-NOT-FOUND)
@@ -66,77 +46,27 @@ else
 fi
 ])# AC_CHECK_CXXFLAGS
 
-dnl Need GCC to know this code is using C++ lamda functions
+dnl End Utility function ============================
 
-AH_TEMPLATE(C_MT32,[Define to 1 to enable MT32 emulation (x86/x86_64 only)])
-AC_ARG_ENABLE(mt32,AC_HELP_STRING([--disable-mt32],[Disable MT32 emulation]),,enable_mt32=yes)
-AC_MSG_CHECKING(whether MT32 emulation will be enabled) 
-if test x$enable_mt32 = xyes ; then 
-  case "$host_cpu" in
-    x86_64 | amd64)
-      AC_MSG_RESULT(yes)
-      AC_DEFINE(C_MT32,1)
-      ;;
-    i?86)
-      AC_MSG_RESULT(yes)
-      AC_DEFINE(C_MT32,1)
-      ;;
-    *)
-      enable_mt32=no
-      AC_MSG_RESULT(no)
-      ;;
-  esac
-else
-  enable_mt32=no
-  AC_MSG_RESULT(no)
-fi 
-AM_CONDITIONAL(C_MT32, test "x$enable_mt32" == "xyes")
+dnl Detect the canonical host and target build environment
+AC_CANONICAL_HOST
+AC_CANONICAL_BUILD
 
-dnl Scalars in the code use MMX/SSE intrinsics
-case "$host_cpu" in
-  x86_64 | amd64)
-    CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
-    ;;
-  i?86)
-    CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
-    ;;
-esac
+dnl Setup for automake
+AM_INIT_AUTOMAKE([foreign subdir-objects])
+AC_CONFIG_HEADER(config.h)
 
-dnl Stop reporting "type punning" warnings, I'm sick of hearing about it.
-CXXFLAGS="$CXXFLAGS -Wno-strict-aliasing"
+dnl Checks for programs.
+AC_PROG_MAKE_SET
+AC_PROG_CC
+AC_PROG_CPP
+AC_PROG_CXX
+AC_PROG_INSTALL
+AC_PROG_RANLIB
+AC_PREFIX_DEFAULT([/usr/local])
 
-dnl Some needed libaries for OS2
-dnl perharps join this with the other target depended checks. move them upwards
-if test x$host = xi386-pc-os2-emx ; then
-    CXXFLAGS="$CXXFLAGS -Zmt"
-    LDFLAGS="$LDFLAGS -Zomf -Zmt"
-    LIBS="$LIBS -los2me"
-fi
-
-dnl Check for SDL
-SDL_VERSION=1.2.0
-AM_PATH_SDL($SDL_VERSION,
-            :,
-	    AC_MSG_ERROR([*** SDL version $SDL_VERSION not found!])
-)
-LIBS="$LIBS $SDL_LIBS"
-CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
-
-dnl Check if SDL is 1.2.x (1.3 not supported)
-AC_MSG_CHECKING([SDL version only being 1.2.X])
-AC_COMPILE_IFELSE([AC_LANG_SOURCE([
-#include "SDL.h"
-void blah(){
-#if SDL_MINOR_VERSION != 2
-#error "Only SDL 1.2 supported"
-#endif
-;
-}
-])],AC_MSG_RESULT([yes]),[
- AC_MSG_RESULT([no]) 
- AC_MSG_ERROR([Only libSDL 1.2.X supported])])
-
-dnl Checks for header files.
+dnl this code needs large file support on 32-bit systems
+AC_SYS_LARGEFILE
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -190,6 +120,78 @@ dnl AC_CHECK_CXXFLAGS will prepend gnu++11 to CXXFLAGS if supported, for us.
 dnl our code adds -std=gnu++0x if not supported where the function would not do anything.
 AC_MSG_CHECKING([checking for C++11 support])
 AC_CHECK_CXXFLAGS([ -std=gnu++11 ], [  ], [ CXXFLAGS="$CXXFLAGS -std=gnu++0x" ])
+
+dnl Scalars in the code use MMX/SSE intrinsics on x86 and x86_64
+case "$host_cpu" in
+  x86_64 | amd64)
+    CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
+    ;;
+  i?86)
+    CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
+    ;;
+esac
+
+dnl Some needed libaries for OS2
+dnl perharps join this with the other target depended checks. move them upwards
+if test x$host = xi386-pc-os2-emx ; then
+    CXXFLAGS="$CXXFLAGS -Zmt"
+    LDFLAGS="$LDFLAGS -Zomf -Zmt"
+    LIBS="$LIBS -los2me"
+fi
+
+dnl Stop reporting "type punning" warnings, I'm sick of hearing about it.
+AC_CHECK_CXXFLAGS([ -Wno-strict-aliasing ])
+
+dnl TODO: Need GCC to know this code is using C++ lamda functions
+
+AH_TEMPLATE(C_MT32,[Define to 1 to enable MT32 emulation (x86/x86_64 only)])
+AC_ARG_ENABLE(mt32,AC_HELP_STRING([--disable-mt32],[Disable MT32 emulation]),,enable_mt32=yes)
+AC_MSG_CHECKING(whether MT32 emulation will be enabled) 
+if test x$enable_mt32 = xyes ; then 
+  case "$host_cpu" in
+    x86_64 | amd64)
+      AC_MSG_RESULT(yes)
+      AC_DEFINE(C_MT32,1)
+      ;;
+    i?86)
+      AC_MSG_RESULT(yes)
+      AC_DEFINE(C_MT32,1)
+      ;;
+    *)
+      enable_mt32=no
+      AC_MSG_RESULT(no)
+      ;;
+  esac
+else
+  enable_mt32=no
+  AC_MSG_RESULT(no)
+fi 
+AM_CONDITIONAL(C_MT32, test "x$enable_mt32" == "xyes")
+
+dnl Check for SDL
+SDL_VERSION=1.2.0
+AM_PATH_SDL($SDL_VERSION,
+            :,
+	    AC_MSG_ERROR([*** SDL version $SDL_VERSION not found!])
+)
+LIBS="$LIBS $SDL_LIBS"
+CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
+
+dnl Check if SDL is 1.2.x (1.3 not supported)
+AC_MSG_CHECKING([SDL version only being 1.2.X])
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+#include "SDL.h"
+void blah(){
+#if SDL_MINOR_VERSION != 2
+#error "Only SDL 1.2 supported"
+#endif
+;
+}
+])],AC_MSG_RESULT([yes]),[
+ AC_MSG_RESULT([no]) 
+ AC_MSG_ERROR([Only libSDL 1.2.X supported])])
+
+dnl Checks for header files.
 
 AC_MSG_CHECKING(if environ can be included)
 AC_LINK_IFELSE([AC_LANG_PROGRAM([[
