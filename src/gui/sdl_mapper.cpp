@@ -575,9 +575,9 @@ public:
         Bitu key = event->key.keysym.scancode;
 #else
 		Bitu key=GetKeyCode(event->key.keysym);
+		assert(Bitu(event->key.keysym.sym)<keys);
 #endif
 //		LOG_MSG("key type %i is %x [%x %x]",event->type,key,event->key.keysym.sym,event->key.keysym.scancode);
-		assert(Bitu(event->key.keysym.sym)<keys);
 
 #if defined(WIN32)
 		/* HACK: When setting up the Japanese keyboard layout, I'm seeing some bizarre keyboard handling
