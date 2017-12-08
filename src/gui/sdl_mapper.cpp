@@ -1343,6 +1343,7 @@ static struct CMapper {
 #if defined(C_SDL2)
     SDL_Window * window;
     SDL_Rect draw_rect;
+    SDL_Surface * draw_surface_nonpaletted;
 #endif
 	SDL_Surface * surface;
 	SDL_Surface * draw_surface;
@@ -1423,6 +1424,7 @@ public:
 	virtual bool OnTop(Bitu _x,Bitu _y) {
 		return ( enabled && (_x>=x) && (_x<x+dx) && (_y>=y) && (_y<y+dy));
 	}
+    virtual void BindColor(void) {}
 	virtual void Click(void) {}
 	void Enable(bool yes) { 
 		enabled=yes; 
@@ -1836,6 +1838,10 @@ static void SetActiveEvent(CEvent * event) {
 	}
 }
 
+extern SDL_Window * GFX_SetSDLSurfaceWindow(Bit16u width, Bit16u height);
+extern SDL_Rect GFX_GetSDLSurfaceSubwindowDims(Bit16u width, Bit16u height);
+extern void GFX_UpdateDisplayDimensions(int width, int height);
+
 static void DrawButtons(void) {
 	SDL_FillRect(mapper.surface,0,0);
 #if !defined(C_SDL2)
@@ -1846,9 +1852,9 @@ static void DrawButtons(void) {
 	}
 #if defined(C_SDL2)
     // We can't just use SDL_BlitScaled (say for Android) in one step
-//    SDL_BlitSurface(mapper.draw_surface, NULL, mapper.draw_surface_nonpaletted, NULL);
-//    SDL_BlitScaled(mapper.draw_surface_nonpaletted, NULL, mapper.surface, &mapper.draw_rect);
-    SDL_BlitSurface(mapper.draw_surface, NULL, mapper.surface, NULL);
+    SDL_BlitSurface(mapper.draw_surface, NULL, mapper.draw_surface_nonpaletted, NULL);
+    SDL_BlitScaled(mapper.draw_surface_nonpaletted, NULL, mapper.surface, &mapper.draw_rect);
+//    SDL_BlitSurface(mapper.draw_surface, NULL, mapper.surface, NULL);
     SDL_UpdateWindowSurface(mapper.window);
 #else
 	SDL_UnlockSurface(mapper.surface);
@@ -2561,7 +2567,11 @@ static void InitializeJoysticks(void) {
 
 static void CreateBindGroups(void) {
 	bindgroups.clear();
+#if defined(C_SDL2)
+    new CKeyBindGroup(SDL_NUM_SCANCODES);
+#else
 	new CKeyBindGroup(SDLK_LAST);
+#endif
 	if (joytype != JOY_NONE) {
 #if defined (REDUCE_JOYSTICK_POLLING)
 		// direct access to the SDL joystick, thus removed from the event handling
@@ -2792,6 +2802,7 @@ void MAPPER_StartUp() {
 		virtual_joysticks[1].axis_pos[i]=0;
 	}
 
+#if !defined(C_SDL2)
 	usescancodes = false;
 
 	if (section->Get_bool("usescancodes")) {
@@ -2912,6 +2923,7 @@ void MAPPER_StartUp() {
 			if (key<MAX_SDLKEYS) scancode_map[key]=(Bit8u)i;
 		}
 	}
+#endif
 
 	Prop_path* pp = section->Get_path("mapperfile");
 	mapper.filename = pp->realpath;
