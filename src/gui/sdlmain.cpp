@@ -2564,6 +2564,12 @@ static void GUI_StartUp() {
 
 	LOG(LOG_GUI,LOG_DEBUG)("Starting GUI");
 
+#if defined(C_SDL2)
+    LOG(LOG_GUI,LOG_DEBUG)("This version compiled against SDL 2.x");
+#else
+    LOG(LOG_GUI,LOG_DEBUG)("This version compiled against SDL 1.x");
+#endif
+
 	AddExitFunction(AddExitFunctionFuncPair(GUI_ShutDown));
 #if !defined(C_SDL2)
 	GUI_LoadFonts();
