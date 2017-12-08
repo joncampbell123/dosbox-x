@@ -7510,6 +7510,13 @@ fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether MT32 emulation will be enabled" >&5
 $as_echo_n "checking whether MT32 emulation will be enabled... " >&6; }
+
+# HACK: Don't enable MT32 on SDL2
+if test -n "$SDL2_LIBS"; then
+    enable_mt32=no
+fi
+
+# test
 if test x$enable_mt32 = xyes ; then
   case "$host_cpu" in
     x86_64 | amd64)
@@ -7776,6 +7783,13 @@ fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether opengl display output will be enabled" >&5
 $as_echo_n "checking whether opengl display output will be enabled... " >&6; }
+
+# HACK: Don't enable OPENGL on SDL2
+if test -n "$SDL2_LIBS"; then
+    enable_opengl=no
+fi
+
+# test
 if test x$enable_opengl = xyes; then
 case "$host" in
     *-*-darwin*)
