@@ -134,6 +134,7 @@ am__libgui_a_SOURCES_DIST = sdlmain_linux.cpp sdlmain.cpp \
 	./freeverb/comb.cpp ./freeverb/comb.h ./freeverb/denormals.h \
 	./freeverb/revmodel.cpp ./freeverb/revmodel.h \
 	./freeverb/tuning.h midi_mt32.h ROMInfo.cpp ROMInfo.h
+am__dirstamp = $(am__leading_dot)dirstamp
 @C_MT32_TRUE@am__objects_1 = DelayReverb.$(OBJEXT) File.$(OBJEXT) \
 @C_MT32_TRUE@	FreeverbModel.$(OBJEXT) BReverbModel.$(OBJEXT) \
 @C_MT32_TRUE@	Part.$(OBJEXT) Partial.$(OBJEXT) \
@@ -143,14 +144,15 @@ am__libgui_a_SOURCES_DIST = sdlmain_linux.cpp sdlmain.cpp \
 @C_MT32_TRUE@	TVP.$(OBJEXT) LA32Ramp.$(OBJEXT) \
 @C_MT32_TRUE@	AReverbModel.$(OBJEXT) \
 @C_MT32_TRUE@	LA32WaveGenerator.$(OBJEXT) \
-@C_MT32_TRUE@	LegacyWaveGenerator.$(OBJEXT) allpass.$(OBJEXT) \
-@C_MT32_TRUE@	comb.$(OBJEXT) revmodel.$(OBJEXT) \
-@C_MT32_TRUE@	ROMInfo.$(OBJEXT)
+@C_MT32_TRUE@	LegacyWaveGenerator.$(OBJEXT) \
+@C_MT32_TRUE@	./freeverb/allpass.$(OBJEXT) \
+@C_MT32_TRUE@	./freeverb/comb.$(OBJEXT) \
+@C_MT32_TRUE@	./freeverb/revmodel.$(OBJEXT) ROMInfo.$(OBJEXT)
 am_libgui_a_OBJECTS = sdlmain_linux.$(OBJEXT) sdlmain.$(OBJEXT) \
 	sdl_mapper.$(OBJEXT) render.$(OBJEXT) render_scalers.$(OBJEXT) \
 	midi.$(OBJEXT) direct3d.$(OBJEXT) hq2x_d3d.$(OBJEXT) \
-	sdl_gui.$(OBJEXT) menu.$(OBJEXT) sha1.$(OBJEXT) guid.$(OBJEXT) \
-	ksdataformat.$(OBJEXT) riff.$(OBJEXT) \
+	sdl_gui.$(OBJEXT) menu.$(OBJEXT) ./sha1/sha1.$(OBJEXT) \
+	guid.$(OBJEXT) ksdataformat.$(OBJEXT) riff.$(OBJEXT) \
 	riff_wav_writer.$(OBJEXT) avi_rw_iobuf.$(OBJEXT) \
 	avi_writer.$(OBJEXT) $(am__objects_1)
 libgui_a_OBJECTS = $(am_libgui_a_OBJECTS)
@@ -170,10 +172,6 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 am__mv = mv -f
-AM_V_lt = $(am__v_lt_@AM_V@)
-am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
-am__v_lt_0 = --silent
-am__v_lt_1 = 
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 AM_V_CXX = $(am__v_CXX_@AM_V@)
@@ -382,6 +380,26 @@ $(am__aclocal_m4_deps):
 
 clean-noinstLIBRARIES:
 	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
+sha1/$(am__dirstamp):
+	@$(MKDIR_P) ./sha1
+	@: > sha1/$(am__dirstamp)
+sha1/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) ./sha1/$(DEPDIR)
+	@: > sha1/$(DEPDIR)/$(am__dirstamp)
+./sha1/sha1.$(OBJEXT): sha1/$(am__dirstamp) \
+	sha1/$(DEPDIR)/$(am__dirstamp)
+freeverb/$(am__dirstamp):
+	@$(MKDIR_P) ./freeverb
+	@: > freeverb/$(am__dirstamp)
+freeverb/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) ./freeverb/$(DEPDIR)
+	@: > freeverb/$(DEPDIR)/$(am__dirstamp)
+./freeverb/allpass.$(OBJEXT): freeverb/$(am__dirstamp) \
+	freeverb/$(DEPDIR)/$(am__dirstamp)
+./freeverb/comb.$(OBJEXT): freeverb/$(am__dirstamp) \
+	freeverb/$(DEPDIR)/$(am__dirstamp)
+./freeverb/revmodel.$(OBJEXT): freeverb/$(am__dirstamp) \
+	freeverb/$(DEPDIR)/$(am__dirstamp)
 
 libgui.a: $(libgui_a_OBJECTS) $(libgui_a_DEPENDENCIES) $(EXTRA_libgui_a_DEPENDENCIES) 
 	$(AM_V_at)-rm -f libgui.a
@@ -390,6 +408,8 @@ libgui.a: $(libgui_a_OBJECTS) $(libgui_a_DEPENDENCIES) $(EXTRA_libgui_a_DEPENDEN
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
+	-rm -f ./freeverb/*.$(OBJEXT)
+	-rm -f ./sha1/*.$(OBJEXT)
 
 distclean-compile:
 	-rm -f *.tab.c
@@ -413,10 +433,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TVF.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TVP.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Tables.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/allpass.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/avi_rw_iobuf.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/avi_writer.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/comb.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/direct3d.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/guid.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hq2x_d3d.Po@am__quote@
@@ -425,84 +443,32 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/midi.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/render.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/render_scalers.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/revmodel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/riff.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/riff_wav_writer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sdl_gui.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sdl_mapper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sdlmain.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sdlmain_linux.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sha1.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./freeverb/$(DEPDIR)/allpass.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./freeverb/$(DEPDIR)/comb.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./freeverb/$(DEPDIR)/revmodel.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./sha1/$(DEPDIR)/sha1.Po@am__quote@
 
 .cpp.o:
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
+@am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
+@am__fastdepCXX_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXXCOMPILE) -c -o $@ $<
 
 .cpp.obj:
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXXCOMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ `$(CYGPATH_W) '$<'`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.obj$$||'`;\
+@am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ `$(CYGPATH_W) '$<'` &&\
+@am__fastdepCXX_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Po
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
-
-sha1.o: ./sha1/sha1.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sha1.o -MD -MP -MF $(DEPDIR)/sha1.Tpo -c -o sha1.o `test -f './sha1/sha1.cpp' || echo '$(srcdir)/'`./sha1/sha1.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sha1.Tpo $(DEPDIR)/sha1.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='./sha1/sha1.cpp' object='sha1.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sha1.o `test -f './sha1/sha1.cpp' || echo '$(srcdir)/'`./sha1/sha1.cpp
-
-sha1.obj: ./sha1/sha1.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT sha1.obj -MD -MP -MF $(DEPDIR)/sha1.Tpo -c -o sha1.obj `if test -f './sha1/sha1.cpp'; then $(CYGPATH_W) './sha1/sha1.cpp'; else $(CYGPATH_W) '$(srcdir)/./sha1/sha1.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sha1.Tpo $(DEPDIR)/sha1.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='./sha1/sha1.cpp' object='sha1.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o sha1.obj `if test -f './sha1/sha1.cpp'; then $(CYGPATH_W) './sha1/sha1.cpp'; else $(CYGPATH_W) '$(srcdir)/./sha1/sha1.cpp'; fi`
-
-allpass.o: ./freeverb/allpass.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT allpass.o -MD -MP -MF $(DEPDIR)/allpass.Tpo -c -o allpass.o `test -f './freeverb/allpass.cpp' || echo '$(srcdir)/'`./freeverb/allpass.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/allpass.Tpo $(DEPDIR)/allpass.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='./freeverb/allpass.cpp' object='allpass.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o allpass.o `test -f './freeverb/allpass.cpp' || echo '$(srcdir)/'`./freeverb/allpass.cpp
-
-allpass.obj: ./freeverb/allpass.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT allpass.obj -MD -MP -MF $(DEPDIR)/allpass.Tpo -c -o allpass.obj `if test -f './freeverb/allpass.cpp'; then $(CYGPATH_W) './freeverb/allpass.cpp'; else $(CYGPATH_W) '$(srcdir)/./freeverb/allpass.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/allpass.Tpo $(DEPDIR)/allpass.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='./freeverb/allpass.cpp' object='allpass.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o allpass.obj `if test -f './freeverb/allpass.cpp'; then $(CYGPATH_W) './freeverb/allpass.cpp'; else $(CYGPATH_W) '$(srcdir)/./freeverb/allpass.cpp'; fi`
-
-comb.o: ./freeverb/comb.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT comb.o -MD -MP -MF $(DEPDIR)/comb.Tpo -c -o comb.o `test -f './freeverb/comb.cpp' || echo '$(srcdir)/'`./freeverb/comb.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/comb.Tpo $(DEPDIR)/comb.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='./freeverb/comb.cpp' object='comb.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o comb.o `test -f './freeverb/comb.cpp' || echo '$(srcdir)/'`./freeverb/comb.cpp
-
-comb.obj: ./freeverb/comb.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT comb.obj -MD -MP -MF $(DEPDIR)/comb.Tpo -c -o comb.obj `if test -f './freeverb/comb.cpp'; then $(CYGPATH_W) './freeverb/comb.cpp'; else $(CYGPATH_W) '$(srcdir)/./freeverb/comb.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/comb.Tpo $(DEPDIR)/comb.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='./freeverb/comb.cpp' object='comb.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o comb.obj `if test -f './freeverb/comb.cpp'; then $(CYGPATH_W) './freeverb/comb.cpp'; else $(CYGPATH_W) '$(srcdir)/./freeverb/comb.cpp'; fi`
-
-revmodel.o: ./freeverb/revmodel.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT revmodel.o -MD -MP -MF $(DEPDIR)/revmodel.Tpo -c -o revmodel.o `test -f './freeverb/revmodel.cpp' || echo '$(srcdir)/'`./freeverb/revmodel.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/revmodel.Tpo $(DEPDIR)/revmodel.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='./freeverb/revmodel.cpp' object='revmodel.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o revmodel.o `test -f './freeverb/revmodel.cpp' || echo '$(srcdir)/'`./freeverb/revmodel.cpp
-
-revmodel.obj: ./freeverb/revmodel.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT revmodel.obj -MD -MP -MF $(DEPDIR)/revmodel.Tpo -c -o revmodel.obj `if test -f './freeverb/revmodel.cpp'; then $(CYGPATH_W) './freeverb/revmodel.cpp'; else $(CYGPATH_W) '$(srcdir)/./freeverb/revmodel.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/revmodel.Tpo $(DEPDIR)/revmodel.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='./freeverb/revmodel.cpp' object='revmodel.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o revmodel.obj `if test -f './freeverb/revmodel.cpp'; then $(CYGPATH_W) './freeverb/revmodel.cpp'; else $(CYGPATH_W) '$(srcdir)/./freeverb/revmodel.cpp'; fi`
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique
@@ -616,6 +582,10 @@ clean-generic:
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
+	-rm -f freeverb/$(DEPDIR)/$(am__dirstamp)
+	-rm -f freeverb/$(am__dirstamp)
+	-rm -f sha1/$(DEPDIR)/$(am__dirstamp)
+	-rm -f sha1/$(am__dirstamp)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
@@ -625,7 +595,7 @@ clean: clean-am
 clean-am: clean-generic clean-noinstLIBRARIES mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf ./$(DEPDIR)
+	-rm -rf ./$(DEPDIR) ./freeverb/$(DEPDIR) ./sha1/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -671,7 +641,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf ./$(DEPDIR)
+	-rm -rf ./$(DEPDIR) ./freeverb/$(DEPDIR) ./sha1/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

@@ -1,6 +1,6 @@
 dnl Init.
-AC_INIT(dosbox-x,0.81,[https://github.com/joncampbell123/dosbox-x/issues],[],[http://dosbox-x.software])
-AC_PREREQ(2.50)
+AC_INIT(dosbox-x,0.82,[https://github.com/joncampbell123/dosbox-x/issues],[],[http://dosbox-x.software])
+AC_PREREQ(2.60)
 AC_CONFIG_SRCDIR(README)
 
 dnl Detect the canonical host and target build environment
@@ -8,7 +8,7 @@ AC_CANONICAL_HOST
 AC_CANONICAL_BUILD
 
 dnl Setup for automake
-AM_INIT_AUTOMAKE([foreign])
+AM_INIT_AUTOMAKE([foreign subdir-objects])
 AC_CONFIG_HEADER(config.h)
 
 dnl Checks for programs.
@@ -18,8 +18,12 @@ AC_PROG_CPP
 AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_RANLIB
+AC_PREFIX_DEFAULT([/usr/local])
 
-dnl TODO where else to put this?
+dnl this code needs large file support on 32-bit systems
+AC_SYS_LARGEFILE
+
+dnl Utility function ============================
 
 # AC_CHECK_CPPFLAGS(ADDITIONAL-CPPFLAGS, ACTION-IF-FOUND, ACTION-IF-NOT-FOUND)
 #
@@ -35,6 +39,8 @@ AC_DEFUN([AC_CHECK_CPPFLAGS],
         [AC_MSG_RESULT([yes])],
         [AC_MSG_RESULT([no]); CPPFLAGS="${temp_check_cppflags}"])
 ])# AC_CHECK_CPPFLAGS
+
+dnl Utility function ============================
 
 # AC_CHECK_CXXFLAGS(ADDITIONAL-CXXFLAGS, ACTION-IF-FOUND, ACTION-IF-NOT-FOUND)
 #
@@ -61,7 +67,6 @@ fi
 ])# AC_CHECK_CXXFLAGS
 
 dnl Need GCC to know this code is using C++ lamda functions
-CXXFLAGS="$CXXFLAGS -Wall -D_FILE_OFFSET_BITS=64"
 
 AH_TEMPLATE(C_MT32,[Define to 1 to enable MT32 emulation (x86/x86_64 only)])
 AC_ARG_ENABLE(mt32,AC_HELP_STRING([--disable-mt32],[Disable MT32 emulation]),,enable_mt32=yes)
