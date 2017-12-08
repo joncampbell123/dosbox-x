@@ -1706,6 +1706,60 @@ public:
 	const char * ButtonName(void) {
 		return buttonname;
 	}
+#if defined(C_SDL2)
+	void MakeDefaultBind(char * buf) {
+		Bitu key=0;
+		switch (defkey) {
+		case MK_f1:case MK_f2:case MK_f3:case MK_f4:
+		case MK_f5:case MK_f6:case MK_f7:case MK_f8:
+		case MK_f9:case MK_f10:case MK_f11:case MK_f12:	
+			key=SDL_SCANCODE_F1+(defkey-MK_f1);
+			break;
+		case MK_return:
+			key=SDL_SCANCODE_RETURN;
+			break;
+		case MK_kpminus:
+			key=SDL_SCANCODE_KP_MINUS;
+			break;
+		case MK_equals:
+			key=SDL_SCANCODE_EQUALS;
+			break;
+		case MK_scrolllock:
+			key=SDL_SCANCODE_SCROLLLOCK;
+			break;
+		case MK_pause:
+			key=SDL_SCANCODE_PAUSE;
+			break;
+		case MK_printscreen:
+			key=SDL_SCANCODE_PRINTSCREEN;
+			break;
+		case MK_home: 
+			key=SDL_SCANCODE_HOME;
+			break;
+		case MK_1:
+			key=SDL_SCANCODE_1;
+			break;
+		case MK_2:
+			key=SDL_SCANCODE_2;
+			break;
+		case MK_3:
+			key=SDL_SCANCODE_3;
+			break;
+		case MK_4:
+			key=SDL_SCANCODE_4;
+			break;
+        default:
+            break;
+		}
+		sprintf(buf,"%s \"key %d%s%s%s\"",
+			entry,
+			(int)key,
+			defmod & 1 ? " mod1" : "",
+			defmod & 2 ? " mod2" : "",
+			defmod & 4 ? " mod3" : ""
+		);
+	}
+#else
 	void MakeDefaultBind(char * buf) {
 		Bitu key=0;
 		switch (defkey) {
@@ -1767,6 +1821,7 @@ public:
 			defmod & 4 ? " mod3" : ""
 		);
 	}
+#endif
 protected:
 	MapKeys defkey;
 	Bitu defmod;
