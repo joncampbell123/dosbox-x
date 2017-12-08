@@ -3526,7 +3526,189 @@ void* GetSetSDLValue(int isget, std::string target, void* setval) {
 }
 #endif
 
+#if defined(C_SDL2)
+static const SDL_TouchID no_touch_id = (SDL_TouchID)(~0ULL);
+static const SDL_FingerID no_finger_id = (SDL_FingerID)(~0ULL);
+static SDL_FingerID touchscreen_finger_lock = no_finger_id;
+static SDL_TouchID touchscreen_touch_lock = no_touch_id;
+
+static void FingerToFakeMouseMotion(SDL_TouchFingerEvent * finger) {
+    SDL_MouseMotionEvent fake;
+
+    memset(&fake,0,sizeof(fake));
+    fake.x = finger->x;     /* Contrary to SDL_events.h the x/y coordinates are NOT normalized to 0...1 */
+    fake.y = finger->y;     /* Contrary to SDL_events.h the x/y coordinates are NOT normalized to 0...1 */
+    fake.xrel = finger->dx;
+    fake.yrel = finger->dy;
+    HandleMouseMotion(&fake);
+}
+
+static void HandleTouchscreenFinger(SDL_TouchFingerEvent * finger) {
+    /* Now that SDL2 can tell my mouse from my laptop touchscreen, let's
+     * map tap events to the left mouse button. Now I can use my laptop
+     * touchscreen with Windows 3.11 again! --J.C. */
+    /* Now let's handle The Finger (har har) */
+
+    /* NTS: This code is written to map ONLY one finger to the mouse.
+     *      If multiple fingers are touching the screen, this code will
+     *      only respond to the first finger that touched the screen. */
+
+    if (finger->type == SDL_FINGERDOWN) {
+        if (touchscreen_finger_lock == no_finger_id &&
+            touchscreen_touch_lock == no_touch_id) {
+            touchscreen_finger_lock = finger->fingerId;
+            touchscreen_touch_lock = finger->touchId;
+            FingerToFakeMouseMotion(finger);
+            Mouse_ButtonPressed(0);
+        }
+    }
+    else if (finger->type == SDL_FINGERUP) {
+        if (touchscreen_finger_lock == finger->fingerId &&
+            touchscreen_touch_lock == finger->touchId) {
+            touchscreen_finger_lock = no_finger_id;
+            touchscreen_touch_lock = no_touch_id;
+            FingerToFakeMouseMotion(finger);
+            Mouse_ButtonReleased(0);
+        }
+    }
+    else if (finger->type == SDL_FINGERMOTION) {
+        if (touchscreen_finger_lock == finger->fingerId &&
+            touchscreen_touch_lock == finger->touchId) {
+            FingerToFakeMouseMotion(finger);
+        }
+    }
+}
+#endif
+
 void GFX_Events() {
+#if defined(C_SDL2) /* SDL 2.x---------------------------------- */
+    SDL_Event event;
+#if defined (REDUCE_JOYSTICK_POLLING)
+    static int poll_delay=0;
+    int time=GetTicks();
+    if (time-poll_delay>20) {
+        poll_delay=time;
+        if (sdl.num_joysticks>0) SDL_JoystickUpdate();
+        MAPPER_UpdateJoysticks();
+    }
+#endif
+    while (SDL_PollEvent(&event)) {
+        switch (event.type) {
+        case SDL_WINDOWEVENT:
+            switch (event.window.event) {
+            case SDL_WINDOWEVENT_RESTORED:
+                GFX_ResetScreen();
+                continue;
+            case SDL_WINDOWEVENT_RESIZED:
+                GFX_HandleVideoResize(event.window.data1, event.window.data2);
+                continue;
+            case SDL_WINDOWEVENT_EXPOSED:
+                if (sdl.draw.callback) sdl.draw.callback( GFX_CallBackRedraw );
+                continue;
+            case SDL_WINDOWEVENT_FOCUS_GAINED:
+                if (IsFullscreen() && !sdl.mouse.locked)
+                    GFX_CaptureMouse();
+                SetPriority(sdl.priority.focus);
+                CPU_Disable_SkipAutoAdjust();
+                break;
+            case SDL_WINDOWEVENT_FOCUS_LOST:
+                if (sdl.mouse.locked) {
+                    GFX_CaptureMouse();
+                }
+                SetPriority(sdl.priority.nofocus);
+                GFX_LosingFocus();
+                CPU_Enable_SkipAutoAdjust();
+                break;
+            default:
+                ;
+            }
+
+            /* Non-focus priority is set to pause; check to see if we've lost window or input focus
+             * i.e. has the window been minimised or made inactive?
+             */
+            if (sdl.priority.nofocus == PRIORITY_LEVEL_PAUSE) {
+                if ((event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) || (event.window.event == SDL_WINDOWEVENT_MINIMIZED)) {
+                    /* Window has lost focus, pause the emulator.
+                     * This is similar to what PauseDOSBox() does, but the exit criteria is different.
+                     * Instead of waiting for the user to hit Alt-Break, we wait for the window to
+                     * regain window or input focus.
+                     */
+                    bool paused = true;
+                    SDL_Event ev;
+
+                    GFX_SetTitle(-1,-1,-1,true);
+                    KEYBOARD_ClrBuffer();
+//					SDL_Delay(500);
+//					while (SDL_PollEvent(&ev)) {
+                    // flush event queue.
+//					}
+
+                    while (paused) {
+                        // WaitEvent waits for an event rather than polling, so CPU usage drops to zero
+                        SDL_WaitEvent(&ev);
+
+                        switch (ev.type) {
+                        case SDL_QUIT:
+                            throw(0);
+                            break; // a bit redundant at linux at least as the active events gets before the quit event.
+                        case SDL_WINDOWEVENT:     // wait until we get window focus back
+                            if ((ev.window.event == SDL_WINDOWEVENT_FOCUS_LOST) || (ev.window.event == SDL_WINDOWEVENT_MINIMIZED) || (ev.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) || (ev.window.event == SDL_WINDOWEVENT_RESTORED) || (ev.window.event == SDL_WINDOWEVENT_EXPOSED)) {
+                                // We've got focus back, so unpause and break out of the loop
+                                if ((ev.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) || (ev.window.event == SDL_WINDOWEVENT_RESTORED) || (ev.window.event == SDL_WINDOWEVENT_EXPOSED)) {
+                                    paused = false;
+                                    GFX_SetTitle(-1,-1,-1,false);
+                                }
+
+                                /* Now poke a "release ALT" command into the keyboard buffer
+                                 * we have to do this, otherwise ALT will 'stick' and cause
+                                 * problems with the app running in the DOSBox.
+                                 */
+                                KEYBOARD_AddKey(KBD_leftalt, false);
+                                KEYBOARD_AddKey(KBD_rightalt, false);
+                                if (ev.window.event == SDL_WINDOWEVENT_RESTORED) {
+                                    // We may need to re-create a texture and more
+                                    GFX_ResetScreen();
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+            break;
+        case SDL_MOUSEMOTION:
+            HandleMouseMotion(&event.motion);
+            break;
+        case SDL_MOUSEBUTTONDOWN:
+        case SDL_MOUSEBUTTONUP:
+            HandleMouseButton(&event.button);
+            break;
+        case SDL_FINGERDOWN:
+        case SDL_FINGERUP:
+        case SDL_FINGERMOTION:
+            HandleTouchscreenFinger(&event.tfinger);
+            break;
+        case SDL_QUIT:
+            throw(0);
+            break;
+#if defined (MACOSX)
+        case SDL_KEYDOWN:
+        case SDL_KEYUP:
+            /* On macs CMD-Q is the default key to close an application */
+            if (event.key.keysym.sym == SDLK_q &&
+                    (event.key.keysym.mod == KMOD_RGUI ||
+                     event.key.keysym.mod == KMOD_LGUI)
+               ) {
+                KillSwitch(true);
+                break;
+            }
+#endif
+        default:
+            void MAPPER_CheckEvent(SDL_Event * event);
+            MAPPER_CheckEvent(&event);
+        }
+    }
+#else /* SDL 1.x---------------------------------- */
 	SDL_Event event;
 #if defined (REDUCE_JOYSTICK_POLLING)
 	static int poll_delay=0;
@@ -3687,6 +3869,7 @@ void GFX_Events() {
 	static Bitu iPasteTicker = 0;
 	if ((iPasteTicker++ % 20) == 0) // emendelson: was %2, %20 is good for WP51
 		PasteClipboardNext(); 	// end added emendelson from dbDOS
+#endif
 }
 
 // added emendelson from dbDos
