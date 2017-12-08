@@ -6954,8 +6954,17 @@ $as_echo_n "checking for SDL - version >= $min_sdl_version... " >&6; }
 
 
 
-LIBS="$LIBS $SDL_LIBS"
-CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
+if test -n "$SDL2_LIBS"; then
+    LIBS="$LIBS $SDL2_LIBS"
+    CPPFLAGS="$CPPFLAGS $SDL2_CFLAGS"
+else
+  if test -n "$SDL_LIBS"; then
+    LIBS="$LIBS $SDL_LIBS"
+    CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
+  else
+    as_fn_error $? "SDL 1.x or SDL 2.x is required to compile this program" "$LINENO" 5
+  fi
+fi
 
 ac_fn_c_check_header_mongrel "$LINENO" "curses.h" "ac_cv_header_curses_h" "$ac_includes_default"
 if test "x$ac_cv_header_curses_h" = xyes; then :

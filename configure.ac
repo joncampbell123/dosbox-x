@@ -332,8 +332,17 @@ SDL_VERSION=1.2.0
 AM_PATH_SDL($SDL_VERSION)
 
 dnl LIBRARY USE: SDL selection
-LIBS="$LIBS $SDL_LIBS"
-CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
+if test -n "$SDL2_LIBS"; then
+    LIBS="$LIBS $SDL2_LIBS"
+    CPPFLAGS="$CPPFLAGS $SDL2_CFLAGS"
+else
+  if test -n "$SDL_LIBS"; then
+    LIBS="$LIBS $SDL_LIBS"
+    CPPFLAGS="$CPPFLAGS $SDL_CFLAGS"
+  else
+    AC_MSG_ERROR([SDL 1.x or SDL 2.x is required to compile this program])
+  fi
+fi
 
 dnl LIBRARY TEST: ncurses
 AC_CHECK_HEADER(curses.h,have_curses_h=yes,)
