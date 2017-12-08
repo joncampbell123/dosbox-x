@@ -498,15 +498,14 @@ AH_TEMPLATE(C_MODEM,[Define to 1 to enable internal modem support, requires SDL_
 AH_TEMPLATE(C_IPX,[Define to 1 to enable IPX over Internet networking, requires SDL_net])
 
 if test x$host = xi386-pc-os2-emx ; then
-  AC_MSG_CHECKING(for SDLNet_Init in SDL_net);
   LIBS_BACKUP=$LIBS;
   LIBS="$LIBS -lSDL_Net";
   AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <SDL_Net.h>]],[[
 	SDLNet_Init ();
   ]])], [AC_MSG_RESULT(yes); have_sdl_net_lib=yes], AC_MSG_RESULT(no))
   LIBS=$LIBS_BACKUP
-else
 fi
+
 if test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
    LIBS="$LIBS -lSDL_net"
    AC_DEFINE(C_SDL_NET,1)
