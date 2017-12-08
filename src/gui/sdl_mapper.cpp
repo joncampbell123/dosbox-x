@@ -2453,19 +2453,32 @@ void BIND_MappingEvents(void) {
 		case SDL_KEYUP:
 			{
 				static int event_count = 0;
-				SDL_keysym &s = event.key.keysym;
-				char tmp[256];
+#if defined(C_SDL2)
+                SDL_Keysym &s = event.key.keysym;
+#else
+                SDL_keysym &s = event.key.keysym;
+#endif
+                char tmp[256];
 
 				// ESC is your magic key out of capture
 				if (s.sym == SDLK_ESCAPE && mouselocked) GFX_CaptureMouse();
 
-				sprintf(tmp,"%c%02x: scan=%u sym=%u mod=%xh u=%xh",
-					(event.type == SDL_KEYDOWN ? 'D' : 'U'),
-					event_count&0xFF,
-					s.scancode,
-					s.sym,
-					s.mod,
-					s.unicode);
+#if defined(C_SDL2)
+                sprintf(tmp,"%c%02x: scan=%u sym=%u mod=%xh",
+                    (event.type == SDL_KEYDOWN ? 'D' : 'U'),
+                    event_count&0xFF,
+                    s.scancode,
+                    s.sym,
+                    s.mod);
+#else
+                sprintf(tmp,"%c%02x: scan=%u sym=%u mod=%xh u=%xh",
+                    (event.type == SDL_KEYDOWN ? 'D' : 'U'),
+                    event_count&0xFF,
+                    s.scancode,
+                    s.sym,
+                    s.mod,
+                    s.unicode);
+#endif
 
 				LOG(LOG_GUI,LOG_DEBUG)("Mapper keyboard event: %s",tmp);
 				bind_but.dbg->Change(tmp);
