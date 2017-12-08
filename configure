@@ -752,9 +752,11 @@ enable_alsatest
 with_sdl2_prefix
 with_sdl2_exec_prefix
 enable_sdl2test
+enable_sdl2enable
 with_sdl_prefix
 with_sdl_exec_prefix
 enable_sdltest
+enable_sdlenable
 enable_alsa_midi
 enable_mt32
 enable_debug
@@ -1404,8 +1406,10 @@ Optional Features:
                           speeds up one-time build
   --disable-largefile     omit support for large files
   --disable-alsatest      Do not try to compile and run a test Alsa program
-  --disable-sdl2test       Do not try to compile and run a test SDL program
+  --disable-sdl2test      Do not try to compile and run a test SDL program
+  --enable-sdl2           Enable SDL 2.x
   --disable-sdltest       Do not try to compile and run a test SDL program
+  --enable-sdl            Enable SDL 1.x
   --enable-alsa-midi      compile with alsa midi support (default yes)
   --disable-mt32          Disable MT32 emulation
   --enable-debug          Enable debug mode
@@ -6778,28 +6782,37 @@ fi
 
 # Check whether --enable-sdl2test was given.
 if test "${enable_sdl2test+set}" = set; then :
-  enableval=$enable_sdl2test;
+  enableval=$enable_sdl2test; enable_sdl2test=no
 else
   enable_sdl2test=yes
 fi
 
+# Check whether --enable-sdl2enable was given.
+if test "${enable_sdl2enable+set}" = set; then :
+  enableval=$enable_sdl2enable; enable_sdl2enable=$enableval
+else
+  enable_sdl2enable=no
+fi
 
-  if test x$sdl2_exec_prefix != x ; then
-     sdl2_args="$sdl2_args --exec-prefix=$sdl2_exec_prefix"
-     if test x${SDL2_CONFIG+set} != xset ; then
+
+
+
+  SDL2_CONFIG=no
+  if test x$enable_sdl2enable = xyes ; then
+    if test x$sdl2_exec_prefix != x ; then
+      sdl2_args="$sdl2_args --exec-prefix=$sdl2_exec_prefix"
+      if test x${SDL2_CONFIG+set} != xset ; then
         SDL2_CONFIG=$sdl2_exec_prefix/bin/sdl2-config
-     fi
-  fi
-  if test x$sdl2_prefix != x ; then
-     sdl2_args="$sdl2_args --prefix=$sdl2_prefix"
-     if test x${SDL2_CONFIG+set} != xset ; then
+      fi
+    fi
+    if test x$sdl2_prefix != x ; then
+      sdl2_args="$sdl2_args --prefix=$sdl2_prefix"
+      if test x${SDL2_CONFIG+set} != xset ; then
         SDL2_CONFIG=$sdl2_prefix/bin/sdl2-config
-     fi
-  fi
+      fi
+    fi
 
-
-
-  # Extract the first word of "sdl2-config", so it can be a program name with args.
+    # Extract the first word of "sdl2-config", so it can be a program name with args.
 set dummy sdl2-config; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
@@ -6840,17 +6853,18 @@ $as_echo "no" >&6; }
 fi
 
 
-  min_sdl2_version=$SDL2_VERSION
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for SDL2 - version >= $min_sdl2_version" >&5
+    min_sdl2_version=$SDL2_VERSION
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for SDL2 - version >= $min_sdl2_version" >&5
 $as_echo_n "checking for SDL2 - version >= $min_sdl2_version... " >&6; }
-  no_sdl2=""
-  if test "$SDL2_CONFIG" = "no" ; then
-    no_sdl2=yes
-  else
-    SDL2_CFLAGS=`$SDL2_CONFIG $sdl2conf_args --cflags`
-    SDL2_LIBS=`$SDL2_CONFIG $sdl2conf_args --libs`
-    $as_echo "#define C_SDL2 1" >>confdefs.h
+    no_sdl2=""
+    if test "$SDL2_CONFIG" = "no" ; then
+      no_sdl2=yes
+    else
+      SDL2_CFLAGS=`$SDL2_CONFIG $sdl2conf_args --cflags`
+      SDL2_LIBS=`$SDL2_CONFIG $sdl2conf_args --libs`
+      $as_echo "#define C_SDL2 1" >>confdefs.h
 
+    fi
   fi
 
 
@@ -6876,28 +6890,37 @@ fi
 
 # Check whether --enable-sdltest was given.
 if test "${enable_sdltest+set}" = set; then :
-  enableval=$enable_sdltest;
+  enableval=$enable_sdltest; enable_sdltest=no
 else
   enable_sdltest=yes
 fi
 
+# Check whether --enable-sdlenable was given.
+if test "${enable_sdlenable+set}" = set; then :
+  enableval=$enable_sdlenable; enable_sdlenable=$enableval
+else
+  enable_sdlenable=yes
+fi
 
-  if test x$sdl_exec_prefix != x ; then
-     sdl_args="$sdl_args --exec-prefix=$sdl_exec_prefix"
-     if test x${SDL_CONFIG+set} != xset ; then
+
+
+
+  SDL_CONFIG=no
+  if test x$enable_sdlenable = xyes ; then
+    if test x$sdl_exec_prefix != x ; then
+      sdl_args="$sdl_args --exec-prefix=$sdl_exec_prefix"
+      if test x${SDL_CONFIG+set} != xset ; then
         SDL_CONFIG=$sdl_exec_prefix/bin/sdl-config
-     fi
-  fi
-  if test x$sdl_prefix != x ; then
-     sdl_args="$sdl_args --prefix=$sdl_prefix"
-     if test x${SDL_CONFIG+set} != xset ; then
+      fi
+    fi
+    if test x$sdl_prefix != x ; then
+      sdl_args="$sdl_args --prefix=$sdl_prefix"
+      if test x${SDL_CONFIG+set} != xset ; then
         SDL_CONFIG=$sdl_prefix/bin/sdl-config
-     fi
-  fi
+      fi
+    fi
 
-
-
-  # Extract the first word of "sdl-config", so it can be a program name with args.
+    # Extract the first word of "sdl-config", so it can be a program name with args.
 set dummy sdl-config; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
@@ -6938,18 +6961,20 @@ $as_echo "no" >&6; }
 fi
 
 
-  min_sdl_version=$SDL_VERSION
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for SDL - version >= $min_sdl_version" >&5
+    min_sdl_version=$SDL_VERSION
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for SDL - version >= $min_sdl_version" >&5
 $as_echo_n "checking for SDL - version >= $min_sdl_version... " >&6; }
-  no_sdl=""
-  if test "$SDL_CONFIG" = "no" ; then
-    no_sdl=yes
-  else
-    SDL_CFLAGS=`$SDL_CONFIG $sdlconf_args --cflags`
-    SDL_LIBS=`$SDL_CONFIG $sdlconf_args --libs`
-    $as_echo "#define C_SDL1 1" >>confdefs.h
+    no_sdl=""
+    if test "$SDL_CONFIG" = "no" ; then
+      no_sdl=yes
+    else
+      SDL_CFLAGS=`$SDL_CONFIG $sdlconf_args --cflags`
+      SDL_LIBS=`$SDL_CONFIG $sdlconf_args --libs`
+      $as_echo "#define C_SDL1 1" >>confdefs.h
 
+    fi
   fi
+
 
 
 

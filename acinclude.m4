@@ -5,34 +5,39 @@ AC_ARG_WITH(sdl2-prefix,[  --with-sdl2-prefix=PFX   Prefix where SDL2 is install
             sdl2_prefix="$withval", sdl2_prefix="")
 AC_ARG_WITH(sdl2-exec-prefix,[  --with-sdl2-exec-prefix=PFX Exec prefix where SDL2 is installed (optional)],
             sdl2_exec_prefix="$withval", sdl2_exec_prefix="")
-AC_ARG_ENABLE(sdl2test, [  --disable-sdl2test       Do not try to compile and run a test SDL program],
-		    , enable_sdl2test=yes)
-
-  if test x$sdl2_exec_prefix != x ; then
-     sdl2_args="$sdl2_args --exec-prefix=$sdl2_exec_prefix"
-     if test x${SDL2_CONFIG+set} != xset ; then
-        SDL2_CONFIG=$sdl2_exec_prefix/bin/sdl2-config
-     fi
-  fi
-  if test x$sdl2_prefix != x ; then
-     sdl2_args="$sdl2_args --prefix=$sdl2_prefix"
-     if test x${SDL2_CONFIG+set} != xset ; then
-        SDL2_CONFIG=$sdl2_prefix/bin/sdl2-config
-     fi
-  fi
+AC_ARG_ENABLE(sdl2test, [  --disable-sdl2test      Do not try to compile and run a test SDL program],
+		    enable_sdl2test=no, enable_sdl2test=yes)
+AC_ARG_ENABLE(sdl2enable, [  --enable-sdl2           Enable SDL 2.x],
+		    enable_sdl2enable=$enableval, enable_sdl2enable=no)
 
   AH_TEMPLATE(C_SDL2,[Set to 1 to enable SDL 2.x support])
 
-  AC_PATH_PROG(SDL2_CONFIG, sdl2-config, no)
-  min_sdl2_version=ifelse([$1], ,0.11.0,$1)
-  AC_MSG_CHECKING(for SDL2 - version >= $min_sdl2_version)
-  no_sdl2=""
-  if test "$SDL2_CONFIG" = "no" ; then
-    no_sdl2=yes
-  else
-    SDL2_CFLAGS=`$SDL2_CONFIG $sdl2conf_args --cflags`
-    SDL2_LIBS=`$SDL2_CONFIG $sdl2conf_args --libs`
-    AC_DEFINE(C_SDL2,1)
+  SDL2_CONFIG=no
+  if test x$enable_sdl2enable = xyes ; then
+    if test x$sdl2_exec_prefix != x ; then
+      sdl2_args="$sdl2_args --exec-prefix=$sdl2_exec_prefix"
+      if test x${SDL2_CONFIG+set} != xset ; then
+        SDL2_CONFIG=$sdl2_exec_prefix/bin/sdl2-config
+      fi
+    fi
+    if test x$sdl2_prefix != x ; then
+      sdl2_args="$sdl2_args --prefix=$sdl2_prefix"
+      if test x${SDL2_CONFIG+set} != xset ; then
+        SDL2_CONFIG=$sdl2_prefix/bin/sdl2-config
+      fi
+    fi
+
+    AC_PATH_PROG(SDL2_CONFIG, sdl2-config, no)
+    min_sdl2_version=ifelse([$1], ,0.11.0,$1)
+    AC_MSG_CHECKING(for SDL2 - version >= $min_sdl2_version)
+    no_sdl2=""
+    if test "$SDL2_CONFIG" = "no" ; then
+      no_sdl2=yes
+    else
+      SDL2_CFLAGS=`$SDL2_CONFIG $sdl2conf_args --cflags`
+      SDL2_LIBS=`$SDL2_CONFIG $sdl2conf_args --libs`
+      AC_DEFINE(C_SDL2,1)
+    fi
   fi
 
   AC_SUBST(SDL2_CFLAGS)
@@ -51,34 +56,40 @@ AC_ARG_WITH(sdl-prefix,[  --with-sdl-prefix=PFX   Prefix where SDL is installed 
 AC_ARG_WITH(sdl-exec-prefix,[  --with-sdl-exec-prefix=PFX Exec prefix where SDL is installed (optional)],
             sdl_exec_prefix="$withval", sdl_exec_prefix="")
 AC_ARG_ENABLE(sdltest, [  --disable-sdltest       Do not try to compile and run a test SDL program],
-		    , enable_sdltest=yes)
-
-  if test x$sdl_exec_prefix != x ; then
-     sdl_args="$sdl_args --exec-prefix=$sdl_exec_prefix"
-     if test x${SDL_CONFIG+set} != xset ; then
-        SDL_CONFIG=$sdl_exec_prefix/bin/sdl-config
-     fi
-  fi
-  if test x$sdl_prefix != x ; then
-     sdl_args="$sdl_args --prefix=$sdl_prefix"
-     if test x${SDL_CONFIG+set} != xset ; then
-        SDL_CONFIG=$sdl_prefix/bin/sdl-config
-     fi
-  fi
+		    enable_sdltest=no, enable_sdltest=yes)
+AC_ARG_ENABLE(sdlenable, [  --enable-sdl            Enable SDL 1.x],
+		    enable_sdlenable=$enableval, enable_sdlenable=yes)
 
   AH_TEMPLATE(C_SDL1,[Set to 1 to enable SDL 1.x support])
 
-  AC_PATH_PROG(SDL_CONFIG, sdl-config, no)
-  min_sdl_version=ifelse([$1], ,0.11.0,$1)
-  AC_MSG_CHECKING(for SDL - version >= $min_sdl_version)
-  no_sdl=""
-  if test "$SDL_CONFIG" = "no" ; then
-    no_sdl=yes
-  else
-    SDL_CFLAGS=`$SDL_CONFIG $sdlconf_args --cflags`
-    SDL_LIBS=`$SDL_CONFIG $sdlconf_args --libs`
-    AC_DEFINE(C_SDL1,1)
+  SDL_CONFIG=no
+  if test x$enable_sdlenable = xyes ; then
+    if test x$sdl_exec_prefix != x ; then
+      sdl_args="$sdl_args --exec-prefix=$sdl_exec_prefix"
+      if test x${SDL_CONFIG+set} != xset ; then
+        SDL_CONFIG=$sdl_exec_prefix/bin/sdl-config
+      fi
+    fi
+    if test x$sdl_prefix != x ; then
+      sdl_args="$sdl_args --prefix=$sdl_prefix"
+      if test x${SDL_CONFIG+set} != xset ; then
+        SDL_CONFIG=$sdl_prefix/bin/sdl-config
+      fi
+    fi
+
+    AC_PATH_PROG(SDL_CONFIG, sdl-config, no)
+    min_sdl_version=ifelse([$1], ,0.11.0,$1)
+    AC_MSG_CHECKING(for SDL - version >= $min_sdl_version)
+    no_sdl=""
+    if test "$SDL_CONFIG" = "no" ; then
+      no_sdl=yes
+    else
+      SDL_CFLAGS=`$SDL_CONFIG $sdlconf_args --cflags`
+      SDL_LIBS=`$SDL_CONFIG $sdlconf_args --libs`
+      AC_DEFINE(C_SDL1,1)
+    fi
   fi
+
   AC_SUBST(SDL_CFLAGS)
   AC_SUBST(SDL_LIBS)
 ])
