@@ -472,7 +472,9 @@ forcenormal:
 			gfx_flags |= GFX_LOVE_32;
 			break;
 	}
+#if !defined(C_SDL2)
 	gfx_flags=GFX_GetBestMode(gfx_flags);
+#endif
 	if (!gfx_flags) {
 		if (!complexBlock && simpleBlock == &ScaleNormal1x) 
 			E_Exit("Failed to create a rendering output");
