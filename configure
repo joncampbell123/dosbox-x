@@ -7354,6 +7354,138 @@ if test "x$ac_cv_lib_fluidsynth_new_fluid_synth" = xyes; then :
 fi
 
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for avcodec_open2 in -lavcodec" >&5
+$as_echo_n "checking for avcodec_open2 in -lavcodec... " >&6; }
+if ${ac_cv_lib_avcodec_avcodec_open2+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lavcodec  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char avcodec_open2 ();
+int
+main ()
+{
+return avcodec_open2 ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_avcodec_avcodec_open2=yes
+else
+  ac_cv_lib_avcodec_avcodec_open2=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_avcodec_avcodec_open2" >&5
+$as_echo "$ac_cv_lib_avcodec_avcodec_open2" >&6; }
+if test "x$ac_cv_lib_avcodec_avcodec_open2" = xyes; then :
+  have_ffmpeg=yes
+else
+  have_ffmpeg=no
+fi
+
+ac_fn_c_check_header_mongrel "$LINENO" "libavcodec/avcodec.h" "ac_cv_header_libavcodec_avcodec_h" "$ac_includes_default"
+if test "x$ac_cv_header_libavcodec_avcodec_h" = xyes; then :
+  have_avcodec_h=yes
+else
+  have_avcodec_h=no
+fi
+
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -lGL" >&5
+$as_echo_n "checking for main in -lGL... " >&6; }
+if ${ac_cv_lib_GL_main+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lGL  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+int
+main ()
+{
+return main ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_GL_main=yes
+else
+  ac_cv_lib_GL_main=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_GL_main" >&5
+$as_echo "$ac_cv_lib_GL_main" >&6; }
+if test "x$ac_cv_lib_GL_main" = xyes; then :
+  have_gl_lib=yes
+else
+  have_gl_lib=no
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -lopengl32" >&5
+$as_echo_n "checking for main in -lopengl32... " >&6; }
+if ${ac_cv_lib_opengl32_main+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lopengl32  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+int
+main ()
+{
+return main ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_opengl32_main=yes
+else
+  ac_cv_lib_opengl32_main=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_opengl32_main" >&5
+$as_echo "$ac_cv_lib_opengl32_main" >&6; }
+if test "x$ac_cv_lib_opengl32_main" = xyes; then :
+  have_opengl32_lib=yes
+else
+  have_opengl32_lib=no
+fi
+
+ac_fn_c_check_header_mongrel "$LINENO" "GL/gl.h" "ac_cv_header_GL_gl_h" "$ac_includes_default"
+if test "x$ac_cv_header_GL_gl_h" = xyes; then :
+  have_gl_h=yes
+else
+  have_gl_h=no
+fi
+
+
+
 if test x$host = xi386-pc-os2-emx ; then
   LIBS_BACKUP=$LIBS;
   LIBS="$LIBS -lSDL_Net";
@@ -7638,7 +7770,6 @@ else
 $as_echo "$as_me: WARNING: fluidsynth MIDI synthesis not available" >&2;}
 fi
 
-# FFMPEG output
 
 # Check whether --enable-avcodec was given.
 if test "${enable_avcodec+set}" = set; then :
@@ -7652,56 +7783,6 @@ if test x$enable_avcodec = xyes; then
 	CPPFLAGS="$CPPFLAGS "`pkg-config libavcodec --cflags`
 	LIBS="$LIBS -lavcodec -lavformat -lavutil -lswscale "`pkg-config libavcodec --libs`
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for avcodec_open2 in -lavcodec" >&5
-$as_echo_n "checking for avcodec_open2 in -lavcodec... " >&6; }
-if ${ac_cv_lib_avcodec_avcodec_open2+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lavcodec  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char avcodec_open2 ();
-int
-main ()
-{
-return avcodec_open2 ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_avcodec_avcodec_open2=yes
-else
-  ac_cv_lib_avcodec_avcodec_open2=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_avcodec_avcodec_open2" >&5
-$as_echo "$ac_cv_lib_avcodec_avcodec_open2" >&6; }
-if test "x$ac_cv_lib_avcodec_avcodec_open2" = xyes; then :
-  have_ffmpeg=yes
-else
-  have_ffmpeg=no
-fi
-
-ac_fn_c_check_header_mongrel "$LINENO" "libavcodec/avcodec.h" "ac_cv_header_libavcodec_avcodec_h" "$ac_includes_default"
-if test "x$ac_cv_header_libavcodec_avcodec_h" = xyes; then :
-  have_avcodec_h=yes
-else
-  have_avcodec_h=no
-fi
-
-
 if test x$enable_avcodec = xyes; then
     if test x$have_ffmpeg = xyes; then
         if test x$have_avcodec_h = xyes; then
@@ -7711,86 +7792,6 @@ $as_echo "yes" >&6; }
 
         fi
     fi
-fi
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -lGL" >&5
-$as_echo_n "checking for main in -lGL... " >&6; }
-if ${ac_cv_lib_GL_main+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lGL  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-
-int
-main ()
-{
-return main ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_GL_main=yes
-else
-  ac_cv_lib_GL_main=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_GL_main" >&5
-$as_echo "$ac_cv_lib_GL_main" >&6; }
-if test "x$ac_cv_lib_GL_main" = xyes; then :
-  have_gl_lib=yes
-else
-  have_gl_lib=no
-fi
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for main in -lopengl32" >&5
-$as_echo_n "checking for main in -lopengl32... " >&6; }
-if ${ac_cv_lib_opengl32_main+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lopengl32  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-
-int
-main ()
-{
-return main ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_opengl32_main=yes
-else
-  ac_cv_lib_opengl32_main=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_opengl32_main" >&5
-$as_echo "$ac_cv_lib_opengl32_main" >&6; }
-if test "x$ac_cv_lib_opengl32_main" = xyes; then :
-  have_opengl32_lib=yes
-else
-  have_opengl32_lib=no
-fi
-
-ac_fn_c_check_header_mongrel "$LINENO" "GL/gl.h" "ac_cv_header_GL_gl_h" "$ac_includes_default"
-if test "x$ac_cv_header_GL_gl_h" = xyes; then :
-  have_gl_h=yes
-else
-  have_gl_h=no
 fi
 
 
