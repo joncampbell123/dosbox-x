@@ -249,6 +249,39 @@ esac
        AM_CONDITIONAL(HAVE_WINDRES, test "x$WINDRES" != "x:")
        AC_SUBST(WINDRES)
 
+dnl Some target detection and actions for them
+case "$host" in
+    *-*-cygwin* | *-*-mingw32*)
+       LIBS="$LIBS -lwinmm -limm32"
+       CXXFLAGS="$CXXFLAGS -mno-ms-bitfields"
+       if test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
+         LIBS="$LIBS -lws2_32"
+       fi
+       ;;
+    *-*-darwin*)
+       dnl We have a problem here: both Mac OS X and Darwin report 
+       dnl the same signature "powerpc-apple-darwin*" - so we have
+       dnl to do more to distinguish them.
+       dnl For now I am lazy and do not add proper detection code.
+       AC_DEFINE(MACOSX, 1, [Compiling on Mac OS X])
+       LIBS="$LIBS -framework CoreMIDI -framework AudioUnit -framework AudioToolbox"
+       ;;
+    *-*-linux*)
+       AC_DEFINE(LINUX, 1, [Compiling on GNU/Linux])
+       CXXFLAGS="$CXXFLAGS -D_XOPEN_SOURCE=700 -D_POSIX_C_SOURCE=200809L"
+       ;;
+    *-*-freebsd* | *-*-dragonfly* | *-*-netbsd* | *-*-openbsd*)
+       dnl Disabled directserial for now. It doesn't do anything without
+       dnl specifying an extra ifdef in directserial_posix.*
+       dnl directserial detection should be rewritten to test for the needed
+       dnl functions and headers. I currently do not know 
+       dnl which ones are needed for BSD
+       AC_DEFINE(BSD, 1, [Compiling on BSD])
+       ;;
+    *-*-os2-emx*)
+       AC_DEFINE(OS2, 1, [Compiling on OS/2 EMX])
+       ;;
+esac
 
 dnl TODO: Need GCC to know this code is using C++ lamda functions
 
@@ -549,40 +582,6 @@ case "$host" in
        ;;
 esac
 fi
-
-dnl Some target detection and actions for them
-case "$host" in
-    *-*-cygwin* | *-*-mingw32*)
-       LIBS="$LIBS -lwinmm -limm32"
-       CXXFLAGS="$CXXFLAGS -mno-ms-bitfields"
-       if test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
-         LIBS="$LIBS -lws2_32"
-       fi
-       ;;
-    *-*-darwin*)
-       dnl We have a problem here: both Mac OS X and Darwin report 
-       dnl the same signature "powerpc-apple-darwin*" - so we have
-       dnl to do more to distinguish them.
-       dnl For now I am lazy and do not add proper detection code.
-       AC_DEFINE(MACOSX, 1, [Compiling on Mac OS X])
-       LIBS="$LIBS -framework CoreMIDI -framework AudioUnit -framework AudioToolbox"
-       ;;
-    *-*-linux*)
-       AC_DEFINE(LINUX, 1, [Compiling on GNU/Linux])
-       CXXFLAGS="$CXXFLAGS -D_XOPEN_SOURCE=700 -D_POSIX_C_SOURCE=200809L"
-       ;;
-    *-*-freebsd* | *-*-dragonfly* | *-*-netbsd* | *-*-openbsd*)
-       dnl Disabled directserial for now. It doesn't do anything without
-       dnl specifying an extra ifdef in directserial_posix.*
-       dnl directserial detection should be rewritten to test for the needed
-       dnl functions and headers. I currently do not know 
-       dnl which ones are needed for BSD
-       AC_DEFINE(BSD, 1, [Compiling on BSD])
-       ;;
-    *-*-os2-emx*)
-       AC_DEFINE(OS2, 1, [Compiling on OS/2 EMX])
-       ;;
-esac
 
 AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
 AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel passthrough support (Win32, Linux).])
