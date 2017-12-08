@@ -2571,6 +2571,9 @@ static void GUI_StartUp() {
 
 	sdl.active=false;
 	sdl.updating=false;
+#if defined(C_SDL2)
+    sdl.update_window=true;
+#endif
 
 	GFX_SetIcon();
 
