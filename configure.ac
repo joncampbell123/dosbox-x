@@ -236,6 +236,20 @@ fi
 dnl Stop reporting "type punning" warnings, I'm sick of hearing about it.
 AC_CHECK_CXXFLAGS([ -Wno-strict-aliasing ])
 
+dnl Some stuff for the icon.
+case "$host" in
+    *-*-cygwin* | *-*-mingw32*)
+       dnl Some stuff for the ico
+       AC_CHECK_TOOL(WINDRES, windres, :)
+    ;;
+    *)
+       WINDRES=":"
+    ;;
+esac
+       AM_CONDITIONAL(HAVE_WINDRES, test "x$WINDRES" != "x:")
+       AC_SUBST(WINDRES)
+
+
 dnl TODO: Need GCC to know this code is using C++ lamda functions
 
 
@@ -576,20 +590,6 @@ case "$host" in
        AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
        ;;
 esac
-
-dnl Some stuff for the icon.
-case "$host" in
-    *-*-cygwin* | *-*-mingw32*)
-       dnl Some stuff for the ico
-       AC_CHECK_TOOL(WINDRES, windres, :)
-    ;;
-    *)
-       WINDRES=":"
-    ;;
-esac
-       AM_CONDITIONAL(HAVE_WINDRES, test "x$WINDRES" != "x:")
-       AC_SUBST(WINDRES)
-
 
 AC_CONFIG_FILES([ 
 Makefile
