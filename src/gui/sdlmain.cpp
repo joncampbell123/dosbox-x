@@ -2980,12 +2980,14 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
 		case SDL_BUTTON_MIDDLE:
 			Mouse_ButtonPressed(2);
 			break;
+#if !defined(C_SDL2)
 		case SDL_BUTTON_WHEELUP: /* Ick, really SDL? */
 			Mouse_ButtonPressed(100-1);
 			break;
 		case SDL_BUTTON_WHEELDOWN: /* Ick, really SDL? */
 			Mouse_ButtonPressed(100+1);
 			break;
+#endif
 		}
 		break;
 	case SDL_RELEASED:
@@ -2999,12 +3001,14 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button) {
 		case SDL_BUTTON_MIDDLE:
 			Mouse_ButtonReleased(2);
 			break;
+#if !defined(C_SDL2)
 		case SDL_BUTTON_WHEELUP: /* Ick, really SDL? */
 			Mouse_ButtonReleased(100-1);
 			break;
 		case SDL_BUTTON_WHEELDOWN: /* Ick, really SDL? */
 			Mouse_ButtonReleased(100+1);
 			break;
+#endif
 		}
 		break;
 	}
@@ -3019,9 +3023,11 @@ void GFX_LosingFocus(void) {
 
 static bool PasteClipboardNext(); // added emendelson from dbDOS
 
+#if !defined(C_SDL2)
 bool GFX_IsFullscreen(void) {
 	return sdl.desktop.fullscreen;
 }
+#endif
 
 #ifdef __WIN32__
 void OpenFileDialog( char * path_arg ) {
