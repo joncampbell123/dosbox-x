@@ -182,8 +182,10 @@ enum PRIORITY_LEVELS {
 
 #define MAPPERFILE				"mapper-" VERSION ".map"
 
+#if !defined(C_SDL2)
 void						GUI_LoadFonts();
 void						GUI_Run(bool);
+#endif
 void						Restart(bool pressed);
 bool						RENDER_GetAspect(void);
 bool						RENDER_GetAutofit(void);
@@ -2563,7 +2565,9 @@ static void GUI_StartUp() {
 	LOG(LOG_GUI,LOG_DEBUG)("Starting GUI");
 
 	AddExitFunction(AddExitFunctionFuncPair(GUI_ShutDown));
+#if !defined(C_SDL2)
 	GUI_LoadFonts();
+#endif
 
 	sdl.active=false;
 	sdl.updating=false;
@@ -2795,7 +2799,9 @@ static void GUI_StartUp() {
 #else
 	MAPPER_AddHandler(&PauseDOSBox, MK_pause, MMOD2, "pause", "Pause");
 #endif
+#if !defined(C_SDL2)
 	MAPPER_AddHandler(&GUI_Run, MK_f10, MMOD2, "gui", "ShowGUI");
+#endif
 	/* Get Keyboard state of numlock and capslock */
 #if defined(C_SDL2)
     SDL_Keymod keystate = SDL_GetModState();
@@ -5193,8 +5199,10 @@ int main(int argc, char* argv[]) {
 		 * Init functions are called low-level first to high level last,
 		 * because some init functions rely on others. */
 
+#if !defined(C_SDL2)
 		if (control->opt_startui)
 			GUI_Run(false);
+#endif
 		if (control->opt_editconf.length() != 0)
 			launcheditor(control->opt_editconf);
 		if (control->opt_opencaptures.length() != 0)
@@ -5579,7 +5587,9 @@ fresh_boot:
     CALLBACK_Dump();
 
 	/* GUI font registry shutdown */
+#if !defined(C_SDL2)
 	GUI::Font::registry_freeall();
+#endif
 	DOS_ShutdownDrives();
 	DOS_ShutdownFiles();
 	DOS_ShutdownDevices();
