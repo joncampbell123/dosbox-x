@@ -1838,9 +1838,11 @@ static void SetActiveEvent(CEvent * event) {
 	}
 }
 
+#if defined(C_SDL2)
 extern SDL_Window * GFX_SetSDLSurfaceWindow(Bit16u width, Bit16u height);
 extern SDL_Rect GFX_GetSDLSurfaceSubwindowDims(Bit16u width, Bit16u height);
 extern void GFX_UpdateDisplayDimensions(int width, int height);
+#endif
 
 static void DrawButtons(void) {
 	SDL_FillRect(mapper.surface,0,0);
