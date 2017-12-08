@@ -298,7 +298,18 @@ struct SDL_Block {
 	} priority;
 	SDL_Rect clip;
 	SDL_Surface * surface;
+#if defined(C_SDL2)
+    SDL_Window * window;
+    SDL_Renderer * renderer;
+    const char * rendererDriver;
+    int displayNumber;
+    struct {
+        SDL_Texture * texture;
+        SDL_PixelFormat * pixelFormat;
+    } texture;
+#else
 	SDL_Overlay * overlay;
+#endif
 	SDL_cond *cond;
 	struct {
 		bool autolock;
@@ -336,7 +347,11 @@ static void DOSBox_SetOriginalIcon(void) {
     	logos = SDL_CreateRGBSurfaceFrom((void*)logo,32,32,32,128,0x000000ff,0x0000ff00,0x00ff0000,0);
 #endif
 
+#if defined(C_SDL2)
+        SDL_SetWindowIcon(sdl.window, logos);
+#else
     	SDL_WM_SetIcon(logos,NULL);
+#endif
 #endif
 }
 /* =================================================================================== */
@@ -394,7 +409,11 @@ void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
             sprintf(p,", %2d%%/RT",(int)floor((rtdelta / 10) + 0.5));
         }
 
+#if defined(C_SDL2)
+        SDL_SetWindowTitle(sdl.window,title);
+#else
 		SDL_WM_SetCaption(title,VERSION);
+#endif
 		return;
 	}
 
@@ -422,7 +441,11 @@ void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
 	}
 
 	if (paused) strcat(title," PAUSED");
+#if defined(C_SDL2)
+    SDL_SetWindowTitle(sdl.window,title);
+#else
 	SDL_WM_SetCaption(title,VERSION);
+#endif
 }
 
 bool warn_on_mem_write = false;
