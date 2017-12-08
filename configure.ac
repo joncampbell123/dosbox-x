@@ -350,6 +350,16 @@ dnl LIBRARY TEST: SDLnet 1.x
 AC_CHECK_HEADER(SDL_net.h,have_sdl_net_h=yes,)
 AC_CHECK_LIB(SDL_net, SDLNet_Init, have_sdl_net_lib=yes, , )
 
+dnl ================== SDL net special test for OS/2
+if test x$host = xi386-pc-os2-emx ; then
+  LIBS_BACKUP=$LIBS;
+  LIBS="$LIBS -lSDL_Net";
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <SDL_Net.h>]],[[
+	SDLNet_Init ();
+  ]])], [AC_MSG_RESULT(yes); have_sdl_net_lib=yes], AC_MSG_RESULT(no))
+  LIBS=$LIBS_BACKUP
+fi
+
 dnl FEATURE: MIDI through ALSA
 AC_ARG_ENABLE(alsa-midi,
 AC_HELP_STRING([--enable-alsa-midi],[compile with alsa midi support (default yes)]),
@@ -471,10 +481,21 @@ AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough suppor
 dnl FEATURE: Whether to support direct parallel port passthrough
 AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel passthrough support (Win32, Linux).])
 
+dnl FEATURE: Whether to support SDL net, and emulate modem and IPX connections
+AH_TEMPLATE(C_SDL_NET,[Indicate whether SDL_net is present])
+AH_TEMPLATE(C_MODEM,[Define to 1 to enable internal modem support, requires SDL_net])
+AH_TEMPLATE(C_IPX,[Define to 1 to enable IPX over Internet networking, requires SDL_net])
 
+if test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
+   LIBS="$LIBS -lSDL_net"
+   AC_DEFINE(C_SDL_NET,1)
+   AC_DEFINE(C_MODEM,1)
+   AC_DEFINE(C_IPX,1)
+else 
+   AC_MSG_WARN([Can't find SDL_net, internal modem and ipx disabled])
+fi
 
-
-
+dnl FEATURE: Whether to support libpng, and enable snapshots
 AH_TEMPLATE(C_LIBPNG,[Define to 1 if you have libpng])
 AH_TEMPLATE(C_SSHOT,[Define to 1 to enable screenshots, requires libpng])
 if test x$have_png_lib = xyes -a x$have_png_h = xyes ; then
@@ -485,34 +506,13 @@ else
   AC_MSG_WARN([Can't find libpng, screenshot support disabled])
 fi
 
+dnl FEATURE: Whether to use libpcap, and enable NE2000 emulation
 AH_TEMPLATE(C_NE2000,[Define to 1 to enable NE2000 ethernet passthrough, requires libpcap])
 if test x$have_pcap_lib = xyes -a x$have_pcap_h = xyes ; then
   LIBS="$LIBS -lpcap";
   AC_DEFINE(C_NE2000,1)
 else
   AC_MSG_WARN([Can't find libpcap, NE2000 ethernet passthrough disabled])
-fi
-
-AH_TEMPLATE(C_SDL_NET,[Indicate whether SDL_net is present])
-AH_TEMPLATE(C_MODEM,[Define to 1 to enable internal modem support, requires SDL_net])
-AH_TEMPLATE(C_IPX,[Define to 1 to enable IPX over Internet networking, requires SDL_net])
-
-if test x$host = xi386-pc-os2-emx ; then
-  LIBS_BACKUP=$LIBS;
-  LIBS="$LIBS -lSDL_Net";
-  AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <SDL_Net.h>]],[[
-	SDLNet_Init ();
-  ]])], [AC_MSG_RESULT(yes); have_sdl_net_lib=yes], AC_MSG_RESULT(no))
-  LIBS=$LIBS_BACKUP
-fi
-
-if test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
-   LIBS="$LIBS -lSDL_net"
-   AC_DEFINE(C_SDL_NET,1)
-   AC_DEFINE(C_MODEM,1)
-   AC_DEFINE(C_IPX,1)
-else 
-   AC_MSG_WARN([Can't find SDL_net, internal modem and ipx disabled])
 fi
 
 AH_TEMPLATE(C_X11_XKB,[define to 1 if you have XKBlib.h and X11 lib])

@@ -7262,6 +7262,34 @@ if test "x$ac_cv_lib_SDL_net_SDLNet_Init" = xyes; then :
 fi
 
 
+if test x$host = xi386-pc-os2-emx ; then
+  LIBS_BACKUP=$LIBS;
+  LIBS="$LIBS -lSDL_Net";
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <SDL_Net.h>
+int
+main ()
+{
+
+	SDLNet_Init ();
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }; have_sdl_net_lib=yes
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+  LIBS=$LIBS_BACKUP
+fi
+
 # Check whether --enable-alsa-midi was given.
 if test "${enable_alsa_midi+set}" = set; then :
   enableval=$enable_alsa_midi;  case "${enableval}" in
@@ -7458,6 +7486,19 @@ $as_echo "#define C_DIRECTLPT 1" >>confdefs.h
 
 
 
+if test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
+   LIBS="$LIBS -lSDL_net"
+   $as_echo "#define C_SDL_NET 1" >>confdefs.h
+
+   $as_echo "#define C_MODEM 1" >>confdefs.h
+
+   $as_echo "#define C_IPX 1" >>confdefs.h
+
+else
+   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Can't find SDL_net, internal modem and ipx disabled" >&5
+$as_echo "$as_me: WARNING: Can't find SDL_net, internal modem and ipx disabled" >&2;}
+fi
+
 
 
 if test x$have_png_lib = xyes -a x$have_png_h = xyes ; then
@@ -7479,51 +7520,6 @@ if test x$have_pcap_lib = xyes -a x$have_pcap_h = xyes ; then
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Can't find libpcap, NE2000 ethernet passthrough disabled" >&5
 $as_echo "$as_me: WARNING: Can't find libpcap, NE2000 ethernet passthrough disabled" >&2;}
-fi
-
-
-
-
-
-if test x$host = xi386-pc-os2-emx ; then
-  LIBS_BACKUP=$LIBS;
-  LIBS="$LIBS -lSDL_Net";
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <SDL_Net.h>
-int
-main ()
-{
-
-	SDLNet_Init ();
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }; have_sdl_net_lib=yes
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-  LIBS=$LIBS_BACKUP
-fi
-
-if test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
-   LIBS="$LIBS -lSDL_net"
-   $as_echo "#define C_SDL_NET 1" >>confdefs.h
-
-   $as_echo "#define C_MODEM 1" >>confdefs.h
-
-   $as_echo "#define C_IPX 1" >>confdefs.h
-
-else
-   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Can't find SDL_net, internal modem and ipx disabled" >&5
-$as_echo "$as_me: WARNING: Can't find SDL_net, internal modem and ipx disabled" >&2;}
 fi
 
 
