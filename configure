@@ -7715,7 +7715,7 @@ $as_echo "#define C_DIRECTLPT 1" >>confdefs.h
 
 
 # HACK: Don't enable SDL2 net if SDL2
-if test -n "$SDL2_LIBS"; then
+if test -z "$SDL2_LIBS"; then
   if test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
    LIBS="$LIBS -lSDL_net"
    $as_echo "#define C_SDL_NET 1" >>confdefs.h
