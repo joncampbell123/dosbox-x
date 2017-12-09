@@ -381,7 +381,7 @@ void GFX_SetIcon(void) {
 	if (menu_compatible) { DOSBox_SetOriginalIcon(); return; }
 #endif
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(C_SDL2)
 	HICON hIcon1;
 
 	hIcon1 = (HICON) LoadImage( GetModuleHandle(NULL), MAKEINTRESOURCE(dosbox_ico), IMAGE_ICON,
@@ -537,6 +537,7 @@ bool pause_on_vsync = false;
 
 #if defined(C_SDL2)
 bool GFX_IsFullscreen() {
+	if (sdl.window == NULL) return false;
     uint32_t windowFlags = SDL_GetWindowFlags(sdl.window);
     if (windowFlags & SDL_WINDOW_FULLSCREEN_DESKTOP) return true;
     return false;
@@ -620,11 +621,14 @@ void PauseDOSBox(bool pressed) {
 static void SDLScreen_Reset(void) {
 	char* sdl_videodrv = getenv("SDL_VIDEODRIVER");
 	if ((sdl_videodrv && !strcmp(sdl_videodrv,"windib")) || sdl.desktop.fullscreen || fullscreen_switch || sdl.desktop.want_type==SCREEN_OPENGLHQ || menu_compatible) return;
+
+#if !defined(C_SDL2)
 	int id, major, minor;
 	DOSBox_CheckOS(id, major, minor);
 	if(((id==VER_PLATFORM_WIN32_NT) && (major<6)) || sdl.desktop.want_type==SCREEN_DIRECT3D) return;
 
 	minor = minor;//shut up unused var warnings
+#endif
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);	SDL_Delay(500);
 	SDL_InitSubSystem(SDL_INIT_VIDEO);
 	GFX_SetIcon();
@@ -823,7 +827,7 @@ check_gotbpp:
 void SDL_Prepare(void) {
 	if (menu_compatible) return;
 
-#if defined(WIN32) // Microsoft Windows specific
+#if defined(WIN32) && !defined(C_SDL2) // Microsoft Windows specific
 	LOG(LOG_MISC,LOG_DEBUG)("Win32: Preparing main window to accept files dragged in from the Windows shell");
 
 	SDL_PumpEvents(); SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
@@ -846,8 +850,10 @@ void GFX_ResetScreen(void) {
 	GFX_Start();
 	CPU_Reset_AutoAdjust();
 	fullscreen_switch=true;
+#if !defined(C_SDL2)
 	if (!sdl.desktop.want_type==SCREEN_OPENGLHQ && !sdl.desktop.fullscreen && GetMenu(GetHWND()) == NULL)
 		DOSBox_RefreshMenu(); // for menu
+#endif
 }
 
 void GFX_ForceFullscreenExit(void) {
@@ -963,7 +969,7 @@ void GFX_TearDown(void) {
 }
 
 static void GFX_ResetSDL() {
-#ifdef WIN32
+#if defined(WIN32) && !defined(C_SDL2)
 	if(!load_videodrv && !sdl.using_windib) {
 		LOG_MSG("Resetting to WINDIB mode");
 		SDL_QuitSubSystem(SDL_INIT_VIDEO);
@@ -1513,7 +1519,7 @@ static bool enable_hook_special_keys = true;
 static bool enable_hook_lock_toggle_keys = true;
 #endif
 
-#if defined(WIN32)
+#if defined(WIN32) && !defined(C_SDL2)
 // and this is where we store host LED state when capture is set.
 static bool on_capture_num_lock_was_on = true; // reasonable guess
 static bool on_capture_scroll_lock_was_on = false;
@@ -1521,7 +1527,7 @@ static bool on_capture_caps_lock_was_on = false;
 #endif
 
 static bool exthook_enabled = false;
-#if defined(WIN32)
+#if defined(WIN32) && !defined(C_SDL2)
 static HHOOK exthook_winhook = NULL;
 
 #if !defined(__MINGW32__)
@@ -1664,7 +1670,7 @@ Bitu Keyboard_Guest_LED_State();
 void UpdateKeyboardLEDState(Bitu led_state/* in the same bitfield arrangement as using command 0xED on PS/2 keyboards */);
 
 void UpdateKeyboardLEDState(Bitu led_state/* in the same bitfield arrangement as using command 0xED on PS/2 keyboards */) {
-#if defined(WIN32) /* Microsoft Windows */
+#if defined(WIN32) && !defined(C_SDL2) /* Microsoft Windows */
 	if (exthook_enabled) { // ONLY if ext hook is enabled, else we risk infinite loops with keyboard events
 		WinSetKeyToggleState(VK_NUMLOCK, !!(led_state & 2));
 		WinSetKeyToggleState(VK_SCROLL, !!(led_state & 1));
@@ -1677,7 +1683,7 @@ void DoExtendedKeyboardHook(bool enable) {
 	if (exthook_enabled == enable)
 		return;
 
-#if defined(WIN32)
+#if defined(WIN32) && !defined(C_SDL2)
 	if (enable) {
 		if (!exthook_winhook) {
 			exthook_winhook = SetWindowsHookEx(WH_KEYBOARD_LL, WinExtHookKeyboardHookProc, GetModuleHandle(NULL), NULL);
@@ -1872,7 +1878,7 @@ static void d3d_init(void) {
 #endif
 
 static void openglhq_init(void) {
-#ifdef WIN32
+#if defined(WIN32) && !defined(C_SDL2)
 	DOSBox_NoMenu(); menu.gui=false;
 	HMENU m_handle=GetMenu(GetHWND());
 	if(m_handle) RemoveMenu(m_handle,0,0);
@@ -2029,14 +2035,14 @@ void change_output(int output) {
 		change_output(2);
 		sdl.desktop.want_type=SCREEN_OPENGL;
 		break;
-#ifdef __WIN32__
+#if defined(__WIN32__) && !defined(C_SDL2)
 	case 5:
 		sdl.desktop.want_type=SCREEN_DIRECT3D;
 		d3d_init();
 		break;
 #endif
 	case 6: {
-#ifdef __WIN32__
+#if defined(__WIN32__) && !defined(C_SDL2)
 		if (MessageBox(GetHWND(),"GUI will be disabled if output is set to OpenglHQ. Do you want to continue?","Warning",MB_YESNO)==IDNO) {
 			GFX_Stop(); GFX_Start(); return;
 		}
@@ -2132,8 +2138,10 @@ void GFX_SwitchFullScreen(void)
 
 	LOG_MSG("INFO: switched to %s mode", full ? "full screen" : "window");
 
+#if !defined(C_SDL2)
 	// (re-)assign menu to window
 	if (full && sdl.desktop.want_type != SCREEN_OPENGLHQ && menu.gui) SetMenu(GetHWND(), nullptr);
+#endif
 
 	// ensure mouse capture when fullscreen || (re-)capture if user said so when windowed
 	auto locked = sdl.mouse.locked;
@@ -2792,7 +2800,7 @@ static void GUI_StartUp() {
 	//ShowSplashScreen();	/* I will keep the splash screen alive. But now, the BIOS will do it --J.C. */
 
 	/* Get some Event handlers */
-#ifdef __WIN32__
+#if defined(__WIN32__) && !defined(C_SDL2)
 	MAPPER_AddHandler(ToggleMenu,MK_return,MMOD1|MMOD2,"togglemenu","ToggleMenu");
 #endif // WIN32
 	MAPPER_AddHandler(KillSwitch,MK_f9,MMOD1,"shutdown","ShutDown");
@@ -3043,7 +3051,7 @@ bool GFX_IsFullscreen(void) {
 }
 #endif
 
-#ifdef __WIN32__
+#if defined(__WIN32__) && !defined(C_SDL2)
 void OpenFileDialog( char * path_arg ) {
 	if(control->SecureMode()) {
 		LOG_MSG(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
@@ -5072,6 +5080,7 @@ int main(int argc, char* argv[]) {
 		SetConsoleCtrlHandler((PHANDLER_ROUTINE) ConsoleEventHandler,TRUE);
 #endif
 
+#if !defined(C_SDL2)
 		{
 			int id, major, minor;
 
@@ -5081,6 +5090,7 @@ int main(int argc, char* argv[]) {
 			/* use all variables to shut up the compiler about unused vars */
 			LOG(LOG_MISC,LOG_DEBUG)("DOSBox_CheckOS results: id=%u major=%u minor=%u",id,major,minor);
 		}
+#endif
 
 		/* -- SDL init hackery */
 #if SDL_VERSION_ATLEAST(1, 2, 14)
@@ -5093,8 +5103,13 @@ int main(int argc, char* argv[]) {
 #ifdef WIN32
 		/* hack: Encourage SDL to use windib if not otherwise specified */
 		if (getenv("SDL_VIDEODRIVER") == NULL) {
+#if defined(C_SDL2)
+			LOG(LOG_GUI, LOG_DEBUG)("Win32 hack: setting SDL_VIDEODRIVER=windows because environ variable is not set");
+			putenv("SDL_VIDEODRIVER=windows");
+#else
 			LOG(LOG_GUI,LOG_DEBUG)("Win32 hack: setting SDL_VIDEODRIVER=windib because environ variable is not set");
 			putenv("SDL_VIDEODRIVER=windib");
+#endif
 			sdl.using_windib=true;
 			load_videodrv=false;
 		}
@@ -5121,9 +5136,11 @@ int main(int argc, char* argv[]) {
 		if (control->opt_nogui || menu.compatible)
 			menu.gui=false;
 
+#if !defined(C_SDL2)
 		/* -- -- decide whether to set menu */
 		if (menu_gui && !control->opt_nomenu)
 			DOSBox_SetMenu();
+#endif
 
 		/* -- -- helpful advice */
 		LOG(LOG_GUI,LOG_NORMAL)("Press Ctrl-F10 to capture/release mouse, Alt-F10 for configuration.");
@@ -5225,7 +5242,9 @@ int main(int argc, char* argv[]) {
 			if (control->opt_fullscreen || sdl_sec->Get_bool("fullscreen")) {
 				LOG(LOG_MISC,LOG_DEBUG)("Going fullscreen immediately, during startup");
 
+#if !defined(C_SDL2)
 				if (sdl.desktop.want_type != SCREEN_OPENGLHQ) SetMenu(GetHWND(),NULL);
+#endif
 				//only switch if not already in fullscreen
 				if (!sdl.desktop.fullscreen) GFX_SwitchFullScreen();
 			}
@@ -5270,7 +5289,7 @@ int main(int argc, char* argv[]) {
 		}
 #endif
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(C_SDL2)
 		{
 			Section_prop *sec = static_cast<Section_prop *>(control->GetSection("sdl"));
 			if (!strcmp(sec->Get_string("output"),"ddraw") && sdl.using_windib) {

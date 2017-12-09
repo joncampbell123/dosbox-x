@@ -264,7 +264,7 @@ void				INT10_Init(Section*);
 #if C_NE2000
 void				NE2K_Init(Section* sec);
 #endif
-#ifdef __WIN32__
+#if defined(__WIN32__) && !defined(C_SDL2)
 void				MSG_Loop(void);
 #endif
 
@@ -378,7 +378,7 @@ static Bitu Normal_Loop(void) {
                     return 0;
 #endif
             } else {
-#ifdef __WIN32__
+#if defined(__WIN32__) && !defined(C_SDL2)
                 MSG_Loop();
 #endif
                 GFX_Events();

@@ -2785,7 +2785,7 @@ void MAPPER_Run(bool pressed) {
 }
 
 void MAPPER_RunInternal() {
-#ifdef __WIN32__
+#if defined(__WIN32__) && !defined(C_SDL2)
 	if(menu.maxwindow) ShowWindow(GetHWND(), SW_RESTORE);
 #endif
 	int cursor = SDL_ShowCursor(SDL_QUERY);
@@ -2855,10 +2855,12 @@ void MAPPER_RunInternal() {
 #endif
 	if((mousetoggle && !mouselocked) || (!mousetoggle && mouselocked)) GFX_CaptureMouse();
 	SDL_ShowCursor(cursor);
-#ifdef __WIN32__
+#if defined(__WIN32__) && !defined(C_SDL2)
 	GUI_Shortcut(0);
 #endif
+#if !defined(C_SDL2)
 	DOSBox_RefreshMenu();
+#endif
 	if(!menu_gui) {
 		SDL_FreeSurface(mapper.surface);
 		GFX_RestoreMode();
