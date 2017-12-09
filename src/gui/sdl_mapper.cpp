@@ -579,7 +579,7 @@ public:
 #endif
 //		LOG_MSG("key type %i is %x [%x %x]",event->type,key,event->key.keysym.sym,event->key.keysym.scancode);
 
-#if defined(WIN32)
+#if defined(WIN32) && !defined(C_SDL2)
 		/* HACK: When setting up the Japanese keyboard layout, I'm seeing some bizarre keyboard handling
 		         from within Windows when pressing the ~ ` (grave) aka Hankaku key. I know it's not hardware
 				 because when you switch back to English the key works normally as the tilde/grave key.

@@ -77,7 +77,9 @@ typedef unsigned int uintptr_t;
 # define SIZEOF_VOIDP 4
 #endif
 
+#if !defined(C_SDL2)
 #define HAVE_DDRAW_H 1
+#endif
 #define HAVE_DINPUT_H 1
 #define HAVE_DSOUND_H 1
 #define HAVE_DXGI_H 1

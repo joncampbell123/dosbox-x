@@ -570,11 +570,13 @@ void PauseDOSBox(bool pressed) {
 	while (paused) {
 		SDL_WaitEvent(&event);    // since we're not polling, cpu usage drops to 0.
 #ifdef __WIN32__
+  #if !defined(C_SDL2)
 		if (event.type==SDL_SYSWMEVENT && event.syswm.msg->msg==WM_COMMAND && event.syswm.msg->wParam==ID_PAUSE) {
 			paused=false;
 			GFX_SetTitle(-1,-1,-1,false);	
 			break;
 		}
+  #endif
 #endif
 		switch (event.type) {
 
@@ -1203,7 +1205,7 @@ dosurface:
 		}
 		break;
 #endif
-#if (HAVE_DDRAW_H) && defined(WIN32)
+#if defined(HAVE_DDRAW_H) && defined(WIN32)
 	case SCREEN_SURFACE_DDRAW:
     {
 		if(!load_videodrv && sdl.using_windib) {
@@ -2009,7 +2011,7 @@ void change_output(int output) {
 		sdl.desktop.want_type=SCREEN_SURFACE;
 		break;
 	case 1:
-#ifdef WIN32
+#if defined(WIN32) && !defined(C_SDL2)
 		sdl.surface=SDL_SetVideoMode(640,400,0,SDL_HWSURFACE|SDL_HWPALETTE);
 		sdl.desktop.want_type=SCREEN_SURFACE_DDRAW;
 #else
@@ -3885,7 +3887,7 @@ void GFX_Events() {
 }
 
 // added emendelson from dbDos
-#if defined(WIN32)
+#if defined(WIN32) && !defined(C_SDL2)
 #include <cassert>
 
 // Ripped from SDL's SDL_dx5events.c, since there's no API to access it...
@@ -5144,7 +5146,7 @@ int main(int argc, char* argv[]) {
 		sdl.laltstate = SDL_KEYUP;
 		sdl.raltstate = SDL_KEYUP;
 
-#if defined (WIN32)
+#if defined(WIN32) && !defined(C_SDL2)
 # if SDL_VERSION_ATLEAST(1, 2, 10)
 		sdl.using_windib=true;
 # else
@@ -5247,7 +5249,7 @@ int main(int argc, char* argv[]) {
 			}
 		}
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(C_SDL2)
 		if (sdl.desktop.want_type == SCREEN_OPENGL && sdl.using_windib) {
 			LOG(LOG_MISC,LOG_DEBUG)("Desktop wants SCREEN_OPENGL and we're using windib now. Reinitializing SDL video output.");
 			SDL_QuitSubSystem(SDL_INIT_VIDEO);
