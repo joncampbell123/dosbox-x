@@ -5115,6 +5115,14 @@ int main(int argc, char* argv[]) {
 		}
 #endif
 
+#if defined(WIN32) && defined(C_SDL2)
+		/* HACK: WASAPI output on Windows 10 isn't working... */
+		if (getenv("SDL_AUDIODRIVER") == NULL) {
+			LOG(LOG_GUI, LOG_DEBUG)("Win32: using directsound audio driver");
+			putenv("SDL_AUDIODRIVER=directsound");
+		}
+#endif
+
 #ifdef WIN32
 		/* Windows Vista/7/8/10 DPI awareness. If we don't tell Windows we're high DPI aware, the DWM will
 		 * upscale our window to emulate a 96 DPI display which on high res screen will make our UI look blurry.
