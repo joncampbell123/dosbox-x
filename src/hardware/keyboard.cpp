@@ -1973,7 +1973,7 @@ static void write_p7fd9_mouse(Bitu port,Bitu val,Bitu /*iolen*/) {
             //             00b = lower 4 bits, X
             // bits [4:4]: 1=disable interrupt 0=enable interrupt
             // bits [3:0]: ignored (read bits)
-            if ((val & 0x80) && !p7fd9_8255_mouse_latch) { // change from 0 to 1 latches counters and clears them
+            if (val & 0x80) { // change from 0 to 1 latches counters and clears them. Or... setting it anyway??
                 p7fd9_8255_mouse_x_latch = p7fd9_8255_mouse_x;
                 p7fd9_8255_mouse_y_latch = p7fd9_8255_mouse_y;
                 p7fd9_8255_mouse_x = 0;
@@ -1982,6 +1982,38 @@ static void write_p7fd9_mouse(Bitu port,Bitu val,Bitu /*iolen*/) {
             p7fd9_8255_mouse_latch = (val >> 7) & 1;
             p7fd9_8255_mouse_sel = (val >> 5) & 3;
             break;
+        case 6:// 0x7FDF Control
+            if (!(val & 0x80)) {
+                /* bit set/reset */
+                /* bits [7:7] = 0
+                 * bits [6:4] = unused
+                 * bits [3:1] = bit selection
+                 * bits [0:0] = 1=set 0=reset */
+                uint8_t bitnum = (val >> 1) & 7;
+                uint8_t bitval = val & 1;
+
+                /* Sim City PC-98 version writes 0x0F to this port
+                 * to flip bit 7. If you're supposed to reset the
+                 * bit then set it to latch, then I don't really know
+                 * how Sim City expects to re-latch without toggling first. */
+                switch (bitnum) {
+                    case 7: // latch mouse counter
+                        if (bitval) {
+                            p7fd9_8255_mouse_x_latch = p7fd9_8255_mouse_x;
+                            p7fd9_8255_mouse_y_latch = p7fd9_8255_mouse_y;
+                            p7fd9_8255_mouse_x = 0;
+                            p7fd9_8255_mouse_y = 0;
+                        }
+                        p7fd9_8255_mouse_latch = bitval;
+                        break;
+                    default:
+                        LOG_MSG("PC-98 8255 MOUSE: Port C set/reset bit=%u val=%u",bitnum,bitval);
+                        break;
+                }
+
+                break;
+            }
+            /* fall through */
         default:
             LOG_MSG("PC-98 8255 MOUSE: IO write port=0x%x val=0x%x",(unsigned int)port,(unsigned int)val);
             break;
