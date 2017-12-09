@@ -1955,9 +1955,19 @@ static void write_p7fd9_mouse(Bitu port,Bitu val,Bitu /*iolen*/) {
 }
 
 static Bitu read_p7fd9_mouse(Bitu port,Bitu /*iolen*/) {
+    uint8_t bs;
+    Bitu r;
+
     switch (port&6) {
-        case 0:// 0x7FD9
-            return 0xE0;    // HACK: report left+middle+right buttons OFF
+        case 0:// 0x7FD9 Port A
+            bs = Mouse_GetButtonState();
+            r = 0x00;
+
+            if (!(bs & 1)) r |= 0x80;       // left button (inverted bit)
+            if (!(bs & 2)) r |= 0x20;       // right button (inverted bit)
+            if (!(bs & 4)) r |= 0x40;       // middle button (inverted bit)
+
+            return r;
         default:
             LOG_MSG("PC-98 8255 MOUSE: IO read port=0x%x",(unsigned int)port);
             break;
