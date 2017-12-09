@@ -3699,11 +3699,25 @@ void GFX_Events() {
             }
             break;
         case SDL_MOUSEMOTION:
+#if defined(C_SDL2)
+            if (touchscreen_finger_lock == no_finger_id &&
+                touchscreen_touch_lock == no_touch_id) {
+                HandleMouseMotion(&event.motion);
+            }
+#else
             HandleMouseMotion(&event.motion);
+#endif
             break;
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP:
+#if defined(C_SDL2)
+            if (touchscreen_finger_lock == no_finger_id &&
+                touchscreen_touch_lock == no_touch_id) {
+                HandleMouseButton(&event.button);
+            }
+#else
             HandleMouseButton(&event.button);
+#endif
             break;
         case SDL_FINGERDOWN:
         case SDL_FINGERUP:
