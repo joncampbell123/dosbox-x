@@ -191,7 +191,7 @@
       <ControlFlowGuard>false</ControlFlowGuard>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;Iphlpapi.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>LinkVerboseLib</ShowProgress>
       <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -217,9 +217,11 @@
       <ProgramDataBaseFileName>$(OutDir)$(ProjectName).pdb</ProgramDataBaseFileName>
       <StringPooling>false</StringPooling>
       <ControlFlowGuard>false</ControlFlowGuard>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
+      <AdditionalOptions>/QIfist</AdditionalOptions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;Iphlpapi.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2main.lib;Ws2_32.lib;sdl2.lib;sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;version.lib;Iphlpapi.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2main.lib;Ws2_32.lib;sdl2.lib;sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>LinkVerboseLib</ShowProgress>
       <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -249,7 +251,7 @@
       <ControlFlowGuard>false</ControlFlowGuard>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;Iphlpapi.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>LinkVerboseLib</ShowProgress>
       <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -278,9 +280,11 @@
       <ProgramDataBaseFileName>$(OutDir)$(ProjectName).pdb</ProgramDataBaseFileName>
       <StringPooling>false</StringPooling>
       <ControlFlowGuard>false</ControlFlowGuard>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
+      <AdditionalOptions>/QIfist</AdditionalOptions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;Iphlpapi.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2main.lib;Ws2_32.lib;sdl2.lib;sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;version.lib;Iphlpapi.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2main.lib;Ws2_32.lib;sdl2.lib;sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>LinkVerboseLib</ShowProgress>
       <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -306,7 +310,7 @@
       <ControlFlowGuard>false</ControlFlowGuard>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;Iphlpapi.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>LinkVerboseLib</ShowProgress>
       <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -333,9 +337,11 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <StringPooling>true</StringPooling>
       <ControlFlowGuard>false</ControlFlowGuard>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
+      <AdditionalOptions>/QIfist</AdditionalOptions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;Iphlpapi.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2main.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;version.lib;Iphlpapi.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2main.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>LinkVerboseLib</ShowProgress>
       <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -366,7 +372,7 @@
       <ControlFlowGuard>false</ControlFlowGuard>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;Iphlpapi.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>LinkVerboseLib</ShowProgress>
       <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -396,9 +402,11 @@
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <StringPooling>true</StringPooling>
       <ControlFlowGuard>false</ControlFlowGuard>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
+      <AdditionalOptions>/QIfist</AdditionalOptions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;Iphlpapi.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2main.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;version.lib;Iphlpapi.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2main.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>LinkVerboseLib</ShowProgress>
       <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
