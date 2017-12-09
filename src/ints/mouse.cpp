@@ -522,6 +522,8 @@ void DrawCursor() {
 	RestoreVgaRegisters();
 }
 
+void pc98_mouse_movement_apply(int x,int y);
+
 /* FIXME: Re-test this code */
 void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
 	extern bool Mouse_Vertical;
@@ -568,6 +570,9 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
 			mouse.y += yrel;
 		}
 	}
+
+    if (IS_PC98_ARCH)
+        pc98_mouse_movement_apply(xrel,yrel);
 
 	/* ignore constraints if using PS2 mouse callback in the bios */
 

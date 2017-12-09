@@ -1945,9 +1945,43 @@ static void keyboard_pc98_8251_uart_43_write(Bitu port,Bitu val,Bitu /*iolen*/) 
     pc98_8251_keyboard_uart_state.writecmd((unsigned char)val);
 }
 
+int8_t p7fd9_8255_mouse_x = 0;
+int8_t p7fd9_8255_mouse_y = 0;
+int8_t p7fd9_8255_mouse_x_latch = 0;
+int8_t p7fd9_8255_mouse_y_latch = 0;
+uint8_t p7fd9_8255_mouse_sel = 0;
+uint8_t p7fd9_8255_mouse_latch = 0;
+
+void pc98_mouse_movement_apply(int x,int y) {
+    x += p7fd9_8255_mouse_x; if (x < -128) x = -128; if (x > 127) x = 127;
+    y += p7fd9_8255_mouse_y; if (y < -128) y = -128; if (y > 127) y = 127;
+    p7fd9_8255_mouse_x = (int8_t)x;
+    p7fd9_8255_mouse_y = (int8_t)y;
+}
+
 //// STUB: PC-98 MOUSE
 static void write_p7fd9_mouse(Bitu port,Bitu val,Bitu /*iolen*/) {
     switch (port&6) {
+        case 4:// 0x7FDD Port C
+            // bits [7:7]: 1=latch  0=don't latch
+            //             change from 0 to 1 latches counters, clears original counters
+            //             if left at 0, you can read the counters in real time
+            // bits [6:5]: X/Y upper/lower nibble select
+            //             11b = upper 4 bits, Y
+            //             10b = lower 4 bits, Y
+            //             01b = upper 4 bits, X
+            //             00b = lower 4 bits, X
+            // bits [4:4]: 1=disable interrupt 0=enable interrupt
+            // bits [3:0]: ignored (read bits)
+            if ((val & 0x80) && !p7fd9_8255_mouse_latch) { // change from 0 to 1 latches counters and clears them
+                p7fd9_8255_mouse_x_latch = p7fd9_8255_mouse_x;
+                p7fd9_8255_mouse_y_latch = p7fd9_8255_mouse_y;
+                p7fd9_8255_mouse_x = 0;
+                p7fd9_8255_mouse_y = 0;
+            }
+            p7fd9_8255_mouse_latch = (val >> 7) & 1;
+            p7fd9_8255_mouse_sel = (val >> 5) & 3;
+            break;
         default:
             LOG_MSG("PC-98 8255 MOUSE: IO write port=0x%x val=0x%x",(unsigned int)port,(unsigned int)val);
             break;
@@ -1960,12 +1994,33 @@ static Bitu read_p7fd9_mouse(Bitu port,Bitu /*iolen*/) {
 
     switch (port&6) {
         case 0:// 0x7FD9 Port A
+            // bits [7:7] = !(LEFT BUTTON)
+            // bits [6:6] = !(MIDDLE BUTTON)
+            // bits [5:5] = !(RIGHT BUTTON)
+            // bits [4:4] = 0 unused
+            // bits [3:0] = 4 bit nibble latched via Port C
             bs = Mouse_GetButtonState();
             r = 0x00;
 
             if (!(bs & 1)) r |= 0x80;       // left button (inverted bit)
             if (!(bs & 2)) r |= 0x20;       // right button (inverted bit)
             if (!(bs & 4)) r |= 0x40;       // middle button (inverted bit)
+
+            if (!p7fd9_8255_mouse_latch) {
+                p7fd9_8255_mouse_x_latch = p7fd9_8255_mouse_x;
+                p7fd9_8255_mouse_y_latch = p7fd9_8255_mouse_y;
+            }
+
+            switch (p7fd9_8255_mouse_sel) {
+                case 0: // X delta
+                case 1:
+                    r |= (uint8_t)(p7fd9_8255_mouse_x_latch >> ((p7fd9_8255_mouse_sel & 1U) * 4U)) & 0xF; // sign extend is intentional
+                    break;
+                case 2: // Y delta
+                case 3:
+                    r |= (uint8_t)(p7fd9_8255_mouse_y_latch >> ((p7fd9_8255_mouse_sel & 1U) * 4U)) & 0xF; // sign extend is intentional
+                    break;
+            };
 
             return r;
         default:
