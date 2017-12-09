@@ -1945,6 +1945,28 @@ static void keyboard_pc98_8251_uart_43_write(Bitu port,Bitu val,Bitu /*iolen*/) 
     pc98_8251_keyboard_uart_state.writecmd((unsigned char)val);
 }
 
+//// STUB: PC-98 MOUSE
+static void write_p7fd9_mouse(Bitu port,Bitu val,Bitu /*iolen*/) {
+    switch (port&6) {
+        default:
+            LOG_MSG("PC-98 8255 MOUSE: IO write port=0x%x val=0x%x",(unsigned int)port,(unsigned int)val);
+            break;
+    };
+}
+
+static Bitu read_p7fd9_mouse(Bitu port,Bitu /*iolen*/) {
+    switch (port&6) {
+        case 0:// 0x7FD9
+            return 0xE0;    // HACK: report left+middle+right buttons OFF
+        default:
+            LOG_MSG("PC-98 8255 MOUSE: IO read port=0x%x",(unsigned int)port);
+            break;
+    };
+
+    return 0;
+}
+//////////
+
 void KEYBOARD_OnEnterPC98(Section *sec) {
     unsigned int i;
 
@@ -1987,6 +2009,12 @@ void KEYBOARD_OnEnterPC98_phase2(Section *sec) {
 
         WriteHandler_8255_PC98[i].Uninstall();
         WriteHandler_8255_PC98[i].Install(0x31 + (i * 2),pc98_8255_write,IO_MB);
+    }
+
+    /* Mouse */
+    for (i=0;i < 4;i++) {
+        IO_RegisterWriteHandler(0x7FD9+(i*2),write_p7fd9_mouse,IO_MB);
+        IO_RegisterReadHandler(0x7FD9+(i*2),read_p7fd9_mouse,IO_MB);
     }
 }
 
