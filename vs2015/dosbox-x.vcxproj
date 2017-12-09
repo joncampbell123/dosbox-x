@@ -128,7 +128,7 @@
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(IncludePath);%DXSDK_DIR%\Include;</IncludePath>
-    <LibraryPath>$(LibraryPath);%DXSDK_DIR%\Lib;</LibraryPath>
+    <LibraryPath>$(LibraryPath);%DXSDK_DIR%\Lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
@@ -142,7 +142,7 @@
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(IncludePath);%DXSDK_DIR%\Include;</IncludePath>
-    <LibraryPath>$(LibraryPath);%DXSDK_DIR%\Lib;</LibraryPath>
+    <LibraryPath>$(LibraryPath);%DXSDK_DIR%\Lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
@@ -156,7 +156,7 @@
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(IncludePath);%DXSDK_DIR%\Include;</IncludePath>
-    <LibraryPath>$(LibraryPath);%DXSDK_DIR%\Lib;</LibraryPath>
+    <LibraryPath>$(LibraryPath);%DXSDK_DIR%\Lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
@@ -170,7 +170,7 @@
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(IncludePath);%DXSDK_DIR%\Include;</IncludePath>
-    <LibraryPath>$(LibraryPath);%DXSDK_DIR%\Lib;</LibraryPath>
+    <LibraryPath>$(LibraryPath);%DXSDK_DIR%\Lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -219,7 +219,7 @@
       <ControlFlowGuard>false</ControlFlowGuard>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;Iphlpapi.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;Iphlpapi.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2main.lib;Ws2_32.lib;sdl2.lib;sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>LinkVerboseLib</ShowProgress>
       <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -280,7 +280,7 @@
       <ControlFlowGuard>false</ControlFlowGuard>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;Iphlpapi.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;Iphlpapi.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2main.lib;Ws2_32.lib;sdl2.lib;sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>LinkVerboseLib</ShowProgress>
       <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -335,7 +335,7 @@
       <ControlFlowGuard>false</ControlFlowGuard>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;Iphlpapi.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;Iphlpapi.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2main.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>LinkVerboseLib</ShowProgress>
       <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -398,7 +398,7 @@
       <ControlFlowGuard>false</ControlFlowGuard>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;Iphlpapi.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;Iphlpapi.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2main.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>LinkVerboseLib</ShowProgress>
       <OutputFile>$(OutDir)/$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
