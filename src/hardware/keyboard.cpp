@@ -1973,7 +1973,7 @@ static void write_p7fd9_mouse(Bitu port,Bitu val,Bitu /*iolen*/) {
             //             00b = lower 4 bits, X
             // bits [4:4]: 1=disable interrupt 0=enable interrupt
             // bits [3:0]: ignored (read bits)
-            if (val & 0x80) { // change from 0 to 1 latches counters and clears them. Or... setting it anyway??
+            if ((val & 0x80) && !p7fd9_8255_mouse_latch) { // change from 0 to 1 latches counters and clears them
                 p7fd9_8255_mouse_x_latch = p7fd9_8255_mouse_x;
                 p7fd9_8255_mouse_y_latch = p7fd9_8255_mouse_y;
                 p7fd9_8255_mouse_x = 0;
