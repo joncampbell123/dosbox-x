@@ -5136,14 +5136,6 @@ int main(int argc, char* argv[]) {
 			putenv("SDL_AUDIODRIVER=directsound");
 		}
 #endif
-#if defined(LINUX) && !defined(C_SDL2)
-        /* SDL 1.x and PulseAudio sucks (crashes, hangs).
-         * Most Linux distros have ALSA and an ALSA plugin that connects to pulseaudio. Use that. */
-		if (getenv("SDL_AUDIODRIVER") == NULL) {
-			LOG(LOG_GUI, LOG_DEBUG)("Linux: using alsa audio driver");
-			putenv("SDL_AUDIODRIVER=alsa");
-		}
-#endif
 
 #ifdef WIN32
 		/* Windows Vista/7/8/10 DPI awareness. If we don't tell Windows we're high DPI aware, the DWM will
