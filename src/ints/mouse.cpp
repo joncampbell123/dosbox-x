@@ -108,9 +108,12 @@ struct button_event {
 	Bit8u buttons;
 };
 
+extern uint8_t p7fd8_8255_mouse_int_enable;
+
+static uint8_t MOUSE_IRQ = 12; // IBM PC/AT default
+
 #define QUEUE_SIZE 32
 #define MOUSE_BUTTONS 3
-#define MOUSE_IRQ 12
 #define POS_X (static_cast<Bit16s>(mouse.x) & mouse.gran_x)
 #define POS_Y (static_cast<Bit16s>(mouse.y) & mouse.gran_y)
 
@@ -281,7 +284,9 @@ void MOUSE_Limit_Events(Bitu /*val*/) {
 	if (mouse.events) {
 		mouse.timer_in_progress = true;
 		PIC_AddEvent(MOUSE_Limit_Events,MOUSE_DELAY);
-		PIC_ActivateIRQ(MOUSE_IRQ);
+
+        if (!IS_PC98_ARCH || (IS_PC98_ARCH && p7fd8_8255_mouse_int_enable))
+		    PIC_ActivateIRQ(MOUSE_IRQ);
 	}
 }
 
@@ -303,8 +308,10 @@ INLINE void Mouse_AddEvent(Bit8u type) {
 	if (!mouse.timer_in_progress) {
 		mouse.timer_in_progress = true;
 		PIC_AddEvent(MOUSE_Limit_Events,MOUSE_DELAY);
-		PIC_ActivateIRQ(MOUSE_IRQ);
-	}
+
+        if (!IS_PC98_ARCH || (IS_PC98_ARCH && p7fd8_8255_mouse_int_enable))
+            PIC_ActivateIRQ(MOUSE_IRQ);
+    }
 }
 
 // ***************************************************************************
@@ -737,6 +744,9 @@ static void Mouse_SetSensitivity(Bit16u px, Bit16u py, Bit16u dspeed){
 
 static void Mouse_ResetHardware(void){
 	PIC_SetIRQMask(MOUSE_IRQ,false);
+
+    if (IS_PC98_ARCH)
+        p7fd8_8255_mouse_int_enable = 1;
 }
 
 //Does way to much. Many things should be moved to mouse reset one day
@@ -1319,10 +1329,20 @@ void MOUSE_Startup(Section *sec) {
 	Mouse_SetSensitivity(50,50,50);
 }
 
+void MOUSE_OnEnterPC98(Section *sec) {
+}
+
+void MOUSE_OnEnterPC98_phase2(Section *sec) {
+    // PC-98 change mouse to IRQ 6 (FIXME: What IRQ is normally used?)
+    MOUSE_IRQ = 6;
+}
+
 void MOUSE_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing mouse interface emulation");
 
 	// TODO: We need a DOSBox shutdown callback, and we need a shutdown callback for when the DOS kernel begins to unload and on system reset
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(MOUSE_ShutDown));
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(MOUSE_OnEnterPC98));
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE_END,AddVMEventFunctionFuncPair(MOUSE_OnEnterPC98_phase2));
 }
 

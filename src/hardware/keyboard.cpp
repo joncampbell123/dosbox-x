@@ -1956,6 +1956,7 @@ int8_t p7fd9_8255_mouse_x_latch = 0;
 int8_t p7fd9_8255_mouse_y_latch = 0;
 uint8_t p7fd9_8255_mouse_sel = 0;
 uint8_t p7fd9_8255_mouse_latch = 0;
+uint8_t p7fd8_8255_mouse_int_enable = 0;
 
 void pc98_mouse_movement_apply(int x,int y) {
     x += p7fd9_8255_mouse_x; if (x < -128) x = -128; if (x > 127) x = 127;
@@ -1984,6 +1985,7 @@ static void write_p7fd9_mouse(Bitu port,Bitu val,Bitu /*iolen*/) {
                 p7fd9_8255_mouse_x = 0;
                 p7fd9_8255_mouse_y = 0;
             }
+            p7fd8_8255_mouse_int_enable = ((val >> 4) & 1) ^ 1; // bit 4 is interrupt MASK
             p7fd9_8255_mouse_latch = (val >> 7) & 1;
             p7fd9_8255_mouse_sel = (val >> 5) & 3;
             break;
