@@ -530,7 +530,7 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
 	float dx = xrel * mouse.pixelPerMickey_x;
 	float dy = (Mouse_Vertical?-yrel:yrel) * mouse.pixelPerMickey_y;
 
-	if (KEYBOARD_AUX_Active()) {
+	if (!IS_PC98_ARCH && KEYBOARD_AUX_Active()) {
 		KEYBOARD_AUX_Event(xrel,yrel,mouse.buttons,mouse.scrollwheel);
 		mouse.scrollwheel = 0;
 		return;
@@ -596,7 +596,7 @@ uint8_t Mouse_GetButtonState(void) {
 }
 
 void Mouse_ButtonPressed(Bit8u button) {
-	if (KEYBOARD_AUX_Active()) {
+	if (!IS_PC98_ARCH && KEYBOARD_AUX_Active()) {
 		switch (button) {
 			case 0:
 				mouse.buttons|=1;
@@ -650,7 +650,7 @@ void Mouse_ButtonPressed(Bit8u button) {
 }
 
 void Mouse_ButtonReleased(Bit8u button) {
-	if (KEYBOARD_AUX_Active()) {
+	if (!IS_PC98_ARCH && KEYBOARD_AUX_Active()) {
 		switch (button) {
 			case 0:
 				mouse.buttons&=~1;

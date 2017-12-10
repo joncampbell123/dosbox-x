@@ -162,6 +162,11 @@ bool MouseTypeNone() {
 
 /* NTS: INT33H emulation is coded to call this ONLY if it hasn't taken over the role of mouse input */
 void KEYBOARD_AUX_Event(float x,float y,Bitu buttons,int scrollwheel) {
+    if (IS_PC98_ARCH) {
+        LOG_MSG("WARNING: KEYBOARD_AUX_Event called in PC-98 emulation mode. This is a bug.");
+        return;
+    }
+
 	keyb.ps2mouse.acx += x;
 	keyb.ps2mouse.acy += y;
 	keyb.ps2mouse.l = (buttons & 1)>0;
