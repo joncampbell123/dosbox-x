@@ -765,9 +765,14 @@ void Mouse_NewVideoMode(void) {
 	case 0x07: {
 		mouse.gran_x = (mode<2)?0xfff0:0xfff8;
 		mouse.gran_y = (Bit16s)0xfff8;
-		Bitu rows = real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS);
-		if ((rows == 0) || (rows > 250)) rows = 25 - 1;
-		mouse.max_y = 8*(rows+1) - 1;
+        if (IS_PC98_ARCH) {
+            mouse.max_y = 400 - 1;
+        }
+        else {
+            Bitu rows = real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS);
+            if ((rows == 0) || (rows > 250)) rows = 25 - 1;
+            mouse.max_y = 8*(rows+1) - 1;
+        }
 		break;
 	}
 	case 0x04:
