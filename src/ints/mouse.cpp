@@ -1333,8 +1333,9 @@ void MOUSE_OnEnterPC98(Section *sec) {
 }
 
 void MOUSE_OnEnterPC98_phase2(Section *sec) {
-    // PC-98 change mouse to IRQ 6 (FIXME: What IRQ is normally used?)
-    MOUSE_IRQ = 6;
+    // PC-98 change mouse to IRQ 5 (same as Neko Project II)
+    MOUSE_IRQ = 5;
+    PIC_SetIRQMask(MOUSE_IRQ,true);
 }
 
 void MOUSE_Init() {
