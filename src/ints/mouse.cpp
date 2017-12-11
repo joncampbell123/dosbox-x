@@ -281,6 +281,13 @@ Bitu PS2_Handler(void) {
 
 void MOUSE_Limit_Events(Bitu /*val*/) {
 	mouse.timer_in_progress = false;
+
+    if (IS_PC98_ARCH) {
+        if (mouse.events>0) {
+            mouse.events--;
+        }
+    }
+
 	if (mouse.events) {
 		mouse.timer_in_progress = true;
 		PIC_AddEvent(MOUSE_Limit_Events,MOUSE_DELAY);
