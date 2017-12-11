@@ -2023,6 +2023,10 @@ static void write_p7fd9_mouse(Bitu port,Bitu val,Bitu /*iolen*/) {
 
                 break;
             }
+            else if (val == 0x90) { /* commonly sent by games, which sets port A=input port B=output C=output */
+                /* do nothing */
+                break;
+            }
             /* fall through */
         default:
             LOG_MSG("PC-98 8255 MOUSE: IO write port=0x%x val=0x%x",(unsigned int)port,(unsigned int)val);
