@@ -2004,6 +2004,9 @@ static void write_p7fd9_mouse(Bitu port,Bitu val,Bitu /*iolen*/) {
                  * bit then set it to latch, then I don't really know
                  * how Sim City expects to re-latch without toggling first. */
                 switch (bitnum) {
+                    case 4: // interrupt mask
+                        p7fd8_8255_mouse_int_enable = bitval ^ 1;
+                        break;
                     case 7: // latch mouse counter
                         if (bitval) {
                             p7fd9_8255_mouse_x_latch = p7fd9_8255_mouse_x;
