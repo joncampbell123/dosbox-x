@@ -1338,9 +1338,12 @@ void MOUSE_OnEnterPC98(Section *sec) {
 }
 
 void MOUSE_OnEnterPC98_phase2(Section *sec) {
-    // PC-98 change mouse to IRQ 5 (same as Neko Project II)
-    MOUSE_IRQ = 5;
+    // PC-98 change mouse to IRQ 13 (same as Neko Project II)
+    MOUSE_IRQ = 13; // NTS: Based on NKII pic_setirq(0x0D)
     PIC_SetIRQMask(MOUSE_IRQ,true);
+
+    // FIXME: This doesn't explain why Puyo Puyo sets up an interrupt handler
+    //        that blows up and hangs if IRQ 5 is fired... what's that about? --J.C.
 }
 
 void MOUSE_Init() {
