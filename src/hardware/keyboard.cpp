@@ -1965,6 +1965,8 @@ void pc98_mouse_movement_apply(int x,int y) {
     p7fd9_8255_mouse_y = (int8_t)y;
 }
 
+void MOUSE_DummyEvent(void);
+
 //// STUB: PC-98 MOUSE
 static void write_p7fd9_mouse(Bitu port,Bitu val,Bitu /*iolen*/) {
     switch (port&6) {
@@ -1986,6 +1988,8 @@ static void write_p7fd9_mouse(Bitu port,Bitu val,Bitu /*iolen*/) {
                 p7fd9_8255_mouse_y = 0;
             }
             p7fd8_8255_mouse_int_enable = ((val >> 4) & 1) ^ 1; // bit 4 is interrupt MASK
+            // TODO: Does clearing this bit trigger an interrupt?
+            //       Does setting, then clearing this bit trigger an interrupt?
             p7fd9_8255_mouse_latch = (val >> 7) & 1;
             p7fd9_8255_mouse_sel = (val >> 5) & 3;
             break;
@@ -2006,6 +2010,8 @@ static void write_p7fd9_mouse(Bitu port,Bitu val,Bitu /*iolen*/) {
                 switch (bitnum) {
                     case 4: // interrupt mask
                         p7fd8_8255_mouse_int_enable = bitval ^ 1;
+                        // TODO: Does clearing this bit trigger an interrupt?
+                        //       Does setting, then clearing this bit trigger an interrupt?
                         break;
                     case 7: // latch mouse counter
                         if (bitval) {
@@ -2024,7 +2030,23 @@ static void write_p7fd9_mouse(Bitu port,Bitu val,Bitu /*iolen*/) {
                 break;
             }
             else if (val == 0x90) { /* commonly sent by games, which sets port A=input port B=output C=output */
-                /* do nothing */
+                /* HACK for Metal Force.
+                 * The game's intro animation hooks the mouse IRQ, then writes 0x90 to this port.
+                 * The intro animation apparently requires mouse IRQs to advance through the animation,
+                 * or else it will just stop. The interrupt service routine, if fired, writes 0x0F to
+                 * latch the counters (bit 7) and then 0x90 again.
+                 *
+                 * The theory is that Metal Force is doing this to trigger the mouse interrupt periodically.
+                 * The question is whether this is how real hardware actually behaves, or not. If so, then
+                 * Metal Force is right in relying on this strange way of counting time. If not, then
+                 * Metal Force deserves to hang and/or fail from lack of interrupts for such a strange method
+                 * of counting time.
+                 *
+                 * Until I verify this on real hardware, I'll just put this hack here to make the intro sequence
+                 * work. --J.C. */
+                if (p7fd8_8255_mouse_int_enable)
+                    MOUSE_DummyEvent();
+
                 break;
             }
             /* fall through */

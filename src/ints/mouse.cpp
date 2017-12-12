@@ -277,6 +277,7 @@ Bitu PS2_Handler(void) {
 #define MOUSE_RIGHT_RELEASED 16
 #define MOUSE_MIDDLE_PRESSED 32
 #define MOUSE_MIDDLE_RELEASED 64
+#define MOUSE_DUMMY 128
 #define MOUSE_DELAY 5.0
 
 void MOUSE_Limit_Events(Bitu /*val*/) {
@@ -319,6 +320,10 @@ INLINE void Mouse_AddEvent(Bit8u type) {
         if (!IS_PC98_ARCH || (IS_PC98_ARCH && p7fd8_8255_mouse_int_enable))
             PIC_ActivateIRQ(MOUSE_IRQ);
     }
+}
+
+void MOUSE_DummyEvent(void) {
+    Mouse_AddEvent(MOUSE_DUMMY);
 }
 
 // ***************************************************************************
