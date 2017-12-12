@@ -1304,14 +1304,18 @@ static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
 		vga.draw.address_line=0;
 		vga.draw.address+=vga.draw.address_add;
 	}
-	vga.draw.lines_done++;
-	if (vga.draw.split_line==vga.draw.lines_done) VGA_ProcessSplit();
-	if (vga.draw.lines_done < vga.draw.lines_total) {
-		PIC_AddEvent(VGA_DrawEGASingleLine,(float)vga.draw.delay.singleline_delay);
-	} else {
-		vga_mode_frames_since_time_base++;
-		RENDER_EndUpdate(false);
-	}
+
+    if (!skiprender) {
+        vga.draw.lines_done++;
+        if (vga.draw.split_line==vga.draw.lines_done) VGA_ProcessSplit();
+    }
+
+    if (vga.draw.lines_done < vga.draw.lines_total) {
+        PIC_AddEvent(VGA_DrawEGASingleLine,(float)vga.draw.delay.singleline_delay);
+    } else {
+        vga_mode_frames_since_time_base++;
+        RENDER_EndUpdate(false);
+    }
 }
 
 void VGA_SetBlinking(Bitu enabled) {
