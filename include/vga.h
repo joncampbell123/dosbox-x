@@ -278,6 +278,7 @@ typedef struct {
 	Bitu lines_done;
 	Bitu split_line;
 	Bitu byte_panning_shift;
+    Bitu render_step,render_max;
 	struct {
 		double framestart;
 		double vrstart, vrend;		// V-retrace

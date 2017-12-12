@@ -2060,6 +2060,9 @@ void VGA_Init() {
 	string str;
 	Bitu i,j;
 
+    vga.draw.render_step = 0;
+    vga.draw.render_max = 1;
+
 	vga.tandy.draw_base = NULL;
 	vga.tandy.mem_base = NULL;
     vga.vmemsize_alloced = 0;
