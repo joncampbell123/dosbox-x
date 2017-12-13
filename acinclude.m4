@@ -65,9 +65,9 @@ AC_ARG_ENABLE(sdl, [  --enable-sdl            Enable SDL 1.x],
   if test x$enable_sdlenable = xyes ; then
     AC_MSG_CHECKING(for SDL - version >= $min_sdl_version)
     # we use our own, now
-    SDL_SRC="\$(abs_top_srcdir)/vs2015/sdl/linux-host"
-    SDL_CFLAGS="-I$SDL_SRC/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT"
-    SDL_LIBS="-L$SDL_SRC/lib -lSDL -lpthread"
+    SDL_SRC="\$(abs_top_srcdir)/vs2015/sdl"
+    SDL_CFLAGS="-I$SDL_SRC/include -D_GNU_SOURCE=1 -D_REENTRANT"
+    SDL_LIBS="-L$SDL_SRC/build/.libs -lSDL -lpthread"
     AC_DEFINE(C_SDL1,1)
   fi
 
