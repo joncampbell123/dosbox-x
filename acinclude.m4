@@ -40,8 +40,6 @@ AC_ARG_ENABLE(sdl2,     [  --enable-sdl2           Enable SDL 2.x],
     fi
   fi
 
-  AM_CONDITIONAL(C_SDL2, [ test -n "$SDL2_CFLAGS" ])
-
   AC_SUBST(SDL2_CFLAGS)
   AC_SUBST(SDL2_LIBS)
 ])
@@ -72,8 +70,6 @@ AC_ARG_ENABLE(sdl, [  --enable-sdl            Enable SDL 1.x],
     SDL_LIBS="-L$SDL_SRC/lib -lSDL -lpthread"
     AC_DEFINE(C_SDL1,1)
   fi
-
-  AM_CONDITIONAL(C_SDL1, [ test -n "$SDL_CFLAGS" ])
 
   AC_SUBST(SDL_CFLAGS)
   AC_SUBST(SDL_LIBS)
