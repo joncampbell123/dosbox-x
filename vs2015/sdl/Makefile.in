@@ -41,7 +41,7 @@ SDLMAIN_SOURCES = @SDLMAIN_SOURCES@
 SDLMAIN_OBJECTS = @SDLMAIN_OBJECTS@
 SDLMAIN_LDFLAGS = @SDLMAIN_LDFLAGS@
 
-DIST = acinclude autogen.sh Borland.html Borland.zip BUGS build-scripts configure configure.in COPYING CREDITS CWprojects.sea.bin docs docs.html include INSTALL Makefile.dc Makefile.minimal Makefile.in MPWmake.sea.bin README* sdl-config.in sdl.m4 sdl.pc.in SDL.qpg.in SDL.spec SDL.spec.in src test TODO VisualCE VisualC.html VisualC Watcom-OS2.zip Watcom-Win32.zip symbian.zip WhatsNew Xcode
+DIST = acinclude autogen.sh Borland.html Borland.zip BUGS build-scripts configure configure.in COPYING CREDITS CWprojects.sea.bin docs.html include INSTALL Makefile.dc Makefile.minimal Makefile.in MPWmake.sea.bin README* sdl-config.in sdl.m4 sdl.pc.in SDL.qpg.in SDL.spec SDL.spec.in src test TODO VisualCE VisualC.html VisualC Watcom-OS2.zip Watcom-Win32.zip symbian.zip WhatsNew Xcode
 
 HDRS = SDL.h SDL_active.h SDL_audio.h SDL_byteorder.h SDL_cdrom.h SDL_cpuinfo.h SDL_endian.h SDL_error.h SDL_events.h SDL_getenv.h SDL_joystick.h SDL_keyboard.h SDL_keysym.h SDL_loadso.h SDL_main.h SDL_mouse.h SDL_mutex.h SDL_name.h SDL_opengl.h SDL_platform.h SDL_quit.h SDL_rwops.h SDL_stdinc.h SDL_syswm.h SDL_thread.h SDL_timer.h SDL_types.h SDL_version.h SDL_video.h begin_code.h close_code.h
 
@@ -64,7 +64,7 @@ Makefile: $(srcdir)/Makefile.in
 $(objects):
 	$(SHELL) $(auxdir)/mkinstalldirs $@
 
-.PHONY: all depend install install-bin install-hdrs install-lib install-data install-man uninstall uninstall-bin uninstall-hdrs uninstall-lib uninstall-data uninstall-man clean distclean dist
+.PHONY: all depend install install-bin install-hdrs install-lib install-data uninstall uninstall-bin uninstall-hdrs uninstall-lib uninstall-data clean distclean dist
 depend:
 	@SOURCES="$(SOURCES) $(SDLMAIN_SOURCES)" INCLUDE="$(INCLUDE)" output="$(depend)" \
 	$(SHELL) $(auxdir)/makedep.sh
@@ -78,7 +78,7 @@ $(objects)/$(SDLMAIN_TARGET): $(SDLMAIN_OBJECTS)
 	$(LIBTOOL) --mode=link $(CC) -o $@ $^ $(LDFLAGS) $(EXTRA_LDFLAGS) $(LT_LDFLAGS) $(SDLMAIN_LDFLAGS)
 
 
-install: all install-bin install-hdrs install-lib install-data install-man
+install: all install-bin install-hdrs install-lib install-data
 install-bin:
 	$(SHELL) $(auxdir)/mkinstalldirs $(DESTDIR)$(bindir)
 	$(INSTALL) -m 755 sdl-config $(DESTDIR)$(bindir)/sdl-config
@@ -97,14 +97,8 @@ install-data:
 	$(INSTALL) -m 644 $(srcdir)/sdl.m4 $(DESTDIR)$(datadir)/aclocal/sdl.m4
 	$(SHELL) $(auxdir)/mkinstalldirs $(DESTDIR)$(libdir)/pkgconfig
 	$(INSTALL) -m 644 sdl.pc $(DESTDIR)$(libdir)/pkgconfig
-install-man:
-	$(SHELL) $(auxdir)/mkinstalldirs $(DESTDIR)$(mandir)/man3
-	for src in $(srcdir)/docs/man3/*.3; do \
-	    file=`echo $$src | sed -e 's|^.*/||'`; \
-	    $(INSTALL) -m 644 $$src $(DESTDIR)$(mandir)/man3/$$file; \
-	done
 
-uninstall: uninstall-bin uninstall-hdrs uninstall-lib uninstall-data uninstall-man
+uninstall: uninstall-bin uninstall-hdrs uninstall-lib uninstall-data
 uninstall-bin:
 	rm -f $(DESTDIR)$(bindir)/sdl-config
 uninstall-hdrs:
@@ -119,11 +113,6 @@ uninstall-lib:
 uninstall-data:
 	rm -f $(DESTDIR)$(datadir)/aclocal/sdl.m4
 	rm -f $(DESTDIR)$(libdir)/pkgconfig/sdl.pc
-uninstall-man:
-	for src in $(srcdir)/docs/man3/*.3; do \
-	    file=`echo $$src | sed -e 's|^.*/||'`; \
-	    rm -f $(DESTDIR)$(mandir)/man3/$$file; \
-	done
 
 clean:
 	rm -rf $(objects)
