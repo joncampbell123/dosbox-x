@@ -631,8 +631,12 @@ C_MT32_FALSE
 C_MT32_TRUE
 SDL_LIBS
 SDL_CFLAGS
+C_SDL1_FALSE
+C_SDL1_TRUE
 SDL2_LIBS
 SDL2_CFLAGS
+C_SDL2_FALSE
+C_SDL2_TRUE
 SDL2_CONFIG
 ALSA_LIBS
 ALSA_CFLAGS
@@ -6866,6 +6870,15 @@ $as_echo_n "checking for SDL2 - version >= $min_sdl2_version... " >&6; }
     fi
   fi
 
+   if  test -n "$SDL2_CFLAGS" ; then
+  C_SDL2_TRUE=
+  C_SDL2_FALSE='#'
+else
+  C_SDL2_TRUE='#'
+  C_SDL2_FALSE=
+fi
+
+
 
 
 
@@ -6914,6 +6927,15 @@ $as_echo_n "checking for SDL - version >= $min_sdl_version... " >&6; }
     $as_echo "#define C_SDL1 1" >>confdefs.h
 
   fi
+
+   if  test -n "$SDL_CFLAGS" ; then
+  C_SDL1_TRUE=
+  C_SDL1_FALSE='#'
+else
+  C_SDL1_TRUE='#'
+  C_SDL1_FALSE=
+fi
+
 
 
 
@@ -7930,6 +7952,14 @@ fi
 
 if test -z "${HAVE_WINDRES_TRUE}" && test -z "${HAVE_WINDRES_FALSE}"; then
   as_fn_error $? "conditional \"HAVE_WINDRES\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${C_SDL2_TRUE}" && test -z "${C_SDL2_FALSE}"; then
+  as_fn_error $? "conditional \"C_SDL2\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${C_SDL1_TRUE}" && test -z "${C_SDL1_FALSE}"; then
+  as_fn_error $? "conditional \"C_SDL1\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${C_MT32_TRUE}" && test -z "${C_MT32_FALSE}"; then
@@ -9281,4 +9311,13 @@ if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
 $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
 
+
+# need to configure SDL
+if test -z "$SDL2_LIBS"; then
+    if test -n "$SDL_LIBS"; then
+        export dir="`pwd`/vs2015/sdl"
+        (cd "$dir" && mkdir -p linux-host) || exit 1
+        (cd "$dir" && (ac_cv_lib_iconv_libiconv_open=no ac_cv_func_iconv=no ac_cv_header_iconv_h=no ./configure --enable-static --disable-shared "--prefix=$dir/linux-host")) || exit 1
+    fi
+fi
 

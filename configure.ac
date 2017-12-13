@@ -653,3 +653,12 @@ include/Makefile
 ])
 AC_OUTPUT
 
+# need to configure SDL
+if test -z "$SDL2_LIBS"; then
+    if test -n "$SDL_LIBS"; then
+        export dir="`pwd`/vs2015/sdl"
+        (cd "$dir" && mkdir -p linux-host) || exit 1
+        (cd "$dir" && (ac_cv_lib_iconv_libiconv_open=no ac_cv_func_iconv=no ac_cv_header_iconv_h=no ./configure --enable-static --disable-shared "--prefix=$dir/linux-host")) || exit 1
+    fi
+fi
+
