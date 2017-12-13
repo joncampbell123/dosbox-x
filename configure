@@ -631,7 +631,6 @@ C_MT32_FALSE
 C_MT32_TRUE
 SDL_LIBS
 SDL_CFLAGS
-SDL_CONFIG
 SDL2_LIBS
 SDL2_CFLAGS
 SDL2_CONFIG
@@ -6905,74 +6904,15 @@ fi
 
 
 
-  SDL_CONFIG=no
   if test x$enable_sdlenable = xyes ; then
-    if test x$sdl_exec_prefix != x ; then
-      sdl_args="$sdl_args --exec-prefix=$sdl_exec_prefix"
-      if test x${SDL_CONFIG+set} != xset ; then
-        SDL_CONFIG=$sdl_exec_prefix/bin/sdl-config
-      fi
-    fi
-    if test x$sdl_prefix != x ; then
-      sdl_args="$sdl_args --prefix=$sdl_prefix"
-      if test x${SDL_CONFIG+set} != xset ; then
-        SDL_CONFIG=$sdl_prefix/bin/sdl-config
-      fi
-    fi
-
-    # Extract the first word of "sdl-config", so it can be a program name with args.
-set dummy sdl-config; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_SDL_CONFIG+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  case $SDL_CONFIG in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_SDL_CONFIG="$SDL_CONFIG" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_SDL_CONFIG="$as_dir/$ac_word$ac_exec_ext"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_path_SDL_CONFIG" && ac_cv_path_SDL_CONFIG="no"
-  ;;
-esac
-fi
-SDL_CONFIG=$ac_cv_path_SDL_CONFIG
-if test -n "$SDL_CONFIG"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $SDL_CONFIG" >&5
-$as_echo "$SDL_CONFIG" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-    min_sdl_version=$SDL_VERSION
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for SDL - version >= $min_sdl_version" >&5
 $as_echo_n "checking for SDL - version >= $min_sdl_version... " >&6; }
-    no_sdl=""
-    if test "$SDL_CONFIG" = "no" ; then
-      no_sdl=yes
-    else
-      SDL_CFLAGS=`$SDL_CONFIG $sdlconf_args --cflags`
-      SDL_LIBS=`$SDL_CONFIG $sdlconf_args --libs`
-      $as_echo "#define C_SDL1 1" >>confdefs.h
+    # we use our own, now
+    SDL_SRC="\$(abs_top_srcdir)/vs2015/sdl"
+    SDL_CFLAGS="-I$SDL_SRC/include -D_GNU_SOURCE=1 -D_REENTRANT"
+    SDL_LIBS="-L$SDL_SRC/build/.libs -lSDL -lpthread"
+    $as_echo "#define C_SDL1 1" >>confdefs.h
 
-    fi
   fi
 
 
