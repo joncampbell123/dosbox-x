@@ -62,13 +62,32 @@ AC_ARG_ENABLE(sdl, [  --enable-sdl            Enable SDL 1.x],
 
   AH_TEMPLATE(C_SDL1,[Set to 1 to enable SDL 1.x support])
 
+  SDL_CONFIG=no
   if test x$enable_sdlenable = xyes ; then
+    if test x$sdl_exec_prefix != x ; then
+      sdl_args="$sdl_args --exec-prefix=$sdl_exec_prefix"
+      if test x${SDL_CONFIG+set} != xset ; then
+        SDL_CONFIG=$sdl_exec_prefix/bin/sdl-config
+      fi
+    fi
+    if test x$sdl_prefix != x ; then
+      sdl_args="$sdl_args --prefix=$sdl_prefix"
+      if test x${SDL_CONFIG+set} != xset ; then
+        SDL_CONFIG=$sdl_prefix/bin/sdl-config
+      fi
+    fi
+
+    AC_PATH_PROG(SDL_CONFIG, sdl-config, no)
+    min_sdl_version=ifelse([$1], ,0.11.0,$1)
     AC_MSG_CHECKING(for SDL - version >= $min_sdl_version)
-    # we use our own, now
-    SDL_SRC="\$(abs_top_srcdir)/vs2015/sdl"
-    SDL_CFLAGS="-I$SDL_SRC/include -D_GNU_SOURCE=1 -D_REENTRANT"
-    SDL_LIBS="-L$SDL_SRC/build/.libs -lSDL -lpthread"
-    AC_DEFINE(C_SDL1,1)
+    no_sdl=""
+    if test "$SDL_CONFIG" = "no" ; then
+      no_sdl=yes
+    else
+      SDL_CFLAGS=`$SDL_CONFIG $sdlconf_args --cflags`
+      SDL_LIBS=`$SDL_CONFIG $sdlconf_args --libs`
+      AC_DEFINE(C_SDL1,1)
+    fi
   fi
 
   AC_SUBST(SDL_CFLAGS)
