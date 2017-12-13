@@ -936,6 +936,9 @@ void DOSBOX_SetupConfigSections(void) {
 			"If it is not set, Windows Vista/7/8/10 and higher may upscale the DOSBox window\n"
 			"on higher resolution monitors which is probably not what you want.");
 
+	Pbool = secprop->Add_bool("keyboard hook", Property::Changeable::Always, false);
+	Pbool->Set_help("Use keyboard hook (currently only on Windows) to catch special keys and synchronize the keyboard LEDs with the host");
+
 	Pbool = secprop->Add_bool("weitek",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("If set, emulate the Weitek coprocessor. This option only has effect if cputype=386 or cputype=486.");
 

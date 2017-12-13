@@ -5335,6 +5335,10 @@ int main(int argc, char* argv[]) {
 			if (!load_videodrv && numlock_stat)
 				SetNumLock ();
 		}
+		{
+			Section_prop *sec = static_cast<Section_prop *>(control->GetSection("dosbox"));
+			enable_hook_special_keys = sec->Get_bool("keyboard hook");
+		}
 #endif
 
 		MSG_Init();
