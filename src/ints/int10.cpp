@@ -820,10 +820,18 @@ bool Load_Anex86_Font(void) {
     unsigned int bmp_ofs;
     FILE *fp;
 
-    fp = fopen("anex86.bmp","rb");
+    /* ANEX86.BMP accurate dump of actual font */
+             fp = fopen("anex86.bmp","rb");
     if (!fp) fp = fopen("ANEX86.bmp","rb");
+    if (!fp) fp = fopen("ANEX86.BMP","rb");
+
+    /* FREECG98.BMP free open source generated copy from system fonts */
+    if (!fp) fp = fopen("freecg98.bmp","rb");
+    if (!fp) fp = fopen("FREECG98.bmp","rb");
+    if (!fp) fp = fopen("FREECG98.BMP","rb");
+
     if (!fp) {
-        LOG_MSG("PC-98 font loading: ANEX86.BMP not found");
+        LOG_MSG("PC-98 font loading: neither ANEX86.BMP nor FREECG98.BMP found");
         return false;
     }
 
@@ -872,11 +880,11 @@ bool Load_Anex86_Font(void) {
         }
     }
 
-    LOG_MSG("ANEX86.BMP font loaded");
+    LOG_MSG("ANEX86.BMP/FREECG98.BMP font loaded");
     fclose(fp);
     return true;
 fail:
-    LOG_MSG("ANEX86.BMP invalid, ignoring");
+    LOG_MSG("ANEX86.BMP/FREECG98.BMP invalid, ignoring");
     fclose(fp);
     return false;
 }
