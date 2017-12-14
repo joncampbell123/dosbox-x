@@ -938,7 +938,6 @@ void MIXER_Init() {
     bool ok = false;
     bool failed = false;
 
-    /* WARNING: SDL 1.x audio drivers cannot tolerate opening, closing, then opening again the audio output. */
     if (!mixer.nosound) {
         if (!ok) {
 #if defined(LINUX) && !defined(C_SDL2)
