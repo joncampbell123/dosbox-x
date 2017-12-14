@@ -935,23 +935,78 @@ void MIXER_Init() {
 	spec.userdata=NULL;
 	spec.samples=(Uint16)mixer.blocksize;
 
-	if (mixer.nosound) {
-		LOG(LOG_MISC,LOG_DEBUG)("MIXER:No Sound Mode Selected.");
-		TIMER_AddTickHandler(MIXER_Mix);
-	} else if (SDL_OpenAudio(&spec, &obtained) <0 ) {
-		mixer.nosound = true;
-		LOG(LOG_MISC,LOG_DEBUG)("MIXER:Can't open audio: %s , running in nosound mode.",SDL_GetError());
-		TIMER_AddTickHandler(MIXER_Mix);
-	} else {
-		if(((Bitu)mixer.freq != (Bitu)obtained.freq) || ((Bitu)mixer.blocksize != (Bitu)obtained.samples))
-			LOG(LOG_MISC,LOG_DEBUG)("MIXER:Got different values from SDL: freq %d, blocksize %d",(int)obtained.freq,(int)obtained.samples);
+    bool ok = false;
+    bool failed = false;
 
-		mixer.freq=obtained.freq;
-		mixer.blocksize=obtained.samples;
-		TIMER_AddTickHandler(MIXER_Mix);
-		SDL_PauseAudio(0);
+    if (!mixer.nosound) {
+        if (!ok) {
+#if defined(LINUX) && !defined(C_SDL2)
+            /* Don't use PulseAudio. Avoid it at all if possible.
+             * Default instead to ALSA default device.
+             * If we can't do that (because PulseAudio is hogging it)
+             * then use ALSA's "pulse" output (PulseAudio ALSA plugin).
+             * If we can't do that, then fall back to whatever default SDL wants */
+            if (getenv("SDL_AUDIODRIVER") == NULL) {
+                if (!ok) {
+                    LOG_MSG("Linux: Trying ALSA=default");
+                    setenv("SDL_AUDIODRIVER","alsa",1);
+                    setenv("AUDIODEV","default",1);
+
+                    if (SDL_OpenAudio(&spec, &obtained) >= 0)
+                        ok = 1;
+                    else {
+                        LOG_MSG("...Didn't work");
+                        unsetenv("SDL_AUDIODRIVER");
+                        unsetenv("AUDIODEV");
+                    }
+                }
+
+                if (!ok) {
+                    LOG_MSG("Linux: Trying ALSA=pulse");
+                    setenv("SDL_AUDIODRIVER","alsa",1);
+                    setenv("AUDIODEV","pulse",1);
+
+                    if (SDL_OpenAudio(&spec, &obtained) >= 0)
+                        ok = 1;
+                    else {
+                        LOG_MSG("...Didn't work");
+                        unsetenv("SDL_AUDIODRIVER");
+                        unsetenv("AUDIODEV");
+                    }
+                }
+            }
+#endif
+
+            if (!ok) {
+                /* use whatever default SDL wants */
+                if (SDL_OpenAudio(&spec, &obtained) >= 0) ok = 1;
+            }
+        }
+
+        failed = !ok;
+    }
+
+    if (ok) {
+        if(((Bitu)mixer.freq != (Bitu)obtained.freq) || ((Bitu)mixer.blocksize != (Bitu)obtained.samples))
+            LOG(LOG_MISC,LOG_DEBUG)("MIXER:Got different values from SDL: freq %d, blocksize %d",(int)obtained.freq,(int)obtained.samples);
+
+        mixer.freq=obtained.freq;
+        mixer.blocksize=obtained.samples;
+        TIMER_AddTickHandler(MIXER_Mix);
+        SDL_PauseAudio(0);
 	}
-	mixer_start_pic_time = PIC_FullIndex();
+    else {
+		mixer.nosound = true;
+
+        if (failed)
+            LOG(LOG_MISC,LOG_DEBUG)("MIXER:Can't open audio: %s , running in nosound mode.",SDL_GetError());
+        else
+            LOG(LOG_MISC,LOG_DEBUG)("MIXER:No Sound Mode Selected.");
+
+        TIMER_AddTickHandler(MIXER_Mix);
+    }
+
+    mixer_start_pic_time = PIC_FullIndex();
 	mixer_sample_counter = 0;
 	mixer.work_in = mixer.work_out = 0;
 	mixer.work_wrap = MIXER_BUFSIZE;
