@@ -4,6 +4,12 @@ chmod +x configure
 export CFLAGS="$CFLAGS -g3 -O0 -fno-inline -fno-omit-frame-pointer"
 export CXXFLAGS="$CXXFLAGS -g3 -O0 -fno-inline -fno-omit-frame-pointer"
 
+# prefer to compile against our own copy of SDL 1.x
+echo Compiling our internal SDL 1.x
+(cd vs2015/sdl && build-dosbox.sh) || exit 1
+
+# now compile ourself
+echo Compiling DOSBox-X
 # NTS: --disable-dynamic-core is needed. the dynamic core doesn't work properly with the CFLAGS given above
 ./configure --enable-core-inline --enable-debug=heavy --prefix=/usr --disable-dynamic-core || exit 1
 make -j3 || exit 1

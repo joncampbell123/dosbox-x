@@ -1,4 +1,11 @@
 #!/bin/bash
+
+# prefer to compile against our own copy of SDL 1.x
+echo Compiling our internal SDL 1.x
+(cd vs2015/sdl && build-dosbox.sh) || exit 1
+
+# now compile ourself
+echo Compiling DOSBox-X
 chmod +x configure
 ./configure --enable-core-inline --disable-debug --enable-avcodec --prefix=/usr || exit 1
 make -j3 || exit 1
