@@ -1,0 +1,12 @@
+Straightforward enough, but there's some odd behavior in this capture.
+
+Doublewide columns 0x5D-0x7F are undefined and latch random data.
+Column 0x58 is also undefined.
+
+Columns 0x56-0x57 (user defined) should be empty but something appears
+to populate those cells on startup (Windows 95? MS-DOS 6.2?)
+
+Rows 0x01-0x1F appear to be aliases of rows 0x20-0x7F, except the
+columns are shifted over, and appear to reflect various columns from
+rows further down as the columns count from left to right.
+

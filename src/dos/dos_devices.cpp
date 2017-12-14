@@ -227,9 +227,12 @@ void DOS_ShutdownDevices(void) {
 	}
 }
 
+// INT 29h emulation needs to keep track of CON
+DOS_Device *DOS_CON = NULL;
+
 void DOS_SetupDevices(void) {
 	DOS_Device * newdev;
-	newdev=new device_CON();
+	newdev=new device_CON(); DOS_CON = newdev;
 	DOS_AddDevice(newdev);
 	DOS_Device * newdev2;
 	newdev2=new device_NUL();

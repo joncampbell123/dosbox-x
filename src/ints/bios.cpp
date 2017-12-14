@@ -2230,6 +2230,485 @@ static Bitu INT1A_Handler(void) {
 	return CBRET_NONE;
 }	
 
+bool INT16_get_key(Bit16u &code);
+bool INT16_peek_key(Bit16u &code);
+
+extern uint8_t                     GDC_display_plane;
+
+unsigned char prev_pc98_mode42 = 0;
+
+bool pc98_function_row = true;
+
+const char *pc98_func_key[10] = {
+    "  C1  ",
+    "  CU  ",
+    "  CA  ",
+    "  S1  ",
+    "  SU  ",
+
+    " VOID ",
+    " NWL  ",
+    " INS  ",
+    " REP  ",
+    "  ^Z  "
+};
+
+// shortcuts offered by SHIFT F1-F10. You can bring this onscreen using CTRL+F7. This row shows '*' in col 2.
+// [0] is onscreen display, [1] is what is entered to STDIN.
+const char *pc98_shcut_key[10][2] = {
+    "dir a:",   "dir a:\x0D",
+    "dir b:",   "dir b:\x0D",
+    "copy  ",   "copy ",
+    "del   ",   "del ",
+    "ren   ",   "ren ",
+
+    "chkdsk",   "chkdsk a:\x0D",
+    "chkdsk",   "chkdsk b:\x0D",
+    "type  ",   "type ",
+    "date\x0D ","date\x0D",         // display includes CR
+    "time\x0D ","time\x0D"
+};
+
+#include "int10.h"
+
+void update_pc98_function_row(bool enable) {
+    pc98_function_row = enable;
+
+    mem_writeb(0x712,25 - 1 - (pc98_function_row ? 1 : 0));
+    real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,25 - 1 - (pc98_function_row ? 1 : 0));
+
+	unsigned char c = real_readb(BIOSMEM_SEG,BIOSMEM_CURSOR_POS);
+	unsigned char r = real_readb(BIOSMEM_SEG,BIOSMEM_CURSOR_POS+1);
+    unsigned int o = 80 * 24;
+
+    if (pc98_function_row) {
+        if (r > 23) r = 23;
+
+        /* draw the function row.
+         * based on on real hardware:
+         *
+         * The function key is 72 chars wide. 4 blank chars on each side of the screen.
+         * It is divided into two halves, 36 chars each.
+         * Within each half, aligned to it's side, is 5 x 7 regions.
+         * 6 of the 7 are inverted. centered in the white block is the function key. */
+        for (unsigned int i=0;i < 40;) {
+            mem_writew(0xA0000+((o+i)*2),0x0000);
+            mem_writeb(0xA2000+((o+i)*2),0xE1);
+
+            mem_writew(0xA0000+((o+(79-i))*2),0x0000);
+            mem_writeb(0xA2000+((o+(79-i))*2),0xE1);
+
+            if (i >= 3 && i < 38)
+                i += 7;
+            else
+                i++;
+        }
+
+        for (unsigned int i=0;i < 5;i++) {
+            unsigned int co = 4 + (i * 7);
+            const char *str = pc98_func_key[i];
+
+            for (unsigned int j=0;j < 6;j++) {
+                mem_writew(0xA0000+((o+co+j)*2),str[j]);
+                mem_writeb(0xA2000+((o+co+j)*2),0xE5); // white  reverse  visible
+           }
+        }
+
+        for (unsigned int i=5;i < 10;i++) {
+            unsigned int co = 42 + ((i - 5) * 7);
+            const char *str = pc98_func_key[i];
+
+            for (unsigned int j=0;j < 6;j++) {
+                mem_writew(0xA0000+((o+co+j)*2),str[j]);
+                mem_writeb(0xA2000+((o+co+j)*2),0xE5); // white  reverse  visible
+           }
+        }
+    }
+    else {
+        /* erase the function row */
+        for (unsigned int i=0;i < 80;i++) {
+            mem_writew(0xA0000+((o+i)*2),0x0000);
+            mem_writeb(0xA2000+((o+i)*2),0xE1);
+        }
+    }
+
+    real_writeb(BIOSMEM_SEG,BIOSMEM_CURSOR_POS,c);
+    real_writeb(BIOSMEM_SEG,BIOSMEM_CURSOR_POS+1,r);
+
+    void vga_pc98_direct_cursor_pos(Bit16u address);
+    vga_pc98_direct_cursor_pos((r*80)+c);
+}
+
+static Bitu INT18_PC98_Handler(void) {
+    Bit16u temp16;
+
+#if 0
+    if (reg_ah >= 0x0A) {
+            LOG_MSG("PC-98 INT 18h unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+                reg_ax,
+                reg_bx,
+                reg_cx,
+                reg_dx,
+                reg_si,
+                reg_di,
+                SegValue(ds),
+                SegValue(es));
+    }
+#endif
+ 
+    /* NTS: Based on information gleaned from Neko Project II source code including comments which
+     *      I've run through GNU iconv to convert from SHIFT-JIS to UTF-8 here in case Google Translate
+     *      got anything wrong. */
+    switch (reg_ah) {
+        case 0x00: /* Reading of key data (キー・データの読みだし) */
+            /* FIXME: We use the IBM PC/AT keyboard buffer to fake this call.
+             *        This will be replaced with PROPER emulation once the PC-98 keyboard handler has been
+             *        updated to write the buffer the way PC-98 BIOSes do it.
+             *
+             *        IBM PC/AT keyboard buffer at 40:1E-40:3D
+             *
+             *        PC-98 keyboard buffer at 50:02-50:21 */
+            /* This call blocks until keyboard input */
+            if (INT16_get_key(temp16)) {
+                reg_ax = temp16;
+            }
+            else {
+                reg_ip += 1; /* step over IRET, to NOPs which then JMP back to callback */
+            }
+            break;
+        case 0x01: /* Sense of key buffer state (キー・バッファ状態のセンス) */
+            /* This call returns whether or not there is input waiting.
+             * The waiting data is read, but NOT discarded from the buffer. */
+            if (INT16_peek_key(temp16)) {
+                reg_ax = temp16;
+                reg_bh = 1;
+            }
+            else {
+                reg_bh = 0;
+            }
+            break;
+        case 0x02: /* Sense of shift key state (シフト・キー状態のセンス) */
+            reg_al = mem_readb(0x52A + 0x0E); /* FIXME: Seems to match 14th bitmap byte. Does real hardware do this?? */
+            break;
+        case 0x03: /* Initialization of keyboard interface (キーボード・インタフェイスの初期化) */
+            /* TODO */
+            break;
+        case 0x04: /* Sense of key input state (キー入力状態のセンス) */
+            reg_ah = mem_readb(0x52A + (reg_al & 0x0F));
+            break;
+        case 0x05: /* Key input sense (キー入力センス) */
+            /* This appears to return a key from the buffer (and remove from
+             * buffer) or return BH == 0 to signal no key was pending. */
+            if (INT16_get_key(temp16)) {
+                reg_ax = temp16;
+                reg_bh = 1;
+            }
+            else {
+                reg_bh = 0;
+            }
+            break;
+        // TODO: "Edge" is using INT 18h AH=06h, what is that?
+        //       Neko Project is also unaware of such a call.
+        case 0x0C: /* text layer enable */
+            pc98_gdc[GDC_MASTER].force_fifo_complete();
+            pc98_gdc[GDC_MASTER].display_enable = true;
+            break;
+        case 0x0D: /* text layer disable */
+            pc98_gdc[GDC_MASTER].force_fifo_complete();
+            pc98_gdc[GDC_MASTER].display_enable = false;
+            break;
+        case 0x0E: /* set text display area (DX=byte offset) */
+            pc98_gdc[GDC_MASTER].force_fifo_complete();
+            pc98_gdc[GDC_MASTER].param_ram[0] = (reg_dx >> 1) & 0xFF;
+            pc98_gdc[GDC_MASTER].param_ram[1] = (reg_dx >> 9) & 0xFF;
+            pc98_gdc[GDC_MASTER].param_ram[2] = (400 << 4) & 0xFF;
+            pc98_gdc[GDC_MASTER].param_ram[3] = (400 << 4) >> 8;
+            break;
+        case 0x11: /* show cursor */
+            pc98_gdc[GDC_MASTER].force_fifo_complete();
+            pc98_gdc[GDC_MASTER].cursor_enable = true;
+            break;
+        case 0x12: /* hide cursor */
+            pc98_gdc[GDC_MASTER].force_fifo_complete();
+            pc98_gdc[GDC_MASTER].cursor_enable = false;
+            break;
+        case 0x13: /* set cursor position (DX=byte position) */
+            void vga_pc98_direct_cursor_pos(Bit16u address);
+
+            pc98_gdc[GDC_MASTER].force_fifo_complete();
+            vga_pc98_direct_cursor_pos(reg_dx >> 1);
+            pc98_gdc[GDC_MASTER].cursor_enable = true; // FIXME: Right?
+            break;
+        case 0x16: /* fill screen with chr + attr */
+            {
+                /* DL = character
+                 * DH = attribute */
+                unsigned int i;
+
+                for (i=0;i < 0x2000;i += 2) {
+                    vga.mem.linear[i+0] = reg_dl;
+                    vga.mem.linear[i+1] = 0x00;
+                }
+                for (   ;i < 0x3FE0;i += 2) {
+                    vga.mem.linear[i+0] = reg_dh;
+                    vga.mem.linear[i+1] = 0x00;
+                }
+            }
+            break;
+        case 0x1A: /* load FONT RAM */
+            {
+                unsigned int i,o,r;
+
+                /* DX = code (must be 0x76xx or 0x7700)
+                 * BX:CX = 34-byte region to read from */
+                if ((reg_dh & 0x7E) == 0x76) {
+                    i = (reg_bx << 4) + reg_cx + 2;
+                    for (r=0;r < 16;r++) {
+                        o = (((((reg_dl & 0x7F)*128)+((reg_dh - 0x20) & 0x7F))*16)+r)*2;
+
+                        assert((o+2) <= sizeof(vga.draw.font));
+
+                        vga.draw.font[o+0] = mem_readb(i+(r*2)+0);
+                        vga.draw.font[o+1] = mem_readb(i+(r*2)+1);
+                    }
+                }
+                else {
+                    LOG_MSG("PC-98 INT 18h AH=1Ah font RAM load ignored, code 0x%04x out of range",reg_dx);
+                }
+            }
+            break;
+        /* From this point on the INT 18h call list appears to wander off from the keyboard into CRT/GDC/display management. */
+        case 0x40: /* Start displaying the graphics screen (グラフィック画面の表示開始) */
+            pc98_gdc[GDC_SLAVE].force_fifo_complete();
+            pc98_gdc[GDC_SLAVE].display_enable = true;
+ 
+            {
+                unsigned char b = mem_readb(0x54C/*MEMB_PRXCRT*/);
+                mem_writeb(0x54C/*MEMB_PRXCRT*/,b | 0x80);
+            }
+            break;
+        case 0x41: /* Stop displaying the graphics screen (グラフィック画面の表示終了) */
+            pc98_gdc[GDC_SLAVE].force_fifo_complete();
+            pc98_gdc[GDC_SLAVE].display_enable = false;
+
+            {
+                unsigned char b = mem_readb(0x54C/*MEMB_PRXCRT*/);
+                mem_writeb(0x54C/*MEMB_PRXCRT*/,b & (~0x80));
+            }
+            break;
+        case 0x42: /* Display area setup (表示領域の設定) */
+            pc98_gdc[GDC_MASTER].force_fifo_complete();
+            pc98_gdc[GDC_SLAVE].force_fifo_complete();
+            /* reset scroll area of graphics */
+            if ((reg_ch & 0xC0) == 0x40) { /* 640x200 G-RAM upper half */
+                pc98_gdc[GDC_SLAVE].param_ram[0] = (200*40) & 0xFF;
+                pc98_gdc[GDC_SLAVE].param_ram[1] = (200*40) >> 8;
+            }
+            else {
+                pc98_gdc[GDC_SLAVE].param_ram[0] = 0;
+                pc98_gdc[GDC_SLAVE].param_ram[1] = 0;
+            }
+            pc98_gdc[GDC_SLAVE].param_ram[2] = 0xF0;
+            pc98_gdc[GDC_SLAVE].param_ram[3] = 0x3F;
+            pc98_gdc[GDC_SLAVE].active_display_words_per_line = 40; /* 40 x 16 = 640 pixel wide graphics */
+
+            // CH
+            //   [7:6] = G-RAM setup
+            //           00 = no graphics (?)
+            //           01 = 640x200 upper half
+            //           10 = 640x200 lower half
+            //           11 = 640x400
+
+            // FIXME: This is a guess. I have no idea as to actual behavior, yet.
+            //        This seems to help with clearing the text layer when games start the graphics.
+            //        This is ALSO how we will detect games that switch on the 200-line double-scan mode vs 400-line mode.
+            if ((reg_ch & 0xC0) != 0) {
+                pc98_gdc[GDC_SLAVE].doublescan = ((reg_ch & 0xC0) == 0x40) || ((reg_ch & 0xC0) == 0x80);
+                pc98_gdc[GDC_SLAVE].row_height = pc98_gdc[GDC_SLAVE].doublescan ? 2 : 1;
+            }
+            else {
+                pc98_gdc[GDC_SLAVE].doublescan = false;
+                pc98_gdc[GDC_SLAVE].row_height = 1;
+            }
+
+            {
+                unsigned char b = mem_readb(0x54C/*MEMB_PRXCRT*/);
+
+                // Real hardware behavior: graphics selection updated by BIOS to reflect MEMB_PRXCRT state
+                pc98_gdc[GDC_SLAVE].display_enable = !!(b & 0x80);
+            }
+
+            pc98_gdc_vramop &= ~(1 << VOPBIT_ACCESS);
+            GDC_display_plane = 0;
+
+            prev_pc98_mode42 = reg_ch;
+
+            LOG_MSG("PC-98 INT 18 AH=42h CH=0x%02X",reg_ch);
+            break;
+        default:
+            LOG_MSG("PC-98 INT 18h unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+                reg_ax,
+                reg_bx,
+                reg_cx,
+                reg_dx,
+                reg_si,
+                reg_di,
+                SegValue(ds),
+                SegValue(es));
+            break;
+    };
+
+    /* FIXME: What do actual BIOSes do when faced with an unknown INT 18h call? */
+    return CBRET_NONE;
+}
+
+static Bitu INT19_PC98_Handler(void) {
+    LOG_MSG("PC-98 INT 19h unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+        reg_ax,
+        reg_bx,
+        reg_cx,
+        reg_dx,
+        reg_si,
+        reg_di,
+        SegValue(ds),
+        SegValue(es));
+
+    return CBRET_NONE;
+}
+
+static Bitu INT1A_PC98_Handler(void) {
+    /* HACK: This makes the "test" program in DOSLIB work.
+     *       We'll remove this when we implement INT 1Ah */
+    if (reg_ax == 0x1000) {
+        CALLBACK_SCF(false);
+        reg_ax = 0;
+    }
+
+    LOG_MSG("PC-98 INT 1Ah unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+        reg_ax,
+        reg_bx,
+        reg_cx,
+        reg_dx,
+        reg_si,
+        reg_di,
+        SegValue(ds),
+        SegValue(es));
+
+    return CBRET_NONE;
+}
+
+static Bitu INT1B_PC98_Handler(void) {
+    LOG_MSG("PC-98 INT 1Bh unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+        reg_ax,
+        reg_bx,
+        reg_cx,
+        reg_dx,
+        reg_si,
+        reg_di,
+        SegValue(ds),
+        SegValue(es));
+
+    return CBRET_NONE;
+}
+
+static Bitu INT1C_PC98_Handler(void) {
+    LOG_MSG("PC-98 INT 1Ch unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+        reg_ax,
+        reg_bx,
+        reg_cx,
+        reg_dx,
+        reg_si,
+        reg_di,
+        SegValue(ds),
+        SegValue(es));
+
+    return CBRET_NONE;
+}
+
+static Bitu INT1D_PC98_Handler(void) {
+    LOG_MSG("PC-98 INT 1Dh unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+        reg_ax,
+        reg_bx,
+        reg_cx,
+        reg_dx,
+        reg_si,
+        reg_di,
+        SegValue(ds),
+        SegValue(es));
+
+    return CBRET_NONE;
+}
+
+static Bitu INT1E_PC98_Handler(void) {
+    LOG_MSG("PC-98 INT 1Eh unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+        reg_ax,
+        reg_bx,
+        reg_cx,
+        reg_dx,
+        reg_si,
+        reg_di,
+        SegValue(ds),
+        SegValue(es));
+
+    return CBRET_NONE;
+}
+
+static Bitu INT1F_PC98_Handler(void) {
+    LOG_MSG("PC-98 INT 1Fh unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+        reg_ax,
+        reg_bx,
+        reg_cx,
+        reg_dx,
+        reg_si,
+        reg_di,
+        SegValue(ds),
+        SegValue(es));
+
+    return CBRET_NONE;
+}
+
+static Bitu INTGEN_PC98_Handler(void) {
+    LOG_MSG("PC-98 INT stub unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+        reg_ax,
+        reg_bx,
+        reg_cx,
+        reg_dx,
+        reg_si,
+        reg_di,
+        SegValue(ds),
+        SegValue(es));
+
+    return CBRET_NONE;
+}
+
+static Bitu INTDC_PC98_Handler(void) {
+    LOG_MSG("PC-98 INT DCh unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+        reg_ax,
+        reg_bx,
+        reg_cx,
+        reg_dx,
+        reg_si,
+        reg_di,
+        SegValue(ds),
+        SegValue(es));
+
+    return CBRET_NONE;
+}
+
+static Bitu INTF2_PC98_Handler(void) {
+    LOG_MSG("PC-98 INT F2h unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+        reg_ax,
+        reg_bx,
+        reg_cx,
+        reg_dx,
+        reg_si,
+        reg_di,
+        SegValue(ds),
+        SegValue(es));
+
+    return CBRET_NONE;
+}
+
 static Bitu INT11_Handler(void) {
 	reg_ax=mem_readw(BIOS_CONFIGURATION);
 	return CBRET_NONE;
@@ -3400,7 +3879,9 @@ static Bitu INT15_Handler(void) {
 	return CBRET_NONE;
 }
 
+void BIOS_UnsetupKeyboard(void);
 void BIOS_SetupKeyboard(void);
+void BIOS_UnsetupDisks(void);
 void BIOS_SetupDisks(void);
 void CPU_Snap_Back_To_Real_Mode();
 void CPU_Snap_Back_Restore();
@@ -3608,7 +4089,7 @@ static Bitu adapter_scan_start;
 
 /* FIXME: At global scope their destructors are called after the rest of DOSBox has shut down. Move back into BIOS scope. */
 static CALLBACK_HandlerObject int4b_callback;
-static CALLBACK_HandlerObject callback[16]; /* <- fixme: this is stupid. just declare one per interrupt. */
+static CALLBACK_HandlerObject callback[20]; /* <- fixme: this is stupid. just declare one per interrupt. */
 static CALLBACK_HandlerObject cb_bios_post;
 
 Bitu call_pnp_r = ~0UL;
@@ -3618,6 +4099,8 @@ Bitu call_pnp_p = ~0UL;
 Bitu call_pnp_pp = 0;
 
 Bitu isapnp_biosstruct_base = 0;
+
+Bitu BIOS_boot_code_offset = 0;
 
 void BIOS_OnResetComplete(Section *x);
 
@@ -4181,7 +4664,6 @@ private:
 	CALLBACK_HandlerObject cb_bios_scan_video_bios;
 	static Bitu cb_bios_scan_video_bios__func(void) {
 		unsigned long size;
-		Bit32u c1;
 
 		if (cpu.pmode) E_Exit("BIOS error: VIDEO BIOS SCAN function called while in protected/vm86 mode");
 
@@ -4193,27 +4675,15 @@ private:
 					LOG(LOG_MISC,LOG_DEBUG)("BIOS VIDEO ROM SCAN found VGA BIOS (size=%lu)",size);
 					adapter_scan_start = 0xC0000 + size;
 
-					/* HACK: DOSbox's current VGA BIOS emulation doesn't have a valid entry point at C000:0003
-					 *       where a normal VGA BIOS (like Bochs' VGA BIOS) would have code or at least a JMP
-					 *       instruction there to make a valid entry point. Fortunately, we can detect this
-					 *       by whether or not the bytes there are zeros. */
-					c1 = mem_readd(0xC0003);
-					if (c1 != 0UL) {
-						LOG(LOG_MISC,LOG_DEBUG)("Running VGA BIOS entry point");
+                    // step back into the callback instruction that triggered this call
+                    reg_eip -= 4;
 
-						// step back into the callback instruction that triggered this call
-						reg_eip -= 4;
-
-						// FAR CALL into the VGA BIOS
-						CPU_CALL(false,0xC000,0x0003,reg_eip);
-						return CBRET_NONE;
-					}
-					else {
-						LOG(LOG_MISC,LOG_DEBUG)("FIXME: VGA BIOS does not have valid code at ROM BIOS entry point (bytes are all zeros at C000:0003). Not executing entry point.");
-					}
-				}
-				else {
-					LOG(LOG_MISC,LOG_WARN)("BIOS VIDEO ROM SCAN did not find VGA BIOS");
+                    // FAR CALL into the VGA BIOS
+                    CPU_CALL(false,0xC000,0x0003,reg_eip);
+                    return CBRET_NONE;
+                }
+                else {
+                    LOG(LOG_MISC,LOG_WARN)("BIOS VIDEO ROM SCAN did not find VGA BIOS");
 				}
 			}
 			else {
@@ -4493,6 +4963,11 @@ private:
 		if (cpu.pmode) E_Exit("BIOS error: BOOT function called while in protected/vm86 mode");
 		DispatchVMEvent(VM_EVENT_BIOS_BOOT);
 
+        /* if we're supposed to run in PC-98 mode, then do it NOW.
+         * sdlmain.cpp will come back around when it's made the change to this call. */
+        if (enable_pc98_jump)
+            throw int(5);
+
 		// TODO: If instructed to, follow the INT 19h boot pattern, perhaps follow the BIOS Boot Specification, etc.
 
 		// TODO: If instructed to boot a guest OS...
@@ -4521,6 +4996,22 @@ public:
 		// signature
 		phys_writeb(0xfffff,0x55);
 	}
+    void write_FFFF_PC98_signature() {
+        /* this may overwrite the existing signature.
+         * PC-98 systems DO NOT have an ASCII date at F000:FFF5
+         * and the WORD value at F000:FFFE is said to be a checksum of the BIOS */
+ 
+		// The farjump at the processor reset entry point (jumps to POST routine)
+		phys_writeb(0xffff0,0xEA);					// FARJMP
+		phys_writew(0xffff1,RealOff(BIOS_DEFAULT_RESET_LOCATION));	// offset
+		phys_writew(0xffff3,RealSeg(BIOS_DEFAULT_RESET_LOCATION));	// segment
+
+		// write nothing (not used)
+		for(Bitu i = 0; i < 9; i++) phys_writeb(0xffff5+i,0);
+
+        // fake BIOS checksum
+        phys_writew(0xffffe,0xABCD);
+    }
 	BIOS(Section* configuration):Module_base(configuration){
 		/* tandy DAC can be requested in tandy_sound.cpp by initializing this field */
 		Bitu wo;
@@ -4577,7 +5068,7 @@ public:
 		/* Setup all the interrupt handlers the bios controls */
 
 		/* INT 8 Clock IRQ Handler */
-		Bitu call_irq0=CALLBACK_Allocate();	
+		call_irq0=CALLBACK_Allocate();	
 		CALLBACK_Setup(call_irq0,INT8_Handler,CB_IRQ0,Real2Phys(BIOS_DEFAULT_IRQ0_LOCATION),"IRQ 0 Clock");
 
 		/* INT 11 Get equipment list */
@@ -4682,11 +5173,11 @@ public:
 		init_vm86_fake_io();
 
 		/* Irq 2-7 */
-		Bitu call_irq07default=CALLBACK_Allocate();
+		call_irq07default=CALLBACK_Allocate();
 		CALLBACK_Setup(call_irq07default,NULL,CB_IRET_EOI_PIC1,Real2Phys(BIOS_DEFAULT_IRQ07_DEF_LOCATION),"bios irq 0-7 default handler");
 
 		/* Irq 8-15 */
-		Bitu call_irq815default=CALLBACK_Allocate();
+		call_irq815default=CALLBACK_Allocate();
 		CALLBACK_Setup(call_irq815default,NULL,CB_IRET_EOI_PIC2,Real2Phys(BIOS_DEFAULT_IRQ815_DEF_LOCATION),"bios irq 8-15 default handler");
 
 		/* BIOS boot stages */
@@ -4728,6 +5219,7 @@ public:
 			wo += 4;
 
 			// boot
+            BIOS_boot_code_offset = wo;
 			phys_writeb(wo+0x00,(Bit8u)0xFE);						//GRP 4
 			phys_writeb(wo+0x01,(Bit8u)0x38);						//Extra Callback instruction
 			phys_writew(wo+0x02,(Bit16u)cb_bios_boot.Get_callback());			//The immediate word
@@ -4805,7 +5297,165 @@ public:
 		/* done */
 		CPU_Snap_Back_Restore();
 	}
+    /* PC-98 change code */
+    void rewrite_IRQ_handlers(void) {
+        CALLBACK_Setup(call_irq0,INT8_Handler,CB_IRET_EOI_PIC1,Real2Phys(BIOS_DEFAULT_IRQ0_LOCATION),"IRQ 0 Clock");
+        CALLBACK_Setup(call_irq07default,NULL,CB_IRET_EOI_PIC1,Real2Phys(BIOS_DEFAULT_IRQ07_DEF_LOCATION),"bios irq 0-7 default handler");
+        CALLBACK_Setup(call_irq815default,NULL,CB_IRET_EOI_PIC2,Real2Phys(BIOS_DEFAULT_IRQ815_DEF_LOCATION),"bios irq 8-15 default handler");
+
+        BIOS_UnsetupKeyboard();
+        BIOS_UnsetupDisks();
+
+        /* no such INT 4Bh */
+		int4b_callback.Uninstall();
+        RealSetVec(0x4B,0);
+
+        /* remove some IBM-style BIOS interrupts that don't exist on PC-98 */
+        /* IRQ to INT arrangement
+         *
+         * IBM          PC-98           IRQ
+         * --------------------------------
+         * 0x08         0x08            0
+         * 0x09         0x09            1
+         * 0x0A CASCADE 0x0A            2
+         * 0x0B         0x0B            3
+         * 0x0C         0x0C            4
+         * 0x0D         0x0D            5
+         * 0x0E         0x0E            6
+         * 0x0F         0x0F CASCADE    7
+         * 0x70         0x10            8
+         * 0x71         0x11            9
+         * 0x72         0x12            10
+         * 0x73         0x13            11
+         * 0x74         0x14            12
+         * 0x75         0x15            13
+         * 0x76         0x16            14
+         * 0x77         0x17            15
+         *
+         * As part of the change the IRQ cascade emulation needs to change for PC-98 as well.
+         * IBM uses IRQ 2 for cascade.
+         * PC-98 uses IRQ 7 for cascade. */
+
+        void INT10_EnterPC98(Section *sec);
+        INT10_EnterPC98(NULL); /* INT 10h */
+
+		callback[1].Uninstall(); /* INT 11h */
+        RealSetVec(0x11,0);
+
+		callback[2].Uninstall(); /* INT 12h */
+        RealSetVec(0x12,0);
+
+		callback[3].Uninstall(); /* INT 14h */
+        RealSetVec(0x14,0);
+
+		callback[4].Uninstall(); /* INT 15h */
+        RealSetVec(0x15,0);
+
+		callback[5].Uninstall(); /* INT 17h */
+        RealSetVec(0x17,0);
+
+        callback[6].Uninstall(); /* INT 1Ah */
+        RealSetVec(0x1A,0);
+
+        RealSetVec(0x1B,0);     /* INT 1Bh */
+
+        callback[7].Uninstall(); /* INT 1Ch */
+        RealSetVec(0x1C,0);
+
+        RealSetVec(0x1D,0);     /* INT 1Dh */
+        RealSetVec(0x1E,0);     /* INT 1Eh */
+        RealSetVec(0x1F,0);     /* INT 1Fh */
+
+		callback[10].Uninstall(); /* INT 19h */
+        RealSetVec(0x19,0);
+
+		callback[11].Uninstall(); /* INT 76h: IDE IRQ 14 */
+        RealSetVec(0x76,0);
+
+		callback[12].Uninstall(); /* INT 77h: IDE IRQ 15 */
+        RealSetVec(0x77,0);
+
+		callback[15].Uninstall(); /* INT 18h: Enter BASIC */
+        RealSetVec(0x18,0);
+
+        /* IRQ 6 is nothing special */
+		callback[13].Uninstall(); /* INT 0Eh: IDE IRQ 6 */
+        callback[13].Install(NULL,CB_IRET_EOI_PIC1,"irq 6");
+
+        /* IRQ 8 is nothing special */
+        callback[8].Uninstall();
+        callback[8].Install(NULL,CB_IRET_EOI_PIC2,"irq 8");
+
+        /* IRQ 9 is nothing special */
+        callback[9].Uninstall();
+        callback[9].Install(NULL,CB_IRET_EOI_PIC2,"irq 9");
+
+        /* PIC emulation (correctly) moves IRQ 8-15 down to INT 0x10-0x17 to match PC-98 */
+		for (Bit16u ct=0x10;ct <= 0x17;ct++) /* write default IRQ handlers down here */
+			RealSetVec(ct,BIOS_DEFAULT_IRQ815_DEF_LOCATION);
+		for (Bit16u ct=0x70;ct <= 0x77;ct++) /* zero out IBM PC IRQ 8-15 vectors */
+			RealSetVec(ct,0);
+
+		/* INT 40h-FFh generic stub routine */
+		callback[18].Install(&INTGEN_PC98_Handler,CB_IRET,"Int stub ???");
+        for (unsigned int i=0x40;i < 0x100;i++) RealSetVec(i,callback[18].Get_RealPointer());
+
+        BIOS_SetupKeyboard();
+        BIOS_SetupDisks(); /* In PC-98 mode, will zero INT 13h */
+
+		/* INT 18h keyboard and video display functions */
+		callback[1].Install(&INT18_PC98_Handler,CB_INT16,"Int 18 keyboard and display");
+		callback[1].Set_RealVec(0x18,/*reinstall*/true);
+
+		/* INT 19h *STUB* */
+		callback[2].Install(&INT19_PC98_Handler,CB_IRET,"Int 19 ???");
+		callback[2].Set_RealVec(0x19,/*reinstall*/true);
+
+		/* INT 1Ah *STUB* */
+		callback[3].Install(&INT1A_PC98_Handler,CB_IRET,"Int 1A ???");
+		callback[3].Set_RealVec(0x1A,/*reinstall*/true);
+
+		/* INT 1Bh *STUB* */
+		callback[4].Install(&INT1B_PC98_Handler,CB_IRET,"Int 1B ???");
+		callback[4].Set_RealVec(0x1B,/*reinstall*/true);
+
+		/* INT 1Ch *STUB* */
+		callback[5].Install(&INT1C_PC98_Handler,CB_IRET,"Int 1C ???");
+		callback[5].Set_RealVec(0x1C,/*reinstall*/true);
+
+		/* INT 1Dh *STUB* */
+		callback[6].Install(&INT1D_PC98_Handler,CB_IRET,"Int 1D ???");
+		callback[6].Set_RealVec(0x1D,/*reinstall*/true);
+
+		/* INT 1Eh *STUB* */
+		callback[7].Install(&INT1E_PC98_Handler,CB_IRET,"Int 1E ???");
+		callback[7].Set_RealVec(0x1E,/*reinstall*/true);
+
+		/* INT 1Fh *STUB* */
+		callback[10].Install(&INT1F_PC98_Handler,CB_IRET,"Int 1F ???");
+		callback[10].Set_RealVec(0x1F,/*reinstall*/true);
+
+		/* INT DCh *STUB* */
+		callback[16].Install(&INTDC_PC98_Handler,CB_IRET,"Int DC ???");
+		callback[16].Set_RealVec(0xDC,/*reinstall*/true);
+
+		/* INT F2h *STUB* */
+		callback[17].Install(&INTF2_PC98_Handler,CB_IRET,"Int F2 ???");
+		callback[17].Set_RealVec(0xF2,/*reinstall*/true);
+    }
+public:
+    Bitu call_irq0;
+    Bitu call_irq07default;
+    Bitu call_irq815default;
 };
+
+void BIOS_Enter_Boot_Phase(void) {
+    /* direct CS:IP right to the instruction that leads to the boot process */
+    /* note that since it's a callback instruction it doesn't really matter
+     * what CS:IP is as long as it points to the instruction */
+    reg_eip = BIOS_boot_code_offset & 0xFUL;
+	CPU_SetSegGeneral(cs, BIOS_boot_code_offset >> 4UL);
+}
 
 void BIOS_SetCOMPort(Bitu port, Bit16u baseaddr) {
 	switch(port) {
@@ -4911,6 +5561,28 @@ void BIOS_OnPowerOn(Section* sec) {
 	test = new BIOS(control->GetSection("joystick"));
 }
 
+void BIOS_OnEnterPC98Mode(Section* sec) {
+    if (test) {
+        test->write_FFFF_PC98_signature();
+
+        /* clear out 0x50 segment */
+        for (unsigned int i=0;i < 0x100;i++) phys_writeb(0x500+i,0);
+
+        /* set up some default state */
+        mem_writeb(0x54C/*MEMB_PRXCRT*/,0x4F); /* default graphics layer off, 24KHz hsync */
+
+        /* keyboard buffer */
+        mem_writew(0x524/*tail*/,0x502);
+        mem_writew(0x526/*tail*/,0x502);
+    }
+}
+
+void BIOS_OnEnterPC98Mode_phase2(Section* sec) {
+    if (test) {
+        test->rewrite_IRQ_handlers();
+    }
+}
+
 void swapInNextDisk(bool pressed);
 void swapInNextCD(bool pressed);
 
@@ -4962,6 +5634,10 @@ void BIOS_Init() {
 	AddExitFunction(AddExitFunctionFuncPair(BIOS_Destroy),false);
 	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(BIOS_OnPowerOn));
 	AddVMEventFunction(VM_EVENT_RESET_END,AddVMEventFunctionFuncPair(BIOS_OnResetComplete));
+
+    /* PC-98 support */
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(BIOS_OnEnterPC98Mode));
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE_END,AddVMEventFunctionFuncPair(BIOS_OnEnterPC98Mode_phase2));
 }
 
 void write_ID_version_string() {

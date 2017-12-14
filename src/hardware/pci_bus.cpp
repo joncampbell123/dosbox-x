@@ -467,5 +467,8 @@ void PCIBUS_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(PCI_ShutDown),false);
 	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(PCI_OnPowerOn));
+
+    /* NTS: PCI emulation does not have to change anything when entering into PC-98 mode.
+     *      I/O ports for PCI bus control are the SAME on both platforms (0xCF8-0xCFF). */
 }
 

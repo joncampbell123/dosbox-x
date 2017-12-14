@@ -38,9 +38,6 @@
 /* Define to 1 to use inlined memory functions in cpu core */
 #undef C_CORE_INLINE
 
-/* Define to 1 to use Direct3D shaders, requires d3d9.h and libd3dx9 */
-#undef C_D3DSHADERS
-
 /* Define to 1 to enable internal debugger, requires libcurses */
 #undef C_DEBUG
 
@@ -91,6 +88,12 @@
 /* Define to 1 to use opengl display output support */
 #undef C_OPENGL
 
+/* Set to 1 to enable SDL 1.x support */
+#undef C_SDL1
+
+/* Set to 1 to enable SDL 2.x support */
+#undef C_SDL2
+
 /* Indicate whether SDL_net is present */
 #undef C_SDL_NET
 
@@ -123,12 +126,6 @@
 
 /* Define to 1 to use ALSA for MIDI */
 #undef HAVE_ALSA
-
-/* Define to 1 if you have the <d3d9.h> header file. */
-#undef HAVE_D3D9_H
-
-/* Define to 1 if you have the <ddraw.h> header file. */
-#undef HAVE_DDRAW_H
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
@@ -237,6 +234,17 @@
 #  undef WORDS_BIGENDIAN
 # endif
 #endif
+
+/* Enable large inode numbers on Mac OS X 10.5.  */
+#ifndef _DARWIN_USE_64_BIT_INODE
+# define _DARWIN_USE_64_BIT_INODE 1
+#endif
+
+/* Number of bits in a file offset, on hosts where this is settable. */
+#undef _FILE_OFFSET_BITS
+
+/* Define for large files, on AIX-style hosts. */
+#undef _LARGE_FILES
 
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const

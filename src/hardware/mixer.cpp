@@ -744,11 +744,11 @@ static void MIXER_CallBack(void * userdata, Uint8 *stream, int len) {
 	remains = (int)mixer.work_in - (int)mixer.work_out;
 	if (remains < 0) remains += mixer.work_wrap;
 
-	if (remains >= (mixer.blocksize*2)) {
+	if ((unsigned long)remains >= (mixer.blocksize*2UL)) {
 		/* drop some samples to keep time */
 		unsigned int drop;
 
-		if (remains >= (mixer.blocksize*3)) // hard drop
+		if ((unsigned long)remains >= (mixer.blocksize*3UL)) // hard drop
 			drop = ((unsigned int)remains - (unsigned int)(mixer.blocksize));
 		else // subtle drop
 			drop = (((unsigned int)remains - (unsigned int)(mixer.blocksize*2)) / 50U) + 1;
@@ -836,6 +836,14 @@ private:
 
 };
 
+void MAPPER_UpdateFromMasterVolume() {
+    MixerChannel * chan=mixer.channels;
+    while (chan) {
+        chan->UpdateVolume();
+        chan=chan->next;
+    }
+}
+
 static void MIXER_ProgramStart(Program * * make) {
 	*make=new MIXER;
 }
@@ -862,6 +870,38 @@ void MENU_swapstereo(bool enabled) {
 	mixer.swapstereo=enabled;
 }
 #endif
+
+void MAPPER_VolumeUp(bool pressed) {
+    if (!pressed) return;
+
+    double newvol = ((mixer.mastervol[0] + mixer.mastervol[1]) / 0.7) * 0.5;
+
+    if (newvol > 1) newvol = 1;
+
+    mixer.mastervol[0] = mixer.mastervol[1] = newvol;
+    MAPPER_UpdateFromMasterVolume();
+
+    LOG(LOG_MISC,LOG_NORMAL)("Master volume UP to %.3f%%",newvol * 100);
+}
+
+void MAPPER_VolumeDown(bool pressed) {
+    if (!pressed) return;
+
+    double newvol = (mixer.mastervol[0] + mixer.mastervol[1]) * 0.7 * 0.5;
+
+    if (fabs(newvol - 1.0) < 0.25)
+        newvol = 1;
+
+    mixer.mastervol[0] = mixer.mastervol[1] = newvol;
+    MAPPER_UpdateFromMasterVolume();
+
+    LOG(LOG_MISC,LOG_NORMAL)("Master volume DOWN to %.3f%%",newvol * 100);
+}
+
+void MIXER_Controls_Init() {
+	MAPPER_AddHandler(MAPPER_VolumeUp  ,MK_kpplus, MMOD1,"volup","VolUp");
+	MAPPER_AddHandler(MAPPER_VolumeDown,MK_kpminus,MMOD1,"voldown","VolDown");
+}
 
 void MIXER_Init() {
 	AddExitFunction(AddExitFunctionFuncPair(MIXER_Stop));
@@ -943,5 +983,7 @@ void MIXER_Init() {
 		(unsigned int)mixer.samples_per_ms.fd);
 
 	PROGRAMS_MakeFile("MIXER.COM",MIXER_ProgramStart);
+
+    MIXER_Controls_Init();
 }
 

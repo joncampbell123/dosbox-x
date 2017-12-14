@@ -237,3 +237,10 @@ void VGA_SetupGFX(void) {
 	}
 }
 
+void VGA_UnsetupGFX(void) {
+    IO_FreeWriteHandler(0x3ce,IO_MB);
+    IO_FreeReadHandler(0x3ce,IO_MB);
+    IO_FreeWriteHandler(0x3cf,IO_MB);
+    IO_FreeReadHandler(0x3cf,IO_MB);
+}
+

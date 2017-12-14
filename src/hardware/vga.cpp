@@ -124,9 +124,11 @@
 #include "programs.h"
 #include "support.h"
 #include "setup.h"
+#include "timer.h"
 #include "mem.h"
 #include "util_units.h"
 #include "control.h"
+#include "mixer.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -168,6 +170,12 @@ bool allow_vesa_15bpp = true;
 bool allow_vesa_8bpp = true;
 bool allow_vesa_4bpp = true;
 bool allow_vesa_tty = true;
+
+bool gdc_5mhz_mode = true;
+
+void gdc_5mhz_mode_update_vars(void) {
+    mem_writeb(0x54D,(mem_readb(0x54D) & (~0x04)) | (gdc_5mhz_mode ? 0x04 : 0x00));
+}
 
 void page_flip_debug_notify() {
 	if (enable_page_flip_debugging_marker)
@@ -436,13 +444,33 @@ static inline int int_log2(int val) {
 extern bool pcibus_enable;
 extern int hack_lfb_yadjust;
 
+bool pc98_allow_scanline_effect = true;
+bool pc98_allow_4_display_partitions = false;
+
 void VGA_VsyncUpdateMode(VGA_Vsync vsyncmode);
 
 void VGA_Reset(Section*) {
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 	string str;
+    int i;
 
 	LOG(LOG_MISC,LOG_DEBUG)("VGA_Reset() reinitializing VGA emulation");
+
+    pc98_allow_scanline_effect = section->Get_bool("pc-98 allow scanline effect");
+
+    // whether the GDC is running at 2.5MHz or 5.0MHz.
+    // Some games require the GDC to run at 5.0MHz.
+    // To enable these games we default to 5.0MHz.
+    // TODO: Make a dosbox.conf option.
+    // TODO: Add an option whether it can be switched on.
+    // TODO: Add port I/O commands to allow it to be turned on/off.
+    // TODO: Some games (TH03) actually refuse to run if the GDC is at 5MHz????
+    gdc_5mhz_mode = section->Get_bool("pc-98 start gdc at 5mhz");
+
+    i = section->Get_int("pc-98 allow 4 display partition graphics");
+    pc98_allow_4_display_partitions = (i < 0/*auto*/ || i == 1/*on*/);
+    // TODO: "auto" will default to true if old PC-9801, false if PC-9821, or
+    //       a more refined automatic choice according to actual hardware.
 
 	vga_force_refresh_rate = -1;
 	str=section->Get_string("forcerate");
@@ -589,7 +617,12 @@ void VGA_Reset(Section*) {
 			else vga.vmemsize = _KB_bytes(256);
 			break;
 		case MCH_VGA:
-			if (vga.vmemsize < _KB_bytes(256)) vga.vmemsize = _KB_bytes(256);
+            if (enable_pc98_jump) {
+                if (vga.vmemsize < _KB_bytes(512)) vga.vmemsize = _KB_bytes(512);
+            }
+            else {
+                if (vga.vmemsize < _KB_bytes(256)) vga.vmemsize = _KB_bytes(256);
+            }
 			break;
 		case MCH_AMSTRAD:
 			if (vga.vmemsize < _KB_bytes(64)) vga.vmemsize = _KB_bytes(64); /* FIXME: Right? */
@@ -659,10 +692,1376 @@ void VGA_Reset(Section*) {
 }
 
 extern void VGA_TweakUserVsyncOffset(float val);
+void INT10_PC98_CurMode_Relocate(void);
+void VGA_UnsetupMisc(void);
+void VGA_UnsetupAttr(void);
+void VGA_UnsetupDAC(void);
+void VGA_UnsetupGFX(void);
+void VGA_UnsetupSEQ(void);
+
+#define gfx(blah) vga.gfx.blah
+#define seq(blah) vga.seq.blah
+#define crtc(blah) vga.crtc.blah
+
+double gdc_proc_delay = 0.001; /* time from FIFO to processing in GDC (1us) FIXME: Is this right? */
+bool gdc_proc_delay_set = false;
+
+void GDC_ProcDelay(Bitu /*val*/);
+
+void gdc_proc_schedule_delay(void) {
+    if (!gdc_proc_delay_set) {
+        PIC_AddEvent(GDC_ProcDelay,(float)gdc_proc_delay);
+        gdc_proc_delay_set = false;
+    }
+}
+
+void gdc_proc_schedule_cancel(void) {
+    if (gdc_proc_delay_set) {
+        PIC_RemoveEvents(GDC_ProcDelay);
+        gdc_proc_delay_set = false;
+    }
+}
+
+void gdc_proc_schedule_done(void) {
+    gdc_proc_delay_set = false;
+}
+
+void VGA_DAC_UpdateColor( Bitu index );
+
+#include "inout.h"
+
+PC98_GDC_state::PC98_GDC_state() {
+    memset(param_ram,0,sizeof(param_ram));
+
+    // make a display partition area to cover the screen, whatever it is.
+    param_ram[0] = 0x00;        // SAD=0
+    param_ram[1] = 0x00;        // SAD=0
+    param_ram[2] = 0xF0;        // LEN=3FF
+    param_ram[3] = 0x3F;        // LEN=3FF WD1=0
+
+    display_partition_mask = 3;
+    doublescan = false;
+    param_ram_wptr = 0;
+    display_partition = 0;
+    row_line = 0;
+    row_height = 16;
+    scan_address = 0;
+    current_command = 0xFF;
+    proc_step = 0xFF;
+    display_enable = true;
+    display_mode = 0;
+    cursor_enable = true;
+    cursor_blink_state = 0;
+    cursor_blink_count = 0;
+    cursor_blink_rate = 0x20;
+    video_framing = 0;
+    master_sync = false;
+    draw_only_during_retrace = 0;
+    dynamic_ram_refresh = 0;
+    cursor_blink = true;
+    idle = false;
+    reset_fifo();
+    reset_rfifo();
+}
+
+void PC98_show_cursor(bool show) {
+    pc98_gdc[GDC_MASTER].cursor_enable = show;
+}
+
+enum {
+    GDC_CMD_RESET = 0x00,                       // 0   0   0   0   0   0   0   0
+    GDC_CMD_DISPLAY_BLANK = 0x0C,               // 0   0   0   0   1   1   0   DE
+    GDC_CMD_SYNC = 0x0E,                        // 0   0   0   0   1   1   1   DE
+    GDC_CMD_CURSOR_POSITION = 0x49,             // 0   1   0   0   1   0   0   1
+    GDC_CMD_CURSOR_CHAR_SETUP = 0x4B,           // 0   1   0   0   1   0   1   1
+    GDC_CMD_PITCH_SPEC = 0x47,                  // 0   1   0   0   0   1   1   1
+    GDC_CMD_START_DISPLAY = 0x6B,               // 0   1   1   0   1   0   1   1
+    GDC_CMD_VERTICAL_SYNC_MODE = 0x6E,          // 0   1   1   0   1   1   1   M
+    GDC_CMD_PARAMETER_RAM_LOAD = 0x70           // 0   1   1   1   S   S   S   S    S[3:0] = starting address in parameter RAM
+};
+
+size_t PC98_GDC_state::fifo_can_read(void) {
+    return fifo_write - fifo_read;
+}
+
+void PC98_GDC_state::take_reset_sync_parameters(void) {
+    /* P1 = param[0] = 0 0 C F I D G S
+     *  CG = [1:0] = display mode
+     *  IS = [1:0] = video framing
+     *   F = drawing time window
+     *   D = dynamic RAM refresh cycles enable */
+    draw_only_during_retrace =      !!(cmd_parm_tmp[0] & 0x10); /* F */
+    dynamic_ram_refresh =           !!(cmd_parm_tmp[0] & 0x04); /* D */
+    display_mode = /* CG = [1:0] */
+        ((cmd_parm_tmp[0] & 0x20) ? 2 : 0) +
+        ((cmd_parm_tmp[0] & 0x02) ? 1 : 0);
+    video_framing = /* IS = [1:0] */
+        ((cmd_parm_tmp[0] & 0x08) ? 2 : 0) +
+        ((cmd_parm_tmp[0] & 0x01) ? 1 : 0);
+
+    /* P2 = param[1] = AW = active display words per line - 2. must be even number. */
+    display_pitch = active_display_words_per_line = (uint16_t)cmd_parm_tmp[1] + 2u;
+
+    /* P3 = param[2] =
+     *   VS(L)[2:0] = [7:5] = low bits of VS
+     *   HS = [4:0] = horizontal sync width - 1 */
+    horizontal_sync_width = (cmd_parm_tmp[2] & 0x1F) + 1;
+    vertical_sync_width = (cmd_parm_tmp[2] >> 5);
+
+    /* P4 = param[3] =
+     *   HFP = [7:2] = horizontal front porch width - 1
+     *   VS(H)[4:3] = [1:0] = high bits of VS
+     *
+     *   VS = vertical sync width */
+    vertical_sync_width += (cmd_parm_tmp[3] & 3) << 3;
+    horizontal_front_porch_width = (cmd_parm_tmp[3] >> 2) + 1;
+
+    /* P5 = param[4] =
+     *   0 = [7:6] = 0
+     *   HBP = [5:0] = horizontal back porch width - 1 */
+    horizontal_back_porch_width = (cmd_parm_tmp[4] & 0x3F) + 1;
+
+    /* P6 = param[5] =
+     *   0 = [7:6] = 0
+     *   VFP = [5:0] = vertical front porch width */
+    vertical_front_porch_width = (cmd_parm_tmp[5] & 0x3F);
+
+    /* P7 = param[6] =
+     *   AL(L)[7:0] = [7:0] = Active Display Lines per video field, low bits */
+    active_display_lines = (cmd_parm_tmp[6] & 0xFF);
+
+    /* P8 = parm[7] =
+     *   VBP = [7:2] = vertical back porch width
+     *   AL(H)[9:8] = [1:0] = Active Display Lines per video field, high bits */
+    active_display_lines += (cmd_parm_tmp[7] & 3) << 8;
+    vertical_back_porch_width = cmd_parm_tmp[7] >> 2;
+
+    LOG_MSG("GDC: RESET/SYNC DOOR=%u DRAM=%u DISP=%u VFRAME=%u AW=%u HS=%u VS=%u HFP=%u HBP=%u VFP=%u AL=%u VBP=%u",
+        draw_only_during_retrace?1:0,
+        dynamic_ram_refresh?1:0,
+        display_mode,
+        video_framing,
+        active_display_words_per_line,
+        horizontal_sync_width,
+        vertical_sync_width,
+        horizontal_front_porch_width,
+        horizontal_back_porch_width,
+        vertical_front_porch_width,
+        active_display_lines,
+        vertical_back_porch_width);
+
+    VGA_StartResize();
+}
+
+void PC98_GDC_state::cursor_advance(void) {
+    cursor_blink_count++;
+    if (cursor_blink_count == cursor_blink_rate) {
+        cursor_blink_count = 0;
+
+        if ((++cursor_blink_state) >= 4)
+            cursor_blink_state = 0;
+    }
+    else if (cursor_blink_count & 0x40) {
+        cursor_blink_count = 0;
+    }
+}
+
+void PC98_GDC_state::take_cursor_pos(unsigned char bi) {
+    /* P1 = param[0] = EAD(L) = address[7:0]
+     *
+     * P2 = param[1] = EAD(M) = address[15:0]
+     *
+     * P3 = param[2]
+     *   dAD = [7:4] = Dot address within the word
+     *   0 = [3:2] = 0
+     *   EAD(H) = [1:0] = address[17:16] */
+    if (bi == 1) {
+		vga.config.cursor_start &= ~(0xFF << 0);
+		vga.config.cursor_start |=  cmd_parm_tmp[0] << 0;
+    }
+    else if (bi == 2) {
+		vga.config.cursor_start &= ~(0xFF << 8);
+		vga.config.cursor_start |=  cmd_parm_tmp[1] << 8;
+    }
+    else if (bi == 3) {
+		vga.config.cursor_start &= ~(0x03 << 16);
+		vga.config.cursor_start |=  (cmd_parm_tmp[2] & 3) << 16;
+
+        // TODO: "dot address within the word"
+    }
+}
+
+void PC98_GDC_state::take_cursor_char_setup(unsigned char bi) {
+    /* P1 = param[0] =
+     *   DC = [7:7] = display cursor if set
+     *   0 = [6:5] = 0
+     *   LR = [4:0] = lines per character row - 1 */
+    if (bi == 1) {
+        cursor_enable = !!(cmd_parm_tmp[0] & 0x80);
+
+		vga.crtc.maximum_scan_line = cmd_parm_tmp[0] & 0x1F;
+		vga.draw.address_line_total = vga.crtc.maximum_scan_line + 1;
+    }
+
+    /* P2 = param[1] =
+     *   BR[1:0] = [7:6] = blink rate
+     *   SC = [5:5] = 1=steady cursor  0=blinking cursor
+     *   CTOP = [4:0] = cursor top line number in the row */
+
+    /* P3 = param[2] =
+     *   CBOT = [7:3] = cursor bottom line number in the row CBOT < LR
+     *   BR[4:2] = [2:0] = blink rate */
+    if (bi == 3) {
+        cursor_blink_rate  = (cmd_parm_tmp[1] >> 6) & 3;
+        cursor_blink_rate += (cmd_parm_tmp[2] & 7) << 2;
+        if (cursor_blink_rate == 0) cursor_blink_rate = 0x20;
+        cursor_blink_rate *= 2;
+
+        cursor_blink = !(cmd_parm_tmp[1] & 0x20);
+
+		vga.crtc.cursor_start = (cmd_parm_tmp[1] & 0x1F);
+		vga.draw.cursor.sline = vga.crtc.cursor_start;
+
+		vga.crtc.cursor_end   = (cmd_parm_tmp[2] >> 3) & 0x1F;
+		vga.draw.cursor.eline = vga.crtc.cursor_end;
+    }
+
+    /* blink-on time + blink-off time = 2 x BR (video frames).
+     * attribute blink rate is 3/4 on 1/4 off duty cycle.
+     * for interlaced graphics modes, set BR[1:0] = 3 */
+}
+
+void PC98_GDC_state::idle_proc(void) {
+    Bit16u val;
+
+    if (fifo_empty())
+        return;
+
+    val = read_fifo();
+    if (val & 0x100) { // command
+        current_command = val & 0xFF;
+        proc_step = 0;
+
+        switch (current_command) {
+            case GDC_CMD_RESET: // 0x00         0 0 0 0 0 0 0 0
+                LOG_MSG("GDC: reset");
+                display_enable = false;
+                idle = true;
+                reset_fifo();
+                reset_rfifo();
+                break;
+            case GDC_CMD_DISPLAY_BLANK:  // 0x0C   0 0 0 0 1 1 0 DE
+            case GDC_CMD_DISPLAY_BLANK+1:// 0x0D   DE=display enable
+                display_enable = !!(current_command & 1); // bit 0 = display enable
+                current_command &= ~1;
+                break;
+            case GDC_CMD_SYNC:  // 0x0E         0 0 0 0 0 0 0 DE
+            case GDC_CMD_SYNC+1:// 0x0F         DE=display enable
+                display_enable = !!(current_command & 1); // bit 0 = display enable
+                current_command &= ~1;
+                LOG_MSG("GDC: sync");
+                break;
+            case GDC_CMD_PITCH_SPEC:          // 0x47        0 1 0 0 0 1 1 1
+                break;
+            case GDC_CMD_CURSOR_POSITION:     // 0x49        0 1 0 0 1 0 0 1
+                LOG_MSG("GDC: cursor pos");
+                break;
+            case GDC_CMD_CURSOR_CHAR_SETUP:   // 0x4B        0 1 0 0 1 0 1 1
+                LOG_MSG("GDC: cursor setup");
+                break;
+            case GDC_CMD_START_DISPLAY:       // 0x6B        0 1 1 0 1 0 1 1
+                idle = false;
+                break;
+            case GDC_CMD_VERTICAL_SYNC_MODE:  // 0x6E        0 1 1 0 1 1 1 M
+            case GDC_CMD_VERTICAL_SYNC_MODE+1:// 0x6F        M=generate and output vertical sync (0=or else accept external vsync)
+                master_sync = !!(current_command & 1);
+                current_command &= ~1;
+                LOG_MSG("GDC: vsyncmode master=%u",master_sync);
+                break;
+            case GDC_CMD_PARAMETER_RAM_LOAD:   // 0x70       0 1 1 1 S S S S
+            case GDC_CMD_PARAMETER_RAM_LOAD+1: // 0x71       S=starting byte in parameter RAM
+            case GDC_CMD_PARAMETER_RAM_LOAD+2: // 0x72       S=starting byte in parameter RAM
+            case GDC_CMD_PARAMETER_RAM_LOAD+3: // 0x73       S=starting byte in parameter RAM
+            case GDC_CMD_PARAMETER_RAM_LOAD+4: // 0x74       S=starting byte in parameter RAM
+            case GDC_CMD_PARAMETER_RAM_LOAD+5: // 0x75       S=starting byte in parameter RAM
+            case GDC_CMD_PARAMETER_RAM_LOAD+6: // 0x76       S=starting byte in parameter RAM
+            case GDC_CMD_PARAMETER_RAM_LOAD+7: // 0x77       S=starting byte in parameter RAM
+            case GDC_CMD_PARAMETER_RAM_LOAD+8: // 0x78       S=starting byte in parameter RAM
+            case GDC_CMD_PARAMETER_RAM_LOAD+9: // 0x79       S=starting byte in parameter RAM
+            case GDC_CMD_PARAMETER_RAM_LOAD+10:// 0x7A       S=starting byte in parameter RAM
+            case GDC_CMD_PARAMETER_RAM_LOAD+11:// 0x7B       S=starting byte in parameter RAM
+            case GDC_CMD_PARAMETER_RAM_LOAD+12:// 0x7C       S=starting byte in parameter RAM
+            case GDC_CMD_PARAMETER_RAM_LOAD+13:// 0x7D       S=starting byte in parameter RAM
+            case GDC_CMD_PARAMETER_RAM_LOAD+14:// 0x7E       S=starting byte in parameter RAM
+            case GDC_CMD_PARAMETER_RAM_LOAD+15:// 0x7F       S=starting byte in parameter RAM
+                param_ram_wptr = current_command & 0xF;
+                current_command = GDC_CMD_PARAMETER_RAM_LOAD;
+                break;
+            default:
+                LOG_MSG("GDC: Unknown command 0x%x",current_command);
+                break;
+        };
+    }
+    else {
+        /* parameter parsing */
+        switch (current_command) {
+            /* RESET and SYNC take the same 8 byte parameters */
+            case GDC_CMD_RESET:
+            case GDC_CMD_SYNC:
+                if (proc_step < 8) {
+                    cmd_parm_tmp[proc_step] = (uint8_t)val;
+                    if ((++proc_step) == 8) {
+                        take_reset_sync_parameters();
+                    }
+                }
+                break;
+            case GDC_CMD_PITCH_SPEC:
+                if (proc_step < 1)
+                    display_pitch = (val != 0) ? val : 0x100;
+                break;
+            case GDC_CMD_CURSOR_POSITION:
+                if (proc_step < 3) {
+                    cmd_parm_tmp[proc_step++] = (uint8_t)val;
+                    take_cursor_pos(proc_step);
+                }
+                break;
+            case GDC_CMD_CURSOR_CHAR_SETUP:
+                if (proc_step < 3) {
+                    cmd_parm_tmp[proc_step++] = (uint8_t)val;
+                    if (proc_step == 1 || proc_step == 3) {
+                        take_cursor_char_setup(proc_step);
+                    }
+                }
+                break;
+            case GDC_CMD_PARAMETER_RAM_LOAD:
+                param_ram[param_ram_wptr] = (uint8_t)val;
+                if ((++param_ram_wptr) >= 16) param_ram_wptr = 0;
+                break;
+        };
+    }
+
+    if (!fifo_empty())
+        gdc_proc_schedule_delay();
+}
+
+bool PC98_GDC_state::fifo_empty(void) {
+    return (fifo_read >= fifo_write);
+}
+
+Bit16u PC98_GDC_state::read_fifo(void) {
+    Bit16u val;
+
+    val = fifo[fifo_read];
+    if (fifo_read < fifo_write)
+        fifo_read++;
+
+    return val;
+}
+
+void PC98_GDC_state::next_line(void) {
+    if ((++row_line) == row_height) {
+        scan_address += display_pitch;
+        row_line = 0;
+    }
+    else if (row_line & 0x20) {
+        row_line = 0;
+    }
+
+    if (--display_partition_rem_lines == 0) {
+        next_display_partition();
+        load_display_partition();
+    }
+}
+
+void PC98_GDC_state::begin_frame(void) {
+    row_line = 0;
+    scan_address = 0;
+    display_partition = 0;
+
+    /* the actual starting address is determined by the display partition in paramter RAM */
+    load_display_partition();
+}
+
+void PC98_GDC_state::load_display_partition(void) {
+    unsigned char *pram = param_ram + (display_partition * 4);
+
+    scan_address  =  pram[0];
+    scan_address +=  pram[1]         << 8;
+    scan_address += (pram[2] & 0x03) << 16;
+
+    display_partition_rem_lines  =  pram[2]         >> 4;
+    display_partition_rem_lines += (pram[3] & 0x3F) << 4;
+    if (display_partition_rem_lines == 0)
+        display_partition_rem_lines = 0x400;
+
+    if (master_sync) { /* character mode */
+    /* RAM+0 = SAD1 (L)
+     *
+     * RAM+1 = 0 0 0 SAH1 (M) [4:0]
+     *
+     * RAM+2 = LEN1 (L) [7:4]  0 0 0 0
+     *
+     * RAM+3 = WD1 0 LEN1 (H) [5:0] */
+        scan_address &= 0x1FFF;
+    }
+    else { /* graphics mode */
+    /* RAM+0 = SAD1 (L)
+     *
+     * RAM+1 = SAH1 (M)
+     *
+     * RAM+2 = LEN1 (L) [7:4]  0 0   SAD1 (H) [1:0]
+     *
+     * RAM+3 = WD1 IM LEN1 (H) [5:0] */
+    }
+}
+
+void PC98_GDC_state::force_fifo_complete(void) {
+    while (!fifo_empty())
+        idle_proc();
+}
+
+void PC98_GDC_state::next_display_partition(void) {
+    display_partition = (display_partition + 1) & display_partition_mask;
+}
+
+void PC98_GDC_state::reset_fifo(void) {
+    fifo_read = fifo_write = 0;
+}
+
+void PC98_GDC_state::reset_rfifo(void) {
+    rfifo_read = rfifo_write = 0;
+}
+
+void PC98_GDC_state::flush_fifo_old(void) {
+    if (fifo_read != 0) {
+        unsigned int sz = (fifo_read <= fifo_write) ? (fifo_write - fifo_read) : 0;
+
+        for (unsigned int i=0;i < sz;i++)
+            fifo[i] = fifo[i+fifo_read];
+
+        fifo_read = 0;
+        fifo_write = sz;
+    }
+}
+
+bool PC98_GDC_state::write_fifo(const uint16_t c) {
+    if (fifo_write >= PC98_GDC_FIFO_SIZE)
+        flush_fifo_old();
+    if (fifo_write >= PC98_GDC_FIFO_SIZE)
+        return false;
+
+    fifo[fifo_write++] = c;
+    gdc_proc_schedule_delay();
+    return true;
+}
+
+bool PC98_GDC_state::write_fifo_command(const unsigned char c) {
+    return write_fifo(c | GDC_COMMAND_BYTE);
+}
+
+bool PC98_GDC_state::write_fifo_param(const unsigned char c) {
+    return write_fifo(c);
+}
+
+bool PC98_GDC_state::rfifo_has_content(void) {
+    return (rfifo_read < rfifo_write);
+}
+
+uint8_t PC98_GDC_state::read_status(void) {
+    double timeInFrame = PIC_FullIndex()-vga.draw.delay.framestart;
+    double timeInLine=fmod(timeInFrame,vga.draw.delay.htotal);
+    uint8_t ret;
+
+    ret  = 0x00; // light pen not present
+
+	if (timeInFrame >= vga.draw.delay.vdend) {
+        ret |= 0x40; // vertical blanking
+    }
+    else {
+        if (timeInLine >= vga.draw.delay.hblkstart && 
+            timeInLine <= vga.draw.delay.hblkend)
+            ret |= 0x40; // horizontal blanking
+    }
+
+    if (timeInFrame >= vga.draw.delay.vrstart &&
+        timeInFrame <= vga.draw.delay.vrend)
+        ret |= 0x20; // vertical retrace
+
+    // TODO: 0x10 bit 4 DMA execute
+
+    // TODO: 0x08 bit 3 drawing in progress
+
+    if (fifo_write >= PC98_GDC_FIFO_SIZE)
+        flush_fifo_old();
+
+    if (fifo_read == fifo_write)
+        ret |= 0x04; // FIFO empty
+    if (fifo_write >= PC98_GDC_FIFO_SIZE)
+        ret |= 0x02; // FIFO full
+    if (rfifo_has_content())
+        ret |= 0x01; // data ready
+
+    return ret;
+}
+
+uint8_t PC98_GDC_state::rfifo_read_data(void) {
+    uint8_t ret;
+
+    ret = rfifo[rfifo_read];
+    if (rfifo_read < rfifo_write) {
+        if (++rfifo_read >= rfifo_write) {
+            rfifo_read = rfifo_write = 0;
+            rfifo[0] = ret;
+        }
+    }
+
+    return ret;
+}
+
+uint32_t                    pc98_text_palette[8];
+uint8_t                     pc98_gdc_tile_counter=0;
+uint8_t                     pc98_gdc_modereg=0;
+uint8_t                     pc98_egc_access=0;
+uint8_t                     pc98_gdc_vramop=0;
+egc_quad                    pc98_gdc_tiles;
+uint8_t                     pc98_egc_srcmask[2]; /* host given (Neko: egc.srcmask) */
+uint8_t                     pc98_egc_maskef[2]; /* effective (Neko: egc.mask2) */
+uint8_t                     pc98_egc_mask[2]; /* host given (Neko: egc.mask) */
+struct PC98_GDC_state       pc98_gdc[2];
+bool                        GDC_vsync_interrupt = false;
+uint8_t                     GDC_display_plane = false;
+uint8_t                     pc98_16col_analog_rgb_palette_index = 0;
+
+/* 4-bit to 6-bit expansion */
+static inline unsigned char dac_4to6(unsigned char c4) {
+    /* a b c d . .
+     *
+     * becomes
+     *
+     * a b c d a b */
+    return (c4 << 2) | (c4 >> 2);
+}
+
+void GDC_ProcDelay(Bitu /*val*/) {
+    gdc_proc_schedule_done();
+
+    for (unsigned int i=0;i < 2;i++)
+        pc98_gdc[i].idle_proc(); // may schedule another delayed proc
+}
+
+void pc98_crtc_write(Bitu port,Bitu val,Bitu iolen) {
+    switch (port&0xE) {
+        case 0x0C:      // 0x7C: mode reg / vram operation mode (also, reset tile counter)
+            pc98_gdc_tile_counter = 0;
+            pc98_gdc_modereg = val;
+            pc98_gdc_vramop &= ~(3 << VOPBIT_GRCG);
+            pc98_gdc_vramop |= (val & 0xC0) >> (6 - VOPBIT_GRCG);
+            break;
+        case 0x0E:      // 0x7E: tile data
+            pc98_gdc_tiles[pc98_gdc_tile_counter].b[0] = val;
+            pc98_gdc_tiles[pc98_gdc_tile_counter].b[1] = val;
+            pc98_gdc_tile_counter = (pc98_gdc_tile_counter + 1) & 3;
+            break;
+        default:
+            LOG_MSG("PC98 CRTC w: port=0x%02X val=0x%02X unknown",(unsigned int)port,(unsigned int)val);
+            break;
+    };
+}
+
+Bitu pc98_crtc_read(Bitu port,Bitu iolen) {
+    LOG_MSG("PC98 CRTC r: port=0x%02X unknown",(unsigned int)port);
+    return ~0;
+}
+
+bool pc98_graphics_hide_odd_raster_200line = false;
+
+/* Character Generator (CG) font access state */
+uint16_t a1_font_load_addr = 0;
+uint8_t a1_font_char_offset = 0;
+
+/* Port 0x68 command handling */
+void pc98_port68_command_write(unsigned char b) {
+    switch (b) {
+        case 0x08: // 200-line mode: show odd raster
+        case 0x09: //                don't show odd raster
+            pc98_graphics_hide_odd_raster_200line = !!(b&1);
+            break;
+        default:
+            LOG_MSG("PC-98 port 68h unknown command 0x%02x",b);
+            break;
+    };
+}
+
+bool gdc_analog = true;
+
+uint8_t pc98_egc_fgc = 0;
+uint8_t pc98_egc_lead_plane = 0;
+uint8_t pc98_egc_compare_lead = 0;
+uint8_t pc98_egc_lightsource = 0;
+uint8_t pc98_egc_shiftinput = 0;
+uint8_t pc98_egc_regload = 0;
+uint8_t pc98_egc_rop = 0xF0;
+uint8_t pc98_egc_foreground_color = 0;
+uint8_t pc98_egc_background_color = 0;
+ 
+void pc98_update_digpal(unsigned char ent);
+
+uint8_t pc98_pal_analog[256*3]; /* G R B    0x0..0xF */
+uint8_t pc98_pal_digital[8];    /* G R B    0x0..0x7 */
+
+void pc98_update_palette(void) {
+    if (pc98_gdc_vramop & (1 << VOPBIT_ANALOG)) {
+        for (unsigned int i=0;i < 16;i++) {
+            vga.dac.rgb[i].green = dac_4to6(pc98_pal_analog[(3*i) + 0]&0xF); /* re-use VGA DAC */
+            vga.dac.rgb[i].red   = dac_4to6(pc98_pal_analog[(3*i) + 1]&0xF); /* re-use VGA DAC */
+            vga.dac.rgb[i].blue  = dac_4to6(pc98_pal_analog[(3*i) + 2]&0xF); /* re-use VGA DAC */
+            VGA_DAC_UpdateColor(i);
+        }
+    }
+    else {
+        for (unsigned int i=0;i < 8;i++) {
+            pc98_update_digpal(i);
+            VGA_DAC_UpdateColor(i);
+        }
+    }
+}
+
+/* Port 0x6A command handling */
+void pc98_port6A_command_write(unsigned char b) {
+    switch (b) {
+        case 0x00: // 16-color (analog) disable
+            gdc_analog = false;
+            pc98_gdc_vramop &= ~(1 << VOPBIT_ANALOG);
+            VGA_SetupHandlers();   // confirmed on real hardware: this disables access to E000:0000
+            pc98_update_palette(); // Testing on real hardware shows that the "digital" and "analog" palettes are completely different.
+                                   // They're both there in hardware, but one or another is active depending on analog enable.
+                                   // Also, the 4th bitplane at E000:0000 disappears when switched off from the display and from CPU access.
+            break;
+        case 0x01: // or enable
+            gdc_analog = true;
+            pc98_gdc_vramop |= (1 << VOPBIT_ANALOG);
+            VGA_SetupHandlers();   // confirmed on real hardware: this enables access to E000:0000
+            pc98_update_palette(); // Testing on real hardware shows that the "digital" and "analog" palettes are completely different.
+                                   // They're both there in hardware, but one or another is active depending on analog enable.
+                                   // Also, the 4th bitplane at E000:0000 disappears when switched off from the display and from CPU access.
+            break;
+        case 0x04:
+            pc98_gdc_vramop &= ~(1 << VOPBIT_EGC);
+            break;
+        case 0x05:
+            pc98_gdc_vramop |= (1 << VOPBIT_EGC);
+            break;
+        case 0x06: // TODO
+        case 0x07: // TODO
+            // TODO
+            break;
+        default:
+            LOG_MSG("PC-98 port 6Ah unknown command 0x%02x",b);
+            break;
+    };
+}
+
+/* Character Generator ports.
+ * This is in fact officially documented by NEC in
+ * a 1986 book published about NEC BIOS and BASIC ROM. */
+Bitu pc98_a1_read(Bitu port,Bitu iolen) {
+    switch (port) {
+        case 0xA9: // an 8-bit I/O port to access font RAM by...
+            // NOTES: On a PC-9821 Lt2 laptop, the character ROM doesn't seem to latch valid data beyond
+            //        0xxx5D. Often this reads back as zero, but depending on whatever random data is floating
+            //        on the bus can read back nonzero. This doesn't apply to 0x0000-0x00FF of course (single wide
+            //        characters), but only to the double-wide character set where (c & 0x007F) >= 0x5D.
+            //        This behavior should be emulated. */
+            return pc98_font_char_read(a1_font_load_addr,a1_font_char_offset & 0xF,(a1_font_char_offset & 0x20) ? 0 : 1);
+        default:
+            break;
+    };
+
+    return ~0;
+}
+
+/* Character Generator ports.
+ * This is in fact officially documented by NEC in
+ * a 1986 book published about NEC BIOS and BASIC ROM. */
+void pc98_a1_write(Bitu port,Bitu val,Bitu iolen) {
+    switch (port) {
+        /* A3,A1 (out only) two JIS bytes that make up the char code */
+        case 0xA1:
+            a1_font_load_addr &= 0x00FF;
+            a1_font_load_addr |= (val & 0xFF) << 8;
+            break;
+        case 0xA3:
+            a1_font_load_addr &= 0xFF00;
+            a1_font_load_addr |= (val & 0xFF);
+            break;
+        case 0xA5:
+            /* From documentation:
+             *
+             *    bit [7:6] = Dont care
+             *    bit [5]   = L/R
+             *    bit [4]   = 0
+             *    bit [3:0] = C3-C0
+             *
+             * This so far is consistent with real hardware behavior */
+            a1_font_char_offset = val;
+            break;
+        // TODO: "Edge" is writing 0x00 to port 0xA7 for some reason.
+        //       Anything there?
+        case 0xA9: // an 8-bit I/O port to access font RAM by...
+                   // this is what Touhou Project uses to load fonts.
+                   // never mind decompiling INT 18h on real hardware shows instead
+                   // a similar sequence with REP MOVSW to A400:0000...
+                   //
+                   // there's a restriction noted with INT 18h AH=1Ah where the only
+                   // codes you can overwrite are 0xxx76 and 0xxx77. I'm guessing that
+                   // having 512KB of RAM out there dedicated to nothing but fonts
+                   // is probably not economical to NEC's bottom line, and this
+                   // restriction makes me wonder if the font is held in ROM except
+                   // for this narrow sliver of codes, which map to about 8KB of RAM
+                   // (128*2*16) * 2 = 8192 bytes
+                   //
+                   // I'm also guessing that this RAM is not involved with the single-wide
+                   // character set, which is why writes to 0x0056/0x0057 are redirected to
+                   // 0x8056/0x8057. Without this hack, Touhou Project 2 will overwrite
+                   // the letter 'W' when loading it's font data (Level 1 will show "Eastern  ind"
+                   // instead of "Eastern Wind" for the music title as a result).
+                   //
+                   // On real hardware it seems, attempts to write anywhere outside 0xxx56/0xxx57
+                   // are ignored. They are not remapped. Attempts to write to 0x0056 are ignored
+                   // by the hardware (since that conflicts with single-wide chars) but you can
+                   // write to that cell if you write to 0x8056 instead.
+            if ((a1_font_load_addr & 0x007E) == 0x0056 && (a1_font_load_addr & 0xFF00) != 0x0000)
+                pc98_font_char_write(a1_font_load_addr,a1_font_char_offset & 0xF,(a1_font_char_offset & 0x20) ? 0 : 1,val);
+            else
+                LOG_MSG("A1 port attempt to write FONT ROM char 0x%x",a1_font_load_addr);
+            break;
+        default:
+            LOG_MSG("A1 port %lx val %lx unexpected",port,val);
+            break;
+    };
+}
+
+void pc98_update_digpal(unsigned char ent) {
+    unsigned char grb = pc98_pal_digital[ent];
+
+    vga.dac.rgb[ent].green = (grb & 4) ? 0x3F : 0x00;
+    vga.dac.rgb[ent].red =   (grb & 2) ? 0x3F : 0x00;
+    vga.dac.rgb[ent].blue =  (grb & 1) ? 0x3F : 0x00;
+    VGA_DAC_UpdateColor(ent);
+}
+
+void pc98_set_digpal_entry(unsigned char ent,unsigned char grb) {
+    pc98_pal_digital[ent] = grb;
+
+    if (!gdc_analog)
+        pc98_update_digpal(ent);
+}
+
+void pc98_set_digpal_pair(unsigned char start,unsigned char pair) {
+    /* assume start 0..3 */
+    pc98_set_digpal_entry(start,  pair >> 4);
+    pc98_set_digpal_entry(start+4,pair & 0xF);
+}
+
+unsigned char pc98_get_digpal_pair(unsigned char start) {
+    return (pc98_pal_digital[start] << 4) + pc98_pal_digital[start+4];
+}
+
+void pc98_wait_write(Bitu port,Bitu val,Bitu iolen) {
+    unsigned int wait_cycles = (unsigned int)(CPU_CycleMax * 0.0006); /* 0.6us = 0.0006ms */
+
+    CPU_Cycles -= wait_cycles;
+}
+
+void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
+    PC98_GDC_state *gdc;
+
+    if (port >= 0xA0)
+        gdc = &pc98_gdc[GDC_SLAVE];
+    else
+        gdc = &pc98_gdc[GDC_MASTER];
+
+    switch (port&0xE) {
+        case 0x00:      /* 0x60/0xA0 param write fifo */
+            if (!gdc->write_fifo_param(val))
+                LOG_MSG("GDC warning: FIFO param overrun");
+            break;
+        case 0x02:      /* 0x62/0xA2 command write fifo */
+            if (!gdc->write_fifo_command(val))
+                LOG_MSG("GDC warning: FIFO command overrun");
+            break;
+        case 0x04:      /* 0x64: set trigger to signal vsync interrupt (IRQ 2) */
+                        /* 0xA4: Bit 0 select display "plane" */
+            if (port == 0x64)
+                GDC_vsync_interrupt = true;
+            else
+                GDC_display_plane = (val&1);
+            break;
+        case 0x06:      /* 0x66: ??
+                           0xA6: Bit 0 select CPU access "plane" */
+            if (port == 0xA6) {
+                pc98_gdc_vramop &= ~(1 << VOPBIT_ACCESS);
+                pc98_gdc_vramop |=  (val&1) << VOPBIT_ACCESS;
+            }
+            else {
+                goto unknown;
+            }
+            break;
+        case 0x08:      /* 0xA8: One of two meanings, depending on 8 or 16/256--color mode */
+                        /*         8-color: 0xA8-0xAB are 8 4-bit packed fields remapping the 3-bit GRB colors. This defines colors #3 [7:4] and #7 [3:0]
+                         *         16-color: GRB color palette index */
+                        /* 0x68: A command */
+                        /* NTS: Sadly, "undocumented PC-98" reference does not mention the analog 16-color palette. */
+            if (port == 0xA8) {
+                if (gdc_analog) { /* 16/256-color mode */
+                    pc98_16col_analog_rgb_palette_index = val; /* it takes all 8 bits I assume because of 256-color mode */
+                }
+                else {
+                    pc98_set_digpal_pair(3,val);
+                }
+            }
+            else {
+                pc98_port68_command_write(val);
+            }
+            break;
+        case 0x0A:      /* 0xAA:
+                           8-color: Defines color #1 [7:4] and color #5 [3:0] (FIXME: Or is it 2 and 6, by undocumented PC-98???)
+                           16-color: 4-bit green intensity. Color index is low 4 bits of palette index.
+                           256-color: 4-bit green intensity. Color index is 8-bit palette index. */
+            if (port == 0xAA) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
+                if (gdc_analog) { /* 16/256-color mode */
+                    pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 0] = val&0x0F;
+                    vga.dac.rgb[pc98_16col_analog_rgb_palette_index & 0xF].green = dac_4to6(val&0xF); /* re-use VGA DAC */
+                    VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index & 0xF);
+                }
+                else {
+                    pc98_set_digpal_pair(1,val);
+                }
+            }
+            else {
+                pc98_port6A_command_write(val);
+            }
+            break;
+        case 0x0C:      /* 0xAC:
+                           8-color: Defines color #2 [7:4] and color #6 [3:0] (FIXME: Or is it 1 and 4, by undocumented PC-98???)
+                           16-color: 4-bit red intensity. Color index is low 4 bits of palette index.
+                           256-color: 4-bit red intensity. Color index is 8-bit palette index. */
+            if (port == 0xAC) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
+                if (gdc_analog) { /* 16/256-color mode */
+                    pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 1] = val&0x0F;
+                    vga.dac.rgb[pc98_16col_analog_rgb_palette_index & 0xF].red = dac_4to6(val&0xF); /* re-use VGA DAC */
+                    VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index & 0xF);
+                }
+                else {
+                    pc98_set_digpal_pair(2,val);
+                }
+            }
+            else {
+                goto unknown;
+            }
+            break;
+        case 0x0E:      /* 0xAE:
+                           8-color: Defines color #2 [7:4] and color #6 [3:0] (FIXME: Or is it 1 and 4, by undocumented PC-98???)
+                           16-color: 4-bit blue intensity. Color index is low 4 bits of palette index.
+                           256-color: 4-bit blue intensity. Color index is 8-bit palette index. */
+            if (port == 0xAE) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
+                if (gdc_analog) { /* 16/256-color mode */
+                    pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 2] = val&0x0F;
+                    vga.dac.rgb[pc98_16col_analog_rgb_palette_index & 0xF].blue = dac_4to6(val&0xF); /* re-use VGA DAC */
+                    VGA_DAC_UpdateColor(pc98_16col_analog_rgb_palette_index & 0xF);
+                }
+                else {
+                    pc98_set_digpal_pair(0,val);
+                }
+            }
+            else {
+                goto unknown;
+            }
+            break;
+        default:
+            unknown:
+            LOG_MSG("GDC unexpected write to port 0x%x val=0x%x",(unsigned int)port,(unsigned int)val);
+            break;
+    };
+}
+
+Bitu pc98_gdc_read(Bitu port,Bitu iolen) {
+    PC98_GDC_state *gdc;
+
+    if (port >= 0xA0)
+        gdc = &pc98_gdc[GDC_SLAVE];
+    else
+        gdc = &pc98_gdc[GDC_MASTER];
+
+    switch (port&0xE) {
+        case 0x00:      /* 0x60/0xA0 read status */
+            return gdc->read_status();
+        case 0x02:      /* 0x62/0xA2 read fifo */
+            if (!gdc->rfifo_has_content())
+                LOG_MSG("GDC warning: FIFO read underrun");
+            return gdc->rfifo_read_data();
+
+        case 0x08:
+            if (port == 0xA8) {
+                if (gdc_analog) { /* 16/256-color mode */
+                    return pc98_16col_analog_rgb_palette_index;
+                }
+                else {
+                    return pc98_get_digpal_pair(3);
+                }
+            }
+            else {
+                goto unknown;
+            }
+            break;
+        case 0x0A:
+            if (port == 0xAA) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
+                if (gdc_analog) { /* 16/256-color mode */
+                    return pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 0];
+                }
+                else {
+                    return pc98_get_digpal_pair(1);
+                }
+            }
+            else {
+                goto unknown;
+            }
+            break;
+        case 0x0C:
+            if (port == 0xAC) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
+                if (gdc_analog) { /* 16/256-color mode */
+                    return pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 1];
+                }
+                else {
+                    return pc98_get_digpal_pair(2);
+                }
+            }
+            else {
+                goto unknown;
+            }
+            break;
+        case 0x0E:
+            if (port == 0xAE) { /* TODO: If 8-color... else if 16-color... else if 256-color... */
+                if (gdc_analog) { /* 16/256-color mode */
+                    return pc98_pal_analog[(3*(pc98_16col_analog_rgb_palette_index&0xF)) + 2];
+                }
+                else {
+                    return pc98_get_digpal_pair(0);
+                }
+            }
+            else {
+                goto unknown;
+            }
+            break;
+        default:
+            unknown:
+            LOG_MSG("GDC unexpected read from port 0x%x",(unsigned int)port);
+            break;
+    };
+
+    return ~0;
+}
+
+extern egc_quad pc98_egc_bgcm;
+extern egc_quad pc98_egc_fgcm;
+
+bool pc98_egc_shift_descend = false;
+uint8_t pc98_egc_shift_destbit = 0;
+uint8_t pc98_egc_shift_srcbit = 0;
+uint16_t pc98_egc_shift_length = 0xF;
+
+void pc98_egc_shift_reinit();
+
+Bitu pc98_egc4a0_read(Bitu port,Bitu iolen) {
+    /* Neko Project II suggests the I/O ports disappear when not in EGC mode.
+     * Is that true? */
+    if (!(pc98_gdc_vramop & (1 << VOPBIT_EGC))) {
+//        LOG_MSG("EGC 4A0 read port 0x%x when EGC not enabled",(unsigned int)port);
+        return ~0;
+    }
+
+    /* assume: (port & 1) == 0 [even] and iolen == 2 */
+    switch (port & 0x0E) {
+        default:
+            LOG_MSG("PC-98 EGC: Unhandled read from 0x%x",(unsigned int)port);
+            break;
+    };
+
+    return ~0;
+}
+
+void pc98_egc4a0_write(Bitu port,Bitu val,Bitu iolen) {
+    /* Neko Project II suggests the I/O ports disappear when not in EGC mode.
+     * Is that true? */
+    if (!(pc98_gdc_vramop & (1 << VOPBIT_EGC))) {
+//        LOG_MSG("EGC 4A0 write port 0x%x when EGC not enabled",(unsigned int)port);
+        return;
+    }
+
+    /* assume: (port & 1) == 0 [even] and iolen == 2 */
+    switch (port & 0x0E) {
+        case 0x0: /* 0x4A0 */
+            /* bits [15:8] = 0xFF
+             * bits [7:0] = enable writing to plane (NTS: only bits 3-0 have meaning in 16-color mode).
+             * as far as I can tell, bits [7:0] correspond to the same enable bits as port 0x7C [3:0] */
+            pc98_egc_access = val & 0xFF;
+            break;
+        case 0x2: /* 0x4A2 */
+            /* bits [15:15] = 0
+             * bits [14:13] = foreground, background color
+             *    11 = invalid
+             *    10 = foreground color
+             *    01 = background color
+             *    00 = pattern register
+             * bits [12:12] = 0
+             * bits [11:8] = lead plane
+             *    0111 = VRAM plane #7
+             *    0110 = VRAM plane #6
+             *    0101 = VRAM plane #5
+             *    0100 = VRAM plane #4
+             *    0011 = VRAM plane #3
+             *    0010 = VRAM plane #2
+             *    0001 = VRAM plane #1
+             *    0000 = VRAM plane #0
+             * bits [7:0] = unused (0xFF) */
+            pc98_egc_fgc = (val >> 13) & 3;
+            pc98_egc_lead_plane = (val >> 8) & 15;
+            break;
+        case 0x4: /* 0x4A4 */
+            /* bits [15:14] = 0 (unused)
+             * bits [13:13] = 0=compare lead plane  1=don't
+             * bits [12:11] = light source
+             *    11 = invalid
+             *    10 = write the contents of the palette register
+             *    01 = write the result of the raster operation
+             *    00 = write CPU data
+             * bits [10:10] = read source
+             *    1 = shifter input is CPU write data
+             *    0 = shifter input is VRAM data
+             * bits [9:8] = register load
+             *    11 = invalid
+             *    10 = load VRAM data before writing on VRAM write
+             *    01 = load VRAM data into pattern/tile register on VRAM read
+             *    00 = Do not change pattern/tile register
+             * bits [7:0] = ROP
+             *    shifter:       11110000
+             *    destination:   11001100
+             *    pattern reg:   10101010
+             *
+             *    examples:
+             *    11110000 = VRAM transfer
+             *    00001111 = VRAM reverse transfer
+             *    11001100 = NOP
+             *    00110011 = VRAM inversion
+             *    11111111 = VRAM fill
+             *    00000000 = VRAM erase
+             *    10101010 = Pattern fill
+             *    01010101 = Pattern reversal fill */
+            pc98_egc_compare_lead = ((val >> 13) & 1) ^ 1;
+            pc98_egc_lightsource = (val >> 11) & 3;
+            pc98_egc_shiftinput = (val >> 10) & 1;
+            pc98_egc_regload = (val >> 8) & 3;
+            pc98_egc_rop = (val & 0xFF);
+            break;
+        case 0x6: /* 0x4A6 */
+            /* If FGC = 0 and BGC = 0:
+             *   bits [15:0] = 0
+             * If FGC = 1 or BGC = 1:
+             *   bits [15:8] = 0
+             *   bits [7:0] = foreground color (all 8 bits used in 256-color mode) */
+            pc98_egc_foreground_color = val;
+            pc98_egc_fgcm[0].w = (val & 1) ? 0xFFFF : 0x0000;
+            pc98_egc_fgcm[1].w = (val & 2) ? 0xFFFF : 0x0000;
+            pc98_egc_fgcm[2].w = (val & 4) ? 0xFFFF : 0x0000;
+            pc98_egc_fgcm[3].w = (val & 8) ? 0xFFFF : 0x0000;
+            break;
+        case 0x8: /* 0x4A8 */
+            if (pc98_egc_compare_lead == 0)
+                *((uint16_t*)pc98_egc_mask) = val;
+            break;
+        case 0xA: /* 0x4AA */
+            /* If FGC = 0 and BGC = 0:
+             *   bits [15:0] = 0
+             * If FGC = 1 or BGC = 1:
+             *   bits [15:8] = 0
+             *   bits [7:0] = foreground color (all 8 bits used in 256-color mode) */
+            pc98_egc_background_color = val;
+            pc98_egc_bgcm[0].w = (val & 1) ? 0xFFFF : 0x0000;
+            pc98_egc_bgcm[1].w = (val & 2) ? 0xFFFF : 0x0000;
+            pc98_egc_bgcm[2].w = (val & 4) ? 0xFFFF : 0x0000;
+            pc98_egc_bgcm[3].w = (val & 8) ? 0xFFFF : 0x0000;
+            break;
+        case 0xC: /* 0x4AC */
+            /* bits[15:13] = 0
+             * bits[12:12] = shift direction 0=ascend 1=descend
+             * bits[11:8] = 0
+             * bits[7:4] = destination bit address
+             * bits[3:0] = source bit address */
+            pc98_egc_shift_descend = !!((val >> 12) & 1);
+            pc98_egc_shift_destbit = (val >> 4) & 0xF;
+            pc98_egc_shift_srcbit = val & 0xF;
+            pc98_egc_shift_reinit();
+            break;
+        case 0xE: /* 0x4AE */
+            /* bits[15:12] = 0
+             * bits[11:0] = bit length (0 to 4095) */
+            pc98_egc_shift_length = val & 0xFFF;
+            pc98_egc_shift_reinit();
+            break;
+        default:
+            // LOG_MSG("PC-98 EGC: Unhandled write to 0x%x val 0x%x",(unsigned int)port,(unsigned int)val);
+            break;
+    };
+}
+
+// I/O access to 0x4A0-0x4AF must be WORD sized and even port, or the system hangs if you try.
+Bitu pc98_egc4a0_read_warning(Bitu port,Bitu iolen) {
+    LOG_MSG("PC-98 EGC warning: I/O read from port 0x%x (len=%u) known to possibly hang the system on real hardware",
+        (unsigned int)port,(unsigned int)iolen);
+
+    return ~0;
+}
+
+// I/O access to 0x4A0-0x4AF must be WORD sized and even port, or the system hangs if you try.
+void pc98_egc4a0_write_warning(Bitu port,Bitu val,Bitu iolen) {
+    LOG_MSG("PC-98 EGC warning: I/O write to port 0x%x (val=0x%x len=%u) known to possibly hang the system on real hardware",
+        (unsigned int)port,(unsigned int)val,(unsigned int)iolen);
+}
+
+void VGA_OnEnterPC98(Section *sec) {
+    VGA_UnsetupMisc();
+    VGA_UnsetupAttr();
+    VGA_UnsetupDAC();
+    VGA_UnsetupGFX();
+    VGA_UnsetupSEQ();
+
+    LOG_MSG("PC-98: GDC is running at %.1fMHz.",gdc_5mhz_mode ? 5.0 : 2.5);
+
+    pc98_egc_srcmask[0] = 0xFF;
+    pc98_egc_srcmask[1] = 0xFF;
+    pc98_egc_maskef[0] = 0xFF;
+    pc98_egc_maskef[1] = 0xFF;
+    pc98_egc_mask[0] = 0xFF;
+    pc98_egc_mask[1] = 0xFF;
+
+    for (unsigned int i=0;i < 8;i++)
+        pc98_pal_digital[i] = i;
+
+    for (unsigned int i=0;i < 8;i++) {
+        pc98_pal_analog[(i*3) + 0] = (i & 4) ? 0x0F : 0x00;
+        pc98_pal_analog[(i*3) + 1] = (i & 2) ? 0x0F : 0x00;
+        pc98_pal_analog[(i*3) + 2] = (i & 1) ? 0x0F : 0x00;
+
+        if (i != 0) {
+            pc98_pal_analog[((i+8)*3) + 0] = (i & 4) ? 0x0A : 0x00;
+            pc98_pal_analog[((i+8)*3) + 1] = (i & 2) ? 0x0A : 0x00;
+            pc98_pal_analog[((i+8)*3) + 2] = (i & 1) ? 0x0A : 0x00;
+        }
+        else {
+            pc98_pal_analog[((i+8)*3) + 0] = 0x07;
+            pc98_pal_analog[((i+8)*3) + 1] = 0x07;
+            pc98_pal_analog[((i+8)*3) + 2] = 0x07;
+        }
+    }
+
+    pc98_update_palette();
+
+    /* Some PC-98 game behavior seems to suggest the BIOS data area stretches all the way from segment 0x40:0x00 to segment 0x7F:0x0F inclusive.
+     * Compare that to IBM PC platform, where segment fills only 0x40:0x00 to 0x50:0x00 inclusive and extra state is held in the "Extended BIOS Data Area".
+     */
+
+    /* number of text rows on the screen.
+     * Touhou Project will not clear/format the text layer properly without this variable. */
+    mem_writeb(0x710,25 - 1); /* cursor position Y coordinate */
+    mem_writeb(0x711,1); /* function definition display status flag */
+    mem_writeb(0x712,25 - 1); /* number of rows - 1 */
+    mem_writeb(0x713,1); /* normal 25 lines */
+    mem_writeb(0x714,0xE1); /* content erase attribute */
+
+    mem_writeb(0x719,0x20); /* content erase character */
+
+    mem_writeb(0x71B,0x01); /* cursor displayed */
+
+    mem_writeb(0x71D,0xE1); /* content display attribute */
+
+    mem_writeb(0x71F,0x01); /* scrolling speed is normal */
+
+    {
+        unsigned char r,g,b;
+
+        for (unsigned int i=0;i < 8;i++) {
+            r = (i & 2) ? 255 : 0;
+            g = (i & 4) ? 255 : 0;
+            b = (i & 1) ? 255 : 0;
+
+            pc98_text_palette[i] = (b << GFX_Bshift) | (g << GFX_Gshift) | (r << GFX_Rshift) | GFX_Amask;
+        }
+    }
+
+    pc98_gdc_tile_counter=0;
+    pc98_gdc_modereg=0;
+    for (unsigned int i=0;i < 4;i++) pc98_gdc_tiles[i].w = 0;
+
+    /* 200-line tradition on PC-98 seems to be to render only every other scanline */
+    /* TODO: Allow user to override this bit if the "raster" effect is undesired */
+    pc98_graphics_hide_odd_raster_200line = true;
+
+    // as a transition to PC-98 GDC emulation, move VGA alphanumeric buffer
+    // down to A0000-AFFFFh.
+    gdc_analog = false;
+    pc98_gdc_vramop &= ~(1 << VOPBIT_ANALOG);
+    gfx(miscellaneous) &= ~0x0C; /* bits[3:2] = 0 to map A0000-BFFFF */
+    VGA_DetermineMode();
+    VGA_SetupHandlers();
+    INT10_PC98_CurMode_Relocate(); /* make sure INT 10h knows */
+
+    /* Set up 24KHz hsync 56.42Hz rate */
+    vga.crtc.horizontal_total = 106 - 5;
+    vga.crtc.vertical_total = (440 - 2) & 0xFF;
+    vga.crtc.end_vertical_blanking = (440 - 2 - 8) & 0xFF; // FIXME
+    vga.crtc.vertical_retrace_start = (440 - 2 - 30) & 0xFF; // FIXME
+    vga.crtc.vertical_retrace_end = (440 - 2 - 28) & 0xFF; // FIXME
+    vga.crtc.start_vertical_blanking = (400 + 8) & 0xFF; // FIXME
+    vga.crtc.overflow |=  0x01;
+    vga.crtc.overflow &= ~0x20;
+
+    /* 8-char wide mode. change to 25MHz clock to match. */
+	vga.config.addr_shift = 0;
+    seq(clocking_mode) |= 1; /* 8-bit wide char */
+	vga.misc_output &= ~0x0C; /* bits[3:2] = 0 25MHz clock */
+
+    /* PC-98 seems to favor a block cursor */
+    vga.draw.cursor.enabled = true;
+    crtc(cursor_start) = 0;
+    vga.draw.cursor.sline = 0;
+    crtc(cursor_end) = 15;
+    vga.draw.cursor.eline = 15;
+
+    /* now, switch to PC-98 video emulation */
+    for (unsigned int i=0;i < 16;i++) VGA_ATTR_SetPalette(i,i);
+    for (unsigned int i=0;i < 16;i++) {
+        /* GRB order palette */
+		vga.dac.rgb[i].red = (i & 2) ? 63 : 0;
+		vga.dac.rgb[i].green = (i & 4) ? 63 : 0;
+        vga.dac.rgb[i].blue = (i & 1) ? 63 : 0;
+        VGA_DAC_UpdateColor(i);
+    }
+    vga.mode=M_PC98;
+    assert(vga.vmemsize >= 0x80000);
+    memset(vga.mem.linear,0,0x80000);
+    for (unsigned int i=0x2000;i < 0x3fe0;i += 2) vga.mem.linear[i] = 0xE0; /* attribute GRBxxxxx = 11100000 (white) */
+
+    VGA_StartResize();
+}
+
+void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages);
+
+void PC98_FM_OnEnterPC98(Section *sec);
+
+void VGA_OnEnterPC98_phase2(Section *sec) {
+    VGA_SetupHandlers();
+
+    /* GDC 2.5/5.0MHz setting is also reflected in BIOS data area and DIP switch registers */
+    gdc_5mhz_mode_update_vars();
+
+    /* delay I/O port at 0x5F (0.6us) */
+    IO_RegisterWriteHandler(0x5F,pc98_wait_write,IO_MB);
+
+    /* master GDC at 0x60-0x6F (even)
+     * slave GDC at 0xA0-0xAF (even) */
+    for (unsigned int i=0x60;i <= 0xA0;i += 0x40) {
+        for (unsigned int j=0;j < 0x10;j += 2) {
+            IO_RegisterWriteHandler(i+j,pc98_gdc_write,IO_MB);
+            IO_RegisterReadHandler(i+j,pc98_gdc_read,IO_MB);
+        }
+    }
+
+    /* There are some font character RAM controls at 0xA1-0xA5 (odd)
+     * combined with A4000-A4FFF. Found by unknown I/O tracing in DOSBox-X
+     * and by tracing INT 18h AH=1Ah on an actual system using DEBUG.COM.
+     *
+     * If I find documentation on what exactly these ports are, I will
+     * list them as such.
+     *
+     * Some games (Touhou Project) load font RAM directly through these
+     * ports instead of using the BIOS. */
+    for (unsigned int i=0xA1;i <= 0xA9;i += 2) {
+        IO_RegisterWriteHandler(i,pc98_a1_write,IO_MB);
+    }
+    /* Touhou Project appears to read font RAM as well */
+    IO_RegisterReadHandler(0xA9,pc98_a1_read,IO_MB);
+
+    /* CRTC at 0x70-0x7F (even) */
+    for (unsigned int j=0x70;j < 0x80;j += 2) {
+        IO_RegisterWriteHandler(j,pc98_crtc_write,IO_MB);
+        IO_RegisterReadHandler(j,pc98_crtc_read,IO_MB);
+    }
+
+    /* EGC at 0x4A0-0x4AF (even).
+     * All I/O ports are 16-bit.
+     * NTS: On real hardware, doing 8-bit I/O on these ports will often hang the system. */
+    for (unsigned int i=0;i < 0x10;i += 2) {
+        IO_RegisterWriteHandler(i+0x4A0,pc98_egc4a0_write_warning,IO_MB);
+        IO_RegisterWriteHandler(i+0x4A0,pc98_egc4a0_write,        IO_MW);
+        IO_RegisterWriteHandler(i+0x4A1,pc98_egc4a0_write_warning,IO_MB);
+        IO_RegisterWriteHandler(i+0x4A1,pc98_egc4a0_write_warning,IO_MW);
+
+        IO_RegisterReadHandler(i+0x4A0,pc98_egc4a0_read_warning,IO_MB);
+        IO_RegisterReadHandler(i+0x4A0,pc98_egc4a0_read,        IO_MW);
+        IO_RegisterReadHandler(i+0x4A1,pc98_egc4a0_read_warning,IO_MB);
+        IO_RegisterReadHandler(i+0x4A1,pc98_egc4a0_read_warning,IO_MW);
+    }
+
+    pc98_gdc[GDC_MASTER].master_sync = true;
+    pc98_gdc[GDC_MASTER].display_enable = true;
+    pc98_gdc[GDC_MASTER].row_height = 16;
+    pc98_gdc[GDC_MASTER].active_display_words_per_line = 80;
+    pc98_gdc[GDC_MASTER].display_partition_mask = 3;
+
+    pc98_gdc[GDC_MASTER].force_fifo_complete();
+    pc98_gdc[GDC_MASTER].write_fifo_command(0x0F/*sync DE=1*/);
+    pc98_gdc[GDC_MASTER].write_fifo_param(0x10);
+    pc98_gdc[GDC_MASTER].write_fifo_param(0x4E);
+    pc98_gdc[GDC_MASTER].write_fifo_param(0x07);
+    pc98_gdc[GDC_MASTER].write_fifo_param(0x25);
+    pc98_gdc[GDC_MASTER].force_fifo_complete();
+    pc98_gdc[GDC_MASTER].write_fifo_param(0x07);
+    pc98_gdc[GDC_MASTER].write_fifo_param(0x07);
+    pc98_gdc[GDC_MASTER].write_fifo_param(0x90);
+    pc98_gdc[GDC_MASTER].write_fifo_param(0x65);
+    pc98_gdc[GDC_MASTER].force_fifo_complete();
+
+    pc98_gdc[GDC_SLAVE].master_sync = false;
+    pc98_gdc[GDC_SLAVE].display_enable = false;//FIXME
+    pc98_gdc[GDC_SLAVE].row_height = 1;
+    pc98_gdc[GDC_SLAVE].active_display_words_per_line = 40; /* 40 16-bit WORDs per line */
+    pc98_gdc[GDC_SLAVE].display_partition_mask = pc98_allow_4_display_partitions ? 3 : 1;
+
+    pc98_gdc[GDC_SLAVE].force_fifo_complete();
+    pc98_gdc[GDC_SLAVE].write_fifo_command(0x0F/*sync DE=1*/);
+    pc98_gdc[GDC_SLAVE].write_fifo_param(0x02);
+    pc98_gdc[GDC_SLAVE].write_fifo_param(0x26);
+    pc98_gdc[GDC_SLAVE].write_fifo_param(0x03);
+    pc98_gdc[GDC_SLAVE].write_fifo_param(0x11);
+    pc98_gdc[GDC_SLAVE].force_fifo_complete();
+    pc98_gdc[GDC_SLAVE].write_fifo_param(0x83);
+    pc98_gdc[GDC_SLAVE].write_fifo_param(0x07);
+    pc98_gdc[GDC_SLAVE].write_fifo_param(0x90);
+    pc98_gdc[GDC_SLAVE].write_fifo_param(0x65);
+    pc98_gdc[GDC_SLAVE].force_fifo_complete();
+
+    VGA_StartResize();
+
+    void update_pc98_function_row(bool enable);
+    update_pc98_function_row(true);
+}
 
 void VGA_Init() {
 	string str;
 	Bitu i,j;
+
+    vga.draw.render_step = 0;
+    vga.draw.render_max = 1;
 
 	vga.tandy.draw_base = NULL;
 	vga.tandy.mem_base = NULL;
@@ -720,6 +2119,11 @@ void VGA_Init() {
 	}
 
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(VGA_Reset));
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(VGA_OnEnterPC98));
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE_END,AddVMEventFunctionFuncPair(VGA_OnEnterPC98_phase2));
+
+    // TODO: Move to separate file
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE_END,AddVMEventFunctionFuncPair(PC98_FM_OnEnterPC98));
 }
 
 void SVGA_Setup_Driver(void) {
@@ -742,5 +2146,4090 @@ void SVGA_Setup_Driver(void) {
 		vga.vmemwrap = 256*1024;
 		break;
 	}
+}
+
+// GLUE TYPEDEFS
+// WARNING: Windows targets will want to IFDEF some of these out as they will
+//          conflict with the typedefs in windows.h
+typedef uint32_t UINT32;
+typedef int32_t SINT32;
+typedef uint16_t UINT16;
+typedef int16_t SINT16;
+typedef uint8_t UINT8;
+typedef int8_t SINT8;
+typedef uint32_t UINT;
+typedef uint32_t REG8; /* GLIB guint32 -> UINT -> REG8 */
+#ifndef WIN32
+typedef uint8_t BOOL;
+#endif
+typedef char OEMCHAR;
+typedef void* NEVENTITEM;
+typedef void* NP2CFG;
+#define OEMTEXT(x) (x)
+#define SOUNDCALL
+
+#define LOADINTELWORD(x) host_readw((HostPt)(x))
+#define STOREINTELWORD(x,y) host_writew((HostPt)(x),(y))
+
+#define TRUE 1
+#define FALSE 0
+
+MixerChannel *pc98_mixer = NULL;
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
+#ifndef WIN32
+static inline void ZeroMemory(void *p,size_t l) {
+    memset(p,0,l);
+}
+
+static inline void FillMemory(void *p,size_t l,unsigned char c) {
+    memset(p,c,l);
+}
+#endif
+
+static inline void pcm86io_bind(void) {
+    /* dummy */
+}
+
+static inline void sound_sync(void) {
+    if (pc98_mixer) pc98_mixer->FillUp();
+}
+
+// opngen.h
+
+enum {
+	OPNCH_MAX		= 30,
+	OPNA_CLOCK		= 55466 * 72,
+
+	OPN_CHMASK		= 0x80000000,
+	OPN_STEREO		= 0x80000000,
+	OPN_MONORAL		= 0x00000000
+};
+
+
+#if defined(OPNGENX86)
+
+enum {
+	FMDIV_BITS		= 8,
+	FMDIV_ENT		= (1 << FMDIV_BITS),
+	FMVOL_SFTBIT	= 4
+};
+
+#define SIN_BITS		11
+#define EVC_BITS		10
+#define ENV_BITS		16
+#define KF_BITS			6
+#define FREQ_BITS		21
+#define ENVTBL_BIT		14
+#define SINTBL_BIT		14
+
+#elif defined(OPNGENARM)
+
+enum {
+	FMDIV_BITS		= 8,
+	FMDIV_ENT		= (1 << FMDIV_BITS),
+	FMVOL_SFTBIT	= 4
+};
+
+#define SIN_BITS		8
+#define	EVC_BITS		7
+#define	ENV_BITS		16
+#define	KF_BITS			6
+#define	FREQ_BITS		20
+#define	ENVTBL_BIT		14
+#define	SINTBL_BIT		14							// env+sin 30bit max
+
+#else
+
+enum {
+	FMDIV_BITS		= 8,
+	FMDIV_ENT		= (1 << FMDIV_BITS),
+	FMVOL_SFTBIT	= 4
+};
+
+#define	SIN_BITS		10
+#define	EVC_BITS		10
+#define	ENV_BITS		16
+#define	KF_BITS			6
+#define	FREQ_BITS		21
+#define	ENVTBL_BIT		14
+#define	SINTBL_BIT		15
+
+#endif
+
+#define PI              M_PI
+
+#define	TL_BITS			(FREQ_BITS+2)
+#define	OPM_OUTSB		(TL_BITS + 2 - 16)			// OPM output 16bit
+
+#define	SIN_ENT			(1L << SIN_BITS)
+#define	EVC_ENT			(1L << EVC_BITS)
+
+#define	EC_ATTACK		0								// ATTACK start
+#define	EC_DECAY		(EVC_ENT << ENV_BITS)			// DECAY start
+#define	EC_OFF			((2 * EVC_ENT) << ENV_BITS)		// OFF
+
+#define	TL_MAX			(EVC_ENT * 2)
+
+#define	OPM_ARRATE		 399128L
+#define	OPM_DRRATE		5514396L
+
+#define	EG_STEP	(96.0 / EVC_ENT)					// dB step
+#define	SC(db)	(SINT32)((db) * ((3.0 / EG_STEP) * (1 << ENV_BITS))) + EC_DECAY
+#define	D2(v)	(((double)(6 << KF_BITS) * log((double)(v)) / log(2.0)) + 0.5)
+#define	FMASMSHIFT	(32 - 6 - (OPM_OUTSB + 1 + FMDIV_BITS) + FMVOL_SFTBIT)
+#define	FREQBASE4096	((double)OPNA_CLOCK / calcrate / 64)
+
+enum {
+	PCM86_LOGICALBUF	= 0x8000,
+	PCM86_BUFSIZE		= (1 << 16),
+	PCM86_BUFMSK		= ((1 << 16) - 1),
+
+	PCM86_DIVBIT		= 10,
+	PCM86_DIVENV		= (1 << PCM86_DIVBIT),
+
+	PCM86_RESCUE		= 20
+};
+
+#define	PCM86_EXTBUF		pcm86.rescue					// ~ÏØc
+#define	PCM86_REALBUFSIZE	(PCM86_LOGICALBUF + PCM86_EXTBUF)
+
+#define RECALC_NOWCLKWAIT(cnt) {										\
+		pcm86.virbuf -= (cnt << pcm86.stepbit);							\
+		if (pcm86.virbuf < 0) {											\
+			pcm86.virbuf &= pcm86.stepmask;								\
+		}																\
+	}
+
+typedef struct {
+	SINT32	divremain;
+	SINT32	div;
+	SINT32	div2;
+	SINT32	smp;
+	SINT32	lastsmp;
+	SINT32	smp_l;
+	SINT32	lastsmp_l;
+	SINT32	smp_r;
+	SINT32	lastsmp_r;
+
+	UINT32	readpos;			// DSOUNDÄ¶Êu
+	UINT32	wrtpos;				// ÝÊu
+	SINT32	realbuf;			// DSOUNDpÌf[^
+	SINT32	virbuf;				// 86PCM(bufsize:0x8000)Ìf[^
+	SINT32	rescue;
+
+	SINT32	fifosize;
+	SINT32	volume;
+	SINT32	vol5;
+
+	UINT32	lastclock;
+	UINT32	stepclock;
+	UINT	stepmask;
+
+	UINT8	fifo;
+	UINT8	extfunc;
+	UINT8	dactrl;
+	UINT8	_write;
+	UINT8	stepbit;
+	UINT8	reqirq;
+	UINT8	irqflag;
+	UINT8	padding[1];
+
+	UINT8	buffer[PCM86_BUFSIZE];
+} _PCM86, *PCM86;
+
+typedef struct {
+	UINT	rate;
+	UINT	vol;
+} PCM86CFG;
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern const UINT pcm86rate8[];
+
+// TvO[gÉ8|¯½¨
+const UINT pcm86rate8[] = {352800, 264600, 176400, 132300,
+							88200,  66150,  44010,  33075};
+
+// 32,24,16,12, 8, 6, 4, 3 - Å­ö{: 96
+//  3, 4, 6, 8,12,16,24,32
+
+static const UINT clk25_128[] = {
+					0x00001bde, 0x00002527, 0x000037bb, 0x00004a4e,
+					0x00006f75, 0x0000949c, 0x0000df5f, 0x00012938};
+static const UINT clk20_128[] = {
+					0x000016a4, 0x00001e30, 0x00002d48, 0x00003c60,
+					0x00005a8f, 0x000078bf, 0x0000b57d, 0x0000f17d};
+
+
+	PCM86CFG	pcm86cfg;
+
+void pcm86_cb(NEVENTITEM item);
+
+void pcm86gen_initialize(UINT rate);
+void pcm86gen_setvol(UINT vol);
+
+void pcm86_reset(void);
+void pcm86gen_update(void);
+void pcm86_setpcmrate(REG8 val);
+void pcm86_setnextintr(void);
+
+void SOUNDCALL pcm86gen_checkbuf(void);
+void SOUNDCALL pcm86gen_getpcm(void *hdl, SINT32 *pcm, UINT count);
+
+BOOL pcm86gen_intrq(void);
+
+void pcm86gen_initialize(UINT rate) {
+
+	pcm86cfg.rate = rate;
+}
+
+void pcm86gen_setvol(UINT vol) {
+
+	pcm86cfg.vol = vol;
+	pcm86gen_update();
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+enum {
+	ADTIMING_BIT	= 11,
+	ADTIMING		= (1 << ADTIMING_BIT),
+	ADPCM_SHIFT		= 3
+};
+
+typedef struct {
+	UINT8	ctrl1;		// 00
+	UINT8	ctrl2;		// 01
+	UINT8	start[2];	// 02
+	UINT8	stop[2];	// 04
+	UINT8	reg06;
+	UINT8	reg07;
+	UINT8	data;		// 08
+	UINT8	delta[2];	// 09
+	UINT8	level;		// 0b
+	UINT8	limit[2];	// 0c
+	UINT8	reg0e;
+	UINT8	reg0f;
+	UINT8	flag;		// 10
+	UINT8	reg11;
+	UINT8	reg12;
+	UINT8	reg13;
+} ADPCMREG;
+
+typedef struct {
+	ADPCMREG	reg;
+	UINT32		pos;
+	UINT32		start;
+	UINT32		stop;
+	UINT32		limit;
+	SINT32		level;
+	UINT32		base;
+	SINT32		samp;
+	SINT32		delta;
+	SINT32		remain;
+	SINT32		step;
+	SINT32		out0;
+	SINT32		out1;
+	SINT32		fb;
+	SINT32		pertim;
+	UINT8		status;
+	UINT8		play;
+	UINT8		mask;
+	UINT8		fifopos;
+	UINT8		fifo[2];
+	UINT8		padding[2];
+	UINT8		buf[0x40000];
+} _ADPCM, *ADPCM;
+
+typedef struct {
+	UINT	rate;
+	UINT	vol;
+} ADPCMCFG;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void adpcm_initialize(UINT rate);
+void adpcm_setvol(UINT vol);
+
+void adpcm_reset(ADPCM ad);
+void adpcm_update(ADPCM ad);
+void adpcm_setreg(ADPCM ad, UINT reg, REG8 value);
+REG8 adpcm_status(ADPCM ad);
+
+REG8 SOUNDCALL adpcm_readsample(ADPCM ad);
+void SOUNDCALL adpcm_datawrite(ADPCM ad, REG8 data);
+void SOUNDCALL adpcm_getpcm(ADPCM ad, SINT32 *buf, UINT count);
+
+	ADPCMCFG	adpcmcfg;
+
+void adpcm_initialize(UINT rate) {
+
+	adpcmcfg.rate = rate;
+}
+
+void adpcm_setvol(UINT vol) {
+
+	adpcmcfg.vol = vol;
+}
+
+void adpcm_reset(ADPCM ad) {
+
+	ZeroMemory(ad, sizeof(_ADPCM));
+	ad->mask = 0;					// (UINT8)~0x1c;
+	ad->delta = 127;
+	STOREINTELWORD(ad->reg.stop, 0x0002);
+	STOREINTELWORD(ad->reg.limit, 0xffff);
+	ad->stop = 0x000060;
+	ad->limit = 0x200000;
+	adpcm_update(ad);
+}
+
+void adpcm_update(ADPCM ad) {
+
+	UINT32	addr;
+
+	if (adpcmcfg.rate) {
+		ad->base = ADTIMING * (OPNA_CLOCK / 72) / adpcmcfg.rate;
+	}
+	addr = LOADINTELWORD(ad->reg.delta);
+	addr = (addr * ad->base) >> 16;
+	if (addr < 0x80) {
+		addr = 0x80;
+	}
+	ad->step = addr;
+	ad->pertim = (1 << (ADTIMING_BIT * 2)) / addr;
+	ad->level = (ad->reg.level * adpcmcfg.vol) >> 4;
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+typedef struct {
+//	PMIXHDR	hdr;
+//	PMIXTRK	trk[6];
+	UINT	vol;
+	UINT8	trkvol[8];
+} _RHYTHM, *RHYTHM;
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void rhythm_initialize(UINT rate);
+void rhythm_deinitialize(void);
+UINT rhythm_getcaps(void);
+void rhythm_setvol(UINT vol);
+
+void rhythm_reset(RHYTHM rhy);
+void rhythm_bind(RHYTHM rhy);
+void rhythm_update(RHYTHM rhy);
+void rhythm_setreg(RHYTHM rhy, UINT reg, REG8 val);
+
+#ifdef __cplusplus
+}
+#endif
+
+enum {
+	PSGFREQPADBIT		= 12,
+	PSGADDEDBIT			= 3
+};
+
+enum {
+	PSGENV_INC			= 15,
+	PSGENV_ONESHOT		= 16,
+	PSGENV_LASTON		= 32,
+	PSGENV_ONECYCLE		= 64
+};
+
+typedef struct {
+	SINT32	freq;
+	SINT32	count;
+	SINT32	*pvol;			// !!
+	UINT16	puchi;
+	UINT8	pan;
+	UINT8	padding;
+} PSGTONE;
+
+typedef struct {
+	SINT32	freq;
+	SINT32	count;
+	UINT	base;
+} PSGNOISE;
+
+typedef struct {
+	UINT8	tune[3][2];		// 0
+	UINT8	noise;			// 6
+	UINT8	mixer;			// 7
+	UINT8	vol[3];			// 8
+	UINT8	envtime[2];		// b
+	UINT8	env;			// d
+	UINT8	io1;
+	UINT8	io2;
+} PSGREG;
+
+typedef struct {
+	PSGTONE		tone[3];
+	PSGNOISE	noise;
+	PSGREG		reg;
+	UINT16		envcnt;
+	UINT16		envmax;
+	UINT8		mixer;
+	UINT8		envmode;
+	UINT8		envvol;
+	SINT8		envvolcnt;
+	SINT32		evol;				// !!
+	UINT		puchicount;
+} _PSGGEN, *PSGGEN;
+
+typedef struct {
+	SINT32	volume[16];
+	SINT32	voltbl[16];
+	UINT	rate;
+	UINT32	base;
+	UINT16	puchidec;
+} PSGGENCFG;
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void psggen_initialize(UINT rate);
+void psggen_setvol(UINT vol);
+
+void psggen_reset(PSGGEN psg);
+void psggen_restore(PSGGEN psg);
+void psggen_setreg(PSGGEN psg, UINT reg, REG8 val);
+REG8 psggen_getreg(PSGGEN psg, UINT reg);
+void psggen_setpan(PSGGEN psg, UINT ch, REG8 pan);
+
+void SOUNDCALL psggen_getpcm(PSGGEN psg, SINT32 *pcm, UINT count);
+
+#ifdef __cplusplus
+}
+#endif
+
+enum {
+	OPNSLOT1		= 0,				// slot number
+	OPNSLOT2		= 2,
+	OPNSLOT3		= 1,
+	OPNSLOT4		= 3,
+
+	EM_ATTACK		= 4,
+	EM_DECAY1		= 3,
+	EM_DECAY2		= 2,
+	EM_RELEASE		= 1,
+	EM_OFF			= 0
+};
+
+enum {
+	KEYDISP_MODENONE			= 0,
+	KEYDISP_MODEFM,
+	KEYDISP_MODEMIDI
+};
+
+#define SUPPORT_PX
+
+#if defined(SUPPORT_PX)
+enum {
+	KEYDISP_CHMAX		= 39,
+	KEYDISP_FMCHMAX		= 30,
+	KEYDISP_PSGMAX		= 3
+};
+#else	// defined(SUPPORT_PX)
+enum {
+	KEYDISP_CHMAX		= 16,
+	KEYDISP_FMCHMAX		= 12,
+	KEYDISP_PSGMAX		= 3
+};
+#endif	// defined(SUPPORT_PX)
+
+enum {
+	KEYDISP_NOTEMAX		= 16,
+
+	KEYDISP_KEYCX		= 28,
+	KEYDISP_KEYCY		= 14,
+
+	KEYDISP_LEVEL		= (1 << 4),
+
+	KEYDISP_WIDTH		= 301,
+	KEYDISP_HEIGHT		= (KEYDISP_KEYCY * KEYDISP_CHMAX) + 1,
+
+	KEYDISP_DELAYEVENTS	= 2048,
+};
+
+enum {
+	KEYDISP_PALBG		= 0,
+	KEYDISP_PALFG,
+	KEYDISP_PALHIT,
+
+	KEYDISP_PALS
+};
+
+enum {
+	KEYDISP_FLAGDRAW		= 0x01,
+	KEYDISP_FLAGREDRAW		= 0x02,
+	KEYDISP_FLAGSIZING		= 0x04
+};
+
+enum {
+	FNUM_MIN	= 599,
+	FNUM_MAX	= 1199
+};
+
+enum {
+	FTO_MAX		= 491,
+	FTO_MIN		= 245
+};
+
+typedef struct {
+	SINT32		*detune1;			// detune1
+	SINT32		totallevel;			// total level
+	SINT32		decaylevel;			// decay level
+const SINT32	*attack;			// attack ratio
+const SINT32	*decay1;			// decay1 ratio
+const SINT32	*decay2;			// decay2 ratio
+const SINT32	*release;			// release ratio
+	SINT32 		freq_cnt;			// frequency count
+	SINT32		freq_inc;			// frequency step
+	SINT32		multiple;			// multiple
+	UINT8		keyscale;			// key scale
+	UINT8		env_mode;			// envelope mode
+	UINT8		envratio;			// envelope ratio
+	UINT8		ssgeg1;				// SSG-EG
+
+	SINT32		env_cnt;			// envelope count
+	SINT32		env_end;			// envelope end count
+	SINT32		env_inc;			// envelope step
+	SINT32		env_inc_attack;		// envelope attack step
+	SINT32		env_inc_decay1;		// envelope decay1 step
+	SINT32		env_inc_decay2;		// envelope decay2 step
+	SINT32		env_inc_release;	// envelope release step
+} OPNSLOT;
+
+typedef struct {
+	OPNSLOT	slot[4];
+	UINT8	algorithm;			// algorithm
+	UINT8	feedback;			// self feedback
+	UINT8	playing;
+	UINT8	outslot;
+	SINT32	op1fb;				// operator1 feedback
+	SINT32	*connect1;			// operator1 connect
+	SINT32	*connect3;			// operator3 connect
+	SINT32	*connect2;			// operator2 connect
+	SINT32	*connect4;			// operator4 connect
+	UINT32	keynote[4];			// key note				// ver0.27
+
+	UINT8	keyfunc[4];			// key function
+	UINT8	kcode[4];			// key code
+	UINT8	pan;				// pan
+	UINT8	extop;				// extendopelator-enable
+	UINT8	stereo;				// stereo-enable
+	UINT8	padding2;
+} OPNCH;
+
+typedef struct {
+	UINT	playchannels;
+	UINT	playing;
+	SINT32	feedback2;
+	SINT32	feedback3;
+	SINT32	feedback4;
+	SINT32	outdl;
+	SINT32	outdc;
+	SINT32	outdr;
+	SINT32	calcremain;
+	UINT8	keyreg[OPNCH_MAX];
+} _OPNGEN, *OPNGEN;
+
+typedef struct {
+	SINT32	calc1024;
+	SINT32	fmvol;
+	UINT	ratebit;
+	UINT	vr_en;
+	SINT32	vr_l;
+	SINT32	vr_r;
+
+	SINT32	sintable[SIN_ENT];
+	SINT32	envtable[EVC_ENT];
+	SINT32	envcurve[EVC_ENT*2 + 1];
+} OPNCFG;
+
+#if !defined(DISABLE_SOUND)
+
+typedef struct {
+	UINT	addr;
+	UINT	addr2;
+	UINT8	data;
+	UINT8	data2;
+	UINT16	base;
+	UINT8	adpcmmask;
+	UINT8	channels;
+	UINT8	extend;
+	UINT8	_padding;
+	UINT8	reg[0x400];
+} OPN_T;
+
+typedef struct {
+	UINT16	port;
+	UINT8	psg3reg;
+	UINT8	rhythm;
+} AMD98;
+
+typedef struct {
+	UINT8	porta;
+	UINT8	portb;
+	UINT8	portc;
+	UINT8	mask;
+	UINT8	key[8];
+	int		sync;
+	int		ch;
+} MUSICGEN;
+
+typedef struct {
+	UINT16	posx;
+	UINT16	pals;
+const UINT8	*data;
+} KDKEYPOS;
+
+typedef struct {
+	UINT8	k[KEYDISP_NOTEMAX];
+	UINT8	r[KEYDISP_NOTEMAX];
+	UINT	remain;
+	UINT8	flag;
+	UINT8	padding[3];
+} KDCHANNEL;
+
+typedef struct {
+	UINT8	ch;
+	UINT8	key;
+} KDDELAYE;
+
+typedef struct {
+	UINT	pos;
+	UINT	rem;
+	UINT8	warm;
+	UINT8	warmbase;
+} KDDELAY;
+
+typedef struct {
+	UINT16	fnum[4];
+	UINT8	lastnote[4];
+	UINT8	flag;
+	UINT8	extflag;
+} KDFMCTRL;
+
+typedef struct {
+	UINT16	fto[4];
+	UINT8	lastnote[4];
+	UINT8	flag;
+	UINT8	mix;
+	UINT8	padding[2];
+} KDPSGCTRL;
+
+typedef struct {
+	UINT8		mode;
+	UINT8		dispflag;
+	UINT8		framepast;
+	UINT8		keymax;
+	UINT8		fmmax;
+	UINT8		psgmax;
+	UINT8		fmpos[KEYDISP_FMCHMAX];
+	UINT8		psgpos[KEYDISP_PSGMAX];
+	const UINT8	*pfmreg[KEYDISP_FMCHMAX];
+	KDDELAY		delay;
+	KDCHANNEL	ch[KEYDISP_CHMAX];
+	KDFMCTRL	fmctl[KEYDISP_FMCHMAX];
+	KDPSGCTRL	psgctl[KEYDISP_PSGMAX];
+//	UINT8		pal8[KEYDISP_PALS];
+//	UINT16		pal16[KEYDISP_LEVEL*2];
+//	RGB32		pal32[KEYDISP_LEVEL*2];
+	KDKEYPOS	keypos[128];
+	KDDELAYE	delaye[KEYDISP_DELAYEVENTS];
+} KEYDISP;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef struct {
+	UINT32	freq;
+	UINT32	count;
+} TMSCH;
+
+typedef struct {
+	TMSCH	ch[8];
+	UINT	enable;
+} _TMS3631, *TMS3631;
+
+typedef struct {
+	UINT	ratesft;
+	SINT32	left;
+	SINT32	right;
+	SINT32	feet[16];
+} TMS3631CFG;
+
+static void	(*extfn)(REG8 enable);
+
+struct _FMTIMER {
+	UINT16	timera;
+	UINT8	timerb;
+	UINT8	status;
+	UINT8	reg;
+	UINT8	intr;
+	UINT8	irq;
+	UINT8	intdisabel;
+};
+
+extern	UINT32		usesound;
+extern	OPN_T		opn;
+extern	AMD98		amd98;
+extern	MUSICGEN	musicgen;
+
+	_FMTIMER	fmtimer;
+
+extern	_TMS3631	tms3631;
+extern	_FMTIMER	fmtimer;
+extern	_OPNGEN		opngen;
+extern	OPNCH		opnch[OPNCH_MAX];
+extern	_PSGGEN		__psg[3];
+extern	_RHYTHM		rhythm;
+extern	_ADPCM		adpcm;
+extern	_PCM86		pcm86;
+//extern	_CS4231		cs4231;
+
+	UINT32		usesound;
+	OPN_T		opn;
+	AMD98		amd98;
+	MUSICGEN	musicgen;
+
+	_TMS3631	tms3631;
+	_OPNGEN		opngen;
+	OPNCH		opnch[OPNCH_MAX];
+	_PSGGEN		__psg[3];
+	_RHYTHM		rhythm;
+	_ADPCM		adpcm;
+	_PCM86		pcm86;
+//	_CS4231		cs4231;
+
+	OPN_T		opn2;
+	OPN_T		opn3;
+	_RHYTHM		rhythm2;
+	_RHYTHM		rhythm3;
+	_ADPCM		adpcm2;
+	_ADPCM		adpcm3;
+
+#define	psg1	__psg[0]
+#define	psg2	__psg[1]
+#define	psg3	__psg[2]
+
+extern	OPN_T		opn2;
+extern	OPN_T		opn3;
+extern	_RHYTHM		rhythm2;
+extern	_RHYTHM		rhythm3;
+extern	_ADPCM		adpcm2;
+extern	_ADPCM		adpcm3;
+
+
+// ----
+
+//static	REG8	rapids = 0;
+
+// ----
+
+	OPNCFG	opncfg;
+#ifdef OPNGENX86
+	char	envshift[EVC_ENT];
+	char	sinshift[SIN_ENT];
+#endif
+
+
+static	SINT32	detunetable[8][32];
+static	SINT32	attacktable[94];
+static	SINT32	decaytable[94];
+
+static const SINT32	decayleveltable[16] = {
+		 			SC( 0),SC( 1),SC( 2),SC( 3),SC( 4),SC( 5),SC( 6),SC( 7),
+		 			SC( 8),SC( 9),SC(10),SC(11),SC(12),SC(13),SC(14),SC(31)};
+static const UINT8 multipletable[] = {
+			    	1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30};
+static const SINT32 nulltable[] = {
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+static const UINT8 kftable[16] = {0,0,0,0,0,0,0,1,2,3,3,3,3,3,3,3};
+static const UINT8 dttable[] = {
+					0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2,
+					2, 3, 3, 3, 4, 4, 4, 5, 5, 6, 6, 7, 8, 8, 8, 8,
+					1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5,
+					5, 6, 6, 7, 8, 8, 9,10,11,12,13,14,16,16,16,16,
+					2, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 6, 6, 7,
+					8, 8, 9,10,11,12,13,14,16,17,19,20,22,22,22,22};
+static const int extendslot[4] = {2, 3, 1, 0};
+static const int fmslot[4] = {0, 2, 1, 3};
+
+
+// FOR I=0 TO 12:K=I-9:HZ# = 440*(2^((K*2-1)/24)):FM#=HZ#*(2^17)/55556!:PRINT INT(FM#);",";:NEXT
+static const UINT16 fnumtbl[12] = {635,673,713,755,800,848,
+									898,951,1008,1068,1132, 0xffff};
+
+
+// FOR I=0 TO 12:K=I-9:HZ# = 440*(2^((K*2-1)/24)):PSG#=4000000#*(32*HZ#):PRINT INT(PSG#);",";:NEXT
+static const UINT16 ftotbl[12] = {464,438,413,390,368,347,
+									328,309,292,276,260, 0};
+
+extern	OPNCFG	opncfg;
+
+static	KEYDISP		keydisp;
+
+	PSGGENCFG	psggencfg;
+
+static const void *psgtbl[3] = {&psg1, &psg2, &psg3};
+
+static void delaysetevent(UINT8 ch, UINT8 key);
+
+static UINT8 getpsgnote(UINT16 tone) {
+
+	UINT8	ret;
+	int		i;
+
+	ret = 60;
+	tone &= 0xfff;
+
+	while(tone < FTO_MIN) {
+		tone <<= 1;
+		ret += 12;
+		if (ret >= 128) {
+			return(127);
+		}
+	}
+	while(tone > FTO_MAX) {
+		if (!ret) {
+			return(0);
+		}
+		tone >>= 1;
+		ret -= 12;
+	}
+	for (i=0; tone < ftotbl[i]; i++) {
+		ret++;
+	}
+	if (ret >= 128) {
+		return(127);
+	}
+	return(ret);
+}
+
+static void psgmix(UINT8 ch, PSGGEN psg) {
+
+	KDPSGCTRL	*k;
+
+	k = keydisp.psgctl + ch;
+	if ((k->mix ^ psg->reg.mixer) & 7) {
+		UINT8 i, bit, pos;
+		k->mix = psg->reg.mixer;
+		pos = keydisp.psgpos[ch];
+		for (i=0, bit=1; i<3; i++, pos++, bit<<=1) {
+			if (k->flag & bit) {
+				k->flag ^= bit;
+				delaysetevent(pos, k->lastnote[i]);
+			}
+			else if ((!(k->mix & bit)) && (psg->reg.vol[i] & 0x1f)) {
+				k->flag |= bit;
+				k->fto[i] = LOADINTELWORD(psg->reg.tune[i]) & 0xfff;
+				k->lastnote[i] = getpsgnote(k->fto[i]);
+				delaysetevent(pos, (UINT8)(k->lastnote[i] | 0x80));
+			}
+		}
+	}
+}
+
+void keydisp_psgmix(void *psg) {
+
+	UINT8	c;
+
+	if (keydisp.mode != KEYDISP_MODEFM) {
+		return;
+	}
+	for (c=0; c<keydisp.psgmax; c++) {
+		if (psgtbl[c] == psg) {
+			psgmix(c, (PSGGEN)psg);
+			break;
+		}
+	}
+}
+
+
+static const UINT8 psggen_deftbl[0x10] =
+				{0, 0, 0, 0, 0, 0, 0, 0xbf, 0, 0, 0, 0, 0, 0, 0xff, 0xff};
+
+static const UINT8 psgenv_pat[16] = {
+					PSGENV_ONESHOT,
+					PSGENV_ONESHOT,
+					PSGENV_ONESHOT,
+					PSGENV_ONESHOT,
+					PSGENV_ONESHOT | PSGENV_INC,
+					PSGENV_ONESHOT | PSGENV_INC,
+					PSGENV_ONESHOT | PSGENV_INC,
+					PSGENV_ONESHOT | PSGENV_INC,
+					PSGENV_ONECYCLE,
+					PSGENV_ONESHOT,
+					0,
+					PSGENV_ONESHOT | PSGENV_LASTON,
+					PSGENV_ONECYCLE | PSGENV_INC,
+					PSGENV_ONESHOT | PSGENV_INC | PSGENV_LASTON,
+					PSGENV_INC,
+					PSGENV_ONESHOT | PSGENV_INC};
+
+static void psgvol(UINT8 ch, PSGGEN psg, UINT8 i) {
+
+	KDPSGCTRL	*k;
+	UINT8		bit;
+	UINT8		pos;
+	UINT16		tune;
+
+	k = keydisp.psgctl + ch;
+	bit = (1 << i);
+	pos = keydisp.psgpos[ch] + i;
+	if (psg->reg.vol[i] & 0x1f) {
+		if (!((k->mix | k->flag) & bit)) {
+			k->flag |= bit;
+			tune = LOADINTELWORD(psg->reg.tune[i]);
+			tune &= 0xfff;
+			k->fto[i] = tune;
+			k->lastnote[i] = getpsgnote(tune);
+			delaysetevent(pos, (UINT8)(k->lastnote[i] | 0x80));
+		}
+	}
+	else if (k->flag & bit) {
+		k->flag ^= bit;
+		delaysetevent(pos, k->lastnote[i]);
+	}
+}
+
+static void psgkeyreset(void) {
+
+	ZeroMemory(keydisp.psgctl, sizeof(keydisp.psgctl));
+}
+
+void pcm86_reset(void) {
+
+	ZeroMemory(&pcm86, sizeof(pcm86));
+	pcm86.fifosize = 0x80;
+	pcm86.dactrl = 0x32;
+	pcm86.stepmask = (1 << 2) - 1;
+	pcm86.stepbit = 2;
+	pcm86.stepclock = (PIT_TICK_RATE << 6);
+	pcm86.stepclock /= 44100;
+//	pcm86.stepclock *= pccore.multiple;
+	pcm86.rescue = (PCM86_RESCUE * 32) << 2;
+}
+
+void pcm86gen_update(void) {
+
+	pcm86.volume = pcm86cfg.vol * pcm86.vol5;
+	pcm86_setpcmrate(pcm86.fifo);
+}
+
+void pcm86_setpcmrate(REG8 val) {
+
+	SINT32	rate;
+
+	rate = pcm86rate8[val & 7];
+	pcm86.stepclock = (PIT_TICK_RATE << 6);
+	pcm86.stepclock /= rate;
+	pcm86.stepclock *= (1 << 3);
+	if (pcm86cfg.rate) {
+		pcm86.div = (rate << (PCM86_DIVBIT - 3)) / pcm86cfg.rate;
+		pcm86.div2 = (pcm86cfg.rate << (PCM86_DIVBIT + 3)) / rate;
+	}
+}
+
+void psggen_initialize(UINT rate) {
+
+	double	pom;
+	UINT	i;
+
+	ZeroMemory(&psggencfg, sizeof(psggencfg));
+	psggencfg.rate = rate;
+	pom = (double)0x0c00;
+	for (i=15; i; i--) {
+		psggencfg.voltbl[i] = (SINT32)pom;
+		pom /= 1.41492;
+	}
+	psggencfg.puchidec = (UINT16)(rate / 11025) * 2;
+	if (psggencfg.puchidec == 0) {
+		psggencfg.puchidec = 1;
+	}
+	if (rate) {
+		psggencfg.base = (5000 * (1 << (32 - PSGFREQPADBIT - PSGADDEDBIT)))
+															/ (rate / 25);
+	}
+}
+
+void psggen_setvol(UINT vol) {
+
+	UINT	i;
+
+	for (i=1; i<16; i++) {
+		psggencfg.volume[i] = (psggencfg.voltbl[i] * vol) >> 
+															(6 + PSGADDEDBIT);
+	}
+}
+
+void psggen_reset(PSGGEN psg) {
+
+	UINT	i;
+
+	ZeroMemory(psg, sizeof(_PSGGEN));
+	for (i=0; i<3; i++) {
+		psg->tone[i].pvol = psggencfg.volume + 0;
+	}
+	for (i=0; i<sizeof(psggen_deftbl); i++) {
+		psggen_setreg(psg, i, psggen_deftbl[i]);
+	}
+}
+
+void psggen_restore(PSGGEN psg) {
+
+	UINT	i;
+
+	for (i=0; i<0x0e; i++) {
+		psggen_setreg(psg, i, ((UINT8 *)&psg->reg)[i]);
+	}
+}
+
+void keydisp_psgvol(void *psg, UINT8 ch) {
+
+	UINT8	c;
+
+	if (keydisp.mode != KEYDISP_MODEFM) {
+		return;
+	}
+	for (c=0; c<keydisp.psgmax; c++) {
+		if (psgtbl[c] == psg) {
+			psgvol(c, (PSGGEN)psg, ch);
+			break;
+		}
+	}
+}
+
+void psggen_setreg(PSGGEN psg, UINT reg, REG8 value) {
+
+	UINT	ch;
+	UINT	freq;
+
+	reg = reg & 15;
+	if (reg < 14) {
+		sound_sync();
+	}
+	((UINT8 *)&psg->reg)[reg] = value;
+	switch(reg) {
+		case 0:
+		case 1:
+		case 2:
+		case 3:
+		case 4:
+		case 5:
+			ch = reg >> 1;
+			freq = LOADINTELWORD(psg->reg.tune[ch]) & 0xfff;
+			if (freq > 9) {
+				psg->tone[ch].freq = (psggencfg.base / freq) << PSGFREQPADBIT;
+			}
+			else {
+				psg->tone[ch].freq = 0;
+			}
+			break;
+
+		case 6:
+			freq = value & 0x1f;
+			if (freq == 0) {
+				freq = 1;
+			}
+			psg->noise.freq = psggencfg.base / freq;
+			psg->noise.freq <<= PSGFREQPADBIT;
+			break;
+
+		case 7:
+			keydisp_psgmix(psg);
+			psg->mixer = ~value;
+			psg->puchicount = psggencfg.puchidec;
+//			TRACEOUT(("psg %x 7 %d", (long)psg, value));
+			break;
+
+		case 8:
+		case 9:
+		case 10:
+			ch = reg - 8;
+			keydisp_psgvol(psg, (UINT8)ch);
+			if (value & 0x10) {
+				psg->tone[ch].pvol = &psg->evol;
+			}
+			else {
+				psg->tone[ch].pvol = psggencfg.volume + (value & 15);
+			}
+			psg->tone[ch].puchi = psggencfg.puchidec;
+			psg->puchicount = psggencfg.puchidec;
+//			TRACEOUT(("psg %x %x %d", (long)psg, reg, value));
+			break;
+
+		case 11:
+		case 12:
+			freq = LOADINTELWORD(psg->reg.envtime);
+			freq = psggencfg.rate * freq / 125000;
+			if (freq == 0) {
+				freq = 1;
+			}
+			psg->envmax = freq;
+			break;
+
+		case 13:
+			psg->envmode = psgenv_pat[value & 0x0f];
+			psg->envvolcnt = 16;
+			psg->envcnt = 1;
+			break;
+	}
+}
+
+REG8 psggen_getreg(PSGGEN psg, UINT reg) {
+
+	return(((UINT8 *)&psg->reg)[reg & 15]);
+}
+
+void psggen_setpan(PSGGEN psg, UINT ch, REG8 pan) {
+
+	if ((psg) && (ch < 3)) {
+		psg->tone[ch].pan = pan;
+	}
+}
+
+#if 0
+static void keyallreload(void) {
+
+	UINT	i;
+
+	for (i=0; i<KEYDISP_CHMAX; i++) {
+		keydisp.ch[i].flag = 2;
+	}
+}
+#endif
+
+#if 0
+static void keyallclear(void) {
+
+	ZeroMemory(keydisp.ch, sizeof(keydisp.ch));
+	keyallreload();
+}
+#endif
+
+static void chkeyoff(UINT ch) {
+
+	UINT		i;
+	KDCHANNEL	*kdch;
+
+	kdch = keydisp.ch + ch;
+	for (i=0; i<kdch->remain; i++) {
+		if ((kdch->r[i] & (~0x80)) >= (KEYDISP_LEVEL - 1)) {
+			kdch->r[i] = 0x80 | (KEYDISP_LEVEL - 2);
+			kdch->flag |= 1;
+		}
+	}
+}
+
+static void keyalloff(void) {
+
+	UINT8	i;
+
+	for (i=0; i<KEYDISP_CHMAX; i++) {
+		chkeyoff(i);
+	}
+}
+
+static void keyon(UINT ch, UINT8 note) {
+
+	UINT		i;
+	KDCHANNEL	*kdch;
+
+	note &= 0x7f;
+	kdch = keydisp.ch + ch;
+	for (i=0; i<kdch->remain; i++) {
+		if (kdch->k[i] == note) {				// qbgµ½
+			for (; i<(kdch->remain-1); i++) {
+				kdch->k[i] = kdch->k[i+1];
+				kdch->r[i] = kdch->r[i+1];
+			}
+			kdch->k[i] = note;
+			kdch->r[i] = 0x80 | (KEYDISP_LEVEL - 1);
+			kdch->flag |= 1;
+			return;
+		}
+	}
+	if (i < KEYDISP_NOTEMAX) {
+		kdch->k[i] = note;
+		kdch->r[i] = 0x80 | (KEYDISP_LEVEL - 1);
+		kdch->flag |= 1;
+		kdch->remain++;
+	}
+}
+
+static void keyoff(UINT ch, UINT8 note) {
+
+	UINT		i;
+	KDCHANNEL	*kdch;
+
+	note &= 0x7f;
+	kdch = keydisp.ch + ch;
+	for (i=0; i<kdch->remain; i++) {
+		if (kdch->k[i] == note) {				// qbgµ½
+			kdch->r[i] = 0x80 | (KEYDISP_LEVEL - 2);
+			kdch->flag |= 1;
+			break;
+		}
+	}
+}
+
+static void delaysetevent(UINT8 ch, UINT8 key) {
+
+	KDDELAYE	*e;
+
+	e = keydisp.delaye;
+	if (keydisp.delay.rem < KEYDISP_DELAYEVENTS) {
+		e += (keydisp.delay.pos + keydisp.delay.rem) &
+													(KEYDISP_DELAYEVENTS - 1);
+		keydisp.delay.rem++;
+		e->ch = ch;
+		e->key = key;
+	}
+	else {
+		e += keydisp.delay.pos;
+		keydisp.delay.pos += (keydisp.delay.pos + 1) &
+													(KEYDISP_DELAYEVENTS - 1);
+		if (e->ch == 0xff) {
+			keydisp.delay.warm++;
+		}
+		else if (e->key & 0x80) {
+			keyon(e->ch, e->key);
+		}
+		else {
+			keyoff(e->ch, e->key);
+		}
+		e->ch = ch;
+		e->key = key;
+	}
+}
+
+static UINT8 getfmnote(UINT16 fnum) {
+
+	UINT8	ret;
+	int		i;
+
+	ret = (fnum >> 11) & 7;
+	ret *= 12;
+	ret += 24;
+	fnum &= 0x7ff;
+
+	while(fnum < FNUM_MIN) {
+		if (!ret) {
+			return(0);
+		}
+		ret -= 12;
+		fnum <<= 1;
+	}
+	while(fnum > FNUM_MAX) {
+		fnum >>= 1;
+		ret += 12;
+	}
+	for (i=0; fnum >= fnumtbl[i]; i++) {
+		ret++;
+	}
+	if (ret > 127) {
+		return(127);
+	}
+	return(ret);
+}
+
+
+static void fmkeyoff(UINT8 ch, KDFMCTRL *k) {
+
+	delaysetevent(keydisp.fmpos[ch], k->lastnote[0]);
+}
+
+static void fmkeyon(UINT8 ch, KDFMCTRL *k) {
+
+	const UINT8 *pReg;
+
+	fmkeyoff(ch, k);
+	pReg = keydisp.pfmreg[ch];
+	if (pReg)
+	{
+		pReg = pReg + 0xa0;
+		k->fnum[0] = ((pReg[4] & 0x3f) << 8) + pReg[0];
+		k->lastnote[0] = getfmnote(k->fnum[0]);
+		delaysetevent(keydisp.fmpos[ch], (UINT8)(k->lastnote[0] | 0x80));
+	}
+}
+
+static void fmkeyreset(void) {
+
+	ZeroMemory(keydisp.fmctl, sizeof(keydisp.fmctl));
+}
+
+
+#define	CALCENV(e, c, s)													\
+	(c)->slot[(s)].freq_cnt += (c)->slot[(s)].freq_inc;						\
+	(c)->slot[(s)].env_cnt += (c)->slot[(s)].env_inc;						\
+	if ((c)->slot[(s)].env_cnt >= (c)->slot[(s)].env_end) {					\
+		switch((c)->slot[(s)].env_mode) {									\
+			case EM_ATTACK:													\
+				(c)->slot[(s)].env_mode = EM_DECAY1;						\
+				(c)->slot[(s)].env_cnt = EC_DECAY;							\
+				(c)->slot[(s)].env_end = (c)->slot[(s)].decaylevel;			\
+				(c)->slot[(s)].env_inc = (c)->slot[(s)].env_inc_decay1;		\
+				break;														\
+			case EM_DECAY1:													\
+				(c)->slot[(s)].env_mode = EM_DECAY2;						\
+				(c)->slot[(s)].env_cnt = (c)->slot[(s)].decaylevel;			\
+				(c)->slot[(s)].env_end = EC_OFF;							\
+				(c)->slot[(s)].env_inc = (c)->slot[(s)].env_inc_decay2;		\
+				break;														\
+			case EM_RELEASE:												\
+				(c)->slot[(s)].env_mode = EM_OFF;							\
+			case EM_DECAY2:													\
+				(c)->slot[(s)].env_cnt = EC_OFF;							\
+				(c)->slot[(s)].env_end = EC_OFF + 1;						\
+				(c)->slot[(s)].env_inc = 0;									\
+				(c)->playing &= ~(1 << (s));								\
+				break;														\
+		}																	\
+	}																		\
+	(e) = (c)->slot[(s)].totallevel -										\
+					opncfg.envcurve[(c)->slot[(s)].env_cnt >> ENV_BITS];
+
+#define SLOTOUT(s, e, c)													\
+		((opncfg.sintable[(((s).freq_cnt + (c)) >>							\
+							(FREQ_BITS - SIN_BITS)) & (SIN_ENT - 1)] *		\
+				opncfg.envtable[(e)]) >> (ENVTBL_BIT+SINTBL_BIT-TL_BITS))
+
+
+static void calcratechannel(OPNCH *ch) {
+
+	SINT32	envout;
+	SINT32	opout;
+
+	opngen.feedback2 = 0;
+	opngen.feedback3 = 0;
+	opngen.feedback4 = 0;
+
+	/* SLOT 1 */
+	CALCENV(envout, ch, 0);
+	if (envout > 0) {
+		if (ch->feedback) {
+			/* with self feed back */
+			opout = ch->op1fb;
+			ch->op1fb = SLOTOUT(ch->slot[0], envout,
+											(ch->op1fb >> ch->feedback));
+			opout = (opout + ch->op1fb) / 2;
+		}
+		else {
+			/* without self feed back */
+			opout = SLOTOUT(ch->slot[0], envout, 0);
+		}
+		/* output slot1 */
+		if (!ch->connect1) {
+			opngen.feedback2 = opngen.feedback3 = opngen.feedback4 = opout;
+		}
+		else {
+			*ch->connect1 += opout;
+		}
+	}
+	/* SLOT 2 */
+	CALCENV(envout, ch, 1);
+	if (envout > 0) {
+		*ch->connect2 += SLOTOUT(ch->slot[1], envout, opngen.feedback2);
+	}
+	/* SLOT 3 */
+	CALCENV(envout, ch, 2);
+	if (envout > 0) {
+		*ch->connect3 += SLOTOUT(ch->slot[2], envout, opngen.feedback3);
+	}
+	/* SLOT 4 */
+	CALCENV(envout, ch, 3);
+	if (envout > 0) {
+		*ch->connect4 += SLOTOUT(ch->slot[3], envout, opngen.feedback4);
+	}
+}
+
+void SOUNDCALL opngen_getpcm(void *hdl, SINT32 *pcm, UINT count) {
+
+	OPNCH	*fm;
+	UINT	i;
+	UINT	playing;
+	SINT32	samp_l;
+	SINT32	samp_r;
+
+	if ((!opngen.playing) || (!count)) {
+		return;
+	}
+	fm = opnch;
+	do {
+		samp_l = opngen.outdl * (opngen.calcremain * -1);
+		samp_r = opngen.outdr * (opngen.calcremain * -1);
+		opngen.calcremain += FMDIV_ENT;
+		while(1) {
+			opngen.outdc = 0;
+			opngen.outdl = 0;
+			opngen.outdr = 0;
+			playing = 0;
+			for (i=0; i<opngen.playchannels; i++) {
+				if (fm[i].playing & fm[i].outslot) {
+					calcratechannel(fm + i);
+					playing++;
+				}
+			}
+			opngen.outdl += opngen.outdc;
+			opngen.outdr += opngen.outdc;
+			opngen.outdl >>= FMVOL_SFTBIT;
+			opngen.outdr >>= FMVOL_SFTBIT;
+			if (opngen.calcremain > opncfg.calc1024) {
+				samp_l += opngen.outdl * opncfg.calc1024;
+				samp_r += opngen.outdr * opncfg.calc1024;
+				opngen.calcremain -= opncfg.calc1024;
+			}
+			else {
+				break;
+			}
+		}
+		samp_l += opngen.outdl * opngen.calcremain;
+		samp_l >>= 8;
+		samp_l *= opncfg.fmvol;
+		samp_l >>= (OPM_OUTSB + FMDIV_BITS + 1 + 6 - FMVOL_SFTBIT - 8);
+		pcm[0] += samp_l;
+		samp_r += opngen.outdr * opngen.calcremain;
+		samp_r >>= 8;
+		samp_r *= opncfg.fmvol;
+		samp_r >>= (OPM_OUTSB + FMDIV_BITS + 1 + 6 - FMVOL_SFTBIT - 8);
+		pcm[1] += samp_r;
+		opngen.calcremain -= opncfg.calc1024;
+		pcm += 2;
+	} while(--count);
+	opngen.playing = playing;
+	(void)hdl;
+}
+
+void SOUNDCALL opngen_getpcmvr(void *hdl, SINT32 *pcm, UINT count) {
+
+	OPNCH	*fm;
+	UINT	i;
+	SINT32	samp_l;
+	SINT32	samp_r;
+
+	fm = opnch;
+	while(count--) {
+		samp_l = opngen.outdl * (opngen.calcremain * -1);
+		samp_r = opngen.outdr * (opngen.calcremain * -1);
+		opngen.calcremain += FMDIV_ENT;
+		while(1) {
+			opngen.outdc = 0;
+			opngen.outdl = 0;
+			opngen.outdr = 0;
+			for (i=0; i<opngen.playchannels; i++) {
+				calcratechannel(fm + i);
+			}
+			if (opncfg.vr_en) {
+				SINT32 tmpl;
+				SINT32 tmpr;
+				tmpl = (opngen.outdl >> 5) * opncfg.vr_l;
+				tmpr = (opngen.outdr >> 5) * opncfg.vr_r;
+				opngen.outdl += tmpr;
+				opngen.outdr += tmpl;
+			}
+			opngen.outdl += opngen.outdc;
+			opngen.outdr += opngen.outdc;
+			opngen.outdl >>= FMVOL_SFTBIT;
+			opngen.outdr >>= FMVOL_SFTBIT;
+			if (opngen.calcremain > opncfg.calc1024) {
+				samp_l += opngen.outdl * opncfg.calc1024;
+				samp_r += opngen.outdr * opncfg.calc1024;
+				opngen.calcremain -= opncfg.calc1024;
+			}
+			else {
+				break;
+			}
+		}
+		samp_l += opngen.outdl * opngen.calcremain;
+		samp_l >>= 8;
+		samp_l *= opncfg.fmvol;
+		samp_l >>= (OPM_OUTSB + FMDIV_BITS + 1 + 6 - FMVOL_SFTBIT - 8);
+		pcm[0] += samp_l;
+		samp_r += opngen.outdr * opngen.calcremain;
+		samp_r >>= 8;
+		samp_r *= opncfg.fmvol;
+		samp_r >>= (OPM_OUTSB + FMDIV_BITS + 1 + 6 - FMVOL_SFTBIT - 8);
+		pcm[1] += samp_r;
+		opngen.calcremain -= opncfg.calc1024;
+		pcm += 2;
+	}
+	(void)hdl;
+}
+
+
+void opngen_initialize(UINT rate) {
+
+	UINT	ratebit;
+	int		i;
+	char	sft;
+	int		j;
+	double	pom;
+	long	detune;
+	double	freq;
+	UINT32	calcrate;
+
+	if (rate == 44100) {
+		ratebit = 0;
+	}
+	else if (rate == 22050) {
+		ratebit = 1;
+	}
+	else {
+		ratebit = 2;
+	}
+	calcrate = (OPNA_CLOCK / 72) >> ratebit;
+	opncfg.calc1024 = FMDIV_ENT * 44100 / (OPNA_CLOCK / 72);
+
+	for (i=0; i<EVC_ENT; i++) {
+#ifdef OPNGENX86
+		sft = ENVTBL_BIT;
+		while(sft < (ENVTBL_BIT + 8)) {
+			pom = (double)(1 << sft) / pow(10.0, EG_STEP*(EVC_ENT-i)/20.0);
+			opncfg.envtable[i] = (long)pom;
+			envshift[i] = sft - TL_BITS;
+			if (opncfg.envtable[i] >= (1 << (ENVTBL_BIT - 1))) {
+				break;
+			}
+			sft++;
+		}
+#else
+		pom = (double)(1 << ENVTBL_BIT) / pow(10.0, EG_STEP*(EVC_ENT-i)/20.0);
+		opncfg.envtable[i] = (long)pom;
+#endif
+	}
+	for (i=0; i<SIN_ENT; i++) {
+#ifdef OPNGENX86
+		char sft;
+		sft = SINTBL_BIT;
+		while(sft < (SINTBL_BIT + 8)) {
+			pom = (double)(1 << sft) * sin(2*PI*i/SIN_ENT);
+			opncfg.sintable[i] = (long)pom;
+			sinshift[i] = sft;
+			if (opncfg.sintable[i] >= (1 << (SINTBL_BIT - 1))) {
+				break;
+			}
+			if (opncfg.sintable[i] <= -1 * (1 << (SINTBL_BIT - 1))) {
+				break;
+			}
+			sft++;
+		}
+#else
+		pom = (double)((1 << SINTBL_BIT) - 1) * sin(2*PI*i/SIN_ENT);
+		opncfg.sintable[i] = (long)pom;
+#endif
+	}
+	for (i=0; i<EVC_ENT; i++) {
+		pom = pow(((double)(EVC_ENT-1-i)/EVC_ENT), 8) * EVC_ENT;
+		opncfg.envcurve[i] = (long)pom;
+		opncfg.envcurve[EVC_ENT + i] = i;
+	}
+	opncfg.envcurve[EVC_ENT*2] = EVC_ENT;
+
+//	opmbaserate = (1L << FREQ_BITS) / (rate * x / 44100) * 55466;
+//	Åà¡Í x == 55466¾©çc
+
+//	±±Å FREQ_BITS >= 16ªð
+	if (rate == 44100) {
+		opncfg.ratebit = 0 + (FREQ_BITS - 16);
+	}
+	else if (rate == 22050) {
+		opncfg.ratebit = 1 + (FREQ_BITS - 16);
+	}
+	else {
+		opncfg.ratebit = 2 + (FREQ_BITS - 16);
+	}
+
+	for (i=0; i<4; i++) {
+		for (j=0; j<32; j++) {
+			detune = dttable[i*32 + j];
+			sft = ratebit + (FREQ_BITS - 21);
+			if (sft >= 0) {
+				detune <<= sft;
+			}
+			else {
+				detune >>= (0 - sft);
+			}
+
+			detunetable[i][j]   = detune;
+			detunetable[i+4][j] = -detune;
+		}
+	}
+	for (i=0; i<4; i++) {
+		attacktable[i] = decaytable[i] = 0;
+	}
+	for (i=4; i<64; i++) {
+		freq = (double)(EVC_ENT << ENV_BITS) * FREQBASE4096;
+		if (i < 8) {							// YêÄÜ·B
+			freq *= 1.0 + (i & 2) * 0.25;
+		}
+		else if (i < 60) {
+			freq *= 1.0 + (i & 3) * 0.25;
+		}
+		freq *= (double)(1 << ((i >> 2) - 1));
+#if 0
+		attacktable[i] = (long)((freq + OPM_ARRATE - 1) / OPM_ARRATE);
+		decaytable[i] = (long)((freq + OPM_DRRATE - 1) / OPM_DRRATE);
+#else
+		attacktable[i] = (long)(freq / OPM_ARRATE);
+		decaytable[i] = (long)(freq / OPM_DRRATE);
+#endif
+		if (attacktable[i] >= EC_DECAY) {
+//			TRACEOUT(("attacktable %d %d %ld", i, attacktable[i], EC_DECAY));
+		}
+		if (decaytable[i] >= EC_DECAY) {
+//			TRACEOUT(("decaytable %d %d %ld", i, decaytable[i], EC_DECAY));
+		}
+	}
+	attacktable[62] = EC_DECAY - 1;
+	attacktable[63] = EC_DECAY - 1;
+	for (i=64; i<94; i++) {
+		attacktable[i] = attacktable[63];
+		decaytable[i] = decaytable[63];
+	}
+}
+
+void opngen_setvol(UINT vol) {
+
+	opncfg.fmvol = vol * 5 / 4;
+#if defined(OPNGENX86)
+	opncfg.fmvol <<= FMASMSHIFT;
+#endif
+}
+
+void opngen_setVR(REG8 channel, REG8 value) {
+
+	if ((channel & 3) && (value)) {
+		opncfg.vr_en = TRUE;
+		opncfg.vr_l = (channel & 1)?value:0;
+		opncfg.vr_r = (channel & 2)?value:0;
+	}
+	else {
+		opncfg.vr_en = FALSE;
+	}
+}
+
+
+// ----
+
+static void set_algorithm(OPNCH *ch) {
+
+	SINT32	*outd;
+	UINT8	outslot;
+
+	outd = &opngen.outdc;
+	if (ch->stereo) {
+		switch(ch->pan & 0xc0) {
+			case 0x80:
+				outd = &opngen.outdl;
+				break;
+
+			case 0x40:
+				outd = &opngen.outdr;
+				break;
+		}
+	}
+	switch(ch->algorithm) {
+		case 0:
+			ch->connect1 = &opngen.feedback2;
+			ch->connect2 = &opngen.feedback3;
+			ch->connect3 = &opngen.feedback4;
+			outslot = 0x08;
+			break;
+
+		case 1:
+			ch->connect1 = &opngen.feedback3;
+			ch->connect2 = &opngen.feedback3;
+			ch->connect3 = &opngen.feedback4;
+			outslot = 0x08;
+			break;
+
+		case 2:
+			ch->connect1 = &opngen.feedback4;
+			ch->connect2 = &opngen.feedback3;
+			ch->connect3 = &opngen.feedback4;
+			outslot = 0x08;
+			break;
+
+		case 3:
+			ch->connect1 = &opngen.feedback2;
+			ch->connect2 = &opngen.feedback4;
+			ch->connect3 = &opngen.feedback4;
+			outslot = 0x08;
+			break;
+
+		case 4:
+			ch->connect1 = &opngen.feedback2;
+			ch->connect2 = outd;
+			ch->connect3 = &opngen.feedback4;
+			outslot = 0x0a;
+			break;
+
+		case 5:
+			ch->connect1 = 0;
+			ch->connect2 = outd;
+			ch->connect3 = outd;
+			outslot = 0x0e;
+			break;
+
+		case 6:
+			ch->connect1 = &opngen.feedback2;
+			ch->connect2 = outd;
+			ch->connect3 = outd;
+			outslot = 0x0e;
+			break;
+
+		case 7:
+		default:
+			ch->connect1 = outd;
+			ch->connect2 = outd;
+			ch->connect3 = outd;
+			outslot = 0x0f;
+	}
+	ch->connect4 = outd;
+	ch->outslot = outslot;
+}
+
+static void set_dt1_mul(OPNSLOT *slot, REG8 value) {
+
+	slot->multiple = (SINT32)multipletable[value & 0x0f];
+	slot->detune1 = detunetable[(value >> 4) & 7];
+}
+
+static void set_tl(OPNSLOT *slot, REG8 value) {
+
+#if (EVC_BITS >= 7)
+	slot->totallevel = ((~value) & 0x007f) << (EVC_BITS - 7);
+#else
+	slot->totallevel = ((~value) & 0x007f) >> (7 - EVC_BITS);
+#endif
+}
+
+static void set_ks_ar(OPNSLOT *slot, REG8 value) {
+
+	slot->keyscale = ((~value) >> 6) & 3;
+	value &= 0x1f;
+	slot->attack = (value)?(attacktable + (value << 1)):nulltable;
+	slot->env_inc_attack = slot->attack[slot->envratio];
+	if (slot->env_mode == EM_ATTACK) {
+		slot->env_inc = slot->env_inc_attack;
+	}
+}
+
+static void set_d1r(OPNSLOT *slot, REG8 value) {
+
+	value &= 0x1f;
+	slot->decay1 = (value)?(decaytable + (value << 1)):nulltable;
+	slot->env_inc_decay1 = slot->decay1[slot->envratio];
+	if (slot->env_mode == EM_DECAY1) {
+		slot->env_inc = slot->env_inc_decay1;
+	}
+}
+
+static void set_dt2_d2r(OPNSLOT *slot, REG8 value) {
+
+	value &= 0x1f;
+	slot->decay2 = (value)?(decaytable + (value << 1)):nulltable;
+	if (slot->ssgeg1) {
+		slot->env_inc_decay2 = 0;
+	}
+	else {
+		slot->env_inc_decay2 = slot->decay2[slot->envratio];
+	}
+	if (slot->env_mode == EM_DECAY2) {
+		slot->env_inc = slot->env_inc_decay2;
+	}
+}
+
+static void set_d1l_rr(OPNSLOT *slot, REG8 value) {
+
+	slot->decaylevel = decayleveltable[(value >> 4)];
+	slot->release = decaytable + ((value & 0x0f) << 2) + 2;
+	slot->env_inc_release = slot->release[slot->envratio];
+	if (slot->env_mode == EM_RELEASE) {
+		slot->env_inc = slot->env_inc_release;
+		if (value == 0xff) {
+			slot->env_mode = EM_OFF;
+			slot->env_cnt = EC_OFF;
+			slot->env_end = EC_OFF + 1;
+			slot->env_inc = 0;
+		}
+	}
+}
+
+static void set_ssgeg(OPNSLOT *slot, REG8 value) {
+
+	value &= 0xf;
+	if ((value == 0xb) || (value == 0xd)) {
+		slot->ssgeg1 = 1;
+		slot->env_inc_decay2 = 0;
+	}
+	else {
+		slot->ssgeg1 = 0;
+		slot->env_inc_decay2 = slot->decay2[slot->envratio];
+	}
+	if (slot->env_mode == EM_DECAY2) {
+		slot->env_inc = slot->env_inc_decay2;
+	}
+}
+
+static void channleupdate(OPNCH *ch) {
+
+	int		i;
+	UINT32	fc = ch->keynote[0];						// ver0.27
+	UINT8	kc = ch->kcode[0];
+	UINT	evr;
+	OPNSLOT	*slot;
+	int		s;
+
+	slot = ch->slot;
+
+    assert(slot->detune1 != NULL);
+    assert(slot->attack != NULL);
+    assert(slot->decay1 != NULL);
+    assert(slot->decay2 != NULL);
+    assert(slot->release != NULL);
+
+	if (!(ch->extop)) {
+		for (i=0; i<4; i++, slot++) {
+			slot->freq_inc = (fc + slot->detune1[kc]) * slot->multiple;
+			evr = kc >> slot->keyscale;
+			if (slot->envratio != evr) {
+				slot->envratio = evr;
+				slot->env_inc_attack = slot->attack[evr];
+				slot->env_inc_decay1 = slot->decay1[evr];
+				slot->env_inc_decay2 = slot->decay2[evr];
+				slot->env_inc_release = slot->release[evr];
+			}
+		}
+	}
+	else {
+		for (i=0; i<4; i++, slot++) {
+			s = extendslot[i];
+			slot->freq_inc = (ch->keynote[s] + slot->detune1[ch->kcode[s]])
+														* slot->multiple;
+			evr = ch->kcode[s] >> slot->keyscale;
+			if (slot->envratio != evr) {
+				slot->envratio = evr;
+				slot->env_inc_attack = slot->attack[evr];
+				slot->env_inc_decay1 = slot->decay1[evr];
+				slot->env_inc_decay2 = slot->decay2[evr];
+				slot->env_inc_release = slot->release[evr];
+			}
+		}
+	}
+}
+
+void opngen_setreg(REG8 chbase, UINT reg, REG8 value);
+
+// ----
+
+void opngen_reset(void) {
+
+	OPNCH	*ch;
+	UINT	i;
+	OPNSLOT	*slot;
+	UINT	j;
+
+    LOG_MSG("OPNGEN reset");
+
+	ZeroMemory(&opngen, sizeof(opngen));
+	ZeroMemory(opnch, sizeof(opnch));
+	opngen.playchannels = 3;
+
+	ch = opnch;
+	for (i=0; i<OPNCH_MAX; i++) {
+		ch->keynote[0] = 0;
+		slot = ch->slot;
+		for (j=0; j<4; j++) {
+			slot->env_mode = EM_OFF;
+			slot->env_cnt = EC_OFF;
+			slot->env_end = EC_OFF + 1;
+			slot->env_inc = 0;
+			slot->detune1 = detunetable[0];
+			slot->attack = nulltable;
+			slot->decay1 = nulltable;
+			slot->decay2 = nulltable;
+			slot->release = decaytable;
+			slot++;
+		}
+		ch++;
+	}
+	for (i=0x30; i<0xc0; i++) {
+		opngen_setreg(0, i, 0xff);
+		opngen_setreg(3, i, 0xff);
+		opngen_setreg(6, i, 0xff);
+		opngen_setreg(9, i, 0xff);
+	}
+}
+
+void opngen_setcfg(REG8 maxch, UINT32 flag) {
+
+	OPNCH	*ch;
+	UINT	i;
+
+	opngen.playchannels = maxch;
+	ch = opnch;
+	if ((flag & OPN_CHMASK) == OPN_STEREO) {
+		for (i=0; i<OPNCH_MAX; i++) {
+			if (flag & (1 << i)) {
+				ch->stereo = TRUE;
+				set_algorithm(ch);
+			}
+			ch++;
+		}
+	}
+	else {
+		for (i=0; i<OPNCH_MAX; i++) {
+			if (flag & (1 << i)) {
+				ch->stereo = FALSE;
+				set_algorithm(ch);
+			}
+			ch++;
+		}
+	}
+}
+
+void opngen_setextch(UINT chnum, REG8 data) {
+
+	OPNCH	*ch;
+
+	ch = opnch;
+	ch[chnum].extop = data;
+}
+
+void opngen_setreg(REG8 chbase, UINT reg, REG8 value) {
+
+	UINT	chpos;
+	OPNCH	*ch;
+	OPNSLOT	*slot;
+	UINT	fn;
+	UINT8	blk;
+
+	chpos = reg & 3;
+	if (chpos == 3) {
+		return;
+	}
+	sound_sync();
+	ch = opnch + chbase + chpos;
+	if (reg < 0xa0) {
+		slot = ch->slot + fmslot[(reg >> 2) & 3];
+		switch(reg & 0xf0) {
+			case 0x30:					// DT1 MUL
+				set_dt1_mul(slot, value);
+				channleupdate(ch);
+				break;
+
+			case 0x40:					// TL
+				set_tl(slot, value);
+				break;
+
+			case 0x50:					// KS AR
+				set_ks_ar(slot, value);
+				channleupdate(ch);
+				break;
+
+			case 0x60:					// D1R
+				set_d1r(slot, value);
+				break;
+
+			case 0x70:					// DT2 D2R
+				set_dt2_d2r(slot, value);
+				channleupdate(ch);
+				break;
+
+			case 0x80:					// D1L RR
+				set_d1l_rr(slot, value);
+				break;
+
+			case 0x90:
+				set_ssgeg(slot, value);
+				channleupdate(ch);
+				break;
+		}
+	}
+	else {
+		switch(reg & 0xfc) {
+			case 0xa0:
+				blk = ch->keyfunc[0] >> 3;
+				fn = ((ch->keyfunc[0] & 7) << 8) + value;
+				ch->kcode[0] = (blk << 2) | kftable[fn >> 7];
+//				ch->keynote[0] = fn * opmbaserate / (1L << (22-blk));
+				ch->keynote[0] = (fn << (opncfg.ratebit + blk)) >> 6;
+				channleupdate(ch);
+				break;
+
+			case 0xa4:
+				ch->keyfunc[0] = value & 0x3f;
+				break;
+
+			case 0xa8:
+				ch = opnch + chbase + 2;
+				blk = ch->keyfunc[chpos+1] >> 3;
+				fn = ((ch->keyfunc[chpos+1] & 7) << 8) + value;
+				ch->kcode[chpos+1] = (blk << 2) | kftable[fn >> 7];
+//				ch->keynote[chpos+1] = fn * opmbaserate / (1L << (22-blk));
+				ch->keynote[chpos+1] = (fn << (opncfg.ratebit + blk)) >> 6;
+				channleupdate(ch);
+				break;
+
+			case 0xac:
+				ch = opnch + chbase + 2;
+				ch->keyfunc[chpos+1] = value & 0x3f;
+				break;
+
+			case 0xb0:
+				ch->algorithm = (UINT8)(value & 7);
+				value = (value >> 3) & 7;
+				if (value) {
+					ch->feedback = 8 - value;
+				}
+				else {
+					ch->feedback = 0;
+				}
+				set_algorithm(ch);
+				break;
+
+			case 0xb4:
+				ch->pan = (UINT8)(value & 0xc0);
+				set_algorithm(ch);
+				break;
+		}
+	}
+}
+
+static const UINT8 keybrd1[] = {				// ®ÕB
+				28, 14,
+				0xc4, 0x6c, 0x44, 0x60,
+				0xc4, 0x6c, 0x44, 0x60,
+				0xc4, 0x6c, 0x44, 0x60,
+				0xc4, 0x6c, 0x44, 0x60,
+				0xc4, 0x6c, 0x44, 0x60,
+				0xc4, 0x6c, 0x44, 0x60,
+				0xc4, 0x6c, 0x44, 0x60,
+				0xc4, 0x6c, 0x44, 0x60,
+				0xee, 0xee, 0xee, 0xe0,
+				0xee, 0xee, 0xee, 0xe0,
+				0xee, 0xee, 0xee, 0xe0,
+				0xee, 0xee, 0xee, 0xe0,
+				0xee, 0xee, 0xee, 0xe0,
+				0x00, 0x00, 0x00, 0x00};
+
+static const UINT8 keybrd2[] = {				// ®Õ GÅØêéB
+				20, 14,
+				0xc4, 0x6c, 0x40,
+				0xc4, 0x6c, 0x40,
+				0xc4, 0x6c, 0x40,
+				0xc4, 0x6c, 0x40,
+				0xc4, 0x6c, 0x40,
+				0xc4, 0x6c, 0x40,
+				0xc4, 0x6c, 0x40,
+				0xc4, 0x6c, 0x40,
+				0xee, 0xee, 0xe0,
+				0xee, 0xee, 0xe0,
+				0xee, 0xee, 0xe0,
+				0xee, 0xee, 0xe0,
+				0xee, 0xee, 0xe0,
+				0x00, 0x00, 0x00};
+
+static const UINT8 keybrd_s1[] = {				// C, F
+				3, 13,
+				0xc0, 0xc0, 0xc0, 0xc0,
+				0xc0, 0xc0, 0xc0, 0xc0,
+				0xe0, 0xe0, 0xe0, 0xe0,
+				0xe0};
+
+static const UINT8 keybrd_s2[] = {				// D, G, A
+				3, 13,
+				0x40, 0x40, 0x40, 0x40,
+				0x40, 0x40, 0x40, 0x40,
+				0xe0, 0xe0, 0xe0, 0xe0,
+				0xe0};
+
+static const UINT8 keybrd_s3[] = {				// E, B
+				3, 13,
+				0x60, 0x60, 0x60, 0x60,
+				0x60, 0x60, 0x60, 0x60,
+				0xe0, 0xe0, 0xe0, 0xe0,
+				0xe0};
+
+static const UINT8 keybrd_s4[] = {				// C+, D+, F+, G+, A+
+				3, 8,
+				0xe0, 0xe0, 0xe0, 0xe0,
+				0xe0, 0xe0, 0xe0, 0xe0};
+
+static const KDKEYPOS keyposdef[12] = {
+				{ 0, 0, keybrd_s1}, { 2, KEYDISP_LEVEL, keybrd_s4},
+				{ 4, 0, keybrd_s2}, { 6, KEYDISP_LEVEL, keybrd_s4},
+				{ 8, 0, keybrd_s3}, {12, 0, keybrd_s1},
+				{14, KEYDISP_LEVEL, keybrd_s4}, {16, 0, keybrd_s2},
+				{18, KEYDISP_LEVEL, keybrd_s4}, {20, 0, keybrd_s2},
+				{22, KEYDISP_LEVEL, keybrd_s4}, {24, 0, keybrd_s3}};
+
+void keydisp_fmkeyon(UINT8 ch, UINT8 value) {
+
+	KDFMCTRL	*k;
+
+	if (keydisp.mode != KEYDISP_MODEFM) {
+		return;
+	}
+	if (ch < keydisp.fmmax) {
+		k = keydisp.fmctl + ch;
+		value &= 0xf0;
+		if (k->flag != value) {
+			if (value) {
+				fmkeyon(ch, k);
+			}
+			else {
+				fmkeyoff(ch, k);
+			}
+			k->flag = value;
+		}
+	}
+}
+
+void opngen_keyon(UINT chnum, REG8 value) {
+
+	OPNCH	*ch;
+	OPNSLOT	*slot;
+	REG8	bit;
+	UINT	i;
+
+	sound_sync();
+	opngen.keyreg[chnum] = value;
+	opngen.playing++;
+	ch = opnch + chnum;
+	ch->playing |= value >> 4;
+	slot = ch->slot;
+	bit = 0x10;
+	for (i=0; i<4; i++) {
+		if (value & bit) {							// keyon
+			if (slot->env_mode <= EM_RELEASE) {
+				slot->freq_cnt = 0;
+				if (i == OPNSLOT1) {
+					ch->op1fb = 0;
+				}
+				slot->env_mode = EM_ATTACK;
+				slot->env_inc = slot->env_inc_attack;
+				slot->env_cnt = EC_ATTACK;
+				slot->env_end = EC_DECAY;
+			}
+		}
+		else {										// keyoff
+			if (slot->env_mode > EM_RELEASE) {
+				slot->env_mode = EM_RELEASE;
+				if (!(slot->env_cnt & EC_DECAY)) {
+					slot->env_cnt = (opncfg.envcurve[slot->env_cnt
+										>> ENV_BITS] << ENV_BITS) + EC_DECAY;
+				}
+				slot->env_end = EC_OFF;
+				slot->env_inc = slot->env_inc_release;
+			}
+		}
+		slot++;
+		bit <<= 1;
+	}
+	keydisp_fmkeyon((UINT8)chnum, value);
+}
+
+	TMS3631CFG	tms3631cfg;
+
+static const UINT16 tms3631_freqtbl[] = {
+			0,	0x051B, 0x0569, 0x05BB, 0x0613, 0x066F, 0x06D1,
+				0x0739, 0x07A7, 0x081B, 0x0897, 0x091A, 0x09A4, 0,0,0,
+			0,	0x0A37, 0x0AD3, 0x0B77, 0x0C26, 0x0CDF, 0x0DA3,
+				0x0E72, 0x0F4E, 0x1037, 0x112E, 0x1234, 0x1349, 0,0,0,
+			0,	0x146E, 0x15A6, 0x16EF, 0x184C, 0x19BE, 0x1B46,
+				0x1CE5, 0x1E9D, 0x206F, 0x225D, 0x2468, 0x2692, 0,0,0,
+			0,	0x28DD, 0x2B4C, 0x2DDF, 0x3099, 0x337D, 0x368D,
+				0x39CB, 0x3D3B, 0x40DF, 0x44BA, 0x48D1, 0x4D25, 0x51BB, 0,0};
+
+
+void tms3631_initialize(UINT rate) {
+
+	UINT	sft;
+
+	ZeroMemory(&tms3631cfg, sizeof(tms3631cfg));
+	sft = 0;
+	if (rate == 11025) {
+		sft = 0;
+	}
+	else if (rate == 22050) {
+		sft = 1;
+	}
+	else if (rate == 44100) {
+		sft = 2;
+	}
+	tms3631cfg.ratesft = sft;
+}
+
+void tms3631_setvol(const UINT8 *vol) {
+
+	UINT	i;
+	UINT	j;
+	SINT32	data;
+
+	tms3631cfg.left = (vol[0] & 15) << 5;
+	tms3631cfg.right = (vol[1] & 15) << 5;
+	vol += 2;
+	for (i=0; i<16; i++) {
+		data = 0;
+		for (j=0; j<4; j++) {
+			data += (vol[j] & 15) * ((i & (1 << j))?1:-1);
+		}
+		tms3631cfg.feet[i] = data << 5;
+	}
+}
+
+
+// ----
+
+void tms3631_reset(TMS3631 tms) {
+
+	ZeroMemory(tms, sizeof(_TMS3631));
+}
+
+void tms3631_setkey(TMS3631 tms, REG8 ch, REG8 key) {
+
+	tms->ch[ch & 7].freq = tms3631_freqtbl[key & 0x3f] >> tms3631cfg.ratesft;
+}
+
+void tms3631_setenable(TMS3631 tms, REG8 enable) {
+
+	tms->enable = enable;
+}
+
+void fmboard_extreg(void (*ext)(REG8 enable)) {
+
+	extfn = ext;
+}
+
+void fmboard_extenable(REG8 enable) {
+
+	if (extfn) {
+		(*extfn)(enable);
+	}
+}
+
+
+
+// ----
+
+static void setfmregs(UINT8 *reg) {
+
+	FillMemory(reg + 0x30, 0x60, 0xff);
+	FillMemory(reg + 0x90, 0x20, 0x00);
+	FillMemory(reg + 0xb0, 0x04, 0x00);
+	FillMemory(reg + 0xb4, 0x04, 0xc0);
+}
+
+void fmtimer_reset(UINT irq);
+void fmtimer_setreg(UINT reg, REG8 value);
+
+static void extendchannel(REG8 enable) {
+
+	opn.extend = enable;
+	if (enable) {
+		opn.channels = 6;
+		opngen_setcfg(6, OPN_STEREO | 0x007);
+	}
+	else {
+		opn.channels = 3;
+		opngen_setcfg(3, OPN_MONORAL | 0x007);
+		rhythm_setreg(&rhythm, 0x10, 0xff);
+	}
+}
+
+void board86_reset(const NP2CFG *pConfig) {
+
+	fmtimer_reset(0/*IRQ3*/);
+	opngen_setcfg(3, OPN_STEREO | 0x038);
+//	if (pConfig->snd86opt & 2) {
+//		soundrom_load(0xcc000, OEMTEXT("86"));
+//	}
+	opn.base = 0x100;//(pConfig->snd86opt & 0x01)?0x000:0x100;
+	fmboard_extreg(extendchannel);
+}
+
+static void setfmhdl(UINT8 items, UINT base) {
+
+	while(items--) {
+		if ((keydisp.keymax < KEYDISP_CHMAX) &&
+			(keydisp.fmmax < KEYDISP_FMCHMAX)) {
+			keydisp.fmpos[keydisp.fmmax] = keydisp.keymax++;
+			keydisp.pfmreg[keydisp.fmmax] = opn.reg + base;
+			keydisp.fmmax++;
+			base++;
+			if ((base & 3) == 3) {
+				base += 0x100 - 3;
+			}
+		}
+	}
+}
+
+static void setfmhdlex(const OPN_T *pOpn, UINT nItems, UINT nBase) {
+
+	while(nItems--) {
+		if ((keydisp.keymax < KEYDISP_CHMAX) &&
+			(keydisp.fmmax < KEYDISP_FMCHMAX)) {
+			keydisp.fmpos[keydisp.fmmax] = keydisp.keymax++;
+			keydisp.pfmreg[keydisp.fmmax] = pOpn->reg + nBase;
+			keydisp.fmmax++;
+			nBase++;
+			if ((nBase & 3) == 3) {
+				nBase += 0x100 - 3;
+			}
+		}
+	}
+}
+
+static void delayreset(void) {
+
+	keydisp.delay.warm = keydisp.delay.warmbase;
+	keydisp.delay.pos = 0;
+	keydisp.delay.rem = 0;
+	ZeroMemory(keydisp.delaye, sizeof(keydisp.delaye));
+	keyalloff();
+}
+
+static void setpsghdl(UINT8 items) {
+
+	while(items--) {
+		if ((keydisp.keymax <= (KEYDISP_CHMAX - 3)) &&
+			(keydisp.psgmax < KEYDISP_PSGMAX)) {
+			keydisp.psgpos[keydisp.psgmax++] = keydisp.keymax;
+			keydisp.keymax += 3;
+		}
+	}
+}
+
+void keydisp_setfmboard(UINT b) {
+
+	keydisp.keymax = 0;
+	keydisp.fmmax = 0;
+	keydisp.psgmax = 0;
+
+#if defined(SUPPORT_PX)
+	if (b == 0x30)
+	{
+		setfmhdlex(&opn, 12, 0);
+		setfmhdlex(&opn2, 12, 0);
+		setpsghdl(2);
+		b = 0;
+	}
+	if (b == 0x50)
+	{
+		setfmhdlex(&opn, 12, 0);
+		setfmhdlex(&opn2, 12, 0);
+		setfmhdlex(&opn3, 6, 0);
+		setpsghdl(3);
+		b = 0;
+	}
+
+#endif	// defined(SUPPORT_PX)
+
+	if (b & 0x02) {
+		if (!(b & 0x04)) {
+			setfmhdl(3, 0);
+		}
+		else {								// QhµÌWX^Ú®
+			setfmhdl(3, 0x200);
+		}
+		setpsghdl(1);
+	}
+	if (b & 0x04) {
+		setfmhdl(6, 0);
+		setpsghdl(1);
+	}
+	if (b & 0x08) {
+		setfmhdl(6, 0);
+		setpsghdl(1);
+	}
+	if (b & 0x20) {
+		setfmhdl(6, 0);
+		setpsghdl(1);
+	}
+	if (b & 0x40) {
+		setfmhdl(12, 0);
+		setpsghdl(1);
+	}
+	if (b & 0x80) {
+		setpsghdl(3);
+	}
+	delayreset();
+	fmkeyreset();
+	psgkeyreset();
+
+	if (keydisp.mode == KEYDISP_MODEFM) {
+		keydisp.dispflag |= KEYDISP_FLAGSIZING;
+	}
+}
+
+void fmboard_reset(const NP2CFG *pConfig, UINT32 type) {
+
+//	UINT8	cross;
+
+//	soundrom_reset();
+//	beep_reset();												// ver0.27a
+//	cross = np2cfg.snd_x;										// ver0.30
+
+    LOG_MSG("FM reset");
+
+	extfn = NULL;
+	ZeroMemory(&opn, sizeof(opn));
+	setfmregs(opn.reg + 0x000);
+	setfmregs(opn.reg + 0x100);
+	setfmregs(opn.reg + 0x200);
+	setfmregs(opn.reg + 0x300);
+	opn.reg[0xff] = 0x01;
+	opn.channels = 3;
+	opn.adpcmmask = (UINT8)~(0x1c);
+
+	ZeroMemory(&opn2, sizeof(opn2));
+	setfmregs(opn2.reg + 0x000);
+	setfmregs(opn2.reg + 0x100);
+	setfmregs(opn2.reg + 0x200);
+	setfmregs(opn2.reg + 0x300);
+	opn2.reg[0xff] = 0x01;
+	opn2.channels = 3;
+	opn2.adpcmmask = (UINT8)~(0x1c);
+
+	ZeroMemory(&opn3, sizeof(opn3));
+	setfmregs(opn3.reg + 0x000);
+	setfmregs(opn3.reg + 0x100);
+	setfmregs(opn3.reg + 0x200);
+	setfmregs(opn3.reg + 0x300);
+	opn3.reg[0xff] = 0x01;
+	opn3.channels = 3;
+	opn3.adpcmmask = (UINT8)~(0x1c);
+
+	ZeroMemory(&musicgen, sizeof(musicgen));
+	ZeroMemory(&amd98, sizeof(amd98));
+
+	tms3631_reset(&tms3631);
+	opngen_reset();
+	psggen_reset(&psg1);
+	psggen_reset(&psg2);
+	psggen_reset(&psg3);
+	rhythm_reset(&rhythm);
+	rhythm_reset(&rhythm2);
+	rhythm_reset(&rhythm3);
+	adpcm_reset(&adpcm);
+	adpcm_reset(&adpcm2);
+	adpcm_reset(&adpcm3);
+	pcm86_reset();
+//    cs4231_reset();
+
+    board86_reset(pConfig);
+
+    usesound = type;
+//    soundmng_setreverse(0);
+	keydisp_setfmboard(type);
+	opngen_setVR(0,0);//pConfig->spb_vrc, pConfig->spb_vrl);??
+}
+
+void board86c_bind(void);
+
+void fmboard_bind(void) {
+    board86c_bind();
+
+//    sound_streamregist(&beep, (SOUNDCB)beep_getpcm);
+}
+
+
+// ----
+
+void fmboard_fmrestore(REG8 chbase, UINT bank) {
+
+	REG8	i;
+const UINT8	*reg;
+
+	reg = opn.reg + (bank * 0x100);
+	for (i=0x30; i<0xa0; i++) {
+		opngen_setreg(chbase, i, reg[i]);
+	}
+	for (i=0xb7; i>=0xa0; i--) {
+		opngen_setreg(chbase, i, reg[i]);
+	}
+	for (i=0; i<3; i++) {
+		opngen_keyon(chbase + i, opngen.keyreg[chbase + i]);
+	}
+}
+
+void fmboard_rhyrestore(RHYTHM rhy, UINT bank) {
+
+const UINT8	*reg;
+
+	reg = opn.reg + (bank * 0x100);
+	rhythm_setreg(rhy, 0x11, reg[0x11]);
+	rhythm_setreg(rhy, 0x18, reg[0x18]);
+	rhythm_setreg(rhy, 0x19, reg[0x19]);
+	rhythm_setreg(rhy, 0x1a, reg[0x1a]);
+	rhythm_setreg(rhy, 0x1b, reg[0x1b]);
+	rhythm_setreg(rhy, 0x1c, reg[0x1c]);
+	rhythm_setreg(rhy, 0x1d, reg[0x1d]);
+}
+
+
+void fmboard_fmrestore2(OPN_T* pOpn, REG8 chbase, UINT bank) {
+
+	REG8	i;
+const UINT8	*reg;
+
+	reg = pOpn->reg + (bank * 0x100);
+	for (i=0x30; i<0xa0; i++) {
+		opngen_setreg(chbase, i, reg[i]);
+	}
+	for (i=0xb7; i>=0xa0; i--) {
+		opngen_setreg(chbase, i, reg[i]);
+	}
+	for (i=0; i<3; i++) {
+		opngen_keyon(chbase + i, opngen.keyreg[chbase + i]);
+	}
+}
+
+void fmboard_rhyrestore2(OPN_T* pOpn, RHYTHM rhy, UINT bank) {
+
+const UINT8	*reg;
+
+	reg = pOpn->reg + (bank * 0x100);
+	rhythm_setreg(rhy, 0x11, reg[0x11]);
+	rhythm_setreg(rhy, 0x18, reg[0x18]);
+	rhythm_setreg(rhy, 0x19, reg[0x19]);
+	rhythm_setreg(rhy, 0x1a, reg[0x1a]);
+	rhythm_setreg(rhy, 0x1b, reg[0x1b]);
+	rhythm_setreg(rhy, 0x1c, reg[0x1c]);
+	rhythm_setreg(rhy, 0x1d, reg[0x1d]);
+}
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void tms3631_initialize(UINT rate);
+void tms3631_setvol(const UINT8 *vol);
+
+void tms3631_reset(TMS3631 tms);
+void tms3631_setkey(TMS3631 tms, REG8 ch, REG8 key);
+void tms3631_setenable(TMS3631 tms, REG8 enable);
+
+void SOUNDCALL tms3631_getpcm(TMS3631 tms, SINT32 *pcm, UINT count);
+
+#ifdef __cplusplus
+}
+#endif
+
+void fmboard_extreg(void (*ext)(REG8 enable));
+void fmboard_extenable(REG8 enable);
+
+void fmboard_reset(const NP2CFG *pConfig, UINT32 type);
+void fmboard_bind(void);
+
+void fmboard_fmrestore(REG8 chbase, UINT bank);
+void fmboard_rhyrestore(RHYTHM rhy, UINT bank);
+
+void fmboard_fmrestore2(OPN_T* pOpn, REG8 chbase, UINT bank);
+void fmboard_rhyrestore2(OPN_T* pOpn, RHYTHM rhy, UINT bank);
+
+#ifdef __cplusplus
+}
+#endif
+
+#else
+
+#define	fmboard_reset(t)
+#define	fmboard_bind()
+
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void opngen_initialize(UINT rate);
+void opngen_setvol(UINT vol);
+void opngen_setVR(REG8 channel, REG8 value);
+
+void opngen_reset(void);
+void opngen_setcfg(REG8 maxch, UINT32 flag);
+void opngen_setextch(UINT chnum, REG8 data);
+void opngen_setreg(REG8 chbase, UINT reg, REG8 value);
+void opngen_keyon(UINT chnum, REG8 value);
+
+void SOUNDCALL opngen_getpcm(void *hdl, SINT32 *buf, UINT count);
+void SOUNDCALL opngen_getpcmvr(void *hdl, SINT32 *buf, UINT count);
+
+#ifdef __cplusplus
+}
+#endif
+
+enum {
+	NORMAL2608	= 0,
+	EXTEND2608	= 1
+};
+
+void S98_init(void);
+void S98_trash(void);
+int S98_open(const OEMCHAR *filename);
+void S98_close(void);
+void S98_put(REG8 module, UINT addr, REG8 data);
+void S98_sync(void);
+
+void S98_put(REG8 module, UINT addr, REG8 data) {
+}
+
+static const OEMCHAR file_2608bd[] = OEMTEXT("2608_bd.wav");
+static const OEMCHAR file_2608sd[] = OEMTEXT("2608_sd.wav");
+static const OEMCHAR file_2608top[] = OEMTEXT("2608_top.wav");
+static const OEMCHAR file_2608hh[] = OEMTEXT("2608_hh.wav");
+static const OEMCHAR file_2608tom[] = OEMTEXT("2608_tom.wav");
+static const OEMCHAR file_2608rim[] = OEMTEXT("2608_rim.wav");
+
+#if 0
+static const OEMCHAR *rhythmfile[6] = {
+				file_2608bd,	file_2608sd,	file_2608top,
+				file_2608hh,	file_2608tom,	file_2608rim};
+#endif
+
+typedef struct {
+	UINT	rate;
+	UINT	pcmexist;
+//	PMIXDAT	pcm[6];
+	UINT	vol;
+	UINT	voltbl[96];
+} RHYTHMCFG;
+
+static	RHYTHMCFG	rhythmcfg;
+
+
+void rhythm_initialize(UINT rate) {
+
+	UINT	i;
+
+	ZeroMemory(&rhythmcfg, sizeof(rhythmcfg));
+	rhythmcfg.rate = rate;
+
+	for (i=0; i<96; i++) {
+		rhythmcfg.voltbl[i] = (UINT)(32768.0 *
+										pow(2.0, (double)i * (-3.0) / 40.0));
+	}
+}
+
+void rhythm_deinitialize(void) {
+
+	UINT	i;
+	SINT16	*ptr;
+
+	for (i=0; i<6; i++) {
+//		ptr = rhythmcfg.pcm[i].sample;
+//		rhythmcfg.pcm[i].sample = NULL;
+//		if (ptr) {
+//			_MFREE(ptr);
+//		}
+	}
+
+    (void)ptr;
+}
+
+static void rhythm_load(void) {
+
+	int		i;
+//	OEMCHAR	path[MAX_PATH];
+
+	for (i=0; i<6; i++) {
+//		if (rhythmcfg.pcm[i].sample == NULL) {
+//			getbiospath(path, rhythmfile[i], NELEMENTS(path));
+//			pcmmix_regfile(rhythmcfg.pcm + i, path, rhythmcfg.rate);
+//		}
+	}
+}
+
+UINT rhythm_getcaps(void) {
+
+	UINT	ret;
+	UINT	i;
+
+	ret = 0;
+	for (i=0; i<6; i++) {
+//		if (rhythmcfg.pcm[i].sample) {
+//			ret |= 1 << i;
+//		}
+	}
+	return(ret);
+}
+
+void rhythm_setvol(UINT vol) {
+
+	rhythmcfg.vol = vol;
+}
+
+void rhythm_reset(RHYTHM rhy) {
+
+	ZeroMemory(rhy, sizeof(_RHYTHM));
+}
+
+void rhythm_bind(RHYTHM rhy) {
+
+	UINT	i;
+
+	rhythm_load();
+//	rhy->hdr.enable = 0x3f;
+	for (i=0; i<6; i++) {
+//		rhy->trk[i].data = rhythmcfg.pcm[i];
+	}
+	rhythm_update(rhy);
+//	sound_streamregist(rhy, (SOUNDCB)pcmmix_getpcm);
+}
+
+void rhythm_update(RHYTHM rhy) {
+
+	UINT	i;
+
+	for (i=0; i<6; i++) {
+//		rhy->trk[i].volume = (rhythmcfg.voltbl[rhy->vol + rhy->trkvol[i]] *
+//														rhythmcfg.vol) >> 10;
+	}
+}
+
+void rhythm_setreg(RHYTHM rhy, UINT reg, REG8 value) {
+
+//	PMIXTRK	*trk;
+	REG8	bit;
+
+	if (reg == 0x10) {
+		sound_sync();
+//		trk = rhy->trk;
+		bit = 0x01;
+		do {
+			if (value & bit) {
+				if (value & 0x80) {
+//					rhy->hdr.playing &= ~((UINT)bit);
+				}
+//				else if (trk->data.sample) {
+//					trk->pcm = trk->data.sample;
+//					trk->remain = trk->data.samples;
+//					rhy->hdr.playing |= bit;
+//				}
+			}
+//			trk++;
+			bit <<= 1;
+		} while(bit < 0x40);
+	}
+	else if (reg == 0x11) {
+		sound_sync();
+		rhy->vol = (~value) & 0x3f;
+		rhythm_update(rhy);
+	}
+	else if ((reg >= 0x18) && (reg < 0x1e)) {
+		sound_sync();
+//		trk = rhy->trk + (reg - 0x18);
+//		trk->flag = ((value & 0x80) >> 7) + ((value & 0x40) >> 5);
+		value = (~value) & 0x1f;
+		rhy->trkvol[reg - 0x18] = (UINT8)value;
+//		trk->volume = (rhythmcfg.voltbl[rhy->vol + value] *
+//														rhythmcfg.vol) >> 10;
+	}
+}
+
+//-----------------------------------------------------------
+// Neko Project II: sound/fmtimer.h
+//-----------------------------------------------------------
+
+//void fmport_a(NEVENTITEM item);
+//void fmport_b(NEVENTITEM item);
+
+/////// from sound/fmboard.c
+
+//-----------------------------------------------------------
+// Neko Project II: sound/fmtimer.c
+//-----------------------------------------------------------
+
+static const UINT8 irqtable[4] = {0x03, 0x0d, 0x0a, 0x0c};
+
+int pc98_fm_irq = 3; /* TODO: Make configurable */
+unsigned int pc98_fm_base = 0x188; /* TODO: Make configurable */
+
+static void set_fmtimeraevent(BOOL absolute);
+static void set_fmtimerbevent(BOOL absolute);
+void fmport_a(NEVENTITEM item);
+void fmport_b(NEVENTITEM item);
+
+bool FMPORT_EventA_set = false;
+bool FMPORT_EventB_set = false;
+
+static void FMPORT_EventA(Bitu val) {
+    FMPORT_EventA_set = false;
+    fmport_a(NULL);
+    (void)val;
+}
+
+static void FMPORT_EventB(Bitu val) {
+    FMPORT_EventB_set = false;
+    fmport_b(NULL);
+    (void)val;
+}
+
+BOOL pcm86gen_intrq(void) {
+	if (pcm86.irqflag) {
+		return(TRUE);
+	}
+	if (pcm86.fifo & 0x20) {
+		sound_sync();
+		if ((pcm86.reqirq) && (pcm86.virbuf <= pcm86.fifosize)) {
+			pcm86.reqirq = 0;
+			pcm86.irqflag = 1;
+			return(TRUE);
+		}
+	}
+	return(FALSE);
+}
+
+void fmport_a(NEVENTITEM item) {
+
+    BOOL	intreq = FALSE;
+
+    intreq = pcm86gen_intrq();
+    if (fmtimer.reg & 0x04) {
+        fmtimer.status |= 0x01;
+        intreq = TRUE;
+    }
+
+    if (intreq)
+        PIC_ActivateIRQ(pc98_fm_irq);
+
+    set_fmtimeraevent(FALSE);
+}
+
+void fmport_b(NEVENTITEM item) {
+
+    BOOL	intreq = FALSE;
+
+    intreq = pcm86gen_intrq();
+    if (fmtimer.reg & 0x08) {
+        fmtimer.status |= 0x02;
+        intreq = TRUE;
+    }
+
+    if (intreq)
+        PIC_ActivateIRQ(pc98_fm_irq);
+
+    set_fmtimerbevent(FALSE);
+}
+
+static void set_fmtimeraevent(BOOL absolute) {
+
+	SINT32	l;
+    double dt;
+
+	l = 18 * (1024 - fmtimer.timera);
+    dt = ((double)l * 1000) / 1000000; // FIXME: GUESS!!!!
+//	if (PIT_TICK_RATE == PIT_TICK_RATE_PC98_8MHZ) {	 // 4MHz
+//		l = (l * 1248 / 625) * pccore.multiple;    <- NOTE: This becomes l * 1996800Hz * multiple
+//	}
+//	else {										// 5MHz
+//		l = (l * 1536 / 625) * pccore.multiple;    <- NOTE: This becomes l * 2457600Hz * multiple
+//	}
+//	TRACEOUT(("FMTIMER-A: %08x-%d", l, absolute));
+//	nevent_set(NEVENT_FMTIMERA, l, fmport_a, absolute);
+
+    PIC_RemoveEvents(FMPORT_EventA);
+    PIC_AddEvent(FMPORT_EventA, dt);
+    FMPORT_EventA_set = true;
+
+    (void)l;
+}
+
+static void set_fmtimerbevent(BOOL absolute) {
+
+	SINT32	l;
+    double dt;
+
+	l = 288 * (256 - fmtimer.timerb);
+    dt = ((double)l * 1000) / 1000000; // FIXME: GUESS!!!!
+//	if (PIT_TICK_RATE == PIT_TICK_RATE_PC98_8MHZ) {	 // 4MHz
+//		l = (l * 1248 / 625) * pccore.multiple;
+//	}
+//	else {										// 5MHz
+//		l = (l * 1536 / 625) * pccore.multiple;
+//	}
+//	TRACEOUT(("FMTIMER-B: %08x-%d", l, absolute));
+//	nevent_set(NEVENT_FMTIMERB, l, fmport_b, absolute);
+
+    PIC_RemoveEvents(FMPORT_EventB);
+    PIC_AddEvent(FMPORT_EventB, dt);
+    FMPORT_EventB_set = true;
+
+    (void)l;
+}
+
+void fmtimer_reset(UINT irq) {
+
+	ZeroMemory(&fmtimer, sizeof(fmtimer));
+	fmtimer.intr = irq & 0xc0;
+	fmtimer.intdisabel = irq & 0x10;
+	fmtimer.irq = irqtable[irq >> 6];
+//	pic_registext(fmtimer.irq);
+}
+
+void fmtimer_setreg(UINT reg, REG8 value) {
+
+//	TRACEOUT(("fm %x %x [%.4x:%.4x]", reg, value, CPU_CS, CPU_IP));
+
+	switch(reg) {
+		case 0x24:
+			fmtimer.timera = (value << 2) + (fmtimer.timera & 3);
+			break;
+
+		case 0x25:
+			fmtimer.timera = (fmtimer.timera & 0x3fc) + (value & 3);
+			break;
+
+		case 0x26:
+			fmtimer.timerb = value;
+			break;
+
+		case 0x27:
+			fmtimer.reg = value;
+			fmtimer.status &= ~((value & 0x30) >> 4);
+			if (value & 0x01) {
+                if (!FMPORT_EventA_set)
+                    set_fmtimeraevent(0);
+            }
+            else {
+                FMPORT_EventA_set = false;
+                PIC_RemoveEvents(FMPORT_EventA);
+            }
+
+            if (value & 0x02) {
+                if (!FMPORT_EventB_set)
+                    set_fmtimerbevent(0);
+            }
+            else {
+                FMPORT_EventB_set = false;
+                PIC_RemoveEvents(FMPORT_EventB);
+            }
+
+			if (!(value & 0x03)) {
+                PIC_DeActivateIRQ(pc98_fm_irq);
+            }
+			break;
+	}
+}
+
+
+/////////////////////////////////////////////////////////////
+
+void board86c_bind(void) {
+
+	fmboard_fmrestore(0, 0);
+	fmboard_fmrestore(3, 1);
+	psggen_restore(&psg1);
+	fmboard_rhyrestore(&rhythm, 0);
+//	sound_streamregist(&opngen, (SOUNDCB)opngen_getpcm);
+//	sound_streamregist(&psg1, (SOUNDCB)psggen_getpcm);
+	rhythm_bind(&rhythm);
+//	sound_streamregist(&adpcm, (SOUNDCB)adpcm_getpcm);
+	pcm86io_bind();
+//	cbuscore_attachsndex(0x188 + opn.base, opnac_o, opnac_i);
+}
+
+void pc98_fm_write(Bitu port,Bitu val,Bitu iolen) {
+    unsigned char dat = val;
+
+//    LOG_MSG("PC-98 FM: Write port 0x%x val 0x%x",(unsigned int)port,(unsigned int)val);
+
+    switch (port+0x88-pc98_fm_base) {
+        case 0x88:
+            opn.addr = dat;
+            opn.data = dat;
+            break;
+        case 0x8A:
+            {
+                UINT    addr;
+
+                opn.data = dat;
+                addr = opn.addr;
+                if (addr >= 0x100) {
+                    return;
+                }
+                S98_put(NORMAL2608, addr, dat);
+                if (addr < 0x10) {
+                    if (addr != 0x0e) {
+                        psggen_setreg(&psg1, addr, dat);
+                    }
+                }
+                else {
+                    if (addr < 0x20) {
+                        if (opn.extend) {
+                            rhythm_setreg(&rhythm, addr, dat);
+                        }
+                    }
+                    else if (addr < 0x30) {
+                        if (addr == 0x28) {
+                            if ((dat & 0x0f) < 3) {
+                                opngen_keyon(dat & 0x0f, dat);
+                            }
+                            else if (((dat & 0x0f) != 3) &&
+                                    ((dat & 0x0f) < 7)) {
+                                opngen_keyon((dat & 0x07) - 1, dat);
+                            }
+                        }
+                        else {
+                            fmtimer_setreg(addr, dat);
+                            if (addr == 0x27) {
+                                opnch[2].extop = dat & 0xc0;
+                            }
+                        }
+                    }
+                    else if (addr < 0xc0) {
+                        opngen_setreg(0, addr, dat);
+                    }
+                    opn.reg[addr] = dat;
+                }
+            }
+            break;
+        case 0x8C:
+            if (opn.extend) {
+                opn.addr = dat + 0x100;
+                opn.data = dat;
+            }
+            break;
+        case 0x8E:
+            {
+                UINT    addr;
+
+                if (!opn.extend) {
+                    return;
+                }
+                opn.data = dat;
+                addr = opn.addr - 0x100;
+                if (addr >= 0x100) {
+                    return;
+                }
+                S98_put(EXTEND2608, addr, dat);
+                opn.reg[addr + 0x100] = dat;
+                if (addr >= 0x30) {
+                    opngen_setreg(3, addr, dat);
+                }
+                else {
+                    if (addr == 0x10) {
+                        if (!(dat & 0x80)) {
+                            opn.adpcmmask = ~(dat & 0x1c);
+                        }
+                    }
+                }
+                (void)port;
+            }
+            break;
+        default:
+            LOG_MSG("PC-98 FM: Write port 0x%x val 0x%x unknown",(unsigned int)port,(unsigned int)val);
+            break;
+    };
+}
+
+Bitu pc98_fm_read(Bitu port,Bitu iolen) {
+//    LOG_MSG("PC-98 FM: Read port 0x%x",(unsigned int)port);
+
+    switch (port+0x88-pc98_fm_base) {
+        case 0x88:
+            return fmtimer.status;
+        case 0x8A:
+            {
+                UINT addr;
+
+                addr = opn.addr;
+                if (addr == 0x0e) {
+                    return 0x3F; // NTS: Returning 0x00 causes games to think a joystick is attached
+//                    return(fmboard_getjoy(&psg1));
+                }
+                else if (addr < 0x10) {
+                    return(psggen_getreg(&psg1, addr));
+                }
+                else if (addr == 0xff) {
+                    return(1);
+                }
+            }
+            return(opn.data);
+        case 0x8C:
+            if (opn.extend) {
+                return((fmtimer.status & 3) | (opn.adpcmmask & 8));
+            }
+            (void)port;
+            return(0xff);
+        case 0x8E:
+            if (opn.extend) {
+                UINT addr = opn.addr - 0x100;
+                if ((addr == 0x08) || (addr == 0x0f)) {
+                    return(opn.reg[addr + 0x100]);
+                }
+                return(opn.data);
+            }
+            (void)port;
+            return(0xff);
+        default:
+            LOG_MSG("PC-98 FM: Read port 0x%x unknown",(unsigned int)port);
+            break;
+    };
+
+    return ~0;
+}
+
+static const UINT adpcmdeltatable[8] = {
+		//	0.89,	0.89,	0.89,	0.89,	1.2,	1.6,	2.0,	2.4
+			228,	228,	228,	228,	308,	408,	512,	612};
+
+
+REG8 SOUNDCALL adpcm_readsample(ADPCM ad) {
+
+	UINT32	pos;
+	REG8	data;
+	REG8	ret;
+
+	if ((ad->reg.ctrl1 & 0x60) == 0x20) {
+		pos = ad->pos & 0x1fffff;
+		if (!(ad->reg.ctrl2 & 2)) {
+			data = ad->buf[pos >> 3];
+			pos += 8;
+		}
+		else {
+			const UINT8 *ptr;
+			REG8 bit;
+			UINT tmp;
+			ptr = ad->buf + ((pos >> 3) & 0x7fff);
+			bit = 1 << (pos & 7);
+			tmp = (ptr[0x00000] & bit);
+			tmp += (ptr[0x08000] & bit) << 1;
+			tmp += (ptr[0x10000] & bit) << 2;
+			tmp += (ptr[0x18000] & bit) << 3;
+			tmp += (ptr[0x20000] & bit) << 4;
+			tmp += (ptr[0x28000] & bit) << 5;
+			tmp += (ptr[0x30000] & bit) << 6;
+			tmp += (ptr[0x38000] & bit) << 7;
+			data = (REG8)(tmp >> (pos & 7));
+			pos++;
+		}
+		if (pos != ad->stop) {
+			pos &= 0x1fffff;
+			ad->status |= 4;
+		}
+		if (pos >= ad->limit) {
+			pos = 0;
+		}
+		ad->pos = pos;
+	}
+	else {
+		data = 0;
+	}
+	pos = ad->fifopos;
+	ret = ad->fifo[ad->fifopos];
+	ad->fifo[ad->fifopos] = data;
+	ad->fifopos ^= 1;
+	return(ret);
+}
+
+void SOUNDCALL adpcm_datawrite(ADPCM ad, REG8 data) {
+
+	UINT32	pos;
+
+	pos = ad->pos & 0x1fffff;
+	if (!(ad->reg.ctrl2 & 2)) {
+		ad->buf[pos >> 3] = data;
+		pos += 8;
+	}
+	else {
+		UINT8 *ptr;
+		UINT8 bit;
+		UINT8 mask;
+		ptr = ad->buf + ((pos >> 3) & 0x7fff);
+		bit = 1 << (pos & 7);
+		mask = ~bit;
+		ptr[0x00000] &= mask;
+		if (data & 0x01) {
+			ptr[0x00000] |= bit;
+		}
+		ptr[0x08000] &= mask;
+		if (data & 0x02) {
+			ptr[0x08000] |= bit;
+		}
+		ptr[0x10000] &= mask;
+		if (data & 0x04) {
+			ptr[0x10000] |= bit;
+		}
+		ptr[0x18000] &= mask;
+		if (data & 0x08) {
+			ptr[0x18000] |= bit;
+		}
+		ptr[0x20000] &= mask;
+		if (data & 0x10) {
+			ptr[0x20000] |= bit;
+		}
+		ptr[0x28000] &= mask;
+		if (data & 0x20) {
+			ptr[0x28000] |= bit;
+		}
+		ptr[0x30000] &= mask;
+		if (data & 0x40) {
+			ptr[0x30000] |= bit;
+		}
+		ptr[0x38000] &= mask;
+		if (data & 0x80) {
+			ptr[0x38000] |= bit;
+		}
+		pos++;
+	}
+	if (pos == ad->stop) {
+		pos &= 0x1fffff;
+		ad->status |= 4;
+	}
+	if (pos >= ad->limit) {
+		pos = 0;
+	}
+	ad->pos = pos;
+}
+
+void SOUNDCALL pcm86gen_checkbuf(void) {
+#if 0
+	long	bufs;
+	UINT32	past;
+
+	past = CPU_CLOCK + CPU_BASECLOCK - CPU_REMCLOCK;
+	past <<= 6;
+	past -= pcm86.lastclock;
+	if (past >= pcm86.stepclock) {
+		past = past / pcm86.stepclock;
+		pcm86.lastclock += (past * pcm86.stepclock);
+		RECALC_NOWCLKWAIT(past);
+	}
+
+	bufs = pcm86.realbuf - pcm86.virbuf;
+	if (bufs < 0) {									// ¿Äéc
+		bufs &= ~3;
+		pcm86.virbuf += bufs;
+		if (pcm86.virbuf <= pcm86.fifosize) {
+			pcm86.reqirq = 0;
+			pcm86.irqflag = 1;
+			pic_setirq(fmtimer.irq);
+		}
+		else {
+			pcm86_setnextintr();
+		}
+	}
+	else {
+		bufs -= PCM86_EXTBUF;
+		if (bufs > 0) {
+			bufs &= ~3;
+			pcm86.realbuf -= bufs;
+			pcm86.readpos += bufs;
+		}
+	}
+#endif
+}
+
+#define	PCM86GET8(a)													\
+		(a) = (SINT8)pcm86.buffer[pcm86.readpos & PCM86_BUFMSK] << 8;	\
+		pcm86.readpos++;
+
+#define	PCM86GET16(a)													\
+		(a) = (SINT8)pcm86.buffer[pcm86.readpos & PCM86_BUFMSK] << 8;	\
+		pcm86.readpos++;												\
+		(a) += pcm86.buffer[pcm86.readpos & PCM86_BUFMSK];				\
+		pcm86.readpos++;
+
+#define	BYVOLUME(s)		((((s) >> 6) * pcm86.volume) >> (PCM86_DIVBIT + 4))
+
+
+static void pcm86mono16(SINT32 *pcm, UINT count) {
+
+	if (pcm86.div < PCM86_DIVENV) {					// Abv³ñÕé
+		do {
+			SINT32 smp;
+			if (pcm86.divremain < 0) {
+				SINT32 dat;
+				pcm86.divremain += PCM86_DIVENV;
+				pcm86.realbuf -= 2;
+				if (pcm86.realbuf < 0) {
+					goto pm16_bufempty;
+				}
+				PCM86GET16(dat);
+				pcm86.lastsmp = pcm86.smp;
+				pcm86.smp = dat;
+			}
+			smp = (pcm86.lastsmp * pcm86.divremain) -
+							(pcm86.smp * (pcm86.divremain - PCM86_DIVENV));
+			pcm[0] += BYVOLUME(smp);
+			pcm += 2;
+			pcm86.divremain -= pcm86.div;
+		} while(--count);
+	}
+	else {
+		do {
+			SINT32 smp;
+			smp = pcm86.smp * (pcm86.divremain * -1);
+			pcm86.divremain += PCM86_DIVENV;
+			while(1) {
+				SINT32 dat;
+				pcm86.realbuf -= 2;
+				if (pcm86.realbuf < 0) {
+					goto pm16_bufempty;
+				}
+				PCM86GET16(dat);
+				pcm86.lastsmp = pcm86.smp;
+				pcm86.smp = dat;
+				if (pcm86.divremain > pcm86.div2) {
+					pcm86.divremain -= pcm86.div2;
+					smp += pcm86.smp * pcm86.div2;
+				}
+				else {
+					break;
+				}
+			}
+			smp += pcm86.smp * pcm86.divremain;
+			pcm[0] += BYVOLUME(smp);
+			pcm += 2;
+			pcm86.divremain -= pcm86.div2;
+		} while(--count);
+	}
+	return;
+
+pm16_bufempty:
+	pcm86.realbuf += 2;
+	pcm86.divremain = 0;
+	pcm86.smp = 0;
+	pcm86.lastsmp = 0;
+}
+
+static void pcm86stereo16(SINT32 *pcm, UINT count) {
+
+	if (pcm86.div < PCM86_DIVENV) {					// Abv³ñÕé
+		do {
+			SINT32 smp;
+			if (pcm86.divremain < 0) {
+				SINT32 dat;
+				pcm86.divremain += PCM86_DIVENV;
+				pcm86.realbuf -= 4;
+				if (pcm86.realbuf < 0) {
+					goto ps16_bufempty;
+				}
+				PCM86GET16(dat);
+				pcm86.lastsmp_l = pcm86.smp_l;
+				pcm86.smp_l = dat;
+				PCM86GET16(dat);
+				pcm86.lastsmp_r = pcm86.smp_r;
+				pcm86.smp_r = dat;
+			}
+			smp = (pcm86.lastsmp_l * pcm86.divremain) -
+							(pcm86.smp_l * (pcm86.divremain - PCM86_DIVENV));
+			pcm[0] += BYVOLUME(smp);
+			smp = (pcm86.lastsmp_r * pcm86.divremain) -
+							(pcm86.smp_r * (pcm86.divremain - PCM86_DIVENV));
+			pcm[1] += BYVOLUME(smp);
+			pcm += 2;
+			pcm86.divremain -= pcm86.div;
+		} while(--count);
+	}
+	else {
+		do {
+			SINT32 smp_l;
+			SINT32 smp_r;
+			smp_l = pcm86.smp_l * (pcm86.divremain * -1);
+			smp_r = pcm86.smp_r * (pcm86.divremain * -1);
+			pcm86.divremain += PCM86_DIVENV;
+			while(1) {
+				SINT32 dat;
+				pcm86.realbuf -= 4;
+				if (pcm86.realbuf < 4) {
+					goto ps16_bufempty;
+				}
+				PCM86GET16(dat);
+				pcm86.lastsmp_l = pcm86.smp_l;
+				pcm86.smp_l = dat;
+				PCM86GET16(dat);
+				pcm86.lastsmp_r = pcm86.smp_r;
+				pcm86.smp_r = dat;
+				if (pcm86.divremain > pcm86.div2) {
+					pcm86.divremain -= pcm86.div2;
+					smp_l += pcm86.smp_l * pcm86.div2;
+					smp_r += pcm86.smp_r * pcm86.div2;
+				}
+				else {
+					break;
+				}
+			}
+			smp_l += pcm86.smp_l * pcm86.divremain;
+			smp_r += pcm86.smp_r * pcm86.divremain;
+			pcm[0] += BYVOLUME(smp_l);
+			pcm[1] += BYVOLUME(smp_r);
+			pcm += 2;
+			pcm86.divremain -= pcm86.div2;
+		} while(--count);
+	}
+	return;
+
+ps16_bufempty:
+	pcm86.realbuf += 4;
+	pcm86.divremain = 0;
+	pcm86.smp_l = 0;
+	pcm86.smp_r = 0;
+	pcm86.lastsmp_l = 0;
+	pcm86.lastsmp_r = 0;
+}
+
+static void pcm86mono8(SINT32 *pcm, UINT count) {
+
+	if (pcm86.div < PCM86_DIVENV) {					// Abv³ñÕé
+		do {
+			SINT32 smp;
+			if (pcm86.divremain < 0) {
+				SINT32 dat;
+				pcm86.divremain += PCM86_DIVENV;
+				pcm86.realbuf--;
+				if (pcm86.realbuf < 0) {
+					goto pm8_bufempty;
+				}
+				PCM86GET8(dat);
+				pcm86.lastsmp = pcm86.smp;
+				pcm86.smp = dat;
+			}
+			smp = (pcm86.lastsmp * pcm86.divremain) -
+							(pcm86.smp * (pcm86.divremain - PCM86_DIVENV));
+			pcm[0] += BYVOLUME(smp);
+			pcm += 2;
+			pcm86.divremain -= pcm86.div;
+		} while(--count);
+	}
+	else {
+		do {
+			SINT32 smp;
+			smp = pcm86.smp * (pcm86.divremain * -1);
+			pcm86.divremain += PCM86_DIVENV;
+			while(1) {
+				SINT32 dat;
+				pcm86.realbuf--;
+				if (pcm86.realbuf < 0) {
+					goto pm8_bufempty;
+				}
+				PCM86GET8(dat);
+				pcm86.lastsmp = pcm86.smp;
+				pcm86.smp = dat;
+				if (pcm86.divremain > pcm86.div2) {
+					pcm86.divremain -= pcm86.div2;
+					smp += pcm86.smp * pcm86.div2;
+				}
+				else {
+					break;
+				}
+			}
+			smp += pcm86.smp * pcm86.divremain;
+			pcm[0] += BYVOLUME(smp);
+			pcm += 2;
+			pcm86.divremain -= pcm86.div2;
+		} while(--count);
+	}
+	return;
+
+pm8_bufempty:
+	pcm86.realbuf += 1;
+	pcm86.divremain = 0;
+	pcm86.smp = 0;
+	pcm86.lastsmp = 0;
+}
+
+static void pcm86stereo8(SINT32 *pcm, UINT count) {
+
+	if (pcm86.div < PCM86_DIVENV) {					// Abv³ñÕé
+		do {
+			SINT32 smp;
+			if (pcm86.divremain < 0) {
+				SINT32 dat;
+				pcm86.divremain += PCM86_DIVENV;
+				pcm86.realbuf -= 2;
+				if (pcm86.realbuf < 0) {
+					goto pm8_bufempty;
+				}
+				PCM86GET8(dat);
+				pcm86.lastsmp_l = pcm86.smp_l;
+				pcm86.smp_l = dat;
+				PCM86GET8(dat);
+				pcm86.lastsmp_r = pcm86.smp_r;
+				pcm86.smp_r = dat;
+			}
+			smp = (pcm86.lastsmp_l * pcm86.divremain) -
+							(pcm86.smp_l * (pcm86.divremain - PCM86_DIVENV));
+			pcm[0] += BYVOLUME(smp);
+			smp = (pcm86.lastsmp_r * pcm86.divremain) -
+							(pcm86.smp_r * (pcm86.divremain - PCM86_DIVENV));
+			pcm[1] += BYVOLUME(smp);
+			pcm += 2;
+			pcm86.divremain -= pcm86.div;
+		} while(--count);
+	}
+	else {
+		do {
+			SINT32 smp_l;
+			SINT32 smp_r;
+			smp_l = pcm86.smp_l * (pcm86.divremain * -1);
+			smp_r = pcm86.smp_r * (pcm86.divremain * -1);
+			pcm86.divremain += PCM86_DIVENV;
+			while(1) {
+				SINT32 dat;
+				pcm86.realbuf -= 2;
+				if (pcm86.realbuf < 0) {
+					goto pm8_bufempty;
+				}
+				PCM86GET8(dat);
+				pcm86.lastsmp_l = pcm86.smp_l;
+				pcm86.smp_l = dat;
+				PCM86GET8(dat);
+				pcm86.lastsmp_r = pcm86.smp_r;
+				pcm86.smp_r = dat;
+				if (pcm86.divremain > pcm86.div2) {
+					pcm86.divremain -= pcm86.div2;
+					smp_l += pcm86.smp_l * pcm86.div2;
+					smp_r += pcm86.smp_r * pcm86.div2;
+				}
+				else {
+					break;
+				}
+			}
+			smp_l += pcm86.smp_l * pcm86.divremain;
+			smp_r += pcm86.smp_r * pcm86.divremain;
+			pcm[0] += BYVOLUME(smp_l);
+			pcm[1] += BYVOLUME(smp_r);
+			pcm += 2;
+			pcm86.divremain -= pcm86.div2;
+		} while(--count);
+	}
+	return;
+
+pm8_bufempty:
+	pcm86.realbuf += 2;
+	pcm86.divremain = 0;
+	pcm86.smp_l = 0;
+	pcm86.smp_r = 0;
+	pcm86.lastsmp_l = 0;
+	pcm86.lastsmp_r = 0;
+}
+
+void SOUNDCALL pcm86gen_getpcm(void *hdl, SINT32 *pcm, UINT count) {
+
+	if ((count) && (pcm86.fifo & 0x80) && (pcm86.div)) {
+		switch(pcm86.dactrl & 0x70) {
+			case 0x00:						// 16bit-none
+				break;
+
+			case 0x10:						// 16bit-right
+				pcm86mono16(pcm + 1, count);
+				break;
+
+			case 0x20:						// 16bit-left
+				pcm86mono16(pcm, count);
+				break;
+
+			case 0x30:						// 16bit-stereo
+				pcm86stereo16(pcm, count);
+				break;
+
+			case 0x40:						// 8bit-none
+				break;
+
+			case 0x50:						// 8bit-right
+				pcm86mono8(pcm + 1, count);
+				break;
+
+			case 0x60:						// 8bit-left
+				pcm86mono8(pcm, count);
+				break;
+
+			case 0x70:						// 8bit-stereo
+				pcm86stereo8(pcm, count);
+				break;
+		}
+		pcm86gen_checkbuf();
+	}
+	(void)hdl;
+}
+
+#define	ADPCM_NBR	0x80000000
+
+static void SOUNDCALL getadpcmdata(ADPCM ad) {
+
+	UINT32	pos;
+	UINT	data;
+	UINT	dir;
+	SINT32	dlt;
+	SINT32	samp;
+
+	pos = ad->pos;
+	if (!(ad->reg.ctrl2 & 2)) {
+		data = ad->buf[(pos >> 3) & 0x3ffff];
+		if (!(pos & ADPCM_NBR)) {
+			data >>= 4;
+		}
+		pos += ADPCM_NBR + 4;
+	}
+	else {
+		const UINT8 *ptr;
+		REG8 bit;
+		UINT tmp;
+		ptr = ad->buf + ((pos >> 3) & 0x7fff);
+		bit = 1 << (pos & 7);
+		if (!(pos & ADPCM_NBR)) {
+			tmp = (ptr[0x20000] & bit);
+			tmp += (ptr[0x28000] & bit) << 1;
+			tmp += (ptr[0x30000] & bit) << 2;
+			tmp += (ptr[0x38000] & bit) << 3;
+			data = tmp >> (pos & 7);
+			pos += ADPCM_NBR;
+		}
+		else {
+			tmp = (ptr[0x00000] & bit);
+			tmp += (ptr[0x08000] & bit) << 1;
+			tmp += (ptr[0x10000] & bit) << 2;
+			tmp += (ptr[0x18000] & bit) << 3;
+			data = tmp >> (pos & 7);
+			pos += ADPCM_NBR + 1;
+		}
+	}
+	dir = data & 8;
+	data &= 7;
+	dlt = adpcmdeltatable[data] * ad->delta;
+	dlt >>= 8;
+	if (dlt < 127) {
+		dlt = 127;
+	}
+	else if (dlt > 24000) {
+		dlt = 24000;
+	}
+	samp = ad->delta;
+	ad->delta = dlt;
+	samp *= ((data * 2) + 1);
+	samp >>= ADPCM_SHIFT;
+	if (!dir) {
+		samp += ad->samp;
+		if (samp > 32767) {
+			samp = 32767;
+		}
+	}
+	else {
+		samp = ad->samp - samp;
+		if (samp < -32767) {
+			samp = -32767;
+		}
+	}
+	ad->samp = samp;
+
+	if (!(pos & ADPCM_NBR)) {
+		if (pos == ad->stop) {
+			if (ad->reg.ctrl1 & 0x10) {
+				pos = ad->start;
+				ad->samp = 0;
+				ad->delta = 127;
+			}
+			else {
+				pos &= 0x1fffff;
+				ad->status |= 4;
+				ad->play = 0;
+			}
+		}
+		else if (pos >= ad->limit) {
+			pos = 0;
+		}
+	}
+	ad->pos = pos;
+	samp *= ad->level;
+	samp >>= (10 + 1);
+	ad->out0 = ad->out1;
+	ad->out1 = samp + ad->fb;
+	ad->fb = samp >> 1;
+}
+
+void SOUNDCALL adpcm_getpcm(ADPCM ad, SINT32 *pcm, UINT count) {
+
+	SINT32	remain;
+	SINT32	samp;
+
+	if ((count == 0) || (ad->play == 0)) {
+		return;
+	}
+	remain = ad->remain;
+	if (ad->step <= ADTIMING) {
+		do {
+			if (remain < 0) {
+				remain += ADTIMING;
+				getadpcmdata(ad);
+				if (ad->play == 0) {
+					if (remain > 0) {
+						do {
+							samp = (ad->out0 * remain) >> ADTIMING_BIT;
+							if (ad->reg.ctrl2 & 0x80) {
+								pcm[0] += samp;
+							}
+							if (ad->reg.ctrl2 & 0x40) {
+								pcm[1] += samp;
+							}
+							pcm += 2;
+							remain -= ad->step;
+						} while((remain > 0) && (--count));
+					}
+					goto adpcmstop;
+				}
+			}
+			samp = (ad->out0 * remain) + (ad->out1 * (ADTIMING - remain));
+			samp >>= ADTIMING_BIT;
+			if (ad->reg.ctrl2 & 0x80) {
+				pcm[0] += samp;
+			}
+			if (ad->reg.ctrl2 & 0x40) {
+				pcm[1] += samp;
+			}
+			pcm += 2;
+			remain -= ad->step;
+		} while(--count);
+	}
+	else {
+		do {
+			if (remain > 0) {
+				samp = ad->out0 * (ADTIMING - remain);
+				do {
+					getadpcmdata(ad);
+					if (ad->play == 0) {
+						goto adpcmstop;
+					}
+					samp += ad->out0 * min(remain, ad->pertim);
+					remain -= ad->pertim;
+				} while(remain > 0);
+			}
+			else {
+				samp = ad->out0 * ADTIMING;
+			}
+			remain += ADTIMING;
+			samp >>= ADTIMING_BIT;
+			if (ad->reg.ctrl2 & 0x80) {
+				pcm[0] += samp;
+			}
+			if (ad->reg.ctrl2 & 0x40) {
+				pcm[1] += samp;
+			}
+			pcm += 2;
+		} while(--count);
+	}
+	ad->remain = remain;
+	return;
+
+adpcmstop:
+	ad->out0 = 0;
+	ad->out1 = 0;
+	ad->fb = 0;
+	ad->remain = 0;
+}
+
+static	SINT32	randseed = 1;
+
+void rand_setseed(SINT32 seed) {
+
+	randseed = seed;
+}
+
+SINT32 rand_get(void) {
+
+	randseed = (randseed * 0x343fd) + 0x269ec3;
+	return(randseed >> 16);
+}
+
+void SOUNDCALL psggen_getpcm(PSGGEN psg, SINT32 *pcm, UINT count) {
+
+	SINT32	noisevol;
+	UINT8	mixer;
+	UINT	noisetbl = 0;
+	PSGTONE	*tone;
+	PSGTONE	*toneterm;
+	SINT32	samp;
+//	UINT	psgvol;
+	SINT32	vol;
+	UINT	i;
+	UINT	noise;
+
+	if ((psg->mixer & 0x3f) == 0) {
+		count = min(count, psg->puchicount);
+		psg->puchicount -= count;
+	}
+	if (count == 0) {
+		return;
+	}
+	do {
+		noisevol = 0;
+		if (psg->envcnt) {
+			psg->envcnt--;
+			if (psg->envcnt == 0) {
+				psg->envvolcnt--;
+				if (psg->envvolcnt < 0) {
+					if (psg->envmode & PSGENV_ONESHOT) {
+						psg->envvol = (psg->envmode & PSGENV_LASTON)?15:0;
+					}
+					else {
+						psg->envvolcnt = 15;
+						if (!(psg->envmode & PSGENV_ONECYCLE)) {
+							psg->envmode ^= PSGENV_INC;
+						}
+						psg->envcnt = psg->envmax;
+						psg->envvol = (psg->envvolcnt ^ psg->envmode) & 0x0f;
+					}
+				}
+				else {
+					psg->envcnt = psg->envmax;
+					psg->envvol = (psg->envvolcnt ^ psg->envmode) & 0x0f;
+				}
+				psg->evol = psggencfg.volume[psg->envvol];
+			}
+		}
+		mixer = psg->mixer;
+		if (mixer & 0x38) {
+			for (i=0; i<(1 << PSGADDEDBIT); i++) {
+				SINT32 countbak;
+				countbak = psg->noise.count;
+				psg->noise.count -= psg->noise.freq;
+				if (psg->noise.count > countbak) {
+//					psg->noise.base = GETRAND() & (1 << (1 << PSGADDEDBIT));
+					psg->noise.base = rand_get() & (1 << (1 << PSGADDEDBIT));
+				}
+				noisetbl += psg->noise.base;
+				noisetbl >>= 1;
+			}
+		}
+		tone = psg->tone;
+		toneterm = tone + 3;
+		do {
+			vol = *(tone->pvol);
+			if (vol) {
+				samp = 0;
+				switch(mixer & 9) {
+					case 0:							// no mix
+						if (tone->puchi) {
+							tone->puchi--;
+							samp += vol << PSGADDEDBIT;
+						}
+						break;
+
+					case 1:							// tone only
+						for (i=0; i<(1 << PSGADDEDBIT); i++) {
+							tone->count += tone->freq;
+							samp += vol * ((tone->count>=0)?1:-1);
+						}
+						break;
+
+					case 8:							// noise only
+						noise = noisetbl;
+						for (i=0; i<(1 << PSGADDEDBIT); i++) {
+							samp += vol * ((noise & 1)?1:-1);
+							noise >>= 1;
+						}
+						break;
+
+					case 9:
+						noise = noisetbl;
+						for (i=0; i<(1 << PSGADDEDBIT); i++) {
+							tone->count += tone->freq;
+							if ((tone->count >= 0) || (noise & 1)) {
+								samp += vol;
+							}
+							else {
+								samp -= vol;
+							}
+							noise >>= 1;
+						}
+						break;
+				}
+				if (!(tone->pan & 1)) {
+					pcm[0] += samp;
+				}
+				if (!(tone->pan & 2)) {
+					pcm[1] += samp;
+				}
+			}
+			mixer >>= 1;
+		} while(++tone < toneterm);
+		pcm += 2;
+	} while(--count);
+}
+
+void SOUNDCALL tms3631_getpcm(TMS3631 tms, SINT32 *pcm, UINT count) {
+
+	UINT	ch;
+	SINT32	data;
+	UINT	i;
+
+	if (tms->enable == 0) {
+		return;
+	}
+	while(count--) {
+		ch = 0;
+		data = 0;
+		do {									// centre
+			if ((tms->enable & (1 << ch)) && (tms->ch[ch].freq)) {
+				for (i=0; i<4; i++) {
+					tms->ch[ch].count += tms->ch[ch].freq;
+					data += (tms->ch[ch].count & 0x10000)?1:-1;
+				}
+			}
+		} while(++ch < 2);
+		pcm[0] += data * tms3631cfg.left;
+		pcm[1] += data * tms3631cfg.right;
+		do {									// left
+			if ((tms->enable & (1 << ch)) && (tms->ch[ch].freq)) {
+				for (i=0; i<4; i++) {
+					tms->ch[ch].count += tms->ch[ch].freq;
+					pcm[0] += tms3631cfg.feet[(tms->ch[ch].count >> 16) & 15];
+				}
+			}
+		} while(++ch < 5);
+		do {									// right
+			if ((tms->enable & (1 << ch)) && (tms->ch[ch].freq)) {
+				for (i=0; i<4; i++) {
+					tms->ch[ch].count += tms->ch[ch].freq;
+					pcm[1] += tms3631cfg.feet[(tms->ch[ch].count >> 16) & 15];
+				}
+			}
+		} while(++ch < 8);
+		pcm += 2;
+	}
+}
+
+static void pc98_mix_CallBack(Bitu len) {
+    unsigned int s = len;
+
+    if (s > (sizeof(MixTemp)/sizeof(Bit32s)/2))
+        s = (sizeof(MixTemp)/sizeof(Bit32s)/2);
+
+    memset(MixTemp,0,sizeof(MixTemp));
+
+    opngen_getpcm(NULL, (SINT32*)MixTemp, s);
+    tms3631_getpcm(&tms3631, (SINT32*)MixTemp, s);
+
+    for (unsigned int i=0;i < 3;i++)
+        psggen_getpcm(&__psg[i], (SINT32*)MixTemp, s);
+    
+//    rhythm_getpcm(NULL, (SINT32*)MixTemp, s); FIXME
+//    adpcm_getpcm(NULL, (SINT32*)MixTemp, s); FIXME
+    pcm86gen_getpcm(NULL, (SINT32*)MixTemp, s);
+
+    pc98_mixer->AddSamples_s32(s, (Bit32s*)MixTemp);
+}
+
+void PC98_FM_OnEnterPC98(Section *sec) {
+    // TODO:
+    //  - Give the user an option in dosbox.conf to enable/disable FM emulation
+    //  - Give the user a choice which board to emulate (the borrowed code can emulate 10 different cards)
+    //  - Give the user a choice which IRQ to attach it to
+    //  - Give the user a choice of base I/O address (0x088 or 0x188)
+    //  - Move this code out into it's own file. This is SOUND code. It does not belong in vga.cpp.
+    //  - Register the TMS3631, OPNA, PSG, RHYTHM, etc. outputs as individual mixer channels, where
+    //    each can then run at their own sample rate, and the user can use DOSBox-X mixer controls to
+    //    set volume, record individual tracks with WAV capture, etc.
+    //  - Cleanup this code, organize it.
+    //  - Make sure this code clearly indicates that it was borrowed and adapted from Neko Project II and
+    //    ported to DOSBox-X. I cannot take credit for this code, I can only take credit for porting it
+    //    and future refinements in this project.
+    LOG_MSG("Initializing FM board at base 0x%x",pc98_fm_base);
+    for (unsigned int i=0;i < 8;i += 2) {
+        IO_RegisterWriteHandler(pc98_fm_base+i,pc98_fm_write,IO_MB);
+        IO_RegisterReadHandler(pc98_fm_base+i,pc98_fm_read,IO_MB);
+    }
+
+    // WARNING: Some parts of the borrowed code assume 44100, 22050, or 11025 and
+    //          will misrender if given any other sample rate (especially the OPNA synth).
+    unsigned int rate = 44100;
+    unsigned char vol14[6] = { 15, 15, 15, 15, 15, 15 };
+
+    pc98_mixer = MIXER_AddChannel(pc98_mix_CallBack, rate, "PC-98");
+    pc98_mixer->Enable(true);
+
+    fmboard_reset(NULL, 0x14);
+    fmboard_extenable(true);
+
+//	fddmtrsnd_initialize(rate);
+//	beep_initialize(rate);
+//	beep_setvol(3);
+	tms3631_initialize(rate);
+	tms3631_setvol(vol14);
+	opngen_initialize(rate);
+	opngen_setvol(128);
+	psggen_initialize(rate);
+	psggen_setvol(128);
+	rhythm_initialize(rate);
+	rhythm_setvol(128);
+	adpcm_initialize(rate);
+	adpcm_setvol(128);
+	pcm86gen_initialize(rate);
+	pcm86gen_setvol(128);
+
+    board86c_bind();
+}
+
+class PC98UTIL : public Program {
+public:
+	void Run(void) {
+        string arg;
+
+        cmd->BeginOpt();
+        while (cmd->GetOpt(/*&*/arg)) {
+            if (arg == "?" || arg == "help") {
+                doHelp();
+                break;
+            }
+            else if (arg == "gdc25") {
+                gdc_5mhz_mode = false;
+                gdc_5mhz_mode_update_vars();
+                LOG_MSG("PC-98: GDC is running at %.1fMHz.",gdc_5mhz_mode ? 5.0 : 2.5);
+                WriteOut("GDC is now running at 2.5MHz\n");
+            }
+            else if (arg == "gdc50") {
+                gdc_5mhz_mode = true;
+                gdc_5mhz_mode_update_vars();
+                LOG_MSG("PC-98: GDC is running at %.1fMHz.",gdc_5mhz_mode ? 5.0 : 2.5);
+                WriteOut("GDC is now running at 5MHz\n");
+            }
+            else {
+                WriteOut("Unknown switch %s",arg.c_str());
+                break;
+            }
+        }
+        cmd->EndOpt();
+	}
+    void doHelp(void) {
+        WriteOut("PC98UTIL PC-98 emulation utility\n");
+        WriteOut("  /gdc25     Set GDC to 2.5MHz\n");
+        WriteOut("  /gdc50     Set GDC to 5.0MHz\n");
+    }
+};
+
+void PC98UTIL_ProgramStart(Program * * make) {
+	*make=new PC98UTIL;
 }
 

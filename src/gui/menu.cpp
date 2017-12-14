@@ -70,7 +70,7 @@ void SetVal(const std::string secname, std::string preval, const std::string val
 
 MENU_Block menu;
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(C_SDL2)
 #include <shlobj.h>
 
 extern void RENDER_CallBack( GFX_CallBackFunctions_t function );
@@ -974,11 +974,11 @@ int Reflect_Menu(void) {
 	CheckMenuItem(m_handle, ID_JOYSTICK_BUTTONWRAP, sec->Get_bool("buttonwrap") ? MF_CHECKED : MF_STRING);
 
 	CheckMenuItem(m_handle, ID_ASPECT, (render.aspect) ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_SURFACE, ((int) GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_SURFACE) ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_DDRAW, ((int) GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_SURFACE_DDRAW) ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_DIRECT3D, ((int) GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_DIRECT3D) ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_OVERLAY, ((int) GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_OVERLAY) ? MF_CHECKED : MF_STRING);
-	if ((int) GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_OPENGL) {
+	CheckMenuItem(m_handle, ID_SURFACE, ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_SURFACE) ? MF_CHECKED : MF_STRING);
+	CheckMenuItem(m_handle, ID_DDRAW, ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_SURFACE_DDRAW) ? MF_CHECKED : MF_STRING);
+	CheckMenuItem(m_handle, ID_DIRECT3D, ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_DIRECT3D) ? MF_CHECKED : MF_STRING);
+	CheckMenuItem(m_handle, ID_OVERLAY, ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_OVERLAY) ? MF_CHECKED : MF_STRING);
+	if ((uintptr_t)GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_OPENGL) {
 		if (GetSetSDLValue(1, "opengl.bilinear", 0)) {
 			CheckMenuItem(m_handle, ID_OPENGL, MF_CHECKED);
 			CheckMenuItem(m_handle, ID_OPENGLNB, MF_STRING);
@@ -993,7 +993,7 @@ int Reflect_Menu(void) {
 		CheckMenuItem(m_handle, ID_OPENGL, MF_STRING);
 	}
 	
-	CheckMenuItem(m_handle, ID_OPENGLHQ, ((int) GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_OPENGLHQ) ? MF_CHECKED : MF_STRING);
+	CheckMenuItem(m_handle, ID_OPENGLHQ, ((uintptr_t)GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_OPENGLHQ) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_FULLDOUBLE, (GetSetSDLValue(1, "desktop.doublebuf", 0)) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_AUTOLOCK, (GetSetSDLValue(1, "mouse.autoenable", 0)) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_HIDECYCL, !menu.hidecycles ? MF_CHECKED : MF_STRING);
@@ -1587,7 +1587,10 @@ void MSG_Loop(void) {
 			case ID_CAPMOUSE: GFX_CaptureMouse(); break;
 			case ID_REFRESH: GUI_Shortcut(1); break;
 			case ID_FULLSCREEN: GFX_SwitchFullScreen(); break;
-			case ID_ASPECT: SetVal("render", "aspect", render.aspect ? "false" : "true"); break;
+			case ID_ASPECT:
+				SetVal("render", "aspect", render.aspect ? "false" : "true");
+				Reflect_Menu();
+				break;
 			case ID_HIDECYCL:
 				menu.hidecycles = !menu.hidecycles;
 				GFX_SetTitle(CPU_CycleMax, -1, -1, false);
@@ -1794,8 +1797,8 @@ void MSG_Loop(void) {
 			case ID_MOUNT_IMAGE_X: OpenFileDialog_Img('X'); break;
 			case ID_MOUNT_IMAGE_Y: OpenFileDialog_Img('Y'); break;
 			case ID_MOUNT_IMAGE_Z: OpenFileDialog_Img('Z'); break;
-//			case ID_SSHOT: void CAPTURE_ScreenShotEvent(bool pressed); CAPTURE_ScreenShotEvent(true); break;
-//			case ID_MOVIE: void CAPTURE_VideoEvent(bool pressed); CAPTURE_VideoEvent(true); break;
+			case ID_SSHOT: void CAPTURE_ScreenShotEvent(bool pressed); CAPTURE_ScreenShotEvent(true); break;
+			case ID_MOVIE: void CAPTURE_VideoEvent(bool pressed); CAPTURE_VideoEvent(true); break;
 			case ID_WAVE: void CAPTURE_WaveEvent(bool pressed); CAPTURE_WaveEvent(true); break;
 			case ID_OPL: void OPL_SaveRawEvent(bool pressed); OPL_SaveRawEvent(true); break;
 			case ID_MIDI: void CAPTURE_MidiEvent(bool pressed); CAPTURE_MidiEvent(true); break;
@@ -1856,13 +1859,13 @@ void MSG_Loop(void) {
 			case ID_VSYNC_HOST: SetVal("vsync", "vsyncmode", "host"); break;
 			case ID_VSYNC_FORCE: SetVal("vsync", "vsyncmode", "force"); break;
 			case ID_VSYNC_OFF: SetVal("vsync", "vsyncmode", "off"); break;
-			case ID_SURFACE: if ((int) GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_SURFACE) { change_output(0); SetVal("sdl", "output", "surface"); } break;
-			case ID_DDRAW: if ((int) GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_SURFACE_DDRAW) { change_output(1); SetVal("sdl", "output", "ddraw"); } break;
-			case ID_OVERLAY: if ((int) GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_OVERLAY) { change_output(2); SetVal("sdl", "output", "overlay"); } break;
+			case ID_SURFACE: if ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_SURFACE) { change_output(0); SetVal("sdl", "output", "surface"); } break;
+			case ID_DDRAW: if ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_SURFACE_DDRAW) { change_output(1); SetVal("sdl", "output", "ddraw"); } break;
+			case ID_OVERLAY: if ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_OVERLAY) { change_output(2); SetVal("sdl", "output", "overlay"); } break;
 			case ID_OPENGL: change_output(3); SetVal("sdl", "output", "opengl"); break;
 			case ID_OPENGLNB: change_output(4); SetVal("sdl", "output", "openglnb"); break;
-			case ID_DIRECT3D: if ((int) GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_DIRECT3D) { change_output(5); SetVal("sdl", "output", "direct3d"); } break;
-			case ID_OPENGLHQ: if ((int) GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_OPENGLHQ) { change_output(6); SetVal("sdl", "output", "openglhq"); } break;
+			case ID_DIRECT3D: if ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_DIRECT3D) { change_output(5); SetVal("sdl", "output", "direct3d"); } break;
+			case ID_OPENGLHQ: if ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_OPENGLHQ) { change_output(6); SetVal("sdl", "output", "openglhq"); } break;
 			case ID_WINFULL_USER: case ID_WINRES_USER: GUI_Shortcut(2); break;
 			case ID_WINRES_ORIGINAL: res_input(true, "original"); break;
 			case ID_WINFULL_ORIGINAL: res_input(false, "original"); break;
@@ -2121,7 +2124,7 @@ void MSG_Loop(void) {
 			case ID_OVERSCAN_10: LOG_MSG("GUI: Overscan 10 (surface)"); SetVal("sdl", "overscan", "10"); change_output(7); break;
 			case ID_VSYNC: GUI_Shortcut(17); break;
 			case ID_IPXNET: MENU_SetBool("ipx", "ipx"); break;
-			case ID_D3D_PS: D3D_PS(); if ((int) GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_DIRECT3D) change_output(7); break;
+			case ID_D3D_PS: D3D_PS(); if ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_DIRECT3D) change_output(7); break;
 			case ID_JOYSTICKTYPE_AUTO: SetVal("joystick", "joysticktype", "auto"); break;
 			case ID_JOYSTICKTYPE_2AXIS: SetVal("joystick", "joysticktype", "2axis"); break;
 			case ID_JOYSTICKTYPE_4AXIS: SetVal("joystick", "joysticktype", "4axis"); break;

@@ -49,6 +49,7 @@
 #define CPU_ARCHTYPE_486NEW			0x45
 #define CPU_ARCHTYPE_PENTIUM		0x50
 #define CPU_ARCHTYPE_P55CSLOW		0x55
+#define CPU_ARCHTYPE_PPROSLOW		0x60
 
 /* CPU Cycle Timing */
 extern Bit32s CPU_Cycles;
@@ -64,6 +65,8 @@ extern Bitu CPU_AutoDetermineMode;
 extern Bitu CPU_CyclesCur;
 extern Bit32s CPU_CyclesSet;
 extern char core_mode[16];
+
+extern bool enable_weitek;
 
 extern Bitu CPU_ArchitectureType;
 

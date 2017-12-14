@@ -235,11 +235,13 @@ public:
 		}
 		/* Show list of cdroms */
 		if (cmd->FindExist("-cd",false)) {
+#if !defined(C_SDL2)
 			int num = SDL_CDNumDrives();
    			WriteOut(MSG_Get("PROGRAM_MOUNT_CDROMS_FOUND"),num);
 			for (int i=0; i<num; i++) {
 				WriteOut("%2d. %s\n",i,SDL_CDName(i));
 			};
+#endif
 			return;
 		}
 
@@ -256,7 +258,7 @@ public:
 			} else if (type=="dir") {
 				// 512*32*32765==~500MB total size
 				// 512*32*16000==~250MB total free size
-#ifdef __WIN32__
+#if defined(__WIN32__) && !defined(C_SDL2)
 				GetDefaultSize();
 				str_size=hdd_size;
 #else
@@ -496,6 +498,7 @@ static void MOUNT_ProgramStart(Program * * make) {
 	*make=new MOUNT;
 }
 
+#if !defined(C_SDL2)
 void GUI_Run(bool pressed);
 
 class SHOWGUI : public Program {
@@ -508,6 +511,7 @@ public:
 static void SHOWGUI_ProgramStart(Program * * make) {
 	*make=new SHOWGUI;
 }
+#endif
 
 extern Bit32u floppytype;
 extern bool dos_kernel_disabled;
@@ -715,6 +719,12 @@ public:
 		}
 
 		bootSector bootarea;
+
+        if (imageDiskList[drive-65]->getSectSize() > sizeof(bootarea)) {
+            WriteOut("Bytes/sector too large");
+            return;
+        }
+
 		imageDiskList[drive-65]->Read_Sector(0,0,1,(Bit8u *)&bootarea);
 
 		Bitu pcjr_hdr_length = 0;
@@ -1267,7 +1277,7 @@ restart_int:
 #ifdef WIN32
 		// read from real floppy?
 		if(cmd->FindString("-source",src,true)) {
-			Bits retries = 10;
+			int retries = 10;
 			cmd->FindInt("-retries",retries,true);
 			if((retries < 1)||(retries > 99))  {
 				printHelp();
@@ -2445,7 +2455,7 @@ public:
 						}
 
 						LOG_MSG("VHD image detected: %u,%u,%u,%u",
-						    sizes[0], sizes[1], sizes[2], sizes[3]);
+						    (unsigned int)sizes[0], (unsigned int)sizes[1], (unsigned int)sizes[2], (unsigned int)sizes[3]);
 						if(sizes[3]>1023) LOG_MSG("WARNING: cylinders>1023, INT13 will not work unless extensions are used");
 						yet_detected = true;
 					}
@@ -2923,7 +2933,9 @@ static void MORE_ProgramStart(Program * * make) {
 }
 */
 
+void REDOS_ProgramStart(Program * * make);
 void A20GATE_ProgramStart(Program * * make);
+void PC98UTIL_ProgramStart(Program * * make);
 
 class NMITEST : public Program {
 public:
@@ -3274,6 +3286,13 @@ void DOS_SetupPrograms(void) {
 	PROGRAMS_MakeFile("KEYB.COM", KEYB_ProgramStart);
 	PROGRAMS_MakeFile("MOUSE.COM", MOUSE_ProgramStart);
 	PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart);
+#if !defined(C_SDL2)
 	PROGRAMS_MakeFile("SHOWGUI.COM",SHOWGUI_ProgramStart);
+#endif
 	PROGRAMS_MakeFile("NMITEST.COM",NMITEST_ProgramStart);
+    PROGRAMS_MakeFile("RE-DOS.COM",REDOS_ProgramStart);
+
+    if (IS_PC98_ARCH) {
+        PROGRAMS_MakeFile("PC98UTIL.COM",PC98UTIL_ProgramStart);
+    }
 }

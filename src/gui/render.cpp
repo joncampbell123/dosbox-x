@@ -472,7 +472,9 @@ forcenormal:
 			gfx_flags |= GFX_LOVE_32;
 			break;
 	}
+#if !defined(C_SDL2)
 	gfx_flags=GFX_GetBestMode(gfx_flags);
+#endif
 	if (!gfx_flags) {
 		if (!complexBlock && simpleBlock == &ScaleNormal1x) 
 			E_Exit("Failed to create a rendering output");
@@ -648,7 +650,7 @@ void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio)
 	} else if(!dblw && !dblh && (width < 370) && (height < 280)) {
 		dblw=true; dblh=true;
 	}
-	//LOG_MSG("pixratio %1.3f, dw %s, dh %s",ratio,dblw?"true":"false",dblh?"true":"false");
+	LOG_MSG("pixratio %1.3f, dw %s, dh %s",ratio,dblw?"true":"false",dblh?"true":"false");
 
 	if ( ratio > 1.0 ) {
 		double target = height * ratio + 0.1;
@@ -710,10 +712,25 @@ void RENDER_SetForceUpdate(bool f) {
 	render.forceUpdate = f;
 }
 
+void RENDER_OnSectionPropChange(Section *x) {
+	Section_prop * section = static_cast<Section_prop *>(control->GetSection("render"));
+
+	bool p_aspect = render.aspect;
+
+	render.aspect = section->Get_bool("aspect");
+	render.frameskip.max = section->Get_int("frameskip");
+
+	if (render.aspect != p_aspect) {
+		RENDER_CallBack(GFX_CallBackReset);
+	}
+}
+
 void RENDER_Init() {
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("render"));
 
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing renderer");
+
+	control->GetSection("render")->onpropchange.push_back(&RENDER_OnSectionPropChange);
 
 	vga.draw.doublescan_set=section->Get_bool("doublescan");
 	vga.draw.char9_set=section->Get_bool("char9");

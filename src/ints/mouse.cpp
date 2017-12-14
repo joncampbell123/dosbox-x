@@ -108,9 +108,12 @@ struct button_event {
 	Bit8u buttons;
 };
 
+extern uint8_t p7fd8_8255_mouse_int_enable;
+
+static uint8_t MOUSE_IRQ = 12; // IBM PC/AT default
+
 #define QUEUE_SIZE 32
 #define MOUSE_BUTTONS 3
-#define MOUSE_IRQ 12
 #define POS_X (static_cast<Bit16s>(mouse.x) & mouse.gran_x)
 #define POS_Y (static_cast<Bit16s>(mouse.y) & mouse.gran_y)
 
@@ -274,14 +277,24 @@ Bitu PS2_Handler(void) {
 #define MOUSE_RIGHT_RELEASED 16
 #define MOUSE_MIDDLE_PRESSED 32
 #define MOUSE_MIDDLE_RELEASED 64
+#define MOUSE_DUMMY 128
 #define MOUSE_DELAY 5.0
 
 void MOUSE_Limit_Events(Bitu /*val*/) {
 	mouse.timer_in_progress = false;
+
+    if (IS_PC98_ARCH) {
+        if (mouse.events>0) {
+            mouse.events--;
+        }
+    }
+
 	if (mouse.events) {
 		mouse.timer_in_progress = true;
 		PIC_AddEvent(MOUSE_Limit_Events,MOUSE_DELAY);
-		PIC_ActivateIRQ(MOUSE_IRQ);
+
+        if (!IS_PC98_ARCH || (IS_PC98_ARCH && p7fd8_8255_mouse_int_enable))
+		    PIC_ActivateIRQ(MOUSE_IRQ);
 	}
 }
 
@@ -303,15 +316,21 @@ INLINE void Mouse_AddEvent(Bit8u type) {
 	if (!mouse.timer_in_progress) {
 		mouse.timer_in_progress = true;
 		PIC_AddEvent(MOUSE_Limit_Events,MOUSE_DELAY);
-		PIC_ActivateIRQ(MOUSE_IRQ);
-	}
+
+        if (!IS_PC98_ARCH || (IS_PC98_ARCH && p7fd8_8255_mouse_int_enable))
+            PIC_ActivateIRQ(MOUSE_IRQ);
+    }
+}
+
+void MOUSE_DummyEvent(void) {
+    Mouse_AddEvent(MOUSE_DUMMY);
 }
 
 // ***************************************************************************
 // Mouse cursor - text mode
 // ***************************************************************************
 /* Write and read directly to the screen. Do no use int_setcursorpos (LOTUS123) */
-extern void WriteChar(Bit16u col,Bit16u row,Bit8u page,Bit8u chr,Bit8u attr,bool useattr);
+extern void WriteChar(Bit16u col,Bit16u row,Bit8u page,Bit16u chr,Bit8u attr,bool useattr);
 extern void ReadCharAttr(Bit16u col,Bit16u row,Bit8u page,Bit16u * result);
 
 void RestoreCursorBackgroundText() {
@@ -522,13 +541,15 @@ void DrawCursor() {
 	RestoreVgaRegisters();
 }
 
+void pc98_mouse_movement_apply(int x,int y);
+
 /* FIXME: Re-test this code */
 void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
 	extern bool Mouse_Vertical;
 	float dx = xrel * mouse.pixelPerMickey_x;
 	float dy = (Mouse_Vertical?-yrel:yrel) * mouse.pixelPerMickey_y;
 
-	if (KEYBOARD_AUX_Active()) {
+	if (!IS_PC98_ARCH && KEYBOARD_AUX_Active()) {
 		KEYBOARD_AUX_Event(xrel,yrel,mouse.buttons,mouse.scrollwheel);
 		mouse.scrollwheel = 0;
 		return;
@@ -569,6 +590,9 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
 		}
 	}
 
+    if (IS_PC98_ARCH)
+        pc98_mouse_movement_apply(xrel,yrel);
+
 	/* ignore constraints if using PS2 mouse callback in the bios */
 
 	if (mouse.x > mouse.max_x) mouse.x = mouse.max_x;
@@ -591,7 +615,7 @@ uint8_t Mouse_GetButtonState(void) {
 }
 
 void Mouse_ButtonPressed(Bit8u button) {
-	if (KEYBOARD_AUX_Active()) {
+	if (!IS_PC98_ARCH && KEYBOARD_AUX_Active()) {
 		switch (button) {
 			case 0:
 				mouse.buttons|=1;
@@ -645,7 +669,7 @@ void Mouse_ButtonPressed(Bit8u button) {
 }
 
 void Mouse_ButtonReleased(Bit8u button) {
-	if (KEYBOARD_AUX_Active()) {
+	if (!IS_PC98_ARCH && KEYBOARD_AUX_Active()) {
 		switch (button) {
 			case 0:
 				mouse.buttons&=~1;
@@ -732,6 +756,9 @@ static void Mouse_SetSensitivity(Bit16u px, Bit16u py, Bit16u dspeed){
 
 static void Mouse_ResetHardware(void){
 	PIC_SetIRQMask(MOUSE_IRQ,false);
+
+    if (IS_PC98_ARCH)
+        p7fd8_8255_mouse_int_enable = 1;
 }
 
 //Does way to much. Many things should be moved to mouse reset one day
@@ -750,9 +777,14 @@ void Mouse_NewVideoMode(void) {
 	case 0x07: {
 		mouse.gran_x = (mode<2)?0xfff0:0xfff8;
 		mouse.gran_y = (Bit16s)0xfff8;
-		Bitu rows = real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS);
-		if ((rows == 0) || (rows > 250)) rows = 25 - 1;
-		mouse.max_y = 8*(rows+1) - 1;
+        if (IS_PC98_ARCH) {
+            mouse.max_y = 400 - 1;
+        }
+        else {
+            Bitu rows = real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS);
+            if ((rows == 0) || (rows > 250)) rows = 25 - 1;
+            mouse.max_y = 8*(rows+1) - 1;
+        }
 		break;
 	}
 	case 0x04:
@@ -1314,10 +1346,24 @@ void MOUSE_Startup(Section *sec) {
 	Mouse_SetSensitivity(50,50,50);
 }
 
+void MOUSE_OnEnterPC98(Section *sec) {
+}
+
+void MOUSE_OnEnterPC98_phase2(Section *sec) {
+    // PC-98 change mouse to IRQ 13 (same as Neko Project II)
+    MOUSE_IRQ = 13; // NTS: Based on NKII pic_setirq(0x0D)
+    PIC_SetIRQMask(MOUSE_IRQ,true);
+
+    // FIXME: This doesn't explain why Puyo Puyo sets up an interrupt handler
+    //        that blows up and hangs if IRQ 5 is fired... what's that about? --J.C.
+}
+
 void MOUSE_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing mouse interface emulation");
 
 	// TODO: We need a DOSBox shutdown callback, and we need a shutdown callback for when the DOS kernel begins to unload and on system reset
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(MOUSE_ShutDown));
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(MOUSE_OnEnterPC98));
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE_END,AddVMEventFunctionFuncPair(MOUSE_OnEnterPC98_phase2));
 }
 

@@ -31,14 +31,14 @@
 #include "cross.h" //fmod on certain platforms
 #include "control.h"
 bool date_host_forced=false;
-#if defined (WIN32)
+#if defined (WIN32) && !defined (__MINGW32__)
 #include "sys/timeb.h"
 #else
 #include "sys/time.h"
 #endif
 
 // sigh... Windows doesn't know gettimeofday
-#if defined (WIN32)
+#if defined (WIN32) && !defined (__MINGW32__)
 typedef Bitu suseconds_t;
 
 struct timeval {
@@ -136,14 +136,14 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
 
 		if (cmos.lock)				// if locked, use locktime instead of current time
 		{
-			loctime = localtime(&cmos.locktime.tv_sec);
+			loctime = localtime((time_t*)&cmos.locktime.tv_sec);
 		}
 		else						// not locked, use current time
 		{
 			struct timeval curtime;
 			gettimeofday(&curtime, NULL);
 			curtime.tv_sec += cmos.time_diff;
-			loctime = localtime (&curtime.tv_sec);
+			loctime = localtime((time_t*)&curtime.tv_sec);
 		}
 
 		switch (cmos.reg)
@@ -315,7 +315,7 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
 
 		if (cmos.lock)				// if locked, use locktime instead of current time
 		{
-			loctime = localtime(&cmos.locktime.tv_sec);
+			loctime = localtime((time_t*)&cmos.locktime.tv_sec);
 		}
 		else						// not locked, get current time
 		{
@@ -330,7 +330,7 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
 			}
 
 			curtime.tv_sec += cmos.time_diff;
-			loctime = localtime (&curtime.tv_sec);
+			loctime = localtime((time_t*)&curtime.tv_sec);
 		}
 
 		switch (cmos.reg)
@@ -550,6 +550,14 @@ static IO_WriteHandleObject WriteHandler[2];
 void CMOS_Destroy(Section* sec) {
 }
 
+void CMOS_EnterPC98(Section* sec) {
+    /* No such device on PC-98 */
+	WriteHandler[0].Uninstall();
+	WriteHandler[1].Uninstall();
+	ReadHandler[0].Uninstall();
+	ReadHandler[1].Uninstall();
+}
+
 void CMOS_Reset(Section* sec) {
 	LOG(LOG_MISC,LOG_DEBUG)("CMOS_Reset(): reinitializing CMOS/RTC controller");
 
@@ -602,5 +610,7 @@ void CMOS_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(CMOS_Destroy),true);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(CMOS_Reset));
+
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(CMOS_EnterPC98));
 }
 

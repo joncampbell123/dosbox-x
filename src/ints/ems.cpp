@@ -1479,6 +1479,29 @@ public:
 			ENABLE_VCPI = false;
 		}
 
+        bool XMS_Active(void);
+
+        /* if XMS is not enabled, EMM386 emulation is impossible.
+         * Real MS-DOS EMM386.EXE will flat out refuse to load if HIMEM.SYS is not loaded.
+         * that also prevents VCPI from working. */
+        if (!XMS_Active() && ems_type != EMS_BOARD) {
+            if (ems_type == EMS_MIXED) {
+                LOG_MSG("EMS changed to board mode and VCPI disabled, because XMS is not enabled.");
+                ems_type = EMS_BOARD;
+            }
+            else if (ems_type == EMS_EMM386) {
+                /* do as MS-DOS does */
+                setup_EMS_none();
+                ems_type = EMS_NONE;
+                LOG_MSG("EMS disabled, EMM386 emulation is impossible when XMS is not enabled");
+                return;
+            }
+
+			ENABLE_V86_STARTUP = false;
+            ENABLE_VCPI = false;
+        }
+
+        /* FIXME: Why zero the BIOS memory size if emulating EMS board mode? */
 		BIOS_ZeroExtendedSize(true);
 
 		dbg_zero_on_ems_allocmem = section->Get_bool("zero memory on ems memory allocation");

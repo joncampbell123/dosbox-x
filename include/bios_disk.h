@@ -40,6 +40,7 @@ struct diskGeo {
 	Bit16u headscyl;  /* Heads per cylinder */
 	Bit16u cylcount;  /* Cylinders per side */
 	Bit16u biosval;   /* Type to return from BIOS */
+    Bit16u bytespersect; /* Bytes per sector */
 };
 extern diskGeo DiskGeometryList[];
 
@@ -47,7 +48,8 @@ class imageDisk {
 public:
 	enum {
 		ID_BASE=0,
-		ID_EL_TORITO_FLOPPY
+		ID_EL_TORITO_FLOPPY,
+        ID_VFD
 	};
 public:
 	virtual Bit8u Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data);
@@ -61,8 +63,9 @@ public:
 	virtual void Get_Geometry(Bit32u * getHeads, Bit32u *getCyl, Bit32u *getSect, Bit32u *getSectSize);
 	virtual Bit8u GetBiosType(void);
 	virtual Bit32u getSectSize(void);
+    imageDisk();
 	imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk);
-	virtual ~imageDisk() { if(diskimg != NULL) { fclose(diskimg); }	};
+	virtual ~imageDisk() { if(diskimg != NULL) { fclose(diskimg); diskimg=NULL; } };
 
 	int class_id;
 
@@ -76,6 +79,7 @@ public:
 	Bit32u heads,cylinders,sectors;
 	Bit32u reserved_cylinders;
 	Bit64u current_fpos;
+    Bit64u image_base;
 
 	volatile int refcount;
 	bool auto_delete_on_refcount_zero;
@@ -92,6 +96,44 @@ public:
 		if (ret == 0 && auto_delete_on_refcount_zero) delete this;
 		return ret;
 	}
+};
+
+class imageDiskVFD : public imageDisk {
+public:
+	virtual Bit8u Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data);
+	virtual Bit8u Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data);
+	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data);
+	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, void * data);
+
+	imageDiskVFD(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk);
+	virtual ~imageDiskVFD();
+
+    struct vfdentry {
+        uint8_t         track,head,sector,sizebyte;
+        uint8_t         fillbyte;
+
+        uint32_t        data_offset;
+        uint32_t        entry_offset; // offset of the 12-byte entry this came from (if nonzero)
+
+        vfdentry() : track(0), head(0), sector(0), sizebyte(0), fillbyte(0xFF), data_offset(0), entry_offset(0) {
+        }
+
+        bool hasSectorData(void) const {
+            return fillbyte == 0xFF;
+        }
+
+        bool hasFill(void) const {
+            return fillbyte != 0xFF;
+        }
+
+        uint16_t getSectorSize(void) const {
+            return 128 << sizebyte;
+        }
+    };
+
+    vfdentry *findSector(Bit8u head,Bit8u track,Bit8u sector/*TODO: physical head?*/);
+
+    std::vector<vfdentry> dents;
 };
 
 void updateDPT(void);

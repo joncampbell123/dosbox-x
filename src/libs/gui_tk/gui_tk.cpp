@@ -29,6 +29,9 @@
  *  gui_tk. It is enabled by defining the preprocessor macro TESTING.
  */
 
+#include "config.h"
+
+#if !defined(C_SDL2)
 #include <SDL.h>
 #include "gui_tk.h"
 
@@ -1537,4 +1540,4 @@ bool ScreenSDL::event(const SDL_Event &event) {
 }
 
 } /* end namespace GUI */
-
+#endif /* !C_SDL2 */

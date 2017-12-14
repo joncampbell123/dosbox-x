@@ -83,7 +83,7 @@
 #include <list>
 
 /*===================================TODO: Move to it's own file==============================*/
-#ifdef __SSE__
+#if defined(__SSE__) && !defined(_M_AMD64)
 bool sse2_available = false;
 
 # ifdef __GNUC__
@@ -126,6 +126,8 @@ extern bool			VIDEO_BIOS_always_carry_16_high_font;
 extern bool			VIDEO_BIOS_enable_CGA_8x8_second_half;
 extern bool			allow_more_than_640kb;
 extern bool			adapter_rom_is_ram;
+
+bool                enable_pc98_jump = false;
 
 bool				dos_con_use_int16_to_detect_input = true;
 
@@ -262,7 +264,7 @@ void				INT10_Init(Section*);
 #if C_NE2000
 void				NE2K_Init(Section* sec);
 #endif
-#ifdef __WIN32__
+#if defined(__WIN32__) && !defined(C_SDL2)
 void				MSG_Loop(void);
 #endif
 
@@ -376,7 +378,7 @@ static Bitu Normal_Loop(void) {
                     return 0;
 #endif
             } else {
-#ifdef __WIN32__
+#if defined(__WIN32__) && !defined(C_SDL2)
                 MSG_Loop();
 #endif
                 GFX_Events();
@@ -770,6 +772,8 @@ void DOSBOX_RealInit() {
 	else if (mtype == "vgaonly")       { svgaCard = SVGA_None; }
 	else if (mtype == "amstrad")       { machine = MCH_AMSTRAD; }
 	else if (mtype == "pc98")          { machine = MCH_PC98; }
+	else if (mtype == "pc9801")        { machine = MCH_PC98; } /* Future differentiation */
+	else if (mtype == "pc9821")        { machine = MCH_PC98; } /* Future differentiation */
 	else E_Exit("DOSBOX:Unknown machine type %s",mtype.c_str());
 
 	// TODO: should be parsed by motherboard emulation
@@ -809,8 +813,17 @@ void DOSBOX_RealInit() {
 	clockdom_ISA_BCLK.set_name("ISA BCLK");
 	clockdom_PCI_BCLK.set_name("PCI BCLK");
 
-	// TODO: When we begin to flesh out any kind of NEC PC-98 emulation, remove this abort
-	if (IS_PC98_ARCH) E_Exit("Sorry, NEC PC-98 emulation not implemented. Coming soon.");
+    /* the changes are so large to begin supporting PC-98 that it's probably better
+     * to boot up in IBM PC/XT/AT mode and then switch into PC-98 */
+	if (IS_PC98_ARCH) {
+        LOG_MSG("PC-98 WARNING: Implementation is very early, and not the initial state.");
+
+        enable_pc98_jump = true;
+        int10.vesa_nolfb = false;
+        int10.vesa_oldvbe = false;
+        svgaCard = SVGA_None;
+        machine = MCH_VGA;
+    }
 }
 
 void DOSBOX_SetupConfigSections(void) {
@@ -833,7 +846,7 @@ void DOSBOX_SetupConfigSections(void) {
 	const char* blocksizes[] = {"1024", "2048", "4096", "8192", "512", "256", 0};
     const char* capturechromaformats[] = { "auto", "4:4:4", "4:2:2", "4:2:0", 0};
 	const char* auxdevices[] = {"none","2button","3button","intellimouse","intellimouse45",0};
-	const char* cputype_values[] = {"auto", "8086", "8086_prefetch", "80186", "80186_prefetch", "286", "286_prefetch", "386", "386_prefetch", "486", "pentium", "pentium_mmx", 0};
+	const char* cputype_values[] = {"auto", "8086", "8086_prefetch", "80186", "80186_prefetch", "286", "286_prefetch", "386", "386_prefetch", "486", "pentium", "pentium_mmx", "ppro_slow", 0};
 	const char* rates[] = {  "44100", "48000", "32000","22050", "16000", "11025", "8000", "49716", 0 };
 	const char* oplrates[] = {   "44100", "49716", "48000", "32000","22050", "16000", "11025", "8000", 0 };
 	const char* devices[] = { "default", "win32", "alsa", "oss", "coreaudio", "coremidi", "mt32", "synth", "timidity", "none", 0}; // FIXME: add some way to offer the actually available choices.
@@ -850,6 +863,7 @@ void DOSBOX_SetupConfigSections(void) {
 	const char* oplmodes[]={ "auto", "cms", "opl2", "dualopl2", "opl3", "none", "hardware", "hardwaregb", 0};
 	const char* serials[] = { "dummy", "disabled", "modem", "nullmodem", "serialmouse", "directserial", "log", 0 };
 	const char* acpi_rsd_ptr_settings[] = { "auto", "bios", "ebda", 0 };
+    const char* cpm_compat_modes[] = { "auto", "off", "msdos2", "msdos5", "direct", 0 };
 	const char* dosv_settings[] = { "off", "japanese", "chinese", "korean", 0 };
 	const char* acpisettings[] = { "off", "1.0", "1.0b", "2.0", "2.0a", "2.0b", "2.0c", "3.0", "3.0a", "3.0b", "4.0", "4.0a", "5.0", "5.0a", "6.0", 0 };
 	const char* guspantables[] = { "old", "accurate", "default", 0 };
@@ -862,7 +876,7 @@ void DOSBOX_SetupConfigSections(void) {
 	const char* irqssb[] = { "7", "5", "3", "9", "10", "11", "12", 0 };
 	const char* dmasgus[] = { "3", "0", "1", "5", "6", "7", 0 };
 	const char* dmassb[] = { "1", "5", "0", "3", "6", "7", 0 };
-	const char* oplemus[]={ "default", "compat", "fast", 0};
+	const char* oplemus[] = { "default", "compat", "fast", "nuked", 0 };
 	const char *qualityno[] = { "0", "1", "2", "3", 0 };
 	const char* tandys[] = { "auto", "on", "off", 0};
 	const char* ps1opt[] = { "on", "off", 0};
@@ -876,7 +890,7 @@ void DOSBOX_SetupConfigSections(void) {
 	const char* machines[] = {
 		"hercules", "cga", "cga_mono", "cga_rgb", "cga_composite", "cga_composite2", "tandy", "pcjr", "ega",
 		"vgaonly", "svga_s3", "svga_et3000", "svga_et4000",
-		"svga_paradise", "vesa_nolfb", "vesa_oldvbe", "amstrad", "pc98", 0 };
+		"svga_paradise", "vesa_nolfb", "vesa_oldvbe", "amstrad", "pc98", "pc9801", "pc9821", 0 };
 
 	const char* scalers[] = { 
 		"none", "normal2x", "normal3x", "normal4x", "normal5x",
@@ -905,7 +919,7 @@ void DOSBOX_SetupConfigSections(void) {
 		0
 	};
 
-#ifdef __SSE__
+#if defined(__SSE__) && !defined(_M_AMD64)
 	CheckSSESupport();
 #endif
 	SDLNetInited = false;
@@ -921,6 +935,12 @@ void DOSBOX_SetupConfigSections(void) {
 	Pbool->Set_help("Set this option (on by default) to indicate to your OS that DOSBox is DPI aware.\n"
 			"If it is not set, Windows Vista/7/8/10 and higher may upscale the DOSBox window\n"
 			"on higher resolution monitors which is probably not what you want.");
+
+	Pbool = secprop->Add_bool("keyboard hook", Property::Changeable::Always, false);
+	Pbool->Set_help("Use keyboard hook (currently only on Windows) to catch special keys and synchronize the keyboard LEDs with the host");
+
+	Pbool = secprop->Add_bool("weitek",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("If set, emulate the Weitek coprocessor. This option only has effect if cputype=386 or cputype=486.");
 
 	Pbool = secprop->Add_bool("bochs debug port e9",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("If set, emulate Bochs debug port E9h. ASCII text written to this I/O port is assumed to be debug output, and logged.");
@@ -1016,6 +1036,11 @@ void DOSBOX_SetupConfigSections(void) {
 			  "  on                           Lock A20 gate on (Software/OS cannot disable A20)\n"
 			  "  off_fake                     Lock A20 gate off but allow bit to toggle (hope your DOS game tests the HMA!)\n"
 			  "  on_fake                      Lock A20 gate on but allow bit to toggle");
+
+    Pbool = secprop->Add_bool("turn off a20 gate on boot",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If enabled, A20 gate is switched off when booting a guest OS.\n"
+                    "Enabled by default. Recommended for MS-DOS when HIMEM.SYS is not installed in the guest OS.\n"
+                    "If disabled, and MS-DOS does not load HIMEM.SYS, programs and features that rely on the 1MB wraparound will fail.");
 
 	Pstring = secprop->Add_string("isa bus clock",Property::Changeable::WhenIdle,"std8.3");
 	Pstring->Set_help("ISA BCLK frequency.\n"
@@ -1127,6 +1152,32 @@ void DOSBOX_SetupConfigSections(void) {
 		"    24: 16MB aliasing. Common on 386SX systems (CPU had 24 external address bits)\n"
 		"        or 386DX and 486 systems where the CPU communicated directly with the ISA bus (A24-A31 tied off)\n"
 		"    26: 64MB aliasing. Some 486s had only 26 external address bits, some motherboards tied off A26-A31");
+
+	Pbool = secprop->Add_bool("pc-98 start gdc at 5mhz",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("Start GDC at 5MHz if set, 2.5MHz if clear. May be required for some games.");
+
+	Pbool = secprop->Add_bool("pc-98 allow scanline effect",Property::Changeable::WhenIdle,true);
+	Pbool->Set_help("If set, PC-98 emulation will allow the DOS application to enable the 'scanline effect'\n"
+                    "in 200-line graphics modes upconverted to 400-line raster display. When enabled, odd\n"
+                    "numbered scanlines are blanked instead of doubled");
+
+	Pint = secprop->Add_int("pc-98 timer master frequency", Property::Changeable::WhenIdle,0);
+	Pint->SetMinMax(0,2457600);
+	Pint->Set_help("8254 timer clock frequency (NEC PC-98). Depending on the CPU frequency the clock frequency is one of two common values.\n"
+                   "If your setting is neither of the below the closest appropriate value will be chosen.\n"
+                   "This setting affects the master clock rate that DOS applications must divide down from to program the timer\n"
+                   "at the correct rate, which affects timer interrupt, PC speaker, and the COM1 RS-232C serial port baud rate.\n"
+                   "    0: Use default (auto)\n"
+                   "    8: 1.996MHz (as if 8MHz or multiple thereof CPU clock)\n"
+                   "   10: 2.457MHz (as if 5MHz/10MHz or multiple thereof CPU clock)");
+
+	Pint = secprop->Add_int("pc-98 allow 4 display partition graphics", Property::Changeable::WhenIdle,-1);
+	Pint->SetMinMax(-1,1);
+	Pint->Set_help("According to NEC graphics controller documentation, graphics mode is supposed to support only\n"
+                   "2 display partitions. Some games rely on hardware flaws that allowed 4 partitions.\n"
+                   "   -1: Default (choose automatically)\n"
+                   "    0: Disable\n"
+                   "    1: Enable");
 
 	Pint = secprop->Add_int("vga bios size override", Property::Changeable::WhenIdle,0);
 	Pint->SetMinMax(512,65536);
@@ -1840,6 +1891,11 @@ void DOSBOX_SetupConfigSections(void) {
 	Pbool = secprop->Add_bool("gus",Property::Changeable::WhenIdle,false); 	
 	Pbool->Set_help("Enable the Gravis Ultrasound emulation.");
 
+	Pbool = secprop->Add_bool("autoamp",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("If set, GF1 output will reduce in volume automatically if the sum of all channels exceeds full volume.\n"
+                    "If not set, then loud music will clip to full volume just as it would on real hardware.\n"
+                    "Enable this option for loud music if you want a more pleasing rendition without saturation and distortion.");
+
 	Pbool = secprop->Add_bool("unmask dma",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("Start the DOS virtual machine with the DMA channel already unmasked at the controller.\n"
 			"Use this for DOS applications that expect to operate the GUS but forget to unmask the DMA channel.");
@@ -2075,6 +2131,20 @@ void DOSBOX_SetupConfigSections(void) {
 	Pint = secprop->Add_int("hma free space",Property::Changeable::WhenIdle,34*1024); /* default 34KB (TODO: How much does MS-DOS 5.0 usually occupy?) */
 	Pint->Set_help("Controls the amount of free space available in HMA. This setting is not meaningful unless the\n"
 			"DOS kernel occupies HMA and the emulated DOS version is at least 5.0.");
+
+    Pstring = secprop->Add_string("cpm compatibility mode",Property::Changeable::WhenIdle,"auto");
+	Pstring->Set_values(cpm_compat_modes);
+    Pstring->Set_help(
+            "This controls how the DOS kernel sets up the CP/M compatibility code in the PSP segment.\n"
+            "Several options are provided to emulate one of several undocumented behaviors related to the CP/M entry point.\n"
+            "If set to auto, DOSBox-X will pick the best option to allow it to work properly.\n"
+            "Unless set to 'off', this option will require the DOS kernel to occupy the first 256 bytes of the HMA memory area\n"
+            "to prevent crashes when the A20 gate is switched on.\n"
+            "   auto      Pick the best option\n"
+            "   off       Turn off the CP/M entry point (program will abort if called)\n"
+            "   msdos2    MS-DOS 2.x behavior, offset field also doubles as data segment size\n"
+            "   msdos5    MS-DOS 5.x behavior, entry point becomes one of two fixed addresses\n"
+            "   direct    Non-standard behavior, encode the CALL FAR directly to the entry point rather than indirectly");
 
 	Pbool = secprop->Add_bool("share",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Report SHARE.EXE as resident. Does not actually emulate SHARE functions.");
@@ -2484,5 +2554,184 @@ void DOSBOX_SetupConfigSections(void) {
 	        "# They are used to (briefly) document the effect of each option.\n"
 		"# To write out ALL options, use command 'config -all' with -wc or -writeconf options.\n");
 	MSG_Add("CONFIG_SUGGESTED_VALUES", "Possible values");
+}
+
+int utf8_encode(char **ptr,char *fence,uint32_t code) {
+	int uchar_size=1;
+	char *p = *ptr;
+
+	if (!p) return UTF8ERR_NO_ROOM;
+	if (code >= (uint32_t)0x80000000UL) return UTF8ERR_INVALID;
+	if (p >= fence) return UTF8ERR_NO_ROOM;
+
+	if (code >= 0x4000000) uchar_size = 6;
+	else if (code >= 0x200000) uchar_size = 5;
+	else if (code >= 0x10000) uchar_size = 4;
+	else if (code >= 0x800) uchar_size = 3;
+	else if (code >= 0x80) uchar_size = 2;
+
+	if ((p+uchar_size) > fence) return UTF8ERR_NO_ROOM;
+
+	switch (uchar_size) {
+		case 1:	*p++ = (char)code;
+			break;
+		case 2:	*p++ = (char)(0xC0 | (code >> 6));
+			*p++ = (char)(0x80 | (code & 0x3F));
+			break;
+		case 3:	*p++ = (char)(0xE0 | (code >> 12));
+			*p++ = (char)(0x80 | ((code >> 6) & 0x3F));
+			*p++ = (char)(0x80 | (code & 0x3F));
+			break;
+		case 4:	*p++ = (char)(0xF0 | (code >> 18));
+			*p++ = (char)(0x80 | ((code >> 12) & 0x3F));
+			*p++ = (char)(0x80 | ((code >> 6) & 0x3F));
+			*p++ = (char)(0x80 | (code & 0x3F));
+			break;
+		case 5:	*p++ = (char)(0xF8 | (code >> 24));
+			*p++ = (char)(0x80 | ((code >> 18) & 0x3F));
+			*p++ = (char)(0x80 | ((code >> 12) & 0x3F));
+			*p++ = (char)(0x80 | ((code >> 6) & 0x3F));
+			*p++ = (char)(0x80 | (code & 0x3F));
+			break;
+		case 6:	*p++ = (char)(0xFC | (code >> 30));
+			*p++ = (char)(0x80 | ((code >> 24) & 0x3F));
+			*p++ = (char)(0x80 | ((code >> 18) & 0x3F));
+			*p++ = (char)(0x80 | ((code >> 12) & 0x3F));
+			*p++ = (char)(0x80 | ((code >> 6) & 0x3F));
+			*p++ = (char)(0x80 | (code & 0x3F));
+			break;
+	};
+
+	*ptr = p;
+	return 0;
+}
+
+int utf8_decode(const char **ptr,const char *fence) {
+	const char *p = *ptr;
+	int uchar_size=1;
+	int ret = 0,c;
+
+	if (!p) return UTF8ERR_NO_ROOM;
+	if (p >= fence) return UTF8ERR_NO_ROOM;
+
+	ret = (unsigned char)(*p);
+	if (ret >= 0xFE) { p++; return UTF8ERR_INVALID; }
+	else if (ret >= 0xFC) uchar_size=6;
+	else if (ret >= 0xF8) uchar_size=5;
+	else if (ret >= 0xF0) uchar_size=4;
+	else if (ret >= 0xE0) uchar_size=3;
+	else if (ret >= 0xC0) uchar_size=2;
+	else if (ret >= 0x80) { p++; return UTF8ERR_INVALID; }
+
+	if ((p+uchar_size) > fence)
+		return UTF8ERR_NO_ROOM;
+
+	switch (uchar_size) {
+		case 1:	p++;
+			break;
+		case 2:	ret = (ret&0x1F)<<6; p++;
+			c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
+			ret |= c&0x3F;
+			break;
+		case 3:	ret = (ret&0xF)<<12; p++;
+			c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
+			ret |= (c&0x3F)<<6;
+			c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
+			ret |= c&0x3F;
+			break;
+		case 4:	ret = (ret&0x7)<<18; p++;
+			c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
+			ret |= (c&0x3F)<<12;
+			c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
+			ret |= (c&0x3F)<<6;
+			c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
+			ret |= c&0x3F;
+			break;
+		case 5:	ret = (ret&0x3)<<24; p++;
+			c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
+			ret |= (c&0x3F)<<18;
+			c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
+			ret |= (c&0x3F)<<12;
+			c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
+			ret |= (c&0x3F)<<6;
+			c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
+			ret |= c&0x3F;
+			break;
+		case 6:	ret = (ret&0x1)<<30; p++;
+			c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
+			ret |= (c&0x3F)<<24;
+			c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
+			ret |= (c&0x3F)<<18;
+			c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
+			ret |= (c&0x3F)<<12;
+			c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
+			ret |= (c&0x3F)<<6;
+			c = (unsigned char)(*p++); if ((c&0xC0) != 0x80) return UTF8ERR_INVALID;
+			ret |= c&0x3F;
+			break;
+	};
+
+	*ptr = p;
+	return ret;
+}
+
+int utf16le_encode(char **ptr,char *fence,uint32_t code) {
+	char *p = *ptr;
+
+	if (!p) return UTF8ERR_NO_ROOM;
+	if (code > 0x10FFFF) return UTF8ERR_INVALID;
+	if (code > 0xFFFF) { /* UTF-16 surrogate pair */
+		uint32_t lo = (code - 0x10000) & 0x3FF;
+		uint32_t hi = ((code - 0x10000) >> 10) & 0x3FF;
+		if ((p+2+2) > fence) return UTF8ERR_NO_ROOM;
+		*p++ = (char)( (hi+0xD800)       & 0xFF);
+		*p++ = (char)(((hi+0xD800) >> 8) & 0xFF);
+		*p++ = (char)( (lo+0xDC00)       & 0xFF);
+		*p++ = (char)(((lo+0xDC00) >> 8) & 0xFF);
+	}
+	else if ((code&0xF800) == 0xD800) { /* do not allow accidental surrogate pairs (0xD800-0xDFFF) */
+		return UTF8ERR_INVALID;
+	}
+	else {
+		if ((p+2) > fence) return UTF8ERR_NO_ROOM;
+		*p++ = (char)( code       & 0xFF);
+		*p++ = (char)((code >> 8) & 0xFF);
+	}
+
+	*ptr = p;
+	return 0;
+}
+
+int utf16le_decode(const char **ptr,const char *fence) {
+	const char *p = *ptr;
+	int ret,b=2;
+
+	if (!p) return UTF8ERR_NO_ROOM;
+	if ((p+1) >= fence) return UTF8ERR_NO_ROOM;
+
+	ret = (unsigned char)p[0];
+	ret |= ((unsigned int)((unsigned char)p[1])) << 8;
+	if (ret >= 0xD800 && ret <= 0xDBFF)
+		b=4;
+	else if (ret >= 0xDC00 && ret <= 0xDFFF)
+		{ p++; return UTF8ERR_INVALID; }
+
+	if ((p+b) > fence)
+		return UTF8ERR_NO_ROOM;
+
+	p += 2;
+	if (ret >= 0xD800 && ret <= 0xDBFF) {
+		/* decode surrogate pair */
+		int hi = ret & 0x3FF;
+		int lo = (unsigned char)p[0];
+		lo |= ((unsigned int)((unsigned char)p[1])) << 8;
+		p += 2;
+		if (lo < 0xDC00 || lo > 0xDFFF) return UTF8ERR_INVALID;
+		lo &= 0x3FF;
+		ret = ((hi << 10) | lo) + 0x10000;
+	}
+
+	*ptr = p;
+	return ret;
 }
 

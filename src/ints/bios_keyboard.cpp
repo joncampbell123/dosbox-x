@@ -138,9 +138,16 @@ static struct {
       };
 
 bool BIOS_AddKeyToBuffer(Bit16u code) {
-	if (mem_readb(BIOS_KEYBOARD_FLAGS2)&8) return true;
+    if (!IS_PC98_ARCH) {
+        if (mem_readb(BIOS_KEYBOARD_FLAGS2)&8) return true;
+    }
+
 	Bit16u start,end,head,tail,ttail;
-	if (machine==MCH_PCJR) {
+    if (IS_PC98_ARCH) {
+        start=0x502;
+        end=0x522;
+    }
+	else if (machine==MCH_PCJR) {
 		/* should be done for cga and others as well, to be tested */
 		start=0x1e;
 		end=0x3e;
@@ -148,8 +155,16 @@ bool BIOS_AddKeyToBuffer(Bit16u code) {
 		start=mem_readw(BIOS_KEYBOARD_BUFFER_START);
 		end	 =mem_readw(BIOS_KEYBOARD_BUFFER_END);
 	}
-	head =mem_readw(BIOS_KEYBOARD_BUFFER_HEAD);
-	tail =mem_readw(BIOS_KEYBOARD_BUFFER_TAIL);
+
+    if (IS_PC98_ARCH) {
+        head =mem_readw(0x524/*head*/);
+        tail =mem_readw(0x526/*tail*/);
+    }
+    else {
+        head =mem_readw(BIOS_KEYBOARD_BUFFER_HEAD);
+        tail =mem_readw(BIOS_KEYBOARD_BUFFER_TAIL);
+    }
+
 	ttail=tail+2;
 	if (ttail>=end) {
 		ttail=start;
@@ -157,8 +172,16 @@ bool BIOS_AddKeyToBuffer(Bit16u code) {
 	/* Check for buffer Full */
 	//TODO Maybe beeeeeeep or something although that should happend when internal buffer is full
 	if (ttail==head) return false;
-	real_writew(0x40,tail,code);
-	mem_writew(BIOS_KEYBOARD_BUFFER_TAIL,ttail);
+
+    if (IS_PC98_ARCH) {
+        real_writew(0x0,tail,code);
+        mem_writew(0x526/*tail*/,ttail);
+    }
+    else {
+        real_writew(0x40,tail,code);
+        mem_writew(BIOS_KEYBOARD_BUFFER_TAIL,ttail);
+    }
+
 	return true;
 }
 
@@ -168,7 +191,11 @@ static void add_key(Bit16u code) {
 
 static bool get_key(Bit16u &code) {
 	Bit16u start,end,head,tail,thead;
-	if (machine==MCH_PCJR) {
+    if (IS_PC98_ARCH) {
+        start=0x502;
+        end=0x522;
+    }
+    else if (machine==MCH_PCJR) {
 		/* should be done for cga and others as well, to be tested */
 		start=0x1e;
 		end=0x3e;
@@ -176,24 +203,60 @@ static bool get_key(Bit16u &code) {
 		start=mem_readw(BIOS_KEYBOARD_BUFFER_START);
 		end	 =mem_readw(BIOS_KEYBOARD_BUFFER_END);
 	}
-	head =mem_readw(BIOS_KEYBOARD_BUFFER_HEAD);
-	tail =mem_readw(BIOS_KEYBOARD_BUFFER_TAIL);
+
+    if (IS_PC98_ARCH) {
+        head =mem_readw(0x524/*head*/);
+        tail =mem_readw(0x526/*tail*/);
+    }
+    else {
+        head =mem_readw(BIOS_KEYBOARD_BUFFER_HEAD);
+        tail =mem_readw(BIOS_KEYBOARD_BUFFER_TAIL);
+    }
 
 	if (head==tail) return false;
 	thead=head+2;
 	if (thead>=end) thead=start;
-	mem_writew(BIOS_KEYBOARD_BUFFER_HEAD,thead);
-	code = real_readw(0x40,head);
+
+    if (IS_PC98_ARCH) {
+        mem_writew(0x524/*head*/,thead);
+        code = real_readw(0x0,head);
+    }
+    else {
+        mem_writew(BIOS_KEYBOARD_BUFFER_HEAD,thead);
+        code = real_readw(0x40,head);
+    }
+
 	return true;
+}
+
+bool INT16_get_key(Bit16u &code) {
+    return get_key(code);
 }
 
 static bool check_key(Bit16u &code) {
 	Bit16u head,tail;
-	head =mem_readw(BIOS_KEYBOARD_BUFFER_HEAD);
-	tail =mem_readw(BIOS_KEYBOARD_BUFFER_TAIL);
+
+    if (IS_PC98_ARCH) {
+        head =mem_readw(0x524/*head*/);
+        tail =mem_readw(0x526/*tail*/);
+    }
+    else {
+        head =mem_readw(BIOS_KEYBOARD_BUFFER_HEAD);
+        tail =mem_readw(BIOS_KEYBOARD_BUFFER_TAIL);
+    }
+
 	if (head==tail) return false;
-	code = real_readw(0x40,head);
+
+    if (IS_PC98_ARCH)
+        code = real_readw(0x0,head);
+    else
+        code = real_readw(0x40,head);
+
 	return true;
+}
+
+bool INT16_peek_key(Bit16u &code) {
+    return check_key(code);
 }
 
 static void empty_keyboard_buffer() {
@@ -487,6 +550,491 @@ irq1_end:
 	return CBRET_NONE;
 }
 
+unsigned char AT_read_60(void);
+
+static Bitu IRQ1_Handler_PC98(void) {
+    unsigned char sc_8251,status;
+    unsigned int patience = 32;
+    Bit16u scan_add;
+    bool pressed;
+
+    status = IO_ReadB(0x43); /* 8251 status */
+    while (status & 2/*RxRDY*/) {
+        sc_8251 = IO_ReadB(0x41); /* 8251 data */
+
+        Bit8u flags1,flags2,flags3,leds,leds_orig;
+        flags1=mem_readb(BIOS_KEYBOARD_FLAGS1);
+        flags2=mem_readb(BIOS_KEYBOARD_FLAGS2);
+        flags3=mem_readb(BIOS_KEYBOARD_FLAGS3);
+        leds  =mem_readb(BIOS_KEYBOARD_LEDS); 
+
+        pressed = !(sc_8251 & 0x80);
+        sc_8251 &= 0x7F;
+
+        /* Testing on real hardware shows INT 18h AH=0 returns raw scancode in upper half, ASCII in lower half.
+         * Just like INT 16h on IBM PC hardware */
+        scan_add = sc_8251 << 8U;
+
+        /* NOTES:
+         *  - The bitmap also tracks CAPS, and KANA state. It does NOT track NUM state.
+         *    The bit corresponding to the key code will show a bit set if in that state.
+         *  - The STS byte returned by INT 18h AH=02h seems to match the 14th byte of the bitmap... so far.
+         *
+         *  STS layout (based on real hardware):
+         *
+         *    bit[7] = ?
+         *    bit[6] = ?
+         *    bit[5] = ?
+         *    bit[4] = CTRL is down
+         *    bit[3] = GRPH is down
+         *    bit[2] = KANA engaged
+         *    bit[1] = CAPS engaged
+         *    bit[0] = SHIFT is down
+         */
+
+        /* According to Neko Project II, the BIOS maintains a "pressed key" bitmap at 0x50:0x2A.
+         * Without this bitmap many PC-98 games are unplayable. */
+        {
+            unsigned int o = 0x52A + (sc_8251 >> 3);
+            unsigned char c = mem_readb(o);
+            unsigned char b = 1 << (sc_8251 & 7);
+
+            if (pressed)
+                c |= b;
+            else
+                c &= ~b;
+
+            mem_writeb(o,c);
+        }
+
+        /* NOTES:
+         *  - SHIFT/CTRL scan code changes (no scan code emitted if GRPH is held down for these keys)
+         *
+         *    CTRL apparently takes precedence over SHIFT.
+         *
+         *      Key       Unshifted      Shifted        CTRL
+         *      --------------------------------------------
+         *      F1        0x62           0x82           0x92
+         *      F2        0x63           0x83           0x93
+         *      F3        0x64           0x84           0x94
+         *      F4        0x65           0x85           0x95
+         *      F5        0x66           0x86           0x96
+         *      F6        0x67           0x87           0x97
+         *      F7        0x68           0x88           0x98
+         *      F8        0x69           0x89           0x99
+         *      F9        0x6A           0x8A           0x9A
+         *      F10       0x6B           0x8B           0x9B
+         *      HOME/CLR  0x3E           0xAE           <none>
+         *      XFER      0x35           0xA5           0xB5
+         *      NFER      0x51           0xA1           0xB1
+         *      VF1       0x52           0xC2           0xD2
+         *      VF2       0x53           0xC3           0xD3
+         *      VF3       0x54           0xC4           0xD4
+         *      VF4       0x55           0xC5           0xD5
+         *      VF5       0x56           0xC6           0xD6
+         */
+
+        /* FIXME: I'm fully aware of obvious problems with this code so far:
+         *        - This is coded around my American keyboard layout
+         *        - No support for CAPS or KANA modes.
+         *
+         *        As this code develops refinements will occur.
+         *
+         *        - Scan codes will be mapped to unshifted/shifted/kana modes
+         *          as laid out on Japanese keyboards.
+         *        - This will use a lookup table with special cases such as
+         *          modifier keys. */
+        switch (sc_8251) {
+            case 0x00: // ESC
+                if (pressed) {
+                    add_key(scan_add + 27);
+                }
+                break;
+            case 0x01: // 1
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + '!');
+                    else
+                        add_key(scan_add + '1');
+                }
+                break;
+            case 0x02: // 2
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + '@');
+                    else
+                        add_key(scan_add + '2');
+                }
+                break;
+            case 0x03: // 3
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + '#');
+                    else
+                        add_key(scan_add + '3');
+                }
+                break;
+            case 0x04: // 4
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + '$');
+                    else
+                        add_key(scan_add + '4');
+                }
+                break;
+            case 0x05: // 5
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + '%');
+                    else
+                        add_key(scan_add + '5');
+                }
+                break;
+            case 0x06: // 6
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + '^');
+                    else
+                        add_key(scan_add + '6');
+                }
+                break;
+            case 0x07: // 7
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + '&');
+                    else
+                        add_key(scan_add + '7');
+                }
+                break;
+            case 0x08: // 8
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + '*');
+                    else
+                        add_key(scan_add + '8');
+                }
+                break;
+            case 0x09: // 9
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + '(');
+                    else
+                        add_key(scan_add + '9');
+                }
+                break;
+            case 0x0A: // 0
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + '(');
+                    else
+                        add_key(scan_add + '0');
+                }
+                break;
+            case 0x0B: // -
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + '_');
+                    else
+                        add_key(scan_add + '-');
+                }
+                break;
+            case 0x0C: // =
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + '+');
+                    else
+                        add_key(scan_add + '=');
+                }
+                break;
+            case 0x0D: // \ backslash
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + '|');
+                    else
+                        add_key(scan_add + '\\');
+                }
+                break;
+            case 0x0E: // backspace
+                if (pressed) {
+                    add_key(scan_add + 8);
+                }
+                break;
+            case 0x0F: // tab
+                if (pressed) {
+                    add_key(scan_add + 9);
+                }
+                break;
+            case 0x10: // q
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + 'Q');
+                    else
+                        add_key(scan_add + 'q');
+                }
+                break;
+            case 0x11: // w
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + 'W');
+                    else
+                        add_key(scan_add + 'w');
+                }
+                break;
+            case 0x12: // e
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + 'E');
+                    else
+                        add_key(scan_add + 'e');
+                }
+                break;
+            case 0x13: // r
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + 'R');
+                    else
+                        add_key(scan_add + 'r');
+                }
+                break;
+            case 0x14: // t
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + 'T');
+                    else
+                        add_key(scan_add + 't');
+                }
+                break;
+            case 0x15: // y
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + 'Y');
+                    else
+                        add_key(scan_add + 'y');
+                }
+                break;
+            case 0x16: // u
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + 'U');
+                    else
+                        add_key(scan_add + 'u');
+                }
+                break;
+            case 0x17: // i
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + 'I');
+                    else
+                        add_key(scan_add + 'i');
+                }
+                break;
+            case 0x18: // o
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + 'O');
+                    else
+                        add_key(scan_add + 'o');
+                }
+                break;
+            case 0x19: // p
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + 'P');
+                    else
+                        add_key(scan_add + 'p');
+                }
+                break;
+
+            case 0x1C: // Enter
+                if (pressed) {
+                    add_key(scan_add + 13);
+                }
+                break;
+            case 0x1D: // A
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + 'A');
+                    else
+                        add_key(scan_add + 'a');
+                }
+                break;
+            case 0x1E: // S
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + 'S');
+                    else
+                        add_key(scan_add + 's');
+                }
+                break;
+            case 0x1F: // D
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + 'D');
+                    else
+                        add_key(scan_add + 'd');
+                }
+                break;
+            case 0x20: // F
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + 'F');
+                    else
+                        add_key(scan_add + 'f');
+                }
+                break;
+            case 0x21: // G
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + 'G');
+                    else
+                        add_key(scan_add + 'g');
+                }
+                break;
+            case 0x22: // H
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + 'H');
+                    else
+                        add_key(scan_add + 'h');
+                }
+                break;
+            case 0x23: // J
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + 'J');
+                    else
+                        add_key(scan_add + 'j');
+                }
+                break;
+            case 0x24: // K
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + 'K');
+                    else
+                        add_key(scan_add + 'k');
+                }
+                break;
+            case 0x25: // L
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + 'L');
+                    else
+                        add_key(scan_add + 'l');
+                }
+                break;
+            case 0x26: // ;
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + ':');
+                    else
+                        add_key(scan_add + ';');
+                }
+                break;
+
+            case 0x29: // Z
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + 'Z');
+                    else
+                        add_key(scan_add + 'z');
+                }
+                break;
+            case 0x2A: // X
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + 'X');
+                    else
+                        add_key(scan_add + 'x');
+                }
+                break;
+            case 0x2B: // C
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + 'C');
+                    else
+                        add_key(scan_add + 'c');
+                }
+                break;
+            case 0x2C: // V
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + 'V');
+                    else
+                        add_key(scan_add + 'v');
+                }
+                break;
+            case 0x2D: // B
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + 'B');
+                    else
+                        add_key(scan_add + 'b');
+                }
+                break;
+            case 0x2E: // N
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + 'N');
+                    else
+                        add_key(scan_add + 'n');
+                }
+                break;
+            case 0x2F: // M
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + 'M');
+                    else
+                        add_key(scan_add + 'm');
+                }
+                break;
+            case 0x30: // ,
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + '<');
+                    else
+                        add_key(scan_add + ',');
+                }
+                break;
+            case 0x31: // .
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + '>');
+                    else
+                        add_key(scan_add + '.');
+                }
+                break;
+            case 0x32: // /
+                if (pressed) {
+                    if (flags1 & 3) /* shift */
+                        add_key(scan_add + '?');
+                    else
+                        add_key(scan_add + '/');
+                }
+                break;
+            case 0x34: // <space>
+                if (pressed) {
+                    add_key(scan_add + ' ');
+                }
+                break;
+
+            case 0x70: // left/right shift
+                flags1 &= ~3; // emulate AT BIOS l+r shift with PC-98 shift
+                flags1 |= pressed ? 3 : 0;
+                break;
+        }
+
+        mem_writeb(BIOS_KEYBOARD_FLAGS1,flags1);
+        mem_writeb(BIOS_KEYBOARD_FLAGS2,flags2);
+        mem_writeb(BIOS_KEYBOARD_FLAGS3,flags3);
+        mem_writeb(BIOS_KEYBOARD_LEDS,leds);
+
+        if (--patience == 0) break; /* in case of stuck 8251 */
+        status = IO_ReadB(0x43); /* 8251 status */
+    }
+
+    return CBRET_NONE;
+}
+
 static Bitu PCjr_NMI_Keyboard_Handler(void) {
 	while (IO_ReadB(0x64) & 1) { /* while data is available */
 		reg_al=IO_ReadB(0x60);
@@ -532,7 +1080,7 @@ static bool IsEnhancedKey(Bit16u &key) {
 bool int16_unmask_irq1_on_read = true;
 bool int16_ah_01_cf_undoc = true;
 
-static Bitu INT16_Handler(void) {
+Bitu INT16_Handler(void) {
 	Bit16u temp=0;
 	switch (reg_ah) {
 	case 0x00: /* GET KEYSTROKE */
@@ -643,6 +1191,18 @@ static Bitu INT16_Handler(void) {
 	return CBRET_NONE;
 }
 
+/* The INT16h handler manipulates reg_ip and expects it to work
+ * based on the layout of the callback. So to allow calling
+ * directly we have to save/restore CS:IP and run the DOS
+ * machine. */
+Bitu INT16_Handler_Wrap(void) {
+    Bitu proc;
+
+    proc = CALLBACK_RealPointer(call_int16);
+    CALLBACK_RunRealFarInt(proc >> 16/*seg*/,proc & 0xFFFFU/*off*/);
+    return 0;
+}
+
 //Keyboard initialisation. src/gui/sdlmain.cpp
 extern bool startup_state_numlock;
 extern bool startup_state_capslock;
@@ -675,6 +1235,7 @@ void CALLBACK_DeAllocate(Bitu in);
 void BIOS_UnsetupKeyboard(void) {
     if (call_int16 != 0) {
         CALLBACK_DeAllocate(call_int16);
+        RealSetVec(0x16,0);
         call_int16 = 0;
     }
     if (call_irq1 != 0) {
@@ -695,10 +1256,19 @@ void BIOS_SetupKeyboard(void) {
 	/* Init the variables */
 	InitBiosSegment();
 
-	/* Allocate/setup a callback for int 0x16 and for standard IRQ 1 handler */
-	call_int16=CALLBACK_Allocate();	
-	CALLBACK_Setup(call_int16,&INT16_Handler,CB_INT16,"Keyboard");
-	RealSetVec(0x16,CALLBACK_RealPointer(call_int16));
+    if (IS_PC98_ARCH) {
+        /* HACK */
+        /* Allocate/setup a callback for int 0x16 and for standard IRQ 1 handler */
+        call_int16=CALLBACK_Allocate();	
+        CALLBACK_Setup(call_int16,&INT16_Handler,CB_INT16,"Keyboard");
+        /* DO NOT set up an INT 16h vector. This exists only for the DOS CONIO emulation. */
+    }
+    else {
+        /* Allocate/setup a callback for int 0x16 and for standard IRQ 1 handler */
+        call_int16=CALLBACK_Allocate();	
+        CALLBACK_Setup(call_int16,&INT16_Handler,CB_INT16,"Keyboard");
+        RealSetVec(0x16,CALLBACK_RealPointer(call_int16));
+    }
 
 	call_irq1=CALLBACK_Allocate();
 	if (machine == MCH_PCJR) { /* PCjr keyboard interrupt connected to NMI */
@@ -706,6 +1276,10 @@ void BIOS_SetupKeyboard(void) {
 		CALLBACK_Setup(call_irq1,&PCjr_NMI_Keyboard_Handler,CB_IRET,"PCjr NMI Keyboard");
 		RealSetVec(0x02/*NMI*/,CALLBACK_RealPointer(call_irq1));
 	}
+    else if (IS_PC98_ARCH) {
+		CALLBACK_Setup(call_irq1,&IRQ1_Handler_PC98,CB_IRET_EOI_PIC1,Real2Phys(BIOS_DEFAULT_IRQ1_LOCATION),"IRQ 1 Keyboard PC-98");
+		RealSetVec(0x09/*IRQ 1*/,BIOS_DEFAULT_IRQ1_LOCATION);
+    }
 	else {
 		CALLBACK_Setup(call_irq1,&IRQ1_Handler,CB_IRQ1,Real2Phys(BIOS_DEFAULT_IRQ1_LOCATION),"IRQ 1 Keyboard");
 		RealSetVec(0x09/*IRQ 1*/,BIOS_DEFAULT_IRQ1_LOCATION);

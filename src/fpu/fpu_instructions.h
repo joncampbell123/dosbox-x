@@ -17,7 +17,7 @@
  */
 
 #include <math.h> /* for isinf, etc */
-
+#include "cpu/lazyflags.h"
 static void FPU_FINIT(void) {
 	unsigned int i;
 
@@ -313,7 +313,7 @@ static void FPU_FBST(PhysPt addr) {
 	mem_writeb(addr+9,p);
 }
 
-#if defined(WIN32) && defined(_MSC_VER)
+#if defined(WIN32) && defined(_MSC_VER) && (_MSC_VER < 1910)
 /* std::isinf is C99 standard how could you NOT have this VS2008??? */
 # include <math.h>
 /* the purpose of this macro is to test for -/+inf. NaN is not inf. If finite or NaN it's not infinity */
@@ -442,6 +442,13 @@ static void FPU_FST(Bitu st, Bitu other){
 	fpu.regs[other] = fpu.regs[st];
 }
 
+static void FPU_FCMOV(Bitu st, Bitu other){
+	fpu.regs_80[st] = fpu.regs_80[other];
+	fpu.use80[st] = fpu.use80[other];
+	fpu.tags[st] = fpu.tags[other];
+	fpu.regs[st] = fpu.regs[other];
+}
+
 static void FPU_FCOM(Bitu st, Bitu other){
 	if(((fpu.tags[st] != TAG_Valid) && (fpu.tags[st] != TAG_Zero)) || 
 		((fpu.tags[other] != TAG_Valid) && (fpu.tags[other] != TAG_Zero))){
@@ -454,7 +461,7 @@ static void FPU_FCOM(Bitu st, Bitu other){
 	 *       "none" for no FPU, 287 or 387 for cputype=286 and cputype=386, or "auto" to match the CPU (8086 => 8087).
 	 *       If the FPU type is 387 or auto, then skip this hack. Else for 8087 and 287, use this hack. */
 	if (CPU_ArchitectureType<CPU_ARCHTYPE_386) {
-		if (isinf(fpu.regs[st].d) && isinf(fpu.regs[other].d)) {
+		if (std::isinf(fpu.regs[st].d) && std::isinf(fpu.regs[other].d)) {
 			/* 8087/287 consider -inf == +inf and that's what DOS programs test for to detect 287 vs 387 */
 			FPU_SET_C3(1);FPU_SET_C2(0);FPU_SET_C0(0);return;
 		}
@@ -473,6 +480,31 @@ static void FPU_FCOM(Bitu st, Bitu other){
 static void FPU_FUCOM(Bitu st, Bitu other){
 	//does atm the same as fcom 
 	FPU_FCOM(st,other);
+}
+
+static void FPU_FUCOMI(Bitu st, Bitu other){
+	
+	FillFlags();
+	SETFLAGBIT(OF,false);
+
+	if(fpu.regs[st].d == fpu.regs[other].d){
+		SETFLAGBIT(ZF,true);SETFLAGBIT(PF,false);SETFLAGBIT(CF,false);return;
+	}
+	if(fpu.regs[st].d < fpu.regs[other].d){
+		SETFLAGBIT(ZF,false);SETFLAGBIT(PF,false);SETFLAGBIT(CF,true);return;
+	}
+	// st > other
+	SETFLAGBIT(ZF,false);SETFLAGBIT(PF,false);SETFLAGBIT(CF,false);return;
+}
+
+static void FPU_FCOMI(Bitu st, Bitu other){
+	FPU_FUCOMI(st,other);
+
+	if(((fpu.tags[st] != TAG_Valid) && (fpu.tags[st] != TAG_Zero)) || 
+		((fpu.tags[other] != TAG_Valid) && (fpu.tags[other] != TAG_Zero))){
+		SETFLAGBIT(ZF,true);SETFLAGBIT(PF,true);SETFLAGBIT(CF,true);return;
+	}
+
 }
 
 static void FPU_FRNDINT(void){

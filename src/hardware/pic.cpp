@@ -137,7 +137,7 @@ void PIC_Controller::activate() {
 		CPU_Cycles = 0;
 		//maybe when coming from a EOI, give a tiny delay. (for the cpu to pick it up) (see PIC_Activate_IRQ)
 	} else {
-		master.raise_irq(2);
+		master.raise_irq(IS_PC98_ARCH ? 7 : 2);
 	}
 }
 
@@ -160,7 +160,7 @@ void PIC_Controller::deactivate() {
 	} else {
 		/* just because ONE IRQ on the slave finished doesn't mean there aren't any others needing service! */
 		if ((irr&imrr) == 0)
-			master.lower_irq(2);
+			master.lower_irq(IS_PC98_ARCH ? 7 : 2);
 		else
 			LOG_MSG("Slave PIC: still to handle irr=%02x imrr=%02x isrr=%02x",irr,imrr,isrr);
 	}
@@ -191,7 +191,7 @@ static struct {
 } pic_queue;
 
 static void write_command(Bitu port,Bitu val,Bitu iolen) {
-	PIC_Controller * pic=&pics[port==0x20 ? 0 : 1];
+	PIC_Controller * pic=&pics[(port==0x20/*IBM*/ || port==0x00/*PC-98*/) ? 0 : 1];
 
 	if (GCC_UNLIKELY(val&0x10)) {		// ICW1 issued
 		if (val&0x04) LOG_MSG("PIC: 4 byte interval not handled");
@@ -242,7 +242,8 @@ static void write_command(Bitu port,Bitu val,Bitu iolen) {
 }
 
 static void write_data(Bitu port,Bitu val,Bitu iolen) {
-	PIC_Controller * pic=&pics[port==0x21 ? 0 : 1];
+	PIC_Controller * pic=&pics[(port==0x21/*IBM*/ || port==0x02/*PC-98*/) ? 0 : 1];
+
 	switch(pic->icw_index) {
 	case 0:                        /* mask register */
 		pic->set_imr(val);
@@ -283,7 +284,7 @@ static void write_data(Bitu port,Bitu val,Bitu iolen) {
 
 
 static Bitu read_command(Bitu port,Bitu iolen) {
-	PIC_Controller * pic=&pics[port==0x20 ? 0 : 1];
+	PIC_Controller * pic=&pics[(port==0x20/*IBM*/ || port==0x00/*PC-98*/) ? 0 : 1];
 	if (pic->request_issr){
 		return pic->isr;
 	} else { 
@@ -293,7 +294,7 @@ static Bitu read_command(Bitu port,Bitu iolen) {
 
 
 static Bitu read_data(Bitu port,Bitu iolen) {
-	PIC_Controller * pic=&pics[port==0x21 ? 0 : 1];
+	PIC_Controller * pic=&pics[(port==0x21/*IBM*/ || port==0x02/*PC-98*/) ? 0 : 1];
 	return pic->imr;
 }
 
@@ -311,7 +312,9 @@ int PIC_irq_delay = 2;
  *        ISA interrupts are edge triggered, not level triggered. */
 void PIC_ActivateIRQ(Bitu irq) {
 	/* Remember what was once IRQ 2 on PC/XT is IRQ 9 on PC/AT */
-	if (enable_slave_pic) { /* PC/AT emulation with slave PIC cascade to master */
+    if (IS_PC98_ARCH) {
+    }
+    else if (enable_slave_pic) { /* PC/AT emulation with slave PIC cascade to master */
 		if (irq == 2) irq = 9;
 	}
 	else { /* PC/XT emulation with only master PIC */
@@ -342,7 +345,9 @@ void PIC_ActivateIRQ(Bitu irq) {
 
 void PIC_DeActivateIRQ(Bitu irq) {
 	/* Remember what was once IRQ 2 on PC/XT is IRQ 9 on PC/AT */
-	if (enable_slave_pic) { /* PC/AT emulation with slave PIC cascade to master */
+    if (IS_PC98_ARCH) {
+    }
+    else if (enable_slave_pic) { /* PC/AT emulation with slave PIC cascade to master */
 		if (irq == 2) irq = 9;
 	}
 	else { /* PC/XT emulation with only master PIC */
@@ -409,12 +414,12 @@ static void slave_startIRQ(){
 		 * what was once IRQ 2 on PC/XT is routed to IRQ 9 on AT systems, because IRQ 8-15
 		 * cascade to IRQ 2 on such systems. but it's nothing to E_Exit() over. */
 		LOG(LOG_PIC,LOG_ERROR)("ISA PIC problem: IRQ 2 is active on master PIC without active IRQ 8-15 on slave PIC.");
-		slave.lower_irq(2); /* clear it */
+		slave.lower_irq(IS_PC98_ARCH ? 7 : 2); /* clear it */
 		return;
 	}
 
 	slave.start_irq(pic1_irq);
-	master.start_irq(2);
+	master.start_irq(IS_PC98_ARCH ? 7 : 2);
 	CPU_HW_Interrupt(slave.vector_base + pic1_irq);
 }
 
@@ -439,7 +444,7 @@ void PIC_runIRQs(void) {
 				if (!IRQ_hack_check_cs_equ_ds(i))
 					continue; // skip IRQ
 
-			if (i==2 && enable_slave_pic) { //second pic
+			if (i==(IS_PC98_ARCH ? 7 : 2) && enable_slave_pic) { //second pic
 				slave_startIRQ();
 			} else {
 				master_startIRQ(i);
@@ -737,8 +742,11 @@ void PIC_Reset(Section *sec) {
 		pics[i].isrr = pics[i].imr = 0xff;
 		pics[i].active_irq = 8;
 	}
+
+    /* IBM: IRQ 0-15 is INT 0x08-0x0F, 0x70-0x7F
+     * PC-98: IRQ 0-15 is INT 0x08-0x17 */
 	master.vector_base = 0x08;
-	slave.vector_base = 0x70;
+	slave.vector_base = IS_PC98_ARCH ? 0x10 : 0x70;
 
     for (Bitu i=0;i < 16;i++)
         PIC_SetIRQMask(i,true);
@@ -748,24 +756,50 @@ void PIC_Reset(Section *sec) {
 	PIC_SetIRQMask(2,false);					/* Enable second pic */
 	PIC_SetIRQMask(8,false);					/* Enable RTC IRQ */
 
-	ReadHandler[0].Install(0x20,read_command,IO_MB);
-	ReadHandler[1].Install(0x21,read_data,IO_MB);
-	WriteHandler[0].Install(0x20,write_command,IO_MB);
-	WriteHandler[1].Install(0x21,write_data,IO_MB);
+    /* I/O port map
+     *
+     * IBM PC/XT/AT     NEC PC-98        A0
+     * ---------------------------------------
+     * 0x20             0x00             0
+     * 0x21             0x02             1
+     * 0xA0             0x08             0
+     * 0xA1             0x0A             1
+     */
+
+	ReadHandler[0].Install(IS_PC98_ARCH ? 0x00 : 0x20,read_command,IO_MB);
+	ReadHandler[1].Install(IS_PC98_ARCH ? 0x02 : 0x21,read_data,IO_MB);
+	WriteHandler[0].Install(IS_PC98_ARCH ? 0x00 : 0x20,write_command,IO_MB);
+	WriteHandler[1].Install(IS_PC98_ARCH ? 0x02 : 0x21,write_data,IO_MB);
 
 	/* the secondary slave PIC takes priority over PC/XT NMI mask emulation */
 	if (enable_slave_pic) {
-		ReadHandler[2].Install(0xa0,read_command,IO_MB);
-		ReadHandler[3].Install(0xa1,read_data,IO_MB);
-		WriteHandler[2].Install(0xa0,write_command,IO_MB);
-		WriteHandler[3].Install(0xa1,write_data,IO_MB);
+		ReadHandler[2].Install(IS_PC98_ARCH ? 0x08 : 0xa0,read_command,IO_MB);
+		ReadHandler[3].Install(IS_PC98_ARCH ? 0x0A : 0xa1,read_data,IO_MB);
+		WriteHandler[2].Install(IS_PC98_ARCH ? 0x08 : 0xa0,write_command,IO_MB);
+		WriteHandler[3].Install(IS_PC98_ARCH ? 0x0A : 0xa1,write_data,IO_MB);
 	}
-	else if (enable_pc_xt_nmi_mask) {
+	else if (!IS_PC98_ARCH && enable_pc_xt_nmi_mask) {
 		PCXT_NMI_WriteHandler.Install(0xa0,pc_xt_nmi_write,IO_MB);
 	}
 }
 
 void PIC_Destroy(Section* sec) {
+}
+
+void PIC_EnterPC98_Phase1(Section* sec) {
+	ReadHandler[0].Uninstall();
+	ReadHandler[1].Uninstall();
+	WriteHandler[0].Uninstall();
+	WriteHandler[1].Uninstall();
+	ReadHandler[2].Uninstall();
+	ReadHandler[3].Uninstall();
+	WriteHandler[2].Uninstall();
+	WriteHandler[3].Uninstall();
+	PCXT_NMI_WriteHandler.Uninstall();
+}
+
+void PIC_EnterPC98_Phase2(Section* sec) {
+    PIC_Reset(sec);
 }
 
 void Init_PIC() {
@@ -786,5 +820,7 @@ void Init_PIC() {
 
 	AddExitFunction(AddExitFunctionFuncPair(PIC_Destroy));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PIC_Reset));
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(PIC_EnterPC98_Phase1));
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE_END,AddVMEventFunctionFuncPair(PIC_EnterPC98_Phase2));
 }
 

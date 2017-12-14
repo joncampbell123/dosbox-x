@@ -118,15 +118,33 @@ struct XMS_MemMove{
 
 static int xms_local_enable_count = 0;
 
+void DOS_Write_HMA_CPM_jmp(void);
+
 Bitu XMS_EnableA20(bool enable) {
-	Bit8u val = IO_Read	(0x92);
-	if (enable) IO_Write(0x92,val | 2);
-	else		IO_Write(0x92,val & ~2);
-//	LOG_MSG("XMS A20 enable=%u lock=%u",enable?1:0,xms_local_enable_count);
+	Bit8u val;
+
+    if (IS_PC98_ARCH) {
+        // NEC PC-98: Unmask (enable) A20 by writing to port 0xF2.
+        //            Mask (disable) A20 by writing to port 0xF6.
+        val = IO_Read(0xF2);
+        if (enable) IO_Write(0xF2,val); // writing ANYTHING to 0xF2 will "cancel" the A20 mask
+        else        IO_Write(0xF6,val); // writing ANYTHING to 0xF6 will mask A20
+    }
+    else {
+        // IBM PC/AT: Port 0x92, bit 1, set if A20 enabled
+        val = IO_Read(0x92);
+        if (enable) IO_Write(0x92,val | 2);
+        else		IO_Write(0x92,val & ~2);
+    }
+
 	return 0;
 }
 
 Bitu XMS_GetEnabledA20(void) {
+    if (IS_PC98_ARCH) // NEC PC-98: Port 0xF2, bit 0, cleared if A20 enabled (set if A20 masked)
+	    return (IO_Read(0xF2)&1) == 0;
+
+    // IBM PC/AT: Port 0x92, bit 1, set if A20 enabled
 	return (IO_Read(0x92)&2)>0;
 }
 
@@ -646,6 +664,12 @@ public:
 			LOG(LOG_MISC,LOG_DEBUG)("UMB ending segment 0x%04x conflicts with BIOS at 0x%04x, truncating region",(int)first_umb_size,(int)(rombios_minimum_location>>4));
 			first_umb_size = (rombios_minimum_location>>4)-1;
 		}
+        /* UMB cannot interfere with EGC 4th graphics bitplane on PC-98 */
+        /* TODO: Allow UMB into E000:xxxx if emulating a PC-98 that lacks 16-color mode. */
+        if (IS_PC98_ARCH && first_umb_size >= 0xE000) {
+            LOG(LOG_MISC,LOG_DEBUG)("UMB overlaps PC-98 EGC 4th graphics bitplane, truncating region");
+            first_umb_size = 0xDFFF;
+        }
 		if (first_umb_size < first_umb_seg) {
 			LOG(LOG_MISC,LOG_NORMAL)("UMB end segment below UMB start. I'll just assume you mean to disable UMBs then.");
 			first_umb_size = first_umb_seg - 1;
@@ -666,6 +690,9 @@ public:
 		bool ems_available = GetEMSType(section)>0;
 		DOS_BuildUMBChain(umb_available,ems_available);
 		umb_init = true;
+
+        /* CP/M compat will break unless a copy of the JMP instruction is mirrored in HMA */
+        DOS_Write_HMA_CPM_jmp();
 	}
 
 	~XMS(){
@@ -704,6 +731,10 @@ void XMS_DoShutDown() {
 
 void XMS_ShutDown(Section* /*sec*/) {
 	XMS_DoShutDown();
+}
+
+bool XMS_Active(void) {
+    return (test != NULL) && xms_init;
 }
 
 void XMS_Startup(Section *sec) {

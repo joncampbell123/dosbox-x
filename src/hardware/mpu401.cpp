@@ -227,7 +227,8 @@ static void MPU401_WriteCommand(Bitu port,Bitu val,Bitu iolen) {
 			QueueByte(mpu.clock.tempo);
 			return;
 		case 0xb1:	/* Reset relative tempo */
-			mpu.clock.tempo_rel=40;
+            mpu.clock.old_tempo_rel=mpu.clock.tempo_rel;
+            mpu.clock.tempo_rel=0x40;
 			break;
 		case 0xb9:	/* Clear play map */
 		case 0xb8:	/* Clear play counters */
@@ -308,8 +309,9 @@ static void MPU401_WriteData(Bitu port,Bitu val,Bitu iolen) {
 			return;
 		case 0xe1:	/* Set relative tempo */
 			mpu.state.command_byte=0;
-			if (val!=0x40) //default value
-				LOG(LOG_MISC,LOG_ERROR)("MPU-401:Relative tempo change not implemented");
+            mpu.clock.old_tempo_rel=mpu.clock.tempo_rel;
+            mpu.clock.tempo_rel=val;
+            if (val != 0x40) LOG(LOG_MISC,LOG_ERROR)("MPU-401:Relative tempo change value 0x%x (%.3f)",val,(double)val / 0x40);
 			return;
 		case 0xe7:	/* Set internal clock to host interval */
 			mpu.state.command_byte=0;
@@ -544,7 +546,7 @@ static void MPU401_Event(Bitu val) {
 next_event:
 	PIC_RemoveEvents(MPU401_Event);
 	Bitu new_time;
-	if ((new_time=mpu.clock.tempo*mpu.clock.timebase)==0) return;
+	if ((new_time=((mpu.clock.tempo*mpu.clock.timebase*mpu.clock.tempo_rel)/0x40))==0) return;
 	PIC_AddEvent(MPU401_Event,MPU401_TIMECONSTANT/new_time);
 }
 
@@ -605,7 +607,7 @@ static void MPU401_Reset(void) {
 	mpu.state.block_ack=false;
 	mpu.clock.tempo=mpu.clock.old_tempo=100;
 	mpu.clock.timebase=mpu.clock.old_timebase=120;
-	mpu.clock.tempo_rel=mpu.clock.old_tempo_rel=40;
+	mpu.clock.tempo_rel=mpu.clock.old_tempo_rel=0x40;
 	mpu.clock.tempo_grad=0;
 	mpu.clock.clock_to_host=false;
 	mpu.clock.cth_rate=60;
@@ -637,51 +639,64 @@ public:
 		if (!MIDI_Available()) return;
 		/*Enabled and there is a Midi */
 		installed = true;
-		
-		WriteHandler[0].Install(0x330,&MPU401_WriteData,IO_MB);
-		WriteHandler[1].Install(0x331,&MPU401_WriteCommand,IO_MB);
-		ReadHandler[0].Install(0x330,&MPU401_ReadData,IO_MB);
-		ReadHandler[1].Install(0x331,&MPU401_ReadStatus,IO_MB);
-/*
-		IO_RegisterWriteHandler(0x280,&IMF_Write,IO_MB);
-		IO_RegisterWriteHandler(0x281,&IMF_Write,IO_MB);
-		IO_RegisterReadHandler(0x280,&IMF_Read,IO_MB);
-		IO_RegisterReadHandler(0x281,&IMF_Read,IO_MB);
-*/
-/*
-		IO_RegisterWriteHandler(0x200,&IMF_Write,IO_MB);
-		IO_RegisterWriteHandler(0x201,&IMF_Write,IO_MB);
-		IO_RegisterWriteHandler(0x202,&IMF_Write,IO_MB);
-		IO_RegisterWriteHandler(0x203,&IMF_Write,IO_MB);
-		IO_RegisterWriteHandler(0x204,&IMF_Write,IO_MB);
 
-		IO_RegisterReadHandler(0x200,&IMF_Read,IO_MB);
-		IO_RegisterReadHandler(0x201,&IMF_Read,IO_MB);
-		IO_RegisterReadHandler(0x202,&IMF_Read,IO_MB);
-		IO_RegisterReadHandler(0x203,&IMF_Read,IO_MB);
-		IO_RegisterReadHandler(0x204,&IMF_Read,IO_MB);
-*/
-		IO_RegisterWriteHandler(0x2A20,&IMF_Write,IO_MB);
-		IO_RegisterWriteHandler(0x2A21,&IMF_Write,IO_MB);
-		IO_RegisterWriteHandler(0x2A22,&IMF_Write,IO_MB);
-		IO_RegisterWriteHandler(0x2A23,&IMF_Write,IO_MB);
-		IO_RegisterWriteHandler(0x2A24,&IMF_Write,IO_MB);
-		IO_RegisterWriteHandler(0x2A25,&IMF_Write,IO_MB);
-		IO_RegisterWriteHandler(0x2A26,&IMF_Write,IO_MB);
-		IO_RegisterWriteHandler(0x2A27,&IMF_Write,IO_MB);
-		IO_RegisterWriteHandler(0x2A28,&IMF_Write,IO_MB);
-		IO_RegisterWriteHandler(0x2A29,&IMF_Write,IO_MB);
-		IO_RegisterWriteHandler(0x2A2A,&IMF_Write,IO_MB);
-		IO_RegisterWriteHandler(0x2A2B,&IMF_Write,IO_MB);
-		IO_RegisterWriteHandler(0x2A2C,&IMF_Write,IO_MB);
-		IO_RegisterWriteHandler(0x2A2D,&IMF_Write,IO_MB);
-		IO_RegisterWriteHandler(0x2A2E,&IMF_Write,IO_MB);
-		IO_RegisterWriteHandler(0x2A2F,&IMF_Write,IO_MB);
+        if (IS_PC98_ARCH) {
+            // NTS: This is based on MMD.COM I/O probing behavior
+            WriteHandler[0].Install(0xE0D0,&MPU401_WriteData,IO_MB);
+            WriteHandler[1].Install(0xE0D2,&MPU401_WriteCommand,IO_MB);
+            ReadHandler[0].Install(0xE0D0,&MPU401_ReadData,IO_MB);
+            ReadHandler[1].Install(0xE0D2,&MPU401_ReadStatus,IO_MB);
+        }
+        else {
+            WriteHandler[0].Install(0x330,&MPU401_WriteData,IO_MB);
+            WriteHandler[1].Install(0x331,&MPU401_WriteCommand,IO_MB);
+            ReadHandler[0].Install(0x330,&MPU401_ReadData,IO_MB);
+            ReadHandler[1].Install(0x331,&MPU401_ReadStatus,IO_MB);
+            /*
+               IO_RegisterWriteHandler(0x280,&IMF_Write,IO_MB);
+               IO_RegisterWriteHandler(0x281,&IMF_Write,IO_MB);
+               IO_RegisterReadHandler(0x280,&IMF_Read,IO_MB);
+               IO_RegisterReadHandler(0x281,&IMF_Read,IO_MB);
+               */
+            /*
+               IO_RegisterWriteHandler(0x200,&IMF_Write,IO_MB);
+               IO_RegisterWriteHandler(0x201,&IMF_Write,IO_MB);
+               IO_RegisterWriteHandler(0x202,&IMF_Write,IO_MB);
+               IO_RegisterWriteHandler(0x203,&IMF_Write,IO_MB);
+               IO_RegisterWriteHandler(0x204,&IMF_Write,IO_MB);
+
+               IO_RegisterReadHandler(0x200,&IMF_Read,IO_MB);
+               IO_RegisterReadHandler(0x201,&IMF_Read,IO_MB);
+               IO_RegisterReadHandler(0x202,&IMF_Read,IO_MB);
+               IO_RegisterReadHandler(0x203,&IMF_Read,IO_MB);
+               IO_RegisterReadHandler(0x204,&IMF_Read,IO_MB);
+               */
+            IO_RegisterWriteHandler(0x2A20,&IMF_Write,IO_MB);
+            IO_RegisterWriteHandler(0x2A21,&IMF_Write,IO_MB);
+            IO_RegisterWriteHandler(0x2A22,&IMF_Write,IO_MB);
+            IO_RegisterWriteHandler(0x2A23,&IMF_Write,IO_MB);
+            IO_RegisterWriteHandler(0x2A24,&IMF_Write,IO_MB);
+            IO_RegisterWriteHandler(0x2A25,&IMF_Write,IO_MB);
+            IO_RegisterWriteHandler(0x2A26,&IMF_Write,IO_MB);
+            IO_RegisterWriteHandler(0x2A27,&IMF_Write,IO_MB);
+            IO_RegisterWriteHandler(0x2A28,&IMF_Write,IO_MB);
+            IO_RegisterWriteHandler(0x2A29,&IMF_Write,IO_MB);
+            IO_RegisterWriteHandler(0x2A2A,&IMF_Write,IO_MB);
+            IO_RegisterWriteHandler(0x2A2B,&IMF_Write,IO_MB);
+            IO_RegisterWriteHandler(0x2A2C,&IMF_Write,IO_MB);
+            IO_RegisterWriteHandler(0x2A2D,&IMF_Write,IO_MB);
+            IO_RegisterWriteHandler(0x2A2E,&IMF_Write,IO_MB);
+            IO_RegisterWriteHandler(0x2A2F,&IMF_Write,IO_MB);
+        }
 
 		mpu.queue_used=0;
 		mpu.queue_pos=0;
 		mpu.mode=M_UART;
-		mpu.irq=9;	/* Princess Maker 2 wants it on irq 9 */
+
+        if (IS_PC98_ARCH)
+            mpu.irq=5;
+        else
+    		mpu.irq=9;	/* Princess Maker 2 wants it on irq 9 */
 
 		mpu.intelligent = true;	//Default is on
 		if(strcasecmp(s_mpu,"uart") == 0) mpu.intelligent = false;
@@ -701,6 +716,15 @@ void MPU401_Destroy(Section* sec){
 	}
 }
 
+void MPU401_EnterPC98(Section* sec){
+    /* NTS: PC-98 systems do have add-in cards for MIDI, but not in the same
+     *      way that IBM PC/XT/AT systems present it to the software. */
+	if (test != NULL) {
+		delete test;
+		test = NULL;
+	}
+}
+
 void MPU401_Reset(Section* sec) {
 	if (test == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating MPU401 emulation");
@@ -713,5 +737,8 @@ void MPU401_Init() {
 
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(MPU401_Reset));
 	AddExitFunction(AddExitFunctionFuncPair(MPU401_Destroy),true);
+
+    AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(MPU401_EnterPC98));
+    AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE_END,AddVMEventFunctionFuncPair(MPU401_Reset));
 }
 

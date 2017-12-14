@@ -50,8 +50,6 @@
 
 #include "ne2000.h"
 
-#define HAVE_REMOTE
-
 #include "pcap.h"
 // Handle to WinPCap device
 pcap_t *adhandle = 0;
@@ -1660,10 +1658,20 @@ public:
 	}	
 };
 
-static NE2K* test;
+static NE2K* test = NULL;
+
 void NE2K_ShutDown(Section* sec) {
-	if(test) delete test;	
-	test=0;
+	if (test) {
+        delete test;	
+        test = NULL;
+    }
+}
+
+void NE2k_OnEnterPC98(Section* sec) {
+	if (test) {
+        delete test;	
+        test = NULL;
+    }
 }
 
 void NE2K_OnReset(Section* sec) {
@@ -1684,6 +1692,7 @@ void NE2K_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(NE2K_ShutDown),true);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(NE2K_OnReset));
+    AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(NE2k_OnEnterPC98));
 }
 
 #endif // C_NE2000

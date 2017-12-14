@@ -63,6 +63,7 @@ static Bit8u const irqtable[8] = { 0/*invalid*/, 2, 5, 3, 7, 11, 12, 15 };
 static Bit8u const dmatable[8] = { 0/*NO DMA*/, 1, 3, 5, 6, 7, 0/*invalid*/, 0/*invalid*/ };
 static Bit8u GUSRam[1024*1024 + 16/*safety margin*/]; // 1024K of GUS Ram
 static Bit32s AutoAmp = 512;
+static bool enable_autoamp = false;
 static Bit16u vol16bit[4096];
 static Bit32u pantable[16];
 static enum GUSType gus_type = GUS_CLASSIC;
@@ -1830,17 +1831,47 @@ static void GUS_CallBack(Bitu len) {
 			guschan[i]->generateSamples(buf32,len);
 	}
 
-	for(i=0;i<len*2;i++) {
-		Bit32s sample=((buf32[i] >> 13)*AutoAmp)>>9;
-		if (sample>32767) {
-			sample=32767;                       
-			AutoAmp--;
-		} else if (sample<-32768) {
-			sample=-32768;
-			AutoAmp--;
-		}
-		buf16[i] = (Bit16s)(sample);
-	}
+    // FIXME: I wonder if the GF1 chip DAC had more than 16 bits precision
+    //        to render louder than 100% volume without clipping, and if so,
+    //        how many extra bits?
+    //
+    //        If not, then perhaps clipping and saturation were not a problem
+    //        unless the volume was set to maximum?
+    //
+    //        Time to pull out the GUS MAX and test this theory: what happens
+    //        if you play samples that would saturate at maximum volume at 16-bit
+    //        precision? Does it audibly clip or is there some headroom like some
+    //        sort of 17-bit DAC?
+    //
+    //        One way to test is to play a sample on one channel while another
+    //        channel is set to play a single sample at maximum volume (to see
+    //        if it makes the audio grungy like a waveform railed to one side).
+    //
+    //        Past experience with GUS cards says that at full volume their line
+    //        out jacks can be quite loud when connected to a speaker.
+    //
+    //        While improving this code, a better audio compression function
+    //        could be implemented that does proper envelope tracking and volume
+    //        control for better results than this.
+    //
+    //        --J.C.
+
+    for(i=0;i<len*2;i++) {
+        Bit32s sample=((buf32[i] >> 13)*AutoAmp)>>9;
+        if (sample>32767) {
+            sample=32767;
+            if (enable_autoamp) AutoAmp -= 4; /* dampen faster than recovery */
+        } else if (sample<-32768) {
+            sample=-32768;
+            if (enable_autoamp) AutoAmp -= 4; /* dampen faster than recovery */
+        }
+        else if (AutoAmp < 512) {
+            AutoAmp++; /* recovery back to 100% normal volume */
+        }
+
+        buf16[i] = (Bit16s)(sample);
+    }
+
 	gus_chan->AddSamples_s16(len,buf16);
 	CheckVoiceIrq();
 }
@@ -1928,6 +1959,8 @@ public:
         gus_enable = true;
         memset(&myGUS,0,sizeof(myGUS));
         memset(GUSRam,0,1024*1024);
+
+        enable_autoamp = section->Get_bool("autoamp");
 
 		string s_pantable = section->Get_string("gus panning table");
 		if (s_pantable == "default" || s_pantable == "" || s_pantable == "accurate")
@@ -2190,6 +2223,16 @@ void GUS_DOS_Boot(Section *sec) {
     if (test != NULL) test->DOS_Startup();
 }
 
+void GUS_OnEnterPC98(Section *sec) {
+    /* PC-98 does not have Gravis Ultrasound.
+     * Upon entry, remove all I/O ports and shutdown emulation */
+    GUS_DOS_Shutdown();
+	if (test != NULL) {
+		delete test;	
+		test = NULL;
+	}
+}
+
 void GUS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing Gravis Ultrasound emulation");
 
@@ -2199,5 +2242,7 @@ void GUS_Init() {
 	AddVMEventFunction(VM_EVENT_DOS_SURPRISE_REBOOT,AddVMEventFunctionFuncPair(GUS_DOS_Exit));
 	AddVMEventFunction(VM_EVENT_DOS_EXIT_REBOOT_BEGIN,AddVMEventFunctionFuncPair(GUS_DOS_Exit));
     AddVMEventFunction(VM_EVENT_DOS_INIT_SHELL_READY,AddVMEventFunctionFuncPair(GUS_DOS_Boot));
+
+    AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(GUS_OnEnterPC98));
 }
 

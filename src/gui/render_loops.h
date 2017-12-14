@@ -18,8 +18,10 @@
 
 #if defined (SCALERLINEAR)
 static void conc3d(SCALERNAME,SBPP,L)(void) {
+    (void)conc3d(SCALERNAME,SBPP,L);
 #else
 static void conc3d(SCALERNAME,SBPP,R)(void) {
+    (void)conc3d(SCALERNAME,SBPP,R);
 #endif
 //Skip the first one for multiline input scalers
 	if (!render.scale.outLine) {

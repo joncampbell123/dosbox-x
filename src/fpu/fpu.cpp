@@ -27,6 +27,7 @@
 #include "mem.h"
 #include "fpu.h"
 #include "cpu.h"
+#include "../cpu/lazyflags.h"
 
 FPU_rec fpu;
 
@@ -322,6 +323,18 @@ void FPU_ESC2_Normal(Bitu rm) {
 	Bitu group=(rm >> 3) & 7;
 	Bitu sub=(rm & 7);
 	switch(group){
+	case 0x00: /* FCMOVB STi */
+		if (TFLG_B) FPU_FCMOV(TOP,STV(sub));
+		break;
+	case 0x01: /* FCMOVE STi */
+		if (TFLG_Z) FPU_FCMOV(TOP,STV(sub));
+		break;
+	case 0x02: /* FCMOVBE STi */
+		if (TFLG_BE) FPU_FCMOV(TOP,STV(sub));
+		break;
+	case 0x03: /* FCMOVU STi */
+		if (TFLG_P) FPU_FCMOV(TOP,STV(sub));
+		break;
 	case 0x05:
 		switch(sub){
 		case 0x01:		/* FUCOMPP */
@@ -397,6 +410,18 @@ void FPU_ESC3_Normal(Bitu rm) {
 	Bitu group=(rm >> 3) & 7;
 	Bitu sub=(rm & 7);
 	switch (group) {
+	case 0x00: /* FCMOVNB STi */
+		if (TFLG_NB) FPU_FCMOV(TOP,STV(sub));
+		break;
+	case 0x01: /* FCMOVNE STi */
+		if (TFLG_NZ) FPU_FCMOV(TOP,STV(sub));
+		break;
+	case 0x02: /* FCMOVNBE STi */
+		if (TFLG_NBE) FPU_FCMOV(TOP,STV(sub));
+		break;
+	case 0x03: /* FCMOVNU STi */
+		if (TFLG_NP) FPU_FCMOV(TOP,STV(sub));
+		break;
 	case 0x04:
 		switch (sub) {
 		case 0x00:				//FNENI
@@ -417,6 +442,12 @@ void FPU_ESC3_Normal(Bitu rm) {
 		default:
 			E_Exit("ESC 3:ILLEGAL OPCODE group %d subfunction %d",(int)group,(int)sub);
 		}
+		break;
+	case 0x05:		/* FUCOMI STi */
+		FPU_FUCOMI(TOP,STV(sub));
+		break;
+	case 0x06:		/* FCOMI STi */
+		FPU_FCOMI(TOP,STV(sub));
 		break;
 	default:
 		LOG(LOG_FPU,LOG_WARN)("ESC 3:Unhandled group %d subfunction %d",(int)group,(int)sub);
@@ -685,6 +716,14 @@ void FPU_ESC7_Normal(Bitu rm) {
 				LOG(LOG_FPU,LOG_WARN)("ESC 7:Unhandled group %d subfunction %d",(int)group,(int)sub);
 				break;
 		}
+		break;
+	case 0x05:		/* FUCOMIP STi */
+		FPU_FUCOMI(TOP,STV(sub));
+		FPU_FPOP();
+		break;
+	case 0x06:		/* FCOMIP STi */
+		FPU_FCOMI(TOP,STV(sub));
+		FPU_FPOP();
 		break;
 	default:
 		LOG(LOG_FPU,LOG_WARN)("ESC 7:Unhandled group %d subfunction %d",(int)group,(int)sub);

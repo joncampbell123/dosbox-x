@@ -162,6 +162,11 @@ bool MouseTypeNone() {
 
 /* NTS: INT33H emulation is coded to call this ONLY if it hasn't taken over the role of mouse input */
 void KEYBOARD_AUX_Event(float x,float y,Bitu buttons,int scrollwheel) {
+    if (IS_PC98_ARCH) {
+        LOG_MSG("WARNING: KEYBOARD_AUX_Event called in PC-98 emulation mode. This is a bug.");
+        return;
+    }
+
 	keyb.ps2mouse.acx += x;
 	keyb.ps2mouse.acy += y;
 	keyb.ps2mouse.l = (buttons & 1)>0;
@@ -657,7 +662,7 @@ static Bitu read_p61(Bitu, Bitu) {
 static void write_p61(Bitu, Bitu val, Bitu) {
 	Bit8u diff = port_61_data ^ (Bit8u)val;
 	if (diff & 0x1) TIMER_SetGate2(val & 0x1);
-	if (diff & 0x3) {
+	if ((diff & 0x3) && !IS_PC98_ARCH) {
 		bool pit_clock_gate_enabled = val & 0x1;
 		bool pit_output_enabled = !!(val & 0x2);
 		PCSPEAKER_SetType(pit_clock_gate_enabled, pit_output_enabled);
@@ -1177,6 +1182,168 @@ void KEYBOARD_AddKey2(KBD_KEYS keytype,bool pressed) {
 	}
 }
 
+bool pc98_caps(void);
+void pc98_caps_toggle(void);
+void pc98_numlock_toggle(void);
+void pc98_keyboard_send(const unsigned char b);
+
+/* this version sends to the PC-98 8251 emulation NOT the AT 8042 emulation */
+void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
+	Bit8u ret=0;
+
+    switch (keytype) {                          // NAME or
+                                                // NM SH KA KA+SH       NM=no-mod SH=shift KA=kana KA+SH=kana+shift
+    case KBD_esc:           ret=0x00;break;     // ESC
+    case KBD_1:             ret=0x01;break;     // 1  !  ヌ
+    case KBD_2:             ret=0x02;break;     // 2  "  フ
+    case KBD_3:             ret=0x03;break;     // 3  #  ア ァ
+    case KBD_4:             ret=0x04;break;     // 4  $  ウ ゥ
+    case KBD_5:             ret=0x05;break;     // 5  %  エ ェ
+    case KBD_6:             ret=0x06;break;     // 6  &  オ ォ
+    case KBD_7:             ret=0x07;break;     // 7  '  ヤ ャ
+    case KBD_8:             ret=0x08;break;     // 8  (  ユ ュ
+    case KBD_9:             ret=0x09;break;     // 9  )  ヨ ョ
+    case KBD_0:             ret=0x0A;break;     // 0     ワ ヲ
+    case KBD_minus:         ret=0x0B;break;     // -  =  ホ
+    case KBD_equals:        ret=0x0C;break;     // ^  `  ヘ
+    case KBD_backslash:     ret=0x0D;break;     // ¥  |  ｰ
+    case KBD_jp_yen:        ret=0x0D;break;     // ¥  |  ｰ
+    case KBD_backspace:     ret=0x0E;break;     // BS (BACKSPACE)
+    case KBD_tab:           ret=0x0F;break;     // TAB
+    case KBD_q:             ret=0x10;break;     // q  Q  タ
+    case KBD_w:             ret=0x11;break;     // w  W  テ
+    case KBD_e:             ret=0x12;break;     // e  E  イ ィ
+    case KBD_r:             ret=0x13;break;     // r  R  ス
+    case KBD_t:             ret=0x14;break;     // t  T  カ
+    case KBD_y:             ret=0x15;break;     // y  Y  ン
+    case KBD_u:             ret=0x16;break;     // u  U  ナ
+    case KBD_i:             ret=0x17;break;     // i  I  ニ
+    case KBD_o:             ret=0x18;break;     // o  O  ラ
+    case KBD_p:             ret=0x19;break;     // p  P  セ
+/*  case KBD_???????:       ret=0x1A;break; */  // @  ~  ﾞ
+    case KBD_leftbracket:   ret=0x1B;break;     // [  {  ﾟ  ｢
+    case KBD_enter:         ret=0x1C;break;     // ENTER/RETURN
+    case KBD_kpenter:       ret=0x1C;break;     // ENTER/RETURN (KEYPAD)
+    case KBD_a:             ret=0x1D;break;     // a  A  チ
+    case KBD_s:             ret=0x1E;break;     // s  S  ト
+    case KBD_d:             ret=0x1F;break;     // d  D  シ
+    case KBD_f:             ret=0x20;break;     // f  F  ハ
+    case KBD_g:             ret=0x21;break;     // g  G  キ
+    case KBD_h:             ret=0x22;break;     // h  H  ク
+    case KBD_j:             ret=0x23;break;     // j  J  マ
+    case KBD_k:             ret=0x24;break;     // k  K  ノ
+    case KBD_l:             ret=0x25;break;     // l  L  リ
+    case KBD_semicolon:     ret=0x26;break;     // ;  +  レ
+/*  case KBD_???????:       ret=0x27;break; */  // :  *  ケ
+    case KBD_rightbracket:  ret=0x28;break;     // ]  }  ム ｣
+    case KBD_z:             ret=0x29;break;     // z  Z  ツ ッ
+    case KBD_x:             ret=0x2A;break;     // x  X  サ
+    case KBD_c:             ret=0x2B;break;     // c  C  ソ
+    case KBD_v:             ret=0x2C;break;     // v  V  ヒ
+    case KBD_b:             ret=0x2D;break;     // b  B  コ
+    case KBD_n:             ret=0x2E;break;     // n  N  ミ
+    case KBD_m:             ret=0x2F;break;     // m  M  モ
+    case KBD_comma:         ret=0x30;break;     // ,  <  ネ ､
+    case KBD_period:        ret=0x31;break;     // .  >  ル ｡
+    case KBD_slash:         ret=0x32;break;     // /  ?  メ ･
+/*  case KBD_???????:       ret=0x33;break; */  //    _  ロ
+    case KBD_space:         ret=0x34;break;     // SPACEBAR
+/*  case KBD_???????:       ret=0x35;break; */  // XFER
+    case KBD_pageup:        ret=0x36;break;     // ROLL UP
+    case KBD_pagedown:      ret=0x37;break;     // ROLL DOWN
+    case KBD_insert:        ret=0x38;break;     // INS
+    case KBD_delete:        ret=0x39;break;     // DEL
+    case KBD_up:            ret=0x3A;break;     // UP ARROW
+    case KBD_left:          ret=0x3B;break;     // LEFT ARROW
+    case KBD_right:         ret=0x3C;break;     // RIGHT ARROW
+    case KBD_down:          ret=0x3D;break;     // DOWN ARROW
+    case KBD_home:          ret=0x3E;break;     // HOME / CLR
+/*  case KBD_???????:       ret=0x3F;break; */  // HELP
+    case KBD_kpminus:       ret=0x40;break;     // - (KEYPAD)
+    case KBD_kpdivide:      ret=0x41;break;     // / (KEYPAD)
+    case KBD_kp7:           ret=0x42;break;     // 7 (KEYPAD)
+    case KBD_kp8:           ret=0x43;break;     // 8 (KEYPAD)
+    case KBD_kp9:           ret=0x44;break;     // 9 (KEYPAD)
+    case KBD_kpmultiply:    ret=0x45;break;     // * (KEYPAD)
+    case KBD_kp4:           ret=0x46;break;     // 4 (KEYPAD)
+    case KBD_kp5:           ret=0x47;break;     // 5 (KEYPAD)
+    case KBD_kp6:           ret=0x48;break;     // 6 (KEYPAD)
+    case KBD_kpplus:        ret=0x49;break;     // + (KEYPAD)
+    case KBD_kp1:           ret=0x4A;break;     // 1 (KEYPAD)
+    case KBD_kp2:           ret=0x4B;break;     // 2 (KEYPAD)
+    case KBD_kp3:           ret=0x4C;break;     // 3 (KEYPAD)
+    case KBD_kpequals:      ret=0x4D;break;     // = (KEYPAD)
+    case KBD_kp0:           ret=0x4E;break;     // 0 (KEYPAD)
+/*  case KBD_???????:       ret=0x4F;break; */  // , (KEYPAD)
+    case KBD_kpperiod:      ret=0x50;break;     // . (KEYPAD)
+/*  case KBD_???????:       ret=0x51;break; */  // NFER
+/*  case KBD_???????:       ret=0x52;break; */  // vf･1
+/*  case KBD_???????:       ret=0x53;break; */  // vf･2
+/*  case KBD_???????:       ret=0x54;break; */  // vf･3
+/*  case KBD_???????:       ret=0x55;break; */  // vf･4
+/*  case KBD_???????:       ret=0x56;break; */  // vf･5
+/*  case KBD_???????:       ret=0x60;break; */  // STOP
+/*  case KBD_???????:       ret=0x61;break; */  // COPY
+    case KBD_f1:            ret=0x62;break;     // f･1
+    case KBD_f2:            ret=0x63;break;     // f･2
+    case KBD_f3:            ret=0x64;break;     // f･3
+    case KBD_f4:            ret=0x65;break;     // f･4
+    case KBD_f5:            ret=0x66;break;     // f･5
+    case KBD_f6:            ret=0x67;break;     // f･6
+    case KBD_f7:            ret=0x68;break;     // f･7
+    case KBD_f8:            ret=0x69;break;     // f･8
+    case KBD_f9:            ret=0x6A;break;     // f･9
+    case KBD_f10:           ret=0x6B;break;     // f･10
+    case KBD_leftshift:     ret=0x70;break;     // SHIFT
+    case KBD_rightshift:    ret=0x70;break;     // SHIFT
+    case KBD_leftalt:       ret=0x73;break;     // GRPH (handled by Windows as if ALT key)
+    case KBD_rightalt:      ret=0x73;break;     // GRPH (handled by Windows as if ALT key)
+    case KBD_leftctrl:      ret=0x74;break;     // CTRL
+    case KBD_rightctrl:     ret=0x74;break;     // CTRL
+
+    case KBD_capslock:                          // CAPS
+        if (pressed) {                          // sends only on keypress, does not resend if held down
+            pc98_caps_toggle();
+            pc98_keyboard_send(0x71 | (!pc98_caps() ? 0x80 : 0x00)); // make code if caps switched on, break if caps switched off
+        }
+        return;
+
+    case KBD_numlock:                           // NUM
+        pc98_numlock_toggle();
+        return;
+
+/*  case KBD_???????:                           // KANA
+ *      if (pressed) {                          // sends only on keypress, does not resend if held down
+ *                                              // TODO: Scan code 0x72, make if switched on, break if switched off
+ *      }
+ *      return;
+ */
+
+    default: return;
+    };
+
+    /* PC-98 keyboards appear to repeat make/break codes when the key is held down */
+    if (pressed && keyb.repeat.key == keytype)
+        pc98_keyboard_send(ret | 0x80);
+
+	/* Add the actual key in the keyboard queue */
+	if (pressed) {
+		if (keyb.repeat.key == keytype) keyb.repeat.wait = keyb.repeat.rate;		
+		else keyb.repeat.wait = keyb.repeat.pause;
+		keyb.repeat.key = keytype;
+	} else {
+		if (keyb.repeat.key == keytype) {
+			/* repeated key being released */
+			keyb.repeat.key  = KBD_NONE;
+			keyb.repeat.wait = 0;
+		}
+	}
+
+    if (!pressed) ret |= 0x80;
+
+    pc98_keyboard_send(ret | (!pressed ? 0x80 : 0x00));
+}
+
 void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
 	Bit8u ret=0,ret2=0;bool extend=false;
 
@@ -1427,7 +1594,10 @@ static void KEYBOARD_TickHandler(void) {
 }
 
 void KEYBOARD_AddKey(KBD_KEYS keytype,bool pressed) {
-	if (keyb.cb_xlat) {
+    if (IS_PC98_ARCH) {
+        KEYBOARD_PC98_AddKey(keytype,pressed);
+    }
+    else if (keyb.cb_xlat) {
 		/* emulate typical setup where keyboard generates scan set 2 and controller translates to scan set 1 */
 		/* yeah I know... yuck */
 		KEYBOARD_AddKey1(keytype,pressed);
@@ -1447,6 +1617,538 @@ static void KEYBOARD_ShutDown(Section * sec) {
 
 bool KEYBOARD_Report_BIOS_PS2Mouse() {
 	return keyb.enable_aux && (keyb.ps2mouse.type != MOUSE_NONE);
+}
+
+static IO_ReadHandleObject ReadHandler_8255_PC98[4];
+static IO_WriteHandleObject WriteHandler_8255_PC98[4];
+
+/* PC-98 8255 port A. B, C connections.
+ *
+ * Port A: (31h)
+ *   bit [7:0] DIP switch 2-8 (bit 7) to 2-1 (bit 0)
+ *
+ * Port B: (33h)
+ *   bit 7: RS-232C CI signal
+ *   bit 6: RS-232C CS signal
+ *   bit 5: RS-232C CD signal
+ *   bit 4: Expansion bus INT 3 signal
+ *   bit 3: CRT type (1=high 0=normal) DIP switch 1-1
+ *   bit 2: internal memory parity error
+ *   bit 1: external memory (expansion) parity error
+ *   bit 0: CDAT (??)
+ *
+ * Port C: (35h)
+ *   (varies)
+ *   bit 3: buzzer (PC speaker gate) (1=stop 0=ring) [R/W]
+ *   bit 2: Interrupt request from TXRDY of 8251A (RS-232C)
+ *   bit 1: Interrupt request from TXEMPTY of 8251A
+ *   bit 0: Interrupt request from RXRE of 8251
+ *
+ * Control register (37h)
+ */
+
+static void pc98_8255_write(Bitu port,Bitu val,Bitu /*iolen*/) {
+    switch (port) {
+        case 0x31:
+            LOG_MSG("PC-98 8255 FIXME: DIP switch port A not supported yet");
+            break;
+        case 0x33:
+            LOG_MSG("PC-98 8255 FIXME: Port B not supported yet");
+            break;
+        case 0x35:
+            /* HACK: Re-use IBM speaker gate variable for PC speaker in PC-98 enable.
+             *       Remember PC-98 buzzer gate is a DISABLE, not IBM style ENABLE.
+             *
+             *       I have verified on real hardware that this also gates whether or
+             *       not the timer output even counts down. */
+            port_61_data = (val & 0x08) ? 0 : 3;
+            TIMER_SetGate2(!!port_61_data);
+            PCSPEAKER_SetType(!!port_61_data,!!port_61_data);
+            break;
+        case 0x37:
+            LOG_MSG("PC-98 8255 FIXME: Control register not supported yet (val=0x%02x)",(unsigned int)val);
+            break;
+    };
+}
+
+extern bool gdc_5mhz_mode;
+
+static Bitu pc98_8255_read(Bitu port,Bitu /*iolen*/) {
+    switch (port) {
+        case 0x31:
+            LOG_MSG("PC-98 8255 FIXME: DIP switch port A not supported yet");
+            // bit 7 apparently reflects whether the GDC is running at 5MHz or not
+            return 0x63 | (gdc_5mhz_mode ? 0x80 : 0x00); // taken from a PC-9821 Lt2
+        case 0x33:
+            LOG_MSG("PC-98 8255 FIXME: Port B not supported yet");
+            return 0xF9; // taken from a PC-9821 Lt2
+        case 0x35:
+            /* HACK: Re-use the IBM port 61h gate enable here for buzzer inhibit.
+             *       Remember that on the IBM platform the PC gate is an ENABLE (1=on)
+             *       and PC-98 the gate is a DISABLE (1=off) */
+            return
+                ((port_61_data & 1) ? 0x00 : 0x08) | 0xB0; // taken from a PC-9821 Lt2
+    };
+
+    LOG_MSG("PC-98 8255 unexpected read port 0x%02X",(unsigned int)port);
+    return 0x00; /* NTS: Playing with real PC-98 hardware shows that undefined ports return 0x00 where IBM returns 0xFF */
+}
+
+static struct pc98_keyboard {
+    pc98_keyboard() : caps(false), kana(false), num(false) {
+    }
+
+    bool                        caps;
+    bool                        kana;
+    bool                        num;
+} pc98_keyboard_state;
+
+bool pc98_caps(void) {
+    return pc98_keyboard_state.caps;
+}
+
+void pc98_caps_toggle(void) {
+    pc98_keyboard_state.caps = !pc98_keyboard_state.caps;
+}
+
+void pc98_numlock_toggle(void) {
+    pc98_keyboard_state.num = !pc98_keyboard_state.num;
+}
+
+void uart_rx_load(Bitu val);
+void uart_tx_load(Bitu val);
+void pc98_keyboard_recv_byte(Bitu val);
+
+static struct pc98_8251_keyboard_uart {
+    enum cmdreg_state {
+        MODE_STATE=0,
+        SYNC_CHAR1,
+        SYNC_CHAR2,
+        COMMAND_STATE
+    };
+
+    unsigned char               data;
+    unsigned char               txdata;
+    enum cmdreg_state           state;
+    unsigned char               mode_byte;
+    bool                        keyboard_reset;
+    bool                        rx_enable;
+    bool                        tx_enable;
+    bool                        valid_state;
+
+    bool                        rx_busy;
+    bool                        rx_ready;
+    bool                        tx_busy;
+    bool                        tx_empty;
+
+    /* io_delay in milliseconds for use with PIC delay code */
+    double                      io_delay_ms;
+    double                      tx_load_ms;
+
+    /* recv data from keyboard */
+    unsigned char               recv_buffer[32];
+    unsigned char               recv_in,recv_out;
+
+    pc98_8251_keyboard_uart() : data(0xFF), txdata(0xFF), state(MODE_STATE), mode_byte(0), keyboard_reset(false), rx_enable(false), tx_enable(false), valid_state(false), rx_busy(false), rx_ready(false), tx_busy(false), tx_empty(true), recv_in(0), recv_out(0) {
+        io_delay_ms = (((1/*start*/+8/*data*/+1/*parity*/+1/*stop*/) * 1000.0) / 19200);
+        tx_load_ms = (((1/*start*/+8/*data*/) * 1000.0) / 19200);
+    }
+
+    void reset(void) {
+        PIC_RemoveEvents(uart_tx_load);
+        PIC_RemoveEvents(uart_rx_load);
+        PIC_RemoveEvents(pc98_keyboard_recv_byte);
+
+        state = MODE_STATE;
+        rx_busy = false;
+        rx_ready = false;
+        tx_empty = true;
+        tx_busy = false;
+        mode_byte = 0;
+        recv_out = 0;
+        recv_in = 0;
+    }
+
+    void device_send_data(unsigned char b) {
+        unsigned char nidx;
+
+        nidx = (recv_in + 1) % 32;
+        if (nidx == recv_out) {
+            LOG_MSG("8251 device send recv overrun");
+            return;
+        }
+
+        recv_buffer[recv_in] = b;
+        recv_in = nidx;
+
+        if (!rx_busy) {
+            rx_busy = true;
+            PIC_AddEvent(uart_rx_load,io_delay_ms,0);
+        }
+    }
+
+    unsigned char read_data(void) {
+        rx_ready = false;
+        return data;
+    }
+
+    void write_data(unsigned char b) {
+        if (!valid_state)
+            return;
+
+        if (!tx_busy) {
+            txdata = b;
+            tx_busy = true;
+
+            PIC_AddEvent(uart_tx_load,tx_load_ms,0);
+            PIC_AddEvent(pc98_keyboard_recv_byte,io_delay_ms,txdata);
+        }
+    }
+
+    void tx_load_complete(void) {
+        tx_busy = false;
+    }
+
+    void rx_load_complete(void) {
+        if (!rx_ready) {
+            rx_ready = true;
+            data = recv_buffer[recv_out];
+            recv_out = (recv_out + 1) % 32;
+
+//            LOG_MSG("8251 recv %02X",data);
+            PIC_ActivateIRQ(1);
+
+            if (recv_out != recv_in) {
+                PIC_AddEvent(uart_rx_load,io_delay_ms,0);
+                rx_busy = true;
+            }
+            else {
+                rx_busy = false;
+            }
+        }
+        else {
+            LOG_MSG("8251 warning: RX overrun");
+            rx_busy = false;
+        }
+    }
+
+    void xmit_finish(void) {
+        tx_empty = true;
+        tx_busy = false;
+    }
+
+    unsigned char read_status(void) {
+        unsigned char r = 0;
+
+        /* bit[7:7] = DSR (1=DSR at zero level)
+         * bit[6:6] = syndet/brkdet
+         * bit[5:5] = framing error
+         * bit[4:4] = overrun error
+         * bit[3:3] = parity error
+         * bit[2:2] = TxEMPTY
+         * bit[1:1] = RxRDY
+         * bit[0:0] = TxRDY */
+        r |= (!tx_busy ? 0x01 : 0x00) |
+             (rx_ready ? 0x02 : 0x00) |
+             (tx_empty ? 0x04 : 0x00);
+
+        return r;
+    }
+
+    void writecmd(const unsigned char b) { /* write to command register */
+        if (state == MODE_STATE) {
+            mode_byte = b;
+
+            if ((b&3) != 0) {
+                /* bit[7:6] = number of stop bits  (0=invalid 1=1-bit 2=1.5-bit 3=2-bit)
+                 * bit[5:5] = even/odd parity      (1=even 0=odd)
+                 * bit[4:4] = parity enable        (1=enable 0=disable)
+                 * bit[3:2] = character length     (0=5  1=6  2=7  3=8)
+                 * bit[1:0] = baud rate factor     (0=sync mode   1=1X   2=16X   3=64X)
+                 *
+                 * note that "baud rate factor" means how much to divide the baud rate clock to determine
+                 * the bit rate that bits are transmitted. Typical PC-98 programming practice is to set
+                 * the baud rate clock fed to the chip at 16X the baud rate and then specify 16X baud rate factor. */
+                /* async mode */
+                state = COMMAND_STATE;
+
+                /* keyboard must operate at 19200 baud 8 bits odd parity 16X baud rate factor */
+                valid_state = (b == 0x5E); /* bit[7:0] = 01 0 1 11 10 */
+                                           /*            |  | | |  |  */
+                                           /*            |  | | |  +---- 16X baud rate factor */
+                                           /*            |  | | +------- 8 bits per character */
+                                           /*            |  | +--------- parity enable */
+                                           /*            |  +----------- odd parity */
+                                           /*            +-------------- 1 stop bit */
+            }
+            else {
+                /* bit[7:7] = single character sync(1=single  0=double)
+                 * bit[6:6] = external sync detect (1=syndet is an input   0=syndet is an output)
+                 * bit[5:5] = even/odd parity      (1=even 0=odd)
+                 * bit[4:4] = parity enable        (1=enable 0=disable)
+                 * bit[3:2] = character length     (0=5  1=6  2=7  3=8)
+                 * bit[1:0] = baud rate factor     (0=sync mode)
+                 *
+                 * I don't think anything uses the keyboard in this manner, therefore, not supported in this emulation. */
+                LOG_MSG("8251 keyboard warning: Mode byte synchronous mode not supported");
+                state = SYNC_CHAR1;
+                valid_state = false;
+            }
+        }
+        else if (state == COMMAND_STATE) {
+            /* bit[7:7] = Enter hunt mode (not used here)
+             * bit[6:6] = internal reset (8251 resets, prepares to accept mode byte)
+             * bit[5:5] = RTS inhibit (1=force RTS to zero, else RTS reflects RxRDY state of the chip)
+             * bit[4:4] = error reset
+             * bit[3:3] = send break character (0=normal  1=force TxD low). On PC-98 keyboard this is wired to reset pin of the keyboard CPU.
+             * bit[2:2] = receive enable
+             * bit[1:1] = DTR inhibit (1=force DTR to zero). Connected to PC-98 RTY pin.
+             * bit[0:0] = transmit enable */
+            if (b & 0x40) {
+                /* internal reset, returns 8251 to mode state */
+                state = MODE_STATE;
+            }
+
+            /* TODO: Does the 8251 take any other bits if bit 6 was set to reset the 8251? */
+            keyboard_reset = !!(b & 0x08);
+            rx_enable = !!(b & 0x04);
+            tx_enable = !!(b & 0x01);
+        }
+    }
+} pc98_8251_keyboard_uart_state;
+
+void uart_tx_load(Bitu val) {
+    pc98_8251_keyboard_uart_state.tx_load_complete();
+}
+
+void uart_rx_load(Bitu val) {
+    pc98_8251_keyboard_uart_state.rx_load_complete();
+}
+
+void pc98_keyboard_send(const unsigned char b) {
+    pc98_8251_keyboard_uart_state.device_send_data(b);
+}
+
+void pc98_keyboard_recv_byte(Bitu val) {
+    pc98_8251_keyboard_uart_state.xmit_finish();
+    LOG_MSG("PC-98 recv 0x%02x",(unsigned int)val);
+}
+
+static Bitu keyboard_pc98_8251_uart_41_read(Bitu port,Bitu /*iolen*/) {
+    return pc98_8251_keyboard_uart_state.read_data();
+}
+
+static void keyboard_pc98_8251_uart_41_write(Bitu port,Bitu val,Bitu /*iolen*/) {
+    pc98_8251_keyboard_uart_state.write_data((unsigned char)val);
+}
+
+static Bitu keyboard_pc98_8251_uart_43_read(Bitu port,Bitu /*iolen*/) {
+    return pc98_8251_keyboard_uart_state.read_status();
+}
+
+static void keyboard_pc98_8251_uart_43_write(Bitu port,Bitu val,Bitu /*iolen*/) {
+    pc98_8251_keyboard_uart_state.writecmd((unsigned char)val);
+}
+
+int8_t p7fd9_8255_mouse_x = 0;
+int8_t p7fd9_8255_mouse_y = 0;
+int8_t p7fd9_8255_mouse_x_latch = 0;
+int8_t p7fd9_8255_mouse_y_latch = 0;
+uint8_t p7fd9_8255_mouse_sel = 0;
+uint8_t p7fd9_8255_mouse_latch = 0;
+uint8_t p7fd8_8255_mouse_int_enable = 0;
+
+void pc98_mouse_movement_apply(int x,int y) {
+    x += p7fd9_8255_mouse_x; if (x < -128) x = -128; if (x > 127) x = 127;
+    y += p7fd9_8255_mouse_y; if (y < -128) y = -128; if (y > 127) y = 127;
+    p7fd9_8255_mouse_x = (int8_t)x;
+    p7fd9_8255_mouse_y = (int8_t)y;
+}
+
+void MOUSE_DummyEvent(void);
+
+//// STUB: PC-98 MOUSE
+static void write_p7fd9_mouse(Bitu port,Bitu val,Bitu /*iolen*/) {
+    switch (port&6) {
+        case 4:// 0x7FDD Port C
+            // bits [7:7]: 1=latch  0=don't latch
+            //             change from 0 to 1 latches counters, clears original counters
+            //             if left at 0, you can read the counters in real time
+            // bits [6:5]: X/Y upper/lower nibble select
+            //             11b = upper 4 bits, Y
+            //             10b = lower 4 bits, Y
+            //             01b = upper 4 bits, X
+            //             00b = lower 4 bits, X
+            // bits [4:4]: 1=disable interrupt 0=enable interrupt
+            // bits [3:0]: ignored (read bits)
+            if ((val & 0x80) && !p7fd9_8255_mouse_latch) { // change from 0 to 1 latches counters and clears them
+                p7fd9_8255_mouse_x_latch = p7fd9_8255_mouse_x;
+                p7fd9_8255_mouse_y_latch = p7fd9_8255_mouse_y;
+                p7fd9_8255_mouse_x = 0;
+                p7fd9_8255_mouse_y = 0;
+            }
+            p7fd8_8255_mouse_int_enable = ((val >> 4) & 1) ^ 1; // bit 4 is interrupt MASK
+            // TODO: Does clearing this bit trigger an interrupt?
+            //       Does setting, then clearing this bit trigger an interrupt?
+            p7fd9_8255_mouse_latch = (val >> 7) & 1;
+            p7fd9_8255_mouse_sel = (val >> 5) & 3;
+            break;
+        case 6:// 0x7FDF Control
+            if (!(val & 0x80)) {
+                /* bit set/reset */
+                /* bits [7:7] = 0
+                 * bits [6:4] = unused
+                 * bits [3:1] = bit selection
+                 * bits [0:0] = 1=set 0=reset */
+                uint8_t bitnum = (val >> 1) & 7;
+                uint8_t bitval = val & 1;
+
+                /* Sim City PC-98 version writes 0x0F to this port
+                 * to flip bit 7. If you're supposed to reset the
+                 * bit then set it to latch, then I don't really know
+                 * how Sim City expects to re-latch without toggling first. */
+                switch (bitnum) {
+                    case 4: // interrupt mask
+                        p7fd8_8255_mouse_int_enable = bitval ^ 1;
+                        // TODO: Does clearing this bit trigger an interrupt?
+                        //       Does setting, then clearing this bit trigger an interrupt?
+                        break;
+                    case 7: // latch mouse counter
+                        if (bitval) {
+                            p7fd9_8255_mouse_x_latch = p7fd9_8255_mouse_x;
+                            p7fd9_8255_mouse_y_latch = p7fd9_8255_mouse_y;
+                            p7fd9_8255_mouse_x = 0;
+                            p7fd9_8255_mouse_y = 0;
+                        }
+                        p7fd9_8255_mouse_latch = bitval;
+                        break;
+                    default:
+                        LOG_MSG("PC-98 8255 MOUSE: Port C set/reset bit=%u val=%u",bitnum,bitval);
+                        break;
+                }
+
+                break;
+            }
+            else if (val == 0x90) { /* commonly sent by games, which sets port A=input port B=output C=output */
+                /* HACK for Metal Force.
+                 * The game's intro animation hooks the mouse IRQ, then writes 0x90 to this port.
+                 * The intro animation apparently requires mouse IRQs to advance through the animation,
+                 * or else it will just stop. The interrupt service routine, if fired, writes 0x0F to
+                 * latch the counters (bit 7) and then 0x90 again.
+                 *
+                 * The theory is that Metal Force is doing this to trigger the mouse interrupt periodically.
+                 * The question is whether this is how real hardware actually behaves, or not. If so, then
+                 * Metal Force is right in relying on this strange way of counting time. If not, then
+                 * Metal Force deserves to hang and/or fail from lack of interrupts for such a strange method
+                 * of counting time.
+                 *
+                 * Until I verify this on real hardware, I'll just put this hack here to make the intro sequence
+                 * work. --J.C. */
+                if (p7fd8_8255_mouse_int_enable)
+                    MOUSE_DummyEvent();
+
+                break;
+            }
+            /* fall through */
+        default:
+            LOG_MSG("PC-98 8255 MOUSE: IO write port=0x%x val=0x%x",(unsigned int)port,(unsigned int)val);
+            break;
+    };
+}
+
+static Bitu read_p7fd9_mouse(Bitu port,Bitu /*iolen*/) {
+    uint8_t bs;
+    Bitu r;
+
+    switch (port&6) {
+        case 0:// 0x7FD9 Port A
+            // bits [7:7] = !(LEFT BUTTON)
+            // bits [6:6] = !(MIDDLE BUTTON)
+            // bits [5:5] = !(RIGHT BUTTON)
+            // bits [4:4] = 0 unused
+            // bits [3:0] = 4 bit nibble latched via Port C
+            bs = Mouse_GetButtonState();
+            r = 0x00;
+
+            if (!(bs & 1)) r |= 0x80;       // left button (inverted bit)
+            if (!(bs & 2)) r |= 0x20;       // right button (inverted bit)
+            if (!(bs & 4)) r |= 0x40;       // middle button (inverted bit)
+
+            if (!p7fd9_8255_mouse_latch) {
+                p7fd9_8255_mouse_x_latch = p7fd9_8255_mouse_x;
+                p7fd9_8255_mouse_y_latch = p7fd9_8255_mouse_y;
+            }
+
+            switch (p7fd9_8255_mouse_sel) {
+                case 0: // X delta
+                case 1:
+                    r |= (uint8_t)(p7fd9_8255_mouse_x_latch >> ((p7fd9_8255_mouse_sel & 1U) * 4U)) & 0xF; // sign extend is intentional
+                    break;
+                case 2: // Y delta
+                case 3:
+                    r |= (uint8_t)(p7fd9_8255_mouse_y_latch >> ((p7fd9_8255_mouse_sel & 1U) * 4U)) & 0xF; // sign extend is intentional
+                    break;
+            };
+
+            return r;
+        default:
+            LOG_MSG("PC-98 8255 MOUSE: IO read port=0x%x",(unsigned int)port);
+            break;
+    };
+
+    return 0;
+}
+//////////
+
+void KEYBOARD_OnEnterPC98(Section *sec) {
+    unsigned int i;
+
+    /* TODO: Keyboard interface change, layout change. */
+
+    /* PC-98 uses the 8255 programmable peripheral interface. Install that here.
+     * Sometime in the future, move 8255 emulation to a separate file.
+     *
+     * The 8255 appears at I/O ports 0x31, 0x33, 0x35, 0x37 */
+    for (i=0;i < 4;i++) {
+        ReadHandler_8255_PC98[i].Uninstall();
+        WriteHandler_8255_PC98[i].Uninstall();
+    }
+
+    /* remove 60h-63h */
+    IO_FreeWriteHandler(0x60,IO_MB);
+    IO_FreeReadHandler(0x60,IO_MB);
+    IO_FreeWriteHandler(0x61,IO_MB);
+    IO_FreeReadHandler(0x61,IO_MB);
+    IO_FreeWriteHandler(0x64,IO_MB);
+    IO_FreeReadHandler(0x64,IO_MB);
+}
+
+void KEYBOARD_OnEnterPC98_phase2(Section *sec) {
+    unsigned int i;
+
+    /* Keyboard UART (8251) is at 0x41, 0x43. */
+    IO_RegisterWriteHandler(0x41,keyboard_pc98_8251_uart_41_write,IO_MB);
+    IO_RegisterReadHandler(0x41,keyboard_pc98_8251_uart_41_read,IO_MB);
+    IO_RegisterWriteHandler(0x43,keyboard_pc98_8251_uart_43_write,IO_MB);
+    IO_RegisterReadHandler(0x43,keyboard_pc98_8251_uart_43_read,IO_MB);
+
+    /* PC-98 uses the 8255 programmable peripheral interface. Install that here.
+     * Sometime in the future, move 8255 emulation to a separate file.
+     *
+     * The 8255 appears at I/O ports 0x31, 0x33, 0x35, 0x37 */
+    for (i=0;i < 4;i++) {
+        ReadHandler_8255_PC98[i].Uninstall();
+        ReadHandler_8255_PC98[i].Install(0x31 + (i * 2),pc98_8255_read,IO_MB);
+
+        WriteHandler_8255_PC98[i].Uninstall();
+        WriteHandler_8255_PC98[i].Install(0x31 + (i * 2),pc98_8255_write,IO_MB);
+    }
+
+    /* Mouse */
+    for (i=0;i < 4;i++) {
+        IO_RegisterWriteHandler(0x7FD9+(i*2),write_p7fd9_mouse,IO_MB);
+        IO_RegisterReadHandler(0x7FD9+(i*2),read_p7fd9_mouse,IO_MB);
+    }
 }
 
 void KEYBOARD_OnReset(Section *sec) {
@@ -1484,12 +2186,13 @@ void KEYBOARD_OnReset(Section *sec) {
 		}
 	}
 
-	IO_RegisterWriteHandler(0x60,write_p60,IO_MB);
-	IO_RegisterReadHandler(0x60,read_p60,IO_MB);
-	IO_RegisterWriteHandler(0x61,write_p61,IO_MB);
-	IO_RegisterReadHandler(0x61,read_p61,IO_MB);
-	IO_RegisterWriteHandler(0x64,write_p64,IO_MB);
-	IO_RegisterReadHandler(0x64,read_p64,IO_MB);
+    IO_RegisterWriteHandler(0x60,write_p60,IO_MB);
+    IO_RegisterReadHandler(0x60,read_p60,IO_MB);
+    IO_RegisterWriteHandler(0x61,write_p61,IO_MB);
+    IO_RegisterReadHandler(0x61,read_p61,IO_MB);
+    IO_RegisterWriteHandler(0x64,write_p64,IO_MB);
+    IO_RegisterReadHandler(0x64,read_p64,IO_MB);
+
 	TIMER_AddTickHandler(&KEYBOARD_TickHandler);
 	write_p61(0,0,0);
 	KEYBOARD_Reset();
@@ -1502,6 +2205,9 @@ void KEYBOARD_Init() {
 	AddExitFunction(AddExitFunctionFuncPair(KEYBOARD_ShutDown));
 
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(KEYBOARD_OnReset));
+
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(KEYBOARD_OnEnterPC98));
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE_END,AddVMEventFunctionFuncPair(KEYBOARD_OnEnterPC98_phase2));
 }
 
 void AUX_Reset() {

@@ -20,7 +20,6 @@
 #include "control.h"
 #include "callback.h"
 #include "bios_disk.h"
-#include "../src/dos/cdrom.h"
 
 #ifdef _MSC_VER
 # define MIN(a,b) ((a) < (b) ? (a) : (b))
@@ -288,11 +287,11 @@ static void FDC_Destroy(Section* sec) {
 	init_floppy = 0;
 }
 
-static void FDC_Init(Section* sec,unsigned char interface) {
+static void FDC_Init(Section* sec,unsigned char fdc_interface) {
 	Section_prop *section=static_cast<Section_prop *>(sec);
 	FloppyController *fdc;
 
-	assert(interface < MAX_FLOPPY_CONTROLLERS);
+	assert(fdc_interface < MAX_FLOPPY_CONTROLLERS);
 
 	if (!section->Get_bool("enable"))
 		return;
@@ -302,9 +301,9 @@ static void FDC_Init(Section* sec,unsigned char interface) {
 		init_floppy = 1;
 	}
 
-	LOG(LOG_MISC,LOG_DEBUG)("Initializing floppy controller interface %u",interface);
+	LOG(LOG_MISC,LOG_DEBUG)("Initializing floppy controller interface %u",fdc_interface);
 
-	fdc = floppycontroller[interface] = new FloppyController(sec,interface);
+	fdc = floppycontroller[fdc_interface] = new FloppyController(sec,fdc_interface);
 	fdc->install_io_port();
 
 	PIC_SetIRQMask(fdc->IRQ,false);
@@ -314,10 +313,25 @@ void FDC_OnReset(Section *sec) {
 	FDC_Init(control->GetSection("fdc, primary"),0);
 }
 
+void FDC_OnEnterPC98(Section *sec) {
+	for (unsigned int i=0;i < MAX_FLOPPY_CONTROLLERS;i++) {
+		if (floppycontroller[i] != NULL) {
+			delete floppycontroller[i];
+			floppycontroller[i] = NULL;
+		}
+	}
+
+	init_floppy = 0;
+}
+
 void FDC_Primary_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing floppy controller emulation");
 
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(FDC_OnReset));
+
+    // TODO: I *think* the floppy controller is the same NEC chipset as used on IBM.
+    //       However I don't know what the I/O ports and IRQ are yet.
+	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(FDC_OnEnterPC98));
 }
 
 void FloppyController::update_ST3() {

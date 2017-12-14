@@ -42,6 +42,10 @@ void vga_write_p3d4(Bitu port,Bitu val,Bitu iolen) {
 	crtc(index)=val;
 }
 
+void vga_pc98_direct_cursor_pos(Bit16u address) {
+	vga.config.cursor_start = address;
+}
+
 Bitu vga_read_p3d4(Bitu port,Bitu iolen) {
 	return crtc(index);
 }
@@ -161,9 +165,14 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		Bit8u old = crtc(maximum_scan_line);
 		crtc(maximum_scan_line) = val;
 
-		if ((old ^ val) & 0x20) VGA_StartResize();
-		vga.draw.address_line_total = (val &0x1F) + 1;
-		if (val&0x80) vga.draw.address_line_total*=2;
+        unsigned char chk = 0x20;
+
+        if (!vga.draw.doublescan_set)
+            chk |= 0x81; /* doublescan + LSB of maximum scanline */
+
+		if ((old ^ val) & chk) VGA_StartResize();
+		vga.draw.address_line_total = (val & 0x1F) + 1;
+		if (val&0x80) vga.draw.address_line_total *= 2;
 		/*
 			0-4	Number of scan lines in a character row -1. In graphics modes this is
 				the number of times (-1) the line is displayed before passing on to

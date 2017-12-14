@@ -52,6 +52,8 @@ public:
 # endif
 #endif
 
+bool enable_weitek = false;
+
 bool CPU_NMI_gate = true;
 bool CPU_NMI_active = false;
 bool CPU_NMI_pending = false;
@@ -2495,7 +2497,7 @@ bool CPU_PopSeg(SegNames seg,bool use32) {
 extern bool enable_fpu;
 
 bool CPU_CPUID(void) {
-	if (CPU_ArchitectureType<CPU_ARCHTYPE_486NEW) return false;
+	if (CPU_ArchitectureType < CPU_ARCHTYPE_486NEW) return false;
 	switch (reg_eax) {
 	case 0:	/* Vendor ID String and maximum level? */
 		reg_eax=1;  /* Maximum level */ 
@@ -2504,26 +2506,31 @@ bool CPU_CPUID(void) {
 		reg_ecx='n' | ('t' << 8) | ('e' << 16) | ('l'<< 24); 
 		break;
 	case 1:	/* get processor type/family/model/stepping and feature flags */
-		if ((CPU_ArchitectureType==CPU_ARCHTYPE_486NEW) ||
-			(CPU_ArchitectureType==CPU_ARCHTYPE_MIXED)) {
+		if ((CPU_ArchitectureType == CPU_ARCHTYPE_486NEW) ||
+			(CPU_ArchitectureType == CPU_ARCHTYPE_MIXED)) {
 			reg_eax=0x402;		/* intel 486dx */
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
 			reg_edx=enable_fpu?1:0;	/* FPU */
-		} else if (CPU_ArchitectureType==CPU_ARCHTYPE_PENTIUM) {
+		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUM) {
 			reg_eax=0x513;		/* intel pentium */
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
 			reg_edx=0x00000010|(enable_fpu?1:0);	/* FPU+TimeStamp/RDTSC */
 			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
             if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
-		} else if (CPU_ArchitectureType==CPU_ARCHTYPE_P55CSLOW) {
+		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_P55CSLOW) {
 			reg_eax=0x543;		/* intel pentium mmx (P55C) */
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
 			reg_edx=0x00800010|(enable_fpu?1:0);	/* FPU+TimeStamp/RDTSC+MMX+ModelSpecific/MSR */
 			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
             if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
+		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW) {
+			reg_eax=0x612;		/* intel pentium pro */
+			reg_ebx=0;			/* Not Supported */
+			reg_ecx=0;			/* No features */
+			reg_edx=0x00008011;	/* FPU+TimeStamp/RDTSC */
 		} else {
 			return false;
 		}
@@ -2740,6 +2747,55 @@ void CPU_Reset_AutoAdjust(void) {
 	ticksScheduled = 0;
 }
 
+class Weitek_PageHandler : public PageHandler {
+public:
+	Weitek_PageHandler(HostPt /*addr*/){
+		flags=PFLAG_NOCODE;
+	}
+
+	~Weitek_PageHandler() {
+	}
+
+	Bitu readb(PhysPt addr);
+	void writeb(PhysPt addr,Bitu val);
+	Bitu readw(PhysPt addr);
+	void writew(PhysPt addr,Bitu val);
+	Bitu readd(PhysPt addr);
+	void writed(PhysPt addr,Bitu val);
+};
+
+Bitu Weitek_PageHandler::readb(PhysPt addr) {
+    LOG_MSG("Weitek stub: readb at 0x%lx",(unsigned long)addr);
+	return (Bitu)-1;
+}
+void Weitek_PageHandler::writeb(PhysPt addr,Bitu val) {
+    LOG_MSG("Weitek stub: writeb at 0x%lx val=0x%lx",(unsigned long)addr,(unsigned long)val);
+}
+
+Bitu Weitek_PageHandler::readw(PhysPt addr) {
+    LOG_MSG("Weitek stub: readw at 0x%lx",(unsigned long)addr);
+	return (Bitu)-1;
+}
+
+void Weitek_PageHandler::writew(PhysPt addr,Bitu val) {
+    LOG_MSG("Weitek stub: writew at 0x%lx val=0x%lx",(unsigned long)addr,(unsigned long)val);
+}
+
+Bitu Weitek_PageHandler::readd(PhysPt addr) {
+    LOG_MSG("Weitek stub: readd at 0x%lx",(unsigned long)addr);
+	return (Bitu)-1;
+}
+
+void Weitek_PageHandler::writed(PhysPt addr,Bitu val) {
+    LOG_MSG("Weitek stub: writed at 0x%lx val=0x%lx",(unsigned long)addr,(unsigned long)val);
+}
+
+Weitek_PageHandler weitek_pagehandler(0);
+
+PageHandler* weitek_memio_cb(MEM_CalloutObject &co,Bitu phys_page) {
+    return &weitek_pagehandler;
+}
+
 class CPU: public Module_base {
 private:
 	static bool inited;
@@ -2914,7 +2970,6 @@ public:
 		ignore_undefined_msr=section->Get_bool("ignore undefined msr");
 		enable_msr=section->Get_bool("enable msr");
         enable_cmpxchg8b=section->Get_bool("enable cmpxchg8b");
-        if (enable_cmpxchg8b) LOG_MSG("Pentium CMPXCHG8B emulation is enabled");
 		CPU_CycleUp=section->Get_int("cycleup");
 		CPU_CycleDown=section->Get_int("cycledown");
 		std::string core(section->Get_string("core"));
@@ -3041,6 +3096,8 @@ public:
 			CPU_ArchitectureType = CPU_ARCHTYPE_PENTIUM;
 		} else if (cputype == "pentium_mmx") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_P55CSLOW;
+		} else if (cputype == "ppro_slow") {
+			CPU_ArchitectureType = CPU_ARCHTYPE_PPROSLOW;
  		}
 
 		/* WARNING */
@@ -3062,11 +3119,47 @@ public:
 			}
 		}
 
+    // weitek coprocessor emulation?
+        if (CPU_ArchitectureType == CPU_ARCHTYPE_386 || CPU_ArchitectureType == CPU_ARCHTYPE_486OLD || CPU_ArchitectureType == CPU_ARCHTYPE_486NEW) {
+	        Section_prop *dsection = static_cast<Section_prop *>(control->GetSection("dosbox"));
+
+            enable_weitek = dsection->Get_bool("weitek");
+            if (enable_weitek) {
+                LOG_MSG("Weitek coprocessor emulation enabled");
+
+                static Bitu weitek_lfb = 0xC0000000UL;
+                static Bitu weitek_lfb_pages = 0x2000000UL >> 12UL; /* "The coprocessor will respond to memory addresses 0xC0000000-0xC1FFFFFF" */
+                static MEM_Callout_t weitek_lfb_cb = MEM_Callout_t_none;
+
+                if (weitek_lfb_cb == MEM_Callout_t_none) {
+                    weitek_lfb_cb = MEM_AllocateCallout(MEM_TYPE_MB);
+                    if (weitek_lfb_cb == MEM_Callout_t_none) E_Exit("Unable to allocate weitek cb for LFB");
+                }
+
+                {
+                    MEM_CalloutObject *cb = MEM_GetCallout(weitek_lfb_cb);
+
+                    assert(cb != NULL);
+
+                    cb->Uninstall();
+
+                    cb->Install(weitek_lfb>>12UL,MEMMASK_Combine(MEMMASK_FULL,MEMMASK_Range(weitek_lfb_pages)),weitek_memio_cb);
+
+                    MEM_PutCallout(cb);
+                }
+            }
+        }
+        else {
+            enable_weitek = false;
+        }
+
 		if (cpu_rep_max < 0) cpu_rep_max = 4;	/* compromise to help emulation speed without too much loss of accuracy */
 
 		if(CPU_CycleMax <= 0) CPU_CycleMax = 3000;
 		if(CPU_CycleUp <= 0)   CPU_CycleUp = 500;
 		if(CPU_CycleDown <= 0) CPU_CycleDown = 20;
+
+        if (enable_cmpxchg8b && CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUM) LOG_MSG("Pentium CMPXCHG8B emulation is enabled");
 
 		if (CPU_CycleAutoAdjust) GFX_SetTitle(CPU_CyclePercUsed,-1,-1,false);
 		else GFX_SetTitle(CPU_CycleMax,-1,-1,false);

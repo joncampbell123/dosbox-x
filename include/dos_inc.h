@@ -86,6 +86,8 @@ typedef unsigned int        UINT32, *PUINT32;
 }
 #endif
 
+#define SECTOR_SIZE_MAX     1024
+
 #ifdef _MSC_VER
 #pragma pack (1)
 #endif
@@ -96,9 +98,8 @@ union bootSector {
 		Bit16u bytesect;
 		Bit8u sectclust;
 		Bit16u reserve_sect;
-		Bit8u misc[496];
 	} bootdata;
-	Bit8u rawdata[512];
+	Bit8u rawdata[SECTOR_SIZE_MAX];
 } GCC_ATTRIBUTE(packed);
 #ifdef _MSC_VER
 #pragma pack ()
@@ -283,7 +284,7 @@ static INLINE Bit16u DOS_PackDate(Bit16u year,Bit16u mon,Bit16u day) {
 }
 
 /* fopen64, ftello64, fseeko64 */
-#if defined(__APPLE__)
+#if defined(__APPLE__) || defined(__MINGW32__)
  #define fopen64 fopen
  #define ftello64 ftell
  #define fseeko64 fseek
@@ -494,7 +495,8 @@ public:
 		Bit8u	lastdrive;		//  0x21 lastdrive
 		Bit32u	nulNextDriver;	//  0x22 NUL driver next pointer
 		Bit16u	nulAttributes;	//  0x26 NUL driver aattributes
-		Bit32u	nulStrategy;	//  0x28 NUL driver strategy routine
+        Bit16u  nulStrategy;    //  0x28 NUL driver strategy routine
+        Bit16u  nulInterrupt;   //  0x2A NUL driver interrupt routine
 		Bit8u	nulString[8];	//  0x2c NUL driver name string
 		Bit8u	joindedDrives;		//  0x34 joined drives
 		Bit16u	specialCodeSeg;		//  0x35 special code segment

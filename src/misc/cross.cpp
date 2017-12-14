@@ -35,6 +35,10 @@
 #include <pwd.h>
 #endif
 
+#if defined __MINGW32__
+#define _mkdir(x) mkdir(x)
+#endif
+
 #ifdef WIN32
 static void W32_ConfDir(std::string& in,bool create) {
 	int c = create?1:0;
@@ -136,6 +140,25 @@ bool Cross::IsPathAbsolute(std::string const& in) {
 
 #if defined (WIN32)
 
+dir_information* open_directoryw(const wchar_t* dirname) {
+	if (dirname == NULL) return NULL;
+
+	size_t len = wcslen(dirname);
+	if (len == 0) return NULL;
+
+	static dir_information dir;
+
+	wcsncpy(dir.wbase_path(),dirname,MAX_PATH);
+
+	if (dirname[len-1] == '\\') wcscat(dir.wbase_path(),L"*.*");
+	else                        wcscat(dir.wbase_path(),L"\\*.*");
+
+    dir.wide = true;
+	dir.handle = INVALID_HANDLE_VALUE;
+
+	return (_waccess(dirname,0) ? NULL : &dir);
+}
+
 dir_information* open_directory(const char* dirname) {
 	if (dirname == NULL) return NULL;
 
@@ -149,32 +172,75 @@ dir_information* open_directory(const char* dirname) {
 	if (dirname[len-1] == '\\') strcat(dir.base_path,"*.*");
 	else                        strcat(dir.base_path,"\\*.*");
 
+    dir.wide = false;
 	dir.handle = INVALID_HANDLE_VALUE;
 
 	return (_access(dirname,0) ? NULL : &dir);
 }
 
-bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_directory) {
-	dirp->handle = FindFirstFile(dirp->base_path, &dirp->search_data);
+bool read_directory_firstw(dir_information* dirp, wchar_t* entry_name, bool& is_directory) {
+    if (!dirp->wide) return false;
+
+    // TODO: offer a config.h option to opt out of Windows widechar functions
+	dirp->handle = FindFirstFileW(dirp->wbase_path(), &dirp->search_data.w);
 	if (INVALID_HANDLE_VALUE == dirp->handle) {
 		return false;
 	}
 
-	safe_strncpy(entry_name,dirp->search_data.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
+    // TODO: offer a config.h option to opt out of Windows widechar functions
+	wcsncpy(entry_name,dirp->search_data.w.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
 
-	if (dirp->search_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) is_directory = true;
+	if (dirp->search_data.w.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) is_directory = true;
+	else is_directory = false;
+
+	return true;
+}
+
+bool read_directory_nextw(dir_information* dirp, wchar_t* entry_name, bool& is_directory) {
+    if (!dirp->wide) return false;
+
+    // TODO: offer a config.h option to opt out of Windows widechar functions
+	int result = FindNextFileW(dirp->handle, &dirp->search_data.w);
+	if (result==0) return false;
+
+    // TODO: offer a config.h option to opt out of Windows widechar functions
+	wcsncpy(entry_name,dirp->search_data.w.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
+
+	if (dirp->search_data.w.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) is_directory = true;
+	else is_directory = false;
+
+	return true;
+}
+
+bool read_directory_first(dir_information* dirp, char* entry_name, bool& is_directory) {
+    if (dirp->wide) return false;
+
+    // TODO: offer a config.h option to opt out of Windows widechar functions
+	dirp->handle = FindFirstFileA(dirp->base_path, &dirp->search_data.a);
+	if (INVALID_HANDLE_VALUE == dirp->handle) {
+		return false;
+	}
+
+    // TODO: offer a config.h option to opt out of Windows widechar functions
+	safe_strncpy(entry_name,dirp->search_data.a.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
+
+	if (dirp->search_data.a.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) is_directory = true;
 	else is_directory = false;
 
 	return true;
 }
 
 bool read_directory_next(dir_information* dirp, char* entry_name, bool& is_directory) {
-	int result = FindNextFile(dirp->handle, &dirp->search_data);
+    if (dirp->wide) return false;
+
+    // TODO: offer a config.h option to opt out of Windows widechar functions
+	int result = FindNextFileA(dirp->handle, &dirp->search_data.a);
 	if (result==0) return false;
 
-	safe_strncpy(entry_name,dirp->search_data.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
+    // TODO: offer a config.h option to opt out of Windows widechar functions
+	safe_strncpy(entry_name,dirp->search_data.a.cFileName,(MAX_PATH<CROSS_LEN)?MAX_PATH:CROSS_LEN);
 
-	if (dirp->search_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) is_directory = true;
+	if (dirp->search_data.a.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) is_directory = true;
 	else is_directory = false;
 
 	return true;

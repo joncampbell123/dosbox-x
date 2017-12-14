@@ -1738,8 +1738,8 @@ static void DSP_DoCommand(void) {
 		if (sb.reveal_sc_type == RSC_SC400) {
 			/* Despite reporting itself as Sound Blaster Pro, the Reveal SC400 cards do support *some* SB16 DSP commands! */
 			/* BUT, it only recognizes a subset of this range. */
-			if (sb.dsp.cmd == 0xB0 || sb.dsp.cmd == 0xB8 || sb.dsp.cmd == 0xBE || sb.dsp.cmd == 0xB6 ||
-				sb.dsp.cmd == 0xC0 || sb.dsp.cmd == 0xC8 || sb.dsp.cmd == 0xCE || sb.dsp.cmd == 0xC6) {
+			if (sb.dsp.cmd == 0xBE || sb.dsp.cmd == 0xB6 ||
+				sb.dsp.cmd == 0xCE || sb.dsp.cmd == 0xC6) {
 				/* OK! */
 			}
 			else {
@@ -2540,7 +2540,8 @@ static void CTMIXER_Write(Bit8u val) {
 }
 
 static Bit8u CTMIXER_Read(void) {
-	Bit8u ret;
+	Bit8u ret = 0;
+
 //	if ( sb.mixer.index< 0x80) LOG_MSG("Read mixer %x",sb.mixer.index);
 	switch (sb.mixer.index) {
 	case 0x00:		/* RESET */
@@ -2655,6 +2656,7 @@ static Bit8u CTMIXER_Read(void) {
 			ret=0xa;
 		LOG(LOG_SB,LOG_WARN)("MIXER:Read from unhandled index %X",sb.mixer.index);
 	}
+
 	return ret;
 }
 
@@ -3587,6 +3589,17 @@ void SBLASTER_DOS_Boot(Section *sec) {
     if (test != NULL) test->DOS_Startup();
 }
 
+void SBLASTER_OnEnterPC98(Section *sec) {
+    /* PC-98 does not have Sound Blaster (that I'm aware of anyway).
+     * Upon entry, remove all I/O ports and shutdown emulation */
+    SBLASTER_DOS_Shutdown();
+	if (test != NULL) {
+		delete test;	
+		test = NULL;
+	}
+	HWOPL_Cleanup();
+}
+
 void SBLASTER_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing Sound Blaster emulation");
 
@@ -3596,5 +3609,7 @@ void SBLASTER_Init() {
 	AddVMEventFunction(VM_EVENT_DOS_SURPRISE_REBOOT,AddVMEventFunctionFuncPair(SBLASTER_DOS_Exit));
 	AddVMEventFunction(VM_EVENT_DOS_EXIT_REBOOT_BEGIN,AddVMEventFunctionFuncPair(SBLASTER_DOS_Exit));
     AddVMEventFunction(VM_EVENT_DOS_INIT_SHELL_READY,AddVMEventFunctionFuncPair(SBLASTER_DOS_Boot));
+
+    AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(SBLASTER_OnEnterPC98));
 }
 

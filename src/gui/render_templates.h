@@ -154,6 +154,8 @@
 
 #if RENDER_USE_ADVANCED_SCALERS>1
 static void conc3d(Cache,SBPP,DBPP) (const void * s) {
+    (void)conc3d(Cache,SBPP,DBPP);
+
 #ifdef RENDER_NULL_INPUT
 	if (!s) {
 		render.scale.cacheRead += render.scale.cachePitch;

@@ -311,6 +311,7 @@ void DOS_Shell::Run(void) {
 	WriteOut(MSG_Get("SHELL_STARTUP_DEBUG"));
 #endif
 	if (machine == MCH_CGA || machine == MCH_AMSTRAD) WriteOut(MSG_Get("SHELL_STARTUP_CGA"));
+    if (machine == MCH_PC98) WriteOut(MSG_Get("SHELL_STARTUP_PC98"));
 	if (machine == MCH_HERC) WriteOut(MSG_Get("SHELL_STARTUP_HERC"));
 	WriteOut(MSG_Get("SHELL_STARTUP_END"));
 
@@ -604,16 +605,22 @@ void SHELL_Init() {
 		        "\xBA and \033[31mAlt-F11\033[37m to change contrast/brightness settings.                \xBA\n"
 		);
 	}
-	MSG_Add("SHELL_STARTUP_HERC","\xBA Use F11 to cycle through white, amber, and green monochrome color. \xBA\n"
+    MSG_Add("SHELL_STARTUP_PC98","\xBA DOSBox-X is now running in NEC PC-98 emulation mode.               \xBA\n"
+        "\xBA \033[31mPC-98 emulation is INCOMPLETE and CURRENTLY IN DEVELOPMENT.\033[37m        \xBA\n");
+    MSG_Add("SHELL_STARTUP_HERC","\xBA Use F11 to cycle through white, amber, and green monochrome color. \xBA\n"
 		"\xBA Use alt-F11 to toggle horizontal blending (only in graphics mode). \xBA\n"
 	        "\xBA                                                                    \xBA\n"
 	);
 	MSG_Add("SHELL_STARTUP_DEBUG",
+	#if defined(MACOSX)
+	        "\xBA Debugger is available, use \033[31malt-F12\033[37m to enter.                       \xBA\n"
+	#else
 	        "\xBA Debugger is available, use \033[31malt-Pause\033[37m to enter.                     \xBA\n"
+	#endif
 	        "\xBA                                                                    \xBA\n"
 	);
 	MSG_Add("SHELL_STARTUP_END",
-	        "\xBA \033[32mDOSBox-X project \033[33mhttp://dosbox-x.software\033[37m                          \xBA\n"
+	        "\xBA \033[32mDOSBox-X project \033[33mhttp://dosbox-x.software\033[32m      PentiumPro support \033[37m \xBA\n"
 	        "\xBA \033[32mDerived from DOSBox \033[33mhttp://www.dosbox.com\033[37m                          \xBA\n"
 	        "\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
 	        "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
