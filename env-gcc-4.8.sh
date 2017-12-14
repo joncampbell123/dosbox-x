@@ -16,6 +16,7 @@ echo GCC is in $gdir
 export CC="$gdir/gcc"
 export CPP="$gdir/cpp"
 export CXX="$gdir/g++"
+export PATH="$gdir:$PATH"
 
 echo Starting subshell. Type exit to exit.
 
