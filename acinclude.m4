@@ -76,6 +76,10 @@ AC_ARG_ENABLE(sdl, [  --enable-sdl            Enable SDL 1.x],
         SDL_CONFIG=$sdl_prefix/bin/sdl-config
       fi
     fi
+    if test -x vs2015/sdl/linux-host/bin/sdl-config ; then
+      SDL_CONFIG=vs2015/sdl/linux-host/bin/sdl-config
+      PATH=vs2015/sdl/linux-host/bin:$PATH
+    fi
 
     AC_PATH_PROG(SDL_CONFIG, sdl-config, no)
     min_sdl_version=ifelse([$1], ,0.11.0,$1)

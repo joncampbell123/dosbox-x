@@ -6919,6 +6919,10 @@ fi
         SDL_CONFIG=$sdl_prefix/bin/sdl-config
       fi
     fi
+    if test -x vs2015/sdl/linux-host/bin/sdl-config ; then
+      SDL_CONFIG=vs2015/sdl/linux-host/bin/sdl-config
+      PATH=vs2015/sdl/linux-host/bin:$PATH
+    fi
 
     # Extract the first word of "sdl-config", so it can be a program name with args.
 set dummy sdl-config; ac_word=$2
