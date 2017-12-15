@@ -390,8 +390,23 @@ static void DIB_GenerateMouseMotionEvent(_THIS)
 	}
 }
 
+#include "SDL_timer.h"
+
+static unsigned long last_dib_mouse_motion = 0;
+
 void DIB_PumpEvents(_THIS)
 {
+	/* NTS: Impose a 60Hz cap on mouse motion polling because SetCursorPos/GetCursorPos
+	        no longer have an immediate effect on cursor position in the way that the
+			DIB mouse motion code expects. In Windows 10 there seems to be enough of
+			a round-trip delay between SetCursorPos/GetCursorPos and the compositor
+			to cause the DIB mouse motion code to often register many duplicate mouse
+			movements that never happened. Imposing a time interval between polling
+			seems to fix this. This should not have any negative effects on older
+			versions of Windows. --J.C. */
+	unsigned long pollInterval = 1000 / 60; /* 60Hz mouse motion polling rate */
+	unsigned long now = SDL_GetTicks();
+	_Bool mouseMotion = 0;
 	MSG msg;
 
 	while ( PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE) ) {
@@ -400,8 +415,12 @@ void DIB_PumpEvents(_THIS)
 		}
 	}
 
-	if ( SDL_GetAppState() & SDL_APPMOUSEFOCUS ) {
+	if (!mouseMotion && now > (last_dib_mouse_motion + pollInterval))
+		mouseMotion = 1;
+
+	if ( mouseMotion && (SDL_GetAppState() & SDL_APPMOUSEFOCUS) ) {
 		DIB_GenerateMouseMotionEvent( this );
+		last_dib_mouse_motion = now;
 	}
 }
 
