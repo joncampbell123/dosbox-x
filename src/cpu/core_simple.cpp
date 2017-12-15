@@ -145,6 +145,10 @@ static INLINE Bit32u Fetchd() {
 Bits CPU_Core_Simple_Run(void) {
     HostPt safety_limit;
 
+    /* simple core is incompatible with paging */
+    if (paging.enabled)
+        return CPU_Core_Normal_Run();
+
     safety_limit = (HostPt)((size_t)MemBase + ((size_t)MEM_TotalPages() * (size_t)4096) - (size_t)16384); /* safety margin */
 
     LOADIP;
