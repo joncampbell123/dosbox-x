@@ -140,8 +140,20 @@ static INLINE Bit32u Fetchd() {
 #define EALookupTable (core.ea_table)
 
 Bits CPU_Core_Simple_Run(void) {
+    HostPt safety_limit;
+
+    safety_limit = (HostPt)((size_t)MemBase + ((size_t)MEM_TotalPages() * (size_t)4096) - (size_t)16384); /* safety margin */
+
+    LOADIP;
+    if (core.cseip >= safety_limit) /* beyond the safety limit, use the normal core */
+        return CPU_Core_Normal_Run();
+
 	while (CPU_Cycles-->0) {
 		LOADIP;
+
+        /* Simple core optimizes for non-paged linear memory access and can break (segfault) if beyond end of memory */
+        if (core.cseip >= safety_limit) break;
+
 		core.opcode_index=cpu.code.big*0x200;
 		core.prefixes=cpu.code.big;
 		core.ea_table=&EATable[cpu.code.big*256];
