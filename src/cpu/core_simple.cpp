@@ -139,6 +139,9 @@ static INLINE Bit32u Fetchd() {
 
 #define EALookupTable (core.ea_table)
 
+/* NTS: This code fetches opcodes directly from MemBase plus an offset.
+ *      Because of this, the simple core cannot be used to execute directly
+ *      from ROM provided by an adapter since that requires memory I/O callbacks. */
 Bits CPU_Core_Simple_Run(void) {
     HostPt safety_limit;
 
