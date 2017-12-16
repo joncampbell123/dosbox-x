@@ -3558,8 +3558,15 @@ static void FingerToFakeMouseMotion(SDL_TouchFingerEvent * finger) {
     SDL_MouseMotionEvent fake;
 
     memset(&fake,0,sizeof(fake));
+#if defined(WIN32)
+	/* NTS: Windows versions of SDL2 do normalize the coordinates */
+	fake.x = (Sint32)(finger->x * sdl.clip.w);
+	fake.y = (Sint32)(finger->y * sdl.clip.h);
+#else
+	/* NTS: Linux versions of SDL2 don't normalize the coordinates? */
     fake.x = finger->x;     /* Contrary to SDL_events.h the x/y coordinates are NOT normalized to 0...1 */
     fake.y = finger->y;     /* Contrary to SDL_events.h the x/y coordinates are NOT normalized to 0...1 */
+#endif
     fake.xrel = finger->dx;
     fake.yrel = finger->dy;
     HandleMouseMotion(&fake);
