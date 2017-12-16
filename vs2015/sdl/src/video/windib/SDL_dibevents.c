@@ -424,6 +424,11 @@ void DIB_PumpEvents(_THIS)
 	}
 }
 
+void DIB_CheckMouse(void) {
+	DIB_GenerateMouseMotionEvent(NULL/*FIXME*/);
+	last_dib_mouse_motion = SDL_GetTicks();
+}
+
 static HKL hLayoutUS = NULL;
 
 void DIB_InitOSKeymap(_THIS)

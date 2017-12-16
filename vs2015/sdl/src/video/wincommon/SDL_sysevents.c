@@ -378,6 +378,18 @@ LRESULT CALLBACK WinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				Uint8 button, state;
                 int x, y;
 
+				/* We need to register mouse cursor position FIRST before registering button position.
+				   It causes problems with DOSBox-X guest pointer integration for SDL to report a button
+				   event before reporting that the cursor moved to that position.
+				   
+				   Of course, Windows 10 considers holding your finger on the screen as something to withhold
+				   from the window until released, to signal right-click, so touchscreen interaction is a
+				   little funny where drag & drop is desired in the guest. */
+				if (1/*TODO: If windib or any other driver that needs this*/) {
+					void DIB_CheckMouse(void);
+					DIB_CheckMouse();
+				}
+
 				/* DJM:
 				   We want the SDL window to take focus so that
 				   it acts like a normal windows "component"
