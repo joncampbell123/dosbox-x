@@ -613,6 +613,7 @@ static unsigned char ISA_PNP_KEYMATCH=0;
 static Bits other_memsystems=0;
 static bool apm_realmode_connected = false;
 void CMOS_SetRegister(Bitu regNr, Bit8u val); //For setting equipment word
+bool enable_integration_device_pnp=false;
 bool enable_integration_device=false;
 bool ISAPNPBIOS=false;
 bool APMBIOS=false;
@@ -1124,6 +1125,7 @@ void ISAPNP_Cfg_Reset(Section *sec) {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing ISA PnP emulation");
 
 	enable_integration_device = section->Get_bool("integration device");
+    enable_integration_device_pnp = section->Get_bool("integration device pnp");
 	ISAPNPBIOS = section->Get_bool("isapnpbios");
 	APMBIOS = section->Get_bool("apmbios");
 	APMBIOS_pnp = section->Get_bool("apmbios pnp");
@@ -4443,7 +4445,7 @@ private:
             }
 
             /* DOSBox integration device */
-            if (isapnpigdevice == NULL) {
+            if (isapnpigdevice == NULL && enable_integration_device_pnp) {
                 isapnpigdevice = new ISAPnPIntegrationDevice;
                 ISA_PNP_devreg(isapnpigdevice);
             }
