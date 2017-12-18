@@ -78,9 +78,21 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-bin_PROGRAMS = dosbox-x$(EXEEXT)
-@C_MT32_TRUE@am__append_1 = mt32/libmt32.a
-subdir = src
+@C_MT32_TRUE@am__append_1 = libmt32.a
+@C_MT32_TRUE@am__append_2 = \
+@C_MT32_TRUE@	DelayReverb.cpp DelayReverb.h File.cpp File.h \
+@C_MT32_TRUE@	fmath.h FreeverbModel.cpp FreeverbModel.h BReverbModel.cpp BReverbModel.h \
+@C_MT32_TRUE@	mt32emu.h Part.cpp Part.h Partial.cpp Partial.h PartialManager.cpp \
+@C_MT32_TRUE@	mmath.h PartialManager.h Poly.cpp Poly.h Structures.h Synth.cpp FileStream.cpp FileStream.h \
+@C_MT32_TRUE@	Synth.h Tables.cpp Tables.h TVA.cpp TVA.h TVF.cpp TVF.h TVP.cpp \
+@C_MT32_TRUE@	LA32Ramp.cpp LA32Ramp.h TVP.h AReverbModel.cpp AReverbModel.h \
+@C_MT32_TRUE@	LA32WaveGenerator.cpp LA32WaveGenerator.h LegacyWaveGenerator.cpp LegacyWaveGenerator.h \
+@C_MT32_TRUE@	./freeverb/allpass.cpp ./freeverb/allpass.h ./freeverb/comb.cpp \
+@C_MT32_TRUE@	./freeverb/comb.h ./freeverb/denormals.h ./freeverb/revmodel.cpp \
+@C_MT32_TRUE@	./freeverb/revmodel.h ./freeverb/tuning.h ROMInfo.cpp ROMInfo.h \
+@C_MT32_TRUE@	./sha1/sha1.cpp ./sha1/sha1.h
+
+subdir = src/mt32
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/depcomp
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -92,19 +104,46 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am__installdirs = "$(DESTDIR)$(bindir)"
-PROGRAMS = $(bin_PROGRAMS)
-am__dosbox_x_SOURCES_DIST = dosbox.cpp winres.rc
-@HAVE_WINDRES_TRUE@am__objects_1 = winres.$(OBJEXT)
-am_dosbox_x_OBJECTS = dosbox.$(OBJEXT) $(am__objects_1)
-dosbox_x_OBJECTS = $(am_dosbox_x_OBJECTS)
-dosbox_x_DEPENDENCIES = debug/libdebug.a dos/libdos.a shell/libshell.a \
-	builtin/libbuiltin.a ints/libints.a misc/libmisc.a \
-	hardware/serialport/libserial.a hardware/parport/libparallel.a \
-	libs/porttalk/libporttalk.a gui/libgui.a \
-	libs/gui_tk/libgui_tk.a hardware/libhardware.a cpu/libcpu.a \
-	hardware/reSID/libresid.a fpu/libfpu.a gui/libgui.a \
-	$(am__append_1)
+LIBRARIES = $(noinst_LIBRARIES)
+AR = ar
+ARFLAGS = cru
+AM_V_AR = $(am__v_AR_@AM_V@)
+am__v_AR_ = $(am__v_AR_@AM_DEFAULT_V@)
+am__v_AR_0 = @echo "  AR      " $@;
+am__v_AR_1 = 
+libmt32_a_AR = $(AR) $(ARFLAGS)
+libmt32_a_LIBADD =
+am__libmt32_a_SOURCES_DIST = DelayReverb.cpp DelayReverb.h File.cpp \
+	File.h fmath.h FreeverbModel.cpp FreeverbModel.h \
+	BReverbModel.cpp BReverbModel.h mt32emu.h Part.cpp Part.h \
+	Partial.cpp Partial.h PartialManager.cpp mmath.h \
+	PartialManager.h Poly.cpp Poly.h Structures.h Synth.cpp \
+	FileStream.cpp FileStream.h Synth.h Tables.cpp Tables.h \
+	TVA.cpp TVA.h TVF.cpp TVF.h TVP.cpp LA32Ramp.cpp LA32Ramp.h \
+	TVP.h AReverbModel.cpp AReverbModel.h LA32WaveGenerator.cpp \
+	LA32WaveGenerator.h LegacyWaveGenerator.cpp \
+	LegacyWaveGenerator.h ./freeverb/allpass.cpp \
+	./freeverb/allpass.h ./freeverb/comb.cpp ./freeverb/comb.h \
+	./freeverb/denormals.h ./freeverb/revmodel.cpp \
+	./freeverb/revmodel.h ./freeverb/tuning.h ROMInfo.cpp \
+	ROMInfo.h ./sha1/sha1.cpp ./sha1/sha1.h
+am__dirstamp = $(am__leading_dot)dirstamp
+@C_MT32_TRUE@am__objects_1 = DelayReverb.$(OBJEXT) File.$(OBJEXT) \
+@C_MT32_TRUE@	FreeverbModel.$(OBJEXT) BReverbModel.$(OBJEXT) \
+@C_MT32_TRUE@	Part.$(OBJEXT) Partial.$(OBJEXT) \
+@C_MT32_TRUE@	PartialManager.$(OBJEXT) Poly.$(OBJEXT) \
+@C_MT32_TRUE@	Synth.$(OBJEXT) FileStream.$(OBJEXT) \
+@C_MT32_TRUE@	Tables.$(OBJEXT) TVA.$(OBJEXT) TVF.$(OBJEXT) \
+@C_MT32_TRUE@	TVP.$(OBJEXT) LA32Ramp.$(OBJEXT) \
+@C_MT32_TRUE@	AReverbModel.$(OBJEXT) \
+@C_MT32_TRUE@	LA32WaveGenerator.$(OBJEXT) \
+@C_MT32_TRUE@	LegacyWaveGenerator.$(OBJEXT) \
+@C_MT32_TRUE@	./freeverb/allpass.$(OBJEXT) \
+@C_MT32_TRUE@	./freeverb/comb.$(OBJEXT) \
+@C_MT32_TRUE@	./freeverb/revmodel.$(OBJEXT) ROMInfo.$(OBJEXT) \
+@C_MT32_TRUE@	./sha1/sha1.$(OBJEXT)
+am_libmt32_a_OBJECTS = $(am__objects_1)
+libmt32_a_OBJECTS = $(am_libmt32_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -134,29 +173,25 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(dosbox_x_SOURCES)
-DIST_SOURCES = $(am__dosbox_x_SOURCES_DIST)
-RECURSIVE_TARGETS = all-recursive check-recursive cscopelist-recursive \
-	ctags-recursive dvi-recursive html-recursive info-recursive \
-	install-data-recursive install-dvi-recursive \
-	install-exec-recursive install-html-recursive \
-	install-info-recursive install-pdf-recursive \
-	install-ps-recursive install-recursive installcheck-recursive \
-	installdirs-recursive pdf-recursive ps-recursive \
-	tags-recursive uninstall-recursive
+COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+AM_V_CC = $(am__v_CC_@AM_V@)
+am__v_CC_ = $(am__v_CC_@AM_DEFAULT_V@)
+am__v_CC_0 = @echo "  CC      " $@;
+am__v_CC_1 = 
+CCLD = $(CC)
+LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+AM_V_CCLD = $(am__v_CCLD_@AM_V@)
+am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
+am__v_CCLD_0 = @echo "  CCLD    " $@;
+am__v_CCLD_1 = 
+SOURCES = $(libmt32_a_SOURCES)
+DIST_SOURCES = $(am__libmt32_a_SOURCES_DIST)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
     *) (install-info --version) >/dev/null 2>&1;; \
   esac
-RECURSIVE_CLEAN_TARGETS = mostlyclean-recursive clean-recursive	\
-  distclean-recursive maintainer-clean-recursive
-am__recursive_targets = \
-  $(RECURSIVE_TARGETS) \
-  $(RECURSIVE_CLEAN_TARGETS) \
-  $(am__extra_recursive_targets)
-AM_RECURSIVE_TARGETS = $(am__recursive_targets:-recursive=) TAGS CTAGS \
-	distdir
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) $(LISP)
 # Read a list of newline-separated strings from the standard input,
 # and print each of them once, without duplicates.  Input order is
@@ -176,33 +211,7 @@ am__define_uniq_tagged_files = \
   done | $(am__uniquify_input)`
 ETAGS = etags
 CTAGS = ctags
-DIST_SUBDIRS = $(SUBDIRS)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
-am__relativize = \
-  dir0=`pwd`; \
-  sed_first='s,^\([^/]*\)/.*$$,\1,'; \
-  sed_rest='s,^[^/]*/*,,'; \
-  sed_last='s,^.*/\([^/]*\)$$,\1,'; \
-  sed_butlast='s,/*[^/]*$$,,'; \
-  while test -n "$$dir1"; do \
-    first=`echo "$$dir1" | sed -e "$$sed_first"`; \
-    if test "$$first" != "."; then \
-      if test "$$first" = ".."; then \
-        dir2=`echo "$$dir0" | sed -e "$$sed_last"`/"$$dir2"; \
-        dir0=`echo "$$dir0" | sed -e "$$sed_butlast"`; \
-      else \
-        first2=`echo "$$dir2" | sed -e "$$sed_first"`; \
-        if test "$$first2" = "$$first"; then \
-          dir2=`echo "$$dir2" | sed -e "$$sed_rest"`; \
-        else \
-          dir2="../$$dir2"; \
-        fi; \
-        dir0="$$dir0"/"$$first"; \
-      fi; \
-    fi; \
-    dir1=`echo "$$dir1" | sed -e "$$sed_rest"`; \
-  done; \
-  reldir="$$dir2"
 ACLOCAL = @ACLOCAL@
 ALSA_CFLAGS = @ALSA_CFLAGS@
 ALSA_LIBS = @ALSA_LIBS@
@@ -313,21 +322,12 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CPPFLAGS = -I$(top_srcdir)/include
-SUBDIRS = cpu debug dos fpu gui hardware libs ints misc shell builtin platform mt32
-@HAVE_WINDRES_TRUE@ico_stuff = winres.rc
-dosbox_x_SOURCES = dosbox.cpp $(ico_stuff)
-dosbox_x_LDADD = debug/libdebug.a dos/libdos.a shell/libshell.a \
-	builtin/libbuiltin.a ints/libints.a misc/libmisc.a \
-	hardware/serialport/libserial.a hardware/parport/libparallel.a \
-	libs/porttalk/libporttalk.a gui/libgui.a \
-	libs/gui_tk/libgui_tk.a hardware/libhardware.a cpu/libcpu.a \
-	hardware/reSID/libresid.a fpu/libfpu.a gui/libgui.a \
-	$(am__append_1)
-EXTRA_DIST = winres.rc dosbox.ico
-all: all-recursive
+noinst_LIBRARIES = $(am__append_1)
+libmt32_a_SOURCES = $(am__append_2)
+all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .cpp .o .obj .rc
+.SUFFIXES: .cpp .o .obj
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -337,9 +337,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign src/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign src/mt32/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign src/Makefile
+	  $(AUTOMAKE) --foreign src/mt32/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -358,60 +358,66 @@ $(top_srcdir)/configure:  $(am__configure_deps)
 $(ACLOCAL_M4):  $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
-install-binPROGRAMS: $(bin_PROGRAMS)
-	@$(NORMAL_INSTALL)
-	@list='$(bin_PROGRAMS)'; test -n "$(bindir)" || list=; \
-	if test -n "$$list"; then \
-	  echo " $(MKDIR_P) '$(DESTDIR)$(bindir)'"; \
-	  $(MKDIR_P) "$(DESTDIR)$(bindir)" || exit 1; \
-	fi; \
-	for p in $$list; do echo "$$p $$p"; done | \
-	sed 's/$(EXEEXT)$$//' | \
-	while read p p1; do if test -f $$p \
-	  ; then echo "$$p"; echo "$$p"; else :; fi; \
-	done | \
-	sed -e 'p;s,.*/,,;n;h' \
-	    -e 's|.*|.|' \
-	    -e 'p;x;s,.*/,,;s/$(EXEEXT)$$//;$(transform);s/$$/$(EXEEXT)/' | \
-	sed 'N;N;N;s,\n, ,g' | \
-	$(AWK) 'BEGIN { files["."] = ""; dirs["."] = 1 } \
-	  { d=$$3; if (dirs[d] != 1) { print "d", d; dirs[d] = 1 } \
-	    if ($$2 == $$4) files[d] = files[d] " " $$1; \
-	    else { print "f", $$3 "/" $$4, $$1; } } \
-	  END { for (d in files) print "f", d, files[d] }' | \
-	while read type dir files; do \
-	    if test "$$dir" = .; then dir=; else dir=/$$dir; fi; \
-	    test -z "$$files" || { \
-	      echo " $(INSTALL_PROGRAM_ENV) $(INSTALL_PROGRAM) $$files '$(DESTDIR)$(bindir)$$dir'"; \
-	      $(INSTALL_PROGRAM_ENV) $(INSTALL_PROGRAM) $$files "$(DESTDIR)$(bindir)$$dir" || exit $$?; \
-	    } \
-	; done
 
-uninstall-binPROGRAMS:
-	@$(NORMAL_UNINSTALL)
-	@list='$(bin_PROGRAMS)'; test -n "$(bindir)" || list=; \
-	files=`for p in $$list; do echo "$$p"; done | \
-	  sed -e 'h;s,^.*/,,;s/$(EXEEXT)$$//;$(transform)' \
-	      -e 's/$$/$(EXEEXT)/' \
-	`; \
-	test -n "$$list" || exit 0; \
-	echo " ( cd '$(DESTDIR)$(bindir)' && rm -f" $$files ")"; \
-	cd "$(DESTDIR)$(bindir)" && rm -f $$files
+clean-noinstLIBRARIES:
+	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
+freeverb/$(am__dirstamp):
+	@$(MKDIR_P) ./freeverb
+	@: > freeverb/$(am__dirstamp)
+freeverb/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) ./freeverb/$(DEPDIR)
+	@: > freeverb/$(DEPDIR)/$(am__dirstamp)
+./freeverb/allpass.$(OBJEXT): freeverb/$(am__dirstamp) \
+	freeverb/$(DEPDIR)/$(am__dirstamp)
+./freeverb/comb.$(OBJEXT): freeverb/$(am__dirstamp) \
+	freeverb/$(DEPDIR)/$(am__dirstamp)
+./freeverb/revmodel.$(OBJEXT): freeverb/$(am__dirstamp) \
+	freeverb/$(DEPDIR)/$(am__dirstamp)
+sha1/$(am__dirstamp):
+	@$(MKDIR_P) ./sha1
+	@: > sha1/$(am__dirstamp)
+sha1/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) ./sha1/$(DEPDIR)
+	@: > sha1/$(DEPDIR)/$(am__dirstamp)
+./sha1/sha1.$(OBJEXT): sha1/$(am__dirstamp) \
+	sha1/$(DEPDIR)/$(am__dirstamp)
 
-clean-binPROGRAMS:
-	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
-
-dosbox-x$(EXEEXT): $(dosbox_x_OBJECTS) $(dosbox_x_DEPENDENCIES) $(EXTRA_dosbox_x_DEPENDENCIES) 
-	@rm -f dosbox-x$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(dosbox_x_OBJECTS) $(dosbox_x_LDADD) $(LIBS)
+libmt32.a: $(libmt32_a_OBJECTS) $(libmt32_a_DEPENDENCIES) $(EXTRA_libmt32_a_DEPENDENCIES) 
+	$(AM_V_at)-rm -f libmt32.a
+	$(AM_V_AR)$(libmt32_a_AR) libmt32.a $(libmt32_a_OBJECTS) $(libmt32_a_LIBADD)
+	$(AM_V_at)$(RANLIB) libmt32.a
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
+	-rm -f ./freeverb/*.$(OBJEXT)
+	-rm -f ./sha1/*.$(OBJEXT)
 
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dosbox.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/AReverbModel.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/BReverbModel.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DelayReverb.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/File.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FileStream.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FreeverbModel.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/LA32Ramp.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/LA32WaveGenerator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/LegacyWaveGenerator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Part.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Partial.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/PartialManager.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Poly.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ROMInfo.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Synth.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TVA.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TVF.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/TVP.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Tables.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./freeverb/$(DEPDIR)/allpass.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./freeverb/$(DEPDIR)/comb.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./freeverb/$(DEPDIR)/revmodel.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./sha1/$(DEPDIR)/sha1.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -429,61 +435,14 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
-# This directory's subdirectories are mostly independent; you can cd
-# into them and run 'make' without going through this Makefile.
-# To change the values of 'make' variables: instead of editing Makefiles,
-# (1) if the variable is set in 'config.status', edit 'config.status'
-#     (which will cause the Makefiles to be regenerated when you run 'make');
-# (2) otherwise, pass the desired values on the 'make' command line.
-$(am__recursive_targets):
-	@fail=; \
-	if $(am__make_keepgoing); then \
-	  failcom='fail=yes'; \
-	else \
-	  failcom='exit 1'; \
-	fi; \
-	dot_seen=no; \
-	target=`echo $@ | sed s/-recursive//`; \
-	case "$@" in \
-	  distclean-* | maintainer-clean-*) list='$(DIST_SUBDIRS)' ;; \
-	  *) list='$(SUBDIRS)' ;; \
-	esac; \
-	for subdir in $$list; do \
-	  echo "Making $$target in $$subdir"; \
-	  if test "$$subdir" = "."; then \
-	    dot_seen=yes; \
-	    local_target="$$target-am"; \
-	  else \
-	    local_target="$$target"; \
-	  fi; \
-	  ($(am__cd) $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
-	  || eval $$failcom; \
-	done; \
-	if test "$$dot_seen" = "no"; then \
-	  $(MAKE) $(AM_MAKEFLAGS) "$$target-am" || exit 1; \
-	fi; test -z "$$fail"
-
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique
-tags: tags-recursive
+tags: tags-am
 TAGS: tags
 
 tags-am: $(TAGS_DEPENDENCIES) $(am__tagged_files)
 	set x; \
 	here=`pwd`; \
-	if ($(ETAGS) --etags-include --version) >/dev/null 2>&1; then \
-	  include_option=--etags-include; \
-	  empty_fix=.; \
-	else \
-	  include_option=--include; \
-	  empty_fix=; \
-	fi; \
-	list='$(SUBDIRS)'; for subdir in $$list; do \
-	  if test "$$subdir" = .; then :; else \
-	    test ! -f $$subdir/TAGS || \
-	      set "$$@" "$$include_option=$$here/$$subdir/TAGS"; \
-	  fi; \
-	done; \
 	$(am__define_uniq_tagged_files); \
 	shift; \
 	if test -z "$(ETAGS_ARGS)$$*$$unique"; then :; else \
@@ -496,7 +455,7 @@ tags-am: $(TAGS_DEPENDENCIES) $(am__tagged_files)
 	      $$unique; \
 	  fi; \
 	fi
-ctags: ctags-recursive
+ctags: ctags-am
 
 CTAGS: ctags
 ctags-am: $(TAGS_DEPENDENCIES) $(am__tagged_files)
@@ -509,7 +468,7 @@ GTAGS:
 	here=`$(am__cd) $(top_builddir) && pwd` \
 	  && $(am__cd) $(top_srcdir) \
 	  && gtags -i $(GTAGS_ARGS) "$$here"
-cscopelist: cscopelist-recursive
+cscopelist: cscopelist-am
 
 cscopelist-am: $(am__tagged_files)
 	list='$(am__tagged_files)'; \
@@ -558,48 +517,19 @@ distdir: $(DISTFILES)
 	    || exit 1; \
 	  fi; \
 	done
-	@list='$(DIST_SUBDIRS)'; for subdir in $$list; do \
-	  if test "$$subdir" = .; then :; else \
-	    $(am__make_dryrun) \
-	      || test -d "$(distdir)/$$subdir" \
-	      || $(MKDIR_P) "$(distdir)/$$subdir" \
-	      || exit 1; \
-	    dir1=$$subdir; dir2="$(distdir)/$$subdir"; \
-	    $(am__relativize); \
-	    new_distdir=$$reldir; \
-	    dir1=$$subdir; dir2="$(top_distdir)"; \
-	    $(am__relativize); \
-	    new_top_distdir=$$reldir; \
-	    echo " (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) top_distdir="$$new_top_distdir" distdir="$$new_distdir" \\"; \
-	    echo "     am__remove_distdir=: am__skip_length_check=: am__skip_mode_fix=: distdir)"; \
-	    ($(am__cd) $$subdir && \
-	      $(MAKE) $(AM_MAKEFLAGS) \
-	        top_distdir="$$new_top_distdir" \
-	        distdir="$$new_distdir" \
-		am__remove_distdir=: \
-		am__skip_length_check=: \
-		am__skip_mode_fix=: \
-	        distdir) \
-	      || exit 1; \
-	  fi; \
-	done
 check-am: all-am
-check: check-recursive
-all-am: Makefile $(PROGRAMS)
-installdirs: installdirs-recursive
-installdirs-am:
-	for dir in "$(DESTDIR)$(bindir)"; do \
-	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
-	done
-install: install-recursive
-install-exec: install-exec-recursive
-install-data: install-data-recursive
-uninstall: uninstall-recursive
+check: check-am
+all-am: Makefile $(LIBRARIES)
+installdirs:
+install: install-am
+install-exec: install-exec-am
+install-data: install-data-am
+uninstall: uninstall-am
 
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
 
-installcheck: installcheck-recursive
+installcheck: installcheck-am
 install-strip:
 	if test -z '$(STRIP)'; then \
 	  $(MAKE) $(AM_MAKEFLAGS) INSTALL_PROGRAM="$(INSTALL_STRIP_PROGRAM)" \
@@ -617,98 +547,98 @@ clean-generic:
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
+	-rm -f freeverb/$(DEPDIR)/$(am__dirstamp)
+	-rm -f freeverb/$(am__dirstamp)
+	-rm -f sha1/$(DEPDIR)/$(am__dirstamp)
+	-rm -f sha1/$(am__dirstamp)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-clean: clean-recursive
+clean: clean-am
 
-clean-am: clean-binPROGRAMS clean-generic mostlyclean-am
+clean-am: clean-generic clean-noinstLIBRARIES mostlyclean-am
 
-distclean: distclean-recursive
-	-rm -rf ./$(DEPDIR)
+distclean: distclean-am
+	-rm -rf ./$(DEPDIR) ./freeverb/$(DEPDIR) ./sha1/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
 
-dvi: dvi-recursive
+dvi: dvi-am
 
 dvi-am:
 
-html: html-recursive
+html: html-am
 
 html-am:
 
-info: info-recursive
+info: info-am
 
 info-am:
 
 install-data-am:
 
-install-dvi: install-dvi-recursive
+install-dvi: install-dvi-am
 
 install-dvi-am:
 
-install-exec-am: install-binPROGRAMS
+install-exec-am:
 
-install-html: install-html-recursive
+install-html: install-html-am
 
 install-html-am:
 
-install-info: install-info-recursive
+install-info: install-info-am
 
 install-info-am:
 
 install-man:
 
-install-pdf: install-pdf-recursive
+install-pdf: install-pdf-am
 
 install-pdf-am:
 
-install-ps: install-ps-recursive
+install-ps: install-ps-am
 
 install-ps-am:
 
 installcheck-am:
 
-maintainer-clean: maintainer-clean-recursive
-	-rm -rf ./$(DEPDIR)
+maintainer-clean: maintainer-clean-am
+	-rm -rf ./$(DEPDIR) ./freeverb/$(DEPDIR) ./sha1/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
-mostlyclean: mostlyclean-recursive
+mostlyclean: mostlyclean-am
 
 mostlyclean-am: mostlyclean-compile mostlyclean-generic
 
-pdf: pdf-recursive
+pdf: pdf-am
 
 pdf-am:
 
-ps: ps-recursive
+ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-binPROGRAMS
+uninstall-am:
 
-.MAKE: $(am__recursive_targets) install-am install-strip
+.MAKE: install-am install-strip
 
-.PHONY: $(am__recursive_targets) CTAGS GTAGS TAGS all all-am check \
-	check-am clean clean-binPROGRAMS clean-generic cscopelist-am \
-	ctags ctags-am distclean distclean-compile distclean-generic \
-	distclean-tags distdir dvi dvi-am html html-am info info-am \
-	install install-am install-binPROGRAMS install-data \
-	install-data-am install-dvi install-dvi-am install-exec \
-	install-exec-am install-html install-html-am install-info \
-	install-info-am install-man install-pdf install-pdf-am \
-	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs installdirs-am maintainer-clean \
+.PHONY: CTAGS GTAGS TAGS all all-am check check-am clean clean-generic \
+	clean-noinstLIBRARIES cscopelist-am ctags ctags-am distclean \
+	distclean-compile distclean-generic distclean-tags distdir dvi \
+	dvi-am html html-am info info-am install install-am \
+	install-data install-data-am install-dvi install-dvi-am \
+	install-exec install-exec-am install-html install-html-am \
+	install-info install-info-am install-man install-pdf \
+	install-pdf-am install-ps install-ps-am install-strip \
+	installcheck installcheck-am installdirs maintainer-clean \
 	maintainer-clean-generic mostlyclean mostlyclean-compile \
 	mostlyclean-generic pdf pdf-am ps ps-am tags tags-am uninstall \
-	uninstall-am uninstall-binPROGRAMS
+	uninstall-am
 
-
-.rc.o:
-	$(WINDRES) -o $@ $<
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

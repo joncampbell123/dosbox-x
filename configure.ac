@@ -636,6 +636,7 @@ src/debug/Makefile
 src/dos/Makefile
 src/fpu/Makefile
 src/gui/Makefile
+src/mt32/Makefile
 src/hardware/Makefile
 src/hardware/serialport/Makefile
 src/hardware/reSID/Makefile
