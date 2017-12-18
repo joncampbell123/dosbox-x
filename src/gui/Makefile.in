@@ -110,17 +110,13 @@ am__libgui_a_SOURCES_DIST = sdlmain_linux.cpp sdlmain.cpp \
 	render_templates_hq2x.h render_templates_hq3x.h midi.cpp \
 	midi_win32.h midi_oss.h midi_coreaudio.h midi_alsa.h \
 	direct3d.cpp direct3d.h hq2x_d3d.cpp hq2x_d3d.h \
-	midi_coremidi.h sdl_gui.cpp dosbox_splash.h menu.cpp guid.cpp \
-	ksdataformat.cpp riff.cpp riff_wav_writer.cpp avi_rw_iobuf.cpp \
-	avi_writer.cpp midi_mt32.h
+	midi_coremidi.h sdl_gui.cpp dosbox_splash.h menu.cpp \
+	midi_mt32.h
 am__objects_1 =
 am_libgui_a_OBJECTS = sdlmain_linux.$(OBJEXT) sdlmain.$(OBJEXT) \
 	sdl_mapper.$(OBJEXT) render.$(OBJEXT) render_scalers.$(OBJEXT) \
 	midi.$(OBJEXT) direct3d.$(OBJEXT) hq2x_d3d.$(OBJEXT) \
-	sdl_gui.$(OBJEXT) menu.$(OBJEXT) guid.$(OBJEXT) \
-	ksdataformat.$(OBJEXT) riff.$(OBJEXT) \
-	riff_wav_writer.$(OBJEXT) avi_rw_iobuf.$(OBJEXT) \
-	avi_writer.$(OBJEXT) $(am__objects_1)
+	sdl_gui.$(OBJEXT) menu.$(OBJEXT) $(am__objects_1)
 libgui_a_OBJECTS = $(am_libgui_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -299,7 +295,8 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-AM_CPPFLAGS = -I$(top_srcdir)/include $(am__append_1)
+AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/src/aviwriter \
+	$(am__append_1)
 noinst_LIBRARIES = libgui.a
 libgui_a_SOURCES = sdlmain_linux.cpp sdlmain.cpp sdl_mapper.cpp \
 	dosbox_logo.h render.cpp render_scalers.cpp render_scalers.h \
@@ -308,9 +305,8 @@ libgui_a_SOURCES = sdlmain_linux.cpp sdlmain.cpp sdl_mapper.cpp \
 	render_templates_hq2x.h render_templates_hq3x.h midi.cpp \
 	midi_win32.h midi_oss.h midi_coreaudio.h midi_alsa.h \
 	direct3d.cpp direct3d.h hq2x_d3d.cpp hq2x_d3d.h \
-	midi_coremidi.h sdl_gui.cpp dosbox_splash.h menu.cpp guid.cpp \
-	ksdataformat.cpp riff.cpp riff_wav_writer.cpp avi_rw_iobuf.cpp \
-	avi_writer.cpp $(am__append_2)
+	midi_coremidi.h sdl_gui.cpp dosbox_splash.h menu.cpp \
+	$(am__append_2)
 all: all-am
 
 .SUFFIXES:
@@ -360,18 +356,12 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/avi_rw_iobuf.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/avi_writer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/direct3d.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/guid.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hq2x_d3d.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ksdataformat.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/menu.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/midi.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/render.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/render_scalers.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/riff.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/riff_wav_writer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sdl_gui.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sdl_mapper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sdlmain.Po@am__quote@
