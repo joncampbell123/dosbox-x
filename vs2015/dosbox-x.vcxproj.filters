@@ -21,6 +21,24 @@
     <Filter Include="Header Files\AVI writer">
       <UniqueIdentifier>{eac68993-a0c2-45d9-bc5c-38d185d202e2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\MT32 emulation">
+      <UniqueIdentifier>{f4dc3af5-1295-4232-864c-5863c53e68bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\MT32 emulation">
+      <UniqueIdentifier>{147d8a4c-b582-4331-9fc9-b3fa8ff9c2f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\MT32 emulation\SHA-1">
+      <UniqueIdentifier>{f82150d5-fd0b-4c19-aba9-55f13391e2f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\MT32 emulation\SHA-1">
+      <UniqueIdentifier>{5cbc5d19-72c7-41da-b172-2d0027ddb2c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\MT32 emulation\FreeVerb">
+      <UniqueIdentifier>{bcb85ca6-5afa-4f30-a482-219bb26833c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\MT32 emulation\FreeVerb">
+      <UniqueIdentifier>{5f802a7c-626b-4833-b672-38374e3b4326}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\hardware\adlib.cpp">
@@ -569,75 +587,6 @@
     <ClCompile Include="..\src\hardware\nukedopl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\mt32\LA32Ramp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mt32\AReverbModel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mt32\BReverbModel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mt32\DelayReverb.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mt32\FreeverbModel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mt32\LA32WaveGenerator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mt32\LegacyWaveGenerator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mt32\Part.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mt32\Partial.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mt32\PartialManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mt32\Poly.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mt32\ROMInfo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mt32\TVA.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mt32\TVF.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mt32\TVP.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mt32\FileStream.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mt32\File.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mt32\freeverb\allpass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mt32\freeverb\comb.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mt32\freeverb\revmodel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mt32\sha1\sha1.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mt32\Synth.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\mt32\Tables.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\aviwriter\avi_writer.cpp">
       <Filter>Source Files\AVI writer</Filter>
     </ClCompile>
@@ -656,6 +605,75 @@
     <ClCompile Include="..\src\aviwriter\riff_wav_writer.cpp">
       <Filter>Source Files\AVI writer</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\mt32\AReverbModel.cpp">
+      <Filter>Source Files\MT32 emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mt32\BReverbModel.cpp">
+      <Filter>Source Files\MT32 emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mt32\DelayReverb.cpp">
+      <Filter>Source Files\MT32 emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mt32\File.cpp">
+      <Filter>Source Files\MT32 emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mt32\FileStream.cpp">
+      <Filter>Source Files\MT32 emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mt32\FreeverbModel.cpp">
+      <Filter>Source Files\MT32 emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mt32\LA32Ramp.cpp">
+      <Filter>Source Files\MT32 emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mt32\LA32WaveGenerator.cpp">
+      <Filter>Source Files\MT32 emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mt32\LegacyWaveGenerator.cpp">
+      <Filter>Source Files\MT32 emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mt32\Part.cpp">
+      <Filter>Source Files\MT32 emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mt32\Partial.cpp">
+      <Filter>Source Files\MT32 emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mt32\PartialManager.cpp">
+      <Filter>Source Files\MT32 emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mt32\Poly.cpp">
+      <Filter>Source Files\MT32 emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mt32\ROMInfo.cpp">
+      <Filter>Source Files\MT32 emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mt32\Synth.cpp">
+      <Filter>Source Files\MT32 emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mt32\Tables.cpp">
+      <Filter>Source Files\MT32 emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mt32\TVA.cpp">
+      <Filter>Source Files\MT32 emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mt32\TVF.cpp">
+      <Filter>Source Files\MT32 emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mt32\TVP.cpp">
+      <Filter>Source Files\MT32 emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mt32\sha1\sha1.cpp">
+      <Filter>Source Files\MT32 emulation\SHA-1</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mt32\freeverb\allpass.cpp">
+      <Filter>Source Files\MT32 emulation\FreeVerb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mt32\freeverb\comb.cpp">
+      <Filter>Source Files\MT32 emulation\FreeVerb</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mt32\freeverb\revmodel.cpp">
+      <Filter>Source Files\MT32 emulation\FreeVerb</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\winres.rc">
@@ -663,18 +681,6 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\avi.h">
-      <Filter>Header Files\AVI writer</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\avi_rw_iobuf.h">
-      <Filter>Header Files\AVI writer</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\avi_writer.h">
-      <Filter>Header Files\AVI writer</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\guid.h">
-      <Filter>Header Files\AVI writer</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\aviwriter\guid.h">
       <Filter>Header Files\AVI writer</Filter>
     </ClInclude>
@@ -684,13 +690,7 @@
     <ClInclude Include="..\src\aviwriter\riff.h">
       <Filter>Header Files\AVI writer</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\riff.h">
-      <Filter>Header Files\AVI writer</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\aviwriter\riff_wav_writer.h">
-      <Filter>Header Files\AVI writer</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\riff_wav_writer.h">
       <Filter>Header Files\AVI writer</Filter>
     </ClInclude>
     <ClInclude Include="..\src\aviwriter\avi.h">
@@ -701,6 +701,90 @@
     </ClInclude>
     <ClInclude Include="..\src\aviwriter\avi_writer.h">
       <Filter>Header Files\AVI writer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mt32\TVP.h">
+      <Filter>Header Files\MT32 emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mt32\AReverbModel.h">
+      <Filter>Header Files\MT32 emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mt32\BReverbModel.h">
+      <Filter>Header Files\MT32 emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mt32\DelayReverb.h">
+      <Filter>Header Files\MT32 emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mt32\File.h">
+      <Filter>Header Files\MT32 emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mt32\FileStream.h">
+      <Filter>Header Files\MT32 emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mt32\FreeverbModel.h">
+      <Filter>Header Files\MT32 emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mt32\LA32WaveGenerator.h">
+      <Filter>Header Files\MT32 emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mt32\LegacyWaveGenerator.h">
+      <Filter>Header Files\MT32 emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mt32\mmath.h">
+      <Filter>Header Files\MT32 emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mt32\mt32emu.h">
+      <Filter>Header Files\MT32 emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mt32\Part.h">
+      <Filter>Header Files\MT32 emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mt32\Partial.h">
+      <Filter>Header Files\MT32 emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mt32\PartialManager.h">
+      <Filter>Header Files\MT32 emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mt32\Poly.h">
+      <Filter>Header Files\MT32 emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mt32\ROMInfo.h">
+      <Filter>Header Files\MT32 emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mt32\Structures.h">
+      <Filter>Header Files\MT32 emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mt32\Synth.h">
+      <Filter>Header Files\MT32 emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mt32\Tables.h">
+      <Filter>Header Files\MT32 emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mt32\TVA.h">
+      <Filter>Header Files\MT32 emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mt32\TVF.h">
+      <Filter>Header Files\MT32 emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mt32\sha1\sha1.h">
+      <Filter>Header Files\MT32 emulation\SHA-1</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mt32\freeverb\allpass.h">
+      <Filter>Header Files\MT32 emulation\FreeVerb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mt32\freeverb\comb.h">
+      <Filter>Header Files\MT32 emulation\FreeVerb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mt32\freeverb\denormals.h">
+      <Filter>Header Files\MT32 emulation\FreeVerb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mt32\freeverb\revmodel.h">
+      <Filter>Header Files\MT32 emulation\FreeVerb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mt32\freeverb\tuning.h">
+      <Filter>Header Files\MT32 emulation\FreeVerb</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\mt32\LA32Ramp.h">
+      <Filter>Header Files\MT32 emulation</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

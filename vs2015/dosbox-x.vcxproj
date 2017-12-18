@@ -775,12 +775,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\avi.h" />
-    <ClInclude Include="..\include\avi_rw_iobuf.h" />
-    <ClInclude Include="..\include\avi_writer.h" />
-    <ClInclude Include="..\include\guid.h" />
-    <ClInclude Include="..\include\riff.h" />
-    <ClInclude Include="..\include\riff_wav_writer.h" />
     <ClInclude Include="..\src\aviwriter\avi.h" />
     <ClInclude Include="..\src\aviwriter\avi_rw_iobuf.h" />
     <ClInclude Include="..\src\aviwriter\avi_writer.h" />
@@ -788,6 +782,34 @@
     <ClInclude Include="..\src\aviwriter\ksdataformat.h" />
     <ClInclude Include="..\src\aviwriter\riff.h" />
     <ClInclude Include="..\src\aviwriter\riff_wav_writer.h" />
+    <ClInclude Include="..\src\mt32\AReverbModel.h" />
+    <ClInclude Include="..\src\mt32\BReverbModel.h" />
+    <ClInclude Include="..\src\mt32\DelayReverb.h" />
+    <ClInclude Include="..\src\mt32\File.h" />
+    <ClInclude Include="..\src\mt32\FileStream.h" />
+    <ClInclude Include="..\src\mt32\FreeverbModel.h" />
+    <ClInclude Include="..\src\mt32\freeverb\allpass.h" />
+    <ClInclude Include="..\src\mt32\freeverb\comb.h" />
+    <ClInclude Include="..\src\mt32\freeverb\denormals.h" />
+    <ClInclude Include="..\src\mt32\freeverb\revmodel.h" />
+    <ClInclude Include="..\src\mt32\freeverb\tuning.h" />
+    <ClInclude Include="..\src\mt32\LA32Ramp.h" />
+    <ClInclude Include="..\src\mt32\LA32WaveGenerator.h" />
+    <ClInclude Include="..\src\mt32\LegacyWaveGenerator.h" />
+    <ClInclude Include="..\src\mt32\mmath.h" />
+    <ClInclude Include="..\src\mt32\mt32emu.h" />
+    <ClInclude Include="..\src\mt32\Part.h" />
+    <ClInclude Include="..\src\mt32\Partial.h" />
+    <ClInclude Include="..\src\mt32\PartialManager.h" />
+    <ClInclude Include="..\src\mt32\Poly.h" />
+    <ClInclude Include="..\src\mt32\ROMInfo.h" />
+    <ClInclude Include="..\src\mt32\sha1\sha1.h" />
+    <ClInclude Include="..\src\mt32\Structures.h" />
+    <ClInclude Include="..\src\mt32\Synth.h" />
+    <ClInclude Include="..\src\mt32\Tables.h" />
+    <ClInclude Include="..\src\mt32\TVA.h" />
+    <ClInclude Include="..\src\mt32\TVF.h" />
+    <ClInclude Include="..\src\mt32\TVP.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
