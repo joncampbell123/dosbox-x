@@ -774,6 +774,21 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\avi.h" />
+    <ClInclude Include="..\include\avi_rw_iobuf.h" />
+    <ClInclude Include="..\include\avi_writer.h" />
+    <ClInclude Include="..\include\guid.h" />
+    <ClInclude Include="..\include\riff.h" />
+    <ClInclude Include="..\include\riff_wav_writer.h" />
+    <ClInclude Include="..\src\aviwriter\avi.h" />
+    <ClInclude Include="..\src\aviwriter\avi_rw_iobuf.h" />
+    <ClInclude Include="..\src\aviwriter\avi_writer.h" />
+    <ClInclude Include="..\src\aviwriter\guid.h" />
+    <ClInclude Include="..\src\aviwriter\ksdataformat.h" />
+    <ClInclude Include="..\src\aviwriter\riff.h" />
+    <ClInclude Include="..\src\aviwriter\riff_wav_writer.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

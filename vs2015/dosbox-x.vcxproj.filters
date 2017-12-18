@@ -13,6 +13,14 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
+    <Filter Include="Source Files\AVI writer">
+      <UniqueIdentifier>{69c74d43-947a-4458-bf84-f31dae4a1973}</UniqueIdentifier>
+      <Extensions>
+      </Extensions>
+    </Filter>
+    <Filter Include="Header Files\AVI writer">
+      <UniqueIdentifier>{eac68993-a0c2-45d9-bc5c-38d185d202e2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\hardware\adlib.cpp">
@@ -567,12 +575,6 @@
     <ClCompile Include="..\src\mt32\AReverbModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\aviwriter\avi_rw_iobuf.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\aviwriter\avi_writer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\mt32\BReverbModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -636,22 +638,69 @@
     <ClCompile Include="..\src\mt32\Tables.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\aviwriter\avi_writer.cpp">
+      <Filter>Source Files\AVI writer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\aviwriter\avi_rw_iobuf.cpp">
+      <Filter>Source Files\AVI writer</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\aviwriter\guid.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\AVI writer</Filter>
     </ClCompile>
     <ClCompile Include="..\src\aviwriter\ksdataformat.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\AVI writer</Filter>
     </ClCompile>
     <ClCompile Include="..\src\aviwriter\riff.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\AVI writer</Filter>
     </ClCompile>
     <ClCompile Include="..\src\aviwriter\riff_wav_writer.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\AVI writer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\winres.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\avi.h">
+      <Filter>Header Files\AVI writer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\avi_rw_iobuf.h">
+      <Filter>Header Files\AVI writer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\avi_writer.h">
+      <Filter>Header Files\AVI writer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\guid.h">
+      <Filter>Header Files\AVI writer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\aviwriter\guid.h">
+      <Filter>Header Files\AVI writer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\aviwriter\ksdataformat.h">
+      <Filter>Header Files\AVI writer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\aviwriter\riff.h">
+      <Filter>Header Files\AVI writer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\riff.h">
+      <Filter>Header Files\AVI writer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\aviwriter\riff_wav_writer.h">
+      <Filter>Header Files\AVI writer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\riff_wav_writer.h">
+      <Filter>Header Files\AVI writer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\aviwriter\avi.h">
+      <Filter>Header Files\AVI writer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\aviwriter\avi_rw_iobuf.h">
+      <Filter>Header Files\AVI writer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\aviwriter\avi_writer.h">
+      <Filter>Header Files\AVI writer</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
