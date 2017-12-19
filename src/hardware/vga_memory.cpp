@@ -29,6 +29,8 @@
 #include "inout.h"
 #include "setup.h"
 #include "cpu.h"
+#include "pc98_cg.h"
+#include "pc98_gdc.h"
 
 #ifndef C_VGARAM_CHECKED
 #define C_VGARAM_CHECKED 1
