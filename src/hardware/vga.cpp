@@ -161,6 +161,8 @@ bool enable_vga_resize_delay = false;
 bool vga_ignore_hdispend_change_if_smaller = false;
 bool ignore_vblank_wraparound = false;
 bool vga_double_buffered_line_compare = false;
+bool pc98_allow_scanline_effect = true;
+bool pc98_allow_4_display_partitions = false;
 
 unsigned int vga_display_start_hretrace = 0;
 float hretrace_fx_avg_weight = 3;
@@ -447,9 +449,6 @@ static inline int int_log2(int val) {
 
 extern bool pcibus_enable;
 extern int hack_lfb_yadjust;
-
-bool pc98_allow_scanline_effect = true;
-bool pc98_allow_4_display_partitions = false;
 
 void VGA_VsyncUpdateMode(VGA_Vsync vsyncmode);
 
