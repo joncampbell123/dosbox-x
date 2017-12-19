@@ -27,37 +27,6 @@
 
 #define VGA_LFB_MAPPED
 
-union pc98_tile {
-    uint8_t                 b[2];
-    uint16_t                w;
-};
-
-typedef union pc98_tile egc_quad[4];
-
-extern uint32_t                    pc98_text_palette[8];
-
-extern struct PC98_GDC_state       pc98_gdc[2];
-extern egc_quad                    pc98_gdc_tiles;
-extern uint8_t                     pc98_gdc_vramop;
-extern uint8_t                     pc98_gdc_modereg;
-
-// VOPBIT_* source: Neko Project II
-
-// operate:		bit0	access page
-//				bit1	egc enable
-//				bit2	grcg bit6
-//				bit3	grcg bit7
-//				bit4	analog enable (16/256-color mode). 8-color mode if not.
-//				bit5	pc9821 vga
-
-enum {
-	VOPBIT_ACCESS	= 0,
-	VOPBIT_EGC		= 1,
-	VOPBIT_GRCG		= 2,
-	VOPBIT_ANALOG	= 4,
-	VOPBIT_VGA		= 5
-};
-
 class PageHandler;
 
 enum VGAModes {
