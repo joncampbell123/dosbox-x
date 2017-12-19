@@ -142,8 +142,10 @@
 
 using namespace std;
 
-extern int vga_memio_delay_ns;
-extern bool gdc_5mhz_mode;
+extern int                          vga_memio_delay_ns;
+extern bool                         gdc_5mhz_mode;
+extern bool                         GDC_vsync_interrupt;
+extern uint8_t                      GDC_display_plane;
 
 VGA_Type vga;
 SVGA_Driver svga;
@@ -712,8 +714,6 @@ egc_quad                    pc98_gdc_tiles;
 uint8_t                     pc98_egc_srcmask[2]; /* host given (Neko: egc.srcmask) */
 uint8_t                     pc98_egc_maskef[2]; /* effective (Neko: egc.mask2) */
 uint8_t                     pc98_egc_mask[2]; /* host given (Neko: egc.mask) */
-bool                        GDC_vsync_interrupt = false;
-uint8_t                     GDC_display_plane = false;
 
 void pc98_crtc_write(Bitu port,Bitu val,Bitu iolen) {
     switch (port&0xE) {

@@ -24,7 +24,7 @@
 
 using namespace std;
 
-bool                        gdc_5mhz_mode = false;
+extern bool                 gdc_5mhz_mode;
 
 double                      gdc_proc_delay = 0.001; /* time from FIFO to processing in GDC (1us) FIXME: Is this right? */
 bool                        gdc_proc_delay_set = false;
