@@ -163,6 +163,8 @@ bool ignore_vblank_wraparound = false;
 bool vga_double_buffered_line_compare = false;
 bool pc98_allow_scanline_effect = true;
 bool pc98_allow_4_display_partitions = false;
+bool pc98_graphics_hide_odd_raster_200line = false;
+bool gdc_analog = true;
 
 unsigned int vga_display_start_hretrace = 0;
 float hretrace_fx_avg_weight = 3;
@@ -703,33 +705,6 @@ void VGA_UnsetupSEQ(void);
 #define seq(blah) vga.seq.blah
 #define crtc(blah) vga.crtc.blah
 
-double gdc_proc_delay = 0.001; /* time from FIFO to processing in GDC (1us) FIXME: Is this right? */
-bool gdc_proc_delay_set = false;
-
-void GDC_ProcDelay(Bitu /*val*/);
-
-void gdc_proc_schedule_delay(void) {
-    if (!gdc_proc_delay_set) {
-        PIC_AddEvent(GDC_ProcDelay,(float)gdc_proc_delay);
-        gdc_proc_delay_set = false;
-    }
-}
-
-void gdc_proc_schedule_cancel(void) {
-    if (gdc_proc_delay_set) {
-        PIC_RemoveEvents(GDC_ProcDelay);
-        gdc_proc_delay_set = false;
-    }
-}
-
-void gdc_proc_schedule_done(void) {
-    gdc_proc_delay_set = false;
-}
-
-void PC98_show_cursor(bool show) {
-    pc98_gdc[GDC_MASTER].cursor_enable = show;
-}
-
 void VGA_DAC_UpdateColor( Bitu index );
 
 uint32_t                    pc98_text_palette[8];
@@ -756,13 +731,6 @@ static inline unsigned char dac_4to6(unsigned char c4) {
     return (c4 << 2) | (c4 >> 2);
 }
 
-void GDC_ProcDelay(Bitu /*val*/) {
-    gdc_proc_schedule_done();
-
-    for (unsigned int i=0;i < 2;i++)
-        pc98_gdc[i].idle_proc(); // may schedule another delayed proc
-}
-
 void pc98_crtc_write(Bitu port,Bitu val,Bitu iolen) {
     switch (port&0xE) {
         case 0x0C:      // 0x7C: mode reg / vram operation mode (also, reset tile counter)
@@ -787,8 +755,6 @@ Bitu pc98_crtc_read(Bitu port,Bitu iolen) {
     return ~0;
 }
 
-bool pc98_graphics_hide_odd_raster_200line = false;
-
 /* Character Generator (CG) font access state */
 uint16_t a1_font_load_addr = 0;
 uint8_t a1_font_char_offset = 0;
@@ -805,8 +771,6 @@ void pc98_port68_command_write(unsigned char b) {
             break;
     };
 }
-
-bool gdc_analog = true;
 
 uint8_t pc98_egc_fgc = 0;
 uint8_t pc98_egc_lead_plane = 0;
@@ -1417,7 +1381,6 @@ void VGA_OnEnterPC98(Section *sec) {
     for (unsigned int i=0;i < 4;i++) pc98_gdc_tiles[i].w = 0;
 
     /* 200-line tradition on PC-98 seems to be to render only every other scanline */
-    /* TODO: Allow user to override this bit if the "raster" effect is undesired */
     pc98_graphics_hide_odd_raster_200line = true;
 
     // as a transition to PC-98 GDC emulation, move VGA alphanumeric buffer

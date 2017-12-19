@@ -24,9 +24,14 @@
 
 using namespace std;
 
+double gdc_proc_delay = 0.001; /* time from FIFO to processing in GDC (1us) FIXME: Is this right? */
+bool gdc_proc_delay_set = false;
+
 void gdc_proc_schedule_delay(void);
 void gdc_proc_schedule_cancel(void);
 void gdc_proc_schedule_done(void);
+void GDC_ProcDelay(Bitu /*val*/);
+void PC98_show_cursor(bool show);
 
 PC98_GDC_state::PC98_GDC_state() {
     memset(param_ram,0,sizeof(param_ram));
@@ -498,5 +503,34 @@ uint8_t PC98_GDC_state::rfifo_read_data(void) {
     }
 
     return ret;
+}
+
+void gdc_proc_schedule_delay(void) {
+    if (!gdc_proc_delay_set) {
+        PIC_AddEvent(GDC_ProcDelay,(float)gdc_proc_delay);
+        gdc_proc_delay_set = false;
+    }
+}
+
+void gdc_proc_schedule_cancel(void) {
+    if (gdc_proc_delay_set) {
+        PIC_RemoveEvents(GDC_ProcDelay);
+        gdc_proc_delay_set = false;
+    }
+}
+
+void gdc_proc_schedule_done(void) {
+    gdc_proc_delay_set = false;
+}
+
+void PC98_show_cursor(bool show) {
+    pc98_gdc[GDC_MASTER].cursor_enable = show;
+}
+
+void GDC_ProcDelay(Bitu /*val*/) {
+    gdc_proc_schedule_done();
+
+    for (unsigned int i=0;i < 2;i++)
+        pc98_gdc[i].idle_proc(); // may schedule another delayed proc
 }
 
