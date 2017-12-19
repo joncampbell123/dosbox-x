@@ -35,6 +35,8 @@
 #include "timer.h"
 #include "config.h"
 #include "control.h"
+#include "pc98_gdc.h"
+#include "pc98_gdc_const.h"
 
 //#undef C_DEBUG
 //#define C_DEBUG 1
