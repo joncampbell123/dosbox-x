@@ -3708,7 +3708,8 @@ void GFX_Events() {
         case SDL_MOUSEMOTION:
 #if defined(C_SDL2)
             if (touchscreen_finger_lock == no_finger_id &&
-                touchscreen_touch_lock == no_touch_id) {
+                touchscreen_touch_lock == no_touch_id &&
+				event.motion.which != SDL_TOUCH_MOUSEID) { /* don't handle mouse events faked by touchscreen */
                 HandleMouseMotion(&event.motion);
             }
 #else
@@ -3719,7 +3720,8 @@ void GFX_Events() {
         case SDL_MOUSEBUTTONUP:
 #if defined(C_SDL2)
             if (touchscreen_finger_lock == no_finger_id &&
-                touchscreen_touch_lock == no_touch_id) {
+                touchscreen_touch_lock == no_touch_id &&
+				event.button.which != SDL_TOUCH_MOUSEID) { /* don't handle mouse events faked by touchscreen */
                 HandleMouseButton(&event.button);
             }
 #else
