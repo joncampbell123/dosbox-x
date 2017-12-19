@@ -24,6 +24,7 @@ extern bool gdc_5mhz_mode;
 
 void gdc_5mhz_mode_update_vars(void);
 
+/* ====================== PC98UTIL.COM ====================== */
 class PC98UTIL : public Program {
 public:
 	void Run(void) {
@@ -63,5 +64,13 @@ public:
 
 void PC98UTIL_ProgramStart(Program * * make) {
 	*make=new PC98UTIL;
+}
+/*==============================================*/
+
+/* wait-delay I/O port of some kind */
+void pc98_wait_write(Bitu port,Bitu val,Bitu iolen) {
+    unsigned int wait_cycles = (unsigned int)(CPU_CycleMax * 0.0006); /* 0.6us = 0.0006ms */
+
+    CPU_Cycles -= wait_cycles;
 }
 

@@ -143,6 +143,7 @@
 using namespace std;
 
 extern int vga_memio_delay_ns;
+extern bool gdc_5mhz_mode;
 
 VGA_Type vga;
 SVGA_Driver svga;
@@ -180,11 +181,8 @@ bool allow_vesa_8bpp = true;
 bool allow_vesa_4bpp = true;
 bool allow_vesa_tty = true;
 
-bool gdc_5mhz_mode = true;
-
-void gdc_5mhz_mode_update_vars(void) {
-    mem_writeb(0x54D,(mem_readb(0x54D) & (~0x04)) | (gdc_5mhz_mode ? 0x04 : 0x00));
-}
+void gdc_5mhz_mode_update_vars(void);
+void pc98_wait_write(Bitu port,Bitu val,Bitu iolen);
 
 void page_flip_debug_notify() {
 	if (enable_page_flip_debugging_marker)
@@ -881,12 +879,6 @@ void pc98_a1_write(Bitu port,Bitu val,Bitu iolen) {
             LOG_MSG("A1 port %lx val %lx unexpected",port,val);
             break;
     };
-}
-
-void pc98_wait_write(Bitu port,Bitu val,Bitu iolen) {
-    unsigned int wait_cycles = (unsigned int)(CPU_CycleMax * 0.0006); /* 0.6us = 0.0006ms */
-
-    CPU_Cycles -= wait_cycles;
 }
 
 void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
