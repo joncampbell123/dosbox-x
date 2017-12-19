@@ -18,6 +18,8 @@
 #include "pc98_gdc_const.h"
 #include "mixer.h"
 
+extern bool                 pc98_graphics_hide_odd_raster_200line;
+
 bool                        gdc_5mhz_mode = false;
 bool                        GDC_vsync_interrupt = false;
 uint8_t                     GDC_display_plane = false;
@@ -82,6 +84,19 @@ void pc98_port6A_command_write(unsigned char b) {
             break;
         default:
             LOG_MSG("PC-98 port 6Ah unknown command 0x%02x",b);
+            break;
+    };
+}
+
+/* Port 0x68 command handling */
+void pc98_port68_command_write(unsigned char b) {
+    switch (b) {
+        case 0x08: // 200-line mode: show odd raster
+        case 0x09: //                don't show odd raster
+            pc98_graphics_hide_odd_raster_200line = !!(b&1);
+            break;
+        default:
+            LOG_MSG("PC-98 port 68h unknown command 0x%02x",b);
             break;
     };
 }

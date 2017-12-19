@@ -192,6 +192,7 @@ void gdc_5mhz_mode_update_vars(void);
 void pc98_port6A_command_write(unsigned char b);
 void pc98_wait_write(Bitu port,Bitu val,Bitu iolen);
 void pc98_crtc_write(Bitu port,Bitu val,Bitu iolen);
+void pc98_port68_command_write(unsigned char b);
 Bitu pc98_crtc_read(Bitu port,Bitu iolen);
 
 void page_flip_debug_notify() {
@@ -722,19 +723,6 @@ uint8_t                     pc98_egc_mask[2]; /* host given (Neko: egc.mask) */
 /* Character Generator (CG) font access state */
 uint16_t a1_font_load_addr = 0;
 uint8_t a1_font_char_offset = 0;
-
-/* Port 0x68 command handling */
-void pc98_port68_command_write(unsigned char b) {
-    switch (b) {
-        case 0x08: // 200-line mode: show odd raster
-        case 0x09: //                don't show odd raster
-            pc98_graphics_hide_odd_raster_200line = !!(b&1);
-            break;
-        default:
-            LOG_MSG("PC-98 port 68h unknown command 0x%02x",b);
-            break;
-    };
-}
 
 uint8_t pc98_egc_fgc = 0;
 uint8_t pc98_egc_lead_plane = 0;
