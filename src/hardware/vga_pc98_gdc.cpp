@@ -24,8 +24,9 @@
 
 using namespace std;
 
-double gdc_proc_delay = 0.001; /* time from FIFO to processing in GDC (1us) FIXME: Is this right? */
-bool gdc_proc_delay_set = false;
+double                      gdc_proc_delay = 0.001; /* time from FIFO to processing in GDC (1us) FIXME: Is this right? */
+bool                        gdc_proc_delay_set = false;
+struct PC98_GDC_state       pc98_gdc[2];
 
 void gdc_proc_schedule_delay(void);
 void gdc_proc_schedule_cancel(void);

@@ -716,7 +716,6 @@ egc_quad                    pc98_gdc_tiles;
 uint8_t                     pc98_egc_srcmask[2]; /* host given (Neko: egc.srcmask) */
 uint8_t                     pc98_egc_maskef[2]; /* effective (Neko: egc.mask2) */
 uint8_t                     pc98_egc_mask[2]; /* host given (Neko: egc.mask) */
-struct PC98_GDC_state       pc98_gdc[2];
 bool                        GDC_vsync_interrupt = false;
 uint8_t                     GDC_display_plane = false;
 uint8_t                     pc98_16col_analog_rgb_palette_index = 0;
