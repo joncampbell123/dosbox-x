@@ -393,8 +393,12 @@ static void PULSE_SetCaption(_THIS, const char *str)
 	}
 	this->hidden->caption = SDL_strdup(str);
 	if (context != NULL) {
+		/* NTS: pa_context_set_name() seems to have thread locking issues
+                        when running in parallel with the SDL audio thread. */
+		SDL_LockAudio();
 		SDL_NAME(pa_context_set_name)(context, this->hidden->caption,
 		                              caption_set_complete, 0);
+		SDL_UnlockAudio();
 	}
 }
 
