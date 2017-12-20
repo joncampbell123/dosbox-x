@@ -600,6 +600,13 @@
     <ClCompile Include="..\src\dos\drive_local.cpp" />
     <ClCompile Include="..\src\dos\drive_virtual.cpp" />
     <ClCompile Include="..\src\fpu\fpu.cpp" />
+    <ClCompile Include="..\src\hardware\pc98.cpp" />
+    <ClCompile Include="..\src\hardware\pc98_fm.cpp" />
+    <ClCompile Include="..\src\hardware\vga_pc98_cg.cpp" />
+    <ClCompile Include="..\src\hardware\vga_pc98_crtc.cpp" />
+    <ClCompile Include="..\src\hardware\vga_pc98_dac.cpp" />
+    <ClCompile Include="..\src\hardware\vga_pc98_egc.cpp" />
+    <ClCompile Include="..\src\hardware\vga_pc98_gdc.cpp" />
     <ClCompile Include="..\src\mt32\AReverbModel.cpp" />
     <ClCompile Include="..\src\aviwriter\avi_rw_iobuf.cpp" />
     <ClCompile Include="..\src\aviwriter\avi_writer.cpp" />

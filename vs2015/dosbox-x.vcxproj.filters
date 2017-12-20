@@ -677,6 +677,27 @@
     <ClCompile Include="..\src\builtin\xcopy_exe.cpp">
       <Filter>Source Files\Built-in binaries</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\hardware\pc98.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\pc98_fm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\vga_pc98_cg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\vga_pc98_crtc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\vga_pc98_dac.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\vga_pc98_egc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\vga_pc98_gdc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\winres.rc">
