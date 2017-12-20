@@ -909,6 +909,15 @@
     <ClInclude Include="..\src\hardware\parport\printer_if.h" />
     <ClInclude Include="..\src\hardware\parport\printer_redir.h" />
     <ClInclude Include="..\src\hardware\pci_devices.h" />
+    <ClInclude Include="..\src\hardware\reSID\envelope.h" />
+    <ClInclude Include="..\src\hardware\reSID\extfilt.h" />
+    <ClInclude Include="..\src\hardware\reSID\filter.h" />
+    <ClInclude Include="..\src\hardware\reSID\pot.h" />
+    <ClInclude Include="..\src\hardware\reSID\sid.h" />
+    <ClInclude Include="..\src\hardware\reSID\siddefs.h" />
+    <ClInclude Include="..\src\hardware\reSID\spline.h" />
+    <ClInclude Include="..\src\hardware\reSID\voice.h" />
+    <ClInclude Include="..\src\hardware\reSID\wave.h" />
     <ClInclude Include="..\src\hardware\serialport\directserial.h" />
     <ClInclude Include="..\src\hardware\serialport\libserial.h" />
     <ClInclude Include="..\src\hardware\serialport\misc_util.h" />

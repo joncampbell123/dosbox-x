@@ -42,6 +42,12 @@
     <Filter Include="Source Files\Built-in binaries">
       <UniqueIdentifier>{bfd5beba-d4c8-4fee-bea9-f23386c463e0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\reSID emulation">
+      <UniqueIdentifier>{a8b821d5-2e02-4bae-a7d5-5c1db3823a9a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\reSID emulation">
+      <UniqueIdentifier>{899b8805-88da-4413-8741-b4209b513750}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\hardware\adlib.cpp">
@@ -194,16 +200,7 @@
     <ClCompile Include="..\src\ints\ems.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\hardware\reSID\envelope.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\reSID\extfilt.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\hardware\parport\filelpt.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\reSID\filter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cpu\flags.cpp">
@@ -344,9 +341,6 @@
     <ClCompile Include="..\src\libs\porttalk\porttalk.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\hardware\reSID\pot.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\hardware\parport\printer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -404,9 +398,6 @@
     <ClCompile Include="..\src\shell\shell_misc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\hardware\reSID\sid.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\hardware\serialport\softmodem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -417,9 +408,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\hardware\timer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\reSID\version.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\hardware\vga.cpp">
@@ -464,9 +452,6 @@
     <ClCompile Include="..\src\hardware\vga_xga.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\hardware\reSID\voice.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\hardware\voodoo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -480,33 +465,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\hardware\voodoo_vogl.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\reSID\wave.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\reSID\wave6581__ST.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\reSID\wave6581_P_T.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\reSID\wave6581_PS_.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\reSID\wave6581_PST.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\reSID\wave8580__ST.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\reSID\wave8580_P_T.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\reSID\wave8580_PS_.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\hardware\reSID\wave8580_PST.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\ints\xms.cpp">
@@ -697,6 +655,54 @@
     </ClCompile>
     <ClCompile Include="..\src\hardware\vga_pc98_gdc.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\envelope.cpp">
+      <Filter>Source Files\reSID emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\extfilt.cpp">
+      <Filter>Source Files\reSID emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\filter.cpp">
+      <Filter>Source Files\reSID emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\pot.cpp">
+      <Filter>Source Files\reSID emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\sid.cpp">
+      <Filter>Source Files\reSID emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\version.cpp">
+      <Filter>Source Files\reSID emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\wave.cpp">
+      <Filter>Source Files\reSID emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\wave6581__ST.cpp">
+      <Filter>Source Files\reSID emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\wave6581_P_T.cpp">
+      <Filter>Source Files\reSID emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\wave6581_PS_.cpp">
+      <Filter>Source Files\reSID emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\wave6581_PST.cpp">
+      <Filter>Source Files\reSID emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\wave8580__ST.cpp">
+      <Filter>Source Files\reSID emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\wave8580_P_T.cpp">
+      <Filter>Source Files\reSID emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\voice.cpp">
+      <Filter>Source Files\reSID emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\wave8580_PS_.cpp">
+      <Filter>Source Files\reSID emulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\reSID\wave8580_PST.cpp">
+      <Filter>Source Files\reSID emulation</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1235,6 +1241,33 @@
     </ClInclude>
     <ClInclude Include="..\src\cpu\modrm.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\reSID\envelope.h">
+      <Filter>Header Files\reSID emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\reSID\extfilt.h">
+      <Filter>Header Files\reSID emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\reSID\filter.h">
+      <Filter>Header Files\reSID emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\reSID\pot.h">
+      <Filter>Header Files\reSID emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\reSID\sid.h">
+      <Filter>Header Files\reSID emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\reSID\siddefs.h">
+      <Filter>Header Files\reSID emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\reSID\spline.h">
+      <Filter>Header Files\reSID emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\reSID\voice.h">
+      <Filter>Header Files\reSID emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\reSID\wave.h">
+      <Filter>Header Files\reSID emulation</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
