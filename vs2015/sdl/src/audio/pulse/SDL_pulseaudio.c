@@ -34,6 +34,7 @@
 
 #include "SDL_timer.h"
 #include "SDL_audio.h"
+#include "../SDL_sysaudio.h"
 #include "../SDL_audiomem.h"
 #include "../SDL_audio_c.h"
 #include "../SDL_audiodev_c.h"
@@ -254,6 +255,7 @@ static int Audio_Available(void)
 
 static void Audio_DeleteDevice(SDL_AudioDevice *device)
 {
+	SDL_free(device->hidden->caption_pending);
 	SDL_free(device->hidden->caption);
 	SDL_free(device->hidden);
 	SDL_free(device);
@@ -300,10 +302,30 @@ AudioBootStrap PULSE_bootstrap = {
 	Audio_Available, Audio_CreateDevice
 };
 
+static void caption_set_complete(pa_context *c, int success, void *userdata);
+
 /* This function waits until it is possible to write a full sound buffer */
 static void PULSE_WaitAudio(_THIS)
 {
 	int size;
+
+    SDL_mutexP(current_audio->mixer_lock); // SDL_LockAudio(); but such function refuses to lock within audio thread
+    /* NTS: pa_context_set_name() seems to have thread locking issues
+       when running in parallel with the SDL audio thread.
+       so instead of calling it from the main thread, we
+       let the main thread give us another caption "pending"
+       and we apply it here within the same thread to avoid crashes. */
+    if (context != NULL && this->hidden->caption_pending != NULL) {
+        SDL_free(this->hidden->caption);
+
+        this->hidden->caption = this->hidden->caption_pending;
+        this->hidden->caption_pending = NULL;
+
+		SDL_NAME(pa_context_set_name)(context, this->hidden->caption,
+		                              caption_set_complete, 0);
+	}
+    SDL_mutexV(current_audio->mixer_lock); // SDL_UnlockAudio(); but such function refuses to lock within audio thread
+
 	while(1) {
 		if (SDL_NAME(pa_context_get_state)(context) != PA_CONTEXT_READY ||
 		    SDL_NAME(pa_stream_get_state)(stream) != PA_STREAM_READY ||
@@ -387,19 +409,16 @@ static void caption_set_complete(pa_context *c, int success, void *userdata)
 
 static void PULSE_SetCaption(_THIS, const char *str)
 {
-	SDL_free(this->hidden->caption);
+    SDL_LockAudio();
+	SDL_free(this->hidden->caption_pending);
 	if ((str == NULL) || (*str == '\0')) {
 		str = get_progname();  /* set a default so SOMETHING shows up. */
 	}
-	this->hidden->caption = SDL_strdup(str);
-	if (context != NULL) {
-		/* NTS: pa_context_set_name() seems to have thread locking issues
-                        when running in parallel with the SDL audio thread. */
-		SDL_LockAudio();
-		SDL_NAME(pa_context_set_name)(context, this->hidden->caption,
-		                              caption_set_complete, 0);
-		SDL_UnlockAudio();
-	}
+	this->hidden->caption_pending = SDL_strdup(str);
+    /* NTS: Then when the audio thread calls us to wait, we'll detect
+     *      caption_pending != NULL and set the caption THERE where we
+     *      will not have multi-threading conflicts within PulseAudio */
+    SDL_UnlockAudio();
 }
 
 static void stream_drain_complete(pa_stream *s, int success, void *userdata)
