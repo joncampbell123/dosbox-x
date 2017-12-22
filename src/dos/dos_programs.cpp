@@ -620,6 +620,11 @@ private:
 public:
    
 	void Run(void) {
+        if (IS_PC98_ARCH) {
+            WriteOut("Booting from PC-98 mode is not supported yet\n");
+            return;
+        }
+
 		//Hack To allow long commandlines
 		ChangeToLongCmd();
 		/* In secure mode don't allow people to boot stuff. 
