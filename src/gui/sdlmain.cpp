@@ -2030,10 +2030,12 @@ void change_output(int output) {
 	case 3:
 		change_output(2);
 		sdl.desktop.want_type=SCREEN_OPENGL;
+		sdl.opengl.bilinear = true;
 		break;
 	case 4:
 		change_output(2);
 		sdl.desktop.want_type=SCREEN_OPENGL;
+		sdl.opengl.bilinear = false; //NB
 		break;
 #if defined(__WIN32__) && !defined(C_SDL2)
 	case 5:
