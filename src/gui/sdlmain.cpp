@@ -3491,6 +3491,10 @@ void* GetSetSDLValue(int isget, std::string target, void* setval) {
 	if (target == "wait_on_error") {
 		if (isget) return (void*) sdl.wait_on_error;
 		else sdl.wait_on_error = setval;
+	}
+	else if (target == "opengl.bilinear") {
+		if (isget) return (void*) sdl.opengl.bilinear;
+		else sdl.opengl.bilinear = setval;
 /*
 	} else if (target == "draw.callback") {
 		if (isget) return (void*) sdl.draw.callback;
