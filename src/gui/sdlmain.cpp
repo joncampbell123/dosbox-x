@@ -993,6 +993,11 @@ Bitu GFX_SetSize(Bitu width,Bitu height,Bitu flags,double scalex,double scaley,G
 	sdl.draw.scalex=scalex;
 	sdl.draw.scaley=scaley;
 
+	LOG(LOG_MISC,LOG_DEBUG)("GFX_SetSize %ux%u flags=0x%x scale=%.3fx%.3f",
+        (unsigned int)width,(unsigned int)height,
+        (unsigned int)flags,
+        scalex,scaley);
+
 	Bitu bpp=0;
 	Bitu retFlags = 0;
 	Uint32 sdl_flags;
