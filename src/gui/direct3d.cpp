@@ -1310,14 +1310,16 @@ void CDirect3D::SetupSceneScaled(void)
     unsigned char x=1, y=1;
     double sizex,sizey,ratio;
 
+	// TODO: It would probably be nicer to offer an option here whether the user wants
+	//		 point sampling (D3DTEXF_POINT) or linear interpolation (D3DTEXF_LINEAR) when scaling up/down.
     pD3DDevice9->SetTextureStageState(0, D3DTSS_COLOROP,   D3DTOP_MODULATE);
     pD3DDevice9->SetTextureStageState(0, D3DTSS_COLORARG1, D3DTA_TEXTURE);
     pD3DDevice9->SetTextureStageState(0, D3DTSS_COLORARG2, D3DTA_DIFFUSE);
     pD3DDevice9->SetTextureStageState(0, D3DTSS_ALPHAOP,   D3DTOP_MODULATE);
     pD3DDevice9->SetTextureStageState(0, D3DTSS_ALPHAARG1, D3DTA_TEXTURE);
     pD3DDevice9->SetTextureStageState(0, D3DTSS_ALPHAARG2, D3DTA_DIFFUSE);
-    pD3DDevice9->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
-    pD3DDevice9->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+    pD3DDevice9->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+    pD3DDevice9->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
     pD3DDevice9->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_NONE);
 
     D3DVIEWPORT9 Viewport;
