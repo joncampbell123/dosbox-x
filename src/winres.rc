@@ -119,7 +119,6 @@ BEGIN
 	POPUP "Output"
 	BEGIN
 		MENUITEM "Surface",				       ID_SURFACE
-		MENUITEM "Overlay",				       ID_OVERLAY
 		MENUITEM "DirectDraw",				       ID_DDRAW
 		MENUITEM "Direct3D",				       ID_DIRECT3D
 		MENUITEM "OpenGL",				       ID_OPENGL

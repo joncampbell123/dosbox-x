@@ -372,7 +372,6 @@
 #define ID_MOUNT_IMAGE_Y                459
 #define ID_FORCESCALER                  460
 #define ID_VSYNC_HOST                   461
-#define ID_OVERLAY                      462
 #define ID_WINRES_USER                  463
 #define ID_WINRES_DESKTOP               464
 #define ID_WINFULL_USER                 465
