@@ -9,7 +9,6 @@ int main(int argc, char *argv[])
     FILE *fh;
 	unsigned int hdr_pos, ohdr_pos;
     unsigned char buf[128] = {0};
-    char tmpstr[64];
     unsigned int tmp_ui;
     unsigned short tmp_us;
 
@@ -19,7 +18,6 @@ int main(int argc, char *argv[])
 
 	char* csbuf = 0;
 
-    time_t tt;
 	int i,j,k;
     //int mm = byteorder_mm();
 
@@ -289,7 +287,7 @@ int main(int argc, char *argv[])
 		fread(csbuf, 1, bin_size, fh);
 
 		*(unsigned long*)(csbuf+ohdr_pos+64) = 0; // clear old checksum first
-		for(i=0;i < bin_size; i+=2) {
+		for(i=0;(unsigned long)i < bin_size; i+=2) {
 			newchksum += *(unsigned short*)(csbuf+i);
 			newchksum = 0xffff & (newchksum + (newchksum >> 16));
 		}
