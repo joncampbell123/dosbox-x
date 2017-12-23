@@ -2592,10 +2592,36 @@ void Mapper_MouseInputEvent(SDL_Event &event) {
     }
 }
 
+#if defined(C_SDL2)
+void Mapper_FingerInputEvent(SDL_Event &event) {
+    SDL_Event ev;
+
+    memset(&ev,0,sizeof(ev));
+    ev.type = SDL_MOUSEBUTTONUP;
+
+#if defined(WIN32)
+	/* NTS: Windows versions of SDL2 do normalize the coordinates */
+	ev.button.x = (Sint32)(event.tfinger.x * mapper.surface->w);
+	ev.button.y = (Sint32)(event.tfinger.y * mapper.surface->h);
+#else
+	/* NTS: Linux versions of SDL2 don't normalize the coordinates? */
+    ev.button.x = event.tfinger.x;     /* Contrary to SDL_events.h the x/y coordinates are NOT normalized to 0...1 */
+    ev.button.y = event.tfinger.y;     /* Contrary to SDL_events.h the x/y coordinates are NOT normalized to 0...1 */
+#endif
+
+    Mapper_MouseInputEvent(ev);
+}
+#endif
+
 void BIND_MappingEvents(void) {
 	SDL_Event event;
 	while (SDL_PollEvent(&event)) {
 		switch (event.type) {
+#if defined(C_SDL2)
+        case SDL_FINGERUP:
+            Mapper_FingerInputEvent(event);
+            break;
+#endif
     	case SDL_MOUSEBUTTONUP:
 #if defined(C_SDL2)
             if (event.button.which != SDL_TOUCH_MOUSEID) /* don't handle mouse events faked by touchscreen */
