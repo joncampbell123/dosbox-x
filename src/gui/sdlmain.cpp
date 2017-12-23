@@ -166,7 +166,6 @@ enum SCREEN_TYPES {
 	SCREEN_OPENGLHQ,
 	SCREEN_SURFACE,
 	SCREEN_SURFACE_DDRAW,
-	SCREEN_OVERLAY,
 	SCREEN_OPENGL,
 	SCREEN_DIRECT3D
 };
@@ -322,8 +321,6 @@ struct SDL_Block {
         SDL_Texture * texture;
         SDL_PixelFormat * pixelFormat;
     } texture;
-#else
-	SDL_Overlay * overlay;
 #endif
 	SDL_cond *cond;
 	struct {
@@ -797,11 +794,6 @@ check_gotbpp:
 		flags|=GFX_SCALING;
 		goto check_gotbpp;
 #endif
-	case SCREEN_OVERLAY:
-		if (flags & GFX_RGBONLY || !(flags&GFX_CAN_32)) goto check_surface;
-		flags|=GFX_SCALING;
-		flags&=~(GFX_CAN_8|GFX_CAN_15|GFX_CAN_16);
-		break;
 #if C_OPENGL
 	case SCREEN_OPENGL:
 		if (!(flags&GFX_CAN_32)) goto check_surface;
@@ -1271,27 +1263,6 @@ dosurface:
                break;
 		}
 		sdl.desktop.type=SCREEN_SURFACE_DDRAW;
-		break;
-    }
-#endif
-#if !defined(C_SDL2)
-	case SCREEN_OVERLAY:
-    {
-		GFX_ResetSDL();
-		if (sdl.overlay) {
-			SDL_FreeYUVOverlay(sdl.overlay);
-			sdl.overlay=0;
-		}
-		if (!(flags&GFX_CAN_32) || (flags & GFX_RGBONLY)) goto dosurface;
-		SDLScreen_Reset();
-		if (!GFX_SetupSurfaceScaled(SDL_RESIZABLE,0)) goto dosurface;
-		sdl.overlay=SDL_CreateYUVOverlay(width*2,height,SDL_UYVY_OVERLAY,sdl.surface);
-		if (!sdl.overlay) {
-			LOG_MSG("SDL:Failed to create overlay, switching back to surface");
-			goto dosurface;
-		}
-		sdl.desktop.type=SCREEN_OVERLAY;
-		retFlags = GFX_CAN_32 | GFX_SCALING | GFX_HARDWARE;
 		break;
     }
 #endif
@@ -1893,9 +1864,6 @@ static void openglhq_init(void) {
 	if(m_handle) RemoveMenu(m_handle,0,0);
 	DestroyWindow(GetHWND());
 #endif
-#if !defined(C_SDL2)
-	sdl.overlay=0;
-#endif
 	char *oldvideo = getenv("SDL_VIDEODRIVER");
 
 	if (oldvideo && strcmp(oldvideo,"openglhq")) {
@@ -2033,8 +2001,7 @@ void change_output(int output) {
 		sdl.desktop.want_type=SCREEN_SURFACE;
 #endif
 		break;
-	case 2:
-		sdl.desktop.want_type=SCREEN_OVERLAY;
+	case 2: /* do nothing */
 		break;
 	case 3:
 		change_output(2);
@@ -2250,14 +2217,6 @@ bool GFX_StartUpdate(Bit8u * & pixels,Bitu & pitch) {
 		sdl.updating=true;
 		return true;
 #endif
-#if !defined(C_SDL2)
-	case SCREEN_OVERLAY:
-		if (SDL_LockYUVOverlay(sdl.overlay)) return false;
-		pixels=(Bit8u *)*(sdl.overlay->pixels);
-		pitch=*(sdl.overlay->pitches);
-		sdl.updating=true;
-		return true;
-#endif
 #if C_OPENGL
 	case SCREEN_OPENGL:
 		if(sdl.opengl.pixel_buffer_object) {
@@ -2358,15 +2317,6 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
 		SDL_Flip(sdl.surface);
 		break;
 #endif
-#if !defined(C_SDL2)
-	case SCREEN_OVERLAY:
-		SDL_UnlockYUVOverlay(sdl.overlay);
-		if(changedLines && (changedLines[0] == sdl.draw.height)) 
-		return; 
-		if(!menu.hidecycles && !sdl.desktop.fullscreen) frames++; 
-		SDL_DisplayYUVOverlay(sdl.overlay,&sdl.clip);
-		break;
-#endif
 #if C_OPENGL
 	case SCREEN_OPENGL:
 		if (sdl.opengl.pixel_buffer_object) {
@@ -2444,17 +2394,6 @@ Bitu GFX_GetRGB(Bit8u red,Bit8u green,Bit8u blue) {
 	case SCREEN_SURFACE:
 	case SCREEN_SURFACE_DDRAW:
 		return SDL_MapRGB(sdl.surface->format,red,green,blue);
-	case SCREEN_OVERLAY:
-		{
-			Bit8u y =  ( 9797*(red) + 19237*(green) +  3734*(blue) ) >> 15;
-			Bit8u u =  (18492*((blue)-(y)) >> 15) + 128;
-			Bit8u v =  (23372*((red)-(y)) >> 15) + 128;
-#ifdef WORDS_BIGENDIAN
-			return (y << 0) | (v << 8) | (y << 16) | (u << 24);
-#else
-			return (u << 0) | (y << 8) | (v << 16) | (y << 24);
-#endif
-		}
 	case SCREEN_OPENGL:
 //		return ((red << 0) | (green << 8) | (blue << 16)) | (255 << 24);
 		//USE BGRA
@@ -2717,7 +2656,7 @@ static void GUI_StartUp() {
 		sdl.desktop.want_type=SCREEN_SURFACE_DDRAW;
 #endif
 	} else if (output == "overlay") {
-		sdl.desktop.want_type=SCREEN_OVERLAY;
+		sdl.desktop.want_type=SCREEN_OPENGL; /* "overlay" was removed, map to OpenGL */
 #if C_OPENGL
 	} else if (output == "opengl") {
 		sdl.desktop.want_type=SCREEN_OPENGL;
@@ -2769,7 +2708,6 @@ static void GUI_StartUp() {
         LOG_MSG("SDL: You are running in 24 bpp mode, this will slow down things!");
     }
 #else
-	sdl.overlay=0;
 	/* Initialize screen for first time */
 	sdl.surface=SDL_SetVideoMode(640,400,0,SDL_RESIZABLE);
 	if (sdl.surface == NULL) E_Exit("Could not initialize video: %s",SDL_GetError());
