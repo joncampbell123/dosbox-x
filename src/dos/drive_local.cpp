@@ -947,12 +947,13 @@ bool localDrive::read_directory_first(void *handle, char* entry_name, bool& is_d
 bool localDrive::read_directory_next(void *handle, char* entry_name, bool& is_directory) {
     host_cnv_char_t tmp[MAX_PATH+1];
 
+next:
     if (::read_directory_nextw((dir_information*)handle, tmp, is_directory)) {
         // guest to host code page translation
         char *n_temp_name = CodePageHostToGuest(tmp);
         if (n_temp_name == NULL) {
             LOG_MSG("%s: Filename '%s' from host is non-representable on the guest filesystem through code page conversion",__FUNCTION__,tmp);
-            return false;
+            goto next;
         }
         strcpy(entry_name,n_temp_name);
         return true;
