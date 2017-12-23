@@ -318,6 +318,15 @@ public:
 			//os2: some special drive check
 			//rest: substiture ~ for home
 			bool failed = false;
+
+            //the rest (such as Linux): Convert backslash to forward slash
+            if (!is_physfs && temp_line.size() > 0) {
+                for (size_t i=0;i < temp_line.size();i++) {
+                    if (temp_line[i] == '\\')
+                        temp_line[i] = '/';
+                }
+            }
+
 #if defined (WIN32) || defined(OS2)
 			/* Removing trailing backslash if not root dir so stat will succeed */
 			if(temp_line.size() > 3 && temp_line[temp_line.size()-1]=='\\') temp_line.erase(temp_line.size()-1,1);
@@ -2361,7 +2370,18 @@ public:
 			
 			// find all file parameters, assuming that all option parameters have been removed
 			while(cmd->FindCommand((unsigned int)(paths.size() + 2), temp_line) && temp_line.size()) {
-				
+#if defined (WIN32) || defined(OS2)
+                /* nothing */
+#else
+                // Linux: Convert backslash to forward slash
+                if (temp_line.size() > 0) {
+                    for (size_t i=0;i < temp_line.size();i++) {
+                        if (temp_line[i] == '\\')
+                            temp_line[i] = '/';
+                    }
+                }
+#endif
+
 				pref_struct_stat test;
 				if (pref_stat(temp_line.c_str(),&test)) {
 					//See if it works if the ~ are written out
