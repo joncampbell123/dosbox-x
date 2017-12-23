@@ -2596,8 +2596,13 @@ void BIND_MappingEvents(void) {
 	SDL_Event event;
 	while (SDL_PollEvent(&event)) {
 		switch (event.type) {
-		case SDL_MOUSEBUTTONUP:
+    	case SDL_MOUSEBUTTONUP:
+#if defined(C_SDL2)
+            if (event.button.which != SDL_TOUCH_MOUSEID) /* don't handle mouse events faked by touchscreen */
+                Mapper_MouseInputEvent(event);
+#else
             Mapper_MouseInputEvent(event);
+#endif
 			break;
 		case SDL_QUIT:
 			mapper.exit=true;
