@@ -319,13 +319,17 @@ public:
 			//rest: substiture ~ for home
 			bool failed = false;
 
-            //the rest (such as Linux): Convert backslash to forward slash
-            if (!is_physfs && temp_line.size() > 0) {
-                for (size_t i=0;i < temp_line.size();i++) {
-                    if (temp_line[i] == '\\')
-                        temp_line[i] = '/';
-                }
-            }
+#if defined (WIN32) || defined(OS2)
+			/* nothing */
+#else
+			// Linux: Convert backslash to forward slash
+			if (!is_physfs && temp_line.size() > 0) {
+				for (size_t i=0;i < temp_line.size();i++) {
+					if (temp_line[i] == '\\')
+						temp_line[i] = '/';
+				}
+			}
+#endif
 
 #if defined (WIN32) || defined(OS2)
 			/* Removing trailing backslash if not root dir so stat will succeed */
