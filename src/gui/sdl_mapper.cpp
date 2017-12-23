@@ -2583,17 +2583,21 @@ void MAPPER_CheckEvent(SDL_Event * event) {
 	}
 }
 
+void Mapper_MouseInputEvent(SDL_Event &event) {
+    /* Check the press */
+    for (CButton_it but_it = buttons.begin();but_it!=buttons.end();but_it++) {
+        if ((*but_it)->OnTop(event.button.x,event.button.y)) {
+            (*but_it)->Click();
+        }
+    }
+}
+
 void BIND_MappingEvents(void) {
 	SDL_Event event;
 	while (SDL_PollEvent(&event)) {
 		switch (event.type) {
 		case SDL_MOUSEBUTTONUP:
-			/* Check the press */
-			for (CButton_it but_it = buttons.begin();but_it!=buttons.end();but_it++) {
-				if ((*but_it)->OnTop(event.button.x,event.button.y)) {
-					(*but_it)->Click();
-				}
-			}	
+            Mapper_MouseInputEvent(event);
 			break;
 		case SDL_QUIT:
 			mapper.exit=true;
