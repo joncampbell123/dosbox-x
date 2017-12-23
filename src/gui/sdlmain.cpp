@@ -180,7 +180,11 @@ enum PRIORITY_LEVELS {
 	PRIORITY_LEVEL_HIGHEST
 };
 
-#define MAPPERFILE				"mapper-" VERSION ".map"
+#if defined(C_SDL2)
+# define MAPPERFILE				"mapper-" VERSION ".sdl2.map"
+#else
+# define MAPPERFILE				"mapper-" VERSION ".map"
+#endif
 
 #if !defined(C_SDL2)
 void						GUI_LoadFonts();
