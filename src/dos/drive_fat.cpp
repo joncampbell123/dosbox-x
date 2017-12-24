@@ -715,22 +715,33 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
 
 		if(mbrData.magic1!= 0x55 ||	mbrData.magic2!= 0xaa) LOG_MSG("Possibly invalid partition table in disk image.");
 
-		startSector = 63;
-		int m;
-		for(m=0;m<4;m++) {
-			/* Pick the first available partition */
-			if(mbrData.pentry[m].partSize != 0x00 &&
-                (mbrData.pentry[m].parttype == 0x01 || mbrData.pentry[m].parttype == 0x04 ||
-                 mbrData.pentry[m].parttype == 0x06 || mbrData.pentry[m].parttype == 0x0B ||
-                 mbrData.pentry[m].parttype == 0x0C || mbrData.pentry[m].parttype == 0x0D ||
-                 mbrData.pentry[m].parttype == 0x0E || mbrData.pentry[m].parttype == 0x0F)) {
-				LOG_MSG("Using partition %d on drive (type 0x%02x); skipping %d sectors", m, mbrData.pentry[m].parttype, mbrData.pentry[m].absSectStart);
-				startSector = mbrData.pentry[m].absSectStart;
-				break;
-			}
-		}
+        startSector = 63;
 
-		if(m==4) LOG_MSG("No good partiton found in image.");
+        /* PC-98 bootloader support.
+         * These can be identified by the "IPL1" in the boot sector.
+         * These boot sectors do not have a valid partition table though the code below might
+         * pick up a false partition #3 with a zero offset. */
+        if (!memcmp(mbrData.booter+4,"IPL1",4)) {
+            LOG_MSG("PC-98 IPL1 signature detected");
+        }
+        else {
+            /* IBM PC master boot record search */
+            int m;
+            for(m=0;m<4;m++) {
+                /* Pick the first available partition */
+                if(mbrData.pentry[m].partSize != 0x00 &&
+                        (mbrData.pentry[m].parttype == 0x01 || mbrData.pentry[m].parttype == 0x04 ||
+                         mbrData.pentry[m].parttype == 0x06 || mbrData.pentry[m].parttype == 0x0B ||
+                         mbrData.pentry[m].parttype == 0x0C || mbrData.pentry[m].parttype == 0x0D ||
+                         mbrData.pentry[m].parttype == 0x0E || mbrData.pentry[m].parttype == 0x0F)) {
+                    LOG_MSG("Using partition %d on drive (type 0x%02x); skipping %d sectors", m, mbrData.pentry[m].parttype, mbrData.pentry[m].absSectStart);
+                    startSector = mbrData.pentry[m].absSectStart;
+                    break;
+                }
+            }
+
+            if(m==4) LOG_MSG("No good partiton found in image.");
+        }
 
 		partSectOff = startSector;
 	} else {
