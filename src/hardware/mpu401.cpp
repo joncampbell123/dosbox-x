@@ -694,7 +694,7 @@ public:
 		mpu.mode=M_UART;
 
         if (IS_PC98_ARCH)
-            mpu.irq=5;  /* FIXME: Is this right? What IRQ is normally involved? */
+            mpu.irq=5;  /* So far this seems to be the IRQ that games expect it to be at */
         else
     		mpu.irq=9;	/* Princess Maker 2 wants it on irq 9 */
 
