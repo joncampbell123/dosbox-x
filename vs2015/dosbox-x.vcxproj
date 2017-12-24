@@ -211,7 +211,8 @@
       </Message>
     </CustomBuildStep>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"</Command>
+      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>
@@ -259,7 +260,8 @@
       </Message>
     </CustomBuildStep>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"</Command>
+      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>
@@ -300,7 +302,8 @@
       </AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"</Command>
+      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -349,7 +352,8 @@
       </AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"</Command>
+      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -402,7 +406,8 @@
       </Message>
     </CustomBuildStep>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"</Command>
+      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>
@@ -451,7 +456,8 @@
       </Message>
     </CustomBuildStep>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"</Command>
+      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>
@@ -493,7 +499,8 @@
       </AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"</Command>
+      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -543,7 +550,8 @@
       </AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"</Command>
+      <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
+copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
