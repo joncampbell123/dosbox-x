@@ -30,6 +30,8 @@
 #include "bios_disk.h"
 #include "qcow2_disk.h"
 
+#include <algorithm>
+
 #define IMGTYPE_FLOPPY 0
 #define IMGTYPE_ISO    1
 #define IMGTYPE_HDD	   2
@@ -753,7 +755,7 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
          * pick up a false partition #3 with a zero offset. Partition table is in sector 1 */
         if (!memcmp(mbrData.booter+4,"IPL1",4)) {
             unsigned char ipltable[SECTOR_SIZE_MAX];
-            unsigned int max_entries = std::min(16UL,(unsigned long)(loadedDisk->getSectSize() / sizeof(_PC98RawPartition)));
+            unsigned int max_entries = (std::min)(16UL,(unsigned long)(loadedDisk->getSectSize() / sizeof(_PC98RawPartition)));
             unsigned int i;
 
             LOG_MSG("PC-98 IPL1 signature detected");
