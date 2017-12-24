@@ -2447,6 +2447,16 @@ public:
 					return;
 				}
 
+                /* .HDI images contain the geometry explicitly in the header. */
+                if (str_size.size() == 0) {
+                    const char *ext = strrchr(temp_line.c_str(),'.');
+                    if (ext != NULL) {
+                        if (!strcasecmp(ext,".hdi")) {
+                            imgsizedetect = false;
+                        }
+                    }
+                }
+
 				if (imgsizedetect) {
 					bool yet_detected = false;
 					FILE * diskfile = fopen64(temp_line.c_str(), "rb+");
