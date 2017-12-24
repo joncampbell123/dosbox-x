@@ -645,6 +645,28 @@ fatDrive::~fatDrive() {
 	}
 }
 
+/* PC-98 IPL1 partition table entry.
+ * Taken from GNU Parted source code.
+ * Maximum 16 entries. */
+#pragma pack(push,1)
+struct _PC98RawPartition {
+	uint8_t		mid;		/* 0x80 - boot */
+	uint8_t		sid;		/* 0x80 - active */
+	uint8_t		dum1;		/* dummy for padding */
+	uint8_t		dum2;		/* dummy for padding */
+	uint8_t		ipl_sect;	/* IPL sector */
+	uint8_t		ipl_head;	/* IPL head */
+	uint16_t	ipl_cyl;	/* IPL cylinder */
+	uint8_t		sector;		/* starting sector */
+	uint8_t		head;		/* starting head */
+	uint16_t	cyl;		/* starting cylinder */
+	uint8_t		end_sector;	/* end sector */
+	uint8_t		end_head;	/* end head */
+	uint16_t	end_cyl;	/* end cylinder */
+	char		name[16];
+};
+#pragma pack(pop)
+
 fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit32u startSector) {
 	created_successfully = true;
 	FILE *diskfile;
@@ -727,7 +749,7 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
         /* PC-98 bootloader support.
          * These can be identified by the "IPL1" in the boot sector.
          * These boot sectors do not have a valid partition table though the code below might
-         * pick up a false partition #3 with a zero offset. */
+         * pick up a false partition #3 with a zero offset. Partition table is in sector 1 */
         if (!memcmp(mbrData.booter+4,"IPL1",4)) {
             LOG_MSG("PC-98 IPL1 signature detected");
         }
