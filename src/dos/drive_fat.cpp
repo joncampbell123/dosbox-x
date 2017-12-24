@@ -709,7 +709,14 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
 
 	if(filesize > 2880) {
 		/* Set user specified harddrive parameters */
-		loadedDisk->Set_Geometry(headscyl, cylinders,cylsector, bytesector);
+        if (headscyl > 0 && cylinders > 0 && cylsector > 0 && bytesector > 0)
+    		loadedDisk->Set_Geometry(headscyl, cylinders,cylsector, bytesector);
+
+        if (loadedDisk->heads == 0 || loadedDisk->sectors == 0 || loadedDisk->cylinders == 0) {
+            LOG_MSG("No geometry");
+            loadedDisk->Release();
+            return;
+        }
 
 		loadedDisk->Read_Sector(0,0,1,&mbrData);
 
@@ -747,6 +754,12 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
 	} else {
 		/* Floppy disks don't have partitions */
 		partSectOff = 0;
+
+        if (loadedDisk->heads == 0 || loadedDisk->sectors == 0 || loadedDisk->cylinders == 0) {
+            LOG_MSG("No geometry");
+            loadedDisk->Release();
+            return;
+        }
 	}
 
 	loadedDisk->Read_AbsoluteSector(0+partSectOff,&bootbuffer);
