@@ -3731,9 +3731,9 @@ void GFX_Events() {
 					switch (event.syswm.msg->wParam) {
 						case SC_MAXIMIZE:
 						case 0xF032:
-							if(sdl.desktop.want_type==SCREEN_DIRECT3D)
-								menu.maxwindow=true;
-							else
+//							if(sdl.desktop.want_type==SCREEN_DIRECT3D)
+//								menu.maxwindow=true;
+//							else
 								GFX_SwitchFullScreen();
 							break;
 						case 0xF122:
