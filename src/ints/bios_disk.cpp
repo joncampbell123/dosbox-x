@@ -394,7 +394,7 @@ imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHard
 
                                 sector_size = sectorsize;
                                 imgSizeK -= (ofs / 1024);
-                                image_base += ofs;
+                                image_base = ofs;
                                 LOG_MSG("HDI header: sectorsize is %u bytes/sector, header is %u bytes, hdd size (plus header) is %u bytes",
                                     (unsigned int)sectorsize,(unsigned int)ofs,(unsigned int)hddsize);
 
@@ -405,10 +405,6 @@ imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHard
                                 cylinders = host_readd(hdihdr.cylinders);
                                 LOG_MSG("HDI: Geometry is C/H/S %u/%u/%u",
                                     (unsigned int)cylinders,(unsigned int)heads,(unsigned int)sectors);
-
-                                if (cylinders == 0) cylinders = 1;
-                                if (sectors == 0) sectors = 1;
-                                if (heads == 0) heads = 1;
                             }
                             else {
                                 LOG_MSG("HDI header rejected. sectorsize=%u headersize=%u hddsize=%u",
@@ -422,6 +418,9 @@ imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHard
                 }
             }
         }
+
+        if (sectors == 0 || heads == 0 || cylinders == 0)
+            active = false;
     }
 }
 
