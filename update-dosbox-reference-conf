@@ -1,0 +1,2 @@
+#!/bin/bash
+src/dosbox-x -c 'config -all -wc dosbox.reference.conf' -c 'exit'
