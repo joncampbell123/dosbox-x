@@ -52,8 +52,9 @@
 
 Bitu XMS_EnableA20(bool enable);
 
-#define EMM_PAGEFRAME	0xE000
-#define EMM_PAGEFRAME4K	((EMM_PAGEFRAME*16)/4096)
+unsigned short EMM_PAGEFRAME =      0xE000;
+unsigned short EMM_PAGEFRAME4K =    ((EMM_PAGEFRAME*16)/4096);
+
 #define	EMM_MAX_HANDLES	200				/* 255 Max */
 #define EMM_PAGE_SIZE	(16*1024U)
 #define EMM_MAX_PHYS	4				/* 4 16kb pages in pageframe */
@@ -1443,6 +1444,12 @@ private:
 public:
 	EMS(Section* configuration):Module_base(configuration) {
 		emm_device=NULL;
+
+        /* the EMS page frame needs to move depending on IBM PC or PC-98 emulation.
+         * IBM PC emulation can put the page frame at 0xE000 (as DOSBox has always done).
+         * PC-98 emulation needs to move the page frame down because 0xE000 is taken by the 4th EGC bitplane. */
+        EMM_PAGEFRAME =      IS_PC98_ARCH ? 0xD000 : 0xE000;
+        EMM_PAGEFRAME4K =    ((EMM_PAGEFRAME*16)/4096);
 
 		/* Virtual DMA interrupt callback */
 		call_vdma.Install(&INT4B_Handler,CB_IRET,"Int 4b vdma");
