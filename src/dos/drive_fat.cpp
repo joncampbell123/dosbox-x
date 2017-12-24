@@ -890,17 +890,28 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
         return;
     }
 
-    /* Too many PC-98 HDI images indicate a disk format of 512 bytes/sector combined
-     * with a FAT filesystem of 1024 bytes/sector. */
-    if (pc98_512_to_1024_allow && bootbuffer.bytespersector == 1024 && loadedDisk->getSectSize() == 512) {
-        LOG_MSG("Disk indicates 512 bytes/sector, FAT filesystem indicates 1024 bytes/sector.");
+    /* Many HDI images indicate a disk format of 256 or 512 bytes per sector combined with a FAT filesystem
+     * that indicates 1024 bytes per sector. */
+    if (pc98_512_to_1024_allow &&
+         bootbuffer.bytespersector != loadedDisk->getSectSize() &&
+        (bootbuffer.bytespersector == 1024 || bootbuffer.bytespersector == 512) &&
+        (loadedDisk->getSectSize() == 512 || loadedDisk->getSectSize() == 256)) {
+        unsigned int ratio = (unsigned int)(bootbuffer.bytespersector / loadedDisk->getSectSize());
+        unsigned int ratiof = (unsigned int)(bootbuffer.bytespersector % loadedDisk->getSectSize());
+        unsigned int ratioshift = (ratio == 4) ? 2 : 1;
+
+        LOG_MSG("Disk indicates %u bytes/sector, FAT filesystem indicates 1024 bytes/sector. Ratio=%u shift=%u",loadedDisk->getSectSize(),ratio,ratioshift);
+        assert(ratiof == 0);
+        assert((ratio & (ratio - 1)) == 0); /* power of 2 */
+        assert(ratio >= 2);
+        assert(ratio <= 4);
 
         /* we can hack things in place IF the starting sector is an even number */
-        if ((partSectOff & 1) == 0) {
-            partSectOff >>= 1UL;
-            startSector >>= 1UL;
+        if ((partSectOff & (ratio - 1)) == 0) {
+            partSectOff >>= ratioshift;
+            startSector >>= ratioshift;
             loadedDisk->sector_size = 1024;
-            loadedDisk->cylinders = (loadedDisk->cylinders + 1U) >> 1U;
+            loadedDisk->cylinders = (loadedDisk->cylinders + ratio - 1) >> ratioshift;
             LOG_MSG("Changing disk format to compensate. Now C/H/S %u/%u/%u start=%lu",
                 (unsigned int)loadedDisk->cylinders,
                 (unsigned int)loadedDisk->heads,
