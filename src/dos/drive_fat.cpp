@@ -672,6 +672,7 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
 	FILE *diskfile;
 	Bit32u filesize;
 	struct partTable mbrData;
+    bool pc98_512_to_1024_allow = false;
 	
 	if(imgDTASeg == 0) {
 		imgDTASeg = DOS_GetMemory(2,"imgDTASeg");
@@ -787,6 +788,10 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
                         (pe->head * loadedDisk->sectors) +
                          pe->sector;
 
+                    /* Many HDI images I've encountered so far indicate 512 bytes/sector,
+                     * but then the FAT filesystem itself indicates 1024 bytes per sector. */
+                    pc98_512_to_1024_allow = true;
+
                     {
                         /* FIXME: What if the label contains SHIFT-JIS? */
                         std::string name = std::string(pe->name,sizeof(pe->name));
@@ -883,6 +888,28 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
         bootbuffer.headcount == 0 || (bootbuffer.headcount > ((filesize <= 3000) ? 64 : 255))) {
         LOG_MSG("Rejecting image, boot sector has weird values not consistent with FAT filesystem");
         return;
+    }
+
+    /* Too many PC-98 HDI images indicate a disk format of 512 bytes/sector combined
+     * with a FAT filesystem of 1024 bytes/sector. */
+    if (pc98_512_to_1024_allow && bootbuffer.bytespersector == 1024 && loadedDisk->getSectSize() == 512) {
+        LOG_MSG("Disk indicates 512 bytes/sector, FAT filesystem indicates 1024 bytes/sector.");
+
+        /* we can hack things in place IF the starting sector is an even number */
+        if ((partSectOff & 1) == 0) {
+            partSectOff >>= 1UL;
+            startSector >>= 1UL;
+            loadedDisk->sector_size = 1024;
+            loadedDisk->cylinders = (loadedDisk->cylinders + 1U) >> 1U;
+            LOG_MSG("Changing disk format to compensate. Now C/H/S %u/%u/%u start=%lu",
+                (unsigned int)loadedDisk->cylinders,
+                (unsigned int)loadedDisk->heads,
+                (unsigned int)loadedDisk->sectors,
+                (unsigned long)startSector);
+        }
+        else {
+            LOG_MSG("However there's nothing I can do, because the partition starts on an odd sector");
+        }
     }
 
     /* NTS: PC-98 floppies (the 1024 byte/sector format) do not have magic bytes */
