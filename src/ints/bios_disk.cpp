@@ -352,6 +352,22 @@ imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHard
 			incrementFDD();
 		}
 	}
+    else { /* hard disk */
+        {
+            char *ext = strrchr((char*)imgName,'.');
+            if (ext != NULL) {
+                if (!strcasecmp(ext,".hdi")) {
+                    if (imgSizeK >= 160) {
+                        // PC-98 .HDI images appear to be 4096 bytes of unknown and mostly zeros,
+                        // followed by a straight sector dump of the disk.
+                        imgSizeK -= 4; // minus 4K
+                        image_base += 4096; // +4K
+                        LOG_MSG("Image file has .HDI extension, assuming 4K offset");
+                    }
+                }
+            }
+        }
+    }
 }
 
 void imageDisk::Set_Geometry(Bit32u setHeads, Bit32u setCyl, Bit32u setSect, Bit32u setSectSize) {
