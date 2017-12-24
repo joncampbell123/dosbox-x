@@ -664,6 +664,15 @@ public:
 			LOG(LOG_MISC,LOG_DEBUG)("UMB ending segment 0x%04x conflicts with BIOS at 0x%04x, truncating region",(int)first_umb_size,(int)(rombios_minimum_location>>4));
 			first_umb_size = (rombios_minimum_location>>4)-1;
 		}
+
+		bool ems_available = GetEMSType(section)>0;
+
+        /* 2017/12/24 I just noticed that the EMS page frame will conflict with UMB on standard configuration.
+         * In IBM PC mode the EMS page frame is at E000:0000. */
+        if (ems_available && first_umb_size >= 0xE000) {
+            LOG(LOG_MISC,LOG_DEBUG)("UMB overlaps EMS page frame, truncating region");
+            first_umb_size = 0xDFFF;
+        }
         /* UMB cannot interfere with EGC 4th graphics bitplane on PC-98 */
         /* TODO: Allow UMB into E000:xxxx if emulating a PC-98 that lacks 16-color mode. */
         if (IS_PC98_ARCH && first_umb_size >= 0xE000) {
@@ -687,7 +696,6 @@ public:
 			}
 		}
 
-		bool ems_available = GetEMSType(section)>0;
 		DOS_BuildUMBChain(umb_available,ems_available);
 		umb_init = true;
 
