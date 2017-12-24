@@ -665,13 +665,17 @@ public:
 			first_umb_size = (rombios_minimum_location>>4)-1;
 		}
 
-		bool ems_available = GetEMSType(section)>0;
+        Bitu GetEMSPageFrameSegment(void);
+
+        bool ems_available = GetEMSType(section)>0;
 
         /* 2017/12/24 I just noticed that the EMS page frame will conflict with UMB on standard configuration.
-         * In IBM PC mode the EMS page frame is at E000:0000. */
-        if (ems_available && first_umb_size >= 0xE000) {
-            LOG(LOG_MISC,LOG_DEBUG)("UMB overlaps EMS page frame, truncating region");
-            first_umb_size = 0xDFFF;
+         * In IBM PC mode the EMS page frame is at E000:0000.
+         * In PC-98 mode the EMS page frame is at D000:0000. */
+        if (ems_available && first_umb_size >= GetEMSPageFrameSegment()) {
+            assert(GetEMSPageFrameSegment() >= 0xA000);
+            LOG(LOG_MISC,LOG_DEBUG)("UMB overlaps EMS page frame at 0x%04x, truncating region",(unsigned int)GetEMSPageFrameSegment());
+            first_umb_size = GetEMSPageFrameSegment() - 1;
         }
         /* UMB cannot interfere with EGC 4th graphics bitplane on PC-98 */
         /* TODO: Allow UMB into E000:xxxx if emulating a PC-98 that lacks 16-color mode. */

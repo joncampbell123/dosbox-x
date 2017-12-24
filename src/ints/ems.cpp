@@ -55,6 +55,10 @@ Bitu XMS_EnableA20(bool enable);
 unsigned short EMM_PAGEFRAME =      0xE000;
 unsigned short EMM_PAGEFRAME4K =    ((EMM_PAGEFRAME*16)/4096);
 
+Bitu GetEMSPageFrameSegment(void) {
+    return EMM_PAGEFRAME;
+}
+
 #define	EMM_MAX_HANDLES	200				/* 255 Max */
 #define EMM_PAGE_SIZE	(16*1024U)
 #define EMM_MAX_PHYS	4				/* 4 16kb pages in pageframe */
@@ -1445,12 +1449,6 @@ public:
 	EMS(Section* configuration):Module_base(configuration) {
 		emm_device=NULL;
 
-        /* the EMS page frame needs to move depending on IBM PC or PC-98 emulation.
-         * IBM PC emulation can put the page frame at 0xE000 (as DOSBox has always done).
-         * PC-98 emulation needs to move the page frame down because 0xE000 is taken by the 4th EGC bitplane. */
-        EMM_PAGEFRAME =      IS_PC98_ARCH ? 0xD000 : 0xE000;
-        EMM_PAGEFRAME4K =    ((EMM_PAGEFRAME*16)/4096);
-
 		/* Virtual DMA interrupt callback */
 		call_vdma.Install(&INT4B_Handler,CB_IRET,"Int 4b vdma");
 		call_vdma.Set_RealVec(0x4b);
@@ -1474,6 +1472,8 @@ public:
 			LOG_MSG("EMS disabled for PCJr machine");
 			return;
 		}
+
+        LOG_MSG("EMS page frame at 0x%04x-0x%04x",EMM_PAGEFRAME,EMM_PAGEFRAME+0xFFF);
 
 		ENABLE_VCPI = section->Get_bool("vcpi");
 		ENABLE_V86_STARTUP = section->Get_bool("emm386 startup active");
@@ -1721,6 +1721,18 @@ void EMS_DoShutDown() {
     }
 }
 
+void EMS_PickPageFrame(void) {
+    /* the EMS page frame needs to move depending on IBM PC or PC-98 emulation.
+     * IBM PC emulation can put the page frame at 0xE000 (as DOSBox has always done).
+     * PC-98 emulation needs to move the page frame down because 0xE000 is taken by the 4th EGC bitplane. */
+    EMM_PAGEFRAME =      IS_PC98_ARCH ? 0xD000 : 0xE000;
+    EMM_PAGEFRAME4K =    ((EMM_PAGEFRAME*16)/4096);
+}
+
+void EMS_DOSBoot(Section* /*sec*/) {
+    EMS_PickPageFrame();
+}
+
 void EMS_ShutDown(Section* /*sec*/) {
 	EMS_DoShutDown();
 }
@@ -1737,6 +1749,7 @@ void EMS_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(EMS_ShutDown),true);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(EMS_ShutDown));
+    AddVMEventFunction(VM_EVENT_DOS_BOOT,AddVMEventFunctionFuncPair(EMS_DOSBoot));
 	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(EMS_ShutDown));
 }
 
