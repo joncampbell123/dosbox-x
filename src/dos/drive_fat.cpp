@@ -751,7 +751,55 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
          * These boot sectors do not have a valid partition table though the code below might
          * pick up a false partition #3 with a zero offset. Partition table is in sector 1 */
         if (!memcmp(mbrData.booter+4,"IPL1",4)) {
+            unsigned char ipltable[SECTOR_SIZE_MAX];
+            unsigned int max_entries = std::min(16UL,(unsigned long)(loadedDisk->getSectSize() / sizeof(_PC98RawPartition)));
+            unsigned int i;
+
             LOG_MSG("PC-98 IPL1 signature detected");
+
+            assert(sizeof(_PC98RawPartition) == 32);
+
+            memset(ipltable,0,sizeof(ipltable));
+            loadedDisk->Read_Sector(0,0,2,ipltable);
+
+            for (i=0;i < max_entries;i++) {
+                _PC98RawPartition *pe = (_PC98RawPartition*)(ipltable+(i * 32));
+
+                if (pe->mid == 0 && pe->sid == 0 &&
+                    pe->ipl_sect == 0 && pe->ipl_head == 0 && pe->ipl_cyl == 0 &&
+                    pe->sector == 0 && pe->head == 0 && pe->cyl == 0 &&
+                    pe->end_sector == 0 && pe->end_head == 0 && pe->end_cyl == 0)
+                    continue; /* unused */
+
+                /* We're looking for MS-DOS partitions.
+                 * I've heard that some other OSes were once ported to PC-98, including Windows NT and OS/2,
+                 * so I would rather not mistake NTFS or HPFS as FAT and cause damage. --J.C.
+                 * FIXME: Is there a better way? */
+                if (!strncasecmp(pe->name,"MS-DOS",6) ||
+                    !strncasecmp(pe->name,"MSDOS",5) ||
+                    !strncasecmp(pe->name,"Windows",7)) {
+                    /* unfortunately start and end are in C/H/S geometry, so we have to translate.
+                     * this is why it matters so much to read the geometry from the HDI header.
+                     *
+                     * NOTE: C/H/S values in the IPL1 table are similar to IBM PC except that sectors are counted from 0, not 1 */
+                    startSector =
+                        (pe->cyl * loadedDisk->sectors * loadedDisk->heads) +
+                        (pe->head * loadedDisk->sectors) +
+                         pe->sector;
+
+                    {
+                        /* FIXME: What if the label contains SHIFT-JIS? */
+                        std::string name = std::string(pe->name,sizeof(pe->name));
+
+                        LOG_MSG("Using IPL1 entry %u name '%s' which starts at sector %lu",
+                            i,name.c_str(),(unsigned long)startSector);
+                        break;
+                    }
+                }
+            }
+
+            if (i == max_entries)
+                LOG_MSG("No partitions found in the IPL1 table");
         }
         else {
             /* IBM PC master boot record search */
