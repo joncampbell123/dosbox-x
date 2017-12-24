@@ -119,28 +119,28 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
-    <LinkIncremental>true</LinkIncremental>
+    <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(IncludePath);%DXSDK_DIR%\Include;</IncludePath>
     <LibraryPath>$(LibraryPath);%DXSDK_DIR%\Lib;</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|Win32'">
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
-    <LinkIncremental>true</LinkIncremental>
+    <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(IncludePath);%DXSDK_DIR%\Include;</IncludePath>
     <LibraryPath>$(LibraryPath);%DXSDK_DIR%\Lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
-    <LinkIncremental>true</LinkIncremental>
+    <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(IncludePath);%DXSDK_DIR%\Include;</IncludePath>
     <LibraryPath>$(LibraryPath);%DXSDK_DIR%\Lib;</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|x64'">
     <OutDir>$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)..\obj\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
-    <LinkIncremental>true</LinkIncremental>
+    <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(IncludePath);%DXSDK_DIR%\Include;</IncludePath>
     <LibraryPath>$(LibraryPath);%DXSDK_DIR%\Lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\</LibraryPath>
   </PropertyGroup>
@@ -191,6 +191,8 @@
       <ControlFlowGuard>false</ControlFlowGuard>
       <PrecompiledHeaderFile />
       <PrecompiledHeaderOutputFile />
+      <BrowseInformation>false</BrowseInformation>
+      <BrowseInformationFile />
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -203,6 +205,7 @@
       </AdditionalLibraryDirectories>
       <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
       <ProfileGuidedDatabase>$(IntDir)$(TargetName).pgd</ProfileGuidedDatabase>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
     <CustomBuildStep>
       <Command>
@@ -242,6 +245,8 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
       <AdditionalOptions>/QIfist</AdditionalOptions>
       <PrecompiledHeaderFile />
       <PrecompiledHeaderOutputFile />
+      <BrowseInformation>false</BrowseInformation>
+      <BrowseInformationFile />
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;version.lib;Iphlpapi.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2main.lib;Ws2_32.lib;sdl2.lib;sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -254,6 +259,7 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
       </AdditionalLibraryDirectories>
       <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
       <ProfileGuidedDatabase>$(IntDir)$(TargetName).pgd</ProfileGuidedDatabase>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
     <CustomBuildStep>
       <Command>
@@ -294,6 +300,8 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
       <ControlFlowGuard>false</ControlFlowGuard>
       <PrecompiledHeaderFile />
       <PrecompiledHeaderOutputFile />
+      <BrowseInformation>false</BrowseInformation>
+      <BrowseInformationFile />
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -306,6 +314,7 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
       </AdditionalLibraryDirectories>
       <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
       <ProfileGuidedDatabase>$(IntDir)$(TargetName).pgd</ProfileGuidedDatabase>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
@@ -346,6 +355,8 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
       <AdditionalOptions>/QIfist</AdditionalOptions>
       <PrecompiledHeaderFile />
       <PrecompiledHeaderOutputFile />
+      <BrowseInformation>false</BrowseInformation>
+      <BrowseInformationFile />
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;version.lib;Iphlpapi.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2main.lib;Ws2_32.lib;sdl2.lib;sdl2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -358,6 +369,7 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
       </AdditionalLibraryDirectories>
       <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
       <ProfileGuidedDatabase>$(IntDir)$(TargetName).pgd</ProfileGuidedDatabase>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
@@ -392,6 +404,8 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
       <ControlFlowGuard>false</ControlFlowGuard>
       <PrecompiledHeaderFile />
       <PrecompiledHeaderOutputFile />
+      <BrowseInformation>false</BrowseInformation>
+      <BrowseInformationFile />
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -406,6 +420,7 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
       </AdditionalLibraryDirectories>
       <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
       <ProfileGuidedDatabase>$(IntDir)$(TargetName).pgd</ProfileGuidedDatabase>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <CustomBuildStep>
       <Command>
@@ -444,6 +459,8 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
       <AdditionalOptions>/QIfist</AdditionalOptions>
       <PrecompiledHeaderFile />
       <PrecompiledHeaderOutputFile />
+      <BrowseInformation>false</BrowseInformation>
+      <BrowseInformationFile />
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;version.lib;Iphlpapi.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2main.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -458,6 +475,7 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
       </AdditionalLibraryDirectories>
       <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
       <ProfileGuidedDatabase>$(IntDir)$(TargetName).pgd</ProfileGuidedDatabase>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <CustomBuildStep>
       <Command>
@@ -497,6 +515,8 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
       <ControlFlowGuard>false</ControlFlowGuard>
       <PrecompiledHeaderFile />
       <PrecompiledHeaderOutputFile />
+      <BrowseInformation>false</BrowseInformation>
+      <BrowseInformationFile />
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;version.lib;Iphlpapi.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -511,6 +531,7 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
       </AdditionalLibraryDirectories>
       <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
       <ProfileGuidedDatabase>$(IntDir)$(TargetName).pgd</ProfileGuidedDatabase>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
@@ -550,6 +571,8 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
       <AdditionalOptions>/QIfist</AdditionalOptions>
       <PrecompiledHeaderFile />
       <PrecompiledHeaderOutputFile />
+      <BrowseInformation>false</BrowseInformation>
+      <BrowseInformationFile />
     </ClCompile>
     <Link>
       <AdditionalDependencies>winmm.lib;imm32.lib;opengl32.lib;dxguid.lib;version.lib;Iphlpapi.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2.lib;$(SolutionDir)..\bin\$(Platform)\$(Configuration)\sdl2main.lib;Ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -564,6 +587,7 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
       </AdditionalLibraryDirectories>
       <ProgramDatabaseFile>$(IntDir)$(TargetName).pdb</ProgramDatabaseFile>
       <ProfileGuidedDatabase>$(IntDir)$(TargetName).pgd</ProfileGuidedDatabase>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
