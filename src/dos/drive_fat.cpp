@@ -900,6 +900,9 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
         unsigned int ratiof = (unsigned int)(bootbuffer.bytespersector % loadedDisk->getSectSize());
         unsigned int ratioshift = (ratio == 4) ? 2 : 1;
 
+        /* FIXME: When PC-98 emulation adds BIOS functions to access the hard drive, this FAT driver should
+         *        switch to doing the sector conversion itself instead of hacking the geometry. */
+
         LOG_MSG("Disk indicates %u bytes/sector, FAT filesystem indicates 1024 bytes/sector. Ratio=%u shift=%u",loadedDisk->getSectSize(),ratio,ratioshift);
         assert(ratiof == 0);
         assert((ratio & (ratio - 1)) == 0); /* power of 2 */
