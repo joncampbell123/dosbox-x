@@ -694,9 +694,20 @@ public:
 		mpu.mode=M_UART;
 
         if (IS_PC98_ARCH)
-            mpu.irq=5;
+            mpu.irq=5;  /* FIXME: Is this right? What IRQ is normally involved? */
         else
     		mpu.irq=9;	/* Princess Maker 2 wants it on irq 9 */
+
+        {
+            int x = section->Get_int("mpuirq");
+
+            if (x >= 2)
+                mpu.irq = x;
+
+            if (!IS_PC98_ARCH && mpu.irq == 2) mpu.irq = 9;
+        }
+
+        LOG(LOG_MISC,LOG_NORMAL)("MPU IRQ %d",(int)mpu.irq);
 
 		mpu.intelligent = true;	//Default is on
 		if(strcasecmp(s_mpu,"uart") == 0) mpu.intelligent = false;

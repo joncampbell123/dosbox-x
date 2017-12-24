@@ -1628,6 +1628,10 @@ void DOSBOX_SetupConfigSections(void) {
 	                  "  When using a Roland MT-32 rev. 0 as midi output device, some games may require a delay in order to prevent 'buffer overflow' issues.\n"
 	                  "  In that case, add 'delaysysex', for example: midiconfig=2 delaysysex\n"
 	                  "  See the README/Manual for more details.");
+	
+	Pint = secprop->Add_int("mpuirq",Property::Changeable::WhenIdle,-1);
+	Pint->SetMinMax(-1,15);
+	Pint->Set_help("MPU-401 IRQ. -1 to automatically choose.");
 
 	Pstring = secprop->Add_string("mt32.reverse.stereo",Property::Changeable::WhenIdle,"off");
 	Pstring->Set_values(mt32ReverseStereo);
