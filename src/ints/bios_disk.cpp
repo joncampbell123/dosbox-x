@@ -292,6 +292,20 @@ imageDisk::imageDisk() {
 	hardDrive = false;
 }
 
+/* .HDI header (NP2) */
+#pragma pack(push,1)
+typedef struct {
+    uint8_t dummy[4];           // +0x00
+    uint8_t hddtype[4];         // +0x04
+    uint8_t headersize[4];      // +0x08
+    uint8_t hddsize[4];         // +0x0C
+    uint8_t sectorsize[4];      // +0x10
+    uint8_t sectors[4];         // +0x14
+    uint8_t surfaces[4];        // +0x18
+    uint8_t cylinders[4];       // +0x1C
+} HDIHDR;                       // =0x20
+#pragma pack(pop)
+
 imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk) {
 	heads = 0;
 	cylinders = 0;
@@ -358,11 +372,52 @@ imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHard
             if (ext != NULL) {
                 if (!strcasecmp(ext,".hdi")) {
                     if (imgSizeK >= 160) {
-                        // PC-98 .HDI images appear to be 4096 bytes of unknown and mostly zeros,
-                        // followed by a straight sector dump of the disk.
-                        imgSizeK -= 4; // minus 4K
-                        image_base += 4096; // +4K
-                        LOG_MSG("Image file has .HDI extension, assuming 4K offset");
+                        HDIHDR hdihdr;
+
+                        // PC-98 .HDI images appear to be 4096 bytes of a short header and many zeros.
+                        // followed by a straight sector dump of the disk. The header is NOT NECESSARILY
+                        // 4KB in size, but usually is.
+                        LOG_MSG("Image file has .HDI extension, assuming HDI image and will take on parameters in header.");
+
+                        assert(sizeof(hdihdr) == 0x20);
+                        if (fseek(imgFile,0,SEEK_SET) == 0 && ftell(imgFile) == 0 &&
+                            fread(&hdihdr,sizeof(hdihdr),1,imgFile) == 1) {
+                            uint32_t ofs = host_readd(hdihdr.headersize);
+                            uint32_t hddsize = host_readd(hdihdr.hddsize); /* includes header */
+                            uint32_t sectorsize = host_readd(hdihdr.sectorsize);
+
+                            if (sectorsize != 0 && ((sectorsize & (sectorsize - 1)) == 0/*is power of 2*/) &&
+                                sectorsize >= 256 && sectorsize <= 1024 &&
+                                ofs != 0 && (ofs % sectorsize) == 0/*offset is nonzero and multiple of sector size*/ &&
+                                (ofs % 1024) == 0/*offset is a multiple of 1024 because of imgSizeK*/ &&
+                                hddsize >= sectorsize && (hddsize/1024) <= (imgSizeK+4)) {
+
+                                sector_size = sectorsize;
+                                imgSizeK -= (ofs / 1024);
+                                image_base += ofs;
+                                LOG_MSG("HDI header: sectorsize is %u bytes/sector, header is %u bytes, hdd size (plus header) is %u bytes",
+                                    (unsigned int)sectorsize,(unsigned int)ofs,(unsigned int)hddsize);
+
+                                /* take on the geometry.
+                                 * PC-98 IPL1 support will need it to make sense of the partition table. */
+                                sectors = host_readd(hdihdr.sectors);
+                                heads = host_readd(hdihdr.surfaces);
+                                cylinders = host_readd(hdihdr.cylinders);
+                                LOG_MSG("HDI: Geometry is C/H/S %u/%u/%u",
+                                    (unsigned int)cylinders,(unsigned int)heads,(unsigned int)sectors);
+
+                                if (cylinders == 0) cylinders = 1;
+                                if (sectors == 0) sectors = 1;
+                                if (heads == 0) heads = 1;
+                            }
+                            else {
+                                LOG_MSG("HDI header rejected. sectorsize=%u headersize=%u hddsize=%u",
+                                    (unsigned int)sectorsize,(unsigned int)ofs,(unsigned int)hddsize);
+                            }
+                        }
+                        else {
+                            LOG_MSG("Unable to read .HDI header");
+                        }
                     }
                 }
             }
