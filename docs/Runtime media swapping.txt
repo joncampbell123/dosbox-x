@@ -1,0 +1,29 @@
+== Floppy image swapping ==
+
+If you are booting from floppy using the BOOT command
+(but not yet the IMGMOUNT command), you can use the
+SwapFloppy key combination through the mapper to swap
+between floppies.
+
+This key combination is CTRL+F4 (CTRL+SHIFT+F4 on Linux)
+by default, but can be changed through the mapper interface.
+
+== CD-ROM image swapping ==
+
+IMGMOUNT can be used to attach multiple ISO images to
+a CD-ROM drive. At first, the first ISO image is presented
+to the guest as the CD-ROM drive. To emulate the act of
+removing the CD and putting in the next one, use the
+SwapCD key combination through the mapper.
+
+This key combination is CTRL+F3 (CTRL+SHIFT+F3 on Linux)
+by default, but can be changed through the mapper interface.
+
+To provide a realistic CD change delay, CD switching is
+emulated as first the removal of the CD-ROM media from
+the drive, followed by a 4 second delay, followed by the
+emulation of inserting the new CD and waiting for the
+CD-ROM drive to spin up and read it. This delay is
+necessary for some OSes like Windows 95 who cannot
+detect CD changes if the changeover happens too fast.
+
