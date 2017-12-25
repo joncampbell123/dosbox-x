@@ -2574,6 +2574,12 @@ void MAPPER_AddHandler(MAPPER_Handler * handler,MapKeys key,Bitu mods,char const
 
             pending_string_binds.erase(i);
         }
+        else {
+            /* use default binding.
+             * redundant? Yes! But, apparently necessary. */
+            event->MakeDefaultBind(tmp);
+            CreateStringBind(tmp);
+        }
     }
 
 	return ;
