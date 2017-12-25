@@ -41,6 +41,7 @@
 #include <algorithm> // std::transform
 #ifdef WIN32
 # include <signal.h>
+# include <sys/stat.h>
 # include <process.h>
 #endif
 
@@ -60,6 +61,7 @@
 #include "menu.h"
 #include "SDL_video.h"
 #include "ide.h"
+#include "mapper.h"
 
 #include "../src/libs/gui_tk/gui_tk.h"
 
@@ -84,6 +86,10 @@
 #include "fpu.h"
 #include "cross.h"
 #include "control.h"
+
+#if defined(WIN32) && !defined(S_ISREG)
+# define S_ISREG(x) ((x & S_IFREG) == S_IFREG)
+#endif
 
 extern bool keep_umb_on_boot;
 extern bool keep_private_area_on_boot;

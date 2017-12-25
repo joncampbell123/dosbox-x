@@ -227,7 +227,7 @@
 #undef TM_IN_SYS_TIME
 
 /* Version number of package */
-#define VERSION					"DOSBox-X"
+#define VERSION					"0.82.1"
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */
