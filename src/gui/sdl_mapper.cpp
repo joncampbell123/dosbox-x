@@ -41,6 +41,9 @@
 
 void MAPPER_CheckKeyboardLayout();
 
+Bitu next_handler_xpos=0;
+Bitu next_handler_ypos=0;
+
 bool isJPkeyboard = false;
 
 enum {
@@ -2251,6 +2254,8 @@ static void CreateLayout(void) {
 			xpos=3;ypos++;
 		}
 	}
+    next_handler_xpos = xpos;
+    next_handler_ypos = ypos;
 	/* Create some text buttons */
 //	new CTextButton(PX(6),0,124,20,"Keyboard Layout");
 //	new CTextButton(PX(17),0,124,20,"Joystick Layout");
@@ -2530,7 +2535,17 @@ void MAPPER_AddHandler(MAPPER_Handler * handler,MapKeys key,Bitu mods,char const
 	char tempname[27];
 	strcpy(tempname,"hand_");
 	strcat(tempname,eventname);
-	new CHandlerEvent(tempname,handler,key,mods,buttonname);
+	CHandlerEvent *event = new CHandlerEvent(tempname,handler,key,mods,buttonname);
+
+    // and a button in the mapper UI
+    {
+		new CEventButton(PX(next_handler_xpos*3),PY(next_handler_ypos),BW*3,BH,buttonname,event);
+		next_handler_xpos++;
+		if (next_handler_xpos>6) {
+			next_handler_xpos=3;next_handler_ypos++;
+		}
+    }
+
 	return ;
 }
 
