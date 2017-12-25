@@ -360,6 +360,7 @@ class AUTOEXEC:public Module_base {
 private:
 	AutoexecObject autoexec[17];
 	AutoexecObject autoexec_echo;
+    AutoexecObject autoexec_auto_bat;
 public:
 	AUTOEXEC(Section* configuration):Module_base(configuration) {
 		/* Register a virtual AUOEXEC.BAT file */
@@ -368,6 +369,27 @@ public:
 
 		/* Check -securemode switch to disable mount/imgmount/boot after running autoexec.bat */
 		bool secure = control->opt_securemode;
+
+        /* The user may have given .BAT files to run on the command line */
+        if (!control->auto_bat_additional.empty()) {
+            std::string cmd;
+
+            cmd += "@mount c: . -q\n";
+            cmd += "@c:\n";
+            cmd += "@cd \\\n";
+
+            for (unsigned int i=0;i<control->auto_bat_additional.size();i++) {
+                /* NTS: "CALL" does not support quoting the filename.
+                 *      This will break if the batch file name has spaces in it. */
+                cmd += "@CALL ";
+                cmd += control->auto_bat_additional[i];
+                cmd += "\n";
+            }
+
+            cmd += "@mount -u c: -q\n";
+
+            autoexec_auto_bat.InstallBefore(cmd);
+        }
 
 		/* add stuff from the configfile unless -noautexec or -securemode is specified. */
 		char * extra = const_cast<char*>(section->data.c_str());

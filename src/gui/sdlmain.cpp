@@ -4754,6 +4754,30 @@ bool DOSBOX_parse_argv() {
         }
     }
 
+    /* now that the above loop has eaten all the options from the command
+     * line, scan the command line for batch files to run.
+     * https://github.com/joncampbell123/dosbox-x/issues/369 */
+    control->cmdline->BeginOpt(/*don't eat*/false);
+    while (!control->cmdline->CurrentArgvEnd()) {
+        control->cmdline->GetCurrentArgv(tmp);
+
+        {
+            struct stat st;
+            const char *ext = strrchr(tmp.c_str(),'.');
+            if (ext != NULL) { /* if it looks like a file... with an extension */
+                if (stat(tmp.c_str(), &st) == 0 && S_ISREG(st.st_mode)) {
+                    if (!strcasecmp(ext,".bat")) { /* .BAT files given on the command line trigger automounting C: to run it */
+                        control->auto_bat_additional.push_back(tmp);
+                        control->cmdline->EatCurrentArgv();
+                        continue;
+                    }
+                }
+            }
+        }
+
+        control->cmdline->NextArgv();
+    }
+
     return true;
 }
 

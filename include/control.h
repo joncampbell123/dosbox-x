@@ -63,6 +63,7 @@ private:
 	bool secure_mode; //Sandbox mode
 public:
 	bool initialised;
+    std::vector<std::string> auto_bat_additional;
 	std::vector<std::string> startup_params;
 	std::vector<std::string> configfiles;
 	Config(CommandLine * cmd):cmdline(cmd),secure_mode(false) {
