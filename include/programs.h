@@ -71,6 +71,11 @@ public:
 	bool GetOptGNUSingleCharCheck(std::string &name);
 	void ChangeOptStyle(enum opt_style opt_style);
 	void EndOpt();
+
+    bool GetCurrentArgv(std::string &argv);
+    bool CurrentArgvEnd(void);
+    void EatCurrentArgv(void);
+    void NextArgv(void);
 private:
 	typedef std::list<std::string>::iterator cmd_it;
 	std::string opt_gnu_getopt_singlechar;		/* non-empty if we hit GNU options like -abcd => -a -b -c -d */

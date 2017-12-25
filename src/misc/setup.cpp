@@ -1071,6 +1071,25 @@ unsigned int CommandLine::GetCount(void) {
 	return (unsigned int)cmds.size();
 }
 
+bool CommandLine::GetCurrentArgv(std::string &argv) {
+    if (opt_scan != cmds.end())
+        argv = *opt_scan;
+
+    return false;
+}
+
+bool CommandLine::CurrentArgvEnd(void) {
+    return (opt_scan == cmds.end());
+}
+
+void CommandLine::EatCurrentArgv(void) {
+    if (opt_scan != cmds.end()) opt_scan = cmds.erase(opt_scan);
+}
+
+void CommandLine::NextArgv(void) {
+    if (opt_scan != cmds.end()) opt_scan++;
+}
+
 bool CommandLine::NextOptArgv(std::string &argv) {
 	argv.clear();
 
