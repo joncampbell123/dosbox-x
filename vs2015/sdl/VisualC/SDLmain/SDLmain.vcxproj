@@ -177,6 +177,9 @@
       <ControlFlowGuard>false</ControlFlowGuard>
       <PrecompiledHeaderFile />
     </ClCompile>
+    <Lib>
+      <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|Win32'">
     <ClCompile>
@@ -196,6 +199,9 @@
       <ControlFlowGuard>false</ControlFlowGuard>
       <PrecompiledHeaderFile />
     </ClCompile>
+    <Lib>
+      <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Midl>
@@ -218,6 +224,9 @@
       <ControlFlowGuard>false</ControlFlowGuard>
       <PrecompiledHeaderFile />
     </ClCompile>
+    <Lib>
+      <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|x64'">
     <Midl>
@@ -240,6 +249,9 @@
       <ControlFlowGuard>false</ControlFlowGuard>
       <PrecompiledHeaderFile />
     </ClCompile>
+    <Lib>
+      <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -260,6 +272,9 @@
       <ControlFlowGuard>false</ControlFlowGuard>
       <PrecompiledHeaderFile />
     </ClCompile>
+    <Lib>
+      <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|Win32'">
     <ClCompile>
@@ -280,6 +295,9 @@
       <ControlFlowGuard>false</ControlFlowGuard>
       <PrecompiledHeaderFile />
     </ClCompile>
+    <Lib>
+      <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Midl>
@@ -303,6 +321,9 @@
       <ControlFlowGuard>false</ControlFlowGuard>
       <PrecompiledHeaderFile />
     </ClCompile>
+    <Lib>
+      <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|x64'">
     <Midl>
@@ -326,6 +347,9 @@
       <ControlFlowGuard>false</ControlFlowGuard>
       <PrecompiledHeaderFile />
     </ClCompile>
+    <Lib>
+      <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Src\Main\Win32\SDL_win32_main.c" />

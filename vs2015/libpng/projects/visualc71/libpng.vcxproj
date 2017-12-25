@@ -173,7 +173,7 @@
       <PrecompiledHeaderOutputFile />
     </ClCompile>
     <Lib>
-      <OutputFile>$(OutDir)libpng.lib</OutputFile>
+      <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|Win32'">
@@ -198,7 +198,7 @@
       <PrecompiledHeaderOutputFile />
     </ClCompile>
     <Lib>
-      <OutputFile>$(OutDir)libpng.lib</OutputFile>
+      <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -224,7 +224,7 @@
       <PrecompiledHeaderOutputFile />
     </ClCompile>
     <Lib>
-      <OutputFile>$(OutDir)libpng.lib</OutputFile>
+      <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|Win32'">
@@ -250,7 +250,7 @@
       <PrecompiledHeaderOutputFile />
     </ClCompile>
     <Lib>
-      <OutputFile>$(OutDir)libpng.lib</OutputFile>
+      <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -278,7 +278,7 @@
       <PrecompiledHeaderOutputFile />
     </ClCompile>
     <Lib>
-      <OutputFile>$(OutDir)libpng.lib</OutputFile>
+      <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release SDL2|x64'">
@@ -306,7 +306,7 @@
       <PrecompiledHeaderOutputFile />
     </ClCompile>
     <Lib>
-      <OutputFile>$(OutDir)libpng.lib</OutputFile>
+      <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -335,7 +335,7 @@
       <PrecompiledHeaderOutputFile />
     </ClCompile>
     <Lib>
-      <OutputFile>$(OutDir)libpng.lib</OutputFile>
+      <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug SDL2|x64'">
@@ -364,7 +364,7 @@
       <PrecompiledHeaderOutputFile />
     </ClCompile>
     <Lib>
-      <OutputFile>$(OutDir)libpng.lib</OutputFile>
+      <OutputFile>$(IntDir)$(TargetName)$(TargetExt)</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
