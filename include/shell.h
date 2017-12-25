@@ -129,6 +129,8 @@ public:
 	bool echo;
 	bool exit;
 	bool call;
+    /* Status */
+    bool input_eof;
 };
 
 struct SHELL_Cmd {

@@ -143,6 +143,7 @@ DOS_Shell::DOS_Shell():Program(){
 	exit=false;
 	bf=0;
 	call=false;
+    input_eof=false;
 }
 
 Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn,bool * append) {
@@ -335,7 +336,12 @@ void DOS_Shell::Run(void) {
 		} else {
 			if (echo) ShowPrompt();
 			InputCommand(input_line);
-			if (echo) WriteOut("\n");
+			if (echo && !input_eof) WriteOut("\n");
+
+            /* Bugfix: CTTY NUL will return immediately, the shell input will return
+             *         immediately, and if we don't consume CPU cycles to compensate,
+             *         will leave DOSBox-X running in an endless loop, hung. */
+            if (input_eof) CALLBACK_Idle();
 		}
 
 		/* do it */

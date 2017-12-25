@@ -39,15 +39,15 @@ public:
 	device_NUL() { SetName("NUL"); };
 	virtual bool Read(Bit8u * data,Bit16u * size) {
 		*size = 0; //Return success and no data read. 
-		LOG(LOG_IOCTL,LOG_NORMAL)("%s:READ",GetName());
+//		LOG(LOG_IOCTL,LOG_NORMAL)("%s:READ",GetName());
 		return true;
 	}
 	virtual bool Write(Bit8u * data,Bit16u * size) {
-		LOG(LOG_IOCTL,LOG_NORMAL)("%s:WRITE",GetName());
+//		LOG(LOG_IOCTL,LOG_NORMAL)("%s:WRITE",GetName());
 		return true;
 	}
 	virtual bool Seek(Bit32u * pos,Bit32u type) {
-		LOG(LOG_IOCTL,LOG_NORMAL)("%s:SEEK",GetName());
+//		LOG(LOG_IOCTL,LOG_NORMAL)("%s:SEEK",GetName());
 		return true;
 	}
 	virtual bool Close() { return true; }

@@ -100,6 +100,7 @@ void DOS_Shell::InputCommand(char * line) {
 	Bit16u len=0;
 	bool current_hist=false; // current command stored in history?
 
+    input_eof = false;
 	line[0] = '\0';
 
 	std::list<std::string>::iterator it_history = l_history.begin(), it_completion = l_completion.begin();
@@ -111,8 +112,11 @@ void DOS_Shell::InputCommand(char * line) {
 			DOS_CloseFile(input_handle);
 			DOS_OpenFile("con",2,&dummy);
 			LOG(LOG_MISC,LOG_ERROR)("Reopening the input handle. This is a bug!");
+            // FIXME: Patience counter. If you can't open CON again the first time what makes you
+            //        think doing it again will work?
 		}
 		if (!n) {
+            input_eof = true;
 			size=0;			//Kill the while loop
 			continue;
 		}
