@@ -2574,9 +2574,6 @@ void MAPPER_AddHandler(MAPPER_Handler * handler,MapKeys key,Bitu mods,char const
 
             pending_string_binds.erase(i);
         }
-        else {
-    	    LOG(LOG_MISC,LOG_WARN)("Can't find matching event for %s",tempname);
-        }
     }
 
 	return ;
