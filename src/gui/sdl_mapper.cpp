@@ -39,6 +39,10 @@
 #include "setup.h"
 #include "menu.h"
 
+#include <map>
+
+std::map<std::string,std::string> pending_string_binds;
+
 void MAPPER_CheckKeyboardLayout();
 
 Bitu next_handler_xpos=0;
@@ -2295,7 +2299,7 @@ static SDL_Color map_pal[5]={
 	{0x00,0xff,0x20,0x00}			//4=green
 };
 
-static void CreateStringBind(char * line) {
+static void CreateStringBind(char * line,bool loading=false) {
 	line=trim(line);
 	char * eventname=StripWord(line);
 	CEvent * event;
@@ -2305,7 +2309,16 @@ static void CreateStringBind(char * line) {
 			goto foundevent;
 		}
 	}
-	LOG(LOG_MISC,LOG_WARN)("Can't find matching event for %s",eventname);
+
+    if (loading) {
+        /* NTS: StripWord() updates line pointer after ASCIIZ snipping the event name */
+        pending_string_binds[eventname] = line; /* perhaps code will register it later (i.e. Herc pal change) */
+    	LOG(LOG_MISC,LOG_WARN)("Can't find matching event for %s = %s yet. It may exist later when registered elsewhere in this emulator.",eventname,line);
+    }
+    else {
+    	LOG(LOG_MISC,LOG_WARN)("Can't find matching event for %s",eventname);
+    }
+
 	return ;
 foundevent:
 	CBind * bind;
@@ -2546,6 +2559,26 @@ void MAPPER_AddHandler(MAPPER_Handler * handler,MapKeys key,Bitu mods,char const
 		}
     }
 
+    // this event may have appeared in the user's mapper file, and been ignored.
+    // now is the time to register it.
+    {
+        auto i = pending_string_binds.find(tempname);
+        char tmp[512];
+
+        if (i != pending_string_binds.end()) {
+            LOG(LOG_MISC,LOG_WARN)("Found pending event for %s from user's file, applying now",tempname);
+
+            snprintf(tmp,sizeof(tmp),"%s %s",tempname,i->second.c_str());
+
+            CreateStringBind(tmp);
+
+            pending_string_binds.erase(i);
+        }
+        else {
+    	    LOG(LOG_MISC,LOG_WARN)("Can't find matching event for %s",tempname);
+        }
+    }
+
 	return ;
 }
 
@@ -2576,7 +2609,7 @@ static bool MAPPER_LoadBinds(void) {
 	if (!loadfile) return false;
 	char linein[512];
 	while (fgets(linein,512,loadfile)) {
-		CreateStringBind(linein);
+		CreateStringBind(linein,/*loading*/true);
 	}
 	fclose(loadfile);
 	LOG(LOG_MISC,LOG_NORMAL)("MAPPER: Loading mapper settings from %s", mapper.filename.c_str());
