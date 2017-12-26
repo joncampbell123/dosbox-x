@@ -388,7 +388,7 @@ public:
 
             cmd += "@mount -u c: -q\n";
 
-            autoexec_auto_bat.InstallBefore(cmd);
+            autoexec_auto_bat.Install(cmd);
         }
 
 		/* add stuff from the configfile unless -noautexec or -securemode is specified. */
