@@ -219,22 +219,6 @@ static void redirect_output(void)
 	SDL_strlcpy( stdoutPath, path, SDL_arraysize(stdoutPath) );
 	SDL_strlcat( stdoutPath, DIR_SEPERATOR STDOUT_FILE, SDL_arraysize(stdoutPath) );
 #endif
-    
-	/* Redirect standard input and standard output */
-	newfp = freopen(stdoutPath, TEXT("w"), stdout);
-
-#ifndef _WIN32_WCE
-	if ( newfp == NULL ) {	/* This happens on NT */
-#if !defined(stdout)
-		stdout = fopen(stdoutPath, TEXT("w"));
-#else
-		newfp = fopen(stdoutPath, TEXT("w"));
-		if ( newfp ) {
-			*stdout = *newfp;
-		}
-#endif
-	}
-#endif /* _WIN32_WCE */
 
 #ifdef _WIN32_WCE
 	wcsncpy( stderrPath, path, SDL_arraysize(stdoutPath) );
@@ -243,20 +227,6 @@ static void redirect_output(void)
 	SDL_strlcpy( stderrPath, path, SDL_arraysize(stderrPath) );
 	SDL_strlcat( stderrPath, DIR_SEPERATOR STDERR_FILE, SDL_arraysize(stderrPath) );
 #endif
-
-	newfp = freopen(stderrPath, TEXT("w"), stderr);
-#ifndef _WIN32_WCE
-	if ( newfp == NULL ) {	/* This happens on NT */
-#if !defined(stderr)
-		stderr = fopen(stderrPath, TEXT("w"));
-#else
-		newfp = fopen(stderrPath, TEXT("w"));
-		if ( newfp ) {
-			*stderr = *newfp;
-		}
-#endif
-	}
-#endif /* _WIN32_WCE */
 
 	setvbuf(stdout, NULL, _IOLBF, BUFSIZ);	/* Line buffered */
 	setbuf(stderr, NULL);			/* No buffering */
