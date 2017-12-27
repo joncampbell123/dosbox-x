@@ -648,7 +648,6 @@ set(PACKAGE_TARNAME "dosbox-x" CACHE STRING "Define to the one symbol short name
 set(PACKAGE_URL "http://dosbox-x.software" CACHE STRING "Define to the home page for this package")
 set(PACKAGE_VERSION "0.821" CACHE STRING "Define to the version of this package")
 
-# https://cmake.org/cmake/help/v3.2/command/configure_file.html
 configure_file(
 	${CMAKE_CURRENT_SOURCE_DIR}/config.h.in
 	${CMAKE_CURRENT_BINARY_DIR}/config.h
