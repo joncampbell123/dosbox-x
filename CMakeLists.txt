@@ -651,5 +651,11 @@ file(WRITE "${CMAKE_BINARY_DIR}/unistd.h" "") # create fake unistd.h
 include_directories("include")
 include_directories(${CMAKE_BINARY_DIR}) # unistd.h
 
+# https://cmake.org/cmake/help/v3.2/command/configure_file.html
+configure_file(
+	${CMAKE_CURRENT_SOURCE_DIR}/config.h.in
+	${CMAKE_CURRENT_BINARY_DIR}/config.h
+)
+
 set_target_properties(dosbox-x PROPERTIES LINKER_LANGUAGE CXX)
 
