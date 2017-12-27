@@ -1,4 +1,7 @@
 0.82.1 (12/25/2017)
+  - Windows builds no longer redirect stdout and stderr to
+    stdout.txt and stderr.txt. This also fixes problems
+    with crashing or hanging when run from Program Files.
   - Windows releases compiled by TheGreatCodeholio again.
   - SDL 1.x and SDL 2.x support in the same branch, selectable
     by configuration option or VS2017 build target.
