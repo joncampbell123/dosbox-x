@@ -336,7 +336,7 @@ set(SRC_HARDWARE_RESID
 	#"src/hardware/reSID/Makefile.in"
 	"src/hardware/reSID/pot.cpp"
 	"src/hardware/reSID/pot.h"
-	"src/hardware/reSID/q.txt"
+	#"src/hardware/reSID/q.txt"
 	"src/hardware/reSID/sid.cpp"
 	"src/hardware/reSID/sid.h"
 	"src/hardware/reSID/siddefs.h"
@@ -434,14 +434,14 @@ set(SRC_LIBS_ZMBV
 	#"src/libs/zmbv/Makefile.in"
 	"src/libs/zmbv/resource.h"
 	"src/libs/zmbv/zmbv.cpp"
-	"src/libs/zmbv/zmbv.def"
+	#"src/libs/zmbv/zmbv.def"
 	"src/libs/zmbv/zmbv.h"
-	"src/libs/zmbv/zmbv.inf"
+	#"src/libs/zmbv/zmbv.inf"
 	#"src/libs/zmbv/zmbv.sln"
 	#"src/libs/zmbv/zmbv.vcproj"
 	"src/libs/zmbv/zmbv_vfw.cpp"
 	"src/libs/zmbv/zmbv_vfw.h"
-	"src/libs/zmbv/zmbv_vfw.rc"
+	#"src/libs/zmbv/zmbv_vfw.rc"
 )
 source_group("Sources\\libs\\zmbv" FILES ${SRC_LIBS_ZMBV})
 
@@ -517,7 +517,7 @@ set(SRC_MT32_FREEVERB
 source_group("Sources\\mt32\\freeverb" FILES ${SRC_MT32_FREEVERB})
 
 set(SRC_MT32_SHA1
-	"src/mt32/sha1/license.txt"
+	#"src/mt32/sha1/license.txt"
 	"src/mt32/sha1/sha1.cpp"
 	"src/mt32/sha1/sha1.h"
 )
