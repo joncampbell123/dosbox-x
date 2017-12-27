@@ -672,6 +672,7 @@ configure_file(
 )
 
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+add_definitions(-D__WIN32__)
 
 add_executable(dosbox-x
 	${ROOT}
