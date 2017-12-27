@@ -636,6 +636,13 @@ CHECK_TYPE_SIZE("unsigned long long" SIZEOF_UNSIGNED_LONG_LONG)
 CHECK_TYPE_SIZE("int *" SIZEOF_INT_P)
 
 set(VERSION "0.82.1" CACHE STRING "Version number of package")
+set(PACKAGE "dosbox-x" CACHE STRING "Name of package")
+set(PACKAGE_BUGREPORT "https://github.com/joncampbell123/dosbox-x/issues" CACHE STRING "Define to the address where bug reports for this package should be sent")
+set(PACKAGE_NAME "dosbox-x" CACHE STRING "Define to the full name of this package")
+set(PACKAGE_STRING "dosbox-x 0.821" CACHE STRING "Define to the full name and version of this package")
+set(PACKAGE_TARNAME "dosbox-x" CACHE STRING "Define to the one symbol short name of this package")
+set(PACKAGE_URL "http://dosbox-x.software" CACHE STRING "Define to the home page for this package")
+set(PACKAGE_VERSION "0.821" CACHE STRING "Define to the version of this package")
 
 # https://cmake.org/cmake/help/v3.2/command/configure_file.html
 configure_file(
