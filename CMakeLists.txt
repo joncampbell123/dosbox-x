@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 project(dosbox-x C CXX) # C for CheckIncludeFiles
+include(CheckTypeSize)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -625,6 +626,13 @@ file(WRITE "${CMAKE_BINARY_DIR}/unistd.h" "") # create fake unistd.h
 
 include_directories("include")
 include_directories(${CMAKE_BINARY_DIR}) # unistd.h
+
+CHECK_TYPE_SIZE("unsigned char" SIZEOF_UNSIGNED_CHAR)
+CHECK_TYPE_SIZE("unsigned short" SIZEOF_UNSIGNED_SHORT)
+CHECK_TYPE_SIZE("unsigned int" SIZEOF_UNSIGNED_INT)
+CHECK_TYPE_SIZE("unsigned long" SIZEOF_UNSIGNED_LONG)
+CHECK_TYPE_SIZE("unsigned long long" SIZEOF_UNSIGNED_LONG_LONG)
+CHECK_TYPE_SIZE("int *" SIZEOF_INT_P)
 
 # https://cmake.org/cmake/help/v3.2/command/configure_file.html
 configure_file(

@@ -196,23 +196,12 @@
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
-/* The size of `int *', as computed by sizeof. */
-#undef SIZEOF_INT_P
-
-/* The size of `unsigned char', as computed by sizeof. */
-#undef SIZEOF_UNSIGNED_CHAR
-
-/* The size of `unsigned int', as computed by sizeof. */
-#undef SIZEOF_UNSIGNED_INT
-
-/* The size of `unsigned long', as computed by sizeof. */
-#undef SIZEOF_UNSIGNED_LONG
-
-/* The size of `unsigned long long', as computed by sizeof. */
-#undef SIZEOF_UNSIGNED_LONG_LONG
-
-/* The size of `unsigned short', as computed by sizeof. */
-#undef SIZEOF_UNSIGNED_SHORT
+#cmakedefine SIZEOF_UNSIGNED_CHAR @SIZEOF_UNSIGNED_CHAR@
+#cmakedefine SIZEOF_UNSIGNED_SHORT @SIZEOF_UNSIGNED_SHORT@
+#cmakedefine SIZEOF_UNSIGNED_INT @SIZEOF_UNSIGNED_INT@
+#cmakedefine SIZEOF_UNSIGNED_LONG @SIZEOF_UNSIGNED_LONG@
+#cmakedefine SIZEOF_UNSIGNED_LONG_LONG @SIZEOF_UNSIGNED_LONG_LONG@
+#cmakedefine SIZEOF_INT_P @SIZEOF_INT_P@
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
