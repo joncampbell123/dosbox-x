@@ -635,6 +635,8 @@ CHECK_TYPE_SIZE("unsigned long" SIZEOF_UNSIGNED_LONG)
 CHECK_TYPE_SIZE("unsigned long long" SIZEOF_UNSIGNED_LONG_LONG)
 CHECK_TYPE_SIZE("int *" SIZEOF_INT_P)
 
+set(VERSION "0.82.1" CACHE STRING "Version number of package")
+
 # https://cmake.org/cmake/help/v3.2/command/configure_file.html
 configure_file(
 	${CMAKE_CURRENT_SOURCE_DIR}/config.h.in
