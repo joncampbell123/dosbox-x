@@ -616,6 +616,17 @@ set(SRC_SHELL
 )
 source_group("Sources\\shell" FILES ${SRC_SHELL})
 
+file(WRITE "${CMAKE_BINARY_DIR}/unistd.h" "") # create fake unistd.h
+
+include_directories("include")
+include_directories(${CMAKE_BINARY_DIR}) # unistd.h
+
+# https://cmake.org/cmake/help/v3.2/command/configure_file.html
+configure_file(
+	${CMAKE_CURRENT_SOURCE_DIR}/config.h.in
+	${CMAKE_CURRENT_BINARY_DIR}/config.h
+)
+
 add_executable(dosbox-x
 	${INCLUDES}
 	${SRC_}
@@ -644,17 +655,6 @@ add_executable(dosbox-x
 	${SRC_MT32_SHA1}
 	${SRC_PLATFORM}
 	${SRC_SHELL}
-)
-
-file(WRITE "${CMAKE_BINARY_DIR}/unistd.h" "") # create fake unistd.h
-
-include_directories("include")
-include_directories(${CMAKE_BINARY_DIR}) # unistd.h
-
-# https://cmake.org/cmake/help/v3.2/command/configure_file.html
-configure_file(
-	${CMAKE_CURRENT_SOURCE_DIR}/config.h.in
-	${CMAKE_CURRENT_BINARY_DIR}/config.h
 )
 
 set_target_properties(dosbox-x PROPERTIES LINKER_LANGUAGE CXX)
