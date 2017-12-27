@@ -647,5 +647,9 @@ add_executable(dosbox-x
 )
 
 file(WRITE "${CMAKE_BINARY_DIR}/unistd.h" "") # create fake unistd.h
+
+include_directories("include")
+include_directories(${CMAKE_BINARY_DIR}) # unistd.h
+
 set_target_properties(dosbox-x PROPERTIES LINKER_LANGUAGE CXX)
 
