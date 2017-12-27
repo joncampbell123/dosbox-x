@@ -626,6 +626,7 @@ file(WRITE "${CMAKE_BINARY_DIR}/unistd.h" "") # create fake unistd.h
 
 include_directories("include")
 include_directories(${CMAKE_BINARY_DIR}) # unistd.h, config.h
+include_directories("src/aviwriter")
 
 CHECK_TYPE_SIZE("unsigned char" SIZEOF_UNSIGNED_CHAR)
 CHECK_TYPE_SIZE("unsigned short" SIZEOF_UNSIGNED_SHORT)
