@@ -664,6 +664,7 @@ set(PACKAGE_STRING "dosbox-x 0.821" CACHE STRING "Define to the full name and ve
 set(PACKAGE_TARNAME "dosbox-x" CACHE STRING "Define to the one symbol short name of this package")
 set(PACKAGE_URL "http://dosbox-x.software" CACHE STRING "Define to the home page for this package")
 set(PACKAGE_VERSION "0.821" CACHE STRING "Define to the version of this package")
+set(_FILE_OFFSET_BITS "64" CACHE STRING "Number of bits in a file offset, on hosts where this is settable")
 
 configure_file(
 	${CMAKE_CURRENT_SOURCE_DIR}/config.h.in
