@@ -630,7 +630,10 @@ file(WRITE "${CMAKE_BINARY_DIR}/unistd.h" "") # create fake unistd.h
 
 include_directories("include")
 include_directories(${CMAKE_BINARY_DIR}) # unistd.h, config.h
+include_directories(".") # TODO this is solely for dumb bios.cpp include syntax
 include_directories("src/aviwriter")
+include_directories(".deps/SDL-1.2.15/include")
+include_directories(".deps/zlib-1.2.11")
 
 CHECK_TYPE_SIZE("unsigned char" SIZEOF_UNSIGNED_CHAR)
 CHECK_TYPE_SIZE("unsigned short" SIZEOF_UNSIGNED_SHORT)
