@@ -670,6 +670,8 @@ configure_file(
 	${CMAKE_CURRENT_BINARY_DIR}/config.h
 )
 
+add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+
 add_executable(dosbox-x
 	${ROOT}
 	${INCLUDES}
