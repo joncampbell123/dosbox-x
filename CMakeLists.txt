@@ -646,5 +646,6 @@ add_executable(dosbox-x
 	${SRC_SHELL}
 )
 
+file(WRITE "${CMAKE_BINARY_DIR}/unistd.h" "") # create fake unistd.h
 set_target_properties(dosbox-x PROPERTIES LINKER_LANGUAGE CXX)
 
