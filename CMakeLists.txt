@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(dosbox-x C CXX) # C for CheckIncludeFiles
 include(CheckTypeSize)
+include(CheckIncludeFiles)
 
 if (NOT MSVC)
 	message(FATAL_ERROR "Currently, only MSVC is supported")
@@ -641,6 +642,19 @@ CHECK_TYPE_SIZE("unsigned int" SIZEOF_UNSIGNED_INT)
 CHECK_TYPE_SIZE("unsigned long" SIZEOF_UNSIGNED_LONG)
 CHECK_TYPE_SIZE("unsigned long long" SIZEOF_UNSIGNED_LONG_LONG)
 CHECK_TYPE_SIZE("int *" SIZEOF_INT_P)
+
+CHECK_INCLUDE_FILES(inttypes.h HAVE_INTTYPES_H)
+CHECK_INCLUDE_FILES(memory.h HAVE_MEMORY_H)
+CHECK_INCLUDE_FILES(netinet/in.h HAVE_NETINET_IN_H)
+CHECK_INCLUDE_FILES(pwd.h HAVE_PWD_H)
+CHECK_INCLUDE_FILES(stdint.h HAVE_STDINT_H)
+CHECK_INCLUDE_FILES(stdlib.h HAVE_STDLIB_H)
+CHECK_INCLUDE_FILES(strings.h HAVE_STRINGS_H)
+CHECK_INCLUDE_FILES(string.h HAVE_STRING_H)
+CHECK_INCLUDE_FILES(sys/socket.h HAVE_SYS_SOCKET_H)
+CHECK_INCLUDE_FILES(sys/stat.h HAVE_SYS_STAT_H)
+CHECK_INCLUDE_FILES(sys/types.h HAVE_SYS_TYPES_H)
+CHECK_INCLUDE_FILES(unistd.h HAVE_UNISTD_H)
 
 set(VERSION "0.82.1" CACHE STRING "Version number of package")
 set(PACKAGE "dosbox-x" CACHE STRING "Name of package")
