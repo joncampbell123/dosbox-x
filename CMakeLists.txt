@@ -616,6 +616,11 @@ set(SRC_SHELL
 )
 source_group("Sources\\shell" FILES ${SRC_SHELL})
 
+set(ROOT
+	"${CMAKE_BINARY_DIR}/config.h"
+)
+source_group("\\" FILES ${ROOT})
+
 file(WRITE "${CMAKE_BINARY_DIR}/unistd.h" "") # create fake unistd.h
 
 include_directories("include")
@@ -628,6 +633,7 @@ configure_file(
 )
 
 add_executable(dosbox-x
+	${ROOT}
 	${INCLUDES}
 	${SRC_}
 	${SRC_AVIWRITER}
