@@ -608,53 +608,96 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_SUBST_NO_REMOVE","Unable to remove, drive not in use.\n");
 	MSG_Add("SHELL_CMD_SUBST_FAILURE","SUBST failed. You either made an error in your commandline or the target drive is already used.\nIt's only possible to use SUBST on Local drives\n");
 
-	MSG_Add("SHELL_STARTUP_BEGIN",
-		"\033[44;1m\xC9\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-		"\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-		"\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBB\n"
-		"\xBA \033[32mWelcome to DOSBox-X %-8s %-25s\033[37m             \xBA\n"
-		"\xBA                                                                    \xBA\n"
-		"\xBA For a short introduction for new users type: \033[33mINTRO\033[37m                 \xBA\n"
-		"\xBA For supported shell commands type: \033[33mHELP\033[37m                            \xBA\n"
-		"\xBA                                                                    \xBA\n"
-		"\xBA To adjust the emulated CPU speed, use \033[31mctrl-F11\033[37m and \033[31mctrl-F12\033[37m.       \xBA\n"
-		"\xBA To activate the keymapper \033[31mctrl-F1\033[37m.                                 \xBA\n"
-		"\xBA For more information read the \033[36mREADME\033[37m file in the DOSBox directory. \xBA\n"
-		"\xBA                                                                    \xBA\n"
-	);
-	if (!mono_cga) {
-		MSG_Add("SHELL_STARTUP_CGA","\xBA DOSBox supports Composite CGA mode.                                \xBA\n"
-		        "\xBA Use \033[31mF12\033[37m to set composite output ON, OFF, or AUTO (default).        \xBA\n"
-		        "\xBA \033[31m(Alt-)F11\033[37m changes hue; \033[31mctrl-alt-F11\033[37m selects early/late CGA model.  \xBA\n"
-		        "\xBA                                                                    \xBA\n"
-		);
-	} else {
-		MSG_Add("SHELL_STARTUP_CGA","\xBA Use \033[31mF11\033[37m to cycle through green, amber, and white monochrome color, \xBA\n"
-		        "\xBA and \033[31mAlt-F11\033[37m to change contrast/brightness settings.                \xBA\n"
-		);
-	}
-    MSG_Add("SHELL_STARTUP_PC98","\xBA DOSBox-X is now running in NEC PC-98 emulation mode.               \xBA\n"
-        "\xBA \033[31mPC-98 emulation is INCOMPLETE and CURRENTLY IN DEVELOPMENT.\033[37m        \xBA\n");
-    MSG_Add("SHELL_STARTUP_HERC","\xBA Use F11 to cycle through white, amber, and green monochrome color. \xBA\n"
-		"\xBA Use alt-F11 to toggle horizontal blending (only in graphics mode). \xBA\n"
-	        "\xBA                                                                    \xBA\n"
-	);
-	MSG_Add("SHELL_STARTUP_DEBUG",
-	#if defined(MACOSX)
-	        "\xBA Debugger is available, use \033[31malt-F12\033[37m to enter.                       \xBA\n"
-	#else
-	        "\xBA Debugger is available, use \033[31malt-Pause\033[37m to enter.                     \xBA\n"
-	#endif
-	        "\xBA                                                                    \xBA\n"
-	);
-	MSG_Add("SHELL_STARTUP_END",
-	        "\xBA \033[32mDOSBox-X project \033[33mhttp://dosbox-x.software\033[32m      PentiumPro support \033[37m \xBA\n"
-	        "\xBA \033[32mDerived from DOSBox \033[33mhttp://www.dosbox.com\033[37m                          \xBA\n"
-	        "\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-	        "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-	        "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBC\033[0m\n"
-	        "\033[1m\033[32mHAVE FUN!\033[0m\n"
-	);
+    if (machine == MCH_PC98) {
+        MSG_Add("SHELL_STARTUP_BEGIN",
+                "\033[44;1m\x86\x52\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+                "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+                "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+                "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+                "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+                "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x56\n"
+                "\x86\x46 \033[32mWelcome to DOSBox-X %-8s %-25s\033[37m             \x86\x46\n"
+                "\x86\x46                                                                    \x86\x46\n"
+                "\x86\x46 For a short introduction for new users type: \033[33mINTRO\033[37m                 \x86\x46\n"
+                "\x86\x46 For supported shell commands type: \033[33mHELP\033[37m                            \x86\x46\n"
+                "\x86\x46                                                                    \x86\x46\n"
+                "\x86\x46 To adjust the emulated CPU speed, use \033[31mctrl-F11\033[37m and \033[31mctrl-F12\033[37m.       \x86\x46\n"
+                "\x86\x46 To activate the keymapper \033[31mctrl-F1\033[37m.                                 \x86\x46\n"
+                "\x86\x46 For more information read the \033[36mREADME\033[37m file in the DOSBox directory. \x86\x46\n"
+                "\x86\x46                                                                    \x86\x46\n"
+               );
+        MSG_Add("SHELL_STARTUP_PC98","\x86\x46 DOSBox-X is now running in NEC PC-98 emulation mode.               \x86\x46\n"
+                "\x86\x46 \033[31mPC-98 emulation is INCOMPLETE and CURRENTLY IN DEVELOPMENT.\033[37m        \x86\x46\n");
+        MSG_Add("SHELL_STARTUP_DEBUG",
+#if defined(MACOSX)
+                "\x86\x46 Debugger is available, use \033[31malt-F12\033[37m to enter.                       \x86\x46\n"
+#else
+                "\x86\x46 Debugger is available, use \033[31malt-Pause\033[37m to enter.                     \x86\x46\n"
+#endif
+                "\x86\x46                                                                    \x86\x46\n"
+               );
+        MSG_Add("SHELL_STARTUP_END",
+                "\x86\x46 \033[32mDOSBox-X project \033[33mhttp://dosbox-x.software\033[32m      PentiumPro support \033[37m \x86\x46\n"
+                "\x86\x46 \033[32mDerived from DOSBox \033[33mhttp://www.dosbox.com\033[37m                          \x86\x46\n"
+                "\x86\x5A\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+                "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+                "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+                "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+                "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+                "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x5E\033[0m\n"
+                "\033[1m\033[32mHAVE FUN!\033[0m\n"
+               );
+    }
+    else {
+        MSG_Add("SHELL_STARTUP_BEGIN",
+                "\033[44;1m\xC9\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBB\n"
+                "\xBA \033[32mWelcome to DOSBox-X %-8s %-25s\033[37m             \xBA\n"
+                "\xBA                                                                    \xBA\n"
+                "\xBA For a short introduction for new users type: \033[33mINTRO\033[37m                 \xBA\n"
+                "\xBA For supported shell commands type: \033[33mHELP\033[37m                            \xBA\n"
+                "\xBA                                                                    \xBA\n"
+                "\xBA To adjust the emulated CPU speed, use \033[31mctrl-F11\033[37m and \033[31mctrl-F12\033[37m.       \xBA\n"
+                "\xBA To activate the keymapper \033[31mctrl-F1\033[37m.                                 \xBA\n"
+                "\xBA For more information read the \033[36mREADME\033[37m file in the DOSBox directory. \xBA\n"
+                "\xBA                                                                    \xBA\n"
+               );
+        if (!mono_cga) {
+            MSG_Add("SHELL_STARTUP_CGA","\xBA DOSBox supports Composite CGA mode.                                \xBA\n"
+                    "\xBA Use \033[31mF12\033[37m to set composite output ON, OFF, or AUTO (default).        \xBA\n"
+                    "\xBA \033[31m(Alt-)F11\033[37m changes hue; \033[31mctrl-alt-F11\033[37m selects early/late CGA model.  \xBA\n"
+                    "\xBA                                                                    \xBA\n"
+                   );
+        } else {
+            MSG_Add("SHELL_STARTUP_CGA","\xBA Use \033[31mF11\033[37m to cycle through green, amber, and white monochrome color, \xBA\n"
+                    "\xBA and \033[31mAlt-F11\033[37m to change contrast/brightness settings.                \xBA\n"
+                   );
+        }
+        MSG_Add("SHELL_STARTUP_PC98","\xBA DOSBox-X is now running in NEC PC-98 emulation mode.               \xBA\n"
+                "\xBA \033[31mPC-98 emulation is INCOMPLETE and CURRENTLY IN DEVELOPMENT.\033[37m        \xBA\n");
+        MSG_Add("SHELL_STARTUP_HERC","\xBA Use F11 to cycle through white, amber, and green monochrome color. \xBA\n"
+                "\xBA Use alt-F11 to toggle horizontal blending (only in graphics mode). \xBA\n"
+                "\xBA                                                                    \xBA\n"
+               );
+        MSG_Add("SHELL_STARTUP_DEBUG",
+#if defined(MACOSX)
+                "\xBA Debugger is available, use \033[31malt-F12\033[37m to enter.                       \xBA\n"
+#else
+                "\xBA Debugger is available, use \033[31malt-Pause\033[37m to enter.                     \xBA\n"
+#endif
+                "\xBA                                                                    \xBA\n"
+               );
+        MSG_Add("SHELL_STARTUP_END",
+                "\xBA \033[32mDOSBox-X project \033[33mhttp://dosbox-x.software\033[32m      PentiumPro support \033[37m \xBA\n"
+                "\xBA \033[32mDerived from DOSBox \033[33mhttp://www.dosbox.com\033[37m                          \xBA\n"
+                "\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+                "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBC\033[0m\n"
+                "\033[1m\033[32mHAVE FUN!\033[0m\n"
+               );
+    }
+
 	MSG_Add("SHELL_CMD_CHDIR_HELP","Displays/changes the current directory.\n");
 	MSG_Add("SHELL_CMD_CHDIR_HELP_LONG","CHDIR [drive:][path]\n"
 	        "CHDIR [..]\n"
