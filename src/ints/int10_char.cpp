@@ -24,6 +24,7 @@
 #include "mem.h"
 #include "inout.h"
 #include "int10.h"
+#include "shiftjis.h"
 #include "callback.h"
 
 static void CGA2_CopyRow(Bit8u cleft,Bit8u cright,Bit8u rold,Bit8u rnew,PhysPt base) {
@@ -526,103 +527,6 @@ void INT10_PC98_CurMode_Relocate(void) {
     CurMode->type = M_PC98;
 }
 
-struct ShiftJISDecoder {
-                        ShiftJISDecoder();
-
-    void                reset(void);
-    bool                take(unsigned char c);
-    bool                leadByteWaitingForSecondByte(void);
-public:
-    unsigned char       b1,b2;
-    bool                fullwidth;
-    bool                doublewide; /* character is displayed double-wide */
-};
-
-ShiftJISDecoder::ShiftJISDecoder() {
-    reset();
-}
-
-bool ShiftJISDecoder::leadByteWaitingForSecondByte(void) {
-    return fullwidth;
-}
-
-void ShiftJISDecoder::reset(void) {
-    doublewide = false;
-    fullwidth = false;
-    b1 = b2 = 0;
-}
-
-bool ShiftJISDecoder::take(unsigned char c) {
-    /* JIS sequence j1, j2
-     * ShiftJIS bytes s1, s2
-     *
-     * if (33 <= j1 && j1 <= 94)
-     *   s1 = ((j1 + 1) / 2) + 112
-     * else if (95 <= j1 && j1 <= 126)
-     *   s1 = ((j1 + 1) / 2) + 176
-     * 
-     * if (j1 & 1)    <- is odd
-     *   s2 = j2 + 31 + (j2 / 96)
-     * else           <- is even
-     *   s2 = j2 + 126
-     */ 
-    if (!fullwidth) {
-        doublewide = false;
-        if (c >= 0x81 && c <= 0x9F) {
-            /* Reverse:
-             *
-             *    s1 = ((j1 + 1) / 2) + 112
-             *    s1 - 112 = (j1 + 1) / 2
-             *    (s1 - 112) * 2 = j1 + 1
-             *    ((s1 - 112) * 2) - 1 = j1 */
-            doublewide = fullwidth = true;
-            b1 = (c - 112) * 2;
-            return false;
-        }
-        else if (c >= 0xE0 && c <= 0xEF) {
-            /* Reverse:
-             *
-             *    s1 = ((j1 + 1) / 2) + 176
-             *    s1 - 176 = (j1 + 1) / 2
-             *    (s1 - 176) * 2 = j1 + 1
-             *    ((s1 - 176) * 2) - 1 = j1 */
-            doublewide = fullwidth = true;
-            b1 = (c - 176) * 2;
-            return false;
-        }
-        else {
-            b2 = 0;
-            b1 = c;
-        }
-    }
-    else { // fullwidth, 2nd byte
-        if (c >= 0x9F) { /* j1 is even */
-            b2 = c - 126;
-        }
-        else if (c >= 0x40 && c != 0x7F) { /* j1 is odd */
-            b1--; /* (j1 + 1) / 2 */
-            b2 = c - 31;
-            if (c >= 0x80) b2--; /* gap at 0x7F */
-        }
-        else {
-            // ???
-            b1 = 0x7F;
-            b2 = 0x7F;
-        }
-
-        // some character combinations are actually single-wide such as the
-        // proprietary non-standard box drawing characters on PC-98 systems.
-        if ((b1 & 0xFC) == 0x08) /* 0x08-0x0B */
-            doublewide = false;
-
-        fullwidth = false;
-    }
-
-    return true;
-}
-
-static ShiftJISDecoder int10_sjis;
-
 void WriteChar(Bit16u col,Bit16u row,Bit8u page,Bit16u chr,Bit8u attr,bool useattr) {
 	/* Externally used by the mouse routine */
 	RealPt fontdata;
@@ -729,7 +633,7 @@ void WriteChar(Bit16u col,Bit16u row,Bit8u page,Bit16u chr,Bit8u attr,bool useat
 	}
 }
 
-void INT10_WriteChar(Bit8u chr,Bit8u attr,Bit8u page,Bit16u count,bool showattr) {
+void INT10_WriteChar(Bit16u chr,Bit8u attr,Bit8u page,Bit16u count,bool showattr) {
 	if (CurMode->type!=M_TEXT) {
 		showattr=true; //Use attr in graphics mode always
 		switch (machine) {
@@ -751,31 +655,13 @@ void INT10_WriteChar(Bit8u chr,Bit8u attr,Bit8u page,Bit16u count,bool showattr)
     Bit8u cur_col=CURSOR_POS_COL(page);
     BIOS_NCOLS;
 
-    if (IS_PC98_ARCH && count == 1) {
-        /* NTS: This is called by src/dos/dev_con.h for ANSI output which will move the cursor for us.
-         *      It's up to us to follow along with the way it moves the cursor. It will call with count == 1.
-         *      We need to take the incoming Shift-JIS and turn it into the correct codes for T-RAM. */
-        if (int10_sjis.take(chr)) {
-            if (int10_sjis.b2 != 0) {
-                // fullwidth, the cursor at this point is on the right hand half.
-                // the font RAM in fullwidth case for each "high byte" defines chars starting
-                // at 0x20 not 0x00 so b1 will need to be adjusted.
-                int10_sjis.b1 -= 0x20;
-                cur_col--;
-            }
-
-            WriteChar(cur_col,cur_row,page,(int10_sjis.b2 << 8) | int10_sjis.b1,attr,showattr);
-        }
-    }
-    else {
-        while (count>0) {
-            WriteChar(cur_col,cur_row,page,chr,attr,showattr);
-            count--;
-            cur_col++;
-            if(cur_col==ncols) {
-                cur_col=0;
-                cur_row++;
-            }
+    while (count>0) {
+        WriteChar(cur_col,cur_row,page,chr,attr,showattr);
+        count--;
+        cur_col++;
+        if(cur_col==ncols) {
+            cur_col=0;
+            cur_row++;
         }
     }
 }
