@@ -719,3 +719,8 @@ add_executable(dosbox-x
 
 set_target_properties(dosbox-x PROPERTIES LINKER_LANGUAGE CXX)
 
+target_link_libraries(dosbox-x
+	opengl32.lib
+	winmm.lib
+	imm32.lib
+)
