@@ -666,6 +666,11 @@ set(PACKAGE_URL "http://dosbox-x.software" CACHE STRING "Define to the home page
 set(PACKAGE_VERSION "0.821" CACHE STRING "Define to the version of this package")
 set(_FILE_OFFSET_BITS "64" CACHE STRING "Number of bits in a file offset, on hosts where this is settable")
 
+# TODO some code still requires it, e.g. sdlmain.cpp ln:2016
+option(C_OPENGL "Define to 1 to use opengl display output support" ON)
+if(C_OPENGL)
+	set(C_OPENGL 1)
+endif()
 configure_file(
 	${CMAKE_CURRENT_SOURCE_DIR}/config.h.in
 	${CMAKE_CURRENT_BINARY_DIR}/config.h

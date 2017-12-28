@@ -86,7 +86,7 @@
 #undef C_NE2000
 
 /* Define to 1 to use opengl display output support */
-#undef C_OPENGL
+#cmakedefine C_OPENGL @C_OPENGL@
 
 /* Set to 1 to enable SDL 1.x support */
 #undef C_SDL1
