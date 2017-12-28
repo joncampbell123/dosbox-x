@@ -531,16 +531,23 @@ struct ShiftJISDecoder {
 
     void                reset(void);
     bool                take(unsigned char c);
+    bool                leadByteWaitingForSecondByte(void);
 public:
     unsigned char       b1,b2;
     bool                fullwidth;
+    bool                doublewide; /* character is displayed double-wide */
 };
 
 ShiftJISDecoder::ShiftJISDecoder() {
     reset();
 }
 
+bool ShiftJISDecoder::leadByteWaitingForSecondByte(void) {
+    return fullwidth;
+}
+
 void ShiftJISDecoder::reset(void) {
+    doublewide = false;
     fullwidth = false;
     b1 = b2 = 0;
 }
@@ -560,6 +567,7 @@ bool ShiftJISDecoder::take(unsigned char c) {
      *   s2 = j2 + 126
      */ 
     if (!fullwidth) {
+        doublewide = false;
         if (c >= 0x81 && c <= 0x9F) {
             /* Reverse:
              *
@@ -567,7 +575,7 @@ bool ShiftJISDecoder::take(unsigned char c) {
              *    s1 - 112 = (j1 + 1) / 2
              *    (s1 - 112) * 2 = j1 + 1
              *    ((s1 - 112) * 2) - 1 = j1 */
-            fullwidth = true;
+            doublewide = fullwidth = true;
             b1 = (c - 112) * 2;
             return false;
         }
@@ -578,7 +586,7 @@ bool ShiftJISDecoder::take(unsigned char c) {
              *    s1 - 176 = (j1 + 1) / 2
              *    (s1 - 176) * 2 = j1 + 1
              *    ((s1 - 176) * 2) - 1 = j1 */
-            fullwidth = true;
+            doublewide = fullwidth = true;
             b1 = (c - 176) * 2;
             return false;
         }
@@ -601,6 +609,11 @@ bool ShiftJISDecoder::take(unsigned char c) {
             b1 = 0x7F;
             b2 = 0x7F;
         }
+
+        // some character combinations are actually single-wide such as the
+        // proprietary non-standard box drawing characters on PC-98 systems.
+        if ((b1 & 0xFC) == 0x08) /* 0x08-0x0B */
+            doublewide = false;
 
         fullwidth = false;
     }
