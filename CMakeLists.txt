@@ -516,7 +516,7 @@ set(SRC_LIBS_ZMBV
 	#"src/libs/zmbv/Makefile.am"
 	#"src/libs/zmbv/Makefile.in"
 	"src/libs/zmbv/resource.h"
-	"src/libs/zmbv/zmbv.cpp"
+	#"src/libs/zmbv/zmbv.cpp"
 	#"src/libs/zmbv/zmbv.def"
 	"src/libs/zmbv/zmbv.h"
 	#"src/libs/zmbv/zmbv.inf"
