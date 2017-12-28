@@ -101,7 +101,7 @@
 #undef C_SET_PRIORITY
 
 /* Define to 1 to enable screenshots, requires libpng */
-#undef C_SSHOT
+#cmakedefine C_SSHOT @C_SSHOT@
 
 /* The type of cpu this target has */
 #undef C_TARGETCPU

@@ -671,6 +671,13 @@ option(C_OPENGL "Define to 1 to use opengl display output support" ON)
 if(C_OPENGL)
 	set(C_OPENGL 1)
 endif()
+
+# TODO some code still requires it
+option(C_SSHOT "Define to 1 to enable screenshots, requires libpng" ON)
+if(C_SSHOT)
+	set(C_SSHOT 1)
+endif()
+
 configure_file(
 	${CMAKE_CURRENT_SOURCE_DIR}/config.h.in
 	${CMAKE_CURRENT_BINARY_DIR}/config.h
