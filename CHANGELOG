@@ -1,3 +1,13 @@
+<next>
+  - BAT files given on the command line fixed to occur AFTER the
+    registration of ULTRASND and BLASTER environment variables.
+  - PC-98: DOS CON emulation fixed to decode Shift-JIS itself,
+    with consideration that some proprietary double-byte encodings
+    yield single-wide characters. DOS program using NEC's proprietary
+    box/line drawing characters this way should display properly now.
+  - DOSBox shell "greeting" now displays a proper box in PC-98 mode
+    instead of framing the text in rows and columns of Katakana.
+
 0.82.1 (12/25/2017)
   - Windows builds no longer redirect stdout and stderr to
     stdout.txt and stderr.txt. This also fixes problems
