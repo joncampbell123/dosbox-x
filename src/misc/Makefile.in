@@ -101,7 +101,7 @@ libmisc_a_AR = $(AR) $(ARFLAGS)
 libmisc_a_LIBADD =
 am_libmisc_a_OBJECTS = cross.$(OBJEXT) messages.$(OBJEXT) \
 	programs.$(OBJEXT) setup.$(OBJEXT) support.$(OBJEXT) \
-	regionalloctracking.$(OBJEXT)
+	regionalloctracking.$(OBJEXT) shiftjis.$(OBJEXT)
 libmisc_a_OBJECTS = $(am_libmisc_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -270,7 +270,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CPPFLAGS = -I$(top_srcdir)/include
 noinst_LIBRARIES = libmisc.a
-libmisc_a_SOURCES = cross.cpp messages.cpp programs.cpp setup.cpp support.cpp regionalloctracking.cpp
+libmisc_a_SOURCES = cross.cpp messages.cpp programs.cpp setup.cpp support.cpp regionalloctracking.cpp shiftjis.cpp
 all: all-am
 
 .SUFFIXES:
@@ -325,6 +325,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/programs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/regionalloctracking.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/setup.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/shiftjis.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/support.Po@am__quote@
 
 .cpp.o:
