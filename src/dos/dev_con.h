@@ -21,6 +21,7 @@
 #include "../ints/int10.h"
 #include <string.h>
 #include "inout.h"
+#include "shiftjis.h"
 #include "callback.h"
 
 #define NUMBER_ANSI_DATA 10
@@ -29,6 +30,8 @@ extern bool DOS_BreakFlag;
 
 Bitu INT10_Handler(void);
 Bitu INT16_Handler_Wrap(void);
+
+ShiftJISDecoder con_sjis;
 
 class device_CON : public DOS_Device {
 public:
@@ -89,24 +92,43 @@ private:
 	static void Real_INT10_TeletypeOutput(Bit8u xChar,Bit8u xAttr) {
 		Bit16u		oldax,oldbx;
 
-		oldax=reg_ax;
-		oldbx=reg_bx;
+        if (IS_PC98_ARCH) {
+            if (con_sjis.take(xChar)) {
+                BIOS_NCOLS;BIOS_NROWS;
+                Bit8u page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+                Bit8u cur_row=CURSOR_POS_ROW(page);
+                Bit8u cur_col=CURSOR_POS_COL(page);
+                unsigned char cw = con_sjis.doublewide ? 2 : 1;
 
-		reg_ah=0xE;
-		reg_al=xChar;
-		reg_bl=xAttr;
+                /* FIXME: I'm not sure what NEC's ANSI driver does if a doublewide character is printed at column 79 */
+                if ((cur_col+cw) > ncols) {
+                    cur_col = ncols;
+                    AdjustCursorPosition(cur_col,cur_row);
+                }
 
-        /* FIXME: PC-98 emulation should eventually use CONIO emulation that
-         *        better emulates the actual platform. The purpose of this
-         *        hack is to allow our code to call into INT 10h without
-         *        setting up an INT 10h vector */
-        if (IS_PC98_ARCH)
-            INT10_Handler();
-        else
+                /* JIS conversion to WORD value appropriate for text RAM */
+                if (con_sjis.b2 != 0) con_sjis.b1 -= 0x20;
+
+                INT10_WriteChar((con_sjis.b2 << 8) + con_sjis.b1,xAttr,0,1,true);
+
+                cur_col += cw;
+                AdjustCursorPosition(cur_col,cur_row);
+                Real_INT10_SetCursorPos(cur_row,cur_col,page);	
+            }
+        }
+        else {
+            oldax=reg_ax;
+            oldbx=reg_bx;
+
+            reg_ah=0xE;
+            reg_al=xChar;
+            reg_bl=xAttr;
+
             CALLBACK_RunRealInt(0x10);
 
-		reg_ax=oldax;
-		reg_bx=oldbx;
+            reg_ax=oldax;
+            reg_bx=oldbx;
+        }
 	}
 
 
@@ -151,14 +173,20 @@ private:
 		{
 			cur_col=0;
 			cur_row++;
-			Real_INT10_TeletypeOutput('\r',0x7);
-		}
+
+            if (!IS_PC98_ARCH)
+                Real_INT10_TeletypeOutput('\r',0x7);
+        }
 		
 		//Reached the bottom?
 		if(cur_row==nrows) 
 		{
-			Real_INT10_TeletypeOutput('\n',0x7);	//Scroll up
-			cur_row--;
+            if (IS_PC98_ARCH)
+		        INT10_ScrollWindow(0,0,(Bit8u)(nrows-1),(Bit8u)(ncols-1),-1,0x07,0);
+            else
+                Real_INT10_TeletypeOutput('\n',0x7);	//Scroll up
+
+            cur_row--;
 		}
 	}
 
@@ -202,9 +230,30 @@ private:
 			} while(cur_col%8);
 			break;
 		default:
-			//* Draw the actual Character 
-			Real_WriteChar(cur_col,cur_row,page,chr,attr,useattr);
-			cur_col++;
+			//* Draw the actual Character
+            if (IS_PC98_ARCH) {
+                if (con_sjis.take(chr)) {
+                    BIOS_NCOLS;BIOS_NROWS;
+                    unsigned char cw = con_sjis.doublewide ? 2 : 1;
+
+                    /* FIXME: I'm not sure what NEC's ANSI driver does if a doublewide character is printed at column 79 */
+                    if ((cur_col+cw) > ncols) {
+                        cur_col = ncols;
+                        AdjustCursorPosition(cur_col,cur_row);
+                    }
+
+                    /* JIS conversion to WORD value appropriate for text RAM */
+                    if (con_sjis.b2 != 0) con_sjis.b1 -= 0x20;
+
+                    INT10_WriteChar((con_sjis.b2 << 8) + con_sjis.b1,attr,0,1,true);
+
+                    cur_col += cw;
+                }
+            }
+            else {
+                Real_WriteChar(cur_col,cur_row,page,chr,attr,useattr);
+                cur_col++;
+            }
 		}
 		
 		AdjustCursorPosition(cur_col,cur_row);

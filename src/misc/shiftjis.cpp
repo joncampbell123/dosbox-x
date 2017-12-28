@@ -75,7 +75,7 @@ bool ShiftJISDecoder::take(unsigned char c) {
 
         // some character combinations are actually single-wide such as the
         // proprietary non-standard box drawing characters on PC-98 systems.
-        if ((b1 & 0xFC) == 0x08) /* 0x08-0x0B */
+        if ((b1 & 0xFC) == 0x28) /* 0x28-0x2B */
             doublewide = false;
 
         fullwidth = false;
