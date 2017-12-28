@@ -6,7 +6,7 @@
     yield single-wide characters. DOS program using NEC's proprietary
     box/line drawing characters this way should display properly now.
   - DOSBox shell "greeting" now displays a proper box in PC-98 mode
-    instead of framing the text in rows and columns of Katakana.
+    instead of framing the text in rows and columns of Katakana. (basic2004)
 
 0.82.1 (12/25/2017)
   - Windows builds no longer redirect stdout and stderr to
