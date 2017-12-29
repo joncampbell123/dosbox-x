@@ -110,6 +110,7 @@ struct PIC_Controller {
 	void start_irq(Bit8u val);
 };
 
+int master_cascade_irq = -1;
 static PIC_Controller pics[2];
 static PIC_Controller& master = pics[0];
 static PIC_Controller& slave  = pics[1];
@@ -137,7 +138,7 @@ void PIC_Controller::activate() {
 		CPU_Cycles = 0;
 		//maybe when coming from a EOI, give a tiny delay. (for the cpu to pick it up) (see PIC_Activate_IRQ)
 	} else {
-		master.raise_irq(IS_PC98_ARCH ? 7 : 2);
+		master.raise_irq(master_cascade_irq);
 	}
 }
 
@@ -160,7 +161,7 @@ void PIC_Controller::deactivate() {
 	} else {
 		/* just because ONE IRQ on the slave finished doesn't mean there aren't any others needing service! */
 		if ((irr&imrr) == 0)
-			master.lower_irq(IS_PC98_ARCH ? 7 : 2);
+			master.lower_irq(master_cascade_irq);
 		else
 			LOG_MSG("Slave PIC: still to handle irr=%02x imrr=%02x isrr=%02x",irr,imrr,isrr);
 	}
@@ -350,6 +351,7 @@ void PIC_ActivateIRQ(Bitu irq) {
 void PIC_DeActivateIRQ(Bitu irq) {
 	/* Remember what was once IRQ 2 on PC/XT is IRQ 9 on PC/AT */
     if (IS_PC98_ARCH) {
+        if (irq == 7) return;
     }
     else if (enable_slave_pic) { /* PC/AT emulation with slave PIC cascade to master */
 		if (irq == 2) irq = 9;
@@ -417,13 +419,13 @@ static void slave_startIRQ(){
 		/* we have an IRQ routing problem. this code is supposed to emulate the fact that
 		 * what was once IRQ 2 on PC/XT is routed to IRQ 9 on AT systems, because IRQ 8-15
 		 * cascade to IRQ 2 on such systems. but it's nothing to E_Exit() over. */
-		LOG(LOG_PIC,LOG_ERROR)("ISA PIC problem: IRQ 2 is active on master PIC without active IRQ 8-15 on slave PIC.");
-		slave.lower_irq(IS_PC98_ARCH ? 7 : 2); /* clear it */
+		LOG(LOG_PIC,LOG_ERROR)("ISA PIC problem: IRQ %d (cascade) is active on master PIC without active IRQ 8-15 on slave PIC.",master_cascade_irq);
+		slave.lower_irq(master_cascade_irq); /* clear it */
 		return;
 	}
 
 	slave.start_irq(pic1_irq);
-	master.start_irq(IS_PC98_ARCH ? 7 : 2);
+	master.start_irq(master_cascade_irq);
 	CPU_HW_Interrupt(slave.vector_base + pic1_irq);
 }
 
@@ -448,7 +450,7 @@ void PIC_runIRQs(void) {
 				if (!IRQ_hack_check_cs_equ_ds(i))
 					continue; // skip IRQ
 
-			if (i==(IS_PC98_ARCH ? 7 : 2) && enable_slave_pic) { //second pic
+			if ((int)i == master_cascade_irq) { //second pic, or will not match if master_cascade_irq == -1
 				slave_startIRQ();
 			} else {
 				master_startIRQ(i);
@@ -719,9 +721,6 @@ void PIC_Reset(Section *sec) {
 	WriteHandler[3].Uninstall();
 	PCXT_NMI_WriteHandler.Uninstall();
 
-	// LOG
-	LOG(LOG_MISC,LOG_DEBUG)("PIC_Reset(): reinitializing PIC controller");
-
 	/* NTS: Parsing this on reset allows PIC configuration changes on reboot instead of restarting the entire emulator */
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 	assert(section != NULL);
@@ -730,6 +729,14 @@ void PIC_Reset(Section *sec) {
 	enable_pc_xt_nmi_mask = section->Get_bool("enable pc nmi mask");
     PIC_irq_delay = section->Get_int("irq delay");
     if (PIC_irq_delay < 0) PIC_irq_delay = 2; /* default */
+
+    if (enable_slave_pic)
+        master_cascade_irq = IS_PC98_ARCH ? 7 : 2;
+    else
+        master_cascade_irq = -1;
+
+	// LOG
+	LOG(LOG_MISC,LOG_DEBUG)("PIC_Reset(): reinitializing PIC controller (cascade=%d)",master_cascade_irq);
 
 	/* Setup pic0 and pic1 with initial values like DOS has normally */
 	PIC_Ticks=0;
