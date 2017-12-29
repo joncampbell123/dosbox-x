@@ -120,9 +120,6 @@ void FreeBIOSDiskList();
 void GFX_ShutDown(void);
 void MAPPER_Shutdown();
 void SHELL_Init(void);
-#if C_DYNAMIC_X86
-void CPU_Core_Dyn_X86_Shutdown(void);
-#endif
 
 #if C_OPENGL
 #include "SDL_opengl.h"
@@ -5643,9 +5640,6 @@ fresh_boot:
 	DOS_ShutdownFiles();
 	DOS_ShutdownDevices();
 	CALLBACK_Shutdown();
-#if C_DYNAMIC_X86
-	CPU_Core_Dyn_X86_Shutdown();
-#endif
 	FreeBIOSDiskList();
 	MAPPER_Shutdown();
 	VFILE_Shutdown();

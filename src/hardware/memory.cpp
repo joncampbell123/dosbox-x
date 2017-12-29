@@ -1196,7 +1196,6 @@ void phys_writes(PhysPt addr, const char* string, Bitu length) {
 
 #include "control.h"
 
-void restart_program(std::vector<std::string> & parameters);
 unsigned char CMOS_GetShutdownByte();
 void CPU_Snap_Back_To_Real_Mode();
 void DEBUG_Enable(bool pressed);
@@ -1223,11 +1222,6 @@ void On_Software_286_int15_block_move_return(unsigned char code) {
 		cmos_reset_type_9_sarcastic_win31_comments=false;
 		LOG_MSG("CMOS Shutdown byte 0x%02x says to do INT 15 block move reset %04x:%04x. Only weirdos like Windows 3.1 use this... NOT WELL TESTED!",code,vec_seg,vec_off);
 	}
-
-#if C_DYNAMIC_X86
-	/* FIXME: The way I will be carrying this out is incompatible with the Dynamic core! */
-	if (cpudecoder == &CPU_Core_Dyn_X86_Run) E_Exit("Sorry, CMOS shutdown CPU reset method is not compatible with dynamic core");
-#endif
 
 	/* set stack pointer. prepare to emulate BIOS returning from INT 15h block move, 286 style */
 	CPU_SetSegGeneral(cs,0xF000);
@@ -1272,11 +1266,6 @@ void On_Software_286_reset_vector(unsigned char code) {
 
 	LOG_MSG("CMOS Shutdown byte 0x%02x says to jump to reset vector %04x:%04x",code,vec_seg,vec_off);
 
-#if C_DYNAMIC_X86
-	/* FIXME: The way I will be carrying this out is incompatible with the Dynamic core! */
-	if (cpudecoder == &CPU_Core_Dyn_X86_Run) E_Exit("Sorry, CMOS shutdown CPU reset method is not compatible with dynamic core");
-#endif
-
 	/* following CPU reset, and coming from the BIOS, CPU registers are trashed */
 	reg_eax = 0x2010000;
 	reg_ebx = 0x2111;
@@ -1316,16 +1305,6 @@ void On_Software_CPU_Reset() {
 			On_Software_286_int15_block_move_return(c);
 			return;
 	};
-
-#if C_DYNAMIC_X86
-	/* this technique is NOT reliable when running the dynamic core! */
-	if (cpudecoder == &CPU_Core_Dyn_X86_Run) {
-		LOG_MSG("Using traditional DOSBox re-exec, C++ exception method is not compatible with dynamic core\n");
-		control->startup_params.insert(control->startup_params.begin(),control->cmdline->GetFileName());
-		restart_program(control->startup_params);
-		return;
-	}
-#endif
 
 	throw int(3);
 	/* does not return */

@@ -1570,12 +1570,10 @@ void register_w(UINT32 offset, UINT32 data) {
 		case sARGB:
 			if (chips & 1)
 			{
-				CPU_Core_Dyn_X86_SaveDHFPUState();
 				v->reg[sAlpha].f = (float)RGB_ALPHA(data);
 				v->reg[sRed].f = (float)RGB_RED(data);
 				v->reg[sGreen].f = (float)RGB_GREEN(data);
 				v->reg[sBlue].f = (float)RGB_BLUE(data);
-				CPU_Core_Dyn_X86_RestoreDHFPUState();
 			}
 			break;
 
@@ -1592,9 +1590,7 @@ void register_w(UINT32 offset, UINT32 data) {
 			if (chips & 1) {
 				if (v->ogl && v->active && (FBZMODE_Y_ORIGIN(v->reg[fbzMode].u)!=FBZMODE_Y_ORIGIN(data))) {
 					v->reg[fbzMode].u = data;
-					CPU_Core_Dyn_X86_SaveDHFPUState();
 					voodoo_ogl_set_window(v);
-					CPU_Core_Dyn_X86_RestoreDHFPUState();
 				} else {
 					v->reg[fbzMode].u = data;
 				}
@@ -1609,29 +1605,21 @@ void register_w(UINT32 offset, UINT32 data) {
 
 		/* triangle drawing */
 		case triangleCMD:
-			CPU_Core_Dyn_X86_SaveDHFPUState();
 			triangle(v);
-			CPU_Core_Dyn_X86_RestoreDHFPUState();
 			break;
 
 		case ftriangleCMD:
-			CPU_Core_Dyn_X86_SaveDHFPUState();
 			triangle(v);
-			CPU_Core_Dyn_X86_RestoreDHFPUState();
 			break;
 
 		case sBeginTriCMD:
 //			E_Exit("begin tri");
-			CPU_Core_Dyn_X86_SaveDHFPUState();
 			begin_triangle(v);
-			CPU_Core_Dyn_X86_RestoreDHFPUState();
 			break;
 
 		case sDrawTriCMD:
 //			E_Exit("draw tri");
-			CPU_Core_Dyn_X86_SaveDHFPUState();
 			draw_triangle(v);
-			CPU_Core_Dyn_X86_RestoreDHFPUState();
 			break;
 
 		/* other commands */
@@ -1643,15 +1631,11 @@ void register_w(UINT32 offset, UINT32 data) {
 			break;
 
 		case fastfillCMD:
-			CPU_Core_Dyn_X86_SaveDHFPUState();
 			fastfill(v);
-			CPU_Core_Dyn_X86_RestoreDHFPUState();
 			break;
 
 		case swapbufferCMD:
-//			CPU_Core_Dyn_X86_SaveDHFPUState();
 			swapbuffer(v, data);
-//			CPU_Core_Dyn_X86_RestoreDHFPUState();
 			break;
 
 		/* gamma table access -- Voodoo/Voodoo2 only */
@@ -1692,7 +1676,6 @@ void register_w(UINT32 offset, UINT32 data) {
 				v->reg[regnum].u = data;
 				if (v->reg[hSync].u != 0 && v->reg[vSync].u != 0 && v->reg[videoDimensions].u != 0)
 				{
-					CPU_Core_Dyn_X86_SaveDHFPUState();
 					int htotal = ((v->reg[hSync].u >> 16) & 0x3ff) + 1 + (v->reg[hSync].u & 0xff) + 1;
 					int vtotal = ((v->reg[vSync].u >> 16) & 0xfff) + (v->reg[vSync].u & 0xfff);
 					int hvis = v->reg[videoDimensions].u & 0x3ff;
@@ -1769,7 +1752,6 @@ void register_w(UINT32 offset, UINT32 data) {
 						recompute_video_memory(v);
 
 					Voodoo_UpdateScreenStart();
-					CPU_Core_Dyn_X86_RestoreDHFPUState();
 				}
 			}
 			break;
@@ -1778,13 +1760,11 @@ void register_w(UINT32 offset, UINT32 data) {
 		case fbiInit0:
 			if ((chips & 1) && INITEN_ENABLE_HW_INIT(v->pci.init_enable))
 			{
-				CPU_Core_Dyn_X86_SaveDHFPUState();
 				Voodoo_Output_Enable(FBIINIT0_VGA_PASSTHRU(data));
 				v->reg[fbiInit0].u = data;
 				if (FBIINIT0_GRAPHICS_RESET(data))
 					soft_reset(v);
 				recompute_video_memory(v);
-				CPU_Core_Dyn_X86_RestoreDHFPUState();
 			}
 			break;
 
@@ -1923,9 +1903,7 @@ void register_w(UINT32 offset, UINT32 data) {
 		case clipLeftRight:
 			if (chips & 1) v->reg[0x000 + regnum].u = data;
 			if (v->ogl) {
-				CPU_Core_Dyn_X86_SaveDHFPUState();
 				voodoo_ogl_clip_window(v);
-				CPU_Core_Dyn_X86_RestoreDHFPUState();
 			}
 			break;
 
@@ -2770,8 +2748,6 @@ UINT32 register_r(UINT32 offset)
 	switch (regnum)
 	{
 		case status:
-			CPU_Core_Dyn_X86_SaveDHFPUState();
-
 			/* start with a blank slate */
 			result = 0;
 
@@ -2806,15 +2782,11 @@ UINT32 register_r(UINT32 offset)
 
 			/* bit 31 is not used */
 
-			CPU_Core_Dyn_X86_RestoreDHFPUState();
-
 			break;
 
 		case hvRetrace:
 			if (v->type < VOODOO_2)
 				break;
-
-			CPU_Core_Dyn_X86_SaveDHFPUState();
 
 			/* start with a blank slate */
 			result = 0;
@@ -2822,7 +2794,6 @@ UINT32 register_r(UINT32 offset)
 			result |= ((Bit32u)(Voodoo_GetVRetracePosition() * 0x1fff)) & 0x1fff;
 			result |= (((Bit32u)(Voodoo_GetHRetracePosition() * 0x7ff)) & 0x7ff) << 16;
 
-			CPU_Core_Dyn_X86_RestoreDHFPUState();
 			break;
 
 		/* bit 2 of the initEnable register maps this to dacRead */

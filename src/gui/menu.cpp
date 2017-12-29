@@ -1560,9 +1560,6 @@ void MSG_Loop(void) {
 				if (strcasecmp(core_mode, "normal") == 0) break;
 				SetVal("cpu", "core", "normal");
 				break;
-#if (C_DYNAMIC_X86)
-			case ID_DYNAMIC: if (strcmp(core_mode, "dynamic") != 0) SetVal("cpu", "core", "dynamic"); break;
-#endif
 			case ID_FULL: if (strcmp(core_mode, "full") != 0) SetVal("cpu", "core", "full"); break;
 			case ID_SIMPLE: if (strcmp(core_mode, "simple") != 0) SetVal("cpu", "core", "simple"); break;
 			case ID_AUTO: if (strcmp(core_mode, "auto") != 0) SetVal("cpu", "core", "auto"); break;
