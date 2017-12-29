@@ -313,6 +313,10 @@ int PIC_irq_delay = 2;
 void PIC_ActivateIRQ(Bitu irq) {
 	/* Remember what was once IRQ 2 on PC/XT is IRQ 9 on PC/AT */
     if (IS_PC98_ARCH) {
+        if (irq == 7) {
+            LOG(LOG_PIC,LOG_ERROR)("Attempted to raise IRQ %u, which is cascade IRQ",(int)irq);
+            return; /* don't raise cascade IRQ */
+        }
     }
     else if (enable_slave_pic) { /* PC/AT emulation with slave PIC cascade to master */
 		if (irq == 2) irq = 9;
