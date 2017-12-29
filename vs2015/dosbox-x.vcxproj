@@ -683,6 +683,7 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
     <ClCompile Include="..\src\hardware\vga_pc98_dac.cpp" />
     <ClCompile Include="..\src\hardware\vga_pc98_egc.cpp" />
     <ClCompile Include="..\src\hardware\vga_pc98_gdc.cpp" />
+    <ClCompile Include="..\src\misc\shiftjis.cpp" />
     <ClCompile Include="..\src\mt32\AReverbModel.cpp" />
     <ClCompile Include="..\src\aviwriter\avi_rw_iobuf.cpp" />
     <ClCompile Include="..\src\aviwriter\avi_writer.cpp" />
@@ -917,6 +918,7 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
     <ClInclude Include="..\include\serialport.h" />
     <ClInclude Include="..\include\setup.h" />
     <ClInclude Include="..\include\shell.h" />
+    <ClInclude Include="..\include\shiftjis.h" />
     <ClInclude Include="..\include\support.h" />
     <ClInclude Include="..\include\timer.h" />
     <ClInclude Include="..\include\uint64_const.h" />

@@ -704,6 +704,9 @@
     <ClCompile Include="..\src\hardware\reSID\wave8580_PST.cpp">
       <Filter>Source Files\reSID emulation</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\misc\shiftjis.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\winres.rc">
@@ -1268,6 +1271,9 @@
     </ClInclude>
     <ClInclude Include="..\src\hardware\reSID\wave.h">
       <Filter>Header Files\reSID emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\shiftjis.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
