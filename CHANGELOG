@@ -1,4 +1,10 @@
 <next>
+  - Removed non-recursive page fault option. It is now always on,
+    except for internal cases where it needs to be off for callback
+    instructions to do their work properly.
+  - Removed dynamic x86 core. It is old and unmaintained code that
+    is incompatible with the non-recursive page fault system.
+  - IRQ cascade interrupt fixes and cleanup.
   - BAT files given on the command line fixed to occur AFTER the
     registration of ULTRASND and BLASTER environment variables.
   - PC-98: DOS CON emulation fixed to decode Shift-JIS itself,

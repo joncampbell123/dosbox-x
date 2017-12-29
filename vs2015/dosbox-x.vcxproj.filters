@@ -80,9 +80,6 @@
     <ClCompile Include="..\src\hardware\cmos.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\cpu\core_dyn_x86.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\cpu\core_full.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
