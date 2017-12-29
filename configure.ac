@@ -631,7 +631,6 @@ src/Makefile
 src/cpu/Makefile
 src/cpu/core_full/Makefile
 src/cpu/core_normal/Makefile
-src/cpu/core_dyn_x86/Makefile
 src/debug/Makefile
 src/dos/Makefile
 src/fpu/Makefile
