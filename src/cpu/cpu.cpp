@@ -3112,13 +3112,6 @@ public:
 		else if (CPU_ArchitectureType>=CPU_ARCHTYPE_486OLD) CPU_extflags_toggle=(FLAG_AC);
 		else CPU_extflags_toggle=0;
 
-		if (cpudecoder == &CPU_Core_Normal_Run || cpudecoder == &CPU_Core_Prefetch_Run) {
-			if (!dosbox_enable_nonrecursive_page_fault) {
-				dosbox_enable_nonrecursive_page_fault = true;
-				_LOG(LOG_CPU,LOG_NORMAL)("normal/prefetch core requires nonrecursive page fault handling, turning it on");
-			}
-		}
-
     // weitek coprocessor emulation?
         if (CPU_ArchitectureType == CPU_ARCHTYPE_386 || CPU_ArchitectureType == CPU_ARCHTYPE_486OLD || CPU_ArchitectureType == CPU_ARCHTYPE_486NEW) {
 	        Section_prop *dsection = static_cast<Section_prop *>(control->GetSection("dosbox"));
@@ -3254,18 +3247,8 @@ CPU_Decoder *CPU_IndexDecoderType( Bit16u decoder_idx )
 
 	cpudecoder = 0;
 	switch( decoder_idx ) {
-		case 0: cpudecoder = &CPU_Core_Normal_Run;
-			if (!dosbox_enable_nonrecursive_page_fault) {
-				dosbox_enable_nonrecursive_page_fault = true;
-				_LOG(LOG_CPU,LOG_NORMAL)("normal/prefetch core requires nonrecursive page fault handling, turning it on");
-			}
-			break;
-		case 1: cpudecoder = &CPU_Core_Prefetch_Run;
-			if (!dosbox_enable_nonrecursive_page_fault) {
-				dosbox_enable_nonrecursive_page_fault = true;
-				_LOG(LOG_CPU,LOG_NORMAL)("normal/prefetch core requires nonrecursive page fault handling, turning it on");
-			}
-			break;
+		case 0: cpudecoder = &CPU_Core_Normal_Run; break;
+		case 1: cpudecoder = &CPU_Core_Prefetch_Run; break;
 		case 2: cpudecoder = &CPU_Core_Simple_Run; break;
 		case 3: cpudecoder = &CPU_Core_Full_Run; break;
 #if C_DYNAMIC_X86
