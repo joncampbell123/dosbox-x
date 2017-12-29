@@ -1520,12 +1520,6 @@ void DOSBOX_SetupConfigSections(void) {
 	Pint->SetMinMax(1,1000000);
 	Pint->Set_help("Setting it lower than 100 will be a percentage.");
 
-	Pbool = secprop->Add_bool("non-recursive page fault",Property::Changeable::Always,true);
-	Pbool->Set_help("Determines whether CPU emulation attempts to use a non-recursive method to emulate guest OS page fault exceptions.\n"
-			"If false (mainline DOSBox compatible), page faults are emulated using a recursive method, which is recommended for\n"
-			"MS-DOS and Windows 3.1 exception handlers. For preemptive multitasking OSes like Windows 95, set this option to true.\n"
-			"This option is not compatible with the dynamic core.");
-
 	Pbool = secprop->Add_bool("ignore opcode 63",Property::Changeable::Always,true);
 	Pbool->Set_help("When debugging, do not report illegal opcode 0x63.\n"
 			"Enable this option to ignore spurious errors while debugging from within Windows 3.1/9x/ME");
