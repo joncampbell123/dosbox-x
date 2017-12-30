@@ -144,6 +144,31 @@ void DOS_Shell::InputCommand(char * line) {
                 else
                     cr = 0x08; /* backspace */
             }
+            else if (c == 0x1B) { /* escape */
+				DOS_ReadFile(input_handle,&c,&n);
+                     if (c == 0x53)  // F1
+                    cr = 0x3B00;
+                else if (c == 0x54)  // F2
+                    cr = 0x3C00;
+                else if (c == 0x55)  // F3
+                    cr = 0x3D00;
+                else if (c == 0x56)  // F4
+                    cr = 0x3E00;
+                else if (c == 0x57)  // F5
+                    cr = 0x3F00;
+                else if (c == 0x45)  // F6
+                    cr = 0x4000;
+                else if (c == 0x4A)  // F7
+                    cr = 0x4100;
+                else if (c == 0x50)  // F8
+                    cr = 0x4200;
+                else if (c == 0x51)  // F9
+                    cr = 0x4300;
+                else if (c == 0x5A)  // F10
+                    cr = 0x4400;
+                else
+                    cr = 0;
+            }
             else
                 cr = (Bit16u)c;
         }
