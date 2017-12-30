@@ -1799,6 +1799,36 @@ public:
 	void DisplayMenuCursorEnd(void) { WriteOut("\033[0m\n"); }
 	void DisplayMenuNone(void) { WriteOut("\033[44m\033[K\033[0m\n"); }
 
+    bool CON_IN(Bit8u * data) {
+        Bit8u c;
+        Bit16u n=1;
+
+        /* handle arrow keys vs normal input,
+         * with special conditions for PC-98 and IBM PC */
+        if (!DOS_ReadFile(STDIN,&c,&n) || n == 0) return false;
+
+        if (IS_PC98_ARCH) {
+            /* translate PC-98 arrow keys to IBM PC escape for the caller */
+                 if (c == 0x0B)
+                *data = 0x48 | 0x80;    /* IBM extended code up arrow */
+            else if (c == 0x0A)
+                *data = 0x50 | 0x80;    /* IBM extended code down arrow */
+            else
+                *data = c;
+        }
+        else {
+            if (c == 0) {
+                if (!DOS_ReadFile(STDIN,&c,&n) || n == 0) return false;
+                *data = c | 0x80; /* extended code */
+            }
+            else {
+                *data = c;
+            }
+        }
+
+        return true;
+    }
+
 	void Run(void) {
 		std::string menuname = "BASIC"; // default
 		/* Only run if called from the first shell (Xcom TFTD runs any intro file in the path) */
@@ -1855,10 +1885,10 @@ goto_exit:
 basic:
 		menuname="BASIC";
 		WriteOut(MSG_Get("PROGRAM_INTRO_MENU_BASIC_HELP")); 
-		DOS_ReadFile (STDIN,&c,&n);
+        CON_IN(&c);
 		do switch (c) {
-			case 0x48: menuname="QUIT"; goto menufirst; // Up
-			case 0x50: menuname="CDROM"; goto menufirst; // Down
+			case 0x48|0x80: menuname="QUIT"; goto menufirst; // Up
+			case 0x50|0x80: menuname="CDROM"; goto menufirst; // Down
 			case 0xD:	// Run
 				WriteOut("\033[2J");
 				WriteOut(MSG_Get("PROGRAM_INTRO"));
@@ -1866,53 +1896,53 @@ basic:
 				DisplayMount();
 				DOS_ReadFile (STDIN,&c,&n);
 				goto menufirst;
-		} while (DOS_ReadFile (STDIN,&c,&n));
+		} while (CON_IN(&c));
 
 cdrom:
 		menuname="CDROM";
 		WriteOut(MSG_Get("PROGRAM_INTRO_MENU_CDROM_HELP")); 
-		DOS_ReadFile (STDIN,&c,&n);
+        CON_IN(&c);
 		do switch (c) {
-			case 0x48: menuname="BASIC"; goto menufirst; // Up
-			case 0x50: menuname="SPECIAL"; goto menufirst; // Down
+			case 0x48|0x80: menuname="BASIC"; goto menufirst; // Up
+			case 0x50|0x80: menuname="SPECIAL"; goto menufirst; // Down
 			case 0xD:	// Run
 				WriteOut(MSG_Get("PROGRAM_INTRO_CDROM"));
 				DOS_ReadFile (STDIN,&c,&n);
 				goto menufirst;
-		} while (DOS_ReadFile (STDIN,&c,&n));
+		} while (CON_IN(&c));
 
 special:
 		menuname="SPECIAL";
 		WriteOut(MSG_Get("PROGRAM_INTRO_MENU_SPECIAL_HELP")); 
-		DOS_ReadFile (STDIN,&c,&n);
+        CON_IN(&c);
 		do switch (c) {
-			case 0x48: menuname="CDROM"; goto menufirst; // Up
-			case 0x50: menuname="USAGE"; goto menufirst; // Down
+			case 0x48|0x80: menuname="CDROM"; goto menufirst; // Up
+			case 0x50|0x80: menuname="USAGE"; goto menufirst; // Down
 			case 0xD:	// Run
 				WriteOut(MSG_Get("PROGRAM_INTRO_SPECIAL"));
 				DOS_ReadFile (STDIN,&c,&n);
 				goto menufirst;
-		} while (DOS_ReadFile (STDIN,&c,&n));
+		} while (CON_IN(&c));
 
 usage:
 		menuname="USAGE";
 		WriteOut(MSG_Get("PROGRAM_INTRO_MENU_USAGE_HELP")); 
-		DOS_ReadFile (STDIN,&c,&n);
+        CON_IN(&c);
 		do switch (c) {
-			case 0x48: menuname="SPECIAL"; goto menufirst; // Up
-			case 0x50: menuname="INFO"; goto menufirst; // Down
+			case 0x48|0x80: menuname="SPECIAL"; goto menufirst; // Up
+			case 0x50|0x80: menuname="INFO"; goto menufirst; // Down
 			case 0xD:	// Run
 				DisplayUsage();
 				goto menufirst;
-		} while (DOS_ReadFile (STDIN,&c,&n));
+		} while (CON_IN(&c));
 
 info:
 		menuname="INFO";
 		WriteOut(MSG_Get("PROGRAM_INTRO_MENU_INFO_HELP"));
-		DOS_ReadFile (STDIN,&c,&n);
+        CON_IN(&c);
 		do switch (c) {
-			case 0x48: menuname="USAGE"; goto menufirst; // Up
-			case 0x50: menuname="QUIT"; goto menufirst; // Down
+			case 0x48|0x80: menuname="USAGE"; goto menufirst; // Up
+			case 0x50|0x80: menuname="QUIT"; goto menufirst; // Down
 			case 0xD:	// Run
 				WriteOut("\033[2J");
 				WriteOut(MSG_Get("PROGRAM_INTRO"));
@@ -1920,19 +1950,19 @@ info:
 				WriteOut(MSG_Get("PROGRAM_INTRO_INFO"));
 				DOS_ReadFile (STDIN,&c,&n);
 				goto menufirst;
-		} while (DOS_ReadFile (STDIN,&c,&n));
+		} while (CON_IN(&c));
 
 quit:
 		menuname="QUIT";
 		WriteOut(MSG_Get("PROGRAM_INTRO_MENU_QUIT_HELP")); 
-		DOS_ReadFile (STDIN,&c,&n);
+        CON_IN(&c);
 		do switch (c) {
-			case 0x48: menuname="INFO"; goto menufirst; // Up
-			case 0x50: menuname="BASIC"; goto menufirst; // Down
+			case 0x48|0x80: menuname="INFO"; goto menufirst; // Up
+			case 0x50|0x80: menuname="BASIC"; goto menufirst; // Down
 			case 0xD:	// Run
 				menuname="GOTO_EXIT";
 				return;
-		} while (DOS_ReadFile (STDIN,&c,&n));
+		} while (CON_IN(&c));
 	}	
 };
 
