@@ -106,7 +106,7 @@ extern Bit16u	NetworkHandleList[127];	/*in dos_files.cpp*/
 	return false;
 }//bool	Network_OpenFile(char * filename,Bit8u flags,Bit16u * entry)
 
- extern "C" int _nhandle;
+ extern "C" int _nhandle = 0;
  bool	Network_CloseFile(Bit16u entry)
 {
 		Bit32u handle=RealHandle(entry);
