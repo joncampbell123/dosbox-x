@@ -72,4 +72,8 @@ coming soon
 
 ## Downloads
 
-coming soon
+https://github.com/joncampbell123/dosbox-x/releases/tag/cmake
+
+- first release attesting the success of the CMake build
+- package of pre-built dependencies (sdl, libpng, zlib) **(for Windows SDK Version 10.0.16299.0)**
+
