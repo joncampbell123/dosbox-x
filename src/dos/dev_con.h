@@ -349,9 +349,50 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
 			}
 			break;
 		case 0: /* Extended keys in the int 16 0x0 case */
-			data[count++]=reg_al;
-			if (*size>count) data[count++]=reg_ah;
-			else readcache=reg_ah;
+            if (IS_PC98_ARCH) {
+                /* PC-98 does NOT return scan code, but instead returns nothing or
+                 * control/escape code */
+                switch (reg_ah) {
+                    case 0x3A: // up arrow
+                        data[count++] = 0x0B;
+                        break;
+                    case 0x3B: // left arrow
+                        data[count++] = 0x08;
+                        break;
+                    case 0x3C: // right arrow
+                        data[count++] = 0x0C;
+                        break;
+                    case 0x3D: // down arrow
+                        data[count++] = 0x0A;
+                        break;
+#if 0
+// F1       0x1B 0x53   <shortcut>  --
+// F2       0x1B 0x54   <shortcut>  --
+// F3       0x1B 0x55   <shortcut>  --
+// F4       0x1B 0x56   <shortcut>  Toggles 'g'
+// F5       0x1B 0x57   <shortcut>  --
+// F6       0x1B 0x45   <shortcut>  Toggle 20/25-line text mode
+// F7       0x1B 0x4A   <shortcut>  Toggle function row (C1/CU/etc, shortcuts, or off)
+// F8       0x1B 0x50   <shortcut>  Clear screen, home cursor
+// F9       0x1B 0x51   <shortcut>  --
+// F10      0x1B 0x5A   <shortcut>  --
+// INS      0x1B 0x50   0x1B 0x50   0x1B 0x50
+// DEL      0x1B 0x44   0x1B 0x44   0x1B 0x44
+// ROLL UP  --          --          --
+// POLL DOWN--          --          --
+// COPY     --          --          --
+// HOME/CLR 0x1A        0x1E        --
+// HELP     --          --          --
+#endif
+                };
+            }
+            else {
+                /* IBM PC/XT/AT signals extended code by entering AL, AH.
+                 * Arrow keys for example become 0x00 0x48, 0x00 0x50, etc. */
+    			data[count++]=reg_al;
+	    		if (*size>count) data[count++]=reg_ah;
+		    	else readcache=reg_ah;
+            }
 			break;
 		default:
 			data[count++]=reg_al;
