@@ -692,6 +692,19 @@ configure_file(
 	${CMAKE_CURRENT_BINARY_DIR}/config.h
 )
 
+find_path(SDL_INCLUDE_DIR .)
+find_path(LIBPNG_INCLUDE_DIR .)
+find_path(ZLIB_INCLUDE_DIR .)
+
+include_directories("${SDL_INCLUDE_DIR}")
+include_directories("${LIBPNG_INCLUDE_DIR}")
+include_directories("${ZLIB_INCLUDE_DIR}")
+
+find_library(SDL_LIBRARY sdl.lib)
+find_library(SDLMAIN_LIBRARY sdlmain.lib)
+find_library(LIBPNG_LIBRARY libpng16.lib)
+find_library(ZLIB_LIBRARY zlib.lib)
+
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 add_definitions(-D__WIN32__)
 
@@ -733,4 +746,8 @@ target_link_libraries(dosbox-x
 	opengl32.lib
 	winmm.lib
 	imm32.lib
+	${SDL_LIBRARY}
+	${SDLMAIN_LIBRARY}
+	${LIBPNG_LIBRARY}
+	${ZLIB_LIBRARY}
 )
