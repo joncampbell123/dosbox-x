@@ -638,6 +638,7 @@ include_directories("include")
 include_directories(${CMAKE_BINARY_DIR}) # unistd.h, config.h
 include_directories(".") # TODO this is solely for dumb bios.cpp include syntax
 include_directories("src/aviwriter")
+include_directories("src") # TODO lazyflags in fpu_instructions.h
 
 CHECK_TYPE_SIZE("unsigned char" SIZEOF_UNSIGNED_CHAR)
 CHECK_TYPE_SIZE("unsigned short" SIZEOF_UNSIGNED_SHORT)
@@ -679,6 +680,11 @@ endif()
 option(C_SSHOT "Define to 1 to enable screenshots, requires libpng" ON)
 if(C_SSHOT)
 	set(C_SSHOT 1)
+endif()
+
+option(C_FPU "Define to 1 to enable floating point emulation" ON)
+if(C_FPU)
+	set(C_FPU 1)
 endif()
 
 configure_file(

@@ -55,7 +55,7 @@
 #undef C_FLUIDSYNTH
 
 /* Define to 1 to enable floating point emulation */
-#undef C_FPU
+#cmakedefine C_FPU @C_FPU@
 
 /* Determines if the compilers supports attributes for structures. */
 #undef C_HAS_ATTRIBUTE
