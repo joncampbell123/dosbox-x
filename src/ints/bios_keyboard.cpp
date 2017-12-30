@@ -552,6 +552,25 @@ irq1_end:
 
 unsigned char AT_read_60(void);
 
+/* BIOS INT 18h output vs keys:
+ *
+ *              Unshifted   Shifted     CTRL    Caps    Kana    Kana+Shift
+ *              -----------------------------------------------------------
+ * ESC          0x001B      0x001B      0x001B  0x001B  0x001B  0x001B
+ * STOP         --          --          --      --      --      --
+ * F1..F10      <--------------- scan code in upper, zero in lower ------->
+ * INS/DEL      <--------------- scan code in upper, zero in lower ------->
+ * ROLL UP/DOWN <--------------- scan code in upper, zero in lower ------->
+ * COPY         --          --          --      --      --      --
+ * HOME CLR     0x3E00      0xAE00      --      --      --      --
+ * HELP         <--------------- scan code in upper, zero in lower ------->
+ * ARROW KEYS   <--------------- scan code in upper, zero in lower ------->
+ * XFER         0x3500      0xA500      0xB500  0x3500  0x3500  0xA500
+ * NFER         0x5100      0xA100      0xB100  0x5100  0x5100  0xA100
+ * GRPH         --          --          --      --      --      --
+ * TAB          0x0F09      0x0F09      0x0F09  0x0F09  0x0F09  0x0F09
+ * - / 口       --          --          --      --      0x33DB  0x33DB      Kana+CTRL = 0x331F
+ */
 static Bitu IRQ1_Handler_PC98(void) {
     unsigned char sc_8251,status;
     unsigned int patience = 32;
