@@ -48,6 +48,8 @@ void MAPPER_CheckKeyboardLayout();
 Bitu next_handler_xpos=0;
 Bitu next_handler_ypos=0;
 
+bool mapper_addhandler_create_buttons = false;
+
 bool isJPkeyboard = false;
 
 enum {
@@ -2289,6 +2291,8 @@ static void CreateLayout(void) {
 	bind_but.dbg->Change("(event debug)");
 
 	bind_but.bind_title->Change("Bind Title");
+
+    mapper_addhandler_create_buttons = true;
 }
 
 static SDL_Color map_pal[5]={
@@ -2550,35 +2554,37 @@ void MAPPER_AddHandler(MAPPER_Handler * handler,MapKeys key,Bitu mods,char const
 	strcat(tempname,eventname);
 	CHandlerEvent *event = new CHandlerEvent(tempname,handler,key,mods,buttonname);
 
-    // and a button in the mapper UI
-    {
-		new CEventButton(PX(next_handler_xpos*3),PY(next_handler_ypos),BW*3,BH,buttonname,event);
-		next_handler_xpos++;
-		if (next_handler_xpos>6) {
-			next_handler_xpos=3;next_handler_ypos++;
-		}
-    }
-
-    // this event may have appeared in the user's mapper file, and been ignored.
-    // now is the time to register it.
-    {
-        auto i = pending_string_binds.find(tempname);
-        char tmp[512];
-
-        if (i != pending_string_binds.end()) {
-            LOG(LOG_MISC,LOG_WARN)("Found pending event for %s from user's file, applying now",tempname);
-
-            snprintf(tmp,sizeof(tmp),"%s %s",tempname,i->second.c_str());
-
-            CreateStringBind(tmp);
-
-            pending_string_binds.erase(i);
+    if (mapper_addhandler_create_buttons) {
+        // and a button in the mapper UI
+        {
+            new CEventButton(PX(next_handler_xpos*3),PY(next_handler_ypos),BW*3,BH,buttonname,event);
+            next_handler_xpos++;
+            if (next_handler_xpos>6) {
+                next_handler_xpos=3;next_handler_ypos++;
+            }
         }
-        else {
-            /* use default binding.
-             * redundant? Yes! But, apparently necessary. */
-            event->MakeDefaultBind(tmp);
-            CreateStringBind(tmp);
+
+        // this event may have appeared in the user's mapper file, and been ignored.
+        // now is the time to register it.
+        {
+            auto i = pending_string_binds.find(tempname);
+            char tmp[512];
+
+            if (i != pending_string_binds.end()) {
+                LOG(LOG_MISC,LOG_WARN)("Found pending event for %s from user's file, applying now",tempname);
+
+                snprintf(tmp,sizeof(tmp),"%s %s",tempname,i->second.c_str());
+
+                CreateStringBind(tmp);
+
+                pending_string_binds.erase(i);
+            }
+            else {
+                /* use default binding.
+                 * redundant? Yes! But, apparently necessary. */
+                event->MakeDefaultBind(tmp);
+                CreateStringBind(tmp);
+            }
         }
     }
 
