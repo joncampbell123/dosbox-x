@@ -386,14 +386,19 @@ void DOS_Shell::InputCommand(char * line) {
 			}
 			break;
 		case 0x1b:   /* ESC */
-			//write a backslash and return to the next line
-			outc('\\');
-			outc('\n');
-			*line = 0;      // reset the line.
-			if (l_completion.size()) l_completion.clear(); //reset the completion list.
-			this->InputCommand(line);	//Get the NEW line.
-			size = 0;       // stop the next loop
-			str_len = 0;    // prevent multiple adds of the same line
+            if (IS_PC98_ARCH) {
+                //TODO: Either different behavior or none at all
+            }
+            else {
+                //write a backslash and return to the next line
+                outc('\\');
+                outc('\n');
+                *line = 0;      // reset the line.
+                if (l_completion.size()) l_completion.clear(); //reset the completion list.
+                this->InputCommand(line);	//Get the NEW line.
+                size = 0;       // stop the next loop
+                str_len = 0;    // prevent multiple adds of the same line
+            }
 			break;
 		default:
 			if (l_completion.size()) l_completion.clear();
