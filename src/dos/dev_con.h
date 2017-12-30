@@ -298,6 +298,9 @@ private:
 // VF4      --          --          --
 // VF5      --          --          --
 
+static size_t dev_con_pos=0,dev_con_max=0;
+static char dev_con_readbuf[64];
+
 bool device_CON::Read(Bit8u * data,Bit16u * size) {
 	Bit16u oldax=reg_ax;
 	Bit16u count=0;
@@ -308,6 +311,11 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
 		readcache=0;
 	}
 	while (*size>count) {
+        if (dev_con_pos < dev_con_max) {
+            data[count++] = dev_con_readbuf[dev_con_pos++];
+            continue;
+        }
+
 		reg_ah=(IS_EGAVGA_ARCH)?0x10:0x0;
 
         /* FIXME: PC-98 emulation should eventually use CONIO emulation that
@@ -370,17 +378,37 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
                     case 0x3D: // down arrow
                         data[count++] = 0x0A;
                         break;
+                    case 0x62: // F1
+                        dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x53; dev_con_pos=0; dev_con_max=2;
+                        break;
+                    case 0x63: // F2
+                        dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x54; dev_con_pos=0; dev_con_max=2;
+                        break;
+                    case 0x64: // F3
+                        dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x55; dev_con_pos=0; dev_con_max=2;
+                        break;
+                    case 0x65: // F4
+                        dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x56; dev_con_pos=0; dev_con_max=2;
+                        break;
+                    case 0x66: // F5
+                        dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x57; dev_con_pos=0; dev_con_max=2;
+                        break;
+                    case 0x67: // F6
+                        dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x45; dev_con_pos=0; dev_con_max=2;
+                        break;
+                    case 0x68: // F7
+                        dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x4A; dev_con_pos=0; dev_con_max=2;
+                        break;
+                    case 0x69: // F8
+                        dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x50; dev_con_pos=0; dev_con_max=2;
+                        break;
+                    case 0x6A: // F9
+                        dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x51; dev_con_pos=0; dev_con_max=2;
+                        break;
+                    case 0x6B: // F10
+                        dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x5A; dev_con_pos=0; dev_con_max=2;
+                        break;
 #if 0
-// F1       0x1B 0x53   <shortcut>  --
-// F2       0x1B 0x54   <shortcut>  --
-// F3       0x1B 0x55   <shortcut>  --
-// F4       0x1B 0x56   <shortcut>  Toggles 'g'
-// F5       0x1B 0x57   <shortcut>  --
-// F6       0x1B 0x45   <shortcut>  Toggle 20/25-line text mode
-// F7       0x1B 0x4A   <shortcut>  Toggle function row (C1/CU/etc, shortcuts, or off)
-// F8       0x1B 0x50   <shortcut>  Clear screen, home cursor
-// F9       0x1B 0x51   <shortcut>  --
-// F10      0x1B 0x5A   <shortcut>  --
 // INS      0x1B 0x50   0x1B 0x50   0x1B 0x50
 // DEL      0x1B 0x44   0x1B 0x44   0x1B 0x44
 // ROLL UP  --          --          --
