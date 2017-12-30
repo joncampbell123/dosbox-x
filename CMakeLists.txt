@@ -612,6 +612,11 @@ set(SRC_PLATFORM
 )
 source_group("Sources\\platform" FILES ${SRC_PLATFORM})
 
+set(SRC_SDL_PATCHES
+	"src/sdl_patches/patches.c"
+)
+source_group("Sources\\sdl_patches" FILES ${SRC_SDL_PATCHES})
+
 set(SRC_SHELL
 	#"src/shell/Makefile.am"
 	#"src/shell/Makefile.in"
@@ -712,6 +717,7 @@ add_executable(dosbox-x
 	${SRC_MT32_FREEVERB}
 	${SRC_MT32_SHA1}
 	${SRC_PLATFORM}
+	${SRC_SDL_PATCHES}
 	${SRC_SHELL}
 )
 
