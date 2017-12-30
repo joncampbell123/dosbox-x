@@ -1036,9 +1036,42 @@ static Bitu IRQ1_Handler_PC98(void) {
                 }
                 break;
 
+            case 0x60: // STOP
+                // does not pass it on
+                break;
+
+            case 0x62: // F1
+            case 0x63: // F2
+            case 0x64: // F3
+            case 0x65: // F4
+            case 0x66: // F5
+            case 0x67: // F6
+            case 0x68: // F7
+            case 0x69: // F8
+            case 0x6A: // F9
+            case 0x6B: // F10
+                if (pressed) {
+                    if (flags1 & 4) /* CTRL */
+                        add_key(scan_add + 0x3000); /* 0x92-0x9B */
+                    else if (flags1 & 3) /* SHIFT */
+                        add_key(scan_add + 0x2000); /* 0x82-0x8B */
+                    else
+                        add_key(scan_add + 0x0000); /* 0x62-0x6B */
+                }
+                break;
+
             case 0x70: // left/right shift
                 flags1 &= ~3; // emulate AT BIOS l+r shift with PC-98 shift
                 flags1 |= pressed ? 3 : 0;
+                break;
+
+            case 0x74: // left/right ctrl
+                flags1 &= ~4; // emulate AT BIOS l+r ctrl with PC-98 ctrl
+                flags1 |= pressed ? 4 : 0;
+                break;
+
+            default:
+                add_key(scan_add + 0x00); /* zero low byte */
                 break;
         }
 
