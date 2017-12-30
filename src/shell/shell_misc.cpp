@@ -126,6 +126,8 @@ void DOS_Shell::InputCommand(char * line) {
             cr = (Bit16u)c; /* we're not reading from the console */
         }
         else if (IS_PC98_ARCH) {
+            extern Bit16u last_int16_code;
+
             /* NTS: Since left arrow and backspace map to the same byte value, PC-98 treats it the same at the DOS prompt.
              *      However the PC-98 version of DOSKEY seems to be able to differentiate the two anyway and let the left
              *      arrow move the cursor back (perhaps it's calling INT 18h directly then?) */
@@ -135,6 +137,13 @@ void DOS_Shell::InputCommand(char * line) {
                 cr = 0x5000;    /* IBM extended code down arrow */
             else if (c == 0x0C)
                 cr = 0x4D00;    /* IBM extended code right arrow */
+            else if (c == 0x08) {
+                /* IBM extended code left arrow OR backspace. use last scancode to tell which as DOSKEY apparently can. */
+                if (last_int16_code == 0x3B00)
+                    cr = 0x4B00; /* left arrow */
+                else
+                    cr = 0x08; /* backspace */
+            }
             else
                 cr = (Bit16u)c;
         }

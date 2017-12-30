@@ -33,6 +33,8 @@ Bitu INT16_Handler_Wrap(void);
 
 ShiftJISDecoder con_sjis;
 
+Bit16u last_int16_code = 0;
+
 class device_CON : public DOS_Device {
 public:
 	device_CON();
@@ -316,6 +318,9 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
             INT16_Handler_Wrap();
         else
             CALLBACK_RunRealInt(0x16);
+
+        /* hack for DOSKEY emulation */
+        last_int16_code = reg_ax;
 
 		switch(reg_al) {
 		case 13:
