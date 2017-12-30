@@ -1759,6 +1759,7 @@ static void RESCAN_ProgramStart(Program * * make) {
 	*make=new RESCAN;
 }
 
+/* TODO: This menu code sucks. Write a better one. */
 class INTRO : public Program {
 public:
 	void DisplayMount(void) {
