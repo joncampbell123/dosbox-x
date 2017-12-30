@@ -1062,6 +1062,12 @@ void DOSBOX_SetupConfigSections(void) {
 			  "  <integer or float>           Any integer or floating point value will be used as the clock frequency in Hz\n"
 			  "  <integer/integer ratio>      If a ratio is given (num/den), the ratio will be used as the clock frequency");
 
+	Pstring = secprop->Add_string("call binary on reset",Property::Changeable::WhenIdle,"");
+	Pstring->Set_help("If set, this is the path of a binary blob to load into the ROM BIOS area and execute immediately after CPU reset.\n"
+                      "It will be executed before the BIOS POST routine, only ONCE. The binary blob is expected either to IRET or to\n"
+                      "jump directly to F000:FFF0 to return control to the BIOS.\n"
+                      "This can be used for x86 assembly language experiments and automated testing against the CPU emulation.");
+
 	Pint = secprop->Add_int("rom bios allocation max",Property::Changeable::OnlyAtStart,0);
 	Pint->SetMinMax(0,128);
 	Pint->Set_help("Maximum size (top down from 1MB) allowed for ROM BIOS dynamic allocation in KB");
