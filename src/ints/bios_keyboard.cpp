@@ -1071,7 +1071,9 @@ static Bitu IRQ1_Handler_PC98(void) {
                 break;
 
             default:
-                add_key(scan_add + 0x00); /* zero low byte */
+                if (pressed) {
+                    add_key(scan_add + 0x00); /* zero low byte */
+                }
                 break;
         }
 
