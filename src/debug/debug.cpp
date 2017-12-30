@@ -911,6 +911,10 @@ static void SetCodeWinStart()
 	codeViewData.cursorPos = -1;	// Recalc Cursor position
 };
 
+void DEBUG_CheckCSIP() {
+    SetCodeWinStart();
+}
+
 /********************/
 /*    User input    */
 /********************/
