@@ -122,7 +122,10 @@ void DOS_Shell::InputCommand(char * line) {
 			continue;
 		}
 
-        if (IS_PC98_ARCH) {
+        if (input_handle != STDIN) { /* FIXME: Need DOS_IsATTY() or somesuch */
+            cr = (Bit16u)c; /* we're not reading from the console */
+        }
+        else if (IS_PC98_ARCH) {
             /* NTS: Since left arrow and backspace map to the same byte value, PC-98 treats it the same at the DOS prompt.
              *      However the PC-98 version of DOSKEY seems to be able to differentiate the two anyway and let the left
              *      arrow move the cursor back (perhaps it's calling INT 18h directly then?) */
