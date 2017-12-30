@@ -146,7 +146,9 @@ void DOS_Shell::InputCommand(char * line) {
             }
             else if (c == 0x1B) { /* escape */
 				DOS_ReadFile(input_handle,&c,&n);
-                     if (c == 0x53)  // F1
+                     if (c == 0x44)  // DEL
+                    cr = 0x5300;
+                else if (c == 0x53)  // F1
                     cr = 0x3B00;
                 else if (c == 0x54)  // F2
                     cr = 0x3C00;

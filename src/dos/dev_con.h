@@ -366,6 +366,9 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
                 /* PC-98 does NOT return scan code, but instead returns nothing or
                  * control/escape code */
                 switch (reg_ah) {
+                    case 0x39: // DEL
+                        dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x44; dev_con_pos=0; dev_con_max=2;
+                        break;
                     case 0x3A: // up arrow
                         data[count++] = 0x0B;
                         break;
@@ -410,7 +413,6 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
                         break;
 #if 0
 // INS      0x1B 0x50   0x1B 0x50   0x1B 0x50
-// DEL      0x1B 0x44   0x1B 0x44   0x1B 0x44
 // ROLL UP  --          --          --
 // POLL DOWN--          --          --
 // COPY     --          --          --
