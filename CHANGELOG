@@ -9,6 +9,9 @@
   - Mapper UI modifier buttons indicate status through hilighting.
   - Mapper UI joystick buttons and axes now use hilighting to indicate
     that there is input from the device.
+  - Mapper fix for 4-axis joysticks that may count zero buttons, and
+    then crash (divide by zero) when the user pushes a button on the
+    joystick device.
   - BIOS emulation now allows you to specify binary blobs to execute
     in the guest system as part of startup. One can be specified to
     execute just after CPU reset/power-on, and the other just before
