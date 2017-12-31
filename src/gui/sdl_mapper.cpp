@@ -2257,8 +2257,9 @@ static void CreateLayout(void) {
 	/* Create Handler buttons */
 	Bitu xpos=3;Bitu ypos=11;
 	for (CHandlerEventVector_it hit=handlergroup.begin();hit!=handlergroup.end();hit++) {
-		new CEventButton(PX(xpos*3),PY(ypos),BW*3,BH,(*hit)->ButtonName(),(*hit));
-		xpos++;
+        unsigned int columns = ((unsigned int)strlen((*hit)->ButtonName()) + 9U) / 10U;
+        new CEventButton(PX(xpos*3),PY(ypos),BW*3*columns,BH,(*hit)->ButtonName(),(*hit));
+		xpos += columns;
 		if (xpos>6) {
 			xpos=3;ypos++;
 		}
@@ -2560,8 +2561,9 @@ void MAPPER_AddHandler(MAPPER_Handler * handler,MapKeys key,Bitu mods,char const
     if (mapper_addhandler_create_buttons) {
         // and a button in the mapper UI
         {
-            new CEventButton(PX(next_handler_xpos*3),PY(next_handler_ypos),BW*3,BH,buttonname,event);
-            next_handler_xpos++;
+            unsigned int columns = ((unsigned int)strlen(buttonname) + 9U) / 10U;
+            new CEventButton(PX(next_handler_xpos*3),PY(next_handler_ypos),BW*3*columns,BH,buttonname,event);
+            next_handler_xpos += columns;
             if (next_handler_xpos>6) {
                 next_handler_xpos=3;next_handler_ypos++;
             }
