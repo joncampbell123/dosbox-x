@@ -847,12 +847,14 @@ public:
 				break;
 			case SDL_JOYBUTTONDOWN:
 			case SDL_JOYBUTTONUP:
-				jbutton = &event->jbutton;
-				bool state;
-				state=jbutton->type==SDL_JOYBUTTONDOWN;
-				but = jbutton->button % emulated_buttons;
-				if (jbutton->which == stick) {
-					JOYSTICK_Button(emustick,but,state);
+				if (emulated_buttons != 0) {
+					jbutton = &event->jbutton;
+					bool state;
+					state=jbutton->type==SDL_JOYBUTTONDOWN;
+					but = jbutton->button % emulated_buttons;
+					if (jbutton->which == stick) {
+						JOYSTICK_Button(emustick, but, state);
+					}
 				}
 				break;
 		}
