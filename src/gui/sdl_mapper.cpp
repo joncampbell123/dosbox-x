@@ -1781,7 +1781,7 @@ protected:
 
 class CHandlerEvent : public CTriggeredEvent {
 public:
-	CHandlerEvent(char const * const _entry,MAPPER_Handler * _handler,MapKeys _key,Bitu _mod,char const * const _buttonname) : CTriggeredEvent(_entry) {
+	CHandlerEvent(char const * const _entry,MAPPER_Handler * _handler,MapKeys _key,Bitu _mod,char const * const _buttonname) : CTriggeredEvent(_entry), notify_button(NULL) {
 		handler=_handler;
 		defmod=_mod;
 		defkey=_key;
@@ -1791,6 +1791,8 @@ public:
 	virtual ~CHandlerEvent() {}
 	void Active(bool yesno) {
         if (MAPPER_DemoOnly()) {
+            if (notify_button != NULL)
+                notify_button->SetInvert(yesno);
         }
         else {
             (*handler)(yesno);
@@ -1915,6 +1917,10 @@ public:
 		);
 	}
 #endif
+    void notifybutton(CTextButton *n) {
+        notify_button = n;
+    }
+    CTextButton *notify_button;
 protected:
 	MapKeys defkey;
 	Bitu defmod;
@@ -2320,8 +2326,9 @@ static void CreateLayout(void) {
         if ((xpos+columns-1)>6) {
 			xpos=3;ypos++;
         }
-        new CEventButton(PX(xpos*3),PY(ypos),BW*3*columns,BH,(*hit)->ButtonName(),(*hit));
-		xpos += columns;
+        CEventButton *button=new CEventButton(PX(xpos*3),PY(ypos),BW*3*columns,BH,(*hit)->ButtonName(),(*hit));
+        (*hit)->notifybutton(button);
+        xpos += columns;
 		if (xpos>6) {
 			xpos=3;ypos++;
 		}
@@ -2627,7 +2634,8 @@ void MAPPER_AddHandler(MAPPER_Handler * handler,MapKeys key,Bitu mods,char const
             if ((next_handler_xpos+columns-1)>6) {
                 next_handler_xpos=3;next_handler_ypos++;
             }
-            new CEventButton(PX(next_handler_xpos*3),PY(next_handler_ypos),BW*3*columns,BH,buttonname,event);
+            CEventButton *button=new CEventButton(PX(next_handler_xpos*3),PY(next_handler_ypos),BW*3*columns,BH,buttonname,event);
+            event->notifybutton(button);
             next_handler_xpos += columns;
             if (next_handler_xpos>6) {
                 next_handler_xpos=3;next_handler_ypos++;
