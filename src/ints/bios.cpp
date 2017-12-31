@@ -362,17 +362,24 @@ void dosbox_integration_trigger_write() {
 		case 0x804200: /* keyboard input injection */
 			void Mouse_ButtonPressed(Bit8u button);
 			void Mouse_ButtonReleased(Bit8u button);
-			void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate);
+            void pc98_keyboard_send(const unsigned char b);
+            void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate);
 			void KEYBOARD_AUX_Event(float x,float y,Bitu buttons,int scrollwheel);
 			void KEYBOARD_AddBuffer(Bit16u data);
 
 			switch ((dosbox_int_register>>8)&0xFF) {
 				case 0x00: // keyboard
-					KEYBOARD_AddBuffer(dosbox_int_register&0xFF);
+                    if (IS_PC98_ARCH)
+                        pc98_keyboard_send(dosbox_int_register&0xFF);
+                    else
+    					KEYBOARD_AddBuffer(dosbox_int_register&0xFF);
 					break;
 				case 0x01: // AUX
-					KEYBOARD_AddBuffer((dosbox_int_register&0xFF)|0x100/*AUX*/);
-					break;
+                    if (!IS_PC98_ARCH)
+    					KEYBOARD_AddBuffer((dosbox_int_register&0xFF)|0x100/*AUX*/);
+                    else   // no such interface in PC-98 mode
+                        dosbox_int_error = true;
+                    break;
 				case 0x08: // mouse button injection
 					if (dosbox_int_register&0x80) Mouse_ButtonPressed(dosbox_int_register&0x7F);
 					else Mouse_ButtonReleased(dosbox_int_register&0x7F);
