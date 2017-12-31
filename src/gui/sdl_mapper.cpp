@@ -1493,7 +1493,7 @@ protected:
 
 class CTextButton : public CButton {
 public:
-	CTextButton(Bitu _x,Bitu _y,Bitu _dx,Bitu _dy,const char * _text) : CButton(_x,_y,_dx,_dy) { text=_text;}
+	CTextButton(Bitu _x,Bitu _y,Bitu _dx,Bitu _dy,const char * _text) : CButton(_x,_y,_dx,_dy) { text=_text; invertw=0; }
 	virtual ~CTextButton() {}
 	void Draw(void) {
         Bit8u fg,bg;
@@ -1511,12 +1511,41 @@ public:
 
 		CButton::Draw();
 		DrawText(x+2,y+2,text,fg,bg);
+
+#if defined(C_SDL2)
+        Bit8u * point=((Bit8u *)mapper.draw_surface->pixels)+(y*mapper.draw_surface->w)+x;
+#else
+        Bit8u * point=((Bit8u *)mapper.surface->pixels)+(y*mapper.surface->pitch)+x;
+#endif
+        for (Bitu lines=0;lines<(dy-1);lines++) {
+            if (lines != 0) {
+                for (Bitu cols=1;cols<=invertw;cols++) {
+                    if (*(point+cols) == color)
+                        *(point+cols) = bkcolor;
+                    else
+                        *(point+cols) = color;
+                }
+            }
+#if defined(C_SDL2)
+			point+=mapper.draw_surface->w;
+#else
+			point+=mapper.surface->pitch;
+#endif
+		}
 	}
 	void SetText(const char *_text) {
 		text = _text;
 	}
+    void SetPartialInvert(double a) {
+        if (a < 0) a = 0;
+        if (a > 1) a = 1;
+        invertw = (Bitu)floor((a * (dx - 2)) + 0.5);
+        if (invertw > (dx - 2)) invertw = dx - 2;
+        mapper.redraw=true;
+    }
 protected:
 	const char * text;
+    Bitu invertw;
 };
 
 class CEventButton;
@@ -1712,7 +1741,7 @@ public:
 	virtual ~CJAxisEvent() {}
 	void Active(bool /*moved*/) {
         if (notify_button != NULL)
-            notify_button->SetInvert(GetValue()>25000);
+            notify_button->SetPartialInvert(GetValue()/32768.0);
 
 		virtual_joysticks[stick].axis_pos[axis]=(Bit16s)(GetValue()*(positive?1:-1));
 	}
