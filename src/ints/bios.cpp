@@ -4117,7 +4117,9 @@ class BIOS:public Module_base{
 private:
 	static Bitu cb_bios_post__func(void) {
 		void TIMER_BIOS_INIT_Configure();
+#if C_DEBUG
         void DEBUG_CheckCSIP();
+#endif
 
         if (bios_user_reset_vector_blob != 0 && !bios_user_reset_vector_blob_run) {
             LOG_MSG("BIOS POST: Running user reset vector blob at 0x%lx",(unsigned long)bios_user_reset_vector_blob);
@@ -4128,8 +4130,10 @@ private:
             SegSet16(cs,bios_user_reset_vector_blob>>4);
             reg_eip = 0;
 
+#if C_DEBUG
             /* help the debugger reflect the new instruction pointer */
             DEBUG_CheckCSIP();
+#endif
 
             return CBRET_NONE;
         }
