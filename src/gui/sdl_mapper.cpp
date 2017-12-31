@@ -2800,16 +2800,17 @@ void BIND_MappingEvents(void) {
 				// ESC is your magic key out of capture
 				if (s.sym == SDLK_ESCAPE && mouselocked) GFX_CaptureMouse();
 
+                size_t tmpl;
 #if defined(C_SDL2)
-                sprintf(tmp,"%c%02x: scan=%u sym=%u mod=%xh name=%s",
+                tmpl = sprintf(tmp,"%c%02x: scan=%u sym=%u mod=%xh name=%s",
                     (event.type == SDL_KEYDOWN ? 'D' : 'U'),
                     event_count&0xFF,
                     s.scancode,
                     s.sym,
                     s.mod,
-                    SDL_GetScancodeName(s.sym));
+                    SDL_GetScancodeName(s.scancode));
 #else
-                sprintf(tmp,"%c%02x: scan=%u sym=%u mod=%xh u=%xh name=%s",
+                tmpl = sprintf(tmp,"%c%02x: scan=%u sym=%u mod=%xh u=%xh name=%s",
                     (event.type == SDL_KEYDOWN ? 'D' : 'U'),
                     event_count&0xFF,
                     s.scancode,
@@ -2818,6 +2819,9 @@ void BIND_MappingEvents(void) {
                     s.unicode,
                     SDL_GetKeyName(MapSDLCode((Bitu)s.sym)));
 #endif
+                while (tmpl < (440/8)) tmp[tmpl++] = ' ';
+                assert(tmpl < sizeof(tmp));
+                tmp[tmpl] = 0;
 
 				LOG(LOG_GUI,LOG_DEBUG)("Mapper keyboard event: %s",tmp);
 				bind_but.dbg->Change(tmp);
