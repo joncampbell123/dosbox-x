@@ -1372,6 +1372,12 @@ static struct CMapper {
 	std::string filename;
 } mapper;
 
+/* whether to run keystrokes through system but only to show how it comes out.
+ * otherwise, do full mapper processing. */
+bool MAPPER_DemoOnly(void) {
+    return !mapper.exit;
+}
+
 void CBindGroup::ActivateBindList(CBindList * list,Bits value,bool ev_trigger) {
 	Bitu validmod=0;
 	CBindList_it it;
@@ -1472,13 +1478,9 @@ public:
 		enabled=yes; 
 		mapper.redraw=true;
 	}
-    bool SetInvert(bool inv) {
-        if (invert != inv) {
-            invert = inv;
-            return true;
-        }
-
-        return false;
+    void SetInvert(bool inv) {
+        invert=inv;
+        mapper.redraw=true;
     }
 	void SetColor(Bit8u _col) { color=_col; }
 protected:
@@ -1675,13 +1677,23 @@ protected:
 
 class CKeyEvent : public CTriggeredEvent {
 public:
-	CKeyEvent(char const * const _entry,KBD_KEYS _key) : CTriggeredEvent(_entry) {
+	CKeyEvent(char const * const _entry,KBD_KEYS _key) : CTriggeredEvent(_entry), notify_button(NULL) {
 		key=_key;
 	}
 	virtual ~CKeyEvent() {}
 	void Active(bool yesno) {
-		KEYBOARD_AddKey(key,yesno);
+        if (MAPPER_DemoOnly()) {
+            if (notify_button != NULL)
+                notify_button->SetInvert(yesno);
+        }
+        else {
+            KEYBOARD_AddKey(key,yesno);
+        }
 	};
+    void notifybutton(CTextButton *n) {
+        notify_button = n;
+    }
+    CTextButton *notify_button;
 	KBD_KEYS key;
 };
 
@@ -1748,14 +1760,21 @@ protected:
 
 class CModEvent : public CTriggeredEvent {
 public:
-	CModEvent(char const * const _entry,Bitu _wmod) : CTriggeredEvent(_entry) {
+	CModEvent(char const * const _entry,Bitu _wmod) : CTriggeredEvent(_entry), notify_button(NULL) {
 		wmod=_wmod;
 	}
 	virtual ~CModEvent() {}
 	void Active(bool yesno) {
+        if (notify_button != NULL)
+            notify_button->SetInvert(yesno);
+
 		if (yesno) mapper.mods|=(1 << (wmod-1));
 		else mapper.mods&=~(1 << (wmod-1));
 	};
+    void notifybutton(CTextButton *n) {
+        notify_button = n;
+    }
+    CTextButton *notify_button;
 protected:
 	Bitu wmod;
 };
@@ -1771,7 +1790,11 @@ public:
 	}
 	virtual ~CHandlerEvent() {}
 	void Active(bool yesno) {
-		(*handler)(yesno);
+        if (MAPPER_DemoOnly()) {
+        }
+        else {
+            (*handler)(yesno);
+        }
 	};
 	const char * ButtonName(void) {
 		return buttonname;
@@ -1996,7 +2019,8 @@ static CKeyEvent * AddKeyButtonEvent(Bitu x,Bitu y,Bitu dx,Bitu dy,char const * 
 	strcpy(buf,"key_");
 	strcat(buf,entry);
 	CKeyEvent * event=new CKeyEvent(buf,key);
-	new CEventButton(x,y,dx,dy,title,event);
+	CEventButton *button=new CEventButton(x,y,dx,dy,title,event);
+    event->notifybutton(button);
 	return event;
 }
 
@@ -2036,7 +2060,8 @@ static void AddModButton(Bitu x,Bitu y,Bitu dx,Bitu dy,char const * const title,
 	char buf[64];
 	sprintf(buf,"mod_%d",(int)_mod);
 	CModEvent * event=new CModEvent(buf,_mod);
-	new CEventButton(x,y,dx,dy,title,event);
+	CEventButton *button=new CEventButton(x,y,dx,dy,title,event);
+    event->notifybutton(button);
 }
 
 struct KeyBlock {
@@ -2774,14 +2799,19 @@ void BIND_MappingEvents(void) {
 			}
 			/* fall through to mapper UI processing */
 		default:
-			if (mapper.addbind) for (CBindGroup_it it=bindgroups.begin();it!=bindgroups.end();it++) {
-				CBind * newbind=(*it)->CreateEventBind(&event);
-				if (!newbind) continue;
-				mapper.aevent->AddBind(newbind);
-				SetActiveEvent(mapper.aevent);
-				mapper.addbind=false;
-				break;
-			}
+            if (mapper.addbind) {
+                for (CBindGroup_it it=bindgroups.begin();it!=bindgroups.end();it++) {
+                    CBind * newbind=(*it)->CreateEventBind(&event);
+                    if (!newbind) continue;
+                    mapper.aevent->AddBind(newbind);
+                    SetActiveEvent(mapper.aevent);
+                    mapper.addbind=false;
+                    break;
+                }
+            }
+
+            void MAPPER_CheckEvent(SDL_Event * event);
+            MAPPER_CheckEvent(&event);
 		}
 	}
 }
@@ -3044,6 +3074,8 @@ void MAPPER_CheckKeyboardLayout() {
 
 void MAPPER_Init(void) {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing DOSBox mapper");
+
+	mapper.exit=true;
 
 	MAPPER_CheckKeyboardLayout();
 	InitializeJoysticks();
