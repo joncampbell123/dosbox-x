@@ -347,6 +347,10 @@ struct SDL_Block {
 
 static SDL_Block sdl;
 
+Bitu GUI_JoystickCount(void) {
+    return sdl.num_joysticks;
+}
+
 /* TODO: should move to it's own file ================================================ */
 static unsigned char logo[32*32*4]= {
 #include "dosbox_logo.h"

@@ -2766,8 +2766,14 @@ void Mapper_FingerInputEvent(SDL_Event &event) {
 }
 #endif
 
+Bitu GUI_JoystickCount(void);
+
 void BIND_MappingEvents(void) {
 	SDL_Event event;
+
+    if (GUI_JoystickCount()>0) SDL_JoystickUpdate();
+    MAPPER_UpdateJoysticks();
+
 	while (SDL_PollEvent(&event)) {
 		switch (event.type) {
 #if defined(C_SDL2)
