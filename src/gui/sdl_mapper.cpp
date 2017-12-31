@@ -1637,6 +1637,7 @@ public:
 			checked=(mapper.abind->flags&BFLG_Hold)>0;
 			break;
 		}
+		CTextButton::Draw();
 		if (checked) {
 #if defined(C_SDL2)
 			Bit8u * point=((Bit8u *)mapper.draw_surface->pixels)+((y+2)*mapper.draw_surface->pitch)+x+dx-dy+2;
@@ -1652,7 +1653,6 @@ public:
 #endif
 			}
 		}
-		CTextButton::Draw();
 	}
 	void Click(void) {
 		switch (type) {
