@@ -2294,7 +2294,7 @@ static void CreateLayout(void) {
 	bind_but.exit=new CBindButton(450,440,50,20,"Exit",BB_Exit);
 	bind_but.cap=new CBindButton(500,440,50,20,"Capt",BB_Capture);
 
-	bind_but.dbg=new CCaptionButton(300,460,340,20); // right below the Save button
+	bind_but.dbg=new CCaptionButton(180,460,460,20); // right below the Save button
 	bind_but.dbg->Change("(event debug)");
 
 	bind_but.bind_title->Change("Bind Title");
@@ -2716,20 +2716,22 @@ void BIND_MappingEvents(void) {
 				if (s.sym == SDLK_ESCAPE && mouselocked) GFX_CaptureMouse();
 
 #if defined(C_SDL2)
-                sprintf(tmp,"%c%02x: scan=%u sym=%u mod=%xh",
-                    (event.type == SDL_KEYDOWN ? 'D' : 'U'),
-                    event_count&0xFF,
-                    s.scancode,
-                    s.sym,
-                    s.mod);
-#else
-                sprintf(tmp,"%c%02x: scan=%u sym=%u mod=%xh u=%xh",
+                sprintf(tmp,"%c%02x: scan=%u sym=%u mod=%xh name=%s",
                     (event.type == SDL_KEYDOWN ? 'D' : 'U'),
                     event_count&0xFF,
                     s.scancode,
                     s.sym,
                     s.mod,
-                    s.unicode);
+                    SDL_GetScancodeName(s.sym));
+#else
+                sprintf(tmp,"%c%02x: scan=%u sym=%u mod=%xh u=%xh name=%s",
+                    (event.type == SDL_KEYDOWN ? 'D' : 'U'),
+                    event_count&0xFF,
+                    s.scancode,
+                    s.sym,
+                    s.mod,
+                    s.unicode,
+                    SDL_GetKeyName(MapSDLCode((Bitu)s.sym)));
 #endif
 
 				LOG(LOG_GUI,LOG_DEBUG)("Mapper keyboard event: %s",tmp);
