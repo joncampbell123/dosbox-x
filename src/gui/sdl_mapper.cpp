@@ -1700,7 +1700,8 @@ public:
 class CJAxisEvent : public CContinuousEvent {
 public:
 	CJAxisEvent(char const * const _entry,Bitu _stick,Bitu _axis,bool _positive,CJAxisEvent * _opposite_axis) : CContinuousEvent(_entry) {
-		stick=_stick;
+        notify_button=NULL;
+        stick=_stick;
 		axis=_axis;
 		positive=_positive;
 		opposite_axis=_opposite_axis;
@@ -1710,6 +1711,9 @@ public:
 	}
 	virtual ~CJAxisEvent() {}
 	void Active(bool /*moved*/) {
+        if (notify_button != NULL)
+            notify_button->SetInvert(GetValue()>25000);
+
 		virtual_joysticks[stick].axis_pos[axis]=(Bit16s)(GetValue()*(positive?1:-1));
 	}
 	virtual Bitu GetActivityCount(void) {
@@ -1719,6 +1723,10 @@ public:
 		/* caring for joystick movement into the opposite direction */
 		opposite_axis->Active(true);
 	}
+    void notifybutton(CTextButton *n) {
+        notify_button = n;
+    }
+    CTextButton *notify_button;
 protected:
 	void SetOppositeAxis(CJAxisEvent * _opposite_axis) {
 		opposite_axis=_opposite_axis;
@@ -1733,11 +1741,19 @@ public:
 	CJButtonEvent(char const * const _entry,Bitu _stick,Bitu _button) : CTriggeredEvent(_entry) {
 		stick=_stick;
 		button=_button;
+        notify_button=NULL;
 	}
 	virtual ~CJButtonEvent() {}
 	void Active(bool pressed) {
+        if (notify_button != NULL)
+            notify_button->SetInvert(pressed);
+
 		virtual_joysticks[stick].button_pressed[button]=pressed;
 	}
+    void notifybutton(CTextButton *n) {
+        notify_button = n;
+    }
+    CTextButton *notify_button;
 protected:
 	Bitu stick,button;
 };
@@ -2034,7 +2050,8 @@ static CJAxisEvent * AddJAxisButton(Bitu x,Bitu y,Bitu dx,Bitu dy,char const * c
 	char buf[64];
 	sprintf(buf,"jaxis_%d_%d%s",(int)stick,(int)axis,positive ? "+" : "-");
 	CJAxisEvent	* event=new CJAxisEvent(buf,stick,axis,positive,opposite_axis);
-	new CEventButton(x,y,dx,dy,title,event);
+	CEventButton *button=new CEventButton(x,y,dx,dy,title,event);
+    event->notifybutton(button);
 	return event;
 }
 static CJAxisEvent * AddJAxisButton_hidden(Bitu stick,Bitu axis,bool positive,CJAxisEvent * opposite_axis) {
@@ -2047,7 +2064,8 @@ static void AddJButtonButton(Bitu x,Bitu y,Bitu dx,Bitu dy,char const * const ti
 	char buf[64];
 	sprintf(buf,"jbutton_%d_%d",(int)stick,(int)button);
 	CJButtonEvent * event=new CJButtonEvent(buf,stick,button);
-	new CEventButton(x,y,dx,dy,title,event);
+	CEventButton *evbutton=new CEventButton(x,y,dx,dy,title,event);
+    event->notifybutton(evbutton);
 }
 static void AddJButtonButton_hidden(Bitu stick,Bitu button) {
 	char buf[64];
