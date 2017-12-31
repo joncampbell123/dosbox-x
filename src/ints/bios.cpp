@@ -42,6 +42,11 @@ extern bool PS1AudioCard;
 #include "parport.h"
 #include <time.h>
 #include <sys/timeb.h>
+
+#if defined(WIN32) && !defined(S_ISREG)
+# define S_ISREG(x) ((x & S_IFREG) == S_IFREG)
+#endif
+
 /* mouse.cpp */
 extern bool en_bios_ps2mouse;
 extern bool mainline_compatible_bios_mapping;
