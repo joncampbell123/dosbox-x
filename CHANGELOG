@@ -1,4 +1,23 @@
 <next>
+  - BIOS emulation now allows you to specify binary blobs to execute
+    in the guest system as part of startup. One can be specified to
+    execute just after CPU reset/power-on, and the other just before
+    booting to the DOS shell. THE BINARY BLOBS EXECUTE IN THE GUEST
+    ENVIRONMENT AND NOT AS ARBITRARY CODE ON YOUR HOST. This option
+    is provided for both automated testing and for the curious who
+    may want to venture into low level ASM hacking.
+  - INTRO.COM fixed to accept keyboard input correctly in both
+    PC-98 and IBM PC mode. You can now browse the help text properly
+    in either mode.
+  - DOS shell fixed to accept DOSKEY input in both IBM PC and PC-98
+    mode (including arrow keys, F3, tab completion, etc.)
+  - DOS CON emulation function keys F1-F10 emulation.
+  - DOS CON emulation fixed to process PC-98 BIOS codes and generate
+    PC-98 ANSI escapes as real hardware normally does.
+  - Mapper no longer shows two sets of the shortcuts (one overlaid
+    over the keyboard), registration bug fixed.
+  - PC-98 keyboard interrupt handler now handles CTRL key and
+    passes most keys as-is down through INT 18h now.
   - Removed non-recursive page fault option. It is now always on,
     except for internal cases where it needs to be off for callback
     instructions to do their work properly.
