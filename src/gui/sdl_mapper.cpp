@@ -1393,7 +1393,7 @@ void CBindGroup::DeactivateBindList(CBindList * list,bool ev_trigger) {
 	}
 }
 
-static void DrawText(Bitu x,Bitu y,const char * text,Bit8u color) {
+static void DrawText(Bitu x,Bitu y,const char * text,Bit8u color,Bit8u bkcolor=CLR_BLACK) {
 #if defined(C_SDL2)
     Bit8u * draw=((Bit8u *)mapper.draw_surface->pixels)+(y*mapper.draw_surface->w)+x;
 #else
@@ -1406,7 +1406,7 @@ static void DrawText(Bitu x,Bitu y,const char * text,Bit8u color) {
 			Bit8u map=*font++;
 			for (j=0;j<8;j++) {
 				if (map & 0x80) *(draw_line+j)=color;
-				else *(draw_line+j)=CLR_BLACK;
+				else *(draw_line+j)=bkcolor;
 				map<<=1;
 			}
 #if defined(C_SDL2)
@@ -1425,6 +1425,7 @@ public:
 	CButton(Bitu _x,Bitu _y,Bitu _dx,Bitu _dy) {
 		x=_x;y=_y;dx=_dx;dy=_dy;
 		buttons.push_back(this);
+        bkcolor=CLR_BLACK;
 		color=CLR_WHITE;
 		enabled=true;
 	}
@@ -1439,6 +1440,7 @@ public:
 			if (lines==0 || lines==(dy-1)) {
 				for (Bitu cols=0;cols<dx;cols++) *(point+cols)=color;
 			} else {
+				for (Bitu cols=1;cols<(dx-1);cols++) *(point+cols)=bkcolor;
 				*point=color;*(point+dx-1)=color;
 			}
 #if defined(C_SDL2)
@@ -1461,6 +1463,7 @@ public:
 protected:
 	Bitu x,y,dx,dy;
 	Bit8u color;
+    Bit8u bkcolor;
 	bool enabled;
 };
 
@@ -1471,7 +1474,7 @@ public:
 	void Draw(void) {
 		if (!enabled) return;
 		CButton::Draw();
-		DrawText(x+2,y+2,text,color);
+		DrawText(x+2,y+2,text,color,bkcolor);
 	}
 	void SetText(const char *_text) {
 		text = _text;
