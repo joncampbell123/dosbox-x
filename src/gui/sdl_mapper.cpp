@@ -1428,9 +1428,22 @@ public:
         bkcolor=CLR_BLACK;
 		color=CLR_WHITE;
 		enabled=true;
+        invert=false;
 	}
 	virtual void Draw(void) {
+        Bit8u fg,bg;
+
 		if (!enabled) return;
+
+        if (!invert) {
+            fg = color;
+            bg = bkcolor;
+        }
+        else {
+            fg = bkcolor;
+            bg = color;
+        }
+
 #if defined(C_SDL2)
         Bit8u * point=((Bit8u *)mapper.draw_surface->pixels)+(y*mapper.draw_surface->w)+x;
 #else
@@ -1440,7 +1453,7 @@ public:
 			if (lines==0 || lines==(dy-1)) {
 				for (Bitu cols=0;cols<dx;cols++) *(point+cols)=color;
 			} else {
-				for (Bitu cols=1;cols<(dx-1);cols++) *(point+cols)=bkcolor;
+				for (Bitu cols=1;cols<(dx-1);cols++) *(point+cols)=bg;
 				*point=color;*(point+dx-1)=color;
 			}
 #if defined(C_SDL2)
@@ -1459,11 +1472,20 @@ public:
 		enabled=yes; 
 		mapper.redraw=true;
 	}
+    bool SetInvert(bool inv) {
+        if (invert != inv) {
+            invert = inv;
+            return true;
+        }
+
+        return false;
+    }
 	void SetColor(Bit8u _col) { color=_col; }
 protected:
 	Bitu x,y,dx,dy;
 	Bit8u color;
     Bit8u bkcolor;
+    bool invert;
 	bool enabled;
 };
 
@@ -1472,9 +1494,21 @@ public:
 	CTextButton(Bitu _x,Bitu _y,Bitu _dx,Bitu _dy,const char * _text) : CButton(_x,_y,_dx,_dy) { text=_text;}
 	virtual ~CTextButton() {}
 	void Draw(void) {
+        Bit8u fg,bg;
+
 		if (!enabled) return;
+
+        if (!invert) {
+            fg = color;
+            bg = bkcolor;
+        }
+        else {
+            fg = bkcolor;
+            bg = color;
+        }
+
 		CButton::Draw();
-		DrawText(x+2,y+2,text,color,bkcolor);
+		DrawText(x+2,y+2,text,fg,bg);
 	}
 	void SetText(const char *_text) {
 		text = _text;
