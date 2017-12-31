@@ -1,4 +1,14 @@
 <next>
+  - Mapper layout fixes:
+    - Shortcut buttons (on the right hand side of the UI) fixed to
+      become two columns wide if the button text won't fit in one
+      column.
+    - Some shortcut button titles shortened.
+  - Mapper UI updated to show which bindings are being activated by
+    hilighting buttons in the UI.
+  - Mapper UI modifier buttons indicate status through hilighting.
+  - Mapper UI joystick buttons and axes now use hilighting to indicate
+    that there is input from the device.
   - BIOS emulation now allows you to specify binary blobs to execute
     in the guest system as part of startup. One can be specified to
     execute just after CPU reset/power-on, and the other just before
