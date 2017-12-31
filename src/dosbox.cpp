@@ -1068,6 +1068,10 @@ void DOSBOX_SetupConfigSections(void) {
                       "jump directly to F000:FFF0 to return control to the BIOS.\n"
                       "This can be used for x86 assembly language experiments and automated testing against the CPU emulation.");
 
+	Pstring = secprop->Add_string("call binary on boot",Property::Changeable::WhenIdle,"");
+	Pstring->Set_help("If set, this is the path of a binary blob to load into the ROM BIOS area and execute immediately before booting the DOS system.\n"
+                      "This can be used for x86 assembly language experiments and automated testing against the CPU emulation.");
+
 	Pint = secprop->Add_int("rom bios allocation max",Property::Changeable::OnlyAtStart,0);
 	Pint->SetMinMax(0,128);
 	Pint->Set_help("Maximum size (top down from 1MB) allowed for ROM BIOS dynamic allocation in KB");

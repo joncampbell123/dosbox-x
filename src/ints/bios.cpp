@@ -4109,6 +4109,8 @@ Bitu BIOS_boot_code_offset = 0;
 bool bios_user_reset_vector_blob_run = false;
 Bitu bios_user_reset_vector_blob = 0;
 
+Bitu bios_user_boot_hook = 0;
+
 void BIOS_OnResetComplete(Section *x);
 
 class BIOS:public Module_base{
@@ -5241,6 +5243,15 @@ public:
 			phys_writew(wo+0x02,(Bit16u)cb_bios_startup_screen.Get_callback());		//The immediate word
 			wo += 4;
 
+            // user boot hook
+            if (bios_user_boot_hook != 0) {
+                phys_writeb(wo+0x00,0x9C);                          //PUSHF
+                phys_writeb(wo+0x01,0x9A);                          //CALL FAR
+                phys_writew(wo+0x02,0x0000);                        //seg:0
+                phys_writew(wo+0x04,bios_user_boot_hook>>4);
+                wo += 6;
+            }
+
 			// boot
             BIOS_boot_code_offset = wo;
 			phys_writeb(wo+0x00,(Bit8u)0xFE);						//GRP 4
@@ -5809,6 +5820,41 @@ void ROMBIOS_Init() {
             }
             else {
                 LOG_MSG("WARNING: Unable to load user reset vector binary '%s' into ROM BIOS memory",path.c_str());
+            }
+        }
+    }
+
+    /* we allow dosbox.conf to specify a binary blob to load into ROM BIOS and execute just before boot.
+     * we allow this for both hacker curiosity and automated CPU testing. */
+    {
+        std::string path = section->Get_string("call binary on boot");
+        struct stat st;
+
+        if (!path.empty() && stat(path.c_str(),&st) == 0 && S_ISREG(st.st_mode) && st.st_size <= (128*1024)) {
+            Bitu base = ROMBIOS_GetMemory(st.st_size,"User boot hook binary",16/*page align*/,0);
+
+            if (base != 0) {
+                FILE *fp = fopen(path.c_str(),"rb");
+
+                if (fp != NULL) {
+                    /* NTS: Make sure memory base != NULL, and that it fits within 1MB.
+                     *      memory code allocates a minimum 1MB of memory even if
+                     *      guest memory is less than 1MB because ROM BIOS emulation
+                     *      depends on it. */
+                    assert(GetMemBase() != NULL);
+                    assert((base+st.st_size) <= 0x100000);
+                    fread(GetMemBase()+base,st.st_size,1,fp);
+                    fclose(fp);
+
+                    LOG_MSG("User boot hook binary '%s' loaded at 0x%lx",path.c_str(),(unsigned long)base);
+                    bios_user_boot_hook = base;
+                }
+                else {
+                    LOG_MSG("WARNING: Unable to open file to load user boot hook binary '%s' into ROM BIOS memory",path.c_str());
+                }
+            }
+            else {
+                LOG_MSG("WARNING: Unable to load user boot hook binary '%s' into ROM BIOS memory",path.c_str());
             }
         }
     }
