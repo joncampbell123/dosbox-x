@@ -9,9 +9,9 @@
   - INTRO.COM fixed to accept keyboard input correctly in both
     PC-98 and IBM PC mode. You can now browse the help text properly
     in either mode.
-  - DOS shell fixed to accept DOSKEY input in both IBM PC and PC-98
-    mode (including arrow keys, F3, tab completion, etc.)
-  - DOS CON emulation function keys F1-F10 emulation.
+  - DOS shell fixed to accept DOSKEY-like input in both IBM PC and
+    PC-98 mode (including arrow keys, F3, tab completion, etc.)
+  - DOS CON emulation now provides function keys (F1-F10) in PC-98 mode.
   - DOS CON emulation fixed to process PC-98 BIOS codes and generate
     PC-98 ANSI escapes as real hardware normally does.
   - Mapper no longer shows two sets of the shortcuts (one overlaid
