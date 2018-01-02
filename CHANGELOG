@@ -1,4 +1,6 @@
 <next>
+  - Fixed code mistake that caused OpenGL NB output when dosbox.conf
+    specified output=opengl
   - Mapper layout fixes:
     - Shortcut buttons (on the right hand side of the UI) fixed to
       become two columns wide if the button text won't fit in one
