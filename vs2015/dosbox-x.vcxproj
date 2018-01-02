@@ -218,7 +218,8 @@
     </CustomBuildStep>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"</Command>
+copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>
@@ -273,7 +274,8 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
     </CustomBuildStep>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"</Command>
+copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>
@@ -321,7 +323,8 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"</Command>
+copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -377,7 +380,8 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"</Command>
+copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -437,7 +441,8 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
     </CustomBuildStep>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"</Command>
+copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>
@@ -493,7 +498,8 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
     </CustomBuildStep>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"</Command>
+copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>
@@ -542,7 +548,8 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"</Command>
+copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -599,7 +606,8 @@ copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.c
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\font\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"</Command>
+copy "$(SolutionDir)\..\dosbox.reference.conf" "$(OutputPath)\dosbox.reference.conf"
+copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
