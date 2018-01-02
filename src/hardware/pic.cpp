@@ -670,6 +670,8 @@ void TIMER_AddTickHandler(TIMER_TickHandler handler) {
 	firstticker=newticker;
 }
 
+extern Bitu time_limit_ms;
+
 static unsigned long PIC_benchstart = 0;
 static unsigned long PIC_tickstart = 0;
 
@@ -686,6 +688,10 @@ void TIMER_AddTick(void) {
 	}
 	CPU_CycleLeft += CPU_CycleMax + CPU_Cycles;
 	CPU_Cycles = 0;
+
+    /* timeout */
+    if (time_limit_ms != 0 && PIC_Ticks >= time_limit_ms)
+        throw int(1);
 
 	/* Go through the list of scheduled events and lower their index with 1000 */
 	PICEntry * entry=pic_queue.next_entry;

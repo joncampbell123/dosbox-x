@@ -91,6 +91,8 @@
 # define S_ISREG(x) ((x & S_IFREG) == S_IFREG)
 #endif
 
+Bitu time_limit_ms = 0;
+
 extern bool keep_umb_on_boot;
 extern bool keep_private_area_on_boot;
 extern bool dos_kernel_disabled;
@@ -4647,6 +4649,7 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -c <command string>                     Execute this command in addition to AUTOEXEC.BAT.\n");
             fprintf(stderr,"                                          Make sure to surround the command in quotes to cover spaces.\n");
             fprintf(stderr,"  -break-start                            Break into debugger at startup\n");
+            fprintf(stderr,"  -time-limit <n>                         Kill the emulator after 'n' seconds\n");
 
 #if defined(WIN32)
             DOSBox_ConsolePauseWait();
@@ -4657,6 +4660,10 @@ bool DOSBOX_parse_argv() {
         else if (optname == "c") {
             if (!control->cmdline->NextOptArgv(tmp)) return false;
             control->opt_c.push_back(tmp);
+        }
+        else if (optname == "time-limit") {
+            if (!control->cmdline->NextOptArgv(tmp)) return false;
+            control->opt_time_limit = atof(tmp.c_str());
         }
         else if (optname == "break-start") {
             control->opt_break_start = true;
@@ -4991,6 +4998,9 @@ int main(int argc, char* argv[]) {
 
 		/* -- parse command line arguments */
 		if (!DOSBOX_parse_argv()) return 1;
+
+        if (control->opt_time_limit > 0)
+            time_limit_ms = (Bitu)(control->opt_time_limit * 1000);
 
 		if (control->opt_console)
 			DOSBox_ShowConsole();
