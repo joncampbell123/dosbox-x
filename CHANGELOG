@@ -1,4 +1,6 @@
 <next>
+  - Keyboard shortcut for the mapper UI no longer leaves keys "stuck"
+    in the guest to cause problems when you exit the mapper UI.
   - Fixed code mistake that caused OpenGL NB output when dosbox.conf
     specified output=opengl
   - Mapper layout fixes:
