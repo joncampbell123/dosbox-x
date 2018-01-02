@@ -5298,7 +5298,7 @@ int main(int argc, char* argv[]) {
 			sdl.surface = SDL_SetVideoMode(640, 400, 0, SDL_RESIZABLE);
 			if (sdl.surface == NULL) E_Exit("Could not initialize video: %s", SDL_GetError());
 
-			change_output(4);
+			change_output(sdl.opengl.bilinear ? 3/*OpenGL*/ : 4/*OpenGLNB*/);
 			GFX_SetIcon();
 			SDL_Prepare();
 			if (menu.gui && !control->opt_nomenu) {
