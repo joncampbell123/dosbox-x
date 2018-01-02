@@ -115,12 +115,15 @@ public:
 		safe_strncpy(entry,_entry,16);
 		events.push_back(this);
 		bindlist.clear();
+        active=false;
 		activity=0;
 		current_value=0;
 	}
 	void AddBind(CBind * bind);
 	virtual ~CEvent();
-	virtual void Active(bool yesno)=0;
+	virtual void Active(bool yesno) {
+        active = yesno;
+    }
 	virtual void ActivateEvent(bool ev_trigger,bool skip_action)=0;
 	virtual void DeActivateEvent(bool ev_trigger)=0;
 	void DeActivateAll(void);
@@ -133,6 +136,7 @@ public:
 	char * GetName(void) { return entry; }
 	virtual bool IsTrigger(void)=0;
 	CBindList bindlist;
+    bool active;
 protected:
 	Bitu activity;
 	char entry[16];
@@ -1712,7 +1716,7 @@ public:
 		key=_key;
 	}
 	virtual ~CKeyEvent() {}
-	void Active(bool yesno) {
+	virtual void Active(bool yesno) {
         if (MAPPER_DemoOnly()) {
             if (notify_button != NULL)
                 notify_button->SetInvert(yesno);
@@ -1720,6 +1724,8 @@ public:
         else {
             KEYBOARD_AddKey(key,yesno);
         }
+
+        active=yesno;
 	};
     void notifybutton(CTextButton *n) {
         notify_button = n;
@@ -1741,7 +1747,7 @@ public:
 		}
 	}
 	virtual ~CJAxisEvent() {}
-	void Active(bool /*moved*/) {
+	virtual void Active(bool /*moved*/) {
         if (notify_button != NULL)
             notify_button->SetPartialInvert(GetValue()/32768.0);
 
@@ -1775,11 +1781,12 @@ public:
         notify_button=NULL;
 	}
 	virtual ~CJButtonEvent() {}
-	void Active(bool pressed) {
+	virtual void Active(bool pressed) {
         if (notify_button != NULL)
             notify_button->SetInvert(pressed);
 
 		virtual_joysticks[stick].button_pressed[button]=pressed;
+        active=pressed;
 	}
     void notifybutton(CTextButton *n) {
         notify_button = n;
@@ -1797,7 +1804,7 @@ public:
 		dir=_dir;
 	}
 	virtual ~CJHatEvent() {}
-	void Active(bool pressed) {
+	virtual void Active(bool pressed) {
 		virtual_joysticks[stick].hat_pressed[(hat<<2)+dir]=pressed;
 	}
 protected:
@@ -1811,7 +1818,7 @@ public:
 		wmod=_wmod;
 	}
 	virtual ~CModEvent() {}
-	void Active(bool yesno) {
+	virtual void Active(bool yesno) {
         if (notify_button != NULL)
             notify_button->SetInvert(yesno);
 
@@ -1836,7 +1843,7 @@ public:
 		handlergroup.push_back(this);
 	}
 	virtual ~CHandlerEvent() {}
-	void Active(bool yesno) {
+	virtual void Active(bool yesno) {
         if (MAPPER_DemoOnly()) {
             if (notify_button != NULL)
                 notify_button->SetInvert(yesno);
@@ -1844,6 +1851,8 @@ public:
         else {
             (*handler)(yesno);
         }
+
+        active=yesno;
 	};
 	const char * ButtonName(void) {
 		return buttonname;
@@ -3008,6 +3017,15 @@ void MAPPER_LosingFocus(void) {
 	}
 }
 
+void MAPPER_ReleaseAllKeys(void) {
+	for (CEventVector_it evit=events.begin();evit!=events.end();evit++) {
+		if ((*evit)->active) {
+            LOG_MSG("Release");
+			(*evit)->Active(false);
+        }
+	}
+}
+
 void MAPPER_RunEvent(Bitu /*val*/) {
 	KEYBOARD_ClrBuffer();	//Clear buffer
 	GFX_LosingFocus();		//Release any keys pressed (buffer gets filled again).
@@ -3021,6 +3039,8 @@ void MAPPER_Run(bool pressed) {
 }
 
 void MAPPER_RunInternal() {
+    MAPPER_ReleaseAllKeys();
+
 #if defined(__WIN32__) && !defined(C_SDL2)
 	if(menu.maxwindow) ShowWindow(GetHWND(), SW_RESTORE);
 #endif
@@ -3120,7 +3140,7 @@ void MAPPER_RunInternal() {
 	    SendInput(1, &ip, sizeof(INPUT));
 	}
 #endif
-	KEYBOARD_ClrBuffer();
+//	KEYBOARD_ClrBuffer();
 	GFX_LosingFocus();
 
 	void GFX_ForceRedrawScreen(void);
