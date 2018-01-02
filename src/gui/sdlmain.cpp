@@ -4650,6 +4650,7 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"                                          Make sure to surround the command in quotes to cover spaces.\n");
             fprintf(stderr,"  -break-start                            Break into debugger at startup\n");
             fprintf(stderr,"  -time-limit <n>                         Kill the emulator after 'n' seconds\n");
+            fprintf(stderr,"  -log-con                                Log CON output to a log file\n");
 
 #if defined(WIN32)
             DOSBox_ConsolePauseWait();
@@ -4660,6 +4661,9 @@ bool DOSBOX_parse_argv() {
         else if (optname == "c") {
             if (!control->cmdline->NextOptArgv(tmp)) return false;
             control->opt_c.push_back(tmp);
+        }
+        else if (optname == "log-con") {
+            control->opt_log_con = true;
         }
         else if (optname == "time-limit") {
             if (!control->cmdline->NextOptArgv(tmp)) return false;

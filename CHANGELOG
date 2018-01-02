@@ -1,4 +1,9 @@
 <next>
+  - dosbox.conf and command line option to log CON driver output to
+    a file. Anything written to STDOUT/CON by a DOS application is
+    logged this way.
+  - --time-limit <n> command line option to put a time limit on the
+    emulator, in seconds.
   - Keyboard shortcut for the mapper UI no longer leaves keys "stuck"
     in the guest to cause problems when you exit the mapper UI.
   - Fixed code mistake that caused OpenGL NB output when dosbox.conf

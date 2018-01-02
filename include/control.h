@@ -95,7 +95,8 @@ public:
 		opt_disable_numlock_check = false;
 		opt_disable_dpi_awareness = false;
         opt_time_limit = -1;
-	}
+        opt_log_con = false;
+    }
 	~Config();
 
 	Section_line * AddSection_line(char const * const _name,void (*_initfunction)(Section*));
@@ -111,6 +112,7 @@ public:
 	bool SecureMode() const { return secure_mode; }
 	void SwitchToSecureMode() { secure_mode = true; }//can't be undone
 public:
+    bool opt_log_con;
     double opt_time_limit;
 	std::string opt_editconf,opt_opensaves,opt_opencaptures,opt_lang;
 	std::vector<std::string> config_file_list;

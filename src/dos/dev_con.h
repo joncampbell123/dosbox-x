@@ -443,6 +443,8 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
 	return true;
 }
 
+bool log_dev_con = false;
+std::string log_dev_con_str;
 
 bool device_CON::Write(Bit8u * data,Bit16u * size) {
     Bit16u count=0;
@@ -451,6 +453,16 @@ bool device_CON::Write(Bit8u * data,Bit16u * size) {
     Bit8u tempdata;
     INT10_SetCurMode();
     while (*size>count) {
+        if (log_dev_con) {
+            if (log_dev_con_str.size() >= 255 || data[count] == '\n') {
+                LOG_MSG("DOS CON: %s",log_dev_con_str.c_str());
+                log_dev_con_str.clear();
+            }
+
+            if (data[count] != '\n' && data[count] != '\r')
+                log_dev_con_str += (char)data[count];
+        }
+
         if (!ansi.esc){
             if(data[count]=='\033') {
                 /*clear the datastructure */
