@@ -48,6 +48,81 @@
     <Filter Include="Header Files\reSID emulation">
       <UniqueIdentifier>{899b8805-88da-4413-8741-b4209b513750}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources">
+      <UniqueIdentifier>{8dbaf89d-8c9d-42a3-b8a4-a60a4c5aef56}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\aviwriter">
+      <UniqueIdentifier>{a1ec8d2a-54a6-4ea0-bf63-61f7449b66b6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\builtin">
+      <UniqueIdentifier>{30d5602d-6e2d-4691-9b9c-5706bd0bb63f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\cpu">
+      <UniqueIdentifier>{a0d191bf-6485-420a-84b4-8854ff7389a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\cpu\core_full">
+      <UniqueIdentifier>{67311e9a-8aab-49c8-bb25-b1d7160c8f85}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\cpu\core_normal">
+      <UniqueIdentifier>{98d08d67-dcae-4d80-bfa1-15472da792d4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\debug">
+      <UniqueIdentifier>{a5277e37-3fda-43a2-b060-3f459e1b9e75}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\dos">
+      <UniqueIdentifier>{c795e362-1843-4567-b1ff-09c023ca9893}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\fpu">
+      <UniqueIdentifier>{d08318af-b364-4a97-b234-0c7b2e6f08d4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\gui">
+      <UniqueIdentifier>{1632efc8-6b8c-4f89-a1a1-fc1da685f29f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\hardware">
+      <UniqueIdentifier>{d6c2f459-d760-4117-8253-b60cef969a13}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\ints">
+      <UniqueIdentifier>{8709a460-e591-4394-b201-bee585d9db19}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\hardware\reSID">
+      <UniqueIdentifier>{796e68c6-80fd-4c10-aa7b-ad0e99d43348}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\hardware\parport">
+      <UniqueIdentifier>{f31d9c9a-5a0e-496f-a141-7c576fc2f86d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\hardware\serialport">
+      <UniqueIdentifier>{b7262097-2a01-4247-a2f3-e93f15386b05}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\libs">
+      <UniqueIdentifier>{5a13656d-e234-4fd4-8969-f73bf2fa6d3f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\libs\gui_tk">
+      <UniqueIdentifier>{5d5417f9-58a8-4b86-a8f7-8626b7120043}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\libs\porttalk">
+      <UniqueIdentifier>{cd3f8fa5-7241-4256-a47c-a74ae8a95284}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\libs\zmbv">
+      <UniqueIdentifier>{28485f5b-4c4a-4ad6-a8b1-59835197cb97}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\misc">
+      <UniqueIdentifier>{5af65dcd-0cd1-4ee7-a026-ead87797f0df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\mt32">
+      <UniqueIdentifier>{100486ca-860f-43d4-a37d-3c5b6c9cf849}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\mt32\freeverb">
+      <UniqueIdentifier>{1b000c8a-88a6-4d4c-9c0c-17fc2eddc9bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\mt32\sha1">
+      <UniqueIdentifier>{4f7f2cfd-2b47-4f7b-9951-22375362f7fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\platform">
+      <UniqueIdentifier>{8071adb6-9510-4483-a580-36c1e98cfd47}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources\shell">
+      <UniqueIdentifier>{6b5f8ac0-a925-4910-ad61-914aede51b8b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\hardware\adlib.cpp">
