@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2003
+VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dosbox-x", "dosbox-x.vcxproj", "{8A52284E-5115-453E-AD4B-87B8FCDB1244}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -22,7 +22,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zlibstat", "zlib\contrib\vs
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SDL_net", "sdlnet\VisualC\SDL_net_VS2008.vcxproj", "{8AB3504F-5E58-4910-AFE8-7A1E595AC3F4}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libraries", "Libraries", "{2606D77A-5E5B-4113-A3C9-278C55E8921B}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libraries (SDL1)", "Libraries (SDL1)", "{2606D77A-5E5B-4113-A3C9-278C55E8921B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libraries (SDL2)", "Libraries (SDL2)", "{E30D990E-3556-4BEB-9BE8-6544B49E9572}"
 EndProject
