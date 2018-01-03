@@ -1298,6 +1298,7 @@
     <ClInclude Include="..\src\libs\zmbv\zmbv_vfw.h">
       <Filter>Sources\libs\zmbv</Filter>
     </ClInclude>
+    <ClInclude Include="config.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\winres.rc">

@@ -1041,6 +1041,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClInclude Include="..\src\mt32\TVA.h" />
     <ClInclude Include="..\src\mt32\TVF.h" />
     <ClInclude Include="..\src\mt32\TVP.h" />
+    <ClInclude Include="config.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
