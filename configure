@@ -6483,6 +6483,9 @@ case "$host" in
        if test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
          LIBS="$LIBS -lws2_32"
        fi
+
+$as_echo "#define C_DIRECTLPT 1" >>confdefs.h
+
        ;;
     *-*-darwin*)
 
@@ -6495,6 +6498,9 @@ $as_echo "#define MACOSX 1" >>confdefs.h
 $as_echo "#define LINUX 1" >>confdefs.h
 
        CXXFLAGS="$CXXFLAGS -D_XOPEN_SOURCE=700 -D_POSIX_C_SOURCE=200809L"
+
+$as_echo "#define C_DIRECTLPT 1" >>confdefs.h
+
        ;;
     *-*-freebsd* | *-*-dragonfly* | *-*-netbsd* | *-*-openbsd*)
 
@@ -7708,10 +7714,6 @@ fi
 
 
 $as_echo "#define C_DIRECTSERIAL 1" >>confdefs.h
-
-
-
-$as_echo "#define C_DIRECTLPT 1" >>confdefs.h
 
 
 
