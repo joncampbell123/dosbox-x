@@ -2,7 +2,9 @@
 
 #if C_NE2000
 
-#define HAVE_REMOTE
+#if defined(WIN32)
+  #define HAVE_REMOTE
+#endif
 
 #include "dosbox.h"
 #include <string.h>
