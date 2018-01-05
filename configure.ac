@@ -257,6 +257,8 @@ case "$host" in
        if test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
          LIBS="$LIBS -lws2_32"
        fi
+       dnl FEATURE: Whether to support direct parallel port passthrough
+       AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel passthrough support (Win32, Linux).])
        ;;
     *-*-darwin*)
        dnl We have a problem here: both Mac OS X and Darwin report 
@@ -269,6 +271,8 @@ case "$host" in
     *-*-linux*)
        AC_DEFINE(LINUX, 1, [Compiling on GNU/Linux])
        CXXFLAGS="$CXXFLAGS -D_XOPEN_SOURCE=700 -D_POSIX_C_SOURCE=200809L"
+       dnl FEATURE: Whether to support direct parallel port passthrough
+       AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel passthrough support (Win32, Linux).])
        ;;
     *-*-freebsd* | *-*-dragonfly* | *-*-netbsd* | *-*-openbsd*)
        dnl Disabled directserial for now. It doesn't do anything without
@@ -513,9 +517,6 @@ fi
 
 dnl FEATURE: Whether to support direct serial port passthrough
 AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
-
-dnl FEATURE: Whether to support direct parallel port passthrough
-AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel passthrough support (Win32, Linux).])
 
 dnl FEATURE: Whether to support SDL net, and emulate modem and IPX connections
 AH_TEMPLATE(C_SDL_NET,[Indicate whether SDL_net is present])
