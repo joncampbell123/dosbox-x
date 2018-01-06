@@ -883,11 +883,15 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
 		}
 	}
 
-    LOG_MSG("FAT: BPB says %u sectors/track %u heads",bootbuffer.sectorspertrack,bootbuffer.headcount);
+    LOG_MSG("FAT: BPB says %u sectors/track %u heads %u bytes/sector",
+        bootbuffer.sectorspertrack,
+        bootbuffer.headcount,
+        bootbuffer.bytespersector);
 
+    /* NTS: Some HDI images of PC-98 games do in fact have headcount == 0 */
     /* a clue that we're not really looking at FAT is invalid or weird values in the boot sector */
     if (bootbuffer.sectorspertrack == 0 || (bootbuffer.sectorspertrack > ((filesize <= 3000) ? 40 : 255)) ||
-        bootbuffer.headcount == 0 || (bootbuffer.headcount > ((filesize <= 3000) ? 64 : 255))) {
+        (bootbuffer.headcount > ((filesize <= 3000) ? 64 : 255))) {
         LOG_MSG("Rejecting image, boot sector has weird values not consistent with FAT filesystem");
         return;
     }
