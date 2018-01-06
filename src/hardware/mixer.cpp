@@ -802,9 +802,12 @@ public:
 			ListMidi();
 			return;
 		}
-		if (cmd->FindString("MASTER",temp_line,false)) {
-			MakeVolume((char *)temp_line.c_str(),mixer.mastervol[0],mixer.mastervol[1]);
-		}
+        if (cmd->FindString("MASTER",temp_line,false)) {
+            MakeVolume((char *)temp_line.c_str(),mixer.mastervol[0],mixer.mastervol[1]);
+        }
+        if (cmd->FindString("RECORD",temp_line,false)) {
+            MakeVolume((char *)temp_line.c_str(),mixer.recordvol[0],mixer.recordvol[1]);
+        }
 		MixerChannel * chan=mixer.channels;
 		while (chan) {
 			if (cmd->FindString(chan->name,temp_line,false)) {
@@ -817,6 +820,7 @@ public:
 		chan=mixer.channels;
 		WriteOut("Channel  Main    Main(dB)\n");
 		ShowVolume("MASTER",mixer.mastervol[0],mixer.mastervol[1]);
+		ShowVolume("RECORD",mixer.recordvol[0],mixer.recordvol[1]);
 		for (chan=mixer.channels;chan;chan=chan->next) 
 			ShowVolume(chan->name,chan->volmain[0],chan->volmain[1]);
 	}
@@ -894,9 +898,36 @@ void MAPPER_VolumeDown(bool pressed) {
     LOG(LOG_MISC,LOG_NORMAL)("Master volume DOWN to %.3f%%",newvol * 100);
 }
 
+void MAPPER_RecVolumeUp(bool pressed) {
+    if (!pressed) return;
+
+    double newvol = ((mixer.recordvol[0] + mixer.recordvol[1]) / 0.7) * 0.5;
+
+    if (newvol > 1) newvol = 1;
+
+    mixer.recordvol[0] = mixer.recordvol[1] = newvol;
+
+    LOG(LOG_MISC,LOG_NORMAL)("Recording volume UP to %.3f%%",newvol * 100);
+}
+
+void MAPPER_RecVolumeDown(bool pressed) {
+    if (!pressed) return;
+
+    double newvol = (mixer.recordvol[0] + mixer.recordvol[1]) * 0.7 * 0.5;
+
+    if (fabs(newvol - 1.0) < 0.25)
+        newvol = 1;
+
+    mixer.recordvol[0] = mixer.recordvol[1] = newvol;
+
+    LOG(LOG_MISC,LOG_NORMAL)("Recording volume DOWN to %.3f%%",newvol * 100);
+}
+
 void MIXER_Controls_Init() {
 	MAPPER_AddHandler(MAPPER_VolumeUp  ,MK_kpplus, MMOD1,"volup","VolUp");
 	MAPPER_AddHandler(MAPPER_VolumeDown,MK_kpminus,MMOD1,"voldown","VolDown");
+	MAPPER_AddHandler(MAPPER_RecVolumeUp  ,MK_kpplus, MMOD1|MMOD2,"recvolup","RecVolUp");
+	MAPPER_AddHandler(MAPPER_RecVolumeDown,MK_kpminus,MMOD1|MMOD2,"recvoldown","RecVolDn");
 }
 
 void MIXER_Init() {
