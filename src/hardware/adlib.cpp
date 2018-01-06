@@ -698,6 +698,8 @@ void OPL_SaveRawEvent(bool pressed) {
 	}
 }
 
+extern bool enable_pc98_jump;
+
 namespace Adlib {
 
 Module::Module( Section* configuration ) : Module_base(configuration) {
@@ -781,6 +783,9 @@ OPL_Mode Module::oplmode=OPL_none;
 
 
 void OPL_Init(Section* sec,OPL_Mode oplmode) {
+    // HACK: Don't register anything if we know we're going to unregister later to enter PC-98 mode.
+    if (enable_pc98_jump) return;
+
 	Adlib::Module::oplmode = oplmode;
 	module = new Adlib::Module( sec );
 }
@@ -788,6 +793,5 @@ void OPL_Init(Section* sec,OPL_Mode oplmode) {
 void OPL_ShutDown(Section* sec){
 	delete module;
 	module = 0;
-
 }
 
