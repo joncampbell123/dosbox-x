@@ -55,8 +55,6 @@
 #include "programs.h"
 
 #define MIXER_SSIZE 4
-#define MIXER_SHIFT 14
-#define MIXER_REMAIN ((1<<MIXER_SHIFT)-1)
 #define MIXER_VOLSHIFT 13
 
 static INLINE Bit16s MIXER_CLIP(Bits SAMP) {
@@ -80,6 +78,7 @@ static struct {
 	Bitu			work_in,work_out,work_wrap;
 	Bitu			pos,done;
 	float			mastervol[2];
+    float           recordvol[2];
 	MixerChannel*		channels;
 	Bit32u			freq;
 	Bit32u			blocksize;
@@ -175,8 +174,8 @@ void MIXER_DelChannel(MixerChannel* delchan) {
 }
 
 void MixerChannel::UpdateVolume(void) {
-	volmul[0]=(Bits)((1 << MIXER_VOLSHIFT)*scale*volmain[0]*mixer.mastervol[0]);
-	volmul[1]=(Bits)((1 << MIXER_VOLSHIFT)*scale*volmain[1]*mixer.mastervol[1]);
+	volmul[0]=(Bits)((1 << MIXER_VOLSHIFT)*scale*volmain[0]);
+	volmul[1]=(Bits)((1 << MIXER_VOLSHIFT)*scale*volmain[1]);
 }
 
 void MixerChannel::SetVolume(float _left,float _right) {
@@ -285,10 +284,13 @@ void MixerChannel::EndFrame(Bitu samples) {
             padding = samples - cnv;
 
         if (cnv > 0) {
+            Bit32s volscale1 = (Bit32s)(mixer.recordvol[0] * 256);
+            Bit32s volscale2 = (Bit32s)(mixer.recordvol[1] * 256);
+
             if (cnv > 1024) cnv = 1024;
             for (Bitu i=0;i<cnv;i++) {
-                convert[i][0]=MIXER_CLIP(msbuffer[i][0] >> MIXER_VOLSHIFT);
-                convert[i][1]=MIXER_CLIP(msbuffer[i][1] >> MIXER_VOLSHIFT);
+                convert[i][0]=MIXER_CLIP(((Bit64s)msbuffer[i][0] * (Bit64s)volscale1) >> (MIXER_VOLSHIFT + 8));
+                convert[i][1]=MIXER_CLIP(((Bit64s)msbuffer[i][1] * (Bit64s)volscale2) >> (MIXER_VOLSHIFT + 8));
             }
             CAPTURE_MultiTrackAddWave(mixer.freq,cnv,(Bit16s*)convert,name);
         }
@@ -651,14 +653,16 @@ static void MIXER_MixData(Bitu fracs/*render up to*/) {
 	}
 
 	if (CaptureState & (CAPTURE_WAVE|CAPTURE_VIDEO)) {
-		Bit16s convert[1024][2];
+        Bit32s volscale1 = (Bit32s)(mixer.recordvol[0] * 256);
+        Bit32s volscale2 = (Bit32s)(mixer.recordvol[1] * 256);
+        Bit16s convert[1024][2];
 		Bitu added = whole - prev_rendered;
 		if (added>1024) added=1024;
 		Bitu readpos = mixer.work_in + prev_rendered;
 		for (Bitu i=0;i<added;i++) {
-			convert[i][0]=MIXER_CLIP(mixer.work[readpos][0] >> MIXER_VOLSHIFT);
-			convert[i][1]=MIXER_CLIP(mixer.work[readpos][1] >> MIXER_VOLSHIFT);
-			readpos++;
+            convert[i][0]=MIXER_CLIP(((Bit64s)mixer.work[readpos][0] * (Bit64s)volscale1) >> (MIXER_VOLSHIFT + 8));
+            convert[i][1]=MIXER_CLIP(((Bit64s)mixer.work[readpos][1] * (Bit64s)volscale2) >> (MIXER_VOLSHIFT + 8));
+            readpos++;
 		}
 		assert(readpos <= MIXER_BUFSIZE);
 		CAPTURE_AddWave( mixer.freq, added, (Bit16s*)convert );
@@ -717,6 +721,8 @@ static void MIXER_Mix(void) {
 }
 
 static void MIXER_CallBack(void * userdata, Uint8 *stream, int len) {
+    Bit32s volscale1 = (Bit32s)(mixer.mastervol[0] * 256);
+    Bit32s volscale2 = (Bit32s)(mixer.mastervol[1] * 256);
 	Bitu need = (Bitu)len/MIXER_SSIZE;
 	Bit16s *output = (Bit16s*)stream;
 	int remains;
@@ -725,9 +731,9 @@ static void MIXER_CallBack(void * userdata, Uint8 *stream, int len) {
 	in = &mixer.work[mixer.work_out][0];
 	while (need > 0) {
 		if (mixer.work_out == mixer.work_in) break;
-		*output++ = MIXER_CLIP(*in++ >> MIXER_VOLSHIFT);
-		*output++ = MIXER_CLIP(*in++ >> MIXER_VOLSHIFT);
-		mixer.work_out++;
+        *output++ = MIXER_CLIP((((Bit64s)(*in++)) * (Bit64s)volscale1) >> (MIXER_VOLSHIFT + 8));
+        *output++ = MIXER_CLIP((((Bit64s)(*in++)) * (Bit64s)volscale2) >> (MIXER_VOLSHIFT + 8));
+        mixer.work_out++;
 		if (mixer.work_out >= mixer.work_wrap) {
 			mixer.work_out = 0;
 			in = &mixer.work[mixer.work_out][0];
@@ -836,14 +842,6 @@ private:
 
 };
 
-void MAPPER_UpdateFromMasterVolume() {
-    MixerChannel * chan=mixer.channels;
-    while (chan) {
-        chan->UpdateVolume();
-        chan=chan->next;
-    }
-}
-
 static void MIXER_ProgramStart(Program * * make) {
 	*make=new MIXER;
 }
@@ -879,7 +877,6 @@ void MAPPER_VolumeUp(bool pressed) {
     if (newvol > 1) newvol = 1;
 
     mixer.mastervol[0] = mixer.mastervol[1] = newvol;
-    MAPPER_UpdateFromMasterVolume();
 
     LOG(LOG_MISC,LOG_NORMAL)("Master volume UP to %.3f%%",newvol * 100);
 }
@@ -893,7 +890,6 @@ void MAPPER_VolumeDown(bool pressed) {
         newvol = 1;
 
     mixer.mastervol[0] = mixer.mastervol[1] = newvol;
-    MAPPER_UpdateFromMasterVolume();
 
     LOG(LOG_MISC,LOG_NORMAL)("Master volume DOWN to %.3f%%",newvol * 100);
 }
@@ -923,6 +919,8 @@ void MIXER_Init() {
 	memset(mixer.work,0,sizeof(mixer.work));
 	mixer.mastervol[0]=1.0f;
 	mixer.mastervol[1]=1.0f;
+	mixer.recordvol[0]=1.0f;
+	mixer.recordvol[1]=1.0f;
 
 	/* Start the Mixer using SDL Sound at 22 khz */
 	SDL_AudioSpec spec;
