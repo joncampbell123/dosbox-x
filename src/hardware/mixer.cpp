@@ -284,13 +284,13 @@ void MixerChannel::EndFrame(Bitu samples) {
             padding = samples - cnv;
 
         if (cnv > 0) {
-            Bit32s volscale1 = (Bit32s)(mixer.recordvol[0] * 256);
-            Bit32s volscale2 = (Bit32s)(mixer.recordvol[1] * 256);
+            Bit32s volscale1 = (Bit32s)(mixer.recordvol[0] * (1 << MIXER_VOLSHIFT));
+            Bit32s volscale2 = (Bit32s)(mixer.recordvol[1] * (1 << MIXER_VOLSHIFT));
 
             if (cnv > 1024) cnv = 1024;
             for (Bitu i=0;i<cnv;i++) {
-                convert[i][0]=MIXER_CLIP(((Bit64s)msbuffer[i][0] * (Bit64s)volscale1) >> (MIXER_VOLSHIFT + 8));
-                convert[i][1]=MIXER_CLIP(((Bit64s)msbuffer[i][1] * (Bit64s)volscale2) >> (MIXER_VOLSHIFT + 8));
+                convert[i][0]=MIXER_CLIP(((Bit64s)msbuffer[i][0] * (Bit64s)volscale1) >> (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
+                convert[i][1]=MIXER_CLIP(((Bit64s)msbuffer[i][1] * (Bit64s)volscale2) >> (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
             }
             CAPTURE_MultiTrackAddWave(mixer.freq,cnv,(Bit16s*)convert,name);
         }
@@ -653,15 +653,15 @@ static void MIXER_MixData(Bitu fracs/*render up to*/) {
 	}
 
 	if (CaptureState & (CAPTURE_WAVE|CAPTURE_VIDEO)) {
-        Bit32s volscale1 = (Bit32s)(mixer.recordvol[0] * 256);
-        Bit32s volscale2 = (Bit32s)(mixer.recordvol[1] * 256);
+        Bit32s volscale1 = (Bit32s)(mixer.recordvol[0] * (1 << MIXER_VOLSHIFT));
+        Bit32s volscale2 = (Bit32s)(mixer.recordvol[1] * (1 << MIXER_VOLSHIFT));
         Bit16s convert[1024][2];
 		Bitu added = whole - prev_rendered;
 		if (added>1024) added=1024;
 		Bitu readpos = mixer.work_in + prev_rendered;
 		for (Bitu i=0;i<added;i++) {
-            convert[i][0]=MIXER_CLIP(((Bit64s)mixer.work[readpos][0] * (Bit64s)volscale1) >> (MIXER_VOLSHIFT + 8));
-            convert[i][1]=MIXER_CLIP(((Bit64s)mixer.work[readpos][1] * (Bit64s)volscale2) >> (MIXER_VOLSHIFT + 8));
+            convert[i][0]=MIXER_CLIP(((Bit64s)mixer.work[readpos][0] * (Bit64s)volscale1) >> (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
+            convert[i][1]=MIXER_CLIP(((Bit64s)mixer.work[readpos][1] * (Bit64s)volscale2) >> (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
             readpos++;
 		}
 		assert(readpos <= MIXER_BUFSIZE);
@@ -721,8 +721,8 @@ static void MIXER_Mix(void) {
 }
 
 static void MIXER_CallBack(void * userdata, Uint8 *stream, int len) {
-    Bit32s volscale1 = (Bit32s)(mixer.mastervol[0] * 256);
-    Bit32s volscale2 = (Bit32s)(mixer.mastervol[1] * 256);
+    Bit32s volscale1 = (Bit32s)(mixer.mastervol[0] * (1 << MIXER_VOLSHIFT));
+    Bit32s volscale2 = (Bit32s)(mixer.mastervol[1] * (1 << MIXER_VOLSHIFT));
 	Bitu need = (Bitu)len/MIXER_SSIZE;
 	Bit16s *output = (Bit16s*)stream;
 	int remains;
@@ -731,8 +731,8 @@ static void MIXER_CallBack(void * userdata, Uint8 *stream, int len) {
 	in = &mixer.work[mixer.work_out][0];
 	while (need > 0) {
 		if (mixer.work_out == mixer.work_in) break;
-        *output++ = MIXER_CLIP((((Bit64s)(*in++)) * (Bit64s)volscale1) >> (MIXER_VOLSHIFT + 8));
-        *output++ = MIXER_CLIP((((Bit64s)(*in++)) * (Bit64s)volscale2) >> (MIXER_VOLSHIFT + 8));
+        *output++ = MIXER_CLIP((((Bit64s)(*in++)) * (Bit64s)volscale1) >> (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
+        *output++ = MIXER_CLIP((((Bit64s)(*in++)) * (Bit64s)volscale2) >> (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
         mixer.work_out++;
 		if (mixer.work_out >= mixer.work_wrap) {
 			mixer.work_out = 0;
