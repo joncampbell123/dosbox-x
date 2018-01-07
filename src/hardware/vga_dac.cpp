@@ -60,8 +60,16 @@ static void VGA_DAC_SendColor( Bitu index, Bitu src ) {
 
 	if (GFX_bpp >= 24) /* FIXME: Assumes 8:8:8. What happens when desktops start using the 10:10:10 format? */
 		vga.dac.xlat32[index] = (blue<<(2+GFX_Bshift)) | (green<<(2+GFX_Gshift)) | (red<<(2+GFX_Rshift)) | GFX_Amask;
-	else /* FIXME: Assumes 5:6:5. I need to test against 5:5:5 format sometime. Perhaps I could dig out some older VGA cards and XFree86 drivers that support that format? */
+	else {
+        /* FIXME: Assumes 5:6:5. I need to test against 5:5:5 format sometime. Perhaps I could dig out some older VGA cards and XFree86 drivers that support that format? */
 		vga.dac.xlat16[index] = ((((blue&0x3f)>>1)<<GFX_Bshift)) | ((green&0x3f)<<GFX_Gshift) | (((red&0x3f)>>1)<<GFX_Rshift) | GFX_Amask;
+
+        /* PC-98 mode always renders 32bpp, therefore needs this fix */
+        if (GFX_Bshift == 0)
+            vga.dac.xlat32[index] = (blue << 2U) | (green << 10U) | (red << 18U);
+        else
+            vga.dac.xlat32[index] = (blue << 18U) | (green << 10U) | (red << 2U);
+    }
 
 	RENDER_SetPal( index, (red << 2) | ( red >> 4 ), (green << 2) | ( green >> 4 ), (blue << 2) | ( blue >> 4 ) );
 }
