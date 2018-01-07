@@ -2356,4 +2356,7 @@ void MSG_Loop(void) {
 		}
 	}
 }
+#else
+void DOSBox_SetSysMenu(void) {
+}
 #endif
