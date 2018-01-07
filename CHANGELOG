@@ -1,4 +1,8 @@
 <next>
+  - Added code to correctly detect 15-bit highcolor vs 16-bit highcolor
+    display format support, despite SDL falsely indicating 16-bit
+    color in both cases, which fixes incorrect colors on 15-bit display
+    modes.
   - Fix up VGA DAC/palette mapping to display the emulator screen
     properly on 16-bit true color displays. Fixed off-by-one shift
     mistake in the DOSBox-X render scaler code that caused
