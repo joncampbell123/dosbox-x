@@ -1,4 +1,25 @@
 <next>
+  - Add "Show menu bar" command to the Windows "system menu" so that
+    the menu bar can be brought back after selecting "hide menu bar".
+  - Losing window focus while fullscreen no longer leaves the emulator
+    window blank.
+  - Maximize/restore fullscreen cleanup.
+  - Removed DDRAW output.
+  - Fix FAT filesystem driver to clear "success" flag at all failure
+    return points. This fixes problems where unrecognizeable FAT
+    filesystems are nonetheless presented as a drive letter with
+    garbled filenames, when IMGMOUNT should have displayed an error
+    instead.
+  - Fix FAT filesystem driver to allow PC-98 HDI images to load that
+    have headcount == 0 in the BPB.
+  - Fix Adlib emulation not to register a mapper handler if emulation
+    will jump to PC-98 mode, and fix mapper handler to check if Adlib
+    emulation is loaded to avoid segfault.
+  - Add "recording" volume to control the loudness of the audio going
+    out to capture (WAV, AVI, etc.)
+  - Separate mixer rendering from master volume. Apply master volume
+    at the sound card only, leave audio at full volume for recording
+    (WAV, AVI, etc. capture).
   - dosbox.conf and command line option to log CON driver output to
     a file. Anything written to STDOUT/CON by a DOS application is
     logged this way.
