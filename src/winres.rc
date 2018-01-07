@@ -118,7 +118,6 @@ BEGIN
 	POPUP "Output"
 	BEGIN
 		MENUITEM "Surface",				       ID_SURFACE
-		MENUITEM "DirectDraw",				       ID_DDRAW
 		MENUITEM "Direct3D",				       ID_DIRECT3D
 		MENUITEM "OpenGL",				       ID_OPENGL
 		MENUITEM "OpenGL_NB",				       ID_OPENGLNB

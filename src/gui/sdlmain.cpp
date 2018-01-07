@@ -170,7 +170,6 @@ static inline int int_log2(int val) {
 enum SCREEN_TYPES {
 	SCREEN_OPENGLHQ,
 	SCREEN_SURFACE,
-	SCREEN_SURFACE_DDRAW,
 	SCREEN_OPENGL,
 	SCREEN_DIRECT3D
 };
@@ -793,16 +792,6 @@ check_gotbpp:
 		}
 		flags |= GFX_CAN_RANDOM;
 		break;
-#if (HAVE_DDRAW_H) && defined(WIN32)
-	case SCREEN_SURFACE_DDRAW:
-		if (!(flags&(GFX_CAN_15|GFX_CAN_16|GFX_CAN_32))) goto check_surface;
-		if (flags & GFX_LOVE_15) testbpp=15;
-		else if (flags & GFX_LOVE_16) testbpp=16;
-		else if (flags & GFX_LOVE_32) testbpp=32;
-		else testbpp=0;
-		flags|=GFX_SCALING;
-		goto check_gotbpp;
-#endif
 #if C_OPENGL
 	case SCREEN_OPENGL:
 		if (!(flags&GFX_CAN_32)) goto check_surface;
@@ -1220,60 +1209,6 @@ dosurface:
 			}
 		}
 		break;
-#endif
-#if defined(HAVE_DDRAW_H) && defined(WIN32)
-	case SCREEN_SURFACE_DDRAW:
-    {
-		if(!load_videodrv && sdl.using_windib) {
-			LOG_MSG("Resetting to DirectX mode");
-			SDL_QuitSubSystem(SDL_INIT_VIDEO);
-			putenv("SDL_VIDEODRIVER=directx");
-			sdl.using_windib=false;
-			if (SDL_InitSubSystem(SDL_INIT_VIDEO)<0) E_Exit("Can't init SDL Video %s",SDL_GetError());
-			GFX_SetIcon(); GFX_SetTitle(-1,-1,-1,false);
-			if(!sdl.desktop.fullscreen && GetMenu(GetHWND()) == NULL) DOSBox_RefreshMenu();
-		}
-
-		if (flags & GFX_CAN_15) bpp=15;
-		if (flags & GFX_CAN_16) bpp=16;
-		if (flags & GFX_CAN_32) bpp=32;
-		SDLScreen_Reset();
-		if (!GFX_SetupSurfaceScaled((sdl.desktop.doublebuf && sdl.desktop.fullscreen) ? SDL_DOUBLEBUF : SDL_RESIZABLE,bpp)) goto dosurface;
-
-		
-		sdl.blit.rect.top=sdl.clip.y+sdl.overscan_width;
-		sdl.blit.rect.left=sdl.clip.x+sdl.overscan_width;
-		sdl.blit.rect.right=sdl.clip.x+sdl.clip.w;
-		sdl.blit.rect.bottom=sdl.clip.y+sdl.clip.h;
-		sdl.blit.surface=SDL_CreateRGBSurface(SDL_HWSURFACE,sdl.draw.width+sdl.overscan_width*2,sdl.draw.height+sdl.overscan_width*2,
-				sdl.surface->format->BitsPerPixel,
-				sdl.surface->format->Rmask,
-				sdl.surface->format->Gmask,
-				sdl.surface->format->Bmask,
-				0);
-		if (!sdl.blit.surface || (!sdl.blit.surface->flags&SDL_HWSURFACE)) {
-			if (sdl.blit.surface) {
-				SDL_FreeSurface(sdl.blit.surface);
-				sdl.blit.surface=0;
-			}
-			sdl.desktop.want_type=SCREEN_SURFACE;
-			LOG_MSG("Failed to create ddraw surface, back to normal surface.");
-			goto dosurface;
-		}
-		switch (sdl.surface->format->BitsPerPixel) {
-		case 15:
-			retFlags = GFX_CAN_15 | GFX_SCALING | GFX_HARDWARE;
-			break;
-		case 16:
-			retFlags = GFX_CAN_16 | GFX_SCALING | GFX_HARDWARE;
-               break;
-		case 32:
-			retFlags = GFX_CAN_32 | GFX_SCALING | GFX_HARDWARE;
-               break;
-		}
-		sdl.desktop.type=SCREEN_SURFACE_DDRAW;
-		break;
-    }
 #endif
 #if C_OPENGL
 	case SCREEN_OPENGL:
@@ -2003,12 +1938,7 @@ void change_output(int output) {
 		sdl.desktop.want_type=SCREEN_SURFACE;
 		break;
 	case 1:
-#if defined(WIN32) && !defined(C_SDL2)
-		sdl.surface=SDL_SetVideoMode(640,400,0,SDL_HWSURFACE|SDL_HWPALETTE);
-		sdl.desktop.want_type=SCREEN_SURFACE_DDRAW;
-#else
 		sdl.desktop.want_type=SCREEN_SURFACE;
-#endif
 		break;
 	case 2: /* do nothing */
 		break;
@@ -2214,18 +2144,6 @@ bool GFX_StartUpdate(Bit8u * & pixels,Bitu & pitch) {
         SDL_Overscan();
 		sdl.updating=true;
 		return true;
-#if (HAVE_DDRAW_H) && defined(WIN32)
-	case SCREEN_SURFACE_DDRAW:
-		if (SDL_LockSurface(sdl.blit.surface)) {
-//			LOG_MSG("SDL Lock failed");
-			return false;
-		}
-		pixels=(Bit8u *)sdl.blit.surface->pixels;
-		pitch=sdl.blit.surface->pitch;
-        SDL_Overscan();
-		sdl.updating=true;
-		return true;
-#endif
 #if C_OPENGL
 	case SCREEN_OPENGL:
 		if(sdl.opengl.pixel_buffer_object) {
@@ -2303,29 +2221,6 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
 #endif
 		}
 		break;
-#if (HAVE_DDRAW_H) && defined(WIN32)
-	case SCREEN_SURFACE_DDRAW:
-		SDL_UnlockSurface(sdl.blit.surface);
-	if(changedLines && (changedLines[0] == sdl.draw.height)) 
-	return; 
-	if(!menu.hidecycles && !sdl.desktop.fullscreen) frames++;
-		ret=IDirectDrawSurface3_Blt(
-			sdl.surface->hwdata->dd_writebuf,&sdl.blit.rect,
-			sdl.blit.surface->hwdata->dd_surface,0,
-			DDBLT_WAIT, NULL);
-		switch (ret) {
-		case DD_OK:
-			break;
-		case DDERR_SURFACELOST:
-			IDirectDrawSurface3_Restore(sdl.blit.surface->hwdata->dd_surface);
-			IDirectDrawSurface3_Restore(sdl.surface->hwdata->dd_surface);
-			break;
-		default:
-			LOG_MSG("DDRAW:Failed to blit, error %X",ret);
-		}
-		SDL_Flip(sdl.surface);
-		break;
-#endif
 #if C_OPENGL
 	case SCREEN_OPENGL:
 		if (sdl.opengl.pixel_buffer_object) {
@@ -2401,7 +2296,6 @@ void GFX_SetPalette(Bitu start,Bitu count,GFX_PalEntry * entries) {
 Bitu GFX_GetRGB(Bit8u red,Bit8u green,Bit8u blue) {
 	switch (sdl.desktop.type) {
 	case SCREEN_SURFACE:
-	case SCREEN_SURFACE_DDRAW:
 		return SDL_MapRGB(sdl.surface->format,red,green,blue);
 	case SCREEN_OPENGL:
 //		return ((red << 0) | (green << 8) | (blue << 16)) | (255 << 24);
@@ -2660,10 +2554,8 @@ static void GUI_StartUp() {
 
 	if (output == "surface") {
 		sdl.desktop.want_type=SCREEN_SURFACE;
-#if (HAVE_DDRAW_H) && defined(WIN32)
 	} else if (output == "ddraw") {
-		sdl.desktop.want_type=SCREEN_SURFACE_DDRAW;
-#endif
+		sdl.desktop.want_type=SCREEN_SURFACE;
 	} else if (output == "overlay") {
 		sdl.desktop.want_type=SCREEN_OPENGL; /* "overlay" was removed, map to OpenGL */
 #if C_OPENGL
@@ -4197,9 +4089,7 @@ void SDL_SetupConfigSection() {
 #if C_OPENGL
 		"opengl", "openglnb", "openglhq",
 #endif
-#if (HAVE_DDRAW_H) && defined(WIN32)
 		"ddraw",
-#endif
 #if (HAVE_D3D9_H) && defined(WIN32)
 		"direct3d",
 #endif

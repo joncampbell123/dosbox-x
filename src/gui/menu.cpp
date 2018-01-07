@@ -863,7 +863,6 @@ void MENU_KeyDelayRate(int delay, int rate) {
 enum SCREEN_TYPES	{
 	SCREEN_OPENGLHQ,
 	SCREEN_SURFACE,
-	SCREEN_SURFACE_DDRAW,
 	SCREEN_OPENGL,
 	SCREEN_DIRECT3D
 };
@@ -973,7 +972,6 @@ int Reflect_Menu(void) {
 
 	CheckMenuItem(m_handle, ID_ASPECT, (render.aspect) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_SURFACE, ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_SURFACE) ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_DDRAW, ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_SURFACE_DDRAW) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_DIRECT3D, ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_DIRECT3D) ? MF_CHECKED : MF_STRING);
 	if ((uintptr_t)GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_OPENGL) {
 		if (GetSetSDLValue(1, "opengl.bilinear", 0)) {
@@ -1854,7 +1852,6 @@ void MSG_Loop(void) {
 			case ID_VSYNC_FORCE: SetVal("vsync", "vsyncmode", "force"); break;
 			case ID_VSYNC_OFF: SetVal("vsync", "vsyncmode", "off"); break;
 			case ID_SURFACE: if ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_SURFACE) { change_output(0); SetVal("sdl", "output", "surface"); } break;
-			case ID_DDRAW: if ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_SURFACE_DDRAW) { change_output(1); SetVal("sdl", "output", "ddraw"); } break;
 			case ID_OPENGL: change_output(3); SetVal("sdl", "output", "opengl"); break;
 			case ID_OPENGLNB: change_output(4); SetVal("sdl", "output", "openglnb"); break;
 			case ID_DIRECT3D: if ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_DIRECT3D) { change_output(5); SetVal("sdl", "output", "direct3d"); } break;

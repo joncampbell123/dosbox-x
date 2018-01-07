@@ -6,7 +6,6 @@
 #define	ID_CAPMOUSE	106
 #define	ID_PAUSE	107
 #define	ID_SURFACE	108
-#define	ID_DDRAW	109
 #define	ID_OPENGL	110
 #define	ID_OPENGLNB	111
 #define	ID_OPENGLHQ	112
