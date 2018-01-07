@@ -3624,7 +3624,6 @@ void GFX_Events() {
 		switch (event.type) {
 #ifdef __WIN32__
 		case SDL_SYSWMEVENT : {
-			if(menu_compatible) break;
 			switch( event.syswm.msg->msg ) {
 				case WM_SYSCOMMAND:
 					switch (event.syswm.msg->wParam) {
@@ -3638,6 +3637,9 @@ void GFX_Events() {
 							if (sdl.desktop.fullscreen)
 								GFX_SwitchFullScreen();
 							menu.maxwindow=false;
+							break;
+						case ID_WIN_SYSMENU_RESTOREMENU:
+							DOSBox_SetMenu();
 							break;
 					}
 				case WM_MOVE:
@@ -3654,7 +3656,7 @@ void GFX_Events() {
 		}
 #endif
 		case SDL_ACTIVEEVENT:
-			if (event.active.state & (SDL_APPINPUTFOCUS | SDL_APPACTIVE)) {
+				if (event.active.state & (SDL_APPINPUTFOCUS | SDL_APPACTIVE)) {
 				if (event.active.gain) {
 					if (sdl.desktop.fullscreen && !sdl.mouse.locked)
 						GFX_CaptureMouse();
@@ -3664,7 +3666,8 @@ void GFX_Events() {
 					if (sdl.mouse.locked) GFX_CaptureMouse();
 
 #if defined(WIN32)
-					GFX_ForceFullscreenExit();
+					if (sdl.desktop.fullscreen)
+						GFX_ForceFullscreenExit();
 #endif
 
 					SetPriority(sdl.priority.nofocus);
@@ -5056,6 +5059,8 @@ int main(int argc, char* argv[]) {
 
 #if !defined(C_SDL2)
 		/* -- -- decide whether to set menu */
+		void DOSBox_SetSysMenu(void);
+		DOSBox_SetSysMenu();
 		if (menu_gui && !control->opt_nomenu)
 			DOSBox_SetMenu();
 #endif

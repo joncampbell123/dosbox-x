@@ -714,4 +714,7 @@
 #define	ID_GLIDE_EMU_OPENGL	818
 #define	ID_GLIDE_EMU_AUTO	819
 #define	ID_ALWAYS_ON_TOP 820
-		
+
+#if defined(WIN32)
+# define ID_WIN_SYSMENU_RESTOREMENU 0x0F00
+#endif

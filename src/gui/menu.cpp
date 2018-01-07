@@ -738,6 +738,32 @@ void Mount_Img(char drive, std::string realpath) {
 	}
 }
 
+void DOSBox_SetSysMenu(void) {
+	MENUITEMINFO mii;
+	HMENU sysmenu;
+	BOOL s;
+
+	sysmenu = GetSystemMenu(GetHWND(), TRUE); // revert, so we can reapply menu items
+	sysmenu = GetSystemMenu(GetHWND(), FALSE);
+	if (sysmenu == NULL) return;
+
+	s = AppendMenu(sysmenu, MF_SEPARATOR, -1, "");
+
+	{
+		const char *msg = "Show menu &bar";
+
+		memset(&mii, 0, sizeof(mii));
+		mii.cbSize = sizeof(mii);
+		mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
+		mii.fState = MFS_ENABLED;
+		mii.wID = ID_WIN_SYSMENU_RESTOREMENU;
+		mii.dwTypeData = (LPTSTR)(msg);
+		mii.cch = strlen(msg)+1;
+
+		s = InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+	}
+}
+
 void DOSBox_SetMenu(void) {
 	if(!menu.gui) return;
 
@@ -791,6 +817,7 @@ void DOSBox_RefreshMenu(void) {
     	DrawMenuBar(GetHWND());
         return;
     }
+	DOSBox_SetSysMenu();
 	if(menu.toggle)
 		DOSBox_SetMenu();
 	else
@@ -835,6 +862,7 @@ void ToggleMenu(bool pressed) {
 		menu.toggle=false;
 		DOSBox_NoMenu();
 	}
+	DOSBox_SetSysMenu();
 }
 
 void MENU_Check_Drive(HMENU handle, int cdrom, int floppy, int local, int image, int automount, int umount, char drive) {
