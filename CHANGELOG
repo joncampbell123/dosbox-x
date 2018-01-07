@@ -1,4 +1,8 @@
 <next>
+  - Fix up VGA DAC/palette mapping to display the emulator screen
+    properly on 16-bit true color displays. Fixed off-by-one shift
+    mistake in the DOSBox-X render scaler code that caused
+    green and purple tints to colors on 16-bit true color displays.
   - Add "Show menu bar" command to the Windows "system menu" so that
     the menu bar can be brought back after selecting "hide menu bar".
   - Losing window focus while fullscreen no longer leaves the emulator
