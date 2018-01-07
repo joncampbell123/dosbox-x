@@ -730,7 +730,6 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
     if (loadedDisk->getSectSize() > sizeof(bootbuffer)) {
         LOG_MSG("Disk sector/bytes (%u) is too large, not attempting FAT filesystem access",loadedDisk->getSectSize());
 		created_successfully = false;
-        loadedDisk->Release();
         return;
     }
 
@@ -742,7 +741,6 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
         if (loadedDisk->heads == 0 || loadedDisk->sectors == 0 || loadedDisk->cylinders == 0) {
             created_successfully = false;
             LOG_MSG("No geometry");
-            loadedDisk->Release();
             return;
         }
 
@@ -837,7 +835,6 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
 
         if (loadedDisk->heads == 0 || loadedDisk->sectors == 0 || loadedDisk->cylinders == 0) {
             LOG_MSG("No geometry");
-            loadedDisk->Release();
             return;
         }
 	}
@@ -897,7 +894,6 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
         (bootbuffer.headcount > ((filesize <= 3000) ? 64 : 255))) {
         LOG_MSG("Rejecting image, boot sector has weird values not consistent with FAT filesystem");
 		created_successfully = false;
-        loadedDisk->Release();
         return;
     }
 
@@ -950,7 +946,6 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
 		LOG_MSG("FAT32 not implemented yet, mounting image only");
 		fattype = FAT32;	// Avoid parsing dir entries, see fatDrive::FindFirst()...should work for unformatted images as well
 		created_successfully = false;
-        loadedDisk->Release();
 		return;
 	}
 
@@ -972,7 +967,6 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
         (bootbuffer.bytespersector & (bootbuffer.bytespersector - 1)) != 0/*not a power of 2*/) {
         LOG_MSG("FAT bytes/sector value %u not supported",bootbuffer.bytespersector);
 		created_successfully = false;
-        loadedDisk->Release();
         return;
     }
 
@@ -984,7 +978,6 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
             (unsigned int)bootbuffer.bytespersector,
             (unsigned int)loadedDisk->getSectSize());
 		created_successfully = false;
-        loadedDisk->Release();
         return;
     }
 
