@@ -3661,15 +3661,12 @@ void GFX_Events() {
 					SetPriority(sdl.priority.focus);
 					CPU_Disable_SkipAutoAdjust();
 				} else {
-					if (sdl.mouse.locked) {
-#ifdef WIN32
-						if (sdl.desktop.fullscreen) {
-							VGA_KillDrawing();
-							GFX_ForceFullscreenExit();
-						}
+					if (sdl.mouse.locked) GFX_CaptureMouse();
+
+#if defined(WIN32)
+					GFX_ForceFullscreenExit();
 #endif
-						GFX_CaptureMouse();
-					}
+
 					SetPriority(sdl.priority.nofocus);
 					GFX_LosingFocus();
 					CPU_Enable_SkipAutoAdjust();
