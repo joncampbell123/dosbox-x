@@ -3628,15 +3628,15 @@ void GFX_Events() {
 			switch( event.syswm.msg->msg ) {
 				case WM_SYSCOMMAND:
 					switch (event.syswm.msg->wParam) {
+						case 0xF032: // FIXME: What is this?
 						case SC_MAXIMIZE:
-						case 0xF032:
-//							if(sdl.desktop.want_type==SCREEN_DIRECT3D)
-//								menu.maxwindow=true;
-//							else
+							if (!sdl.desktop.fullscreen)
 								GFX_SwitchFullScreen();
 							break;
-						case 0xF122:
+						case 0xF122: // FIXME: What is this?
 						case SC_RESTORE:
+							if (sdl.desktop.fullscreen)
+								GFX_SwitchFullScreen();
 							menu.maxwindow=false;
 							break;
 					}
