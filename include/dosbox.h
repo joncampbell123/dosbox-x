@@ -99,8 +99,9 @@ void					DOSBOX_Init(void);
 /* machine tests for use with if() statements */
 #define IS_TANDY_ARCH			((machine==MCH_TANDY) || (machine==MCH_PCJR))
 #define IS_EGAVGA_ARCH			((machine==MCH_EGA) || (machine==MCH_VGA))
-#define IS_VGA_ARCH			(machine==MCH_VGA)
-#define IS_PC98_ARCH			(machine==MCH_PC98)
+#define IS_EGA_ARCH             (machine==MCH_EGA)
+#define IS_VGA_ARCH             (machine==MCH_VGA)
+#define IS_PC98_ARCH            (machine==MCH_PC98)
 
 /* machine tests for use with switch() statements */
 #define TANDY_ARCH_CASE			MCH_TANDY: case MCH_PCJR
