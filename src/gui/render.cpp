@@ -532,7 +532,7 @@ forcenormal:
 	}
 /* Setup the scaler variables */
 	gfx_flags=GFX_SetSize(width,height,gfx_flags,gfx_scalew,gfx_scaleh,&RENDER_CallBack);
-	if (gfx_flags & GFX_CAN_8)
+    if (gfx_flags & GFX_CAN_8)
 		render.scale.outMode = scalerMode8;
 	else if (gfx_flags & GFX_CAN_15)
 		render.scale.outMode = scalerMode15;

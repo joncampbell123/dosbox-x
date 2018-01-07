@@ -774,6 +774,17 @@ check_gotbpp:
 #endif
 		if (sdl.desktop.fullscreen) gotbpp=SDL_VideoModeOK(640,480,testbpp,SDL_FULLSCREEN|SDL_HWSURFACE|SDL_HWPALETTE);
 		else gotbpp=sdl.desktop.bpp;
+
+        /* SDL 1.x and sometimes SDL 2.x mistake 15-bit 5:5:5 RGB for 16-bit 5:6:5 RGB
+         * which causes colors to mis-display. This seems to be common with Windows and Linux.
+         * If SDL said 16-bit but the bit masks suggest 15-bit, then make the correction now. */
+        if (gotbpp == 16) {
+            if (sdl.surface->format->Gshift == 5 && sdl.surface->format->Gmask == (31U << 5U)) {
+                LOG_MSG("NOTE: SDL returned 16-bit/pixel mode (5:6:5) but failed to recognize your screen is 15-bit/pixel mode (5:5:5)");
+                gotbpp = 15;
+            }
+        }
+
 		/* If we can't get our favorite mode check for another working one */
 		switch (gotbpp) {
 		case 8:
