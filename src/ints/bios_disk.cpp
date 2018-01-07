@@ -327,7 +327,7 @@ imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHard
 		Bit8u i=0;
 		bool founddisk = false;
 
-        {
+        if (imgName != NULL) {
             char *ext = strrchr((char*)imgName,'.');
             if (ext != NULL) {
                 if (!strcasecmp(ext,".fdi")) {
@@ -367,7 +367,7 @@ imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHard
 		}
 	}
     else { /* hard disk */
-        {
+        if (imgName != NULL) {
             char *ext = strrchr((char*)imgName,'.');
             if (ext != NULL) {
                 if (!strcasecmp(ext,".hdi")) {
