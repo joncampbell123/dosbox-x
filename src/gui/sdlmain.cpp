@@ -1763,8 +1763,6 @@ static void d3d_init(void) {
 #if !(HAVE_D3D9_H)
 	E_Exit("D3D not supported");
 #else
-	void change_output(int output);
-	change_output(2);
 	sdl.desktop.want_type=SCREEN_DIRECT3D;
 	if(!load_videodrv && !sdl.using_windib) {
 		LOG_MSG("Resetting to WINDIB mode");
