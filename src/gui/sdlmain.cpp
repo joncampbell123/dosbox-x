@@ -5214,29 +5214,6 @@ int main(int argc, char* argv[]) {
 
 #if defined(WIN32) && !defined(C_SDL2)
 		{
-			Section_prop *sec = static_cast<Section_prop *>(control->GetSection("sdl"));
-			if (!strcmp(sec->Get_string("output"),"ddraw") && sdl.using_windib) {
-				LOG(LOG_MISC,LOG_DEBUG)("Output is 'ddraw' and we're using windib. Reinitializing SDL video output.");
-
-				SDL_QuitSubSystem(SDL_INIT_VIDEO);
-				putenv("SDL_VIDEODRIVER=directx");
-				sdl.using_windib=false;
-				if (SDL_InitSubSystem(SDL_INIT_VIDEO)<0)
-					E_Exit("Can't init SDL Video %s",SDL_GetError());
-
-				change_output(1);
-				GFX_SetIcon();
-				SDL_Prepare();
-				if (menu.gui && !control->opt_nomenu) {
-					SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
-					DrawMenuBar(GetHWND());
-				}
-			}
-
-			if (!load_videodrv && numlock_stat)
-				SetNumLock ();
-		}
-		{
 			Section_prop *sec = static_cast<Section_prop *>(control->GetSection("dosbox"));
 			enable_hook_special_keys = sec->Get_bool("keyboard hook");
 		}
