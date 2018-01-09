@@ -1143,6 +1143,18 @@ dosurface:
 		if (flags & GFX_CAN_15) bpp=15;
 		if (flags & GFX_CAN_16) bpp=16;
 		if (flags & GFX_CAN_32) bpp=32;
+
+#if defined(WIN32) && !defined(C_SDL2)
+		/* SDL 1.x might mis-inform us on 16bpp for 15-bit color, which is bad enough.
+		   But on Windows, we're still required to ask for 16bpp to get the 15bpp mode we want. */
+		if (bpp == 15) {
+			if (sdl.surface->format->Gshift == 5 && sdl.surface->format->Gmask == (31U << 5U)) {
+				LOG_MSG("SDL hack: Asking for 16-bit color (5:6:5) to get SDL to give us 15-bit color (5:5:5) to match your screen.");
+				bpp = 16;
+			}
+		}
+#endif
+
 		sdl.desktop.type=SCREEN_SURFACE;
 		sdl.clip.w=width;
 		sdl.clip.h=height;
@@ -1200,7 +1212,12 @@ dosurface:
 				retFlags = GFX_CAN_15;
 				break;
 			case 16:
-				retFlags = GFX_CAN_16;
+				if (sdl.surface->format->Gshift == 5 && sdl.surface->format->Gmask == (31U << 5U)) {
+					retFlags = GFX_CAN_15;
+				}
+				else {
+					retFlags = GFX_CAN_16;
+				}
                 break;
 			case 32:
 				retFlags = GFX_CAN_32;
