@@ -814,6 +814,69 @@ skip_cursor:
 	return TempLine;
 }
 
+// combined 8/9-dot wide text mode 16bpp line drawing function (EGA)
+static Bit8u* EGA_TEXT_Xlat8_Draw_Line(Bitu vidstart, Bitu line) {
+	// keep it aligned:
+	Bit8u* draw = ((Bit8u*)TempLine) + 16 - vga.draw.panning;
+	const Bit32u* vidmem = VGA_Planar_Memwrap(vidstart); // pointer to chars+attribs
+	Bitu blocks = vga.draw.blocks;
+	if (vga.draw.panning) blocks++; // if the text is panned part of an 
+									// additional character becomes visible
+	while (blocks--) { // for each character in the line
+		VGA_Latch pixels;
+
+		pixels.d = *vidmem;
+		vidmem += 1<<vga.config.addr_shift;
+
+		Bitu chr = pixels.b[0];
+		Bitu attr = pixels.b[1];
+		// the font pattern
+		Bitu font = vga.draw.font_tables[(attr >> 3)&1][(chr<<5)+line];
+		
+		Bitu background = attr >> 4;
+		// if blinking is enabled bit7 is not mapped to attributes
+		if (vga.draw.blinking) background &= ~0x8;
+		// choose foreground color if blinking not set for this cell or blink on
+		Bitu foreground = (vga.draw.blink || (!(attr&0x80)))?
+			(attr&0xf):background;
+		// underline: all foreground [freevga: 0x77, previous 0x7]
+		if (GCC_UNLIKELY(((attr&0x77) == 0x01) &&
+			(vga.crtc.underline_location&0x1f)==line))
+				background = foreground;
+		if (vga.draw.char9dot) {
+			font <<=1; // 9 pixels
+			// extend to the 9th pixel if needed
+			if ((font&0x2) && (vga.attr.mode_control&0x04) &&
+				(chr>=0xc0) && (chr<=0xdf)) font |= 1;
+			for (Bitu n = 0; n < 9; n++) {
+				*draw++ = vga.attr.palette[(font&0x100)? foreground:background];
+				font <<= 1;
+			}
+		} else {
+			for (Bitu n = 0; n < 8; n++) {
+				*draw++ = vga.attr.palette[(font&0x80)? foreground:background];
+				font <<= 1;
+			}
+		}
+	}
+	// draw the text mode cursor if needed
+	if ((vga.draw.cursor.count&0x8) && (line >= vga.draw.cursor.sline) &&
+		(line <= vga.draw.cursor.eline) && vga.draw.cursor.enabled) {
+		// the adress of the attribute that makes up the cell the cursor is in
+		Bits attr_addr = (vga.draw.cursor.address - vidstart) >> vga.config.addr_shift; /* <- FIXME: This right? */
+		if (attr_addr >= 0 && attr_addr < (Bits)vga.draw.blocks) {
+			Bitu index = attr_addr * (vga.draw.char9dot?9:8);
+			draw = (Bit8u*)(&TempLine[index]) + 16 - vga.draw.panning;
+			
+			Bitu foreground = vga.tandy.draw_base[(vga.draw.cursor.address<<2)+1] & 0xf;
+			for (Bitu i = 0; i < 8; i++) {
+				*draw++ = vga.attr.palette[foreground];
+			}
+		}
+	}
+	return TempLine+16;
+}
+
 // combined 8/9-dot wide text mode 16bpp line drawing function
 static Bit8u* VGA_TEXT_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 	// keep it aligned:
@@ -2331,16 +2394,23 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		// if char9_set is true, allow 9-pixel wide fonts
 		if ((vga.seq.clocking_mode&0x01) || !vga.draw.char9_set) {
 			// 8-pixel wide
+			pix_per_char = 8;
 			vga.draw.char9dot = false;
-			VGA_DrawLine=VGA_TEXT_Xlat32_Draw_Line;
-			bpp = 32;
 		} else {
 			// 9-pixel wide
 			pix_per_char = 9;
 			vga.draw.char9dot = true;
-			VGA_DrawLine=VGA_TEXT_Xlat32_Draw_Line;
-			bpp = 32;
 		}
+
+        if (IS_EGA_ARCH) {
+            VGA_DrawLine=EGA_TEXT_Xlat8_Draw_Line;
+            bpp = 8;
+        }
+        else {
+            VGA_DrawLine=VGA_TEXT_Xlat32_Draw_Line;
+            bpp = 32;
+        }
+
 		break;
 	case M_HERC_GFX:
 		vga.draw.blocks=width*2;
