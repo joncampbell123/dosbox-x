@@ -38,6 +38,7 @@
 #endif
 
 Render_t render;
+Bitu last_gfx_flags = 0;
 ScalerLineHandler_t RENDER_DrawLine;
 
 void RENDER_CallBack( GFX_CallBackFunctions_t function );
@@ -614,6 +615,8 @@ forcenormal:
 	/* Signal the next frame to first reinit the cache */
 	render.scale.clearCache = true;
 	render.active=true;
+
+    last_gfx_flags = gfx_flags;
 }
 
 void RENDER_CallBack( GFX_CallBackFunctions_t function ) {
