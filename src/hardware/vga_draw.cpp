@@ -2331,17 +2331,17 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 		// if char9_set is true, allow 9-pixel wide fonts
 		if ((vga.seq.clocking_mode&0x01) || !vga.draw.char9_set) {
 			// 8-pixel wide
+			pix_per_char = 8;
 			vga.draw.char9dot = false;
-			VGA_DrawLine=VGA_TEXT_Xlat32_Draw_Line;
-			bpp = 32;
 		} else {
 			// 9-pixel wide
 			pix_per_char = 9;
 			vga.draw.char9dot = true;
-			VGA_DrawLine=VGA_TEXT_Xlat32_Draw_Line;
-			bpp = 32;
-		}
-		break;
+        }
+
+        VGA_DrawLine = VGA_TEXT_Xlat32_Draw_Line;
+        bpp = 32;
+        break;
 	case M_HERC_GFX:
 		vga.draw.blocks=width*2;
 		pix_per_char = 16;
