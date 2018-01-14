@@ -908,7 +908,7 @@ void SHELL_Init() {
         VFILE_RegisterBuiltinFileBlob(bfb_DOS4GW_EXE);
         VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM);
         VFILE_RegisterBuiltinFileBlob(bfb_TREE_EXE);
-        VFILE_RegisterBuiltinFileBlob(bfb_MEM_COM);
+        VFILE_RegisterBuiltinFileBlob(bfb_MEM_COM); // MEM.COM built-in to DOSBox-X here relies on tricks specific to the IBM PC
         VFILE_RegisterBuiltinFileBlob(bfb_25_COM);
     }
 
