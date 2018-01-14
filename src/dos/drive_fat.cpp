@@ -673,8 +673,6 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
 	created_successfully = true;
 	FILE *diskfile;
 	Bit32u filesize;
-	struct partTable mbrData;
-    bool pc98_512_to_1024_allow = false;
 	
 	if(imgDTASeg == 0) {
 		imgDTASeg = DOS_GetMemory(2,"imgDTASeg");
@@ -718,6 +716,13 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
             loadedDisk = new imageDisk(diskfile, (Bit8u *)sysFilename, filesize, (filesize > 2880));
         }
 	}
+
+    fatDriveInit(sysFilename, bytesector, cylsector, headscyl, cylinders, startSector, filesize);
+}
+
+void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit32u startSector, Bit32u filesize) {
+    bool pc98_512_to_1024_allow = false;
+	struct partTable mbrData;
 
 	if(!loadedDisk) {
 		created_successfully = false;
