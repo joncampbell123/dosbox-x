@@ -1,4 +1,20 @@
 <next>
+  - IMGMOUNT now allows mounting the El Torito bootable floppy image
+    of a CD-ROM drive as a drive letter and accessible (read only)
+    filesystem. The FAT filesystem driver was fixed to support working
+    from sources other than a direct file.
+  - PC-98 mode fixed not to register certain built-in commands and
+    binaries to drive Z:\ that are not compatible with PC-98 mode.
+    MEM.EXE in particular uses IBM PC-specific techniques to gather
+    it's information, and is therefore incompatible with PC-98 mode.
+    This can be verified from the source code as MEM.EXE was evidently
+    borrowed from the FreeDOS project.
+  - EGA emulation (machine=ega) fixed to render 8bpp (256-color mode)
+    instead of full 32bpp VGA output. EGA video output is limited to
+    64-color (6-bit) by the design of the video connector (2-bit R/G/B)
+    therefore the full precision of 32bpp is not needed. This will also
+    benefit video capture as the reduced color bit depth will result
+    in smaller AVI files when recording gameplay.
   - Added code to correctly detect 15-bit highcolor vs 16-bit highcolor
     display format support, despite SDL falsely indicating 16-bit
     color in both cases, which fixes incorrect colors on 15-bit display
