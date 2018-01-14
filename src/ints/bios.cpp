@@ -661,6 +661,8 @@ ISAPnPDevice::ISAPnPDevice() {
 	ident_2nd = 0;
 	resource_data_len = 0;
 	resource_data_pos = 0;
+    resource_data = NULL;
+    resource_ident = 0;
 	alloc_res = NULL;
 	alloc_write = 0;
 	alloc_sz = 0;
