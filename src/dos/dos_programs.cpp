@@ -3408,13 +3408,24 @@ void DOS_SetupPrograms(void) {
 	PROGRAMS_MakeFile("RESCAN.COM",RESCAN_ProgramStart);
 	PROGRAMS_MakeFile("INTRO.COM",INTRO_ProgramStart);
 	PROGRAMS_MakeFile("BOOT.COM",BOOT_ProgramStart);
-	PROGRAMS_MakeFile("LDGFXROM.COM", LDGFXROM_ProgramStart);
+
+    if (!IS_PC98_ARCH)
+        PROGRAMS_MakeFile("LDGFXROM.COM", LDGFXROM_ProgramStart);
+
 	PROGRAMS_MakeFile("IMGMAKE.COM", IMGMAKE_ProgramStart);
 	PROGRAMS_MakeFile("IMGMOUNT.COM", IMGMOUNT_ProgramStart);
-	PROGRAMS_MakeFile("MODE.COM", MODE_ProgramStart);
+
+    if (!IS_PC98_ARCH)
+        PROGRAMS_MakeFile("MODE.COM", MODE_ProgramStart);
+
 	//PROGRAMS_MakeFile("MORE.COM", MORE_ProgramStart);
-	PROGRAMS_MakeFile("KEYB.COM", KEYB_ProgramStart);
-	PROGRAMS_MakeFile("MOUSE.COM", MOUSE_ProgramStart);
+
+    if (!IS_PC98_ARCH)
+        PROGRAMS_MakeFile("KEYB.COM", KEYB_ProgramStart);
+
+    if (!IS_PC98_ARCH)
+        PROGRAMS_MakeFile("MOUSE.COM", MOUSE_ProgramStart);
+
 	PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart);
 #if !defined(C_SDL2)
 	PROGRAMS_MakeFile("SHOWGUI.COM",SHOWGUI_ProgramStart);
@@ -3422,7 +3433,6 @@ void DOS_SetupPrograms(void) {
 	PROGRAMS_MakeFile("NMITEST.COM",NMITEST_ProgramStart);
     PROGRAMS_MakeFile("RE-DOS.COM",REDOS_ProgramStart);
 
-    if (IS_PC98_ARCH) {
+    if (IS_PC98_ARCH)
         PROGRAMS_MakeFile("PC98UTIL.COM",PC98UTIL_ProgramStart);
-    }
 }

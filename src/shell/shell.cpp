@@ -887,26 +887,30 @@ void SHELL_Init() {
 	extern bool Mouse_Drv;
 	Mouse_Drv = true;
 
-	VFILE_RegisterBuiltinFileBlob(bfb_CWSDPMI_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_DOS32A_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_DOS4GW_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM16_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM32_EXE);
 	VFILE_RegisterBuiltinFileBlob(bfb_DEBUG_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_TREE_EXE);
 	VFILE_RegisterBuiltinFileBlob(bfb_MOVE_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_MEM_COM);
 	VFILE_RegisterBuiltinFileBlob(bfb_FIND_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_DOSIDLE_EXE);
 	VFILE_RegisterBuiltinFileBlob(bfb_LASTDRIV_COM);
 	VFILE_RegisterBuiltinFileBlob(bfb_FCBS_COM);
 	VFILE_RegisterBuiltinFileBlob(bfb_XCOPY_EXE);
 	VFILE_RegisterBuiltinFileBlob(bfb_APPEND_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM);
 	VFILE_RegisterBuiltinFileBlob(bfb_DEVICE_COM);
 	VFILE_RegisterBuiltinFileBlob(bfb_BUFFERS_COM);
 	VFILE_RegisterBuiltinFileBlob(bfb_COPY_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_25_COM);
+
+    /* These are IBM PC/XT/AT ONLY. They will not work in PC-98 mode. */
+    if (!IS_PC98_ARCH) {
+        VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM16_EXE);
+        VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM32_EXE);
+        VFILE_RegisterBuiltinFileBlob(bfb_DOSIDLE_EXE);
+        VFILE_RegisterBuiltinFileBlob(bfb_CWSDPMI_EXE);
+        VFILE_RegisterBuiltinFileBlob(bfb_DOS32A_EXE);
+        VFILE_RegisterBuiltinFileBlob(bfb_DOS4GW_EXE);
+        VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM);
+        VFILE_RegisterBuiltinFileBlob(bfb_TREE_EXE);
+        VFILE_RegisterBuiltinFileBlob(bfb_MEM_COM);
+        VFILE_RegisterBuiltinFileBlob(bfb_25_COM);
+    }
 
 	/* don't register 28.com unless EGA/VGA */
 	if (IS_EGAVGA_ARCH) VFILE_RegisterBuiltinFileBlob(bfb_28_COM);
