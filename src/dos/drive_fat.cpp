@@ -1196,9 +1196,13 @@ bool fatDrive::FindFirst(const char *_dir, DOS_DTA &dta,bool /*fcb_findfirst*/) 
 }
 
 char* removeTrailingSpaces(char* str) {
-	char* end = str + strlen(str);
-	while((*--end == ' ') && (end > str)) {};
-	*++end = '\0';
+	char* end = str + strlen(str) - 1;
+	while (end >= str && *end == ' ') end--;
+    /* NTS: The loop will exit with 'end' one char behind the last ' ' space character.
+     *      So to ASCIIZ snip off the space, step forward one and overwrite with NUL.
+     *      The loop may end with 'end' one char behind 'ptr' if the string was empty ""
+     *      which is OK since the step forward will merely overwrite NUL with NUL. */
+	*(++end) = '\0';
 	return str;
 }
 
