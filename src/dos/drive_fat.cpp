@@ -1201,7 +1201,8 @@ char* removeTrailingSpaces(char* str) {
     /* NTS: The loop will exit with 'end' one char behind the last ' ' space character.
      *      So to ASCIIZ snip off the space, step forward one and overwrite with NUL.
      *      The loop may end with 'end' one char behind 'ptr' if the string was empty ""
-     *      which is OK since the step forward will merely overwrite NUL with NUL. */
+     *      or nothing but spaces. This is OK because after the step forward, end >= str
+     *      in all cases. */
 	*(++end) = '\0';
 	return str;
 }
