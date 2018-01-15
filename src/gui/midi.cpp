@@ -682,9 +682,12 @@ getdefault:
 };
 
 
-static MIDI* test;
+static MIDI* test = NULL;
 void MIDI_Destroy(Section* /*sec*/){
-	delete test;
+	if (test != NULL) {
+		delete test;
+		test = NULL;
+	}
 }
 
 void MIDI_Init() {
