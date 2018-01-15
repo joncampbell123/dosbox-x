@@ -122,7 +122,7 @@ static void RENDER_StartLineHandler(const void * s) {
 		const Bitu *src = (Bitu*)s;
 		Bitu *cache = (Bitu*)(render.scale.cacheRead);
 		Bits count = render.src.start;
-#if defined(__SSE__)
+#if defined(__SSE__) && !defined(_M_AMD64)
 		if(sse2_available) {
 #if defined (_MSC_VER)
 #define SIZEOF_INT_P 4

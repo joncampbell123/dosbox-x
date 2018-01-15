@@ -89,7 +89,7 @@ DWORD Close(CodecInst* pinst) {
 
 BOOL CodecInst::QueryAbout() { return TRUE; }
 
-static BOOL CALLBACK AboutDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+static INT_PTR CALLBACK AboutDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
   if (uMsg == WM_COMMAND) {
     switch (LOWORD(wParam)) {
     case IDOK:
@@ -110,7 +110,7 @@ DWORD CodecInst::About(HWND hwnd) {
   return ICERR_OK;
 }
 
-static BOOL CALLBACK ConfigureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
+static INT_PTR CALLBACK ConfigureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
   if (uMsg == WM_INITDIALOG) {
 
