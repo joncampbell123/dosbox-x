@@ -83,20 +83,24 @@ public:
 MidiHandler Midi_none;
 
 
-static struct {
+static struct midi_state_t {
 	Bitu status;
 	Bitu cmd_len;
 	Bitu cmd_pos;
 	Bit8u cmd_buf[8];
 	Bit8u rt_buf[8];
-	struct {
+	struct midi_state_sysex_t {
 		Bit8u buf[SYSEX_SIZE];
 		Bitu used;
 		Bitu delay;
 		Bit32u start;
+
+		midi_state_sysex_t() : used(0), delay(0), start(0) { }
 	} sysex;
 	bool available;
 	MidiHandler * handler;
+
+	midi_state_t() : status(0x00), cmd_len(0), cmd_pos(0), available(false), handler(NULL) { }
 } midi;
 
 
