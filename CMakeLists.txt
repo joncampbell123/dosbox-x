@@ -3,10 +3,6 @@ project(dosbox-x C CXX) # C for CheckIncludeFiles
 include(CheckTypeSize)
 include(CheckIncludeFiles)
 
-if (NOT MSVC)
-	message(FATAL_ERROR "Currently, only MSVC is supported")
-endif()
-
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 set(INCLUDES
@@ -632,7 +628,9 @@ set(ROOT
 )
 source_group("\\" FILES ${ROOT})
 
-file(WRITE "${CMAKE_BINARY_DIR}/unistd.h" "") # create fake unistd.h
+if (MSVC)
+	file(WRITE "${CMAKE_BINARY_DIR}/unistd.h" "") # create fake unistd.h
+endif ()
 
 include_directories("include")
 include_directories(${CMAKE_BINARY_DIR}) # unistd.h, config.h
@@ -692,21 +690,35 @@ configure_file(
 	${CMAKE_CURRENT_BINARY_DIR}/config.h
 )
 
-find_path(SDL_INCLUDE_DIR .)
-find_path(LIBPNG_INCLUDE_DIR .)
-find_path(ZLIB_INCLUDE_DIR .)
+if (MSVC)
+	find_path(SDL_INCLUDE_DIR .)
+	find_path(LIBPNG_INCLUDE_DIR .)
+	find_path(ZLIB_INCLUDE_DIR .)
 
-include_directories("${SDL_INCLUDE_DIR}")
-include_directories("${LIBPNG_INCLUDE_DIR}")
-include_directories("${ZLIB_INCLUDE_DIR}")
+	include_directories("${SDL_INCLUDE_DIR}")
+	include_directories("${LIBPNG_INCLUDE_DIR}")
+	include_directories("${ZLIB_INCLUDE_DIR}")
 
-find_library(SDL_LIBRARY sdl.lib)
-find_library(SDLMAIN_LIBRARY sdlmain.lib)
-find_library(LIBPNG_LIBRARY libpng16.lib)
-find_library(ZLIB_LIBRARY zlib.lib)
+	find_library(SDL_LIBRARY sdl.lib)
+	find_library(SDLMAIN_LIBRARY sdlmain.lib)
+	find_library(LIBPNG_LIBRARY libpng16.lib)
+	find_library(ZLIB_LIBRARY zlib.lib)
+else ()
+	find_package(SDL REQUIRED)
+	include_directories(${SDL_INCLUDE_DIR})
+	find_package(PNG REQUIRED)
+	include_directories(${PNG_INCLUDE_DIR})
+	find_package(ZLIB REQUIRED)
+	include_directories(${ZLIB_INCLUDE_DIR})
+	find_package(OpenGL REQUIRED)
+endif ()
 
-add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-add_definitions(-D__WIN32__)
+if (WIN32)
+	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+	add_definitions(-D__WIN32__)
+else ()
+	set(SRC_LIBS_ZMBV "")
+endif ()
 
 add_executable(dosbox-x
 	${ROOT}
@@ -742,12 +754,22 @@ add_executable(dosbox-x
 
 set_target_properties(dosbox-x PROPERTIES LINKER_LANGUAGE CXX)
 
-target_link_libraries(dosbox-x
-	opengl32.lib
-	winmm.lib
-	imm32.lib
-	${SDL_LIBRARY}
-	${SDLMAIN_LIBRARY}
-	${LIBPNG_LIBRARY}
-	${ZLIB_LIBRARY}
-)
+if (WIN32)
+	set(EXTRA_LIBS
+			opengl32.lib
+			winmm.lib
+			imm32.lib
+			${SDL_LIBRARY}
+			${SDLMAIN_LIBRARY}
+			${LIBPNG_LIBRARY}
+			${ZLIB_LIBRARY})
+else ()
+
+	set(EXTRA_LIBS
+			${SDL_LIBRARY}
+			${OPENGL_LIBRARIES}
+			${PNG_LIBRARIES}
+			${ZLIB_LIBRARIES})
+endif ()
+
+target_link_libraries(dosbox-x ${EXTRA_LIBS})
