@@ -5,6 +5,11 @@ include(CheckIncludeFiles)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+if (NOT MSVC)
+	# x86 intrinsic include in src/mt32/mmath.h fails on bare i686 target
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.1")
+endif ()
+
 set(INCLUDES
 	"include/bios.h"
 	"include/bios_disk.h"
@@ -756,16 +761,19 @@ set_target_properties(dosbox-x PROPERTIES LINKER_LANGUAGE CXX)
 
 if (WIN32)
 	set(EXTRA_LIBS
+			winmm
+			imm32)
+endif ()
+
+if (MSVC)
+	set(EXTRA_LIBS ${EXTRA_LIBS}
 			opengl32.lib
-			winmm.lib
-			imm32.lib
 			${SDL_LIBRARY}
 			${SDLMAIN_LIBRARY}
 			${LIBPNG_LIBRARY}
 			${ZLIB_LIBRARY})
 else ()
-
-	set(EXTRA_LIBS
+	set(EXTRA_LIBS ${EXTRA_LIBS}
 			${SDL_LIBRARY}
 			${OPENGL_LIBRARIES}
 			${PNG_LIBRARIES}

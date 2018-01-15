@@ -69,9 +69,9 @@
 # include "callback.h"
 # include "dos_inc.h"
 # include <malloc.h>
-# include "Commdlg.h"
+# include "commdlg.h"
 # include "windows.h"
-# include "Shellapi.h"
+# include "shellapi.h"
 # include "shell.h"
 # include "SDL_syswm.h"
 # include <cstring>
