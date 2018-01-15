@@ -1,4 +1,6 @@
 <next>
+  - Fixed minor memory leak in MT32 (MUNT) synthesizer usage.
+  - Fixed uninitialized state issues with DMA channel 4 (cascade).
   - IMGMOUNT now allows mounting the El Torito bootable floppy image
     of a CD-ROM drive as a drive letter and accessible (read only)
     filesystem. The FAT filesystem driver was fixed to support working
