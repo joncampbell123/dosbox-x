@@ -10,6 +10,12 @@ if (NOT MSVC)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.1")
 endif ()
 
+if (WIN32 AND (NOT MSVC))
+	# Always build static binaries on MinGW
+	SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+	SET(CMAKE_EXE_LINKER_FLAGS "-static")
+endif ()
+
 set(INCLUDES
 	"include/bios.h"
 	"include/bios_disk.h"
@@ -773,11 +779,13 @@ if (MSVC)
 			${LIBPNG_LIBRARY}
 			${ZLIB_LIBRARY})
 else ()
-	set(EXTRA_LIBS ${EXTRA_LIBS}
+	set(EXTRA_LIBS
 			${SDL_LIBRARY}
 			${OPENGL_LIBRARIES}
 			${PNG_LIBRARIES}
-			${ZLIB_LIBRARIES})
+			${ZLIB_LIBRARIES}
+			${EXTRA_LIBS}
+			dxguid)
 endif ()
 
 target_link_libraries(dosbox-x ${EXTRA_LIBS})
