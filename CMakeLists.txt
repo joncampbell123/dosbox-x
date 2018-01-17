@@ -784,8 +784,10 @@ else ()
 			${OPENGL_LIBRARIES}
 			${PNG_LIBRARIES}
 			${ZLIB_LIBRARIES}
-			${EXTRA_LIBS}
-			dxguid)
+			${EXTRA_LIBS})
+	if (WIN32)
+		set(EXTRA_LIBS ${EXTRA_LIBS} dxguid)
+	endif ()
 endif ()
 
 target_link_libraries(dosbox-x ${EXTRA_LIBS})
