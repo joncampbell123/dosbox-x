@@ -27,6 +27,8 @@
 # define INCL_WIN
 #endif
 
+bool OpenGL_using(void);
+
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE
 #endif
@@ -1303,8 +1305,40 @@ dosurface:
 		}
 		sdl.opengl.pitch=width*4;
 
-		//correction for viewport if 640x400
+		//correction for viewport if 640x400 (FIXME: Why?)
 		if(sdl.clip.h < 480 && sdl.desktop.fullscreen) sdl.clip.y=(480-sdl.clip.h)/2;
+
+		// Windows: If Windows maximizes our window, SDL won't tell us, and this code
+		//          will end up with a small version of the image in the lower left
+		//			corner of the window. Scale up as needed instead.
+		double upscale = 1.0;
+#if defined(WIN32) && !defined(C_SDL2)
+		if (!sdl.desktop.fullscreen) {
+			if (render.aspect) {
+				double sx, sy, sw, sh;
+
+				sw = (double)currentWindowWidth / sdl.clip.w;
+				sh = (double)currentWindowHeight / sdl.clip.h;
+				upscale = min(sw, sh);
+
+				sw = sdl.clip.w * upscale;
+				sh = sdl.clip.h * upscale;
+				sx = ((double)currentWindowWidth - sw) / 2;
+				sy = ((double)currentWindowHeight - sh) / 2;
+
+				sdl.clip.x += (int)sx;
+				sdl.clip.y += (int)sy;
+				sdl.clip.w = (int)sw;
+				sdl.clip.h = (int)sh;
+			}
+			else {
+				sdl.clip.w = currentWindowWidth;
+				sdl.clip.h = currentWindowHeight;
+				sdl.clip.x = 0;
+				sdl.clip.y = 0;
+			}
+		}
+#endif
 
 		glViewport(sdl.clip.x,sdl.clip.y,sdl.clip.w,sdl.clip.h);
 		glMatrixMode (GL_PROJECTION);
@@ -3687,6 +3721,10 @@ void GFX_Events() {
 							menu.maxwindow = false;
 							UpdateWindowDimensions();
 							RENDER_Reset();
+							if (OpenGL_using()) {
+								UpdateWindowDimensions();
+								RENDER_Reset();
+							}
 							break;
 						case ID_WIN_SYSMENU_RESTOREMENU:
 							DOSBox_SetMenu();
