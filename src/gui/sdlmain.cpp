@@ -1502,6 +1502,11 @@ dosurface:
 	if (retFlags)
 		GFX_Start();
 	if (!sdl.mouse.autoenable) SDL_ShowCursor(sdl.mouse.autolock?SDL_DISABLE:SDL_ENABLE);
+
+#if defined(WIN32) && !defined(C_SDL2)
+	UpdateWindowDimensions();
+#endif
+
 	return retFlags;
 }
 
@@ -2108,6 +2113,10 @@ void change_output(int output) {
 
 	GFX_SetTitle(CPU_CycleMax,-1,-1,false);
 	GFX_LogSDLState();
+
+#if defined(WIN32) && !defined(C_SDL2)
+	UpdateWindowDimensions();
+#endif
 }
 
 
@@ -2759,6 +2768,10 @@ static void GUI_StartUp() {
 #endif
 	if(keystate&KMOD_NUM) startup_state_numlock = true;
 	if(keystate&KMOD_CAPS) startup_state_capslock = true;
+
+#if defined(WIN32) && !defined(C_SDL2)
+	UpdateWindowDimensions();
+#endif
 }
 
 void Mouse_AutoLock(bool enable) {
