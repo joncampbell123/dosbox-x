@@ -91,6 +91,8 @@
 # define S_ISREG(x) ((x & S_IFREG) == S_IFREG)
 #endif
 
+Bitu currentWindowWidth = 640, currentWindowHeight = 480;
+
 Bitu time_limit_ms = 0;
 
 extern bool keep_umb_on_boot;
@@ -122,6 +124,23 @@ void FreeBIOSDiskList();
 void GFX_ShutDown(void);
 void MAPPER_Shutdown();
 void SHELL_Init(void);
+
+void UpdateWindowDimensions(Bitu width, Bitu height) {
+	currentWindowWidth = width;
+	currentWindowHeight = height;
+}
+
+void UpdateWindowDimensions(void) {
+#if defined(WIN32) && !defined(C_SDL2)
+	// When maximized, SDL won't actually tell us our new dimensions, so get it ourselves.
+	// FIXME: Instead of GetHWND() we need to track our own handle or add something to SDL 1.x
+	//        to provide the handle!
+	RECT r = { 0 };
+
+	GetClientRect(GetHWND(), &r);
+	UpdateWindowDimensions(r.right, r.bottom);
+#endif
+}
 
 #if C_OPENGL
 #include "SDL_opengl.h"
@@ -1411,7 +1430,7 @@ dosurface:
 				sdl.clip.w=width;
 				sdl.clip.h=height;
 			}
-		} else if(!sdl.desktop.fullscreen) d3d->aspect=-1;
+		}
 
 		// Create a dummy sdl surface
 		// D3D will hang or crash when using fullscreen with ddraw surface, therefore we hack SDL to provide
@@ -3493,6 +3512,8 @@ static void HandleTouchscreenFinger(SDL_TouchFingerEvent * finger) {
 }
 #endif
 
+void RENDER_Reset(void);
+
 void GFX_Events() {
 #if defined(C_SDL2) /* SDL 2.x---------------------------------- */
     SDL_Event event;
@@ -3664,6 +3685,8 @@ void GFX_Events() {
 							if (sdl.desktop.fullscreen)
 								GFX_SwitchFullScreen();
 							menu.maxwindow = false;
+							UpdateWindowDimensions();
+							RENDER_Reset();
 							break;
 						case ID_WIN_SYSMENU_RESTOREMENU:
 							DOSBox_SetMenu();
@@ -3758,6 +3781,7 @@ void GFX_Events() {
 			HandleMouseButton(&event.button);
 			break;
 		case SDL_VIDEORESIZE:
+			UpdateWindowDimensions(); // FIXME: Use SDL window dimensions, except that on Windows, SDL won't tell us our actual dimensions
 			HandleVideoResize(&event.resize);
 			break;
 		case SDL_QUIT:

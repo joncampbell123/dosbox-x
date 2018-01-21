@@ -21,6 +21,8 @@
 
 #if (HAVE_D3D9_H) && defined(WIN32)
 
+extern Bitu currentWindowWidth, currentWindowHeight;
+
 #include "direct3d.h"
 #include "render.h" // IMPLEMENTED
 #include <sstream>
@@ -921,8 +923,15 @@ HRESULT CDirect3D::Resize3DEnvironment(Bitu width, Bitu height, Bitu rwidth, Bit
 #endif
 
     // set the presentation parameters
-    d3dpp.BackBufferWidth = width;
-    d3dpp.BackBufferHeight = height;
+	if (!fullscreen && render.aspect) {
+		// match the window's dimensions
+		d3dpp.BackBufferWidth = currentWindowWidth;
+		d3dpp.BackBufferHeight = currentWindowHeight;
+	}
+	else {
+		d3dpp.BackBufferWidth = width;
+		d3dpp.BackBufferHeight = height;
+	}
 
     if(fullscreen) {
 	// Find correct display mode

@@ -311,7 +311,7 @@ static Bitu MakeAspectTable(Bitu skip,Bitu height,double scaley,Bitu miny) {
 }
 
 
-static void RENDER_Reset( void ) {
+void RENDER_Reset( void ) {
 	Bitu width=render.src.width;
 	Bitu height=render.src.height;
 	bool dblw=render.src.dblw;
