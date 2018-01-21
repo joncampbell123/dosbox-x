@@ -1313,7 +1313,7 @@ dosurface:
 		//			corner of the window. Scale up as needed instead.
 		double upscale = 1.0;
 #if defined(WIN32) && !defined(C_SDL2)
-		if (!sdl.desktop.fullscreen) {
+		if (!sdl.desktop.fullscreen && menu.maxwindow) {
 			if (render.aspect) {
 				double sx, sy, sw, sh;
 
