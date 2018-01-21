@@ -3657,14 +3657,13 @@ void GFX_Events() {
 					switch (event.syswm.msg->wParam) {
 						case 0xF032: // FIXME: What is this?
 						case SC_MAXIMIZE:
-							if (!sdl.desktop.fullscreen)
-								GFX_SwitchFullScreen();
+							menu.maxwindow = true;
 							break;
 						case 0xF122: // FIXME: What is this?
 						case SC_RESTORE:
 							if (sdl.desktop.fullscreen)
 								GFX_SwitchFullScreen();
-							menu.maxwindow=false;
+							menu.maxwindow = false;
 							break;
 						case ID_WIN_SYSMENU_RESTOREMENU:
 							DOSBox_SetMenu();
