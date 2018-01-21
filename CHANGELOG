@@ -1,4 +1,10 @@
 <next>
+  - The Windows maximize button no longer triggers fullscreen mode.
+  - Direct3D, OpenGL, and Surface outputs updated to fill the window
+    in Windows builds when the window is maximized. If aspect
+    correction is enabled, the Direct3D and OpenGL outputs will
+    scale the DOS screen (with pillarbox/letterbox padding) to the
+    correct aspect ratio and center within the maximized window.
   - Fixed minor memory leak in MT32 (MUNT) synthesizer usage.
   - Fixed uninitialized state issues with DMA channel 4 (cascade).
   - IMGMOUNT now allows mounting the El Torito bootable floppy image
