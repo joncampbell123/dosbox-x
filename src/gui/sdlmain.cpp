@@ -1202,7 +1202,36 @@ dosurface:
 			}
 		} else {
 			sdl.clip.x=sdl.overscan_width;sdl.clip.y=sdl.overscan_width;
-			sdl.surface=SDL_SetVideoMode(width+2*sdl.overscan_width,height+2*sdl.overscan_width,bpp,(flags & GFX_CAN_RANDOM) ? SDL_SWSURFACE | SDL_RESIZABLE : SDL_HWSURFACE | SDL_RESIZABLE);
+
+#if defined(WIN32) && !defined(C_SDL2)
+			/* if the window is maximized, center the screen in the window */
+			if (menu.maxwindow) {
+				int ax = (currentWindowWidth - (sdl.clip.x + sdl.clip.w)) / 2;
+				int ay = (currentWindowHeight - (sdl.clip.y + sdl.clip.h)) / 2;
+				sdl.clip.x += ax;
+				sdl.clip.y += ay;
+				sdl.clip.w = currentWindowWidth - sdl.clip.x;
+				sdl.clip.h = currentWindowHeight - sdl.clip.y;
+
+				sdl.surface = SDL_SetVideoMode(currentWindowWidth, currentWindowHeight, bpp, (flags & GFX_CAN_RANDOM) ? SDL_SWSURFACE | SDL_RESIZABLE : SDL_HWSURFACE | SDL_RESIZABLE);
+
+				if (SDL_MUSTLOCK(sdl.surface))
+					SDL_LockSurface(sdl.surface);
+
+				memset(sdl.surface->pixels, 0, sdl.surface->pitch * sdl.surface->h);
+
+				if (SDL_MUSTLOCK(sdl.surface))
+					SDL_UnlockSurface(sdl.surface);
+
+				SDL_Flip(sdl.surface);
+			}
+			else {
+				sdl.surface = SDL_SetVideoMode(width + 2 * sdl.overscan_width, height + 2 * sdl.overscan_width, bpp, (flags & GFX_CAN_RANDOM) ? SDL_SWSURFACE | SDL_RESIZABLE : SDL_HWSURFACE | SDL_RESIZABLE);
+			}
+#else
+			sdl.surface = SDL_SetVideoMode(width + 2 * sdl.overscan_width, height + 2 * sdl.overscan_width, bpp, (flags & GFX_CAN_RANDOM) ? SDL_SWSURFACE | SDL_RESIZABLE : SDL_HWSURFACE | SDL_RESIZABLE);
+#endif
+
 #ifdef WIN32
 			if (sdl.surface == NULL) {
 				SDL_QuitSubSystem(SDL_INIT_VIDEO);
