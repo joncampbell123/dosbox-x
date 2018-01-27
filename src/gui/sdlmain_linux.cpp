@@ -2,6 +2,7 @@
 #include "config.h"
 
 #ifdef LINUX
+#include <limits.h>
 #include "logging.h"
 #include "SDL.h"
 #include "SDL_version.h"
@@ -52,6 +53,55 @@ void Linux_GetDesktopResolution(int *width,int *height) {
 		*height = 768;
 	}
 #endif
+}
+#endif
+
+#if defined(LINUX) && !defined(C_SDL2)
+void UpdateWindowDimensionsLinux(void) {
+    void UpdateWindowDimensions(Bitu width, Bitu height);
+    void UpdateMaxWindow(bool x);
+
+	SDL_SysWMinfo wminfo;
+	memset(&wminfo,0,sizeof(wminfo));
+    SDL_VERSION(&wminfo.version);
+    if (SDL_GetWMInfo(&wminfo) >= 0) {
+        if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
+            XWindowAttributes attr = {0};
+            bool maxwindow = false;
+
+            XGetWindowAttributes(wminfo.info.x11.display, wminfo.info.x11.wmwindow, &attr);
+
+            {
+                Atom maxVert = XInternAtom(wminfo.info.x11.display, "_NET_WM_STATE_MAXIMIZED_VERT", True);
+                Atom maxHorz = XInternAtom(wminfo.info.x11.display, "_NET_WM_STATE_MAXIMIZED_HORZ", True);
+                Atom wmState = XInternAtom(wminfo.info.x11.display, "_NET_WM_STATE", True);
+                unsigned char *properties = NULL;
+                unsigned long bytesAfter = 0;
+                unsigned long nItem = 0;
+                int format = 0;
+                Atom type = 0;
+
+                XGetWindowProperty(wminfo.info.x11.display, wminfo.info.x11.wmwindow, wmState,
+                    0, LONG_MAX, False, AnyPropertyType, &type, &format, &nItem, &bytesAfter, &properties);
+
+                if (properties != NULL && format == 32) {
+                    for (unsigned long i=0;i < nItem;i++) {
+                        if (((uint32_t*)(properties))[i] == maxHorz)
+                            maxwindow = true;
+                        else if (((uint32_t*)(properties))[i] == maxVert)
+                            maxwindow = true;
+                    }
+
+                    XFree(properties);
+                }
+            }
+
+            LOG_MSG("Current window dimensions are %u x %u maxwindow=%u",attr.width,attr.height,maxwindow);
+
+            UpdateMaxWindow(maxwindow);
+            UpdateWindowDimensions(attr.width,attr.height);
+        }
+    }
 }
 #endif
 

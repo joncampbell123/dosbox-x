@@ -132,6 +132,10 @@ void UpdateWindowDimensions(Bitu width, Bitu height) {
 	currentWindowHeight = height;
 }
 
+void UpdateMaxWindow(bool x) {
+    menu.maxwindow = x;
+}
+
 void UpdateWindowDimensions(void) {
 #if defined(WIN32) && !defined(C_SDL2)
 	// When maximized, SDL won't actually tell us our new dimensions, so get it ourselves.
@@ -141,6 +145,10 @@ void UpdateWindowDimensions(void) {
 
 	GetClientRect(GetHWND(), &r);
 	UpdateWindowDimensions(r.right, r.bottom);
+#endif
+#if defined(LINUX) && !defined(C_SDL2)
+    void UpdateWindowDimensionsLinux(void);
+    UpdateWindowDimensionsLinux();
 #endif
 }
 
@@ -1535,6 +1543,9 @@ dosurface:
 #if defined(WIN32) && !defined(C_SDL2)
 	UpdateWindowDimensions();
 #endif
+#if defined(LINUX) && !defined(C_SDL2)
+	UpdateWindowDimensions();
+#endif
 
 	return retFlags;
 }
@@ -2144,6 +2155,9 @@ void change_output(int output) {
 	GFX_LogSDLState();
 
 #if defined(WIN32) && !defined(C_SDL2)
+	UpdateWindowDimensions();
+#endif
+#if defined(LINUX) && !defined(C_SDL2)
 	UpdateWindowDimensions();
 #endif
 }
@@ -2799,6 +2813,9 @@ static void GUI_StartUp() {
 	if(keystate&KMOD_CAPS) startup_state_capslock = true;
 
 #if defined(WIN32) && !defined(C_SDL2)
+	UpdateWindowDimensions();
+#endif
+#if defined(LINUX) && !defined(C_SDL2)
 	UpdateWindowDimensions();
 #endif
 }
