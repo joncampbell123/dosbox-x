@@ -88,6 +88,8 @@ static struct {
 	bool			nosound;
 	bool			swapstereo;
 	bool			sampleaccurate;
+    bool            prebuffer_wait;
+    Bitu            prebuffer_samples;
 } mixer;
 
 bool Mixer_SampleAccurate() {
@@ -728,18 +730,31 @@ static void MIXER_CallBack(void * userdata, Uint8 *stream, int len) {
 	int remains;
 	Bit32s *in;
 
-	in = &mixer.work[mixer.work_out][0];
-	while (need > 0) {
-		if (mixer.work_out == mixer.work_in) break;
-        *output++ = MIXER_CLIP((((Bit64s)(*in++)) * (Bit64s)volscale1) >> (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
-        *output++ = MIXER_CLIP((((Bit64s)(*in++)) * (Bit64s)volscale2) >> (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
-        mixer.work_out++;
-		if (mixer.work_out >= mixer.work_wrap) {
-			mixer.work_out = 0;
-			in = &mixer.work[mixer.work_out][0];
-		}
-		need--;
-	}
+    if (mixer.prebuffer_wait) {
+        remains = (int)mixer.work_in - (int)mixer.work_out;
+        if (remains < 0) remains += mixer.work_wrap;
+
+        if (remains >= mixer.prebuffer_samples)
+            mixer.prebuffer_wait = false;
+    }
+
+    if (!mixer.prebuffer_wait) {
+        in = &mixer.work[mixer.work_out][0];
+        while (need > 0) {
+            if (mixer.work_out == mixer.work_in) break;
+            *output++ = MIXER_CLIP((((Bit64s)(*in++)) * (Bit64s)volscale1) >> (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
+            *output++ = MIXER_CLIP((((Bit64s)(*in++)) * (Bit64s)volscale2) >> (MIXER_VOLSHIFT + MIXER_VOLSHIFT));
+            mixer.work_out++;
+            if (mixer.work_out >= mixer.work_wrap) {
+                mixer.work_out = 0;
+                in = &mixer.work[mixer.work_out][0];
+            }
+            need--;
+        }
+    }
+
+    if (need > 0)
+        mixer.prebuffer_wait = true;
 
 	while (need > 0) {
 		*output++ = 0;
@@ -944,6 +959,8 @@ void MIXER_Init() {
 	mixer.sampleaccurate=section->Get_bool("sample accurate");//FIXME: Make this bool mean something again!
 
 	/* Initialize the internal stuff */
+    mixer.prebuffer_samples=0;
+    mixer.prebuffer_wait=true;
 	mixer.channels=0;
 	mixer.pos=0;
 	mixer.done=0;
@@ -986,6 +1003,16 @@ void MIXER_Init() {
 	mixer.work_wrap = MIXER_BUFSIZE;
 	if (mixer.work_wrap <= mixer.blocksize) E_Exit("blocksize too large");
 
+    {
+        int ms = section->Get_int("prebuffer");
+
+        if (ms < 0) ms = 20;
+
+        mixer.prebuffer_samples = (ms * mixer.freq) / 1000;
+        if (mixer.prebuffer_samples > (mixer.work_wrap / 2))
+            mixer.prebuffer_samples = (mixer.work_wrap / 2);
+    }
+
 	// how many samples per millisecond? compute as improper fraction (sample rate / 1000)
 	mixer.samples_per_ms.w = mixer.freq / 1000U;
 	mixer.samples_per_ms.fn = mixer.freq % 1000U;
@@ -997,7 +1024,7 @@ void MIXER_Init() {
 	mixer.samples_rendered_ms.fn = 0;
 	mixer.samples_rendered_ms.fd = mixer.samples_per_ms.fd;
 
-	LOG(LOG_MISC,LOG_DEBUG)("Mixer: sample_accurate=%u blocksize=%u sdl_rate=%uHz mixer_rate=%uHz channels=%u samples=%u min/max/need=%u/%u/%u per_ms=%u %u/%u samples",
+	LOG(LOG_MISC,LOG_DEBUG)("Mixer: sample_accurate=%u blocksize=%u sdl_rate=%uHz mixer_rate=%uHz channels=%u samples=%u min/max/need=%u/%u/%u per_ms=%u %u/%u samples prebuffer=%u",
 		(unsigned int)mixer.sampleaccurate,
 		(unsigned int)mixer.blocksize,
 		(unsigned int)obtained.freq,
@@ -1009,7 +1036,8 @@ void MIXER_Init() {
 		(unsigned int)0,
 		(unsigned int)mixer.samples_per_ms.w,
 		(unsigned int)mixer.samples_per_ms.fn,
-		(unsigned int)mixer.samples_per_ms.fd);
+		(unsigned int)mixer.samples_per_ms.fd,
+        (unsigned int)mixer.prebuffer_samples);
 
 	PROGRAMS_MakeFile("MIXER.COM",MIXER_ProgramStart);
 
