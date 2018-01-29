@@ -665,3 +665,6 @@ include/Makefile
 ])
 AC_OUTPUT
 
+# HACK: Write all PACKAGE defines to vs2015/config_package.h so Windows builds are kept in sync
+grep PACKAGE config.h >vs2015/config_package.h
+
