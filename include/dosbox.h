@@ -22,6 +22,7 @@
 
 #include "config.h"
 #include "logging.h"
+#include "build_timestamp.h"
 
 #if defined(_MSC_VER)
 # include <sys/types.h>
@@ -43,9 +44,6 @@
 // GCC, other compilers, have sizeof(long double) == 10 80-bit IEEE
 # define HAS_LONG_DOUBLE		1
 #endif
-
-// TODO: Don't forget to keep updating this string each release!
-#define UPDATED_STR			"December 28, 2017"
 
 GCC_ATTRIBUTE(noreturn) void		E_Exit(const char * message,...) GCC_ATTRIBUTE( __format__(__printf__, 1, 2));
 
