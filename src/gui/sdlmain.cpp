@@ -1453,27 +1453,37 @@ dosurface:
 		sdl.clip.x=0; sdl.clip.y=0;
 		if(sdl.desktop.fullscreen) {
 		    if(sdl.desktop.full.fixed) {
-			sdl.clip.w=sdl.desktop.full.width;
-			sdl.clip.h=sdl.desktop.full.height;
-			scalex=(double)sdl.desktop.full.width/width;
-			scaley=(double)sdl.desktop.full.height/height;
+				sdl.clip.w=sdl.desktop.full.width;
+				sdl.clip.h=sdl.desktop.full.height;
+				scalex=(double)sdl.desktop.full.width/width;
+				scaley=(double)sdl.desktop.full.height/height;
 		    }
 		} else {
-		    if((sdl.desktop.window.width) && (sdl.desktop.window.height)) {
-			scalex=(double)sdl.desktop.window.width/(sdl.draw.width*sdl.draw.scalex);
-			scaley=(double)sdl.desktop.window.height/(sdl.draw.height*sdl.draw.scaley);
-			if(scalex < scaley) {
-			    sdl.clip.w=sdl.desktop.window.width;
-			    sdl.clip.h=(Bit16u)(sdl.draw.height*sdl.draw.scaley*scalex);
-			} else {
-			    sdl.clip.w=(Bit16u)(sdl.draw.width*sdl.draw.scalex*scaley);
-			    sdl.clip.h=(Bit16u)sdl.desktop.window.height;
+			Bitu consider_height = menu.maxwindow ? currentWindowHeight : 0;
+			Bitu consider_width = menu.maxwindow ? currentWindowWidth : 0;
+			int final_height = max(consider_height, userResizeWindowHeight);
+			int final_width = max(consider_width, userResizeWindowWidth);
+
+			if (final_width == 0 || final_height == 0) {
+				final_height = sdl.desktop.window.height;
+				final_width = sdl.desktop.window.width;
 			}
-			scalex=(double)sdl.clip.w/width;
-			scaley=(double)sdl.clip.h/height;
+
+		    if(final_width && final_height) {
+				scalex=(double)final_width / (sdl.draw.width*sdl.draw.scalex);
+				scaley=(double)final_height / (sdl.draw.height*sdl.draw.scaley);
+				if(scalex < scaley) {
+				    sdl.clip.w=(Bit16u)final_width;
+					sdl.clip.h=(Bit16u)floor((sdl.draw.height*sdl.draw.scaley*scalex)+0.5);
+				} else {
+				    sdl.clip.w=(Bit16u)floor((sdl.draw.width*sdl.draw.scalex*scaley)+0.5);
+					sdl.clip.h=(Bit16u)final_height;
+				}
+				scalex=(double)sdl.clip.w/width;
+				scaley=(double)sdl.clip.h/height;
 		    } else {
-			sdl.clip.w=(Bit16u)(width*scalex);
-			sdl.clip.h=(Bit16u)(height*scaley);
+				sdl.clip.w=(Bit16u)floor((width*scalex)+0.5);
+				sdl.clip.h=(Bit16u)floor((height*scaley)+0.5);
 		    }
 		}
 
@@ -2962,11 +2972,12 @@ static void HandleVideoResize(void * event) {
 	if(sdl.desktop.fullscreen) return;
 
 	SDL_ResizeEvent* ResizeEvent = (SDL_ResizeEvent*)event;
-	UpdateWindowDimensions(ResizeEvent->w, ResizeEvent->h);
 
     /* assume the resize comes from user preference UNLESS the window
      * is fullscreen or maximized */
     if (!menu.maxwindow && !sdl.desktop.fullscreen) {
+		UpdateWindowDimensions(ResizeEvent->w, ResizeEvent->h);
+
 		/* if the dimensions actually changed from our surface dimensions, then
 		   assume it's the user's input. Linux/X11 is good at doing this anyway,
 		   but the Windows SDL 1.x support will return us a resize event for the
@@ -2977,7 +2988,8 @@ static void HandleVideoResize(void * event) {
 		}
 	}
     else {
-        userResizeWindowWidth = 0;
+		UpdateWindowDimensions();
+		userResizeWindowWidth = 0;
         userResizeWindowHeight = 0;
     }
 
