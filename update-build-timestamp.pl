@@ -15,5 +15,6 @@ my $tmp = sprintf("%s %u, %u %u:%02u:%02u%s",$months[$mon-1],$mday,$year,(($hour
 open(X,">","include/build_timestamp.h") || die;
 print X "/*auto-generated*/\n";
 print X "#define UPDATED_STR \"$tmp\"\n";
+print X "#define COPYRIGHT_END_YEAR \"$year\"\n";
 close(X);
 
