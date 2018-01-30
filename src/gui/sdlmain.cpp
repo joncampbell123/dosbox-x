@@ -945,7 +945,7 @@ void GFX_LogSDLState(void) {
 }
 
 #if !defined(C_SDL2)
-static SDL_Surface * GFX_SetupSurfaceScaled(Bit32u sdl_flags, Bit32u bpp) {
+static SDL_Surface * GFX_SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) {
 	Bit16u fixedWidth;
 	Bit16u fixedHeight;
 	if (sdl.desktop.want_type == SCREEN_OPENGL) {
@@ -1323,7 +1323,7 @@ dosurface:
 			SDL_GL_SetAttribute( SDL_GL_SWAP_CONTROL, (!strcmp(sec->Get_string("vsyncmode"),"host"))?1:0 );
 		}
 #endif
-		GFX_SetupSurfaceScaled(SDL_RESIZABLE, 0);
+		GFX_SetupSurfaceScaledOpenGL(SDL_RESIZABLE, 0);
 		if (!sdl.surface || sdl.surface->format->BitsPerPixel<15) {
 			LOG_MSG("SDL:OPENGL:Can't open drawing surface, are you running in 16bpp(or higher) mode?");
 			goto dosurface;
