@@ -240,7 +240,7 @@ int X11_GL_CreateWindow(_THIS, int w, int h)
 	attributes.background_pixel = black;
 	attributes.border_pixel = black;
 	attributes.colormap = SDL_XColorMap;
-	mask = CWBackPixel | CWBorderPixel | CWColormap;
+	mask = /*CWBackPixel | CWBorderPixel | */CWColormap;
 
 	SDL_Window = XCreateWindow(SDL_Display, WMwindow,
 			0, 0, w, h, 0, glx_visualinfo->depth,
