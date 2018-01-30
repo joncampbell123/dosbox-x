@@ -4778,7 +4778,10 @@ private:
 	}
 	CALLBACK_HandlerObject cb_bios_startup_screen;
 	static Bitu cb_bios_startup_screen__func(void) {
-		const char *msg = PACKAGE_STRING " (C) 2002-2017 The DOSBox Team\nA fork of DOSBox 0.74 by TheGreatCodeholio\nFor more info visit http://dosbox-x.com\nBased on DOSBox (http://dosbox.com)\n\n";
+        /* TODO: It would be nice if alongside PACKAGE or UPDATED_STR
+         *       the scripts would also generate a COPYRIGHT_END_YEAR
+         *       variable to keep this message up to date at all times. */
+		const char *msg = PACKAGE_STRING " (C) 2002-2018 The DOSBox Team\nA fork of DOSBox 0.74 by TheGreatCodeholio\nFor more info visit http://dosbox-x.com\nBased on DOSBox (http://dosbox.com)\n\n";
 		int logo_x,logo_y,x,y,rowheight=8;
 
 		y = 2;
