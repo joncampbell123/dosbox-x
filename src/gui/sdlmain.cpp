@@ -93,13 +93,6 @@ bool OpenGL_using(void);
 # define S_ISREG(x) ((x & S_IFREG) == S_IFREG)
 #endif
 
-#if defined(LINUX) && !defined(C_SDL2)
-// FIXME: Linux SDL 1.x builds are TERRIBLE at managing the window after resize.
-//        It's better not to allow it for now.
-# undef SDL_RESIZABLE
-# define SDL_RESIZABLE (0)
-#endif
-
 Bitu userResizeWindowWidth = 0, userResizeWindowHeight = 0;
 Bitu currentWindowWidth = 640, currentWindowHeight = 480;
 
@@ -1217,19 +1210,29 @@ dosurface:
 				goto dosurface;
 			}
 		} else {
-			sdl.clip.x=sdl.overscan_width;sdl.clip.y=sdl.overscan_width;
+			sdl.clip.x=sdl.overscan_width;
+            sdl.clip.y=sdl.overscan_width;
 
-#if defined(WIN32) && !defined(C_SDL2)
-			/* if the window is maximized, center the screen in the window */
-			if (menu.maxwindow) {
-				int ax = (currentWindowWidth - (sdl.clip.x + sdl.clip.w)) / 2;
-				int ay = (currentWindowHeight - (sdl.clip.y + sdl.clip.h)) / 2;
+			/* center the screen in the window */
+			{
+                Bitu consider_height = menu.maxwindow ? currentWindowHeight : height;
+                Bitu consider_width = menu.maxwindow ? currentWindowWidth : width;
+                int final_height = std::max(std::max(consider_height,userResizeWindowHeight),(Bitu)(sdl.clip.y+sdl.clip.h));
+                int final_width = std::max(std::max(consider_width,userResizeWindowWidth),(Bitu)(sdl.clip.x+sdl.clip.w));
+				int ax = (final_width - (sdl.clip.x + sdl.clip.w)) / 2;
+				int ay = (final_height - (sdl.clip.y + sdl.clip.h)) / 2;
 				sdl.clip.x += ax;
 				sdl.clip.y += ay;
-				sdl.clip.w = currentWindowWidth - sdl.clip.x;
-				sdl.clip.h = currentWindowHeight - sdl.clip.y;
+//				sdl.clip.w = currentWindowWidth - sdl.clip.x;
+//				sdl.clip.h = currentWindowHeight - sdl.clip.y;
 
-				sdl.surface = SDL_SetVideoMode(currentWindowWidth, currentWindowHeight, bpp, (flags & GFX_CAN_RANDOM) ? SDL_SWSURFACE | SDL_RESIZABLE : SDL_HWSURFACE | SDL_RESIZABLE);
+                LOG_MSG("surface consider=%ux%u final=%ux%u",
+                    (unsigned int)consider_width,
+                    (unsigned int)consider_height,
+                    (unsigned int)final_width,
+                    (unsigned int)final_height);
+
+				sdl.surface = SDL_SetVideoMode(final_width, final_height, bpp, (flags & GFX_CAN_RANDOM) ? SDL_SWSURFACE | SDL_RESIZABLE : SDL_HWSURFACE | SDL_RESIZABLE);
 
 				if (SDL_MUSTLOCK(sdl.surface))
 					SDL_LockSurface(sdl.surface);
@@ -1241,12 +1244,6 @@ dosurface:
 
 				SDL_Flip(sdl.surface);
 			}
-			else {
-				sdl.surface = SDL_SetVideoMode(width + 2 * sdl.overscan_width, height + 2 * sdl.overscan_width, bpp, (flags & GFX_CAN_RANDOM) ? SDL_SWSURFACE | SDL_RESIZABLE : SDL_HWSURFACE | SDL_RESIZABLE);
-			}
-#else
-			sdl.surface = SDL_SetVideoMode(width + 2 * sdl.overscan_width, height + 2 * sdl.overscan_width, bpp, (flags & GFX_CAN_RANDOM) ? SDL_SWSURFACE | SDL_RESIZABLE : SDL_HWSURFACE | SDL_RESIZABLE);
-#endif
 
 #ifdef WIN32
 			if (sdl.surface == NULL) {
