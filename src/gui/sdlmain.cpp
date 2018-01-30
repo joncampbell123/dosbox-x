@@ -960,28 +960,36 @@ static SDL_Surface * GFX_SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) 
 		fixedHeight = sdl.desktop.window.height;
 		sdl_flags |= SDL_HWSURFACE;
 	}
+    if (fixedWidth == 0 || fixedHeight == 0) {
+        Bitu consider_height = menu.maxwindow ? currentWindowHeight : 0;
+        Bitu consider_width = menu.maxwindow ? currentWindowWidth : 0;
+        int final_height = std::max(consider_height,userResizeWindowHeight);
+        int final_width = std::max(consider_width,userResizeWindowWidth);
+
+        fixedWidth = final_width;
+        fixedHeight = final_height;
+    }
 	if (fixedWidth && fixedHeight) {
 		double ratio_w=(double)fixedWidth/(sdl.draw.width*sdl.draw.scalex);
 		double ratio_h=(double)fixedHeight/(sdl.draw.height*sdl.draw.scaley);
-		if ( ratio_w < ratio_h) {
+
+        if (ratio_w < ratio_h) {
 			sdl.clip.w=fixedWidth;
-			sdl.clip.h=(Bit16u)(sdl.draw.height*sdl.draw.scaley*ratio_w);
+			sdl.clip.h=(Bit16u)floor((sdl.draw.height*sdl.draw.scaley*ratio_w)+0.5);
 		} else {
-			sdl.clip.w=(Bit16u)(sdl.draw.width*sdl.draw.scalex*ratio_h);
+			sdl.clip.w=(Bit16u)floor((sdl.draw.width*sdl.draw.scalex*ratio_h)+0.5);
 			sdl.clip.h=(Bit16u)fixedHeight;
 		}
+
 		if (sdl.desktop.fullscreen)
 			sdl.surface = SDL_SetVideoMode(fixedWidth,fixedHeight,bpp,sdl_flags);
 		else
 			sdl.surface = SDL_SetVideoMode(sdl.clip.w,sdl.clip.h,bpp,sdl_flags);
-		if (sdl.surface && sdl.surface->flags & SDL_FULLSCREEN) {
-			sdl.clip.x=(Sint16)((sdl.surface->w-sdl.clip.w)/2);
-			sdl.clip.y=(Sint16)((sdl.surface->h-sdl.clip.h)/2);
-		} else {
-			sdl.clip.x = 0;
-			sdl.clip.y = 0;
-		}
-	} else {
+
+		sdl.clip.x=0;
+        sdl.clip.y=0;
+    }
+    else {
 		sdl.clip.x=0;sdl.clip.y=0;
 		sdl.clip.w=(Bit16u)(sdl.draw.width*sdl.draw.scalex);
 		sdl.clip.h=(Bit16u)(sdl.draw.height*sdl.draw.scaley);
@@ -1347,41 +1355,6 @@ dosurface:
 			sdl.opengl.framebuf=calloc(width*height, 4);		//32 bit color
 		}
 		sdl.opengl.pitch=width*4;
-
-		//correction for viewport if 640x400 (FIXME: Why?)
-		if(sdl.clip.h < 480 && sdl.desktop.fullscreen) sdl.clip.y=(480-sdl.clip.h)/2;
-
-		// Windows: If Windows maximizes our window, SDL won't tell us, and this code
-		//          will end up with a small version of the image in the lower left
-		//			corner of the window. Scale up as needed instead.
-		double upscale = 1.0;
-#if defined(WIN32) && !defined(C_SDL2)
-		if (!sdl.desktop.fullscreen && menu.maxwindow) {
-			if (render.aspect) {
-				double sx, sy, sw, sh;
-
-				sw = (double)currentWindowWidth / sdl.clip.w;
-				sh = (double)currentWindowHeight / sdl.clip.h;
-				upscale = min(sw, sh);
-
-				sw = sdl.clip.w * upscale;
-				sh = sdl.clip.h * upscale;
-				sx = ((double)currentWindowWidth - sw) / 2;
-				sy = ((double)currentWindowHeight - sh) / 2;
-
-				sdl.clip.x += (int)sx;
-				sdl.clip.y += (int)sy;
-				sdl.clip.w = (int)sw;
-				sdl.clip.h = (int)sh;
-			}
-			else {
-				sdl.clip.w = currentWindowWidth;
-				sdl.clip.h = currentWindowHeight;
-				sdl.clip.x = 0;
-				sdl.clip.y = 0;
-			}
-		}
-#endif
 
 		glViewport(sdl.clip.x,sdl.clip.y,sdl.clip.w,sdl.clip.h);
 		glMatrixMode (GL_PROJECTION);
