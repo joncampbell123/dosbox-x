@@ -98,6 +98,8 @@ using namespace std;
 Bitu userResizeWindowWidth = 0, userResizeWindowHeight = 0;
 Bitu currentWindowWidth = 640, currentWindowHeight = 480;
 
+int gl_clear_countdown = 0;
+
 Bitu time_limit_ms = 0;
 
 extern bool keep_umb_on_boot;
@@ -1394,7 +1396,8 @@ dosurface:
 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texsize, texsize, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, 0);
 
-		glClearColor (0.0, 0.0, 0.0, 1.0);
+        gl_clear_countdown = 2; // two GL buffers
+//		glClearColor (0.0, 0.0, 0.0, 1.0);
 //		glClear(GL_COLOR_BUFFER_BIT);
 //		SDL_GL_SwapBuffers();
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -2353,46 +2356,55 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
 	case SCREEN_OPENGL:
             if (sdl.must_redraw_all && changedLines == NULL) {
             }
-            else if (sdl.opengl.pixel_buffer_object) {
-                if(changedLines && (changedLines[0] == sdl.draw.height)) 
-                    return; 
-                glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT);
-                glBindTexture(GL_TEXTURE_2D, sdl.opengl.texture);
-                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
-                        sdl.draw.width, sdl.draw.height, GL_BGRA_EXT,
-                        GL_UNSIGNED_INT_8_8_8_8_REV, 0);
-                glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
-                glCallList(sdl.opengl.displaylist);
-                SDL_GL_SwapBuffers();
-            } else if (changedLines) {
-                if(changedLines[0] == sdl.draw.height) 
-                    return;
-                Bitu y = 0, index = 0;
-                glBindTexture(GL_TEXTURE_2D, sdl.opengl.texture);
-                while (y < sdl.draw.height) {
-                    if (!(index & 1)) {
-                        y += changedLines[index];
-                    } else {
-                        Bit8u *pixels = (Bit8u *)sdl.opengl.framebuf + y * sdl.opengl.pitch;
-                        Bitu height = changedLines[index];
-                        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, y,
-                                sdl.draw.width, height, GL_BGRA_EXT,
-#if defined (MACOSX)
-                                // needed for proper looking graphics on macOS 10.12, 10.13
-                                GL_UNSIGNED_INT_8_8_8_8,
-#else
-                                // works on Linux
-                                GL_UNSIGNED_INT_8_8_8_8_REV,
-#endif
-                                pixels );
-                        y += height;
-                    }
-                    index++;
+            else {
+                if (gl_clear_countdown > 0) {
+                    gl_clear_countdown--;
+                    glClearColor (0.0, 0.0, 0.0, 1.0);
+                    glClear(GL_COLOR_BUFFER_BIT);
                 }
-                glCallList(sdl.opengl.displaylist);
+
+                if (sdl.opengl.pixel_buffer_object) {
+                    if(changedLines && (changedLines[0] == sdl.draw.height)) 
+                        return; 
+                    glUnmapBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT);
+                    glBindTexture(GL_TEXTURE_2D, sdl.opengl.texture);
+                    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
+                            sdl.draw.width, sdl.draw.height, GL_BGRA_EXT,
+                            GL_UNSIGNED_INT_8_8_8_8_REV, 0);
+                    glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
+                    glCallList(sdl.opengl.displaylist);
+                    SDL_GL_SwapBuffers();
+                } else if (changedLines) {
+                    if(changedLines[0] == sdl.draw.height) 
+                        return;
+                    Bitu y = 0, index = 0;
+                    glBindTexture(GL_TEXTURE_2D, sdl.opengl.texture);
+                    while (y < sdl.draw.height) {
+                        if (!(index & 1)) {
+                            y += changedLines[index];
+                        } else {
+                            Bit8u *pixels = (Bit8u *)sdl.opengl.framebuf + y * sdl.opengl.pitch;
+                            Bitu height = changedLines[index];
+                            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, y,
+                                    sdl.draw.width, height, GL_BGRA_EXT,
+#if defined (MACOSX)
+                                    // needed for proper looking graphics on macOS 10.12, 10.13
+                                    GL_UNSIGNED_INT_8_8_8_8,
+#else
+                                    // works on Linux
+                                    GL_UNSIGNED_INT_8_8_8_8_REV,
+#endif
+                                    pixels );
+                            y += height;
+                        }
+                        index++;
+                    }
+                    glCallList(sdl.opengl.displaylist);
+                    SDL_GL_SwapBuffers();
+                }
+
+                if(!menu.hidecycles && !sdl.desktop.fullscreen) frames++; 
             }
-            if(!menu.hidecycles && !sdl.desktop.fullscreen) frames++; 
-            SDL_GL_SwapBuffers();
             break;
 #endif
 #if (HAVE_D3D9_H) && defined(WIN32)
