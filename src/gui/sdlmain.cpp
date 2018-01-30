@@ -100,6 +100,7 @@ bool OpenGL_using(void);
 # define SDL_RESIZABLE (0)
 #endif
 
+Bitu userResizeWindowWidth = 0, userResizeWindowHeight = 0;
 Bitu currentWindowWidth = 640, currentWindowHeight = 480;
 
 Bitu time_limit_ms = 0;
@@ -2922,6 +2923,18 @@ static void HandleVideoResize(void * event) {
 
 	SDL_ResizeEvent* ResizeEvent = (SDL_ResizeEvent*)event;
 	UpdateWindowDimensions(ResizeEvent->w, ResizeEvent->h);
+
+    /* assume the resize comes from user preference UNLESS the window
+     * is fullscreen or maximized */
+    if (!menu.maxwindow && !sdl.desktop.fullscreen) {
+        userResizeWindowWidth = ResizeEvent->w;
+        userResizeWindowHeight = ResizeEvent->h;
+    }
+    else {
+        userResizeWindowWidth = 0;
+        userResizeWindowHeight = 0;
+    }
+
 	RedrawScreen(ResizeEvent->w, ResizeEvent->h);
 /*	if(sdl.desktop.want_type!=SCREEN_DIRECT3D) {
 		HWND hwnd=GetHWND();
@@ -3763,7 +3776,9 @@ void GFX_Events() {
 					switch (event.syswm.msg->wParam) {
 						case 0xF032: // FIXME: What is this?
 						case SC_MAXIMIZE:
-							menu.maxwindow = true;
+                            userResizeWindowWidth = 0;
+                            userResizeWindowHeight = 0;
+                            menu.maxwindow = true;
 							break;
 						case 0xF122: // FIXME: What is this?
 						case SC_RESTORE:
