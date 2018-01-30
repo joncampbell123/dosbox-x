@@ -5,3 +5,4 @@
 #define PACKAGE_TARNAME "dosbox-x"
 #define PACKAGE_URL "http://dosbox-x.software"
 #define PACKAGE_VERSION "0.82.2"
+#define VERSION "0.82.2"
