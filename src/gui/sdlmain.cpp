@@ -1246,8 +1246,6 @@ dosurface:
 
 				if (SDL_MUSTLOCK(sdl.surface))
 					SDL_UnlockSurface(sdl.surface);
-
-				SDL_Flip(sdl.surface);
 			}
 
 #ifdef WIN32
