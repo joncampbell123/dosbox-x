@@ -7,6 +7,30 @@
 #include "SDL_version.h"
 #include "SDL_syswm.h"
 
+void UpdateWindowDimensions(Bitu width, Bitu height);
+
+void UpdateWindowDimensions_Linux(void) {
+#if defined(C_SDL2)
+    // TODO
+#else
+	SDL_SysWMinfo wminfo;
+	memset(&wminfo,0,sizeof(wminfo));
+	SDL_VERSION(&wminfo.version);
+	if (SDL_GetWMInfo(&wminfo) >= 0) {
+		if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
+            XWindowAttributes attr;
+
+            memset(&attr,0,sizeof(attr));
+            XGetWindowAttributes(wminfo.info.x11.display, wminfo.info.x11.wmwindow, &attr);
+
+            LOG_MSG("X11 main window is %u x %u",attr.width, attr.height);
+
+            UpdateWindowDimensions(attr.width, attr.height);
+        }
+    }
+#endif
+}
+
 void Linux_GetDesktopResolution(int *width,int *height) {
 #if defined(C_SDL2)
     *width = 1024; // guess
