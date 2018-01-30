@@ -1459,15 +1459,10 @@ dosurface:
 				scaley=(double)sdl.desktop.full.height/height;
 		    }
 		} else {
-			Bitu consider_height = menu.maxwindow ? currentWindowHeight : 0;
-			Bitu consider_width = menu.maxwindow ? currentWindowWidth : 0;
+			Bitu consider_height = menu.maxwindow ? currentWindowHeight : sdl.desktop.window.height;
+			Bitu consider_width = menu.maxwindow ? currentWindowWidth : sdl.desktop.window.width;
 			int final_height = max(consider_height, userResizeWindowHeight);
 			int final_width = max(consider_width, userResizeWindowWidth);
-
-			if (final_width == 0 || final_height == 0) {
-				final_height = sdl.desktop.window.height;
-				final_width = sdl.desktop.window.width;
-			}
 
 		    if(final_width && final_height) {
 				scalex=(double)final_width / (sdl.draw.width*sdl.draw.scalex);
