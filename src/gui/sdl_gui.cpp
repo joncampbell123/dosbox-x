@@ -73,22 +73,6 @@ static bool			shortcut=false;
 static SDL_Surface*		screenshot;
 static SDL_Surface*		background;
 
-#if defined(WIN32) && !defined(C_SDL2)
-HWND GetSDLScreenHWND(void) {
-    /* Windows-specific code needs to call THIS,
-     * not GetHWND(), because it's unwise at any
-     * point to assume the SDL window is the current
-     * active window. */
-    SDL_SysWMinfo info;
-
-    memset(&info,0,sizeof(info));
-    SDL_VERION(&info.version);
-    SDL_GetWMInfo(&info);
-
-    return info.window;
-}
-#endif
-
 #if !defined(C_SDL2)
 /* Prepare screen for UI */
 void GUI_LoadFonts(void) {
