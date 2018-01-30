@@ -13,11 +13,11 @@ void UpdateWindowDimensions_Linux(void) {
 #if defined(C_SDL2)
     // TODO
 #else
-	SDL_SysWMinfo wminfo;
-	memset(&wminfo,0,sizeof(wminfo));
-	SDL_VERSION(&wminfo.version);
-	if (SDL_GetWMInfo(&wminfo) >= 0) {
-		if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
+    SDL_SysWMinfo wminfo;
+    memset(&wminfo,0,sizeof(wminfo));
+    SDL_VERSION(&wminfo.version);
+    if (SDL_GetWMInfo(&wminfo) >= 0) {
+        if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
             XWindowAttributes attr;
 
             memset(&attr,0,sizeof(attr));
