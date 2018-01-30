@@ -1,4 +1,4 @@
-<next>
+0.82.2 (01/29/2018)
   - Linux builds no longer enable window resizing. The ability to
     resize will be added back when the emulator can better handle
     the user resizing the window.
