@@ -2935,11 +2935,6 @@ void GFX_HandleVideoResize(int width, int height) {
         sdl.desktop.full.height = height;
     }
 
-    if (width == currentWindowWidth && height == currentWindowHeight) {
-        /* nothing to do */
-        return;
-    }
-
     /* Even if the new window's dimensions are actually the desired ones
      * we may still need to re-obtain a new window surface or do
      * a different thing. So we basically call GFX_SetSize, but without
@@ -2972,9 +2967,15 @@ static void HandleVideoResize(void * event) {
     /* assume the resize comes from user preference UNLESS the window
      * is fullscreen or maximized */
     if (!menu.maxwindow && !sdl.desktop.fullscreen) {
-        userResizeWindowWidth = ResizeEvent->w;
-        userResizeWindowHeight = ResizeEvent->h;
-    }
+		/* if the dimensions actually changed from our surface dimensions, then
+		   assume it's the user's input. Linux/X11 is good at doing this anyway,
+		   but the Windows SDL 1.x support will return us a resize event for the
+		   window size change resulting from SDL mode set. */
+		if (ResizeEvent->w != sdl.surface->w || ResizeEvent->h != sdl.surface->h) {
+			userResizeWindowWidth = ResizeEvent->w;
+		    userResizeWindowHeight = ResizeEvent->h;
+		}
+	}
     else {
         userResizeWindowWidth = 0;
         userResizeWindowHeight = 0;
