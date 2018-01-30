@@ -149,6 +149,10 @@ void UpdateWindowDimensions(void) {
 	GetClientRect(GetHWND(), &r);
 	UpdateWindowDimensions(r.right, r.bottom);
 #endif
+#if defined(LINUX) && !defined(C_SDL2)
+    void UpdateWindowDimensions_Linux(void);
+    UpdateWindowDimensions_Linux();
+#endif
 }
 
 #if C_OPENGL
@@ -1539,9 +1543,7 @@ dosurface:
 		GFX_Start();
 	if (!sdl.mouse.autoenable) SDL_ShowCursor(sdl.mouse.autolock?SDL_DISABLE:SDL_ENABLE);
 
-#if defined(WIN32) && !defined(C_SDL2)
 	UpdateWindowDimensions();
-#endif
 
 	return retFlags;
 }
@@ -2150,11 +2152,8 @@ void change_output(int output) {
 	GFX_SetTitle(CPU_CycleMax,-1,-1,false);
 	GFX_LogSDLState();
 
-#if defined(WIN32) && !defined(C_SDL2)
 	UpdateWindowDimensions();
-#endif
 }
-
 
 void GFX_SwitchFullScreen(void)
 {
@@ -2805,9 +2804,7 @@ static void GUI_StartUp() {
 	if(keystate&KMOD_NUM) startup_state_numlock = true;
 	if(keystate&KMOD_CAPS) startup_state_capslock = true;
 
-#if defined(WIN32) && !defined(C_SDL2)
 	UpdateWindowDimensions();
-#endif
 }
 
 void Mouse_AutoLock(bool enable) {
@@ -2920,6 +2917,7 @@ static void HandleVideoResize(void * event) {
 	if(sdl.desktop.fullscreen) return;
 
 	SDL_ResizeEvent* ResizeEvent = (SDL_ResizeEvent*)event;
+	UpdateWindowDimensions(ResizeEvent->w, ResizeEvent->h);
 	RedrawScreen(ResizeEvent->w, ResizeEvent->h);
 /*	if(sdl.desktop.want_type!=SCREEN_DIRECT3D) {
 		HWND hwnd=GetHWND();
