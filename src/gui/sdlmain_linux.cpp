@@ -30,7 +30,7 @@ void UpdateWindowDimensions_Linux(void) {
             /* we also want to ask X11 if the various atoms have been set by the window manager
              * to signal that our window has been maximized. generally when the window has been
              * maximized, SDL video mode setting has no effect on the dimensions of the window
-             * when it's been maximized so it helps to know so we can make better choices */
+             * when it's been maximized so it helps to know in order to make better choices */
             if (GFX_IsFullscreen()) {
             }
             else {
