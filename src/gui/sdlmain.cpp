@@ -2272,48 +2272,49 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
 	if (!sdl.updating)
 		return;
 	sdl.updating=false;
-	switch (sdl.desktop.type) {
-	case SCREEN_SURFACE:
-		if (SDL_MUSTLOCK(sdl.surface)) {
-			if (sdl.blit.surface) {
-				SDL_UnlockSurface(sdl.blit.surface);
-				int Blit = SDL_BlitSurface( sdl.blit.surface, 0, sdl.surface, &sdl.clip );
-				LOG(LOG_MISC,LOG_WARN)("BlitSurface returned %d",Blit);
-			} else {
-				SDL_UnlockSurface(sdl.surface);
-			}
-	if(changedLines && (changedLines[0] == sdl.draw.height)) 
-	return; 
-	if(!menu.hidecycles && !sdl.desktop.fullscreen) frames++;
+    switch (sdl.desktop.type) {
+        case SCREEN_SURFACE:
+            if (SDL_MUSTLOCK(sdl.surface)) {
+                if (sdl.blit.surface) {
+                    SDL_UnlockSurface(sdl.blit.surface);
+                    int Blit = SDL_BlitSurface( sdl.blit.surface, 0, sdl.surface, &sdl.clip );
+                    LOG(LOG_MISC,LOG_WARN)("BlitSurface returned %d",Blit);
+                } else {
+                    SDL_UnlockSurface(sdl.surface);
+                }
+                if(changedLines && (changedLines[0] == sdl.draw.height)) 
+                    return; 
+                if(!menu.hidecycles && !sdl.desktop.fullscreen) frames++;
 #if !defined(C_SDL2)
-			SDL_Flip(sdl.surface);
+                SDL_Flip(sdl.surface);
 #endif
-		} else if (changedLines) {
-	if(changedLines[0] == sdl.draw.height) 
-	return; 
-	if(!menu.hidecycles && !sdl.desktop.fullscreen) frames++;
-			Bitu y = 0, index = 0, rectCount = 0;
-			while (y < sdl.draw.height) {
-				if (!(index & 1)) {
-					y += changedLines[index];
-				} else {
-					SDL_Rect *rect = &sdl.updateRects[rectCount++];
-					rect->x = sdl.clip.x;
-					rect->y = sdl.clip.y + y;
-					rect->w = (Bit16u)sdl.draw.width;
-					rect->h = changedLines[index];
-					y += changedLines[index];
-				}
-				index++;
-			}
-			if (rectCount)
+            } else if (changedLines) {
+                if(changedLines[0] == sdl.draw.height) 
+                    return; 
+                if(!menu.hidecycles && !sdl.desktop.fullscreen) frames++;
+                Bitu y = 0, index = 0, rectCount = 0;
+                while (y < sdl.draw.height) {
+                    if (!(index & 1)) {
+                        y += changedLines[index];
+                    } else {
+                        SDL_Rect *rect = &sdl.updateRects[rectCount++];
+                        rect->x = sdl.clip.x;
+                        rect->y = sdl.clip.y + y;
+                        rect->w = (Bit16u)sdl.draw.width;
+                        rect->h = changedLines[index];
+                        y += changedLines[index];
+                    }
+                    index++;
+                }
+                if (rectCount) {
 #if defined(C_SDL2)
-                SDL_UpdateWindowSurfaceRects( sdl.window, sdl.updateRects, rectCount );
+                    SDL_UpdateWindowSurfaceRects( sdl.window, sdl.updateRects, rectCount );
 #else
-				SDL_UpdateRects( sdl.surface, rectCount, sdl.updateRects );
+                    SDL_UpdateRects( sdl.surface, rectCount, sdl.updateRects );
 #endif
-		}
-		break;
+                }
+            }
+            break;
 #if C_OPENGL
 	case SCREEN_OPENGL:
 		if (sdl.opengl.pixel_buffer_object) {
