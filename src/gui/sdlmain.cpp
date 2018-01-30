@@ -988,6 +988,7 @@ static SDL_Surface * GFX_SetupSurfaceScaled(Bit32u sdl_flags, Bit32u bpp) {
 		sdl.surface=SDL_SetVideoMode(sdl.clip.w,sdl.clip.h,bpp,sdl_flags);
 	}
 
+	UpdateWindowDimensions();
 	GFX_LogSDLState();
 	return sdl.surface;
 }
@@ -2899,6 +2900,12 @@ void GFX_HandleVideoResize(int width, int height) {
         sdl.desktop.full.width = width;
         sdl.desktop.full.height = height;
     }
+
+    if (width == currentWindowWidth && height == currentWindowHeight) {
+        /* nothing to do */
+        return;
+    }
+
     /* Even if the new window's dimensions are actually the desired ones
      * we may still need to re-obtain a new window surface or do
      * a different thing. So we basically call GFX_SetSize, but without
