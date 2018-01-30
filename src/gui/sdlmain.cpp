@@ -974,16 +974,22 @@ static SDL_Surface * GFX_SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) 
         fixedHeight = final_height;
     }
 	if (fixedWidth && fixedHeight) {
-		double ratio_w=(double)fixedWidth/(sdl.draw.width*sdl.draw.scalex);
-		double ratio_h=(double)fixedHeight/(sdl.draw.height*sdl.draw.scaley);
+        if (render.aspect) {
+            double ratio_w=(double)fixedWidth/(sdl.draw.width*sdl.draw.scalex);
+            double ratio_h=(double)fixedHeight/(sdl.draw.height*sdl.draw.scaley);
 
-        if (ratio_w < ratio_h) {
-			sdl.clip.w=fixedWidth;
-			sdl.clip.h=(Bit16u)floor((sdl.draw.height*sdl.draw.scaley*ratio_w)+0.5);
-		} else {
-			sdl.clip.w=(Bit16u)floor((sdl.draw.width*sdl.draw.scalex*ratio_h)+0.5);
-			sdl.clip.h=(Bit16u)fixedHeight;
-		}
+            if (ratio_w < ratio_h) {
+                sdl.clip.w=(Bit16u)fixedWidth;
+                sdl.clip.h=(Bit16u)floor((sdl.draw.height*sdl.draw.scaley*ratio_w)+0.5);
+            } else {
+                sdl.clip.w=(Bit16u)floor((sdl.draw.width*sdl.draw.scalex*ratio_h)+0.5);
+                sdl.clip.h=(Bit16u)fixedHeight;
+            }
+        }
+        else {
+            sdl.clip.w=fixedWidth;
+            sdl.clip.h=fixedHeight;
+        }
 
         sdl.surface = SDL_SetVideoMode(fixedWidth,fixedHeight,bpp,sdl_flags);
 		sdl.clip.x = (fixedWidth - sdl.clip.w) / 2;
