@@ -981,13 +981,9 @@ static SDL_Surface * GFX_SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) 
 			sdl.clip.h=(Bit16u)fixedHeight;
 		}
 
-		if (sdl.desktop.fullscreen)
-			sdl.surface = SDL_SetVideoMode(fixedWidth,fixedHeight,bpp,sdl_flags);
-		else
-			sdl.surface = SDL_SetVideoMode(sdl.clip.w,sdl.clip.h,bpp,sdl_flags);
-
-		sdl.clip.x=0;
-        sdl.clip.y=0;
+        sdl.surface = SDL_SetVideoMode(fixedWidth,fixedHeight,bpp,sdl_flags);
+		sdl.clip.x = (fixedWidth - sdl.clip.w) / 2;
+        sdl.clip.y = (fixedHeight - sdl.clip.h) / 2;
     }
     else {
 		sdl.clip.x=0;sdl.clip.y=0;
