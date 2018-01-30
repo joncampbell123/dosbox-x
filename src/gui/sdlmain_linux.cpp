@@ -13,6 +13,8 @@ void UpdateWindowDimensions_Linux(void) {
 #if defined(C_SDL2)
     // TODO
 #else
+    bool GFX_IsFullscreen();
+
     SDL_SysWMinfo wminfo;
     memset(&wminfo,0,sizeof(wminfo));
     SDL_VERSION(&wminfo.version);
@@ -21,7 +23,7 @@ void UpdateWindowDimensions_Linux(void) {
             XWindowAttributes attr;
 
             memset(&attr,0,sizeof(attr));
-            XGetWindowAttributes(wminfo.info.x11.display, wminfo.info.x11.wmwindow, &attr);
+            XGetWindowAttributes(wminfo.info.x11.display, GFX_IsFullscreen() ? wminfo.info.x11.fswindow : wminfo.info.x11.wmwindow, &attr);
 
             LOG_MSG("X11 main window is %u x %u",attr.width, attr.height);
 
