@@ -134,6 +134,10 @@ void GFX_ShutDown(void);
 void MAPPER_Shutdown();
 void SHELL_Init(void);
 
+void UpdateWindowMaximized(bool flag) {
+    menu.maxwindow = flag;
+}
+
 void UpdateWindowDimensions(Bitu width, Bitu height) {
 	currentWindowWidth = width;
 	currentWindowHeight = height;
