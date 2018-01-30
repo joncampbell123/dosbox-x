@@ -1501,12 +1501,13 @@ dosurface:
 		if((sdl.desktop.fullscreen) && (!sdl.desktop.full.fixed)) {
 		    // Don't do aspect ratio correction when fullfixed=false + aspect=false
 			if(d3d->aspect == 0)
-		    d3d->aspect=2;
-	    sdl.clip.w=(Uint16)scalex;
-	    sdl.clip.h=(Uint16)scaley;
-	    // Do fullscreen scaling if pixel shaders are enabled
-	    // or the game uses some weird resolution
-	    if((d3d->psActive) || (sdl.clip.w != sdl.clip.h)) {
+				d3d->aspect=2;
+
+		    sdl.clip.w=(Uint16)scalex;
+			sdl.clip.h=(Uint16)scaley;
+		    // Do fullscreen scaling if pixel shaders are enabled
+			// or the game uses some weird resolution
+			if((d3d->psActive) || (sdl.clip.w != sdl.clip.h)) {
 				sdl.clip.w*=width;
 				sdl.clip.h*=height;
 			} else { // just use native resolution
