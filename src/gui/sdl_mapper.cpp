@@ -41,13 +41,6 @@
 
 #include <map>
 
-#if defined(LINUX) && !defined(C_SDL2)
-// FIXME: Linux SDL 1.x builds are TERRIBLE at managing the window after resize.
-//        It's better not to allow it for now.
-# undef SDL_RESIZABLE
-# define SDL_RESIZABLE (0)
-#endif
-
 std::map<std::string,std::string> pending_string_binds;
 
 void MAPPER_CheckKeyboardLayout();
@@ -3079,7 +3072,7 @@ void MAPPER_RunInternal() {
         last_clicked=NULL;
     }
 #else
-	mapper.surface=SDL_SetVideoMode(640,480,8,SDL_RESIZABLE);
+	mapper.surface=SDL_SetVideoMode(640,480,8,0);
 	if (mapper.surface == NULL) E_Exit("Could not initialize video mode for mapper: %s",SDL_GetError());
 
 	/* Set some palette entries */
