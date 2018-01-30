@@ -93,6 +93,8 @@ bool OpenGL_using(void);
 # define S_ISREG(x) ((x & S_IFREG) == S_IFREG)
 #endif
 
+using namespace std;
+
 Bitu userResizeWindowWidth = 0, userResizeWindowHeight = 0;
 Bitu currentWindowWidth = 640, currentWindowHeight = 480;
 
@@ -965,8 +967,8 @@ static SDL_Surface * GFX_SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) 
     if (fixedWidth == 0 || fixedHeight == 0) {
         Bitu consider_height = menu.maxwindow ? currentWindowHeight : 0;
         Bitu consider_width = menu.maxwindow ? currentWindowWidth : 0;
-        int final_height = std::max(consider_height,userResizeWindowHeight);
-        int final_width = std::max(consider_width,userResizeWindowWidth);
+        int final_height = max(consider_height,userResizeWindowHeight);
+        int final_width = max(consider_width,userResizeWindowWidth);
 
         fixedWidth = final_width;
         fixedHeight = final_height;
@@ -1236,8 +1238,8 @@ dosurface:
 			{
                 Bitu consider_height = menu.maxwindow ? currentWindowHeight : height;
                 Bitu consider_width = menu.maxwindow ? currentWindowWidth : width;
-                int final_height = std::max(std::max(consider_height,userResizeWindowHeight),(Bitu)(sdl.clip.y+sdl.clip.h));
-                int final_width = std::max(std::max(consider_width,userResizeWindowWidth),(Bitu)(sdl.clip.x+sdl.clip.w));
+                int final_height = max(max(consider_height,userResizeWindowHeight),(Bitu)(sdl.clip.y+sdl.clip.h));
+                int final_width = max(max(consider_width,userResizeWindowWidth),(Bitu)(sdl.clip.x+sdl.clip.w));
 				int ax = (final_width - (sdl.clip.x + sdl.clip.w)) / 2;
 				int ay = (final_height - (sdl.clip.y + sdl.clip.h)) / 2;
 				sdl.clip.x += ax;
