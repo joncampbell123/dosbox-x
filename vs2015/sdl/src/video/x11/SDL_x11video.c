@@ -352,7 +352,7 @@ static void create_aux_windows(_THIS)
     FSwindow = XCreateWindow(SDL_Display, SDL_Root,
                              x, y, 32, 32, 0,
 			     this->hidden->depth, InputOutput, SDL_Visual,
-			     CWOverrideRedirect | CWBackPixel | CWBorderPixel
+			     CWOverrideRedirect/* | CWBackPixel | CWBorderPixel*/
 			     | CWColormap,
 			     &xattr);
 
@@ -387,7 +387,7 @@ static void create_aux_windows(_THIS)
     WMwindow = XCreateWindow(SDL_Display, SDL_Root,
                              x, y, 32, 32, 0,
 			     this->hidden->depth, InputOutput, SDL_Visual,
-			     CWBackPixel | CWBorderPixel | CWColormap,
+			     /*CWBackPixel | CWBorderPixel | */CWColormap,
 			     &xattr);
 
     /* Set the input hints so we get keyboard input */
@@ -1051,8 +1051,8 @@ static int X11_CreateWindow(_THIS, SDL_Surface *screen,
 			SDL_Window = XCreateWindow(SDL_Display, WMwindow,
 		                           	0, 0, w, h, 0, depth,
 		                           	InputOutput, SDL_Visual,
-		                           	CWBackPixel | CWBorderPixel
-		                           	| CWColormap, &swa);
+		                           	/*CWBackPixel | CWBorderPixel
+		                           	| */CWColormap, &swa);
 		}
 		/* Only manage our input if we own the window */
 		XSelectInput(SDL_Display, SDL_Window,
