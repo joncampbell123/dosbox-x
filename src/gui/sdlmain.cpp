@@ -374,6 +374,8 @@ struct SDL_Block {
 	// state of alt-keys for certain special handlings
 	Bit16u laltstate;
 	Bit16u raltstate;
+    bool must_redraw_all;
+    bool deferred_resize;
 };
 
 static SDL_Block sdl;
@@ -984,13 +986,17 @@ static SDL_Surface * GFX_SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) 
         sdl.surface = SDL_SetVideoMode(fixedWidth,fixedHeight,bpp,sdl_flags);
 		sdl.clip.x = (fixedWidth - sdl.clip.w) / 2;
         sdl.clip.y = (fixedHeight - sdl.clip.h) / 2;
+        sdl.deferred_resize = false;
+        sdl.must_redraw_all = true;
     }
     else {
-		sdl.clip.x=0;sdl.clip.y=0;
-		sdl.clip.w=(Bit16u)(sdl.draw.width*sdl.draw.scalex);
-		sdl.clip.h=(Bit16u)(sdl.draw.height*sdl.draw.scaley);
-		sdl.surface=SDL_SetVideoMode(sdl.clip.w,sdl.clip.h,bpp,sdl_flags);
-	}
+        sdl.clip.x=0;sdl.clip.y=0;
+        sdl.clip.w=(Bit16u)(sdl.draw.width*sdl.draw.scalex);
+        sdl.clip.h=(Bit16u)(sdl.draw.height*sdl.draw.scaley);
+        sdl.surface=SDL_SetVideoMode(sdl.clip.w,sdl.clip.h,bpp,sdl_flags);
+        sdl.deferred_resize = false;
+        sdl.must_redraw_all = true;
+    }
 
 	UpdateWindowDimensions();
 	GFX_LogSDLState();
@@ -1026,6 +1032,8 @@ Bitu GFX_SetSize(Bitu width,Bitu height,Bitu flags,double scalex,double scaley,G
 	if (sdl.updating)
 		GFX_EndUpdate( 0 );
 
+    sdl.must_redraw_all = true;
+
 	sdl.draw.width=width;
 	sdl.draw.height=height;
 	sdl.draw.flags=flags;
@@ -1033,7 +1041,7 @@ Bitu GFX_SetSize(Bitu width,Bitu height,Bitu flags,double scalex,double scaley,G
 	sdl.draw.scalex=scalex;
 	sdl.draw.scaley=scaley;
 
-	LOG(LOG_MISC,LOG_DEBUG)("GFX_SetSize %ux%u flags=0x%x scale=%.3fx%.3f",
+    LOG(LOG_MISC,LOG_DEBUG)("GFX_SetSize %ux%u flags=0x%x scale=%.3fx%.3f",
         (unsigned int)width,(unsigned int)height,
         (unsigned int)flags,
         scalex,scaley);
@@ -1095,7 +1103,9 @@ Bitu GFX_SetSize(Bitu width,Bitu height,Bitu flags,double scalex,double scaley,G
 		putenv(scale);
 		sdl_flags = (sdl.desktop.fullscreen?SDL_FULLSCREEN:0)|SDL_HWSURFACE|SDL_ANYFORMAT;
 		sdl.surface=SDL_SetVideoMode(width,height,bpp,sdl_flags);
-		if (sdl.surface) {
+        sdl.deferred_resize = false;
+        sdl.must_redraw_all = true;
+        if (sdl.surface) {
 		    switch (sdl.surface->format->BitsPerPixel) {
 			case 8:retFlags = GFX_CAN_8;break;
 			case 15:retFlags = GFX_CAN_15;break;
@@ -1204,10 +1214,14 @@ dosurface:
 				sdl.clip.y=(Sint16)((sdl.desktop.full.height-height)/2);
 				sdl.surface=SDL_SetVideoMode(sdl.desktop.full.width,
 					sdl.desktop.full.height, bpp, wflags);
-			} else {
-				sdl.clip.x=0;sdl.clip.y=0;
-				sdl.surface=SDL_SetVideoMode(width, height, bpp, wflags);
-			}
+                sdl.deferred_resize = false;
+                sdl.must_redraw_all = true;
+            } else {
+                sdl.clip.x=0;sdl.clip.y=0;
+                sdl.surface=SDL_SetVideoMode(width, height, bpp, wflags);
+                sdl.deferred_resize = false;
+                sdl.must_redraw_all = true;
+            }
 			if (sdl.surface == NULL) {
 				LOG_MSG("Fullscreen not supported: %s", SDL_GetError());
 				sdl.desktop.fullscreen=false;
@@ -1238,6 +1252,8 @@ dosurface:
                     (unsigned int)final_height);
 
 				sdl.surface = SDL_SetVideoMode(final_width, final_height, bpp, (flags & GFX_CAN_RANDOM) ? SDL_SWSURFACE | SDL_RESIZABLE : SDL_HWSURFACE | SDL_RESIZABLE);
+                sdl.deferred_resize = false;
+                sdl.must_redraw_all = true;
 
 				if (SDL_MUSTLOCK(sdl.surface))
 					SDL_LockSurface(sdl.surface);
@@ -1263,7 +1279,9 @@ dosurface:
 				SDL_InitSubSystem(SDL_INIT_VIDEO);
 				GFX_SetIcon(); //Set Icon again
 				sdl.surface = SDL_SetVideoMode(width,height,bpp,SDL_HWSURFACE);
-				if(sdl.surface) GFX_SetTitle(-1,-1,-1,false); //refresh title.
+                sdl.deferred_resize = false;
+                sdl.must_redraw_all = true;
+                if(sdl.surface) GFX_SetTitle(-1,-1,-1,false); //refresh title.
 			}
 #endif
 			if (sdl.surface == NULL)
@@ -1480,12 +1498,16 @@ dosurface:
 		// D3D will hang or crash when using fullscreen with ddraw surface, therefore we hack SDL to provide
 		// a GDI window with an additional 0x40 flag. If this fails or stock SDL is used, use WINDIB output
 		if(GCC_UNLIKELY(d3d->bpp16)) {
-		    sdl.surface=SDL_SetVideoMode(sdl.clip.w,sdl.clip.h,16,sdl.desktop.fullscreen ? SDL_FULLSCREEN|0x40 : SDL_RESIZABLE|0x40);
-		    retFlags = GFX_CAN_16 | GFX_SCALING;
-		} else {
-		    sdl.surface=SDL_SetVideoMode(sdl.clip.w,sdl.clip.h,0,sdl.desktop.fullscreen ? SDL_FULLSCREEN|0x40 : SDL_RESIZABLE|0x40);
-		    retFlags = GFX_CAN_32 | GFX_SCALING;
-		}
+            sdl.surface=SDL_SetVideoMode(sdl.clip.w,sdl.clip.h,16,sdl.desktop.fullscreen ? SDL_FULLSCREEN|0x40 : SDL_RESIZABLE|0x40);
+            sdl.deferred_resize = false;
+            sdl.must_redraw_all = true;
+            retFlags = GFX_CAN_16 | GFX_SCALING;
+        } else {
+            sdl.surface=SDL_SetVideoMode(sdl.clip.w,sdl.clip.h,0,sdl.desktop.fullscreen ? SDL_FULLSCREEN|0x40 : SDL_RESIZABLE|0x40);
+            sdl.deferred_resize = false;
+            sdl.must_redraw_all = true;
+            retFlags = GFX_CAN_32 | GFX_SCALING;
+        }
 
 		if (sdl.surface == NULL) E_Exit("Could not set video mode %ix%i-%i: %s",sdl.clip.w,sdl.clip.h,
 					d3d->bpp16 ? 16:32,SDL_GetError());
@@ -1515,7 +1537,7 @@ dosurface:
 
 	UpdateWindowDimensions();
 
-	return retFlags;
+    return retFlags;
 }
 
 #if defined(WIN32)
@@ -2288,6 +2310,10 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
 #if !defined(C_SDL2)
                 SDL_Flip(sdl.surface);
 #endif
+            } else if (sdl.must_redraw_all) {
+#if !defined(C_SDL2)
+                if (changedLines != NULL) SDL_Flip(sdl.surface);
+#endif
             } else if (changedLines) {
                 if(changedLines[0] == sdl.draw.height) 
                     return; 
@@ -2370,6 +2396,18 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
 	default:
 		break;
 	}
+
+    sdl.must_redraw_all = false;
+
+    if (changedLines != NULL && sdl.deferred_resize) {
+        sdl.deferred_resize = false;
+#if defined(C_SDL2)
+#else
+        void GFX_RedrawScreen(Bit32u nWidth, Bit32u nHeight);
+
+        GFX_RedrawScreen(sdl.draw.width, sdl.draw.height);
+#endif
+    }
 }
 
 void GFX_SetPalette(Bitu start,Bitu count,GFX_PalEntry * entries) {
@@ -2706,7 +2744,9 @@ static void GUI_StartUp() {
 	/* Initialize screen for first time */
 	sdl.surface=SDL_SetVideoMode(640,400,0,SDL_RESIZABLE);
 	if (sdl.surface == NULL) E_Exit("Could not initialize video: %s",SDL_GetError());
-	sdl.desktop.bpp=sdl.surface->format->BitsPerPixel;
+    sdl.deferred_resize = false;
+    sdl.must_redraw_all = true;
+    sdl.desktop.bpp=sdl.surface->format->BitsPerPixel;
 	if (sdl.desktop.bpp==24) {
 		LOG_MSG("SDL:You are running in 24 bpp mode, this will slow down things!");
 	}
@@ -2857,6 +2897,10 @@ static void RedrawScreen(Bit32u nWidth, Bit32u nHeight) {
     RENDER_CallBack( GFX_CallBackReset);
 }
 
+void GFX_RedrawScreen(Bit32u nWidth, Bit32u nHeight) {
+    RedrawScreen(nWidth, nHeight);
+}
+
 #if defined(C_SDL2)
 void GFX_HandleVideoResize(int width, int height) {
     /* Maybe a screen rotation has just occurred, so we simply resize.
@@ -2890,6 +2934,13 @@ void GFX_HandleVideoResize(int width, int height) {
     sdl.update_window = true;
 }
 #else
+bool GFX_MustActOnResize() {
+    if (!GFX_IsFullscreen())
+        return false;
+
+    return true;
+}
+
 static void HandleVideoResize(void * event) {
 	if(sdl.desktop.fullscreen) return;
 
@@ -2907,7 +2958,15 @@ static void HandleVideoResize(void * event) {
         userResizeWindowHeight = 0;
     }
 
-	RedrawScreen(ResizeEvent->w, ResizeEvent->h);
+    if (sdl.updating && !GFX_MustActOnResize()) {
+        /* act on resize when updating is complete */
+        sdl.deferred_resize = true;
+    }
+    else {
+        sdl.deferred_resize = false;
+        RedrawScreen(ResizeEvent->w, ResizeEvent->h);
+    }
+
 /*	if(sdl.desktop.want_type!=SCREEN_DIRECT3D) {
 		HWND hwnd=GetHWND();
 		RECT myrect;
@@ -4290,6 +4349,8 @@ static void show_warning(char const * const message) {
     sdl.surface = SDL_GetWindowSurface(sdl.window);
 #else
 	if(!sdl.surface) sdl.surface = SDL_SetVideoMode(640,400,0,SDL_RESIZABLE);
+    sdl.deferred_resize = false;
+    sdl.must_redraw_all = true;
 #endif
 	if(!sdl.surface) return;
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
@@ -5209,6 +5270,10 @@ int main(int argc, char* argv[]) {
 			sdl.num_joysticks = 0;
 		}
 
+        /* must redraw after modeset */
+        sdl.must_redraw_all = true;
+        sdl.deferred_resize = false;
+
 		/* assume L+R ALT keys are up */
 		sdl.laltstate = SDL_KEYUP;
 		sdl.raltstate = SDL_KEYUP;
@@ -5328,6 +5393,8 @@ int main(int argc, char* argv[]) {
 
 			sdl.surface = SDL_SetVideoMode(640, 400, 0, SDL_RESIZABLE);
 			if (sdl.surface == NULL) E_Exit("Could not initialize video: %s", SDL_GetError());
+            sdl.deferred_resize = false;
+            sdl.must_redraw_all = true;
 
 			change_output(sdl.opengl.bilinear ? 3/*OpenGL*/ : 4/*OpenGLNB*/);
 			GFX_SetIcon();
