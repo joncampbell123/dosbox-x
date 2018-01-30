@@ -93,6 +93,13 @@ bool OpenGL_using(void);
 # define S_ISREG(x) ((x & S_IFREG) == S_IFREG)
 #endif
 
+#if defined(LINUX) && !defined(C_SDL2)
+// FIXME: Linux SDL 1.x builds are TERRIBLE at managing the window after resize.
+//        It's better not to allow it for now.
+# undef SDL_RESIZABLE
+# define SDL_RESIZABLE (0)
+#endif
+
 Bitu currentWindowWidth = 640, currentWindowHeight = 480;
 
 Bitu time_limit_ms = 0;

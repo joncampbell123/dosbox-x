@@ -40,6 +40,13 @@
 
 #include "SDL_syswm.h"
 
+#if defined(LINUX) && !defined(C_SDL2)
+// FIXME: Linux SDL 1.x builds are TERRIBLE at managing the window after resize.
+//        It's better not to allow it for now.
+# undef SDL_RESIZABLE
+# define SDL_RESIZABLE (0)
+#endif
+
 /* helper class for command execution */
 class VirtualBatch : public BatchFile {
 public:

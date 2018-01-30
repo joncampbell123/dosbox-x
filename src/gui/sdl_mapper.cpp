@@ -41,6 +41,13 @@
 
 #include <map>
 
+#if defined(LINUX) && !defined(C_SDL2)
+// FIXME: Linux SDL 1.x builds are TERRIBLE at managing the window after resize.
+//        It's better not to allow it for now.
+# undef SDL_RESIZABLE
+# define SDL_RESIZABLE (0)
+#endif
+
 std::map<std::string,std::string> pending_string_binds;
 
 void MAPPER_CheckKeyboardLayout();
