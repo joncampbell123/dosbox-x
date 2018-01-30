@@ -37,6 +37,10 @@
 # define pref_struct_stat	struct stat
 #endif
 
+#if defined(WIN32) && !defined(C_SDL2)
+HWND GetSDLScreenHWND(void);
+#endif
+
 // TODO: The autoconf script should test the size of long double
 #if defined(_MSC_VER)
 // Microsoft C++ sizeof(long double) == sizeof(double)
