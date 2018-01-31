@@ -5582,6 +5582,13 @@ int main(int argc, char* argv[]) {
         /* go! */
         sdl.init_ignore = false;
         UpdateWindowDimensions();
+        userResizeWindowWidth = 0;
+        userResizeWindowHeight = 0;
+
+#if !defined(C_SDL2)
+        void GUI_ResetResize(bool pressed);
+        GUI_ResetResize(true);
+#endif
 
         bool reboot_dos;
 		bool run_machine;
