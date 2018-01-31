@@ -224,6 +224,7 @@ enum PRIORITY_LEVELS {
 #endif
 
 #if !defined(C_SDL2)
+void                        GUI_ResetResize(bool);
 void						GUI_LoadFonts();
 void						GUI_Run(bool);
 #endif
@@ -2866,6 +2867,7 @@ static void GUI_StartUp() {
 #endif
 #if !defined(C_SDL2)
 	MAPPER_AddHandler(&GUI_Run, MK_f10, MMOD2, "gui", "ShowGUI");
+	MAPPER_AddHandler(&GUI_ResetResize, MK_f2, MMOD1, "resetsize", "ResetSize");
 #endif
 	/* Get Keyboard state of numlock and capslock */
 #if defined(C_SDL2)
@@ -5847,4 +5849,23 @@ bool Get_Custom_SaveDir(std::string& savedir) {
 
 	return false;
 }
+
+#if !defined(C_SDL2)
+void GUI_ResetResize(bool pressed) {
+	void RENDER_CallBack( GFX_CallBackFunctions_t function );
+
+	if (!pressed) return;
+    userResizeWindowWidth = 0;
+    userResizeWindowHeight = 0;
+
+    if (sdl.updating && !GFX_MustActOnResize()) {
+        /* act on resize when updating is complete */
+        sdl.deferred_resize = true;
+    }
+    else {
+        sdl.deferred_resize = false;
+		RENDER_CallBack(GFX_CallBackReset);
+    }
+}
+#endif
 
