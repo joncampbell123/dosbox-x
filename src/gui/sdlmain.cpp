@@ -382,6 +382,7 @@ struct SDL_Block {
 	Bit16u raltstate;
     bool must_redraw_all;
     bool deferred_resize;
+    bool init_ignore;
 };
 
 static SDL_Block sdl;
@@ -3007,7 +3008,7 @@ static void HandleVideoResize(void * event) {
 
     /* assume the resize comes from user preference UNLESS the window
      * is fullscreen or maximized */
-    if (!menu.maxwindow && !sdl.desktop.fullscreen) {
+    if (!menu.maxwindow && !sdl.desktop.fullscreen && !sdl.init_ignore) {
 		UpdateWindowDimensions();
 		UpdateWindowDimensions(ResizeEvent->w, ResizeEvent->h);
 
@@ -5292,6 +5293,8 @@ int main(int argc, char* argv[]) {
 		}
 #endif
 
+        sdl.init_ignore = true;
+
 #ifdef WIN32
 		/* Windows Vista/7/8/10 DPI awareness. If we don't tell Windows we're high DPI aware, the DWM will
 		 * upscale our window to emulate a 96 DPI display which on high res screen will make our UI look blurry.
@@ -5575,6 +5578,10 @@ int main(int argc, char* argv[]) {
 
 		/* The machine just "powered on", and then reset finished */
 		if (!VM_PowerOn()) E_Exit("VM failed to power on");
+
+        /* go! */
+        sdl.init_ignore = false;
+        UpdateWindowDimensions();
 
         bool reboot_dos;
 		bool run_machine;
