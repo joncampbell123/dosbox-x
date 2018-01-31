@@ -3008,6 +3008,7 @@ static void HandleVideoResize(void * event) {
     /* assume the resize comes from user preference UNLESS the window
      * is fullscreen or maximized */
     if (!menu.maxwindow && !sdl.desktop.fullscreen) {
+		UpdateWindowDimensions();
 		UpdateWindowDimensions(ResizeEvent->w, ResizeEvent->h);
 
 		/* if the dimensions actually changed from our surface dimensions, then
