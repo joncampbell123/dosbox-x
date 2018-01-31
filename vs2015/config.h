@@ -86,7 +86,9 @@
 #define C_LIBPNG 1
 
 /* Define to 1 to enable internal modem support, requires SDL_net */
+#if !defined(C_SDL2)
 #define C_MODEM 1
+#endif
 
 /* Define to 1 to enable NE2000 ethernet passthrough, requires libpcap */
 #define C_NE2000 1
