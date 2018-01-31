@@ -64,6 +64,7 @@ BEGIN
 	POPUP "Video"
 	BEGIN
 		MENUITEM "Fullscreen\tAlt-Enter",				       ID_FULLSCREEN
+        MENUITEM "Reset window scale to 100%",                 ID_RESET_RESCALE
 		MENUITEM "Hide Menu Bar\tCtrl-Alt-Enter",		ID_TOGGLE
 		MENUITEM "Always on top",			ID_ALWAYS_ON_TOP
 		MENUITEM SEPARATOR

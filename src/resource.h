@@ -728,6 +728,7 @@
 #define ID_GLIDE_EMU_OPENGL             818
 #define ID_GLIDE_EMU_AUTO               819
 #define ID_ALWAYS_ON_TOP                820
+#define ID_RESET_RESCALE                821
 #define ID_MFCLOC_MANIFEST              1000
 #define AFX_IDC_FONTPROP                1000
 #define AFX_IDC_FONTNAMES               1001

@@ -31,6 +31,10 @@
 
 extern bool dos_kernel_disabled;
 
+#if !defined(C_SDL2)
+void GUI_ResetResize(bool pressed);
+#endif
+
 std::string MSCDEX_Output(int num) {
 	std::string MSCDEX_MSG = "GUI: MSCDEX ";
 	std::string MSCDEX_MSG_Failure = "Failure: ";
@@ -1616,6 +1620,7 @@ void MSG_Loop(void) {
 				GFX_SetTitle(CPU_CycleMax, -1, -1, false);
 				break;
 			case ID_TOGGLE: ToggleMenu(true); break;
+            case ID_RESET_RESCALE:  GUI_ResetResize(true);                                      break;
 			case ID_NONE:			SetScaler(scalerOpNormal,			1, "none");				break;
 			case ID_NORMAL2X:		SetScaler(scalerOpNormal,			2, "normal2x");			break;
 			case ID_NORMAL3X:		SetScaler(scalerOpNormal,			3, "normal3x");			break;
