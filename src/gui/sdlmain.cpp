@@ -149,7 +149,8 @@ void UpdateWindowDimensions(void) {
 	RECT r = { 0 };
 
 	GetClientRect(GetHWND(), &r);
-	UpdateWindowDimensions(r.right, r.bottom);
+    UpdateWindowDimensions(r.right, r.bottom);
+    UpdateWindowMaximized(IsZoomed(GetHWND()));
 #endif
 #if defined(LINUX) && !defined(C_SDL2)
     void UpdateWindowDimensions_Linux(void);
