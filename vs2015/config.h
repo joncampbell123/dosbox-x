@@ -42,7 +42,7 @@
 #undef C_DEBUG
 
 /* Define to 1 if you want parallel passthrough support (Win32, Linux). */
-#undef C_DIRECTLPT
+#define C_DIRECTLPT 1
 
 /* Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).
    */
