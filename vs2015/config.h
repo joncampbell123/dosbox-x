@@ -46,7 +46,7 @@
 
 /* Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).
    */
-#undef C_DIRECTSERIAL
+#define C_DIRECTSERIAL 1
 
 #ifdef _M_AMD64 /* Microsoft C++ amd64 */
 # undef C_DYNAMIC_X86
