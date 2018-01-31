@@ -3023,8 +3023,6 @@ static void HandleVideoResize(void * event) {
 	}
     else {
 		UpdateWindowDimensions();
-		userResizeWindowWidth = 0;
-        userResizeWindowHeight = 0;
     }
 
     if (sdl.updating && !GFX_MustActOnResize()) {
