@@ -814,9 +814,6 @@ unsigned int __stdcall ParentWindowThreadProc(void *arg) {
 		return 1;
 	}
 
-	/* FIXME: At some point, we defer showing the window until the main thread has set it's window up */
-	SetWindowPos(ParentWindowHWND, HWND_TOP, 0, 0, 640, 480, SWP_SHOWWINDOW|SWP_NOMOVE);
-	UpdateWindow(ParentWindowHWND);
 	ParentWindowReady = 1;
 	ParentWindowInit = 0;
 
