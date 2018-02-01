@@ -1041,6 +1041,8 @@ static void GFX_ResetSDL() {
 #endif
 }
 
+extern "C" unsigned int SDL1_hax_inhibit_WM_PAINT;
+
 Bitu GFX_SetSize(Bitu width,Bitu height,Bitu flags,double scalex,double scaley,GFX_CallBack_t callback) {
 	if (sdl.updating)
 		GFX_EndUpdate( 0 );
@@ -1067,6 +1069,9 @@ Bitu GFX_SetSize(Bitu width,Bitu height,Bitu flags,double scalex,double scaley,G
 		SDL_FreeSurface(sdl.blit.surface);
 		sdl.blit.surface=0;
 	}
+
+	SDL1_hax_inhibit_WM_PAINT = 0;
+
 	switch (sdl.desktop.want_type) {
 #if !defined(C_SDL2)
 	case SCREEN_OPENGLHQ:
@@ -1567,6 +1572,8 @@ dosurface:
 		sdl.desktop.type=SCREEN_DIRECT3D;
 
 		if(d3d->dynamic) retFlags |= GFX_HARDWARE;
+
+		SDL1_hax_inhibit_WM_PAINT = 1;
 
 		if(GCC_UNLIKELY(d3d->Resize3DEnvironment(window_width,window_height,sdl.clip.w,sdl.clip.h,width,
 						    height,sdl.desktop.fullscreen) != S_OK)) {
@@ -3025,7 +3032,7 @@ static void HandleVideoResize(void * event) {
 		UpdateWindowDimensions();
     }
 
-    if (sdl.updating && !GFX_MustActOnResize()) {
+    if (!GFX_MustActOnResize()) {
         /* act on resize when updating is complete */
         sdl.deferred_resize = true;
     }
@@ -5874,7 +5881,7 @@ void GUI_ResetResize(bool pressed) {
     userResizeWindowWidth = 0;
     userResizeWindowHeight = 0;
 
-    if (sdl.updating && !GFX_MustActOnResize()) {
+    if (!GFX_MustActOnResize()) {
         /* act on resize when updating is complete */
         sdl.deferred_resize = true;
     }

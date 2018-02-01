@@ -245,6 +245,7 @@ static BOOL WINAPI WIN_TrackMouseEvent(TRACKMOUSEEVENT *ptme)
 #endif /* WM_MOUSELEAVE */
 
 int sysevents_mouse_pressed = 0;
+unsigned int SDL1_hax_inhibit_WM_PAINT = 0;
 
 LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -657,7 +658,8 @@ this->hidden->hiresFix, &x, &y);
 			PAINTSTRUCT ps;
 
 			hdc = BeginPaint(SDL_Window, &ps);
-			if ( current_video->screen &&
+			if (  !SDL1_hax_inhibit_WM_PAINT &&
+				   current_video->screen &&
 			     !(current_video->screen->flags & SDL_OPENGL) ) {
 				WIN_WinPAINT(current_video, hdc);
 			}

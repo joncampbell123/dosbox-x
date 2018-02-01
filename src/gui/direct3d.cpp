@@ -53,6 +53,8 @@ HRESULT CDirect3D::InitializeDX(HWND wnd, bool triplebuf)
     LOG_MSG("D3D:Starting Direct3D");
 #endif
 
+	backbuffer_clear_countdown = 0;
+
     // Check for display window
     if(!wnd) {
 	LOG_MSG("Error: No display window set!");
@@ -535,6 +537,11 @@ bool CDirect3D::D3DSwapBuffers(void)
     HRESULT hr;
     UINT uPasses;
 
+	if (backbuffer_clear_countdown > 0) {
+		backbuffer_clear_countdown--;
+		pD3DDevice9->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
+	}
+
     // begin rendering
     pD3DDevice9->BeginScene();
 
@@ -995,6 +1002,10 @@ reset_device:
 	}
     }
 
+	backbuffer_clear_countdown = 2;
+	if (d3dpp.BackBufferCount == 2) backbuffer_clear_countdown++;
+
+#if 0
     // Clear all backbuffers
     pD3DDevice9->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
 
@@ -1005,6 +1016,7 @@ reset_device:
 	pD3DDevice9->Present(NULL, NULL, NULL, NULL);
 	pD3DDevice9->Clear(0, NULL, D3DCLEAR_TARGET, D3DCOLOR_XRGB(0, 0, 0), 1.0f, 0);
     }
+#endif
 
 #if LOG_D3D
     LOG_MSG("D3D:Mode: %dx%d (x %.2fx%.2f) --> scaled size: %dx%d", dwWidth, dwHeight,
