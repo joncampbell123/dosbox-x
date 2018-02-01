@@ -720,6 +720,18 @@ LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 
 		return(0);
 	}
+	else if (msg == WM_ACTIVATEAPP) {
+		if (wParam)
+			SetFocus(SDL_Window);
+
+		return(0);
+	}
+	else if (msg == WM_ACTIVATE) {
+		if (wParam == WA_ACTIVE || wParam == WA_CLICKACTIVE)
+			SetFocus(SDL_Window);
+
+		return(0);
+	}
 	else if (msg == WM_SIZE) {
 		SetWindowPos(SDL_Window, HWND_TOP, 0, 0, LOWORD(lParam), HIWORD(lParam), SWP_NOACTIVATE);
 		return(0);
