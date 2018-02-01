@@ -136,6 +136,8 @@ static void LoadAygshell(void)
 
 #endif
 
+extern HWND	ParentWindowHWND;
+
 /* JC 14 Mar 2006
    This is used all over the place, in the windib driver and in the dx5 driver
    So we may as well stick it here instead of having multiple copies scattered
@@ -167,7 +169,7 @@ static void SDL_RestoreGameMode(void)
 #endif
 	
 #else
-	ShowWindow(SDL_Window, SW_RESTORE);
+	ShowWindow(ParentWindowHWND, SW_RESTORE);
 #endif
 
 #ifndef NO_CHANGEDISPLAYSETTINGS
@@ -194,7 +196,7 @@ static void SDL_RestoreDesktopMode(void)
 	
 #else
 	/* WinCE does not have a taskbar, so minimizing is not convenient */
-	ShowWindow(SDL_Window, SW_MINIMIZE);
+	ShowWindow(ParentWindowHWND, SW_MINIMIZE);
 #endif
 
 #ifndef NO_CHANGEDISPLAYSETTINGS
