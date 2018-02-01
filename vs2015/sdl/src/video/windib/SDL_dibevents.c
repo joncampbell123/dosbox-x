@@ -720,6 +720,7 @@ LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 	}
 	else if (msg == WM_SIZE) {
 		SetWindowPos(SDL_Window, HWND_TOP, 0, 0, LOWORD(lParam), HIWORD(lParam), SWP_NOACTIVATE);
+		SendMessage(SDL_Window, WM_USER, 0, 0);
 		return(0);
 	}
 	/* NTS: Do not handle WM_COMMAND, DOSBox will poke at the queue to retrieve it */
