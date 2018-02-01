@@ -720,7 +720,6 @@ LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 	}
 	else if (msg == WM_SIZE) {
 		SetWindowPos(SDL_Window, HWND_TOP, 0, 0, LOWORD(lParam), HIWORD(lParam), SWP_NOACTIVATE);
-		SendMessage(SDL_Window, WM_USER, 0, 0);
 		return(0);
 	}
 	else if (msg == WM_SYSCOMMAND) {
@@ -742,12 +741,12 @@ LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 		/* Before we forward to the child, we need to get the new dimensions, resize the child,
 		   and THEN forward it to the child. Note that this forwarding is required if SDL is
 		   to keep the window position intact when resizing the DIB window. */
-		RECT rc;
+		{
+			RECT rc;
 
-		GetClientRect(hwnd, &rc);
-
-		SetWindowPos(SDL_Window, HWND_TOP, 0, 0, rc.right, rc.bottom, SWP_NOACTIVATE);
-		SendMessage(SDL_Window, WM_USER, 0, 0);
+			GetClientRect(hwnd, &rc);
+			SetWindowPos(SDL_Window, HWND_TOP, 0, 0, rc.right, rc.bottom, SWP_NOACTIVATE);
+		}
 
 		return SendMessage(SDL_Window, msg, wParam, lParam);
 	}
