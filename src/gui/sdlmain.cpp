@@ -1959,7 +1959,7 @@ static void d3d_init(void) {
 		if(!d3d) {
 			LOG_MSG("Failed to create d3d object");
 			sdl.desktop.want_type=SCREEN_SURFACE;
-		} else if(d3d->InitializeDX(wmi.window,sdl.desktop.doublebuf) != S_OK) {
+		} else if(d3d->InitializeDX(wmi.child_window,sdl.desktop.doublebuf) != S_OK) {
 			LOG_MSG("Unable to initialize DirectX");
 			sdl.desktop.want_type=SCREEN_SURFACE;
 		}
@@ -4346,8 +4346,7 @@ void SDL_SetupConfigSection() {
 #endif
 		0 };
 #ifdef __WIN32__
-//		Pstring = sdl_sec->Add_string("output",Property::Changeable::Always,"direct3d");	/* <- Direct3D doesn't like being a child window */
-		Pstring = sdl_sec->Add_string("output",Property::Changeable::Always,"surface");
+		Pstring = sdl_sec->Add_string("output",Property::Changeable::Always,"direct3d");	/* <- Direct3D doesn't like being a child window */
 #else
 		Pstring = sdl_sec->Add_string("output",Property::Changeable::Always,"surface");
 #endif
