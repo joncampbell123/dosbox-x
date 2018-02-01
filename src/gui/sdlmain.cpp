@@ -1041,7 +1041,9 @@ static void GFX_ResetSDL() {
 #endif
 }
 
+#if !defined(C_SDL2)
 extern "C" unsigned int SDL1_hax_inhibit_WM_PAINT;
+#endif
 
 Bitu GFX_SetSize(Bitu width,Bitu height,Bitu flags,double scalex,double scaley,GFX_CallBack_t callback) {
 	if (sdl.updating)
@@ -1070,7 +1072,9 @@ Bitu GFX_SetSize(Bitu width,Bitu height,Bitu flags,double scalex,double scaley,G
 		sdl.blit.surface=0;
 	}
 
+#if !defined(C_SDL2)
 	SDL1_hax_inhibit_WM_PAINT = 0;
+#endif
 
 	switch (sdl.desktop.want_type) {
 #if !defined(C_SDL2)
