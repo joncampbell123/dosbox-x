@@ -778,7 +778,7 @@ Bit16u device_CON::GetInformation(void) {
 		 * Since Scandisk is using INT 21h AH=0x0B to query STDIN during this time,
 		 * this implementation is a good "halfway" compromise in that this call
 		 * will trigger the INT 16h AH=0x11 hook it relies on. */
-		if (readcache) return 0x8093; /* key available */
+		if (readcache || dev_con_pos < dev_con_max) return 0x8093; /* key available */
 
 		Bitu saved_ax = reg_ax;
 
