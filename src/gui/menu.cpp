@@ -1547,7 +1547,11 @@ int Reflect_Menu(void) {
 }
 
 void reflectmenu_INITMENU_cb() {
-	/* WARNING: SDL calls this from Parent Window Thread! */
+	/* WARNING: SDL calls this from Parent Window Thread!
+	            This executes in the context of the Parent Window Thread, NOT the main thread!
+				As stupid as that seems, this is the only way the Parent Window Thread can make
+				sure to keep Windows waiting while we take our time to reset the checkmarks in
+				the menus before the menu is displayed. */
 	Reflect_Menu();
 }
 
