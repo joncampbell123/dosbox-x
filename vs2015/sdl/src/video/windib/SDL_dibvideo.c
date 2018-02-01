@@ -569,6 +569,10 @@ static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int p
 		} else {
 			top = HWND_NOTOPMOST;
 		}
+
+		x = 0;
+		y = 0;
+
 		SetWindowPos(SDL_Window, top, x, y, width, height, swp_flags);
 		if ( !(flags & SDL_FULLSCREEN) ) {
 			SDL_windowX = SDL_bounds.left;
@@ -579,6 +583,8 @@ static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int p
 		}
 	}
 }
+
+extern HWND	ParentWindowHWND;
 
 SDL_Surface *DIB_SetVideoMode(_THIS, SDL_Surface *current,
 				int width, int height, int bpp, Uint32 flags)
@@ -799,7 +805,7 @@ SDL_Surface *DIB_SetVideoMode(_THIS, SDL_Surface *current,
 		DIB_CreatePalette(this, bpp);
 	}
 
-	style = GetWindowLong(SDL_Window, GWL_STYLE);
+	style = GetWindowLong(ParentWindowHWND/*SDL_Window*/, GWL_STYLE);
 	style &= ~(resizestyle|WS_MAXIMIZE);
 	if ( (video->flags & SDL_FULLSCREEN) == SDL_FULLSCREEN ) {
 		style &= ~windowstyle;
@@ -823,13 +829,13 @@ SDL_Surface *DIB_SetVideoMode(_THIS, SDL_Surface *current,
 			}
 		}
 #if WS_MAXIMIZE && !defined(_WIN32_WCE)
-		if (IsZoomed(SDL_Window)) style |= WS_MAXIMIZE;
+		if (IsZoomed(ParentWindowHWND)) style |= WS_MAXIMIZE;
 #endif
 	}
 
 	/* DJM: Don't piss of anyone who has setup his own window */
 	if ( !SDL_windowid )
-		SetWindowLong(SDL_Window, GWL_STYLE, style);
+		SetWindowLong(ParentWindowHWND, GWL_STYLE, style);
 
 	/* Delete the old bitmap if necessary */
 	if ( screen_bmp != NULL ) {

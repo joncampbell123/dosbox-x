@@ -1549,6 +1549,18 @@ void SetScaleForced(bool forced)
 }
 
 void MSG_Loop(void) {
+	// FIXME: This doesn't work anymore because GetHWND() returns the parent window, which is
+	//		  owned by another thread, and the Windows API doesn't allow one thread to read
+	//		  messages from another!
+	//
+	// TODO:  1. The SDL syswm struct needs to be updated to carry both the parent window and
+	//			 the child window
+	//		  2. A separate function, say, GetSurfaceHWND(), needs to be written to return
+	//			 the child window handle
+	//		  3. This code needs to use the return value of GetSurfaceHWND() because the main
+	//			 thread this code is running in owns the child window.
+	//		  4. The parent window needs to reflect WM_COMMAND to the child window.
+	//		  5. When all steps above are done, the menu will work again.
 	if (!menu.gui || GetSetSDLValue(1, "desktop.fullscreen", 0)) return;
 	if (!GetMenu(GetHWND())) return;
 	MSG Message;

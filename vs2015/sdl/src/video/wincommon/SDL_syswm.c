@@ -271,13 +271,15 @@ SDL_GrabMode WIN_GrabInput(_THIS, SDL_GrabMode mode)
 	return(mode);
 }
 
+extern HWND	ParentWindowHWND;
+
 /* If 'info' is the right version, this function fills it and returns 1.
    Otherwise, in case of a version mismatch, it returns -1.
 */
 int WIN_GetWMInfo(_THIS, SDL_SysWMinfo *info)
 {
 	if ( info->version.major <= SDL_MAJOR_VERSION ) {
-		info->window = SDL_Window;
+		info->window = ParentWindowHWND;//SDL_Window;
 		if ( SDL_VERSIONNUM(info->version.major,
 		                    info->version.minor,
 		                    info->version.patch) >=

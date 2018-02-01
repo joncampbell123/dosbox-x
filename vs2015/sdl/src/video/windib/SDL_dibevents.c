@@ -23,6 +23,7 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <process.h>
 
 #include "SDL_main.h"
 #include "SDL_events.h"
@@ -708,7 +709,25 @@ LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 	if (msg == WM_CREATE) {
 		return(0);
 	}
+	else if (msg == WM_PAINT) {
+		PAINTSTRUCT ps;
+		HDC hdc;
+
+		hdc = BeginPaint(hwnd, &ps);
+		EndPaint(hwnd, &ps);
+
+		return(0);
+	}
+	else if (msg == WM_SIZE) {
+		SetWindowPos(SDL_Window, HWND_TOP, 0, 0, LOWORD(lParam), HIWORD(lParam), SWP_NOACTIVATE);
+		return(0);
+	}
+	/* NTS: Do not handle WM_COMMAND, DOSBox will poke at the queue to retrieve it */
+	else if (msg == WM_CLOSE) {
+		return SendMessage(SDL_Window, msg, wParam, lParam);
+	}
 	else if (msg == WM_DESTROY) {
+		DestroyWindow(SDL_Window);
 		PostQuitMessage(0);
 	}
 
@@ -724,14 +743,15 @@ unsigned int __stdcall ParentWindowThreadProc(void *arg) {
 
 	/* main thread already registered our wndclass */
 	ParentWindowHWND = CreateWindow(SDL_AppnameParent, SDL_Appname,
-		(WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX),
+		(WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_CLIPCHILDREN | WS_CLIPSIBLINGS),
 		CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, NULL, NULL, SDL_Instance, NULL);
 	if (ParentWindowHWND == NULL) {
 		ParentWindowInit = 0;
 		return 1;
 	}
 
-	SetWindowPos(ParentWindowHWND, HWND_TOP, 0, 0, 320, 240, SWP_SHOWWINDOW|SWP_NOMOVE);
+	/* FIXME: At some point, we defer showing the window until the main thread has set it's window up */
+	SetWindowPos(ParentWindowHWND, HWND_TOP, 0, 0, 640, 480, SWP_SHOWWINDOW|SWP_NOMOVE);
 	UpdateWindow(ParentWindowHWND);
 	ParentWindowReady = 1;
 	ParentWindowInit = 0;
@@ -758,6 +778,18 @@ void ParentWindowThreadCheck(void) {
 			/* thread just died */
 			ParentWindowThread = INVALID_HANDLE_VALUE;
 			ParentWindowThreadID = 0;
+		}
+	}
+}
+
+void StopParentWindow(void) {
+	if (ParentWindowThreadRunning()) {
+		ParentWindowShutdown = 1;
+
+		PostMessage(ParentWindowHWND, WM_USER, 0, 0); // make the pump respond
+		while (ParentWindowThreadRunning()) {
+			Sleep(100);
+			ParentWindowThreadCheck();
 		}
 	}
 }
@@ -853,13 +885,17 @@ int DIB_CreateWindow(_THIS)
 		}
 
 		SDL_Window = CreateWindow(SDL_Appname, SDL_Appname,
-                        (WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU|WS_MINIMIZEBOX),
-                        CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, NULL, NULL, SDL_Instance, NULL);
+                        WS_CHILD,
+                        0, 0, 640, 480, ParentWindowHWND, NULL, SDL_Instance, NULL);
 		if ( SDL_Window == NULL ) {
 			SDL_SetError("Couldn't create window");
 			return(-1);
 		}
-		ShowWindow(SDL_Window, SW_HIDE);
+
+		SetFocus(SDL_Window);
+		ShowWindow(SDL_Window, SW_SHOW);
+		UpdateWindow(SDL_Window);
+//		ShowWindow(SDL_Window, SW_HIDE);
 	}
 
 	/* JC 14 Mar 2006
@@ -878,6 +914,9 @@ void DIB_DestroyWindow(_THIS)
 	} else {
 		DestroyWindow(SDL_Window);
 	}
+
+	StopParentWindow();
+
 	SDL_UnregisterApp();
 
 	/* JC 14 Mar 2006
