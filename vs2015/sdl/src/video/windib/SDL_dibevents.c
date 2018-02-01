@@ -739,6 +739,22 @@ LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 		PostMessage(SDL_Window, msg, wParam, lParam);
 		return(0);
 	}
+	else if (msg == WM_WINDOWPOSCHANGING) {
+		WINDOWPOS *windowpos = (WINDOWPOS*)lParam;
+
+		/* When menu is at the side or top, Windows likes
+		to try to reposition the fullscreen window when
+		changing video modes.
+		*/
+		if (!SDL_resizing &&
+			SDL_PublicSurface &&
+			(SDL_PublicSurface->flags & SDL_FULLSCREEN)) {
+			windowpos->x = 0;
+			windowpos->y = 0;
+		}
+
+		return(0);
+	}
 	else if (msg == WM_WINDOWPOSCHANGED) {
 		/* Before we forward to the child, we need to get the new dimensions, resize the child,
 		   and THEN forward it to the child. Note that this forwarding is required if SDL is

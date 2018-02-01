@@ -571,6 +571,9 @@ static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int p
 			top = HWND_NOTOPMOST;
 		}
 
+		if (SDL_VideoSurface != NULL)
+			SetWindowPos(SDL_Window, HWND_TOP, 0, 0, SDL_VideoSurface->w, SDL_VideoSurface->h, SWP_NOACTIVATE | SWP_SHOWWINDOW);
+
 		SetWindowPos(ParentWindowHWND, top, x, y, width, height, swp_flags);
 		if ( !(flags & SDL_FULLSCREEN) ) {
 			SDL_windowX = SDL_bounds.left;
@@ -907,6 +910,13 @@ SDL_Surface *DIB_SetVideoMode(_THIS, SDL_Surface *current,
 			video->flags |= SDL_HWPALETTE;
 		}
 	}
+
+	if ((video->flags & SDL_FULLSCREEN) == SDL_FULLSCREEN) {
+		/* HACK */
+		SDL_windowX = 0;
+		SDL_windowY = 0;
+	}
+
 	DIB_ResizeWindow(this, width, height, prev_w, prev_h, flags);
 	SDL_resizing = 0;
 
