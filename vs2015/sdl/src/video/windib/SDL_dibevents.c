@@ -954,9 +954,7 @@ int DIB_CreateWindow(_THIS)
 		}
 
 		SetFocus(SDL_Window);
-		ShowWindow(SDL_Window, SW_SHOW);
-		UpdateWindow(SDL_Window);
-//		ShowWindow(SDL_Window, SW_HIDE);
+		ShowWindow(SDL_Window, SW_HIDE);
 	}
 
 	/* JC 14 Mar 2006
