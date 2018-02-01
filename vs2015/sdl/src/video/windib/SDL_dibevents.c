@@ -696,6 +696,128 @@ static SDL_keysym *TranslateKey(WPARAM vkey, UINT scancode, SDL_keysym *keysym, 
 	return(keysym);
 }
 
+/*-----------------------------------------------------------*/
+HANDLE			ParentWindowThread = INVALID_HANDLE_VALUE;
+DWORD			ParentWindowThreadID = 0;
+HWND			ParentWindowHWND = NULL;
+volatile int	ParentWindowInit = 0;
+volatile int	ParentWindowShutdown = 0;
+volatile int	ParentWindowReady = 0;
+
+LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	if (msg == WM_CREATE) {
+		return(0);
+	}
+	else if (msg == WM_DESTROY) {
+		PostQuitMessage(0);
+	}
+
+	return(DefWindowProc(hwnd, msg, wParam, lParam));
+}
+
+extern LPSTR SDL_AppnameParent;
+
+unsigned int __stdcall ParentWindowThreadProc(void *arg) {
+	MSG msg;
+
+	if (!ParentWindowInit) return 1;
+
+	/* main thread already registered our wndclass */
+	ParentWindowHWND = CreateWindow(SDL_AppnameParent, SDL_Appname,
+		(WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX),
+		CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, NULL, NULL, SDL_Instance, NULL);
+	if (ParentWindowHWND == NULL) {
+		ParentWindowInit = 0;
+		return 1;
+	}
+
+	SetWindowPos(ParentWindowHWND, HWND_TOP, 0, 0, 320, 240, SWP_SHOWWINDOW|SWP_NOMOVE);
+	UpdateWindow(ParentWindowHWND);
+	ParentWindowReady = 1;
+	ParentWindowInit = 0;
+
+	while (!ParentWindowShutdown && GetMessage(&msg, ParentWindowHWND, 0, 0) > 0) {
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
+	DestroyWindow(ParentWindowHWND);
+	ParentWindowReady = 0;
+	ParentWindowInit = 0;
+
+	return 0;
+}
+
+int ParentWindowThreadRunning(void) {
+	return (ParentWindowThread != INVALID_HANDLE_VALUE);
+}
+
+void ParentWindowThreadCheck(void) {
+	if (ParentWindowThread != INVALID_HANDLE_VALUE) {
+		if (WaitForSingleObject(ParentWindowThread, 0) == WAIT_OBJECT_0) {
+			/* thread just died */
+			ParentWindowThread = INVALID_HANDLE_VALUE;
+			ParentWindowThreadID = 0;
+		}
+	}
+}
+
+int InitParentWindow(void) {
+	if (ParentWindowThread == INVALID_HANDLE_VALUE) {
+		unsigned int patience;
+
+		ParentWindowShutdown = 0;
+		ParentWindowReady = 0;
+		ParentWindowInit = 1;
+
+		ParentWindowThread = (HANDLE)_beginthreadex(NULL,0,ParentWindowThreadProc,NULL,0,&ParentWindowThreadID);
+		if (ParentWindowThread == NULL) {
+			ParentWindowThread = INVALID_HANDLE_VALUE;
+			return 0;
+		}
+
+		patience = 50;
+		while (ParentWindowInit && !ParentWindowReady) {
+			ParentWindowThreadCheck();
+			if (!ParentWindowThreadRunning()) {
+				/* it ended early?? */
+				ParentWindowShutdown = 0;
+				ParentWindowReady = 0;
+				ParentWindowInit = 0;
+				return 0;
+			}
+
+			if (--patience <= 0)
+				break;
+			else
+				Sleep(100);
+		}
+
+		if (!ParentWindowReady) {
+			ParentWindowShutdown = 1;
+			Sleep(1000); // shutdown now. you have one second.
+			ParentWindowThreadCheck();
+
+			if (ParentWindowThreadRunning()) {
+				/* hasn't terminated. kill it. */
+				/* this is brutal and may cause memory leaks in the Windows API, but it must be done */
+				TerminateThread(ParentWindowThread, 1);
+				do {
+					ParentWindowThreadCheck();
+				} while (ParentWindowThreadRunning());
+			}
+
+			ParentWindowShutdown = 0;
+			ParentWindowReady = 0;
+			ParentWindowInit = 0;
+			return 0;
+		}
+	}
+
+	return 1;
+}
+/*-----------------------------------------------------------*/
+
 int DIB_CreateWindow(_THIS)
 {
 	char *windowid;
@@ -725,6 +847,11 @@ int DIB_CreateWindow(_THIS)
 		userWindowProc = (WNDPROCTYPE)GetWindowLongPtr(SDL_Window, GWLP_WNDPROC);
 		SetWindowLongPtr(SDL_Window, GWLP_WNDPROC, (LONG_PTR)WinMessage);
 	} else {
+		if (!InitParentWindow()) {
+			SDL_SetError("Couldn't init parent window");
+			return(-1);
+		}
+
 		SDL_Window = CreateWindow(SDL_Appname, SDL_Appname,
                         (WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU|WS_MINIMIZEBOX),
                         CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, NULL, NULL, SDL_Instance, NULL);

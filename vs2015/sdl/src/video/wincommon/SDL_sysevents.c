@@ -68,6 +68,7 @@
 #ifdef _WIN32_WCE
 LPWSTR SDL_Appname = NULL;
 #else
+LPSTR SDL_AppnameParent = "SDLParent";
 LPSTR SDL_Appname = NULL;
 #endif
 Uint32 SDL_Appstyle = 0;
@@ -244,6 +245,8 @@ static BOOL WINAPI WIN_TrackMouseEvent(TRACKMOUSEEVENT *ptme)
 #endif /* WM_MOUSELEAVE */
 
 int sysevents_mouse_pressed = 0;
+
+LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 /* The main Win32 event handler
 DJM: This is no longer static as (DX5/DIB)_CreateWindow needs it
@@ -777,6 +780,29 @@ int SDL_RegisterApp(char *name, Uint32 style, void *hInst)
 		SDL_SetError("Couldn't register application class");
 		return(-1);
 	}
+
+
+	/* another for the DIB parent window*/
+	class.hCursor = NULL;
+	class.hIcon = LoadImage(SDL_Instance, SDL_Appname,
+		IMAGE_ICON,
+		0, 0, LR_DEFAULTCOLOR);
+	class.lpszMenuName = NULL;
+	class.lpszClassName = SDL_AppnameParent;
+	class.hbrBackground = NULL;
+	class.hInstance = SDL_Instance;
+	class.style = SDL_Appstyle;
+#if SDL_VIDEO_OPENGL
+	class.style |= CS_OWNDC;
+#endif
+	class.lpfnWndProc = ParentWinMessage;
+	class.cbWndExtra = 0;
+	class.cbClsExtra = 0;
+	if (!RegisterClass(&class)) {
+		SDL_SetError("Couldn't register application class");
+		return(-1);
+	}
+
 
 #ifdef WM_MOUSELEAVE
 	/* Get the version of TrackMouseEvent() we use */
