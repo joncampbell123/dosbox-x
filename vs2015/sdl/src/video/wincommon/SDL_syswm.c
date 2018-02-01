@@ -279,7 +279,8 @@ extern HWND	ParentWindowHWND;
 int WIN_GetWMInfo(_THIS, SDL_SysWMinfo *info)
 {
 	if ( info->version.major <= SDL_MAJOR_VERSION ) {
-		info->window = ParentWindowHWND;//SDL_Window;
+		info->window = ParentWindowHWND;
+		info->child_window = SDL_Window;
 		if ( SDL_VERSIONNUM(info->version.major,
 		                    info->version.minor,
 		                    info->version.patch) >=

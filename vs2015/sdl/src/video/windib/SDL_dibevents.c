@@ -723,6 +723,10 @@ LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 		return(0);
 	}
 	/* NTS: Do not handle WM_COMMAND, DOSBox will poke at the queue to retrieve it */
+	else if (msg == WM_COMMAND) {
+		PostMessage(SDL_Window, msg, wParam, lParam);
+		return(0);
+	}
 	else if (msg == WM_CLOSE) {
 		return SendMessage(SDL_Window, msg, wParam, lParam);
 	}

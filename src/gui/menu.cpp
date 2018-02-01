@@ -92,6 +92,16 @@ HWND GetHWND(void) {
 	return wmi.window;
 }
 
+HWND GetSurfaceHWND(void) {
+	SDL_SysWMinfo wmi;
+	SDL_VERSION(&wmi.version);
+
+	if (!SDL_GetWMInfo(&wmi)) {
+		return NULL;
+	}
+	return wmi.child_window;
+}
+
 void GetDefaultSize(void) {
 	char sizetemp[20]="512,32,32765,";
 	char sizetemp2[20]="";
@@ -1549,22 +1559,10 @@ void SetScaleForced(bool forced)
 }
 
 void MSG_Loop(void) {
-	// FIXME: This doesn't work anymore because GetHWND() returns the parent window, which is
-	//		  owned by another thread, and the Windows API doesn't allow one thread to read
-	//		  messages from another!
-	//
-	// TODO:  1. The SDL syswm struct needs to be updated to carry both the parent window and
-	//			 the child window
-	//		  2. A separate function, say, GetSurfaceHWND(), needs to be written to return
-	//			 the child window handle
-	//		  3. This code needs to use the return value of GetSurfaceHWND() because the main
-	//			 thread this code is running in owns the child window.
-	//		  4. The parent window needs to reflect WM_COMMAND to the child window.
-	//		  5. When all steps above are done, the menu will work again.
 	if (!menu.gui || GetSetSDLValue(1, "desktop.fullscreen", 0)) return;
 	if (!GetMenu(GetHWND())) return;
 	MSG Message;
-	while (PeekMessage(&Message, GetHWND(), 0, 0, PM_REMOVE)) {
+	while (PeekMessage(&Message, GetSurfaceHWND(), 0, 0, PM_REMOVE)) {
 		switch (Message.message) {
 		case WM_SYSCHAR:
 			break;
@@ -2365,7 +2363,7 @@ void MSG_Loop(void) {
 		default: {
 			if (Message.message == 0x00A1) Reflect_Menu();
 
-			if (!TranslateAccelerator(GetHWND(), 0, &Message)) {
+			if (!TranslateAccelerator(GetSurfaceHWND(), 0, &Message)) {
 				TranslateMessage(&Message);
 				DispatchMessage(&Message);
 			}
