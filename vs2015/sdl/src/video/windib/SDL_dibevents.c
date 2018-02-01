@@ -724,12 +724,14 @@ LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 		if (wParam)
 			SetFocus(SDL_Window);
 
+		SendMessage(SDL_Window, msg, wParam, lParam);
 		return(0);
 	}
 	else if (msg == WM_ACTIVATE) {
 		if (wParam == WA_ACTIVE || wParam == WA_CLICKACTIVE)
 			SetFocus(SDL_Window);
 
+		SendMessage(SDL_Window, msg, wParam, lParam);
 		return(0);
 	}
 	else if (msg == WM_SIZE) {
@@ -746,7 +748,6 @@ LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 			/* fall through, to DefWindowProc() */
 		}
 	}
-	/* NTS: Do not handle WM_COMMAND, DOSBox will poke at the queue to retrieve it */
 	else if (msg == WM_COMMAND) {
 		PostMessage(SDL_Window, msg, wParam, lParam);
 		return(0);
