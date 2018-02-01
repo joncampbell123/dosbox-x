@@ -974,7 +974,9 @@ void DIB_DestroyWindow(_THIS)
 		DestroyWindow(SDL_Window);
 	}
 
-	StopParentWindow();
+// NTS: DOSBox-X likes to call SQL_Quit/SQL_QuitSubSystem just to reinit the window.
+//      It's better if the parent window doesn't disappear and reappear.
+//	StopParentWindow();
 
 	SDL_UnregisterApp();
 
