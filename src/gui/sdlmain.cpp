@@ -2831,7 +2831,7 @@ static void GUI_StartUp() {
 			if(!d3d) {
 				LOG_MSG("Failed to create d3d object");
 				sdl.desktop.want_type=SCREEN_SURFACE;
-			} else if(d3d->InitializeDX(wmi.window,sdl.desktop.doublebuf) != S_OK) {
+			} else if(d3d->InitializeDX(wmi.child_window,sdl.desktop.doublebuf) != S_OK) {
 				LOG_MSG("Unable to initialize DirectX");
 				sdl.desktop.want_type=SCREEN_SURFACE;
 			}
