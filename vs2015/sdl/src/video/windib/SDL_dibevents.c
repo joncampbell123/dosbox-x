@@ -723,6 +723,16 @@ LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 		SendMessage(SDL_Window, WM_USER, 0, 0);
 		return(0);
 	}
+	else if (msg == WM_SYSCOMMAND) {
+		/* CAREFUL! We only want to forward custom system menu items. Anything standard to Windows must be handled ourselves. */
+		if (wParam < 0xF000) {
+			PostMessage(SDL_Window, WM_SYSCOMMAND, wParam, lParam);
+			return(0);
+		}
+		else {
+			/* fall through, to DefWindowProc() */
+		}
+	}
 	/* NTS: Do not handle WM_COMMAND, DOSBox will poke at the queue to retrieve it */
 	else if (msg == WM_COMMAND) {
 		PostMessage(SDL_Window, msg, wParam, lParam);
