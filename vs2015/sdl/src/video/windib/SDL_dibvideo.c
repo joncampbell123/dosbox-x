@@ -504,6 +504,7 @@ static int DIB_SussScreenDepth()
 #endif /* NO_GETDIBITS */
 }
 
+extern HWND	ParentWindowHWND;
 
 /* Various screen update functions available */
 static void DIB_NormalUpdate(_THIS, int numrects, SDL_Rect *rects);
@@ -515,7 +516,7 @@ static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int p
 
 #ifndef _WIN32_WCE
 	/* Resize the window */
-	if ( !SDL_windowid && !IsZoomed(SDL_Window) ) {
+	if ( !SDL_windowid && !IsZoomed(ParentWindowHWND) ) {
 #else
 	if ( !SDL_windowid ) {
 #endif
@@ -537,17 +538,17 @@ static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int p
 				}
 			}
 		}
-		swp_flags = (SWP_NOCOPYBITS | SWP_SHOWWINDOW);
+		swp_flags = (SWP_SHOWWINDOW);
 
 		bounds.left = SDL_windowX;
 		bounds.top = SDL_windowY;
 		bounds.right = SDL_windowX+width;
 		bounds.bottom = SDL_windowY+height;
 #ifndef _WIN32_WCE
-		AdjustWindowRectEx(&bounds, GetWindowLong(SDL_Window, GWL_STYLE), (GetMenu(SDL_Window) != NULL), 0);
+		AdjustWindowRectEx(&bounds, GetWindowLong(ParentWindowHWND, GWL_STYLE), (GetMenu(ParentWindowHWND) != NULL), 0);
 #else
 		// The bMenu parameter must be FALSE; menu bars are not supported
-		AdjustWindowRectEx(&bounds, GetWindowLong(SDL_Window, GWL_STYLE), 0, 0);
+		AdjustWindowRectEx(&bounds, GetWindowLong(ParentWindowHWND, GWL_STYLE), 0, 0);
 #endif
 		width = bounds.right-bounds.left;
 		height = bounds.bottom-bounds.top;
@@ -570,21 +571,16 @@ static void DIB_ResizeWindow(_THIS, int width, int height, int prev_width, int p
 			top = HWND_NOTOPMOST;
 		}
 
-		x = 0;
-		y = 0;
-
-		SetWindowPos(SDL_Window, top, x, y, width, height, swp_flags);
+		SetWindowPos(ParentWindowHWND, top, x, y, width, height, swp_flags);
 		if ( !(flags & SDL_FULLSCREEN) ) {
 			SDL_windowX = SDL_bounds.left;
 			SDL_windowY = SDL_bounds.top;
 		}
 		if ( GetParent(SDL_Window) == NULL ) {
-			SetForegroundWindow(SDL_Window);
+			SetForegroundWindow(ParentWindowHWND);
 		}
 	}
 }
-
-extern HWND	ParentWindowHWND;
 
 SDL_Surface *DIB_SetVideoMode(_THIS, SDL_Surface *current,
 				int width, int height, int bpp, Uint32 flags)
