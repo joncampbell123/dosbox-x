@@ -778,13 +778,16 @@ void DOSBox_SetSysMenu(void) {
 	}
 }
 
+extern "C" void SDL1_hax_SetMenu(HMENU menu);
+
 void DOSBox_SetMenu(void) {
 	if(!menu.gui) return;
 
 	LOG(LOG_MISC,LOG_DEBUG)("Win32: loading and attaching menu resource to DOSBox's window");
 
 	menu.toggle=true;
-	SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
+	SDL1_hax_SetMenu(LoadMenu(GetModuleHandle(NULL), MAKEINTRESOURCE(IDR_MENU)));
+//	SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
 	DrawMenuBar (GetHWND());
 
 	if(menu.startup) {
@@ -795,7 +798,8 @@ void DOSBox_SetMenu(void) {
 void DOSBox_NoMenu(void) {
 	if(!menu.gui) return;
 	menu.toggle=false;
-	SetMenu(GetHWND(), NULL);
+	SDL1_hax_SetMenu(NULL);
+//	SetMenu(GetHWND(), NULL);
 	DrawMenuBar(GetHWND());
 	RENDER_CallBack( GFX_CallBackReset );
 }
@@ -827,8 +831,8 @@ void DOSBox_RefreshMenu(void) {
     if(!menu.gui) return;
 
     if(fullscreen) {
-    	SetMenu(GetHWND(), NULL);
-    	DrawMenuBar(GetHWND());
+//    	SetMenu(GetHWND(), NULL);
+//  	DrawMenuBar(GetHWND());
         return;
     }
 	DOSBox_SetSysMenu();
