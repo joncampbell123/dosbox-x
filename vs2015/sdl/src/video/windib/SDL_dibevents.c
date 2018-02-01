@@ -705,6 +705,8 @@ volatile int	ParentWindowInit = 0;
 volatile int	ParentWindowShutdown = 0;
 volatile int	ParentWindowReady = 0;
 
+void			(*SDL1_hax_INITMENU_cb)() = NULL;
+
 LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_CREATE) {
 		return(0);
@@ -749,6 +751,12 @@ LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 		}
 
 		return SendMessage(SDL_Window, msg, wParam, lParam);
+	}
+	else if (msg == WM_INITMENU) {
+		if (SDL1_hax_INITMENU_cb != NULL)
+			SDL1_hax_INITMENU_cb();
+
+		/* fall through */
 	}
 	else if (msg == WM_CLOSE) {
 		return SendMessage(SDL_Window, msg, wParam, lParam);

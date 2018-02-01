@@ -910,6 +910,9 @@ enum SCREEN_TYPES	{
 };
 extern bool load_videodrv;
 
+extern "C" void (*SDL1_hax_INITMENU_cb)();
+void reflectmenu_INITMENU_cb();
+
 int Reflect_Menu(void) {
 	extern bool Mouse_Drv;
 	static char name[9];
@@ -1539,6 +1542,13 @@ int Reflect_Menu(void) {
 	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_X, ID_MOUNT_FLOPPY_X, ID_MOUNT_LOCAL_X, ID_MOUNT_IMAGE_X, ID_AUTOMOUNT_X, ID_UMOUNT_X, 'X');
 	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_Y, ID_MOUNT_FLOPPY_Y, ID_MOUNT_LOCAL_Y, ID_MOUNT_IMAGE_Y, ID_AUTOMOUNT_Y, ID_UMOUNT_Y, 'Y');
 	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_Z, ID_MOUNT_FLOPPY_Z, ID_MOUNT_LOCAL_Z, ID_MOUNT_IMAGE_Z, ID_AUTOMOUNT_Z, ID_UMOUNT_Z, 'Z');
+
+	SDL1_hax_INITMENU_cb = reflectmenu_INITMENU_cb;
+}
+
+void reflectmenu_INITMENU_cb() {
+	/* WARNING: SDL calls this from Parent Window Thread! */
+	Reflect_Menu();
 }
 
 // Sets the scaler to use.
@@ -2361,8 +2371,6 @@ void MSG_Loop(void) {
 				break;
 			}
 		default: {
-			if (Message.message == 0x00A1) Reflect_Menu();
-
 			if (!TranslateAccelerator(GetSurfaceHWND(), 0, &Message)) {
 				TranslateMessage(&Message);
 				DispatchMessage(&Message);

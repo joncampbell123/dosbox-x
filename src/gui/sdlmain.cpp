@@ -5410,6 +5410,8 @@ int main(int argc, char* argv[]) {
 		 * because some init functions rely on others. */
 
 #if !defined(C_SDL2)
+		Reflect_Menu();
+
 		if (control->opt_startui)
 			GUI_Run(false);
 #endif
