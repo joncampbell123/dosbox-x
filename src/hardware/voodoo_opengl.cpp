@@ -66,6 +66,7 @@ UINT32 texrgb[256*256];
 /* texture address map */
 std::map <const UINT32, ogl_texmap> textures[2];
 
+void GFX_PreventFullscreen(bool lockout);
 
 static void ogl_get_depth(voodoo_state* VV, INT32 ITERZ, INT64 ITERW, INT32 *depthval, INT32 *out_wfloat)
 {
@@ -1644,6 +1645,8 @@ void voodoo_ogl_reset_videomode(void) {
     void GFX_ForceFullscreenExit(void);
     GFX_ForceFullscreenExit();
 
+    GFX_PreventFullscreen(true);
+
 	Uint32 sdl_flags = SDL_OPENGL;
 
     ogl_surface = SDL_SetVideoMode(v->fbi.width, v->fbi.height, 32, sdl_flags);
@@ -1832,7 +1835,8 @@ void voodoo_ogl_leave(bool leavemode) {
 			ogl_surface = NULL;
 		}
 		GFX_RestoreMode();
-	}
+        GFX_PreventFullscreen(false);
+    }
 }
 
 void voodoo_ogl_shutdown(voodoo_state *v) {
