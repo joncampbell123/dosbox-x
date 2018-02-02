@@ -852,17 +852,17 @@ void DOSBox_RefreshMenu2(void) {
     if(!menu.gui) return;
 
     if(fullscreen) {
-    	SetMenu(GetHWND(), NULL);
-    	DrawMenuBar(GetHWND());
+//    	SetMenu(GetHWND(), NULL);
+//    	DrawMenuBar(GetHWND());
         return;
     }
 	if(menu.toggle) {
 		menu.toggle=true;
-		SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
+		SDL1_hax_SetMenu(LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
 		DrawMenuBar (GetHWND());
 	} else {
 		menu.toggle=false;
-		SetMenu(GetHWND(), NULL);
+		SDL1_hax_SetMenu(NULL);
 		DrawMenuBar(GetHWND());
 	}
 }
