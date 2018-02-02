@@ -55,7 +55,7 @@ static int WIN_GL_ResetWindow(_THIS)
 		SDL_resizing = 1;
 		SDL_Window = CreateWindow(SDL_Appname, SDL_Appname,
 		                          style,
-		                          rect.left, rect.top,
+		                          0, 0,
 		                          rect.right-rect.left,
 		                          rect.bottom-rect.top,
 								  ParentWindowHWND, NULL, SDL_Instance, NULL);
@@ -63,7 +63,7 @@ static int WIN_GL_ResetWindow(_THIS)
 		SDL_resizing = 0;
 
 		if ( SDL_Window ) {
-			ShowWindow(SDL_Window, SW_SHOW);
+			SetWindowPos(SDL_Window, HWND_TOP, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_SHOWWINDOW);
 			SetFocus(SDL_Window);
 			this->SetCaption(this, this->wm_title, this->wm_icon);
 		} else {
