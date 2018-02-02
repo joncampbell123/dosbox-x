@@ -1637,10 +1637,7 @@ void voodoo_ogl_reset_videomode(void) {
 	SDL_GL_SetAttribute( SDL_GL_ACCELERATED_VISUAL, 1 );
 #endif
 
-	if (ogl_surface != NULL) {
-		SDL_FreeSurface(ogl_surface);
-		ogl_surface = NULL;
-	}
+    ogl_surface = NULL;
 
     void GFX_ReleaseMouse(void);
     void GFX_ForceFullscreenExit(void);
@@ -1833,11 +1830,8 @@ void voodoo_ogl_leave(bool leavemode) {
 	if (leavemode) {
 		LOG_MSG("VOODOO: OpenGL: quit");
 
-		if (ogl_surface != NULL) {
-			SDL_FreeSurface(ogl_surface);
-			ogl_surface = NULL;
-		}
-		GFX_RestoreMode();
+        ogl_surface = NULL;
+        GFX_RestoreMode();
         GFX_PreventFullscreen(false);
     }
 }
