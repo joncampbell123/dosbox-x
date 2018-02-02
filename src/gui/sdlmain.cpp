@@ -2248,7 +2248,7 @@ void GFX_SwitchFullScreen(void)
 
 #if !defined(C_SDL2)
 	// (re-)assign menu to window
-	if (full && sdl.desktop.want_type != SCREEN_OPENGLHQ && menu.gui) SDL1_hax_SetMenu(nullptr);
+//	if (full && sdl.desktop.want_type != SCREEN_OPENGLHQ && menu.gui) SDL1_hax_SetMenu(nullptr);
 #endif
 
 	// ensure mouse capture when fullscreen || (re-)capture if user said so when windowed
@@ -5455,7 +5455,7 @@ int main(int argc, char* argv[]) {
 				LOG(LOG_MISC,LOG_DEBUG)("Going fullscreen immediately, during startup");
 
 #if !defined(C_SDL2)
-				if (sdl.desktop.want_type != SCREEN_OPENGLHQ) SDL1_hax_SetMenu(NULL);
+//				if (sdl.desktop.want_type != SCREEN_OPENGLHQ) SDL1_hax_SetMenu(NULL);
 #endif
 				//only switch if not already in fullscreen
 				if (!sdl.desktop.fullscreen) GFX_SwitchFullScreen();
