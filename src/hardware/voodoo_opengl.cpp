@@ -1617,10 +1617,6 @@ void voodoo_ogl_reset_videomode(void) {
 
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-	glViewport( 0, 0, v->fbi.width, v->fbi.height );
-	last_width = v->fbi.width;
-	last_height = v->fbi.height;
-
 	/*glMatrixMode( GL_PROJECTION );
 	glLoadIdentity();
 	glOrtho( 0, v->fbi.width, v->fbi.height, 0, -1, 1 );
@@ -1681,6 +1677,10 @@ void voodoo_ogl_reset_videomode(void) {
 	}
 
     v->ogl_dimchange = true;
+
+	glViewport( 0, 0, v->fbi.width, v->fbi.height );
+	last_width = v->fbi.width;
+	last_height = v->fbi.height;
 
 	GFX_UpdateSDLCaptureState();
 
