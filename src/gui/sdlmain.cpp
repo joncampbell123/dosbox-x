@@ -958,6 +958,10 @@ void GFX_LogSDLState(void) {
 static SDL_Surface * GFX_SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) {
 	Bit16u fixedWidth;
 	Bit16u fixedHeight;
+
+    if (sdl.desktop.prevent_fullscreen) /* 3Dfx openGL do not allow resize */
+        sdl_flags &= ~SDL_RESIZABLE;
+
 	if (sdl.desktop.want_type == SCREEN_OPENGL) {
 		sdl_flags |= SDL_OPENGL;
 	}
