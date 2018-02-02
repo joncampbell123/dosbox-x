@@ -1720,6 +1720,11 @@ void voodoo_ogl_reset_videomode(void) {
 		LOG_MSG("VOODOO: OpenGL: invalid depth size %d",depth_csize);
 	}
 
+	// Windows SDL 1.x builds may destroy and re-create the window, and lose our menu bar.
+	// make sure to put it back.
+	void DOSBox_SetMenu(void);
+	DOSBox_SetMenu();
+
 	LOG_MSG("VOODOO: OpenGL: mode set, resolution %d:%d %s", v->fbi.width, v->fbi.height, (sdl_flags & SDL_FULLSCREEN) ? "(fullscreen)" : "");
 }
 
