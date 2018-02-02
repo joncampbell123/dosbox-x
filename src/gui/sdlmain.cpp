@@ -321,6 +321,7 @@ struct SDL_Block {
 #endif
 		bool fullscreen;
 		bool lazy_fullscreen;
+        bool prevent_fullscreen;
 		bool lazy_fullscreen_req;
 		bool doublebuf;
 		SCREEN_TYPES type;
@@ -2213,6 +2214,9 @@ void change_output(int output) {
 
 void GFX_SwitchFullScreen(void)
 {
+    if (sdl.desktop.prevent_fullscreen)
+        return;
+
 	menu.resizeusing = true;
 
 	sdl.desktop.fullscreen = !sdl.desktop.fullscreen;
@@ -2296,10 +2300,14 @@ bool GFX_LazyFullscreenRequested(void) {
 	return false;
 }
 
+void GFX_PreventFullscreen(bool lockout) {
+    sdl.desktop.prevent_fullscreen = lockout;
+}
+
 void GFX_RestoreMode(void) {
-	if (!sdl.draw.callback) return;
 	GFX_SetSize(sdl.draw.width,sdl.draw.height,sdl.draw.flags,sdl.draw.scalex,sdl.draw.scaley,sdl.draw.callback);
 	GFX_UpdateSDLCaptureState();
+    GFX_ResetScreen();
 }
 
 bool GFX_StartUpdate(Bit8u * & pixels,Bitu & pitch) {
@@ -2659,6 +2667,7 @@ static void GUI_StartUp() {
 
 	sdl.desktop.lazy_fullscreen=false;
 	sdl.desktop.lazy_fullscreen_req=false;
+    sdl.desktop.prevent_fullscreen=false;
 
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("sdl"));
 	assert(section != NULL);
