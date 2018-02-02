@@ -787,6 +787,14 @@ LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 
 		/* fall through */
 	}
+	else if (msg == WM_LBUTTONDOWN || msg == WM_LBUTTONUP ||
+			 msg == WM_MBUTTONDOWN || msg == WM_MBUTTONUP ||
+			 msg == WM_RBUTTONDOWN || msg == WM_RBUTTONUP ||
+			 msg == WM_KEYDOWN ||	  msg == WM_KEYUP) {
+		if (GetFocus() != SDL_Window) SetFocus(SDL_Window);
+		SendMessage(SDL_Window, msg, wParam, lParam);
+		/* fall through */
+	}
 	else if (msg == WM_CLOSE) {
 		return SendMessage(SDL_Window, msg, wParam, lParam);
 	}

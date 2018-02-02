@@ -934,6 +934,9 @@ SDL_Surface *DIB_SetVideoMode(_THIS, SDL_Surface *current,
 		/* HACK */
 		SDL_windowX = 0;
 		SDL_windowY = 0;
+
+		/* pay attention! */
+		SetFocus(SDL_Window);
 	}
 
 	DIB_ResizeWindow(this, width, height, prev_w, prev_h, flags);
