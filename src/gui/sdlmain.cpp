@@ -3013,6 +3013,10 @@ bool GFX_MustActOnResize() {
 static void HandleVideoResize(void * event) {
 	if(sdl.desktop.fullscreen) return;
 
+    /* don't act on resize events if we made the window non-resizeable.
+     * especially if 3Dfx voodoo emulation is active. */
+    if (!(sdl.surface->flags & SDL_RESIZABLE)) return;
+
 	SDL_ResizeEvent* ResizeEvent = (SDL_ResizeEvent*)event;
 
     /* assume the resize comes from user preference UNLESS the window
@@ -3033,10 +3037,6 @@ static void HandleVideoResize(void * event) {
     else {
 		UpdateWindowDimensions();
     }
-
-    /* don't act on resize events if we made the window non-resizeable.
-     * especially if 3Dfx voodoo emulation is active. */
-    if (!(sdl.surface->flags & SDL_RESIZABLE)) return;
 
     if (sdl.updating && !GFX_MustActOnResize()) {
         /* act on resize when updating is complete */
