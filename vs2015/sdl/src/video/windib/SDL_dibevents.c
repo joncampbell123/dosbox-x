@@ -802,8 +802,12 @@ LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 			 msg == WM_MBUTTONDOWN || msg == WM_MBUTTONUP ||
 			 msg == WM_RBUTTONDOWN || msg == WM_RBUTTONUP ||
 			 msg == WM_KEYDOWN ||	  msg == WM_KEYUP) {
-		if (GetFocus() != SDL_Window) SetFocus(SDL_Window);
-		SendMessage(SDL_Window, msg, wParam, lParam);
+		HWND focHwnd = GetFocus(); /* Windows may not return SDL_Window because SDL_Window is managed by the parent window thread */
+
+		if (focHwnd != NULL && focHwnd != SDL_Window) {
+			SetFocus(SDL_Window);
+			SendMessage(SDL_Window, msg, wParam, lParam);
+		}
 		/* fall through */
 	}
 	else if (msg == WM_CLOSE) {
