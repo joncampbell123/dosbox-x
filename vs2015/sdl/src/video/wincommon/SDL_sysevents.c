@@ -174,7 +174,7 @@ static void SDL_RestoreGameMode(void)
 
 #ifndef NO_CHANGEDISPLAYSETTINGS
 #ifndef _WIN32_WCE
-	ChangeDisplaySettings(&SDL_fullscreen_mode, CDS_FULLSCREEN);
+//	ChangeDisplaySettings(&SDL_fullscreen_mode, CDS_FULLSCREEN);
 #endif
 #endif /* NO_CHANGEDISPLAYSETTINGS */
 }
@@ -201,7 +201,7 @@ static void SDL_RestoreDesktopMode(void)
 
 #ifndef NO_CHANGEDISPLAYSETTINGS
 #ifndef _WIN32_WCE
-	ChangeDisplaySettings(NULL, 0);
+//	ChangeDisplaySettings(NULL, 0);
 #endif
 #endif /* NO_CHANGEDISPLAYSETTINGS */
 }

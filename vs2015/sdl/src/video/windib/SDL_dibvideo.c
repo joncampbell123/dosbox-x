@@ -768,7 +768,7 @@ SDL_Surface *DIB_SetVideoMode(_THIS, SDL_Surface *current,
 		}
 #endif
 
-#ifndef _WIN32_WCE
+#ifdef _WIN32_WCE_DONT_USE_THIS
 		settings.dmBitsPerPel = video->format->BitsPerPixel;
 		settings.dmPelsWidth = width;
 		settings.dmPelsHeight = height;
