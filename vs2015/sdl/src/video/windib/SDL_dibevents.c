@@ -128,6 +128,8 @@ static void GapiTransform(GapiInfo *gapiInfo, LONG *x, LONG *y)
 }
 #endif 
 
+extern HWND ParentWindowHWND;
+
 /* DOSBox-X deviation: hack to ignore Num/Scroll/Caps if set */
 #if defined(WIN32)
 unsigned char _dosbox_x_hack_ignore_toggle_keys = 0;
@@ -168,6 +170,15 @@ LRESULT DIB_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 #endif
 
 	switch (msg) {
+		case WM_KILLFOCUS:
+			if (!SDL_resizing &&
+				 SDL_PublicSurface &&
+				(SDL_PublicSurface->flags & SDL_FULLSCREEN)) {
+				/* In fullscreen mode, this window must have focus... or else we must exit fullscreen mode! */
+				ShowWindow(ParentWindowHWND, SW_MINIMIZE);
+			}
+			break;
+
 		case WM_SYSKEYDOWN:
 		case WM_KEYDOWN: {
 			SDL_keysym keysym;
