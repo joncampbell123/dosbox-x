@@ -724,12 +724,14 @@ LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 		if (wParam)
 			SetFocus(SDL_Window);
 
+		SendMessage(SDL_Window, msg, wParam, lParam);
 		return(0);
 	}
 	else if (msg == WM_ACTIVATE) {
 		if (wParam == WA_ACTIVE || wParam == WA_CLICKACTIVE)
 			SetFocus(SDL_Window);
 
+		SendMessage(SDL_Window, msg, wParam, lParam);
 		return(0);
 	}
 	else if (msg == WM_SIZE) {
@@ -746,7 +748,6 @@ LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 			/* fall through, to DefWindowProc() */
 		}
 	}
-	/* NTS: Do not handle WM_COMMAND, DOSBox will poke at the queue to retrieve it */
 	else if (msg == WM_COMMAND) {
 		PostMessage(SDL_Window, msg, wParam, lParam);
 		return(0);
@@ -813,9 +814,6 @@ unsigned int __stdcall ParentWindowThreadProc(void *arg) {
 		return 1;
 	}
 
-	/* FIXME: At some point, we defer showing the window until the main thread has set it's window up */
-	SetWindowPos(ParentWindowHWND, HWND_TOP, 0, 0, 640, 480, SWP_SHOWWINDOW|SWP_NOMOVE);
-	UpdateWindow(ParentWindowHWND);
 	ParentWindowReady = 1;
 	ParentWindowInit = 0;
 
@@ -956,9 +954,7 @@ int DIB_CreateWindow(_THIS)
 		}
 
 		SetFocus(SDL_Window);
-		ShowWindow(SDL_Window, SW_SHOW);
-		UpdateWindow(SDL_Window);
-//		ShowWindow(SDL_Window, SW_HIDE);
+		ShowWindow(SDL_Window, SW_HIDE);
 	}
 
 	/* JC 14 Mar 2006
@@ -978,7 +974,9 @@ void DIB_DestroyWindow(_THIS)
 		DestroyWindow(SDL_Window);
 	}
 
-	StopParentWindow();
+// NTS: DOSBox-X likes to call SQL_Quit/SQL_QuitSubSystem just to reinit the window.
+//      It's better if the parent window doesn't disappear and reappear.
+//	StopParentWindow();
 
 	SDL_UnregisterApp();
 
