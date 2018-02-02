@@ -83,11 +83,6 @@
 #define PC_NOCOLLAPSE	0
 #endif
 
-/* no modesetting please */
-#ifndef NO_CHANGEDISPLAYSETTINGS
-#define NO_CHANGEDISPLAYSETTINGS
-#endif
-
 #ifdef _WIN32_WCE
 // defined and used in SDL_sysevents.c
 extern HINSTANCE aygshell;

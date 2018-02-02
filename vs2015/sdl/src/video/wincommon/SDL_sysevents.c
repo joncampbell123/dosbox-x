@@ -64,11 +64,6 @@
 #endif
 #endif
 
-/* no modesetting please */
-#ifndef NO_CHANGEDISPLAYSETTINGS
-#define NO_CHANGEDISPLAYSETTINGS
-#endif
-
 /* The window we use for everything... */
 #ifdef _WIN32_WCE
 LPWSTR SDL_Appname = NULL;
