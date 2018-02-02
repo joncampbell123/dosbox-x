@@ -2294,9 +2294,9 @@ void GFX_PreventFullscreen(bool lockout) {
 }
 
 void GFX_RestoreMode(void) {
-	if (!sdl.draw.callback) return;
 	GFX_SetSize(sdl.draw.width,sdl.draw.height,sdl.draw.flags,sdl.draw.scalex,sdl.draw.scaley,sdl.draw.callback);
 	GFX_UpdateSDLCaptureState();
+    GFX_ResetScreen();
 }
 
 bool GFX_StartUpdate(Bit8u * & pixels,Bitu & pitch) {
