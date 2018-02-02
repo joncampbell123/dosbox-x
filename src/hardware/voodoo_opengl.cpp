@@ -1268,10 +1268,6 @@ void voodoo_ogl_draw_triangle(poly_extra_data *extra) {
 
 
 void voodoo_ogl_swap_buffer() {
-	if (GFX_LazyFullscreenRequested()) {
-		v->ogl_dimchange = true;
-	}
-
 	VOGL_ClearBeginMode();
 
 	SDL_GL_SwapBuffers();
@@ -1645,17 +1641,12 @@ void voodoo_ogl_reset_videomode(void) {
 		ogl_surface = NULL;
 	}
 
+    void GFX_ForceFullscreenExit(void);
+    GFX_ForceFullscreenExit();
+
 	Uint32 sdl_flags = SDL_OPENGL;
 
-	if (GFX_LazyFullscreenRequested()) GFX_SwitchFullscreenNoReset();
-
-	if (GFX_IsFullscreen()) {
-		sdl_flags |= SDL_FULLSCREEN;
-	} else {
-		ogl_surface = SDL_SetVideoMode(v->fbi.width, v->fbi.height, 32, sdl_flags);
-	}
-
-	if ((ogl_surface != NULL) && (sdl_flags & SDL_FULLSCREEN)) SDL_Delay(1000);
+    ogl_surface = SDL_SetVideoMode(v->fbi.width, v->fbi.height, 32, sdl_flags);
 
 	if (ogl_surface == NULL) {
 		if (full_sdl_restart) {
@@ -1686,7 +1677,7 @@ void voodoo_ogl_reset_videomode(void) {
 		}
 	}
 
-	GFX_SwitchLazyFullscreen(true);
+    v->ogl_dimchange = true;
 
 	GFX_UpdateSDLCaptureState();
 
@@ -1836,7 +1827,6 @@ void voodoo_ogl_leave(bool leavemode) {
 	if (leavemode) {
 		LOG_MSG("VOODOO: OpenGL: quit");
 
-		GFX_SwitchLazyFullscreen(false);
 		if (ogl_surface != NULL) {
 			SDL_FreeSurface(ogl_surface);
 			ogl_surface = NULL;
