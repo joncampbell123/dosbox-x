@@ -1642,7 +1642,10 @@ void voodoo_ogl_reset_videomode(void) {
 		ogl_surface = NULL;
 	}
 
+    void GFX_ReleaseMouse(void);
     void GFX_ForceFullscreenExit(void);
+
+    GFX_ReleaseMouse();
     GFX_ForceFullscreenExit();
 
     GFX_PreventFullscreen(true);
