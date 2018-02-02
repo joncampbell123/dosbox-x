@@ -3034,6 +3034,10 @@ static void HandleVideoResize(void * event) {
 		UpdateWindowDimensions();
     }
 
+    /* don't act on resize events if we made the window non-resizeable.
+     * especially if 3Dfx voodoo emulation is active. */
+    if (!(sdl.surface->flags & SDL_RESIZABLE)) return;
+
     if (sdl.updating && !GFX_MustActOnResize()) {
         /* act on resize when updating is complete */
         sdl.deferred_resize = true;
