@@ -63,6 +63,7 @@ static int WIN_GL_ResetWindow(_THIS)
 		SDL_resizing = 0;
 
 		if ( SDL_Window ) {
+			SetFocus(SDL_Window);
 			this->SetCaption(this, this->wm_title, this->wm_icon);
 		} else {
 			SDL_SetError("Couldn't create window");
