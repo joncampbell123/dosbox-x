@@ -29,6 +29,8 @@
 #include "keyboard.h"
 #include "inout.h"
 
+extern int NonUserResizeCounter;
+
 extern bool dos_kernel_disabled;
 
 #if !defined(C_SDL2)
@@ -774,7 +776,8 @@ void DOSBox_SetMenu(void) {
 	LOG(LOG_MISC,LOG_DEBUG)("Win32: loading and attaching menu resource to DOSBox's window");
 
 	menu.toggle=true;
-	SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
+    NonUserResizeCounter=1;
+    SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
 	DrawMenuBar (GetHWND());
 
 	if(menu.startup) {
@@ -785,7 +788,8 @@ void DOSBox_SetMenu(void) {
 void DOSBox_NoMenu(void) {
 	if(!menu.gui) return;
 	menu.toggle=false;
-	SetMenu(GetHWND(), NULL);
+    NonUserResizeCounter=1;
+    SetMenu(GetHWND(), NULL);
 	DrawMenuBar(GetHWND());
 	RENDER_CallBack( GFX_CallBackReset );
 }
@@ -817,7 +821,8 @@ void DOSBox_RefreshMenu(void) {
     if(!menu.gui) return;
 
     if(fullscreen) {
-    	SetMenu(GetHWND(), NULL);
+        NonUserResizeCounter=1;
+        SetMenu(GetHWND(), NULL);
     	DrawMenuBar(GetHWND());
         return;
     }
@@ -833,22 +838,25 @@ void DOSBox_RefreshMenu2(void) {
    int width, height; bool fullscreen;
    void GFX_GetSize(int &width, int &height, bool &fullscreen);
    GFX_GetSize(width,height,fullscreen);
-    void SDL_Prepare(void);
-    SDL_Prepare();
-    if(!menu.gui) return;
+   void SDL_Prepare(void);
+   SDL_Prepare();
+   if(!menu.gui) return;
 
-    if(fullscreen) {
-    	SetMenu(GetHWND(), NULL);
-    	DrawMenuBar(GetHWND());
-        return;
-    }
-	if(menu.toggle) {
-		menu.toggle=true;
-		SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
-		DrawMenuBar (GetHWND());
-	} else {
-		menu.toggle=false;
-		SetMenu(GetHWND(), NULL);
+   if(fullscreen) {
+       NonUserResizeCounter=1;
+       SetMenu(GetHWND(), NULL);
+       DrawMenuBar(GetHWND());
+       return;
+   }
+   if(menu.toggle) {
+       menu.toggle=true;
+       NonUserResizeCounter=1;
+       SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
+       DrawMenuBar (GetHWND());
+   } else {
+       menu.toggle=false;
+       NonUserResizeCounter=1;
+       SetMenu(GetHWND(), NULL);
 		DrawMenuBar(GetHWND());
 	}
 }

@@ -98,6 +98,8 @@ using namespace std;
 Bitu userResizeWindowWidth = 0, userResizeWindowHeight = 0;
 Bitu currentWindowWidth = 640, currentWindowHeight = 480;
 
+int NonUserResizeCounter = 0;
+
 int gl_clear_countdown = 0;
 
 Bitu time_limit_ms = 0;
@@ -2256,7 +2258,10 @@ void GFX_SwitchFullScreen(void)
 
 #if !defined(C_SDL2)
 	// (re-)assign menu to window
-	if (full && sdl.desktop.want_type != SCREEN_OPENGLHQ && menu.gui) SetMenu(GetHWND(), nullptr);
+	if (full && sdl.desktop.want_type != SCREEN_OPENGLHQ && menu.gui) {
+        NonUserResizeCounter=1;
+        SetMenu(GetHWND(), nullptr);
+    }
 #endif
 
 	// ensure mouse capture when fullscreen || (re-)capture if user said so when windowed
@@ -3068,6 +3073,9 @@ static void HandleVideoResize(void * event) {
     else {
 		UpdateWindowDimensions();
     }
+
+    if (NonUserResizeCounter > 0)
+        NonUserResizeCounter--;
 
     if (sdl.updating && !GFX_MustActOnResize()) {
         /* act on resize when updating is complete */
@@ -5471,7 +5479,10 @@ int main(int argc, char* argv[]) {
 				LOG(LOG_MISC,LOG_DEBUG)("Going fullscreen immediately, during startup");
 
 #if !defined(C_SDL2)
-				if (sdl.desktop.want_type != SCREEN_OPENGLHQ) SetMenu(GetHWND(),NULL);
+				if (sdl.desktop.want_type != SCREEN_OPENGLHQ) {
+                    NonUserResizeCounter=1;
+                    SetMenu(GetHWND(),NULL);
+                }
 #endif
 				//only switch if not already in fullscreen
 				if (!sdl.desktop.fullscreen) GFX_SwitchFullScreen();
@@ -5513,9 +5524,10 @@ int main(int argc, char* argv[]) {
 			GFX_SetIcon();
 			SDL_Prepare();
 			if (menu.gui && !control->opt_nomenu) {
+                NonUserResizeCounter=1;
 				SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
 				DrawMenuBar(GetHWND());
-			}
+            }
 		}
 #endif
 
