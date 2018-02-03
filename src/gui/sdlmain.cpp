@@ -98,6 +98,8 @@ using namespace std;
 Bitu userResizeWindowWidth = 0, userResizeWindowHeight = 0;
 Bitu currentWindowWidth = 640, currentWindowHeight = 480;
 
+int NonUserResizeCounter = 0;
+
 int gl_clear_countdown = 0;
 
 Bitu time_limit_ms = 0;
@@ -1375,7 +1377,6 @@ dosurface:
 #if C_OPENGL
 	case SCREEN_OPENGL:
 	{
-		GFX_ResetSDL();
 		if (sdl.opengl.pixel_buffer_object) {
 			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
 			if (sdl.opengl.buffer) glDeleteBuffersARB(1, &sdl.opengl.buffer);
@@ -2269,11 +2270,6 @@ void GFX_SwitchFullScreen(void)
 
 	LOG_MSG("INFO: switched to %s mode", full ? "full screen" : "window");
 
-#if !defined(C_SDL2)
-	// (re-)assign menu to window
-//	if (full && sdl.desktop.want_type != SCREEN_OPENGLHQ && menu.gui) SDL1_hax_SetMenu(nullptr);
-#endif
-
 	// ensure mouse capture when fullscreen || (re-)capture if user said so when windowed
 	auto locked = sdl.mouse.locked;
 	if ((full && !locked) || (!full && locked)) GFX_CaptureMouse();
@@ -3067,7 +3063,7 @@ static void HandleVideoResize(void * event) {
 
     /* assume the resize comes from user preference UNLESS the window
      * is fullscreen or maximized */
-    if (!menu.maxwindow && !sdl.desktop.fullscreen && !sdl.init_ignore) {
+    if (!menu.maxwindow && !sdl.desktop.fullscreen && !sdl.init_ignore && NonUserResizeCounter == 0) {
 		UpdateWindowDimensions();
 		UpdateWindowDimensions(ResizeEvent->w, ResizeEvent->h);
 
@@ -3083,6 +3079,9 @@ static void HandleVideoResize(void * event) {
     else {
 		UpdateWindowDimensions();
     }
+
+    if (NonUserResizeCounter > 0)
+        NonUserResizeCounter--;
 
     if (sdl.updating && !GFX_MustActOnResize()) {
         /* act on resize when updating is complete */
@@ -5489,9 +5488,6 @@ int main(int argc, char* argv[]) {
 			if (control->opt_fullscreen || sdl_sec->Get_bool("fullscreen")) {
 				LOG(LOG_MISC,LOG_DEBUG)("Going fullscreen immediately, during startup");
 
-#if !defined(C_SDL2)
-//				if (sdl.desktop.want_type != SCREEN_OPENGLHQ) SDL1_hax_SetMenu(NULL);
-#endif
 				//only switch if not already in fullscreen
 				if (!sdl.desktop.fullscreen) GFX_SwitchFullScreen();
 			}
@@ -5532,9 +5528,9 @@ int main(int argc, char* argv[]) {
 			GFX_SetIcon();
 			SDL_Prepare();
 			if (menu.gui && !control->opt_nomenu) {
+                NonUserResizeCounter=1;
 				SDL1_hax_SetMenu(LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
-				DrawMenuBar(GetHWND());
-			}
+            }
 		}
 #endif
 

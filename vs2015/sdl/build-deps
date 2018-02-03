@@ -1,0 +1,1925 @@
+$(objects)/SDL.lo: ./src/SDL.c \
+	./include/SDL.h \
+	./include/SDL_active.h \
+	./include/SDL_audio.h \
+	./include/SDL_cdrom.h \
+	./include/SDL_config.h \
+	./include/SDL_cpuinfo.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_events.h \
+	./include/SDL_joystick.h \
+	./include/SDL_keyboard.h \
+	./include/SDL_keysym.h \
+	./include/SDL_loadso.h \
+	./include/SDL_main.h \
+	./include/SDL_mouse.h \
+	./include/SDL_mutex.h \
+	./include/SDL_platform.h \
+	./include/SDL_quit.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_thread.h \
+	./include/SDL_timer.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/SDL.c  -o $@
+
+
+$(objects)/SDL_error.lo: ./src/SDL_error.c \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_platform.h \
+	./include/SDL_stdinc.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/SDL_error_c.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/SDL_error.c  -o $@
+
+
+$(objects)/SDL_fatal.lo: ./src/SDL_fatal.c \
+	./include/SDL.h \
+	./include/SDL_active.h \
+	./include/SDL_audio.h \
+	./include/SDL_cdrom.h \
+	./include/SDL_config.h \
+	./include/SDL_cpuinfo.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_events.h \
+	./include/SDL_joystick.h \
+	./include/SDL_keyboard.h \
+	./include/SDL_keysym.h \
+	./include/SDL_loadso.h \
+	./include/SDL_main.h \
+	./include/SDL_mouse.h \
+	./include/SDL_mutex.h \
+	./include/SDL_platform.h \
+	./include/SDL_quit.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_thread.h \
+	./include/SDL_timer.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/SDL_fatal.c  -o $@
+
+
+$(objects)/SDL_audio.lo: ./src/audio/SDL_audio.c \
+	./include/SDL.h \
+	./include/SDL_active.h \
+	./include/SDL_audio.h \
+	./include/SDL_cdrom.h \
+	./include/SDL_config.h \
+	./include/SDL_cpuinfo.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_events.h \
+	./include/SDL_joystick.h \
+	./include/SDL_keyboard.h \
+	./include/SDL_keysym.h \
+	./include/SDL_loadso.h \
+	./include/SDL_main.h \
+	./include/SDL_mouse.h \
+	./include/SDL_mutex.h \
+	./include/SDL_platform.h \
+	./include/SDL_quit.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_thread.h \
+	./include/SDL_timer.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/audio/SDL_audio_c.h \
+	./src/audio/SDL_audiomem.h \
+	./src/audio/SDL_sysaudio.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/audio/SDL_audio.c  -o $@
+
+
+$(objects)/SDL_audiocvt.lo: ./src/audio/SDL_audiocvt.c \
+	./include/SDL_audio.h \
+	./include/SDL_config.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_mutex.h \
+	./include/SDL_platform.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_thread.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/audio/SDL_audiocvt.c  -o $@
+
+
+$(objects)/SDL_audiodev.lo: ./src/audio/SDL_audiodev.c \
+	./include/SDL_config.h \
+	./include/SDL_platform.h \
+	./include/SDL_stdinc.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/audio/SDL_audiodev_c.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/audio/SDL_audiodev.c  -o $@
+
+
+$(objects)/SDL_mixer.lo: ./src/audio/SDL_mixer.c \
+	./include/SDL_audio.h \
+	./include/SDL_config.h \
+	./include/SDL_cpuinfo.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_mutex.h \
+	./include/SDL_platform.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_thread.h \
+	./include/SDL_timer.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/audio/SDL_mixer_MMX.h \
+	./src/audio/SDL_mixer_MMX_VC.h \
+	./src/audio/SDL_mixer_m68k.h \
+	./src/audio/SDL_sysaudio.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/audio/SDL_mixer.c  -o $@
+
+
+$(objects)/SDL_mixer_MMX.lo: ./src/audio/SDL_mixer_MMX.c \
+	./include/SDL_config.h \
+	./include/SDL_platform.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/audio/SDL_mixer_MMX.c  -o $@
+
+
+$(objects)/SDL_mixer_MMX_VC.lo: ./src/audio/SDL_mixer_MMX_VC.c \
+	./include/SDL_config.h \
+	./include/SDL_platform.h \
+	./src/audio/SDL_mixer_MMX_VC.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/audio/SDL_mixer_MMX_VC.c  -o $@
+
+
+$(objects)/SDL_mixer_m68k.lo: ./src/audio/SDL_mixer_m68k.c \
+	./include/SDL_config.h \
+	./include/SDL_platform.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/audio/SDL_mixer_m68k.c  -o $@
+
+
+$(objects)/SDL_wave.lo: ./src/audio/SDL_wave.c \
+	./include/SDL_audio.h \
+	./include/SDL_config.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_mutex.h \
+	./include/SDL_platform.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_thread.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/audio/SDL_wave.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/audio/SDL_wave.c  -o $@
+
+
+$(objects)/SDL_cdrom.lo: ./src/cdrom/SDL_cdrom.c \
+	./include/SDL_cdrom.h \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_platform.h \
+	./include/SDL_stdinc.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/cdrom/SDL_syscdrom.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/cdrom/SDL_cdrom.c  -o $@
+
+
+$(objects)/SDL_cpuinfo.lo: ./src/cpuinfo/SDL_cpuinfo.c \
+	./include/SDL.h \
+	./include/SDL_active.h \
+	./include/SDL_audio.h \
+	./include/SDL_cdrom.h \
+	./include/SDL_config.h \
+	./include/SDL_cpuinfo.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_events.h \
+	./include/SDL_joystick.h \
+	./include/SDL_keyboard.h \
+	./include/SDL_keysym.h \
+	./include/SDL_loadso.h \
+	./include/SDL_main.h \
+	./include/SDL_mouse.h \
+	./include/SDL_mutex.h \
+	./include/SDL_platform.h \
+	./include/SDL_quit.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_thread.h \
+	./include/SDL_timer.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/cpuinfo/SDL_cpuinfo.c  -o $@
+
+
+$(objects)/SDL_active.lo: ./src/events/SDL_active.c \
+	./include/SDL_active.h \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_events.h \
+	./include/SDL_joystick.h \
+	./include/SDL_keyboard.h \
+	./include/SDL_keysym.h \
+	./include/SDL_mouse.h \
+	./include/SDL_platform.h \
+	./include/SDL_quit.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/SDL_events_c.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/events/SDL_active.c  -o $@
+
+
+$(objects)/SDL_events.lo: ./src/events/SDL_events.c \
+	./include/SDL.h \
+	./include/SDL_active.h \
+	./include/SDL_audio.h \
+	./include/SDL_cdrom.h \
+	./include/SDL_config.h \
+	./include/SDL_cpuinfo.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_events.h \
+	./include/SDL_joystick.h \
+	./include/SDL_keyboard.h \
+	./include/SDL_keysym.h \
+	./include/SDL_loadso.h \
+	./include/SDL_main.h \
+	./include/SDL_mouse.h \
+	./include/SDL_mutex.h \
+	./include/SDL_platform.h \
+	./include/SDL_quit.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_thread.h \
+	./include/SDL_timer.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/SDL_events_c.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/events/SDL_events.c  -o $@
+
+
+$(objects)/SDL_expose.lo: ./src/events/SDL_expose.c \
+	./include/SDL_active.h \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_events.h \
+	./include/SDL_joystick.h \
+	./include/SDL_keyboard.h \
+	./include/SDL_keysym.h \
+	./include/SDL_mouse.h \
+	./include/SDL_platform.h \
+	./include/SDL_quit.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/SDL_events_c.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/events/SDL_expose.c  -o $@
+
+
+$(objects)/SDL_keyboard.lo: ./src/events/SDL_keyboard.c \
+	./include/SDL_active.h \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_events.h \
+	./include/SDL_joystick.h \
+	./include/SDL_keyboard.h \
+	./include/SDL_keysym.h \
+	./include/SDL_mouse.h \
+	./include/SDL_platform.h \
+	./include/SDL_quit.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_timer.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/SDL_events_c.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/events/SDL_keyboard.c  -o $@
+
+
+$(objects)/SDL_mouse.lo: ./src/events/SDL_mouse.c \
+	./include/SDL_active.h \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_events.h \
+	./include/SDL_joystick.h \
+	./include/SDL_keyboard.h \
+	./include/SDL_keysym.h \
+	./include/SDL_mouse.h \
+	./include/SDL_mutex.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_quit.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/events/../video/SDL_cursor_c.h \
+	./src/events/SDL_events_c.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/events/SDL_mouse.c  -o $@
+
+
+$(objects)/SDL_quit.lo: ./src/events/SDL_quit.c \
+	./include/SDL_active.h \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_events.h \
+	./include/SDL_joystick.h \
+	./include/SDL_keyboard.h \
+	./include/SDL_keysym.h \
+	./include/SDL_mouse.h \
+	./include/SDL_platform.h \
+	./include/SDL_quit.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/SDL_events_c.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/events/SDL_quit.c  -o $@
+
+
+$(objects)/SDL_resize.lo: ./src/events/SDL_resize.c \
+	./include/SDL_active.h \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_events.h \
+	./include/SDL_joystick.h \
+	./include/SDL_keyboard.h \
+	./include/SDL_keysym.h \
+	./include/SDL_mouse.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_quit.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/events/SDL_events_c.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/events/SDL_resize.c  -o $@
+
+
+$(objects)/SDL_rwops.lo: ./src/file/SDL_rwops.c \
+	./include/SDL_config.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_platform.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/file/SDL_rwops.c  -o $@
+
+
+$(objects)/SDL_getenv.lo: ./src/stdlib/SDL_getenv.c \
+	./include/SDL_config.h \
+	./include/SDL_platform.h \
+	./include/SDL_stdinc.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/stdlib/SDL_getenv.c  -o $@
+
+
+$(objects)/SDL_iconv.lo: ./src/stdlib/SDL_iconv.c \
+	./include/SDL_config.h \
+	./include/SDL_endian.h \
+	./include/SDL_platform.h \
+	./include/SDL_stdinc.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/stdlib/SDL_iconv.c  -o $@
+
+
+$(objects)/SDL_malloc.lo: ./src/stdlib/SDL_malloc.c \
+	./include/SDL_config.h \
+	./include/SDL_platform.h \
+	./include/SDL_stdinc.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/stdlib/SDL_malloc.c  -o $@
+
+
+$(objects)/SDL_qsort.lo: ./src/stdlib/SDL_qsort.c \
+	./include/SDL_config.h \
+	./include/SDL_platform.h \
+	./include/SDL_stdinc.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/stdlib/SDL_qsort.c  -o $@
+
+
+$(objects)/SDL_stdlib.lo: ./src/stdlib/SDL_stdlib.c \
+	./include/SDL_config.h \
+	./include/SDL_platform.h \
+	./include/SDL_stdinc.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/stdlib/SDL_stdlib.c  -o $@
+
+
+$(objects)/SDL_string.lo: ./src/stdlib/SDL_string.c \
+	./include/SDL_config.h \
+	./include/SDL_platform.h \
+	./include/SDL_stdinc.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/stdlib/SDL_string.c  -o $@
+
+
+$(objects)/SDL_thread.lo: ./src/thread/SDL_thread.c \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_mutex.h \
+	./include/SDL_platform.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_thread.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/SDL_error_c.h \
+	./src/thread/SDL_systhread.h \
+	./src/thread/SDL_thread_c.h \
+	./src/thread/generic/SDL_systhread_c.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/thread/SDL_thread.c  -o $@
+
+
+$(objects)/SDL_timer.lo: ./src/timer/SDL_timer.c \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_mutex.h \
+	./include/SDL_platform.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_timer.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/timer/SDL_systimer.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/timer/SDL_timer.c  -o $@
+
+
+$(objects)/SDL_RLEaccel.lo: ./src/video/SDL_RLEaccel.c \
+	./include/SDL_config.h \
+	./include/SDL_cpuinfo.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_mouse.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/video/SDL_RLEaccel_c.h \
+	./src/video/SDL_blit.h \
+	./src/video/mmx.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/SDL_RLEaccel.c  -o $@
+
+
+$(objects)/SDL_blit.lo: ./src/video/SDL_blit.c \
+	./include/SDL_config.h \
+	./include/SDL_cpuinfo.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_mouse.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/video/SDL_RLEaccel_c.h \
+	./src/video/SDL_blit.h \
+	./src/video/SDL_pixels_c.h \
+	./src/video/mmx.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/SDL_blit.c  -o $@
+
+
+$(objects)/SDL_blit_0.lo: ./src/video/SDL_blit_0.c \
+	./include/SDL_config.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_platform.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/video/SDL_blit.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/SDL_blit_0.c  -o $@
+
+
+$(objects)/SDL_blit_1.lo: ./src/video/SDL_blit_1.c \
+	./include/SDL_config.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_mouse.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/video/SDL_blit.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/SDL_blit_1.c  -o $@
+
+
+$(objects)/SDL_blit_A.lo: ./src/video/SDL_blit_A.c \
+	./include/SDL_config.h \
+	./include/SDL_cpuinfo.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_platform.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/video/SDL_blit.h \
+	./src/video/mmx.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/SDL_blit_A.c  -o $@
+
+
+$(objects)/SDL_blit_N.lo: ./src/video/SDL_blit_N.c \
+	./include/SDL_config.h \
+	./include/SDL_cpuinfo.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_platform.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/video/../hermes/../hermes/HeadX86.h \
+	./src/video/../hermes/HeadMMX.h \
+	./src/video/SDL_blit.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/SDL_blit_N.c  -o $@
+
+
+$(objects)/SDL_bmp.lo: ./src/video/SDL_bmp.c \
+	./include/SDL_config.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_platform.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/SDL_bmp.c  -o $@
+
+
+$(objects)/SDL_cursor.lo: ./src/video/SDL_cursor.c \
+	./include/SDL_active.h \
+	./include/SDL_config.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_events.h \
+	./include/SDL_joystick.h \
+	./include/SDL_keyboard.h \
+	./include/SDL_keysym.h \
+	./include/SDL_mouse.h \
+	./include/SDL_mutex.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_quit.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/events/../video/SDL_cursor_c.h \
+	./src/events/SDL_events_c.h \
+	./src/video/SDL_blit.h \
+	./src/video/SDL_pixels_c.h \
+	./src/video/default_cursor.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/SDL_cursor.c  -o $@
+
+
+$(objects)/SDL_gamma.lo: ./src/video/SDL_gamma.c \
+	./include/SDL_config.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_mouse.h \
+	./include/SDL_name.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/video/e_log.h \
+	./src/video/e_pow.h \
+	./src/video/e_sqrt.h \
+	./src/video/math_private.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/SDL_gamma.c  -o $@
+
+
+$(objects)/SDL_pixels.lo: ./src/video/SDL_pixels.c \
+	./include/SDL_config.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_mouse.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/video/SDL_RLEaccel_c.h \
+	./src/video/SDL_blit.h \
+	./src/video/SDL_pixels_c.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/SDL_pixels.c  -o $@
+
+
+$(objects)/SDL_stretch.lo: ./src/video/SDL_stretch.c \
+	./include/SDL_config.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_platform.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/video/SDL_blit.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/SDL_stretch.c  -o $@
+
+
+$(objects)/SDL_surface.lo: ./src/video/SDL_surface.c \
+	./include/SDL_config.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_mouse.h \
+	./include/SDL_mutex.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/events/../video/SDL_cursor_c.h \
+	./src/video/SDL_RLEaccel_c.h \
+	./src/video/SDL_blit.h \
+	./src/video/SDL_pixels_c.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/SDL_surface.c  -o $@
+
+
+$(objects)/SDL_video.lo: ./src/video/SDL_video.c \
+	./include/SDL.h \
+	./include/SDL_active.h \
+	./include/SDL_audio.h \
+	./include/SDL_cdrom.h \
+	./include/SDL_config.h \
+	./include/SDL_cpuinfo.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_events.h \
+	./include/SDL_joystick.h \
+	./include/SDL_keyboard.h \
+	./include/SDL_keysym.h \
+	./include/SDL_loadso.h \
+	./include/SDL_main.h \
+	./include/SDL_mouse.h \
+	./include/SDL_mutex.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_quit.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_thread.h \
+	./include/SDL_timer.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/events/../video/SDL_cursor_c.h \
+	./src/events/SDL_events_c.h \
+	./src/video/SDL_blit.h \
+	./src/video/SDL_pixels_c.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/SDL_video.c  -o $@
+
+
+$(objects)/SDL_yuv.lo: ./src/video/SDL_yuv.c \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_mouse.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/video/SDL_yuv_sw_c.h \
+	./src/video/SDL_yuvfuncs.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/SDL_yuv.c  -o $@
+
+
+$(objects)/SDL_yuv_mmx.lo: ./src/video/SDL_yuv_mmx.c \
+	./include/SDL_config.h \
+	./include/SDL_platform.h \
+	./include/SDL_stdinc.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/video/mmx.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/SDL_yuv_mmx.c  -o $@
+
+
+$(objects)/SDL_yuv_sw.lo: ./src/video/SDL_yuv_sw.c \
+	./include/SDL_config.h \
+	./include/SDL_cpuinfo.h \
+	./include/SDL_error.h \
+	./include/SDL_mouse.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/video/SDL_stretch_c.h \
+	./src/video/SDL_yuv_sw_c.h \
+	./src/video/SDL_yuvfuncs.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/SDL_yuv_sw.c  -o $@
+
+
+$(objects)/SDL_joystick.lo: ./src/joystick/SDL_joystick.c \
+	./include/SDL_active.h \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_events.h \
+	./include/SDL_joystick.h \
+	./include/SDL_keyboard.h \
+	./include/SDL_keysym.h \
+	./include/SDL_mouse.h \
+	./include/SDL_platform.h \
+	./include/SDL_quit.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/SDL_events_c.h \
+	./src/joystick/SDL_sysjoystick.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/joystick/SDL_joystick.c  -o $@
+
+
+$(objects)/SDL_nullevents.lo: ./src/video/dummy/SDL_nullevents.c \
+	./include/SDL.h \
+	./include/SDL_active.h \
+	./include/SDL_audio.h \
+	./include/SDL_cdrom.h \
+	./include/SDL_config.h \
+	./include/SDL_cpuinfo.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_events.h \
+	./include/SDL_joystick.h \
+	./include/SDL_keyboard.h \
+	./include/SDL_keysym.h \
+	./include/SDL_loadso.h \
+	./include/SDL_main.h \
+	./include/SDL_mouse.h \
+	./include/SDL_mutex.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_quit.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_thread.h \
+	./include/SDL_timer.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/events/SDL_events_c.h \
+	./src/video/dummy/SDL_nullevents_c.h \
+	./src/video/dummy/SDL_nullvideo.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/dummy/SDL_nullevents.c  -o $@
+
+
+$(objects)/SDL_nullmouse.lo: ./src/video/dummy/SDL_nullmouse.c \
+	./include/SDL_active.h \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_events.h \
+	./include/SDL_joystick.h \
+	./include/SDL_keyboard.h \
+	./include/SDL_keysym.h \
+	./include/SDL_mouse.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_quit.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/events/SDL_events_c.h \
+	./src/video/dummy/SDL_nullmouse_c.h \
+	./src/video/dummy/SDL_nullvideo.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/dummy/SDL_nullmouse.c  -o $@
+
+
+$(objects)/SDL_nullvideo.lo: ./src/video/dummy/SDL_nullvideo.c \
+	./include/SDL_active.h \
+	./include/SDL_config.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_events.h \
+	./include/SDL_joystick.h \
+	./include/SDL_keyboard.h \
+	./include/SDL_keysym.h \
+	./include/SDL_mouse.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_quit.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/events/SDL_events_c.h \
+	./src/video/SDL_blit.h \
+	./src/video/SDL_pixels_c.h \
+	./src/video/dummy/SDL_nullevents_c.h \
+	./src/video/dummy/SDL_nullmouse_c.h \
+	./src/video/dummy/SDL_nullvideo.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/dummy/SDL_nullvideo.c  -o $@
+
+
+$(objects)/SDL_diskaudio.lo: ./src/audio/disk/SDL_diskaudio.c \
+	./include/SDL_audio.h \
+	./include/SDL_config.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_mutex.h \
+	./include/SDL_platform.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_thread.h \
+	./include/SDL_timer.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/audio/SDL_audio_c.h \
+	./src/audio/SDL_audiodev_c.h \
+	./src/audio/SDL_audiomem.h \
+	./src/audio/SDL_sysaudio.h \
+	./src/audio/disk/SDL_diskaudio.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/audio/disk/SDL_diskaudio.c  -o $@
+
+
+$(objects)/SDL_dummyaudio.lo: ./src/audio/dummy/SDL_dummyaudio.c \
+	./include/SDL_audio.h \
+	./include/SDL_config.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_mutex.h \
+	./include/SDL_platform.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_thread.h \
+	./include/SDL_timer.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/audio/SDL_audio_c.h \
+	./src/audio/SDL_audiodev_c.h \
+	./src/audio/SDL_audiomem.h \
+	./src/audio/SDL_sysaudio.h \
+	./src/audio/dummy/SDL_dummyaudio.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/audio/dummy/SDL_dummyaudio.c  -o $@
+
+
+$(objects)/SDL_sysloadso.lo: ./src/loadso/dlopen/SDL_sysloadso.c \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_loadso.h \
+	./include/SDL_platform.h \
+	./include/SDL_stdinc.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/loadso/dlopen/SDL_sysloadso.c  -o $@
+
+
+$(objects)/SDL_dspaudio.lo: ./src/audio/dsp/SDL_dspaudio.c \
+	./include/SDL_audio.h \
+	./include/SDL_config.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_mutex.h \
+	./include/SDL_platform.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_thread.h \
+	./include/SDL_timer.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/audio/SDL_audio_c.h \
+	./src/audio/SDL_audiodev_c.h \
+	./src/audio/SDL_audiomem.h \
+	./src/audio/SDL_sysaudio.h \
+	./src/audio/dsp/SDL_dspaudio.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/audio/dsp/SDL_dspaudio.c  -o $@
+
+
+$(objects)/SDL_dmaaudio.lo: ./src/audio/dma/SDL_dmaaudio.c \
+	./include/SDL_audio.h \
+	./include/SDL_config.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_mutex.h \
+	./include/SDL_platform.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_thread.h \
+	./include/SDL_timer.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/audio/SDL_audio_c.h \
+	./src/audio/SDL_audiodev_c.h \
+	./src/audio/SDL_sysaudio.h \
+	./src/audio/dma/SDL_dmaaudio.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/audio/dma/SDL_dmaaudio.c  -o $@
+
+
+$(objects)/SDL_alsa_audio.lo: ./src/audio/alsa/SDL_alsa_audio.c \
+	./include/SDL_audio.h \
+	./include/SDL_config.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_loadso.h \
+	./include/SDL_mutex.h \
+	./include/SDL_name.h \
+	./include/SDL_platform.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_thread.h \
+	./include/SDL_timer.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/audio/SDL_audio_c.h \
+	./src/audio/SDL_audiomem.h \
+	./src/audio/SDL_sysaudio.h \
+	./src/audio/alsa/SDL_alsa_audio.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/audio/alsa/SDL_alsa_audio.c  -o $@
+
+
+$(objects)/SDL_pulseaudio.lo: ./src/audio/pulse/SDL_pulseaudio.c \
+	./include/SDL_audio.h \
+	./include/SDL_config.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_loadso.h \
+	./include/SDL_mutex.h \
+	./include/SDL_name.h \
+	./include/SDL_platform.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_thread.h \
+	./include/SDL_timer.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/audio/SDL_audio_c.h \
+	./src/audio/SDL_audiodev_c.h \
+	./src/audio/SDL_audiomem.h \
+	./src/audio/SDL_sysaudio.h \
+	./src/audio/pulse/SDL_pulseaudio.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/audio/pulse/SDL_pulseaudio.c  -o $@
+
+
+$(objects)/SDL_x11dga.lo: ./src/video/x11/SDL_x11dga.c \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_mouse.h \
+	./include/SDL_mutex.h \
+	./include/SDL_name.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/events/../video/SDL_cursor_c.h \
+	./src/video/x11/../Xext/extensions/xf86dga.h \
+	./src/video/x11/../Xext/extensions/xf86dga1.h \
+	./src/video/x11/SDL_x11dga_c.h \
+	./src/video/x11/SDL_x11video.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/x11/SDL_x11dga.c  -o $@
+
+
+$(objects)/SDL_x11dyn.lo: ./src/video/x11/SDL_x11dyn.c \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_loadso.h \
+	./include/SDL_name.h \
+	./include/SDL_platform.h \
+	./include/SDL_stdinc.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/video/x11/SDL_x11sym.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/x11/SDL_x11dyn.c  -o $@
+
+
+$(objects)/SDL_x11events.lo: ./src/video/x11/SDL_x11events.c \
+	./include/SDL_active.h \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_events.h \
+	./include/SDL_joystick.h \
+	./include/SDL_keyboard.h \
+	./include/SDL_keysym.h \
+	./include/SDL_mouse.h \
+	./include/SDL_name.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_quit.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_timer.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/events/SDL_events_c.h \
+	./src/video/x11/../Xext/extensions/xf86dga.h \
+	./src/video/x11/../Xext/extensions/xf86dga1.h \
+	./src/video/x11/SDL_x11dga_c.h \
+	./src/video/x11/SDL_x11events_c.h \
+	./src/video/x11/SDL_x11gamma_c.h \
+	./src/video/x11/SDL_x11image_c.h \
+	./src/video/x11/SDL_x11modes_c.h \
+	./src/video/x11/SDL_x11mouse_c.h \
+	./src/video/x11/SDL_x11video.h \
+	./src/video/x11/SDL_x11wm_c.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/x11/SDL_x11events.c  -o $@
+
+
+$(objects)/SDL_x11gamma.lo: ./src/video/x11/SDL_x11gamma.c \
+	./include/SDL.h \
+	./include/SDL_active.h \
+	./include/SDL_audio.h \
+	./include/SDL_cdrom.h \
+	./include/SDL_config.h \
+	./include/SDL_cpuinfo.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_events.h \
+	./include/SDL_joystick.h \
+	./include/SDL_keyboard.h \
+	./include/SDL_keysym.h \
+	./include/SDL_loadso.h \
+	./include/SDL_main.h \
+	./include/SDL_mouse.h \
+	./include/SDL_mutex.h \
+	./include/SDL_name.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_quit.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_thread.h \
+	./include/SDL_timer.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/events/SDL_events_c.h \
+	./src/video/x11/../Xext/extensions/xf86dga.h \
+	./src/video/x11/../Xext/extensions/xf86dga1.h \
+	./src/video/x11/SDL_x11video.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/x11/SDL_x11gamma.c  -o $@
+
+
+$(objects)/SDL_x11gl.lo: ./src/video/x11/SDL_x11gl.c \
+	./include/SDL_active.h \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_events.h \
+	./include/SDL_joystick.h \
+	./include/SDL_keyboard.h \
+	./include/SDL_keysym.h \
+	./include/SDL_loadso.h \
+	./include/SDL_mouse.h \
+	./include/SDL_name.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_quit.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/events/SDL_events_c.h \
+	./src/video/x11/../Xext/extensions/xf86dga.h \
+	./src/video/x11/../Xext/extensions/xf86dga1.h \
+	./src/video/x11/SDL_x11dga_c.h \
+	./src/video/x11/SDL_x11gl_c.h \
+	./src/video/x11/SDL_x11video.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/x11/SDL_x11gl.c  -o $@
+
+
+$(objects)/SDL_x11image.lo: ./src/video/x11/SDL_x11image.c \
+	./include/SDL_active.h \
+	./include/SDL_config.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_events.h \
+	./include/SDL_joystick.h \
+	./include/SDL_keyboard.h \
+	./include/SDL_keysym.h \
+	./include/SDL_mouse.h \
+	./include/SDL_name.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_quit.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/events/SDL_events_c.h \
+	./src/video/x11/../Xext/extensions/xf86dga.h \
+	./src/video/x11/../Xext/extensions/xf86dga1.h \
+	./src/video/x11/SDL_x11image_c.h \
+	./src/video/x11/SDL_x11video.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/x11/SDL_x11image.c  -o $@
+
+
+$(objects)/SDL_x11modes.lo: ./src/video/x11/SDL_x11modes.c \
+	./include/SDL_active.h \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_events.h \
+	./include/SDL_joystick.h \
+	./include/SDL_keyboard.h \
+	./include/SDL_keysym.h \
+	./include/SDL_mouse.h \
+	./include/SDL_name.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_quit.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_timer.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/events/SDL_events_c.h \
+	./src/video/x11/../Xext/extensions/xf86dga.h \
+	./src/video/x11/../Xext/extensions/xf86dga1.h \
+	./src/video/x11/SDL_x11image_c.h \
+	./src/video/x11/SDL_x11modes_c.h \
+	./src/video/x11/SDL_x11video.h \
+	./src/video/x11/SDL_x11wm_c.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/x11/SDL_x11modes.c  -o $@
+
+
+$(objects)/SDL_x11mouse.lo: ./src/video/x11/SDL_x11mouse.c \
+	./include/SDL_active.h \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_events.h \
+	./include/SDL_joystick.h \
+	./include/SDL_keyboard.h \
+	./include/SDL_keysym.h \
+	./include/SDL_mouse.h \
+	./include/SDL_mutex.h \
+	./include/SDL_name.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_quit.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/events/../video/SDL_cursor_c.h \
+	./src/events/SDL_events_c.h \
+	./src/video/x11/../Xext/extensions/xf86dga.h \
+	./src/video/x11/../Xext/extensions/xf86dga1.h \
+	./src/video/x11/SDL_x11dga_c.h \
+	./src/video/x11/SDL_x11mouse_c.h \
+	./src/video/x11/SDL_x11video.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/x11/SDL_x11mouse.c  -o $@
+
+
+$(objects)/SDL_x11video.lo: ./src/video/x11/SDL_x11video.c \
+	./include/SDL_active.h \
+	./include/SDL_config.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_events.h \
+	./include/SDL_joystick.h \
+	./include/SDL_keyboard.h \
+	./include/SDL_keysym.h \
+	./include/SDL_loadso.h \
+	./include/SDL_mouse.h \
+	./include/SDL_mutex.h \
+	./include/SDL_name.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_quit.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_thread.h \
+	./include/SDL_timer.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/events/SDL_events_c.h \
+	./src/video/SDL_blit.h \
+	./src/video/SDL_pixels_c.h \
+	./src/video/x11/../Xext/extensions/xf86dga.h \
+	./src/video/x11/../Xext/extensions/xf86dga1.h \
+	./src/video/x11/../blank_cursor.h \
+	./src/video/x11/SDL_x11events_c.h \
+	./src/video/x11/SDL_x11gamma_c.h \
+	./src/video/x11/SDL_x11gl_c.h \
+	./src/video/x11/SDL_x11image_c.h \
+	./src/video/x11/SDL_x11modes_c.h \
+	./src/video/x11/SDL_x11mouse_c.h \
+	./src/video/x11/SDL_x11video.h \
+	./src/video/x11/SDL_x11wm_c.h \
+	./src/video/x11/SDL_x11yuv_c.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/x11/SDL_x11video.c  -o $@
+
+
+$(objects)/SDL_x11wm.lo: ./src/video/x11/SDL_x11wm.c \
+	./include/SDL_active.h \
+	./include/SDL_config.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_events.h \
+	./include/SDL_joystick.h \
+	./include/SDL_keyboard.h \
+	./include/SDL_keysym.h \
+	./include/SDL_mouse.h \
+	./include/SDL_name.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_quit.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_timer.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/events/SDL_events_c.h \
+	./src/video/SDL_blit.h \
+	./src/video/SDL_pixels_c.h \
+	./src/video/x11/../Xext/extensions/xf86dga.h \
+	./src/video/x11/../Xext/extensions/xf86dga1.h \
+	./src/video/x11/SDL_x11modes_c.h \
+	./src/video/x11/SDL_x11video.h \
+	./src/video/x11/SDL_x11wm_c.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/x11/SDL_x11wm.c  -o $@
+
+
+$(objects)/SDL_x11yuv.lo: ./src/video/x11/SDL_x11yuv.c \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_mouse.h \
+	./include/SDL_name.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/video/SDL_yuvfuncs.h \
+	./src/video/x11/../Xext/extensions/Xv.h \
+	./src/video/x11/../Xext/extensions/Xvlib.h \
+	./src/video/x11/../Xext/extensions/xf86dga.h \
+	./src/video/x11/../Xext/extensions/xf86dga1.h \
+	./src/video/x11/SDL_x11image_c.h \
+	./src/video/x11/SDL_x11video.h \
+	./src/video/x11/SDL_x11yuv_c.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/x11/SDL_x11yuv.c  -o $@
+
+
+$(objects)/XF86DGA.lo: ./src/video/Xext/Xxf86dga/XF86DGA.c \
+	./include/SDL_config.h \
+	./include/SDL_name.h \
+	./include/SDL_platform.h \
+	./include/SDL_stdinc.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/video/Xext/Xxf86dga/../extensions/../extensions/../extensions/extutil.h \
+	./src/video/Xext/Xxf86dga/../extensions/../extensions/Xext.h \
+	./src/video/Xext/Xxf86dga/../extensions/xf86dga1str.h \
+	./src/video/Xext/Xxf86dga/../extensions/xf86dgastr.h \
+	./src/video/x11/../Xext/extensions/xf86dga.h \
+	./src/video/x11/../Xext/extensions/xf86dga1.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/Xext/Xxf86dga/XF86DGA.c  -o $@
+
+
+$(objects)/XF86DGA2.lo: ./src/video/Xext/Xxf86dga/XF86DGA2.c \
+	./include/SDL_config.h \
+	./include/SDL_name.h \
+	./include/SDL_platform.h \
+	./include/SDL_stdinc.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/video/Xext/Xxf86dga/../extensions/../extensions/../extensions/extutil.h \
+	./src/video/Xext/Xxf86dga/../extensions/../extensions/Xext.h \
+	./src/video/Xext/Xxf86dga/../extensions/xf86dga1str.h \
+	./src/video/Xext/Xxf86dga/../extensions/xf86dgastr.h \
+	./src/video/x11/../Xext/extensions/xf86dga.h \
+	./src/video/x11/../Xext/extensions/xf86dga1.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/Xext/Xxf86dga/XF86DGA2.c  -o $@
+
+
+$(objects)/SDL_dgaevents.lo: ./src/video/dga/SDL_dgaevents.c \
+	./include/SDL_active.h \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_events.h \
+	./include/SDL_joystick.h \
+	./include/SDL_keyboard.h \
+	./include/SDL_keysym.h \
+	./include/SDL_mouse.h \
+	./include/SDL_mutex.h \
+	./include/SDL_name.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_quit.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_timer.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/events/SDL_events_c.h \
+	./src/video/dga/SDL_dgaevents_c.h \
+	./src/video/dga/SDL_dgavideo.h \
+	./src/video/x11/../Xext/extensions/xf86dga.h \
+	./src/video/x11/../Xext/extensions/xf86dga1.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/dga/SDL_dgaevents.c  -o $@
+
+
+$(objects)/SDL_dgamouse.lo: ./src/video/dga/SDL_dgamouse.c \
+	./include/SDL_active.h \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_events.h \
+	./include/SDL_joystick.h \
+	./include/SDL_keyboard.h \
+	./include/SDL_keysym.h \
+	./include/SDL_mouse.h \
+	./include/SDL_mutex.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_quit.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/events/SDL_events_c.h \
+	./src/video/dga/SDL_dgamouse_c.h \
+	./src/video/dga/SDL_dgavideo.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/dga/SDL_dgamouse.c  -o $@
+
+
+$(objects)/SDL_dgavideo.lo: ./src/video/dga/SDL_dgavideo.c \
+	./include/SDL_active.h \
+	./include/SDL_config.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_events.h \
+	./include/SDL_joystick.h \
+	./include/SDL_keyboard.h \
+	./include/SDL_keysym.h \
+	./include/SDL_mouse.h \
+	./include/SDL_mutex.h \
+	./include/SDL_name.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_quit.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/events/SDL_events_c.h \
+	./src/video/SDL_blit.h \
+	./src/video/SDL_pixels_c.h \
+	./src/video/dga/SDL_dgaevents_c.h \
+	./src/video/dga/SDL_dgamouse_c.h \
+	./src/video/dga/SDL_dgavideo.h \
+	./src/video/x11/../Xext/extensions/xf86dga.h \
+	./src/video/x11/../Xext/extensions/xf86dga1.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/dga/SDL_dgavideo.c  -o $@
+
+
+$(objects)/Xinerama.lo: ./src/video/Xext/Xinerama/Xinerama.c \
+	./include/SDL_config.h \
+	./include/SDL_name.h \
+	./include/SDL_platform.h \
+	./include/SDL_stdinc.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/video/Xext/Xinerama/../extensions/../extensions/panoramiXproto.h \
+	./src/video/Xext/Xinerama/../extensions/panoramiXext.h \
+	./src/video/Xext/Xxf86dga/../extensions/../extensions/../extensions/extutil.h \
+	./src/video/Xext/Xxf86dga/../extensions/../extensions/Xext.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/Xext/Xinerama/Xinerama.c  -o $@
+
+
+$(objects)/xme.lo: ./src/video/Xext/XME/xme.c \
+	./include/SDL_config.h \
+	./include/SDL_platform.h \
+	./include/SDL_stdinc.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/video/Xext/Xxf86dga/../extensions/../extensions/../extensions/extutil.h \
+	./src/video/Xext/Xxf86dga/../extensions/../extensions/Xext.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/Xext/XME/xme.c  -o $@
+
+
+$(objects)/SDL_fb3dfx.lo: ./src/video/fbcon/SDL_fb3dfx.c \
+	./include/SDL_config.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_mouse.h \
+	./include/SDL_mutex.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/video/SDL_blit.h \
+	./src/video/fbcon/3dfx_mmio.h \
+	./src/video/fbcon/3dfx_regs.h \
+	./src/video/fbcon/SDL_fb3dfx.h \
+	./src/video/fbcon/SDL_fbvideo.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/fbcon/SDL_fb3dfx.c  -o $@
+
+
+$(objects)/SDL_fbelo.lo: ./src/video/fbcon/SDL_fbelo.c \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_mouse.h \
+	./include/SDL_mutex.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/video/fbcon/SDL_fbelo.h \
+	./src/video/fbcon/SDL_fbvideo.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/fbcon/SDL_fbelo.c  -o $@
+
+
+$(objects)/SDL_fbevents.lo: ./src/video/fbcon/SDL_fbevents.c \
+	./include/SDL_active.h \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_events.h \
+	./include/SDL_joystick.h \
+	./include/SDL_keyboard.h \
+	./include/SDL_keysym.h \
+	./include/SDL_mouse.h \
+	./include/SDL_mutex.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_quit.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_timer.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/events/SDL_events_c.h \
+	./src/video/fbcon/SDL_fbelo.h \
+	./src/video/fbcon/SDL_fbevents_c.h \
+	./src/video/fbcon/SDL_fbkeys.h \
+	./src/video/fbcon/SDL_fbvideo.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/fbcon/SDL_fbevents.c  -o $@
+
+
+$(objects)/SDL_fbmatrox.lo: ./src/video/fbcon/SDL_fbmatrox.c \
+	./include/SDL_config.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_mouse.h \
+	./include/SDL_mutex.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/video/SDL_blit.h \
+	./src/video/fbcon/SDL_fbmatrox.h \
+	./src/video/fbcon/SDL_fbvideo.h \
+	./src/video/fbcon/matrox_mmio.h \
+	./src/video/fbcon/matrox_regs.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/fbcon/SDL_fbmatrox.c  -o $@
+
+
+$(objects)/SDL_fbmouse.lo: ./src/video/fbcon/SDL_fbmouse.c \
+	./include/SDL_active.h \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_events.h \
+	./include/SDL_joystick.h \
+	./include/SDL_keyboard.h \
+	./include/SDL_keysym.h \
+	./include/SDL_mouse.h \
+	./include/SDL_mutex.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_quit.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/events/SDL_events_c.h \
+	./src/video/fbcon/SDL_fbmouse_c.h \
+	./src/video/fbcon/SDL_fbvideo.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/fbcon/SDL_fbmouse.c  -o $@
+
+
+$(objects)/SDL_fbriva.lo: ./src/video/fbcon/SDL_fbriva.c \
+	./include/SDL_config.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_mouse.h \
+	./include/SDL_mutex.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/video/SDL_blit.h \
+	./src/video/fbcon/SDL_fbriva.h \
+	./src/video/fbcon/SDL_fbvideo.h \
+	./src/video/fbcon/riva_mmio.h \
+	./src/video/fbcon/riva_regs.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/fbcon/SDL_fbriva.c  -o $@
+
+
+$(objects)/SDL_fbvideo.lo: ./src/video/fbcon/SDL_fbvideo.c \
+	./include/SDL_active.h \
+	./include/SDL_config.h \
+	./include/SDL_endian.h \
+	./include/SDL_error.h \
+	./include/SDL_events.h \
+	./include/SDL_joystick.h \
+	./include/SDL_keyboard.h \
+	./include/SDL_keysym.h \
+	./include/SDL_mouse.h \
+	./include/SDL_mutex.h \
+	./include/SDL_opengl.h \
+	./include/SDL_platform.h \
+	./include/SDL_quit.h \
+	./include/SDL_rwops.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_syswm.h \
+	./include/SDL_version.h \
+	./include/SDL_video.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/events/../video/../video/SDL_sysvideo.h \
+	./src/events/SDL_events_c.h \
+	./src/video/SDL_blit.h \
+	./src/video/SDL_pixels_c.h \
+	./src/video/fbcon/SDL_fb3dfx.h \
+	./src/video/fbcon/SDL_fbevents_c.h \
+	./src/video/fbcon/SDL_fbmatrox.h \
+	./src/video/fbcon/SDL_fbmouse_c.h \
+	./src/video/fbcon/SDL_fbriva.h \
+	./src/video/fbcon/SDL_fbvideo.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/video/fbcon/SDL_fbvideo.c  -o $@
+
+
+$(objects)/SDL_systhread.lo: ./src/thread/pthread/SDL_systhread.c \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_mutex.h \
+	./include/SDL_platform.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_thread.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/SDL_error_c.h \
+	./src/thread/SDL_systhread.h \
+	./src/thread/SDL_thread_c.h \
+	./src/thread/generic/SDL_systhread_c.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/thread/pthread/SDL_systhread.c  -o $@
+
+
+$(objects)/SDL_syssem.lo: ./src/thread/pthread/SDL_syssem.c \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_mutex.h \
+	./include/SDL_platform.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_thread.h \
+	./include/SDL_timer.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/thread/generic/SDL_systhread_c.h \
+	./src/thread/pthread/../generic/SDL_syssem.c \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/thread/pthread/SDL_syssem.c  -o $@
+
+
+$(objects)/SDL_sysmutex.lo: ./src/thread/pthread/SDL_sysmutex.c \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_mutex.h \
+	./include/SDL_platform.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_thread.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/thread/pthread/SDL_sysmutex.c  -o $@
+
+
+$(objects)/SDL_syscond.lo: ./src/thread/pthread/SDL_syscond.c \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_mutex.h \
+	./include/SDL_platform.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_thread.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/thread/pthread/SDL_sysmutex_c.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/thread/pthread/SDL_syscond.c  -o $@
+
+
+$(objects)/SDL_sysjoystick.lo: ./src/joystick/linux/SDL_sysjoystick.c \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_joystick.h \
+	./include/SDL_platform.h \
+	./include/SDL_stdinc.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/joystick/SDL_sysjoystick.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/joystick/linux/SDL_sysjoystick.c  -o $@
+
+
+$(objects)/SDL_syscdrom.lo: ./src/cdrom/linux/SDL_syscdrom.c \
+	./include/SDL_cdrom.h \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_platform.h \
+	./include/SDL_stdinc.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+	./src/cdrom/SDL_syscdrom.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/cdrom/linux/SDL_syscdrom.c  -o $@
+
+
+$(objects)/SDL_systimer.lo: ./src/timer/unix/SDL_systimer.c \
+	./include/SDL_config.h \
+	./include/SDL_error.h \
+	./include/SDL_mutex.h \
+	./include/SDL_platform.h \
+	./include/SDL_stdinc.h \
+	./include/SDL_thread.h \
+	./include/SDL_timer.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/timer/unix/SDL_systimer.c  -o $@
+
+
+$(objects)/SDL_dummy_main.lo: ./src/main/dummy/SDL_dummy_main.c \
+	./include/SDL_config.h \
+	./include/SDL_main.h \
+	./include/SDL_platform.h \
+	./include/SDL_stdinc.h \
+	./include/begin_code.h \
+	./include/close_code.h \
+
+	$(LIBTOOL) --mode=compile $(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c ./src/main/dummy/SDL_dummy_main.c  -o $@
+
+

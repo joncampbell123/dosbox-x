@@ -29,6 +29,8 @@
 #include "keyboard.h"
 #include "inout.h"
 
+extern int NonUserResizeCounter;
+
 extern bool dos_kernel_disabled;
 
 #if !defined(C_SDL2)
@@ -786,9 +788,8 @@ void DOSBox_SetMenu(void) {
 	LOG(LOG_MISC,LOG_DEBUG)("Win32: loading and attaching menu resource to DOSBox's window");
 
 	menu.toggle=true;
+    NonUserResizeCounter=1;
 	SDL1_hax_SetMenu(LoadMenu(GetModuleHandle(NULL), MAKEINTRESOURCE(IDR_MENU)));
-//	SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
-	DrawMenuBar (GetHWND());
 
 	if(menu.startup) {
 		RENDER_CallBack( GFX_CallBackReset );
@@ -798,9 +799,8 @@ void DOSBox_SetMenu(void) {
 void DOSBox_NoMenu(void) {
 	if(!menu.gui) return;
 	menu.toggle=false;
+    NonUserResizeCounter=1;
 	SDL1_hax_SetMenu(NULL);
-//	SetMenu(GetHWND(), NULL);
-	DrawMenuBar(GetHWND());
 	RENDER_CallBack( GFX_CallBackReset );
 }
 
@@ -831,8 +831,9 @@ void DOSBox_RefreshMenu(void) {
     if(!menu.gui) return;
 
     if(fullscreen) {
-//    	SetMenu(GetHWND(), NULL);
-//  	DrawMenuBar(GetHWND());
+        NonUserResizeCounter=1;
+        SetMenu(GetHWND(), NULL);
+    	DrawMenuBar(GetHWND());
         return;
     }
 	DOSBox_SetSysMenu();
@@ -852,18 +853,17 @@ void DOSBox_RefreshMenu2(void) {
     if(!menu.gui) return;
 
     if(fullscreen) {
-//    	SetMenu(GetHWND(), NULL);
-//    	DrawMenuBar(GetHWND());
+        NonUserResizeCounter=1;
         return;
     }
 	if(menu.toggle) {
 		menu.toggle=true;
-		SDL1_hax_SetMenu(LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
-		DrawMenuBar (GetHWND());
+        NonUserResizeCounter=1;
+        SDL1_hax_SetMenu(LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
 	} else {
 		menu.toggle=false;
+        NonUserResizeCounter=1;
 		SDL1_hax_SetMenu(NULL);
-		DrawMenuBar(GetHWND());
 	}
 }
 

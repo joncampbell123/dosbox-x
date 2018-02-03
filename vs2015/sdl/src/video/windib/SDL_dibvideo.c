@@ -596,6 +596,8 @@ void SDL1_hax_SetMenu(HMENU menu) {
 		SetMenu(ParentWindowHWND, NULL);
 	else
 		SetMenu(ParentWindowHWND, DIB_SurfaceMenu);
+
+    DrawMenuBar(ParentWindowHWND);
 }
 
 SDL_Surface *DIB_SetVideoMode(_THIS, SDL_Surface *current,
