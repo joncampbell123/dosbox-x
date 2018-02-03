@@ -5185,6 +5185,8 @@ int main(int argc, char* argv[]) {
     CommandLine com_line(argc,argv);
     Config myconf(&com_line);
 
+    memset(&sdl,0,sizeof(sdl)); // struct sdl isn't initialized anywhere that I can tell
+
     control=&myconf;
 #if defined(WIN32)
     /* Microsoft's IME does not play nice with DOSBox */
