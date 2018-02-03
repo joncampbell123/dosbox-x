@@ -1364,6 +1364,7 @@ dosurface:
 #if C_OPENGL
 	case SCREEN_OPENGL:
 	{
+		GFX_ResetSDL();
 		if (sdl.opengl.pixel_buffer_object) {
 			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
 			if (sdl.opengl.buffer) glDeleteBuffersARB(1, &sdl.opengl.buffer);
