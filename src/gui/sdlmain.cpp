@@ -983,7 +983,15 @@ static SDL_Surface * GFX_SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) 
         fixedWidth = final_width;
         fixedHeight = final_height;
     }
-	if (fixedWidth && fixedHeight) {
+    if (sdl.desktop.prevent_fullscreen) { /* 3Dfx openGL do not allow resize */
+        sdl.clip.x=0;sdl.clip.y=0;
+        sdl.clip.w=(Bit16u)(render.src.width);
+        sdl.clip.h=(Bit16u)(render.src.height);
+        sdl.surface=SDL_SetVideoMode(sdl.clip.w,sdl.clip.h,bpp,sdl_flags);
+        sdl.deferred_resize = false;
+        sdl.must_redraw_all = true;
+    }
+    else if (fixedWidth && fixedHeight) {
         if (render.aspect) {
             double ratio_w=(double)fixedWidth/(sdl.draw.width*sdl.draw.scalex);
             double ratio_h=(double)fixedHeight/(sdl.draw.height*sdl.draw.scaley);
