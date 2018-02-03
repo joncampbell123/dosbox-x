@@ -676,7 +676,7 @@ static void SDLScreen_Reset(void) {
     /* Linux/X11 on the other hand needs this bludgeon to get the OpenGL state back
      * into a mode where the DOS prompt appears again. */
 	char* sdl_videodrv = getenv("SDL_VIDEODRIVER");
-	if ((sdl_videodrv && !strcmp(sdl_videodrv,"windib")) || sdl.desktop.fullscreen || fullscreen_switch || sdl.desktop.want_type==SCREEN_OPENGLHQ || menu_compatible) return;
+	if ((sdl_videodrv && !strcmp(sdl_videodrv,"windib")) || sdl.desktop.fullscreen || fullscreen_switch || sdl.desktop.want_type==SCREEN_OPENGLHQ || menu_compatible || sdl.desktop.prevent_fullscreen) return;
 
 #if !defined(C_SDL2)
 	int id, major, minor;

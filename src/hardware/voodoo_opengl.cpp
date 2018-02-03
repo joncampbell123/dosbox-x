@@ -1603,6 +1603,8 @@ void voodoo_ogl_set_window(voodoo_state *v) {
 }
 
 void voodoo_ogl_reset_videomode(void) {
+    GFX_PreventFullscreen(true);
+
 	last_clear_color=0;
 
 	last_width=0;
@@ -1652,8 +1654,6 @@ void voodoo_ogl_reset_videomode(void) {
 
     GFX_ReleaseMouse();
     GFX_ForceFullscreenExit();
-
-    GFX_PreventFullscreen(true);
 
 	Uint32 sdl_flags = SDL_OPENGL;
 
@@ -1856,8 +1856,8 @@ void voodoo_ogl_leave(bool leavemode) {
 		LOG_MSG("VOODOO: OpenGL: quit");
 
         ogl_surface = NULL;
-        GFX_RestoreMode();
         GFX_PreventFullscreen(false);
+        GFX_RestoreMode();
     }
 }
 
