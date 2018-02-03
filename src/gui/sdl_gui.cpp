@@ -930,6 +930,16 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
 
 void GUI_Shortcut(int select) {
 	if(running) return;
+
+    bool GFX_GetPreventFullscreen(void);
+
+    /* Sorry, the UI screws up 3Dfx OpenGL emulation.
+     * Remove this block when fixed. */
+    if (GFX_GetPreventFullscreen()) {
+        LOG_MSG("GUI is not available while 3Dfx OpenGL emulation is running");
+        return;
+    }
+
 	if(menu.maxwindow) ShowWindow(GetHWND(), SW_RESTORE);
 	shortcut=true;
 	GUI::ScreenSDL *screen = UI_Startup(NULL);
@@ -942,6 +952,16 @@ void GUI_Shortcut(int select) {
 
 void GUI_Run(bool pressed) {
 	if (pressed || running) return;
+
+    bool GFX_GetPreventFullscreen(void);
+
+    /* Sorry, the UI screws up 3Dfx OpenGL emulation.
+     * Remove this block when fixed. */
+    if (GFX_GetPreventFullscreen()) {
+        LOG_MSG("GUI is not available while 3Dfx OpenGL emulation is running");
+        return;
+    }
+
 	GUI::ScreenSDL *screen = UI_Startup(NULL);
 	UI_Execute(screen);
 	UI_Shutdown(screen);

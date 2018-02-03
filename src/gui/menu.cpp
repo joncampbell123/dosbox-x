@@ -868,6 +868,12 @@ void DOSBox_RefreshMenu2(void) {
 }
 
 void ToggleMenu(bool pressed) {
+    bool GFX_GetPreventFullscreen(void);
+
+    /* prevent removing the menu in 3Dfx mode */
+    if (GFX_GetPreventFullscreen())
+        return;
+
     menu.resizeusing=true;
 	int width, height; bool fullscreen;
 	void GFX_GetSize(int &width, int &height, bool &fullscreen);

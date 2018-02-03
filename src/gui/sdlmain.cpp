@@ -672,6 +672,11 @@ void PauseDOSBox(bool pressed) {
 }
 
 static void SDLScreen_Reset(void) {
+#if defined(WIN32) && !defined(C_SDL2)
+    /* not needed, anymore */
+#else
+    /* Linux/X11 on the other hand needs this bludgeon to get the OpenGL state back
+     * into a mode where the DOS prompt appears again. */
 	char* sdl_videodrv = getenv("SDL_VIDEODRIVER");
 	if ((sdl_videodrv && !strcmp(sdl_videodrv,"windib")) || sdl.desktop.fullscreen || fullscreen_switch || sdl.desktop.want_type==SCREEN_OPENGLHQ || menu_compatible) return;
 
@@ -686,6 +691,7 @@ static void SDLScreen_Reset(void) {
 	SDL_InitSubSystem(SDL_INIT_VIDEO);
 	GFX_SetIcon();
 	GFX_SetTitle(-1,-1,-1,false);
+#endif
 }
 
 #if defined(C_SDL2)
@@ -2321,6 +2327,10 @@ bool GFX_LazyFullscreenRequested(void) {
 	return false;
 }
 
+bool GFX_GetPreventFullscreen(void) {
+    return sdl.desktop.prevent_fullscreen;
+}
+
 void GFX_PreventFullscreen(bool lockout) {
     sdl.desktop.prevent_fullscreen = lockout;
 }
@@ -2379,6 +2389,10 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
 #if (HAVE_DDRAW_H) && defined(WIN32)
 	int ret;
 #endif
+
+    /* don't present our output if 3Dfx is in OpenGL mode */
+    if (sdl.desktop.prevent_fullscreen)
+        return;
 
 #if (HAVE_D3D9_H) && defined(WIN32)
 	if (d3d && d3d->getForceUpdate()); // continue
