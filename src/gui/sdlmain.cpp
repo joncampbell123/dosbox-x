@@ -2365,6 +2365,10 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
 	int ret;
 #endif
 
+    /* don't present our output if 3Dfx is in OpenGL mode */
+    if (sdl.desktop.prevent_fullscreen)
+        return;
+
 #if (HAVE_D3D9_H) && defined(WIN32)
 	if (d3d && d3d->getForceUpdate()); // continue
 	else
