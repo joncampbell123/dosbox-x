@@ -857,7 +857,7 @@ void ToggleMenu(bool pressed) {
     bool GFX_GetPreventFullscreen(void);
 
     /* prevent removing the menu in 3Dfx mode */
-    if (GFX_GetPreventFullscreen(void))
+    if (GFX_GetPreventFullscreen())
         return;
 
     menu.resizeusing=true;
