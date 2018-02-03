@@ -685,7 +685,7 @@ static void SDLScreen_Reset(void) {
 
 	minor = minor;//shut up unused var warnings
 #endif
-	SDL_QuitSubSystem(SDL_INIT_VIDEO);	SDL_Delay(500);
+	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 	SDL_InitSubSystem(SDL_INIT_VIDEO);
 	GFX_SetIcon();
 	GFX_SetTitle(-1,-1,-1,false);
