@@ -3039,7 +3039,16 @@ void MAPPER_Run(bool pressed) {
 }
 
 void MAPPER_RunInternal() {
+    bool GFX_GetPreventFullscreen(void);
+
     MAPPER_ReleaseAllKeys();
+
+    /* Sorry, the MAPPER screws up 3Dfx OpenGL emulation.
+     * Remove this block when fixed. */
+    if (GFX_GetPreventFullscreen()) {
+        LOG_MSG("MAPPER ui is not available while 3Dfx OpenGL emulation is running");
+        return;
+    }
 
 #if defined(__WIN32__) && !defined(C_SDL2)
 	if(menu.maxwindow) ShowWindow(GetHWND(), SW_RESTORE);
