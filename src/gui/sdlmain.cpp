@@ -2306,6 +2306,10 @@ bool GFX_LazyFullscreenRequested(void) {
 	return false;
 }
 
+bool GFX_GetPreventFullscreen(void) {
+    return sdl.desktop.prevent_fullscreen;
+}
+
 void GFX_PreventFullscreen(bool lockout) {
     sdl.desktop.prevent_fullscreen = lockout;
 }
