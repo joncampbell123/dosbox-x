@@ -5482,7 +5482,7 @@ int main(int argc, char* argv[]) {
 			}
 		}
 
-#if defined(WIN32) && !defined(C_SDL2)
+#if defined(WIN32) && !defined(C_SDL2) && 0
 		if (sdl.desktop.want_type == SCREEN_OPENGL && sdl.using_windib) {
 			LOG(LOG_MISC,LOG_DEBUG)("Desktop wants SCREEN_OPENGL and we're using windib now. Reinitializing SDL video output.");
 			SDL_QuitSubSystem(SDL_INIT_VIDEO);
