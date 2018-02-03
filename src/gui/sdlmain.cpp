@@ -959,6 +959,10 @@ static SDL_Surface * GFX_SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) 
 	Bit16u fixedWidth;
 	Bit16u fixedHeight;
 
+    int Voodoo_OGL_GetWidth();
+    int Voodoo_OGL_GetHeight();
+    bool Voodoo_OGL_Active();
+
     if (sdl.desktop.prevent_fullscreen) /* 3Dfx openGL do not allow resize */
         sdl_flags &= ~SDL_RESIZABLE;
 
@@ -983,10 +987,11 @@ static SDL_Surface * GFX_SetupSurfaceScaledOpenGL(Bit32u sdl_flags, Bit32u bpp) 
         fixedWidth = final_width;
         fixedHeight = final_height;
     }
-    if (sdl.desktop.prevent_fullscreen) { /* 3Dfx openGL do not allow resize */
+    if (Voodoo_OGL_GetWidth() != 0 && Voodoo_OGL_GetHeight() != 0 &&
+        Voodoo_OGL_Active() && sdl.desktop.prevent_fullscreen) { /* 3Dfx openGL do not allow resize */
         sdl.clip.x=0;sdl.clip.y=0;
-        sdl.clip.w=(Bit16u)(render.src.width);
-        sdl.clip.h=(Bit16u)(render.src.height);
+        sdl.clip.w=(Bit16u)Voodoo_OGL_GetWidth();
+        sdl.clip.h=(Bit16u)Voodoo_OGL_GetHeight();
         sdl.surface=SDL_SetVideoMode(sdl.clip.w,sdl.clip.h,bpp,sdl_flags);
         sdl.deferred_resize = false;
         sdl.must_redraw_all = true;

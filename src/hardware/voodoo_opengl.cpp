@@ -68,6 +68,18 @@ std::map <const UINT32, ogl_texmap> textures[2];
 
 void GFX_PreventFullscreen(bool lockout);
 
+int Voodoo_OGL_GetWidth() {
+    return v->fbi.width;
+}
+
+int Voodoo_OGL_GetHeight() {
+    return v->fbi.height;
+}
+
+bool Voodoo_OGL_Active() {
+	return (v->clock_enabled && v->output_on);
+}
+
 static void ogl_get_depth(voodoo_state* VV, INT32 ITERZ, INT64 ITERW, INT32 *depthval, INT32 *out_wfloat)
 {
 	INT32 wfloat;
