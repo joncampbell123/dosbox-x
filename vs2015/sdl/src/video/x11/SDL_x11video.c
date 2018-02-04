@@ -967,8 +967,16 @@ static int X11_CreateWindow(_THIS, SDL_Surface *screen,
 #ifdef X11_DEBUG
         printf("Choosing %s visual at %d bpp - %d colormap entries\n", vis->class == PseudoColor ? "PseudoColor" : (vis->class == TrueColor ? "TrueColor" : (vis->class == DirectColor ? "DirectColor" : "Unknown")), depth, vis->map_entries);
 #endif
-	vis_change = (XVisualIDFromVisual(vis) != XVisualIDFromVisual(SDL_Visual));
-	SDL_Visual = vis;
+        /* NTS: Comparing Visual pointers will ALWAYS show a visual change because the pointers differ.
+         *      If you look at the ACTUAL contents of the struct nothing changes! */
+    vis_change =    (depth                  != this->hidden->depth)     ||
+                    (vis->class             != SDL_Visual->class)       ||
+                    (vis->red_mask          != SDL_Visual->red_mask)    ||
+                    (vis->green_mask        != SDL_Visual->green_mask)  ||
+                    (vis->blue_mask         != SDL_Visual->blue_mask)   ||
+                    (vis->bits_per_rgb      != SDL_Visual->bits_per_rgb);
+
+    SDL_Visual = vis;
 	this->hidden->depth = depth;
 
 	/* Allocate the new pixel format for this video mode */
