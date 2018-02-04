@@ -315,8 +315,20 @@ static char *get_classname(char *classname, int maxlen)
 	return classname;
 }
 
+static void destroy_aux_windows(_THIS)
+{
+    if (FSwindow) {
+	    XDestroyWindow(SDL_Display, FSwindow);
+        FSwindow = 0;
+    }
+    if (WMwindow) {
+        XDestroyWindow(SDL_Display, WMwindow);
+        WMwindow = 0;
+    }
+}
+
 /* Create auxiliary (toplevel) windows with the current visual */
-static void create_aux_windows(_THIS)
+static void create_aux_windows(_THIS, const unsigned int force)
 {
     int x = 0, y = 0;
     char classname[1024];
@@ -335,8 +347,8 @@ static void create_aux_windows(_THIS)
         return;
     }
 
-    if(FSwindow)
-	XDestroyWindow(SDL_Display, FSwindow);
+    if (FSwindow)
+        XDestroyWindow(SDL_Display, FSwindow);
 
 #if SDL_VIDEO_DRIVER_X11_XINERAMA
     if ( use_xinerama ) {
@@ -701,7 +713,7 @@ static int X11_VideoInit(_THIS, SDL_PixelFormat *vformat)
 	SDL_windowid = SDL_getenv("SDL_WINDOWID");
 
 	/* Create the fullscreen and managed windows */
-	create_aux_windows(this);
+	create_aux_windows(this, 0);
 
 	/* Create the blank cursor */
 	SDL_BlankCursor = this->CreateWMCursor(this, blank_cdata, blank_cmask,
@@ -955,7 +967,7 @@ static int X11_CreateWindow(_THIS, SDL_Surface *screen,
 #ifdef X11_DEBUG
         printf("Choosing %s visual at %d bpp - %d colormap entries\n", vis->class == PseudoColor ? "PseudoColor" : (vis->class == TrueColor ? "TrueColor" : (vis->class == DirectColor ? "DirectColor" : "Unknown")), depth, vis->map_entries);
 #endif
-	vis_change = (vis != SDL_Visual);
+	vis_change = (XVisualIDFromVisual(vis) != XVisualIDFromVisual(SDL_Visual));
 	SDL_Visual = vis;
 	this->hidden->depth = depth;
 
@@ -1017,7 +1029,7 @@ static int X11_CreateWindow(_THIS, SDL_Surface *screen,
 
 	/* Recreate the auxiliary windows, if needed (required for GL) */
 	if ( vis_change )
-	    create_aux_windows(this);
+	    create_aux_windows(this, 1);
 
 	if(screen->flags & SDL_HWPALETTE) {
 	    /* Since the full-screen window might have got a nonzero background
@@ -1508,6 +1520,7 @@ void X11_VideoQuit(_THIS)
 		/* Start shutting down the windows */
 		X11_DestroyImage(this, this->screen);
 		X11_DestroyWindow(this, this->screen);
+        destroy_aux_windows(this);
 		X11_FreeVideoModes(this);
 		if ( SDL_XColorMap != SDL_DisplayColormap ) {
 			XFreeColormap(SDL_Display, SDL_XColorMap);
