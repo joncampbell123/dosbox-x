@@ -5925,6 +5925,9 @@ void GUI_ResetResize(bool pressed) {
     userResizeWindowWidth = 0;
     userResizeWindowHeight = 0;
 
+    if (GFX_GetPreventFullscreen())
+        return;
+
     if (sdl.updating && !GFX_MustActOnResize()) {
         /* act on resize when updating is complete */
         sdl.deferred_resize = true;
