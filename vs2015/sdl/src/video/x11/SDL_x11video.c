@@ -738,10 +738,10 @@ static void X11_DestroyWindow(_THIS, SDL_Surface *screen)
 
 	if ( ! SDL_windowid ) {
 		/* Hide the managed window */
-		if ( WMwindow ) {
-			XUnmapWindow(SDL_Display, WMwindow);
-		}
 		if ( screen && (screen->flags & SDL_FULLSCREEN) ) {
+            if ( WMwindow )
+                XUnmapWindow(SDL_Display, WMwindow);
+
 			screen->flags &= ~SDL_FULLSCREEN;
 			X11_LeaveFullScreen(this);
 		}
@@ -1126,10 +1126,23 @@ static int X11_CreateWindow(_THIS, SDL_Surface *screen,
 
 	/* Map them both and go fullscreen, if requested */
 	if ( ! SDL_windowid ) {
-		XMapWindow(SDL_Display, SDL_Window);
-		XMapWindow(SDL_Display, WMwindow);
-		X11_WaitMapped(this, WMwindow);
-		if ( flags & SDL_FULLSCREEN ) {
+        XWindowAttributes a;
+
+        XMapWindow(SDL_Display, SDL_Window);
+
+        /* WARNING: If WMwindow is already mapped, X11_WaitMapped() will hang indefinitely unless we check map state first. */
+
+        /*          This code maps WMwindow once and then never unmaps it until shutdown. */
+        /*          XFCE's window manager likes to move unmapped windows to the upper left hand corner. */
+        /*          Rather than have to reposition the window back to where I had it, it's better not to unmap it in X11_DestroyWindow */
+        memset(&a,0,sizeof(a));
+        XGetWindowAttributes(SDL_Display, WMwindow, &a);
+        if (a.map_state != IsViewable) {
+            XMapWindow(SDL_Display, WMwindow);
+            X11_WaitMapped(this, WMwindow);
+        }
+
+        if ( flags & SDL_FULLSCREEN ) {
 			screen->flags |= SDL_FULLSCREEN;
 			X11_EnterFullScreen(this);
 		} else {
@@ -1526,6 +1539,9 @@ void X11_VideoQuit(_THIS)
 		#endif
 
 		/* Start shutting down the windows */
+        if ( WMwindow )
+            XUnmapWindow(SDL_Display, WMwindow);
+
 		X11_DestroyImage(this, this->screen);
 		X11_DestroyWindow(this, this->screen);
         destroy_aux_windows(this);
