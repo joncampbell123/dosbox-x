@@ -5365,8 +5365,6 @@ int main(int argc, char* argv[]) {
 
 #if !defined(C_SDL2)
 		/* -- -- decide whether to set menu */
-		void DOSBox_SetSysMenu(void);
-		DOSBox_SetSysMenu();
 		if (menu_gui && !control->opt_nomenu)
 			DOSBox_SetMenu();
 #endif

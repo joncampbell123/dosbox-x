@@ -783,6 +783,9 @@ void DOSBox_SetMenu(void) {
 	if(menu.startup) {
 		RENDER_CallBack( GFX_CallBackReset );
 	}
+
+    void DOSBox_SetSysMenu(void);
+    DOSBox_SetSysMenu();
 }
 
 void DOSBox_NoMenu(void) {
@@ -792,6 +795,9 @@ void DOSBox_NoMenu(void) {
     SetMenu(GetHWND(), NULL);
 	DrawMenuBar(GetHWND());
 	RENDER_CallBack( GFX_CallBackReset );
+
+    void DOSBox_SetSysMenu(void);
+    DOSBox_SetSysMenu();
 }
 
 void DOSBox_CheckOS(int &id, int &major, int &minor) {
@@ -865,6 +871,9 @@ void DOSBox_RefreshMenu2(void) {
        SetMenu(GetHWND(), NULL);
 		DrawMenuBar(GetHWND());
 	}
+
+    void DOSBox_SetSysMenu(void);
+    DOSBox_SetSysMenu();
 }
 
 void ToggleMenu(bool pressed) {
