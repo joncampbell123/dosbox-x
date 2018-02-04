@@ -1538,6 +1538,12 @@ void X11_VideoQuit(_THIS)
 			SDL_BlankCursor = NULL;
 		}
 
+        /* If any pending errors are waiting, we want them NOW */
+        if ( GFX_Display != NULL )
+            XSync(GFX_Display, True/*discard events, we're shutting down*/);
+        if ( SDL_Display != NULL )
+            XSync(SDL_Display, True/*discard events, we're shutting down*/);
+
 		/* Close the X11 graphics connection */
 		if ( GFX_Display != NULL ) {
 			XCloseDisplay(GFX_Display);

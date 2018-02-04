@@ -673,29 +673,6 @@ void PauseDOSBox(bool pressed) {
 	if (sdl.draw.callback) (sdl.draw.callback)( GFX_CallBackReset );
 }
 
-static void SDLScreen_Reset(void) {
-#if defined(WIN32) && !defined(C_SDL2)
-    /* not needed, anymore */
-#else
-    /* Linux/X11 on the other hand needs this bludgeon to get the OpenGL state back
-     * into a mode where the DOS prompt appears again. */
-	char* sdl_videodrv = getenv("SDL_VIDEODRIVER");
-	if ((sdl_videodrv && !strcmp(sdl_videodrv,"windib")) || sdl.desktop.fullscreen || fullscreen_switch || sdl.desktop.want_type==SCREEN_OPENGLHQ || menu_compatible) return;
-
-#if !defined(C_SDL2)
-	int id, major, minor;
-	DOSBox_CheckOS(id, major, minor);
-	if(((id==VER_PLATFORM_WIN32_NT) && (major<6)) || sdl.desktop.want_type==SCREEN_DIRECT3D) return;
-
-	minor = minor;//shut up unused var warnings
-#endif
-	SDL_QuitSubSystem(SDL_INIT_VIDEO);	SDL_Delay(500);
-	SDL_InitSubSystem(SDL_INIT_VIDEO);
-	GFX_SetIcon();
-	GFX_SetTitle(-1,-1,-1,false);
-#endif
-}
-
 #if defined(C_SDL2)
 static SDL_Window * GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES screenType) {
     static SCREEN_TYPES lastType = SCREEN_SURFACE;
@@ -1255,7 +1232,6 @@ dosurface:
 		sdl.desktop.type=SCREEN_SURFACE;
 		sdl.clip.w=width;
 		sdl.clip.h=height;
-		SDLScreen_Reset();
 		if (sdl.desktop.fullscreen) {
 			Uint32 wflags = SDL_FULLSCREEN | SDL_HWPALETTE |
 				((flags & GFX_CAN_RANDOM) ? SDL_SWSURFACE : SDL_HWSURFACE) |
@@ -1383,7 +1359,9 @@ dosurface:
 		} else if (sdl.opengl.framebuf) {
 			free(sdl.opengl.framebuf);
 		}
-		SDLScreen_Reset();
+
+        glFinish();
+        glFlush();
 
 		sdl.opengl.framebuf=0;
 
@@ -1399,6 +1377,9 @@ dosurface:
 			LOG_MSG("SDL:OPENGL:Can't open drawing surface, are you running in 16bpp(or higher) mode?");
 			goto dosurface;
 		}
+
+        glFinish();
+        glFlush();
 
 		glGetIntegerv(GL_MAX_TEXTURE_SIZE, &sdl.opengl.max_texsize);
 
@@ -1421,9 +1402,12 @@ dosurface:
 
 		glViewport(sdl.clip.x,sdl.clip.y,sdl.clip.w,sdl.clip.h);
 		glMatrixMode (GL_PROJECTION);
+		glLoadIdentity ();
 		glDeleteTextures(1,&sdl.opengl.texture);
  		glGenTextures(1,&sdl.opengl.texture);
 		glBindTexture(GL_TEXTURE_2D,sdl.opengl.texture);
+		glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+		glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, GL_REPLACE);
 		// No borders
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
@@ -1438,14 +1422,20 @@ dosurface:
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texsize, texsize, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, 0);
 
         gl_clear_countdown = 2; // two GL buffers
-//		glClearColor (0.0, 0.0, 0.0, 1.0);
-//		glClear(GL_COLOR_BUFFER_BIT);
-//		SDL_GL_SwapBuffers();
+		glClearColor (0.0, 0.0, 0.0, 1.0);
 		glClear(GL_COLOR_BUFFER_BIT);
+//		SDL_GL_SwapBuffers();
+//		glClear(GL_COLOR_BUFFER_BIT);
 		glShadeModel (GL_FLAT);
+        glBlendFunc(GL_ONE, GL_ZERO);
 		glDisable (GL_DEPTH_TEST);
 		glDisable (GL_LIGHTING);
+        glDisable(GL_BLEND);
 		glDisable(GL_CULL_FACE);
+        glDisable(GL_ALPHA_TEST);
+        glDisable(GL_FOG);
+        glDisable(GL_SCISSOR_TEST);
+        glDisable(GL_STENCIL_TEST);
 		glEnable(GL_TEXTURE_2D);
 		glMatrixMode (GL_MODELVIEW);
 		glLoadIdentity ();
@@ -1469,6 +1459,9 @@ dosurface:
 		glTexCoord2f(0,0); glVertex2f(-1.0f, 1.0f);
 		glEnd();
 		glEndList();
+
+        glFinish();
+        glFlush();
 
 		sdl.desktop.type=SCREEN_OPENGL;
 		retFlags = GFX_CAN_32 | GFX_SCALING;
@@ -2396,6 +2389,7 @@ void GFX_EndUpdate( const Bit16u *changedLines ) {
 #endif
 	if (!sdl.updating)
 		return;
+
 	sdl.updating=false;
     switch (sdl.desktop.type) {
         case SCREEN_SURFACE:
@@ -5191,6 +5185,8 @@ bool VM_PowerOn() {
 int main(int argc, char* argv[]) {
     CommandLine com_line(argc,argv);
     Config myconf(&com_line);
+
+    memset(&sdl,0,sizeof(sdl)); // struct sdl isn't initialized anywhere that I can tell
 
     control=&myconf;
 #if defined(WIN32)
