@@ -669,10 +669,6 @@ void PauseDOSBox(bool pressed) {
 	if (sdl.draw.callback) (sdl.draw.callback)( GFX_CallBackReset );
 }
 
-static void SDLScreen_Reset(void) {
-    // FIXME: Remove
-}
-
 #if defined(C_SDL2)
 static SDL_Window * GFX_SetSDLWindowMode(Bit16u width, Bit16u height, SCREEN_TYPES screenType) {
     static SCREEN_TYPES lastType = SCREEN_SURFACE;
@@ -1223,7 +1219,6 @@ dosurface:
 		sdl.desktop.type=SCREEN_SURFACE;
 		sdl.clip.w=width;
 		sdl.clip.h=height;
-		SDLScreen_Reset();
 		if (sdl.desktop.fullscreen) {
 			Uint32 wflags = SDL_FULLSCREEN | SDL_HWPALETTE |
 				((flags & GFX_CAN_RANDOM) ? SDL_SWSURFACE : SDL_HWSURFACE) |
@@ -1351,7 +1346,6 @@ dosurface:
 		} else if (sdl.opengl.framebuf) {
 			free(sdl.opengl.framebuf);
 		}
-		SDLScreen_Reset();
 
         glFinish();
         glFlush();
