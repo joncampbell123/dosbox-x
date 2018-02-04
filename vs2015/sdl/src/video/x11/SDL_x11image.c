@@ -59,7 +59,7 @@ static void try_mitshm(_THIS, SDL_Surface *screen)
 			shm_error = False;
 			X_handler = XSetErrorHandler(shm_errhandler);
 			XShmAttach(SDL_Display, &shminfo);
-			XSync(SDL_Display, True);
+			XSync(SDL_Display, False);
 			XSetErrorHandler(X_handler);
 			if ( shm_error )
 				shmdt(shminfo.shmaddr);
