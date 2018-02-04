@@ -3126,10 +3126,7 @@ void MAPPER_RunInternal() {
 #if !defined(C_SDL2)
 	DOSBox_RefreshMenu();
 #endif
-	if(!menu_gui) {
-		SDL_FreeSurface(mapper.surface);
-		GFX_RestoreMode();
-	}
+	if(!menu_gui) GFX_RestoreMode();
 #ifdef __WIN32__
 	if(GetAsyncKeyState(0x11)) {
 		INPUT ip;
