@@ -1569,6 +1569,8 @@ void SetScaleForced(bool forced)
 }
 
 void MSG_Loop(void) {
+    bool GFX_GetPreventFullscreen(void);
+
 	if (!menu.gui || GetSetSDLValue(1, "desktop.fullscreen", 0)) return;
 	if (!GetMenu(GetHWND())) return;
 	MSG Message;
@@ -1632,8 +1634,10 @@ void MSG_Loop(void) {
 			case ID_REFRESH: GUI_Shortcut(1); break;
 			case ID_FULLSCREEN: GFX_SwitchFullScreen(); break;
 			case ID_ASPECT:
-				SetVal("render", "aspect", render.aspect ? "false" : "true");
-				Reflect_Menu();
+                if (!GFX_GetPreventFullscreen()) {
+                    SetVal("render", "aspect", render.aspect ? "false" : "true");
+                    Reflect_Menu();
+                }
 				break;
 			case ID_HIDECYCL:
 				menu.hidecycles = !menu.hidecycles;
