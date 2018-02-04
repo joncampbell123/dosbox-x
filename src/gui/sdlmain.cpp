@@ -2263,6 +2263,12 @@ void GFX_SwitchFullScreen(void)
 
 	LOG_MSG("INFO: switched to %s mode", full ? "full screen" : "window");
 
+#if !defined(C_SDL2)
+	// (re-)assign menu to window
+    void DOSBox_SetSysMenu(void);
+    DOSBox_SetSysMenu();
+#endif
+
 	// ensure mouse capture when fullscreen || (re-)capture if user said so when windowed
 	auto locked = sdl.mouse.locked;
 	if ((full && !locked) || (!full && locked)) GFX_CaptureMouse();
@@ -3943,7 +3949,9 @@ void GFX_Events() {
 							}
 							break;
 						case ID_WIN_SYSMENU_RESTOREMENU:
-							DOSBox_SetMenu();
+                            /* prevent removing the menu in 3Dfx mode */
+                            if (!GFX_GetPreventFullscreen())
+                                DOSBox_SetMenu();
 							break;
 					}
 				case WM_MOVE:
@@ -5370,8 +5378,6 @@ int main(int argc, char* argv[]) {
 
 #if !defined(C_SDL2)
 		/* -- -- decide whether to set menu */
-		void DOSBox_SetSysMenu(void);
-		DOSBox_SetSysMenu();
 		if (menu_gui && !control->opt_nomenu)
 			DOSBox_SetMenu();
 #endif
@@ -5484,6 +5490,10 @@ int main(int argc, char* argv[]) {
 			if (control->opt_fullscreen || sdl_sec->Get_bool("fullscreen")) {
 				LOG(LOG_MISC,LOG_DEBUG)("Going fullscreen immediately, during startup");
 
+#if !defined(C_SDL2)
+                void DOSBox_SetSysMenu(void);
+                DOSBox_SetSysMenu();
+#endif
 				//only switch if not already in fullscreen
 				if (!sdl.desktop.fullscreen) GFX_SwitchFullScreen();
 			}
@@ -5523,6 +5533,10 @@ int main(int argc, char* argv[]) {
 			change_output(sdl.opengl.bilinear ? 3/*OpenGL*/ : 4/*OpenGLNB*/);
 			GFX_SetIcon();
 			SDL_Prepare();
+
+            void DOSBox_SetSysMenu(void);
+            DOSBox_SetSysMenu();
+
 			if (menu.gui && !control->opt_nomenu) {
                 NonUserResizeCounter=1;
 				SDL1_hax_SetMenu(LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
@@ -5926,6 +5940,9 @@ void GUI_ResetResize(bool pressed) {
 	if (!pressed) return;
     userResizeWindowWidth = 0;
     userResizeWindowHeight = 0;
+
+    if (GFX_GetPreventFullscreen())
+        return;
 
     if (sdl.updating && !GFX_MustActOnResize()) {
         /* act on resize when updating is complete */

@@ -794,6 +794,9 @@ void DOSBox_SetMenu(void) {
 	if(menu.startup) {
 		RENDER_CallBack( GFX_CallBackReset );
 	}
+
+    void DOSBox_SetSysMenu(void);
+    DOSBox_SetSysMenu();
 }
 
 void DOSBox_NoMenu(void) {
@@ -802,6 +805,9 @@ void DOSBox_NoMenu(void) {
     NonUserResizeCounter=1;
 	SDL1_hax_SetMenu(NULL);
 	RENDER_CallBack( GFX_CallBackReset );
+
+    void DOSBox_SetSysMenu(void);
+    DOSBox_SetSysMenu();
 }
 
 void DOSBox_CheckOS(int &id, int &major, int &minor) {
@@ -829,6 +835,12 @@ void DOSBox_RefreshMenu(void) {
     void SDL_Prepare(void);
     SDL_Prepare();
     if(!menu.gui) return;
+
+    bool GFX_GetPreventFullscreen(void);
+
+    /* prevent removing the menu in 3Dfx mode */
+    if (GFX_GetPreventFullscreen())
+        return;
 
     if(fullscreen) {
         NonUserResizeCounter=1;
@@ -865,6 +877,9 @@ void DOSBox_RefreshMenu2(void) {
         NonUserResizeCounter=1;
 		SDL1_hax_SetMenu(NULL);
 	}
+
+    void DOSBox_SetSysMenu(void);
+    DOSBox_SetSysMenu();
 }
 
 void ToggleMenu(bool pressed) {
@@ -1583,6 +1598,8 @@ void SetScaleForced(bool forced)
 }
 
 void MSG_Loop(void) {
+    bool GFX_GetPreventFullscreen(void);
+
 	if (!menu.gui || GetSetSDLValue(1, "desktop.fullscreen", 0)) return;
 	if (!GetMenu(GetHWND())) return;
 	MSG Message;
@@ -1646,8 +1663,10 @@ void MSG_Loop(void) {
 			case ID_REFRESH: GUI_Shortcut(1); break;
 			case ID_FULLSCREEN: GFX_SwitchFullScreen(); break;
 			case ID_ASPECT:
-				SetVal("render", "aspect", render.aspect ? "false" : "true");
-				Reflect_Menu();
+                if (!GFX_GetPreventFullscreen()) {
+                    SetVal("render", "aspect", render.aspect ? "false" : "true");
+                    Reflect_Menu();
+                }
 				break;
 			case ID_HIDECYCL:
 				menu.hidecycles = !menu.hidecycles;
