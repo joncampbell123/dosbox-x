@@ -2250,6 +2250,9 @@ void GFX_SwitchFullScreen(void)
 
 #if !defined(C_SDL2)
 	// (re-)assign menu to window
+    void DOSBox_SetSysMenu(void);
+    DOSBox_SetSysMenu();
+
 	if (full && sdl.desktop.want_type != SCREEN_OPENGLHQ && menu.gui) {
         NonUserResizeCounter=1;
         SetMenu(GetHWND(), nullptr);
@@ -5474,6 +5477,9 @@ int main(int argc, char* argv[]) {
 				LOG(LOG_MISC,LOG_DEBUG)("Going fullscreen immediately, during startup");
 
 #if !defined(C_SDL2)
+                void DOSBox_SetSysMenu(void);
+                DOSBox_SetSysMenu();
+
 				if (sdl.desktop.want_type != SCREEN_OPENGLHQ) {
                     NonUserResizeCounter=1;
                     SetMenu(GetHWND(),NULL);
@@ -5518,6 +5524,10 @@ int main(int argc, char* argv[]) {
 			change_output(sdl.opengl.bilinear ? 3/*OpenGL*/ : 4/*OpenGLNB*/);
 			GFX_SetIcon();
 			SDL_Prepare();
+
+            void DOSBox_SetSysMenu(void);
+            DOSBox_SetSysMenu();
+
 			if (menu.gui && !control->opt_nomenu) {
                 NonUserResizeCounter=1;
 				SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
