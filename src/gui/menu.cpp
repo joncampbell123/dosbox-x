@@ -820,6 +820,12 @@ void DOSBox_RefreshMenu(void) {
     SDL_Prepare();
     if(!menu.gui) return;
 
+    bool GFX_GetPreventFullscreen(void);
+
+    /* prevent removing the menu in 3Dfx mode */
+    if (GFX_GetPreventFullscreen())
+        return;
+
     if(fullscreen) {
         NonUserResizeCounter=1;
         SetMenu(GetHWND(), NULL);

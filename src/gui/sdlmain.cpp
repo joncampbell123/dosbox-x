@@ -3936,7 +3936,9 @@ void GFX_Events() {
 							}
 							break;
 						case ID_WIN_SYSMENU_RESTOREMENU:
-							DOSBox_SetMenu();
+                            /* prevent removing the menu in 3Dfx mode */
+                            if (!GFX_GetPreventFullscreen())
+                                DOSBox_SetMenu();
 							break;
 					}
 				case WM_MOVE:
