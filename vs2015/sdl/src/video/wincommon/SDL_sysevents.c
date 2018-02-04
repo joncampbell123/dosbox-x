@@ -196,7 +196,8 @@ static void SDL_RestoreDesktopMode(void)
 	
 #else
 	/* WinCE does not have a taskbar, so minimizing is not convenient */
-	ShowWindow(ParentWindowHWND, SW_MINIMIZE);
+	ShowWindow(ParentWindowHWND, SW_RESTORE);
+    ShowWindow(SDL_Window, SW_RESTORE);
 #endif
 
 #ifndef NO_CHANGEDISPLAYSETTINGS
