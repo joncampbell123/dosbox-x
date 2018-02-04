@@ -1700,6 +1700,12 @@ void voodoo_ogl_reset_videomode(void) {
 	last_width = v->fbi.width;
 	last_height = v->fbi.height;
 
+    /* NTS: Some demoscene 3Dfx stuff looks terrible without this.
+     *      This is said to be the initial state of an OpenGL context.
+     *      This is in direct contradiction to the OpenGL output setup
+     *      in src/gui/sdlmain.cpp that sets up GL_FLAT shading */
+    glShadeModel (GL_SMOOTH);
+
 	GFX_UpdateSDLCaptureState();
 
 	int value;
