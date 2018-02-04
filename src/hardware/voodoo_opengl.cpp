@@ -1603,6 +1603,12 @@ void voodoo_ogl_set_window(voodoo_state *v) {
 }
 
 void voodoo_ogl_reset_videomode(void) {
+#if defined(WIN32) && !defined(C_SDL2)
+    /* always show the menu */
+    void DOSBox_SetMenu(void);
+    DOSBox_SetMenu();
+#endif
+
     GFX_PreventFullscreen(true);
 
 	last_clear_color=0;
@@ -1656,12 +1662,6 @@ void voodoo_ogl_reset_videomode(void) {
     GFX_ForceFullscreenExit();
 
 	Uint32 sdl_flags = SDL_OPENGL;
-
-#if defined(WIN32) && !defined(C_SDL2)
-    /* always show the menu */
-    void DOSBox_SetMenu(void);
-    DOSBox_SetMenu();
-#endif
 
     ogl_surface = SDL_SetVideoMode(v->fbi.width, v->fbi.height, 32, sdl_flags);
 
