@@ -318,7 +318,21 @@ void X11_GL_Shutdown(_THIS)
 #if SDL_VIDEO_OPENGL_GLX
 	/* Clean up OpenGL */
 	if( glx_context ) {
+        XSync(GFX_Display, False);
+        XSync(SDL_Display, False);
+        glFinish();
+        glFlush();
+        XSync(GFX_Display, False);
+        XSync(SDL_Display, False);
+
 		this->gl_data->glXMakeCurrent(GFX_Display, None, NULL);
+
+        XSync(GFX_Display, False);
+        XSync(SDL_Display, False);
+        glFinish();
+        glFlush();
+        XSync(GFX_Display, False);
+        XSync(SDL_Display, False);
 
 		if (glx_context != NULL)
 			this->gl_data->glXDestroyContext(GFX_Display, glx_context);
