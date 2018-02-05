@@ -32,6 +32,7 @@
 #include "debug.h"
 #include "support.h"
 #include "video.h"
+#include "menu.h"
 
 
 void upcase(std::string &str) {
@@ -187,6 +188,10 @@ void E_Exit(const char * format,...) {
 	endwin();
 #endif
 	fprintf(stderr,"E_Exit: %s\n",buf);
+#if defined(WIN32)
+	/* Most Windows users DON'T run DOSBox-X from the command line! */
+	MessageBox(GetHWND(), buf, "E_Exit", MB_OK | MB_ICONEXCLAMATION);
+#endif
 	exit(0);
 }
 
