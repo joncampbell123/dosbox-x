@@ -235,6 +235,7 @@ void						Restart(bool pressed);
 bool						RENDER_GetAspect(void);
 bool						RENDER_GetAutofit(void);
 
+const char*					titlebar;
 extern const char*				RunningProgram;
 extern bool					CPU_CycleAutoAdjust;
 #if !(ENVIRON_INCLUDED)
@@ -479,7 +480,15 @@ void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
 		return;
 	}
 
-	if (menu.hidecycles) {
+	Section_prop *section = static_cast<Section_prop *>(control->GetSection("SDL"));
+	assert(section != NULL);
+	titlebar = section->Get_string("titlebar");
+	char TitleMsg[100] = { 0 };
+	if (strlen(titlebar) != 0) {
+		sprintf(title, "%s%sDOSBox-X : %s",
+			dosbox_title.c_str(), dosbox_title.empty() ? "" : ": ", titlebar);
+		}
+	else if (menu.hidecycles) {
 		if (CPU_CycleAutoAdjust) {
 			sprintf(title,"%s%sDOSBox-X %s, max %3d%% cyc/ms, %s",
 				dosbox_title.c_str(),dosbox_title.empty()?"":": ",
@@ -4463,6 +4472,9 @@ void SDL_SetupConfigSection() {
 	Pint = sdl_sec->Add_int("overscan",Property::Changeable::Always, 0);
 	Pint->SetMinMax(0,10);
 	Pint->Set_help("Width of overscan border (0 to 10). (works only if output=surface)");
+
+	Pstring = sdl_sec->Add_string("titlebar", Property::Changeable::Always, "");
+	Pstring->Set_help("Change the string displayed in the DOSBox title bar.");
 
 //	Pint = sdl_sec->Add_int("overscancolor",Property::Changeable::Always, 0);
 //	Pint->SetMinMax(0,1000);
