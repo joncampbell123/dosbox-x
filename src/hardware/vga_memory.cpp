@@ -984,10 +984,10 @@ struct pc98_egc_shifter {
 
             if (pc98_egc_shift_descend) {
                 bo_adv<AWT>();
-                a = (bo<AWT>( 0) << shft8bitr) | (bo<AWT>( 0+1) >> shft8bitl);
-                b = (bo<AWT>( 4) << shft8bitr) | (bo<AWT>( 4+1) >> shft8bitl);
-                c = (bo<AWT>( 8) << shft8bitr) | (bo<AWT>( 8+1) >> shft8bitl);
-                d = (bo<AWT>(12) << shft8bitr) | (bo<AWT>(12+1) >> shft8bitl);
+                a = (bo<AWT>( 0) >> shft8bitl) | (bo<AWT>( 0+1) << shft8bitr);
+                b = (bo<AWT>( 4) >> shft8bitl) | (bo<AWT>( 4+1) << shft8bitr);
+                c = (bo<AWT>( 8) >> shft8bitl) | (bo<AWT>( 8+1) << shft8bitr);
+                d = (bo<AWT>(12) >> shft8bitl) | (bo<AWT>(12+1) << shft8bitr);
             }
             else {
                 a = (bo<AWT>( 0) << shft8bitl) | (bo<AWT>( 0+1) >> shft8bitr);
