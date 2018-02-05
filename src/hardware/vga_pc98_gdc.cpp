@@ -28,6 +28,7 @@ using namespace std;
 extern bool                 gdc_5mhz_mode;
 extern bool                 GDC_vsync_interrupt;
 extern uint8_t              GDC_display_plane;
+extern uint8_t              GDC_display_plane_pending;
 
 double                      gdc_proc_delay = 0.001; /* time from FIFO to processing in GDC (1us) FIXME: Is this right? */
 bool                        gdc_proc_delay_set = false;
@@ -570,7 +571,7 @@ void pc98_gdc_write(Bitu port,Bitu val,Bitu iolen) {
             if (port == 0x64)
                 GDC_vsync_interrupt = true;
             else
-                GDC_display_plane = (val&1);
+                GDC_display_plane_pending = (val&1);
             break;
         case 0x06:      /* 0x66: ??
                            0xA6: Bit 0 select CPU access "plane" */
