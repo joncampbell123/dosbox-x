@@ -2316,12 +2316,18 @@ bool GFX_GetPreventFullscreen(void) {
     return sdl.desktop.prevent_fullscreen;
 }
 
+#if defined(WIN32) && !defined(C_SDL2)
+extern "C" unsigned char SDL1_hax_RemoveMinimize;
+#endif
+
 void GFX_PreventFullscreen(bool lockout) {
 	if (sdl.desktop.prevent_fullscreen != lockout) {
 		sdl.desktop.prevent_fullscreen = lockout;
 #if defined(WIN32) && !defined(C_SDL2)
 		void DOSBox_SetSysMenu(void);
 		int Reflect_Menu(void);
+
+		SDL1_hax_RemoveMinimize = lockout ? 1 : 0;
 
 		DOSBox_SetSysMenu();
 		Reflect_Menu();
