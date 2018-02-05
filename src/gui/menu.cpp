@@ -1008,6 +1008,20 @@ int Reflect_Menu(void) {
 	EnableMenuItem(m_handle, ID_SKIP_10, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_RESET_RESCALE, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_KEYMAP, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_WINRES_DESKTOP, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_WINRES_ORIGINAL, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_WINRES_USER, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_WINFULL_DESKTOP, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_WINFULL_ORIGINAL, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_WINFULL_USER, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_VSYNC, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_VSYNC_FORCE, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_VSYNC_HOST, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_VSYNC_OFF, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_VSYNC_ON, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_MULTISCAN, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_CHAR9, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_DOS_ADVANCED, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
 
 	CheckMenuItem(m_handle, ID_WAITONERR, GetSetSDLValue(1, "wait_on_error", 0) ? MF_CHECKED : MF_STRING);
 	EnableMenuItem(m_handle, ID_OPENFILE, (strlen(name) || menu.boot) ? MF_GRAYED : MF_ENABLED);
