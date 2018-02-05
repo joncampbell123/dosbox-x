@@ -2326,8 +2326,23 @@ bool GFX_GetPreventFullscreen(void) {
     return sdl.desktop.prevent_fullscreen;
 }
 
+#if defined(WIN32) && !defined(C_SDL2)
+extern "C" unsigned char SDL1_hax_RemoveMinimize;
+#endif
+
 void GFX_PreventFullscreen(bool lockout) {
-    sdl.desktop.prevent_fullscreen = lockout;
+	if (sdl.desktop.prevent_fullscreen != lockout) {
+		sdl.desktop.prevent_fullscreen = lockout;
+#if defined(WIN32) && !defined(C_SDL2)
+		void DOSBox_SetSysMenu(void);
+		int Reflect_Menu(void);
+
+		SDL1_hax_RemoveMinimize = lockout ? 1 : 0;
+
+		DOSBox_SetSysMenu();
+		Reflect_Menu();
+#endif
+	}
 }
 
 void GFX_RestoreMode(void) {
@@ -3058,6 +3073,9 @@ static void HandleVideoResize(void * event) {
     /* don't act on resize events if we made the window non-resizeable.
      * especially if 3Dfx voodoo emulation is active. */
     if (!(sdl.surface->flags & SDL_RESIZABLE)) return;
+
+	/* don't act if 3Dfx OpenGL emulation is active */
+	if (GFX_GetPreventFullscreen()) return;
 
 	SDL_ResizeEvent* ResizeEvent = (SDL_ResizeEvent*)event;
 

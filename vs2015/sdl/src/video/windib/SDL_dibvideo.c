@@ -600,6 +600,8 @@ void SDL1_hax_SetMenu(HMENU menu) {
     DrawMenuBar(ParentWindowHWND);
 }
 
+unsigned char SDL1_hax_RemoveMinimize = 0;
+
 SDL_Surface *DIB_SetVideoMode(_THIS, SDL_Surface *current,
 				int width, int height, int bpp, Uint32 flags)
 {
@@ -609,9 +611,9 @@ SDL_Surface *DIB_SetVideoMode(_THIS, SDL_Surface *current,
 	DWORD style;
 	const DWORD directstyle =
 			(WS_POPUP);
-	const DWORD windowstyle = 
+	DWORD windowstyle = 
 			(WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU|WS_MINIMIZEBOX);
-	const DWORD resizestyle =
+	DWORD resizestyle =
 			(WS_THICKFRAME|WS_MAXIMIZEBOX);
 	int binfo_size;
 	BITMAPINFO *binfo;
@@ -642,6 +644,12 @@ SDL_Surface *DIB_SetVideoMode(_THIS, SDL_Surface *current,
 		DIB_ResizeWindow(this, width, height, prev_w, prev_h, flags);
 		SDL_resizing = 0;
 		return current;
+	}
+
+	/* Minimizing a window can screw up OpenGL state. */
+	if ((current->flags & SDL_OPENGL) && SDL1_hax_RemoveMinimize) {
+		windowstyle &= ~WS_MINIMIZEBOX;
+		resizestyle |= WS_MINIMIZEBOX;
 	}
 
 	/* Clean up any GL context that may be hanging around */
