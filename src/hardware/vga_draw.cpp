@@ -1013,6 +1013,7 @@ static Bit8u* VGA_TEXT_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 }
 
 extern uint8_t GDC_display_plane;
+extern uint8_t GDC_display_plane_pending;
 extern bool pc98_graphics_hide_odd_raster_200line;
 extern bool pc98_allow_scanline_effect;
 extern bool gdc_analog;
@@ -1511,6 +1512,8 @@ static void VGA_PanningLatch(Bitu /*val*/) {
 
 static void VGA_VerticalTimer(Bitu /*val*/) {
 	double current_time = PIC_FullIndex();
+
+    GDC_display_plane = GDC_display_plane_pending;
 
 	vga.draw.delay.framestart = current_time; /* FIXME: Anyone use this?? If not, remove it */
 	vga_page_flip_occurred = false;
