@@ -949,6 +949,9 @@ int Reflect_Menu(void) {
 		name[0] = 0;
 	}
 
+	EnableMenuItem(m_handle, ID_CPU_ADVANCED, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_DOS_ADVANCED, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_MIDI_ADVANCED, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_FULLSCREEN, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_ASPECT, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_TOGGLE, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
@@ -1022,6 +1025,21 @@ int Reflect_Menu(void) {
 	EnableMenuItem(m_handle, ID_MULTISCAN, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_CHAR9, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_DOS_ADVANCED, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_DRVFORCE_DIRECTX, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_DRVFORCE_WINDIB, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_DRVFORCE_AUTO, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_DOSBOX_SECTION, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_MIXER_SECTION, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_SERIAL_SECTION, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_PARALLEL_SECTION, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_PRINTER_SECTION, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_NE2000_SECTION, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_AUTOEXEC, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_MOUSE_SENSITIVITY, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_HDD_SIZE, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_REFRESH, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_CYCLE, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_SAVELANG, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
 
 	CheckMenuItem(m_handle, ID_WAITONERR, GetSetSDLValue(1, "wait_on_error", 0) ? MF_CHECKED : MF_STRING);
 	EnableMenuItem(m_handle, ID_OPENFILE, (strlen(name) || menu.boot) ? MF_GRAYED : MF_ENABLED);
