@@ -483,7 +483,6 @@ void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
 	Section_prop *section = static_cast<Section_prop *>(control->GetSection("SDL"));
 	assert(section != NULL);
 	titlebar = section->Get_string("titlebar");
-	char TitleMsg[100] = { 0 };
 	if (strlen(titlebar) != 0) {
 		sprintf(title, "%s%sDOSBox-X : %s",
 			dosbox_title.c_str(), dosbox_title.empty() ? "" : ": ", titlebar);
