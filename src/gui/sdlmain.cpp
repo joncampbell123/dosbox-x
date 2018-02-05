@@ -3058,6 +3058,9 @@ static void HandleVideoResize(void * event) {
      * especially if 3Dfx voodoo emulation is active. */
     if (!(sdl.surface->flags & SDL_RESIZABLE)) return;
 
+	/* don't act if 3Dfx OpenGL emulation is active */
+	if (GFX_GetPreventFullscreen()) return;
+
 	SDL_ResizeEvent* ResizeEvent = (SDL_ResizeEvent*)event;
 
     /* assume the resize comes from user preference UNLESS the window
