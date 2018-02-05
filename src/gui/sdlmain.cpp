@@ -2317,7 +2317,16 @@ bool GFX_GetPreventFullscreen(void) {
 }
 
 void GFX_PreventFullscreen(bool lockout) {
-    sdl.desktop.prevent_fullscreen = lockout;
+	if (sdl.desktop.prevent_fullscreen != lockout) {
+		sdl.desktop.prevent_fullscreen = lockout;
+#if defined(WIN32) && !defined(C_SDL2)
+		void DOSBox_SetSysMenu(void);
+		int Reflect_Menu(void);
+
+		DOSBox_SetSysMenu();
+		Reflect_Menu();
+#endif
+	}
 }
 
 void GFX_RestoreMode(void) {
