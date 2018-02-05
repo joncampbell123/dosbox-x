@@ -776,7 +776,7 @@ struct pc98_egc_shifter {
         remain = pc98_egc_shift_length + 1; /* the register is length - 1 apparently */
         dstbit = pc98_egc_shift_destbit;
         srcbit = pc98_egc_shift_srcbit;
-        bufi = bufo = decrement ? 12 : 0;
+        bufi = bufo = decrement ? (sizeof(buffer) + 3 - (4*4)) : 0;
 
         if ((srcbit&7) < (dstbit&7)) {
             shft8bitr = (dstbit&7) - (srcbit&7);
@@ -803,7 +803,7 @@ struct pc98_egc_shifter {
     uint16_t            o_srcbit;
     uint16_t            o_dstbit;
 
-    uint8_t             buffer[4*4];
+    uint8_t             buffer[512]; /* 4096/8 = 512 */
     uint16_t            bufi,bufo;
 
     uint8_t             shft8load;
@@ -844,10 +844,10 @@ struct pc98_egc_shifter {
     }
 
     template <class AWT> inline void input(const AWT a,const AWT b,const AWT c,const AWT d,uint8_t odd) {
-        bi<AWT>( 0,a);
-        bi<AWT>( 4,b);
-        bi<AWT>( 8,c);
-        bi<AWT>(12,d);
+        bi<AWT>((pc98_egc_shift_descend ? (sizeof(buffer) + 1 - sizeof(AWT)) : 0) + 0,a);
+        bi<AWT>((pc98_egc_shift_descend ? (sizeof(buffer) + 1 - sizeof(AWT)) : 0) + 4,b);
+        bi<AWT>((pc98_egc_shift_descend ? (sizeof(buffer) + 1 - sizeof(AWT)) : 0) + 8,c);
+        bi<AWT>((pc98_egc_shift_descend ? (sizeof(buffer) + 1 - sizeof(AWT)) : 0) + 12,d);
 
         if (shft8load <= 16) {
             bi_adv<AWT>();
