@@ -89,6 +89,7 @@ extern void GetDefaultSize(void);
 
 // menu.cpp replacements; the optimizer will completely remove code based on these
 #define DOSBox_SetMenu()
+#define DOSBox_NoMenu()
 #define DOSBox_RefreshMenu()
 #define DOSBox_CheckOS(a, b, c) do { (a)=0; (b)=0; (c)=0; } while(0)
 #define VER_PLATFORM_WIN32_NT (1)
