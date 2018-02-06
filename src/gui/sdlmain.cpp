@@ -5560,7 +5560,7 @@ int main(int argc, char* argv[]) {
 
 			if (menu.gui && !control->opt_nomenu && cfg_want_menu) {
                 NonUserResizeCounter=1;
-				SDL1_hax_SetMenu(LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
+				DOSBox_SetMenu();
             }
 		}
 #endif
