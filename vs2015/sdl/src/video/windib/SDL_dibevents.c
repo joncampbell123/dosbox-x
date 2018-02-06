@@ -146,7 +146,6 @@ int Win32_ShouldPassMessageToSysWMEvent(UINT msg) {
 	switch (msg) {
 		case WM_COMMAND:
 		case WM_SYSCOMMAND:
-		case WM_DROPFILES:
 			return 1;
 	}
 
