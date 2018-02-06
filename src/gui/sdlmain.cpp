@@ -3759,6 +3759,10 @@ static void HandleTouchscreenFinger(SDL_TouchFingerEvent * finger) {
 
 void RENDER_Reset(void);
 
+#if defined(WIN32) && !defined(C_SDL2)
+void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message);
+#endif
+
 void GFX_Events() {
 #if defined(C_SDL2) /* SDL 2.x---------------------------------- */
     SDL_Event event;
@@ -3919,6 +3923,9 @@ void GFX_Events() {
 #ifdef __WIN32__
 		case SDL_SYSWMEVENT : {
 			switch( event.syswm.msg->msg ) {
+				case WM_COMMAND:
+					MSG_WM_COMMAND_handle(/*&*/(*event.syswm.msg));
+					break;
 				case WM_SYSCOMMAND:
 					switch (event.syswm.msg->wParam) {
 						case 0xF032: // FIXME: What is this?
