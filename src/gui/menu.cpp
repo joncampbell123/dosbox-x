@@ -2473,10 +2473,6 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 			}
 	}
 }
-
-void MSG_Loop(void) {
-	/* deprecated */
-}
 #else
 void DOSBox_SetSysMenu(void) {
 }
