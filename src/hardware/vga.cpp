@@ -473,6 +473,7 @@ static inline int int_log2(int val) {
 
 extern bool pcibus_enable;
 extern int hack_lfb_yadjust;
+extern uint8_t GDC_display_plane_wait_for_vsync;
 
 void VGA_VsyncUpdateMode(VGA_Vsync vsyncmode);
 
@@ -483,6 +484,7 @@ void VGA_Reset(Section*) {
 
 	LOG(LOG_MISC,LOG_DEBUG)("VGA_Reset() reinitializing VGA emulation");
 
+    GDC_display_plane_wait_for_vsync = section->Get_bool("pc-98 buffer page flip");
     pc98_allow_scanline_effect = section->Get_bool("pc-98 allow scanline effect");
 
     // whether the GDC is running at 2.5MHz or 5.0MHz.
