@@ -4450,6 +4450,9 @@ void SDL_SetupConfigSection() {
 	Pstring = sdl_sec->Add_string("titlebar", Property::Changeable::Always, "");
 	Pstring->Set_help("Change the string displayed in the DOSBox title bar.");
 
+	Pbool = sdl_sec->Add_bool("showmenu", Property::Changeable::Always, true);
+	Pbool->Set_help("Whether to show the menu bar (if supported). Default true.");
+
 //	Pint = sdl_sec->Add_int("overscancolor",Property::Changeable::Always, 0);
 //	Pint->SetMinMax(0,1000);
 //	Pint->Set_help("Value of overscan color.");
@@ -5371,9 +5374,18 @@ int main(int argc, char* argv[]) {
 			menu.gui=false;
 
 #if !defined(C_SDL2)
-		/* -- -- decide whether to set menu */
-		if (menu_gui && !control->opt_nomenu)
-			DOSBox_SetMenu();
+		{
+			Section_prop *section = static_cast<Section_prop *>(control->GetSection("SDL"));
+			assert(section != NULL);
+
+			bool cfg_want_menu = section->Get_bool("showmenu");
+
+			/* -- -- decide whether to set menu */
+			if (menu_gui && !control->opt_nomenu && cfg_want_menu)
+				DOSBox_SetMenu();
+			else
+				DOSBox_NoMenu();
+		}
 #endif
 
 		/* -- -- helpful advice */
@@ -5532,10 +5544,14 @@ int main(int argc, char* argv[]) {
             void DOSBox_SetSysMenu(void);
             DOSBox_SetSysMenu();
 
-			if (menu.gui && !control->opt_nomenu) {
+			Section_prop *section = static_cast<Section_prop *>(control->GetSection("SDL"));
+			assert(section != NULL);
+
+			bool cfg_want_menu = section->Get_bool("showmenu");
+
+			if (menu.gui && !control->opt_nomenu && cfg_want_menu) {
                 NonUserResizeCounter=1;
-				SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
-				DrawMenuBar(GetHWND());
+				DOSBox_SetMenu();
             }
 		}
 #endif
