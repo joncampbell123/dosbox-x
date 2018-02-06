@@ -2485,13 +2485,14 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 			case ID_GLIDE_EMU_AUTO: SetVal("pci", "voodoo", "auto"); break;
 			case ID_ALWAYS_ON_TOP:
 			{
-				SetFocus(GetHWND());
 				DWORD dwExStyle = ::GetWindowLong(GetHWND(), GWL_EXSTYLE);
 				HWND top = ((dwExStyle & WS_EX_TOPMOST) == 0) ? HWND_TOPMOST : HWND_NOTOPMOST;
 				SetWindowPos(GetHWND(), top, 0, 0, 0, 0, SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSIZE);
 				break;
 			}
 	}
+
+	Reflect_Menu();
 }
 #else
 void DOSBox_SetSysMenu(void) {
