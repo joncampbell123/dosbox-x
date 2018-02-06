@@ -235,7 +235,7 @@ void						Restart(bool pressed);
 bool						RENDER_GetAspect(void);
 bool						RENDER_GetAutofit(void);
 
-const char*					titlebar;
+const char*					titlebar = NULL;
 extern const char*				RunningProgram;
 extern bool					CPU_CycleAutoAdjust;
 #if !(ENVIRON_INCLUDED)
@@ -451,64 +451,39 @@ void GFX_SetTitle(Bit32s cycles,Bits frameskip,Bits timing,bool paused){
 	static Bits internal_timing=0;
 	char title[200] = {0};
 
+    Section_prop *section = static_cast<Section_prop *>(control->GetSection("SDL"));
+    assert(section != NULL);
+    titlebar = section->Get_string("titlebar");
+
 	if (cycles != -1) internal_cycles = cycles;
 	if (timing != -1) internal_timing = timing;
 	if (frameskip != -1) internal_frameskip = frameskip;
 
-	if (!menu_startup) {
-		sprintf(title,"%s%sDOSBox-X %s, %d cyc/ms, %s",
-			dosbox_title.c_str(),dosbox_title.empty()?"":": ",
-			VERSION,(int)internal_cycles,RunningProgram);
+    sprintf(title,"%s%sDOSBox-X %s, %d cyc/ms",
+        dosbox_title.c_str(),dosbox_title.empty()?"":": ",
+        VERSION,(int)internal_cycles);
 
-	    if (!menu.hidecycles) {
+    {
+        const char *what = (titlebar != NULL && *titlebar != 0) ? titlebar : RunningProgram;
+
+        if (what != NULL && *what != 0) {
             char *p = title + strlen(title); // append to end of string
 
-            sprintf(p,", FPS %2d",(int)frames);
+            sprintf(p,", %s",what);
         }
+    }
 
-	    if (menu.showrt) {
-            char *p = title + strlen(title); // append to end of string
+    if (!menu.hidecycles) {
+        char *p = title + strlen(title); // append to end of string
 
-            sprintf(p,", %2d%%/RT",(int)floor((rtdelta / 10) + 0.5));
-        }
+        sprintf(p,", FPS %2d",(int)frames);
+    }
 
-#if defined(C_SDL2)
-        SDL_SetWindowTitle(sdl.window,title);
-#else
-		SDL_WM_SetCaption(title,VERSION);
-#endif
-		return;
-	}
+    if (menu.showrt) {
+        char *p = title + strlen(title); // append to end of string
 
-	Section_prop *section = static_cast<Section_prop *>(control->GetSection("SDL"));
-	assert(section != NULL);
-	titlebar = section->Get_string("titlebar");
-	if (strlen(titlebar) != 0) {
-		sprintf(title, "%s%sDOSBox-X : %s",
-			dosbox_title.c_str(), dosbox_title.empty() ? "" : ": ", titlebar);
-		}
-	else if (menu.hidecycles) {
-		if (CPU_CycleAutoAdjust) {
-			sprintf(title,"%s%sDOSBox-X %s, max %3d%% cyc/ms, %s",
-				dosbox_title.c_str(),dosbox_title.empty()?"":": ",
-				VERSION,(int)CPU_CyclePercUsed,RunningProgram);
-		}
-		else {
-			sprintf(title,"%s%sDOSBox-X %s, %d cyc/ms, %s",
-				dosbox_title.c_str(),dosbox_title.empty()?"":": ",
-				VERSION,(int)internal_cycles,RunningProgram);
-		}
-	} else if (CPU_CycleAutoAdjust) {
-		sprintf(title,"%s%sDOSBox-X %s, CPU : %s %d%% = max %3d, %d FPS - %2d %8s %i.%i%%",
-			dosbox_title.c_str(),dosbox_title.empty()?"":": ",
-			VERSION,core_mode,(int)CPU_CyclePercUsed,(int)internal_cycles,(int)frames,
-			(int)internal_frameskip,RunningProgram,(int)(internal_timing/100),(int)(internal_timing%100/10));
-	} else {
-		sprintf(title,"%s%sDOSBox-X %s, CPU : %s %d = %8d, %d FPS - %2d %8s %i.%i%%",
-			dosbox_title.c_str(),dosbox_title.empty()?"":": ",
-			VERSION,core_mode,(int)0,(int)internal_cycles,(int)frames,(int)internal_frameskip,
-			RunningProgram,(int)(internal_timing/100),(int)((internal_timing%100)/10));
-	}
+        sprintf(p,", %2d%%/RT",(int)floor((rtdelta / 10) + 0.5));
+    }
 
 	if (paused) strcat(title," PAUSED");
 #if defined(C_SDL2)
