@@ -264,9 +264,6 @@ void				INT10_Init(Section*);
 #if C_NE2000
 void				NE2K_Init(Section* sec);
 #endif
-#if defined(__WIN32__) && !defined(C_SDL2)
-void				MSG_Loop(void);
-#endif
 
 signed long long time_to_clockdom(ClockDomain &src,double t) {
 	signed long long lt = (signed long long)t;
@@ -378,9 +375,6 @@ static Bitu Normal_Loop(void) {
                     return 0;
 #endif
             } else {
-#if defined(__WIN32__) && !defined(C_SDL2)
-                MSG_Loop();
-#endif
                 GFX_Events();
                 if (DOSBox_Paused() == false && ticksRemain > 0) {
                     TIMER_AddTick();

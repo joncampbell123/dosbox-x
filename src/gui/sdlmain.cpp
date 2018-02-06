@@ -3448,6 +3448,7 @@ void Go_Boot2(const char boot_drive[_MAX_DRIVE]) {
 	shell.ShowPrompt(); // if failed
 }
 
+/* FIXME: Unused */
 void Drag_Drop( char * path_arg ) {
 	if(control->SecureMode()) {
 		LOG_MSG(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
@@ -3962,14 +3963,6 @@ void GFX_Events() {
                                 DOSBox_SetMenu();
 							break;
 					}
-				case WM_MOVE:
-					break;
-				case WM_DROPFILES: {
-					char buff[50];
-					DragQueryFile((HDROP)event.syswm.msg->wParam,0,buff,200);
-					Drag_Drop(buff);
-					break;
-				}
 				default:
 					break;
 			}
