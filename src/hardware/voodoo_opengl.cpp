@@ -1757,6 +1757,9 @@ void voodoo_ogl_reset_videomode(void) {
 	DOSBox_SetMenu();
 #endif
 
+	/* Something in Windows keeps changing the shade model on us from the last glShadeModel() call. Change it back. */
+	glShadeModel(GL_SMOOTH);
+
 	LOG_MSG("VOODOO: OpenGL: mode set, resolution %d:%d %s", v->fbi.width, v->fbi.height, (sdl_flags & SDL_FULLSCREEN) ? "(fullscreen)" : "");
 }
 
