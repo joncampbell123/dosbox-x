@@ -3952,8 +3952,6 @@ void GFX_Events() {
                                 DOSBox_SetMenu();
 							break;
 					}
-				case WM_MOVE:
-					break;
 				case WM_DROPFILES: {
 					char buff[50];
 					DragQueryFile((HDROP)event.syswm.msg->wParam,0,buff,200);
