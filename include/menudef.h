@@ -23,15 +23,15 @@
 
 #define menu_compatible menu.compatible
 #define menu_gui menu.gui
-#define menu_startup menu.startup
 #else
 
 // If these are used, the optimizer can completely remove code that is not
 // needed on Linux. This way, code is less cluttered with #ifdefs
 #define menu_compatible (false)
 #define menu_gui (false)
-#define menu_startup (false)
 #endif
+
+#define menu_startup menu.startup
 
 struct MENU_Block {
 	bool toggle;      // toggle menu bar
