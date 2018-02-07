@@ -143,4 +143,7 @@ int utf16le_decode(const char **ptr,const char *fence);
 typedef char utf8_t;
 typedef uint16_t utf16_t;
 
+/* for DOS filename handling we want a toupper that uses the MS-DOS code page within not the locale of the host */
+int ascii_toupper(int c);
+
 #endif /* DOSBOX_DOSBOX_H */

@@ -35,6 +35,13 @@
 #include "serialport.h"
 #include "dos_network.h"
 
+int ascii_toupper(int c) {
+    if (c >= 'a' && c <= 'z')
+        return c + 'A' - 'a';
+
+    return c;
+}
+
 unsigned char cpm_compat_mode = CPM_COMPAT_MSDOS5;
 
 bool dos_in_hma = true;
