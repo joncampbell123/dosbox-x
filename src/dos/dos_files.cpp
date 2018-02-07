@@ -897,7 +897,7 @@ Bit8u FCB_Parsename(Bit16u seg,Bit16u offset,Bit8u parser ,char *string, Bit8u *
 		if (!finished) {
 			if (string[0]=='*') {fill='?';fcb_name.part.name[index]='?';if (!ret) ret=1;finished=true;}
 			else if (string[0]=='?') {fcb_name.part.name[index]='?';if (!ret) ret=1;}
-            else if (IS_PC98_ARCH && shiftjis_lead_byte(string[0])) { // WARNING: UNTESTED!
+            else if (IS_PC98_ARCH && shiftjis_lead_byte(string[0])) {
                 /* Shift-JIS is NOT ASCII and SHOULD NOT be converted to uppercase like ASCII */
                 fcb_name.part.name[index]=string[0];
                 string++;
@@ -927,7 +927,7 @@ checkext:
 			if (string[0]=='*') {fill='?';fcb_name.part.ext[index]='?';finished=true;}
 			else if (string[0]=='?') {fcb_name.part.ext[index]='?';if (!ret) ret=1;}
 			else if (isvalid(string[0])) {fcb_name.part.ext[index]=(char)(ascii_toupper(string[0]));}
-            else if (IS_PC98_ARCH && shiftjis_lead_byte(string[0])) { // WARNING: UNTESTED!
+            else if (IS_PC98_ARCH && shiftjis_lead_byte(string[0])) {
                 /* Shift-JIS is NOT ASCII and SHOULD NOT be converted to uppercase like ASCII */
                 fcb_name.part.ext[index]=string[0];
                 string++;
