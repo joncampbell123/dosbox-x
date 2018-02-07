@@ -44,6 +44,8 @@ Bitu DOS_FILES = 127;
 DOS_File ** Files = NULL;
 DOS_Drive * Drives[DOS_DRIVES] = {NULL};
 
+bool shiftjis_lead_byte(int c);
+
 Bit8u DOS_GetDefaultDrive(void) {
 //	return DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).GetDrive();
 	Bit8u d = DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).GetDrive();
@@ -91,12 +93,17 @@ bool DOS_MakeName(char const * const name,char * const fullname,Bit8u * drive) {
 			break;
 		default:
 			upname[w++]=c;
+            if (IS_PC98_ARCH && shiftjis_lead_byte(c) && r<DOS_PATHLENGTH) {
+                /* The trailing byte is NOT ASCII and SHOULD NOT be converted to uppercase like ASCII */
+                upname[w++]=name_int[r++];
+            }
 			break;
 		}
 	}
 	while (r>0 && name_int[r-1]==' ') r--;
 	if (r>=DOS_PATHLENGTH) { DOS_SetError(DOSERR_PATH_NOT_FOUND);return false; }
 	upname[w]=0;
+
 	/* Now parse the new file name to make the final filename */
 	if (upname[0]!='\\') strcpy(fullname,Drives[*drive]->curdir);
 	else fullname[0]=0;
@@ -818,6 +825,7 @@ static bool isvalid(const char in){
 #define PARSE_RET_WILD          1
 #define PARSE_RET_BADDRIVE      0xff
 
+/* TODO: Shift-JIS awareness. Convert to ASCII uppercase but don't apply toupper() to trailing SJIS byte. */
 Bit8u FCB_Parsename(Bit16u seg,Bit16u offset,Bit8u parser ,char *string, Bit8u *change) {
 	char * string_begin=string;
 	Bit8u ret=0;

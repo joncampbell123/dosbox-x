@@ -42,6 +42,14 @@ int ascii_toupper(int c) {
     return c;
 }
 
+bool shiftjis_lead_byte(int c) {
+    if ((((unsigned char)c & 0xE0) == 0x80) ||
+        (((unsigned char)c & 0xE0) == 0xE0))
+        return true;
+
+    return false;
+}
+
 unsigned char cpm_compat_mode = CPM_COMPAT_MSDOS5;
 
 bool dos_in_hma = true;
