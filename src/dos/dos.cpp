@@ -35,6 +35,38 @@
 #include "serialport.h"
 #include "dos_network.h"
 
+int ascii_toupper(int c) {
+    if (c >= 'a' && c <= 'z')
+        return c + 'A' - 'a';
+
+    return c;
+}
+
+bool shiftjis_lead_byte(int c) {
+    if ((((unsigned char)c & 0xE0) == 0x80) ||
+        (((unsigned char)c & 0xE0) == 0xE0))
+        return true;
+
+    return false;
+}
+
+char * shiftjis_upcase(char * str) {
+    for (char* idx = str; *idx ; ) {
+        if (shiftjis_lead_byte(*idx)) {
+            /* Shift-JIS is NOT ASCII and should not be converted to uppercase like ASCII.
+             * The trailing byte can be mistaken for ASCII */
+            idx++;
+            if (*idx != 0) idx++;
+        }
+        else {
+            *idx = ascii_toupper(*reinterpret_cast<unsigned char*>(idx));
+            idx++;
+        }
+    }
+
+    return str;
+}
+
 unsigned char cpm_compat_mode = CPM_COMPAT_MSDOS5;
 
 bool dos_in_hma = true;
