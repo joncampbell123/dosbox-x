@@ -624,6 +624,8 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 	return FindNext(dta);
 }
 
+char * shiftjis_upcase(char * str);
+
 bool localDrive::FindNext(DOS_DTA & dta) {
 
 	char * dir_ent;
@@ -674,8 +676,11 @@ again:
 
 	if(strlen(dir_entcopy)<DOS_NAMELENGTH_ASCII){
 		strcpy(find_name,dir_entcopy);
-		upcase(find_name);
-	} 
+        if (IS_PC98_ARCH)
+            shiftjis_upcase(find_name);
+        else
+            upcase(find_name);
+    } 
 
 	find_size=(Bit32u) stat_block.st_size;
 	struct tm *time;

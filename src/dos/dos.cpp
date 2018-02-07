@@ -50,6 +50,23 @@ bool shiftjis_lead_byte(int c) {
     return false;
 }
 
+char * shiftjis_upcase(char * str) {
+    for (char* idx = str; *idx ; ) {
+        if (shiftjis_lead_byte(*idx)) {
+            /* Shift-JIS is NOT ASCII and should not be converted to uppercase like ASCII.
+             * The trailing byte can be mistaken for ASCII */
+            idx++;
+            if (*idx != 0) idx++;
+        }
+        else {
+            *idx = ascii_toupper(*reinterpret_cast<unsigned char*>(idx));
+            idx++;
+        }
+    }
+
+    return str;
+}
+
 unsigned char cpm_compat_mode = CPM_COMPAT_MSDOS5;
 
 bool dos_in_hma = true;
