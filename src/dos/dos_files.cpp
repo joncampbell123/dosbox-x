@@ -825,7 +825,6 @@ static bool isvalid(const char in){
 #define PARSE_RET_WILD          1
 #define PARSE_RET_BADDRIVE      0xff
 
-/* TODO: Shift-JIS awareness. Convert to ASCII uppercase but don't apply toupper() to trailing SJIS byte. */
 Bit8u FCB_Parsename(Bit16u seg,Bit16u offset,Bit8u parser ,char *string, Bit8u *change) {
 	char * string_begin=string;
 	Bit8u ret=0;
@@ -898,6 +897,18 @@ Bit8u FCB_Parsename(Bit16u seg,Bit16u offset,Bit8u parser ,char *string, Bit8u *
 		if (!finished) {
 			if (string[0]=='*') {fill='?';fcb_name.part.name[index]='?';if (!ret) ret=1;finished=true;}
 			else if (string[0]=='?') {fcb_name.part.name[index]='?';if (!ret) ret=1;}
+            else if (IS_PC98_ARCH && shiftjis_lead_byte(string[0])) { // WARNING: UNTESTED!
+                /* Shift-JIS is NOT ASCII and SHOULD NOT be converted to uppercase like ASCII */
+                fcb_name.part.name[index]=string[0];
+                string++;
+                index++;
+                if (index >= 8) break;
+
+                /* should be trailing byte of Shift-JIS */
+                if ((unsigned char)string[0] < 32 || (unsigned char)string[0] >= 127) continue;
+
+                fcb_name.part.name[index]=string[0];
+            }
 			else if (isvalid(string[0])) {fcb_name.part.name[index]=(char)(ascii_toupper(string[0]));}
 			else { finished=true;continue; }
 			string++;
@@ -916,6 +927,18 @@ checkext:
 			if (string[0]=='*') {fill='?';fcb_name.part.ext[index]='?';finished=true;}
 			else if (string[0]=='?') {fcb_name.part.ext[index]='?';if (!ret) ret=1;}
 			else if (isvalid(string[0])) {fcb_name.part.ext[index]=(char)(ascii_toupper(string[0]));}
+            else if (IS_PC98_ARCH && shiftjis_lead_byte(string[0])) { // WARNING: UNTESTED!
+                /* Shift-JIS is NOT ASCII and SHOULD NOT be converted to uppercase like ASCII */
+                fcb_name.part.ext[index]=string[0];
+                string++;
+                index++;
+                if (index >= 3) break;
+
+                /* should be trailing byte of Shift-JIS */
+                if ((unsigned char)string[0] < 32 || (unsigned char)string[0] >= 127) continue;
+
+                fcb_name.part.ext[index]=string[0];
+            }
 			else { finished=true;continue; }
 			string++;
 		} else {
