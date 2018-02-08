@@ -347,6 +347,8 @@ char *CodePageHostToGuest(const host_cnv_char_t *s) {
 }
 
 bool localDrive::FileCreate(DOS_File * * file,const char * name,Bit16u /*attributes*/) {
+    if (nocachedir) EmptyCache();
+
     if (readonly) {
 		DOS_SetError(DOSERR_WRITE_PROTECTED);
         return false;
@@ -404,6 +406,8 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,Bit16u /*attribu
 }
 
 bool localDrive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
+    if (nocachedir) EmptyCache();
+
     if (readonly) {
         if ((flags&0xf) == OPEN_WRITE || (flags&0xf) == OPEN_READWRITE) {
             DOS_SetError(DOSERR_WRITE_PROTECTED);
@@ -597,6 +601,8 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 	strcat(tempDir,_dir);
 	CROSS_FILENAME(tempDir);
 
+    if (nocachedir) EmptyCache();
+
 	if (allocation.mediaid==0xF0 ) {
 		EmptyCache(); //rescan floppie-content on each findfirst
 	}
@@ -716,6 +722,8 @@ again:
 }
 
 bool localDrive::GetFileAttr(const char * name,Bit16u * attr) {
+    if (nocachedir) EmptyCache();
+
 	char newname[CROSS_LEN];
 	strcpy(newname,basedir);
 	strcat(newname,name);
@@ -741,6 +749,8 @@ bool localDrive::GetFileAttr(const char * name,Bit16u * attr) {
 }
 
 bool localDrive::MakeDir(const char * dir) {
+    if (nocachedir) EmptyCache();
+
     if (readonly) {
         DOS_SetError(DOSERR_WRITE_PROTECTED);
         return false;
@@ -772,6 +782,8 @@ bool localDrive::MakeDir(const char * dir) {
 }
 
 bool localDrive::RemoveDir(const char * dir) {
+    if (nocachedir) EmptyCache();
+
     if (readonly) {
         DOS_SetError(DOSERR_WRITE_PROTECTED);
         return false;
@@ -802,6 +814,8 @@ bool localDrive::RemoveDir(const char * dir) {
 }
 
 bool localDrive::TestDir(const char * dir) {
+    if (nocachedir) EmptyCache();
+
 	char newdir[CROSS_LEN];
 	strcpy(newdir,basedir);
 	strcat(newdir,dir);
@@ -890,6 +904,8 @@ bool localDrive::AllocationInfo(Bit16u * _bytes_sector,Bit8u * _sectors_cluster,
 }
 
 bool localDrive::FileExists(const char* name) {
+    if (nocachedir) EmptyCache();
+
 	char newname[CROSS_LEN];
 	strcpy(newname,basedir);
 	strcat(newname,name);
@@ -910,6 +926,8 @@ bool localDrive::FileExists(const char* name) {
 }
 
 bool localDrive::FileStat(const char* name, FileStat_Block * const stat_block) {
+    if (nocachedir) EmptyCache();
+
 	char newname[CROSS_LEN];
 	strcpy(newname,basedir);
 	strcat(newname,name);

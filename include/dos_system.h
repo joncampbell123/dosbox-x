@@ -269,6 +269,7 @@ public:
 	char * GetBaseDir(void);
 
     bool readonly;
+    bool nocachedir;
 	char curdir[DOS_PATHLENGTH];
 	char info[256];
 	/* Can be overridden for example in iso images */
