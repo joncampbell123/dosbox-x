@@ -746,6 +746,19 @@ void MPU401_Reset(Section* sec) {
 	}
 }
 
+void MIDI_GUI_OnSectionPropChange(Section *x);
+
+void MIDI_OnSectionPropChange(Section *x) {
+    delete test;
+    test = NULL;
+
+    LOG(LOG_MISC,LOG_DEBUG)("Resetting MPU401, config change");
+
+    MIDI_GUI_OnSectionPropChange(x);
+
+    test = new MPU401(control->GetSection("midi"));
+}
+
 void MPU401_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing MPU401 emulation");
 
@@ -754,5 +767,7 @@ void MPU401_Init() {
 
     AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(MPU401_EnterPC98));
     AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE_END,AddVMEventFunctionFuncPair(MPU401_Reset));
+
+	control->GetSection("midi")->onpropchange.push_back(&MIDI_OnSectionPropChange);
 }
 
