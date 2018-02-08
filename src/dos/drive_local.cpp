@@ -347,6 +347,11 @@ char *CodePageHostToGuest(const host_cnv_char_t *s) {
 }
 
 bool localDrive::FileCreate(DOS_File * * file,const char * name,Bit16u /*attributes*/) {
+    if (readonly) {
+		DOS_SetError(DOSERR_WRITE_PROTECTED);
+        return false;
+    }
+
 //TODO Maybe care for attributes but not likely
 	char newname[CROSS_LEN];
 	strcpy(newname,basedir);
@@ -360,6 +365,7 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,Bit16u /*attribu
     host_cnv_char_t *host_name = CodePageGuestToHost(temp_name);
     if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newname);
+		DOS_SetError(DOSERR_FILE_NOT_FOUND); // FIXME
         return false;
     }
 
@@ -398,6 +404,13 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,Bit16u /*attribu
 }
 
 bool localDrive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
+    if (readonly) {
+        if ((flags&0xf) == OPEN_WRITE || (flags&0xf) == OPEN_READWRITE) {
+            DOS_SetError(DOSERR_WRITE_PROTECTED);
+            return false;
+        }
+    }
+
 	const host_cnv_char_t * type;
 	switch (flags&0xf) {
 	case OPEN_READ:        type = _HT("rb");  break;
@@ -434,6 +447,7 @@ bool localDrive::FileOpen(DOS_File * * file,const char * name,Bit32u flags) {
     host_cnv_char_t *host_name = CodePageGuestToHost(newname);
     if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newname);
+		DOS_SetError(DOSERR_FILE_NOT_FOUND);
         return false;
     }
 
@@ -519,6 +533,11 @@ bool localDrive::GetSystemFilename(char *sysName, char const * const dosName) {
 }
 
 bool localDrive::FileUnlink(const char * name) {
+    if (readonly) {
+        DOS_SetError(DOSERR_WRITE_PROTECTED);
+        return false;
+    }
+
 	char newname[CROSS_LEN];
 	strcpy(newname,basedir);
 	strcat(newname,name);
@@ -529,6 +548,7 @@ bool localDrive::FileUnlink(const char * name) {
     host_cnv_char_t *host_name = CodePageGuestToHost(fullname);
     if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,fullname);
+		DOS_SetError(DOSERR_FILE_NOT_FOUND);
         return false;
     }
 
@@ -706,6 +726,7 @@ bool localDrive::GetFileAttr(const char * name,Bit16u * attr) {
     host_cnv_char_t *host_name = CodePageGuestToHost(newname);
     if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newname);
+		DOS_SetError(DOSERR_FILE_NOT_FOUND);
         return false;
     }
 
@@ -720,6 +741,11 @@ bool localDrive::GetFileAttr(const char * name,Bit16u * attr) {
 }
 
 bool localDrive::MakeDir(const char * dir) {
+    if (readonly) {
+        DOS_SetError(DOSERR_WRITE_PROTECTED);
+        return false;
+    }
+
 	char newdir[CROSS_LEN];
 	strcpy(newdir,basedir);
 	strcat(newdir,dir);
@@ -731,6 +757,7 @@ bool localDrive::MakeDir(const char * dir) {
     host_cnv_char_t *host_name = CodePageGuestToHost(temp_name);
     if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newdir);
+		DOS_SetError(DOSERR_FILE_NOT_FOUND); // FIXME
         return false;
     }
 
@@ -745,6 +772,11 @@ bool localDrive::MakeDir(const char * dir) {
 }
 
 bool localDrive::RemoveDir(const char * dir) {
+    if (readonly) {
+        DOS_SetError(DOSERR_WRITE_PROTECTED);
+        return false;
+    }
+
 	char newdir[CROSS_LEN];
 	strcpy(newdir,basedir);
 	strcat(newdir,dir);
@@ -756,6 +788,7 @@ bool localDrive::RemoveDir(const char * dir) {
     host_cnv_char_t *host_name = CodePageGuestToHost(temp_name);
     if (host_name == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newdir);
+		DOS_SetError(DOSERR_FILE_NOT_FOUND);
         return false;
     }
 
@@ -795,6 +828,11 @@ bool localDrive::TestDir(const char * dir) {
 }
 
 bool localDrive::Rename(const char * oldname,const char * newname) {
+    if (readonly) {
+        DOS_SetError(DOSERR_WRITE_PROTECTED);
+        return false;
+    }
+
     host_cnv_char_t *ht;
 
 	char newold[CROSS_LEN];
@@ -813,6 +851,7 @@ bool localDrive::Rename(const char * oldname,const char * newname) {
     ht = CodePageGuestToHost(newold);
     if (ht == NULL) {
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newold);
+		DOS_SetError(DOSERR_FILE_NOT_FOUND);
         return false;
     }
     host_cnv_char_t *o_temp_name = ht_strdup(ht);
@@ -822,6 +861,7 @@ bool localDrive::Rename(const char * oldname,const char * newname) {
     if (ht == NULL) {
         free(o_temp_name);
         LOG_MSG("%s: Filename '%s' from guest is non-representable on the host filesystem through code page conversion",__FUNCTION__,newnew);
+		DOS_SetError(DOSERR_FILE_NOT_FOUND); // FIXME
         return false;
     }
     host_cnv_char_t *n_temp_name = ht_strdup(ht);
