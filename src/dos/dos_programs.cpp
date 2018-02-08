@@ -246,6 +246,16 @@ public:
 			return;
 		}
 
+        bool nocachedir = false;
+        if (cmd->FindExist("-nocachedir",true))
+            nocachedir = true;
+
+        bool readonly = false;
+        if (cmd->FindExist("-ro",true))
+            readonly = true;
+        if (cmd->FindExist("-rw",true))
+            readonly = false;
+
 		std::string type="dir";
 		cmd->FindString("-t",type,true);
 		bool iscdrom = (type =="cdrom"); //Used for mscdex bug cdrom label name emulation
@@ -456,6 +466,8 @@ public:
 					LOG_MSG("ERROR:This build does not support physfs");
 				} else {
 					newdrive=new localDrive(temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid);
+                    newdrive->nocachedir = nocachedir;
+                    newdrive->readonly = readonly;
 				}
 			}
 		} else {
