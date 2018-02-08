@@ -701,3 +701,12 @@ void MIDI_Init() {
 	AddExitFunction(AddExitFunctionFuncPair(MIDI_Destroy),true);
 }
 
+void MIDI_GUI_OnSectionPropChange(Section *x) {
+	if (test != NULL) {
+		delete test;
+		test = NULL;
+	}
+
+	test = new MIDI(control->GetSection("midi"));
+}
+
