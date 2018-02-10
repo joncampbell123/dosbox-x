@@ -1531,6 +1531,8 @@ dac_text16:
 			/* check if gray scale summing is enabled */
 			if (modeset_ctl & 2) INT10_PerformGrayScaleSumming(0,256);
 		}
+        /* make sure the DAC index is reset on modeset */
+		IO_Write(0x3c8,0);
 	} else {
 		for (Bit8u ct=0x10;ct<ATT_REGS;ct++) {
 			if (ct==0x11) continue;	// skip overscan register
