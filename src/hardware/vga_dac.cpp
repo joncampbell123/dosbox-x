@@ -145,6 +145,7 @@ void write_p3c8(Bitu port,Bitu val,Bitu iolen) {
 	vga.dac.write_index=val;
 	vga.dac.pel_index=0;
 	vga.dac.state=DAC_WRITE;
+    vga.dac.read_index= val - 1;
 }
 
 Bitu read_p3c8(Bitu port, Bitu iolen){

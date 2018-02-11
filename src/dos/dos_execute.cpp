@@ -353,6 +353,13 @@ bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags) {
 			minsize=long2para(imagesize+(head.minmemory<<4)+256);
 			if (head.maxmemory!=0) maxsize=long2para(imagesize+(head.maxmemory<<4)+256);
 			else maxsize=0xffff;
+
+            /* Bugfix: scene.org mirrors/hornet/demos/1991/putrefac.zip Putrefaction !PF.{3}
+             *         has an EXE header that specifies a maxsize less than minsize, and a
+             *         initial stack pointer that is only valid if we use the maxsize.
+             *
+             *         This allows it to run without the SS:IP out of range error below. */
+            if (maxsize < minsize) maxsize = minsize;
 		}
 		if (maxfree<minsize) {
 			if (iscom) {
@@ -511,7 +518,9 @@ bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags) {
 		/* copy fcbs */
 		newpsp.SetFCB1(block.exec.fcb1);
 		newpsp.SetFCB2(block.exec.fcb2);
-		/* Set the stack for new program */
+        /* Save the SS:SP on the PSP of new program */
+        newpsp.SetStack(RealMakeSeg(ss,reg_sp));
+        /* Set the stack for new program */
 		SegSet16(ss,RealSeg(sssp));reg_sp=RealOff(sssp);
 		/* Add some flags and CS:IP on the stack for the IRET */
 		CPU_Push16(RealSeg(csip));
