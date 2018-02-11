@@ -518,7 +518,9 @@ bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags) {
 		/* copy fcbs */
 		newpsp.SetFCB1(block.exec.fcb1);
 		newpsp.SetFCB2(block.exec.fcb2);
-		/* Set the stack for new program */
+        /* Save the SS:SP on the PSP of new program */
+        newpsp.SetStack(RealMakeSeg(ss,reg_sp));
+        /* Set the stack for new program */
 		SegSet16(ss,RealSeg(sssp));reg_sp=RealOff(sssp);
 		/* Add some flags and CS:IP on the stack for the IRET */
 		CPU_Push16(RealSeg(csip));
