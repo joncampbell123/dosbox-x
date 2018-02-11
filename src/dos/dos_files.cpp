@@ -1221,6 +1221,7 @@ bool DOS_FCBGetFileSize(Bit16u seg,Bit16u offset) {
 	Bit32u size = 0;
 	Files[handle]->Seek(&size,DOS_SEEK_END);
 	DOS_CloseFile(entry);fcb.GetSeqData(handle,rec_size);
+	if (rec_size == 0) rec_size = 128; //Use default if missing.
 	Bit32u random=(size/rec_size);
 	if (size % rec_size) random++;
 	fcb.SetRandom(random);
