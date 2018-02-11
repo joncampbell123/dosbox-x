@@ -41,6 +41,8 @@
 #include "SDL_dibvideo.h"
 #endif
 
+#include <dinput.h> // for the DIK_ defines
+
 #ifndef WM_APP
 #define WM_APP	0x8000
 #endif
@@ -49,7 +51,7 @@
 #define NO_GETKEYBOARDSTATE
 #endif
 
-/* The translation table from a Microsoft VK keysym to a SDL keysym */
+/* The translation table from Windows scan codes to a SDL keysym */
 static SDLKey VK_keymap[SDLK_LAST];
 static SDL_keysym *TranslateKey(WPARAM vkey, UINT scancode, SDL_keysym *keysym, int pressed);
 static SDLKey Arrows_keymap[4];
@@ -448,163 +450,125 @@ void DIB_CheckMouse(void) {
 	last_dib_mouse_motion = SDL_GetTicks();
 }
 
-static HKL hLayoutUS = NULL;
-
 void DIB_InitOSKeymap(_THIS)
 {
 	int	i;
-#ifndef _WIN32_WCE
-	char	current_layout[KL_NAMELENGTH];
 
-	GetKeyboardLayoutName(current_layout);
-	//printf("Initial Keyboard Layout Name: '%s'\n", current_layout);
-
-	hLayoutUS = LoadKeyboardLayout("00000409", KLF_NOTELLSHELL);
-
-	if (!hLayoutUS) {
-		//printf("Failed to load US keyboard layout. Using current.\n");
-		hLayoutUS = GetKeyboardLayout(0);
-	}
-	LoadKeyboardLayout(current_layout, KLF_ACTIVATE);
-#else
-#if _WIN32_WCE >=420
-	TCHAR	current_layout[KL_NAMELENGTH];
-
-	GetKeyboardLayoutName(current_layout);
-	//printf("Initial Keyboard Layout Name: '%s'\n", current_layout);
-
-	hLayoutUS = LoadKeyboardLayout(L"00000409", 0);
-
-	if (!hLayoutUS) {
-		//printf("Failed to load US keyboard layout. Using current.\n");
-		hLayoutUS = GetKeyboardLayout(0);
-	}
-	LoadKeyboardLayout(current_layout, 0);
-#endif // _WIN32_WCE >=420
-#endif
-	/* Map the VK keysyms */
+	/* Map the scan codes to SDL keysyms */
 	for ( i=0; i<SDL_arraysize(VK_keymap); ++i )
 		VK_keymap[i] = SDLK_UNKNOWN;
 
-	VK_keymap[VK_BACK] = SDLK_BACKSPACE;
-	VK_keymap[VK_TAB] = SDLK_TAB;
-	VK_keymap[VK_CLEAR] = SDLK_CLEAR;
-	VK_keymap[VK_RETURN] = SDLK_RETURN;
-	VK_keymap[VK_PAUSE] = SDLK_PAUSE;
-	VK_keymap[VK_ESCAPE] = SDLK_ESCAPE;
-	VK_keymap[VK_SPACE] = SDLK_SPACE;
-	VK_keymap[VK_APOSTROPHE] = SDLK_QUOTE;
-	VK_keymap[VK_COMMA] = SDLK_COMMA;
-	VK_keymap[VK_MINUS] = SDLK_MINUS;
-	VK_keymap[VK_PERIOD] = SDLK_PERIOD;
-	VK_keymap[VK_SLASH] = SDLK_SLASH;
-	VK_keymap[VK_0] = SDLK_0;
-	VK_keymap[VK_1] = SDLK_1;
-	VK_keymap[VK_2] = SDLK_2;
-	VK_keymap[VK_3] = SDLK_3;
-	VK_keymap[VK_4] = SDLK_4;
-	VK_keymap[VK_5] = SDLK_5;
-	VK_keymap[VK_6] = SDLK_6;
-	VK_keymap[VK_7] = SDLK_7;
-	VK_keymap[VK_8] = SDLK_8;
-	VK_keymap[VK_9] = SDLK_9;
-	VK_keymap[VK_SEMICOLON] = SDLK_SEMICOLON;
-	VK_keymap[VK_EQUALS] = SDLK_EQUALS;
-	VK_keymap[VK_LBRACKET] = SDLK_LEFTBRACKET;
-	VK_keymap[VK_BACKSLASH] = SDLK_BACKSLASH;
-	VK_keymap[VK_OEM_102] = SDLK_LESS;
-	VK_keymap[VK_RBRACKET] = SDLK_RIGHTBRACKET;
-	VK_keymap[VK_GRAVE] = SDLK_BACKQUOTE;
-	VK_keymap[VK_BACKTICK] = SDLK_BACKQUOTE;
-	VK_keymap[VK_A] = SDLK_a;
-	VK_keymap[VK_B] = SDLK_b;
-	VK_keymap[VK_C] = SDLK_c;
-	VK_keymap[VK_D] = SDLK_d;
-	VK_keymap[VK_E] = SDLK_e;
-	VK_keymap[VK_F] = SDLK_f;
-	VK_keymap[VK_G] = SDLK_g;
-	VK_keymap[VK_H] = SDLK_h;
-	VK_keymap[VK_I] = SDLK_i;
-	VK_keymap[VK_J] = SDLK_j;
-	VK_keymap[VK_K] = SDLK_k;
-	VK_keymap[VK_L] = SDLK_l;
-	VK_keymap[VK_M] = SDLK_m;
-	VK_keymap[VK_N] = SDLK_n;
-	VK_keymap[VK_O] = SDLK_o;
-	VK_keymap[VK_P] = SDLK_p;
-	VK_keymap[VK_Q] = SDLK_q;
-	VK_keymap[VK_R] = SDLK_r;
-	VK_keymap[VK_S] = SDLK_s;
-	VK_keymap[VK_T] = SDLK_t;
-	VK_keymap[VK_U] = SDLK_u;
-	VK_keymap[VK_V] = SDLK_v;
-	VK_keymap[VK_W] = SDLK_w;
-	VK_keymap[VK_X] = SDLK_x;
-	VK_keymap[VK_Y] = SDLK_y;
-	VK_keymap[VK_Z] = SDLK_z;
-	VK_keymap[VK_DELETE] = SDLK_DELETE;
+	VK_keymap[DIK_ESCAPE] = SDLK_ESCAPE;
+	VK_keymap[DIK_1] = SDLK_1;
+	VK_keymap[DIK_2] = SDLK_2;
+	VK_keymap[DIK_3] = SDLK_3;
+	VK_keymap[DIK_4] = SDLK_4;
+	VK_keymap[DIK_5] = SDLK_5;
+	VK_keymap[DIK_6] = SDLK_6;
+	VK_keymap[DIK_7] = SDLK_7;
+	VK_keymap[DIK_8] = SDLK_8;
+	VK_keymap[DIK_9] = SDLK_9;
+	VK_keymap[DIK_0] = SDLK_0;
+	VK_keymap[DIK_MINUS] = SDLK_MINUS;
+	VK_keymap[DIK_EQUALS] = SDLK_EQUALS;
+	VK_keymap[DIK_BACK] = SDLK_BACKSPACE;
+	VK_keymap[DIK_TAB] = SDLK_TAB;
+	VK_keymap[DIK_Q] = SDLK_q;
+	VK_keymap[DIK_W] = SDLK_w;
+	VK_keymap[DIK_E] = SDLK_e;
+	VK_keymap[DIK_R] = SDLK_r;
+	VK_keymap[DIK_T] = SDLK_t;
+	VK_keymap[DIK_Y] = SDLK_y;
+	VK_keymap[DIK_U] = SDLK_u;
+	VK_keymap[DIK_I] = SDLK_i;
+	VK_keymap[DIK_O] = SDLK_o;
+	VK_keymap[DIK_P] = SDLK_p;
+	VK_keymap[DIK_LBRACKET] = SDLK_LEFTBRACKET;
+	VK_keymap[DIK_RBRACKET] = SDLK_RIGHTBRACKET;
+	VK_keymap[DIK_RETURN] = SDLK_RETURN;
+	VK_keymap[DIK_LCONTROL] = SDLK_LCTRL;
+	VK_keymap[DIK_A] = SDLK_a;
+	VK_keymap[DIK_S] = SDLK_s;
+	VK_keymap[DIK_D] = SDLK_d;
+	VK_keymap[DIK_F] = SDLK_f;
+	VK_keymap[DIK_G] = SDLK_g;
+	VK_keymap[DIK_H] = SDLK_h;
+	VK_keymap[DIK_J] = SDLK_j;
+	VK_keymap[DIK_K] = SDLK_k;
+	VK_keymap[DIK_L] = SDLK_l;
+	VK_keymap[DIK_SEMICOLON] = SDLK_SEMICOLON;
+	VK_keymap[DIK_APOSTROPHE] = SDLK_QUOTE;
+	VK_keymap[DIK_GRAVE] = SDLK_BACKQUOTE;
+	VK_keymap[DIK_LSHIFT] = SDLK_LSHIFT;
+	VK_keymap[DIK_BACKSLASH] = SDLK_BACKSLASH;
+	VK_keymap[DIK_OEM_102] = SDLK_LESS;
+	VK_keymap[DIK_Z] = SDLK_z;
+	VK_keymap[DIK_X] = SDLK_x;
+	VK_keymap[DIK_C] = SDLK_c;
+	VK_keymap[DIK_V] = SDLK_v;
+	VK_keymap[DIK_B] = SDLK_b;
+	VK_keymap[DIK_N] = SDLK_n;
+	VK_keymap[DIK_M] = SDLK_m;
+	VK_keymap[DIK_COMMA] = SDLK_COMMA;
+	VK_keymap[DIK_PERIOD] = SDLK_PERIOD;
+	VK_keymap[DIK_SLASH] = SDLK_SLASH;
+	VK_keymap[DIK_RSHIFT] = SDLK_RSHIFT;
+	VK_keymap[DIK_MULTIPLY] = SDLK_KP_MULTIPLY;
+	VK_keymap[DIK_LMENU] = SDLK_LALT;
+	VK_keymap[DIK_SPACE] = SDLK_SPACE;
+	VK_keymap[DIK_CAPITAL] = SDLK_CAPSLOCK;
+	VK_keymap[DIK_F1] = SDLK_F1;
+	VK_keymap[DIK_F2] = SDLK_F2;
+	VK_keymap[DIK_F3] = SDLK_F3;
+	VK_keymap[DIK_F4] = SDLK_F4;
+	VK_keymap[DIK_F5] = SDLK_F5;
+	VK_keymap[DIK_F6] = SDLK_F6;
+	VK_keymap[DIK_F7] = SDLK_F7;
+	VK_keymap[DIK_F8] = SDLK_F8;
+	VK_keymap[DIK_F9] = SDLK_F9;
+	VK_keymap[DIK_F10] = SDLK_F10;
+	VK_keymap[DIK_NUMLOCK^0x80] = SDLK_NUMLOCK; // for some reason this is swapped
+	VK_keymap[DIK_SCROLL] = SDLK_SCROLLOCK;
+	VK_keymap[DIK_NUMPAD7] = SDLK_KP7;
+	VK_keymap[DIK_NUMPAD8] = SDLK_KP8;
+	VK_keymap[DIK_NUMPAD9] = SDLK_KP9;
+	VK_keymap[DIK_SUBTRACT] = SDLK_KP_MINUS;
+	VK_keymap[DIK_NUMPAD4] = SDLK_KP4;
+	VK_keymap[DIK_NUMPAD5] = SDLK_KP5;
+	VK_keymap[DIK_NUMPAD6] = SDLK_KP6;
+	VK_keymap[DIK_ADD] = SDLK_KP_PLUS;
+	VK_keymap[DIK_NUMPAD1] = SDLK_KP1;
+	VK_keymap[DIK_NUMPAD2] = SDLK_KP2;
+	VK_keymap[DIK_NUMPAD3] = SDLK_KP3;
+	VK_keymap[DIK_NUMPAD0] = SDLK_KP0;
+	VK_keymap[DIK_DECIMAL] = SDLK_KP_PERIOD;
+	VK_keymap[DIK_F11] = SDLK_F11;
+	VK_keymap[DIK_F12] = SDLK_F12;
 
-	VK_keymap[VK_NUMPAD0] = SDLK_KP0;
-	VK_keymap[VK_NUMPAD1] = SDLK_KP1;
-	VK_keymap[VK_NUMPAD2] = SDLK_KP2;
-	VK_keymap[VK_NUMPAD3] = SDLK_KP3;
-	VK_keymap[VK_NUMPAD4] = SDLK_KP4;
-	VK_keymap[VK_NUMPAD5] = SDLK_KP5;
-	VK_keymap[VK_NUMPAD6] = SDLK_KP6;
-	VK_keymap[VK_NUMPAD7] = SDLK_KP7;
-	VK_keymap[VK_NUMPAD8] = SDLK_KP8;
-	VK_keymap[VK_NUMPAD9] = SDLK_KP9;
-	VK_keymap[VK_DECIMAL] = SDLK_KP_PERIOD;
-	VK_keymap[VK_DIVIDE] = SDLK_KP_DIVIDE;
-	VK_keymap[VK_MULTIPLY] = SDLK_KP_MULTIPLY;
-	VK_keymap[VK_SUBTRACT] = SDLK_KP_MINUS;
-	VK_keymap[VK_ADD] = SDLK_KP_PLUS;
+	VK_keymap[DIK_F13] = SDLK_F13;
+	VK_keymap[DIK_F14] = SDLK_F14;
+	VK_keymap[DIK_F15] = SDLK_F15;
 
-	VK_keymap[VK_UP] = SDLK_UP;
-	VK_keymap[VK_DOWN] = SDLK_DOWN;
-	VK_keymap[VK_RIGHT] = SDLK_RIGHT;
-	VK_keymap[VK_LEFT] = SDLK_LEFT;
-	VK_keymap[VK_INSERT] = SDLK_INSERT;
-	VK_keymap[VK_HOME] = SDLK_HOME;
-	VK_keymap[VK_END] = SDLK_END;
-	VK_keymap[VK_PRIOR] = SDLK_PAGEUP;
-	VK_keymap[VK_NEXT] = SDLK_PAGEDOWN;
-
-	VK_keymap[VK_F1] = SDLK_F1;
-	VK_keymap[VK_F2] = SDLK_F2;
-	VK_keymap[VK_F3] = SDLK_F3;
-	VK_keymap[VK_F4] = SDLK_F4;
-	VK_keymap[VK_F5] = SDLK_F5;
-	VK_keymap[VK_F6] = SDLK_F6;
-	VK_keymap[VK_F7] = SDLK_F7;
-	VK_keymap[VK_F8] = SDLK_F8;
-	VK_keymap[VK_F9] = SDLK_F9;
-	VK_keymap[VK_F10] = SDLK_F10;
-	VK_keymap[VK_F11] = SDLK_F11;
-	VK_keymap[VK_F12] = SDLK_F12;
-	VK_keymap[VK_F13] = SDLK_F13;
-	VK_keymap[VK_F14] = SDLK_F14;
-	VK_keymap[VK_F15] = SDLK_F15;
-
-	VK_keymap[VK_NUMLOCK] = SDLK_NUMLOCK;
-	VK_keymap[VK_CAPITAL] = SDLK_CAPSLOCK;
-	VK_keymap[VK_SCROLL] = SDLK_SCROLLOCK;
-	VK_keymap[VK_RSHIFT] = SDLK_RSHIFT;
-	VK_keymap[VK_LSHIFT] = SDLK_LSHIFT;
-	VK_keymap[VK_RCONTROL] = SDLK_RCTRL;
-	VK_keymap[VK_LCONTROL] = SDLK_LCTRL;
-	VK_keymap[VK_RMENU] = SDLK_RALT;
-	VK_keymap[VK_LMENU] = SDLK_LALT;
-	VK_keymap[VK_RWIN] = SDLK_RSUPER;
-	VK_keymap[VK_LWIN] = SDLK_LSUPER;
-
-	VK_keymap[VK_HELP] = SDLK_HELP;
-#ifdef VK_PRINT
-	VK_keymap[VK_PRINT] = SDLK_PRINT;
-#endif
-	VK_keymap[VK_SNAPSHOT] = SDLK_PRINT;
-	VK_keymap[VK_CANCEL] = SDLK_BREAK;
-	VK_keymap[VK_APPS] = SDLK_MENU;
+	VK_keymap[DIK_NUMPADEQUALS] = SDLK_KP_EQUALS;
+	VK_keymap[DIK_NUMPADENTER] = SDLK_KP_ENTER;
+	VK_keymap[DIK_RCONTROL] = SDLK_RCTRL;
+	VK_keymap[DIK_DIVIDE] = SDLK_KP_DIVIDE;
+	VK_keymap[DIK_SYSRQ] = SDLK_PRINT;
+	VK_keymap[DIK_RMENU] = SDLK_RALT;
+	VK_keymap[DIK_PAUSE^0x80] = SDLK_PAUSE; // for some reason this is swapped
+	VK_keymap[DIK_HOME] = SDLK_HOME;
+	VK_keymap[DIK_UP] = SDLK_UP;
+	VK_keymap[DIK_PRIOR] = SDLK_PAGEUP;
+	VK_keymap[DIK_LEFT] = SDLK_LEFT;
+	VK_keymap[DIK_RIGHT] = SDLK_RIGHT;
+	VK_keymap[DIK_END] = SDLK_END;
+	VK_keymap[DIK_DOWN] = SDLK_DOWN;
+	VK_keymap[DIK_NEXT] = SDLK_PAGEDOWN;
+	VK_keymap[DIK_INSERT] = SDLK_INSERT;
+	VK_keymap[DIK_DELETE] = SDLK_DELETE;
+	VK_keymap[DIK_LWIN] = SDLK_LMETA;
+	VK_keymap[DIK_RWIN] = SDLK_RMETA;
+	VK_keymap[DIK_APPS] = SDLK_MENU;
 
 	Arrows_keymap[3] = 0x25;
 	Arrows_keymap[2] = 0x26;
@@ -612,51 +576,15 @@ void DIB_InitOSKeymap(_THIS)
 	Arrows_keymap[0] = 0x28;
 }
 
-#define EXTKEYPAD(keypad) ((scancode & 0x100)?(mvke):(keypad))
-
-static int SDL_MapVirtualKey(int scancode, int vkey)
+static BYTE ConvertWordScanCodeToByteScanCode(UINT scancode)
 {
-#ifndef _WIN32_WCE
-	int	mvke  = MapVirtualKeyEx(scancode & 0xFF, 1, hLayoutUS);
-#else
-	int	mvke  = MapVirtualKey(scancode & 0xFF, 1);
-#endif
-
-	switch(vkey) {
-		/* These are always correct */
-		case VK_DIVIDE:
-		case VK_MULTIPLY:
-		case VK_SUBTRACT:
-		case VK_ADD:
-		case VK_LWIN:
-		case VK_RWIN:
-		case VK_APPS:
-		/* These are already handled */
-		case VK_LCONTROL:
-		case VK_RCONTROL:
-		case VK_LSHIFT:
-		case VK_RSHIFT:
-		case VK_LMENU:
-		case VK_RMENU:
-		case VK_SNAPSHOT:
-		case VK_PAUSE:
-			return vkey;
-	}	
-	switch(mvke) {
-		/* Distinguish between keypad and extended keys */
-		case VK_INSERT: return EXTKEYPAD(VK_NUMPAD0);
-		case VK_DELETE: return EXTKEYPAD(VK_DECIMAL);
-		case VK_END:    return EXTKEYPAD(VK_NUMPAD1);
-		case VK_DOWN:   return EXTKEYPAD(VK_NUMPAD2);
-		case VK_NEXT:   return EXTKEYPAD(VK_NUMPAD3);
-		case VK_LEFT:   return EXTKEYPAD(VK_NUMPAD4);
-		case VK_CLEAR:  return EXTKEYPAD(VK_NUMPAD5);
-		case VK_RIGHT:  return EXTKEYPAD(VK_NUMPAD6);
-		case VK_HOME:   return EXTKEYPAD(VK_NUMPAD7);
-		case VK_UP:     return EXTKEYPAD(VK_NUMPAD8);
-		case VK_PRIOR:  return EXTKEYPAD(VK_NUMPAD9);
+	BYTE scan = scancode & 0xFF;
+	if (scancode & 0x100) {
+		scan |= 0x80;
+	} else {
+		scan &= ~0x80;
 	}
-	return mvke?mvke:vkey;
+	return scan;
 }
 
 static SDL_keysym *TranslateKey(WPARAM vkey, UINT scancode, SDL_keysym *keysym, int pressed)
@@ -671,7 +599,7 @@ static SDL_keysym *TranslateKey(WPARAM vkey, UINT scancode, SDL_keysym *keysym, 
 		keysym->sym = SDLK_KP_ENTER;
 	}
 	else {
-		keysym->sym = VK_keymap[SDL_MapVirtualKey(scancode, vkey)];
+		keysym->sym = VK_keymap[ConvertWordScanCodeToByteScanCode(scancode)];
 	}
 
 	if ( pressed && SDL_TranslateUNICODE ) {
@@ -696,6 +624,10 @@ static SDL_keysym *TranslateKey(WPARAM vkey, UINT scancode, SDL_keysym *keysym, 
 		}
 #endif /* NO_GETKEYBOARDSTATE */
 	}
+
+#if 0
+	printf("SYM:%d, VK:0x%02X, SC:0x%04X\n", keysym->sym, vkey, scancode);
+#endif
 
 #if 0
 	{
