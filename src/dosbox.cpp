@@ -1250,10 +1250,6 @@ void DOSBOX_SetupConfigSections(void) {
                     "There are some old DOS games and demos that rely on this behavior to sense keyboard input, and this behavior\n"
                     "has been verified to occur on some old (early 90s) BIOSes.");
 
-	Pint = secprop->Add_int("irq delay",Property::Changeable::OnlyAtStart,-1);
-	Pint->Set_help("If 0 or greater, apply a delay (in cycles) to IRQ handling in the CPU.\n"
-                   "A value of -1 means to use a default value computed from the irq delay ns= setting.");
-
 	Pbool = secprop->Add_bool("allow port 92 reset",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("If set (default), allow the application to reset the CPU through port 92h");
 

@@ -28,9 +28,6 @@
 #define PIC_QUEUESIZE 512
 
 unsigned long PIC_irq_delay_ns = 1000000000UL / (unsigned long)PIT_TICK_RATE_IBM; // initial guess
-unsigned long PIC_irq_delay_ns_from_cycles = 0;
-int PIC_irq_delay_user = -1;
-int PIC_irq_delay = 2;
 
 struct PIC_Controller {
 	Bitu icw_words;
@@ -319,15 +316,6 @@ static void pc_xt_nmi_write(Bitu port,Bitu val,Bitu iolen) {
 	CPU_NMI_gate = (val & 0x80) ? true : false;
 }
 
-void PIC_irq_delay_update() {
-    PIC_irq_delay_ns_from_cycles = CPU_CycleMax;
-
-    if (PIC_irq_delay_user < 0)
-        PIC_irq_delay = (int)((PIC_irq_delay_ns * (unsigned long)CPU_CycleMax) / 1000000UL); /* remember cycles counts are per 1ms */
-    else
-        PIC_irq_delay = PIC_irq_delay_user;
-}
-
 /* FIXME: This should be called something else that's true to the ISA bus, like PIC_PulseIRQ, not Activate IRQ.
  *        ISA interrupts are edge triggered, not level triggered. */
 void PIC_ActivateIRQ(Bitu irq) {
@@ -353,21 +341,6 @@ void PIC_ActivateIRQ(Bitu irq) {
 	PIC_Controller * pic=&pics[irq>7 ? 1 : 0];
 
 	pic->raise_irq(t);
-
-    // activate() now sets CPU_Cycles = PIC_irq_delay and sets PIC_IRQCheck if PIC_IRQCheck was zero.
-#if 0
-    // Real hardware executes 0 to ~13 NOPs or comparable instructions
-    // before the processor picks up the interrupt. Let's try with 2
-    // cycles here.
-    // Required by Panic demo (irq0), It came from the desert (MPU401),
-    // Pizza by Port Mortem (SB IRQ detection),
-    // Does it matter if CPU_CycleLeft becomes negative?
-
-    // It might be an idea to do this always in order to simulate this
-    // So on write mask and EOI as well. (so inside the activate function)
-    CPU_CycleLeft += (CPU_Cycles-PIC_irq_delay);
-    CPU_Cycles = PIC_irq_delay;
-#endif
 }
 
 void PIC_DeActivateIRQ(Bitu irq) {
@@ -738,15 +711,8 @@ static IO_WriteHandleObject PCXT_NMI_WriteHandler;
 static IO_ReadHandleObject ReadHandler[4];
 static IO_WriteHandleObject WriteHandler[4];
 
-void PIC_TimerTick(void) {
-    if (PIC_irq_delay_ns_from_cycles != CPU_CycleMax)
-        PIC_irq_delay_update(); // precompute into CPU cycles counts for emulation
-}
-
 void PIC_Reset(Section *sec) {
 	Bitu i;
-
-    TIMER_DelTickHandler(PIC_TimerTick);
 
 	ReadHandler[0].Uninstall();
 	ReadHandler[1].Uninstall();
@@ -773,17 +739,10 @@ void PIC_Reset(Section *sec) {
     /* Make our initial setting, but let the user override our guess from dosbox.conf.
      * For backwards compat with "irq delay" as a count of CPU cycles, let that override as well. */
     PIC_irq_delay_ns = (1000000000UL * 2UL) / (unsigned long)PIT_TICK_RATE;
-    PIC_irq_delay_user = section->Get_int("irq delay");
     {
         int x = section->Get_int("irq delay ns");
         if (x >= 0) PIC_irq_delay_ns = x;
     }
-    PIC_irq_delay_update(); // precompute into CPU cycles counts for emulation
-
-    LOG_MSG("PIC: IRQ user delay cycles=%d  ns delay=%lu  final cycles=%d",
-        PIC_irq_delay_user,
-        PIC_irq_delay_ns,
-        PIC_irq_delay);
 
     if (enable_slave_pic)
         master_cascade_irq = IS_PC98_ARCH ? 7 : 2;
@@ -847,9 +806,6 @@ void PIC_Reset(Section *sec) {
 	else if (!IS_PC98_ARCH && enable_pc_xt_nmi_mask) {
 		PCXT_NMI_WriteHandler.Install(0xa0,pc_xt_nmi_write,IO_MB);
 	}
-
-    // if the user changes the cycle count, update the PIC delay cycle count to follow
-    TIMER_AddTickHandler(PIC_TimerTick);
 }
 
 void PIC_Destroy(Section* sec) {
