@@ -121,8 +121,14 @@ static PIC_Controller& master = pics[0];
 static PIC_Controller& slave  = pics[1];
 Bitu PIC_Ticks = 0;
 Bitu PIC_IRQCheck = 0; //Maybe make it a bool and/or ensure 32bit size (x86 dynamic core seems to assume 32 bit variable size)
+Bitu PIC_IRQCheckPending = 0; //Maybe make it a bool and/or ensure 32bit size (x86 dynamic core seems to assume 32 bit variable size)
 bool enable_slave_pic = true; /* if set, emulate slave with cascade to master. if clear, emulate only master, and no cascade (IRQ 2 is open) */
 bool enable_pc_xt_nmi_mask = false;
+
+void PIC_IRQCheckDelayed(Bitu val) {
+    PIC_IRQCheck = 1;
+    PIC_IRQCheckPending = 0;
+}
 
 void PIC_Controller::set_imr(Bit8u val) {
 	Bit8u change = (imr) ^ (val); //Bits that have changed become 1.
@@ -138,12 +144,10 @@ void PIC_Controller::activate() {
 	//Stops CPU if master, signals master if slave
 	if(this == &master) {
 		//cycles 0, take care of the port IO stuff added in raise_irq base caller.
-        if (!PIC_IRQCheck) {
-            PIC_IRQCheck = 1;
-
-            // FIX: If we enforce the IRQ delay in PIC_ActivateIRQ() then we need to do it here too!
-            CPU_CycleLeft += (CPU_Cycles-PIC_irq_delay);
-            CPU_Cycles = PIC_irq_delay;
+        if (!PIC_IRQCheckPending) {
+            /* NTS: PIC_AddEvent by design caps CPU_Cycles to make the event happen on time */
+            PIC_AddEvent(PIC_IRQCheckDelayed,(double)PIC_irq_delay_ns / 1000000,0);
+            PIC_IRQCheckPending = 1;
         }
 	} else {
 		master.raise_irq(master_cascade_irq);
@@ -479,8 +483,10 @@ void PIC_runIRQs(void) {
 
 	/* if we cleared all IRQs, then stop checking.
 	 * otherwise, keep the flag set for the next IRQ to process. */
-	if (i == max && (master.irr&master.imrr) == 0)
-		PIC_IRQCheck = 0;
+	if (i == max && (master.irr&master.imrr) == 0) {
+        PIC_IRQCheckPending = 0;
+        PIC_IRQCheck = 0;
+    }
 }
 
 void PIC_SetIRQMask(Bitu irq, bool masked) {
