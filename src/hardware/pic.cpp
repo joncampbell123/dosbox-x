@@ -27,6 +27,10 @@
 
 #define PIC_QUEUESIZE 512
 
+unsigned long PIC_irq_delay_ns = 1000000000UL / (unsigned long)PIT_TICK_RATE_IBM; // initial guess
+unsigned long PIC_irq_delay_ns_from_cycles = 0;
+int PIC_irq_delay = 2;
+
 struct PIC_Controller {
 	Bitu icw_words;
 	Bitu icw_index;
@@ -133,10 +137,13 @@ void PIC_Controller::activate() {
 	//Stops CPU if master, signals master if slave
 	if(this == &master) {
 		//cycles 0, take care of the port IO stuff added in raise_irq base caller.
-		PIC_IRQCheck = 1;
-		CPU_CycleLeft += CPU_Cycles;
-		CPU_Cycles = 0;
-		//maybe when coming from a EOI, give a tiny delay. (for the cpu to pick it up) (see PIC_Activate_IRQ)
+        if (!PIC_IRQCheck) {
+            PIC_IRQCheck = 1;
+
+            // FIX: If we enforce the IRQ delay in PIC_ActivateIRQ() then we need to do it here too!
+            CPU_CycleLeft += (CPU_Cycles-PIC_irq_delay);
+            CPU_Cycles = PIC_irq_delay;
+        }
 	} else {
 		master.raise_irq(master_cascade_irq);
 	}
@@ -307,7 +314,10 @@ static void pc_xt_nmi_write(Bitu port,Bitu val,Bitu iolen) {
 	CPU_NMI_gate = (val & 0x80) ? true : false;
 }
 
-int PIC_irq_delay = 2;
+void PIC_irq_delay_update() {
+    PIC_irq_delay_ns_from_cycles = CPU_CycleMax;
+    PIC_irq_delay = (int)((PIC_irq_delay_ns * (unsigned long)CPU_CycleMax) / 1000000UL); /* remember cycles counts are per 1ms */
+}
 
 /* FIXME: This should be called something else that's true to the ISA bus, like PIC_PulseIRQ, not Activate IRQ.
  *        ISA interrupts are edge triggered, not level triggered. */
@@ -333,8 +343,10 @@ void PIC_ActivateIRQ(Bitu irq) {
 	Bitu t = irq>7 ? (irq - 8): irq;
 	PIC_Controller * pic=&pics[irq>7 ? 1 : 0];
 
-	pic->raise_irq(t); //Will set the CPU_Cycles to zero if this IRQ will be handled directly
+	pic->raise_irq(t);
 
+    // activate() now sets CPU_Cycles = PIC_irq_delay and sets PIC_IRQCheck if PIC_IRQCheck was zero.
+#if 0
     // Real hardware executes 0 to ~13 NOPs or comparable instructions
     // before the processor picks up the interrupt. Let's try with 2
     // cycles here.
@@ -346,6 +358,7 @@ void PIC_ActivateIRQ(Bitu irq) {
     // So on write mask and EOI as well. (so inside the activate function)
     CPU_CycleLeft += (CPU_Cycles-PIC_irq_delay);
     CPU_Cycles = PIC_irq_delay;
+#endif
 }
 
 void PIC_DeActivateIRQ(Bitu irq) {
@@ -714,8 +727,15 @@ static IO_WriteHandleObject PCXT_NMI_WriteHandler;
 static IO_ReadHandleObject ReadHandler[4];
 static IO_WriteHandleObject WriteHandler[4];
 
+void PIC_TimerTick(void) {
+    if (PIC_irq_delay_ns_from_cycles != CPU_CycleMax)
+        PIC_irq_delay_update(); // precompute into CPU cycles counts for emulation
+}
+
 void PIC_Reset(Section *sec) {
 	Bitu i;
+
+    TIMER_DelTickHandler(PIC_TimerTick);
 
 	ReadHandler[0].Uninstall();
 	ReadHandler[1].Uninstall();
@@ -726,6 +746,14 @@ void PIC_Reset(Section *sec) {
 	WriteHandler[2].Uninstall();
 	WriteHandler[3].Uninstall();
 	PCXT_NMI_WriteHandler.Uninstall();
+
+    /* initial guess: perhaps the time delay from IRQ to CPU interrupt is related to the
+     *                1.19MHz clock rate also given to the PIT (divided down from 14MHz
+     *                on IBM PC/XT hardware). Perhaps it takes a few of these clock ticks
+     *                for the PIC to process the interrupt? --Jonathan C. */
+    /* let's guess it takes the PIC 2 clock cycles for IRQ to CPU interrupt to happen */
+    PIC_irq_delay_ns = 1000000000UL / ((unsigned long)PIT_TICK_RATE * 2UL);
+    PIC_irq_delay_update(); // precompute into CPU cycles counts for emulation
 
 	/* NTS: Parsing this on reset allows PIC configuration changes on reboot instead of restarting the entire emulator */
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
@@ -798,6 +826,9 @@ void PIC_Reset(Section *sec) {
 	else if (!IS_PC98_ARCH && enable_pc_xt_nmi_mask) {
 		PCXT_NMI_WriteHandler.Install(0xa0,pc_xt_nmi_write,IO_MB);
 	}
+
+    // if the user changes the cycle count, update the PIC delay cycle count to follow
+    TIMER_AddTickHandler(PIC_TimerTick);
 }
 
 void PIC_Destroy(Section* sec) {
