@@ -130,7 +130,7 @@ void write_p3c7(Bitu port,Bitu val,Bitu iolen) {
 	vga.dac.hidac_counter=0;
 	vga.dac.pel_index=0;
 	vga.dac.state=DAC_READ;
-	vga.dac.read_index=val;         /* NTS: Apparently this is true to hardware, at least on Paradise SVGA */
+	vga.dac.read_index=val;         /* NTS: According to Paradise SVGA, read index = x, write index = x + 1 */
 	vga.dac.write_index=val + 1;
 }
 
