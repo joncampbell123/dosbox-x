@@ -766,7 +766,7 @@ void PIC_Reset(Section *sec) {
     /* let's guess that it takes the PIC 2 PIC clock cycles for IRQ to CPU interrupt to happen */
     /* Make our initial setting, but let the user override our guess from dosbox.conf.
      * For backwards compat with "irq delay" as a count of CPU cycles, let that override as well. */
-    PIC_irq_delay_ns = 1000000000UL / ((unsigned long)PIT_TICK_RATE * 2UL);
+    PIC_irq_delay_ns = (1000000000UL * 2UL) / (unsigned long)PIT_TICK_RATE;
     PIC_irq_delay_user = section->Get_int("irq delay");
     {
         int x = section->Get_int("irq delay ns");
