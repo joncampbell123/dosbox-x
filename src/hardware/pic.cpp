@@ -751,7 +751,7 @@ void PIC_Reset(Section *sec) {
      *                1.19MHz clock rate also given to the PIT (divided down from 14MHz
      *                on IBM PC/XT hardware). Perhaps it takes a few of these clock ticks
      *                for the PIC to process the interrupt? --Jonathan C. */
-    /* let's guess it takes the PIC 2 clock cycles for IRQ to CPU interrupt to happen */
+    /* let's guess that it takes the PIC 2 PIC clock cycles for IRQ to CPU interrupt to happen */
     PIC_irq_delay_ns = 1000000000UL / ((unsigned long)PIT_TICK_RATE * 2UL);
     PIC_irq_delay_update(); // precompute into CPU cycles counts for emulation
 
