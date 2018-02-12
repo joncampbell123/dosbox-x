@@ -29,6 +29,7 @@
 
 unsigned long PIC_irq_delay_ns = 1000000000UL / (unsigned long)PIT_TICK_RATE_IBM; // initial guess
 unsigned long PIC_irq_delay_ns_from_cycles = 0;
+int PIC_irq_delay_user = -1;
 int PIC_irq_delay = 2;
 
 struct PIC_Controller {
@@ -316,7 +317,11 @@ static void pc_xt_nmi_write(Bitu port,Bitu val,Bitu iolen) {
 
 void PIC_irq_delay_update() {
     PIC_irq_delay_ns_from_cycles = CPU_CycleMax;
-    PIC_irq_delay = (int)((PIC_irq_delay_ns * (unsigned long)CPU_CycleMax) / 1000000UL); /* remember cycles counts are per 1ms */
+
+    if (PIC_irq_delay_user < 0)
+        PIC_irq_delay = (int)((PIC_irq_delay_ns * (unsigned long)CPU_CycleMax) / 1000000UL); /* remember cycles counts are per 1ms */
+    else
+        PIC_irq_delay = PIC_irq_delay_user;
 }
 
 /* FIXME: This should be called something else that's true to the ISA bus, like PIC_PulseIRQ, not Activate IRQ.
@@ -747,22 +752,32 @@ void PIC_Reset(Section *sec) {
 	WriteHandler[3].Uninstall();
 	PCXT_NMI_WriteHandler.Uninstall();
 
-    /* initial guess: perhaps the time delay from IRQ to CPU interrupt is related to the
-     *                1.19MHz clock rate also given to the PIT (divided down from 14MHz
-     *                on IBM PC/XT hardware). Perhaps it takes a few of these clock ticks
-     *                for the PIC to process the interrupt? --Jonathan C. */
-    /* let's guess that it takes the PIC 2 PIC clock cycles for IRQ to CPU interrupt to happen */
-    PIC_irq_delay_ns = 1000000000UL / ((unsigned long)PIT_TICK_RATE * 2UL);
-    PIC_irq_delay_update(); // precompute into CPU cycles counts for emulation
-
 	/* NTS: Parsing this on reset allows PIC configuration changes on reboot instead of restarting the entire emulator */
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 	assert(section != NULL);
 
 	enable_slave_pic = section->Get_bool("enable slave pic");
 	enable_pc_xt_nmi_mask = section->Get_bool("enable pc nmi mask");
-    PIC_irq_delay = section->Get_int("irq delay");
-    if (PIC_irq_delay < 0) PIC_irq_delay = 2; /* default */
+
+    /* initial guess: perhaps the time delay from IRQ to CPU interrupt is related to the
+     *                1.19MHz clock rate also given to the PIT (divided down from 14MHz
+     *                on IBM PC/XT hardware). Perhaps it takes a few of these clock ticks
+     *                for the PIC to process the interrupt? --Jonathan C. */
+    /* let's guess that it takes the PIC 2 PIC clock cycles for IRQ to CPU interrupt to happen */
+    /* Make our initial setting, but let the user override our guess from dosbox.conf.
+     * For backwards compat with "irq delay" as a count of CPU cycles, let that override as well. */
+    PIC_irq_delay_ns = 1000000000UL / ((unsigned long)PIT_TICK_RATE * 2UL);
+    PIC_irq_delay_user = section->Get_int("irq delay");
+    {
+        int x = section->Get_int("irq delay ns");
+        if (x >= 0) PIC_irq_delay_ns = x;
+    }
+    PIC_irq_delay_update(); // precompute into CPU cycles counts for emulation
+
+    LOG_MSG("PIC: IRQ user delay cycles=%d  ns delay=%lu  final cycles=%d",
+        PIC_irq_delay_user,
+        PIC_irq_delay_ns,
+        PIC_irq_delay);
 
     if (enable_slave_pic)
         master_cascade_irq = IS_PC98_ARCH ? 7 : 2;

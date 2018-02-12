@@ -1074,6 +1074,12 @@ void DOSBOX_SetupConfigSections(void) {
 	Pint->SetMinMax(0,128);
 	Pint->Set_help("Once ROM BIOS layout is finalized, trim total region down to a minimum amount in KB");
 
+	Pint = secprop->Add_int("irq delay ns", Property::Changeable::WhenIdle,-1);
+	Pint->SetMinMax(-1,100000);
+	Pint->Set_help(	"IRQ delay in nanoseconds. Set to -1 to use default, 0 to disable.\n"
+                    "This is a more precise version of the irqdelay= setting.\n"
+                    "There are some old DOS games and demos that have race conditions with IRQs that need a nonzero value here to work properly.");
+
 	Pint = secprop->Add_int("iodelay", Property::Changeable::WhenIdle,-1);
 	Pint->SetMinMax(-1,100000);
 	Pint->Set_help(	"I/O delay in nanoseconds for I/O port access. Set to -1 to use default, 0 to disable.\n"
@@ -1245,8 +1251,8 @@ void DOSBOX_SetupConfigSections(void) {
                     "has been verified to occur on some old (early 90s) BIOSes.");
 
 	Pint = secprop->Add_int("irq delay",Property::Changeable::OnlyAtStart,-1);
-	Pint->Set_help("If 0 or greater, apply a delay (in cycles) to IRQ handling in the CPU. A value of -1 means to use a default value.\n"
-                   "There are some old DOS games and demos that have race conditions with IRQs that need a nonzero value here to work properly.");
+	Pint->Set_help("If 0 or greater, apply a delay (in cycles) to IRQ handling in the CPU.\n"
+                   "A value of -1 means to use a default value computed from the irq delay ns= setting.");
 
 	Pbool = secprop->Add_bool("allow port 92 reset",Property::Changeable::OnlyAtStart,true);
 	Pbool->Set_help("If set (default), allow the application to reset the CPU through port 92h");
