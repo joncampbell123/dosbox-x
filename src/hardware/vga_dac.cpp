@@ -128,10 +128,10 @@ Bitu read_p3c6(Bitu port,Bitu iolen) {
 
 void write_p3c7(Bitu port,Bitu val,Bitu iolen) {
 	vga.dac.hidac_counter=0;
-	vga.dac.read_index=val;
 	vga.dac.pel_index=0;
 	vga.dac.state=DAC_READ;
-	vga.dac.write_index= val + 1;
+	vga.dac.read_index=val;         /* NTS: Apparently this is true to hardware, at least on Paradise SVGA */
+	vga.dac.write_index=val + 1;
 }
 
 Bitu read_p3c7(Bitu port,Bitu iolen) {
@@ -142,10 +142,9 @@ Bitu read_p3c7(Bitu port,Bitu iolen) {
 
 void write_p3c8(Bitu port,Bitu val,Bitu iolen) {
 	vga.dac.hidac_counter=0;
-	vga.dac.write_index=val;
 	vga.dac.pel_index=0;
 	vga.dac.state=DAC_WRITE;
-    vga.dac.read_index= val - 1;
+	vga.dac.write_index=val;        /* NTS: According to Paradise SVGA, this affects write index, but not read index */
 }
 
 Bitu read_p3c8(Bitu port, Bitu iolen){
@@ -188,8 +187,7 @@ void write_p3c9(Bitu port,Bitu val,Bitu iolen) {
 				}
 			}
 		}
-		vga.dac.write_index++;
-//		vga.dac.read_index = vga.dac.write_index - 1;//disabled as it breaks Wari
+		vga.dac.read_index=vga.dac.write_index++;
 		vga.dac.pel_index=0;
 		break;
 	default:
@@ -212,9 +210,8 @@ Bitu read_p3c9(Bitu port,Bitu iolen) {
 		break;
 	case 2:
 		ret=vga.dac.rgb[vga.dac.read_index].blue;
-		vga.dac.read_index++;
 		vga.dac.pel_index=0;
-//		vga.dac.write_index=vga.dac.read_index+1;//disabled as it breaks wari
+        vga.dac.read_index=vga.dac.write_index++;                           // NTS: Paradise SVGA behavior
 		break;
 	default:
 		LOG(LOG_VGAMISC,LOG_NORMAL)("VGA:DAC:Illegal Pel Index");			//If this can actually happen that will be the day
