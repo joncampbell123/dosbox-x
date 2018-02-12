@@ -27,7 +27,7 @@
 
 #define PIC_QUEUESIZE 512
 
-unsigned long PIC_irq_delay_ns = 1000000000UL / (unsigned long)PIT_TICK_RATE_IBM; // initial guess
+unsigned long PIC_irq_delay_ns = 0;
 
 struct PIC_Controller {
 	Bitu icw_words;
@@ -731,13 +731,7 @@ void PIC_Reset(Section *sec) {
 	enable_slave_pic = section->Get_bool("enable slave pic");
 	enable_pc_xt_nmi_mask = section->Get_bool("enable pc nmi mask");
 
-    /* initial guess: perhaps the time delay from IRQ to CPU interrupt is related to the
-     *                1.19MHz clock rate also given to the PIT (divided down from 14MHz
-     *                on IBM PC/XT hardware). Perhaps it takes a few of these clock ticks
-     *                for the PIC to process the interrupt? --Jonathan C. */
-    /* let's guess that it takes the PIC 2 PIC clock cycles for IRQ to CPU interrupt to happen */
-    /* Make our initial setting, but let the user override our guess from dosbox.conf.
-     * For backwards compat with "irq delay" as a count of CPU cycles, let that override as well. */
+    /* NTS: This is a good guess. But the 8259 is static circuitry and not driven by a clock. */
     PIC_irq_delay_ns = (1000000000UL * 2UL) / (unsigned long)PIT_TICK_RATE;
     {
         int x = section->Get_int("irq delay ns");
