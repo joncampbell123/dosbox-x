@@ -460,6 +460,11 @@ void PIC_runIRQs(void) {
         PIC_IRQCheckPending = 0;
         PIC_IRQCheck = 0;
     }
+    else if (PIC_IRQCheck) {
+        PIC_AddEvent(PIC_IRQCheckDelayed,(double)PIC_irq_delay_ns / 1000000,0);
+        PIC_IRQCheckPending = 1;
+        PIC_IRQCheck = 0;
+    }
 }
 
 void PIC_SetIRQMask(Bitu irq, bool masked) {
@@ -731,7 +736,8 @@ void PIC_Reset(Section *sec) {
 	enable_slave_pic = section->Get_bool("enable slave pic");
 	enable_pc_xt_nmi_mask = section->Get_bool("enable pc nmi mask");
 
-    /* NTS: This is a good guess. But the 8259 is static circuitry and not driven by a clock. */
+    /* NTS: This is a good guess. But the 8259 is static circuitry and not driven by a clock.
+     *      But the ability to respond to interrupts is limited by the CPU, too. */
     PIC_irq_delay_ns = (1000000000UL * 2UL) / (unsigned long)PIT_TICK_RATE;
     {
         int x = section->Get_int("irq delay ns");
