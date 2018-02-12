@@ -130,7 +130,7 @@ void write_p3c7(Bitu port,Bitu val,Bitu iolen) {
 	vga.dac.hidac_counter=0;
 	vga.dac.pel_index=0;
 	vga.dac.state=DAC_READ;
-	vga.dac.read_index=val;         /* NTS: According to Paradise SVGA, read index = x, write index = x + 1 */
+	vga.dac.read_index=val;         /* NTS: Paradise SVGA behavior, read index = x, write index = x + 1 */
 	vga.dac.write_index=val + 1;
 }
 
@@ -144,7 +144,7 @@ void write_p3c8(Bitu port,Bitu val,Bitu iolen) {
 	vga.dac.hidac_counter=0;
 	vga.dac.pel_index=0;
 	vga.dac.state=DAC_WRITE;
-	vga.dac.write_index=val;        /* NTS: According to Paradise SVGA, this affects write index, but not read index */
+	vga.dac.write_index=val;        /* NTS: Paradise SVGA behavior, this affects write index, but not read index */
 }
 
 Bitu read_p3c8(Bitu port, Bitu iolen){
@@ -187,7 +187,7 @@ void write_p3c9(Bitu port,Bitu val,Bitu iolen) {
 				}
 			}
 		}
-		vga.dac.read_index=vga.dac.write_index++;
+		vga.dac.read_index=vga.dac.write_index++;                           // NTS: Paradise SVGA behavior
 		vga.dac.pel_index=0;
 		break;
 	default:
