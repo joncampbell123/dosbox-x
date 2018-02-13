@@ -255,6 +255,10 @@ void diskio_delay(Bits value/*bytes*/) {
         double scalar = (double)value / disk_data_rate;
         double endtime = PIC_FullIndex() + (scalar * 1000);
 
+        /* MS-DOS will most likely enable interrupts in the course of
+         * performing disk I/O */
+        CPU_STI();
+
         do {
             CALLBACK_Idle();
         } while (PIC_FullIndex() < endtime);
