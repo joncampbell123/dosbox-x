@@ -234,39 +234,33 @@ static void DOS_AddDays(Bitu days) {
 }
 
 #define DATA_TRANSFERS_TAKE_CYCLES 1
-#ifdef DATA_TRANSFERS_TAKE_CYCLES
+#define DOS_OVERHEAD 1
 
 #ifndef DOSBOX_CPU_H
 #include "cpu.h"
 #endif
-static inline void modify_cycles(Bits value) {
-	if((4*value+5) < CPU_Cycles) {
-		CPU_Cycles -= 4*value;
-		CPU_IODelayRemoved += 4*value;
-	} else {
-		CPU_IODelayRemoved += CPU_Cycles/*-5*/; //don't want to mess with negative
-		CPU_Cycles = 5;
-	}
+
+// TODO: Make this configurable.
+//       Additionally, allow this to vary per-drive so that
+//       Drive C: can be as slow as a IDE drive at PIO-0 and
+//       Drive A: can be as slow as... well, a floppy disk
+//
+// This fixes MS-DOS games that crash or malfunction if the disk I/O is too fast.
+// This also fixes "380 volt" and prevents the "city animation" from loading too fast for it's music timing (and getting stuck)
+static int disk_data_rate = 2100000;    // 2.1MBytes/sec mid 1990s IDE PIO hard drive without SMARTDRV
+
+static inline void diskio_delay(Bits value/*bytes*/) {
+    double scalar = (double)value / disk_data_rate;
+    double endtime = PIC_FullIndex() + (scalar * 1000);
+
+    do {
+        CALLBACK_Idle();
+    } while (PIC_FullIndex() < endtime);
 }
-#else
-static inline void modify_cycles(Bits /* value */) {
-	return;
-}
-#endif
-#define DOS_OVERHEAD 1
-#ifdef DOS_OVERHEAD
-#ifndef DOSBOX_CPU_H
-#include "cpu.h"
-#endif
 
 static inline void overhead() {
 	reg_ip += 2;
 }
-#else
-static inline void overhead() {
-	return;
-}
-#endif
 
 #define BCD2BIN(x)	((((x) >> 4) * 10) + ((x) & 0x0f))
 #define BIN2BCD(x)	((((x) / 10) << 4) + (x) % 10)
@@ -1062,6 +1056,7 @@ static Bitu DOS_21Handler(void) {
 			reg_ax=dos.errorcode;
 			CALLBACK_SCF(true);
 		}
+        diskio_delay(2048);
 		break;
 	case 0x3d:		/* OPEN Open existing file */
         unmask_irq0 |= disk_io_unmask_irq0;
@@ -1072,6 +1067,7 @@ static Bitu DOS_21Handler(void) {
 			reg_ax=dos.errorcode;
 			CALLBACK_SCF(true);
 		}
+        diskio_delay(1024);
 		break;
 	case 0x3e:		/* CLOSE Close file */
         unmask_irq0 |= disk_io_unmask_irq0;
@@ -1082,7 +1078,8 @@ static Bitu DOS_21Handler(void) {
 			reg_ax=dos.errorcode;
 			CALLBACK_SCF(true);
 		}
-		break;
+        diskio_delay(512);
+        break;
 	case 0x3f:		/* READ Read from file or device */
         unmask_irq0 |= disk_io_unmask_irq0;
 		/* TODO: If handle is STDIN and not binary do CTRL+C checking */
@@ -1097,7 +1094,7 @@ static Bitu DOS_21Handler(void) {
 				reg_ax=dos.errorcode;
 				CALLBACK_SCF(true);
 			}
-			modify_cycles(reg_ax);
+			diskio_delay(reg_ax);
 			dos.echo=false;
 			break;
 		}
@@ -1113,7 +1110,7 @@ static Bitu DOS_21Handler(void) {
 				reg_ax=dos.errorcode;
 				CALLBACK_SCF(true);
 			}
-			modify_cycles(reg_ax);
+			diskio_delay(reg_ax);
 			break;
 		};
 	case 0x41:					/* UNLINK Delete file */
@@ -1125,6 +1122,7 @@ static Bitu DOS_21Handler(void) {
 			reg_ax=dos.errorcode;
 			CALLBACK_SCF(true);
 		}
+        diskio_delay(1024);
 		break;
 	case 0x42:					/* LSEEK Set current file position */
         unmask_irq0 |= disk_io_unmask_irq0;
@@ -1138,7 +1136,8 @@ static Bitu DOS_21Handler(void) {
 				reg_ax=dos.errorcode;
 				CALLBACK_SCF(true);
 			}
-			break;
+            diskio_delay(32);
+            break;
 		}
 	case 0x43:					/* Get/Set file attributes */
         unmask_irq0 |= disk_io_unmask_irq0;
