@@ -242,8 +242,9 @@ static void DOS_AddDays(Bitu days) {
 
 // TODO: Make this configurable.
 //       Additionally, allow this to vary per-drive so that
-//       Drive C: can be as slow as a IDE drive at PIO-0 and
-//       Drive A: can be as slow as... well, a floppy disk
+//       Drive D: can be as slow as a 2X IDE CD-ROM drive in PIO mode
+//       Drive C: can be as slow as a IDE drive in PIO mode and
+//       Drive A: can be as slow as a 3.5" 1.44MB floppy disk
 //
 // This fixes MS-DOS games that crash or malfunction if the disk I/O is too fast.
 // This also fixes "380 volt" and prevents the "city animation" from loading too fast for it's music timing (and getting stuck)
