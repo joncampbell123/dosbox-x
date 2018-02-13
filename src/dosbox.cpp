@@ -2130,6 +2130,10 @@ void DOSBOX_SetupConfigSections(void) {
 	Pbool->Set_help("Allow TSR and application (anything other than the DOS kernel) to request control of the HMA.\n"
 			"They will not be able to request control however if the DOS kernel is configured to occupy the HMA (DOS=HIGH)");
 
+    Pint = secprop->Add_int("hard drive data rate limit",Property::Changeable::WhenIdle,-1);
+	Pint->Set_help("Slow down (limit) hard disk throughput. This setting controls the limit in bytes/second.\n"
+                   "Set to 0 to disable the limit, or -1 to use a reasonable default.");
+
 	Pint = secprop->Add_int("hma minimum allocation",Property::Changeable::WhenIdle,0);
 	Pint->Set_help("Minimum allocation size for HMA in bytes (equivalent to /HMAMIN= parameter).");
 
