@@ -1865,7 +1865,14 @@ public:
 		Section_prop * section=static_cast<Section_prop *>(configuration);
 
         ::disk_data_rate = section->Get_int("hard drive data rate limit");
-        if (::disk_data_rate < 0) ::disk_data_rate = 2100000; /* default 2.1MByte/sec, like a mid 1990s IDE drive in PIO mode */
+        if (::disk_data_rate < 0) {
+            extern bool pcibus_enable;
+
+            if (pcibus_enable)
+                ::disk_data_rate = 2100000; /* default 2.1MByte/sec, like a mid 1990s IDE drive in PIO mode */
+            else
+                ::disk_data_rate = 1100000; /* default 1.1MByte/sec, like an early 1990s IDE drive in PIO mode */
+        }
 
         dos_in_hma = section->Get_bool("dos in hma");
         log_dev_con = control->opt_log_con || section->Get_bool("log console");
