@@ -248,15 +248,17 @@ static void DOS_AddDays(Bitu days) {
 //
 // This fixes MS-DOS games that crash or malfunction if the disk I/O is too fast.
 // This also fixes "380 volt" and prevents the "city animation" from loading too fast for it's music timing (and getting stuck)
-static int disk_data_rate = 2100000;    // 2.1MBytes/sec mid 1990s IDE PIO hard drive without SMARTDRV
+int disk_data_rate = 2100000;    // 2.1MBytes/sec mid 1990s IDE PIO hard drive without SMARTDRV
 
-static inline void diskio_delay(Bits value/*bytes*/) {
-    double scalar = (double)value / disk_data_rate;
-    double endtime = PIC_FullIndex() + (scalar * 1000);
+void diskio_delay(Bits value/*bytes*/) {
+    if (disk_data_rate != 0) {
+        double scalar = (double)value / disk_data_rate;
+        double endtime = PIC_FullIndex() + (scalar * 1000);
 
-    do {
-        CALLBACK_Idle();
-    } while (PIC_FullIndex() < endtime);
+        do {
+            CALLBACK_Idle();
+        } while (PIC_FullIndex() < endtime);
+    }
 }
 
 static inline void overhead() {
@@ -1861,6 +1863,9 @@ public:
 
 	DOS(Section* configuration):Module_base(configuration){
 		Section_prop * section=static_cast<Section_prop *>(configuration);
+
+        ::disk_data_rate = section->Get_int("hard drive data rate limit");
+        if (::disk_data_rate < 0) ::disk_data_rate = 2100000; /* default 2.1MByte/sec, like a mid 1990s IDE drive in PIO mode */
 
         dos_in_hma = section->Get_bool("dos in hma");
         log_dev_con = control->opt_log_con || section->Get_bool("log console");
