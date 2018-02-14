@@ -152,9 +152,15 @@ public:
 	RAMPageHandler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE) {}
 	RAMPageHandler(Bitu flags) : PageHandler(flags) {}
 	HostPt GetHostReadPt(Bitu phys_page) {
+#if 0
+        assert(memory.mem_alias_pagemask == (Bit32u)(~0UL)); // do NOT use non-aliased version when memalias set! */
+#endif
 		return MemBase+phys_page*MEM_PAGESIZE;
 	}
 	HostPt GetHostWritePt(Bitu phys_page) {
+#if 0
+        assert(memory.mem_alias_pagemask == (Bit32u)(~0UL)); // do NOT use non-aliased version when memalias set! */
+#endif
 		return MemBase+phys_page*MEM_PAGESIZE;
 	}
 };
@@ -268,7 +274,9 @@ static PageHandler *MEM_SlowPath(Bitu page) {
     /* TEMPORARY, REMOVE LATER. SHOULD NOT HAPPEN. */
     if (page < memory.reported_pages) {
         LOG(LOG_MISC,LOG_WARN)("MEM_SlowPath called within system RAM at page %x",(unsigned int)page);
-        f = (PageHandler*)(&ram_page_handler);
+        f = (memory.mem_alias_pagemask == (Bit32u)(~0UL))
+            ? (PageHandler*)(&ram_page_handler) /* no aliasing */
+            : (PageHandler*)(&ram_alias_page_handler); /* aliasing */
     }
 
     /* check motherboard devices (ROM BIOS, system RAM, etc.) */
@@ -661,7 +669,7 @@ void MEM_SetPageHandler(Bitu phys_page,Bitu pages,PageHandler * handler) {
 
 void MEM_ResetPageHandler_RAM(Bitu phys_page, Bitu pages) {
 	PageHandler *ram_ptr =
-		(memory.mem_alias_pagemask_active == (Bit32u)(~0UL) && !a20_full_masking)
+		(memory.mem_alias_pagemask == (Bit32u)(~0UL))
 		? (PageHandler*)(&ram_page_handler) /* no aliasing */
 		: (PageHandler*)(&ram_alias_page_handler); /* aliasing */
 	for (;pages>0;pages--) {
@@ -1390,7 +1398,7 @@ bool MEM_unmap_physmem(Bitu start,Bitu end) {
 bool MEM_map_RAM_physmem(Bitu start,Bitu end) {
 	Bitu p;
 	PageHandler *ram_ptr =
-		(memory.mem_alias_pagemask_active == (Bit32u)(~0UL) && !a20_full_masking)
+		(memory.mem_alias_pagemask == (Bit32u)(~0UL))
 		? (PageHandler*)(&ram_page_handler) /* no aliasing */
 		: (PageHandler*)(&ram_alias_page_handler); /* aliasing */
 
@@ -1735,7 +1743,7 @@ void Init_RAM() {
 	assert(memory.reported_pages <= memory.handler_pages);
 
 	PageHandler *ram_ptr =
-		(memory.mem_alias_pagemask_active == (Bit32u)(~0UL) && !a20_full_masking)
+		(memory.mem_alias_pagemask == (Bit32u)(~0UL))
 		? (PageHandler*)(&ram_page_handler) /* no aliasing */
 		: (PageHandler*)(&ram_alias_page_handler); /* aliasing */
 
