@@ -133,7 +133,7 @@ static Bitu pq_reload;
 static double pq_next_dbg=0;
 static unsigned int pq_hit=0,pq_miss=0;
 
-#define PREFETCH_DEBUG
+//#define PREFETCH_DEBUG
 
 /* WARNING: This code needs MORE TESTING. So far, it seems to work fine. */
 
