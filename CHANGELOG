@@ -1,4 +1,4 @@
-NEXT
+0.82.3 (02/13/2018)
   - Removed DOSBox SVN-style "fast" A20 gate emulation.
     Recent changes make it infeasible to keep. "fast" is
     now mapped to "mask" mode.
