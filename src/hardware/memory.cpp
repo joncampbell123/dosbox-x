@@ -54,7 +54,6 @@ public:
 static MEM_callout_vector MEM_callouts[MEM_callouts_max];
 
 bool a20_guest_changeable = true;
-bool a20_full_masking = false;
 bool a20_fake_changeable = false;
 
 bool enable_port92 = true;
@@ -1068,11 +1067,7 @@ void MEM_A20_Enable(bool enabled) {
 
 	LOG(LOG_MISC,LOG_DEBUG)("MEM_A20_Enable(%u)",enabled?1:0);
 
-	if (!a20_full_masking) {
-		Bitu phys_base=memory.a20.enabled ? (1024/4) : 0;
-		for (Bitu i=0;i<16;i++) PAGING_MapPage((1024/4)+i,phys_base+i);
-	}
-	else if (!a20_fake_changeable) {
+	if (!a20_fake_changeable) {
 		if (memory.a20.enabled) memory.mem_alias_pagemask_active |= 0x100;
 		else memory.mem_alias_pagemask_active &= ~0x100;
 		PAGING_ClearTLB();
@@ -1452,26 +1447,6 @@ HostPt GetMemBase(void) { return MemBase; }
 
 extern bool mainline_compatible_mapping;
 
-static void RAM_remap_64KBat1MB_A20fast(bool enable/*if set, we're transitioning to fast remap, else to full mask*/) {
-	PageHandler *newp;
-	Bitu c=0;
-
-	/* undo the fast remap at 1MB */
-	for (Bitu i=0;i<16;i++) PAGING_MapPage((1024/4)+i,(1024/4)+i);
-
-	/* run through the page array, change ram_handler to ram_alias_handler
-	 * (or the other way depending on enable) */
-	newp = (PageHandler*)(&ram_page_handler);
-	for (Bitu i=0;i < memory.reported_pages;i++) {
-		if (memory.phandlers[i] != newp) {
-			memory.phandlers[i] = newp;
-			c++;
-		}
-	}
-
-	LOG_MSG("A20gate mode change: %u pages modified (fast enable=%d)\n",(int)c,(int)enable);
-}
-
 class REDOS : public Program {
 public:
 	void Run(void) {
@@ -1494,40 +1469,30 @@ public:
 			MEM_A20_Enable(true);
 
 			if (!strncasecmp(x,"off_fake",8)) {
-				if (!a20_full_masking) RAM_remap_64KBat1MB_A20fast(false);
-				a20_full_masking = true;
 				MEM_A20_Enable(false);
 				a20_guest_changeable = false;
 				a20_fake_changeable = true;
 				WriteOut("A20 gate now off_fake mode\n");
 			}
 			else if (!strncasecmp(x,"off",3)) {
-				if (!a20_full_masking) RAM_remap_64KBat1MB_A20fast(false);
-				a20_full_masking = true;
 				MEM_A20_Enable(false);
 				a20_guest_changeable = false;
 				a20_fake_changeable = false;
 				WriteOut("A20 gate now off mode\n");
 			}
 			else if (!strncasecmp(x,"on_fake",7)) {
-				if (!a20_full_masking) RAM_remap_64KBat1MB_A20fast(false);
-				a20_full_masking = true;
 				MEM_A20_Enable(true);
 				a20_guest_changeable = false;
 				a20_fake_changeable = true;
 				WriteOut("A20 gate now on_fake mode\n");
 			}
 			else if (!strncasecmp(x,"on",2)) {
-				if (!a20_full_masking) RAM_remap_64KBat1MB_A20fast(false);
-				a20_full_masking = true;
 				MEM_A20_Enable(true);
 				a20_guest_changeable = false;
 				a20_fake_changeable = false;
 				WriteOut("A20 gate now on mode\n");
 			}
 			else if (!strncasecmp(x,"mask",4)) {
-				if (!a20_full_masking) RAM_remap_64KBat1MB_A20fast(false);
-				a20_full_masking = true;
 				MEM_A20_Enable(false);
 				a20_guest_changeable = true;
 				a20_fake_changeable = false;
@@ -1535,8 +1500,6 @@ public:
 				WriteOut("A20 gate now mask mode\n");
 			}
 			else if (!strncasecmp(x,"fast",4)) {
-				if (!a20_full_masking) RAM_remap_64KBat1MB_A20fast(true);
-				a20_full_masking = false;
 				MEM_A20_Enable(false);
 				a20_guest_changeable = true;
 				a20_fake_changeable = false;
@@ -1600,7 +1563,7 @@ void Init_AddressLimitAndGateMask() {
 
 	/* update alias pagemask according to A20 gate */
 	memory.mem_alias_pagemask_active = memory.mem_alias_pagemask;
-	if (a20_fake_changeable && a20_full_masking && !memory.a20.enabled)
+	if (a20_fake_changeable && !memory.a20.enabled)
 		memory.mem_alias_pagemask_active &= ~0x100;
 
 	/* log */
@@ -1761,7 +1724,6 @@ void A20Gate_OverrideOn(Section *sec) {
 	memory.a20.enabled = 1;
 	a20_fake_changeable = false;
 	a20_guest_changeable = true;
-	a20_full_masking = true;
 }
 
 /* this is called after BIOS boot. the BIOS needs the A20 gate ON to boot properly on 386 or higher! */
@@ -1771,45 +1733,38 @@ void A20Gate_TakeUserSetting(Section *sec) {
 	memory.a20.enabled = 0;
 	a20_fake_changeable = false;
     a20_guest_changeable = true;
-	a20_full_masking = false;
 
 	// TODO: A20 gate control should also be handled by a motherboard init routine
 	std::string ss = section->Get_string("a20");
 	if (ss == "mask" || ss == "") {
 		LOG(LOG_MISC,LOG_DEBUG)("A20: masking emulation");
 		a20_guest_changeable = true;
-		a20_full_masking = true;
 	}
 	else if (ss == "on") {
 		LOG(LOG_MISC,LOG_DEBUG)("A20: locked on");
 		a20_guest_changeable = false;
-		a20_full_masking = true;
 		memory.a20.enabled = 1;
 	}
 	else if (ss == "on_fake") {
 		LOG(LOG_MISC,LOG_DEBUG)("A20: locked on (but will fake control bit)");
 		a20_guest_changeable = false;
 		a20_fake_changeable = true;
-		a20_full_masking = true;
 		memory.a20.enabled = 1;
 	}
 	else if (ss == "off") {
 		LOG(LOG_MISC,LOG_DEBUG)("A20: locked off");
 		a20_guest_changeable = false;
-		a20_full_masking = true;
 		memory.a20.enabled = 0;
 	}
 	else if (ss == "off_fake") {
 		LOG(LOG_MISC,LOG_DEBUG)("A20: locked off (but will fake control bit)");
 		a20_guest_changeable = false;
 		a20_fake_changeable = true;
-		a20_full_masking = true;
 		memory.a20.enabled = 0;
 	}
 	else { /* "" or "fast" */
-		LOG(LOG_MISC,LOG_DEBUG)("A20: fast remapping (64KB+1MB) DOSBox style");
+		LOG(LOG_MISC,LOG_DEBUG)("A20: masking emulation (fast mode no longer supported)");
 		a20_guest_changeable = true;
-		a20_full_masking = false;
 	}
 }
 
