@@ -840,7 +840,7 @@ void DOSBOX_SetupConfigSections(void) {
 	const char* blocksizes[] = {"1024", "2048", "4096", "8192", "512", "256", 0};
     const char* capturechromaformats[] = { "auto", "4:4:4", "4:2:2", "4:2:0", 0};
 	const char* auxdevices[] = {"none","2button","3button","intellimouse","intellimouse45",0};
-	const char* cputype_values[] = {"auto", "8086", "8086_prefetch", "80186", "80186_prefetch", "286", "286_prefetch", "386", "386_prefetch", "486", "pentium", "pentium_mmx", "ppro_slow", 0};
+	const char* cputype_values[] = {"auto", "8086", "8086_prefetch", "80186", "80186_prefetch", "286", "286_prefetch", "386", "386_prefetch", "486", "486_prefetch", "pentium", "pentium_mmx", "ppro_slow", 0};
 	const char* rates[] = {  "44100", "48000", "32000","22050", "16000", "11025", "8000", "49716", 0 };
 	const char* oplrates[] = {   "44100", "49716", "48000", "32000","22050", "16000", "11025", "8000", 0 };
 	const char* devices[] = { "default", "win32", "alsa", "oss", "coreaudio", "coremidi", "mt32", "synth", "timidity", "none", 0}; // FIXME: add some way to offer the actually available choices.
