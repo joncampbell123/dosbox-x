@@ -152,25 +152,6 @@ public:
 	RAMPageHandler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE) {}
 	RAMPageHandler(Bitu flags) : PageHandler(flags) {}
 	HostPt GetHostReadPt(Bitu phys_page) {
-#if 0
-        assert(memory.mem_alias_pagemask == (Bit32u)(~0UL)); // do NOT use non-aliased version when memalias set! */
-#endif
-		return MemBase+phys_page*MEM_PAGESIZE;
-	}
-	HostPt GetHostWritePt(Bitu phys_page) {
-#if 0
-        assert(memory.mem_alias_pagemask == (Bit32u)(~0UL)); // do NOT use non-aliased version when memalias set! */
-#endif
-		return MemBase+phys_page*MEM_PAGESIZE;
-	}
-};
-
-class RAMAliasPageHandler : public PageHandler {
-public:
-	RAMAliasPageHandler() {
-		flags=PFLAG_READABLE|PFLAG_WRITEABLE;
-	}
-	HostPt GetHostReadPt(Bitu phys_page) {
 		return MemBase+(phys_page&memory.mem_alias_pagemask_active)*MEM_PAGESIZE;
 	}
 	HostPt GetHostWritePt(Bitu phys_page) {
@@ -191,7 +172,7 @@ public:
 	}
 };
 
-class ROMPageHandler : public RAMAliasPageHandler {
+class ROMPageHandler : public RAMPageHandler {
 public:
 	ROMPageHandler() {
 		flags=PFLAG_READABLE|PFLAG_HASROM;
@@ -211,7 +192,6 @@ public:
 
 static UnmappedPageHandler unmapped_page_handler;
 static IllegalPageHandler illegal_page_handler;
-static RAMAliasPageHandler ram_alias_page_handler;
 static RAMPageHandler ram_page_handler;
 static ROMPageHandler rom_page_handler;
 static ROMAliasPageHandler rom_page_alias_handler;
@@ -274,9 +254,7 @@ static PageHandler *MEM_SlowPath(Bitu page) {
     /* TEMPORARY, REMOVE LATER. SHOULD NOT HAPPEN. */
     if (page < memory.reported_pages) {
         LOG(LOG_MISC,LOG_WARN)("MEM_SlowPath called within system RAM at page %x",(unsigned int)page);
-        f = (memory.mem_alias_pagemask == (Bit32u)(~0UL))
-            ? (PageHandler*)(&ram_page_handler) /* no aliasing */
-            : (PageHandler*)(&ram_alias_page_handler); /* aliasing */
+        f = (PageHandler*)(&ram_page_handler);
     }
 
     /* check motherboard devices (ROM BIOS, system RAM, etc.) */
@@ -668,10 +646,7 @@ void MEM_SetPageHandler(Bitu phys_page,Bitu pages,PageHandler * handler) {
 }
 
 void MEM_ResetPageHandler_RAM(Bitu phys_page, Bitu pages) {
-	PageHandler *ram_ptr =
-		(memory.mem_alias_pagemask == (Bit32u)(~0UL))
-		? (PageHandler*)(&ram_page_handler) /* no aliasing */
-		: (PageHandler*)(&ram_alias_page_handler); /* aliasing */
+	PageHandler *ram_ptr = (PageHandler*)(&ram_page_handler);
 	for (;pages>0;pages--) {
 		memory.phandlers[phys_page]=ram_ptr;
 		phys_page++;
@@ -1397,10 +1372,7 @@ bool MEM_unmap_physmem(Bitu start,Bitu end) {
 
 bool MEM_map_RAM_physmem(Bitu start,Bitu end) {
 	Bitu p;
-	PageHandler *ram_ptr =
-		(memory.mem_alias_pagemask == (Bit32u)(~0UL))
-		? (PageHandler*)(&ram_page_handler) /* no aliasing */
-		: (PageHandler*)(&ram_alias_page_handler); /* aliasing */
+	PageHandler *ram_ptr = (PageHandler*)(&ram_page_handler);
 
 	if (start & 0xFFF)
 		LOG_MSG("WARNING: unmap_physmem() start not page aligned.\n");
@@ -1414,8 +1386,7 @@ bool MEM_map_RAM_physmem(Bitu start,Bitu end) {
 
 	for (p=start;p <= end;p++) {
 		if (memory.phandlers[p] != NULL && memory.phandlers[p] != &illegal_page_handler &&
-            memory.phandlers[p] != &unmapped_page_handler && memory.phandlers[p] != &ram_page_handler &&
-            memory.phandlers[p] != &ram_alias_page_handler)
+            memory.phandlers[p] != &unmapped_page_handler && memory.phandlers[p] != &ram_page_handler)
 			return false;
 	}
 
@@ -1482,7 +1453,7 @@ HostPt GetMemBase(void) { return MemBase; }
 extern bool mainline_compatible_mapping;
 
 static void RAM_remap_64KBat1MB_A20fast(bool enable/*if set, we're transitioning to fast remap, else to full mask*/) {
-	PageHandler *oldp,*newp;
+	PageHandler *newp;
 	Bitu c=0;
 
 	/* undo the fast remap at 1MB */
@@ -1490,10 +1461,9 @@ static void RAM_remap_64KBat1MB_A20fast(bool enable/*if set, we're transitioning
 
 	/* run through the page array, change ram_handler to ram_alias_handler
 	 * (or the other way depending on enable) */
-	newp =   enable  ? (PageHandler*)(&ram_page_handler) : (PageHandler*)(&ram_alias_page_handler);
-	oldp = (!enable) ? (PageHandler*)(&ram_page_handler) : (PageHandler*)(&ram_alias_page_handler);
+	newp = (PageHandler*)(&ram_page_handler);
 	for (Bitu i=0;i < memory.reported_pages;i++) {
-		if (memory.phandlers[i] == oldp) {
+		if (memory.phandlers[i] != newp) {
 			memory.phandlers[i] = newp;
 			c++;
 		}
@@ -1742,10 +1712,7 @@ void Init_RAM() {
 	// sanity check. if this condition is false the loops below will overrun the array!
 	assert(memory.reported_pages <= memory.handler_pages);
 
-	PageHandler *ram_ptr =
-		(memory.mem_alias_pagemask == (Bit32u)(~0UL))
-		? (PageHandler*)(&ram_page_handler) /* no aliasing */
-		: (PageHandler*)(&ram_alias_page_handler); /* aliasing */
+	PageHandler *ram_ptr = (PageHandler*)(&ram_page_handler);
 
 	for (i=0;i < memory.reported_pages;i++)
 		memory.phandlers[i] = ram_ptr;
