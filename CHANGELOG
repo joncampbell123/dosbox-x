@@ -1,3 +1,13 @@
+(next)
+  - Prefetch core debug code now disabled at compile
+    time. Seems to be stable so far.
+  - Prefetch core now emulates partial load of the
+    prefetch buffer on miss, and completing the buffer
+    fill on hit, to better emulate (probable) 80486
+    behavior.
+  - 486_prefetch is now a valid cputype setting, despite
+    the setting having existed for years in the source
+    code. Prior to this fix, 486_prefetch was ignored.
 0.82.3 (02/13/2018)
   - Removed DOSBox SVN-style "fast" A20 gate emulation.
     Recent changes make it infeasible to keep. "fast" is
