@@ -1,4 +1,13 @@
 NEXT
+  - Removed DOSBox SVN-style "fast" A20 gate emulation.
+    Recent changes make it infeasible to keep. "fast" is
+    now mapped to "mask" mode.
+  - RAM aliasing is now always on, even if memalias is not
+    set, in order to help enforce A20 gate behavior, and
+    to fix emulator crashes when a non-aliased RAM page
+    is referenced through an alias.
+  - Cleanup and rewrite of prefetch core, to make the code
+    cleaner and more readable and maintainable.
   - DOS file I/O updated to apply a proper delay rather
     than the old DOSBox SVN code's cycle count dependent
     method. The delay by default will slow disk I/O down
