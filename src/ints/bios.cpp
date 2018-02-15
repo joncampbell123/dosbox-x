@@ -4237,6 +4237,23 @@ private:
         void DEBUG_CheckCSIP();
 #endif
 
+        /* if we're supposed to run in PC-98 mode, then do it NOW */
+        if (enable_pc98_jump) {
+            machine = MCH_PC98;
+            enable_pc98_jump = false;
+            DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE); /* IBM PC unregistration/shutdown */
+            DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE_END); /* PC-98 registration/startup */
+        }
+        else if (IS_PC98_ARCH) {
+            void BIOS_OnEnterPC98Mode(Section* sec);
+            void BIOS_OnEnterPC98Mode_phase2(Section* sec);
+
+            for (unsigned int i=0;i < 20;i++) callback[i].Uninstall();
+
+            BIOS_OnEnterPC98Mode(NULL);
+            BIOS_OnEnterPC98Mode_phase2(NULL);
+        }
+
         if (bios_user_reset_vector_blob != 0 && !bios_user_reset_vector_blob_run) {
             LOG_MSG("BIOS POST: Running user reset vector blob at 0x%lx",(unsigned long)bios_user_reset_vector_blob);
             bios_user_reset_vector_blob_run = true;
@@ -4263,23 +4280,6 @@ private:
 		MEM_A20_Enable(true);
 
         BIOS_OnResetComplete(NULL);
-
-        /* if we're supposed to run in PC-98 mode, then do it NOW */
-        if (enable_pc98_jump) {
-            machine = MCH_PC98;
-            enable_pc98_jump = false;
-            DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE); /* IBM PC unregistration/shutdown */
-            DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE_END); /* PC-98 registration/startup */
-        }
-        else if (IS_PC98_ARCH) {
-            void BIOS_OnEnterPC98Mode(Section* sec);
-            void BIOS_OnEnterPC98Mode_phase2(Section* sec);
-
-            for (unsigned int i=0;i < 20;i++) callback[i].Uninstall();
-
-            BIOS_OnEnterPC98Mode(NULL);
-            BIOS_OnEnterPC98Mode_phase2(NULL);
-        }
 
 		adapter_scan_start = 0xC0000;
 		bios_has_exec_vga_bios = false;
