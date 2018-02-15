@@ -4324,17 +4324,6 @@ private:
 
 		extern Bitu call_default,call_default2;
 
-		/* Clear the vector table */
-		for (Bit16u i=0x70*4;i<0x400;i++) real_writeb(0x00,i,0);
-
-		/* Only setup default handler for first part of interrupt table */
-		for (Bit16u ct=0;ct<0x60;ct++) {
-			real_writed(0,ct*4,CALLBACK_RealPointer(call_default));
-		}
-		for (Bit16u ct=0x68;ct<0x70;ct++) {
-			real_writed(0,ct*4,CALLBACK_RealPointer(call_default));
-		}
-
         /* if we're supposed to run in PC-98 mode, then do it NOW */
         if (enable_pc98_jump) {
             machine = MCH_PC98;
@@ -4350,6 +4339,25 @@ private:
 
             BIOS_OnEnterPC98Mode(NULL);
             BIOS_OnEnterPC98Mode_phase2(NULL);
+        }
+
+        if (IS_PC98_ARCH) {
+            /* INT 40h-FFh generic stub routine */
+            callback[18].Uninstall();
+            callback[18].Install(&INTGEN_PC98_Handler,CB_IRET,"Int stub ???");
+            for (unsigned int i=0x40;i < 0x100;i++) RealSetVec(i,callback[18].Get_RealPointer());
+        }
+        else {
+            /* Clear the vector table */
+            for (Bit16u i=0x70*4;i<0x400;i++) real_writeb(0x00,i,0);
+
+            /* Only setup default handler for first part of interrupt table */
+            for (Bit16u ct=0;ct<0x60;ct++) {
+                real_writed(0,ct*4,CALLBACK_RealPointer(call_default));
+            }
+            for (Bit16u ct=0x68;ct<0x70;ct++) {
+                real_writed(0,ct*4,CALLBACK_RealPointer(call_default));
+            }
         }
 
         if (IS_PC98_ARCH) {
@@ -4415,10 +4423,6 @@ private:
             /* IRQ 9 is nothing special */
             callback[9].Uninstall();
             callback[9].Install(NULL,CB_IRET_EOI_PIC2,"irq 9");
-
-            /* INT 40h-FFh generic stub routine */
-            callback[18].Install(&INTGEN_PC98_Handler,CB_IRET,"Int stub ???");
-            for (unsigned int i=0x40;i < 0x100;i++) RealSetVec(i,callback[18].Get_RealPointer());
 
             /* INT 18h keyboard and video display functions */
             callback[1].Install(&INT18_PC98_Handler,CB_INT16,"Int 18 keyboard and display");
