@@ -4387,12 +4387,6 @@ private:
 		//	pop dx,ax,ds
 		//	iret
 
-		mem_writed(BIOS_TIMER,0);			//Calculate the correct time
-
-		/* Some hardcoded vectors */
-		phys_writeb(Real2Phys(BIOS_DEFAULT_HANDLER_LOCATION),0xcf);	/* bios default interrupt vector location -> IRET */
-		phys_writew(Real2Phys(RealGetVec(0x12))+0x12,0x20); //Hack for Jurresic
-
         /* if we're supposed to run in PC-98 mode, then do it NOW */
         if (enable_pc98_jump) {
             machine = MCH_PC98;
@@ -4400,6 +4394,13 @@ private:
             DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE); /* IBM PC unregistration/shutdown */
             DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE_END); /* PC-98 registration/startup */
         }
+
+        if (!IS_PC98_ARCH) {
+            mem_writed(BIOS_TIMER,0);			//Calculate the correct time
+            phys_writew(Real2Phys(RealGetVec(0x12))+0x12,0x20); //Hack for Jurresic
+        }
+
+        phys_writeb(Real2Phys(BIOS_DEFAULT_HANDLER_LOCATION),0xcf);	/* bios default interrupt vector location -> IRET */
 
         if (!IS_PC98_ARCH) {
             // tandy DAC setup
