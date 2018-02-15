@@ -4512,10 +4512,6 @@ private:
 		size_extended|=(IO_Read(0x71) << 8);
 		BIOS_HostTimeSync();
 
-		/* PS/2 mouse */
-		void BIOS_PS2Mouse_Startup(Section *sec);
-		BIOS_PS2Mouse_Startup(NULL);
-
         /* if we're supposed to run in PC-98 mode, then do it NOW */
         if (enable_pc98_jump) {
             machine = MCH_PC98;
@@ -4523,6 +4519,10 @@ private:
             DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE); /* IBM PC unregistration/shutdown */
             DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE_END); /* PC-98 registration/startup */
         }
+
+		/* PS/2 mouse */
+		void BIOS_PS2Mouse_Startup(Section *sec);
+		BIOS_PS2Mouse_Startup(NULL);
 
         if (!IS_PC98_ARCH) {
             /* this belongs HERE not on-demand from INT 15h! */
