@@ -961,9 +961,6 @@ void VGA_OnEnterPC98_phase2(Section *sec) {
     pc98_gdc[GDC_SLAVE].force_fifo_complete();
 
     VGA_StartResize();
-
-    void update_pc98_function_row(bool enable);
-    update_pc98_function_row(true);
 }
 
 void VGA_Init() {

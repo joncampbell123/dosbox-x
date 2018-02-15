@@ -5139,8 +5139,13 @@ bool VM_Boot_DOSBox_Kernel() {
 		void DOS_Startup(Section* sec);
 		DOS_Startup(NULL);
 
+        void update_pc98_function_row(bool enable);
+
 		void DRIVES_Startup(Section *s);
 		DRIVES_Startup(NULL);
+
+        /* NEC's function key row seems to be deeply embedded in the CON driver. Am I wrong? */
+        if (IS_PC98_ARCH) update_pc98_function_row(true);
 
 		DispatchVMEvent(VM_EVENT_DOS_INIT_KERNEL_READY); // <- kernel is ready
 
@@ -5682,10 +5687,8 @@ int main(int argc, char* argv[]) {
 		bool run_machine;
 		bool reboot_machine;
 		bool dos_kernel_shutdown;
-        bool enter_pc98;
 
 fresh_boot:
-        enter_pc98 = false;
         reboot_dos = false;
 		run_machine = false;
 		reboot_machine = false;
@@ -5713,10 +5716,7 @@ fresh_boot:
                 dos_kernel_shutdown = !dos_kernel_disabled; /* only if DOS kernel enabled */
             }
             else if (x == 5) { /* go to PC-98 mode */
-                LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to enter PC-98 mode");
-
-                enter_pc98 = true;
-                dos_kernel_shutdown = !dos_kernel_disabled; /* only if DOS kernel enabled */
+                E_Exit("Obsolete int signal");
             }
             else if (x == 6) { /* reboot DOS kernel */
                 LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to reboot DOS kernel");
@@ -5832,28 +5832,6 @@ fresh_boot:
             /* run again */
             goto fresh_boot;
 		}
-        else if (enter_pc98) {
-            void CALLBACK_RunRealInt(Bit8u intnum);
-
-            LOG_MSG("Switching into PC-98 mode");
-
-            void CPU_Snap_Back_Forget();
-            /* Shutdown everything. For shutdown to work properly we must force CPU to real mode */
-            CPU_Snap_Back_To_Real_Mode();
-            CPU_Snap_Back_Forget();
-
-            machine = MCH_PC98;
-            enable_pc98_jump = false;
-            DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE); /* IBM PC unregistration/shutdown */
-            DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE_END); /* PC-98 registration/startup */
-
-            /* begin booting DOS again. */
-            void BIOS_Enter_Boot_Phase(void);
-            BIOS_Enter_Boot_Phase();
-
-            /* run again */
-            goto fresh_boot;
-        }
         else if (reboot_dos) { /* typically (at this time) to enter/exit PC-98 mode */
 			LOG_MSG("Rebooting DOS\n");
 

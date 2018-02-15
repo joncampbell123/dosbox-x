@@ -31,6 +31,8 @@
 #include "paging.h"
 #include "mmx.h"
 
+using namespace std;
+
 #define CPU_CORE CPU_ARCHTYPE_386
 
 #define DoString DoString_Prefetch
@@ -127,8 +129,11 @@ static bool pq_valid=false;
 static Bitu pq_start;
 static Bitu pq_fill;
 static Bitu pq_limit;
+static Bitu pq_reload;
+static double pq_next_dbg=0;
+static unsigned int pq_hit=0,pq_miss=0;
 
-#define PREFETCH_DEBUG
+//#define PREFETCH_DEBUG
 
 /* WARNING: This code needs MORE TESTING. So far, it seems to work fine. */
 
@@ -164,7 +169,6 @@ template <> uint32_t prefetch_read<uint32_t>(const Bitu w) {
 static inline void prefetch_init(const Bitu start) {
     /* start must be DWORD aligned */
     pq_start = pq_fill = start;
-    pq_limit = CPU_PrefetchQueueSize & (~0x3);
     pq_valid = true;
 }
 
@@ -201,13 +205,28 @@ template <class T> static inline T Fetch(void) {
     T temp;
 
     if (prefetch_hit<T>(core.cseip)) {
+        /* as long as prefetch hits are occurring, keep loading more! */
+        if ((pq_fill - pq_start) < pq_limit) {
+            prefetch_filldword();
+            if (sizeof(T) >= 4 && (pq_fill - pq_start) < pq_limit)
+                prefetch_filldword();
+        }
+        else {
+            prefetch_lazyflush(core.cseip + 4 + sizeof(T));
+        }
+
         temp = prefetch_read<T>(core.cseip);
-        prefetch_lazyflush(core.cseip + 4 + sizeof(T));
+#ifdef PREFETCH_DEBUG
+        pq_hit++;
+#endif
     }
     else {
         prefetch_init(core.cseip & (~0x3)); /* fill prefetch starting on DWORD boundary */
-        prefetch_refill(pq_start + pq_limit); /* fill the entire prefetch buffer */
+        prefetch_refill(pq_start + pq_reload); /* perhaps in the time it takes for a prefetch miss the 80486 can load two DWORDs */
         temp = prefetch_read<T>(core.cseip);
+#ifdef PREFETCH_DEBUG
+        pq_miss++;
+#endif
     }
 
 #ifdef PREFETCH_DEBUG
@@ -250,6 +269,9 @@ extern Bitu dosbox_check_nonrecursive_pf_eip;
 
 Bits CPU_Core_Prefetch_Run(void) {
 	bool invalidate_pq=false;
+
+    pq_limit = CPU_PrefetchQueueSize & (~0x3);
+    pq_reload = min(pq_limit,(Bitu)8);
 
 	while (CPU_Cycles-->0) {
 		if (invalidate_pq) {
@@ -337,6 +359,14 @@ restart_opcode:
 		}
 		SAVEIP;
 	}
+
+#ifdef PREFETCH_DEBUG
+    if (PIC_FullIndex() > pq_next_dbg) {
+        LOG_MSG("Prefetch core debug: prefetch cache hit=%u miss=%u",pq_hit,pq_miss);
+        pq_next_dbg += 500.0;
+    }
+#endif
+
 	FillFlags();
 	return CBRET_NONE;
 decode_end:

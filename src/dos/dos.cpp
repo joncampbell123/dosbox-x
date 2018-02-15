@@ -2281,6 +2281,7 @@ void DOS_ShutdownDrives() {
 	}
 }
 
+void update_pc98_function_row(bool enable);
 void DOS_UnsetupMemory();
 void DOS_Casemap_Free();
 
@@ -2289,6 +2290,9 @@ void DOS_DoShutDown() {
 		delete test;
 		test = NULL;
 	}
+
+    if (IS_PC98_ARCH) update_pc98_function_row(false);
+
     DOS_UnsetupMemory();
     DOS_Casemap_Free();
 }

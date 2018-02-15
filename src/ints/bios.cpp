@@ -2255,7 +2255,7 @@ extern uint8_t                     GDC_display_plane;
 
 unsigned char prev_pc98_mode42 = 0;
 
-bool pc98_function_row = true;
+bool pc98_function_row = false;
 
 const char *pc98_func_key[10] = {
     "  C1  ",
@@ -4025,6 +4025,65 @@ void DrawDOSBoxLogoCGA6(unsigned int x,unsigned int y) {
 	}
 }
 
+/* HACK: Re-use the VGA logo */
+void DrawDOSBoxLogoPC98(unsigned int x,unsigned int y) {
+	unsigned char *s = dosbox_vga16_bmp;
+	unsigned char *sf = s + sizeof(dosbox_vga16_bmp);
+	unsigned int bit,dx,dy;
+	uint32_t width,height;
+    unsigned char p[4];
+    unsigned char c;
+	uint32_t vram;
+	uint32_t off;
+	uint32_t sz;
+
+	if (memcmp(s,"BM",2)) return;
+	sz = host_readd(s+2); // size of total bitmap
+	off = host_readd(s+10); // offset of bitmap
+	if ((s+sz) > sf) return;
+	if ((s+14+40) > sf) return;
+
+	sz = host_readd(s+34); // biSize
+	if ((s+off+sz) > sf) return;
+	if (host_readw(s+26) != 1) return; // biBitPlanes
+	if (host_readw(s+28) != 4)  return; // biBitCount
+
+	width = host_readd(s+18);
+	height = host_readd(s+22);
+	if (width > (640-x) || height > (350-y)) return;
+
+	// EGA/VGA Write Mode 2
+	LOG(LOG_MISC,LOG_DEBUG)("Drawing VGA logo as PC-98 (%u x %u)",(int)width,(int)height);
+    for (dy=0;dy < height;dy++) {
+        vram = ((y+dy) * 80) + (x / 8);
+        s = dosbox_vga16_bmp + off + ((height-(dy+1))*((width+1)/2));
+        for (dx=0;dx < width;dx += 8) {
+            p[0] = p[1] = p[2] = p[3] = 0;
+            for (bit=0;bit < 8;) {
+                c = (*s >> 4);
+                p[0] |= ((c >> 0) & 1) << (7 - bit);
+                p[1] |= ((c >> 1) & 1) << (7 - bit);
+                p[2] |= ((c >> 2) & 1) << (7 - bit);
+                p[3] |= ((c >> 3) & 1) << (7 - bit);
+                bit++;
+
+                c = (*s++) & 0xF;
+                p[0] |= ((c >> 0) & 1) << (7 - bit);
+                p[1] |= ((c >> 1) & 1) << (7 - bit);
+                p[2] |= ((c >> 2) & 1) << (7 - bit);
+                p[3] |= ((c >> 3) & 1) << (7 - bit);
+                bit++;
+            }
+
+            mem_writeb(0xA8000+vram,p[0]);
+            mem_writeb(0xB0000+vram,p[1]);
+            mem_writeb(0xB8000+vram,p[2]);
+            mem_writeb(0xE0000+vram,p[3]);
+            vram++;
+        }
+    }
+}
+
 void DrawDOSBoxLogoVGA(unsigned int x,unsigned int y) {
 	unsigned char *s = dosbox_vga16_bmp;
 	unsigned char *sf = s + sizeof(dosbox_vga16_bmp);
@@ -4079,24 +4138,55 @@ void DrawDOSBoxLogoVGA(unsigned int x,unsigned int y) {
 	IO_Write(0x3CF,0xFF);
 }
 
+static int bios_pc98_posx = 0;
+
 static void BIOS_Int10RightJustifiedPrint(const int x,int &y,const char *msg) {
 	const char *s = msg;
-	while (*s != 0) {
-		if (*s == '\n') {
-			y++;
-			reg_eax = 0x0200;	// set cursor pos
-			reg_ebx = 0;		// page zero
-			reg_dh = y;		// row 4
-			reg_dl = x;		// column 20
-			CALLBACK_RunRealInt(0x10);
-			s++;
-		}
-		else {
-			reg_eax = 0x0E00 | ((unsigned char)(*s++));
-			reg_ebx = 0x07;
-			CALLBACK_RunRealInt(0x10);
-		}
-	}
+
+    if (machine != MCH_PC98) {
+        while (*s != 0) {
+            if (*s == '\n') {
+                y++;
+                reg_eax = 0x0200;	// set cursor pos
+                reg_ebx = 0;		// page zero
+                reg_dh = y;		// row 4
+                reg_dl = x;		// column 20
+                CALLBACK_RunRealInt(0x10);
+                s++;
+            }
+            else {
+                reg_eax = 0x0E00 | ((unsigned char)(*s++));
+                reg_ebx = 0x07;
+                CALLBACK_RunRealInt(0x10);
+            }
+        }
+    }
+    else {
+        unsigned int bo;
+
+        while (*s != 0) {
+            if (*s == '\n') {
+                y++;
+                s++;
+                bios_pc98_posx = x;
+
+                bo = ((y * 80) + bios_pc98_posx) * 2;
+            }
+            else if (*s == '\r') {
+                s++; /* ignore */
+            }
+            else {
+                bo = ((y * 80) + (bios_pc98_posx++)) * 2; /* NTS: note the post increment */
+
+                mem_writew(0xA0000+bo,*s++);
+                mem_writeb(0xA2000+bo,0xE1);
+            }
+
+            reg_eax = 0x1300;   // set cursor pos (PC-98)
+            reg_edx = bo;       // byte position
+			CALLBACK_RunRealInt(0x18);
+        }
+    }
 }
 
 static Bitu ulimit = 0;
@@ -4781,6 +4871,15 @@ private:
 		const char *msg = PACKAGE_STRING " (C) 2002-" COPYRIGHT_END_YEAR " The DOSBox Team\nA fork of DOSBox 0.74 by TheGreatCodeholio\nFor more info visit http://dosbox-x.com\nBased on DOSBox (http://dosbox.com)\n\n";
 		int logo_x,logo_y,x,y,rowheight=8;
 
+        /* if we're supposed to run in PC-98 mode, then do it NOW.
+         * sdlmain.cpp will come back around when it's made the change to this call. */
+        if (enable_pc98_jump) {
+            machine = MCH_PC98;
+            enable_pc98_jump = false;
+            DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE); /* IBM PC unregistration/shutdown */
+            DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE_END); /* PC-98 registration/startup */
+        }
+
 		y = 2;
 		x = 2;
 		logo_y = 2;
@@ -4817,6 +4916,59 @@ private:
 
 			DrawDOSBoxLogoCGA6(logo_x*8,logo_y*rowheight);
 		}
+        else if (machine == MCH_PC98) {
+            reg_eax = 0x0C00;   // enable text layer (PC-98)
+			CALLBACK_RunRealInt(0x18);
+
+            reg_eax = 0x1100;   // show cursor (PC-98)
+			CALLBACK_RunRealInt(0x18);
+
+            reg_eax = 0x1300;   // set cursor pos (PC-98)
+            reg_edx = 0x0000;   // byte position
+			CALLBACK_RunRealInt(0x18);
+
+            bios_pc98_posx = x;
+
+            reg_eax = 0x4200;   // setup 640x400 graphics
+            reg_ecx = 0xC000;
+			CALLBACK_RunRealInt(0x18);
+
+            // enable the 4th bitplane, for 16-color analog graphics mode.
+            // TODO: When we allow the user to emulate only the 8-color BGR digital mode,
+            //       logo drawing should use an alternate drawing method.
+	        IO_Write(0x6A,0x01);    // enable 16-color analog mode (this makes the 4th bitplane appear)
+	        IO_Write(0x6A,0x04);    // but we don't need the EGC graphics
+
+            // program a VGA-like color palette so we can re-use the VGA logo
+            for (unsigned int i=0;i < 16;i++) {
+                unsigned int bias = (i & 8) ? 0x5 : 0x0;
+
+                IO_Write(0xA8,i);   // DAC index
+                if (i != 6) {
+                    IO_Write(0xAA,((i & 2) ? 0xA : 0x0) + bias);    // green
+                    IO_Write(0xAC,((i & 4) ? 0xA : 0x0) + bias);    // red
+                    IO_Write(0xAE,((i & 1) ? 0xA : 0x0) + bias);    // blue
+                }
+                else { // brown #6 instead of puke yellow
+                    IO_Write(0xAA,((i & 2) ? 0x5 : 0x0) + bias);    // green
+                    IO_Write(0xAC,((i & 4) ? 0xA : 0x0) + bias);    // red
+                    IO_Write(0xAE,((i & 1) ? 0xA : 0x0) + bias);    // blue
+                }
+            }
+
+            // clear the graphics layer
+            for (unsigned int i=0;i < (80*400);i++) {
+                mem_writeb(0xA8000+i,0);        // B
+                mem_writeb(0xB0000+i,0);        // G
+                mem_writeb(0xB8000+i,0);        // R
+                mem_writeb(0xE0000+i,0);        // E
+            }
+
+			DrawDOSBoxLogoPC98(logo_x*8,logo_y*rowheight);
+
+            reg_eax = 0x4000;   // show the graphics layer (PC-98) so we can render the DOSBox logo
+			CALLBACK_RunRealInt(0x18);
+        }
 		else {
 			reg_eax = 3;		// 80x25 text
 			CALLBACK_RunRealInt(0x10);
@@ -4825,8 +4977,8 @@ private:
 			//       And for MDA/Hercules, we could render a monochromatic ASCII art version.
 		}
 
-		{
-			reg_eax = 0x0200;	// set cursor pos
+        if (machine != MCH_PC98) {
+            reg_eax = 0x0200;	// set cursor pos
 			reg_ebx = 0;		// page zero
 			reg_dh = y;		// row 4
 			reg_dl = x;		// column 20
@@ -4948,13 +5100,18 @@ private:
 
 		BIOS_Int10RightJustifiedPrint(x,y,"\nHit SPACEBAR to pause at this screen\n");
 		y--; /* next message should overprint */
-		{
+        if (machine != MCH_PC98) {
 			reg_eax = 0x0200;	// set cursor pos
 			reg_ebx = 0;		// page zero
 			reg_dh = y;		// row 4
 			reg_dl = x;		// column 20
 			CALLBACK_RunRealInt(0x10);
 		}
+        else {
+            reg_eax = 0x1300;   // set cursor pos (PC-98)
+            reg_edx = ((y * 80) + x) * 2; // byte position
+			CALLBACK_RunRealInt(0x18);
+        }
 
 		// TODO: Then at this screen, we can print messages demonstrating the detection of
 		//       IDE devices, floppy, ISA PnP initialization, anything of importance.
@@ -4965,12 +5122,25 @@ private:
 		bool wait_for_user = false;
 		Bit32u lasttick=GetTicks();
 		while ((GetTicks()-lasttick)<1000) {
-			reg_eax = 0x0100;
-			CALLBACK_RunRealInt(0x16);
+            if (machine == MCH_PC98) {
+                reg_eax = 0x0100;   // sense key
+                CALLBACK_RunRealInt(0x18);
+                SETFLAGBIT(ZF,reg_bh == 0);
+            }
+            else {
+                reg_eax = 0x0100;
+                CALLBACK_RunRealInt(0x16);
+            }
 
 			if (!GETFLAG(ZF)) {
-				reg_eax = 0x0000;
-				CALLBACK_RunRealInt(0x16);
+                if (machine == MCH_PC98) {
+                    reg_eax = 0x0000;   // read key
+                    CALLBACK_RunRealInt(0x18);
+                }
+                else {
+                    reg_eax = 0x0000;
+                    CALLBACK_RunRealInt(0x16);
+                }
 
 				if (reg_al == 32) { // user hit space
 					BIOS_Int10RightJustifiedPrint(x,y,"Hit ENTER or ESC to continue                    \n"); // overprint
@@ -4981,16 +5151,28 @@ private:
 		}
 
         while (wait_for_user) {
-            reg_eax = 0x0000;
-            CALLBACK_RunRealInt(0x16);
+            if (machine == MCH_PC98) {
+                reg_eax = 0x0000;   // read key
+                CALLBACK_RunRealInt(0x18);
+            }
+            else {
+                reg_eax = 0x0000;
+                CALLBACK_RunRealInt(0x16);
+            }
 
             if (reg_al == 27/*ESC*/ || reg_al == 13/*ENTER*/)
                 break;
         }
 
-		// restore 80x25 text mode
-		reg_eax = 3;
-		CALLBACK_RunRealInt(0x10);
+        if (machine == MCH_PC98) {
+            reg_eax = 0x4100;   // hide the graphics layer (PC-98)
+			CALLBACK_RunRealInt(0x18);
+        }
+        else {
+            // restore 80x25 text mode
+            reg_eax = 3;
+            CALLBACK_RunRealInt(0x10);
+        }
 
 		return CBRET_NONE;
 	}
@@ -5005,11 +5187,6 @@ private:
 
 		if (cpu.pmode) E_Exit("BIOS error: BOOT function called while in protected/vm86 mode");
 		DispatchVMEvent(VM_EVENT_BIOS_BOOT);
-
-        /* if we're supposed to run in PC-98 mode, then do it NOW.
-         * sdlmain.cpp will come back around when it's made the change to this call. */
-        if (enable_pc98_jump)
-            throw int(5);
 
 		// TODO: If instructed to, follow the INT 19h boot pattern, perhaps follow the BIOS Boot Specification, etc.
 

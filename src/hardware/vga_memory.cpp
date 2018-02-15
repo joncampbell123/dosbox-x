@@ -2351,6 +2351,9 @@ void VGA_StartUpdateLFB(void) {
 static bool VGA_Memory_ShutDown_init = false;
 
 static void VGA_Memory_ShutDown(Section * /*sec*/) {
+	MEM_SetPageHandler(VGA_PAGE_A0,32,&vgaph.empty);
+	PAGING_ClearTLB();
+
 	if (vga.mem.linear_orgptr != NULL) {
 		delete[] vga.mem.linear_orgptr;
 		vga.mem.linear_orgptr = NULL;
