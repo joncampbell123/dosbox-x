@@ -4505,19 +4505,27 @@ private:
 		mem_writew(BIOS_CONFIGURATION,config);
 		CMOS_SetRegister(0x14,(Bit8u)(config&0xff)); //Should be updated on changes
 
-		/* Setup extended memory size */
-		IO_Write(0x70,0x30);
-		size_extended=IO_Read(0x71);
-		IO_Write(0x70,0x31);
-		size_extended|=(IO_Read(0x71) << 8);
-		BIOS_HostTimeSync();
-
         /* if we're supposed to run in PC-98 mode, then do it NOW */
         if (enable_pc98_jump) {
             machine = MCH_PC98;
             enable_pc98_jump = false;
             DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE); /* IBM PC unregistration/shutdown */
             DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE_END); /* PC-98 registration/startup */
+        }
+
+        if (!IS_PC98_ARCH) {
+            /* Setup extended memory size */
+            IO_Write(0x70,0x30);
+            size_extended=IO_Read(0x71);
+            IO_Write(0x70,0x31);
+            size_extended|=(IO_Read(0x71) << 8);
+            BIOS_HostTimeSync();
+        }
+        else {
+            /* Provide a valid memory size anyway */
+            size_extended=MEM_TotalPages()*4;
+            if (size_extended >= 1024) size_extended -= 1024;
+            else size_extended = 0;
         }
 
         if (!IS_PC98_ARCH) {
