@@ -634,6 +634,11 @@ void Init_VGABIOS() {
 	Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
 	assert(section != NULL);
 
+    if (IS_PC98_ARCH) {
+        VGA_BIOS_Size = 0;
+        return;
+    }
+
 	// log
 	LOG(LOG_MISC,LOG_DEBUG)("Init_VGABIOS: Initializing VGA BIOS and parsing it's settings");
 
