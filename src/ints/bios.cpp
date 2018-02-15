@@ -4348,15 +4348,6 @@ private:
 		void INT10_Startup(Section *sec);
 		INT10_Startup(NULL);
 
-		extern Bit8u BIOS_tandy_D4_flag;
-		real_writeb(0x40,0xd4,BIOS_tandy_D4_flag);
-
-		/* INT 13 Bios Disk Support */
-		BIOS_SetupDisks();
-
-		/* INT 16 Keyboard handled in another file */
-		BIOS_SetupKeyboard();
-
         /* if we're supposed to run in PC-98 mode, then do it NOW */
         if (enable_pc98_jump) {
             machine = MCH_PC98;
@@ -4364,6 +4355,17 @@ private:
             DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE); /* IBM PC unregistration/shutdown */
             DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE_END); /* PC-98 registration/startup */
         }
+
+        if (!IS_PC98_ARCH) {
+            extern Bit8u BIOS_tandy_D4_flag;
+            real_writeb(0x40,0xd4,BIOS_tandy_D4_flag);
+        }
+
+		/* INT 13 Bios Disk Support */
+		BIOS_SetupDisks();
+
+		/* INT 16 Keyboard handled in another file */
+		BIOS_SetupKeyboard();
 
         if (!IS_PC98_ARCH) {
             int4b_callback.Set_RealVec(0x4B,/*reinstall*/true);
@@ -5656,9 +5658,6 @@ public:
 		/* INT 40h-FFh generic stub routine */
 		callback[18].Install(&INTGEN_PC98_Handler,CB_IRET,"Int stub ???");
         for (unsigned int i=0x40;i < 0x100;i++) RealSetVec(i,callback[18].Get_RealPointer());
-
-        BIOS_SetupKeyboard();
-        BIOS_SetupDisks(); /* In PC-98 mode, will zero INT 13h */
 
 		/* INT 18h keyboard and video display functions */
 		callback[1].Install(&INT18_PC98_Handler,CB_INT16,"Int 18 keyboard and display");
