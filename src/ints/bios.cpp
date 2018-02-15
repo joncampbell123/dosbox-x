@@ -4229,6 +4229,23 @@ Bitu call_irq0 = 0;
 Bitu call_irq07default = 0;
 Bitu call_irq815default = 0;
 
+void write_FFFF_PC98_signature() {
+    /* this may overwrite the existing signature.
+     * PC-98 systems DO NOT have an ASCII date at F000:FFF5
+     * and the WORD value at F000:FFFE is said to be a checksum of the BIOS */
+
+    // The farjump at the processor reset entry point (jumps to POST routine)
+    phys_writeb(0xffff0,0xEA);					// FARJMP
+    phys_writew(0xffff1,RealOff(BIOS_DEFAULT_RESET_LOCATION));	// offset
+    phys_writew(0xffff3,RealSeg(BIOS_DEFAULT_RESET_LOCATION));	// segment
+
+    // write nothing (not used)
+    for(Bitu i = 0; i < 9; i++) phys_writeb(0xffff5+i,0);
+
+    // fake BIOS checksum
+    phys_writew(0xffffe,0xABCD);
+}
+
 class BIOS:public Module_base{
 private:
 	static Bitu cb_bios_post__func(void) {
@@ -4237,6 +4254,11 @@ private:
         void DEBUG_CheckCSIP();
 #endif
 
+		if (bios_first_init) {
+			/* clear the first 1KB-32KB */
+			for (Bit16u i=0x400;i<0x8000;i++) real_writeb(0x0,i,0);
+		}
+
         /* if we're supposed to run in PC-98 mode, then do it NOW */
         if (enable_pc98_jump) {
             machine = MCH_PC98;
@@ -4244,12 +4266,21 @@ private:
             DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE); /* IBM PC unregistration/shutdown */
             DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE_END); /* PC-98 registration/startup */
         }
-        else if (IS_PC98_ARCH) {
-            void BIOS_OnEnterPC98Mode(Section* sec);
 
+        if (IS_PC98_ARCH) {
             for (unsigned int i=0;i < 20;i++) callback[i].Uninstall();
 
-            BIOS_OnEnterPC98Mode(NULL);
+            write_FFFF_PC98_signature();
+
+            /* clear out 0x50 segment */
+            for (unsigned int i=0;i < 0x100;i++) phys_writeb(0x500+i,0);
+
+            /* set up some default state */
+            mem_writeb(0x54C/*MEMB_PRXCRT*/,0x4F); /* default graphics layer off, 24KHz hsync */
+
+            /* keyboard buffer */
+            mem_writew(0x524/*tail*/,0x502);
+            mem_writew(0x526/*tail*/,0x502);
         }
 
         if (bios_user_reset_vector_blob != 0 && !bios_user_reset_vector_blob_run) {
@@ -4330,11 +4361,6 @@ private:
 		if (ISAPNP_PNP_READ_PORT) {
 			delete ISAPNP_PNP_READ_PORT;
 			ISAPNP_PNP_READ_PORT=NULL;
-		}
-
-		if (bios_first_init) {
-			/* clear the first 1KB-32KB */
-			for (Bit16u i=0x400;i<0x8000;i++) real_writeb(0x0,i,0);
 		}
 
 		extern Bitu call_default,call_default2;
@@ -5384,22 +5410,6 @@ public:
 		// signature
 		phys_writeb(0xfffff,0x55);
 	}
-    void write_FFFF_PC98_signature() {
-        /* this may overwrite the existing signature.
-         * PC-98 systems DO NOT have an ASCII date at F000:FFF5
-         * and the WORD value at F000:FFFE is said to be a checksum of the BIOS */
- 
-		// The farjump at the processor reset entry point (jumps to POST routine)
-		phys_writeb(0xffff0,0xEA);					// FARJMP
-		phys_writew(0xffff1,RealOff(BIOS_DEFAULT_RESET_LOCATION));	// offset
-		phys_writew(0xffff3,RealSeg(BIOS_DEFAULT_RESET_LOCATION));	// segment
-
-		// write nothing (not used)
-		for(Bitu i = 0; i < 9; i++) phys_writeb(0xffff5+i,0);
-
-        // fake BIOS checksum
-        phys_writew(0xffffe,0xABCD);
-    }
 	BIOS(Section* configuration):Module_base(configuration){
 		/* tandy DAC can be requested in tandy_sound.cpp by initializing this field */
 		Bitu wo;
@@ -5813,22 +5823,6 @@ void BIOS_OnPowerOn(Section* sec) {
 	test = new BIOS(control->GetSection("joystick"));
 }
 
-void BIOS_OnEnterPC98Mode(Section* sec) {
-    if (test) {
-        test->write_FFFF_PC98_signature();
-
-        /* clear out 0x50 segment */
-        for (unsigned int i=0;i < 0x100;i++) phys_writeb(0x500+i,0);
-
-        /* set up some default state */
-        mem_writeb(0x54C/*MEMB_PRXCRT*/,0x4F); /* default graphics layer off, 24KHz hsync */
-
-        /* keyboard buffer */
-        mem_writew(0x524/*tail*/,0x502);
-        mem_writew(0x526/*tail*/,0x502);
-    }
-}
-
 void swapInNextDisk(bool pressed);
 void swapInNextCD(bool pressed);
 
@@ -5880,9 +5874,6 @@ void BIOS_Init() {
 	AddExitFunction(AddExitFunctionFuncPair(BIOS_Destroy),false);
 	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(BIOS_OnPowerOn));
 	AddVMEventFunction(VM_EVENT_RESET_END,AddVMEventFunctionFuncPair(BIOS_OnResetComplete));
-
-    /* PC-98 support */
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(BIOS_OnEnterPC98Mode));
 }
 
 void write_ID_version_string() {
