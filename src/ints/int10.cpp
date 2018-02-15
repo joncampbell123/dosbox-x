@@ -987,6 +987,18 @@ void INT10_Startup(Section *sec) {
         mem_writew(0x400+BIOSMEM_CURRENT_PAGE,0);
         mem_writeb(0x400+BIOSMEM_NB_ROWS,25);
         mem_writeb(0x400+BIOSMEM_CHAR_HEIGHT,16);
+
+        /* init text RAM */
+        for (unsigned int i=0;i < 0x2000;i += 2) {
+            mem_writew(0xA0000+i,0);
+            mem_writeb(0xA2000+i,0xE1);
+        }
+        /* clear graphics RAM */
+        for (unsigned int i=0;i < 0x8000;i += 2) {
+            mem_writew(0xA8000+i,0);
+            mem_writew(0xB0000+i,0);
+            mem_writew(0xB8000+i,0);
+        }
     }
 }
 

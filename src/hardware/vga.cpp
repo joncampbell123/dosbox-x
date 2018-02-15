@@ -832,18 +832,11 @@ void VGA_OnEnterPC98(Section *sec) {
 
     /* now, switch to PC-98 video emulation */
     for (unsigned int i=0;i < 16;i++) VGA_ATTR_SetPalette(i,i);
-    for (unsigned int i=0;i < 16;i++) {
-        /* GRB order palette */
-        vga.dac.combine[i] = i;
-		vga.dac.rgb[i].red = (i & 2) ? 63 : 0;
-		vga.dac.rgb[i].green = (i & 4) ? 63 : 0;
-        vga.dac.rgb[i].blue = (i & 1) ? 63 : 0;
-        VGA_DAC_UpdateColor(i);
-    }
+    for (unsigned int i=0;i < 16;i++) vga.dac.combine[i] = i;
+
     vga.mode=M_PC98;
     assert(vga.vmemsize >= 0x80000);
     memset(vga.mem.linear,0,0x80000);
-    for (unsigned int i=0x2000;i < 0x3fe0;i += 2) vga.mem.linear[i] = 0xE0; /* attribute GRBxxxxx = 11100000 (white) */
 
     VGA_StartResize();
 }
