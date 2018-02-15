@@ -2255,7 +2255,7 @@ extern uint8_t                     GDC_display_plane;
 
 unsigned char prev_pc98_mode42 = 0;
 
-bool pc98_function_row = true;
+bool pc98_function_row = false;
 
 const char *pc98_func_key[10] = {
     "  C1  ",
@@ -4120,7 +4120,7 @@ static void BIOS_Int10RightJustifiedPrint(const int x,int &y,const char *msg) {
                 bo = ((y * 80) + (bios_pc98_posx++)) * 2; /* NTS: note the post increment */
 
                 mem_writew(0xA0000+bo,*s++);
-                mem_writew(0xA2000+bo,0xE1);
+                mem_writeb(0xA2000+bo,0xE1);
             }
 
             reg_eax = 0x1300;   // set cursor pos (PC-98)
