@@ -4246,12 +4246,10 @@ private:
         }
         else if (IS_PC98_ARCH) {
             void BIOS_OnEnterPC98Mode(Section* sec);
-            void BIOS_OnEnterPC98Mode_phase2(Section* sec);
 
             for (unsigned int i=0;i < 20;i++) callback[i].Uninstall();
 
             BIOS_OnEnterPC98Mode(NULL);
-            BIOS_OnEnterPC98Mode_phase2(NULL);
         }
 
         if (bios_user_reset_vector_blob != 0 && !bios_user_reset_vector_blob_run) {
@@ -5701,10 +5699,6 @@ public:
 		/* done */
 		CPU_Snap_Back_Restore();
 	}
-    /* PC-98 change code */
-    void rewrite_IRQ_handlers(void) {
-        /* deprecated */
-    }
 };
 
 void BIOS_Enter_Boot_Phase(void) {
@@ -5835,12 +5829,6 @@ void BIOS_OnEnterPC98Mode(Section* sec) {
     }
 }
 
-void BIOS_OnEnterPC98Mode_phase2(Section* sec) {
-    if (test) {
-        test->rewrite_IRQ_handlers();
-    }
-}
-
 void swapInNextDisk(bool pressed);
 void swapInNextCD(bool pressed);
 
@@ -5895,7 +5883,6 @@ void BIOS_Init() {
 
     /* PC-98 support */
 	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(BIOS_OnEnterPC98Mode));
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE_END,AddVMEventFunctionFuncPair(BIOS_OnEnterPC98Mode_phase2));
 }
 
 void write_ID_version_string() {
