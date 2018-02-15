@@ -767,26 +767,6 @@ void VGA_OnEnterPC98(Section *sec) {
 
     pc98_update_palette();
 
-    /* Some PC-98 game behavior seems to suggest the BIOS data area stretches all the way from segment 0x40:0x00 to segment 0x7F:0x0F inclusive.
-     * Compare that to IBM PC platform, where segment fills only 0x40:0x00 to 0x50:0x00 inclusive and extra state is held in the "Extended BIOS Data Area".
-     */
-
-    /* number of text rows on the screen.
-     * Touhou Project will not clear/format the text layer properly without this variable. */
-    mem_writeb(0x710,25 - 1); /* cursor position Y coordinate */
-    mem_writeb(0x711,1); /* function definition display status flag */
-    mem_writeb(0x712,25 - 1); /* number of rows - 1 */
-    mem_writeb(0x713,1); /* normal 25 lines */
-    mem_writeb(0x714,0xE1); /* content erase attribute */
-
-    mem_writeb(0x719,0x20); /* content erase character */
-
-    mem_writeb(0x71B,0x01); /* cursor displayed */
-
-    mem_writeb(0x71D,0xE1); /* content display attribute */
-
-    mem_writeb(0x71F,0x01); /* scrolling speed is normal */
-
     {
         unsigned char r,g,b;
 
@@ -813,6 +793,8 @@ void VGA_OnEnterPC98(Section *sec) {
     pc98_gdc_modereg=0;
     for (unsigned int i=0;i < 4;i++) pc98_gdc_tiles[i].w = 0;
 
+    vga.dac.pel_mask = 0xFF;
+
     /* 200-line tradition on PC-98 seems to be to render only every other scanline */
     pc98_graphics_hide_odd_raster_200line = true;
 
@@ -823,6 +805,7 @@ void VGA_OnEnterPC98(Section *sec) {
     gfx(miscellaneous) &= ~0x0C; /* bits[3:2] = 0 to map A0000-BFFFF */
     VGA_DetermineMode();
     VGA_SetupHandlers();
+    VGA_DAC_UpdateColorPalette();
     INT10_PC98_CurMode_Relocate(); /* make sure INT 10h knows */
 
     /* Set up 24KHz hsync 56.42Hz rate */
@@ -851,6 +834,7 @@ void VGA_OnEnterPC98(Section *sec) {
     for (unsigned int i=0;i < 16;i++) VGA_ATTR_SetPalette(i,i);
     for (unsigned int i=0;i < 16;i++) {
         /* GRB order palette */
+        vga.dac.combine[i] = i;
 		vga.dac.rgb[i].red = (i & 2) ? 63 : 0;
 		vga.dac.rgb[i].green = (i & 4) ? 63 : 0;
         vga.dac.rgb[i].blue = (i & 1) ? 63 : 0;
