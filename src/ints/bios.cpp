@@ -4373,7 +4373,17 @@ private:
 		callback[13].Set_RealVec(0x0E,/*reinstall*/true);
 		callback[15].Set_RealVec(0x18,/*reinstall*/true);
 
-		mem_writew(BIOS_MEMORY_SIZE,t_conv);
+        /* if we're supposed to run in PC-98 mode, then do it NOW */
+        if (enable_pc98_jump) {
+            machine = MCH_PC98;
+            enable_pc98_jump = false;
+            DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE); /* IBM PC unregistration/shutdown */
+            DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE_END); /* PC-98 registration/startup */
+        }
+
+        // FIXME: We're using IBM PC memory size storage even in PC-98 mode.
+        //        This cannot be removed, because the DOS kernel uses this variable even in PC-98 mode.
+        mem_writew(BIOS_MEMORY_SIZE,t_conv);
 
 		RealSetVec(0x08,BIOS_DEFAULT_IRQ0_LOCATION);
 		// pseudocode for CB_IRQ0:
@@ -4386,14 +4396,6 @@ private:
 		//	out 0x20, al
 		//	pop dx,ax,ds
 		//	iret
-
-        /* if we're supposed to run in PC-98 mode, then do it NOW */
-        if (enable_pc98_jump) {
-            machine = MCH_PC98;
-            enable_pc98_jump = false;
-            DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE); /* IBM PC unregistration/shutdown */
-            DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE_END); /* PC-98 registration/startup */
-        }
 
         if (!IS_PC98_ARCH) {
             mem_writed(BIOS_TIMER,0);			//Calculate the correct time
