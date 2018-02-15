@@ -4353,12 +4353,6 @@ private:
 
 		bool use_tandyDAC=(real_readb(0x40,0xd4)==0xff);
 
-		/* INT 13 Bios Disk Support */
-		BIOS_SetupDisks();
-
-		/* INT 16 Keyboard handled in another file */
-		BIOS_SetupKeyboard();
-
         /* if we're supposed to run in PC-98 mode, then do it NOW */
         if (enable_pc98_jump) {
             machine = MCH_PC98;
@@ -4366,6 +4360,12 @@ private:
             DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE); /* IBM PC unregistration/shutdown */
             DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE_END); /* PC-98 registration/startup */
         }
+
+		/* INT 13 Bios Disk Support */
+		BIOS_SetupDisks();
+
+		/* INT 16 Keyboard handled in another file */
+		BIOS_SetupKeyboard();
 
         if (!IS_PC98_ARCH) {
             int4b_callback.Set_RealVec(0x4B,/*reinstall*/true);
