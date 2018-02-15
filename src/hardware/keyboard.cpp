@@ -1621,6 +1621,7 @@ bool KEYBOARD_Report_BIOS_PS2Mouse() {
 
 static IO_ReadHandleObject ReadHandler_8255_PC98[4];
 static IO_WriteHandleObject WriteHandler_8255_PC98[4];
+static IO_WriteHandleObject Reset_PC98;
 
 /* PC-98 8255 port A. B, C connections.
  *
@@ -1647,6 +1648,13 @@ static IO_WriteHandleObject WriteHandler_8255_PC98[4];
  * Control register (37h)
  */
 
+static bool PC98_SHUT0=true,PC98_SHUT1=true;
+
+static void pc98_reset_write(Bitu port,Bitu val,Bitu /*iolen*/) {
+    LOG_MSG("Restart by port F0h requested\n");
+    On_Software_CPU_Reset();
+}
+
 static void pc98_8255_write(Bitu port,Bitu val,Bitu /*iolen*/) {
     switch (port) {
         case 0x31:
@@ -1666,7 +1674,12 @@ static void pc98_8255_write(Bitu port,Bitu val,Bitu /*iolen*/) {
             PCSPEAKER_SetType(!!port_61_data,!!port_61_data);
             break;
         case 0x37:
-            LOG_MSG("PC-98 8255 FIXME: Control register not supported yet (val=0x%02x)",(unsigned int)val);
+            if ((val&0xFE) == 0x0E)
+                PC98_SHUT0 = !!(val & 1);
+            else if ((val&0xFE) == 0x0A)
+                PC98_SHUT1 = !!(val & 1);
+            else
+                LOG_MSG("PC-98 8255 FIXME: Control register not supported yet (val=0x%02x)",(unsigned int)val);
             break;
     };
 }
@@ -2143,6 +2156,10 @@ void KEYBOARD_OnEnterPC98_phase2(Section *sec) {
         WriteHandler_8255_PC98[i].Uninstall();
         WriteHandler_8255_PC98[i].Install(0x31 + (i * 2),pc98_8255_write,IO_MB);
     }
+
+    /* reset port */
+    Reset_PC98.Uninstall();
+    Reset_PC98.Install(0xF0,pc98_reset_write,IO_MB);
 
     /* Mouse */
     for (i=0;i < 4;i++) {
