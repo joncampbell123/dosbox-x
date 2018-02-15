@@ -3928,6 +3928,8 @@ void (*ide_inits[MAX_IDE_CONTROLLERS])(Section *) = {
 };
 
 void IDE_OnReset(Section *sec) {
+    if (IS_PC98_ARCH) return;
+
 	for (size_t i=0;i < MAX_IDE_CONTROLLERS;i++) ide_inits[i](control->GetSection(ide_names[i]));
 }
 

@@ -129,7 +129,7 @@ static void INNOVA_OnEnterPC98(Section* sec){
 }
 
 void INNOVA_OnReset(Section *sec) {
-	if (test == NULL) {
+	if (test == NULL && !IS_PC98_ARCH) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating Innova emulation");
 		test = new INNOVA(control->GetSection("innova"));
 	}

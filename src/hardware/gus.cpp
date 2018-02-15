@@ -2220,7 +2220,7 @@ void GUS_ShutDown(Section* /*sec*/) {
 }
 
 void GUS_OnReset(Section *sec) {
-	if (test == NULL) {
+	if (test == NULL && !IS_PC98_ARCH) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating GUS emulation");
 		test = new GUS(control->GetSection("gus"));
 	}

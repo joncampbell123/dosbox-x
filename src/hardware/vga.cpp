@@ -653,27 +653,35 @@ void VGA_Reset(Section*) {
 		case MCH_AMSTRAD:
 			if (vga.vmemsize < _KB_bytes(64)) vga.vmemsize = _KB_bytes(64); /* FIXME: Right? */
 			break;
+        case MCH_PC98:
+            if (vga.vmemsize < _KB_bytes(512)) vga.vmemsize = _KB_bytes(512);
+            break;
 		default:
 			E_Exit("Unexpected machine");
 	};
 
 	vga.vmemwrap = 256*1024;	// default to 256KB VGA mem wrap
-	SVGA_Setup_Driver();		// svga video memory size is set here, possibly over-riding the user's selection
+
+    if (!IS_PC98_ARCH)
+        SVGA_Setup_Driver();		// svga video memory size is set here, possibly over-riding the user's selection
+
 	LOG(LOG_VGA,LOG_NORMAL)("Video RAM: %uKB",vga.vmemsize>>10);
 
 	VGA_SetupMemory();		// memory is allocated here
-	VGA_SetupMisc();
-	VGA_SetupDAC();
-	VGA_SetupGFX();
-	VGA_SetupSEQ();
-	VGA_SetupAttr();
-	VGA_SetupOther();
-	VGA_SetupXGA();
-	VGA_SetClock(0,CLK_25);
-	VGA_SetClock(1,CLK_28);
-/* Generate tables */
-	VGA_SetCGA2Table(0,1);
-	VGA_SetCGA4Table(0,1,2,3);
+    if (!IS_PC98_ARCH) {
+        VGA_SetupMisc();
+        VGA_SetupDAC();
+        VGA_SetupGFX();
+        VGA_SetupSEQ();
+        VGA_SetupAttr();
+        VGA_SetupOther();
+        VGA_SetupXGA();
+        VGA_SetClock(0,CLK_25);
+        VGA_SetClock(1,CLK_28);
+        /* Generate tables */
+        VGA_SetCGA2Table(0,1);
+        VGA_SetCGA4Table(0,1,2,3);
+    }
 
 	Section_prop * section2=static_cast<Section_prop *>(control->GetSection("vsync"));
 
@@ -715,6 +723,14 @@ void VGA_Reset(Section*) {
 
 	if (machine == MCH_CGA) PROGRAMS_MakeFile("CGASNOW.COM",CGASNOW_ProgramStart);
 	PROGRAMS_MakeFile("VFRCRATE.COM",VFRCRATE_ProgramStart);
+
+    if (IS_PC98_ARCH) {
+        void VGA_OnEnterPC98(Section *sec);
+        void VGA_OnEnterPC98_phase2(Section *sec);
+
+        VGA_OnEnterPC98(NULL);
+        VGA_OnEnterPC98_phase2(NULL);
+    }
 }
 
 extern void VGA_TweakUserVsyncOffset(float val);
