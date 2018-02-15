@@ -4806,6 +4806,9 @@ private:
 	static Bitu cb_bios_scan_video_bios__func(void) {
 		unsigned long size;
 
+        /* NTS: As far as I can tell, video is integrated into the PC-98 BIOS and there is no separate BIOS */
+		if (IS_PC98_ARCH) return CBRET_NONE;
+
 		if (cpu.pmode) E_Exit("BIOS error: VIDEO BIOS SCAN function called while in protected/vm86 mode");
 
 		if (!bios_has_exec_vga_bios) {
@@ -4838,6 +4841,9 @@ private:
 	static Bitu cb_bios_adapter_rom_scan__func(void) {
 		unsigned long size;
 		Bit32u c1;
+
+        /* FIXME: I have no documentation on how PC-98 scans for adapter ROM or even if it supports it */
+		if (IS_PC98_ARCH) return CBRET_NONE;
 
 		if (cpu.pmode) E_Exit("BIOS error: ADAPTER ROM function called while in protected/vm86 mode");
 
