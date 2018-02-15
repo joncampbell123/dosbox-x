@@ -4550,8 +4550,16 @@ private:
 			phys_writeb(data+9,0);					// Feature Byte 5
 		}
 
+        /* if we're supposed to run in PC-98 mode, then do it NOW */
+        if (enable_pc98_jump) {
+            machine = MCH_PC98;
+            enable_pc98_jump = false;
+            DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE); /* IBM PC unregistration/shutdown */
+            DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE_END); /* PC-98 registration/startup */
+        }
+
 		// ISA Plug & Play I/O ports
-		if (1) {
+		if (!IS_PC98_ARCH) {
 			ISAPNP_PNP_ADDRESS_PORT = new IO_WriteHandleObject;
 			ISAPNP_PNP_ADDRESS_PORT->Install(0x279,isapnp_write_port,IO_MB);
 			ISAPNP_PNP_DATA_PORT = new IO_WriteHandleObject;
@@ -4561,7 +4569,7 @@ private:
 			LOG(LOG_MISC,LOG_DEBUG)("Registered ISA PnP read port at 0x%03x",ISA_PNP_WPORT);
 		}
 
-		if (enable_integration_device) {
+		if (!IS_PC98_ARCH && enable_integration_device) {
             /* integration device callout */
             if (dosbox_int_iocallout == IO_Callout_t_none)
                 dosbox_int_iocallout = IO_AllocateCallout(IO_TYPE_MB);
@@ -4584,7 +4592,7 @@ private:
 
 		// ISA Plug & Play BIOS entrypoint
         // NTS: Apparently, Windows 95, 98, and ME will re-enumerate and re-install PnP devices if our entry point changes it's address.
-		if (ISAPNPBIOS) {
+		if (!IS_PC98_ARCH && ISAPNPBIOS) {
 			int i;
 			Bitu base;
 			unsigned char c,tmp[256];
@@ -4870,15 +4878,6 @@ private:
 	static Bitu cb_bios_startup_screen__func(void) {
 		const char *msg = PACKAGE_STRING " (C) 2002-" COPYRIGHT_END_YEAR " The DOSBox Team\nA fork of DOSBox 0.74 by TheGreatCodeholio\nFor more info visit http://dosbox-x.com\nBased on DOSBox (http://dosbox.com)\n\n";
 		int logo_x,logo_y,x,y,rowheight=8;
-
-        /* if we're supposed to run in PC-98 mode, then do it NOW.
-         * sdlmain.cpp will come back around when it's made the change to this call. */
-        if (enable_pc98_jump) {
-            machine = MCH_PC98;
-            enable_pc98_jump = false;
-            DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE); /* IBM PC unregistration/shutdown */
-            DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE_END); /* PC-98 registration/startup */
-        }
 
 		y = 2;
 		x = 2;
