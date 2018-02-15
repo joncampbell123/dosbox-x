@@ -723,6 +723,14 @@ void VGA_Reset(Section*) {
 
 	if (machine == MCH_CGA) PROGRAMS_MakeFile("CGASNOW.COM",CGASNOW_ProgramStart);
 	PROGRAMS_MakeFile("VFRCRATE.COM",VFRCRATE_ProgramStart);
+
+    if (IS_PC98_ARCH) {
+        void VGA_OnEnterPC98(Section *sec);
+        void VGA_OnEnterPC98_phase2(Section *sec);
+
+        VGA_OnEnterPC98(NULL);
+        VGA_OnEnterPC98_phase2(NULL);
+    }
 }
 
 extern void VGA_TweakUserVsyncOffset(float val);
