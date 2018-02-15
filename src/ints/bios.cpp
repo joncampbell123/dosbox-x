@@ -4516,46 +4516,48 @@ private:
 		void BIOS_PS2Mouse_Startup(Section *sec);
 		BIOS_PS2Mouse_Startup(NULL);
 
-		/* this belongs HERE not on-demand from INT 15h! */
-		biosConfigSeg = ROMBIOS_GetMemory(16/*one paragraph*/,"BIOS configuration (INT 15h AH=0xC0)",/*paragraph align*/16)>>4;
-		if (biosConfigSeg != 0) {
-			PhysPt data = PhysMake(biosConfigSeg,0);
-			phys_writew(data,8);						// 8 Bytes following
-			if (IS_TANDY_ARCH) {
-				if (machine==MCH_TANDY) {
-					// Model ID (Tandy)
-					phys_writeb(data+2,0xFF);
-				} else {
-					// Model ID (PCJR)
-					phys_writeb(data+2,0xFD);
-				}
-				phys_writeb(data+3,0x0A);					// Submodel ID
-				phys_writeb(data+4,0x10);					// Bios Revision
-				/* Tandy doesn't have a 2nd PIC, left as is for now */
-				phys_writeb(data+5,(1<<6)|(1<<5)|(1<<4));	// Feature Byte 1
-			} else {
-				if (PS1AudioCard) { /* FIXME: Won't work because BIOS_Init() comes before PS1SOUND_Init() */
-					phys_writeb(data+2,0xFC);					// Model ID (PC)
-					phys_writeb(data+3,0x0B);					// Submodel ID (PS/1).
-				} else {
-					phys_writeb(data+2,0xFC);					// Model ID (PC)
-					phys_writeb(data+3,0x00);					// Submodel ID
-				}
-				phys_writeb(data+4,0x01);					// Bios Revision
-				phys_writeb(data+5,(1<<6)|(1<<5)|(1<<4));	// Feature Byte 1
-			}
-			phys_writeb(data+6,(1<<6));				// Feature Byte 2
-			phys_writeb(data+7,0);					// Feature Byte 3
-			phys_writeb(data+8,0);					// Feature Byte 4
-			phys_writeb(data+9,0);					// Feature Byte 5
-		}
-
         /* if we're supposed to run in PC-98 mode, then do it NOW */
         if (enable_pc98_jump) {
             machine = MCH_PC98;
             enable_pc98_jump = false;
             DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE); /* IBM PC unregistration/shutdown */
             DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE_END); /* PC-98 registration/startup */
+        }
+
+        if (!IS_PC98_ARCH) {
+            /* this belongs HERE not on-demand from INT 15h! */
+            biosConfigSeg = ROMBIOS_GetMemory(16/*one paragraph*/,"BIOS configuration (INT 15h AH=0xC0)",/*paragraph align*/16)>>4;
+            if (biosConfigSeg != 0) {
+                PhysPt data = PhysMake(biosConfigSeg,0);
+                phys_writew(data,8);						// 8 Bytes following
+                if (IS_TANDY_ARCH) {
+                    if (machine==MCH_TANDY) {
+                        // Model ID (Tandy)
+                        phys_writeb(data+2,0xFF);
+                    } else {
+                        // Model ID (PCJR)
+                        phys_writeb(data+2,0xFD);
+                    }
+                    phys_writeb(data+3,0x0A);					// Submodel ID
+                    phys_writeb(data+4,0x10);					// Bios Revision
+                    /* Tandy doesn't have a 2nd PIC, left as is for now */
+                    phys_writeb(data+5,(1<<6)|(1<<5)|(1<<4));	// Feature Byte 1
+                } else {
+                    if (PS1AudioCard) { /* FIXME: Won't work because BIOS_Init() comes before PS1SOUND_Init() */
+                        phys_writeb(data+2,0xFC);					// Model ID (PC)
+                        phys_writeb(data+3,0x0B);					// Submodel ID (PS/1).
+                    } else {
+                        phys_writeb(data+2,0xFC);					// Model ID (PC)
+                        phys_writeb(data+3,0x00);					// Submodel ID
+                    }
+                    phys_writeb(data+4,0x01);					// Bios Revision
+                    phys_writeb(data+5,(1<<6)|(1<<5)|(1<<4));	// Feature Byte 1
+                }
+                phys_writeb(data+6,(1<<6));				// Feature Byte 2
+                phys_writeb(data+7,0);					// Feature Byte 3
+                phys_writeb(data+8,0);					// Feature Byte 4
+                phys_writeb(data+9,0);					// Feature Byte 5
+            }
         }
 
 		// ISA Plug & Play I/O ports
