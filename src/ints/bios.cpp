@@ -4375,200 +4375,187 @@ private:
 		callback[13].Set_RealVec(0x0E,/*reinstall*/true);
 		callback[15].Set_RealVec(0x18,/*reinstall*/true);
 
+		mem_writew(BIOS_MEMORY_SIZE,t_conv);
+
+		RealSetVec(0x08,BIOS_DEFAULT_IRQ0_LOCATION);
+		// pseudocode for CB_IRQ0:
+		//	sti
+		//	callback INT8_Handler
+		//	push ds,ax,dx
+		//	int 0x1c
+		//	cli
+		//	mov al, 0x20
+		//	out 0x20, al
+		//	pop dx,ax,ds
+		//	iret
+
+		mem_writed(BIOS_TIMER,0);			//Calculate the correct time
+
+		/* Some hardcoded vectors */
+		phys_writeb(Real2Phys(BIOS_DEFAULT_HANDLER_LOCATION),0xcf);	/* bios default interrupt vector location -> IRET */
+		phys_writew(Real2Phys(RealGetVec(0x12))+0x12,0x20); //Hack for Jurresic
+
+		// tandy DAC setup
+		tandy_sb.port=0;
+		tandy_dac.port=0;
+		if (use_tandyDAC) {
+			/* tandy DAC sound requested, see if soundblaster device is available */
+			Bitu tandy_dac_type = 0;
+			if (Tandy_InitializeSB()) {
+				tandy_dac_type = 1;
+			} else if (Tandy_InitializeTS()) {
+				tandy_dac_type = 2;
+			}
+			if (tandy_dac_type) {
+				real_writew(0x40,0xd0,0x0000);
+				real_writew(0x40,0xd2,0x0000);
+				real_writeb(0x40,0xd4,0xff);	/* tandy DAC init value */
+				real_writed(0x40,0xd6,0x00000000);
+				/* install the DAC callback handler */
+				tandy_DAC_callback[0]=new CALLBACK_HandlerObject();
+				tandy_DAC_callback[1]=new CALLBACK_HandlerObject();
+				tandy_DAC_callback[0]->Install(&IRQ_TandyDAC,CB_IRET,"Tandy DAC IRQ");
+				tandy_DAC_callback[1]->Install(NULL,CB_TDE_IRET,"Tandy DAC end transfer");
+				// pseudocode for CB_TDE_IRET:
+				//	push ax
+				//	mov ax, 0x91fb
+				//	int 15
+				//	cli
+				//	mov al, 0x20
+				//	out 0x20, al
+				//	pop ax
+				//	iret
+
+				Bit8u tandy_irq = 7;
+				if (tandy_dac_type==1) tandy_irq = tandy_sb.irq;
+				else if (tandy_dac_type==2) tandy_irq = tandy_dac.irq;
+				Bit8u tandy_irq_vector = tandy_irq;
+				if (tandy_irq_vector<8) tandy_irq_vector += 8;
+				else tandy_irq_vector += (0x70-8);
+
+				RealPt current_irq=RealGetVec(tandy_irq_vector);
+				real_writed(0x40,0xd6,current_irq);
+				for (Bit16u i=0; i<0x10; i++) phys_writeb(PhysMake(0xf000,0xa084+i),0x80);
+			} else real_writeb(0x40,0xd4,0x00);
+		}
+
+		/* Setup some stuff in 0x40 bios segment */
+
+		// Disney workaround
+//		Bit16u disney_port = mem_readw(BIOS_ADDRESS_LPT1);
+		// port timeouts
+		// always 1 second even if the port does not exist
+//		BIOS_SetLPTPort(0, disney_port);
+		for(Bitu i = 1; i < 3; i++) BIOS_SetLPTPort(i, 0);
+		mem_writeb(BIOS_COM1_TIMEOUT,1);
+		mem_writeb(BIOS_COM2_TIMEOUT,1);
+		mem_writeb(BIOS_COM3_TIMEOUT,1);
+		mem_writeb(BIOS_COM4_TIMEOUT,1);
+
+		void BIOS_Post_register_parports();
+		BIOS_Post_register_parports();
+
+		void BIOS_Post_register_comports();
+		BIOS_Post_register_comports();
+
+		/* Setup equipment list */
+		// look http://www.bioscentral.com/misc/bda.htm
+		
+		//Bit16u config=0x4400;	//1 Floppy, 2 serial and 1 parallel 
+		Bit16u config = 0x0;
+
+		Bitu bios_post_parport_count();
+		config |= bios_post_parport_count() << 14;
+
+		Bitu bios_post_comport_count();
+		config |= bios_post_comport_count() << 9;
+		
+#if (C_FPU)
+		extern bool enable_fpu;
+
+		//FPU
+		if (enable_fpu)
+			config|=0x2;
+#endif
+		switch (machine) {
+		case MCH_HERC:
+			//Startup monochrome
+			config|=0x30;
+			break;
+		case EGAVGA_ARCH_CASE:
+		case MCH_CGA:
+		case TANDY_ARCH_CASE:
+		case MCH_AMSTRAD:
+			//Startup 80x25 color
+			config|=0x20;
+			break;
+		default:
+			//EGA VGA
+			config|=0;
+			break;
+		}
+
+		// PS2 mouse
+		bool KEYBOARD_Report_BIOS_PS2Mouse();
+		if (KEYBOARD_Report_BIOS_PS2Mouse())
+			config |= 0x04;
+
+		// Gameport
+		config |= 0x1000;
+		mem_writew(BIOS_CONFIGURATION,config);
+		CMOS_SetRegister(0x14,(Bit8u)(config&0xff)); //Should be updated on changes
+
+		/* Setup extended memory size */
+		IO_Write(0x70,0x30);
+		size_extended=IO_Read(0x71);
+		IO_Write(0x70,0x31);
+		size_extended|=(IO_Read(0x71) << 8);
+		BIOS_HostTimeSync();
+
+		/* PS/2 mouse */
+		void BIOS_PS2Mouse_Startup(Section *sec);
+		BIOS_PS2Mouse_Startup(NULL);
+
+		/* this belongs HERE not on-demand from INT 15h! */
+		biosConfigSeg = ROMBIOS_GetMemory(16/*one paragraph*/,"BIOS configuration (INT 15h AH=0xC0)",/*paragraph align*/16)>>4;
+		if (biosConfigSeg != 0) {
+			PhysPt data = PhysMake(biosConfigSeg,0);
+			phys_writew(data,8);						// 8 Bytes following
+			if (IS_TANDY_ARCH) {
+				if (machine==MCH_TANDY) {
+					// Model ID (Tandy)
+					phys_writeb(data+2,0xFF);
+				} else {
+					// Model ID (PCJR)
+					phys_writeb(data+2,0xFD);
+				}
+				phys_writeb(data+3,0x0A);					// Submodel ID
+				phys_writeb(data+4,0x10);					// Bios Revision
+				/* Tandy doesn't have a 2nd PIC, left as is for now */
+				phys_writeb(data+5,(1<<6)|(1<<5)|(1<<4));	// Feature Byte 1
+			} else {
+				if (PS1AudioCard) { /* FIXME: Won't work because BIOS_Init() comes before PS1SOUND_Init() */
+					phys_writeb(data+2,0xFC);					// Model ID (PC)
+					phys_writeb(data+3,0x0B);					// Submodel ID (PS/1).
+				} else {
+					phys_writeb(data+2,0xFC);					// Model ID (PC)
+					phys_writeb(data+3,0x00);					// Submodel ID
+				}
+				phys_writeb(data+4,0x01);					// Bios Revision
+				phys_writeb(data+5,(1<<6)|(1<<5)|(1<<4));	// Feature Byte 1
+			}
+			phys_writeb(data+6,(1<<6));				// Feature Byte 2
+			phys_writeb(data+7,0);					// Feature Byte 3
+			phys_writeb(data+8,0);					// Feature Byte 4
+			phys_writeb(data+9,0);					// Feature Byte 5
+		}
+
         /* if we're supposed to run in PC-98 mode, then do it NOW */
         if (enable_pc98_jump) {
             machine = MCH_PC98;
             enable_pc98_jump = false;
             DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE); /* IBM PC unregistration/shutdown */
             DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE_END); /* PC-98 registration/startup */
-        }
-
-        if (!IS_PC98_ARCH) {
-            mem_writew(BIOS_MEMORY_SIZE,t_conv);
-            mem_writed(BIOS_TIMER,0);			//Calculate the correct time
-
-            phys_writew(Real2Phys(RealGetVec(0x12))+0x12,0x20); //Hack for Jurresic
-        }
-
-        RealSetVec(0x08,BIOS_DEFAULT_IRQ0_LOCATION);
-        // pseudocode for CB_IRQ0:
-        //	sti
-        //	callback INT8_Handler
-        //	push ds,ax,dx
-        //	int 0x1c
-        //	cli
-        //	mov al, 0x20
-        //	out 0x20, al
-        //	pop dx,ax,ds
-        //	iret
-
-        phys_writeb(Real2Phys(BIOS_DEFAULT_HANDLER_LOCATION),0xcf);	/* bios default interrupt vector location -> IRET */
-
-        if (!IS_PC98_ARCH) {
-            // tandy DAC setup
-            tandy_sb.port=0;
-            tandy_dac.port=0;
-            if (use_tandyDAC) {
-                /* tandy DAC sound requested, see if soundblaster device is available */
-                Bitu tandy_dac_type = 0;
-                if (Tandy_InitializeSB()) {
-                    tandy_dac_type = 1;
-                } else if (Tandy_InitializeTS()) {
-                    tandy_dac_type = 2;
-                }
-                if (tandy_dac_type) {
-                    real_writew(0x40,0xd0,0x0000);
-                    real_writew(0x40,0xd2,0x0000);
-                    real_writeb(0x40,0xd4,0xff);	/* tandy DAC init value */
-                    real_writed(0x40,0xd6,0x00000000);
-                    /* install the DAC callback handler */
-                    tandy_DAC_callback[0]=new CALLBACK_HandlerObject();
-                    tandy_DAC_callback[1]=new CALLBACK_HandlerObject();
-                    tandy_DAC_callback[0]->Install(&IRQ_TandyDAC,CB_IRET,"Tandy DAC IRQ");
-                    tandy_DAC_callback[1]->Install(NULL,CB_TDE_IRET,"Tandy DAC end transfer");
-                    // pseudocode for CB_TDE_IRET:
-                    //	push ax
-                    //	mov ax, 0x91fb
-                    //	int 15
-                    //	cli
-                    //	mov al, 0x20
-                    //	out 0x20, al
-                    //	pop ax
-                    //	iret
-
-                    Bit8u tandy_irq = 7;
-                    if (tandy_dac_type==1) tandy_irq = tandy_sb.irq;
-                    else if (tandy_dac_type==2) tandy_irq = tandy_dac.irq;
-                    Bit8u tandy_irq_vector = tandy_irq;
-                    if (tandy_irq_vector<8) tandy_irq_vector += 8;
-                    else tandy_irq_vector += (0x70-8);
-
-                    RealPt current_irq=RealGetVec(tandy_irq_vector);
-                    real_writed(0x40,0xd6,current_irq);
-                    for (Bit16u i=0; i<0x10; i++) phys_writeb(PhysMake(0xf000,0xa084+i),0x80);
-                } else real_writeb(0x40,0xd4,0x00);
-            }
-        }
-
-        if (!IS_PC98_ARCH) {
-            /* Setup some stuff in 0x40 bios segment */
-
-            // Disney workaround
-            //		Bit16u disney_port = mem_readw(BIOS_ADDRESS_LPT1);
-            // port timeouts
-            // always 1 second even if the port does not exist
-            //		BIOS_SetLPTPort(0, disney_port);
-            for(Bitu i = 1; i < 3; i++) BIOS_SetLPTPort(i, 0);
-            mem_writeb(BIOS_COM1_TIMEOUT,1);
-            mem_writeb(BIOS_COM2_TIMEOUT,1);
-            mem_writeb(BIOS_COM3_TIMEOUT,1);
-            mem_writeb(BIOS_COM4_TIMEOUT,1);
-
-            void BIOS_Post_register_parports();
-            BIOS_Post_register_parports();
-
-            void BIOS_Post_register_comports();
-            BIOS_Post_register_comports();
-        }
-
-        if (!IS_PC98_ARCH) {
-            /* Setup equipment list */
-            // look http://www.bioscentral.com/misc/bda.htm
-
-            //Bit16u config=0x4400;	//1 Floppy, 2 serial and 1 parallel 
-            Bit16u config = 0x0;
-
-            Bitu bios_post_parport_count();
-            config |= bios_post_parport_count() << 14;
-
-            Bitu bios_post_comport_count();
-            config |= bios_post_comport_count() << 9;
-
-#if (C_FPU)
-            extern bool enable_fpu;
-
-            //FPU
-            if (enable_fpu)
-                config|=0x2;
-#endif
-            switch (machine) {
-                case MCH_HERC:
-                    //Startup monochrome
-                    config|=0x30;
-                    break;
-                case EGAVGA_ARCH_CASE:
-                case MCH_CGA:
-                case TANDY_ARCH_CASE:
-                case MCH_AMSTRAD:
-                    //Startup 80x25 color
-                    config|=0x20;
-                    break;
-                default:
-                    //EGA VGA
-                    config|=0;
-                    break;
-            }
-
-            // PS2 mouse
-            bool KEYBOARD_Report_BIOS_PS2Mouse();
-            if (KEYBOARD_Report_BIOS_PS2Mouse())
-                config |= 0x04;
-
-            // Gameport
-            config |= 0x1000;
-            mem_writew(BIOS_CONFIGURATION,config);
-            CMOS_SetRegister(0x14,(Bit8u)(config&0xff)); //Should be updated on changes
-        }
-
-        if (!IS_PC98_ARCH) {
-            /* Setup extended memory size */
-            IO_Write(0x70,0x30);
-            size_extended=IO_Read(0x71);
-            IO_Write(0x70,0x31);
-            size_extended|=(IO_Read(0x71) << 8);
-            BIOS_HostTimeSync();
-        }
-
-        if (!IS_PC98_ARCH) {
-            /* PS/2 mouse */
-            void BIOS_PS2Mouse_Startup(Section *sec);
-            BIOS_PS2Mouse_Startup(NULL);
-        }
-
-        if (!IS_PC98_ARCH) {
-            /* this belongs HERE not on-demand from INT 15h! */
-            biosConfigSeg = ROMBIOS_GetMemory(16/*one paragraph*/,"BIOS configuration (INT 15h AH=0xC0)",/*paragraph align*/16)>>4;
-            if (biosConfigSeg != 0) {
-                PhysPt data = PhysMake(biosConfigSeg,0);
-                phys_writew(data,8);						// 8 Bytes following
-                if (IS_TANDY_ARCH) {
-                    if (machine==MCH_TANDY) {
-                        // Model ID (Tandy)
-                        phys_writeb(data+2,0xFF);
-                    } else {
-                        // Model ID (PCJR)
-                        phys_writeb(data+2,0xFD);
-                    }
-                    phys_writeb(data+3,0x0A);					// Submodel ID
-                    phys_writeb(data+4,0x10);					// Bios Revision
-                    /* Tandy doesn't have a 2nd PIC, left as is for now */
-                    phys_writeb(data+5,(1<<6)|(1<<5)|(1<<4));	// Feature Byte 1
-                } else {
-                    if (PS1AudioCard) { /* FIXME: Won't work because BIOS_Init() comes before PS1SOUND_Init() */
-                        phys_writeb(data+2,0xFC);					// Model ID (PC)
-                        phys_writeb(data+3,0x0B);					// Submodel ID (PS/1).
-                    } else {
-                        phys_writeb(data+2,0xFC);					// Model ID (PC)
-                        phys_writeb(data+3,0x00);					// Submodel ID
-                    }
-                    phys_writeb(data+4,0x01);					// Bios Revision
-                    phys_writeb(data+5,(1<<6)|(1<<5)|(1<<4));	// Feature Byte 1
-                }
-                phys_writeb(data+6,(1<<6));				// Feature Byte 2
-                phys_writeb(data+7,0);					// Feature Byte 3
-                phys_writeb(data+8,0);					// Feature Byte 4
-                phys_writeb(data+9,0);					// Feature Byte 5
-            }
         }
 
 		// ISA Plug & Play I/O ports
