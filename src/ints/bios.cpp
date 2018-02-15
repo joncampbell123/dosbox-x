@@ -4351,8 +4351,6 @@ private:
 		extern Bit8u BIOS_tandy_D4_flag;
 		real_writeb(0x40,0xd4,BIOS_tandy_D4_flag);
 
-		bool use_tandyDAC=(real_readb(0x40,0xd4)==0xff);
-
 		/* INT 13 Bios Disk Support */
 		BIOS_SetupDisks();
 
@@ -4396,6 +4394,8 @@ private:
 		phys_writew(Real2Phys(RealGetVec(0x12))+0x12,0x20); //Hack for Jurresic
 
 		// tandy DAC setup
+		bool use_tandyDAC=(real_readb(0x40,0xd4)==0xff);
+
 		tandy_sb.port=0;
 		tandy_dac.port=0;
 		if (use_tandyDAC) {
