@@ -188,7 +188,7 @@ static void DONGLE_OnEnterPC98(Section* sec){
 }
 
 void DONGLE_OnReset(Section* sec) {
-	if (test == NULL) {
+	if (test == NULL && !IS_PC98_ARCH) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating parallel dongle emulation");
 		test = new DONGLE(control->GetSection("parallel"));
 	}

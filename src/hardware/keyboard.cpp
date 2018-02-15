@@ -2122,18 +2122,22 @@ void KEYBOARD_OnEnterPC98(Section *sec) {
      * Sometime in the future, move 8255 emulation to a separate file.
      *
      * The 8255 appears at I/O ports 0x31, 0x33, 0x35, 0x37 */
-    for (i=0;i < 4;i++) {
-        ReadHandler_8255_PC98[i].Uninstall();
-        WriteHandler_8255_PC98[i].Uninstall();
+    if (IS_PC98_ARCH) {
+        for (i=0;i < 4;i++) {
+            ReadHandler_8255_PC98[i].Uninstall();
+            WriteHandler_8255_PC98[i].Uninstall();
+        }
     }
 
-    /* remove 60h-63h */
-    IO_FreeWriteHandler(0x60,IO_MB);
-    IO_FreeReadHandler(0x60,IO_MB);
-    IO_FreeWriteHandler(0x61,IO_MB);
-    IO_FreeReadHandler(0x61,IO_MB);
-    IO_FreeWriteHandler(0x64,IO_MB);
-    IO_FreeReadHandler(0x64,IO_MB);
+    if (!IS_PC98_ARCH) {
+        /* remove 60h-63h */
+        IO_FreeWriteHandler(0x60,IO_MB);
+        IO_FreeReadHandler(0x60,IO_MB);
+        IO_FreeWriteHandler(0x61,IO_MB);
+        IO_FreeReadHandler(0x61,IO_MB);
+        IO_FreeWriteHandler(0x64,IO_MB);
+        IO_FreeReadHandler(0x64,IO_MB);
+    }
 }
 
 void KEYBOARD_OnEnterPC98_phase2(Section *sec) {
@@ -2203,12 +2207,17 @@ void KEYBOARD_OnReset(Section *sec) {
 		}
 	}
 
-    IO_RegisterWriteHandler(0x60,write_p60,IO_MB);
-    IO_RegisterReadHandler(0x60,read_p60,IO_MB);
-    IO_RegisterWriteHandler(0x61,write_p61,IO_MB);
-    IO_RegisterReadHandler(0x61,read_p61,IO_MB);
-    IO_RegisterWriteHandler(0x64,write_p64,IO_MB);
-    IO_RegisterReadHandler(0x64,read_p64,IO_MB);
+    if (IS_PC98_ARCH) {
+        KEYBOARD_OnEnterPC98(NULL);
+    }
+    else {
+        IO_RegisterWriteHandler(0x60,write_p60,IO_MB);
+        IO_RegisterReadHandler(0x60,read_p60,IO_MB);
+        IO_RegisterWriteHandler(0x61,write_p61,IO_MB);
+        IO_RegisterReadHandler(0x61,read_p61,IO_MB);
+        IO_RegisterWriteHandler(0x64,write_p64,IO_MB);
+        IO_RegisterReadHandler(0x64,read_p64,IO_MB);
+    }
 
 	TIMER_AddTickHandler(&KEYBOARD_TickHandler);
 	write_p61(0,0,0);

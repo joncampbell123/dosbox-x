@@ -1678,7 +1678,7 @@ void NE2k_OnEnterPC98(Section* sec) {
 }
 
 void NE2K_OnReset(Section* sec) {
-	if (test == NULL) {
+	if (test == NULL && !IS_PC98_ARCH) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating NE2000 emulation");
 		test = new NE2K(control->GetSection("ne2000"));
 

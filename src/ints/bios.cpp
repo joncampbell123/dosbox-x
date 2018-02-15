@@ -1160,6 +1160,12 @@ void ISAPNP_Cfg_Reset(Section *sec) {
 	else//auto
 		APM_BIOS_minor_version = 2;
 
+    /* PC-98 does not have APM.
+     * I *think* it has Plug & Play, but probably different from ISA PnP and specific to the C-Bus interface,
+     * which I have no information on at this time --J.C. */
+    if (IS_PC98_ARCH)
+        return;
+
 	LOG(LOG_MISC,LOG_DEBUG)("APM BIOS allow: real=%u pm16=%u pm32=%u version=1.%u",
 		APMBIOS_allow_realmode,
 		APMBIOS_allow_prot16,
