@@ -4458,59 +4458,61 @@ private:
 		void BIOS_Post_register_comports();
 		BIOS_Post_register_comports();
 
-		/* Setup equipment list */
-		// look http://www.bioscentral.com/misc/bda.htm
-		
-		//Bit16u config=0x4400;	//1 Floppy, 2 serial and 1 parallel 
-		Bit16u config = 0x0;
-
-		Bitu bios_post_parport_count();
-		config |= bios_post_parport_count() << 14;
-
-		Bitu bios_post_comport_count();
-		config |= bios_post_comport_count() << 9;
-		
-#if (C_FPU)
-		extern bool enable_fpu;
-
-		//FPU
-		if (enable_fpu)
-			config|=0x2;
-#endif
-		switch (machine) {
-		case MCH_HERC:
-			//Startup monochrome
-			config|=0x30;
-			break;
-		case EGAVGA_ARCH_CASE:
-		case MCH_CGA:
-		case TANDY_ARCH_CASE:
-		case MCH_AMSTRAD:
-			//Startup 80x25 color
-			config|=0x20;
-			break;
-		default:
-			//EGA VGA
-			config|=0;
-			break;
-		}
-
-		// PS2 mouse
-		bool KEYBOARD_Report_BIOS_PS2Mouse();
-		if (KEYBOARD_Report_BIOS_PS2Mouse())
-			config |= 0x04;
-
-		// Gameport
-		config |= 0x1000;
-		mem_writew(BIOS_CONFIGURATION,config);
-		CMOS_SetRegister(0x14,(Bit8u)(config&0xff)); //Should be updated on changes
-
         /* if we're supposed to run in PC-98 mode, then do it NOW */
         if (enable_pc98_jump) {
             machine = MCH_PC98;
             enable_pc98_jump = false;
             DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE); /* IBM PC unregistration/shutdown */
             DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE_END); /* PC-98 registration/startup */
+        }
+
+        if (!IS_PC98_ARCH) {
+            /* Setup equipment list */
+            // look http://www.bioscentral.com/misc/bda.htm
+
+            //Bit16u config=0x4400;	//1 Floppy, 2 serial and 1 parallel 
+            Bit16u config = 0x0;
+
+            Bitu bios_post_parport_count();
+            config |= bios_post_parport_count() << 14;
+
+            Bitu bios_post_comport_count();
+            config |= bios_post_comport_count() << 9;
+
+#if (C_FPU)
+            extern bool enable_fpu;
+
+            //FPU
+            if (enable_fpu)
+                config|=0x2;
+#endif
+            switch (machine) {
+                case MCH_HERC:
+                    //Startup monochrome
+                    config|=0x30;
+                    break;
+                case EGAVGA_ARCH_CASE:
+                case MCH_CGA:
+                case TANDY_ARCH_CASE:
+                case MCH_AMSTRAD:
+                    //Startup 80x25 color
+                    config|=0x20;
+                    break;
+                default:
+                    //EGA VGA
+                    config|=0;
+                    break;
+            }
+
+            // PS2 mouse
+            bool KEYBOARD_Report_BIOS_PS2Mouse();
+            if (KEYBOARD_Report_BIOS_PS2Mouse())
+                config |= 0x04;
+
+            // Gameport
+            config |= 0x1000;
+            mem_writew(BIOS_CONFIGURATION,config);
+            CMOS_SetRegister(0x14,(Bit8u)(config&0xff)); //Should be updated on changes
         }
 
         if (!IS_PC98_ARCH) {
