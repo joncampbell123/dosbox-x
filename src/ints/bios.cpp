@@ -4439,31 +4439,33 @@ private:
 			} else real_writeb(0x40,0xd4,0x00);
 		}
 
-		/* Setup some stuff in 0x40 bios segment */
-
-		// Disney workaround
-//		Bit16u disney_port = mem_readw(BIOS_ADDRESS_LPT1);
-		// port timeouts
-		// always 1 second even if the port does not exist
-//		BIOS_SetLPTPort(0, disney_port);
-		for(Bitu i = 1; i < 3; i++) BIOS_SetLPTPort(i, 0);
-		mem_writeb(BIOS_COM1_TIMEOUT,1);
-		mem_writeb(BIOS_COM2_TIMEOUT,1);
-		mem_writeb(BIOS_COM3_TIMEOUT,1);
-		mem_writeb(BIOS_COM4_TIMEOUT,1);
-
-		void BIOS_Post_register_parports();
-		BIOS_Post_register_parports();
-
-		void BIOS_Post_register_comports();
-		BIOS_Post_register_comports();
-
         /* if we're supposed to run in PC-98 mode, then do it NOW */
         if (enable_pc98_jump) {
             machine = MCH_PC98;
             enable_pc98_jump = false;
             DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE); /* IBM PC unregistration/shutdown */
             DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE_END); /* PC-98 registration/startup */
+        }
+
+        if (!IS_PC98_ARCH) {
+            /* Setup some stuff in 0x40 bios segment */
+
+            // Disney workaround
+            //		Bit16u disney_port = mem_readw(BIOS_ADDRESS_LPT1);
+            // port timeouts
+            // always 1 second even if the port does not exist
+            //		BIOS_SetLPTPort(0, disney_port);
+            for(Bitu i = 1; i < 3; i++) BIOS_SetLPTPort(i, 0);
+            mem_writeb(BIOS_COM1_TIMEOUT,1);
+            mem_writeb(BIOS_COM2_TIMEOUT,1);
+            mem_writeb(BIOS_COM3_TIMEOUT,1);
+            mem_writeb(BIOS_COM4_TIMEOUT,1);
+
+            void BIOS_Post_register_parports();
+            BIOS_Post_register_parports();
+
+            void BIOS_Post_register_comports();
+            BIOS_Post_register_comports();
         }
 
         if (!IS_PC98_ARCH) {
