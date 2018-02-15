@@ -4358,6 +4358,10 @@ private:
             for (Bit16u ct=0x68;ct<0x70;ct++) {
                 real_writed(0,ct*4,CALLBACK_RealPointer(call_default));
             }
+
+            // default handler for IRQ 2-7
+            for (Bit16u ct=0x0A;ct <= 0x0F;ct++)
+                RealSetVec(ct,BIOS_DEFAULT_IRQ07_DEF_LOCATION);
         }
 
         if (IS_PC98_ARCH) {
@@ -4463,15 +4467,15 @@ private:
             /* INT F2h *STUB* */
             callback[17].Install(&INTF2_PC98_Handler,CB_IRET,"Int F2 ???");
             callback[17].Set_RealVec(0xF2,/*reinstall*/true);
+
+            // default handler for IRQ 2-7
+            for (Bit16u ct=0x0A;ct <= 0x0F;ct++)
+                RealSetVec(ct,BIOS_DEFAULT_IRQ07_DEF_LOCATION);
+
+            // default handler for IRQ 8-15
+            for (Bit16u ct=0;ct < 8;ct++)
+                RealSetVec(ct+(IS_PC98_ARCH ? 0x10 : 0x70),BIOS_DEFAULT_IRQ815_DEF_LOCATION);
         }
-
-		// default handler for IRQ 2-7
-		for (Bit16u ct=0x0A;ct <= 0x0F;ct++)
-			RealSetVec(ct,BIOS_DEFAULT_IRQ07_DEF_LOCATION);
-
-		// default handler for IRQ 8-15
-		for (Bit16u ct=0;ct < 8;ct++)
-			RealSetVec(ct+(IS_PC98_ARCH ? 0x10 : 0x70),BIOS_DEFAULT_IRQ815_DEF_LOCATION);
 
 		// setup a few interrupt handlers that point to bios IRETs by default
         if (!IS_PC98_ARCH)
