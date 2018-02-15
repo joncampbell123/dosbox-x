@@ -4354,6 +4354,15 @@ private:
             DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE); /* IBM PC unregistration/shutdown */
             DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE_END); /* PC-98 registration/startup */
         }
+        else if (IS_PC98_ARCH) {
+            void BIOS_OnEnterPC98Mode(Section* sec);
+            void BIOS_OnEnterPC98Mode_phase2(Section* sec);
+
+            for (unsigned int i=0;i < 20;i++) callback[i].Uninstall();
+
+            BIOS_OnEnterPC98Mode(NULL);
+            BIOS_OnEnterPC98Mode_phase2(NULL);
+        }
 
 		void INT10_Startup(Section *sec);
 		INT10_Startup(NULL);
@@ -5553,7 +5562,7 @@ public:
 
 		/* encourage the callback objects to uninstall HERE while we're in real mode, NOT during the
 		 * destructor stage where we're back in protected mode */
-		for (unsigned int i=0;i < 13;i++) callback[i].Uninstall();
+		for (unsigned int i=0;i < 20;i++) callback[i].Uninstall();
 
         /* assume these were allocated */
         CALLBACK_DeAllocate(call_irq0);
