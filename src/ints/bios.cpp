@@ -4345,9 +4345,6 @@ private:
 
 		TIMER_BIOS_INIT_Configure();
 
-		void INT10_Startup(Section *sec);
-		INT10_Startup(NULL);
-
         /* if we're supposed to run in PC-98 mode, then do it NOW */
         if (enable_pc98_jump) {
             machine = MCH_PC98;
@@ -4355,6 +4352,9 @@ private:
             DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE); /* IBM PC unregistration/shutdown */
             DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE_END); /* PC-98 registration/startup */
         }
+
+		void INT10_Startup(Section *sec);
+		INT10_Startup(NULL);
 
         if (!IS_PC98_ARCH) {
             extern Bit8u BIOS_tandy_D4_flag;

@@ -90,6 +90,9 @@ void VGA_ATTR_SetPalette(Bit8u index, Bit8u val) {
         // apply
         VGA_DAC_CombineColor(index,val);
     }
+    else {
+        vga.dac.combine[index] = index;
+    }
 }
 
 Bitu read_p3c0(Bitu /*port*/,Bitu /*iolen*/) {
