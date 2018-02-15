@@ -4348,15 +4348,17 @@ private:
 		void INT10_Startup(Section *sec);
 		INT10_Startup(NULL);
 
-		extern Bit8u BIOS_tandy_D4_flag;
-		real_writeb(0x40,0xd4,BIOS_tandy_D4_flag);
-
         /* if we're supposed to run in PC-98 mode, then do it NOW */
         if (enable_pc98_jump) {
             machine = MCH_PC98;
             enable_pc98_jump = false;
             DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE); /* IBM PC unregistration/shutdown */
             DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE_END); /* PC-98 registration/startup */
+        }
+
+        if (!IS_PC98_ARCH) {
+            extern Bit8u BIOS_tandy_D4_flag;
+            real_writeb(0x40,0xd4,BIOS_tandy_D4_flag);
         }
 
 		/* INT 13 Bios Disk Support */
