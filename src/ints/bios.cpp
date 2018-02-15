@@ -4225,6 +4225,10 @@ void CALLBACK_DeAllocate(Bitu in);
 
 void BIOS_OnResetComplete(Section *x);
 
+Bitu call_irq0 = 0;
+Bitu call_irq07default = 0;
+Bitu call_irq815default = 0;
+
 class BIOS:public Module_base{
 private:
 	static Bitu cb_bios_post__func(void) {
@@ -4346,6 +4350,115 @@ private:
 
             BIOS_OnEnterPC98Mode(NULL);
             BIOS_OnEnterPC98Mode_phase2(NULL);
+        }
+
+        if (IS_PC98_ARCH) {
+            CALLBACK_Setup(call_irq0,INT8_Handler,CB_IRET_EOI_PIC1,Real2Phys(BIOS_DEFAULT_IRQ0_LOCATION),"IRQ 0 Clock");
+            CALLBACK_Setup(call_irq07default,NULL,CB_IRET_EOI_PIC1,Real2Phys(BIOS_DEFAULT_IRQ07_DEF_LOCATION),"bios irq 0-7 default handler");
+            CALLBACK_Setup(call_irq815default,NULL,CB_IRET_EOI_PIC2,Real2Phys(BIOS_DEFAULT_IRQ815_DEF_LOCATION),"bios irq 8-15 default handler");
+
+            BIOS_UnsetupKeyboard();
+            BIOS_UnsetupDisks();
+
+            /* no such INT 4Bh */
+            int4b_callback.Uninstall();
+
+            /* remove some IBM-style BIOS interrupts that don't exist on PC-98 */
+            /* IRQ to INT arrangement
+             *
+             * IBM          PC-98           IRQ
+             * --------------------------------
+             * 0x08         0x08            0
+             * 0x09         0x09            1
+             * 0x0A CASCADE 0x0A            2
+             * 0x0B         0x0B            3
+             * 0x0C         0x0C            4
+             * 0x0D         0x0D            5
+             * 0x0E         0x0E            6
+             * 0x0F         0x0F CASCADE    7
+             * 0x70         0x10            8
+             * 0x71         0x11            9
+             * 0x72         0x12            10
+             * 0x73         0x13            11
+             * 0x74         0x14            12
+             * 0x75         0x15            13
+             * 0x76         0x16            14
+             * 0x77         0x17            15
+             *
+             * As part of the change the IRQ cascade emulation needs to change for PC-98 as well.
+             * IBM uses IRQ 2 for cascade.
+             * PC-98 uses IRQ 7 for cascade. */
+
+            void INT10_EnterPC98(Section *sec);
+            INT10_EnterPC98(NULL); /* INT 10h */
+
+            callback[1].Uninstall(); /* INT 11h */
+            callback[2].Uninstall(); /* INT 12h */
+            callback[3].Uninstall(); /* INT 14h */
+            callback[4].Uninstall(); /* INT 15h */
+            callback[5].Uninstall(); /* INT 17h */
+            callback[6].Uninstall(); /* INT 1Ah */
+            callback[7].Uninstall(); /* INT 1Ch */
+            callback[10].Uninstall(); /* INT 19h */
+            callback[11].Uninstall(); /* INT 76h: IDE IRQ 14 */
+            callback[12].Uninstall(); /* INT 77h: IDE IRQ 15 */
+            callback[15].Uninstall(); /* INT 18h: Enter BASIC */
+
+            /* IRQ 6 is nothing special */
+            callback[13].Uninstall(); /* INT 0Eh: IDE IRQ 6 */
+            callback[13].Install(NULL,CB_IRET_EOI_PIC1,"irq 6");
+
+            /* IRQ 8 is nothing special */
+            callback[8].Uninstall();
+            callback[8].Install(NULL,CB_IRET_EOI_PIC2,"irq 8");
+
+            /* IRQ 9 is nothing special */
+            callback[9].Uninstall();
+            callback[9].Install(NULL,CB_IRET_EOI_PIC2,"irq 9");
+
+            /* INT 40h-FFh generic stub routine */
+            callback[18].Install(&INTGEN_PC98_Handler,CB_IRET,"Int stub ???");
+            for (unsigned int i=0x40;i < 0x100;i++) RealSetVec(i,callback[18].Get_RealPointer());
+
+            /* INT 18h keyboard and video display functions */
+            callback[1].Install(&INT18_PC98_Handler,CB_INT16,"Int 18 keyboard and display");
+            callback[1].Set_RealVec(0x18,/*reinstall*/true);
+
+            /* INT 19h *STUB* */
+            callback[2].Install(&INT19_PC98_Handler,CB_IRET,"Int 19 ???");
+            callback[2].Set_RealVec(0x19,/*reinstall*/true);
+
+            /* INT 1Ah *STUB* */
+            callback[3].Install(&INT1A_PC98_Handler,CB_IRET,"Int 1A ???");
+            callback[3].Set_RealVec(0x1A,/*reinstall*/true);
+
+            /* INT 1Bh *STUB* */
+            callback[4].Install(&INT1B_PC98_Handler,CB_IRET,"Int 1B ???");
+            callback[4].Set_RealVec(0x1B,/*reinstall*/true);
+
+            /* INT 1Ch *STUB* */
+            callback[5].Install(&INT1C_PC98_Handler,CB_IRET,"Int 1C ???");
+            callback[5].Set_RealVec(0x1C,/*reinstall*/true);
+
+            /* INT 1Dh *STUB* */
+            callback[6].Install(&INT1D_PC98_Handler,CB_IRET,"Int 1D ???");
+            callback[6].Set_RealVec(0x1D,/*reinstall*/true);
+
+            /* INT 1Eh *STUB* */
+            callback[7].Install(&INT1E_PC98_Handler,CB_IRET,"Int 1E ???");
+            callback[7].Set_RealVec(0x1E,/*reinstall*/true);
+
+            /* INT 1Fh *STUB* */
+            callback[10].Install(&INT1F_PC98_Handler,CB_IRET,"Int 1F ???");
+            callback[10].Set_RealVec(0x1F,/*reinstall*/true);
+
+            /* INT DCh *STUB* */
+            callback[16].Install(&INTDC_PC98_Handler,CB_IRET,"Int DC ???");
+            callback[16].Set_RealVec(0xDC,/*reinstall*/true);
+
+            /* INT F2h *STUB* */
+            callback[17].Install(&INTF2_PC98_Handler,CB_IRET,"Int F2 ???");
+            callback[17].Set_RealVec(0xF2,/*reinstall*/true);
         }
 
 		// default handler for IRQ 2-7
@@ -5582,145 +5695,8 @@ public:
 	}
     /* PC-98 change code */
     void rewrite_IRQ_handlers(void) {
-        CALLBACK_Setup(call_irq0,INT8_Handler,CB_IRET_EOI_PIC1,Real2Phys(BIOS_DEFAULT_IRQ0_LOCATION),"IRQ 0 Clock");
-        CALLBACK_Setup(call_irq07default,NULL,CB_IRET_EOI_PIC1,Real2Phys(BIOS_DEFAULT_IRQ07_DEF_LOCATION),"bios irq 0-7 default handler");
-        CALLBACK_Setup(call_irq815default,NULL,CB_IRET_EOI_PIC2,Real2Phys(BIOS_DEFAULT_IRQ815_DEF_LOCATION),"bios irq 8-15 default handler");
-
-        BIOS_UnsetupKeyboard();
-        BIOS_UnsetupDisks();
-
-        /* no such INT 4Bh */
-		int4b_callback.Uninstall();
-        RealSetVec(0x4B,0);
-
-        /* remove some IBM-style BIOS interrupts that don't exist on PC-98 */
-        /* IRQ to INT arrangement
-         *
-         * IBM          PC-98           IRQ
-         * --------------------------------
-         * 0x08         0x08            0
-         * 0x09         0x09            1
-         * 0x0A CASCADE 0x0A            2
-         * 0x0B         0x0B            3
-         * 0x0C         0x0C            4
-         * 0x0D         0x0D            5
-         * 0x0E         0x0E            6
-         * 0x0F         0x0F CASCADE    7
-         * 0x70         0x10            8
-         * 0x71         0x11            9
-         * 0x72         0x12            10
-         * 0x73         0x13            11
-         * 0x74         0x14            12
-         * 0x75         0x15            13
-         * 0x76         0x16            14
-         * 0x77         0x17            15
-         *
-         * As part of the change the IRQ cascade emulation needs to change for PC-98 as well.
-         * IBM uses IRQ 2 for cascade.
-         * PC-98 uses IRQ 7 for cascade. */
-
-        void INT10_EnterPC98(Section *sec);
-        INT10_EnterPC98(NULL); /* INT 10h */
-
-		callback[1].Uninstall(); /* INT 11h */
-        RealSetVec(0x11,0);
-
-		callback[2].Uninstall(); /* INT 12h */
-        RealSetVec(0x12,0);
-
-		callback[3].Uninstall(); /* INT 14h */
-        RealSetVec(0x14,0);
-
-		callback[4].Uninstall(); /* INT 15h */
-        RealSetVec(0x15,0);
-
-		callback[5].Uninstall(); /* INT 17h */
-        RealSetVec(0x17,0);
-
-        callback[6].Uninstall(); /* INT 1Ah */
-        RealSetVec(0x1A,0);
-
-        RealSetVec(0x1B,0);     /* INT 1Bh */
-
-        callback[7].Uninstall(); /* INT 1Ch */
-        RealSetVec(0x1C,0);
-
-        RealSetVec(0x1D,0);     /* INT 1Dh */
-        RealSetVec(0x1E,0);     /* INT 1Eh */
-        RealSetVec(0x1F,0);     /* INT 1Fh */
-
-		callback[10].Uninstall(); /* INT 19h */
-        RealSetVec(0x19,0);
-
-		callback[11].Uninstall(); /* INT 76h: IDE IRQ 14 */
-        RealSetVec(0x76,0);
-
-		callback[12].Uninstall(); /* INT 77h: IDE IRQ 15 */
-        RealSetVec(0x77,0);
-
-		callback[15].Uninstall(); /* INT 18h: Enter BASIC */
-        RealSetVec(0x18,0);
-
-        /* IRQ 6 is nothing special */
-		callback[13].Uninstall(); /* INT 0Eh: IDE IRQ 6 */
-        callback[13].Install(NULL,CB_IRET_EOI_PIC1,"irq 6");
-
-        /* IRQ 8 is nothing special */
-        callback[8].Uninstall();
-        callback[8].Install(NULL,CB_IRET_EOI_PIC2,"irq 8");
-
-        /* IRQ 9 is nothing special */
-        callback[9].Uninstall();
-        callback[9].Install(NULL,CB_IRET_EOI_PIC2,"irq 9");
-
-		/* INT 40h-FFh generic stub routine */
-		callback[18].Install(&INTGEN_PC98_Handler,CB_IRET,"Int stub ???");
-        for (unsigned int i=0x40;i < 0x100;i++) RealSetVec(i,callback[18].Get_RealPointer());
-
-		/* INT 18h keyboard and video display functions */
-		callback[1].Install(&INT18_PC98_Handler,CB_INT16,"Int 18 keyboard and display");
-		callback[1].Set_RealVec(0x18,/*reinstall*/true);
-
-		/* INT 19h *STUB* */
-		callback[2].Install(&INT19_PC98_Handler,CB_IRET,"Int 19 ???");
-		callback[2].Set_RealVec(0x19,/*reinstall*/true);
-
-		/* INT 1Ah *STUB* */
-		callback[3].Install(&INT1A_PC98_Handler,CB_IRET,"Int 1A ???");
-		callback[3].Set_RealVec(0x1A,/*reinstall*/true);
-
-		/* INT 1Bh *STUB* */
-		callback[4].Install(&INT1B_PC98_Handler,CB_IRET,"Int 1B ???");
-		callback[4].Set_RealVec(0x1B,/*reinstall*/true);
-
-		/* INT 1Ch *STUB* */
-		callback[5].Install(&INT1C_PC98_Handler,CB_IRET,"Int 1C ???");
-		callback[5].Set_RealVec(0x1C,/*reinstall*/true);
-
-		/* INT 1Dh *STUB* */
-		callback[6].Install(&INT1D_PC98_Handler,CB_IRET,"Int 1D ???");
-		callback[6].Set_RealVec(0x1D,/*reinstall*/true);
-
-		/* INT 1Eh *STUB* */
-		callback[7].Install(&INT1E_PC98_Handler,CB_IRET,"Int 1E ???");
-		callback[7].Set_RealVec(0x1E,/*reinstall*/true);
-
-		/* INT 1Fh *STUB* */
-		callback[10].Install(&INT1F_PC98_Handler,CB_IRET,"Int 1F ???");
-		callback[10].Set_RealVec(0x1F,/*reinstall*/true);
-
-		/* INT DCh *STUB* */
-		callback[16].Install(&INTDC_PC98_Handler,CB_IRET,"Int DC ???");
-		callback[16].Set_RealVec(0xDC,/*reinstall*/true);
-
-		/* INT F2h *STUB* */
-		callback[17].Install(&INTF2_PC98_Handler,CB_IRET,"Int F2 ???");
-		callback[17].Set_RealVec(0xF2,/*reinstall*/true);
+        /* deprecated */
     }
-public:
-    Bitu call_irq0;
-    Bitu call_irq07default;
-    Bitu call_irq815default;
 };
 
 void BIOS_Enter_Boot_Phase(void) {
