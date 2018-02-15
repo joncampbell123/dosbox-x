@@ -4393,58 +4393,60 @@ private:
 		phys_writeb(Real2Phys(BIOS_DEFAULT_HANDLER_LOCATION),0xcf);	/* bios default interrupt vector location -> IRET */
 		phys_writew(Real2Phys(RealGetVec(0x12))+0x12,0x20); //Hack for Jurresic
 
-		// tandy DAC setup
-		bool use_tandyDAC=(real_readb(0x40,0xd4)==0xff);
-
-		tandy_sb.port=0;
-		tandy_dac.port=0;
-		if (use_tandyDAC) {
-			/* tandy DAC sound requested, see if soundblaster device is available */
-			Bitu tandy_dac_type = 0;
-			if (Tandy_InitializeSB()) {
-				tandy_dac_type = 1;
-			} else if (Tandy_InitializeTS()) {
-				tandy_dac_type = 2;
-			}
-			if (tandy_dac_type) {
-				real_writew(0x40,0xd0,0x0000);
-				real_writew(0x40,0xd2,0x0000);
-				real_writeb(0x40,0xd4,0xff);	/* tandy DAC init value */
-				real_writed(0x40,0xd6,0x00000000);
-				/* install the DAC callback handler */
-				tandy_DAC_callback[0]=new CALLBACK_HandlerObject();
-				tandy_DAC_callback[1]=new CALLBACK_HandlerObject();
-				tandy_DAC_callback[0]->Install(&IRQ_TandyDAC,CB_IRET,"Tandy DAC IRQ");
-				tandy_DAC_callback[1]->Install(NULL,CB_TDE_IRET,"Tandy DAC end transfer");
-				// pseudocode for CB_TDE_IRET:
-				//	push ax
-				//	mov ax, 0x91fb
-				//	int 15
-				//	cli
-				//	mov al, 0x20
-				//	out 0x20, al
-				//	pop ax
-				//	iret
-
-				Bit8u tandy_irq = 7;
-				if (tandy_dac_type==1) tandy_irq = tandy_sb.irq;
-				else if (tandy_dac_type==2) tandy_irq = tandy_dac.irq;
-				Bit8u tandy_irq_vector = tandy_irq;
-				if (tandy_irq_vector<8) tandy_irq_vector += 8;
-				else tandy_irq_vector += (0x70-8);
-
-				RealPt current_irq=RealGetVec(tandy_irq_vector);
-				real_writed(0x40,0xd6,current_irq);
-				for (Bit16u i=0; i<0x10; i++) phys_writeb(PhysMake(0xf000,0xa084+i),0x80);
-			} else real_writeb(0x40,0xd4,0x00);
-		}
-
         /* if we're supposed to run in PC-98 mode, then do it NOW */
         if (enable_pc98_jump) {
             machine = MCH_PC98;
             enable_pc98_jump = false;
             DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE); /* IBM PC unregistration/shutdown */
             DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE_END); /* PC-98 registration/startup */
+        }
+
+        if (!IS_PC98_ARCH) {
+            // tandy DAC setup
+            bool use_tandyDAC=(real_readb(0x40,0xd4)==0xff);
+
+            tandy_sb.port=0;
+            tandy_dac.port=0;
+            if (use_tandyDAC) {
+                /* tandy DAC sound requested, see if soundblaster device is available */
+                Bitu tandy_dac_type = 0;
+                if (Tandy_InitializeSB()) {
+                    tandy_dac_type = 1;
+                } else if (Tandy_InitializeTS()) {
+                    tandy_dac_type = 2;
+                }
+                if (tandy_dac_type) {
+                    real_writew(0x40,0xd0,0x0000);
+                    real_writew(0x40,0xd2,0x0000);
+                    real_writeb(0x40,0xd4,0xff);	/* tandy DAC init value */
+                    real_writed(0x40,0xd6,0x00000000);
+                    /* install the DAC callback handler */
+                    tandy_DAC_callback[0]=new CALLBACK_HandlerObject();
+                    tandy_DAC_callback[1]=new CALLBACK_HandlerObject();
+                    tandy_DAC_callback[0]->Install(&IRQ_TandyDAC,CB_IRET,"Tandy DAC IRQ");
+                    tandy_DAC_callback[1]->Install(NULL,CB_TDE_IRET,"Tandy DAC end transfer");
+                    // pseudocode for CB_TDE_IRET:
+                    //	push ax
+                    //	mov ax, 0x91fb
+                    //	int 15
+                    //	cli
+                    //	mov al, 0x20
+                    //	out 0x20, al
+                    //	pop ax
+                    //	iret
+
+                    Bit8u tandy_irq = 7;
+                    if (tandy_dac_type==1) tandy_irq = tandy_sb.irq;
+                    else if (tandy_dac_type==2) tandy_irq = tandy_dac.irq;
+                    Bit8u tandy_irq_vector = tandy_irq;
+                    if (tandy_irq_vector<8) tandy_irq_vector += 8;
+                    else tandy_irq_vector += (0x70-8);
+
+                    RealPt current_irq=RealGetVec(tandy_irq_vector);
+                    real_writed(0x40,0xd6,current_irq);
+                    for (Bit16u i=0; i<0x10; i++) phys_writeb(PhysMake(0xf000,0xa084+i),0x80);
+                } else real_writeb(0x40,0xd4,0x00);
+            }
         }
 
         if (!IS_PC98_ARCH) {
