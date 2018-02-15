@@ -4215,6 +4215,8 @@ Bitu bios_user_reset_vector_blob = 0;
 
 Bitu bios_user_boot_hook = 0;
 
+void CALLBACK_DeAllocate(Bitu in);
+
 void BIOS_OnResetComplete(Section *x);
 
 class BIOS:public Module_base{
@@ -5552,6 +5554,11 @@ public:
 		/* encourage the callback objects to uninstall HERE while we're in real mode, NOT during the
 		 * destructor stage where we're back in protected mode */
 		for (unsigned int i=0;i < 13;i++) callback[i].Uninstall();
+
+        /* assume these were allocated */
+        CALLBACK_DeAllocate(call_irq0);
+        CALLBACK_DeAllocate(call_irq07default);
+        CALLBACK_DeAllocate(call_irq815default);
 
 		/* done */
 		CPU_Snap_Back_Restore();
