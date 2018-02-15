@@ -4331,24 +4331,6 @@ private:
 			real_writed(0,ct*4,CALLBACK_RealPointer(call_default));
 		}
 
-		// default handler for IRQ 2-7
-		for (Bit16u ct=0x0A;ct <= 0x0F;ct++)
-			RealSetVec(ct,BIOS_DEFAULT_IRQ07_DEF_LOCATION);
-
-		// default handler for IRQ 8-15
-		for (Bit16u ct=0x70;ct <= 0x77;ct++)
-			RealSetVec(ct,BIOS_DEFAULT_IRQ815_DEF_LOCATION);
-
-		// setup a few interrupt handlers that point to bios IRETs by default
-		real_writed(0,0x0e*4,CALLBACK_RealPointer(call_default2));	//design your own railroad
-		real_writed(0,0x66*4,CALLBACK_RealPointer(call_default));	//war2d
-		real_writed(0,0x67*4,CALLBACK_RealPointer(call_default));
-		real_writed(0,0x68*4,CALLBACK_RealPointer(call_default));
-		real_writed(0,0x5c*4,CALLBACK_RealPointer(call_default));	//Network stuff
-		//real_writed(0,0xf*4,0); some games don't like it
-
-		bios_first_init = false;
-
         /* if we're supposed to run in PC-98 mode, then do it NOW */
         if (enable_pc98_jump) {
             machine = MCH_PC98;
@@ -4365,6 +4347,26 @@ private:
             BIOS_OnEnterPC98Mode(NULL);
             BIOS_OnEnterPC98Mode_phase2(NULL);
         }
+
+		// default handler for IRQ 2-7
+		for (Bit16u ct=0x0A;ct <= 0x0F;ct++)
+			RealSetVec(ct,BIOS_DEFAULT_IRQ07_DEF_LOCATION);
+
+		// default handler for IRQ 8-15
+		for (Bit16u ct=0;ct < 8;ct++)
+			RealSetVec(ct+(IS_PC98_ARCH ? 0x10 : 0x70),BIOS_DEFAULT_IRQ815_DEF_LOCATION);
+
+		// setup a few interrupt handlers that point to bios IRETs by default
+        if (!IS_PC98_ARCH)
+            real_writed(0,0x0e*4,CALLBACK_RealPointer(call_default2));	//design your own railroad
+
+		real_writed(0,0x66*4,CALLBACK_RealPointer(call_default));	//war2d
+		real_writed(0,0x67*4,CALLBACK_RealPointer(call_default));
+		real_writed(0,0x68*4,CALLBACK_RealPointer(call_default));
+		real_writed(0,0x5c*4,CALLBACK_RealPointer(call_default));	//Network stuff
+		//real_writed(0,0xf*4,0); some games don't like it
+
+		bios_first_init = false;
 
 		DispatchVMEvent(VM_EVENT_BIOS_INIT);
 
@@ -5670,12 +5672,6 @@ public:
         /* IRQ 9 is nothing special */
         callback[9].Uninstall();
         callback[9].Install(NULL,CB_IRET_EOI_PIC2,"irq 9");
-
-        /* PIC emulation (correctly) moves IRQ 8-15 down to INT 0x10-0x17 to match PC-98 */
-		for (Bit16u ct=0x10;ct <= 0x17;ct++) /* write default IRQ handlers down here */
-			RealSetVec(ct,BIOS_DEFAULT_IRQ815_DEF_LOCATION);
-		for (Bit16u ct=0x70;ct <= 0x77;ct++) /* zero out IBM PC IRQ 8-15 vectors */
-			RealSetVec(ct,0);
 
 		/* INT 40h-FFh generic stub routine */
 		callback[18].Install(&INTGEN_PC98_Handler,CB_IRET,"Int stub ???");
