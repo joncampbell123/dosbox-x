@@ -4996,6 +4996,15 @@ private:
 	}
 	CALLBACK_HandlerObject cb_bios_boot;
 	static Bitu cb_bios_boot__func(void) {
+        /* if we're supposed to run in PC-98 mode, then do it NOW.
+         * sdlmain.cpp will come back around when it's made the change to this call. */
+        if (enable_pc98_jump) {
+            machine = MCH_PC98;
+            enable_pc98_jump = false;
+            DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE); /* IBM PC unregistration/shutdown */
+            DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE_END); /* PC-98 registration/startup */
+        }
+
 		/* Reset/power-on overrides the user's A20 gate preferences.
 		 * It's time to revert back to what the user wants. */
 		void A20Gate_TakeUserSetting(Section *sec);
@@ -5005,11 +5014,6 @@ private:
 
 		if (cpu.pmode) E_Exit("BIOS error: BOOT function called while in protected/vm86 mode");
 		DispatchVMEvent(VM_EVENT_BIOS_BOOT);
-
-        /* if we're supposed to run in PC-98 mode, then do it NOW.
-         * sdlmain.cpp will come back around when it's made the change to this call. */
-        if (enable_pc98_jump)
-            throw int(5);
 
 		// TODO: If instructed to, follow the INT 19h boot pattern, perhaps follow the BIOS Boot Specification, etc.
 
