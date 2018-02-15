@@ -4025,6 +4025,65 @@ void DrawDOSBoxLogoCGA6(unsigned int x,unsigned int y) {
 	}
 }
 
+/* HACK: Re-use the VGA logo */
+void DrawDOSBoxLogoPC98(unsigned int x,unsigned int y) {
+	unsigned char *s = dosbox_vga16_bmp;
+	unsigned char *sf = s + sizeof(dosbox_vga16_bmp);
+	unsigned int bit,dx,dy;
+	uint32_t width,height;
+    unsigned char p[4];
+    unsigned char c;
+	uint32_t vram;
+	uint32_t off;
+	uint32_t sz;
+
+	if (memcmp(s,"BM",2)) return;
+	sz = host_readd(s+2); // size of total bitmap
+	off = host_readd(s+10); // offset of bitmap
+	if ((s+sz) > sf) return;
+	if ((s+14+40) > sf) return;
+
+	sz = host_readd(s+34); // biSize
+	if ((s+off+sz) > sf) return;
+	if (host_readw(s+26) != 1) return; // biBitPlanes
+	if (host_readw(s+28) != 4)  return; // biBitCount
+
+	width = host_readd(s+18);
+	height = host_readd(s+22);
+	if (width > (640-x) || height > (350-y)) return;
+
+	// EGA/VGA Write Mode 2
+	LOG(LOG_MISC,LOG_DEBUG)("Drawing VGA logo as PC-98 (%u x %u)",(int)width,(int)height);
+    for (dy=0;dy < height;dy++) {
+        vram = ((y+dy) * 80) + (x / 8);
+        s = dosbox_vga16_bmp + off + ((height-(dy+1))*((width+1)/2));
+        for (dx=0;dx < width;dx += 8) {
+            p[0] = p[1] = p[2] = p[3] = 0;
+            for (bit=0;bit < 8;) {
+                c = (*s >> 4);
+                p[0] |= ((c >> 0) & 1) << (7 - bit);
+                p[1] |= ((c >> 1) & 1) << (7 - bit);
+                p[2] |= ((c >> 2) & 1) << (7 - bit);
+                p[3] |= ((c >> 3) & 1) << (7 - bit);
+                bit++;
+
+                c = (*s++) & 0xF;
+                p[0] |= ((c >> 0) & 1) << (7 - bit);
+                p[1] |= ((c >> 1) & 1) << (7 - bit);
+                p[2] |= ((c >> 2) & 1) << (7 - bit);
+                p[3] |= ((c >> 3) & 1) << (7 - bit);
+                bit++;
+            }
+
+            mem_writeb(0xA8000+vram,p[0]);
+            mem_writeb(0xB0000+vram,p[1]);
+            mem_writeb(0xB8000+vram,p[2]);
+            mem_writeb(0xE0000+vram,p[3]);
+            vram++;
+        }
+    }
+}
+
 void DrawDOSBoxLogoVGA(unsigned int x,unsigned int y) {
 	unsigned char *s = dosbox_vga16_bmp;
 	unsigned char *sf = s + sizeof(dosbox_vga16_bmp);
@@ -4873,6 +4932,39 @@ private:
             reg_eax = 0x4200;   // setup 640x400 graphics
             reg_ecx = 0xC000;
 			CALLBACK_RunRealInt(0x18);
+
+            // enable the 4th bitplane, for 16-color analog graphics mode.
+            // TODO: When we allow the user to emulate only the 8-color BGR digital mode,
+            //       logo drawing should use an alternate drawing method.
+	        IO_Write(0x6A,0x01);    // enable 16-color analog mode (this makes the 4th bitplane appear)
+	        IO_Write(0x6A,0x04);    // but we don't need the EGC graphics
+
+            // program a VGA-like color palette so we can re-use the VGA logo
+            for (unsigned int i=0;i < 16;i++) {
+                unsigned int bias = (i & 8) ? 0x5 : 0x0;
+
+                IO_Write(0xA8,i);   // DAC index
+                if (i != 6) {
+                    IO_Write(0xAA,((i & 2) ? 0xA : 0x0) + bias);    // green
+                    IO_Write(0xAC,((i & 4) ? 0xA : 0x0) + bias);    // red
+                    IO_Write(0xAE,((i & 1) ? 0xA : 0x0) + bias);    // blue
+                }
+                else { // brown #6 instead of puke yellow
+                    IO_Write(0xAA,((i & 2) ? 0x5 : 0x0) + bias);    // green
+                    IO_Write(0xAC,((i & 4) ? 0xA : 0x0) + bias);    // red
+                    IO_Write(0xAE,((i & 1) ? 0xA : 0x0) + bias);    // blue
+                }
+            }
+
+            // clear the graphics layer
+            for (unsigned int i=0;i < (80*400);i++) {
+                mem_writeb(0xA8000+i,0);        // B
+                mem_writeb(0xB0000+i,0);        // G
+                mem_writeb(0xB8000+i,0);        // R
+                mem_writeb(0xE0000+i,0);        // E
+            }
+
+			DrawDOSBoxLogoPC98(logo_x*8,logo_y*rowheight);
 
             reg_eax = 0x4000;   // show the graphics layer (PC-98) so we can render the DOSBox logo
 			CALLBACK_RunRealInt(0x18);
