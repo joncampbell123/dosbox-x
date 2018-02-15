@@ -4349,8 +4349,6 @@ private:
 
 		bios_first_init = false;
 
-		DispatchVMEvent(VM_EVENT_BIOS_INIT);
-
         /* if we're supposed to run in PC-98 mode, then do it NOW */
         if (enable_pc98_jump) {
             machine = MCH_PC98;
@@ -4367,6 +4365,8 @@ private:
             BIOS_OnEnterPC98Mode(NULL);
             BIOS_OnEnterPC98Mode_phase2(NULL);
         }
+
+		DispatchVMEvent(VM_EVENT_BIOS_INIT);
 
 		TIMER_BIOS_INIT_Configure();
 
