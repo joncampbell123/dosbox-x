@@ -4520,9 +4520,11 @@ private:
             DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE_END); /* PC-98 registration/startup */
         }
 
-		/* PS/2 mouse */
-		void BIOS_PS2Mouse_Startup(Section *sec);
-		BIOS_PS2Mouse_Startup(NULL);
+        if (!IS_PC98_ARCH) {
+            /* PS/2 mouse */
+            void BIOS_PS2Mouse_Startup(Section *sec);
+            BIOS_PS2Mouse_Startup(NULL);
+        }
 
         if (!IS_PC98_ARCH) {
             /* this belongs HERE not on-demand from INT 15h! */
