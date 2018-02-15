@@ -810,6 +810,7 @@ void VGA_OnEnterPC98(Section *sec) {
     for (unsigned int i=0;i < 4;i++) pc98_gdc_tiles[i].w = 0;
 
     vga.dac.pel_mask = 0xFF;
+    vga.crtc.maximum_scan_line = 15;
 
     /* 200-line tradition on PC-98 seems to be to render only every other scanline */
     pc98_graphics_hide_odd_raster_200line = true;
