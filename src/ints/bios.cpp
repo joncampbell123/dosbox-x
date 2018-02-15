@@ -4079,24 +4079,55 @@ void DrawDOSBoxLogoVGA(unsigned int x,unsigned int y) {
 	IO_Write(0x3CF,0xFF);
 }
 
+static int bios_pc98_posx = 0;
+
 static void BIOS_Int10RightJustifiedPrint(const int x,int &y,const char *msg) {
 	const char *s = msg;
-	while (*s != 0) {
-		if (*s == '\n') {
-			y++;
-			reg_eax = 0x0200;	// set cursor pos
-			reg_ebx = 0;		// page zero
-			reg_dh = y;		// row 4
-			reg_dl = x;		// column 20
-			CALLBACK_RunRealInt(0x10);
-			s++;
-		}
-		else {
-			reg_eax = 0x0E00 | ((unsigned char)(*s++));
-			reg_ebx = 0x07;
-			CALLBACK_RunRealInt(0x10);
-		}
-	}
+
+    if (machine != MCH_PC98) {
+        while (*s != 0) {
+            if (*s == '\n') {
+                y++;
+                reg_eax = 0x0200;	// set cursor pos
+                reg_ebx = 0;		// page zero
+                reg_dh = y;		// row 4
+                reg_dl = x;		// column 20
+                CALLBACK_RunRealInt(0x10);
+                s++;
+            }
+            else {
+                reg_eax = 0x0E00 | ((unsigned char)(*s++));
+                reg_ebx = 0x07;
+                CALLBACK_RunRealInt(0x10);
+            }
+        }
+    }
+    else {
+        unsigned int bo;
+
+        while (*s != 0) {
+            if (*s == '\n') {
+                y++;
+                s++;
+                bios_pc98_posx = x;
+
+                bo = ((y * 80) + bios_pc98_posx) * 2;
+            }
+            else if (*s == '\r') {
+                s++; /* ignore */
+            }
+            else {
+                bo = ((y * 80) + (bios_pc98_posx++)) * 2; /* NTS: note the post increment */
+
+                mem_writew(0xA0000+bo,*s++);
+                mem_writew(0xA2000+bo,0xE1);
+            }
+
+            reg_eax = 0x1300;   // set cursor pos (PC-98)
+            reg_edx = bo;       // byte position
+			CALLBACK_RunRealInt(0x18);
+        }
+    }
 }
 
 static Bitu ulimit = 0;
@@ -4781,6 +4812,15 @@ private:
 		const char *msg = PACKAGE_STRING " (C) 2002-" COPYRIGHT_END_YEAR " The DOSBox Team\nA fork of DOSBox 0.74 by TheGreatCodeholio\nFor more info visit http://dosbox-x.com\nBased on DOSBox (http://dosbox.com)\n\n";
 		int logo_x,logo_y,x,y,rowheight=8;
 
+        /* if we're supposed to run in PC-98 mode, then do it NOW.
+         * sdlmain.cpp will come back around when it's made the change to this call. */
+        if (enable_pc98_jump) {
+            machine = MCH_PC98;
+            enable_pc98_jump = false;
+            DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE); /* IBM PC unregistration/shutdown */
+            DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE_END); /* PC-98 registration/startup */
+        }
+
 		y = 2;
 		x = 2;
 		logo_y = 2;
@@ -4817,6 +4857,26 @@ private:
 
 			DrawDOSBoxLogoCGA6(logo_x*8,logo_y*rowheight);
 		}
+        else if (machine == MCH_PC98) {
+            reg_eax = 0x0C00;   // enable text layer (PC-98)
+			CALLBACK_RunRealInt(0x18);
+
+            reg_eax = 0x1100;   // show cursor (PC-98)
+			CALLBACK_RunRealInt(0x18);
+
+            reg_eax = 0x1300;   // set cursor pos (PC-98)
+            reg_edx = 0x0000;   // byte position
+			CALLBACK_RunRealInt(0x18);
+
+            bios_pc98_posx = x;
+
+            reg_eax = 0x4200;   // setup 640x400 graphics
+            reg_ecx = 0xC000;
+			CALLBACK_RunRealInt(0x18);
+
+            reg_eax = 0x4000;   // show the graphics layer (PC-98) so we can render the DOSBox logo
+			CALLBACK_RunRealInt(0x18);
+        }
 		else {
 			reg_eax = 3;		// 80x25 text
 			CALLBACK_RunRealInt(0x10);
@@ -4825,8 +4885,8 @@ private:
 			//       And for MDA/Hercules, we could render a monochromatic ASCII art version.
 		}
 
-		{
-			reg_eax = 0x0200;	// set cursor pos
+        if (machine != MCH_PC98) {
+            reg_eax = 0x0200;	// set cursor pos
 			reg_ebx = 0;		// page zero
 			reg_dh = y;		// row 4
 			reg_dl = x;		// column 20
@@ -4948,13 +5008,18 @@ private:
 
 		BIOS_Int10RightJustifiedPrint(x,y,"\nHit SPACEBAR to pause at this screen\n");
 		y--; /* next message should overprint */
-		{
+        if (machine != MCH_PC98) {
 			reg_eax = 0x0200;	// set cursor pos
 			reg_ebx = 0;		// page zero
 			reg_dh = y;		// row 4
 			reg_dl = x;		// column 20
 			CALLBACK_RunRealInt(0x10);
 		}
+        else {
+            reg_eax = 0x1300;   // set cursor pos (PC-98)
+            reg_edx = ((y * 80) + x) * 2; // byte position
+			CALLBACK_RunRealInt(0x18);
+        }
 
 		// TODO: Then at this screen, we can print messages demonstrating the detection of
 		//       IDE devices, floppy, ISA PnP initialization, anything of importance.
@@ -4965,12 +5030,25 @@ private:
 		bool wait_for_user = false;
 		Bit32u lasttick=GetTicks();
 		while ((GetTicks()-lasttick)<1000) {
-			reg_eax = 0x0100;
-			CALLBACK_RunRealInt(0x16);
+            if (machine == MCH_PC98) {
+                reg_eax = 0x0100;   // sense key
+                CALLBACK_RunRealInt(0x18);
+                SETFLAGBIT(ZF,reg_bh == 0);
+            }
+            else {
+                reg_eax = 0x0100;
+                CALLBACK_RunRealInt(0x16);
+            }
 
 			if (!GETFLAG(ZF)) {
-				reg_eax = 0x0000;
-				CALLBACK_RunRealInt(0x16);
+                if (machine == MCH_PC98) {
+                    reg_eax = 0x0000;   // read key
+                    CALLBACK_RunRealInt(0x18);
+                }
+                else {
+                    reg_eax = 0x0000;
+                    CALLBACK_RunRealInt(0x16);
+                }
 
 				if (reg_al == 32) { // user hit space
 					BIOS_Int10RightJustifiedPrint(x,y,"Hit ENTER or ESC to continue                    \n"); // overprint
@@ -4981,30 +5059,33 @@ private:
 		}
 
         while (wait_for_user) {
-            reg_eax = 0x0000;
-            CALLBACK_RunRealInt(0x16);
+            if (machine == MCH_PC98) {
+                reg_eax = 0x0000;   // read key
+                CALLBACK_RunRealInt(0x18);
+            }
+            else {
+                reg_eax = 0x0000;
+                CALLBACK_RunRealInt(0x16);
+            }
 
             if (reg_al == 27/*ESC*/ || reg_al == 13/*ENTER*/)
                 break;
         }
 
-		// restore 80x25 text mode
-		reg_eax = 3;
-		CALLBACK_RunRealInt(0x10);
+        if (machine == MCH_PC98) {
+            reg_eax = 0x4100;   // hide the graphics layer (PC-98)
+			CALLBACK_RunRealInt(0x18);
+        }
+        else {
+            // restore 80x25 text mode
+            reg_eax = 3;
+            CALLBACK_RunRealInt(0x10);
+        }
 
 		return CBRET_NONE;
 	}
 	CALLBACK_HandlerObject cb_bios_boot;
 	static Bitu cb_bios_boot__func(void) {
-        /* if we're supposed to run in PC-98 mode, then do it NOW.
-         * sdlmain.cpp will come back around when it's made the change to this call. */
-        if (enable_pc98_jump) {
-            machine = MCH_PC98;
-            enable_pc98_jump = false;
-            DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE); /* IBM PC unregistration/shutdown */
-            DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE_END); /* PC-98 registration/startup */
-        }
-
 		/* Reset/power-on overrides the user's A20 gate preferences.
 		 * It's time to revert back to what the user wants. */
 		void A20Gate_TakeUserSetting(Section *sec);
