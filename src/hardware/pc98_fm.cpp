@@ -3981,53 +3981,59 @@ static void pc98_mix_CallBack(Bitu len) {
     pc98_mixer->AddSamples_s32(s, (Bit32s*)MixTemp);
 }
 
+static bool pc98fm_init = false;
+
 void PC98_FM_OnEnterPC98(Section *sec) {
-    // TODO:
-    //  - Give the user an option in dosbox.conf to enable/disable FM emulation
-    //  - Give the user a choice which board to emulate (the borrowed code can emulate 10 different cards)
-    //  - Give the user a choice which IRQ to attach it to
-    //  - Give the user a choice of base I/O address (0x088 or 0x188)
-    //  - Move this code out into it's own file. This is SOUND code. It does not belong in vga.cpp.
-    //  - Register the TMS3631, OPNA, PSG, RHYTHM, etc. outputs as individual mixer channels, where
-    //    each can then run at their own sample rate, and the user can use DOSBox-X mixer controls to
-    //    set volume, record individual tracks with WAV capture, etc.
-    //  - Cleanup this code, organize it.
-    //  - Make sure this code clearly indicates that it was borrowed and adapted from Neko Project II and
-    //    ported to DOSBox-X. I cannot take credit for this code, I can only take credit for porting it
-    //    and future refinements in this project.
-    LOG_MSG("Initializing FM board at base 0x%x",pc98_fm_base);
-    for (unsigned int i=0;i < 8;i += 2) {
-        IO_RegisterWriteHandler(pc98_fm_base+i,pc98_fm_write,IO_MB);
-        IO_RegisterReadHandler(pc98_fm_base+i,pc98_fm_read,IO_MB);
+    if (!pc98fm_init) {
+        pc98fm_init = true;
+
+        // TODO:
+        //  - Give the user an option in dosbox.conf to enable/disable FM emulation
+        //  - Give the user a choice which board to emulate (the borrowed code can emulate 10 different cards)
+        //  - Give the user a choice which IRQ to attach it to
+        //  - Give the user a choice of base I/O address (0x088 or 0x188)
+        //  - Move this code out into it's own file. This is SOUND code. It does not belong in vga.cpp.
+        //  - Register the TMS3631, OPNA, PSG, RHYTHM, etc. outputs as individual mixer channels, where
+        //    each can then run at their own sample rate, and the user can use DOSBox-X mixer controls to
+        //    set volume, record individual tracks with WAV capture, etc.
+        //  - Cleanup this code, organize it.
+        //  - Make sure this code clearly indicates that it was borrowed and adapted from Neko Project II and
+        //    ported to DOSBox-X. I cannot take credit for this code, I can only take credit for porting it
+        //    and future refinements in this project.
+        LOG_MSG("Initializing FM board at base 0x%x",pc98_fm_base);
+        for (unsigned int i=0;i < 8;i += 2) {
+            IO_RegisterWriteHandler(pc98_fm_base+i,pc98_fm_write,IO_MB);
+            IO_RegisterReadHandler(pc98_fm_base+i,pc98_fm_read,IO_MB);
+        }
+
+        // WARNING: Some parts of the borrowed code assume 44100, 22050, or 11025 and
+        //          will misrender if given any other sample rate (especially the OPNA synth).
+        unsigned int rate = 44100;
+        unsigned char vol14[6] = { 15, 15, 15, 15, 15, 15 };
+
+        pc98_mixer = MIXER_AddChannel(pc98_mix_CallBack, rate, "PC-98");
+        pc98_mixer->Enable(true);
+
+        fmboard_reset(NULL, 0x14);
+        fmboard_extenable(true);
+
+        //	fddmtrsnd_initialize(rate);
+        //	beep_initialize(rate);
+        //	beep_setvol(3);
+        tms3631_initialize(rate);
+        tms3631_setvol(vol14);
+        opngen_initialize(rate);
+        opngen_setvol(128);
+        psggen_initialize(rate);
+        psggen_setvol(128);
+        rhythm_initialize(rate);
+        rhythm_setvol(128);
+        adpcm_initialize(rate);
+        adpcm_setvol(128);
+        pcm86gen_initialize(rate);
+        pcm86gen_setvol(128);
+
+        board86c_bind();
     }
-
-    // WARNING: Some parts of the borrowed code assume 44100, 22050, or 11025 and
-    //          will misrender if given any other sample rate (especially the OPNA synth).
-    unsigned int rate = 44100;
-    unsigned char vol14[6] = { 15, 15, 15, 15, 15, 15 };
-
-    pc98_mixer = MIXER_AddChannel(pc98_mix_CallBack, rate, "PC-98");
-    pc98_mixer->Enable(true);
-
-    fmboard_reset(NULL, 0x14);
-    fmboard_extenable(true);
-
-//	fddmtrsnd_initialize(rate);
-//	beep_initialize(rate);
-//	beep_setvol(3);
-	tms3631_initialize(rate);
-	tms3631_setvol(vol14);
-	opngen_initialize(rate);
-	opngen_setvol(128);
-	psggen_initialize(rate);
-	psggen_setvol(128);
-	rhythm_initialize(rate);
-	rhythm_setvol(128);
-	adpcm_initialize(rate);
-	adpcm_setvol(128);
-	pcm86gen_initialize(rate);
-	pcm86gen_setvol(128);
-
-    board86c_bind();
 }
 
