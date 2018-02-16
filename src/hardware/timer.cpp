@@ -512,6 +512,13 @@ void TIMER_BIOS_INIT_Configure() {
 
 	PCSPEAKER_SetCounter(pit[pcspeaker_pit].cntr,pit[pcspeaker_pit].mode);
 	PIC_AddEvent(PIT0_Event,pit[0].delay);
+
+    if (IS_PC98_ARCH) {
+    /* BIOS data area at 0x501 tells the DOS application which clock rate to use */
+        phys_writeb(0x501,
+            ((PIT_TICK_RATE == PIT_TICK_RATE_PC98_8MHZ) ? 0x80 : 0x00)      /* bit 7: 1=8MHz  0=5MHz/10MHz */
+            );
+    }
 }
 
 void TIMER_OnPowerOn(Section*) {
@@ -616,11 +623,6 @@ void TIMER_OnEnterPC98_Phase2(Section*) {
 	ReadHandler[0].Install(IS_PC98_ARCH ? 0x71 : 0x40,read_latch,IO_MB);
 	ReadHandler[1].Install(IS_PC98_ARCH ? 0x73 : 0x41,read_latch,IO_MB);
 	ReadHandler[2].Install(IS_PC98_ARCH ? 0x75 : 0x42,read_latch,IO_MB);
-
-    /* BIOS data area at 0x501 tells the DOS application which clock rate to use */
-    phys_writeb(0x501,
-        ((PIT_TICK_RATE == PIT_TICK_RATE_PC98_8MHZ) ? 0x80 : 0x00)      /* bit 7: 1=8MHz  0=5MHz/10MHz */
-    );
 
 	latched_timerstatus_locked=false;
 	gate2 = false;
