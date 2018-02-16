@@ -1014,17 +1014,7 @@ void GFX_TearDown(void) {
 }
 
 static void GFX_ResetSDL() {
-#if defined(WIN32) && !defined(C_SDL2)
-	if(!load_videodrv && !sdl.using_windib) {
-		LOG_MSG("Resetting to WINDIB mode");
-		SDL_QuitSubSystem(SDL_INIT_VIDEO);
-		putenv("SDL_VIDEODRIVER=windib");
-		sdl.using_windib=true;
-		if (SDL_InitSubSystem(SDL_INIT_VIDEO)<0) E_Exit("Can't init SDL Video %s",SDL_GetError());
-		GFX_SetIcon(); GFX_SetTitle(-1,-1,-1,false);
-		if(!sdl.desktop.fullscreen && GetMenu(GetHWND()) == NULL) DOSBox_RefreshMenu();
-	}
-#endif
+	/* deprecated */
 }
 
 Bitu GFX_SetSize(Bitu width,Bitu height,Bitu flags,double scalex,double scaley,GFX_CallBack_t callback) {
@@ -5426,24 +5416,9 @@ int main(int argc, char* argv[]) {
 # endif
 
 		if (getenv("SDL_VIDEODRIVER")==NULL) {
-			char sdl_drv_name[128];
-
-			LOG(LOG_MISC,LOG_DEBUG)("Win32: SDL_VIDEODRIVER is not defined, attempting to detect and use directx SDL driver");
-			if (SDL_VideoDriverName(sdl_drv_name,128)!=NULL) {
-				sdl.using_windib=false;
-				LOG(LOG_MISC,LOG_DEBUG)("Win32: SDL driver name is '%s'",sdl_drv_name);
-				if (strcmp(sdl_drv_name,"directx")!=0) {
-					LOG(LOG_MISC,LOG_DEBUG)("Win32: Reinitializing SDL to use directx");
-					SDL_QuitSubSystem(SDL_INIT_VIDEO);
-					putenv("SDL_VIDEODRIVER=directx");
-					if (SDL_InitSubSystem(SDL_INIT_VIDEO)<0) {
-						LOG(LOG_MISC,LOG_DEBUG)("Win32: Failed to reinitialize to use directx. Falling back to windib");
-						putenv("SDL_VIDEODRIVER=windib");
-						if (SDL_InitSubSystem(SDL_INIT_VIDEO)<0) E_Exit("Can't init SDL Video %s",SDL_GetError());
-						sdl.using_windib=true;
-					}
-				}
-			}
+			putenv("SDL_VIDEODRIVER=windib");
+			if (SDL_InitSubSystem(SDL_INIT_VIDEO)<0) E_Exit("Can't init SDL Video %s",SDL_GetError());
+			sdl.using_windib=true;
 		} else {
 			char* sdl_videodrv = getenv("SDL_VIDEODRIVER");
 
