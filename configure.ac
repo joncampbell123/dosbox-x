@@ -662,6 +662,7 @@ src/misc/Makefile
 src/shell/Makefile
 src/platform/Makefile
 include/Makefile
+dosbox-x.spec
 ])
 AC_OUTPUT
 

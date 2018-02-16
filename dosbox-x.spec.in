@@ -1,0 +1,26 @@
+Summary: DOSBox-X emulator
+Name: DOSBox-X
+Version: @PACKAGE_VERSION@
+Release: 1%{?dist}
+URL: http://www.dosbox-x.com
+License: GPL
+Group: Applications/Emulators
+BuildRoot: %{_tmppath}/%{name}-%{version}-buildroot
+Prefix: %{_prefix}
+%ifos linux
+Provides: dosbox-x
+%endif
+
+%description
+DOSBox-X is a fork of DOSBox designed to emulate hardware as accurately as possible.
+
+%build
+./build-debug
+
+%install
+%make_install
+
+%files
+%{_bindir}/*
+
+# end of file
