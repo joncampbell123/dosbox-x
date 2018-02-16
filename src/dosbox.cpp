@@ -127,8 +127,6 @@ extern bool			VIDEO_BIOS_enable_CGA_8x8_second_half;
 extern bool			allow_more_than_640kb;
 extern bool			adapter_rom_is_ram;
 
-bool                enable_pc98_jump = false;
-
 bool				dos_con_use_int16_to_detect_input = true;
 
 bool				dbg_zero_on_dos_allocmem = true;
@@ -811,18 +809,6 @@ void DOSBOX_RealInit() {
 	clockdom_8250_UART.set_name("8250 UART");
 	clockdom_ISA_BCLK.set_name("ISA BCLK");
 	clockdom_PCI_BCLK.set_name("PCI BCLK");
-
-    /* the changes are so large to begin supporting PC-98 that it's probably better
-     * to boot up in IBM PC/XT/AT mode and then switch into PC-98 */
-	if (IS_PC98_ARCH) {
-        LOG_MSG("PC-98 WARNING: Implementation is very early, and not the initial state.");
-
-        enable_pc98_jump = true;
-        int10.vesa_nolfb = false;
-        int10.vesa_oldvbe = false;
-        svgaCard = SVGA_None;
-        machine = MCH_VGA;
-    }
 }
 
 void DOSBOX_SetupConfigSections(void) {
