@@ -777,10 +777,14 @@ void DOSBox_SetMenu(void) {
 
 	LOG(LOG_MISC,LOG_DEBUG)("Win32: loading and attaching menu resource to DOSBox's window");
 
+	bool initmenu = !menu.toggle;
+
 	menu.toggle=true;
     NonUserResizeCounter=1;
     SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
 	DrawMenuBar (GetHWND());
+
+	if (initmenu) Reflect_Menu();
 
 	if(menu.startup) {
 		RENDER_CallBack( GFX_CallBackReset );
@@ -1654,6 +1658,8 @@ int Reflect_Menu(void) {
 	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_X, ID_MOUNT_FLOPPY_X, ID_MOUNT_LOCAL_X, ID_MOUNT_IMAGE_X, ID_AUTOMOUNT_X, ID_UMOUNT_X, 'X');
 	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_Y, ID_MOUNT_FLOPPY_Y, ID_MOUNT_LOCAL_Y, ID_MOUNT_IMAGE_Y, ID_AUTOMOUNT_Y, ID_UMOUNT_Y, 'Y');
 	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_Z, ID_MOUNT_FLOPPY_Z, ID_MOUNT_LOCAL_Z, ID_MOUNT_IMAGE_Z, ID_AUTOMOUNT_Z, ID_UMOUNT_Z, 'Z');
+
+	return 1;
 }
 
 // Sets the scaler to use.

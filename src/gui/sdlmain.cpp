@@ -5592,6 +5592,10 @@ int main(int argc, char* argv[]) {
 		NE2K_Init();
 #endif
 
+#if defined(WIN32) && !defined(C_SDL2)
+		Reflect_Menu();
+#endif
+
 		/* If PCjr emulation, map cartridge ROM */
 		if (machine == MCH_PCJR)
 			Init_PCJR_CartridgeROM();
