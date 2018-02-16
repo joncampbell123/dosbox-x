@@ -643,13 +643,8 @@ void VGA_Reset(Section*) {
 			else vga.vmemsize = _KB_bytes(256);
 			break;
 		case MCH_VGA:
-            if (enable_pc98_jump) {
-                if (vga.vmemsize < _KB_bytes(512)) vga.vmemsize = _KB_bytes(512);
-            }
-            else {
-                if (vga.vmemsize < _KB_bytes(256)) vga.vmemsize = _KB_bytes(256);
-            }
-			break;
+            if (vga.vmemsize < _KB_bytes(256)) vga.vmemsize = _KB_bytes(256);
+            break;
 		case MCH_AMSTRAD:
 			if (vga.vmemsize < _KB_bytes(64)) vga.vmemsize = _KB_bytes(64); /* FIXME: Right? */
 			break;
