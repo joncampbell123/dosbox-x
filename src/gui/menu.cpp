@@ -777,14 +777,12 @@ void DOSBox_SetMenu(void) {
 
 	LOG(LOG_MISC,LOG_DEBUG)("Win32: loading and attaching menu resource to DOSBox's window");
 
-	bool initmenu = !menu.toggle;
-
 	menu.toggle=true;
     NonUserResizeCounter=1;
     SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
 	DrawMenuBar (GetHWND());
 
-	if (initmenu) Reflect_Menu();
+	Reflect_Menu();
 
 	if(menu.startup) {
 		RENDER_CallBack( GFX_CallBackReset );
