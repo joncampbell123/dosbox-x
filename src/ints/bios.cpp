@@ -4259,14 +4259,6 @@ private:
 			for (Bit16u i=0x400;i<0x8000;i++) real_writeb(0x0,i,0);
 		}
 
-        /* if we're supposed to run in PC-98 mode, then do it NOW */
-        if (enable_pc98_jump) {
-            machine = MCH_PC98;
-            enable_pc98_jump = false;
-            DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE); /* IBM PC unregistration/shutdown */
-            DispatchVMEvent(VM_EVENT_ENTER_PC98_MODE_END); /* PC-98 registration/startup */
-        }
-
         if (IS_PC98_ARCH) {
             for (unsigned int i=0;i < 20;i++) callback[i].Uninstall();
 

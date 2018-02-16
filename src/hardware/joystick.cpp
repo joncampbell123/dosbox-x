@@ -220,13 +220,6 @@ void JOYSTICK_OnPowerOn(Section* sec) {
     }
 }
 
-void JOYSTICK_OnEnterPC98(Section* sec) {
-    if (test != NULL) {
-        delete test;
-        test = NULL;
-    }
-}
-
 void JOYSTICK_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing joystick emulation");
 
@@ -256,9 +249,9 @@ void JOYSTICK_Init() {
 		                 stick[1].ytick = PIC_FullIndex();
 	}
 
-	AddExitFunction(AddExitFunctionFuncPair(JOYSTICK_Destroy),true); 
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(JOYSTICK_OnPowerOn));
+	AddExitFunction(AddExitFunctionFuncPair(JOYSTICK_Destroy),true);
 
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(JOYSTICK_OnEnterPC98));
+    if (!IS_PC98_ARCH)
+        AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(JOYSTICK_OnPowerOn));
 }
 

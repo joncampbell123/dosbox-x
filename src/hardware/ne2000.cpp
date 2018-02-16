@@ -1670,13 +1670,6 @@ void NE2K_ShutDown(Section* sec) {
     }
 }
 
-void NE2k_OnEnterPC98(Section* sec) {
-	if (test) {
-        delete test;	
-        test = NULL;
-    }
-}
-
 void NE2K_OnReset(Section* sec) {
 	if (test == NULL && !IS_PC98_ARCH) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating NE2000 emulation");
@@ -1695,7 +1688,6 @@ void NE2K_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(NE2K_ShutDown),true);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(NE2K_OnReset));
-    AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(NE2k_OnEnterPC98));
 }
 
 #endif // C_NE2000

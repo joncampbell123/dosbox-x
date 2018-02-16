@@ -5669,6 +5669,12 @@ int main(int argc, char* argv[]) {
 			MAPPER_RunInternal();
 		}
 
+        /* if we're supposed to run in PC-98 mode, then do it NOW */
+        if (enable_pc98_jump) {
+            machine = MCH_PC98;
+            enable_pc98_jump = false;
+        }
+
 		/* The machine just "powered on", and then reset finished */
 		if (!VM_PowerOn()) E_Exit("VM failed to power on");
 

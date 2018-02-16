@@ -727,9 +727,13 @@ void VGA_Reset(Section*) {
     if (IS_PC98_ARCH) {
         void VGA_OnEnterPC98(Section *sec);
         void VGA_OnEnterPC98_phase2(Section *sec);
+        void PC98_FM_OnEnterPC98(Section *sec);
 
         VGA_OnEnterPC98(NULL);
         VGA_OnEnterPC98_phase2(NULL);
+
+        // TODO: Move to separate file
+        PC98_FM_OnEnterPC98(NULL);
     }
 }
 
@@ -859,8 +863,6 @@ void VGA_OnEnterPC98(Section *sec) {
 }
 
 void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages);
-
-void PC98_FM_OnEnterPC98(Section *sec);
 
 void VGA_OnEnterPC98_phase2(Section *sec) {
     VGA_SetupHandlers();
@@ -1020,11 +1022,6 @@ void VGA_Init() {
 	}
 
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(VGA_Reset));
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(VGA_OnEnterPC98));
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE_END,AddVMEventFunctionFuncPair(VGA_OnEnterPC98_phase2));
-
-    // TODO: Move to separate file
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE_END,AddVMEventFunctionFuncPair(PC98_FM_OnEnterPC98));
 }
 
 void SVGA_Setup_Driver(void) {

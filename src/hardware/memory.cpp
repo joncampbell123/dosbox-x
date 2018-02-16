@@ -1804,19 +1804,10 @@ void PS2Port92_OnReset(Section *sec) {
     }
 }
 
-void PS2Port92_OnEnterPC98(Section *sec) {
-	PS2_Port_92h_WriteHandler2.Uninstall();
-	PS2_Port_92h_WriteHandler.Uninstall();
-	PS2_Port_92h_ReadHandler.Uninstall();
-}
-
 void Init_PS2_Port_92h() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing PS/2 port 92h emulation");
 
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PS2Port92_OnReset));
-
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(PS2Port92_OnEnterPC98));
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE_END,AddVMEventFunctionFuncPair(PS2Port92_OnReset));
 }
 
 void Init_MemHandles() {

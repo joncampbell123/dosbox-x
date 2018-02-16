@@ -298,8 +298,8 @@ enum vm_event {
 
 	VM_EVENT_DOS_EXIT_REBOOT_KERNEL=15,	// DOS kernel has just finished exiting (hard reset)
     VM_EVENT_DOS_SURPRISE_REBOOT,       // DOS kernel asked to boot, when apparently having never been shut down (jmp to FFFF:0000)
-    VM_EVENT_ENTER_PC98_MODE,           // Switching into PC-98 emulation mode, phase 1 (unregistering devices) (NOTE: This is TEMPORARY until full implementation is complete)
-    VM_EVENT_ENTER_PC98_MODE_END,       // Switching into PC-98 emulation mode, phase 2 (registering devices) (NOTE: This is TEMPORARY until full implementation is complete)
+    __DEAD__VM_EVENT_ENTER_PC98_MODE,           // Switching into PC-98 emulation mode, phase 1 (unregistering devices) (NOTE: This is TEMPORARY until full implementation is complete)
+    __DEAD__VM_EVENT_ENTER_PC98_MODE_END,       // Switching into PC-98 emulation mode, phase 2 (registering devices) (NOTE: This is TEMPORARY until full implementation is complete)
 
 	VM_EVENT_MAX
 };
