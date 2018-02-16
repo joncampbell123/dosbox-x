@@ -802,9 +802,7 @@ const char *VM_EVENT_string[VM_EVENT_MAX] = {
 	"DOS exit, reboot begin",
 
 	"DOS exit, kernel reboot exit",     // 15
-    "DOS surprise reboot",
-    "Reboot into PC-98 emulation phase 1",
-    "Reboot into PC-98 emulation phase 2"
+    "DOS surprise reboot"
 };
 
 VMDispatchState vm_dispatch_state;
@@ -818,9 +816,6 @@ void DispatchVMEvent(enum vm_event event) {
 	assert(event < VM_EVENT_MAX);
 
 	LOG(LOG_MISC,LOG_DEBUG)("Dispatching VM event %s",GetVMEventName(event));
-
-    if (event == __DEAD__VM_EVENT_ENTER_PC98_MODE || event == __DEAD__VM_EVENT_ENTER_PC98_MODE_END)
-        E_Exit("Obsolete VM event PC-98 switch");
 
 	vm_dispatch_state.begin_event(event);
 	for (std::list<Function_wrapper>::iterator i=vm_event_functions[event].begin();i!=vm_event_functions[event].end();i++) {
