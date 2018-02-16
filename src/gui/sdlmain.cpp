@@ -5530,38 +5530,6 @@ int main(int argc, char* argv[]) {
 		}
 
 #if defined(WIN32) && !defined(C_SDL2)
-		if (sdl.desktop.want_type == SCREEN_OPENGL && sdl.using_windib) {
-			LOG(LOG_MISC,LOG_DEBUG)("Desktop wants SCREEN_OPENGL and we're using windib now. Reinitializing SDL video output.");
-			SDL_QuitSubSystem(SDL_INIT_VIDEO);
-			sdl.surface = NULL; // surface becomes invalid!
-			if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
-				E_Exit("Can't init SDL Video %s",SDL_GetError());
-
-			sdl.surface = SDL_SetVideoMode(640, 400, 0, SDL_RESIZABLE);
-			if (sdl.surface == NULL) E_Exit("Could not initialize video: %s", SDL_GetError());
-            sdl.deferred_resize = false;
-            sdl.must_redraw_all = true;
-
-			change_output(sdl.opengl.bilinear ? 3/*OpenGL*/ : 4/*OpenGLNB*/);
-			GFX_SetIcon();
-			SDL_Prepare();
-
-            void DOSBox_SetSysMenu(void);
-            DOSBox_SetSysMenu();
-
-			Section_prop *section = static_cast<Section_prop *>(control->GetSection("SDL"));
-			assert(section != NULL);
-
-			bool cfg_want_menu = section->Get_bool("showmenu");
-
-			if (menu.gui && !control->opt_nomenu && cfg_want_menu) {
-                NonUserResizeCounter=1;
-				DOSBox_SetMenu();
-            }
-		}
-#endif
-
-#if defined(WIN32) && !defined(C_SDL2)
 		{
 			Section_prop *sec = static_cast<Section_prop *>(control->GetSection("dosbox"));
 			enable_hook_special_keys = sec->Get_bool("keyboard hook");
