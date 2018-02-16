@@ -1,4 +1,5 @@
 (next)
+  - VGA palette errors with Crystal Dream II fixed.
   - PC-98 FM synthesis fixed not to initialize itself
     again when rebooting, which fixes a problem with
     garbled FM synthesis after rebooting.
