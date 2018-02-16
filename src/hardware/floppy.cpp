@@ -306,9 +306,9 @@ static void FDC_Init(Section* sec,unsigned char fdc_interface) {
     if (!IS_PC98_ARCH) {
         fdc = floppycontroller[fdc_interface] = new FloppyController(sec,fdc_interface);
         fdc->install_io_port();
-    }
 
-	PIC_SetIRQMask(fdc->IRQ,false);
+		PIC_SetIRQMask(fdc->IRQ, false);
+	}
 }
 
 void FDC_OnReset(Section *sec) {

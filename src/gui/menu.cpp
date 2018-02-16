@@ -793,6 +793,8 @@ void DOSBox_SetMenu(void) {
     NonUserResizeCounter=1;
 	SDL1_hax_SetMenu(LoadMenu(GetModuleHandle(NULL), MAKEINTRESOURCE(IDR_MENU)));
 
+	Reflect_Menu();
+
 	if(menu.startup) {
 		RENDER_CallBack( GFX_CallBackReset );
 	}
@@ -1665,6 +1667,8 @@ int Reflect_Menu(void) {
 	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_Z, ID_MOUNT_FLOPPY_Z, ID_MOUNT_LOCAL_Z, ID_MOUNT_IMAGE_Z, ID_AUTOMOUNT_Z, ID_UMOUNT_Z, 'Z');
 
 	SDL1_hax_INITMENU_cb = reflectmenu_INITMENU_cb;
+
+    return 1;
 }
 
 void reflectmenu_INITMENU_cb() {

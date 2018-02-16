@@ -1018,17 +1018,7 @@ void GFX_TearDown(void) {
 }
 
 static void GFX_ResetSDL() {
-#if defined(WIN32) && !defined(C_SDL2)
-	if(!load_videodrv && !sdl.using_windib) {
-		LOG_MSG("Resetting to WINDIB mode");
-		SDL_QuitSubSystem(SDL_INIT_VIDEO);
-		putenv("SDL_VIDEODRIVER=windib");
-		sdl.using_windib=true;
-		if (SDL_InitSubSystem(SDL_INIT_VIDEO)<0) E_Exit("Can't init SDL Video %s",SDL_GetError());
-		GFX_SetIcon(); GFX_SetTitle(-1,-1,-1,false);
-		if(!sdl.desktop.fullscreen && GetMenu(GetHWND()) == NULL) DOSBox_RefreshMenu();
-	}
-#endif
+	/* deprecated */
 }
 
 #if defined(WIN32) && !defined(C_SDL2)
@@ -5436,24 +5426,9 @@ int main(int argc, char* argv[]) {
 # endif
 
 		if (getenv("SDL_VIDEODRIVER")==NULL) {
-			char sdl_drv_name[128];
-
-			LOG(LOG_MISC,LOG_DEBUG)("Win32: SDL_VIDEODRIVER is not defined, attempting to detect and use directx SDL driver");
-			if (SDL_VideoDriverName(sdl_drv_name,128)!=NULL) {
-				sdl.using_windib=false;
-				LOG(LOG_MISC,LOG_DEBUG)("Win32: SDL driver name is '%s'",sdl_drv_name);
-				if (strcmp(sdl_drv_name,"directx")!=0) {
-					LOG(LOG_MISC,LOG_DEBUG)("Win32: Reinitializing SDL to use directx");
-					SDL_QuitSubSystem(SDL_INIT_VIDEO);
-					putenv("SDL_VIDEODRIVER=directx");
-					if (SDL_InitSubSystem(SDL_INIT_VIDEO)<0) {
-						LOG(LOG_MISC,LOG_DEBUG)("Win32: Failed to reinitialize to use directx. Falling back to windib");
-						putenv("SDL_VIDEODRIVER=windib");
-						if (SDL_InitSubSystem(SDL_INIT_VIDEO)<0) E_Exit("Can't init SDL Video %s",SDL_GetError());
-						sdl.using_windib=true;
-					}
-				}
-			}
+			putenv("SDL_VIDEODRIVER=windib");
+			if (SDL_InitSubSystem(SDL_INIT_VIDEO)<0) E_Exit("Can't init SDL Video %s",SDL_GetError());
+			sdl.using_windib=true;
 		} else {
 			char* sdl_videodrv = getenv("SDL_VIDEODRIVER");
 
@@ -5539,38 +5514,6 @@ int main(int argc, char* argv[]) {
 		}
 
 #if defined(WIN32) && !defined(C_SDL2)
-		if (sdl.desktop.want_type == SCREEN_OPENGL && sdl.using_windib) {
-			LOG(LOG_MISC,LOG_DEBUG)("Desktop wants SCREEN_OPENGL and we're using windib now. Reinitializing SDL video output.");
-			SDL_QuitSubSystem(SDL_INIT_VIDEO);
-			sdl.surface = NULL; // surface becomes invalid!
-			if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
-				E_Exit("Can't init SDL Video %s",SDL_GetError());
-
-			sdl.surface = SDL_SetVideoMode(640, 400, 0, SDL_RESIZABLE);
-			if (sdl.surface == NULL) E_Exit("Could not initialize video: %s", SDL_GetError());
-            sdl.deferred_resize = false;
-            sdl.must_redraw_all = true;
-
-			change_output(sdl.opengl.bilinear ? 3/*OpenGL*/ : 4/*OpenGLNB*/);
-			GFX_SetIcon();
-			SDL_Prepare();
-
-            void DOSBox_SetSysMenu(void);
-            DOSBox_SetSysMenu();
-
-			Section_prop *section = static_cast<Section_prop *>(control->GetSection("SDL"));
-			assert(section != NULL);
-
-			bool cfg_want_menu = section->Get_bool("showmenu");
-
-			if (menu.gui && !control->opt_nomenu && cfg_want_menu) {
-                NonUserResizeCounter=1;
-				DOSBox_SetMenu();
-            }
-		}
-#endif
-
-#if defined(WIN32) && !defined(C_SDL2)
 		{
 			Section_prop *sec = static_cast<Section_prop *>(control->GetSection("dosbox"));
 			enable_hook_special_keys = sec->Get_bool("keyboard hook");
@@ -5631,6 +5574,10 @@ int main(int argc, char* argv[]) {
 		PARALLEL_Init();
 #if C_NE2000
 		NE2K_Init();
+#endif
+
+#if defined(WIN32) && !defined(C_SDL2)
+		Reflect_Menu();
 #endif
 
 		/* If PCjr emulation, map cartridge ROM */
