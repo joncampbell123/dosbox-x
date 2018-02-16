@@ -2702,10 +2702,12 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 			vga_fps = fps;
 			VGA_VerticalTimer(0);
 		}
-
-		VGA_DAC_UpdateColorPalette();
 	}
 	vga.draw.delay.singleline_delay = (float)vga.draw.delay.htotal;
+
+    /* FIXME: Why is this required to prevent VGA palette errors with Crystal Dream II?
+     *        What is this code doing to change the palette prior to this point? */
+    VGA_DAC_UpdateColorPalette();
 }
 
 void VGA_KillDrawing(void) {
