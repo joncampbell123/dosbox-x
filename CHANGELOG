@@ -1,4 +1,9 @@
 (next)
+  - machine=pc98 now starts entire emulation in PC-98
+    mode instead of booting up in IBM PC mode and
+    switching to PC-98 mode.
+  - Initial "BIOS" startup screen now operates in
+    PC-98 mode when machine=pc98.
   - Prefetch core debug code now disabled at compile
     time. Seems to be stable so far.
   - Prefetch core now emulates partial load of the
