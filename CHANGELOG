@@ -1,4 +1,7 @@
 (next)
+  - PC-98 FM synthesis fixed not to initialize itself
+    again when rebooting, which fixes a problem with
+    garbled FM synthesis after rebooting.
   - Removed some now-unnecessary SDL Video quit/init
     calls from Windows builds.
   - machine=pc98 now starts entire emulation in PC-98
