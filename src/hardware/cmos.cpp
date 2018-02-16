@@ -550,14 +550,6 @@ static IO_WriteHandleObject WriteHandler[2];
 void CMOS_Destroy(Section* sec) {
 }
 
-void CMOS_EnterPC98(Section* sec) {
-    /* No such device on PC-98 */
-	WriteHandler[0].Uninstall();
-	WriteHandler[1].Uninstall();
-	ReadHandler[0].Uninstall();
-	ReadHandler[1].Uninstall();
-}
-
 void CMOS_Reset(Section* sec) {
 	LOG(LOG_MISC,LOG_DEBUG)("CMOS_Reset(): reinitializing CMOS/RTC controller");
 
@@ -613,7 +605,5 @@ void CMOS_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(CMOS_Destroy),true);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(CMOS_Reset));
-
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(CMOS_EnterPC98));
 }
 

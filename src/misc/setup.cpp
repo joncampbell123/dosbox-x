@@ -819,6 +819,9 @@ void DispatchVMEvent(enum vm_event event) {
 
 	LOG(LOG_MISC,LOG_DEBUG)("Dispatching VM event %s",GetVMEventName(event));
 
+    if (event == __DEAD__VM_EVENT_ENTER_PC98_MODE || event == __DEAD__VM_EVENT_ENTER_PC98_MODE_END)
+        E_Exit("Obsolete VM event PC-98 switch");
+
 	vm_dispatch_state.begin_event(event);
 	for (std::list<Function_wrapper>::iterator i=vm_event_functions[event].begin();i!=vm_event_functions[event].end();i++) {
 		LOG(LOG_MISC,LOG_DEBUG)("Calling event %s handler (%p) '%s'",GetVMEventName(event),(void*)((*i).function),(*i).name.c_str());

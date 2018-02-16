@@ -730,15 +730,6 @@ void MPU401_Destroy(Section* sec){
 	}
 }
 
-void MPU401_EnterPC98(Section* sec){
-    /* NTS: PC-98 systems do have add-in cards for MIDI, but not in the same
-     *      way that IBM PC/XT/AT systems present it to the software. */
-	if (test != NULL) {
-		delete test;
-		test = NULL;
-	}
-}
-
 void MPU401_Reset(Section* sec) {
 	if (test == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating MPU401 emulation");
@@ -764,9 +755,6 @@ void MPU401_Init() {
 
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(MPU401_Reset));
 	AddExitFunction(AddExitFunctionFuncPair(MPU401_Destroy),true);
-
-    AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(MPU401_EnterPC98));
-    AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE_END,AddVMEventFunctionFuncPair(MPU401_Reset));
 
 	control->GetSection("midi")->onpropchange.push_back(&MIDI_OnSectionPropChange);
 }

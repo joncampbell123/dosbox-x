@@ -2209,6 +2209,7 @@ void KEYBOARD_OnReset(Section *sec) {
 
     if (IS_PC98_ARCH) {
         KEYBOARD_OnEnterPC98(NULL);
+        KEYBOARD_OnEnterPC98_phase2(NULL);
     }
     else {
         IO_RegisterWriteHandler(0x60,write_p60,IO_MB);
@@ -2231,9 +2232,6 @@ void KEYBOARD_Init() {
 	AddExitFunction(AddExitFunctionFuncPair(KEYBOARD_ShutDown));
 
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(KEYBOARD_OnReset));
-
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(KEYBOARD_OnEnterPC98));
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE_END,AddVMEventFunctionFuncPair(KEYBOARD_OnEnterPC98_phase2));
 }
 
 void AUX_Reset() {

@@ -811,22 +811,6 @@ void PIC_Reset(Section *sec) {
 void PIC_Destroy(Section* sec) {
 }
 
-void PIC_EnterPC98_Phase1(Section* sec) {
-	ReadHandler[0].Uninstall();
-	ReadHandler[1].Uninstall();
-	WriteHandler[0].Uninstall();
-	WriteHandler[1].Uninstall();
-	ReadHandler[2].Uninstall();
-	ReadHandler[3].Uninstall();
-	WriteHandler[2].Uninstall();
-	WriteHandler[3].Uninstall();
-	PCXT_NMI_WriteHandler.Uninstall();
-}
-
-void PIC_EnterPC98_Phase2(Section* sec) {
-    PIC_Reset(sec);
-}
-
 void Init_PIC() {
 	Bitu i;
 
@@ -845,7 +829,5 @@ void Init_PIC() {
 
 	AddExitFunction(AddExitFunctionFuncPair(PIC_Destroy));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PIC_Reset));
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(PIC_EnterPC98_Phase1));
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE_END,AddVMEventFunctionFuncPair(PIC_EnterPC98_Phase2));
 }
 

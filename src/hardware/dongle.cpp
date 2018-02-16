@@ -180,13 +180,6 @@ static void DONGLE_ShutDown(Section* sec){
     }
 }
 
-static void DONGLE_OnEnterPC98(Section* sec){
-    if (test) {
-        delete test;
-        test = NULL;
-    }
-}
-
 void DONGLE_OnReset(Section* sec) {
 	if (test == NULL && !IS_PC98_ARCH) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating parallel dongle emulation");
@@ -199,5 +192,4 @@ void DONGLE_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(DONGLE_ShutDown),true);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(DONGLE_OnReset));
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(DONGLE_OnEnterPC98));
 }
