@@ -16,6 +16,7 @@
 #include "pc98_dac.h"
 #include "pc98_gdc.h"
 #include "pc98_gdc_const.h"
+#include "mixer.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -27,6 +28,22 @@ using namespace std;
 #include "np2glue.h"
 
 MixerChannel *pc98_mixer = NULL;
+
+extern "C" void sound_sync(void) {
+    if (pc98_mixer) pc98_mixer->FillUp();
+}
+
+extern "C" void _TRACEOUT(const char *fmt,...) {
+    va_list va;
+    char tmp[512];
+
+    va_start(va,fmt);
+
+    vsnprintf(tmp,sizeof(tmp),fmt,va);
+    LOG_MSG("PC98FM TRACEOUT: %s",tmp);
+
+    va_end(va);
+}
 
 int pc98_fm_irq = 3; /* TODO: Make configurable */
 unsigned int pc98_fm26_base = 0x088; /* TODO: Make configurable */
@@ -969,6 +986,7 @@ static void fmkeyreset(void) {
 }
 
 
+#if 0
 #define	CALCENV(e, c, s)													\
 	(c)->slot[(s)].freq_cnt += (c)->slot[(s)].freq_inc;						\
 	(c)->slot[(s)].env_cnt += (c)->slot[(s)].env_inc;						\
@@ -1317,7 +1335,7 @@ void opngen_setVR(REG8 channel, REG8 value) {
 		opncfg.vr_en = FALSE;
 	}
 }
-
+#endif
 
 // ----
 
@@ -1529,10 +1547,13 @@ static void channleupdate(OPNCH *ch) {
 	}
 }
 
+#if 0
 void opngen_setreg(REG8 chbase, UINT reg, REG8 value);
+#endif
 
 // ----
 
+#if 0
 void opngen_reset(void) {
 
 	OPNCH	*ch;
@@ -1706,6 +1727,7 @@ void opngen_setreg(REG8 chbase, UINT reg, REG8 value) {
 		}
 	}
 }
+#endif
 
 static const UINT8 keybrd1[] = {				// ®ÕB
 				28, 14,
@@ -1797,6 +1819,7 @@ void keydisp_fmkeyon(UINT8 ch, UINT8 value) {
 	}
 }
 
+#if 0
 void opngen_keyon(UINT chnum, REG8 value) {
 
 	OPNCH	*ch;
@@ -1840,8 +1863,9 @@ void opngen_keyon(UINT chnum, REG8 value) {
 	}
 	keydisp_fmkeyon((UINT8)chnum, value);
 }
+#endif
 
-	TMS3631CFG	tms3631cfg;
+TMS3631CFG	tms3631cfg;
 
 static const UINT16 tms3631_freqtbl[] = {
 			0,	0x051B, 0x0569, 0x05BB, 0x0613, 0x066F, 0x06D1,

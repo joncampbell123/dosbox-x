@@ -3,8 +3,9 @@
  * it uses. */
 
 #include <math.h>
-
-#include "mixer.h"
+#include <stdint.h>
+#include <string.h>
+#include <stdlib.h>
 
 // GLUE TYPEDEFS
 // WARNING: Windows targets will want to IFDEF some of these out as they will
@@ -42,6 +43,10 @@ typedef void* NP2CFG;
 #define M_PI 3.14159265358979323846
 #endif
 
+#ifndef PI
+#define PI M_PI
+#endif
+
 #ifndef WIN32
 static inline void ZeroMemory(void *p,size_t l) {
     memset(p,0,l);
@@ -52,8 +57,6 @@ static inline void FillMemory(void *p,size_t l,unsigned char c) {
 }
 #endif
 
-extern MixerChannel *pc98_mixer;
-
 static inline void pcm86io_bind(void) {
     /* dummy */
 }
@@ -62,13 +65,26 @@ static inline void pcm86io_bind(void) {
 extern "C" {
 #endif
 
-static inline void sound_sync(void) {
-    if (pc98_mixer) pc98_mixer->FillUp();
-}
+void sound_sync(void);
 
 #ifdef __cplusplus
 }
 #endif
 
 #define BRESULT             UINT8
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#if 1
+void _TRACEOUT(const char *fmt,...);
+#else
+static inline void _TRACEOUT(const char *fmt,...) { };
+#endif
+#define TRACEOUT(a) _TRACEOUT a
+
+#ifdef __cplusplus
+}
+#endif
 
