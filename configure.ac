@@ -662,8 +662,13 @@ src/misc/Makefile
 src/shell/Makefile
 src/platform/Makefile
 include/Makefile
+dosbox-x.spec
+make-rpm.sh
 ])
 AC_OUTPUT
+
+# HACK: it's a script...
+chmod +x make-rpm.sh
 
 # HACK: Write all PACKAGE defines to vs2015/config_package.h so Windows builds are kept in sync
 grep -E 'PACKAGE|VERSION' config.h >vs2015/config_package.h
