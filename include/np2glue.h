@@ -3,6 +3,8 @@
  * it uses. */
 
 #include <math.h>
+#include <stdio.h>
+#include <dirent.h>
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
@@ -11,6 +13,24 @@
 #if !defined(MAX_PATH)
 #define MAX_PATH PATH_MAX
 #endif
+
+#ifdef WIN32
+# define BYTESEX_LITTLE
+# define _G_DIR_SEPARATOR '\\'
+#else
+# define _G_DIR_SEPARATOR '/'
+# include <endian.h>
+# if BYTE_ORDER == LITTLE_ENDIAN
+# define BYTESEX_LITTLE
+# else
+# define BYTESEX_BIG
+# endif
+#endif
+
+enum {
+	SUCCESS		= 0,
+	FAILURE		= 1
+};
 
 enum {
 	PCBASECLOCK25		= 2457600,
@@ -56,17 +76,28 @@ typedef uint32_t UINT;
 typedef uint32_t REG8; /* GLIB guint32 -> UINT -> REG8 */
 #ifndef WIN32
 typedef uint8_t BOOL;
+typedef uint8_t BYTE;
 #endif
 typedef char OEMCHAR;
 typedef void* NEVENTITEM;
 #define OEMTEXT(x) (x)
 #define SOUNDCALL
 
-//#define LOADINTELWORD(x) host_readw((HostPt)(x))
-//#define STOREINTELWORD(x,y) host_writew((HostPt)(x),(y))
+static uint16_t LOADINTELWORD(void *x) {
+    return *((uint16_t*)(x));
+}
 
-#define LOADINTELWORD(x) ( *((uint16_t*)(&(x))) )
-#define STOREINTELWORD(x,y) *((uint16_t*)(&(x))) = (y)
+static void STOREINTELWORD(void *x,uint16_t y) {
+    *((uint16_t*)(x)) = y;
+}
+
+static uint32_t LOADINTELDWORD(void *x) {
+    return *((uint32_t*)(x));
+}
+
+static void STOREINTELDWORD(void *x,uint32_t y) {
+    *((uint32_t*)(x)) = y;
+}
 
 #ifndef TRUE
 #define TRUE 1
@@ -209,6 +240,8 @@ typedef struct {
 extern "C" {
 #endif
 
+void getbiospath(OEMCHAR *path, const OEMCHAR *fname, int maxlen);
+
 extern NP2CFG pccore;
 
 #ifdef __cplusplus
@@ -222,4 +255,24 @@ extern NP2CFG pccore;
 #ifndef min
 #define min(a,b)    (((a) < (b)) ? (a) : (b))
 #endif
+
+#ifndef	NELEMENTS
+#define	NELEMENTS(a)	((int)(sizeof(a) / sizeof(a[0])))
+#endif
+
+#define	_MEM_INIT()				
+#define	_MALLOC(a, b)			malloc(a)
+#define	_MFREE(a)				free(a)
+#define	_HANDLE_ADD(a, b)		
+#define	_HANDLE_REM(a)			
+#define	_MEM_USED(a)			
+
+#define CopyMemory(d,s,n)   memcpy((d), (s), (n))
+
+typedef FILE *			FILEH;
+#define	FILEH_INVALID		NULL
+
+#define	FSEEK_SET		SEEK_SET
+#define	FSEEK_CUR		SEEK_CUR
+#define	FSEEK_END		SEEK_END
 

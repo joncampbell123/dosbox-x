@@ -1,13 +1,14 @@
-#include	"compiler.h"
+#include    "np2glue.h"
+//#include	"compiler.h"
 #include	"wavefile.h"
-#include	"dosio.h"
-#include	"soundmng.h"
-#include	"cpucore.h"
-#include	"pccore.h"
-#include	"iocore.h"
+//#include	"dosio.h"
+//#include	"soundmng.h"
+//#include	"cpucore.h"
+//#include	"pccore.h"
+//#include	"iocore.h"
 #include	"sound.h"
 #include	"sndcsec.h"
-#include	"beep.h"
+//#include	"beep.h"
 #include	"getsnd.h"
 
 
@@ -36,7 +37,7 @@ typedef struct {
 
 static	SNDSTREAM	sndstream;
 
-
+#if 0
 static void streamreset(void) {
 
 	SNDCSEC_ENTER;
@@ -63,6 +64,7 @@ static void streamprepare(UINT samples) {
 		sndstream.remain -= count;
 	}
 }
+#endif
 
 
 #if defined(SUPPORT_WAVEREC)
@@ -167,6 +169,7 @@ static void filltailsample(UINT count) {
 
 // ----
 
+#if 0
 BOOL sound_create(UINT rate, UINT ms) {
 
 	UINT	samples;
@@ -214,7 +217,9 @@ scre_err2:
 scre_err1:
 	return(FAILURE);
 }
+#endif
 
+#if 0
 void sound_destroy(void) {
 
 	if (sndstream.buffer) {
@@ -229,17 +234,21 @@ void sound_destroy(void) {
 		sndstream.buffer = NULL;
 	}
 }
+#endif
 
+#if 0
 void sound_reset(void) {
 
 	if (sndstream.buffer) {
 		soundmng_reset();
 		streamreset();
-		soundcfg.lastclock = CPU_CLOCK;
+//		soundcfg.lastclock = CPU_CLOCK;
 		beep_eventreset();
 	}
 }
+#endif
 
+#if 0
 void sound_changeclock(void) {
 
 	UINT32	clk;
@@ -266,7 +275,9 @@ void sound_changeclock(void) {
 	soundcfg.minclock = 2 * clk / hz;
 	soundcfg.lastclock = CPU_CLOCK;
 }
+#endif
 
+#if 0
 void sound_streamregist(void *hdl, SOUNDCB cbfn) {
 
 	if (sndstream.buffer) {
@@ -278,10 +289,12 @@ void sound_streamregist(void *hdl, SOUNDCB cbfn) {
 		}
 	}
 }
+#endif
 
 
 // ----
 
+#if 0
 void sound_sync(void) {
 
 	UINT32	length;
@@ -316,9 +329,11 @@ void sound_sync(void) {
 		soundmng_sync();
 	}
 }
+#endif
 
 static volatile int locks = 0;
 
+#if 0
 const SINT32 *sound_pcmlock(void) {
 
 const SINT32 *ret;
@@ -349,7 +364,9 @@ const SINT32 *ret;
 	}
 	return(ret);
 }
+#endif
 
+#if 0
 void sound_pcmunlock(const SINT32 *hdl) {
 
 	int		leng;
@@ -368,7 +385,7 @@ void sound_pcmunlock(const SINT32 *hdl) {
 		locks--;
 	}
 }
-
+#endif
 
 // ---- pcmmix
 

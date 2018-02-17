@@ -47,6 +47,11 @@ extern "C" void _TRACEOUT(const char *fmt,...) {
     va_end(va);
 }
 
+void getbiospath(OEMCHAR *path, const OEMCHAR *fname, int maxlen) {
+    LOG_MSG("PC98FM getbiospath fname='%s'",fname);
+    snprintf(path,maxlen,fname);
+}
+
 int pc98_fm_irq = 3; /* TODO: Make configurable */
 unsigned int pc98_fm26_base = 0x088; /* TODO: Make configurable */
 unsigned int pc98_fm86_base = 0x188; /* TODO: Make configurable */
@@ -59,24 +64,6 @@ unsigned int pc98_fm86_base = 0x188; /* TODO: Make configurable */
 //#include "adpcm.h"        already from fmboard.h
 //#include "tms3631.h"      already from fmboard.h
 //#include "fmtimer.h"      already from fmboard.h
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-void rhythm_initialize(UINT rate);
-void rhythm_deinitialize(void);
-UINT rhythm_getcaps(void);
-void rhythm_setvol(UINT vol);
-
-void rhythm_reset(RHYTHM rhy);
-void rhythm_bind(RHYTHM rhy);
-void rhythm_update(RHYTHM rhy);
-void rhythm_setreg(RHYTHM rhy, UINT reg, REG8 val);
-
-#ifdef __cplusplus
-}
-#endif
 
 #if !defined(DISABLE_SOUND)
 
@@ -392,136 +379,6 @@ typedef struct {
 } RHYTHMCFG;
 
 static	RHYTHMCFG	rhythmcfg;
-
-
-void rhythm_initialize(UINT rate) {
-
-	UINT	i;
-
-	ZeroMemory(&rhythmcfg, sizeof(rhythmcfg));
-	rhythmcfg.rate = rate;
-
-	for (i=0; i<96; i++) {
-		rhythmcfg.voltbl[i] = (UINT)(32768.0 *
-										pow(2.0, (double)i * (-3.0) / 40.0));
-	}
-}
-
-void rhythm_deinitialize(void) {
-
-	UINT	i;
-	SINT16	*ptr;
-
-	for (i=0; i<6; i++) {
-//		ptr = rhythmcfg.pcm[i].sample;
-//		rhythmcfg.pcm[i].sample = NULL;
-//		if (ptr) {
-//			_MFREE(ptr);
-//		}
-	}
-
-    (void)ptr;
-}
-
-static void rhythm_load(void) {
-
-	int		i;
-//	OEMCHAR	path[MAX_PATH];
-
-	for (i=0; i<6; i++) {
-//		if (rhythmcfg.pcm[i].sample == NULL) {
-//			getbiospath(path, rhythmfile[i], NELEMENTS(path));
-//			pcmmix_regfile(rhythmcfg.pcm + i, path, rhythmcfg.rate);
-//		}
-	}
-}
-
-UINT rhythm_getcaps(void) {
-
-	UINT	ret;
-	UINT	i;
-
-	ret = 0;
-	for (i=0; i<6; i++) {
-//		if (rhythmcfg.pcm[i].sample) {
-//			ret |= 1 << i;
-//		}
-	}
-	return(ret);
-}
-
-void rhythm_setvol(UINT vol) {
-
-	rhythmcfg.vol = vol;
-}
-
-void rhythm_reset(RHYTHM rhy) {
-
-	ZeroMemory(rhy, sizeof(_RHYTHM));
-}
-
-void rhythm_bind(RHYTHM rhy) {
-
-	UINT	i;
-
-	rhythm_load();
-//	rhy->hdr.enable = 0x3f;
-	for (i=0; i<6; i++) {
-//		rhy->trk[i].data = rhythmcfg.pcm[i];
-	}
-	rhythm_update(rhy);
-//	sound_streamregist(rhy, (SOUNDCB)pcmmix_getpcm);
-}
-
-void rhythm_update(RHYTHM rhy) {
-
-	UINT	i;
-
-	for (i=0; i<6; i++) {
-//		rhy->trk[i].volume = (rhythmcfg.voltbl[rhy->vol + rhy->trkvol[i]] *
-//														rhythmcfg.vol) >> 10;
-	}
-}
-
-void rhythm_setreg(RHYTHM rhy, UINT reg, REG8 value) {
-
-//	PMIXTRK	*trk;
-	REG8	bit;
-
-	if (reg == 0x10) {
-		sound_sync();
-//		trk = rhy->trk;
-		bit = 0x01;
-		do {
-			if (value & bit) {
-				if (value & 0x80) {
-//					rhy->hdr.playing &= ~((UINT)bit);
-				}
-//				else if (trk->data.sample) {
-//					trk->pcm = trk->data.sample;
-//					trk->remain = trk->data.samples;
-//					rhy->hdr.playing |= bit;
-//				}
-			}
-//			trk++;
-			bit <<= 1;
-		} while(bit < 0x40);
-	}
-	else if (reg == 0x11) {
-		sound_sync();
-		rhy->vol = (~value) & 0x3f;
-		rhythm_update(rhy);
-	}
-	else if ((reg >= 0x18) && (reg < 0x1e)) {
-		sound_sync();
-//		trk = rhy->trk + (reg - 0x18);
-//		trk->flag = ((value & 0x80) >> 7) + ((value & 0x40) >> 5);
-		value = (~value) & 0x1f;
-		rhy->trkvol[reg - 0x18] = (UINT8)value;
-//		trk->volume = (rhythmcfg.voltbl[rhy->vol + value] *
-//														rhythmcfg.vol) >> 10;
-	}
-}
 
 //-----------------------------------------------------------
 // Neko Project II: sound/fmtimer.h

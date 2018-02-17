@@ -1,6 +1,7 @@
-#include	"compiler.h"
+#include    "np2glue.h"
+//#include	"compiler.h"
 #include	<math.h>
-#include	"pccore.h"
+//#include	"pccore.h"
 #include	"sound.h"
 #include	"rhythm.h"
 
@@ -101,7 +102,7 @@ void rhythm_bind(RHYTHM rhy) {
 		rhy->trk[i].data = rhythmcfg.pcm[i];
 	}
 	rhythm_update(rhy);
-	sound_streamregist(rhy, (SOUNDCB)pcmmix_getpcm);
+//	sound_streamregist(rhy, (SOUNDCB)pcmmix_getpcm);
 }
 
 void rhythm_update(RHYTHM rhy) {
