@@ -9,12 +9,12 @@ Requires: libX11 libXext libpng ffmpeg alsa-lib ncurses zlib mesa-libGL pulseaud
 Group: Applications/Emulators
 BuildRoot: %{_tmppath}/%{name}-%{version}-buildroot
 Prefix: %{_prefix}
-%ifos linux
 Provides: dosbox-x
-%endif
+
+%prep
 
 %description
-DOSBox-X is a fork of DOSBox designed to emulate hardware as accurately as possible.
+DOSBox-X is a fork of DOSBox designed to emulate hardware as accurately as possible
 
 %build
 ./build-debug
