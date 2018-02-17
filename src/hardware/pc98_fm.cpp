@@ -2991,7 +2991,7 @@ void board86c_bind(void) {
 //	cbuscore_attachsndex(0x188 + opn.base, opnac_o, opnac_i);
 }
 
-void pc98_fm_write(Bitu port,Bitu val,Bitu iolen) {
+void pc98_fm86_write(Bitu port,Bitu val,Bitu iolen) {
     unsigned char dat = val;
 
 //    LOG_MSG("PC-98 FM: Write port 0x%x val 0x%x",(unsigned int)port,(unsigned int)val);
@@ -3085,7 +3085,7 @@ void pc98_fm_write(Bitu port,Bitu val,Bitu iolen) {
     };
 }
 
-Bitu pc98_fm_read(Bitu port,Bitu iolen) {
+Bitu pc98_fm86_read(Bitu port,Bitu iolen) {
 //    LOG_MSG("PC-98 FM: Read port 0x%x",(unsigned int)port);
 
     switch (port+0x88-pc98_fm86_base) {
@@ -3994,8 +3994,8 @@ void PC98_FM_OnEnterPC98(Section *sec) {
         //    and future refinements in this project.
         LOG_MSG("Initializing FM board at base 0x%x",pc98_fm86_base);
         for (unsigned int i=0;i < 8;i += 2) {
-            IO_RegisterWriteHandler(pc98_fm86_base+i,pc98_fm_write,IO_MB);
-            IO_RegisterReadHandler(pc98_fm86_base+i,pc98_fm_read,IO_MB);
+            IO_RegisterWriteHandler(pc98_fm86_base+i,pc98_fm86_write,IO_MB);
+            IO_RegisterReadHandler(pc98_fm86_base+i,pc98_fm86_read,IO_MB);
         }
 
         // WARNING: Some parts of the borrowed code assume 44100, 22050, or 11025 and
