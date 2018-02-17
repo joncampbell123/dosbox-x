@@ -312,8 +312,7 @@ static void pc98_mix_CallBack(Bitu len) {
     for (unsigned int i=0;i < 3;i++)
         psggen_getpcm(&__psg[i], (SINT32*)MixTemp, s);
     
-//    rhythm_getpcm(NULL, (SINT32*)MixTemp, s); FIXME
-//    adpcm_getpcm(NULL, (SINT32*)MixTemp, s); FIXME
+    adpcm_getpcm(&adpcm, (SINT32*)MixTemp, s);
     pcm86gen_getpcm(NULL, (SINT32*)MixTemp, s);
 
     pc98_mixer->AddSamples_s32(s, (Bit32s*)MixTemp);
