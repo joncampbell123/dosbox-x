@@ -82,9 +82,10 @@ host_triplet = @host@
 subdir = .
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/configure $(am__configure_deps) \
-	$(srcdir)/config.h.in $(srcdir)/dosbox-x.spec.in AUTHORS \
-	COPYING INSTALL NEWS README THANKS compile config.guess \
-	config.sub depcomp install-sh missing
+	$(srcdir)/config.h.in $(srcdir)/dosbox-x.spec.in \
+	$(srcdir)/make-rpm.sh.in AUTHORS COPYING INSTALL NEWS README \
+	THANKS compile config.guess config.sub depcomp install-sh \
+	missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
 	$(top_srcdir)/configure.ac
@@ -94,7 +95,7 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = config.h
-CONFIG_CLEAN_FILES = dosbox-x.spec
+CONFIG_CLEAN_FILES = dosbox-x.spec make-rpm.sh
 CONFIG_CLEAN_VPATH_FILES =
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -360,6 +361,8 @@ $(srcdir)/config.h.in:  $(am__configure_deps)
 distclean-hdr:
 	-rm -f config.h stamp-h1
 dosbox-x.spec: $(top_builddir)/config.status $(srcdir)/dosbox-x.spec.in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
+make-rpm.sh: $(top_builddir)/config.status $(srcdir)/make-rpm.sh.in
 	cd $(top_builddir) && $(SHELL) ./config.status $@
 
 # This directory's subdirectories are mostly independent; you can cd

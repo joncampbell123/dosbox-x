@@ -1,5 +1,5 @@
-BuildRequires: libX11 libX11-devel libXext libXext-devel libpng libpng-devel ffmpeg alsa-lib alsa-lib-devel ncurses ncurses-devel zlib zlib-devel mesa-libGL mesa-libGL-devel pulseaudio-libs pulseaudio-libs-devel make, libtool, gcc
-Requires: libX11 libXext libpng ffmpeg alsa-lib ncurses zlib mesa-libGL pulseaudio-libs
+BuildRequires: libX11 libX11-devel libXext libXext-devel libpng libpng-devel alsa-lib alsa-lib-devel ncurses ncurses-devel zlib zlib-devel mesa-libGL mesa-libGL-devel pulseaudio-libs pulseaudio-libs-devel make, libtool, gcc
+Requires: libX11 libXext libpng alsa-lib ncurses zlib mesa-libGL pulseaudio-libs
 Name: @PACKAGE_NAME@
 Version: @PACKAGE_VERSION@
 Release: 0%{?dist}
@@ -15,7 +15,7 @@ Source0: @PACKAGE_NAME@-@PACKAGE_VERSION@.tar.xz
 %autosetup -n dosbox-x
 
 %build
-./build-debug
+./build-debug-no-avcodec
 
 %check
 

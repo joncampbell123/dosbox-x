@@ -7763,7 +7763,7 @@ $as_echo "no" >&6; }
 esac
 fi
 
-ac_config_files="$ac_config_files Makefile src/Makefile src/cpu/Makefile src/cpu/core_full/Makefile src/cpu/core_normal/Makefile src/debug/Makefile src/dos/Makefile src/fpu/Makefile src/gui/Makefile src/mt32/Makefile src/hardware/Makefile src/hardware/serialport/Makefile src/hardware/reSID/Makefile src/hardware/parport/Makefile src/aviwriter/Makefile src/ints/Makefile src/libs/Makefile src/libs/zmbv/Makefile src/libs/gui_tk/Makefile src/libs/porttalk/Makefile src/builtin/Makefile src/misc/Makefile src/shell/Makefile src/platform/Makefile include/Makefile dosbox-x.spec"
+ac_config_files="$ac_config_files Makefile src/Makefile src/cpu/Makefile src/cpu/core_full/Makefile src/cpu/core_normal/Makefile src/debug/Makefile src/dos/Makefile src/fpu/Makefile src/gui/Makefile src/mt32/Makefile src/hardware/Makefile src/hardware/serialport/Makefile src/hardware/reSID/Makefile src/hardware/parport/Makefile src/aviwriter/Makefile src/ints/Makefile src/libs/Makefile src/libs/zmbv/Makefile src/libs/gui_tk/Makefile src/libs/porttalk/Makefile src/builtin/Makefile src/misc/Makefile src/shell/Makefile src/platform/Makefile include/Makefile dosbox-x.spec make-rpm.sh"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -8532,6 +8532,7 @@ do
     "src/platform/Makefile") CONFIG_FILES="$CONFIG_FILES src/platform/Makefile" ;;
     "include/Makefile") CONFIG_FILES="$CONFIG_FILES include/Makefile" ;;
     "dosbox-x.spec") CONFIG_FILES="$CONFIG_FILES dosbox-x.spec" ;;
+    "make-rpm.sh") CONFIG_FILES="$CONFIG_FILES make-rpm.sh" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
@@ -9258,6 +9259,9 @@ if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
 $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
 
+
+# HACK: it's a script...
+chmod +x make-rpm.sh
 
 # HACK: Write all PACKAGE defines to vs2015/config_package.h so Windows builds are kept in sync
 grep -E 'PACKAGE|VERSION' config.h >vs2015/config_package.h
