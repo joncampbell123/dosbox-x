@@ -27,5 +27,5 @@ tar -cvJf "$tar" --exclude=\*.git --exclude=\*.tar.xz --exclude=\*.a --exclude=\
 cp -vf "$tar" ~/rpmbuild/SOURCES/ || exit 1
 rpmbuild -bb dosbox-x.spec || exit 1
 rm -v "$tar" || exit 1
-cp -v ~/rpmbuild/RPMS/$arch/*.rpm "$dir/" || exit 1
+mv -v ~/rpmbuild/RPMS/$arch/@PACKAGE_NAME@-*@PACKAGE_VERSION@*.rpm "$dir/" || exit 1
 
