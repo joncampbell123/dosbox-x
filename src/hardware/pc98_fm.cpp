@@ -60,49 +60,6 @@ unsigned int pc98_fm86_base = 0x188; /* TODO: Make configurable */
 //#include "tms3631.h"      already from fmboard.h
 //#include "fmtimer.h"      already from fmboard.h
 
-extern ADPCMCFG         adpcmcfg;
-
-#define	SIN_BITS		10
-#define	EVC_BITS		10
-#define	ENV_BITS		16
-#define	KF_BITS			6
-#define	FREQ_BITS		21
-#define	ENVTBL_BIT		14
-#define	SINTBL_BIT		15
-
-
-#define PI              M_PI
-
-#define	TL_BITS			(FREQ_BITS+2)
-#define	OPM_OUTSB		(TL_BITS + 2 - 16)			// OPM output 16bit
-
-#define	SIN_ENT			(1L << SIN_BITS)
-#define	EVC_ENT			(1L << EVC_BITS)
-
-#define	EC_ATTACK		0								// ATTACK start
-#define	EC_DECAY		(EVC_ENT << ENV_BITS)			// DECAY start
-#define	EC_OFF			((2 * EVC_ENT) << ENV_BITS)		// OFF
-
-#define	TL_MAX			(EVC_ENT * 2)
-
-#define	OPM_ARRATE		 399128L
-#define	OPM_DRRATE		5514396L
-
-#define	EG_STEP	(96.0 / EVC_ENT)					// dB step
-#define	SC(db)	(SINT32)((db) * ((3.0 / EG_STEP) * (1 << ENV_BITS))) + EC_DECAY
-#define	D2(v)	(((double)(6 << KF_BITS) * log((double)(v)) / log(2.0)) + 0.5)
-#define	FMASMSHIFT	(32 - 6 - (OPM_OUTSB + 1 + FMDIV_BITS) + FMVOL_SFTBIT)
-#define	FREQBASE4096	((double)OPNA_CLOCK / calcrate / 64)
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifdef __cplusplus
-}
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -121,147 +78,11 @@ void rhythm_setreg(RHYTHM rhy, UINT reg, REG8 val);
 }
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifdef __cplusplus
-}
-#endif
-
-
-enum {
-	KEYDISP_MODENONE			= 0,
-	KEYDISP_MODEFM,
-	KEYDISP_MODEMIDI
-};
-
-#define SUPPORT_PX
-
-#if defined(SUPPORT_PX)
-enum {
-	KEYDISP_CHMAX		= 39,
-	KEYDISP_FMCHMAX		= 30,
-	KEYDISP_PSGMAX		= 3
-};
-#else	// defined(SUPPORT_PX)
-enum {
-	KEYDISP_CHMAX		= 16,
-	KEYDISP_FMCHMAX		= 12,
-	KEYDISP_PSGMAX		= 3
-};
-#endif	// defined(SUPPORT_PX)
-
-enum {
-	KEYDISP_NOTEMAX		= 16,
-
-	KEYDISP_KEYCX		= 28,
-	KEYDISP_KEYCY		= 14,
-
-	KEYDISP_LEVEL		= (1 << 4),
-
-	KEYDISP_WIDTH		= 301,
-	KEYDISP_HEIGHT		= (KEYDISP_KEYCY * KEYDISP_CHMAX) + 1,
-
-	KEYDISP_DELAYEVENTS	= 2048,
-};
-
-enum {
-	KEYDISP_PALBG		= 0,
-	KEYDISP_PALFG,
-	KEYDISP_PALHIT,
-
-	KEYDISP_PALS
-};
-
-enum {
-	KEYDISP_FLAGDRAW		= 0x01,
-	KEYDISP_FLAGREDRAW		= 0x02,
-	KEYDISP_FLAGSIZING		= 0x04
-};
-
-enum {
-	FNUM_MIN	= 599,
-	FNUM_MAX	= 1199
-};
-
-enum {
-	FTO_MAX		= 491,
-	FTO_MIN		= 245
-};
-
-
 #if !defined(DISABLE_SOUND)
 
-
-
-
-typedef struct {
-	UINT16	posx;
-	UINT16	pals;
-const UINT8	*data;
-} KDKEYPOS;
-
-typedef struct {
-	UINT8	k[KEYDISP_NOTEMAX];
-	UINT8	r[KEYDISP_NOTEMAX];
-	UINT	remain;
-	UINT8	flag;
-	UINT8	padding[3];
-} KDCHANNEL;
-
-typedef struct {
-	UINT8	ch;
-	UINT8	key;
-} KDDELAYE;
-
-typedef struct {
-	UINT	pos;
-	UINT	rem;
-	UINT8	warm;
-	UINT8	warmbase;
-} KDDELAY;
-
-typedef struct {
-	UINT16	fnum[4];
-	UINT8	lastnote[4];
-	UINT8	flag;
-	UINT8	extflag;
-} KDFMCTRL;
-
-typedef struct {
-	UINT16	fto[4];
-	UINT8	lastnote[4];
-	UINT8	flag;
-	UINT8	mix;
-	UINT8	padding[2];
-} KDPSGCTRL;
-
-typedef struct {
-	UINT8		mode;
-	UINT8		dispflag;
-	UINT8		framepast;
-	UINT8		keymax;
-	UINT8		fmmax;
-	UINT8		psgmax;
-	UINT8		fmpos[KEYDISP_FMCHMAX];
-	UINT8		psgpos[KEYDISP_PSGMAX];
-	const UINT8	*pfmreg[KEYDISP_FMCHMAX];
-	KDDELAY		delay;
-	KDCHANNEL	ch[KEYDISP_CHMAX];
-	KDFMCTRL	fmctl[KEYDISP_FMCHMAX];
-	KDPSGCTRL	psgctl[KEYDISP_PSGMAX];
-//	UINT8		pal8[KEYDISP_PALS];
-//	UINT16		pal16[KEYDISP_LEVEL*2];
-//	RGB32		pal32[KEYDISP_LEVEL*2];
-	KDKEYPOS	keypos[128];
-	KDDELAYE	delaye[KEYDISP_DELAYEVENTS];
-} KEYDISP;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 static void	(*extfn)(REG8 enable);
 
@@ -323,30 +144,6 @@ extern	_RHYTHM		rhythm3;
 	char	sinshift[SIN_ENT];
 #endif
 
-
-static	SINT32	detunetable[8][32];
-static	SINT32	attacktable[94];
-static	SINT32	decaytable[94];
-
-static const SINT32	decayleveltable[16] = {
-		 			SC( 0),SC( 1),SC( 2),SC( 3),SC( 4),SC( 5),SC( 6),SC( 7),
-		 			SC( 8),SC( 9),SC(10),SC(11),SC(12),SC(13),SC(14),SC(31)};
-static const UINT8 multipletable[] = {
-			    	1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30};
-static const SINT32 nulltable[] = {
-					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-					0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-static const UINT8 kftable[16] = {0,0,0,0,0,0,0,1,2,3,3,3,3,3,3,3};
-static const UINT8 dttable[] = {
-					0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-					0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-					0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2,
-					2, 3, 3, 3, 4, 4, 4, 5, 5, 6, 6, 7, 8, 8, 8, 8,
-					1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5,
-					5, 6, 6, 7, 8, 8, 9,10,11,12,13,14,16,16,16,16,
-					2, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 6, 6, 7,
-					8, 8, 9,10,11,12,13,14,16,17,19,20,22,22,22,22};
-static const int extendslot[4] = {2, 3, 1, 0};
 
 extern	OPNCFG	opncfg;
 
@@ -562,27 +359,6 @@ void fmboard_rhyrestore2(OPN_T* pOpn, RHYTHM rhy, UINT bank);
 #define	fmboard_reset(t)
 #define	fmboard_bind()
 
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-void opngen_initialize(UINT rate);
-void opngen_setvol(UINT vol);
-void opngen_setVR(REG8 channel, REG8 value);
-
-void opngen_reset(void);
-void opngen_setcfg(REG8 maxch, UINT32 flag);
-void opngen_setextch(UINT chnum, REG8 data);
-void opngen_setreg(REG8 chbase, UINT reg, REG8 value);
-void opngen_keyon(UINT chnum, REG8 value);
-
-void SOUNDCALL opngen_getpcm(void *hdl, SINT32 *buf, UINT count);
-void SOUNDCALL opngen_getpcmvr(void *hdl, SINT32 *buf, UINT count);
-
-#ifdef __cplusplus
-}
 #endif
 
 enum {
