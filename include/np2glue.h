@@ -270,9 +270,4 @@ extern NP2CFG pccore;
 #define CopyMemory(d,s,n)   memcpy((d), (s), (n))
 
 typedef FILE *			FILEH;
-#define	FILEH_INVALID		NULL
-
-#define	FSEEK_SET		SEEK_SET
-#define	FSEEK_CUR		SEEK_CUR
-#define	FSEEK_END		SEEK_END
 

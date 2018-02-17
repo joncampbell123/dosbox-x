@@ -1,7 +1,7 @@
 #include    "np2glue.h"
 //#include	"compiler.h"
 #include	"wavefile.h"
-//#include	"dosio.h"
+#include	"dosio.h"
 //#include	"soundmng.h"
 //#include	"cpucore.h"
 //#include	"pccore.h"
