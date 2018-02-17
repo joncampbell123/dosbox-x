@@ -866,6 +866,7 @@ void DOSBOX_SetupConfigSections(void) {
 	const char* tandys[] = { "auto", "on", "off", 0};
 	const char* ps1opt[] = { "on", "off", 0};
 	const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", 0};
+    const char* pc98fmboards[] = { "auto", "off", "false", "board26k", "board86", "board86c", 0};
 
 	const char* irqssbhack[] = {
 		"none", "cs_equ_ds", 0
@@ -1150,6 +1151,10 @@ void DOSBOX_SetupConfigSections(void) {
 		"    24: 16MB aliasing. Common on 386SX systems (CPU had 24 external address bits)\n"
 		"        or 386DX and 486 systems where the CPU communicated directly with the ISA bus (A24-A31 tied off)\n"
 		"    26: 64MB aliasing. Some 486s had only 26 external address bits, some motherboards tied off A26-A31");
+
+	Pstring = secprop->Add_string("pc-98 fm board",Property::Changeable::Always,"auto");
+    Pstring->Set_values(pc98fmboards);
+	Pstring->Set_help("In PC-98 mode, selects the FM music board to emulate.");
 
 	Pbool = secprop->Add_bool("pc-98 buffer page flip",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("If set, the game's request to page flip will be delayed to vertical retrace, which can eliminate tearline artifacts.\n"

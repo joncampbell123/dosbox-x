@@ -178,7 +178,14 @@ static void pc98_mix_CallBack(Bitu len) {
 static bool pc98fm_init = false;
 
 void PC98_FM_OnEnterPC98(Section *sec) {
+    Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+
     if (!pc98fm_init) {
+        std::string board;
+
+        board = section->Get_string("pc-98 fm board");
+        if (board == "off" || board == "false") return;
+
         pc98fm_init = true;
 
         unsigned int rate = 44100;
@@ -211,7 +218,23 @@ void PC98_FM_OnEnterPC98(Section *sec) {
         pcm86gen_initialize(rate);
         pcm86gen_setvol(pccore.vol_pcm);
 
-        fmboard_reset(&np2cfg, 0x14);
+        if (board == "board86c" || board == "auto") {
+            LOG_MSG("PC-98 FM board is PC-9801-86c");
+            fmboard_reset(&np2cfg, 0x14);
+        }
+        else if (board == "board86") {
+            LOG_MSG("PC-98 FM board is PC-9801-86");
+            fmboard_reset(&np2cfg, 0x04);
+        }
+        else if (board == "board26k") {
+            LOG_MSG("PC-98 FM board is PC-9801-26k");
+            fmboard_reset(&np2cfg, 0x02);
+        }
+        else {
+            LOG_MSG("PC-98 FM board is PC-9801-86c");
+            fmboard_reset(&np2cfg, 0x14);   // board86c, a good default
+        }
+
         fmboard_extenable(true);
 
         fmboard_bind();
