@@ -1,4 +1,5 @@
-#include	"compiler.h"
+#include    "np2glue.h"
+//#include	"compiler.h"
 
 #if defined(SUPPORT_KEYDISP)
 

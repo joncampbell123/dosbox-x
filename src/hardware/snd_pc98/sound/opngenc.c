@@ -622,6 +622,6 @@ void opngen_keyon(UINT chnum, REG8 value) {
 		slot++;
 		bit <<= 1;
 	}
-	keydisp_fmkeyon((UINT8)chnum, value);
+//	keydisp_fmkeyon((UINT8)chnum, value);
 }
 
