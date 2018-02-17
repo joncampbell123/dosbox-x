@@ -300,7 +300,9 @@ static void pc98_mix_CallBack(Bitu len) {
 
     for (unsigned int i=0;i < 3;i++)
         psggen_getpcm(&__psg[i], (SINT32*)MixTemp, s);
-    
+ 
+    // NTS: _RHYTHM is a struct with the same initial layout as PCMMIX
+    pcmmix_getpcm((PCMMIX)(&rhythm), (SINT32*)MixTemp, s);
     adpcm_getpcm(&adpcm, (SINT32*)MixTemp, s);
     pcm86gen_getpcm(NULL, (SINT32*)MixTemp, s);
 
