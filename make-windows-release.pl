@@ -11,8 +11,19 @@ die unless -f $ziptool;
 
 my $subdir="release/windows";
 
-my $branch=`git branch | grep \\\* | cut -d ' ' -f 2`;
-chomp $branch;
+my $brancha=`git branch`;
+my $branch;
+
+my @a = split(/\n/,$brancha);
+for ($i=0;$i < @a;$i++) {
+	my $line = $a[$i];
+	chomp $line;
+
+	if ($line =~ s/^\* +//) {
+		$branch = $line;
+	}
+}
+
 if ( "$branch" eq "develop-win-sdl1-async-hack-201802" ) {
     $subdir="release/windows-async";
 }
