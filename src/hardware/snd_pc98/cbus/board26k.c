@@ -1,7 +1,8 @@
-#include	"compiler.h"
-#include	"pccore.h"
-#include	"iocore.h"
-#include	"cbuscore.h"
+#include    "np2glue.h"
+//#include	"compiler.h"
+//#include	"pccore.h"
+//#include	"iocore.h"
+//#include	"cbuscore.h"
 #include	"board26k.h"
 #include	"sound.h"
 #include	"fmboard.h"
@@ -92,8 +93,8 @@ void board26k_bind(void) {
 
 	fmboard_fmrestore(0, 0);
 	psggen_restore(&psg1);
-	sound_streamregist(&opngen, (SOUNDCB)opngen_getpcm);
-	sound_streamregist(&psg1, (SOUNDCB)psggen_getpcm);
+//	sound_streamregist(&opngen, (SOUNDCB)opngen_getpcm);
+//	sound_streamregist(&psg1, (SOUNDCB)psggen_getpcm);
 	cbuscore_attachsndex(0x188 - opn.base, opn_o, opn_i);
 }
 
