@@ -28,6 +28,10 @@ using namespace std;
 
 MixerChannel *pc98_mixer = NULL;
 
+int pc98_fm_irq = 3; /* TODO: Make configurable */
+unsigned int pc98_fm26_base = 0x088; /* TODO: Make configurable */
+unsigned int pc98_fm86_base = 0x188; /* TODO: Make configurable */
+
 // opngen.h
 
 enum {
@@ -2803,9 +2807,6 @@ void rhythm_setreg(RHYTHM rhy, UINT reg, REG8 value) {
 
 static const UINT8 irqtable[4] = {0x03, 0x0d, 0x0a, 0x0c};
 
-int pc98_fm_irq = 3; /* TODO: Make configurable */
-unsigned int pc98_fm_base = 0x188; /* TODO: Make configurable */
-
 static void set_fmtimeraevent(BOOL absolute);
 static void set_fmtimerbevent(BOOL absolute);
 void fmport_a(NEVENTITEM item);
@@ -2995,7 +2996,7 @@ void pc98_fm_write(Bitu port,Bitu val,Bitu iolen) {
 
 //    LOG_MSG("PC-98 FM: Write port 0x%x val 0x%x",(unsigned int)port,(unsigned int)val);
 
-    switch (port+0x88-pc98_fm_base) {
+    switch (port+0x88-pc98_fm86_base) {
         case 0x88:
             opn.addr = dat;
             opn.data = dat;
@@ -3087,7 +3088,7 @@ void pc98_fm_write(Bitu port,Bitu val,Bitu iolen) {
 Bitu pc98_fm_read(Bitu port,Bitu iolen) {
 //    LOG_MSG("PC-98 FM: Read port 0x%x",(unsigned int)port);
 
-    switch (port+0x88-pc98_fm_base) {
+    switch (port+0x88-pc98_fm86_base) {
         case 0x88:
             return fmtimer.status;
         case 0x8A:
@@ -3991,10 +3992,10 @@ void PC98_FM_OnEnterPC98(Section *sec) {
         //  - Make sure this code clearly indicates that it was borrowed and adapted from Neko Project II and
         //    ported to DOSBox-X. I cannot take credit for this code, I can only take credit for porting it
         //    and future refinements in this project.
-        LOG_MSG("Initializing FM board at base 0x%x",pc98_fm_base);
+        LOG_MSG("Initializing FM board at base 0x%x",pc98_fm86_base);
         for (unsigned int i=0;i < 8;i += 2) {
-            IO_RegisterWriteHandler(pc98_fm_base+i,pc98_fm_write,IO_MB);
-            IO_RegisterReadHandler(pc98_fm_base+i,pc98_fm_read,IO_MB);
+            IO_RegisterWriteHandler(pc98_fm86_base+i,pc98_fm_write,IO_MB);
+            IO_RegisterReadHandler(pc98_fm86_base+i,pc98_fm_read,IO_MB);
         }
 
         // WARNING: Some parts of the borrowed code assume 44100, 22050, or 11025 and
