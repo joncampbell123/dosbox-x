@@ -62,8 +62,11 @@ typedef void* NEVENTITEM;
 #define OEMTEXT(x) (x)
 #define SOUNDCALL
 
-#define LOADINTELWORD(x) host_readw((HostPt)(x))
-#define STOREINTELWORD(x,y) host_writew((HostPt)(x),(y))
+//#define LOADINTELWORD(x) host_readw((HostPt)(x))
+//#define STOREINTELWORD(x,y) host_writew((HostPt)(x),(y))
+
+#define LOADINTELWORD(x) ( *((uint16_t*)(&(x))) )
+#define STOREINTELWORD(x,y) *((uint16_t*)(&(x))) = (y)
 
 #ifndef TRUE
 #define TRUE 1
@@ -210,5 +213,13 @@ extern NP2CFG pccore;
 
 #ifdef __cplusplus
 }
+#endif
+
+#ifdef reg
+#undef reg
+#endif
+
+#ifndef min
+#define min(a,b)    (((a) < (b)) ? (a) : (b))
 #endif
 

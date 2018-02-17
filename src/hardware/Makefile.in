@@ -124,7 +124,10 @@ am_libhardware_a_OBJECTS = adlib.$(OBJEXT) dma.$(OBJEXT) \
 	snd_pc98/sound/pcm86c.$(OBJEXT) \
 	snd_pc98/sound/pcm86g.$(OBJEXT) \
 	snd_pc98/sound/tms3631c.$(OBJEXT) \
-	snd_pc98/sound/tms3631g.$(OBJEXT)
+	snd_pc98/sound/tms3631g.$(OBJEXT) \
+	snd_pc98/sound/psggenc.$(OBJEXT) \
+	snd_pc98/sound/psggeng.$(OBJEXT) \
+	snd_pc98/common/parts.$(OBJEXT)
 libhardware_a_OBJECTS = $(am_libhardware_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -345,7 +348,7 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/src/aviwriter -I$(top_srcdir)/src/hardware/snd_pc98/sound
+AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/src/aviwriter -I$(top_srcdir)/src/hardware/snd_pc98/sound -I$(top_srcdir)/src/hardware/snd_pc98/common -I$(top_srcdir)/src/hardware/snd_pc98/generic
 SUBDIRS = serialport parport reSID
 EXTRA_DIST = opl.cpp opl.h adlib.h dbopl.h pci_devices.h voodoo_types.h voodoo_def.h voodoo_data.h \
              voodoo_interface.h voodoo_emu.h voodoo_vogl.h voodoo_opengl.h
@@ -358,7 +361,8 @@ libhardware_a_SOURCES = adlib.cpp dma.cpp gameblaster.cpp hardware.cpp iohandler
 			cmos.cpp disney.cpp gus.cpp mpu401.cpp ipx.cpp ipxserver.cpp ne2000.cpp hardopl.cpp dbopl.cpp innova.cpp dongle.cpp \
 			voodoo.cpp voodoo_interface.cpp voodoo_emu.cpp ps1_sound.cpp sn76496.h ide.cpp floppy.cpp voodoo_vogl.cpp voodoo_opengl.cpp nukedopl.cpp pc98.cpp vga_pc98_gdc.cpp vga_pc98_dac.cpp vga_pc98_crtc.cpp vga_pc98_cg.cpp vga_pc98_egc.cpp pc98_fm.cpp \
 			snd_pc98/sound/opngenc.c snd_pc98/sound/opngeng.c snd_pc98/sound/pcm86c.c snd_pc98/sound/pcm86g.c \
-			snd_pc98/sound/tms3631c.c snd_pc98/sound/tms3631g.c
+			snd_pc98/sound/tms3631c.c snd_pc98/sound/tms3631g.c snd_pc98/sound/psggenc.c snd_pc98/sound/psggeng.c \
+			snd_pc98/common/parts.c
 
 all: all-recursive
 
@@ -415,6 +419,18 @@ snd_pc98/sound/tms3631c.$(OBJEXT): snd_pc98/sound/$(am__dirstamp) \
 	snd_pc98/sound/$(DEPDIR)/$(am__dirstamp)
 snd_pc98/sound/tms3631g.$(OBJEXT): snd_pc98/sound/$(am__dirstamp) \
 	snd_pc98/sound/$(DEPDIR)/$(am__dirstamp)
+snd_pc98/sound/psggenc.$(OBJEXT): snd_pc98/sound/$(am__dirstamp) \
+	snd_pc98/sound/$(DEPDIR)/$(am__dirstamp)
+snd_pc98/sound/psggeng.$(OBJEXT): snd_pc98/sound/$(am__dirstamp) \
+	snd_pc98/sound/$(DEPDIR)/$(am__dirstamp)
+snd_pc98/common/$(am__dirstamp):
+	@$(MKDIR_P) snd_pc98/common
+	@: > snd_pc98/common/$(am__dirstamp)
+snd_pc98/common/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) snd_pc98/common/$(DEPDIR)
+	@: > snd_pc98/common/$(DEPDIR)/$(am__dirstamp)
+snd_pc98/common/parts.$(OBJEXT): snd_pc98/common/$(am__dirstamp) \
+	snd_pc98/common/$(DEPDIR)/$(am__dirstamp)
 
 libhardware.a: $(libhardware_a_OBJECTS) $(libhardware_a_DEPENDENCIES) $(EXTRA_libhardware_a_DEPENDENCIES) 
 	$(AM_V_at)-rm -f libhardware.a
@@ -423,6 +439,7 @@ libhardware.a: $(libhardware_a_OBJECTS) $(libhardware_a_DEPENDENCIES) $(EXTRA_li
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
+	-rm -f snd_pc98/common/*.$(OBJEXT)
 	-rm -f snd_pc98/sound/*.$(OBJEXT)
 
 distclean-compile:
@@ -484,10 +501,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/voodoo_interface.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/voodoo_opengl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/voodoo_vogl.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@snd_pc98/common/$(DEPDIR)/parts.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@snd_pc98/sound/$(DEPDIR)/opngenc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@snd_pc98/sound/$(DEPDIR)/opngeng.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@snd_pc98/sound/$(DEPDIR)/pcm86c.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@snd_pc98/sound/$(DEPDIR)/pcm86g.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@snd_pc98/sound/$(DEPDIR)/psggenc.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@snd_pc98/sound/$(DEPDIR)/psggeng.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@snd_pc98/sound/$(DEPDIR)/tms3631c.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@snd_pc98/sound/$(DEPDIR)/tms3631g.Po@am__quote@
 
@@ -708,6 +728,8 @@ clean-generic:
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
+	-rm -f snd_pc98/common/$(DEPDIR)/$(am__dirstamp)
+	-rm -f snd_pc98/common/$(am__dirstamp)
 	-rm -f snd_pc98/sound/$(DEPDIR)/$(am__dirstamp)
 	-rm -f snd_pc98/sound/$(am__dirstamp)
 
@@ -719,7 +741,7 @@ clean: clean-recursive
 clean-am: clean-generic clean-noinstLIBRARIES mostlyclean-am
 
 distclean: distclean-recursive
-	-rm -rf ./$(DEPDIR) snd_pc98/sound/$(DEPDIR)
+	-rm -rf ./$(DEPDIR) snd_pc98/common/$(DEPDIR) snd_pc98/sound/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -765,7 +787,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-recursive
-	-rm -rf ./$(DEPDIR) snd_pc98/sound/$(DEPDIR)
+	-rm -rf ./$(DEPDIR) snd_pc98/common/$(DEPDIR) snd_pc98/sound/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

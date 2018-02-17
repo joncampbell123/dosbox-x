@@ -1,4 +1,5 @@
-#include	"compiler.h"
+#include    "np2glue.h"
+//#include	"compiler.h"
 #include	"parts.h"
 #include	"sound.h"
 #include	"psggen.h"
