@@ -1,26 +1,27 @@
-#include	"compiler.h"
-#include	"joymng.h"
-#include	"soundmng.h"
-#include	"pccore.h"
-#include	"iocore.h"
-#include	"cbuscore.h"
-#include	"board14.h"
-#include	"board26k.h"
+#include    "np2glue.h"
+//#include	"compiler.h"
+//#include	"joymng.h"
+//#include	"soundmng.h"
+//#include	"pccore.h"
+//#include	"iocore.h"
+//#include	"cbuscore.h"
+//#include	"board14.h"
+//#include	"board26k.h"
 #include	"board86.h"
-#include	"boardx2.h"
-#include	"board118.h"
-#include	"boardspb.h"
+//#include	"boardx2.h"
+//#include	"board118.h"
+//#include	"boardspb.h"
 #if defined(SUPPORT_PX)
-#include	"boardpx.h"
+//#include	"boardpx.h"
 #endif	// defined(SUPPORT_PX)
-#include	"amd98.h"
-#include	"pcm86io.h"
-#include	"cs4231io.h"
+//#include	"amd98.h"
+//#include	"pcm86io.h"
+//#include	"cs4231io.h"
 #include	"sound.h"
 #include	"fmboard.h"
-#include	"beep.h"
+//#include	"beep.h"
 #include	"keydisp.h"
-#include	"keystat.h"
+//#include	"keystat.h"
 
 
 	UINT32		usesound;
@@ -36,7 +37,7 @@
 	_RHYTHM		rhythm;
 	_ADPCM		adpcm;
 	_PCM86		pcm86;
-	_CS4231		cs4231;
+//	_CS4231		cs4231;
 
 #if defined(SUPPORT_PX)
 	OPN_T		opn2;
@@ -123,7 +124,7 @@ void fmboard_reset(const NP2CFG *pConfig, UINT32 type) {
 	UINT8	cross;
 
 	soundrom_reset();
-	beep_reset();												// ver0.27a
+//	beep_reset();												// ver0.27a
 	cross = np2cfg.snd_x;										// ver0.30
 
 	extfn = NULL;
@@ -175,27 +176,27 @@ void fmboard_reset(const NP2CFG *pConfig, UINT32 type) {
 	adpcm_reset(&adpcm3);
 #endif	// defined(SUPPORT_PX)
 	pcm86_reset();
-	cs4231_reset();
+//	cs4231_reset();
 
 	switch(type) {
 		case 0x01:
-			board14_reset(pConfig);
+//			board14_reset(pConfig);
 			break;
 
 		case 0x02:
-			board26k_reset(pConfig);
+//			board26k_reset(pConfig);
 			break;
 
 		case 0x04:
-			board86_reset(pConfig);
+//			board86_reset(pConfig);
 			break;
 
 		case 0x06:
-			boardx2_reset(pConfig);
+//			boardx2_reset(pConfig);
 			break;
 
 		case 0x08:
-			board118_reset(pConfig);
+//			board118_reset(pConfig);
 			break;
 
 		case 0x14:
@@ -203,12 +204,12 @@ void fmboard_reset(const NP2CFG *pConfig, UINT32 type) {
 			break;
 
 		case 0x20:
-			boardspb_reset(pConfig);
+//			boardspb_reset(pConfig);
 			cross ^= pConfig->spb_x;
 			break;
 
 		case 0x40:
-			boardspr_reset(pConfig);
+//			boardspr_reset(pConfig);
 			cross ^= pConfig->spb_x;
 			break;
 
@@ -218,11 +219,11 @@ void fmboard_reset(const NP2CFG *pConfig, UINT32 type) {
 
 #if	defined(SUPPORT_PX)
 		case 0x30:
-			boardpx1_reset(pConfig);
+//			boardpx1_reset(pConfig);
 			break;
 
 		case 0x50:
-			boardpx2_reset(pConfig);
+//			boardpx2_reset(pConfig);
 			break;
 #endif	// defined(SUPPORT_PX)
 
@@ -231,7 +232,7 @@ void fmboard_reset(const NP2CFG *pConfig, UINT32 type) {
 			break;
 	}
 	usesound = type;
-	soundmng_setreverse(cross);
+//	soundmng_setreverse(cross);
 	keydisp_setfmboard(type);
 	opngen_setVR(pConfig->spb_vrc, pConfig->spb_vrl);
 }
@@ -240,23 +241,23 @@ void fmboard_bind(void) {
 
 	switch(usesound) {
 		case 0x01:
-			board14_bind();
+//			board14_bind();
 			break;
 
 		case 0x02:
-			board26k_bind();
+//			board26k_bind();
 			break;
 
 		case 0x04:
-			board86_bind();
+//			board86_bind();
 			break;
 
 		case 0x06:
-			boardx2_bind();
+//			boardx2_bind();
 			break;
 
 		case 0x08:
-			board118_bind();
+//			board118_bind();
 			break;
 
 		case 0x14:
@@ -264,28 +265,28 @@ void fmboard_bind(void) {
 			break;
 
 		case 0x20:
-			boardspb_bind();
+//			boardspb_bind();
 			break;
 
 		case 0x40:
-			boardspr_bind();
+//			boardspr_bind();
 			break;
 
 		case 0x80:
-			amd98_bind();
+//			amd98_bind();
 			break;
 
 #if defined(SUPPORT_PX)
 		case 0x30:
-			boardpx1_bind();
+//			boardpx1_bind();
 			break;
 
 		case 0x50:
-			boardpx2_bind();
+//			boardpx2_bind();
 			break;
 #endif	// defined(SUPPORT_PX)
 	}
-	sound_streamregist(&beep, (SOUNDCB)beep_getpcm);
+//	sound_streamregist(&beep, (SOUNDCB)beep_getpcm);
 }
 
 

@@ -335,7 +335,6 @@ file_cpyname(OEMCHAR *dst, const OEMCHAR *src, int maxlen)
 	}
 }
 
-#if 0
 void
 file_catname(OEMCHAR *path, const OEMCHAR *filename, int maxlen)
 {
@@ -346,7 +345,8 @@ file_catname(OEMCHAR *path, const OEMCHAR *filename, int maxlen)
 		}
 	}
 	if (maxlen > 0) {
-		milstr_ncpy(path, filename, maxlen);
+//		milstr_ncpy(path, filename, maxlen);
+        strncpy(path, filename, maxlen);
 		for (; *path != '\0'; path++) {
 			if (!ISKANJI(*path)) {
 				path++;
@@ -361,7 +361,6 @@ file_catname(OEMCHAR *path, const OEMCHAR *filename, int maxlen)
 		}
 	}
 }
-#endif
 
 BOOL
 file_cmpname(const OEMCHAR *path, const OEMCHAR *path2)

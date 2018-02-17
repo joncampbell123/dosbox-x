@@ -240,9 +240,15 @@ typedef struct {
 extern "C" {
 #endif
 
+unsigned char *CGetMemBase();
+
 void getbiospath(OEMCHAR *path, const OEMCHAR *fname, int maxlen);
 
+REG8 joymng_getstat(void);
+REG8 keystat_getjoy(void);
+
 extern NP2CFG pccore;
+#define np2cfg pccore
 
 #ifdef __cplusplus
 }
@@ -270,4 +276,24 @@ extern NP2CFG pccore;
 #define CopyMemory(d,s,n)   memcpy((d), (s), (n))
 
 typedef FILE *			FILEH;
+
+#ifndef	FASTCALL
+#define	FASTCALL
+#endif
+
+#define	IOOUTCALL	FASTCALL
+#define	IOINPCALL	FASTCALL
+
+typedef	void (IOOUTCALL *IOOUT)(UINT port, REG8 val);
+typedef	REG8 (IOINPCALL *IOINP)(UINT port);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void cbuscore_attachsndex(UINT port, const IOOUT *out, const IOINP *inp);
+
+#ifdef __cplusplus
+}
+#endif
 

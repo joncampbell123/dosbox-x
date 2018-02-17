@@ -1,9 +1,11 @@
-#include	"compiler.h"
+#include    "np2glue.h"
+//#include	"compiler.h"
 #include	"dosio.h"
-#include	"cpucore.h"
-#include	"pccore.h"
+//#include	"cpucore.h"
+//#include	"pccore.h"
 #include	"soundrom.h"
 
+#define     mem     CGetMemBase()
 
 	SOUNDROM	soundrom;
 
@@ -39,10 +41,10 @@ static BRESULT loadsoundrom(UINT address, const OEMCHAR *name) {
 	file_cpyname(soundrom.name, romname, NELEMENTS(soundrom.name));
 	soundrom.address = address;
 	if (address == 0xd0000) {
-		CPU_RAM_D000 &= ~(0x0f << 0);
+//		CPU_RAM_D000 &= ~(0x0f << 0);
 	}
 	else if (address == 0xd4000) {
-		CPU_RAM_D000 &= ~(0x0f << 4);
+//		CPU_RAM_D000 &= ~(0x0f << 4);
 	}
 	return(SUCCESS);
 
