@@ -11,6 +11,7 @@
 //#include	"beep.h"
 #include	"getsnd.h"
 
+#if 0
 
 	SOUNDCFG	soundcfg;
 
@@ -37,7 +38,6 @@ typedef struct {
 
 static	SNDSTREAM	sndstream;
 
-#if 0
 static void streamreset(void) {
 
 	SNDCSEC_ENTER;
@@ -64,10 +64,7 @@ static void streamprepare(UINT samples) {
 		sndstream.remain -= count;
 	}
 }
-#endif
 
-
-#if defined(SUPPORT_WAVEREC)
 // ---- wave rec
 
 BOOL sound_recstart(const OEMCHAR *filename) {
@@ -164,12 +161,7 @@ static void filltailsample(UINT count) {
 		} while(--count);
 	}
 }
-#endif
 
-
-// ----
-
-#if 0
 BOOL sound_create(UINT rate, UINT ms) {
 
 	UINT	samples;
