@@ -16,7 +16,6 @@
 #include "pc98_dac.h"
 #include "pc98_gdc.h"
 #include "pc98_gdc_const.h"
-#include "mixer.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -28,14 +27,6 @@ using namespace std;
 #include "np2glue.h"
 
 MixerChannel *pc98_mixer = NULL;
-
-static inline void pcm86io_bind(void) {
-    /* dummy */
-}
-
-static inline void sound_sync(void) {
-    if (pc98_mixer) pc98_mixer->FillUp();
-}
 
 // opngen.h
 

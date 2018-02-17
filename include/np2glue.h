@@ -2,6 +2,10 @@
  * to help port code from Neko Project II and match the typedefs
  * it uses. */
 
+#include <math.h>
+
+#include "mixer.h"
+
 // GLUE TYPEDEFS
 // WARNING: Windows targets will want to IFDEF some of these out as they will
 //          conflict with the typedefs in windows.h
@@ -47,4 +51,14 @@ static inline void FillMemory(void *p,size_t l,unsigned char c) {
     memset(p,c,l);
 }
 #endif
+
+extern MixerChannel *pc98_mixer;
+
+static inline void pcm86io_bind(void) {
+    /* dummy */
+}
+
+static inline void sound_sync(void) {
+    if (pc98_mixer) pc98_mixer->FillUp();
+}
 
