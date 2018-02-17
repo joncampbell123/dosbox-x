@@ -64,9 +64,24 @@ REG8 keystat_getjoy(void) {
     return 0xFF;//TODO
 }
 
+void pc98_fm86_write(Bitu port,Bitu val,Bitu iolen) {
+    LOG_MSG("pc98fm write port=0x%lx val=0x%lx",port,val);
+}
+
+Bitu pc98_fm86_read(Bitu port,Bitu iolen) {
+    LOG_MSG("pc98fm read port=0x%lx",port);
+
+    return ~0;
+}
+
 // four I/O ports, 2 ports apart
 void cbuscore_attachsndex(UINT port, const IOOUT *out, const IOINP *inp) {
     LOG_MSG("cbuscore_attachsndex(port=0x%x)",port);
+
+    for (unsigned int i=0;i < 4;i++) {
+        IO_RegisterReadHandler(port+(i*4),pc98_fm86_read,IO_MB);
+        IO_RegisterWriteHandler(port+(i*4),pc98_fm86_write,IO_MB);
+    }
 }
 
 int pc98_fm_irq = 3; /* TODO: Make configurable */
@@ -252,13 +267,6 @@ void fmtimer_setreg(UINT reg, REG8 value) {
 
 
 /////////////////////////////////////////////////////////////
-
-void pc98_fm86_write(Bitu port,Bitu val,Bitu iolen) {
-}
-
-Bitu pc98_fm86_read(Bitu port,Bitu iolen) {
-    return ~0;
-}
 
 static void pc98_mix_CallBack(Bitu len) {
     unsigned int s = len;
