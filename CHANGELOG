@@ -1,4 +1,11 @@
 (next)
+  - Added dosbox.conf option to select which PC-98 FM
+    board to emulate.
+  - Fixed PC-98 FM code to enable the ADPCM and Rhythm
+    FM channels.
+  - Re-ported Neko Project II FM board emulation, this
+    time keeping the code intact and keeping the separate
+    board emulations intact for PC-98 mode.
   - VGA palette errors with Crystal Dream II fixed.
   - PC-98 FM synthesis fixed not to initialize itself
     again when rebooting, which fixes a problem with
