@@ -128,7 +128,9 @@ am_libhardware_a_OBJECTS = adlib.$(OBJEXT) dma.$(OBJEXT) \
 	snd_pc98/sound/psggenc.$(OBJEXT) \
 	snd_pc98/sound/psggeng.$(OBJEXT) \
 	snd_pc98/common/parts.$(OBJEXT) \
-	snd_pc98/generic/keydisp.$(OBJEXT)
+	snd_pc98/generic/keydisp.$(OBJEXT) \
+	snd_pc98/sound/adpcmc.$(OBJEXT) \
+	snd_pc98/sound/adpcmg.$(OBJEXT)
 libhardware_a_OBJECTS = $(am_libhardware_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -363,7 +365,7 @@ libhardware_a_SOURCES = adlib.cpp dma.cpp gameblaster.cpp hardware.cpp iohandler
 			voodoo.cpp voodoo_interface.cpp voodoo_emu.cpp ps1_sound.cpp sn76496.h ide.cpp floppy.cpp voodoo_vogl.cpp voodoo_opengl.cpp nukedopl.cpp pc98.cpp vga_pc98_gdc.cpp vga_pc98_dac.cpp vga_pc98_crtc.cpp vga_pc98_cg.cpp vga_pc98_egc.cpp pc98_fm.cpp \
 			snd_pc98/sound/opngenc.c snd_pc98/sound/opngeng.c snd_pc98/sound/pcm86c.c snd_pc98/sound/pcm86g.c \
 			snd_pc98/sound/tms3631c.c snd_pc98/sound/tms3631g.c snd_pc98/sound/psggenc.c snd_pc98/sound/psggeng.c \
-			snd_pc98/common/parts.c snd_pc98/generic/keydisp.c
+			snd_pc98/common/parts.c snd_pc98/generic/keydisp.c snd_pc98/sound/adpcmc.c snd_pc98/sound/adpcmg.c
 
 all: all-recursive
 
@@ -440,6 +442,10 @@ snd_pc98/generic/$(DEPDIR)/$(am__dirstamp):
 	@: > snd_pc98/generic/$(DEPDIR)/$(am__dirstamp)
 snd_pc98/generic/keydisp.$(OBJEXT): snd_pc98/generic/$(am__dirstamp) \
 	snd_pc98/generic/$(DEPDIR)/$(am__dirstamp)
+snd_pc98/sound/adpcmc.$(OBJEXT): snd_pc98/sound/$(am__dirstamp) \
+	snd_pc98/sound/$(DEPDIR)/$(am__dirstamp)
+snd_pc98/sound/adpcmg.$(OBJEXT): snd_pc98/sound/$(am__dirstamp) \
+	snd_pc98/sound/$(DEPDIR)/$(am__dirstamp)
 
 libhardware.a: $(libhardware_a_OBJECTS) $(libhardware_a_DEPENDENCIES) $(EXTRA_libhardware_a_DEPENDENCIES) 
 	$(AM_V_at)-rm -f libhardware.a
@@ -513,6 +519,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/voodoo_vogl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@snd_pc98/common/$(DEPDIR)/parts.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@snd_pc98/generic/$(DEPDIR)/keydisp.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@snd_pc98/sound/$(DEPDIR)/adpcmc.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@snd_pc98/sound/$(DEPDIR)/adpcmg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@snd_pc98/sound/$(DEPDIR)/opngenc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@snd_pc98/sound/$(DEPDIR)/opngeng.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@snd_pc98/sound/$(DEPDIR)/pcm86c.Po@am__quote@

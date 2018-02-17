@@ -60,6 +60,8 @@ unsigned int pc98_fm86_base = 0x188; /* TODO: Make configurable */
 //#include "tms3631.h"      already from fmboard.h
 //#include "fmtimer.h"      already from fmboard.h
 
+extern ADPCMCFG         adpcmcfg;
+
 #define	SIN_BITS		10
 #define	EVC_BITS		10
 #define	ENV_BITS		16
@@ -96,59 +98,6 @@ unsigned int pc98_fm86_base = 0x188; /* TODO: Make configurable */
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-void adpcm_initialize(UINT rate);
-void adpcm_setvol(UINT vol);
-
-void adpcm_reset(ADPCM ad);
-void adpcm_update(ADPCM ad);
-void adpcm_setreg(ADPCM ad, UINT reg, REG8 value);
-REG8 adpcm_status(ADPCM ad);
-
-REG8 SOUNDCALL adpcm_readsample(ADPCM ad);
-void SOUNDCALL adpcm_datawrite(ADPCM ad, REG8 data);
-void SOUNDCALL adpcm_getpcm(ADPCM ad, SINT32 *buf, UINT count);
-
-	ADPCMCFG	adpcmcfg;
-
-void adpcm_initialize(UINT rate) {
-
-	adpcmcfg.rate = rate;
-}
-
-void adpcm_setvol(UINT vol) {
-
-	adpcmcfg.vol = vol;
-}
-
-void adpcm_reset(ADPCM ad) {
-
-	ZeroMemory(ad, sizeof(_ADPCM));
-	ad->mask = 0;					// (UINT8)~0x1c;
-	ad->delta = 127;
-	STOREINTELWORD(ad->reg.stop, 0x0002);
-	STOREINTELWORD(ad->reg.limit, 0xffff);
-	ad->stop = 0x000060;
-	ad->limit = 0x200000;
-	adpcm_update(ad);
-}
-
-void adpcm_update(ADPCM ad) {
-
-	UINT32	addr;
-
-	if (adpcmcfg.rate) {
-		ad->base = ADTIMING * (OPNA_CLOCK / 72) / adpcmcfg.rate;
-	}
-	addr = LOADINTELWORD(ad->reg.delta);
-	addr = (addr * ad->base) >> 16;
-	if (addr < 0x80) {
-		addr = 0x80;
-	}
-	ad->step = addr;
-	ad->pertim = (1 << (ADTIMING_BIT * 2)) / addr;
-	ad->level = (ad->reg.level * adpcmcfg.vol) >> 4;
-}
 
 #ifdef __cplusplus
 }
@@ -330,7 +279,6 @@ extern	_OPNGEN		opngen;
 extern	OPNCH		opnch[OPNCH_MAX];
 extern	_PSGGEN		__psg[3];
 extern	_RHYTHM		rhythm;
-extern	_ADPCM		adpcm;
 extern _PCM86       pcm86;
 //extern	_CS4231		cs4231;
 
@@ -344,7 +292,7 @@ extern _PCM86       pcm86;
 	OPNCH		opnch[OPNCH_MAX];
 	_PSGGEN		__psg[3];
 	_RHYTHM		rhythm;
-	_ADPCM		adpcm;
+    _ADPCM      adpcm;
     _PCM86      pcm86;
 //	_CS4231		cs4231;
 
@@ -352,8 +300,6 @@ extern _PCM86       pcm86;
 	OPN_T		opn3;
 	_RHYTHM		rhythm2;
 	_RHYTHM		rhythm3;
-	_ADPCM		adpcm2;
-	_ADPCM		adpcm3;
 
 #define	psg1	__psg[0]
 #define	psg2	__psg[1]
@@ -363,8 +309,6 @@ extern	OPN_T		opn2;
 extern	OPN_T		opn3;
 extern	_RHYTHM		rhythm2;
 extern	_RHYTHM		rhythm3;
-extern	_ADPCM		adpcm2;
-extern	_ADPCM		adpcm3;
 
 
 // ----
@@ -511,8 +455,8 @@ void fmboard_reset(const NP2CFG *pConfig, UINT32 type) {
 	rhythm_reset(&rhythm2);
 	rhythm_reset(&rhythm3);
 	adpcm_reset(&adpcm);
-	adpcm_reset(&adpcm2);
-	adpcm_reset(&adpcm3);
+//	adpcm_reset(&adpcm2);
+//	adpcm_reset(&adpcm3);
 	pcm86_reset();
 //    cs4231_reset();
 
@@ -1127,293 +1071,6 @@ Bitu pc98_fm86_read(Bitu port,Bitu iolen) {
     };
 
     return ~0;
-}
-
-static const UINT adpcmdeltatable[8] = {
-		//	0.89,	0.89,	0.89,	0.89,	1.2,	1.6,	2.0,	2.4
-			228,	228,	228,	228,	308,	408,	512,	612};
-
-
-REG8 SOUNDCALL adpcm_readsample(ADPCM ad) {
-
-	UINT32	pos;
-	REG8	data;
-	REG8	ret;
-
-	if ((ad->reg.ctrl1 & 0x60) == 0x20) {
-		pos = ad->pos & 0x1fffff;
-		if (!(ad->reg.ctrl2 & 2)) {
-			data = ad->buf[pos >> 3];
-			pos += 8;
-		}
-		else {
-			const UINT8 *ptr;
-			REG8 bit;
-			UINT tmp;
-			ptr = ad->buf + ((pos >> 3) & 0x7fff);
-			bit = 1 << (pos & 7);
-			tmp = (ptr[0x00000] & bit);
-			tmp += (ptr[0x08000] & bit) << 1;
-			tmp += (ptr[0x10000] & bit) << 2;
-			tmp += (ptr[0x18000] & bit) << 3;
-			tmp += (ptr[0x20000] & bit) << 4;
-			tmp += (ptr[0x28000] & bit) << 5;
-			tmp += (ptr[0x30000] & bit) << 6;
-			tmp += (ptr[0x38000] & bit) << 7;
-			data = (REG8)(tmp >> (pos & 7));
-			pos++;
-		}
-		if (pos != ad->stop) {
-			pos &= 0x1fffff;
-			ad->status |= 4;
-		}
-		if (pos >= ad->limit) {
-			pos = 0;
-		}
-		ad->pos = pos;
-	}
-	else {
-		data = 0;
-	}
-	pos = ad->fifopos;
-	ret = ad->fifo[ad->fifopos];
-	ad->fifo[ad->fifopos] = data;
-	ad->fifopos ^= 1;
-	return(ret);
-}
-
-void SOUNDCALL adpcm_datawrite(ADPCM ad, REG8 data) {
-
-	UINT32	pos;
-
-	pos = ad->pos & 0x1fffff;
-	if (!(ad->reg.ctrl2 & 2)) {
-		ad->buf[pos >> 3] = data;
-		pos += 8;
-	}
-	else {
-		UINT8 *ptr;
-		UINT8 bit;
-		UINT8 mask;
-		ptr = ad->buf + ((pos >> 3) & 0x7fff);
-		bit = 1 << (pos & 7);
-		mask = ~bit;
-		ptr[0x00000] &= mask;
-		if (data & 0x01) {
-			ptr[0x00000] |= bit;
-		}
-		ptr[0x08000] &= mask;
-		if (data & 0x02) {
-			ptr[0x08000] |= bit;
-		}
-		ptr[0x10000] &= mask;
-		if (data & 0x04) {
-			ptr[0x10000] |= bit;
-		}
-		ptr[0x18000] &= mask;
-		if (data & 0x08) {
-			ptr[0x18000] |= bit;
-		}
-		ptr[0x20000] &= mask;
-		if (data & 0x10) {
-			ptr[0x20000] |= bit;
-		}
-		ptr[0x28000] &= mask;
-		if (data & 0x20) {
-			ptr[0x28000] |= bit;
-		}
-		ptr[0x30000] &= mask;
-		if (data & 0x40) {
-			ptr[0x30000] |= bit;
-		}
-		ptr[0x38000] &= mask;
-		if (data & 0x80) {
-			ptr[0x38000] |= bit;
-		}
-		pos++;
-	}
-	if (pos == ad->stop) {
-		pos &= 0x1fffff;
-		ad->status |= 4;
-	}
-	if (pos >= ad->limit) {
-		pos = 0;
-	}
-	ad->pos = pos;
-}
-
-#define	ADPCM_NBR	0x80000000
-
-static void SOUNDCALL getadpcmdata(ADPCM ad) {
-
-	UINT32	pos;
-	UINT	data;
-	UINT	dir;
-	SINT32	dlt;
-	SINT32	samp;
-
-	pos = ad->pos;
-	if (!(ad->reg.ctrl2 & 2)) {
-		data = ad->buf[(pos >> 3) & 0x3ffff];
-		if (!(pos & ADPCM_NBR)) {
-			data >>= 4;
-		}
-		pos += ADPCM_NBR + 4;
-	}
-	else {
-		const UINT8 *ptr;
-		REG8 bit;
-		UINT tmp;
-		ptr = ad->buf + ((pos >> 3) & 0x7fff);
-		bit = 1 << (pos & 7);
-		if (!(pos & ADPCM_NBR)) {
-			tmp = (ptr[0x20000] & bit);
-			tmp += (ptr[0x28000] & bit) << 1;
-			tmp += (ptr[0x30000] & bit) << 2;
-			tmp += (ptr[0x38000] & bit) << 3;
-			data = tmp >> (pos & 7);
-			pos += ADPCM_NBR;
-		}
-		else {
-			tmp = (ptr[0x00000] & bit);
-			tmp += (ptr[0x08000] & bit) << 1;
-			tmp += (ptr[0x10000] & bit) << 2;
-			tmp += (ptr[0x18000] & bit) << 3;
-			data = tmp >> (pos & 7);
-			pos += ADPCM_NBR + 1;
-		}
-	}
-	dir = data & 8;
-	data &= 7;
-	dlt = adpcmdeltatable[data] * ad->delta;
-	dlt >>= 8;
-	if (dlt < 127) {
-		dlt = 127;
-	}
-	else if (dlt > 24000) {
-		dlt = 24000;
-	}
-	samp = ad->delta;
-	ad->delta = dlt;
-	samp *= ((data * 2) + 1);
-	samp >>= ADPCM_SHIFT;
-	if (!dir) {
-		samp += ad->samp;
-		if (samp > 32767) {
-			samp = 32767;
-		}
-	}
-	else {
-		samp = ad->samp - samp;
-		if (samp < -32767) {
-			samp = -32767;
-		}
-	}
-	ad->samp = samp;
-
-	if (!(pos & ADPCM_NBR)) {
-		if (pos == ad->stop) {
-			if (ad->reg.ctrl1 & 0x10) {
-				pos = ad->start;
-				ad->samp = 0;
-				ad->delta = 127;
-			}
-			else {
-				pos &= 0x1fffff;
-				ad->status |= 4;
-				ad->play = 0;
-			}
-		}
-		else if (pos >= ad->limit) {
-			pos = 0;
-		}
-	}
-	ad->pos = pos;
-	samp *= ad->level;
-	samp >>= (10 + 1);
-	ad->out0 = ad->out1;
-	ad->out1 = samp + ad->fb;
-	ad->fb = samp >> 1;
-}
-
-void SOUNDCALL adpcm_getpcm(ADPCM ad, SINT32 *pcm, UINT count) {
-
-	SINT32	remain;
-	SINT32	samp;
-
-	if ((count == 0) || (ad->play == 0)) {
-		return;
-	}
-	remain = ad->remain;
-	if (ad->step <= ADTIMING) {
-		do {
-			if (remain < 0) {
-				remain += ADTIMING;
-				getadpcmdata(ad);
-				if (ad->play == 0) {
-					if (remain > 0) {
-						do {
-							samp = (ad->out0 * remain) >> ADTIMING_BIT;
-							if (ad->reg.ctrl2 & 0x80) {
-								pcm[0] += samp;
-							}
-							if (ad->reg.ctrl2 & 0x40) {
-								pcm[1] += samp;
-							}
-							pcm += 2;
-							remain -= ad->step;
-						} while((remain > 0) && (--count));
-					}
-					goto adpcmstop;
-				}
-			}
-			samp = (ad->out0 * remain) + (ad->out1 * (ADTIMING - remain));
-			samp >>= ADTIMING_BIT;
-			if (ad->reg.ctrl2 & 0x80) {
-				pcm[0] += samp;
-			}
-			if (ad->reg.ctrl2 & 0x40) {
-				pcm[1] += samp;
-			}
-			pcm += 2;
-			remain -= ad->step;
-		} while(--count);
-	}
-	else {
-		do {
-			if (remain > 0) {
-				samp = ad->out0 * (ADTIMING - remain);
-				do {
-					getadpcmdata(ad);
-					if (ad->play == 0) {
-						goto adpcmstop;
-					}
-					samp += ad->out0 * min(remain, ad->pertim);
-					remain -= ad->pertim;
-				} while(remain > 0);
-			}
-			else {
-				samp = ad->out0 * ADTIMING;
-			}
-			remain += ADTIMING;
-			samp >>= ADTIMING_BIT;
-			if (ad->reg.ctrl2 & 0x80) {
-				pcm[0] += samp;
-			}
-			if (ad->reg.ctrl2 & 0x40) {
-				pcm[1] += samp;
-			}
-			pcm += 2;
-		} while(--count);
-	}
-	ad->remain = remain;
-	return;
-
-adpcmstop:
-	ad->out0 = 0;
-	ad->out1 = 0;
-	ad->fb = 0;
-	ad->remain = 0;
 }
 
 static void pc98_mix_CallBack(Bitu len) {
