@@ -120,7 +120,9 @@ am_libhardware_a_OBJECTS = adlib.$(OBJEXT) dma.$(OBJEXT) \
 	vga_pc98_dac.$(OBJEXT) vga_pc98_crtc.$(OBJEXT) \
 	vga_pc98_cg.$(OBJEXT) vga_pc98_egc.$(OBJEXT) pc98_fm.$(OBJEXT) \
 	snd_pc98/sound/opngenc.$(OBJEXT) \
-	snd_pc98/sound/opngeng.$(OBJEXT)
+	snd_pc98/sound/opngeng.$(OBJEXT) \
+	snd_pc98/sound/pcm86c.$(OBJEXT) \
+	snd_pc98/sound/pcm86g.$(OBJEXT)
 libhardware_a_OBJECTS = $(am_libhardware_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -353,7 +355,7 @@ libhardware_a_SOURCES = adlib.cpp dma.cpp gameblaster.cpp hardware.cpp iohandler
 			vga_memory.cpp vga_misc.cpp vga_seq.cpp vga_xga.cpp vga_s3.cpp vga_tseng.cpp vga_paradise.cpp \
 			cmos.cpp disney.cpp gus.cpp mpu401.cpp ipx.cpp ipxserver.cpp ne2000.cpp hardopl.cpp dbopl.cpp innova.cpp dongle.cpp \
 			voodoo.cpp voodoo_interface.cpp voodoo_emu.cpp ps1_sound.cpp sn76496.h ide.cpp floppy.cpp voodoo_vogl.cpp voodoo_opengl.cpp nukedopl.cpp pc98.cpp vga_pc98_gdc.cpp vga_pc98_dac.cpp vga_pc98_crtc.cpp vga_pc98_cg.cpp vga_pc98_egc.cpp pc98_fm.cpp \
-			snd_pc98/sound/opngenc.c snd_pc98/sound/opngeng.c 
+			snd_pc98/sound/opngenc.c snd_pc98/sound/opngeng.c snd_pc98/sound/pcm86c.c snd_pc98/sound/pcm86g.c
 
 all: all-recursive
 
@@ -401,6 +403,10 @@ snd_pc98/sound/$(DEPDIR)/$(am__dirstamp):
 snd_pc98/sound/opngenc.$(OBJEXT): snd_pc98/sound/$(am__dirstamp) \
 	snd_pc98/sound/$(DEPDIR)/$(am__dirstamp)
 snd_pc98/sound/opngeng.$(OBJEXT): snd_pc98/sound/$(am__dirstamp) \
+	snd_pc98/sound/$(DEPDIR)/$(am__dirstamp)
+snd_pc98/sound/pcm86c.$(OBJEXT): snd_pc98/sound/$(am__dirstamp) \
+	snd_pc98/sound/$(DEPDIR)/$(am__dirstamp)
+snd_pc98/sound/pcm86g.$(OBJEXT): snd_pc98/sound/$(am__dirstamp) \
 	snd_pc98/sound/$(DEPDIR)/$(am__dirstamp)
 
 libhardware.a: $(libhardware_a_OBJECTS) $(libhardware_a_DEPENDENCIES) $(EXTRA_libhardware_a_DEPENDENCIES) 
@@ -473,6 +479,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/voodoo_vogl.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@snd_pc98/sound/$(DEPDIR)/opngenc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@snd_pc98/sound/$(DEPDIR)/opngeng.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@snd_pc98/sound/$(DEPDIR)/pcm86c.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@snd_pc98/sound/$(DEPDIR)/pcm86g.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\

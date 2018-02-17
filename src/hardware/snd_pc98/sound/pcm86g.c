@@ -1,6 +1,7 @@
-#include	"compiler.h"
-#include	"pccore.h"
-#include	"iocore.h"
+#include    "np2glue.h"
+//#include	"compiler.h"
+//#include	"pccore.h"
+//#include	"iocore.h"
 #include	"sound.h"
 #include	"fmboard.h"
 

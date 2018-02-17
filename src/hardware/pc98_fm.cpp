@@ -29,6 +29,8 @@ using namespace std;
 
 MixerChannel *pc98_mixer = NULL;
 
+NP2CFG pccore;
+
 extern "C" void sound_sync(void) {
     if (pc98_mixer) pc98_mixer->FillUp();
 }
@@ -90,72 +92,6 @@ unsigned int pc98_fm86_base = 0x188; /* TODO: Make configurable */
 #define	FMASMSHIFT	(32 - 6 - (OPM_OUTSB + 1 + FMDIV_BITS) + FMVOL_SFTBIT)
 #define	FREQBASE4096	((double)OPNA_CLOCK / calcrate / 64)
 
-
-#define	PCM86_EXTBUF		pcm86.rescue					// ~ÏØc
-#define	PCM86_REALBUFSIZE	(PCM86_LOGICALBUF + PCM86_EXTBUF)
-
-#define RECALC_NOWCLKWAIT(cnt) {										\
-		pcm86.virbuf -= (cnt << pcm86.stepbit);							\
-		if (pcm86.virbuf < 0) {											\
-			pcm86.virbuf &= pcm86.stepmask;								\
-		}																\
-	}
-
-
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-extern const UINT pcm86rate8[];
-
-// TvO[gÉ8|¯½¨
-const UINT pcm86rate8[] = {352800, 264600, 176400, 132300,
-							88200,  66150,  44010,  33075};
-
-// 32,24,16,12, 8, 6, 4, 3 - Å­ö{: 96
-//  3, 4, 6, 8,12,16,24,32
-
-static const UINT clk25_128[] = {
-					0x00001bde, 0x00002527, 0x000037bb, 0x00004a4e,
-					0x00006f75, 0x0000949c, 0x0000df5f, 0x00012938};
-static const UINT clk20_128[] = {
-					0x000016a4, 0x00001e30, 0x00002d48, 0x00003c60,
-					0x00005a8f, 0x000078bf, 0x0000b57d, 0x0000f17d};
-
-
-	PCM86CFG	pcm86cfg;
-
-void pcm86_cb(NEVENTITEM item);
-
-void pcm86gen_initialize(UINT rate);
-void pcm86gen_setvol(UINT vol);
-
-void pcm86_reset(void);
-void pcm86gen_update(void);
-void pcm86_setpcmrate(REG8 val);
-void pcm86_setnextintr(void);
-
-void SOUNDCALL pcm86gen_checkbuf(void);
-void SOUNDCALL pcm86gen_getpcm(void *hdl, SINT32 *pcm, UINT count);
-
-BOOL pcm86gen_intrq(void);
-
-void pcm86gen_initialize(UINT rate) {
-
-	pcm86cfg.rate = rate;
-}
-
-void pcm86gen_setvol(UINT vol) {
-
-	pcm86cfg.vol = vol;
-	pcm86gen_update();
-}
-
-#ifdef __cplusplus
-}
-#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -406,7 +342,7 @@ extern	OPNCH		opnch[OPNCH_MAX];
 extern	_PSGGEN		__psg[3];
 extern	_RHYTHM		rhythm;
 extern	_ADPCM		adpcm;
-extern	_PCM86		pcm86;
+extern _PCM86       pcm86;
 //extern	_CS4231		cs4231;
 
 	UINT32		usesound;
@@ -420,7 +356,7 @@ extern	_PCM86		pcm86;
 	_PSGGEN		__psg[3];
 	_RHYTHM		rhythm;
 	_ADPCM		adpcm;
-	_PCM86		pcm86;
+    _PCM86      pcm86;
 //	_CS4231		cs4231;
 
 	OPN_T		opn2;
@@ -623,38 +559,6 @@ static void psgkeyreset(void) {
 	ZeroMemory(keydisp.psgctl, sizeof(keydisp.psgctl));
 }
 
-void pcm86_reset(void) {
-
-	ZeroMemory(&pcm86, sizeof(pcm86));
-	pcm86.fifosize = 0x80;
-	pcm86.dactrl = 0x32;
-	pcm86.stepmask = (1 << 2) - 1;
-	pcm86.stepbit = 2;
-	pcm86.stepclock = (PIT_TICK_RATE << 6);
-	pcm86.stepclock /= 44100;
-//	pcm86.stepclock *= pccore.multiple;
-	pcm86.rescue = (PCM86_RESCUE * 32) << 2;
-}
-
-void pcm86gen_update(void) {
-
-	pcm86.volume = pcm86cfg.vol * pcm86.vol5;
-	pcm86_setpcmrate(pcm86.fifo);
-}
-
-void pcm86_setpcmrate(REG8 val) {
-
-	SINT32	rate;
-
-	rate = pcm86rate8[val & 7];
-	pcm86.stepclock = (PIT_TICK_RATE << 6);
-	pcm86.stepclock /= rate;
-	pcm86.stepclock *= (1 << 3);
-	if (pcm86cfg.rate) {
-		pcm86.div = (rate << (PCM86_DIVBIT - 3)) / pcm86cfg.rate;
-		pcm86.div2 = (pcm86cfg.rate << (PCM86_DIVBIT + 3)) / rate;
-	}
-}
 
 void psggen_initialize(UINT rate) {
 
@@ -1896,20 +1800,6 @@ static void FMPORT_EventB(Bitu val) {
     (void)val;
 }
 
-BOOL pcm86gen_intrq(void) {
-	if (pcm86.irqflag) {
-		return(TRUE);
-	}
-	if (pcm86.fifo & 0x20) {
-		sound_sync();
-		if ((pcm86.reqirq) && (pcm86.virbuf <= pcm86.fifosize)) {
-			pcm86.reqirq = 0;
-			pcm86.irqflag = 1;
-			return(TRUE);
-		}
-	}
-	return(FALSE);
-}
 
 void fmport_a(NEVENTITEM item) {
 
@@ -2314,334 +2204,6 @@ void SOUNDCALL adpcm_datawrite(ADPCM ad, REG8 data) {
 	ad->pos = pos;
 }
 
-void SOUNDCALL pcm86gen_checkbuf(void) {
-    // empty
-}
-
-#define	PCM86GET8(a)													\
-		(a) = (SINT8)pcm86.buffer[pcm86.readpos & PCM86_BUFMSK] << 8;	\
-		pcm86.readpos++;
-
-#define	PCM86GET16(a)													\
-		(a) = (SINT8)pcm86.buffer[pcm86.readpos & PCM86_BUFMSK] << 8;	\
-		pcm86.readpos++;												\
-		(a) += pcm86.buffer[pcm86.readpos & PCM86_BUFMSK];				\
-		pcm86.readpos++;
-
-#define	BYVOLUME(s)		((((s) >> 6) * pcm86.volume) >> (PCM86_DIVBIT + 4))
-
-
-static void pcm86mono16(SINT32 *pcm, UINT count) {
-
-	if (pcm86.div < PCM86_DIVENV) {					// Abv³ñÕé
-		do {
-			SINT32 smp;
-			if (pcm86.divremain < 0) {
-				SINT32 dat;
-				pcm86.divremain += PCM86_DIVENV;
-				pcm86.realbuf -= 2;
-				if (pcm86.realbuf < 0) {
-					goto pm16_bufempty;
-				}
-				PCM86GET16(dat);
-				pcm86.lastsmp = pcm86.smp;
-				pcm86.smp = dat;
-			}
-			smp = (pcm86.lastsmp * pcm86.divremain) -
-							(pcm86.smp * (pcm86.divremain - PCM86_DIVENV));
-			pcm[0] += BYVOLUME(smp);
-			pcm += 2;
-			pcm86.divremain -= pcm86.div;
-		} while(--count);
-	}
-	else {
-		do {
-			SINT32 smp;
-			smp = pcm86.smp * (pcm86.divremain * -1);
-			pcm86.divremain += PCM86_DIVENV;
-			while(1) {
-				SINT32 dat;
-				pcm86.realbuf -= 2;
-				if (pcm86.realbuf < 0) {
-					goto pm16_bufempty;
-				}
-				PCM86GET16(dat);
-				pcm86.lastsmp = pcm86.smp;
-				pcm86.smp = dat;
-				if (pcm86.divremain > pcm86.div2) {
-					pcm86.divremain -= pcm86.div2;
-					smp += pcm86.smp * pcm86.div2;
-				}
-				else {
-					break;
-				}
-			}
-			smp += pcm86.smp * pcm86.divremain;
-			pcm[0] += BYVOLUME(smp);
-			pcm += 2;
-			pcm86.divremain -= pcm86.div2;
-		} while(--count);
-	}
-	return;
-
-pm16_bufempty:
-	pcm86.realbuf += 2;
-	pcm86.divremain = 0;
-	pcm86.smp = 0;
-	pcm86.lastsmp = 0;
-}
-
-static void pcm86stereo16(SINT32 *pcm, UINT count) {
-
-	if (pcm86.div < PCM86_DIVENV) {					// Abv³ñÕé
-		do {
-			SINT32 smp;
-			if (pcm86.divremain < 0) {
-				SINT32 dat;
-				pcm86.divremain += PCM86_DIVENV;
-				pcm86.realbuf -= 4;
-				if (pcm86.realbuf < 0) {
-					goto ps16_bufempty;
-				}
-				PCM86GET16(dat);
-				pcm86.lastsmp_l = pcm86.smp_l;
-				pcm86.smp_l = dat;
-				PCM86GET16(dat);
-				pcm86.lastsmp_r = pcm86.smp_r;
-				pcm86.smp_r = dat;
-			}
-			smp = (pcm86.lastsmp_l * pcm86.divremain) -
-							(pcm86.smp_l * (pcm86.divremain - PCM86_DIVENV));
-			pcm[0] += BYVOLUME(smp);
-			smp = (pcm86.lastsmp_r * pcm86.divremain) -
-							(pcm86.smp_r * (pcm86.divremain - PCM86_DIVENV));
-			pcm[1] += BYVOLUME(smp);
-			pcm += 2;
-			pcm86.divremain -= pcm86.div;
-		} while(--count);
-	}
-	else {
-		do {
-			SINT32 smp_l;
-			SINT32 smp_r;
-			smp_l = pcm86.smp_l * (pcm86.divremain * -1);
-			smp_r = pcm86.smp_r * (pcm86.divremain * -1);
-			pcm86.divremain += PCM86_DIVENV;
-			while(1) {
-				SINT32 dat;
-				pcm86.realbuf -= 4;
-				if (pcm86.realbuf < 4) {
-					goto ps16_bufempty;
-				}
-				PCM86GET16(dat);
-				pcm86.lastsmp_l = pcm86.smp_l;
-				pcm86.smp_l = dat;
-				PCM86GET16(dat);
-				pcm86.lastsmp_r = pcm86.smp_r;
-				pcm86.smp_r = dat;
-				if (pcm86.divremain > pcm86.div2) {
-					pcm86.divremain -= pcm86.div2;
-					smp_l += pcm86.smp_l * pcm86.div2;
-					smp_r += pcm86.smp_r * pcm86.div2;
-				}
-				else {
-					break;
-				}
-			}
-			smp_l += pcm86.smp_l * pcm86.divremain;
-			smp_r += pcm86.smp_r * pcm86.divremain;
-			pcm[0] += BYVOLUME(smp_l);
-			pcm[1] += BYVOLUME(smp_r);
-			pcm += 2;
-			pcm86.divremain -= pcm86.div2;
-		} while(--count);
-	}
-	return;
-
-ps16_bufempty:
-	pcm86.realbuf += 4;
-	pcm86.divremain = 0;
-	pcm86.smp_l = 0;
-	pcm86.smp_r = 0;
-	pcm86.lastsmp_l = 0;
-	pcm86.lastsmp_r = 0;
-}
-
-static void pcm86mono8(SINT32 *pcm, UINT count) {
-
-	if (pcm86.div < PCM86_DIVENV) {					// Abv³ñÕé
-		do {
-			SINT32 smp;
-			if (pcm86.divremain < 0) {
-				SINT32 dat;
-				pcm86.divremain += PCM86_DIVENV;
-				pcm86.realbuf--;
-				if (pcm86.realbuf < 0) {
-					goto pm8_bufempty;
-				}
-				PCM86GET8(dat);
-				pcm86.lastsmp = pcm86.smp;
-				pcm86.smp = dat;
-			}
-			smp = (pcm86.lastsmp * pcm86.divremain) -
-							(pcm86.smp * (pcm86.divremain - PCM86_DIVENV));
-			pcm[0] += BYVOLUME(smp);
-			pcm += 2;
-			pcm86.divremain -= pcm86.div;
-		} while(--count);
-	}
-	else {
-		do {
-			SINT32 smp;
-			smp = pcm86.smp * (pcm86.divremain * -1);
-			pcm86.divremain += PCM86_DIVENV;
-			while(1) {
-				SINT32 dat;
-				pcm86.realbuf--;
-				if (pcm86.realbuf < 0) {
-					goto pm8_bufempty;
-				}
-				PCM86GET8(dat);
-				pcm86.lastsmp = pcm86.smp;
-				pcm86.smp = dat;
-				if (pcm86.divremain > pcm86.div2) {
-					pcm86.divremain -= pcm86.div2;
-					smp += pcm86.smp * pcm86.div2;
-				}
-				else {
-					break;
-				}
-			}
-			smp += pcm86.smp * pcm86.divremain;
-			pcm[0] += BYVOLUME(smp);
-			pcm += 2;
-			pcm86.divremain -= pcm86.div2;
-		} while(--count);
-	}
-	return;
-
-pm8_bufempty:
-	pcm86.realbuf += 1;
-	pcm86.divremain = 0;
-	pcm86.smp = 0;
-	pcm86.lastsmp = 0;
-}
-
-static void pcm86stereo8(SINT32 *pcm, UINT count) {
-
-	if (pcm86.div < PCM86_DIVENV) {					// Abv³ñÕé
-		do {
-			SINT32 smp;
-			if (pcm86.divremain < 0) {
-				SINT32 dat;
-				pcm86.divremain += PCM86_DIVENV;
-				pcm86.realbuf -= 2;
-				if (pcm86.realbuf < 0) {
-					goto pm8_bufempty;
-				}
-				PCM86GET8(dat);
-				pcm86.lastsmp_l = pcm86.smp_l;
-				pcm86.smp_l = dat;
-				PCM86GET8(dat);
-				pcm86.lastsmp_r = pcm86.smp_r;
-				pcm86.smp_r = dat;
-			}
-			smp = (pcm86.lastsmp_l * pcm86.divremain) -
-							(pcm86.smp_l * (pcm86.divremain - PCM86_DIVENV));
-			pcm[0] += BYVOLUME(smp);
-			smp = (pcm86.lastsmp_r * pcm86.divremain) -
-							(pcm86.smp_r * (pcm86.divremain - PCM86_DIVENV));
-			pcm[1] += BYVOLUME(smp);
-			pcm += 2;
-			pcm86.divremain -= pcm86.div;
-		} while(--count);
-	}
-	else {
-		do {
-			SINT32 smp_l;
-			SINT32 smp_r;
-			smp_l = pcm86.smp_l * (pcm86.divremain * -1);
-			smp_r = pcm86.smp_r * (pcm86.divremain * -1);
-			pcm86.divremain += PCM86_DIVENV;
-			while(1) {
-				SINT32 dat;
-				pcm86.realbuf -= 2;
-				if (pcm86.realbuf < 0) {
-					goto pm8_bufempty;
-				}
-				PCM86GET8(dat);
-				pcm86.lastsmp_l = pcm86.smp_l;
-				pcm86.smp_l = dat;
-				PCM86GET8(dat);
-				pcm86.lastsmp_r = pcm86.smp_r;
-				pcm86.smp_r = dat;
-				if (pcm86.divremain > pcm86.div2) {
-					pcm86.divremain -= pcm86.div2;
-					smp_l += pcm86.smp_l * pcm86.div2;
-					smp_r += pcm86.smp_r * pcm86.div2;
-				}
-				else {
-					break;
-				}
-			}
-			smp_l += pcm86.smp_l * pcm86.divremain;
-			smp_r += pcm86.smp_r * pcm86.divremain;
-			pcm[0] += BYVOLUME(smp_l);
-			pcm[1] += BYVOLUME(smp_r);
-			pcm += 2;
-			pcm86.divremain -= pcm86.div2;
-		} while(--count);
-	}
-	return;
-
-pm8_bufempty:
-	pcm86.realbuf += 2;
-	pcm86.divremain = 0;
-	pcm86.smp_l = 0;
-	pcm86.smp_r = 0;
-	pcm86.lastsmp_l = 0;
-	pcm86.lastsmp_r = 0;
-}
-
-void SOUNDCALL pcm86gen_getpcm(void *hdl, SINT32 *pcm, UINT count) {
-
-	if ((count) && (pcm86.fifo & 0x80) && (pcm86.div)) {
-		switch(pcm86.dactrl & 0x70) {
-			case 0x00:						// 16bit-none
-				break;
-
-			case 0x10:						// 16bit-right
-				pcm86mono16(pcm + 1, count);
-				break;
-
-			case 0x20:						// 16bit-left
-				pcm86mono16(pcm, count);
-				break;
-
-			case 0x30:						// 16bit-stereo
-				pcm86stereo16(pcm, count);
-				break;
-
-			case 0x40:						// 8bit-none
-				break;
-
-			case 0x50:						// 8bit-right
-				pcm86mono8(pcm + 1, count);
-				break;
-
-			case 0x60:						// 8bit-left
-				pcm86mono8(pcm, count);
-				break;
-
-			case 0x70:						// 8bit-stereo
-				pcm86stereo8(pcm, count);
-				break;
-		}
-		pcm86gen_checkbuf();
-	}
-	(void)hdl;
-}
-
 #define	ADPCM_NBR	0x80000000
 
 static void SOUNDCALL getadpcmdata(ADPCM ad) {
@@ -3014,6 +2576,19 @@ void PC98_FM_OnEnterPC98(Section *sec) {
     if (!pc98fm_init) {
         pc98fm_init = true;
 
+        unsigned int rate = 44100;
+
+        memset(&pccore,0,sizeof(pccore));
+        pccore.samplingrate = 44100;
+		pccore.baseclock = PIT_TICK_RATE;
+		pccore.multiple = 1;
+        for (unsigned int i=0;i < 6;i++) pccore.vol14[i] = 0xFF;
+        pccore.vol_fm = 128;
+        pccore.vol_ssg = 128;
+        pccore.vol_adpcm = 128;
+        pccore.vol_pcm = 128;
+        pccore.vol_rhythm = 128;
+
         // TODO:
         //  - Give the user an option in dosbox.conf to enable/disable FM emulation
         //  - Give the user a choice which board to emulate (the borrowed code can emulate 10 different cards)
@@ -3035,8 +2610,6 @@ void PC98_FM_OnEnterPC98(Section *sec) {
 
         // WARNING: Some parts of the borrowed code assume 44100, 22050, or 11025 and
         //          will misrender if given any other sample rate (especially the OPNA synth).
-        unsigned int rate = 44100;
-        unsigned char vol14[6] = { 15, 15, 15, 15, 15, 15 };
 
         pc98_mixer = MIXER_AddChannel(pc98_mix_CallBack, rate, "PC-98");
         pc98_mixer->Enable(true);
@@ -3048,17 +2621,17 @@ void PC98_FM_OnEnterPC98(Section *sec) {
         //	beep_initialize(rate);
         //	beep_setvol(3);
         tms3631_initialize(rate);
-        tms3631_setvol(vol14);
+        tms3631_setvol(pccore.vol14);
         opngen_initialize(rate);
-        opngen_setvol(128);
+        opngen_setvol(pccore.vol_fm);
         psggen_initialize(rate);
-        psggen_setvol(128);
+        psggen_setvol(pccore.vol_ssg);
         rhythm_initialize(rate);
-        rhythm_setvol(128);
+        rhythm_setvol(pccore.vol_rhythm);
         adpcm_initialize(rate);
-        adpcm_setvol(128);
+        adpcm_setvol(pccore.vol_adpcm);
         pcm86gen_initialize(rate);
-        pcm86gen_setvol(128);
+        pcm86gen_setvol(pccore.vol_pcm);
 
         board86c_bind();
     }

@@ -1,7 +1,8 @@
-#include	"compiler.h"
-#include	"cpucore.h"
-#include	"pccore.h"
-#include	"iocore.h"
+#include    "np2glue.h"
+//#include	"compiler.h"
+//#include	"cpucore.h"
+//#include	"pccore.h"
+//#include	"iocore.h"
 #include	"sound.h"
 #include	"fmboard.h"
 
@@ -69,7 +70,7 @@ void pcm86_setpcmrate(REG8 val) {
 }
 
 void pcm86_cb(NEVENTITEM item) {
-
+#if 0
 	if (pcm86.reqirq) {
 		sound_sync();
 //		RECALC_NOWCLKP;
@@ -83,10 +84,11 @@ void pcm86_cb(NEVENTITEM item) {
 		}
 	}
 	(void)item;
+#endif
 }
 
 void pcm86_setnextintr(void) {
-
+#if 0
 	SINT32	cnt;
 	SINT32	clk;
 
@@ -112,10 +114,11 @@ void pcm86_setnextintr(void) {
 			nevent_set(NEVENT_86PCM, clk, pcm86_cb, NEVENT_ABSOLUTE);
 		}
 	}
+#endif
 }
 
 void SOUNDCALL pcm86gen_checkbuf(void) {
-
+#if 0
 	long	bufs;
 	UINT32	past;
 
@@ -149,6 +152,7 @@ void SOUNDCALL pcm86gen_checkbuf(void) {
 			pcm86.readpos += bufs;
 		}
 	}
+#endif
 }
 
 
