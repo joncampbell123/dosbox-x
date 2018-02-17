@@ -25,6 +25,8 @@
 
 using namespace std;
 
+#include <map>
+
 #include "np2glue.h"
 
 MixerChannel *pc98_mixer = NULL;
@@ -64,23 +66,51 @@ REG8 keystat_getjoy(void) {
     return 0xFF;//TODO
 }
 
+struct CBUS4PORT {
+    IOINP       inp[4];
+    IOOUT       out[4];
+
+    CBUS4PORT() {
+        for (unsigned int i=0;i < 4;i++) {
+            inp[i] = NULL;
+            out[i] = NULL;
+        }
+    }
+};
+
+static std::map<UINT,CBUS4PORT> cbuscore_map;
+
 void pc98_fm86_write(Bitu port,Bitu val,Bitu iolen) {
     LOG_MSG("pc98fm write port=0x%lx val=0x%lx",port,val);
+
+    auto &cbusm = cbuscore_map[port];
+    auto &func = cbusm.out[(port >> 1U) & 3U];
+    if (func) func(port,val);
 }
 
 Bitu pc98_fm86_read(Bitu port,Bitu iolen) {
     LOG_MSG("pc98fm read port=0x%lx",port);
 
+    auto &cbusm = cbuscore_map[port];
+    auto &func = cbusm.inp[(port >> 1U) & 3U];
+    if (func) return func(port);
     return ~0;
 }
 
 // four I/O ports, 2 ports apart
 void cbuscore_attachsndex(UINT port, const IOOUT *out, const IOINP *inp) {
+    auto &cbusm = cbuscore_map[port];
+
     LOG_MSG("cbuscore_attachsndex(port=0x%x)",port);
+
+    if ((port & 0x6) != 0) E_Exit("PC-98 port registration not aligned");
 
     for (unsigned int i=0;i < 4;i++) {
         IO_RegisterReadHandler(port+(i*4),pc98_fm86_read,IO_MB);
+        cbusm.inp[i] = inp[i];
+
         IO_RegisterWriteHandler(port+(i*4),pc98_fm86_write,IO_MB);
+        cbusm.out[i] = out[i];
     }
 }
 
