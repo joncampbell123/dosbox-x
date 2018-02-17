@@ -1,23 +1,23 @@
-Summary: DOSBox-X emulator
-Name: DOSBox-X
-Version: @PACKAGE_VERSION@
-Release: 1%{?dist}
-URL: http://www.dosbox-x.com
-License: GPL
-BuildRequires: libX11 libX11-devel libXext libXext-devel libpng libpng-devel ffmpeg alsa-lib alsa-lib-devel ncurses ncurses-devel zlib zlib-devel mesa-libGL mesa-libGL-devel pulseaudio-libs pulseaudio-libs-devel
+BuildRequires: libX11 libX11-devel libXext libXext-devel libpng libpng-devel ffmpeg alsa-lib alsa-lib-devel ncurses ncurses-devel zlib zlib-devel mesa-libGL mesa-libGL-devel pulseaudio-libs pulseaudio-libs-devel make, libtool, gcc
 Requires: libX11 libXext libpng ffmpeg alsa-lib ncurses zlib mesa-libGL pulseaudio-libs
+Name: @PACKAGE_NAME@
+Version: @PACKAGE_VERSION@
+Release: 0%{?dist}
+Summary: @PACKAGE_DESCRIPTION@
+License: GPL
+URL: http://www.dosbox-x.com
 Group: Applications/Emulators
-BuildRoot: %{_tmppath}/%{name}-%{version}-buildroot
-Prefix: %{_prefix}
-Provides: dosbox-x
-
-%prep
+Source0: @PACKAGE_NAME@-@PACKAGE_VERSION@.tar.xz
 
 %description
-DOSBox-X is a fork of DOSBox designed to emulate hardware as accurately as possible
+
+%prep
+%autosetup -n dosbox-x
 
 %build
 ./build-debug
+
+%check
 
 %install
 %make_install
@@ -25,4 +25,3 @@ DOSBox-X is a fork of DOSBox designed to emulate hardware as accurately as possi
 %files
 %{_bindir}/*
 
-# end of file
