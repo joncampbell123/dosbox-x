@@ -253,20 +253,6 @@ void fmtimer_setreg(UINT reg, REG8 value) {
 
 /////////////////////////////////////////////////////////////
 
-void board86c_bind(void) {
-
-	fmboard_fmrestore(0, 0);
-	fmboard_fmrestore(3, 1);
-	psggen_restore(&psg1);
-	fmboard_rhyrestore(&rhythm, 0);
-//	sound_streamregist(&opngen, (SOUNDCB)opngen_getpcm);
-//	sound_streamregist(&psg1, (SOUNDCB)psggen_getpcm);
-	rhythm_bind(&rhythm);
-//	sound_streamregist(&adpcm, (SOUNDCB)adpcm_getpcm);
-	pcm86io_bind();
-//	cbuscore_attachsndex(0x188 + opn.base, opnac_o, opnac_i);
-}
-
 void pc98_fm86_write(Bitu port,Bitu val,Bitu iolen) {
 }
 
