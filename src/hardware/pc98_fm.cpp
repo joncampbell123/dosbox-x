@@ -81,6 +81,25 @@ BRESULT iocore_attachsndinp(UINT port, IOINP func) {
 	return SUCCESS;
 }
 
+static void pc98_mix_CallBack(Bitu len) {
+    unsigned int s = len;
+
+    if (s > (sizeof(MixTemp)/sizeof(Bit32s)/2))
+        s = (sizeof(MixTemp)/sizeof(Bit32s)/2);
+
+    memset(MixTemp,0,sizeof(MixTemp));
+
+//    opngen_getpcm(NULL, (SINT32*)MixTemp, s);
+//    tms3631_getpcm(&tms3631, (SINT32*)MixTemp, s);
+
+//    for (unsigned int i=0;i < 3;i++)
+//        psggen_getpcm(&__psg[i], (SINT32*)MixTemp, s);
+
+//    pcm86gen_getpcm(NULL, (SINT32*)MixTemp, s);
+
+    pc98_mixer->AddSamples_s32(s, (Bit32s*)MixTemp);
+}
+
 void PC98_FM_OnEnterPC98(Section *sec) {
     if (!pc98fm_init) {
         pc98fm_init = true;
@@ -99,6 +118,25 @@ void PC98_FM_OnEnterPC98(Section *sec) {
         np2_cfg.vol_adpcm = 128;
         np2_cfg.vol_pcm = 128;
         np2_cfg.vol_rhythm = 128;
+
+        unsigned int rate = np2_cfg.samplingrate;
+        NP2CFG &np2cfg = np2_cfg;
+
+        pc98_mixer = MIXER_AddChannel(pc98_mix_CallBack, rate, "PC-98");
+        pc98_mixer->Enable(true);
+
+        tms3631_initialize(rate);
+        tms3631_setvol(np2cfg.vol14);
+        opngen_initialize(rate);
+        opngen_setvol(np2cfg.vol_fm);
+        psggen_initialize(rate);
+        psggen_setvol(np2cfg.vol_ssg);
+        rhythm_initialize(rate);
+        rhythm_setvol(np2cfg.vol_rhythm);
+        adpcm_initialize(rate);
+        adpcm_setvol(np2cfg.vol_adpcm);
+        pcm86gen_initialize(rate);
+        pcm86gen_setvol(np2cfg.vol_pcm);
     }
 }
 
