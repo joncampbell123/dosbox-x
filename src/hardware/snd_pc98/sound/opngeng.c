@@ -106,8 +106,7 @@ void SOUNDCALL opngen_getpcm(void *hdl, SINT32 *pcm, UINT count) {
 	SINT32	samp_l;
 	SINT32	samp_r;
 
-    /* FIXME: The "playing" flag is never getting set! */
-	if (/*(!opngen.playing) || */(!count)) {
+	if ((!opngen.playing) || (!count)) {
 		return;
 	}
 	fm = opnch;
