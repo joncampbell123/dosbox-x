@@ -10,6 +10,8 @@
 #include <stdlib.h>
 #include <limits.h>
 
+#define SUPPORT_PX
+
 #if !defined(MAX_PATH)
 #define MAX_PATH PATH_MAX
 #endif
