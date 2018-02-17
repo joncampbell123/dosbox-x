@@ -188,7 +188,7 @@ void fmboard_reset(const NP2CFG *pConfig, UINT32 type) {
 			break;
 
 		case 0x04:
-//			board86_reset(pConfig);
+			board86_reset(pConfig);
 			break;
 
 		case 0x06:
@@ -249,7 +249,7 @@ void fmboard_bind(void) {
 			break;
 
 		case 0x04:
-//			board86_bind();
+			board86_bind();
 			break;
 
 		case 0x06:
