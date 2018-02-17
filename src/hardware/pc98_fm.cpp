@@ -67,50 +67,39 @@ REG8 keystat_getjoy(void) {
 }
 
 struct CBUS4PORT {
-    IOINP       inp[4];
-    IOOUT       out[4];
+    IOINP       inp;
+    IOOUT       out;
 
-    CBUS4PORT() {
-        for (unsigned int i=0;i < 4;i++) {
-            inp[i] = NULL;
-            out[i] = NULL;
-        }
-    }
+    CBUS4PORT() : inp(NULL), out(NULL) { }
 };
 
 static std::map<UINT,CBUS4PORT> cbuscore_map;
 
 void pc98_fm86_write(Bitu port,Bitu val,Bitu iolen) {
-    LOG_MSG("pc98fm write port=0x%lx val=0x%lx",port,val);
-
     auto &cbusm = cbuscore_map[port];
-    auto &func = cbusm.out[(port >> 1U) & 3U];
+    auto &func = cbusm.out;
     if (func) func(port,val);
 }
 
 Bitu pc98_fm86_read(Bitu port,Bitu iolen) {
-    LOG_MSG("pc98fm read port=0x%lx",port);
-
     auto &cbusm = cbuscore_map[port];
-    auto &func = cbusm.inp[(port >> 1U) & 3U];
+    auto &func = cbusm.inp;
     if (func) return func(port);
     return ~0;
 }
 
 // four I/O ports, 2 ports apart
 void cbuscore_attachsndex(UINT port, const IOOUT *out, const IOINP *inp) {
-    auto &cbusm = cbuscore_map[port];
-
     LOG_MSG("cbuscore_attachsndex(port=0x%x)",port);
 
-    if ((port & 0x6) != 0) E_Exit("PC-98 port registration not aligned");
-
     for (unsigned int i=0;i < 4;i++) {
-        IO_RegisterReadHandler(port+(i*4),pc98_fm86_read,IO_MB);
-        cbusm.inp[i] = inp[i];
+        auto &cbusm = cbuscore_map[port+(i*2)];
 
-        IO_RegisterWriteHandler(port+(i*4),pc98_fm86_write,IO_MB);
-        cbusm.out[i] = out[i];
+        IO_RegisterReadHandler(port+(i*2),pc98_fm86_read,IO_MB);
+        cbusm.inp = inp[i];
+
+        IO_RegisterWriteHandler(port+(i*2),pc98_fm86_write,IO_MB);
+        cbusm.out = out[i];
     }
 }
 
@@ -338,34 +327,6 @@ void PC98_FM_OnEnterPC98(Section *sec) {
         pccore.vol_rhythm = 128;
         pccore.snd86opt = 0x01;
 
-        // TODO:
-        //  - Give the user an option in dosbox.conf to enable/disable FM emulation
-        //  - Give the user a choice which board to emulate (the borrowed code can emulate 10 different cards)
-        //  - Give the user a choice which IRQ to attach it to
-        //  - Give the user a choice of base I/O address (0x088 or 0x188)
-        //  - Move this code out into it's own file. This is SOUND code. It does not belong in vga.cpp.
-        //  - Register the TMS3631, OPNA, PSG, RHYTHM, etc. outputs as individual mixer channels, where
-        //    each can then run at their own sample rate, and the user can use DOSBox-X mixer controls to
-        //    set volume, record individual tracks with WAV capture, etc.
-        //  - Cleanup this code, organize it.
-        //  - Make sure this code clearly indicates that it was borrowed and adapted from Neko Project II and
-        //    ported to DOSBox-X. I cannot take credit for this code, I can only take credit for porting it
-        //    and future refinements in this project.
-        LOG_MSG("Initializing FM board at base 0x%x",pc98_fm86_base);
-        for (unsigned int i=0;i < 8;i += 2) {
-            IO_RegisterWriteHandler(pc98_fm86_base+i,pc98_fm86_write,IO_MB);
-            IO_RegisterReadHandler(pc98_fm86_base+i,pc98_fm86_read,IO_MB);
-        }
-
-        // WARNING: Some parts of the borrowed code assume 44100, 22050, or 11025 and
-        //          will misrender if given any other sample rate (especially the OPNA synth).
-
-        pc98_mixer = MIXER_AddChannel(pc98_mix_CallBack, rate, "PC-98");
-        pc98_mixer->Enable(true);
-
-        fmboard_reset(&np2cfg, 0x14);
-        fmboard_extenable(true);
-
         //	fddmtrsnd_initialize(rate);
         //	beep_initialize(rate);
         //	beep_setvol(3);
@@ -382,7 +343,16 @@ void PC98_FM_OnEnterPC98(Section *sec) {
         pcm86gen_initialize(rate);
         pcm86gen_setvol(pccore.vol_pcm);
 
+        fmboard_reset(&np2cfg, 0x14);
+        fmboard_extenable(true);
+
         fmboard_bind();
+
+        // WARNING: Some parts of the borrowed code assume 44100, 22050, or 11025 and
+        //          will misrender if given any other sample rate (especially the OPNA synth).
+
+        pc98_mixer = MIXER_AddChannel(pc98_mix_CallBack, rate, "PC-98");
+        pc98_mixer->Enable(true);
     }
 }
 
