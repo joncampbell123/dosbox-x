@@ -663,6 +663,7 @@ src/shell/Makefile
 src/platform/Makefile
 include/Makefile
 dosbox-x.spec
+make-rpm.sh
 ])
 AC_OUTPUT
 
