@@ -32,7 +32,14 @@ int pc98_fm_irq = 3; /* TODO: Make configurable */
 unsigned int pc98_fm26_base = 0x088; /* TODO: Make configurable */
 unsigned int pc98_fm86_base = 0x188; /* TODO: Make configurable */
 
-#include "opngen.h"
+#include "sound.h"
+#include "fmboard.h"
+//#include "opngen.h"       already from fmboard.h
+//#include "pcm86.h"        already from fmboard.h
+//#include "psggen.h"       already from fmboard.h
+//#include "adpcm.h"        already from fmboard.h
+//#include "tms3631.h"      already from fmboard.h
+//#include "fmtimer.h"      already from fmboard.h
 
 #define	SIN_BITS		10
 #define	EVC_BITS		10
@@ -66,16 +73,6 @@ unsigned int pc98_fm86_base = 0x188; /* TODO: Make configurable */
 #define	FMASMSHIFT	(32 - 6 - (OPM_OUTSB + 1 + FMDIV_BITS) + FMVOL_SFTBIT)
 #define	FREQBASE4096	((double)OPNA_CLOCK / calcrate / 64)
 
-enum {
-	PCM86_LOGICALBUF	= 0x8000,
-	PCM86_BUFSIZE		= (1 << 16),
-	PCM86_BUFMSK		= ((1 << 16) - 1),
-
-	PCM86_DIVBIT		= 10,
-	PCM86_DIVENV		= (1 << PCM86_DIVBIT),
-
-	PCM86_RESCUE		= 20
-};
 
 #define	PCM86_EXTBUF		pcm86.rescue					// ~ÏØc
 #define	PCM86_REALBUFSIZE	(PCM86_LOGICALBUF + PCM86_EXTBUF)
@@ -87,47 +84,7 @@ enum {
 		}																\
 	}
 
-typedef struct {
-	SINT32	divremain;
-	SINT32	div;
-	SINT32	div2;
-	SINT32	smp;
-	SINT32	lastsmp;
-	SINT32	smp_l;
-	SINT32	lastsmp_l;
-	SINT32	smp_r;
-	SINT32	lastsmp_r;
 
-	UINT32	readpos;			// DSOUNDÄ¶Êu
-	UINT32	wrtpos;				// ÝÊu
-	SINT32	realbuf;			// DSOUNDpÌf[^
-	SINT32	virbuf;				// 86PCM(bufsize:0x8000)Ìf[^
-	SINT32	rescue;
-
-	SINT32	fifosize;
-	SINT32	volume;
-	SINT32	vol5;
-
-	UINT32	lastclock;
-	UINT32	stepclock;
-	UINT	stepmask;
-
-	UINT8	fifo;
-	UINT8	extfunc;
-	UINT8	dactrl;
-	UINT8	_write;
-	UINT8	stepbit;
-	UINT8	reqirq;
-	UINT8	irqflag;
-	UINT8	padding[1];
-
-	UINT8	buffer[PCM86_BUFSIZE];
-} _PCM86, *PCM86;
-
-typedef struct {
-	UINT	rate;
-	UINT	vol;
-} PCM86CFG;
 
 
 #ifdef __cplusplus
@@ -182,61 +139,6 @@ void pcm86gen_setvol(UINT vol) {
 #ifdef __cplusplus
 }
 #endif
-
-enum {
-	ADTIMING_BIT	= 11,
-	ADTIMING		= (1 << ADTIMING_BIT),
-	ADPCM_SHIFT		= 3
-};
-
-typedef struct {
-	UINT8	ctrl1;		// 00
-	UINT8	ctrl2;		// 01
-	UINT8	start[2];	// 02
-	UINT8	stop[2];	// 04
-	UINT8	reg06;
-	UINT8	reg07;
-	UINT8	data;		// 08
-	UINT8	delta[2];	// 09
-	UINT8	level;		// 0b
-	UINT8	limit[2];	// 0c
-	UINT8	reg0e;
-	UINT8	reg0f;
-	UINT8	flag;		// 10
-	UINT8	reg11;
-	UINT8	reg12;
-	UINT8	reg13;
-} ADPCMREG;
-
-typedef struct {
-	ADPCMREG	reg;
-	UINT32		pos;
-	UINT32		start;
-	UINT32		stop;
-	UINT32		limit;
-	SINT32		level;
-	UINT32		base;
-	SINT32		samp;
-	SINT32		delta;
-	SINT32		remain;
-	SINT32		step;
-	SINT32		out0;
-	SINT32		out1;
-	SINT32		fb;
-	SINT32		pertim;
-	UINT8		status;
-	UINT8		play;
-	UINT8		mask;
-	UINT8		fifopos;
-	UINT8		fifo[2];
-	UINT8		padding[2];
-	UINT8		buf[0x40000];
-} _ADPCM, *ADPCM;
-
-typedef struct {
-	UINT	rate;
-	UINT	vol;
-} ADPCMCFG;
 
 #ifdef __cplusplus
 extern "C" {
@@ -299,14 +201,6 @@ void adpcm_update(ADPCM ad) {
 }
 #endif
 
-typedef struct {
-//	PMIXHDR	hdr;
-//	PMIXTRK	trk[6];
-	UINT	vol;
-	UINT8	trkvol[8];
-} _RHYTHM, *RHYTHM;
-
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -324,67 +218,6 @@ void rhythm_setreg(RHYTHM rhy, UINT reg, REG8 val);
 #ifdef __cplusplus
 }
 #endif
-
-enum {
-	PSGFREQPADBIT		= 12,
-	PSGADDEDBIT			= 3
-};
-
-enum {
-	PSGENV_INC			= 15,
-	PSGENV_ONESHOT		= 16,
-	PSGENV_LASTON		= 32,
-	PSGENV_ONECYCLE		= 64
-};
-
-typedef struct {
-	SINT32	freq;
-	SINT32	count;
-	SINT32	*pvol;			// !!
-	UINT16	puchi;
-	UINT8	pan;
-	UINT8	padding;
-} PSGTONE;
-
-typedef struct {
-	SINT32	freq;
-	SINT32	count;
-	UINT	base;
-} PSGNOISE;
-
-typedef struct {
-	UINT8	tune[3][2];		// 0
-	UINT8	noise;			// 6
-	UINT8	mixer;			// 7
-	UINT8	vol[3];			// 8
-	UINT8	envtime[2];		// b
-	UINT8	env;			// d
-	UINT8	io1;
-	UINT8	io2;
-} PSGREG;
-
-typedef struct {
-	PSGTONE		tone[3];
-	PSGNOISE	noise;
-	PSGREG		reg;
-	UINT16		envcnt;
-	UINT16		envmax;
-	UINT8		mixer;
-	UINT8		envmode;
-	UINT8		envvol;
-	SINT8		envvolcnt;
-	SINT32		evol;				// !!
-	UINT		puchicount;
-} _PSGGEN, *PSGGEN;
-
-typedef struct {
-	SINT32	volume[16];
-	SINT32	voltbl[16];
-	UINT	rate;
-	UINT32	base;
-	UINT16	puchidec;
-} PSGGENCFG;
-
 
 #ifdef __cplusplus
 extern "C" {
@@ -469,34 +302,8 @@ enum {
 
 #if !defined(DISABLE_SOUND)
 
-typedef struct {
-	UINT	addr;
-	UINT	addr2;
-	UINT8	data;
-	UINT8	data2;
-	UINT16	base;
-	UINT8	adpcmmask;
-	UINT8	channels;
-	UINT8	extend;
-	UINT8	_padding;
-	UINT8	reg[0x400];
-} OPN_T;
 
-typedef struct {
-	UINT16	port;
-	UINT8	psg3reg;
-	UINT8	rhythm;
-} AMD98;
 
-typedef struct {
-	UINT8	porta;
-	UINT8	portb;
-	UINT8	portc;
-	UINT8	mask;
-	UINT8	key[8];
-	int		sync;
-	int		ch;
-} MUSICGEN;
 
 typedef struct {
 	UINT16	posx;
@@ -564,34 +371,9 @@ typedef struct {
 extern "C" {
 #endif
 
-typedef struct {
-	UINT32	freq;
-	UINT32	count;
-} TMSCH;
-
-typedef struct {
-	TMSCH	ch[8];
-	UINT	enable;
-} _TMS3631, *TMS3631;
-
-typedef struct {
-	UINT	ratesft;
-	SINT32	left;
-	SINT32	right;
-	SINT32	feet[16];
-} TMS3631CFG;
 
 static void	(*extfn)(REG8 enable);
 
-struct _FMTIMER {
-	UINT16	timera;
-	UINT8	timerb;
-	UINT8	status;
-	UINT8	reg;
-	UINT8	intr;
-	UINT8	irq;
-	UINT8	intdisabel;
-};
 
 extern	UINT32		usesound;
 extern	OPN_T		opn;

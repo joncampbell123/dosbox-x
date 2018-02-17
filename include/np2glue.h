@@ -58,7 +58,17 @@ static inline void pcm86io_bind(void) {
     /* dummy */
 }
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 static inline void sound_sync(void) {
     if (pc98_mixer) pc98_mixer->FillUp();
 }
+
+#ifdef __cplusplus
+}
+#endif
+
+#define BRESULT             UINT8
 
