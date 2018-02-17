@@ -9,8 +9,16 @@ exit 0 if -f $zipname;
 
 die unless -f $ziptool;
 
+my $subdir="release/windows";
+
+my $branch=`git branch | grep \\\* | cut -d ' ' -f 2`;
+chomp $branch;
+if ( "$branch" eq "develop-win-sdl1-async-hack-201802" ) {
+    $subdir="release/windows-async";
+}
+
 mkdir "release" unless -d "release";
-mkdir "release/windows" unless -d "release/windows";
+mkdir "$subdir" unless -d "$subdir";
 
 die "bin directory not exist" unless -d "bin";
 
@@ -34,5 +42,5 @@ foreach $platform (@platforms) {
 }
 
 # do it
-$r = system($ziptool, '-9', "release/windows/$zipname", @filelist);
+$r = system($ziptool, '-9', "$subdir/$zipname", @filelist);
 exit 1 unless $r == 0;
