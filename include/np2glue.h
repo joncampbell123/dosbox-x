@@ -293,6 +293,9 @@ typedef	REG8 (IOINPCALL *IOINP)(UINT port);
 extern "C" {
 #endif
 
+void pic_setirq(REG8 irq);
+void pic_resetirq(REG8 irq);
+
 void cbuscore_attachsndex(UINT port, const IOOUT *out, const IOINP *inp);
 
 #ifdef __cplusplus

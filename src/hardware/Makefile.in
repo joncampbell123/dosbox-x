@@ -138,7 +138,8 @@ am_libhardware_a_OBJECTS = adlib.$(OBJEXT) dma.$(OBJEXT) \
 	snd_pc98/sound/getsnd/getsnd.$(OBJEXT) \
 	snd_pc98/x11/dosio.$(OBJEXT) snd_pc98/sound/fmboard.$(OBJEXT) \
 	snd_pc98/sound/soundrom.$(OBJEXT) \
-	snd_pc98/cbus/board86.$(OBJEXT)
+	snd_pc98/cbus/board86.$(OBJEXT) \
+	snd_pc98/sound/fmtimer.$(OBJEXT)
 libhardware_a_OBJECTS = $(am_libhardware_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -376,7 +377,7 @@ libhardware_a_SOURCES = adlib.cpp dma.cpp gameblaster.cpp hardware.cpp iohandler
 			snd_pc98/common/parts.c snd_pc98/generic/keydisp.c snd_pc98/sound/adpcmc.c snd_pc98/sound/adpcmg.c \
 			snd_pc98/sound/rhythmc.c snd_pc98/sound/sound.c snd_pc98/sound/getsnd/getwave.c snd_pc98/sound/getsnd/getsmix.c \
 			snd_pc98/sound/getsnd/getsnd.c snd_pc98/x11/dosio.c snd_pc98/sound/fmboard.c snd_pc98/sound/soundrom.c \
-			snd_pc98/cbus/board86.c
+			snd_pc98/cbus/board86.c snd_pc98/sound/fmtimer.c
 
 all: all-recursive
 
@@ -496,6 +497,8 @@ snd_pc98/cbus/$(DEPDIR)/$(am__dirstamp):
 	@: > snd_pc98/cbus/$(DEPDIR)/$(am__dirstamp)
 snd_pc98/cbus/board86.$(OBJEXT): snd_pc98/cbus/$(am__dirstamp) \
 	snd_pc98/cbus/$(DEPDIR)/$(am__dirstamp)
+snd_pc98/sound/fmtimer.$(OBJEXT): snd_pc98/sound/$(am__dirstamp) \
+	snd_pc98/sound/$(DEPDIR)/$(am__dirstamp)
 
 libhardware.a: $(libhardware_a_OBJECTS) $(libhardware_a_DEPENDENCIES) $(EXTRA_libhardware_a_DEPENDENCIES) 
 	$(AM_V_at)-rm -f libhardware.a
@@ -576,6 +579,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@snd_pc98/sound/$(DEPDIR)/adpcmc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@snd_pc98/sound/$(DEPDIR)/adpcmg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@snd_pc98/sound/$(DEPDIR)/fmboard.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@snd_pc98/sound/$(DEPDIR)/fmtimer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@snd_pc98/sound/$(DEPDIR)/opngenc.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@snd_pc98/sound/$(DEPDIR)/opngeng.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@snd_pc98/sound/$(DEPDIR)/pcm86c.Po@am__quote@

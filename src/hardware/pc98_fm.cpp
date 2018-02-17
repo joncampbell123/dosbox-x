@@ -103,189 +103,45 @@ void cbuscore_attachsndex(UINT port, const IOOUT *out, const IOINP *inp) {
     }
 }
 
+void pic_setirq(REG8 irq) {
+    PIC_ActivateIRQ(irq);
+}
+
+void pic_resetirq(REG8 irq) {
+    PIC_DeActivateIRQ(irq);
+}
+
 int pc98_fm_irq = 3; /* TODO: Make configurable */
 unsigned int pc98_fm26_base = 0x088; /* TODO: Make configurable */
 unsigned int pc98_fm86_base = 0x188; /* TODO: Make configurable */
 
 #include "sound.h"
 #include "fmboard.h"
-//#include "opngen.h"       already from fmboard.h
-//#include "pcm86.h"        already from fmboard.h
-//#include "psggen.h"       already from fmboard.h
-//#include "adpcm.h"        already from fmboard.h
-//#include "tms3631.h"      already from fmboard.h
-//#include "fmtimer.h"      already from fmboard.h
 
-//-----------------------------------------------------------
-// Neko Project II: sound/fmtimer.h
-//-----------------------------------------------------------
-
-//void fmport_a(NEVENTITEM item);
-//void fmport_b(NEVENTITEM item);
-
-/////// from sound/fmboard.c
-
-//-----------------------------------------------------------
-// Neko Project II: sound/fmtimer.c
-//-----------------------------------------------------------
-
-static const UINT8 irqtable[4] = {0x03, 0x0d, 0x0a, 0x0c};
-
-static void set_fmtimeraevent(BOOL absolute);
-static void set_fmtimerbevent(BOOL absolute);
+// wrapper for fmtimer events
 void fmport_a(NEVENTITEM item);
 void fmport_b(NEVENTITEM item);
 
-bool FMPORT_EventA_set = false;
-bool FMPORT_EventB_set = false;
-
-static void FMPORT_EventA(Bitu val) {
-    FMPORT_EventA_set = false;
+static void fmport_a_pic_event(Bitu val) {
     fmport_a(NULL);
-    (void)val;
 }
 
-static void FMPORT_EventB(Bitu val) {
-    FMPORT_EventB_set = false;
+static void fmport_b_pic_event(Bitu val) {
     fmport_b(NULL);
-    (void)val;
 }
 
+extern "C" void pc98_fm_dosbox_fmtimer_setevent(unsigned int n,double dt) {
+    PIC_EventHandler func = n ? fmport_b_pic_event : fmport_a_pic_event;
 
-void fmport_a(NEVENTITEM item) {
-
-    BOOL	intreq = FALSE;
-
-    intreq = pcm86gen_intrq();
-    if (fmtimer.reg & 0x04) {
-        fmtimer.status |= 0x01;
-        intreq = TRUE;
-    }
-
-    if (intreq)
-        PIC_ActivateIRQ(pc98_fm_irq);
-
-    set_fmtimeraevent(FALSE);
+    PIC_RemoveEvents(func);
+    PIC_AddEvent(func,dt);
 }
 
-void fmport_b(NEVENTITEM item) {
-
-    BOOL	intreq = FALSE;
-
-    intreq = pcm86gen_intrq();
-    if (fmtimer.reg & 0x08) {
-        fmtimer.status |= 0x02;
-        intreq = TRUE;
-    }
-
-    if (intreq)
-        PIC_ActivateIRQ(pc98_fm_irq);
-
-    set_fmtimerbevent(FALSE);
+extern "C" void pc98_fm_dosbox_fmtimer_clearevent(unsigned int n) {
+    PIC_RemoveEvents(n ? fmport_b_pic_event : fmport_a_pic_event);
 }
 
-static void set_fmtimeraevent(BOOL absolute) {
-
-	SINT32	l;
-    double dt;
-
-	l = 18 * (1024 - fmtimer.timera);
-    dt = ((double)l * 1000) / 1000000; // FIXME: GUESS!!!!
-//	if (PIT_TICK_RATE == PIT_TICK_RATE_PC98_8MHZ) {	 // 4MHz
-//		l = (l * 1248 / 625) * pccore.multiple;    <- NOTE: This becomes l * 1996800Hz * multiple
-//	}
-//	else {										// 5MHz
-//		l = (l * 1536 / 625) * pccore.multiple;    <- NOTE: This becomes l * 2457600Hz * multiple
-//	}
-//	TRACEOUT(("FMTIMER-A: %08x-%d", l, absolute));
-//	nevent_set(NEVENT_FMTIMERA, l, fmport_a, absolute);
-
-    PIC_RemoveEvents(FMPORT_EventA);
-    PIC_AddEvent(FMPORT_EventA, dt);
-    FMPORT_EventA_set = true;
-
-    (void)l;
-}
-
-static void set_fmtimerbevent(BOOL absolute) {
-
-	SINT32	l;
-    double dt;
-
-	l = 288 * (256 - fmtimer.timerb);
-    dt = ((double)l * 1000) / 1000000; // FIXME: GUESS!!!!
-//	if (PIT_TICK_RATE == PIT_TICK_RATE_PC98_8MHZ) {	 // 4MHz
-//		l = (l * 1248 / 625) * pccore.multiple;
-//	}
-//	else {										// 5MHz
-//		l = (l * 1536 / 625) * pccore.multiple;
-//	}
-//	TRACEOUT(("FMTIMER-B: %08x-%d", l, absolute));
-//	nevent_set(NEVENT_FMTIMERB, l, fmport_b, absolute);
-
-    PIC_RemoveEvents(FMPORT_EventB);
-    PIC_AddEvent(FMPORT_EventB, dt);
-    FMPORT_EventB_set = true;
-
-    (void)l;
-}
-
-void fmtimer_reset(UINT irq) {
-
-	ZeroMemory(&fmtimer, sizeof(fmtimer));
-	fmtimer.intr = irq & 0xc0;
-	fmtimer.intdisabel = irq & 0x10;
-	fmtimer.irq = irqtable[irq >> 6];
-//	pic_registext(fmtimer.irq);
-}
-
-void fmtimer_setreg(UINT reg, REG8 value) {
-
-//	TRACEOUT(("fm %x %x [%.4x:%.4x]", reg, value, CPU_CS, CPU_IP));
-
-	switch(reg) {
-		case 0x24:
-			fmtimer.timera = (value << 2) + (fmtimer.timera & 3);
-			break;
-
-		case 0x25:
-			fmtimer.timera = (fmtimer.timera & 0x3fc) + (value & 3);
-			break;
-
-		case 0x26:
-			fmtimer.timerb = value;
-			break;
-
-		case 0x27:
-			fmtimer.reg = value;
-			fmtimer.status &= ~((value & 0x30) >> 4);
-			if (value & 0x01) {
-                if (!FMPORT_EventA_set)
-                    set_fmtimeraevent(0);
-            }
-            else {
-                FMPORT_EventA_set = false;
-                PIC_RemoveEvents(FMPORT_EventA);
-            }
-
-            if (value & 0x02) {
-                if (!FMPORT_EventB_set)
-                    set_fmtimerbevent(0);
-            }
-            else {
-                FMPORT_EventB_set = false;
-                PIC_RemoveEvents(FMPORT_EventB);
-            }
-
-			if (!(value & 0x03)) {
-                PIC_DeActivateIRQ(pc98_fm_irq);
-            }
-			break;
-	}
-}
-
-
-/////////////////////////////////////////////////////////////
+// mixer callback
 
 static void pc98_mix_CallBack(Bitu len) {
     unsigned int s = len;
