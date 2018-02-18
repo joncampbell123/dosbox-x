@@ -1156,6 +1156,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_values(pc98fmboards);
 	Pstring->Set_help("In PC-98 mode, selects the FM music board to emulate.");
 
+	Pint = secprop->Add_int("pc-98 fm board irq", Property::Changeable::WhenIdle,0);
+	Pint->Set_help("If set, helps to determine the IRQ of the FM board. A setting of zero means to auto-determine the IRQ.");
+
 	Phex = secprop->Add_hex("pc-98 fm board io port", Property::Changeable::WhenIdle,0);
 	Phex->Set_help("If set, helps to determine the base I/O port of the FM board. A setting of zero means to auto-determine the port number.");
 
