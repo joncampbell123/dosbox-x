@@ -9,6 +9,17 @@
 #include <stdlib.h>
 #include <limits.h>
 
+#if defined(WIN32)
+#include <windows.h>
+#include <io.h>
+
+#pragma warning(disable:4996)
+#endif
+
+#if defined(WIN32) && !defined(strcasecmp)
+#define strcasecmp strcmpi
+#endif
+
 #define SUPPORT_PX
 
 #if !defined(MAX_PATH)
@@ -274,7 +285,9 @@ extern NP2CFG pccore;
 #define	_HANDLE_REM(a)			
 #define	_MEM_USED(a)			
 
+#ifndef WIN32
 #define CopyMemory(d,s,n)   memcpy((d), (s), (n))
+#endif
 
 typedef FILE *			FILEH;
 

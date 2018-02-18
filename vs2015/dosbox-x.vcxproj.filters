@@ -79,6 +79,9 @@
     <Filter Include="Includes">
       <UniqueIdentifier>{39027cf6-2435-4d52-a1ea-c3cc6c7f31ab}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Sources\pc98fmboards">
+      <UniqueIdentifier>{77588c09-bef2-4f95-a219-8ac9d696a7ff}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\src\aviwriter\avi_rw_iobuf.cpp">
@@ -735,6 +738,75 @@
     <ClCompile Include="..\src\hardware\hardware.cpp">
       <Filter>Sources\hardware\parport</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\cbus\board26k.c">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\cbus\board86.c">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\common\parts.c">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\generic\keydisp.c">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\getsnd\getsmix.c">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\getsnd\getsnd.c">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\getsnd\getwave.c">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\adpcmc.c">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\adpcmg.c">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\fmboard.c">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\fmtimer.c">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\opngenc.c">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\opngeng.c">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\pcm86c.c">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\pcm86g.c">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\psggenc.c">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\psggeng.c">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\rhythmc.c">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\sound.c">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\soundrom.c">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\tms3631c.c">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\tms3631g.c">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\x11\dosio.c">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
@@ -1299,6 +1371,60 @@
       <Filter>Sources\libs\zmbv</Filter>
     </ClInclude>
     <ClInclude Include="config.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\cbus\board26k.h">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\cbus\board86.h">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\common\parts.h">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\common\profile.h">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\common\wavefile.h">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\generic\keydisp.h">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\getsnd\getsnd.h">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\adpcm.h">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\fmboard.h">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\fmtimer.h">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\opngen.h">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\pcm86.h">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\psggen.h">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\rhythm.h">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\sound.h">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\soundrom.h">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\tms3631.h">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\x11\dosio.h">
+      <Filter>Sources\pc98fmboards</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\winres.rc">

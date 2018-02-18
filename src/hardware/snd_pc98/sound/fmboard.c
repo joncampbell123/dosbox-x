@@ -6,7 +6,7 @@
 //#include	"iocore.h"
 //#include	"cbuscore.h"
 //#include	"board14.h"
-//#include	"board26k.h"
+#include	"board26k.h"
 #include	"board86.h"
 //#include	"boardx2.h"
 //#include	"board118.h"

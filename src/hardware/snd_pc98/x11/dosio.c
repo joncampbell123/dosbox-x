@@ -94,6 +94,7 @@ file_getsize(FILEH handle)
 	return 0;
 }
 
+#if 0
 short
 file_attr(const OEMCHAR *path)
 {
@@ -112,6 +113,7 @@ file_attr(const OEMCHAR *path)
 	}
 	return -1;
 }
+#endif
 
 static BOOL
 cnvdatetime(struct stat *sb, DOSDATE *dosdate, DOSTIME *dostime)
@@ -146,6 +148,7 @@ file_getdatetime(FILEH handle, DOSDATE *dosdate, DOSTIME *dostime)
 	return -1;
 }
 
+#if 0
 short
 file_delete(const OEMCHAR *path)
 {
@@ -159,6 +162,7 @@ file_dircreate(const OEMCHAR *path)
 
 	return (short)mkdir(path, 0777);
 }
+#endif
 
 
 #if 0
