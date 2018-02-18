@@ -1,4 +1,4 @@
-/** \page DOSBox-X emulation
+/** \mainpage DOSBox-X emulation
  *
  * \section i Introduction
  *
