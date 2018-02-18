@@ -2,8 +2,6 @@
 #define	NP2_X11_DOSIO_H__
 
 #include <stdio.h>
-#include <dirent.h>
-#include <dirent.h>
 
 typedef FILE *			FILEH;
 #define	FILEH_INVALID		NULL
@@ -41,12 +39,6 @@ typedef struct {
 } DOSTIME;
 
 typedef struct {
-	char	path[MAX_PATH];
-	DIR	*hdl;
-} _FLISTH, *FLISTH;
-#define	FLISTH_INVALID		NULL
-
-typedef struct {
 	UINT	caps;
 	UINT32	size;
 	UINT32	attr;
@@ -82,10 +74,6 @@ FILEH file_open_rb_c(const OEMCHAR *sjis);
 FILEH file_create_c(const OEMCHAR *sjis);
 short file_delete_c(const OEMCHAR *sjis);
 short file_attr_c(const OEMCHAR *sjis);
-
-FLISTH file_list1st(const OEMCHAR *dir, FLINFO *fli);
-BOOL file_listnext(FLISTH hdl, FLINFO *fli);
-void file_listclose(FLISTH hdl);
 
 void file_cpyname(char *dst, const char *src, int maxlen);
 void file_catname(char *path, const char *sjis, int maxlen);
