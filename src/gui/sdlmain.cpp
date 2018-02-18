@@ -1,3 +1,5 @@
+/// @brief                  Main DOSBox-X entry point, GFX, and Windows handling
+/// @details                GFX rendering/output, main entry point, emulation loop, Windows functions
 /*
  *  Copyright (C) 2002-2013  The DOSBox Team
  *
