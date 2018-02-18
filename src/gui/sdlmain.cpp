@@ -1,3 +1,13 @@
+/** \mainpage DOSBox-X emulation
+ *
+ * \section i Introduction
+ *
+ * \section f Features
+ *
+ * \li Accurate x86 emulation
+ *
+*/
+
 /*
  *  Copyright (C) 2002-2013  The DOSBox Team
  *
