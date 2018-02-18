@@ -46,5 +46,4 @@ src/dosbox.icns: src/dosbox.ico
 dox:
 	rm -Rfv doxygen
 	doxygen
-	git add doxygen/
 
