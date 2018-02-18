@@ -16,6 +16,7 @@
 #include "pc98_dac.h"
 #include "pc98_gdc.h"
 #include "pc98_gdc_const.h"
+#include "joystick.h"
 #include "mixer.h"
 
 #include <string.h>
@@ -58,12 +59,46 @@ void getbiospath(OEMCHAR *path, const OEMCHAR *fname, int maxlen) {
     snprintf(path,maxlen,fname);
 }
 
+enum {
+	JOY_UP_BIT		    = (1 << 0),
+	JOY_DOWN_BIT		= (1 << 1),
+	JOY_LEFT_BIT		= (1 << 2),
+	JOY_RIGHT_BIT		= (1 << 3),
+	JOY_RAPIDBTN1_BIT	= (1 << 4),
+	JOY_RAPIDBTN2_BIT	= (1 << 5),
+	JOY_BTN1_BIT		= (1 << 6),
+	JOY_BTN2_BIT		= (1 << 7)
+};
+
+
 REG8 joymng_getstat(void) {
-    return 0xFF;//TODO
+    unsigned char r = 0xFF;
+
+    if (JOYSTICK_IsEnabled(0)) {
+        if (JOYSTICK_GetButton(0,0))
+            r &= ~JOY_BTN1_BIT;
+        if (JOYSTICK_GetButton(0,1))
+            r &= ~JOY_BTN2_BIT;
+
+        float x = JOYSTICK_GetMove_X(0);
+        float y = JOYSTICK_GetMove_Y(0);
+
+        if (x >= 0.5)
+            r &= ~JOY_RIGHT_BIT;
+        else if (x <= -0.5)
+            r &= ~JOY_LEFT_BIT;
+
+        if (y >= 0.5)
+            r &= ~JOY_DOWN_BIT;
+        else if (y <= -0.5)
+            r &= ~JOY_UP_BIT;
+    }
+
+    return r;
 }
 
 REG8 keystat_getjoy(void) {
-    return 0xFF;//TODO
+    return 0xFF;
 }
 
 struct CBUS4PORT {
