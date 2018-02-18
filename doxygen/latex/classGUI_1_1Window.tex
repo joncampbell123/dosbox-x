@@ -1,0 +1,383 @@
+\hypertarget{classGUI_1_1Window}{\section{G\-U\-I\-:\-:Window Class Reference}
+\label{classGUI_1_1Window}\index{G\-U\-I\-::\-Window@{G\-U\-I\-::\-Window}}
+}
+
+
+A \hyperlink{classGUI_1_1Window}{Window} is a rectangular sub-\/area of another window.  
+
+
+
+
+{\ttfamily \#include $<$gui\-\_\-tk.\-h$>$}
+
+Inheritance diagram for G\-U\-I\-:\-:Window\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.426573cm]{classGUI_1_1Window}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classGUI_1_1Window_abcae02f41f2d8309efcf741f788b571f}{void \hyperlink{classGUI_1_1Window_abcae02f41f2d8309efcf741f788b571f}{add\-Window\-Handler} (\hyperlink{structGUI_1_1Window__Callback}{Window\-\_\-\-Callback} $\ast$handler)}\label{classGUI_1_1Window_abcae02f41f2d8309efcf741f788b571f}
+
+\begin{DoxyCompactList}\small\item\em Add an event handler. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a1b0d04de52442a6c8a6b14152f8eed25}{void \hyperlink{classGUI_1_1Window_a1b0d04de52442a6c8a6b14152f8eed25}{remove\-Window\-Handler} (\hyperlink{structGUI_1_1Window__Callback}{Window\-\_\-\-Callback} $\ast$handler)}\label{classGUI_1_1Window_a1b0d04de52442a6c8a6b14152f8eed25}
+
+\begin{DoxyCompactList}\small\item\em Remove an event handler. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a0d5c7ab96f4347c33c50b47de9c18914}{\hyperlink{classGUI_1_1Window_a0d5c7ab96f4347c33c50b47de9c18914}{Window} (\hyperlink{classGUI_1_1Window}{Window} $\ast$\hyperlink{classGUI_1_1Window_a2e593ff65e7702178d82fe9010a0b539}{parent}, int \hyperlink{classGUI_1_1Window_a6ca6a80ca00c9e1d8ceea8d3d99a657d}{x}, int \hyperlink{classGUI_1_1Window_a0ee8e923aff2c3661fc2e17656d37adf}{y}, int w, int h)}\label{classGUI_1_1Window_a0d5c7ab96f4347c33c50b47de9c18914}
+
+\begin{DoxyCompactList}\small\item\em Create a subwindow of the given parent window. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a57330526ba666a5b67ccc269d11dd742}{virtual \hyperlink{classGUI_1_1Window_a57330526ba666a5b67ccc269d11dd742}{$\sim$\-Window} ()}\label{classGUI_1_1Window_a57330526ba666a5b67ccc269d11dd742}
+
+\begin{DoxyCompactList}\small\item\em Destructor. \end{DoxyCompactList}\item 
+virtual void \hyperlink{classGUI_1_1Window_a274ad6d6e68c94b165aa58700759f418}{resize} (int w, int h)
+\begin{DoxyCompactList}\small\item\em Resize this window to the given dimensions. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a6b1f6016050ed470f34fe50833cd94e9}{virtual int \hyperlink{classGUI_1_1Window_a6b1f6016050ed470f34fe50833cd94e9}{get\-Width} () const }\label{classGUI_1_1Window_a6b1f6016050ed470f34fe50833cd94e9}
+
+\begin{DoxyCompactList}\small\item\em Return this window's width. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a373b4ac56a16274c34d0e133b000a151}{virtual int \hyperlink{classGUI_1_1Window_a373b4ac56a16274c34d0e133b000a151}{get\-Height} () const }\label{classGUI_1_1Window_a373b4ac56a16274c34d0e133b000a151}
+
+\begin{DoxyCompactList}\small\item\em Return this window's height. \end{DoxyCompactList}\item 
+virtual void \hyperlink{classGUI_1_1Window_a426af83d31a4c42b4e8f011fc3aa9555}{move} (int \hyperlink{classGUI_1_1Window_a6ca6a80ca00c9e1d8ceea8d3d99a657d}{x}, int \hyperlink{classGUI_1_1Window_a0ee8e923aff2c3661fc2e17656d37adf}{y})
+\begin{DoxyCompactList}\small\item\em Move this window to the given position relative to the parent window's origin. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_aca57a4ba1680e74d25f628ab9505e058}{virtual int \hyperlink{classGUI_1_1Window_aca57a4ba1680e74d25f628ab9505e058}{get\-X} () const }\label{classGUI_1_1Window_aca57a4ba1680e74d25f628ab9505e058}
+
+\begin{DoxyCompactList}\small\item\em Return this window's X position relative to the parent's top left corner. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a61f8ac63ed3eaba052a5ed1534eccdb3}{virtual int \hyperlink{classGUI_1_1Window_a61f8ac63ed3eaba052a5ed1534eccdb3}{get\-Y} () const }\label{classGUI_1_1Window_a61f8ac63ed3eaba052a5ed1534eccdb3}
+
+\begin{DoxyCompactList}\small\item\em Return this window's Y position relative to the parent's top left corner. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a5e12e8944224868643de71b2d535f618}{virtual int \hyperlink{classGUI_1_1Window_a5e12e8944224868643de71b2d535f618}{get\-Screen\-X} () const }\label{classGUI_1_1Window_a5e12e8944224868643de71b2d535f618}
+
+\begin{DoxyCompactList}\small\item\em Return this window's contents' X position relative to the screen's top left corner. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a2ed5c9da92cfa82e48c95573765bf24b}{virtual int \hyperlink{classGUI_1_1Window_a2ed5c9da92cfa82e48c95573765bf24b}{get\-Screen\-Y} () const }\label{classGUI_1_1Window_a2ed5c9da92cfa82e48c95573765bf24b}
+
+\begin{DoxyCompactList}\small\item\em Return this window's contents' Y position relative to the screen's top left corner. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_af06e8ead7714b1ed22512cb976b5f70b}{virtual void \hyperlink{classGUI_1_1Window_af06e8ead7714b1ed22512cb976b5f70b}{paint\-All} (\hyperlink{classGUI_1_1Drawable}{Drawable} \&d) const }\label{classGUI_1_1Window_af06e8ead7714b1ed22512cb976b5f70b}
+
+\begin{DoxyCompactList}\small\item\em Draw this window's content including all children. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_af68ac9e0bdf2891e62800a90fa5e8ea4}{virtual void \hyperlink{classGUI_1_1Window_af68ac9e0bdf2891e62800a90fa5e8ea4}{paint} (\hyperlink{classGUI_1_1Drawable}{Drawable} \&d) const }\label{classGUI_1_1Window_af68ac9e0bdf2891e62800a90fa5e8ea4}
+
+\begin{DoxyCompactList}\small\item\em Draw this window's content. \end{DoxyCompactList}\item 
+virtual void \hyperlink{classGUI_1_1Window_a7cd474e3c89ff37a4295da00f3624cc7}{set\-Visible} (bool v)
+\begin{DoxyCompactList}\small\item\em Show or hide this window. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a2e8f1ec9d2487a885444bb14bbfddc0b}{virtual bool \hyperlink{classGUI_1_1Window_a2e8f1ec9d2487a885444bb14bbfddc0b}{is\-Visible} () const }\label{classGUI_1_1Window_a2e8f1ec9d2487a885444bb14bbfddc0b}
+
+\begin{DoxyCompactList}\small\item\em Returns {\ttfamily true} if this window is visible. \end{DoxyCompactList}\item 
+\hyperlink{classGUI_1_1Window}{Window} $\ast$ \hyperlink{classGUI_1_1Window_a6b22ed4bc9325ba95e406f2dd3a152a2}{get\-Parent} () const 
+\begin{DoxyCompactList}\small\item\em Return parent window. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_ae44c4f740234c5b69a7edf1824101957}{\hyperlink{classGUI_1_1Screen}{Screen} $\ast$ \hyperlink{classGUI_1_1Window_ae44c4f740234c5b69a7edf1824101957}{get\-Screen} ()}\label{classGUI_1_1Window_ae44c4f740234c5b69a7edf1824101957}
+
+\begin{DoxyCompactList}\small\item\em Get the topmost window (the \hyperlink{classGUI_1_1Screen}{Screen}) \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a8f18763df9af7f1f4b7ce119a966866d}{virtual bool \hyperlink{classGUI_1_1Window_a8f18763df9af7f1f4b7ce119a966866d}{has\-Focus} () const }\label{classGUI_1_1Window_a8f18763df9af7f1f4b7ce119a966866d}
+
+\begin{DoxyCompactList}\small\item\em Returns {\ttfamily true} if this window has currently the keyboard focus. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a7ac4ce83561f33c1f0f91798068bab6c}{virtual bool \hyperlink{classGUI_1_1Window_a7ac4ce83561f33c1f0f91798068bab6c}{mouse\-Moved} (int \hyperlink{classGUI_1_1Window_a6ca6a80ca00c9e1d8ceea8d3d99a657d}{x}, int \hyperlink{classGUI_1_1Window_a0ee8e923aff2c3661fc2e17656d37adf}{y})}\label{classGUI_1_1Window_a7ac4ce83561f33c1f0f91798068bab6c}
+
+\begin{DoxyCompactList}\small\item\em Mouse was moved. Returns true if event was handled. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_aabcaf5fde42d86523e2526ce54c50065}{virtual bool \hyperlink{classGUI_1_1Window_aabcaf5fde42d86523e2526ce54c50065}{mouse\-Dragged} (int \hyperlink{classGUI_1_1Window_a6ca6a80ca00c9e1d8ceea8d3d99a657d}{x}, int \hyperlink{classGUI_1_1Window_a0ee8e923aff2c3661fc2e17656d37adf}{y}, \hyperlink{namespaceGUI_ad06082a7b02aa73697f39eb8e0856de9}{Mouse\-Button} button)}\label{classGUI_1_1Window_aabcaf5fde42d86523e2526ce54c50065}
+
+\begin{DoxyCompactList}\small\item\em Mouse was moved while a button was pressed. Returns true if event was handled. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_ad31c6dfb6d075046890a46b79b1b4ca1}{virtual bool \hyperlink{classGUI_1_1Window_ad31c6dfb6d075046890a46b79b1b4ca1}{mouse\-Down} (int \hyperlink{classGUI_1_1Window_a6ca6a80ca00c9e1d8ceea8d3d99a657d}{x}, int \hyperlink{classGUI_1_1Window_a0ee8e923aff2c3661fc2e17656d37adf}{y}, \hyperlink{namespaceGUI_ad06082a7b02aa73697f39eb8e0856de9}{Mouse\-Button} button)}\label{classGUI_1_1Window_ad31c6dfb6d075046890a46b79b1b4ca1}
+
+\begin{DoxyCompactList}\small\item\em Mouse was pressed. Returns true if event was handled. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a96c8b224c081a58dc4cd53192da1332b}{virtual bool \hyperlink{classGUI_1_1Window_a96c8b224c081a58dc4cd53192da1332b}{mouse\-Up} (int \hyperlink{classGUI_1_1Window_a6ca6a80ca00c9e1d8ceea8d3d99a657d}{x}, int \hyperlink{classGUI_1_1Window_a0ee8e923aff2c3661fc2e17656d37adf}{y}, \hyperlink{namespaceGUI_ad06082a7b02aa73697f39eb8e0856de9}{Mouse\-Button} button)}\label{classGUI_1_1Window_a96c8b224c081a58dc4cd53192da1332b}
+
+\begin{DoxyCompactList}\small\item\em Mouse was released. Returns true if event was handled. \end{DoxyCompactList}\item 
+virtual bool \hyperlink{classGUI_1_1Window_a9519fe8a8f08b5b70524d2230d209107}{mouse\-Clicked} (int \hyperlink{classGUI_1_1Window_a6ca6a80ca00c9e1d8ceea8d3d99a657d}{x}, int \hyperlink{classGUI_1_1Window_a0ee8e923aff2c3661fc2e17656d37adf}{y}, \hyperlink{namespaceGUI_ad06082a7b02aa73697f39eb8e0856de9}{Mouse\-Button} button)
+\begin{DoxyCompactList}\small\item\em Mouse was clicked. Returns true if event was handled. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a42d1c5fd68792cc1bfe551c9fcf76248}{virtual bool \hyperlink{classGUI_1_1Window_a42d1c5fd68792cc1bfe551c9fcf76248}{mouse\-Double\-Clicked} (int \hyperlink{classGUI_1_1Window_a6ca6a80ca00c9e1d8ceea8d3d99a657d}{x}, int \hyperlink{classGUI_1_1Window_a0ee8e923aff2c3661fc2e17656d37adf}{y}, \hyperlink{namespaceGUI_ad06082a7b02aa73697f39eb8e0856de9}{Mouse\-Button} button)}\label{classGUI_1_1Window_a42d1c5fd68792cc1bfe551c9fcf76248}
+
+\begin{DoxyCompactList}\small\item\em Mouse was double-\/clicked. Returns true if event was handled. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a9d058fb85cb7d5a616e292cc02e01959}{virtual bool \hyperlink{classGUI_1_1Window_a9d058fb85cb7d5a616e292cc02e01959}{key\-Down} (const \hyperlink{classGUI_1_1Key}{Key} \&key)}\label{classGUI_1_1Window_a9d058fb85cb7d5a616e292cc02e01959}
+
+\begin{DoxyCompactList}\small\item\em \hyperlink{classGUI_1_1Key}{Key} was pressed. Returns true if event was handled. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a038bb9134a90795205fdb604977a1520}{virtual bool \hyperlink{classGUI_1_1Window_a038bb9134a90795205fdb604977a1520}{key\-Up} (const \hyperlink{classGUI_1_1Key}{Key} \&key)}\label{classGUI_1_1Window_a038bb9134a90795205fdb604977a1520}
+
+\begin{DoxyCompactList}\small\item\em \hyperlink{classGUI_1_1Key}{Key} was released. Returns true if event was handled. \end{DoxyCompactList}\item 
+virtual bool \hyperlink{classGUI_1_1Window_a90890951f6ce5f043657756b2691e754}{raise} ()
+\begin{DoxyCompactList}\small\item\em Put this window on top of all it's siblings. Preserves relative order. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a56f2e317a40e65fe867084e5531b19bd}{virtual void \hyperlink{classGUI_1_1Window_a56f2e317a40e65fe867084e5531b19bd}{lower} ()}\label{classGUI_1_1Window_a56f2e317a40e65fe867084e5531b19bd}
+
+\begin{DoxyCompactList}\small\item\em Put this window below all of it's siblings. Does not preserve relative order. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a546dab2fb4ebde2b393465a0962eda8f}{\hyperlink{classGUI_1_1Window}{Window} $\ast$ \hyperlink{classGUI_1_1Window_a546dab2fb4ebde2b393465a0962eda8f}{get\-Child} (int n)}\label{classGUI_1_1Window_a546dab2fb4ebde2b393465a0962eda8f}
+
+\begin{DoxyCompactList}\small\item\em Return the {\ttfamily n} th child. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classGUI_1_1Window_a861322fa034eb21b9cf7f0ed59413ed5}{virtual void \hyperlink{classGUI_1_1Window_a861322fa034eb21b9cf7f0ed59413ed5}{add\-Child} (\hyperlink{classGUI_1_1Window}{Window} $\ast$child)}\label{classGUI_1_1Window_a861322fa034eb21b9cf7f0ed59413ed5}
+
+\begin{DoxyCompactList}\small\item\em Register child window. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_ab851b8d9becc893409eb9faf31c2317d}{virtual void \hyperlink{classGUI_1_1Window_ab851b8d9becc893409eb9faf31c2317d}{remove\-Child} (\hyperlink{classGUI_1_1Window}{Window} $\ast$child)}\label{classGUI_1_1Window_ab851b8d9becc893409eb9faf31c2317d}
+
+\begin{DoxyCompactList}\small\item\em Remove child window. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_abc34c384fe864d8515f540b427f36dd2}{void \hyperlink{classGUI_1_1Window_abc34c384fe864d8515f540b427f36dd2}{set\-Dirty} ()}\label{classGUI_1_1Window_abc34c384fe864d8515f540b427f36dd2}
+
+\begin{DoxyCompactList}\small\item\em Mark this window and all parents as dirty. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a443e9dc8d2ba7bcf337cea030ccd06f7}{virtual void \hyperlink{classGUI_1_1Window_a443e9dc8d2ba7bcf337cea030ccd06f7}{set\-Clipboard} (const \hyperlink{classGUI_1_1String}{String} \&s)}\label{classGUI_1_1Window_a443e9dc8d2ba7bcf337cea030ccd06f7}
+
+\begin{DoxyCompactList}\small\item\em Replace clipboard content. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a56e15176c8d69eff86b7d2479ff52c26}{virtual const \hyperlink{classGUI_1_1String}{String} \& \hyperlink{classGUI_1_1Window_a56e15176c8d69eff86b7d2479ff52c26}{get\-Clipboard} ()}\label{classGUI_1_1Window_a56e15176c8d69eff86b7d2479ff52c26}
+
+\begin{DoxyCompactList}\small\item\em Get clipboard content. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_ae828e9daa964dfc65a3550fb03117d30}{\hyperlink{classGUI_1_1Window_ae828e9daa964dfc65a3550fb03117d30}{Window} ()}\label{classGUI_1_1Window_ae828e9daa964dfc65a3550fb03117d30}
+
+\begin{DoxyCompactList}\small\item\em Default constructor. Only used in class \hyperlink{classGUI_1_1Screen}{Screen}. Do not use. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a3b22f685994ee18bdbf3b2b5ff6cc27c}{virtual void \hyperlink{classGUI_1_1Window_a3b22f685994ee18bdbf3b2b5ff6cc27c}{focus\-Changed} (bool gained)}\label{classGUI_1_1Window_a3b22f685994ee18bdbf3b2b5ff6cc27c}
+
+\begin{DoxyCompactList}\small\item\em Called whenever the focus changes. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classGUI_1_1Window_a6cd42974c2b9239d05dac79d284f427d}{int \hyperlink{classGUI_1_1Window_a6cd42974c2b9239d05dac79d284f427d}{width}}\label{classGUI_1_1Window_a6cd42974c2b9239d05dac79d284f427d}
+
+\begin{DoxyCompactList}\small\item\em Width of the window. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a5bbb3975f91e7572fc1a91c44e59d212}{int \hyperlink{classGUI_1_1Window_a5bbb3975f91e7572fc1a91c44e59d212}{height}}\label{classGUI_1_1Window_a5bbb3975f91e7572fc1a91c44e59d212}
+
+\begin{DoxyCompactList}\small\item\em Height of the window. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a6ca6a80ca00c9e1d8ceea8d3d99a657d}{int \hyperlink{classGUI_1_1Window_a6ca6a80ca00c9e1d8ceea8d3d99a657d}{x}}\label{classGUI_1_1Window_a6ca6a80ca00c9e1d8ceea8d3d99a657d}
+
+\begin{DoxyCompactList}\small\item\em X position relative to parent. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a0ee8e923aff2c3661fc2e17656d37adf}{int \hyperlink{classGUI_1_1Window_a0ee8e923aff2c3661fc2e17656d37adf}{y}}\label{classGUI_1_1Window_a0ee8e923aff2c3661fc2e17656d37adf}
+
+\begin{DoxyCompactList}\small\item\em Y position relative to parent. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a8ac8edf3298db718e7b83cffda2c10e5}{bool \hyperlink{classGUI_1_1Window_a8ac8edf3298db718e7b83cffda2c10e5}{dirty}}\label{classGUI_1_1Window_a8ac8edf3298db718e7b83cffda2c10e5}
+
+\begin{DoxyCompactList}\small\item\em {\ttfamily true} if anything changed in this window or one of it's children \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a49e31f7879bf287c02f29d67414ec37d}{bool \hyperlink{classGUI_1_1Window_a49e31f7879bf287c02f29d67414ec37d}{visible}}\label{classGUI_1_1Window_a49e31f7879bf287c02f29d67414ec37d}
+
+\begin{DoxyCompactList}\small\item\em {\ttfamily true} if this window should be visible on screen. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a2e593ff65e7702178d82fe9010a0b539}{\hyperlink{classGUI_1_1Window}{Window} $\ast$const \hyperlink{classGUI_1_1Window_a2e593ff65e7702178d82fe9010a0b539}{parent}}\label{classGUI_1_1Window_a2e593ff65e7702178d82fe9010a0b539}
+
+\begin{DoxyCompactList}\small\item\em Parent window. \end{DoxyCompactList}\item 
+\hyperlink{classGUI_1_1Window}{Window} $\ast$ \hyperlink{classGUI_1_1Window_addd401dab430594e678366e7ff73ef2d}{mouse\-Child}
+\begin{DoxyCompactList}\small\item\em Child window of last button-\/down event. \end{DoxyCompactList}\item 
+std\-::list$<$ \hyperlink{classGUI_1_1Window}{Window} $\ast$ $>$ \hyperlink{classGUI_1_1Window_ac10e617306be4367ed164ea97f5d3132}{children}
+\begin{DoxyCompactList}\small\item\em Child windows. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Window_a5dc78efd55a14098437cc25597c21bef}{std\-::list$<$ \hyperlink{structGUI_1_1Window__Callback}{Window\-\_\-\-Callback} $\ast$ $>$ \hyperlink{classGUI_1_1Window_a5dc78efd55a14098437cc25597c21bef}{movehandlers}}\label{classGUI_1_1Window_a5dc78efd55a14098437cc25597c21bef}
+
+\begin{DoxyCompactList}\small\item\em List of registered event handlers. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Friends}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classGUI_1_1Window_a47359b01fb4f622a9770ab8b22d75a63}{class {\bfseries Toplevel\-Window}}\label{classGUI_1_1Window_a47359b01fb4f622a9770ab8b22d75a63}
+
+\item 
+\hypertarget{classGUI_1_1Window_ac4d9da9cc48d502966fd1039d5ea85fa}{class {\bfseries Transient\-Window}}\label{classGUI_1_1Window_ac4d9da9cc48d502966fd1039d5ea85fa}
+
+\item 
+\hypertarget{classGUI_1_1Window_a834cec0fab7efabab3cd53540e4d466d}{class {\bfseries Menu}}\label{classGUI_1_1Window_a834cec0fab7efabab3cd53540e4d466d}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+A \hyperlink{classGUI_1_1Window}{Window} is a rectangular sub-\/area of another window. 
+
+Windows are arranged hierarchically. A \hyperlink{classGUI_1_1Window}{Window} cannot leave its parent's area. They may contain their own buffer or share it with their parent.
+
+Usually, every \hyperlink{namespaceGUI}{G\-U\-I} element is a subclass of \hyperlink{classGUI_1_1Window}{Window}. Note that this is {\itshape not\/} a \hyperlink{namespaceGUI}{G\-U\-I} window with decorations like border and title bar. See \hyperlink{classGUI_1_1ToplevelWindow}{Toplevel\-Window} for that. 
+
+Definition at line 507 of file gui\-\_\-tk.\-h.
+
+
+
+\subsection{Member Function Documentation}
+\hypertarget{classGUI_1_1Window_a6b22ed4bc9325ba95e406f2dd3a152a2}{\index{G\-U\-I\-::\-Window@{G\-U\-I\-::\-Window}!get\-Parent@{get\-Parent}}
+\index{get\-Parent@{get\-Parent}!GUI::Window@{G\-U\-I\-::\-Window}}
+\subsubsection[{get\-Parent}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Window}$\ast$ {\bf G\-U\-I\-::\-Window\-::get\-Parent} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classGUI_1_1Window_a6b22ed4bc9325ba95e406f2dd3a152a2}
+
+
+Return parent window. 
+
+May return N\-U\-L\-L if this is the topmost window (the \hyperlink{classGUI_1_1Screen}{Screen}). 
+
+Definition at line 617 of file gui\-\_\-tk.\-h.
+
+
+
+References parent.
+
+
+
+Referenced by G\-U\-I\-::\-Transient\-Window\-::\-Transient\-Window().
+
+\hypertarget{classGUI_1_1Window_a9519fe8a8f08b5b70524d2230d209107}{\index{G\-U\-I\-::\-Window@{G\-U\-I\-::\-Window}!mouse\-Clicked@{mouse\-Clicked}}
+\index{mouse\-Clicked@{mouse\-Clicked}!GUI::Window@{G\-U\-I\-::\-Window}}
+\subsubsection[{mouse\-Clicked}]{\setlength{\rightskip}{0pt plus 5cm}bool {\bf G\-U\-I\-::\-Window\-::mouse\-Clicked} (
+\begin{DoxyParamCaption}
+\item[{int}]{x, }
+\item[{int}]{y, }
+\item[{{\bf Mouse\-Button}}]{button}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}\label{classGUI_1_1Window_a9519fe8a8f08b5b70524d2230d209107}
+
+
+Mouse was clicked. Returns true if event was handled. 
+
+Clicking means pressing and releasing the mouse button while not moving it. 
+
+Reimplemented in \hyperlink{classGUI_1_1Button_a88a1ed778b528d75a55351f2e3a00cf1}{G\-U\-I\-::\-Button}.
+
+
+
+Definition at line 682 of file gui\-\_\-tk.\-cpp.
+
+
+
+References mouse\-Child, mouse\-Clicked(), x, and y.
+
+
+
+Referenced by G\-U\-I\-::\-Checkbox\-::key\-Up(), G\-U\-I\-::\-Radiobox\-::key\-Up(), mouse\-Clicked(), and G\-U\-I\-::\-Toplevel\-Window\-::mouse\-Double\-Clicked().
+
+\hypertarget{classGUI_1_1Window_a426af83d31a4c42b4e8f011fc3aa9555}{\index{G\-U\-I\-::\-Window@{G\-U\-I\-::\-Window}!move@{move}}
+\index{move@{move}!GUI::Window@{G\-U\-I\-::\-Window}}
+\subsubsection[{move}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf G\-U\-I\-::\-Window\-::move} (
+\begin{DoxyParamCaption}
+\item[{int}]{x, }
+\item[{int}]{y}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}\label{classGUI_1_1Window_a426af83d31a4c42b4e8f011fc3aa9555}
+
+
+Move this window to the given position relative to the parent window's origin. 
+
+If that would move part of the window outside of this window's area, the outside area will silently be clipped while drawing. 
+
+Reimplemented in \hyperlink{classGUI_1_1TransientWindow_aec97d27a3f4ece3138c58d9fb40fbccc}{G\-U\-I\-::\-Transient\-Window}, and \hyperlink{classGUI_1_1Screen_a48a3586ad675d415de2baa45a5cf382d}{G\-U\-I\-::\-Screen}.
+
+
+
+Definition at line 571 of file gui\-\_\-tk.\-cpp.
+
+
+
+References movehandlers, parent, set\-Dirty(), G\-U\-I\-::\-Window\-\_\-\-Callback\-::window\-Moved(), x, and y.
+
+
+
+Referenced by G\-U\-I\-::\-Toplevel\-Window\-::mouse\-Dragged().
+
+\hypertarget{classGUI_1_1Window_a90890951f6ce5f043657756b2691e754}{\index{G\-U\-I\-::\-Window@{G\-U\-I\-::\-Window}!raise@{raise}}
+\index{raise@{raise}!GUI::Window@{G\-U\-I\-::\-Window}}
+\subsubsection[{raise}]{\setlength{\rightskip}{0pt plus 5cm}virtual bool {\bf G\-U\-I\-::\-Window\-::raise} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline, virtual\mbox{]}}}}\label{classGUI_1_1Window_a90890951f6ce5f043657756b2691e754}
+
+
+Put this window on top of all it's siblings. Preserves relative order. 
+
+Returns true if the window accepts the raise request. 
+
+Reimplemented in \hyperlink{classGUI_1_1TransientWindow_a970674e955de6a1d5a0966953e56c587}{G\-U\-I\-::\-Transient\-Window}, \hyperlink{classGUI_1_1ToplevelWindow_a630814c3f68da3b8e10cc9f257fef8e2}{G\-U\-I\-::\-Toplevel\-Window}, and \hyperlink{classGUI_1_1Label_ae974cb75928cf5fcb0574d59d3b41a43}{G\-U\-I\-::\-Label}.
+
+
+
+Definition at line 646 of file gui\-\_\-tk.\-h.
+
+
+
+References children, focus\-Changed(), parent, and set\-Dirty().
+
+
+
+Referenced by mouse\-Down().
+
+\hypertarget{classGUI_1_1Window_a274ad6d6e68c94b165aa58700759f418}{\index{G\-U\-I\-::\-Window@{G\-U\-I\-::\-Window}!resize@{resize}}
+\index{resize@{resize}!GUI::Window@{G\-U\-I\-::\-Window}}
+\subsubsection[{resize}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf G\-U\-I\-::\-Window\-::resize} (
+\begin{DoxyParamCaption}
+\item[{int}]{w, }
+\item[{int}]{h}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}\label{classGUI_1_1Window_a274ad6d6e68c94b165aa58700759f418}
+
+
+Resize this window to the given dimensions. 
+
+If that would move part of the window outside of this window's area, the outside area will silently be clipped while drawing. 
+
+Reimplemented in \hyperlink{classGUI_1_1Label_a0a19005bc37fac28c857036e8dc48b2e}{G\-U\-I\-::\-Label}, and \hyperlink{classGUI_1_1Screen_a01265259b3322e72d9e6a1707eb0bb51}{G\-U\-I\-::\-Screen}.
+
+
+
+Definition at line 586 of file gui\-\_\-tk.\-cpp.
+
+
+
+References height, set\-Dirty(), and width.
+
+
+
+Referenced by G\-U\-I\-::\-Menu\-::add\-Item(), G\-U\-I\-::\-Menu\-::remove\-Item(), and G\-U\-I\-::\-Message\-Box2\-::set\-Text().
+
+\hypertarget{classGUI_1_1Window_a7cd474e3c89ff37a4295da00f3624cc7}{\index{G\-U\-I\-::\-Window@{G\-U\-I\-::\-Window}!set\-Visible@{set\-Visible}}
+\index{set\-Visible@{set\-Visible}!GUI::Window@{G\-U\-I\-::\-Window}}
+\subsubsection[{set\-Visible}]{\setlength{\rightskip}{0pt plus 5cm}virtual void {\bf G\-U\-I\-::\-Window\-::set\-Visible} (
+\begin{DoxyParamCaption}
+\item[{bool}]{v}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline, virtual\mbox{]}}}}\label{classGUI_1_1Window_a7cd474e3c89ff37a4295da00f3624cc7}
+
+
+Show or hide this window. 
+
+By default, most windows are shown when created. Hidden windows do not receive any events. 
+
+Reimplemented in \hyperlink{classGUI_1_1Menu_aa98bb7305b74088dd875ead6747cfa52}{G\-U\-I\-::\-Menu}, and \hyperlink{classGUI_1_1TransientWindow_a5581ee490ae2ce490ca45e234f6712a2}{G\-U\-I\-::\-Transient\-Window}.
+
+
+
+Definition at line 610 of file gui\-\_\-tk.\-h.
+
+
+
+References parent, set\-Dirty(), and visible.
+
+
+
+\subsection{Member Data Documentation}
+\hypertarget{classGUI_1_1Window_ac10e617306be4367ed164ea97f5d3132}{\index{G\-U\-I\-::\-Window@{G\-U\-I\-::\-Window}!children@{children}}
+\index{children@{children}!GUI::Window@{G\-U\-I\-::\-Window}}
+\subsubsection[{children}]{\setlength{\rightskip}{0pt plus 5cm}std\-::list$<${\bf Window} $\ast$$>$ {\bf G\-U\-I\-::\-Window\-::children}\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classGUI_1_1Window_ac10e617306be4367ed164ea97f5d3132}
+
+
+Child windows. 
+
+Z ordering is done in list order. The first element is the lowermost window. This window's content is below all children. 
+
+Definition at line 538 of file gui\-\_\-tk.\-h.
+
+
+
+Referenced by G\-U\-I\-::\-Frame\-::action\-Executed(), add\-Child(), focus\-Changed(), get\-Child(), has\-Focus(), key\-Down(), key\-Up(), lower(), mouse\-Down(), mouse\-Moved(), paint\-All(), G\-U\-I\-::\-Bordered\-Window\-::paint\-All(), raise(), G\-U\-I\-::\-Toplevel\-Window\-::raise(), G\-U\-I\-::\-Transient\-Window\-::raise(), remove\-Child(), and $\sim$\-Window().
+
+\hypertarget{classGUI_1_1Window_addd401dab430594e678366e7ff73ef2d}{\index{G\-U\-I\-::\-Window@{G\-U\-I\-::\-Window}!mouse\-Child@{mouse\-Child}}
+\index{mouse\-Child@{mouse\-Child}!GUI::Window@{G\-U\-I\-::\-Window}}
+\subsubsection[{mouse\-Child}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Window}$\ast$ {\bf G\-U\-I\-::\-Window\-::mouse\-Child}\hspace{0.3cm}{\ttfamily  \mbox{[}protected\mbox{]}}}}\label{classGUI_1_1Window_addd401dab430594e678366e7ff73ef2d}
+
+
+Child window of last button-\/down event. 
+
+It receives all drag/up/click/doubleclick events until an up event is received 
+
+Definition at line 533 of file gui\-\_\-tk.\-h.
+
+
+
+Referenced by mouse\-Clicked(), mouse\-Double\-Clicked(), mouse\-Down(), G\-U\-I\-::\-Bordered\-Window\-::mouse\-Down(), G\-U\-I\-::\-Toplevel\-Window\-::mouse\-Down(), mouse\-Dragged(), mouse\-Up(), G\-U\-I\-::\-Menu\-::set\-Visible(), and $\sim$\-Window().
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+src/libs/gui\-\_\-tk/\hyperlink{gui__tk_8h}{gui\-\_\-tk.\-h}\item 
+src/libs/gui\-\_\-tk/\hyperlink{gui__tk_8cpp}{gui\-\_\-tk.\-cpp}\end{DoxyCompactItemize}

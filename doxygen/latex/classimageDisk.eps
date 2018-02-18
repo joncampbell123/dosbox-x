@@ -5,7 +5,7 @@
 %%For: 
 %Magnification: 1.00
 %%Orientation: Portrait
-%%BoundingBox: 0 0 500 194.174757
+%%BoundingBox: 0 0 500 83.857442
 %%Pages: 0
 %%BeginSetup
 %%EndSetup
@@ -19,13 +19,13 @@
 /marginwidth 10 def
 /distx 20 def
 /disty 40 def
-/boundaspect 2.575000 def  % aspect ratio of the BoundingBox (width/height)
+/boundaspect 5.962500 def  % aspect ratio of the BoundingBox (width/height)
 /boundx 500 def
 /boundy boundx boundaspect div def
 /xspacing 0 def
 /yspacing 0 def
 /rows 2 def
-/cols 2 def
+/cols 3 def
 /scalefactor 0 def
 /boxfont /Times-Roman findfont fontheight scalefont def
 
@@ -174,6 +174,7 @@
 boxfont setfont
 1 boundaspect scale
 (imageDisk) cw
+(imageDiskElToritoFloppy) cw
 (imageDiskVFD) cw
 (QCow2Disk) cw
 /boxwidth boxwidth marginwidth 2 mul add def
@@ -187,17 +188,20 @@ boundx scalefactor div boundy scalefactor div scale
 
 % ----- classes -----
 
- (imageDisk) 0.500000 1.000000 box
- (imageDiskVFD) 0.000000 0.000000 box
- (QCow2Disk) 1.000000 0.000000 box
+ (imageDisk) 1.000000 1.000000 box
+ (imageDiskElToritoFloppy) 0.000000 0.000000 box
+ (imageDiskVFD) 1.000000 0.000000 box
+ (QCow2Disk) 2.000000 0.000000 box
 
 % ----- relations -----
 
 solid
-1 0.500000 0.250000 out
+1 1.000000 0.250000 out
 solid
-0.000000 1.000000 1.000000 conn
+0.000000 2.000000 1.000000 conn
 solid
 0 0.000000 0.750000 in
 solid
 0 1.000000 0.750000 in
+solid
+0 2.000000 0.750000 in

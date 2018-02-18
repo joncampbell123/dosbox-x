@@ -47,6 +47,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
+      <li><a href="pages.html"><span>Related&#160;Pages</span></a></li>
+      <li><a href="namespaces.html"><span>Namespaces</span></a></li>
       <li class="current"><a href="annotated.html"><span>Classes</span></a></li>
       <li><a href="files.html"><span>Files</span></a></li>
       <li>
@@ -72,6 +74,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       <li><a href="annotated.html"><span>Class&#160;List</span></a></li>
       <li><a href="classes.html"><span>Class&#160;Index</span></a></li>
       <li><a href="hierarchy.html"><span>Class&#160;Hierarchy</span></a></li>
+      <li><a href="functions.html"><span>Class&#160;Members</span></a></li>
     </ul>
   </div>
 <!-- window showing the filter options -->
@@ -79,7 +82,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerations</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -97,6 +100,21 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="title">DOS_Drive Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+<div class="dynheader">
+Inheritance diagram for DOS_Drive:</div>
+<div class="dyncontent">
+ <div class="center">
+  <img src="classDOS__Drive.png" usemap="#DOS_Drive_map" alt=""/>
+  <map id="DOS_Drive_map" name="DOS_Drive_map">
+<area href="classfatDrive.html" alt="fatDrive" shape="rect" coords="0,56,115,80"/>
+<area href="classisoDrive.html" alt="isoDrive" shape="rect" coords="125,56,240,80"/>
+<area href="classlocalDrive.html" alt="localDrive" shape="rect" coords="250,56,365,80"/>
+<area href="classVirtual__Drive.html" alt="Virtual_Drive" shape="rect" coords="375,56,490,80"/>
+<area href="classcdromDrive.html" alt="cdromDrive" shape="rect" coords="187,112,302,136"/>
+<area href="classphysfsDrive.html" alt="physfsDrive" shape="rect" coords="312,112,427,136"/>
+<area href="classphysfscdromDrive.html" alt="physfscdromDrive" shape="rect" coords="312,168,427,192"/>
+</map>
+ </div></div>
 
 <p><a href="classDOS__Drive-members.html">List of all members.</a></p>
 <table class="memberdecls">
@@ -146,9 +164,9 @@ virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>closedir</b> 
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>read_directory_first</b> (void *handle, char *entry_name, bool &amp;is_directory)</td></tr>
 <tr class="memitem:aaf4039f2a7830fab1b0c8603542f9f31"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aaf4039f2a7830fab1b0c8603542f9f31"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>read_directory_next</b> (void *handle, char *entry_name, bool &amp;is_directory)</td></tr>
-<tr class="memitem:a8ef29c06b85c584f74eaa574d37a86f1"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8ef29c06b85c584f74eaa574d37a86f1"></a>
+<tr class="memitem:a64bf9af6eca73f8071c109a2d4c25d02"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a64bf9af6eca73f8071c109a2d4c25d02"></a>
 virtual const char *&#160;</td><td class="memItemRight" valign="bottom"><b>GetInfo</b> (void)</td></tr>
-<tr class="memitem:a711703de0138c7b7c0f15dfc3a1d9dc5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a711703de0138c7b7c0f15dfc3a1d9dc5"></a>
+<tr class="memitem:abbaeec032c93d0f14760b12f39386eec"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abbaeec032c93d0f14760b12f39386eec"></a>
 char *&#160;</td><td class="memItemRight" valign="bottom"><b>GetBaseDir</b> (void)</td></tr>
 <tr class="memitem:a8e239d9aa134597f38505b39b8ca8016"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8e239d9aa134597f38505b39b8ca8016"></a>
 virtual char const *&#160;</td><td class="memItemRight" valign="bottom"><b>GetLabel</b> ()</td></tr>
@@ -174,14 +192,15 @@ char&#160;</td><td class="memItemRight" valign="bottom"><b>info</b> [256]</td></
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock">
 <p>Definition at line <a class="el" href="dos__system_8h_source.html#l00238">238</a> of file <a class="el" href="dos__system_8h_source.html">dos_system.h</a>.</p>
-</div><hr/>The documentation for this class was generated from the following file:<ul>
+</div><hr/>The documentation for this class was generated from the following files:<ul>
 <li>include/<a class="el" href="dos__system_8h_source.html">dos_system.h</a></li>
+<li>src/dos/<a class="el" href="drives_8cpp_source.html">drives.cpp</a></li>
 </ul>
 </div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Feb 18 2018 02:59:35 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Feb 18 2018 03:17:12 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

@@ -47,6 +47,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
+      <li><a href="pages.html"><span>Related&#160;Pages</span></a></li>
+      <li><a href="namespaces.html"><span>Namespaces</span></a></li>
       <li class="current"><a href="annotated.html"><span>Classes</span></a></li>
       <li><a href="files.html"><span>Files</span></a></li>
       <li>
@@ -72,6 +74,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       <li><a href="annotated.html"><span>Class&#160;List</span></a></li>
       <li><a href="classes.html"><span>Class&#160;Index</span></a></li>
       <li><a href="hierarchy.html"><span>Class&#160;Hierarchy</span></a></li>
+      <li><a href="functions.html"><span>Class&#160;Members</span></a></li>
     </ul>
   </div>
 <!-- window showing the filter options -->
@@ -79,7 +82,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerations</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -97,6 +100,15 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="title">BatchFile Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+<div class="dynheader">
+Inheritance diagram for BatchFile:</div>
+<div class="dyncontent">
+ <div class="center">
+  <img src="classBatchFile.png" usemap="#BatchFile_map" alt=""/>
+  <map id="BatchFile_map" name="BatchFile_map">
+<area href="classVirtualBatch.html" alt="VirtualBatch" shape="rect" coords="0,56,81,80"/>
+</map>
+ </div></div>
 
 <p><a href="classBatchFile-members.html">List of all members.</a></p>
 <table class="memberdecls">
@@ -104,7 +116,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a775abb3eea26411ba33361cc2cc24a5e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a775abb3eea26411ba33361cc2cc24a5e"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>BatchFile</b> (<a class="el" href="classDOS__Shell.html">DOS_Shell</a> *host, char const *const resolved_name, char const *const entered_name, char const *const cmd_line)</td></tr>
-<tr class="memitem:a98c2f9b094afb00bcf51230e084db13b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a98c2f9b094afb00bcf51230e084db13b"></a>
+<tr class="memitem:ae7aff09b12fefc85bdd3004af1346abd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae7aff09b12fefc85bdd3004af1346abd"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>ReadLine</b> (char *line)</td></tr>
 <tr class="memitem:ad0c27c1a7b4a3d48f0b7a456efaeda43"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad0c27c1a7b4a3d48f0b7a456efaeda43"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>Goto</b> (char *where)</td></tr>
@@ -130,14 +142,15 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><b>filename</b></
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock">
 <p>Definition at line <a class="el" href="shell_8h_source.html#l00044">44</a> of file <a class="el" href="shell_8h_source.html">shell.h</a>.</p>
-</div><hr/>The documentation for this class was generated from the following file:<ul>
+</div><hr/>The documentation for this class was generated from the following files:<ul>
 <li>include/<a class="el" href="shell_8h_source.html">shell.h</a></li>
+<li>src/shell/<a class="el" href="shell__batch_8cpp_source.html">shell_batch.cpp</a></li>
 </ul>
 </div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Feb 18 2018 02:59:34 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Feb 18 2018 03:17:11 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

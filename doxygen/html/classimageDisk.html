@@ -47,6 +47,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
+      <li><a href="pages.html"><span>Related&#160;Pages</span></a></li>
+      <li><a href="namespaces.html"><span>Namespaces</span></a></li>
       <li class="current"><a href="annotated.html"><span>Classes</span></a></li>
       <li><a href="files.html"><span>Files</span></a></li>
       <li>
@@ -72,6 +74,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       <li><a href="annotated.html"><span>Class&#160;List</span></a></li>
       <li><a href="classes.html"><span>Class&#160;Index</span></a></li>
       <li><a href="hierarchy.html"><span>Class&#160;Hierarchy</span></a></li>
+      <li><a href="functions.html"><span>Class&#160;Members</span></a></li>
     </ul>
   </div>
 <!-- window showing the filter options -->
@@ -79,7 +82,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerations</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -104,8 +107,9 @@ Inheritance diagram for imageDisk:</div>
  <div class="center">
   <img src="classimageDisk.png" usemap="#imageDisk_map" alt=""/>
   <map id="imageDisk_map" name="imageDisk_map">
-<area href="classimageDiskVFD.html" alt="imageDiskVFD" shape="rect" coords="0,56,95,80"/>
-<area href="classQCow2Disk.html" alt="QCow2Disk" shape="rect" coords="105,56,200,80"/>
+<area href="classimageDiskElToritoFloppy.html" alt="imageDiskElToritoFloppy" shape="rect" coords="0,56,151,80"/>
+<area href="classimageDiskVFD.html" alt="imageDiskVFD" shape="rect" coords="161,56,312,80"/>
+<area href="classQCow2Disk.html" alt="QCow2Disk" shape="rect" coords="322,56,473,80"/>
 </map>
  </div></div>
 
@@ -119,25 +123,25 @@ Public Types</h2></td></tr>
  }</td></tr>
 <tr><td colspan="2"><h2><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a7ea6d269da665272292e52edd12daa1f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7ea6d269da665272292e52edd12daa1f"></a>
+<tr class="memitem:a71b3de50041c8f3b96acec2d10641ff2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a71b3de50041c8f3b96acec2d10641ff2"></a>
 virtual Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>Read_Sector</b> (Bit32u head, Bit32u cylinder, Bit32u sector, void *data)</td></tr>
-<tr class="memitem:a3e522e4d87c8e36541da53cef10cefd7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3e522e4d87c8e36541da53cef10cefd7"></a>
+<tr class="memitem:a9323c05882bf92d44e66e7e4ed925148"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9323c05882bf92d44e66e7e4ed925148"></a>
 virtual Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>Write_Sector</b> (Bit32u head, Bit32u cylinder, Bit32u sector, void *data)</td></tr>
-<tr class="memitem:abbe14abad56b09e8f9abb76d032efb92"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abbe14abad56b09e8f9abb76d032efb92"></a>
+<tr class="memitem:ae9120b70c021262b85e3db96f7100113"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae9120b70c021262b85e3db96f7100113"></a>
 virtual Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>Read_AbsoluteSector</b> (Bit32u sectnum, void *data)</td></tr>
-<tr class="memitem:acb9db93f59a047de17de2333c20089d1"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acb9db93f59a047de17de2333c20089d1"></a>
+<tr class="memitem:ad3d0e6c55d5511902fd16402851a5962"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad3d0e6c55d5511902fd16402851a5962"></a>
 virtual Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>Write_AbsoluteSector</b> (Bit32u sectnum, void *data)</td></tr>
-<tr class="memitem:a77c182bbcbb8d939eb8cdc00c83284f0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a77c182bbcbb8d939eb8cdc00c83284f0"></a>
+<tr class="memitem:a3aadaa8e63427e74072b9af40f1c1976"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3aadaa8e63427e74072b9af40f1c1976"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>Set_Reserved_Cylinders</b> (Bitu resCyl)</td></tr>
-<tr class="memitem:a035e20bedbd7761be7c22555c15cfc78"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a035e20bedbd7761be7c22555c15cfc78"></a>
+<tr class="memitem:a725dcaa170dba2b9895fa0c3c56df363"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a725dcaa170dba2b9895fa0c3c56df363"></a>
 virtual Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>Get_Reserved_Cylinders</b> ()</td></tr>
-<tr class="memitem:a508518d2faaf105d79b054ee07431f77"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a508518d2faaf105d79b054ee07431f77"></a>
+<tr class="memitem:a042237c8931cc681960e5eb19e6dc45f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a042237c8931cc681960e5eb19e6dc45f"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>Set_Geometry</b> (Bit32u setHeads, Bit32u setCyl, Bit32u setSect, Bit32u setSectSize)</td></tr>
-<tr class="memitem:a3ba5b3c97aac1cf084f8307416be3d3f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3ba5b3c97aac1cf084f8307416be3d3f"></a>
+<tr class="memitem:a0af6f2540953debaf43c20d5a597562b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0af6f2540953debaf43c20d5a597562b"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>Get_Geometry</b> (Bit32u *getHeads, Bit32u *getCyl, Bit32u *getSect, Bit32u *getSectSize)</td></tr>
-<tr class="memitem:a51ff74bed3a9787904ba68ede87335ee"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a51ff74bed3a9787904ba68ede87335ee"></a>
+<tr class="memitem:a2ed19ea20ecd334122a6bee309a37918"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2ed19ea20ecd334122a6bee309a37918"></a>
 virtual Bit8u&#160;</td><td class="memItemRight" valign="bottom"><b>GetBiosType</b> (void)</td></tr>
-<tr class="memitem:a1b43cc7b51431451cee90685506db4e1"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1b43cc7b51431451cee90685506db4e1"></a>
+<tr class="memitem:ab408b88ad0133108ba8469638be88cc5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab408b88ad0133108ba8469638be88cc5"></a>
 virtual Bit32u&#160;</td><td class="memItemRight" valign="bottom"><b>getSectSize</b> (void)</td></tr>
 <tr class="memitem:ad1149bdea114f2c61df5252f20638155"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad1149bdea114f2c61df5252f20638155"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>imageDisk</b> (FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHardDisk)</td></tr>
@@ -183,14 +187,15 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>auto_delete_on_refcou
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock">
 <p>Definition at line <a class="el" href="bios__disk_8h_source.html#l00047">47</a> of file <a class="el" href="bios__disk_8h_source.html">bios_disk.h</a>.</p>
-</div><hr/>The documentation for this class was generated from the following file:<ul>
+</div><hr/>The documentation for this class was generated from the following files:<ul>
 <li>include/<a class="el" href="bios__disk_8h_source.html">bios_disk.h</a></li>
+<li>src/ints/<a class="el" href="bios__disk_8cpp_source.html">bios_disk.cpp</a></li>
 </ul>
 </div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Feb 18 2018 02:59:35 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Feb 18 2018 03:17:13 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

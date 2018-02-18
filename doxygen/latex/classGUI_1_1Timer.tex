@@ -1,0 +1,89 @@
+\hypertarget{classGUI_1_1Timer}{\section{G\-U\-I\-:\-:Timer Class Reference}
+\label{classGUI_1_1Timer}\index{G\-U\-I\-::\-Timer@{G\-U\-I\-::\-Timer}}
+}
+
+
+Timing service. Time is measured in ticks. A tick is about 10 msec.  
+
+
+
+
+{\ttfamily \#include $<$gui\-\_\-tk.\-h$>$}
+
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structGUI_1_1Timer_1_1ltuint}{ltuint}
+\begin{DoxyCompactList}\small\item\em Compare two integers for 'less-\/than'. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classGUI_1_1Timer_aca48b51e64a4b4e4fdcc83f0edb06f0a}{static void \hyperlink{classGUI_1_1Timer_aca48b51e64a4b4e4fdcc83f0edb06f0a}{check} (\hyperlink{namespaceGUI_af396fee5d5c26b98218f5803f85e3b65}{Ticks} \hyperlink{classGUI_1_1Timer_a619f8c17a217a4524de5ba0e2562870e}{ticks})}\label{classGUI_1_1Timer_aca48b51e64a4b4e4fdcc83f0edb06f0a}
+
+\begin{DoxyCompactList}\small\item\em Advance time and check for expired timers. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Timer_a2616b1e281ffe597d0f542f990a696d6}{static void {\bfseries check\-\_\-to} (\hyperlink{namespaceGUI_af396fee5d5c26b98218f5803f85e3b65}{Ticks} \hyperlink{classGUI_1_1Timer_a619f8c17a217a4524de5ba0e2562870e}{ticks})}\label{classGUI_1_1Timer_a2616b1e281ffe597d0f542f990a696d6}
+
+\item 
+static void \hyperlink{classGUI_1_1Timer_a98c2196c1df33283c26777acf9aeffee}{add} (\hyperlink{structGUI_1_1Timer__Callback}{Timer\-\_\-\-Callback} $\ast$cb, const \hyperlink{namespaceGUI_af396fee5d5c26b98218f5803f85e3b65}{Ticks} \hyperlink{classGUI_1_1Timer_a619f8c17a217a4524de5ba0e2562870e}{ticks})
+\begin{DoxyCompactList}\small\item\em Add a timed callback. {\ttfamily ticks} is a value relative to \hyperlink{classGUI_1_1Timer_aeaf90bbc6251a55bb4f8c839813592bf}{now()}. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Timer_a6897be47e69947908ca681bcc04c949d}{static void {\bfseries remove} (const \hyperlink{structGUI_1_1Timer__Callback}{Timer\-\_\-\-Callback} $\ast$const cb)}\label{classGUI_1_1Timer_a6897be47e69947908ca681bcc04c949d}
+
+\item 
+\hypertarget{classGUI_1_1Timer_aeaf90bbc6251a55bb4f8c839813592bf}{static \hyperlink{namespaceGUI_af396fee5d5c26b98218f5803f85e3b65}{Ticks} \hyperlink{classGUI_1_1Timer_aeaf90bbc6251a55bb4f8c839813592bf}{now} ()}\label{classGUI_1_1Timer_aeaf90bbc6251a55bb4f8c839813592bf}
+
+\begin{DoxyCompactList}\small\item\em Return current time (ticks since application start) \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Timer_a44e2f3e6123c9513b87b81f244ef9311}{static \hyperlink{namespaceGUI_af396fee5d5c26b98218f5803f85e3b65}{Ticks} \hyperlink{classGUI_1_1Timer_a44e2f3e6123c9513b87b81f244ef9311}{next} ()}\label{classGUI_1_1Timer_a44e2f3e6123c9513b87b81f244ef9311}
+
+\begin{DoxyCompactList}\small\item\em Return number of ticks until next scheduled timer or 0 if no timers. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Static Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classGUI_1_1Timer_a619f8c17a217a4524de5ba0e2562870e}{static \hyperlink{namespaceGUI_af396fee5d5c26b98218f5803f85e3b65}{Ticks} \hyperlink{classGUI_1_1Timer_a619f8c17a217a4524de5ba0e2562870e}{ticks} = 0}\label{classGUI_1_1Timer_a619f8c17a217a4524de5ba0e2562870e}
+
+\begin{DoxyCompactList}\small\item\em Number of ticks since application start. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Timer_a09c091f0975773995b0a62228d734c21}{static std\-::multimap$<$ \hyperlink{namespaceGUI_af396fee5d5c26b98218f5803f85e3b65}{Ticks}, \\*
+\hyperlink{structGUI_1_1Timer__Callback}{Timer\-\_\-\-Callback} $\ast$, \hyperlink{structGUI_1_1Timer_1_1ltuint}{ltuint} $>$ \hyperlink{classGUI_1_1Timer_a09c091f0975773995b0a62228d734c21}{timers}}\label{classGUI_1_1Timer_a09c091f0975773995b0a62228d734c21}
+
+\begin{DoxyCompactList}\small\item\em Active timers. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Timing service. Time is measured in ticks. A tick is about 10 msec. 
+
+Note that this is not suitable as a high-\/accuracy timing service. \hyperlink{classGUI_1_1Timer}{Timer} events can be off by many ticks, and a tick may be slightly more or slightly less than 10 msec. Because of that, Timers are only intended for simple animation effects, input timeouts and similar things. 
+
+Definition at line 774 of file gui\-\_\-tk.\-h.
+
+
+
+\subsection{Member Function Documentation}
+\hypertarget{classGUI_1_1Timer_a98c2196c1df33283c26777acf9aeffee}{\index{G\-U\-I\-::\-Timer@{G\-U\-I\-::\-Timer}!add@{add}}
+\index{add@{add}!GUI::Timer@{G\-U\-I\-::\-Timer}}
+\subsubsection[{add}]{\setlength{\rightskip}{0pt plus 5cm}static void {\bf G\-U\-I\-::\-Timer\-::add} (
+\begin{DoxyParamCaption}
+\item[{{\bf Timer\-\_\-\-Callback} $\ast$}]{cb, }
+\item[{const {\bf Ticks}}]{ticks}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline, static\mbox{]}}}}\label{classGUI_1_1Timer_a98c2196c1df33283c26777acf9aeffee}
+
+
+Add a timed callback. {\ttfamily ticks} is a value relative to \hyperlink{classGUI_1_1Timer_aeaf90bbc6251a55bb4f8c839813592bf}{now()}. 
+
+{\ttfamily cb} is not copied. 
+
+Definition at line 794 of file gui\-\_\-tk.\-h.
+
+
+
+References ticks, and timers.
+
+
+
+Referenced by check(), and G\-U\-I\-::\-Input\-::\-Input().
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+src/libs/gui\-\_\-tk/\hyperlink{gui__tk_8h}{gui\-\_\-tk.\-h}\item 
+src/libs/gui\-\_\-tk/\hyperlink{gui__tk_8cpp}{gui\-\_\-tk.\-cpp}\end{DoxyCompactItemize}

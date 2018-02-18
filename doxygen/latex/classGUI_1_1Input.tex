@@ -1,0 +1,117 @@
+\hypertarget{classGUI_1_1Input}{\section{G\-U\-I\-:\-:Input Class Reference}
+\label{classGUI_1_1Input}\index{G\-U\-I\-::\-Input@{G\-U\-I\-::\-Input}}
+}
+
+
+A single-\/line text input.  
+
+
+
+
+{\ttfamily \#include $<$gui\-\_\-tk.\-h$>$}
+
+Inheritance diagram for G\-U\-I\-:\-:Input\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classGUI_1_1Input}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classGUI_1_1Input_acf596747bc99bee86e0ad0cd4f0b3a7e}{\hyperlink{classGUI_1_1Input_acf596747bc99bee86e0ad0cd4f0b3a7e}{Input} (\hyperlink{classGUI_1_1Window}{Window} $\ast$\hyperlink{classGUI_1_1Window_a2e593ff65e7702178d82fe9010a0b539}{parent}, int \hyperlink{classGUI_1_1Window_a6ca6a80ca00c9e1d8ceea8d3d99a657d}{x}, int \hyperlink{classGUI_1_1Window_a0ee8e923aff2c3661fc2e17656d37adf}{y}, int w, int h=0)}\label{classGUI_1_1Input_acf596747bc99bee86e0ad0cd4f0b3a7e}
+
+\begin{DoxyCompactList}\small\item\em Create an input with given position and width. If not set, height is calculated from the font and input is single-\/line. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Input_ae4b2d3f5c51b4403c115424810fb0c27}{virtual void \hyperlink{classGUI_1_1Input_ae4b2d3f5c51b4403c115424810fb0c27}{paint} (\hyperlink{classGUI_1_1Drawable}{Drawable} \&d) const }\label{classGUI_1_1Input_ae4b2d3f5c51b4403c115424810fb0c27}
+
+\begin{DoxyCompactList}\small\item\em Paint input. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Input_a448b6c9fba78ca6408d64e534d2f3162}{void \hyperlink{classGUI_1_1Input_a448b6c9fba78ca6408d64e534d2f3162}{clear\-Selection} ()}\label{classGUI_1_1Input_a448b6c9fba78ca6408d64e534d2f3162}
+
+\begin{DoxyCompactList}\small\item\em Clear selected area. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Input_ad00afd73ff9f569e3b577e2edd7d545d}{void \hyperlink{classGUI_1_1Input_ad00afd73ff9f569e3b577e2edd7d545d}{copy\-Selection} ()}\label{classGUI_1_1Input_ad00afd73ff9f569e3b577e2edd7d545d}
+
+\begin{DoxyCompactList}\small\item\em Copy selection to clipboard. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Input_a56bc63e85caef450a3401578657907cc}{void \hyperlink{classGUI_1_1Input_a56bc63e85caef450a3401578657907cc}{cut\-Selection} ()}\label{classGUI_1_1Input_a56bc63e85caef450a3401578657907cc}
+
+\begin{DoxyCompactList}\small\item\em Cut selection to clipboard. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Input_a0730779bd0ce071231ccc394e0d26dfc}{void \hyperlink{classGUI_1_1Input_a0730779bd0ce071231ccc394e0d26dfc}{paste\-Selection} ()}\label{classGUI_1_1Input_a0730779bd0ce071231ccc394e0d26dfc}
+
+\begin{DoxyCompactList}\small\item\em Paste from clipboard. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Input_a15a82cf692ac53c7fb91c4fd9394ad36}{\hyperlink{namespaceGUI_a10b6232e08729baa0bd211a86a69ce36}{Size} \hyperlink{classGUI_1_1Input_a15a82cf692ac53c7fb91c4fd9394ad36}{find\-Pos} (int \hyperlink{classGUI_1_1Window_a6ca6a80ca00c9e1d8ceea8d3d99a657d}{x}, int \hyperlink{classGUI_1_1Window_a0ee8e923aff2c3661fc2e17656d37adf}{y})}\label{classGUI_1_1Input_a15a82cf692ac53c7fb91c4fd9394ad36}
+
+\begin{DoxyCompactList}\small\item\em get character position corresponding to coordinates \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Input_adb6864a1c00db39cfe508825be97cdb1}{{\footnotesize template$<$typename S\-T\-R $>$ }\\void \hyperlink{classGUI_1_1Input_adb6864a1c00db39cfe508825be97cdb1}{set\-Text} (const S\-T\-R \hyperlink{classGUI_1_1Input_af00a3f739e0695bfbdeeb4962b4b3b65}{text})}\label{classGUI_1_1Input_adb6864a1c00db39cfe508825be97cdb1}
+
+\begin{DoxyCompactList}\small\item\em Set text to be edited. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Input_a137d08ba44ae0d669d859aa3f2f0cc0b}{const \hyperlink{classGUI_1_1String}{String} \& \hyperlink{classGUI_1_1Input_a137d08ba44ae0d669d859aa3f2f0cc0b}{get\-Text} ()}\label{classGUI_1_1Input_a137d08ba44ae0d669d859aa3f2f0cc0b}
+
+\begin{DoxyCompactList}\small\item\em Get the entered text. If you need it longer, copy it immediately. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Input_a5aed22f1c1783dcad253c3b1ac5a1ef8}{virtual bool \hyperlink{classGUI_1_1Input_a5aed22f1c1783dcad253c3b1ac5a1ef8}{key\-Down} (const \hyperlink{classGUI_1_1Key}{Key} \&key)}\label{classGUI_1_1Input_a5aed22f1c1783dcad253c3b1ac5a1ef8}
+
+\begin{DoxyCompactList}\small\item\em Handle text input. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Input_a19a657d7f5526764acab71891fad0f17}{virtual bool \hyperlink{classGUI_1_1Input_a19a657d7f5526764acab71891fad0f17}{mouse\-Down} (int \hyperlink{classGUI_1_1Window_a6ca6a80ca00c9e1d8ceea8d3d99a657d}{x}, int \hyperlink{classGUI_1_1Window_a0ee8e923aff2c3661fc2e17656d37adf}{y}, \hyperlink{namespaceGUI_ad06082a7b02aa73697f39eb8e0856de9}{Mouse\-Button} button)}\label{classGUI_1_1Input_a19a657d7f5526764acab71891fad0f17}
+
+\begin{DoxyCompactList}\small\item\em Handle mouse input. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Input_acb06c8cc98dad0e5ffec6e0fd4b4801d}{virtual bool \hyperlink{classGUI_1_1Input_acb06c8cc98dad0e5ffec6e0fd4b4801d}{mouse\-Dragged} (int \hyperlink{classGUI_1_1Window_a6ca6a80ca00c9e1d8ceea8d3d99a657d}{x}, int \hyperlink{classGUI_1_1Window_a0ee8e923aff2c3661fc2e17656d37adf}{y}, \hyperlink{namespaceGUI_ad06082a7b02aa73697f39eb8e0856de9}{Mouse\-Button} button)}\label{classGUI_1_1Input_acb06c8cc98dad0e5ffec6e0fd4b4801d}
+
+\begin{DoxyCompactList}\small\item\em Handle mouse input. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Input_a71fe106bc0e16593414b5b94cfe2893c}{virtual \hyperlink{namespaceGUI_af396fee5d5c26b98218f5803f85e3b65}{Ticks} \hyperlink{classGUI_1_1Input_a71fe106bc0e16593414b5b94cfe2893c}{timer\-Expired} (\hyperlink{namespaceGUI_af396fee5d5c26b98218f5803f85e3b65}{Ticks} time)}\label{classGUI_1_1Input_a71fe106bc0e16593414b5b94cfe2893c}
+
+\begin{DoxyCompactList}\small\item\em \hyperlink{classGUI_1_1Timer}{Timer} callback function. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classGUI_1_1Input_ab081f47beee40c4872ac7728623b3e82}{void \hyperlink{classGUI_1_1Input_ab081f47beee40c4872ac7728623b3e82}{check\-Offset} ()}\label{classGUI_1_1Input_ab081f47beee40c4872ac7728623b3e82}
+
+\begin{DoxyCompactList}\small\item\em Ensure that pos is visible. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classGUI_1_1Input_af00a3f739e0695bfbdeeb4962b4b3b65}{\hyperlink{classGUI_1_1String}{String} \hyperlink{classGUI_1_1Input_af00a3f739e0695bfbdeeb4962b4b3b65}{text}}\label{classGUI_1_1Input_af00a3f739e0695bfbdeeb4962b4b3b65}
+
+\begin{DoxyCompactList}\small\item\em The text entered. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Input_a2196b6b2b47846639191c9664d338446}{\hyperlink{namespaceGUI_a10b6232e08729baa0bd211a86a69ce36}{Size} \hyperlink{classGUI_1_1Input_a2196b6b2b47846639191c9664d338446}{pos}}\label{classGUI_1_1Input_a2196b6b2b47846639191c9664d338446}
+
+\begin{DoxyCompactList}\small\item\em Current position in {\itshape text\/}. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Input_a1072ce4e75ed8ca4a2b96af63f43a0cd}{\hyperlink{namespaceGUI_a10b6232e08729baa0bd211a86a69ce36}{Size} \hyperlink{classGUI_1_1Input_a1072ce4e75ed8ca4a2b96af63f43a0cd}{lastpos}}\label{classGUI_1_1Input_a1072ce4e75ed8ca4a2b96af63f43a0cd}
+
+\begin{DoxyCompactList}\small\item\em Last updated position in {\itshape text\/}. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Input_a7ff39d7ca64139b43df694d63196deca}{int \hyperlink{classGUI_1_1Input_a7ff39d7ca64139b43df694d63196deca}{posx}}\label{classGUI_1_1Input_a7ff39d7ca64139b43df694d63196deca}
+
+\begin{DoxyCompactList}\small\item\em Coordinates according to pos. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Input_aa3713bd1a58efc45f87c99c401b4144a}{int {\bfseries posy}}\label{classGUI_1_1Input_aa3713bd1a58efc45f87c99c401b4144a}
+
+\item 
+\hypertarget{classGUI_1_1Input_abfec3d3635656e025d61654a31ab98b5}{\hyperlink{namespaceGUI_a10b6232e08729baa0bd211a86a69ce36}{Size} \hyperlink{classGUI_1_1Input_abfec3d3635656e025d61654a31ab98b5}{start\-\_\-sel}}\label{classGUI_1_1Input_abfec3d3635656e025d61654a31ab98b5}
+
+\begin{DoxyCompactList}\small\item\em Selection in {\itshape text\/}. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Input_a0aacf882a9a705d09c03e46c3e998ecc}{\hyperlink{namespaceGUI_a10b6232e08729baa0bd211a86a69ce36}{Size} {\bfseries end\-\_\-sel}}\label{classGUI_1_1Input_a0aacf882a9a705d09c03e46c3e998ecc}
+
+\item 
+\hypertarget{classGUI_1_1Input_a311ee1e868abf69ca6ba892a6794b68b}{bool \hyperlink{classGUI_1_1Input_a311ee1e868abf69ca6ba892a6794b68b}{blink}}\label{classGUI_1_1Input_a311ee1e868abf69ca6ba892a6794b68b}
+
+\begin{DoxyCompactList}\small\item\em Is cursor visible at the moment? \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Input_af399004f35a82c4ef01e392ec17f30d5}{bool \hyperlink{classGUI_1_1Input_af399004f35a82c4ef01e392ec17f30d5}{insert}}\label{classGUI_1_1Input_af399004f35a82c4ef01e392ec17f30d5}
+
+\begin{DoxyCompactList}\small\item\em Insert mode? \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Input_adefcd920ff52c2078363d11ce336b7e4}{bool \hyperlink{classGUI_1_1Input_adefcd920ff52c2078363d11ce336b7e4}{multi}}\label{classGUI_1_1Input_adefcd920ff52c2078363d11ce336b7e4}
+
+\begin{DoxyCompactList}\small\item\em Multiline? \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Input_ad3725c78fcdbe131c8f209a41f520150}{int \hyperlink{classGUI_1_1Input_ad3725c78fcdbe131c8f209a41f520150}{offset}}\label{classGUI_1_1Input_ad3725c78fcdbe131c8f209a41f520150}
+
+\begin{DoxyCompactList}\small\item\em Horizontal scrolling offset. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+A single-\/line text input. 
+
+It uses \hyperlink{classGUI_1_1Font_a19c023d747809a4cfa6142d33bdff53a}{Font\-::get\-Font}(\char`\"{}input\char`\"{}) to display content. It supports selection, the clipboard and all well-\/known key bindings (except undo). 
+
+Definition at line 1439 of file gui\-\_\-tk.\-h.
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+src/libs/gui\-\_\-tk/\hyperlink{gui__tk_8h}{gui\-\_\-tk.\-h}\item 
+src/libs/gui\-\_\-tk/\hyperlink{gui__tk_8cpp}{gui\-\_\-tk.\-cpp}\end{DoxyCompactItemize}

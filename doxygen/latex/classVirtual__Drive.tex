@@ -1,0 +1,82 @@
+\hypertarget{classVirtual__Drive}{\section{Virtual\-\_\-\-Drive Class Reference}
+\label{classVirtual__Drive}\index{Virtual\-\_\-\-Drive@{Virtual\-\_\-\-Drive}}
+}
+Inheritance diagram for Virtual\-\_\-\-Drive\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classVirtual__Drive}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classVirtual__Drive_acb64173c858c8f3f5f19f367fe77b2a2}{bool {\bfseries File\-Open} (\hyperlink{classDOS__File}{D\-O\-S\-\_\-\-File} $\ast$$\ast$file, const char $\ast$name, Bit32u flags)}\label{classVirtual__Drive_acb64173c858c8f3f5f19f367fe77b2a2}
+
+\item 
+\hypertarget{classVirtual__Drive_aa6806dfc623501cde76647cf5196abc7}{bool {\bfseries File\-Create} (\hyperlink{classDOS__File}{D\-O\-S\-\_\-\-File} $\ast$$\ast$file, const char $\ast$name, Bit16u attributes)}\label{classVirtual__Drive_aa6806dfc623501cde76647cf5196abc7}
+
+\item 
+\hypertarget{classVirtual__Drive_ada1d71f49420d099757daf52e34fe889}{bool {\bfseries File\-Unlink} (const char $\ast$name)}\label{classVirtual__Drive_ada1d71f49420d099757daf52e34fe889}
+
+\item 
+\hypertarget{classVirtual__Drive_a2b89cbb3fe22858a020006a400934ea2}{bool {\bfseries Remove\-Dir} (const char $\ast$dir)}\label{classVirtual__Drive_a2b89cbb3fe22858a020006a400934ea2}
+
+\item 
+\hypertarget{classVirtual__Drive_aa32a60de14c7f7f5e03e6475ff1bffd2}{bool {\bfseries Make\-Dir} (const char $\ast$dir)}\label{classVirtual__Drive_aa32a60de14c7f7f5e03e6475ff1bffd2}
+
+\item 
+\hypertarget{classVirtual__Drive_a9d3619273e5abe0a84299f082d79485b}{bool {\bfseries Test\-Dir} (const char $\ast$dir)}\label{classVirtual__Drive_a9d3619273e5abe0a84299f082d79485b}
+
+\item 
+\hypertarget{classVirtual__Drive_a5b524fed7a4992e9773911b4c3ce6aee}{bool {\bfseries Find\-First} (const char $\ast$\-\_\-dir, \hyperlink{classDOS__DTA}{D\-O\-S\-\_\-\-D\-T\-A} \&dta, bool fcb\-\_\-findfirst)}\label{classVirtual__Drive_a5b524fed7a4992e9773911b4c3ce6aee}
+
+\item 
+\hypertarget{classVirtual__Drive_a75726c924866070227a14ab677cab954}{bool {\bfseries Find\-Next} (\hyperlink{classDOS__DTA}{D\-O\-S\-\_\-\-D\-T\-A} \&dta)}\label{classVirtual__Drive_a75726c924866070227a14ab677cab954}
+
+\item 
+\hypertarget{classVirtual__Drive_ac5a26ae326fe4ef86c3aeeab030640db}{bool {\bfseries Get\-File\-Attr} (const char $\ast$name, Bit16u $\ast$attr)}\label{classVirtual__Drive_ac5a26ae326fe4ef86c3aeeab030640db}
+
+\item 
+\hypertarget{classVirtual__Drive_a5bafd492b22e85790ab37c94a1dd3d6b}{bool {\bfseries Rename} (const char $\ast$oldname, const char $\ast$newname)}\label{classVirtual__Drive_a5bafd492b22e85790ab37c94a1dd3d6b}
+
+\item 
+\hypertarget{classVirtual__Drive_afc40a6c58322450b7926af869f8552b5}{bool {\bfseries Allocation\-Info} (Bit16u $\ast$\-\_\-bytes\-\_\-sector, Bit8u $\ast$\-\_\-sectors\-\_\-cluster, Bit16u $\ast$\-\_\-total\-\_\-clusters, Bit16u $\ast$\-\_\-free\-\_\-clusters)}\label{classVirtual__Drive_afc40a6c58322450b7926af869f8552b5}
+
+\item 
+\hypertarget{classVirtual__Drive_a042c9df503a6929b8be4eb5c4ccb9d34}{bool {\bfseries File\-Exists} (const char $\ast$name)}\label{classVirtual__Drive_a042c9df503a6929b8be4eb5c4ccb9d34}
+
+\item 
+\hypertarget{classVirtual__Drive_ac1b5aa7a3e96c789a357eacacdbafee9}{bool {\bfseries File\-Stat} (const char $\ast$name, \hyperlink{structFileStat__Block}{File\-Stat\-\_\-\-Block} $\ast$const stat\-\_\-block)}\label{classVirtual__Drive_ac1b5aa7a3e96c789a357eacacdbafee9}
+
+\item 
+\hypertarget{classVirtual__Drive_a60c747bf84748c41f6489a85e354ce53}{virtual void {\bfseries Media\-Change} ()}\label{classVirtual__Drive_a60c747bf84748c41f6489a85e354ce53}
+
+\item 
+\hypertarget{classVirtual__Drive_a204a007b01b36835353da1cfe602f347}{Bit8u {\bfseries Get\-Media\-Byte} (void)}\label{classVirtual__Drive_a204a007b01b36835353da1cfe602f347}
+
+\item 
+\hypertarget{classVirtual__Drive_a07c23b86ce90e36cf6bfe57e700ef24f}{void {\bfseries Empty\-Cache} (void)}\label{classVirtual__Drive_a07c23b86ce90e36cf6bfe57e700ef24f}
+
+\item 
+\hypertarget{classVirtual__Drive_adaf2f6f0157674dc2dc1a27f190d6413}{bool {\bfseries is\-Remote} (void)}\label{classVirtual__Drive_adaf2f6f0157674dc2dc1a27f190d6413}
+
+\item 
+\hypertarget{classVirtual__Drive_a0be0807a2cc522a60baed239a2c420fb}{virtual bool {\bfseries is\-Removable} (void)}\label{classVirtual__Drive_a0be0807a2cc522a60baed239a2c420fb}
+
+\item 
+\hypertarget{classVirtual__Drive_acc65a1146b71de3da99281217bacbb65}{virtual Bits {\bfseries Un\-Mount} (void)}\label{classVirtual__Drive_acc65a1146b71de3da99281217bacbb65}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 455 of file drives.\-h.
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+src/dos/drives.\-h\item 
+src/dos/drive\-\_\-virtual.\-cpp\end{DoxyCompactItemize}

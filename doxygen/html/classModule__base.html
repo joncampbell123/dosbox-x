@@ -47,6 +47,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
+      <li><a href="pages.html"><span>Related&#160;Pages</span></a></li>
+      <li><a href="namespaces.html"><span>Namespaces</span></a></li>
       <li class="current"><a href="annotated.html"><span>Classes</span></a></li>
       <li><a href="files.html"><span>Files</span></a></li>
       <li>
@@ -72,6 +74,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       <li><a href="annotated.html"><span>Class&#160;List</span></a></li>
       <li><a href="classes.html"><span>Class&#160;Index</span></a></li>
       <li><a href="hierarchy.html"><span>Class&#160;Hierarchy</span></a></li>
+      <li><a href="functions.html"><span>Class&#160;Members</span></a></li>
     </ul>
   </div>
 <!-- window showing the filter options -->
@@ -79,7 +82,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerations</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -97,6 +100,39 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="title">Module_base Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+<div class="dynheader">
+Inheritance diagram for Module_base:</div>
+<div class="dyncontent">
+ <div class="center">
+  <img src="classModule__base.png" usemap="#Module_base_map" alt=""/>
+  <map id="Module_base_map" name="Module_base_map">
+<area href="classAdlib_1_1Module.html" alt="Adlib::Module" shape="rect" coords="149,56,288,80"/>
+<area href="classAUTOEXEC.html" alt="AUTOEXEC" shape="rect" coords="149,112,288,136"/>
+<area href="classBIOS.html" alt="BIOS" shape="rect" coords="149,168,288,192"/>
+<area href="classCMS.html" alt="CMS" shape="rect" coords="149,224,288,248"/>
+<area href="classCPU.html" alt="CPU" shape="rect" coords="149,280,288,304"/>
+<area href="classDISNEY.html" alt="DISNEY" shape="rect" coords="149,336,288,360"/>
+<area href="classDONGLE.html" alt="DONGLE" shape="rect" coords="149,392,288,416"/>
+<area href="classDOS.html" alt="DOS" shape="rect" coords="149,448,288,472"/>
+<area href="classDOS__KeyboardLayout.html" alt="DOS_KeyboardLayout" shape="rect" coords="149,504,288,528"/>
+<area href="classEMS.html" alt="EMS" shape="rect" coords="149,560,288,584"/>
+<area href="classFloppyController.html" alt="FloppyController" shape="rect" coords="149,616,288,640"/>
+<area href="classGUS.html" alt="GUS" shape="rect" coords="149,672,288,696"/>
+<area href="classIDEController.html" alt="IDEController" shape="rect" coords="149,728,288,752"/>
+<area href="classINNOVA.html" alt="INNOVA" shape="rect" coords="149,784,288,808"/>
+<area href="classJOYSTICK.html" alt="JOYSTICK" shape="rect" coords="149,840,288,864"/>
+<area href="classMIDI.html" alt="MIDI" shape="rect" coords="149,896,288,920"/>
+<area href="classMPU401.html" alt="MPU401" shape="rect" coords="149,952,288,976"/>
+<area href="classPARPORTS.html" alt="PARPORTS" shape="rect" coords="149,1008,288,1032"/>
+<area href="classPCSPEAKER.html" alt="PCSPEAKER" shape="rect" coords="149,1064,288,1088"/>
+<area href="classPS1SOUND.html" alt="PS1SOUND" shape="rect" coords="149,1120,288,1144"/>
+<area href="classSBLASTER.html" alt="SBLASTER" shape="rect" coords="149,1176,288,1200"/>
+<area href="classSERIALPORTS.html" alt="SERIALPORTS" shape="rect" coords="149,1232,288,1256"/>
+<area href="classTANDYSOUND.html" alt="TANDYSOUND" shape="rect" coords="149,1288,288,1312"/>
+<area href="classVOODOO.html" alt="VOODOO" shape="rect" coords="149,1344,288,1368"/>
+<area href="classXMS.html" alt="XMS" shape="rect" coords="149,1400,288,1424"/>
+</map>
+ </div></div>
 
 <p><a href="classModule__base-members.html">List of all members.</a></p>
 <table class="memberdecls">
@@ -121,7 +157,7 @@ Protected Attributes</h2></td></tr>
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Feb 18 2018 02:59:35 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Feb 18 2018 03:17:13 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

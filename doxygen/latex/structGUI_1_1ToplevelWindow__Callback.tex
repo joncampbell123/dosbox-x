@@ -1,0 +1,78 @@
+\hypertarget{structGUI_1_1ToplevelWindow__Callback}{\section{G\-U\-I\-:\-:Toplevel\-Window\-\_\-\-Callback Struct Reference}
+\label{structGUI_1_1ToplevelWindow__Callback}\index{G\-U\-I\-::\-Toplevel\-Window\-\_\-\-Callback@{G\-U\-I\-::\-Toplevel\-Window\-\_\-\-Callback}}
+}
+
+
+Callbacks for window events.  
+
+
+
+
+{\ttfamily \#include $<$gui\-\_\-tk.\-h$>$}
+
+Inheritance diagram for G\-U\-I\-:\-:Toplevel\-Window\-\_\-\-Callback\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{structGUI_1_1ToplevelWindow__Callback}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+virtual bool \hyperlink{structGUI_1_1ToplevelWindow__Callback_a3f556e220592d267a7f4d4b79a8f311b}{window\-Closing} (\hyperlink{classGUI_1_1ToplevelWindow}{Toplevel\-Window} $\ast$win)=0
+\begin{DoxyCompactList}\small\item\em The window has been asked to be closed. \end{DoxyCompactList}\item 
+virtual void \hyperlink{structGUI_1_1ToplevelWindow__Callback_ad02e7827ad3b68f4ea3d0c66fa2a7717}{window\-Closed} (\hyperlink{classGUI_1_1ToplevelWindow}{Toplevel\-Window} $\ast$win)=0
+\begin{DoxyCompactList}\small\item\em The window will been closed. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Callbacks for window events. 
+
+Definition at line 1554 of file gui\-\_\-tk.\-h.
+
+
+
+\subsection{Member Function Documentation}
+\hypertarget{structGUI_1_1ToplevelWindow__Callback_ad02e7827ad3b68f4ea3d0c66fa2a7717}{\index{G\-U\-I\-::\-Toplevel\-Window\-\_\-\-Callback@{G\-U\-I\-::\-Toplevel\-Window\-\_\-\-Callback}!window\-Closed@{window\-Closed}}
+\index{window\-Closed@{window\-Closed}!GUI::ToplevelWindow_Callback@{G\-U\-I\-::\-Toplevel\-Window\-\_\-\-Callback}}
+\subsubsection[{window\-Closed}]{\setlength{\rightskip}{0pt plus 5cm}virtual void {\bf G\-U\-I\-::\-Toplevel\-Window\-\_\-\-Callback\-::window\-Closed} (
+\begin{DoxyParamCaption}
+\item[{{\bf Toplevel\-Window} $\ast$}]{win}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}pure virtual\mbox{]}}}}\label{structGUI_1_1ToplevelWindow__Callback_ad02e7827ad3b68f4ea3d0c66fa2a7717}
+
+
+The window will been closed. 
+
+Now it is safe to deallocate all external resources that applications may have associated with this window, like registering this window with external callbacks. 
+
+Implemented in \hyperlink{classGUI_1_1TransientWindow_af9215fcb2e62b8d472bbd5457054f3bc}{G\-U\-I\-::\-Transient\-Window}.
+
+
+
+Referenced by G\-U\-I\-::\-Toplevel\-Window\-::$\sim$\-Toplevel\-Window().
+
+\hypertarget{structGUI_1_1ToplevelWindow__Callback_a3f556e220592d267a7f4d4b79a8f311b}{\index{G\-U\-I\-::\-Toplevel\-Window\-\_\-\-Callback@{G\-U\-I\-::\-Toplevel\-Window\-\_\-\-Callback}!window\-Closing@{window\-Closing}}
+\index{window\-Closing@{window\-Closing}!GUI::ToplevelWindow_Callback@{G\-U\-I\-::\-Toplevel\-Window\-\_\-\-Callback}}
+\subsubsection[{window\-Closing}]{\setlength{\rightskip}{0pt plus 5cm}virtual bool {\bf G\-U\-I\-::\-Toplevel\-Window\-\_\-\-Callback\-::window\-Closing} (
+\begin{DoxyParamCaption}
+\item[{{\bf Toplevel\-Window} $\ast$}]{win}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}pure virtual\mbox{]}}}}\label{structGUI_1_1ToplevelWindow__Callback_a3f556e220592d267a7f4d4b79a8f311b}
+
+
+The window has been asked to be closed. 
+
+Return {\ttfamily false} in order to block the requested action. Do not do any deallocation here, as other callbacks may abort the close process. 
+
+Implemented in \hyperlink{classGUI_1_1TransientWindow_afd212cef088556c0c11b89020bfa64dd}{G\-U\-I\-::\-Transient\-Window}.
+
+
+
+Referenced by G\-U\-I\-::\-Toplevel\-Window\-::close().
+
+
+
+The documentation for this struct was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+src/libs/gui\-\_\-tk/\hyperlink{gui__tk_8h}{gui\-\_\-tk.\-h}\end{DoxyCompactItemize}

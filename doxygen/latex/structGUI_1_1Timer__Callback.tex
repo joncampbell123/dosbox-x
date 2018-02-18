@@ -1,0 +1,57 @@
+\hypertarget{structGUI_1_1Timer__Callback}{\section{G\-U\-I\-:\-:Timer\-\_\-\-Callback Struct Reference}
+\label{structGUI_1_1Timer__Callback}\index{G\-U\-I\-::\-Timer\-\_\-\-Callback@{G\-U\-I\-::\-Timer\-\_\-\-Callback}}
+}
+
+
+\hyperlink{classGUI_1_1Timer}{Timer} callback type.  
+
+
+
+
+{\ttfamily \#include $<$gui\-\_\-tk.\-h$>$}
+
+Inheritance diagram for G\-U\-I\-:\-:Timer\-\_\-\-Callback\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{structGUI_1_1Timer__Callback}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+virtual \hyperlink{namespaceGUI_af396fee5d5c26b98218f5803f85e3b65}{Ticks} \hyperlink{structGUI_1_1Timer__Callback_a4b5a610f3c4da4acd0bacda97b24e049}{timer\-Expired} (\hyperlink{namespaceGUI_af396fee5d5c26b98218f5803f85e3b65}{Ticks} time)=0
+\begin{DoxyCompactList}\small\item\em The timer has expired. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\hyperlink{classGUI_1_1Timer}{Timer} callback type. 
+
+Definition at line 753 of file gui\-\_\-tk.\-h.
+
+
+
+\subsection{Member Function Documentation}
+\hypertarget{structGUI_1_1Timer__Callback_a4b5a610f3c4da4acd0bacda97b24e049}{\index{G\-U\-I\-::\-Timer\-\_\-\-Callback@{G\-U\-I\-::\-Timer\-\_\-\-Callback}!timer\-Expired@{timer\-Expired}}
+\index{timer\-Expired@{timer\-Expired}!GUI::Timer_Callback@{G\-U\-I\-::\-Timer\-\_\-\-Callback}}
+\subsubsection[{timer\-Expired}]{\setlength{\rightskip}{0pt plus 5cm}virtual {\bf Ticks} {\bf G\-U\-I\-::\-Timer\-\_\-\-Callback\-::timer\-Expired} (
+\begin{DoxyParamCaption}
+\item[{{\bf Ticks}}]{time}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}pure virtual\mbox{]}}}}\label{structGUI_1_1Timer__Callback_a4b5a610f3c4da4acd0bacda97b24e049}
+
+
+The timer has expired. 
+
+Callbacks for timers take one parameter, the number of ticks since application start. Note that this value may wrap after a little less than 500 days. If you want callbacks to be called again, return the delay in ticks relative to the scheduled time of this callback (which may be earlier than now() ). Otherwise return 0. 
+
+Implemented in \hyperlink{classGUI_1_1Input_a71fe106bc0e16593414b5b94cfe2893c}{G\-U\-I\-::\-Input}.
+
+
+
+Referenced by G\-U\-I\-::\-Timer\-::check().
+
+
+
+The documentation for this struct was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+src/libs/gui\-\_\-tk/\hyperlink{gui__tk_8h}{gui\-\_\-tk.\-h}\end{DoxyCompactItemize}

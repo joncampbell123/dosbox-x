@@ -1,0 +1,55 @@
+\hypertarget{classVideoCodec}{\section{Video\-Codec Class Reference}
+\label{classVideoCodec}\index{Video\-Codec@{Video\-Codec}}
+}
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct {\bfseries Codec\-Vector}
+\item 
+struct {\bfseries Frame\-Block}
+\item 
+struct {\bfseries Keyframe\-Header}
+\end{DoxyCompactItemize}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classVideoCodec_aea87b8fb5fb035c778638d88216831f9}{bool {\bfseries Setup\-Compress} (int \-\_\-width, int \-\_\-height)}\label{classVideoCodec_aea87b8fb5fb035c778638d88216831f9}
+
+\item 
+\hypertarget{classVideoCodec_abf15ef56d08da5ae564aff193e0b2c65}{bool {\bfseries Setup\-Decompress} (int \-\_\-width, int \-\_\-height)}\label{classVideoCodec_abf15ef56d08da5ae564aff193e0b2c65}
+
+\item 
+\hypertarget{classVideoCodec_aab1d0e5cf95793ebc9c8af205c07e63c}{zmbv\-\_\-format\-\_\-t {\bfseries B\-P\-P\-Format} (int bpp)}\label{classVideoCodec_aab1d0e5cf95793ebc9c8af205c07e63c}
+
+\item 
+\hypertarget{classVideoCodec_a893b6f9eb36852d594fad4e1cb2bc811}{int {\bfseries Needed\-Size} (int \-\_\-width, int \-\_\-height, zmbv\-\_\-format\-\_\-t \-\_\-format)}\label{classVideoCodec_a893b6f9eb36852d594fad4e1cb2bc811}
+
+\item 
+\hypertarget{classVideoCodec_ae3dedde4914fab6db8fede1e8178db0d}{void {\bfseries Compress\-Lines} (int line\-Count, void $\ast$line\-Data\mbox{[}$\,$\mbox{]})}\label{classVideoCodec_ae3dedde4914fab6db8fede1e8178db0d}
+
+\item 
+\hypertarget{classVideoCodec_a5336800755372baf360017edf4d68548}{bool {\bfseries Prepare\-Compress\-Frame} (int flags, zmbv\-\_\-format\-\_\-t \-\_\-format, char $\ast$pal, void $\ast$write\-Buf, int write\-Size)}\label{classVideoCodec_a5336800755372baf360017edf4d68548}
+
+\item 
+\hypertarget{classVideoCodec_a7c82b7a80b527a623468da05f07b6873}{int {\bfseries Finish\-Compress\-Frame} (void)}\label{classVideoCodec_a7c82b7a80b527a623468da05f07b6873}
+
+\item 
+\hypertarget{classVideoCodec_a38561ab71d5dff2189073e3747319733}{bool {\bfseries Decompress\-Frame} (void $\ast$framedata, int size)}\label{classVideoCodec_a38561ab71d5dff2189073e3747319733}
+
+\item 
+\hypertarget{classVideoCodec_a3f29d31386be5442834b08de67454669}{void {\bfseries Output\-\_\-\-Upside\-Down\-\_\-24} (void $\ast$output)}\label{classVideoCodec_a3f29d31386be5442834b08de67454669}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 42 of file zmbv.\-h.
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+src/libs/zmbv/zmbv.\-h\item 
+src/libs/zmbv/zmbv.\-cpp\end{DoxyCompactItemize}

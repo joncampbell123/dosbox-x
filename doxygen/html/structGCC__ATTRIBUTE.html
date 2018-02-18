@@ -47,6 +47,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
+      <li><a href="pages.html"><span>Related&#160;Pages</span></a></li>
+      <li><a href="namespaces.html"><span>Namespaces</span></a></li>
       <li class="current"><a href="annotated.html"><span>Classes</span></a></li>
       <li><a href="files.html"><span>Files</span></a></li>
       <li>
@@ -72,6 +74,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       <li><a href="annotated.html"><span>Class&#160;List</span></a></li>
       <li><a href="classes.html"><span>Class&#160;Index</span></a></li>
       <li><a href="hierarchy.html"><span>Class&#160;Hierarchy</span></a></li>
+      <li><a href="functions.html"><span>Class&#160;Members</span></a></li>
     </ul>
   </div>
 <!-- window showing the filter options -->
@@ -79,7 +82,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerations</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -91,6 +94,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div>
 <div class="header">
   <div class="summary">
+<a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-attribs">Public Attributes</a>  </div>
   <div class="headertitle">
 <div class="title">GCC_ATTRIBUTE Struct Reference</div>  </div>
@@ -99,6 +103,15 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 <p><a href="structGCC__ATTRIBUTE-members.html">List of all members.</a></p>
 <table class="memberdecls">
+<tr><td colspan="2"><h2><a name="pub-methods"></a>
+Public Member Functions</h2></td></tr>
+<tr class="memitem:a4871a6d2e58be9e745cd633944ef8317"><td class="memItemLeft" ><a class="anchor" id="a4871a6d2e58be9e745cd633944ef8317"></a>
+struct {</td></tr>
+<tr class="memitem:a2489bea2c90a6f904da45435caf1fd7f"><td class="memItemLeft" >&#160;&#160;&#160;int16_t _Little_Endian_&#160;&#160;&#160;<b>left</b></td></tr>
+<tr class="memitem:a0f567ab9637afcd0f2eef71bdef6f43e"><td class="memItemLeft" >&#160;&#160;&#160;int16_t _Little_Endian_&#160;&#160;&#160;<b>top</b></td></tr>
+<tr class="memitem:aa3034afdd1eba4a65896ccf54465203e"><td class="memItemLeft" >&#160;&#160;&#160;int16_t _Little_Endian_&#160;&#160;&#160;<b>right</b></td></tr>
+<tr class="memitem:a22ef5070b6e9de37d117723214ac7f67"><td class="memItemLeft" >&#160;&#160;&#160;int16_t _Little_Endian_&#160;&#160;&#160;<b>bottom</b></td></tr>
+<tr class="memitem:a4871a6d2e58be9e745cd633944ef8317"><td class="memItemLeft" valign="top">}&#160;</td><td class="memItemRight" valign="bottom"><b>GCC_ATTRIBUTE</b> (packed) rcFrame</td></tr>
 <tr><td colspan="2"><h2><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a8a270d203f46aebc5c2b79b281314acd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8a270d203f46aebc5c2b79b281314acd"></a>
@@ -267,6 +280,134 @@ union {</td></tr>
 uint32_t _Little_Endian_&#160;</td><td class="memItemRight" valign="bottom"><b>dwChannelMask</b></td></tr>
 <tr class="memitem:a657767635443328eb2d7276b28521a08"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a657767635443328eb2d7276b28521a08"></a>
 windows_GUID&#160;</td><td class="memItemRight" valign="bottom"><b>SubFormat</b></td></tr>
+<tr class="memitem:a754886950001fe79fa06ef55733d0905"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a754886950001fe79fa06ef55733d0905"></a>
+uint32_t _Little_Endian_&#160;</td><td class="memItemRight" valign="bottom"><b>dwMicroSecPerFrame</b></td></tr>
+<tr class="memitem:ad4a986aade472bc9972fcca6affbb69d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad4a986aade472bc9972fcca6affbb69d"></a>
+uint32_t _Little_Endian_&#160;</td><td class="memItemRight" valign="bottom"><b>dwMaxBytesPerSec</b></td></tr>
+<tr class="memitem:a1d32a3f30638fdc9958573b0613d8242"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1d32a3f30638fdc9958573b0613d8242"></a>
+uint32_t _Little_Endian_&#160;</td><td class="memItemRight" valign="bottom"><b>dwPaddingGranularity</b></td></tr>
+<tr class="memitem:ae21793ea014d0d72e4cbd6a685856674"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae21793ea014d0d72e4cbd6a685856674"></a>
+uint32_t _Little_Endian_&#160;</td><td class="memItemRight" valign="bottom"><b>dwFlags</b></td></tr>
+<tr class="memitem:ad2e5f7dc18588ee5a06a54187d834146"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad2e5f7dc18588ee5a06a54187d834146"></a>
+uint32_t _Little_Endian_&#160;</td><td class="memItemRight" valign="bottom"><b>dwTotalFrames</b></td></tr>
+<tr class="memitem:aefd607967fd519a3bac0b637c7e4ba5e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aefd607967fd519a3bac0b637c7e4ba5e"></a>
+uint32_t _Little_Endian_&#160;</td><td class="memItemRight" valign="bottom"><b>dwInitialFrames</b></td></tr>
+<tr class="memitem:adcc4e37b154b4abab6ab84671bfe62bd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="adcc4e37b154b4abab6ab84671bfe62bd"></a>
+uint32_t _Little_Endian_&#160;</td><td class="memItemRight" valign="bottom"><b>dwStreams</b></td></tr>
+<tr class="memitem:ab34db2bdfd65aa01f5f5dffb5bdf20fd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab34db2bdfd65aa01f5f5dffb5bdf20fd"></a>
+uint32_t _Little_Endian_&#160;</td><td class="memItemRight" valign="bottom"><b>dwSuggestedBufferSize</b></td></tr>
+<tr class="memitem:a7cb46d41e5a1acde2572c1df93d493cf"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7cb46d41e5a1acde2572c1df93d493cf"></a>
+uint32_t _Little_Endian_&#160;</td><td class="memItemRight" valign="bottom"><b>dwWidth</b></td></tr>
+<tr class="memitem:a0777964b7652f8f87f8ced432fb19a46"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0777964b7652f8f87f8ced432fb19a46"></a>
+uint32_t _Little_Endian_&#160;</td><td class="memItemRight" valign="bottom"><b>dwHeight</b></td></tr>
+<tr class="memitem:a908b865f6e7c3c446cb64abb31da87b6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a908b865f6e7c3c446cb64abb31da87b6"></a>
+uint32_t _Little_Endian_&#160;</td><td class="memItemRight" valign="bottom"><b>dwReserved</b> [4]</td></tr>
+<tr class="memitem:a6657f9f773ff0308424f71a2c2637b9f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6657f9f773ff0308424f71a2c2637b9f"></a>
+avi_fourcc_t _Little_Endian_&#160;</td><td class="memItemRight" valign="bottom"><b>fccType</b></td></tr>
+<tr class="memitem:aa7d35e26f58c5a03ac1e0fa2bf440fcf"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa7d35e26f58c5a03ac1e0fa2bf440fcf"></a>
+avi_fourcc_t _Little_Endian_&#160;</td><td class="memItemRight" valign="bottom"><b>fccHandler</b></td></tr>
+<tr class="memitem:a328882250ef555ca06b8d0a221fa2a2c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a328882250ef555ca06b8d0a221fa2a2c"></a>
+uint16_t _Little_Endian_&#160;</td><td class="memItemRight" valign="bottom"><b>wPriority</b></td></tr>
+<tr class="memitem:ad2a0b728ca24129dadc20ffe8e35ab6b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad2a0b728ca24129dadc20ffe8e35ab6b"></a>
+uint16_t _Little_Endian_&#160;</td><td class="memItemRight" valign="bottom"><b>wLanguage</b></td></tr>
+<tr class="memitem:ae46c4641107a8cc8cf7b88a4f12e6c17"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae46c4641107a8cc8cf7b88a4f12e6c17"></a>
+uint32_t _Little_Endian_&#160;</td><td class="memItemRight" valign="bottom"><b>dwScale</b></td></tr>
+<tr class="memitem:a0303fc86a5b1ecc749f7915c9de8a99f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0303fc86a5b1ecc749f7915c9de8a99f"></a>
+uint32_t _Little_Endian_&#160;</td><td class="memItemRight" valign="bottom"><b>dwRate</b></td></tr>
+<tr class="memitem:ac0ddb16ce90059200d86951979d2a24f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac0ddb16ce90059200d86951979d2a24f"></a>
+uint32_t _Little_Endian_&#160;</td><td class="memItemRight" valign="bottom"><b>dwStart</b></td></tr>
+<tr class="memitem:aabd09d393d0ec256c4d083abc39ba638"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aabd09d393d0ec256c4d083abc39ba638"></a>
+uint32_t _Little_Endian_&#160;</td><td class="memItemRight" valign="bottom"><b>dwLength</b></td></tr>
+<tr class="memitem:ae74300be9da65b35a1e5b052b6beb21e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae74300be9da65b35a1e5b052b6beb21e"></a>
+uint32_t _Little_Endian_&#160;</td><td class="memItemRight" valign="bottom"><b>dwQuality</b></td></tr>
+<tr class="memitem:aa6eeaa606b4696ba73e60fecea519ee0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa6eeaa606b4696ba73e60fecea519ee0"></a>
+uint32_t _Little_Endian_&#160;</td><td class="memItemRight" valign="bottom"><b>dwSampleSize</b></td></tr>
+<tr class="memitem:a945faa9ae40aa514926cdfbfc485b024"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a945faa9ae40aa514926cdfbfc485b024"></a>
+uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>bFirstEntry</b></td></tr>
+<tr class="memitem:a4041650446337dcdd670c1cc371a2db0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4041650446337dcdd670c1cc371a2db0"></a>
+uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>bNumEntries</b></td></tr>
+<tr class="memitem:aacd0770b45a2810313ca604758bcb7e5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aacd0770b45a2810313ca604758bcb7e5"></a>
+uint16_t&#160;</td><td class="memItemRight" valign="bottom"><b>wFlags</b></td></tr>
+<tr class="memitem:a19b5ebf3379bac01ecd7ec545ea0fd50"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a19b5ebf3379bac01ecd7ec545ea0fd50"></a>
+uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>peRed</b></td></tr>
+<tr class="memitem:a752b03730e640f90e8741b50caaf4865"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a752b03730e640f90e8741b50caaf4865"></a>
+uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>peGreen</b></td></tr>
+<tr class="memitem:a1f0a7f899f4b902287d3e59ba6fec358"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1f0a7f899f4b902287d3e59ba6fec358"></a>
+uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>peBlue</b></td></tr>
+<tr class="memitem:a6b03abfd8246258ce50c0af70390ad70"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6b03abfd8246258ce50c0af70390ad70"></a>
+uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>peFlags</b></td></tr>
+<tr class="memitem:a71bb23b918130a91dc44fee3a65e6811"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a71bb23b918130a91dc44fee3a65e6811"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>dwChunkId</b></td></tr>
+<tr class="memitem:a21d4f4710d4f8e2e932b9a9a0343ab02"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a21d4f4710d4f8e2e932b9a9a0343ab02"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>dwFlags</b></td></tr>
+<tr class="memitem:a795bf0edbefdfd70c2d34efa2df898bc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a795bf0edbefdfd70c2d34efa2df898bc"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>dwOffset</b></td></tr>
+<tr class="memitem:abadf89ed99ecb9dab4d16df1bc396510"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abadf89ed99ecb9dab4d16df1bc396510"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>dwSize</b></td></tr>
+<tr class="memitem:a15114965cb219da50302b30b8caf08fc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a15114965cb219da50302b30b8caf08fc"></a>
+uint16_t&#160;</td><td class="memItemRight" valign="bottom"><b>wLongsPerEntry</b></td></tr>
+<tr class="memitem:ae789204f11688b9a5652beff4965e1bf"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae789204f11688b9a5652beff4965e1bf"></a>
+uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>bIndexSubType</b></td></tr>
+<tr class="memitem:a743be2d0bb7f4d92e4f501703aef6871"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a743be2d0bb7f4d92e4f501703aef6871"></a>
+uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>bIndexType</b></td></tr>
+<tr class="memitem:ac557e085dbabff4a6210e9a849f0115b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac557e085dbabff4a6210e9a849f0115b"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>nEntriesInUse</b></td></tr>
+<tr class="memitem:a0116ac787d75a480eebe7761d8b8c1c0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0116ac787d75a480eebe7761d8b8c1c0"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>dwReserved</b> [3]</td></tr>
+<tr class="memitem:a3727b5304a255d76729156c7289a74e2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3727b5304a255d76729156c7289a74e2"></a>
+uint64_t&#160;</td><td class="memItemRight" valign="bottom"><b>qwOffset</b></td></tr>
+<tr class="memitem:af6773e60525e3afeaaabf9d750cbc75b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af6773e60525e3afeaaabf9d750cbc75b"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>dwDuration</b></td></tr>
+<tr class="memitem:a606afb891119d1ad630a6ae73263f9ac"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a606afb891119d1ad630a6ae73263f9ac"></a>
+uint64_t&#160;</td><td class="memItemRight" valign="bottom"><b>qwBaseOffset</b></td></tr>
+<tr class="memitem:a3dc9bd1e602dd49824f850c1dd7a03ed"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3dc9bd1e602dd49824f850c1dd7a03ed"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>dwReserved_3</b></td></tr>
+<tr class="memitem:a097698111eb5defacc4abe8f334399ca"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a097698111eb5defacc4abe8f334399ca"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>CompressedBMHeight</b></td></tr>
+<tr class="memitem:a8bd08ac5b59c9fcffe087a183589e01a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8bd08ac5b59c9fcffe087a183589e01a"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>CompressedBMWidth</b></td></tr>
+<tr class="memitem:a5e6ab9c6104e75714f9582d2346bdec6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5e6ab9c6104e75714f9582d2346bdec6"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>ValidBMHeight</b></td></tr>
+<tr class="memitem:acbd868a4bd5b90cfb508776162c2479e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="acbd868a4bd5b90cfb508776162c2479e"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>ValidBMWidth</b></td></tr>
+<tr class="memitem:a212bbe79a33b3e9c38ddb3340000a7a8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a212bbe79a33b3e9c38ddb3340000a7a8"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>ValidBMXOffset</b></td></tr>
+<tr class="memitem:afa42796d9070ba27f5cfd099d3b8fb2d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afa42796d9070ba27f5cfd099d3b8fb2d"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>ValidBMYOffset</b></td></tr>
+<tr class="memitem:ac43f989bfaa99caa699502b148886f6a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac43f989bfaa99caa699502b148886f6a"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>VideoXOffsetInT</b></td></tr>
+<tr class="memitem:aba884d21376b2ed35baf1f8d8175683e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aba884d21376b2ed35baf1f8d8175683e"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>VideoYValidStartLine</b></td></tr>
+<tr class="memitem:aa6900482a031ce6f4f80a046669e4e94"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa6900482a031ce6f4f80a046669e4e94"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>VideoFormatToken</b></td></tr>
+<tr class="memitem:af6cdecfc13d1c72cb16c97f0a9d2a215"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af6cdecfc13d1c72cb16c97f0a9d2a215"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>VideoStandard</b></td></tr>
+<tr class="memitem:a326fad9006346c60b96f3e386903bae2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a326fad9006346c60b96f3e386903bae2"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>dwVerticalRefreshRate</b></td></tr>
+<tr class="memitem:abf565c48ce76d62df135cffbf337d0a6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abf565c48ce76d62df135cffbf337d0a6"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>dwHTotalInT</b></td></tr>
+<tr class="memitem:a32a1acc71b08ec250c7257961758daba"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a32a1acc71b08ec250c7257961758daba"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>dwVTotalInLines</b></td></tr>
+<tr class="memitem:a234439f41f8cc308b5f5d2f02d3d6fc3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a234439f41f8cc308b5f5d2f02d3d6fc3"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>dwFrameAspectRatio</b></td></tr>
+<tr class="memitem:a94c90a1fcba8aef0f1892003f660147d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a94c90a1fcba8aef0f1892003f660147d"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>dwFrameWidthInPixels</b></td></tr>
+<tr class="memitem:ab8a1f2b197597cbc98fea299adb2aa95"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab8a1f2b197597cbc98fea299adb2aa95"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>dwFrameHeightInLines</b></td></tr>
+<tr class="memitem:ad9d58d32034eed88890215656c1bb622"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad9d58d32034eed88890215656c1bb622"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>nbFieldPerFrame</b></td></tr>
+<tr class="memitem:a0fbe4be54a1e27c17cca3dd74160e93a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0fbe4be54a1e27c17cca3dd74160e93a"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>dwTotalFrames</b></td></tr>
+<tr class="memitem:a8016ff5dc7cf21b1a2c4ca68373aafbc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8016ff5dc7cf21b1a2c4ca68373aafbc"></a>
+uint32_t _Little_Endian_&#160;</td><td class="memItemRight" valign="bottom"><b>a</b></td></tr>
+<tr class="memitem:aa038ab5ca9ae281b73ea9021dbdff70d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa038ab5ca9ae281b73ea9021dbdff70d"></a>
+uint16_t _Little_Endian_&#160;</td><td class="memItemRight" valign="bottom"><b>b</b></td></tr>
+<tr class="memitem:aa3cb6850a0dfa5d9e55b2383d6d95920"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa3cb6850a0dfa5d9e55b2383d6d95920"></a>
+uint16_t _Little_Endian_&#160;</td><td class="memItemRight" valign="bottom"><b>c</b></td></tr>
+<tr class="memitem:a1a818851c423fab571998ba36c866595"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1a818851c423fab571998ba36c866595"></a>
+uint8_t _Little_Endian_&#160;</td><td class="memItemRight" valign="bottom"><b>d</b> [2]</td></tr>
+<tr class="memitem:a43634af701dc5aec9586f72438f8e859"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a43634af701dc5aec9586f72438f8e859"></a>
+uint8_t _Little_Endian_&#160;</td><td class="memItemRight" valign="bottom"><b>e</b> [6]</td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock">
@@ -274,12 +415,14 @@ windows_GUID&#160;</td><td class="memItemRight" valign="bottom"><b>SubFormat</b>
 </div><hr/>The documentation for this struct was generated from the following files:<ul>
 <li>include/<a class="el" href="bitmapinfoheader_8h_source.html">bitmapinfoheader.h</a></li>
 <li>include/<a class="el" href="waveformatex_8h_source.html">waveformatex.h</a></li>
+<li>src/aviwriter/<a class="el" href="avi_8h_source.html">avi.h</a></li>
+<li>src/aviwriter/<a class="el" href="guid_8h_source.html">guid.h</a></li>
 </ul>
 </div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Feb 18 2018 02:59:35 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Feb 18 2018 03:17:12 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

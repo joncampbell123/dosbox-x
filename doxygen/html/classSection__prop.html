@@ -47,6 +47,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
+      <li><a href="pages.html"><span>Related&#160;Pages</span></a></li>
+      <li><a href="namespaces.html"><span>Namespaces</span></a></li>
       <li class="current"><a href="annotated.html"><span>Classes</span></a></li>
       <li><a href="files.html"><span>Files</span></a></li>
       <li>
@@ -72,6 +74,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       <li><a href="annotated.html"><span>Class&#160;List</span></a></li>
       <li><a href="classes.html"><span>Class&#160;Index</span></a></li>
       <li><a href="hierarchy.html"><span>Class&#160;Hierarchy</span></a></li>
+      <li><a href="functions.html"><span>Class&#160;Members</span></a></li>
     </ul>
   </div>
 <!-- window showing the filter options -->
@@ -79,7 +82,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerations</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -112,27 +115,27 @@ Inheritance diagram for Section_prop:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ac93eb81df5418886b5e8c9c19add8a7a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac93eb81df5418886b5e8c9c19add8a7a"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>Section_prop</b> (std::string const &amp;_sectionname)</td></tr>
-<tr class="memitem:a90a4ffee1f97048eea1702a56198f071"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a90a4ffee1f97048eea1702a56198f071"></a>
+<tr class="memitem:a094a4bcbb16e3b99bf1daf0ceef0c3ba"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a094a4bcbb16e3b99bf1daf0ceef0c3ba"></a>
 <a class="el" href="classProp__int.html">Prop_int</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>Add_int</b> (std::string const &amp;_propname, Property::Changeable::Value when, int _value=0)</td></tr>
-<tr class="memitem:afa809042b0504122e814abe1a4c93bff"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afa809042b0504122e814abe1a4c93bff"></a>
+<tr class="memitem:a7d056104027208c73c2362ff2a654270"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7d056104027208c73c2362ff2a654270"></a>
 <a class="el" href="classProp__string.html">Prop_string</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>Add_string</b> (std::string const &amp;_propname, Property::Changeable::Value when, char const *const _value=NULL)</td></tr>
-<tr class="memitem:a25453b2520f0661d78930592f7f48225"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a25453b2520f0661d78930592f7f48225"></a>
+<tr class="memitem:a0622d2d71f11206c9f19fca06ed36431"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0622d2d71f11206c9f19fca06ed36431"></a>
 <a class="el" href="classProp__path.html">Prop_path</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>Add_path</b> (std::string const &amp;_propname, Property::Changeable::Value when, char const *const _value=NULL)</td></tr>
-<tr class="memitem:a643331be788b6b3b1f50a6e4ce5f8ebf"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a643331be788b6b3b1f50a6e4ce5f8ebf"></a>
+<tr class="memitem:a8390e8dd58a0e34f7680963ca815e774"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8390e8dd58a0e34f7680963ca815e774"></a>
 <a class="el" href="classProp__bool.html">Prop_bool</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>Add_bool</b> (std::string const &amp;_propname, Property::Changeable::Value when, bool _value=false)</td></tr>
-<tr class="memitem:ac83de7979be7017f59ab4f9311d7ad88"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac83de7979be7017f59ab4f9311d7ad88"></a>
+<tr class="memitem:a2be9597abd3ca80cf113061e286857fa"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2be9597abd3ca80cf113061e286857fa"></a>
 <a class="el" href="classProp__hex.html">Prop_hex</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>Add_hex</b> (std::string const &amp;_propname, Property::Changeable::Value when, <a class="el" href="classHex.html">Hex</a> _value=0)</td></tr>
-<tr class="memitem:a6424727658eb2b6ff12520af18c57f2a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6424727658eb2b6ff12520af18c57f2a"></a>
+<tr class="memitem:a4bf7d7f3f55b561d75e17a051506f1e4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4bf7d7f3f55b561d75e17a051506f1e4"></a>
 <a class="el" href="classProp__double.html">Prop_double</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>Add_double</b> (std::string const &amp;_propname, Property::Changeable::Value when, double _value=0.0)</td></tr>
-<tr class="memitem:a1f9676f80bdb10d68ca59f2e1c1b6fda"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1f9676f80bdb10d68ca59f2e1c1b6fda"></a>
+<tr class="memitem:a5e13d1fd48e06f1422b453ddb8295cce"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5e13d1fd48e06f1422b453ddb8295cce"></a>
 <a class="el" href="classProp__multival.html">Prop_multival</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>Add_multi</b> (std::string const &amp;_propname, Property::Changeable::Value when, std::string const &amp;sep)</td></tr>
-<tr class="memitem:a744b73ae840847ba44438a9252c0f5bd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a744b73ae840847ba44438a9252c0f5bd"></a>
+<tr class="memitem:a28af543dfeec843e42c4d727c1fcc872"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a28af543dfeec843e42c4d727c1fcc872"></a>
 <a class="el" href="classProp__multival__remain.html">Prop_multival_remain</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>Add_multiremain</b> (std::string const &amp;_propname, Property::Changeable::Value when, std::string const &amp;sep)</td></tr>
-<tr class="memitem:aa9e999eadf7c45031472722da954c7e6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa9e999eadf7c45031472722da954c7e6"></a>
+<tr class="memitem:a0c5c7660c469b8182a35e538a061d32e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0c5c7660c469b8182a35e538a061d32e"></a>
 <a class="el" href="classProperty.html">Property</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>Get_prop</b> (int index)</td></tr>
 <tr class="memitem:ab2f0390255ebba00eabae922b10666c0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab2f0390255ebba00eabae922b10666c0"></a>
 int&#160;</td><td class="memItemRight" valign="bottom"><b>Get_int</b> (std::string const &amp;_propname) const </td></tr>
-<tr class="memitem:aa73bf77c2da27f1b7eaaa2a7ae1a0956"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa73bf77c2da27f1b7eaaa2a7ae1a0956"></a>
+<tr class="memitem:a4fff92d2ce913ece6db7267acb32cbd2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4fff92d2ce913ece6db7267acb32cbd2"></a>
 const char *&#160;</td><td class="memItemRight" valign="bottom"><b>Get_string</b> (std::string const &amp;_propname) const </td></tr>
 <tr class="memitem:aaeba2edf839ba6d0a3514865170c1c67"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aaeba2edf839ba6d0a3514865170c1c67"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>Get_bool</b> (std::string const &amp;_propname) const </td></tr>
@@ -140,30 +143,31 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>Get_bool</b> (std::st
 <a class="el" href="classHex.html">Hex</a>&#160;</td><td class="memItemRight" valign="bottom"><b>Get_hex</b> (std::string const &amp;_propname) const </td></tr>
 <tr class="memitem:ac7dd360e460d869bdcaa531693249a22"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac7dd360e460d869bdcaa531693249a22"></a>
 double&#160;</td><td class="memItemRight" valign="bottom"><b>Get_double</b> (std::string const &amp;_propname) const </td></tr>
-<tr class="memitem:a65d66d7569af50d725e099e6768abfa5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a65d66d7569af50d725e099e6768abfa5"></a>
+<tr class="memitem:a8522e241de9dfcf71331b6f1dbc16841"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8522e241de9dfcf71331b6f1dbc16841"></a>
 <a class="el" href="classProp__path.html">Prop_path</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>Get_path</b> (std::string const &amp;_propname) const </td></tr>
-<tr class="memitem:ac3ec6edfc2dacad65780d27a7cb4e130"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac3ec6edfc2dacad65780d27a7cb4e130"></a>
+<tr class="memitem:a4471da0d01d645126b419f3698b2975c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4471da0d01d645126b419f3698b2975c"></a>
 <a class="el" href="classProp__multival.html">Prop_multival</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>Get_multival</b> (std::string const &amp;_propname) const </td></tr>
-<tr class="memitem:a98accd38fd4610db2d38cd0e0ed33719"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a98accd38fd4610db2d38cd0e0ed33719"></a>
+<tr class="memitem:abbb6160985f12a56526911ab1de6f8ed"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abbb6160985f12a56526911ab1de6f8ed"></a>
 <a class="el" href="classProp__multival__remain.html">Prop_multival_remain</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>Get_multivalremain</b> (std::string const &amp;_propname) const </td></tr>
-<tr class="memitem:aff15b82a9aa8ebf24f14fee4449a1f67"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aff15b82a9aa8ebf24f14fee4449a1f67"></a>
+<tr class="memitem:aa18fa3fb45cdc41e54a15f1416a43914"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa18fa3fb45cdc41e54a15f1416a43914"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>HandleInputline</b> (std::string const &amp;gegevens)</td></tr>
-<tr class="memitem:a4713c2fec61a2e77dc444b53f06e7aa1"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4713c2fec61a2e77dc444b53f06e7aa1"></a>
+<tr class="memitem:aa49bc0d729b288d862e1db9cfc6e107c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa49bc0d729b288d862e1db9cfc6e107c"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>PrintData</b> (FILE *outfile, bool everything=false)</td></tr>
-<tr class="memitem:ae1e94f3165a7895ed76bfd9e39dc673a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae1e94f3165a7895ed76bfd9e39dc673a"></a>
+<tr class="memitem:a6b6444bff385109361d271103aafdd4e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6b6444bff385109361d271103aafdd4e"></a>
 virtual std::string&#160;</td><td class="memItemRight" valign="bottom"><b>GetPropValue</b> (std::string const &amp;_property) const </td></tr>
 </table>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock">
 <p>Definition at line <a class="el" href="setup_8h_source.html#l00334">334</a> of file <a class="el" href="setup_8h_source.html">setup.h</a>.</p>
-</div><hr/>The documentation for this class was generated from the following file:<ul>
+</div><hr/>The documentation for this class was generated from the following files:<ul>
 <li>include/<a class="el" href="setup_8h_source.html">setup.h</a></li>
+<li>src/misc/<a class="el" href="setup_8cpp_source.html">setup.cpp</a></li>
 </ul>
 </div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Feb 18 2018 02:59:35 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Feb 18 2018 03:17:14 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

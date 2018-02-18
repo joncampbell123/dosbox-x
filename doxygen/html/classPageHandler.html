@@ -47,6 +47,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
+      <li><a href="pages.html"><span>Related&#160;Pages</span></a></li>
+      <li><a href="namespaces.html"><span>Namespaces</span></a></li>
       <li class="current"><a href="annotated.html"><span>Classes</span></a></li>
       <li><a href="files.html"><span>Files</span></a></li>
       <li>
@@ -72,6 +74,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       <li><a href="annotated.html"><span>Class&#160;List</span></a></li>
       <li><a href="classes.html"><span>Class&#160;Index</span></a></li>
       <li><a href="hierarchy.html"><span>Class&#160;Hierarchy</span></a></li>
+      <li><a href="functions.html"><span>Class&#160;Members</span></a></li>
     </ul>
   </div>
 <!-- window showing the filter options -->
@@ -79,7 +82,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerations</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -97,6 +100,41 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="title">PageHandler Class Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+<div class="dynheader">
+Inheritance diagram for PageHandler:</div>
+<div class="dyncontent">
+ <div class="center">
+  <img src="classPageHandler.png" usemap="#PageHandler_map" alt=""/>
+  <map id="PageHandler_map" name="PageHandler_map">
+<area href="classExceptionPageHandler.html" alt="ExceptionPageHandler" shape="rect" coords="266,56,522,80"/>
+<area href="classIllegalPageHandler.html" alt="IllegalPageHandler" shape="rect" coords="266,112,522,136"/>
+<area href="classNewInitPageHandler.html" alt="NewInitPageHandler" shape="rect" coords="266,168,522,192"/>
+<area href="classPageFoilHandler.html" alt="PageFoilHandler" shape="rect" coords="266,224,522,248"/>
+<area href="classRAMPageHandler.html" alt="RAMPageHandler" shape="rect" coords="266,280,522,304"/>
+<area href="classROMAliasPageHandler.html" alt="ROMAliasPageHandler" shape="rect" coords="266,336,522,360"/>
+<area href="classUnmappedPageHandler.html" alt="UnmappedPageHandler" shape="rect" coords="266,392,522,416"/>
+<area href="classVGA__AMS__Handler.html" alt="VGA_AMS_Handler" shape="rect" coords="266,448,522,472"/>
+<area href="classVGA__CGATEXT__PageHandler.html" alt="VGA_CGATEXT_PageHandler" shape="rect" coords="266,504,522,528"/>
+<area href="classVGA__ChainedEGA__Handler.html" alt="VGA_ChainedEGA_Handler" shape="rect" coords="266,560,522,584"/>
+<area href="classVGA__ChainedVGA__Handler.html" alt="VGA_ChainedVGA_Handler" shape="rect" coords="266,616,522,640"/>
+<area href="classVGA__ChainedVGA__Slow__Handler.html" alt="VGA_ChainedVGA_Slow_Handler" shape="rect" coords="266,672,522,696"/>
+<area href="classVGA__Empty__Handler.html" alt="VGA_Empty_Handler" shape="rect" coords="266,728,522,752"/>
+<area href="classVGA__ET4000__ChainedVGA__Handler.html" alt="VGA_ET4000_ChainedVGA_Handler" shape="rect" coords="266,784,522,808"/>
+<area href="classVGA__ET4000__ChainedVGA__Slow__Handler.html" alt="VGA_ET4000_ChainedVGA_Slow_Handler" shape="rect" coords="266,840,522,864"/>
+<area href="classVGA__HERC__Handler.html" alt="VGA_HERC_Handler" shape="rect" coords="266,896,522,920"/>
+<area href="classVGA__LFB__Handler.html" alt="VGA_LFB_Handler" shape="rect" coords="266,952,522,976"/>
+<area href="classVGA__Map__Handler.html" alt="VGA_Map_Handler" shape="rect" coords="266,1008,522,1032"/>
+<area href="classVGA__MMIO__Handler.html" alt="VGA_MMIO_Handler" shape="rect" coords="266,1064,522,1088"/>
+<area href="classVGA__PC98__PageHandler.html" alt="VGA_PC98_PageHandler" shape="rect" coords="266,1120,522,1144"/>
+<area href="classVGA__PCJR__Handler.html" alt="VGA_PCJR_Handler" shape="rect" coords="266,1176,522,1200"/>
+<area href="classVGA__Slow__CGA__Handler.html" alt="VGA_Slow_CGA_Handler" shape="rect" coords="266,1232,522,1256"/>
+<area href="classVGA__TANDY__PageHandler.html" alt="VGA_TANDY_PageHandler" shape="rect" coords="266,1288,522,1312"/>
+<area href="classVGA__TEXT__PageHandler.html" alt="VGA_TEXT_PageHandler" shape="rect" coords="266,1344,522,1368"/>
+<area href="classVGA__UnchainedRead__Handler.html" alt="VGA_UnchainedRead_Handler" shape="rect" coords="266,1400,522,1424"/>
+<area href="classVoodoo__PageHandler.html" alt="Voodoo_PageHandler" shape="rect" coords="266,1456,522,1480"/>
+<area href="classWeitek__PageHandler.html" alt="Weitek_PageHandler" shape="rect" coords="266,1512,522,1536"/>
+</map>
+ </div></div>
 
 <p><a href="classPageHandler-members.html">List of all members.</a></p>
 <table class="memberdecls">
@@ -104,33 +142,33 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a009efc4a2c49e562c8a0e0dca2bb91eb"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a009efc4a2c49e562c8a0e0dca2bb91eb"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>PageHandler</b> (Bitu flg)</td></tr>
-<tr class="memitem:a39d7c43c63715cc0b5efb54a7f434824"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a39d7c43c63715cc0b5efb54a7f434824"></a>
+<tr class="memitem:a741d1800da3de891f7e7d1ef921f92f5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a741d1800da3de891f7e7d1ef921f92f5"></a>
 virtual Bitu&#160;</td><td class="memItemRight" valign="bottom"><b>readb</b> (PhysPt addr)</td></tr>
-<tr class="memitem:a522986972443c1b119c0a99424c0c1bd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a522986972443c1b119c0a99424c0c1bd"></a>
+<tr class="memitem:a220266243629d1c0d4e1222be817471b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a220266243629d1c0d4e1222be817471b"></a>
 virtual Bitu&#160;</td><td class="memItemRight" valign="bottom"><b>readw</b> (PhysPt addr)</td></tr>
-<tr class="memitem:a749457849409285962bb38e86f6a6894"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a749457849409285962bb38e86f6a6894"></a>
+<tr class="memitem:a0a0ee09fb7fface5af93f25d110d6661"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0a0ee09fb7fface5af93f25d110d6661"></a>
 virtual Bitu&#160;</td><td class="memItemRight" valign="bottom"><b>readd</b> (PhysPt addr)</td></tr>
-<tr class="memitem:a9685fa05bd349fc3325cc059e5cd44b2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9685fa05bd349fc3325cc059e5cd44b2"></a>
+<tr class="memitem:aa848d57a4a20808815f179c9af8a44dc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aa848d57a4a20808815f179c9af8a44dc"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>writeb</b> (PhysPt addr, Bitu val)</td></tr>
-<tr class="memitem:ae5873d0423b8ea9de075a378a9dc47ff"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae5873d0423b8ea9de075a378a9dc47ff"></a>
+<tr class="memitem:a297027c1a4430d5afe642a4ffaf04473"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a297027c1a4430d5afe642a4ffaf04473"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>writew</b> (PhysPt addr, Bitu val)</td></tr>
-<tr class="memitem:a116ca7214590f4db1dbc8ae344190715"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a116ca7214590f4db1dbc8ae344190715"></a>
+<tr class="memitem:aebd9846b268b5844113039e60b564539"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aebd9846b268b5844113039e60b564539"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>writed</b> (PhysPt addr, Bitu val)</td></tr>
-<tr class="memitem:a534d5f4a140aa1ea1d6f733b5879a292"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a534d5f4a140aa1ea1d6f733b5879a292"></a>
+<tr class="memitem:aec146fc4be69c0f37707c97aa1d9d7a2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aec146fc4be69c0f37707c97aa1d9d7a2"></a>
 virtual HostPt&#160;</td><td class="memItemRight" valign="bottom"><b>GetHostReadPt</b> (Bitu phys_page)</td></tr>
-<tr class="memitem:afcbb0383657c9f0342c023094789a839"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afcbb0383657c9f0342c023094789a839"></a>
+<tr class="memitem:a9be437d29e87536d012d4520cb3ec52d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9be437d29e87536d012d4520cb3ec52d"></a>
 virtual HostPt&#160;</td><td class="memItemRight" valign="bottom"><b>GetHostWritePt</b> (Bitu phys_page)</td></tr>
-<tr class="memitem:a22baf1a74f4599d9b26e6eb582815980"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a22baf1a74f4599d9b26e6eb582815980"></a>
+<tr class="memitem:ae3dcf8d33fef258d08637cb0baf51a3d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae3dcf8d33fef258d08637cb0baf51a3d"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>readb_checked</b> (PhysPt addr, Bit8u *val)</td></tr>
-<tr class="memitem:a83c88b98cb1182558b41df20f1564cd4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a83c88b98cb1182558b41df20f1564cd4"></a>
+<tr class="memitem:a69bd6b5dd4e6c86211129df23045711a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a69bd6b5dd4e6c86211129df23045711a"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>readw_checked</b> (PhysPt addr, Bit16u *val)</td></tr>
-<tr class="memitem:a09456e4b9f62d20577e195f44f946512"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a09456e4b9f62d20577e195f44f946512"></a>
+<tr class="memitem:a8f2c1c323c5159348031ae6d7ca11718"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8f2c1c323c5159348031ae6d7ca11718"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>readd_checked</b> (PhysPt addr, Bit32u *val)</td></tr>
-<tr class="memitem:adbfe1710267fb171ef1245e2bc03a7e5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="adbfe1710267fb171ef1245e2bc03a7e5"></a>
+<tr class="memitem:a2e43caf55e0f752d080ef1e723533e8e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2e43caf55e0f752d080ef1e723533e8e"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>writeb_checked</b> (PhysPt addr, Bitu val)</td></tr>
-<tr class="memitem:ad5b3da76c9c00d62a12e1d1257d02dcb"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad5b3da76c9c00d62a12e1d1257d02dcb"></a>
+<tr class="memitem:a62c89d9498bbaa9e962d02f3ebdbbf64"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a62c89d9498bbaa9e962d02f3ebdbbf64"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>writew_checked</b> (PhysPt addr, Bitu val)</td></tr>
-<tr class="memitem:ace24d6d6523e373ed68691922e8da103"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ace24d6d6523e373ed68691922e8da103"></a>
+<tr class="memitem:aab88a929a0647d9923ab75aaf62ce633"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aab88a929a0647d9923ab75aaf62ce633"></a>
 virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>writed_checked</b> (PhysPt addr, Bitu val)</td></tr>
 <tr class="memitem:a352d52997241c574d4ef7f12d842f697"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a352d52997241c574d4ef7f12d842f697"></a>
 const Bitu&#160;</td><td class="memItemRight" valign="bottom"><b>getFlags</b> () const </td></tr>
@@ -144,14 +182,15 @@ Bitu&#160;</td><td class="memItemRight" valign="bottom"><b>flags</b></td></tr>
 <hr/><a name="details" id="details"></a><h2>Detailed Description</h2>
 <div class="textblock">
 <p>Definition at line <a class="el" href="paging_8h_source.html#l00089">89</a> of file <a class="el" href="paging_8h_source.html">paging.h</a>.</p>
-</div><hr/>The documentation for this class was generated from the following file:<ul>
+</div><hr/>The documentation for this class was generated from the following files:<ul>
 <li>include/<a class="el" href="paging_8h_source.html">paging.h</a></li>
+<li>src/cpu/<a class="el" href="paging_8cpp_source.html">paging.cpp</a></li>
 </ul>
 </div><!-- contents -->
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Feb 18 2018 02:59:35 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Feb 18 2018 03:17:13 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>

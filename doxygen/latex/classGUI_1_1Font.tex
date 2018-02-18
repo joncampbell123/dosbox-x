@@ -1,0 +1,231 @@
+\hypertarget{classGUI_1_1Font}{\section{G\-U\-I\-:\-:Font Class Reference}
+\label{classGUI_1_1Font}\index{G\-U\-I\-::\-Font@{G\-U\-I\-::\-Font}}
+}
+
+
+A variable-\/ or fixed-\/width fixed-\/size \hyperlink{classGUI_1_1Font}{Font}.  
+
+
+
+
+{\ttfamily \#include $<$gui\-\_\-tk.\-h$>$}
+
+Inheritance diagram for G\-U\-I\-:\-:Font\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classGUI_1_1Font}
+\end{center}
+\end{figure}
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structGUI_1_1Font_1_1ltstr}{ltstr}
+\begin{DoxyCompactList}\small\item\em Compare two strings for 'less-\/than'. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+enum \hyperlink{classGUI_1_1Font_af3c234cd3febe27dbe9c76e6cc5cad3a}{Special\-Char} \{ \\*
+{\bfseries C\-R} =  '$\backslash$r', 
+{\bfseries L\-F} =  '$\backslash$n', 
+{\bfseries B\-S} =  '$\backslash$b', 
+{\bfseries Tab} =  '$\backslash$t', 
+\\*
+{\bfseries Space} =  ' ', 
+{\bfseries E\-S\-C} =  27
+ \}
+\begin{DoxyCompactList}\small\item\em Characters with special appearance or meaning. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classGUI_1_1Font_aec0adb678fe3f162c6e9070144744fd4}{virtual int \hyperlink{classGUI_1_1Font_aec0adb678fe3f162c6e9070144744fd4}{get\-Height} () const =0}\label{classGUI_1_1Font_aec0adb678fe3f162c6e9070144744fd4}
+
+\begin{DoxyCompactList}\small\item\em Retrieve total height of font in pixels. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Font_a713bc722be581c91bba817bb212c14cc}{virtual int \hyperlink{classGUI_1_1Font_a713bc722be581c91bba817bb212c14cc}{get\-Ascent} () const =0}\label{classGUI_1_1Font_a713bc722be581c91bba817bb212c14cc}
+
+\begin{DoxyCompactList}\small\item\em Retrieve the ascent, i.\-e. the number of pixels above the base line. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Font_a89bd19d8ed02ad2894746b0de465950f}{{\footnotesize template$<$typename S\-T\-R $>$ }\\int \hyperlink{classGUI_1_1Font_a89bd19d8ed02ad2894746b0de465950f}{get\-Width} (const S\-T\-R s, \hyperlink{namespaceGUI_a10b6232e08729baa0bd211a86a69ce36}{Size} start=0, \hyperlink{namespaceGUI_a10b6232e08729baa0bd211a86a69ce36}{Size} len=(\hyperlink{namespaceGUI_a10b6232e08729baa0bd211a86a69ce36}{Size})-\/1) const }\label{classGUI_1_1Font_a89bd19d8ed02ad2894746b0de465950f}
+
+\begin{DoxyCompactList}\small\item\em Return width of a string. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Font_aa99bd086d2f5c84a5560d23b9f9ad0ae}{virtual int \hyperlink{classGUI_1_1Font_aa99bd086d2f5c84a5560d23b9f9ad0ae}{get\-Width} (\hyperlink{namespaceGUI_af6b04b46d40197b4f00e553d7d1a3e4c}{Char} c= 'M') const =0}\label{classGUI_1_1Font_aa99bd086d2f5c84a5560d23b9f9ad0ae}
+
+\begin{DoxyCompactList}\small\item\em Retrieve width of a character. \end{DoxyCompactList}\item 
+virtual int \hyperlink{classGUI_1_1Font_ac75c6c35f9ad90779e346c0d3bbb0db2}{get\-Width} (const \hyperlink{classGUI_1_1String}{String} \&s, \hyperlink{namespaceGUI_a10b6232e08729baa0bd211a86a69ce36}{Size} start=0, \hyperlink{namespaceGUI_a10b6232e08729baa0bd211a86a69ce36}{Size} len=(\hyperlink{namespaceGUI_a10b6232e08729baa0bd211a86a69ce36}{Size})-\/1) const 
+\begin{DoxyCompactList}\small\item\em Retrieve width of a string of characters. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Font_ab574797e06559b8c69b1cf02878eee80}{virtual \hyperlink{classGUI_1_1Font_af3c234cd3febe27dbe9c76e6cc5cad3a}{Special\-Char} \hyperlink{classGUI_1_1Font_ab574797e06559b8c69b1cf02878eee80}{to\-Special} (\hyperlink{namespaceGUI_af6b04b46d40197b4f00e553d7d1a3e4c}{Char} c) const }\label{classGUI_1_1Font_ab574797e06559b8c69b1cf02878eee80}
+
+\begin{DoxyCompactList}\small\item\em Convert a character to an equivalent Special\-Char. May return values not in Special\-Char. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Font_a202180fd7d82ab4ada066526776432d7}{virtual \hyperlink{namespaceGUI_af6b04b46d40197b4f00e553d7d1a3e4c}{Char} \hyperlink{classGUI_1_1Font_a202180fd7d82ab4ada066526776432d7}{from\-Special} (\hyperlink{classGUI_1_1Font_af3c234cd3febe27dbe9c76e6cc5cad3a}{Special\-Char} c) const }\label{classGUI_1_1Font_a202180fd7d82ab4ada066526776432d7}
+
+\begin{DoxyCompactList}\small\item\em Convert a Special\-Char to an equivalent character. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static const \hyperlink{classGUI_1_1Font}{Font} $\ast$ \hyperlink{classGUI_1_1Font_a19c023d747809a4cfa6142d33bdff53a}{get\-Font} (const char $\ast$name)
+\begin{DoxyCompactList}\small\item\em Return a font with the given name (case-\/sensitive). \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Font_a35420e48c05e7e803704fe3b53ed7592}{static void {\bfseries registry\-\_\-freeall} ()}\label{classGUI_1_1Font_a35420e48c05e7e803704fe3b53ed7592}
+
+\item 
+static void \hyperlink{classGUI_1_1Font_adf1307fcdb0008a32de8b09f5dfbe71e}{add\-Font} (const char $\ast$name, \hyperlink{classGUI_1_1Font}{Font} $\ast$font)
+\begin{DoxyCompactList}\small\item\em Add a font with a given name. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classGUI_1_1Font_a34f6148432a4a9aae6861d7dc15e4322}{\hyperlink{classGUI_1_1Font_a34f6148432a4a9aae6861d7dc15e4322}{Font} ()}\label{classGUI_1_1Font_a34f6148432a4a9aae6861d7dc15e4322}
+
+\begin{DoxyCompactList}\small\item\em Default constructor. \end{DoxyCompactList}\item 
+virtual void \hyperlink{classGUI_1_1Font_af7fc4fc46ef57e722d6025cdb481da18}{draw\-Char} (\hyperlink{classGUI_1_1Drawable}{Drawable} $\ast$d, const \hyperlink{namespaceGUI_af6b04b46d40197b4f00e553d7d1a3e4c}{Char} c) const =0
+\begin{DoxyCompactList}\small\item\em Draw character to a drawable at the current position. \end{DoxyCompactList}\item 
+virtual void \hyperlink{classGUI_1_1Font_a24b29b7c1ae28bc5cdd48f03b8ac32dc}{draw\-String} (\hyperlink{classGUI_1_1Drawable}{Drawable} $\ast$d, const \hyperlink{classGUI_1_1String}{String} \&s, \hyperlink{namespaceGUI_a10b6232e08729baa0bd211a86a69ce36}{Size} start, \hyperlink{namespaceGUI_a10b6232e08729baa0bd211a86a69ce36}{Size} len) const 
+\begin{DoxyCompactList}\small\item\em Draw {\ttfamily len} characters to a drawable at the current position, starting at string position {\ttfamily start}. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Static Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classGUI_1_1Font_a1b293f118228367955df0b3379d3a524}{static std\-::map$<$ const char \\*
+$\ast$, \hyperlink{classGUI_1_1Font}{Font} $\ast$, \hyperlink{structGUI_1_1Font_1_1ltstr}{ltstr} $>$ \hyperlink{classGUI_1_1Font_a1b293f118228367955df0b3379d3a524}{registry}}\label{classGUI_1_1Font_a1b293f118228367955df0b3379d3a524}
+
+\begin{DoxyCompactList}\small\item\em \hyperlink{classGUI_1_1Font}{Font} registry. Contains all known font objects indexed by name. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Friends}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classGUI_1_1Font_a6bf8da18a30063bef1fa6a2b126b090d}{void {\bfseries Drawable\-::draw\-Text} (const \hyperlink{namespaceGUI_af6b04b46d40197b4f00e553d7d1a3e4c}{Char} c, bool interpret)}\label{classGUI_1_1Font_a6bf8da18a30063bef1fa6a2b126b090d}
+
+\item 
+\hypertarget{classGUI_1_1Font_aa979e0a4c03e5f475ebf93556e35f8e9}{void {\bfseries Drawable\-::draw\-Text} (const \hyperlink{classGUI_1_1String}{String} \&s, bool interpret, \hyperlink{namespaceGUI_a10b6232e08729baa0bd211a86a69ce36}{Size} start, \hyperlink{namespaceGUI_a10b6232e08729baa0bd211a86a69ce36}{Size} len)}\label{classGUI_1_1Font_aa979e0a4c03e5f475ebf93556e35f8e9}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+A variable-\/ or fixed-\/width fixed-\/size \hyperlink{classGUI_1_1Font}{Font}. 
+
+These Fonts can't be scaled once instantiated, but it is possible to subclass this abstract font class to encapsulate scalable fonts. Fonts can be anti-\/aliasing and multi-\/coloured, depending on subclass. There is no encoding enforced. The font object implicitly knows about it's encoding. Because of that, there is a utility function for string examination as well.
+
+You can't instantiate objects of this class directly, use one of the subclasses like \hyperlink{classGUI_1_1BitmapFont}{Bitmap\-Font}.
+
+This class provides a font registry which allows you to register and retrieve font objects using a name of your choice. It is recommended to use a naming scheme like \char`\"{}\-Font\-Name-\/variant-\/pixelsize-\/encoding\char`\"{} where variant is \char`\"{}normal\char`\"{}, \char`\"{}bold\char`\"{}, \char`\"{}italic\char`\"{} or \char`\"{}bolditalic\char`\"{}. No one enforces this, however.
+
+The \hyperlink{namespaceGUI}{G\-U\-I} uses some special font names. You must add them before creating the relevant \hyperlink{namespaceGUI}{G\-U\-I} item. \begin{DoxyItemize}
+\item {\ttfamily default} -\/ used if a requested font was not found \item {\ttfamily title} -\/ \hyperlink{classGUI_1_1ToplevelWindow}{G\-U\-I\-::\-Toplevel\-Window} title \item {\ttfamily input} -\/ \hyperlink{classGUI_1_1Input}{G\-U\-I\-::\-Input} \end{DoxyItemize}
+
+
+Definition at line 1117 of file gui\-\_\-tk.\-h.
+
+
+
+\subsection{Member Function Documentation}
+\hypertarget{classGUI_1_1Font_adf1307fcdb0008a32de8b09f5dfbe71e}{\index{G\-U\-I\-::\-Font@{G\-U\-I\-::\-Font}!add\-Font@{add\-Font}}
+\index{add\-Font@{add\-Font}!GUI::Font@{G\-U\-I\-::\-Font}}
+\subsubsection[{add\-Font}]{\setlength{\rightskip}{0pt plus 5cm}static void {\bf G\-U\-I\-::\-Font\-::add\-Font} (
+\begin{DoxyParamCaption}
+\item[{const char $\ast$}]{name, }
+\item[{{\bf Font} $\ast$}]{font}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline, static\mbox{]}}}}\label{classGUI_1_1Font_adf1307fcdb0008a32de8b09f5dfbe71e}
+
+
+Add a font with a given name. 
+
+Don't delete this font once added. This class will do that for you. If a font with that name already exists, it will be replaced. 
+
+Definition at line 1167 of file gui\-\_\-tk.\-h.
+
+
+
+References registry.
+
+\hypertarget{classGUI_1_1Font_af7fc4fc46ef57e722d6025cdb481da18}{\index{G\-U\-I\-::\-Font@{G\-U\-I\-::\-Font}!draw\-Char@{draw\-Char}}
+\index{draw\-Char@{draw\-Char}!GUI::Font@{G\-U\-I\-::\-Font}}
+\subsubsection[{draw\-Char}]{\setlength{\rightskip}{0pt plus 5cm}virtual void {\bf G\-U\-I\-::\-Font\-::draw\-Char} (
+\begin{DoxyParamCaption}
+\item[{{\bf Drawable} $\ast$}]{d, }
+\item[{const {\bf Char}}]{c}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily  \mbox{[}protected, pure virtual\mbox{]}}}}\label{classGUI_1_1Font_af7fc4fc46ef57e722d6025cdb481da18}
+
+
+Draw character to a drawable at the current position. 
+
+{\ttfamily d's} current position is advanced to the position of the next character. The y coordinate is located at the baseline before and after the call. 
+
+Implemented in \hyperlink{classGUI_1_1BitmapFont_a46ad991d5469877c111726f535095017}{G\-U\-I\-::\-Bitmap\-Font}.
+
+
+
+Referenced by draw\-String(), and G\-U\-I\-::\-Drawable\-::draw\-Text().
+
+\hypertarget{classGUI_1_1Font_a24b29b7c1ae28bc5cdd48f03b8ac32dc}{\index{G\-U\-I\-::\-Font@{G\-U\-I\-::\-Font}!draw\-String@{draw\-String}}
+\index{draw\-String@{draw\-String}!GUI::Font@{G\-U\-I\-::\-Font}}
+\subsubsection[{draw\-String}]{\setlength{\rightskip}{0pt plus 5cm}virtual void {\bf G\-U\-I\-::\-Font\-::draw\-String} (
+\begin{DoxyParamCaption}
+\item[{{\bf Drawable} $\ast$}]{d, }
+\item[{const {\bf String} \&}]{s, }
+\item[{{\bf Size}}]{start, }
+\item[{{\bf Size}}]{len}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily  \mbox{[}inline, protected, virtual\mbox{]}}}}\label{classGUI_1_1Font_a24b29b7c1ae28bc5cdd48f03b8ac32dc}
+
+
+Draw {\ttfamily len} characters to a drawable at the current position, starting at string position {\ttfamily start}. 
+
+This can be used to provide kerning. 
+
+Definition at line 1139 of file gui\-\_\-tk.\-h.
+
+
+
+References draw\-Char().
+
+
+
+Referenced by G\-U\-I\-::\-Drawable\-::draw\-Text().
+
+\hypertarget{classGUI_1_1Font_a19c023d747809a4cfa6142d33bdff53a}{\index{G\-U\-I\-::\-Font@{G\-U\-I\-::\-Font}!get\-Font@{get\-Font}}
+\index{get\-Font@{get\-Font}!GUI::Font@{G\-U\-I\-::\-Font}}
+\subsubsection[{get\-Font}]{\setlength{\rightskip}{0pt plus 5cm}static const {\bf Font}$\ast$ {\bf G\-U\-I\-::\-Font\-::get\-Font} (
+\begin{DoxyParamCaption}
+\item[{const char $\ast$}]{name}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline, static\mbox{]}}}}\label{classGUI_1_1Font_a19c023d747809a4cfa6142d33bdff53a}
+
+
+Return a font with the given name (case-\/sensitive). 
+
+If no font was registered with that name, returns N\-U\-L\-L. 
+
+Definition at line 1148 of file gui\-\_\-tk.\-h.
+
+
+
+References registry.
+
+
+
+Referenced by G\-U\-I\-::\-Menubar\-::add\-Menu(), G\-U\-I\-::\-Input\-::check\-Offset(), G\-U\-I\-::\-Input\-::find\-Pos(), G\-U\-I\-::\-Input\-::key\-Down(), G\-U\-I\-::\-Input\-::paint(), G\-U\-I\-::\-Toplevel\-Window\-::paint(), G\-U\-I\-::\-Menu\-::paint(), G\-U\-I\-::\-Menubar\-::paint(), G\-U\-I\-::\-Frame\-::paint(), and G\-U\-I\-::\-Menu\-::select\-Item().
+
+\hypertarget{classGUI_1_1Font_ac75c6c35f9ad90779e346c0d3bbb0db2}{\index{G\-U\-I\-::\-Font@{G\-U\-I\-::\-Font}!get\-Width@{get\-Width}}
+\index{get\-Width@{get\-Width}!GUI::Font@{G\-U\-I\-::\-Font}}
+\subsubsection[{get\-Width}]{\setlength{\rightskip}{0pt plus 5cm}virtual int {\bf G\-U\-I\-::\-Font\-::get\-Width} (
+\begin{DoxyParamCaption}
+\item[{const {\bf String} \&}]{s, }
+\item[{{\bf Size}}]{start = {\ttfamily 0}, }
+\item[{{\bf Size}}]{len = {\ttfamily ({\bf Size})-\/1}}
+\end{DoxyParamCaption}
+) const\hspace{0.3cm}{\ttfamily  \mbox{[}inline, virtual\mbox{]}}}}\label{classGUI_1_1Font_ac75c6c35f9ad90779e346c0d3bbb0db2}
+
+
+Retrieve width of a string of characters. 
+
+Can be used to provide kerning. 
+
+Definition at line 1191 of file gui\-\_\-tk.\-h.
+
+
+
+References get\-Width().
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+src/libs/gui\-\_\-tk/\hyperlink{gui__tk_8h}{gui\-\_\-tk.\-h}\item 
+src/libs/gui\-\_\-tk/\hyperlink{gui__tk_8cpp}{gui\-\_\-tk.\-cpp}\end{DoxyCompactItemize}

@@ -1,0 +1,66 @@
+\hypertarget{classGUI_1_1NativeString}{\section{G\-U\-I\-:\-:Native\-String$<$ S\-T\-R $>$ Class Template Reference}
+\label{classGUI_1_1NativeString}\index{G\-U\-I\-::\-Native\-String$<$ S\-T\-R $>$@{G\-U\-I\-::\-Native\-String$<$ S\-T\-R $>$}}
+}
+
+
+Converts between strings of various types and \hyperlink{classGUI_1_1String}{String} objects.  
+
+
+
+
+{\ttfamily \#include $<$gui\-\_\-tk.\-h$>$}
+
+\subsection*{Static Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classGUI_1_1NativeString_a935e38aa7a2a11f821d1569059a74f3f}{static void \hyperlink{classGUI_1_1NativeString_a935e38aa7a2a11f821d1569059a74f3f}{get\-String} (\hyperlink{classGUI_1_1String}{String} \&dest, const S\-T\-R \&src)}\label{classGUI_1_1NativeString_a935e38aa7a2a11f821d1569059a74f3f}
+
+\begin{DoxyCompactList}\small\item\em Converts a native string into a \hyperlink{classGUI_1_1String}{String} object. \end{DoxyCompactList}\item 
+static S\-T\-R \& \hyperlink{classGUI_1_1NativeString_aebb6e74db39675d8f7348ecd882e0ef3}{get\-Native} (const \hyperlink{classGUI_1_1String}{String} \&src)
+\begin{DoxyCompactList}\small\item\em Converts a string object to native representation. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Friends}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classGUI_1_1NativeString_a7fb804f7dc96dd9f705c84095f37f1ca}{class {\bfseries String}}\label{classGUI_1_1NativeString_a7fb804f7dc96dd9f705c84095f37f1ca}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\subsubsection*{template$<$typename S\-T\-R$>$class G\-U\-I\-::\-Native\-String$<$ S\-T\-R $>$}
+
+Converts between strings of various types and \hyperlink{classGUI_1_1String}{String} objects. 
+
+It is used to deal with string encoding. It is intended to be used with template specializations. Having such a specialization means you can feed the corresponding type to all functions that expect a string -\/-\/ without any conversion. You can add specializations yourself in your program's code to deal with unsupported types.
+
+As an example, see the std\-::string version.
+
+Encodings, as opposed to character sets, define how bytes map to character values. A\-S\-C\-I\-I, for example, has an {\itshape encoding\/} where each byte is one character, while the A\-S\-C\-I\-I {\itshape character\/} {\itshape set\/} says that values 0-\/127 are valid and 65 is the upper case letter 'A'. U\-T\-F-\/8 has 1-\/6 bytes per character, and the character set is unicode.
+
+\hyperlink{classGUI_1_1Font}{G\-U\-I\-::\-Font} deals with the character set, and this class encapsulates encodings. 
+
+Definition at line 324 of file gui\-\_\-tk.\-h.
+
+
+
+\subsection{Member Function Documentation}
+\hypertarget{classGUI_1_1NativeString_aebb6e74db39675d8f7348ecd882e0ef3}{\index{G\-U\-I\-::\-Native\-String@{G\-U\-I\-::\-Native\-String}!get\-Native@{get\-Native}}
+\index{get\-Native@{get\-Native}!GUI::NativeString@{G\-U\-I\-::\-Native\-String}}
+\subsubsection[{get\-Native}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename S\-T\-R $>$ static S\-T\-R\& {\bf G\-U\-I\-::\-Native\-String}$<$ S\-T\-R $>$\-::{\bf get\-Native} (
+\begin{DoxyParamCaption}
+\item[{const {\bf String} \&}]{src}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline, static, protected\mbox{]}}}}\label{classGUI_1_1NativeString_aebb6e74db39675d8f7348ecd882e0ef3}
+
+
+Converts a string object to native representation. 
+
+If some characters cannot be converted, they should silently be skipped. Apart from that, {\ttfamily native\-String}(string\-Native(String(),X)) should be value-\/equal to {\ttfamily X}. 
+
+Definition at line 336 of file gui\-\_\-tk.\-h.
+
+
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+src/libs/gui\-\_\-tk/\hyperlink{gui__tk_8h}{gui\-\_\-tk.\-h}\end{DoxyCompactItemize}

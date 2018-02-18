@@ -47,6 +47,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
+      <li><a href="pages.html"><span>Related&#160;Pages</span></a></li>
+      <li><a href="namespaces.html"><span>Namespaces</span></a></li>
       <li class="current"><a href="annotated.html"><span>Classes</span></a></li>
       <li><a href="files.html"><span>Files</span></a></li>
       <li>
@@ -72,6 +74,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       <li><a href="annotated.html"><span>Class&#160;List</span></a></li>
       <li><a href="classes.html"><span>Class&#160;Index</span></a></li>
       <li><a href="hierarchy.html"><span>Class&#160;Hierarchy</span></a></li>
+      <li><a href="functions.html"><span>Class&#160;Members</span></a></li>
     </ul>
   </div>
 <!-- window showing the filter options -->
@@ -79,7 +82,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
      onmouseover="return searchBox.OnSearchSelectShow()"
      onmouseout="return searchBox.OnSearchSelectHide()"
      onkeydown="return searchBox.OnSearchSelectKey(event)">
-<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a></div>
+<a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(0)"><span class="SelectionMark">&#160;</span>All</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(1)"><span class="SelectionMark">&#160;</span>Classes</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(2)"><span class="SelectionMark">&#160;</span>Namespaces</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(3)"><span class="SelectionMark">&#160;</span>Files</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(4)"><span class="SelectionMark">&#160;</span>Functions</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(5)"><span class="SelectionMark">&#160;</span>Variables</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(6)"><span class="SelectionMark">&#160;</span>Typedefs</a><a class="SelectItem" href="javascript:void(0)" onclick="searchBox.OnSelectItem(7)"><span class="SelectionMark">&#160;</span>Enumerations</a></div>
 
 <!-- iframe showing the search results (closed by default) -->
 <div id="MSearchResultsWindow">
@@ -103,13 +106,14 @@ Inheritance diagram for MemStruct:</div>
  <div class="center">
   <img src="classMemStruct.png" usemap="#MemStruct_map" alt=""/>
   <map id="MemStruct_map" name="MemStruct_map">
-<area href="classDOS__DTA.html" alt="DOS_DTA" shape="rect" coords="0,56,113,80"/>
-<area href="classDOS__FCB.html" alt="DOS_FCB" shape="rect" coords="123,56,236,80"/>
-<area href="classDOS__InfoBlock.html" alt="DOS_InfoBlock" shape="rect" coords="246,56,359,80"/>
-<area href="classDOS__MCB.html" alt="DOS_MCB" shape="rect" coords="369,56,482,80"/>
-<area href="classDOS__ParamBlock.html" alt="DOS_ParamBlock" shape="rect" coords="492,56,605,80"/>
-<area href="classDOS__PSP.html" alt="DOS_PSP" shape="rect" coords="615,56,728,80"/>
-<area href="classDOS__SDA.html" alt="DOS_SDA" shape="rect" coords="738,56,851,80"/>
+<area href="classDOS__DeviceHeader.html" alt="DOS_DeviceHeader" shape="rect" coords="138,56,266,80"/>
+<area href="classDOS__DTA.html" alt="DOS_DTA" shape="rect" coords="138,112,266,136"/>
+<area href="classDOS__FCB.html" alt="DOS_FCB" shape="rect" coords="138,168,266,192"/>
+<area href="classDOS__InfoBlock.html" alt="DOS_InfoBlock" shape="rect" coords="138,224,266,248"/>
+<area href="classDOS__MCB.html" alt="DOS_MCB" shape="rect" coords="138,280,266,304"/>
+<area href="classDOS__ParamBlock.html" alt="DOS_ParamBlock" shape="rect" coords="138,336,266,360"/>
+<area href="classDOS__PSP.html" alt="DOS_PSP" shape="rect" coords="138,392,266,416"/>
+<area href="classDOS__SDA.html" alt="DOS_SDA" shape="rect" coords="138,448,266,472"/>
 </map>
  </div></div>
 
@@ -142,7 +146,7 @@ PhysPt&#160;</td><td class="memItemRight" valign="bottom"><b>pt</b></td></tr>
 
 
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Feb 18 2018 02:59:35 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Feb 18 2018 03:17:13 for DOSBox-X by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.0
 </small></address>
