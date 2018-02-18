@@ -176,7 +176,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)/pcap;$(SolutionDir)/..;$(SolutionDir)/../include;$(SolutionDir)/../src/aviwriter;$(SolutionDir)/../src/mt32;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/sdl/include;$(SolutionDir)/libpng;$(SolutionDir)/sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/pcap;$(SolutionDir)/..;$(SolutionDir)/../include;$(SolutionDir)/../src/aviwriter;$(SolutionDir)/../src/mt32;$(SolutionDir)/../src/hardware/snd_pc98/cbus;$(SolutionDir)/../src/hardware/snd_pc98/common;$(SolutionDir)/../src/hardware/snd_pc98/generic;$(SolutionDir)/../src/hardware/snd_pc98/sound;$(SolutionDir)/../src/hardware/snd_pc98/x11;$(SolutionDir)/../src/hardware/snd_pc98/sound/getsnd;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/sdl/include;$(SolutionDir)/libpng;$(SolutionDir)/sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;__WIN32__;%(PreprocessorDefinitions);_FILE_OFFSET_BITS=64</PreprocessorDefinitions>
       <PreprocessToFile>false</PreprocessToFile>
       <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
@@ -230,7 +230,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)/pcap;$(SolutionDir)/..;$(SolutionDir)/../include;$(SolutionDir)/../src/aviwriter;$(SolutionDir)/../src/mt32;$(SolutionDir)/sdl2/include;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/libpng;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/pcap;$(SolutionDir)/..;$(SolutionDir)/../include;$(SolutionDir)/../src/aviwriter;$(SolutionDir)/../src/mt32;$(SolutionDir)/../src/hardware/snd_pc98/cbus;$(SolutionDir)/../src/hardware/snd_pc98/common;$(SolutionDir)/../src/hardware/snd_pc98/generic;$(SolutionDir)/../src/hardware/snd_pc98/sound;$(SolutionDir)/../src/hardware/snd_pc98/x11;$(SolutionDir)/../src/hardware/snd_pc98/sound/getsnd;$(SolutionDir)/sdl2/include;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/libpng;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;__WIN32__;%(PreprocessorDefinitions);_FILE_OFFSET_BITS=64;C_SDL2=1</PreprocessorDefinitions>
       <PreprocessToFile>false</PreprocessToFile>
       <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
@@ -289,7 +289,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)/pcap;$(SolutionDir)/..;$(SolutionDir)/../include;$(SolutionDir)/../src/aviwriter;$(SolutionDir)/../src/mt32;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/sdl/include;$(SolutionDir)/libpng;$(SolutionDir)/sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/pcap;$(SolutionDir)/..;$(SolutionDir)/../include;$(SolutionDir)/../src/aviwriter;$(SolutionDir)/../src/mt32;$(SolutionDir)/../src/hardware/snd_pc98/cbus;$(SolutionDir)/../src/hardware/snd_pc98/common;$(SolutionDir)/../src/hardware/snd_pc98/generic;$(SolutionDir)/../src/hardware/snd_pc98/sound;$(SolutionDir)/../src/hardware/snd_pc98/x11;$(SolutionDir)/../src/hardware/snd_pc98/sound/getsnd;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/sdl/include;$(SolutionDir)/libpng;$(SolutionDir)/sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;__WIN32__;%(PreprocessorDefinitions);_FILE_OFFSET_BITS=64</PreprocessorDefinitions>
       <PreprocessToFile>false</PreprocessToFile>
       <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
@@ -344,7 +344,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)/pcap;$(SolutionDir)/..;$(SolutionDir)/../include;$(SolutionDir)/../src/aviwriter;$(SolutionDir)/../src/mt32;$(SolutionDir)/sdl2/include;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/libpng;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/pcap;$(SolutionDir)/..;$(SolutionDir)/../include;$(SolutionDir)/../src/aviwriter;$(SolutionDir)/../src/mt32;$(SolutionDir)/../src/hardware/snd_pc98/cbus;$(SolutionDir)/../src/hardware/snd_pc98/common;$(SolutionDir)/../src/hardware/snd_pc98/generic;$(SolutionDir)/../src/hardware/snd_pc98/sound;$(SolutionDir)/../src/hardware/snd_pc98/x11;$(SolutionDir)/../src/hardware/snd_pc98/sound/getsnd;$(SolutionDir)/sdl2/include;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/libpng;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;__WIN32__;%(PreprocessorDefinitions);_FILE_OFFSET_BITS=64;C_SDL2=1</PreprocessorDefinitions>
       <PreprocessToFile>false</PreprocessToFile>
       <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
@@ -398,7 +398,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)/pcap;$(SolutionDir)/..;$(SolutionDir)/../include;$(SolutionDir)/../src/aviwriter;$(SolutionDir)/../src/mt32;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/sdl/include;$(SolutionDir)/libpng;$(SolutionDir)/sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/pcap;$(SolutionDir)/..;$(SolutionDir)/../include;$(SolutionDir)/../src/aviwriter;$(SolutionDir)/../src/mt32;$(SolutionDir)/../src/hardware/snd_pc98/cbus;$(SolutionDir)/../src/hardware/snd_pc98/common;$(SolutionDir)/../src/hardware/snd_pc98/generic;$(SolutionDir)/../src/hardware/snd_pc98/sound;$(SolutionDir)/../src/hardware/snd_pc98/x11;$(SolutionDir)/../src/hardware/snd_pc98/sound/getsnd;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/sdl/include;$(SolutionDir)/libpng;$(SolutionDir)/sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;__WIN32__;%(PreprocessorDefinitions);_FILE_OFFSET_BITS=64</PreprocessorDefinitions>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -453,7 +453,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)/pcap;$(SolutionDir)/..;$(SolutionDir)/../include;$(SolutionDir)/../src/aviwriter;$(SolutionDir)/../src/mt32;$(SolutionDir)/sdl2/include;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/libpng;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/pcap;$(SolutionDir)/..;$(SolutionDir)/../include;$(SolutionDir)/../src/aviwriter;$(SolutionDir)/../src/mt32;$(SolutionDir)/../src/hardware/snd_pc98/cbus;$(SolutionDir)/../src/hardware/snd_pc98/common;$(SolutionDir)/../src/hardware/snd_pc98/generic;$(SolutionDir)/../src/hardware/snd_pc98/sound;$(SolutionDir)/../src/hardware/snd_pc98/x11;$(SolutionDir)/../src/hardware/snd_pc98/sound/getsnd;$(SolutionDir)/sdl2/include;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/libpng;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;__WIN32__;%(PreprocessorDefinitions);_FILE_OFFSET_BITS=64;C_SDL2=1</PreprocessorDefinitions>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -513,7 +513,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)/pcap;$(SolutionDir)/..;$(SolutionDir)/../include;$(SolutionDir)/../src/aviwriter;$(SolutionDir)/../src/mt32;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/sdl/include;$(SolutionDir)/libpng;$(SolutionDir)/sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/pcap;$(SolutionDir)/..;$(SolutionDir)/../include;$(SolutionDir)/../src/aviwriter;$(SolutionDir)/../src/mt32;$(SolutionDir)/../src/hardware/snd_pc98/cbus;$(SolutionDir)/../src/hardware/snd_pc98/common;$(SolutionDir)/../src/hardware/snd_pc98/generic;$(SolutionDir)/../src/hardware/snd_pc98/sound;$(SolutionDir)/../src/hardware/snd_pc98/x11;$(SolutionDir)/../src/hardware/snd_pc98/sound/getsnd;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/sdl/include;$(SolutionDir)/libpng;$(SolutionDir)/sdlnet;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;__WIN32__;%(PreprocessorDefinitions);_FILE_OFFSET_BITS=64</PreprocessorDefinitions>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -569,7 +569,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(SolutionDir)/pcap;$(SolutionDir)/..;$(SolutionDir)/../include;$(SolutionDir)/../src/aviwriter;$(SolutionDir)/../src/mt32;$(SolutionDir)/sdl2/include;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/libpng;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)/pcap;$(SolutionDir)/..;$(SolutionDir)/../include;$(SolutionDir)/../src/aviwriter;$(SolutionDir)/../src/mt32;$(SolutionDir)/../src/hardware/snd_pc98/cbus;$(SolutionDir)/../src/hardware/snd_pc98/common;$(SolutionDir)/../src/hardware/snd_pc98/generic;$(SolutionDir)/../src/hardware/snd_pc98/sound;$(SolutionDir)/../src/hardware/snd_pc98/x11;$(SolutionDir)/../src/hardware/snd_pc98/sound/getsnd;$(SolutionDir)/sdl2/include;$(SolutionDir)/../src;$(SolutionDir);$(SolutionDir)/zlib;$(SolutionDir)/libpng;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;__WIN32__;%(PreprocessorDefinitions);_FILE_OFFSET_BITS=64;C_SDL2=1</PreprocessorDefinitions>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
@@ -685,6 +685,29 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClCompile Include="..\src\fpu\fpu.cpp" />
     <ClCompile Include="..\src\hardware\pc98.cpp" />
     <ClCompile Include="..\src\hardware\pc98_fm.cpp" />
+    <ClCompile Include="..\src\hardware\snd_pc98\cbus\board26k.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\cbus\board86.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\common\parts.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\generic\keydisp.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\adpcmc.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\adpcmg.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\fmboard.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\fmtimer.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\getsnd\getsmix.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\getsnd\getsnd.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\getsnd\getwave.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\opngenc.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\opngeng.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\pcm86c.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\pcm86g.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\psggenc.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\psggeng.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\rhythmc.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\sound.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\soundrom.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\tms3631c.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\sound\tms3631g.c" />
+    <ClCompile Include="..\src\hardware\snd_pc98\x11\dosio.c" />
     <ClCompile Include="..\src\hardware\vga_pc98_cg.cpp" />
     <ClCompile Include="..\src\hardware\vga_pc98_crtc.cpp" />
     <ClCompile Include="..\src\hardware\vga_pc98_dac.cpp" />
@@ -1000,6 +1023,24 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClInclude Include="..\src\hardware\serialport\serialmouse.h" />
     <ClInclude Include="..\src\hardware\serialport\softmodem.h" />
     <ClInclude Include="..\src\hardware\sn76496.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\cbus\board26k.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\cbus\board86.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\common\parts.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\common\profile.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\common\wavefile.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\generic\keydisp.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\adpcm.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\fmboard.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\fmtimer.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\getsnd\getsnd.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\opngen.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\pcm86.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\psggen.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\rhythm.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\sound.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\soundrom.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\sound\tms3631.h" />
+    <ClInclude Include="..\src\hardware\snd_pc98\x11\dosio.h" />
     <ClInclude Include="..\src\hardware\voodoo_data.h" />
     <ClInclude Include="..\src\hardware\voodoo_def.h" />
     <ClInclude Include="..\src\hardware\voodoo_emu.h" />
