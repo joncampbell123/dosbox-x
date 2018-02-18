@@ -216,10 +216,13 @@ void PC98_FM_OnEnterPC98(Section *sec) {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 
     if (!pc98fm_init) {
+        unsigned int baseio;
         std::string board;
 
         board = section->Get_string("pc-98 fm board");
         if (board == "off" || board == "false") return;
+
+        baseio = section->Get_hex("pc-98 fm board io port");
 
         pc98fm_init = true;
 
@@ -235,7 +238,6 @@ void PC98_FM_OnEnterPC98(Section *sec) {
         pccore.vol_adpcm = 128;
         pccore.vol_pcm = 128;
         pccore.vol_rhythm = 128;
-        pccore.snd86opt = 0x01;
 
         //	fddmtrsnd_initialize(rate);
         //	beep_initialize(rate);
@@ -254,19 +256,51 @@ void PC98_FM_OnEnterPC98(Section *sec) {
         pcm86gen_setvol(pccore.vol_pcm);
 
         if (board == "board86c" || board == "auto") {
-            LOG_MSG("PC-98 FM board is PC-9801-86c");
+            if (baseio == 0 || baseio == 0x188) { /* default */
+                pccore.snd86opt |= 0x01;
+                baseio = 0x188;
+            }
+            else {
+                baseio = 0x288;
+            }
+
+            LOG_MSG("PC-98 FM board is PC-9801-86c at baseio=0x%x",baseio);
             fmboard_reset(&np2cfg, 0x14);
         }
         else if (board == "board86") {
-            LOG_MSG("PC-98 FM board is PC-9801-86");
+            if (baseio == 0 || baseio == 0x188) { /* default */
+                pccore.snd86opt |= 0x01;
+                baseio = 0x188;
+            }
+            else {
+                baseio = 0x288;
+            }
+
+            LOG_MSG("PC-98 FM board is PC-9801-86 at baseio=0x%x",baseio);
             fmboard_reset(&np2cfg, 0x04);
         }
         else if (board == "board26k") {
-            LOG_MSG("PC-98 FM board is PC-9801-26k");
+            if (baseio == 0x188) {
+                pccore.snd26opt |= 0x10;
+                baseio = 0x188;
+            }
+            else { /* default */
+                baseio = 0x088;
+            }
+
+            LOG_MSG("PC-98 FM board is PC-9801-26k at baseio=0x%x",baseio);
             fmboard_reset(&np2cfg, 0x02);
         }
         else {
-            LOG_MSG("PC-98 FM board is PC-9801-86c");
+            if (baseio == 0 || baseio == 0x188) { /* default */
+                pccore.snd86opt |= 0x01;
+                baseio = 0x188;
+            }
+            else {
+                baseio = 0x288;
+            }
+
+            LOG_MSG("PC-98 FM board is PC-9801-86c at baseio=0x%x",baseio);
             fmboard_reset(&np2cfg, 0x14);   // board86c, a good default
         }
 
