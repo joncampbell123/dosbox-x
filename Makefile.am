@@ -43,3 +43,7 @@ src/dosbox.icns: src/dosbox.ico
 	iconutil -c icns -o src/dosbox.icns src/dosbox.iconset
 	rm -Rfv src/dosbox.iconset
 
+dox:
+	rm -Rfv doxygen
+	doxygen
+
