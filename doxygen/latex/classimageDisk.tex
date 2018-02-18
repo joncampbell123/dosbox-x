@@ -1,0 +1,122 @@
+\hypertarget{classimageDisk}{\section{image\-Disk Class Reference}
+\label{classimageDisk}\index{image\-Disk@{image\-Disk}}
+}
+Inheritance diagram for image\-Disk\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classimageDisk}
+\end{center}
+\end{figure}
+\subsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+enum \{ {\bfseries I\-D\-\_\-\-B\-A\-S\-E} = 0, 
+{\bfseries I\-D\-\_\-\-E\-L\-\_\-\-T\-O\-R\-I\-T\-O\-\_\-\-F\-L\-O\-P\-P\-Y}, 
+{\bfseries I\-D\-\_\-\-V\-F\-D}
+ \}
+\end{DoxyCompactItemize}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classimageDisk_a7ea6d269da665272292e52edd12daa1f}{virtual Bit8u {\bfseries Read\-\_\-\-Sector} (Bit32u head, Bit32u cylinder, Bit32u sector, void $\ast$data)}\label{classimageDisk_a7ea6d269da665272292e52edd12daa1f}
+
+\item 
+\hypertarget{classimageDisk_a3e522e4d87c8e36541da53cef10cefd7}{virtual Bit8u {\bfseries Write\-\_\-\-Sector} (Bit32u head, Bit32u cylinder, Bit32u sector, void $\ast$data)}\label{classimageDisk_a3e522e4d87c8e36541da53cef10cefd7}
+
+\item 
+\hypertarget{classimageDisk_abbe14abad56b09e8f9abb76d032efb92}{virtual Bit8u {\bfseries Read\-\_\-\-Absolute\-Sector} (Bit32u sectnum, void $\ast$data)}\label{classimageDisk_abbe14abad56b09e8f9abb76d032efb92}
+
+\item 
+\hypertarget{classimageDisk_acb9db93f59a047de17de2333c20089d1}{virtual Bit8u {\bfseries Write\-\_\-\-Absolute\-Sector} (Bit32u sectnum, void $\ast$data)}\label{classimageDisk_acb9db93f59a047de17de2333c20089d1}
+
+\item 
+\hypertarget{classimageDisk_a77c182bbcbb8d939eb8cdc00c83284f0}{virtual void {\bfseries Set\-\_\-\-Reserved\-\_\-\-Cylinders} (Bitu res\-Cyl)}\label{classimageDisk_a77c182bbcbb8d939eb8cdc00c83284f0}
+
+\item 
+\hypertarget{classimageDisk_a035e20bedbd7761be7c22555c15cfc78}{virtual Bit32u {\bfseries Get\-\_\-\-Reserved\-\_\-\-Cylinders} ()}\label{classimageDisk_a035e20bedbd7761be7c22555c15cfc78}
+
+\item 
+\hypertarget{classimageDisk_a508518d2faaf105d79b054ee07431f77}{virtual void {\bfseries Set\-\_\-\-Geometry} (Bit32u set\-Heads, Bit32u set\-Cyl, Bit32u set\-Sect, Bit32u set\-Sect\-Size)}\label{classimageDisk_a508518d2faaf105d79b054ee07431f77}
+
+\item 
+\hypertarget{classimageDisk_a3ba5b3c97aac1cf084f8307416be3d3f}{virtual void {\bfseries Get\-\_\-\-Geometry} (Bit32u $\ast$get\-Heads, Bit32u $\ast$get\-Cyl, Bit32u $\ast$get\-Sect, Bit32u $\ast$get\-Sect\-Size)}\label{classimageDisk_a3ba5b3c97aac1cf084f8307416be3d3f}
+
+\item 
+\hypertarget{classimageDisk_a51ff74bed3a9787904ba68ede87335ee}{virtual Bit8u {\bfseries Get\-Bios\-Type} (void)}\label{classimageDisk_a51ff74bed3a9787904ba68ede87335ee}
+
+\item 
+\hypertarget{classimageDisk_a1b43cc7b51431451cee90685506db4e1}{virtual Bit32u {\bfseries get\-Sect\-Size} (void)}\label{classimageDisk_a1b43cc7b51431451cee90685506db4e1}
+
+\item 
+\hypertarget{classimageDisk_ad1149bdea114f2c61df5252f20638155}{{\bfseries image\-Disk} (F\-I\-L\-E $\ast$img\-File, Bit8u $\ast$img\-Name, Bit32u img\-Size\-K, bool is\-Hard\-Disk)}\label{classimageDisk_ad1149bdea114f2c61df5252f20638155}
+
+\item 
+\hypertarget{classimageDisk_a5291cb5aee8b109f4934fc1c24293e91}{int {\bfseries Addref} ()}\label{classimageDisk_a5291cb5aee8b109f4934fc1c24293e91}
+
+\item 
+\hypertarget{classimageDisk_a256b0cf2238f1364e3d9675242d69700}{int {\bfseries Release} ()}\label{classimageDisk_a256b0cf2238f1364e3d9675242d69700}
+
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classimageDisk_aaf3990eabff212a283e4c671818f0d36}{int {\bfseries class\-\_\-id}}\label{classimageDisk_aaf3990eabff212a283e4c671818f0d36}
+
+\item 
+\hypertarget{classimageDisk_a24521e7464982eb8b0cf93c104981a78}{bool {\bfseries hard\-Drive}}\label{classimageDisk_a24521e7464982eb8b0cf93c104981a78}
+
+\item 
+\hypertarget{classimageDisk_a58c8bf6765666eee5924a0df9b02a8b8}{bool {\bfseries active}}\label{classimageDisk_a58c8bf6765666eee5924a0df9b02a8b8}
+
+\item 
+\hypertarget{classimageDisk_a97c3a05f12f94a92cf6ddac3f2a5dc5b}{F\-I\-L\-E $\ast$ {\bfseries diskimg}}\label{classimageDisk_a97c3a05f12f94a92cf6ddac3f2a5dc5b}
+
+\item 
+\hypertarget{classimageDisk_a05e629958277f26ed5a65cbf5e6fd193}{std\-::string {\bfseries diskname}}\label{classimageDisk_a05e629958277f26ed5a65cbf5e6fd193}
+
+\item 
+\hypertarget{classimageDisk_a6e6e4381d5627cb1516a6ced5e1a0b67}{Bit8u {\bfseries floppytype}}\label{classimageDisk_a6e6e4381d5627cb1516a6ced5e1a0b67}
+
+\item 
+\hypertarget{classimageDisk_a7550e00e3553d110ba1b0851178d8157}{Bit32u {\bfseries sector\-\_\-size}}\label{classimageDisk_a7550e00e3553d110ba1b0851178d8157}
+
+\item 
+\hypertarget{classimageDisk_a725ce0c18709434c03d913f12418605f}{Bit32u {\bfseries heads}}\label{classimageDisk_a725ce0c18709434c03d913f12418605f}
+
+\item 
+\hypertarget{classimageDisk_a408e3710449fc535836dea5deb51342a}{Bit32u {\bfseries cylinders}}\label{classimageDisk_a408e3710449fc535836dea5deb51342a}
+
+\item 
+\hypertarget{classimageDisk_aa301426df1ed93f8804890500ae137ce}{Bit32u {\bfseries sectors}}\label{classimageDisk_aa301426df1ed93f8804890500ae137ce}
+
+\item 
+\hypertarget{classimageDisk_a6588490a427230feac862942f34e401b}{Bit32u {\bfseries reserved\-\_\-cylinders}}\label{classimageDisk_a6588490a427230feac862942f34e401b}
+
+\item 
+\hypertarget{classimageDisk_afee451f676f8572279bc2354cead2bd9}{Bit64u {\bfseries current\-\_\-fpos}}\label{classimageDisk_afee451f676f8572279bc2354cead2bd9}
+
+\item 
+\hypertarget{classimageDisk_aa12b7c8c8b8bc9745dd93a10d13d89b9}{Bit64u {\bfseries image\-\_\-base}}\label{classimageDisk_aa12b7c8c8b8bc9745dd93a10d13d89b9}
+
+\item 
+\hypertarget{classimageDisk_a3a3603c680c9bbcf8206b13cf6d0f335}{Bit32u {\bfseries disk\-Size\-K}}\label{classimageDisk_a3a3603c680c9bbcf8206b13cf6d0f335}
+
+\item 
+\hypertarget{classimageDisk_a81222a3e8c9252b1737d13be03ca6bed}{volatile int {\bfseries refcount}}\label{classimageDisk_a81222a3e8c9252b1737d13be03ca6bed}
+
+\item 
+\hypertarget{classimageDisk_a94ba3581ff2159062036f478c41f889e}{bool {\bfseries auto\-\_\-delete\-\_\-on\-\_\-refcount\-\_\-zero}}\label{classimageDisk_a94ba3581ff2159062036f478c41f889e}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 47 of file bios\-\_\-disk.\-h.
+
+
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+include/bios\-\_\-disk.\-h\end{DoxyCompactItemize}

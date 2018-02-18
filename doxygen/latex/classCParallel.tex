@@ -1,0 +1,93 @@
+\hypertarget{classCParallel}{\section{C\-Parallel Class Reference}
+\label{classCParallel}\index{C\-Parallel@{C\-Parallel}}
+}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classCParallel_acf40d6322cbb27b3dbdadb98f5b85d8a}{{\bfseries C\-Parallel} (\hyperlink{classCommandLine}{Command\-Line} $\ast$cmd, Bitu portnr, Bit8u initirq)}\label{classCParallel_acf40d6322cbb27b3dbdadb98f5b85d8a}
+
+\item 
+\hypertarget{classCParallel_abf2ac9e3a37c8c0d0e04c42b85353ff8}{void {\bfseries set\-Event} (Bit16u type, float duration)}\label{classCParallel_abf2ac9e3a37c8c0d0e04c42b85353ff8}
+
+\item 
+\hypertarget{classCParallel_ae8b1a2d75783b8910371658d2784e150}{void {\bfseries remove\-Event} (Bit16u type)}\label{classCParallel_ae8b1a2d75783b8910371658d2784e150}
+
+\item 
+\hypertarget{classCParallel_a2f7e311564f795b2b7e80f131e94df8a}{void {\bfseries handle\-Event} (Bit16u type)}\label{classCParallel_a2f7e311564f795b2b7e80f131e94df8a}
+
+\item 
+\hypertarget{classCParallel_a7b4408fa33daf8df3d4a8ef800966e03}{virtual void {\bfseries handle\-Upper\-Event} (Bit16u type)=0}\label{classCParallel_a7b4408fa33daf8df3d4a8ef800966e03}
+
+\item 
+\hypertarget{classCParallel_a423399d97f72d64a7dc428a34f89a8c6}{void {\bfseries register\-D\-O\-S\-Device} ()}\label{classCParallel_a423399d97f72d64a7dc428a34f89a8c6}
+
+\item 
+\hypertarget{classCParallel_a1f7db7d51592a4053ac68aacee0d57aa}{void {\bfseries unregister\-D\-O\-S\-Device} ()}\label{classCParallel_a1f7db7d51592a4053ac68aacee0d57aa}
+
+\item 
+\hypertarget{classCParallel_a0d3e8a0777483495a14153fadcab6544}{virtual Bitu {\bfseries Read\-\_\-\-P\-R} ()=0}\label{classCParallel_a0d3e8a0777483495a14153fadcab6544}
+
+\item 
+\hypertarget{classCParallel_ae29345363bf6142ff5279f0a5db34fe0}{virtual Bitu {\bfseries Read\-\_\-\-C\-O\-M} ()=0}\label{classCParallel_ae29345363bf6142ff5279f0a5db34fe0}
+
+\item 
+\hypertarget{classCParallel_a5ab6eb5ec5cff6ca661fa04cede7c6de}{virtual Bitu {\bfseries Read\-\_\-\-S\-R} ()=0}\label{classCParallel_a5ab6eb5ec5cff6ca661fa04cede7c6de}
+
+\item 
+\hypertarget{classCParallel_a4ae135be13ad44222c0cd789aa7effd7}{virtual void {\bfseries Write\-\_\-\-P\-R} (Bitu)=0}\label{classCParallel_a4ae135be13ad44222c0cd789aa7effd7}
+
+\item 
+\hypertarget{classCParallel_ac0825059ea487383352a4a2194bfe509}{virtual void {\bfseries Write\-\_\-\-C\-O\-N} (Bitu)=0}\label{classCParallel_ac0825059ea487383352a4a2194bfe509}
+
+\item 
+\hypertarget{classCParallel_a9cb37e39c63d01ca3eb7b79dbfa67687}{virtual void {\bfseries Write\-\_\-\-I\-O\-S\-E\-L} (Bitu)=0}\label{classCParallel_a9cb37e39c63d01ca3eb7b79dbfa67687}
+
+\item 
+\hypertarget{classCParallel_a83a2180dc69d0c253ee9a5a2ef540a39}{void {\bfseries Write\-\_\-reserved} (Bit8u data, Bit8u address)}\label{classCParallel_a83a2180dc69d0c253ee9a5a2ef540a39}
+
+\item 
+\hypertarget{classCParallel_a8a8020faba1f51c4226185334a2a83e4}{virtual bool {\bfseries Putchar} (Bit8u)=0}\label{classCParallel_a8a8020faba1f51c4226185334a2a83e4}
+
+\item 
+\hypertarget{classCParallel_ad78fe2e8e54a76043d05e55ddf041457}{bool {\bfseries Putchar\-\_\-default} (Bit8u)}\label{classCParallel_ad78fe2e8e54a76043d05e55ddf041457}
+
+\item 
+\hypertarget{classCParallel_ac03346b2c112fe9db67acf2250023532}{Bit8u {\bfseries get\-Printer\-Status} ()}\label{classCParallel_ac03346b2c112fe9db67acf2250023532}
+
+\item 
+\hypertarget{classCParallel_a4de0462d0fcc42ac21570685b36c1138}{void {\bfseries initialize} ()}\label{classCParallel_a4de0462d0fcc42ac21570685b36c1138}
+
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classCParallel_afb04319e90fc30254112b7552e2d45a3}{\hyperlink{classIO__ReadHandleObject}{I\-O\-\_\-\-Read\-Handle\-Object} {\bfseries Read\-Handler} \mbox{[}3\mbox{]}}\label{classCParallel_afb04319e90fc30254112b7552e2d45a3}
+
+\item 
+\hypertarget{classCParallel_acaf7de848aaf46f6b6b780264864cd9a}{\hyperlink{classIO__WriteHandleObject}{I\-O\-\_\-\-Write\-Handle\-Object} {\bfseries Write\-Handler} \mbox{[}3\mbox{]}}\label{classCParallel_acaf7de848aaf46f6b6b780264864cd9a}
+
+\item 
+\hypertarget{classCParallel_a5f04c351a88e683d6bb6f3e7185f7b36}{Bitu {\bfseries port\-\_\-nr}}\label{classCParallel_a5f04c351a88e683d6bb6f3e7185f7b36}
+
+\item 
+\hypertarget{classCParallel_a78326de3d93b2bf01aac0aa0d57b6b0f}{Bitu {\bfseries base}}\label{classCParallel_a78326de3d93b2bf01aac0aa0d57b6b0f}
+
+\item 
+\hypertarget{classCParallel_afebb5bfb64e0ec13cfb060ac02b8fb3c}{Bitu {\bfseries irq}}\label{classCParallel_afebb5bfb64e0ec13cfb060ac02b8fb3c}
+
+\item 
+\hypertarget{classCParallel_a4c49fe6eefcc72f5d47abdc2594e14f4}{\hyperlink{classDOS__Device}{D\-O\-S\-\_\-\-Device} $\ast$ {\bfseries mydosdevice}}\label{classCParallel_a4c49fe6eefcc72f5d47abdc2594e14f4}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 51 of file parport.\-h.
+
+
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+include/parport.\-h\end{DoxyCompactItemize}

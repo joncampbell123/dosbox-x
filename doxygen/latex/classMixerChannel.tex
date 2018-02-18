@@ -1,0 +1,237 @@
+\hypertarget{classMixerChannel}{\section{Mixer\-Channel Class Reference}
+\label{classMixerChannel}\index{Mixer\-Channel@{Mixer\-Channel}}
+}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classMixerChannel_a547da19129e9690e9af67178189562cf}{void {\bfseries Set\-Volume} (float \-\_\-left, float \-\_\-right)}\label{classMixerChannel_a547da19129e9690e9af67178189562cf}
+
+\item 
+\hypertarget{classMixerChannel_ab36f75e5005f67da923efc8ba8b7f2e2}{void {\bfseries Set\-Scale} (float f)}\label{classMixerChannel_ab36f75e5005f67da923efc8ba8b7f2e2}
+
+\item 
+\hypertarget{classMixerChannel_ac33a5acf44812b9ba4706960b2067552}{void {\bfseries Update\-Volume} (void)}\label{classMixerChannel_ac33a5acf44812b9ba4706960b2067552}
+
+\item 
+\hypertarget{classMixerChannel_a7d752500c09917c50e87f30ce76f19ba}{void {\bfseries Set\-Lowpass\-Freq} (Bitu \-\_\-freq, unsigned int order=2)}\label{classMixerChannel_a7d752500c09917c50e87f30ce76f19ba}
+
+\item 
+\hypertarget{classMixerChannel_a3de9c959c7e9d68838ef69f44602ffb8}{void {\bfseries Set\-Slew\-Freq} (Bitu \-\_\-freq)}\label{classMixerChannel_a3de9c959c7e9d68838ef69f44602ffb8}
+
+\item 
+\hypertarget{classMixerChannel_ac9960e9c8e3bde4d0c77ccce9a6de331}{void {\bfseries Set\-Freq} (Bitu \-\_\-freq, Bitu \-\_\-den=1\-U)}\label{classMixerChannel_ac9960e9c8e3bde4d0c77ccce9a6de331}
+
+\item 
+\hypertarget{classMixerChannel_aada1c5055048850708366adb5fe925aa}{void {\bfseries Mix} (Bitu whole, Bitu frac)}\label{classMixerChannel_aada1c5055048850708366adb5fe925aa}
+
+\item 
+\hypertarget{classMixerChannel_afa28eba1c36e5bc5bcea638d13908ae1}{void {\bfseries Add\-Silence} (void)}\label{classMixerChannel_afa28eba1c36e5bc5bcea638d13908ae1}
+
+\item 
+\hypertarget{classMixerChannel_ac4912fcd7fdb31df56fc9f65ff517265}{void {\bfseries End\-Frame} (Bitu samples)}\label{classMixerChannel_ac4912fcd7fdb31df56fc9f65ff517265}
+
+\item 
+\hypertarget{classMixerChannel_a701ff1e9c1e386b040bc43f09b6efa20}{void {\bfseries lowpass\-Update} ()}\label{classMixerChannel_a701ff1e9c1e386b040bc43f09b6efa20}
+
+\item 
+\hypertarget{classMixerChannel_aaf27dd44013a941fcb2e2f8ff529d2a8}{Bit32s {\bfseries lowpass\-Step} (Bit32s in, const unsigned int iteration, const unsigned int channel)}\label{classMixerChannel_aaf27dd44013a941fcb2e2f8ff529d2a8}
+
+\item 
+\hypertarget{classMixerChannel_abe3d32baaf2d7a1e158691b66c3cd263}{void {\bfseries lowpass\-Proc} (Bit32s ch\mbox{[}2\mbox{]})}\label{classMixerChannel_abe3d32baaf2d7a1e158691b66c3cd263}
+
+\item 
+\hypertarget{classMixerChannel_ad8f9238e83e1806b369d0d0aa15e6ea9}{{\footnotesize template$<$class Type , bool stereo, bool signeddata, bool nativeorder, bool lowpass$>$ }\\void {\bfseries load\-Current\-Sample} (Bitu \&len, const Type $\ast$\&data)}\label{classMixerChannel_ad8f9238e83e1806b369d0d0aa15e6ea9}
+
+\item 
+\hypertarget{classMixerChannel_a4bfb1a6ad50d4c9a04a212b731cba7b4}{{\footnotesize template$<$class Type , bool stereo, bool signeddata, bool nativeorder$>$ }\\void {\bfseries Add\-Samples} (Bitu len, const Type $\ast$data)}\label{classMixerChannel_a4bfb1a6ad50d4c9a04a212b731cba7b4}
+
+\item 
+\hypertarget{classMixerChannel_acb6fa64394aefc3ae210c5716c25cfe2}{double {\bfseries time\-Since\-Last\-Sample} (void)}\label{classMixerChannel_acb6fa64394aefc3ae210c5716c25cfe2}
+
+\item 
+\hypertarget{classMixerChannel_a6a89abb0d5dafa7cb26b1278ea2ab1ee}{bool {\bfseries run\-Sample\-Interpolation} (const Bitu upto)}\label{classMixerChannel_a6a89abb0d5dafa7cb26b1278ea2ab1ee}
+
+\item 
+\hypertarget{classMixerChannel_a7940762a2e8a321658d49b2cf6b43301}{void {\bfseries update\-Slew} (void)}\label{classMixerChannel_a7940762a2e8a321658d49b2cf6b43301}
+
+\item 
+\hypertarget{classMixerChannel_a40c11ec088fcd9268daaf652e4dcbdd1}{void {\bfseries pad\-Fill\-Sample\-Interpolation} (const Bitu upto)}\label{classMixerChannel_a40c11ec088fcd9268daaf652e4dcbdd1}
+
+\item 
+\hypertarget{classMixerChannel_a4c21cbd1be358d5704e64b6d38e1a0b7}{void {\bfseries finish\-Sample\-Interpolation} (const Bitu upto)}\label{classMixerChannel_a4c21cbd1be358d5704e64b6d38e1a0b7}
+
+\item 
+\hypertarget{classMixerChannel_af59a84741e0431cb88f4a7a1f9dc6bfc}{void {\bfseries Add\-Samples\-\_\-m8} (Bitu len, const Bit8u $\ast$data)}\label{classMixerChannel_af59a84741e0431cb88f4a7a1f9dc6bfc}
+
+\item 
+\hypertarget{classMixerChannel_a796d37eb57ceaf1b6bb08dffe397e7e9}{void {\bfseries Add\-Samples\-\_\-s8} (Bitu len, const Bit8u $\ast$data)}\label{classMixerChannel_a796d37eb57ceaf1b6bb08dffe397e7e9}
+
+\item 
+\hypertarget{classMixerChannel_ae6b5bc9c8265624bf8260320a72a991f}{void {\bfseries Add\-Samples\-\_\-m8s} (Bitu len, const Bit8s $\ast$data)}\label{classMixerChannel_ae6b5bc9c8265624bf8260320a72a991f}
+
+\item 
+\hypertarget{classMixerChannel_aea019d49b51a568eda0ae2d75fa94726}{void {\bfseries Add\-Samples\-\_\-s8s} (Bitu len, const Bit8s $\ast$data)}\label{classMixerChannel_aea019d49b51a568eda0ae2d75fa94726}
+
+\item 
+\hypertarget{classMixerChannel_ae5ccd98af78bb46f0b3c497ffc31747d}{void {\bfseries Add\-Samples\-\_\-m16} (Bitu len, const Bit16s $\ast$data)}\label{classMixerChannel_ae5ccd98af78bb46f0b3c497ffc31747d}
+
+\item 
+\hypertarget{classMixerChannel_a6f1d783dae6d1e462fcbae8405fc7809}{void {\bfseries Add\-Samples\-\_\-s16} (Bitu len, const Bit16s $\ast$data)}\label{classMixerChannel_a6f1d783dae6d1e462fcbae8405fc7809}
+
+\item 
+\hypertarget{classMixerChannel_ad636fa361ea10259a586aad5f2e140cc}{void {\bfseries Add\-Samples\-\_\-m16u} (Bitu len, const Bit16u $\ast$data)}\label{classMixerChannel_ad636fa361ea10259a586aad5f2e140cc}
+
+\item 
+\hypertarget{classMixerChannel_aea2887c8acf1c257aebac084292ddfbd}{void {\bfseries Add\-Samples\-\_\-s16u} (Bitu len, const Bit16u $\ast$data)}\label{classMixerChannel_aea2887c8acf1c257aebac084292ddfbd}
+
+\item 
+\hypertarget{classMixerChannel_a8f6f70528e13e637403e8fc368867c97}{void {\bfseries Add\-Samples\-\_\-m32} (Bitu len, const Bit32s $\ast$data)}\label{classMixerChannel_a8f6f70528e13e637403e8fc368867c97}
+
+\item 
+\hypertarget{classMixerChannel_a2eec58265bd8e3f3996468a73e80e19f}{void {\bfseries Add\-Samples\-\_\-s32} (Bitu len, const Bit32s $\ast$data)}\label{classMixerChannel_a2eec58265bd8e3f3996468a73e80e19f}
+
+\item 
+\hypertarget{classMixerChannel_a10a0164e8e238c967190e9536c2b71cc}{void {\bfseries Add\-Samples\-\_\-m16\-\_\-nonnative} (Bitu len, const Bit16s $\ast$data)}\label{classMixerChannel_a10a0164e8e238c967190e9536c2b71cc}
+
+\item 
+\hypertarget{classMixerChannel_a1ce7497712bc86d40a16865993636bd8}{void {\bfseries Add\-Samples\-\_\-s16\-\_\-nonnative} (Bitu len, const Bit16s $\ast$data)}\label{classMixerChannel_a1ce7497712bc86d40a16865993636bd8}
+
+\item 
+\hypertarget{classMixerChannel_ab7074c96bd7c25d9ca33509c944faa61}{void {\bfseries Add\-Samples\-\_\-m16u\-\_\-nonnative} (Bitu len, const Bit16u $\ast$data)}\label{classMixerChannel_ab7074c96bd7c25d9ca33509c944faa61}
+
+\item 
+\hypertarget{classMixerChannel_ab638e9ff862c19e43b82218879854cb0}{void {\bfseries Add\-Samples\-\_\-s16u\-\_\-nonnative} (Bitu len, const Bit16u $\ast$data)}\label{classMixerChannel_ab638e9ff862c19e43b82218879854cb0}
+
+\item 
+\hypertarget{classMixerChannel_ab590ebd5d99f20882b4e013932f46284}{void {\bfseries Add\-Samples\-\_\-m32\-\_\-nonnative} (Bitu len, const Bit32s $\ast$data)}\label{classMixerChannel_ab590ebd5d99f20882b4e013932f46284}
+
+\item 
+\hypertarget{classMixerChannel_a9283464a784a81c0548c45d9c5375b32}{void {\bfseries Add\-Samples\-\_\-s32\-\_\-nonnative} (Bitu len, const Bit32s $\ast$data)}\label{classMixerChannel_a9283464a784a81c0548c45d9c5375b32}
+
+\item 
+\hypertarget{classMixerChannel_ade749a4f846a0f69c223f541e761cefe}{void {\bfseries Fill\-Up} (void)}\label{classMixerChannel_ade749a4f846a0f69c223f541e761cefe}
+
+\item 
+\hypertarget{classMixerChannel_a3c9dfb6c96a54fbcbd420a5e94071b00}{void {\bfseries Enable} (bool \-\_\-yesno)}\label{classMixerChannel_a3c9dfb6c96a54fbcbd420a5e94071b00}
+
+\item 
+\hypertarget{classMixerChannel_abb599beb2f871559791e5cca33b4584f}{void {\bfseries Save\-State} (std\-::ostream \&stream)}\label{classMixerChannel_abb599beb2f871559791e5cca33b4584f}
+
+\item 
+\hypertarget{classMixerChannel_a50d622047c015fe4132ce210f83dbd6a}{void {\bfseries Load\-State} (std\-::istream \&stream)}\label{classMixerChannel_a50d622047c015fe4132ce210f83dbd6a}
+
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classMixerChannel_af892cf680b396c0e93a54e3da905ad04}{M\-I\-X\-E\-R\-\_\-\-Handler {\bfseries handler}}\label{classMixerChannel_af892cf680b396c0e93a54e3da905ad04}
+
+\item 
+\hypertarget{classMixerChannel_a5dd50a86b6a77a81a6e809ca0aa1e20b}{float {\bfseries volmain} \mbox{[}2\mbox{]}}\label{classMixerChannel_a5dd50a86b6a77a81a6e809ca0aa1e20b}
+
+\item 
+\hypertarget{classMixerChannel_aa8dad87dcc79454e5918b3a7eebaed6b}{float {\bfseries scale}}\label{classMixerChannel_aa8dad87dcc79454e5918b3a7eebaed6b}
+
+\item 
+\hypertarget{classMixerChannel_a00091530e71a29cbde320013e15390cd}{Bit32s {\bfseries volmul} \mbox{[}2\mbox{]}}\label{classMixerChannel_a00091530e71a29cbde320013e15390cd}
+
+\item 
+\hypertarget{classMixerChannel_a53983eb8a65bfb327a2a13608d506093}{Bit32s {\bfseries lowpass} \mbox{[}L\-O\-W\-P\-A\-S\-S\-\_\-\-O\-R\-D\-E\-R\mbox{]}\mbox{[}2\mbox{]}}\label{classMixerChannel_a53983eb8a65bfb327a2a13608d506093}
+
+\item 
+\hypertarget{classMixerChannel_aec25b33e66a92276790fd5007bef05b8}{Bit32s {\bfseries lowpass\-\_\-alpha}}\label{classMixerChannel_aec25b33e66a92276790fd5007bef05b8}
+
+\item 
+\hypertarget{classMixerChannel_a5acf5f4237c343cceda3e4b168713bf2}{Bitu {\bfseries lowpass\-\_\-freq}}\label{classMixerChannel_a5acf5f4237c343cceda3e4b168713bf2}
+
+\item 
+\hypertarget{classMixerChannel_ad883c95fc5dee02d0e5f375cfb4f9d05}{unsigned int {\bfseries lowpass\-\_\-order}}\label{classMixerChannel_ad883c95fc5dee02d0e5f375cfb4f9d05}
+
+\item 
+\hypertarget{classMixerChannel_ac0b87191c55d5626b8287edff81011dd}{bool {\bfseries lowpass\-\_\-on\-\_\-load}}\label{classMixerChannel_ac0b87191c55d5626b8287edff81011dd}
+
+\item 
+\hypertarget{classMixerChannel_a07578b703ff8cc91767cde3d48d2bd04}{bool {\bfseries lowpass\-\_\-on\-\_\-out}}\label{classMixerChannel_a07578b703ff8cc91767cde3d48d2bd04}
+
+\item 
+\hypertarget{classMixerChannel_af374b2b0f049f71b96a514246c8c8989}{unsigned int {\bfseries freq\-\_\-f}}\label{classMixerChannel_af374b2b0f049f71b96a514246c8c8989}
+
+\item 
+\hypertarget{classMixerChannel_ad218b99c8cc001692fb5ca194f2ff943}{unsigned int {\bfseries freq\-\_\-fslew}}\label{classMixerChannel_ad218b99c8cc001692fb5ca194f2ff943}
+
+\item 
+\hypertarget{classMixerChannel_a03fe28105fd50800870c7079d0124b21}{unsigned int {\bfseries freq\-\_\-nslew}}\label{classMixerChannel_a03fe28105fd50800870c7079d0124b21}
+
+\item 
+\hypertarget{classMixerChannel_ad27bf1162ae922ee6caebe9f0b5c7dd7}{unsigned int {\bfseries freq\-\_\-nslew\-\_\-want}}\label{classMixerChannel_ad27bf1162ae922ee6caebe9f0b5c7dd7}
+
+\item 
+\hypertarget{classMixerChannel_a6eaa844a635f77b2c224514929941f8d}{unsigned int {\bfseries rendering\-\_\-to\-\_\-n}}\label{classMixerChannel_a6eaa844a635f77b2c224514929941f8d}
+
+\item 
+\hypertarget{classMixerChannel_a7a37eacaa6930be15712eda1602931c0}{unsigned int {\bfseries rendering\-\_\-to\-\_\-d}}\label{classMixerChannel_a7a37eacaa6930be15712eda1602931c0}
+
+\item 
+\hypertarget{classMixerChannel_a388feba196380f956992f6c85124d456}{unsigned int {\bfseries rend\-\_\-n}}\label{classMixerChannel_a388feba196380f956992f6c85124d456}
+
+\item 
+\hypertarget{classMixerChannel_a8961488b5e744b9b11230c1257495950}{unsigned int {\bfseries rend\-\_\-d}}\label{classMixerChannel_a8961488b5e744b9b11230c1257495950}
+
+\item 
+\hypertarget{classMixerChannel_a7a8d8393dee7f73a9db5398385cacef1}{unsigned int {\bfseries freq\-\_\-n}}\label{classMixerChannel_a7a8d8393dee7f73a9db5398385cacef1}
+
+\item 
+\hypertarget{classMixerChannel_aec8dbd114e1d93c55351b5e345329ef4}{unsigned int {\bfseries freq\-\_\-d}}\label{classMixerChannel_aec8dbd114e1d93c55351b5e345329ef4}
+
+\item 
+\hypertarget{classMixerChannel_ae20a3b2824d644b366ad5c732b750442}{unsigned int {\bfseries freq\-\_\-d\-\_\-orig}}\label{classMixerChannel_ae20a3b2824d644b366ad5c732b750442}
+
+\item 
+\hypertarget{classMixerChannel_a2fdbd9d39fcf09a8adb2155552878cad}{bool {\bfseries current\-\_\-loaded}}\label{classMixerChannel_a2fdbd9d39fcf09a8adb2155552878cad}
+
+\item 
+\hypertarget{classMixerChannel_aff089532718372677b23d459b93862f1}{Bit32s {\bfseries current} \mbox{[}2\mbox{]}}\label{classMixerChannel_aff089532718372677b23d459b93862f1}
+
+\item 
+\hypertarget{classMixerChannel_a270dff7a4646a08812c4ff4ea8751d01}{Bit32s {\bfseries last} \mbox{[}2\mbox{]}}\label{classMixerChannel_a270dff7a4646a08812c4ff4ea8751d01}
+
+\item 
+\hypertarget{classMixerChannel_a1022b44d6d4b609e42661200a660cc2f}{Bit32s {\bfseries delta} \mbox{[}2\mbox{]}}\label{classMixerChannel_a1022b44d6d4b609e42661200a660cc2f}
+
+\item 
+\hypertarget{classMixerChannel_aa1c4e349243ff4a7dfb03d7a08afcbb9}{Bit32s {\bfseries max\-\_\-change}}\label{classMixerChannel_aa1c4e349243ff4a7dfb03d7a08afcbb9}
+
+\item 
+\hypertarget{classMixerChannel_a89f145a80a1b7f5c40529958de24ab49}{Bit32s {\bfseries msbuffer} \mbox{[}2048\mbox{]}\mbox{[}2\mbox{]}}\label{classMixerChannel_a89f145a80a1b7f5c40529958de24ab49}
+
+\item 
+\hypertarget{classMixerChannel_a04dbe25de8930b94c71ddfcfe1ab8d95}{Bits {\bfseries last\-\_\-sample\-\_\-write}}\label{classMixerChannel_a04dbe25de8930b94c71ddfcfe1ab8d95}
+
+\item 
+\hypertarget{classMixerChannel_a3a6a316e3390a2126a88f4e55dd37628}{Bitu {\bfseries msbuffer\-\_\-o}}\label{classMixerChannel_a3a6a316e3390a2126a88f4e55dd37628}
+
+\item 
+\hypertarget{classMixerChannel_a5b50910db3fb72054780e1bbc4ba0fa8}{Bitu {\bfseries msbuffer\-\_\-i}}\label{classMixerChannel_a5b50910db3fb72054780e1bbc4ba0fa8}
+
+\item 
+\hypertarget{classMixerChannel_a4f06d91913ef4902a27805e8e15def9a}{const char $\ast$ {\bfseries name}}\label{classMixerChannel_a4f06d91913ef4902a27805e8e15def9a}
+
+\item 
+\hypertarget{classMixerChannel_a6965dc347d972ecf8c16bd3c887ea4e5}{bool {\bfseries enabled}}\label{classMixerChannel_a6965dc347d972ecf8c16bd3c887ea4e5}
+
+\item 
+\hypertarget{classMixerChannel_aca4b0ddbd84d2e415970c205fdd00e07}{\hyperlink{classMixerChannel}{Mixer\-Channel} $\ast$ {\bfseries next}}\label{classMixerChannel_aca4b0ddbd84d2e415970c205fdd00e07}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 51 of file mixer.\-h.
+
+
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+include/mixer.\-h\end{DoxyCompactItemize}

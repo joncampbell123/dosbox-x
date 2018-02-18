@@ -1,0 +1,95 @@
+\hypertarget{structCPUBlock}{\section{C\-P\-U\-Block Struct Reference}
+\label{structCPUBlock}\index{C\-P\-U\-Block@{C\-P\-U\-Block}}
+}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{structCPUBlock_a58dd5f1a1189f9cc394e54abf8622c76}{Bitu {\bfseries cpl}}\label{structCPUBlock_a58dd5f1a1189f9cc394e54abf8622c76}
+
+\item 
+\hypertarget{structCPUBlock_a2f0f437c2da5e436787de1b883c2a5f8}{Bitu {\bfseries mpl}}\label{structCPUBlock_a2f0f437c2da5e436787de1b883c2a5f8}
+
+\item 
+\hypertarget{structCPUBlock_a7d13a5e00225da2cc2a22be30ab36487}{Bitu {\bfseries cr0}}\label{structCPUBlock_a7d13a5e00225da2cc2a22be30ab36487}
+
+\item 
+\hypertarget{structCPUBlock_ae80284cc1754839e0ac7377026dc5e69}{bool {\bfseries pmode}}\label{structCPUBlock_ae80284cc1754839e0ac7377026dc5e69}
+
+\item 
+\hypertarget{structCPUBlock_ab63d54876e71a735e48de5b36ad0d8f9}{\hyperlink{classGDTDescriptorTable}{G\-D\-T\-Descriptor\-Table} {\bfseries gdt}}\label{structCPUBlock_ab63d54876e71a735e48de5b36ad0d8f9}
+
+\item 
+\hypertarget{structCPUBlock_a5e7a107f243fe72380ee4dcb205691a4}{\hyperlink{classDescriptorTable}{Descriptor\-Table} {\bfseries idt}}\label{structCPUBlock_a5e7a107f243fe72380ee4dcb205691a4}
+
+\item 
+\hypertarget{structCPUBlock_a6bf994988edb046f86f396965ee779db}{\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+struct \{\\
+\>Bitu {\bfseries cr0\_and}\\
+\>Bitu {\bfseries cr0\_or}\\
+\>Bitu {\bfseries eflags}\\
+\} {\bfseries masks}}\label{structCPUBlock_a6bf994988edb046f86f396965ee779db}
+\\
+
+\end{tabbing}\item 
+\hypertarget{structCPUBlock_acceda2b0d1e71afcbea0aa6845d6b0bf}{\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+struct \{\\
+\>Bitu {\bfseries mask}\\
+\>Bitu {\bfseries notmask}\\
+\>bool {\bfseries big}\\
+\} {\bfseries stack}}\label{structCPUBlock_acceda2b0d1e71afcbea0aa6845d6b0bf}
+\\
+
+\end{tabbing}\item 
+\hypertarget{structCPUBlock_aa037c84408b6c34b876867a2452335f9}{\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+struct \{\\
+\>bool {\bfseries big}\\
+\} {\bfseries code}}\label{structCPUBlock_aa037c84408b6c34b876867a2452335f9}
+\\
+
+\end{tabbing}\item 
+\hypertarget{structCPUBlock_a64837444d9766404908d760f309d8879}{\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+struct \{\\
+\>Bitu {\bfseries cs}\\
+\>Bitu {\bfseries eip}\\
+\>CPU\_Decoder $\ast$ {\bfseries old\_decoder}\\
+\} {\bfseries hlt}}\label{structCPUBlock_a64837444d9766404908d760f309d8879}
+\\
+
+\end{tabbing}\item 
+\hypertarget{structCPUBlock_af4295b0d8ce613f715904dc40e0bb900}{\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+struct \{\\
+\>Bitu {\bfseries which}\\
+\>Bitu {\bfseries error}\\
+\} {\bfseries exception}}\label{structCPUBlock_af4295b0d8ce613f715904dc40e0bb900}
+\\
+
+\end{tabbing}\item 
+\hypertarget{structCPUBlock_a45e5d6c31e5a879413c01e5960632a94}{Bits {\bfseries direction}}\label{structCPUBlock_a45e5d6c31e5a879413c01e5960632a94}
+
+\item 
+\hypertarget{structCPUBlock_ad260beedb05a65ac8494b9d8f38010c2}{bool {\bfseries trap\-\_\-skip}}\label{structCPUBlock_ad260beedb05a65ac8494b9d8f38010c2}
+
+\item 
+\hypertarget{structCPUBlock_a58abd61bc639fbb9992d8715bb3ed6ac}{Bit32u {\bfseries drx} \mbox{[}8\mbox{]}}\label{structCPUBlock_a58abd61bc639fbb9992d8715bb3ed6ac}
+
+\item 
+\hypertarget{structCPUBlock_a8dacafb431cbcd0b7632b92f1999244a}{Bit32u {\bfseries trx} \mbox{[}8\mbox{]}}\label{structCPUBlock_a8dacafb431cbcd0b7632b92f1999244a}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 507 of file cpu.\-h.
+
+
+
+The documentation for this struct was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+include/cpu.\-h\end{DoxyCompactItemize}

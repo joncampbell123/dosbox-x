@@ -1,0 +1,165 @@
+\hypertarget{classConfig}{\section{Config Class Reference}
+\label{classConfig}\index{Config@{Config}}
+}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classConfig_a526e7d065ca0a508ff66e18d9efdeda1}{{\bfseries Config} (\hyperlink{classCommandLine}{Command\-Line} $\ast$cmd)}\label{classConfig_a526e7d065ca0a508ff66e18d9efdeda1}
+
+\item 
+\hypertarget{classConfig_a349dde11601cfbce032a22bdf40a7a0e}{\hyperlink{classSection__line}{Section\-\_\-line} $\ast$ {\bfseries Add\-Section\-\_\-line} (char const $\ast$const \-\_\-name, void($\ast$\-\_\-initfunction)(\hyperlink{classSection}{Section} $\ast$))}\label{classConfig_a349dde11601cfbce032a22bdf40a7a0e}
+
+\item 
+\hypertarget{classConfig_adf0d4f814205a26175b45e78030c4fb7}{\hyperlink{classSection__prop}{Section\-\_\-prop} $\ast$ {\bfseries Add\-Section\-\_\-prop} (char const $\ast$const \-\_\-name, void($\ast$\-\_\-initfunction)(\hyperlink{classSection}{Section} $\ast$), bool canchange=false)}\label{classConfig_adf0d4f814205a26175b45e78030c4fb7}
+
+\item 
+\hypertarget{classConfig_aaa43fc4ab06486c38da9e398476c9e67}{\hyperlink{classSection}{Section} $\ast$ {\bfseries Get\-Section} (int index)}\label{classConfig_aaa43fc4ab06486c38da9e398476c9e67}
+
+\item 
+\hypertarget{classConfig_a873c20a35c7320de62b6ad759b825302}{\hyperlink{classSection}{Section} $\ast$ {\bfseries Get\-Section} (std\-::string const \&\-\_\-sectionname) const }\label{classConfig_a873c20a35c7320de62b6ad759b825302}
+
+\item 
+\hypertarget{classConfig_a385da89652978d2ddfd6102cf6ecc3c3}{\hyperlink{classSection}{Section} $\ast$ {\bfseries Get\-Section\-From\-Property} (char const $\ast$const prop) const }\label{classConfig_a385da89652978d2ddfd6102cf6ecc3c3}
+
+\item 
+\hypertarget{classConfig_a5358d65e6687f76a7856aae7b5bf0c5c}{bool {\bfseries Print\-Config} (char const $\ast$const configfilename, bool everything=false) const }\label{classConfig_a5358d65e6687f76a7856aae7b5bf0c5c}
+
+\item 
+\hypertarget{classConfig_a0c8ebc50ad0d389f91fc27d31fe8e373}{bool {\bfseries Parse\-Config\-File} (char const $\ast$const configfilename)}\label{classConfig_a0c8ebc50ad0d389f91fc27d31fe8e373}
+
+\item 
+\hypertarget{classConfig_a14d2df1a5f41a8bbb85f8cceb0118b56}{void {\bfseries Parse\-Env} (char $\ast$$\ast$envp)}\label{classConfig_a14d2df1a5f41a8bbb85f8cceb0118b56}
+
+\item 
+\hypertarget{classConfig_a7a6e494acf2d756e931bd9cdd05da6f7}{bool {\bfseries Secure\-Mode} () const }\label{classConfig_a7a6e494acf2d756e931bd9cdd05da6f7}
+
+\item 
+\hypertarget{classConfig_adca6887755e8c1b169009845d11ca302}{void {\bfseries Switch\-To\-Secure\-Mode} ()}\label{classConfig_adca6887755e8c1b169009845d11ca302}
+
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classConfig_a85c171fec7b0dca3394b0970d18b200b}{\hyperlink{classCommandLine}{Command\-Line} $\ast$ {\bfseries cmdline}}\label{classConfig_a85c171fec7b0dca3394b0970d18b200b}
+
+\item 
+\hypertarget{classConfig_a492c364942ee53ee9932ee76c4f16875}{bool {\bfseries initialised}}\label{classConfig_a492c364942ee53ee9932ee76c4f16875}
+
+\item 
+\hypertarget{classConfig_ae7246e0f40afb1afc997b402b850d09d}{std\-::vector$<$ std\-::string $>$ {\bfseries auto\-\_\-bat\-\_\-additional}}\label{classConfig_ae7246e0f40afb1afc997b402b850d09d}
+
+\item 
+\hypertarget{classConfig_a01b46fafa05ea47df307dffbea481b84}{std\-::vector$<$ std\-::string $>$ {\bfseries startup\-\_\-params}}\label{classConfig_a01b46fafa05ea47df307dffbea481b84}
+
+\item 
+\hypertarget{classConfig_a8f671b3c470a89df8117d8ba22226f2d}{std\-::vector$<$ std\-::string $>$ {\bfseries configfiles}}\label{classConfig_a8f671b3c470a89df8117d8ba22226f2d}
+
+\item 
+\hypertarget{classConfig_a2031057d31ac0e4696749731ebb97d51}{bool {\bfseries opt\-\_\-log\-\_\-con}}\label{classConfig_a2031057d31ac0e4696749731ebb97d51}
+
+\item 
+\hypertarget{classConfig_afb13d7b31833fa2ff011dae8ad248970}{double {\bfseries opt\-\_\-time\-\_\-limit}}\label{classConfig_afb13d7b31833fa2ff011dae8ad248970}
+
+\item 
+\hypertarget{classConfig_ae1af1b76c02ff9c5e8a3609fe741bd46}{std\-::string {\bfseries opt\-\_\-editconf}}\label{classConfig_ae1af1b76c02ff9c5e8a3609fe741bd46}
+
+\item 
+\hypertarget{classConfig_aaef446ee5dae8a296cbeeb0985f2f2bb}{std\-::string {\bfseries opt\-\_\-opensaves}}\label{classConfig_aaef446ee5dae8a296cbeeb0985f2f2bb}
+
+\item 
+\hypertarget{classConfig_a4a75343c067ac35055e4b44d07d13803}{std\-::string {\bfseries opt\-\_\-opencaptures}}\label{classConfig_a4a75343c067ac35055e4b44d07d13803}
+
+\item 
+\hypertarget{classConfig_a077860660ed77a40cf5ff1540873d9d6}{std\-::string {\bfseries opt\-\_\-lang}}\label{classConfig_a077860660ed77a40cf5ff1540873d9d6}
+
+\item 
+\hypertarget{classConfig_a4842020c7194c3b5c02980c2cd7c59d5}{std\-::vector$<$ std\-::string $>$ {\bfseries config\-\_\-file\-\_\-list}}\label{classConfig_a4842020c7194c3b5c02980c2cd7c59d5}
+
+\item 
+\hypertarget{classConfig_ace110896f67f0404622ef497e652ea3b}{std\-::vector$<$ std\-::string $>$ {\bfseries opt\-\_\-c}}\label{classConfig_ace110896f67f0404622ef497e652ea3b}
+
+\item 
+\hypertarget{classConfig_a64fd0847634fc174dbd521607116a0c7}{bool {\bfseries opt\-\_\-disable\-\_\-dpi\-\_\-awareness}}\label{classConfig_a64fd0847634fc174dbd521607116a0c7}
+
+\item 
+\hypertarget{classConfig_a9265412e49f5228d63c506ceab66a6c2}{bool {\bfseries opt\-\_\-disable\-\_\-numlock\-\_\-check}}\label{classConfig_a9265412e49f5228d63c506ceab66a6c2}
+
+\item 
+\hypertarget{classConfig_a84bdd8a5d672f1e15b2ac8f5eca497ff}{bool {\bfseries opt\-\_\-date\-\_\-host\-\_\-forced}}\label{classConfig_a84bdd8a5d672f1e15b2ac8f5eca497ff}
+
+\item 
+\hypertarget{classConfig_abbaadb9fcb5ab3065a8728cf271e4bc8}{bool {\bfseries opt\-\_\-break\-\_\-start}}\label{classConfig_abbaadb9fcb5ab3065a8728cf271e4bc8}
+
+\item 
+\hypertarget{classConfig_ae4e0136fb9b65400cb317f60e3c1b64d}{bool {\bfseries opt\-\_\-erasemapper}}\label{classConfig_ae4e0136fb9b65400cb317f60e3c1b64d}
+
+\item 
+\hypertarget{classConfig_af9f2964b9f782effb00e13a8c33af411}{bool {\bfseries opt\-\_\-resetmapper}}\label{classConfig_af9f2964b9f782effb00e13a8c33af411}
+
+\item 
+\hypertarget{classConfig_a20c5b48a8fb54c1ba41be07901dea768}{bool {\bfseries opt\-\_\-startmapper}}\label{classConfig_a20c5b48a8fb54c1ba41be07901dea768}
+
+\item 
+\hypertarget{classConfig_ad04bb376e7598e1eff5c4626956b700c}{bool {\bfseries opt\-\_\-noautoexec}}\label{classConfig_ad04bb376e7598e1eff5c4626956b700c}
+
+\item 
+\hypertarget{classConfig_aef03701c7418ffac8e006c33e4fd5f4c}{bool {\bfseries opt\-\_\-securemode}}\label{classConfig_aef03701c7418ffac8e006c33e4fd5f4c}
+
+\item 
+\hypertarget{classConfig_a3d087a4a744b93889e0fd5b8ec8e6a91}{bool {\bfseries opt\-\_\-fullscreen}}\label{classConfig_a3d087a4a744b93889e0fd5b8ec8e6a91}
+
+\item 
+\hypertarget{classConfig_a03ad70ec62e7a09510dd6a01b108ea53}{bool {\bfseries opt\-\_\-showcycles}}\label{classConfig_a03ad70ec62e7a09510dd6a01b108ea53}
+
+\item 
+\hypertarget{classConfig_ada6fd7cf895f86ef399bd5b1bd2a91e4}{bool {\bfseries opt\-\_\-earlydebug}}\label{classConfig_ada6fd7cf895f86ef399bd5b1bd2a91e4}
+
+\item 
+\hypertarget{classConfig_ab205ad01521b0985c0babef1e19b8995}{bool {\bfseries opt\-\_\-noconsole}}\label{classConfig_ab205ad01521b0985c0babef1e19b8995}
+
+\item 
+\hypertarget{classConfig_a9aec7c0aaa98b9d3ed26eff151f092e0}{bool {\bfseries opt\-\_\-eraseconf}}\label{classConfig_a9aec7c0aaa98b9d3ed26eff151f092e0}
+
+\item 
+\hypertarget{classConfig_addfaec8fa2da910be36e9da41e96724a}{bool {\bfseries opt\-\_\-resetconf}}\label{classConfig_addfaec8fa2da910be36e9da41e96724a}
+
+\item 
+\hypertarget{classConfig_a24565a6dde3cdee29932e4111159159f}{bool {\bfseries opt\-\_\-printconf}}\label{classConfig_a24565a6dde3cdee29932e4111159159f}
+
+\item 
+\hypertarget{classConfig_abc1d20b4e95a43c9665325d3223a6cca}{bool {\bfseries opt\-\_\-userconf}}\label{classConfig_abc1d20b4e95a43c9665325d3223a6cca}
+
+\item 
+\hypertarget{classConfig_ac60d20f3d6db383b0278989e78499371}{bool {\bfseries opt\-\_\-console}}\label{classConfig_ac60d20f3d6db383b0278989e78499371}
+
+\item 
+\hypertarget{classConfig_a60d72de7a98e1d1142a21103f3165196}{bool {\bfseries opt\-\_\-startui}}\label{classConfig_a60d72de7a98e1d1142a21103f3165196}
+
+\item 
+\hypertarget{classConfig_a0b78abf9471b6a2d04d228be7e6792f2}{bool {\bfseries opt\-\_\-showrt}}\label{classConfig_a0b78abf9471b6a2d04d228be7e6792f2}
+
+\item 
+\hypertarget{classConfig_ace74f2fb3b918cc45b2486a59281cafc}{bool {\bfseries opt\-\_\-nomenu}}\label{classConfig_ace74f2fb3b918cc45b2486a59281cafc}
+
+\item 
+\hypertarget{classConfig_a7d68ad804907496b417a951ed1eada22}{bool {\bfseries opt\-\_\-debug}}\label{classConfig_a7d68ad804907496b417a951ed1eada22}
+
+\item 
+\hypertarget{classConfig_ae904e5c4af1cac4af77feb7af250ad29}{bool {\bfseries opt\-\_\-nogui}}\label{classConfig_ae904e5c4af1cac4af77feb7af250ad29}
+
+\item 
+\hypertarget{classConfig_a9f68df279656da4abd730ffa83fbb38a}{bool {\bfseries opt\-\_\-exit}}\label{classConfig_a9f68df279656da4abd730ffa83fbb38a}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 53 of file control.\-h.
+
+
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+include/control.\-h\end{DoxyCompactItemize}

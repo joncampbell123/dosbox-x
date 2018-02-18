@@ -1,0 +1,53 @@
+\hypertarget{classimageDiskVFD}{\section{image\-Disk\-V\-F\-D Class Reference}
+\label{classimageDiskVFD}\index{image\-Disk\-V\-F\-D@{image\-Disk\-V\-F\-D}}
+}
+Inheritance diagram for image\-Disk\-V\-F\-D\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classimageDiskVFD}
+\end{center}
+\end{figure}
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structimageDiskVFD_1_1vfdentry}{vfdentry}
+\end{DoxyCompactItemize}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classimageDiskVFD_a6829a1ce6b4030a5394a17104d6ab5e7}{virtual Bit8u {\bfseries Read\-\_\-\-Sector} (Bit32u head, Bit32u cylinder, Bit32u sector, void $\ast$data)}\label{classimageDiskVFD_a6829a1ce6b4030a5394a17104d6ab5e7}
+
+\item 
+\hypertarget{classimageDiskVFD_a2f1551f9626a407909fe2e8b852e8295}{virtual Bit8u {\bfseries Write\-\_\-\-Sector} (Bit32u head, Bit32u cylinder, Bit32u sector, void $\ast$data)}\label{classimageDiskVFD_a2f1551f9626a407909fe2e8b852e8295}
+
+\item 
+\hypertarget{classimageDiskVFD_a35f9dcce5281f4990a7640b3e6033257}{virtual Bit8u {\bfseries Read\-\_\-\-Absolute\-Sector} (Bit32u sectnum, void $\ast$data)}\label{classimageDiskVFD_a35f9dcce5281f4990a7640b3e6033257}
+
+\item 
+\hypertarget{classimageDiskVFD_a35857ca080ca913ac407de77b447ebeb}{virtual Bit8u {\bfseries Write\-\_\-\-Absolute\-Sector} (Bit32u sectnum, void $\ast$data)}\label{classimageDiskVFD_a35857ca080ca913ac407de77b447ebeb}
+
+\item 
+\hypertarget{classimageDiskVFD_a3d6b992a66cfce052569551fca9e137c}{{\bfseries image\-Disk\-V\-F\-D} (F\-I\-L\-E $\ast$img\-File, Bit8u $\ast$img\-Name, Bit32u img\-Size\-K, bool is\-Hard\-Disk)}\label{classimageDiskVFD_a3d6b992a66cfce052569551fca9e137c}
+
+\item 
+\hypertarget{classimageDiskVFD_a08fe9f9ae32fb55363d2b544c92c00c7}{\hyperlink{structimageDiskVFD_1_1vfdentry}{vfdentry} $\ast$ {\bfseries find\-Sector} (Bit8u head, Bit8u track, Bit8u sector)}\label{classimageDiskVFD_a08fe9f9ae32fb55363d2b544c92c00c7}
+
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classimageDiskVFD_a9c11050c08b54c30cdb65f9c4250c856}{std\-::vector$<$ \hyperlink{structimageDiskVFD_1_1vfdentry}{vfdentry} $>$ {\bfseries dents}}\label{classimageDiskVFD_a9c11050c08b54c30cdb65f9c4250c856}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 102 of file bios\-\_\-disk.\-h.
+
+
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+include/bios\-\_\-disk.\-h\end{DoxyCompactItemize}

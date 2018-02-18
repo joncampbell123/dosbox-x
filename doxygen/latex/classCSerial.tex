@@ -1,0 +1,228 @@
+\hypertarget{classCSerial}{\section{C\-Serial Class Reference}
+\label{classCSerial}\index{C\-Serial@{C\-Serial}}
+}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classCSerial_a4594f795967edcfcc7dc6baf65e86471}{void {\bfseries log\-\_\-ser} (bool active, char const $\ast$format,...)}\label{classCSerial_a4594f795967edcfcc7dc6baf65e86471}
+
+\item 
+\hypertarget{classCSerial_a0d6645918fcd02f8ebee1e19b84502d3}{{\bfseries C\-Serial} (Bitu id, \hyperlink{classCommandLine}{Command\-Line} $\ast$cmd)}\label{classCSerial_a0d6645918fcd02f8ebee1e19b84502d3}
+
+\item 
+\hypertarget{classCSerial_a45792d7c305b1ebf2f77cc2a239425a5}{void {\bfseries change\-Line\-Properties} ()}\label{classCSerial_a45792d7c305b1ebf2f77cc2a239425a5}
+
+\item 
+\hypertarget{classCSerial_a67c9186270470250c91dcdcc3aaea11c}{void {\bfseries set\-Event} (Bit16u type, float duration)}\label{classCSerial_a67c9186270470250c91dcdcc3aaea11c}
+
+\item 
+\hypertarget{classCSerial_aca294ec9e6b8c101db31961682e8b611}{void {\bfseries remove\-Event} (Bit16u type)}\label{classCSerial_aca294ec9e6b8c101db31961682e8b611}
+
+\item 
+\hypertarget{classCSerial_ab14fff646607c1558e662be1807d310d}{void {\bfseries handle\-Event} (Bit16u type)}\label{classCSerial_ab14fff646607c1558e662be1807d310d}
+
+\item 
+\hypertarget{classCSerial_a9eb8589001331e808b9a66cc7858af35}{virtual void {\bfseries handle\-Upper\-Event} (Bit16u type)=0}\label{classCSerial_a9eb8589001331e808b9a66cc7858af35}
+
+\item 
+\hypertarget{classCSerial_adf592be677f4e36575fb3b807a371fb5}{virtual void {\bfseries update\-M\-S\-R} ()=0}\label{classCSerial_adf592be677f4e36575fb3b807a371fb5}
+
+\item 
+\hypertarget{classCSerial_a50dce09f07593bc4f45cd48571423750}{bool {\bfseries get\-D\-T\-R} ()}\label{classCSerial_a50dce09f07593bc4f45cd48571423750}
+
+\item 
+\hypertarget{classCSerial_a79eb1affc7b7f699dc7329c0c4566436}{bool {\bfseries get\-R\-T\-S} ()}\label{classCSerial_a79eb1affc7b7f699dc7329c0c4566436}
+
+\item 
+\hypertarget{classCSerial_afe27446d37079765f350746462c92c08}{bool {\bfseries get\-R\-I} ()}\label{classCSerial_afe27446d37079765f350746462c92c08}
+
+\item 
+\hypertarget{classCSerial_ad139515800d1af3e9dfb217b0e0fb4d2}{bool {\bfseries get\-C\-D} ()}\label{classCSerial_ad139515800d1af3e9dfb217b0e0fb4d2}
+
+\item 
+\hypertarget{classCSerial_a209004fedd6d31a4b7a7fca16ec8aca4}{bool {\bfseries get\-D\-S\-R} ()}\label{classCSerial_a209004fedd6d31a4b7a7fca16ec8aca4}
+
+\item 
+\hypertarget{classCSerial_a8a52a185b5f6db6c8ec8f09ff13c3fbb}{bool {\bfseries get\-C\-T\-S} ()}\label{classCSerial_a8a52a185b5f6db6c8ec8f09ff13c3fbb}
+
+\item 
+\hypertarget{classCSerial_a7a6232905a214c4eff81b3a6f72dfa72}{void {\bfseries set\-R\-I} (bool value)}\label{classCSerial_a7a6232905a214c4eff81b3a6f72dfa72}
+
+\item 
+\hypertarget{classCSerial_a4af51cec0821ca417a9f48e62faac6d8}{void {\bfseries set\-D\-S\-R} (bool value)}\label{classCSerial_a4af51cec0821ca417a9f48e62faac6d8}
+
+\item 
+\hypertarget{classCSerial_acd41d30ab6084029529b93141fbc31b2}{void {\bfseries set\-C\-D} (bool value)}\label{classCSerial_acd41d30ab6084029529b93141fbc31b2}
+
+\item 
+\hypertarget{classCSerial_a6caf533674711d97b7aed77f83aaa82a}{void {\bfseries set\-C\-T\-S} (bool value)}\label{classCSerial_a6caf533674711d97b7aed77f83aaa82a}
+
+\item 
+\hypertarget{classCSerial_ada8a1f2077454e088db6805b12e4616e}{virtual void {\bfseries set\-R\-T\-S\-D\-T\-R} (bool rts, bool dtr)=0}\label{classCSerial_ada8a1f2077454e088db6805b12e4616e}
+
+\item 
+\hypertarget{classCSerial_a3ad85c5e6fe53d4934eebff8234226f3}{virtual void {\bfseries set\-R\-T\-S} (bool val)=0}\label{classCSerial_a3ad85c5e6fe53d4934eebff8234226f3}
+
+\item 
+\hypertarget{classCSerial_ae633ef093a4cd8b82c373f2768896f78}{virtual void {\bfseries set\-D\-T\-R} (bool val)=0}\label{classCSerial_ae633ef093a4cd8b82c373f2768896f78}
+
+\item 
+\hypertarget{classCSerial_a8e7597eb951ddc04d0778765ae9fd05f}{void {\bfseries Write\-\_\-\-T\-H\-R} (Bit8u data)}\label{classCSerial_a8e7597eb951ddc04d0778765ae9fd05f}
+
+\item 
+\hypertarget{classCSerial_ade69b9fe0ccc79ab266b11ab32872dd8}{void {\bfseries Write\-\_\-\-I\-E\-R} (Bit8u data)}\label{classCSerial_ade69b9fe0ccc79ab266b11ab32872dd8}
+
+\item 
+\hypertarget{classCSerial_a9eb41bc2d20464ce68e22579b47f291d}{void {\bfseries Write\-\_\-\-F\-C\-R} (Bit8u data)}\label{classCSerial_a9eb41bc2d20464ce68e22579b47f291d}
+
+\item 
+\hypertarget{classCSerial_a28616544f272ab054298621561447924}{void {\bfseries Write\-\_\-\-L\-C\-R} (Bit8u data)}\label{classCSerial_a28616544f272ab054298621561447924}
+
+\item 
+\hypertarget{classCSerial_a4f95a3cccb9403edb4947e6de6101346}{void {\bfseries Write\-\_\-\-M\-C\-R} (Bit8u data)}\label{classCSerial_a4f95a3cccb9403edb4947e6de6101346}
+
+\item 
+\hypertarget{classCSerial_a332d706f5979eb07dfb8e4ada29e7dfa}{void {\bfseries Write\-\_\-\-M\-S\-R} (Bit8u data)}\label{classCSerial_a332d706f5979eb07dfb8e4ada29e7dfa}
+
+\item 
+\hypertarget{classCSerial_ae27c570b7bcd4c5ac6e0f4c4a5ff2045}{void {\bfseries Write\-\_\-\-S\-P\-R} (Bit8u data)}\label{classCSerial_ae27c570b7bcd4c5ac6e0f4c4a5ff2045}
+
+\item 
+\hypertarget{classCSerial_a28e4f958e7b7edc46a295d2fe5c7dbc8}{void {\bfseries Write\-\_\-reserved} (Bit8u data, Bit8u address)}\label{classCSerial_a28e4f958e7b7edc46a295d2fe5c7dbc8}
+
+\item 
+\hypertarget{classCSerial_ade498e8c549ed48e8001bcfce6771fe0}{Bitu {\bfseries Read\-\_\-\-R\-H\-R} ()}\label{classCSerial_ade498e8c549ed48e8001bcfce6771fe0}
+
+\item 
+\hypertarget{classCSerial_a35867fc7d933b6dfe45c566d6fea5619}{Bitu {\bfseries Read\-\_\-\-I\-E\-R} ()}\label{classCSerial_a35867fc7d933b6dfe45c566d6fea5619}
+
+\item 
+\hypertarget{classCSerial_a9ca17032de727b3288f09169bcdeee2f}{Bitu {\bfseries Read\-\_\-\-I\-S\-R} ()}\label{classCSerial_a9ca17032de727b3288f09169bcdeee2f}
+
+\item 
+\hypertarget{classCSerial_a9230f233f929e4f5b3154e662e3cb036}{Bitu {\bfseries Read\-\_\-\-L\-C\-R} ()}\label{classCSerial_a9230f233f929e4f5b3154e662e3cb036}
+
+\item 
+\hypertarget{classCSerial_aae3106549bad8f18adf37f1bacedbeff}{Bitu {\bfseries Read\-\_\-\-M\-C\-R} ()}\label{classCSerial_aae3106549bad8f18adf37f1bacedbeff}
+
+\item 
+\hypertarget{classCSerial_a2e52058acec7f6c4b85d6f0430abdae0}{Bitu {\bfseries Read\-\_\-\-L\-S\-R} ()}\label{classCSerial_a2e52058acec7f6c4b85d6f0430abdae0}
+
+\item 
+\hypertarget{classCSerial_a0e6ef678c9c62a8eb4ba407ad57a2d44}{Bitu {\bfseries Read\-\_\-\-M\-S\-R} ()}\label{classCSerial_a0e6ef678c9c62a8eb4ba407ad57a2d44}
+
+\item 
+\hypertarget{classCSerial_af1f36573bdc16f3510a75546f2d58a58}{Bitu {\bfseries Read\-\_\-\-S\-P\-R} ()}\label{classCSerial_af1f36573bdc16f3510a75546f2d58a58}
+
+\item 
+\hypertarget{classCSerial_a5a1977acc7ff580f49ac990783ed96b6}{void {\bfseries receive\-Byte} (Bit8u data)}\label{classCSerial_a5a1977acc7ff580f49ac990783ed96b6}
+
+\item 
+\hypertarget{classCSerial_afc7997bc5defdcb8c6c0a9ec094bf134}{void {\bfseries receive\-Byte\-Ex} (Bit8u data, Bit8u error)}\label{classCSerial_afc7997bc5defdcb8c6c0a9ec094bf134}
+
+\item 
+\hypertarget{classCSerial_a8c25f1946470adb7ab00b2abeee3008f}{void {\bfseries receive\-Error} (Bit8u errorword)}\label{classCSerial_a8c25f1946470adb7ab00b2abeee3008f}
+
+\item 
+\hypertarget{classCSerial_a6005dc8c0bc391f28f32b73600da9877}{bool {\bfseries Can\-Receive\-Byte} ()}\label{classCSerial_a6005dc8c0bc391f28f32b73600da9877}
+
+\item 
+\hypertarget{classCSerial_a755578de0eeb57a61afee794d7cf6cab}{void {\bfseries Byte\-Transmitting} ()}\label{classCSerial_a755578de0eeb57a61afee794d7cf6cab}
+
+\item 
+\hypertarget{classCSerial_a1d24de2135b2cccc2733cf96f57203c7}{void {\bfseries Byte\-Transmitted} ()}\label{classCSerial_a1d24de2135b2cccc2733cf96f57203c7}
+
+\item 
+\hypertarget{classCSerial_a7a520bb7b440fb401858b04817911e40}{virtual void {\bfseries transmit\-Byte} (Bit8u val, bool first)=0}\label{classCSerial_a7a520bb7b440fb401858b04817911e40}
+
+\item 
+\hypertarget{classCSerial_addc5a34780ee353f12938e5a9e415e26}{virtual void {\bfseries set\-Break} (bool value)=0}\label{classCSerial_addc5a34780ee353f12938e5a9e415e26}
+
+\item 
+\hypertarget{classCSerial_a55aa5e9e9dc361068c5388fee1bb14e3}{virtual void {\bfseries update\-Port\-Config} (Bit16u divider, Bit8u lcr)=0}\label{classCSerial_a55aa5e9e9dc361068c5388fee1bb14e3}
+
+\item 
+\hypertarget{classCSerial_af5cb5a4a7736486967d4c4ffa65aa4b9}{void {\bfseries Init\-\_\-\-Registers} ()}\label{classCSerial_af5cb5a4a7736486967d4c4ffa65aa4b9}
+
+\item 
+\hypertarget{classCSerial_a08815d6c2f3e806df2a9c33130451402}{bool {\bfseries Putchar} (Bit8u data, bool wait\-\_\-dtr, bool wait\-\_\-rts, Bitu timeout)}\label{classCSerial_a08815d6c2f3e806df2a9c33130451402}
+
+\item 
+\hypertarget{classCSerial_a6b5cb502f087dd0dfcc167850fd862e9}{bool {\bfseries Getchar} (Bit8u $\ast$data, Bit8u $\ast$lsr, bool wait\-\_\-dsr, Bitu timeout)}\label{classCSerial_a6b5cb502f087dd0dfcc167850fd862e9}
+
+\item 
+\hypertarget{classCSerial_afe1ce6961b0ea41e443aa12b3cb2cf3e}{void {\bfseries register\-D\-O\-S\-Device} ()}\label{classCSerial_afe1ce6961b0ea41e443aa12b3cb2cf3e}
+
+\item 
+\hypertarget{classCSerial_ae27ec35dbb2623318271adb009077a76}{void {\bfseries unregister\-D\-O\-S\-Device} ()}\label{classCSerial_ae27ec35dbb2623318271adb009077a76}
+
+\end{DoxyCompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classCSerial_afe886d83864c7326400d2830555c8c2e}{static bool {\bfseries get\-Bitu\-Substring} (const char $\ast$name, Bitu $\ast$data, \hyperlink{classCommandLine}{Command\-Line} $\ast$cmd)}\label{classCSerial_afe886d83864c7326400d2830555c8c2e}
+
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classCSerial_a67f37feb590d4f760e02194d97695ab1}{F\-I\-L\-E $\ast$ {\bfseries debugfp}}\label{classCSerial_a67f37feb590d4f760e02194d97695ab1}
+
+\item 
+\hypertarget{classCSerial_a3d950dbe5126390b733ce4a9480b2705}{bool {\bfseries dbg\-\_\-modemcontrol}}\label{classCSerial_a3d950dbe5126390b733ce4a9480b2705}
+
+\item 
+\hypertarget{classCSerial_af9e0c7fc953f326d6b9f03bb109fed68}{bool {\bfseries dbg\-\_\-serialtraffic}}\label{classCSerial_af9e0c7fc953f326d6b9f03bb109fed68}
+
+\item 
+\hypertarget{classCSerial_a84b4d02b7b4c5a55a7437fe23e5f5ca0}{bool {\bfseries dbg\-\_\-register}}\label{classCSerial_a84b4d02b7b4c5a55a7437fe23e5f5ca0}
+
+\item 
+\hypertarget{classCSerial_a81a9f2fd1073b8d3707d9eec242d7049}{bool {\bfseries dbg\-\_\-interrupt}}\label{classCSerial_a81a9f2fd1073b8d3707d9eec242d7049}
+
+\item 
+\hypertarget{classCSerial_a9e26d371839dcbcc62df76c4d0940327}{bool {\bfseries dbg\-\_\-aux}}\label{classCSerial_a9e26d371839dcbcc62df76c4d0940327}
+
+\item 
+\hypertarget{classCSerial_a997443b5fab411ef9300ff3414ea3049}{bool {\bfseries Installation\-Successful}}\label{classCSerial_a997443b5fab411ef9300ff3414ea3049}
+
+\item 
+\hypertarget{classCSerial_ae1a06ab3d086f8fc065817a43ab88b0f}{\hyperlink{classIO__ReadHandleObject}{I\-O\-\_\-\-Read\-Handle\-Object} {\bfseries Read\-Handler} \mbox{[}8\mbox{]}}\label{classCSerial_ae1a06ab3d086f8fc065817a43ab88b0f}
+
+\item 
+\hypertarget{classCSerial_a3b2f8bb32f40febb5052ad87d31e6f48}{\hyperlink{classIO__WriteHandleObject}{I\-O\-\_\-\-Write\-Handle\-Object} {\bfseries Write\-Handler} \mbox{[}8\mbox{]}}\label{classCSerial_a3b2f8bb32f40febb5052ad87d31e6f48}
+
+\item 
+\hypertarget{classCSerial_aa7cd20411697f85c5aeec90ae28677f9}{float {\bfseries bytetime}}\label{classCSerial_aa7cd20411697f85c5aeec90ae28677f9}
+
+\item 
+\hypertarget{classCSerial_a8c544ffae840bf00e8185eee2b176ccc}{Bitu {\bfseries idnumber}}\label{classCSerial_a8c544ffae840bf00e8185eee2b176ccc}
+
+\item 
+\hypertarget{classCSerial_ac7142618a6f82ffd683cc1a8936fb5eb}{Bitu {\bfseries irq}}\label{classCSerial_ac7142618a6f82ffd683cc1a8936fb5eb}
+
+\item 
+\hypertarget{classCSerial_a805edbbeb60acbbb3d06defa286bd8fb}{\hyperlink{classDOS__Device}{D\-O\-S\-\_\-\-Device} $\ast$ {\bfseries mydosdevice}}\label{classCSerial_a805edbbeb60acbbb3d06defa286bd8fb}
+
+\item 
+\hypertarget{classCSerial_a5eec4c91bdf04199a3eef2b9c5526762}{Bit8u {\bfseries L\-C\-R}}\label{classCSerial_a5eec4c91bdf04199a3eef2b9c5526762}
+
+\item 
+\hypertarget{classCSerial_ab3d298a5b33f7761db6a684fd8d4e941}{Bit8u {\bfseries L\-S\-R}}\label{classCSerial_ab3d298a5b33f7761db6a684fd8d4e941}
+
+\item 
+\hypertarget{classCSerial_a590948bc816f7502390abbb3e5c10bc7}{\hyperlink{classMyFifo}{My\-Fifo} $\ast$ {\bfseries rxfifo}}\label{classCSerial_a590948bc816f7502390abbb3e5c10bc7}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 128 of file serialport.\-h.
+
+
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+include/serialport.\-h\end{DoxyCompactItemize}

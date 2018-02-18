@@ -1,0 +1,106 @@
+\hypertarget{classProperty}{\section{Property Class Reference}
+\label{classProperty}\index{Property@{Property}}
+}
+Inheritance diagram for Property\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=1.985816cm]{classProperty}
+\end{center}
+\end{figure}
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structProperty_1_1Changeable}{Changeable}
+\end{DoxyCompactItemize}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classProperty_ab65733010b8ea50392b4ea43536c0008}{{\bfseries Property} (std\-::string const \&\-\_\-propname, Changeable\-::\-Value when)}\label{classProperty_ab65733010b8ea50392b4ea43536c0008}
+
+\item 
+\hypertarget{classProperty_ae192c83aeb5086ca074c4daa85007de2}{void {\bfseries Set\-\_\-values} (const char $\ast$const $\ast$in)}\label{classProperty_ae192c83aeb5086ca074c4daa85007de2}
+
+\item 
+\hypertarget{classProperty_a023caf411f40d81346633b68cf83693d}{void {\bfseries Set\-\_\-help} (std\-::string const \&str)}\label{classProperty_a023caf411f40d81346633b68cf83693d}
+
+\item 
+\hypertarget{classProperty_aab5b856b424137c47781709ad5f7be6d}{char const $\ast$ {\bfseries Get\-\_\-help} ()}\label{classProperty_aab5b856b424137c47781709ad5f7be6d}
+
+\item 
+\hypertarget{classProperty_ab36313503e43bc6c1294c23d5dba323f}{virtual bool {\bfseries Set\-Value} (std\-::string const \&str)=0}\label{classProperty_ab36313503e43bc6c1294c23d5dba323f}
+
+\item 
+\hypertarget{classProperty_a8972c72f3a4d10e20782cb7dc7800bea}{\hyperlink{classValue}{Value} const \& {\bfseries Get\-Value} () const }\label{classProperty_a8972c72f3a4d10e20782cb7dc7800bea}
+
+\item 
+\hypertarget{classProperty_a665dc0efff99aa4e29162bf87b287f9b}{\hyperlink{classValue}{Value} const \& {\bfseries Get\-\_\-\-Default\-\_\-\-Value} () const }\label{classProperty_a665dc0efff99aa4e29162bf87b287f9b}
+
+\item 
+\hypertarget{classProperty_a67e207a6e4769d506d66c9cd2885152e}{virtual bool {\bfseries Check\-Value} (\hyperlink{classValue}{Value} const \&in, bool warn)}\label{classProperty_a67e207a6e4769d506d66c9cd2885152e}
+
+\item 
+\hypertarget{classProperty_a44cd119ea8457d7d2e637916f079eb46}{bool {\bfseries Set\-Val} (\hyperlink{classValue}{Value} const \&in, bool forced, bool warn=true, bool init=false)}\label{classProperty_a44cd119ea8457d7d2e637916f079eb46}
+
+\item 
+\hypertarget{classProperty_af7566cb7ff5ce86bc37c53fab0c73b8e}{virtual const std\-::vector\\*
+$<$ \hyperlink{classValue}{Value} $>$ \& {\bfseries Get\-Values} () const }\label{classProperty_af7566cb7ff5ce86bc37c53fab0c73b8e}
+
+\item 
+\hypertarget{classProperty_ad4dfa2bc05c8f80dc4e554fde59538a4}{Value\-::\-Etype {\bfseries Get\-\_\-type} ()}\label{classProperty_ad4dfa2bc05c8f80dc4e554fde59538a4}
+
+\item 
+\hypertarget{classProperty_af38f129e65933845e4114835b5abdcd4}{Changeable\-::\-Value {\bfseries get\-Change} ()}\label{classProperty_af38f129e65933845e4114835b5abdcd4}
+
+\item 
+\hypertarget{classProperty_a6eb065e2efbbacb73c840001ac69c056}{bool {\bfseries modified} () const }\label{classProperty_a6eb065e2efbbacb73c840001ac69c056}
+
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classProperty_a9b1096a84a64a0595ab8d79e836d3266}{const std\-::string {\bfseries propname}}\label{classProperty_a9b1096a84a64a0595ab8d79e836d3266}
+
+\end{DoxyCompactItemize}
+\subsection*{Protected Types}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classProperty_a916e46cc6991261d59af94cd70b23953}{typedef std\-::vector$<$ \hyperlink{classValue}{Value} $>$\\*
+\-::iterator {\bfseries iter}}\label{classProperty_a916e46cc6991261d59af94cd70b23953}
+
+\end{DoxyCompactItemize}
+\subsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classProperty_ab9f796553f3beee1cc6a4c4a9d352f28}{\hyperlink{classValue}{Value} {\bfseries value}}\label{classProperty_ab9f796553f3beee1cc6a4c4a9d352f28}
+
+\item 
+\hypertarget{classProperty_a478478c72fd7da282d03c652f567bc68}{bool {\bfseries is\-\_\-modified}}\label{classProperty_a478478c72fd7da282d03c652f567bc68}
+
+\item 
+\hypertarget{classProperty_a358f5bbc412ec7db0f8ae400eb419d9a}{std\-::vector$<$ \hyperlink{classValue}{Value} $>$ {\bfseries suggested\-\_\-values}}\label{classProperty_a358f5bbc412ec7db0f8ae400eb419d9a}
+
+\item 
+\hypertarget{classProperty_adafc47b2053f75c1bb1811bcf7ffdd1a}{\hyperlink{classValue}{Value} {\bfseries default\-\_\-value}}\label{classProperty_adafc47b2053f75c1bb1811bcf7ffdd1a}
+
+\item 
+\hypertarget{classProperty_a8a01484c2e7a8cfcf98f01ed3a0fa293}{const Changeable\-::\-Value {\bfseries change}}\label{classProperty_a8a01484c2e7a8cfcf98f01ed3a0fa293}
+
+\item 
+\hypertarget{classProperty_abd3b538752e5d6d649dc323ce46591be}{bool {\bfseries use\-\_\-global\-\_\-config\-\_\-str}}\label{classProperty_abd3b538752e5d6d649dc323ce46591be}
+
+\item 
+\hypertarget{classProperty_a9a0f13a48b56868da27ec1e33fd0414c}{std\-::string {\bfseries help\-\_\-string}}\label{classProperty_a9a0f13a48b56868da27ec1e33fd0414c}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 120 of file setup.\-h.
+
+
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+include/setup.\-h\end{DoxyCompactItemize}
