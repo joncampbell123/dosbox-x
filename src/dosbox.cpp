@@ -890,6 +890,9 @@ void DOSBOX_SetupConfigSections(void) {
 		0 };
 
 	const char* cores[] = { "auto",
+#if (C_DYNAMIC_X86)
+		"dynamic",
+#endif
 		"normal", "full", "simple", 0 };
 
 	const char* voodoo_settings[] = {
