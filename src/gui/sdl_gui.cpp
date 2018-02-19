@@ -38,6 +38,8 @@
 #include <cctype>
 #include <assert.h>
 
+#include "SDL_syswm.h"
+
 /* helper class for command execution */
 class VirtualBatch : public BatchFile {
 public:
@@ -108,6 +110,7 @@ static void getPixel(Bits x, Bits y, int &r, int &g, int &b, int shift)
 }
 
 extern bool dos_kernel_disabled;
+extern Bitu currentWindowWidth, currentWindowHeight;
 
 static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 	GFX_EndUpdate(0);
@@ -129,6 +132,13 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 	if (w <= 400) {
 		w *=2; h *=2;
 	}
+
+    if (!fs) {
+        if (w < currentWindowWidth)
+            w = currentWindowWidth;
+        if (h < currentWindowHeight)
+            h = currentWindowHeight;
+    }
 
 	old_unicode = SDL_EnableUNICODE(1);
 	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY,SDL_DEFAULT_REPEAT_INTERVAL);
@@ -177,7 +187,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 	mousetoggle = mouselocked;
 	if (mouselocked) GFX_CaptureMouse();
 
-	SDL_Surface* sdlscreen = SDL_SetVideoMode(w, h, 32, SDL_SWSURFACE|(fs?SDL_FULLSCREEN:SDL_RESIZABLE));
+	SDL_Surface* sdlscreen = SDL_SetVideoMode(w, h, 32, SDL_SWSURFACE|(fs?SDL_FULLSCREEN:0));
 	if (sdlscreen == NULL) E_Exit("Could not initialize video mode %ix%ix32 for UI: %s", w, h, SDL_GetError());
 
 	// fade out
@@ -920,6 +930,16 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
 
 void GUI_Shortcut(int select) {
 	if(running) return;
+
+    bool GFX_GetPreventFullscreen(void);
+
+    /* Sorry, the UI screws up 3Dfx OpenGL emulation.
+     * Remove this block when fixed. */
+    if (GFX_GetPreventFullscreen()) {
+        LOG_MSG("GUI is not available while 3Dfx OpenGL emulation is running");
+        return;
+    }
+
 	if(menu.maxwindow) ShowWindow(GetHWND(), SW_RESTORE);
 	shortcut=true;
 	GUI::ScreenSDL *screen = UI_Startup(NULL);
@@ -932,6 +952,16 @@ void GUI_Shortcut(int select) {
 
 void GUI_Run(bool pressed) {
 	if (pressed || running) return;
+
+    bool GFX_GetPreventFullscreen(void);
+
+    /* Sorry, the UI screws up 3Dfx OpenGL emulation.
+     * Remove this block when fixed. */
+    if (GFX_GetPreventFullscreen()) {
+        LOG_MSG("GUI is not available while 3Dfx OpenGL emulation is running");
+        return;
+    }
+
 	GUI::ScreenSDL *screen = UI_Startup(NULL);
 	UI_Execute(screen);
 	UI_Shutdown(screen);

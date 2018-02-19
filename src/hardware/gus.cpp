@@ -68,6 +68,8 @@ static Bit16u vol16bit[4096];
 static Bit32u pantable[16];
 static enum GUSType gus_type = GUS_CLASSIC;
 static bool gus_ics_mixer = false;
+static bool gus_warn_irq_conflict = false;
+static bool gus_warn_dma_conflict = false;
 
 class GUSChannels;
 static void CheckVoiceIrq(void);
@@ -615,8 +617,14 @@ static INLINE void GUS_CheckIRQ(void) {
 			/* The GUS fires an IRQ, then waits for the interrupt service routine to
 			 * clear all pending interrupt events before firing another one. if you
 			 * don't service all events, then you don't get another interrupt. */
-			if (gus_prev_effective_irqstat == 0)
+			if (gus_prev_effective_irqstat == 0) {
 				PIC_ActivateIRQ(myGUS.irq1);
+
+                if (gus_warn_irq_conflict)
+					LOG(LOG_MISC,LOG_WARN)(
+                        "GUS warning: Both IRQs set to the same signal line WITHOUT combining! "
+                        "This is documented to cause bus conflicts on real hardware");
+            }
 		}
 
 		gus_prev_effective_irqstat = irqstat;
@@ -1467,8 +1475,7 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 
 				LOG(LOG_MISC,LOG_DEBUG)("GUS IRQ reprogrammed: GF1 IRQ %d, MIDI IRQ %d",(int)myGUS.irq1,(int)myGUS.irq2);
 
-				if (!(val & 0x40) && (val & 7) == ((val >> 3) & 7))
-					LOG(LOG_MISC,LOG_WARN)("GUS warning: Both IRQs set to the same signal line WITHOUT combining! This is documented to cause bus conflicts on real hardware");
+                gus_warn_irq_conflict = (!(val & 0x40) && (val & 7) == ((val >> 3) & 7));
 			} else {
 				// GUS SDK: DMA Control Register
 				//     Channel 1 (bits 2-0)
@@ -1516,8 +1523,7 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
 				// NTS: The Windows 3.1 Gravis Ultrasound drivers will program the same DMA channel into both without setting the "combining" bit,
 				//      even though their own SDK says not to, when Windows starts up. But it then immediately reprograms it normally, so no bus
 				//      conflicts actually occur. Strange.
-				if (!(val & 0x40) && (val & 7) == ((val >> 3) & 7))
-					LOG(LOG_MISC,LOG_WARN)("GUS warning: Both DMA channels set to the same channel WITHOUT combining! This is documented to cause bus conflicts on real hardware");
+				gus_warn_dma_conflict = (!(val & 0x40) && (val & 7) == ((val >> 3) & 7));
 			}
 		}
 		else {
@@ -1807,7 +1813,12 @@ void GUS_StartDMA() {
 		GUS_DMA_Active = true;
 		LOG(LOG_MISC,LOG_DEBUG)("GUS: Starting DMA transfer interval");
 		PIC_AddEvent(GUS_DMA_Event,GUS_DMA_Event_interval_init);
-	}
+
+        if (gus_warn_dma_conflict)
+            LOG(LOG_MISC,LOG_WARN)(
+                "GUS warning: Both DMA channels set to the same channel WITHOUT combining! "
+                "This is documented to cause bus conflicts on real hardware");
+    }
 }
 
 static void GUS_DMA_Callback(DmaChannel * chan,DMAEvent event) {
@@ -2209,7 +2220,7 @@ void GUS_ShutDown(Section* /*sec*/) {
 }
 
 void GUS_OnReset(Section *sec) {
-	if (test == NULL) {
+	if (test == NULL && !IS_PC98_ARCH) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating GUS emulation");
 		test = new GUS(control->GetSection("gus"));
 	}
@@ -2223,16 +2234,6 @@ void GUS_DOS_Boot(Section *sec) {
     if (test != NULL) test->DOS_Startup();
 }
 
-void GUS_OnEnterPC98(Section *sec) {
-    /* PC-98 does not have Gravis Ultrasound.
-     * Upon entry, remove all I/O ports and shutdown emulation */
-    GUS_DOS_Shutdown();
-	if (test != NULL) {
-		delete test;	
-		test = NULL;
-	}
-}
-
 void GUS_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing Gravis Ultrasound emulation");
 
@@ -2242,7 +2243,5 @@ void GUS_Init() {
 	AddVMEventFunction(VM_EVENT_DOS_SURPRISE_REBOOT,AddVMEventFunctionFuncPair(GUS_DOS_Exit));
 	AddVMEventFunction(VM_EVENT_DOS_EXIT_REBOOT_BEGIN,AddVMEventFunctionFuncPair(GUS_DOS_Exit));
     AddVMEventFunction(VM_EVENT_DOS_INIT_SHELL_READY,AddVMEventFunctionFuncPair(GUS_DOS_Boot));
-
-    AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(GUS_OnEnterPC98));
 }
 

@@ -395,15 +395,8 @@ void PS1SOUND_ShutDown(Section* sec) {
     }
 }
 
-void PS1SOUND_OnEnterPC98(Section* sec) {
-    if (test) {
-        delete test;
-        test = NULL;
-    }
-}
-
 void PS1SOUND_OnReset(Section* sec) {
-	if (test == NULL) {
+	if (test == NULL && !IS_PC98_ARCH) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating PS/1 sound emulation");
 		test = new PS1SOUND(control->GetSection("speaker"));
 	}
@@ -414,7 +407,5 @@ void PS1SOUND_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(PS1SOUND_ShutDown),true);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PS1SOUND_OnReset));
-
-    AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(PS1SOUND_OnEnterPC98));
 }
 

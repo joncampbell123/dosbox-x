@@ -473,6 +473,7 @@ static inline int int_log2(int val) {
 
 extern bool pcibus_enable;
 extern int hack_lfb_yadjust;
+extern uint8_t GDC_display_plane_wait_for_vsync;
 
 void VGA_VsyncUpdateMode(VGA_Vsync vsyncmode);
 
@@ -483,6 +484,7 @@ void VGA_Reset(Section*) {
 
 	LOG(LOG_MISC,LOG_DEBUG)("VGA_Reset() reinitializing VGA emulation");
 
+    GDC_display_plane_wait_for_vsync = section->Get_bool("pc-98 buffer page flip");
     pc98_allow_scanline_effect = section->Get_bool("pc-98 allow scanline effect");
 
     // whether the GDC is running at 2.5MHz or 5.0MHz.
@@ -641,37 +643,40 @@ void VGA_Reset(Section*) {
 			else vga.vmemsize = _KB_bytes(256);
 			break;
 		case MCH_VGA:
-            if (enable_pc98_jump) {
-                if (vga.vmemsize < _KB_bytes(512)) vga.vmemsize = _KB_bytes(512);
-            }
-            else {
-                if (vga.vmemsize < _KB_bytes(256)) vga.vmemsize = _KB_bytes(256);
-            }
-			break;
+            if (vga.vmemsize < _KB_bytes(256)) vga.vmemsize = _KB_bytes(256);
+            break;
 		case MCH_AMSTRAD:
 			if (vga.vmemsize < _KB_bytes(64)) vga.vmemsize = _KB_bytes(64); /* FIXME: Right? */
 			break;
+        case MCH_PC98:
+            if (vga.vmemsize < _KB_bytes(512)) vga.vmemsize = _KB_bytes(512);
+            break;
 		default:
 			E_Exit("Unexpected machine");
 	};
 
 	vga.vmemwrap = 256*1024;	// default to 256KB VGA mem wrap
-	SVGA_Setup_Driver();		// svga video memory size is set here, possibly over-riding the user's selection
+
+    if (!IS_PC98_ARCH)
+        SVGA_Setup_Driver();		// svga video memory size is set here, possibly over-riding the user's selection
+
 	LOG(LOG_VGA,LOG_NORMAL)("Video RAM: %uKB",vga.vmemsize>>10);
 
 	VGA_SetupMemory();		// memory is allocated here
-	VGA_SetupMisc();
-	VGA_SetupDAC();
-	VGA_SetupGFX();
-	VGA_SetupSEQ();
-	VGA_SetupAttr();
-	VGA_SetupOther();
-	VGA_SetupXGA();
-	VGA_SetClock(0,CLK_25);
-	VGA_SetClock(1,CLK_28);
-/* Generate tables */
-	VGA_SetCGA2Table(0,1);
-	VGA_SetCGA4Table(0,1,2,3);
+    if (!IS_PC98_ARCH) {
+        VGA_SetupMisc();
+        VGA_SetupDAC();
+        VGA_SetupGFX();
+        VGA_SetupSEQ();
+        VGA_SetupAttr();
+        VGA_SetupOther();
+        VGA_SetupXGA();
+        VGA_SetClock(0,CLK_25);
+        VGA_SetClock(1,CLK_28);
+        /* Generate tables */
+        VGA_SetCGA2Table(0,1);
+        VGA_SetCGA4Table(0,1,2,3);
+    }
 
 	Section_prop * section2=static_cast<Section_prop *>(control->GetSection("vsync"));
 
@@ -713,6 +718,18 @@ void VGA_Reset(Section*) {
 
 	if (machine == MCH_CGA) PROGRAMS_MakeFile("CGASNOW.COM",CGASNOW_ProgramStart);
 	PROGRAMS_MakeFile("VFRCRATE.COM",VFRCRATE_ProgramStart);
+
+    if (IS_PC98_ARCH) {
+        void VGA_OnEnterPC98(Section *sec);
+        void VGA_OnEnterPC98_phase2(Section *sec);
+        void PC98_FM_OnEnterPC98(Section *sec);
+
+        VGA_OnEnterPC98(NULL);
+        VGA_OnEnterPC98_phase2(NULL);
+
+        // TODO: Move to separate file
+        PC98_FM_OnEnterPC98(NULL);
+    }
 }
 
 extern void VGA_TweakUserVsyncOffset(float val);
@@ -765,26 +782,6 @@ void VGA_OnEnterPC98(Section *sec) {
 
     pc98_update_palette();
 
-    /* Some PC-98 game behavior seems to suggest the BIOS data area stretches all the way from segment 0x40:0x00 to segment 0x7F:0x0F inclusive.
-     * Compare that to IBM PC platform, where segment fills only 0x40:0x00 to 0x50:0x00 inclusive and extra state is held in the "Extended BIOS Data Area".
-     */
-
-    /* number of text rows on the screen.
-     * Touhou Project will not clear/format the text layer properly without this variable. */
-    mem_writeb(0x710,25 - 1); /* cursor position Y coordinate */
-    mem_writeb(0x711,1); /* function definition display status flag */
-    mem_writeb(0x712,25 - 1); /* number of rows - 1 */
-    mem_writeb(0x713,1); /* normal 25 lines */
-    mem_writeb(0x714,0xE1); /* content erase attribute */
-
-    mem_writeb(0x719,0x20); /* content erase character */
-
-    mem_writeb(0x71B,0x01); /* cursor displayed */
-
-    mem_writeb(0x71D,0xE1); /* content display attribute */
-
-    mem_writeb(0x71F,0x01); /* scrolling speed is normal */
-
     {
         unsigned char r,g,b;
 
@@ -793,13 +790,26 @@ void VGA_OnEnterPC98(Section *sec) {
             g = (i & 4) ? 255 : 0;
             b = (i & 1) ? 255 : 0;
 
-            pc98_text_palette[i] = (b << GFX_Bshift) | (g << GFX_Gshift) | (r << GFX_Rshift) | GFX_Amask;
+	        if (GFX_bpp >= 24) /* FIXME: Assumes 8:8:8. What happens when desktops start using the 10:10:10 format? */
+                pc98_text_palette[i] = (b << GFX_Bshift) | (g << GFX_Gshift) | (r << GFX_Rshift) | GFX_Amask;
+            else {
+                /* FIXME: PC-98 mode renders as 32bpp regardless (at this time), so we have to fake 32bpp order */
+                /*        Since PC-98 itself has 4-bit RGB precision, it might be best to offer a 16bpp rendering mode,
+                 *        or even just have PC-98 mode stay in 16bpp entirely. */
+                if (GFX_Bshift == 0)
+                    pc98_text_palette[i] = (b << 0U) | (g << 8U) | (r << 16U);
+                else
+                    pc98_text_palette[i] = (b << 16U) | (g << 8U) | (r << 0U);
+            }
         }
     }
 
     pc98_gdc_tile_counter=0;
     pc98_gdc_modereg=0;
     for (unsigned int i=0;i < 4;i++) pc98_gdc_tiles[i].w = 0;
+
+    vga.dac.pel_mask = 0xFF;
+    vga.crtc.maximum_scan_line = 15;
 
     /* 200-line tradition on PC-98 seems to be to render only every other scanline */
     pc98_graphics_hide_odd_raster_200line = true;
@@ -811,6 +821,7 @@ void VGA_OnEnterPC98(Section *sec) {
     gfx(miscellaneous) &= ~0x0C; /* bits[3:2] = 0 to map A0000-BFFFF */
     VGA_DetermineMode();
     VGA_SetupHandlers();
+    VGA_DAC_UpdateColorPalette();
     INT10_PC98_CurMode_Relocate(); /* make sure INT 10h knows */
 
     /* Set up 24KHz hsync 56.42Hz rate */
@@ -837,24 +848,16 @@ void VGA_OnEnterPC98(Section *sec) {
 
     /* now, switch to PC-98 video emulation */
     for (unsigned int i=0;i < 16;i++) VGA_ATTR_SetPalette(i,i);
-    for (unsigned int i=0;i < 16;i++) {
-        /* GRB order palette */
-		vga.dac.rgb[i].red = (i & 2) ? 63 : 0;
-		vga.dac.rgb[i].green = (i & 4) ? 63 : 0;
-        vga.dac.rgb[i].blue = (i & 1) ? 63 : 0;
-        VGA_DAC_UpdateColor(i);
-    }
+    for (unsigned int i=0;i < 16;i++) vga.dac.combine[i] = i;
+
     vga.mode=M_PC98;
     assert(vga.vmemsize >= 0x80000);
     memset(vga.mem.linear,0,0x80000);
-    for (unsigned int i=0x2000;i < 0x3fe0;i += 2) vga.mem.linear[i] = 0xE0; /* attribute GRBxxxxx = 11100000 (white) */
 
     VGA_StartResize();
 }
 
 void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages);
-
-void PC98_FM_OnEnterPC98(Section *sec);
 
 void VGA_OnEnterPC98_phase2(Section *sec) {
     VGA_SetupHandlers();
@@ -949,9 +952,6 @@ void VGA_OnEnterPC98_phase2(Section *sec) {
     pc98_gdc[GDC_SLAVE].force_fifo_complete();
 
     VGA_StartResize();
-
-    void update_pc98_function_row(bool enable);
-    update_pc98_function_row(true);
 }
 
 void VGA_Init() {
@@ -1017,11 +1017,6 @@ void VGA_Init() {
 	}
 
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(VGA_Reset));
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(VGA_OnEnterPC98));
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE_END,AddVMEventFunctionFuncPair(VGA_OnEnterPC98_phase2));
-
-    // TODO: Move to separate file
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE_END,AddVMEventFunctionFuncPair(PC98_FM_OnEnterPC98));
 }
 
 void SVGA_Setup_Driver(void) {

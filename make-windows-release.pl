@@ -9,8 +9,27 @@ exit 0 if -f $zipname;
 
 die unless -f $ziptool;
 
+my $subdir="release/windows";
+
+my $brancha=`git branch`;
+my $branch;
+
+my @a = split(/\n/,$brancha);
+for ($i=0;$i < @a;$i++) {
+	my $line = $a[$i];
+	chomp $line;
+
+	if ($line =~ s/^\* +//) {
+		$branch = $line;
+	}
+}
+
+if ( "$branch" eq "develop-win-sdl1-async-hack-201802" ) {
+    $subdir="release/windows-async";
+}
+
 mkdir "release" unless -d "release";
-mkdir "release/windows" unless -d "release/windows";
+mkdir "$subdir" unless -d "$subdir";
 
 die "bin directory not exist" unless -d "bin";
 
@@ -20,7 +39,7 @@ my @filelist = ();
 
 my @platforms = ('Win32', 'x64');
 my @builds = ('Release', 'Release SDL2');
-my @files = ('dosbox.reference.conf', 'dosbox-x.exe', 'FREECG98.bmp');
+my @files = ('dosbox.reference.conf', 'dosbox-x.exe', 'FREECG98.bmp', 'changelog.txt');
 
 foreach $platform (@platforms) {
 	foreach $build (@builds) {
@@ -34,5 +53,5 @@ foreach $platform (@platforms) {
 }
 
 # do it
-$r = system($ziptool, '-9', "release/windows/$zipname", @filelist);
+$r = system($ziptool, '-9', "$subdir/$zipname", @filelist);
 exit 1 unless $r == 0;

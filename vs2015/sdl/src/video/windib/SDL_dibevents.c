@@ -138,6 +138,20 @@ void __declspec(dllexport) SDL_DOSBox_X_Hack_Set_Toggle_Key_WM_USER_Hack(unsigne
 }
 #endif
 
+/* SDL has only so much queue, we don't want to pass EVERY message
+   that comes to us into it. As this SDL code is specialized for
+   DOSBox-X, only messages that DOSBox-X would care about are
+   queued. */
+int Win32_ShouldPassMessageToSysWMEvent(UINT msg) {
+	switch (msg) {
+		case WM_COMMAND:
+		case WM_SYSCOMMAND:
+			return 1;
+	}
+
+	return 0;
+}
+
 /* The main Win32 event handler */
 LRESULT DIB_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -318,15 +332,20 @@ LRESULT DIB_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 
 		default: {
 			/* Only post the event if we're watching for it */
-			if ( SDL_ProcessEvents[SDL_SYSWMEVENT] == SDL_ENABLE ) {
-			        SDL_SysWMmsg wmmsg;
+			if (SDL_ProcessEvents[SDL_SYSWMEVENT] == SDL_ENABLE) {
+				SDL_SysWMmsg wmmsg;
 
-				SDL_VERSION(&wmmsg.version);
-				wmmsg.hwnd = hwnd;
-				wmmsg.msg = msg;
-				wmmsg.wParam = wParam;
-				wmmsg.lParam = lParam;
-				posted = SDL_PrivateSysWMEvent(&wmmsg);
+				/* Stop queuing all the various blather the Win32 world
+				   throws at us, we only have so much queue to hold it.
+				   Queue only what is important. */
+				if (Win32_ShouldPassMessageToSysWMEvent(msg)) {
+					SDL_VERSION(&wmmsg.version);
+					wmmsg.hwnd = hwnd;
+					wmmsg.msg = msg;
+					wmmsg.wParam = wParam;
+					wmmsg.lParam = lParam;
+					posted = SDL_PrivateSysWMEvent(&wmmsg);
+				}
 
 			/* DJM: If the user isn't watching for private
 				messages in her SDL event loop, then pass it

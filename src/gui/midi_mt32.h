@@ -121,15 +121,28 @@ public:
 			}
 		}
 
+		Section_prop *section = static_cast<Section_prop *>(control->GetSection("midi"));
+
 		const MT32Emu::ROMImage *controlROMImage = MT32Emu::ROMImage::makeROMImage(&controlROMFile);
 		const MT32Emu::ROMImage *pcmROMImage = MT32Emu::ROMImage::makeROMImage(&pcmROMFile);
+
 		synth = new MT32Emu::Synth(&reportHandler);
+
+		/* NTS: Read and apply mt32.partials BEFORE opening the synth, because the
+			synth assumes an initial number of partials, and allocates PartialManager()
+			instances which in turn initialize THAT many partials. If we later
+			call setPartialLimit() with the (often lower) number we wanted, then
+			a memory leak will occur because the PartialManager() will only free
+			the new lower limit and leave the rest in memory. */
+		numPartials = section->Get_int("mt32.partials");
+		if(numPartials>MT32EMU_MAX_PARTIALS) numPartials=MT32EMU_MAX_PARTIALS;
+		synth->setPartialLimit(numPartials);
+
 		if (!synth->open(*controlROMImage, *pcmROMImage)) {
 			LOG(LOG_MISC,LOG_WARN)("MT32: Error initialising emulation");
 			return false;
 		}
 
-		Section_prop *section = static_cast<Section_prop *>(control->GetSection("midi"));
 		if (strcmp(section->Get_string("mt32.reverb.mode"), "auto") != 0) {
 			Bit8u reverbsysex[] = {0x10, 0x00, 0x01, 0x00, 0x05, 0x03};
 			reverbsysex[3] = (Bit8u)atoi(section->Get_string("mt32.reverb.mode"));
@@ -152,11 +165,6 @@ public:
 		reverseStereo = strcmp(section->Get_string("mt32.reverse.stereo"), "on") == 0;
 		noise = strcmp(section->Get_string("mt32.verbose"), "on") == 0;
 		renderInThread = strcmp(section->Get_string("mt32.thread"), "on") == 0;
-
-
-		numPartials = section->Get_int("mt32.partials");
-		if(numPartials>MT32EMU_MAX_PARTIALS) numPartials=MT32EMU_MAX_PARTIALS;
-		synth->setPartialLimit(numPartials);
 
 		chan = MIXER_AddChannel(mixerCallBack, MT32Emu::SAMPLE_RATE, "MT32");
 		if (renderInThread) {

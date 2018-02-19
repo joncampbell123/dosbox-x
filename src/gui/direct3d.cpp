@@ -21,6 +21,8 @@
 
 #if (HAVE_D3D9_H) && defined(WIN32)
 
+extern Bitu currentWindowWidth, currentWindowHeight;
+
 #include "direct3d.h"
 #include "render.h" // IMPLEMENTED
 #include <sstream>
@@ -910,7 +912,7 @@ HRESULT CDirect3D::LoadPixelShader(void)
     return S_OK;
 }
 
-HRESULT CDirect3D::Resize3DEnvironment(Bitu width, Bitu height, Bitu rwidth, Bitu rheight, bool fullscreen)
+HRESULT CDirect3D::Resize3DEnvironment(Bitu window_width, Bitu window_height, Bitu width, Bitu height, Bitu rwidth, Bitu rheight, bool fullscreen)
 {
 #if LOG_D3D
     LOG_MSG("D3D:Resizing D3D screen...");
@@ -921,39 +923,8 @@ HRESULT CDirect3D::Resize3DEnvironment(Bitu width, Bitu height, Bitu rwidth, Bit
 #endif
 
     // set the presentation parameters
-    d3dpp.BackBufferWidth = width;
-    d3dpp.BackBufferHeight = height;
-
-    if(fullscreen) {
-	// Find correct display mode
-	bool fullscreen_ok = false;
-
-	for(iMode=0;iMode<dwNumModes;iMode++) {
-	    if((modes[iMode].Width >= width) && (modes[iMode].Height >= height)) {
-		d3dpp.BackBufferWidth = modes[iMode].Width;
-		d3dpp.BackBufferHeight = modes[iMode].Height;
-		fullscreen_ok = true;
-
-		// Some cards no longer support 320xXXX resolutions,
-		// even if they list them as supported. In this case
-		// the card will silently switch to 640xXXX, leaving black
-		// borders around displayed picture. Using hardware scaling
-		// to 640xXXX doesn't cost anything in this case and should
-		// look exactly the same as 320xXXX.
-		if(d3dpp.BackBufferWidth < 512) {
-			d3dpp.BackBufferWidth *= 2;
-			d3dpp.BackBufferHeight *= 2;
-			width *= 2; height *= 2;
-		}
-		break;
-	    }
-	}
-
-	if(!fullscreen_ok) {
-	    LOG_MSG("D3D:No suitable fullscreen mode found!");
-	    //d3dpp.Windowed = !d3dpp.Windowed;
-	}
-    }
+	d3dpp.BackBufferWidth = window_width;
+	d3dpp.BackBufferHeight = window_height;
 
     dwScaledWidth = width;
     dwScaledHeight = height;

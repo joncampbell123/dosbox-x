@@ -38,7 +38,7 @@ Uint8 SDL_ProcessEvents[SDL_NUMEVENTS];
 static Uint32 SDL_eventstate = 0;
 
 /* Private data -- event queue */
-#define MAXEVENTS	128
+#define MAXEVENTS	256
 static struct {
 	SDL_mutex *lock;
 	int active;

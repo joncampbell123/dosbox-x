@@ -59,7 +59,7 @@ static void try_mitshm(_THIS, SDL_Surface *screen)
 			shm_error = False;
 			X_handler = XSetErrorHandler(shm_errhandler);
 			XShmAttach(SDL_Display, &shminfo);
-			XSync(SDL_Display, True);
+			XSync(SDL_Display, False);
 			XSetErrorHandler(X_handler);
 			if ( shm_error )
 				shmdt(shminfo.shmaddr);
@@ -143,6 +143,8 @@ void X11_DestroyImage(_THIS, SDL_Surface *screen)
 	if ( screen ) {
 		screen->pixels = NULL;
 	}
+
+    this->UpdateRects = NULL;
 }
 
 /* Determine the number of CPUs in the system */
@@ -184,7 +186,8 @@ int X11_ResizeImage(_THIS, SDL_Surface *screen, Uint32 flags)
 
 	X11_DestroyImage(this, screen);
         if ( flags & SDL_OPENGL ) {  /* No image when using GL */
-        	retval = 0;
+            this->UpdateRects = NULL;
+            retval = 0;
         } else {
 		retval = X11_SetupImage(this, screen);
 		/* We support asynchronous blitting on the display */

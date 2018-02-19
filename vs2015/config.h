@@ -42,11 +42,11 @@
 #undef C_DEBUG
 
 /* Define to 1 if you want parallel passthrough support (Win32, Linux). */
-#undef C_DIRECTLPT
+#define C_DIRECTLPT 1
 
 /* Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).
    */
-#undef C_DIRECTSERIAL
+#define C_DIRECTSERIAL 1
 
 #ifdef _M_AMD64 /* Microsoft C++ amd64 */
 # undef C_DYNAMIC_X86
@@ -86,7 +86,9 @@
 #define C_LIBPNG 1
 
 /* Define to 1 to enable internal modem support, requires SDL_net */
-#undef C_MODEM
+#if !defined(C_SDL2)
+#define C_MODEM 1
+#endif
 
 /* Define to 1 to enable NE2000 ethernet passthrough, requires libpcap */
 #define C_NE2000 1
@@ -187,9 +189,6 @@
 /* Compiling on OS/2 EMX */
 #undef OS2
 
-/* Name of package */
-#define PACKAGE					"dosbox"
-
 /* Define to the address where bug reports for this package should be sent. */
 
 /* Define to the full name of this package. */
@@ -225,9 +224,6 @@
 
 /* Define to 1 if your <sys/time.h> declares `struct tm'. */
 #undef TM_IN_SYS_TIME
-
-/* Version number of package */
-#define VERSION					"0.82.1"
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */
@@ -335,9 +331,7 @@ typedef         double     Real64;
 #if defined(WIN32)
 # pragma warning(disable:4996)
 #endif
-#define PACKAGE_BUGREPORT "https://github.com/joncampbell123/dosbox-x/issues"
-#define PACKAGE_NAME "dosbox-x"
-#define PACKAGE_STRING "dosbox-x 0.801"
-#define PACKAGE_TARNAME "dosbox-x"
-#define PACKAGE_URL "http://dosbox-x.software"
-#define PACKAGE_VERSION "0.801"
+
+/* Linux-side configure script will write/rewrite this file so both Windows and Linux builds carry the same information --J.C. */
+#include "config_package.h"
+

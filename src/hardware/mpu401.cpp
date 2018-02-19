@@ -510,13 +510,16 @@ static void UpdateTrack(Bit8u chan) {
 }
 
 static void UpdateConductor(void) {
-	if (mpu.condbuf.value[0]==0xfc) {
-		mpu.condbuf.value[0]=0;
-		mpu.state.conductor=false;
-		mpu.state.req_mask&=~(1<<9);
-		if (mpu.state.amask==0) mpu.state.req_mask|=(1<<12);
-		return;
-	}
+    for (unsigned int i=0;i < mpu.condbuf.vlength;i++) {
+        if (mpu.condbuf.value[i] == 0xfc) {
+            mpu.condbuf.value[i] = 0;
+            mpu.state.conductor=false;
+            mpu.state.req_mask&=~(1<<9);
+            if (mpu.state.amask==0) mpu.state.req_mask|=(1<<12);
+            return;
+        }
+    }
+
 	mpu.condbuf.vlength=0;
 	mpu.condbuf.counter=0xf0;
 	mpu.state.req_mask|=(1<<9);
@@ -727,20 +730,24 @@ void MPU401_Destroy(Section* sec){
 	}
 }
 
-void MPU401_EnterPC98(Section* sec){
-    /* NTS: PC-98 systems do have add-in cards for MIDI, but not in the same
-     *      way that IBM PC/XT/AT systems present it to the software. */
-	if (test != NULL) {
-		delete test;
-		test = NULL;
-	}
-}
-
 void MPU401_Reset(Section* sec) {
 	if (test == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating MPU401 emulation");
 		test = new MPU401(control->GetSection("midi"));
 	}
+}
+
+void MIDI_GUI_OnSectionPropChange(Section *x);
+
+void MIDI_OnSectionPropChange(Section *x) {
+    delete test;
+    test = NULL;
+
+    LOG(LOG_MISC,LOG_DEBUG)("Resetting MPU401, config change");
+
+    MIDI_GUI_OnSectionPropChange(x);
+
+    test = new MPU401(control->GetSection("midi"));
 }
 
 void MPU401_Init() {
@@ -749,7 +756,6 @@ void MPU401_Init() {
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(MPU401_Reset));
 	AddExitFunction(AddExitFunctionFuncPair(MPU401_Destroy),true);
 
-    AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(MPU401_EnterPC98));
-    AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE_END,AddVMEventFunctionFuncPair(MPU401_Reset));
+	control->GetSection("midi")->onpropchange.push_back(&MIDI_OnSectionPropChange);
 }
 

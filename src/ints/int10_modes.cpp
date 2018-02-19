@@ -382,6 +382,9 @@ VideoModeBlock ModeList_OTHER[]={
 VideoModeBlock Hercules_Mode=
 { 0x007  ,M_TEXT   ,640 ,400 ,80 ,25 ,8 ,14 ,1 ,0xB0000 ,0x1000 ,97 ,25  ,80 ,25  ,0	};
 
+VideoModeBlock PC98_Mode=
+{ 0x000  ,M_PC98   ,640 ,400 ,80 ,25 ,8 ,14 ,1 ,0xA0000 ,0x1000 ,97 ,25  ,80 ,25  ,0	};
+
 static Bit8u text_palette[64][3]=
 {
   {0x00,0x00,0x00},{0x00,0x00,0x2a},{0x00,0x2a,0x00},{0x00,0x2a,0x2a},{0x2a,0x00,0x00},{0x2a,0x00,0x2a},{0x2a,0x2a,0x00},{0x2a,0x2a,0x2a},
@@ -1531,6 +1534,9 @@ dac_text16:
 			/* check if gray scale summing is enabled */
 			if (modeset_ctl & 2) INT10_PerformGrayScaleSumming(0,256);
 		}
+        /* make sure the DAC index is reset on modeset */
+		IO_Write(0x3c7,0); /* according to src/hardware/vga_dac.cpp this sets read_index=0 and write_index=1 */
+		IO_Write(0x3c8,0); /* so set write_index=0 */
 	} else {
 		for (Bit8u ct=0x10;ct<ATT_REGS;ct++) {
 			if (ct==0x11) continue;	// skip overscan register

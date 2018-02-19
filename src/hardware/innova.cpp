@@ -120,16 +120,8 @@ static void INNOVA_ShutDown(Section* sec){
     }
 }
 
-static void INNOVA_OnEnterPC98(Section* sec){
-    /* No such device on PC-98 */
-    if (test != NULL) {
-        delete test;
-        test = NULL;
-    }
-}
-
 void INNOVA_OnReset(Section *sec) {
-	if (test == NULL) {
+	if (test == NULL && !IS_PC98_ARCH) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating Innova emulation");
 		test = new INNOVA(control->GetSection("innova"));
 	}
@@ -140,7 +132,5 @@ void INNOVA_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(INNOVA_ShutDown),true);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(INNOVA_OnReset));
-
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(INNOVA_OnEnterPC98));
 }
 

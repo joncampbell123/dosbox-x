@@ -47,7 +47,6 @@ BEGIN
     		MENUITEM "Auto",		ID_AUTO
        		MENUITEM "Normal\tCtrl-1",		ID_NORMAL
     		MENUITEM "Full\tCtrl-2",		ID_FULL
-    		MENUITEM "Dynamic\tCtrl-3",		ID_DYNAMIC
     		MENUITEM "Simple\tCtrl-4",		ID_SIMPLE
 		    END
 		POPUP "Type"
@@ -67,6 +66,7 @@ BEGIN
 		MENUITEM "Fullscreen\tAlt-Enter",				       ID_FULLSCREEN
 		MENUITEM "Hide Menu Bar\tCtrl-Alt-Enter",		ID_TOGGLE
 		MENUITEM "Always on top",			ID_ALWAYS_ON_TOP
+        MENUITEM "Reset window scale to 100%",                 ID_RESET_RESCALE
 		MENUITEM SEPARATOR
 		MENUITEM "Aspect Correction",				       ID_ASPECT
 		MENUITEM "Double Buffering (Fullscreen)",				       ID_FULLDOUBLE
@@ -119,7 +119,6 @@ BEGIN
 	POPUP "Output"
 	BEGIN
 		MENUITEM "Surface",				       ID_SURFACE
-		MENUITEM "DirectDraw",				       ID_DDRAW
 		MENUITEM "Direct3D",				       ID_DIRECT3D
 		MENUITEM "OpenGL",				       ID_OPENGL
 		MENUITEM "OpenGL_NB",				       ID_OPENGLNB

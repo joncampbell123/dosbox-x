@@ -29,7 +29,15 @@
 #include "keyboard.h"
 #include "inout.h"
 
+extern int NonUserResizeCounter;
+
 extern bool dos_kernel_disabled;
+
+bool GFX_GetPreventFullscreen(void);
+
+#if !defined(C_SDL2)
+void GUI_ResetResize(bool pressed);
+#endif
 
 std::string MSCDEX_Output(int num) {
 	std::string MSCDEX_MSG = "GUI: MSCDEX ";
@@ -738,26 +746,62 @@ void Mount_Img(char drive, std::string realpath) {
 	}
 }
 
+void DOSBox_SetSysMenu(void) {
+	MENUITEMINFO mii;
+	HMENU sysmenu;
+	BOOL s;
+
+	sysmenu = GetSystemMenu(GetHWND(), TRUE); // revert, so we can reapply menu items
+	sysmenu = GetSystemMenu(GetHWND(), FALSE);
+	if (sysmenu == NULL) return;
+
+	s = AppendMenu(sysmenu, MF_SEPARATOR, -1, "");
+
+	{
+		const char *msg = "Show menu &bar";
+
+		memset(&mii, 0, sizeof(mii));
+		mii.cbSize = sizeof(mii);
+		mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
+		mii.fState = GFX_GetPreventFullscreen() ? MFS_DISABLED : MFS_ENABLED;
+		mii.wID = ID_WIN_SYSMENU_RESTOREMENU;
+		mii.dwTypeData = (LPTSTR)(msg);
+		mii.cch = strlen(msg)+1;
+
+		s = InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
+	}
+}
+
 void DOSBox_SetMenu(void) {
 	if(!menu.gui) return;
 
 	LOG(LOG_MISC,LOG_DEBUG)("Win32: loading and attaching menu resource to DOSBox's window");
 
 	menu.toggle=true;
-	SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
+    NonUserResizeCounter=1;
+    SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
 	DrawMenuBar (GetHWND());
+
+	Reflect_Menu();
 
 	if(menu.startup) {
 		RENDER_CallBack( GFX_CallBackReset );
 	}
+
+    void DOSBox_SetSysMenu(void);
+    DOSBox_SetSysMenu();
 }
 
 void DOSBox_NoMenu(void) {
 	if(!menu.gui) return;
 	menu.toggle=false;
-	SetMenu(GetHWND(), NULL);
+    NonUserResizeCounter=1;
+    SetMenu(GetHWND(), NULL);
 	DrawMenuBar(GetHWND());
 	RENDER_CallBack( GFX_CallBackReset );
+
+    void DOSBox_SetSysMenu(void);
+    DOSBox_SetSysMenu();
 }
 
 void DOSBox_CheckOS(int &id, int &major, int &minor) {
@@ -786,11 +830,19 @@ void DOSBox_RefreshMenu(void) {
     SDL_Prepare();
     if(!menu.gui) return;
 
+    bool GFX_GetPreventFullscreen(void);
+
+    /* prevent removing the menu in 3Dfx mode */
+    if (GFX_GetPreventFullscreen())
+        return;
+
     if(fullscreen) {
-    	SetMenu(GetHWND(), NULL);
+        NonUserResizeCounter=1;
+        SetMenu(GetHWND(), NULL);
     	DrawMenuBar(GetHWND());
         return;
     }
+	DOSBox_SetSysMenu();
 	if(menu.toggle)
 		DOSBox_SetMenu();
 	else
@@ -802,27 +854,39 @@ void DOSBox_RefreshMenu2(void) {
    int width, height; bool fullscreen;
    void GFX_GetSize(int &width, int &height, bool &fullscreen);
    GFX_GetSize(width,height,fullscreen);
-    void SDL_Prepare(void);
-    SDL_Prepare();
-    if(!menu.gui) return;
+   void SDL_Prepare(void);
+   SDL_Prepare();
+   if(!menu.gui) return;
 
-    if(fullscreen) {
-    	SetMenu(GetHWND(), NULL);
-    	DrawMenuBar(GetHWND());
-        return;
-    }
-	if(menu.toggle) {
-		menu.toggle=true;
-		SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
-		DrawMenuBar (GetHWND());
-	} else {
-		menu.toggle=false;
-		SetMenu(GetHWND(), NULL);
+   if(fullscreen) {
+       NonUserResizeCounter=1;
+       SetMenu(GetHWND(), NULL);
+       DrawMenuBar(GetHWND());
+       return;
+   }
+   if(menu.toggle) {
+       menu.toggle=true;
+       NonUserResizeCounter=1;
+       SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
+       DrawMenuBar (GetHWND());
+   } else {
+       menu.toggle=false;
+       NonUserResizeCounter=1;
+       SetMenu(GetHWND(), NULL);
 		DrawMenuBar(GetHWND());
 	}
+
+    void DOSBox_SetSysMenu(void);
+    DOSBox_SetSysMenu();
 }
 
 void ToggleMenu(bool pressed) {
+    bool GFX_GetPreventFullscreen(void);
+
+    /* prevent removing the menu in 3Dfx mode */
+    if (GFX_GetPreventFullscreen())
+        return;
+
     menu.resizeusing=true;
 	int width, height; bool fullscreen;
 	void GFX_GetSize(int &width, int &height, bool &fullscreen);
@@ -835,6 +899,7 @@ void ToggleMenu(bool pressed) {
 		menu.toggle=false;
 		DOSBox_NoMenu();
 	}
+	DOSBox_SetSysMenu();
 }
 
 void MENU_Check_Drive(HMENU handle, int cdrom, int floppy, int local, int image, int automount, int umount, char drive) {
@@ -863,11 +928,12 @@ void MENU_KeyDelayRate(int delay, int rate) {
 enum SCREEN_TYPES	{
 	SCREEN_OPENGLHQ,
 	SCREEN_SURFACE,
-	SCREEN_SURFACE_DDRAW,
 	SCREEN_OPENGL,
 	SCREEN_DIRECT3D
 };
 extern bool load_videodrv;
+
+bool GFX_GetPreventFullscreen(void);
 
 int Reflect_Menu(void) {
 	extern bool Mouse_Drv;
@@ -884,6 +950,98 @@ int Reflect_Menu(void) {
 	else {
 		name[0] = 0;
 	}
+
+	EnableMenuItem(m_handle, ID_CPU_ADVANCED, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_DOS_ADVANCED, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_MIDI_ADVANCED, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_FULLSCREEN, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_ASPECT, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_TOGGLE, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_SURFACE, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_DIRECT3D, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_OPENGL, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_OPENGLNB, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_OPENGLHQ, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_FULLDOUBLE, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_OVERSCAN_0, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_OVERSCAN_1, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_OVERSCAN_2, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_OVERSCAN_3, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_OVERSCAN_4, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_OVERSCAN_5, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_OVERSCAN_6, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_OVERSCAN_7, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_OVERSCAN_8, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_OVERSCAN_9, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_OVERSCAN_10, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_NONE, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_NORMAL2X, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_NORMAL3X, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_NORMAL4X, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_NORMAL5X, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_HARDWARE_NONE, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_HARDWARE2X, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_HARDWARE3X, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_HARDWARE4X, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_HARDWARE5X, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_ADVMAME2X, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_ADVMAME3X, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_ADVINTERP2X, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_ADVINTERP3X, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_HQ2X, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_HQ3X, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_TV2X, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_TV3X, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_SCAN2X, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_SCAN3X, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_RGB2X, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_RGB3X, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_2XSAI, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_SUPER2XSAI, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_SUPEREAGLE, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_FORCESCALER, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_SKIP_0, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_SKIP_1, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_SKIP_2, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_SKIP_3, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_SKIP_4, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_SKIP_5, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_SKIP_6, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_SKIP_7, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_SKIP_8, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_SKIP_9, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_SKIP_10, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_RESET_RESCALE, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_KEYMAP, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_WINRES_DESKTOP, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_WINRES_ORIGINAL, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_WINRES_USER, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_WINFULL_DESKTOP, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_WINFULL_ORIGINAL, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_WINFULL_USER, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_VSYNC, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_VSYNC_FORCE, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_VSYNC_HOST, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_VSYNC_OFF, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_VSYNC_ON, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_MULTISCAN, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_CHAR9, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_DOS_ADVANCED, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_DRVFORCE_DIRECTX, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_DRVFORCE_WINDIB, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_DRVFORCE_AUTO, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_DOSBOX_SECTION, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_MIXER_SECTION, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_SERIAL_SECTION, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_PARALLEL_SECTION, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_PRINTER_SECTION, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_NE2000_SECTION, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_AUTOEXEC, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_MOUSE_SENSITIVITY, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_HDD_SIZE, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_REFRESH, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_CYCLE, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_SAVELANG, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
 
 	CheckMenuItem(m_handle, ID_WAITONERR, GetSetSDLValue(1, "wait_on_error", 0) ? MF_CHECKED : MF_STRING);
 	EnableMenuItem(m_handle, ID_OPENFILE, (strlen(name) || menu.boot) ? MF_GRAYED : MF_ENABLED);
@@ -940,7 +1098,6 @@ int Reflect_Menu(void) {
 	CheckMenuItem(m_handle, ID_AUTOCYCLE, (CPU_CycleAutoAdjust) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_AUTODETER, (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_NORMAL, (!strcasecmp(core_mode, "Normal")) ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_DYNAMIC, (!strcasecmp(core_mode, "Dynamic")) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_FULL, (!strcasecmp(core_mode, "Full")) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_SIMPLE, (!strcasecmp(core_mode, "Simple")) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_AUTO, (!strcasecmp(core_mode, "Auto")) ? MF_CHECKED : MF_STRING);
@@ -974,7 +1131,6 @@ int Reflect_Menu(void) {
 
 	CheckMenuItem(m_handle, ID_ASPECT, (render.aspect) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_SURFACE, ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_SURFACE) ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_DDRAW, ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_SURFACE_DDRAW) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_DIRECT3D, ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_DIRECT3D) ? MF_CHECKED : MF_STRING);
 	if ((uintptr_t)GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_OPENGL) {
 		if (GetSetSDLValue(1, "opengl.bilinear", 0)) {
@@ -1500,6 +1656,8 @@ int Reflect_Menu(void) {
 	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_X, ID_MOUNT_FLOPPY_X, ID_MOUNT_LOCAL_X, ID_MOUNT_IMAGE_X, ID_AUTOMOUNT_X, ID_UMOUNT_X, 'X');
 	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_Y, ID_MOUNT_FLOPPY_Y, ID_MOUNT_LOCAL_Y, ID_MOUNT_IMAGE_Y, ID_AUTOMOUNT_Y, ID_UMOUNT_Y, 'Y');
 	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_Z, ID_MOUNT_FLOPPY_Z, ID_MOUNT_LOCAL_Z, ID_MOUNT_IMAGE_Z, ID_AUTOMOUNT_Z, ID_UMOUNT_Z, 'Z');
+
+	return 1;
 }
 
 // Sets the scaler to use.
@@ -1519,22 +1677,20 @@ void SetScaleForced(bool forced)
 	RENDER_CallBack(GFX_CallBackReset);
 }
 
-void MSG_Loop(void) {
+void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
+	bool GFX_GetPreventFullscreen(void);
+
 	if (!menu.gui || GetSetSDLValue(1, "desktop.fullscreen", 0)) return;
 	if (!GetMenu(GetHWND())) return;
-	MSG Message;
-	while (PeekMessage(&Message, GetHWND(), 0, 0, PM_REMOVE)) {
-		switch (Message.message) {
-		case WM_SYSCHAR:
-			break;
-		case WM_COMMAND:
-			switch (LOWORD(Message.wParam)) {
-			case ID_USESCANCODES: {
-				Section* sec = control->GetSection("sdl");
-				Section_prop * section = static_cast<Section_prop *>(sec);
-				SetVal("sdl", "usescancodes", section->Get_bool("usescancodes") ? "false" : "true");
-				}
-				break;
+	if (Message.msg != WM_COMMAND) return;
+
+	switch (LOWORD(Message.wParam)) {
+		case ID_USESCANCODES: {
+			Section* sec = control->GetSection("sdl");
+			Section_prop * section = static_cast<Section_prop *>(sec);
+			SetVal("sdl", "usescancodes", section->Get_bool("usescancodes") ? "false" : "true");
+		}
+		break;
 			case ID_WAITONERR:
 				if (GetSetSDLValue(1, "wait_on_error", 0)) {
 					SetVal("sdl", "waitonerror", "false");
@@ -1560,9 +1716,6 @@ void MSG_Loop(void) {
 				if (strcasecmp(core_mode, "normal") == 0) break;
 				SetVal("cpu", "core", "normal");
 				break;
-#if (C_DYNAMIC_X86)
-			case ID_DYNAMIC: if (strcmp(core_mode, "dynamic") != 0) SetVal("cpu", "core", "dynamic"); break;
-#endif
 			case ID_FULL: if (strcmp(core_mode, "full") != 0) SetVal("cpu", "core", "full"); break;
 			case ID_SIMPLE: if (strcmp(core_mode, "simple") != 0) SetVal("cpu", "core", "simple"); break;
 			case ID_AUTO: if (strcmp(core_mode, "auto") != 0) SetVal("cpu", "core", "auto"); break;
@@ -1570,55 +1723,58 @@ void MSG_Loop(void) {
 			case ID_AUTOCYCLE: SetVal("cpu", "cycles", (!CPU_CycleAutoAdjust) ? "max" : "auto"); break;
 			case ID_AUTODETER:
 			{
-			if (!(CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES)) {
-				SetVal("cpu", "cycles", "auto");
-				break;
-			}
-			else {
-				std::ostringstream str;
-				str << "fixed " << CPU_CycleMax;
-				std::string cycles = str.str();
-				SetVal("cpu", "cycles", cycles);
-				break;
-			}
+				if (!(CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES)) {
+					SetVal("cpu", "cycles", "auto");
+					break;
+				}
+				else {
+					std::ostringstream str;
+					str << "fixed " << CPU_CycleMax;
+					std::string cycles = str.str();
+					SetVal("cpu", "cycles", cycles);
+					break;
+				}
 			}
 			case ID_CAPMOUSE: GFX_CaptureMouse(); break;
 			case ID_REFRESH: GUI_Shortcut(1); break;
 			case ID_FULLSCREEN: GFX_SwitchFullScreen(); break;
 			case ID_ASPECT:
-				SetVal("render", "aspect", render.aspect ? "false" : "true");
-				Reflect_Menu();
+				if (!GFX_GetPreventFullscreen()) {
+					SetVal("render", "aspect", render.aspect ? "false" : "true");
+					Reflect_Menu();
+				}
 				break;
 			case ID_HIDECYCL:
 				menu.hidecycles = !menu.hidecycles;
 				GFX_SetTitle(CPU_CycleMax, -1, -1, false);
 				break;
 			case ID_TOGGLE: ToggleMenu(true); break;
-			case ID_NONE:			SetScaler(scalerOpNormal,			1, "none");				break;
-			case ID_NORMAL2X:		SetScaler(scalerOpNormal,			2, "normal2x");			break;
-			case ID_NORMAL3X:		SetScaler(scalerOpNormal,			3, "normal3x");			break;
-			case ID_NORMAL4X:		SetScaler(scalerOpNormal,			4, "normal4x");			break;
-			case ID_NORMAL5X:		SetScaler(scalerOpNormal,			5, "normal5x");			break;
-			case ID_HARDWARE_NONE:	SetScaler(scalerOpNormal,			1, "hardware_none");	break;
-			case ID_HARDWARE2X:		SetScaler(scalerOpNormal,			2, "hardware2x");		break;
-			case ID_HARDWARE3X:		SetScaler(scalerOpNormal,			3, "hardware3x");		break;
-			case ID_HARDWARE4X:		SetScaler(scalerOpNormal,			4, "hardware4x");		break;
-			case ID_HARDWARE5X:		SetScaler(scalerOpNormal,			4, "hardware5x");		break;
-			case ID_ADVMAME2X:		SetScaler(scalerOpAdvMame,			2, "advmame2x");		break;
-			case ID_ADVMAME3X:		SetScaler(scalerOpAdvMame,			3, "advmame3x");		break;
-			case ID_ADVINTERP2X:	SetScaler(scalerOpAdvInterp,		2, "advinterp2x");		break;
-			case ID_ADVINTERP3X:	SetScaler(scalerOpAdvInterp,		3, "advinterp3x");		break;
-			case ID_HQ2X:			SetScaler(scalerOpHQ,				2, "hq2x");				break;
-			case ID_HQ3X:			SetScaler(scalerOpHQ,				3, "hq3x");				break;
-			case ID_2XSAI:			SetScaler(scalerOpSaI,				2, "2xsai");			break;
-			case ID_SUPER2XSAI:		SetScaler(scalerOpSuperSaI,			2, "super2xsai");		break;
-			case ID_SUPEREAGLE:		SetScaler(scalerOpSuperEagle,		2, "supereagle");		break;
-			case ID_TV2X:			SetScaler(scalerOpTV,				2, "tv2x");				break;
-			case ID_TV3X:			SetScaler(scalerOpTV,				3, "tv3x");				break;
-			case ID_RGB2X:			SetScaler(scalerOpRGB,				2, "rgb2x");			break;
-			case ID_RGB3X:			SetScaler(scalerOpRGB,				3, "rgb3x");			break;
-			case ID_SCAN2X:			SetScaler(scalerOpScan,				2, "scan2x");			break;
-			case ID_SCAN3X:			SetScaler(scalerOpScan,				3, "scan3x");			break;
+			case ID_RESET_RESCALE:  GUI_ResetResize(true);                                      break;
+			case ID_NONE:			SetScaler(scalerOpNormal, 1, "none");				break;
+			case ID_NORMAL2X:		SetScaler(scalerOpNormal, 2, "normal2x");			break;
+			case ID_NORMAL3X:		SetScaler(scalerOpNormal, 3, "normal3x");			break;
+			case ID_NORMAL4X:		SetScaler(scalerOpNormal, 4, "normal4x");			break;
+			case ID_NORMAL5X:		SetScaler(scalerOpNormal, 5, "normal5x");			break;
+			case ID_HARDWARE_NONE:	SetScaler(scalerOpNormal, 1, "hardware_none");	break;
+			case ID_HARDWARE2X:		SetScaler(scalerOpNormal, 2, "hardware2x");		break;
+			case ID_HARDWARE3X:		SetScaler(scalerOpNormal, 3, "hardware3x");		break;
+			case ID_HARDWARE4X:		SetScaler(scalerOpNormal, 4, "hardware4x");		break;
+			case ID_HARDWARE5X:		SetScaler(scalerOpNormal, 4, "hardware5x");		break;
+			case ID_ADVMAME2X:		SetScaler(scalerOpAdvMame, 2, "advmame2x");		break;
+			case ID_ADVMAME3X:		SetScaler(scalerOpAdvMame, 3, "advmame3x");		break;
+			case ID_ADVINTERP2X:	SetScaler(scalerOpAdvInterp, 2, "advinterp2x");		break;
+			case ID_ADVINTERP3X:	SetScaler(scalerOpAdvInterp, 3, "advinterp3x");		break;
+			case ID_HQ2X:			SetScaler(scalerOpHQ, 2, "hq2x");				break;
+			case ID_HQ3X:			SetScaler(scalerOpHQ, 3, "hq3x");				break;
+			case ID_2XSAI:			SetScaler(scalerOpSaI, 2, "2xsai");			break;
+			case ID_SUPER2XSAI:		SetScaler(scalerOpSuperSaI, 2, "super2xsai");		break;
+			case ID_SUPEREAGLE:		SetScaler(scalerOpSuperEagle, 2, "supereagle");		break;
+			case ID_TV2X:			SetScaler(scalerOpTV, 2, "tv2x");				break;
+			case ID_TV3X:			SetScaler(scalerOpTV, 3, "tv3x");				break;
+			case ID_RGB2X:			SetScaler(scalerOpRGB, 2, "rgb2x");			break;
+			case ID_RGB3X:			SetScaler(scalerOpRGB, 3, "rgb3x");			break;
+			case ID_SCAN2X:			SetScaler(scalerOpScan, 2, "scan2x");			break;
+			case ID_SCAN3X:			SetScaler(scalerOpScan, 3, "scan3x");			break;
 			case ID_FORCESCALER:	SetScaleForced(!render.scale.forced);						break;
 			case ID_CYCLE: GUI_Shortcut(16); break;
 			case ID_CPU_TURBO: extern void DOSBOX_UnlockSpeed2(bool pressed); DOSBOX_UnlockSpeed2(1); break;
@@ -1661,8 +1817,8 @@ void MSG_Loop(void) {
 			case ID_UMOUNT_Z: UnMount('Z'); break;
 			case ID_AUTOMOUNT:
 			{
-			Section_prop * sec = static_cast<Section_prop *>(control->GetSection("dos"));
-			if(sec) SetVal("dos", "automount", sec->Get_bool("automount") ? "false" : "true");
+				Section_prop * sec = static_cast<Section_prop *>(control->GetSection("dos"));
+				if (sec) SetVal("dos", "automount", sec->Get_bool("automount") ? "false" : "true");
 			}
 			break;
 			case ID_AUTOMOUNT_A: MountDrive('A', "A:\\"); break;
@@ -1812,14 +1968,14 @@ void MSG_Loop(void) {
 				KEYBOARD_AddKey(KBD_leftctrl, false);
 				KEYBOARD_AddKey(KBD_esc, false);
 				break;
-				}
+			}
 			case ID_SEND_ALT_TAB: {
 				KEYBOARD_AddKey(KBD_leftalt, true);
 				KEYBOARD_AddKey(KBD_tab, true);
 				KEYBOARD_AddKey(KBD_leftalt, false);
 				KEYBOARD_AddKey(KBD_tab, false);
 				break;
-				}
+			}
 			case ID_SEND_CTRL_ALT_DEL: {
 				KEYBOARD_AddKey(KBD_leftctrl, true);
 				KEYBOARD_AddKey(KBD_leftalt, true);
@@ -1828,41 +1984,40 @@ void MSG_Loop(void) {
 				KEYBOARD_AddKey(KBD_leftalt, false);
 				KEYBOARD_AddKey(KBD_delete, false);
 				break;
-				}
+			}
 			case ID_CHAR9: MENU_SetBool("render", "char9"); break;
 			case ID_MULTISCAN: MENU_SetBool("render", "multiscan"); break;
 			case ID_DRVFORCE_DIRECTX: {
 				load_videodrv = true;
 				putenv("SDL_VIDEODRIVER=directx");
-				GetSetSDLValue(0, "using_windib", (void*) false);
+				GetSetSDLValue(0, "using_windib", (void*)false);
 				void restart_program(std::vector<std::string> & parameters);
 				restart_program(control->startup_params);
 				break;
-				}
+			}
 			case ID_DRVFORCE_WINDIB: {
 				load_videodrv = true;
 				putenv("SDL_VIDEODRIVER=windib");
-				GetSetSDLValue(0, "using_windib", (void*) true);
+				GetSetSDLValue(0, "using_windib", (void*)true);
 				void restart_program(std::vector<std::string> & parameters);
 				restart_program(control->startup_params);
 				break;
-				}
+			}
 			case ID_DRVFORCE_AUTO: {
 				load_videodrv = false;
 				void restart_program(std::vector<std::string> & parameters);
 				restart_program(control->startup_params);
 				break;
-				}
+			}
 			case ID_VSYNC_ON: SetVal("vsync", "vsyncmode", "on"); break;
 			case ID_VSYNC_HOST: SetVal("vsync", "vsyncmode", "host"); break;
 			case ID_VSYNC_FORCE: SetVal("vsync", "vsyncmode", "force"); break;
 			case ID_VSYNC_OFF: SetVal("vsync", "vsyncmode", "off"); break;
-			case ID_SURFACE: if ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_SURFACE) { change_output(0); SetVal("sdl", "output", "surface"); } break;
-			case ID_DDRAW: if ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_SURFACE_DDRAW) { change_output(1); SetVal("sdl", "output", "ddraw"); } break;
+			case ID_SURFACE: if ((uintptr_t)GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_SURFACE) { change_output(0); SetVal("sdl", "output", "surface"); } break;
 			case ID_OPENGL: change_output(3); SetVal("sdl", "output", "opengl"); break;
 			case ID_OPENGLNB: change_output(4); SetVal("sdl", "output", "openglnb"); break;
-			case ID_DIRECT3D: if ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_DIRECT3D) { change_output(5); SetVal("sdl", "output", "direct3d"); } break;
-			case ID_OPENGLHQ: if ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_OPENGLHQ) { change_output(6); SetVal("sdl", "output", "openglhq"); } break;
+			case ID_DIRECT3D: if ((uintptr_t)GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_DIRECT3D) { change_output(5); SetVal("sdl", "output", "direct3d"); } break;
+			case ID_OPENGLHQ: if ((uintptr_t)GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_OPENGLHQ) { change_output(6); SetVal("sdl", "output", "openglhq"); } break;
 			case ID_WINFULL_USER: case ID_WINRES_USER: GUI_Shortcut(2); break;
 			case ID_WINRES_ORIGINAL: res_input(true, "original"); break;
 			case ID_WINFULL_ORIGINAL: res_input(false, "original"); break;
@@ -1956,7 +2111,7 @@ void MSG_Loop(void) {
 			case ID_GUS_TRUE:
 			{
 				Section_prop * sec = static_cast<Section_prop *>(control->GetSection("gus"));
-				if(sec) SetVal("gus", "gus", sec->Get_bool("gus")?"false":"true"); break;
+				if (sec) SetVal("gus", "gus", sec->Get_bool("gus") ? "false" : "true"); break;
 			}
 			case ID_GUS_49716: SetVal("gus", "gusrate", "49716"); break;
 			case ID_GUS_48000: SetVal("gus", "gusrate", "48000"); break;
@@ -1989,8 +2144,8 @@ void MSG_Loop(void) {
 			case ID_GUS_DMA_7: SetVal("gus", "gusdma", "7"); break;
 			case ID_INNOVA_TRUE:
 			{
-			Section_prop * sec =  static_cast<Section_prop *>(control->GetSection("innova"));
-			if(sec) SetVal("innova", "innova", sec->Get_bool("innova")?"false":"true"); break;
+				Section_prop * sec = static_cast<Section_prop *>(control->GetSection("innova"));
+				if (sec) SetVal("innova", "innova", sec->Get_bool("innova") ? "false" : "true"); break;
 			}
 			case ID_INNOVA_49716: SetVal("innova", "samplerate", "49716"); break;
 			case ID_INNOVA_48000: SetVal("innova", "samplerate", "48000"); break;
@@ -2013,8 +2168,8 @@ void MSG_Loop(void) {
 			case ID_INNOVA_0: SetVal("innova", "quality", "0"); break;
 			case ID_PCSPEAKER_TRUE:
 			{
-			Section_prop * sec = static_cast<Section_prop *>(control->GetSection("speaker"));
-			if(sec) SetVal("speaker", "pcspeaker", sec->Get_bool("pcspeaker")?"false":"true"); break;
+				Section_prop * sec = static_cast<Section_prop *>(control->GetSection("speaker"));
+				if (sec) SetVal("speaker", "pcspeaker", sec->Get_bool("pcspeaker") ? "false" : "true"); break;
 			}
 			case ID_PCSPEAKER_49716: SetVal("speaker", "pcrate", "49716"); break;
 			case ID_PCSPEAKER_48000: SetVal("speaker", "pcrate", "48000"); break;
@@ -2121,7 +2276,7 @@ void MSG_Loop(void) {
 			case ID_OVERSCAN_10: LOG_MSG("GUI: Overscan 10 (surface)"); SetVal("sdl", "overscan", "10"); change_output(7); break;
 			case ID_VSYNC: GUI_Shortcut(17); break;
 			case ID_IPXNET: MENU_SetBool("ipx", "ipx"); break;
-			case ID_D3D_PS: D3D_PS(); if ((uintptr_t) GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_DIRECT3D) change_output(7); break;
+			case ID_D3D_PS: D3D_PS(); if ((uintptr_t)GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_DIRECT3D) change_output(7); break;
 			case ID_JOYSTICKTYPE_AUTO: SetVal("joystick", "joysticktype", "auto"); break;
 			case ID_JOYSTICKTYPE_2AXIS: SetVal("joystick", "joysticktype", "2axis"); break;
 			case ID_JOYSTICKTYPE_4AXIS: SetVal("joystick", "joysticktype", "4axis"); break;
@@ -2144,21 +2299,21 @@ void MSG_Loop(void) {
 			case ID_AUTOEXEC:  GUI_Shortcut(7); break;
 			case ID_MOUSE_VERTICAL: extern bool Mouse_Vertical; Mouse_Vertical = !Mouse_Vertical; break;
 			case ID_GLIDE_TRUE:
-			{	
-			Section_prop * sec = static_cast<Section_prop *>(control->GetSection("glide"));
-			if(sec) SetVal("glide", "glide", sec->Get_string("glide")=="true"?"false":"true");
-			break;
+			{
+				Section_prop * sec = static_cast<Section_prop *>(control->GetSection("glide"));
+				if (sec) SetVal("glide", "glide", sec->Get_string("glide") == "true" ? "false" : "true");
+				break;
 			}
 			case ID_GLIDE_EMU:
-			{	
-			Section_prop * sec = static_cast<Section_prop *>(control->GetSection("glide"));
-			if(sec) SetVal("glide", "glide", sec->Get_string("glide")=="emu"?"false":"emu");
-			break;
+			{
+				Section_prop * sec = static_cast<Section_prop *>(control->GetSection("glide"));
+				if (sec) SetVal("glide", "glide", sec->Get_string("glide") == "emu" ? "false" : "emu");
+				break;
 			}
 			case ID_SAVELANG:  GUI_Shortcut(9); break;
 			case ID_CPUTYPE_AUTO: SetVal("cpu", "cputype", "auto"); break;
 			case ID_CPUTYPE_386: SetVal("cpu", "cputype", "386"); break;
-			//case ID_CPUTYPE_386_SLOW: SetVal("cpu","cputype","386_slow"); break;
+				//case ID_CPUTYPE_386_SLOW: SetVal("cpu","cputype","386_slow"); break;
 			case ID_CPUTYPE_386_PREFETCH: SetVal("cpu", "cputype", "386_prefetch"); break;
 			case ID_CPUTYPE_486: SetVal("cpu", "cputype", "486"); break;
 			case ID_CPUTYPE_PENTIUM: SetVal("cpu", "cputype", "pentium"); break;
@@ -2304,8 +2459,8 @@ void MSG_Loop(void) {
 			case ID_GLIDE_LFB_NONE: SetVal("glide", "lfb", "none"); break;
 			case ID_GLIDE_SPLASH:
 			{
-			Section_prop * sec = static_cast<Section_prop *>(control->GetSection("glide"));
-			if(sec) SetVal("glide", "splash", sec->Get_bool("splash") ? "false" : "true");
+				Section_prop * sec = static_cast<Section_prop *>(control->GetSection("glide"));
+				if (sec) SetVal("glide", "splash", sec->Get_bool("splash") ? "false" : "true");
 			}
 			break;
 			case ID_GLIDE_EMU_FALSE: SetVal("pci", "voodoo", "false"); break;
@@ -2314,25 +2469,16 @@ void MSG_Loop(void) {
 			case ID_GLIDE_EMU_AUTO: SetVal("pci", "voodoo", "auto"); break;
 			case ID_ALWAYS_ON_TOP:
 			{
-			SetFocus(GetHWND());
-			DWORD dwExStyle = ::GetWindowLong(GetHWND(), GWL_EXSTYLE);
-			HWND top = ((dwExStyle & WS_EX_TOPMOST) == 0)?HWND_TOPMOST:HWND_NOTOPMOST;
-			SetWindowPos(GetHWND(), top,  0, 0, 0, 0, SWP_SHOWWINDOW|SWP_NOMOVE|SWP_NOSIZE);
-			break;
-			}
-
-			default:
+				DWORD dwExStyle = ::GetWindowLong(GetHWND(), GWL_EXSTYLE);
+				HWND top = ((dwExStyle & WS_EX_TOPMOST) == 0) ? HWND_TOPMOST : HWND_NOTOPMOST;
+				SetWindowPos(GetHWND(), top, 0, 0, 0, 0, SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSIZE);
 				break;
 			}
-		default: {
-			if (Message.message == 0x00A1) Reflect_Menu();
-
-			if (!TranslateAccelerator(GetHWND(), 0, &Message)) {
-				TranslateMessage(&Message);
-				DispatchMessage(&Message);
-			}
-			}
-		}
 	}
+
+	Reflect_Menu();
+}
+#else
+void DOSBox_SetSysMenu(void) {
 }
 #endif

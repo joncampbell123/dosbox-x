@@ -82,7 +82,8 @@ host_triplet = @host@
 subdir = .
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/configure $(am__configure_deps) \
-	$(srcdir)/config.h.in AUTHORS COPYING INSTALL NEWS README \
+	$(srcdir)/config.h.in $(srcdir)/dosbox-x.spec.in \
+	$(srcdir)/make-rpm.sh.in AUTHORS COPYING INSTALL NEWS README \
 	THANKS compile config.guess config.sub depcomp install-sh \
 	missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -94,7 +95,7 @@ am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = config.h
-CONFIG_CLEAN_FILES =
+CONFIG_CLEAN_FILES = dosbox-x.spec make-rpm.sh
 CONFIG_CLEAN_VPATH_FILES =
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -359,6 +360,10 @@ $(srcdir)/config.h.in:  $(am__configure_deps)
 
 distclean-hdr:
 	-rm -f config.h stamp-h1
+dosbox-x.spec: $(top_builddir)/config.status $(srcdir)/dosbox-x.spec.in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
+make-rpm.sh: $(top_builddir)/config.status $(srcdir)/make-rpm.sh.in
+	cd $(top_builddir) && $(SHELL) ./config.status $@
 
 # This directory's subdirectories are mostly independent; you can cd
 # into them and run 'make' without going through this Makefile.
@@ -777,30 +782,30 @@ uninstall-am:
 	uninstall-am
 
 
-.PHONY: dosbox.app
+.PHONY: dosbox-x.app
 
-dosbox.app: src/dosbox src/dosbox.icns
-	rm -Rfv dosbox.app
-	mkdir dosbox.app
-	mkdir dosbox.app/Contents
-	mkdir dosbox.app/Contents/MacOS
-	mkdir dosbox.app/Contents/Resources
-	cp -v src/dosbox.plist dosbox.app/Contents/Info.plist
-	cp -v src/dosbox.pkginfo dosbox.app/Contents/PkgInfo
-	cp -v src/dosbox.icns dosbox.app/Contents/Resources/DosBox.icns
-	cp -v src/dosbox dosbox.app/Contents/MacOS/DosBox
+dosbox-x.app: src/dosbox-x src/dosbox.icns
+	rm -Rfv dosbox-x.app
+	mkdir dosbox-x.app
+	mkdir dosbox-x.app/Contents
+	mkdir dosbox-x.app/Contents/MacOS
+	mkdir dosbox-x.app/Contents/Resources
+	cp -v src/dosbox.plist dosbox-x.app/Contents/Info.plist
+	cp -v src/dosbox.pkginfo dosbox-x.app/Contents/PkgInfo
+	cp -v src/dosbox.icns dosbox-x.app/Contents/Resources/DosBox.icns
+	cp -v src/dosbox-x dosbox-x.app/Contents/MacOS/DosBox
 # this is where it gets ugly
-	otool -L dosbox.app/Contents/MacOS/DosBox | grep '/usr/local/lib' | while read X; do Y=`echo "$$X" | sed -E '/^ +/s///' | cut -d ' ' -f 1`; \
+	otool -L dosbox-x.app/Contents/MacOS/DosBox | grep '/usr/local/lib' | while read X; do Y=`echo "$$X" | sed -E '/^ +/s///' | cut -d ' ' -f 1`; \
 		dylib=`basename $$Y`; \
-		cp -v $$Y dosbox.app/Contents/MacOS/; \
-		install_name_tool -change $$Y @executable_path/$$dylib dosbox.app/Contents/MacOS/DosBox; \
+		cp -v $$Y dosbox-x.app/Contents/MacOS/; \
+		install_name_tool -change $$Y @executable_path/$$dylib dosbox-x.app/Contents/MacOS/DosBox; \
 	done
 # and the libs too
 	for pass in 1 2 3 4 5; do \
-		for dolib in dosbox.app/Contents/MacOS/*.dylib; do \
+		for dolib in dosbox-x.app/Contents/MacOS/*.dylib; do \
 			otool -L "$$dolib" | grep '/usr/local/lib' | while read X; do Y=`echo "$$X" | sed -E '/^ +/s///' | cut -d ' ' -f 1`; \
 				dylib=`basename $$Y`; \
-				cp -vn $$Y dosbox.app/Contents/MacOS/; \
+				cp -vn $$Y dosbox-x.app/Contents/MacOS/; \
 				echo "$$Y"; \
 				install_name_tool -change $$Y @executable_path/$$dylib "$$dolib"; \
 				install_name_tool -id @executable_path/$$dylib "$$dolib"; \
@@ -816,6 +821,10 @@ src/dosbox.icns: src/dosbox.ico
 	sips -z 32 32    src/dosbox.png    --out src/dosbox.iconset/icon_32x32.png
 	iconutil -c icns -o src/dosbox.icns src/dosbox.iconset
 	rm -Rfv src/dosbox.iconset
+
+dox:
+	rm -Rfv doxygen
+	doxygen
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

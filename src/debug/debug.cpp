@@ -911,6 +911,10 @@ static void SetCodeWinStart()
 	codeViewData.cursorPos = -1;	// Recalc Cursor position
 };
 
+void DEBUG_CheckCSIP() {
+    SetCodeWinStart();
+}
+
 /********************/
 /*    User input    */
 /********************/
@@ -2219,6 +2223,11 @@ void DEBUG_ShutDown(Section * /*sec*/) {
 
 Bitu debugCallback;
 
+void DEBUG_DOSStartUp(Section *x) {
+	/* setup debug.com */
+	PROGRAMS_MakeFile("DEBUGBOX.COM",DEBUG_ProgramStart);
+}
+
 void DEBUG_Init() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing debug system");
 
@@ -2232,11 +2241,12 @@ void DEBUG_Init() {
 	#endif
 	/* Reset code overview and input line */
 	memset((void*)&codeViewData,0,sizeof(codeViewData));
-	/* setup debug.com */
-	PROGRAMS_MakeFile("DEBUGBOX.COM",DEBUG_ProgramStart);
 	/* Setup callback */
 	debugCallback=CALLBACK_Allocate();
 	CALLBACK_Setup(debugCallback,DEBUG_EnableDebugger,CB_RETF,"debugger");
+
+    AddVMEventFunction(VM_EVENT_DOS_INIT_SHELL_READY,AddVMEventFunctionFuncPair(DEBUG_DOSStartUp));
+
 	/* shutdown function */
 	AddExitFunction(AddExitFunctionFuncPair(DEBUG_ShutDown));
 }

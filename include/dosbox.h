@@ -22,6 +22,7 @@
 
 #include "config.h"
 #include "logging.h"
+#include "build_timestamp.h"
 
 #if defined(_MSC_VER)
 # include <sys/types.h>
@@ -43,9 +44,6 @@
 // GCC, other compilers, have sizeof(long double) == 10 80-bit IEEE
 # define HAS_LONG_DOUBLE		1
 #endif
-
-// TODO: Don't forget to keep updating this string each release!
-#define UPDATED_STR			"December 28, 2017"
 
 GCC_ATTRIBUTE(noreturn) void		E_Exit(const char * message,...) GCC_ATTRIBUTE( __format__(__printf__, 1, 2));
 
@@ -99,8 +97,9 @@ void					DOSBOX_Init(void);
 /* machine tests for use with if() statements */
 #define IS_TANDY_ARCH			((machine==MCH_TANDY) || (machine==MCH_PCJR))
 #define IS_EGAVGA_ARCH			((machine==MCH_EGA) || (machine==MCH_VGA))
-#define IS_VGA_ARCH			(machine==MCH_VGA)
-#define IS_PC98_ARCH			(machine==MCH_PC98)
+#define IS_EGA_ARCH             (machine==MCH_EGA)
+#define IS_VGA_ARCH             (machine==MCH_VGA)
+#define IS_PC98_ARCH            (machine==MCH_PC98)
 
 /* machine tests for use with switch() statements */
 #define TANDY_ARCH_CASE			MCH_TANDY: case MCH_PCJR
@@ -143,5 +142,8 @@ int utf16le_decode(const char **ptr,const char *fence);
 
 typedef char utf8_t;
 typedef uint16_t utf16_t;
+
+/* for DOS filename handling we want a toupper that uses the MS-DOS code page within not the locale of the host */
+int ascii_toupper(int c);
 
 #endif /* DOSBOX_DOSBOX_H */

@@ -28,7 +28,6 @@
 #define ID_AUTOCYCLE                    119
 #define ID_AUTODETER                    120
 #define ID_NORMAL                       121
-#define ID_DYNAMIC                      122
 #define ID_FULL                         123
 #define ID_SIMPLE                       124
 #define ID_AUTO                         125
@@ -729,6 +728,7 @@
 #define ID_GLIDE_EMU_OPENGL             818
 #define ID_GLIDE_EMU_AUTO               819
 #define ID_ALWAYS_ON_TOP                820
+#define ID_RESET_RESCALE                821
 #define ID_MFCLOC_MANIFEST              1000
 #define AFX_IDC_FONTPROP                1000
 #define AFX_IDC_FONTNAMES               1001

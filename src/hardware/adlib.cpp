@@ -683,6 +683,9 @@ void SaveRad() {
 void OPL_SaveRawEvent(bool pressed) {
 	if (!pressed)
 		return;
+    if (module == NULL)
+        return;
+
 //	SaveRad();return;
 	/* Check for previously opened wave file */
 	if ( module->capture ) {
@@ -785,6 +788,5 @@ void OPL_Init(Section* sec,OPL_Mode oplmode) {
 void OPL_ShutDown(Section* sec){
 	delete module;
 	module = 0;
-
 }
 

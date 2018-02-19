@@ -512,6 +512,13 @@ void TIMER_BIOS_INIT_Configure() {
 
 	PCSPEAKER_SetCounter(pit[pcspeaker_pit].cntr,pit[pcspeaker_pit].mode);
 	PIC_AddEvent(PIT0_Event,pit[0].delay);
+
+    if (IS_PC98_ARCH) {
+    /* BIOS data area at 0x501 tells the DOS application which clock rate to use */
+        phys_writeb(0x501,
+            ((PIT_TICK_RATE == PIT_TICK_RATE_PC98_8MHZ) ? 0x80 : 0x00)      /* bit 7: 1=8MHz  0=5MHz/10MHz */
+            );
+    }
 }
 
 void TIMER_OnPowerOn(Section*) {
@@ -542,6 +549,11 @@ void TIMER_OnPowerOn(Section*) {
 
 	latched_timerstatus_locked=false;
 	gate2 = false;
+
+    if (IS_PC98_ARCH) {
+        void TIMER_OnEnterPC98_Phase2(Section*);
+        TIMER_OnEnterPC98_Phase2(NULL);
+    }
 }
 
 /* NTS: This comes in two phases because we're taking ports 0x71-0x77 which overlap
@@ -552,19 +564,6 @@ void TIMER_OnPowerOn(Section*) {
  *
  *      Phase 2 is where we can then claim the I/O ports without our claim getting
  *      overwritten by CMOS emulation unregistering the I/O port. */
-
-void TIMER_OnEnterPC98_Phase1(Section*) {
-	PIC_RemoveEvents(PIT0_Event);
-
-	WriteHandler[0].Uninstall();
-	WriteHandler[1].Uninstall();
-	WriteHandler[2].Uninstall();
-	WriteHandler[3].Uninstall();
-	ReadHandler[0].Uninstall();
-	ReadHandler[1].Uninstall();
-	ReadHandler[2].Uninstall();
-	ReadHandler[3].Uninstall();
-}
 
 void TIMER_OnEnterPC98_Phase2(Section*) {
 	Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
@@ -625,11 +624,6 @@ void TIMER_OnEnterPC98_Phase2(Section*) {
 	ReadHandler[1].Install(IS_PC98_ARCH ? 0x73 : 0x41,read_latch,IO_MB);
 	ReadHandler[2].Install(IS_PC98_ARCH ? 0x75 : 0x42,read_latch,IO_MB);
 
-    /* BIOS data area at 0x501 tells the DOS application which clock rate to use */
-    phys_writeb(0x501,
-        ((PIT_TICK_RATE == PIT_TICK_RATE_PC98_8MHZ) ? 0x80 : 0x00)      /* bit 7: 1=8MHz  0=5MHz/10MHz */
-    );
-
 	latched_timerstatus_locked=false;
 	gate2 = false;
 
@@ -663,7 +657,5 @@ void TIMER_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(TIMER_Destroy));
 	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(TIMER_OnPowerOn));
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(TIMER_OnEnterPC98_Phase1));
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE_END,AddVMEventFunctionFuncPair(TIMER_OnEnterPC98_Phase2));
 }
 

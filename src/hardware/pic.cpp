@@ -27,6 +27,8 @@
 
 #define PIC_QUEUESIZE 512
 
+unsigned long PIC_irq_delay_ns = 0;
+
 struct PIC_Controller {
 	Bitu icw_words;
 	Bitu icw_index;
@@ -116,8 +118,14 @@ static PIC_Controller& master = pics[0];
 static PIC_Controller& slave  = pics[1];
 Bitu PIC_Ticks = 0;
 Bitu PIC_IRQCheck = 0; //Maybe make it a bool and/or ensure 32bit size (x86 dynamic core seems to assume 32 bit variable size)
+Bitu PIC_IRQCheckPending = 0; //Maybe make it a bool and/or ensure 32bit size (x86 dynamic core seems to assume 32 bit variable size)
 bool enable_slave_pic = true; /* if set, emulate slave with cascade to master. if clear, emulate only master, and no cascade (IRQ 2 is open) */
 bool enable_pc_xt_nmi_mask = false;
+
+void PIC_IRQCheckDelayed(Bitu val) {
+    PIC_IRQCheck = 1;
+    PIC_IRQCheckPending = 0;
+}
 
 void PIC_Controller::set_imr(Bit8u val) {
 	Bit8u change = (imr) ^ (val); //Bits that have changed become 1.
@@ -133,10 +141,11 @@ void PIC_Controller::activate() {
 	//Stops CPU if master, signals master if slave
 	if(this == &master) {
 		//cycles 0, take care of the port IO stuff added in raise_irq base caller.
-		PIC_IRQCheck = 1;
-		CPU_CycleLeft += CPU_Cycles;
-		CPU_Cycles = 0;
-		//maybe when coming from a EOI, give a tiny delay. (for the cpu to pick it up) (see PIC_Activate_IRQ)
+        if (!PIC_IRQCheckPending) {
+            /* NTS: PIC_AddEvent by design caps CPU_Cycles to make the event happen on time */
+            PIC_AddEvent(PIC_IRQCheckDelayed,(double)PIC_irq_delay_ns / 1000000,0);
+            PIC_IRQCheckPending = 1;
+        }
 	} else {
 		master.raise_irq(master_cascade_irq);
 	}
@@ -307,8 +316,6 @@ static void pc_xt_nmi_write(Bitu port,Bitu val,Bitu iolen) {
 	CPU_NMI_gate = (val & 0x80) ? true : false;
 }
 
-int PIC_irq_delay = 2;
-
 /* FIXME: This should be called something else that's true to the ISA bus, like PIC_PulseIRQ, not Activate IRQ.
  *        ISA interrupts are edge triggered, not level triggered. */
 void PIC_ActivateIRQ(Bitu irq) {
@@ -333,19 +340,7 @@ void PIC_ActivateIRQ(Bitu irq) {
 	Bitu t = irq>7 ? (irq - 8): irq;
 	PIC_Controller * pic=&pics[irq>7 ? 1 : 0];
 
-	pic->raise_irq(t); //Will set the CPU_Cycles to zero if this IRQ will be handled directly
-
-    // Real hardware executes 0 to ~13 NOPs or comparable instructions
-    // before the processor picks up the interrupt. Let's try with 2
-    // cycles here.
-    // Required by Panic demo (irq0), It came from the desert (MPU401),
-    // Pizza by Port Mortem (SB IRQ detection),
-    // Does it matter if CPU_CycleLeft becomes negative?
-
-    // It might be an idea to do this always in order to simulate this
-    // So on write mask and EOI as well. (so inside the activate function)
-    CPU_CycleLeft += (CPU_Cycles-PIC_irq_delay);
-    CPU_Cycles = PIC_irq_delay;
+	pic->raise_irq(t);
 }
 
 void PIC_DeActivateIRQ(Bitu irq) {
@@ -461,8 +456,15 @@ void PIC_runIRQs(void) {
 
 	/* if we cleared all IRQs, then stop checking.
 	 * otherwise, keep the flag set for the next IRQ to process. */
-	if (i == max && (master.irr&master.imrr) == 0)
-		PIC_IRQCheck = 0;
+	if (i == max && (master.irr&master.imrr) == 0) {
+        PIC_IRQCheckPending = 0;
+        PIC_IRQCheck = 0;
+    }
+    else if (PIC_IRQCheck) {
+        PIC_AddEvent(PIC_IRQCheckDelayed,(double)PIC_irq_delay_ns / 1000000,0);
+        PIC_IRQCheckPending = 1;
+        PIC_IRQCheck = 0;
+    }
 }
 
 void PIC_SetIRQMask(Bitu irq, bool masked) {
@@ -670,6 +672,8 @@ void TIMER_AddTickHandler(TIMER_TickHandler handler) {
 	firstticker=newticker;
 }
 
+extern Bitu time_limit_ms;
+
 static unsigned long PIC_benchstart = 0;
 static unsigned long PIC_tickstart = 0;
 
@@ -686,6 +690,10 @@ void TIMER_AddTick(void) {
 	}
 	CPU_CycleLeft += CPU_CycleMax + CPU_Cycles;
 	CPU_Cycles = 0;
+
+    /* timeout */
+    if (time_limit_ms != 0 && PIC_Ticks >= time_limit_ms)
+        throw int(1);
 
 	/* Go through the list of scheduled events and lower their index with 1000 */
 	PICEntry * entry=pic_queue.next_entry;
@@ -727,8 +735,14 @@ void PIC_Reset(Section *sec) {
 
 	enable_slave_pic = section->Get_bool("enable slave pic");
 	enable_pc_xt_nmi_mask = section->Get_bool("enable pc nmi mask");
-    PIC_irq_delay = section->Get_int("irq delay");
-    if (PIC_irq_delay < 0) PIC_irq_delay = 2; /* default */
+
+    /* NTS: This is a good guess. But the 8259 is static circuitry and not driven by a clock.
+     *      But the ability to respond to interrupts is limited by the CPU, too. */
+    PIC_irq_delay_ns = (1000000000UL * 2UL) / (unsigned long)PIT_TICK_RATE;
+    {
+        int x = section->Get_int("irq delay ns");
+        if (x >= 0) PIC_irq_delay_ns = x;
+    }
 
     if (enable_slave_pic)
         master_cascade_irq = IS_PC98_ARCH ? 7 : 2;
@@ -797,22 +811,6 @@ void PIC_Reset(Section *sec) {
 void PIC_Destroy(Section* sec) {
 }
 
-void PIC_EnterPC98_Phase1(Section* sec) {
-	ReadHandler[0].Uninstall();
-	ReadHandler[1].Uninstall();
-	WriteHandler[0].Uninstall();
-	WriteHandler[1].Uninstall();
-	ReadHandler[2].Uninstall();
-	ReadHandler[3].Uninstall();
-	WriteHandler[2].Uninstall();
-	WriteHandler[3].Uninstall();
-	PCXT_NMI_WriteHandler.Uninstall();
-}
-
-void PIC_EnterPC98_Phase2(Section* sec) {
-    PIC_Reset(sec);
-}
-
 void Init_PIC() {
 	Bitu i;
 
@@ -831,7 +829,5 @@ void Init_PIC() {
 
 	AddExitFunction(AddExitFunctionFuncPair(PIC_Destroy));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PIC_Reset));
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(PIC_EnterPC98_Phase1));
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE_END,AddVMEventFunctionFuncPair(PIC_EnterPC98_Phase2));
 }
 

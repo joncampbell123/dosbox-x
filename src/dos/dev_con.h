@@ -33,6 +33,11 @@ Bitu INT16_Handler_Wrap(void);
 
 ShiftJISDecoder con_sjis;
 
+Bit16u last_int16_code = 0;
+
+static size_t dev_con_pos=0,dev_con_max=0;
+static char dev_con_readbuf[64];
+
 class device_CON : public DOS_Device {
 public:
 	device_CON();
@@ -88,6 +93,71 @@ private:
 		reg_dx=olddx;
 	}
 
+    /* Common function to turn specific scan codes into ANSI codes.
+     * This is a separate function so that both Read() and GetInformation() can use it.
+     * GetInformation needs to handle the scan code on entry in order to correctly
+     * assert whether Read() will return data or not. Some scan codes are ignored by
+     * the CON driver, therefore even though the BIOS says there is key data, Read()
+     * will not return anything and will block. */
+    bool CommonPC98ExtScanConversionToReadBuf(unsigned char code) {
+        switch (code) {
+            case 0x39: // DEL
+                dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x44; dev_con_pos=0; dev_con_max=2;
+                return true;
+            case 0x3A: // up arrow
+                dev_con_readbuf[0] = 0x0B; dev_con_pos=0; dev_con_max=1;
+                return true;
+            case 0x3B: // left arrow
+                dev_con_readbuf[0] = 0x08; dev_con_pos=0; dev_con_max=1;
+                return true;
+            case 0x3C: // right arrow
+                dev_con_readbuf[0] = 0x0C; dev_con_pos=0; dev_con_max=1;
+                return true;
+            case 0x3D: // down arrow
+                dev_con_readbuf[0] = 0x0A; dev_con_pos=0; dev_con_max=1;
+                return true;
+            case 0x62: // F1
+                dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x53; dev_con_pos=0; dev_con_max=2;
+                return true;
+            case 0x63: // F2
+                dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x54; dev_con_pos=0; dev_con_max=2;
+                return true;
+            case 0x64: // F3
+                dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x55; dev_con_pos=0; dev_con_max=2;
+                return true;
+            case 0x65: // F4
+                dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x56; dev_con_pos=0; dev_con_max=2;
+                return true;
+            case 0x66: // F5
+                dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x57; dev_con_pos=0; dev_con_max=2;
+                return true;
+            case 0x67: // F6
+                dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x45; dev_con_pos=0; dev_con_max=2;
+                return true;
+            case 0x68: // F7
+                dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x4A; dev_con_pos=0; dev_con_max=2;
+                return true;
+            case 0x69: // F8
+                dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x50; dev_con_pos=0; dev_con_max=2;
+                return true;
+            case 0x6A: // F9
+                dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x51; dev_con_pos=0; dev_con_max=2;
+                return true;
+            case 0x6B: // F10
+                dev_con_readbuf[0] = 0x1B; dev_con_readbuf[1] = 0x5A; dev_con_pos=0; dev_con_max=2;
+                return true;
+#if 0
+                // INS      0x1B 0x50   0x1B 0x50   0x1B 0x50
+                // ROLL UP  --          --          --
+                // POLL DOWN--          --          --
+                // COPY     --          --          --
+                // HOME/CLR 0x1A        0x1E        --
+                // HELP     --          --          --
+#endif
+        }
+
+        return false;
+    }
 
 	static void Real_INT10_TeletypeOutput(Bit8u xChar,Bit8u xAttr) {
 		Bit16u		oldax,oldbx;
@@ -306,6 +376,11 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
 		readcache=0;
 	}
 	while (*size>count) {
+        if (dev_con_pos < dev_con_max) {
+            data[count++] = dev_con_readbuf[dev_con_pos++];
+            continue;
+        }
+
 		reg_ah=(IS_EGAVGA_ARCH)?0x10:0x0;
 
         /* FIXME: PC-98 emulation should eventually use CONIO emulation that
@@ -316,6 +391,9 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
             INT16_Handler_Wrap();
         else
             CALLBACK_RunRealInt(0x16);
+
+        /* hack for DOSKEY emulation */
+        last_int16_code = reg_ax;
 
 		switch(reg_al) {
 		case 13:
@@ -349,9 +427,18 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
 			}
 			break;
 		case 0: /* Extended keys in the int 16 0x0 case */
-			data[count++]=reg_al;
-			if (*size>count) data[count++]=reg_ah;
-			else readcache=reg_ah;
+            if (IS_PC98_ARCH) {
+                /* PC-98 does NOT return scan code, but instead returns nothing or
+                 * control/escape code */
+                CommonPC98ExtScanConversionToReadBuf(reg_ah);
+            }
+            else {
+                /* IBM PC/XT/AT signals extended code by entering AL, AH.
+                 * Arrow keys for example become 0x00 0x48, 0x00 0x50, etc. */
+    			data[count++]=reg_al;
+	    		if (*size>count) data[count++]=reg_ah;
+		    	else readcache=reg_ah;
+            }
 			break;
 		default:
 			data[count++]=reg_al;
@@ -367,6 +454,8 @@ bool device_CON::Read(Bit8u * data,Bit16u * size) {
 	return true;
 }
 
+bool log_dev_con = false;
+std::string log_dev_con_str;
 
 bool device_CON::Write(Bit8u * data,Bit16u * size) {
     Bit16u count=0;
@@ -375,6 +464,16 @@ bool device_CON::Write(Bit8u * data,Bit16u * size) {
     Bit8u tempdata;
     INT10_SetCurMode();
     while (*size>count) {
+        if (log_dev_con) {
+            if (log_dev_con_str.size() >= 255 || data[count] == '\n') {
+                LOG_MSG("DOS CON: %s",log_dev_con_str.c_str());
+                log_dev_con_str.clear();
+            }
+
+            if (data[count] != '\n' && data[count] != '\r')
+                log_dev_con_str += (char)data[count];
+        }
+
         if (!ansi.esc){
             if(data[count]=='\033') {
                 /*clear the datastructure */
@@ -690,7 +789,7 @@ Bit16u device_CON::GetInformation(void) {
 		 * Since Scandisk is using INT 21h AH=0x0B to query STDIN during this time,
 		 * this implementation is a good "halfway" compromise in that this call
 		 * will trigger the INT 16h AH=0x11 hook it relies on. */
-		if (readcache) return 0x8093; /* key available */
+		if (readcache || dev_con_pos < dev_con_max) return 0x8093; /* key available */
 
 		Bitu saved_ax = reg_ax;
 
@@ -705,9 +804,31 @@ Bit16u device_CON::GetInformation(void) {
         else
             CALLBACK_RunRealInt(0x16);
 
-		if (!GETFLAG(ZF)) { /* key is present, waiting to be returned on AH=0x10 or AH=0x00 */
-			ret = 0x8093; /* Key Available */
-		}
+        if (!GETFLAG(ZF)) { /* key is present, waiting to be returned on AH=0x10 or AH=0x00 */
+            if (IS_PC98_ARCH && reg_al == 0) {
+                /* some scan codes are ignored by CON, and wouldn't read anything.
+                 * while we're at it, take the scan code and convert it into ANSI here
+                 * so that Read() returns it immediately instead of doing this conversion itself.
+                 * This way we never block when we SAID a key was available that gets ignored. */
+                if (CommonPC98ExtScanConversionToReadBuf(reg_ah))
+                    ret = 0x8093; /* Key Available */
+                else
+                    ret = 0x80D3; /* No Key Available */
+
+                /* need to consume the key. if it generated anything it will be returned to Read()
+                 * through dev_con_readbuf[] */
+                reg_ah=0x0;
+
+                /* FIXME: PC-98 emulation should eventually use CONIO emulation that
+                 *        better emulates the actual platform. The purpose of this
+                 *        hack is to allow our code to call into INT 16h without
+                 *        setting up an INT 16h vector */
+                INT16_Handler_Wrap();
+            }
+            else {
+                ret = 0x8093; /* Key Available */
+            }
+        }
 
 		reg_ax = saved_ax;
 		return ret;

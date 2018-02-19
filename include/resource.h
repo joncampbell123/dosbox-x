@@ -6,7 +6,6 @@
 #define	ID_CAPMOUSE	106
 #define	ID_PAUSE	107
 #define	ID_SURFACE	108
-#define	ID_DDRAW	109
 #define	ID_OPENGL	110
 #define	ID_OPENGLNB	111
 #define	ID_OPENGLHQ	112
@@ -19,7 +18,6 @@
 #define	ID_AUTOCYCLE	119
 #define	ID_AUTODETER	120
 #define	ID_NORMAL	121
-#define	ID_DYNAMIC	122
 #define	ID_FULL	123
 #define	ID_SIMPLE	124
 #define	ID_AUTO	125
@@ -716,4 +714,8 @@
 #define	ID_GLIDE_EMU_OPENGL	818
 #define	ID_GLIDE_EMU_AUTO	819
 #define	ID_ALWAYS_ON_TOP 820
-		
+#define ID_RESET_RESCALE 821
+
+#if defined(WIN32)
+# define ID_WIN_SYSMENU_RESTOREMENU 0x0F00
+#endif

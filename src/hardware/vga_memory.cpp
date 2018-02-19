@@ -776,7 +776,7 @@ struct pc98_egc_shifter {
         remain = pc98_egc_shift_length + 1; /* the register is length - 1 apparently */
         dstbit = pc98_egc_shift_destbit;
         srcbit = pc98_egc_shift_srcbit;
-        bufi = bufo = decrement ? 12 : 0;
+        bufi = bufo = decrement ? (sizeof(buffer) + 3 - (4*4)) : 0;
 
         if ((srcbit&7) < (dstbit&7)) {
             shft8bitr = (dstbit&7) - (srcbit&7);
@@ -803,7 +803,7 @@ struct pc98_egc_shifter {
     uint16_t            o_srcbit;
     uint16_t            o_dstbit;
 
-    uint8_t             buffer[4*4];
+    uint8_t             buffer[512]; /* 4096/8 = 512 */
     uint16_t            bufi,bufo;
 
     uint8_t             shft8load;
@@ -844,10 +844,10 @@ struct pc98_egc_shifter {
     }
 
     template <class AWT> inline void input(const AWT a,const AWT b,const AWT c,const AWT d,uint8_t odd) {
-        bi<AWT>( 0,a);
-        bi<AWT>( 4,b);
-        bi<AWT>( 8,c);
-        bi<AWT>(12,d);
+        bi<AWT>((pc98_egc_shift_descend ? (sizeof(buffer) + 1 - sizeof(AWT)) : 0) + 0,a);
+        bi<AWT>((pc98_egc_shift_descend ? (sizeof(buffer) + 1 - sizeof(AWT)) : 0) + 4,b);
+        bi<AWT>((pc98_egc_shift_descend ? (sizeof(buffer) + 1 - sizeof(AWT)) : 0) + 8,c);
+        bi<AWT>((pc98_egc_shift_descend ? (sizeof(buffer) + 1 - sizeof(AWT)) : 0) + 12,d);
 
         if (shft8load <= 16) {
             bi_adv<AWT>();
@@ -897,9 +897,16 @@ struct pc98_egc_shifter {
             shft8load -= (16 - dstbit);
 
             /* assume odd == false and output is to even byte offset */
-            output<uint8_t>(((uint8_t*)(&a))[0],((uint8_t*)(&b))[0],((uint8_t*)(&c))[0],((uint8_t*)(&d))[0],0,true);
-            if (remain != 0) output<uint8_t>(((uint8_t*)(&a))[1],((uint8_t*)(&b))[1],((uint8_t*)(&c))[1],((uint8_t*)(&d))[1],1,true);
-            else pc98_egc_srcmask[1] = 0;
+            if (pc98_egc_shift_descend) {
+                output<uint8_t>(((uint8_t*)(&a))[1],((uint8_t*)(&b))[1],((uint8_t*)(&c))[1],((uint8_t*)(&d))[1],1,true);
+                if (remain != 0) output<uint8_t>(((uint8_t*)(&a))[0],((uint8_t*)(&b))[0],((uint8_t*)(&c))[0],((uint8_t*)(&d))[0],0,true);
+                else pc98_egc_srcmask[0] = 0;
+            }
+            else {
+                output<uint8_t>(((uint8_t*)(&a))[0],((uint8_t*)(&b))[0],((uint8_t*)(&c))[0],((uint8_t*)(&d))[0],0,true);
+                if (remain != 0) output<uint8_t>(((uint8_t*)(&a))[1],((uint8_t*)(&b))[1],((uint8_t*)(&c))[1],((uint8_t*)(&d))[1],1,true);
+                else pc98_egc_srcmask[1] = 0;
+            }
 
             if (remain == 0)
                 reinit();
@@ -958,10 +965,10 @@ struct pc98_egc_shifter {
             else {
                 if (pc98_egc_shift_descend) {
                     bo_adv<AWT>();
-                    a = (bo<AWT>( 0) >> shft8bitl) | (bo<AWT>( 0+1) << shft8bitr);
-                    b = (bo<AWT>( 4) >> shft8bitl) | (bo<AWT>( 4+1) << shft8bitr);
-                    c = (bo<AWT>( 8) >> shft8bitl) | (bo<AWT>( 8+1) << shft8bitr);
-                    d = (bo<AWT>(12) >> shft8bitl) | (bo<AWT>(12+1) << shft8bitr);
+                    a = (bo<AWT>( 0+1) >> shft8bitl) | (bo<AWT>( 0) << shft8bitr);
+                    b = (bo<AWT>( 4+1) >> shft8bitl) | (bo<AWT>( 4) << shft8bitr);
+                    c = (bo<AWT>( 8+1) >> shft8bitl) | (bo<AWT>( 8) << shft8bitr);
+                    d = (bo<AWT>(12+1) >> shft8bitl) | (bo<AWT>(12) << shft8bitr);
                 }
                 else {
                     a = (bo<AWT>( 0) << shft8bitl) | (bo<AWT>( 0+1) >> shft8bitr);
@@ -977,10 +984,10 @@ struct pc98_egc_shifter {
 
             if (pc98_egc_shift_descend) {
                 bo_adv<AWT>();
-                a = (bo<AWT>( 0) << shft8bitr) | (bo<AWT>( 0+1) >> shft8bitl);
-                b = (bo<AWT>( 4) << shft8bitr) | (bo<AWT>( 4+1) >> shft8bitl);
-                c = (bo<AWT>( 8) << shft8bitr) | (bo<AWT>( 8+1) >> shft8bitl);
-                d = (bo<AWT>(12) << shft8bitr) | (bo<AWT>(12+1) >> shft8bitl);
+                a = (bo<AWT>( 0+1) >> shft8bitl) | (bo<AWT>( 0) << shft8bitr);
+                b = (bo<AWT>( 4+1) >> shft8bitl) | (bo<AWT>( 4) << shft8bitr);
+                c = (bo<AWT>( 8+1) >> shft8bitl) | (bo<AWT>( 8) << shft8bitr);
+                d = (bo<AWT>(12+1) >> shft8bitl) | (bo<AWT>(12) << shft8bitr);
             }
             else {
                 a = (bo<AWT>( 0) << shft8bitl) | (bo<AWT>( 0+1) >> shft8bitr);
@@ -2344,6 +2351,9 @@ void VGA_StartUpdateLFB(void) {
 static bool VGA_Memory_ShutDown_init = false;
 
 static void VGA_Memory_ShutDown(Section * /*sec*/) {
+	MEM_SetPageHandler(VGA_PAGE_A0,32,&vgaph.empty);
+	PAGING_ClearTLB();
+
 	if (vga.mem.linear_orgptr != NULL) {
 		delete[] vga.mem.linear_orgptr;
 		vga.mem.linear_orgptr = NULL;

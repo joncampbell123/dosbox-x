@@ -19,6 +19,8 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <stdexcept>
+#include <exception>
 
 #include "mt32emu.h"
 #include "mmath.h"
@@ -1611,6 +1613,13 @@ void MemoryRegion::write(unsigned int entry, unsigned int off, const Bit8u *src,
 
 void Synth::setPartialLimit( unsigned int _partialLimit )
 {
+	/* NTS: A memory leak can occur if we open the synth with the initial (max)
+		number of partials, then allow DOSBox-X to call setPartialLimit()
+		with an (often lower) partial count, because the PartialManager()
+		will later free only that lower count of partials. To prevent this,
+		we throw a C++ exception if an attempt is made while the synth is
+		open to call this function. */
+	if (isOpen) throw std::runtime_error("MT32 attempt to change partial limit while synth is open");
 	partialLimit = _partialLimit;
 }
 

@@ -552,6 +552,25 @@ irq1_end:
 
 unsigned char AT_read_60(void);
 
+/* BIOS INT 18h output vs keys:
+ *
+ *              Unshifted   Shifted     CTRL    Caps    Kana    Kana+Shift
+ *              -----------------------------------------------------------
+ * ESC          0x001B      0x001B      0x001B  0x001B  0x001B  0x001B
+ * STOP         --          --          --      --      --      --
+ * F1..F10      <--------------- scan code in upper, zero in lower ------->
+ * INS/DEL      <--------------- scan code in upper, zero in lower ------->
+ * ROLL UP/DOWN <--------------- scan code in upper, zero in lower ------->
+ * COPY         --          --          --      --      --      --
+ * HOME CLR     0x3E00      0xAE00      --      --      --      --
+ * HELP         <--------------- scan code in upper, zero in lower ------->
+ * ARROW KEYS   <--------------- scan code in upper, zero in lower ------->
+ * XFER         0x3500      0xA500      0xB500  0x3500  0x3500  0xA500
+ * NFER         0x5100      0xA100      0xB100  0x5100  0x5100  0xA100
+ * GRPH         --          --          --      --      --      --
+ * TAB          0x0F09      0x0F09      0x0F09  0x0F09  0x0F09  0x0F09
+ * - / 口       --          --          --      --      0x33DB  0x33DB      Kana+CTRL = 0x331F
+ */
 static Bitu IRQ1_Handler_PC98(void) {
     unsigned char sc_8251,status;
     unsigned int patience = 32;
@@ -1017,9 +1036,44 @@ static Bitu IRQ1_Handler_PC98(void) {
                 }
                 break;
 
+            case 0x60: // STOP
+                // does not pass it on
+                break;
+
+            case 0x62: // F1
+            case 0x63: // F2
+            case 0x64: // F3
+            case 0x65: // F4
+            case 0x66: // F5
+            case 0x67: // F6
+            case 0x68: // F7
+            case 0x69: // F8
+            case 0x6A: // F9
+            case 0x6B: // F10
+                if (pressed) {
+                    if (flags1 & 4) /* CTRL */
+                        add_key(scan_add + 0x3000); /* 0x92-0x9B */
+                    else if (flags1 & 3) /* SHIFT */
+                        add_key(scan_add + 0x2000); /* 0x82-0x8B */
+                    else
+                        add_key(scan_add + 0x0000); /* 0x62-0x6B */
+                }
+                break;
+
             case 0x70: // left/right shift
                 flags1 &= ~3; // emulate AT BIOS l+r shift with PC-98 shift
                 flags1 |= pressed ? 3 : 0;
+                break;
+
+            case 0x74: // left/right ctrl
+                flags1 &= ~4; // emulate AT BIOS l+r ctrl with PC-98 ctrl
+                flags1 |= pressed ? 4 : 0;
+                break;
+
+            default:
+                if (pressed) {
+                    add_key(scan_add + 0x00); /* zero low byte */
+                }
                 break;
         }
 
@@ -1054,6 +1108,9 @@ static Bitu IRQ1_CtrlBreakAfterInt1B(void) {
 /* check whether key combination is enhanced or not,
    translate key if necessary */
 static bool IsEnhancedKey(Bit16u &key) {
+    if (IS_PC98_ARCH)
+        return false;
+
 	/* test for special keys (return and slash on numblock) */
 	if ((key>>8)==0xe0) {
 		if (((key&0xff)==0x0a) || ((key&0xff)==0x0d)) {
@@ -1100,7 +1157,7 @@ Bitu INT16_Handler(void) {
             PIC_SetIRQMask(1,false); /* unmask keyboard */
 
 		if (get_key(temp)) {
-			if (((temp&0xff)==0xf0) && (temp>>8)) {
+			if (!IS_PC98_ARCH && ((temp&0xff)==0xf0) && (temp>>8)) {
 				/* special enhanced key, clear low part before returning key */
 				temp&=0xff00;
 			}
@@ -1147,7 +1204,7 @@ Bitu INT16_Handler(void) {
 			CALLBACK_SZF(true);
 		} else {
 			CALLBACK_SZF(false);
-			if (((temp&0xff)==0xf0) && (temp>>8)) {
+			if (!IS_PC98_ARCH && ((temp&0xff)==0xf0) && (temp>>8)) {
 				/* special enhanced key, clear low part before returning key */
 				temp&=0xff00;
 			}

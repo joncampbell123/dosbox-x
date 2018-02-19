@@ -520,15 +520,8 @@ void TANDYSOUND_ShutDown(Section* /*sec*/) {
     }
 }
 
-void TANDYSOUND_OnEnterPC98(Section* /*sec*/) {
-    if (test) {
-        delete test;
-        test = NULL;
-    }
-}
-
 void TANDYSOUND_OnReset(Section* sec) {
-	if (test == NULL) {
+	if (test == NULL && !IS_PC98_ARCH) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating Tandy speaker emulation");
 		test = new TANDYSOUND(control->GetSection("speaker"));
 	}
@@ -539,7 +532,5 @@ void TANDYSOUND_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(TANDYSOUND_ShutDown),true);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(TANDYSOUND_OnReset));
-
-    AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(TANDYSOUND_OnEnterPC98));
 }
 

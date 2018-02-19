@@ -60,8 +60,16 @@ static void VGA_DAC_SendColor( Bitu index, Bitu src ) {
 
 	if (GFX_bpp >= 24) /* FIXME: Assumes 8:8:8. What happens when desktops start using the 10:10:10 format? */
 		vga.dac.xlat32[index] = (blue<<(2+GFX_Bshift)) | (green<<(2+GFX_Gshift)) | (red<<(2+GFX_Rshift)) | GFX_Amask;
-	else /* FIXME: Assumes 5:6:5. I need to test against 5:5:5 format sometime. Perhaps I could dig out some older VGA cards and XFree86 drivers that support that format? */
+	else {
+        /* FIXME: Assumes 5:6:5. I need to test against 5:5:5 format sometime. Perhaps I could dig out some older VGA cards and XFree86 drivers that support that format? */
 		vga.dac.xlat16[index] = ((((blue&0x3f)>>1)<<GFX_Bshift)) | ((green&0x3f)<<GFX_Gshift) | (((red&0x3f)>>1)<<GFX_Rshift) | GFX_Amask;
+
+        /* PC-98 mode always renders 32bpp, therefore needs this fix */
+        if (GFX_Bshift == 0)
+            vga.dac.xlat32[index] = (blue << 2U) | (green << 10U) | (red << 18U);
+        else
+            vga.dac.xlat32[index] = (blue << 18U) | (green << 10U) | (red << 2U);
+    }
 
 	RENDER_SetPal( index, (red << 2) | ( red >> 4 ), (green << 2) | ( green >> 4 ), (blue << 2) | ( blue >> 4 ) );
 }
@@ -115,10 +123,10 @@ Bitu read_p3c6(Bitu port,Bitu iolen) {
 
 void write_p3c7(Bitu port,Bitu val,Bitu iolen) {
 	vga.dac.hidac_counter=0;
-	vga.dac.read_index=val;
 	vga.dac.pel_index=0;
 	vga.dac.state=DAC_READ;
-	vga.dac.write_index= val + 1;
+	vga.dac.read_index=val;         /* NTS: Paradise SVGA behavior, read index = x, write index = x + 1 */
+	vga.dac.write_index=val + 1;
 }
 
 Bitu read_p3c7(Bitu port,Bitu iolen) {
@@ -129,9 +137,9 @@ Bitu read_p3c7(Bitu port,Bitu iolen) {
 
 void write_p3c8(Bitu port,Bitu val,Bitu iolen) {
 	vga.dac.hidac_counter=0;
-	vga.dac.write_index=val;
 	vga.dac.pel_index=0;
 	vga.dac.state=DAC_WRITE;
+	vga.dac.write_index=val;        /* NTS: Paradise SVGA behavior, this affects write index, but not read index */
 }
 
 Bitu read_p3c8(Bitu port, Bitu iolen){
@@ -174,8 +182,7 @@ void write_p3c9(Bitu port,Bitu val,Bitu iolen) {
 				}
 			}
 		}
-		vga.dac.write_index++;
-//		vga.dac.read_index = vga.dac.write_index - 1;//disabled as it breaks Wari
+		vga.dac.read_index=vga.dac.write_index++;                           // NTS: Paradise SVGA behavior
 		vga.dac.pel_index=0;
 		break;
 	default:
@@ -198,9 +205,8 @@ Bitu read_p3c9(Bitu port,Bitu iolen) {
 		break;
 	case 2:
 		ret=vga.dac.rgb[vga.dac.read_index].blue;
-		vga.dac.read_index++;
 		vga.dac.pel_index=0;
-//		vga.dac.write_index=vga.dac.read_index+1;//disabled as it breaks wari
+        vga.dac.read_index=vga.dac.write_index++;                           // NTS: Paradise SVGA behavior
 		break;
 	default:
 		LOG(LOG_VGAMISC,LOG_NORMAL)("VGA:DAC:Illegal Pel Index");			//If this can actually happen that will be the day

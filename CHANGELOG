@@ -1,4 +1,296 @@
-<next>
+(next)
+  - PC-98 FM board now allows changing the base I/O port
+    and IRQ (interrupt) line used by the card.
+  - PC-98 mode now supports joystick emulation. Joystick
+    input is mapped through the DOSBox mapper to the
+    PC-98 FM board where DOS games expect to see it.
+  - Added dosbox.conf option to select which PC-98 FM
+    board to emulate.
+  - Fixed PC-98 FM code to enable the ADPCM and Rhythm
+    FM channels.
+  - Re-ported Neko Project II FM board emulation, this
+    time keeping the code intact and keeping the separate
+    board emulations intact for PC-98 mode.
+  - VGA palette errors with Crystal Dream II fixed.
+  - PC-98 FM synthesis fixed not to initialize itself
+    again when rebooting, which fixes a problem with
+    garbled FM synthesis after rebooting.
+  - Removed some now-unnecessary SDL Video quit/init
+    calls from Windows builds.
+  - machine=pc98 now starts entire emulation in PC-98
+    mode instead of booting up in IBM PC mode and
+    switching to PC-98 mode.
+  - Initial "BIOS" startup screen now operates in
+    PC-98 mode when machine=pc98.
+  - Prefetch core debug code now disabled at compile
+    time. Seems to be stable so far.
+  - Prefetch core now emulates partial load of the
+    prefetch buffer on miss, and completing the buffer
+    fill on hit, to better emulate (probable) 80486
+    behavior.
+  - 486_prefetch is now a valid cputype setting, despite
+    the setting having existed for years in the source
+    code. Prior to this fix, 486_prefetch was ignored.
+0.82.3 (02/13/2018)
+  - Removed DOSBox SVN-style "fast" A20 gate emulation.
+    Recent changes make it infeasible to keep. "fast" is
+    now mapped to "mask" mode.
+  - RAM aliasing is now always on, even if memalias is not
+    set, in order to help enforce A20 gate behavior, and
+    to fix emulator crashes when a non-aliased RAM page
+    is referenced through an alias.
+  - Cleanup and rewrite of prefetch core, to make the code
+    cleaner and more readable and maintainable.
+  - DOS file I/O updated to apply a proper delay rather
+    than the old DOSBox SVN code's cycle count dependent
+    method. The delay by default will slow disk I/O down
+    to mid 1990's IDE PIO speeds, which can resolve issues
+    with MS-DOS demoscene or game executables that can
+    malfunction when disk I/O is too fast.
+  - PIC code updated to enforce a proper IRQ delay on ALL
+    IRQ signals, which fixes issues with MS-DOS executables
+    that have race conditions between their code and their
+    interrupt handlers.
+  - DOS Shell now shows the full intro text only at first
+    run, instead of every shell invocation.
+  - Use FCB record size of 128 bytes if the FCB record size
+    is zero (from DOSBox SVN).
+  - PC speaker fix not to generate a continuous tone if
+    the PIT timer was set to mode 0. This fixes issues with
+    many early 1990s demoscene executables leaving the PC
+    speaker enabled (BEEEEEEP).
+  - Register DEBUGBOX.COM at DOS environment start instead
+    of boot, which allows the command to work again.
+  - EXE loader sets stack pointer (SS:SP) into PSP segment
+    (from DOSBox SVN)
+  - EXE loader fixed to use the larger of the minimum and
+    maximum memory sizes listed in the EXE header, which
+    fixes some demoscene executables with a minimum size
+    larger than maximum.
+  - VGA DAC (palette) emulation updated to better match
+    actual SVGA chipset (Paradise SVGA) behavior, which
+    fixes some VGA palette errors in some demoscene
+    productions.
+  - Added -nocachedir option to internal MOUNT command, to
+    disable directory caching for a local folder mounted
+    to a drive letter. When mounted this way, changes on
+    the host filesystem are immediately visible in the
+    guest DOS environment.
+  - Added -ro and -rw options to internal MOUNT command, to
+    allow mounting local folders to a drive letter as a
+    read-only volume.
+  - MIDI Fluidsynth fixed to initialize and free state properly
+    so that switching to and from Fluidsynth doesn't cause
+    a segfault or crash.
+  - MPU-401 fixed to allow changes to MIDI configuration from
+    CONFIG.COM.
+  - DOS filename handling fixed to maintain ASCII conversion
+    to uppercase, while not converting Shift-JIS double-byte
+    characters in PC-98 mode. This fixes Shift-JIS filename
+    corruption when the trailing byte can be mistaken for
+    lowercase ASCII a to z.
+  - Windows fixes to keep menu bar items updated with
+    DOSBox-X state.
+  - Remove WM_DROPFILES handling, for now. The code remains
+    to allow re-enabling later.
+  - SDL 1.x builds fixed to process only WM_COMMAND (menu
+    bar) and WM_SYSCOMMAND (system menu) events so that
+    the general chatter in modern Windows system does not
+    drown out the messages. This fixes issues where the
+    menu bar doesn't work on some systems.
+  - SDL 1.x builds fixed to handle menu bar input using
+    SDL's WM events instead of fighting with SDL's message
+    pump to receive menu events. This fixes potential
+    issues with losing menu bar events.
+  - dosbox.conf reference included with Windows builds
+    now uses MS-DOS line endings so that the file can be
+    edited in NOTEPAD.EXE
+  - New dosbox.conf option to control whether the menu is
+    shown by default in Windows builds.
+  - titlebar= SDL dosbox.conf option, to allow showing a more
+    user friendly name for the program instead of just using
+    the EXE name.
+  - E_Exit() on Windows now displays the message using
+    MessageBox() in addition to sending to STDERR, so that
+    Windows users see the error even if they are running
+    it from the desktop instead of the command line.
+  - PC-98 EGC bit shifter emulation fixed to correctly support
+    ascending and descending bit shifting in either direction.
+    This fixes screen shake emulation errors with Touhou Project
+    TH04 and TH05.
+  - Linux/X11 fixes to SDL 1.x to better match and compare
+    Visuals (descriptions of the screen) since X11 libraries
+    don't seem to use the same pointer values for the same
+    Visuals.
+  - ALT+TAB or loss of focus from fullscreen in Windows now
+    restores the window instead of minimizing it.
+  - 3Dfx OpenGL will hide the minimize and maximize buttons
+    in Windows while active.
+  - Windows menu bar items are now grayed out when 3Dfx OpenGL
+    emulation is active (items that cannot be used at that time).
+  - Fix Windows system menu to always keep "show menu".
+  - GFX rendering fixed not to render any output while 3Dfx
+    OpenGL emulation is active.
+  - 3Dfx OpenGL bug fixes to properly restore the DOS console
+    when the 3Dfx card is de-initialized and the game returns
+    to the DOS prompt.
+  - Linux/X11 window output fixed to keep the window on the
+    screen even when switching between OpenGL and non-OpenGL,
+    and when setting the SDL video mode.
+  - Remove some init hacks and SDL forced reinitialized hacks,
+    so that the window is stable on the screen.
+  - Added code to do more OpenGL state initialization (both
+    output=opengl and when initializing 3Dfx OpenGL emulation)
+    to make more consistent output.
+  - 3Dfx voodoo OpenGL based emulation fixed to switch out of
+    fullscreen mode IF DOSBox-X was fullscreen at the time the
+    card is initialized.
+  - 3Dfx voodoo OpenGL based emulation no longer allows fullscreen
+    mode, and does everything it can to prevent window resizing.
+  - Linux/X11 disable XRandR, XV, and X modeset functions. Do not
+    change monitor resolution.
+  - MPU-401 MIDI emulation fixed to look at all conductor message
+    bytes for code 0xFC (ALL END) instead of just the first byte.
+    This fixes hangs in games that send additional bytes prior to
+    0xFC and then expect the MPU-401 to signal 0xFC back when the
+    games are waiting for music to stop.
+  - Fix DOS CON driver not to signal data ready for PC-98 scan
+    codes that have no corresponding ANSI code. Tapping numeric
+    keypad keys during the title screen in Touhou Project should
+    no longer cause the game to pause waiting for keyboard input
+    when going into demo mode.
+  - Fix DOS CON driver to signal data ready for buffered escape
+    code.
+  - Fix PC-98 keyboard emulation not to apply IBM PC "extended"
+    keyboard scancode filtering.
+  - Window maximization does not count as a user resize preference.
+  - Fix Windows builds to enable DirectSerial, Direct LPT, modem,
+    emulation.
+  - New mapper shortcut to restore the window's original size.
+  - Fix bug with SHL instruction and OF flag, which corrects some
+    games and their decompression routines.
+  - Fullscreen (monitor) modesetting removed. DOSBox-X either runs
+    in a window, or scales up to fill the monitor, but will not change
+    the monitor resolution.
+  - Resize handling fixed to differentiate user resize verses resize
+    caused by DOSBox-X changing the window dimensions.
+  - Linux/X11 fixes to avoid flickering when resizing the window, and
+    to avoid redrawing unless necessary.
+  - Window resize management, to scale/arrange the output to fit the
+    window (for output= surface, opengl, direct3d)
+  - Enable resizing again, except when the GUI or mapper is active.
+  - Fix Linux/X11 to always take resize events, instead of ignoring
+    all further resize events just because one resize event is forever
+    "pending"
+  - Linux/X11 builds now track the size of the window on the desktop,
+    to keep track of resizing and maximizing.
+0.82.2 (01/29/2018)
+  - Linux builds no longer enable window resizing. The ability to
+    resize will be added back when the emulator can better handle
+    the user resizing the window.
+  - Windows and Linux now have synchronized build date and version
+    strings.
+  - Codebase begin transition to C++11
+  - The Windows maximize button no longer triggers fullscreen mode.
+  - Direct3D, OpenGL, and Surface outputs updated to fill the window
+    in Windows builds when the window is maximized. If aspect
+    correction is enabled, the Direct3D and OpenGL outputs will
+    scale the DOS screen (with pillarbox/letterbox padding) to the
+    correct aspect ratio and center within the maximized window.
+  - Fixed minor memory leak in MT32 (MUNT) synthesizer usage.
+  - Fixed uninitialized state issues with DMA channel 4 (cascade).
+  - IMGMOUNT now allows mounting the El Torito bootable floppy image
+    of a CD-ROM drive as a drive letter and accessible (read only)
+    filesystem. The FAT filesystem driver was fixed to support working
+    from sources other than a direct file.
+  - PC-98 mode fixed not to register certain built-in commands and
+    binaries to drive Z:\ that are not compatible with PC-98 mode.
+    MEM.EXE in particular uses IBM PC-specific techniques to gather
+    it's information, and is therefore incompatible with PC-98 mode.
+    This can be verified from the source code as MEM.EXE was evidently
+    borrowed from the FreeDOS project.
+  - EGA emulation (machine=ega) fixed to render 8bpp (256-color mode)
+    instead of full 32bpp VGA output. EGA video output is limited to
+    64-color (6-bit) by the design of the video connector (2-bit R/G/B)
+    therefore the full precision of 32bpp is not needed. This will also
+    benefit video capture as the reduced color bit depth will result
+    in smaller AVI files when recording gameplay.
+  - Added code to correctly detect 15-bit highcolor vs 16-bit highcolor
+    display format support, despite SDL falsely indicating 16-bit
+    color in both cases, which fixes incorrect colors on 15-bit display
+    modes.
+  - Fix up VGA DAC/palette mapping to display the emulator screen
+    properly on 16-bit true color displays. Fixed off-by-one shift
+    mistake in the DOSBox-X render scaler code that caused
+    green and purple tints to colors on 16-bit true color displays.
+  - Add "Show menu bar" command to the Windows "system menu" so that
+    the menu bar can be brought back after selecting "hide menu bar".
+  - Losing window focus while fullscreen no longer leaves the emulator
+    window blank.
+  - Maximize/restore fullscreen cleanup.
+  - Removed DDRAW output.
+  - Fix FAT filesystem driver to clear "success" flag at all failure
+    return points. This fixes problems where unrecognizeable FAT
+    filesystems are nonetheless presented as a drive letter with
+    garbled filenames, when IMGMOUNT should have displayed an error
+    instead.
+  - Fix FAT filesystem driver to allow PC-98 HDI images to load that
+    have headcount == 0 in the BPB.
+  - Fix Adlib emulation not to register a mapper handler if emulation
+    will jump to PC-98 mode, and fix mapper handler to check if Adlib
+    emulation is loaded to avoid segfault.
+  - Add "recording" volume to control the loudness of the audio going
+    out to capture (WAV, AVI, etc.)
+  - Separate mixer rendering from master volume. Apply master volume
+    at the sound card only, leave audio at full volume for recording
+    (WAV, AVI, etc. capture).
+  - dosbox.conf and command line option to log CON driver output to
+    a file. Anything written to STDOUT/CON by a DOS application is
+    logged this way.
+  - --time-limit <n> command line option to put a time limit on the
+    emulator, in seconds.
+  - Keyboard shortcut for the mapper UI no longer leaves keys "stuck"
+    in the guest to cause problems when you exit the mapper UI.
+  - Fixed code mistake that caused OpenGL NB output when dosbox.conf
+    specified output=opengl
+  - Mapper layout fixes:
+    - Shortcut buttons (on the right hand side of the UI) fixed to
+      become two columns wide if the button text won't fit in one
+      column.
+    - Some shortcut button titles shortened.
+  - Mapper UI updated to show which bindings are being activated by
+    hilighting buttons in the UI.
+  - Mapper UI modifier buttons indicate status through hilighting.
+  - Mapper UI joystick buttons and axes now use hilighting to indicate
+    that there is input from the device.
+  - Mapper fix for 4-axis joysticks that may count zero buttons, and
+    then crash (divide by zero) when the user pushes a button on the
+    joystick device.
+  - BIOS emulation now allows you to specify binary blobs to execute
+    in the guest system as part of startup. One can be specified to
+    execute just after CPU reset/power-on, and the other just before
+    booting to the DOS shell. THE BINARY BLOBS EXECUTE IN THE GUEST
+    ENVIRONMENT AND NOT AS ARBITRARY CODE ON YOUR HOST. This option
+    is provided for both automated testing and for the curious who
+    may want to venture into low level ASM hacking.
+  - INTRO.COM fixed to accept keyboard input correctly in both
+    PC-98 and IBM PC mode. You can now browse the help text properly
+    in either mode.
+  - DOS shell fixed to accept DOSKEY-like input in both IBM PC and
+    PC-98 mode (including arrow keys, F3, tab completion, etc.)
+  - DOS CON emulation now provides function keys (F1-F10) in PC-98 mode.
+  - DOS CON emulation fixed to process PC-98 BIOS codes and generate
+    PC-98 ANSI escapes as real hardware normally does.
+  - Mapper no longer shows two sets of the shortcuts (one overlaid
+    over the keyboard), registration bug fixed.
+  - PC-98 keyboard interrupt handler now handles CTRL key and
+    passes most keys as-is down through INT 18h now.
+  - Removed non-recursive page fault option. It is now always on,
+    except for internal cases where it needs to be off for callback
+    instructions to do their work properly.
+  - Removed dynamic x86 core. It is old and unmaintained code that
+    is incompatible with the non-recursive page fault system.
+  - IRQ cascade interrupt fixes and cleanup.
   - BAT files given on the command line fixed to occur AFTER the
     registration of ULTRASND and BLASTER environment variables.
   - PC-98: DOS CON emulation fixed to decode Shift-JIS itself,

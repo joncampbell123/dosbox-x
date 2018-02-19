@@ -54,7 +54,6 @@ public:
 static MEM_callout_vector MEM_callouts[MEM_callouts_max];
 
 bool a20_guest_changeable = true;
-bool a20_full_masking = false;
 bool a20_fake_changeable = false;
 
 bool enable_port92 = true;
@@ -152,19 +151,6 @@ public:
 	RAMPageHandler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE) {}
 	RAMPageHandler(Bitu flags) : PageHandler(flags) {}
 	HostPt GetHostReadPt(Bitu phys_page) {
-		return MemBase+phys_page*MEM_PAGESIZE;
-	}
-	HostPt GetHostWritePt(Bitu phys_page) {
-		return MemBase+phys_page*MEM_PAGESIZE;
-	}
-};
-
-class RAMAliasPageHandler : public PageHandler {
-public:
-	RAMAliasPageHandler() {
-		flags=PFLAG_READABLE|PFLAG_WRITEABLE;
-	}
-	HostPt GetHostReadPt(Bitu phys_page) {
 		return MemBase+(phys_page&memory.mem_alias_pagemask_active)*MEM_PAGESIZE;
 	}
 	HostPt GetHostWritePt(Bitu phys_page) {
@@ -185,7 +171,7 @@ public:
 	}
 };
 
-class ROMPageHandler : public RAMAliasPageHandler {
+class ROMPageHandler : public RAMPageHandler {
 public:
 	ROMPageHandler() {
 		flags=PFLAG_READABLE|PFLAG_HASROM;
@@ -205,7 +191,6 @@ public:
 
 static UnmappedPageHandler unmapped_page_handler;
 static IllegalPageHandler illegal_page_handler;
-static RAMAliasPageHandler ram_alias_page_handler;
 static RAMPageHandler ram_page_handler;
 static ROMPageHandler rom_page_handler;
 static ROMAliasPageHandler rom_page_alias_handler;
@@ -660,10 +645,7 @@ void MEM_SetPageHandler(Bitu phys_page,Bitu pages,PageHandler * handler) {
 }
 
 void MEM_ResetPageHandler_RAM(Bitu phys_page, Bitu pages) {
-	PageHandler *ram_ptr =
-		(memory.mem_alias_pagemask_active == (Bit32u)(~0UL) && !a20_full_masking)
-		? (PageHandler*)(&ram_page_handler) /* no aliasing */
-		: (PageHandler*)(&ram_alias_page_handler); /* aliasing */
+	PageHandler *ram_ptr = (PageHandler*)(&ram_page_handler);
 	for (;pages>0;pages--) {
 		memory.phandlers[phys_page]=ram_ptr;
 		phys_page++;
@@ -1085,11 +1067,7 @@ void MEM_A20_Enable(bool enabled) {
 
 	LOG(LOG_MISC,LOG_DEBUG)("MEM_A20_Enable(%u)",enabled?1:0);
 
-	if (!a20_full_masking) {
-		Bitu phys_base=memory.a20.enabled ? (1024/4) : 0;
-		for (Bitu i=0;i<16;i++) PAGING_MapPage((1024/4)+i,phys_base+i);
-	}
-	else if (!a20_fake_changeable) {
+	if (!a20_fake_changeable) {
 		if (memory.a20.enabled) memory.mem_alias_pagemask_active |= 0x100;
 		else memory.mem_alias_pagemask_active &= ~0x100;
 		PAGING_ClearTLB();
@@ -1196,7 +1174,6 @@ void phys_writes(PhysPt addr, const char* string, Bitu length) {
 
 #include "control.h"
 
-void restart_program(std::vector<std::string> & parameters);
 unsigned char CMOS_GetShutdownByte();
 void CPU_Snap_Back_To_Real_Mode();
 void DEBUG_Enable(bool pressed);
@@ -1223,11 +1200,6 @@ void On_Software_286_int15_block_move_return(unsigned char code) {
 		cmos_reset_type_9_sarcastic_win31_comments=false;
 		LOG_MSG("CMOS Shutdown byte 0x%02x says to do INT 15 block move reset %04x:%04x. Only weirdos like Windows 3.1 use this... NOT WELL TESTED!",code,vec_seg,vec_off);
 	}
-
-#if C_DYNAMIC_X86
-	/* FIXME: The way I will be carrying this out is incompatible with the Dynamic core! */
-	if (cpudecoder == &CPU_Core_Dyn_X86_Run) E_Exit("Sorry, CMOS shutdown CPU reset method is not compatible with dynamic core");
-#endif
 
 	/* set stack pointer. prepare to emulate BIOS returning from INT 15h block move, 286 style */
 	CPU_SetSegGeneral(cs,0xF000);
@@ -1272,11 +1244,6 @@ void On_Software_286_reset_vector(unsigned char code) {
 
 	LOG_MSG("CMOS Shutdown byte 0x%02x says to jump to reset vector %04x:%04x",code,vec_seg,vec_off);
 
-#if C_DYNAMIC_X86
-	/* FIXME: The way I will be carrying this out is incompatible with the Dynamic core! */
-	if (cpudecoder == &CPU_Core_Dyn_X86_Run) E_Exit("Sorry, CMOS shutdown CPU reset method is not compatible with dynamic core");
-#endif
-
 	/* following CPU reset, and coming from the BIOS, CPU registers are trashed */
 	reg_eax = 0x2010000;
 	reg_ebx = 0x2111;
@@ -1316,16 +1283,6 @@ void On_Software_CPU_Reset() {
 			On_Software_286_int15_block_move_return(c);
 			return;
 	};
-
-#if C_DYNAMIC_X86
-	/* this technique is NOT reliable when running the dynamic core! */
-	if (cpudecoder == &CPU_Core_Dyn_X86_Run) {
-		LOG_MSG("Using traditional DOSBox re-exec, C++ exception method is not compatible with dynamic core\n");
-		control->startup_params.insert(control->startup_params.begin(),control->cmdline->GetFileName());
-		restart_program(control->startup_params);
-		return;
-	}
-#endif
 
 	throw int(3);
 	/* does not return */
@@ -1410,10 +1367,7 @@ bool MEM_unmap_physmem(Bitu start,Bitu end) {
 
 bool MEM_map_RAM_physmem(Bitu start,Bitu end) {
 	Bitu p;
-	PageHandler *ram_ptr =
-		(memory.mem_alias_pagemask_active == (Bit32u)(~0UL) && !a20_full_masking)
-		? (PageHandler*)(&ram_page_handler) /* no aliasing */
-		: (PageHandler*)(&ram_alias_page_handler); /* aliasing */
+	PageHandler *ram_ptr = (PageHandler*)(&ram_page_handler);
 
 	if (start & 0xFFF)
 		LOG_MSG("WARNING: unmap_physmem() start not page aligned.\n");
@@ -1427,8 +1381,7 @@ bool MEM_map_RAM_physmem(Bitu start,Bitu end) {
 
 	for (p=start;p <= end;p++) {
 		if (memory.phandlers[p] != NULL && memory.phandlers[p] != &illegal_page_handler &&
-            memory.phandlers[p] != &unmapped_page_handler && memory.phandlers[p] != &ram_page_handler &&
-            memory.phandlers[p] != &ram_alias_page_handler)
+            memory.phandlers[p] != &unmapped_page_handler && memory.phandlers[p] != &ram_page_handler)
 			return false;
 	}
 
@@ -1494,27 +1447,6 @@ HostPt GetMemBase(void) { return MemBase; }
 
 extern bool mainline_compatible_mapping;
 
-static void RAM_remap_64KBat1MB_A20fast(bool enable/*if set, we're transitioning to fast remap, else to full mask*/) {
-	PageHandler *oldp,*newp;
-	Bitu c=0;
-
-	/* undo the fast remap at 1MB */
-	for (Bitu i=0;i<16;i++) PAGING_MapPage((1024/4)+i,(1024/4)+i);
-
-	/* run through the page array, change ram_handler to ram_alias_handler
-	 * (or the other way depending on enable) */
-	newp =   enable  ? (PageHandler*)(&ram_page_handler) : (PageHandler*)(&ram_alias_page_handler);
-	oldp = (!enable) ? (PageHandler*)(&ram_page_handler) : (PageHandler*)(&ram_alias_page_handler);
-	for (Bitu i=0;i < memory.reported_pages;i++) {
-		if (memory.phandlers[i] == oldp) {
-			memory.phandlers[i] = newp;
-			c++;
-		}
-	}
-
-	LOG_MSG("A20gate mode change: %u pages modified (fast enable=%d)\n",(int)c,(int)enable);
-}
-
 class REDOS : public Program {
 public:
 	void Run(void) {
@@ -1537,40 +1469,30 @@ public:
 			MEM_A20_Enable(true);
 
 			if (!strncasecmp(x,"off_fake",8)) {
-				if (!a20_full_masking) RAM_remap_64KBat1MB_A20fast(false);
-				a20_full_masking = true;
 				MEM_A20_Enable(false);
 				a20_guest_changeable = false;
 				a20_fake_changeable = true;
 				WriteOut("A20 gate now off_fake mode\n");
 			}
 			else if (!strncasecmp(x,"off",3)) {
-				if (!a20_full_masking) RAM_remap_64KBat1MB_A20fast(false);
-				a20_full_masking = true;
 				MEM_A20_Enable(false);
 				a20_guest_changeable = false;
 				a20_fake_changeable = false;
 				WriteOut("A20 gate now off mode\n");
 			}
 			else if (!strncasecmp(x,"on_fake",7)) {
-				if (!a20_full_masking) RAM_remap_64KBat1MB_A20fast(false);
-				a20_full_masking = true;
 				MEM_A20_Enable(true);
 				a20_guest_changeable = false;
 				a20_fake_changeable = true;
 				WriteOut("A20 gate now on_fake mode\n");
 			}
 			else if (!strncasecmp(x,"on",2)) {
-				if (!a20_full_masking) RAM_remap_64KBat1MB_A20fast(false);
-				a20_full_masking = true;
 				MEM_A20_Enable(true);
 				a20_guest_changeable = false;
 				a20_fake_changeable = false;
 				WriteOut("A20 gate now on mode\n");
 			}
 			else if (!strncasecmp(x,"mask",4)) {
-				if (!a20_full_masking) RAM_remap_64KBat1MB_A20fast(false);
-				a20_full_masking = true;
 				MEM_A20_Enable(false);
 				a20_guest_changeable = true;
 				a20_fake_changeable = false;
@@ -1578,8 +1500,6 @@ public:
 				WriteOut("A20 gate now mask mode\n");
 			}
 			else if (!strncasecmp(x,"fast",4)) {
-				if (!a20_full_masking) RAM_remap_64KBat1MB_A20fast(true);
-				a20_full_masking = false;
 				MEM_A20_Enable(false);
 				a20_guest_changeable = true;
 				a20_fake_changeable = false;
@@ -1643,7 +1563,7 @@ void Init_AddressLimitAndGateMask() {
 
 	/* update alias pagemask according to A20 gate */
 	memory.mem_alias_pagemask_active = memory.mem_alias_pagemask;
-	if (a20_fake_changeable && a20_full_masking && !memory.a20.enabled)
+	if (a20_fake_changeable && !memory.a20.enabled)
 		memory.mem_alias_pagemask_active &= ~0x100;
 
 	/* log */
@@ -1755,10 +1675,7 @@ void Init_RAM() {
 	// sanity check. if this condition is false the loops below will overrun the array!
 	assert(memory.reported_pages <= memory.handler_pages);
 
-	PageHandler *ram_ptr =
-		(memory.mem_alias_pagemask_active == (Bit32u)(~0UL) && !a20_full_masking)
-		? (PageHandler*)(&ram_page_handler) /* no aliasing */
-		: (PageHandler*)(&ram_alias_page_handler); /* aliasing */
+	PageHandler *ram_ptr = (PageHandler*)(&ram_page_handler);
 
 	for (i=0;i < memory.reported_pages;i++)
 		memory.phandlers[i] = ram_ptr;
@@ -1807,7 +1724,6 @@ void A20Gate_OverrideOn(Section *sec) {
 	memory.a20.enabled = 1;
 	a20_fake_changeable = false;
 	a20_guest_changeable = true;
-	a20_full_masking = true;
 }
 
 /* this is called after BIOS boot. the BIOS needs the A20 gate ON to boot properly on 386 or higher! */
@@ -1817,45 +1733,38 @@ void A20Gate_TakeUserSetting(Section *sec) {
 	memory.a20.enabled = 0;
 	a20_fake_changeable = false;
     a20_guest_changeable = true;
-	a20_full_masking = false;
 
 	// TODO: A20 gate control should also be handled by a motherboard init routine
 	std::string ss = section->Get_string("a20");
 	if (ss == "mask" || ss == "") {
 		LOG(LOG_MISC,LOG_DEBUG)("A20: masking emulation");
 		a20_guest_changeable = true;
-		a20_full_masking = true;
 	}
 	else if (ss == "on") {
 		LOG(LOG_MISC,LOG_DEBUG)("A20: locked on");
 		a20_guest_changeable = false;
-		a20_full_masking = true;
 		memory.a20.enabled = 1;
 	}
 	else if (ss == "on_fake") {
 		LOG(LOG_MISC,LOG_DEBUG)("A20: locked on (but will fake control bit)");
 		a20_guest_changeable = false;
 		a20_fake_changeable = true;
-		a20_full_masking = true;
 		memory.a20.enabled = 1;
 	}
 	else if (ss == "off") {
 		LOG(LOG_MISC,LOG_DEBUG)("A20: locked off");
 		a20_guest_changeable = false;
-		a20_full_masking = true;
 		memory.a20.enabled = 0;
 	}
 	else if (ss == "off_fake") {
 		LOG(LOG_MISC,LOG_DEBUG)("A20: locked off (but will fake control bit)");
 		a20_guest_changeable = false;
 		a20_fake_changeable = true;
-		a20_full_masking = true;
 		memory.a20.enabled = 0;
 	}
 	else { /* "" or "fast" */
-		LOG(LOG_MISC,LOG_DEBUG)("A20: fast remapping (64KB+1MB) DOSBox style");
+		LOG(LOG_MISC,LOG_DEBUG)("A20: masking emulation (fast mode no longer supported)");
 		a20_guest_changeable = true;
-		a20_full_masking = false;
 	}
 }
 
@@ -1895,19 +1804,10 @@ void PS2Port92_OnReset(Section *sec) {
     }
 }
 
-void PS2Port92_OnEnterPC98(Section *sec) {
-	PS2_Port_92h_WriteHandler2.Uninstall();
-	PS2_Port_92h_WriteHandler.Uninstall();
-	PS2_Port_92h_ReadHandler.Uninstall();
-}
-
 void Init_PS2_Port_92h() {
 	LOG(LOG_MISC,LOG_DEBUG)("Initializing PS/2 port 92h emulation");
 
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PS2Port92_OnReset));
-
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(PS2Port92_OnEnterPC98));
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE_END,AddVMEventFunctionFuncPair(PS2Port92_OnReset));
 }
 
 void Init_MemHandles() {

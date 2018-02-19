@@ -80,6 +80,7 @@ public:
 	Bit32u reserved_cylinders;
 	Bit64u current_fpos;
     Bit64u image_base;
+    Bit32u diskSizeK;
 
 	volatile int refcount;
 	bool auto_delete_on_refcount_zero;

@@ -342,7 +342,6 @@ Bitu DmaController::ReadControllerReg(Bitu reg,Bitu /*len*/) {
 DmaChannel::DmaChannel(Bit8u num, bool dma16) {
 	masked = true;
 	callback = NULL;
-	if(num == 4) return;
 	channum = num;
 	DMA16 = dma16 ? 0x1 : 0x0;
 
@@ -481,10 +480,6 @@ void DMA_Destroy(Section* /*sec*/) {
 	DMA_FreeControllers();
 }
 
-void DMA_OnEnterPC98(Section* /*sec*/) {
-	DMA_FreeControllers();
-}
-
 void DMA_Reset(Section* /*sec*/) {
 	Bitu i;
 
@@ -569,6 +564,5 @@ void Init_DMA() {
 
 	AddExitFunction(AddExitFunctionFuncPair(DMA_Destroy));
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(DMA_Reset));
-	AddVMEventFunction(VM_EVENT_ENTER_PC98_MODE,AddVMEventFunctionFuncPair(DMA_OnEnterPC98));
 }
 

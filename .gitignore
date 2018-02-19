@@ -323,6 +323,14 @@ windows-installer/DOSBox-X-setup-*.zip
 dosbox-x
 Makefile
 
+doxygen
+doxygen/*
+
 vs2015/sdl/linux-host
 vs2015/sdl/linux-host/*
+
+vs2015/sdl/linux-build
+vs2015/sdl/linux-build/*
+
+vs2015/sdl/include/SDL_config.h
 

@@ -1,5 +1,5 @@
 dnl Init.
-AC_INIT(dosbox-x,0.82.1,[https://github.com/joncampbell123/dosbox-x/issues],[],[http://dosbox-x.software])
+AC_INIT(dosbox-x,0.82.3,[https://github.com/joncampbell123/dosbox-x/issues],[],[http://dosbox-x.software])
 AC_PREREQ(2.60)
 AC_CONFIG_SRCDIR(README)
 
@@ -119,10 +119,20 @@ AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 #endif
 ])],[],[AC_DEFINE([socklen_t],[int],[Define to `int` if you don't have socklen_t])])
 
+dnl C++0x is now considered deprecated.
+dnl This warning will stay here for a long enough period of time before making C++11 mandatory.
+
 dnl AC_CHECK_CXXFLAGS will prepend gnu++11 to CXXFLAGS if supported, for us.
 dnl our code adds -std=gnu++0x if not supported where the function would not do anything.
 AC_MSG_CHECKING([checking for C++11 support])
-AC_CHECK_CXXFLAGS([ -std=gnu++11 ], [  ], [ CXXFLAGS="$CXXFLAGS -std=gnu++0x" ])
+AC_CHECK_CXXFLAGS([ -std=gnu++11 ], [  ], [
+    CXXFLAGS="$CXXFLAGS -std=gnu++0x";
+    warn_cpp0x=1
+])
+
+if test x$warn_cpp0x = x1; then
+    AC_MSG_WARN([ C++0x is considered deprecated. Please use a C++11 compiler. C++0x support will be removed at a future date. ])
+fi
 
 dnl TEST: Environ can be included
 AC_MSG_CHECKING(if environ can be included)
@@ -257,6 +267,8 @@ case "$host" in
        if test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
          LIBS="$LIBS -lws2_32"
        fi
+       dnl FEATURE: Whether to support direct parallel port passthrough
+       AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel passthrough support (Win32, Linux).])
        ;;
     *-*-darwin*)
        dnl We have a problem here: both Mac OS X and Darwin report 
@@ -269,6 +281,8 @@ case "$host" in
     *-*-linux*)
        AC_DEFINE(LINUX, 1, [Compiling on GNU/Linux])
        CXXFLAGS="$CXXFLAGS -D_XOPEN_SOURCE=700 -D_POSIX_C_SOURCE=200809L"
+       dnl FEATURE: Whether to support direct parallel port passthrough
+       AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel passthrough support (Win32, Linux).])
        ;;
     *-*-freebsd* | *-*-dragonfly* | *-*-netbsd* | *-*-openbsd*)
        dnl Disabled directserial for now. It doesn't do anything without
@@ -514,9 +528,6 @@ fi
 dnl FEATURE: Whether to support direct serial port passthrough
 AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
 
-dnl FEATURE: Whether to support direct parallel port passthrough
-AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel passthrough support (Win32, Linux).])
-
 dnl FEATURE: Whether to support SDL net, and emulate modem and IPX connections
 AH_TEMPLATE(C_SDL_NET,[Indicate whether SDL_net is present])
 AH_TEMPLATE(C_MODEM,[Define to 1 to enable internal modem support, requires SDL_net])
@@ -631,7 +642,6 @@ src/Makefile
 src/cpu/Makefile
 src/cpu/core_full/Makefile
 src/cpu/core_normal/Makefile
-src/cpu/core_dyn_x86/Makefile
 src/debug/Makefile
 src/dos/Makefile
 src/fpu/Makefile
@@ -652,6 +662,14 @@ src/misc/Makefile
 src/shell/Makefile
 src/platform/Makefile
 include/Makefile
+dosbox-x.spec
+make-rpm.sh
 ])
 AC_OUTPUT
+
+# HACK: it's a script...
+chmod +x make-rpm.sh
+
+# HACK: Write all PACKAGE defines to vs2015/config_package.h so Windows builds are kept in sync
+grep -E 'PACKAGE|VERSION' config.h >vs2015/config_package.h
 

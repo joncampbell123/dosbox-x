@@ -315,8 +315,20 @@ static char *get_classname(char *classname, int maxlen)
 	return classname;
 }
 
+static void destroy_aux_windows(_THIS)
+{
+    if (FSwindow) {
+	    XDestroyWindow(SDL_Display, FSwindow);
+        FSwindow = 0;
+    }
+    if (WMwindow) {
+        XDestroyWindow(SDL_Display, WMwindow);
+        WMwindow = 0;
+    }
+}
+
 /* Create auxiliary (toplevel) windows with the current visual */
-static void create_aux_windows(_THIS)
+static void create_aux_windows(_THIS, const unsigned int force)
 {
     int x = 0, y = 0;
     char classname[1024];
@@ -335,8 +347,8 @@ static void create_aux_windows(_THIS)
         return;
     }
 
-    if(FSwindow)
-	XDestroyWindow(SDL_Display, FSwindow);
+    if (FSwindow)
+        XDestroyWindow(SDL_Display, FSwindow);
 
 #if SDL_VIDEO_DRIVER_X11_XINERAMA
     if ( use_xinerama ) {
@@ -352,7 +364,7 @@ static void create_aux_windows(_THIS)
     FSwindow = XCreateWindow(SDL_Display, SDL_Root,
                              x, y, 32, 32, 0,
 			     this->hidden->depth, InputOutput, SDL_Visual,
-			     CWOverrideRedirect | CWBackPixel | CWBorderPixel
+			     CWOverrideRedirect/* | CWBackPixel | CWBorderPixel*/
 			     | CWColormap,
 			     &xattr);
 
@@ -387,7 +399,7 @@ static void create_aux_windows(_THIS)
     WMwindow = XCreateWindow(SDL_Display, SDL_Root,
                              x, y, 32, 32, 0,
 			     this->hidden->depth, InputOutput, SDL_Visual,
-			     CWBackPixel | CWBorderPixel | CWColormap,
+			     /*CWBackPixel | CWBorderPixel | */CWColormap,
 			     &xattr);
 
     /* Set the input hints so we get keyboard input */
@@ -701,7 +713,7 @@ static int X11_VideoInit(_THIS, SDL_PixelFormat *vformat)
 	SDL_windowid = SDL_getenv("SDL_WINDOWID");
 
 	/* Create the fullscreen and managed windows */
-	create_aux_windows(this);
+	create_aux_windows(this, 0);
 
 	/* Create the blank cursor */
 	SDL_BlankCursor = this->CreateWMCursor(this, blank_cdata, blank_cmask,
@@ -726,10 +738,10 @@ static void X11_DestroyWindow(_THIS, SDL_Surface *screen)
 
 	if ( ! SDL_windowid ) {
 		/* Hide the managed window */
-		if ( WMwindow ) {
-			XUnmapWindow(SDL_Display, WMwindow);
-		}
 		if ( screen && (screen->flags & SDL_FULLSCREEN) ) {
+            if ( WMwindow )
+                XUnmapWindow(SDL_Display, WMwindow);
+
 			screen->flags &= ~SDL_FULLSCREEN;
 			X11_LeaveFullScreen(this);
 		}
@@ -955,8 +967,16 @@ static int X11_CreateWindow(_THIS, SDL_Surface *screen,
 #ifdef X11_DEBUG
         printf("Choosing %s visual at %d bpp - %d colormap entries\n", vis->class == PseudoColor ? "PseudoColor" : (vis->class == TrueColor ? "TrueColor" : (vis->class == DirectColor ? "DirectColor" : "Unknown")), depth, vis->map_entries);
 #endif
-	vis_change = (vis != SDL_Visual);
-	SDL_Visual = vis;
+        /* NTS: Comparing Visual pointers will ALWAYS show a visual change because the pointers differ.
+         *      If you look at the ACTUAL contents of the struct nothing changes! */
+    vis_change =    (depth                  != this->hidden->depth)     ||
+                    (vis->class             != SDL_Visual->class)       ||
+                    (vis->red_mask          != SDL_Visual->red_mask)    ||
+                    (vis->green_mask        != SDL_Visual->green_mask)  ||
+                    (vis->blue_mask         != SDL_Visual->blue_mask)   ||
+                    (vis->bits_per_rgb      != SDL_Visual->bits_per_rgb);
+
+    SDL_Visual = vis;
 	this->hidden->depth = depth;
 
 	/* Allocate the new pixel format for this video mode */
@@ -1017,7 +1037,7 @@ static int X11_CreateWindow(_THIS, SDL_Surface *screen,
 
 	/* Recreate the auxiliary windows, if needed (required for GL) */
 	if ( vis_change )
-	    create_aux_windows(this);
+	    create_aux_windows(this, 1);
 
 	if(screen->flags & SDL_HWPALETTE) {
 	    /* Since the full-screen window might have got a nonzero background
@@ -1051,8 +1071,8 @@ static int X11_CreateWindow(_THIS, SDL_Surface *screen,
 			SDL_Window = XCreateWindow(SDL_Display, WMwindow,
 		                           	0, 0, w, h, 0, depth,
 		                           	InputOutput, SDL_Visual,
-		                           	CWBackPixel | CWBorderPixel
-		                           	| CWColormap, &swa);
+		                           	/*CWBackPixel | CWBorderPixel
+		                           	| */CWColormap, &swa);
 		}
 		/* Only manage our input if we own the window */
 		XSelectInput(SDL_Display, SDL_Window,
@@ -1106,10 +1126,23 @@ static int X11_CreateWindow(_THIS, SDL_Surface *screen,
 
 	/* Map them both and go fullscreen, if requested */
 	if ( ! SDL_windowid ) {
-		XMapWindow(SDL_Display, SDL_Window);
-		XMapWindow(SDL_Display, WMwindow);
-		X11_WaitMapped(this, WMwindow);
-		if ( flags & SDL_FULLSCREEN ) {
+        XWindowAttributes a;
+
+        XMapWindow(SDL_Display, SDL_Window);
+
+        /* WARNING: If WMwindow is already mapped, X11_WaitMapped() will hang indefinitely unless we check map state first. */
+
+        /*          This code maps WMwindow once and then never unmaps it until shutdown. */
+        /*          XFCE's window manager likes to move unmapped windows to the upper left hand corner. */
+        /*          Rather than have to reposition the window back to where I had it, it's better not to unmap it in X11_DestroyWindow */
+        memset(&a,0,sizeof(a));
+        XGetWindowAttributes(SDL_Display, WMwindow, &a);
+        if (a.map_state != IsViewable) {
+            XMapWindow(SDL_Display, WMwindow);
+            X11_WaitMapped(this, WMwindow);
+        }
+
+        if ( flags & SDL_FULLSCREEN ) {
 			screen->flags |= SDL_FULLSCREEN;
 			X11_EnterFullScreen(this);
 		} else {
@@ -1506,8 +1539,12 @@ void X11_VideoQuit(_THIS)
 		#endif
 
 		/* Start shutting down the windows */
+        if ( WMwindow )
+            XUnmapWindow(SDL_Display, WMwindow);
+
 		X11_DestroyImage(this, this->screen);
 		X11_DestroyWindow(this, this->screen);
+        destroy_aux_windows(this);
 		X11_FreeVideoModes(this);
 		if ( SDL_XColorMap != SDL_DisplayColormap ) {
 			XFreeColormap(SDL_Display, SDL_XColorMap);
@@ -1537,6 +1574,12 @@ void X11_VideoQuit(_THIS)
 			this->FreeWMCursor(this, SDL_BlankCursor);
 			SDL_BlankCursor = NULL;
 		}
+
+        /* If any pending errors are waiting, we want them NOW */
+        if ( GFX_Display != NULL )
+            XSync(GFX_Display, True/*discard events, we're shutting down*/);
+        if ( SDL_Display != NULL )
+            XSync(SDL_Display, True/*discard events, we're shutting down*/);
 
 		/* Close the X11 graphics connection */
 		if ( GFX_Display != NULL ) {

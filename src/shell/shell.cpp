@@ -306,15 +306,21 @@ void DOS_Shell::Run(void) {
 		temp.RunInternal();				// exits when no bf is found.
 		return;
 	}
-	/* Start a normal shell and check for a first command init */
-	WriteOut(MSG_Get("SHELL_STARTUP_BEGIN"),VERSION,UPDATED_STR);
+
+    if (this == first_shell) {
+        /* Start a normal shell and check for a first command init */
+        WriteOut(MSG_Get("SHELL_STARTUP_BEGIN"),VERSION,UPDATED_STR);
 #if C_DEBUG
-	WriteOut(MSG_Get("SHELL_STARTUP_DEBUG"));
+        WriteOut(MSG_Get("SHELL_STARTUP_DEBUG"));
 #endif
-	if (machine == MCH_CGA || machine == MCH_AMSTRAD) WriteOut(MSG_Get("SHELL_STARTUP_CGA"));
-    if (machine == MCH_PC98) WriteOut(MSG_Get("SHELL_STARTUP_PC98"));
-	if (machine == MCH_HERC) WriteOut(MSG_Get("SHELL_STARTUP_HERC"));
-	WriteOut(MSG_Get("SHELL_STARTUP_END"));
+        if (machine == MCH_CGA || machine == MCH_AMSTRAD) WriteOut(MSG_Get("SHELL_STARTUP_CGA"));
+        if (machine == MCH_PC98) WriteOut(MSG_Get("SHELL_STARTUP_PC98"));
+        if (machine == MCH_HERC) WriteOut(MSG_Get("SHELL_STARTUP_HERC"));
+        WriteOut(MSG_Get("SHELL_STARTUP_END"));
+    }
+    else {
+        WriteOut("DOSBox command shell %s %s\n\n",VERSION,UPDATED_STR);
+    }
 
 	if (cmd->FindString("/INIT",line,true)) {
 		strcpy(input_line,line.c_str());
@@ -887,26 +893,30 @@ void SHELL_Init() {
 	extern bool Mouse_Drv;
 	Mouse_Drv = true;
 
-	VFILE_RegisterBuiltinFileBlob(bfb_CWSDPMI_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_DOS32A_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_DOS4GW_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM16_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM32_EXE);
 	VFILE_RegisterBuiltinFileBlob(bfb_DEBUG_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_TREE_EXE);
 	VFILE_RegisterBuiltinFileBlob(bfb_MOVE_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_MEM_COM);
 	VFILE_RegisterBuiltinFileBlob(bfb_FIND_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_DOSIDLE_EXE);
 	VFILE_RegisterBuiltinFileBlob(bfb_LASTDRIV_COM);
 	VFILE_RegisterBuiltinFileBlob(bfb_FCBS_COM);
 	VFILE_RegisterBuiltinFileBlob(bfb_XCOPY_EXE);
 	VFILE_RegisterBuiltinFileBlob(bfb_APPEND_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM);
 	VFILE_RegisterBuiltinFileBlob(bfb_DEVICE_COM);
 	VFILE_RegisterBuiltinFileBlob(bfb_BUFFERS_COM);
 	VFILE_RegisterBuiltinFileBlob(bfb_COPY_EXE);
-	VFILE_RegisterBuiltinFileBlob(bfb_25_COM);
+
+    /* These are IBM PC/XT/AT ONLY. They will not work in PC-98 mode. */
+    if (!IS_PC98_ARCH) {
+        VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM16_EXE);
+        VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM32_EXE);
+        VFILE_RegisterBuiltinFileBlob(bfb_DOSIDLE_EXE);
+        VFILE_RegisterBuiltinFileBlob(bfb_CWSDPMI_EXE);
+        VFILE_RegisterBuiltinFileBlob(bfb_DOS32A_EXE);
+        VFILE_RegisterBuiltinFileBlob(bfb_DOS4GW_EXE);
+        VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM);
+        VFILE_RegisterBuiltinFileBlob(bfb_TREE_EXE);
+        VFILE_RegisterBuiltinFileBlob(bfb_MEM_COM); // MEM.COM built-in to DOSBox-X here relies on tricks specific to the IBM PC
+        VFILE_RegisterBuiltinFileBlob(bfb_25_COM);
+    }
 
 	/* don't register 28.com unless EGA/VGA */
 	if (IS_EGAVGA_ARCH) VFILE_RegisterBuiltinFileBlob(bfb_28_COM);
