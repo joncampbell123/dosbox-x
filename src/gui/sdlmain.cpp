@@ -143,6 +143,9 @@ void FreeBIOSDiskList();
 void GFX_ShutDown(void);
 void MAPPER_Shutdown();
 void SHELL_Init(void);
+#if C_DYNAMIC_X86
+void CPU_Core_Dyn_X86_Shutdown(void);
+#endif
 
 void UpdateWindowMaximized(bool flag) {
     menu.maxwindow = flag;
@@ -5831,6 +5834,9 @@ fresh_boot:
 	DOS_ShutdownFiles();
 	DOS_ShutdownDevices();
 	CALLBACK_Shutdown();
+#if C_DYNAMIC_X86
+	CPU_Core_Dyn_X86_Shutdown();
+#endif
 	FreeBIOSDiskList();
 	MAPPER_Shutdown();
 	VFILE_Shutdown();

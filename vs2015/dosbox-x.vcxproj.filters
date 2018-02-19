@@ -807,6 +807,9 @@
     <ClCompile Include="..\src\hardware\snd_pc98\x11\dosio.c">
       <Filter>Sources\pc98fmboards</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\cpu\core_dyn_x86.cpp">
+      <Filter>Sources\cpu</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
