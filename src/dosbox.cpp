@@ -310,8 +310,6 @@ unsigned long long update_PCI_BCLK_clock() {
 
 #include "paging.h"
 
-extern Bitu dosbox_check_nonrecursive_pf_cs;
-extern Bitu dosbox_check_nonrecursive_pf_eip;
 extern bool rom_bios_vptable_enable;
 extern bool rom_bios_8x8_cga_font;
 extern bool allow_port_92_reset;
