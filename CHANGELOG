@@ -1,4 +1,9 @@
 (next)
+  - Fix CPU cycles count increment not to nag you to use
+    core=dynamic if a) dynamic core is not available or
+    b) you're already using dynamic core.
+  - Added dynamic core back, it seems to be very stable
+    again.
   - PC-98 FM board now allows changing the base I/O port
     and IRQ (interrupt) line used by the card.
   - PC-98 mode now supports joystick emulation. Joystick

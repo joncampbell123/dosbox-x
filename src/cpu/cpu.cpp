@@ -2621,10 +2621,13 @@ void CPU_CycleIncrease(bool pressed) {
 		    LOG_MSG("CPU:%d cycles (auto)",CPU_CycleMax);
 		} else {
 		    CPU_CyclesSet=CPU_CycleMax;
-		    if(CPU_CycleMax > 15000 )
-			LOG_MSG("CPU speed: fixed %d cycles. If you need more than 20000, try core=dynamic in DOSBox's options.",CPU_CycleMax);
-			else LOG_MSG("CPU speed: fixed %d cycles.",CPU_CycleMax);
-		}
+#if (C_DYNAMIC_X86)
+            if (CPU_CycleMax > 15000 && cpudecoder != &CPU_Core_Dyn_X86_Run)
+                LOG_MSG("CPU speed: fixed %d cycles. If you need more than 20000, try core=dynamic in DOSBox's options.",CPU_CycleMax);
+            else
+#endif
+                LOG_MSG("CPU speed: fixed %d cycles.",CPU_CycleMax);
+        }
 		GFX_SetTitle(CPU_CycleMax,-1,-1,false);
 	}
 }
