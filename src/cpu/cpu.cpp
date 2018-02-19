@@ -2045,11 +2045,6 @@ void CPU_SET_CRX(Bitu cr,Bitu value) {
 				}
 #if (C_DYNAMIC_X86)
 				if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CORE) {
-					if (dosbox_enable_nonrecursive_page_fault) {
-						dosbox_enable_nonrecursive_page_fault = false;
-						_LOG(LOG_CPU,LOG_NORMAL)("nonrecursive page fault not compatible with dynamic core, switching it off");
-					}
-
 					CPU_Core_Dyn_X86_Cache_Init(true);
 					cpudecoder=&CPU_Core_Dyn_X86_Run;
 					strcpy(core_mode, "dynamic");
@@ -2988,19 +2983,9 @@ public:
 			CPU_AutoDetermineMode|=CPU_AUTODETERMINE_CORE;
 		}
 		else if (core == "dynamic") {
-			if (dosbox_enable_nonrecursive_page_fault) {
-				dosbox_enable_nonrecursive_page_fault = false;
-				_LOG(LOG_CPU,LOG_NORMAL)("nonrecursive page fault not compatible with dynamic core, switching it off");
-			}
-
 			cpudecoder=&CPU_Core_Dyn_X86_Run;
 			CPU_Core_Dyn_X86_SetFPUMode(true);
 		} else if (core == "dynamic_nodhfpu") {
-			if (dosbox_enable_nonrecursive_page_fault) {
-				dosbox_enable_nonrecursive_page_fault = false;
-				_LOG(LOG_CPU,LOG_NORMAL)("nonrecursive page fault not compatible with dynamic core, switching it off");
-			}
-
 			cpudecoder=&CPU_Core_Dyn_X86_Run;
 			CPU_Core_Dyn_X86_SetFPUMode(false);
 #else
