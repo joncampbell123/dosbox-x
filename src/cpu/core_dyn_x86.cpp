@@ -259,6 +259,13 @@ static void dyn_restoreregister(DynReg * src_reg, DynReg * dst_reg) {
 extern int dynamic_core_cache_block_size;
 
 Bits CPU_Core_Dyn_X86_Run(void) {
+	/* Dynamic core is NOT compatible with page faults!
+	   Deflect to normal core if paging is enabled.
+	   Perhaps someday this core can catch and handle page faults in the guest properly
+	   and this limitation can be removed at that point. */
+	if (paging.enabled)
+		return CPU_Core_Normal_Run();
+
 	/* Determine the linear address of CS:EIP */
 restart_core:
 	PhysPt ip_point=SegPhys(cs)+reg_eip;
