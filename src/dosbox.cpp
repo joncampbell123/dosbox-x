@@ -310,8 +310,6 @@ unsigned long long update_PCI_BCLK_clock() {
 
 #include "paging.h"
 
-extern Bitu dosbox_check_nonrecursive_pf_cs;
-extern Bitu dosbox_check_nonrecursive_pf_eip;
 extern bool rom_bios_vptable_enable;
 extern bool rom_bios_8x8_cga_font;
 extern bool allow_port_92_reset;
@@ -480,9 +478,6 @@ increaseticks:
         ret = 0;
         FillFlags();
         dosbox_allow_nonrecursive_page_fault = false;
-#if 0 //TODO make option
-        LOG_MSG("Guest page fault exception! Alternate method will be used. Wish me luck.\n");
-#endif
         CPU_Exception(EXCEPTION_PF,pf.faultcode);
         dosbox_allow_nonrecursive_page_fault = saved_allow;
     }

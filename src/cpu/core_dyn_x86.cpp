@@ -261,16 +261,17 @@ extern int dynamic_core_cache_block_size;
 static bool paging_warning = true;
 
 Bits CPU_Core_Dyn_X86_Run(void) {
-    /* NTS: Still paranoid about C++ exceptions, and paging,
-     *      but seems to be stable. Just in case there are subtle
-     *      bugs, print a warning on the first time we're run
-     *      with 80386 paging enabled. */
-    if (paging.enabled) {
-        if (paging_warning) {
-            paging_warning = false;
-            LOG_MSG("Dynamic core warning: 80386 paging is enabled. While it appears to work, 100%% stability is not yet guaranteed. Use at your own risk or use core=normal otherwise.");
-        }
-    }
+    /* Dynamic core is NOT compatible with the way page faults
+     * in the guest are handled in this emulator. Do not use
+     * dynamic core if paging is enabled. Do not comment this
+     * out, even if it happens to work for a minute, a half
+     * hour, a day, because it will turn around and cause
+     * Windows 95 to crash when you've become most comfortable
+     * with the idea that it works. This code cannot handle
+     * the sudden context switch of a page fault and it never
+     * will. Don't do it. You have been warned. */
+    if (paging.enabled)
+        return CPU_Core_Normal_Run();
 
 	/* Determine the linear address of CS:EIP */
 restart_core:
