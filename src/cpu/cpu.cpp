@@ -2979,16 +2979,14 @@ public:
 			cpudecoder=&CPU_Core_Full_Run;
 		} else if (core == "auto") {
 			cpudecoder=&CPU_Core_Normal_Run;
-#if (C_DYNAMIC_X86)
 			CPU_AutoDetermineMode|=CPU_AUTODETERMINE_CORE;
-		}
-		else if (core == "dynamic") {
+#if (C_DYNAMIC_X86)
+		} else if (core == "dynamic") {
 			cpudecoder=&CPU_Core_Dyn_X86_Run;
 			CPU_Core_Dyn_X86_SetFPUMode(true);
 		} else if (core == "dynamic_nodhfpu") {
 			cpudecoder=&CPU_Core_Dyn_X86_Run;
 			CPU_Core_Dyn_X86_SetFPUMode(false);
-#else
 #endif
 		} else {
 			strcpy(core_mode,"normal");
