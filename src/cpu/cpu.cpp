@@ -3252,23 +3252,12 @@ CPU_Decoder *CPU_IndexDecoderType( Bit16u decoder_idx )
 		case 2: cpudecoder = &CPU_Core_Simple_Run; break;
 		case 3: cpudecoder = &CPU_Core_Full_Run; break;
 #if C_DYNAMIC_X86
-		case 4: cpudecoder = &CPU_Core_Dyn_X86_Run;
-			if (dosbox_enable_nonrecursive_page_fault) {
-				dosbox_enable_nonrecursive_page_fault = false;
-				_LOG(LOG_CPU,LOG_NORMAL)("nonrecursive page fault not compatible with dynamic core, switching it off");
-			}
-			break;
+		case 4: cpudecoder = &CPU_Core_Dyn_X86_Run; break;
 #endif
 		case 100: cpudecoder = &CPU_Core_Normal_Trap_Run; break;
 #if C_DYNAMIC_X86
-		case 101: cpudecoder = &CPU_Core_Dyn_X86_Trap_Run;
-			if (dosbox_enable_nonrecursive_page_fault) {
-				dosbox_enable_nonrecursive_page_fault = false;
-				_LOG(LOG_CPU,LOG_NORMAL)("nonrecursive page fault not compatible with dynamic core, switching it off");
-			}
-			break;
+		case 101: cpudecoder = &CPU_Core_Dyn_X86_Trap_Run; break;
 #endif
-
 		case 200: cpudecoder = &HLT_Decode; break;
 	}
 
