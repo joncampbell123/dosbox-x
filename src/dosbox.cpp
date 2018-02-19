@@ -480,16 +480,6 @@ increaseticks:
         ret = 0;
         FillFlags();
         dosbox_allow_nonrecursive_page_fault = false;
-
-#if (C_DYNAMIC_X86)
-        /* dynamic core needs a little help here */
-        if (cpudecoder == &CPU_Core_Dyn_X86_Run) {
-            void CPU_Core_Dyn_X86_Cache_Reset(void);
-            CPU_Core_Dyn_X86_Cache_Reset();
-            LOG_MSG("Dynamic core: resetting cache");
-        }
-#endif
-
         CPU_Exception(EXCEPTION_PF,pf.faultcode);
         dosbox_allow_nonrecursive_page_fault = saved_allow;
     }
