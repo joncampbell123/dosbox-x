@@ -1295,16 +1295,6 @@ void On_Software_CPU_Reset() {
 			return;
 	};
 
-#if C_DYNAMIC_X86
-	/* this technique is NOT reliable when running the dynamic core! */
-	if (cpudecoder == &CPU_Core_Dyn_X86_Run) {
-		LOG_MSG("Using traditional DOSBox re-exec, C++ exception method is not compatible with dynamic core\n");
-		control->startup_params.insert(control->startup_params.begin(),control->cmdline->GetFileName());
-		restart_program(control->startup_params);
-		return;
-	}
-#endif
-
 	throw int(3);
 	/* does not return */
 }
