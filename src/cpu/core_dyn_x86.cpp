@@ -258,18 +258,19 @@ static void dyn_restoreregister(DynReg * src_reg, DynReg * dst_reg) {
 
 extern int dynamic_core_cache_block_size;
 
-Bits CPU_Core_Dyn_X86_Run(void) {
-    /* WARNING: C++ exceptions thrown within this call are not guaranteed
-     *          to be caught and handled properly on Linux. The C++ runtime
-     *          might not be able to trace the stack properly, and will
-     *          therefore reflect the exception to the default runtime
-     *          handler and abort this program. */
+static bool paging_warning = true;
 
-    /* Dynamic core is NOT compatible with the way page faults
-     * in the guest are handled in this emulator. Do not use
-     * dynamic core if paging is enabled */
-    if (paging.enabled)
-        return CPU_Core_Normal_Run();
+Bits CPU_Core_Dyn_X86_Run(void) {
+    /* NTS: Still paranoid about C++ exceptions, and paging,
+     *      but seems to be stable. Just in case there are subtle
+     *      bugs, print a warning on the first time we're run
+     *      with 80386 paging enabled. */
+    if (paging.enabled) {
+        if (paging_warning) {
+            paging_warning = false;
+            LOG_MSG("Dynamic core warning: 80386 paging is enabled. While it appears to work, 100%% stability is not yet guaranteed. Use at your own risk or use core=normal otherwise.");
+        }
+    }
 
 	/* Determine the linear address of CS:EIP */
 restart_core:
