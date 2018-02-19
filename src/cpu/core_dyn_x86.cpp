@@ -259,6 +259,18 @@ static void dyn_restoreregister(DynReg * src_reg, DynReg * dst_reg) {
 extern int dynamic_core_cache_block_size;
 
 Bits CPU_Core_Dyn_X86_Run(void) {
+    /* WARNING: C++ exceptions thrown within this call are not guaranteed
+     *          to be caught and handled properly on Linux. The C++ runtime
+     *          might not be able to trace the stack properly, and will
+     *          therefore reflect the exception to the default runtime
+     *          handler and abort this program. */
+
+    /* Dynamic core is NOT compatible with the way page faults
+     * in the guest are handled in this emulator. Do not use
+     * dynamic core if paging is enabled */
+    if (paging.enabled)
+        return CPU_Core_Normal_Run();
+
 	/* Determine the linear address of CS:EIP */
 restart_core:
 	PhysPt ip_point=SegPhys(cs)+reg_eip;
