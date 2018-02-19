@@ -18,6 +18,7 @@
 #define	ID_AUTOCYCLE	119
 #define	ID_AUTODETER	120
 #define	ID_NORMAL	121
+#define	ID_DYNAMIC	122
 #define	ID_FULL	123
 #define	ID_SIMPLE	124
 #define	ID_AUTO	125
