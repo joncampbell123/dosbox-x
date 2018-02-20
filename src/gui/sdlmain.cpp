@@ -105,6 +105,8 @@ bool OpenGL_using(void);
 
 using namespace std;
 
+bool window_was_maximized = false;
+
 Bitu userResizeWindowWidth = 0, userResizeWindowHeight = 0;
 Bitu currentWindowWidth = 640, currentWindowHeight = 480;
 
@@ -3061,7 +3063,7 @@ static void HandleVideoResize(void * event) {
 
     /* assume the resize comes from user preference UNLESS the window
      * is fullscreen or maximized */
-    if (!menu.maxwindow && !sdl.desktop.fullscreen && !sdl.init_ignore && NonUserResizeCounter == 0) {
+    if (!menu.maxwindow && !sdl.desktop.fullscreen && !sdl.init_ignore && NonUserResizeCounter == 0 && !window_was_maximized) {
 		UpdateWindowDimensions();
 		UpdateWindowDimensions(ResizeEvent->w, ResizeEvent->h);
 
@@ -3078,6 +3080,7 @@ static void HandleVideoResize(void * event) {
 		UpdateWindowDimensions();
     }
 
+	window_was_maximized = menu.maxwindow;
     if (NonUserResizeCounter > 0)
         NonUserResizeCounter--;
 
