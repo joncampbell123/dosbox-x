@@ -903,15 +903,8 @@ static void gen_call_function(void * func,char const* ops,...) {
 	x86gen.regs[X86_REG_ECX]->Clear();
 	x86gen.regs[X86_REG_EDX]->Clear();
 	/* Do the actual call to the procedure */
-#if C_DYNAMIC_X86 == 64
-    cache_addw(0xB849);             //MOV r8,data
-	cache_addq((uintptr_t)func);
-    cache_addw(0xFF41);             //call r8
-    cache_addb(0xD0);
-#else
 	cache_addb(0xe8);
 	cache_addd((uintptr_t)func - (uintptr_t)cache.pos - (uintptr_t)4);
-#endif
 	/* Restore the params of the stack */
 	if (paramcount) {
 		cache_addw(0xc483);				//add ESP,imm byte
@@ -981,17 +974,6 @@ static void gen_call_write(DynReg * dr,Bit32u val,Bitu write_size) {
 	x86gen.regs[X86_REG_ECX]->Clear();
 	x86gen.regs[X86_REG_EDX]->Clear();
 	/* Do the actual call to the procedure */
-#if C_DYNAMIC_X86 == 64
-    cache_addw(0xB849);             //MOV r8,data
-	switch (write_size) {
-		case 1: cache_addq((uintptr_t)mem_writeb_checked); break;
-		case 2: cache_addq((uintptr_t)mem_writew_checked); break;
-		case 4: cache_addq((uintptr_t)mem_writed_checked); break;
-		default: IllegalOption("gen_call_write");
-	}
-    cache_addw(0xFF41);             //call r8
-    cache_addb(0xD0);
-#else
 	cache_addb(0xe8);
 	switch (write_size) {
 		case 1: cache_addd((uintptr_t)mem_writeb_checked - (uintptr_t)cache.pos - (uintptr_t)4); break;
@@ -999,7 +981,6 @@ static void gen_call_write(DynReg * dr,Bit32u val,Bitu write_size) {
 		case 4: cache_addd((uintptr_t)mem_writed_checked - (uintptr_t)cache.pos - (uintptr_t)4); break;
 		default: IllegalOption("gen_call_write");
 	}
-#endif
 
 	cache_addw(0xc483);		//ADD ESP,8
 	cache_addb(2*4);
