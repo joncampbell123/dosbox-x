@@ -1726,9 +1726,13 @@ static LRESULT CALLBACK WinExtHookKeyboardHookProc(int nCode,WPARAM wParam,LPARA
 								wParam = WM_USER + 0x101;
 						}
 
+						DWORD lParam =
+							(st_hook->scanCode << 8U) +
+							((st_hook->flags & LLKHF_EXTENDED) ? 0x01000000 : 0) +
+							((wParam == WM_KEYUP || wParam == WM_SYSKEYUP) ? 0xC0000000 : 0);
+
 						// catch the keystroke, post it to ourself, do not pass it on
-						PostMessage(myHwnd, wParam, st_hook->vkCode,
-							(st_hook->flags & 0x80/*transition state*/) ? 0x0000 : 0xA000/*bits 13&15 are set*/);
+						PostMessage(myHwnd, wParam, st_hook->vkCode, lParam);
 						return TRUE;
 					}
 				}
