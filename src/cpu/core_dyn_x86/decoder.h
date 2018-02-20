@@ -400,10 +400,10 @@ static void dyn_fill_blocks(void) {
 				gr=FindDynReg(DREG(TMPB));
 				cache_addb(0xdd);	// FRSTOR fpu.state (fpu_restore)
 				cache_addb(0x25);
-				cache_addd((Bit32u)(&(dyn_dh_fpu.state[0])));
+				cache_addd((uintptr_t)(&(dyn_dh_fpu.state[0])));
 				cache_addb(0x89);	// mov fpu.state_used,1
 				cache_addb(0x05|(gr->index<<3));
-				cache_addd((Bit32u)(&(dyn_dh_fpu.state_used)));
+				cache_addd((uintptr_t)(&(dyn_dh_fpu.state_used)));
 				gen_releasereg(DREG(TMPB));
 				dyn_synchstate(&save_info[sct].state);
 				gen_create_jump(save_info[sct].return_pos);
@@ -485,7 +485,7 @@ static void dyn_read_intro(DynReg * addr,bool release_addr=true) {
 		x86gen.regs[X86_REG_EAX]->Clear();
 		x86gen.regs[X86_REG_ECX]->Clear();
 		cache_addw(0x0d8b);		//Mov ecx,[data]
-		cache_addd((Bit32u)addr->data);
+		cache_addd((uintptr_t)addr->data);
 	}
 	x86gen.regs[X86_REG_EDX]->Clear();
 
@@ -503,7 +503,7 @@ static void dyn_read_byte(DynReg * addr,DynReg * dst,Bitu high) {
 	cache_addb(0x0c);
 	cache_addw(0x048b);		// mov eax,paging.tlb.read[eax*TYPE Bit32u]
 	cache_addb(0x85);
-	cache_addd((Bit32u)(&paging.tlb.read[0]));
+	cache_addd((uintptr_t)(&paging.tlb.read[0]));
 	cache_addw(0xc085);		// test eax,eax
 	Bit8u* je_loc=gen_create_branch(BR_Z);
 
@@ -515,7 +515,7 @@ static void dyn_read_byte(DynReg * addr,DynReg * dst,Bitu high) {
 	gen_fill_branch(je_loc);
 	cache_addb(0x51);		// push ecx
 	cache_addb(0xe8);
-	cache_addd(((Bit32u)&mem_readb_checked_dcx86) - (Bit32u)cache.pos-4);
+	cache_addd((uintptr_t)(&mem_readb_checked_dcx86) - (uintptr_t)cache.pos - (uintptr_t)4);
 	cache_addw(0xc483);		// add esp,4
 	cache_addb(0x04);
 	cache_addw(0x012c);		// sub al,1
@@ -523,7 +523,7 @@ static void dyn_read_byte(DynReg * addr,DynReg * dst,Bitu high) {
 	dyn_check_bool_exception_ne();
 
 	cache_addw(0x058a);		//mov al,[]
-	cache_addd((Bit32u)(&core_dyn.readdata));
+	cache_addd((uintptr_t)(&core_dyn.readdata));
 
 	gen_fill_jump(jmp_loc);
 
@@ -541,7 +541,7 @@ static void dyn_read_byte_release(DynReg * addr,DynReg * dst,Bitu high) {
 	cache_addb(0x0c);
 	cache_addw(0x048b);		// mov eax,paging.tlb.read[eax*TYPE Bit32u]
 	cache_addb(0x85);
-	cache_addd((Bit32u)(&paging.tlb.read[0]));
+	cache_addd((uintptr_t)(&paging.tlb.read[0]));
 	cache_addw(0xc085);		// test eax,eax
 	Bit8u* je_loc=gen_create_branch(BR_Z);
 
@@ -553,7 +553,7 @@ static void dyn_read_byte_release(DynReg * addr,DynReg * dst,Bitu high) {
 	gen_fill_branch(je_loc);
 	cache_addb(0x51);		// push ecx
 	cache_addb(0xe8);
-	cache_addd((Bit32u)((char*)(&mem_readb_checked_dcx86) - (char*)cache.pos - 4));
+	cache_addd((uintptr_t)(&mem_readb_checked_dcx86) - (uintptr_t)cache.pos - (uintptr_t)4);
 	cache_addw(0xc483);		// add esp,4
 	cache_addb(0x04);
 	cache_addw(0x012c);		// sub al,1
@@ -561,7 +561,7 @@ static void dyn_read_byte_release(DynReg * addr,DynReg * dst,Bitu high) {
 	dyn_check_bool_exception_ne();
 
 	cache_addw(0x058a);		//mov al,[]
-	cache_addd((Bit32u)(&core_dyn.readdata));
+	cache_addd((uintptr_t)(&core_dyn.readdata));
 
 	gen_fill_jump(jmp_loc);
 
@@ -596,7 +596,7 @@ static void dyn_read_word(DynReg * addr,DynReg * dst,bool dword) {
 		cache_addb(0x0a);
 		cache_addw(0x048b);		// mov eax,paging.tlb.read[eax*TYPE Bit32u]
 		cache_addb(0x85);
-		cache_addd((Bit32u)(&paging.tlb.read[0]));
+		cache_addd((uintptr_t)(&paging.tlb.read[0]));
 		cache_addw(0xc085);		// test eax,eax
 		Bit8u* je_loc=gen_create_branch(BR_Z);
 
@@ -611,7 +611,7 @@ static void dyn_read_word(DynReg * addr,DynReg * dst,bool dword) {
 		gen_fill_branch(je_loc);
 		cache_addb(0x51);		// push ecx
 		cache_addb(0xe8);
-		cache_addd((Bit32u)((char*)(&mem_readd_checked_dcx86) - (char*)cache.pos - 4));
+	    cache_addd((uintptr_t)(&mem_readd_checked_dcx86) - (uintptr_t)cache.pos - (uintptr_t)4);
 		cache_addw(0xc483);		// add esp,4
 		cache_addb(0x04);
 		cache_addw(0x012c);		// sub al,1
@@ -642,7 +642,7 @@ static void dyn_read_word_release(DynReg * addr,DynReg * dst,bool dword) {
 		cache_addb(0x0a);
 		cache_addw(0x048b);		// mov eax,paging.tlb.read[eax*TYPE Bit32u]
 		cache_addb(0x85);
-		cache_addd((Bit32u)(&paging.tlb.read[0]));
+		cache_addd((uintptr_t)(&paging.tlb.read[0]));
 		cache_addw(0xc085);		// test eax,eax
 		Bit8u* je_loc=gen_create_branch(BR_Z);
 
@@ -657,7 +657,7 @@ static void dyn_read_word_release(DynReg * addr,DynReg * dst,bool dword) {
 		gen_fill_branch(je_loc);
 		cache_addb(0x51);		// push ecx
 		cache_addb(0xe8);
-		cache_addd((Bit32u)((char*)(&mem_readd_checked_dcx86) - (char*)cache.pos - 4));
+	    cache_addd((uintptr_t)(&mem_readd_checked_dcx86) - (uintptr_t)cache.pos - (uintptr_t)4);
 		cache_addw(0xc483);		// add esp,4
 		cache_addb(0x04);
 		cache_addw(0x012c);		// sub al,1
@@ -701,7 +701,7 @@ static void dyn_write_intro(DynReg * addr,bool release_addr=true) {
 		x86gen.regs[X86_REG_ECX]->Clear();
 		x86gen.regs[X86_REG_ECX]->notusable=true;
 		cache_addb(0xa1);		//Mov eax,[data]
-		cache_addd((Bit32u)addr->data);
+		cache_addd((uintptr_t)addr->data);
 	}
 
 	cache_addw(0xc88b);		// mov ecx,eax
@@ -715,7 +715,7 @@ static void dyn_write_byte(DynReg * addr,DynReg * val,bool high) {
 	cache_addb(0x0c);
 	cache_addw(0x0c8b);		// mov ecx,paging.tlb.read[ecx*TYPE Bit32u]
 	cache_addb(0x8d);
-	cache_addd((Bit32u)(&paging.tlb.write[0]));
+	cache_addd((uintptr_t)(&paging.tlb.write[0]));
 	cache_addw(0xc985);		// test ecx,ecx
 	Bit8u* je_loc=gen_create_branch(BR_Z);
 
@@ -731,7 +731,7 @@ static void dyn_write_byte(DynReg * addr,DynReg * val,bool high) {
 	cache_addb(0x50);	// push eax
 	if (GCC_UNLIKELY(high)) cache_addw(0xe086+((genreg->index+(genreg->index<<3))<<8));
 	cache_addb(0xe8);
-	cache_addd((Bit32u)((char*)(&mem_writeb_checked) - (char*)cache.pos - 4));
+	cache_addd((uintptr_t)(&mem_writeb_checked) - (uintptr_t)cache.pos - (uintptr_t)4);
 	cache_addw(0xc483);		// add esp,8
 	cache_addb(0x08);
 	cache_addw(0x012c);		// sub al,1
@@ -754,7 +754,7 @@ static void dyn_write_byte_release(DynReg * addr,DynReg * val,bool high) {
 	cache_addb(0x0c);
 	cache_addw(0x0c8b);		// mov ecx,paging.tlb.read[ecx*TYPE Bit32u]
 	cache_addb(0x8d);
-	cache_addd((Bit32u)(&paging.tlb.write[0]));
+	cache_addd((uintptr_t)(&paging.tlb.write[0]));
 	cache_addw(0xc985);		// test ecx,ecx
 	Bit8u* je_loc=gen_create_branch(BR_Z);
 
@@ -770,7 +770,7 @@ static void dyn_write_byte_release(DynReg * addr,DynReg * val,bool high) {
 	cache_addb(0x50);	// push eax
 	if (GCC_UNLIKELY(high)) cache_addw(0xe086+((genreg->index+(genreg->index<<3))<<8));
 	cache_addb(0xe8);
-	cache_addd((Bit32u)((char*)(&mem_writeb_checked) - (char*)cache.pos - 4));
+	cache_addd((uintptr_t)(&mem_writeb_checked) - (uintptr_t)cache.pos - (uintptr_t)4);
 	cache_addw(0xc483);		// add esp,8
 	cache_addb(0x08);
 	cache_addw(0x012c);		// sub al,1
@@ -798,7 +798,7 @@ static void dyn_write_word(DynReg * addr,DynReg * val,bool dword) {
 		cache_addb(0x0a);
 		cache_addw(0x0c8b);		// mov ecx,paging.tlb.read[ecx*TYPE Bit32u]
 		cache_addb(0x8d);
-		cache_addd((Bit32u)(&paging.tlb.write[0]));
+		cache_addd((uintptr_t)(&paging.tlb.write[0]));
 		cache_addw(0xc985);		// test ecx,ecx
 		Bit8u* je_loc=gen_create_branch(BR_Z);
 
@@ -814,7 +814,7 @@ static void dyn_write_word(DynReg * addr,DynReg * val,bool dword) {
 		cache_addb(0x50+genreg->index);
 		cache_addb(0x50);	// push eax
 		cache_addb(0xe8);
-		cache_addd((Bit32u)((char*)(&mem_writed_checked) - (char*)cache.pos - 4));
+	    cache_addd((uintptr_t)(&mem_writed_checked) - (uintptr_t)cache.pos - (uintptr_t)4);
 		cache_addw(0xc483);		// add esp,8
 		cache_addb(0x08);
 		cache_addw(0x012c);		// sub al,1
@@ -847,7 +847,7 @@ static void dyn_write_word_release(DynReg * addr,DynReg * val,bool dword) {
 		cache_addb(0x0a);
 		cache_addw(0x0c8b);		// mov ecx,paging.tlb.read[ecx*TYPE Bit32u]
 		cache_addb(0x8d);
-		cache_addd((Bit32u)(&paging.tlb.write[0]));
+		cache_addd((uintptr_t)(&paging.tlb.write[0]));
 		cache_addw(0xc985);		// test ecx,ecx
 		Bit8u* je_loc=gen_create_branch(BR_Z);
 
@@ -863,7 +863,7 @@ static void dyn_write_word_release(DynReg * addr,DynReg * val,bool dword) {
 		cache_addb(0x50+genreg->index);
 		cache_addb(0x50);	// push eax
 		cache_addb(0xe8);
-		cache_addd(((Bit32u)&mem_writed_checked) - (Bit32u)cache.pos-4);
+	    cache_addd((uintptr_t)(&mem_writed_checked) - (uintptr_t)cache.pos - (uintptr_t)4);
 		cache_addw(0xc483);		// add esp,8
 		cache_addb(0x08);
 		cache_addw(0x012c);		// sub al,1
@@ -1987,7 +1987,7 @@ static CacheBlock * CreateCacheBlock(CodePageHandler * codepage,PhysPt start,Bit
 	decode.block->page.start=decode.page.index;
 	codepage->AddCacheBlock(decode.block);
 
-	gen_save_host_direct(&cache.block.running,(Bit32u)decode.block);
+	gen_save_host_direct(&cache.block.running,(uintptr_t)decode.block);
 	for (i=0;i<G_MAX;i++) {
 		DynRegs[i].flags&=~(DYNFLG_ACTIVE|DYNFLG_CHANGED);
 		DynRegs[i].genreg=0;
