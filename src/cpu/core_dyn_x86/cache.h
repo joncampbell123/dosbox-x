@@ -468,11 +468,6 @@ static INLINE void cache_addd(Bit32u val) {
 	cache.pos+=4;
 }
 
-static INLINE void cache_addq(Bit64u val) {
-	*(Bit64u*)cache.pos=val;
-	cache.pos+=8;
-}
-
 
 static void gen_return(BlockReturn retcode);
 
