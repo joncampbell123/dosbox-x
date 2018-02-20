@@ -1987,8 +1987,7 @@ static CacheBlock * CreateCacheBlock(CodePageHandler * codepage,PhysPt start,Bit
 	decode.block->page.start=decode.page.index;
 	codepage->AddCacheBlock(decode.block);
 
-    cache.block.running = decode.block;
-//	gen_save_host_direct(&cache.block.running,(uintptr_t)decode.block);
+	gen_save_host_direct(&cache.block.running,(uintptr_t)decode.block);
 	for (i=0;i<G_MAX;i++) {
 		DynRegs[i].flags&=~(DYNFLG_ACTIVE|DYNFLG_CHANGED);
 		DynRegs[i].genreg=0;
