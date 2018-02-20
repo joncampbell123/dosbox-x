@@ -553,7 +553,7 @@ static void dyn_read_byte_release(DynReg * addr,DynReg * dst,Bitu high) {
 	gen_fill_branch(je_loc);
 	cache_addb(0x51);		// push ecx
 	cache_addb(0xe8);
-	cache_addd(((Bit32u)&mem_readb_checked_dcx86) - (Bit32u)cache.pos-4);
+	cache_addd((Bit32u)((char*)(&mem_readb_checked_dcx86) - (char*)cache.pos - 4));
 	cache_addw(0xc483);		// add esp,4
 	cache_addb(0x04);
 	cache_addw(0x012c);		// sub al,1
@@ -611,7 +611,7 @@ static void dyn_read_word(DynReg * addr,DynReg * dst,bool dword) {
 		gen_fill_branch(je_loc);
 		cache_addb(0x51);		// push ecx
 		cache_addb(0xe8);
-		cache_addd(((Bit32u)&mem_readd_checked_dcx86) - (Bit32u)cache.pos-4);
+		cache_addd((Bit32u)((char*)(&mem_readd_checked_dcx86) - (char*)cache.pos - 4));
 		cache_addw(0xc483);		// add esp,4
 		cache_addb(0x04);
 		cache_addw(0x012c);		// sub al,1
@@ -657,7 +657,7 @@ static void dyn_read_word_release(DynReg * addr,DynReg * dst,bool dword) {
 		gen_fill_branch(je_loc);
 		cache_addb(0x51);		// push ecx
 		cache_addb(0xe8);
-		cache_addd(((Bit32u)&mem_readd_checked_dcx86) - (Bit32u)cache.pos-4);
+		cache_addd((Bit32u)((char*)(&mem_readd_checked_dcx86) - (char*)cache.pos - 4));
 		cache_addw(0xc483);		// add esp,4
 		cache_addb(0x04);
 		cache_addw(0x012c);		// sub al,1
@@ -731,7 +731,7 @@ static void dyn_write_byte(DynReg * addr,DynReg * val,bool high) {
 	cache_addb(0x50);	// push eax
 	if (GCC_UNLIKELY(high)) cache_addw(0xe086+((genreg->index+(genreg->index<<3))<<8));
 	cache_addb(0xe8);
-	cache_addd(((Bit32u)&mem_writeb_checked) - (Bit32u)cache.pos-4);
+	cache_addd((Bit32u)((char*)(&mem_writeb_checked) - (char*)cache.pos - 4));
 	cache_addw(0xc483);		// add esp,8
 	cache_addb(0x08);
 	cache_addw(0x012c);		// sub al,1
@@ -770,7 +770,7 @@ static void dyn_write_byte_release(DynReg * addr,DynReg * val,bool high) {
 	cache_addb(0x50);	// push eax
 	if (GCC_UNLIKELY(high)) cache_addw(0xe086+((genreg->index+(genreg->index<<3))<<8));
 	cache_addb(0xe8);
-	cache_addd(((Bit32u)&mem_writeb_checked) - (Bit32u)cache.pos-4);
+	cache_addd((Bit32u)((char*)(&mem_writeb_checked) - (char*)cache.pos - 4));
 	cache_addw(0xc483);		// add esp,8
 	cache_addb(0x08);
 	cache_addw(0x012c);		// sub al,1
@@ -814,7 +814,7 @@ static void dyn_write_word(DynReg * addr,DynReg * val,bool dword) {
 		cache_addb(0x50+genreg->index);
 		cache_addb(0x50);	// push eax
 		cache_addb(0xe8);
-		cache_addd(((Bit32u)&mem_writed_checked) - (Bit32u)cache.pos-4);
+		cache_addd((Bit32u)((char*)(&mem_writed_checked) - (char*)cache.pos - 4));
 		cache_addw(0xc483);		// add esp,8
 		cache_addb(0x08);
 		cache_addw(0x012c);		// sub al,1

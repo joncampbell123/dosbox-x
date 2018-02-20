@@ -7671,10 +7671,12 @@ if test x$enable_dynamic_x86 = xno -o x$enable_dynamic_core = xno; then
 $as_echo "no" >&6; }
 else
   if test x$c_targetcpu = xx86 ; then
-      $as_echo "#define C_DYNAMIC_X86 1" >>confdefs.h
+      $as_echo "#define C_DYNAMIC_X86 32" >>confdefs.h
 
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
+  elif test x$c_targetcpu = xx86_64 ; then
+      true
   else
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
