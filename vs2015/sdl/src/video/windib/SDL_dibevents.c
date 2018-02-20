@@ -49,6 +49,8 @@
 #define NO_GETKEYBOARDSTATE
 #endif
 
+static HKL hLayout = NULL;
+
 /* The translation table from a Microsoft VK keysym to a SDL keysym */
 static SDLKey VK_keymap[SDLK_LAST];
 static SDL_keysym *TranslateKey(WPARAM vkey, UINT scancode, SDL_keysym *keysym, int pressed);
@@ -181,6 +183,12 @@ LRESULT DIB_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 #endif
 
 	switch (msg) {
+#ifdef WM_INPUTLANGCHANGE
+		case WM_INPUTLANGCHANGE:
+			hLayout = (HKL)wParam;
+			return(1);
+#endif
+
 		case WM_SYSKEYDOWN:
 		case WM_KEYDOWN: {
 			SDL_keysym keysym;
@@ -448,40 +456,12 @@ void DIB_CheckMouse(void) {
 	last_dib_mouse_motion = SDL_GetTicks();
 }
 
-static HKL hLayoutUS = NULL;
-
 void DIB_InitOSKeymap(_THIS)
 {
 	int	i;
-#ifndef _WIN32_WCE
-	char	current_layout[KL_NAMELENGTH];
 
-	GetKeyboardLayoutName(current_layout);
-	//printf("Initial Keyboard Layout Name: '%s'\n", current_layout);
+	hLayout = GetKeyboardLayout(0);
 
-	hLayoutUS = LoadKeyboardLayout("00000409", KLF_NOTELLSHELL);
-
-	if (!hLayoutUS) {
-		//printf("Failed to load US keyboard layout. Using current.\n");
-		hLayoutUS = GetKeyboardLayout(0);
-	}
-	LoadKeyboardLayout(current_layout, KLF_ACTIVATE);
-#else
-#if _WIN32_WCE >=420
-	TCHAR	current_layout[KL_NAMELENGTH];
-
-	GetKeyboardLayoutName(current_layout);
-	//printf("Initial Keyboard Layout Name: '%s'\n", current_layout);
-
-	hLayoutUS = LoadKeyboardLayout(L"00000409", 0);
-
-	if (!hLayoutUS) {
-		//printf("Failed to load US keyboard layout. Using current.\n");
-		hLayoutUS = GetKeyboardLayout(0);
-	}
-	LoadKeyboardLayout(current_layout, 0);
-#endif // _WIN32_WCE >=420
-#endif
 	/* Map the VK keysyms */
 	for ( i=0; i<SDL_arraysize(VK_keymap); ++i )
 		VK_keymap[i] = SDLK_UNKNOWN;
@@ -617,7 +597,7 @@ void DIB_InitOSKeymap(_THIS)
 static int SDL_MapVirtualKey(int scancode, int vkey)
 {
 #ifndef _WIN32_WCE
-	int	mvke  = MapVirtualKeyEx(scancode & 0xFF, 1, hLayoutUS);
+	int	mvke  = MapVirtualKeyEx(scancode & 0xFF, 1, hLayout);
 #else
 	int	mvke  = MapVirtualKey(scancode & 0xFF, 1);
 #endif
@@ -697,21 +677,6 @@ static SDL_keysym *TranslateKey(WPARAM vkey, UINT scancode, SDL_keysym *keysym, 
 #endif /* NO_GETKEYBOARDSTATE */
 	}
 
-#if 0
-	{
-		HKL     hLayoutCurrent = GetKeyboardLayout(0);
-		int     sc = scancode & 0xFF;
-
-		printf("SYM:%d, VK:0x%02X, SC:0x%04X, US:(1:0x%02X, 3:0x%02X), "
-			"Current:(1:0x%02X, 3:0x%02X)\n",
-			keysym->sym, vkey, scancode,
-			MapVirtualKeyEx(sc, 1, hLayoutUS),
-			MapVirtualKeyEx(sc, 3, hLayoutUS),
-			MapVirtualKeyEx(sc, 1, hLayoutCurrent),
-			MapVirtualKeyEx(sc, 3, hLayoutCurrent)
-		);
-	}
-#endif
 	return(keysym);
 }
 
