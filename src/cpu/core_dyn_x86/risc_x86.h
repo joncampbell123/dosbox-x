@@ -56,30 +56,16 @@ public:
 		dynreg->flags&=~DYNFLG_CHANGED;
 		dynreg->genreg=this;
 		if ((!stale) && (dynreg->flags & (DYNFLG_LOAD|DYNFLG_ACTIVE))) {
-#if C_DYNAMIC_X86 == 64
-            cache_addw(0xB849);                         //MOV r8,data
-            cache_addq((uintptr_t)dynreg->data);
-            cache_addw(0x8B41);                         //MOV reg,[r8]
-            cache_addb(0x00+(index << (0+3)));
-#else
 			cache_addw(0x058b+(index << (8+3)));		//Mov reg,[data]
 			cache_addd((uintptr_t)dynreg->data);
-#endif
 		}
 		dynreg->flags|=DYNFLG_ACTIVE;
 	}
 	void Save(void) {
 		if (GCC_UNLIKELY(!((Bitu)dynreg))) IllegalOption("GenReg->Save");
 		dynreg->flags&=~DYNFLG_CHANGED;
-#if C_DYNAMIC_X86 == 64
-        cache_addw(0xB849);                         //MOV r8,data
-        cache_addq((uintptr_t)dynreg->data);
-        cache_addw(0x8941);                         //MOV [r8],reg
-        cache_addb(0x00+(index << (0+3)));
-#else
-        cache_addw(0x0589+(index << (8+3)));		//Mov [data],reg
+		cache_addw(0x0589+(index << (8+3)));		//Mov [data],reg
 		cache_addd((uintptr_t)dynreg->data);
-#endif
 	}
 	void Release(void) {
 		if (GCC_UNLIKELY(!((Bitu)dynreg))) return;
