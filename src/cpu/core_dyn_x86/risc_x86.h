@@ -138,7 +138,6 @@ return_address:
 	register Bit64u tempflags=reg_flags & FMASK_TEST;
 
     // WARNING: UNDER CONSTRUCTION!
-    __asm__ volatile ("int $3");
 
 	__asm__ volatile (
 		"pushq $(run_return_adress)					\n"
@@ -147,7 +146,7 @@ return_address:
 		"run_return_adress:						\n"
 		:"=a" (retval), "=c" (tempflags)
 		:"r" (tempflags),"r" (code)
-		:"%rdx","%rbx","%rdi","%rsi","%rbp","%r8","%r9","cc","memory"
+		:"%rdx","%rbx","%rdi","%rsi","%rbp","%r8","cc","memory"
 	);
 	reg_flags=(reg_flags & ~FMASK_TEST) | (tempflags & FMASK_TEST);
 # else // x86 32-bit
@@ -1048,18 +1047,9 @@ static void gen_load_flags(DynReg * dynreg) {
 }
 
 static void gen_save_host_direct(void * data,Bits imm) {
-#if C_DYNAMIC_X86 == 64
-    cache_addw(0xB849);             //MOV r8,data
-    cache_addq((uintptr_t)data);
-    cache_addw(0xB949);             //MOV r9,imm
-    cache_addq(imm);
-    cache_addw(0x894D);             //MOV [r8],r9
-    cache_addb(0x08);
-#else
-	cache_addw(0x05c7);		        //MOV [],dword
+	cache_addw(0x05c7);		//MOV [],dword
 	cache_addd((uintptr_t)data);
 	cache_addd(imm);
-#endif
 }
 
 static void gen_return(BlockReturn retcode) {
