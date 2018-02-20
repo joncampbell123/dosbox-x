@@ -87,9 +87,6 @@ public:
 static BlockReturn gen_runcode(Bit8u * code) {
 	BlockReturn retval;
 #if defined (_MSC_VER)
-# if C_DYNAMIC_X86 == 64 // x86-64 64-bit
-#  error not implemented
-# endif
 	__asm {
 /* Prepare the flags */
 		mov		eax,[code]
@@ -115,9 +112,6 @@ return_address:
 		mov		[retval],eax
 	}
 #elif defined (MACOSX)
-# if C_DYNAMIC_X86 == 64 // x86-64 64-bit
-#  error not implemented
-# endif
 	register Bit32u tempflags=reg_flags & FMASK_TEST;
 	__asm__ volatile (
 		"pushl %%ebx						\n"
@@ -134,22 +128,6 @@ return_address:
 	);
 	reg_flags=(reg_flags & ~FMASK_TEST) | (tempflags & FMASK_TEST);
 #else
-# if C_DYNAMIC_X86 == 64 // x86-64 64-bit
-	register Bit64u tempflags=reg_flags & FMASK_TEST;
-
-    // WARNING: UNDER CONSTRUCTION!
-
-	__asm__ volatile (
-		"pushq $(run_return_adress)					\n"
-		"pushq  %2							\n"
-		"jmp  *%3							\n"
-		"run_return_adress:						\n"
-		:"=a" (retval), "=c" (tempflags)
-		:"r" (tempflags),"r" (code)
-		:"%rdx","%rbx","%rdi","%rsi","%rbp","%r8","cc","memory"
-	);
-	reg_flags=(reg_flags & ~FMASK_TEST) | (tempflags & FMASK_TEST);
-# else // x86 32-bit
 	register Bit32u tempflags=reg_flags & FMASK_TEST;
 	__asm__ volatile (
 		"pushl $(run_return_adress)					\n"
@@ -161,7 +139,6 @@ return_address:
 		:"%edx","%ebx","%edi","%esi","%ebp","cc","memory"
 	);
 	reg_flags=(reg_flags & ~FMASK_TEST) | (tempflags & FMASK_TEST);
-# endif
 #endif
 	return retval;
 }
