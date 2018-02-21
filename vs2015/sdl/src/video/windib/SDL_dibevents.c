@@ -50,7 +50,7 @@
 #define NO_GETKEYBOARDSTATE
 #endif
 
-static HKL hLayout = NULL;
+HKL hLayout = NULL;
 
 /* The translation table from a Microsoft VK keysym to a SDL keysym */
 static SDLKey VK_keymap[SDLK_LAST];
@@ -194,14 +194,6 @@ LRESULT DIB_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 				ShowWindow(ParentWindowHWND, SW_RESTORE);
 			}
 			break;
-		/* FIXME: I like how Microsoft defines a perfectly reasonable message but does not send it to us
-		          when the user selects a different language from the language bar. >:( */
-		case WM_INPUTLANGCHANGE:
-			hLayout = (HKL)wParam;
-			return(1);
-		case WM_INPUTLANGCHANGEREQUEST: /* We must use DefWindowProc() or else Windows will not notify us of input layout changes */
-			return DefWindowProc(hwnd, msg, wParam, lParam);
-
 		case WM_SYSKEYDOWN:
 		case WM_KEYDOWN: {
 			SDL_keysym keysym;
