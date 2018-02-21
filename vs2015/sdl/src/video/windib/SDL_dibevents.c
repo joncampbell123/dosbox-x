@@ -205,13 +205,6 @@ LRESULT DIB_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 				ShowWindow(ParentWindowHWND, SW_RESTORE);
 			}
 			break;
-		/* FIXME: I like how Microsoft defines a perfectly reasonable message but does not send it to us
-		          when the user selects a different language from the language bar. >:( */
-		case WM_INPUTLANGCHANGE:
-			hLayout = (HKL)wParam;
-			return(1);
-		case WM_INPUTLANGCHANGEREQUEST: /* We must use DefWindowProc() or else Windows will not notify us of input layout changes */
-			return DefWindowProc(hwnd, msg, wParam, lParam);
 
 		case WM_SYSKEYDOWN:
 		case WM_KEYDOWN: {
