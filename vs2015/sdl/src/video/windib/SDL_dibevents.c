@@ -155,6 +155,19 @@ int Win32_ShouldPassMessageToSysWMEvent(UINT msg) {
 	return 0;
 }
 
+/* NOTES: In Windows 10, if we ask for the keyboard layout identifier, Windows 10 will "pin" it to
+          our Window and keep it even if the language is later changed (you can see this in the
+		  language bar as you switch between DOSBox-X and other applications). If we do not ask,
+		  then Windows will use the system keyboard layout with our window no matter whether or
+		  not the user changes it while we're running.
+		  
+		  What would still be ideal is if we could get the keyboard layout, "lock" onto it and
+		  use it, but receive notifications from Windows when the user changes it so we can decide
+		  on our terms when to lock onto the new layout. Unfortunately, Windows 10 doesn't appear
+		  to be sending WM_INPUTLANGCHANGE to tell us that even though MSDN documentation says it
+		  should, so when we "lock" onto the layout we're stuck as far as the user is concerned
+		  even though it's Windows's fault for not telling us. */
+
 /* The main Win32 event handler */
 LRESULT DIB_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
