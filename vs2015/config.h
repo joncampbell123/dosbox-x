@@ -39,9 +39,7 @@
 #define C_D3DSHADERS 1
 
 /* Define to 1 to enable internal debugger, requires libcurses */
-#if !defined(C_SDL2)
 #define C_DEBUG 1
-#endif
 
 /* Define to 1 if you want parallel passthrough support (Win32, Linux). */
 #define C_DIRECTLPT 1
