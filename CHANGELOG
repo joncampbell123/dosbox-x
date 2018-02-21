@@ -1,4 +1,12 @@
 (next)
+  - Windows builds now incorporate pdcurses and enable
+    the debugger interface (bulletshot60)
+  - DOSBox-X now tracks the systemwide keyboard layout
+    on Windows, and acts on user changes to the keyboard
+    and language in the system.
+  - Removed hack code in SDL 1.x that sets DOSBox-X's
+    keyboard layout to the US layout even if the host
+    uses anything else.
   - Fix CPU cycles count increment not to nag you to use
     core=dynamic if a) dynamic core is not available or
     b) you're already using dynamic core.
