@@ -39,7 +39,7 @@
 #define C_D3DSHADERS 1
 
 /* Define to 1 to enable internal debugger, requires libcurses */
-#if defined(WIN32) && !defined(_WIN64) && !defined(C_SDL2)
+#if !defined(C_SDL2)
 #define C_DEBUG 1
 #endif
 
