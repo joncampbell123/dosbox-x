@@ -50,6 +50,8 @@
 #define NO_GETKEYBOARDSTATE
 #endif
 
+static HKL hLayout = NULL;
+
 /* The translation table from a Microsoft VK keysym to a SDL keysym */
 static SDLKey VK_keymap[SDLK_LAST];
 static SDL_keysym *TranslateKey(WPARAM vkey, UINT scancode, SDL_keysym *keysym, int pressed);
@@ -155,19 +157,6 @@ int Win32_ShouldPassMessageToSysWMEvent(UINT msg) {
 	return 0;
 }
 
-/* NOTES: In Windows 10, if we ask for the keyboard layout identifier, Windows 10 will "pin" it to
-          our Window and keep it even if the language is later changed (you can see this in the
-		  language bar as you switch between DOSBox-X and other applications). If we do not ask,
-		  then Windows will use the system keyboard layout with our window no matter whether or
-		  not the user changes it while we're running.
-		  
-		  What would still be ideal is if we could get the keyboard layout, "lock" onto it and
-		  use it, but receive notifications from Windows when the user changes it so we can decide
-		  on our terms when to lock onto the new layout. Unfortunately, Windows 10 doesn't appear
-		  to be sending WM_INPUTLANGCHANGE to tell us that even though MSDN documentation says it
-		  should, so when we "lock" onto the layout we're stuck as far as the user is concerned
-		  even though it's Windows's fault for not telling us. */
-
 /* The main Win32 event handler */
 LRESULT DIB_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -205,6 +194,13 @@ LRESULT DIB_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 				ShowWindow(ParentWindowHWND, SW_RESTORE);
 			}
 			break;
+		/* FIXME: I like how Microsoft defines a perfectly reasonable message but does not send it to us
+		          when the user selects a different language from the language bar. >:( */
+		case WM_INPUTLANGCHANGE:
+			hLayout = (HKL)wParam;
+			return(1);
+		case WM_INPUTLANGCHANGEREQUEST: /* We must use DefWindowProc() or else Windows will not notify us of input layout changes */
+			return DefWindowProc(hwnd, msg, wParam, lParam);
 
 		case WM_SYSKEYDOWN:
 		case WM_KEYDOWN: {
@@ -477,6 +473,8 @@ void DIB_InitOSKeymap(_THIS)
 {
 	int	i;
 
+	hLayout = GetKeyboardLayout(0);
+
 	/* Map the VK keysyms */
 	for ( i=0; i<SDL_arraysize(VK_keymap); ++i )
 		VK_keymap[i] = SDLK_UNKNOWN;
@@ -611,7 +609,11 @@ void DIB_InitOSKeymap(_THIS)
 
 static int SDL_MapVirtualKey(int scancode, int vkey)
 {
+#ifndef _WIN32_WCE
+	int	mvke  = MapVirtualKeyEx(scancode & 0xFF, 1, hLayout);
+#else
 	int	mvke  = MapVirtualKey(scancode & 0xFF, 1);
+#endif
 
 	switch(vkey) {
 		/* These are always correct */
