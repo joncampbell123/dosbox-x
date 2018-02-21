@@ -50,8 +50,6 @@
 #define NO_GETKEYBOARDSTATE
 #endif
 
-static HKL hLayout = NULL;
-
 /* The translation table from a Microsoft VK keysym to a SDL keysym */
 static SDLKey VK_keymap[SDLK_LAST];
 static SDL_keysym *TranslateKey(WPARAM vkey, UINT scancode, SDL_keysym *keysym, int pressed);
@@ -473,8 +471,6 @@ void DIB_InitOSKeymap(_THIS)
 {
 	int	i;
 
-	hLayout = GetKeyboardLayout(0);
-
 	/* Map the VK keysyms */
 	for ( i=0; i<SDL_arraysize(VK_keymap); ++i )
 		VK_keymap[i] = SDLK_UNKNOWN;
@@ -609,11 +605,7 @@ void DIB_InitOSKeymap(_THIS)
 
 static int SDL_MapVirtualKey(int scancode, int vkey)
 {
-#ifndef _WIN32_WCE
-	int	mvke  = MapVirtualKeyEx(scancode & 0xFF, 1, hLayout);
-#else
 	int	mvke  = MapVirtualKey(scancode & 0xFF, 1);
-#endif
 
 	switch(vkey) {
 		/* These are always correct */
