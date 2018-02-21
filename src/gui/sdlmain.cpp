@@ -105,6 +105,8 @@ bool OpenGL_using(void);
 
 using namespace std;
 
+bool window_was_maximized = false;
+
 Bitu userResizeWindowWidth = 0, userResizeWindowHeight = 0;
 Bitu currentWindowWidth = 640, currentWindowHeight = 480;
 
@@ -1741,9 +1743,13 @@ static LRESULT CALLBACK WinExtHookKeyboardHookProc(int nCode,WPARAM wParam,LPARA
 								wParam = WM_USER + 0x101;
 						}
 
+						DWORD lParam =
+							(st_hook->scanCode << 8U) +
+							((st_hook->flags & LLKHF_EXTENDED) ? 0x01000000 : 0) +
+							((wParam == WM_KEYUP || wParam == WM_SYSKEYUP) ? 0xC0000000 : 0);
+
 						// catch the keystroke, post it to ourself, do not pass it on
-						PostMessage(myHwnd, wParam, st_hook->vkCode,
-							(st_hook->flags & 0x80/*transition state*/) ? 0x0000 : 0xA000/*bits 13&15 are set*/);
+						PostMessage(myHwnd, wParam, st_hook->vkCode, lParam);
 						return TRUE;
 					}
 				}
@@ -3067,7 +3073,7 @@ static void HandleVideoResize(void * event) {
 
     /* assume the resize comes from user preference UNLESS the window
      * is fullscreen or maximized */
-    if (!menu.maxwindow && !sdl.desktop.fullscreen && !sdl.init_ignore && NonUserResizeCounter == 0) {
+    if (!menu.maxwindow && !sdl.desktop.fullscreen && !sdl.init_ignore && NonUserResizeCounter == 0 && !window_was_maximized) {
 		UpdateWindowDimensions();
 		UpdateWindowDimensions(ResizeEvent->w, ResizeEvent->h);
 
@@ -3084,6 +3090,7 @@ static void HandleVideoResize(void * event) {
 		UpdateWindowDimensions();
     }
 
+	window_was_maximized = menu.maxwindow;
     if (NonUserResizeCounter > 0)
         NonUserResizeCounter--;
 
