@@ -49,6 +49,8 @@
 #define NO_GETKEYBOARDSTATE
 #endif
 
+static HKL hLayout = NULL;
+
 /* The translation table from a Microsoft VK keysym to a SDL keysym */
 static SDLKey VK_keymap[SDLK_LAST];
 static SDL_keysym *TranslateKey(WPARAM vkey, UINT scancode, SDL_keysym *keysym, int pressed);
@@ -181,6 +183,14 @@ LRESULT DIB_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 #endif
 
 	switch (msg) {
+		/* FIXME: I like how Microsoft defines a perfectly reasonable message but does not send it to us
+		          when the user selects a different language from the language bar. >:( */
+		case WM_INPUTLANGCHANGE:
+			hLayout = (HKL)wParam;
+			return(1);
+		case WM_INPUTLANGCHANGEREQUEST: /* We must use DefWindowProc() or else Windows will not notify us of input layout changes */
+			return DefWindowProc(hwnd, msg, wParam, lParam);
+
 		case WM_SYSKEYDOWN:
 		case WM_KEYDOWN: {
 			SDL_keysym keysym;
@@ -452,6 +462,8 @@ void DIB_InitOSKeymap(_THIS)
 {
 	int	i;
 
+	hLayout = GetKeyboardLayout(0);
+
 	/* Map the VK keysyms */
 	for ( i=0; i<SDL_arraysize(VK_keymap); ++i )
 		VK_keymap[i] = SDLK_UNKNOWN;
@@ -586,7 +598,11 @@ void DIB_InitOSKeymap(_THIS)
 
 static int SDL_MapVirtualKey(int scancode, int vkey)
 {
+#ifndef _WIN32_WCE
+	int	mvke  = MapVirtualKeyEx(scancode & 0xFF, 1, hLayout);
+#else
 	int	mvke  = MapVirtualKey(scancode & 0xFF, 1);
+#endif
 
 	switch(vkey) {
 		/* These are always correct */
