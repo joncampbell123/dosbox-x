@@ -5165,6 +5165,14 @@ private:
 			DrawDOSBoxLogoCGA6(logo_x*8,logo_y*rowheight);
 		}
         else if (machine == MCH_PC98) {
+            // clear the graphics layer
+            for (unsigned int i=0;i < (80*400);i++) {
+                mem_writeb(0xA8000+i,0);        // B
+                mem_writeb(0xB0000+i,0);        // G
+                mem_writeb(0xB8000+i,0);        // R
+                mem_writeb(0xE0000+i,0);        // E
+            }
+
             reg_eax = 0x0C00;   // enable text layer (PC-98)
 			CALLBACK_RunRealInt(0x18);
 
@@ -5202,14 +5210,6 @@ private:
                     IO_Write(0xAC,((i & 4) ? 0xA : 0x0) + bias);    // red
                     IO_Write(0xAE,((i & 1) ? 0xA : 0x0) + bias);    // blue
                 }
-            }
-
-            // clear the graphics layer
-            for (unsigned int i=0;i < (80*400);i++) {
-                mem_writeb(0xA8000+i,0);        // B
-                mem_writeb(0xB0000+i,0);        // G
-                mem_writeb(0xB8000+i,0);        // R
-                mem_writeb(0xE0000+i,0);        // E
             }
 
 			DrawDOSBoxLogoPC98(logo_x*8,logo_y*rowheight);
@@ -5415,6 +5415,16 @@ private:
         if (machine == MCH_PC98) {
             reg_eax = 0x4100;   // hide the graphics layer (PC-98)
 			CALLBACK_RunRealInt(0x18);
+
+            // clear the graphics layer
+            for (unsigned int i=0;i < (80*400);i++) {
+                mem_writeb(0xA8000+i,0);        // B
+                mem_writeb(0xB0000+i,0);        // G
+                mem_writeb(0xB8000+i,0);        // R
+                mem_writeb(0xE0000+i,0);        // E
+            }
+
+            IO_Write(0x6A,0x00);    // switch back to 8-color mode
         }
         else {
             // restore 80x25 text mode
