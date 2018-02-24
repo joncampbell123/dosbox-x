@@ -258,8 +258,23 @@ Bitu XMS_MoveMemory(PhysPt bpt) {
 		destpt=Real2Phys(dest.realpt);
 	}
 //	LOG_MSG("XMS move src %X dest %X length %X",srcpt,destpt,length);
-	mem_memcpy(destpt,srcpt,length);
-	return 0;
+
+    /* we must enable the A20 gate during this copy.
+     * DOSBox-X masks the A20 line and this will only cause corruption otherwise. */
+
+    if (length != 0) {
+        bool a20_was_enabled = XMS_GetEnabledA20();
+
+        xms_local_enable_count++;
+        XMS_EnableA20(true);
+
+        mem_memcpy(destpt,srcpt,length);
+
+        xms_local_enable_count--;
+        if (!a20_was_enabled) XMS_EnableA20(false);
+    }
+
+    return 0;
 }
 
 Bitu XMS_LockMemory(Bitu handle, Bit32u& address) {
@@ -313,6 +328,16 @@ static bool multiplex_xms(void) {
 	}
 	return false;
 
+}
+
+Bitu XMS_UpdateEnableFromLocalCount(void) {
+    bool newstate = (xms_local_enable_count != 0);
+    Bitu res = 0;
+
+    if (XMS_GetEnabledA20() != newstate)
+        res = XMS_EnableA20(newstate);
+
+    return res;
 }
 
 INLINE void SET_RESULT(Bitu res,bool touch_bl_on_succes=true) {
@@ -377,30 +402,17 @@ Bitu XMS_Handler(void) {
 		SET_RESULT(XMS_EnableA20(false));
 		break;
 	case XMS_LOCAL_ENABLE_A20:									/* 05 */
-		if (xms_local_enable_count == 0) {
-			SET_RESULT(XMS_EnableA20(true));
-		}
-		else {
-			SET_RESULT(0);
-		}
-		xms_local_enable_count++;
-		break;
+        xms_local_enable_count++;
+        SET_RESULT(XMS_UpdateEnableFromLocalCount());
+        break;
 	case XMS_LOCAL_DISABLE_A20:									/* 06 */
-		if (xms_local_enable_count > 0) {
-			xms_local_enable_count--;
-			if (xms_local_enable_count == 0) {
-				SET_RESULT(XMS_EnableA20(false));
-			}
-			else {
-				SET_RESULT(0x94/*still enabled*/);
-			}
-		}
-		else {
-			/* NTS: The XMS spec says that A20 disable should only happen IF the counter == 1 and decrements to zero.
-			 *      Windows 3.1 treats the XMS driver differently on startup (big surprise), and will call LOCAL DISABLE
-			 *      and QUERY A20 until we indicate the A20 line is off (at one point during startup). */
-			SET_RESULT(XMS_EnableA20(false));
-		}
+        if (xms_local_enable_count > 0) {
+            xms_local_enable_count--;
+            SET_RESULT(XMS_UpdateEnableFromLocalCount());
+        }
+        else {
+            SET_RESULT(0);
+        }
 		break;
 	case XMS_QUERY_A20:											/* 07 */
 		reg_ax = XMS_GetEnabledA20();
