@@ -2363,6 +2363,8 @@ void update_pc98_function_row(bool enable) {
     vga_pc98_direct_cursor_pos((r*80)+c);
 }
 
+void pc98_set_digpal_entry(unsigned char ent,unsigned char grb);
+
 static Bitu INT18_PC98_Handler(void) {
     Bit16u temp16;
 
@@ -2569,6 +2571,22 @@ static Bitu INT18_PC98_Handler(void) {
 
             LOG_MSG("PC-98 INT 18 AH=42h CH=0x%02X",reg_ch);
             break;
+        case 0x43:  // Palette register settings? Only works in digital mode? --leonier
+                    //
+                    // This is said to fix Thexder's GAME ARTS logo. --Jonathan C.
+                    //
+                    // TODO: Validate this against real PC-98 hardware and BIOS
+            {
+                unsigned int gbcpc = SegValue(ds)*0x10 + reg_bx;
+                for(int i=0;i<4;i++)
+                {
+                    unsigned char p=mem_readb(gbcpc+4+i);
+                    pc98_set_digpal_entry(7-2*i, p&0xF);
+                    pc98_set_digpal_entry(6-2*i, p>>4);
+                }
+                LOG_MSG("PC-98 INT 18 AH=43h CX=0x%04X DS=0x%04X", reg_cx, SegValue(ds));
+                break;
+            }
         default:
             LOG_MSG("PC-98 INT 18h unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
                 reg_ax,
