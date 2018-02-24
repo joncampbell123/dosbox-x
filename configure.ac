@@ -363,6 +363,11 @@ AC_CHECK_HEADER(curses.h,have_curses_h=yes,)
 AC_CHECK_LIB(curses, initscr, have_curses_lib=yes, , )
 AC_CHECK_LIB(ncurses, initscr, have_ncurses_lib=yes, , )
 AC_CHECK_LIB(pdcurses, initscr, have_pdcurses_lib=yes, , )
+# Check if this system's ncurses uses a separate tinfo library
+AC_CHECK_LIB(tinfo, nodelay,
+	     if test x$have_ncurses_lib = xyes ; then
+	       LIBS="$LIBS -ltinfo";
+	     fi)
 
 dnl LIBRARY TEST: libpng
 AC_CHECK_HEADER(png.h,have_png_h=yes,)
