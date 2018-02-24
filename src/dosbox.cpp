@@ -2208,7 +2208,7 @@ void DOSBOX_SetupConfigSections(void) {
 			"If the subprocesses will never add/modify the environment block, you can free up a few additional bytes by setting this to 0.\n"
 			"Set to -1 for default setting.");
 
-	Pbool = secprop->Add_bool("enable a20 on windows init",Property::Changeable::OnlyAtStart,true);
+	Pbool = secprop->Add_bool("enable a20 on windows init",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("If set, DOSBox will enable the A20 gate when Windows 3.1/9x broadcasts the INIT message\n"
 			"at startup. Windows 3.1 appears to make assumptions at some key points on startup about\n"
 			"A20 that don't quite hold up and cause Windows 3.1 to crash when you set A20 emulation\n"

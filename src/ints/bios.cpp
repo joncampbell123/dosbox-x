@@ -2821,6 +2821,18 @@ static Bitu INT8_PC98_Handler(void) {
     Bit16u counter = mem_readw(0x58A) - 1;
     mem_writew(0x58A,counter);
 
+    /* NTS 2018/02/23: I just confirmed from the ROM BIOS of an actual
+     *                 PC-98 system that this implementation and Neko Project II
+     *                 are 100% accurate to what the BIOS actually does.
+     *                 INT 07h really is the "timer tick" interrupt called
+     *                 from INT 08h / IRQ 0, and the BIOS really does call
+     *                 INT 1Ch AH=3 from INT 08h if the tick count has not
+     *                 yet reached zero.
+     *
+     *                 I'm guessing NEC's BIOS developers invented this prior
+     *                 to the Intel 80286 and it's INT 07h
+     *                 "Coprocessor not present" exception. */
+
     if (counter == 0) {
         /* mask IRQ 0 */
         IO_WriteB(0x02,IO_ReadB(0x02) | 0x01);
