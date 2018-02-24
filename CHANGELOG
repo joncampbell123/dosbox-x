@@ -1,4 +1,13 @@
 (next)
+  - "CLS" now sends the proper ANSI escapes to clear the
+    console in PC-98 mode.
+  - BIOS logo in PC-98 fixed to clear graphics RAM and
+    set graphics back to 8-color digital mode when booting
+    to DOS. This should fix palette errors and color issues
+    with older PC-98/PC-88 games that use the 8-color
+    graphics modes.
+  - Added PC-98 INT 1Ch timer interval BIOS function,
+    and timer countdown routine in IRQ 0.
   - Windows builds now incorporate pdcurses and enable
     the debugger interface (bulletshot60)
   - DOSBox-X now tracks the systemwide keyboard layout
