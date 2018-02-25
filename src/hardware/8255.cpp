@@ -215,13 +215,13 @@ void Intel8255::outPortC(const uint8_t mask) {
 
 void Intel8255::updateINTR_A(void) {
     if (mode & 0x40) { /* mode 2 */
-        INTR_A = (INTE_1 && OBF_A) ^ (INTE_2 && IBF_A);
+        INTR_A = (INTE_1 && (!OBF_A)) ^ (INTE_2 && IBF_A); /* OBF goes low when CPU writes, goes high when cleared */
     }
     else if (mode & 0x20) { /* mode 1 */
         if (mode & 0x10)    /* input */
             INTR_A = INTE_A && IBF_A;
         else                /* output */
-            INTR_A = INTE_A && OBF_A;
+            INTR_A = INTE_A && (!OBF_A); /* OBF goes low when CPU writes, goes high when cleared */
     }
     else {
         INTR_A = false;
@@ -233,7 +233,7 @@ void Intel8255::updateINTR_B(void) {
         if (mode & 0x02)    /* input */
             INTR_B = INTE_B && IBF_B;
         else                /* output */
-            INTR_B = INTE_B && OBF_B;
+            INTR_B = INTE_B && (!OBF_B); /* OBF goes low when CPU writes, goes high when cleared */
     }
     else {
         INTR_B = false;
