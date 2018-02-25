@@ -79,12 +79,18 @@ void Intel8255::writeControl(uint8_t data) {
         if (mode & 0x04) { /* port B mode 1 */
             /* port C meanings:
              *
+             * output:
+             * bit[2:2] = Acknowledge, from device (IN)
+             * bit[1:1] = Output buffer full aka CPU has written data to this port (OUT)
+             * bit[0:0] = Interrupt request B (OUT)
+             *
+             * input:
              * bit[2:2] = Strobe input (loads data into the latch) (IN)
              * bit[1:1] = Input buffer full (OUT)
              * bit[0:0] = Interrupt request B (OUT) */
             portCWriteMask &= ~0x07;
         }
-        if (mode & 0x40) { /* port C mode 2 */
+        if (mode & 0x40) { /* port A mode 2 */
             /* port C meanings:
              *
              * bit[7:7] = Output buffer full aka CPU has written data to this port (OUT)
@@ -94,13 +100,19 @@ void Intel8255::writeControl(uint8_t data) {
              * bit[3:3] = Interrupt request A (OUT) */
             portCWriteMask &= ~0xF8;
         }
-        else if (mode & 0x20) { /* port C mode 1 */
+        else if (mode & 0x20) { /* port A mode 1 */
             /* port C meanings:
              *
-             * bit[5:5] = Strobe input (loads data into the latch) (IN)
-             * bit[4:4] = Input buffer full (OUT)
+             * output:
+             * bit[7:7] = Output buffer full aka CPU has written data to this port (OUT)
+             * bit[6:6] = Acknowledge, from device (IN)
+             * bit[3:3] = Interrupt request A (OUT)
+             *
+             * input:
+             * bit[5:5] = Input buffer full (OUT)
+             * bit[4:4] = Strobe input (loads data input the latch) (IN) 
              * bit[3:3] = Interrupt request A (OUT) */
-            portCWriteMask &= ~0x38;
+            portCWriteMask &= ~((mode & 0x10) ? 0x38 : 0xC8);
         }
 
         /* according to PC-98 hardware it seems changing a port to input makes the latch forget it's contents */
