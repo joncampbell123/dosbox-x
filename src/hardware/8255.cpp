@@ -154,9 +154,9 @@ void Intel8255::writeControl(uint8_t data) {
         latchOutPortC &= ~portCWriteMask;
 
         /* update */
-        outPortA(0xFF);
-        outPortB(0xFF);
-        outPortC(0xFF);
+        outPortA(portAWriteMask);
+        outPortB(portBWriteMask);
+        outPortC(portCWriteMask);
         updateINTR_A();
         updateINTR_B();
         checkINTR_A();
