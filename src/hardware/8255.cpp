@@ -14,25 +14,25 @@ Intel8255::~Intel8255() {
 }
 
 void Intel8255::reset(void) {
-    mode = 0x9B;    /* default: port A input, port B input, port C input mode 0 mode 0 */
+    writeControl(0x9B); /* default: port A input, port B input, port C input mode 0 mode 0 */
     latchOutPortA = 0;
     latchOutPortB = 0;
     latchOutPortC = 0;
 }
 
 uint8_t Intel8255::readPortA(void) const {
-    return  (latchOutPortA   &   portAWriteMask() ) +
-            (      inPortA() & (~portAWriteMask()));
+    return  (latchOutPortA   &   portAWriteMask ) +
+            (      inPortA() & (~portAWriteMask));
 }
 
 uint8_t Intel8255::readPortB(void) const {
-    return  (latchOutPortB   &   portBWriteMask() ) +
-            (      inPortB() & (~portBWriteMask()));
+    return  (latchOutPortB   &   portBWriteMask ) +
+            (      inPortB() & (~portBWriteMask));
 }
 
 uint8_t Intel8255::readPortC(void) const {
-    return  (latchOutPortC   &   portCWriteMask() ) +
-            (      inPortC() & (~portCWriteMask()));
+    return  (latchOutPortC   &   portCWriteMask ) +
+            (      inPortC() & (~portCWriteMask));
 }
 
 uint8_t Intel8255::readControl(void) const {
@@ -40,19 +40,19 @@ uint8_t Intel8255::readControl(void) const {
 }
 
 void Intel8255::writePortA(uint8_t data,uint8_t mask) {
-    mask &= portAWriteMask();
+    mask &= portAWriteMask;
     latchOutPortA = (latchOutPortA & (~mask)) + (data & mask);
     if (mask) outPortA(mask);
 }
 
 void Intel8255::writePortB(uint8_t data,uint8_t mask) {
-    mask &= portBWriteMask();
+    mask &= portBWriteMask;
     latchOutPortB = (latchOutPortB & (~mask)) + (data & mask);
     if (mask) outPortB(mask);
 }
 
 void Intel8255::writePortC(uint8_t data,uint8_t mask) {
-    mask &= portCWriteMask();
+    mask &= portCWriteMask;
     latchOutPortC = (latchOutPortC & (~mask)) + (data & mask);
     if (mask) outPortC(mask);
 }
@@ -69,11 +69,34 @@ void Intel8255::writeControl(uint8_t data) {
         /* mode byte */
         mode = data;
 
+        /* update write masks */
+        portAWriteMask  =  (mode & 0x10) ? 0x00 : 0xFF;  /* bit 4 */
+        portBWriteMask  =  (mode & 0x02) ? 0x00 : 0xFF;  /* bit 1 */
+        portCWriteMask  = ((mode & 0x01) ? 0x00 : 0x0F) +/* bit 0 */
+                          ((mode & 0x08) ? 0x00 : 0xF0); /* bit 3 */
+
+        /* modes take additional bits from port C */
+        if (mode & 0x04) { /* port B mode 1 */
+            /* port C meanings:
+             *
+             * bit[2:2] = Strobe input (loads data into the latch) (IN)
+             * bit[1:1] = Input buffer full (OUT)
+             * bit[0:0] = Interrupt request B (OUT) */
+            portCWriteMask &= ~0x07;
+        }
+        if (mode & 0x20) { /* port C mode 1 */
+            /* port C meanings:
+             *
+             * bit[5:5] = Strobe input (loads data into the latch) (IN)
+             * bit[4:4] = Input buffer full (OUT)
+             * bit[3:3] = Interrupt request A (OUT) */
+            portCWriteMask &= ~0x38;
+        }
+
         /* according to PC-98 hardware it seems changing a port to input makes the latch forget it's contents */
-        if (mode & 0x01) latchOutPortC &= ~0x0FU;
-        if (mode & 0x02) latchOutPortB  =  0x00U;
-        if (mode & 0x08) latchOutPortC &= ~0xF0U;
-        if (mode & 0x10) latchOutPortA  =  0x00U;
+        latchOutPortA &= ~portAWriteMask;
+        latchOutPortB &= ~portBWriteMask;
+        latchOutPortC &= ~portCWriteMask;
 
         /* FIXME: We don't support Mode 1/2 on either port */
         if (mode & 0x64) LOG_MSG("8255 unsupported mode 0x%02x",mode);

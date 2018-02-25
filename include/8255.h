@@ -44,16 +44,7 @@ public:
         return outPortNames[port][i];
     }
 public:
-    inline uint8_t      portAWriteMask(void) const {
-        return   (mode & 0x10) ? 0x00 : 0xFF;
-    }
-    inline uint8_t      portBWriteMask(void) const {
-        return   (mode & 0x02) ? 0x00 : 0xFF;
-    }
-    inline uint8_t      portCWriteMask(void) const {
-        return  ((mode & 0x08) ? 0x00 : 0xF0) +
-                ((mode & 0x01) ? 0x00 : 0x0F);
-    }
+    uint8_t             portAWriteMask,portBWriteMask,portCWriteMask;
 public:
     const char*         inPortNames[3/*port*/][8/*bit*/];
     const char*         outPortNames[3/*port*/][8/*bit*/];
