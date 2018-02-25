@@ -224,8 +224,7 @@ void Intel8255::checkPortC(void) {
 
 void Intel8255::updateINTR_A(void) {
     if (mode & 0x40) { /* mode 2 */
-        INTR_A = false;
-        // TODO
+        INTR_A = (INTE_1 && OBF_A) ^ (INTE_2 && IBF_A);
     }
     else if (mode & 0x20) { /* mode 1 */
         if (mode & 0x10)    /* input */
