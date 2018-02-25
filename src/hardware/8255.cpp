@@ -16,17 +16,17 @@ void Intel8255::reset(void) {
 
 uint8_t Intel8255::readPortA(void) const {
     return  (outPortA   &   portAWriteMask() ) +
-        ( inPortA() & (~portAWriteMask()));
+            ( inPortA() & (~portAWriteMask()));
 }
 
 uint8_t Intel8255::readPortB(void) const {
     return  (outPortB   &   portBWriteMask() ) +
-        ( inPortB() & (~portBWriteMask()));
+            ( inPortB() & (~portBWriteMask()));
 }
 
 uint8_t Intel8255::readPortC(void) const {
     return  (outPortC   &   portCWriteMask() ) +
-        ( inPortC() & (~portCWriteMask()));
+            ( inPortC() & (~portCWriteMask()));
 }
 
 uint8_t Intel8255::readControl(void) const {
