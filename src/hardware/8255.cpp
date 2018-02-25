@@ -160,6 +160,8 @@ void Intel8255::writeControl(uint8_t data) {
 
         /* HACK: I get the impression from the PC-98 platform and "Metal Force" that writing the mode
          *       byte can cause the chip to re-trigger an interrupt. So... */
+        /* FIXME: Or am I wrong here, and the retriggering of the interrupt may simply be that internal
+         *        interrupts on the PC-98 are level triggered? */
         INTR_A = INTR_B = false;
         checkINTR_A();
         checkINTR_B();
