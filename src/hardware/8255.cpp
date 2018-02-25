@@ -171,13 +171,14 @@ void Intel8255::writeControl(uint8_t data) {
         const uint8_t bit = (data >> 1U) & 7U;
 
         if (mode & 0x40) { /* Port A mode 2 */
-            if (bit == 4)
+            if (bit == 4) {
                 INTE_2 = !!(data & 1);
-            else if (bit == 6)
+                checkINTR_A();
+            }
+            else if (bit == 6) {
                 INTE_1 = !!(data & 1);
-
-            /* INTE_1 and INTE_2 -> INTR_A */
-            checkINTR_A();
+                checkINTR_A();
+            }
         }
         else if (mode & 0x20) { /* Port A mode 1 */
             if (bit == ((mode & 0x10) ? /*input*/ 4 : /*output*/6)) {
