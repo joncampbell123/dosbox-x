@@ -2,6 +2,10 @@
 #include "8255.h"
 
 Intel8255::Intel8255() {
+    for (unsigned int c=0;c < 3;c++) {
+        for (unsigned int i=0;i < 8;i++)
+            inPortNames[c][i] = outPortNames[c][i] = NULL;
+    }
 }
 
 Intel8255::~Intel8255() {
@@ -88,29 +92,5 @@ uint8_t Intel8255::inPortB(void) const {
 
 uint8_t Intel8255::inPortC(void) const {
     return 0xFFU;
-}
-
-const char *Intel8255::inPortAName(const unsigned int i) const {
-    return "";
-}
-
-const char *Intel8255::inPortBName(const unsigned int i) const {
-    return "";
-}
-
-const char *Intel8255::inPortCName(const unsigned int i) const {
-    return "";
-}
-
-const char *Intel8255::outPortAName(const unsigned int i) const {
-    return "";
-}
-
-const char *Intel8255::outPortBName(const unsigned int i) const {
-    return "";
-}
-
-const char *Intel8255::outPortCName(const unsigned int i) const {
-    return "";
 }
 

@@ -1,4 +1,5 @@
 
+#include <stdio.h>
 #include <stdint.h>
 
 class Intel8255 {
@@ -22,13 +23,25 @@ public:
     virtual uint8_t     inPortB(void) const;
     virtual uint8_t     inPortC(void) const;
 public:
-    virtual const char *inPortAName(const unsigned int i) const;
-    virtual const char *inPortBName(const unsigned int i) const;
-    virtual const char *inPortCName(const unsigned int i) const;
+    inline const char*  inPortAName(const unsigned int i) const {
+        return inPortNames[0][i];
+    }
+    inline const char*  inPortBName(const unsigned int i) const {
+        return inPortNames[1][i];
+    }
+    inline const char*  inPortCName(const unsigned int i) const {
+        return inPortNames[2][i];
+    }
 public:
-    virtual const char *outPortAName(const unsigned int i) const;
-    virtual const char *outPortBName(const unsigned int i) const;
-    virtual const char *outPortCName(const unsigned int i) const;
+    inline const char*  outPortAName(const unsigned int i) const {
+        return outPortNames[0][i];
+    }
+    inline const char*  outPortBName(const unsigned int i) const {
+        return outPortNames[1][i];
+    }
+    inline const char*  outPortCName(const unsigned int i) const {
+        return outPortNames[2][i];
+    }
 public:
     inline uint8_t      portAWriteMask(void) const {
         return   (mode & 0x10) ? 0x00 : 0xFF;
@@ -40,6 +53,9 @@ public:
         return  ((mode & 0x08) ? 0x00 : 0xF0) +
                 ((mode & 0x01) ? 0x00 : 0x0F);
     }
+public:
+    const char*         inPortNames[3][8];
+    const char*         outPortNames[3][8];
 public:
     uint8_t             outPortA,outPortB,outPortC;
     uint8_t             mode;
