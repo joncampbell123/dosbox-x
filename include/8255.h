@@ -35,5 +35,12 @@ public:
 public:
     uint8_t             outPortA,outPortB,outPortC;
     uint8_t             mode;
+    /* bit[7:7] = 1             mode set flag
+     * bit[6:5] = mode select   00=mode 0  01=mode 1  1x=mode 2
+     * bit[4:4] = Port A        1=input  0=output
+     * bit[3:3] = Port C upper  1=input  0=output
+     * bit[2:2] = mode select   0=mode 0   1=mode 1
+     * bit[1:1] = Port B        1=input  0=output
+     * bit[0:0] = Port C lower  1=input  0=output */
 };
 
