@@ -84,7 +84,17 @@ void Intel8255::writeControl(uint8_t data) {
              * bit[0:0] = Interrupt request B (OUT) */
             portCWriteMask &= ~0x07;
         }
-        if (mode & 0x20) { /* port C mode 1 */
+        if (mode & 0x40) { /* port C mode 2 */
+            /* port C meanings:
+             *
+             * bit[7:7] = Output buffer full aka CPU has written data to this port (OUT)
+             * bit[6:6] = Acknowledge, from device. This latches the output. Else output is high impedance (IN)
+             * bit[5:5] = Input buffer full (OUT)
+             * bit[4:4] = Strobe input (loads data into the latch) (IN)
+             * bit[3:3] = Interrupt request A (OUT) */
+            portCWriteMask &= ~0xF8;
+        }
+        else if (mode & 0x20) { /* port C mode 1 */
             /* port C meanings:
              *
              * bit[5:5] = Strobe input (loads data into the latch) (IN)
@@ -97,9 +107,6 @@ void Intel8255::writeControl(uint8_t data) {
         latchOutPortA &= ~portAWriteMask;
         latchOutPortB &= ~portBWriteMask;
         latchOutPortC &= ~portCWriteMask;
-
-        /* FIXME: We don't support Mode 1/2 on either port */
-        if (mode & 0x64) LOG_MSG("8255 unsupported mode 0x%02x",mode);
     }
     else {
         /* bit[7:7] = 0             bit set/reset
