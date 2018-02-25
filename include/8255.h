@@ -15,6 +15,10 @@ public:
 public:
     void                reset(void);
 
+    virtual void        strobePortA(void);
+    virtual void        strobePortB(void);
+    virtual void        strobePortC(void);
+
     uint8_t             readPortA(void);
     uint8_t             readPortB(void);
     uint8_t             readPortC(void);

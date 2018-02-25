@@ -28,32 +28,34 @@ void Intel8255::reset(void) {
 uint8_t Intel8255::readPortA(void) {
     IBF_A = true;
 
-    uint8_t v =
+    latchOutPortA =
         (latchOutPortA   &   portAWriteMask ) +
         (      inPortA() & (~portAWriteMask));
 
     updateINTR_A();
     IBF_A = false;
     checkINTR_A();
-    return v;
+    return latchOutPortA;
 }
 
 uint8_t Intel8255::readPortB(void) {
     IBF_B = true;
 
-    uint8_t v =
+    latchOutPortB =
         (latchOutPortB   &   portBWriteMask ) +
         (      inPortB() & (~portBWriteMask));
 
     updateINTR_B();
     IBF_B = false;
     checkINTR_B();
-    return v;
+    return latchOutPortB;
 }
 
 uint8_t Intel8255::readPortC(void) {
-    return  (latchOutPortC   &   portCWriteMask ) +
-            (      inPortC() & (~portCWriteMask));
+    latchOutPortC =
+        (latchOutPortC   &   portCWriteMask ) +
+        (      inPortC() & (~portCWriteMask));
+    return latchOutPortC;
 }
 
 uint8_t Intel8255::readControl(void) {
@@ -244,5 +246,17 @@ void Intel8255::checkINTR_A(void) {
 }
 
 void Intel8255::checkINTR_B(void) {
+}
+
+void Intel8255::strobePortA(void) {
+    readPortA();
+}
+
+void Intel8255::strobePortB(void) {
+    readPortB();
+}
+
+void Intel8255::strobePortC(void) {
+    readPortC();
 }
 
