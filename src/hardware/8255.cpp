@@ -16,6 +16,7 @@ Intel8255::~Intel8255() {
 void Intel8255::reset(void) {
     INTE_A = INTE_B = 0;
     INTE_1 = INTE_2 = 0;
+    INTR_A = INTR_B = 0;
     writeControl(0x9B); /* default: port A input, port B input, port C input mode 0 mode 0 */
     latchOutPortA = 0;
     latchOutPortB = 0;
@@ -121,6 +122,15 @@ void Intel8255::writeControl(uint8_t data) {
         latchOutPortA &= ~portAWriteMask;
         latchOutPortB &= ~portBWriteMask;
         latchOutPortC &= ~portCWriteMask;
+
+        /* update */
+        outPortA(0xFF);
+        outPortB(0xFF);
+        outPortC(0xFF);
+        updateINTR_A();
+        updateINTR_B();
+        checkINTR_A();
+        checkINTR_B();
     }
     else {
         /* bit[7:7] = 0             bit set/reset
@@ -180,5 +190,35 @@ void Intel8255::checkPortB(void) {
 }
 
 void Intel8255::checkPortC(void) {
+}
+
+void Intel8255::updateINTR_A(void) {
+    if (mode & 0x40) { /* mode 2 */
+        INTR_A = false;
+        // TODO
+    }
+    else if (mode & 0x20) { /* mode 1 */
+        INTR_A = false;
+        // TODO
+    }
+    else {
+        INTR_A = false;
+    }
+}
+
+void Intel8255::updateINTR_B(void) {
+    if (mode & 0x04) { /* mode 1 */
+        INTR_B = false;
+        // TODO
+    }
+    else {
+        INTR_B = false;
+    }
+}
+
+void Intel8255::checkINTR_A(void) {
+}
+
+void Intel8255::checkINTR_B(void) {
 }
 

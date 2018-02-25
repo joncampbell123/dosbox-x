@@ -37,6 +37,12 @@ public:
     virtual void        outPortB(const uint8_t mask);
     virtual void        outPortC(const uint8_t mask);
 public:
+    void                updateINTR_A(void);
+    void                updateINTR_B(void);
+public:
+    virtual void        checkINTR_A(void);
+    virtual void        checkINTR_B(void);
+public:
     inline const char*  inPortName(const unsigned int port,const unsigned int i) const {
         return inPortNames[port][i];
     }
@@ -58,6 +64,8 @@ public:
      * bit[2:2] = mode select   0=mode 0   1=mode 1
      * bit[1:1] = Port B        1=input  0=output
      * bit[0:0] = Port C lower  1=input  0=output */
+public:
+    bool                INTR_A,INTR_B;
 public:
     bool                INTE_1,INTE_2; /* mode 2 */
     bool                INTE_A,INTE_B;
