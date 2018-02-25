@@ -86,15 +86,15 @@ void Intel8255::writeControl(uint8_t data) {
 }
 
 uint8_t Intel8255::inPortA(void) const {
-    return 0xFFU;
+    return 0x00U;
 }
 
 uint8_t Intel8255::inPortB(void) const {
-    return 0xFFU;
+    return 0x00U;
 }
 
 uint8_t Intel8255::inPortC(void) const {
-    return 0xFFU;
+    return 0x00U;
 }
 
 void Intel8255::outPortA(const uint8_t mask) {
