@@ -140,7 +140,7 @@ am_libhardware_a_OBJECTS = adlib.$(OBJEXT) dma.$(OBJEXT) \
 	snd_pc98/sound/soundrom.$(OBJEXT) \
 	snd_pc98/cbus/board86.$(OBJEXT) \
 	snd_pc98/sound/fmtimer.$(OBJEXT) \
-	snd_pc98/cbus/board26k.$(OBJEXT)
+	snd_pc98/cbus/board26k.$(OBJEXT) 8255.$(OBJEXT)
 libhardware_a_OBJECTS = $(am_libhardware_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -378,7 +378,7 @@ libhardware_a_SOURCES = adlib.cpp dma.cpp gameblaster.cpp hardware.cpp iohandler
 			snd_pc98/common/parts.c snd_pc98/generic/keydisp.c snd_pc98/sound/adpcmc.c snd_pc98/sound/adpcmg.c \
 			snd_pc98/sound/rhythmc.c snd_pc98/sound/sound.c snd_pc98/sound/getsnd/getwave.c snd_pc98/sound/getsnd/getsmix.c \
 			snd_pc98/sound/getsnd/getsnd.c snd_pc98/x11/dosio.c snd_pc98/sound/fmboard.c snd_pc98/sound/soundrom.c \
-			snd_pc98/cbus/board86.c snd_pc98/sound/fmtimer.c snd_pc98/cbus/board26k.c
+			snd_pc98/cbus/board86.c snd_pc98/sound/fmtimer.c snd_pc98/cbus/board26k.c 8255.cpp
 
 all: all-recursive
 
@@ -520,6 +520,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/8255.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adlib.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cmos.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dbopl.Po@am__quote@

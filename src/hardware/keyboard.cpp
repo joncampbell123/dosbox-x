@@ -29,6 +29,7 @@
 #include "mixer.h"
 #include "timer.h"
 #include <math.h>
+#include "8255.h"
 
 #define KEYBUFSIZE 32*3
 #define RESETDELAY 400
