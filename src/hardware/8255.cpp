@@ -14,6 +14,8 @@ Intel8255::~Intel8255() {
 }
 
 void Intel8255::reset(void) {
+    IBF_A  = IBF_B =  0;
+    OBF_A  = OBF_B =  0;
     INTE_A = INTE_B = 0;
     INTE_1 = INTE_2 = 0;
     INTR_A = INTR_B = 0;
@@ -23,35 +25,63 @@ void Intel8255::reset(void) {
     latchOutPortC = 0;
 }
 
-uint8_t Intel8255::readPortA(void) const {
-    return  (latchOutPortA   &   portAWriteMask ) +
-            (      inPortA() & (~portAWriteMask));
+uint8_t Intel8255::readPortA(void) {
+    IBF_A = true;
+
+    uint8_t v =
+        (latchOutPortA   &   portAWriteMask ) +
+        (      inPortA() & (~portAWriteMask));
+
+    updateINTR_A();
+    IBF_A = false;
+    checkINTR_A();
+    return v;
 }
 
-uint8_t Intel8255::readPortB(void) const {
-    return  (latchOutPortB   &   portBWriteMask ) +
-            (      inPortB() & (~portBWriteMask));
+uint8_t Intel8255::readPortB(void) {
+    IBF_B = true;
+
+    uint8_t v =
+        (latchOutPortB   &   portBWriteMask ) +
+        (      inPortB() & (~portBWriteMask));
+
+    updateINTR_B();
+    IBF_B = false;
+    checkINTR_B();
+    return v;
 }
 
-uint8_t Intel8255::readPortC(void) const {
+uint8_t Intel8255::readPortC(void) {
     return  (latchOutPortC   &   portCWriteMask ) +
             (      inPortC() & (~portCWriteMask));
 }
 
-uint8_t Intel8255::readControl(void) const {
+uint8_t Intel8255::readControl(void) {
     return mode; /* illegal, but probably reads mode byte */
 }
 
 void Intel8255::writePortA(uint8_t data,uint8_t mask) {
     mask &= portAWriteMask;
     latchOutPortA = (latchOutPortA & (~mask)) + (data & mask);
-    if (mask) outPortA(mask);
+    if (mask) {
+        OBF_A = true;
+        updateINTR_A();
+        OBF_A = false;
+        outPortA(mask);
+        checkINTR_A();
+    }
 }
 
 void Intel8255::writePortB(uint8_t data,uint8_t mask) {
     mask &= portBWriteMask;
     latchOutPortB = (latchOutPortB & (~mask)) + (data & mask);
-    if (mask) outPortB(mask);
+    if (mask) {
+        OBF_B = true;
+        updateINTR_B();
+        OBF_B = false;
+        outPortB(mask);
+        checkINTR_B();
+    }
 }
 
 void Intel8255::writePortC(uint8_t data,uint8_t mask) {

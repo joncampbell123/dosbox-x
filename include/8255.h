@@ -19,10 +19,10 @@ public:
     virtual void        checkPortB(void);
     virtual void        checkPortC(void); /* Mode 1 interrupt support */
 
-    uint8_t             readPortA(void) const;
-    uint8_t             readPortB(void) const;
-    uint8_t             readPortC(void) const;
-    uint8_t             readControl(void) const;
+    uint8_t             readPortA(void);
+    uint8_t             readPortB(void);
+    uint8_t             readPortC(void);
+    uint8_t             readControl(void);
 
     void                writePortA(uint8_t data,uint8_t mask);
     void                writePortB(uint8_t data,uint8_t mask);
@@ -64,6 +64,9 @@ public:
      * bit[2:2] = mode select   0=mode 0   1=mode 1
      * bit[1:1] = Port B        1=input  0=output
      * bit[0:0] = Port C lower  1=input  0=output */
+public:
+    bool                IBF_A,IBF_B;
+    bool                OBF_A,OBF_B;
 public:
     bool                INTR_A,INTR_B;
 public:
