@@ -68,7 +68,6 @@ void Intel8255::writePortA(uint8_t data,uint8_t mask) {
     if (mask) {
         OBF_A = true;
         updateINTR_A();
-        OBF_A = false;
         outPortA(mask);
         checkINTR_A();
     }
@@ -80,7 +79,6 @@ void Intel8255::writePortB(uint8_t data,uint8_t mask) {
     if (mask) {
         OBF_B = true;
         updateINTR_B();
-        OBF_B = false;
         outPortB(mask);
         checkINTR_B();
     }
@@ -256,7 +254,15 @@ void Intel8255::strobePortB(void) {
     readPortB();
 }
 
-void Intel8255::strobePortC(void) {
-    readPortC();
+void Intel8255::ackPortA(void) {
+    OBF_A = false;
+    updateINTR_A();
+    checkINTR_A();
+}
+
+void Intel8255::ackPortB(void) {
+    OBF_B = false;
+    updateINTR_B();
+    checkINTR_B();
 }
 
