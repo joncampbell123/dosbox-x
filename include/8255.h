@@ -58,5 +58,8 @@ public:
      * bit[2:2] = mode select   0=mode 0   1=mode 1
      * bit[1:1] = Port B        1=input  0=output
      * bit[0:0] = Port C lower  1=input  0=output */
+public:
+    bool                INTE_1,INTE_2; /* mode 2 */
+    bool                INTE_A,INTE_B;
 };
 
