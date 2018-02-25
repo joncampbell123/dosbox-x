@@ -1,4 +1,6 @@
 
+#include "dos_inc.h"
+#include "setup.h"
 #include "8255.h"
 
 Intel8255::Intel8255() {
@@ -72,6 +74,9 @@ void Intel8255::writeControl(uint8_t data) {
         if (mode & 0x02) latchOutPortB  =  0x00U;
         if (mode & 0x08) latchOutPortC &= ~0xF0U;
         if (mode & 0x10) latchOutPortA  =  0x00U;
+
+        /* FIXME: We don't support Mode 1/2 on either port */
+        if (mode & 0x64) LOG_MSG("8255 unsupported mode 0x%02x",mode);
     }
     else {
         /* bit[7:7] = 0             bit set/reset
