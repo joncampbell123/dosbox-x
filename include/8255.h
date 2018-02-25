@@ -4,6 +4,12 @@
 
 class Intel8255 {
 public:
+    enum {
+        PortA=0,
+        PortB=1,
+        PortC=2
+    };
+public:
                         Intel8255();
     virtual            ~Intel8255();
 public:
@@ -23,24 +29,11 @@ public:
     virtual uint8_t     inPortB(void) const;
     virtual uint8_t     inPortC(void) const;
 public:
-    inline const char*  inPortAName(const unsigned int i) const {
-        return inPortNames[0][i];
+    inline const char*  inPortName(const unsigned int port,const unsigned int i) const {
+        return inPortNames[port][i];
     }
-    inline const char*  inPortBName(const unsigned int i) const {
-        return inPortNames[1][i];
-    }
-    inline const char*  inPortCName(const unsigned int i) const {
-        return inPortNames[2][i];
-    }
-public:
-    inline const char*  outPortAName(const unsigned int i) const {
-        return outPortNames[0][i];
-    }
-    inline const char*  outPortBName(const unsigned int i) const {
-        return outPortNames[1][i];
-    }
-    inline const char*  outPortCName(const unsigned int i) const {
-        return outPortNames[2][i];
+    inline const char*  outPortName(const unsigned int port,const unsigned int i) const {
+        return outPortNames[port][i];
     }
 public:
     inline uint8_t      portAWriteMask(void) const {
