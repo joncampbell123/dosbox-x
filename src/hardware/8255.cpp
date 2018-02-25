@@ -90,3 +90,27 @@ uint8_t Intel8255::inPortC(void) const {
     return 0xFFU;
 }
 
+const char *Intel8255::inPortAName(const unsigned int i) const {
+    return "";
+}
+
+const char *Intel8255::inPortBName(const unsigned int i) const {
+    return "";
+}
+
+const char *Intel8255::inPortCName(const unsigned int i) const {
+    return "";
+}
+
+const char *Intel8255::outPortAName(const unsigned int i) const {
+    return "";
+}
+
+const char *Intel8255::outPortBName(const unsigned int i) const {
+    return "";
+}
+
+const char *Intel8255::outPortCName(const unsigned int i) const {
+    return "";
+}
+

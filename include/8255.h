@@ -22,6 +22,14 @@ public:
     virtual uint8_t     inPortB(void) const;
     virtual uint8_t     inPortC(void) const;
 public:
+    virtual const char *inPortAName(const unsigned int i) const;
+    virtual const char *inPortBName(const unsigned int i) const;
+    virtual const char *inPortCName(const unsigned int i) const;
+public:
+    virtual const char *outPortAName(const unsigned int i) const;
+    virtual const char *outPortBName(const unsigned int i) const;
+    virtual const char *outPortCName(const unsigned int i) const;
+public:
     inline uint8_t      portAWriteMask(void) const {
         return   (mode & 0x10) ? 0x00 : 0xFF;
     }
