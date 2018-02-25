@@ -111,3 +111,12 @@ void Intel8255::outPortB(const uint8_t mask) {
 void Intel8255::outPortC(const uint8_t mask) {
 }
 
+void Intel8255::checkPortA(void) {
+}
+
+void Intel8255::checkPortB(void) {
+}
+
+void Intel8255::checkPortC(void) {
+}
+
