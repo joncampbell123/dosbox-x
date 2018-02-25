@@ -228,8 +228,10 @@ void Intel8255::updateINTR_A(void) {
         // TODO
     }
     else if (mode & 0x20) { /* mode 1 */
-        INTR_A = false;
-        // TODO
+        if (mode & 0x10)    /* input */
+            INTR_A = INTE_A && IBF_A;
+        else                /* output */
+            INTR_A = INTE_A && OBF_A;
     }
     else {
         INTR_A = false;
@@ -238,8 +240,10 @@ void Intel8255::updateINTR_A(void) {
 
 void Intel8255::updateINTR_B(void) {
     if (mode & 0x04) { /* mode 1 */
-        INTR_B = false;
-        // TODO
+        if (mode & 0x02)    /* input */
+            INTR_B = INTE_B && IBF_B;
+        else                /* output */
+            INTR_B = INTE_B && OBF_B;
     }
     else {
         INTR_B = false;
