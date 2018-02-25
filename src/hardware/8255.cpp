@@ -40,16 +40,19 @@ uint8_t Intel8255::readControl(void) const {
 void Intel8255::writePortA(uint8_t data,uint8_t mask) {
     mask &= portAWriteMask();
     latchOutPortA = (latchOutPortA & (~mask)) + (data & mask);
+    if (mask) outPortA(mask);
 }
 
 void Intel8255::writePortB(uint8_t data,uint8_t mask) {
     mask &= portBWriteMask();
     latchOutPortB = (latchOutPortB & (~mask)) + (data & mask);
+    if (mask) outPortB(mask);
 }
 
 void Intel8255::writePortC(uint8_t data,uint8_t mask) {
     mask &= portCWriteMask();
     latchOutPortC = (latchOutPortC & (~mask)) + (data & mask);
+    if (mask) outPortC(mask);
 }
 
 void Intel8255::writeControl(uint8_t data) {
@@ -92,5 +95,14 @@ uint8_t Intel8255::inPortB(void) const {
 
 uint8_t Intel8255::inPortC(void) const {
     return 0xFFU;
+}
+
+void Intel8255::outPortA(const uint8_t mask) {
+}
+
+void Intel8255::outPortB(const uint8_t mask) {
+}
+
+void Intel8255::outPortC(const uint8_t mask) {
 }
 

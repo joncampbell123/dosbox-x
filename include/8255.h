@@ -29,6 +29,10 @@ public:
     virtual uint8_t     inPortB(void) const;
     virtual uint8_t     inPortC(void) const;
 public:
+    virtual void        outPortA(const uint8_t mask);
+    virtual void        outPortB(const uint8_t mask);
+    virtual void        outPortC(const uint8_t mask);
+public:
     inline const char*  inPortName(const unsigned int port,const unsigned int i) const {
         return inPortNames[port][i];
     }
