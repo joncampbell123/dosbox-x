@@ -47,8 +47,8 @@ public:
                 ((mode & 0x01) ? 0x00 : 0x0F);
     }
 public:
-    const char*         inPortNames[3][8];
-    const char*         outPortNames[3][8];
+    const char*         inPortNames[3/*port*/][8/*bit*/];
+    const char*         outPortNames[3/*port*/][8/*bit*/];
 public:
     uint8_t             outPortA,outPortB,outPortC;
     uint8_t             mode;
