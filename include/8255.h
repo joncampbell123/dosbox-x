@@ -50,7 +50,7 @@ public:
     const char*         inPortNames[3/*port*/][8/*bit*/];
     const char*         outPortNames[3/*port*/][8/*bit*/];
 public:
-    uint8_t             outPortA,outPortB,outPortC;
+    uint8_t             latchOutPortA,latchOutPortB,latchOutPortC;
     uint8_t             mode;
     /* bit[7:7] = 1             mode set flag
      * bit[6:5] = mode select   00=mode 0  01=mode 1  1x=mode 2

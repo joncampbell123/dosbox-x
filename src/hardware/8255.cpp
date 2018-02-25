@@ -13,24 +13,24 @@ Intel8255::~Intel8255() {
 
 void Intel8255::reset(void) {
     mode = 0x9B;    /* default: port A input, port B input, port C input mode 0 mode 0 */
-    outPortA = 0;
-    outPortB = 0;
-    outPortC = 0;
+    latchOutPortA = 0;
+    latchOutPortB = 0;
+    latchOutPortC = 0;
 }
 
 uint8_t Intel8255::readPortA(void) const {
-    return  (outPortA   &   portAWriteMask() ) +
-            ( inPortA() & (~portAWriteMask()));
+    return  (latchOutPortA   &   portAWriteMask() ) +
+            (      inPortA() & (~portAWriteMask()));
 }
 
 uint8_t Intel8255::readPortB(void) const {
-    return  (outPortB   &   portBWriteMask() ) +
-            ( inPortB() & (~portBWriteMask()));
+    return  (latchOutPortB   &   portBWriteMask() ) +
+            (      inPortB() & (~portBWriteMask()));
 }
 
 uint8_t Intel8255::readPortC(void) const {
-    return  (outPortC   &   portCWriteMask() ) +
-            ( inPortC() & (~portCWriteMask()));
+    return  (latchOutPortC   &   portCWriteMask() ) +
+            (      inPortC() & (~portCWriteMask()));
 }
 
 uint8_t Intel8255::readControl(void) const {
@@ -39,17 +39,17 @@ uint8_t Intel8255::readControl(void) const {
 
 void Intel8255::writePortA(uint8_t data,uint8_t mask) {
     mask &= portAWriteMask();
-    outPortA = (outPortA & (~mask)) + (data & mask);
+    latchOutPortA = (latchOutPortA & (~mask)) + (data & mask);
 }
 
 void Intel8255::writePortB(uint8_t data,uint8_t mask) {
     mask &= portBWriteMask();
-    outPortB = (outPortB & (~mask)) + (data & mask);
+    latchOutPortB = (latchOutPortB & (~mask)) + (data & mask);
 }
 
 void Intel8255::writePortC(uint8_t data,uint8_t mask) {
     mask &= portCWriteMask();
-    outPortC = (outPortC & (~mask)) + (data & mask);
+    latchOutPortC = (latchOutPortC & (~mask)) + (data & mask);
 }
 
 void Intel8255::writeControl(uint8_t data) {
@@ -65,10 +65,10 @@ void Intel8255::writeControl(uint8_t data) {
         mode = data;
 
         /* according to PC-98 hardware it seems changing a port to input makes the latch forget it's contents */
-        if (mode & 0x01) outPortC &= ~0x0FU;
-        if (mode & 0x02) outPortB  =  0x00U;
-        if (mode & 0x08) outPortC &= ~0xF0U;
-        if (mode & 0x10) outPortA  =  0x00U;
+        if (mode & 0x01) latchOutPortC &= ~0x0FU;
+        if (mode & 0x02) latchOutPortB  =  0x00U;
+        if (mode & 0x08) latchOutPortC &= ~0xF0U;
+        if (mode & 0x10) latchOutPortA  =  0x00U;
     }
     else {
         /* bit[7:7] = 0             bit set/reset
