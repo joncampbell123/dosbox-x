@@ -213,15 +213,6 @@ void Intel8255::outPortB(const uint8_t mask) {
 void Intel8255::outPortC(const uint8_t mask) {
 }
 
-void Intel8255::checkPortA(void) {
-}
-
-void Intel8255::checkPortB(void) {
-}
-
-void Intel8255::checkPortC(void) {
-}
-
 void Intel8255::updateINTR_A(void) {
     if (mode & 0x40) { /* mode 2 */
         INTR_A = (INTE_1 && OBF_A) ^ (INTE_2 && IBF_A);

@@ -15,10 +15,6 @@ public:
 public:
     void                reset(void);
 
-    virtual void        checkPortA(void);
-    virtual void        checkPortB(void);
-    virtual void        checkPortC(void); /* Mode 1 interrupt support */
-
     uint8_t             readPortA(void);
     uint8_t             readPortB(void);
     uint8_t             readPortC(void);
