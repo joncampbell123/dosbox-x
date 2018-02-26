@@ -4,6 +4,7 @@
 #include "8255.h"
 
 Intel8255::Intel8255() {
+    ppiName = NULL;
     pINTR_A = pINTR_B = 0;
     for (unsigned int c=0;c < 3;c++) {
         inPortNames[c] = outPortNames[c] = NULL;

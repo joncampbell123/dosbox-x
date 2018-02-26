@@ -48,6 +48,10 @@ public:
     virtual void        sigINTR_A(void);
     virtual void        sigINTR_B(void);
 public:
+    inline const char*  getName(void) const {
+        return ppiName;
+    }
+public:
     inline const char*  inPinName(const unsigned int port,const unsigned int i) const {
         return inPinNames[port][i];
     }
@@ -63,6 +67,8 @@ public:
     }
 public:
     uint8_t             portAWriteMask,portBWriteMask,portCWriteMask;
+public:
+    const char*         ppiName;
 public:
     const char*         inPinNames[3/*port*/][8/*bit*/];
     const char*         inPortNames[3/*port*/];
