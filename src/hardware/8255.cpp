@@ -7,9 +7,9 @@ Intel8255::Intel8255() {
     ppiName = NULL;
     pINTR_A = pINTR_B = 0;
     for (unsigned int c=0;c < 3;c++) {
-        inPortNames[c] = outPortNames[c] = NULL;
+        portNames[c] = NULL;
         for (unsigned int i=0;i < 8;i++)
-            inPinNames[c][i] = outPinNames[c][i] = NULL;
+            pinNames[c][i] = NULL;
     }
 }
 
@@ -306,5 +306,25 @@ void Intel8255::ackPortB(void) {
     OBF_B = false;
     updateINTR_B();
     checkINTR_B();
+}
+
+uint8_t Intel8255::readByPort(uint8_t p03) {
+    switch (p03) {
+        case 0: return readPortA();
+        case 1: return readPortB();
+        case 2: return readPortC();
+        case 3: return readControl();
+    }
+
+    return 0;
+}
+
+void Intel8255::writeByPort(uint8_t p03,uint8_t data) {
+    switch (p03) {
+        case 0: writePortA(data,0xFF); break;
+        case 1: writePortB(data,0xFF); break;
+        case 2: writePortC(data,0xFF); break;
+        case 3: writeControl(data);    break;
+    }
 }
 

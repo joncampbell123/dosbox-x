@@ -26,10 +26,14 @@ public:
     uint8_t             readPortC(void);
     uint8_t             readControl(void);
 
+    uint8_t             readByPort(uint8_t p03);
+
     void                writePortA(uint8_t data,uint8_t mask);
     void                writePortB(uint8_t data,uint8_t mask);
     void                writePortC(uint8_t data,uint8_t mask);
     void                writeControl(uint8_t data);
+
+    void                writeByPort(uint8_t p03,uint8_t data);
 public:
     virtual uint8_t     inPortA(void) const;
     virtual uint8_t     inPortB(void) const;
@@ -52,29 +56,19 @@ public:
         return nil_if_null(ppiName);
     }
 public:
-    inline const char*  inPinName(const unsigned int port,const unsigned int i) const {
-        return nil_if_null(inPinNames[port][i]);
+    inline const char*  pinName(const unsigned int port,const unsigned int i) const {
+        return nil_if_null(pinNames[port][i]);
     }
-    inline const char*  inPortName(const unsigned int port) const {
-        return nil_if_null(inPortNames[port]);
-    }
-public:
-    inline const char*  outPinName(const unsigned int port,const unsigned int i) const {
-        return nil_if_null(outPinNames[port][i]);
-    }
-    inline const char*  outPortName(const unsigned int port) const {
-        return nil_if_null(outPortNames[port]);
+    inline const char*  portName(const unsigned int port) const {
+        return nil_if_null(portNames[port]);
     }
 public:
     uint8_t             portAWriteMask,portBWriteMask,portCWriteMask;
 public:
     const char*         ppiName;
 public:
-    const char*         inPinNames[3/*port*/][8/*bit*/];
-    const char*         inPortNames[3/*port*/];
-public:
-    const char*         outPinNames[3/*port*/][8/*bit*/];
-    const char*         outPortNames[3/*port*/];
+    const char*         pinNames[3/*port*/][8/*bit*/];
+    const char*         portNames[3/*port*/];
 public:
     uint8_t             latchOutPortA,latchOutPortB,latchOutPortC;
     uint8_t             mode;
