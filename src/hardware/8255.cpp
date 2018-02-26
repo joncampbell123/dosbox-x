@@ -321,10 +321,10 @@ uint8_t Intel8255::readByPort(uint8_t p03) {
 
 void Intel8255::writeByPort(uint8_t p03,uint8_t data) {
     switch (p03) {
-        case 0: writePortA(data,0xFF); break;
-        case 1: writePortB(data,0xFF); break;
-        case 2: writePortC(data,0xFF); break;
-        case 3: writeControl(data);    break;
+        case 0: writePortA(data);   break;
+        case 1: writePortB(data);   break;
+        case 2: writePortC(data);   break;
+        case 3: writeControl(data); break;
     }
 }
 

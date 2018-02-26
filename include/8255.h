@@ -28,9 +28,9 @@ public:
 
     uint8_t             readByPort(uint8_t p03);
 
-    void                writePortA(uint8_t data,uint8_t mask);
-    void                writePortB(uint8_t data,uint8_t mask);
-    void                writePortC(uint8_t data,uint8_t mask);
+    void                writePortA(uint8_t data,uint8_t mask=0xFFU);
+    void                writePortB(uint8_t data,uint8_t mask=0xFFU);
+    void                writePortC(uint8_t data,uint8_t mask=0xFFU);
     void                writeControl(uint8_t data);
 
     void                writeByPort(uint8_t p03,uint8_t data);

@@ -2167,7 +2167,7 @@ void KEYBOARD_OnEnterPC98_phase2(Section *sec) {
      * bit[1:1] =  1 = port B input
      * bit[0:0] =  0 = port C lower output */
     pc98_sys_8255.writeControl(0x92);
-    pc98_sys_8255.writePortC(0xF8,0xFF); /* SHUT0=1 SHUT1=1 mask printer RAM parity check buzzer inhibit */
+    pc98_sys_8255.writePortC(0xF8); /* SHUT0=1 SHUT1=1 mask printer RAM parity check buzzer inhibit */
 
     for (i=0;i < 4;i++) {
         ReadHandler_8255_PC98[i].Uninstall();
