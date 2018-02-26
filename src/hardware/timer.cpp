@@ -486,6 +486,11 @@ void TIMER_BIOS_INIT_Configure() {
 		int freq = pcsec->Get_int("initial frequency"); /* original code: 1320 */
 		int div;
 
+        /* IBM PC defaults to 903Hz.
+         * NEC PC-98 defaults to 2KHz */
+        if (freq < 0)
+            freq = IS_PC98_ARCH ? 2000 : 903;
+
 		if (freq < 19) {
 			div = 1;
 		}
