@@ -810,7 +810,12 @@
     <ClCompile Include="..\src\cpu\core_dyn_x86.cpp">
       <Filter>Sources\cpu</Filter>
     </ClCompile>
-    <ClCompile Include="bios_memdisk.cpp" />
+    <ClCompile Include="..\src\hardware\8255.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\ints\bios_memdisk.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
@@ -1374,7 +1379,6 @@
     <ClInclude Include="..\src\libs\zmbv\zmbv_vfw.h">
       <Filter>Sources\libs\zmbv</Filter>
     </ClInclude>
-    <ClInclude Include="config.h" />
     <ClInclude Include="..\src\hardware\snd_pc98\cbus\board26k.h">
       <Filter>Sources\pc98fmboards</Filter>
     </ClInclude>
@@ -1428,6 +1432,9 @@
     </ClInclude>
     <ClInclude Include="..\src\hardware\snd_pc98\x11\dosio.h">
       <Filter>Sources\pc98fmboards</Filter>
+    </ClInclude>
+    <ClInclude Include="config.h">
+      <Filter>Includes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
