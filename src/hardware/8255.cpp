@@ -183,16 +183,19 @@ void Intel8255::writeControl(uint8_t data) {
         if (mode & 0x40) { /* Port A mode 2 */
             if (bit == 4) {
                 INTE_2 = !!(data & 1);
+                updateINTR_A();
                 checkINTR_A();
             }
             else if (bit == 6) {
                 INTE_1 = !!(data & 1);
+                updateINTR_A();
                 checkINTR_A();
             }
         }
         else if (mode & 0x20) { /* Port A mode 1 */
             if (bit == ((mode & 0x10) ? /*input*/ 4 : /*output*/6)) {
                 INTE_A = !!(data & 1);
+                updateINTR_A();
                 checkINTR_A();
             }
         }
@@ -200,6 +203,7 @@ void Intel8255::writeControl(uint8_t data) {
         if (mode & 0x04) { /* Port B mode 1 */
             if (bit == 2) {
                 INTE_B = !!(data & 1);
+                updateINTR_B();
                 checkINTR_B();
             }
         }
