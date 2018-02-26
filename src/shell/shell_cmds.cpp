@@ -316,7 +316,8 @@ void DOS_Shell::CMD_INT2FDBG(char * args) {
 
 void DOS_Shell::CMD_CLS(char * args) {
 	HELP("CLS");
-   if (CurMode->type==M_TEXT) WriteOut("[2J"); 
+   if (CurMode->type==M_TEXT || IS_PC98_ARCH)
+       WriteOut("[2J");
    else { 
       reg_ax=(Bit16u)CurMode->mode; 
       CALLBACK_RunRealInt(0x10); 

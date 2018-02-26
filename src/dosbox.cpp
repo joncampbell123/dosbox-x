@@ -310,8 +310,6 @@ unsigned long long update_PCI_BCLK_clock() {
 
 #include "paging.h"
 
-extern Bitu dosbox_check_nonrecursive_pf_cs;
-extern Bitu dosbox_check_nonrecursive_pf_eip;
 extern bool rom_bios_vptable_enable;
 extern bool rom_bios_8x8_cga_font;
 extern bool allow_port_92_reset;
@@ -480,9 +478,6 @@ increaseticks:
         ret = 0;
         FillFlags();
         dosbox_allow_nonrecursive_page_fault = false;
-#if 0 //TODO make option
-        LOG_MSG("Guest page fault exception! Alternate method will be used. Wish me luck.\n");
-#endif
         CPU_Exception(EXCEPTION_PF,pf.faultcode);
         dosbox_allow_nonrecursive_page_fault = saved_allow;
     }
@@ -890,6 +885,9 @@ void DOSBOX_SetupConfigSections(void) {
 		0 };
 
 	const char* cores[] = { "auto",
+#if (C_DYNAMIC_X86)
+		"dynamic",
+#endif
 		"normal", "full", "simple", 0 };
 
 	const char* voodoo_settings[] = {
@@ -1155,6 +1153,12 @@ void DOSBOX_SetupConfigSections(void) {
 	Pstring = secprop->Add_string("pc-98 fm board",Property::Changeable::Always,"auto");
     Pstring->Set_values(pc98fmboards);
 	Pstring->Set_help("In PC-98 mode, selects the FM music board to emulate.");
+
+	Pint = secprop->Add_int("pc-98 fm board irq", Property::Changeable::WhenIdle,0);
+	Pint->Set_help("If set, helps to determine the IRQ of the FM board. A setting of zero means to auto-determine the IRQ.");
+
+	Phex = secprop->Add_hex("pc-98 fm board io port", Property::Changeable::WhenIdle,0);
+	Phex->Set_help("If set, helps to determine the base I/O port of the FM board. A setting of zero means to auto-determine the port number.");
 
 	Pbool = secprop->Add_bool("pc-98 buffer page flip",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("If set, the game's request to page flip will be delayed to vertical retrace, which can eliminate tearline artifacts.\n"
@@ -2204,7 +2208,7 @@ void DOSBOX_SetupConfigSections(void) {
 			"If the subprocesses will never add/modify the environment block, you can free up a few additional bytes by setting this to 0.\n"
 			"Set to -1 for default setting.");
 
-	Pbool = secprop->Add_bool("enable a20 on windows init",Property::Changeable::OnlyAtStart,true);
+	Pbool = secprop->Add_bool("enable a20 on windows init",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("If set, DOSBox will enable the A20 gate when Windows 3.1/9x broadcasts the INIT message\n"
 			"at startup. Windows 3.1 appears to make assumptions at some key points on startup about\n"
 			"A20 that don't quite hold up and cause Windows 3.1 to crash when you set A20 emulation\n"

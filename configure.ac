@@ -363,6 +363,11 @@ AC_CHECK_HEADER(curses.h,have_curses_h=yes,)
 AC_CHECK_LIB(curses, initscr, have_curses_lib=yes, , )
 AC_CHECK_LIB(ncurses, initscr, have_ncurses_lib=yes, , )
 AC_CHECK_LIB(pdcurses, initscr, have_pdcurses_lib=yes, , )
+# Check if this system's ncurses uses a separate tinfo library
+AC_CHECK_LIB(tinfo, nodelay,
+	     if test x$have_ncurses_lib = xyes ; then
+	       LIBS="$LIBS -ltinfo";
+	     fi)
 
 dnl LIBRARY TEST: libpng
 AC_CHECK_HEADER(png.h,have_png_h=yes,)
@@ -496,8 +501,13 @@ if test x$enable_dynamic_x86 = xno -o x$enable_dynamic_core = xno; then
    AC_MSG_RESULT(no)
 else
   if test x$c_targetcpu = xx86 ; then
-      AC_DEFINE(C_DYNAMIC_X86,1)
+      AC_DEFINE(C_DYNAMIC_X86,32)
       AC_MSG_RESULT(yes)
+  elif test x$c_targetcpu = xx86_64 ; then
+      true
+dnl     TODO
+dnl      AC_DEFINE(C_DYNAMIC_X86,64)
+dnl      AC_MSG_RESULT(yes)
   else
       AC_MSG_RESULT(no)
   fi

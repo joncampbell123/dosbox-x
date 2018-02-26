@@ -7136,6 +7136,49 @@ if test "x$ac_cv_lib_pdcurses_initscr" = xyes; then :
   have_pdcurses_lib=yes
 fi
 
+# Check if this system's ncurses uses a separate tinfo library
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for nodelay in -ltinfo" >&5
+$as_echo_n "checking for nodelay in -ltinfo... " >&6; }
+if ${ac_cv_lib_tinfo_nodelay+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-ltinfo  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char nodelay ();
+int
+main ()
+{
+return nodelay ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_tinfo_nodelay=yes
+else
+  ac_cv_lib_tinfo_nodelay=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_tinfo_nodelay" >&5
+$as_echo "$ac_cv_lib_tinfo_nodelay" >&6; }
+if test "x$ac_cv_lib_tinfo_nodelay" = xyes; then :
+  if test x$have_ncurses_lib = xyes ; then
+	       LIBS="$LIBS -ltinfo";
+	     fi
+fi
+
 
 ac_fn_c_check_header_mongrel "$LINENO" "png.h" "ac_cv_header_png_h" "$ac_includes_default"
 if test "x$ac_cv_header_png_h" = xyes; then :
@@ -7671,10 +7714,12 @@ if test x$enable_dynamic_x86 = xno -o x$enable_dynamic_core = xno; then
 $as_echo "no" >&6; }
 else
   if test x$c_targetcpu = xx86 ; then
-      $as_echo "#define C_DYNAMIC_X86 1" >>confdefs.h
+      $as_echo "#define C_DYNAMIC_X86 32" >>confdefs.h
 
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
+  elif test x$c_targetcpu = xx86_64 ; then
+      true
   else
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }

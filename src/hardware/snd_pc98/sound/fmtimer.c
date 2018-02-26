@@ -42,6 +42,22 @@ static unsigned int nevent_iswork(unsigned int n) {
 
 static const UINT8 irqtable[4] = {0x03, 0x0d, 0x0a, 0x0c};
 
+/* added for DOSBox-X */
+UINT8 fmtimer_index2irq(const UINT8 index) {
+    return irqtable[index & 3];
+}
+
+UINT8 fmtimer_irq2index(const UINT8 irq) {
+    unsigned int i;
+
+    for (i=0;i < 4;i++) {
+        if (irqtable[i] == irq)
+            return i;
+    }
+
+    return 0x00;
+}
+/* end */
 
 static void set_fmtimeraevent(BOOL absolute) {
 

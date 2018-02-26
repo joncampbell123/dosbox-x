@@ -1,3 +1,13 @@
+/** \mainpage DOSBox-X emulation
+ *
+ * \section i Introduction
+ *
+ * \section f Features
+ *
+ * \li Accurate x86 emulation
+ *
+*/
+
 /*
  *  Copyright (C) 2002-2013  The DOSBox Team
  *
@@ -95,6 +105,8 @@ bool OpenGL_using(void);
 
 using namespace std;
 
+bool window_was_maximized = false;
+
 Bitu userResizeWindowWidth = 0, userResizeWindowHeight = 0;
 Bitu currentWindowWidth = 640, currentWindowHeight = 480;
 
@@ -133,6 +145,9 @@ void FreeBIOSDiskList();
 void GFX_ShutDown(void);
 void MAPPER_Shutdown();
 void SHELL_Init(void);
+#if C_DYNAMIC_X86
+void CPU_Core_Dyn_X86_Shutdown(void);
+#endif
 
 void UpdateWindowMaximized(bool flag) {
     menu.maxwindow = flag;
@@ -1712,9 +1727,13 @@ static LRESULT CALLBACK WinExtHookKeyboardHookProc(int nCode,WPARAM wParam,LPARA
 								wParam = WM_USER + 0x101;
 						}
 
+						DWORD lParam =
+							(st_hook->scanCode << 8U) +
+							((st_hook->flags & LLKHF_EXTENDED) ? 0x01000000 : 0) +
+							((wParam == WM_KEYUP || wParam == WM_SYSKEYUP) ? 0xC0000000 : 0);
+
 						// catch the keystroke, post it to ourself, do not pass it on
-						PostMessage(myHwnd, wParam, st_hook->vkCode,
-							(st_hook->flags & 0x80/*transition state*/) ? 0x0000 : 0xA000/*bits 13&15 are set*/);
+						PostMessage(myHwnd, wParam, st_hook->vkCode, lParam);
 						return TRUE;
 					}
 				}
@@ -3043,7 +3062,7 @@ static void HandleVideoResize(void * event) {
 
     /* assume the resize comes from user preference UNLESS the window
      * is fullscreen or maximized */
-    if (!menu.maxwindow && !sdl.desktop.fullscreen && !sdl.init_ignore && NonUserResizeCounter == 0) {
+    if (!menu.maxwindow && !sdl.desktop.fullscreen && !sdl.init_ignore && NonUserResizeCounter == 0 && !window_was_maximized) {
 		UpdateWindowDimensions();
 		UpdateWindowDimensions(ResizeEvent->w, ResizeEvent->h);
 
@@ -3060,6 +3079,7 @@ static void HandleVideoResize(void * event) {
 		UpdateWindowDimensions();
     }
 
+	window_was_maximized = menu.maxwindow;
     if (NonUserResizeCounter > 0)
         NonUserResizeCounter--;
 
@@ -5811,6 +5831,9 @@ fresh_boot:
 	DOS_ShutdownFiles();
 	DOS_ShutdownDevices();
 	CALLBACK_Shutdown();
+#if C_DYNAMIC_X86
+	CPU_Core_Dyn_X86_Shutdown();
+#endif
 	FreeBIOSDiskList();
 	MAPPER_Shutdown();
 	VFILE_Shutdown();

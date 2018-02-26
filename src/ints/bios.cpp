@@ -2363,6 +2363,8 @@ void update_pc98_function_row(bool enable) {
     vga_pc98_direct_cursor_pos((r*80)+c);
 }
 
+void pc98_set_digpal_entry(unsigned char ent,unsigned char grb);
+
 static Bitu INT18_PC98_Handler(void) {
     Bit16u temp16;
 
@@ -2569,6 +2571,22 @@ static Bitu INT18_PC98_Handler(void) {
 
             LOG_MSG("PC-98 INT 18 AH=42h CH=0x%02X",reg_ch);
             break;
+        case 0x43:  // Palette register settings? Only works in digital mode? --leonier
+                    //
+                    // This is said to fix Thexder's GAME ARTS logo. --Jonathan C.
+                    //
+                    // TODO: Validate this against real PC-98 hardware and BIOS
+            {
+                unsigned int gbcpc = SegValue(ds)*0x10 + reg_bx;
+                for(int i=0;i<4;i++)
+                {
+                    unsigned char p=mem_readb(gbcpc+4+i);
+                    pc98_set_digpal_entry(7-2*i, p&0xF);
+                    pc98_set_digpal_entry(6-2*i, p>>4);
+                }
+                LOG_MSG("PC-98 INT 18 AH=43h CX=0x%04X DS=0x%04X", reg_cx, SegValue(ds));
+                break;
+            }
         default:
             LOG_MSG("PC-98 INT 18h unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
                 reg_ax,
@@ -2635,16 +2653,44 @@ static Bitu INT1B_PC98_Handler(void) {
     return CBRET_NONE;
 }
 
+void PC98_Interval_Timer_Continue(void) {
+    /* assume: interrupts are disabled */
+    IO_WriteB(0x71,0x00);
+    // TODO: What time interval is this supposed to be?
+    if (PIT_TICK_RATE == PIT_TICK_RATE_PC98_8MHZ)
+        IO_WriteB(0x71,0x4E);
+    else
+        IO_WriteB(0x71,0x60);
+
+    PIC_SetIRQMask(0,false);
+}
+
 static Bitu INT1C_PC98_Handler(void) {
-    LOG_MSG("PC-98 INT 1Ch unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
-        reg_ax,
-        reg_bx,
-        reg_cx,
-        reg_dx,
-        reg_si,
-        reg_di,
-        SegValue(ds),
-        SegValue(es));
+    if (reg_ah == 0x02) { /* set interval timer (single event) */
+        /* es:bx = interrupt handler to execute
+         * cx = timer interval in ticks (FIXME: what units of time?) */
+        mem_writew(0x1C,reg_bx);
+        mem_writew(0x1E,SegValue(es));
+        mem_writew(0x58A,reg_cx);
+
+        IO_WriteB(0x77,0x36);   /* mode 3, binary, low-byte high-byte 16-bit counter */
+
+        PC98_Interval_Timer_Continue();
+    }
+    else if (reg_ah == 0x03) { /* continue interval timer */
+        PC98_Interval_Timer_Continue();
+    }
+    else {
+        LOG_MSG("PC-98 INT 1Ch unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+                reg_ax,
+                reg_bx,
+                reg_cx,
+                reg_dx,
+                reg_si,
+                reg_di,
+                SegValue(ds),
+                SegValue(es));
+    }
 
     return CBRET_NONE;
 }
@@ -2786,6 +2832,41 @@ void BIOS_KEYBOARD_SetLEDs(Bitu state) {
 	x |= (state & 7);
 	mem_writeb(BIOS_KEYBOARD_LEDS,x);
 	KEYBOARD_SetLEDs(state);
+}
+
+/* PC-98 IRQ 0 system timer */
+static Bitu INT8_PC98_Handler(void) {
+    Bit16u counter = mem_readw(0x58A) - 1;
+    mem_writew(0x58A,counter);
+
+    /* NTS 2018/02/23: I just confirmed from the ROM BIOS of an actual
+     *                 PC-98 system that this implementation and Neko Project II
+     *                 are 100% accurate to what the BIOS actually does.
+     *                 INT 07h really is the "timer tick" interrupt called
+     *                 from INT 08h / IRQ 0, and the BIOS really does call
+     *                 INT 1Ch AH=3 from INT 08h if the tick count has not
+     *                 yet reached zero.
+     *
+     *                 I'm guessing NEC's BIOS developers invented this prior
+     *                 to the Intel 80286 and it's INT 07h
+     *                 "Coprocessor not present" exception. */
+
+    if (counter == 0) {
+        /* mask IRQ 0 */
+        IO_WriteB(0x02,IO_ReadB(0x02) | 0x01);
+        /* ack IRQ 0 */
+        IO_WriteB(0x00,0x20);
+        /* INT 07h */
+	    CPU_Interrupt(7,CPU_INT_SOFTWARE,reg_eip);
+    }
+    else {
+        /* ack IRQ 0 */
+        IO_WriteB(0x00,0x20);
+        /* make sure it continues ticking */
+        PC98_Interval_Timer_Continue();
+    }
+
+	return CBRET_NONE;
 }
 
 static Bitu INT8_Handler(void) {
@@ -4294,6 +4375,8 @@ private:
 
 		if (cpu.pmode) E_Exit("BIOS error: POST function called while in protected/vm86 mode");
 
+        CPU_CLI();
+
 		/* we need A20 enabled for BIOS boot-up */
 		void A20Gate_OverrideOn(Section *sec);
 		void MEM_A20_Enable(bool enabled);
@@ -4362,6 +4445,9 @@ private:
             callback[18].Uninstall();
             callback[18].Install(&INTGEN_PC98_Handler,CB_IRET,"Int stub ???");
             for (unsigned int i=0x40;i < 0x100;i++) RealSetVec(i,callback[18].Get_RealPointer());
+
+            /* need handler at INT 07h */
+            real_writed(0,0x07*4,BIOS_DEFAULT_HANDLER_LOCATION);
         }
         else {
             /* Clear the vector table */
@@ -4381,7 +4467,6 @@ private:
         }
 
         if (IS_PC98_ARCH) {
-            CALLBACK_Setup(call_irq0,INT8_Handler,CB_IRET_EOI_PIC1,Real2Phys(BIOS_DEFAULT_IRQ0_LOCATION),"IRQ 0 Clock");
             CALLBACK_Setup(call_irq07default,NULL,CB_IRET_EOI_PIC1,Real2Phys(BIOS_DEFAULT_IRQ07_DEF_LOCATION),"bios irq 0-7 default handler");
             CALLBACK_Setup(call_irq815default,NULL,CB_IRET_EOI_PIC2,Real2Phys(BIOS_DEFAULT_IRQ815_DEF_LOCATION),"bios irq 8-15 default handler");
 
@@ -4496,6 +4581,11 @@ private:
 		// setup a few interrupt handlers that point to bios IRETs by default
         if (!IS_PC98_ARCH)
             real_writed(0,0x0e*4,CALLBACK_RealPointer(call_default2));	//design your own railroad
+
+        if (IS_PC98_ARCH) {
+            real_writew(0,0x58A,0xFFFFU); // countdown timer value
+	        PIC_SetIRQMask(0,true); /* PC-98 keeps the timer off unless INT 1Ch is called to set a timer interval */
+        }
 
 		real_writed(0,0x66*4,CALLBACK_RealPointer(call_default));	//war2d
 		real_writed(0,0x67*4,CALLBACK_RealPointer(call_default));
@@ -4981,6 +5071,8 @@ private:
             BIOS_Post_register_FDC();
 		}
 
+        CPU_STI();
+
 		return CBRET_NONE;
 	}
 	CALLBACK_HandlerObject cb_bios_scan_video_bios;
@@ -5103,6 +5195,14 @@ private:
 			DrawDOSBoxLogoCGA6(logo_x*8,logo_y*rowheight);
 		}
         else if (machine == MCH_PC98) {
+            // clear the graphics layer
+            for (unsigned int i=0;i < (80*400);i++) {
+                mem_writeb(0xA8000+i,0);        // B
+                mem_writeb(0xB0000+i,0);        // G
+                mem_writeb(0xB8000+i,0);        // R
+                mem_writeb(0xE0000+i,0);        // E
+            }
+
             reg_eax = 0x0C00;   // enable text layer (PC-98)
 			CALLBACK_RunRealInt(0x18);
 
@@ -5140,14 +5240,6 @@ private:
                     IO_Write(0xAC,((i & 4) ? 0xA : 0x0) + bias);    // red
                     IO_Write(0xAE,((i & 1) ? 0xA : 0x0) + bias);    // blue
                 }
-            }
-
-            // clear the graphics layer
-            for (unsigned int i=0;i < (80*400);i++) {
-                mem_writeb(0xA8000+i,0);        // B
-                mem_writeb(0xB0000+i,0);        // G
-                mem_writeb(0xB8000+i,0);        // R
-                mem_writeb(0xE0000+i,0);        // E
             }
 
 			DrawDOSBoxLogoPC98(logo_x*8,logo_y*rowheight);
@@ -5353,6 +5445,16 @@ private:
         if (machine == MCH_PC98) {
             reg_eax = 0x4100;   // hide the graphics layer (PC-98)
 			CALLBACK_RunRealInt(0x18);
+
+            // clear the graphics layer
+            for (unsigned int i=0;i < (80*400);i++) {
+                mem_writeb(0xA8000+i,0);        // B
+                mem_writeb(0xB0000+i,0);        // G
+                mem_writeb(0xB8000+i,0);        // R
+                mem_writeb(0xE0000+i,0);        // E
+            }
+
+            IO_Write(0x6A,0x00);    // switch back to 8-color mode
         }
         else {
             // restore 80x25 text mode
@@ -5457,9 +5559,12 @@ public:
 
 		/* Setup all the interrupt handlers the bios controls */
 
-		/* INT 8 Clock IRQ Handler */
-		call_irq0=CALLBACK_Allocate();	
-		CALLBACK_Setup(call_irq0,INT8_Handler,CB_IRQ0,Real2Phys(BIOS_DEFAULT_IRQ0_LOCATION),"IRQ 0 Clock");
+        /* INT 8 Clock IRQ Handler */
+        call_irq0=CALLBACK_Allocate();
+        if (IS_PC98_ARCH)
+            CALLBACK_Setup(call_irq0,INT8_PC98_Handler,CB_IRET,Real2Phys(BIOS_DEFAULT_IRQ0_LOCATION),"IRQ 0 Clock");
+        else
+            CALLBACK_Setup(call_irq0,INT8_Handler,CB_IRQ0,Real2Phys(BIOS_DEFAULT_IRQ0_LOCATION),"IRQ 0 Clock");
 
 		/* INT 11 Get equipment list */
 		callback[1].Install(&INT11_Handler,CB_IRET,"Int 11 Equipment");

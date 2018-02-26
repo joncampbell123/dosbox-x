@@ -1,0 +1,78 @@
+* DosBox 0.74
+
+I applied the patches that I developped for previous DosBox versions.
+Then I tried to get more performance and it was hard. Currently, the normal
+core seems to run 10 or 12 % faster that the original code.
+The consuming part is the decoding of x86 instructions. I thought a small gain
+will have a big effect but sometimes logical improvements caused regressions.
+
+The archive contains the diff of the changes I made.
+
+Please use the provided file "dosbox.conf" that works. Else, a default file
+will be created but you will have to change the usescancodes value, setting it
+to false instead of true (what leads to problems typing characters).
+
+Thanks to David Braconnier for the icons !
+
+Unsupported features :
+- only use the normal core (that is the default one)
+- launch editor and launch captures (that require execlp)
+
+
+* How to use DosBox
+
+The config file "dosbox.conf" is the place you will try some parameters 
+to make it running well on your Amiga.
+
+If you want to avoid entering the mount command each time you run DosBox, 
+just have a look at the last lines of the file "dosbox.conf" and add the
+commands you want to run at startup.
+
+
+* What I changed in the sources
+
+The core of the emulator is version hard to optimize and to read. It is very 
+difficult to change some things in that part due to the mess of the x86 
+instruction set and some stange coding rules (C++ code that is not always 
+object oriented, many macros and inline functions, ...). So I used the 
+wonderful tool Zoom (look at http://www.rotateright.com) on my MacMini running
+Linux to find the other parts that could be optimized.
+
+So the changes I applied are :
+- src/cpu/core_normal.cpp : Activated C_CORE_INLINE, what increases the required
+memory to compile, it only worked with 512 MB and the OS 4.1 paging system !
+- include/paging.h : Used instructions to read half-words and words with
+reversed bytes (PPC rulez !). Also changed a structure reorganizing TLB fields
+in order to decrease the pressure on the cache.
+- include/paging.h (again !) : Tried to improve the memory access through TLB.
+- src/cpu/modrm.cpp and other files : I reduced the size of arrays to decrease
+the pressure on the cache.
+- include/render.h : Grouped some structure fields to improve alignment and
+cache efficiency.
+
+The archive contains a diff compared to the original sources (thanks to svn).
+Use the diff file to patch the original sources if you want to build DosBox
+yourself.
+
+Then, under sh :
+CFLAGS="-O2" CXXFLAGS="-O2" ./configure --disable-dynamic-core --disable-opengl 
+--disable-dynrec --disable-dependency-tracking
+
+And then :
+- make
+- Run "src/dosbox"
+
+
+* Ideas for the future / to do
+
+- Improve access to the x86 registers
+- Activate OpenGL
+- Check CDROM access
+- Compare options -O2 and -O3
+- Profile DosBox on Linux PPC (cache issues)
+- Fix install of Win 3.1
+- Fix color problems (x-ray, hugi)
+- Fix MIDI : does not work even setting it in dosbox.conf with a directory 
+that contains instruments
+- Fix FullScreen that send a 59 Hz signal and some screens does not go below 60
+- Check usage of gamepads
