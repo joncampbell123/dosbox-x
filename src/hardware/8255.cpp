@@ -4,6 +4,7 @@
 #include "8255.h"
 
 Intel8255::Intel8255() {
+    pINTR_A = pINTR_B = 0;
     for (unsigned int c=0;c < 3;c++) {
         for (unsigned int i=0;i < 8;i++)
             inPortNames[c][i] = outPortNames[c][i] = NULL;
@@ -261,9 +262,23 @@ void Intel8255::updateINTR_B(void) {
 }
 
 void Intel8255::checkINTR_A(void) {
+    if (pINTR_A != INTR_A) {
+        pINTR_A  = INTR_A;
+        sigINTR_A();
+    }
 }
 
 void Intel8255::checkINTR_B(void) {
+    if (pINTR_B != INTR_B) {
+        pINTR_B  = INTR_B;
+        sigINTR_B();
+    }
+}
+
+void Intel8255::sigINTR_A(void) {
+}
+
+void Intel8255::sigINTR_B(void) {
 }
 
 void Intel8255::strobePortA(void) {

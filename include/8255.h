@@ -42,8 +42,11 @@ public:
     void                updateINTR_A(void);
     void                updateINTR_B(void);
 public:
-    virtual void        checkINTR_A(void);
-    virtual void        checkINTR_B(void);
+    void                checkINTR_A(void);
+    void                checkINTR_B(void);
+public:
+    virtual void        sigINTR_A(void);
+    virtual void        sigINTR_B(void);
 public:
     inline const char*  inPortName(const unsigned int port,const unsigned int i) const {
         return inPortNames[port][i];
@@ -71,6 +74,7 @@ public:
     bool                OBF_A,OBF_B;
 public:
     bool                INTR_A,INTR_B;
+    bool                pINTR_A,pINTR_B;
 public:
     bool                INTE_1,INTE_2; /* mode 2 */
     bool                INTE_A,INTE_B;
