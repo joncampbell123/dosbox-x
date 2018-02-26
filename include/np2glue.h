@@ -32,10 +32,15 @@
 #else
 # include "byteorder.h"
 # define _G_DIR_SEPARATOR '/'
+# if !defined(BYTE_ORDER) || !defined(LITTLE_ENDIAN) || !defined(BIG_ENDIAN)
+#  error byteorder not enough information
+# endif
 # if BYTE_ORDER == LITTLE_ENDIAN
-# define BYTESEX_LITTLE
+#  define BYTESEX_LITTLE
+# elif BYTE_ORDER == BIG_ENDIAN
+#  define BYTESEX_BIG
 # else
-# define BYTESEX_BIG
+#  error unknown byte order
 # endif
 #endif
 
