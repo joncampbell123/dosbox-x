@@ -91,7 +91,7 @@ void VGA_ATTR_SetPalette(Bit8u index, Bit8u val) {
         VGA_DAC_CombineColor(index,val);
     }
     else {
-        vga.dac.combine[index] = index;
+        VGA_DAC_CombineColor(index,index);
     }
 }
 
