@@ -58,6 +58,10 @@ static void VGA_DAC_SendColor( Bitu index, Bitu src ) {
 	const Bit8u green = vga.dac.rgb[src].green;
 	const Bit8u blue = vga.dac.rgb[src].blue;
 
+    /* FIXME: CGA composite mode calls RENDER_SetPal itself, which conflicts with this code */
+    if (vga.mode == M_CGA16)
+        return;
+
 	if (GFX_bpp >= 24) /* FIXME: Assumes 8:8:8. What happens when desktops start using the 10:10:10 format? */
 		vga.dac.xlat32[index] = (blue<<(2+GFX_Bshift)) | (green<<(2+GFX_Gshift)) | (red<<(2+GFX_Rshift)) | GFX_Amask;
 	else {
