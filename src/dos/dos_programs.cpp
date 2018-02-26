@@ -32,6 +32,7 @@
 #include "cpu.h"
 #include "callback.h"
 #include "cdrom.h"
+#include "bios_disk.h"
 #include "dos_system.h"
 #include "dos_inc.h"
 #include "bios.h"
