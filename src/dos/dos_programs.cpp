@@ -2678,7 +2678,7 @@ public:
 
 					if (type == "ram") {
 						//imageDiskMemory* dsk = new imageDiskMemory(sizes[3], sizes[2], sizes[1], sizes[0]);
-						imageDiskMemory* dsk = new imageDiskMemory(sizes[0] * 1024);
+						imageDiskMemory* dsk = new imageDiskMemory(sizes[0]);
 						if (!dsk->active || (dsk->Format() != 0x00)) {
 							WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
 							delete dsk;
@@ -3427,7 +3427,7 @@ void DOS_SetupPrograms(void) {
 		"IMGMOUNT drive filename [-t iso] [-fs iso]\n"
 		"IMGMOUNT drive -t floppy -el-torito cdDrive\n"
 		"IMGMOUNT drive -t ram -size driveSize\n"
-		"IMGMOUNT drive|driveLocation -u\n"
+		"IMGMOUNT -u drive|driveLocation\n"
 		" drive               Drive letter to mount the image at\n"
 		" driveLocation       Location to mount drive, where 2 = Master and 3 = Slave\n"
 		" filename            Filename of the image to mount\n"
@@ -3440,7 +3440,7 @@ void DOS_SetupPrograms(void) {
 		" -fs none            Do not detect file system\n"
 		" -ide 1m|1s|2m|2s    Specifies the controller to mount drive\n"
 		" -size ss,s,h,c      Specify the geometry: Sector size,Sectors,Heads,Cylinders\n"
-		" -size driveSize     Specify the drive size in MB\n"
+		" -size driveSize     Specify the drive size in KB\n"
 		" -el-torito cdDrive  Specify the CD drive to load the bootable floppy from\n"
 		" -u                  Unmount the drive"
 	);
