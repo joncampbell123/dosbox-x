@@ -49,21 +49,21 @@ public:
     virtual void        sigINTR_B(void);
 public:
     inline const char*  getName(void) const {
-        return ppiName;
+        return nil_if_null(ppiName);
     }
 public:
     inline const char*  inPinName(const unsigned int port,const unsigned int i) const {
-        return inPinNames[port][i];
+        return nil_if_null(inPinNames[port][i]);
     }
     inline const char*  inPortName(const unsigned int port) const {
-        return inPortNames[port];
+        return nil_if_null(inPortNames[port]);
     }
 public:
     inline const char*  outPinName(const unsigned int port,const unsigned int i) const {
-        return outPinNames[port][i];
+        return nil_if_null(outPinNames[port][i]);
     }
     inline const char*  outPortName(const unsigned int port) const {
-        return outPortNames[port];
+        return nil_if_null(outPortNames[port]);
     }
 public:
     uint8_t             portAWriteMask,portBWriteMask,portCWriteMask;
@@ -94,5 +94,9 @@ public:
 public:
     bool                INTE_1,INTE_2; /* mode 2 */
     bool                INTE_A,INTE_B;
+protected:
+    static inline const char *nil_if_null(const char *str) {
+        return (str != NULL) ? str : "";
+    }
 };
 
