@@ -58,9 +58,18 @@ void imageDiskMemory::init(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32
 	this->sector_size = 0;
 	this->total_sectors = 0;
 
-	Bit64u absoluteSectors = (Bit64u)cylinders * (Bit64u)heads * (Bit64u)sectors;
+	Bit64u absoluteSectors = (Bit64u)cylinders * (Bit64u)heads;
 	if (absoluteSectors > 0x100000000u) {
 		LOG_MSG("Image size too large in imageDiskMemory constructor.\n");
+		return;
+	}
+	absoluteSectors *= (Bit64u)sectors;
+	if (absoluteSectors > 0x100000000u) {
+		LOG_MSG("Image size too large in imageDiskMemory constructor.\n");
+		return;
+	}
+	if (absoluteSectors == 0) {
+		LOG_MSG("Image size too small in imageDiskMemory constructor.\n");
 		return;
 	}
 
@@ -95,10 +104,11 @@ void imageDiskMemory::init(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32
 	this->active = true;
 }
 imageDiskMemory::~imageDiskMemory() {
-	Bit8u* cluster;
+	if (!active) return;
+	Bit8u* ramcluster;
 	for (int i = 0; i < total_ramclusters; i++) {
-		cluster = MemMap[i];
-		if (cluster) free(cluster);
+		ramcluster = MemMap[i];
+		if (ramcluster) free(ramcluster);
 	}
 	free(MemMap);
 	MemMap = 0;
@@ -204,9 +214,13 @@ Bit8u imageDiskMemory::Format() {
 		LOG_MSG("imageDiskMemory->Format only designed for disks with 512-byte sectors.\n");
 		return 0x01;
 	}
-	if (this->sectors > 255) {
-		LOG_MSG("imageDiskMemory->Format only designed for disks with <= 255 sectors.\n");
+	if (this->sectors > 63) {
+		LOG_MSG("imageDiskMemory->Format only designed for disks with <= 63 sectors.\n");
 		return 0x02;
+	}
+	if (this->heads > 255) {
+		LOG_MSG("imageDiskMemory->Format only designed for disks with <= 255 heads.\n");
+		return 0x05;
 	}
 	if (this->cylinders >= 1024) {
 		LOG_MSG("imageDiskMemory->Format only designed for disks with < 1024 cylinders.\n");
@@ -256,17 +270,18 @@ Bit8u imageDiskMemory::Format() {
 	// bytes per sector: always 512
 	host_writew(&sbuf[0x0b], 512);
 	// sectors per cluster: 1,2,4,8,16,...
-	sbuf[0x0d] = this->sectors;
-	/*
 	if (this->hardDrive) {
 		Bitu cval = 1;
-		while ((sectors / cval) >= 65525) cval <<= 1;
+		while ((total_sectors / cval) >= 65525) cval <<= 1;
+		if (cval > 255) {
+			LOG_MSG("imageDiskMemory->Format only designed for hard drives with < 8,385,930 total sectors (FAT16 limitation).\n");
+			return 0x06;
+		}
 		sbuf[0x0d] = cval;
 	}
-	else sbuf[0x0d] = sectors / 0x1000 + 1; // FAT12 can hold 0x1000 entries TODO
-											// TODO small floppys have 2 sectors per cluster?
-											// reserverd sectors: 1 ( the boot sector)
-	*/
+	else sbuf[0x0d] = total_sectors / 0x1000 + 1;	// FAT12 can hold 0x1000 entries TODO
+													// TODO small floppys have 2 sectors per cluster?
+													// reserverd sectors: 1 ( the boot sector)
 	host_writew(&sbuf[0x0e], 1);
 	// Number of FATs - always 2
 	sbuf[0x10] = 2;
