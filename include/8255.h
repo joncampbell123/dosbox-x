@@ -48,17 +48,17 @@ public:
     virtual void        sigINTR_A(void);
     virtual void        sigINTR_B(void);
 public:
-    inline const char*  inPortName(const unsigned int port,const unsigned int i) const {
-        return inPortNames[port][i];
+    inline const char*  inPinName(const unsigned int port,const unsigned int i) const {
+        return inPinNames[port][i];
     }
-    inline const char*  outPortName(const unsigned int port,const unsigned int i) const {
-        return outPortNames[port][i];
+    inline const char*  outPinName(const unsigned int port,const unsigned int i) const {
+        return outPinNames[port][i];
     }
 public:
     uint8_t             portAWriteMask,portBWriteMask,portCWriteMask;
 public:
-    const char*         inPortNames[3/*port*/][8/*bit*/];
-    const char*         outPortNames[3/*port*/][8/*bit*/];
+    const char*         inPinNames[3/*port*/][8/*bit*/];
+    const char*         outPinNames[3/*port*/][8/*bit*/];
 public:
     uint8_t             latchOutPortA,latchOutPortB,latchOutPortC;
     uint8_t             mode;
