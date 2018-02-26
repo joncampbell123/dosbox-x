@@ -30,8 +30,8 @@
 # define BYTESEX_LITTLE
 # define _G_DIR_SEPARATOR '\\'
 #else
+# include "byteorder.h"
 # define _G_DIR_SEPARATOR '/'
-# include <endian.h>
 # if BYTE_ORDER == LITTLE_ENDIAN
 # define BYTESEX_LITTLE
 # else
