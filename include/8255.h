@@ -51,14 +51,24 @@ public:
     inline const char*  inPinName(const unsigned int port,const unsigned int i) const {
         return inPinNames[port][i];
     }
+    inline const char*  inPortName(const unsigned int port) const {
+        return inPortNames[port];
+    }
+public:
     inline const char*  outPinName(const unsigned int port,const unsigned int i) const {
         return outPinNames[port][i];
+    }
+    inline const char*  outPortName(const unsigned int port) const {
+        return outPortNames[port];
     }
 public:
     uint8_t             portAWriteMask,portBWriteMask,portCWriteMask;
 public:
     const char*         inPinNames[3/*port*/][8/*bit*/];
+    const char*         inPortNames[3/*port*/];
+public:
     const char*         outPinNames[3/*port*/][8/*bit*/];
+    const char*         outPortNames[3/*port*/];
 public:
     uint8_t             latchOutPortA,latchOutPortB,latchOutPortC;
     uint8_t             mode;

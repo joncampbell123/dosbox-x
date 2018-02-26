@@ -6,6 +6,7 @@
 Intel8255::Intel8255() {
     pINTR_A = pINTR_B = 0;
     for (unsigned int c=0;c < 3;c++) {
+        inPortNames[c] = outPortNames[c] = NULL;
         for (unsigned int i=0;i < 8;i++)
             inPinNames[c][i] = outPinNames[c][i] = NULL;
     }
