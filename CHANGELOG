@@ -1,4 +1,19 @@
 (next)
+  - IMGMOUNT now supports mounting a RAM drive (using -t ram) (Shane32)
+  - Direct3D fullscreen aspect ratio fixes, especially for
+    monitors with a 5:4 aspect ratio (such as 1280x1024) (Shane32)
+  - "Show menu" in Windows builds system menu is now a toggle
+    to show/hide the menu bar (Shane32)
+  - Fixed broken color palette with CGA composite and EGA
+    machine emulation. Composite CGA and machine=ega displays
+    properly again.
+  - According to documentation, IBM PC and PC-98 use different
+    initial PC speaker frequencies. Update the code to match.
+  - 8254 I/O port alias at 3FD9h-3FDFh added, which is needed
+    for several PC-98 games that program the PC speaker
+    frequency through those ports instead of through 71h-77h
+  - New Intel 8255 emulation. PC-98 system 8255 emulation
+    now uses this emulation, along with PC speaker emulation.
   - Fixed XMS memory copy functions to enable the A20
     gate so extended memory copies work correctly whether
     or not the DOS application in question made the call
