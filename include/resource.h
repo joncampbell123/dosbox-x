@@ -719,4 +719,5 @@
 
 #if defined(WIN32)
 # define ID_WIN_SYSMENU_RESTOREMENU 0x0F00
+# define ID_WIN_SYSMENU_TOGGLEMENU 0x0F01
 #endif

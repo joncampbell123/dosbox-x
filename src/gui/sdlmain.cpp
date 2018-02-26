@@ -3961,6 +3961,13 @@ void GFX_Events() {
                             if (!GFX_GetPreventFullscreen())
                                 DOSBox_SetMenu();
 							break;
+						case ID_WIN_SYSMENU_TOGGLEMENU:
+							/* prevent removing the menu in 3Dfx mode */
+							if (!GFX_GetPreventFullscreen())
+							{
+								if (menu.toggle) DOSBox_NoMenu(); else DOSBox_SetMenu();
+							}
+							break;
 					}
 				default:
 					break;
