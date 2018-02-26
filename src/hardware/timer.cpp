@@ -203,8 +203,12 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 
     // HACK: Port translation for this code PC-98 mode.
     //       0x71,0x73,0x75,0x77 => 0x40-0x43
-    if (IS_PC98_ARCH)
-        port = ((port - 0x71) >> 1) + 0x40;
+    if (IS_PC98_ARCH) {
+        if (port >= 0x3FD9)
+            port = ((port - 0x3FD9) >> 1) + 0x40;
+        else
+            port = ((port - 0x71) >> 1) + 0x40;
+    }
 
 	Bitu counter=port-0x40;
 	PIT_Block * p=&pit[counter];
@@ -271,8 +275,12 @@ static Bitu read_latch(Bitu port,Bitu /*iolen*/) {
 
     // HACK: Port translation for this code PC-98 mode.
     //       0x71,0x73,0x75,0x77 => 0x40-0x43
-    if (IS_PC98_ARCH)
-        port = ((port - 0x71) >> 1) + 0x40;
+    if (IS_PC98_ARCH) {
+        if (port >= 0x3FD9)
+            port = ((port - 0x3FD9) >> 1) + 0x40;
+        else
+            port = ((port - 0x71) >> 1) + 0x40;
+    }
 
 	Bit32u counter=port-0x40;
 	Bit8u ret=0;
@@ -433,6 +441,10 @@ bool TIMER_GetOutput2() {
 static IO_ReadHandleObject ReadHandler[4];
 static IO_WriteHandleObject WriteHandler[4];
 
+/* PC-98 alias */
+static IO_ReadHandleObject ReadHandler2[4];
+static IO_WriteHandleObject WriteHandler2[4];
+
 void TIMER_BIOS_INIT_Configure() {
 	PIC_RemoveEvents(PIT0_Event);
 	PIC_DeActivateIRQ(0);
@@ -485,6 +497,11 @@ void TIMER_BIOS_INIT_Configure() {
 		Section_prop *pcsec = static_cast<Section_prop *>(control->GetSection("speaker"));
 		int freq = pcsec->Get_int("initial frequency"); /* original code: 1320 */
 		int div;
+
+        /* IBM PC defaults to 903Hz.
+         * NEC PC-98 defaults to 2KHz */
+        if (freq < 0)
+            freq = IS_PC98_ARCH ? 2000 : 903;
 
 		if (freq < 19) {
 			div = 1;
@@ -623,6 +640,19 @@ void TIMER_OnEnterPC98_Phase2(Section*) {
 	ReadHandler[0].Install(IS_PC98_ARCH ? 0x71 : 0x40,read_latch,IO_MB);
 	ReadHandler[1].Install(IS_PC98_ARCH ? 0x73 : 0x41,read_latch,IO_MB);
 	ReadHandler[2].Install(IS_PC98_ARCH ? 0x75 : 0x42,read_latch,IO_MB);
+
+    /* Apparently all but the first PC-9801 systems have an alias of these
+     * ports at 0x3FD9-0x3FDF odd. This alias is required for games that
+     * rely on this alias. */
+    if (IS_PC98_ARCH) {
+        WriteHandler2[0].Install(0x3FD9,write_latch,IO_MB);
+        WriteHandler2[1].Install(0x3FDB,write_latch,IO_MB);
+        WriteHandler2[2].Install(0x3FDD,write_latch,IO_MB);
+        WriteHandler2[3].Install(0x3FDF,write_p43,IO_MB);
+        ReadHandler2[0].Install(0x3FD9,read_latch,IO_MB);
+        ReadHandler2[1].Install(0x3FDB,read_latch,IO_MB);
+        ReadHandler2[2].Install(0x3FDD,read_latch,IO_MB);
+    }
 
 	latched_timerstatus_locked=false;
 	gate2 = false;

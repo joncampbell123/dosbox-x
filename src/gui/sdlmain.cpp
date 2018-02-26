@@ -1525,11 +1525,10 @@ dosurface:
 		}
 
 		d3d->aspect=RENDER_GetAspect();
-		d3d->autofit=RENDER_GetAutofit();
+		d3d->autofit=RENDER_GetAutofit() && sdl.desktop.fullscreen; //scale to 5:4 monitors in fullscreen only
 		if((sdl.desktop.fullscreen) && (!sdl.desktop.full.fixed)) {
-		    // Don't do aspect ratio correction when fullfixed=false + aspect=false
-			if(d3d->aspect == 0)
-				d3d->aspect=2;
+		    // Don't do aspect ratio correction when fullscreen and fullresolution=original
+			d3d->aspect=0;
 
 		    sdl.clip.w=(Uint16)scalex;
 			sdl.clip.h=(Uint16)scaley;
@@ -3971,6 +3970,13 @@ void GFX_Events() {
                             /* prevent removing the menu in 3Dfx mode */
                             if (!GFX_GetPreventFullscreen())
                                 DOSBox_SetMenu();
+							break;
+						case ID_WIN_SYSMENU_TOGGLEMENU:
+							/* prevent removing the menu in 3Dfx mode */
+							if (!GFX_GetPreventFullscreen())
+							{
+								if (menu.toggle) DOSBox_NoMenu(); else DOSBox_SetMenu();
+							}
 							break;
 					}
 				default:

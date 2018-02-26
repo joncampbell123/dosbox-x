@@ -32,6 +32,7 @@
 #include "cpu.h"
 #include "callback.h"
 #include "cdrom.h"
+#include "bios_disk.h"
 #include "dos_system.h"
 #include "dos_inc.h"
 #include "bios.h"
@@ -1659,7 +1660,7 @@ restart_int:
 		return;
 	}
 	void printHelp() { // maybe hint parameter?
-		WriteOut(MSG_Get("PROGRAM_IMGMOUNT_SYNTAX"));
+		WriteOut(MSG_Get("PROGRAM_IMGMAKE_SYNTAX"));
 	}
 };
 
@@ -2118,6 +2119,10 @@ public:
 		std::string label;
 		std::vector<std::string> paths;
 		std::string umount;
+		if (cmd->GetCount() == 0 || cmd->FindExist("-?", true) || cmd->FindExist("-help", true)) {
+			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_HELP"));
+			return;
+		}
 		/* Check for unmounting */
 		if (cmd->FindString("-u",umount,false)) {
 			umount[0] = toupper(umount[0]);
@@ -2337,7 +2342,7 @@ public:
 		cmd->FindString("-fs",fstype,true);
 		if(type == "cdrom") type = "iso"; //Tiny hack for people who like to type -t cdrom
 		Bit8u mediaid;
-		if (type=="floppy" || type=="hdd" || type=="iso") {
+		if (type=="floppy" || type=="hdd" || type=="iso" || type=="ram") {
 			Bitu sizes[4] = { 0,0,0,0 };
 			bool imgsizedetect=false;
 			int reserved_cylinders=0;
@@ -2381,6 +2386,10 @@ public:
 			cmd->FindString("-size",str_size,true);
 			if ((type=="hdd") && (str_size.size()==0)) {
 				imgsizedetect=true;
+			}
+			else if (type == "ram") {
+				const char * conv = str_size.c_str();
+				sizes[0] = atoi(conv);
 			} else {
 				char number[20];
 				const char * scan=str_size.c_str();
@@ -2424,6 +2433,7 @@ public:
 			}
 			
 			// find all file parameters, assuming that all option parameters have been removed
+			if (type != "ram")
 			while(cmd->FindCommand((unsigned int)(paths.size() + 2), temp_line) && temp_line.size()) {
 #if defined (WIN32) || defined(OS2)
                 /* nothing */
@@ -2483,7 +2493,7 @@ public:
 					return;
 				}
 			}
-			else {
+			else if (type != "ram") {
                 if (paths.size() == 0) {
                     WriteOut(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY_FILE"));
                     return;	
@@ -2491,6 +2501,9 @@ public:
                 if (paths.size() == 1)
                     temp_line = paths[0];
             }
+			else {
+				temp_line = "";
+			}
 
             if(fstype=="fat") {
                 if (el_torito != "") {
@@ -2663,17 +2676,36 @@ public:
                     std::vector<std::string>::size_type i;
                     std::vector<DOS_Drive*>::size_type ct;
 
-                    for (i = 0; i < paths.size(); i++) {
-                        DOS_Drive* newDrive = new fatDrive(paths[i].c_str(),sizes[0],sizes[1],sizes[2],sizes[3],0);
-                        imgDisks.push_back(newDrive);
-                        if(!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
-                            WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
-                            for(ct = 0; ct < imgDisks.size(); ct++) {
-                                delete imgDisks[ct];
-                            }
-                            return;
-                        }
-                    }
+					if (type == "ram") {
+						//imageDiskMemory* dsk = new imageDiskMemory(sizes[3], sizes[2], sizes[1], sizes[0]);
+						imageDiskMemory* dsk = new imageDiskMemory(sizes[0] * 1024);
+						if (!dsk->active || (dsk->Format() != 0x00)) {
+							WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
+							delete dsk;
+							return;
+						}
+						//dsk->Addref(); //fatDrive will manage reference count
+						DOS_Drive* newDrive = new fatDrive(dsk, dsk->sector_size, dsk->sectors, dsk->heads, dsk->cylinders, 0);
+						imgDisks.push_back(newDrive);
+						if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
+							WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
+							delete newDrive; //this executes dsk.Release() which executes delete dsk
+							return;
+						}
+					}
+					else {
+						for (i = 0; i < paths.size(); i++) {
+							DOS_Drive* newDrive = new fatDrive(paths[i].c_str(), sizes[0], sizes[1], sizes[2], sizes[3], 0);
+							imgDisks.push_back(newDrive);
+							if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
+								WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
+								for (ct = 0; ct < imgDisks.size(); ct++) {
+									delete imgDisks[ct];
+								}
+								return;
+							}
+						}
+					}
 
                     // Update DriveManager
                     for(ct = 0; ct < imgDisks.size(); ct++) {
@@ -2696,13 +2728,18 @@ public:
                     }
                     dos.dta(save_dta);
 
-                    std::string tmp(paths[0]);
-                    for (i = 1; i < paths.size(); i++) {
-                        tmp += "; " + paths[i];
-                    }
-                    WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, tmp.c_str());
+					if (type == "ram") {
+						WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, "ram drive");
+					}
+					else {
+						std::string tmp(paths[0]);
+						for (i = 1; i < paths.size(); i++) {
+							tmp += "; " + paths[i];
+						}
+						WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, tmp.c_str());
+					}
 
-                    if (paths.size() == 1) {
+                    if (type != "ram" && paths.size() == 1) {
                         newdrive = imgDisks[0];
                         if(((fatDrive *)newdrive)->loadedDisk->hardDrive) {
                             if(imageDiskList[2] == NULL) {
@@ -3382,7 +3419,32 @@ void DOS_SetupPrograms(void) {
 	MSG_Add("PROGRAM_IMGMOUNT_NON_LOCAL_DRIVE", "The image must be on a host or local drive.\n");
 	MSG_Add("PROGRAM_IMGMOUNT_MULTIPLE_NON_CUEISO_FILES", "Using multiple files is only supported for cue/iso images.\n");
 
-	MSG_Add("PROGRAM_IMGMOUNT_SYNTAX",
+	MSG_Add("PROGRAM_IMGMOUNT_HELP",
+		"Mounts hard drive and optical disc images.\n\n"
+		"IMGMOUNT drive filename [-t floppy] [-fs fat] [-size ss,s,h,c]\n"
+		"IMGMOUNT drive filename [-t hdd] [-fs fat] [-size ss,s,h,c] [-ide 1m|1s|2m|2s]\n"
+		"IMGMOUNT driveLocation filename [-t hdd] -fs none [-size ss,s,h,c]\n"
+		"IMGMOUNT drive filename [-t iso] [-fs iso]\n"
+		"IMGMOUNT drive -t floppy -el-torito cdDrive\n"
+		"IMGMOUNT drive -t ram -size driveSize\n"
+		"IMGMOUNT drive|driveLocation -u\n"
+		" drive               Drive letter to mount the image at\n"
+		" driveLocation       Location to mount drive, where 2 = Master and 3 = Slave\n"
+		" filename            Filename of the image to mount\n"
+		" -t iso              Image type is optical disc iso or cue / bin image\n"
+		" -t floppy           Image type is floppy\n"
+		" -t hdd              Image type is hard disk; VHD and HDI files are supported\n"
+		" -t ram              Image type is ramdrive\n"
+		" -fs iso             File system is ISO 9660\n"
+		" -fs fat             File system is FAT; FAT12 and FAT16 are supported\n"
+		" -fs none            Do not detect file system\n"
+		" -ide 1m|1s|2m|2s    Specifies the controller to mount drive\n"
+		" -size ss,s,h,c      Specify the geometry: Sector size,Sectors,Heads,Cylinders\n"
+		" -size driveSize     Specify the drive size in MB\n"
+		" -el-torito cdDrive  Specify the CD drive to load the bootable floppy from\n"
+		" -u                  Unmount the drive"
+	);
+	MSG_Add("PROGRAM_IMGMAKE_SYNTAX",
 		"Creates floppy or harddisk images.\n"
 		"Syntax: IMGMAKE file [-t type] [[-size size] | [-chs geometry]] [-nofs]\n"
 		"  [-source source] [-r retries] [-bat]\n"

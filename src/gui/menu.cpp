@@ -773,8 +773,8 @@ void DOSBox_SetSysMenu(void) {
 		memset(&mii, 0, sizeof(mii));
 		mii.cbSize = sizeof(mii);
 		mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
-		mii.fState = GFX_GetPreventFullscreen() ? MFS_DISABLED : MFS_ENABLED;
-		mii.wID = ID_WIN_SYSMENU_RESTOREMENU;
+		mii.fState = (menu.toggle ? MFS_CHECKED : 0) | (GFX_GetPreventFullscreen() ? MFS_DISABLED : MFS_ENABLED);
+		mii.wID = ID_WIN_SYSMENU_TOGGLEMENU;
 		mii.dwTypeData = (LPTSTR)(msg);
 		mii.cch = strlen(msg)+1;
 

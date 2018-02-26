@@ -29,6 +29,7 @@
 #include "mixer.h"
 #include "timer.h"
 #include <math.h>
+#include "8255.h"
 
 #define KEYBUFSIZE 32*3
 #define RESETDELAY 400
@@ -1623,32 +1624,75 @@ static IO_ReadHandleObject ReadHandler_8255_PC98[4];
 static IO_WriteHandleObject WriteHandler_8255_PC98[4];
 static IO_WriteHandleObject Reset_PC98;
 
-/* PC-98 8255 port A. B, C connections.
- *
- * Port A: (31h)
- *   bit [7:0] DIP switch 2-8 (bit 7) to 2-1 (bit 0)
- *
- * Port B: (33h)
- *   bit 7: RS-232C CI signal
- *   bit 6: RS-232C CS signal
- *   bit 5: RS-232C CD signal
- *   bit 4: Expansion bus INT 3 signal
- *   bit 3: CRT type (1=high 0=normal) DIP switch 1-1
- *   bit 2: internal memory parity error
- *   bit 1: external memory (expansion) parity error
- *   bit 0: CDAT (??)
- *
- * Port C: (35h)
- *   (varies)
- *   bit 3: buzzer (PC speaker gate) (1=stop 0=ring) [R/W]
- *   bit 2: Interrupt request from TXRDY of 8251A (RS-232C)
- *   bit 1: Interrupt request from TXEMPTY of 8251A
- *   bit 0: Interrupt request from RXRE of 8251
- *
- * Control register (37h)
- */
+extern bool gdc_5mhz_mode;
 
 static bool PC98_SHUT0=true,PC98_SHUT1=true;
+
+class PC98_System_8255 : public Intel8255 {
+public:
+    PC98_System_8255() : Intel8255() {
+        ppiName = "System 8255";
+        portNames[PortA] = "DIP switches 2-1 through 2-8";
+        portNames[PortB] = "Various system status";
+        portNames[PortC] = "System control bits";
+        pinNames[PortA][0] = "DIP switch 2-1";
+        pinNames[PortA][1] = "DIP switch 2-2";
+        pinNames[PortA][2] = "DIP switch 2-3";
+        pinNames[PortA][3] = "DIP switch 2-4";
+        pinNames[PortA][4] = "DIP switch 2-5";
+        pinNames[PortA][5] = "DIP switch 2-6";
+        pinNames[PortA][6] = "DIP switch 2-7";
+        pinNames[PortA][7] = "DIP switch 2-8";
+        pinNames[PortB][0] = "Read data of calendar clock (CDAT)";
+        pinNames[PortB][1] = "Expansion RAM parity error (EMCK)";
+        pinNames[PortB][2] = "Internal RAM parity error (IMCK)";
+        pinNames[PortB][3] = "DIP switch 1-1 High resolution CRT type";
+        pinNames[PortB][4] = "Expansion bus INT 3 signal";
+        pinNames[PortB][5] = "RS-232C CD signal";
+        pinNames[PortB][6] = "RS-232C CS signal";
+        pinNames[PortB][7] = "RS-232C CI signal";
+        pinNames[PortC][0] = "RS-232C enable RXRDY interrupt";
+        pinNames[PortC][1] = "RS-232C enable TXEMPTY interrupt";
+        pinNames[PortC][2] = "RS-232C enable TXRDY interrupt";
+        pinNames[PortC][3] = "Buzzer inhibit";
+        pinNames[PortC][4] = "RAM parity check enable";
+        pinNames[PortC][5] = "Shutdown flag 1"; /* <- 286 or later */
+        pinNames[PortC][6] = "PSTB printer signal inhibit (mask if set)";
+        pinNames[PortC][7] = "Shutdown flag 0"; /* <- 286 or later */
+    }
+    virtual ~PC98_System_8255() {
+    }
+public:
+    /* port A is input */
+    virtual uint8_t inPortA(void) const {
+        /* TODO: Improve this! What do the various 2-1 to 2-8 switches do?
+         *       It might help to look at the BIOS setup menus of 1990s PC-98 systems
+         *       that offer toggling virtual versions of these DIP switches to see
+         *       what the BIOS menu text says. */
+        return 0x63 | (gdc_5mhz_mode ? 0x80 : 0x00); // taken from a PC-9821 Lt2
+    }
+    /* port B is input */
+    virtual uint8_t inPortB(void) const {
+        /* TODO: Improve this! */
+        return 0xF9; // taken from a PC-9821 Lt2
+    }
+    /* port C is output (both halves) */
+    virtual void outPortC(const uint8_t mask) {
+        if (mask & 0x80) /* Shutdown flag 0 */
+            PC98_SHUT0 = !!(latchOutPortC & 0x80);
+
+        if (mask & 0x20) /* Shutdown flag 1 */
+            PC98_SHUT1 = !!(latchOutPortC & 0x20);
+
+        if (mask & 0x08) { /* PC speaker aka "buzzer". Note this bit is an inhibit, set to zero to turn on */
+            port_61_data = (latchOutPortC & 0x08) ? 0 : 3;
+            TIMER_SetGate2(!!port_61_data);
+            PCSPEAKER_SetType(!!port_61_data,!!port_61_data);
+        }
+    }
+};
+
+static PC98_System_8255 pc98_sys_8255;
 
 static void pc98_reset_write(Bitu port,Bitu val,Bitu /*iolen*/) {
     LOG_MSG("Restart by port F0h requested\n");
@@ -1656,55 +1700,13 @@ static void pc98_reset_write(Bitu port,Bitu val,Bitu /*iolen*/) {
 }
 
 static void pc98_8255_write(Bitu port,Bitu val,Bitu /*iolen*/) {
-    switch (port) {
-        case 0x31:
-            LOG_MSG("PC-98 8255 FIXME: DIP switch port A not supported yet");
-            break;
-        case 0x33:
-            LOG_MSG("PC-98 8255 FIXME: Port B not supported yet");
-            break;
-        case 0x35:
-            /* HACK: Re-use IBM speaker gate variable for PC speaker in PC-98 enable.
-             *       Remember PC-98 buzzer gate is a DISABLE, not IBM style ENABLE.
-             *
-             *       I have verified on real hardware that this also gates whether or
-             *       not the timer output even counts down. */
-            port_61_data = (val & 0x08) ? 0 : 3;
-            TIMER_SetGate2(!!port_61_data);
-            PCSPEAKER_SetType(!!port_61_data,!!port_61_data);
-            break;
-        case 0x37:
-            if ((val&0xFE) == 0x0E)
-                PC98_SHUT0 = !!(val & 1);
-            else if ((val&0xFE) == 0x0A)
-                PC98_SHUT1 = !!(val & 1);
-            else
-                LOG_MSG("PC-98 8255 FIXME: Control register not supported yet (val=0x%02x)",(unsigned int)val);
-            break;
-    };
+    /* 0x31-0x37 odd */
+    pc98_sys_8255.writeByPort((port - 0x31) >> 1U,val);
 }
 
-extern bool gdc_5mhz_mode;
-
 static Bitu pc98_8255_read(Bitu port,Bitu /*iolen*/) {
-    switch (port) {
-        case 0x31:
-            LOG_MSG("PC-98 8255 FIXME: DIP switch port A not supported yet");
-            // bit 7 apparently reflects whether the GDC is running at 5MHz or not
-            return 0x63 | (gdc_5mhz_mode ? 0x80 : 0x00); // taken from a PC-9821 Lt2
-        case 0x33:
-            LOG_MSG("PC-98 8255 FIXME: Port B not supported yet");
-            return 0xF9; // taken from a PC-9821 Lt2
-        case 0x35:
-            /* HACK: Re-use the IBM port 61h gate enable here for buzzer inhibit.
-             *       Remember that on the IBM platform the PC gate is an ENABLE (1=on)
-             *       and PC-98 the gate is a DISABLE (1=off) */
-            return
-                ((port_61_data & 1) ? 0x00 : 0x08) | 0xB0; // taken from a PC-9821 Lt2
-    };
-
-    LOG_MSG("PC-98 8255 unexpected read port 0x%02X",(unsigned int)port);
-    return 0x00; /* NTS: Playing with real PC-98 hardware shows that undefined ports return 0x00 where IBM returns 0xFF */
+    /* 0x31-0x37 odd */
+    return pc98_sys_8255.readByPort((port - 0x31) >> 1U);
 }
 
 static struct pc98_keyboard {
@@ -2153,6 +2155,20 @@ void KEYBOARD_OnEnterPC98_phase2(Section *sec) {
      * Sometime in the future, move 8255 emulation to a separate file.
      *
      * The 8255 appears at I/O ports 0x31, 0x33, 0x35, 0x37 */
+
+    /* Port A = input
+     * Port B = input
+     * Port C = output */
+    /* bit[7:7] =  1 = mode set
+     * bit[6:5] = 00 = port A mode 0
+     * bit[4:4] =  1 = port A input
+     * bit[3:3] =  0 = port C upper output              1001 0010 = 0x92
+     * bit[2:2] =  0 = port B mode 0
+     * bit[1:1] =  1 = port B input
+     * bit[0:0] =  0 = port C lower output */
+    pc98_sys_8255.writeControl(0x92);
+    pc98_sys_8255.writePortC(0xF8); /* SHUT0=1 SHUT1=1 mask printer RAM parity check buzzer inhibit */
+
     for (i=0;i < 4;i++) {
         ReadHandler_8255_PC98[i].Uninstall();
         ReadHandler_8255_PC98[i].Install(0x31 + (i * 2),pc98_8255_read,IO_MB);

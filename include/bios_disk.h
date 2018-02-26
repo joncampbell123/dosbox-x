@@ -137,6 +137,30 @@ public:
     std::vector<vfdentry> dents;
 };
 
+class imageDiskMemory : public imageDisk {
+public:
+	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data);
+	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, void * data);
+	virtual Bit8u GetBiosType(void);
+	virtual Bit8u Format();
+
+	imageDiskMemory(Bit32u imgSizeK);
+	imageDiskMemory(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sectorSize);
+	imageDiskMemory(diskGeo floppyGeometry);
+	virtual ~imageDiskMemory();
+
+private:
+	void init(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sectorSize);
+
+	Bit8u * * MemMap;
+	Bit32u sectors_per_ramcluster;
+	Bit32u ramcluster_size;
+	Bit32u total_ramclusters;
+	Bit32u total_sectors;
+
+	Bit8u bios_type;
+};
+
 void updateDPT(void);
 void incrementFDD(void);
 
