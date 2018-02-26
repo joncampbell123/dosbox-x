@@ -810,7 +810,8 @@
     <ClCompile Include="..\src\cpu\core_dyn_x86.cpp">
       <Filter>Sources\cpu</Filter>
     </ClCompile>
-    <ClCompile Include="bios_memdisk.cpp" />
+    <ClCompile Include="..\src\ints\bios_memdisk.cpp" />
+    <ClCompile Include="..\src\hardware\8255.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
@@ -1429,6 +1430,7 @@
     <ClInclude Include="..\src\hardware\snd_pc98\x11\dosio.h">
       <Filter>Sources\pc98fmboards</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\8255.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\winres.rc">

@@ -684,6 +684,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClCompile Include="..\src\dos\drive_local.cpp" />
     <ClCompile Include="..\src\dos\drive_virtual.cpp" />
     <ClCompile Include="..\src\fpu\fpu.cpp" />
+    <ClCompile Include="..\src\hardware\8255.cpp" />
     <ClCompile Include="..\src\hardware\pc98.cpp" />
     <ClCompile Include="..\src\hardware\pc98_fm.cpp" />
     <ClCompile Include="..\src\hardware\snd_pc98\cbus\board26k.c" />
@@ -714,6 +715,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClCompile Include="..\src\hardware\vga_pc98_dac.cpp" />
     <ClCompile Include="..\src\hardware\vga_pc98_egc.cpp" />
     <ClCompile Include="..\src\hardware\vga_pc98_gdc.cpp" />
+    <ClCompile Include="..\src\ints\bios_memdisk.cpp" />
     <ClCompile Include="..\src\misc\shiftjis.cpp" />
     <ClCompile Include="..\src\mt32\AReverbModel.cpp" />
     <ClCompile Include="..\src\aviwriter\avi_rw_iobuf.cpp" />
@@ -863,7 +865,6 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     <ClCompile Include="..\src\shell\shell_batch.cpp" />
     <ClCompile Include="..\src\shell\shell_cmds.cpp" />
     <ClCompile Include="..\src\shell\shell_misc.cpp" />
-    <ClCompile Include="bios_memdisk.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\winres.rc" />
@@ -879,6 +880,7 @@ copy "$(SolutionDir)\..\CHANGELOG" "$(OutputPath)\changelog.txt"</Command>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\8255.h" />
     <ClInclude Include="..\include\bios.h" />
     <ClInclude Include="..\include\bios_disk.h" />
     <ClInclude Include="..\include\bitmapinfoheader.h" />
