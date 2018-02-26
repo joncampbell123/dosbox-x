@@ -15,8 +15,8 @@ public:
 public:
     void                reset(void);
 
-    virtual void        ackPortA(void);
-    virtual void        ackPortB(void);
+    void                ackPortA(void);
+    void                ackPortB(void);
 
     virtual void        strobePortA(void);
     virtual void        strobePortB(void);

@@ -214,24 +214,27 @@ void Intel8255::writeControl(uint8_t data) {
 }
 
 uint8_t Intel8255::inPortA(void) const {
-    return 0x00U;
+    return 0x00U; /* override this */
 }
 
 uint8_t Intel8255::inPortB(void) const {
-    return 0x00U;
+    return 0x00U; /* override this */
 }
 
 uint8_t Intel8255::inPortC(void) const {
-    return 0x00U;
+    return 0x00U; /* override this */
 }
 
 void Intel8255::outPortA(const uint8_t mask) {
+    /* override this */
 }
 
 void Intel8255::outPortB(const uint8_t mask) {
+    /* override this */
 }
 
 void Intel8255::outPortC(const uint8_t mask) {
+    /* override this */
 }
 
 void Intel8255::updateINTR_A(void) {
@@ -276,17 +279,19 @@ void Intel8255::checkINTR_B(void) {
 }
 
 void Intel8255::sigINTR_A(void) {
+    /* override this */
 }
 
 void Intel8255::sigINTR_B(void) {
+    /* override this */
 }
 
 void Intel8255::strobePortA(void) {
-    readPortA();
+    readPortA(); /* override this */
 }
 
 void Intel8255::strobePortB(void) {
-    readPortB();
+    readPortB(); /* override this */
 }
 
 void Intel8255::ackPortA(void) {
