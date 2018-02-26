@@ -1873,9 +1873,9 @@ public:
             extern bool pcibus_enable;
 
             if (pcibus_enable)
-                ::disk_data_rate = 2100000; /* default 2.1MByte/sec, like a mid 1990s IDE drive in PIO mode */
+                ::disk_data_rate = 8333333; /* Probably an average IDE data rate for mid 1990s PCI IDE controllers in PIO mode */
             else
-                ::disk_data_rate = 1100000; /* default 1.1MByte/sec, like an early 1990s IDE drive in PIO mode */
+                ::disk_data_rate = 3500000; /* Probably an average IDE data rate for early 1990s ISA IDE controllers in PIO mode */
         }
 
         dos_in_hma = section->Get_bool("dos in hma");
