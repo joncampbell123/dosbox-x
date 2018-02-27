@@ -31,6 +31,7 @@ BEGIN
 			MENUITEM "Save the current language strings",		ID_SAVELANG
 		END
 		MENUITEM "Show details",		ID_HIDECYCL
+		MENUITEM "Reset system", ID_RESET
 		MENUITEM "Restart DOSBox-X\tCtrl-Alt-Home",		ID_RESTART
 		MENUITEM "Exit\tCtrl-F9",		ID_QUIT
 	END

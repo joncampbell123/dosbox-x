@@ -1695,6 +1695,7 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 			case ID_BOOT_A_MOUNTED: Go_Boot2("A"); break;
 			case ID_BOOT_C_MOUNTED: Go_Boot2("C"); break;
 			case ID_BOOT_D_MOUNTED: Go_Boot2("D"); break;
+			case ID_RESET: throw(3); break;
 			case ID_RESTART: void restart_program(std::vector<std::string> & parameters); restart_program(control->startup_params); break;
 			case ID_QUIT: throw(0); break;
 			case ID_OPENFILE: OpenFileDialog(0); break;
