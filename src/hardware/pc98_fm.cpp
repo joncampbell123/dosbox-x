@@ -349,6 +349,7 @@ void PC98_FM_OnEnterPC98(Section *sec) {
     if (was_pc98fm_init) {
         fmboard_on_reset();
         fmboard_extenable(true);
+        fmboard_bind(); // FIXME: Re-binds I/O ports as well
     }
 }
 
