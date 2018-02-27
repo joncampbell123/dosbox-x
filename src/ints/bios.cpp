@@ -5224,6 +5224,9 @@ private:
             //       logo drawing should use an alternate drawing method.
 	        IO_Write(0x6A,0x01);    // enable 16-color analog mode (this makes the 4th bitplane appear)
 	        IO_Write(0x6A,0x04);    // but we don't need the EGC graphics
+            // If we caught a game mid-page flip, set the display and VRAM pages back to zero
+            IO_Write(0xA4,0x00);    // display page 0
+            IO_Write(0xA6,0x00);    // write to page 0
 
             // program a VGA-like color palette so we can re-use the VGA logo
             for (unsigned int i=0;i < 16;i++) {
