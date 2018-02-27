@@ -925,12 +925,6 @@ void MENU_KeyDelayRate(int delay, int rate) {
 	LOG_MSG("GUI: Keyboard rate %d, delay %d", rate, delay);
 }
 
-enum SCREEN_TYPES	{
-	SCREEN_SURFACE,
-	SCREEN_OPENGL,
-	SCREEN_DIRECT3D
-};
-
 bool GFX_GetPreventFullscreen(void);
 
 int Reflect_Menu(void) {

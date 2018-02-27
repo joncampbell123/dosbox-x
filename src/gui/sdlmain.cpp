@@ -219,12 +219,6 @@ static inline int int_log2(int val) {
 	return log;
 }
 
-enum SCREEN_TYPES {
-	SCREEN_SURFACE,
-	SCREEN_OPENGL,
-	SCREEN_DIRECT3D
-};
-
 enum PRIORITY_LEVELS {
 	PRIORITY_LEVEL_PAUSE,
 	PRIORITY_LEVEL_LOWEST,

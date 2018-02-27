@@ -31,6 +31,12 @@
 //Enable this for scalers to support 0 input for empty lines
 //#define RENDER_NULL_INPUT
 
+enum SCREEN_TYPES {
+	SCREEN_SURFACE,
+	SCREEN_OPENGL,
+	SCREEN_DIRECT3D
+};
+
 typedef struct {
 	struct { 
 		Bit8u red;
