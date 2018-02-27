@@ -2543,6 +2543,12 @@ static void D3D_reconfigure() {
 }
 #endif
 
+void ResetSystem(bool pressed) {
+    if (!pressed) return;
+
+    throw int(3);
+}
+
 bool has_GUI_StartUp = false;
 
 static void GUI_StartUp() {
@@ -2764,6 +2770,7 @@ static void GUI_StartUp() {
 #if defined(__WIN32__) && !defined(C_SDL2)
 	MAPPER_AddHandler(ToggleMenu,MK_return,MMOD1|MMOD2,"togglemenu","ToggleMenu");
 #endif // WIN32
+    MAPPER_AddHandler(ResetSystem, MK_pause, MMOD1|MMOD2, "reset", "Reset");
 	MAPPER_AddHandler(KillSwitch,MK_f9,MMOD1,"shutdown","ShutDown");
 	MAPPER_AddHandler(CaptureMouse,MK_f10,MMOD1,"capmouse","Cap Mouse");
 	MAPPER_AddHandler(SwitchFullScreen,MK_return,MMOD2,"fullscr","Fullscreen");

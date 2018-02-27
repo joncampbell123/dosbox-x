@@ -215,6 +215,7 @@ static bool pc98fm_init = false;
 extern "C" {
 UINT8 fmtimer_irq2index(const UINT8 irq);
 UINT8 fmtimer_index2irq(const UINT8 index);
+void fmboard_on_reset();
 }
 
 UINT8 board86_encodeirqidx(const unsigned char idx) {
@@ -230,6 +231,7 @@ UINT8 board26k_encodeirqidx(const unsigned char idx) {
 
 void PC98_FM_OnEnterPC98(Section *sec) {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+    bool was_pc98fm_init = pc98fm_init;
 
     if (!pc98fm_init) {
         unsigned char fmirqidx;
@@ -342,6 +344,12 @@ void PC98_FM_OnEnterPC98(Section *sec) {
 
         pc98_mixer = MIXER_AddChannel(pc98_mix_CallBack, rate, "PC-98");
         pc98_mixer->Enable(true);
+    }
+
+    if (was_pc98fm_init) {
+        fmboard_on_reset();
+        fmboard_extenable(true);
+        fmboard_bind(); // FIXME: Re-binds I/O ports as well
     }
 }
 

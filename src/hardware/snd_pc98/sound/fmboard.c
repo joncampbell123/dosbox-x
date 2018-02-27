@@ -237,6 +237,11 @@ void fmboard_reset(const NP2CFG *pConfig, UINT32 type) {
 	opngen_setVR(pConfig->spb_vrc, pConfig->spb_vrl);
 }
 
+/* added by DOSBox-X */
+void fmboard_on_reset() {
+    fmboard_reset(&np2cfg, usesound);
+}
+
 void fmboard_bind(void) {
 
 	switch(usesound) {
