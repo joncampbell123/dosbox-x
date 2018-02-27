@@ -706,6 +706,8 @@ void TIMER_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(TIMER_Destroy));
 	AddVMEventFunction(VM_EVENT_POWERON, AddVMEventFunctionFuncPair(TIMER_OnPowerOn));
-	AddVMEventFunction(VM_EVENT_RESET, AddVMEventFunctionFuncPair(TIMER_OnEnterPC98_Phase2));
+
+    if (IS_PC98_ARCH) /* HACK! Clean this up! */
+    	AddVMEventFunction(VM_EVENT_RESET, AddVMEventFunctionFuncPair(TIMER_OnEnterPC98_Phase2));
 }
 
