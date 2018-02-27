@@ -926,7 +926,6 @@ void MENU_KeyDelayRate(int delay, int rate) {
 }
 
 enum SCREEN_TYPES	{
-	SCREEN_OPENGLHQ,
 	SCREEN_SURFACE,
 	SCREEN_OPENGL,
 	SCREEN_DIRECT3D
