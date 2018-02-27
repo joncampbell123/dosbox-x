@@ -4983,6 +4983,11 @@ bool VM_Boot_DOSBox_Kernel() {
         DispatchVMEvent(VM_EVENT_DOS_SURPRISE_REBOOT); // <- apparently we rebooted without any notification (such as jmp'ing to FFFF:0000)
 
         dos_kernel_disabled = true;
+
+#if defined(WIN32) && !defined(C_SDL2)
+		int Reflect_Menu(void);
+		Reflect_Menu();
+#endif
     }
 
 	if (dos_kernel_disabled) {
@@ -4992,6 +4997,11 @@ bool VM_Boot_DOSBox_Kernel() {
 		dos_kernel_disabled = false; // FIXME: DOS_Init should install VM callback handler to set this
 		void DOS_Startup(Section* sec);
 		DOS_Startup(NULL);
+
+#if defined(WIN32) && !defined(C_SDL2)
+		int Reflect_Menu(void);
+		Reflect_Menu();
+#endif
 
         void update_pc98_function_row(bool enable);
 
@@ -5496,6 +5506,11 @@ fresh_boot:
 		reboot_machine = false;
 		dos_kernel_shutdown = false;
 
+#if defined(WIN32) && !defined(C_SDL2)
+		int Reflect_Menu(void);
+		Reflect_Menu();
+#endif
+
 		/* NTS: CPU reset handler, and BIOS init, has the instruction pointer poised to run through BIOS initialization,
 		 *      which will then "boot" into the DOSBox kernel, and then the shell, by calling VM_Boot_DOSBox_Kernel() */
 		/* FIXME: throwing int() is a stupid and nondescriptive way to signal shutdown/reset. */
@@ -5537,6 +5552,11 @@ fresh_boot:
         catch (...) {
             throw;
         }
+
+#if defined(WIN32) && !defined(C_SDL2)
+		int Reflect_Menu(void);
+		Reflect_Menu();
+#endif
 
         if (dos_kernel_shutdown) {
             /* NTS: we take different paths depending on whether we're just shutting down DOS
@@ -5598,7 +5618,17 @@ fresh_boot:
                 DispatchVMEvent(VM_EVENT_DOS_EXIT_REBOOT_KERNEL);
             else
                 DispatchVMEvent(VM_EVENT_DOS_EXIT_KERNEL);
+
+#if defined(WIN32) && !defined(C_SDL2)
+			int Reflect_Menu(void);
+			Reflect_Menu();
+#endif
         }
+
+#if defined(WIN32) && !defined(C_SDL2)
+		int Reflect_Menu(void);
+		Reflect_Menu();
+#endif
 
 		if (run_machine) {
             bool disable_a20 = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_bool("turn off a20 gate on boot");
@@ -5618,6 +5648,11 @@ fresh_boot:
             /* run again */
             goto fresh_boot;
 		}
+
+#if defined(WIN32) && !defined(C_SDL2)
+		int Reflect_Menu(void);
+		Reflect_Menu();
+#endif
 
 		if (reboot_machine) {
 			LOG_MSG("Rebooting the system\n");
@@ -5651,6 +5686,11 @@ fresh_boot:
             /* run again */
             goto fresh_boot;
 		}
+
+#if defined(WIN32) && !defined(C_SDL2)
+		int Reflect_Menu(void);
+		Reflect_Menu();
+#endif
 
 		/* and then shutdown */
 		GFX_ShutDown();

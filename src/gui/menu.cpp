@@ -943,6 +943,7 @@ int Reflect_Menu(void) {
 		name[0] = 0;
 	}
 
+	EnableMenuItem(m_handle, ID_RESTART_DOS, dos_kernel_disabled ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_CPU_ADVANCED, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_DOS_ADVANCED, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_MIDI_ADVANCED, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
@@ -1948,6 +1949,9 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 			case ID_WAVE: void CAPTURE_WaveEvent(bool pressed); CAPTURE_WaveEvent(true); break;
 			case ID_OPL: void OPL_SaveRawEvent(bool pressed); OPL_SaveRawEvent(true); break;
 			case ID_MIDI: void CAPTURE_MidiEvent(bool pressed); CAPTURE_MidiEvent(true); break;
+			case ID_RESTART_DOS:
+				throw int(6);
+				break;
 			case ID_XMS: mem_conf("xms", 0); break;
 			case ID_EMS_TRUE: mem_conf("ems", 1); break;
 			case ID_EMS_FALSE: mem_conf("ems", 2); break;

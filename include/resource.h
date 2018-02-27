@@ -714,6 +714,7 @@
 #define ID_RESET_RESCALE 821
 #define ID_RESET 822
 #define ID_MTWAVE 823
+#define ID_RESTART_DOS 824
 
 #if defined(WIN32)
 # define ID_WIN_SYSMENU_RESTOREMENU 0x0F00
