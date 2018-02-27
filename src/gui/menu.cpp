@@ -2516,14 +2516,18 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 			}
 			case ID_PC98_4MHZ_TIMER:
 			{
+				void TIMER_OnEnterPC98_Phase2(Section*);
 				Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
 				dosbox_section->HandleInputline("pc-98 timer master frequency=4");
+				TIMER_OnEnterPC98_Phase2(NULL);
 				break;
 			}
 			case ID_PC98_5MHZ_TIMER:
 			{
+				void TIMER_OnEnterPC98_Phase2(Section*);
 				Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
 				dosbox_section->HandleInputline("pc-98 timer master frequency=5");
+				TIMER_OnEnterPC98_Phase2(NULL);
 				break;
 			}
 	}
