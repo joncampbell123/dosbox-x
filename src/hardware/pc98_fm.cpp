@@ -345,7 +345,9 @@ void PC98_FM_OnEnterPC98(Section *sec) {
         pc98_mixer->Enable(true);
     }
 
-    if (pc98fm_init)
+    if (pc98fm_init) {
         fmboard_on_reset();
+        fmboard_extenable(true);
+    }
 }
 
