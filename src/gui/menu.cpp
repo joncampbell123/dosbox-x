@@ -961,7 +961,6 @@ int Reflect_Menu(void) {
 	EnableMenuItem(m_handle, ID_DIRECT3D, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_OPENGL, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_OPENGLNB, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_OPENGLHQ, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_FULLDOUBLE, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_OVERSCAN_0, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_OVERSCAN_1, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
@@ -1146,7 +1145,6 @@ int Reflect_Menu(void) {
 		CheckMenuItem(m_handle, ID_OPENGL, MF_STRING);
 	}
 	
-	CheckMenuItem(m_handle, ID_OPENGLHQ, ((uintptr_t)GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_OPENGLHQ) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_FULLDOUBLE, (GetSetSDLValue(1, "desktop.doublebuf", 0)) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_AUTOLOCK, (GetSetSDLValue(1, "mouse.autoenable", 0)) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_HIDECYCL, !menu.hidecycles ? MF_CHECKED : MF_STRING);
@@ -1995,7 +1993,6 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 			case ID_OPENGL: change_output(3); SetVal("sdl", "output", "opengl"); break;
 			case ID_OPENGLNB: change_output(4); SetVal("sdl", "output", "openglnb"); break;
 			case ID_DIRECT3D: if ((uintptr_t)GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_DIRECT3D) { change_output(5); SetVal("sdl", "output", "direct3d"); } break;
-			case ID_OPENGLHQ: if ((uintptr_t)GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_OPENGLHQ) { change_output(6); SetVal("sdl", "output", "openglhq"); } break;
 			case ID_WINFULL_USER: case ID_WINRES_USER: GUI_Shortcut(2); break;
 			case ID_WINRES_ORIGINAL: res_input(true, "original"); break;
 			case ID_WINFULL_ORIGINAL: res_input(false, "original"); break;

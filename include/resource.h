@@ -8,7 +8,6 @@
 #define	ID_SURFACE	108
 #define	ID_OPENGL	110
 #define	ID_OPENGLNB	111
-#define	ID_OPENGLHQ	112
 #define	ID_DIRECT3D	113
 #define	ID_D3D_PS	114
 #define	ID_TOGGLE	115

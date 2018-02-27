@@ -1976,32 +1976,6 @@ static void d3d_init(void) {
 }
 #endif
 
-static void openglhq_init(void) {
-#if defined(WIN32) && !defined(C_SDL2)
-	DOSBox_NoMenu(); menu.gui=false;
-	HMENU m_handle=GetMenu(GetHWND());
-	if(m_handle) RemoveMenu(m_handle,0,0);
-	DestroyWindow(GetHWND());
-#endif
-	char *oldvideo = getenv("SDL_VIDEODRIVER");
-
-	if (oldvideo && strcmp(oldvideo,"openglhq")) {
-	    char *driver = (char *)malloc(strlen(oldvideo)+strlen("SDL_OPENGLHQ_VIDEODRIVER=")+1);
-	    strcpy(driver,"SDL_OPENGLHQ_VIDEODRIVER=");
-	    strcat(driver,oldvideo);
-	    putenv(driver);
-	    free(driver);
-	}
-	if (sdl.desktop.doublebuf) putenv((char*)("SDL_OPENGLHQ_DOUBLEBUF=1"));
-	SDL_QuitSubSystem(SDL_INIT_VIDEO);
-	putenv((char*)("SDL_VIDEODRIVER=openglhq"));
-	SDL_InitSubSystem(SDL_INIT_VIDEO);
-	DOSBox_SetOriginalIcon();
-	if(!menu_compatible) { SDL_PumpEvents(); SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE); }
-	GFX_SetTitle(-1,-1,-1,false);
-	sdl.desktop.want_type=SCREEN_OPENGLHQ;
-}
-
 void GetDesktopResolution(int* width, int* height)
 {
 #ifdef WIN32
@@ -2137,14 +2111,7 @@ void change_output(int output) {
 		d3d_init();
 		break;
 #endif
-	case 6: {
-#if defined(__WIN32__) && !defined(C_SDL2)
-		if (MessageBox(GetHWND(),"GUI will be disabled if output is set to OpenglHQ. Do you want to continue?","Warning",MB_YESNO)==IDNO) {
-			GFX_Stop(); GFX_Start(); return;
-		}
-#endif
-		openglhq_init();
-		}
+	case 6:
 		break;
 	case 7:
 		// do not set want_type
@@ -2801,7 +2768,7 @@ static void GUI_StartUp() {
 	} else if (output == "overlay") {
 		sdl.desktop.want_type=SCREEN_OPENGL; /* "overlay" was removed, map to OpenGL */
 #if C_OPENGL
-	} else if (output == "opengl") {
+	} else if (output == "opengl" || output == "openglhq") {
 		sdl.desktop.want_type=SCREEN_OPENGL;
 		sdl.opengl.bilinear=true;
 	} else if (output == "openglnb") {
@@ -2815,22 +2782,6 @@ static void GUI_StartUp() {
 		LOG_MSG("SDL:Direct3D activated");
 #endif
 #endif
-	} else if (output == "openglhq") {
-		char *oldvideo = getenv("SDL_VIDEODRIVER");
-
-		if (oldvideo && strcmp(oldvideo,"openglhq")) {
-		    char *driver = (char *)malloc(strlen(oldvideo)+strlen("SDL_OPENGLHQ_VIDEODRIVER=")+1);
-		    strcpy(driver,"SDL_OPENGLHQ_VIDEODRIVER=");
-		    strcat(driver,oldvideo);
-		    putenv(driver);
-		    free(driver);
-		}
-		if (sdl.desktop.doublebuf) putenv((char*)("SDL_OPENGLHQ_DOUBLEBUF=1"));
-		SDL_QuitSubSystem(SDL_INIT_VIDEO);
-		putenv((char*)("SDL_VIDEODRIVER=openglhq"));
-		SDL_InitSubSystem(SDL_INIT_VIDEO);
-		sdl.desktop.want_type=SCREEN_OPENGLHQ;
-
 	} else {
 		LOG_MSG("SDL:Unsupported output device %s, switching back to surface",output.c_str());
 		sdl.desktop.want_type=SCREEN_SURFACE;//SHOULDN'T BE POSSIBLE anymore
