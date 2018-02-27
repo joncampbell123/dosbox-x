@@ -172,6 +172,7 @@ BEGIN
 	BEGIN
 		MENUITEM "5MHz GDC clock", ID_PC98_GDC5MHZ
 		MENUITEM "Allow 200-line scanline effect", ID_PC98_200SCANLINEEFFECT
+		MENUITEM "Allow 4 display partitions in graphics layer", ID_PC98_FOURPARTITIONSGRAPHICS
 	END
 	MENUITEM SEPARATOR
 		MENUITEM "Direct3D Pixelshader",	ID_D3D_PS

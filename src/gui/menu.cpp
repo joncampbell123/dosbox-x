@@ -944,6 +944,7 @@ int Reflect_Menu(void) {
 		name[0] = 0;
 	}
 
+	EnableMenuItem(m_handle, ID_PC98_FOURPARTITIONSGRAPHICS, (!IS_PC98_ARCH) ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_PC98_200SCANLINEEFFECT, (!IS_PC98_ARCH) ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_PC98_GDC5MHZ, (!IS_PC98_ARCH) ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_RESTART_DOS, (dos_kernel_disabled || dos_shell_running_program) ? MF_DISABLED : MF_ENABLED);
@@ -1090,7 +1091,9 @@ int Reflect_Menu(void) {
 
 	extern bool gdc_5mhz_mode;
 	extern bool pc98_allow_scanline_effect;
+	extern bool pc98_allow_4_display_partitions;
 
+	CheckMenuItem(m_handle, ID_PC98_FOURPARTITIONSGRAPHICS, (IS_PC98_ARCH && pc98_allow_4_display_partitions) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_PC98_200SCANLINEEFFECT, (IS_PC98_ARCH && pc98_allow_scanline_effect) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_PC98_GDC5MHZ, (IS_PC98_ARCH && gdc_5mhz_mode) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_MOUSE, Mouse_Drv ? MF_CHECKED : MF_STRING);
@@ -2008,6 +2011,14 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 			case ID_FULLDOUBLE: SetVal("sdl", "fulldouble", (GetSetSDLValue(1, "desktop.doublebuf", 0)) ? "false" : "true"); res_init(); break;
 			case ID_AUTOLOCK: (GetSetSDLValue(0, "mouse.autoenable", (void*)MENU_SetBool("sdl", "autolock"))); break;
 			case ID_MOUSE: extern bool Mouse_Drv; Mouse_Drv = !Mouse_Drv; break;
+			case ID_PC98_FOURPARTITIONSGRAPHICS:
+				if (IS_PC98_ARCH) {
+					extern bool pc98_allow_4_display_partitions;
+					void updateGDCpartitions4(bool enable);
+
+					updateGDCpartitions4(!pc98_allow_4_display_partitions);
+				}
+				break;
 			case ID_PC98_200SCANLINEEFFECT:
 				if (IS_PC98_ARCH) {
 					extern bool pc98_allow_scanline_effect;
