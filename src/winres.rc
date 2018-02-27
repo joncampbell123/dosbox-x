@@ -749,6 +749,7 @@ BEGIN
 	MENUITEM "Screenshot\tCtrl-F5", ID_SSHOT
 	MENUITEM "Movie\tCtrl-Alt-F5",				       ID_MOVIE
 	MENUITEM "Wave\tCtrl-F6",				       ID_WAVE
+	MENUITEM "Multi-track Wave (AVI)\tCtrl-F7", ID_MTWAVE
 	MENUITEM "OPL commands\tCtrl-Alt-F7",				       ID_OPL
 	MENUITEM "Raw MIDI commands\tCtrl-Alt-F8",				       ID_MIDI
 	END

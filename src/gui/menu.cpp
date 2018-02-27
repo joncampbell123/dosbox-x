@@ -1942,6 +1942,7 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 			case ID_MOUNT_IMAGE_X: OpenFileDialog_Img('X'); break;
 			case ID_MOUNT_IMAGE_Y: OpenFileDialog_Img('Y'); break;
 			case ID_MOUNT_IMAGE_Z: OpenFileDialog_Img('Z'); break;
+			case ID_MTWAVE: void CAPTURE_MTWaveEvent(bool pressed); CAPTURE_MTWaveEvent(true); break;
 			case ID_SSHOT: void CAPTURE_ScreenShotEvent(bool pressed); CAPTURE_ScreenShotEvent(true); break;
 			case ID_MOVIE: void CAPTURE_VideoEvent(bool pressed); CAPTURE_VideoEvent(true); break;
 			case ID_WAVE: void CAPTURE_WaveEvent(bool pressed); CAPTURE_WaveEvent(true); break;

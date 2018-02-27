@@ -713,6 +713,7 @@
 #define	ID_ALWAYS_ON_TOP 820
 #define ID_RESET_RESCALE 821
 #define ID_RESET 822
+#define ID_MTWAVE 823
 
 #if defined(WIN32)
 # define ID_WIN_SYSMENU_RESTOREMENU 0x0F00
