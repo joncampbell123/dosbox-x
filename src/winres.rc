@@ -168,6 +168,10 @@ BEGIN
 		MENUITEM "Allow 9-pixel wide text mode fonts",	ID_CHAR9
 		MENUITEM "Multiscan",	ID_MULTISCAN
 	END
+	POPUP "PC-98"
+	BEGIN
+		MENUITEM "5MHz GDC clock", ID_PC98_GDC5MHZ
+	END
 	MENUITEM SEPARATOR
 		MENUITEM "Direct3D Pixelshader",	ID_D3D_PS
 	END

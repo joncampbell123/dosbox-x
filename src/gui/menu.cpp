@@ -944,6 +944,7 @@ int Reflect_Menu(void) {
 		name[0] = 0;
 	}
 
+	EnableMenuItem(m_handle, ID_PC98_GDC5MHZ, (!IS_PC98_ARCH) ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_RESTART_DOS, (dos_kernel_disabled || dos_shell_running_program) ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_CPU_ADVANCED, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_DOS_ADVANCED, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
@@ -1085,6 +1086,10 @@ int Reflect_Menu(void) {
 	EnableMenuItem(m_handle, ID_BOOT_A_MOUNTED, (strlen(name) || menu.boot) ? MF_GRAYED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_BOOT_C_MOUNTED, (strlen(name) || menu.boot) ? MF_GRAYED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_BOOT_D_MOUNTED, (strlen(name) || menu.boot) ? MF_GRAYED : MF_ENABLED);
+
+	extern bool gdc_5mhz_mode;
+
+	CheckMenuItem(m_handle, ID_PC98_GDC5MHZ, (IS_PC98_ARCH && gdc_5mhz_mode) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_MOUSE, Mouse_Drv ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_AUTOCYCLE, (CPU_CycleAutoAdjust) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_AUTODETER, (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES) ? MF_CHECKED : MF_STRING);
@@ -2000,6 +2005,15 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 			case ID_FULLDOUBLE: SetVal("sdl", "fulldouble", (GetSetSDLValue(1, "desktop.doublebuf", 0)) ? "false" : "true"); res_init(); break;
 			case ID_AUTOLOCK: (GetSetSDLValue(0, "mouse.autoenable", (void*)MENU_SetBool("sdl", "autolock"))); break;
 			case ID_MOUSE: extern bool Mouse_Drv; Mouse_Drv = !Mouse_Drv; break;
+			case ID_PC98_GDC5MHZ:
+				if (IS_PC98_ARCH) {
+					void gdc_5mhz_mode_update_vars(void);
+					extern bool gdc_5mhz_mode;
+
+					gdc_5mhz_mode = !gdc_5mhz_mode;
+					gdc_5mhz_mode_update_vars();
+				}
+				break;
 			case ID_KEY_NONE: SetVal("dos", "keyboardlayout", "auto"); break;
 			case ID_KEY_BG: SetVal("dos", "keyboardlayout", "bg"); break;
 			case ID_KEY_CZ: SetVal("dos", "keyboardlayout", "cz"); break;
