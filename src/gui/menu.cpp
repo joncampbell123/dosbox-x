@@ -930,7 +930,6 @@ enum SCREEN_TYPES	{
 	SCREEN_OPENGL,
 	SCREEN_DIRECT3D
 };
-extern bool load_videodrv;
 
 bool GFX_GetPreventFullscreen(void);
 
