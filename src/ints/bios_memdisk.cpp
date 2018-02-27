@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (c) 2015 Shane Krueger
+ *  Copyright (c) 2018 Shane Krueger
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,6 +27,20 @@
 #include "../dos/drives.h"
 #include "mapper.h"
 
+/* imageDiskMemory simulates a hard drive image or floppy drive image in RAM
+ * 
+ * It can be initialized as a floppy, using one of the predefined floppy
+ *   geometries, or can be initialized as a hard drive, accepting either
+ *   a size in kilobytes or a specific set of chs values to emulate
+ * It will then split the image into 64k chunks that are allocated on-demand.
+ * Initially the only RAM required is for the chunk map
+ * The image is effectively intialized to all zeros, as each chunk is zeroed
+ *   upon allocation
+ * Writes of all zeros do not allocate memory if none has yet been assigned
+ *
+ */
+
+// Create a hard drive image of a specified size; automatically select c/h/s
 imageDiskMemory::imageDiskMemory(Bit32u imgSizeK) {
 	// always use sector size of 512, with 255 heads and 63 sectors, which equates to about 8MB increments
 	// round up to the next "8MB" increment and determine the number of cylinders necessary
@@ -39,18 +53,27 @@ imageDiskMemory::imageDiskMemory(Bit32u imgSizeK) {
 	Bit32u cylinders = (Bit32u)((imgSizeBytes + divBy - 1) / divBy); //cylinders
 	init(cylinders, heads, sectors, sector_size);
 }
+
+// Create a floppy image of a specified geometry
 imageDiskMemory::imageDiskMemory(diskGeo floppyGeometry) {
 	init(floppyGeometry.cylcount, floppyGeometry.headscyl, floppyGeometry.secttrack, floppyGeometry.bytespersect);
 	this->hardDrive = false;
 	this->bios_type = floppyGeometry.biosval;
 }
+
+// Return the BIOS type of the floppy image (or 0xF8 for hard drives)
 Bit8u imageDiskMemory::GetBiosType(void) {
 	return bios_type;
 }
+
+// Create a hard drive image of a specified geometry
 imageDiskMemory::imageDiskMemory(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sector_size) {
 	init(cylinders, heads, sectors, sector_size);
 }
+
+// Internal initialization code to create a image of a specified geometry
 void imageDiskMemory::init(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sector_size) {
+	//initialize internal variables in case we fail out
 	this->active = false;
 	this->cylinders = 0;
 	this->heads = 0;
@@ -58,6 +81,7 @@ void imageDiskMemory::init(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32
 	this->sector_size = 0;
 	this->total_sectors = 0;
 
+	//calculate the total number of sectors on the drive, and check for overflows
 	Bit64u absoluteSectors = (Bit64u)cylinders * (Bit64u)heads;
 	if (absoluteSectors > 0x100000000u) {
 		LOG_MSG("Image size too large in imageDiskMemory constructor.\n");
@@ -68,11 +92,13 @@ void imageDiskMemory::init(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32
 		LOG_MSG("Image size too large in imageDiskMemory constructor.\n");
 		return;
 	}
+	//make sure that the number of total sectors on the drive is not zero
 	if (absoluteSectors == 0) {
 		LOG_MSG("Image size too small in imageDiskMemory constructor.\n");
 		return;
 	}
 
+	//calculate total size of the drive in kilobyts, and check for overflow
 	Bit64u diskSizeK = ((Bit64u)heads * (Bit64u)cylinders * (Bit64u)sectors * (Bit64u)sector_size + (Bit64u)1023) / (Bit64u)1024;
 	if (diskSizeK >= 0x100000000u)
 	{
@@ -80,10 +106,11 @@ void imageDiskMemory::init(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32
 		return;
 	}
 
+	//split the sectors into chunks, which are allocated together on an as-needed basis
 	this->sectors_per_ramcluster = heads;
 	this->total_ramclusters = (absoluteSectors + sectors_per_ramcluster - 1) / sectors_per_ramcluster;
 	this->ramcluster_size = sectors_per_ramcluster * sector_size;
-	//allocate a map for storage in 'clusters', allocated upon read/write
+	//allocate a map of chunks that have been allocated and their memory addresses
 	MemMap = (Bit8u**)malloc(total_ramclusters * sizeof(Bit8u*));
 	if (MemMap == NULL) {
 		LOG_MSG("Error allocating memory map in imageDiskMemory constructor for %lu clusters.\n", (unsigned long)total_ramclusters);
@@ -92,6 +119,7 @@ void imageDiskMemory::init(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32
 	//clear memory map
 	memset((void*)MemMap, 0, total_ramclusters * sizeof(Bit8u*));
 
+	//set internal variables
 	this->heads = heads;
 	this->cylinders = cylinders;
 	this->sectors = sectors;
@@ -103,78 +131,108 @@ void imageDiskMemory::init(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32
 	this->bios_type = 0xF8;
 	this->active = true;
 }
+
+// imageDiskMemory destructor will release all allocated memory
 imageDiskMemory::~imageDiskMemory() {
+	//quit if the map is already not allocated
 	if (!active) return;
+	//loop through each chunk and release it if it has been allocated
 	Bit8u* ramcluster;
 	for (int i = 0; i < total_ramclusters; i++) {
 		ramcluster = MemMap[i];
 		if (ramcluster) free(ramcluster);
 	}
+	//release the memory map
 	free(MemMap);
+	//reset internal variables
 	MemMap = 0;
 	total_sectors = 0;
 	active = false;
 }
+
+// Read a specific sector from the ramdrive
 Bit8u imageDiskMemory::Read_AbsoluteSector(Bit32u sectnum, void * data) {
+	//sector number is a zero-based offset
+	
+	//verify the sector number is valid
 	if (sectnum >= total_sectors) {
 		LOG_MSG("Invalid sector number in Read_AbsoluteSector for sector %lu.\n", (unsigned long)sectnum);
 		return 0x05;
 	}
 
+	//calculate which chunk the sector is located within, and which sector within the chunk
 	Bit32u ramclusternum, ramclustersect;
 	ramclusternum = sectnum / sectors_per_ramcluster;
 	ramclustersect = sectnum % sectors_per_ramcluster;
 
+	//retrieve the memory address of the chunk
 	Bit8u* datalocation;
 	datalocation = MemMap[ramclusternum];
 
-	//if the location to be read has not yet been allocated, return zeros
+	//if the chunk has not yet been allocated, return zeros
 	if (datalocation == 0) {
 		memset(data, 0, sector_size);
 		return 0x00;
 	}
 
+	//update the address to the specific sector within the chunk
 	datalocation = &datalocation[ramclustersect * sector_size];
 
+	//copy the data to the output and return success
 	memcpy(data, datalocation, sector_size);
 	return 0x00;
 }
 
+// Write a specific sector from the ramdrive
 Bit8u imageDiskMemory::Write_AbsoluteSector(Bit32u sectnum, void * data) {
+	//sector number is a zero-based offset
+
+	//verify the sector number is valid
 	if (sectnum >= total_sectors) {
 		LOG_MSG("Invalid sector number in Write_AbsoluteSector for sector %lu.\n", (unsigned long)sectnum);
 		return 0x05;
 	}
 
+	//calculate which chunk the sector is located within, and which sector within the chunk
 	Bit32u clusternum, clustersect;
 	clusternum = sectnum / sectors_per_ramcluster;
 	clustersect = sectnum % sectors_per_ramcluster;
 
+	//retrieve the memory address of the chunk
 	Bit8u* datalocation;
 	datalocation = MemMap[clusternum];
 
+	//if the chunk has not yet been allocated, allocate the chunk
 	if (datalocation == NULL) {
-		//for unallocated memory, first check if we are actually saving anything, or if it's just zeros
+		//first check if we are actually saving anything
 		Bit8u anyData = 0;
 		for (int i = 0; i < sector_size; i++) {
 			anyData |= ((Bit8u*)data)[i];
 		}
+		//if it's all zeros, return success
 		if (anyData == 0) return 0x00;
 
+		//allocate a new memory chunk
 		datalocation = (Bit8u*)malloc(ramcluster_size);
 		if (datalocation == NULL) {
 			LOG_MSG("Could not allocate memory in Write_AbsoluteSector for sector %lu.\n", (unsigned long)sectnum);
 			return 0x05;
 		}
+		//save the memory chunk address within the memory map
 		MemMap[clusternum] = datalocation;
+		//initialize the memory chunk to all zeros (since we are only writing to a single sector within this chunk)
 		memset((void*)datalocation, 0, ramcluster_size);
 	}
 
+	//update the address to the specific sector within the chunk
 	datalocation = &datalocation[clustersect * sector_size];
 
+	//write the sector to the chunk and return success
 	memcpy(datalocation, data, sector_size);
 	return 0x00;
 }
+
+// A copy of the freedosmbr (duplicated from dos_programs.cpp)
 const Bit8u freedos_mbr[] = {
 	0x33,0xC0,0x8E,0xC0,0x8E,0xD8,0x8E,0xD0,0xBC,0x00,0x7C,0xFC,0x8B,0xF4,0xBF,0x00,
 	0x06,0xB9,0x00,0x01,0xF2,0xA5,0xEA,0x67,0x06,0x00,0x00,0x8B,0xD5,0x58,0xA2,0x4F, // 10h
@@ -209,7 +267,11 @@ const Bit8u freedos_mbr[] = {
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x55,0xAA
 };
+
+// Parition and format the ramdrive (code is adapted from IMGMAKE code within dos_programs.cpp)
+// - Assumes that the ramdrive is all zeros to begin with (since the root directory is not zeroed)
 Bit8u imageDiskMemory::Format() {
+	//verify that the geometry of the drive is valid
 	if (this->sector_size != 512) {
 		LOG_MSG("imageDiskMemory->Format only designed for disks with 512-byte sectors.\n");
 		return 0x01;
@@ -230,6 +292,7 @@ Bit8u imageDiskMemory::Format() {
 		LOG_MSG("imageDiskMemory->Format only designed for floppies with < 65535 total sectors.\n");
 		return 0x04;
 	}
+
 	Bit8u sbuf[512];
 	int bootsect_pos = 0;
 	if (this->hardDrive) {
