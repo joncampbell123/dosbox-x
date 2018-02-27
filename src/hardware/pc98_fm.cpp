@@ -335,9 +335,9 @@ void PC98_FM_OnEnterPC98(Section *sec) {
             fmboard_reset(&np2cfg, 0x14);   // board86c, a good default
         }
 
-        fmboard_extenable(true);
-
         fmboard_bind();
+        fmboard_on_reset();
+        fmboard_extenable(true);
 
         // WARNING: Some parts of the borrowed code assume 44100, 22050, or 11025 and
         //          will misrender if given any other sample rate (especially the OPNA synth).
@@ -347,9 +347,9 @@ void PC98_FM_OnEnterPC98(Section *sec) {
     }
 
     if (was_pc98fm_init) {
+        fmboard_bind(); // FIXME: Re-binds I/O ports as well
         fmboard_on_reset();
         fmboard_extenable(true);
-        fmboard_bind(); // FIXME: Re-binds I/O ports as well
     }
 }
 
