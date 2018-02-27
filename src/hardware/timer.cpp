@@ -600,9 +600,10 @@ void TIMER_OnEnterPC98_Phase2(Section*) {
 
     /* PC-98 has two different rates: 5/10MHz base or 8MHz base. Let the user choose via dosbox.conf */
     pc98rate = section->Get_int("pc-98 timer master frequency");
-    if (pc98rate == 0) pc98rate = 10; /* Pick the most likely to work with DOS games (FIXME: This is a GUESS!! Is this correct?) */
-    else if (pc98rate < 9) pc98rate = 8;
-    else pc98rate = 10;
+	if (pc98rate > 6) pc98rate /= 2;
+    if (pc98rate == 0) pc98rate = 5; /* Pick the most likely to work with DOS games (FIXME: This is a GUESS!! Is this correct?) */
+    else if (pc98rate < 5) pc98rate = 4;
+    else pc98rate = 5;
 
     if (pc98rate >= 10)
         PIT_TICK_RATE = PIT_TICK_RATE_PC98_10MHZ;
