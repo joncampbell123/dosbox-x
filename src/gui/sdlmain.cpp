@@ -107,6 +107,10 @@ using namespace std;
 
 bool window_was_maximized = false;
 
+/* this flag is needed in order to know if we're AT the shell,
+   or if we're in a program running under the shell. */
+bool dos_shell_running_program = false;
+
 Bitu userResizeWindowWidth = 0, userResizeWindowHeight = 0;
 Bitu currentWindowWidth = 640, currentWindowHeight = 480;
 
