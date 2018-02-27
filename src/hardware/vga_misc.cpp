@@ -198,3 +198,22 @@ void VGA_UnsetupMisc(void) {
     IO_FreeReadHandler(0x3da,IO_MB);
 }
 
+void pc98_clear_text(void) {
+	for (unsigned int i = 0; i < 0x2000; i += 2) {
+		*((uint16_t*)(vga.mem.linear + i)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + 0x2000)) = 0xE1;
+	}
+}
+
+void pc98_clear_graphics(void) {
+	for (unsigned int i = 0; i < 0x8000; i += 2) {
+		*((uint16_t*)(vga.mem.linear + i + 0x08000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + 0x10000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + 0x18000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + 0x20000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + 0x28000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + 0x30000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + 0x38000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + 0x40000)) = 0;
+	}
+}
