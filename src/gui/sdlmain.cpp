@@ -261,7 +261,6 @@ Bitu						frames = 0;
 double                      rtdelta = 0;
 bool						emu_paused = false;
 bool						mouselocked = false; //Global variable for mapper
-bool						load_videodrv = true;
 bool						fullscreen_switch = true;
 bool						dos_kernel_disabled = true;
 bool						startup_state_numlock = false; // Global for keyboard initialisation
@@ -1942,7 +1941,7 @@ static void d3d_init(void) {
 	E_Exit("D3D not supported");
 #else
 	sdl.desktop.want_type=SCREEN_DIRECT3D;
-	if(!load_videodrv && !sdl.using_windib) {
+	if(!sdl.using_windib) {
 		LOG_MSG("Resetting to WINDIB mode");
 		SDL_QuitSubSystem(SDL_INIT_VIDEO);
 		putenv("SDL_VIDEODRIVER=windib");
@@ -4558,7 +4557,7 @@ void restart_program(std::vector<std::string> & parameters) {
 	for(Bitu i = 0; i < parameters.size(); i++) newargs[i]=(char*)parameters[i].c_str();
 	newargs[parameters.size()] = NULL;
 	if(sdl.desktop.fullscreen) SwitchFullScreen(1);
-	if(!load_videodrv) putenv((char*)("SDL_VIDEODRIVER="));
+	putenv((char*)("SDL_VIDEODRIVER="));
 #ifndef WIN32
 	SDL_CloseAudio();
 	SDL_Delay(50);
@@ -5359,7 +5358,6 @@ int main(int argc, char* argv[]) {
 			putenv("SDL_VIDEODRIVER=windib");
 #endif
 			sdl.using_windib=true;
-			load_videodrv=false;
 		}
 #endif
 

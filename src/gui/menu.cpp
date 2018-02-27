@@ -1027,9 +1027,7 @@ int Reflect_Menu(void) {
 	EnableMenuItem(m_handle, ID_MULTISCAN, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_CHAR9, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_DOS_ADVANCED, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_DRVFORCE_DIRECTX, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_DRVFORCE_WINDIB, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
-	EnableMenuItem(m_handle, ID_DRVFORCE_AUTO, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
+
 	EnableMenuItem(m_handle, ID_DOSBOX_SECTION, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_MIXER_SECTION, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_SERIAL_SECTION, GFX_GetPreventFullscreen() ? MF_DISABLED : MF_ENABLED);
@@ -1562,9 +1560,7 @@ int Reflect_Menu(void) {
 		CheckMenuItem(m_handle, ID_VSYNC_FORCE, (vsyncmode == "force") ? MF_CHECKED : MF_STRING);
 	}
 	char* sdl_videodrv = getenv("SDL_VIDEODRIVER");
-	CheckMenuItem(m_handle, ID_DRVFORCE_DIRECTX, ((!strcmp(sdl_videodrv, "directx")) && (load_videodrv)) ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_DRVFORCE_WINDIB, ((!strcmp(sdl_videodrv, "windib")) && (load_videodrv)) ? MF_CHECKED : MF_STRING);
-	CheckMenuItem(m_handle, ID_DRVFORCE_AUTO, !load_videodrv ? MF_CHECKED : MF_STRING);
+
 	extern bool Mouse_Vertical;
 	CheckMenuItem(m_handle, ID_MOUSE_VERTICAL, Mouse_Vertical ? MF_CHECKED : MF_STRING);
 	sec = static_cast<Section_prop *>(control->GetSection("dos"));
@@ -1991,28 +1987,6 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 			}
 			case ID_CHAR9: MENU_SetBool("render", "char9"); break;
 			case ID_MULTISCAN: MENU_SetBool("render", "multiscan"); break;
-			case ID_DRVFORCE_DIRECTX: {
-				load_videodrv = true;
-				putenv("SDL_VIDEODRIVER=directx");
-				GetSetSDLValue(0, "using_windib", (void*)false);
-				void restart_program(std::vector<std::string> & parameters);
-				restart_program(control->startup_params);
-				break;
-			}
-			case ID_DRVFORCE_WINDIB: {
-				load_videodrv = true;
-				putenv("SDL_VIDEODRIVER=windib");
-				GetSetSDLValue(0, "using_windib", (void*)true);
-				void restart_program(std::vector<std::string> & parameters);
-				restart_program(control->startup_params);
-				break;
-			}
-			case ID_DRVFORCE_AUTO: {
-				load_videodrv = false;
-				void restart_program(std::vector<std::string> & parameters);
-				restart_program(control->startup_params);
-				break;
-			}
 			case ID_VSYNC_ON: SetVal("vsync", "vsyncmode", "on"); break;
 			case ID_VSYNC_HOST: SetVal("vsync", "vsyncmode", "host"); break;
 			case ID_VSYNC_FORCE: SetVal("vsync", "vsyncmode", "force"); break;

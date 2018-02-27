@@ -168,12 +168,6 @@ BEGIN
 		MENUITEM "Allow 9-pixel wide text mode fonts",	ID_CHAR9
 		MENUITEM "Multiscan",	ID_MULTISCAN
 	END
-	POPUP "Driver"
-	BEGIN
-		MENUITEM "Reset DOSBox with DirectX driver only",	ID_DRVFORCE_DIRECTX
-		MENUITEM "Reset DOSBox with WINDIB driver only",	ID_DRVFORCE_WINDIB
-		MENUITEM "Reset DOSBox with automatic driver selection",	ID_DRVFORCE_AUTO
-	END
 	MENUITEM SEPARATOR
 		MENUITEM "Direct3D Pixelshader",	ID_D3D_PS
 	END
