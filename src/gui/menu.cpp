@@ -2030,6 +2030,12 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 					void updateGDCpartitions4(bool enable);
 
 					updateGDCpartitions4(!pc98_allow_4_display_partitions);
+
+					Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+					if (pc98_allow_4_display_partitions)
+						dosbox_section->HandleInputline("pc-98 allow 4 display partition graphics=1");
+					else
+						dosbox_section->HandleInputline("pc-98 allow 4 display partition graphics=0");
 				}
 				break;
 			case ID_PC98_200SCANLINEEFFECT:
@@ -2037,6 +2043,12 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 					extern bool pc98_allow_scanline_effect;
 
 					pc98_allow_scanline_effect = !pc98_allow_scanline_effect;
+
+					Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+					if (pc98_allow_scanline_effect)
+						dosbox_section->HandleInputline("pc-98 allow scanline effect=1");
+					else
+						dosbox_section->HandleInputline("pc-98 allow scanline effect=0");
 				}
 				break;
 			case ID_PC98_GDC5MHZ:
@@ -2046,6 +2058,12 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 
 					gdc_5mhz_mode = !gdc_5mhz_mode;
 					gdc_5mhz_mode_update_vars();
+
+					Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+					if (gdc_5mhz_mode)
+						dosbox_section->HandleInputline("pc-98 start gdc at 5mhz=1");
+					else
+						dosbox_section->HandleInputline("pc-98 start gdc at 5mhz=0");
 				}
 				break;
 			case ID_KEY_NONE: SetVal("dos", "keyboardlayout", "auto"); break;
