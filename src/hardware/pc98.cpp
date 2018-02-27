@@ -41,12 +41,20 @@ public:
                 gdc_5mhz_mode_update_vars();
                 LOG_MSG("PC-98: GDC is running at %.1fMHz.",gdc_5mhz_mode ? 5.0 : 2.5);
                 WriteOut("GDC is now running at 2.5MHz\n");
+#if defined(WIN32) && !defined(C_SDL2)
+				int Reflect_Menu(void);
+				Reflect_Menu();
+#endif
             }
             else if (arg == "gdc50") {
                 gdc_5mhz_mode = true;
                 gdc_5mhz_mode_update_vars();
                 LOG_MSG("PC-98: GDC is running at %.1fMHz.",gdc_5mhz_mode ? 5.0 : 2.5);
                 WriteOut("GDC is now running at 5MHz\n");
+#if defined(WIN32) && !defined(C_SDL2)
+				int Reflect_Menu(void);
+				Reflect_Menu();
+#endif
             }
             else {
                 WriteOut("Unknown switch %s",arg.c_str());

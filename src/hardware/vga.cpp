@@ -859,6 +859,11 @@ void VGA_OnEnterPC98(Section *sec) {
 
 void MEM_ResetPageHandler_Unmapped(Bitu phys_page, Bitu pages);
 
+void updateGDCpartitions4(bool enable) {
+	pc98_allow_4_display_partitions = enable;
+	pc98_gdc[GDC_SLAVE].display_partition_mask = pc98_allow_4_display_partitions ? 3 : 1;
+}
+
 void VGA_OnEnterPC98_phase2(Section *sec) {
     VGA_SetupHandlers();
 

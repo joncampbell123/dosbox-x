@@ -31,7 +31,8 @@ BEGIN
 			MENUITEM "Save the current language strings",		ID_SAVELANG
 		END
 		MENUITEM "Show details",		ID_HIDECYCL
-		MENUITEM "Restart\tCtrl-Alt-Home",		ID_RESTART
+		MENUITEM "Reset system", ID_RESET
+		MENUITEM "Restart DOSBox-X\tCtrl-Alt-Home",		ID_RESTART
 		MENUITEM "Exit\tCtrl-F9",		ID_QUIT
 	END
 	POPUP "Cpu"
@@ -123,7 +124,6 @@ BEGIN
 		MENUITEM "Direct3D",				       ID_DIRECT3D
 		MENUITEM "OpenGL",				       ID_OPENGL
 		MENUITEM "OpenGL_NB",				       ID_OPENGLNB
-		MENUITEM "OpenGL_HQ",				       ID_OPENGLHQ
 	END
 	POPUP "Resolution"
 	BEGIN
@@ -168,11 +168,14 @@ BEGIN
 		MENUITEM "Allow 9-pixel wide text mode fonts",	ID_CHAR9
 		MENUITEM "Multiscan",	ID_MULTISCAN
 	END
-	POPUP "Driver"
+	POPUP "PC-98"
 	BEGIN
-		MENUITEM "Reset DOSBox with DirectX driver only",	ID_DRVFORCE_DIRECTX
-		MENUITEM "Reset DOSBox with WINDIB driver only",	ID_DRVFORCE_WINDIB
-		MENUITEM "Reset DOSBox with automatic driver selection",	ID_DRVFORCE_AUTO
+		MENUITEM "5MHz GDC clock", ID_PC98_GDC5MHZ
+		MENUITEM "Allow 200-line scanline effect", ID_PC98_200SCANLINEEFFECT
+		MENUITEM "Allow 4 display partitions in graphics layer", ID_PC98_FOURPARTITIONSGRAPHICS
+		MENUITEM SEPARATOR
+		MENUITEM "Clear text layer", ID_PC98_CLEAR_TEXT_LAYER
+		MENUITEM "Clear graphics layer", ID_PC98_CLEAR_GRAPHICS_LAYER
 	END
 	MENUITEM SEPARATOR
 		MENUITEM "Direct3D Pixelshader",	ID_D3D_PS
@@ -746,6 +749,13 @@ BEGIN
 			END
 		END
 	END
+	POPUP "PC-98 PIT master clock"
+	BEGIN
+		MENUITEM "4MHz/8MHz", ID_PC98_4MHZ_TIMER
+		MENUITEM "5MHz/10MHz", ID_PC98_5MHZ_TIMER
+	END
+	MENUITEM SEPARATOR
+	MENUITEM "Restart DOS" ID_RESTART_DOS
 	MENUITEM SEPARATOR
 	MENUITEM "Edit AUTOEXEC.BAT",			   ID_AUTOEXEC
 	MENUITEM "Advanced",				   ID_DOS_ADVANCED
@@ -755,6 +765,7 @@ BEGIN
 	MENUITEM "Screenshot\tCtrl-F5", ID_SSHOT
 	MENUITEM "Movie\tCtrl-Alt-F5",				       ID_MOVIE
 	MENUITEM "Wave\tCtrl-F6",				       ID_WAVE
+	MENUITEM "Multi-track Wave (AVI)\tCtrl-F7", ID_MTWAVE
 	MENUITEM "OPL commands\tCtrl-Alt-F7",				       ID_OPL
 	MENUITEM "Raw MIDI commands\tCtrl-Alt-F8",				       ID_MIDI
 	END
