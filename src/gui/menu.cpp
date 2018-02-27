@@ -27,6 +27,7 @@
 #include "ide.h" // for ide support
 #include "mapper.h"
 #include "keyboard.h"
+#include "timer.h"
 #include "inout.h"
 
 extern int NonUserResizeCounter;
@@ -944,6 +945,8 @@ int Reflect_Menu(void) {
 		name[0] = 0;
 	}
 
+	EnableMenuItem(m_handle, ID_PC98_4MHZ_TIMER, (!IS_PC98_ARCH) ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_PC98_5MHZ_TIMER, (!IS_PC98_ARCH) ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_PC98_FOURPARTITIONSGRAPHICS, (!IS_PC98_ARCH) ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_PC98_200SCANLINEEFFECT, (!IS_PC98_ARCH) ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_PC98_GDC5MHZ, (!IS_PC98_ARCH) ? MF_DISABLED : MF_ENABLED);
@@ -1093,6 +1096,16 @@ int Reflect_Menu(void) {
 	extern bool pc98_allow_scanline_effect;
 	extern bool pc98_allow_4_display_partitions;
 
+	Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+
+	int pc98rate = dosbox_section->Get_int("pc-98 timer master frequency");
+	if (pc98rate > 6) pc98rate /= 2;
+	if (pc98rate == 0) pc98rate = 5; /* Pick the most likely to work with DOS games (FIXME: This is a GUESS!! Is this correct?) */
+	else if (pc98rate < 5) pc98rate = 4;
+	else pc98rate = 5;
+
+	CheckMenuItem(m_handle, ID_PC98_4MHZ_TIMER, (IS_PC98_ARCH && pc98rate == 4) ? MF_CHECKED : MF_STRING);
+	CheckMenuItem(m_handle, ID_PC98_5MHZ_TIMER, (IS_PC98_ARCH && pc98rate == 5) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_PC98_FOURPARTITIONSGRAPHICS, (IS_PC98_ARCH && pc98_allow_4_display_partitions) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_PC98_200SCANLINEEFFECT, (IS_PC98_ARCH && pc98_allow_scanline_effect) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_PC98_GDC5MHZ, (IS_PC98_ARCH && gdc_5mhz_mode) ? MF_CHECKED : MF_STRING);
@@ -2481,6 +2494,18 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 				DWORD dwExStyle = ::GetWindowLong(GetHWND(), GWL_EXSTYLE);
 				HWND top = ((dwExStyle & WS_EX_TOPMOST) == 0) ? HWND_TOPMOST : HWND_NOTOPMOST;
 				SetWindowPos(GetHWND(), top, 0, 0, 0, 0, SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSIZE);
+				break;
+			}
+			case ID_PC98_4MHZ_TIMER:
+			{
+				Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+				dosbox_section->HandleInputline("pc-98 timer master frequency=4");
+				break;
+			}
+			case ID_PC98_5MHZ_TIMER:
+			{
+				Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+				dosbox_section->HandleInputline("pc-98 timer master frequency=5");
 				break;
 			}
 	}

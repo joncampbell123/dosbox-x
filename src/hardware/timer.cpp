@@ -605,7 +605,7 @@ void TIMER_OnEnterPC98_Phase2(Section*) {
     else if (pc98rate < 5) pc98rate = 4;
     else pc98rate = 5;
 
-    if (pc98rate >= 10)
+    if (pc98rate >= 5)
         PIT_TICK_RATE = PIT_TICK_RATE_PC98_10MHZ;
     else
         PIT_TICK_RATE = PIT_TICK_RATE_PC98_8MHZ;
