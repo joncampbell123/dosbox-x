@@ -556,6 +556,15 @@ void TIMER_OnPowerOn(Section*) {
 	ReadHandler[2].Uninstall();
 	ReadHandler[3].Uninstall();
 
+	WriteHandler2[0].Uninstall();
+	WriteHandler2[1].Uninstall();
+	WriteHandler2[2].Uninstall();
+	WriteHandler2[3].Uninstall();
+	ReadHandler2[0].Uninstall();
+	ReadHandler2[1].Uninstall();
+	ReadHandler2[2].Uninstall();
+	ReadHandler2[3].Uninstall();
+
 	WriteHandler[0].Install(0x40,write_latch,IO_MB);
 //	WriteHandler[1].Install(0x41,write_latch,IO_MB);
 	WriteHandler[2].Install(0x42,write_latch,IO_MB);
@@ -597,6 +606,15 @@ void TIMER_OnEnterPC98_Phase2(Section*) {
 	ReadHandler[1].Uninstall();
 	ReadHandler[2].Uninstall();
 	ReadHandler[3].Uninstall();
+
+	WriteHandler2[0].Uninstall();
+	WriteHandler2[1].Uninstall();
+	WriteHandler2[2].Uninstall();
+	WriteHandler2[3].Uninstall();
+	ReadHandler2[0].Uninstall();
+	ReadHandler2[1].Uninstall();
+	ReadHandler2[2].Uninstall();
+	ReadHandler2[3].Uninstall();
 
     /* PC-98 has two different rates: 5/10MHz base or 8MHz base. Let the user choose via dosbox.conf */
     pc98rate = section->Get_int("pc-98 timer master frequency");
@@ -687,6 +705,7 @@ void TIMER_Init() {
 	}
 
 	AddExitFunction(AddExitFunctionFuncPair(TIMER_Destroy));
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(TIMER_OnPowerOn));
+	AddVMEventFunction(VM_EVENT_POWERON, AddVMEventFunctionFuncPair(TIMER_OnPowerOn));
+	AddVMEventFunction(VM_EVENT_RESET, AddVMEventFunctionFuncPair(TIMER_OnEnterPC98_Phase2));
 }
 
