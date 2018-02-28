@@ -152,10 +152,10 @@ public:
 private:
 	void init(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sectorSize);
 
-	Bit8u * * MemMap;
-	Bit32u sectors_per_ramcluster;
-	Bit32u ramcluster_size;
-	Bit32u total_ramclusters;
+	Bit8u * * ChunkMap;
+	Bit32u sectors_per_chunk;
+	Bit32u chunk_size;
+	Bit32u total_chunks;
 	Bit32u total_sectors;
 
 	Bit8u bios_type;

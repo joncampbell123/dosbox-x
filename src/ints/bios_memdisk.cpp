@@ -107,17 +107,17 @@ void imageDiskMemory::init(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32
 	}
 
 	//split the sectors into chunks, which are allocated together on an as-needed basis
-	this->sectors_per_ramcluster = heads;
-	this->total_ramclusters = (absoluteSectors + sectors_per_ramcluster - 1) / sectors_per_ramcluster;
-	this->ramcluster_size = sectors_per_ramcluster * sector_size;
+	this->sectors_per_chunk = heads;
+	this->total_chunks = (absoluteSectors + sectors_per_chunk - 1) / sectors_per_chunk;
+	this->chunk_size = sectors_per_chunk * sector_size;
 	//allocate a map of chunks that have been allocated and their memory addresses
-	MemMap = (Bit8u**)malloc(total_ramclusters * sizeof(Bit8u*));
-	if (MemMap == NULL) {
-		LOG_MSG("Error allocating memory map in imageDiskMemory constructor for %lu clusters.\n", (unsigned long)total_ramclusters);
+	ChunkMap = (Bit8u**)malloc(total_chunks * sizeof(Bit8u*));
+	if (ChunkMap == NULL) {
+		LOG_MSG("Error allocating memory map in imageDiskMemory constructor for %lu clusters.\n", (unsigned long)total_chunks);
 		return;
 	}
 	//clear memory map
-	memset((void*)MemMap, 0, total_ramclusters * sizeof(Bit8u*));
+	memset((void*)ChunkMap, 0, total_chunks * sizeof(Bit8u*));
 
 	//set internal variables
 	this->heads = heads;
@@ -137,15 +137,15 @@ imageDiskMemory::~imageDiskMemory() {
 	//quit if the map is already not allocated
 	if (!active) return;
 	//loop through each chunk and release it if it has been allocated
-	Bit8u* ramcluster;
-	for (int i = 0; i < total_ramclusters; i++) {
-		ramcluster = MemMap[i];
-		if (ramcluster) free(ramcluster);
+	Bit8u* chunk;
+	for (int i = 0; i < total_chunks; i++) {
+		chunk = ChunkMap[i];
+		if (chunk) free(chunk);
 	}
 	//release the memory map
-	free(MemMap);
+	free(ChunkMap);
 	//reset internal variables
-	MemMap = 0;
+	ChunkMap = 0;
 	total_sectors = 0;
 	active = false;
 }
@@ -161,13 +161,13 @@ Bit8u imageDiskMemory::Read_AbsoluteSector(Bit32u sectnum, void * data) {
 	}
 
 	//calculate which chunk the sector is located within, and which sector within the chunk
-	Bit32u ramclusternum, ramclustersect;
-	ramclusternum = sectnum / sectors_per_ramcluster;
-	ramclustersect = sectnum % sectors_per_ramcluster;
+	Bit32u chunknum, chunksect;
+	chunknum = sectnum / sectors_per_chunk;
+	chunksect = sectnum % sectors_per_chunk;
 
 	//retrieve the memory address of the chunk
 	Bit8u* datalocation;
-	datalocation = MemMap[ramclusternum];
+	datalocation = ChunkMap[chunknum];
 
 	//if the chunk has not yet been allocated, return zeros
 	if (datalocation == 0) {
@@ -176,7 +176,7 @@ Bit8u imageDiskMemory::Read_AbsoluteSector(Bit32u sectnum, void * data) {
 	}
 
 	//update the address to the specific sector within the chunk
-	datalocation = &datalocation[ramclustersect * sector_size];
+	datalocation = &datalocation[chunksect * sector_size];
 
 	//copy the data to the output and return success
 	memcpy(data, datalocation, sector_size);
@@ -194,13 +194,13 @@ Bit8u imageDiskMemory::Write_AbsoluteSector(Bit32u sectnum, void * data) {
 	}
 
 	//calculate which chunk the sector is located within, and which sector within the chunk
-	Bit32u clusternum, clustersect;
-	clusternum = sectnum / sectors_per_ramcluster;
-	clustersect = sectnum % sectors_per_ramcluster;
+	Bit32u chunknum, chunksect;
+	chunknum = sectnum / sectors_per_chunk;
+	chunksect = sectnum % sectors_per_chunk;
 
 	//retrieve the memory address of the chunk
 	Bit8u* datalocation;
-	datalocation = MemMap[clusternum];
+	datalocation = ChunkMap[chunknum];
 
 	//if the chunk has not yet been allocated, allocate the chunk
 	if (datalocation == NULL) {
@@ -213,19 +213,19 @@ Bit8u imageDiskMemory::Write_AbsoluteSector(Bit32u sectnum, void * data) {
 		if (anyData == 0) return 0x00;
 
 		//allocate a new memory chunk
-		datalocation = (Bit8u*)malloc(ramcluster_size);
+		datalocation = (Bit8u*)malloc(chunk_size);
 		if (datalocation == NULL) {
 			LOG_MSG("Could not allocate memory in Write_AbsoluteSector for sector %lu.\n", (unsigned long)sectnum);
 			return 0x05;
 		}
 		//save the memory chunk address within the memory map
-		MemMap[clusternum] = datalocation;
+		ChunkMap[chunknum] = datalocation;
 		//initialize the memory chunk to all zeros (since we are only writing to a single sector within this chunk)
-		memset((void*)datalocation, 0, ramcluster_size);
+		memset((void*)datalocation, 0, chunk_size);
 	}
 
 	//update the address to the specific sector within the chunk
-	datalocation = &datalocation[clustersect * sector_size];
+	datalocation = &datalocation[chunksect * sector_size];
 
 	//write the sector to the chunk and return success
 	memcpy(datalocation, data, sector_size);
