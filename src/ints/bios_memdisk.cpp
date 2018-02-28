@@ -1,21 +1,21 @@
 /*
- *
- *  Copyright (c) 2018 Shane Krueger
- *
- *  This program is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with this program; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- */
+*
+*  Copyright (c) 2018 Shane Krueger
+*
+*  This program is free software; you can redistribute it and/or modify
+*  it under the terms of the GNU General Public License as published by
+*  the Free Software Foundation; either version 2 of the License, or
+*  (at your option) any later version.
+*
+*  This program is distributed in the hope that it will be useful,
+*  but WITHOUT ANY WARRANTY; without even the implied warranty of
+*  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*  GNU General Public License for more details.
+*
+*  You should have received a copy of the GNU General Public License
+*  along with this program; if not, write to the Free Software
+*  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+*/
 
 #include "dosbox.h"
 #include "callback.h"
@@ -28,17 +28,17 @@
 #include "mapper.h"
 
 /* imageDiskMemory simulates a hard drive image or floppy drive image in RAM
- * 
- * It can be initialized as a floppy, using one of the predefined floppy
- *   geometries, or can be initialized as a hard drive, accepting either
- *   a size in kilobytes or a specific set of chs values to emulate
- * It will then split the image into 64k chunks that are allocated on-demand.
- * Initially the only RAM required is for the chunk map
- * The image is effectively intialized to all zeros, as each chunk is zeroed
- *   upon allocation
- * Writes of all zeros do not allocate memory if none has yet been assigned
- *
- */
+*
+* It can be initialized as a floppy, using one of the predefined floppy
+*   geometries, or can be initialized as a hard drive, accepting either
+*   a size in kilobytes or a specific set of chs values to emulate
+* It will then split the image into 64k chunks that are allocated on-demand.
+* Initially the only RAM required is for the chunk map
+* The image is effectively intialized to all zeros, as each chunk is zeroed
+*   upon allocation
+* Writes of all zeros do not allocate memory if none has yet been assigned
+*
+*/
 
 // Create a hard drive image of a specified size; automatically select c/h/s
 imageDiskMemory::imageDiskMemory(Bit32u imgSizeK) {
@@ -153,7 +153,7 @@ imageDiskMemory::~imageDiskMemory() {
 // Read a specific sector from the ramdrive
 Bit8u imageDiskMemory::Read_AbsoluteSector(Bit32u sectnum, void * data) {
 	//sector number is a zero-based offset
-	
+
 	//verify the sector number is valid
 	if (sectnum >= total_sectors) {
 		LOG_MSG("Invalid sector number in Read_AbsoluteSector for sector %lu.\n", (unsigned long)sectnum);
@@ -298,10 +298,13 @@ Bit8u imageDiskMemory::Format() {
 	host_writew(&sbuf[0x0b], 512);
 	// sectors per cluster: 1,2,4,8,16,...
 	Bitu sectors_per_cluster = 1;
-	//cluster number is stored in FAT as (cluster+2), with max value of 0xFFEF for FAT16 and 0xFEF for FAT12
-	Bitu max_cluster_number = this->hardDrive ? 0xFFEF : 0xFEF;
-	//calculate the total number of clusters and check if the maximum cluster number (as stored in the FAT) is too large
-	while (((total_sectors + sectors_per_cluster - 1) / sectors_per_cluster + 2) > max_cluster_number) sectors_per_cluster <<= 1;
+	// Microsoft defines FAT12 as having 0-4084 clusters,
+	//   and FAT16 as having 4085-65524 clusters
+	// To quote: "This is the one and only way that the FAT type is determined"
+	Bitu max_clusters = this->hardDrive ? 65524 : 4084;
+	//ESTIMATE the total number of clusters and check if the maximum cluster number (as stored in the FAT) is too large
+	//note: this does not count on the fact that the number of available sectors are reduced based on the size of the FAT
+	while (((total_sectors + sectors_per_cluster - 1) / sectors_per_cluster) > max_clusters) sectors_per_cluster <<= 1;
 	if (sectors_per_cluster > 255) {
 		if (this->hardDrive) {
 			LOG_MSG("imageDiskMemory->Format only designed for hard drives with < 8,386,176 total sectors (FAT16 limitation).\n");
@@ -337,8 +340,9 @@ Bit8u imageDiskMemory::Format() {
 	sbuf[0x15] = this->hardDrive ? 0xF8 : this->GetBiosType();
 	// sectors per FAT
 	// fat_clusters = (total sectors - mbr - reserved sectors (boot sector) - root directory sectors) / sectors_per_cluster
+	// NOTE this is just an estimate, as once the FAT is allocated, there are less clusters...
 	Bitu clusters = (this->total_sectors - bootsect_pos - sbuf[0x0e] - root_sectors) / sbuf[0x0d];
-	Bitu sect_per_fat = ((this->hardDrive ? clusters * 2 : (clusters * 3) / 2) + sector_size - 1) / sector_size;
+	Bitu sect_per_fat = ((clusters >= 4085 ? clusters * 2 : (clusters * 3) / 2) + sector_size - 1) / sector_size; // FAT16 = (clusters >= 4085)
 	host_writew(&sbuf[0x16], sect_per_fat);
 	// sectors per track
 	host_writew(&sbuf[0x18], this->sectors);
