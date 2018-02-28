@@ -44,6 +44,8 @@ struct diskGeo {
 };
 extern diskGeo DiskGeometryList[];
 
+extern const Bit8u freedos_mbr[];
+
 class imageDisk {
 public:
 	enum {
