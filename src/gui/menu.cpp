@@ -1103,6 +1103,21 @@ int Reflect_Menu(void) {
 	EnableMenuItem(m_handle, ID_BOOT_C_MOUNTED, (strlen(name) || menu.boot) ? MF_GRAYED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_BOOT_D_MOUNTED, (strlen(name) || menu.boot) ? MF_GRAYED : MF_ENABLED);
 
+	Section_prop * cpu_section = static_cast<Section_prop *>(control->GetSection("cpu"));
+	const std::string cpu_sec_type = cpu_section->Get_string("cputype");
+
+	// dynamic cannot handle prefetch
+	EnableMenuItem(m_handle, ID_DYNAMIC, (strstr(cpu_sec_type.c_str(),"_prefetch") != NULL) ? MF_GRAYED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_CPUTYPE_8086_PREFETCH, (!strcasecmp(core_mode, "Dynamic")) ? MF_GRAYED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_CPUTYPE_80186_PREFETCH, (!strcasecmp(core_mode, "Dynamic")) ? MF_GRAYED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_CPUTYPE_286_PREFETCH, (!strcasecmp(core_mode, "Dynamic")) ? MF_GRAYED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_CPUTYPE_386_PREFETCH, (!strcasecmp(core_mode, "Dynamic")) ? MF_GRAYED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_CPUTYPE_486_PREFETCH, (!strcasecmp(core_mode, "Dynamic")) ? MF_GRAYED : MF_ENABLED);
+	// dynamic core is not designed to emulate below a 386
+	EnableMenuItem(m_handle, ID_CPUTYPE_8086, (!strcasecmp(core_mode, "Dynamic")) ? MF_GRAYED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_CPUTYPE_80186, (!strcasecmp(core_mode, "Dynamic")) ? MF_GRAYED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_CPUTYPE_286, (!strcasecmp(core_mode, "Dynamic")) ? MF_GRAYED : MF_ENABLED);
+
 	extern bool gdc_5mhz_mode;
 	extern bool pc98_allow_scanline_effect;
 	extern bool pc98_allow_4_display_partitions;
@@ -1133,11 +1148,20 @@ int Reflect_Menu(void) {
 	sec = static_cast<Section_prop *>(control->GetSection("cpu"));
 	const std::string cputype = sec->Get_string("cputype");
 	CheckMenuItem(m_handle, ID_CPUTYPE_AUTO, cputype == "auto" ? MF_CHECKED : MF_STRING);
+
+	CheckMenuItem(m_handle, ID_CPUTYPE_8086, cputype == "8086" ? MF_CHECKED : MF_STRING);
+	CheckMenuItem(m_handle, ID_CPUTYPE_8086_PREFETCH, cputype == "8086_prefetch" ? MF_CHECKED : MF_STRING);
+	CheckMenuItem(m_handle, ID_CPUTYPE_80186, cputype == "80186" ? MF_CHECKED : MF_STRING);
+	CheckMenuItem(m_handle, ID_CPUTYPE_80186_PREFETCH, cputype == "80186_prefetch" ? MF_CHECKED : MF_STRING);
+	CheckMenuItem(m_handle, ID_CPUTYPE_286, cputype == "286" ? MF_CHECKED : MF_STRING);
+	CheckMenuItem(m_handle, ID_CPUTYPE_286_PREFETCH, cputype == "286_prefetch" ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_CPUTYPE_386, cputype == "386" ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_CPUTYPE_386_PREFETCH, cputype == "386_prefetch" ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_CPUTYPE_486, cputype == "486" ? MF_CHECKED : MF_STRING);
+	CheckMenuItem(m_handle, ID_CPUTYPE_486_PREFETCH, cputype == "486_prefetch" ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_CPUTYPE_PENTIUM, cputype == "pentium" ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_CPUTYPE_PENTIUM_MMX, cputype == "pentium_mmx" ? MF_CHECKED : MF_STRING);
+	CheckMenuItem(m_handle, ID_CPUTYPE_PENTIUM_PRO, cputype == "ppro_slow" ? MF_CHECKED : MF_STRING);
 
 	extern bool ticksLocked;
 	CheckMenuItem(m_handle, ID_CPU_TURBO, ticksLocked ? MF_CHECKED : MF_STRING);
@@ -2374,12 +2398,19 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 	}
 	case ID_SAVELANG:  GUI_Shortcut(9); break;
 	case ID_CPUTYPE_AUTO: SetVal("cpu", "cputype", "auto"); break;
+	case ID_CPUTYPE_8086: SetVal("cpu", "cputype", "8086"); break;
+	case ID_CPUTYPE_8086_PREFETCH: SetVal("cpu", "cputype", "8086_prefetch"); break;
+	case ID_CPUTYPE_80186: SetVal("cpu", "cputype", "80186"); break;
+	case ID_CPUTYPE_80186_PREFETCH: SetVal("cpu", "cputype", "80186_prefetch"); break;
+	case ID_CPUTYPE_286: SetVal("cpu", "cputype", "286"); break;
+	case ID_CPUTYPE_286_PREFETCH: SetVal("cpu", "cputype", "286_prefetch"); break;
 	case ID_CPUTYPE_386: SetVal("cpu", "cputype", "386"); break;
-		//case ID_CPUTYPE_386_SLOW: SetVal("cpu","cputype","386_slow"); break;
 	case ID_CPUTYPE_386_PREFETCH: SetVal("cpu", "cputype", "386_prefetch"); break;
 	case ID_CPUTYPE_486: SetVal("cpu", "cputype", "486"); break;
+	case ID_CPUTYPE_486_PREFETCH: SetVal("cpu", "cputype", "486_prefetch"); break;
 	case ID_CPUTYPE_PENTIUM: SetVal("cpu", "cputype", "pentium"); break;
 	case ID_CPUTYPE_PENTIUM_MMX: SetVal("cpu", "cputype", "pentium_mmx"); break;
+	case ID_CPUTYPE_PENTIUM_PRO: SetVal("cpu", "cputype", "ppro_slow"); break;
 	case ID_CPU_ADVANCED:  GUI_Shortcut(13); break;
 	case ID_DOS_ADVANCED:  GUI_Shortcut(14); break;
 	case ID_MIDI_ADVANCED:  GUI_Shortcut(15); break;
@@ -2539,17 +2570,21 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 	case ID_PC98_4MHZ_TIMER:
 	{
 		void TIMER_OnEnterPC98_Phase2(Section*);
+		void TIMER_OnEnterPC98_Phase2_UpdateBDA(void);
 		Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
 		dosbox_section->HandleInputline("pc-98 timer master frequency=4");
 		TIMER_OnEnterPC98_Phase2(NULL);
+		TIMER_OnEnterPC98_Phase2_UpdateBDA();
 		break;
 	}
 	case ID_PC98_5MHZ_TIMER:
 	{
 		void TIMER_OnEnterPC98_Phase2(Section*);
+		void TIMER_OnEnterPC98_Phase2_UpdateBDA(void);
 		Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
 		dosbox_section->HandleInputline("pc-98 timer master frequency=5");
 		TIMER_OnEnterPC98_Phase2(NULL);
+		TIMER_OnEnterPC98_Phase2_UpdateBDA();
 		break;
 	}
 	case ID_PC98_CLEAR_TEXT_LAYER: {
