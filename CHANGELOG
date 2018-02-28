@@ -1,4 +1,30 @@
 (next)
+  - Menu items related to Gravis Ultrasound, Glide emulation, Innova SID,
+    and other IBM PC-specific options are now grayed out in PC-98 mode.
+  - Updated Windows menus to gray out CPU core and type options that
+    are invalid. Selecting a prefetch CPU type while core dynamic is
+    no longer possible, and selecting dynamic core while using a
+    prefetch cpu type is no longer possible.
+  - CPU type submenu in Windows updated to reflect all types supported
+    by DOSBox-X including 8086 and 286 cores.
+  - Fixed E_Exit() crash on Windows in PDCurses endwin() that only
+    happens if you had never brought up the debugger console window.
+  - Minor oddities with OPNA stereo panning resolved.
+  - Sound Blaster, Adlib, and PC-98 FM emulation now reset state
+    correctly when the reset signal is given to avoid stuck notes.
+  - Fixed BIOS logo in PC-98 mode to properly reset the graphics mode
+    so that the logo is visible.
+  - Added Windows menu items to control PC-98 GDC speed, 4-partition enable,
+    200-line "scanline" effect enable, and PIT timer clock control.
+  - Added "Restart DOS" command to the Windows menu, with code to
+    allow it only if at the initial DOS shell.
+  - Added "multi-track WAV" command to the Windows menu, under Capture
+  - Added "reset system" command to the Windows menu
+  - "Restart" menu command updated to clarify that it restarts DOSBox-X entirely.
+  - OpenGL HQ output removed.
+  - Commands to force driver (DirectX or WINDIB) removed.
+  - Default disk I/O limit raised to more reasonable speeds.
+  - FM code borrowed from Neko Project II now compiles on Mac OS X
   - IMGMOUNT now supports mounting a RAM drive (using -t ram) (Shane32)
   - Direct3D fullscreen aspect ratio fixes, especially for
     monitors with a 5:4 aspect ratio (such as 1280x1024) (Shane32)
