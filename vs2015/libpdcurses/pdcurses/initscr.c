@@ -241,6 +241,7 @@ int endwin(void)
     PDC_LOG(("endwin() - called\n"));
 
     /* Allow temporary exit from curses using endwin() */
+	if (SP == NULL) return;
 
     def_prog_mode();
     PDC_scr_close();
