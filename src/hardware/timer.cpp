@@ -582,6 +582,13 @@ void TIMER_OnPowerOn(Section*) {
     }
 }
 
+void TIMER_OnEnterPC98_Phase2_UpdateBDA(void) {
+	/* BIOS data area at 0x501 tells the DOS application which clock rate to use */
+	phys_writeb(0x501,
+		((PIT_TICK_RATE == PIT_TICK_RATE_PC98_8MHZ) ? 0x80 : 0x00)      /* bit 7: 1=8MHz  0=5MHz/10MHz */
+	);
+}
+
 /* NTS: This comes in two phases because we're taking ports 0x71-0x77 which overlap
  *      with ports 0x70-0x71 from CMOS emulation.
  *
