@@ -1124,11 +1124,20 @@ int Reflect_Menu(void) {
 	sec = static_cast<Section_prop *>(control->GetSection("cpu"));
 	const std::string cputype = sec->Get_string("cputype");
 	CheckMenuItem(m_handle, ID_CPUTYPE_AUTO, cputype == "auto" ? MF_CHECKED : MF_STRING);
+
+	CheckMenuItem(m_handle, ID_CPUTYPE_8086, cputype == "8086" ? MF_CHECKED : MF_STRING);
+	CheckMenuItem(m_handle, ID_CPUTYPE_8086_PREFETCH, cputype == "8086_prefetch" ? MF_CHECKED : MF_STRING);
+	CheckMenuItem(m_handle, ID_CPUTYPE_80186, cputype == "80186" ? MF_CHECKED : MF_STRING);
+	CheckMenuItem(m_handle, ID_CPUTYPE_80186_PREFETCH, cputype == "80186_prefetch" ? MF_CHECKED : MF_STRING);
+	CheckMenuItem(m_handle, ID_CPUTYPE_286, cputype == "286" ? MF_CHECKED : MF_STRING);
+	CheckMenuItem(m_handle, ID_CPUTYPE_286_PREFETCH, cputype == "286_prefetch" ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_CPUTYPE_386, cputype == "386" ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_CPUTYPE_386_PREFETCH, cputype == "386_prefetch" ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_CPUTYPE_486, cputype == "486" ? MF_CHECKED : MF_STRING);
+	CheckMenuItem(m_handle, ID_CPUTYPE_486_PREFETCH, cputype == "486_prefetch" ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_CPUTYPE_PENTIUM, cputype == "pentium" ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_CPUTYPE_PENTIUM_MMX, cputype == "pentium_mmx" ? MF_CHECKED : MF_STRING);
+	CheckMenuItem(m_handle, ID_CPUTYPE_PENTIUM_PRO, cputype == "ppro_slow" ? MF_CHECKED : MF_STRING);
 
 	extern bool ticksLocked;
 	CheckMenuItem(m_handle, ID_CPU_TURBO, ticksLocked ? MF_CHECKED : MF_STRING);
@@ -2354,12 +2363,19 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 	}
 	case ID_SAVELANG:  GUI_Shortcut(9); break;
 	case ID_CPUTYPE_AUTO: SetVal("cpu", "cputype", "auto"); break;
+	case ID_CPUTYPE_8086: SetVal("cpu", "cputype", "8086"); break;
+	case ID_CPUTYPE_8086_PREFETCH: SetVal("cpu", "cputype", "8086_prefetch"); break;
+	case ID_CPUTYPE_80186: SetVal("cpu", "cputype", "80186"); break;
+	case ID_CPUTYPE_80186_PREFETCH: SetVal("cpu", "cputype", "80186_prefetch"); break;
+	case ID_CPUTYPE_286: SetVal("cpu", "cputype", "286"); break;
+	case ID_CPUTYPE_286_PREFETCH: SetVal("cpu", "cputype", "286_prefetch"); break;
 	case ID_CPUTYPE_386: SetVal("cpu", "cputype", "386"); break;
-		//case ID_CPUTYPE_386_SLOW: SetVal("cpu","cputype","386_slow"); break;
 	case ID_CPUTYPE_386_PREFETCH: SetVal("cpu", "cputype", "386_prefetch"); break;
 	case ID_CPUTYPE_486: SetVal("cpu", "cputype", "486"); break;
+	case ID_CPUTYPE_486_PREFETCH: SetVal("cpu", "cputype", "486_prefetch"); break;
 	case ID_CPUTYPE_PENTIUM: SetVal("cpu", "cputype", "pentium"); break;
 	case ID_CPUTYPE_PENTIUM_MMX: SetVal("cpu", "cputype", "pentium_mmx"); break;
+	case ID_CPUTYPE_PENTIUM_PRO: SetVal("cpu", "cputype", "ppro_slow"); break;
 	case ID_CPU_ADVANCED:  GUI_Shortcut(13); break;
 	case ID_DOS_ADVANCED:  GUI_Shortcut(14); break;
 	case ID_MIDI_ADVANCED:  GUI_Shortcut(15); break;
