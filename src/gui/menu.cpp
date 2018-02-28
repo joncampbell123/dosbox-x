@@ -1094,6 +1094,21 @@ int Reflect_Menu(void) {
 	EnableMenuItem(m_handle, ID_BOOT_C_MOUNTED, (strlen(name) || menu.boot) ? MF_GRAYED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_BOOT_D_MOUNTED, (strlen(name) || menu.boot) ? MF_GRAYED : MF_ENABLED);
 
+	Section_prop * cpu_section = static_cast<Section_prop *>(control->GetSection("cpu"));
+	const std::string cpu_sec_type = cpu_section->Get_string("cputype");
+
+	// dynamic cannot handle prefetch
+	EnableMenuItem(m_handle, ID_DYNAMIC, (strstr(cpu_sec_type.c_str(),"_prefetch") != NULL) ? MF_GRAYED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_CPUTYPE_8086_PREFETCH, (!strcasecmp(core_mode, "Dynamic")) ? MF_GRAYED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_CPUTYPE_80186_PREFETCH, (!strcasecmp(core_mode, "Dynamic")) ? MF_GRAYED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_CPUTYPE_286_PREFETCH, (!strcasecmp(core_mode, "Dynamic")) ? MF_GRAYED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_CPUTYPE_386_PREFETCH, (!strcasecmp(core_mode, "Dynamic")) ? MF_GRAYED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_CPUTYPE_486_PREFETCH, (!strcasecmp(core_mode, "Dynamic")) ? MF_GRAYED : MF_ENABLED);
+	// dynamic core is not designed to emulate below a 386
+	EnableMenuItem(m_handle, ID_CPUTYPE_8086, (!strcasecmp(core_mode, "Dynamic")) ? MF_GRAYED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_CPUTYPE_80186, (!strcasecmp(core_mode, "Dynamic")) ? MF_GRAYED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_CPUTYPE_286, (!strcasecmp(core_mode, "Dynamic")) ? MF_GRAYED : MF_ENABLED);
+
 	extern bool gdc_5mhz_mode;
 	extern bool pc98_allow_scanline_effect;
 	extern bool pc98_allow_4_display_partitions;
