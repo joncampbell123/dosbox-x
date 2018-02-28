@@ -21,6 +21,7 @@
 #include "dosbox.h"
 #include "inout.h"
 #include "pic.h"
+#include "cpu.h"
 #include "mem.h"
 #include "mixer.h"
 #include "timer.h"
@@ -583,10 +584,15 @@ void TIMER_OnPowerOn(Section*) {
 }
 
 void TIMER_OnEnterPC98_Phase2_UpdateBDA(void) {
-	/* BIOS data area at 0x501 tells the DOS application which clock rate to use */
-	phys_writeb(0x501,
-		((PIT_TICK_RATE == PIT_TICK_RATE_PC98_8MHZ) ? 0x80 : 0x00)      /* bit 7: 1=8MHz  0=5MHz/10MHz */
-	);
+	if (!cpu.pmode) {
+		/* BIOS data area at 0x501 tells the DOS application which clock rate to use */
+		phys_writeb(0x501,
+			((PIT_TICK_RATE == PIT_TICK_RATE_PC98_8MHZ) ? 0x80 : 0x00)      /* bit 7: 1=8MHz  0=5MHz/10MHz */
+		);
+	}
+	else {
+		LOG_MSG("PC-98 warning: PIT timer change cannot be reflected to BIOS data area in protected/vm86 mode");
+	}
 }
 
 /* NTS: This comes in two phases because we're taking ports 0x71-0x77 which overlap
