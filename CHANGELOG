@@ -1,4 +1,4 @@
-(next)
+0.82.4 (02/28/2018)
   - Updated ramdisk formatting code to better match FAT12/FAT16
     specifications and limits (Shane32)
   - Menu items related to Gravis Ultrasound, Glide emulation, Innova SID,
