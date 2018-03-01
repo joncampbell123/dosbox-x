@@ -1,3 +1,8 @@
+(next)
+  - EMM386 (ems) emulation fixed to always turn on the A20 gate when
+    the DOS application requests to map pages into the EMS page frame.
+    This fixes crashes with Creative's Sound Blaster 16 installer when
+    run with the A20 gate turned off.
 0.82.4 (02/28/2018)
   - Updated ramdisk formatting code to better match FAT12/FAT16
     specifications and limits (Shane32)
