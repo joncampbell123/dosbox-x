@@ -263,6 +263,10 @@ bool						dos_kernel_disabled = true;
 bool						startup_state_numlock = false; // Global for keyboard initialisation
 bool						startup_state_capslock = false; // Global for keyboard initialisation
 
+#if defined(WIN32) && !defined(C_SDL2)
+extern "C" void SDL1_hax_SetMenu(HMENU menu);
+#endif
+
 #ifdef WIN32
 # include <windows.h>
 #endif
@@ -1025,6 +1029,10 @@ static void GFX_ResetSDL() {
 	/* deprecated */
 }
 
+#if defined(WIN32) && !defined(C_SDL2)
+extern "C" unsigned int SDL1_hax_inhibit_WM_PAINT;
+#endif
+
 Bitu GFX_SetSize(Bitu width,Bitu height,Bitu flags,double scalex,double scaley,GFX_CallBack_t callback) {
 	if (sdl.updating)
 		GFX_EndUpdate( 0 );
@@ -1051,6 +1059,11 @@ Bitu GFX_SetSize(Bitu width,Bitu height,Bitu flags,double scalex,double scaley,G
 		SDL_FreeSurface(sdl.blit.surface);
 		sdl.blit.surface=0;
 	}
+
+#if defined(WIN32) && !defined(C_SDL2)
+	SDL1_hax_inhibit_WM_PAINT = 0;
+#endif
+
 	switch (sdl.desktop.want_type) {
 #if defined(C_SDL2)
     case SCREEN_SURFACE:
@@ -1500,6 +1513,8 @@ dosurface:
 
 		if(d3d->dynamic) retFlags |= GFX_HARDWARE;
 
+		SDL1_hax_inhibit_WM_PAINT = 1;
+
 		if(GCC_UNLIKELY(d3d->Resize3DEnvironment(window_width,window_height,sdl.clip.w,sdl.clip.h,width,
 						    height,sdl.desktop.fullscreen) != S_OK)) {
 		    retFlags = 0;
@@ -1895,7 +1910,7 @@ static void d3d_init(void) {
 		if(!d3d) {
 			LOG_MSG("Failed to create d3d object");
 			sdl.desktop.want_type=SCREEN_SURFACE;
-		} else if(d3d->InitializeDX(wmi.window,sdl.desktop.doublebuf) != S_OK) {
+		} else if(d3d->InitializeDX(wmi.child_window,sdl.desktop.doublebuf) != S_OK) {
 			LOG_MSG("Unable to initialize DirectX");
 			sdl.desktop.want_type=SCREEN_SURFACE;
 		}
@@ -2111,11 +2126,6 @@ void GFX_SwitchFullScreen(void)
 	// (re-)assign menu to window
     void DOSBox_SetSysMenu(void);
     DOSBox_SetSysMenu();
-
-	if (full && menu.gui) {
-        NonUserResizeCounter=1;
-        SetMenu(GetHWND(), nullptr);
-    }
 #endif
 
 	// ensure mouse capture when fullscreen || (re-)capture if user said so when windowed
@@ -2736,7 +2746,7 @@ static void GUI_StartUp() {
 			if(!d3d) {
 				LOG_MSG("Failed to create d3d object");
 				sdl.desktop.want_type=SCREEN_SURFACE;
-			} else if(d3d->InitializeDX(wmi.window,sdl.desktop.doublebuf) != S_OK) {
+			} else if(d3d->InitializeDX(wmi.child_window,sdl.desktop.doublebuf) != S_OK) {
 				LOG_MSG("Unable to initialize DirectX");
 				sdl.desktop.want_type=SCREEN_SURFACE;
 			}
@@ -4272,7 +4282,7 @@ void SDL_SetupConfigSection() {
 #endif
 		0 };
 #ifdef __WIN32__
-		Pstring = sdl_sec->Add_string("output",Property::Changeable::Always,"direct3d");
+		Pstring = sdl_sec->Add_string("output",Property::Changeable::Always,"direct3d");	/* <- Direct3D doesn't like being a child window */
 #else
 		Pstring = sdl_sec->Add_string("output",Property::Changeable::Always,"surface");
 #endif
@@ -5349,6 +5359,10 @@ int main(int argc, char* argv[]) {
 		 * because some init functions rely on others. */
 
 #if !defined(C_SDL2)
+# if defined(WIN32)
+		Reflect_Menu();
+# endif
+
 		if (control->opt_startui)
 			GUI_Run(false);
 #endif
@@ -5369,9 +5383,6 @@ int main(int argc, char* argv[]) {
 #if !defined(C_SDL2)
                 void DOSBox_SetSysMenu(void);
                 DOSBox_SetSysMenu();
-
-                NonUserResizeCounter=1;
-                SetMenu(GetHWND(),NULL);
 #endif
 				//only switch if not already in fullscreen
 				if (!sdl.desktop.fullscreen) GFX_SwitchFullScreen();

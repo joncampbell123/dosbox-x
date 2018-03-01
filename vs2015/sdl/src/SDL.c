@@ -221,6 +221,12 @@ void SDL_Quit(void)
 #endif
 	SDL_QuitSubSystem(SDL_INIT_EVERYTHING);
 
+#if defined(WIN32)
+	// windib
+	void StopParentWindow(void);
+	StopParentWindow();
+#endif
+
 #ifdef CHECK_LEAKS
 #ifdef DEBUG_BUILD
   printf("[SDL_Quit] : CHECK_LEAKS\n"); fflush(stdout);

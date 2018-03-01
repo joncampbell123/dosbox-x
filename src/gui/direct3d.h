@@ -88,6 +88,8 @@ private:
     DWORD dwScaledWidth, dwScaledHeight;                // D3D backbuffer size
     const Bit16u* changedLines;
 
+	int					backbuffer_clear_countdown;
+
     // display modes
     D3DDISPLAYMODE*		modes;
     unsigned int		iMode;

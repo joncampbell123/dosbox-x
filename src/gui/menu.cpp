@@ -98,6 +98,16 @@ HWND GetHWND(void) {
 	return wmi.window;
 }
 
+HWND GetSurfaceHWND(void) {
+	SDL_SysWMinfo wmi;
+	SDL_VERSION(&wmi.version);
+
+	if (!SDL_GetWMInfo(&wmi)) {
+		return NULL;
+	}
+	return wmi.child_window;
+}
+
 void GetDefaultSize(void) {
 	char sizetemp[20]="512,32,32765,";
 	char sizetemp2[20]="";
@@ -774,6 +784,8 @@ void DOSBox_SetSysMenu(void) {
 	}
 }
 
+extern "C" void SDL1_hax_SetMenu(HMENU menu);
+
 void DOSBox_SetMenu(void) {
 	if(!menu.gui) return;
 
@@ -781,8 +793,7 @@ void DOSBox_SetMenu(void) {
 
 	menu.toggle=true;
     NonUserResizeCounter=1;
-    SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
-	DrawMenuBar (GetHWND());
+	SDL1_hax_SetMenu(LoadMenu(GetModuleHandle(NULL), MAKEINTRESOURCE(IDR_MENU)));
 
 	Reflect_Menu();
 
@@ -798,8 +809,7 @@ void DOSBox_NoMenu(void) {
 	if(!menu.gui) return;
 	menu.toggle=false;
     NonUserResizeCounter=1;
-    SetMenu(GetHWND(), NULL);
-	DrawMenuBar(GetHWND());
+	SDL1_hax_SetMenu(NULL);
 	RENDER_CallBack( GFX_CallBackReset );
 
     void DOSBox_SetSysMenu(void);
@@ -856,26 +866,22 @@ void DOSBox_RefreshMenu2(void) {
    int width, height; bool fullscreen;
    void GFX_GetSize(int &width, int &height, bool &fullscreen);
    GFX_GetSize(width,height,fullscreen);
-   void SDL_Prepare(void);
-   SDL_Prepare();
-   if(!menu.gui) return;
+    void SDL_Prepare(void);
+    SDL_Prepare();
+    if(!menu.gui) return;
 
-   if(fullscreen) {
-       NonUserResizeCounter=1;
-       SetMenu(GetHWND(), NULL);
-       DrawMenuBar(GetHWND());
-       return;
-   }
-   if(menu.toggle) {
-       menu.toggle=true;
-       NonUserResizeCounter=1;
-       SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
-       DrawMenuBar (GetHWND());
-   } else {
-       menu.toggle=false;
-       NonUserResizeCounter=1;
-       SetMenu(GetHWND(), NULL);
-		DrawMenuBar(GetHWND());
+    if(fullscreen) {
+        NonUserResizeCounter=1;
+        return;
+    }
+	if(menu.toggle) {
+		menu.toggle=true;
+        NonUserResizeCounter=1;
+        SDL1_hax_SetMenu(LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
+	} else {
+		menu.toggle=false;
+        NonUserResizeCounter=1;
+		SDL1_hax_SetMenu(NULL);
 	}
 
     void DOSBox_SetSysMenu(void);
@@ -926,6 +932,9 @@ void MENU_KeyDelayRate(int delay, int rate) {
 	IO_Write(0x60,0xf3); IO_Write(0x60,(Bit8u)(((delay-1)<<5)|(32-rate)));
 	LOG_MSG("GUI: Keyboard rate %d, delay %d", rate, delay);
 }
+
+extern "C" void (*SDL1_hax_INITMENU_cb)();
+void reflectmenu_INITMENU_cb();
 
 bool GFX_GetPreventFullscreen(void);
 
@@ -1864,7 +1873,18 @@ int Reflect_Menu(void) {
 	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_Y, ID_MOUNT_FLOPPY_Y, ID_MOUNT_LOCAL_Y, ID_MOUNT_IMAGE_Y, ID_AUTOMOUNT_Y, ID_UMOUNT_Y, 'Y');
 	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_Z, ID_MOUNT_FLOPPY_Z, ID_MOUNT_LOCAL_Z, ID_MOUNT_IMAGE_Z, ID_AUTOMOUNT_Z, ID_UMOUNT_Z, 'Z');
 
-	return 1;
+	SDL1_hax_INITMENU_cb = reflectmenu_INITMENU_cb;
+
+    return 1;
+}
+
+void reflectmenu_INITMENU_cb() {
+	/* WARNING: SDL calls this from Parent Window Thread!
+	            This executes in the context of the Parent Window Thread, NOT the main thread!
+				As stupid as that seems, this is the only way the Parent Window Thread can make
+				sure to keep Windows waiting while we take our time to reset the checkmarks in
+				the menus before the menu is displayed. */
+	Reflect_Menu();
 }
 
 // Sets the scaler to use.
