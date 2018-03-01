@@ -336,7 +336,6 @@ void PC98_FM_OnEnterPC98(Section *sec) {
         }
 
         fmboard_bind();
-        fmboard_on_reset();
         fmboard_extenable(true);
 
         // WARNING: Some parts of the borrowed code assume 44100, 22050, or 11025 and
@@ -347,8 +346,8 @@ void PC98_FM_OnEnterPC98(Section *sec) {
     }
 
     if (was_pc98fm_init) {
-        fmboard_bind(); // FIXME: Re-binds I/O ports as well
         fmboard_on_reset();
+        fmboard_bind(); // FIXME: Re-binds I/O ports as well
         fmboard_extenable(true);
     }
 }
