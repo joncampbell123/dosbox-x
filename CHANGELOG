@@ -1,4 +1,6 @@
 (next)
+  - Updated ramdisk formatting code to better match FAT12/FAT16
+    specifications and limits (Shane32)
   - Menu items related to Gravis Ultrasound, Glide emulation, Innova SID,
     and other IBM PC-specific options are now grayed out in PC-98 mode.
   - Updated Windows menus to gray out CPU core and type options that
