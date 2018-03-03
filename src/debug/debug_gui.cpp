@@ -193,29 +193,39 @@ static void MakeSubWindows(void) {
 	/* The Std output win should go at the bottom */
 	/* Make all the subwindows */
 	int win_main_maxy, win_main_maxx; getmaxyx(dbg.win_main,win_main_maxy,win_main_maxx);
-	int outy=1; //Match values with above
-
-//    LOG_MSG("DEBUG: MakeSubWindows dim x=%u y=%u",win_main_maxx,win_main_maxy);
+	int outy=0,height;
 
 	/* The Register window  */
-	dbg.win_reg=subwin(dbg.win_main,4,win_main_maxx,outy,0);
-	outy+=5; // 6
+    outy++; // header
+    height=4;
+	dbg.win_reg=subwin(dbg.win_main,height,win_main_maxx,outy,0);
+	outy+=height;
 
     /* The Data Window */
-	dbg.win_data=subwin(dbg.win_main,10,win_main_maxx,outy,0);
-	outy+=11; // 17
+    outy++; // header
+    height=10;
+	dbg.win_data=subwin(dbg.win_main,height,win_main_maxx,outy,0);
+	outy+=height;
 
     /* The Code Window */
-	dbg.win_code=subwin(dbg.win_main,11,win_main_maxx,outy,0);
-	outy+=12; // 29
+    outy++; // header
+    height=11;
+	dbg.win_code=subwin(dbg.win_main,height,win_main_maxx,outy,0);
+	outy+=height;
 
     /* The Variable Window */
-	dbg.win_var=subwin(dbg.win_main,4,win_main_maxx,outy,0);
-	outy+=5; // 34
+    outy++; // header
+    height=4;
+	dbg.win_var=subwin(dbg.win_main,height,win_main_maxx,outy,0);
+	outy+=height;
 
     /* The Output Window */
-    if (outy < win_main_maxy)
-    	dbg.win_out=subwin(dbg.win_main,win_main_maxy-outy,win_main_maxx,outy,0);
+    if ((outy+1) < win_main_maxy) {
+        outy++; // header
+        height=win_main_maxy - outy;
+        dbg.win_out=subwin(dbg.win_main,height,win_main_maxx,outy,0);
+        outy+=height;
+    }
 
     if (dbg.win_out != NULL)
     	scrollok(dbg.win_out,TRUE);
