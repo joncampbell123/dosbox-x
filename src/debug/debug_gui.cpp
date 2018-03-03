@@ -122,7 +122,26 @@ static void DrawBars(void) {
 	//Match values with below. So we don't need to touch the internal window structures
 }
 
+static void DestroySubWindows(void) {
+    if (dbg.win_out) delwin(dbg.win_out);
+    dbg.win_out = NULL;
 
+    if (dbg.win_var) delwin(dbg.win_var);
+    dbg.win_var = NULL;
+
+    if (dbg.win_reg) delwin(dbg.win_reg);
+    dbg.win_reg = NULL;
+
+    if (dbg.win_code) delwin(dbg.win_code);
+    dbg.win_code = NULL;
+
+    if (dbg.win_data) delwin(dbg.win_data);
+    dbg.win_data = NULL;
+}
+
+void DEBUG_GUI_DestroySubWindows(void) {
+    DestroySubWindows();
+}
 
 static void MakeSubWindows(void) {
 	/* The Std output win should go at the bottom */
