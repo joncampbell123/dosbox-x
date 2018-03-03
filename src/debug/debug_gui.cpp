@@ -255,7 +255,8 @@ static void MakeSubWindows(void) {
 
     if (outy < win_main_maxy) {
         // no header
-        height=1;
+        height = 1;
+        outy = win_main_maxy - height;
         dbg.win_inp=subwin(dbg.win_main,height,win_main_maxx,outy,0);
         outy += height;
     }
