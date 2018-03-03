@@ -203,7 +203,7 @@ static void MakeSubWindows(void) {
 
     /* The Data Window */
     outy++; // header
-    height=10;
+    height=8;
 	dbg.win_data=subwin(dbg.win_main,height,win_main_maxx,outy,0);
 	outy+=height;
 
