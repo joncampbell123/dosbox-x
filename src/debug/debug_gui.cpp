@@ -275,7 +275,7 @@ void DEBUG_ShowMsg(char const* format,...) {
 	logBuffPos = logBuff.end();
 
 	if (dbg.win_out != NULL) {
-		wprintw(dbg.win_out,"%s\n",buf);
+		wprintw(dbg.win_out,"\n%s",buf);
 		wrefresh(dbg.win_out);
 	}
 #endif
