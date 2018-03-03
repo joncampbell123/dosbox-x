@@ -227,6 +227,10 @@ void DBGUI_StartUp(void) {
 	cycle_count=0;
 	MakePairs();
 	MakeSubWindows();
+
+    /* make sure the output window is synced up */
+    logBuffPos = logBuff.end();
+    DEBUG_RefreshPage(0);
 }
 
 #endif
@@ -275,7 +279,13 @@ void DEBUG_ShowMsg(char const* format,...) {
 	logBuffPos = logBuff.end();
 
 	if (dbg.win_out != NULL) {
-		wprintw(dbg.win_out,"\n%s",buf);
+        int maxy, maxx; getmaxyx(dbg.win_out,maxy,maxx);
+
+        scroll(dbg.win_out);
+
+        /* Const cast is needed for pdcurses which has no const char in mvwprintw (bug maybe) */
+        mvwprintw(dbg.win_out, maxy-1, 0, buf);
+
 		wrefresh(dbg.win_out);
 	}
 #endif
