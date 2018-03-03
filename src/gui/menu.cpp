@@ -36,6 +36,7 @@ extern bool dos_kernel_disabled;
 extern bool dos_shell_running_program;
 
 bool GFX_GetPreventFullscreen(void);
+void DOSBox_ShowConsole();
 
 #if !defined(C_SDL2)
 void GUI_ResetResize(bool pressed);
@@ -2717,6 +2718,7 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 	case ID_GLIDE_LFB_READ_NOAUX: SetVal("glide", "lfb", "read_noaux"); break;
 	case ID_GLIDE_LFB_WRITE: SetVal("glide", "lfb", "write"); break;
 	case ID_GLIDE_LFB_WRITE_NOAUX: SetVal("glide", "lfb", "write_noaux"); break;
+	case ID_SHOWCONSOLE: DOSBox_ShowConsole(); break;
 	case ID_GLIDE_LFB_NONE: SetVal("glide", "lfb", "none"); break;
 	case ID_GLIDE_SPLASH:
 	{

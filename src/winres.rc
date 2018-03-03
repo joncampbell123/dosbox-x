@@ -10,7 +10,7 @@ BEGIN
 	POPUP "Main"
 	BEGIN
 		MENUITEM "Quick Launch",		ID_OPENFILE
-		MENUITEM "Mapper\tCtrl-F1",		ID_KEYMAP
+		MENUITEM "&Mapper\tCtrl-F1",		ID_KEYMAP
 		MENUITEM SEPARATOR
 		MENUITEM "Wait on error",		ID_WAITONERR
 		MENUITEM "Avoid usage of symkeys",		ID_USESCANCODES
@@ -30,10 +30,11 @@ BEGIN
 			MENUITEM "Save the current settings",		ID_REFRESH
 			MENUITEM "Save the current language strings",		ID_SAVELANG
 		END
-		MENUITEM "Show details",		ID_HIDECYCL
-		MENUITEM "Reset system\tCtrl-Alt-Pause", ID_RESET
+		MENUITEM "Show &details",		ID_HIDECYCL
+		MENUITEM "Show &console",		ID_SHOWCONSOLE
+		MENUITEM "&Reset system\tCtrl-Alt-Pause", ID_RESET
 		MENUITEM "Restart DOSBox-X\tCtrl-Alt-Home",		ID_RESTART
-		MENUITEM "Exit\tCtrl-F9",		ID_QUIT
+		MENUITEM "E&xit\tCtrl-F9",		ID_QUIT
 	END
 	POPUP "Cpu"
 	BEGIN
