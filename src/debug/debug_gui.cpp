@@ -214,10 +214,12 @@ static void MakeSubWindows(void) {
 	outy+=height;
 
     /* The Variable Window */
-    outy++; // header
-    height=4;
-	dbg.win_var=subwin(dbg.win_main,height,win_main_maxx,outy,0);
-	outy+=height;
+    if (false/*TODO: Enable flag, or auto-enable when vars are entered into debugger*/) {
+        outy++; // header
+        height=4;
+        dbg.win_var=subwin(dbg.win_main,height,win_main_maxx,outy,0);
+        outy+=height;
+    }
 
     /* The Output Window */
     if ((outy+1) < win_main_maxy) {
