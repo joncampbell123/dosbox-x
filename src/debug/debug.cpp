@@ -887,14 +887,19 @@ static void DrawCode(void) {
 
     /*---------------*/
 
-	wattrset(dbg.win_inp,0);
 	if (!debugging) {
+        wbkgdset(dbg.win_inp,COLOR_PAIR(PAIR_GREEN_BLACK));
+        wattrset(dbg.win_inp,COLOR_PAIR(PAIR_GREEN_BLACK));
+
 		mvwprintw(dbg.win_inp,0,0,"%s","(Running)");
 		wclrtoeol(dbg.win_inp);
 	} else {
 		//TODO long lines
 		char* dispPtr = codeViewData.inputStr; 
 		char* curPtr = &codeViewData.inputStr[codeViewData.inputPos];
+
+        wbkgdset(dbg.win_inp,COLOR_PAIR(PAIR_BLACK_GREY));
+        wattrset(dbg.win_inp,COLOR_PAIR(PAIR_BLACK_GREY));
 		mvwprintw(dbg.win_inp,0,0,"%c-> %s%c",
 			(codeViewData.ovrMode?'O':'I'),dispPtr,(*curPtr?' ':'_'));
 		wclrtoeol(dbg.win_inp); // not correct in pdcurses if full line
