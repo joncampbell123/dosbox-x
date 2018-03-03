@@ -2207,13 +2207,24 @@ void DEBUG_ShutDown(Section * /*sec*/) {
 	if (dbg.win_main != NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("DEBUG_Shutdown freeing ncurses state");
 		curs_set(old_cursor_state);
-		endwin();
-		dbg.win_main = NULL;
-		dbg.win_reg = NULL;//FIXME: How to free return value of subwin()?
-		dbg.win_data = NULL;//FIXME: How to free return value of subwin()?
-		dbg.win_code = NULL;//FIXME: How to free return value of subwin()?
-		dbg.win_var = NULL;//FIXME: How to free return value of subwin()?
+
+        if (dbg.win_out) delwin(dbg.win_out);
 		dbg.win_out = NULL;//FIXME: How to free return value of subwin()?
+
+        if (dbg.win_var) delwin(dbg.win_var);
+		dbg.win_var = NULL;//FIXME: How to free return value of subwin()?
+
+        if (dbg.win_reg) delwin(dbg.win_reg);
+		dbg.win_reg = NULL;//FIXME: How to free return value of subwin()?
+
+        if (dbg.win_code) delwin(dbg.win_code);
+		dbg.win_code = NULL;//FIXME: How to free return value of subwin()?
+
+        if (dbg.win_data) delwin(dbg.win_data);
+		dbg.win_data = NULL;//FIXME: How to free return value of subwin()?
+
+        endwin();
+		dbg.win_main = NULL;
 
 #ifndef WIN32
 		tcsetattr(0,TCSANOW,&consolesettings);
