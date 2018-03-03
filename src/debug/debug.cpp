@@ -1755,6 +1755,10 @@ Bit32u DEBUG_CheckKeys(void) {
 				SetCodeWinStart();
 				CBreakpoint::ignoreOnce = 0;
 				break;
+        case 0x09: //TAB
+                void DBGUI_NextWindow(void);
+                DBGUI_NextWindow();
+                break;
 		case 0x0A: //Parse typed Command
 				codeViewData.inputStr[MAXCMDLEN] = '\0';
 				if(ParseCommand(codeViewData.inputStr)) {

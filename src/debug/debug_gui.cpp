@@ -50,6 +50,17 @@ static list<string>::iterator logBuffPos = logBuff.end();
 
 extern int old_cursor_state;
 
+void DBGBlock::next_window(void) {
+    int limit = WINI_MAX_INDEX;
+
+    do {
+        if (++active_win >= WINI_MAX_INDEX)
+            active_win = 0;
+        if (--limit <= 0)
+            break;
+    } while (get_active_win() == NULL);
+}
+
 WINDOW *DBGBlock::get_win(int idx) {
     switch (idx) {
         case WINI_REG:  return win_reg;
@@ -302,6 +313,12 @@ static void MakePairs(void) {
 	init_pair(PAIR_GREY_RED, COLOR_WHITE/*| FOREGROUND_INTENSITY */, COLOR_RED);
     init_pair(PAIR_BLACK_GREEN, COLOR_BLACK, COLOR_GREEN);
 	init_pair(PAIR_WHITE_BLUE, COLOR_WHITE/* | FOREGROUND_INTENSITY*/, COLOR_BLUE);
+}
+
+void DBGUI_NextWindow(void) {
+    dbg.next_window();
+	DrawBars();
+	DEBUG_DrawScreen();
 }
 
 void DBGUI_StartUp(void) {

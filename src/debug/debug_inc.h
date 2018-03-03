@@ -66,6 +66,7 @@ public:
 
     WINDOW *get_win(int idx);
     WINDOW *get_active_win(void);
+    void next_window(void);
 };
 
 
