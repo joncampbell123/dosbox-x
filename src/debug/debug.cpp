@@ -60,6 +60,7 @@ int old_cursor_state;
 
 // Forwards
 static void DrawCode(void);
+static void DrawInput(void);
 static void DEBUG_RaiseTimerIrq(void);
 static void SaveMemory(Bit16u seg, Bit32u ofs1, Bit32u num);
 static void SaveMemoryBin(Bit16u seg, Bit32u ofs1, Bit32u num);
@@ -798,6 +799,31 @@ static void DrawRegisters(void) {
 	wrefresh(dbg.win_reg);
 };
 
+static void DrawInput(void) {
+    if (!debugging) {
+        wbkgdset(dbg.win_inp,COLOR_PAIR(PAIR_GREEN_BLACK));
+        wattrset(dbg.win_inp,COLOR_PAIR(PAIR_GREEN_BLACK));
+
+        mvwprintw(dbg.win_inp,0,0,"%s","(Running)");
+        wclrtoeol(dbg.win_inp);
+    } else {
+        //TODO long lines
+        char* dispPtr = codeViewData.inputStr; 
+        char* curPtr = &codeViewData.inputStr[codeViewData.inputPos];
+
+        wbkgdset(dbg.win_inp,COLOR_PAIR(PAIR_BLACK_GREY));
+        wattrset(dbg.win_inp,COLOR_PAIR(PAIR_BLACK_GREY));
+        mvwprintw(dbg.win_inp,0,0,"%c-> %s%c",
+                (codeViewData.ovrMode?'O':'I'),dispPtr,(*curPtr?' ':'_'));
+        wclrtoeol(dbg.win_inp); // not correct in pdcurses if full line
+        if (*curPtr) {
+            mvwchgat(dbg.win_inp,0,(curPtr-dispPtr+4),1,0,(PAIR_BLACK_GREY),NULL);
+        } 
+    }
+
+    wrefresh(dbg.win_inp);
+}
+
 static void DrawCode(void) {
 	if (dbg.win_main == NULL || dbg.win_code == NULL)
 		return;
@@ -884,31 +910,6 @@ static void DrawCode(void) {
 	codeViewData.useEIPlast = disEIP;
 
 	wrefresh(dbg.win_code);
-
-    /*---------------*/
-
-	if (!debugging) {
-        wbkgdset(dbg.win_inp,COLOR_PAIR(PAIR_GREEN_BLACK));
-        wattrset(dbg.win_inp,COLOR_PAIR(PAIR_GREEN_BLACK));
-
-		mvwprintw(dbg.win_inp,0,0,"%s","(Running)");
-		wclrtoeol(dbg.win_inp);
-	} else {
-		//TODO long lines
-		char* dispPtr = codeViewData.inputStr; 
-		char* curPtr = &codeViewData.inputStr[codeViewData.inputPos];
-
-        wbkgdset(dbg.win_inp,COLOR_PAIR(PAIR_BLACK_GREY));
-        wattrset(dbg.win_inp,COLOR_PAIR(PAIR_BLACK_GREY));
-		mvwprintw(dbg.win_inp,0,0,"%c-> %s%c",
-			(codeViewData.ovrMode?'O':'I'),dispPtr,(*curPtr?' ':'_'));
-		wclrtoeol(dbg.win_inp); // not correct in pdcurses if full line
-		if (*curPtr) {
-			mvwchgat(dbg.win_inp,0,(curPtr-dispPtr+4),1,0,(PAIR_BLACK_GREY),NULL);
- 		} 
-	}
-
-	wrefresh(dbg.win_inp);
 }
 
 static void SetCodeWinStart()
@@ -1875,6 +1876,7 @@ void DEBUG_Enable(bool pressed) {
 void DEBUG_DrawScreen(void) {
 	DrawData();
 	DrawCode();
+    DrawInput();
 	DrawRegisters();
 	DrawVariables();
 }
