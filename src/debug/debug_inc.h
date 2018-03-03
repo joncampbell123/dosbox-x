@@ -35,7 +35,7 @@ void DBGUI_StartUp(void);
 class DBGBlock {
 public:
 	DBGBlock() : win_main(NULL), win_reg(NULL), win_data(NULL), win_code(NULL),
-		win_var(NULL), win_out(NULL), active_win(0), input_y(0), global_mask(0) { }
+		win_var(NULL), win_out(NULL), win_inp(NULL), active_win(0), input_y(0), global_mask(0) { }
 public:
 	WINDOW * win_main;					/* The Main Window */
 	WINDOW * win_reg;					/* Register Window */
@@ -43,6 +43,7 @@ public:
 	WINDOW * win_code;					/* Disassembly/Debug point Window */
 	WINDOW * win_var;					/* Variable Window */
 	WINDOW * win_out;					/* Text Output Window */
+    WINDOW * win_inp;                   /* Input window */
 	Bit32u active_win;					/* Current active window */
 	Bit32u input_y;
 	Bit32u global_mask;					/* Current msgmask */

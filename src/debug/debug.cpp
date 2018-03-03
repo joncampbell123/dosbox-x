@@ -882,24 +882,28 @@ static void DrawCode(void) {
 	}
 
 	codeViewData.useEIPlast = disEIP;
-	
-	wattrset(dbg.win_code,0);			
+
+	wrefresh(dbg.win_code);
+
+    /*---------------*/
+
+	wattrset(dbg.win_inp,0);
 	if (!debugging) {
-		mvwprintw(dbg.win_code,10,0,"%s","(Running)");
-		wclrtoeol(dbg.win_code);
+		mvwprintw(dbg.win_inp,0,0,"%s","(Running)");
+		wclrtoeol(dbg.win_inp);
 	} else {
 		//TODO long lines
 		char* dispPtr = codeViewData.inputStr; 
 		char* curPtr = &codeViewData.inputStr[codeViewData.inputPos];
-		mvwprintw(dbg.win_code,10,0,"%c-> %s%c",
+		mvwprintw(dbg.win_inp,0,0,"%c-> %s%c",
 			(codeViewData.ovrMode?'O':'I'),dispPtr,(*curPtr?' ':'_'));
-		wclrtoeol(dbg.win_code); // not correct in pdcurses if full line
+		wclrtoeol(dbg.win_inp); // not correct in pdcurses if full line
 		if (*curPtr) {
-			mvwchgat(dbg.win_code,10,(curPtr-dispPtr+4),1,0,(PAIR_BLACK_GREY),NULL);
+			mvwchgat(dbg.win_inp,0,(curPtr-dispPtr+4),1,0,(PAIR_BLACK_GREY),NULL);
  		} 
 	}
 
-	wrefresh(dbg.win_code);
+	wrefresh(dbg.win_inp);
 }
 
 static void SetCodeWinStart()
@@ -1637,7 +1641,7 @@ Bit32u DEBUG_CheckKeys(void) {
 
                     getmaxyx(dbg.win_code,y,x);
 
-                    if (codeViewData.cursorPos < (y-2)) codeViewData.cursorPos++;
+                    if (codeViewData.cursorPos < (y-1)) codeViewData.cursorPos++;
                     else codeViewData.useEIP += codeViewData.firstInstSize;
                 }
 				break;

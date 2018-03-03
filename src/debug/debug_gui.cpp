@@ -169,6 +169,9 @@ static void DrawBars(void) {
 }
 
 static void DestroySubWindows(void) {
+    if (dbg.win_inp) delwin(dbg.win_inp);
+    dbg.win_inp = NULL;
+
     if (dbg.win_out) delwin(dbg.win_out);
     dbg.win_out = NULL;
 
@@ -222,11 +225,18 @@ static void MakeSubWindows(void) {
     }
 
     /* The Output Window */
-    if ((outy+1) < win_main_maxy) {
+    if ((outy+1) < (win_main_maxy-1)) {
         outy++; // header
-        height=win_main_maxy - outy;
+        height=(win_main_maxy-1) - outy;
         dbg.win_out=subwin(dbg.win_main,height,win_main_maxx,outy,0);
         outy+=height;
+    }
+
+    if (outy < win_main_maxy) {
+        // no header
+        height=1;
+        dbg.win_inp=subwin(dbg.win_main,height,win_main_maxx,outy,0);
+        outy += height;
     }
 
     if (dbg.win_out != NULL)
