@@ -86,7 +86,7 @@ void DBGUI_DrawBlankOutputLine(int y) {
         mvwprintw(dbg.win_out, y, 0, "<LOG BUFFER ENDS, OLDER CONTENT DISCARDED BEYOND THIS POINT>");
     else
         mvwprintw(dbg.win_out, y, 0, "<END OF LOG>");
-    wclrtoeol(dbg.win_out);
+//    wclrtoeol(dbg.win_out);
 }
 
 void DBGUI_DrawDebugOutputLine(int y,std::string line) {
@@ -110,7 +110,7 @@ void DBGUI_DrawDebugOutputLine(int y,std::string line) {
         mvwprintw(dbg.win_out, y, maxx-3,  "...");
     }
 
-    wclrtoeol(dbg.win_out);
+//    wclrtoeol(dbg.win_out);
 }
 
 void DEBUG_LimitTopPos(void) {
