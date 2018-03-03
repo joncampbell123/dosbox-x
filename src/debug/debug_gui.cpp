@@ -50,6 +50,22 @@ static list<string>::iterator logBuffPos = logBuff.end();
 
 extern int old_cursor_state;
 
+WINDOW *DBGBlock::get_win(int idx) {
+    switch (idx) {
+        case WINI_REG:  return win_reg;
+        case WINI_DATA: return win_data;
+        case WINI_CODE: return win_code;
+        case WINI_VAR:  return win_var;
+        case WINI_OUT:  return win_out;
+    }
+
+    return NULL;
+}
+
+WINDOW *DBGBlock::get_active_win(void) {
+    return get_win(active_win);
+}
+
 void DBGUI_DrawDebugOutputLine(int y,std::string line) {
 	if (dbg.win_out == NULL) return;
 
@@ -145,13 +161,26 @@ static void Draw_RegisterLayout(void) {
 }
 
 static void DrawSubWinBox(WINDOW *wnd,const char *title) {
+    bool active = false;
     int x,y;
     int w,h;
 
     if (wnd == NULL) return;
 
+    WINDOW *active_win = dbg.get_active_win();
+
+    if (wnd == active_win)
+        active = true;
+
     getbegyx(wnd,y,x);
     getmaxyx(wnd,h,w);
+
+	if (has_colors()) {
+        if (active)
+    		attrset(COLOR_PAIR(PAIR_BLACK_BLUE));
+        else
+    		attrset(COLOR_PAIR(PAIR_WHITE_BLUE));
+    }
 
     mvhline(y-1,x,ACS_HLINE,w);
     if (title != NULL) mvaddstr(y-1,x+4,title);
@@ -163,10 +192,6 @@ static void DrawBars(void) {
 
 	if (dbg.win_main == NULL)
 		return;
-
-	if (has_colors()) {
-		attrset(COLOR_PAIR(PAIR_BLACK_BLUE));
-	}
 
 	/* Show the Register bar */
     DrawSubWinBox(dbg.win_reg,      "Register Overview");
@@ -276,6 +301,7 @@ static void MakePairs(void) {
 	init_pair(PAIR_BLACK_GREY, COLOR_BLACK /*| FOREGROUND_INTENSITY */, COLOR_WHITE);
 	init_pair(PAIR_GREY_RED, COLOR_WHITE/*| FOREGROUND_INTENSITY */, COLOR_RED);
     init_pair(PAIR_BLACK_GREEN, COLOR_BLACK, COLOR_GREEN);
+	init_pair(PAIR_WHITE_BLUE, COLOR_WHITE/* | FOREGROUND_INTENSITY*/, COLOR_BLUE);
 }
 
 void DBGUI_StartUp(void) {

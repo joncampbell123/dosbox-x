@@ -29,24 +29,43 @@
 #define PAIR_BLACK_GREY 4
 #define PAIR_GREY_RED 5
 #define PAIR_BLACK_GREEN 6
+#define PAIR_WHITE_BLUE 7
 
 void DBGUI_StartUp(void);
 
 class DBGBlock {
 public:
-	DBGBlock() : win_main(NULL), win_reg(NULL), win_data(NULL), win_code(NULL),
-		win_var(NULL), win_out(NULL), win_inp(NULL), active_win(0), input_y(0), global_mask(0) { }
+    enum {
+        /* main not counted */
+        WINI_REG,
+        WINI_DATA,
+        WINI_CODE,
+        WINI_VAR,
+        WINI_OUT,
+        /* inp not counted */
+
+        WINI_MAX_INDEX
+    };
 public:
-	WINDOW * win_main;					/* The Main Window */
+	DBGBlock() : win_main(NULL), win_reg(NULL), win_data(NULL), win_code(NULL),
+		win_var(NULL), win_out(NULL), win_inp(NULL), active_win(WINI_CODE), input_y(0), global_mask(0) { }
+public:
+	WINDOW * win_main;					/* The Main Window (not counted in tab enumeration) */
+
 	WINDOW * win_reg;					/* Register Window */
 	WINDOW * win_data;					/* Data Output window */
 	WINDOW * win_code;					/* Disassembly/Debug point Window */
 	WINDOW * win_var;					/* Variable Window */
 	WINDOW * win_out;					/* Text Output Window */
-    WINDOW * win_inp;                   /* Input window */
-	Bit32u active_win;					/* Current active window */
+
+    WINDOW * win_inp;                   /* Input window (not counted in tab enumeration) */
+
+    Bit32u active_win;					/* Current active window */
 	Bit32u input_y;
 	Bit32u global_mask;					/* Current msgmask */
+
+    WINDOW *get_win(int idx);
+    WINDOW *get_active_win(void);
 };
 
 
