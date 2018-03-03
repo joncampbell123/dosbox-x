@@ -221,10 +221,6 @@ void DEBUG_ShowMsg(char const* format,...) {
     /* remove newlines if present */
     while (len > 0 && buf[len-1] == '\n') buf[--len] = 0;
 
-	/* Add newline if not present */
-	if (len > 0 && buf[len-1] != '\n') buf[len++] = '\n';
-	buf[len] = 0;
-
 	if (do_LOG_stderr || debuglog == NULL)
 		stderrlog = true;
 
@@ -236,11 +232,11 @@ void DEBUG_ShowMsg(char const* format,...) {
 #endif
 
 	if (debuglog != NULL) {
-		fprintf(debuglog,"%s",buf);
+		fprintf(debuglog,"%s\n",buf);
 		fflush(debuglog);
 	}
 	if (stderrlog) {
-		fprintf(stderr,"LOG: %s",buf);
+		fprintf(stderr,"LOG: %s\n",buf);
 		fflush(stderr);
 	}
 
@@ -256,7 +252,7 @@ void DEBUG_ShowMsg(char const* format,...) {
 	logBuffPos = logBuff.end();
 
 	if (dbg.win_out != NULL) {
-		wprintw(dbg.win_out,"%s",buf);
+		wprintw(dbg.win_out,"%s\n",buf);
 		wrefresh(dbg.win_out);
 	}
 #endif
