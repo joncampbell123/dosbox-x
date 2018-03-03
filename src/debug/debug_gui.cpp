@@ -148,6 +148,16 @@ void DEBUG_RefreshPage(char scroll) {
 	wrefresh(dbg.win_out);
 }
 
+void DEBUG_ScrollHomeOutput(void) {
+    logBuffPos = logBuff.begin();
+    DEBUG_RefreshPage(0);
+}
+
+void DEBUG_ScrollToEndOutput(void) {
+    logBuffPos = logBuff.end();
+    DEBUG_RefreshPage(0);
+}
+
 static void Draw_RegisterLayout(void) {
 	if (dbg.win_main == NULL)
 		return;

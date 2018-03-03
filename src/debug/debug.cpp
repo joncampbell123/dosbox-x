@@ -1785,12 +1785,34 @@ Bit32u DEBUG_CheckKeys(void) {
                 }
 				break;
 
-                // FIXME: Make window controls
-		case KEY_HOME:	// Home: scroll log page up
-				DEBUG_RefreshPage(-1);
+		case KEY_HOME:	// Home
+                switch (dbg.active_win) {
+                    case DBGBlock::WINI_CODE:
+                        // and do what?
+                        break;
+                    case DBGBlock::WINI_DATA:
+                        // and do what?
+                        break;
+                    case DBGBlock::WINI_OUT:
+                        void DEBUG_ScrollHomeOutput(void);
+                        DEBUG_ScrollHomeOutput();
+                        break;
+                }
 				break;
-		case KEY_END:	// End: scroll log page down
-				DEBUG_RefreshPage(1);
+
+		case KEY_END:	// End
+                switch (dbg.active_win) {
+                    case DBGBlock::WINI_CODE:
+                        // and do what?
+                        break;
+                    case DBGBlock::WINI_DATA:
+                        // and do what?
+                        break;
+                    case DBGBlock::WINI_OUT:
+                        void DEBUG_ScrollToEndOutput(void);
+                        DEBUG_ScrollToEndOutput();
+                        break;
+                }
 				break;
 
         case KEY_IC:	// Insert: toggle insert/overwrite
