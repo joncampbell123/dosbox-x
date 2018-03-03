@@ -125,22 +125,45 @@ static void Draw_RegisterLayout(void) {
 
 
 static void DrawBars(void) {
+    int x,y;
+
 	if (dbg.win_main == NULL)
 		return;
 
 	if (has_colors()) {
 		attrset(COLOR_PAIR(PAIR_BLACK_BLUE));
 	}
+
 	/* Show the Register bar */
-	mvaddstr(1-1,0, "---(Register Overview                   )---");
+    if (dbg.win_reg != NULL) {
+        getbegyx(dbg.win_reg,y,x);
+        mvaddstr(y-1,x, "---(Register Overview                   )---");
+    }
+
 	/* Show the Data Overview bar perhaps with more special stuff in the end */
-	mvaddstr(6-1,0,"---(Data Overview   Scroll: page up/down)---");
-	/* Show the Code Overview perhaps with special stuff in bar too */
-	mvaddstr(17-1,0,"---(Code Overview   Scroll: up/down     )---");
+    if (dbg.win_data != NULL) {
+        getbegyx(dbg.win_data,y,x);
+        mvaddstr(y-1,x,"---(Data Overview   Scroll: page up/down)---");
+    }
+
+    /* Show the Code Overview perhaps with special stuff in bar too */
+    if (dbg.win_code != NULL) {
+        getbegyx(dbg.win_code,y,x);
+        mvaddstr(y-1,x,"---(Code Overview   Scroll: up/down     )---");
+    }
+
 	/* Show the Variable Overview bar */
-	mvaddstr(29-1,0, "---(Variable Overview                   )---");
+    if (dbg.win_var != NULL) {
+        getbegyx(dbg.win_var,y,x);
+        mvaddstr(y-1,x, "---(Variable Overview                   )---");
+    }
+
 	/* Show the Output OverView */
-	mvaddstr(34-1,0, "---(Output          Scroll: home/end    )---");
+    if (dbg.win_out != NULL) {
+        getbegyx(dbg.win_out,y,x);
+        mvaddstr(y-1,x, "---(Output          Scroll: home/end    )---");
+    }
+
 	attrset(0);
 	//Match values with below. So we don't need to touch the internal window structures
 }
@@ -177,20 +200,26 @@ static void MakeSubWindows(void) {
 	/* The Register window  */
 	dbg.win_reg=subwin(dbg.win_main,4,win_main_maxx,outy,0);
 	outy+=5; // 6
-	/* The Data Window */
+
+    /* The Data Window */
 	dbg.win_data=subwin(dbg.win_main,10,win_main_maxx,outy,0);
 	outy+=11; // 17
-	/* The Code Window */
+
+    /* The Code Window */
 	dbg.win_code=subwin(dbg.win_main,11,win_main_maxx,outy,0);
 	outy+=12; // 29
-	/* The Variable Window */
+
+    /* The Variable Window */
 	dbg.win_var=subwin(dbg.win_main,4,win_main_maxx,outy,0);
 	outy+=5; // 34
-	/* The Output Window */	
-	dbg.win_out=subwin(dbg.win_main,win_main_maxy-outy,win_main_maxx,outy,0);
-	if(!dbg.win_reg ||!dbg.win_data || !dbg.win_code || !dbg.win_var || !dbg.win_out) E_Exit("Setting up windows failed");
-//	dbg.input_y=win_main_maxy-1;
-	scrollok(dbg.win_out,TRUE);
+
+    /* The Output Window */
+    if (outy < win_main_maxy)
+    	dbg.win_out=subwin(dbg.win_main,win_main_maxy-outy,win_main_maxx,outy,0);
+
+    if (dbg.win_out != NULL)
+    	scrollok(dbg.win_out,TRUE);
+
 	DrawBars();
 	Draw_RegisterLayout();
 	refresh();
