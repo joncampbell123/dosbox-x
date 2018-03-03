@@ -1632,8 +1632,14 @@ Bit32u DEBUG_CheckKeys(void) {
 		case KEY_NPAGE :	dataOfs += 16;	break;
 
 		case KEY_DOWN:	// down 
-				if (codeViewData.cursorPos<9) codeViewData.cursorPos++;
-				else codeViewData.useEIP += codeViewData.firstInstSize;	
+                if (dbg.win_code != NULL) {
+                    int y,x;
+
+                    getmaxyx(dbg.win_code,y,x);
+
+                    if (codeViewData.cursorPos < (y-2)) codeViewData.cursorPos++;
+                    else codeViewData.useEIP += codeViewData.firstInstSize;
+                }
 				break;
 		case KEY_UP:	// up 
 				if (codeViewData.cursorPos>0) codeViewData.cursorPos--;
