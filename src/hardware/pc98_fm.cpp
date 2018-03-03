@@ -184,7 +184,7 @@ static void pc98_mix_CallBack(Bitu len) {
     if (s > (sizeof(MixTemp)/sizeof(Bit32s)/2))
         s = (sizeof(MixTemp)/sizeof(Bit32s)/2);
 
-    memset(MixTemp,0,sizeof(MixTemp));
+    memset(MixTemp,0,s * sizeof(Bit32s) * 2);
 
     opngen_getpcm(NULL, (SINT32*)MixTemp, s);
     tms3631_getpcm(&tms3631, (SINT32*)MixTemp, s);
