@@ -807,8 +807,10 @@ static void DrawCode(void) {
 	PhysPt start  = GetAddress(codeViewData.useCS,codeViewData.useEIP);
 	char dline[200];Bitu size;Bitu c;
 	static char line20[21] = "                    ";
+    int w,h;
 
-	for (int i=0;i<10;i++) {
+    getmaxyx(dbg.win_code,h,w);
+	for (int i=0;i<h;i++) {
 		saveSel = false;
 		if (has_colors()) {
 			if ((codeViewData.useCS==SegValue(cs)) && (disEIP == reg_eip)) {
