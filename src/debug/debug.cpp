@@ -849,18 +849,25 @@ static void DrawCode(void) {
 				}
 				saveSel = (i == codeViewData.cursorPos);
 
-                if (i == codeViewData.cursorPos)
+                if (i == codeViewData.cursorPos) {
+                    wbkgdset(dbg.win_code,COLOR_PAIR(PAIR_BLACK_GREEN));
                     wattrset(dbg.win_code,COLOR_PAIR(PAIR_BLACK_GREEN));
-                else
+                }
+                else {
+                    wbkgdset(dbg.win_code,COLOR_PAIR(PAIR_GREEN_BLACK));
                     wattrset(dbg.win_code,COLOR_PAIR(PAIR_GREEN_BLACK));
+                }
             } else if (i == codeViewData.cursorPos) {
+                wbkgdset(dbg.win_code,COLOR_PAIR(PAIR_BLACK_GREY));
 				wattrset(dbg.win_code,COLOR_PAIR(PAIR_BLACK_GREY));			
 				codeViewData.cursorSeg = codeViewData.useCS;
 				codeViewData.cursorOfs = disEIP;
 				saveSel = true;
 			} else if (CBreakpoint::IsBreakpointDrawn(start)) {
+                wbkgdset(dbg.win_code,COLOR_PAIR(PAIR_GREY_RED));
 				wattrset(dbg.win_code,COLOR_PAIR(PAIR_GREY_RED));			
 			} else {
+                wbkgdset(dbg.win_code,0);
 				wattrset(dbg.win_code,0);			
 			}
 		}
@@ -899,7 +906,9 @@ static void DrawCode(void) {
 			waddstr(dbg.win_code,line20);
 			line20[20-res_len] = ' ';
 		} else 	waddstr(dbg.win_code,line20);
-		
+
+        wclrtoeol(dbg.win_code);
+
 		start+=size;
 		disEIP+=size;
 
