@@ -1570,6 +1570,59 @@ char* AnalyzeInstruction(char* inst, bool saveSelector) {
 	return result;
 };
 
+// data window
+void win_data_ui_down(int count) {
+    if (count > 0)
+        dataOfs += (unsigned)count * 16;
+}
+
+void win_data_ui_up(int count) {
+    if (count > 0)
+        dataOfs -= (unsigned)count * 16;
+}
+
+// code window
+void win_code_ui_down(int count) {
+    if (dbg.win_code != NULL) {
+        int y,x;
+
+        getmaxyx(dbg.win_code,y,x);
+
+        while (count-- > 0) {
+            if (codeViewData.cursorPos < (y-1)) codeViewData.cursorPos++;
+            else codeViewData.useEIP += codeViewData.firstInstSize;
+        }
+    }
+}
+
+void win_code_ui_up(int count) {
+    if (dbg.win_code != NULL) {
+        int y,x;
+
+        getmaxyx(dbg.win_code,y,x);
+
+        while (count-- > 0) {
+            if (codeViewData.cursorPos>0)
+                codeViewData.cursorPos--;
+            else {
+                Bitu bytes = 0;
+                char dline[200];
+                Bitu size = 0;
+                Bit32u newEIP = codeViewData.useEIP - 1;
+                if(codeViewData.useEIP) {
+                    for (; bytes < 10; bytes++) {
+                        PhysPt start = GetAddress(codeViewData.useCS,newEIP);
+                        size = DasmI386(dline, start, newEIP, cpu.code.big);
+                        if(codeViewData.useEIP == newEIP+size) break;
+                        newEIP--;
+                    }
+                    if (bytes>=10) newEIP = codeViewData.useEIP - 1;
+                }
+                codeViewData.useEIP = newEIP;
+            }
+        }
+    }
+}
 
 Bit32u DEBUG_CheckKeys(void) {
 	Bits ret=0;
@@ -1647,37 +1700,69 @@ Bit32u DEBUG_CheckKeys(void) {
 				break;
 			}
 			break;
-		case KEY_PPAGE :	dataOfs -= 16;	break;
-		case KEY_NPAGE :	dataOfs += 16;	break;
+        case KEY_PPAGE: // page up
+            switch (dbg.active_win) {
+                case DBGBlock::WINI_CODE:
+                    if (dbg.win_code != NULL) {
+                        int w,h;
 
-		case KEY_DOWN:	// down 
-                if (dbg.win_code != NULL) {
-                    int y,x;
+                        getmaxyx(dbg.win_code,h,w);
+                        win_code_ui_up(h-1);
+                    }
+                    break;
+                case DBGBlock::WINI_DATA: {
+                     if (dbg.win_data != NULL) {
+                        int w,h;
 
-                    getmaxyx(dbg.win_code,y,x);
+                        getmaxyx(dbg.win_data,h,w);
+                        win_data_ui_up(h);
+                    }
+                    break;
+                }
+            }
+            break;
 
-                    if (codeViewData.cursorPos < (y-1)) codeViewData.cursorPos++;
-                    else codeViewData.useEIP += codeViewData.firstInstSize;
+        case KEY_NPAGE:	// page down
+            switch (dbg.active_win) {
+                case DBGBlock::WINI_CODE:
+                    if (dbg.win_code != NULL) {
+                        int w,h;
+
+                        getmaxyx(dbg.win_code,h,w);
+                        win_code_ui_down(h-1);
+                    }
+                    break;
+                case DBGBlock::WINI_DATA: {
+                     if (dbg.win_data != NULL) {
+                        int w,h;
+
+                        getmaxyx(dbg.win_data,h,w);
+                        win_data_ui_down(h);
+                    }
+                    break;
+                }
+            }
+            break;
+
+		case KEY_DOWN:	// down
+                switch (dbg.active_win) {
+                    case DBGBlock::WINI_CODE:
+                        win_code_ui_down(1);
+                        break;
+                    case DBGBlock::WINI_DATA:
+                        win_data_ui_down(1);
+                        break;
                 }
 				break;
 		case KEY_UP:	// up 
-				if (codeViewData.cursorPos>0) codeViewData.cursorPos--;
-				else {
-					Bitu bytes = 0;
-					char dline[200];
-					Bitu size = 0;
-					Bit32u newEIP = codeViewData.useEIP - 1;
-					if(codeViewData.useEIP) {
-						for (; bytes < 10; bytes++) {
-							PhysPt start = GetAddress(codeViewData.useCS,newEIP);
-							size = DasmI386(dline, start, newEIP, cpu.code.big);
-							if(codeViewData.useEIP == newEIP+size) break;
-							newEIP--;
-						}
-						if (bytes>=10) newEIP = codeViewData.useEIP - 1;
-					}
-					codeViewData.useEIP = newEIP;
-				}
+                switch (dbg.active_win) {
+                    case DBGBlock::WINI_CODE:
+                        win_code_ui_up(1);
+                        break;
+                    case DBGBlock::WINI_DATA:
+                        win_data_ui_up(1);
+                        break;
+                }
 				break;
 		case KEY_HOME:	// Home: scroll log page up
 				DEBUG_RefreshPage(-1);

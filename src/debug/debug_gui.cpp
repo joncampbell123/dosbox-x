@@ -208,10 +208,10 @@ static void DrawBars(void) {
     DrawSubWinBox(dbg.win_reg,      "Register Overview");
 
 	/* Show the Data Overview bar perhaps with more special stuff in the end */
-    DrawSubWinBox(dbg.win_data,     "Data Overview   Scroll: page up/down");
+    DrawSubWinBox(dbg.win_data,     "Data Overview");
 
     /* Show the Code Overview perhaps with special stuff in bar too */
-    DrawSubWinBox(dbg.win_code,     "Code Overview   Scroll: up/down");
+    DrawSubWinBox(dbg.win_code,     "Code Overview");
 
 	/* Show the Variable Overview bar */
     DrawSubWinBox(dbg.win_var,      "Variable Overview");
