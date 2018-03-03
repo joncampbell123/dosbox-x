@@ -1,4 +1,18 @@
 (next)
+  - Code, data, and output now respond to arrow, page up/down and
+    home/end keys as a user would normally expect.
+  - Arrow and page up/down keyboard input now goes to active window
+    instead of mapping directly to any specific window.
+  - Debugger interface now has the concept of an "active" window, and
+    the title bar of each window hilights if it is active.
+  - Debugger interface now hides the "variables" window by default.
+  - Fixed window "titles" in debugger interface to fill the terminal
+    line they're on and use ncurses horizontal line character which
+    on modern systems looks better than hyphens.
+  - Removed one line padding around data window in debugger interface.
+  - Debugger interface redesigned to permit more flexible layout
+  - Debugger interface no longer crashes when terminal window is sized
+    down too small (when there is no room for the output window)
   - EMM386 (ems) emulation fixed to always turn on the A20 gate when
     the DOS application requests to map pages into the EMS page frame.
     This fixes crashes with Creative's Sound Blaster 16 installer when
