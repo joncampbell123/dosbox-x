@@ -81,8 +81,23 @@ void DEBUG_RefreshPage(char scroll) {
         while (rem_lines > 0) {
             rem_lines--;
 
+            std::string line = (*i);
+            bool ellipsisEnd = false;
+
+            /* cut the line short if it's too long for the terminal window */
+            if (line.length() > maxx) {
+                line = line.substr(0,maxx-3);
+                ellipsisEnd = true;
+            }
+
             /* Const cast is needed for pdcurses which has no const char in mvwprintw (bug maybe) */
-            mvwprintw(dbg.win_out,rem_lines, 0, const_cast<char*>((*i).c_str()));
+            wattrset(dbg.win_out,0);
+            mvwprintw(dbg.win_out,rem_lines, 0, const_cast<char*>(line.c_str()));
+
+            if (ellipsisEnd) {
+                wattrset(dbg.win_out,COLOR_PAIR(PAIR_GREEN_BLACK));
+                waddstr(dbg.win_out,"...");
+            }
 
             if (i != logBuff.begin())
                 i--;
