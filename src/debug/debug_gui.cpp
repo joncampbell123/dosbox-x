@@ -33,6 +33,7 @@
 static bool has_LOG_Init = false;
 static bool has_LOG_EarlyInit = false;
 static bool do_LOG_stderr = false;
+static bool logBuffHasDiscarded = false;
 
 _LogGroup loggrp[LOG_MAX]={{"",LOG_NORMAL},{0,LOG_NORMAL}};
 FILE* debuglog = NULL;
@@ -81,7 +82,10 @@ void DBGUI_DrawBlankOutputLine(int y) {
     if (dbg.win_out == NULL) return;
 
     wattrset(dbg.win_out,COLOR_PAIR(PAIR_GREEN_BLACK));
-    mvwprintw(dbg.win_out, y, 0, "<END OF LOG>");
+    if (logBuffHasDiscarded)
+        mvwprintw(dbg.win_out, y, 0, "<LOG BUFFER ENDS, OLDER CONTENT DISCARDED BEYOND THIS POINT>");
+    else
+        mvwprintw(dbg.win_out, y, 0, "<END OF LOG>");
     wclrtoeol(dbg.win_out);
 }
 
@@ -438,8 +442,10 @@ void DEBUG_ShowMsg(char const* format,...) {
 		DEBUG_RefreshPage(0);
 	}
 	logBuff.push_back(buf);
-	if (logBuff.size() > MAX_LOG_BUFFER)
+	if (logBuff.size() > MAX_LOG_BUFFER) {
+        logBuffHasDiscarded = true;
 		logBuff.pop_front();
+    }
 
 	logBuffPos = logBuff.end();
 
