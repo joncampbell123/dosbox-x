@@ -199,6 +199,10 @@ static void MakeSubWindows(void) {
 void DEBUG_GUI_OnResize(void) {
     DestroySubWindows();
     MakeSubWindows();
+
+    /* make sure the output window is synced up */
+    logBuffPos = logBuff.end();
+    DEBUG_RefreshPage(0);
 }
 
 static void MakePairs(void) {

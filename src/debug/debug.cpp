@@ -1556,6 +1556,7 @@ Bit32u DEBUG_CheckKeys(void) {
     if (key == KEY_RESIZE) {
         void DEBUG_GUI_OnResize(void);
         DEBUG_GUI_OnResize();
+        DEBUG_DrawScreen();
         return 0;
     }
 
