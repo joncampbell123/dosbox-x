@@ -1551,14 +1551,13 @@ Bit32u DEBUG_CheckKeys(void) {
 	Bits ret=0;
 	int key=getch();
 
-#if defined(WIN32) && defined(__PDCURSES__)
-#else
+	/* FIXME: This is supported by PDcurses, except I cannot figure out how to trigger it.
+	          The Windows console resizes around the console set by pdcurses and does not notify us as far as I can tell. */
     if (key == KEY_RESIZE) {
         void DEBUG_GUI_OnResize(void);
         DEBUG_GUI_OnResize();
         return 0;
     }
-#endif
 
 	if (key>0) {
 #if defined(WIN32) && defined(__PDCURSES__)
