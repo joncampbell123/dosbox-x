@@ -77,6 +77,14 @@ WINDOW *DBGBlock::get_active_win(void) {
     return get_win(active_win);
 }
 
+void DBGUI_DrawBlankOutputLine(int y) {
+    if (dbg.win_out == NULL) return;
+
+    wattrset(dbg.win_out,COLOR_PAIR(PAIR_GREEN_BLACK));
+    mvwprintw(dbg.win_out, y, 0, "<END OF LOG>");
+    wclrtoeol(dbg.win_out);
+}
+
 void DBGUI_DrawDebugOutputLine(int y,std::string line) {
 	if (dbg.win_out == NULL) return;
 
@@ -97,6 +105,8 @@ void DBGUI_DrawDebugOutputLine(int y,std::string line) {
         wattrset(dbg.win_out,COLOR_PAIR(PAIR_GREEN_BLACK));
         mvwprintw(dbg.win_out, y, maxx-3,  "...");
     }
+
+    wclrtoeol(dbg.win_out);
 }
 
 void DEBUG_LimitTopPos(void) {
@@ -154,6 +164,7 @@ void DEBUG_RefreshPage(char scroll) {
     if (i != logBuff.begin()) {
         i--;
 
+        wattrset(dbg.win_out,0);
         while (rem_lines > 0) {
             rem_lines--;
 
@@ -163,6 +174,12 @@ void DEBUG_RefreshPage(char scroll) {
                 i--;
             else
                 break;
+        }
+
+        /* show that the lines above are beyond the end of the log */
+        while (rem_lines > 0) {
+            rem_lines--;
+            DBGUI_DrawBlankOutputLine(rem_lines);
         }
     }
 
