@@ -678,17 +678,20 @@ static void DrawData(void) {
 	Bit8u ch;
 	Bit32u add = dataOfs;
 	Bit32u address;
+    int w,h;
+
 	/* Data win */	
-	for (int y=0; y<8; y++) {
+    getmaxyx(dbg.win_data,h,w);
+	for (int y=0;y<h;y++) {
 		// Address
-		if (add<0x10000) mvwprintw (dbg.win_data,1+y,0,"%04X:%04X     ",dataSeg,add);
-		else mvwprintw (dbg.win_data,1+y,0,"%04X:%08X ",dataSeg,add);
+		if (add<0x10000) mvwprintw (dbg.win_data,y,0,"%04X:%04X     ",dataSeg,add);
+		else mvwprintw (dbg.win_data,y,0,"%04X:%08X ",dataSeg,add);
 		for (int x=0; x<16; x++) {
 			address = GetAddress(dataSeg,add);
 			if (mem_readb_checked(address,&ch)) ch=0;
-			mvwprintw (dbg.win_data,1+y,14+3*x,"%02X",ch);
+			mvwprintw (dbg.win_data,y,14+3*x,"%02X",ch);
 			if (ch<32 || !isprint(*reinterpret_cast<unsigned char*>(&ch))) ch='.';
-			mvwprintw (dbg.win_data,1+y,63+x,"%c",ch);
+			mvwprintw (dbg.win_data,y,63+x,"%c",ch);
 			add++;
 		};
 	}	
