@@ -144,9 +144,22 @@ static void Draw_RegisterLayout(void) {
 	mvwaddstr(dbg.win_reg,1,52,"C  Z  S  O  A  P  D  I  T ");
 }
 
+static void DrawSubWinBox(WINDOW *wnd,const char *title) {
+    int x,y;
+    int w,h;
+
+    if (wnd == NULL) return;
+
+    getbegyx(wnd,y,x);
+    getmaxyx(wnd,h,w);
+
+    mvhline(y-1,x,ACS_HLINE,w);
+    if (title != NULL) mvaddstr(y-1,x+4,title);
+}
 
 static void DrawBars(void) {
     int x,y;
+    int w,h;
 
 	if (dbg.win_main == NULL)
 		return;
@@ -156,37 +169,21 @@ static void DrawBars(void) {
 	}
 
 	/* Show the Register bar */
-    if (dbg.win_reg != NULL) {
-        getbegyx(dbg.win_reg,y,x);
-        mvaddstr(y-1,x, "---(Register Overview                   )---");
-    }
+    DrawSubWinBox(dbg.win_reg,      "Register Overview");
 
 	/* Show the Data Overview bar perhaps with more special stuff in the end */
-    if (dbg.win_data != NULL) {
-        getbegyx(dbg.win_data,y,x);
-        mvaddstr(y-1,x,"---(Data Overview   Scroll: page up/down)---");
-    }
+    DrawSubWinBox(dbg.win_data,     "Data Overview   Scroll: page up/down");
 
     /* Show the Code Overview perhaps with special stuff in bar too */
-    if (dbg.win_code != NULL) {
-        getbegyx(dbg.win_code,y,x);
-        mvaddstr(y-1,x,"---(Code Overview   Scroll: up/down     )---");
-    }
+    DrawSubWinBox(dbg.win_code,     "Code Overview   Scroll: up/down");
 
 	/* Show the Variable Overview bar */
-    if (dbg.win_var != NULL) {
-        getbegyx(dbg.win_var,y,x);
-        mvaddstr(y-1,x, "---(Variable Overview                   )---");
-    }
+    DrawSubWinBox(dbg.win_var,      "Variable Overview");
 
 	/* Show the Output OverView */
-    if (dbg.win_out != NULL) {
-        getbegyx(dbg.win_out,y,x);
-        mvaddstr(y-1,x, "---(Output          Scroll: home/end    )---");
-    }
+    DrawSubWinBox(dbg.win_out,      "Output          Scroll: home/end");
 
 	attrset(0);
-	//Match values with below. So we don't need to touch the internal window structures
 }
 
 static void DestroySubWindows(void) {
