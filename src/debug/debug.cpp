@@ -1550,6 +1550,16 @@ char* AnalyzeInstruction(char* inst, bool saveSelector) {
 Bit32u DEBUG_CheckKeys(void) {
 	Bits ret=0;
 	int key=getch();
+
+#if defined(WIN32) && defined(__PDCURSES__)
+#else
+    if (key == KEY_RESIZE) {
+        void DEBUG_GUI_OnResize(void);
+        DEBUG_GUI_OnResize();
+        return 0;
+    }
+#endif
+
 	if (key>0) {
 #if defined(WIN32) && defined(__PDCURSES__)
 		switch (key) {

@@ -173,6 +173,11 @@ static void MakeSubWindows(void) {
 	refresh();
 }
 
+void DEBUG_GUI_OnResize(void) {
+    DestroySubWindows();
+    MakeSubWindows();
+}
+
 static void MakePairs(void) {
 	init_pair(PAIR_BLACK_BLUE, COLOR_BLACK, COLOR_CYAN);
 	init_pair(PAIR_BYELLOW_BLACK, COLOR_YELLOW /*| FOREGROUND_INTENSITY */, COLOR_BLACK);
