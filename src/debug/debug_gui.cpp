@@ -45,7 +45,7 @@ FILE* debuglog = NULL;
 #include <string>
 using namespace std;
 
-#define MAX_LOG_BUFFER 500
+#define MAX_LOG_BUFFER 4000
 static list<string> logBuff;
 static list<string>::iterator logBuffPos = logBuff.end();
 
