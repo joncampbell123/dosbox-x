@@ -1710,7 +1710,7 @@ Bit32u DEBUG_CheckKeys(void) {
                         win_code_ui_up(h-1);
                     }
                     break;
-                case DBGBlock::WINI_DATA: {
+                case DBGBlock::WINI_DATA:
                      if (dbg.win_data != NULL) {
                         int w,h;
 
@@ -1718,7 +1718,14 @@ Bit32u DEBUG_CheckKeys(void) {
                         win_data_ui_up(h);
                     }
                     break;
-                }
+                case DBGBlock::WINI_OUT:
+                    if (dbg.win_out != NULL) {
+                        int w,h;
+
+                        getmaxyx(dbg.win_out,h,w);
+                        DEBUG_RefreshPage(-h);
+                    }
+                    break;
             }
             break;
 
@@ -1732,7 +1739,7 @@ Bit32u DEBUG_CheckKeys(void) {
                         win_code_ui_down(h-1);
                     }
                     break;
-                case DBGBlock::WINI_DATA: {
+                case DBGBlock::WINI_DATA:
                      if (dbg.win_data != NULL) {
                         int w,h;
 
@@ -1740,7 +1747,14 @@ Bit32u DEBUG_CheckKeys(void) {
                         win_data_ui_down(h);
                     }
                     break;
-                }
+                case DBGBlock::WINI_OUT:
+                    if (dbg.win_out != NULL) {
+                        int w,h;
+
+                        getmaxyx(dbg.win_out,h,w);
+                        DEBUG_RefreshPage(h);
+                    }
+                    break;
             }
             break;
 
@@ -1752,9 +1766,12 @@ Bit32u DEBUG_CheckKeys(void) {
                     case DBGBlock::WINI_DATA:
                         win_data_ui_down(1);
                         break;
+                    case DBGBlock::WINI_OUT:
+                        DEBUG_RefreshPage(1);
+                        break;
                 }
-				break;
-		case KEY_UP:	// up 
+                break;
+        case KEY_UP:	// up 
                 switch (dbg.active_win) {
                     case DBGBlock::WINI_CODE:
                         win_code_ui_up(1);
@@ -1762,15 +1779,21 @@ Bit32u DEBUG_CheckKeys(void) {
                     case DBGBlock::WINI_DATA:
                         win_data_ui_up(1);
                         break;
+                    case DBGBlock::WINI_OUT:
+                        DEBUG_RefreshPage(-1);
+                        break;
                 }
 				break;
+
+                // FIXME: Make window controls
 		case KEY_HOME:	// Home: scroll log page up
 				DEBUG_RefreshPage(-1);
 				break;
 		case KEY_END:	// End: scroll log page down
 				DEBUG_RefreshPage(1);
 				break;
-		case KEY_IC:	// Insert: toggle insert/overwrite
+
+        case KEY_IC:	// Insert: toggle insert/overwrite
 				codeViewData.ovrMode = !codeViewData.ovrMode;
 				break;
 		case KEY_LEFT:	// move to the left in command line

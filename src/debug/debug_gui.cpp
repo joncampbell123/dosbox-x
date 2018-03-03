@@ -102,8 +102,14 @@ void DBGUI_DrawDebugOutputLine(int y,std::string line) {
 void DEBUG_RefreshPage(char scroll) {
 	if (dbg.win_out == NULL) return;
 
-	if (scroll==-1 && logBuffPos!=logBuff.begin()) logBuffPos--;
-	else if (scroll==1 && logBuffPos!=logBuff.end()) logBuffPos++;
+	while (scroll < 0 && logBuffPos!=logBuff.begin()) {
+        logBuffPos--;
+        scroll++;
+    }
+	while (scroll > 0 && logBuffPos!=logBuff.end()) {
+        logBuffPos++;
+        scroll--;
+    }
 
 	list<string>::iterator i = logBuffPos;
 	int maxy, maxx; getmaxyx(dbg.win_out,maxy,maxx);
@@ -217,7 +223,7 @@ static void DrawBars(void) {
     DrawSubWinBox(dbg.win_var,      "Variable Overview");
 
 	/* Show the Output OverView */
-    DrawSubWinBox(dbg.win_out,      "Output          Scroll: home/end");
+    DrawSubWinBox(dbg.win_out,      "Output");
 
 	attrset(0);
 }
