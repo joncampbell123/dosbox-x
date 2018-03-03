@@ -50,6 +50,28 @@ static list<string>::iterator logBuffPos = logBuff.end();
 
 extern int old_cursor_state;
 
+void DBGUI_DrawDebugOutputLine(int y,std::string line) {
+	if (dbg.win_out == NULL) return;
+
+	int maxy, maxx; getmaxyx(dbg.win_out,maxy,maxx);
+    bool ellipsisEnd = false;
+
+    /* cut the line short if it's too long for the terminal window */
+    if (line.length() > maxx) {
+        line = line.substr(0,maxx-3);
+        ellipsisEnd = true;
+    }
+
+    /* Const cast is needed for pdcurses which has no const char in mvwprintw (bug maybe) */
+    wattrset(dbg.win_out,0);
+    mvwprintw(dbg.win_out, y, 0, const_cast<char*>(line.c_str()));
+
+    if (ellipsisEnd) {
+        wattrset(dbg.win_out,COLOR_PAIR(PAIR_GREEN_BLACK));
+        mvwprintw(dbg.win_out, y, maxx-3,  "...");
+    }
+}
+
 void DEBUG_RefreshPage(char scroll) {
 	if (dbg.win_out == NULL) return;
 
@@ -81,23 +103,7 @@ void DEBUG_RefreshPage(char scroll) {
         while (rem_lines > 0) {
             rem_lines--;
 
-            std::string line = (*i);
-            bool ellipsisEnd = false;
-
-            /* cut the line short if it's too long for the terminal window */
-            if (line.length() > maxx) {
-                line = line.substr(0,maxx-3);
-                ellipsisEnd = true;
-            }
-
-            /* Const cast is needed for pdcurses which has no const char in mvwprintw (bug maybe) */
-            wattrset(dbg.win_out,0);
-            mvwprintw(dbg.win_out,rem_lines, 0, const_cast<char*>(line.c_str()));
-
-            if (ellipsisEnd) {
-                wattrset(dbg.win_out,COLOR_PAIR(PAIR_GREEN_BLACK));
-                waddstr(dbg.win_out,"...");
-            }
+            DBGUI_DrawDebugOutputLine(rem_lines,*i);
 
             if (i != logBuff.begin())
                 i--;
@@ -254,9 +260,6 @@ static void MakeSubWindows(void) {
         outy += height;
     }
 
-    if (dbg.win_out != NULL)
-    	scrollok(dbg.win_out,TRUE);
-
 	DrawBars();
 	Draw_RegisterLayout();
 	refresh();
@@ -351,10 +354,11 @@ void DEBUG_ShowMsg(char const* format,...) {
 	if (dbg.win_out != NULL) {
         int maxy, maxx; getmaxyx(dbg.win_out,maxy,maxx);
 
+    	scrollok(dbg.win_out,TRUE);
         scroll(dbg.win_out);
+    	scrollok(dbg.win_out,FALSE);
 
-        /* Const cast is needed for pdcurses which has no const char in mvwprintw (bug maybe) */
-        mvwprintw(dbg.win_out, maxy-1, 0, buf);
+        DBGUI_DrawDebugOutputLine(maxy-1,buf);
 
 		wrefresh(dbg.win_out);
 	}
