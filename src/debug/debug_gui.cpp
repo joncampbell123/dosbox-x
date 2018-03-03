@@ -58,16 +58,39 @@ void DEBUG_RefreshPage(char scroll) {
 
 	list<string>::iterator i = logBuffPos;
 	int maxy, maxx; getmaxyx(dbg.win_out,maxy,maxx);
-	int rem_lines = maxy - 1;
-	if(rem_lines == -1) return;
+	int rem_lines = maxy;
+	if(rem_lines <= 0) return;
 
 	wclear(dbg.win_out);
-	while (rem_lines > 0 && i!=logBuff.begin()) {
-		--i;
-		/* Const cast is needed for pdcurses which has no const char in mvwprintw (bug maybe) */
-		mvwprintw(dbg.win_out,rem_lines, 0, const_cast<char*>((*i).c_str()));
-		rem_lines--;
-	}
+
+    /* NTS: Often, i == logBuff.end() unless the user scrolled up in the interface.
+     *
+     *      So the original intent of this code is that the iterator is one entry PAST
+     *      the line to begin displaying at the bottom just as end() is a sentinel
+     *      value just past the last element of the list. So if i == logBuff.begin()
+     *      then there's nothing to display.
+     *
+     *      Note that the iterator defines what is drawn on the bottom-most line,
+     *      and iteration is done backwards until we've drawn the line at i == logBuff.begin()
+     *      or until we've drawn something at line 0 of the subwin.
+     *
+     *      rem_lines starts out as the number of lines in the subwin. */
+    if (i != logBuff.begin()) {
+        i--;
+
+        while (rem_lines > 0) {
+            rem_lines--;
+
+            /* Const cast is needed for pdcurses which has no const char in mvwprintw (bug maybe) */
+            mvwprintw(dbg.win_out,rem_lines, 0, const_cast<char*>((*i).c_str()));
+
+            if (i != logBuff.begin())
+                i--;
+            else
+                break;
+        }
+    }
+
 	wrefresh(dbg.win_out);
 }
 
