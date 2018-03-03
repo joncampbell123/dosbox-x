@@ -99,6 +99,25 @@ void DBGUI_DrawDebugOutputLine(int y,std::string line) {
     }
 }
 
+void DEBUG_LimitTopPos(void) {
+	if (dbg.win_out != NULL) {
+        int w,h;
+
+        getmaxyx(dbg.win_out,h,w);
+
+        auto i = logBuff.begin();
+        for (int y=0;i != logBuff.end() && y < (h-1);y++) {
+            if (i == logBuffPos) {
+                i++;
+                logBuffPos = i;
+            }
+            else {
+                i++;
+            }
+        }
+    }
+}
+
 void DEBUG_RefreshPage(char scroll) {
 	if (dbg.win_out == NULL) return;
 
@@ -110,6 +129,8 @@ void DEBUG_RefreshPage(char scroll) {
         logBuffPos++;
         scroll--;
     }
+
+    DEBUG_LimitTopPos();
 
 	list<string>::iterator i = logBuffPos;
 	int maxy, maxx; getmaxyx(dbg.win_out,maxy,maxx);
