@@ -195,7 +195,7 @@ static void MakeSubWindows(void) {
 	int win_main_maxy, win_main_maxx; getmaxyx(dbg.win_main,win_main_maxy,win_main_maxx);
 	int outy=1; //Match values with above
 
-    LOG_MSG("DEBUG: MakeSubWindows dim x=%u y=%u",win_main_maxx,win_main_maxy);
+//    LOG_MSG("DEBUG: MakeSubWindows dim x=%u y=%u",win_main_maxx,win_main_maxy);
 
 	/* The Register window  */
 	dbg.win_reg=subwin(dbg.win_main,4,win_main_maxx,outy,0);
