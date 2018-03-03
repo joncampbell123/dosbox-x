@@ -2223,8 +2223,10 @@ void DEBUG_ShutDown(Section * /*sec*/) {
         if (dbg.win_data) delwin(dbg.win_data);
 		dbg.win_data = NULL;//FIXME: How to free return value of subwin()?
 
-        endwin();
+//      if (dbg.win_main) delwin(dbg.win_main);
 		dbg.win_main = NULL;
+
+        endwin();
 
 #ifndef WIN32
 		tcsetattr(0,TCSANOW,&consolesettings);
