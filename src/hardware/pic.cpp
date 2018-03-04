@@ -738,7 +738,7 @@ void PIC_Reset(Section *sec) {
 
     /* NTS: This is a good guess. But the 8259 is static circuitry and not driven by a clock.
      *      But the ability to respond to interrupts is limited by the CPU, too. */
-    PIC_irq_delay_ns = (1000000000UL * 2UL) / (unsigned long)PIT_TICK_RATE;
+    PIC_irq_delay_ns = 1000000000UL / (unsigned long)PIT_TICK_RATE;
     {
         int x = section->Get_int("irq delay ns");
         if (x >= 0) PIC_irq_delay_ns = x;
