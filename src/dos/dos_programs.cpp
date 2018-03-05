@@ -767,6 +767,8 @@ public:
             return;
         }
 
+        unsigned int bootsize = imageDiskList[drive-65]->getSectSize();
+
 		imageDiskList[drive-65]->Read_Sector(0,0,1,(Bit8u *)&bootarea);
 
 		Bitu pcjr_hdr_length = 0;
@@ -973,7 +975,7 @@ public:
 			disable_umb_ems_xms();
 
 			WriteOut(MSG_Get("PROGRAM_BOOT_BOOT"), drive);
-			for(i=0;i<512;i++) real_writeb(0, (load_seg<<4) + i, bootarea.rawdata[i]);
+			for(i=0;i<bootsize;i++) real_writeb(0, (load_seg<<4) + i, bootarea.rawdata[i]);
 
 			/* debug */
 			LOG_MSG("Booting guest OS stack_seg=0x%04x load_seg=0x%04x\n",(int)stack_seg,(int)load_seg);
