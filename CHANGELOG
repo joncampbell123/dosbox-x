@@ -1,4 +1,8 @@
 (next)
+  - BOOT now accepts a --debug switch that causes DOSBox-X to break into
+    the debugger when the boot sector begins to execute.
+  - BOOT now accepts a --force switch to override the PC-98 lockout,
+    if the user wants to better understand why I locked it out in PC-98 mode.
   - PC-98 support now supports reading font from FONT.ROM, if available.
   - Code, data, and output now respond to arrow, page up/down and
     home/end keys as a user would normally expect.
