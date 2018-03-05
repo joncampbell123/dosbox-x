@@ -105,6 +105,8 @@ bool OpenGL_using(void);
 
 using namespace std;
 
+bool boot_debug_break = false;
+
 bool window_was_maximized = false;
 
 /* this flag is needed in order to know if we're AT the shell,
@@ -5666,6 +5668,13 @@ fresh_boot:
 				SegValue(cs),reg_ip,
 				SegValue(ss),reg_sp,
 				reg_ax,reg_bx,reg_cx,reg_dx);
+
+            if (boot_debug_break) {
+                boot_debug_break = false;
+
+                void DEBUG_Enable(bool pressed);
+                DEBUG_Enable(true);
+            }
 
             /* run again */
             goto fresh_boot;

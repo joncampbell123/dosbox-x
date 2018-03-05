@@ -542,6 +542,7 @@ static void SHOWGUI_ProgramStart(Program * * make) {
 
 extern Bit32u floppytype;
 extern bool dos_kernel_disabled;
+extern bool boot_debug_break;
 
 void DisableINT33();
 void EMS_DoShutDown();
@@ -648,6 +649,10 @@ public:
    
 	void Run(void) {
         bool force = false;
+
+        boot_debug_break = false;
+        if (cmd->FindExist("-debug",true))
+            boot_debug_break = true;
 
         if (cmd->FindExist("-force",true))
             force = true;
