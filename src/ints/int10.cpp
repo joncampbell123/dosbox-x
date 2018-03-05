@@ -851,6 +851,7 @@ bool Load_FONT_ROM(void) {
     }
 
     /* 16x16 double-wide */
+    assert(sizeof(tmp) >= (96 * 16 * 2));
     for (lowbyte=0x01;lowbyte < 0x5D;lowbyte++) {
         fseek(fp,0x1800 + ((lowbyte - 0x01) * 96 * 16 * 2/*16 wide*/),SEEK_SET);
         if (fread(tmp,96 * 16 * 2/*16 wide*/,1,fp) != 1) goto fail;
@@ -859,8 +860,6 @@ bool Load_FONT_ROM(void) {
             unsigned int i;
             unsigned int o;
 
-            /* NTS: fullwidth is 16x16 128 chars across.
-             * each row of the char bitmap is TWO bytes. */
             i = hibyte * 16 * 2;
             o = (((hibyte + 0x20) * 128) + lowbyte) * 16 * 2;
 
