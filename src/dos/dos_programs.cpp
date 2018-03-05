@@ -979,8 +979,9 @@ public:
 			LOG_MSG("Booting guest OS stack_seg=0x%04x load_seg=0x%04x\n",(int)stack_seg,(int)load_seg);
             RunningProgram = "Guest OS";
  
+            /* WARNING: PC-98 mode does not allocate DMA channel 2 for the floppy! */
 			/* create appearance of floppy drive DMA usage (Demon's Forge) */
-			if (!IS_TANDY_ARCH && floppysize!=0) GetDMAChannel(2)->tcount=true;
+			if (!IS_TANDY_ARCH && !IS_PC98_ARCH && floppysize!=0) GetDMAChannel(2)->tcount=true;
 
 			/* standard method */
 			SegSet16(cs, 0);
