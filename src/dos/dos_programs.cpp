@@ -647,7 +647,12 @@ private:
 public:
    
 	void Run(void) {
-        if (IS_PC98_ARCH) {
+        bool force = false;
+
+        if (cmd->FindExist("-force",true))
+            force = true;
+
+        if (IS_PC98_ARCH && !force) {
             WriteOut("Booting from PC-98 mode is not supported yet\n");
             return;
         }
