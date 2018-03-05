@@ -1001,6 +1001,12 @@ public:
                 reg_ebp = 0;
                 reg_eax = 0;
                 reg_edx = 0;
+
+                /* clear the text layer */
+                for (unsigned int i=0;i < (80*25*2);i += 2) {
+                    mem_writew(0xA0000+i,0x0000);
+                    mem_writew(0xA2000+i,0x00E1);
+                }
             }
             else {
                 SegSet16(cs, 0);
