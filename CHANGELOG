@@ -1,4 +1,5 @@
 (next)
+  - PC-98 support now supports reading font from FONT.ROM, if available.
   - Code, data, and output now respond to arrow, page up/down and
     home/end keys as a user would normally expect.
   - Arrow and page up/down keyboard input now goes to active window
