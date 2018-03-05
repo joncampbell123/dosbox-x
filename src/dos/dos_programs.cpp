@@ -986,23 +986,41 @@ public:
 			if (!IS_TANDY_ARCH && !IS_PC98_ARCH && floppysize!=0) GetDMAChannel(2)->tcount=true;
 
 			/* standard method */
-			SegSet16(cs, 0);
-			SegSet16(ds, 0);
-			SegSet16(es, 0);
-			reg_ip = load_seg<<4;
-			reg_ebx = load_seg<<4; //Real code probably uses bx to load the image
-			reg_esp = 0x100;
-			/* set up stack at a safe place */
-			SegSet16(ss, stack_seg);
-			reg_esi = 0;
-			reg_ecx = 1;
-			reg_ebp = 0;
-			reg_eax = 0;
-			reg_edx = 0; //Head 0
-			if (drive >= 'A' && drive <= 'B')
-				reg_edx += (drive-'A');
-			else if (drive >= 'C' && drive <= 'Z')
-				reg_edx += 0x80+(drive-'C');
+            if (IS_PC98_ARCH) {
+                /* WARNING: THIS IS A GUESS! */
+                SegSet16(cs, load_seg);
+                SegSet16(ds, load_seg);
+                SegSet16(es, load_seg);
+                reg_ip = 0;
+                reg_ebx = 0;
+                reg_esp = 0x100;
+                /* set up stack at a safe place */
+                SegSet16(ss, stack_seg);
+                reg_esi = 0;
+                reg_ecx = 0;
+                reg_ebp = 0;
+                reg_eax = 0;
+                reg_edx = 0;
+            }
+            else {
+                SegSet16(cs, 0);
+                SegSet16(ds, 0);
+                SegSet16(es, 0);
+                reg_ip = load_seg<<4;
+                reg_ebx = load_seg<<4; //Real code probably uses bx to load the image
+                reg_esp = 0x100;
+                /* set up stack at a safe place */
+                SegSet16(ss, stack_seg);
+                reg_esi = 0;
+                reg_ecx = 1;
+                reg_ebp = 0;
+                reg_eax = 0;
+                reg_edx = 0; //Head 0
+                if (drive >= 'A' && drive <= 'B')
+                    reg_edx += (drive-'A');
+                else if (drive >= 'C' && drive <= 'Z')
+                    reg_edx += 0x80+(drive-'C');
+            }
 #ifdef __WIN32__
 			// let menu know it boots
 			menu.boot=true;
