@@ -63,6 +63,14 @@ const unsigned int dbg_def_win_height[DBGBlock::WINI_MAX_INDEX] = {
     6           /* WINI_OUT */
 };
 
+const char *dbg_def_win_titles[DBGBlock::WINI_MAX_INDEX] = {
+    "Register Overview",
+    "Data Overview",
+    "Code Overview",
+    "Variable Overview",
+    "Output"
+};
+
 const char *dbg_win_names[DBGBlock::WINI_MAX_INDEX] = {
     "REG",
     "DATA",
@@ -87,6 +95,13 @@ extern int old_cursor_state;
 const char *DBGBlock::get_winname(int idx) {
     if (idx >= 0 && idx < DBGBlock::WINI_MAX_INDEX)
         return dbg_win_names[idx];
+
+    return NULL;
+}
+
+const char *DBGBlock::get_wintitle(int idx) {
+    if (idx >= 0 && idx < DBGBlock::WINI_MAX_INDEX)
+        return dbg.win_title[idx].c_str();
 
     return NULL;
 }
@@ -309,26 +324,14 @@ static void DrawSubWinBox(WINDOW *wnd,const char *title) {
 }
 
 static void DrawBars(void) {
-    int x,y;
-    int w,h;
-
 	if (dbg.win_main == NULL)
 		return;
 
-	/* Show the Register bar */
-    DrawSubWinBox(dbg.win_reg,      "Register Overview");
+    for (unsigned int wnd=0;wnd < DBGBlock::WINI_MAX_INDEX;wnd++) {
+        WINDOW* &ref = dbg.get_win_ref(wnd);
 
-	/* Show the Data Overview bar perhaps with more special stuff in the end */
-    DrawSubWinBox(dbg.win_data,     "Data Overview");
-
-    /* Show the Code Overview perhaps with special stuff in bar too */
-    DrawSubWinBox(dbg.win_code,     "Code Overview");
-
-	/* Show the Variable Overview bar */
-    DrawSubWinBox(dbg.win_var,      "Variable Overview");
-
-	/* Show the Output OverView */
-    DrawSubWinBox(dbg.win_out,      "Output");
+        if (ref != NULL) DrawSubWinBox(ref,dbg.get_wintitle(wnd));
+    }
 
 	attrset(0);
 }
