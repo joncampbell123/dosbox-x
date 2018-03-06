@@ -89,6 +89,7 @@ public:
     int name_to_win(const char *name);
     WINDOW *get_active_win(void);
     int win_find_order(int wnd);
+    int win_prev_by_order(int ord);
     int win_next_by_order(int ord);
     void next_window(void);
 };

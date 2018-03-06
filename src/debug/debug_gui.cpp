@@ -154,6 +154,20 @@ int DBGBlock::win_find_order(int wnd) {
     return -1;
 }
 
+int DBGBlock::win_prev_by_order(int order) {
+    int limit = DBGBlock::WINI_MAX_INDEX;
+
+    do {
+        if (--order < 0)
+            order = DBGBlock::WINI_MAX_INDEX - 1;
+
+        if (--limit <= 0)
+            break;
+    } while (get_win(win_order[order]) == NULL);
+
+    return order;
+}
+
 int DBGBlock::win_next_by_order(int order) {
     int limit = DBGBlock::WINI_MAX_INDEX;
 
