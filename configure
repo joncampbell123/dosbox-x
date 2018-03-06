@@ -6324,10 +6324,8 @@ esac
 
 case "$host_cpu" in
   x86_64 | amd64)
-    CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
-    ;;
-  i?86)
-    CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
+    # SSE is part of the x86_64 ABI
+    CXXFLAGS="$CXXFLAGS -msse"
     ;;
 esac
 
@@ -7604,6 +7602,7 @@ if test -n "$SDL2_LIBS"; then
 fi
 
 # test
+# Note that MT32 (MUNT) requires the SSE extensions
 if test x$enable_mt32 = xyes ; then
   case "$host_cpu" in
     x86_64 | amd64)
@@ -7611,12 +7610,14 @@ if test x$enable_mt32 = xyes ; then
 $as_echo "yes" >&6; }
       $as_echo "#define C_MT32 1" >>confdefs.h
 
+      CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
       ;;
     i?86)
       { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
       $as_echo "#define C_MT32 1" >>confdefs.h
 
+      CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
       ;;
     *)
       enable_mt32=no

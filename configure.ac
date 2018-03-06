@@ -225,13 +225,11 @@ case "$host" in
        ;;
 esac
 
-dnl Scalars in the code use MMX/SSE intrinsics on x86 and x86_64
+dnl Some default CPU flags
 case "$host_cpu" in
   x86_64 | amd64)
-    CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
-    ;;
-  i?86)
-    CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
+    # SSE is part of the x86_64 ABI
+    CXXFLAGS="$CXXFLAGS -msse"
     ;;
 esac
 
@@ -431,15 +429,18 @@ if test -n "$SDL2_LIBS"; then
 fi
 
 # test
+# Note that MT32 (MUNT) requires the SSE extensions
 if test x$enable_mt32 = xyes ; then 
   case "$host_cpu" in
     x86_64 | amd64)
       AC_MSG_RESULT(yes)
       AC_DEFINE(C_MT32,1)
+      CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
       ;;
     i?86)
       AC_MSG_RESULT(yes)
       AC_DEFINE(C_MT32,1)
+      CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
       ;;
     *)
       enable_mt32=no
