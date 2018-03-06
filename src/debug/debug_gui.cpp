@@ -64,11 +64,11 @@ const unsigned int dbg_def_win_height[DBGBlock::WINI_MAX_INDEX] = {
 };
 
 const char *dbg_def_win_titles[DBGBlock::WINI_MAX_INDEX] = {
-    "Register Overview",
-    "Data Overview",
-    "Code Overview",
-    "Variable Overview",
-    "Output"
+    "Register Overview",        /* WINI_REG */
+    "Data Overview",            /* WINI_DATA */
+    "Code Overview",            /* WINI_CODE */
+    "Variable Overview",        /* WINI_VAR */
+    "Output"                    /* WINI_OUT */
 };
 
 const char *dbg_win_names[DBGBlock::WINI_MAX_INDEX] = {
