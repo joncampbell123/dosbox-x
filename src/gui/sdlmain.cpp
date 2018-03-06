@@ -5669,12 +5669,14 @@ fresh_boot:
 				SegValue(ss),reg_sp,
 				reg_ax,reg_bx,reg_cx,reg_dx);
 
+#if C_DEBUG
             if (boot_debug_break) {
                 boot_debug_break = false;
 
                 void DEBUG_Enable(bool pressed);
                 DEBUG_Enable(true);
             }
+#endif
 
             /* run again */
             goto fresh_boot;

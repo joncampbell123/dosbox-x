@@ -35,6 +35,21 @@
 
 using namespace std;
 
+static bool has_LOG_Init = false;
+static bool has_LOG_EarlyInit = false;
+static bool do_LOG_stderr = false;
+static bool logBuffHasDiscarded = false;
+
+_LogGroup loggrp[LOG_MAX]={{"",LOG_NORMAL},{0,LOG_NORMAL}};
+FILE* debuglog = NULL;
+
+#if C_DEBUG
+#include <curses.h>
+
+#include <list>
+#include <string>
+using namespace std;
+
 std::string DBGBlock::windowlist_by_name(void) {
     std::string comp;
     unsigned int i;
@@ -46,14 +61,6 @@ std::string DBGBlock::windowlist_by_name(void) {
 
     return comp;
 }
-
-static bool has_LOG_Init = false;
-static bool has_LOG_EarlyInit = false;
-static bool do_LOG_stderr = false;
-static bool logBuffHasDiscarded = false;
-
-_LogGroup loggrp[LOG_MAX]={{"",LOG_NORMAL},{0,LOG_NORMAL}};
-FILE* debuglog = NULL;
 
 const unsigned int dbg_def_win_height[DBGBlock::WINI_MAX_INDEX] = {
     5,          /* WINI_REG */
@@ -78,13 +85,6 @@ const char *dbg_win_names[DBGBlock::WINI_MAX_INDEX] = {
     "VAR",
     "OUT"
 };
-
-#if C_DEBUG
-#include <curses.h>
-
-#include <list>
-#include <string>
-using namespace std;
 
 #define MAX_LOG_BUFFER 4000
 static list<string> logBuff;
