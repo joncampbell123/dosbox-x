@@ -249,6 +249,7 @@ case "$host" in
     *-*-cygwin* | *-*-mingw32*)
        dnl Some stuff for the ico
        AC_CHECK_TOOL(WINDRES, windres, :)
+    LDFLAGS="-static -static-libgcc -static-libstdc++ $LDFLAGS"
     ;;
     *)
        WINDRES=":"
