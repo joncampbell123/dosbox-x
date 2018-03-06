@@ -743,6 +743,9 @@ LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 	else if (msg == WM_WINDOWPOSCHANGING) {
 		WINDOWPOS *windowpos = (WINDOWPOS*)lParam;
 
+		/* FIXME: Why do MinGW builds crash here on thread shutdown, as if SDL_PublicSurface never existed? */
+		if (ParentWindowShutdown) return(0);
+
 		/* When menu is at the side or top, Windows likes
 		to try to reposition the fullscreen window when
 		changing video modes.
