@@ -43,6 +43,14 @@ static bool logBuffHasDiscarded = false;
 _LogGroup loggrp[LOG_MAX]={{"",LOG_NORMAL},{0,LOG_NORMAL}};
 FILE* debuglog = NULL;
 
+const unsigned int dbg_def_win_height[DBGBlock::WINI_MAX_INDEX] = {
+        5,          /* WINI_REG */
+        9,          /* WINI_DATA */
+        12,         /* WINI_CODE */
+        5,          /* WINI_VAR */
+        6           /* WINI_OUT */
+    };
+
 #if C_DEBUG
 #include <curses.h>
 
@@ -57,10 +65,10 @@ static list<string>::iterator logBuffPos = logBuff.end();
 extern int old_cursor_state;
 
 void DBGBlock::next_window(void) {
-    int limit = WINI_MAX_INDEX;
+    int limit = DBGBlock::WINI_MAX_INDEX;
 
     do {
-        if (++active_win >= WINI_MAX_INDEX)
+        if (++active_win >= DBGBlock::WINI_MAX_INDEX)
             active_win = 0;
         if (--limit <= 0)
             break;
@@ -317,46 +325,62 @@ static void MakeSubWindows(void) {
 	/* The Std output win should go at the bottom */
 	/* Make all the subwindows */
 	int win_main_maxy, win_main_maxx; getmaxyx(dbg.win_main,win_main_maxy,win_main_maxx);
+    unsigned int yheight[DBGBlock::WINI_MAX_INDEX];
+    unsigned int yofs[DBGBlock::WINI_MAX_INDEX];
+    int win_limit = win_main_maxy - 1;
+    int expand_wndi = -1;
 	int outy=0,height;
 
-	/* The Register window  */
-    if (dbg.win_vis[DBGBlock::WINI_REG]) {
-        outy++; // header
-        height=4;
-        dbg.win_reg=subwin(dbg.win_main,height,win_main_maxx,outy,0);
-        outy+=height;
+    for (unsigned int wndi=0;wndi < DBGBlock::WINI_MAX_INDEX;wndi++) {
+        unsigned int wnd = dbg.win_order[wndi];
+
+        /* window must have been freed, must have height greater than 1 (more than just titlebar)
+         * must be visible and there must be room for the window on the screen, where the last
+         * row is reserved for the input bar */
+        if (dbg.win_height[wnd] > 1 &&
+            dbg.win_vis[wnd] && (outy+1) < win_limit) {
+            outy++; // header
+            height=dbg.win_height[wnd]-1;
+            if ((outy+height) > win_limit) height = win_limit - outy;
+            assert(height > 0);
+            yofs[wndi]=outy;
+            yheight[wndi]=height;
+            outy+=height;
+
+            if (wnd == DBGBlock::WINI_OUT)
+                expand_wndi = wndi;
+        }
+        else {
+            yofs[wndi]=0;
+            yheight[wndi]=0;
+        }
     }
 
-    /* The Data Window */
-    if (dbg.win_vis[DBGBlock::WINI_DATA]) {
-        outy++; // header
-        height=8;
-        dbg.win_data=subwin(dbg.win_main,height,win_main_maxx,outy,0);
-        outy+=height;
+    /* we give one window the power to expand to help fill the screen */
+    if (outy < win_limit) {
+        int expand_by = win_limit - outy;
+
+        if (expand_wndi >= 0 && expand_wndi < DBGBlock::WINI_MAX_INDEX) {
+            unsigned int wndi = expand_wndi;
+
+            /* add height to the window */
+            yheight[wndi] += expand_by;
+            outy += wndi;
+            wndi++;
+
+            /* move the others down */
+            for (;wndi < DBGBlock::WINI_MAX_INDEX;wndi++)
+                yofs[wndi] += expand_by;
+        }
     }
 
-    /* The Code Window */
-    if (dbg.win_vis[DBGBlock::WINI_CODE]) {
-        outy++; // header
-        height=11;
-        dbg.win_code=subwin(dbg.win_main,height,win_main_maxx,outy,0);
-        outy+=height;
-    }
-
-    /* The Variable Window */
-    if (dbg.win_vis[DBGBlock::WINI_VAR]) {
-        outy++; // header
-        height=4;
-        dbg.win_var=subwin(dbg.win_main,height,win_main_maxx,outy,0);
-        outy+=height;
-    }
-
-    /* The Output Window */
-    if (dbg.win_vis[DBGBlock::WINI_OUT] && (outy+1) < (win_main_maxy-1)) {
-        outy++; // header
-        height=(win_main_maxy-1) - outy;
-        dbg.win_out=subwin(dbg.win_main,height,win_main_maxx,outy,0);
-        outy+=height;
+    for (unsigned int wndi=0;wndi < DBGBlock::WINI_MAX_INDEX;wndi++) {
+        if (yheight[wndi] != 0) {
+            unsigned int wnd = dbg.win_order[wndi];
+            WINDOW* &ref = dbg.get_win_ref(wnd);
+            assert(ref == NULL);
+            ref=subwin(dbg.win_main,yheight[wndi],win_main_maxx,yofs[wndi],0);
+        }
     }
 
     if (outy < win_main_maxy) {

@@ -33,6 +33,8 @@
 
 void DBGUI_StartUp(void);
 
+extern const unsigned int dbg_def_win_height[];
+
 class DBGBlock {
 public:
     enum {
@@ -47,11 +49,16 @@ public:
         WINI_MAX_INDEX
     };
     bool win_vis[WINI_MAX_INDEX];
+    unsigned char win_order[WINI_MAX_INDEX];
+    unsigned int win_height[WINI_MAX_INDEX];
 public:
 	DBGBlock() : win_main(NULL), win_reg(NULL), win_data(NULL), win_code(NULL),
 		win_var(NULL), win_out(NULL), win_inp(NULL), active_win(WINI_CODE), input_y(0), global_mask(0) {
-        for (unsigned int i=0;i < WINI_MAX_INDEX;i++)
+        for (unsigned int i=0;i < WINI_MAX_INDEX;i++) {
+            win_height[i] = dbg_def_win_height[i];
             win_vis[i] = (i != WINI_VAR);
+            win_order[i] = i;
+        }
     }
 public:
 	WINDOW * win_main;					/* The Main Window (not counted in tab enumeration) */
