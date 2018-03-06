@@ -35,6 +35,18 @@
 
 using namespace std;
 
+std::string DBGBlock::windowlist_by_name(void) {
+    std::string comp;
+    unsigned int i;
+
+    for (i=0;i < DBGBlock::WINI_MAX_INDEX;i++) {
+        if (i != 0) comp += ",";
+        comp += dbg_win_names[i];
+    }
+
+    return comp;
+}
+
 static bool has_LOG_Init = false;
 static bool has_LOG_EarlyInit = false;
 static bool do_LOG_stderr = false;

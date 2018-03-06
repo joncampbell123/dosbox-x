@@ -23,6 +23,8 @@
 #include <curses.h>
 #include "mem.h"
 
+#include <string>
+
 #define PAIR_BLACK_BLUE 1
 #define PAIR_BYELLOW_BLACK 2
 #define PAIR_GREEN_BLACK 3
@@ -79,6 +81,7 @@ public:
     WINDOW *get_win(int idx);
     WINDOW* &get_win_ref(int idx);
     const char *get_winname(int idx);
+    std::string windowlist_by_name(void);
     int name_to_win(const char *name);
     WINDOW *get_active_win(void);
     void next_window(void);

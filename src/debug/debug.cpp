@@ -1055,7 +1055,7 @@ bool ParseCommand(char* str) {
             return true;
         }
         else {
-            LOG_MSG("No such window '%s'",found);
+            LOG_MSG("No such window '%s'. Windows are: %s",found,dbg.windowlist_by_name().c_str());
             return false;
         }
     }
@@ -1070,7 +1070,7 @@ bool ParseCommand(char* str) {
             return true;
         }
         else {
-            LOG_MSG("No such window '%s'",found);
+            LOG_MSG("No such window '%s'. Windows are: ",found,dbg.windowlist_by_name().c_str());
             return false;
         }
     }
