@@ -747,11 +747,11 @@ LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPa
 		to try to reposition the fullscreen window when
 		changing video modes.
 		*/
-		if (!SDL_resizing &&
-			SDL_PublicSurface &&
-			(SDL_PublicSurface->flags & SDL_FULLSCREEN)) {
-			windowpos->x = 0;
-			windowpos->y = 0;
+		if (!SDL_resizing && SDL_PublicSurface) {
+			if (SDL_PublicSurface->flags & SDL_FULLSCREEN) {
+				windowpos->x = 0;
+				windowpos->y = 0;
+			}
 		}
 
 		return(0);
