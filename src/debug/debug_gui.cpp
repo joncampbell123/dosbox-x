@@ -367,6 +367,10 @@ static void MakeSubWindows(void) {
     int expand_wndi = -1;
 	int outy=0,height;
 
+    /* main window needs to clear itself */
+    werase(dbg.win_main);
+
+    /* arrange windows */
     for (unsigned int wndi=0;wndi < DBGBlock::WINI_MAX_INDEX;wndi++) {
         unsigned int wnd = dbg.win_order[wndi];
 
