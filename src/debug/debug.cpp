@@ -1027,6 +1027,9 @@ bool ChangeRegister(char* str)
 	return true;
 };
 
+void DEBUG_GUI_Rebuild(void);
+void DBGUI_NextWindowIfActiveHidden(void);
+
 bool ParseCommand(char* str) {
 	char* found = str;
 	for(char* idx = found;*idx != 0; idx++)
@@ -1041,6 +1044,13 @@ bool ParseCommand(char* str) {
 	if(next == string::npos) next = command.size();
 	(s_found.erase)(0,next);
 	found = const_cast<char*>(s_found.c_str());
+
+    if (command == "VARS") { // toggle vars window
+        dbg.win_vis[DBGBlock::WINI_VAR] = !dbg.win_vis[DBGBlock::WINI_VAR];
+        DEBUG_GUI_Rebuild();
+        DBGUI_NextWindowIfActiveHidden();
+        return true;
+    }
 
 	if (command == "MEMDUMP") { // Dump memory to file
 		Bit16u seg = (Bit16u)GetHexValue(found,found); found++;

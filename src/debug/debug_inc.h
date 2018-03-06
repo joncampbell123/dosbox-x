@@ -46,9 +46,13 @@ public:
 
         WINI_MAX_INDEX
     };
+    bool win_vis[WINI_MAX_INDEX];
 public:
 	DBGBlock() : win_main(NULL), win_reg(NULL), win_data(NULL), win_code(NULL),
-		win_var(NULL), win_out(NULL), win_inp(NULL), active_win(WINI_CODE), input_y(0), global_mask(0) { }
+		win_var(NULL), win_out(NULL), win_inp(NULL), active_win(WINI_CODE), input_y(0), global_mask(0) {
+        for (unsigned int i=0;i < WINI_MAX_INDEX;i++)
+            win_vis[i] = (i != WINI_VAR);
+    }
 public:
 	WINDOW * win_main;					/* The Main Window (not counted in tab enumeration) */
 
@@ -65,6 +69,7 @@ public:
 	Bit32u global_mask;					/* Current msgmask */
 
     WINDOW *get_win(int idx);
+    WINDOW* &get_win_ref(int idx);
     WINDOW *get_active_win(void);
     void next_window(void);
 };

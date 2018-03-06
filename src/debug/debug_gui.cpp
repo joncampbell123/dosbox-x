@@ -30,6 +30,11 @@
 #include "debug.h"
 #include "debug_inc.h"
 
+#include <stdexcept>
+#include <exception>
+
+using namespace std;
+
 static bool has_LOG_Init = false;
 static bool has_LOG_EarlyInit = false;
 static bool do_LOG_stderr = false;
@@ -62,7 +67,7 @@ void DBGBlock::next_window(void) {
     } while (get_active_win() == NULL);
 }
 
-WINDOW *DBGBlock::get_win(int idx) {
+WINDOW* &DBGBlock::get_win_ref(int idx) {
     switch (idx) {
         case WINI_REG:  return win_reg;
         case WINI_DATA: return win_data;
@@ -71,7 +76,11 @@ WINDOW *DBGBlock::get_win(int idx) {
         case WINI_OUT:  return win_out;
     }
 
-    return NULL;
+    throw domain_error("get_win_ref");
+}
+
+WINDOW* DBGBlock::get_win(int idx) {
+    return get_win_ref(idx);
 }
 
 WINDOW *DBGBlock::get_active_win(void) {
@@ -311,25 +320,31 @@ static void MakeSubWindows(void) {
 	int outy=0,height;
 
 	/* The Register window  */
-    outy++; // header
-    height=4;
-	dbg.win_reg=subwin(dbg.win_main,height,win_main_maxx,outy,0);
-	outy+=height;
+    if (dbg.win_vis[DBGBlock::WINI_REG]) {
+        outy++; // header
+        height=4;
+        dbg.win_reg=subwin(dbg.win_main,height,win_main_maxx,outy,0);
+        outy+=height;
+    }
 
     /* The Data Window */
-    outy++; // header
-    height=8;
-	dbg.win_data=subwin(dbg.win_main,height,win_main_maxx,outy,0);
-	outy+=height;
+    if (dbg.win_vis[DBGBlock::WINI_DATA]) {
+        outy++; // header
+        height=8;
+        dbg.win_data=subwin(dbg.win_main,height,win_main_maxx,outy,0);
+        outy+=height;
+    }
 
     /* The Code Window */
-    outy++; // header
-    height=11;
-	dbg.win_code=subwin(dbg.win_main,height,win_main_maxx,outy,0);
-	outy+=height;
+    if (dbg.win_vis[DBGBlock::WINI_CODE]) {
+        outy++; // header
+        height=11;
+        dbg.win_code=subwin(dbg.win_main,height,win_main_maxx,outy,0);
+        outy+=height;
+    }
 
     /* The Variable Window */
-    if (false/*TODO: Enable flag, or auto-enable when vars are entered into debugger*/) {
+    if (dbg.win_vis[DBGBlock::WINI_VAR]) {
         outy++; // header
         height=4;
         dbg.win_var=subwin(dbg.win_main,height,win_main_maxx,outy,0);
@@ -337,7 +352,7 @@ static void MakeSubWindows(void) {
     }
 
     /* The Output Window */
-    if ((outy+1) < (win_main_maxy-1)) {
+    if (dbg.win_vis[DBGBlock::WINI_OUT] && (outy+1) < (win_main_maxy-1)) {
         outy++; // header
         height=(win_main_maxy-1) - outy;
         dbg.win_out=subwin(dbg.win_main,height,win_main_maxx,outy,0);
@@ -357,10 +372,14 @@ static void MakeSubWindows(void) {
 	refresh();
 }
 
-void DEBUG_GUI_OnResize(void) {
+void DEBUG_GUI_Rebuild(void) {
     DestroySubWindows();
     MakeSubWindows();
     DEBUG_RefreshPage(0);
+}
+
+void DEBUG_GUI_OnResize(void) {
+    DEBUG_GUI_Rebuild();
 }
 
 static void MakePairs(void) {
@@ -377,6 +396,11 @@ void DBGUI_NextWindow(void) {
     dbg.next_window();
 	DrawBars();
 	DEBUG_DrawScreen();
+}
+
+void DBGUI_NextWindowIfActiveHidden(void) {
+    if (dbg.get_active_win() == NULL)
+        DBGUI_NextWindow();
 }
 
 void DBGUI_StartUp(void) {
