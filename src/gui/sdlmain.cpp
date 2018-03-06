@@ -4287,9 +4287,13 @@ void SDL_SetupConfigSection() {
 #endif
 		0 };
 #ifdef __WIN32__
-		Pstring = sdl_sec->Add_string("output",Property::Changeable::Always,"direct3d");	/* <- Direct3D doesn't like being a child window */
+# ifdef __MINGW32__
+		Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "opengl"); /* MinGW builds do not yet have Direct3D */
+# else
+		Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "direct3d");
+#endif
 #else
-		Pstring = sdl_sec->Add_string("output",Property::Changeable::Always,"surface");
+		Pstring = sdl_sec->Add_string("output", Property::Changeable::Always, "surface");
 #endif
 	Pstring->Set_help("What video system to use for output.");
 	Pstring->Set_values(outputs);
