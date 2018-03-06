@@ -117,10 +117,15 @@ int DBGBlock::name_to_win(const char *name) {
 
 void DBGBlock::next_window(void) {
     int limit = DBGBlock::WINI_MAX_INDEX;
+    int order = win_find_order(active_win);
+
+    if (order < 0) order = 0;
 
     do {
-        if (++active_win >= DBGBlock::WINI_MAX_INDEX)
-            active_win = 0;
+        if (++order >= DBGBlock::WINI_MAX_INDEX)
+            order = 0;
+
+        active_win = win_order[order];
         if (--limit <= 0)
             break;
     } while (get_active_win() == NULL);
@@ -144,6 +149,15 @@ WINDOW* DBGBlock::get_win(int idx) {
 
 WINDOW *DBGBlock::get_active_win(void) {
     return get_win(active_win);
+}
+
+int DBGBlock::win_find_order(int wnd) {
+    for (unsigned int i=0;i < DBGBlock::WINI_MAX_INDEX;i++) {
+        if (dbg.win_order[i] == wnd)
+            return i;
+    }
+
+    return -1;
 }
 
 void DBGUI_DrawBlankOutputLine(int y) {

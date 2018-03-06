@@ -88,6 +88,7 @@ public:
     std::string windowlist_by_name(void);
     int name_to_win(const char *name);
     WINDOW *get_active_win(void);
+    int win_find_order(int wnd);
     void next_window(void);
 };
 
