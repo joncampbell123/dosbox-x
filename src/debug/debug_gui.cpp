@@ -44,12 +44,20 @@ _LogGroup loggrp[LOG_MAX]={{"",LOG_NORMAL},{0,LOG_NORMAL}};
 FILE* debuglog = NULL;
 
 const unsigned int dbg_def_win_height[DBGBlock::WINI_MAX_INDEX] = {
-        5,          /* WINI_REG */
-        9,          /* WINI_DATA */
-        12,         /* WINI_CODE */
-        5,          /* WINI_VAR */
-        6           /* WINI_OUT */
-    };
+    5,          /* WINI_REG */
+    9,          /* WINI_DATA */
+    12,         /* WINI_CODE */
+    5,          /* WINI_VAR */
+    6           /* WINI_OUT */
+};
+
+const char *dbg_win_names[DBGBlock::WINI_MAX_INDEX] = {
+    "REG",
+    "DATA",
+    "CODE",
+    "VAR",
+    "OUT"
+};
 
 #if C_DEBUG
 #include <curses.h>
@@ -63,6 +71,22 @@ static list<string> logBuff;
 static list<string>::iterator logBuffPos = logBuff.end();
 
 extern int old_cursor_state;
+
+const char *DBGBlock::get_winname(int idx) {
+    if (idx >= 0 && idx < DBGBlock::WINI_MAX_INDEX)
+        return dbg_win_names[idx];
+
+    return NULL;
+}
+
+int DBGBlock::name_to_win(const char *name) {
+    for (unsigned int i=0;i < DBGBlock::WINI_MAX_INDEX;i++) {
+        if (!strcasecmp(name,dbg_win_names[i]))
+            return i;
+    }
+
+    return -1;
+}
 
 void DBGBlock::next_window(void) {
     int limit = DBGBlock::WINI_MAX_INDEX;
@@ -353,6 +377,16 @@ static void MakeSubWindows(void) {
         else {
             yofs[wndi]=0;
             yheight[wndi]=0;
+        }
+    }
+
+    /* last window expands if output not there */
+    if (expand_wndi < 0) {
+        for (unsigned int wndi=DBGBlock::WINI_MAX_INDEX-1;wndi >= 0;wndi--) {
+            if (yheight[wndi] != 0) {
+                expand_wndi = wndi;
+                break;
+            }
         }
     }
 

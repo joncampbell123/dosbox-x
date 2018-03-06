@@ -34,6 +34,7 @@
 void DBGUI_StartUp(void);
 
 extern const unsigned int dbg_def_win_height[];
+extern const char *dbg_win_names[];
 
 class DBGBlock {
 public:
@@ -77,6 +78,8 @@ public:
 
     WINDOW *get_win(int idx);
     WINDOW* &get_win_ref(int idx);
+    const char *get_winname(int idx);
+    int name_to_win(const char *name);
     WINDOW *get_active_win(void);
     void next_window(void);
 };

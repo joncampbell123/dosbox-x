@@ -1045,11 +1045,34 @@ bool ParseCommand(char* str) {
 	(s_found.erase)(0,next);
 	found = const_cast<char*>(s_found.c_str());
 
-    if (command == "VARS") { // toggle vars window
-        dbg.win_vis[DBGBlock::WINI_VAR] = !dbg.win_vis[DBGBlock::WINI_VAR];
-        DEBUG_GUI_Rebuild();
-        DBGUI_NextWindowIfActiveHidden();
-        return true;
+    if (command == "SHOWWIN") { // SHOW WINDOW <name>
+        int win = dbg.name_to_win(found);
+        if (win >= 0) {
+            dbg.win_vis[win] = true;
+
+            DEBUG_GUI_Rebuild();
+            DBGUI_NextWindowIfActiveHidden();
+            return true;
+        }
+        else {
+            LOG_MSG("No such window '%s'",found);
+            return false;
+        }
+    }
+
+    if (command == "HIDEWIN") { // HIDE WINDOW <name>
+        int win = dbg.name_to_win(found);
+        if (win >= 0) {
+            dbg.win_vis[win] = false;
+
+            DEBUG_GUI_Rebuild();
+            DBGUI_NextWindowIfActiveHidden();
+            return true;
+        }
+        else {
+            LOG_MSG("No such window '%s'",found);
+            return false;
+        }
     }
 
 	if (command == "MEMDUMP") { // Dump memory to file
