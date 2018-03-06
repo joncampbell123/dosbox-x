@@ -124,6 +124,11 @@ void DBGBlock::next_window(void) {
     if (order >= 0) active_win = win_order[order];
 }
 
+void DBGBlock::swap_order(int o1,int o2) {
+    if (o1 != o2)
+        std::swap(win_order[o1],win_order[o2]);
+}
+
 WINDOW* &DBGBlock::get_win_ref(int idx) {
     switch (idx) {
         case WINI_REG:  return win_reg;

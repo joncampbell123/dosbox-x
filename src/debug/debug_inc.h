@@ -91,6 +91,7 @@ public:
     int win_find_order(int wnd);
     int win_prev_by_order(int ord);
     int win_next_by_order(int ord);
+    void swap_order(int o1,int o2);
     void next_window(void);
 };
 

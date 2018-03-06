@@ -1045,12 +1045,30 @@ bool ParseCommand(char* str) {
 	(s_found.erase)(0,next);
 	found = const_cast<char*>(s_found.c_str());
 
-    if (command == "MOVEWINDN") { // MOVE WINDOW DOWN
-        int win1 = dbg.active_win;
-        int order1 = dbg.win_find_order(win1);
-
+    if (command == "MOVEWINDN") { // MOVE WINDOW DOWN (by swapping)
+        int order1 = dbg.win_find_order(dbg.active_win);
         int order2 = dbg.win_next_by_order(order1);
-        int win2 = order2 >= 0 ? dbg.win_order[order2] : 0;
+
+        if (order1 >= 0 && order2 >= 0 && order1 < order2) {
+            dbg.swap_order(order1,order2);
+            DEBUG_GUI_Rebuild();
+            DBGUI_NextWindowIfActiveHidden();
+        }
+
+        return true;
+    }
+
+    if (command == "MOVEWINUP") { // MOVE WINDOW UP (by swapping)
+        int order1 = dbg.win_find_order(dbg.active_win);
+        int order2 = dbg.win_prev_by_order(order1);
+
+        if (order1 >= 0 && order2 >= 0 && order1 > order2) {
+            dbg.swap_order(order1,order2);
+            DEBUG_GUI_Rebuild();
+            DBGUI_NextWindowIfActiveHidden();
+        }
+
+        return true;
     }
 
     if (command == "SHOWWIN") { // SHOW WINDOW <name>
