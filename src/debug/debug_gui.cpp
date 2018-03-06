@@ -394,7 +394,7 @@ static void MakeSubWindows(void) {
 
     /* last window expands if output not there */
     if (expand_wndi < 0) {
-        for (unsigned int wndi=DBGBlock::WINI_MAX_INDEX-1;wndi >= 0;wndi--) {
+        for (int wndi=DBGBlock::WINI_MAX_INDEX-1;wndi >= 0;wndi--) {
             if (yheight[wndi] != 0) {
                 expand_wndi = wndi;
                 break;
