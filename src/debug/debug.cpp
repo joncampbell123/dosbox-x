@@ -1045,6 +1045,14 @@ bool ParseCommand(char* str) {
 	(s_found.erase)(0,next);
 	found = const_cast<char*>(s_found.c_str());
 
+    if (command == "MOVEWINDN") { // MOVE WINDOW DOWN
+        int win1 = dbg.active_win;
+        int order1 = dbg.win_find_order(win1);
+
+        int order2 = dbg.win_next_by_order(order1);
+        int win2 = order2 >= 0 ? dbg.win_order[order2] : 0;
+    }
+
     if (command == "SHOWWIN") { // SHOW WINDOW <name>
         int win = dbg.name_to_win(found);
         if (win >= 0) {

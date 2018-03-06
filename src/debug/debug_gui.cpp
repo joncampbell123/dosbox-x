@@ -121,8 +121,7 @@ void DBGBlock::next_window(void) {
     if (order < 0) order = 0;
 
     order = win_next_by_order(order);
-
-    active_win = win_order[order];
+    if (order >= 0) active_win = win_order[order];
 }
 
 WINDOW* &DBGBlock::get_win_ref(int idx) {
