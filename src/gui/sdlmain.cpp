@@ -89,6 +89,9 @@ bool OpenGL_using(void);
 # include <cstring>
 # include <fstream>
 # include <sstream>
+# ifdef __MINGW32__
+#  include <imm.h> // input method editor
+# endif
 #endif // WIN32
 
 #include "mapper.h"
@@ -3965,7 +3968,7 @@ void GFX_Events() {
 }
 
 // added emendelson from dbDos
-#if defined(WIN32) && !defined(C_SDL2)
+#if defined(WIN32) && !defined(C_SDL2) && !defined(__MINGW32__)
 #include <cassert>
 
 // Ripped from SDL's SDL_dx5events.c, since there's no API to access it...
