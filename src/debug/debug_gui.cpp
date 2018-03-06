@@ -334,23 +334,14 @@ static void DrawBars(void) {
 }
 
 static void DestroySubWindows(void) {
-    if (dbg.win_inp) delwin(dbg.win_inp);
-    dbg.win_inp = NULL;
+    for (unsigned int wnd=0;wnd < DBGBlock::WINI_MAX_INDEX;wnd++) {
+        WINDOW* &ref = dbg.get_win_ref(wnd);
 
-    if (dbg.win_out) delwin(dbg.win_out);
-    dbg.win_out = NULL;
-
-    if (dbg.win_var) delwin(dbg.win_var);
-    dbg.win_var = NULL;
-
-    if (dbg.win_reg) delwin(dbg.win_reg);
-    dbg.win_reg = NULL;
-
-    if (dbg.win_code) delwin(dbg.win_code);
-    dbg.win_code = NULL;
-
-    if (dbg.win_data) delwin(dbg.win_data);
-    dbg.win_data = NULL;
+        if (ref != NULL) {
+            if (ref) delwin(ref);
+            ref = NULL;
+        }
+    }
 }
 
 void DEBUG_GUI_DestroySubWindows(void) {
