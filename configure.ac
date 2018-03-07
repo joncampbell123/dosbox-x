@@ -363,6 +363,8 @@ case "$host" in
        dnl MinGW puts ncurses headers in a subdir
        ncursescfg=`ncursesw6-config --cflags`
        CXXFLAGS="$CXXFLAGS $ncursescfg"
+       CPPFLAGS="$CPPFLAGS $ncursescfg"
+       CFLAGS="$CFLAGS $ncursescfg"
     ;;
     *)
        WINDRES=":"
