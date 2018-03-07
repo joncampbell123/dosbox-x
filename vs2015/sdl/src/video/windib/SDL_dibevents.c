@@ -25,6 +25,12 @@
 #include <windows.h>
 #include <process.h>
 
+#ifdef SDL_WIN32_NO_PARENT_WINDOW
+# define ParentWindowHWND SDL_Window
+#else
+extern HWND ParentWindowHWND;
+#endif
+
 #include "SDL_main.h"
 #include "SDL_events.h"
 #include "SDL_syswm.h"
@@ -33,6 +39,8 @@
 #include "../wincommon/SDL_lowvideo.h"
 #include "SDL_gapidibvideo.h"
 #include "SDL_vkeys.h"
+
+void (*SDL1_hax_INITMENU_cb)() = NULL;
 
 #ifdef SDL_VIDEO_DRIVER_GAPI
 #include "../gapi/SDL_gapivideo.h"
@@ -129,8 +137,6 @@ static void GapiTransform(GapiInfo *gapiInfo, LONG *x, LONG *y)
     }
 }
 #endif 
-
-extern HWND ParentWindowHWND;
 
 /* DOSBox-X deviation: hack to ignore Num/Scroll/Caps if set */
 #if defined(WIN32)
@@ -268,6 +274,13 @@ LRESULT DIB_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 				TranslateKey(wParam,HIWORD(lParam),&keysym,1));
 		}
 		return(0);
+
+		case WM_INITMENU:
+#ifdef SDL_WIN32_NO_PARENT_WINDOW
+			if (SDL1_hax_INITMENU_cb != NULL)
+				SDL1_hax_INITMENU_cb();
+#endif
+			break;
 
 		case WM_SYSKEYUP:
 		case WM_KEYUP: {
@@ -685,6 +698,7 @@ static SDL_keysym *TranslateKey(WPARAM vkey, UINT scancode, SDL_keysym *keysym, 
 	return(keysym);
 }
 
+#ifndef SDL_WIN32_NO_PARENT_WINDOW
 /*-----------------------------------------------------------*/
 HANDLE			ParentWindowThread = INVALID_HANDLE_VALUE;
 DWORD			ParentWindowThreadID = 0;
@@ -692,8 +706,6 @@ HWND			ParentWindowHWND = NULL;
 volatile int	ParentWindowInit = 0;
 volatile int	ParentWindowShutdown = 0;
 volatile int	ParentWindowReady = 0;
-
-void			(*SDL1_hax_INITMENU_cb)() = NULL;
 
 LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	if (msg == WM_CREATE) {
@@ -901,6 +913,7 @@ int InitParentWindow(void) {
 	return 1;
 }
 /*-----------------------------------------------------------*/
+#endif
 
 int DIB_CreateWindow(_THIS)
 {
@@ -931,14 +944,22 @@ int DIB_CreateWindow(_THIS)
 		userWindowProc = (WNDPROCTYPE)GetWindowLongPtr(SDL_Window, GWLP_WNDPROC);
 		SetWindowLongPtr(SDL_Window, GWLP_WNDPROC, (LONG_PTR)WinMessage);
 	} else {
+#ifndef SDL_WIN32_NO_PARENT_WINDOW
 		if (!InitParentWindow()) {
 			SDL_SetError("Couldn't init parent window");
 			return(-1);
 		}
+#endif
 
+#ifdef SDL_WIN32_NO_PARENT_WINDOW
+		SDL_Window = CreateWindow(SDL_Appname, SDL_Appname,
+			(WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_CLIPCHILDREN | WS_CLIPSIBLINGS),
+			0, 0, 640, 480, NULL, NULL, SDL_Instance, NULL);
+#else
 		SDL_Window = CreateWindow(SDL_Appname, SDL_Appname,
                         WS_CHILD,
                         0, 0, 640, 480, ParentWindowHWND, NULL, SDL_Instance, NULL);
+#endif
 		if ( SDL_Window == NULL ) {
 			SDL_SetError("Couldn't create window");
 			return(-1);

@@ -68,7 +68,9 @@
 #ifdef _WIN32_WCE
 LPWSTR SDL_Appname = NULL;
 #else
+# ifndef SDL_WIN32_NO_PARENT_WINDOW
 LPSTR SDL_AppnameParent = "SDLParent";
+# endif
 LPSTR SDL_Appname = NULL;
 #endif
 Uint32 SDL_Appstyle = 0;
@@ -136,7 +138,11 @@ static void LoadAygshell(void)
 
 #endif
 
+#ifdef SDL_WIN32_NO_PARENT_WINDOW
+# define ParentWindowHWND SDL_Window
+#else
 extern HWND	ParentWindowHWND;
+#endif
 
 /* JC 14 Mar 2006
    This is used all over the place, in the windib driver and in the dx5 driver
@@ -793,7 +799,7 @@ int SDL_RegisterApp(char *name, Uint32 style, void *hInst)
 		return(-1);
 	}
 
-
+#ifndef SDL_WIN32_NO_PARENT_WINDOW
 	/* another for the DIB parent window*/
 	class.hCursor = NULL;
 	class.hIcon = LoadImage(SDL_Instance, SDL_Appname,
@@ -814,7 +820,7 @@ int SDL_RegisterApp(char *name, Uint32 style, void *hInst)
 		SDL_SetError("Couldn't register application class");
 		return(-1);
 	}
-
+#endif
 
 #ifdef WM_MOUSELEAVE
 	/* Get the version of TrackMouseEvent() we use */

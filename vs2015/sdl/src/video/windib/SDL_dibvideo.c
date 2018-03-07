@@ -24,6 +24,12 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+#ifdef SDL_WIN32_NO_PARENT_WINDOW
+# define ParentWindowHWND SDL_Window
+#else
+extern HWND	ParentWindowHWND;
+#endif
+
 /* Not yet in the mingw32 cross-compile headers */
 #ifndef CDS_FULLSCREEN
 #define CDS_FULLSCREEN	4
@@ -503,8 +509,6 @@ static int DIB_SussScreenDepth()
     return depth;
 #endif /* NO_GETDIBITS */
 }
-
-extern HWND	ParentWindowHWND;
 
 /* Various screen update functions available */
 static void DIB_NormalUpdate(_THIS, int numrects, SDL_Rect *rects);

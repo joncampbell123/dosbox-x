@@ -209,7 +209,11 @@ void WIN_SetWMIcon(_THIS, SDL_Surface *icon, Uint8 *mask)
 
 typedef BOOL (WINAPI *PtrSetWindowTextW)(HWND hWnd, LPCWSTR lpString);
 
+#ifdef SDL_WIN32_NO_PARENT_WINDOW
+# define ParentWindowHWND SDL_Window
+#else
 extern HWND	ParentWindowHWND;
+#endif
 
 void WIN_SetWMCaption(_THIS, const char *title, const char *icon)
 {

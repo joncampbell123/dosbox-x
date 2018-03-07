@@ -33,7 +33,11 @@
 #define DEFAULT_GL_DRIVER_PATH "OPENGL32.DLL"
 #endif
 
-extern HWND ParentWindowHWND;
+#ifdef SDL_WIN32_NO_PARENT_WINDOW
+# define ParentWindowHWND SDL_Window
+#else
+extern HWND	ParentWindowHWND;
+#endif
 
 /* If setting the HDC fails, we may need to recreate the window (MSDN) */
 static int WIN_GL_ResetWindow(_THIS)

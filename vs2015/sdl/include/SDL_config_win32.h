@@ -181,4 +181,7 @@ typedef unsigned int uintptr_t;
 #define SDL_ASSEMBLY_ROUTINES	1
 #endif
 
+/* Keep async mode for Windows */
+#undef SDL_WIN32_NO_PARENT_WINDOW
+
 #endif /* _SDL_config_win32_h */
