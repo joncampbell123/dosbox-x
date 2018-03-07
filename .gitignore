@@ -3,6 +3,11 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# autoconfig nonsense
+*.in
+aclocal.m4
+configure
+
 # User-specific files
 *.suo
 *.user
