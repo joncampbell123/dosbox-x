@@ -33,7 +33,7 @@
 #include "support.h"
 #include "video.h"
 #include "menu.h"
-
+#include "SDL.h"
 
 void upcase(std::string &str) {
 	int (*tf)(int) = std::toupper;
@@ -192,6 +192,7 @@ void E_Exit(const char * format,...) {
 	endwin();
 #endif
 	fprintf(stderr, "E_Exit: %s\n", buf);
+	SDL_Quit();
 	exit(0);
 }
 
