@@ -1,4 +1,56 @@
 (next)
+  - BOOT now accepts a --debug switch that causes DOSBox-X to break into
+    the debugger when the boot sector begins to execute.
+  - BOOT now accepts a --force switch to override the PC-98 lockout,
+    if the user wants to better understand why I locked it out in PC-98 mode.
+  - PC-98 support now supports reading font from FONT.ROM, if available.
+  - Code, data, and output now respond to arrow, page up/down and
+    home/end keys as a user would normally expect.
+  - Arrow and page up/down keyboard input now goes to active window
+    instead of mapping directly to any specific window.
+  - Debugger interface now has the concept of an "active" window, and
+    the title bar of each window hilights if it is active.
+  - Debugger interface now hides the "variables" window by default.
+  - Fixed window "titles" in debugger interface to fill the terminal
+    line they're on and use ncurses horizontal line character which
+    on modern systems looks better than hyphens.
+  - Removed one line padding around data window in debugger interface.
+  - Debugger interface redesigned to permit more flexible layout
+  - Debugger interface no longer crashes when terminal window is sized
+    down too small (when there is no room for the output window)
+  - EMM386 (ems) emulation fixed to always turn on the A20 gate when
+    the DOS application requests to map pages into the EMS page frame.
+    This fixes crashes with Creative's Sound Blaster 16 installer when
+    run with the A20 gate turned off.
+0.82.4 (02/28/2018)
+  - Updated ramdisk formatting code to better match FAT12/FAT16
+    specifications and limits (Shane32)
+  - Menu items related to Gravis Ultrasound, Glide emulation, Innova SID,
+    and other IBM PC-specific options are now grayed out in PC-98 mode.
+  - Updated Windows menus to gray out CPU core and type options that
+    are invalid. Selecting a prefetch CPU type while core dynamic is
+    no longer possible, and selecting dynamic core while using a
+    prefetch cpu type is no longer possible.
+  - CPU type submenu in Windows updated to reflect all types supported
+    by DOSBox-X including 8086 and 286 cores.
+  - Fixed E_Exit() crash on Windows in PDCurses endwin() that only
+    happens if you had never brought up the debugger console window.
+  - Minor oddities with OPNA stereo panning resolved.
+  - Sound Blaster, Adlib, and PC-98 FM emulation now reset state
+    correctly when the reset signal is given to avoid stuck notes.
+  - Fixed BIOS logo in PC-98 mode to properly reset the graphics mode
+    so that the logo is visible.
+  - Added Windows menu items to control PC-98 GDC speed, 4-partition enable,
+    200-line "scanline" effect enable, and PIT timer clock control.
+  - Added "Restart DOS" command to the Windows menu, with code to
+    allow it only if at the initial DOS shell.
+  - Added "multi-track WAV" command to the Windows menu, under Capture
+  - Added "reset system" command to the Windows menu
+  - "Restart" menu command updated to clarify that it restarts DOSBox-X entirely.
+  - OpenGL HQ output removed.
+  - Commands to force driver (DirectX or WINDIB) removed.
+  - Default disk I/O limit raised to more reasonable speeds.
+  - FM code borrowed from Neko Project II now compiles on Mac OS X
   - IMGMOUNT now supports mounting a RAM drive (using -t ram) (Shane32)
   - Direct3D fullscreen aspect ratio fixes, especially for
     monitors with a 5:4 aspect ratio (such as 1280x1024) (Shane32)

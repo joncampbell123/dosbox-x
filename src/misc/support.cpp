@@ -33,7 +33,7 @@
 #include "support.h"
 #include "video.h"
 #include "menu.h"
-
+#include "SDL.h"
 
 void upcase(std::string &str) {
 	int (*tf)(int) = std::toupper;
@@ -184,14 +184,15 @@ void E_Exit(const char * format,...) {
 	va_end(msg);
 	strcat(buf,"\n");
 	LOG_MSG("E_Exit: %s\n",buf);
-#if C_DEBUG
-	endwin();
-#endif
-	fprintf(stderr,"E_Exit: %s\n",buf);
 #if defined(WIN32) && !defined(C_SDL2)
 	/* Most Windows users DON'T run DOSBox-X from the command line! */
 	MessageBox(GetHWND(), buf, "E_Exit", MB_OK | MB_ICONEXCLAMATION);
 #endif
+#if C_DEBUG
+	endwin();
+#endif
+	fprintf(stderr, "E_Exit: %s\n", buf);
+	SDL_Quit();
 	exit(0);
 }
 

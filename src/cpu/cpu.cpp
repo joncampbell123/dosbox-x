@@ -2873,7 +2873,6 @@ public:
 		CPU_Cycles=0;
 		CPU_SkipCycleAutoAdjust=false;
 
-		dosbox_enable_nonrecursive_page_fault = true;
 		ignore_opcode_63 = section->Get_bool("ignore opcode 63");
 		cpu_double_fault_enable = section->Get_bool("double fault");
 		cpu_triple_fault_reset = section->Get_bool("reset on triple fault");

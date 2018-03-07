@@ -1,5 +1,5 @@
 dnl Init.
-AC_INIT(dosbox-x,0.82.3,[https://github.com/joncampbell123/dosbox-x/issues],[],[http://dosbox-x.software])
+AC_INIT(dosbox-x,0.82.4,[https://github.com/joncampbell123/dosbox-x/issues],[],[http://dosbox-x.software])
 AC_PREREQ(2.60)
 AC_CONFIG_SRCDIR(README)
 
@@ -225,13 +225,11 @@ case "$host" in
        ;;
 esac
 
-dnl Scalars in the code use MMX/SSE intrinsics on x86 and x86_64
+dnl Some default CPU flags
 case "$host_cpu" in
   x86_64 | amd64)
-    CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
-    ;;
-  i?86)
-    CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
+    # SSE is part of the x86_64 ABI
+    CXXFLAGS="$CXXFLAGS -msse"
     ;;
 esac
 
@@ -251,6 +249,7 @@ case "$host" in
     *-*-cygwin* | *-*-mingw32*)
        dnl Some stuff for the ico
        AC_CHECK_TOOL(WINDRES, windres, :)
+       LDFLAGS="-static -static-libgcc -static-libstdc++ $LDFLAGS"
     ;;
     *)
        WINDRES=":"
@@ -358,6 +357,20 @@ else
   fi
 fi
 
+dnl Some stuff for the icon.
+case "$host" in
+    *-*-cygwin* | *-*-mingw32*)
+       dnl MinGW puts ncurses headers in a subdir
+       ncursescfg=`ncursesw6-config --cflags`
+       CXXFLAGS="$CXXFLAGS $ncursescfg"
+       CPPFLAGS="$CPPFLAGS $ncursescfg"
+       CFLAGS="$CFLAGS $ncursescfg"
+    ;;
+    *)
+       WINDRES=":"
+    ;;
+esac
+
 dnl LIBRARY TEST: ncurses
 AC_CHECK_HEADER(curses.h,have_curses_h=yes,)
 AC_CHECK_LIB(curses, initscr, have_curses_lib=yes, , )
@@ -431,15 +444,18 @@ if test -n "$SDL2_LIBS"; then
 fi
 
 # test
+# Note that MT32 (MUNT) requires the SSE extensions
 if test x$enable_mt32 = xyes ; then 
   case "$host_cpu" in
     x86_64 | amd64)
       AC_MSG_RESULT(yes)
       AC_DEFINE(C_MT32,1)
+      CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
       ;;
     i?86)
       AC_MSG_RESULT(yes)
       AC_DEFINE(C_MT32,1)
+      CXXFLAGS="$CXXFLAGS -mmmx -msse -msse2"
       ;;
     *)
       enable_mt32=no

@@ -257,9 +257,9 @@ int DIB_OpenAudio(_THIS, SDL_AudioSpec *spec)
 	waveformat.nAvgBytesPerSec = 
 		waveformat.nSamplesPerSec * waveformat.nBlockAlign;
 
-	/* Check the buffer size -- minimum of 1/4 second (word aligned) */
-	if ( spec->samples < (spec->freq/4) )
-		spec->samples = ((spec->freq/4)+3)&~3;
+	/* Check the buffer size -- minimum of 1/15 second (word aligned) */
+	if ( spec->samples < (spec->freq/15) )
+		spec->samples = ((spec->freq/15)+3)&~3;
 
 	/* Update the fragment size as size in bytes */
 	SDL_CalculateAudioSpec(spec);

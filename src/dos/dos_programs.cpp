@@ -542,6 +542,7 @@ static void SHOWGUI_ProgramStart(Program * * make) {
 
 extern Bit32u floppytype;
 extern bool dos_kernel_disabled;
+extern bool boot_debug_break;
 
 void DisableINT33();
 void EMS_DoShutDown();
@@ -647,7 +648,16 @@ private:
 public:
    
 	void Run(void) {
-        if (IS_PC98_ARCH) {
+        bool force = false;
+
+        boot_debug_break = false;
+        if (cmd->FindExist("-debug",true))
+            boot_debug_break = true;
+
+        if (cmd->FindExist("-force",true))
+            force = true;
+
+        if (IS_PC98_ARCH && !force) {
             WriteOut("Booting from PC-98 mode is not supported yet\n");
             return;
         }
@@ -756,6 +766,8 @@ public:
             WriteOut("Bytes/sector too large");
             return;
         }
+
+        unsigned int bootsize = imageDiskList[drive-65]->getSectSize();
 
 		imageDiskList[drive-65]->Read_Sector(0,0,1,(Bit8u *)&bootarea);
 
@@ -963,33 +975,58 @@ public:
 			disable_umb_ems_xms();
 
 			WriteOut(MSG_Get("PROGRAM_BOOT_BOOT"), drive);
-			for(i=0;i<512;i++) real_writeb(0, (load_seg<<4) + i, bootarea.rawdata[i]);
+			for(i=0;i<bootsize;i++) real_writeb(0, (load_seg<<4) + i, bootarea.rawdata[i]);
 
 			/* debug */
 			LOG_MSG("Booting guest OS stack_seg=0x%04x load_seg=0x%04x\n",(int)stack_seg,(int)load_seg);
             RunningProgram = "Guest OS";
  
+            /* WARNING: PC-98 mode does not allocate DMA channel 2 for the floppy! */
 			/* create appearance of floppy drive DMA usage (Demon's Forge) */
-			if (!IS_TANDY_ARCH && floppysize!=0) GetDMAChannel(2)->tcount=true;
+			if (!IS_TANDY_ARCH && !IS_PC98_ARCH && floppysize!=0) GetDMAChannel(2)->tcount=true;
 
 			/* standard method */
-			SegSet16(cs, 0);
-			SegSet16(ds, 0);
-			SegSet16(es, 0);
-			reg_ip = load_seg<<4;
-			reg_ebx = load_seg<<4; //Real code probably uses bx to load the image
-			reg_esp = 0x100;
-			/* set up stack at a safe place */
-			SegSet16(ss, stack_seg);
-			reg_esi = 0;
-			reg_ecx = 1;
-			reg_ebp = 0;
-			reg_eax = 0;
-			reg_edx = 0; //Head 0
-			if (drive >= 'A' && drive <= 'B')
-				reg_edx += (drive-'A');
-			else if (drive >= 'C' && drive <= 'Z')
-				reg_edx += 0x80+(drive-'C');
+            if (IS_PC98_ARCH) {
+                /* WARNING: THIS IS A GUESS! */
+                SegSet16(cs, load_seg);
+                SegSet16(ds, load_seg);
+                SegSet16(es, load_seg);
+                reg_ip = 0;
+                reg_ebx = 0;
+                reg_esp = 0x100;
+                /* set up stack at a safe place */
+                SegSet16(ss, stack_seg);
+                reg_esi = 0;
+                reg_ecx = 0;
+                reg_ebp = 0;
+                reg_eax = 0;
+                reg_edx = 0;
+
+                /* clear the text layer */
+                for (unsigned int i=0;i < (80*25*2);i += 2) {
+                    mem_writew(0xA0000+i,0x0000);
+                    mem_writew(0xA2000+i,0x00E1);
+                }
+            }
+            else {
+                SegSet16(cs, 0);
+                SegSet16(ds, 0);
+                SegSet16(es, 0);
+                reg_ip = load_seg<<4;
+                reg_ebx = load_seg<<4; //Real code probably uses bx to load the image
+                reg_esp = 0x100;
+                /* set up stack at a safe place */
+                SegSet16(ss, stack_seg);
+                reg_esi = 0;
+                reg_ecx = 1;
+                reg_ebp = 0;
+                reg_eax = 0;
+                reg_edx = 0; //Head 0
+                if (drive >= 'A' && drive <= 'B')
+                    reg_edx += (drive-'A');
+                else if (drive >= 'C' && drive <= 'Z')
+                    reg_edx += 0x80+(drive-'C');
+            }
 #ifdef __WIN32__
 			// let menu know it boots
 			menu.boot=true;

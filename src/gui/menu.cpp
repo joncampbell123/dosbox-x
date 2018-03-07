@@ -27,6 +27,7 @@
 #include "ide.h" // for ide support
 #include "mapper.h"
 #include "keyboard.h"
+#include "timer.h"
 #include "inout.h"
 
 extern int NonUserResizeCounter;
@@ -35,6 +36,7 @@ extern bool dos_kernel_disabled;
 extern bool dos_shell_running_program;
 
 bool GFX_GetPreventFullscreen(void);
+void DOSBox_ShowConsole();
 
 #if !defined(C_SDL2)
 void GUI_ResetResize(bool pressed);
@@ -95,6 +97,16 @@ HWND GetHWND(void) {
 		return NULL;
 	}
 	return wmi.window;
+}
+
+HWND GetSurfaceHWND(void) {
+	SDL_SysWMinfo wmi;
+	SDL_VERSION(&wmi.version);
+
+	if (!SDL_GetWMInfo(&wmi)) {
+		return NULL;
+	}
+	return wmi.child_window;
 }
 
 void GetDefaultSize(void) {
@@ -773,6 +785,8 @@ void DOSBox_SetSysMenu(void) {
 	}
 }
 
+extern "C" void SDL1_hax_SetMenu(HMENU menu);
+
 void DOSBox_SetMenu(void) {
 	if(!menu.gui) return;
 
@@ -780,8 +794,7 @@ void DOSBox_SetMenu(void) {
 
 	menu.toggle=true;
     NonUserResizeCounter=1;
-    SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
-	DrawMenuBar (GetHWND());
+	SDL1_hax_SetMenu(LoadMenu(GetModuleHandle(NULL), MAKEINTRESOURCE(IDR_MENU)));
 
 	Reflect_Menu();
 
@@ -797,8 +810,7 @@ void DOSBox_NoMenu(void) {
 	if(!menu.gui) return;
 	menu.toggle=false;
     NonUserResizeCounter=1;
-    SetMenu(GetHWND(), NULL);
-	DrawMenuBar(GetHWND());
+	SDL1_hax_SetMenu(NULL);
 	RENDER_CallBack( GFX_CallBackReset );
 
     void DOSBox_SetSysMenu(void);
@@ -855,26 +867,22 @@ void DOSBox_RefreshMenu2(void) {
    int width, height; bool fullscreen;
    void GFX_GetSize(int &width, int &height, bool &fullscreen);
    GFX_GetSize(width,height,fullscreen);
-   void SDL_Prepare(void);
-   SDL_Prepare();
-   if(!menu.gui) return;
+    void SDL_Prepare(void);
+    SDL_Prepare();
+    if(!menu.gui) return;
 
-   if(fullscreen) {
-       NonUserResizeCounter=1;
-       SetMenu(GetHWND(), NULL);
-       DrawMenuBar(GetHWND());
-       return;
-   }
-   if(menu.toggle) {
-       menu.toggle=true;
-       NonUserResizeCounter=1;
-       SetMenu(GetHWND(), LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
-       DrawMenuBar (GetHWND());
-   } else {
-       menu.toggle=false;
-       NonUserResizeCounter=1;
-       SetMenu(GetHWND(), NULL);
-		DrawMenuBar(GetHWND());
+    if(fullscreen) {
+        NonUserResizeCounter=1;
+        return;
+    }
+	if(menu.toggle) {
+		menu.toggle=true;
+        NonUserResizeCounter=1;
+        SDL1_hax_SetMenu(LoadMenu(GetModuleHandle(NULL),MAKEINTRESOURCE(IDR_MENU)));
+	} else {
+		menu.toggle=false;
+        NonUserResizeCounter=1;
+		SDL1_hax_SetMenu(NULL);
 	}
 
     void DOSBox_SetSysMenu(void);
@@ -926,6 +934,9 @@ void MENU_KeyDelayRate(int delay, int rate) {
 	LOG_MSG("GUI: Keyboard rate %d, delay %d", rate, delay);
 }
 
+extern "C" void (*SDL1_hax_INITMENU_cb)();
+void reflectmenu_INITMENU_cb();
+
 bool GFX_GetPreventFullscreen(void);
 
 int Reflect_Menu(void) {
@@ -944,6 +955,11 @@ int Reflect_Menu(void) {
 		name[0] = 0;
 	}
 
+	EnableMenuItem(m_handle, ID_PC98_CLEAR_TEXT_LAYER, (!IS_PC98_ARCH) ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_PC98_CLEAR_GRAPHICS_LAYER, (!IS_PC98_ARCH) ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_PC98_4MHZ_TIMER, (!IS_PC98_ARCH) ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_PC98_5MHZ_TIMER, (!IS_PC98_ARCH) ? MF_DISABLED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_PC98_FOURPARTITIONSGRAPHICS, (!IS_PC98_ARCH) ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_PC98_200SCANLINEEFFECT, (!IS_PC98_ARCH) ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_PC98_GDC5MHZ, (!IS_PC98_ARCH) ? MF_DISABLED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_RESTART_DOS, (dos_kernel_disabled || dos_shell_running_program) ? MF_DISABLED : MF_ENABLED);
@@ -1088,9 +1104,204 @@ int Reflect_Menu(void) {
 	EnableMenuItem(m_handle, ID_BOOT_C_MOUNTED, (strlen(name) || menu.boot) ? MF_GRAYED : MF_ENABLED);
 	EnableMenuItem(m_handle, ID_BOOT_D_MOUNTED, (strlen(name) || menu.boot) ? MF_GRAYED : MF_ENABLED);
 
+#define GRAYIFPC98(x) EnableMenuItem(m_handle, (x), (IS_PC98_ARCH) ? MF_GRAYED : MF_ENABLED);
+	/* TODO: There is in fact a Sound Blaster 16 card for NEC PC-9821 systems. I have the C-Bus card on my shelf.
+	I will remove this part when I figure out how to update Sound Blaster emulation to mimic it. --J.C. */
+	GRAYIFPC98(ID_SB_NONE);
+	GRAYIFPC98(ID_SB_SB1);
+	GRAYIFPC98(ID_SB_SB2);
+	GRAYIFPC98(ID_SB_SBPRO1);
+	GRAYIFPC98(ID_SB_SBPRO2);
+	GRAYIFPC98(ID_SB_SB16);
+	GRAYIFPC98(ID_SB_SB16VIBRA);
+	GRAYIFPC98(ID_SB_GB);
+
+	GRAYIFPC98(ID_SB_220);
+	GRAYIFPC98(ID_SB_240);
+	GRAYIFPC98(ID_SB_260);
+	GRAYIFPC98(ID_SB_280);
+	GRAYIFPC98(ID_SB_2a0);
+	GRAYIFPC98(ID_SB_2c0);
+	GRAYIFPC98(ID_SB_2e0);
+	GRAYIFPC98(ID_SB_300);
+
+	GRAYIFPC98(ID_SB_HW210);
+	GRAYIFPC98(ID_SB_HW220);
+	GRAYIFPC98(ID_SB_HW230);
+	GRAYIFPC98(ID_SB_HW240);
+	GRAYIFPC98(ID_SB_HW250);
+	GRAYIFPC98(ID_SB_HW260);
+	GRAYIFPC98(ID_SB_HW280);
+
+	GRAYIFPC98(ID_SB_IRQ_3);
+	GRAYIFPC98(ID_SB_IRQ_5);
+	GRAYIFPC98(ID_SB_IRQ_7);
+	GRAYIFPC98(ID_SB_IRQ_9);
+	GRAYIFPC98(ID_SB_IRQ_10);
+	GRAYIFPC98(ID_SB_IRQ_11);
+	GRAYIFPC98(ID_SB_IRQ_12);
+
+	GRAYIFPC98(ID_SB_DMA_0);
+	GRAYIFPC98(ID_SB_DMA_1);
+	GRAYIFPC98(ID_SB_DMA_3);
+	GRAYIFPC98(ID_SB_DMA_5);
+	GRAYIFPC98(ID_SB_DMA_6);
+	GRAYIFPC98(ID_SB_DMA_7);
+		
+		GRAYIFPC98(ID_SB_HDMA_0);
+		GRAYIFPC98(ID_SB_HDMA_1);
+		GRAYIFPC98(ID_SB_HDMA_3);
+		GRAYIFPC98(ID_SB_HDMA_5);
+		GRAYIFPC98(ID_SB_HDMA_6);
+		GRAYIFPC98(ID_SB_HDMA_7);
+		
+		GRAYIFPC98(ID_SB_OPL_AUTO);
+		GRAYIFPC98(ID_SB_OPL_NONE);
+		GRAYIFPC98(ID_SB_OPL_CMS);
+		GRAYIFPC98(ID_SB_OPL_OPL2);
+		GRAYIFPC98(ID_SB_OPL_DUALOPL2);
+		GRAYIFPC98(ID_SB_OPL_OPL3);
+		GRAYIFPC98(ID_SB_OPL_HARDWARE);
+		GRAYIFPC98(ID_SB_OPL_HARDWAREGB);
+	
+		GRAYIFPC98(ID_SB_OPL_49716);
+		GRAYIFPC98(ID_SB_OPL_48000);
+		GRAYIFPC98(ID_SB_OPL_44100);
+		GRAYIFPC98(ID_SB_OPL_32000);
+		GRAYIFPC98(ID_SB_OPL_22050);
+		GRAYIFPC98(ID_SB_OPL_16000);
+		GRAYIFPC98(ID_SB_OPL_11025);
+		GRAYIFPC98(ID_SB_OPL_8000);
+		
+		GRAYIFPC98(ID_SB_OPL_EMU_DEFAULT);
+		GRAYIFPC98(ID_SB_OPL_EMU_COMPAT);
+		GRAYIFPC98(ID_SB_OPL_EMU_FAST);
+
+		GRAYIFPC98(ID_GUS_TRUE);
+		
+		GRAYIFPC98(ID_GUS_49716);
+		GRAYIFPC98(ID_GUS_48000);
+		GRAYIFPC98(ID_GUS_44100);
+		GRAYIFPC98(ID_GUS_32000);
+		GRAYIFPC98(ID_GUS_22050);
+		GRAYIFPC98(ID_GUS_16000);
+		GRAYIFPC98(ID_GUS_11025);
+		GRAYIFPC98(ID_GUS_8000);
+		
+		GRAYIFPC98(ID_GUS_300);
+		GRAYIFPC98(ID_GUS_220);
+		GRAYIFPC98(ID_GUS_240);
+		GRAYIFPC98(ID_GUS_260);
+		GRAYIFPC98(ID_GUS_280);
+		GRAYIFPC98(ID_GUS_2a0);
+		GRAYIFPC98(ID_GUS_2c0);
+		GRAYIFPC98(ID_GUS_2e0);
+		
+		GRAYIFPC98(ID_GUS_IRQ_3);
+		GRAYIFPC98(ID_GUS_IRQ_5);
+		GRAYIFPC98(ID_GUS_IRQ_7);
+		GRAYIFPC98(ID_GUS_IRQ_9);
+		GRAYIFPC98(ID_GUS_IRQ_10);
+		GRAYIFPC98(ID_GUS_IRQ_11);
+		GRAYIFPC98(ID_GUS_IRQ_12);
+		
+		GRAYIFPC98(ID_GUS_DMA_0);
+		GRAYIFPC98(ID_GUS_DMA_1);
+		GRAYIFPC98(ID_GUS_DMA_3);
+		GRAYIFPC98(ID_GUS_DMA_5);
+		GRAYIFPC98(ID_GUS_DMA_6);
+		GRAYIFPC98(ID_GUS_DMA_7);
+
+		GRAYIFPC98(ID_INNOVA_TRUE);
+		
+		GRAYIFPC98(ID_INNOVA_49716);
+		GRAYIFPC98(ID_INNOVA_48000);
+		GRAYIFPC98(ID_INNOVA_44100);
+		GRAYIFPC98(ID_INNOVA_32000);
+		GRAYIFPC98(ID_INNOVA_16000);
+		GRAYIFPC98(ID_INNOVA_22050);
+		GRAYIFPC98(ID_INNOVA_11025);
+		GRAYIFPC98(ID_INNOVA_8000);
+		
+		GRAYIFPC98(ID_INNOVA_300);
+		GRAYIFPC98(ID_INNOVA_280);
+		GRAYIFPC98(ID_INNOVA_260);
+		GRAYIFPC98(ID_INNOVA_240);
+		GRAYIFPC98(ID_INNOVA_220);
+		GRAYIFPC98(ID_INNOVA_2A0);
+		GRAYIFPC98(ID_INNOVA_2C0);
+		GRAYIFPC98(ID_INNOVA_2E0);
+		
+		GRAYIFPC98(ID_INNOVA_3);
+		GRAYIFPC98(ID_INNOVA_2);
+		GRAYIFPC98(ID_INNOVA_1);
+		GRAYIFPC98(ID_INNOVA_0);
+
+		GRAYIFPC98(ID_OVERSCAN_0);
+		GRAYIFPC98(ID_OVERSCAN_1);
+		GRAYIFPC98(ID_OVERSCAN_2);
+		GRAYIFPC98(ID_OVERSCAN_3);
+		GRAYIFPC98(ID_OVERSCAN_4);
+		GRAYIFPC98(ID_OVERSCAN_5);
+		GRAYIFPC98(ID_OVERSCAN_6);
+		GRAYIFPC98(ID_OVERSCAN_7);
+		GRAYIFPC98(ID_OVERSCAN_8);
+		GRAYIFPC98(ID_OVERSCAN_9);
+		GRAYIFPC98(ID_OVERSCAN_10);
+
+		GRAYIFPC98(ID_CHAR9);
+		GRAYIFPC98(ID_MULTISCAN);
+
+		GRAYIFPC98(ID_GLIDE_TRUE);
+
+		GRAYIFPC98(ID_GLIDE_LFB_FULL);
+		GRAYIFPC98(ID_GLIDE_LFB_FULL_NOAUX);
+		GRAYIFPC98(ID_GLIDE_LFB_READ);
+		GRAYIFPC98(ID_GLIDE_LFB_READ_NOAUX);
+		GRAYIFPC98(ID_GLIDE_LFB_WRITE);
+		GRAYIFPC98(ID_GLIDE_LFB_WRITE_NOAUX);
+		GRAYIFPC98(ID_GLIDE_LFB_NONE);
+
+		GRAYIFPC98(ID_GLIDE_SPLASH);
+
+		GRAYIFPC98(ID_GLIDE_EMU);
+
+		GRAYIFPC98(ID_GLIDE_EMU_FALSE);
+		GRAYIFPC98(ID_GLIDE_EMU_SOFTWARE);
+		GRAYIFPC98(ID_GLIDE_EMU_OPENGL);
+		GRAYIFPC98(ID_GLIDE_EMU_AUTO);
+#undef GRAYIFPC98
+
+	Section_prop * cpu_section = static_cast<Section_prop *>(control->GetSection("cpu"));
+	const std::string cpu_sec_type = cpu_section->Get_string("cputype");
+
+	// dynamic cannot handle prefetch
+	EnableMenuItem(m_handle, ID_DYNAMIC, (strstr(cpu_sec_type.c_str(),"_prefetch") != NULL) ? MF_GRAYED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_CPUTYPE_8086_PREFETCH, (!strcasecmp(core_mode, "Dynamic")) ? MF_GRAYED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_CPUTYPE_80186_PREFETCH, (!strcasecmp(core_mode, "Dynamic")) ? MF_GRAYED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_CPUTYPE_286_PREFETCH, (!strcasecmp(core_mode, "Dynamic")) ? MF_GRAYED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_CPUTYPE_386_PREFETCH, (!strcasecmp(core_mode, "Dynamic")) ? MF_GRAYED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_CPUTYPE_486_PREFETCH, (!strcasecmp(core_mode, "Dynamic")) ? MF_GRAYED : MF_ENABLED);
+	// dynamic core is not designed to emulate below a 386
+	EnableMenuItem(m_handle, ID_CPUTYPE_8086, (!strcasecmp(core_mode, "Dynamic")) ? MF_GRAYED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_CPUTYPE_80186, (!strcasecmp(core_mode, "Dynamic")) ? MF_GRAYED : MF_ENABLED);
+	EnableMenuItem(m_handle, ID_CPUTYPE_286, (!strcasecmp(core_mode, "Dynamic")) ? MF_GRAYED : MF_ENABLED);
+
 	extern bool gdc_5mhz_mode;
 	extern bool pc98_allow_scanline_effect;
+	extern bool pc98_allow_4_display_partitions;
 
+	Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+
+	int pc98rate = dosbox_section->Get_int("pc-98 timer master frequency");
+	if (pc98rate > 6) pc98rate /= 2;
+	if (pc98rate == 0) pc98rate = 5; /* Pick the most likely to work with DOS games (FIXME: This is a GUESS!! Is this correct?) */
+	else if (pc98rate < 5) pc98rate = 4;
+	else pc98rate = 5;
+
+	CheckMenuItem(m_handle, ID_PC98_4MHZ_TIMER, (IS_PC98_ARCH && pc98rate == 4) ? MF_CHECKED : MF_STRING);
+	CheckMenuItem(m_handle, ID_PC98_5MHZ_TIMER, (IS_PC98_ARCH && pc98rate == 5) ? MF_CHECKED : MF_STRING);
+	CheckMenuItem(m_handle, ID_PC98_FOURPARTITIONSGRAPHICS, (IS_PC98_ARCH && pc98_allow_4_display_partitions) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_PC98_200SCANLINEEFFECT, (IS_PC98_ARCH && pc98_allow_scanline_effect) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_PC98_GDC5MHZ, (IS_PC98_ARCH && gdc_5mhz_mode) ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_MOUSE, Mouse_Drv ? MF_CHECKED : MF_STRING);
@@ -1106,11 +1317,20 @@ int Reflect_Menu(void) {
 	sec = static_cast<Section_prop *>(control->GetSection("cpu"));
 	const std::string cputype = sec->Get_string("cputype");
 	CheckMenuItem(m_handle, ID_CPUTYPE_AUTO, cputype == "auto" ? MF_CHECKED : MF_STRING);
+
+	CheckMenuItem(m_handle, ID_CPUTYPE_8086, cputype == "8086" ? MF_CHECKED : MF_STRING);
+	CheckMenuItem(m_handle, ID_CPUTYPE_8086_PREFETCH, cputype == "8086_prefetch" ? MF_CHECKED : MF_STRING);
+	CheckMenuItem(m_handle, ID_CPUTYPE_80186, cputype == "80186" ? MF_CHECKED : MF_STRING);
+	CheckMenuItem(m_handle, ID_CPUTYPE_80186_PREFETCH, cputype == "80186_prefetch" ? MF_CHECKED : MF_STRING);
+	CheckMenuItem(m_handle, ID_CPUTYPE_286, cputype == "286" ? MF_CHECKED : MF_STRING);
+	CheckMenuItem(m_handle, ID_CPUTYPE_286_PREFETCH, cputype == "286_prefetch" ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_CPUTYPE_386, cputype == "386" ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_CPUTYPE_386_PREFETCH, cputype == "386_prefetch" ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_CPUTYPE_486, cputype == "486" ? MF_CHECKED : MF_STRING);
+	CheckMenuItem(m_handle, ID_CPUTYPE_486_PREFETCH, cputype == "486_prefetch" ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_CPUTYPE_PENTIUM, cputype == "pentium" ? MF_CHECKED : MF_STRING);
 	CheckMenuItem(m_handle, ID_CPUTYPE_PENTIUM_MMX, cputype == "pentium_mmx" ? MF_CHECKED : MF_STRING);
+	CheckMenuItem(m_handle, ID_CPUTYPE_PENTIUM_PRO, cputype == "ppro_slow" ? MF_CHECKED : MF_STRING);
 
 	extern bool ticksLocked;
 	CheckMenuItem(m_handle, ID_CPU_TURBO, ticksLocked ? MF_CHECKED : MF_STRING);
@@ -1654,7 +1874,18 @@ int Reflect_Menu(void) {
 	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_Y, ID_MOUNT_FLOPPY_Y, ID_MOUNT_LOCAL_Y, ID_MOUNT_IMAGE_Y, ID_AUTOMOUNT_Y, ID_UMOUNT_Y, 'Y');
 	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_Z, ID_MOUNT_FLOPPY_Z, ID_MOUNT_LOCAL_Z, ID_MOUNT_IMAGE_Z, ID_AUTOMOUNT_Z, ID_UMOUNT_Z, 'Z');
 
-	return 1;
+	SDL1_hax_INITMENU_cb = reflectmenu_INITMENU_cb;
+
+    return 1;
+}
+
+void reflectmenu_INITMENU_cb() {
+	/* WARNING: SDL calls this from Parent Window Thread!
+	            This executes in the context of the Parent Window Thread, NOT the main thread!
+				As stupid as that seems, this is the only way the Parent Window Thread can make
+				sure to keep Windows waiting while we take our time to reset the checkmarks in
+				the menus before the menu is displayed. */
+	Reflect_Menu();
 }
 
 // Sets the scaler to use.
@@ -1682,796 +1913,862 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 	if (Message.msg != WM_COMMAND) return;
 
 	switch (LOWORD(Message.wParam)) {
-		case ID_USESCANCODES: {
-			Section* sec = control->GetSection("sdl");
-			Section_prop * section = static_cast<Section_prop *>(sec);
-			SetVal("sdl", "usescancodes", section->Get_bool("usescancodes") ? "false" : "true");
+	case ID_USESCANCODES: {
+		Section* sec = control->GetSection("sdl");
+		Section_prop * section = static_cast<Section_prop *>(sec);
+		SetVal("sdl", "usescancodes", section->Get_bool("usescancodes") ? "false" : "true");
+	}
+						  break;
+	case ID_WAITONERR:
+		if (GetSetSDLValue(1, "wait_on_error", 0)) {
+			SetVal("sdl", "waitonerror", "false");
+			GetSetSDLValue(0, "wait_on_error", (void*)false);
+		}
+		else {
+			SetVal("sdl", "waitonerror", "true");
+			GetSetSDLValue(0, "wait_on_error", (void*)true);
 		}
 		break;
-			case ID_WAITONERR:
-				if (GetSetSDLValue(1, "wait_on_error", 0)) {
-					SetVal("sdl", "waitonerror", "false");
-					GetSetSDLValue(0, "wait_on_error", (void*)false);
-				}
-				else {
-					SetVal("sdl", "waitonerror", "true");
-					GetSetSDLValue(0, "wait_on_error", (void*)true);
-				}
-				break;
-			case ID_HDD_SIZE: GUI_Shortcut(18); break;
-			case ID_BOOT_A: Go_Boot("A"); break;
-			case ID_BOOT_C: Go_Boot("C"); break;
-			case ID_BOOT_D: Go_Boot("D"); break;
-			case ID_BOOT_A_MOUNTED: Go_Boot2("A"); break;
-			case ID_BOOT_C_MOUNTED: Go_Boot2("C"); break;
-			case ID_BOOT_D_MOUNTED: Go_Boot2("D"); break;
-			case ID_RESET: throw(3); break;
-			case ID_RESTART: void restart_program(std::vector<std::string> & parameters); restart_program(control->startup_params); break;
-			case ID_QUIT: throw(0); break;
-			case ID_OPENFILE: OpenFileDialog(0); break;
-			case ID_PAUSE: void PauseDOSBox(bool pressed); PauseDOSBox(1); break;
-			case ID_NORMAL:
-				if (strcasecmp(core_mode, "normal") == 0) break;
-				SetVal("cpu", "core", "normal");
-				break;
+	case ID_HDD_SIZE: GUI_Shortcut(18); break;
+	case ID_BOOT_A: Go_Boot("A"); break;
+	case ID_BOOT_C: Go_Boot("C"); break;
+	case ID_BOOT_D: Go_Boot("D"); break;
+	case ID_BOOT_A_MOUNTED: Go_Boot2("A"); break;
+	case ID_BOOT_C_MOUNTED: Go_Boot2("C"); break;
+	case ID_BOOT_D_MOUNTED: Go_Boot2("D"); break;
+	case ID_RESET: throw(3); break;
+	case ID_RESTART: void restart_program(std::vector<std::string> & parameters); restart_program(control->startup_params); break;
+	case ID_QUIT: throw(0); break;
+	case ID_OPENFILE: OpenFileDialog(0); break;
+	case ID_PAUSE: void PauseDOSBox(bool pressed); PauseDOSBox(1); break;
+	case ID_NORMAL:
+		if (strcasecmp(core_mode, "normal") == 0) break;
+		SetVal("cpu", "core", "normal");
+		break;
 #if (C_DYNAMIC_X86)
-			case ID_DYNAMIC: if (strcmp(core_mode, "dynamic") != 0) SetVal("cpu", "core", "dynamic"); break;
+	case ID_DYNAMIC: if (strcmp(core_mode, "dynamic") != 0) SetVal("cpu", "core", "dynamic"); break;
 #endif
-			case ID_FULL: if (strcmp(core_mode, "full") != 0) SetVal("cpu", "core", "full"); break;
-			case ID_SIMPLE: if (strcmp(core_mode, "simple") != 0) SetVal("cpu", "core", "simple"); break;
-			case ID_AUTO: if (strcmp(core_mode, "auto") != 0) SetVal("cpu", "core", "auto"); break;
-			case ID_KEYMAP: MAPPER_RunInternal(); break;
-			case ID_AUTOCYCLE: SetVal("cpu", "cycles", (!CPU_CycleAutoAdjust) ? "max" : "auto"); break;
-			case ID_AUTODETER:
-			{
-				if (!(CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES)) {
-					SetVal("cpu", "cycles", "auto");
-					break;
-				}
-				else {
-					std::ostringstream str;
-					str << "fixed " << CPU_CycleMax;
-					std::string cycles = str.str();
-					SetVal("cpu", "cycles", cycles);
-					break;
-				}
-			}
-			case ID_CAPMOUSE: GFX_CaptureMouse(); break;
-			case ID_REFRESH: GUI_Shortcut(1); break;
-			case ID_FULLSCREEN: GFX_SwitchFullScreen(); break;
-			case ID_ASPECT:
-				if (!GFX_GetPreventFullscreen()) {
-					SetVal("render", "aspect", render.aspect ? "false" : "true");
-					Reflect_Menu();
-				}
-				break;
-			case ID_HIDECYCL:
-				menu.hidecycles = !menu.hidecycles;
-				GFX_SetTitle(CPU_CycleMax, -1, -1, false);
-				break;
-			case ID_TOGGLE: ToggleMenu(true); break;
-			case ID_RESET_RESCALE:  GUI_ResetResize(true);                                      break;
-			case ID_NONE:			SetScaler(scalerOpNormal, 1, "none");				break;
-			case ID_NORMAL2X:		SetScaler(scalerOpNormal, 2, "normal2x");			break;
-			case ID_NORMAL3X:		SetScaler(scalerOpNormal, 3, "normal3x");			break;
-			case ID_NORMAL4X:		SetScaler(scalerOpNormal, 4, "normal4x");			break;
-			case ID_NORMAL5X:		SetScaler(scalerOpNormal, 5, "normal5x");			break;
-			case ID_HARDWARE_NONE:	SetScaler(scalerOpNormal, 1, "hardware_none");	break;
-			case ID_HARDWARE2X:		SetScaler(scalerOpNormal, 2, "hardware2x");		break;
-			case ID_HARDWARE3X:		SetScaler(scalerOpNormal, 3, "hardware3x");		break;
-			case ID_HARDWARE4X:		SetScaler(scalerOpNormal, 4, "hardware4x");		break;
-			case ID_HARDWARE5X:		SetScaler(scalerOpNormal, 4, "hardware5x");		break;
-			case ID_ADVMAME2X:		SetScaler(scalerOpAdvMame, 2, "advmame2x");		break;
-			case ID_ADVMAME3X:		SetScaler(scalerOpAdvMame, 3, "advmame3x");		break;
-			case ID_ADVINTERP2X:	SetScaler(scalerOpAdvInterp, 2, "advinterp2x");		break;
-			case ID_ADVINTERP3X:	SetScaler(scalerOpAdvInterp, 3, "advinterp3x");		break;
-			case ID_HQ2X:			SetScaler(scalerOpHQ, 2, "hq2x");				break;
-			case ID_HQ3X:			SetScaler(scalerOpHQ, 3, "hq3x");				break;
-			case ID_2XSAI:			SetScaler(scalerOpSaI, 2, "2xsai");			break;
-			case ID_SUPER2XSAI:		SetScaler(scalerOpSuperSaI, 2, "super2xsai");		break;
-			case ID_SUPEREAGLE:		SetScaler(scalerOpSuperEagle, 2, "supereagle");		break;
-			case ID_TV2X:			SetScaler(scalerOpTV, 2, "tv2x");				break;
-			case ID_TV3X:			SetScaler(scalerOpTV, 3, "tv3x");				break;
-			case ID_RGB2X:			SetScaler(scalerOpRGB, 2, "rgb2x");			break;
-			case ID_RGB3X:			SetScaler(scalerOpRGB, 3, "rgb3x");			break;
-			case ID_SCAN2X:			SetScaler(scalerOpScan, 2, "scan2x");			break;
-			case ID_SCAN3X:			SetScaler(scalerOpScan, 3, "scan3x");			break;
-			case ID_FORCESCALER:	SetScaleForced(!render.scale.forced);						break;
-			case ID_CYCLE: GUI_Shortcut(16); break;
-			case ID_CPU_TURBO: extern void DOSBOX_UnlockSpeed2(bool pressed); DOSBOX_UnlockSpeed2(1); break;
-			case ID_SKIP_0: SetVal("render", "frameskip", "0"); break;
-			case ID_SKIP_1: SetVal("render", "frameskip", "1"); break;
-			case ID_SKIP_2: SetVal("render", "frameskip", "2"); break;
-			case ID_SKIP_3: SetVal("render", "frameskip", "3"); break;
-			case ID_SKIP_4: SetVal("render", "frameskip", "4"); break;
-			case ID_SKIP_5: SetVal("render", "frameskip", "5"); break;
-			case ID_SKIP_6: SetVal("render", "frameskip", "6"); break;
-			case ID_SKIP_7: SetVal("render", "frameskip", "7"); break;
-			case ID_SKIP_8: SetVal("render", "frameskip", "8"); break;
-			case ID_SKIP_9: SetVal("render", "frameskip", "9"); break;
-			case ID_SKIP_10: SetVal("render", "frameskip", "10"); break;
-			case ID_UMOUNT_A: UnMount('A'); break;
-			case ID_UMOUNT_B: UnMount('B'); break;
-			case ID_UMOUNT_C: UnMount('C'); break;
-			case ID_UMOUNT_D: UnMount('D'); break;
-			case ID_UMOUNT_E: UnMount('E'); break;
-			case ID_UMOUNT_F: UnMount('F'); break;
-			case ID_UMOUNT_G: UnMount('G'); break;
-			case ID_UMOUNT_H: UnMount('H'); break;
-			case ID_UMOUNT_I: UnMount('I'); break;
-			case ID_UMOUNT_J: UnMount('J'); break;
-			case ID_UMOUNT_K: UnMount('K'); break;
-			case ID_UMOUNT_L: UnMount('L'); break;
-			case ID_UMOUNT_M: UnMount('M'); break;
-			case ID_UMOUNT_N: UnMount('N'); break;
-			case ID_UMOUNT_O: UnMount('O'); break;
-			case ID_UMOUNT_P: UnMount('P'); break;
-			case ID_UMOUNT_Q: UnMount('Q'); break;
-			case ID_UMOUNT_R: UnMount('R'); break;
-			case ID_UMOUNT_S: UnMount('S'); break;
-			case ID_UMOUNT_T: UnMount('T'); break;
-			case ID_UMOUNT_U: UnMount('U'); break;
-			case ID_UMOUNT_V: UnMount('V'); break;
-			case ID_UMOUNT_W: UnMount('W'); break;
-			case ID_UMOUNT_X: UnMount('X'); break;
-			case ID_UMOUNT_Y: UnMount('Y'); break;
-			case ID_UMOUNT_Z: UnMount('Z'); break;
-			case ID_AUTOMOUNT:
-			{
-				Section_prop * sec = static_cast<Section_prop *>(control->GetSection("dos"));
-				if (sec) SetVal("dos", "automount", sec->Get_bool("automount") ? "false" : "true");
-			}
+	case ID_FULL: if (strcmp(core_mode, "full") != 0) SetVal("cpu", "core", "full"); break;
+	case ID_SIMPLE: if (strcmp(core_mode, "simple") != 0) SetVal("cpu", "core", "simple"); break;
+	case ID_AUTO: if (strcmp(core_mode, "auto") != 0) SetVal("cpu", "core", "auto"); break;
+	case ID_KEYMAP: MAPPER_RunInternal(); break;
+	case ID_AUTOCYCLE: SetVal("cpu", "cycles", (!CPU_CycleAutoAdjust) ? "max" : "auto"); break;
+	case ID_AUTODETER:
+	{
+		if (!(CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES)) {
+			SetVal("cpu", "cycles", "auto");
 			break;
-			case ID_AUTOMOUNT_A: MountDrive('A', "A:\\"); break;
-			case ID_AUTOMOUNT_B: MountDrive('B', "B:\\"); break;
-			case ID_AUTOMOUNT_C: MountDrive('C', "C:\\"); break;
-			case ID_AUTOMOUNT_D: MountDrive('D', "D:\\"); break;
-			case ID_AUTOMOUNT_E: MountDrive('E', "E:\\"); break;
-			case ID_AUTOMOUNT_F: MountDrive('F', "F:\\"); break;
-			case ID_AUTOMOUNT_G: MountDrive('G', "G:\\"); break;
-			case ID_AUTOMOUNT_H: MountDrive('H', "H:\\"); break;
-			case ID_AUTOMOUNT_I: MountDrive('I', "I:\\"); break;
-			case ID_AUTOMOUNT_J: MountDrive('J', "J:\\"); break;
-			case ID_AUTOMOUNT_K: MountDrive('K', "K:\\"); break;
-			case ID_AUTOMOUNT_L: MountDrive('L', "L:\\"); break;
-			case ID_AUTOMOUNT_M: MountDrive('M', "M:\\"); break;
-			case ID_AUTOMOUNT_N: MountDrive('N', "N:\\"); break;
-			case ID_AUTOMOUNT_O: MountDrive('O', "O:\\"); break;
-			case ID_AUTOMOUNT_P: MountDrive('P', "P:\\"); break;
-			case ID_AUTOMOUNT_Q: MountDrive('Q', "Q:\\"); break;
-			case ID_AUTOMOUNT_R: MountDrive('R', "R:\\"); break;
-			case ID_AUTOMOUNT_S: MountDrive('S', "S:\\"); break;
-			case ID_AUTOMOUNT_T: MountDrive('T', "T:\\"); break;
-			case ID_AUTOMOUNT_U: MountDrive('U', "U:\\"); break;
-			case ID_AUTOMOUNT_V: MountDrive('V', "V:\\"); break;
-			case ID_AUTOMOUNT_W: MountDrive('W', "W:\\"); break;
-			case ID_AUTOMOUNT_X: MountDrive('X', "X:\\"); break;
-			case ID_AUTOMOUNT_Y: MountDrive('Y', "Y:\\"); break;
-			case ID_AUTOMOUNT_Z: MountDrive('Z', "Z:\\"); break;
-			case ID_MOUNT_CDROM_A: BrowseFolder('A', "CDROM"); break;
-			case ID_MOUNT_CDROM_B: BrowseFolder('B', "CDROM"); break;
-			case ID_MOUNT_CDROM_C: BrowseFolder('C', "CDROM"); break;
-			case ID_MOUNT_CDROM_D: BrowseFolder('D', "CDROM"); break;
-			case ID_MOUNT_CDROM_E: BrowseFolder('E', "CDROM"); break;
-			case ID_MOUNT_CDROM_F: BrowseFolder('F', "CDROM"); break;
-			case ID_MOUNT_CDROM_G: BrowseFolder('G', "CDROM"); break;
-			case ID_MOUNT_CDROM_H: BrowseFolder('H', "CDROM"); break;
-			case ID_MOUNT_CDROM_I: BrowseFolder('I', "CDROM"); break;
-			case ID_MOUNT_CDROM_J: BrowseFolder('J', "CDROM"); break;
-			case ID_MOUNT_CDROM_K: BrowseFolder('K', "CDROM"); break;
-			case ID_MOUNT_CDROM_L: BrowseFolder('L', "CDROM"); break;
-			case ID_MOUNT_CDROM_M: BrowseFolder('M', "CDROM"); break;
-			case ID_MOUNT_CDROM_N: BrowseFolder('N', "CDROM"); break;
-			case ID_MOUNT_CDROM_O: BrowseFolder('O', "CDROM"); break;
-			case ID_MOUNT_CDROM_P: BrowseFolder('P', "CDROM"); break;
-			case ID_MOUNT_CDROM_Q: BrowseFolder('Q', "CDROM"); break;
-			case ID_MOUNT_CDROM_R: BrowseFolder('R', "CDROM"); break;
-			case ID_MOUNT_CDROM_S: BrowseFolder('S', "CDROM"); break;
-			case ID_MOUNT_CDROM_T: BrowseFolder('T', "CDROM"); break;
-			case ID_MOUNT_CDROM_U: BrowseFolder('U', "CDROM"); break;
-			case ID_MOUNT_CDROM_V: BrowseFolder('V', "CDROM"); break;
-			case ID_MOUNT_CDROM_W: BrowseFolder('W', "CDROM"); break;
-			case ID_MOUNT_CDROM_X: BrowseFolder('X', "CDROM"); break;
-			case ID_MOUNT_CDROM_Y: BrowseFolder('Y', "CDROM"); break;
-			case ID_MOUNT_CDROM_Z: BrowseFolder('Z', "CDROM"); break;
-			case ID_MOUNT_FLOPPY_A: BrowseFolder('A', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_B: BrowseFolder('B', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_C: BrowseFolder('C', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_D: BrowseFolder('D', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_E: BrowseFolder('E', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_F: BrowseFolder('F', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_G: BrowseFolder('G', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_H: BrowseFolder('H', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_I: BrowseFolder('I', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_J: BrowseFolder('J', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_K: BrowseFolder('K', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_L: BrowseFolder('L', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_M: BrowseFolder('M', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_N: BrowseFolder('N', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_O: BrowseFolder('O', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_P: BrowseFolder('P', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_Q: BrowseFolder('Q', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_R: BrowseFolder('R', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_S: BrowseFolder('S', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_T: BrowseFolder('T', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_U: BrowseFolder('U', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_V: BrowseFolder('V', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_W: BrowseFolder('W', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_X: BrowseFolder('X', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_Y: BrowseFolder('Y', "FLOPPY"); break;
-			case ID_MOUNT_FLOPPY_Z: BrowseFolder('Z', "FLOPPY"); break;
-			case ID_MOUNT_LOCAL_A: BrowseFolder('A', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_B: BrowseFolder('B', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_C: BrowseFolder('C', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_D: BrowseFolder('D', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_E: BrowseFolder('E', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_F: BrowseFolder('F', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_G: BrowseFolder('G', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_H: BrowseFolder('H', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_I: BrowseFolder('I', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_J: BrowseFolder('J', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_K: BrowseFolder('K', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_L: BrowseFolder('L', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_M: BrowseFolder('M', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_N: BrowseFolder('N', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_O: BrowseFolder('O', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_P: BrowseFolder('P', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_Q: BrowseFolder('Q', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_R: BrowseFolder('R', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_S: BrowseFolder('S', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_T: BrowseFolder('T', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_U: BrowseFolder('U', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_V: BrowseFolder('V', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_W: BrowseFolder('W', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_X: BrowseFolder('X', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_Y: BrowseFolder('Y', "LOCAL"); break;
-			case ID_MOUNT_LOCAL_Z: BrowseFolder('Z', "LOCAL"); break;
-			case ID_MOUNT_IMAGE_A: OpenFileDialog_Img('A'); break;
-			case ID_MOUNT_IMAGE_B: OpenFileDialog_Img('B'); break;
-			case ID_MOUNT_IMAGE_C: OpenFileDialog_Img('C'); break;
-			case ID_MOUNT_IMAGE_D: OpenFileDialog_Img('D'); break;
-			case ID_MOUNT_IMAGE_E: OpenFileDialog_Img('E'); break;
-			case ID_MOUNT_IMAGE_F: OpenFileDialog_Img('F'); break;
-			case ID_MOUNT_IMAGE_G: OpenFileDialog_Img('G'); break;
-			case ID_MOUNT_IMAGE_H: OpenFileDialog_Img('H'); break;
-			case ID_MOUNT_IMAGE_I: OpenFileDialog_Img('I'); break;
-			case ID_MOUNT_IMAGE_J: OpenFileDialog_Img('J'); break;
-			case ID_MOUNT_IMAGE_K: OpenFileDialog_Img('K'); break;
-			case ID_MOUNT_IMAGE_L: OpenFileDialog_Img('L'); break;
-			case ID_MOUNT_IMAGE_M: OpenFileDialog_Img('M'); break;
-			case ID_MOUNT_IMAGE_N: OpenFileDialog_Img('N'); break;
-			case ID_MOUNT_IMAGE_O: OpenFileDialog_Img('O'); break;
-			case ID_MOUNT_IMAGE_P: OpenFileDialog_Img('P'); break;
-			case ID_MOUNT_IMAGE_Q: OpenFileDialog_Img('Q'); break;
-			case ID_MOUNT_IMAGE_R: OpenFileDialog_Img('R'); break;
-			case ID_MOUNT_IMAGE_S: OpenFileDialog_Img('S'); break;
-			case ID_MOUNT_IMAGE_T: OpenFileDialog_Img('T'); break;
-			case ID_MOUNT_IMAGE_U: OpenFileDialog_Img('U'); break;
-			case ID_MOUNT_IMAGE_V: OpenFileDialog_Img('V'); break;
-			case ID_MOUNT_IMAGE_W: OpenFileDialog_Img('W'); break;
-			case ID_MOUNT_IMAGE_X: OpenFileDialog_Img('X'); break;
-			case ID_MOUNT_IMAGE_Y: OpenFileDialog_Img('Y'); break;
-			case ID_MOUNT_IMAGE_Z: OpenFileDialog_Img('Z'); break;
-			case ID_MTWAVE: void CAPTURE_MTWaveEvent(bool pressed); CAPTURE_MTWaveEvent(true); break;
-			case ID_SSHOT: void CAPTURE_ScreenShotEvent(bool pressed); CAPTURE_ScreenShotEvent(true); break;
-			case ID_MOVIE: void CAPTURE_VideoEvent(bool pressed); CAPTURE_VideoEvent(true); break;
-			case ID_WAVE: void CAPTURE_WaveEvent(bool pressed); CAPTURE_WaveEvent(true); break;
-			case ID_OPL: void OPL_SaveRawEvent(bool pressed); OPL_SaveRawEvent(true); break;
-			case ID_MIDI: void CAPTURE_MidiEvent(bool pressed); CAPTURE_MidiEvent(true); break;
-			case ID_RESTART_DOS:
-				if (!(dos_kernel_disabled || dos_shell_running_program)) throw int(6);
-				break;
-			case ID_XMS: mem_conf("xms", 0); break;
-			case ID_EMS_TRUE: mem_conf("ems", 1); break;
-			case ID_EMS_FALSE: mem_conf("ems", 2); break;
-			case ID_EMS_EMSBOARD: mem_conf("ems", 3); break;
-			case ID_EMS_EMM386: mem_conf("ems", 4); break;
-			case ID_UMB: mem_conf("umb", 0); break;
-			case ID_SEND_CTRL_ESC: {
-				KEYBOARD_AddKey(KBD_leftctrl, true);
-				KEYBOARD_AddKey(KBD_esc, true);
-				KEYBOARD_AddKey(KBD_leftctrl, false);
-				KEYBOARD_AddKey(KBD_esc, false);
-				break;
-			}
-			case ID_SEND_ALT_TAB: {
-				KEYBOARD_AddKey(KBD_leftalt, true);
-				KEYBOARD_AddKey(KBD_tab, true);
-				KEYBOARD_AddKey(KBD_leftalt, false);
-				KEYBOARD_AddKey(KBD_tab, false);
-				break;
-			}
-			case ID_SEND_CTRL_ALT_DEL: {
-				KEYBOARD_AddKey(KBD_leftctrl, true);
-				KEYBOARD_AddKey(KBD_leftalt, true);
-				KEYBOARD_AddKey(KBD_delete, true);
-				KEYBOARD_AddKey(KBD_leftctrl, false);
-				KEYBOARD_AddKey(KBD_leftalt, false);
-				KEYBOARD_AddKey(KBD_delete, false);
-				break;
-			}
-			case ID_CHAR9: MENU_SetBool("render", "char9"); break;
-			case ID_MULTISCAN: MENU_SetBool("render", "multiscan"); break;
-			case ID_VSYNC_ON: SetVal("vsync", "vsyncmode", "on"); break;
-			case ID_VSYNC_HOST: SetVal("vsync", "vsyncmode", "host"); break;
-			case ID_VSYNC_FORCE: SetVal("vsync", "vsyncmode", "force"); break;
-			case ID_VSYNC_OFF: SetVal("vsync", "vsyncmode", "off"); break;
-			case ID_SURFACE: if ((uintptr_t)GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_SURFACE) { change_output(0); SetVal("sdl", "output", "surface"); } break;
-			case ID_OPENGL: change_output(3); SetVal("sdl", "output", "opengl"); break;
-			case ID_OPENGLNB: change_output(4); SetVal("sdl", "output", "openglnb"); break;
-			case ID_DIRECT3D: if ((uintptr_t)GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_DIRECT3D) { change_output(5); SetVal("sdl", "output", "direct3d"); } break;
-			case ID_WINFULL_USER: case ID_WINRES_USER: GUI_Shortcut(2); break;
-			case ID_WINRES_ORIGINAL: res_input(true, "original"); break;
-			case ID_WINFULL_ORIGINAL: res_input(false, "original"); break;
-			case ID_WINRES_DESKTOP: res_input(true, "desktop"); break;
-			case ID_WINFULL_DESKTOP: res_input(false, "desktop"); break;
-			case ID_FULLDOUBLE: SetVal("sdl", "fulldouble", (GetSetSDLValue(1, "desktop.doublebuf", 0)) ? "false" : "true"); res_init(); break;
-			case ID_AUTOLOCK: (GetSetSDLValue(0, "mouse.autoenable", (void*)MENU_SetBool("sdl", "autolock"))); break;
-			case ID_MOUSE: extern bool Mouse_Drv; Mouse_Drv = !Mouse_Drv; break;
-			case ID_PC98_200SCANLINEEFFECT:
-				if (IS_PC98_ARCH) {
-					extern bool pc98_allow_scanline_effect;
-
-					pc98_allow_scanline_effect = !pc98_allow_scanline_effect;
-				}
-				break;
-			case ID_PC98_GDC5MHZ:
-				if (IS_PC98_ARCH) {
-					void gdc_5mhz_mode_update_vars(void);
-					extern bool gdc_5mhz_mode;
-
-					gdc_5mhz_mode = !gdc_5mhz_mode;
-					gdc_5mhz_mode_update_vars();
-				}
-				break;
-			case ID_KEY_NONE: SetVal("dos", "keyboardlayout", "auto"); break;
-			case ID_KEY_BG: SetVal("dos", "keyboardlayout", "bg"); break;
-			case ID_KEY_CZ: SetVal("dos", "keyboardlayout", "cz"); break;
-			case ID_KEY_FR: SetVal("dos", "keyboardlayout", "fr"); break;
-			case ID_KEY_GK: SetVal("dos", "keyboardlayout", "gk"); break;
-			case ID_KEY_GR: SetVal("dos", "keyboardlayout", "gr"); break;
-			case ID_KEY_HR: SetVal("dos", "keyboardlayout", "hr"); break;
-			case ID_KEY_HU: SetVal("dos", "keyboardlayout", "hu"); break;
-			case ID_KEY_IT: SetVal("dos", "keyboardlayout", "it"); break;
-			case ID_KEY_NL: SetVal("dos", "keyboardlayout", "nl"); break;
-			case ID_KEY_NO: SetVal("dos", "keyboardlayout", "no"); break;
-			case ID_KEY_PL: SetVal("dos", "keyboardlayout", "pl"); break;
-			case ID_KEY_RU: SetVal("dos", "keyboardlayout", "ru"); break;
-			case ID_KEY_SK: SetVal("dos", "keyboardlayout", "sk"); break;
-			case ID_KEY_SP: SetVal("dos", "keyboardlayout", "sp"); break;
-			case ID_KEY_SU: SetVal("dos", "keyboardlayout", "su"); break;
-			case ID_KEY_SV: SetVal("dos", "keyboardlayout", "sv"); break;
-			case ID_KEY_BE: SetVal("dos", "keyboardlayout", "be"); break;
-			case ID_KEY_BR: SetVal("dos", "keyboardlayout", "br"); break;
-			case ID_KEY_CF: SetVal("dos", "keyboardlayout", "cf"); break;
-			case ID_KEY_DK: SetVal("dos", "keyboardlayout", "dk"); break;
-			case ID_KEY_LA: SetVal("dos", "keyboardlayout", "la"); break;
-			case ID_KEY_PO: SetVal("dos", "keyboardlayout", "po"); break;
-			case ID_KEY_SF: SetVal("dos", "keyboardlayout", "sf"); break;
-			case ID_KEY_SG: SetVal("dos", "keyboardlayout", "sg"); break;
-			case ID_KEY_UK: SetVal("dos", "keyboardlayout", "uk"); break;
-			case ID_KEY_US: SetVal("dos", "keyboardlayout", "us"); break;
-			case ID_KEY_YU: SetVal("dos", "keyboardlayout", "yu"); break;
-			case ID_KEY_FO: SetVal("dos", "keyboardlayout", "fo"); break;
-			case ID_KEY_MK: SetVal("dos", "keyboardlayout", "mk"); break;
-			case ID_KEY_MT: SetVal("dos", "keyboardlayout", "mt"); break;
-			case ID_KEY_PH: SetVal("dos", "keyboardlayout", "ph"); break;
-			case ID_KEY_RO: SetVal("dos", "keyboardlayout", "ro"); break;
-			case ID_KEY_SQ: SetVal("dos", "keyboardlayout", "sq"); break;
-			case ID_KEY_TM: SetVal("dos", "keyboardlayout", "tm"); break;
-			case ID_KEY_TR: SetVal("dos", "keyboardlayout", "tr"); break;
-			case ID_KEY_UX: SetVal("dos", "keyboardlayout", "ux"); break;
-			case ID_KEY_YC: SetVal("dos", "keyboardlayout", "yc"); break;
-			case ID_KEY_DV: SetVal("dos", "keyboardlayout", "dv"); break;
-			case ID_KEY_RH: SetVal("dos", "keyboardlayout", "rh"); break;
-			case ID_KEY_LH: SetVal("dos", "keyboardlayout", "lh"); break;
-			case ID_MIDI_NONE: SetVal("midi", "mpu401", "none"); break;
-			case ID_MIDI_UART: SetVal("midi", "mpu401", "uart"); break;
-			case ID_MIDI_INTELLI: SetVal("midi", "mpu401", "intelligent"); break;
-			case ID_MIDI_DEFAULT: SetVal("midi", "mididevice", "default"); break;
-			case ID_MIDI_ALSA: SetVal("midi", "mididevice", "alsa"); break;
-			case ID_MIDI_OSS: SetVal("midi", "mididevice", "oss"); break;
-			case ID_MIDI_WIN32: SetVal("midi", "mididevice", "win32"); break;
-			case ID_MIDI_COREAUDIO: SetVal("midi", "mididevice", "coreaudio"); break;
-			case ID_MIDI_COREMIDI: SetVal("midi", "mididevice", "coremidi"); break;
-			case ID_MIDI_MT32: SetVal("midi", "mididevice", "mt32"); break;
-			case ID_MIDI_SYNTH: SetVal("midi", "mididevice", "synth"); break;
-			case ID_MIDI_TIMIDITY: SetVal("midi", "mididevice", "timidity"); break;
-			case ID_MIDI_MT32_REVERBMODE_AUTO: SetVal("midi", "mt32.reverb.mode", "auto"); break;
-			case ID_MIDI_MT32_REVERBMODE_0: SetVal("midi", "mt32.reverb.mode", "0"); break;
-			case ID_MIDI_MT32_REVERBMODE_1: SetVal("midi", "mt32.reverb.mode", "1"); break;
-			case ID_MIDI_MT32_REVERBMODE_2: SetVal("midi", "mt32.reverb.mode", "2"); break;
-			case ID_MIDI_MT32_REVERBMODE_3: SetVal("midi", "mt32.reverb.mode", "3"); break;
-			case ID_MIDI_MT32_DAC_AUTO: SetVal("midi", "mt32.dac", "auto"); break;
-			case ID_MIDI_MT32_DAC_0: SetVal("midi", "mt32.dac", "0"); break;
-			case ID_MIDI_MT32_DAC_1: SetVal("midi", "mt32.dac", "1"); break;
-			case ID_MIDI_MT32_DAC_2: SetVal("midi", "mt32.dac", "2"); break;
-			case ID_MIDI_MT32_DAC_3: SetVal("midi", "mt32.dac", "3"); break;
-			case ID_MIDI_MT32_REVERBTIME_0: SetVal("midi", "mt32.reverb.time", "0"); break;
-			case ID_MIDI_MT32_REVERBTIME_1: SetVal("midi", "mt32.reverb.time", "1"); break;
-			case ID_MIDI_MT32_REVERBTIME_2: SetVal("midi", "mt32.reverb.time", "2"); break;
-			case ID_MIDI_MT32_REVERBTIME_3: SetVal("midi", "mt32.reverb.time", "3"); break;
-			case ID_MIDI_MT32_REVERBTIME_4: SetVal("midi", "mt32.reverb.time", "4"); break;
-			case ID_MIDI_MT32_REVERBTIME_5: SetVal("midi", "mt32.reverb.time", "5"); break;
-			case ID_MIDI_MT32_REVERBTIME_6: SetVal("midi", "mt32.reverb.time", "6"); break;
-			case ID_MIDI_MT32_REVERBTIME_7: SetVal("midi", "mt32.reverb.time", "7"); break;
-			case ID_MIDI_MT32_REVERBLEV_0: SetVal("midi", "mt32.reverb.level", "0"); break;
-			case ID_MIDI_MT32_REVERBLEV_1: SetVal("midi", "mt32.reverb.level", "1"); break;
-			case ID_MIDI_MT32_REVERBLEV_2: SetVal("midi", "mt32.reverb.level", "2"); break;
-			case ID_MIDI_MT32_REVERBLEV_3: SetVal("midi", "mt32.reverb.level", "3"); break;
-			case ID_MIDI_MT32_REVERBLEV_4: SetVal("midi", "mt32.reverb.level", "4"); break;
-			case ID_MIDI_MT32_REVERBLEV_5: SetVal("midi", "mt32.reverb.level", "5"); break;
-			case ID_MIDI_MT32_REVERBLEV_6: SetVal("midi", "mt32.reverb.level", "6"); break;
-			case ID_MIDI_MT32_REVERBLEV_7: SetVal("midi", "mt32.reverb.level", "7"); break;
-			case ID_MIDI_MT32_REVERSESTEREO_TRUE: SetVal("midi", "mt32ReverseStereo", "on"); break;
-			case ID_MIDI_MT32_REVERSESTEREO_FALSE: SetVal("midi", "mt32ReverseStereo", "off"); break;
-			case ID_MIDI_DEV_NONE: SetVal("midi", "mididevice", "none"); break;
-			case ID_GUS_TRUE:
-			{
-				Section_prop * sec = static_cast<Section_prop *>(control->GetSection("gus"));
-				if (sec) SetVal("gus", "gus", sec->Get_bool("gus") ? "false" : "true"); break;
-			}
-			case ID_GUS_49716: SetVal("gus", "gusrate", "49716"); break;
-			case ID_GUS_48000: SetVal("gus", "gusrate", "48000"); break;
-			case ID_GUS_44100: SetVal("gus", "gusrate", "44100"); break;
-			case ID_GUS_32000:  SetVal("gus", "gusrate", "32000"); break;
-			case ID_GUS_22050: SetVal("gus", "gusrate", "22050"); break;
-			case ID_GUS_16000: SetVal("gus", "gusrate", "16000"); break;
-			case ID_GUS_11025: SetVal("gus", "gusrate", "11025"); break;
-			case ID_GUS_8000: SetVal("gus", "gusrate", "8000"); break;
-			case ID_GUS_300: SetVal("gus", "gusbase", "300"); break;
-			case ID_GUS_280: SetVal("gus", "gusbase", "280"); break;
-			case ID_GUS_260: SetVal("gus", "gusbase", "260"); break;
-			case ID_GUS_240: SetVal("gus", "gusbase", "240"); break;
-			case ID_GUS_220: SetVal("gus", "gusbase", "220"); break;
-			case ID_GUS_2a0: SetVal("gus", "gusbase", "2a0"); break;
-			case ID_GUS_2c0: SetVal("gus", "gusbase", "2c0"); break;
-			case ID_GUS_2e0: SetVal("gus", "gusbase", "2e0"); break;
-			case ID_GUS_IRQ_3: SetVal("gus", "gusirq", "3"); break;
-			case ID_GUS_IRQ_5: SetVal("gus", "gusirq", "5"); break;
-			case ID_GUS_IRQ_7: SetVal("gus", "gusirq", "7"); break;
-			case ID_GUS_IRQ_9: SetVal("gus", "gusirq", "9"); break;
-			case ID_GUS_IRQ_10: SetVal("gus", "gusirq", "10"); break;
-			case ID_GUS_IRQ_11: SetVal("gus", "gusirq", "11"); break;
-			case ID_GUS_IRQ_12: SetVal("gus", "gusirq", "12"); break;
-			case ID_GUS_DMA_0: SetVal("gus", "gusdma", "0"); break;
-			case ID_GUS_DMA_1: SetVal("gus", "gusdma", "1"); break;
-			case ID_GUS_DMA_3: SetVal("gus", "gusdma", "3"); break;
-			case ID_GUS_DMA_5: SetVal("gus", "gusdma", "5"); break;
-			case ID_GUS_DMA_6: SetVal("gus", "gusdma", "6"); break;
-			case ID_GUS_DMA_7: SetVal("gus", "gusdma", "7"); break;
-			case ID_INNOVA_TRUE:
-			{
-				Section_prop * sec = static_cast<Section_prop *>(control->GetSection("innova"));
-				if (sec) SetVal("innova", "innova", sec->Get_bool("innova") ? "false" : "true"); break;
-			}
-			case ID_INNOVA_49716: SetVal("innova", "samplerate", "49716"); break;
-			case ID_INNOVA_48000: SetVal("innova", "samplerate", "48000"); break;
-			case ID_INNOVA_44100: SetVal("innova", "samplerate", "44100"); break;
-			case ID_INNOVA_32000: SetVal("innova", "samplerate", "32000"); break;
-			case ID_INNOVA_22050: SetVal("innova", "samplerate", "22050"); break;
-			case ID_INNOVA_11025: SetVal("innova", "samplerate", "11025"); break;
-			case ID_INNOVA_8000: SetVal("innova", "samplerate", "8000"); break;
-			case ID_INNOVA_280: SetVal("innova", "sidbase", "280"); break;
-			case ID_INNOVA_2A0: SetVal("innova", "sidbase", "2a0"); break;
-			case ID_INNOVA_2C0: SetVal("innova", "sidbase", "2c0"); break;
-			case ID_INNOVA_2E0: SetVal("innova", "sidbase", "2e0"); break;
-			case ID_INNOVA_220: SetVal("innova", "sidbase", "220"); break;
-			case ID_INNOVA_240: SetVal("innova", "sidbase", "240"); break;
-			case ID_INNOVA_260: SetVal("innova", "sidbase", "260"); break;
-			case ID_INNOVA_300: SetVal("innova", "sidbase", "300"); break;
-			case ID_INNOVA_3: SetVal("innova", "quality", "3"); break;
-			case ID_INNOVA_2: SetVal("innova", "quality", "2"); break;
-			case ID_INNOVA_1: SetVal("innova", "quality", "1"); break;
-			case ID_INNOVA_0: SetVal("innova", "quality", "0"); break;
-			case ID_PCSPEAKER_TRUE:
-			{
-				Section_prop * sec = static_cast<Section_prop *>(control->GetSection("speaker"));
-				if (sec) SetVal("speaker", "pcspeaker", sec->Get_bool("pcspeaker") ? "false" : "true"); break;
-			}
-			case ID_PCSPEAKER_49716: SetVal("speaker", "pcrate", "49716"); break;
-			case ID_PCSPEAKER_48000: SetVal("speaker", "pcrate", "48000"); break;
-			case ID_PCSPEAKER_44100: SetVal("speaker", "pcrate", "44100"); break;
-			case ID_PCSPEAKER_32000: SetVal("speaker", "pcrate", "32000"); break;
-			case ID_PCSPEAKER_22050: SetVal("speaker", "pcrate", "22050"); break;
-			case ID_PCSPEAKER_16000: SetVal("speaker", "pcrate", "16000"); break;
-			case ID_PCSPEAKER_11025: SetVal("speaker", "pcrate", "11025"); break;
-			case ID_PCSPEAKER_8000: SetVal("speaker", "pcrate", "8000"); break;
-			case ID_PS1_ON: SetVal("speaker", "ps1audio", "on"); break;
-			case ID_PS1_OFF: SetVal("speaker", "ps1audio", "off"); break;
-			case ID_PS1_49716: SetVal("speaker", "ps1audiorate", "49716"); break;
-			case ID_PS1_48000: SetVal("speaker", "ps1audiorate", "48000"); break;
-			case ID_PS1_44100: SetVal("speaker", "ps1audiorate", "44100"); break;
-			case ID_PS1_32000: SetVal("speaker", "ps1audiorate", "32000"); break;
-			case ID_PS1_22050: SetVal("speaker", "ps1audiorate", "22050"); break;
-			case ID_PS1_16000: SetVal("speaker", "ps1audiorate", "16000"); break;
-			case ID_PS1_11025: SetVal("speaker", "ps1audiorate", "11025"); break;
-			case ID_PS1_8000: SetVal("speaker", "ps1audiorate", "8000"); break;
-			case ID_TANDY_ON: SetVal("speaker", "tandy", "on"); break;
-			case ID_TANDY_OFF: SetVal("speaker", "tandy", "off"); break;
-			case ID_TANDY_AUTO: SetVal("speaker", "tandy", "auto"); break;
-			case ID_TANDY_49716: SetVal("speaker", "tandyrate", "49716"); break;
-			case ID_TANDY_48000: SetVal("speaker", "tandyrate", "48000"); break;
-			case ID_TANDY_44100: SetVal("speaker", "tandyrate", "44100"); break;
-			case ID_TANDY_32000: SetVal("speaker", "tandyrate", "32000"); break;
-			case ID_TANDY_22050: SetVal("speaker", "tandyrate", "22050"); break;
-			case ID_TANDY_16000: SetVal("speaker", "tandyrate", "16000"); break;
-			case ID_TANDY_11025: SetVal("speaker", "tandyrate", "11025"); break;
-			case ID_TANDY_8000: SetVal("speaker", "tandyrate", "8000"); break;
-			case ID_DISNEY_TRUE: SetVal("speaker", "disney", "true"); break;
-			case ID_DISNEY_FALSE: SetVal("speaker", "disney", "false"); break;
-			case ID_SB_NONE: SetVal("sblaster", "sbtype", "none"); break;
-			case ID_SB_SB1: SetVal("sblaster", "sbtype", "sb1"); break;
-			case ID_SB_SB2: SetVal("sblaster", "sbtype", "sb2"); break;
-			case ID_SB_SBPRO1: SetVal("sblaster", "sbtype", "sbpro1"); break;
-			case ID_SB_SBPRO2: SetVal("sblaster", "sbtype", "sbpro2"); break;
-			case ID_SB_SB16: SetVal("sblaster", "sbtype", "sb16"); break;
-			case ID_SB_SB16VIBRA: SetVal("sblaster", "sbtype", "sb16vibra"); break;
-			case ID_SB_GB: SetVal("sblaster", "sbtype", "gb"); break;
-			case ID_SB_300: SetVal("sblaster", "sbbase", "300"); break;
-			case ID_SB_220: SetVal("sblaster", "sbbase", "220"); break;
-			case ID_SB_240: SetVal("sblaster", "sbbase", "240"); break;
-			case ID_SB_260: SetVal("sblaster", "sbbase", "260"); break;
-			case ID_SB_280: SetVal("sblaster", "sbbase", "280"); break;
-			case ID_SB_2a0: SetVal("sblaster", "sbbase", "2a0"); break;
-			case ID_SB_2c0: SetVal("sblaster", "sbbase", "2c0"); break;
-			case ID_SB_2e0: SetVal("sblaster", "sbbase", "2e0"); break;
-			case ID_SB_HW210: SetVal("sblaster", "hardwarebase", "210"); break;
-			case ID_SB_HW220: SetVal("sblaster", "hardwarebase", "220"); break;
-			case ID_SB_HW230: SetVal("sblaster", "hardwarebase", "230"); break;
-			case ID_SB_HW240: SetVal("sblaster", "hardwarebase", "240"); break;
-			case ID_SB_HW250: SetVal("sblaster", "hardwarebase", "250"); break;
-			case ID_SB_HW260: SetVal("sblaster", "hardwarebase", "260"); break;
-			case ID_SB_HW280: SetVal("sblaster", "hardwarebase", "280"); break;
-			case ID_SB_IRQ_3: SetVal("sblaster", "irq", "3"); break;
-			case ID_SB_IRQ_5: SetVal("sblaster", "irq", "5"); break;
-			case ID_SB_IRQ_7: SetVal("sblaster", "irq", "7"); break;
-			case ID_SB_IRQ_9: SetVal("sblaster", "irq", "9"); break;
-			case ID_SB_IRQ_10: SetVal("sblaster", "irq", "10"); break;
-			case ID_SB_IRQ_11: SetVal("sblaster", "irq", "11"); break;
-			case ID_SB_IRQ_12: SetVal("sblaster", "irq", "12"); break;
-			case ID_SB_DMA_0: SetVal("sblaster", "dma", "0"); break;
-			case ID_SB_DMA_1: SetVal("sblaster", "dma", "1"); break;
-			case ID_SB_DMA_3: SetVal("sblaster", "dma", "3"); break;
-			case ID_SB_DMA_5: SetVal("sblaster", "dma", "5"); break;
-			case ID_SB_DMA_6: SetVal("sblaster", "dma", "6"); break;
-			case ID_SB_DMA_7: SetVal("sblaster", "dma", "7"); break;
-			case ID_SB_HDMA_0: SetVal("sblaster", "hdma", "0"); break;
-			case ID_SB_HDMA_1: SetVal("sblaster", "hdma", "1"); break;
-			case ID_SB_HDMA_3: SetVal("sblaster", "hdma", "3"); break;
-			case ID_SB_HDMA_5: SetVal("sblaster", "hdma", "5"); break;
-			case ID_SB_HDMA_6: SetVal("sblaster", "hdma", "6"); break;
-			case ID_SB_HDMA_7: SetVal("sblaster", "hdma", "7"); break;
-			case ID_SB_OPL_AUTO: SetVal("sblaster", "oplmode", "auto"); break;
-			case ID_SB_OPL_NONE: SetVal("sblaster", "oplmode", "none"); break;
-			case ID_SB_OPL_CMS: SetVal("sblaster", "oplmode", "cms"); break;
-			case ID_SB_OPL_OPL2: SetVal("sblaster", "oplmode", "opl2"); break;
-			case ID_SB_OPL_DUALOPL2: SetVal("sblaster", "oplmode", "dualopl2"); break;
-			case ID_SB_OPL_OPL3: SetVal("sblaster", "oplmode", "opl3"); break;
-			case ID_SB_OPL_HARDWARE: SetVal("sblaster", "oplmode", "hardware"); break;
-			case ID_SB_OPL_HARDWAREGB: SetVal("sblaster", "oplmode", "hardwaregb"); break;
-			case ID_SB_OPL_EMU_DEFAULT: SetVal("sblaster", "oplemu", "default"); break;
-			case ID_SB_OPL_EMU_COMPAT: SetVal("sblaster", "oplemu", "compat"); break;
-			case ID_SB_OPL_EMU_FAST: SetVal("sblaster", "oplemu", "fast"); break;
-			case ID_SB_OPL_49716: SetVal("sblaster", "oplrate", "49716"); break;
-			case ID_SB_OPL_48000: SetVal("sblaster", "oplrate", "48000"); break;
-			case ID_SB_OPL_44100: SetVal("sblaster", "oplrate", "44100"); break;
-			case ID_SB_OPL_32000: SetVal("sblaster", "oplrate", "32000"); break;
-			case ID_SB_OPL_22050: SetVal("sblaster", "oplrate", "22050"); break;
-			case ID_SB_OPL_16000: SetVal("sblaster", "oplrate", "16000"); break;
-			case ID_SB_OPL_11025: SetVal("sblaster", "oplrate", "11025"); break;
-			case ID_SB_OPL_8000: SetVal("sblaster", "oplrate", "8000"); break;
-			case ID_OVERSCAN_0: LOG_MSG("GUI: Overscan 0 (surface)"); SetVal("sdl", "overscan", "0"); change_output(7); break;
-			case ID_OVERSCAN_1: LOG_MSG("GUI: Overscan 1 (surface)"); SetVal("sdl", "overscan", "1"); change_output(7); break;
-			case ID_OVERSCAN_2: LOG_MSG("GUI: Overscan 2 (surface)"); SetVal("sdl", "overscan", "2"); change_output(7); break;
-			case ID_OVERSCAN_3: LOG_MSG("GUI: Overscan 3 (surface)"); SetVal("sdl", "overscan", "3"); change_output(7); break;
-			case ID_OVERSCAN_4: LOG_MSG("GUI: Overscan 4 (surface)"); SetVal("sdl", "overscan", "4"); change_output(7); break;
-			case ID_OVERSCAN_5: LOG_MSG("GUI: Overscan 5 (surface)"); SetVal("sdl", "overscan", "5"); change_output(7); break;
-			case ID_OVERSCAN_6: LOG_MSG("GUI: Overscan 6 (surface)"); SetVal("sdl", "overscan", "6"); change_output(7); break;
-			case ID_OVERSCAN_7: LOG_MSG("GUI: Overscan 7 (surface)"); SetVal("sdl", "overscan", "7"); change_output(7); break;
-			case ID_OVERSCAN_8: LOG_MSG("GUI: Overscan 8 (surface)"); SetVal("sdl", "overscan", "8"); change_output(7); break;
-			case ID_OVERSCAN_9: LOG_MSG("GUI: Overscan 9 (surface)"); SetVal("sdl", "overscan", "9"); change_output(7); break;
-			case ID_OVERSCAN_10: LOG_MSG("GUI: Overscan 10 (surface)"); SetVal("sdl", "overscan", "10"); change_output(7); break;
-			case ID_VSYNC: GUI_Shortcut(17); break;
-			case ID_IPXNET: MENU_SetBool("ipx", "ipx"); break;
-			case ID_D3D_PS: D3D_PS(); if ((uintptr_t)GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_DIRECT3D) change_output(7); break;
-			case ID_JOYSTICKTYPE_AUTO: SetVal("joystick", "joysticktype", "auto"); break;
-			case ID_JOYSTICKTYPE_2AXIS: SetVal("joystick", "joysticktype", "2axis"); break;
-			case ID_JOYSTICKTYPE_4AXIS: SetVal("joystick", "joysticktype", "4axis"); break;
-			case ID_JOYSTICKTYPE_4AXIS_2: SetVal("joystick", "joysticktype", "4axis_2"); break;
-			case ID_JOYSTICKTYPE_FCS: SetVal("joystick", "joysticktype", "fcs"); break;
-			case ID_JOYSTICKTYPE_CH: SetVal("joystick", "joysticktype", "ch"); break;
-			case ID_JOYSTICKTYPE_NONE: SetVal("joystick", "joysticktype", "none"); break;
-			case ID_JOYSTICK_TIMED: MENU_SetBool("joystick", "timed"); break;
-			case ID_JOYSTICK_AUTOFIRE: MENU_SetBool("joystick", "autofire"); break;
-			case ID_JOYSTICK_SWAP34: MENU_SetBool("joystick", "swap34"); break;
-			case ID_JOYSTICK_BUTTONWRAP: MENU_SetBool("joystick", "buttonwrap"); break;
-			case ID_SWAPSTEREO: MENU_swapstereo(MENU_SetBool("mixer", "swapstereo")); break;
-			case ID_MUTE: SDL_PauseAudio((SDL_GetAudioStatus() != SDL_AUDIO_PAUSED)); break;
-			case ID_DOSBOX_SECTION:  GUI_Shortcut(3); break;
-			case ID_MIXER_SECTION:  GUI_Shortcut(4); break;
-			case ID_SERIAL_SECTION:  GUI_Shortcut(5); break;
-			case ID_PARALLEL_SECTION:  GUI_Shortcut(11); break;
-			case ID_PRINTER_SECTION:  GUI_Shortcut(12); break;
-			case ID_NE2000_SECTION:  GUI_Shortcut(6); break;
-			case ID_AUTOEXEC:  GUI_Shortcut(7); break;
-			case ID_MOUSE_VERTICAL: extern bool Mouse_Vertical; Mouse_Vertical = !Mouse_Vertical; break;
-			case ID_GLIDE_TRUE:
-			{
-				Section_prop * sec = static_cast<Section_prop *>(control->GetSection("glide"));
-				if (sec) SetVal("glide", "glide", sec->Get_string("glide") == "true" ? "false" : "true");
-				break;
-			}
-			case ID_GLIDE_EMU:
-			{
-				Section_prop * sec = static_cast<Section_prop *>(control->GetSection("glide"));
-				if (sec) SetVal("glide", "glide", sec->Get_string("glide") == "emu" ? "false" : "emu");
-				break;
-			}
-			case ID_SAVELANG:  GUI_Shortcut(9); break;
-			case ID_CPUTYPE_AUTO: SetVal("cpu", "cputype", "auto"); break;
-			case ID_CPUTYPE_386: SetVal("cpu", "cputype", "386"); break;
-				//case ID_CPUTYPE_386_SLOW: SetVal("cpu","cputype","386_slow"); break;
-			case ID_CPUTYPE_386_PREFETCH: SetVal("cpu", "cputype", "386_prefetch"); break;
-			case ID_CPUTYPE_486: SetVal("cpu", "cputype", "486"); break;
-			case ID_CPUTYPE_PENTIUM: SetVal("cpu", "cputype", "pentium"); break;
-			case ID_CPUTYPE_PENTIUM_MMX: SetVal("cpu", "cputype", "pentium_mmx"); break;
-			case ID_CPU_ADVANCED:  GUI_Shortcut(13); break;
-			case ID_DOS_ADVANCED:  GUI_Shortcut(14); break;
-			case ID_MIDI_ADVANCED:  GUI_Shortcut(15); break;
-			case ID_RATE_1_DELAY_1: MENU_KeyDelayRate(1, 1); break;
-			case ID_RATE_2_DELAY_1: MENU_KeyDelayRate(1, 2); break;
-			case ID_RATE_3_DELAY_1: MENU_KeyDelayRate(1, 3); break;
-			case ID_RATE_4_DELAY_1: MENU_KeyDelayRate(1, 4); break;
-			case ID_RATE_5_DELAY_1: MENU_KeyDelayRate(1, 5); break;
-			case ID_RATE_6_DELAY_1: MENU_KeyDelayRate(1, 6); break;
-			case ID_RATE_7_DELAY_1: MENU_KeyDelayRate(1, 7); break;
-			case ID_RATE_8_DELAY_1: MENU_KeyDelayRate(1, 8); break;
-			case ID_RATE_9_DELAY_1: MENU_KeyDelayRate(1, 9); break;
-			case ID_RATE_10_DELAY_1: MENU_KeyDelayRate(1, 10); break;
-			case ID_RATE_11_DELAY_1: MENU_KeyDelayRate(1, 11); break;
-			case ID_RATE_12_DELAY_1: MENU_KeyDelayRate(1, 12); break;
-			case ID_RATE_13_DELAY_1: MENU_KeyDelayRate(1, 13); break;
-			case ID_RATE_14_DELAY_1: MENU_KeyDelayRate(1, 14); break;
-			case ID_RATE_15_DELAY_1: MENU_KeyDelayRate(1, 15); break;
-			case ID_RATE_16_DELAY_1: MENU_KeyDelayRate(1, 16); break;
-			case ID_RATE_17_DELAY_1: MENU_KeyDelayRate(1, 17); break;
-			case ID_RATE_18_DELAY_1: MENU_KeyDelayRate(1, 18); break;
-			case ID_RATE_19_DELAY_1: MENU_KeyDelayRate(1, 19); break;
-			case ID_RATE_20_DELAY_1: MENU_KeyDelayRate(1, 20); break;
-			case ID_RATE_21_DELAY_1: MENU_KeyDelayRate(1, 21); break;
-			case ID_RATE_22_DELAY_1: MENU_KeyDelayRate(1, 22); break;
-			case ID_RATE_23_DELAY_1: MENU_KeyDelayRate(1, 23); break;
-			case ID_RATE_24_DELAY_1: MENU_KeyDelayRate(1, 24); break;
-			case ID_RATE_25_DELAY_1: MENU_KeyDelayRate(1, 25); break;
-			case ID_RATE_26_DELAY_1: MENU_KeyDelayRate(1, 26); break;
-			case ID_RATE_27_DELAY_1: MENU_KeyDelayRate(1, 27); break;
-			case ID_RATE_28_DELAY_1: MENU_KeyDelayRate(1, 28); break;
-			case ID_RATE_29_DELAY_1: MENU_KeyDelayRate(1, 29); break;
-			case ID_RATE_30_DELAY_1: MENU_KeyDelayRate(1, 30); break;
-			case ID_RATE_31_DELAY_1: MENU_KeyDelayRate(1, 31); break;
-			case ID_RATE_32_DELAY_1: MENU_KeyDelayRate(1, 32); break;
-			case ID_RATE_1_DELAY_2: MENU_KeyDelayRate(2, 1); break;
-			case ID_RATE_2_DELAY_2: MENU_KeyDelayRate(2, 2); break;
-			case ID_RATE_3_DELAY_2: MENU_KeyDelayRate(2, 3); break;
-			case ID_RATE_4_DELAY_2: MENU_KeyDelayRate(2, 4); break;
-			case ID_RATE_5_DELAY_2: MENU_KeyDelayRate(2, 5); break;
-			case ID_RATE_6_DELAY_2: MENU_KeyDelayRate(2, 6); break;
-			case ID_RATE_7_DELAY_2: MENU_KeyDelayRate(2, 7); break;
-			case ID_RATE_8_DELAY_2: MENU_KeyDelayRate(2, 8); break;
-			case ID_RATE_9_DELAY_2: MENU_KeyDelayRate(2, 9); break;
-			case ID_RATE_10_DELAY_2: MENU_KeyDelayRate(2, 10); break;
-			case ID_RATE_11_DELAY_2: MENU_KeyDelayRate(2, 11); break;
-			case ID_RATE_12_DELAY_2: MENU_KeyDelayRate(2, 12); break;
-			case ID_RATE_13_DELAY_2: MENU_KeyDelayRate(2, 13); break;
-			case ID_RATE_14_DELAY_2: MENU_KeyDelayRate(2, 14); break;
-			case ID_RATE_15_DELAY_2: MENU_KeyDelayRate(2, 15); break;
-			case ID_RATE_16_DELAY_2: MENU_KeyDelayRate(2, 16); break;
-			case ID_RATE_17_DELAY_2: MENU_KeyDelayRate(2, 17); break;
-			case ID_RATE_18_DELAY_2: MENU_KeyDelayRate(2, 18); break;
-			case ID_RATE_19_DELAY_2: MENU_KeyDelayRate(2, 19); break;
-			case ID_RATE_20_DELAY_2: MENU_KeyDelayRate(2, 20); break;
-			case ID_RATE_21_DELAY_2: MENU_KeyDelayRate(2, 21); break;
-			case ID_RATE_22_DELAY_2: MENU_KeyDelayRate(2, 22); break;
-			case ID_RATE_23_DELAY_2: MENU_KeyDelayRate(2, 23); break;
-			case ID_RATE_24_DELAY_2: MENU_KeyDelayRate(2, 24); break;
-			case ID_RATE_25_DELAY_2: MENU_KeyDelayRate(2, 25); break;
-			case ID_RATE_26_DELAY_2: MENU_KeyDelayRate(2, 26); break;
-			case ID_RATE_27_DELAY_2: MENU_KeyDelayRate(2, 27); break;
-			case ID_RATE_28_DELAY_2: MENU_KeyDelayRate(2, 28); break;
-			case ID_RATE_29_DELAY_2: MENU_KeyDelayRate(2, 29); break;
-			case ID_RATE_30_DELAY_2: MENU_KeyDelayRate(2, 30); break;
-			case ID_RATE_31_DELAY_2: MENU_KeyDelayRate(2, 31); break;
-			case ID_RATE_32_DELAY_2: MENU_KeyDelayRate(2, 32); break;
-			case ID_RATE_1_DELAY_3: MENU_KeyDelayRate(3, 1); break;
-			case ID_RATE_2_DELAY_3: MENU_KeyDelayRate(3, 2); break;
-			case ID_RATE_3_DELAY_3: MENU_KeyDelayRate(3, 3); break;
-			case ID_RATE_4_DELAY_3: MENU_KeyDelayRate(3, 4); break;
-			case ID_RATE_5_DELAY_3: MENU_KeyDelayRate(3, 5); break;
-			case ID_RATE_6_DELAY_3: MENU_KeyDelayRate(3, 6); break;
-			case ID_RATE_7_DELAY_3: MENU_KeyDelayRate(3, 7); break;
-			case ID_RATE_8_DELAY_3: MENU_KeyDelayRate(3, 8); break;
-			case ID_RATE_9_DELAY_3: MENU_KeyDelayRate(3, 9); break;
-			case ID_RATE_10_DELAY_3: MENU_KeyDelayRate(3, 10); break;
-			case ID_RATE_11_DELAY_3: MENU_KeyDelayRate(3, 11); break;
-			case ID_RATE_12_DELAY_3: MENU_KeyDelayRate(3, 12); break;
-			case ID_RATE_13_DELAY_3: MENU_KeyDelayRate(3, 13); break;
-			case ID_RATE_14_DELAY_3: MENU_KeyDelayRate(3, 14); break;
-			case ID_RATE_15_DELAY_3: MENU_KeyDelayRate(3, 15); break;
-			case ID_RATE_16_DELAY_3: MENU_KeyDelayRate(3, 16); break;
-			case ID_RATE_17_DELAY_3: MENU_KeyDelayRate(3, 17); break;
-			case ID_RATE_18_DELAY_3: MENU_KeyDelayRate(3, 18); break;
-			case ID_RATE_19_DELAY_3: MENU_KeyDelayRate(3, 19); break;
-			case ID_RATE_20_DELAY_3: MENU_KeyDelayRate(3, 20); break;
-			case ID_RATE_21_DELAY_3: MENU_KeyDelayRate(3, 21); break;
-			case ID_RATE_22_DELAY_3: MENU_KeyDelayRate(3, 22); break;
-			case ID_RATE_23_DELAY_3: MENU_KeyDelayRate(3, 23); break;
-			case ID_RATE_24_DELAY_3: MENU_KeyDelayRate(3, 24); break;
-			case ID_RATE_25_DELAY_3: MENU_KeyDelayRate(3, 25); break;
-			case ID_RATE_26_DELAY_3: MENU_KeyDelayRate(3, 26); break;
-			case ID_RATE_27_DELAY_3: MENU_KeyDelayRate(3, 27); break;
-			case ID_RATE_28_DELAY_3: MENU_KeyDelayRate(3, 28); break;
-			case ID_RATE_29_DELAY_3: MENU_KeyDelayRate(3, 29); break;
-			case ID_RATE_30_DELAY_3: MENU_KeyDelayRate(3, 30); break;
-			case ID_RATE_31_DELAY_3: MENU_KeyDelayRate(3, 31); break;
-			case ID_RATE_32_DELAY_3: MENU_KeyDelayRate(3, 32); break;
-			case ID_RATE_1_DELAY_4: MENU_KeyDelayRate(4, 1); break;
-			case ID_RATE_2_DELAY_4: MENU_KeyDelayRate(4, 2); break;
-			case ID_RATE_3_DELAY_4: MENU_KeyDelayRate(4, 3); break;
-			case ID_RATE_4_DELAY_4: MENU_KeyDelayRate(4, 4); break;
-			case ID_RATE_5_DELAY_4: MENU_KeyDelayRate(4, 5); break;
-			case ID_RATE_6_DELAY_4: MENU_KeyDelayRate(4, 6); break;
-			case ID_RATE_7_DELAY_4: MENU_KeyDelayRate(4, 7); break;
-			case ID_RATE_8_DELAY_4: MENU_KeyDelayRate(4, 8); break;
-			case ID_RATE_9_DELAY_4: MENU_KeyDelayRate(4, 9); break;
-			case ID_RATE_10_DELAY_4: MENU_KeyDelayRate(4, 10); break;
-			case ID_RATE_11_DELAY_4: MENU_KeyDelayRate(4, 11); break;
-			case ID_RATE_12_DELAY_4: MENU_KeyDelayRate(4, 12); break;
-			case ID_RATE_13_DELAY_4: MENU_KeyDelayRate(4, 13); break;
-			case ID_RATE_14_DELAY_4: MENU_KeyDelayRate(4, 14); break;
-			case ID_RATE_15_DELAY_4: MENU_KeyDelayRate(4, 15); break;
-			case ID_RATE_16_DELAY_4: MENU_KeyDelayRate(4, 16); break;
-			case ID_RATE_17_DELAY_4: MENU_KeyDelayRate(4, 17); break;
-			case ID_RATE_18_DELAY_4: MENU_KeyDelayRate(4, 18); break;
-			case ID_RATE_19_DELAY_4: MENU_KeyDelayRate(4, 19); break;
-			case ID_RATE_20_DELAY_4: MENU_KeyDelayRate(4, 20); break;
-			case ID_RATE_21_DELAY_4: MENU_KeyDelayRate(4, 21); break;
-			case ID_RATE_22_DELAY_4: MENU_KeyDelayRate(4, 22); break;
-			case ID_RATE_23_DELAY_4: MENU_KeyDelayRate(4, 23); break;
-			case ID_RATE_24_DELAY_4: MENU_KeyDelayRate(4, 24); break;
-			case ID_RATE_25_DELAY_4: MENU_KeyDelayRate(4, 25); break;
-			case ID_RATE_26_DELAY_4: MENU_KeyDelayRate(4, 26); break;
-			case ID_RATE_27_DELAY_4: MENU_KeyDelayRate(4, 27); break;
-			case ID_RATE_28_DELAY_4: MENU_KeyDelayRate(4, 28); break;
-			case ID_RATE_29_DELAY_4: MENU_KeyDelayRate(4, 29); break;
-			case ID_RATE_30_DELAY_4: MENU_KeyDelayRate(4, 30); break;
-			case ID_RATE_31_DELAY_4: MENU_KeyDelayRate(4, 31); break;
-			case ID_RATE_32_DELAY_4: MENU_KeyDelayRate(4, 32); break;
-			case ID_MOUSE_SENSITIVITY: GUI_Shortcut(2); break;
-			case ID_GLIDE_LFB_FULL: SetVal("glide", "lfb", "full"); break;
-			case ID_GLIDE_LFB_FULL_NOAUX: SetVal("glide", "lfb", "full_noaux"); break;
-			case ID_GLIDE_LFB_READ: SetVal("glide", "lfb", "read"); break;
-			case ID_GLIDE_LFB_READ_NOAUX: SetVal("glide", "lfb", "read_noaux"); break;
-			case ID_GLIDE_LFB_WRITE: SetVal("glide", "lfb", "write"); break;
-			case ID_GLIDE_LFB_WRITE_NOAUX: SetVal("glide", "lfb", "write_noaux"); break;
-			case ID_GLIDE_LFB_NONE: SetVal("glide", "lfb", "none"); break;
-			case ID_GLIDE_SPLASH:
-			{
-				Section_prop * sec = static_cast<Section_prop *>(control->GetSection("glide"));
-				if (sec) SetVal("glide", "splash", sec->Get_bool("splash") ? "false" : "true");
-			}
+		}
+		else {
+			std::ostringstream str;
+			str << "fixed " << CPU_CycleMax;
+			std::string cycles = str.str();
+			SetVal("cpu", "cycles", cycles);
 			break;
-			case ID_GLIDE_EMU_FALSE: SetVal("pci", "voodoo", "false"); break;
-			case ID_GLIDE_EMU_SOFTWARE: SetVal("pci", "voodoo", "software"); break;
-			case ID_GLIDE_EMU_OPENGL: SetVal("pci", "voodoo", "opengl"); break;
-			case ID_GLIDE_EMU_AUTO: SetVal("pci", "voodoo", "auto"); break;
-			case ID_ALWAYS_ON_TOP:
-			{
-				DWORD dwExStyle = ::GetWindowLong(GetHWND(), GWL_EXSTYLE);
-				HWND top = ((dwExStyle & WS_EX_TOPMOST) == 0) ? HWND_TOPMOST : HWND_NOTOPMOST;
-				SetWindowPos(GetHWND(), top, 0, 0, 0, 0, SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSIZE);
-				break;
-			}
+		}
+	}
+	case ID_CAPMOUSE: GFX_CaptureMouse(); break;
+	case ID_REFRESH: GUI_Shortcut(1); break;
+	case ID_FULLSCREEN: GFX_SwitchFullScreen(); break;
+	case ID_ASPECT:
+		if (!GFX_GetPreventFullscreen()) {
+			SetVal("render", "aspect", render.aspect ? "false" : "true");
+			Reflect_Menu();
+		}
+		break;
+	case ID_HIDECYCL:
+		menu.hidecycles = !menu.hidecycles;
+		GFX_SetTitle(CPU_CycleMax, -1, -1, false);
+		break;
+	case ID_TOGGLE: ToggleMenu(true); break;
+	case ID_RESET_RESCALE:  GUI_ResetResize(true);                                      break;
+	case ID_NONE:			SetScaler(scalerOpNormal, 1, "none");				break;
+	case ID_NORMAL2X:		SetScaler(scalerOpNormal, 2, "normal2x");			break;
+	case ID_NORMAL3X:		SetScaler(scalerOpNormal, 3, "normal3x");			break;
+	case ID_NORMAL4X:		SetScaler(scalerOpNormal, 4, "normal4x");			break;
+	case ID_NORMAL5X:		SetScaler(scalerOpNormal, 5, "normal5x");			break;
+	case ID_HARDWARE_NONE:	SetScaler(scalerOpNormal, 1, "hardware_none");	break;
+	case ID_HARDWARE2X:		SetScaler(scalerOpNormal, 2, "hardware2x");		break;
+	case ID_HARDWARE3X:		SetScaler(scalerOpNormal, 3, "hardware3x");		break;
+	case ID_HARDWARE4X:		SetScaler(scalerOpNormal, 4, "hardware4x");		break;
+	case ID_HARDWARE5X:		SetScaler(scalerOpNormal, 4, "hardware5x");		break;
+	case ID_ADVMAME2X:		SetScaler(scalerOpAdvMame, 2, "advmame2x");		break;
+	case ID_ADVMAME3X:		SetScaler(scalerOpAdvMame, 3, "advmame3x");		break;
+	case ID_ADVINTERP2X:	SetScaler(scalerOpAdvInterp, 2, "advinterp2x");		break;
+	case ID_ADVINTERP3X:	SetScaler(scalerOpAdvInterp, 3, "advinterp3x");		break;
+	case ID_HQ2X:			SetScaler(scalerOpHQ, 2, "hq2x");				break;
+	case ID_HQ3X:			SetScaler(scalerOpHQ, 3, "hq3x");				break;
+	case ID_2XSAI:			SetScaler(scalerOpSaI, 2, "2xsai");			break;
+	case ID_SUPER2XSAI:		SetScaler(scalerOpSuperSaI, 2, "super2xsai");		break;
+	case ID_SUPEREAGLE:		SetScaler(scalerOpSuperEagle, 2, "supereagle");		break;
+	case ID_TV2X:			SetScaler(scalerOpTV, 2, "tv2x");				break;
+	case ID_TV3X:			SetScaler(scalerOpTV, 3, "tv3x");				break;
+	case ID_RGB2X:			SetScaler(scalerOpRGB, 2, "rgb2x");			break;
+	case ID_RGB3X:			SetScaler(scalerOpRGB, 3, "rgb3x");			break;
+	case ID_SCAN2X:			SetScaler(scalerOpScan, 2, "scan2x");			break;
+	case ID_SCAN3X:			SetScaler(scalerOpScan, 3, "scan3x");			break;
+	case ID_FORCESCALER:	SetScaleForced(!render.scale.forced);						break;
+	case ID_CYCLE: GUI_Shortcut(16); break;
+	case ID_CPU_TURBO: extern void DOSBOX_UnlockSpeed2(bool pressed); DOSBOX_UnlockSpeed2(1); break;
+	case ID_SKIP_0: SetVal("render", "frameskip", "0"); break;
+	case ID_SKIP_1: SetVal("render", "frameskip", "1"); break;
+	case ID_SKIP_2: SetVal("render", "frameskip", "2"); break;
+	case ID_SKIP_3: SetVal("render", "frameskip", "3"); break;
+	case ID_SKIP_4: SetVal("render", "frameskip", "4"); break;
+	case ID_SKIP_5: SetVal("render", "frameskip", "5"); break;
+	case ID_SKIP_6: SetVal("render", "frameskip", "6"); break;
+	case ID_SKIP_7: SetVal("render", "frameskip", "7"); break;
+	case ID_SKIP_8: SetVal("render", "frameskip", "8"); break;
+	case ID_SKIP_9: SetVal("render", "frameskip", "9"); break;
+	case ID_SKIP_10: SetVal("render", "frameskip", "10"); break;
+	case ID_UMOUNT_A: UnMount('A'); break;
+	case ID_UMOUNT_B: UnMount('B'); break;
+	case ID_UMOUNT_C: UnMount('C'); break;
+	case ID_UMOUNT_D: UnMount('D'); break;
+	case ID_UMOUNT_E: UnMount('E'); break;
+	case ID_UMOUNT_F: UnMount('F'); break;
+	case ID_UMOUNT_G: UnMount('G'); break;
+	case ID_UMOUNT_H: UnMount('H'); break;
+	case ID_UMOUNT_I: UnMount('I'); break;
+	case ID_UMOUNT_J: UnMount('J'); break;
+	case ID_UMOUNT_K: UnMount('K'); break;
+	case ID_UMOUNT_L: UnMount('L'); break;
+	case ID_UMOUNT_M: UnMount('M'); break;
+	case ID_UMOUNT_N: UnMount('N'); break;
+	case ID_UMOUNT_O: UnMount('O'); break;
+	case ID_UMOUNT_P: UnMount('P'); break;
+	case ID_UMOUNT_Q: UnMount('Q'); break;
+	case ID_UMOUNT_R: UnMount('R'); break;
+	case ID_UMOUNT_S: UnMount('S'); break;
+	case ID_UMOUNT_T: UnMount('T'); break;
+	case ID_UMOUNT_U: UnMount('U'); break;
+	case ID_UMOUNT_V: UnMount('V'); break;
+	case ID_UMOUNT_W: UnMount('W'); break;
+	case ID_UMOUNT_X: UnMount('X'); break;
+	case ID_UMOUNT_Y: UnMount('Y'); break;
+	case ID_UMOUNT_Z: UnMount('Z'); break;
+	case ID_AUTOMOUNT:
+	{
+		Section_prop * sec = static_cast<Section_prop *>(control->GetSection("dos"));
+		if (sec) SetVal("dos", "automount", sec->Get_bool("automount") ? "false" : "true");
+	}
+	break;
+	case ID_AUTOMOUNT_A: MountDrive('A', "A:\\"); break;
+	case ID_AUTOMOUNT_B: MountDrive('B', "B:\\"); break;
+	case ID_AUTOMOUNT_C: MountDrive('C', "C:\\"); break;
+	case ID_AUTOMOUNT_D: MountDrive('D', "D:\\"); break;
+	case ID_AUTOMOUNT_E: MountDrive('E', "E:\\"); break;
+	case ID_AUTOMOUNT_F: MountDrive('F', "F:\\"); break;
+	case ID_AUTOMOUNT_G: MountDrive('G', "G:\\"); break;
+	case ID_AUTOMOUNT_H: MountDrive('H', "H:\\"); break;
+	case ID_AUTOMOUNT_I: MountDrive('I', "I:\\"); break;
+	case ID_AUTOMOUNT_J: MountDrive('J', "J:\\"); break;
+	case ID_AUTOMOUNT_K: MountDrive('K', "K:\\"); break;
+	case ID_AUTOMOUNT_L: MountDrive('L', "L:\\"); break;
+	case ID_AUTOMOUNT_M: MountDrive('M', "M:\\"); break;
+	case ID_AUTOMOUNT_N: MountDrive('N', "N:\\"); break;
+	case ID_AUTOMOUNT_O: MountDrive('O', "O:\\"); break;
+	case ID_AUTOMOUNT_P: MountDrive('P', "P:\\"); break;
+	case ID_AUTOMOUNT_Q: MountDrive('Q', "Q:\\"); break;
+	case ID_AUTOMOUNT_R: MountDrive('R', "R:\\"); break;
+	case ID_AUTOMOUNT_S: MountDrive('S', "S:\\"); break;
+	case ID_AUTOMOUNT_T: MountDrive('T', "T:\\"); break;
+	case ID_AUTOMOUNT_U: MountDrive('U', "U:\\"); break;
+	case ID_AUTOMOUNT_V: MountDrive('V', "V:\\"); break;
+	case ID_AUTOMOUNT_W: MountDrive('W', "W:\\"); break;
+	case ID_AUTOMOUNT_X: MountDrive('X', "X:\\"); break;
+	case ID_AUTOMOUNT_Y: MountDrive('Y', "Y:\\"); break;
+	case ID_AUTOMOUNT_Z: MountDrive('Z', "Z:\\"); break;
+	case ID_MOUNT_CDROM_A: BrowseFolder('A', "CDROM"); break;
+	case ID_MOUNT_CDROM_B: BrowseFolder('B', "CDROM"); break;
+	case ID_MOUNT_CDROM_C: BrowseFolder('C', "CDROM"); break;
+	case ID_MOUNT_CDROM_D: BrowseFolder('D', "CDROM"); break;
+	case ID_MOUNT_CDROM_E: BrowseFolder('E', "CDROM"); break;
+	case ID_MOUNT_CDROM_F: BrowseFolder('F', "CDROM"); break;
+	case ID_MOUNT_CDROM_G: BrowseFolder('G', "CDROM"); break;
+	case ID_MOUNT_CDROM_H: BrowseFolder('H', "CDROM"); break;
+	case ID_MOUNT_CDROM_I: BrowseFolder('I', "CDROM"); break;
+	case ID_MOUNT_CDROM_J: BrowseFolder('J', "CDROM"); break;
+	case ID_MOUNT_CDROM_K: BrowseFolder('K', "CDROM"); break;
+	case ID_MOUNT_CDROM_L: BrowseFolder('L', "CDROM"); break;
+	case ID_MOUNT_CDROM_M: BrowseFolder('M', "CDROM"); break;
+	case ID_MOUNT_CDROM_N: BrowseFolder('N', "CDROM"); break;
+	case ID_MOUNT_CDROM_O: BrowseFolder('O', "CDROM"); break;
+	case ID_MOUNT_CDROM_P: BrowseFolder('P', "CDROM"); break;
+	case ID_MOUNT_CDROM_Q: BrowseFolder('Q', "CDROM"); break;
+	case ID_MOUNT_CDROM_R: BrowseFolder('R', "CDROM"); break;
+	case ID_MOUNT_CDROM_S: BrowseFolder('S', "CDROM"); break;
+	case ID_MOUNT_CDROM_T: BrowseFolder('T', "CDROM"); break;
+	case ID_MOUNT_CDROM_U: BrowseFolder('U', "CDROM"); break;
+	case ID_MOUNT_CDROM_V: BrowseFolder('V', "CDROM"); break;
+	case ID_MOUNT_CDROM_W: BrowseFolder('W', "CDROM"); break;
+	case ID_MOUNT_CDROM_X: BrowseFolder('X', "CDROM"); break;
+	case ID_MOUNT_CDROM_Y: BrowseFolder('Y', "CDROM"); break;
+	case ID_MOUNT_CDROM_Z: BrowseFolder('Z', "CDROM"); break;
+	case ID_MOUNT_FLOPPY_A: BrowseFolder('A', "FLOPPY"); break;
+	case ID_MOUNT_FLOPPY_B: BrowseFolder('B', "FLOPPY"); break;
+	case ID_MOUNT_FLOPPY_C: BrowseFolder('C', "FLOPPY"); break;
+	case ID_MOUNT_FLOPPY_D: BrowseFolder('D', "FLOPPY"); break;
+	case ID_MOUNT_FLOPPY_E: BrowseFolder('E', "FLOPPY"); break;
+	case ID_MOUNT_FLOPPY_F: BrowseFolder('F', "FLOPPY"); break;
+	case ID_MOUNT_FLOPPY_G: BrowseFolder('G', "FLOPPY"); break;
+	case ID_MOUNT_FLOPPY_H: BrowseFolder('H', "FLOPPY"); break;
+	case ID_MOUNT_FLOPPY_I: BrowseFolder('I', "FLOPPY"); break;
+	case ID_MOUNT_FLOPPY_J: BrowseFolder('J', "FLOPPY"); break;
+	case ID_MOUNT_FLOPPY_K: BrowseFolder('K', "FLOPPY"); break;
+	case ID_MOUNT_FLOPPY_L: BrowseFolder('L', "FLOPPY"); break;
+	case ID_MOUNT_FLOPPY_M: BrowseFolder('M', "FLOPPY"); break;
+	case ID_MOUNT_FLOPPY_N: BrowseFolder('N', "FLOPPY"); break;
+	case ID_MOUNT_FLOPPY_O: BrowseFolder('O', "FLOPPY"); break;
+	case ID_MOUNT_FLOPPY_P: BrowseFolder('P', "FLOPPY"); break;
+	case ID_MOUNT_FLOPPY_Q: BrowseFolder('Q', "FLOPPY"); break;
+	case ID_MOUNT_FLOPPY_R: BrowseFolder('R', "FLOPPY"); break;
+	case ID_MOUNT_FLOPPY_S: BrowseFolder('S', "FLOPPY"); break;
+	case ID_MOUNT_FLOPPY_T: BrowseFolder('T', "FLOPPY"); break;
+	case ID_MOUNT_FLOPPY_U: BrowseFolder('U', "FLOPPY"); break;
+	case ID_MOUNT_FLOPPY_V: BrowseFolder('V', "FLOPPY"); break;
+	case ID_MOUNT_FLOPPY_W: BrowseFolder('W', "FLOPPY"); break;
+	case ID_MOUNT_FLOPPY_X: BrowseFolder('X', "FLOPPY"); break;
+	case ID_MOUNT_FLOPPY_Y: BrowseFolder('Y', "FLOPPY"); break;
+	case ID_MOUNT_FLOPPY_Z: BrowseFolder('Z', "FLOPPY"); break;
+	case ID_MOUNT_LOCAL_A: BrowseFolder('A', "LOCAL"); break;
+	case ID_MOUNT_LOCAL_B: BrowseFolder('B', "LOCAL"); break;
+	case ID_MOUNT_LOCAL_C: BrowseFolder('C', "LOCAL"); break;
+	case ID_MOUNT_LOCAL_D: BrowseFolder('D', "LOCAL"); break;
+	case ID_MOUNT_LOCAL_E: BrowseFolder('E', "LOCAL"); break;
+	case ID_MOUNT_LOCAL_F: BrowseFolder('F', "LOCAL"); break;
+	case ID_MOUNT_LOCAL_G: BrowseFolder('G', "LOCAL"); break;
+	case ID_MOUNT_LOCAL_H: BrowseFolder('H', "LOCAL"); break;
+	case ID_MOUNT_LOCAL_I: BrowseFolder('I', "LOCAL"); break;
+	case ID_MOUNT_LOCAL_J: BrowseFolder('J', "LOCAL"); break;
+	case ID_MOUNT_LOCAL_K: BrowseFolder('K', "LOCAL"); break;
+	case ID_MOUNT_LOCAL_L: BrowseFolder('L', "LOCAL"); break;
+	case ID_MOUNT_LOCAL_M: BrowseFolder('M', "LOCAL"); break;
+	case ID_MOUNT_LOCAL_N: BrowseFolder('N', "LOCAL"); break;
+	case ID_MOUNT_LOCAL_O: BrowseFolder('O', "LOCAL"); break;
+	case ID_MOUNT_LOCAL_P: BrowseFolder('P', "LOCAL"); break;
+	case ID_MOUNT_LOCAL_Q: BrowseFolder('Q', "LOCAL"); break;
+	case ID_MOUNT_LOCAL_R: BrowseFolder('R', "LOCAL"); break;
+	case ID_MOUNT_LOCAL_S: BrowseFolder('S', "LOCAL"); break;
+	case ID_MOUNT_LOCAL_T: BrowseFolder('T', "LOCAL"); break;
+	case ID_MOUNT_LOCAL_U: BrowseFolder('U', "LOCAL"); break;
+	case ID_MOUNT_LOCAL_V: BrowseFolder('V', "LOCAL"); break;
+	case ID_MOUNT_LOCAL_W: BrowseFolder('W', "LOCAL"); break;
+	case ID_MOUNT_LOCAL_X: BrowseFolder('X', "LOCAL"); break;
+	case ID_MOUNT_LOCAL_Y: BrowseFolder('Y', "LOCAL"); break;
+	case ID_MOUNT_LOCAL_Z: BrowseFolder('Z', "LOCAL"); break;
+	case ID_MOUNT_IMAGE_A: OpenFileDialog_Img('A'); break;
+	case ID_MOUNT_IMAGE_B: OpenFileDialog_Img('B'); break;
+	case ID_MOUNT_IMAGE_C: OpenFileDialog_Img('C'); break;
+	case ID_MOUNT_IMAGE_D: OpenFileDialog_Img('D'); break;
+	case ID_MOUNT_IMAGE_E: OpenFileDialog_Img('E'); break;
+	case ID_MOUNT_IMAGE_F: OpenFileDialog_Img('F'); break;
+	case ID_MOUNT_IMAGE_G: OpenFileDialog_Img('G'); break;
+	case ID_MOUNT_IMAGE_H: OpenFileDialog_Img('H'); break;
+	case ID_MOUNT_IMAGE_I: OpenFileDialog_Img('I'); break;
+	case ID_MOUNT_IMAGE_J: OpenFileDialog_Img('J'); break;
+	case ID_MOUNT_IMAGE_K: OpenFileDialog_Img('K'); break;
+	case ID_MOUNT_IMAGE_L: OpenFileDialog_Img('L'); break;
+	case ID_MOUNT_IMAGE_M: OpenFileDialog_Img('M'); break;
+	case ID_MOUNT_IMAGE_N: OpenFileDialog_Img('N'); break;
+	case ID_MOUNT_IMAGE_O: OpenFileDialog_Img('O'); break;
+	case ID_MOUNT_IMAGE_P: OpenFileDialog_Img('P'); break;
+	case ID_MOUNT_IMAGE_Q: OpenFileDialog_Img('Q'); break;
+	case ID_MOUNT_IMAGE_R: OpenFileDialog_Img('R'); break;
+	case ID_MOUNT_IMAGE_S: OpenFileDialog_Img('S'); break;
+	case ID_MOUNT_IMAGE_T: OpenFileDialog_Img('T'); break;
+	case ID_MOUNT_IMAGE_U: OpenFileDialog_Img('U'); break;
+	case ID_MOUNT_IMAGE_V: OpenFileDialog_Img('V'); break;
+	case ID_MOUNT_IMAGE_W: OpenFileDialog_Img('W'); break;
+	case ID_MOUNT_IMAGE_X: OpenFileDialog_Img('X'); break;
+	case ID_MOUNT_IMAGE_Y: OpenFileDialog_Img('Y'); break;
+	case ID_MOUNT_IMAGE_Z: OpenFileDialog_Img('Z'); break;
+	case ID_MTWAVE: void CAPTURE_MTWaveEvent(bool pressed); CAPTURE_MTWaveEvent(true); break;
+#if C_SSHOT
+	case ID_SSHOT: void CAPTURE_ScreenShotEvent(bool pressed); CAPTURE_ScreenShotEvent(true); break;
+	case ID_MOVIE: void CAPTURE_VideoEvent(bool pressed); CAPTURE_VideoEvent(true); break;
+#endif
+	case ID_WAVE: void CAPTURE_WaveEvent(bool pressed); CAPTURE_WaveEvent(true); break;
+	case ID_OPL: void OPL_SaveRawEvent(bool pressed); OPL_SaveRawEvent(true); break;
+	case ID_MIDI: void CAPTURE_MidiEvent(bool pressed); CAPTURE_MidiEvent(true); break;
+	case ID_RESTART_DOS:
+		if (!(dos_kernel_disabled || dos_shell_running_program)) throw int(6);
+		break;
+	case ID_XMS: mem_conf("xms", 0); break;
+	case ID_EMS_TRUE: mem_conf("ems", 1); break;
+	case ID_EMS_FALSE: mem_conf("ems", 2); break;
+	case ID_EMS_EMSBOARD: mem_conf("ems", 3); break;
+	case ID_EMS_EMM386: mem_conf("ems", 4); break;
+	case ID_UMB: mem_conf("umb", 0); break;
+	case ID_SEND_CTRL_ESC: {
+		KEYBOARD_AddKey(KBD_leftctrl, true);
+		KEYBOARD_AddKey(KBD_esc, true);
+		KEYBOARD_AddKey(KBD_leftctrl, false);
+		KEYBOARD_AddKey(KBD_esc, false);
+		break;
+	}
+	case ID_SEND_ALT_TAB: {
+		KEYBOARD_AddKey(KBD_leftalt, true);
+		KEYBOARD_AddKey(KBD_tab, true);
+		KEYBOARD_AddKey(KBD_leftalt, false);
+		KEYBOARD_AddKey(KBD_tab, false);
+		break;
+	}
+	case ID_SEND_CTRL_ALT_DEL: {
+		KEYBOARD_AddKey(KBD_leftctrl, true);
+		KEYBOARD_AddKey(KBD_leftalt, true);
+		KEYBOARD_AddKey(KBD_delete, true);
+		KEYBOARD_AddKey(KBD_leftctrl, false);
+		KEYBOARD_AddKey(KBD_leftalt, false);
+		KEYBOARD_AddKey(KBD_delete, false);
+		break;
+	}
+	case ID_CHAR9: MENU_SetBool("render", "char9"); break;
+	case ID_MULTISCAN: MENU_SetBool("render", "multiscan"); break;
+	case ID_VSYNC_ON: SetVal("vsync", "vsyncmode", "on"); break;
+	case ID_VSYNC_HOST: SetVal("vsync", "vsyncmode", "host"); break;
+	case ID_VSYNC_FORCE: SetVal("vsync", "vsyncmode", "force"); break;
+	case ID_VSYNC_OFF: SetVal("vsync", "vsyncmode", "off"); break;
+	case ID_SURFACE: if ((uintptr_t)GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_SURFACE) { change_output(0); SetVal("sdl", "output", "surface"); } break;
+	case ID_OPENGL: change_output(3); SetVal("sdl", "output", "opengl"); break;
+	case ID_OPENGLNB: change_output(4); SetVal("sdl", "output", "openglnb"); break;
+	case ID_DIRECT3D: if ((uintptr_t)GetSetSDLValue(1, "desktop.want_type", 0) != SCREEN_DIRECT3D) { change_output(5); SetVal("sdl", "output", "direct3d"); } break;
+	case ID_WINFULL_USER: case ID_WINRES_USER: GUI_Shortcut(2); break;
+	case ID_WINRES_ORIGINAL: res_input(true, "original"); break;
+	case ID_WINFULL_ORIGINAL: res_input(false, "original"); break;
+	case ID_WINRES_DESKTOP: res_input(true, "desktop"); break;
+	case ID_WINFULL_DESKTOP: res_input(false, "desktop"); break;
+	case ID_FULLDOUBLE: SetVal("sdl", "fulldouble", (GetSetSDLValue(1, "desktop.doublebuf", 0)) ? "false" : "true"); res_init(); break;
+	case ID_AUTOLOCK: (GetSetSDLValue(0, "mouse.autoenable", (void*)MENU_SetBool("sdl", "autolock"))); break;
+	case ID_MOUSE: extern bool Mouse_Drv; Mouse_Drv = !Mouse_Drv; break;
+	case ID_PC98_FOURPARTITIONSGRAPHICS:
+		if (IS_PC98_ARCH) {
+			extern bool pc98_allow_4_display_partitions;
+			void updateGDCpartitions4(bool enable);
+
+			updateGDCpartitions4(!pc98_allow_4_display_partitions);
+
+			Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+			if (pc98_allow_4_display_partitions)
+				dosbox_section->HandleInputline("pc-98 allow 4 display partition graphics=1");
+			else
+				dosbox_section->HandleInputline("pc-98 allow 4 display partition graphics=0");
+		}
+		break;
+	case ID_PC98_200SCANLINEEFFECT:
+		if (IS_PC98_ARCH) {
+			extern bool pc98_allow_scanline_effect;
+
+			pc98_allow_scanline_effect = !pc98_allow_scanline_effect;
+
+			Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+			if (pc98_allow_scanline_effect)
+				dosbox_section->HandleInputline("pc-98 allow scanline effect=1");
+			else
+				dosbox_section->HandleInputline("pc-98 allow scanline effect=0");
+		}
+		break;
+	case ID_PC98_GDC5MHZ:
+		if (IS_PC98_ARCH) {
+			void gdc_5mhz_mode_update_vars(void);
+			extern bool gdc_5mhz_mode;
+
+			gdc_5mhz_mode = !gdc_5mhz_mode;
+			gdc_5mhz_mode_update_vars();
+
+			Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+			if (gdc_5mhz_mode)
+				dosbox_section->HandleInputline("pc-98 start gdc at 5mhz=1");
+			else
+				dosbox_section->HandleInputline("pc-98 start gdc at 5mhz=0");
+		}
+		break;
+	case ID_KEY_NONE: SetVal("dos", "keyboardlayout", "auto"); break;
+	case ID_KEY_BG: SetVal("dos", "keyboardlayout", "bg"); break;
+	case ID_KEY_CZ: SetVal("dos", "keyboardlayout", "cz"); break;
+	case ID_KEY_FR: SetVal("dos", "keyboardlayout", "fr"); break;
+	case ID_KEY_GK: SetVal("dos", "keyboardlayout", "gk"); break;
+	case ID_KEY_GR: SetVal("dos", "keyboardlayout", "gr"); break;
+	case ID_KEY_HR: SetVal("dos", "keyboardlayout", "hr"); break;
+	case ID_KEY_HU: SetVal("dos", "keyboardlayout", "hu"); break;
+	case ID_KEY_IT: SetVal("dos", "keyboardlayout", "it"); break;
+	case ID_KEY_NL: SetVal("dos", "keyboardlayout", "nl"); break;
+	case ID_KEY_NO: SetVal("dos", "keyboardlayout", "no"); break;
+	case ID_KEY_PL: SetVal("dos", "keyboardlayout", "pl"); break;
+	case ID_KEY_RU: SetVal("dos", "keyboardlayout", "ru"); break;
+	case ID_KEY_SK: SetVal("dos", "keyboardlayout", "sk"); break;
+	case ID_KEY_SP: SetVal("dos", "keyboardlayout", "sp"); break;
+	case ID_KEY_SU: SetVal("dos", "keyboardlayout", "su"); break;
+	case ID_KEY_SV: SetVal("dos", "keyboardlayout", "sv"); break;
+	case ID_KEY_BE: SetVal("dos", "keyboardlayout", "be"); break;
+	case ID_KEY_BR: SetVal("dos", "keyboardlayout", "br"); break;
+	case ID_KEY_CF: SetVal("dos", "keyboardlayout", "cf"); break;
+	case ID_KEY_DK: SetVal("dos", "keyboardlayout", "dk"); break;
+	case ID_KEY_LA: SetVal("dos", "keyboardlayout", "la"); break;
+	case ID_KEY_PO: SetVal("dos", "keyboardlayout", "po"); break;
+	case ID_KEY_SF: SetVal("dos", "keyboardlayout", "sf"); break;
+	case ID_KEY_SG: SetVal("dos", "keyboardlayout", "sg"); break;
+	case ID_KEY_UK: SetVal("dos", "keyboardlayout", "uk"); break;
+	case ID_KEY_US: SetVal("dos", "keyboardlayout", "us"); break;
+	case ID_KEY_YU: SetVal("dos", "keyboardlayout", "yu"); break;
+	case ID_KEY_FO: SetVal("dos", "keyboardlayout", "fo"); break;
+	case ID_KEY_MK: SetVal("dos", "keyboardlayout", "mk"); break;
+	case ID_KEY_MT: SetVal("dos", "keyboardlayout", "mt"); break;
+	case ID_KEY_PH: SetVal("dos", "keyboardlayout", "ph"); break;
+	case ID_KEY_RO: SetVal("dos", "keyboardlayout", "ro"); break;
+	case ID_KEY_SQ: SetVal("dos", "keyboardlayout", "sq"); break;
+	case ID_KEY_TM: SetVal("dos", "keyboardlayout", "tm"); break;
+	case ID_KEY_TR: SetVal("dos", "keyboardlayout", "tr"); break;
+	case ID_KEY_UX: SetVal("dos", "keyboardlayout", "ux"); break;
+	case ID_KEY_YC: SetVal("dos", "keyboardlayout", "yc"); break;
+	case ID_KEY_DV: SetVal("dos", "keyboardlayout", "dv"); break;
+	case ID_KEY_RH: SetVal("dos", "keyboardlayout", "rh"); break;
+	case ID_KEY_LH: SetVal("dos", "keyboardlayout", "lh"); break;
+	case ID_MIDI_NONE: SetVal("midi", "mpu401", "none"); break;
+	case ID_MIDI_UART: SetVal("midi", "mpu401", "uart"); break;
+	case ID_MIDI_INTELLI: SetVal("midi", "mpu401", "intelligent"); break;
+	case ID_MIDI_DEFAULT: SetVal("midi", "mididevice", "default"); break;
+	case ID_MIDI_ALSA: SetVal("midi", "mididevice", "alsa"); break;
+	case ID_MIDI_OSS: SetVal("midi", "mididevice", "oss"); break;
+	case ID_MIDI_WIN32: SetVal("midi", "mididevice", "win32"); break;
+	case ID_MIDI_COREAUDIO: SetVal("midi", "mididevice", "coreaudio"); break;
+	case ID_MIDI_COREMIDI: SetVal("midi", "mididevice", "coremidi"); break;
+	case ID_MIDI_MT32: SetVal("midi", "mididevice", "mt32"); break;
+	case ID_MIDI_SYNTH: SetVal("midi", "mididevice", "synth"); break;
+	case ID_MIDI_TIMIDITY: SetVal("midi", "mididevice", "timidity"); break;
+	case ID_MIDI_MT32_REVERBMODE_AUTO: SetVal("midi", "mt32.reverb.mode", "auto"); break;
+	case ID_MIDI_MT32_REVERBMODE_0: SetVal("midi", "mt32.reverb.mode", "0"); break;
+	case ID_MIDI_MT32_REVERBMODE_1: SetVal("midi", "mt32.reverb.mode", "1"); break;
+	case ID_MIDI_MT32_REVERBMODE_2: SetVal("midi", "mt32.reverb.mode", "2"); break;
+	case ID_MIDI_MT32_REVERBMODE_3: SetVal("midi", "mt32.reverb.mode", "3"); break;
+	case ID_MIDI_MT32_DAC_AUTO: SetVal("midi", "mt32.dac", "auto"); break;
+	case ID_MIDI_MT32_DAC_0: SetVal("midi", "mt32.dac", "0"); break;
+	case ID_MIDI_MT32_DAC_1: SetVal("midi", "mt32.dac", "1"); break;
+	case ID_MIDI_MT32_DAC_2: SetVal("midi", "mt32.dac", "2"); break;
+	case ID_MIDI_MT32_DAC_3: SetVal("midi", "mt32.dac", "3"); break;
+	case ID_MIDI_MT32_REVERBTIME_0: SetVal("midi", "mt32.reverb.time", "0"); break;
+	case ID_MIDI_MT32_REVERBTIME_1: SetVal("midi", "mt32.reverb.time", "1"); break;
+	case ID_MIDI_MT32_REVERBTIME_2: SetVal("midi", "mt32.reverb.time", "2"); break;
+	case ID_MIDI_MT32_REVERBTIME_3: SetVal("midi", "mt32.reverb.time", "3"); break;
+	case ID_MIDI_MT32_REVERBTIME_4: SetVal("midi", "mt32.reverb.time", "4"); break;
+	case ID_MIDI_MT32_REVERBTIME_5: SetVal("midi", "mt32.reverb.time", "5"); break;
+	case ID_MIDI_MT32_REVERBTIME_6: SetVal("midi", "mt32.reverb.time", "6"); break;
+	case ID_MIDI_MT32_REVERBTIME_7: SetVal("midi", "mt32.reverb.time", "7"); break;
+	case ID_MIDI_MT32_REVERBLEV_0: SetVal("midi", "mt32.reverb.level", "0"); break;
+	case ID_MIDI_MT32_REVERBLEV_1: SetVal("midi", "mt32.reverb.level", "1"); break;
+	case ID_MIDI_MT32_REVERBLEV_2: SetVal("midi", "mt32.reverb.level", "2"); break;
+	case ID_MIDI_MT32_REVERBLEV_3: SetVal("midi", "mt32.reverb.level", "3"); break;
+	case ID_MIDI_MT32_REVERBLEV_4: SetVal("midi", "mt32.reverb.level", "4"); break;
+	case ID_MIDI_MT32_REVERBLEV_5: SetVal("midi", "mt32.reverb.level", "5"); break;
+	case ID_MIDI_MT32_REVERBLEV_6: SetVal("midi", "mt32.reverb.level", "6"); break;
+	case ID_MIDI_MT32_REVERBLEV_7: SetVal("midi", "mt32.reverb.level", "7"); break;
+	case ID_MIDI_MT32_REVERSESTEREO_TRUE: SetVal("midi", "mt32ReverseStereo", "on"); break;
+	case ID_MIDI_MT32_REVERSESTEREO_FALSE: SetVal("midi", "mt32ReverseStereo", "off"); break;
+	case ID_MIDI_DEV_NONE: SetVal("midi", "mididevice", "none"); break;
+	case ID_GUS_TRUE:
+	{
+		Section_prop * sec = static_cast<Section_prop *>(control->GetSection("gus"));
+		if (sec) SetVal("gus", "gus", sec->Get_bool("gus") ? "false" : "true"); break;
+	}
+	case ID_GUS_49716: SetVal("gus", "gusrate", "49716"); break;
+	case ID_GUS_48000: SetVal("gus", "gusrate", "48000"); break;
+	case ID_GUS_44100: SetVal("gus", "gusrate", "44100"); break;
+	case ID_GUS_32000:  SetVal("gus", "gusrate", "32000"); break;
+	case ID_GUS_22050: SetVal("gus", "gusrate", "22050"); break;
+	case ID_GUS_16000: SetVal("gus", "gusrate", "16000"); break;
+	case ID_GUS_11025: SetVal("gus", "gusrate", "11025"); break;
+	case ID_GUS_8000: SetVal("gus", "gusrate", "8000"); break;
+	case ID_GUS_300: SetVal("gus", "gusbase", "300"); break;
+	case ID_GUS_280: SetVal("gus", "gusbase", "280"); break;
+	case ID_GUS_260: SetVal("gus", "gusbase", "260"); break;
+	case ID_GUS_240: SetVal("gus", "gusbase", "240"); break;
+	case ID_GUS_220: SetVal("gus", "gusbase", "220"); break;
+	case ID_GUS_2a0: SetVal("gus", "gusbase", "2a0"); break;
+	case ID_GUS_2c0: SetVal("gus", "gusbase", "2c0"); break;
+	case ID_GUS_2e0: SetVal("gus", "gusbase", "2e0"); break;
+	case ID_GUS_IRQ_3: SetVal("gus", "gusirq", "3"); break;
+	case ID_GUS_IRQ_5: SetVal("gus", "gusirq", "5"); break;
+	case ID_GUS_IRQ_7: SetVal("gus", "gusirq", "7"); break;
+	case ID_GUS_IRQ_9: SetVal("gus", "gusirq", "9"); break;
+	case ID_GUS_IRQ_10: SetVal("gus", "gusirq", "10"); break;
+	case ID_GUS_IRQ_11: SetVal("gus", "gusirq", "11"); break;
+	case ID_GUS_IRQ_12: SetVal("gus", "gusirq", "12"); break;
+	case ID_GUS_DMA_0: SetVal("gus", "gusdma", "0"); break;
+	case ID_GUS_DMA_1: SetVal("gus", "gusdma", "1"); break;
+	case ID_GUS_DMA_3: SetVal("gus", "gusdma", "3"); break;
+	case ID_GUS_DMA_5: SetVal("gus", "gusdma", "5"); break;
+	case ID_GUS_DMA_6: SetVal("gus", "gusdma", "6"); break;
+	case ID_GUS_DMA_7: SetVal("gus", "gusdma", "7"); break;
+	case ID_INNOVA_TRUE:
+	{
+		Section_prop * sec = static_cast<Section_prop *>(control->GetSection("innova"));
+		if (sec) SetVal("innova", "innova", sec->Get_bool("innova") ? "false" : "true"); break;
+	}
+	case ID_INNOVA_49716: SetVal("innova", "samplerate", "49716"); break;
+	case ID_INNOVA_48000: SetVal("innova", "samplerate", "48000"); break;
+	case ID_INNOVA_44100: SetVal("innova", "samplerate", "44100"); break;
+	case ID_INNOVA_32000: SetVal("innova", "samplerate", "32000"); break;
+	case ID_INNOVA_22050: SetVal("innova", "samplerate", "22050"); break;
+	case ID_INNOVA_11025: SetVal("innova", "samplerate", "11025"); break;
+	case ID_INNOVA_8000: SetVal("innova", "samplerate", "8000"); break;
+	case ID_INNOVA_280: SetVal("innova", "sidbase", "280"); break;
+	case ID_INNOVA_2A0: SetVal("innova", "sidbase", "2a0"); break;
+	case ID_INNOVA_2C0: SetVal("innova", "sidbase", "2c0"); break;
+	case ID_INNOVA_2E0: SetVal("innova", "sidbase", "2e0"); break;
+	case ID_INNOVA_220: SetVal("innova", "sidbase", "220"); break;
+	case ID_INNOVA_240: SetVal("innova", "sidbase", "240"); break;
+	case ID_INNOVA_260: SetVal("innova", "sidbase", "260"); break;
+	case ID_INNOVA_300: SetVal("innova", "sidbase", "300"); break;
+	case ID_INNOVA_3: SetVal("innova", "quality", "3"); break;
+	case ID_INNOVA_2: SetVal("innova", "quality", "2"); break;
+	case ID_INNOVA_1: SetVal("innova", "quality", "1"); break;
+	case ID_INNOVA_0: SetVal("innova", "quality", "0"); break;
+	case ID_PCSPEAKER_TRUE:
+	{
+		Section_prop * sec = static_cast<Section_prop *>(control->GetSection("speaker"));
+		if (sec) SetVal("speaker", "pcspeaker", sec->Get_bool("pcspeaker") ? "false" : "true"); break;
+	}
+	case ID_PCSPEAKER_49716: SetVal("speaker", "pcrate", "49716"); break;
+	case ID_PCSPEAKER_48000: SetVal("speaker", "pcrate", "48000"); break;
+	case ID_PCSPEAKER_44100: SetVal("speaker", "pcrate", "44100"); break;
+	case ID_PCSPEAKER_32000: SetVal("speaker", "pcrate", "32000"); break;
+	case ID_PCSPEAKER_22050: SetVal("speaker", "pcrate", "22050"); break;
+	case ID_PCSPEAKER_16000: SetVal("speaker", "pcrate", "16000"); break;
+	case ID_PCSPEAKER_11025: SetVal("speaker", "pcrate", "11025"); break;
+	case ID_PCSPEAKER_8000: SetVal("speaker", "pcrate", "8000"); break;
+	case ID_PS1_ON: SetVal("speaker", "ps1audio", "on"); break;
+	case ID_PS1_OFF: SetVal("speaker", "ps1audio", "off"); break;
+	case ID_PS1_49716: SetVal("speaker", "ps1audiorate", "49716"); break;
+	case ID_PS1_48000: SetVal("speaker", "ps1audiorate", "48000"); break;
+	case ID_PS1_44100: SetVal("speaker", "ps1audiorate", "44100"); break;
+	case ID_PS1_32000: SetVal("speaker", "ps1audiorate", "32000"); break;
+	case ID_PS1_22050: SetVal("speaker", "ps1audiorate", "22050"); break;
+	case ID_PS1_16000: SetVal("speaker", "ps1audiorate", "16000"); break;
+	case ID_PS1_11025: SetVal("speaker", "ps1audiorate", "11025"); break;
+	case ID_PS1_8000: SetVal("speaker", "ps1audiorate", "8000"); break;
+	case ID_TANDY_ON: SetVal("speaker", "tandy", "on"); break;
+	case ID_TANDY_OFF: SetVal("speaker", "tandy", "off"); break;
+	case ID_TANDY_AUTO: SetVal("speaker", "tandy", "auto"); break;
+	case ID_TANDY_49716: SetVal("speaker", "tandyrate", "49716"); break;
+	case ID_TANDY_48000: SetVal("speaker", "tandyrate", "48000"); break;
+	case ID_TANDY_44100: SetVal("speaker", "tandyrate", "44100"); break;
+	case ID_TANDY_32000: SetVal("speaker", "tandyrate", "32000"); break;
+	case ID_TANDY_22050: SetVal("speaker", "tandyrate", "22050"); break;
+	case ID_TANDY_16000: SetVal("speaker", "tandyrate", "16000"); break;
+	case ID_TANDY_11025: SetVal("speaker", "tandyrate", "11025"); break;
+	case ID_TANDY_8000: SetVal("speaker", "tandyrate", "8000"); break;
+	case ID_DISNEY_TRUE: SetVal("speaker", "disney", "true"); break;
+	case ID_DISNEY_FALSE: SetVal("speaker", "disney", "false"); break;
+	case ID_SB_NONE: SetVal("sblaster", "sbtype", "none"); break;
+	case ID_SB_SB1: SetVal("sblaster", "sbtype", "sb1"); break;
+	case ID_SB_SB2: SetVal("sblaster", "sbtype", "sb2"); break;
+	case ID_SB_SBPRO1: SetVal("sblaster", "sbtype", "sbpro1"); break;
+	case ID_SB_SBPRO2: SetVal("sblaster", "sbtype", "sbpro2"); break;
+	case ID_SB_SB16: SetVal("sblaster", "sbtype", "sb16"); break;
+	case ID_SB_SB16VIBRA: SetVal("sblaster", "sbtype", "sb16vibra"); break;
+	case ID_SB_GB: SetVal("sblaster", "sbtype", "gb"); break;
+	case ID_SB_300: SetVal("sblaster", "sbbase", "300"); break;
+	case ID_SB_220: SetVal("sblaster", "sbbase", "220"); break;
+	case ID_SB_240: SetVal("sblaster", "sbbase", "240"); break;
+	case ID_SB_260: SetVal("sblaster", "sbbase", "260"); break;
+	case ID_SB_280: SetVal("sblaster", "sbbase", "280"); break;
+	case ID_SB_2a0: SetVal("sblaster", "sbbase", "2a0"); break;
+	case ID_SB_2c0: SetVal("sblaster", "sbbase", "2c0"); break;
+	case ID_SB_2e0: SetVal("sblaster", "sbbase", "2e0"); break;
+	case ID_SB_HW210: SetVal("sblaster", "hardwarebase", "210"); break;
+	case ID_SB_HW220: SetVal("sblaster", "hardwarebase", "220"); break;
+	case ID_SB_HW230: SetVal("sblaster", "hardwarebase", "230"); break;
+	case ID_SB_HW240: SetVal("sblaster", "hardwarebase", "240"); break;
+	case ID_SB_HW250: SetVal("sblaster", "hardwarebase", "250"); break;
+	case ID_SB_HW260: SetVal("sblaster", "hardwarebase", "260"); break;
+	case ID_SB_HW280: SetVal("sblaster", "hardwarebase", "280"); break;
+	case ID_SB_IRQ_3: SetVal("sblaster", "irq", "3"); break;
+	case ID_SB_IRQ_5: SetVal("sblaster", "irq", "5"); break;
+	case ID_SB_IRQ_7: SetVal("sblaster", "irq", "7"); break;
+	case ID_SB_IRQ_9: SetVal("sblaster", "irq", "9"); break;
+	case ID_SB_IRQ_10: SetVal("sblaster", "irq", "10"); break;
+	case ID_SB_IRQ_11: SetVal("sblaster", "irq", "11"); break;
+	case ID_SB_IRQ_12: SetVal("sblaster", "irq", "12"); break;
+	case ID_SB_DMA_0: SetVal("sblaster", "dma", "0"); break;
+	case ID_SB_DMA_1: SetVal("sblaster", "dma", "1"); break;
+	case ID_SB_DMA_3: SetVal("sblaster", "dma", "3"); break;
+	case ID_SB_DMA_5: SetVal("sblaster", "dma", "5"); break;
+	case ID_SB_DMA_6: SetVal("sblaster", "dma", "6"); break;
+	case ID_SB_DMA_7: SetVal("sblaster", "dma", "7"); break;
+	case ID_SB_HDMA_0: SetVal("sblaster", "hdma", "0"); break;
+	case ID_SB_HDMA_1: SetVal("sblaster", "hdma", "1"); break;
+	case ID_SB_HDMA_3: SetVal("sblaster", "hdma", "3"); break;
+	case ID_SB_HDMA_5: SetVal("sblaster", "hdma", "5"); break;
+	case ID_SB_HDMA_6: SetVal("sblaster", "hdma", "6"); break;
+	case ID_SB_HDMA_7: SetVal("sblaster", "hdma", "7"); break;
+	case ID_SB_OPL_AUTO: SetVal("sblaster", "oplmode", "auto"); break;
+	case ID_SB_OPL_NONE: SetVal("sblaster", "oplmode", "none"); break;
+	case ID_SB_OPL_CMS: SetVal("sblaster", "oplmode", "cms"); break;
+	case ID_SB_OPL_OPL2: SetVal("sblaster", "oplmode", "opl2"); break;
+	case ID_SB_OPL_DUALOPL2: SetVal("sblaster", "oplmode", "dualopl2"); break;
+	case ID_SB_OPL_OPL3: SetVal("sblaster", "oplmode", "opl3"); break;
+	case ID_SB_OPL_HARDWARE: SetVal("sblaster", "oplmode", "hardware"); break;
+	case ID_SB_OPL_HARDWAREGB: SetVal("sblaster", "oplmode", "hardwaregb"); break;
+	case ID_SB_OPL_EMU_DEFAULT: SetVal("sblaster", "oplemu", "default"); break;
+	case ID_SB_OPL_EMU_COMPAT: SetVal("sblaster", "oplemu", "compat"); break;
+	case ID_SB_OPL_EMU_FAST: SetVal("sblaster", "oplemu", "fast"); break;
+	case ID_SB_OPL_49716: SetVal("sblaster", "oplrate", "49716"); break;
+	case ID_SB_OPL_48000: SetVal("sblaster", "oplrate", "48000"); break;
+	case ID_SB_OPL_44100: SetVal("sblaster", "oplrate", "44100"); break;
+	case ID_SB_OPL_32000: SetVal("sblaster", "oplrate", "32000"); break;
+	case ID_SB_OPL_22050: SetVal("sblaster", "oplrate", "22050"); break;
+	case ID_SB_OPL_16000: SetVal("sblaster", "oplrate", "16000"); break;
+	case ID_SB_OPL_11025: SetVal("sblaster", "oplrate", "11025"); break;
+	case ID_SB_OPL_8000: SetVal("sblaster", "oplrate", "8000"); break;
+	case ID_OVERSCAN_0: LOG_MSG("GUI: Overscan 0 (surface)"); SetVal("sdl", "overscan", "0"); change_output(7); break;
+	case ID_OVERSCAN_1: LOG_MSG("GUI: Overscan 1 (surface)"); SetVal("sdl", "overscan", "1"); change_output(7); break;
+	case ID_OVERSCAN_2: LOG_MSG("GUI: Overscan 2 (surface)"); SetVal("sdl", "overscan", "2"); change_output(7); break;
+	case ID_OVERSCAN_3: LOG_MSG("GUI: Overscan 3 (surface)"); SetVal("sdl", "overscan", "3"); change_output(7); break;
+	case ID_OVERSCAN_4: LOG_MSG("GUI: Overscan 4 (surface)"); SetVal("sdl", "overscan", "4"); change_output(7); break;
+	case ID_OVERSCAN_5: LOG_MSG("GUI: Overscan 5 (surface)"); SetVal("sdl", "overscan", "5"); change_output(7); break;
+	case ID_OVERSCAN_6: LOG_MSG("GUI: Overscan 6 (surface)"); SetVal("sdl", "overscan", "6"); change_output(7); break;
+	case ID_OVERSCAN_7: LOG_MSG("GUI: Overscan 7 (surface)"); SetVal("sdl", "overscan", "7"); change_output(7); break;
+	case ID_OVERSCAN_8: LOG_MSG("GUI: Overscan 8 (surface)"); SetVal("sdl", "overscan", "8"); change_output(7); break;
+	case ID_OVERSCAN_9: LOG_MSG("GUI: Overscan 9 (surface)"); SetVal("sdl", "overscan", "9"); change_output(7); break;
+	case ID_OVERSCAN_10: LOG_MSG("GUI: Overscan 10 (surface)"); SetVal("sdl", "overscan", "10"); change_output(7); break;
+	case ID_VSYNC: GUI_Shortcut(17); break;
+	case ID_IPXNET: MENU_SetBool("ipx", "ipx"); break;
+	case ID_D3D_PS: D3D_PS(); if ((uintptr_t)GetSetSDLValue(1, "desktop.want_type", 0) == SCREEN_DIRECT3D) change_output(7); break;
+	case ID_JOYSTICKTYPE_AUTO: SetVal("joystick", "joysticktype", "auto"); break;
+	case ID_JOYSTICKTYPE_2AXIS: SetVal("joystick", "joysticktype", "2axis"); break;
+	case ID_JOYSTICKTYPE_4AXIS: SetVal("joystick", "joysticktype", "4axis"); break;
+	case ID_JOYSTICKTYPE_4AXIS_2: SetVal("joystick", "joysticktype", "4axis_2"); break;
+	case ID_JOYSTICKTYPE_FCS: SetVal("joystick", "joysticktype", "fcs"); break;
+	case ID_JOYSTICKTYPE_CH: SetVal("joystick", "joysticktype", "ch"); break;
+	case ID_JOYSTICKTYPE_NONE: SetVal("joystick", "joysticktype", "none"); break;
+	case ID_JOYSTICK_TIMED: MENU_SetBool("joystick", "timed"); break;
+	case ID_JOYSTICK_AUTOFIRE: MENU_SetBool("joystick", "autofire"); break;
+	case ID_JOYSTICK_SWAP34: MENU_SetBool("joystick", "swap34"); break;
+	case ID_JOYSTICK_BUTTONWRAP: MENU_SetBool("joystick", "buttonwrap"); break;
+	case ID_SWAPSTEREO: MENU_swapstereo(MENU_SetBool("mixer", "swapstereo")); break;
+	case ID_MUTE: SDL_PauseAudio((SDL_GetAudioStatus() != SDL_AUDIO_PAUSED)); break;
+	case ID_DOSBOX_SECTION:  GUI_Shortcut(3); break;
+	case ID_MIXER_SECTION:  GUI_Shortcut(4); break;
+	case ID_SERIAL_SECTION:  GUI_Shortcut(5); break;
+	case ID_PARALLEL_SECTION:  GUI_Shortcut(11); break;
+	case ID_PRINTER_SECTION:  GUI_Shortcut(12); break;
+	case ID_NE2000_SECTION:  GUI_Shortcut(6); break;
+	case ID_AUTOEXEC:  GUI_Shortcut(7); break;
+	case ID_MOUSE_VERTICAL: extern bool Mouse_Vertical; Mouse_Vertical = !Mouse_Vertical; break;
+	case ID_GLIDE_TRUE:
+	{
+		Section_prop * sec = static_cast<Section_prop *>(control->GetSection("glide"));
+		if (sec) SetVal("glide", "glide", sec->Get_string("glide") == "true" ? "false" : "true");
+		break;
+	}
+	case ID_GLIDE_EMU:
+	{
+		Section_prop * sec = static_cast<Section_prop *>(control->GetSection("glide"));
+		if (sec) SetVal("glide", "glide", sec->Get_string("glide") == "emu" ? "false" : "emu");
+		break;
+	}
+	case ID_SAVELANG:  GUI_Shortcut(9); break;
+	case ID_CPUTYPE_AUTO: SetVal("cpu", "cputype", "auto"); break;
+	case ID_CPUTYPE_8086: SetVal("cpu", "cputype", "8086"); break;
+	case ID_CPUTYPE_8086_PREFETCH: SetVal("cpu", "cputype", "8086_prefetch"); break;
+	case ID_CPUTYPE_80186: SetVal("cpu", "cputype", "80186"); break;
+	case ID_CPUTYPE_80186_PREFETCH: SetVal("cpu", "cputype", "80186_prefetch"); break;
+	case ID_CPUTYPE_286: SetVal("cpu", "cputype", "286"); break;
+	case ID_CPUTYPE_286_PREFETCH: SetVal("cpu", "cputype", "286_prefetch"); break;
+	case ID_CPUTYPE_386: SetVal("cpu", "cputype", "386"); break;
+	case ID_CPUTYPE_386_PREFETCH: SetVal("cpu", "cputype", "386_prefetch"); break;
+	case ID_CPUTYPE_486: SetVal("cpu", "cputype", "486"); break;
+	case ID_CPUTYPE_486_PREFETCH: SetVal("cpu", "cputype", "486_prefetch"); break;
+	case ID_CPUTYPE_PENTIUM: SetVal("cpu", "cputype", "pentium"); break;
+	case ID_CPUTYPE_PENTIUM_MMX: SetVal("cpu", "cputype", "pentium_mmx"); break;
+	case ID_CPUTYPE_PENTIUM_PRO: SetVal("cpu", "cputype", "ppro_slow"); break;
+	case ID_CPU_ADVANCED:  GUI_Shortcut(13); break;
+	case ID_DOS_ADVANCED:  GUI_Shortcut(14); break;
+	case ID_MIDI_ADVANCED:  GUI_Shortcut(15); break;
+	case ID_RATE_1_DELAY_1: MENU_KeyDelayRate(1, 1); break;
+	case ID_RATE_2_DELAY_1: MENU_KeyDelayRate(1, 2); break;
+	case ID_RATE_3_DELAY_1: MENU_KeyDelayRate(1, 3); break;
+	case ID_RATE_4_DELAY_1: MENU_KeyDelayRate(1, 4); break;
+	case ID_RATE_5_DELAY_1: MENU_KeyDelayRate(1, 5); break;
+	case ID_RATE_6_DELAY_1: MENU_KeyDelayRate(1, 6); break;
+	case ID_RATE_7_DELAY_1: MENU_KeyDelayRate(1, 7); break;
+	case ID_RATE_8_DELAY_1: MENU_KeyDelayRate(1, 8); break;
+	case ID_RATE_9_DELAY_1: MENU_KeyDelayRate(1, 9); break;
+	case ID_RATE_10_DELAY_1: MENU_KeyDelayRate(1, 10); break;
+	case ID_RATE_11_DELAY_1: MENU_KeyDelayRate(1, 11); break;
+	case ID_RATE_12_DELAY_1: MENU_KeyDelayRate(1, 12); break;
+	case ID_RATE_13_DELAY_1: MENU_KeyDelayRate(1, 13); break;
+	case ID_RATE_14_DELAY_1: MENU_KeyDelayRate(1, 14); break;
+	case ID_RATE_15_DELAY_1: MENU_KeyDelayRate(1, 15); break;
+	case ID_RATE_16_DELAY_1: MENU_KeyDelayRate(1, 16); break;
+	case ID_RATE_17_DELAY_1: MENU_KeyDelayRate(1, 17); break;
+	case ID_RATE_18_DELAY_1: MENU_KeyDelayRate(1, 18); break;
+	case ID_RATE_19_DELAY_1: MENU_KeyDelayRate(1, 19); break;
+	case ID_RATE_20_DELAY_1: MENU_KeyDelayRate(1, 20); break;
+	case ID_RATE_21_DELAY_1: MENU_KeyDelayRate(1, 21); break;
+	case ID_RATE_22_DELAY_1: MENU_KeyDelayRate(1, 22); break;
+	case ID_RATE_23_DELAY_1: MENU_KeyDelayRate(1, 23); break;
+	case ID_RATE_24_DELAY_1: MENU_KeyDelayRate(1, 24); break;
+	case ID_RATE_25_DELAY_1: MENU_KeyDelayRate(1, 25); break;
+	case ID_RATE_26_DELAY_1: MENU_KeyDelayRate(1, 26); break;
+	case ID_RATE_27_DELAY_1: MENU_KeyDelayRate(1, 27); break;
+	case ID_RATE_28_DELAY_1: MENU_KeyDelayRate(1, 28); break;
+	case ID_RATE_29_DELAY_1: MENU_KeyDelayRate(1, 29); break;
+	case ID_RATE_30_DELAY_1: MENU_KeyDelayRate(1, 30); break;
+	case ID_RATE_31_DELAY_1: MENU_KeyDelayRate(1, 31); break;
+	case ID_RATE_32_DELAY_1: MENU_KeyDelayRate(1, 32); break;
+	case ID_RATE_1_DELAY_2: MENU_KeyDelayRate(2, 1); break;
+	case ID_RATE_2_DELAY_2: MENU_KeyDelayRate(2, 2); break;
+	case ID_RATE_3_DELAY_2: MENU_KeyDelayRate(2, 3); break;
+	case ID_RATE_4_DELAY_2: MENU_KeyDelayRate(2, 4); break;
+	case ID_RATE_5_DELAY_2: MENU_KeyDelayRate(2, 5); break;
+	case ID_RATE_6_DELAY_2: MENU_KeyDelayRate(2, 6); break;
+	case ID_RATE_7_DELAY_2: MENU_KeyDelayRate(2, 7); break;
+	case ID_RATE_8_DELAY_2: MENU_KeyDelayRate(2, 8); break;
+	case ID_RATE_9_DELAY_2: MENU_KeyDelayRate(2, 9); break;
+	case ID_RATE_10_DELAY_2: MENU_KeyDelayRate(2, 10); break;
+	case ID_RATE_11_DELAY_2: MENU_KeyDelayRate(2, 11); break;
+	case ID_RATE_12_DELAY_2: MENU_KeyDelayRate(2, 12); break;
+	case ID_RATE_13_DELAY_2: MENU_KeyDelayRate(2, 13); break;
+	case ID_RATE_14_DELAY_2: MENU_KeyDelayRate(2, 14); break;
+	case ID_RATE_15_DELAY_2: MENU_KeyDelayRate(2, 15); break;
+	case ID_RATE_16_DELAY_2: MENU_KeyDelayRate(2, 16); break;
+	case ID_RATE_17_DELAY_2: MENU_KeyDelayRate(2, 17); break;
+	case ID_RATE_18_DELAY_2: MENU_KeyDelayRate(2, 18); break;
+	case ID_RATE_19_DELAY_2: MENU_KeyDelayRate(2, 19); break;
+	case ID_RATE_20_DELAY_2: MENU_KeyDelayRate(2, 20); break;
+	case ID_RATE_21_DELAY_2: MENU_KeyDelayRate(2, 21); break;
+	case ID_RATE_22_DELAY_2: MENU_KeyDelayRate(2, 22); break;
+	case ID_RATE_23_DELAY_2: MENU_KeyDelayRate(2, 23); break;
+	case ID_RATE_24_DELAY_2: MENU_KeyDelayRate(2, 24); break;
+	case ID_RATE_25_DELAY_2: MENU_KeyDelayRate(2, 25); break;
+	case ID_RATE_26_DELAY_2: MENU_KeyDelayRate(2, 26); break;
+	case ID_RATE_27_DELAY_2: MENU_KeyDelayRate(2, 27); break;
+	case ID_RATE_28_DELAY_2: MENU_KeyDelayRate(2, 28); break;
+	case ID_RATE_29_DELAY_2: MENU_KeyDelayRate(2, 29); break;
+	case ID_RATE_30_DELAY_2: MENU_KeyDelayRate(2, 30); break;
+	case ID_RATE_31_DELAY_2: MENU_KeyDelayRate(2, 31); break;
+	case ID_RATE_32_DELAY_2: MENU_KeyDelayRate(2, 32); break;
+	case ID_RATE_1_DELAY_3: MENU_KeyDelayRate(3, 1); break;
+	case ID_RATE_2_DELAY_3: MENU_KeyDelayRate(3, 2); break;
+	case ID_RATE_3_DELAY_3: MENU_KeyDelayRate(3, 3); break;
+	case ID_RATE_4_DELAY_3: MENU_KeyDelayRate(3, 4); break;
+	case ID_RATE_5_DELAY_3: MENU_KeyDelayRate(3, 5); break;
+	case ID_RATE_6_DELAY_3: MENU_KeyDelayRate(3, 6); break;
+	case ID_RATE_7_DELAY_3: MENU_KeyDelayRate(3, 7); break;
+	case ID_RATE_8_DELAY_3: MENU_KeyDelayRate(3, 8); break;
+	case ID_RATE_9_DELAY_3: MENU_KeyDelayRate(3, 9); break;
+	case ID_RATE_10_DELAY_3: MENU_KeyDelayRate(3, 10); break;
+	case ID_RATE_11_DELAY_3: MENU_KeyDelayRate(3, 11); break;
+	case ID_RATE_12_DELAY_3: MENU_KeyDelayRate(3, 12); break;
+	case ID_RATE_13_DELAY_3: MENU_KeyDelayRate(3, 13); break;
+	case ID_RATE_14_DELAY_3: MENU_KeyDelayRate(3, 14); break;
+	case ID_RATE_15_DELAY_3: MENU_KeyDelayRate(3, 15); break;
+	case ID_RATE_16_DELAY_3: MENU_KeyDelayRate(3, 16); break;
+	case ID_RATE_17_DELAY_3: MENU_KeyDelayRate(3, 17); break;
+	case ID_RATE_18_DELAY_3: MENU_KeyDelayRate(3, 18); break;
+	case ID_RATE_19_DELAY_3: MENU_KeyDelayRate(3, 19); break;
+	case ID_RATE_20_DELAY_3: MENU_KeyDelayRate(3, 20); break;
+	case ID_RATE_21_DELAY_3: MENU_KeyDelayRate(3, 21); break;
+	case ID_RATE_22_DELAY_3: MENU_KeyDelayRate(3, 22); break;
+	case ID_RATE_23_DELAY_3: MENU_KeyDelayRate(3, 23); break;
+	case ID_RATE_24_DELAY_3: MENU_KeyDelayRate(3, 24); break;
+	case ID_RATE_25_DELAY_3: MENU_KeyDelayRate(3, 25); break;
+	case ID_RATE_26_DELAY_3: MENU_KeyDelayRate(3, 26); break;
+	case ID_RATE_27_DELAY_3: MENU_KeyDelayRate(3, 27); break;
+	case ID_RATE_28_DELAY_3: MENU_KeyDelayRate(3, 28); break;
+	case ID_RATE_29_DELAY_3: MENU_KeyDelayRate(3, 29); break;
+	case ID_RATE_30_DELAY_3: MENU_KeyDelayRate(3, 30); break;
+	case ID_RATE_31_DELAY_3: MENU_KeyDelayRate(3, 31); break;
+	case ID_RATE_32_DELAY_3: MENU_KeyDelayRate(3, 32); break;
+	case ID_RATE_1_DELAY_4: MENU_KeyDelayRate(4, 1); break;
+	case ID_RATE_2_DELAY_4: MENU_KeyDelayRate(4, 2); break;
+	case ID_RATE_3_DELAY_4: MENU_KeyDelayRate(4, 3); break;
+	case ID_RATE_4_DELAY_4: MENU_KeyDelayRate(4, 4); break;
+	case ID_RATE_5_DELAY_4: MENU_KeyDelayRate(4, 5); break;
+	case ID_RATE_6_DELAY_4: MENU_KeyDelayRate(4, 6); break;
+	case ID_RATE_7_DELAY_4: MENU_KeyDelayRate(4, 7); break;
+	case ID_RATE_8_DELAY_4: MENU_KeyDelayRate(4, 8); break;
+	case ID_RATE_9_DELAY_4: MENU_KeyDelayRate(4, 9); break;
+	case ID_RATE_10_DELAY_4: MENU_KeyDelayRate(4, 10); break;
+	case ID_RATE_11_DELAY_4: MENU_KeyDelayRate(4, 11); break;
+	case ID_RATE_12_DELAY_4: MENU_KeyDelayRate(4, 12); break;
+	case ID_RATE_13_DELAY_4: MENU_KeyDelayRate(4, 13); break;
+	case ID_RATE_14_DELAY_4: MENU_KeyDelayRate(4, 14); break;
+	case ID_RATE_15_DELAY_4: MENU_KeyDelayRate(4, 15); break;
+	case ID_RATE_16_DELAY_4: MENU_KeyDelayRate(4, 16); break;
+	case ID_RATE_17_DELAY_4: MENU_KeyDelayRate(4, 17); break;
+	case ID_RATE_18_DELAY_4: MENU_KeyDelayRate(4, 18); break;
+	case ID_RATE_19_DELAY_4: MENU_KeyDelayRate(4, 19); break;
+	case ID_RATE_20_DELAY_4: MENU_KeyDelayRate(4, 20); break;
+	case ID_RATE_21_DELAY_4: MENU_KeyDelayRate(4, 21); break;
+	case ID_RATE_22_DELAY_4: MENU_KeyDelayRate(4, 22); break;
+	case ID_RATE_23_DELAY_4: MENU_KeyDelayRate(4, 23); break;
+	case ID_RATE_24_DELAY_4: MENU_KeyDelayRate(4, 24); break;
+	case ID_RATE_25_DELAY_4: MENU_KeyDelayRate(4, 25); break;
+	case ID_RATE_26_DELAY_4: MENU_KeyDelayRate(4, 26); break;
+	case ID_RATE_27_DELAY_4: MENU_KeyDelayRate(4, 27); break;
+	case ID_RATE_28_DELAY_4: MENU_KeyDelayRate(4, 28); break;
+	case ID_RATE_29_DELAY_4: MENU_KeyDelayRate(4, 29); break;
+	case ID_RATE_30_DELAY_4: MENU_KeyDelayRate(4, 30); break;
+	case ID_RATE_31_DELAY_4: MENU_KeyDelayRate(4, 31); break;
+	case ID_RATE_32_DELAY_4: MENU_KeyDelayRate(4, 32); break;
+	case ID_MOUSE_SENSITIVITY: GUI_Shortcut(2); break;
+	case ID_GLIDE_LFB_FULL: SetVal("glide", "lfb", "full"); break;
+	case ID_GLIDE_LFB_FULL_NOAUX: SetVal("glide", "lfb", "full_noaux"); break;
+	case ID_GLIDE_LFB_READ: SetVal("glide", "lfb", "read"); break;
+	case ID_GLIDE_LFB_READ_NOAUX: SetVal("glide", "lfb", "read_noaux"); break;
+	case ID_GLIDE_LFB_WRITE: SetVal("glide", "lfb", "write"); break;
+	case ID_GLIDE_LFB_WRITE_NOAUX: SetVal("glide", "lfb", "write_noaux"); break;
+	case ID_SHOWCONSOLE: DOSBox_ShowConsole(); break;
+	case ID_GLIDE_LFB_NONE: SetVal("glide", "lfb", "none"); break;
+	case ID_GLIDE_SPLASH:
+	{
+		Section_prop * sec = static_cast<Section_prop *>(control->GetSection("glide"));
+		if (sec) SetVal("glide", "splash", sec->Get_bool("splash") ? "false" : "true");
+	}
+	break;
+	case ID_GLIDE_EMU_FALSE: SetVal("pci", "voodoo", "false"); break;
+	case ID_GLIDE_EMU_SOFTWARE: SetVal("pci", "voodoo", "software"); break;
+	case ID_GLIDE_EMU_OPENGL: SetVal("pci", "voodoo", "opengl"); break;
+	case ID_GLIDE_EMU_AUTO: SetVal("pci", "voodoo", "auto"); break;
+	case ID_ALWAYS_ON_TOP:
+	{
+		DWORD dwExStyle = ::GetWindowLong(GetHWND(), GWL_EXSTYLE);
+		HWND top = ((dwExStyle & WS_EX_TOPMOST) == 0) ? HWND_TOPMOST : HWND_NOTOPMOST;
+		SetWindowPos(GetHWND(), top, 0, 0, 0, 0, SWP_SHOWWINDOW | SWP_NOMOVE | SWP_NOSIZE);
+		break;
+	}
+	case ID_PC98_4MHZ_TIMER:
+	{
+		void TIMER_OnEnterPC98_Phase2(Section*);
+		void TIMER_OnEnterPC98_Phase2_UpdateBDA(void);
+		Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+		dosbox_section->HandleInputline("pc-98 timer master frequency=4");
+		TIMER_OnEnterPC98_Phase2(NULL);
+		TIMER_OnEnterPC98_Phase2_UpdateBDA();
+		break;
+	}
+	case ID_PC98_5MHZ_TIMER:
+	{
+		void TIMER_OnEnterPC98_Phase2(Section*);
+		void TIMER_OnEnterPC98_Phase2_UpdateBDA(void);
+		Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
+		dosbox_section->HandleInputline("pc-98 timer master frequency=5");
+		TIMER_OnEnterPC98_Phase2(NULL);
+		TIMER_OnEnterPC98_Phase2_UpdateBDA();
+		break;
+	}
+	case ID_PC98_CLEAR_TEXT_LAYER: {
+		void pc98_clear_text(void);
+		if (IS_PC98_ARCH) pc98_clear_text();
+		break;
+	}
+	case ID_PC98_CLEAR_GRAPHICS_LAYER: {
+		void pc98_clear_graphics(void);
+		if (IS_PC98_ARCH) pc98_clear_graphics();
+		break;
+	}
 	}
 
 	Reflect_Menu();

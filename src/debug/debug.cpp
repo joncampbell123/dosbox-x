@@ -60,6 +60,7 @@ int old_cursor_state;
 
 // Forwards
 static void DrawCode(void);
+static void DrawInput(void);
 static void DEBUG_RaiseTimerIrq(void);
 static void SaveMemory(Bit16u seg, Bit32u ofs1, Bit32u num);
 static void SaveMemoryBin(Bit16u seg, Bit32u ofs1, Bit32u num);
@@ -678,17 +679,20 @@ static void DrawData(void) {
 	Bit8u ch;
 	Bit32u add = dataOfs;
 	Bit32u address;
+    int w,h;
+
 	/* Data win */	
-	for (int y=0; y<8; y++) {
+    getmaxyx(dbg.win_data,h,w);
+	for (int y=0;y<h;y++) {
 		// Address
-		if (add<0x10000) mvwprintw (dbg.win_data,1+y,0,"%04X:%04X     ",dataSeg,add);
-		else mvwprintw (dbg.win_data,1+y,0,"%04X:%08X ",dataSeg,add);
+		if (add<0x10000) mvwprintw (dbg.win_data,y,0,"%04X:%04X     ",dataSeg,add);
+		else mvwprintw (dbg.win_data,y,0,"%04X:%08X ",dataSeg,add);
 		for (int x=0; x<16; x++) {
 			address = GetAddress(dataSeg,add);
 			if (mem_readb_checked(address,&ch)) ch=0;
-			mvwprintw (dbg.win_data,1+y,14+3*x,"%02X",ch);
+			mvwprintw (dbg.win_data,y,14+3*x,"%02X",ch);
 			if (ch<32 || !isprint(*reinterpret_cast<unsigned char*>(&ch))) ch='.';
-			mvwprintw (dbg.win_data,1+y,63+x,"%c",ch);
+			mvwprintw (dbg.win_data,y,63+x,"%c",ch);
 			add++;
 		};
 	}	
@@ -795,6 +799,31 @@ static void DrawRegisters(void) {
 	wrefresh(dbg.win_reg);
 };
 
+static void DrawInput(void) {
+    if (!debugging) {
+        wbkgdset(dbg.win_inp,COLOR_PAIR(PAIR_GREEN_BLACK));
+        wattrset(dbg.win_inp,COLOR_PAIR(PAIR_GREEN_BLACK));
+
+        mvwprintw(dbg.win_inp,0,0,"%s","(Running)");
+        wclrtoeol(dbg.win_inp);
+    } else {
+        //TODO long lines
+        char* dispPtr = codeViewData.inputStr; 
+        char* curPtr = &codeViewData.inputStr[codeViewData.inputPos];
+
+        wbkgdset(dbg.win_inp,COLOR_PAIR(PAIR_BLACK_GREY));
+        wattrset(dbg.win_inp,COLOR_PAIR(PAIR_BLACK_GREY));
+        mvwprintw(dbg.win_inp,0,0,"%c-> %s%c",
+                (codeViewData.ovrMode?'O':'I'),dispPtr,(*curPtr?' ':'_'));
+        wclrtoeol(dbg.win_inp); // not correct in pdcurses if full line
+        if (*curPtr) {
+            mvwchgat(dbg.win_inp,0,(curPtr-dispPtr+4),1,0,(PAIR_BLACK_GREY),NULL);
+        } 
+    }
+
+    wrefresh(dbg.win_inp);
+}
+
 static void DrawCode(void) {
 	if (dbg.win_main == NULL || dbg.win_code == NULL)
 		return;
@@ -804,8 +833,10 @@ static void DrawCode(void) {
 	PhysPt start  = GetAddress(codeViewData.useCS,codeViewData.useEIP);
 	char dline[200];Bitu size;Bitu c;
 	static char line20[21] = "                    ";
+    int w,h;
 
-	for (int i=0;i<10;i++) {
+    getmaxyx(dbg.win_code,h,w);
+	for (int i=0;i<h;i++) {
 		saveSel = false;
 		if (has_colors()) {
 			if ((codeViewData.useCS==SegValue(cs)) && (disEIP == reg_eip)) {
@@ -818,18 +849,25 @@ static void DrawCode(void) {
 				}
 				saveSel = (i == codeViewData.cursorPos);
 
-                if (i == codeViewData.cursorPos)
+                if (i == codeViewData.cursorPos) {
+                    wbkgdset(dbg.win_code,COLOR_PAIR(PAIR_BLACK_GREEN));
                     wattrset(dbg.win_code,COLOR_PAIR(PAIR_BLACK_GREEN));
-                else
+                }
+                else {
+                    wbkgdset(dbg.win_code,COLOR_PAIR(PAIR_GREEN_BLACK));
                     wattrset(dbg.win_code,COLOR_PAIR(PAIR_GREEN_BLACK));
+                }
             } else if (i == codeViewData.cursorPos) {
+                wbkgdset(dbg.win_code,COLOR_PAIR(PAIR_BLACK_GREY));
 				wattrset(dbg.win_code,COLOR_PAIR(PAIR_BLACK_GREY));			
 				codeViewData.cursorSeg = codeViewData.useCS;
 				codeViewData.cursorOfs = disEIP;
 				saveSel = true;
 			} else if (CBreakpoint::IsBreakpointDrawn(start)) {
+                wbkgdset(dbg.win_code,COLOR_PAIR(PAIR_GREY_RED));
 				wattrset(dbg.win_code,COLOR_PAIR(PAIR_GREY_RED));			
 			} else {
+                wbkgdset(dbg.win_code,0);
 				wattrset(dbg.win_code,0);			
 			}
 		}
@@ -868,7 +906,9 @@ static void DrawCode(void) {
 			waddstr(dbg.win_code,line20);
 			line20[20-res_len] = ' ';
 		} else 	waddstr(dbg.win_code,line20);
-		
+
+        wclrtoeol(dbg.win_code);
+
 		start+=size;
 		disEIP+=size;
 
@@ -877,22 +917,6 @@ static void DrawCode(void) {
 	}
 
 	codeViewData.useEIPlast = disEIP;
-	
-	wattrset(dbg.win_code,0);			
-	if (!debugging) {
-		mvwprintw(dbg.win_code,10,0,"%s","(Running)");
-		wclrtoeol(dbg.win_code);
-	} else {
-		//TODO long lines
-		char* dispPtr = codeViewData.inputStr; 
-		char* curPtr = &codeViewData.inputStr[codeViewData.inputPos];
-		mvwprintw(dbg.win_code,10,0,"%c-> %s%c",
-			(codeViewData.ovrMode?'O':'I'),dispPtr,(*curPtr?' ':'_'));
-		wclrtoeol(dbg.win_code); // not correct in pdcurses if full line
-		if (*curPtr) {
-			mvwchgat(dbg.win_code,10,(curPtr-dispPtr+4),1,0,(PAIR_BLACK_GREY),NULL);
- 		} 
-	}
 
 	wrefresh(dbg.win_code);
 }
@@ -1003,6 +1027,9 @@ bool ChangeRegister(char* str)
 	return true;
 };
 
+void DEBUG_GUI_Rebuild(void);
+void DBGUI_NextWindowIfActiveHidden(void);
+
 bool ParseCommand(char* str) {
 	char* found = str;
 	for(char* idx = found;*idx != 0; idx++)
@@ -1017,6 +1044,62 @@ bool ParseCommand(char* str) {
 	if(next == string::npos) next = command.size();
 	(s_found.erase)(0,next);
 	found = const_cast<char*>(s_found.c_str());
+
+    if (command == "MOVEWINDN") { // MOVE WINDOW DOWN (by swapping)
+        int order1 = dbg.win_find_order(dbg.active_win);
+        int order2 = dbg.win_next_by_order(order1);
+
+        if (order1 >= 0 && order2 >= 0 && order1 < order2) {
+            dbg.swap_order(order1,order2);
+            DEBUG_GUI_Rebuild();
+            DBGUI_NextWindowIfActiveHidden();
+        }
+
+        return true;
+    }
+
+    if (command == "MOVEWINUP") { // MOVE WINDOW UP (by swapping)
+        int order1 = dbg.win_find_order(dbg.active_win);
+        int order2 = dbg.win_prev_by_order(order1);
+
+        if (order1 >= 0 && order2 >= 0 && order1 > order2) {
+            dbg.swap_order(order1,order2);
+            DEBUG_GUI_Rebuild();
+            DBGUI_NextWindowIfActiveHidden();
+        }
+
+        return true;
+    }
+
+    if (command == "SHOWWIN") { // SHOW WINDOW <name>
+        int win = dbg.name_to_win(found);
+        if (win >= 0) {
+            dbg.win_vis[win] = true;
+
+            DEBUG_GUI_Rebuild();
+            DBGUI_NextWindowIfActiveHidden();
+            return true;
+        }
+        else {
+            LOG_MSG("No such window '%s'. Windows are: %s",found,dbg.windowlist_by_name().c_str());
+            return false;
+        }
+    }
+
+    if (command == "HIDEWIN") { // HIDE WINDOW <name>
+        int win = dbg.name_to_win(found);
+        if (win >= 0) {
+            dbg.win_vis[win] = false;
+
+            DEBUG_GUI_Rebuild();
+            DBGUI_NextWindowIfActiveHidden();
+            return true;
+        }
+        else {
+            LOG_MSG("No such window '%s'. Windows are: ",found,dbg.windowlist_by_name().c_str());
+            return false;
+        }
+    }
 
 	if (command == "MEMDUMP") { // Dump memory to file
 		Bit16u seg = (Bit16u)GetHexValue(found,found); found++;
@@ -1546,10 +1629,73 @@ char* AnalyzeInstruction(char* inst, bool saveSelector) {
 	return result;
 };
 
+// data window
+void win_data_ui_down(int count) {
+    if (count > 0)
+        dataOfs += (unsigned)count * 16;
+}
+
+void win_data_ui_up(int count) {
+    if (count > 0)
+        dataOfs -= (unsigned)count * 16;
+}
+
+// code window
+void win_code_ui_down(int count) {
+    if (dbg.win_code != NULL) {
+        int y,x;
+
+        getmaxyx(dbg.win_code,y,x);
+
+        while (count-- > 0) {
+            if (codeViewData.cursorPos < (y-1)) codeViewData.cursorPos++;
+            else codeViewData.useEIP += codeViewData.firstInstSize;
+        }
+    }
+}
+
+void win_code_ui_up(int count) {
+    if (dbg.win_code != NULL) {
+        int y,x;
+
+        getmaxyx(dbg.win_code,y,x);
+
+        while (count-- > 0) {
+            if (codeViewData.cursorPos>0)
+                codeViewData.cursorPos--;
+            else {
+                Bitu bytes = 0;
+                char dline[200];
+                Bitu size = 0;
+                Bit32u newEIP = codeViewData.useEIP - 1;
+                if(codeViewData.useEIP) {
+                    for (; bytes < 10; bytes++) {
+                        PhysPt start = GetAddress(codeViewData.useCS,newEIP);
+                        size = DasmI386(dline, start, newEIP, cpu.code.big);
+                        if(codeViewData.useEIP == newEIP+size) break;
+                        newEIP--;
+                    }
+                    if (bytes>=10) newEIP = codeViewData.useEIP - 1;
+                }
+                codeViewData.useEIP = newEIP;
+            }
+        }
+    }
+}
 
 Bit32u DEBUG_CheckKeys(void) {
 	Bits ret=0;
 	int key=getch();
+
+	/* FIXME: This is supported by PDcurses, except I cannot figure out how to trigger it.
+	          The Windows console resizes around the console set by pdcurses and does not notify us as far as I can tell. */
+    if (key == KEY_RESIZE) {
+        void DEBUG_GUI_OnResize(void);
+        DEBUG_GUI_OnResize();
+        DEBUG_DrawScreen();
+        return 0;
+    }
+
 	if (key>0) {
 #if defined(WIN32) && defined(__PDCURSES__)
 		switch (key) {
@@ -1613,39 +1759,122 @@ Bit32u DEBUG_CheckKeys(void) {
 				break;
 			}
 			break;
-		case KEY_PPAGE :	dataOfs -= 16;	break;
-		case KEY_NPAGE :	dataOfs += 16;	break;
+        case KEY_PPAGE: // page up
+            switch (dbg.active_win) {
+                case DBGBlock::WINI_CODE:
+                    if (dbg.win_code != NULL) {
+                        int w,h;
 
-		case KEY_DOWN:	// down 
-				if (codeViewData.cursorPos<9) codeViewData.cursorPos++;
-				else codeViewData.useEIP += codeViewData.firstInstSize;	
+                        getmaxyx(dbg.win_code,h,w);
+                        win_code_ui_up(h-1);
+                    }
+                    break;
+                case DBGBlock::WINI_DATA:
+                     if (dbg.win_data != NULL) {
+                        int w,h;
+
+                        getmaxyx(dbg.win_data,h,w);
+                        win_data_ui_up(h);
+                    }
+                    break;
+                case DBGBlock::WINI_OUT:
+                    if (dbg.win_out != NULL) {
+                        int w,h;
+
+                        getmaxyx(dbg.win_out,h,w);
+                        DEBUG_RefreshPage(-h);
+                    }
+                    break;
+            }
+            break;
+
+        case KEY_NPAGE:	// page down
+            switch (dbg.active_win) {
+                case DBGBlock::WINI_CODE:
+                    if (dbg.win_code != NULL) {
+                        int w,h;
+
+                        getmaxyx(dbg.win_code,h,w);
+                        win_code_ui_down(h-1);
+                    }
+                    break;
+                case DBGBlock::WINI_DATA:
+                     if (dbg.win_data != NULL) {
+                        int w,h;
+
+                        getmaxyx(dbg.win_data,h,w);
+                        win_data_ui_down(h);
+                    }
+                    break;
+                case DBGBlock::WINI_OUT:
+                    if (dbg.win_out != NULL) {
+                        int w,h;
+
+                        getmaxyx(dbg.win_out,h,w);
+                        DEBUG_RefreshPage(h);
+                    }
+                    break;
+            }
+            break;
+
+		case KEY_DOWN:	// down
+                switch (dbg.active_win) {
+                    case DBGBlock::WINI_CODE:
+                        win_code_ui_down(1);
+                        break;
+                    case DBGBlock::WINI_DATA:
+                        win_data_ui_down(1);
+                        break;
+                    case DBGBlock::WINI_OUT:
+                        DEBUG_RefreshPage(1);
+                        break;
+                }
+                break;
+        case KEY_UP:	// up 
+                switch (dbg.active_win) {
+                    case DBGBlock::WINI_CODE:
+                        win_code_ui_up(1);
+                        break;
+                    case DBGBlock::WINI_DATA:
+                        win_data_ui_up(1);
+                        break;
+                    case DBGBlock::WINI_OUT:
+                        DEBUG_RefreshPage(-1);
+                        break;
+                }
 				break;
-		case KEY_UP:	// up 
-				if (codeViewData.cursorPos>0) codeViewData.cursorPos--;
-				else {
-					Bitu bytes = 0;
-					char dline[200];
-					Bitu size = 0;
-					Bit32u newEIP = codeViewData.useEIP - 1;
-					if(codeViewData.useEIP) {
-						for (; bytes < 10; bytes++) {
-							PhysPt start = GetAddress(codeViewData.useCS,newEIP);
-							size = DasmI386(dline, start, newEIP, cpu.code.big);
-							if(codeViewData.useEIP == newEIP+size) break;
-							newEIP--;
-						}
-						if (bytes>=10) newEIP = codeViewData.useEIP - 1;
-					}
-					codeViewData.useEIP = newEIP;
-				}
+
+		case KEY_HOME:	// Home
+                switch (dbg.active_win) {
+                    case DBGBlock::WINI_CODE:
+                        // and do what?
+                        break;
+                    case DBGBlock::WINI_DATA:
+                        // and do what?
+                        break;
+                    case DBGBlock::WINI_OUT:
+                        void DEBUG_ScrollHomeOutput(void);
+                        DEBUG_ScrollHomeOutput();
+                        break;
+                }
 				break;
-		case KEY_HOME:	// Home: scroll log page up
-				DEBUG_RefreshPage(-1);
+
+		case KEY_END:	// End
+                switch (dbg.active_win) {
+                    case DBGBlock::WINI_CODE:
+                        // and do what?
+                        break;
+                    case DBGBlock::WINI_DATA:
+                        // and do what?
+                        break;
+                    case DBGBlock::WINI_OUT:
+                        void DEBUG_ScrollToEndOutput(void);
+                        DEBUG_ScrollToEndOutput();
+                        break;
+                }
 				break;
-		case KEY_END:	// End: scroll log page down
-				DEBUG_RefreshPage(1);
-				break;
-		case KEY_IC:	// Insert: toggle insert/overwrite
+
+        case KEY_IC:	// Insert: toggle insert/overwrite
 				codeViewData.ovrMode = !codeViewData.ovrMode;
 				break;
 		case KEY_LEFT:	// move to the left in command line
@@ -1715,6 +1944,10 @@ Bit32u DEBUG_CheckKeys(void) {
 				SetCodeWinStart();
 				CBreakpoint::ignoreOnce = 0;
 				break;
+        case 0x09: //TAB
+                void DBGUI_NextWindow(void);
+                DBGUI_NextWindow();
+                break;
 		case 0x0A: //Parse typed Command
 				codeViewData.inputStr[MAXCMDLEN] = '\0';
 				if(ParseCommand(codeViewData.inputStr)) {
@@ -1845,6 +2078,7 @@ void DEBUG_Enable(bool pressed) {
 void DEBUG_DrawScreen(void) {
 	DrawData();
 	DrawCode();
+    DrawInput();
 	DrawRegisters();
 	DrawVariables();
 }
@@ -2207,13 +2441,14 @@ void DEBUG_ShutDown(Section * /*sec*/) {
 	if (dbg.win_main != NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("DEBUG_Shutdown freeing ncurses state");
 		curs_set(old_cursor_state);
-		endwin();
+
+        void DEBUG_GUI_DestroySubWindows(void);
+        DEBUG_GUI_DestroySubWindows();
+
+//      if (dbg.win_main) delwin(dbg.win_main);
 		dbg.win_main = NULL;
-		dbg.win_reg = NULL;//FIXME: How to free return value of subwin()?
-		dbg.win_data = NULL;//FIXME: How to free return value of subwin()?
-		dbg.win_code = NULL;//FIXME: How to free return value of subwin()?
-		dbg.win_var = NULL;//FIXME: How to free return value of subwin()?
-		dbg.win_out = NULL;//FIXME: How to free return value of subwin()?
+
+        endwin();
 
 #ifndef WIN32
 		tcsetattr(0,TCSANOW,&consolesettings);

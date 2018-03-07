@@ -21,6 +21,7 @@
 #include "dosbox.h"
 #include "inout.h"
 #include "pic.h"
+#include "cpu.h"
 #include "mem.h"
 #include "mixer.h"
 #include "timer.h"
@@ -556,6 +557,15 @@ void TIMER_OnPowerOn(Section*) {
 	ReadHandler[2].Uninstall();
 	ReadHandler[3].Uninstall();
 
+	WriteHandler2[0].Uninstall();
+	WriteHandler2[1].Uninstall();
+	WriteHandler2[2].Uninstall();
+	WriteHandler2[3].Uninstall();
+	ReadHandler2[0].Uninstall();
+	ReadHandler2[1].Uninstall();
+	ReadHandler2[2].Uninstall();
+	ReadHandler2[3].Uninstall();
+
 	WriteHandler[0].Install(0x40,write_latch,IO_MB);
 //	WriteHandler[1].Install(0x41,write_latch,IO_MB);
 	WriteHandler[2].Install(0x42,write_latch,IO_MB);
@@ -571,6 +581,18 @@ void TIMER_OnPowerOn(Section*) {
         void TIMER_OnEnterPC98_Phase2(Section*);
         TIMER_OnEnterPC98_Phase2(NULL);
     }
+}
+
+void TIMER_OnEnterPC98_Phase2_UpdateBDA(void) {
+	if (!cpu.pmode) {
+		/* BIOS data area at 0x501 tells the DOS application which clock rate to use */
+		phys_writeb(0x501,
+			((PIT_TICK_RATE == PIT_TICK_RATE_PC98_8MHZ) ? 0x80 : 0x00)      /* bit 7: 1=8MHz  0=5MHz/10MHz */
+		);
+	}
+	else {
+		LOG_MSG("PC-98 warning: PIT timer change cannot be reflected to BIOS data area in protected/vm86 mode");
+	}
 }
 
 /* NTS: This comes in two phases because we're taking ports 0x71-0x77 which overlap
@@ -598,13 +620,23 @@ void TIMER_OnEnterPC98_Phase2(Section*) {
 	ReadHandler[2].Uninstall();
 	ReadHandler[3].Uninstall();
 
+	WriteHandler2[0].Uninstall();
+	WriteHandler2[1].Uninstall();
+	WriteHandler2[2].Uninstall();
+	WriteHandler2[3].Uninstall();
+	ReadHandler2[0].Uninstall();
+	ReadHandler2[1].Uninstall();
+	ReadHandler2[2].Uninstall();
+	ReadHandler2[3].Uninstall();
+
     /* PC-98 has two different rates: 5/10MHz base or 8MHz base. Let the user choose via dosbox.conf */
     pc98rate = section->Get_int("pc-98 timer master frequency");
-    if (pc98rate == 0) pc98rate = 10; /* Pick the most likely to work with DOS games (FIXME: This is a GUESS!! Is this correct?) */
-    else if (pc98rate < 9) pc98rate = 8;
-    else pc98rate = 10;
+	if (pc98rate > 6) pc98rate /= 2;
+    if (pc98rate == 0) pc98rate = 5; /* Pick the most likely to work with DOS games (FIXME: This is a GUESS!! Is this correct?) */
+    else if (pc98rate < 5) pc98rate = 4;
+    else pc98rate = 5;
 
-    if (pc98rate >= 10)
+    if (pc98rate >= 5)
         PIT_TICK_RATE = PIT_TICK_RATE_PC98_10MHZ;
     else
         PIT_TICK_RATE = PIT_TICK_RATE_PC98_8MHZ;
@@ -686,6 +718,9 @@ void TIMER_Init() {
 	}
 
 	AddExitFunction(AddExitFunctionFuncPair(TIMER_Destroy));
-	AddVMEventFunction(VM_EVENT_POWERON,AddVMEventFunctionFuncPair(TIMER_OnPowerOn));
+	AddVMEventFunction(VM_EVENT_POWERON, AddVMEventFunctionFuncPair(TIMER_OnPowerOn));
+
+    if (IS_PC98_ARCH) /* HACK! Clean this up! */
+    	AddVMEventFunction(VM_EVENT_RESET, AddVMEventFunctionFuncPair(TIMER_OnEnterPC98_Phase2));
 }
 

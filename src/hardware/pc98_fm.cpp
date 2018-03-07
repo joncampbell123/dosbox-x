@@ -184,7 +184,7 @@ static void pc98_mix_CallBack(Bitu len) {
     if (s > (sizeof(MixTemp)/sizeof(Bit32s)/2))
         s = (sizeof(MixTemp)/sizeof(Bit32s)/2);
 
-    memset(MixTemp,0,sizeof(MixTemp));
+    memset(MixTemp,0,s * sizeof(Bit32s) * 2);
 
     opngen_getpcm(NULL, (SINT32*)MixTemp, s);
     tms3631_getpcm(&tms3631, (SINT32*)MixTemp, s);
@@ -215,6 +215,7 @@ static bool pc98fm_init = false;
 extern "C" {
 UINT8 fmtimer_irq2index(const UINT8 irq);
 UINT8 fmtimer_index2irq(const UINT8 index);
+void fmboard_on_reset();
 }
 
 UINT8 board86_encodeirqidx(const unsigned char idx) {
@@ -230,6 +231,7 @@ UINT8 board26k_encodeirqidx(const unsigned char idx) {
 
 void PC98_FM_OnEnterPC98(Section *sec) {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
+    bool was_pc98fm_init = pc98fm_init;
 
     if (!pc98fm_init) {
         unsigned char fmirqidx;
@@ -333,15 +335,20 @@ void PC98_FM_OnEnterPC98(Section *sec) {
             fmboard_reset(&np2cfg, 0x14);   // board86c, a good default
         }
 
-        fmboard_extenable(true);
-
         fmboard_bind();
+        fmboard_extenable(true);
 
         // WARNING: Some parts of the borrowed code assume 44100, 22050, or 11025 and
         //          will misrender if given any other sample rate (especially the OPNA synth).
 
         pc98_mixer = MIXER_AddChannel(pc98_mix_CallBack, rate, "PC-98");
         pc98_mixer->Enable(true);
+    }
+
+    if (was_pc98fm_init) {
+        fmboard_on_reset();
+        fmboard_bind(); // FIXME: Re-binds I/O ports as well
+        fmboard_extenable(true);
     }
 }
 

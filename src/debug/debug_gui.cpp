@@ -30,9 +30,15 @@
 #include "debug.h"
 #include "debug_inc.h"
 
+#include <stdexcept>
+#include <exception>
+
+using namespace std;
+
 static bool has_LOG_Init = false;
 static bool has_LOG_EarlyInit = false;
 static bool do_LOG_stderr = false;
+static bool logBuffHasDiscarded = false;
 
 _LogGroup loggrp[LOG_MAX]={{"",LOG_NORMAL},{0,LOG_NORMAL}};
 FILE* debuglog = NULL;
@@ -44,31 +50,262 @@ FILE* debuglog = NULL;
 #include <string>
 using namespace std;
 
-#define MAX_LOG_BUFFER 500
+std::string DBGBlock::windowlist_by_name(void) {
+    std::string comp;
+    unsigned int i;
+
+    for (i=0;i < DBGBlock::WINI_MAX_INDEX;i++) {
+        if (i != 0) comp += ",";
+        comp += dbg_win_names[i];
+    }
+
+    return comp;
+}
+
+const unsigned int dbg_def_win_height[DBGBlock::WINI_MAX_INDEX] = {
+    5,          /* WINI_REG */
+    9,          /* WINI_DATA */
+    12,         /* WINI_CODE */
+    5,          /* WINI_VAR */
+    6           /* WINI_OUT */
+};
+
+const char *dbg_def_win_titles[DBGBlock::WINI_MAX_INDEX] = {
+    "Register Overview",        /* WINI_REG */
+    "Data Overview",            /* WINI_DATA */
+    "Code Overview",            /* WINI_CODE */
+    "Variable Overview",        /* WINI_VAR */
+    "Output"                    /* WINI_OUT */
+};
+
+const char *dbg_win_names[DBGBlock::WINI_MAX_INDEX] = {
+    "REG",
+    "DATA",
+    "CODE",
+    "VAR",
+    "OUT"
+};
+
+#define MAX_LOG_BUFFER 4000
 static list<string> logBuff;
 static list<string>::iterator logBuffPos = logBuff.end();
 
 extern int old_cursor_state;
 
+const char *DBGBlock::get_winname(int idx) {
+    if (idx >= 0 && idx < DBGBlock::WINI_MAX_INDEX)
+        return dbg_win_names[idx];
+
+    return NULL;
+}
+
+const char *DBGBlock::get_wintitle(int idx) {
+    if (idx >= 0 && idx < DBGBlock::WINI_MAX_INDEX)
+        return dbg.win_title[idx].c_str();
+
+    return NULL;
+}
+
+int DBGBlock::name_to_win(const char *name) {
+    for (unsigned int i=0;i < DBGBlock::WINI_MAX_INDEX;i++) {
+        if (!strcasecmp(name,dbg_win_names[i]))
+            return i;
+    }
+
+    return -1;
+}
+
+void DBGBlock::next_window(void) {
+    int order = win_find_order(active_win);
+
+    if (order < 0) order = 0;
+
+    order = win_next_by_order(order);
+    if (order >= 0) active_win = win_order[order];
+}
+
+void DBGBlock::swap_order(int o1,int o2) {
+    if (o1 != o2)
+        std::swap(win_order[o1],win_order[o2]);
+}
+
+WINDOW* &DBGBlock::get_win_ref(int idx) {
+    switch (idx) {
+        case WINI_REG:  return win_reg;
+        case WINI_DATA: return win_data;
+        case WINI_CODE: return win_code;
+        case WINI_VAR:  return win_var;
+        case WINI_OUT:  return win_out;
+    }
+
+    throw domain_error("get_win_ref");
+}
+
+WINDOW* DBGBlock::get_win(int idx) {
+    return get_win_ref(idx);
+}
+
+WINDOW *DBGBlock::get_active_win(void) {
+    return get_win(active_win);
+}
+
+int DBGBlock::win_find_order(int wnd) {
+    for (unsigned int i=0;i < DBGBlock::WINI_MAX_INDEX;i++) {
+        if (dbg.win_order[i] == wnd)
+            return i;
+    }
+
+    return -1;
+}
+
+int DBGBlock::win_prev_by_order(int order) {
+    int limit = DBGBlock::WINI_MAX_INDEX;
+
+    do {
+        if (--order < 0)
+            order = DBGBlock::WINI_MAX_INDEX - 1;
+
+        if (--limit <= 0)
+            break;
+    } while (get_win(win_order[order]) == NULL);
+
+    return order;
+}
+
+int DBGBlock::win_next_by_order(int order) {
+    int limit = DBGBlock::WINI_MAX_INDEX;
+
+    do {
+        if (++order >= DBGBlock::WINI_MAX_INDEX)
+            order = 0;
+
+        if (--limit <= 0)
+            break;
+    } while (get_win(win_order[order]) == NULL);
+
+    return order;
+}
+
+void DBGUI_DrawBlankOutputLine(int y) {
+    if (dbg.win_out == NULL) return;
+
+    wattrset(dbg.win_out,COLOR_PAIR(PAIR_GREEN_BLACK));
+    if (logBuffHasDiscarded)
+        mvwprintw(dbg.win_out, y, 0, "<LOG BUFFER ENDS, OLDER CONTENT DISCARDED BEYOND THIS POINT>");
+    else
+        mvwprintw(dbg.win_out, y, 0, "<END OF LOG>");
+//    wclrtoeol(dbg.win_out);
+}
+
+void DBGUI_DrawDebugOutputLine(int y,std::string line) {
+	if (dbg.win_out == NULL) return;
+
+	int maxy, maxx; getmaxyx(dbg.win_out,maxy,maxx);
+    bool ellipsisEnd = false;
+
+    /* cut the line short if it's too long for the terminal window */
+    if (line.length() > maxx) {
+        line = line.substr(0,maxx-3);
+        ellipsisEnd = true;
+    }
+
+    /* Const cast is needed for pdcurses which has no const char in mvwprintw (bug maybe) */
+    wattrset(dbg.win_out,0);
+    mvwprintw(dbg.win_out, y, 0, const_cast<char*>(line.c_str()));
+
+    if (ellipsisEnd) {
+        wattrset(dbg.win_out,COLOR_PAIR(PAIR_GREEN_BLACK));
+        mvwprintw(dbg.win_out, y, maxx-3,  "...");
+    }
+
+//    wclrtoeol(dbg.win_out);
+}
+
+void DEBUG_LimitTopPos(void) {
+	if (dbg.win_out != NULL) {
+        int w,h;
+
+        getmaxyx(dbg.win_out,h,w);
+
+        auto i = logBuff.begin();
+        for (int y=0;i != logBuff.end() && y < (h-1);y++) {
+            if (i == logBuffPos) {
+                i++;
+                logBuffPos = i;
+            }
+            else {
+                i++;
+            }
+        }
+    }
+}
+
 void DEBUG_RefreshPage(char scroll) {
 	if (dbg.win_out == NULL) return;
 
-	if (scroll==-1 && logBuffPos!=logBuff.begin()) logBuffPos--;
-	else if (scroll==1 && logBuffPos!=logBuff.end()) logBuffPos++;
+	while (scroll < 0 && logBuffPos!=logBuff.begin()) {
+        logBuffPos--;
+        scroll++;
+    }
+	while (scroll > 0 && logBuffPos!=logBuff.end()) {
+        logBuffPos++;
+        scroll--;
+    }
+
+    DEBUG_LimitTopPos();
 
 	list<string>::iterator i = logBuffPos;
 	int maxy, maxx; getmaxyx(dbg.win_out,maxy,maxx);
-	int rem_lines = maxy - 1;
-	if(rem_lines == -1) return;
+	int rem_lines = maxy;
+	if(rem_lines <= 0) return;
 
 	wclear(dbg.win_out);
-	while (rem_lines > 0 && i!=logBuff.begin()) {
-		--i;
-		/* Const cast is needed for pdcurses which has no const char in mvwprintw (bug maybe) */
-		mvwprintw(dbg.win_out,rem_lines, 0, const_cast<char*>((*i).c_str()));
-		rem_lines--;
-	}
+
+    /* NTS: Often, i == logBuff.end() unless the user scrolled up in the interface.
+     *
+     *      So the original intent of this code is that the iterator is one entry PAST
+     *      the line to begin displaying at the bottom just as end() is a sentinel
+     *      value just past the last element of the list. So if i == logBuff.begin()
+     *      then there's nothing to display.
+     *
+     *      Note that the iterator defines what is drawn on the bottom-most line,
+     *      and iteration is done backwards until we've drawn the line at i == logBuff.begin()
+     *      or until we've drawn something at line 0 of the subwin.
+     *
+     *      rem_lines starts out as the number of lines in the subwin. */
+    if (i != logBuff.begin()) {
+        i--;
+
+        wattrset(dbg.win_out,0);
+        while (rem_lines > 0) {
+            rem_lines--;
+
+            DBGUI_DrawDebugOutputLine(rem_lines,*i);
+
+            if (i != logBuff.begin())
+                i--;
+            else
+                break;
+        }
+
+        /* show that the lines above are beyond the end of the log */
+        while (rem_lines > 0) {
+            rem_lines--;
+            DBGUI_DrawBlankOutputLine(rem_lines);
+        }
+    }
+
 	wrefresh(dbg.win_out);
+}
+
+void DEBUG_ScrollHomeOutput(void) {
+    logBuffPos = logBuff.begin();
+    DEBUG_RefreshPage(0);
+}
+
+void DEBUG_ScrollToEndOutput(void) {
+    logBuffPos = logBuff.end();
+    DEBUG_RefreshPage(0);
 }
 
 static void Draw_RegisterLayout(void) {
@@ -100,58 +337,157 @@ static void Draw_RegisterLayout(void) {
 	mvwaddstr(dbg.win_reg,1,52,"C  Z  S  O  A  P  D  I  T ");
 }
 
+static void DrawSubWinBox(WINDOW *wnd,const char *title) {
+    bool active = false;
+    int x,y;
+    int w,h;
+
+    if (wnd == NULL) return;
+
+    WINDOW *active_win = dbg.get_active_win();
+
+    if (wnd == active_win)
+        active = true;
+
+    getbegyx(wnd,y,x);
+    getmaxyx(wnd,h,w);
+
+	if (has_colors()) {
+        if (active)
+    		attrset(COLOR_PAIR(PAIR_BLACK_BLUE));
+        else
+    		attrset(COLOR_PAIR(PAIR_WHITE_BLUE));
+    }
+
+    mvhline(y-1,x,ACS_HLINE,w);
+    if (title != NULL) mvaddstr(y-1,x+4,title);
+}
 
 static void DrawBars(void) {
 	if (dbg.win_main == NULL)
 		return;
 
-	if (has_colors()) {
-		attrset(COLOR_PAIR(PAIR_BLACK_BLUE));
-	}
-	/* Show the Register bar */
-	mvaddstr(1-1,0, "---(Register Overview                   )---");
-	/* Show the Data Overview bar perhaps with more special stuff in the end */
-	mvaddstr(6-1,0,"---(Data Overview   Scroll: page up/down)---");
-	/* Show the Code Overview perhaps with special stuff in bar too */
-	mvaddstr(17-1,0,"---(Code Overview   Scroll: up/down     )---");
-	/* Show the Variable Overview bar */
-	mvaddstr(29-1,0, "---(Variable Overview                   )---");
-	/* Show the Output OverView */
-	mvaddstr(34-1,0, "---(Output          Scroll: home/end    )---");
+    for (unsigned int wnd=0;wnd < DBGBlock::WINI_MAX_INDEX;wnd++) {
+        WINDOW* &ref = dbg.get_win_ref(wnd);
+
+        if (ref != NULL) DrawSubWinBox(ref,dbg.get_wintitle(wnd));
+    }
+
 	attrset(0);
-	//Match values with below. So we don't need to touch the internal window structures
 }
 
+static void DestroySubWindows(void) {
+    for (unsigned int wnd=0;wnd < DBGBlock::WINI_MAX_INDEX;wnd++) {
+        WINDOW* &ref = dbg.get_win_ref(wnd);
 
+        if (ref != NULL) {
+            if (ref) delwin(ref);
+            ref = NULL;
+        }
+    }
+}
+
+void DEBUG_GUI_DestroySubWindows(void) {
+    DestroySubWindows();
+}
 
 static void MakeSubWindows(void) {
 	/* The Std output win should go at the bottom */
 	/* Make all the subwindows */
 	int win_main_maxy, win_main_maxx; getmaxyx(dbg.win_main,win_main_maxy,win_main_maxx);
-	int outy=1; //Match values with above
+    unsigned int yheight[DBGBlock::WINI_MAX_INDEX];
+    unsigned int yofs[DBGBlock::WINI_MAX_INDEX];
+    int win_limit = win_main_maxy - 1;
+    int expand_wndi = -1;
+	int outy=0,height;
 
-    LOG_MSG("DEBUG: MakeSubWindows dim x=%u y=%u",win_main_maxx,win_main_maxy);
+    /* main window needs to clear itself */
+    werase(dbg.win_main);
 
-	/* The Register window  */
-	dbg.win_reg=subwin(dbg.win_main,4,win_main_maxx,outy,0);
-	outy+=5; // 6
-	/* The Data Window */
-	dbg.win_data=subwin(dbg.win_main,10,win_main_maxx,outy,0);
-	outy+=11; // 17
-	/* The Code Window */
-	dbg.win_code=subwin(dbg.win_main,11,win_main_maxx,outy,0);
-	outy+=12; // 29
-	/* The Variable Window */
-	dbg.win_var=subwin(dbg.win_main,4,win_main_maxx,outy,0);
-	outy+=5; // 34
-	/* The Output Window */	
-	dbg.win_out=subwin(dbg.win_main,win_main_maxy-outy,win_main_maxx,outy,0);
-	if(!dbg.win_reg ||!dbg.win_data || !dbg.win_code || !dbg.win_var || !dbg.win_out) E_Exit("Setting up windows failed");
-//	dbg.input_y=win_main_maxy-1;
-	scrollok(dbg.win_out,TRUE);
+    /* arrange windows */
+    for (unsigned int wndi=0;wndi < DBGBlock::WINI_MAX_INDEX;wndi++) {
+        unsigned int wnd = dbg.win_order[wndi];
+
+        /* window must have been freed, must have height greater than 1 (more than just titlebar)
+         * must be visible and there must be room for the window on the screen, where the last
+         * row is reserved for the input bar */
+        if (dbg.win_height[wnd] > 1 &&
+            dbg.win_vis[wnd] && (outy+1) < win_limit) {
+            outy++; // header
+            height=dbg.win_height[wnd]-1;
+            if ((outy+height) > win_limit) height = win_limit - outy;
+            assert(height > 0);
+            yofs[wndi]=outy;
+            yheight[wndi]=height;
+            outy+=height;
+
+            if (wnd == DBGBlock::WINI_OUT)
+                expand_wndi = wndi;
+        }
+        else {
+            yofs[wndi]=0;
+            yheight[wndi]=0;
+        }
+    }
+
+    /* last window expands if output not there */
+    if (expand_wndi < 0) {
+        for (int wndi=DBGBlock::WINI_MAX_INDEX-1;wndi >= 0;wndi--) {
+            if (yheight[wndi] != 0) {
+                expand_wndi = wndi;
+                break;
+            }
+        }
+    }
+
+    /* we give one window the power to expand to help fill the screen */
+    if (outy < win_limit) {
+        int expand_by = win_limit - outy;
+
+        if (expand_wndi >= 0 && expand_wndi < DBGBlock::WINI_MAX_INDEX) {
+            unsigned int wndi = expand_wndi;
+
+            /* add height to the window */
+            yheight[wndi] += expand_by;
+            outy += wndi;
+            wndi++;
+
+            /* move the others down */
+            for (;wndi < DBGBlock::WINI_MAX_INDEX;wndi++)
+                yofs[wndi] += expand_by;
+        }
+    }
+
+    for (unsigned int wndi=0;wndi < DBGBlock::WINI_MAX_INDEX;wndi++) {
+        if (yheight[wndi] != 0) {
+            unsigned int wnd = dbg.win_order[wndi];
+            WINDOW* &ref = dbg.get_win_ref(wnd);
+            assert(ref == NULL);
+            ref=subwin(dbg.win_main,yheight[wndi],win_main_maxx,yofs[wndi],0);
+        }
+    }
+
+    if (outy < win_main_maxy) {
+        // no header
+        height = 1;
+        outy = win_main_maxy - height;
+        dbg.win_inp=subwin(dbg.win_main,height,win_main_maxx,outy,0);
+        outy += height;
+    }
+
 	DrawBars();
 	Draw_RegisterLayout();
 	refresh();
+}
+
+void DEBUG_GUI_Rebuild(void) {
+    DestroySubWindows();
+    MakeSubWindows();
+    DEBUG_RefreshPage(0);
+}
+
+void DEBUG_GUI_OnResize(void) {
+    DEBUG_GUI_Rebuild();
 }
 
 static void MakePairs(void) {
@@ -161,6 +497,18 @@ static void MakePairs(void) {
 	init_pair(PAIR_BLACK_GREY, COLOR_BLACK /*| FOREGROUND_INTENSITY */, COLOR_WHITE);
 	init_pair(PAIR_GREY_RED, COLOR_WHITE/*| FOREGROUND_INTENSITY */, COLOR_RED);
     init_pair(PAIR_BLACK_GREEN, COLOR_BLACK, COLOR_GREEN);
+	init_pair(PAIR_WHITE_BLUE, COLOR_WHITE/* | FOREGROUND_INTENSITY*/, COLOR_BLUE);
+}
+
+void DBGUI_NextWindow(void) {
+    dbg.next_window();
+	DrawBars();
+	DEBUG_DrawScreen();
+}
+
+void DBGUI_NextWindowIfActiveHidden(void) {
+    if (dbg.get_active_win() == NULL)
+        DBGUI_NextWindow();
 }
 
 void DBGUI_StartUp(void) {
@@ -180,6 +528,10 @@ void DBGUI_StartUp(void) {
 	cycle_count=0;
 	MakePairs();
 	MakeSubWindows();
+
+    /* make sure the output window is synced up */
+    logBuffPos = logBuff.end();
+    DEBUG_RefreshPage(0);
 }
 
 #endif
@@ -197,10 +549,6 @@ void DEBUG_ShowMsg(char const* format,...) {
     /* remove newlines if present */
     while (len > 0 && buf[len-1] == '\n') buf[--len] = 0;
 
-	/* Add newline if not present */
-	if (len > 0 && buf[len-1] != '\n') buf[len++] = '\n';
-	buf[len] = 0;
-
 	if (do_LOG_stderr || debuglog == NULL)
 		stderrlog = true;
 
@@ -212,11 +560,11 @@ void DEBUG_ShowMsg(char const* format,...) {
 #endif
 
 	if (debuglog != NULL) {
-		fprintf(debuglog,"%s",buf);
+		fprintf(debuglog,"%s\n",buf);
 		fflush(debuglog);
 	}
 	if (stderrlog) {
-		fprintf(stderr,"LOG: %s",buf);
+		fprintf(stderr,"LOG: %s\n",buf);
 		fflush(stderr);
 	}
 
@@ -226,13 +574,22 @@ void DEBUG_ShowMsg(char const* format,...) {
 		DEBUG_RefreshPage(0);
 	}
 	logBuff.push_back(buf);
-	if (logBuff.size() > MAX_LOG_BUFFER)
+	if (logBuff.size() > MAX_LOG_BUFFER) {
+        logBuffHasDiscarded = true;
 		logBuff.pop_front();
+    }
 
 	logBuffPos = logBuff.end();
 
 	if (dbg.win_out != NULL) {
-		wprintw(dbg.win_out,"%s",buf);
+        int maxy, maxx; getmaxyx(dbg.win_out,maxy,maxx);
+
+    	scrollok(dbg.win_out,TRUE);
+        scroll(dbg.win_out);
+    	scrollok(dbg.win_out,FALSE);
+
+        DBGUI_DrawDebugOutputLine(maxy-1,buf);
+
 		wrefresh(dbg.win_out);
 	}
 #endif

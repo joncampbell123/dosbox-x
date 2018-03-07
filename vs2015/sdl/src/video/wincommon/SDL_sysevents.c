@@ -68,6 +68,7 @@
 #ifdef _WIN32_WCE
 LPWSTR SDL_Appname = NULL;
 #else
+LPSTR SDL_AppnameParent = "SDLParent";
 LPSTR SDL_Appname = NULL;
 #endif
 Uint32 SDL_Appstyle = 0;
@@ -135,6 +136,8 @@ static void LoadAygshell(void)
 
 #endif
 
+extern HWND	ParentWindowHWND;
+
 /* JC 14 Mar 2006
    This is used all over the place, in the windib driver and in the dx5 driver
    So we may as well stick it here instead of having multiple copies scattered
@@ -166,12 +169,12 @@ static void SDL_RestoreGameMode(void)
 #endif
 	
 #else
-	ShowWindow(SDL_Window, SW_RESTORE);
+	ShowWindow(ParentWindowHWND, SW_RESTORE);
 #endif
 
 #ifndef NO_CHANGEDISPLAYSETTINGS
 #ifndef _WIN32_WCE
-	ChangeDisplaySettings(&SDL_fullscreen_mode, CDS_FULLSCREEN);
+//	ChangeDisplaySettings(&SDL_fullscreen_mode, CDS_FULLSCREEN);
 #endif
 #endif /* NO_CHANGEDISPLAYSETTINGS */
 }
@@ -193,12 +196,13 @@ static void SDL_RestoreDesktopMode(void)
 	
 #else
 	/* WinCE does not have a taskbar, so minimizing is not convenient */
-	ShowWindow(SDL_Window, SW_RESTORE);
+	ShowWindow(ParentWindowHWND, SW_RESTORE);
+    ShowWindow(SDL_Window, SW_RESTORE);
 #endif
 
 #ifndef NO_CHANGEDISPLAYSETTINGS
 #ifndef _WIN32_WCE
-	ChangeDisplaySettings(NULL, 0);
+//	ChangeDisplaySettings(NULL, 0);
 #endif
 #endif /* NO_CHANGEDISPLAYSETTINGS */
 }
@@ -245,6 +249,9 @@ static BOOL WINAPI WIN_TrackMouseEvent(TRACKMOUSEEVENT *ptme)
 
 extern HKL hLayout;
 int sysevents_mouse_pressed = 0;
+unsigned int SDL1_hax_inhibit_WM_PAINT = 0;
+
+LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 /* The main Win32 event handler
 DJM: This is no longer static as (DX5/DIB)_CreateWindow needs it
@@ -659,7 +666,8 @@ this->hidden->hiresFix, &x, &y);
 			PAINTSTRUCT ps;
 
 			hdc = BeginPaint(SDL_Window, &ps);
-			if ( current_video->screen &&
+			if (  !SDL1_hax_inhibit_WM_PAINT &&
+				   current_video->screen &&
 			     !(current_video->screen->flags & SDL_OPENGL) ) {
 				WIN_WinPAINT(current_video, hdc);
 			}
@@ -784,6 +792,29 @@ int SDL_RegisterApp(char *name, Uint32 style, void *hInst)
 		SDL_SetError("Couldn't register application class");
 		return(-1);
 	}
+
+
+	/* another for the DIB parent window*/
+	class.hCursor = NULL;
+	class.hIcon = LoadImage(SDL_Instance, SDL_Appname,
+		IMAGE_ICON,
+		0, 0, LR_DEFAULTCOLOR);
+	class.lpszMenuName = NULL;
+	class.lpszClassName = SDL_AppnameParent;
+	class.hbrBackground = GetStockObject(BLACK_BRUSH);
+	class.hInstance = SDL_Instance;
+	class.style = SDL_Appstyle;
+#if SDL_VIDEO_OPENGL
+	class.style |= CS_OWNDC;
+#endif
+	class.lpfnWndProc = ParentWinMessage;
+	class.cbWndExtra = 0;
+	class.cbClsExtra = 0;
+	if (!RegisterClass(&class)) {
+		SDL_SetError("Couldn't register application class");
+		return(-1);
+	}
+
 
 #ifdef WM_MOUSELEAVE
 	/* Get the version of TrackMouseEvent() we use */

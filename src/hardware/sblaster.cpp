@@ -3570,6 +3570,13 @@ void SBLASTER_ShutDown(Section* /*sec*/) {
 
 void SBLASTER_OnReset(Section *sec) {
     SBLASTER_DOS_Shutdown();
+
+    if (test != NULL) {
+		delete test;	
+		test = NULL;
+	}
+	HWOPL_Cleanup();
+
     if (test == NULL && !IS_PC98_ARCH) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating Sound Blaster emulation");
 		test = new SBLASTER(control->GetSection("sblaster"));

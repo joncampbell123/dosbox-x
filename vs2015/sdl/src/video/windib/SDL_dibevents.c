@@ -23,6 +23,7 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <process.h>
 
 #include "SDL_main.h"
 #include "SDL_events.h"
@@ -129,6 +130,8 @@ static void GapiTransform(GapiInfo *gapiInfo, LONG *x, LONG *y)
 }
 #endif 
 
+extern HWND ParentWindowHWND;
+
 /* DOSBox-X deviation: hack to ignore Num/Scroll/Caps if set */
 #if defined(WIN32)
 unsigned char _dosbox_x_hack_ignore_toggle_keys = 0;
@@ -183,6 +186,14 @@ LRESULT DIB_HandleMessage(_THIS, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPar
 #endif
 
 	switch (msg) {
+		case WM_KILLFOCUS:
+			if (!SDL_resizing &&
+				 SDL_PublicSurface &&
+				(SDL_PublicSurface->flags & SDL_FULLSCREEN)) {
+				/* In fullscreen mode, this window must have focus... or else we must exit fullscreen mode! */
+				ShowWindow(ParentWindowHWND, SW_RESTORE);
+			}
+			break;
 		case WM_SYSKEYDOWN:
 		case WM_KEYDOWN: {
 			SDL_keysym keysym;
@@ -674,6 +685,223 @@ static SDL_keysym *TranslateKey(WPARAM vkey, UINT scancode, SDL_keysym *keysym, 
 	return(keysym);
 }
 
+/*-----------------------------------------------------------*/
+HANDLE			ParentWindowThread = INVALID_HANDLE_VALUE;
+DWORD			ParentWindowThreadID = 0;
+HWND			ParentWindowHWND = NULL;
+volatile int	ParentWindowInit = 0;
+volatile int	ParentWindowShutdown = 0;
+volatile int	ParentWindowReady = 0;
+
+void			(*SDL1_hax_INITMENU_cb)() = NULL;
+
+LRESULT CALLBACK ParentWinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	if (msg == WM_CREATE) {
+		return(0);
+	}
+	else if (msg == WM_PAINT) {
+		PAINTSTRUCT ps;
+		HDC hdc;
+
+		hdc = BeginPaint(hwnd, &ps);
+		EndPaint(hwnd, &ps);
+
+		return(0);
+	}
+	else if (msg == WM_ACTIVATEAPP) {
+		if (wParam)
+			SetFocus(SDL_Window);
+
+		SendMessage(SDL_Window, msg, wParam, lParam);
+		return(0);
+	}
+	else if (msg == WM_ACTIVATE) {
+		if (wParam == WA_ACTIVE || wParam == WA_CLICKACTIVE)
+			SetFocus(SDL_Window);
+
+		SendMessage(SDL_Window, msg, wParam, lParam);
+		return(0);
+	}
+	else if (msg == WM_SIZE) {
+		SetWindowPos(SDL_Window, HWND_TOP, 0, 0, LOWORD(lParam), HIWORD(lParam), SWP_NOACTIVATE);
+		return(0);
+	}
+	else if (msg == WM_SYSCOMMAND) {
+		/* CAREFUL! We only want to forward custom system menu items. Anything standard to Windows must be handled ourselves. */
+		if (wParam < 0xF000) {
+			PostMessage(SDL_Window, WM_SYSCOMMAND, wParam, lParam);
+			return(0);
+		}
+		else {
+			/* fall through, to DefWindowProc() */
+		}
+	}
+	else if (msg == WM_COMMAND) {
+		PostMessage(SDL_Window, msg, wParam, lParam);
+		return(0);
+	}
+	else if (msg == WM_WINDOWPOSCHANGING) {
+		WINDOWPOS *windowpos = (WINDOWPOS*)lParam;
+
+		/* FIXME: Why do MinGW builds crash here on thread shutdown, as if SDL_PublicSurface never existed? */
+		if (ParentWindowShutdown) return(0);
+
+		/* When menu is at the side or top, Windows likes
+		to try to reposition the fullscreen window when
+		changing video modes.
+		*/
+		if (!SDL_resizing && SDL_PublicSurface) {
+			if (SDL_PublicSurface->flags & SDL_FULLSCREEN) {
+				windowpos->x = 0;
+				windowpos->y = 0;
+			}
+		}
+
+		return(0);
+	}
+	else if (msg == WM_WINDOWPOSCHANGED) {
+		/* Before we forward to the child, we need to get the new dimensions, resize the child,
+		   and THEN forward it to the child. Note that this forwarding is required if SDL is
+		   to keep the window position intact when resizing the DIB window. */
+		{
+			RECT rc;
+
+			GetClientRect(hwnd, &rc);
+			SetWindowPos(SDL_Window, HWND_TOP, 0, 0, rc.right, rc.bottom, SWP_NOACTIVATE);
+		}
+
+		return SendMessage(SDL_Window, msg, wParam, lParam);
+	}
+	else if (msg == WM_INITMENU) {
+		if (SDL1_hax_INITMENU_cb != NULL)
+			SDL1_hax_INITMENU_cb();
+
+		/* fall through */
+	}
+	else if (msg == WM_CLOSE) {
+		return SendMessage(SDL_Window, msg, wParam, lParam);
+	}
+	else if (msg == WM_DESTROY) {
+		DestroyWindow(SDL_Window);
+		PostQuitMessage(0);
+	}
+
+	return(DefWindowProc(hwnd, msg, wParam, lParam));
+}
+
+extern LPSTR SDL_AppnameParent;
+
+unsigned int __stdcall ParentWindowThreadProc(void *arg) {
+	MSG msg;
+
+	if (!ParentWindowInit) return 1;
+
+	/* main thread already registered our wndclass */
+	ParentWindowHWND = CreateWindow(SDL_AppnameParent, SDL_Appname,
+		(WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_CLIPCHILDREN | WS_CLIPSIBLINGS),
+		CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, NULL, NULL, SDL_Instance, NULL);
+	if (ParentWindowHWND == NULL) {
+		ParentWindowInit = 0;
+		return 1;
+	}
+
+	ParentWindowReady = 1;
+	ParentWindowInit = 0;
+
+	while (!ParentWindowShutdown && GetMessage(&msg, ParentWindowHWND, 0, 0) > 0) {
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
+	DestroyWindow(ParentWindowHWND);
+	ParentWindowReady = 0;
+	ParentWindowInit = 0;
+
+	return 0;
+}
+
+int ParentWindowThreadRunning(void) {
+	return (ParentWindowThread != INVALID_HANDLE_VALUE);
+}
+
+void ParentWindowThreadCheck(void) {
+	if (ParentWindowThread != INVALID_HANDLE_VALUE) {
+		if (WaitForSingleObject(ParentWindowThread, 0) == WAIT_OBJECT_0) {
+			/* thread just died */
+			ParentWindowThread = INVALID_HANDLE_VALUE;
+			ParentWindowThreadID = 0;
+		}
+	}
+}
+
+void StopParentWindow(void) {
+	if (ParentWindowThreadRunning()) {
+		ParentWindowShutdown = 1;
+
+		PostMessage(ParentWindowHWND, WM_USER, 0, 0); // make the pump respond
+		while (ParentWindowThreadRunning()) {
+			Sleep(100);
+			ParentWindowThreadCheck();
+		}
+	}
+}
+
+int InitParentWindow(void) {
+	if (ParentWindowThread == INVALID_HANDLE_VALUE) {
+		unsigned int patience;
+
+		ParentWindowShutdown = 0;
+		ParentWindowReady = 0;
+		ParentWindowInit = 1;
+
+		ParentWindowThread = (HANDLE)_beginthreadex(NULL,0,ParentWindowThreadProc,NULL,0,&ParentWindowThreadID);
+		if (ParentWindowThread == NULL) {
+			ParentWindowThread = INVALID_HANDLE_VALUE;
+			return 0;
+		}
+
+		patience = 50;
+		while (ParentWindowInit && !ParentWindowReady) {
+			ParentWindowThreadCheck();
+			if (!ParentWindowThreadRunning()) {
+				/* it ended early?? */
+				ParentWindowShutdown = 0;
+				ParentWindowReady = 0;
+				ParentWindowInit = 0;
+				return 0;
+			}
+
+			if (--patience <= 0)
+				break;
+			else
+				Sleep(100);
+		}
+
+		if (!ParentWindowReady) {
+			ParentWindowShutdown = 1;
+			Sleep(1000); // shutdown now. you have one second.
+			ParentWindowThreadCheck();
+
+			if (ParentWindowThreadRunning()) {
+				/* hasn't terminated. kill it. */
+				/* this is brutal and may cause memory leaks in the Windows API, but it must be done */
+				TerminateThread(ParentWindowThread, 1);
+				do {
+					ParentWindowThreadCheck();
+				} while (ParentWindowThreadRunning());
+			}
+
+			ParentWindowShutdown = 0;
+			ParentWindowReady = 0;
+			ParentWindowInit = 0;
+			return 0;
+		}
+	}
+
+	return 1;
+}
+/*-----------------------------------------------------------*/
+
 int DIB_CreateWindow(_THIS)
 {
 	char *windowid;
@@ -703,13 +931,20 @@ int DIB_CreateWindow(_THIS)
 		userWindowProc = (WNDPROCTYPE)GetWindowLongPtr(SDL_Window, GWLP_WNDPROC);
 		SetWindowLongPtr(SDL_Window, GWLP_WNDPROC, (LONG_PTR)WinMessage);
 	} else {
+		if (!InitParentWindow()) {
+			SDL_SetError("Couldn't init parent window");
+			return(-1);
+		}
+
 		SDL_Window = CreateWindow(SDL_Appname, SDL_Appname,
-                        (WS_OVERLAPPED|WS_CAPTION|WS_SYSMENU|WS_MINIMIZEBOX),
-                        CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, NULL, NULL, SDL_Instance, NULL);
+                        WS_CHILD,
+                        0, 0, 640, 480, ParentWindowHWND, NULL, SDL_Instance, NULL);
 		if ( SDL_Window == NULL ) {
 			SDL_SetError("Couldn't create window");
 			return(-1);
 		}
+
+		SetFocus(SDL_Window);
 		ShowWindow(SDL_Window, SW_HIDE);
 	}
 
@@ -729,6 +964,11 @@ void DIB_DestroyWindow(_THIS)
 	} else {
 		DestroyWindow(SDL_Window);
 	}
+
+// NTS: DOSBox-X likes to call SQL_Quit/SQL_QuitSubSystem just to reinit the window.
+//      It's better if the parent window doesn't disappear and reappear.
+//	StopParentWindow();
+
 	SDL_UnregisterApp();
 
 	/* JC 14 Mar 2006
