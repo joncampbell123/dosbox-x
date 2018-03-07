@@ -679,7 +679,18 @@ public:
 		Bit32u rombytesize_2=0;
 		Bit8u drive = 'A';
 		std::string cart_cmd="";
-		Bitu stack_seg=0x7000,max_seg,load_seg=0x07C0;
+        Bitu max_seg;
+
+        /* IBM PC:
+         *    CS:IP = 0000:7C00     Load = 07C0:0000
+         *    SS:SP = ???
+         *
+         * PC-98:
+         *    CS:IP = 1FE0:0000     Load = 1FE0:0000
+         *    SS:SP = 0030:00D8
+         */
+		Bitu stack_seg=IS_PC98_ARCH ? 0x0030 : 0x7000;
+        Bitu load_seg=IS_PC98_ARCH ? 0x1FE0 : 0x07C0;
 
 		if (MEM_TotalPages() > 0x9C)
 			max_seg = 0x9C00;
@@ -975,7 +986,13 @@ public:
 			disable_umb_ems_xms();
 
 			WriteOut(MSG_Get("PROGRAM_BOOT_BOOT"), drive);
-			for(i=0;i<bootsize;i++) real_writeb(0, (load_seg<<4) + i, bootarea.rawdata[i]);
+
+            if (IS_PC98_ARCH) {
+                for(i=0;i<bootsize;i++) real_writeb(load_seg, i, bootarea.rawdata[i]);
+            }
+            else {
+                for(i=0;i<bootsize;i++) real_writeb(0, (load_seg<<4) + i, bootarea.rawdata[i]);
+            }
 
 			/* debug */
 			LOG_MSG("Booting guest OS stack_seg=0x%04x load_seg=0x%04x\n",(int)stack_seg,(int)load_seg);
@@ -987,20 +1004,35 @@ public:
 
 			/* standard method */
             if (IS_PC98_ARCH) {
-                /* WARNING: THIS IS A GUESS! */
+                /* Based on a CPU register dump at boot time on a real PC-9821:
+                 *
+                 * DUMP:
+                 *
+                 * SP: 00D8 SS: 0030 ES: 1FE0 DS: 0000 CS: 1FE0 FL: 0246 BP: 0000
+                 * DI: 055C SI: 1FE0 DX: 0001 CX: 0200 BX: 0200 AX: 0030 IP: 0000
+                 *
+                 * So:
+                 *
+                 * Stack at 0030:00D8
+                 *
+                 * CS:IP at load_seg:0000
+                 *
+                 * load_seg at 0x1FE0 which on the original 128KB PC-98 puts it at the top of memory
+                 *
+                 */
                 SegSet16(cs, load_seg);
-                SegSet16(ds, load_seg);
+                SegSet16(ds, 0x0000);
                 SegSet16(es, load_seg);
                 reg_ip = 0;
-                reg_ebx = 0;
-                reg_esp = 0x100;
+                reg_ebx = 0x200;
+                reg_esp = 0xD8;
                 /* set up stack at a safe place */
                 SegSet16(ss, stack_seg);
-                reg_esi = 0;
-                reg_ecx = 0;
+                reg_esi = load_seg;
+                reg_ecx = 0x200;
                 reg_ebp = 0;
-                reg_eax = 0;
-                reg_edx = 0;
+                reg_eax = 0x30;
+                reg_edx = 0x1;
 
                 /* clear the text layer */
                 for (unsigned int i=0;i < (80*25*2);i += 2) {
