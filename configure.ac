@@ -249,7 +249,7 @@ case "$host" in
     *-*-cygwin* | *-*-mingw32*)
        dnl Some stuff for the ico
        AC_CHECK_TOOL(WINDRES, windres, :)
-    LDFLAGS="-static -static-libgcc -static-libstdc++ $LDFLAGS"
+       LDFLAGS="-static -static-libgcc -static-libstdc++ $LDFLAGS"
     ;;
     *)
        WINDRES=":"
@@ -356,6 +356,18 @@ else
     AC_MSG_ERROR([SDL 1.x or SDL 2.x is required to compile this program])
   fi
 fi
+
+dnl Some stuff for the icon.
+case "$host" in
+    *-*-cygwin* | *-*-mingw32*)
+       dnl MinGW puts ncurses headers in a subdir
+       ncursescfg=`ncursesw6-config --cflags`
+       CXXFLAGS="$CXXFLAGS $ncursescfg"
+    ;;
+    *)
+       WINDRES=":"
+    ;;
+esac
 
 dnl LIBRARY TEST: ncurses
 AC_CHECK_HEADER(curses.h,have_curses_h=yes,)
