@@ -147,18 +147,21 @@ public:
 	virtual Bit8u Format();
 
 	imageDiskMemory(Bit32u imgSizeK);
-	imageDiskMemory(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sectorSize);
+	imageDiskMemory(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sectorSize, bool isHardDrive, Bit8u floppyBiosMediaType);
 	imageDiskMemory(diskGeo floppyGeometry);
+	imageDiskMemory(imageDisk* underylingImage);
 	virtual ~imageDiskMemory();
 
 private:
-	void init(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sectorSize);
+	void init(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sectorSize, bool isHardDrive, Bit8u floppyBiosMediaType, imageDisk* underlyingImage);
+	bool CalculateFAT(Bitu partitionStartingSector, Bitu partitionLength, bool isHardDrive, Bitu rootEntries, Bitu* rootSectors, Bitu* sectorsPerCluster, bool* isFat16, Bitu* fatSectors);
 
 	Bit8u * * ChunkMap;
 	Bit32u sectors_per_chunk;
 	Bit32u chunk_size;
 	Bit32u total_chunks;
 	Bit32u total_sectors;
+	imageDisk* underlyingImage;
 
 	Bit8u bios_type;
 };
