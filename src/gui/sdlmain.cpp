@@ -108,6 +108,11 @@ bool OpenGL_using(void);
 
 using namespace std;
 
+/* yksoft1 says that older MinGW headers lack this value --Jonathan C. */
+#ifndef MAPVK_VK_TO_VSC
+#define MAPVK_VK_TO_VSC 0
+#endif
+
 bool boot_debug_break = false;
 
 bool window_was_maximized = false;
