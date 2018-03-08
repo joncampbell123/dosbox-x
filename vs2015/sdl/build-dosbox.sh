@@ -30,6 +30,19 @@ cat >>include/SDL_config.h <<_EOF
 #endif
 _EOF
 
+if [ "$1" == "hx-dos" ]; then
+cat >>include/SDL_config.h <<_EOF
+/* For HX-DOS, no parent window */
+#ifndef SDL_WIN32_NO_PARENT_WINDOW
+#define SDL_WIN32_NO_PARENT_WINDOW
+#endif
+
+#ifndef SDL_WIN32_HX_DOS
+#define SDL_WIN32_HX_DOS
+#endif
+_EOF
+fi
+
 make -j || exit 1
 make install || exit 1  # will install into ./linux-host
 

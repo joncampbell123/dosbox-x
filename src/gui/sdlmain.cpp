@@ -2044,17 +2044,21 @@ void change_output(int output) {
 	case 2: /* do nothing */
 		break;
 	case 3:
+#if C_OPENGL
 		change_output(2);
 		sdl.desktop.want_type=SCREEN_OPENGL;
 #if !defined(C_SDL2)
 		sdl.opengl.bilinear = true;
 #endif
+#endif
 		break;
 	case 4:
+#if C_OPENGL
 		change_output(2);
 		sdl.desktop.want_type=SCREEN_OPENGL;
 #if !defined(C_SDL2)
 		sdl.opengl.bilinear = false; //NB
+#endif
 #endif
 		break;
 #if defined(__WIN32__) && !defined(C_SDL2)
@@ -3524,8 +3528,12 @@ void* GetSetSDLValue(int isget, std::string target, void* setval) {
 		else sdl.wait_on_error = setval;
 	}
 	else if (target == "opengl.bilinear") {
+#if C_OPENGL
 		if (isget) return (void*) sdl.opengl.bilinear;
 		else sdl.opengl.bilinear = setval;
+#else
+		if (isget) return (void*) 0;
+#endif
 /*
 	} else if (target == "draw.callback") {
 		if (isget) return (void*) sdl.draw.callback;
