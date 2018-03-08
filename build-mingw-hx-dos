@@ -16,6 +16,6 @@ echo Compiling our internal SDL 1.x
 echo Compiling DOSBox-X
 chmod +x configure
 # FIXME: I would like MinGW builds to enable the debugger, eventually
-./configure --enable-core-inline --disable-mt32 --enable-hx-dos --prefix=/usr || exit 1
+./configure --enable-core-inline --disable-mt32 --disable-opengl --enable-hx-dos --prefix=/usr || exit 1
 make -j3 || exit 1
 

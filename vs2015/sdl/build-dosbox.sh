@@ -19,6 +19,9 @@ sys=`uname -s`
 if [ "$sys" == "Darwin" ]; then
 opts="--disable-video-x11"
 fi
+if [ "$1" == "hx-dos" ]; then
+opts="--disable-video-opengl"
+fi
 
 ac_cv_header_iconv_h=no ac_cv_func_iconv=no ac_cv_lib_iconv_libiconv_open=no ../configure "--srcdir=$srcdir" "--prefix=$instdir" --enable-static --disable-shared --disable-x11-shared --disable-video-x11-xrandr --disable-video-x11-vm --disable-video-x11-xv $opts || exit 1
 
