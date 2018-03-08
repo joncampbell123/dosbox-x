@@ -5113,6 +5113,30 @@ int main(int argc, char* argv[]) {
     ImmDisableIME((DWORD)(-1));
 #endif
 
+#if defined(MACOSX)
+    /* The resource system of DOSBox-X relies on being able to locate the Resources subdirectory
+       within the DOSBox-X .app bundle. To do this, we have to first know where our own executable
+       is, which Mac OS X helpfully puts int argv[0] for us */
+    extern std::string MacOSXEXEPath;
+    extern std::string MacOSXResPath;
+    MacOSXEXEPath = argv[0];
+
+    /* The path should be something like /blah/blah/dosbox-x.app/Contents/MacOS/DosBox */
+    /* If that's true, then we can move one level up the tree and look for */
+    /* /blah/blah/dosbox-x.app/Contents/Resources */
+    {
+	const char *ref = argv[0];
+	const char *s = strrchr(ref,'/');
+	if (s != NULL) {
+		if (s > ref) s--;
+		while (s > ref && *s != '/') s--;
+		if (!strncasecmp(s,"/MacOS/",7)) {
+			MacOSXResPath = std::string(ref,(size_t)(s-ref)) + "/Resources";
+		}
+	}
+    }
+#endif
+
     {
         std::string tmp,config_path;
 

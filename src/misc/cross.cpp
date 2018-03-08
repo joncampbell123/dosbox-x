@@ -23,6 +23,11 @@
 #include <string>
 #include <stdlib.h>
 
+#if defined(MACOSX)
+std::string MacOSXEXEPath;
+std::string MacOSXResPath;
+#endif
+
 #ifdef WIN32
 #ifndef _WIN32_IE
 #define _WIN32_IE 0x0400
