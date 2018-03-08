@@ -5137,6 +5137,26 @@ int main(int argc, char* argv[]) {
 		}
 	}
     }
+
+    /* If we were launched by the Finder, the current working directory will usually be
+       the root of the filesystem (/) which is useless. If we see that, change instead
+       to the user's home directory */
+    {
+        char *home = getenv("HOME");
+        char cwd[512];
+
+        cwd[0]=0;
+        getcwd(cwd,sizeof(cwd)-1);
+
+        if (!strcmp(cwd,"/")) {
+            /* Only the Finder would do that.
+               Even if the user somehow did this from the Terminal app, it's still
+               worth changing to the home directory because certain directories
+               including / are locked readonly even for sudo in Mac OS X */
+            /* NTS: HOME is usually an absolute path */
+            if (home != NULL) chdir(home);
+        }
+    }
 #endif
 
     {
