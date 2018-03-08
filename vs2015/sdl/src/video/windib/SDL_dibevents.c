@@ -952,9 +952,15 @@ int DIB_CreateWindow(_THIS)
 #endif
 
 #ifdef SDL_WIN32_NO_PARENT_WINDOW
+# ifdef SDL_WIN32_HX_DOS
+		SDL_Window = CreateWindow(SDL_Appname, SDL_Appname,
+			WS_OVERLAPPED,
+			0, 0, 640, 480, NULL, NULL, SDL_Instance, NULL);
+# else
 		SDL_Window = CreateWindow(SDL_Appname, SDL_Appname,
 			(WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_CLIPCHILDREN | WS_CLIPSIBLINGS),
 			0, 0, 640, 480, NULL, NULL, SDL_Instance, NULL);
+# endif
 #else
 		SDL_Window = CreateWindow(SDL_Appname, SDL_Appname,
                         WS_CHILD,
