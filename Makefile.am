@@ -14,6 +14,7 @@ dosbox-x.app: src/dosbox-x src/dosbox.icns
 	cp -v src/dosbox.plist dosbox-x.app/Contents/Info.plist
 	cp -v src/dosbox.pkginfo dosbox-x.app/Contents/PkgInfo
 	cp -v src/dosbox.icns dosbox-x.app/Contents/Resources/DosBox.icns
+	cp -v font/FREECG98.BMP dosbox-x.app/Contents/Resources/freecg98.bmp
 	cp -v src/dosbox-x dosbox-x.app/Contents/MacOS/DosBox
 # this is where it gets ugly
 	otool -L dosbox-x.app/Contents/MacOS/DosBox | grep '/usr/local/lib' | while read X; do Y=`echo "$$X" | sed -E '/^ +/s///' | cut -d ' ' -f 1`; \
