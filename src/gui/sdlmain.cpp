@@ -5230,6 +5230,11 @@ int main(int argc, char* argv[]) {
 		LOG_MSG("DOSBox-X version %s",VERSION);
 		LOG(LOG_MISC,LOG_NORMAL)("Copyright 2002-2015 enhanced branch by The Great Codeholio, forked from the main project by the DOSBox Team, published under GNU GPL.");
 
+#if defined(MACOSX)
+		LOG_MSG("Mac OS X EXE path: %s",MacOSXEXEPath.c_str());
+		LOG_MSG("Mac OS X Resource path: %s",MacOSXResPath.c_str());
+#endif
+
 		/* -- [debug] setup console */
 #if C_DEBUG
 # if defined(WIN32)
