@@ -5117,6 +5117,8 @@ int main(int argc, char* argv[]) {
     /* The resource system of DOSBox-X relies on being able to locate the Resources subdirectory
        within the DOSBox-X .app bundle. To do this, we have to first know where our own executable
        is, which Mac OS X helpfully puts int argv[0] for us */
+    /* NTS: Experimental testing shows that when we are run from the desktop (double-clicking on
+            the .app bundle from the Finder) the current working directory is / (fs root). */
     extern std::string MacOSXEXEPath;
     extern std::string MacOSXResPath;
     MacOSXEXEPath = argv[0];
