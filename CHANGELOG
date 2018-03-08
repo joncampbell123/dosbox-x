@@ -1,4 +1,11 @@
 (next)
+  - RPM builds now install FREECG98.BMP in /usr/share/dosbox-x
+    and refer to it if not in your local directory, in order to
+    better provide PC-98 emulation.
+  - PC-98 BOOT command: Loading addresses and CPU register layout
+    updated to match actual hardware behavior, in which the boot
+    sector is loaded at just under 128KB.
+  - Build updates to support compiling for Windows with MinGW.
   - BOOT now accepts a --debug switch that causes DOSBox-X to break into
     the debugger when the boot sector begins to execute.
   - BOOT now accepts a --force switch to override the PC-98 lockout,
