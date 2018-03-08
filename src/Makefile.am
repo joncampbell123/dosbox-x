@@ -1,8 +1,13 @@
-AM_CPPFLAGS = -I$(top_srcdir)/include
+AM_CPPFLAGS = -I$(top_srcdir)/include "-DRESDIR=\"$(resdir)\""
 
 SUBDIRS = cpu debug dos fpu gui hardware libs ints misc shell builtin platform mt32 aviwriter
 
 bin_PROGRAMS = dosbox-x
+
+resdir = $(datarootdir)/dosbox-x
+
+res_DATA = \
+	../font/FREECG98.BMP
 
 if HAVE_WINDRES
 ico_stuff = winres.rc

@@ -58,6 +58,14 @@ static void W32_ConfDir(std::string& in,bool create) {
 }
 #endif
 
+void Cross::GetPlatformResDir(std::string& in) {
+#ifdef RESDIR
+	in = RESDIR;
+#endif
+    if (!in.empty())
+	    in += CROSS_FILESPLIT;
+}
+
 void Cross::GetPlatformConfigDir(std::string& in) {
 #ifdef WIN32
 	W32_ConfDir(in,false);

@@ -70,6 +70,7 @@ static inline float powf (float x, float y) { return (float) pow (x,y); }
 
 class Cross {
 public:
+	static void GetPlatformResDir(std::string& in);
 	static void GetPlatformConfigDir(std::string& in);
 	static void GetPlatformConfigName(std::string& in);
 	static void CreatePlatformConfigDir(std::string& in);

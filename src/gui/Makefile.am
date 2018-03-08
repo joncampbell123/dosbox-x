@@ -1,4 +1,4 @@
-AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/src/aviwriter
+AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/src/aviwriter "-DRESDIR=\"$(resdir)\""
 
 noinst_LIBRARIES = libgui.a
 libgui_a_SOURCES = \
