@@ -7,7 +7,8 @@ bin_PROGRAMS = dosbox-x
 resdir = $(datarootdir)/dosbox-x
 
 res_DATA = \
-	../font/FREECG98.BMP
+	../font/FREECG98.BMP \
+	../CHANGELOG
 
 if HAVE_WINDRES
 ico_stuff = winres.rc
