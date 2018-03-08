@@ -134,6 +134,19 @@ if test x$warn_cpp0x = x1; then
     AC_MSG_WARN([ C++0x is considered deprecated. Please use a C++11 compiler. C++0x support will be removed at a future date. ])
 fi
 
+dnl This is how the build script can specify a HX DOS extender target
+AH_TEMPLATE(C_HX_DOS,[Define to 1 to target HX DOS])
+AC_ARG_ENABLE(hx-dos,AC_HELP_STRING([--enable-hx-dos],[Enable HX target]),enable_hx=yes)
+
+dnl Some stuff for the icon.
+case "$host" in
+    *-*-cygwin* | *-*-mingw32*)
+    if [ x"$enable_hx" == x"yes" ]; then
+        AC_DEFINE(C_HX_DOS,1,[Targeting HX DOS extender])
+    fi
+    ;;
+esac
+
 dnl TEST: Environ can be included
 AC_MSG_CHECKING(if environ can be included)
 AC_LINK_IFELSE([AC_LANG_PROGRAM([[
