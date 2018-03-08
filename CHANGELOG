@@ -1,4 +1,10 @@
 (next)
+  - Mac OS X builds fixed to work from the user's home directory
+    if run from the Finder, instead of trying to operate at the
+    root of the filesystem as directed by the Finder.
+  - Mac OS X builds now put the FREECG98.BMP file inside of the
+    .app bundle, and fall back to it if not found in the current
+    directory.
   - RPM builds now install FREECG98.BMP in /usr/share/dosbox-x
     and refer to it if not in your local directory, in order to
     better provide PC-98 emulation.
