@@ -142,6 +142,7 @@ dnl Some stuff for the icon.
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
     if [ x"$enable_hx" == x"yes" ]; then
+        CXXFLAGS="$CXXFLAGS -DHX_DOS"
         AC_DEFINE(C_HX_DOS,1,[Targeting HX DOS extender])
     fi
     ;;
