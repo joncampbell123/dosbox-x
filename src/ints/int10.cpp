@@ -886,10 +886,10 @@ bool Load_Anex86_Font(void) {
     unsigned char tmp[(2048/8)*16]; /* enough for one 2048x16 row and bitmap header */
     unsigned int hibyte,lowbyte,r;
     unsigned int bmp_ofs;
-    FILE *fp;
+    FILE *fp = NULL;
 
     /* ANEX86.BMP accurate dump of actual font */
-             fp = fopen("anex86.bmp","rb");
+    if (!fp) fp = fopen("anex86.bmp","rb");
     if (!fp) fp = fopen("ANEX86.bmp","rb");
     if (!fp) fp = fopen("ANEX86.BMP","rb");
 
@@ -897,6 +897,24 @@ bool Load_Anex86_Font(void) {
     if (!fp) fp = fopen("freecg98.bmp","rb");
     if (!fp) fp = fopen("FREECG98.bmp","rb");
     if (!fp) fp = fopen("FREECG98.BMP","rb");
+
+    /* Linux builds allow FREECG98.BMP in /usr/share/dosbox-x */
+    {
+        std::string resdir,tmpdir;
+
+        Cross::GetPlatformResDir(resdir);
+        if (!resdir.empty()) {
+            /* FREECG98.BMP free open source generated copy from system fonts */
+            if (!fp) {
+                tmpdir = resdir + "freecg98.bmp";
+                fp = fopen(tmpdir.c_str(),"rb");
+            }
+            if (!fp) {
+                tmpdir = resdir + "FREECG98.BMP";
+                fp = fopen(tmpdir.c_str(),"rb");
+            }
+        }
+    }
 
     if (!fp) {
         LOG_MSG("PC-98 font loading: neither ANEX86.BMP nor FREECG98.BMP found");
