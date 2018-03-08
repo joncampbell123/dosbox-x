@@ -5113,6 +5113,52 @@ int main(int argc, char* argv[]) {
     ImmDisableIME((DWORD)(-1));
 #endif
 
+#if defined(MACOSX)
+    /* The resource system of DOSBox-X relies on being able to locate the Resources subdirectory
+       within the DOSBox-X .app bundle. To do this, we have to first know where our own executable
+       is, which Mac OS X helpfully puts int argv[0] for us */
+    /* NTS: Experimental testing shows that when we are run from the desktop (double-clicking on
+            the .app bundle from the Finder) the current working directory is / (fs root). */
+    extern std::string MacOSXEXEPath;
+    extern std::string MacOSXResPath;
+    MacOSXEXEPath = argv[0];
+
+    /* The path should be something like /blah/blah/dosbox-x.app/Contents/MacOS/DosBox */
+    /* If that's true, then we can move one level up the tree and look for */
+    /* /blah/blah/dosbox-x.app/Contents/Resources */
+    {
+	const char *ref = argv[0];
+	const char *s = strrchr(ref,'/');
+	if (s != NULL) {
+		if (s > ref) s--;
+		while (s > ref && *s != '/') s--;
+		if (!strncasecmp(s,"/MacOS/",7)) {
+			MacOSXResPath = std::string(ref,(size_t)(s-ref)) + "/Resources";
+		}
+	}
+    }
+
+    /* If we were launched by the Finder, the current working directory will usually be
+       the root of the filesystem (/) which is useless. If we see that, change instead
+       to the user's home directory */
+    {
+        char *home = getenv("HOME");
+        char cwd[512];
+
+        cwd[0]=0;
+        getcwd(cwd,sizeof(cwd)-1);
+
+        if (!strcmp(cwd,"/")) {
+            /* Only the Finder would do that.
+               Even if the user somehow did this from the Terminal app, it's still
+               worth changing to the home directory because certain directories
+               including / are locked readonly even for sudo in Mac OS X */
+            /* NTS: HOME is usually an absolute path */
+            if (home != NULL) chdir(home);
+        }
+    }
+#endif
+
     {
         std::string tmp,config_path;
 
@@ -5203,6 +5249,11 @@ int main(int argc, char* argv[]) {
 		/* -- Welcome to DOSBox-X! */
 		LOG_MSG("DOSBox-X version %s",VERSION);
 		LOG(LOG_MISC,LOG_NORMAL)("Copyright 2002-2015 enhanced branch by The Great Codeholio, forked from the main project by the DOSBox Team, published under GNU GPL.");
+
+#if defined(MACOSX)
+		LOG_MSG("Mac OS X EXE path: %s",MacOSXEXEPath.c_str());
+		LOG_MSG("Mac OS X Resource path: %s",MacOSXResPath.c_str());
+#endif
 
 		/* -- [debug] setup console */
 #if C_DEBUG

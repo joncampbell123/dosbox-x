@@ -899,6 +899,7 @@ bool Load_Anex86_Font(void) {
     if (!fp) fp = fopen("FREECG98.BMP","rb");
 
     /* Linux builds allow FREECG98.BMP in /usr/share/dosbox-x */
+    /* Mac OS X builds carry FREECG98.BMP in the Resources subdirectory of the .app bundle */
     {
         std::string resdir,tmpdir;
 

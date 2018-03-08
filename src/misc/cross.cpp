@@ -23,6 +23,11 @@
 #include <string>
 #include <stdlib.h>
 
+#if defined(MACOSX)
+std::string MacOSXEXEPath;
+std::string MacOSXResPath;
+#endif
+
 #ifdef WIN32
 #ifndef _WIN32_IE
 #define _WIN32_IE 0x0400
@@ -59,7 +64,9 @@ static void W32_ConfDir(std::string& in,bool create) {
 #endif
 
 void Cross::GetPlatformResDir(std::string& in) {
-#ifdef RESDIR
+#if defined(MACOSX)
+	in = MacOSXResPath;
+#elif defined(RESDIR)
 	in = RESDIR;
 #endif
     if (!in.empty())
