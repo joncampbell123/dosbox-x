@@ -1,13 +1,8 @@
 #!/usr/bin/perl
 my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
 my $datestr = sprintf("%04u%02u%02u-%02u%02u%02u",$year+1900,$mon+1,$mday,$hour,$min,$sec);
-my $zipname = "dosbox-x-windows-$datestr.zip";
 
 my $ziptool = "vs2015/tool/zip.exe";
-
-exit 0 if -f $zipname;
-
-die unless -f $ziptool;
 
 my $subdir="release/windows";
 
@@ -28,10 +23,17 @@ if ( "$branch" eq "develop-win-sdl1-async-hack-201802" ) {
     $subdir="release/windows-async";
 }
 
+$suffix = $subdir;
+$suffix =~ s/^.*\///g;
+
 mkdir "release" unless -d "release";
 mkdir "$subdir" unless -d "$subdir";
 
 die "bin directory not exist" unless -d "bin";
+
+my $zipname = "dosbox-x-windows-$datestr-$suffix.zip";
+exit 0 if -f $zipname;
+die unless -f $ziptool;
 
 print "$zipname\n";
 
