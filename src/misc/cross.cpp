@@ -64,7 +64,9 @@ static void W32_ConfDir(std::string& in,bool create) {
 #endif
 
 void Cross::GetPlatformResDir(std::string& in) {
-#ifdef RESDIR
+#if defined(MACOSX)
+	in = MacOSXResPath;
+#elif defined(RESDIR)
 	in = RESDIR;
 #endif
     if (!in.empty())
