@@ -465,7 +465,7 @@ bool device_CON::Write(Bit8u * data,Bit16u * size) {
     INT10_SetCurMode();
     while (*size>count) {
         if (log_dev_con) {
-            if (log_dev_con_str.size() >= 255 || data[count] == '\n') {
+            if (log_dev_con_str.size() >= 255 || data[count] == '\n' || data[count] == 27) {
                 LOG_MSG("DOS CON: %s",log_dev_con_str.c_str());
                 log_dev_con_str.clear();
             }
