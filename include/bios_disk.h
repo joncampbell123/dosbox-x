@@ -154,7 +154,7 @@ public:
 
 private:
 	void init(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sectorSize, bool isHardDrive, Bit8u floppyBiosMediaType, imageDisk* underlyingImage);
-	bool CalculateFAT(Bitu partitionStartingSector, Bitu partitionLength, bool isHardDrive, Bitu rootEntries, Bitu* rootSectors, Bitu* sectorsPerCluster, bool* isFat16, Bitu* fatSectors);
+	bool CalculateFAT(Bitu partitionStartingSector, Bitu partitionLength, bool isHardDrive, Bitu rootEntries, Bitu* rootSectors, Bitu* sectorsPerCluster, bool* isFat16, Bitu* fatSectors, Bitu* reservedSectors);
 
 	Bit8u * * ChunkMap;
 	Bit32u sectors_per_chunk;
