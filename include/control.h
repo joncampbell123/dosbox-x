@@ -84,11 +84,7 @@ public:
 		opt_printconf = false;
 		opt_noautoexec = false;
 		opt_securemode = false;
-#if defined(HX_DOS)
-		opt_fullscreen = true; /* HX DOS extender renders our window as it's own, with no border. Might as well go fullscreen */
-#else
 		opt_fullscreen = false;
-#endif
 		opt_showcycles = false;
 		opt_earlydebug = false;
 		opt_break_start = false;
