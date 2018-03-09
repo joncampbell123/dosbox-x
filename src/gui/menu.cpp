@@ -762,6 +762,7 @@ void Mount_Img(char drive, std::string realpath) {
 }
 
 void DOSBox_SetSysMenu(void) {
+#if !defined(HX_DOS)
 	MENUITEMINFO mii;
 	HMENU sysmenu;
 	BOOL s;
@@ -785,6 +786,7 @@ void DOSBox_SetSysMenu(void) {
 
 		s = InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
 	}
+#endif
 }
 
 extern "C" void SDL1_hax_SetMenu(HMENU menu);
@@ -914,6 +916,7 @@ void ToggleMenu(bool pressed) {
 }
 
 void MENU_Check_Drive(HMENU handle, int cdrom, int floppy, int local, int image, int automount, int umount, char drive) {
+#if !defined(HX_DOS)
 	std::string full_drive(1, drive);
 	Section_prop * sec = static_cast<Section_prop *>(control->GetSection("dos"));
 	full_drive += ":\\";
@@ -923,6 +926,7 @@ void MENU_Check_Drive(HMENU handle, int cdrom, int floppy, int local, int image,
 	EnableMenuItem(handle, image, (Drives[drive - 'A'] || menu.boot) ? MF_GRAYED : MF_ENABLED);
 	if(sec) EnableMenuItem(handle, automount, AUTOMOUNT(full_drive.c_str(), drive) && !menu.boot && sec->Get_bool("automount") ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(handle, umount, (!Drives[drive - 'A']) || menu.boot ? MF_GRAYED : MF_ENABLED);
+#endif
 }
 
 bool MENU_SetBool(std::string secname, std::string value) {
@@ -942,6 +946,7 @@ void reflectmenu_INITMENU_cb();
 bool GFX_GetPreventFullscreen(void);
 
 int Reflect_Menu(void) {
+#if !defined(HX_DOS)
 	extern bool Mouse_Drv;
 	static char name[9];
 
@@ -1877,7 +1882,7 @@ int Reflect_Menu(void) {
 	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_Z, ID_MOUNT_FLOPPY_Z, ID_MOUNT_LOCAL_Z, ID_MOUNT_IMAGE_Z, ID_AUTOMOUNT_Z, ID_UMOUNT_Z, 'Z');
 
 	SDL1_hax_INITMENU_cb = reflectmenu_INITMENU_cb;
-
+#endif
     return 1;
 }
 
