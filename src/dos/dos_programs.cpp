@@ -1764,7 +1764,7 @@ void LOADFIX::Run(void)
 			if ((*upcase(&ch)=='D') || (*upcase(&ch)=='F')) {
 				// Deallocate all
                 if (xms) {
-                    WriteOut(MSG_Get("XMS deallocation not yet implemented"));
+                    WriteOut(MSG_Get("XMS deallocation not yet implemented\n"));
                 }
                 else {
                     DOS_FreeProcessMemory(0x40);
@@ -1788,14 +1788,14 @@ void LOADFIX::Run(void)
 
             err = XMS_AllocateMemory(kb,/*&*/handle);
             if (err == 0) {
-                WriteOut("XMS block allocated (%uKB)",kb);
+                WriteOut("XMS block allocated (%uKB)\n",kb);
             }
             else {
-                WriteOut("Unable to allocate XMS block");
+                WriteOut("Unable to allocate XMS block\n");
             }
         }
         else {
-            WriteOut("XMS not active");
+            WriteOut("XMS not active\n");
         }
     }
     else {
