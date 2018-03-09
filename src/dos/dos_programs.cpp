@@ -1744,58 +1744,93 @@ public:
 	void Run(void);
 };
 
+bool XMS_Active(void);
+Bitu XMS_AllocateMemory(Bitu size, Bit16u& handle);
+
 void LOADFIX::Run(void) 
 {
 	Bit16u commandNr	= 1;
-	Bit16u kb			= 64;
+	Bitu kb			    = 64;
+    bool xms            = false;
+
+    if (cmd->FindExist("-xms",true)) {
+        xms = true;
+        kb = 1024;
+    }
+
 	if (cmd->FindCommand(commandNr,temp_line)) {
 		if (temp_line[0]=='-') {
 			char ch = temp_line[1];
 			if ((*upcase(&ch)=='D') || (*upcase(&ch)=='F')) {
 				// Deallocate all
-				DOS_FreeProcessMemory(0x40);
-				WriteOut(MSG_Get("PROGRAM_LOADFIX_DEALLOCALL"),kb);
+                if (xms) {
+                    WriteOut(MSG_Get("XMS deallocation not yet implemented"));
+                }
+                else {
+                    DOS_FreeProcessMemory(0x40);
+                    WriteOut(MSG_Get("PROGRAM_LOADFIX_DEALLOCALL"),kb);
+                }
 				return;
 			} else {
 				// Set mem amount to allocate
 				kb = atoi(temp_line.c_str()+1);
-				if (kb==0) kb=64;
+				if (kb==0) kb=xms?1024:64;
 				commandNr++;
 			}
 		}
 	}
+
 	// Allocate Memory
-	Bit16u segment;
-	Bit16u blocks = kb*1024/16;
-	if (DOS_AllocateMemory(&segment,&blocks)) {
-		DOS_MCB mcb((Bit16u)(segment-1));
-		mcb.SetPSPSeg(0x40);			// use fake segment
-		WriteOut(MSG_Get("PROGRAM_LOADFIX_ALLOC"),kb);
-		// Prepare commandline...
-		if (cmd->FindCommand(commandNr++,temp_line)) {
-			// get Filename
-			char filename[128];
-			safe_strncpy(filename,temp_line.c_str(),128);
-			// Setup commandline
-			bool ok;
-			char args[256];
-			args[0] = 0;
-			do {
-				ok = cmd->FindCommand(commandNr++,temp_line);
-				if(sizeof(args)-strlen(args)-1 < temp_line.length()+1)
-					break;
-				strcat(args,temp_line.c_str());
-				strcat(args," ");
-			} while (ok);			
-			// Use shell to start program
-			DOS_Shell shell;
-			shell.Execute(filename,args);
-			DOS_FreeMemory(segment);		
-			WriteOut(MSG_Get("PROGRAM_LOADFIX_DEALLOC"),kb);
-		}
-	} else {
-		WriteOut(MSG_Get("PROGRAM_LOADFIX_ERROR"),kb);	
-	}
+    if (xms) {
+        if (XMS_Active()) {
+            Bit16u handle;
+            Bitu err;
+
+            err = XMS_AllocateMemory(kb,/*&*/handle);
+            if (err == 0) {
+                WriteOut("XMS block allocated (%uKB)",kb);
+            }
+            else {
+                WriteOut("Unable to allocate XMS block");
+            }
+        }
+        else {
+            WriteOut("XMS not active");
+        }
+    }
+    else {
+        Bit16u segment;
+        Bit16u blocks = kb*1024/16;
+        if (DOS_AllocateMemory(&segment,&blocks)) {
+            DOS_MCB mcb((Bit16u)(segment-1));
+            mcb.SetPSPSeg(0x40);			// use fake segment
+            WriteOut(MSG_Get("PROGRAM_LOADFIX_ALLOC"),kb);
+            // Prepare commandline...
+            if (cmd->FindCommand(commandNr++,temp_line)) {
+                // get Filename
+                char filename[128];
+                safe_strncpy(filename,temp_line.c_str(),128);
+                // Setup commandline
+                bool ok;
+                char args[256];
+                args[0] = 0;
+                do {
+                    ok = cmd->FindCommand(commandNr++,temp_line);
+                    if(sizeof(args)-strlen(args)-1 < temp_line.length()+1)
+                        break;
+                    strcat(args,temp_line.c_str());
+                    strcat(args," ");
+                } while (ok);			
+                // Use shell to start program
+                DOS_Shell shell;
+                shell.Execute(filename,args);
+                DOS_FreeMemory(segment);		
+                WriteOut(MSG_Get("PROGRAM_LOADFIX_DEALLOC"),kb);
+            }
+        } else {
+            WriteOut(MSG_Get("PROGRAM_LOADFIX_ERROR"),kb);	
+        }
+    }
 }
 
 static void LOADFIX_ProgramStart(Program * * make) {
