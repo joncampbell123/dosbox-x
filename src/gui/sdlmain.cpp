@@ -89,7 +89,7 @@ bool OpenGL_using(void);
 # include <cstring>
 # include <fstream>
 # include <sstream>
-# ifdef __MINGW32__
+# if defined(__MINGW32__) && !defined(HX_DOS)
 #  include <imm.h> // input method editor
 # endif
 #endif // WIN32
@@ -5116,7 +5116,7 @@ int main(int argc, char* argv[]) {
     memset(&sdl,0,sizeof(sdl)); // struct sdl isn't initialized anywhere that I can tell
 
     control=&myconf;
-#if defined(WIN32)
+#if defined(WIN32) && !defined(HX_DOS)
     /* Microsoft's IME does not play nice with DOSBox */
     ImmDisableIME((DWORD)(-1));
 #endif
