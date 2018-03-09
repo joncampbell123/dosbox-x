@@ -863,7 +863,7 @@ check_gotbpp:
 void SDL_Prepare(void) {
 	if (menu_compatible) return;
 
-#if defined(WIN32) && !defined(C_SDL2) // Microsoft Windows specific
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS) // Microsoft Windows specific
 	LOG(LOG_MISC,LOG_DEBUG)("Win32: Preparing main window to accept files dragged in from the Windows shell");
 
 	SDL_PumpEvents(); SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
