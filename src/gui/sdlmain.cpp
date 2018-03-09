@@ -1550,7 +1550,7 @@ dosurface:
     return retFlags;
 }
 
-#if defined(WIN32)
+#if defined(WIN32) && !defined(HX_DOS)
 // WARNING: Not recommended, there is danger you cannot exit emulator because mouse+keyboard are taken
 static bool enable_hook_everything = false;
 #endif
@@ -1561,7 +1561,7 @@ static bool enable_hook_everything = false;
 // danger you become trapped in the DOSBox emulator!
 static bool enable_hook_special_keys = true;
 
-#if defined(WIN32)
+#if defined(WIN32) && !defined(HX_DOS)
 // Whether or not to hook Num/Scroll/Caps lock in order to give the guest OS full control of the
 // LEDs on the keyboard (i.e. the LEDs do not change until the guest OS changes their state).
 // This flag also enables code to set the LEDs to guest state when setting mouse+keyboard capture,
@@ -1569,7 +1569,7 @@ static bool enable_hook_special_keys = true;
 static bool enable_hook_lock_toggle_keys = true;
 #endif
 
-#if defined(WIN32) && !defined(C_SDL2)
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
 // and this is where we store host LED state when capture is set.
 static bool on_capture_num_lock_was_on = true; // reasonable guess
 static bool on_capture_scroll_lock_was_on = false;
@@ -1577,7 +1577,7 @@ static bool on_capture_caps_lock_was_on = false;
 #endif
 
 static bool exthook_enabled = false;
-#if defined(WIN32) && !defined(C_SDL2)
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
 static HHOOK exthook_winhook = NULL;
 
 #if !defined(__MINGW32__)
@@ -1724,7 +1724,7 @@ Bitu Keyboard_Guest_LED_State();
 void UpdateKeyboardLEDState(Bitu led_state/* in the same bitfield arrangement as using command 0xED on PS/2 keyboards */);
 
 void UpdateKeyboardLEDState(Bitu led_state/* in the same bitfield arrangement as using command 0xED on PS/2 keyboards */) {
-#if defined(WIN32) && !defined(C_SDL2) /* Microsoft Windows */
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS) /* Microsoft Windows */
 	if (exthook_enabled) { // ONLY if ext hook is enabled, else we risk infinite loops with keyboard events
 		WinSetKeyToggleState(VK_NUMLOCK, !!(led_state & 2));
 		WinSetKeyToggleState(VK_SCROLL, !!(led_state & 1));
@@ -1737,7 +1737,7 @@ void DoExtendedKeyboardHook(bool enable) {
 	if (exthook_enabled == enable)
 		return;
 
-#if defined(WIN32) && !defined(C_SDL2)
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
 	if (enable) {
 		if (!exthook_winhook) {
 			exthook_winhook = SetWindowsHookEx(WH_KEYBOARD_LL, WinExtHookKeyboardHookProc, GetModuleHandle(NULL), NULL);
