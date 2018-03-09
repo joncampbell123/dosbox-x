@@ -116,6 +116,7 @@ struct XMS_MemMove{
 #pragma pack ()
 #endif
 
+static bool xms_global_enable = false;
 static int xms_local_enable_count = 0;
 
 void DOS_Write_HMA_CPM_jmp(void);
@@ -330,22 +331,35 @@ static bool multiplex_xms(void) {
 
 }
 
-Bitu XMS_UpdateEnableFromLocalCount(void) {
-    bool newstate = (xms_local_enable_count != 0);
-    Bitu res = 0;
-
-    if (XMS_GetEnabledA20() != newstate)
-        res = XMS_EnableA20(newstate);
-
-    return res;
-}
-
 INLINE void SET_RESULT(Bitu res,bool touch_bl_on_succes=true) {
 	if(touch_bl_on_succes || res) reg_bl = (Bit8u)res;
 	reg_ax = (res==0)?1:0;
 }
 
+Bitu XMS_LocalEnableA20(void) {
+    /* This appears to be how Microsoft HIMEM.SYS implements this */
+    if ((xms_local_enable_count++) == 0)
+        XMS_EnableA20(true);
+
+    return 0;
+}
+
+Bitu XMS_LocalDisableA20(void) {
+    /* This appears to be how Microsoft HIMEM.SYS implements this */
+    if (xms_local_enable_count > 0) {
+        if (--xms_local_enable_count == 0)
+            XMS_EnableA20(false);
+    }
+    else {
+        return 0x82; // A20 error
+    }
+
+    return 0;
+}
+
 Bitu XMS_Handler(void) {
+    Bitu r;
+
 //	LOG(LOG_MISC,LOG_ERROR)("XMS: CALL %02X",reg_ah);
 	switch (reg_ah) {
 	case XMS_GET_VERSION:										/* 00 */
@@ -396,23 +410,32 @@ Bitu XMS_Handler(void) {
 		}
 		break;
 	case XMS_GLOBAL_ENABLE_A20:									/* 03 */
-		SET_RESULT(XMS_EnableA20(true));
-		break;
-	case XMS_GLOBAL_DISABLE_A20:								/* 04 */
-		SET_RESULT(XMS_EnableA20(false));
-		break;
-	case XMS_LOCAL_ENABLE_A20:									/* 05 */
-        xms_local_enable_count++;
-        SET_RESULT(XMS_UpdateEnableFromLocalCount());
-        break;
-	case XMS_LOCAL_DISABLE_A20:									/* 06 */
-        if (xms_local_enable_count > 0) {
-            xms_local_enable_count--;
-            SET_RESULT(XMS_UpdateEnableFromLocalCount());
+        /* This appears to be how Microsoft HIMEM.SYS implements this */
+        if (!xms_global_enable) {
+            if ((r=XMS_LocalEnableA20()) == 0)
+                xms_global_enable = true;
         }
         else {
-            SET_RESULT(0);
+            r = 0;
         }
+        SET_RESULT(r);
+		break;
+	case XMS_GLOBAL_DISABLE_A20:								/* 04 */
+        /* This appears to be how Microsoft HIMEM.SYS implements this */
+        if (xms_global_enable) {
+            if ((r=XMS_LocalDisableA20()) == 0)
+                xms_global_enable = false;
+        }
+        else {
+            r = 0;
+        }
+        SET_RESULT(r);
+        break;
+    case XMS_LOCAL_ENABLE_A20:									/* 05 */
+        SET_RESULT(XMS_LocalEnableA20());
+        break;
+	case XMS_LOCAL_DISABLE_A20:									/* 06 */
+        SET_RESULT(XMS_LocalDisableA20());
 		break;
 	case XMS_QUERY_A20:											/* 07 */
 		reg_ax = XMS_GetEnabledA20();
