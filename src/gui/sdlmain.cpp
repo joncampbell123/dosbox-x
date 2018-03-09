@@ -3089,6 +3089,7 @@ bool GFX_IsFullscreen(void) {
 
 #if defined(__WIN32__) && !defined(C_SDL2)
 void OpenFileDialog( char * path_arg ) {
+#if !defined(HX_DOS)
 	if(control->SecureMode()) {
 		LOG_MSG(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
 		return;
@@ -3215,9 +3216,11 @@ search:
 godefault:
 	SetCurrentDirectory( Temp_CurrentDir );
 	return;
+#endif
 }
 
 void Go_Boot(const char boot_drive[_MAX_DRIVE]) {
+#if !defined(HX_DOS)
 		if(control->SecureMode()) {
 			LOG_MSG(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
 			return;
@@ -3308,9 +3311,11 @@ search:
 godefault:
 	SetCurrentDirectory( Temp_CurrentDir );
 	return;
+#endif
 }
 
 void Go_Boot2(const char boot_drive[_MAX_DRIVE]) {
+#if !defined(HX_DOS)
 	Bit16u n=1; Bit8u c='\n';
 	DOS_WriteFile(STDOUT,&c,&n);
 	char temp[7];
@@ -3328,10 +3333,12 @@ void Go_Boot2(const char boot_drive[_MAX_DRIVE]) {
 	shell.RunInternal();
 	DOS_WriteFile(STDOUT,&c,&n);
 	shell.ShowPrompt(); // if failed
+#endif
 }
 
 /* FIXME: Unused */
 void Drag_Drop( char * path_arg ) {
+#if !defined(HX_DOS)
 	if(control->SecureMode()) {
 		LOG_MSG(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
 		return;
@@ -3363,10 +3370,12 @@ void Drag_Drop( char * path_arg ) {
 		OpenFileDialog(path_arg);
 	else
 		LOG_MSG("GUI: Unsupported filename extension.");
+#endif
 }
 
 HHOOK hhk;
 LRESULT CALLBACK CBTProc(INT nCode, WPARAM wParam, LPARAM lParam) {
+#if !defined(HX_DOS)
 	lParam;
 	if( HCBT_ACTIVATE == nCode ) {
 		HWND hChildWnd;
@@ -3377,16 +3386,22 @@ LRESULT CALLBACK CBTProc(INT nCode, WPARAM wParam, LPARAM lParam) {
 		UnhookWindowsHookEx(hhk);
 	}
 	CallNextHookEx(hhk, nCode, wParam, lParam);
+#endif
 	return 0;
 }
 
 int MountMessageBox( HWND hWnd, LPCTSTR lpText, LPCTSTR lpCaption, UINT uType ) {
+#if !defined(HX_DOS)
 	hhk = SetWindowsHookEx( WH_CBT, &CBTProc, 0, GetCurrentThreadId() );
 	const int iRes = MessageBox( hWnd, lpText, lpCaption, uType | MB_SETFOREGROUND );
 		return iRes;
+#else
+	return 0;
+#endif
 }
 
 void OpenFileDialog_Img( char drive ) {
+#if !defined(HX_DOS)
 		if(control->SecureMode()) {
 			LOG_MSG(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
 			return;
@@ -3455,9 +3470,11 @@ search:
 			LOG_MSG("GUI: Unsupported filename extension.");
 	}
 	SetCurrentDirectory( Temp_CurrentDir );
+#endif
 }
 
 void D3D_PS(void) {
+#if !defined(HX_DOS)
 	OPENFILENAME OpenFileName;
 	char szFile[MAX_PATH];
 	char CurrentDir[MAX_PATH];
@@ -3520,6 +3537,7 @@ search:
 godefault:
 	SetCurrentDirectory( Temp_CurrentDir );
 	return;
+#endif
 }
 
 void* GetSetSDLValue(int isget, std::string target, void* setval) {

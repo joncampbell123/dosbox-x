@@ -128,6 +128,7 @@ void SearchFolder( char path[MAX_PATH], char drive, std::string drive_type ) {
 }
 
 void BrowseFolder( char drive , std::string drive_type ) {
+#if !defined(HX_DOS)
 	if (Drives[drive-'A']) {
 		LOG_MSG("Unmount drive %c first, and then try again.",drive);
 		return;
@@ -155,6 +156,7 @@ void BrowseFolder( char drive , std::string drive_type ) {
 			imalloc->Release ( );
 		}
 	}
+#endif
 }
 
 void mem_conf(std::string memtype, int option) {
