@@ -4659,7 +4659,7 @@ void CheckNumLockState(void) {
 extern bool log_keyboard_scan_codes;
 
 void DOSBox_ShowConsole() {
-#if defined(WIN32)
+#if defined(WIN32) && !defined(HX_DOS)
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
 	COORD crd;
 	HWND hwnd;
@@ -5265,7 +5265,7 @@ int main(int argc, char* argv[]) {
 
 		/* -- [debug] setup console */
 #if C_DEBUG
-# if defined(WIN32)
+# if defined(WIN32) && !defined(HX_DOS)
 		/* Can't disable the console with debugger enabled */
 		if (control->opt_noconsole) {
 			LOG(LOG_MISC,LOG_DEBUG)("-noconsole: hiding Win32 console window");
