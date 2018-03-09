@@ -44,7 +44,7 @@ std::string MacOSXResPath;
 #define _mkdir(x) mkdir(x)
 #endif
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(HX_DOS)
 static void W32_ConfDir(std::string& in,bool create) {
 	int c = create?1:0;
 	char result[MAX_PATH] = { 0 };
@@ -74,13 +74,13 @@ void Cross::GetPlatformResDir(std::string& in) {
 }
 
 void Cross::GetPlatformConfigDir(std::string& in) {
-#ifdef WIN32
+#if defined(WIN32) && !defined(HX_DOS)
 	W32_ConfDir(in,false);
 	in += "\\DOSBox";
 #elif defined(MACOSX)
 	in = "~/Library/Preferences";
 	ResolveHomedir(in);
-#else
+#elif !defined(HX_DOS)
 	in = "~/.dosbox";
 	ResolveHomedir(in);
 #endif
@@ -99,7 +99,7 @@ void Cross::GetPlatformConfigName(std::string& in) {
 }
 
 void Cross::CreatePlatformConfigDir(std::string& in) {
-#ifdef WIN32
+#if defined(WIN32) && !defined(HX_DOS)
 	W32_ConfDir(in,true);
 	in += "\\DOSBox";
 	_mkdir(in.c_str());
@@ -107,7 +107,7 @@ void Cross::CreatePlatformConfigDir(std::string& in) {
 	in = "~/Library/Preferences/";
 	ResolveHomedir(in);
 	//Don't create it. Assume it exists
-#else
+#elif !defined(HX_DOS)
 	in = "~/.dosbox";
 	ResolveHomedir(in);
 	mkdir(in.c_str(),0700);

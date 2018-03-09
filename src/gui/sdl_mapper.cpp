@@ -3127,7 +3127,7 @@ void MAPPER_RunInternal() {
 	DOSBox_RefreshMenu();
 #endif
 	if(!menu_gui) GFX_RestoreMode();
-#ifdef __WIN32__
+#if defined(__WIN32__) && !defined(HX_DOS)
 	if(GetAsyncKeyState(0x11)) {
 		INPUT ip;
 

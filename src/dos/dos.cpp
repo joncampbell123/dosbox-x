@@ -1442,7 +1442,7 @@ static Bitu DOS_21Handler(void) {
 		}
 		break;
 	case 0x5f:					/* Network redirection */
-#ifdef WIN32
+#if defined(WIN32) && !defined(HX_DOS)
 		switch(reg_al)
 		{
 		case	0x34:	//Set pipe state

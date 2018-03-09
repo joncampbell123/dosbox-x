@@ -128,6 +128,7 @@ void SearchFolder( char path[MAX_PATH], char drive, std::string drive_type ) {
 }
 
 void BrowseFolder( char drive , std::string drive_type ) {
+#if !defined(HX_DOS)
 	if (Drives[drive-'A']) {
 		LOG_MSG("Unmount drive %c first, and then try again.",drive);
 		return;
@@ -155,6 +156,7 @@ void BrowseFolder( char drive , std::string drive_type ) {
 			imalloc->Release ( );
 		}
 	}
+#endif
 }
 
 void mem_conf(std::string memtype, int option) {
@@ -760,6 +762,7 @@ void Mount_Img(char drive, std::string realpath) {
 }
 
 void DOSBox_SetSysMenu(void) {
+#if !defined(HX_DOS)
 	MENUITEMINFO mii;
 	HMENU sysmenu;
 	BOOL s;
@@ -783,11 +786,13 @@ void DOSBox_SetSysMenu(void) {
 
 		s = InsertMenuItem(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
 	}
+#endif
 }
 
 extern "C" void SDL1_hax_SetMenu(HMENU menu);
 
 void DOSBox_SetMenu(void) {
+#if !defined(HX_DOS)
 	if(!menu.gui) return;
 
 	LOG(LOG_MISC,LOG_DEBUG)("Win32: loading and attaching menu resource to DOSBox's window");
@@ -804,6 +809,7 @@ void DOSBox_SetMenu(void) {
 
     void DOSBox_SetSysMenu(void);
     DOSBox_SetSysMenu();
+#endif
 }
 
 void DOSBox_NoMenu(void) {
@@ -836,6 +842,7 @@ bool DOSBox_Kor(void) {
 }
 
 void DOSBox_RefreshMenu(void) {
+#if !defined(HX_DOS)
     int width, height; bool fullscreen;
     void GFX_GetSize(int &width, int &height, bool &fullscreen);
     GFX_GetSize(width,height,fullscreen);
@@ -860,9 +867,11 @@ void DOSBox_RefreshMenu(void) {
 		DOSBox_SetMenu();
 	else
 		DOSBox_NoMenu();
+#endif
 }
 
 void DOSBox_RefreshMenu2(void) {
+#if !defined(HX_DOS)
 	if(!menu.gui) return;
    int width, height; bool fullscreen;
    void GFX_GetSize(int &width, int &height, bool &fullscreen);
@@ -887,6 +896,7 @@ void DOSBox_RefreshMenu2(void) {
 
     void DOSBox_SetSysMenu(void);
     DOSBox_SetSysMenu();
+#endif
 }
 
 void ToggleMenu(bool pressed) {
@@ -912,6 +922,7 @@ void ToggleMenu(bool pressed) {
 }
 
 void MENU_Check_Drive(HMENU handle, int cdrom, int floppy, int local, int image, int automount, int umount, char drive) {
+#if !defined(HX_DOS)
 	std::string full_drive(1, drive);
 	Section_prop * sec = static_cast<Section_prop *>(control->GetSection("dos"));
 	full_drive += ":\\";
@@ -921,6 +932,7 @@ void MENU_Check_Drive(HMENU handle, int cdrom, int floppy, int local, int image,
 	EnableMenuItem(handle, image, (Drives[drive - 'A'] || menu.boot) ? MF_GRAYED : MF_ENABLED);
 	if(sec) EnableMenuItem(handle, automount, AUTOMOUNT(full_drive.c_str(), drive) && !menu.boot && sec->Get_bool("automount") ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(handle, umount, (!Drives[drive - 'A']) || menu.boot ? MF_GRAYED : MF_ENABLED);
+#endif
 }
 
 bool MENU_SetBool(std::string secname, std::string value) {
@@ -940,6 +952,7 @@ void reflectmenu_INITMENU_cb();
 bool GFX_GetPreventFullscreen(void);
 
 int Reflect_Menu(void) {
+#if !defined(HX_DOS)
 	extern bool Mouse_Drv;
 	static char name[9];
 
@@ -1875,7 +1888,7 @@ int Reflect_Menu(void) {
 	MENU_Check_Drive(m_handle, ID_MOUNT_CDROM_Z, ID_MOUNT_FLOPPY_Z, ID_MOUNT_LOCAL_Z, ID_MOUNT_IMAGE_Z, ID_AUTOMOUNT_Z, ID_UMOUNT_Z, 'Z');
 
 	SDL1_hax_INITMENU_cb = reflectmenu_INITMENU_cb;
-
+#endif
     return 1;
 }
 
@@ -1906,6 +1919,7 @@ void SetScaleForced(bool forced)
 }
 
 void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
+#if !defined(HX_DOS)
 	bool GFX_GetPreventFullscreen(void);
 
 	if (!menu.gui || GetSetSDLValue(1, "desktop.fullscreen", 0)) return;
@@ -2772,6 +2786,7 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 	}
 
 	Reflect_Menu();
+#endif
 }
 #else
 void DOSBox_SetSysMenu(void) {

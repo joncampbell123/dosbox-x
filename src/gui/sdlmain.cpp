@@ -89,7 +89,7 @@ bool OpenGL_using(void);
 # include <cstring>
 # include <fstream>
 # include <sstream>
-# ifdef __MINGW32__
+# if defined(__MINGW32__) && !defined(HX_DOS)
 #  include <imm.h> // input method editor
 # endif
 #endif // WIN32
@@ -863,7 +863,7 @@ check_gotbpp:
 void SDL_Prepare(void) {
 	if (menu_compatible) return;
 
-#if defined(WIN32) && !defined(C_SDL2) // Microsoft Windows specific
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS) // Microsoft Windows specific
 	LOG(LOG_MISC,LOG_DEBUG)("Win32: Preparing main window to accept files dragged in from the Windows shell");
 
 	SDL_PumpEvents(); SDL_EventState(SDL_SYSWMEVENT, SDL_ENABLE);
@@ -1550,7 +1550,7 @@ dosurface:
     return retFlags;
 }
 
-#if defined(WIN32)
+#if defined(WIN32) && !defined(HX_DOS)
 // WARNING: Not recommended, there is danger you cannot exit emulator because mouse+keyboard are taken
 static bool enable_hook_everything = false;
 #endif
@@ -1561,7 +1561,7 @@ static bool enable_hook_everything = false;
 // danger you become trapped in the DOSBox emulator!
 static bool enable_hook_special_keys = true;
 
-#if defined(WIN32)
+#if defined(WIN32) && !defined(HX_DOS)
 // Whether or not to hook Num/Scroll/Caps lock in order to give the guest OS full control of the
 // LEDs on the keyboard (i.e. the LEDs do not change until the guest OS changes their state).
 // This flag also enables code to set the LEDs to guest state when setting mouse+keyboard capture,
@@ -1569,7 +1569,7 @@ static bool enable_hook_special_keys = true;
 static bool enable_hook_lock_toggle_keys = true;
 #endif
 
-#if defined(WIN32) && !defined(C_SDL2)
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
 // and this is where we store host LED state when capture is set.
 static bool on_capture_num_lock_was_on = true; // reasonable guess
 static bool on_capture_scroll_lock_was_on = false;
@@ -1577,7 +1577,7 @@ static bool on_capture_caps_lock_was_on = false;
 #endif
 
 static bool exthook_enabled = false;
-#if defined(WIN32) && !defined(C_SDL2)
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
 static HHOOK exthook_winhook = NULL;
 
 #if !defined(__MINGW32__)
@@ -1724,7 +1724,7 @@ Bitu Keyboard_Guest_LED_State();
 void UpdateKeyboardLEDState(Bitu led_state/* in the same bitfield arrangement as using command 0xED on PS/2 keyboards */);
 
 void UpdateKeyboardLEDState(Bitu led_state/* in the same bitfield arrangement as using command 0xED on PS/2 keyboards */) {
-#if defined(WIN32) && !defined(C_SDL2) /* Microsoft Windows */
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS) /* Microsoft Windows */
 	if (exthook_enabled) { // ONLY if ext hook is enabled, else we risk infinite loops with keyboard events
 		WinSetKeyToggleState(VK_NUMLOCK, !!(led_state & 2));
 		WinSetKeyToggleState(VK_SCROLL, !!(led_state & 1));
@@ -1737,7 +1737,7 @@ void DoExtendedKeyboardHook(bool enable) {
 	if (exthook_enabled == enable)
 		return;
 
-#if defined(WIN32) && !defined(C_SDL2)
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
 	if (enable) {
 		if (!exthook_winhook) {
 			exthook_winhook = SetWindowsHookEx(WH_KEYBOARD_LL, WinExtHookKeyboardHookProc, GetModuleHandle(NULL), NULL);
@@ -2044,17 +2044,21 @@ void change_output(int output) {
 	case 2: /* do nothing */
 		break;
 	case 3:
+#if C_OPENGL
 		change_output(2);
 		sdl.desktop.want_type=SCREEN_OPENGL;
 #if !defined(C_SDL2)
 		sdl.opengl.bilinear = true;
 #endif
+#endif
 		break;
 	case 4:
+#if C_OPENGL
 		change_output(2);
 		sdl.desktop.want_type=SCREEN_OPENGL;
 #if !defined(C_SDL2)
 		sdl.opengl.bilinear = false; //NB
+#endif
 #endif
 		break;
 #if defined(__WIN32__) && !defined(C_SDL2)
@@ -3085,6 +3089,7 @@ bool GFX_IsFullscreen(void) {
 
 #if defined(__WIN32__) && !defined(C_SDL2)
 void OpenFileDialog( char * path_arg ) {
+#if !defined(HX_DOS)
 	if(control->SecureMode()) {
 		LOG_MSG(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
 		return;
@@ -3211,9 +3216,11 @@ search:
 godefault:
 	SetCurrentDirectory( Temp_CurrentDir );
 	return;
+#endif
 }
 
 void Go_Boot(const char boot_drive[_MAX_DRIVE]) {
+#if !defined(HX_DOS)
 		if(control->SecureMode()) {
 			LOG_MSG(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
 			return;
@@ -3304,9 +3311,11 @@ search:
 godefault:
 	SetCurrentDirectory( Temp_CurrentDir );
 	return;
+#endif
 }
 
 void Go_Boot2(const char boot_drive[_MAX_DRIVE]) {
+#if !defined(HX_DOS)
 	Bit16u n=1; Bit8u c='\n';
 	DOS_WriteFile(STDOUT,&c,&n);
 	char temp[7];
@@ -3324,10 +3333,12 @@ void Go_Boot2(const char boot_drive[_MAX_DRIVE]) {
 	shell.RunInternal();
 	DOS_WriteFile(STDOUT,&c,&n);
 	shell.ShowPrompt(); // if failed
+#endif
 }
 
 /* FIXME: Unused */
 void Drag_Drop( char * path_arg ) {
+#if !defined(HX_DOS)
 	if(control->SecureMode()) {
 		LOG_MSG(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
 		return;
@@ -3359,10 +3370,12 @@ void Drag_Drop( char * path_arg ) {
 		OpenFileDialog(path_arg);
 	else
 		LOG_MSG("GUI: Unsupported filename extension.");
+#endif
 }
 
 HHOOK hhk;
 LRESULT CALLBACK CBTProc(INT nCode, WPARAM wParam, LPARAM lParam) {
+#if !defined(HX_DOS)
 	lParam;
 	if( HCBT_ACTIVATE == nCode ) {
 		HWND hChildWnd;
@@ -3373,16 +3386,22 @@ LRESULT CALLBACK CBTProc(INT nCode, WPARAM wParam, LPARAM lParam) {
 		UnhookWindowsHookEx(hhk);
 	}
 	CallNextHookEx(hhk, nCode, wParam, lParam);
+#endif
 	return 0;
 }
 
 int MountMessageBox( HWND hWnd, LPCTSTR lpText, LPCTSTR lpCaption, UINT uType ) {
+#if !defined(HX_DOS)
 	hhk = SetWindowsHookEx( WH_CBT, &CBTProc, 0, GetCurrentThreadId() );
 	const int iRes = MessageBox( hWnd, lpText, lpCaption, uType | MB_SETFOREGROUND );
 		return iRes;
+#else
+	return 0;
+#endif
 }
 
 void OpenFileDialog_Img( char drive ) {
+#if !defined(HX_DOS)
 		if(control->SecureMode()) {
 			LOG_MSG(MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"));
 			return;
@@ -3451,9 +3470,11 @@ search:
 			LOG_MSG("GUI: Unsupported filename extension.");
 	}
 	SetCurrentDirectory( Temp_CurrentDir );
+#endif
 }
 
 void D3D_PS(void) {
+#if !defined(HX_DOS)
 	OPENFILENAME OpenFileName;
 	char szFile[MAX_PATH];
 	char CurrentDir[MAX_PATH];
@@ -3516,6 +3537,7 @@ search:
 godefault:
 	SetCurrentDirectory( Temp_CurrentDir );
 	return;
+#endif
 }
 
 void* GetSetSDLValue(int isget, std::string target, void* setval) {
@@ -3524,8 +3546,12 @@ void* GetSetSDLValue(int isget, std::string target, void* setval) {
 		else sdl.wait_on_error = setval;
 	}
 	else if (target == "opengl.bilinear") {
+#if C_OPENGL
 		if (isget) return (void*) sdl.opengl.bilinear;
 		else sdl.opengl.bilinear = setval;
+#else
+		if (isget) return (void*) 0;
+#endif
 /*
 	} else if (target == "draw.callback") {
 		if (isget) return (void*) sdl.draw.callback;
@@ -4651,7 +4677,7 @@ void CheckNumLockState(void) {
 extern bool log_keyboard_scan_codes;
 
 void DOSBox_ShowConsole() {
-#if defined(WIN32)
+#if defined(WIN32) && !defined(HX_DOS)
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
 	COORD crd;
 	HWND hwnd;
@@ -5108,7 +5134,7 @@ int main(int argc, char* argv[]) {
     memset(&sdl,0,sizeof(sdl)); // struct sdl isn't initialized anywhere that I can tell
 
     control=&myconf;
-#if defined(WIN32)
+#if defined(WIN32) && !defined(HX_DOS)
     /* Microsoft's IME does not play nice with DOSBox */
     ImmDisableIME((DWORD)(-1));
 #endif
@@ -5257,7 +5283,7 @@ int main(int argc, char* argv[]) {
 
 		/* -- [debug] setup console */
 #if C_DEBUG
-# if defined(WIN32)
+# if defined(WIN32) && !defined(HX_DOS)
 		/* Can't disable the console with debugger enabled */
 		if (control->opt_noconsole) {
 			LOG(LOG_MISC,LOG_DEBUG)("-noconsole: hiding Win32 console window");
