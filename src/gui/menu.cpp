@@ -792,6 +792,7 @@ void DOSBox_SetSysMenu(void) {
 extern "C" void SDL1_hax_SetMenu(HMENU menu);
 
 void DOSBox_SetMenu(void) {
+#if !defined(HX_DOS)
 	if(!menu.gui) return;
 
 	LOG(LOG_MISC,LOG_DEBUG)("Win32: loading and attaching menu resource to DOSBox's window");
@@ -808,6 +809,7 @@ void DOSBox_SetMenu(void) {
 
     void DOSBox_SetSysMenu(void);
     DOSBox_SetSysMenu();
+#endif
 }
 
 void DOSBox_NoMenu(void) {
@@ -869,6 +871,7 @@ void DOSBox_RefreshMenu(void) {
 }
 
 void DOSBox_RefreshMenu2(void) {
+#if !defined(HX_DOS)
 	if(!menu.gui) return;
    int width, height; bool fullscreen;
    void GFX_GetSize(int &width, int &height, bool &fullscreen);
@@ -893,6 +896,7 @@ void DOSBox_RefreshMenu2(void) {
 
     void DOSBox_SetSysMenu(void);
     DOSBox_SetSysMenu();
+#endif
 }
 
 void ToggleMenu(bool pressed) {
@@ -1915,6 +1919,7 @@ void SetScaleForced(bool forced)
 }
 
 void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
+#if !defined(HX_DOS)
 	bool GFX_GetPreventFullscreen(void);
 
 	if (!menu.gui || GetSetSDLValue(1, "desktop.fullscreen", 0)) return;
@@ -2781,6 +2786,7 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 	}
 
 	Reflect_Menu();
+#endif
 }
 #else
 void DOSBox_SetSysMenu(void) {
