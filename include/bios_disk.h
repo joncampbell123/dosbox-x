@@ -150,13 +150,13 @@ public:
 	virtual Bit8u Format();
 
 	imageDiskMemory(Bit32u imgSizeK);
-	imageDiskMemory(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sectorSize, bool isHardDrive, Bit8u floppyBiosMediaType);
+	imageDiskMemory(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sectorSize);
 	imageDiskMemory(diskGeo floppyGeometry);
 	imageDiskMemory(imageDisk* underylingImage);
 	virtual ~imageDiskMemory();
 
 private:
-	void init(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sectorSize, bool isHardDrive, Bit8u floppyBiosMediaType, imageDisk* underlyingImage);
+	void init(diskGeo diskParams, bool isHardDrive, imageDisk* underlyingImage);
 	bool CalculateFAT(Bitu partitionStartingSector, Bitu partitionLength, bool isHardDrive, Bitu rootEntries, Bitu* rootSectors, Bitu* sectorsPerCluster, bool* isFat16, Bitu* fatSectors, Bitu* reservedSectors);
 
 	Bit8u * * ChunkMap;
@@ -166,7 +166,7 @@ private:
 	Bit32u total_sectors;
 	imageDisk* underlyingImage;
 
-	Bit8u bios_type;
+	diskGeo floppyInfo;
 };
 
 void updateDPT(void);
