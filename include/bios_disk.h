@@ -41,6 +41,9 @@ struct diskGeo {
 	Bit16u cylcount;  /* Cylinders per side */
 	Bit16u biosval;   /* Type to return from BIOS */
     Bit16u bytespersect; /* Bytes per sector */
+	Bit16u rootentries;  /* Root directory entries */
+	Bit8u sectcluster;   /* Sectors per cluster */
+	Bit8u mediaid;       /* Media ID */
 };
 extern diskGeo DiskGeometryList[];
 
