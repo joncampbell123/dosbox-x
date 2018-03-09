@@ -58,6 +58,10 @@ void (*SDL1_hax_INITMENU_cb)() = NULL;
 #define NO_GETKEYBOARDSTATE
 #endif
 
+#ifdef SDL_WIN32_HX_DOS
+#define NO_GETKEYBOARDSTATE
+#endif
+
 HKL hLayout = NULL;
 
 /* The translation table from a Microsoft VK keysym to a SDL keysym */

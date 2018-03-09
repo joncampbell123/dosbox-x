@@ -64,6 +64,10 @@
 #endif
 #endif
 
+#ifdef SDL_WIN32_HX_DOS
+#define NO_GETKEYBOARDSTATE
+#endif
+
 /* The window we use for everything... */
 #ifdef _WIN32_WCE
 LPWSTR SDL_Appname = NULL;
