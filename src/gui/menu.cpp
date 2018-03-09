@@ -840,6 +840,7 @@ bool DOSBox_Kor(void) {
 }
 
 void DOSBox_RefreshMenu(void) {
+#if !defined(HX_DOS)
     int width, height; bool fullscreen;
     void GFX_GetSize(int &width, int &height, bool &fullscreen);
     GFX_GetSize(width,height,fullscreen);
@@ -864,6 +865,7 @@ void DOSBox_RefreshMenu(void) {
 		DOSBox_SetMenu();
 	else
 		DOSBox_NoMenu();
+#endif
 }
 
 void DOSBox_RefreshMenu2(void) {
