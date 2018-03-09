@@ -1669,7 +1669,7 @@ public:
          *       It might help to look at the BIOS setup menus of 1990s PC-98 systems
          *       that offer toggling virtual versions of these DIP switches to see
          *       what the BIOS menu text says. */
-        return 0x63 | (gdc_5mhz_mode ? 0x80 : 0x00); // taken from a PC-9821 Lt2
+        return 0x63 | (gdc_5mhz_mode ? 0x00 : 0x80); // taken from a PC-9821 Lt2
     }
     /* port B is input */
     virtual uint8_t inPortB(void) const {

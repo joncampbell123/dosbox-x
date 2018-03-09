@@ -545,7 +545,8 @@ void GDC_ProcDelay(Bitu /*val*/) {
 }
 
 void gdc_5mhz_mode_update_vars(void) {
-    mem_writeb(0x54D,(mem_readb(0x54D) & (~0x04)) | (gdc_5mhz_mode ? 0x04 : 0x00));
+// FIXME: Is this right?
+    mem_writeb(0x54D,(mem_readb(0x54D) & (~0x20)) | (gdc_5mhz_mode ? 0x20 : 0x00));
 }
 
 /*==================================================*/
