@@ -74,8 +74,8 @@ imageDiskMemory::imageDiskMemory(Bit32u imgSizeK) {
 	//     515593      963    63    17
 	//    8217247     1023    63   255     <<---at 8gb the cylinder count is increased beyond 1023 cylinders
 	//    8217248     1024    63   255
-	// 4294967295   534699    63   255     <<---can create drives up to MAXULONGLONG kb
-
+	// 4294967295   534699    63   255     <<---can create drives up to ULONG_MAX kb
+	
 	//use 32kb as minimum drive size, since it is not possible to format a smaller drive that has 16 sectors
 	if (imgSizeK < 32) imgSizeK = 32;
 	//set the sector size to 512 bytes
@@ -83,46 +83,74 @@ imageDiskMemory::imageDiskMemory(Bit32u imgSizeK) {
 	//calculate the total number of sectors on the drive (imgSizeK * 2)
 	Bit64u total_sectors = ((Bit64u)imgSizeK * 1024 + sector_size - 1) / sector_size;
 	//assume 1023 cylinders and 16 sectors minimum; calculate the number of heads (round up)
-	Bit32u heads = (total_sectors + (1023 * 16 - 1)) / (1023 * 16);
+	Bit32u heads = (Bit32u)((total_sectors + (1023 * 16 - 1)) / (1023 * 16));
 	//cap heads at 63
 	if (heads > 63) heads = 63;
 	//now calculate the sectors (again, assuming 1023 cylinders) (round up)
-	Bit32u sectors = (total_sectors + (heads * 1023 - 1)) / (heads * 1023);
+	Bit32u sectors = (Bit32u)((total_sectors + (heads * 1023 - 1)) / (heads * 1023));
 	//set sectors to a minimum of 16 and maximum of 255
 	if (sectors < 16) sectors = 16;
 	if (sectors > 255) sectors = 255;
 	//now calculate the correct number of cylinders (round up)
-	Bit32u cylinders = (total_sectors + (heads * sectors - 1)) / (heads * sectors);
+	Bit32u cylinders = (Bit32u)((total_sectors + (heads * sectors - 1)) / (heads * sectors));
 	//set minimum number of cylinders to be 4 (which equals a 32kb image)
 	if (cylinders < 4) cylinders = 4;
 	//it is possible for the cylinders to be > 1023 at this point - to be trapped within init()
 	//minimum image size possible with this formula is 32kb (16 sectors, 1 head, 4 cylinders), which is enough to format 
 
-	init(cylinders, heads, sectors, sector_size, true, 0, 0);
+	diskGeo diskParams;
+	diskParams.secttrack = sectors;
+	diskParams.cylcount = cylinders;
+	diskParams.headscyl = heads;
+	diskParams.bytespersect = sector_size;
+	diskParams.biosval = 0;
+	diskParams.ksize = imgSizeK;
+	diskParams.mediaid = 0xF0;
+	diskParams.rootentries = 512;
+	diskParams.biosval = 0;
+	diskParams.sectcluster = 1;
+	init(diskParams, true, 0);
 }
 
 // Create a floppy image of a specified geometry
 imageDiskMemory::imageDiskMemory(diskGeo floppyGeometry) {
-	init(floppyGeometry.cylcount, floppyGeometry.headscyl, floppyGeometry.secttrack, floppyGeometry.bytespersect, false, floppyGeometry.biosval, 0);
-}
-
-// Return the BIOS type of the floppy image, or 0 for hard drives
-Bit8u imageDiskMemory::GetBiosType(void) {
-	return this->hardDrive ? 0 : bios_type;
+	init(floppyGeometry, false, 0);
 }
 
 // Create a hard drive image of a specified geometry
-imageDiskMemory::imageDiskMemory(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sector_size, bool isHardDrive, Bit8u floppyBiosMediaType) {
-	init(cylinders, heads, sectors, sector_size, isHardDrive, floppyBiosMediaType, 0);
+imageDiskMemory::imageDiskMemory(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sector_size) {
+	diskGeo diskParams;
+	diskParams.secttrack = sectors;
+	diskParams.cylcount = cylinders;
+	diskParams.headscyl = heads;
+	diskParams.bytespersect = sector_size;
+	diskParams.biosval = 0;
+	diskParams.ksize = 0;
+	diskParams.mediaid = 0xF0;
+	diskParams.rootentries = 512;
+	diskParams.biosval = 0;
+	diskParams.sectcluster = 1;
+	init(diskParams, true, 0);
 }
 
 // Create a copy-on-write memory image of an existing image
 imageDiskMemory::imageDiskMemory(imageDisk* underlyingImage) {
-	init(underlyingImage->cylinders, underlyingImage->heads, underlyingImage->sectors, underlyingImage->sector_size, underlyingImage->hardDrive, underlyingImage->GetBiosType(), underlyingImage);
+	diskGeo diskParams;
+	diskParams.secttrack = underlyingImage->sectors;
+	diskParams.cylcount = underlyingImage->cylinders;
+	diskParams.headscyl = underlyingImage->heads;
+	diskParams.bytespersect = underlyingImage->sector_size;
+	diskParams.biosval = 0;
+	diskParams.ksize = 0;
+	diskParams.mediaid = 0xF0;
+	diskParams.rootentries = 0;
+	diskParams.biosval = 0;
+	diskParams.sectcluster = 0;
+	init(diskParams, true, underlyingImage);
 }
 
 // Internal initialization code to create a image of a specified geometry
-void imageDiskMemory::init(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sector_size, bool isHardDrive, Bit8u floppyBiosMediaType, imageDisk* underlyingImage) {
+void imageDiskMemory::init(diskGeo diskParams, bool isHardDrive, imageDisk* underlyingImage) {
 	//initialize internal variables in case we fail out
 	this->active = false;
 	this->cylinders = 0;
@@ -130,16 +158,17 @@ void imageDiskMemory::init(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32
 	this->sectors = 0;
 	this->sector_size = 0;
 	this->total_sectors = 0;
+	this->auto_delete_on_refcount_zero = true;
 	this->underlyingImage = underlyingImage;
 	if (underlyingImage) underlyingImage->Addref();
 
 	//calculate the total number of sectors on the drive, and check for overflows
-	Bit64u absoluteSectors = (Bit64u)cylinders * (Bit64u)heads;
+	Bit64u absoluteSectors = (Bit64u)diskParams.cylcount * (Bit64u)diskParams.headscyl;
 	if (absoluteSectors > 0x100000000u) {
 		LOG_MSG("Image size too large in imageDiskMemory constructor.\n");
 		return;
 	}
-	absoluteSectors *= (Bit64u)sectors;
+	absoluteSectors *= (Bit64u)diskParams.secttrack;
 	if (absoluteSectors > 0x100000000u) {
 		LOG_MSG("Image size too large in imageDiskMemory constructor.\n");
 		return;
@@ -150,8 +179,8 @@ void imageDiskMemory::init(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32
 		return;
 	}
 
-	//calculate total size of the drive in kilobyts, and check for overflow
-	Bit64u diskSizeK = ((Bit64u)heads * (Bit64u)cylinders * (Bit64u)sectors * (Bit64u)sector_size + (Bit64u)1023) / (Bit64u)1024;
+	//calculate total size of the drive in kilobytes, and check for overflow
+	Bit64u diskSizeK = ((Bit64u)diskParams.headscyl * (Bit64u)diskParams.cylcount * (Bit64u)diskParams.secttrack * (Bit64u)diskParams.bytespersect + (Bit64u)1023) / (Bit64u)1024;
 	if (diskSizeK >= 0x100000000u)
 	{
 		LOG_MSG("Image size too large in imageDiskMemory constructor.\n");
@@ -164,9 +193,9 @@ void imageDiskMemory::init(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32
 	//then the chunk size grows up to a 8gb drive, while the map consumes 30-60k of memory (on 64bit PCs)
 	//with a 8gb drive, the chunks are about 1mb each, and the map consumes about 60k of memory 
 	//and for larger drives (with over 1023 cylinders), the chunks remain at 1mb each while the map grows
-	this->sectors_per_chunk = (heads + 7) / 8 * sectors; 
-	this->total_chunks = (absoluteSectors + sectors_per_chunk - 1) / sectors_per_chunk;
-	this->chunk_size = sectors_per_chunk * sector_size;
+	this->sectors_per_chunk = (diskParams.headscyl + 7) / 8 * diskParams.secttrack;
+	this->total_chunks = (Bit32u)((absoluteSectors + sectors_per_chunk - 1) / sectors_per_chunk);
+	this->chunk_size = sectors_per_chunk * diskParams.bytespersect;
 	//allocate a map of chunks that have been allocated and their memory addresses
 	ChunkMap = (Bit8u**)malloc(total_chunks * sizeof(Bit8u*));
 	if (ChunkMap == NULL) {
@@ -177,15 +206,15 @@ void imageDiskMemory::init(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32
 	memset((void*)ChunkMap, 0, total_chunks * sizeof(Bit8u*));
 
 	//set internal variables
-	this->heads = heads;
-	this->cylinders = cylinders;
-	this->sectors = sectors;
-	this->sector_size = sector_size;
-	this->diskSizeK = diskSizeK;
-	this->total_sectors = absoluteSectors;
+	this->heads = diskParams.headscyl;
+	this->cylinders = diskParams.cylcount;
+	this->sectors = diskParams.secttrack;
+	this->sector_size = diskParams.bytespersect;
+	this->diskSizeK = (Bit32u)diskSizeK;
+	this->total_sectors = (Bit32u)absoluteSectors;
 	this->reserved_cylinders = 0;
 	this->hardDrive = isHardDrive;
-	this->bios_type = isHardDrive ? 0 : floppyBiosMediaType;
+	this->floppyInfo = diskParams;
 	this->active = true;
 }
 
@@ -197,7 +226,7 @@ imageDiskMemory::~imageDiskMemory() {
 	if (this->underlyingImage) this->underlyingImage->Release();
 	//loop through each chunk and release it if it has been allocated
 	Bit8u* chunk;
-	for (int i = 0; i < total_chunks; i++) {
+	for (Bitu i = 0; i < total_chunks; i++) {
 		chunk = ChunkMap[i];
 		if (chunk) free(chunk);
 	}
@@ -207,6 +236,11 @@ imageDiskMemory::~imageDiskMemory() {
 	ChunkMap = 0;
 	total_sectors = 0;
 	active = false;
+}
+
+// Return the BIOS type of the floppy image, or 0 for hard drives
+Bit8u imageDiskMemory::GetBiosType(void) {
+	return this->hardDrive ? 0 : this->floppyInfo.biosval;
 }
 
 // Read a specific sector from the ramdrive
@@ -269,7 +303,7 @@ Bit8u imageDiskMemory::Write_AbsoluteSector(Bit32u sectnum, void * data) {
 		//if no underlying image, first check if we are actually saving anything
 		if (this->underlyingImage == NULL) {
 			Bit8u anyData = 0;
-			for (int i = 0; i < sector_size; i++) {
+			for (Bitu i = 0; i < sector_size; i++) {
 				anyData |= ((Bit8u*)data)[i];
 			}
 			//if it's all zeros, return success
@@ -309,8 +343,7 @@ Bit8u imageDiskMemory::Write_AbsoluteSector(Bit32u sectnum, void * data) {
 	return 0x00;
 }
 
-// Parition and format the ramdrive (code is adapted from IMGMAKE code within dos_programs.cpp)
-// - Assumes that the ramdrive is all zeros to begin with (since the root directory is not zeroed)
+// Parition and format the ramdrive
 Bit8u imageDiskMemory::Format() {
 	//verify that the geometry of the drive is valid
 	if (this->sector_size != 512) {
@@ -340,21 +373,10 @@ Bit8u imageDiskMemory::Format() {
 	Bitu partitionStart = writeMBR ? this->sectors : 0; //must be aligned with the start of a head (multiple of this->sectors)
 	Bitu partitionLength = this->total_sectors - partitionStart; //must be aligned with the start of a head (multiple of this->sectors)
 	//figure out the media id
-	Bit8u mediaID = 0xF0;
+	Bit8u mediaID = this->hardDrive ? 0xF0 : this->floppyInfo.mediaid;
 	//figure out the number of root entries and minimum number of sectors per cluster
-	Bitu root_ent = 512;
-	Bitu sectors_per_cluster = 1;
-	if (!this->hardDrive)
-	{
-		switch (mediaID) {
-			case 0xF0: root_ent = this->sectors == 36 ? 512 : 224; break;
-			case 0xF9: root_ent = this->sectors == 15 ? 224 : 112; break;
-			case 0xFC: root_ent = 56; break;
-			case 0xFD: root_ent = 112; break;
-			case 0xFE: root_ent = 56; break;
-			case 0xFF: root_ent = 112; sectors_per_cluster = 2; break;
-		}
-	}
+	Bitu root_ent = this->hardDrive ? 512 : this->floppyInfo.rootentries;
+	Bitu sectors_per_cluster = this->hardDrive ? 1 : this->floppyInfo.sectcluster;
 
 	//calculate the number of:
 	//  root sectors
@@ -456,7 +478,7 @@ Bit8u imageDiskMemory::Format() {
 	// initialize the FATs and root sectors
 	memset(sbuf, 0, sector_size);
 	// erase both FATs and the root directory sectors
-	for (int i = partitionStart + 1; i < partitionStart + reservedSectors + fatSectors + fatSectors + root_sectors; i++) {
+	for (Bitu i = partitionStart + 1; i < partitionStart + reservedSectors + fatSectors + fatSectors + root_sectors; i++) {
 		this->Write_AbsoluteSector(i, sbuf);
 	}
 	// set the special markers for cluster 0 and cluster 1
@@ -484,7 +506,7 @@ bool imageDiskMemory::CalculateFAT(Bitu partitionStartingSector, Bitu partitionL
 		default: return false;
 	}
 	if (((Bit64u)partitionStartingSector + partitionLength) > 0xfffffffful) return false;
-	if (rootEntries > (isHardDrive ? 512 : 240)) return false;
+	if (rootEntries > (isHardDrive ? 512u : 240u)) return false;
 	if ((rootEntries / 16) * 16 != rootEntries) return false;
 	if (rootEntries == 0) return false;
 	//set the number of root sectors
