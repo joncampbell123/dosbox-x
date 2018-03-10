@@ -1764,7 +1764,7 @@ void LOADFIX::Run(void)
 			if ((*upcase(&ch)=='D') || (*upcase(&ch)=='F')) {
 				// Deallocate all
                 if (xms) {
-                    WriteOut(MSG_Get("XMS deallocation not yet implemented\n"));
+                    WriteOut("XMS deallocation not yet implemented\n");
                 }
                 else {
                     DOS_FreeProcessMemory(0x40);
