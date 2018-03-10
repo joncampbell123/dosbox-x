@@ -226,7 +226,7 @@ imageDiskMemory::~imageDiskMemory() {
 	if (this->underlyingImage) this->underlyingImage->Release();
 	//loop through each chunk and release it if it has been allocated
 	Bit8u* chunk;
-	for (Bitu i = 0; i < total_chunks; i++) {
+	for (Bit32u i = 0; i < total_chunks; i++) {
 		chunk = ChunkMap[i];
 		if (chunk) free(chunk);
 	}
@@ -310,7 +310,7 @@ Bit8u imageDiskMemory::Write_AbsoluteSector(Bit32u sectnum, void * data) {
 		//if no underlying image, first check if we are actually saving anything
 		if (this->underlyingImage == NULL) {
 			Bit8u anyData = 0;
-			for (Bitu i = 0; i < sector_size; i++) {
+			for (Bit32u i = 0; i < sector_size; i++) {
 				anyData |= ((Bit8u*)data)[i];
 			}
 			//if it's all zeros, return success
@@ -329,13 +329,13 @@ Bit8u imageDiskMemory::Write_AbsoluteSector(Bit32u sectnum, void * data) {
 		memset((void*)datalocation, 0, chunk_size);
 		//if there is an underlying image, read from the underlying image to fill the chunk
 		if (this->underlyingImage) {
-			Bitu chunkFirstSector = chunknum * this->sectors_per_chunk;
-			Bitu sectorsToCopy = this->sectors_per_chunk;
+			Bit32u chunkFirstSector = chunknum * this->sectors_per_chunk;
+			Bit32u sectorsToCopy = this->sectors_per_chunk;
 			//if this is the last chunk, don't read past the end of the original image
 			if ((chunknum + 1) == this->total_chunks) sectorsToCopy = this->total_sectors - chunkFirstSector;
 			//copy the sectors
 			Bit8u* target = datalocation;
-			for (Bitu i = 0; i < sectorsToCopy; i++) {
+			for (Bit32u i = 0; i < sectorsToCopy; i++) {
 				this->underlyingImage->Read_AbsoluteSector(i + chunkFirstSector, target);
 				datalocation += this->sector_size;
 			}
@@ -373,13 +373,13 @@ Bit8u imageDiskMemory::Format() {
 	//plan the drive
 	//write a MBR?
 	bool writeMBR = this->hardDrive;
-	Bitu partitionStart = writeMBR ? this->sectors : 0; //must be aligned with the start of a head (multiple of this->sectors)
-	Bitu partitionLength = this->total_sectors - partitionStart; //must be aligned with the start of a head (multiple of this->sectors)
+	Bit32u partitionStart = writeMBR ? this->sectors : 0; //must be aligned with the start of a head (multiple of this->sectors)
+	Bit32u partitionLength = this->total_sectors - partitionStart; //must be aligned with the start of a head (multiple of this->sectors)
 	//figure out the media id
 	Bit8u mediaID = this->hardDrive ? 0xF0 : this->floppyInfo.mediaid;
 	//figure out the number of root entries and minimum number of sectors per cluster
-	Bitu root_ent = this->hardDrive ? 512 : this->floppyInfo.rootentries;
-	Bitu sectors_per_cluster = this->hardDrive ? 1 : this->floppyInfo.sectcluster;
+	Bit32u root_ent = this->hardDrive ? 512 : this->floppyInfo.rootentries;
+	Bit32u sectors_per_cluster = this->hardDrive ? 1 : this->floppyInfo.sectcluster;
 
 	//calculate the number of:
 	//  root sectors
@@ -387,10 +387,10 @@ Bit8u imageDiskMemory::Format() {
 	//  reserved sectors
 	//  sectors per cluster
 	//  if this is a FAT16 or FAT12 drive
-	Bitu root_sectors;
+	Bit32u root_sectors;
 	bool isFat16;
-	Bitu fatSectors;
-	Bitu reservedSectors;
+	Bit32u fatSectors;
+	Bit32u reservedSectors;
 	if (!this->CalculateFAT(partitionStart, partitionLength, this->hardDrive, root_ent, &root_sectors, &sectors_per_cluster, &isFat16, &fatSectors, &reservedSectors)) {
 		LOG_MSG("imageDiskMemory::Format could not calculate FAT sectors.\n");
 		return 0x05;
@@ -478,7 +478,7 @@ Bit8u imageDiskMemory::Format() {
 	// initialize the FATs and root sectors
 	memset(sbuf, 0, sector_size);
 	// erase both FATs and the root directory sectors
-	for (Bitu i = partitionStart + 1; i < partitionStart + reservedSectors + fatSectors + fatSectors + root_sectors; i++) {
+	for (Bit32u i = partitionStart + 1; i < partitionStart + reservedSectors + fatSectors + fatSectors + root_sectors; i++) {
 		this->Write_AbsoluteSector(i, sbuf);
 	}
 	// set the special markers for cluster 0 and cluster 1
@@ -497,7 +497,7 @@ Bit8u imageDiskMemory::Format() {
 
 // Calculate the number of sectors per cluster, the number of sectors per fat, and if it is FAT12/FAT16
 // Note that sectorsPerCluster is required to be set to the minimum, which will be 2 for certain types of floppies
-bool imageDiskMemory::CalculateFAT(Bitu partitionStartingSector, Bitu partitionLength, bool isHardDrive, Bitu rootEntries, Bitu* rootSectors, Bitu* sectorsPerCluster, bool* isFat16, Bitu* fatSectors, Bitu* reservedSectors) {
+bool imageDiskMemory::CalculateFAT(Bit32u partitionStartingSector, Bit32u partitionLength, bool isHardDrive, Bit32u rootEntries, Bit32u* rootSectors, Bit32u* sectorsPerCluster, bool* isFat16, Bit32u* fatSectors, Bit32u* reservedSectors) {
 	//check for null references
 	if (rootSectors == NULL || sectorsPerCluster == NULL || isFat16 == NULL || fatSectors == NULL || reservedSectors == NULL) return false;
 	//make sure variables all make sense
@@ -527,12 +527,14 @@ bool imageDiskMemory::CalculateFAT(Bitu partitionStartingSector, Bitu partitionL
 
 
 	//compute the number of fat sectors and data sectors
-	Bitu dataSectors;
+	Bit32u dataSectors;
+	Bit32u dataClusters;
 	//first try FAT12 - compute the minimum number of fat sectors necessary using the minimum number of sectors per cluster
 	*fatSectors = (((Bit64u)partitionLength - *reservedSectors - *rootSectors + 2) * 3 + *sectorsPerCluster * 1024 + 5) / (*sectorsPerCluster * 1024 + 6);
 	dataSectors = partitionLength - *reservedSectors - *rootSectors - *fatSectors - *fatSectors;
+	dataClusters = dataSectors / *sectorsPerCluster;
 	//check if this calculation makes the drive too big to fit within a FAT12 drive
-	if (dataSectors >= 4085) {
+	if (dataClusters >= 4085) {
 		//so instead let's calculate for FAT16, and increase the number of sectors per cluster if necessary
 		//note: changing the drive to FAT16 will reducing the number of data sectors, which might change the drive
 		//  from a FAT16 drive to a FAT12 drive.  however, the only difference is that there are unused fat sectors
@@ -543,11 +545,12 @@ bool imageDiskMemory::CalculateFAT(Bitu partitionStartingSector, Bitu partitionL
 			//  rounds up and assumes 512 byte sector size
 			*fatSectors = ((Bit64u)partitionLength - *reservedSectors - *rootSectors + 2 + (*sectorsPerCluster * 256 + 1)) / (*sectorsPerCluster * 256 + 2);
 
-			//compute the number of data sectors with this arrangement
+			//compute the number of data sectors and clusters with this arrangement
 			dataSectors = partitionLength - *reservedSectors - *rootSectors - *fatSectors - *fatSectors;
+			dataClusters = dataSectors / *sectorsPerCluster;
 
 			//check and see if this makes a valid FAT16 drive
-			if (dataSectors < 65525) break;
+			if (dataClusters < 65525) break;
 
 			//otherwise, double the number of sectors per cluster and try again
 			*sectorsPerCluster <<= 1;
@@ -562,6 +565,7 @@ bool imageDiskMemory::CalculateFAT(Bitu partitionStartingSector, Bitu partitionL
 		*reservedSectors = (partitionStartingSector + *reservedSectors + *rootSectors + *fatSectors + *fatSectors) % 8;
 		//recompute the number of data sectors
 		dataSectors = partitionLength - *reservedSectors - *rootSectors - *fatSectors - *fatSectors;
+		dataClusters = dataSectors / *sectorsPerCluster;
 
 		//note: by reducing the number of data sectors, the drive might have changed from a FAT16 drive to a FAT12 drive.
 		//  however, the only difference is that there are unused fat sectors allocated.  we cannot allocate them, or else
@@ -571,7 +575,7 @@ bool imageDiskMemory::CalculateFAT(Bitu partitionStartingSector, Bitu partitionL
 
 	//determine whether the drive is FAT16 or not
 	//note: this is AFTER adding padding for 4kb alignment
-	*isFat16 = (dataSectors >= 4085);
+	*isFat16 = (dataClusters >= 4085);
 
 	//success
 	return true;
