@@ -1758,6 +1758,11 @@ void LOADFIX::Run(void)
         kb = 1024;
     }
 
+	if (cmd->FindExist("-?", false)) {
+		WriteOut(MSG_Get("PROGRAM_LOADFIX_HELP"));
+		return;
+	}
+
 	if (cmd->FindCommand(commandNr,temp_line)) {
 		if (temp_line[0]=='-') {
 			char ch = temp_line[1];
@@ -3243,6 +3248,20 @@ void DOS_SetupPrograms(void) {
 	MSG_Add("PROGRAM_LOADFIX_DEALLOC","%d kb freed.\n");
 	MSG_Add("PROGRAM_LOADFIX_DEALLOCALL","Used memory freed.\n");
 	MSG_Add("PROGRAM_LOADFIX_ERROR","Memory allocation error.\n");
+	MSG_Add("PROGRAM_LOADFIX_HELP",
+		"Reduces the amount of available conventional or XMS memory\n\n"
+		"LOADFIX [-xms] [-{ram}] [{program}]\n"
+		"LOADFIX -f [-xms]\n\n"
+		"  -xms        Allocates memory from XMS rather than conventional memory\n"
+		"  -{ram}      Specifies the amount of memory to allocate in KB\n"
+		"                 Defaults to 64kb for conventional memory; 1MB for XMS memory\n"
+		"  -f          Frees previously allocated memory\n"
+		"  {program}   Runs the specified program\n\n"
+		"Examples:\n"
+		"  LOADFIX game.exe     Allocates 64KB of conventional memory and runs game.exe\n"
+		"  LOADFIX -128         Allocates 128KB of conventional memory\n"
+		"  LOADFIX -xms         Allocates 1MB of XMS memory\n"
+		"  LOADFIX -f           Frees allocated conventional memory\n");
 
 	MSG_Add("MSCDEX_SUCCESS","MSCDEX installed.\n");
 	MSG_Add("MSCDEX_ERROR_MULTIPLE_CDROMS","MSCDEX: Failure: Drive-letters of multiple CD-ROM drives have to be continuous.\n");
