@@ -510,7 +510,7 @@ bool imageDiskMemory::CalculateFAT(Bitu partitionStartingSector, Bitu partitionL
 	if ((rootEntries / 16) * 16 != rootEntries) return false;
 	if (rootEntries == 0) return false;
 	//set the number of root sectors
-	*rootSectors = rootEntries * 32;
+	*rootSectors = rootEntries * 32 / 512;
 	//make sure there is a minimum number of sectors available
 	//  minimum sectors = root sectors + 1 for boot sector + 1 for fat #1 + 1 for fat #2 + 1 for data sector + add 7 for hard drives due to allow for 4k alignment
 	if (partitionLength < (*rootSectors + 4 + (isHardDrive ? 7 : 0))) return false;
