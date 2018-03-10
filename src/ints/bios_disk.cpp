@@ -31,21 +31,21 @@
 extern bool int13_extensions_enable;
 
 diskGeo DiskGeometryList[] = {
-    { 160,  8, 1, 40, 0, 512},      // IBM PC double density 5.25" single-sided 160KB
-    { 180,  9, 1, 40, 0, 512},      // IBM PC double density 5.25" single-sided 180KB
-    { 200, 10, 1, 40, 0, 512},      // DEC Rainbow double density 5.25" single-sided 200KB (I think...)
-    { 320,  8, 2, 40, 1, 512},      // IBM PC double density 5.25" double-sided 320KB
-    { 360,  9, 2, 40, 1, 512},      // IBM PC double density 5.25" double-sided 360KB
-    { 400, 10, 2, 40, 1, 512},      // DEC Rainbow double density 5.25" double-sided 400KB (I think...)
-    { 640,  8, 2, 80, 3, 512},      // IBM PC double density 3.5" double-sided 640KB
-    { 720,  9, 2, 80, 3, 512},      // IBM PC double density 3.5" double-sided 720KB
-    {1200, 15, 2, 80, 2, 512},      // IBM PC double density 5.25" double-sided 1.2MB
-    {1440, 18, 2, 80, 4, 512},      // IBM PC high density 3.5" double-sided 1.44MB
-    {2880, 36, 2, 80, 6, 512},      // IBM PC high density 3.5" double-sided 2.88MB
+    { 160,  8, 1, 40, 0, 512,  64, 1, 0xFE},      // IBM PC double density 5.25" single-sided 160KB
+    { 180,  9, 1, 40, 0, 512,  64, 2, 0xFC},      // IBM PC double density 5.25" single-sided 180KB
+    { 200, 10, 1, 40, 0, 512,   0, 0,    0},      // DEC Rainbow double density 5.25" single-sided 200KB (I think...)
+    { 320,  8, 2, 40, 1, 512, 112, 2, 0xFF},      // IBM PC double density 5.25" double-sided 320KB
+    { 360,  9, 2, 40, 1, 512, 112, 2, 0xFD},      // IBM PC double density 5.25" double-sided 360KB
+    { 400, 10, 2, 40, 1, 512,   0, 0,    0},      // DEC Rainbow double density 5.25" double-sided 400KB (I think...)
+    { 640,  8, 2, 80, 3, 512, 112, 2, 0xFB},      // IBM PC double density 3.5" double-sided 640KB
+    { 720,  9, 2, 80, 3, 512, 112, 2, 0xF9},      // IBM PC double density 3.5" double-sided 720KB
+    {1200, 15, 2, 80, 2, 512, 224, 1, 0xF9},      // IBM PC double density 5.25" double-sided 1.2MB
+    {1440, 18, 2, 80, 4, 512, 224, 1, 0xF0},      // IBM PC high density 3.5" double-sided 1.44MB
+    {2880, 36, 2, 80, 6, 512, 240, 2, 0xF0},      // IBM PC high density 3.5" double-sided 2.88MB
 
-    {1232,  8, 2, 77, 7, 1024},     // NEC PC-98 high density 3.5" double-sided 1.2MB "3-mode"
+    {1232,  8, 2, 77, 7, 1024,192, 1, 0xFE},      // NEC PC-98 high density 3.5" double-sided 1.2MB "3-mode"
 
-    {0, 0, 0, 0, 0, 0}
+    {   0,  0, 0,  0, 0,    0,  0, 0,    0}
 };
 
 Bitu call_int13 = 0;
