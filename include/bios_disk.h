@@ -158,7 +158,7 @@ public:
 
 private:
 	void init(diskGeo diskParams, bool isHardDrive, imageDisk* underlyingImage);
-	bool CalculateFAT(Bitu partitionStartingSector, Bitu partitionLength, bool isHardDrive, Bitu rootEntries, Bitu* rootSectors, Bitu* sectorsPerCluster, bool* isFat16, Bitu* fatSectors, Bitu* reservedSectors);
+	bool CalculateFAT(Bit32u partitionStartingSector, Bit32u partitionLength, bool isHardDrive, Bit32u rootEntries, Bit32u* rootSectors, Bit32u* sectorsPerCluster, bool* isFat16, Bit32u* fatSectors, Bit32u* reservedSectors);
 
 	Bit8u * * ChunkMap;
 	Bit32u sectors_per_chunk;
