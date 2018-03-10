@@ -2626,6 +2626,7 @@ void PC98_BIOS_FDC_CALL_GEO_UNPACK(unsigned int &fdc_cyl,unsigned int &fdc_head,
 
 void PC98_BIOS_FDC_CALL(unsigned int flags) {
     Bit32u img_heads=0,img_cyl=0,img_sect=0,img_ssz=0;
+    unsigned int status;
     unsigned int fdc_cyl,fdc_head,fdc_sect,fdc_sz;
     unsigned int size,accsize,unitsize;
     unsigned long memaddr;
@@ -2696,6 +2697,42 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
                         fdc_cyl++;
                     }
                 }
+            }
+
+            reg_ah = 0x00;
+            CALLBACK_SCF(false);
+            break;
+        case 0x04: /* drive status */
+            status = 0;
+
+            /* TODO: bit 4 is set if write protected */
+
+            if (reg_al & 0x80) { /* high density */
+                status |= 0x01;
+            }
+            else { /* double density */
+                /* TODO: */
+                status |= 0x01;
+            }
+
+            if ((reg_ax & 0x8F40) == 0x8400) {
+                status |= 8;        /* 1MB/640KB format, spindle speed for 3-mode */
+                if (reg_ah & 0x40) /* DOSBox-X always supports 1.44MB */
+                    status |= 4;    /* 1.44MB format, spindle speed for IBM PC format */
+            }
+
+            if (floppy == NULL)
+                status |= 0xC0;
+
+            reg_ah = status;
+            CALLBACK_SCF(false);
+            break;
+        case 0x07: /* recalibrate (seek to track 0) */
+            if (floppy == NULL) {
+                CALLBACK_SCF(true);
+                reg_ah = 0x00;
+                /* TODO? Error code? */
+                return;
             }
 
             reg_ah = 0x00;
