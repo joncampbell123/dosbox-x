@@ -147,6 +147,8 @@ public:
 	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data);
 	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, void * data);
 	virtual Bit8u GetBiosType(void);
+	virtual void Set_Geometry(Bit32u setHeads, Bit32u setCyl, Bit32u setSect, Bit32u setSectSize);
+	virtual void Set_Reserved_Cylinders(Bitu resCyl);
 	virtual Bit8u Format();
 
 	imageDiskMemory(Bit32u imgSizeK);

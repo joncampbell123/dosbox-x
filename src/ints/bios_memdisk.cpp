@@ -243,6 +243,13 @@ Bit8u imageDiskMemory::GetBiosType(void) {
 	return this->hardDrive ? 0 : this->floppyInfo.biosval;
 }
 
+void imageDiskMemory::Set_Geometry(Bit32u setHeads, Bit32u setCyl, Bit32u setSect, Bit32u setSectSize) {
+	if (setHeads != this->heads || setCyl != this->cylinders || setSect != this->sectors || setSectSize != this->sector_size) {
+		LOG_MSG("imageDiskMemory::Set_Geometry not implemented");
+		//validate geometry and resize ramdrive
+	}
+}
+
 // Read a specific sector from the ramdrive
 Bit8u imageDiskMemory::Read_AbsoluteSector(Bit32u sectnum, void * data) {
 	//sector number is a zero-based offset
@@ -356,14 +363,10 @@ Bit8u imageDiskMemory::Format() {
 	}
 	if (this->heads > 255) {
 		LOG_MSG("imageDiskMemory::Format only designed for disks with <= 255 heads.\n");
-		return 0x05;
+		return 0x03;
 	}
 	if (this->cylinders >= 1024) {
 		LOG_MSG("imageDiskMemory::Format only designed for disks with < 1024 cylinders.\n");
-		return 0x03;
-	}
-	if (!this->hardDrive && this->total_sectors >= 65535) {
-		LOG_MSG("imageDiskMemory::Format only designed for floppies with < 65535 total sectors.\n");
 		return 0x04;
 	}
 	
@@ -390,7 +393,7 @@ Bit8u imageDiskMemory::Format() {
 	Bitu reservedSectors;
 	if (!this->CalculateFAT(partitionStart, partitionLength, this->hardDrive, root_ent, &root_sectors, &sectors_per_cluster, &isFat16, &fatSectors, &reservedSectors)) {
 		LOG_MSG("imageDiskMemory::Format could not calculate FAT sectors.\n");
-		return 0x06;
+		return 0x05;
 	}
 
 	//write MBR if applicable
@@ -441,8 +444,8 @@ Bit8u imageDiskMemory::Format() {
 	sbuf[0x10] = 2;
 	// Root directory entries
 	host_writew(&sbuf[0x11], root_ent);
-	// sectors (under 32MB) - will OSes be sore if all HD's use large size?
-	if (!this->hardDrive) host_writew(&sbuf[0x13], partitionLength);
+	// total sectors (<= 65535)
+	if (partitionLength < 0x10000u) host_writew(&sbuf[0x13], (Bit16u)partitionLength);
 	// media descriptor
 	sbuf[0x15] = mediaID;
 	// sectors per FAT
@@ -452,13 +455,11 @@ Bit8u imageDiskMemory::Format() {
 	// heads
 	host_writew(&sbuf[0x1a], this->heads);
 	// hidden sectors
-	//todo: check this -- shouldn't it be 1?
 	host_writed(&sbuf[0x1c], partitionStart);
-	// sectors (large disk) - this is the same as partition length in MBR
-	if (this->hardDrive) host_writed(&sbuf[0x20], partitionLength);
+	// sectors (>= 65536)
+	if (partitionLength >= 0x10000u) host_writed(&sbuf[0x20], partitionLength);
 	// BIOS drive
-	if (this->hardDrive) sbuf[0x24] = 0x80;
-	else sbuf[0x24] = 0x00;
+	sbuf[0x24] = this->hardDrive ? 0x80 : 0x00;
 	// ext. boot signature
 	sbuf[0x26] = 0x29;
 	// volume serial number
@@ -467,8 +468,7 @@ Bit8u imageDiskMemory::Format() {
 	// Volume label
 	sprintf((char*)&sbuf[0x2b], "RAMDISK    ");
 	// file system type
-	if (isFat16) sprintf((char*)&sbuf[0x36], "FAT16   ");
-	else sprintf((char*)&sbuf[0x36], "FAT12   ");
+	sprintf((char*)&sbuf[0x36], isFat16 ? "FAT16   " : "FAT12   ");
 	// boot sector signature (indicates disk is bootable)
 	host_writew(&sbuf[0x1fe], 0xAA55);
 
