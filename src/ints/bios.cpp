@@ -2625,9 +2625,9 @@ void PC98_BIOS_FDC_CALL_GEO_UNPACK(unsigned int &fdc_cyl,unsigned int &fdc_head,
 }
 
 void PC98_BIOS_FDC_CALL(unsigned int flags) {
+    static unsigned int fdc_cyl=0,fdc_head=0,fdc_sect=0,fdc_sz=0; // FIXME: Rename and move out. Making "static" is a hack here.
     Bit32u img_heads=0,img_cyl=0,img_sect=0,img_ssz=0;
     unsigned int status;
-    unsigned int fdc_cyl,fdc_head,fdc_sect,fdc_sz;
     unsigned int size,accsize,unitsize;
     unsigned long memaddr;
     imageDisk *floppy;
@@ -2734,6 +2734,38 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
                 /* TODO? Error code? */
                 return;
             }
+
+            reg_ah = 0x00;
+            CALLBACK_SCF(false);
+            break;
+        case 0x0A: /* read ID */
+            if (floppy == NULL) {
+                CALLBACK_SCF(true);
+                reg_ah = 0x00;
+                /* TODO? Error code? */
+                return;
+            }
+
+	        floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
+ 
+            if (reg_ah & 0x10) { // seek to track number in CL
+                if (reg_cl >= img_cyl) {
+                    CALLBACK_SCF(true);
+                    reg_ah = 0x00;
+                    /* TODO? Error code? */
+                    return;
+                }
+
+                fdc_cyl = img_cyl;
+            }
+
+            reg_cl = fdc_cyl;
+            reg_dh = fdc_head;
+            reg_dl = fdc_sect;
+            /* ^ FIXME: A more realistic emulation would return a random number from 1 to N
+             *          where N=sectors/track because the floppy motor is running and tracks
+             *          are moving past the head. */
+            reg_ch = fdc_sz;
 
             reg_ah = 0x00;
             CALLBACK_SCF(false);
