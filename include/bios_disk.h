@@ -41,6 +41,9 @@ struct diskGeo {
 	Bit16u cylcount;  /* Cylinders per side */
 	Bit16u biosval;   /* Type to return from BIOS */
     Bit16u bytespersect; /* Bytes per sector */
+	Bit16u rootentries;  /* Root directory entries */
+	Bit8u sectcluster;   /* Sectors per cluster */
+	Bit8u mediaid;       /* Media ID */
 };
 extern diskGeo DiskGeometryList[];
 
@@ -144,23 +147,27 @@ public:
 	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data);
 	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, void * data);
 	virtual Bit8u GetBiosType(void);
+	virtual void Set_Geometry(Bit32u setHeads, Bit32u setCyl, Bit32u setSect, Bit32u setSectSize);
 	virtual Bit8u Format();
 
 	imageDiskMemory(Bit32u imgSizeK);
 	imageDiskMemory(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sectorSize);
 	imageDiskMemory(diskGeo floppyGeometry);
+	imageDiskMemory(imageDisk* underylingImage);
 	virtual ~imageDiskMemory();
 
 private:
-	void init(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sectorSize);
+	void init(diskGeo diskParams, bool isHardDrive, imageDisk* underlyingImage);
+	bool CalculateFAT(Bitu partitionStartingSector, Bitu partitionLength, bool isHardDrive, Bitu rootEntries, Bitu* rootSectors, Bitu* sectorsPerCluster, bool* isFat16, Bitu* fatSectors, Bitu* reservedSectors);
 
 	Bit8u * * ChunkMap;
 	Bit32u sectors_per_chunk;
 	Bit32u chunk_size;
 	Bit32u total_chunks;
 	Bit32u total_sectors;
+	imageDisk* underlyingImage;
 
-	Bit8u bios_type;
+	diskGeo floppyInfo;
 };
 
 void updateDPT(void);
