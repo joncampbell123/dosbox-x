@@ -690,7 +690,7 @@ public:
          *    SS:SP = 0030:00D8
          */
 		Bitu stack_seg=IS_PC98_ARCH ? 0x0030 : 0x7000;
-        Bitu load_seg=IS_PC98_ARCH ? 0x1FE0 : 0x07C0;
+        Bitu load_seg;//=IS_PC98_ARCH ? 0x1FE0 : 0x07C0;
 
 		if (MEM_TotalPages() > 0x9C)
 			max_seg = 0x9C00;
@@ -779,6 +779,9 @@ public:
         }
 
         unsigned int bootsize = imageDiskList[drive-65]->getSectSize();
+
+        /* NTS: Load address is 128KB - sector size */
+        load_seg=IS_PC98_ARCH ? (0x2000 - (bootsize/16U)) : 0x07C0;
 
 		imageDiskList[drive-65]->Read_Sector(0,0,1,(Bit8u *)&bootarea);
 
