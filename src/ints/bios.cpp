@@ -32,6 +32,7 @@
 #include "mouse.h"
 #include "callback.h"
 #include "setup.h"
+#include "bios_disk.h"
 #include "serialport.h"
 #include "mapper.h"
 #include "vga.h"
@@ -2604,6 +2605,117 @@ static Bitu INT18_PC98_Handler(void) {
     return CBRET_NONE;
 }
 
+#define PC98_FLOPPY_HIGHDENSITY     0x01
+#define PC98_FLOPPY_2HEAD           0x02
+#define PC98_FLOPPY_RPM_3MODE       0x04
+#define PC98_FLOPPY_RPM_IBMPC       0x08
+
+unsigned char PC98_BIOS_FLOPPY_BUFFER[32768]; /* 128 << 8 */
+
+static unsigned int PC98_FDC_SZ_TO_BYTES(unsigned int sz) {
+    return 128U << sz;
+}
+
+void PC98_BIOS_FDC_CALL_GEO_UNPACK(unsigned int &fdc_cyl,unsigned int &fdc_head,unsigned int &fdc_sect,unsigned int &fdc_sz) {
+    fdc_cyl = reg_cl;
+    fdc_head = reg_dh;
+    fdc_sect = reg_dl;
+    fdc_sz = reg_ch;
+    if (fdc_sz > 8) fdc_sz = 8;
+}
+
+void PC98_BIOS_FDC_CALL(unsigned int flags) {
+    Bit32u img_heads=0,img_cyl=0,img_sect=0,img_ssz=0;
+    unsigned int fdc_cyl,fdc_head,fdc_sect,fdc_sz;
+    unsigned int size,accsize,unitsize;
+    unsigned long memaddr;
+    imageDisk *floppy;
+
+    /* AL bits[1:0] = which floppy drive */
+    floppy = GetINT13FloppyDrive(reg_al & 3);
+
+    /* what to do is in the lower 4 bits of AH */
+    switch (reg_ah & 0x0F) {
+        /* TODO: 0x00 = seek to track (in CL) */
+        /* TODO: 0x01 = test read? */
+        /* TODO: 0x03 = equipment flags? */
+        /* TODO: 0x04 = format detect? */
+        /* TODO: 0x05 = write disk */
+        /* TODO: 0x07 = recalibrate (seek to track 0) */
+        /* TODO: 0x0A = Read ID */
+        /* TODO: 0x0D = Format track */
+        /* TODO: 0x0E = ?? */
+        case 0x02: /* read sectors */
+        case 0x06: /* read sectors (what's the difference from 0x02?) */
+            /* AH bits[4:4] = If set, seek to track specified */
+            /* CL           = cylinder (track) */
+            /* CH           = sector size (0=128 1=256 2=512 3=1024 etc) */
+            /* DL           = sector number (1-based) */
+            /* DH           = head */
+            /* BX           = size (in bytes) of data to read */
+            /* ES:BP        = buffer to read data into */
+            if (floppy == NULL) {
+                CALLBACK_SCF(true);
+                reg_ah = 0x00;
+                /* TODO? Error code? */
+                return;
+            }
+	        floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
+
+            PC98_BIOS_FDC_CALL_GEO_UNPACK(/*&*/fdc_cyl,/*&*/fdc_head,/*&*/fdc_sect,/*&*/fdc_sz);
+            unitsize = PC98_FDC_SZ_TO_BYTES(fdc_sz);
+            if (unitsize != img_ssz || img_heads == 0 || img_cyl == 0 || img_sect == 0) {
+                CALLBACK_SCF(true);
+                reg_ah = 0x00;
+                /* TODO? Error code? */
+                return;
+            }
+
+            size = reg_bx;
+            memaddr = (SegValue(es) << 4U) + reg_bp;
+            while (size > 0) {
+                accsize = size > unitsize ? unitsize : size;
+
+                if (floppy->Read_Sector(fdc_head,fdc_cyl,fdc_sect,PC98_BIOS_FLOPPY_BUFFER) != 0) {
+                    CALLBACK_SCF(true);
+                    reg_ah = 0x00;
+                    /* TODO? Error code? */
+                    return;
+                }
+
+                for (unsigned int i=0;i < accsize;i++)
+                    mem_writeb(memaddr+i,PC98_BIOS_FLOPPY_BUFFER[i]);
+
+                memaddr += accsize;
+                size -= accsize;
+
+                if ((++fdc_sect) > img_sect) {
+                    fdc_sect = 1;
+                    if ((++fdc_head) >= img_heads) {
+                        fdc_head = 0;
+                        fdc_cyl++;
+                    }
+                }
+            }
+
+            reg_ah = 0x00;
+            CALLBACK_SCF(false);
+            break;
+        default:
+            LOG_MSG("PC-98 INT 1Bh unknown FDC BIOS call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+                    reg_ax,
+                    reg_bx,
+                    reg_cx,
+                    reg_dx,
+                    reg_si,
+                    reg_di,
+                    SegValue(ds),
+                    SegValue(es));
+            CALLBACK_SCF(true);
+            break;
+    };
+}
+
 static Bitu INT19_PC98_Handler(void) {
     LOG_MSG("PC-98 INT 19h unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
         reg_ax,
@@ -2640,15 +2752,34 @@ static Bitu INT1A_PC98_Handler(void) {
 }
 
 static Bitu INT1B_PC98_Handler(void) {
-    LOG_MSG("PC-98 INT 1Bh unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
-        reg_ax,
-        reg_bx,
-        reg_cx,
-        reg_dx,
-        reg_si,
-        reg_di,
-        SegValue(ds),
-        SegValue(es));
+    /* As BIOS interfaces for disk I/O go, this is fairly unusual */
+    switch (reg_al & 0xF0) {
+        /* floppy disk access */
+        /* AL bits[1:0] = floppy drive number */
+        /* Uses INT42 if high density, INT41 if double density */
+        /* AH bits[3:0] = command */
+        case 0x90: /* 1.2MB HD */
+            PC98_BIOS_FDC_CALL(PC98_FLOPPY_HIGHDENSITY|PC98_FLOPPY_2HEAD|PC98_FLOPPY_RPM_3MODE);
+            break;
+        case 0x30: /* 1.44MB HD (NTS: not supported until the early 1990s) */
+        case 0xB0:
+            PC98_BIOS_FDC_CALL(PC98_FLOPPY_HIGHDENSITY|PC98_FLOPPY_2HEAD|PC98_FLOPPY_RPM_IBMPC);
+            break;
+        /* TODO: Other disk formats */
+        /* TODO: Future SASI/SCSI BIOS emulation for hard disk images */
+        default:
+            LOG_MSG("PC-98 INT 1Bh unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+                    reg_ax,
+                    reg_bx,
+                    reg_cx,
+                    reg_dx,
+                    reg_si,
+                    reg_di,
+                    SegValue(ds),
+                    SegValue(es));
+            CALLBACK_SCF(true);
+            break;
+    };
 
     return CBRET_NONE;
 }
