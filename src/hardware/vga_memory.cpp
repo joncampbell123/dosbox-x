@@ -1290,6 +1290,12 @@ template <class AWT> static egc_quad &egc_ope(const PhysPt vramoff, const AWT va
     return pc98_egc_data;
 }
 
+unsigned char pc98_mem_msw_m[8] = {0};
+
+unsigned char pc98_mem_msw(unsigned char which) {
+    return pc98_mem_msw_m[which&7];
+}
+
 /* The NEC display is documented to have:
  *
  * A0000-A3FFF      T-RAM (text) (8KB WORDs)
@@ -1461,6 +1467,20 @@ public:
 
         check_align<AWT>(addr);
 
+        if ((addr & 0x3FE0) == 0x3FE0) {
+            /* 
+             * 0xA3FE2      MSW1
+             * 0xA3FE6      MSW2
+             * 0xA3FEA      MSW3
+             * 0xA3FEE      MSW4
+             * 0xA3FF2      MSW5
+             * 0xA3FF6      MSW6
+             * 0xA3FFA      MSW7
+             * 0xA3FFE      MSW8
+             */
+            return pc98_mem_msw((addr >> 2) & 7);
+        }
+
         if (addr >= 0xE0000) /* the 4th bitplane (EGC 16-color mode) */
             addr = (addr & 0x7FFF) + 0x20000;
         else
@@ -1538,6 +1558,9 @@ public:
 		addr = PAGING_GetPhysicalAddress(addr);
 
         check_align<AWT>(addr);
+
+        if ((addr & 0x3FE0) == 0x3FE0)
+            return;
 
         if (addr >= 0xE0000) /* the 4th bitplane (EGC 16-color mode) */
             addr = (addr & 0x7FFF) + 0x20000;
