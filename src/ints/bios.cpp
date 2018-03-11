@@ -4350,6 +4350,57 @@ void BIOS_ZeroExtendedSize(bool in) {
 	if(in) other_memsystems++; 
 	else other_memsystems--;
 	if(other_memsystems < 0) other_memsystems=0;
+
+    if (IS_PC98_ARCH) {
+        Bitu mempages = MEM_TotalPages(); /* in 4KB pages */
+
+        /* What applies to IBM PC/AT (zeroing out the extended memory size)
+         * also applies to PC-98, when HIMEM.SYS is loaded */
+        if (in) mempages = 0;
+
+        /* extended memory size (286 systems, below 16MB) */
+        if (mempages > (1024UL/4UL)) {
+            unsigned int ext = ((mempages - (1024UL/4UL)) * 4096UL) / (128UL * 1024UL); /* convert to 128KB units */
+
+            /* extended memory, up to 16MB capacity (for 286 systems?)
+             *
+             * MS-DOS drivers will "allocate" for themselves by taking from the top of
+             * extended memory then subtracting from this value.
+             *
+             * capacity does not include conventional memory below 1MB, nor any memory
+             * above 16MB.
+             *
+             * PC-98 systems may reserve the top 1MB, limiting the top to 15MB instead.
+             *
+             * 0x70 = 128KB * 0x70 = 14MB
+             * 0x78 = 128KB * 0x70 = 15MB */
+            if (ext > 0x78) ext = 0x78;
+
+            mem_writeb(0x401,ext);
+        }
+        else {
+            mem_writeb(0x401,0x00);
+        }
+
+        /* extended memory size (386 systems, at or above 16MB) */
+        if (mempages > ((1024UL*16UL)/4UL)) {
+            unsigned int ext = ((mempages - ((1024UL*16UL)/4UL)) * 4096UL) / (1024UL * 1024UL); /* convert to MB */
+
+            /* extended memory, at or above 16MB capacity (for 386+ systems?)
+             *
+             * MS-DOS drivers will "allocate" for themselves by taking from the top of
+             * extended memory then subtracting from this value.
+             *
+             * capacity does not include conventional memory below 1MB, nor any memory
+             * below 16MB. */
+            if (ext > 0xFFFE) ext = 0xFFFE;
+
+            mem_writew(0x594,ext);
+        }
+        else {
+            mem_writeb(0x594,0x00);
+        }
+    }
 }
 
 unsigned char do_isapnp_chksum(unsigned char *d,int i) {
@@ -4665,6 +4716,7 @@ private:
             for (unsigned int i=0;i < 20;i++) callback[i].Uninstall();
 
             write_FFFF_PC98_signature();
+            BIOS_ZeroExtendedSize(false);
 
             unsigned char memsize_real_code = 0;
             Bitu mempages = MEM_TotalPages(); /* in 4KB pages */
@@ -4691,49 +4743,6 @@ private:
 
             /* clear out 0x50 segment (TODO: 0x40 too?) */
             for (unsigned int i=0;i < 0x100;i++) phys_writeb(0x500+i,0);
-
-            /* extended memory size (286 systems, below 16MB) */
-            if (mempages > (1024UL/4UL)) {
-                unsigned int ext = ((mempages - (1024UL/4UL)) * 4096UL) / (128UL * 1024UL); /* convert to 128KB units */
-
-                /* extended memory, up to 16MB capacity (for 286 systems?)
-                 *
-                 * MS-DOS drivers will "allocate" for themselves by taking from the top of
-                 * extended memory then subtracting from this value.
-                 *
-                 * capacity does not include conventional memory below 1MB, nor any memory
-                 * above 16MB.
-                 *
-                 * PC-98 systems may reserve the top 1MB, limiting the top to 15MB instead.
-                 *
-                 * 0x70 = 128KB * 0x70 = 14MB
-                 * 0x78 = 128KB * 0x70 = 15MB */
-                if (ext > 0x78) ext = 0x78;
-
-                mem_writeb(0x401,ext);
-            }
-            else {
-                mem_writeb(0x401,0x00);
-            }
-
-            /* extended memory size (386 systems, at or above 16MB) */
-            if (mempages > ((1024UL*16UL)/4UL)) {
-                unsigned int ext = ((mempages - ((1024UL*16UL)/4UL)) * 4096UL) / (1024UL * 1024UL); /* convert to MB */
-
-                /* extended memory, at or above 16MB capacity (for 386+ systems?)
-                 *
-                 * MS-DOS drivers will "allocate" for themselves by taking from the top of
-                 * extended memory then subtracting from this value.
-                 *
-                 * capacity does not include conventional memory below 1MB, nor any memory
-                 * below 16MB. */
-                if (ext > 0xFFFE) ext = 0xFFFE;
-
-                mem_writew(0x594,ext);
-            }
-            else {
-                mem_writeb(0x594,0x00);
-            }
 
             /* BIOS flags */
             /* bit[7:7] = Startup            1=hot start    0=cold start
