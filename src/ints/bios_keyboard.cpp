@@ -176,6 +176,11 @@ bool BIOS_AddKeyToBuffer(Bit16u code) {
     if (IS_PC98_ARCH) {
         real_writew(0x0,tail,code);
         mem_writew(0x526/*tail*/,ttail);
+
+        /* PC-98 BIOSes also manage a key counter, which is required for
+         * some games and even the PC-98 version of MS-DOS to detect keyboard input */
+        unsigned char b = real_readw(0,0x528);
+        real_writew(0,0x528,b+1);
     }
     else {
         real_writew(0x40,tail,code);
@@ -212,6 +217,11 @@ static bool get_key(Bit16u &code) {
         head =mem_readw(BIOS_KEYBOARD_BUFFER_HEAD);
         tail =mem_readw(BIOS_KEYBOARD_BUFFER_TAIL);
     }
+
+    /* PC-98 BIOSes also manage a key counter, which is required for
+     * some games and even the PC-98 version of MS-DOS to detect keyboard input */
+    unsigned char b = real_readw(0,0x528);
+    if (b != 0) real_writew(0,0x528,b-1);
 
 	if (head==tail) return false;
 	thead=head+2;
