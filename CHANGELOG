@@ -1,4 +1,34 @@
 (next)
+  - Fixed EMS emulation not to claim XMS memory (and zero BIOS
+    extended memory size) if EMS emulation is in EMS board mode
+    (and therefore not allocating extended memory through HIMEM.SYS).
+  - PC-98 INT 1Fh extended memory copy implemented. DOS games in
+    PC-98 mode can now use this API to access extended memory.
+  - Fixed HIMEM.SYS emulation in PC-98 mode to zero BIOS extended
+    memory values when claiming extended memory.
+  - PC-98 mode now sets BIOS data area values correctly regarding
+    conventional and extended memory.
+  - Added rudimentary emulation of non-volatile RAM at the
+    trailing edge of text RAM (A3FE0-A3FFF).
+  - PC-98 mode now adds additional BIOS data values at boot time
+    so that guest OSes like PC-98 MS-DOS can see the floppy drive,
+    see keyboard input, and determine the boot drive properly.
+    It is now possible to boot MS-DOS in PC-98 mode.
+  - Added rudimentary PC-98 INT 1Bh BIOS interrupt, at least for
+    floppy disk emulation.
+  - Cleanup and formatting enhancements to IMGMOUNT ramdisk (Shane32)
+  - DOS CON emulation in PC-98 mode now emulates two additional
+    ANSI escapes to clear the screen that are specific to NEC's
+    MS-DOS implementation, which fixes text layer problems with
+    Rusty.
+  - PC-98 GDC dip switch 2-8 emulation fixed. It was backwards.
+    This may break existing dosbox.conf configurations, apologies
+    in advance.
+  - Added -xms option to LOADFIX command. When given, the command
+    consumes extended memory instead of conventional memory.
+  - HIMEM.SYS emulation fixed to behave more like Microsoft's
+    HIMEM.SYS implementation regarding global & local A20 gate
+    control.
   - Mac OS X builds fixed to work from the user's home directory
     if run from the Finder, instead of trying to operate at the
     root of the filesystem as directed by the Finder.
