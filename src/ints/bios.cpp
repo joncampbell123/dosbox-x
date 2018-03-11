@@ -3013,16 +3013,47 @@ static Bitu INT1E_PC98_Handler(void) {
     return CBRET_NONE;
 }
 
+void PC98_EXTMEMCPY(void) {
+    bool enabled = MEM_A20_Enabled();
+    MEM_A20_Enable(true);
+
+    Bitu   bytes	= ((reg_cx - 1) & 0xFFFF) + 1; // bytes, except that 0 == 64KB
+    PhysPt data		= SegPhys(es)+reg_bx;
+    PhysPt source	= (mem_readd(data+0x12) & 0x00FFFFFF) + (mem_readb(data+0x17)<<24);
+    PhysPt dest		= (mem_readd(data+0x1A) & 0x00FFFFFF) + (mem_readb(data+0x1F)<<24);
+
+    LOG_MSG("PC-98 memcpy: src=0x%x dst=0x%x data=0x%x count=0x%x",
+        (unsigned int)source,(unsigned int)dest,(unsigned int)data,(unsigned int)bytes);
+
+    MEM_BlockCopy(dest,source,bytes);
+    MEM_A20_Enable(enabled);
+    Segs.limit[cs] = 0xFFFF;
+    Segs.limit[ds] = 0xFFFF;
+    Segs.limit[es] = 0xFFFF;
+    Segs.limit[ss] = 0xFFFF;
+
+    CALLBACK_SCF(false);
+}
+
 static Bitu INT1F_PC98_Handler(void) {
-    LOG_MSG("PC-98 INT 1Fh unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
-        reg_ax,
-        reg_bx,
-        reg_cx,
-        reg_dx,
-        reg_si,
-        reg_di,
-        SegValue(ds),
-        SegValue(es));
+    switch (reg_ah) {
+        case 0x90:
+            /* Copy extended memory */
+            PC98_EXTMEMCPY();
+            break;
+        default:
+            LOG_MSG("PC-98 INT 1Fh unknown call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+                    reg_ax,
+                    reg_bx,
+                    reg_cx,
+                    reg_dx,
+                    reg_si,
+                    reg_di,
+                    SegValue(ds),
+                    SegValue(es));
+            CALLBACK_SCF(true);
+            break;
+    };
 
     return CBRET_NONE;
 }
