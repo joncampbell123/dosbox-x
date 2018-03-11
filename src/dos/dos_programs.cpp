@@ -742,8 +742,20 @@ public:
 				WriteOut(MSG_Get("PROGRAM_BOOT_IMAGE_OPEN"), temp_line.c_str());
 				FILE *usefile = getFSFile(temp_line.c_str(), &floppysize, &rombytesize);
 				if(usefile != NULL) {
+                    char tmp[256];
+
 					if(diskSwap[i] != NULL) diskSwap[i]->Release();
-					diskSwap[i] = new imageDisk(usefile, (Bit8u *)temp_line.c_str(), floppysize, false);
+
+                    fseeko64(usefile, 0L, SEEK_SET);
+                    fread(tmp,256,1,usefile); // look for magic signatures
+
+                    if (!memcmp(tmp,"VFD1.",5)) { /* FDD files */
+                        diskSwap[i] = new imageDiskVFD(usefile, (Bit8u *)temp_line.c_str(), floppysize, false);
+                    }
+                    else {
+                        diskSwap[i] = new imageDisk(usefile, (Bit8u *)temp_line.c_str(), floppysize, false);
+                    }
+
 					diskSwap[i]->Addref();
 
 					if (usefile_1==NULL) {
@@ -2988,11 +3000,25 @@ public:
 					newImage = new QCow2Disk(qcow2_header, newDisk, (Bit8u *)temp_line.c_str(), imagesize, sizes[0], (imagesize > 2880));
 				}
 				else{
-					fseeko64(newDisk,0L, SEEK_END);
-					sectors = (Bit64u)ftello64(newDisk) / (Bit64u)sizes[0];
-					imagesize = (Bit32u)(sectors / 2); /* orig. code wants it in KBs */
-					setbuf(newDisk,NULL);
-					newImage = new imageDisk(newDisk, (Bit8u *)temp_line.c_str(), imagesize, (imagesize > 2880));
+                    char tmp[256];
+
+                    fseeko64(newDisk, 0L, SEEK_SET);
+                    fread(tmp,256,1,newDisk); // look for magic signatures
+
+                    if (!memcmp(tmp,"VFD1.",5)) { /* FDD files */
+                        fseeko64(newDisk,0L, SEEK_END);
+                        sectors = (Bit64u)ftello64(newDisk) / (Bit64u)sizes[0];
+                        imagesize = (Bit32u)(sectors / 2); /* orig. code wants it in KBs */
+                        setbuf(newDisk,NULL);
+                        newImage = new imageDiskVFD(newDisk, (Bit8u *)temp_line.c_str(), imagesize, (imagesize > 2880));
+                    }
+                    else {
+                        fseeko64(newDisk,0L, SEEK_END);
+                        sectors = (Bit64u)ftello64(newDisk) / (Bit64u)sizes[0];
+                        imagesize = (Bit32u)(sectors / 2); /* orig. code wants it in KBs */
+                        setbuf(newDisk,NULL);
+                        newImage = new imageDisk(newDisk, (Bit8u *)temp_line.c_str(), imagesize, (imagesize > 2880));
+                    }
 				}
 				
 				newImage->Addref();
