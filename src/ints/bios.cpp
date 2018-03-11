@@ -4692,7 +4692,8 @@ private:
             /* NTS: MS-DOS 5.0 appears to reduce it's BIOS calls and render the whole
              *      console as green IF bit 0 is clear.
              *
-             *      If bit 0 is set, then we MUST provide <some BIOS function ptr> */
+             *      If bit 0 is set, INT 1Ah will be hooked by MS-DOS and, for some odd reason,
+             *      MS-DOS's hook proc will call to our INT 1Ah + 0x19 bytes. */
             mem_writeb(0x500,0x01 | 0x02/*high density drive*/);
 
             /* BIOS flags */
@@ -4903,6 +4904,42 @@ private:
             /* INT 1Ah *STUB* */
             callback[3].Install(&INT1A_PC98_Handler,CB_IRET,"Int 1A ???");
             callback[3].Set_RealVec(0x1A,/*reinstall*/true);
+
+            /* MS-DOS 5.0 FIXUP:
+             * - For whatever reason, if we set bits in the BIOS data area that
+             *   indicate we're NOT the original model of the PC-98, MS-DOS will
+             *   hook our INT 1Ah and then call down to 0x19 bytes into our
+             *   INT 1Ah procedure. If anyone can explain this, I'd like to hear it. --J.C.
+             *
+             * NTS: On real hardware, the BIOS appears to have an INT 1Ah, a bunch of NOPs,
+             *      then at 0x19 bytes into the procedure, the actual handler. This is what
+             *      MS-DOS is pointing at.
+             *
+             *      But wait, there's more.
+             *
+             *      MS-DOS calldown pushes DS and DX onto the stack (after the IRET frame)
+             *      before JMPing into the BIOS.
+             *
+             *      Apparently the function at INT 1Ah + 0x19 is expected to do this:
+             *
+             *      <function code>
+             *      POP     DX
+             *      POP     DS
+             *      IRET
+             *
+             *      I can only imaging what a headache this might have caused NEC when
+             *      maintaining the platform and compatibility! */
+            {
+                Bitu addr = callback[3].Get_RealPointer();
+                addr = ((addr >> 16) << 4) + (addr & 0xFFFF);
+
+                /* to make this work, we need to pop the two regs, then JMP to our
+                 * callback and proceed as normal. */
+                phys_writeb(addr + 0x19,0x5A);       // POP DX
+                phys_writeb(addr + 0x1A,0x1F);       // POP DS
+                phys_writeb(addr + 0x1B,0xEB);       // jmp short ...
+                phys_writeb(addr + 0x1C,0x100 - 0x1D);
+            }
 
             /* INT 1Bh *STUB* */
             callback[4].Install(&INT1B_PC98_Handler,CB_IRET,"Int 1B ???");
