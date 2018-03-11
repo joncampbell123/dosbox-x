@@ -4595,6 +4595,25 @@ private:
                 mem_writeb(0x401,0x00);
             }
 
+            /* extended memory size (386 systems, at or above 16MB) */
+            if (mempages > ((1024UL*16UL)/4UL)) {
+                unsigned int ext = ((mempages - ((1024UL*16UL)/4UL)) * 4096UL) / (1024UL * 1024UL); /* convert to MB */
+
+                /* extended memory, at or above 16MB capacity (for 386+ systems?)
+                 *
+                 * MS-DOS drivers will "allocate" for themselves by taking from the top of
+                 * extended memory then subtracting from this value.
+                 *
+                 * capacity does not include conventional memory below 1MB, nor any memory
+                 * below 16MB. */
+                if (ext > 0xFFFE) ext = 0xFFFE;
+
+                mem_writew(0x594,ext);
+            }
+            else {
+                mem_writeb(0x594,0x00);
+            }
+
             /* BIOS flags */
             /* timer setup will set/clear bit 7 */
             /* bit[7:7] = system clock freq  1=8MHz         0=5/10Mhz
