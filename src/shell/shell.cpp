@@ -930,11 +930,9 @@ void SHELL_Init() {
         VFILE_RegisterBuiltinFileBlob(bfb_DOS4GW_EXE);
         VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM);
         VFILE_RegisterBuiltinFileBlob(bfb_TREE_EXE);
+        VFILE_RegisterBuiltinFileBlob(bfb_MEM_COM);
         VFILE_RegisterBuiltinFileBlob(bfb_25_COM);
     }
-
-    /* MEM.COM appears to work in PC-98 and IBM-PC mode */
-    VFILE_RegisterBuiltinFileBlob(bfb_MEM_COM);
 
 	/* don't register 28.com unless EGA/VGA */
 	if (IS_EGAVGA_ARCH) VFILE_RegisterBuiltinFileBlob(bfb_28_COM);
