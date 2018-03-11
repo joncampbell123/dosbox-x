@@ -1065,19 +1065,34 @@ public:
 
                 imageDiskList[drive-65]->Get_Geometry(&heads,&cyls,&sects,&ssize);
 
+                Bitu disk_equip = 0,disk_equip_144 = 0;
+
+                /* FIXME: MS-DOS appears to be able to see disk image B: but only
+                 *        if the disk format is the same, for some reason.
+                 *
+                 *        So, apparently you cannot put a 1.44MB image in drive A:
+                 *        and a 1.2MB image in drive B: */
+
+                for (unsigned int i=0;i < 2;i++) {
+                    if (imageDiskList[i] != NULL) {
+                        disk_equip |= (1 << i);
+                        disk_equip_144 |= (1 << i);
+                    }
+                }
+
                 if (ssize == 1024 && heads == 2 && cyls == 77 && sects == 8) {
-                    mem_writeb(0x584,0x90/*type*/ + 0x00/*drive*/); /* 1.2MB 3-mode */
-                    mem_writew(0x55C,0x0001);   /* disk equipment (drive 0 is present) */
-                    mem_writew(0x5AE,0x0001);   /* disk equipment (drive 0 is present, 1.44MB) */
+                    mem_writeb(0x584,0x90/*type*/ + (drive - 65)/*drive*/); /* 1.2MB 3-mode */
+                    mem_writew(0x55C,disk_equip);   /* disk equipment (drive 0 is present) */
+                    mem_writew(0x5AE,disk_equip_144);   /* disk equipment (drive 0 is present, 1.44MB) */
                 }
                 else if (ssize == 512 && heads == 2 && cyls == 80 && sects == 18) {
-                    mem_writeb(0x584,0x30/*type*/ + 0x00/*drive*/); /* 1.44MB */
-                    mem_writew(0x55C,0x0001);   /* disk equipment (drive 0 is present and high density) */
-                    mem_writew(0x5AE,0x0001);   /* disk equipment (drive 0 is present, 1.44MB) */
+                    mem_writeb(0x584,0x30/*type*/ + (drive - 65)/*drive*/); /* 1.44MB */
+                    mem_writew(0x55C,disk_equip);   /* disk equipment (drive 0 is present) */
+                    mem_writew(0x5AE,disk_equip_144);   /* disk equipment (drive 0 is present, 1.44MB) */
                 }
                 /* TODO: 640KB? */
                 else {
-                    /* hard drive */
+                    /* TODO: hard drive */
                     mem_writeb(0x584,0x00/*type*/ + 0x00/*drive*/);
                 }
             }
