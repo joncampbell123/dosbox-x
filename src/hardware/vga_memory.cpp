@@ -1467,7 +1467,7 @@ public:
 
         check_align<AWT>(addr);
 
-        if ((addr & 0x3FE0) == 0x3FE0) {
+        if ((addr & 0xFFFF3FE0) == 0x3FE0) {
             /* 
              * 0xA3FE2      MSW1
              * 0xA3FE6      MSW2
@@ -1559,7 +1559,7 @@ public:
 
         check_align<AWT>(addr);
 
-        if ((addr & 0x3FE0) == 0x3FE0)
+        if ((addr & 0xFFFF3FE0) == 0x3FE0)
             return;
 
         if (addr >= 0xE0000) /* the 4th bitplane (EGC 16-color mode) */
