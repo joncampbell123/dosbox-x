@@ -730,24 +730,50 @@ static Bitu DOS_21Handler(void) {
 		break;
 	case 0x2a:		/* Get System Date */
 		{
-			if(date_host_forced) {
+			if(date_host_forced || IS_PC98_ARCH) {
 				// use BIOS to get system date
-				CPU_Push16(reg_ax);
-				reg_ah = 4;		// get RTC date
-				CALLBACK_RunRealInt(0x1a);
-				reg_ax = CPU_Pop16();
+                if (IS_PC98_ARCH) {
+                    CPU_Push16(reg_ax);
+                    CPU_Push16(reg_bx);
+                    CPU_Push16(SegValue(es));
+                    reg_sp -= 6;
 
-				reg_ch = BCD2BIN(reg_ch);		// century
-				reg_cl = BCD2BIN(reg_cl);		// year
-				reg_cx = reg_ch * 100 + reg_cl;	// compose century + year
-				reg_dh = BCD2BIN(reg_dh);		// month
-				reg_dl = BCD2BIN(reg_dl);		// day
+                    reg_ah = 0;		// get time
+                    reg_bx = reg_sp;
+                    SegSet16(es,SegValue(ss));
+                    CALLBACK_RunRealInt(0x1c);
 
-				// calculate day of week (we could of course read it from CMOS, but never mind)
-				int a = (14 - reg_dh) / 12;
-				int y = reg_cl - a;
-				int m = reg_dh + 12 * a - 2;
-				reg_al = (reg_dl + y + (y / 4) - (y / 100) + (y / 400) + (31 * m) / 12) % 7;
+                    Bitu memaddr = (SegValue(es) << 4) + reg_bx;
+
+                    reg_sp += 6;
+                    SegSet16(es,CPU_Pop16());
+                    reg_bx = CPU_Pop16();
+                    reg_ax = CPU_Pop16();
+
+                    reg_cx = 1900 + BCD2BIN(mem_readb(memaddr+0));		            // year
+                    if (reg_cx < 1980) reg_cx += 100;
+                    reg_dh = BCD2BIN(mem_readb(memaddr+1) >> 4);
+                    reg_dl = BCD2BIN(mem_readb(memaddr+2));
+                    reg_al = BCD2BIN(mem_readb(memaddr+1) & 0xF);
+                }
+                else {
+                    CPU_Push16(reg_ax);
+                    reg_ah = 4;		// get RTC date
+                    CALLBACK_RunRealInt(0x1a);
+                    reg_ax = CPU_Pop16();
+
+                    reg_ch = BCD2BIN(reg_ch);		// century
+                    reg_cl = BCD2BIN(reg_cl);		// year
+                    reg_cx = reg_ch * 100 + reg_cl;	// compose century + year
+                    reg_dh = BCD2BIN(reg_dh);		// month
+                    reg_dl = BCD2BIN(reg_dl);		// day
+
+                    // calculate day of week (we could of course read it from CMOS, but never mind)
+                    int a = (14 - reg_dh) / 12;
+                    int y = reg_cl - a;
+                    int m = reg_dh + 12 * a - 2;
+                    reg_al = (reg_dl + y + (y / 4) - (y / 100) + (y / 400) + (31 * m) / 12) % 7;
+                }
 			} else {
 				reg_ax=0; // get time
 				CALLBACK_RunRealInt(0x1a);
@@ -813,22 +839,48 @@ static Bitu DOS_21Handler(void) {
 		reg_al=0;
 		break;
 	case 0x2c: {	/* Get System Time */
-		if(date_host_forced) {
+		if(date_host_forced || IS_PC98_ARCH) {
 			// use BIOS to get RTC time
-			CPU_Push16(reg_ax);
-		
-			reg_ah = 2;		// get RTC time
-			CALLBACK_RunRealInt(0x1a);
-		
-			reg_ax = CPU_Pop16();
+            if (IS_PC98_ARCH) {
+                CPU_Push16(reg_ax);
+                CPU_Push16(reg_bx);
+                CPU_Push16(SegValue(es));
+                reg_sp -= 6;
 
-			reg_ch = BCD2BIN(reg_ch);		// hours
-			reg_cl = BCD2BIN(reg_cl);		// minutes
-			reg_dh = BCD2BIN(reg_dh);		// seconds
+                reg_ah = 0;		// get time
+                reg_bx = reg_sp;
+                SegSet16(es,SegValue(ss));
+                CALLBACK_RunRealInt(0x1c);
 
-			// calculate milliseconds (% 20 to prevent overflow, .55ms has period of 20)
-			// direcly read BIOS_TIMER, don't want to destroy regs by calling int 1a
-			reg_dl = (Bit8u)((mem_readd(BIOS_TIMER) % 20) * 55 % 100);
+                Bitu memaddr = (SegValue(es) << 4) + reg_bx;
+
+                reg_sp += 6;
+                SegSet16(es,CPU_Pop16());
+                reg_bx = CPU_Pop16();
+                reg_ax = CPU_Pop16();
+
+                reg_ch = BCD2BIN(mem_readb(memaddr+3));		// hours
+                reg_cl = BCD2BIN(mem_readb(memaddr+4));		// minutes
+                reg_dh = BCD2BIN(mem_readb(memaddr+5));		// seconds
+
+                reg_dl = 0;
+            }
+            else {
+                CPU_Push16(reg_ax);
+
+                reg_ah = 2;		// get RTC time
+                CALLBACK_RunRealInt(0x1a);
+
+                reg_ax = CPU_Pop16();
+
+                reg_ch = BCD2BIN(reg_ch);		// hours
+                reg_cl = BCD2BIN(reg_cl);		// minutes
+                reg_dh = BCD2BIN(reg_dh);		// seconds
+
+                // calculate milliseconds (% 20 to prevent overflow, .55ms has period of 20)
+                // direcly read BIOS_TIMER, don't want to destroy regs by calling int 1a
+                reg_dl = (Bit8u)((mem_readd(BIOS_TIMER) % 20) * 55 % 100);
+            }
 			break;
 		}
 		reg_ax=0; // get time
