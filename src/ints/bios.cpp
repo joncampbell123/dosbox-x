@@ -4545,8 +4545,40 @@ private:
 
             write_FFFF_PC98_signature();
 
+            unsigned char memsize_real_code = 0;
+            Bitu mempages = MEM_TotalPages();
+
+            /* FIXME: How exactly does PC-98 support 768KB of RAM if
+             *        the text RAM occupies A000h-A7FFh? */
+            if (mempages >= (640UL/4UL))        /* 640KB */
+                memsize_real_code = 4;
+            else if (mempages >= (512UL/4UL))   /* 512KB */
+                memsize_real_code = 3;
+            else if (mempages >= (384UL/4UL))   /* 384KB */
+                memsize_real_code = 2;
+            else if (mempages >= (256UL/4UL))   /* 256KB */
+                memsize_real_code = 1;
+            else                                /* 128KB */
+                memsize_real_code = 0;
+
             /* clear out 0x50 segment */
             for (unsigned int i=0;i < 0x100;i++) phys_writeb(0x500+i,0);
+
+            /* BIOS flags */
+            /* timer setup will set/clear bit 7 */
+            /* bit[7:7] = system clock freq  1=8MHz         0=5/10Mhz
+             *          = timer clock freq   1=1.9968MHz    0=2.4576MHz
+             * bit[6:6] = CPU                1=V30          0=Intel (8086 through Pentium)
+             * bit[5:5] = Model info         1=Other model  0=PC-9801 Muji, PC-98XA
+             * bit[4:4] = Model info         ...
+             * bit[3:3] = Model info         1=High res     0=normal
+             * bit[2:0] = Realmode memsize
+             *                             000=128KB      001=256KB
+             *                             010=384KB      011=512KB
+             *                             100=640KB      101=768KB
+             *
+             * Ref: http://hackipedia.org/browse/Computer/Platform/PC,%20NEC%20PC-98/Collections/Undocumented%209801,%209821%20Volume%202%20(webtech.co.jp)/memsys.txt */
+            mem_writeb(0x501,0x20 | memsize_real_code);
 
             /* set up some default state */
             mem_writeb(0x54C/*MEMB_PRXCRT*/,0x4F); /* default graphics layer off, 24KHz hsync */
