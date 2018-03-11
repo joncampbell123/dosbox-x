@@ -1056,10 +1056,12 @@ public:
                 if (ssize == 1024 && heads == 2 && cyls == 77 && sects == 8) {
                     mem_writeb(0x584,0x90/*type*/ + 0x00/*drive*/); /* 1.2MB 3-mode */
                     mem_writew(0x55C,0x0001);   /* disk equipment (drive 0 is present) */
+                    mem_writew(0x5AE,0x0001);   /* disk equipment (drive 0 is present, 1.44MB) */
                 }
                 else if (ssize == 512 && heads == 2 && cyls == 80 && sects == 18) {
                     mem_writeb(0x584,0x30/*type*/ + 0x00/*drive*/); /* 1.44MB */
                     mem_writew(0x55C,0x0001);   /* disk equipment (drive 0 is present and high density) */
+                    mem_writew(0x5AE,0x0001);   /* disk equipment (drive 0 is present, 1.44MB) */
                 }
                 /* TODO: 640KB? */
                 else {
