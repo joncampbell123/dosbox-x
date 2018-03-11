@@ -4554,8 +4554,9 @@ private:
              *      Note that MEM.EXE requires this value, or else it
              *      will complain about broken UMB linkage and fail
              *      to show anything else. */
-            /* FIXME: How exactly does PC-98 support 768KB of RAM if
-             *        the text RAM occupies A000h-A7FFh? */
+            /* TODO: In the event we eventually support "high resolution mode"
+             *       we can indicate 768KB here, code == 5, meaning that
+             *       the RAM extends up to 0xBFFFF instead of 0x9FFFF */
             if (mempages >= (640UL/4UL))        /* 640KB */
                 memsize_real_code = 4;
             else if (mempages >= (512UL/4UL))   /* 512KB */
