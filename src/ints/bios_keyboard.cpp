@@ -186,7 +186,7 @@ bool BIOS_AddKeyToBuffer(Bit16u code) {
 }
 
 static void add_key(Bit16u code) {
-	if (code!=0) BIOS_AddKeyToBuffer(code);
+	if (code!=0 || IS_PC98_ARCH) BIOS_AddKeyToBuffer(code);
 }
 
 static bool get_key(Bit16u &code) {
