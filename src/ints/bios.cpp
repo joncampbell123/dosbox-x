@@ -4398,7 +4398,7 @@ void BIOS_ZeroExtendedSize(bool in) {
             mem_writew(0x594,ext);
         }
         else {
-            mem_writeb(0x594,0x00);
+            mem_writew(0x594,0x00);
         }
     }
 }
