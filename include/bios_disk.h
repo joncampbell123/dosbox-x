@@ -148,12 +148,17 @@ public:
 	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, void * data);
 	virtual Bit8u GetBiosType(void);
 	virtual void Set_Geometry(Bit32u setHeads, Bit32u setCyl, Bit32u setSect, Bit32u setSectSize);
+	// Parition and format the ramdrive
 	virtual Bit8u Format();
 
+	// Create a hard drive image of a specified size; automatically select c/h/s
 	imageDiskMemory(Bit32u imgSizeK);
+	// Create a hard drive image of a specified geometry
 	imageDiskMemory(Bit32u cylinders, Bit32u heads, Bit32u sectors, Bit32u sectorSize);
+	// Create a floppy image of a specified geometry
 	imageDiskMemory(diskGeo floppyGeometry);
-	imageDiskMemory(imageDisk* underylingImage);
+	// Create a copy-on-write memory image of an existing image
+	imageDiskMemory(imageDisk* underlyingImage);
 	virtual ~imageDiskMemory();
 
 private:
