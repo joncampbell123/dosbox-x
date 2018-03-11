@@ -4548,6 +4548,12 @@ private:
             unsigned char memsize_real_code = 0;
             Bitu mempages = MEM_TotalPages();
 
+            /* NTS: Fill in the 3-bit code in FLAGS1 that represents
+             *      how much lower conventional memory is in the system.
+             *
+             *      Note that MEM.EXE requires this value, or else it
+             *      will complain about broken UMB linkage and fail
+             *      to show anything else. */
             /* FIXME: How exactly does PC-98 support 768KB of RAM if
              *        the text RAM occupies A000h-A7FFh? */
             if (mempages >= (640UL/4UL))        /* 640KB */
