@@ -2727,6 +2727,72 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
             reg_ah = status;
             CALLBACK_SCF(false);
             break;
+        /* TODO: 0x00 = seek to track (in CL) */
+        /* TODO: 0x01 = test read? */
+        /* TODO: 0x03 = equipment flags? */
+        /* TODO: 0x04 = format detect? */
+        /* TODO: 0x05 = write disk */
+        /* TODO: 0x07 = recalibrate (seek to track 0) */
+        /* TODO: 0x0A = Read ID */
+        /* TODO: 0x0D = Format track */
+        /* TODO: 0x0E = ?? */
+        case 0x05: /* write sectors */
+            /* AH bits[4:4] = If set, seek to track specified */
+            /* CL           = cylinder (track) */
+            /* CH           = sector size (0=128 1=256 2=512 3=1024 etc) */
+            /* DL           = sector number (1-based) */
+            /* DH           = head */
+            /* BX           = size (in bytes) of data to read */
+            /* ES:BP        = buffer to write data from */
+            if (floppy == NULL) {
+                CALLBACK_SCF(true);
+                reg_ah = 0x00;
+                /* TODO? Error code? */
+                return;
+            }
+	        floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
+
+            /* TODO: Error if write protected */
+
+            PC98_BIOS_FDC_CALL_GEO_UNPACK(/*&*/fdc_cyl,/*&*/fdc_head,/*&*/fdc_sect,/*&*/fdc_sz);
+            unitsize = PC98_FDC_SZ_TO_BYTES(fdc_sz);
+            if (unitsize != img_ssz || img_heads == 0 || img_cyl == 0 || img_sect == 0) {
+                CALLBACK_SCF(true);
+                reg_ah = 0x00;
+                /* TODO? Error code? */
+                return;
+            }
+
+            size = reg_bx;
+            memaddr = (SegValue(es) << 4U) + reg_bp;
+            while (size > 0) {
+                accsize = size > unitsize ? unitsize : size;
+
+                for (unsigned int i=0;i < accsize;i++)
+                    PC98_BIOS_FLOPPY_BUFFER[i] = mem_readb(memaddr+i);
+
+                if (floppy->Write_Sector(fdc_head,fdc_cyl,fdc_sect,PC98_BIOS_FLOPPY_BUFFER) != 0) {
+                    CALLBACK_SCF(true);
+                    reg_ah = 0x00;
+                    /* TODO? Error code? */
+                    return;
+                }
+
+                memaddr += accsize;
+                size -= accsize;
+
+                if ((++fdc_sect) > img_sect) {
+                    fdc_sect = 1;
+                    if ((++fdc_head) >= img_heads) {
+                        fdc_head = 0;
+                        fdc_cyl++;
+                    }
+                }
+            }
+
+            reg_ah = 0x00;
+            CALLBACK_SCF(false);
+            break;
         case 0x07: /* recalibrate (seek to track 0) */
             if (floppy == NULL) {
                 CALLBACK_SCF(true);
