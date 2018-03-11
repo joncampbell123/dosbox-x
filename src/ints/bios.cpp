@@ -4715,6 +4715,9 @@ private:
         if (IS_PC98_ARCH) {
             for (unsigned int i=0;i < 20;i++) callback[i].Uninstall();
 
+            /* clear out 0x50 segment (TODO: 0x40 too?) */
+            for (unsigned int i=0;i < 0x100;i++) phys_writeb(0x500+i,0);
+
             write_FFFF_PC98_signature();
             BIOS_ZeroExtendedSize(false);
 
@@ -4740,9 +4743,6 @@ private:
                 memsize_real_code = 1;
             else                                /* 128KB */
                 memsize_real_code = 0;
-
-            /* clear out 0x50 segment (TODO: 0x40 too?) */
-            for (unsigned int i=0;i < 0x100;i++) phys_writeb(0x500+i,0);
 
             /* BIOS flags */
             /* bit[7:7] = Startup            1=hot start    0=cold start
