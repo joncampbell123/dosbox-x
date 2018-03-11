@@ -2931,8 +2931,32 @@ void PC98_Interval_Timer_Continue(void) {
     PIC_SetIRQMask(0,false);
 }
 
+unsigned char pc98_dec2bcd(unsigned char c) {
+    return ((c / 10) << 4) + (c % 10);
+}
+
 static Bitu INT1C_PC98_Handler(void) {
-    if (reg_ah == 0x02) { /* set interval timer (single event) */
+    if (reg_ah == 0x00) { /* get time and date */
+        time_t curtime;
+        struct tm *loctime;
+        curtime = time (NULL);
+        loctime = localtime (&curtime);
+
+        unsigned char tmp[6];
+
+        tmp[0] = pc98_dec2bcd(loctime->tm_year % 100);
+        tmp[1] = ((loctime->tm_mon + 1) << 4) + loctime->tm_wday;
+        tmp[2] = pc98_dec2bcd(loctime->tm_mday);
+        tmp[3] = pc98_dec2bcd(loctime->tm_hour);
+        tmp[4] = pc98_dec2bcd(loctime->tm_min);
+        tmp[5] = pc98_dec2bcd(loctime->tm_sec);
+
+        unsigned long mem = (SegValue(es) << 4) + reg_bx;
+
+        for (unsigned int i=0;i < 6;i++)
+            mem_writeb(mem+i,tmp[i]);
+    }
+    else if (reg_ah == 0x02) { /* set interval timer (single event) */
         /* es:bx = interrupt handler to execute
          * cx = timer interval in ticks (FIXME: what units of time?) */
         mem_writew(0x1C,reg_bx);
