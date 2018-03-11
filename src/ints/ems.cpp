@@ -1519,8 +1519,8 @@ public:
             ENABLE_VCPI = false;
         }
 
-        /* FIXME: Why zero the BIOS memory size if emulating EMS board mode? */
-		BIOS_ZeroExtendedSize(true);
+        if (ems_type != EMS_BOARD)
+            BIOS_ZeroExtendedSize(true);
 
 		dbg_zero_on_ems_allocmem = section->Get_bool("zero memory on ems memory allocation");
 		if (dbg_zero_on_ems_allocmem) {
