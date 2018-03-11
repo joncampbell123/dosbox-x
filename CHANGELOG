@@ -1,4 +1,6 @@
 (next)
+  - INT 21h fixed to use BIOS INT 1Ch to read date and time in
+    PC-98 mode. Arrowgun now runs properly.
   - Fixed EMS emulation not to claim XMS memory (and zero BIOS
     extended memory size) if EMS emulation is in EMS board mode
     (and therefore not allocating extended memory through HIMEM.SYS).
