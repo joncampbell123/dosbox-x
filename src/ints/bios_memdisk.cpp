@@ -47,34 +47,28 @@ imageDiskMemory::imageDiskMemory(Bit32u imgSizeK) {
 	//   size of 4096kb for hard drives.  Use the other constructor for floppy drives.
 	if (imgSizeK < 4096) imgSizeK = 4096;
 
-	//this code always returns drives with 512 byte sectors
-	//first, it primarily prefers 16 sectors, and never more than 255
-	//second, as many cylinders as possible less than 1024
-	//third, as many heads as possible, up to a maximum of 63
-	//
-	//the code will round up in case it cannot make an exact match
-	//it also forces a minimum drive size of 32kb, since a hard drive cannot be formatted as FAT12 with a smaller parition
-	//the code works properly throughout the range of a 32-bit unsigned integer
+	//notes:
+	//  this code always returns drives with 512 byte sectors
+	//  the code will round up in case it cannot make an exact match
+	//  it enforces a minimum drive size of 32kb, since a hard drive cannot be formatted as FAT12 with a smaller parition
+	//  the code works properly throughout the range of a 32-bit unsigned integer, however:
+	//    a) for drives requesting more than 8,225,280kb, the number of cylinders will exceed 1024
+	//    b) for drives requesting ULONG_MAX kb, the drive it creates will be slightly larger than ULONG_MAX kb, due to rounding
+    
+	//BIOS and MBR c/h/s limits:      1024 / 255 /  63     8,225,280kb
+	//ATA c/h/s limits:              65536 /  16 / 255   267,386,880kb
+	//combined limits:                1024 /  16 /  63       516,096kb
 
-	//so, these are examples of results: (assuming no 4096k minimum)
-	//
-	// KB requested      C     H     S
-	//-----------------------------------
-	//          0        4     1    16
-	//          1        4     1    16
-	//         32        4     1    16     <<---minimum enforced image size
-	//        100       13     1    16
-	//       1024      128     1    16
-	//       4096      512     1    16     <<---however, with first line of code enforcing 4096kb drives, this is what gets returned
-	//       8184     1023     1    16     <<---at 8mb the head count is increased
-	//       8185      512     2    16
-	//      65472     1023     8    16
-	//      65473      910     9    16
-	//     515592     1023    63    16     <<---at 503mb the sector count is increased
-	//     515593      963    63    17
-	//    8217247     1023    63   255     <<---at 8gb the cylinder count is increased beyond 1023 cylinders
-	//    8217248     1024    63   255
-	// 4294967295   534699    63   255     <<---can create drives up to ULONG_MAX kb
+	//since this is a virtual drive, we are not restricted to ATA limits, so go with BIOS/MBR limits
+
+	//it targets c/h/s values as follows:
+	//  minimum:                         4 /   1 /  16            32kb
+	//  through:                      1024 /   1 /  16         8,192kb
+	//  through:                      1024 /  16 /  16       131,072kb
+	//  through:                      1024 /  16 /  63       516,096kb
+	//  max FAT16 drive size:         1024 / 130 /  63     4,193,280kb
+	//  through:                      1024 / 255 /  63     8,225,280kb
+	//  maximum:                    534699 / 255 /  63             4tb
 	
 	//use 32kb as minimum drive size, since it is not possible to format a smaller drive that has 16 sectors
 	if (imgSizeK < 32) imgSizeK = 32;
@@ -82,21 +76,32 @@ imageDiskMemory::imageDiskMemory(Bit32u imgSizeK) {
 	Bit32u sector_size = 512;
 	//calculate the total number of sectors on the drive (imgSizeK * 2)
 	Bit64u total_sectors = ((Bit64u)imgSizeK * 1024 + sector_size - 1) / sector_size;
-	//assume 1023 cylinders and 16 sectors minimum; calculate the number of heads (round up)
-	Bit32u heads = (Bit32u)((total_sectors + (1023 * 16 - 1)) / (1023 * 16));
-	//cap heads at 63
-	if (heads > 63) heads = 63;
-	//now calculate the sectors (again, assuming 1023 cylinders) (round up)
-	Bit32u sectors = (Bit32u)((total_sectors + (heads * 1023 - 1)) / (heads * 1023));
-	//set sectors to a minimum of 16 and maximum of 255
-	if (sectors < 16) sectors = 16;
-	if (sectors > 255) sectors = 255;
-	//now calculate the correct number of cylinders (round up)
-	Bit32u cylinders = (Bit32u)((total_sectors + (heads * sectors - 1)) / (heads * sectors));
-	//set minimum number of cylinders to be 4 (which equals a 32kb image)
-	if (cylinders < 4) cylinders = 4;
-	//it is possible for the cylinders to be > 1023 at this point - to be trapped within init()
-	//minimum image size possible with this formula is 32kb (16 sectors, 1 head, 4 cylinders), which is enough to format 
+
+	//calculate cylinders, sectors, and heads according to the targets above
+	Bit32u sectors, heads, cylinders;
+	if (total_sectors <= 1024 * 16 * 16) {
+		sectors = 16;
+		heads = (Bit32u)((total_sectors + (1024 * sectors - 1)) / (1024 * sectors));
+		cylinders = (Bit32u)((total_sectors + (sectors * heads - 1)) / (sectors * heads));
+	}
+	else if (total_sectors <= 1024 * 16 * 63) {
+		heads = 16;
+		sectors = (Bit32u)((total_sectors + (1024 * heads - 1)) / (1024 * heads));
+		cylinders = (Bit32u)((total_sectors + (sectors * heads - 1)) / (sectors * heads));
+	}
+	else if (total_sectors <= 1024 * 255 * 63) {
+		sectors = 63;
+		heads = (Bit32u)((total_sectors + (1024 * sectors - 1)) / (1024 * sectors));
+		cylinders = (Bit32u)((total_sectors + (sectors * heads - 1)) / (sectors * heads));
+	}
+	else {
+		sectors = 63;
+		heads = 255;
+		cylinders = (Bit32u)((total_sectors + (sectors * heads - 1)) / (sectors * heads));
+	}
+
+	LOG_MSG("Creating ramdrive as C/H/S %u/%u/%u with %u bytes/sector\n",
+		(unsigned int)cylinders, (unsigned int)heads, (unsigned int)sectors, (unsigned int)sector_size);
 
 	diskGeo diskParams;
 	diskParams.secttrack = sectors;
@@ -365,16 +370,22 @@ Bit8u imageDiskMemory::Format() {
 		LOG_MSG("imageDiskMemory::Format only designed for disks with <= 255 heads.\n");
 		return 0x03;
 	}
-	if (this->cylinders >= 1024) {
-		LOG_MSG("imageDiskMemory::Format only designed for disks with < 1024 cylinders.\n");
+	if (this->cylinders <= this->Get_Reserved_Cylinders()) {
+		LOG_MSG("Invalid number of reserved cylinders in imageDiskMemory::Format\n");
+		return 0x06;
+	}
+	Bit32u reported_cylinders = this->cylinders - this->Get_Reserved_Cylinders();
+	if (reported_cylinders > 1024) {
+		LOG_MSG("imageDiskMemory::Format only designed for disks with <= 1024 cylinders.\n");
 		return 0x04;
 	}
-	
+	Bit32u reported_total_sectors = reported_cylinders * this->heads * this->sectors;
+
 	//plan the drive
 	//write a MBR?
 	bool writeMBR = this->hardDrive;
 	Bit32u partitionStart = writeMBR ? this->sectors : 0; //must be aligned with the start of a head (multiple of this->sectors)
-	Bit32u partitionLength = this->total_sectors - partitionStart; //must be aligned with the start of a head (multiple of this->sectors)
+	Bit32u partitionLength = reported_total_sectors - partitionStart; //must be aligned with the start of a head (multiple of this->sectors)
 	//figure out the media id
 	Bit8u mediaID = this->hardDrive ? 0xF0 : this->floppyInfo.mediaid;
 	//figure out the number of root entries and minimum number of sectors per cluster
@@ -396,6 +407,19 @@ Bit8u imageDiskMemory::Format() {
 		return 0x05;
 	}
 
+	if (this->hardDrive) {
+		LOG_MSG("Formatting FAT%u hard drive C/H/S %u/%u/%u with %u bytes/sector, %u root entries, %u-byte clusters, media id 0x%X\n",
+			(unsigned int)(isFat16 ? 16 : 12),
+			(unsigned int)reported_cylinders, (unsigned int)this->heads, (unsigned int)this->sectors, (unsigned int)this->sector_size,
+			(unsigned int)root_ent, (unsigned int)(sectors_per_cluster * this->sector_size), (unsigned int)mediaID);
+	}
+	else {
+		LOG_MSG("Formatting FAT%u floppy drive C/H/S %u/%u/%u with %u bytes/sector, %u root entries, %u-byte clusters, media id 0x%X\n",
+			(unsigned int)(isFat16 ? 16 : 12),
+			(unsigned int)reported_cylinders, (unsigned int)this->heads, (unsigned int)this->sectors, (unsigned int)this->sector_size,
+			(unsigned int)root_ent, (unsigned int)(sectors_per_cluster * this->sector_size), (unsigned int)mediaID);
+	}
+
 	//write MBR if applicable
 	Bit8u sbuf[512];
 	if (writeMBR) {
@@ -412,17 +436,18 @@ Bit8u imageDiskMemory::Format() {
 		sbuf[0x1c1] = this->heads > 1 || this->sectors > 1 ? 0 : 1;
 		// OS indicator: DOS what else ;)
 		sbuf[0x1c2] = 0x06;
-		//ASSUMING that partitionLength==(total_sectors-partitionStart)
+		//ASSUMING that partitionLength==(reported_total_sectors-partitionStart)
 		// end head (0-based)
 		sbuf[0x1c3] = this->heads - 1;
 		// end sector with bits 8-9 of end cylinder (0-based) in bits 6-7
-		sbuf[0x1c4] = this->sectors | (((this->cylinders - 1) & 0x300) >> 2);
+		sbuf[0x1c4] = this->sectors | (((this->cylinders - 1 - this->Get_Reserved_Cylinders()) & 0x300) >> 2);
 		// end cylinder (0-based) bits 0-7
-		sbuf[0x1c5] = (this->cylinders - 1) & 0xFF;
+		sbuf[0x1c5] = (this->cylinders - 1 - this->Get_Reserved_Cylinders()) & 0xFF;
 		// sectors preceding partition1 (one head)
 		host_writed(&sbuf[0x1c6], this->sectors);
 		// length of partition1, align to chs value
-		host_writed(&sbuf[0x1ca], ((this->cylinders - 1)*this->heads + (this->heads - 1))*this->sectors);
+		// ASSUMING that partitionLength aligns to chs value
+		host_writed(&sbuf[0x1ca], partitionLength);
 
 		// write partition table
 		this->Write_AbsoluteSector(0, sbuf);
@@ -503,17 +528,28 @@ bool imageDiskMemory::CalculateFAT(Bit32u partitionStartingSector, Bit32u partit
 	//make sure variables all make sense
 	switch (*sectorsPerCluster) {
 		case 1: case 2: case 4: case 8: case 16: case 32: case 64: case 128: break;
-		default: return false;
+		default:
+			LOG_MSG("Invalid number of sectors per cluster\n");
+			return false;
 	}
-	if (((Bit64u)partitionStartingSector + partitionLength) > 0xfffffffful) return false;
-	if (rootEntries > (isHardDrive ? 512u : 240u)) return false;
-	if ((rootEntries / 16) * 16 != rootEntries) return false;
-	if (rootEntries == 0) return false;
+	if (((Bit64u)partitionStartingSector + partitionLength) > 0xfffffffful) {
+		LOG_MSG("Invalid partition size\n");
+		return false;
+	}
+	if ((rootEntries > (isHardDrive ? 512u : 240u)) ||
+		(rootEntries / 16) * 16 != rootEntries ||
+		rootEntries == 0) {
+		LOG_MSG("Invalid number of root entries\n");
+		return false;
+	}
 	//set the number of root sectors
 	*rootSectors = rootEntries * 32 / 512;
 	//make sure there is a minimum number of sectors available
 	//  minimum sectors = root sectors + 1 for boot sector + 1 for fat #1 + 1 for fat #2 + 1 for data sector + add 7 for hard drives due to allow for 4k alignment
-	if (partitionLength < (*rootSectors + 4 + (isHardDrive ? 7 : 0))) return false;
+	if (partitionLength < (*rootSectors + 4 + (isHardDrive ? 7 : 0))) {
+		LOG_MSG("Partition too small to format\n");
+		return false;
+	}
 
 
 	//set the minimum number of reserved sectors
@@ -556,13 +592,17 @@ bool imageDiskMemory::CalculateFAT(Bit32u partitionStartingSector, Bit32u partit
 			*sectorsPerCluster <<= 1;
 		} while (true);
 		//determine if the drive is too large for FAT16
-		if (*sectorsPerCluster >= 256) return false;
+		if (*sectorsPerCluster >= 256) {
+			LOG_MSG("Partition too large to format as FAT16\n");
+			return false;
+		}
 	}
 
 	//add padding to align hard drives to 4kb boundary
 	if (isHardDrive) {
 		//update the reserved sector count
 		*reservedSectors = (partitionStartingSector + *reservedSectors + *rootSectors + *fatSectors + *fatSectors) % 8;
+		if (*reservedSectors == 0) *reservedSectors = 8;
 		//recompute the number of data sectors
 		dataSectors = partitionLength - *reservedSectors - *rootSectors - *fatSectors - *fatSectors;
 		dataClusters = dataSectors / *sectorsPerCluster;
