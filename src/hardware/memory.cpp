@@ -1343,7 +1343,12 @@ static void write_pc98_a20(Bitu port,Bitu val,Bitu iolen) {
 	    MEM_A20_Enable(1); // writing port 0xF2 unmasks (enables) A20 regardless of value
     }
     else if (port == 0xF6) {
-	    MEM_A20_Enable(0); // writing port 0xF6 masks (disables) A20 regardless of value
+        if ((val & 0xFE) == 0x02) { // A20 gate control 0000 001x  x=mask A20 if set
+            MEM_A20_Enable(!(val & 1));
+        }
+        else {
+            LOG_MSG("PC-98 port F6h unknown value 0x%x",(unsigned int)val);
+        }
     }
 }
 
