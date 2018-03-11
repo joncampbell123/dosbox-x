@@ -127,9 +127,7 @@ Bitu XMS_EnableA20(bool enable) {
     if (IS_PC98_ARCH) {
         // NEC PC-98: Unmask (enable) A20 by writing to port 0xF2.
         //            Mask (disable) A20 by writing to port 0xF6.
-        val = IO_Read(0xF2);
-        if (enable) IO_Write(0xF2,val); // writing ANYTHING to 0xF2 will "cancel" the A20 mask
-        else        IO_Write(0xF6,val); // writing ANYTHING to 0xF6 will mask A20
+        IO_Write(0xF6,enable ? 0x02 : 0x03); /* 0000 001x  x = mask A20 */
     }
     else {
         // IBM PC/AT: Port 0x92, bit 1, set if A20 enabled
