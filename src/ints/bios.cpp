@@ -4681,6 +4681,21 @@ private:
             }
 
             /* BIOS flags */
+            /* bit[7:7] = Startup            1=hot start    0=cold start
+             * bit[6:6] = BASIC type         ??
+             * bit[5:5] = Keyboard beep      1=don't beep   0=beep          ... when buffer full
+             * bit[4:4] = Expansion conv RAM 1=present      0=absent
+             * bit[3:3] = ??
+             * bit[2:2] = ??
+             * bit[1:1] = HD mode            1=1MB mode     0=640KB mode    ... of the floppy drive
+             * bit[0:0] = Model              1=other        0=PC-9801 original */
+            /* NTS: MS-DOS 5.0 appears to reduce it's BIOS calls and render the whole
+             *      console as green IF bit 0 is clear.
+             *
+             *      If bit 0 is set, then we MUST provide <some BIOS function ptr> */
+            mem_writeb(0x500,0x01 | 0x02/*high density drive*/);
+
+            /* BIOS flags */
             /* timer setup will set/clear bit 7 */
             /* bit[7:7] = system clock freq  1=8MHz         0=5/10Mhz
              *          = timer clock freq   1=1.9968MHz    0=2.4576MHz
