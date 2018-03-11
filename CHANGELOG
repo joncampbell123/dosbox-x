@@ -1,4 +1,6 @@
 (next)
+  - IMGMOUNT RAM drive support: Ramdrive bug fixes and changed
+    drive limits from ATA limits to BIOS/MBR (Shane32)
   - INT 21h fixed to use BIOS INT 1Ch to read date and time in
     PC-98 mode. Arrowgun now runs properly.
   - Fixed EMS emulation not to claim XMS memory (and zero BIOS
