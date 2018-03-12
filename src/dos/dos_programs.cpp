@@ -2476,36 +2476,21 @@ public:
 			if (!MountIso(drive, mediaid, paths, ide_index, ide_slave)) return;
 		} else if (fstype=="none") {
 			if (el_torito != "") {
-				newImage = MountElToritoNone(el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type);
-				if (newImage == 0) return;
+				newImage = new imageDiskElToritoFloppy(el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type);
+				if (newImage == NULL) return;
 			}
 			else
 			{
 				newImage = MountImageNone(sizes, imagesize, reserved_cylinders);
-				if (newImage == 0) return;
+				if (newImage == NULL) return;
 			}
 
-			/* TODO: Notify IDE ATA emulation if a drive is already there */
-			if (imageDiskList[drive - '0'] != NULL) imageDiskList[drive - '0']->Release();
-			imageDiskList[drive - '0'] = newImage;
-			updateDPT();
+			AttachToBiosAndIde(newImage, drive - '0', ide_index, ide_slave);
 			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT_NUMBER"), drive - '0', temp_line.c_str());
-			// If instructed, attach to IDE controller as ATA hard disk
-			if (ide_index >= 0) IDE_Hard_Disk_Attach(ide_index, ide_slave, drive - '0');
 		}
 		else {
 			WriteOut("Invalid fstype\n");
 			return;
-		}
-
-		// let FDC know if we mounted a floppy
-		if (type == "floppy") {
-			if (drive >= '0' && drive <= '1')
-				FDC_AssignINT13Disk(drive-'0');
-			else if (drive >= 'A' && drive <= 'B')
-				FDC_AssignINT13Disk(drive-'A');
-			else if (drive >= 'a' && drive <= 'b')
-				FDC_AssignINT13Disk(drive-'a');
 		}
 
 		// check if volume label is given. becareful for cdrom
@@ -2865,6 +2850,60 @@ private:
 			}
 		}
 
+		AddToDriveManager(drive, imgDisks, mediaid);
+
+		if (type == "ram") {
+			WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, "ram drive");
+		}
+		else {
+			std::string tmp(paths[0]);
+			for (i = 1; i < paths.size(); i++) {
+				tmp += "; " + paths[i];
+			}
+			WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, tmp.c_str());
+		}
+
+		if (type != "ram" && paths.size() == 1) {
+			imageDisk* image = ((fatDrive*)imgDisks[0])->loadedDisk;
+			if (image->hardDrive) {
+				if (imageDiskList[2] == NULL) {
+					AttachToBiosAndIde(image, 2, ide_index, ide_slave);
+				}
+				else if (imageDiskList[3] == NULL) {
+					AttachToBiosAndIde(image, 3, ide_index, ide_slave);
+				}
+			}
+			else {
+				AttachToBios(image, 0); //always attach as primary floppy drive (???)
+				//AttachToBios(image, drive - 'A');  //attach as secondary floppy if mounting at B:
+			}
+		}
+		return true;
+	}
+
+	void AttachToBios(imageDisk* image, const unsigned char bios_drive_index) {
+		if (bios_drive_index > 3) return;
+		/* TODO: Notify IDE ATA emulation if a drive is already there */
+		if (imageDiskList[bios_drive_index] != NULL) imageDiskList[bios_drive_index]->Release();
+		imageDiskList[bios_drive_index] = image;
+		image->Addref();
+
+		// let FDC know if we mounted a floppy
+		if (bios_drive_index <= 1) FDC_AssignINT13Disk(bios_drive_index);
+	}
+
+	void AttachToBiosAndIde(imageDisk* image, const unsigned char bios_drive_index, const unsigned char ide_index, const bool ide_slave) {
+		AttachToBios(image, bios_drive_index);
+		//if hard drive image, and if ide controller is specified
+		if (bios_drive_index == 2 || bios_drive_index == 3) {
+			if (ide_index >= 0) IDE_Hard_Disk_Attach(ide_index, ide_slave, bios_drive_index);
+			updateDPT();
+		}
+	}
+
+	void AddToDriveManager(const char drive, const std::vector<DOS_Drive*> imgDisks, const Bit8u mediaid) {
+		std::vector<DOS_Drive*>::size_type ct;
+
 		// Update DriveManager
 		for (ct = 0; ct < imgDisks.size(); ct++) {
 			DriveManager::AppendDisk(drive - 'A', imgDisks[ct]);
@@ -2886,40 +2925,6 @@ private:
 		}
 		dos.dta(save_dta);
 
-		if (type == "ram") {
-			WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, "ram drive");
-		}
-		else {
-			std::string tmp(paths[0]);
-			for (i = 1; i < paths.size(); i++) {
-				tmp += "; " + paths[i];
-			}
-			WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, tmp.c_str());
-		}
-
-		if (type != "ram" && paths.size() == 1) {
-			newdrive = imgDisks[0];
-			if (((fatDrive *)newdrive)->loadedDisk->hardDrive) {
-				if (imageDiskList[2] == NULL) {
-					imageDiskList[2] = ((fatDrive *)newdrive)->loadedDisk;
-					imageDiskList[2]->Addref();
-					// If instructed, attach to IDE controller as ATA hard disk
-					if (ide_index >= 0) IDE_Hard_Disk_Attach(ide_index, ide_slave, 2);
-					updateDPT();
-				} else if (imageDiskList[3] == NULL) {
-					imageDiskList[3] = ((fatDrive *)newdrive)->loadedDisk;
-					imageDiskList[3]->Addref();
-					// If instructed, attach to IDE controller as ATA hard disk
-					if (ide_index >= 0) IDE_Hard_Disk_Attach(ide_index, ide_slave, 3);
-					updateDPT();
-				}
-			} else { //floppy image
-				if (imageDiskList[0] != NULL) imageDiskList[0]->Release();
-				imageDiskList[0] = ((fatDrive *)newdrive)->loadedDisk;
-				imageDiskList[0]->Addref();
-			}
-		}
-		return true;
 	}
 
 	bool DetectGeometry(Bitu sizes[]) {
@@ -3095,12 +3100,6 @@ private:
 		return true;
 	}
 
-	imageDisk* MountElToritoNone(const char el_torito_cd_drive, const unsigned long el_torito_floppy_base, const unsigned char el_torito_floppy_type) {
-		imageDisk * newImage = new imageDiskElToritoFloppy(el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type);
-		newImage->Addref();
-		return newImage;
-	}
-
 	imageDisk* MountImageNone(Bitu sizes[], Bit32u &imagesize, const int reserved_cylinders) {
 		imageDisk* newImage = 0;
 		/* auto-fill: sector size */
@@ -3143,8 +3142,6 @@ private:
 				newImage = new imageDisk(newDisk, (Bit8u *)temp_line.c_str(), imagesize, (imagesize > 2880));
 			}
 		}
-
-		newImage->Addref();
 
 		/* auto-fill: sector/track count */
 		if (sizes[1] == 0) sizes[1] = 63;
