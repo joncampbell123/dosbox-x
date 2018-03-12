@@ -2282,15 +2282,14 @@ public:
 		imageDisk * newImage = NULL;
 		Bit32u imagesize;
 		char drive;
-		std::string label;
 		std::vector<std::string> paths;
-		std::string umount;
 		//show help if no arguments or -?
 		if (cmd->GetCount() == 0 || cmd->FindExist("-?", true) || cmd->FindExist("-help", true)) {
 			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_HELP"));
 			return;
 		}
 		/* Check for unmounting */
+		std::string umount;
 		if (cmd->FindString("-u",umount,false)) {
 			Unmount(umount[0]);
 			return;
@@ -2436,58 +2435,7 @@ public:
 		}
 			
 		// find all file parameters, assuming that all option parameters have been removed
-		while(cmd->FindCommand((unsigned int)(paths.size() + 2), temp_line) && temp_line.size()) {
-#if defined (WIN32) || defined(OS2)
-            /* nothing */
-#else
-            // Linux: Convert backslash to forward slash
-            if (temp_line.size() > 0) {
-                for (size_t i=0;i < temp_line.size();i++) {
-                    if (temp_line[i] == '\\')
-                        temp_line[i] = '/';
-                }
-            }
-#endif
-
-			pref_struct_stat test;
-			if (pref_stat(temp_line.c_str(),&test)) {
-				//See if it works if the ~ are written out
-				std::string homedir(temp_line);
-				Cross::ResolveHomedir(homedir);
-				if(!pref_stat(homedir.c_str(),&test)) {
-					temp_line = homedir;
-				} else {
-					// convert dosbox filename to system filename
-					char fullname[CROSS_LEN];
-					char tmp[CROSS_LEN];
-					safe_strncpy(tmp, temp_line.c_str(), CROSS_LEN);
-
-					Bit8u dummy;
-					if (!DOS_MakeName(tmp, fullname, &dummy) || strncmp(Drives[dummy]->GetInfo(),"local directory",15)) {
-						WriteOut(MSG_Get("PROGRAM_IMGMOUNT_NON_LOCAL_DRIVE"));
-						return;
-					}
-
-					localDrive *ldp = dynamic_cast<localDrive*>(Drives[dummy]);
-					if (ldp==NULL) {
-						WriteOut(MSG_Get("PROGRAM_IMGMOUNT_FILE_NOT_FOUND"));
-						return;
-					}
-					ldp->GetSystemFilename(tmp, fullname);
-					temp_line = tmp;
-
-					if (pref_stat(temp_line.c_str(),&test)) {
-						WriteOut(MSG_Get("PROGRAM_IMGMOUNT_FILE_NOT_FOUND"));
-						return;
-					}
-				}
-			}
-			if ((test.st_mode & S_IFDIR)) {
-				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT"));
-				return;
-			}
-			paths.push_back(temp_line);
-		}
+		ParseFiles(paths);
 
 		if (el_torito != "") {
 			if (paths.size() != 0) {
@@ -2566,6 +2514,62 @@ public:
 	}
 
 private:
+	void ParseFiles(std::vector<std::string> &paths) {
+		while (cmd->FindCommand((unsigned int)(paths.size() + 2), temp_line) && temp_line.size()) {
+#if defined (WIN32) || defined(OS2)
+			/* nothing */
+#else
+			// Linux: Convert backslash to forward slash
+			if (temp_line.size() > 0) {
+				for (size_t i = 0; i < temp_line.size(); i++) {
+					if (temp_line[i] == '\\')
+						temp_line[i] = '/';
+				}
+			}
+#endif
+
+			pref_struct_stat test;
+			if (pref_stat(temp_line.c_str(), &test)) {
+				//See if it works if the ~ are written out
+				std::string homedir(temp_line);
+				Cross::ResolveHomedir(homedir);
+				if (!pref_stat(homedir.c_str(), &test)) {
+					temp_line = homedir;
+				}
+				else {
+					// convert dosbox filename to system filename
+					char fullname[CROSS_LEN];
+					char tmp[CROSS_LEN];
+					safe_strncpy(tmp, temp_line.c_str(), CROSS_LEN);
+
+					Bit8u dummy;
+					if (!DOS_MakeName(tmp, fullname, &dummy) || strncmp(Drives[dummy]->GetInfo(), "local directory", 15)) {
+						WriteOut(MSG_Get("PROGRAM_IMGMOUNT_NON_LOCAL_DRIVE"));
+						return;
+					}
+
+					localDrive *ldp = dynamic_cast<localDrive*>(Drives[dummy]);
+					if (ldp == NULL) {
+						WriteOut(MSG_Get("PROGRAM_IMGMOUNT_FILE_NOT_FOUND"));
+						return;
+					}
+					ldp->GetSystemFilename(tmp, fullname);
+					temp_line = tmp;
+
+					if (pref_stat(temp_line.c_str(), &test)) {
+						WriteOut(MSG_Get("PROGRAM_IMGMOUNT_FILE_NOT_FOUND"));
+						return;
+					}
+				}
+			}
+			if ((test.st_mode & S_IFDIR)) {
+				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT"));
+				return;
+			}
+			paths.push_back(temp_line);
+		}
+	}
+
 	bool Unmount(char &letter) {
 		letter = toupper(letter);
 		if (isalpha(letter)) { /* if it's a drive letter, then traditional usage applies */
@@ -3059,7 +3063,7 @@ private:
 			case 4:	WriteOut(MSG_Get("MSCDEX_TOO_MANY_DRIVES"));		break;
 			case 5:	WriteOut(MSG_Get("MSCDEX_LIMITED_SUPPORT"));		break;
 			case 6:	WriteOut(MSG_Get("MSCDEX_INVALID_FILEFORMAT"));		break;
-			default:	WriteOut(MSG_Get("MSCDEX_UNKNOWN_ERROR"));			break;
+			default: WriteOut(MSG_Get("MSCDEX_UNKNOWN_ERROR"));			break;
 			}
 			// error: clean up and leave
 			if (error) {
@@ -3091,7 +3095,7 @@ private:
 		return true;
 	}
 
-	imageDisk* MountElToritoNone(char el_torito_cd_drive, unsigned long el_torito_floppy_base, unsigned char el_torito_floppy_type) {
+	imageDisk* MountElToritoNone(const char el_torito_cd_drive, const unsigned long el_torito_floppy_base, const unsigned char el_torito_floppy_type) {
 		imageDisk * newImage = new imageDiskElToritoFloppy(el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type);
 		newImage->Addref();
 		return newImage;
