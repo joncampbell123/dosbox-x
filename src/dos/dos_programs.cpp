@@ -2565,14 +2565,31 @@ private:
 					FDC_UnassignINT13Disk(i_drive);
 
 				switch (DriveManager::UnmountDrive(i_drive)) {
-				case 0:
-					/* TODO: If the drive letter is also a CD-ROM drive attached to IDE, then let the
-					IDE code know */
-					Drives[i_drive] = 0;
+				case 0: //success
+				{
+					//detatch hard drive or floppy drive from bios and ide controller
+					fatDrive * drive = dynamic_cast<fatDrive*>(Drives[i_drive]);
+					imageDisk* image = drive ? drive->loadedDisk : NULL;
+					if (image) {
+						for (int index = 0; index < 4; index++) {
+							if (imageDiskList[index] == image) {
+								if (index > 1) IDE_Hard_Disk_Detach(index);
+								imageDiskList[index]->Release();
+								imageDiskList[index] = NULL;
+							}
+						}
+					}
+
+					/* If the drive letter is also a CD-ROM drive attached to IDE, then let the IDE code know */
+					isoDrive * cdrom = dynamic_cast<isoDrive*>(Drives[i_drive]);
+					if (cdrom) IDE_CDROM_Detach(i_drive);
+
+					Drives[i_drive] = NULL;
 					if (i_drive == DOS_GetDefaultDrive())
 						DOS_SetDrive(toupper('Z') - 'A');
 					WriteOut(MSG_Get("PROGRAM_MOUNT_UMOUNT_SUCCESS"), letter);
 					return true;
+				}
 				case 1:
 					WriteOut(MSG_Get("PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL"));
 					return false;
@@ -2587,7 +2604,16 @@ private:
 			}
 		}
 		else if (isdigit(letter)) { /* DOSBox-X: drives mounted by number (INT 13h) can be unmounted this way */
-			WriteOut("Unmounting imgmount by number (INT13h) is not yet implemented");
+			int index = letter - '0';
+
+			//detatch hard drive or floppy drive from bios and ide controller
+			if (imageDiskList[index]) {
+				if (index > 1) IDE_Hard_Disk_Detach(index);
+				imageDiskList[index]->Release();
+				imageDiskList[index] = NULL;
+				return true;
+			}
+			WriteOut("No drive loaded at specified point\n");
 			return false;
 		}
 		else {
@@ -2874,8 +2900,8 @@ private:
 				}
 			}
 			else {
-				AttachToBios(image, 0); //always attach as primary floppy drive (???)
-				//AttachToBios(image, drive - 'A');  //attach as secondary floppy if mounting at B:
+				//AttachToBios(image, 0); //always attach as primary floppy drive (???)
+				AttachToBios(image, drive - 'A');  //attach as secondary floppy if mounting at B:
 			}
 		}
 		return true;
@@ -2883,8 +2909,11 @@ private:
 
 	void AttachToBios(imageDisk* image, const unsigned char bios_drive_index) {
 		if (bios_drive_index > 3) return;
-		/* TODO: Notify IDE ATA emulation if a drive is already there */
-		if (imageDiskList[bios_drive_index] != NULL) imageDiskList[bios_drive_index]->Release();
+		if (imageDiskList[bios_drive_index] != NULL) {
+			/* Notify IDE ATA emulation if a drive is already there */
+			if (bios_drive_index >= 2) IDE_Hard_Disk_Detach(bios_drive_index);
+			imageDiskList[bios_drive_index]->Release();
+		}
 		imageDiskList[bios_drive_index] = image;
 		image->Addref();
 
