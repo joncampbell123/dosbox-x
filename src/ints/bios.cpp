@@ -2633,6 +2633,14 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
     imageDisk *floppy;
 
     /* AL bits[1:0] = which floppy drive */
+    if ((reg_al & 3) >= 2) {
+        /* This emulation only supports up to 2 floppy drives */
+        CALLBACK_SCF(true);
+        reg_ah = 0x00;
+        /* TODO? Error code? */
+        return;
+    }
+
     floppy = GetINT13FloppyDrive(reg_al & 3);
 
     /* what to do is in the lower 4 bits of AH */
