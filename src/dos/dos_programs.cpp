@@ -2778,7 +2778,7 @@ private:
 		imageDisk * newImage = new imageDiskElToritoFloppy(el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type);
 		newImage->Addref();
 
-		DOS_Drive* newDrive = new fatDrive(newImage, sizes[0], sizes[1], sizes[2], sizes[3]);
+		DOS_Drive* newDrive = new fatDrive(newImage);
 		newImage->Release(); //fatDrive calls Addref
 		if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
 			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
@@ -2839,7 +2839,7 @@ private:
 				return false;
 			}
 			//dsk->Addref(); //fatDrive will manage reference count
-			DOS_Drive* newDrive = new fatDrive(dsk, dsk->sector_size, dsk->sectors, dsk->heads, dsk->cylinders);
+			DOS_Drive* newDrive = new fatDrive(dsk);
 			imgDisks.push_back(newDrive);
 			if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
 				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));

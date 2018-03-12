@@ -720,9 +720,12 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
     fatDriveInit(sysFilename, bytesector, cylsector, headscyl, cylinders, filesize);
 }
 
-fatDrive::fatDrive(imageDisk *sourceLoadedDisk, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders) {
+fatDrive::fatDrive(imageDisk *sourceLoadedDisk) {
+	if (sourceLoadedDisk == 0) {
+		created_successfully = false;
+		return;
+	}
 	created_successfully = true;
-	Bit32u filesize = 0;
 	
 	if(imgDTASeg == 0) {
 		imgDTASeg = DOS_GetMemory(2,"imgDTASeg");
@@ -731,10 +734,8 @@ fatDrive::fatDrive(imageDisk *sourceLoadedDisk, Bit32u bytesector, Bit32u cylsec
 	}
 
     loadedDisk = sourceLoadedDisk;
-    if (loadedDisk != NULL)
-        filesize = loadedDisk->diskSizeK;
 
-    fatDriveInit("", bytesector, cylsector, headscyl, cylinders, filesize);
+    fatDriveInit("", loadedDisk->sector_size, loadedDisk->sectors, loadedDisk->heads, loadedDisk->cylinders, loadedDisk->diskSizeK);
 }
 
 void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit32u filesize) {
