@@ -2564,12 +2564,15 @@ private:
 				if (i_drive <= 1)
 					FDC_UnassignINT13Disk(i_drive);
 
+				//get reference to image and cdrom before they are possibly destroyed
+				fatDrive * drive = dynamic_cast<fatDrive*>(Drives[i_drive]);
+				imageDisk* image = drive ? drive->loadedDisk : NULL;
+				isoDrive * cdrom = dynamic_cast<isoDrive*>(Drives[i_drive]);
+
 				switch (DriveManager::UnmountDrive(i_drive)) {
 				case 0: //success
 				{
 					//detatch hard drive or floppy drive from bios and ide controller
-					fatDrive * drive = dynamic_cast<fatDrive*>(Drives[i_drive]);
-					imageDisk* image = drive ? drive->loadedDisk : NULL;
 					if (image) {
 						for (int index = 0; index < 4; index++) {
 							if (imageDiskList[index] == image) {
@@ -2581,7 +2584,6 @@ private:
 					}
 
 					/* If the drive letter is also a CD-ROM drive attached to IDE, then let the IDE code know */
-					isoDrive * cdrom = dynamic_cast<isoDrive*>(Drives[i_drive]);
 					if (cdrom) IDE_CDROM_Detach(i_drive);
 
 					Drives[i_drive] = NULL;
@@ -2889,7 +2891,7 @@ private:
 			WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, tmp.c_str());
 		}
 
-		if (type != "ram" && paths.size() == 1) {
+		if (imgDisks.size() == 1) {
 			imageDisk* image = ((fatDrive*)imgDisks[0])->loadedDisk;
 			if (image->hardDrive) {
 				if (imageDiskList[2] == NULL) {
@@ -2930,7 +2932,7 @@ private:
 		}
 	}
 
-	void AddToDriveManager(const char drive, const std::vector<DOS_Drive*> imgDisks, const Bit8u mediaid) {
+	void AddToDriveManager(const char drive, const std::vector<DOS_Drive*> &imgDisks, const Bit8u mediaid) {
 		std::vector<DOS_Drive*>::size_type ct;
 
 		// Update DriveManager

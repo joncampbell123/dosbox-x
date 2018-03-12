@@ -2185,6 +2185,7 @@ void IDE_CDROM_Attach(signed char index,bool slave,unsigned char drive_index) {
 void IDE_CDROM_Detach(unsigned char drive_index) {
 	for (int index = 0; index < MAX_IDE_CONTROLLERS; index++) {
 		IDEController *c = idecontroller[index];
+		if (c)
 		for (int slave = 0; slave < 2; slave++) {
 			IDEATAPICDROMDevice *dev;
 			dev = dynamic_cast<IDEATAPICDROMDevice*>(c->device[slave]);
@@ -2226,6 +2227,7 @@ void IDE_Hard_Disk_Attach(signed char index,bool slave,unsigned char bios_disk_i
 void IDE_Hard_Disk_Detach(unsigned char bios_disk_index) {
 	for (int index = 0; index < MAX_IDE_CONTROLLERS; index++) {
 		IDEController *c = idecontroller[index];
+		if (c)
 		for (int slave = 0; slave < 2; slave++) {
 			IDEATADevice *dev;
 			dev = dynamic_cast<IDEATADevice*>(c->device[slave]);
