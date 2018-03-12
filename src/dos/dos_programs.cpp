@@ -2292,7 +2292,7 @@ public:
 		}
 		/* Check for unmounting */
 		if (cmd->FindString("-u",umount,false)) {
-			DoUnmount(umount[0]);
+			Unmount(umount[0]);
 			return;
 		}
 
@@ -2525,7 +2525,7 @@ public:
 				WriteOut("El Torito bootable CD: -fs iso mounting not supported\n"); /* <- NTS: Will never implement, either */
 				return;
 			}
-			if (!DoMountIso(drive, mediaid, paths, ide_index, ide_slave)) return;
+			if (!MountIso(drive, mediaid, paths, ide_index, ide_slave)) return;
 		} else if (fstype=="none") {
 			if (el_torito != "") {
 				newImage = MountElToritoNone(el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type);
@@ -2566,7 +2566,7 @@ public:
 	}
 
 private:
-	bool DoUnmount(char &letter) {
+	bool Unmount(char &letter) {
 		letter = toupper(letter);
 		if (isalpha(letter)) { /* if it's a drive letter, then traditional usage applies */
 			int i_drive = letter - 'A';
@@ -2778,7 +2778,7 @@ private:
 		imageDisk * newImage = new imageDiskElToritoFloppy(el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type);
 		newImage->Addref();
 
-		DOS_Drive* newDrive = new fatDrive(newImage, sizes[0], sizes[1], sizes[2], sizes[3], 0);
+		DOS_Drive* newDrive = new fatDrive(newImage, sizes[0], sizes[1], sizes[2], sizes[3]);
 		newImage->Release(); //fatDrive calls Addref
 		if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
 			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
@@ -2807,131 +2807,18 @@ private:
 
 	bool MountFat(bool &imgsizedetect, Bitu sizes[], const char drive, const Bitu mediaid, const std::string str_size, const std::string type, const std::vector<std::string> paths, const signed char ide_index, const bool ide_slave) {
 		DOS_Drive * newdrive;
-		/* .HDI images contain the geometry explicitly in the header. */
-		if (str_size.size() == 0) {
-			const char *ext = strrchr(temp_line.c_str(), '.');
-			if (ext != NULL) {
-				if (!strcasecmp(ext, ".hdi")) {
-					imgsizedetect = false;
-				}
-			}
-		}
 
 		if (imgsizedetect) {
-			bool yet_detected = false;
-			FILE * diskfile = fopen64(temp_line.c_str(), "rb+");
-			if (!diskfile) {
-				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_IMAGE"));
-				return false;
-			}
-			fseeko64(diskfile, 0L, SEEK_END);
-			Bit32u fcsize = (Bit32u)(ftello64(diskfile) / 512L);
-			Bit8u buf[512];
-			// check for vhd signature
-			fseeko64(diskfile, -512, SEEK_CUR);
-			if (fread(buf, sizeof(Bit8u), 512, diskfile)<512) {
-				fclose(diskfile);
-				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_IMAGE"));
-				return false;
-			}
-			if (!strcmp((const char*)buf, "conectix")) {
-				fcsize--;	// skip footer (512 bytes)
-				sizes[0] = 512;	// sector size
-				sizes[1] = buf[0x3b];	// sectors
-				sizes[2] = buf[0x3a];	// heads
-				sizes[3] = SDL_SwapBE16(*(Bit16s*)(buf + 0x38));	// cylinders
-
-																	// Do translation (?)
-				while ((sizes[2] < 128) && (sizes[3] > 1023)) {
-					sizes[2] <<= 1;
-					sizes[3] >>= 1;
-				}
-
-				if (sizes[3]>1023) {
-					// Set x/255/63
-					sizes[2] = 255;
-					sizes[3] = fcsize / sizes[2] / sizes[1];
-				}
-
-				LOG_MSG("VHD image detected: %u,%u,%u,%u",
-					(unsigned int)sizes[0], (unsigned int)sizes[1], (unsigned int)sizes[2], (unsigned int)sizes[3]);
-				if (sizes[3]>1023) LOG_MSG("WARNING: cylinders>1023, INT13 will not work unless extensions are used");
-				yet_detected = true;
-			}
-
-			fseeko64(diskfile, 0L, SEEK_SET);
-			if (fread(buf, sizeof(Bit8u), 512, diskfile)<512) {
-				fclose(diskfile);
-				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_IMAGE"));
-				return false;
-			}
-			fclose(diskfile);
-			// check it is not dynamic VHD image
-			if (!strcmp((const char*)buf, "conectix")) {
-				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_IMAGE"));
-				LOG_MSG("Dynamic VHD images are not supported");
-				return false;
-			}
-			// check MBR signature for unknown images
-			if (!yet_detected && ((buf[510] != 0x55) || (buf[511] != 0xaa))) {
-				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_GEOMETRY"));
-				return false;
-			}
-			// check MBR partition entry 1
-			Bitu starthead = buf[0x1bf];
-			Bitu startsect = (buf[0x1c0] & 0x3f) - 1;
-			Bitu startcyl = buf[0x1c1] | ((buf[0x1c0] & 0xc0) << 2);
-			Bitu endcyl = buf[0x1c5] | ((buf[0x1c4] & 0xc0) << 2);
-
-			Bitu heads = buf[0x1c3] + 1;
-			Bitu sectors = buf[0x1c4] & 0x3f;
-
-			Bitu pe1_size = host_readd(&buf[0x1ca]);
-			if (pe1_size != 0) {
-				Bitu part_start = startsect + sectors * starthead +
-					startcyl * sectors*heads;
-				Bitu part_end = heads * sectors*endcyl;
-				Bits part_len = part_end - part_start;
-				// partition start/end sanity check
-				// partition length should not exceed file length
-				// real partition size can be a few cylinders less than pe1_size
-				// if more than 1023 cylinders see if first partition fits
-				// into 1023, else bail.
-				if ((part_len<0) || ((Bitu)part_len > pe1_size) || (pe1_size > fcsize) ||
-					((pe1_size - part_len) / (sectors*heads)>2) ||
-					((pe1_size / (heads*sectors))>1023)) {
-					//LOG_MSG("start(c,h,s) %u,%u,%u",startcyl,starthead,startsect);
-					//LOG_MSG("endcyl %u heads %u sectors %u",endcyl,heads,sectors);
-					//LOG_MSG("psize %u start %u end %u",pe1_size,part_start,part_end);
-				}
-				else if (!yet_detected) {
-					sizes[0] = 512; sizes[1] = sectors;
-					sizes[2] = heads; sizes[3] = (Bit16u)(fcsize / (heads*sectors));
-					if (sizes[3]>1023) sizes[3] = 1023;
-					yet_detected = true;
+			/* .HDI images contain the geometry explicitly in the header. */
+			if (str_size.size() == 0) {
+				const char *ext = strrchr(temp_line.c_str(), '.');
+				if (ext != NULL) {
+					if (!strcasecmp(ext, ".hdi")) {
+						imgsizedetect = false;
+					}
 				}
 			}
-			if (!yet_detected) {
-				// Try bximage disk geometry
-				Bitu cylinders = (Bitu)(fcsize / (16 * 63));
-				// Int13 only supports up to 1023 cylinders
-				// For mounting unknown images we could go up with the heads to 255
-				if ((cylinders * 16 * 63 == fcsize) && (cylinders<1024)) {
-					yet_detected = true;
-					sizes[0] = 512; sizes[1] = 63; sizes[2] = 16; sizes[3] = cylinders;
-				}
-			}
-
-			if (yet_detected)
-				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_AUTODET_VALUES"), sizes[0], sizes[1], sizes[2], sizes[3]);
-
-
-			//"Image geometry auto detection: -size %u,%u,%u,%u\r\n",
-			//sizes[0],sizes[1],sizes[2],sizes[3]);
-			else {
-				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_GEOMETRY"));
-				return false;
-			}
+			if (imgsizedetect && !DetectGeometry(sizes)) return false;
 		}
 
 		if (Drives[drive - 'A']) {
@@ -2952,7 +2839,7 @@ private:
 				return false;
 			}
 			//dsk->Addref(); //fatDrive will manage reference count
-			DOS_Drive* newDrive = new fatDrive(dsk, dsk->sector_size, dsk->sectors, dsk->heads, dsk->cylinders, 0);
+			DOS_Drive* newDrive = new fatDrive(dsk, dsk->sector_size, dsk->sectors, dsk->heads, dsk->cylinders);
 			imgDisks.push_back(newDrive);
 			if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
 				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
@@ -2962,7 +2849,7 @@ private:
 		}
 		else {
 			for (i = 0; i < paths.size(); i++) {
-				DOS_Drive* newDrive = new fatDrive(paths[i].c_str(), sizes[0], sizes[1], sizes[2], sizes[3], 0);
+				DOS_Drive* newDrive = new fatDrive(paths[i].c_str(), sizes[0], sizes[1], sizes[2], sizes[3]);
 				imgDisks.push_back(newDrive);
 				if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
 					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
@@ -3015,18 +2902,15 @@ private:
 					// If instructed, attach to IDE controller as ATA hard disk
 					if (ide_index >= 0) IDE_Hard_Disk_Attach(ide_index, ide_slave, 2);
 					updateDPT();
-					return true;
-				}
-				if (imageDiskList[3] == NULL) {
+				} else if (imageDiskList[3] == NULL) {
 					imageDiskList[3] = ((fatDrive *)newdrive)->loadedDisk;
 					imageDiskList[3]->Addref();
 					// If instructed, attach to IDE controller as ATA hard disk
 					if (ide_index >= 0) IDE_Hard_Disk_Attach(ide_index, ide_slave, 3);
 					updateDPT();
-					return true;
 				}
-			}
-			if (!((fatDrive *)newdrive)->loadedDisk->hardDrive) {
+			} else { //floppy image
+				if (imageDiskList[0] != NULL) imageDiskList[0]->Release();
 				imageDiskList[0] = ((fatDrive *)newdrive)->loadedDisk;
 				imageDiskList[0]->Addref();
 			}
@@ -3034,7 +2918,124 @@ private:
 		return true;
 	}
 
-	bool DoMountIso(const char drive, const Bit8u mediaid, const std::vector<std::string> paths, const signed char ide_index, const bool ide_slave) {
+	bool DetectGeometry(Bitu sizes[]) {
+		bool yet_detected = false;
+		FILE * diskfile = fopen64(temp_line.c_str(), "rb+");
+		if (!diskfile) {
+			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_IMAGE"));
+			return false;
+		}
+		fseeko64(diskfile, 0L, SEEK_END);
+		Bit32u fcsize = (Bit32u)(ftello64(diskfile) / 512L);
+		Bit8u buf[512];
+		// check for vhd signature
+		fseeko64(diskfile, -512, SEEK_CUR);
+		if (fread(buf, sizeof(Bit8u), 512, diskfile)<512) {
+			fclose(diskfile);
+			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_IMAGE"));
+			return false;
+		}
+		if (!strcmp((const char*)buf, "conectix")) {
+			fcsize--;	// skip footer (512 bytes)
+			sizes[0] = 512;	// sector size
+			sizes[1] = buf[0x3b];	// sectors
+			sizes[2] = buf[0x3a];	// heads
+			sizes[3] = SDL_SwapBE16(*(Bit16s*)(buf + 0x38));	// cylinders
+
+																// Do translation (?)
+			while ((sizes[2] < 128) && (sizes[3] > 1023)) {
+				sizes[2] <<= 1;
+				sizes[3] >>= 1;
+			}
+
+			if (sizes[3]>1023) {
+				// Set x/255/63
+				sizes[2] = 255;
+				sizes[3] = fcsize / sizes[2] / sizes[1];
+			}
+
+			LOG_MSG("VHD image detected: %u,%u,%u,%u",
+				(unsigned int)sizes[0], (unsigned int)sizes[1], (unsigned int)sizes[2], (unsigned int)sizes[3]);
+			if (sizes[3]>1023) LOG_MSG("WARNING: cylinders>1023, INT13 will not work unless extensions are used");
+			yet_detected = true;
+		}
+
+		fseeko64(diskfile, 0L, SEEK_SET);
+		if (fread(buf, sizeof(Bit8u), 512, diskfile)<512) {
+			fclose(diskfile);
+			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_IMAGE"));
+			return false;
+		}
+		fclose(diskfile);
+		// check it is not dynamic VHD image
+		if (!strcmp((const char*)buf, "conectix")) {
+			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_IMAGE"));
+			LOG_MSG("Dynamic VHD images are not supported");
+			return false;
+		}
+		// check MBR signature for unknown images
+		if (!yet_detected && ((buf[510] != 0x55) || (buf[511] != 0xaa))) {
+			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_GEOMETRY"));
+			return false;
+		}
+		// check MBR partition entry 1
+		Bitu starthead = buf[0x1bf];
+		Bitu startsect = (buf[0x1c0] & 0x3f) - 1;
+		Bitu startcyl = buf[0x1c1] | ((buf[0x1c0] & 0xc0) << 2);
+		Bitu endcyl = buf[0x1c5] | ((buf[0x1c4] & 0xc0) << 2);
+
+		Bitu heads = buf[0x1c3] + 1;
+		Bitu sectors = buf[0x1c4] & 0x3f;
+
+		Bitu pe1_size = host_readd(&buf[0x1ca]);
+		if (pe1_size != 0) {
+			Bitu part_start = startsect + sectors * starthead +
+				startcyl * sectors*heads;
+			Bitu part_end = heads * sectors*endcyl;
+			Bits part_len = part_end - part_start;
+			// partition start/end sanity check
+			// partition length should not exceed file length
+			// real partition size can be a few cylinders less than pe1_size
+			// if more than 1023 cylinders see if first partition fits
+			// into 1023, else bail.
+			if ((part_len<0) || ((Bitu)part_len > pe1_size) || (pe1_size > fcsize) ||
+				((pe1_size - part_len) / (sectors*heads)>2) ||
+				((pe1_size / (heads*sectors))>1023)) {
+				//LOG_MSG("start(c,h,s) %u,%u,%u",startcyl,starthead,startsect);
+				//LOG_MSG("endcyl %u heads %u sectors %u",endcyl,heads,sectors);
+				//LOG_MSG("psize %u start %u end %u",pe1_size,part_start,part_end);
+			}
+			else if (!yet_detected) {
+				sizes[0] = 512; sizes[1] = sectors;
+				sizes[2] = heads; sizes[3] = (Bit16u)(fcsize / (heads*sectors));
+				if (sizes[3]>1023) sizes[3] = 1023;
+				yet_detected = true;
+			}
+		}
+		if (!yet_detected) {
+			// Try bximage disk geometry
+			Bitu cylinders = (Bitu)(fcsize / (16 * 63));
+			// Int13 only supports up to 1023 cylinders
+			// For mounting unknown images we could go up with the heads to 255
+			if ((cylinders * 16 * 63 == fcsize) && (cylinders<1024)) {
+				yet_detected = true;
+				sizes[0] = 512; sizes[1] = 63; sizes[2] = 16; sizes[3] = cylinders;
+			}
+		}
+
+		if (yet_detected)
+			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_AUTODET_VALUES"), sizes[0], sizes[1], sizes[2], sizes[3]);
+
+
+		//"Image geometry auto detection: -size %u,%u,%u,%u\r\n",
+		//sizes[0],sizes[1],sizes[2],sizes[3]);
+		else {
+			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_GEOMETRY"));
+			return false;
+		}
+	}
+
+	bool MountIso(const char drive, const Bit8u mediaid, const std::vector<std::string> paths, const signed char ide_index, const bool ide_slave) {
 		//mount cdrom
 
 		if (Drives[drive - 'A']) {

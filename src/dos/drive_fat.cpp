@@ -669,7 +669,7 @@ struct _PC98RawPartition {
 };
 #pragma pack(pop)
 
-fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit32u startSector) {
+fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders) {
 	created_successfully = true;
 	FILE *diskfile;
 	Bit32u filesize;
@@ -717,10 +717,10 @@ fatDrive::fatDrive(const char *sysFilename, Bit32u bytesector, Bit32u cylsector,
         }
 	}
 
-    fatDriveInit(sysFilename, bytesector, cylsector, headscyl, cylinders, startSector, filesize);
+    fatDriveInit(sysFilename, bytesector, cylsector, headscyl, cylinders, filesize);
 }
 
-fatDrive::fatDrive(imageDisk *sourceLoadedDisk, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit32u startSector) {
+fatDrive::fatDrive(imageDisk *sourceLoadedDisk, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders) {
 	created_successfully = true;
 	Bit32u filesize = 0;
 	
@@ -734,11 +734,12 @@ fatDrive::fatDrive(imageDisk *sourceLoadedDisk, Bit32u bytesector, Bit32u cylsec
     if (loadedDisk != NULL)
         filesize = loadedDisk->diskSizeK;
 
-    fatDriveInit("", bytesector, cylsector, headscyl, cylinders, startSector, filesize);
+    fatDriveInit("", bytesector, cylsector, headscyl, cylinders, filesize);
 }
 
-void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit32u startSector, Bit32u filesize) {
-    bool pc98_512_to_1024_allow = false;
+void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit32u filesize) {
+	Bit32u startSector;
+	bool pc98_512_to_1024_allow = false;
 	struct partTable mbrData;
 
 	if(!loadedDisk) {
