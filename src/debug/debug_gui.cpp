@@ -576,6 +576,7 @@ void DEBUG_ShowMsg(char const* format,...) {
 	logBuff.push_back(buf);
 	if (logBuff.size() > MAX_LOG_BUFFER) {
         logBuffHasDiscarded = true;
+        if (logBuffPos == logBuff.begin()) logBuffPos++; /* keep the iterator valid */
 		logBuff.pop_front();
     }
 
