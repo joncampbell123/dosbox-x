@@ -908,8 +908,8 @@ static void DrawCode(void) {
 
 		Bitu drawsize=size=DasmI386(dline, start, disEIP, cpu.code.big);
 		bool toolarge = false;
-		mvwprintw(dbg.win_code,i,0,"%04X:%04X  ",codeViewData.useCS,disEIP);
-		
+		mvwprintw(dbg.win_code,i,0,"%04X:%08X ",codeViewData.useCS,disEIP);
+
 		if (drawsize>10) { toolarge = true; drawsize = 9; };
 		for (c=0;c<drawsize;c++) {
 			Bit8u value;
