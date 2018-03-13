@@ -3149,6 +3149,10 @@ private:
 		if (sizes[0] == 0) sizes[0] = 512;
 
 		FILE *newDisk = fopen64(temp_line.c_str(), "rb+");
+		if (!newDisk) {
+			WriteOut("Unable to open '%s'\n", temp_line.c_str());
+			return NULL;
+		}
 
 		QCow2Image::QCow2Header qcow2_header = QCow2Image::read_header(newDisk);
 
