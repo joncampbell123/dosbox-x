@@ -2637,7 +2637,7 @@ private:
 		}
 
 		/* drive must not exist (as a hard drive) */
-		if (imageDiskList[el_torito_cd_drive - 'C'] != NULL) {
+		if (imageDiskList[el_torito_cd_drive - 'A'] != NULL) {
 			WriteOut("-el-torito CD-ROM drive specified already exists as a non-CD-ROM device\n");
 			return false;
 		}
@@ -2885,7 +2885,7 @@ private:
 			if (image->hardDrive) {
 				for (int index = 2; index < MAX_DISK_IMAGES; index++) {
 					if (imageDiskList[index] == NULL) {
-						AttachToBiosAndIde(image, 2, ide_index, ide_slave);
+						AttachToBiosAndIde(image, index, ide_index, ide_slave);
 						break;
 					}
 				}

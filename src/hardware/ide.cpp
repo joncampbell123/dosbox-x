@@ -2119,7 +2119,7 @@ void IDE_Auto(signed char &index,bool &slave) {
 	slave = false;
 	for (i=0;i < MAX_IDE_CONTROLLERS;i++) {
 		if ((c=idecontroller[i]) == NULL) continue;
-		index = (signed char)(i >> 1);
+		index = (signed char)i;
 
 		if (c->device[0] == NULL) {
 			slave = false;
