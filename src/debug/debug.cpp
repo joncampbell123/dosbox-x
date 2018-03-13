@@ -907,24 +907,40 @@ static void DrawCode(void) {
 		}
 
 
-		Bitu drawsize=size=DasmI386(dline, start, disEIP, cpu.code.big);
 		bool toolarge = false;
         bool no_bytes = false;
+		Bitu drawsize;
+
+        if (start != mem_no_address) {
+            drawsize=size=DasmI386(dline, start, disEIP, cpu.code.big);
+        }
+        else {
+            drawsize=size=0;
+            dline[0]=0;
+        }
 		mvwprintw(dbg.win_code,i,0,"%04X:%08X ",codeViewData.useCS,disEIP);
 
 		if (drawsize>10) { toolarge = true; drawsize = 9; };
-		for (c=0;c<drawsize;c++) {
-			Bit8u value;
-            if (!mem_readb_checked(start+c,&value)) {
-                wattrset (dbg.win_code,0);
-                wprintw(dbg.win_code,"%02X",value);
+ 
+        if (start != mem_no_address) {
+            for (c=0;c<drawsize;c++) {
+                Bit8u value;
+                if (!mem_readb_checked(start+c,&value)) {
+                    wattrset (dbg.win_code,0);
+                    wprintw(dbg.win_code,"%02X",value);
+                }
+                else {
+                    no_bytes = true;
+                    wattrset (dbg.win_code, COLOR_PAIR(PAIR_BYELLOW_BLACK));
+                    wprintw(dbg.win_code,"pf");
+                }
             }
-            else {
-                no_bytes = true;
-                wattrset (dbg.win_code, COLOR_PAIR(PAIR_BYELLOW_BLACK));
-                wprintw(dbg.win_code,"pf");
-            }
-		}
+        }
+        else {
+            wattrset (dbg.win_code, COLOR_PAIR(PAIR_BYELLOW_BLACK));
+            wprintw(dbg.win_code,"na");
+        }
+
         wattrset (dbg.win_code,0);
         if (toolarge) { waddstr(dbg.win_code,".."); drawsize++; };
 		// Spacepad up to 20 characters
@@ -954,7 +970,10 @@ static void DrawCode(void) {
 
         wclrtoeol(dbg.win_code);
 
-		disEIP+=size;
+        if (size != 0)
+            disEIP+=size;
+        else
+            disEIP++;
 
 		if (i==0) codeViewData.firstInstSize = size;
 		if (i==4) codeViewData.useEIPmid	 = disEIP;
