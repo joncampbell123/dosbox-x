@@ -2190,7 +2190,6 @@ void IDE_CDROM_Detach(unsigned char drive_index) {
 			IDEATAPICDROMDevice *dev;
 			dev = dynamic_cast<IDEATAPICDROMDevice*>(c->device[slave]);
 			if (dev && dev->drive_index == drive_index) {
-				//todo: check this code
 				delete dev;
 				c->device[slave] = NULL;
 			}
@@ -2232,7 +2231,6 @@ void IDE_Hard_Disk_Detach(unsigned char bios_disk_index) {
 			IDEATADevice *dev;
 			dev = dynamic_cast<IDEATADevice*>(c->device[slave]);
 			if (dev && dev->bios_disk_index == bios_disk_index) {
-				//todo: check this code
 				delete dev;
 				c->device[slave] = NULL;
 			}

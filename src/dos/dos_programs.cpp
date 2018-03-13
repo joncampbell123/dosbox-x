@@ -2594,6 +2594,8 @@ private:
 				case 2:
 					WriteOut(MSG_Get("MSCDEX_ERROR_MULTIPLE_CDROMS"));
 					return false;
+				default:
+					return false;
 				}
 			}
 			else {
@@ -2808,14 +2810,12 @@ private:
 		AddToDriveManager(drive, newDrive, mediaid);
 		AttachToBios(newImage, driveIndex);
 
-		WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, "el torito floppy");
+		WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_ELTORITO"), drive);
 
 		return true;
 	}
 
 	bool MountFat(bool &imgsizedetect, Bitu sizes[], const char drive, const Bitu mediaid, const std::string &str_size, const std::string &type, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave) {
-		DOS_Drive * newdrive;
-
 		if (imgsizedetect) {
 			/* .HDI images contain the geometry explicitly in the header. */
 			if (str_size.size() == 0) {
@@ -2872,7 +2872,7 @@ private:
 		AddToDriveManager(drive, imgDisks, mediaid);
 
 		if (type == "ram") {
-			WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, "ram drive");
+			WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_RAMDRIVE"), drive);
 		}
 		else {
 			std::string tmp(paths[0]);
@@ -2931,7 +2931,6 @@ private:
 			for (int index = 0; index < MAX_DISK_IMAGES; index++) {
 				if (imageDiskList[index] == image) {
 					if (index > 1) IDE_Hard_Disk_Detach(index);
-					//todo: check this code
 					imageDiskList[index]->Release();
 					imageDiskList[index] = NULL;
 				}
@@ -3076,11 +3075,12 @@ private:
 		}
 
 		if (yet_detected)
+		{
+			//"Image geometry auto detection: -size %u,%u,%u,%u\r\n",
+			//sizes[0],sizes[1],sizes[2],sizes[3]);
 			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_AUTODET_VALUES"), sizes[0], sizes[1], sizes[2], sizes[3]);
-
-
-		//"Image geometry auto detection: -size %u,%u,%u,%u\r\n",
-		//sizes[0],sizes[1],sizes[2],sizes[3]);
+			return true;
+		}
 		else {
 			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_GEOMETRY"));
 			return false;
@@ -3419,6 +3419,8 @@ void DOS_SetupPrograms(void) {
 	MSG_Add("PROGRAM_MOUSE_HELP","Turns on/off mouse.\n\nMOUSE [/?] [/U] [/V]\n  /U: Uninstall\n  /V: Reverse Y-axis\n");
 	MSG_Add("PROGRAM_MOUNT_CDROMS_FOUND","CDROMs found: %d\n");
 	MSG_Add("PROGRAM_MOUNT_STATUS_FORMAT","%-5s  %-58s %-12s\n");
+	MSG_Add("PROGRAM_MOUNT_STATUS_ELTORITO", "Drive %c is mounted as el torito floppy\n");
+	MSG_Add("PROGRAM_MOUNT_STATUS_RAMDRIVE", "Drive %c is mounted as ram drive\n");
 	MSG_Add("PROGRAM_MOUNT_STATUS_2","Drive %c is mounted as %s\n");
 	MSG_Add("PROGRAM_MOUNT_STATUS_1","The currently mounted drives are:\n");
 	MSG_Add("PROGRAM_MOUNT_ERROR_1","Directory %s doesn't exist.\n");
@@ -3738,13 +3740,13 @@ void DOS_SetupPrograms(void) {
 		"Mounts hard drive and optical disc images.\n"
 		"IMGMOUNT drive filename [-t floppy] [-fs fat] [-size ss,s,h,c]\n"
 		"IMGMOUNT drive filename [-t hdd] [-fs fat] [-size ss,s,h,c] [-ide 1m|1s|2m|2s]\n"
-		"IMGMOUNT driveLoc filename [-t hdd] -fs none [-size ss,s,h,c] [-reservecyl #]\n"
-		"IMGMOUNT drive filename [-t iso] [-fs iso]\n"
+		"IMGMOUNT driveLoc filename -fs none [-size ss,s,h,c] [-reservecyl #]\n"
+		"IMGMOUNT drive filename -t iso [-fs iso]\n"
 		"IMGMOUNT drive -t floppy -el-torito cdDrive\n"
 		"IMGMOUNT drive -t ram -size driveSize\n"
 		"IMGMOUNT -u drive|driveLocation\n"
 		" drive               Drive letter to mount the image at\n"
-		" driveLoc            Location to mount drive, where 2 = Master and 3 = Slave\n"
+		" driveLoc            Location to mount drive, where 0-1 are FDDs, 2-5 are HDDs\n"
 		" filename            Filename of the image to mount\n"
 		" -t iso              Image type is optical disc iso or cue / bin image\n"
 		" -t floppy           Image type is floppy\n"
