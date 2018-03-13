@@ -387,10 +387,10 @@ Bit8u imageDiskMemory::Format() {
 	Bit32u partitionStart = writeMBR ? this->sectors : 0; //must be aligned with the start of a head (multiple of this->sectors)
 	Bit32u partitionLength = reported_total_sectors - partitionStart; //must be aligned with the start of a head (multiple of this->sectors)
 	//figure out the media id
-	Bit8u mediaID = this->hardDrive ? 0xF0 : this->floppyInfo.mediaid;
+	Bit8u mediaID = this->hardDrive ? 0xF8 : this->floppyInfo.mediaid;
 	//figure out the number of root entries and minimum number of sectors per cluster
 	Bit32u root_ent = this->hardDrive ? 512 : this->floppyInfo.rootentries;
-	Bit32u sectors_per_cluster = this->hardDrive ? 1 : this->floppyInfo.sectcluster;
+	Bit32u sectors_per_cluster = this->hardDrive ? 4 : this->floppyInfo.sectcluster; //fat requires 2k clusters minimum on hard drives
 
 	//calculate the number of:
 	//  root sectors
