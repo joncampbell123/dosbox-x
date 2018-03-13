@@ -40,6 +40,9 @@ static bool has_LOG_EarlyInit = false;
 static bool do_LOG_stderr = false;
 static bool logBuffHasDiscarded = false;
 
+bool logBuffSuppressConsole = false;
+bool logBuffSuppressConsoleNeedUpdate = false;
+
 _LogGroup loggrp[LOG_MAX]={{"",LOG_NORMAL},{0,LOG_NORMAL}};
 FILE* debuglog = NULL;
 
@@ -583,15 +586,20 @@ void DEBUG_ShowMsg(char const* format,...) {
 	logBuffPos = logBuff.end();
 
 	if (dbg.win_out != NULL) {
-        int maxy, maxx; getmaxyx(dbg.win_out,maxy,maxx);
+        if (logBuffSuppressConsole) {
+            logBuffSuppressConsoleNeedUpdate = true;
+        }
+        else {
+            int maxy, maxx; getmaxyx(dbg.win_out,maxy,maxx);
 
-    	scrollok(dbg.win_out,TRUE);
-        scroll(dbg.win_out);
-    	scrollok(dbg.win_out,FALSE);
+            scrollok(dbg.win_out,TRUE);
+            scroll(dbg.win_out);
+            scrollok(dbg.win_out,FALSE);
 
-        DBGUI_DrawDebugOutputLine(maxy-1,buf);
+            DBGUI_DrawDebugOutputLine(maxy-1,buf);
 
-		wrefresh(dbg.win_out);
+            wrefresh(dbg.win_out);
+        }
 	}
 #endif
 }

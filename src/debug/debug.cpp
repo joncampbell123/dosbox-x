@@ -58,6 +58,9 @@ static struct termios consolesettings;
 #endif
 int old_cursor_state;
 
+extern bool logBuffSuppressConsole;
+extern bool logBuffSuppressConsoleNeedUpdate;
+
 // Forwards
 static void DrawCode(void);
 static void DrawInput(void);
@@ -648,6 +651,13 @@ static bool StepOver()
 		CBreakpoint::AddBreakpoint		(SegValue(cs),reg_eip+size, true);
 		CBreakpoint::ActivateBreakpoints(start, true);
 		debugging=false;
+
+        logBuffSuppressConsole = false;
+        if (logBuffSuppressConsoleNeedUpdate) {
+            logBuffSuppressConsoleNeedUpdate = false;
+            DEBUG_RefreshPage(0);
+        }
+
 		DrawCode();
 		DOSBOX_SetNormalLoop();
 		return true;
@@ -1907,6 +1917,13 @@ Bit32u DEBUG_CheckKeys(void) {
 		case KEY_F(5):	// Run Program
                 DrawRegistersUpdateOld();
 				debugging=false;
+
+                logBuffSuppressConsole = false;
+                if (logBuffSuppressConsoleNeedUpdate) {
+                    logBuffSuppressConsoleNeedUpdate = false;
+                    DEBUG_RefreshPage(0);
+                }
+
 				CBreakpoint::ActivateBreakpoints(SegPhys(cs)+reg_eip,true);						
 				ignoreAddressOnce = SegPhys(cs)+reg_eip;
 				DOSBOX_SetNormalLoop();	
@@ -2026,6 +2043,13 @@ Bitu DEBUG_Loop(void) {
 		CBreakpoint::AddBreakpoint(oldCS,oldEIP,true);
 		CBreakpoint::ActivateBreakpoints(SegPhys(cs)+reg_eip,true);
 		debugging=false;
+
+        logBuffSuppressConsole = false;
+        if (logBuffSuppressConsoleNeedUpdate) {
+            logBuffSuppressConsoleNeedUpdate = false;
+            DEBUG_RefreshPage(0);
+        }
+
 		DOSBOX_SetNormalLoop();
         DrawRegistersUpdateOld();
         return 0;
@@ -2050,6 +2074,11 @@ Bitu DEBUG_Loop(void) {
         }
     }
 
+    if (logBuffSuppressConsoleNeedUpdate) {
+        logBuffSuppressConsoleNeedUpdate = false;
+        DEBUG_RefreshPage(0);
+    }
+
 	return DEBUG_CheckKeys();
 }
 
@@ -2060,6 +2089,8 @@ void DEBUG_Enable(bool pressed) {
 
     CPU_CycleLeft+=CPU_Cycles;
     CPU_Cycles=0;
+
+    logBuffSuppressConsole = true;
 
 	debugging=true;
     check_rescroll=true;
