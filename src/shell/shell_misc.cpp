@@ -108,14 +108,10 @@ void DOS_Shell::InputCommand(char * line) {
 
 	while (size) {
 		dos.echo=false;
-		while(!DOS_ReadFile(input_handle,&c,&n)) {
-			Bit16u dummy;
-			DOS_CloseFile(input_handle);
-			DOS_OpenFile("con",2,&dummy);
-			LOG(LOG_MISC,LOG_ERROR)("Reopening the input handle. This is a bug!");
-            // FIXME: Patience counter. If you can't open CON again the first time what makes you
-            //        think doing it again will work?
-		}
+		if (!DOS_ReadFile(input_handle,&c,&n)) {
+            LOG(LOG_MISC,LOG_ERROR)("SHELL: Lost the input handle, dropping shell input loop");
+            n = 0;
+        }
 		if (!n) {
             input_eof = true;
 			size=0;			//Kill the while loop
