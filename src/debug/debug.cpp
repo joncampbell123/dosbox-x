@@ -863,13 +863,14 @@ static void DrawCode(void) {
 
 	bool saveSel; 
 	Bit32u disEIP = codeViewData.useEIP;
-	PhysPt start  = GetAddress(codeViewData.useCS,codeViewData.useEIP);
 	char dline[200];Bitu size;Bitu c;
 	static char line20[21] = "                    ";
     int w,h;
 
     getmaxyx(dbg.win_code,h,w);
 	for (int i=0;i<h;i++) {
+        Bit64u start = GetAddress(codeViewData.useCS,disEIP);
+
 		saveSel = false;
 		if (has_colors()) {
 			if ((codeViewData.useCS==SegValue(cs)) && (disEIP == reg_eip)) {
@@ -908,15 +909,24 @@ static void DrawCode(void) {
 
 		Bitu drawsize=size=DasmI386(dline, start, disEIP, cpu.code.big);
 		bool toolarge = false;
+        bool no_bytes = false;
 		mvwprintw(dbg.win_code,i,0,"%04X:%08X ",codeViewData.useCS,disEIP);
 
 		if (drawsize>10) { toolarge = true; drawsize = 9; };
 		for (c=0;c<drawsize;c++) {
 			Bit8u value;
-			if (mem_readb_checked(start+c,&value)) value=0;
-			wprintw(dbg.win_code,"%02X",value);
+            if (!mem_readb_checked(start+c,&value)) {
+                wattrset (dbg.win_code,0);
+                wprintw(dbg.win_code,"%02X",value);
+            }
+            else {
+                no_bytes = true;
+                wattrset (dbg.win_code, COLOR_PAIR(PAIR_BYELLOW_BLACK));
+                wprintw(dbg.win_code,"pf");
+            }
 		}
-		if (toolarge) { waddstr(dbg.win_code,".."); drawsize++; };
+        wattrset (dbg.win_code,0);
+        if (toolarge) { waddstr(dbg.win_code,".."); drawsize++; };
 		// Spacepad up to 20 characters
 		if(drawsize && (drawsize < 11)) {
 			line20[20 - drawsize*2] = 0;
@@ -926,8 +936,10 @@ static void DrawCode(void) {
 
 		char empty_res[] = { 0 };
 		char* res = empty_res;
-		if (showExtend) res = AnalyzeInstruction(dline, saveSel);
+        wattrset (dbg.win_code,0);
+        if (showExtend) res = AnalyzeInstruction(dline, saveSel);
 		// Spacepad it up to 28 characters
+        if (no_bytes) dline[0] = 0;
 		size_t dline_len = strlen(dline);
 		if(dline_len < 28) for (c = dline_len; c < 28;c++) dline[c] = ' '; dline[28] = 0;
 		waddstr(dbg.win_code,dline);
@@ -942,7 +954,6 @@ static void DrawCode(void) {
 
         wclrtoeol(dbg.win_code);
 
-		start+=size;
 		disEIP+=size;
 
 		if (i==0) codeViewData.firstInstSize = size;
