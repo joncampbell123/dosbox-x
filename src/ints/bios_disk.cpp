@@ -26,8 +26,6 @@
 #include "../dos/drives.h"
 #include "mapper.h"
 
-#define MAX_DISK_IMAGES 4
-
 extern bool int13_extensions_enable;
 
 diskGeo DiskGeometryList[] = {

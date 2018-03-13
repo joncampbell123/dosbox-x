@@ -2573,15 +2573,7 @@ private:
 				case 0: //success
 				{
 					//detatch hard drive or floppy drive from bios and ide controller
-					if (image) {
-						for (int index = 0; index < 4; index++) {
-							if (imageDiskList[index] == image) {
-								if (index > 1) IDE_Hard_Disk_Detach(index);
-								imageDiskList[index]->Release();
-								imageDiskList[index] = NULL;
-							}
-						}
-					}
+					if (image) DetachFromBios(image);
 
 					/* If the drive letter is also a CD-ROM drive attached to IDE, then let the IDE code know */
 					if (cdrom) IDE_CDROM_Detach(i_drive);
@@ -2815,7 +2807,7 @@ private:
 		return true;
 	}
 
-	bool MountFat(bool &imgsizedetect, Bitu sizes[], const char drive, const Bitu mediaid, const std::string str_size, const std::string type, const std::vector<std::string> paths, const signed char ide_index, const bool ide_slave) {
+	bool MountFat(bool &imgsizedetect, Bitu sizes[], const char drive, const Bitu mediaid, const std::string &str_size, const std::string &type, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave) {
 		DOS_Drive * newdrive;
 
 		if (imgsizedetect) {
@@ -2903,7 +2895,7 @@ private:
 	}
 
 	void AttachToBios(imageDisk* image, const unsigned char bios_drive_index) {
-		if (bios_drive_index > 3) return;
+		if (bios_drive_index >= MAX_DISK_IMAGES) return;
 		if (imageDiskList[bios_drive_index] != NULL) {
 			/* Notify IDE ATA emulation if a drive is already there */
 			if (bios_drive_index >= 2) IDE_Hard_Disk_Detach(bios_drive_index);
@@ -2922,6 +2914,19 @@ private:
 		if (bios_drive_index == 2 || bios_drive_index == 3) {
 			if (ide_index >= 0) IDE_Hard_Disk_Attach(ide_index, ide_slave, bios_drive_index);
 			updateDPT();
+		}
+	}
+
+	void DetachFromBios(imageDisk* image) {
+		if (image) {
+			for (int index = 0; index < MAX_DISK_IMAGES; index++) {
+				if (imageDiskList[index] == image) {
+					if (index > 1) IDE_Hard_Disk_Detach(index);
+					//todo: check this code
+					imageDiskList[index]->Release();
+					imageDiskList[index] = NULL;
+				}
+			}
 		}
 	}
 
@@ -3073,7 +3078,7 @@ private:
 		}
 	}
 
-	bool MountIso(const char drive, const Bit8u mediaid, const std::vector<std::string> paths, const signed char ide_index, const bool ide_slave) {
+	bool MountIso(const char drive, const Bit8u mediaid, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave) {
 		//mount cdrom
 
 		if (Drives[drive - 'A']) {
