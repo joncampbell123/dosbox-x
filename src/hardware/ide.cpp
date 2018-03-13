@@ -2181,6 +2181,23 @@ void IDE_CDROM_Attach(signed char index,bool slave,unsigned char drive_index) {
 	c->device[slave?1:0] = (IDEDevice*)dev;
 }
 
+/* drive_index = drive letter 0...A to 25...Z */
+void IDE_CDROM_Detach(unsigned char drive_index) {
+	for (int index = 0; index < MAX_IDE_CONTROLLERS; index++) {
+		IDEController *c = idecontroller[index];
+		if (c)
+		for (int slave = 0; slave < 2; slave++) {
+			IDEATAPICDROMDevice *dev;
+			dev = dynamic_cast<IDEATAPICDROMDevice*>(c->device[slave]);
+			if (dev && dev->drive_index == drive_index) {
+				//todo: check this code
+				delete dev;
+				c->device[slave] = NULL;
+			}
+		}
+	}
+}
+
 /* bios_disk_index = index into BIOS INT 13h disk array: imageDisk *imageDiskList[MAX_DISK_IMAGES]; */
 void IDE_Hard_Disk_Attach(signed char index,bool slave,unsigned char bios_disk_index/*not INT13h, the index into DOSBox's BIOS drive emulation*/) {
 	IDEController *c;
@@ -2206,6 +2223,22 @@ void IDE_Hard_Disk_Attach(signed char index,bool slave,unsigned char bios_disk_i
 	c->device[slave?1:0] = (IDEDevice*)dev;
 }
 
+/* bios_disk_index = index into BIOS INT 13h disk array: imageDisk *imageDiskList[MAX_DISK_IMAGES]; */
+void IDE_Hard_Disk_Detach(unsigned char bios_disk_index) {
+	for (int index = 0; index < MAX_IDE_CONTROLLERS; index++) {
+		IDEController *c = idecontroller[index];
+		if (c)
+		for (int slave = 0; slave < 2; slave++) {
+			IDEATADevice *dev;
+			dev = dynamic_cast<IDEATADevice*>(c->device[slave]);
+			if (dev && dev->bios_disk_index == bios_disk_index) {
+				//todo: check this code
+				delete dev;
+				c->device[slave] = NULL;
+			}
+		}
+	}
+}
 static IDEController* GetIDEController(Bitu idx) {
 	if (idx >= MAX_IDE_CONTROLLERS) return NULL;
 	return idecontroller[idx];
