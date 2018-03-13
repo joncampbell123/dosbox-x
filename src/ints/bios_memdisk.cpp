@@ -407,18 +407,10 @@ Bit8u imageDiskMemory::Format() {
 		return 0x05;
 	}
 
-	if (this->hardDrive) {
-		LOG_MSG("Formatting FAT%u hard drive C/H/S %u/%u/%u with %u bytes/sector, %u root entries, %u-byte clusters, media id 0x%X\n",
-			(unsigned int)(isFat16 ? 16 : 12),
-			(unsigned int)reported_cylinders, (unsigned int)this->heads, (unsigned int)this->sectors, (unsigned int)this->sector_size,
-			(unsigned int)root_ent, (unsigned int)(sectors_per_cluster * this->sector_size), (unsigned int)mediaID);
-	}
-	else {
-		LOG_MSG("Formatting FAT%u floppy drive C/H/S %u/%u/%u with %u bytes/sector, %u root entries, %u-byte clusters, media id 0x%X\n",
-			(unsigned int)(isFat16 ? 16 : 12),
-			(unsigned int)reported_cylinders, (unsigned int)this->heads, (unsigned int)this->sectors, (unsigned int)this->sector_size,
-			(unsigned int)root_ent, (unsigned int)(sectors_per_cluster * this->sector_size), (unsigned int)mediaID);
-	}
+	LOG_MSG("Formatting FAT%u %s drive C/H/S %u/%u/%u with %u bytes/sector, %u root entries, %u-byte clusters, media id 0x%X\n",
+		(unsigned int)(isFat16 ? 16 : 12), this->hardDrive ? "hard" : "floppy",
+		(unsigned int)reported_cylinders, (unsigned int)this->heads, (unsigned int)this->sectors, (unsigned int)this->sector_size,
+		(unsigned int)root_ent, (unsigned int)(sectors_per_cluster * this->sector_size), (unsigned int)mediaID);
 
 	//write MBR if applicable
 	Bit8u sbuf[512];
