@@ -2166,9 +2166,16 @@ static void LogMCBChain(Bit16u mcb_segment) {
 	}
 }
 
+extern bool dos_kernel_disabled;
+
 // Display the content of all Memory Control Blocks.
 static void LogMCBS(void)
 {
+    if (dos_kernel_disabled) {
+        LOG(LOG_MISC,LOG_ERROR)("Cannot enumerate MCB list while DOS kernel is inactive.");
+        return;
+    }
+
 	LOG(LOG_MISC,LOG_ERROR)("MCB Seg  Size (bytes)  PSP Seg (notes)  Filename");
 	LOG(LOG_MISC,LOG_ERROR)("Conventional memory:");
 	LogMCBChain(dos.firstMCB);
