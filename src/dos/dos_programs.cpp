@@ -3731,16 +3731,16 @@ void DOS_SetupPrograms(void) {
 	MSG_Add("PROGRAM_IMGMOUNT_MULTIPLE_NON_CUEISO_FILES", "Using multiple files is only supported for cue/iso images.\n");
 
 	MSG_Add("PROGRAM_IMGMOUNT_HELP",
-		"Mounts hard drive and optical disc images.\n\n"
+		"Mounts hard drive and optical disc images.\n"
 		"IMGMOUNT drive filename [-t floppy] [-fs fat] [-size ss,s,h,c]\n"
 		"IMGMOUNT drive filename [-t hdd] [-fs fat] [-size ss,s,h,c] [-ide 1m|1s|2m|2s]\n"
-		"IMGMOUNT driveLocation filename [-t hdd] -fs none [-size ss,s,h,c]\n"
+		"IMGMOUNT driveLoc filename [-t hdd] -fs none [-size ss,s,h,c] [-reservecyl #]\n"
 		"IMGMOUNT drive filename [-t iso] [-fs iso]\n"
 		"IMGMOUNT drive -t floppy -el-torito cdDrive\n"
 		"IMGMOUNT drive -t ram -size driveSize\n"
 		"IMGMOUNT -u drive|driveLocation\n"
 		" drive               Drive letter to mount the image at\n"
-		" driveLocation       Location to mount drive, where 2 = Master and 3 = Slave\n"
+		" driveLoc            Location to mount drive, where 2 = Master and 3 = Slave\n"
 		" filename            Filename of the image to mount\n"
 		" -t iso              Image type is optical disc iso or cue / bin image\n"
 		" -t floppy           Image type is floppy\n"
@@ -3749,6 +3749,7 @@ void DOS_SetupPrograms(void) {
 		" -fs iso             File system is ISO 9660\n"
 		" -fs fat             File system is FAT; FAT12 and FAT16 are supported\n"
 		" -fs none            Do not detect file system\n"
+		" -reservecyl #       Report # number of cylinders less than actual in BIOS\n"
 		" -ide 1m|1s|2m|2s    Specifies the controller to mount drive\n"
 		" -size ss,s,h,c      Specify the geometry: Sector size,Sectors,Heads,Cylinders\n"
 		" -size driveSize     Specify the drive size in KB\n"
