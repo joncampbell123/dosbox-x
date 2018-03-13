@@ -915,7 +915,7 @@ static void DrawCode(void) {
             drawsize=size=DasmI386(dline, start, disEIP, cpu.code.big);
         }
         else {
-            drawsize=size=0;
+            drawsize=size=1;
             dline[0]=0;
         }
 		mvwprintw(dbg.win_code,i,0,"%04X:%08X ",codeViewData.useCS,disEIP);
@@ -970,10 +970,7 @@ static void DrawCode(void) {
 
         wclrtoeol(dbg.win_code);
 
-        if (size != 0)
-            disEIP+=size;
-        else
-            disEIP++;
+        disEIP+=size;
 
 		if (i==0) codeViewData.firstInstSize = size;
 		if (i==4) codeViewData.useEIPmid	 = disEIP;
