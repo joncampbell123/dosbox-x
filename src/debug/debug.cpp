@@ -171,19 +171,25 @@ static list<string>::iterator histBuffPos = histBuff.end();
 /* Helpers */
 /***********/
 
-Bit32u PhysMakeProt(Bit16u selector, Bit32u offset)
+static const Bit64u mem_no_address = (Bit64u)(~0ULL);
+
+Bit64u LinMakeProt(Bit16u selector, Bit32u offset)
 {
 	Descriptor desc;
-	if (cpu.gdt.GetDescriptor(selector,desc)) return desc.GetBase()+offset;
-	return 0;
+
+    if (cpu.gdt.GetDescriptor(selector,desc)) {
+        if (offset <= desc.GetLimit())
+            return desc.GetBase()+offset;
+    }
+
+	return mem_no_address;
 };
 
-Bit32u GetAddress(Bit16u seg, Bit32u offset)
+Bit64u GetAddress(Bit16u seg, Bit32u offset)
 {
-	if (cpu.pmode && !(reg_flags & FLAG_VM)) {
-		Descriptor desc;
-		if (cpu.gdt.GetDescriptor(seg,desc)) return PhysMakeProt(seg,offset);
-	}
+	if (cpu.pmode && !(reg_flags & FLAG_VM))
+        return LinMakeProt(seg,offset);
+
 	if (seg==SegValue(cs)) return SegPhys(cs)+offset;
 	return (seg<<4)+offset;
 }
@@ -460,7 +466,7 @@ bool CBreakpoint::CheckBreakpoint(Bitu seg, Bitu off)
 
 				Bitu address; 
 				if (bp->GetType()==BKPNT_MEMORY_LINEAR) address = bp->GetOffset();
-				else address = GetAddress(bp->GetSegment(),bp->GetOffset());
+				else address = (Bitu)GetAddress(bp->GetSegment(),bp->GetOffset());
 				Bit8u value=0;
 				if (mem_readb_checked(address,&value)) return false;
 				if (bp->GetValue() != value) {
@@ -625,7 +631,7 @@ bool DEBUG_Breakpoint(void)
 	/* First get the phyiscal address and check for a set Breakpoint */
 	if (!CBreakpoint::CheckBreakpoint(SegValue(cs),reg_eip)) return false;
 	// Found. Breakpoint is valid
-	PhysPt where=GetAddress(SegValue(cs),reg_eip);
+	PhysPt where=(Bitu)GetAddress(SegValue(cs),reg_eip);
 	CBreakpoint::ActivateBreakpoints(where,false);	// Deactivate all breakpoints
 	return true;
 };
@@ -633,7 +639,7 @@ bool DEBUG_Breakpoint(void)
 bool DEBUG_IntBreakpoint(Bit8u intNum)
 {
 	/* First get the phyiscal address and check for a set Breakpoint */
-	PhysPt where=GetAddress(SegValue(cs),reg_eip);
+	PhysPt where=(Bitu)GetAddress(SegValue(cs),reg_eip);
 	if (!CBreakpoint::CheckIntBreakpoint(where,intNum,reg_ah)) return false;
 	// Found. Breakpoint is valid
 	CBreakpoint::ActivateBreakpoints(where,false);	// Deactivate all breakpoints
@@ -643,7 +649,7 @@ bool DEBUG_IntBreakpoint(Bit8u intNum)
 static bool StepOver()
 {
 	exitLoop = false;
-	PhysPt start=GetAddress(SegValue(cs),reg_eip);
+	PhysPt start=(Bitu)GetAddress(SegValue(cs),reg_eip);
 	char dline[200];Bitu size;
 	size=DasmI386(dline, start, reg_eip, cpu.code.big);
 
@@ -688,21 +694,38 @@ static void DrawData(void) {
 
 	Bit8u ch;
 	Bit32u add = dataOfs;
-	Bit32u address;
+	Bit64u address;
     int w,h;
 
 	/* Data win */	
     getmaxyx(dbg.win_data,h,w);
 	for (int y=0;y<h;y++) {
 		// Address
-		if (add<0x10000) mvwprintw (dbg.win_data,y,0,"%04X:%04X     ",dataSeg,add);
-		else mvwprintw (dbg.win_data,y,0,"%04X:%08X ",dataSeg,add);
+        wattrset (dbg.win_data,0);
+        mvwprintw (dbg.win_data,y,0,"%04X:%08X ",dataSeg,add);
+
 		for (int x=0; x<16; x++) {
 			address = GetAddress(dataSeg,add);
-			if (mem_readb_checked(address,&ch)) ch=0;
-			mvwprintw (dbg.win_data,y,14+3*x,"%02X",ch);
-			if (ch<32 || !isprint(*reinterpret_cast<unsigned char*>(&ch))) ch='.';
-			mvwprintw (dbg.win_data,y,63+x,"%c",ch);
+
+            if (address != mem_no_address) {
+                if (!mem_readb_checked(address,&ch)) {
+                    wattrset (dbg.win_data,0);
+                    mvwprintw (dbg.win_data,y,14+3*x,"%02X",ch);
+                    if (ch<32 || !isprint(*reinterpret_cast<unsigned char*>(&ch))) ch='.';
+                    mvwprintw (dbg.win_data,y,63+x,"%c",ch);
+                }
+                else {
+                    wattrset (dbg.win_data, COLOR_PAIR(PAIR_BYELLOW_BLACK));
+                    mvwprintw (dbg.win_data,y,14+3*x,"pf");
+                    mvwprintw (dbg.win_data,y,63+x,".");
+                }
+            }
+            else {
+                wattrset (dbg.win_data, COLOR_PAIR(PAIR_BYELLOW_BLACK));
+                mvwprintw (dbg.win_data,y,14+3*x,"na");
+                mvwprintw (dbg.win_data,y,63+x,".");
+            }
+
 			add++;
 		};
 	}	
