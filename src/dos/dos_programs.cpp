@@ -2787,7 +2787,14 @@ private:
 	}
 
 	bool MountElToritoFat(const char drive, const Bitu sizes[], const Bit8u mediaid, const char el_torito_cd_drive, const unsigned long el_torito_floppy_base, const unsigned char el_torito_floppy_type) {
-		if (Drives[drive - 'A']) {
+		unsigned char driveIndex = drive - 'A';
+
+		if (driveIndex > 1) {
+			WriteOut("Invalid drive letter");
+			return false;
+		}
+
+		if (Drives[driveIndex]) {
 			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_ALREADY_MOUNTED"));
 			return false;
 		}
@@ -2796,29 +2803,15 @@ private:
 		newImage->Addref();
 
 		DOS_Drive* newDrive = new fatDrive(newImage);
-		newImage->Release(); //fatDrive calls Addref
+		newImage->Release(); //fatDrive calls Addref, and this will release newImage if fatDrive doesn't use it
 		if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
 			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
 			return false;
 		}
 
-		DriveManager::AppendDisk(drive - 'A', newDrive);
-		DriveManager::InitializeDrive(drive - 'A');
+		AddToDriveManager(drive, newDrive, mediaid);
+		AttachToBios(newImage, driveIndex);
 
-		// Set the correct media byte in the table 
-		mem_writeb(Real2Phys(dos.tables.mediaid) + (drive - 'A') * 2, mediaid);
-
-		/* Command uses dta so set it to our internal dta */
-		RealPt save_dta = dos.dta();
-		dos.dta(dos.tables.tempdta);
-
-		{
-			DriveManager::CycleAllDisks();
-
-			char root[4] = { drive, ':', '\\', 0 };
-			DOS_FindFirst(root, DOS_ATTR_VOLUME); // force obtaining the label and saving it in dirCache
-		}
-		dos.dta(save_dta);
 		return true;
 	}
 
@@ -2930,6 +2923,11 @@ private:
 			if (ide_index >= 0) IDE_Hard_Disk_Attach(ide_index, ide_slave, bios_drive_index);
 			updateDPT();
 		}
+	}
+
+	void AddToDriveManager(const char drive, DOS_Drive* imgDisk, const Bit8u mediaid) {
+		std::vector<DOS_Drive*> imgDisks = { imgDisk };
+		AddToDriveManager(drive, imgDisks, mediaid);
 	}
 
 	void AddToDriveManager(const char drive, const std::vector<DOS_Drive*> &imgDisks, const Bit8u mediaid) {
