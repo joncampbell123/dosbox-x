@@ -178,8 +178,11 @@ private:
 void updateDPT(void);
 void incrementFDD(void);
 
-#define MAX_HDD_IMAGES 2
-#define MAX_DISK_IMAGES 4 //MAX_HDD_IMAGES + 2
+//in order to attach to the virtual IDE controllers, the disk must be mounted
+//  in the BIOS first (the imageDiskList array), so the IDE controller can obtain
+//  a reference to the drive in the imageDiskList array
+#define MAX_HDD_IMAGES 4
+#define MAX_DISK_IMAGES 6 //MAX_HDD_IMAGES + 2
 
 extern imageDisk *imageDiskList[MAX_DISK_IMAGES];
 extern imageDisk *diskSwap[20];
