@@ -2425,7 +2425,7 @@ public:
 				return;
 			}
 			drive=temp_line[0];
-			if ((drive<'0') || (drive>3+'0')) {
+			if ((drive<'0') || (drive>=MAX_DISK_IMAGES+'0')) {
 				WriteOut_NoParsing(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY2"));
 				return;
 			}
@@ -2485,8 +2485,12 @@ public:
 				if (newImage == NULL) return;
 			}
 
-			AttachToBiosAndIde(newImage, drive - '0', ide_index, ide_slave);
-			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT_NUMBER"), drive - '0', temp_line.c_str());
+			if (AttachToBiosAndIde(newImage, drive - '0', ide_index, ide_slave)) {
+				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT_NUMBER"), drive - '0', temp_line.c_str());
+			}
+			else {
+				WriteOut("Invalid mount number");
+			}
 		}
 		else {
 			WriteOut("Invalid fstype\n");
@@ -2633,7 +2637,7 @@ private:
 		}
 
 		/* drive must not exist (as a hard drive) */
-		if (imageDiskList[el_torito_cd_drive - 'C'] != NULL) {
+		if (imageDiskList[el_torito_cd_drive - 'A'] != NULL) {
 			WriteOut("-el-torito CD-ROM drive specified already exists as a non-CD-ROM device\n");
 			return false;
 		}
@@ -2804,6 +2808,8 @@ private:
 		AddToDriveManager(drive, newDrive, mediaid);
 		AttachToBios(newImage, driveIndex);
 
+		WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, "el torito floppy");
+
 		return true;
 	}
 
@@ -2879,11 +2885,11 @@ private:
 		if (imgDisks.size() == 1) {
 			imageDisk* image = ((fatDrive*)imgDisks[0])->loadedDisk;
 			if (image->hardDrive) {
-				if (imageDiskList[2] == NULL) {
-					AttachToBiosAndIde(image, 2, ide_index, ide_slave);
-				}
-				else if (imageDiskList[3] == NULL) {
-					AttachToBiosAndIde(image, 3, ide_index, ide_slave);
+				for (int index = 2; index < MAX_DISK_IMAGES; index++) {
+					if (imageDiskList[index] == NULL) {
+						AttachToBiosAndIde(image, index, ide_index, ide_slave);
+						break;
+					}
 				}
 			}
 			else {
@@ -2894,8 +2900,8 @@ private:
 		return true;
 	}
 
-	void AttachToBios(imageDisk* image, const unsigned char bios_drive_index) {
-		if (bios_drive_index >= MAX_DISK_IMAGES) return;
+	bool AttachToBios(imageDisk* image, const unsigned char bios_drive_index) {
+		if (bios_drive_index >= MAX_DISK_IMAGES) return false;
 		if (imageDiskList[bios_drive_index] != NULL) {
 			/* Notify IDE ATA emulation if a drive is already there */
 			if (bios_drive_index >= 2) IDE_Hard_Disk_Detach(bios_drive_index);
@@ -2906,15 +2912,18 @@ private:
 
 		// let FDC know if we mounted a floppy
 		if (bios_drive_index <= 1) FDC_AssignINT13Disk(bios_drive_index);
+		
+		return true;
 	}
 
-	void AttachToBiosAndIde(imageDisk* image, const unsigned char bios_drive_index, const unsigned char ide_index, const bool ide_slave) {
-		AttachToBios(image, bios_drive_index);
+	bool AttachToBiosAndIde(imageDisk* image, const unsigned char bios_drive_index, const unsigned char ide_index, const bool ide_slave) {
+		if (!AttachToBios(image, bios_drive_index)) return false;
 		//if hard drive image, and if ide controller is specified
-		if (bios_drive_index == 2 || bios_drive_index == 3) {
+		if (bios_drive_index >= 2 || bios_drive_index < MAX_DISK_IMAGES) {
 			if (ide_index >= 0) IDE_Hard_Disk_Attach(ide_index, ide_slave, bios_drive_index);
 			updateDPT();
 		}
+		return true;
 	}
 
 	void DetachFromBios(imageDisk* image) {
@@ -3140,6 +3149,10 @@ private:
 		if (sizes[0] == 0) sizes[0] = 512;
 
 		FILE *newDisk = fopen64(temp_line.c_str(), "rb+");
+		if (!newDisk) {
+			WriteOut("Unable to open '%s'\n", temp_line.c_str());
+			return NULL;
+		}
 
 		QCow2Image::QCow2Header qcow2_header = QCow2Image::read_header(newDisk);
 
@@ -3722,16 +3735,16 @@ void DOS_SetupPrograms(void) {
 	MSG_Add("PROGRAM_IMGMOUNT_MULTIPLE_NON_CUEISO_FILES", "Using multiple files is only supported for cue/iso images.\n");
 
 	MSG_Add("PROGRAM_IMGMOUNT_HELP",
-		"Mounts hard drive and optical disc images.\n\n"
+		"Mounts hard drive and optical disc images.\n"
 		"IMGMOUNT drive filename [-t floppy] [-fs fat] [-size ss,s,h,c]\n"
 		"IMGMOUNT drive filename [-t hdd] [-fs fat] [-size ss,s,h,c] [-ide 1m|1s|2m|2s]\n"
-		"IMGMOUNT driveLocation filename [-t hdd] -fs none [-size ss,s,h,c]\n"
+		"IMGMOUNT driveLoc filename [-t hdd] -fs none [-size ss,s,h,c] [-reservecyl #]\n"
 		"IMGMOUNT drive filename [-t iso] [-fs iso]\n"
 		"IMGMOUNT drive -t floppy -el-torito cdDrive\n"
 		"IMGMOUNT drive -t ram -size driveSize\n"
 		"IMGMOUNT -u drive|driveLocation\n"
 		" drive               Drive letter to mount the image at\n"
-		" driveLocation       Location to mount drive, where 2 = Master and 3 = Slave\n"
+		" driveLoc            Location to mount drive, where 2 = Master and 3 = Slave\n"
 		" filename            Filename of the image to mount\n"
 		" -t iso              Image type is optical disc iso or cue / bin image\n"
 		" -t floppy           Image type is floppy\n"
@@ -3740,6 +3753,7 @@ void DOS_SetupPrograms(void) {
 		" -fs iso             File system is ISO 9660\n"
 		" -fs fat             File system is FAT; FAT12 and FAT16 are supported\n"
 		" -fs none            Do not detect file system\n"
+		" -reservecyl #       Report # number of cylinders less than actual in BIOS\n"
 		" -ide 1m|1s|2m|2s    Specifies the controller to mount drive\n"
 		" -size ss,s,h,c      Specify the geometry: Sector size,Sectors,Heads,Cylinders\n"
 		" -size driveSize     Specify the drive size in KB\n"

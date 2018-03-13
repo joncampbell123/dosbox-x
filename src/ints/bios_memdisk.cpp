@@ -211,6 +211,7 @@ void imageDiskMemory::init(diskGeo diskParams, bool isHardDrive, imageDisk* unde
 	memset((void*)ChunkMap, 0, total_chunks * sizeof(Bit8u*));
 
 	//set internal variables
+	this->diskname = "ram drive";
 	this->heads = diskParams.headscyl;
 	this->cylinders = diskParams.cylcount;
 	this->sectors = diskParams.secttrack;
@@ -407,18 +408,10 @@ Bit8u imageDiskMemory::Format() {
 		return 0x05;
 	}
 
-	if (this->hardDrive) {
-		LOG_MSG("Formatting FAT%u hard drive C/H/S %u/%u/%u with %u bytes/sector, %u root entries, %u-byte clusters, media id 0x%X\n",
-			(unsigned int)(isFat16 ? 16 : 12),
-			(unsigned int)reported_cylinders, (unsigned int)this->heads, (unsigned int)this->sectors, (unsigned int)this->sector_size,
-			(unsigned int)root_ent, (unsigned int)(sectors_per_cluster * this->sector_size), (unsigned int)mediaID);
-	}
-	else {
-		LOG_MSG("Formatting FAT%u floppy drive C/H/S %u/%u/%u with %u bytes/sector, %u root entries, %u-byte clusters, media id 0x%X\n",
-			(unsigned int)(isFat16 ? 16 : 12),
-			(unsigned int)reported_cylinders, (unsigned int)this->heads, (unsigned int)this->sectors, (unsigned int)this->sector_size,
-			(unsigned int)root_ent, (unsigned int)(sectors_per_cluster * this->sector_size), (unsigned int)mediaID);
-	}
+	LOG_MSG("Formatting FAT%u %s drive C/H/S %u/%u/%u with %u bytes/sector, %u root entries, %u-byte clusters, media id 0x%X\n",
+		(unsigned int)(isFat16 ? 16 : 12), this->hardDrive ? "hard" : "floppy",
+		(unsigned int)reported_cylinders, (unsigned int)this->heads, (unsigned int)this->sectors, (unsigned int)this->sector_size,
+		(unsigned int)root_ent, (unsigned int)(sectors_per_cluster * this->sector_size), (unsigned int)mediaID);
 
 	//write MBR if applicable
 	Bit8u sbuf[512];
@@ -545,8 +538,8 @@ bool imageDiskMemory::CalculateFAT(Bit32u partitionStartingSector, Bit32u partit
 	//set the number of root sectors
 	*rootSectors = rootEntries * 32 / 512;
 	//make sure there is a minimum number of sectors available
-	//  minimum sectors = root sectors + 1 for boot sector + 1 for fat #1 + 1 for fat #2 + 1 for data sector + add 7 for hard drives due to allow for 4k alignment
-	if (partitionLength < (*rootSectors + 4 + (isHardDrive ? 7 : 0))) {
+	//  minimum sectors = root sectors + 1 for boot sector + 1 for fat #1 + 1 for fat #2 + 1 cluster for data + add 7 for hard drives due to allow for 4k alignment
+	if (partitionLength < (*rootSectors + 3 + *sectorsPerCluster + (isHardDrive ? 7 : 0))) {
 		LOG_MSG("Partition too small to format\n");
 		return false;
 	}

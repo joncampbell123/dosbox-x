@@ -731,8 +731,9 @@ static Bitu INT13_DiskHandler(void) {
 		last_status = 0x00;
 		if (reg_dl&0x80) {	// harddisks
 			reg_dl = 0;
-			if(imageDiskList[2] != NULL) reg_dl++;
-			if(imageDiskList[3] != NULL) reg_dl++;
+			for (int index = 2; index < MAX_DISK_IMAGES; index++) {
+				if (imageDiskList[index] != NULL) reg_dl++;
+			}
 		} else {		// floppy disks
 			reg_dl = 0;
 			if(imageDiskList[0] != NULL) reg_dl++;
@@ -909,10 +910,14 @@ void BIOS_SetupDisks(void) {
 	RealSetVec(0x13,CALLBACK_RealPointer(call_int13));
 
     /* FIXME: I see a potential problem here: We're just zeroing out the array. Didn't I rewrite disk images with refcounting? --J.C. */
-	for(i=0;i<MAX_DISK_IMAGES;i++)
+	for (i = 0; i < MAX_DISK_IMAGES; i++) {
+		if (imageDiskList[i]) imageDiskList[i]->Release();
 		imageDiskList[i] = NULL;
-	for(i=0;i<MAX_SWAPPABLE_DISKS;i++)
+	}
+	for (i = 0; i < MAX_SWAPPABLE_DISKS; i++) {
+		if (diskSwap[i]) diskSwap[i]->Release();
 		diskSwap[i] = NULL;
+	}
 
     /* FIXME: Um... these aren't callbacks. Why are they allocated as callbacks? We have ROM general allocation now. */
 	diskparm0 = CALLBACK_Allocate();
