@@ -178,8 +178,10 @@ Bit64u LinMakeProt(Bit16u selector, Bit32u offset)
 	Descriptor desc;
 
     if (cpu.gdt.GetDescriptor(selector,desc)) {
-        if (offset <= desc.GetLimit())
-            return desc.GetBase()+offset;
+        if (selector >= 8 && desc.Type() != 0) {
+            if (offset <= desc.GetLimit())
+                return desc.GetBase()+offset;
+        }
     }
 
 	return mem_no_address;
