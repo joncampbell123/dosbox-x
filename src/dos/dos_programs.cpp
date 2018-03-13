@@ -2808,6 +2808,8 @@ private:
 		AddToDriveManager(drive, newDrive, mediaid);
 		AttachToBios(newImage, driveIndex);
 
+		WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, "el torito floppy");
+
 		return true;
 	}
 
