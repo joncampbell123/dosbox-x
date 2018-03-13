@@ -2425,7 +2425,7 @@ public:
 				return;
 			}
 			drive=temp_line[0];
-			if ((drive<'0') || (drive>3+'0')) {
+			if ((drive<'0') || (drive>=MAX_DISK_IMAGES+'0')) {
 				WriteOut_NoParsing(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY2"));
 				return;
 			}
@@ -2485,8 +2485,12 @@ public:
 				if (newImage == NULL) return;
 			}
 
-			AttachToBiosAndIde(newImage, drive - '0', ide_index, ide_slave);
-			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT_NUMBER"), drive - '0', temp_line.c_str());
+			if (AttachToBiosAndIde(newImage, drive - '0', ide_index, ide_slave)) {
+				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT_NUMBER"), drive - '0', temp_line.c_str());
+			}
+			else {
+				WriteOut("Invalid mount number");
+			}
 		}
 		else {
 			WriteOut("Invalid fstype\n");
@@ -2879,11 +2883,11 @@ private:
 		if (imgDisks.size() == 1) {
 			imageDisk* image = ((fatDrive*)imgDisks[0])->loadedDisk;
 			if (image->hardDrive) {
-				if (imageDiskList[2] == NULL) {
-					AttachToBiosAndIde(image, 2, ide_index, ide_slave);
-				}
-				else if (imageDiskList[3] == NULL) {
-					AttachToBiosAndIde(image, 3, ide_index, ide_slave);
+				for (int index = 2; index < MAX_DISK_IMAGES; index++) {
+					if (imageDiskList[index] == NULL) {
+						AttachToBiosAndIde(image, 2, ide_index, ide_slave);
+						break;
+					}
 				}
 			}
 			else {
@@ -2894,8 +2898,8 @@ private:
 		return true;
 	}
 
-	void AttachToBios(imageDisk* image, const unsigned char bios_drive_index) {
-		if (bios_drive_index >= MAX_DISK_IMAGES) return;
+	bool AttachToBios(imageDisk* image, const unsigned char bios_drive_index) {
+		if (bios_drive_index >= MAX_DISK_IMAGES) return false;
 		if (imageDiskList[bios_drive_index] != NULL) {
 			/* Notify IDE ATA emulation if a drive is already there */
 			if (bios_drive_index >= 2) IDE_Hard_Disk_Detach(bios_drive_index);
@@ -2906,15 +2910,18 @@ private:
 
 		// let FDC know if we mounted a floppy
 		if (bios_drive_index <= 1) FDC_AssignINT13Disk(bios_drive_index);
+		
+		return true;
 	}
 
-	void AttachToBiosAndIde(imageDisk* image, const unsigned char bios_drive_index, const unsigned char ide_index, const bool ide_slave) {
-		AttachToBios(image, bios_drive_index);
+	bool AttachToBiosAndIde(imageDisk* image, const unsigned char bios_drive_index, const unsigned char ide_index, const bool ide_slave) {
+		if (!AttachToBios(image, bios_drive_index)) return false;
 		//if hard drive image, and if ide controller is specified
-		if (bios_drive_index == 2 || bios_drive_index == 3) {
+		if (bios_drive_index >= 2 || bios_drive_index < MAX_DISK_IMAGES) {
 			if (ide_index >= 0) IDE_Hard_Disk_Attach(ide_index, ide_slave, bios_drive_index);
 			updateDPT();
 		}
+		return true;
 	}
 
 	void DetachFromBios(imageDisk* image) {
