@@ -71,12 +71,18 @@ static void LogMCBS(void);
 static void LogGDT(void);
 static void LogLDT(void);
 static void LogIDT(void);
+static void LogXMS(void);
 static void LogPages(char* selname);
 static void LogCPUInfo(void);
 static void OutputVecTable(char* filename);
 static void DrawVariables(void);
 static void LogDOSKernMem(void);
 static void LogBIOSMem(void);
+
+bool XMS_Active(void);
+
+Bitu XMS_GetTotalHandles(void);
+bool XMS_GetHandleInfo(Bitu &phys_location,Bitu &size,Bitu &lockcount,bool &free,Bitu handle);
 
 LoopHandler *old_loop = NULL;
 
@@ -1482,6 +1488,7 @@ bool ParseCommand(char* str) {
 		stream >> command;
 		if (command == "MCBS") LogMCBS();
         else if (command == "KERN") LogDOSKernMem();
+        else if (command == "XMS") LogXMS();
 		return true;
 	}
 
@@ -2346,6 +2353,40 @@ static void LogBIOSMem(void) {
             (unsigned long)(i->end),
             i->free ? "FREE  " : "ALLOC ");
         LOG(LOG_MISC,LOG_ERROR)("%s %s",tmp,i->who.c_str());
+    }
+}
+
+Bitu XMS_GetTotalHandles(void);
+bool XMS_GetHandleInfo(Bitu &phys_location,Bitu &size,Bitu &lockcount,bool &free,Bitu handle);
+
+static void LogXMS(void) {
+    Bitu phys_location;
+    Bitu lockcount;
+    bool free;
+    Bitu size;
+
+    if (dos_kernel_disabled) {
+        LOG(LOG_MISC,LOG_ERROR)("Cannot enumerate XMS memory while DOS kernel is inactive.");
+        return;
+    }
+
+    if (!XMS_Active()) {
+        LOG(LOG_MISC,LOG_ERROR)("Cannot enumerate XMS memory while XMS is inactive.");
+        return;
+    }
+
+    LOG(LOG_MISC,LOG_ERROR)("XMS memory handles:");
+    LOG(LOG_MISC,LOG_ERROR)("Handle Status Location Size (bytes)");
+    for (Bitu h=1;h < XMS_GetTotalHandles();h++) {
+        if (XMS_GetHandleInfo(/*&*/phys_location,/*&*/size,/*&*/lockcount,/*&*/free,h)) {
+            if (!free) {
+                LOG(LOG_MISC,LOG_ERROR)("%6lu %s 0x%08lx %lu",
+                    (unsigned long)h,
+                    free ? "FREE  " : "ALLOC ",
+                    (unsigned long)phys_location,
+                    (unsigned long)size);
+            }
+        }
     }
 }
 

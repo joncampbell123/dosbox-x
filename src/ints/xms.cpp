@@ -153,6 +153,32 @@ static bool umb_init = false;
 
 static XMS_Block xms_handles[XMS_HANDLES];
 
+Bitu XMS_GetTotalHandles(void) {
+    return XMS_HANDLES;
+}
+
+bool XMS_GetHandleInfo(Bitu &phys_location,Bitu &size,Bitu &lockcount,bool &free,Bitu handle) {
+    if (handle != 0 && handle < XMS_HANDLES) {
+        phys_location = 0;
+        lockcount = 0;
+        free = true;
+        size = 0;
+
+        auto &x = xms_handles[handle];
+
+        if (!x.free) {
+            free = false;
+            size = x.size;
+            lockcount = x.locked;
+            phys_location = x.mem << 12UL;
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
 static INLINE bool InvalidHandle(Bitu handle) {
 	return (!handle || (handle>=XMS_HANDLES) || xms_handles[handle].free);
 }
