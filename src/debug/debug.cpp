@@ -2353,7 +2353,7 @@ static void LogDOSKernMem(void) {
     char tmp[192];
 
     if (dos_kernel_disabled) {
-        LOG(LOG_MISC,LOG_ERROR)("Cannot enumerate MCB list while DOS kernel is inactive.");
+        LOG(LOG_MISC,LOG_ERROR)("Cannot enumerate DOS kernel memory while DOS kernel is inactive.");
         return;
     }
 
@@ -2364,7 +2364,7 @@ static void LogDOSKernMem(void) {
             (unsigned int)(i->segbase),
             (unsigned long)(i->pages << 4UL));
 
-        LOG(LOG_MISC,LOG_ERROR)("%s %s",tmp,i->who.c_str());
+        LOG(LOG_MISC,LOG_ERROR)("%s    %s",tmp,i->who.c_str());
     }
 }
 
