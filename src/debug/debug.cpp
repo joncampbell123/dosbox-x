@@ -1354,6 +1354,22 @@ bool ParseCommand(char* str) {
 		return true;
 	};
 
+    if (command == "RUN") {
+        DrawRegistersUpdateOld();
+        debugging=false;
+
+        logBuffSuppressConsole = false;
+        if (logBuffSuppressConsoleNeedUpdate) {
+            logBuffSuppressConsoleNeedUpdate = false;
+            DEBUG_RefreshPage(0);
+        }
+
+        CBreakpoint::ActivateBreakpoints(SegPhys(cs)+reg_eip,true);						
+        ignoreAddressOnce = SegPhys(cs)+reg_eip;
+        DOSBOX_SetNormalLoop();	
+        return true;
+    }
+
     if (command == "RUNWATCH") {
         debug_running = true;
         DEBUG_DrawScreen();
