@@ -2384,7 +2384,7 @@ static void LogXMS(void) {
                     (unsigned long)h,
                     free ? "FREE  " : "ALLOC ",
                     (unsigned long)phys_location,
-                    (unsigned long)size);
+                    (unsigned long)size << 10UL); /* KB -> bytes */
             }
         }
     }
