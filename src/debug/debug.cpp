@@ -76,6 +76,8 @@ static void LogCPUInfo(void);
 static void OutputVecTable(char* filename);
 static void DrawVariables(void);
 
+LoopHandler *old_loop = NULL;
+
 char* AnalyzeInstruction(char* inst, bool saveSelector);
 Bit32u GetHexValue(char* str, char*& hex);
 
@@ -127,6 +129,7 @@ static Bitu oldflags,oldcpucpl;
 DBGBlock dbg;
 extern Bitu cycle_count;
 static bool debugging = false;
+static bool debug_running = false;
 static bool check_rescroll = false;
 
 
@@ -1351,6 +1354,12 @@ bool ParseCommand(char* str) {
 		return true;
 	};
 
+    if (command == "RUNWATCH") {
+        debug_running = true;
+        DEBUG_DrawScreen();
+        return true;
+    }
+
 	if (command == "C") { // Set code overview
 		Bit16u codeSeg = (Bit16u)GetHexValue(found,found); found++;
 		Bit32u codeOfs = GetHexValue(found,found);
@@ -2138,56 +2147,73 @@ Bit32u DEBUG_CheckKeys(void) {
 	return ret;
 };
 
-Bitu DEBUG_Loop(void) {
-//TODO Disable sound
-	GFX_Events();
-	// Interrupt started ? - then skip it
-	Bit16u oldCS	= SegValue(cs);
-	Bit32u oldEIP	= reg_eip;
-	PIC_runIRQs();
-	SDL_Delay(1);
-	if ((oldCS!=SegValue(cs)) || (oldEIP!=reg_eip)) {
-		CBreakpoint::AddBreakpoint(oldCS,oldEIP,true);
-		CBreakpoint::ActivateBreakpoints(SegPhys(cs)+reg_eip,true);
-		debugging=false;
+Bitu DEBUG_LastRunningUpdate = 0;
 
-        logBuffSuppressConsole = false;
+Bitu DEBUG_Loop(void) {
+    if (debug_running) {
+        Bitu now = SDL_GetTicks();
+
+        if ((DEBUG_LastRunningUpdate + 33) < now) {
+            DEBUG_LastRunningUpdate = now;
+            SetCodeWinStart();
+            DEBUG_DrawScreen();
+        }
+
+        return old_loop();
+    }
+    else {
+        //TODO Disable sound
+        GFX_Events();
+        // Interrupt started ? - then skip it
+        Bit16u oldCS	= SegValue(cs);
+        Bit32u oldEIP	= reg_eip;
+        PIC_runIRQs();
+        SDL_Delay(1);
+        if ((oldCS!=SegValue(cs)) || (oldEIP!=reg_eip)) {
+            CBreakpoint::AddBreakpoint(oldCS,oldEIP,true);
+            CBreakpoint::ActivateBreakpoints(SegPhys(cs)+reg_eip,true);
+            debugging=false;
+
+            logBuffSuppressConsole = false;
+            if (logBuffSuppressConsoleNeedUpdate) {
+                logBuffSuppressConsoleNeedUpdate = false;
+                DEBUG_RefreshPage(0);
+            }
+
+            DOSBOX_SetNormalLoop();
+            DrawRegistersUpdateOld();
+            return 0;
+        }
+
+        /* between DEBUG_Enable and DEBUG_Loop CS:EIP can change */
+        if (check_rescroll) {
+            Bitu ocs,oip,ocr;
+
+            check_rescroll = false;
+            ocs = codeViewData.useCS;
+            oip = codeViewData.useEIP;
+            ocr = codeViewData.cursorPos;
+            SetCodeWinStart();
+            if (ocs != codeViewData.useCS ||
+                    oip != codeViewData.useEIP) {
+                DEBUG_DrawScreen();
+            }
+            else {
+                /* SetCodeWinStart() resets cursor position */
+                codeViewData.cursorPos = ocr;
+            }
+        }
+
         if (logBuffSuppressConsoleNeedUpdate) {
             logBuffSuppressConsoleNeedUpdate = false;
             DEBUG_RefreshPage(0);
         }
 
-		DOSBOX_SetNormalLoop();
-        DrawRegistersUpdateOld();
-        return 0;
-	}
-
-    /* between DEBUG_Enable and DEBUG_Loop CS:EIP can change */
-    if (check_rescroll) {
-        Bitu ocs,oip,ocr;
-
-        check_rescroll = false;
-		ocs = codeViewData.useCS;
-		oip = codeViewData.useEIP;
-        ocr = codeViewData.cursorPos;
-        SetCodeWinStart();
-        if (ocs != codeViewData.useCS ||
-            oip != codeViewData.useEIP) {
-            DEBUG_DrawScreen();
-        }
-        else {
-            /* SetCodeWinStart() resets cursor position */
-            codeViewData.cursorPos = ocr;
-        }
+    	return DEBUG_CheckKeys();
     }
-
-    if (logBuffSuppressConsoleNeedUpdate) {
-        logBuffSuppressConsoleNeedUpdate = false;
-        DEBUG_RefreshPage(0);
-    }
-
-	return DEBUG_CheckKeys();
 }
+
+LoopHandler *DOSBOX_GetLoop(void);
 
 void DEBUG_Enable(bool pressed) {
 	if (!pressed)
@@ -2199,7 +2225,11 @@ void DEBUG_Enable(bool pressed) {
 
     logBuffSuppressConsole = true;
 
+    LoopHandler *ol = DOSBOX_GetLoop();
+    if (ol != DEBUG_Loop) old_loop = ol;
+
 	debugging=true;
+    debug_running=false;
     check_rescroll=true;
     DrawRegistersUpdateOld();
     DEBUG_SetupConsole();

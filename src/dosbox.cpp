@@ -495,6 +495,10 @@ increaseticks:
     return 0;
 }
 
+LoopHandler *DOSBOX_GetLoop(void) {
+    return loop;
+}
+
 void DOSBOX_SetLoop(LoopHandler * handler) {
 	loop=handler;
 }
