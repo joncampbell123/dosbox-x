@@ -76,6 +76,7 @@ static void LogCPUInfo(void);
 static void OutputVecTable(char* filename);
 static void DrawVariables(void);
 static void LogDOSKernMem(void);
+static void LogBIOSMem(void);
 
 LoopHandler *old_loop = NULL;
 
@@ -1484,6 +1485,14 @@ bool ParseCommand(char* str) {
 		return true;
 	}
 
+    if (command == "BIOS") {
+        stream >> command;
+
+        if (command == "MEM") LogBIOSMem();
+
+        return true;
+    }
+
 	if (command == "GDT") {LogGDT(); return true;}
 	
 	if (command == "LDT") {LogLDT(); return true;}
@@ -2321,7 +2330,24 @@ static void LogMCBChain(Bit16u mcb_segment) {
 	}
 }
 
+#include "regionalloctracking.h"
+
 extern bool dos_kernel_disabled;
+extern RegionAllocTracking rombios_alloc;
+
+static void LogBIOSMem(void) {
+    char tmp[192];
+
+    LOG(LOG_MISC,LOG_ERROR)("BIOS memory blocks:");
+    LOG(LOG_MISC,LOG_ERROR)("Region            Status What");
+    for (auto i=rombios_alloc.alist.begin();i!=rombios_alloc.alist.end();i++) {
+        sprintf(tmp,"%08lx-%08lx %s",
+            (unsigned long)(i->start),
+            (unsigned long)(i->end),
+            i->free ? "FREE  " : "ALLOC ");
+        LOG(LOG_MISC,LOG_ERROR)("%s %s",tmp,i->who.c_str());
+    }
+}
 
 static void LogDOSKernMem(void) {
     char tmp[192];
