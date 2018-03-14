@@ -27,6 +27,8 @@ extern Bitu DOS_PRIVATE_SEGMENT_Size;
 
 void CALLBACK_DeAllocate(Bitu in);
 
+std::list<DOS_GetMemLog_Entry> DOS_GetMemLog;
+
 #ifdef _MSC_VER
 #pragma pack(1)
 #endif
@@ -117,6 +119,17 @@ Bit16u DOS_GetMemory(Bit16u pages,const char *who) {
 	}
 	Bit16u page=dos_memseg;
 	LOG(LOG_DOSMISC,LOG_DEBUG)("DOS_GetMemory(0x%04x pages,\"%s\") = 0x%04x",pages,who,page);
+
+    {
+        DOS_GetMemLog_Entry ent;
+
+        ent.segbase = page;
+        ent.pages = pages;
+        ent.who = who;
+
+        DOS_GetMemLog.push_back(ent);
+    }
+
 	dos_memseg+=pages;
 	return page;
 }

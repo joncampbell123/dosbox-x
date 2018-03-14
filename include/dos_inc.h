@@ -721,4 +721,12 @@ static INLINE Bit8u RealHandle(Bit16u handle) {
 	return psp.GetFileHandle(handle);
 }
 
+struct DOS_GetMemLog_Entry {
+    Bit16u      segbase;
+    Bit16u      pages;
+    std::string who;
+};
+
+extern std::list<DOS_GetMemLog_Entry> DOS_GetMemLog;
+
 #endif

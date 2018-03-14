@@ -75,6 +75,7 @@ static void LogPages(char* selname);
 static void LogCPUInfo(void);
 static void OutputVecTable(char* filename);
 static void DrawVariables(void);
+static void LogDOSKernMem(void);
 
 LoopHandler *old_loop = NULL;
 
@@ -1479,6 +1480,7 @@ bool ParseCommand(char* str) {
 	if (command == "DOS") {
 		stream >> command;
 		if (command == "MCBS") LogMCBS();
+        else if (command == "KERN") LogDOSKernMem();
 		return true;
 	}
 
@@ -2320,6 +2322,25 @@ static void LogMCBChain(Bit16u mcb_segment) {
 }
 
 extern bool dos_kernel_disabled;
+
+static void LogDOSKernMem(void) {
+    char tmp[192];
+
+    if (dos_kernel_disabled) {
+        LOG(LOG_MISC,LOG_ERROR)("Cannot enumerate MCB list while DOS kernel is inactive.");
+        return;
+    }
+
+    LOG(LOG_MISC,LOG_ERROR)("DOS kernel memory blocks:");
+    LOG(LOG_MISC,LOG_ERROR)("Seg      Size (bytes)     What");
+    for (auto i=DOS_GetMemLog.begin();i!=DOS_GetMemLog.end();i++) {
+        sprintf(tmp,"%04x     %8lu     ",
+            (unsigned int)(i->segbase),
+            (unsigned long)(i->pages << 4UL));
+
+        LOG(LOG_MISC,LOG_ERROR)("%s %s",tmp,i->who.c_str());
+    }
+}
 
 // Display the content of all Memory Control Blocks.
 static void LogMCBS(void)
