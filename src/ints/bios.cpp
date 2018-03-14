@@ -5964,7 +5964,6 @@ public:
 		/* write the signature at 0xF000:0xFFF0 */
 
 		// The farjump at the processor reset entry point (jumps to POST routine)
-        ROMBIOS_GetMemory(5/*size*/,"Reset entry point",/*align*/1,/*mustbeat*/0xffff0);
 		phys_writeb(0xffff0,0xEA);					// FARJMP
 		phys_writew(0xffff1,RealOff(BIOS_DEFAULT_RESET_LOCATION));	// offset
 		phys_writew(0xffff3,RealSeg(BIOS_DEFAULT_RESET_LOCATION));	// segment
