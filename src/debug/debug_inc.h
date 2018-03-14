@@ -42,6 +42,11 @@ extern const char *dbg_win_names[];
 class DBGBlock {
 public:
     enum {
+        DATV_SEGMENTED=0,
+        DATV_VIRTUAL,
+        DATV_PHYSICAL
+    };
+    enum {
         /* main not counted */
         WINI_REG,
         WINI_DATA,
@@ -58,7 +63,7 @@ public:
     unsigned int win_height[WINI_MAX_INDEX];
 public:
 	DBGBlock() : win_main(NULL), win_reg(NULL), win_data(NULL), win_code(NULL),
-		win_var(NULL), win_out(NULL), win_inp(NULL), active_win(WINI_CODE), input_y(0), global_mask(0) {
+		win_var(NULL), win_out(NULL), win_inp(NULL), active_win(WINI_CODE), input_y(0), global_mask(0), data_view(0xFF) {
         for (unsigned int i=0;i < WINI_MAX_INDEX;i++) {
             win_height[i] = dbg_def_win_height[i];
             win_title[i] = dbg_def_win_titles[i];
@@ -80,6 +85,10 @@ public:
     Bit32u active_win;					/* Current active window */
 	Bit32u input_y;
 	Bit32u global_mask;					/* Current msgmask */
+
+    unsigned char data_view;
+
+    void set_data_view(unsigned int view);
 
     WINDOW *get_win(int idx);
     WINDOW* &get_win_ref(int idx);

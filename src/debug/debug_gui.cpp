@@ -366,7 +366,7 @@ static void DrawSubWinBox(WINDOW *wnd,const char *title) {
     if (title != NULL) mvaddstr(y-1,x+4,title);
 }
 
-static void DrawBars(void) {
+void DrawBars(void) {
 	if (dbg.win_main == NULL)
 		return;
 

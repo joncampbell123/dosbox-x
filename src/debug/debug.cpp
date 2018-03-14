@@ -703,33 +703,58 @@ static void DrawData(void) {
     getmaxyx(dbg.win_data,h,w);
 	for (int y=0;y<h;y++) {
 		// Address
-        wattrset (dbg.win_data,0);
-        mvwprintw (dbg.win_data,y,0,"%04X:%08X ",dataSeg,add);
+        if (dbg.data_view == DBGBlock::DATV_SEGMENTED) {
+            wattrset (dbg.win_data,0);
+            mvwprintw (dbg.win_data,y,0,"%04X:%08X ",dataSeg,add);
+        }
+        else {
+            wattrset (dbg.win_data,0);
+            mvwprintw (dbg.win_data,y,0,"     %08X ",add);
+        }
 
-		for (int x=0; x<16; x++) {
-			address = GetAddress(dataSeg,add);
+        if (dbg.data_view == DBGBlock::DATV_PHYSICAL) {
+            for (int x=0; x<16; x++) {
+                address = add;
 
-            if (address != mem_no_address) {
-                if (!mem_readb_checked(address,&ch)) {
-                    wattrset (dbg.win_data,0);
-                    mvwprintw (dbg.win_data,y,14+3*x,"%02X",ch);
-                    if (ch<32 || !isprint(*reinterpret_cast<unsigned char*>(&ch))) ch='.';
-                    mvwprintw (dbg.win_data,y,63+x,"%c",ch);
+                ch = phys_readb(address);
+
+                wattrset (dbg.win_data,0);
+                mvwprintw (dbg.win_data,y,14+3*x,"%02X",ch);
+                if (ch<32 || !isprint(*reinterpret_cast<unsigned char*>(&ch))) ch='.';
+                mvwprintw (dbg.win_data,y,63+x,"%c",ch);
+
+                add++;
+            }
+        }
+        else {
+            for (int x=0; x<16; x++) {
+                if (dbg.data_view == DBGBlock::DATV_SEGMENTED)
+                    address = GetAddress(dataSeg,add);
+                else
+                    address = add;
+
+                if (address != mem_no_address) {
+                    if (!mem_readb_checked(address,&ch)) {
+                        wattrset (dbg.win_data,0);
+                        mvwprintw (dbg.win_data,y,14+3*x,"%02X",ch);
+                        if (ch<32 || !isprint(*reinterpret_cast<unsigned char*>(&ch))) ch='.';
+                        mvwprintw (dbg.win_data,y,63+x,"%c",ch);
+                    }
+                    else {
+                        wattrset (dbg.win_data, COLOR_PAIR(PAIR_BYELLOW_BLACK));
+                        mvwprintw (dbg.win_data,y,14+3*x,"pf");
+                        mvwprintw (dbg.win_data,y,63+x,".");
+                    }
                 }
                 else {
                     wattrset (dbg.win_data, COLOR_PAIR(PAIR_BYELLOW_BLACK));
-                    mvwprintw (dbg.win_data,y,14+3*x,"pf");
+                    mvwprintw (dbg.win_data,y,14+3*x,"na");
                     mvwprintw (dbg.win_data,y,63+x,".");
                 }
-            }
-            else {
-                wattrset (dbg.win_data, COLOR_PAIR(PAIR_BYELLOW_BLACK));
-                mvwprintw (dbg.win_data,y,14+3*x,"na");
-                mvwprintw (dbg.win_data,y,63+x,".");
-            }
 
-			add++;
-		};
+                add++;
+            }
+        }
 	}	
 	wrefresh(dbg.win_data);
 };
@@ -1326,6 +1351,23 @@ bool ParseCommand(char* str) {
 	if (command == "D") { // Set data overview
 		dataSeg = (Bit16u)GetHexValue(found,found); found++;
 		dataOfs = GetHexValue(found,found);
+        dbg.set_data_view(DBGBlock::DATV_SEGMENTED);
+		DEBUG_ShowMsg("DEBUG: Set data overview to %04X:%04X\n",dataSeg,dataOfs);
+		return true;
+	};
+
+	if (command == "DV") { // Set data overview
+        dataSeg = 0;
+		dataOfs = GetHexValue(found,found);
+        dbg.set_data_view(DBGBlock::DATV_VIRTUAL);
+		DEBUG_ShowMsg("DEBUG: Set data overview to %04X:%04X\n",dataSeg,dataOfs);
+		return true;
+	};
+
+	if (command == "DP") { // Set data overview
+        dataSeg = 0;
+		dataOfs = GetHexValue(found,found);
+        dbg.set_data_view(DBGBlock::DATV_PHYSICAL);
 		DEBUG_ShowMsg("DEBUG: Set data overview to %04X:%04X\n",dataSeg,dataOfs);
 		return true;
 	};
@@ -2511,9 +2553,34 @@ static void DEBUG_ProgramStart(Program * * make) {
 
 // INIT 
 
+void DBGBlock::set_data_view(unsigned int view) {
+    void DrawBars(void);
+
+    if (data_view != view) {
+        data_view  = view;
+
+        switch (view) {
+            case DATV_SEGMENTED:
+                win_title[DBGBlock::WINI_DATA] = "Data view (segmented)";
+                break;
+            case DATV_VIRTUAL:
+                win_title[DBGBlock::WINI_DATA] = "Data view (virtual)";
+                break;
+            case DATV_PHYSICAL:
+                win_title[DBGBlock::WINI_DATA] = "Data view (physical)";
+                break;
+        }
+
+        DrawBars();
+    }
+}
+
 void DEBUG_SetupConsole(void) {
 	if (dbg.win_main == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("DEBUG_SetupConsole initializing GUI");
+
+        dbg.set_data_view(DBGBlock::DATV_SEGMENTED);
+
 #ifdef WIN32
 		WIN32_Console();
 #else
