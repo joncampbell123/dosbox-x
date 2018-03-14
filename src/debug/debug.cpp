@@ -716,7 +716,20 @@ static void DrawData(void) {
             for (int x=0; x<16; x++) {
                 address = add;
 
-                ch = phys_readb(address);
+                /* save the original page addr.
+                 * we must hack the phys page tlb to make the hardware handler map 1:1 the page for this call. */
+                PhysPt opg = paging.tlb.phys_page[address>>12];
+
+                paging.tlb.phys_page[address>>12] = address>>12;
+
+                PageHandler *ph = MEM_GetPageHandler(address>>12);
+
+                if (ph->flags & PFLAG_READABLE)
+	                ch = ph->GetHostReadPt(address>>12)[address&0xFFF];
+                else
+                    ch = ph->readb(address);
+
+                paging.tlb.phys_page[address>>12] = opg;
 
                 wattrset (dbg.win_data,0);
                 mvwprintw (dbg.win_data,y,14+3*x,"%02X",ch);
