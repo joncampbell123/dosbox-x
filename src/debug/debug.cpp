@@ -1384,6 +1384,22 @@ bool ParseCommand(char* str) {
         return true;
     }
 
+    if (command == "A20") {
+        void MEM_A20_Enable(bool enabled);
+        bool MEM_A20_Enabled(void);
+
+		stream >> command;
+
+        if (command == "ON" || command == "1")
+            MEM_A20_Enable(true);
+        else if (command == "OFF" || command == "0")
+            MEM_A20_Enable(false);
+        else
+            DEBUG_ShowMsg("A20 gate is %s",MEM_A20_Enabled() ? "ON" : "OFF");
+
+        return true;
+    }
+
 	if (command == "C") { // Set code overview
 		Bit16u codeSeg = (Bit16u)GetHexValue(found,found); found++;
 		Bit32u codeOfs = GetHexValue(found,found);
