@@ -120,10 +120,49 @@ struct EMM_Handle {
 
 static Bitu ems_type = EMS_NONE;
 
+const char *EMS_Type_String(void) {
+    switch (ems_type) {
+        case EMS_NONE:  return "None";
+        case EMS_MIXED: return "Mixed";
+        case EMS_BOARD: return "Board";
+        case EMS_EMM386:return "EMM386";
+        default:        break;
+    };
+
+    return NULL;
+}
+
 static EMM_Handle emm_handles[EMM_MAX_HANDLES];
 static EMM_Mapping emm_mappings[EMM_MAX_PHYS];
 static EMM_Mapping emm_segmentmappings[0x40];
 
+bool EMS_GetHandle(Bitu &size,PhysPt &addr,std::string &name,Bitu handle) {
+    if (handle < EMM_MAX_HANDLES) {
+        auto &x = emm_handles[handle];
+
+        if (x.pages != NULL_HANDLE) {
+            {
+                unsigned int i=0;
+
+                while (i < sizeof(x.name) && x.name[i] != 0) i++;
+                name = std::string(x.name,i);
+            }
+            size = x.pages << 14UL; // 16KB pages
+            addr = x.mem << 12UL;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+Bitu EMS_Max_Handles(void) {
+    return EMM_MAX_HANDLES;
+}
+
+bool EMS_Active(void) {
+    return ems_type != EMS_NONE;
+}
 
 static Bit16u GEMMIS_seg; 
 

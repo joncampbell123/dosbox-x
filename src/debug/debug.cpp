@@ -72,6 +72,7 @@ static void LogGDT(void);
 static void LogLDT(void);
 static void LogIDT(void);
 static void LogXMS(void);
+static void LogEMS(void);
 static void LogPages(char* selname);
 static void LogCPUInfo(void);
 static void OutputVecTable(char* filename);
@@ -1505,6 +1506,7 @@ bool ParseCommand(char* str) {
 		if (command == "MCBS") LogMCBS();
         else if (command == "KERN") LogDOSKernMem();
         else if (command == "XMS") LogXMS();
+        else if (command == "EMS") LogEMS();
 		return true;
 	}
 
@@ -2374,6 +2376,39 @@ static void LogBIOSMem(void) {
 
 Bitu XMS_GetTotalHandles(void);
 bool XMS_GetHandleInfo(Bitu &phys_location,Bitu &size,Bitu &lockcount,bool &free,Bitu handle);
+
+bool EMS_GetHandle(Bitu &size,PhysPt &addr,std::string &name,Bitu handle);
+const char *EMS_Type_String(void);
+Bitu EMS_Max_Handles(void);
+bool EMS_Active(void);
+
+static void LogEMS(void) {
+    Bitu h_size;
+    PhysPt h_addr;
+    std::string h_name;
+
+    if (dos_kernel_disabled) {
+        LOG(LOG_MISC,LOG_ERROR)("Cannot enumerate EMS memory while DOS kernel is inactive.");
+        return;
+    }
+
+    if (!EMS_Active()) {
+        LOG(LOG_MISC,LOG_ERROR)("Cannot enumerate EMS memory while EMS is inactive.");
+        return;
+    }
+
+    LOG(LOG_MISC,LOG_ERROR)("EMS memory (type %s) handles:",EMS_Type_String());
+    LOG(LOG_MISC,LOG_ERROR)("Handle Address  Size (bytes)    Name");
+    for (Bitu h=0;h < EMS_Max_Handles();h++) {
+        if (EMS_GetHandle(/*&*/h_size,/*&*/h_addr,/*&*/h_name,h)) {
+            LOG(LOG_MISC,LOG_ERROR)("%6lu %08lx %08lx %s",
+                (unsigned long)h,
+                (unsigned long)h_addr,
+                (unsigned long)h_size,
+                h_name.c_str());
+        }
+    }
+}
 
 static void LogXMS(void) {
     Bitu phys_location;
