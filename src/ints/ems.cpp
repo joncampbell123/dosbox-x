@@ -63,6 +63,10 @@ Bitu GetEMSPageFrameSegment(void) {
 #define EMM_PAGE_SIZE	(16*1024U)
 #define EMM_MAX_PHYS	4				/* 4 16kb pages in pageframe */
 
+Bitu GetEMSPageFrameSize(void) {
+    return EMM_MAX_PHYS * EMM_PAGE_SIZE;
+}
+
 #define EMM_VERSION			0x40
 #define EMM_MINOR_VERSION		0x00
 //#define EMM_MINOR_VERSION		0x30	// emm386 4.48
@@ -135,6 +139,20 @@ const char *EMS_Type_String(void) {
 static EMM_Handle emm_handles[EMM_MAX_HANDLES];
 static EMM_Mapping emm_mappings[EMM_MAX_PHYS];
 static EMM_Mapping emm_segmentmappings[0x40];
+
+bool EMS_GetMapping(Bitu &handle,Bitu &log_page,Bitu ems_page) {
+    if (ems_page < EMM_MAX_PHYS) {
+        auto &x = emm_mappings[ems_page];
+
+        if (x.handle != NULL_HANDLE && x.page != NULL_PAGE) {
+            handle = x.handle;
+            log_page = x.page;
+            return true;
+        }
+    }
+
+    return false;
+}
 
 bool EMS_GetHandle(Bitu &size,PhysPt &addr,std::string &name,Bitu handle) {
     if (handle < EMM_MAX_HANDLES) {

@@ -2408,6 +2408,30 @@ static void LogEMS(void) {
                 h_name.c_str());
         }
     }
+
+    bool EMS_GetMapping(Bitu &handle,Bitu &log_page,Bitu ems_page);
+    Bitu GetEMSPageFrameSegment(void);
+    Bitu GetEMSPageFrameSize(void);
+
+    LOG(LOG_MISC,LOG_ERROR)("EMS page frame 0x%08lx-0x%08lx",
+        GetEMSPageFrameSegment()*16UL,
+        (GetEMSPageFrameSegment()*16UL)+GetEMSPageFrameSize()-1UL);
+    LOG(LOG_MISC,LOG_ERROR)("Handle Page Address");
+
+    for (Bitu p=0;p < (GetEMSPageFrameSize() >> 14UL);p++) {
+        Bitu log_page,handle;
+
+        if (EMS_GetMapping(handle,log_page,p)) {
+            LOG(LOG_MISC,LOG_ERROR)("%6lu %4lu %08lx-%08lx",(unsigned long)handle,(unsigned long)p,
+                (GetEMSPageFrameSegment()*16UL)+(p << 14UL),
+                (GetEMSPageFrameSegment()*16UL)+((p+1UL) << 14UL)-1);
+        }
+        else {
+            LOG(LOG_MISC,LOG_ERROR)("--     %4lu %08lx-%08lx",(unsigned long)p,
+                (GetEMSPageFrameSegment()*16UL)+(p << 14UL),
+                (GetEMSPageFrameSegment()*16UL)+((p+1UL) << 14UL)-1);
+        }
+    }
 }
 
 static void LogXMS(void) {
