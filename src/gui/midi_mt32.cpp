@@ -25,7 +25,7 @@ bool MidiHandler_mt32::Open(const char *conf) {
 	if (version < 0x020100) {
 		delete service;
 		service = NULL;
-		LOG_MSG("MT32: libmt32emu version is too old: %s", service->getLibraryVersionString());
+		LOG(LOG_MISC,LOG_WARN)("MT32: libmt32emu version is too old: %s", service->getLibraryVersionString());
 		return false;
 	}
 	service->createContext(getReportHandlerInterface(), this);
@@ -39,7 +39,7 @@ bool MidiHandler_mt32::Open(const char *conf) {
 	if (romDirLen < 1) {
 		romDir = "./";
 	} else if (4080 < romDirLen) {
-		LOG_MSG("MT32: mt32.romdir is too long, using the current dir.");
+		LOG(LOG_MISC,LOG_WARN)("MT32: mt32.romdir is too long, using the current dir.");
 		romDir = "./";
 	} else {
 		char lastChar = romDir[strlen(romDir) - 1];
@@ -54,7 +54,7 @@ bool MidiHandler_mt32::Open(const char *conf) {
 		if (MT32EMU_RC_ADDED_CONTROL_ROM != service->addROMFile(pathName)) {
 			delete service;
 			service = NULL;
-			LOG_MSG("MT32: Control ROM file not found");
+			LOG(LOG_MISC,LOG_WARN)("MT32: Control ROM file not found");
 			return false;
 		}
 	}
@@ -64,7 +64,7 @@ bool MidiHandler_mt32::Open(const char *conf) {
 		if (MT32EMU_RC_ADDED_PCM_ROM != service->addROMFile(pathName)) {
 			delete service;
 			service = NULL;
-			LOG_MSG("MT32: PCM ROM file not found");
+			LOG(LOG_MISC,LOG_WARN)("MT32: PCM ROM file not found");
 			return false;
 		}
 	}
@@ -78,7 +78,7 @@ bool MidiHandler_mt32::Open(const char *conf) {
 	if (MT32EMU_RC_OK != (rc = service->openSynth())) {
 		delete service;
 		service = NULL;
-		LOG_MSG("MT32: Error initialising emulation: %i", rc);
+		LOG(LOG_MISC,LOG_WARN)("MT32: Error initialising emulation: %i", rc);
 		return false;
 	}
 
@@ -98,9 +98,9 @@ bool MidiHandler_mt32::Open(const char *conf) {
 	noise = section->Get_bool("mt32.verbose");
 	renderInThread = section->Get_bool("mt32.thread");
 
-	if (noise) LOG_MSG("MT32: Set maximum number of partials %d", service->getPartialCount());
+	if (noise) LOG(LOG_MISC,LOG_WARN)("MT32: Set maximum number of partials %d", service->getPartialCount());
 
-	if (noise) LOG_MSG("MT32: Adding mixer channel at sample rate %d", sampleRate);
+	if (noise) LOG(LOG_MISC,LOG_WARN)("MT32: Adding mixer channel at sample rate %d", sampleRate);
 	chan = MIXER_AddChannel(mixerCallBack, sampleRate, "MT32");
 
 	if (renderInThread) {
@@ -111,7 +111,7 @@ bool MidiHandler_mt32::Open(const char *conf) {
 		int latency = section->Get_int("mt32.prebuffer");
 		if (latency <= chunkSize) {
 			latency = 2 * chunkSize;
-			LOG_MSG("MT32: chunk length must be less than prebuffer length, prebuffer length reset to %i ms.", latency);
+			LOG(LOG_MISC,LOG_WARN)("MT32: chunk length must be less than prebuffer length, prebuffer length reset to %i ms.", latency);
 		}
 		framesPerAudioBuffer = (latency * sampleRate) / MILLIS_PER_SECOND;
 		audioBufferSize = framesPerAudioBuffer << 1;
@@ -199,20 +199,28 @@ mt32emu_report_handler_i MidiHandler_mt32::getReportHandlerInterface() {
 			if (midiHandler_mt32.noise) {
 				char s[1024];
 				vsnprintf(s, 1023, fmt, list);
-				LOG_MSG("MT32: %s", s);
+				LOG(LOG_MISC,LOG_WARN)("MT32: %s", s);
 			}
 		}
 
 		static void onErrorControlROM(void *) {
-			LOG_MSG("MT32: Couldn't open Control ROM file");
+			LOG(LOG_MISC,LOG_WARN)("MT32: Couldn't open Control ROM file");
+			LOG(LOG_MISC,LOG_WARN)("MT32 emulation cannot work without the CONTROL ROM files.");
+			LOG(LOG_MISC,LOG_WARN)("To eliminate this error message, either change mididevice= to something else, or");
+			LOG(LOG_MISC,LOG_WARN)("point the emulator to the directory containing");
+			LOG(LOG_MISC,LOG_WARN)("CM32L_CONTROL.ROM and MT32_CONTROL.ROM using the romdir= configuration option");
 		}
 
 		static void onErrorPCMROM(void *) {
-			LOG_MSG("MT32: Couldn't open PCM ROM file");
+			LOG(LOG_MISC,LOG_WARN)("MT32: Couldn't open PCM ROM file");
+			LOG(LOG_MISC,LOG_WARN)("MT32 emulation cannot work without the PCM ROM files.");
+			LOG(LOG_MISC,LOG_WARN)("To eliminate this error message, either change mididevice= to something else, or");
+			LOG(LOG_MISC,LOG_WARN)("point the emulator to the directory containing");
+			LOG(LOG_MISC,LOG_WARN)("CM32L_PCM.ROM and MT32_PCM.ROM using the romdir= configuration option");
 		}
 
 		static void showLCDMessage(void *, const char *message) {
-			LOG_MSG("MT32: LCD-Message: %s", message);
+			LOG(LOG_MISC,LOG_DEBUG)("MT32: LCD-Message: %s", message);
 		}
 	};
 
@@ -229,7 +237,7 @@ mt32emu_report_handler_i MidiHandler_mt32::getReportHandlerInterface() {
 	return REPORT_HANDLER_I;
 }
 
-MidiHandler_mt32::MidiHandler_mt32() : open(false), chan(NULL), service(NULL), thread(NULL) {
+MidiHandler_mt32::MidiHandler_mt32() : chan(NULL), service(NULL), thread(NULL), open(false) {
 }
 
 MidiHandler_mt32::~MidiHandler_mt32() {
