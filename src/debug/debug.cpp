@@ -2416,7 +2416,7 @@ static void LogEMS(void) {
     LOG(LOG_MISC,LOG_ERROR)("EMS page frame 0x%08lx-0x%08lx",
         GetEMSPageFrameSegment()*16UL,
         (GetEMSPageFrameSegment()*16UL)+GetEMSPageFrameSize()-1UL);
-    LOG(LOG_MISC,LOG_ERROR)("Handle Page      Address");
+    LOG(LOG_MISC,LOG_ERROR)("Handle Page(p/l) Address");
 
     for (Bitu p=0;p < (GetEMSPageFrameSize() >> 14UL);p++) {
         Bitu log_page,handle;
