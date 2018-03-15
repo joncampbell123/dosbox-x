@@ -17,6 +17,6 @@ if C_MT32
 AM_CPPFLAGS += -I$(top_srcdir)/src/mt32
 
 libgui_a_SOURCES += \
-	midi_mt32.h
+	midi_mt32.h midi_mt32.cpp
 endif
 
