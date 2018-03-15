@@ -2201,6 +2201,14 @@ Bit32u DEBUG_CheckKeys(void) {
 
 Bitu DEBUG_LastRunningUpdate = 0;
 
+LoopHandler *DOSBOX_GetLoop(void);
+Bitu DEBUG_Loop(void);
+
+void DEBUG_Wait(void) {
+    while (DOSBOX_GetLoop() == DEBUG_Loop)
+        DOSBOX_RunMachine();
+}
+
 Bitu DEBUG_Loop(void) {
     if (debug_running) {
         Bitu now = SDL_GetTicks();
@@ -2264,8 +2272,6 @@ Bitu DEBUG_Loop(void) {
     	return DEBUG_CheckKeys();
     }
 }
-
-LoopHandler *DOSBOX_GetLoop(void);
 
 void DEBUG_Enable(bool pressed) {
 	if (!pressed)

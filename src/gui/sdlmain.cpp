@@ -5610,12 +5610,14 @@ int main(int argc, char* argv[]) {
 
         bool reboot_dos;
 		bool run_machine;
+        bool wait_debugger;
 		bool reboot_machine;
 		bool dos_kernel_shutdown;
 
 fresh_boot:
         reboot_dos = false;
 		run_machine = false;
+        wait_debugger = false;
 		reboot_machine = false;
 		dos_kernel_shutdown = false;
 
@@ -5654,6 +5656,13 @@ fresh_boot:
                 reboot_dos = true;
                 dos_kernel_shutdown = !dos_kernel_disabled; /* only if DOS kernel enabled */
             }
+            else if (x == 7) { /* DOS kernel corruption error (need to restart the DOS kernel) */
+                LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to reboot DOS kernel");
+
+                reboot_dos = true;
+                wait_debugger = true;
+                dos_kernel_shutdown = !dos_kernel_disabled; /* only if DOS kernel enabled */
+            }
             else {
                 LOG(LOG_MISC,LOG_DEBUG)("Emulation threw DOSBox kill switch signal");
 
@@ -5674,6 +5683,17 @@ fresh_boot:
         if (dos_kernel_shutdown) {
             /* NTS: we take different paths depending on whether we're just shutting down DOS
              *      or doing a hard reboot. */
+
+            if (wait_debugger) {
+#if C_DEBUG
+                Bitu DEBUG_EnableDebugger(void);
+                void DEBUG_Wait(void);
+
+                LOG_MSG("Starting debugger.");
+                DEBUG_EnableDebugger();
+                DEBUG_Wait();
+#endif
+            }
 
             /* new code: fire event */
             if (reboot_machine)

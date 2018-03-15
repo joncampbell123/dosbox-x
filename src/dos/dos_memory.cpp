@@ -64,7 +64,12 @@ static void DOS_Mem_E_Exit(const char *msg) {
 		mcb.GetType(),c,mcb_segment+1,mcb.GetSize(),name);
 	LOG_MSG("End dump\n");
 
+#if C_DEBUG
+    LOG_MSG("DOS fatal memory error: %s",msg);
+    throw int(7); // DOS non-fatal error (restart when debugger runs again)
+#else
 	E_Exit(msg);
+#endif
 }
 
 void DOS_CompressMemory(Bit16u first_segment=0/*default*/) {
