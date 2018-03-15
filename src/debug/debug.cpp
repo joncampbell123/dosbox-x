@@ -2416,18 +2416,32 @@ static void LogEMS(void) {
     LOG(LOG_MISC,LOG_ERROR)("EMS page frame 0x%08lx-0x%08lx",
         GetEMSPageFrameSegment()*16UL,
         (GetEMSPageFrameSegment()*16UL)+GetEMSPageFrameSize()-1UL);
-    LOG(LOG_MISC,LOG_ERROR)("Handle Page Address");
+    LOG(LOG_MISC,LOG_ERROR)("Handle Page      Address");
 
     for (Bitu p=0;p < (GetEMSPageFrameSize() >> 14UL);p++) {
         Bitu log_page,handle;
 
         if (EMS_GetMapping(handle,log_page,p)) {
-            LOG(LOG_MISC,LOG_ERROR)("%6lu %4lu %08lx-%08lx",(unsigned long)handle,(unsigned long)p,
+            char tmp[192] = {0};
+
+            h_addr = 0;
+            h_size = 0;
+            h_name.clear();
+            EMS_GetHandle(/*&*/h_size,/*&*/h_addr,/*&*/h_name,handle);
+
+            if (h_addr != 0)
+                sprintf(tmp," virt -> %08lx-%08lx phys",
+                    (unsigned long)h_addr + (log_page << 14UL),
+                    (unsigned long)h_addr + (log_page << 14UL) + (1 << 14UL) - 1);
+
+            LOG(LOG_MISC,LOG_ERROR)("%6lu %4lu/%4lu %08lx-%08lx%s",(unsigned long)handle,
+                (unsigned long)p,(unsigned long)log_page,
                 (GetEMSPageFrameSegment()*16UL)+(p << 14UL),
-                (GetEMSPageFrameSegment()*16UL)+((p+1UL) << 14UL)-1);
+                (GetEMSPageFrameSegment()*16UL)+((p+1UL) << 14UL)-1,
+                tmp);
         }
         else {
-            LOG(LOG_MISC,LOG_ERROR)("--     %4lu %08lx-%08lx",(unsigned long)p,
+            LOG(LOG_MISC,LOG_ERROR)("--     %4lu/     %08lx-%08lx",(unsigned long)p,
                 (GetEMSPageFrameSegment()*16UL)+(p << 14UL),
                 (GetEMSPageFrameSegment()*16UL)+((p+1UL) << 14UL)-1);
         }
