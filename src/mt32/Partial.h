@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011, 2012, 2013 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2017 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -18,35 +18,40 @@
 #ifndef MT32EMU_PARTIAL_H
 #define MT32EMU_PARTIAL_H
 
-#include "FileStream.h"
+#include "globals.h"
+#include "internals.h"
+#include "Types.h"
+#include "Structures.h"
+#include "LA32Ramp.h"
+#include "LA32WaveGenerator.h"
+#include "LA32FloatWaveGenerator.h"
 
 namespace MT32Emu {
 
-class Synth;
 class Part;
+class Poly;
+class Synth;
 class TVA;
+class TVF;
+class TVP;
 struct ControlROMPCMStruct;
-
-struct StereoVolume {
-	float leftVol;
-	float rightVol;
-};
 
 // A partial represents one of up to four waveform generators currently playing within a poly.
 class Partial {
 private:
 	Synth *synth;
-	const int debugPartialNum; // Only used for debugging
-	// Number of the sample currently being rendered by generateSamples(), or 0 if no run is in progress
+	const int partialIndex; // Index of this Partial in the global partial table
+	// Number of the sample currently being rendered by produceOutput(), or 0 if no run is in progress
 	// This is only kept available for debugging purposes.
-	unsigned long sampleNum;
+	Bit32u sampleNum;
+
+	// Actually, this is a 4-bit register but we abuse this to emulate inverted mixing.
+	// Also we double the value to enable INACCURATE_SMOOTH_PAN, with respect to MoK.
+	Bit32s leftPanValue, rightPanValue;
 
 	int ownerPart; // -1 if unassigned
 	int mixType;
 	int structurePosition; // 0 or 1 of a structure pair
-	StereoVolume stereoVolume;
-
-	Bit16s myBuffer[MAX_SAMPLES_PER_RUN];
 
 	// Only used for PCM partials
 	int pcmNum;
@@ -58,32 +63,41 @@ private:
 	int pulseWidthVal;
 
 	Poly *poly;
+	Partial *pair;
+
+	TVA *tva;
+	TVP *tvp;
+	TVF *tvf;
 
 	LA32Ramp ampRamp;
 	LA32Ramp cutoffModifierRamp;
 
 	// TODO: This should be owned by PartialPair
-	LA32PartialPair la32Pair;
+	LA32PartialPair *la32Pair;
+	const bool floatMode;
+
+	const PatchCache *patchCache;
+	PatchCache cachebackup;
 
 	Bit32u getAmpValue();
 	Bit32u getCutoffValue();
 
+	template <class Sample, class LA32PairImpl>
+	bool doProduceOutput(Sample *leftBuf, Sample *rightBuf, Bit32u length, LA32PairImpl *la32PairImpl);
+	bool canProduceOutput();
+	template <class LA32PairImpl>
+	bool generateNextSample(LA32PairImpl *la32PairImpl);
+	void produceAndMixSample(IntSample *&leftBuf, IntSample *&rightBuf, LA32IntPartialPair *la32IntPair);
+	void produceAndMixSample(FloatSample *&leftBuf, FloatSample *&rightBuf, LA32FloatPartialPair *la32FloatPair);
+
 public:
-	const PatchCache *patchCache;
-	TVA *tva;
-	TVP *tvp;
-	TVF *tvf;
-
-	PatchCache cachebackup;
-
-	Partial *pair;
 	bool alreadyOutputed;
 
 	Partial(Synth *synth, int debugPartialNum);
 	~Partial();
 
 	int debugGetPartialNum() const;
-	unsigned long debugGetSampleNum() const;
+	Bit32u debugGetSampleNum() const;
 
 	int getOwnerPart() const;
 	const Poly *getPoly() const;
@@ -94,21 +108,23 @@ public:
 	void startAbort();
 	void startDecayAll();
 	bool shouldReverb();
+	bool isRingModulatingNoMix() const;
 	bool hasRingModulatingSlave() const;
 	bool isRingModulatingSlave() const;
 	bool isPCM() const;
 	const ControlROMPCMStruct *getControlROMPCMStruct() const;
 	Synth *getSynth() const;
+	TVA *getTVA() const;
+
+	void backupCache(const PatchCache &cache);
 
 	// Returns true only if data written to buffer
-	// This function (unlike the one below it) returns processed stereo samples
+	// These functions produce processed stereo samples
 	// made from combining this single partial with its pair, if it has one.
-	bool produceOutput(float *leftBuf, float *rightBuf, unsigned long length);
+	bool produceOutput(IntSample *leftBuf, IntSample *rightBuf, Bit32u length);
+	bool produceOutput(FloatSample *leftBuf, FloatSample *rightBuf, Bit32u length);
+}; // class Partial
 
-	// This function writes mono sample output to the provided buffer, and returns the number of samples written
-	unsigned long generateSamples(Bit16s *partialBuf, unsigned long length);
-};
+} // namespace MT32Emu
 
-}
-
-#endif
+#endif // #ifndef MT32EMU_PARTIAL_H
