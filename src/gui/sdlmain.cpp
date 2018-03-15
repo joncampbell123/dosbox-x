@@ -5687,11 +5687,11 @@ fresh_boot:
             if (wait_debugger) {
 #if C_DEBUG
                 Bitu DEBUG_EnableDebugger(void);
-                void DEBUG_Wait(void);
+                void DEBUG_WaitNoExecute(void);
 
                 LOG_MSG("Starting debugger.");
                 DEBUG_EnableDebugger();
-                DEBUG_Wait();
+                DEBUG_WaitNoExecute();
 #endif
             }
 

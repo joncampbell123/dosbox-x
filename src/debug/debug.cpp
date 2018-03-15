@@ -2095,6 +2095,7 @@ Bit32u DEBUG_CheckKeys(void) {
 				CBreakpoint::ActivateBreakpoints(SegPhys(cs)+reg_eip,true);						
 				ignoreAddressOnce = SegPhys(cs)+reg_eip;
 				DOSBOX_SetNormalLoop();	
+                ret = -1; /* DEBUG_Loop() must exit */
 				break;
 		case KEY_F(9):	// Set/Remove Breakpoint
 				{	PhysPt ptr = GetAddress(codeViewData.cursorSeg,codeViewData.cursorOfs);
@@ -2207,6 +2208,20 @@ Bitu DEBUG_Loop(void);
 void DEBUG_Wait(void) {
     while (DOSBOX_GetLoop() == DEBUG_Loop)
         DOSBOX_RunMachine();
+}
+
+Bits DEBUG_NullCPUCore(void) {
+    return CBRET_NONE;
+}
+
+void DEBUG_WaitNoExecute(void) {
+    /* the caller uses this version to indicate a fatal error
+     * in a condition where single-stepping or executing any
+     * more x86 instructions is very unwise */
+    auto oldcore = cpudecoder;
+    cpudecoder = DEBUG_NullCPUCore;
+    DEBUG_Wait();
+    cpudecoder = oldcore;
 }
 
 Bitu DEBUG_Loop(void) {
