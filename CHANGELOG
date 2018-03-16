@@ -1,4 +1,6 @@
 (next)
+  - Added PC-98 INT 18h function to read character font.
+    This also resolves garbled text in TH01.
   - PC-98 GDC emulation now uses cursor specification
     (line per character row) to determine whether graphics
     are doubled vertically or not. Several PC-98 games
