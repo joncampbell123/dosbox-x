@@ -2482,7 +2482,18 @@ static Bitu INT18_PC98_Handler(void) {
                         mem_writeb(i+r,vga.draw.font[o]);
                     }
                 }
-                else if ((reg_dh & 0xFC) != 0x28) { /* 16x16 kanji */
+                else if ((reg_dh & 0xFC) == 0x28) { /* 8x16 kanji */
+                    i = (reg_bx << 4) + reg_cx + 2;
+                    mem_writew(i-2,0x0202);
+                    for (r=0;r < 16;r++) {
+                        o = (((((reg_dl & 0x7F)*128)+((reg_dh - 0x20) & 0x7F))*16)+r)*2;
+
+                        assert((o+2) <= sizeof(vga.draw.font));
+
+                        mem_writeb(i+r+0,vga.draw.font[o+0]);
+                    }
+                }
+                else if (reg_dh != 0) { /* 16x16 kanji */
                     i = (reg_bx << 4) + reg_cx + 2;
                     mem_writew(i-2,0x0202);
                     for (r=0;r < 16;r++) {
