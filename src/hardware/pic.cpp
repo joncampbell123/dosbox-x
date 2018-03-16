@@ -478,6 +478,16 @@ void PIC_SetIRQMask(Bitu irq, bool masked) {
 	pic->set_imr(newmask);
 }
 
+void DEBUG_PICAck(int irq) {
+    if (irq >= 0 && irq <= 15) {
+        PIC_Controller * pic=&pics[irq>7 ? 1 : 0];
+
+        pic->isr &= ~(1 << (irq & 7U));
+        pic->isrr = ~pic->isr;
+        pic->check_after_EOI();
+    }
+}
+
 void DEBUG_PICMask(int irq,bool mask) {
     if (irq >= 0 && irq <= 15)
         PIC_SetIRQMask(irq,mask);

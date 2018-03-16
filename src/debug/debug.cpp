@@ -1403,6 +1403,7 @@ bool ParseCommand(char* str) {
 
     if (command == "PIC") { // interrupt controller state/controls
         void DEBUG_PICMask(int irq,bool mask);
+        void DEBUG_PICAck(int irq);
         void DEBUG_LogPIC(void);
 
 		stream >> command;
@@ -1418,6 +1419,12 @@ bool ParseCommand(char* str) {
             stream >> what;
             int irq = atoi(what.c_str());
             DEBUG_PICMask(irq,false);
+        }
+        else if (command == "ACKIRQ") { /* debugging: manually acknowledge an IRQ where the DOS program failed to do so */
+            std::string what;
+            stream >> what;
+            int irq = atoi(what.c_str());
+            DEBUG_PICAck(irq);
         }
         else {
             DEBUG_LogPIC();
