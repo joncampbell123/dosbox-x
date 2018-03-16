@@ -1,4 +1,23 @@
 (next)
+  - PC-98 GDC emulation now uses cursor specification
+    (line per character row) to determine whether graphics
+    are doubled vertically or not. Several PC-98 games
+    switch between 200-line (doubled) and 400-line graphics
+    by programming the GDC directly, rather than through
+    the BIOS.
+  - Added various video-related BIOS variables to the data
+    in PC-98 mode.
+  - GDC RESET/SYNC debug text updated to indicate which GDC
+    is undergoing the RESET/SYNC.
+  - Debugger "LOG" command (CPU execution logging) fixed to
+    automatically stop logging when the BIOS begins the
+    POST routine after system reset. The user who invoked
+    "LOG" probably cares more about what happened up to the
+    game crash, fault and reset rather than normal BIOS startup.
+  - BIOS now properly unmasks the PC-98 cascade IRQ, which
+    allows IRQ 8-15 to function, including the mouse (IRQ13)
+  - Debugger interface now indicates whether 80386 paging is
+    enabled or not at any time.
   - Help text updates to reflect DOSBox-X changes (Shane32)
   - BIOS INT 13h emulation updated to support up to 4 hard
     drives (Shane32)
