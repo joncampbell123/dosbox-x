@@ -199,6 +199,8 @@ void PC98_GDC_state::take_cursor_char_setup(unsigned char bi) {
 
 		vga.crtc.maximum_scan_line = cmd_parm_tmp[0] & 0x1F;
 		vga.draw.address_line_total = vga.crtc.maximum_scan_line + 1;
+        row_height = vga.draw.address_line_total;
+        if (!master_sync) doublescan = (row_height > 1);
     }
 
     /* P2 = param[1] =
