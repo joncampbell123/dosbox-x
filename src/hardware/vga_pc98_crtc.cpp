@@ -101,6 +101,10 @@ void pc98_port68_command_write(unsigned char b) {
         case 0x09: //                don't show odd raster
             pc98_graphics_hide_odd_raster_200line = !!(b&1);
             break;
+        case 0x0A: // TODO
+        case 0x0B: // TODO
+            // TODO
+            break;
         default:
             LOG_MSG("PC-98 port 68h unknown command 0x%02x",b);
             break;
