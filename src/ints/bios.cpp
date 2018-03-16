@@ -4715,6 +4715,13 @@ private:
         void DEBUG_CheckCSIP();
 #endif
 
+#if C_HEAVY_DEBUG
+        /* the game/app obviously crashed, which is way more important
+         * to log than what we do here in the BIOS at POST */
+        void DEBUG_StopLog(void);
+        DEBUG_StopLog();
+#endif
+
 		if (bios_first_init) {
 			/* clear the first 1KB-32KB */
 			for (Bit16u i=0x400;i<0x8000;i++) real_writeb(0x0,i,0);

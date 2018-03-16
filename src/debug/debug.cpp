@@ -3290,6 +3290,16 @@ bool DEBUG_HeavyIsBreakpoint(void) {
 	return false;
 }
 
+/* this is for the BIOS, to stop the log upon BIOS POST. */
+void DEBUG_StopLog(void) {
+	if (cpuLog) {
+        cpuLogCounter = 0;
+        cpuLogFile.close();
+        DEBUG_ShowMsg("DEBUG: cpu log LOGCPU.TXT stopped\n");
+        cpuLog = false;
+    }
+}
+
 #endif // HEAVY DEBUG
 
 
