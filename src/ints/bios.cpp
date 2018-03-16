@@ -2559,6 +2559,15 @@ static Bitu INT18_PC98_Handler(void) {
             }
 
             {
+                unsigned char b = mem_readb(0x597);
+
+                b &= ~3;
+                b |= (reg_ch - 1) & 3;
+
+                mem_writeb(0x597,b);
+            }
+
+            {
                 unsigned char b = mem_readb(0x54C/*MEMB_PRXCRT*/);
 
                 // Real hardware behavior: graphics selection updated by BIOS to reflect MEMB_PRXCRT state

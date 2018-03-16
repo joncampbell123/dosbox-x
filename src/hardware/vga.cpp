@@ -854,6 +854,12 @@ void VGA_OnEnterPC98(Section *sec) {
     assert(vga.vmemsize >= 0x80000);
     memset(vga.mem.linear,0,0x80000);
 
+    /* various BIOS flags */
+    mem_writeb(0x53B,0x0F); // CRT_RASTER, 640x400 24.83KHz-hsync 56.42Hz-vsync
+    mem_writeb(0x54C,0x06); // PRXCRT, 16-color G-VRAM, GRCG
+    mem_writeb(0x54D,0x40 | (gdc_5mhz_mode ? 0x20 : 0x00) | (gdc_5mhz_mode ? 0x04 : 0x00)); // EGC
+    mem_writeb(0x597,0x04); // EGC
+
     VGA_StartResize();
 }
 
