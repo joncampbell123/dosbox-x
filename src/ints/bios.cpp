@@ -4716,6 +4716,8 @@ void write_FFFF_PC98_signature() {
     phys_writew(0xffffe,0xABCD);
 }
 
+extern bool                         gdc_5mhz_mode;
+
 class BIOS:public Module_base{
 private:
 	static Bitu cb_bios_post__func(void) {
@@ -4806,6 +4808,12 @@ private:
             /* keyboard buffer */
             mem_writew(0x524/*tail*/,0x502);
             mem_writew(0x526/*tail*/,0x502);
+
+            /* various BIOS flags */
+            mem_writeb(0x53B,0x0F); // CRT_RASTER, 640x400 24.83KHz-hsync 56.42Hz-vsync
+            mem_writeb(0x54C,0x06); // PRXCRT, 16-color G-VRAM, GRCG
+            mem_writeb(0x54D,0x40 | (gdc_5mhz_mode ? 0x20 : 0x00) | (gdc_5mhz_mode ? 0x04 : 0x00)); // EGC
+            mem_writeb(0x597,0x04); // EGC
         }
 
         if (bios_user_reset_vector_blob != 0 && !bios_user_reset_vector_blob_run) {

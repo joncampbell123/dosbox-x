@@ -538,6 +538,13 @@ void gdc_proc_schedule_done(void) {
 
 void PC98_show_cursor(bool show) {
     pc98_gdc[GDC_MASTER].cursor_enable = show;
+
+    /* NTS: Showing/hiding the cursor involves sending a GDC command that
+     *      sets both the cursor visibility bit and the "lines per character
+     *      row" field.
+     *
+     *      The PC-98 BIOS will re-read this from the BIOS data area */
+    pc98_gdc[GDC_MASTER].row_height = (mem_readb(0x53B) & 0x1F) + 1;
 }
 
 void GDC_ProcDelay(Bitu /*val*/) {
