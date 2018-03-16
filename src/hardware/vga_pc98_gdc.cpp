@@ -133,7 +133,8 @@ void PC98_GDC_state::take_reset_sync_parameters(void) {
     active_display_lines += (cmd_parm_tmp[7] & 3) << 8;
     vertical_back_porch_width = cmd_parm_tmp[7] >> 2;
 
-    LOG_MSG("GDC: RESET/SYNC DOOR=%u DRAM=%u DISP=%u VFRAME=%u AW=%u HS=%u VS=%u HFP=%u HBP=%u VFP=%u AL=%u VBP=%u",
+    LOG_MSG("GDC: RESET/SYNC MASTER=%u DOOR=%u DRAM=%u DISP=%u VFRAME=%u AW=%u HS=%u VS=%u HFP=%u HBP=%u VFP=%u AL=%u VBP=%u",
+        master_sync,
         draw_only_during_retrace?1:0,
         dynamic_ram_refresh?1:0,
         display_mode,
