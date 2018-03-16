@@ -256,8 +256,8 @@ bool GetDescriptorInfo(char* selname, char* out1, char* out2)
 		sprintf(out2,"    l:%08lX dpl : %01X %1X%1X%1X%1X%1X",(unsigned long)desc.GetLimit(),desc.saved.seg.dpl,desc.saved.seg.p,desc.saved.seg.avl,desc.saved.seg.r,desc.saved.seg.big,desc.saved.seg.g);
 		return true;
 	} else {
-		strcpy(out1,"                                     ");
-		strcpy(out2,"                                     ");
+		strcpy(out1,"                                  ");
+		strcpy(out2,"                                  ");
 	}
 	return false;
 };
