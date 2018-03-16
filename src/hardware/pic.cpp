@@ -478,6 +478,15 @@ void PIC_SetIRQMask(Bitu irq, bool masked) {
 	pic->set_imr(newmask);
 }
 
+void DEBUG_PICSignal(int irq,bool raise) {
+    if (irq >= 0 && irq <= 15) {
+        if (raise)
+            PIC_ActivateIRQ(irq);
+        else
+            PIC_DeActivateIRQ(irq);
+    }
+}
+
 void DEBUG_PICAck(int irq) {
     if (irq >= 0 && irq <= 15) {
         PIC_Controller * pic=&pics[irq>7 ? 1 : 0];

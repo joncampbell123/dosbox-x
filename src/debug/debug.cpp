@@ -1402,6 +1402,7 @@ bool ParseCommand(char* str) {
     }
 
     if (command == "PIC") { // interrupt controller state/controls
+        void DEBUG_PICSignal(int irq,bool raise);
         void DEBUG_PICMask(int irq,bool mask);
         void DEBUG_PICAck(int irq);
         void DEBUG_LogPIC(void);
@@ -1425,6 +1426,18 @@ bool ParseCommand(char* str) {
             stream >> what;
             int irq = atoi(what.c_str());
             DEBUG_PICAck(irq);
+        }
+        else if (command == "LOWERIRQ") { /* manually lower an IRQ signal */
+            std::string what;
+            stream >> what;
+            int irq = atoi(what.c_str());
+            DEBUG_PICSignal(irq,false);
+        }
+        else if (command == "RAISEIRQ") { /* manually raise an IRQ signal */
+            std::string what;
+            stream >> what;
+            int irq = atoi(what.c_str());
+            DEBUG_PICSignal(irq,true);
         }
         else {
             DEBUG_LogPIC();
