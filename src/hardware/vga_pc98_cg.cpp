@@ -71,8 +71,9 @@ void pc98_a1_write(Bitu port,Bitu val,Bitu iolen) {
              * This so far is consistent with real hardware behavior */
             a1_font_char_offset = val;
             break;
-        // TODO: "Edge" is writing 0x00 to port 0xA7 for some reason.
-        //       Anything there?
+        case 0xA7:
+            /* TODO: Various controls for the text layer */
+            break;
         case 0xA9: // an 8-bit I/O port to access font RAM by...
                    // this is what Touhou Project uses to load fonts.
                    // never mind decompiling INT 18h on real hardware shows instead
