@@ -2365,6 +2365,7 @@ void update_pc98_function_row(bool enable) {
 }
 
 void pc98_set_digpal_entry(unsigned char ent,unsigned char grb);
+void PC98_show_cursor(bool show);
 
 static Bitu INT18_PC98_Handler(void) {
     Bit16u temp16;
