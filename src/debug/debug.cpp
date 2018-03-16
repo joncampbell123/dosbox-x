@@ -868,8 +868,11 @@ static void DrawRegisters(void) {
 		if (reg_flags & FLAG_VM) mvwprintw(dbg.win_reg,0,76,"VM86");
 		else if (cpu.code.big) mvwprintw(dbg.win_reg,0,76,"Pr32");
 		else mvwprintw(dbg.win_reg,0,76,"Pr16");
-	} else	
+		mvwprintw(dbg.win_reg,2,62,paging.enabled ? "PAGE" : "NOPG");
+	} else {
 		mvwprintw(dbg.win_reg,0,76,"Real");
+		mvwprintw(dbg.win_reg,2,62,"NOPG");
+    }
 
 	// Selector info, if available
 	if ((cpu.pmode) && curSelectorName[0]) {
