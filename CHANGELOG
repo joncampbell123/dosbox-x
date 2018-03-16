@@ -1,4 +1,42 @@
 (next)
+  - Help text updates to reflect DOSBox-X changes (Shane32)
+  - BIOS INT 13h emulation updated to support up to 4 hard
+    drives (Shane32)
+  - IMGMOUNT and BOOT code cleanup (Shane32)
+  - IMGMOUNT RAM drive support: Additional fixes and geometry
+    work done, and some hangs resolved (Shane32)
+  - CPU emulation fixed to allow setting a breakpoint on
+    ANY interrupt of a specific number, not just software
+    interrupts. It is now possible to use BPINT to break
+    upon hardware (IRQ) interrupts.
+  - DOS kernel fixed to drop to the debugger if the MCB
+    (memory control block) chain is corrupted, so that
+    the corrupted state can be examined. When the debugger
+    continues execution, a full restart of the DOS kernel
+    is run. If DOSBox-X was compiled without the debugger,
+    then the normal E_Exit() path is still taken.
+  - Added debugger command to show, and modify, the state
+    of the PIC (interrupt controller).
+  - Added debugger command to view or change the A20 gate.
+  - Added debugger command to view the state of EMS, memory
+    handles, allocation, and EMS page frame mapping.
+  - Added debugger command to view the state of XMS, memory
+    handles, and allocation.
+  - DOS kernel now logs kernel allocations, which can be
+    seen in the debugger using the "DOS KERN" command.
+  - Added "RUN" command as an alternative to hitting F5.
+  - Added "RUNWATCH" to the debugger, so that watching the
+    system run in the debugger is possible.
+  - Debugger data window can now be used to view memory in
+    segmented, virtual (through paging), and physical (bus
+    address) modes.
+  - Debugger window data and code view windows fixed to show
+    regions of memory that are beyond the end of the segment
+    and/or are paged out (or, pages are not present).
+  - PC-98 A20 gate I/O port F6h fixed to work properly as an
+    enable or disable, rather than just an enable. The PC-98
+    version of HIMEM.SYS no longer complains about not being
+    able to control the A20 gate.
   - IMGMOUNT RAM drive support: Ramdrive bug fixes and changed
     drive limits from ATA limits to BIOS/MBR (Shane32)
   - INT 21h fixed to use BIOS INT 1Ch to read date and time in
