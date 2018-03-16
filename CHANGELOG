@@ -22,6 +22,8 @@
     handles, allocation, and EMS page frame mapping.
   - Added debugger command to view the state of XMS, memory
     handles, and allocation.
+  - Added debugger command to view the layout of the ROM
+    BIOS region (0xF0000-0xFFFFF) chosen by emulation.
   - DOS kernel now logs kernel allocations, which can be
     seen in the debugger using the "DOS KERN" command.
   - Added "RUN" command as an alternative to hitting F5.
