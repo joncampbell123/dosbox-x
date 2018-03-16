@@ -97,7 +97,7 @@ void PC98_GDC_state::take_reset_sync_parameters(void) {
         ((cmd_parm_tmp[0] & 0x01) ? 1 : 0);
 
     /* P2 = param[1] = AW = active display words per line - 2. must be even number. */
-    display_pitch = active_display_words_per_line = (uint16_t)cmd_parm_tmp[1] + 2u;
+    active_display_words_per_line = (uint16_t)cmd_parm_tmp[1] + 2u;
 
     /* P3 = param[2] =
      *   VS(L)[2:0] = [7:5] = low bits of VS

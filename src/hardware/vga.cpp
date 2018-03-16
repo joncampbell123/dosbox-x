@@ -921,6 +921,7 @@ void VGA_OnEnterPC98_phase2(Section *sec) {
     pc98_gdc[GDC_MASTER].master_sync = true;
     pc98_gdc[GDC_MASTER].display_enable = true;
     pc98_gdc[GDC_MASTER].row_height = 16;
+    pc98_gdc[GDC_MASTER].display_pitch = 80;
     pc98_gdc[GDC_MASTER].active_display_words_per_line = 80;
     pc98_gdc[GDC_MASTER].display_partition_mask = 3;
 
@@ -940,6 +941,7 @@ void VGA_OnEnterPC98_phase2(Section *sec) {
     pc98_gdc[GDC_SLAVE].master_sync = false;
     pc98_gdc[GDC_SLAVE].display_enable = false;//FIXME
     pc98_gdc[GDC_SLAVE].row_height = 1;
+    pc98_gdc[GDC_SLAVE].display_pitch = 40;
     pc98_gdc[GDC_SLAVE].active_display_words_per_line = 40; /* 40 16-bit WORDs per line */
     pc98_gdc[GDC_SLAVE].display_partition_mask = pc98_allow_4_display_partitions ? 3 : 1;
 
