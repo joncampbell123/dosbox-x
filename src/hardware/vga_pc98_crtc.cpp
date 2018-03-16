@@ -84,6 +84,10 @@ void pc98_port6A_command_write(unsigned char b) {
         case 0x07: // TODO
             // TODO
             break;
+        case 0x0A: // TODO
+        case 0x0B: // TODO
+            // TODO
+            break;
         default:
             LOG_MSG("PC-98 port 6Ah unknown command 0x%02x",b);
             break;
