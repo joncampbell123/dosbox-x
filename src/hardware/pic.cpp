@@ -831,3 +831,38 @@ void Init_PIC() {
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(PIC_Reset));
 }
 
+#if C_DEBUG
+void DEBUG_LogPIC_C(PIC_Controller &pic) {
+    LOG_MSG("%s interrupt controller state",&pic == &master ? "Master" : "Slave");
+    LOG_MSG("ICW %u/%u special=%u auto-eoi=%u rotate-eoi=%u single=%u request_issr=%u vectorbase=0x%02x active_irq=%u",
+        pic.icw_index,
+        pic.icw_words,
+        pic.special?1:0,
+        pic.auto_eoi?1:0,
+        pic.rotate_on_auto_eoi?1:0,
+        pic.single?1:0,
+        pic.request_issr?1:0,
+        pic.vector_base,
+        pic.active_irq);
+
+    LOG_MSG("IRQ INT#  Req /Mask/Serv");
+    for (unsigned int si=0;si < 8;si++) {
+        unsigned int IRQ = si + (&pic == &slave ? 8 : 0);
+        unsigned int CPUINT = pic.vector_base + si;
+
+        LOG_MSG("%3u 0x%02X   %c    %c    %c",
+            IRQ,
+            CPUINT,
+            (pic.irr & (1U << si))?'R':' ',
+            (pic.imr & (1U << si))?'M':' ',
+            (pic.isr & (1U << si))?'S':' ');
+    }
+}
+
+void DEBUG_LogPIC(void) {
+    DEBUG_LogPIC_C(master);
+    if (enable_slave_pic) DEBUG_LogPIC_C(slave);
+}
+#endif
+
+

@@ -1401,6 +1401,17 @@ bool ParseCommand(char* str) {
         return true;
     }
 
+    if (command == "PIC") { // interrupt controller state/controls
+        void DEBUG_LogPIC(void);
+
+		stream >> command;
+
+        if (false) {}
+        else DEBUG_LogPIC();
+
+        return true;
+    }
+
 	if (command == "C") { // Set code overview
 		Bit16u codeSeg = (Bit16u)GetHexValue(found,found); found++;
 		Bit32u codeOfs = GetHexValue(found,found);
@@ -2092,10 +2103,14 @@ Bit32u DEBUG_CheckKeys(void) {
                     DEBUG_RefreshPage(0);
                 }
 
+                Bits DEBUG_NullCPUCore(void);
+
+                if (cpudecoder == DEBUG_NullCPUCore)
+                    ret = -1; /* DEBUG_Loop() must exit */
+
 				CBreakpoint::ActivateBreakpoints(SegPhys(cs)+reg_eip,true);						
 				ignoreAddressOnce = SegPhys(cs)+reg_eip;
 				DOSBOX_SetNormalLoop();	
-                ret = -1; /* DEBUG_Loop() must exit */
 				break;
 		case KEY_F(9):	// Set/Remove Breakpoint
 				{	PhysPt ptr = GetAddress(codeViewData.cursorSeg,codeViewData.cursorOfs);
