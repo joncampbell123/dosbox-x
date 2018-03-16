@@ -850,12 +850,13 @@ void DEBUG_LogPIC_C(PIC_Controller &pic) {
         unsigned int IRQ = si + (&pic == &slave ? 8 : 0);
         unsigned int CPUINT = pic.vector_base + si;
 
-        LOG_MSG("%3u 0x%02X   %c    %c    %c",
+        LOG_MSG("%3u 0x%02X   %c    %c    %c   %s",
             IRQ,
             CPUINT,
             (pic.irr & (1U << si))?'R':' ',
             (pic.imr & (1U << si))?'M':' ',
-            (pic.isr & (1U << si))?'S':' ');
+            (pic.isr & (1U << si))?'S':' ',
+            (IRQ == master_cascade_irq) ? "CASCADE" : "");
     }
 }
 
