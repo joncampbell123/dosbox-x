@@ -802,8 +802,10 @@ void PIC_Reset(Section *sec) {
 
 	PIC_SetIRQMask(0,false);					/* Enable system timer */
 	PIC_SetIRQMask(1,false);					/* Enable system timer */
-	PIC_SetIRQMask(2,false);					/* Enable second pic */
 	PIC_SetIRQMask(8,false);					/* Enable RTC IRQ */
+
+    if (master_cascade_irq >= 0)
+        PIC_SetIRQMask(master_cascade_irq,false);/* Enable second pic */
 
     /* I/O port map
      *
