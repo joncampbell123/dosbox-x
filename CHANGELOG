@@ -30,9 +30,11 @@
   - Debugger data window can now be used to view memory in
     segmented, virtual (through paging), and physical (bus
     address) modes.
-  - Debugger window data and code view windows fixed to show
-    regions of memory that are beyond the end of the segment
-    and/or are paged out (or, pages are not present).
+  - Debugger window data and code view windows now indicate
+    regions of memory that are beyond the end of the segment.
+  - Debugger window data and code view windows now indicate
+    regions of memory that are paged out (will cause a page
+    fault if accessed)
   - PC-98 A20 gate I/O port F6h fixed to work properly as an
     enable or disable, rather than just an enable. The PC-98
     version of HIMEM.SYS no longer complains about not being
