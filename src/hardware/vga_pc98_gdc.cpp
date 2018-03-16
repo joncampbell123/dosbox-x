@@ -537,6 +537,8 @@ void gdc_proc_schedule_done(void) {
 }
 
 void PC98_show_cursor(bool show) {
+    pc98_gdc[GDC_MASTER].force_fifo_complete();
+
     pc98_gdc[GDC_MASTER].cursor_enable = show;
 
     /* NTS: Showing/hiding the cursor involves sending a GDC command that
