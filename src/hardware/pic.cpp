@@ -478,6 +478,11 @@ void PIC_SetIRQMask(Bitu irq, bool masked) {
 	pic->set_imr(newmask);
 }
 
+void DEBUG_PICMask(int irq,bool mask) {
+    if (irq >= 0 && irq <= 15)
+        PIC_SetIRQMask(irq,mask);
+}
+
 static void AddEntry(PICEntry * entry) {
 	PICEntry * find_entry=pic_queue.next_entry;
 	if (GCC_UNLIKELY(find_entry ==0)) {

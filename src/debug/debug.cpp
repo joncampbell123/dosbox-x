@@ -1402,12 +1402,26 @@ bool ParseCommand(char* str) {
     }
 
     if (command == "PIC") { // interrupt controller state/controls
+        void DEBUG_PICMask(int irq,bool mask);
         void DEBUG_LogPIC(void);
 
 		stream >> command;
 
-        if (false) {}
-        else DEBUG_LogPIC();
+        if (command == "MASKIRQ") {
+            std::string what;
+            stream >> what;
+            int irq = atoi(what.c_str());
+            DEBUG_PICMask(irq,true);
+        }
+        else if (command == "UNMASKIRQ") {
+            std::string what;
+            stream >> what;
+            int irq = atoi(what.c_str());
+            DEBUG_PICMask(irq,false);
+        }
+        else {
+            DEBUG_LogPIC();
+        }
 
         return true;
     }
