@@ -2465,6 +2465,40 @@ static Bitu INT18_PC98_Handler(void) {
             vga_pc98_direct_cursor_pos(reg_dx >> 1);
             pc98_gdc[GDC_MASTER].cursor_enable = true; // FIXME: Right?
             break;
+        case 0x14: /* read FONT RAM */
+            {
+                unsigned int i,o,r;
+
+                /* DX = code (must be 0x76xx or 0x7700)
+                 * BX:CX = 34-byte region to write to */
+                if (reg_dh == 0x80) { /* 8x16 ascii */
+                    i = (reg_bx << 4) + reg_cx + 2;
+                    mem_writew(i-2,0x0102);
+                    for (r=0;r < 16;r++) {
+                        o = (reg_dl*16)+r;
+
+                        assert((o+2) <= sizeof(vga.draw.font));
+
+                        mem_writeb(i+r,vga.draw.font[o]);
+                    }
+                }
+                else if ((reg_dh & 0xFC) != 0x28) { /* 16x16 kanji */
+                    i = (reg_bx << 4) + reg_cx + 2;
+                    mem_writew(i-2,0x0202);
+                    for (r=0;r < 16;r++) {
+                        o = (((((reg_dl & 0x7F)*128)+((reg_dh - 0x20) & 0x7F))*16)+r)*2;
+
+                        assert((o+2) <= sizeof(vga.draw.font));
+
+                        mem_writeb(i+(r*2)+0,vga.draw.font[o+0]);
+                        mem_writeb(i+(r*2)+1,vga.draw.font[o+1]);
+                    }
+                }
+                else {
+                    LOG_MSG("PC-98 INT 18h AH=14h font RAM read ignored, code 0x%04x not supported",reg_dx);
+                }
+            }
+            break;
         case 0x16: /* fill screen with chr + attr */
             {
                 /* DL = character
