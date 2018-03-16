@@ -23,6 +23,12 @@
 #include <time.h>
 #include <sys/timeb.h>
 
+/* Really, Microsoft, Really?? You're the only compiler I know that doesn't understand ssize_t! */
+#if defined(_MSC_VER)
+#include <basetsd.h>
+typedef SSIZE_T ssize_t;
+#endif
+
 RegionAllocTracking::Block::Block() : start(0), end(0), free(true) {
 }
 
