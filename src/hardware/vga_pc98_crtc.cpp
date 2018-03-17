@@ -21,6 +21,7 @@
 extern bool                 pc98_graphics_hide_odd_raster_200line;
 
 bool                        gdc_5mhz_mode = false;
+bool                        enable_pc98_egc = false;
 bool                        GDC_vsync_interrupt = false;
 uint8_t                     GDC_display_plane_wait_for_vsync = false;
 uint8_t                     GDC_display_plane_pending = false;
@@ -78,7 +79,7 @@ void pc98_port6A_command_write(unsigned char b) {
             pc98_gdc_vramop &= ~(1 << VOPBIT_EGC);
             break;
         case 0x05:
-            pc98_gdc_vramop |= (1 << VOPBIT_EGC);
+            if (enable_pc98_egc) pc98_gdc_vramop |= (1 << VOPBIT_EGC);
             break;
         case 0x06: // TODO
         case 0x07: // TODO

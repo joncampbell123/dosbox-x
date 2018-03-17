@@ -144,6 +144,7 @@ using namespace std;
 
 extern int                          vga_memio_delay_ns;
 extern bool                         gdc_5mhz_mode;
+extern bool                         enable_pc98_egc;
 extern bool                         GDC_vsync_interrupt;
 extern uint8_t                      GDC_display_plane;
 
@@ -492,6 +493,8 @@ void VGA_Reset(Section*) {
     // To enable these games we default to 5.0MHz.
     // NTS: There are also games that refuse to run if 5MHz switched on (TH03)
     gdc_5mhz_mode = section->Get_bool("pc-98 start gdc at 5mhz");
+
+    enable_pc98_egc = section->Get_bool("pc-98 enable egc");
 
     i = section->Get_int("pc-98 allow 4 display partition graphics");
     pc98_allow_4_display_partitions = (i < 0/*auto*/ || i == 1/*on*/);

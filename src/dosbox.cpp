@@ -1168,6 +1168,9 @@ void DOSBOX_SetupConfigSections(void) {
 	Pbool->Set_help("If set, the game's request to page flip will be delayed to vertical retrace, which can eliminate tearline artifacts.\n"
                     "Note that this is NOT the behavior of actual hardware. This option is provided for the user's preference.");
 
+	Pbool = secprop->Add_bool("pc-98 enable egc",Property::Changeable::WhenIdle,true);
+	Pbool->Set_help("Allow EGC graphics functions if set, disable if not set");
+
 	Pbool = secprop->Add_bool("pc-98 start gdc at 5mhz",Property::Changeable::WhenIdle,false);
 	Pbool->Set_help("Start GDC at 5MHz if set, 2.5MHz if clear. May be required for some games.");
 

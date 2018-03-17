@@ -4761,6 +4761,7 @@ void write_FFFF_PC98_signature() {
 }
 
 extern bool                         gdc_5mhz_mode;
+extern bool                         enable_pc98_egc;
 
 class BIOS:public Module_base{
 private:
@@ -4856,8 +4857,8 @@ private:
             /* various BIOS flags */
             mem_writeb(0x53B,0x0F); // CRT_RASTER, 640x400 24.83KHz-hsync 56.42Hz-vsync
             mem_writeb(0x54C,0x06); // PRXCRT, 16-color G-VRAM, GRCG
-            mem_writeb(0x54D,0x40 | (gdc_5mhz_mode ? 0x20 : 0x00) | (gdc_5mhz_mode ? 0x04 : 0x00)); // EGC
-            mem_writeb(0x597,0x04); // EGC
+            mem_writeb(0x54D,(enable_pc98_egc ? 0x40 : 0x00) | (gdc_5mhz_mode ? 0x20 : 0x00) | (gdc_5mhz_mode ? 0x04 : 0x00)); // EGC
+            mem_writeb(0x597,(enable_pc98_egc ? 0x04 : 0x00/*FIXME*/)); // EGC
         }
 
         if (bios_user_reset_vector_blob != 0 && !bios_user_reset_vector_blob_run) {
