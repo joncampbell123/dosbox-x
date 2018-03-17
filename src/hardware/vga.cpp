@@ -146,6 +146,7 @@ extern int                          vga_memio_delay_ns;
 extern bool                         gdc_5mhz_mode;
 extern bool                         enable_pc98_egc;
 extern bool                         enable_pc98_grcg;
+extern bool                         enable_pc98_16color;
 extern bool                         GDC_vsync_interrupt;
 extern uint8_t                      GDC_display_plane;
 
@@ -497,9 +498,13 @@ void VGA_Reset(Section*) {
 
     enable_pc98_egc = section->Get_bool("pc-98 enable egc");
     enable_pc98_grcg = section->Get_bool("pc-98 enable grcg");
+    enable_pc98_16color = section->Get_bool("pc-98 enable 16-color");
 
     // EGC implies GRCG
     if (enable_pc98_egc) enable_pc98_grcg = true;
+
+    // EGC implies 16-color
+    if (enable_pc98_16color) enable_pc98_16color = true;
 
     i = section->Get_int("pc-98 allow 4 display partition graphics");
     pc98_allow_4_display_partitions = (i < 0/*auto*/ || i == 1/*on*/);
