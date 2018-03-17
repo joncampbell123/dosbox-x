@@ -200,7 +200,19 @@ Bitu pc98_egc4a0_read_warning(Bitu port,Bitu iolen) {
 
 // I/O access to 0x4A0-0x4AF must be WORD sized and even port, or the system hangs if you try.
 void pc98_egc4a0_write_warning(Bitu port,Bitu val,Bitu iolen) {
-    LOG_MSG("PC-98 EGC warning: I/O write to port 0x%x (val=0x%x len=%u) known to possibly hang the system on real hardware",
-        (unsigned int)port,(unsigned int)val,(unsigned int)iolen);
+    switch (port & 0xF) {
+        case 0x6:
+            /* if the BIOS reports EGC, many early games will write bytewise I/O to port 4A6h */
+            pc98_egc_foreground_color = val;
+            pc98_egc_fgcm[0].w = (val & 1) ? 0xFFFF : 0x0000;
+            pc98_egc_fgcm[1].w = (val & 2) ? 0xFFFF : 0x0000;
+            pc98_egc_fgcm[2].w = (val & 4) ? 0xFFFF : 0x0000;
+            pc98_egc_fgcm[3].w = (val & 8) ? 0xFFFF : 0x0000;
+            break;
+        default:
+            LOG_MSG("PC-98 EGC warning: I/O write to port 0x%x (val=0x%x len=%u) known to possibly hang the system on real hardware",
+                (unsigned int)port,(unsigned int)val,(unsigned int)iolen);
+            break;
+    }
 }
 
