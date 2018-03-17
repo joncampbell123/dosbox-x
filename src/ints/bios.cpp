@@ -4763,6 +4763,23 @@ void write_FFFF_PC98_signature() {
 extern bool                         gdc_5mhz_mode;
 extern bool                         enable_pc98_egc;
 
+void gdc_egc_enable_update_vars(void) {
+    unsigned char b;
+
+    b = mem_readb(0x54D);
+    b &= ~0x40;
+    if (enable_pc98_egc) b |= 0x40;
+    mem_writeb(0x54D,b);
+
+    b = mem_readb(0x597);
+    b &= ~0x04;
+    if (enable_pc98_egc) b |= 0x04;
+    mem_writeb(0x597,b);
+
+    if (!enable_pc98_egc)
+        pc98_gdc_vramop &= ~(1 << VOPBIT_EGC);
+}
+
 class BIOS:public Module_base{
 private:
 	static Bitu cb_bios_post__func(void) {

@@ -21,8 +21,10 @@
 using namespace std;
 
 extern bool gdc_5mhz_mode;
+extern bool enable_pc98_egc;
 
 void gdc_5mhz_mode_update_vars(void);
+void gdc_egc_enable_update_vars(void);
 
 /* ====================== PC98UTIL.COM ====================== */
 class PC98UTIL : public Program {
@@ -35,6 +37,16 @@ public:
             if (arg == "?" || arg == "help") {
                 doHelp();
                 break;
+            }
+            else if (arg == "egc") {
+                enable_pc98_egc = true;
+                WriteOut("EGC graphics functions enabled\n");
+                gdc_egc_enable_update_vars();
+            }
+            else if (arg == "noegc") {
+                enable_pc98_egc = false;
+                WriteOut("EGC graphics functions disabled\n");
+                gdc_egc_enable_update_vars();
             }
             else if (arg == "gdc25") {
                 gdc_5mhz_mode = false;
@@ -67,6 +79,8 @@ public:
         WriteOut("PC98UTIL PC-98 emulation utility\n");
         WriteOut("  /gdc25     Set GDC to 2.5MHz\n");
         WriteOut("  /gdc50     Set GDC to 5.0MHz\n");
+        WriteOut("  /egc       Enable EGC\n");
+        WriteOut("  /noegc     Disable EGC\n");
     }
 };
 
