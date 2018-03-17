@@ -21,7 +21,8 @@
 extern bool                 pc98_graphics_hide_odd_raster_200line;
 
 bool                        gdc_5mhz_mode = false;
-bool                        enable_pc98_egc = false;
+bool                        enable_pc98_egc = true;
+bool                        enable_pc98_grcg = true;
 bool                        GDC_vsync_interrupt = false;
 uint8_t                     GDC_display_plane_wait_for_vsync = false;
 uint8_t                     GDC_display_plane_pending = false;
@@ -35,15 +36,19 @@ egc_quad                    pc98_gdc_tiles;
 void pc98_crtc_write(Bitu port,Bitu val,Bitu iolen) {
     switch (port&0xE) {
         case 0x0C:      // 0x7C: mode reg / vram operation mode (also, reset tile counter)
-            pc98_gdc_tile_counter = 0;
-            pc98_gdc_modereg = val;
-            pc98_gdc_vramop &= ~(3 << VOPBIT_GRCG);
-            pc98_gdc_vramop |= (val & 0xC0) >> (6 - VOPBIT_GRCG);
+            if (enable_pc98_grcg) {
+                pc98_gdc_tile_counter = 0;
+                pc98_gdc_modereg = val;
+                pc98_gdc_vramop &= ~(3 << VOPBIT_GRCG);
+                pc98_gdc_vramop |= (val & 0xC0) >> (6 - VOPBIT_GRCG);
+            }
             break;
         case 0x0E:      // 0x7E: tile data
-            pc98_gdc_tiles[pc98_gdc_tile_counter].b[0] = val;
-            pc98_gdc_tiles[pc98_gdc_tile_counter].b[1] = val;
-            pc98_gdc_tile_counter = (pc98_gdc_tile_counter + 1) & 3;
+            if (enable_pc98_grcg) {
+                pc98_gdc_tiles[pc98_gdc_tile_counter].b[0] = val;
+                pc98_gdc_tiles[pc98_gdc_tile_counter].b[1] = val;
+                pc98_gdc_tile_counter = (pc98_gdc_tile_counter + 1) & 3;
+            }
             break;
         default:
             LOG_MSG("PC98 CRTC w: port=0x%02X val=0x%02X unknown",(unsigned int)port,(unsigned int)val);
