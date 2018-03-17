@@ -1031,6 +1031,49 @@ static egc_quad &ope_xx(uint8_t ope, const PhysPt ad) {
     return pc98_egc_last_vram;
 }
 
+static egc_quad &ope_np(uint8_t ope, const PhysPt vramoff) {
+	egc_quad dst;
+
+	dst[0].w = *((uint16_t*)(vga.mem.linear+vramoff+0x08000));
+	dst[1].w = *((uint16_t*)(vga.mem.linear+vramoff+0x10000));
+	dst[2].w = *((uint16_t*)(vga.mem.linear+vramoff+0x18000));
+	dst[3].w = *((uint16_t*)(vga.mem.linear+vramoff+0x20000));
+
+	pc98_egc_data[0].w = 0;
+	pc98_egc_data[1].w = 0;
+	pc98_egc_data[2].w = 0;
+	pc98_egc_data[3].w = 0;
+
+	if (ope & 0x80) {
+        pc98_egc_data[0].w |= (pc98_egc_src[0].w & dst[0].w);
+        pc98_egc_data[1].w |= (pc98_egc_src[1].w & dst[1].w);
+        pc98_egc_data[2].w |= (pc98_egc_src[2].w & dst[2].w);
+        pc98_egc_data[3].w |= (pc98_egc_src[3].w & dst[3].w);
+    }
+	if (ope & 0x20) {
+        pc98_egc_data[0].w |= (pc98_egc_src[0].w & (~dst[0].w));
+        pc98_egc_data[1].w |= (pc98_egc_src[1].w & (~dst[1].w));
+        pc98_egc_data[2].w |= (pc98_egc_src[2].w & (~dst[2].w));
+        pc98_egc_data[3].w |= (pc98_egc_src[3].w & (~dst[3].w));
+	}
+	if (ope & 0x08) {
+        pc98_egc_data[0].w |= ((~pc98_egc_src[0].w) & dst[0].w);
+        pc98_egc_data[1].w |= ((~pc98_egc_src[1].w) & dst[1].w);
+        pc98_egc_data[2].w |= ((~pc98_egc_src[2].w) & dst[2].w);
+        pc98_egc_data[3].w |= ((~pc98_egc_src[3].w) & dst[3].w);
+	}
+	if (ope & 0x02) {
+        pc98_egc_data[0].w |= ((~pc98_egc_src[0].w) & (~dst[0].w));
+        pc98_egc_data[1].w |= ((~pc98_egc_src[1].w) & (~dst[1].w));
+        pc98_egc_data[2].w |= ((~pc98_egc_src[2].w) & (~dst[2].w));
+        pc98_egc_data[3].w |= ((~pc98_egc_src[3].w) & (~dst[3].w));
+	}
+
+	(void)ope;
+	(void)vramoff;
+	return pc98_egc_data;
+}
+
 static egc_quad &ope_c0(uint8_t ope, const PhysPt vramoff) {
 	egc_quad dst;
 
@@ -1179,7 +1222,7 @@ static egc_quad &ope_gg(uint8_t ope, const PhysPt vramoff) {
 
 static const PC98_OPEFN pc98_egc_opfn[256] = {
 			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
-			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
+			ope_xx, ope_xx, ope_xx, ope_xx, ope_np, ope_xx, ope_xx, ope_xx,
 			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
 			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
 			ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx, ope_xx,
