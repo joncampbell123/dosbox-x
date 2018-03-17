@@ -1,4 +1,7 @@
 (next)
+  - BIOS now reports 16-color and EGC graphics. Some games
+    that check the BIOS for capabilities may now begin to
+    use 16-color graphics and EGC functions.
   - Added PC-98 INT 18h function to read character font.
     This also resolves garbled text in TH01.
   - PC-98 GDC emulation now uses cursor specification
