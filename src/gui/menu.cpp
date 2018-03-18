@@ -2795,21 +2795,32 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 	case ID_PC98_ENABLEEGC: {
 		void gdc_egc_enable_update_vars(void);
 		extern bool enable_pc98_egc;
+		extern bool enable_pc98_grcg;
+		extern bool enable_pc98_16color;
 		if(IS_PC98_ARCH) {
 			enable_pc98_egc = !enable_pc98_egc;
 			gdc_egc_enable_update_vars();
 			
 			Section_prop * dosbox_section = static_cast<Section_prop *>(control->GetSection("dosbox"));
-			if (enable_pc98_egc)
+			if (enable_pc98_egc) {
 				dosbox_section->HandleInputline("pc-98 enable egc=1");
+				
+				if(!enable_pc98_grcg) { //Also enable GRCG if GRCG is disabled when enabling EGC
+					enable_pc98_grcg = !enable_pc98_grcg;
+					mem_writeb(0x54C,(enable_pc98_grcg ? 0x02 : 0x00) | (enable_pc98_16color ? 0x04 : 0x00));	
+					dosbox_section->HandleInputline("pc-98 enable grcg=1");
+				}
+			}
 			else
 				dosbox_section->HandleInputline("pc-98 enable egc=0");
+			
 		}
 		break;
 	}
-	case ID_PC98_ENABLEGRCG: { //TODO: There shouldn't be a PC-98 system with EGC but without GRCG!
+	case ID_PC98_ENABLEGRCG: { 
 		extern bool enable_pc98_grcg;
 		extern bool enable_pc98_16color;
+		extern bool enable_pc98_egc;
 		if(IS_PC98_ARCH) {
 			enable_pc98_grcg = !enable_pc98_grcg;
 			mem_writeb(0x54C,(enable_pc98_grcg ? 0x02 : 0x00) | (enable_pc98_16color ? 0x04 : 0x00));
@@ -2819,10 +2830,17 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 				dosbox_section->HandleInputline("pc-98 enable grcg=1");
 			else
 				dosbox_section->HandleInputline("pc-98 enable grcg=0");
+				
+			if ((!enable_pc98_grcg) && enable_pc98_egc) { // Also disable EGC if switching off GRCG
+				enable_pc98_egc = !enable_pc98_egc;
+				gdc_egc_enable_update_vars();	
+				dosbox_section->HandleInputline("pc-98 enable egc=0");
+			}				
 		}
 		break;
 	}
 	case ID_PC98_ENABLE16COLORS: {
+	//NOTE: I thought that even later PC-9801s and some PC-9821s could use EGC features in digital 8-colors mode? 
 		extern bool enable_pc98_grcg;
 		extern bool enable_pc98_16color;
 		if(IS_PC98_ARCH) {
