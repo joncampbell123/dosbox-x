@@ -2938,22 +2938,58 @@ private:
 		return true;
 	}
 
-	imageDisk* MountImageNoneRam(Bitu sizes[], const int reserved_cylinders) {
+	imageDiskMemory* CreateRamDrive(Bitu sizes[], const int reserved_cylinders) {
 		imageDiskMemory* dsk;
 		if (sizes[1] == 0) {
-			dsk = new imageDiskMemory(sizes[0]);
+			//search for floppy geometry that matches specified size in KB
+			int index = 0;
+			while (DiskGeometryList[index].cylcount != 0) {
+				if (DiskGeometryList[index].ksize == sizes[0]) {
+					//create floppy
+					dsk = new imageDiskMemory(DiskGeometryList[index]);
+					break;
+				}
+				index++;
+			}
+			if (dsk == NULL) {
+				//create hard drive
+				dsk = new imageDiskMemory(sizes[0]);
+			}
 		}
 		else {
-			dsk = new imageDiskMemory(sizes[3], sizes[2], sizes[1], sizes[0]);
+			//search for floppy geometry that matches specified geometry
+			int index = 0;
+			while (DiskGeometryList[index].cylcount != 0) {
+				if (DiskGeometryList[index].cylcount == sizes[3] &&
+					DiskGeometryList[index].headscyl == sizes[2] &&
+					DiskGeometryList[index].secttrack == sizes[1] &&
+					DiskGeometryList[index].bytespersect == sizes[0]) {
+					//create floppy
+					dsk = new imageDiskMemory(DiskGeometryList[index]);
+					break;
+				}
+				index++;
+			}
+			if (dsk == NULL) {
+				//create hard drive
+				dsk = new imageDiskMemory(sizes[3], sizes[2], sizes[1], sizes[0]);
+			}
 		}
-		if (!dsk->active ) {
+		if (!dsk->active) {
 			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
 			delete dsk;
 			return false;
 		}
+		dsk->Set_Reserved_Cylinders(reserved_cylinders);
+		return dsk;
+	}
+
+	imageDisk* MountImageNoneRam(Bitu sizes[], const int reserved_cylinders) {
+		imageDiskMemory* dsk = CreateRamDrive(sizes, reserved_cylinders);
+		if (dsk == NULL) return NULL;
 		//formatting might fail; just log the failure and continue
 		Bit8u ret = dsk->Format();
-		if (ret != 0) {
+		if (ret != NULL) {
 			LOG_MSG("Warning: could not format ramdrive - error code %u\n", (unsigned int)ret);
 		}
 		return dsk;
@@ -2965,14 +3001,9 @@ private:
 			return false;
 		}
 
-		imageDiskMemory* dsk;
-		if (sizes[1] == 0) {
-			dsk = new imageDiskMemory(sizes[0]);
-		}
-		else {
-			dsk = new imageDiskMemory(sizes[3], sizes[2], sizes[1], sizes[0]);
-		}
-		if (!dsk->active || (dsk->Format() != 0x00)) {
+		imageDiskMemory* dsk = CreateRamDrive(sizes, 0);
+		if (dsk == NULL) return false;
+		if (dsk->Format() != 0x00) {
 			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
 			delete dsk;
 			return false;
