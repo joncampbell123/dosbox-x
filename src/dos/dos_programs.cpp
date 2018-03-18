@@ -2463,17 +2463,20 @@ public:
         if(fstype=="fat") {
 			//mount floppy or hard drive
             if (el_torito != "") {
-				if (!MountElToritoFat(drive, sizes, mediaid, el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type)) return;
+				if (!MountElToritoFat(drive, sizes, el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type)) return;
 			}
-            else {
-				if (!MountFat(imgsizedetect, sizes, drive, mediaid, str_size, type, paths, ide_index, ide_slave)) return;
+			else if (type == "ram") {
+				if (!MountRam(sizes, drive, ide_index, ide_slave)) return;
+			}
+			else {
+				if (!MountFat(imgsizedetect, sizes, drive, mediaid, str_size, paths, ide_index, ide_slave)) return;
             }
 		} else if (fstype=="iso") {
 			if (el_torito != "") {
 				WriteOut("El Torito bootable CD: -fs iso mounting not supported\n"); /* <- NTS: Will never implement, either */
 				return;
 			}
-			if (!MountIso(drive, mediaid, paths, ide_index, ide_slave)) return;
+			if (!MountIso(drive, paths, ide_index, ide_slave)) return;
 		} else if (fstype=="none") {
 			if (el_torito != "") {
 				newImage = new imageDiskElToritoFloppy(el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type);
@@ -2784,7 +2787,7 @@ private:
 		return true;
 	}
 
-	bool MountElToritoFat(const char drive, const Bitu sizes[], const Bit8u mediaid, const char el_torito_cd_drive, const unsigned long el_torito_floppy_base, const unsigned char el_torito_floppy_type) {
+	bool MountElToritoFat(const char drive, const Bitu sizes[], const char el_torito_cd_drive, const unsigned long el_torito_floppy_base, const unsigned char el_torito_floppy_type) {
 		unsigned char driveIndex = drive - 'A';
 
 		if (driveIndex > 1) {
@@ -2807,7 +2810,7 @@ private:
 			return false;
 		}
 
-		AddToDriveManager(drive, newDrive, mediaid);
+		AddToDriveManager(drive, newDrive, 0xF0);
 		AttachToBios(newImage, driveIndex);
 
 		WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_ELTORITO"), drive);
@@ -2815,7 +2818,7 @@ private:
 		return true;
 	}
 
-	bool MountFat(bool &imgsizedetect, Bitu sizes[], const char drive, const Bitu mediaid, const std::string &str_size, const std::string &type, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave) {
+	bool MountFat(bool &imgsizedetect, Bitu sizes[], const char drive, const Bitu mediaid, const std::string &str_size, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave) {
 		if (imgsizedetect) {
 			/* .HDI images contain the geometry explicitly in the header. */
 			if (str_size.size() == 0) {
@@ -2838,24 +2841,6 @@ private:
 		std::vector<std::string>::size_type i;
 		std::vector<DOS_Drive*>::size_type ct;
 
-		if (type == "ram") {
-			//imageDiskMemory* dsk = new imageDiskMemory(sizes[3], sizes[2], sizes[1], sizes[0]);
-			imageDiskMemory* dsk = new imageDiskMemory(sizes[0]);
-			if (!dsk->active || (dsk->Format() != 0x00)) {
-				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
-				delete dsk;
-				return false;
-			}
-			//dsk->Addref(); //fatDrive will manage reference count
-			DOS_Drive* newDrive = new fatDrive(dsk);
-			imgDisks.push_back(newDrive);
-			if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
-				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
-				delete newDrive; //this executes dsk.Release() which executes delete dsk
-				return false;
-			}
-		}
-		else {
 			for (i = 0; i < paths.size(); i++) {
 				DOS_Drive* newDrive = new fatDrive(paths[i].c_str(), sizes[0], sizes[1], sizes[2], sizes[3]);
 				imgDisks.push_back(newDrive);
@@ -2867,20 +2852,14 @@ private:
 					return false;
 				}
 			}
-		}
 
 		AddToDriveManager(drive, imgDisks, mediaid);
 
-		if (type == "ram") {
-			WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_RAMDRIVE"), drive);
-		}
-		else {
 			std::string tmp(paths[0]);
 			for (i = 1; i < paths.size(); i++) {
 				tmp += "; " + paths[i];
 			}
 			WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, tmp.c_str());
-		}
 
 		if (imgDisks.size() == 1) {
 			imageDisk* image = ((fatDrive*)imgDisks[0])->loadedDisk;
@@ -2896,6 +2875,46 @@ private:
 				//AttachToBios(image, 0); //always attach as primary floppy drive (???)
 				AttachToBios(image, drive - 'A');  //attach as secondary floppy if mounting at B:
 			}
+		}
+		return true;
+	}
+
+	bool MountRam(Bitu sizes[], const char drive, const signed char ide_index, const bool ide_slave) {
+		if (Drives[drive - 'A']) {
+			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_ALREADY_MOUNTED"));
+			return false;
+		}
+
+		//imageDiskMemory* dsk = new imageDiskMemory(sizes[3], sizes[2], sizes[1], sizes[0]);
+		imageDiskMemory* dsk = new imageDiskMemory(sizes[0]);
+		if (!dsk->active || (dsk->Format() != 0x00)) {
+			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
+			delete dsk;
+			return false;
+		}
+		dsk->Addref();
+		DOS_Drive* newDrive = new fatDrive(dsk);
+		dsk->Release();
+		if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
+			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
+			delete newDrive; //this executes dsk.Release() which executes delete dsk
+			return false;
+		}
+
+		AddToDriveManager(drive, newDrive, dsk->hardDrive ? 0xF8 : 0xF0);
+
+		WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_RAMDRIVE"), drive);
+
+		if (dsk->hardDrive) {
+			for (int index = 2; index < MAX_DISK_IMAGES; index++) {
+				if (imageDiskList[index] == NULL) {
+					AttachToBiosAndIde(dsk, index, ide_index, ide_slave);
+					break;
+				}
+			}
+		}
+		else {
+			AttachToBios(dsk, drive - 'A');
 		}
 		return true;
 	}
@@ -3087,13 +3106,13 @@ private:
 		}
 	}
 
-	bool MountIso(const char drive, const Bit8u mediaid, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave) {
+	bool MountIso(const char drive, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave) {
 		//mount cdrom
-
 		if (Drives[drive - 'A']) {
 			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_ALREADY_MOUNTED"));
 			return false;
 		}
+		Bit8u mediaid = 0xF8;
 		MSCDEX_SetCDInterface(CDROM_USE_SDL, -1);
 		// create new drives for all images
 		std::vector<DOS_Drive*> isoDisks;
