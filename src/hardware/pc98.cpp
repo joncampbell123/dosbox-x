@@ -42,11 +42,19 @@ public:
                 enable_pc98_egc = true;
                 WriteOut("EGC graphics functions enabled\n");
                 gdc_egc_enable_update_vars();
+#if defined(WIN32) && !defined(C_SDL2)
+				int Reflect_Menu(void);
+				Reflect_Menu();
+#endif
             }
             else if (arg == "noegc") {
                 enable_pc98_egc = false;
                 WriteOut("EGC graphics functions disabled\n");
                 gdc_egc_enable_update_vars();
+#if defined(WIN32) && !defined(C_SDL2)
+				int Reflect_Menu(void);
+				Reflect_Menu();
+#endif
             }
             else if (arg == "gdc25") {
                 gdc_5mhz_mode = false;
