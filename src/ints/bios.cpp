@@ -4782,6 +4782,32 @@ void gdc_egc_enable_update_vars(void) {
         pc98_gdc_vramop &= ~(1 << VOPBIT_EGC);
 }
 
+void gdc_grcg_enable_update_vars(void) {
+    unsigned char b;
+
+    b = mem_readb(0x54C);
+    b &= ~0x02;
+    if (enable_pc98_grcg) b |= 0x02;
+    mem_writeb(0x54C,b);
+	
+	//TODO: How to reset GRCG?
+}
+
+
+void gdc_16color_enable_update_vars(void) {
+    unsigned char b;
+
+    b = mem_readb(0x54C);
+    b &= ~0x04;
+    if (enable_pc98_16color) b |= 0x04;
+    mem_writeb(0x54C,b);
+	
+	if(!enable_pc98_16color) {//force switch to 8-colors mode
+		void pc98_port6A_command_write(unsigned char b);
+		pc98_port6A_command_write(0x00);
+	}
+}
+
 class BIOS:public Module_base{
 private:
 	static Bitu cb_bios_post__func(void) {

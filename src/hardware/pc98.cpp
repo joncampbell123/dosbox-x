@@ -22,18 +22,22 @@ using namespace std;
 
 extern bool gdc_5mhz_mode;
 extern bool enable_pc98_egc;
+extern bool enable_pc98_grcg;
 
 void gdc_5mhz_mode_update_vars(void);
 void gdc_egc_enable_update_vars(void);
+void gdc_grcg_enable_update_vars(void);
 
 /* ====================== PC98UTIL.COM ====================== */
 class PC98UTIL : public Program {
 public:
 	void Run(void) {
         string arg;
-
+		bool got_opt=false;
+		
         cmd->BeginOpt();
         while (cmd->GetOpt(/*&*/arg)) {
+			got_opt=true;
             if (arg == "?" || arg == "help") {
                 doHelp();
                 break;
@@ -42,11 +46,23 @@ public:
                 enable_pc98_egc = true;
                 WriteOut("EGC graphics functions enabled\n");
                 gdc_egc_enable_update_vars();
+				if (!enable_pc98_grcg) { //Enable GRCG if not enabled
+					enable_pc98_grcg = true;
+					gdc_grcg_enable_update_vars();
+				}
+#if defined(WIN32) && !defined(C_SDL2)
+				int Reflect_Menu(void);
+				Reflect_Menu();
+#endif
             }
             else if (arg == "noegc") {
                 enable_pc98_egc = false;
                 WriteOut("EGC graphics functions disabled\n");
                 gdc_egc_enable_update_vars();
+#if defined(WIN32) && !defined(C_SDL2)
+				int Reflect_Menu(void);
+				Reflect_Menu();
+#endif
             }
             else if (arg == "gdc25") {
                 gdc_5mhz_mode = false;
@@ -74,6 +90,7 @@ public:
             }
         }
         cmd->EndOpt();
+		if(!got_opt) doHelp();
 	}
     void doHelp(void) {
         WriteOut("PC98UTIL PC-98 emulation utility\n");
