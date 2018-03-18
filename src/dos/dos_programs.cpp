@@ -2930,9 +2930,9 @@ private:
 					}
 				}
 			}
-			else {
-				//AttachToBios(image, 0); //always attach as primary floppy drive (???)
-				AttachToBios(image, drive - 'A');  //attach as secondary floppy if mounting at B:
+			else if ((drive - 'A') < 2) {
+				//only mount floppies at A: or B: in the BIOS
+				AttachToBios(image, drive - 'A'); 
 			}
 		}
 		return true;
@@ -2998,7 +2998,8 @@ private:
 				}
 			}
 		}
-		else {
+		else if ((drive - 'A') < 2) {
+			//only mount A: or B: floppies to BIOS
 			AttachToBios(dsk, drive - 'A');
 		}
 		return true;
