@@ -2336,14 +2336,12 @@ public:
 		//default fstype is fat
 		std::string fstype="fat";
 		cmd->FindString("-fs",fstype,true);
-		Bit8u mediaid;
 		
 		Bitu sizes[4] = { 0,0,0,0 };
 		bool imgsizedetect=false;
 		int reserved_cylinders=0;
 		std::string reservecyl;
 		std::string str_size;
-		mediaid=0xF8;
 
 		/* DOSBox-X: to please certain 32-bit drivers like Windows 3.1 WDCTRL, or to emulate older h/w configurations,
 			*           we allow the user or script to specify the number of reserved cylinders. older BIOSes were known
@@ -2373,11 +2371,9 @@ public:
 		//if floppy, don't attach to ide controller
 		//if cdrom, file system is iso
 		if (type=="floppy") {
-			mediaid=0xF0;
 			ideattach="none";
 		} else if (type=="iso") {
 			str_size=="2048,1,60000,0";	// ignored, see drive_iso.cpp (AllocationInfo)
-			mediaid=0xF8;		
 			fstype = "iso";
 		} 
 
@@ -2469,7 +2465,7 @@ public:
 				if (!MountRam(sizes, drive, ide_index, ide_slave)) return;
 			}
 			else {
-				if (!MountFat(imgsizedetect, sizes, drive, mediaid, str_size, paths, ide_index, ide_slave)) return;
+				if (!MountFat(imgsizedetect, sizes, drive, type == "hdd", str_size, paths, ide_index, ide_slave)) return;
             }
 		} else if (fstype=="iso") {
 			if (el_torito != "") {
@@ -2818,7 +2814,7 @@ private:
 		return true;
 	}
 
-	bool MountFat(bool &imgsizedetect, Bitu sizes[], const char drive, const Bitu mediaid, const std::string &str_size, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave) {
+	bool MountFat(bool &imgsizedetect, Bitu sizes[], const char drive, const bool isHardDrive, const std::string &str_size, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave) {
 		if (imgsizedetect) {
 			/* .HDI images contain the geometry explicitly in the header. */
 			if (str_size.size() == 0) {
@@ -2841,25 +2837,25 @@ private:
 		std::vector<std::string>::size_type i;
 		std::vector<DOS_Drive*>::size_type ct;
 
-			for (i = 0; i < paths.size(); i++) {
-				DOS_Drive* newDrive = new fatDrive(paths[i].c_str(), sizes[0], sizes[1], sizes[2], sizes[3]);
-				imgDisks.push_back(newDrive);
-				if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
-					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
-					for (ct = 0; ct < imgDisks.size(); ct++) {
-						delete imgDisks[ct];
-					}
-					return false;
+		for (i = 0; i < paths.size(); i++) {
+			DOS_Drive* newDrive = new fatDrive(paths[i].c_str(), sizes[0], sizes[1], sizes[2], sizes[3]);
+			imgDisks.push_back(newDrive);
+			if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
+				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
+				for (ct = 0; ct < imgDisks.size(); ct++) {
+					delete imgDisks[ct];
 				}
+				return false;
 			}
+		}
 
-		AddToDriveManager(drive, imgDisks, mediaid);
+		AddToDriveManager(drive, imgDisks, isHardDrive ? 0xF8 : 0xF0);
 
-			std::string tmp(paths[0]);
-			for (i = 1; i < paths.size(); i++) {
-				tmp += "; " + paths[i];
-			}
-			WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, tmp.c_str());
+		std::string tmp(paths[0]);
+		for (i = 1; i < paths.size(); i++) {
+			tmp += "; " + paths[i];
+		}
+		WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, tmp.c_str());
 
 		if (imgDisks.size() == 1) {
 			imageDisk* image = ((fatDrive*)imgDisks[0])->loadedDisk;
