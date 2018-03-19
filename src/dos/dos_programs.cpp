@@ -2280,7 +2280,6 @@ public:
 		//initialize variables
 		DOS_Drive * newdrive = NULL;
 		imageDisk * newImage = NULL;
-		Bit32u imagesize;
 		char drive;
 		std::vector<std::string> paths;
 		//show help if no arguments or -?
@@ -2327,7 +2326,7 @@ public:
 		cmd->FindString("-el-torito",el_torito,true);
 		if (el_torito != "") {
 			//get el-torito floppy from cdrom mounted at drive letter el_torito_cd_drive
-			el_torito_cd_drive = el_torito[0];
+			el_torito_cd_drive = toupper(el_torito[0]);
 			//validate the el_torito loading (look for boot image on the cdrom, etc), and
 			//  find the el_torito_floppy_base and el_torito_floppy_type values
 			if (!PrepElTorito(type, el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type)) return;
@@ -2336,14 +2335,10 @@ public:
 		//default fstype is fat
 		std::string fstype="fat";
 		cmd->FindString("-fs",fstype,true);
-		Bit8u mediaid;
 		
 		Bitu sizes[4] = { 0,0,0,0 };
-		bool imgsizedetect=false;
 		int reserved_cylinders=0;
 		std::string reservecyl;
-		std::string str_size;
-		mediaid=0xF8;
 
 		/* DOSBox-X: to please certain 32-bit drivers like Windows 3.1 WDCTRL, or to emulate older h/w configurations,
 			*           we allow the user or script to specify the number of reserved cylinders. older BIOSes were known
@@ -2373,37 +2368,19 @@ public:
 		//if floppy, don't attach to ide controller
 		//if cdrom, file system is iso
 		if (type=="floppy") {
-			mediaid=0xF0;
 			ideattach="none";
 		} else if (type=="iso") {
-			str_size=="2048,1,60000,0";	// ignored, see drive_iso.cpp (AllocationInfo)
-			mediaid=0xF8;		
+			//str_size=="2048,1,60000,0";	// ignored, see drive_iso.cpp (AllocationInfo)
 			fstype = "iso";
 		} 
 
 		//load the size parameter
 		//auto detect hard drives if not specified
-		cmd->FindString("-size",str_size,true);
-		if ((type=="hdd") && (str_size.size()==0)) {
-			imgsizedetect=true;
-		}
-		else if (type == "ram") {
-			const char * conv = str_size.c_str();
-			sizes[0] = atoi(conv);
-		} else {
-			char number[20];
-			const char * scan=str_size.c_str();
-			Bitu index=0;Bitu count=0;
-				
-			while (*scan) {
-				if (*scan==',') {
-					number[index]=0;sizes[count++]=atoi(number);
-					index=0;
-				} else number[index++]=*scan;
-				scan++;
-			}
-			number[index]=0;sizes[count++]=atoi(number);
-		}
+		std::string str_size;
+		std::string str_chs;
+		cmd->FindString("-size", str_size, true);
+		cmd->FindString("-chs", str_chs, true);
+		if (!ReadSizeParameter(str_size, str_chs, type, sizes)) return;
 		
 		//for floppies, hard drives, and cdroms, require a drive letter
 		//for -fs none, require a number indicating where to mount at
@@ -2463,34 +2440,49 @@ public:
         if(fstype=="fat") {
 			//mount floppy or hard drive
             if (el_torito != "") {
-				if (!MountElToritoFat(drive, sizes, mediaid, el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type)) return;
+				if (!MountElToritoFat(drive, sizes, el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type)) return;
 			}
-            else {
-				if (!MountFat(imgsizedetect, sizes, drive, mediaid, str_size, type, paths, ide_index, ide_slave)) return;
+			else if (type == "ram") {
+				if (!MountRam(sizes, drive, ide_index, ide_slave)) return;
+			}
+			else {
+				if (!MountFat(sizes, drive, type == "hdd", str_size, paths, ide_index, ide_slave)) return;
             }
 		} else if (fstype=="iso") {
 			if (el_torito != "") {
 				WriteOut("El Torito bootable CD: -fs iso mounting not supported\n"); /* <- NTS: Will never implement, either */
 				return;
 			}
-			if (!MountIso(drive, mediaid, paths, ide_index, ide_slave)) return;
+			if (!MountIso(drive, paths, ide_index, ide_slave)) return;
 		} else if (fstype=="none") {
+			unsigned char driveIndex = drive - '0';
 			if (el_torito != "") {
 				newImage = new imageDiskElToritoFloppy(el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type);
-				if (newImage == NULL) return;
 			}
-			else
-			{
-				newImage = MountImageNone(sizes, imagesize, reserved_cylinders);
-				if (newImage == NULL) return;
-			}
-
-			if (AttachToBiosAndIde(newImage, drive - '0', ide_index, ide_slave)) {
-				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT_NUMBER"), drive - '0', temp_line.c_str());
+			else if (type == "ram") {
+				newImage = MountImageNoneRam(sizes, reserved_cylinders, driveIndex < 2);
 			}
 			else {
-				WriteOut("Invalid mount number");
+				newImage = MountImageNone(sizes, reserved_cylinders);
 			}
+			if (newImage == NULL) return;
+			newImage->Addref();
+			if (newImage->hardDrive && (driveIndex < 2)) {
+				WriteOut("Cannot mount hard drive in floppy position");
+			}
+			else if (!newImage->hardDrive && (driveIndex >= 2)) {
+				WriteOut("Cannot mount floppy in hard drive position");
+			}
+			else {
+				if (AttachToBiosAndIde(newImage, driveIndex, ide_index, ide_slave)) {
+					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT_NUMBER"), drive - '0', temp_line.c_str());
+				}
+				else {
+					WriteOut("Invalid mount number");
+				}
+			}
+			newImage->Release();
+			return;
 		}
 		else {
 			WriteOut("Invalid fstype\n");
@@ -2503,6 +2495,87 @@ public:
 	}
 
 private:
+	bool ReadSizeParameter(const std::string &str_size, const std::string &str_chs, const std::string &type, Bitu sizes[]) {
+		bool isCHS = false;
+		const char * scan;
+		if (str_chs.size() != 0) {
+			if (str_size.size() != 0) {
+				WriteOut("Size and chs parameter cannot both be specified\n");
+				return false;
+			}
+			isCHS = true;
+			scan = str_chs.c_str();
+		}
+		else if (str_size.size() != 0) {
+			scan = str_size.c_str();
+		}
+		else {
+			//nothing specified, so automatic size detection
+			return true;
+		}
+		char number[20];
+		Bitu index = 0;
+		Bitu count = 0;
+		int val;
+
+		//scan through input string
+		while (*scan) {
+			//separate string by ','
+			if (*scan == ',') {
+				number[index] = 0; //add null char
+				val = atoi(number);
+				if (val <= 0) {
+					//out of range
+					WriteOut("Invalid size parameter\n");
+					return false;
+				}
+				sizes[count++] = val;
+				index = 0;
+				if (count == 4) {
+					//too many commas
+					WriteOut("Invalid size parameter\n");
+					return false;
+				}
+			}
+			else if (index >= 19) {
+				//number too large (too many characters, anyway)
+				WriteOut("Invalid size parameter\n");
+				return false;
+			}
+			else {
+				number[index++] = *scan;
+			}
+			scan++;
+		}
+		number[index] = 0;
+		val = atoi(number);
+		if (val <= 0) {
+			//out of range
+			WriteOut("Invalid size parameter\n");
+			return false;
+		}
+		sizes[count++] = val;
+		if (isCHS) {
+			if (count == 3) sizes[count++] = 512; //set sector size automatically
+			if (count != 4) {
+				WriteOut("Invalid chs parameter\n");
+				return false;
+			}
+			Bitu temp = sizes[3]; //hold on to sector size temporarily
+			sizes[3] = sizes[0]; //put cylinders in the right spot
+			sizes[0] = temp; //put sector size in the right spot
+			temp = sizes[2]; //hold on to sectors temporarily
+			sizes[2] = sizes[1]; //put heads in the right spot
+			sizes[1] = temp; //put sectors in the right spot
+		}
+		if (!((type == "ram" && count == 1) || count == 4)) {
+			//ram drives require 1 or 4 numbers
+			//other drives require 4 numbers
+			WriteOut("Invalid size parameter\n");
+			return false;
+		}
+		return true;
+	}
 	void ParseFiles(std::vector<std::string> &paths) {
 		while (cmd->FindCommand((unsigned int)(paths.size() + 2), temp_line) && temp_line.size()) {
 #if defined (WIN32) || defined(OS2)
@@ -2622,10 +2695,9 @@ private:
 		}
 	}
 
-	bool PrepElTorito(const std::string type, char &el_torito_cd_drive, unsigned long &el_torito_floppy_base, unsigned char &el_torito_floppy_type) {
+	bool PrepElTorito(const std::string type, const char &el_torito_cd_drive, unsigned long &el_torito_floppy_base, unsigned char &el_torito_floppy_type) {
 		el_torito_floppy_base = ~0UL;
 		el_torito_floppy_type = 0xFF;
-		el_torito_cd_drive = toupper(el_torito_cd_drive);
 
 		unsigned char entries[2048], *entry, ent_num = 0;
 		int header_platform = -1, header_count = 0;
@@ -2784,7 +2856,7 @@ private:
 		return true;
 	}
 
-	bool MountElToritoFat(const char drive, const Bitu sizes[], const Bit8u mediaid, const char el_torito_cd_drive, const unsigned long el_torito_floppy_base, const unsigned char el_torito_floppy_type) {
+	bool MountElToritoFat(const char drive, const Bitu sizes[], const char el_torito_cd_drive, const unsigned long el_torito_floppy_base, const unsigned char el_torito_floppy_type) {
 		unsigned char driveIndex = drive - 'A';
 
 		if (driveIndex > 1) {
@@ -2807,7 +2879,7 @@ private:
 			return false;
 		}
 
-		AddToDriveManager(drive, newDrive, mediaid);
+		AddToDriveManager(drive, newDrive, 0xF0);
 		AttachToBios(newImage, driveIndex);
 
 		WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_ELTORITO"), drive);
@@ -2815,7 +2887,8 @@ private:
 		return true;
 	}
 
-	bool MountFat(bool &imgsizedetect, Bitu sizes[], const char drive, const Bitu mediaid, const std::string &str_size, const std::string &type, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave) {
+	bool MountFat(Bitu sizes[], const char drive, const bool isHardDrive, const std::string &str_size, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave) {
+		bool imgsizedetect = isHardDrive && sizes[0] == 0;
 		if (imgsizedetect) {
 			/* .HDI images contain the geometry explicitly in the header. */
 			if (str_size.size() == 0) {
@@ -2838,49 +2911,25 @@ private:
 		std::vector<std::string>::size_type i;
 		std::vector<DOS_Drive*>::size_type ct;
 
-		if (type == "ram") {
-			//imageDiskMemory* dsk = new imageDiskMemory(sizes[3], sizes[2], sizes[1], sizes[0]);
-			imageDiskMemory* dsk = new imageDiskMemory(sizes[0]);
-			if (!dsk->active || (dsk->Format() != 0x00)) {
-				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
-				delete dsk;
-				return false;
-			}
-			//dsk->Addref(); //fatDrive will manage reference count
-			DOS_Drive* newDrive = new fatDrive(dsk);
+		for (i = 0; i < paths.size(); i++) {
+			DOS_Drive* newDrive = new fatDrive(paths[i].c_str(), sizes[0], sizes[1], sizes[2], sizes[3]);
 			imgDisks.push_back(newDrive);
 			if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
 				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
-				delete newDrive; //this executes dsk.Release() which executes delete dsk
+				for (ct = 0; ct < imgDisks.size(); ct++) {
+					delete imgDisks[ct];
+				}
 				return false;
 			}
 		}
-		else {
-			for (i = 0; i < paths.size(); i++) {
-				DOS_Drive* newDrive = new fatDrive(paths[i].c_str(), sizes[0], sizes[1], sizes[2], sizes[3]);
-				imgDisks.push_back(newDrive);
-				if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
-					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
-					for (ct = 0; ct < imgDisks.size(); ct++) {
-						delete imgDisks[ct];
-					}
-					return false;
-				}
-			}
-		}
 
-		AddToDriveManager(drive, imgDisks, mediaid);
+		AddToDriveManager(drive, imgDisks, isHardDrive ? 0xF8 : 0xF0);
 
-		if (type == "ram") {
-			WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_RAMDRIVE"), drive);
+		std::string tmp(paths[0]);
+		for (i = 1; i < paths.size(); i++) {
+			tmp += "; " + paths[i];
 		}
-		else {
-			std::string tmp(paths[0]);
-			for (i = 1; i < paths.size(); i++) {
-				tmp += "; " + paths[i];
-			}
-			WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, tmp.c_str());
-		}
+		WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, tmp.c_str());
 
 		if (imgDisks.size() == 1) {
 			imageDisk* image = ((fatDrive*)imgDisks[0])->loadedDisk;
@@ -2892,10 +2941,128 @@ private:
 					}
 				}
 			}
-			else {
-				//AttachToBios(image, 0); //always attach as primary floppy drive (???)
-				AttachToBios(image, drive - 'A');  //attach as secondary floppy if mounting at B:
+			else if ((drive - 'A') < 2) {
+				//only mount floppies at A: or B: in the BIOS
+				AttachToBios(image, drive - 'A'); 
 			}
+		}
+		return true;
+	}
+
+	imageDiskMemory* CreateRamDrive(Bitu sizes[], const int reserved_cylinders, const bool forceFloppy) {
+		imageDiskMemory* dsk = NULL;
+		//if chs not specified
+		if (sizes[1] == 0) {
+			Bit32u imgSizeK = sizes[0];
+			//default to 1.44mb floppy
+			if (forceFloppy && imgSizeK == 0) imgSizeK = 1440;
+			//search for floppy geometry that matches specified size in KB
+			int index = 0;
+			while (DiskGeometryList[index].cylcount != 0) {
+				if (DiskGeometryList[index].ksize == imgSizeK) {
+					//create floppy
+					dsk = new imageDiskMemory(DiskGeometryList[index]);
+					break;
+				}
+				index++;
+			}
+			if (dsk == NULL) {
+				//create hard drive
+				if (forceFloppy) {
+					WriteOut("Floppy size not recognized\n");
+					return NULL;
+				}
+
+				// The fatDrive class is hard-coded to assume that disks 2880KB or smaller are floppies,
+				//   whether or not they are attached to a floppy controller.  So, let's enforce a minimum
+				//   size of 4096kb for hard drives.  Use the other constructor for floppy drives.
+				// Note that a size of 0 means to auto-select a size
+				if (imgSizeK < 4096) imgSizeK = 4096;
+
+				dsk = new imageDiskMemory(imgSizeK);
+			}
+		}
+		else {
+			//search for floppy geometry that matches specified geometry
+			int index = 0;
+			while (DiskGeometryList[index].cylcount != 0) {
+				if (DiskGeometryList[index].cylcount == sizes[3] &&
+					DiskGeometryList[index].headscyl == sizes[2] &&
+					DiskGeometryList[index].secttrack == sizes[1] &&
+					DiskGeometryList[index].bytespersect == sizes[0]) {
+					//create floppy
+					dsk = new imageDiskMemory(DiskGeometryList[index]);
+					break;
+				}
+				index++;
+			}
+			if (dsk == NULL) {
+				//create hard drive
+				if (forceFloppy) {
+					WriteOut("Floppy size not recognized\n");
+					return NULL;
+				}
+				dsk = new imageDiskMemory(sizes[3], sizes[2], sizes[1], sizes[0]);
+			}
+		}
+		if (!dsk->active) {
+			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
+			delete dsk;
+			return false;
+		}
+		dsk->Set_Reserved_Cylinders(reserved_cylinders);
+		return dsk;
+	}
+
+	imageDisk* MountImageNoneRam(Bitu sizes[], const int reserved_cylinders, const bool forceFloppy) {
+		imageDiskMemory* dsk = CreateRamDrive(sizes, reserved_cylinders, forceFloppy);
+		if (dsk == NULL) return NULL;
+		//formatting might fail; just log the failure and continue
+		Bit8u ret = dsk->Format();
+		if (ret != NULL) {
+			LOG_MSG("Warning: could not format ramdrive - error code %u\n", (unsigned int)ret);
+		}
+		return dsk;
+	}
+
+	bool MountRam(Bitu sizes[], const char drive, const signed char ide_index, const bool ide_slave) {
+		if (Drives[drive - 'A']) {
+			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_ALREADY_MOUNTED"));
+			return false;
+		}
+
+		//by default, make a floppy disk if A: or B: is specified (still makes a hard drive if not a recognized size)
+		imageDiskMemory* dsk = CreateRamDrive(sizes, 0, (drive - 'A') < 2 && sizes[0] == 0);
+		if (dsk == NULL) return false;
+		if (dsk->Format() != 0x00) {
+			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
+			delete dsk;
+			return false;
+		}
+		dsk->Addref();
+		DOS_Drive* newDrive = new fatDrive(dsk);
+		dsk->Release();
+		if (!(dynamic_cast<fatDrive*>(newDrive))->created_successfully) {
+			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
+			delete newDrive; //this executes dsk.Release() which executes delete dsk
+			return false;
+		}
+
+		AddToDriveManager(drive, newDrive, dsk->hardDrive ? 0xF8 : 0xF0);
+
+		WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_RAMDRIVE"), drive);
+
+		if (dsk->hardDrive) {
+			for (int index = 2; index < MAX_DISK_IMAGES; index++) {
+				if (imageDiskList[index] == NULL) {
+					AttachToBiosAndIde(dsk, index, ide_index, ide_slave);
+					break;
+				}
+			}
+		}
+		else if ((drive - 'A') < 2) {
+			//only mount A: or B: floppies to BIOS
+			AttachToBios(dsk, drive - 'A');
 		}
 		return true;
 	}
@@ -2911,7 +3078,10 @@ private:
 		image->Addref();
 
 		// let FDC know if we mounted a floppy
-		if (bios_drive_index <= 1) FDC_AssignINT13Disk(bios_drive_index);
+		if (bios_drive_index <= 1) {
+			FDC_AssignINT13Disk(bios_drive_index);
+			incrementFDD();
+		}
 		
 		return true;
 	}
@@ -3087,13 +3257,13 @@ private:
 		}
 	}
 
-	bool MountIso(const char drive, const Bit8u mediaid, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave) {
+	bool MountIso(const char drive, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave) {
 		//mount cdrom
-
 		if (Drives[drive - 'A']) {
 			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_ALREADY_MOUNTED"));
 			return false;
 		}
+		Bit8u mediaid = 0xF8;
 		MSCDEX_SetCDInterface(CDROM_USE_SDL, -1);
 		// create new drives for all images
 		std::vector<DOS_Drive*> isoDisks;
@@ -3143,7 +3313,8 @@ private:
 		return true;
 	}
 
-	imageDisk* MountImageNone(Bitu sizes[], Bit32u &imagesize, const int reserved_cylinders) {
+	imageDisk* MountImageNone(Bitu sizes[], const int reserved_cylinders) {
+		Bit32u imagesize;
 		imageDisk* newImage = 0;
 		/* auto-fill: sector size */
 		if (sizes[0] == 0) sizes[0] = 512;
