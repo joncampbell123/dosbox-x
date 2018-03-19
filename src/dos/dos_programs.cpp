@@ -2460,7 +2460,7 @@ public:
 				newImage = new imageDiskElToritoFloppy(el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type);
 			}
 			else if (type == "ram") {
-				newImage = MountImageNoneRam(sizes, reserved_cylinders);
+				newImage = MountImageNoneRam(sizes, reserved_cylinders, driveIndex < 2);
 			}
 			else {
 				newImage = MountImageNone(sizes, reserved_cylinders);
@@ -2949,13 +2949,17 @@ private:
 		return true;
 	}
 
-	imageDiskMemory* CreateRamDrive(Bitu sizes[], const int reserved_cylinders) {
-		imageDiskMemory* dsk;
+	imageDiskMemory* CreateRamDrive(Bitu sizes[], const int reserved_cylinders, const bool forceFloppy) {
+		imageDiskMemory* dsk = NULL;
+		//if chs not specified
 		if (sizes[1] == 0) {
+			Bit32u imgSizeK = sizes[0];
+			//default to 1.44mb floppy
+			if (forceFloppy && imgSizeK == 0) imgSizeK = 1440;
 			//search for floppy geometry that matches specified size in KB
 			int index = 0;
 			while (DiskGeometryList[index].cylcount != 0) {
-				if (DiskGeometryList[index].ksize == sizes[0]) {
+				if (DiskGeometryList[index].ksize == imgSizeK) {
 					//create floppy
 					dsk = new imageDiskMemory(DiskGeometryList[index]);
 					break;
@@ -2964,7 +2968,18 @@ private:
 			}
 			if (dsk == NULL) {
 				//create hard drive
-				dsk = new imageDiskMemory(sizes[0]);
+				if (forceFloppy) {
+					WriteOut("Floppy size not recognized\n");
+					return NULL;
+				}
+
+				// The fatDrive class is hard-coded to assume that disks 2880KB or smaller are floppies,
+				//   whether or not they are attached to a floppy controller.  So, let's enforce a minimum
+				//   size of 4096kb for hard drives.  Use the other constructor for floppy drives.
+				// Note that a size of 0 means to auto-select a size
+				if (imgSizeK < 4096) imgSizeK = 4096;
+
+				dsk = new imageDiskMemory(imgSizeK);
 			}
 		}
 		else {
@@ -2983,6 +2998,10 @@ private:
 			}
 			if (dsk == NULL) {
 				//create hard drive
+				if (forceFloppy) {
+					WriteOut("Floppy size not recognized\n");
+					return NULL;
+				}
 				dsk = new imageDiskMemory(sizes[3], sizes[2], sizes[1], sizes[0]);
 			}
 		}
@@ -2995,8 +3014,8 @@ private:
 		return dsk;
 	}
 
-	imageDisk* MountImageNoneRam(Bitu sizes[], const int reserved_cylinders) {
-		imageDiskMemory* dsk = CreateRamDrive(sizes, reserved_cylinders);
+	imageDisk* MountImageNoneRam(Bitu sizes[], const int reserved_cylinders, const bool forceFloppy) {
+		imageDiskMemory* dsk = CreateRamDrive(sizes, reserved_cylinders, forceFloppy);
 		if (dsk == NULL) return NULL;
 		//formatting might fail; just log the failure and continue
 		Bit8u ret = dsk->Format();
@@ -3012,7 +3031,8 @@ private:
 			return false;
 		}
 
-		imageDiskMemory* dsk = CreateRamDrive(sizes, 0);
+		//by default, make a floppy disk if A: or B: is specified (still makes a hard drive if not a recognized size)
+		imageDiskMemory* dsk = CreateRamDrive(sizes, 0, (drive - 'A') < 2 && sizes[0] == 0);
 		if (dsk == NULL) return false;
 		if (dsk->Format() != 0x00) {
 			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));

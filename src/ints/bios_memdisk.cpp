@@ -42,13 +42,8 @@
 
 // Create a hard drive image of a specified size; automatically select c/h/s
 imageDiskMemory::imageDiskMemory(Bit32u imgSizeK) {
-	// The fatDrive class is hard-coded to assume that disks 2880KB or smaller are floppies,
-	//   whether or not they are attached to a floppy controller.  So, let's enforce a minimum
-	//   size of 4096kb for hard drives.  Use the other constructor for floppy drives.
-	if (imgSizeK < 4096) imgSizeK = 4096;
-
 	//notes:
-	//  this code always returns drives with 512 byte sectors
+	//  this code always returns HARD DRIVES with 512 byte sectors
 	//  the code will round up in case it cannot make an exact match
 	//  it enforces a minimum drive size of 32kb, since a hard drive cannot be formatted as FAT12 with a smaller parition
 	//  the code works properly throughout the range of a 32-bit unsigned integer, however:
