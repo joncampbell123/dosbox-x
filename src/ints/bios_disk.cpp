@@ -360,8 +360,6 @@ imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHard
 		}
 		if(!founddisk) {
 			active = false;
-		} else {
-			incrementFDD();
 		}
 	}
     else { /* hard disk */

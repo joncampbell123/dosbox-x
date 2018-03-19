@@ -2455,6 +2455,7 @@ public:
 			}
 			if (!MountIso(drive, paths, ide_index, ide_slave)) return;
 		} else if (fstype=="none") {
+			unsigned char driveIndex = drive - '0';
 			if (el_torito != "") {
 				newImage = new imageDiskElToritoFloppy(el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type);
 			}
@@ -2465,13 +2466,23 @@ public:
 				newImage = MountImageNone(sizes, reserved_cylinders);
 			}
 			if (newImage == NULL) return;
-
-			if (AttachToBiosAndIde(newImage, drive - '0', ide_index, ide_slave)) {
-				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT_NUMBER"), drive - '0', temp_line.c_str());
+			newImage->Addref();
+			if (newImage->hardDrive && (driveIndex < 2)) {
+				WriteOut("Cannot mount hard drive in floppy position");
+			}
+			else if (!newImage->hardDrive && (driveIndex >= 2)) {
+				WriteOut("Cannot mount floppy in hard drive position");
 			}
 			else {
-				WriteOut("Invalid mount number");
+				if (AttachToBiosAndIde(newImage, driveIndex, ide_index, ide_slave)) {
+					WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT_NUMBER"), drive - '0', temp_line.c_str());
+				}
+				else {
+					WriteOut("Invalid mount number");
+				}
 			}
+			newImage->Release();
+			return;
 		}
 		else {
 			WriteOut("Invalid fstype\n");
@@ -3047,7 +3058,10 @@ private:
 		image->Addref();
 
 		// let FDC know if we mounted a floppy
-		if (bios_drive_index <= 1) FDC_AssignINT13Disk(bios_drive_index);
+		if (bios_drive_index <= 1) {
+			FDC_AssignINT13Disk(bios_drive_index);
+			incrementFDD();
+		}
 		
 		return true;
 	}
