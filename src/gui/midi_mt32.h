@@ -249,7 +249,7 @@ void MidiHandler_mt32::MT32ReportHandler::printDebug(const char *fmt, va_list li
 		char s[1024];
 		strcpy(s, "MT32: ");
 		vsnprintf(s + 6, 1017, fmt, list);
-		LOG_MSG(s);
+		LOG_MSG("%s", s);
 	}
 }
 

@@ -56,7 +56,7 @@ extern "C" void _TRACEOUT(const char *fmt,...) {
 
 void getbiospath(OEMCHAR *path, const OEMCHAR *fname, int maxlen) {
     LOG_MSG("PC98FM getbiospath fname='%s'",fname);
-    snprintf(path,maxlen,fname);
+    snprintf(path,maxlen,"%s",fname);
 }
 
 enum {
