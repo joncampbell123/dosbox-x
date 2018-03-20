@@ -3008,7 +3008,7 @@ private:
 		if (!dsk->active) {
 			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_CANT_CREATE"));
 			delete dsk;
-			return false;
+			return NULL;
 		}
 		dsk->Set_Reserved_Cylinders(reserved_cylinders);
 		return dsk;
@@ -3019,7 +3019,7 @@ private:
 		if (dsk == NULL) return NULL;
 		//formatting might fail; just log the failure and continue
 		Bit8u ret = dsk->Format();
-		if (ret != NULL) {
+		if (ret != 0x00) {
 			LOG_MSG("Warning: could not format ramdrive - error code %u\n", (unsigned int)ret);
 		}
 		return dsk;
