@@ -68,7 +68,7 @@ static void DOS_Mem_E_Exit(const char *msg) {
     LOG_MSG("DOS fatal memory error: %s",msg);
     throw int(7); // DOS non-fatal error (restart when debugger runs again)
 #else
-	E_Exit(msg);
+	E_Exit("%s",msg);
 #endif
 }
 

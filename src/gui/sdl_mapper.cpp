@@ -2870,7 +2870,7 @@ void BIND_MappingEvents(void) {
                 tmp[tmpl] = 0;
 
 				LOG(LOG_GUI,LOG_DEBUG)("Mapper keyboard event: %s",tmp);
-				bind_but.dbg->Change(tmp);
+				bind_but.dbg->Change("%s",tmp);
 				event_count++;
 			}
 			/* fall through to mapper UI processing */
