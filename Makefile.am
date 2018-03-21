@@ -55,3 +55,16 @@ dox-site-update:
 	(cd subgit/gh-pages && git add doxygen/)
 	(cd subgit/gh-pages && git commit doxygen/)
 
+compat-site-update:
+	if [[ !( -d subgit/gh-pages ) ]]; then git clone -b gh-pages https://github.com/joncampbell123/dosbox-x.git subgit/gh-pages; fi
+	true # ----------
+	(cd /mnt/main/emu/demotest && ./make-compat-chart.pl)
+	cp /mnt/main/emu/demotest/compat-chart.html subgit/gh-pages/demoscene-compat.html
+	true # ----------
+	(cd /mnt/main/emu/msdostest && ./make-compat-chart.pl)
+	cp /mnt/main/emu/msdostest/compat-chart.html subgit/gh-pages/msdos-compat.html
+	true # ----------
+	(cd subgit/gh-pages && git add demoscene-compat.html)
+	(cd subgit/gh-pages && git add msdos-compat.html)
+	(cd subgit/gh-pages && git commit -m 'more' {msdos,demoscene}-compat.html)
+
