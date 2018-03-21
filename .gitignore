@@ -17,6 +17,10 @@ configure
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
+# subgit
+subgit
+subgit/*
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
