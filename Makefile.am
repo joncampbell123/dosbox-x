@@ -52,4 +52,6 @@ dox-site-update:
 	if [[ !( -d subgit/gh-pages ) ]]; then git clone -b gh-pages https://github.com/joncampbell123/dosbox-x.git subgit/gh-pages; fi
 	(cd subgit/gh-pages && rm -Rfv doxygen)
 	cp -Rf doxygen subgit/gh-pages/
+	(cd subgit/gh-pages && git add doxygen/)
+	(cd subgit/gh-pages && git commit doxygen/)
 
