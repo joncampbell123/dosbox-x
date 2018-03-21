@@ -1,0 +1,112 @@
+<html>
+<head>
+<title>MS-DOS application compat testing chart</title>
+<style>
+.passfail_PASS { background-color: #7FFF7F; text-align: center; vertical-align: top; }
+.passfail_FAIL { background-color: #FF7F7F; text-align: center; vertical-align: top; }
+.passfail_NA { background-color: #DFDFDF; text-align: center; vertical-align: top; }
+.passfail_X { background-color: #5F5F5F; text-align: center; vertical-align: top; color: #3F3F3F; }
+.testing_header { background-color: #BFBFBF; }
+td pre { white-space: pre-line; word-break: normal; word-wrap: normal; }
+td a { color: black; }
+pre { padding: 0px; margin: 0px; }
+</style>
+</head>
+<body>
+DOSBox MS-DOS application compat testing chart<br>
+MS-DOS testing repository: <a target="_blank" href="https://github.com/joncampbell123/msdostest">https://github.com/joncampbell123/msdostest</a><br>
+<br>
+DOSBox-X refers to the <a target="_blank" href="http://dosbox-x.com/">DOSBox-X project</a><br>
+DOSBox-SVN refers to the <a target="_blank" href="https://www.dosbox.com/">DOSBox project</a><br>
+<br>
+Rules regarding PASS or FAIL:<br>
+- If a game crashes, faults, or shows behavior that suggests a problem, that is a FAIL.<br>
+- Known faulty behavior in the game itself doesn't count as failure. Future development may offer off-by-default hacks or workarounds in the emulator for the problem.<br>
+- Known faulty behavior that occurs on real hardware doesn't count as failure, because it means DOSBox is emulating real hardware accurately and the game is at fault.<br>
+- Issues that are DOSBox-SVN's fault, that the DOSBox SVN developers have expressed an unwillingness to fix or accept patches to fix, do not count as failure.<br>
+<br>
+Common problems with DOSBox SVN so far:<br>
+- Lack of support for &quot;goldplay&quot; Sound Blaster playback. Audio is rendered &quot;muffled&quot; in DOSBox SVN.<br>
+- LPT DAC output doesn't work. However code explicitly written for the Disney Sound Source works.<br>
+- PC speaker emulation on/off and frequency changes are limited to 1ms precision. This affects some games as well as old Apogee titles like Duke Nukum.<br>
+<br>
+Common problems to both DOSBox-X and DOSBox-SVN:<br>
+- Having UMB or EMS enabled can cause crashiness in some games.<br>
+- Some games require XMS to be enabled, will call to a NULL pointer otherwise.<br>
+- Some games will crash or malfunction if loaded too low (below 64KB) in memory. Try loadfix or the minimum mcb segment option.<br>
+<br>
+Problems that do NOT count as failures against DOSBox SVN, because they are bugs in the game itself:<br>
+- Audio halting or interrupt problems with GUS or SB related to a failure to unmask the IRQ (gamecoder laziness, NOT SVN's fault).<br>
+- Hangs related to undefined or reserved bits in VGA emulation that the game really ought to ignore.<br>
+<br>
+<table cellpadding=0 cellspacing=0>
+<thead class="testing_header">
+<tr>
+<td style="min-width: 6em; text-align: center;">DOSBox-X</td><td style="min-width: 6em; text-align: center;">DOSBox-SVN</td><td>Demo</td></tr>
+</thead>
+<tbody>
+<tr><td class="passfail_PASS"><a target="_blank" href="https://github.com/joncampbell123/dosbox-x/commit/12c1059466e10b49b2ccc8f31e0656eda2f87e6b">PASS</a></td><td class="passfail_PASS"><a target="_blank" href="https://sourceforge.net/p/dosbox/code-0/4076/">PASS</a></td><td>ibm-pc/jill-of-the-jungle-v1.2-shareware<br><pre><br>MD5 hash: daada4dab346fb6d2b5aef681be78d31 *jill/CATALOG.EXE
+MD5 hash: 8fcc718ba4341773e6514c15f558e21b *jill/HELPME.EXE
+MD5 hash: 28ec5663a1c66c21ef44614cc0177fac *jill/JILL.EXE
+</pre><br>Download link: <a target="_blank" href="http://www.bestoldgames.net/eng/old-games/jill-of-the-jungle.php">http://www.bestoldgames.net/eng/old-games/jill-of-the-jungle.php</a><br>Download link: <a target="_blank" href="https://www.dosgamesarchive.com/download/jill-of-the-jungle/">https://www.dosgamesarchive.com/download/jill-of-the-jungle/</a><br></td></tr>
+<tr><td class="passfail_PASS"><a target="_blank" href="https://github.com/joncampbell123/dosbox-x/commit/12c1059466e10b49b2ccc8f31e0656eda2f87e6b">PASS</a></td><td class="passfail_PASS"><a target="_blank" href="https://sourceforge.net/p/dosbox/code-0/4076/">PASS</a></td><td>ibm-pc/wolfenstein-3d-v1.4-shareware<br><pre><br>MD5 hash: 26dfc7e545439cdbe723154d870c5835 *WOLF3D/CATALOG.EXE
+MD5 hash: 92a8bc5d67547281ace8b4abf7e5dc47 *WOLF3D/DEALERS.EXE
+MD5 hash: 3ffe897960956fe85d76abe4c584501e *WOLF3D/SWCBBS.EXE
+MD5 hash: 87b311d6383c5df2aad6f4963d13995c *WOLF3D/WOLF3D.EXE
+</pre><br>Download link: <a target="_blank" href="https://www.dosgamesarchive.com/file/wolfenstein-3d/1wolf14/">https://www.dosgamesarchive.com/file/wolfenstein-3d/1wolf14/</a><br></td></tr>
+<tr><td class="passfail_PASS"><a target="_blank" href="https://github.com/joncampbell123/dosbox-x/commit/b1c9f3feb94f7a2ca978858a8dcce7521793368c">PASS</a></td><td class="passfail_X">X</td><td>nec-pc98/touhou-project-01-highly-responsive-to-prayers<br><pre><br>MD5 hash: 2caad6f798e32b912a08da327a97ddb4 *TH01/FUUIN.EXE
+MD5 hash: 3b023f398c6133d123234485a98c89ed *TH01/OP.EXE
+MD5 hash: 85aec70172f65ee3df08408897847230 *TH01/REIIDEN.EXE
+MD5 hash: 6ef3b7ed7960aac89b673cdb2eb07f27 *TH01/COMMAND.COM
+MD5 hash: 2acd0f4a09e408d0fb753340469b9225 *TH01/MDRV98.COM
+MD5 hash: de5454973591ebd937b11452a8b4882d *TH01/ZUNSOFT.COM
+</pre><br>Download link: <a target="_blank" href="http://www.theisozone.com/downloads/pc/windows-games/touhou-01---05-pc-98-emulator-included/">http://www.theisozone.com/downloads/pc/windows-games/touhou-01---05-pc-98-emulator-included/</a><br></td></tr>
+<tr><td class="passfail_PASS"><a target="_blank" href="https://github.com/joncampbell123/dosbox-x/commit/12c1059466e10b49b2ccc8f31e0656eda2f87e6b">PASS</a></td><td class="passfail_X">X</td><td>nec-pc98/touhou-project-02-story-of-eastern-wonderland<br><pre><br>MD5 hash: e6f971b37336c0f9fce53f895780031e *TH02/MAINE.EXE
+MD5 hash: 96cee07713a8e6460ae72276f3a9f909 *TH02/MAIN.EXE
+MD5 hash: 9fb2839db50f38119d0b98d4fb70cd0e *TH02/OP.EXE
+MD5 hash: 6ef3b7ed7960aac89b673cdb2eb07f27 *TH02/COMMAND.COM
+MD5 hash: 7773b812fe0d3bbb46c55685d24c86bf *TH02/MMD.COM
+MD5 hash: 4a6beef2e26dcfceb7d88bcc13f2896a *TH02/PMD86.COM
+MD5 hash: 5c50727de91463c7684d78f8973d86f4 *TH02/PMDB2.COM
+MD5 hash: b13ddc3e7dcaccf1b1914402bf6aa575 *TH02/PMD.COM
+MD5 hash: 84d9ddd32ebec8c64b703bbac4ec9cdf *TH02/ZUN.COM
+</pre><br>Download link: <a target="_blank" href="http://www.theisozone.com/downloads/pc/windows-games/touhou-01---05-pc-98-emulator-included/">http://www.theisozone.com/downloads/pc/windows-games/touhou-01---05-pc-98-emulator-included/</a><br></td></tr>
+<tr><td class="passfail_PASS"><a target="_blank" href="https://github.com/joncampbell123/dosbox-x/commit/12c1059466e10b49b2ccc8f31e0656eda2f87e6b">PASS</a></td><td class="passfail_X">X</td><td>nec-pc98/touhou-project-03-phantasmagoria-of-oriental-dream-dimensions<br><pre><br>MD5 hash: fe00199b4e7bd013425075fb45de8196 *TH03/CANBE.EXE
+MD5 hash: 43ee91a800f1f0fe35a87149c90b037d *TH03/MAIN.EXE
+MD5 hash: 0da304556e804dfcc849da98790e9d7d *TH03/MAINL.EXE
+MD5 hash: e893546a452ecf56d1ba34339cba54fa *TH03/OP.EXE
+MD5 hash: 6ef3b7ed7960aac89b673cdb2eb07f27 *TH03/COMMAND.COM
+MD5 hash: 4a6beef2e26dcfceb7d88bcc13f2896a *TH03/PMD86.COM
+MD5 hash: 5c50727de91463c7684d78f8973d86f4 *TH03/PMDB2.COM
+MD5 hash: b13ddc3e7dcaccf1b1914402bf6aa575 *TH03/PMD.COM
+MD5 hash: 338cd23a9bb7a3de7b4faf034601fc5c *TH03/ZUN.COM
+</pre><br>Download link: <a target="_blank" href="http://www.theisozone.com/downloads/pc/windows-games/touhou-01---05-pc-98-emulator-included/">http://www.theisozone.com/downloads/pc/windows-games/touhou-01---05-pc-98-emulator-included/</a><br></td></tr>
+<tr><td class="passfail_PASS"><a target="_blank" href="https://github.com/joncampbell123/dosbox-x/commit/12c1059466e10b49b2ccc8f31e0656eda2f87e6b">PASS</a></td><td class="passfail_X">X</td><td>nec-pc98/touhou-project-04-lotus-land-story<br><pre><br>MD5 hash: 631706f5c99ce9670ba4363950941222 *TH04/EMM386.EXE
+MD5 hash: 8494cd30af9bd78298786cc635e3c715 *TH04/MAINE.EXE
+MD5 hash: 06d74719b6f72b11014a392fd34d5f57 *TH04/MAIN.EXE
+MD5 hash: 4bab61804e74b649c0f84d31ec77945d *TH04/OP.EXE
+MD5 hash: 896e6670efe0cf820dd93a6701b31d36 *TH04/COMMAND.COM
+MD5 hash: 471924c947469f74fd06b75e4a0abc77 *TH04/PMD86.COM
+MD5 hash: e4f03f12d7cd3625f85a7a427b054b93 *TH04/PMDB2.COM
+MD5 hash: b13ddc3e7dcaccf1b1914402bf6aa575 *TH04/PMD.COM
+MD5 hash: 638a490fdbb66f581b90c9a068e5b0f7 *TH04/VMAP.COM
+MD5 hash: d456422ad1f45555302b04c7c229e0f4 *TH04/ZMAP.COM
+MD5 hash: 63f435dccb1a821f227d060d04894968 *TH04/ZUN.COM
+</pre><br>Download link: <a target="_blank" href="http://www.theisozone.com/downloads/pc/windows-games/touhou-01---05-pc-98-emulator-included/">http://www.theisozone.com/downloads/pc/windows-games/touhou-01---05-pc-98-emulator-included/</a><br></td></tr>
+<tr><td class="passfail_PASS"><a target="_blank" href="https://github.com/joncampbell123/dosbox-x/commit/12c1059466e10b49b2ccc8f31e0656eda2f87e6b">PASS</a></td><td class="passfail_X">X</td><td>nec-pc98/touhou-project-05-mystic-square<br><pre><br>MD5 hash: 2c539d61f4dd8c864df0b7885181b8db *TH05/$AINE.EXE
+MD5 hash: 952585e02435c3b3b111975a78b05983 *TH05/$AIN.EXE
+MD5 hash: cad0c44f7d84faa743ce45e7c544ec5d *TH05/CANBE.EXE
+MD5 hash: 1cfc9f01a15cbe1ace19ded866009446 *TH05/KAIKI101.EXE
+MD5 hash: 05002b06c2022fe301399762d16b870f *TH05/MAINE.EXE
+MD5 hash: 6a9ab51c7215e3d9ca580cd9f04f4d12 *TH05/MAIN.EXE
+MD5 hash: 50eac6e4a1e1fecf0c2afe8872519a84 *TH05/OP.EXE
+MD5 hash: 6ef3b7ed7960aac89b673cdb2eb07f27 *TH05/COMMAND.COM
+MD5 hash: 471924c947469f74fd06b75e4a0abc77 *TH05/PMD86.COM
+MD5 hash: e4f03f12d7cd3625f85a7a427b054b93 *TH05/PMDB2.COM
+MD5 hash: b13ddc3e7dcaccf1b1914402bf6aa575 *TH05/PMD.COM
+MD5 hash: 0005e6571252bed38d416799c0053c0b *TH05/ZUN.COM
+</pre><br>Download link: <a target="_blank" href="http://www.theisozone.com/downloads/pc/windows-games/touhou-01---05-pc-98-emulator-included/">http://www.theisozone.com/downloads/pc/windows-games/touhou-01---05-pc-98-emulator-included/</a><br></td></tr>
+</tbody>
+</table>
+</body>
+</html>
