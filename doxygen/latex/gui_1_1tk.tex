@@ -1,0 +1,67 @@
+\hypertarget{index_i}{}\section{Introduction}\label{index_i}
+gui\-::tk is a simple one-\/file C++ \hyperlink{namespaceGUI}{G\-U\-I} toolkit for use with arbitrary memory framebuffers.\hypertarget{index_f}{}\section{Features}\label{index_f}
+\begin{DoxyItemize}
+\item small source and binary code size \item reasonable performance and memory usage \item comfortable usage \item suitable for embedded usage\-: integer math only \item extensibility via O\-O \item non-\/intrusive\-: can be integrated with any event mechanism of your liking \item no dependencies apart from standards-\/conformant A\-N\-S\-I C++ (including a little S\-T\-L) \item support for different encodings, single-\/ and multibyte \item flexible font support\end{DoxyItemize}
+\hypertarget{gui_1_1tk_o}{}\section{Overview}\label{gui_1_1tk_o}
+The toolkit draws on a surface you provide, using any size or pixel format. Create a \hyperlink{classGUI_1_1Screen}{G\-U\-I\-::\-Screen} with the buffer to draw on, then pass that object (or a \hyperlink{classGUI_1_1Window}{G\-U\-I\-::\-Window} created from it) to all other widgets' constructors.
+
+It doesn't provide an own event loop. Instead, it relies on you passing events and updating the screen regularly. This way, it can easily be integrated with any event loop available (S\-D\-L, Qt, glib, X11, Win32, selfmade, ...)
+
+Many functions and concepts were taken from other well-\/known toolkits, so if you know Qt, Java or wx\-Windows, you may encounter (intentional) similarities. However, simplicity of code has been given priority over maximum optimization and pixel-\/exact replication of their appearance.
+
+A note about font support and encodings\-: All text-\/related functions use templates to support any encoding. Fonts define the charset.\hypertarget{gui_1_1tk_g}{}\section{Getting Started}\label{gui_1_1tk_g}
+gui\-::tk contains an S\-D\-L adapter, so if your program is already using S\-D\-L, things are really easy. The rough sequence to get up and running is\-:
+
+
+\begin{DoxyCode}
+ // setup a suitable video mode with SDL
+ SDL_surface *screen = SDL_SetVideoMode(640, 480, 32, SDL_SWSURFACE);
+
+ // add a default font, you will most probably need it
+ GUI::Font::addFont("default",new GUI::BitmapFont(testfont,14,10));
+
+ // create the root-level screen object, the parent of all top-level windows
+ GUI::ScreenSDL guiscreen(screen);
+
+ // create any amount of toplevel windows you like
+ GUI::ToplevelWindow *frame = new GUI::ToplevelWindow(&guiscreen, 205, 100, 380
+      , 250, "gui::tk example");
+
+ // add some GUI elements to the toplevel window
+ GUI::Button *b = new GUI::Button(frame,8,20,"Quit");
+
+ // Define and add an event handler
+ struct quit : public GUI::ActionEventSource_Callback {
+     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+         exit(0);
+     }
+ } ex;
+ b->addActionHandler(&ex);
+
+ // Enter an event loop, calling update() regularly.
+ SDL_Event event;
+ while (1) {
+     while (SDL_PollEvent(&event)) {
+         if (!guiscreen.event(event)) { // gui::tk didn't handle that event
+             if (event.type == SDL_QUIT) exit(0);
+         }
+     }
+
+     guiscreen.update(4); // 4 ticks = 40ms
+     SDL_UpdateRect(screen, 0, 0, screen->w, screen->h);
+
+     SDL_Delay(40); // wait 40ms
+ }
+\end{DoxyCode}
+
+
+Look at \hyperlink{gui__tk_8h}{gui\-\_\-tk.\-h} for more detailed documentation and reference of all classes.
+
+A test program that shows off the capabilities of gui\-::tk is available as part of \hyperlink{gui__tk_8cpp}{gui\-\_\-tk.\-cpp}.\hypertarget{gui_1_1tk_l}{}\section{License}\label{gui_1_1tk_l}
+Copyright (C) 2005-\/2007 Jörg Walter
+
+gui\-::tk is free software; you can redistribute it and/or modify it under the terms of the G\-N\-U General Public License as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later version.
+
+gui\-::tk is distributed in the hope that it will be useful, but W\-I\-T\-H\-O\-U\-T A\-N\-Y W\-A\-R\-R\-A\-N\-T\-Y; without even the implied warranty of M\-E\-R\-C\-H\-A\-N\-T\-A\-B\-I\-L\-I\-T\-Y or F\-I\-T\-N\-E\-S\-S F\-O\-R A P\-A\-R\-T\-I\-C\-U\-L\-A\-R P\-U\-R\-P\-O\-S\-E. See the G\-N\-U General Public License for more details.
+
+You should have received a copy of the G\-N\-U General Public License along with this program. If not, see \href{http://www.gnu.org/licenses/}{\tt http\-://www.\-gnu.\-org/licenses/} 

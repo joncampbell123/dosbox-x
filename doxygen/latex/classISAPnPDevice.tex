@@ -1,0 +1,223 @@
+\hypertarget{classISAPnPDevice}{\section{I\-S\-A\-Pn\-P\-Device Class Reference}
+\label{classISAPnPDevice}\index{I\-S\-A\-Pn\-P\-Device@{I\-S\-A\-Pn\-P\-Device}}
+}
+Inheritance diagram for I\-S\-A\-Pn\-P\-Device\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classISAPnPDevice}
+\end{center}
+\end{figure}
+\subsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+enum {\bfseries Small\-Tags} \{ \\*
+{\bfseries Plug\-And\-Play\-Version\-Number} =  0x1, 
+{\bfseries Logical\-Device\-I\-D} =  0x2, 
+{\bfseries Compatible\-Device\-I\-D} =  0x3, 
+{\bfseries I\-R\-Q\-Format} =  0x4, 
+\\*
+{\bfseries D\-M\-A\-Format} =  0x5, 
+{\bfseries Start\-Dependent\-Functions} =  0x6, 
+{\bfseries End\-Dependent\-Functions} =  0x7, 
+{\bfseries I\-O\-Port\-Descriptor} =  0x8, 
+\\*
+{\bfseries Fixed\-Location\-I\-O\-Port\-Descriptor} =  0x9, 
+{\bfseries Small\-Vendor\-Defined} =  0x\-E, 
+{\bfseries End\-Tag} =  0x\-F
+ \}
+\item 
+enum {\bfseries Large\-Tags} \{ \\*
+{\bfseries Memory\-Range\-Descriptor} =  0x1, 
+{\bfseries Identifier\-String\-A\-N\-S\-I} =  0x2, 
+{\bfseries Identifier\-String\-U\-N\-I\-C\-O\-D\-E} =  0x3, 
+{\bfseries Large\-Vendor\-Defined} =  0x4, 
+\\*
+{\bfseries Memory\-Range32\-Descriptor} =  0x5, 
+{\bfseries Fixed\-Location\-Memory\-Range\-Descriptor} =  0x6
+ \}
+\item 
+enum {\bfseries Dependent\-Function\-Config} \{ {\bfseries Preferred\-Dependent\-Configuration} =  0x0, 
+{\bfseries Acceptable\-Dependent\-Configuration} =  0x1, 
+{\bfseries Sub\-Optimal\-Dependent\-Configuration} =  0x2
+ \}
+\item 
+enum \{ {\bfseries I\-R\-Q\-Format\-Info\-\_\-\-High\-True\-Edge\-Sensitive} =  0x1, 
+{\bfseries I\-R\-Q\-Format\-Info\-\_\-\-Low\-True\-Edge\-Sensitive} =  0x2, 
+{\bfseries I\-R\-Q\-Format\-Info\-\_\-\-High\-True\-Level\-Sensitive} =  0x4, 
+{\bfseries I\-R\-Q\-Format\-Info\-\_\-\-Low\-True\-Level\-Sensitive} =  0x8
+ \}
+\item 
+enum \{ {\bfseries D\-M\-A\-Transfer\-Type\-\_\-8bit\-Only} = 0, 
+{\bfseries D\-M\-A\-Transfer\-Type\-\_\-8\-\_\-and\-\_\-16bit} = 1, 
+{\bfseries D\-M\-A\-Transfer\-Type\-\_\-16bit\-Only} = 2
+ \}
+\item 
+enum \{ {\bfseries D\-M\-A\-Speed\-Supported\-\_\-\-Compat} = 0, 
+{\bfseries D\-M\-A\-Speed\-Supported\-\_\-\-Type\-A} = 1, 
+{\bfseries D\-M\-A\-Speed\-Supported\-\_\-\-Type\-B} = 2, 
+{\bfseries D\-M\-A\-Speed\-Supported\-\_\-\-Type\-F} = 3
+ \}
+\end{DoxyCompactItemize}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classISAPnPDevice_a948afe92ba459a86c0fbc57812b139d5}{void {\bfseries checksum\-\_\-ident} ()}\label{classISAPnPDevice_a948afe92ba459a86c0fbc57812b139d5}
+
+\item 
+\hypertarget{classISAPnPDevice_a3d83390d27f0382f7a7f9aeae8d36e89}{virtual void {\bfseries config} (Bitu val)}\label{classISAPnPDevice_a3d83390d27f0382f7a7f9aeae8d36e89}
+
+\item 
+\hypertarget{classISAPnPDevice_a596ca247bdc0c23ad01ab84abfdfee03}{virtual void {\bfseries wakecsn} (Bitu val)}\label{classISAPnPDevice_a596ca247bdc0c23ad01ab84abfdfee03}
+
+\item 
+\hypertarget{classISAPnPDevice_a1eff8e26d19e549854832caffe881544}{virtual void {\bfseries select\-\_\-logical\-\_\-device} (Bitu val)}\label{classISAPnPDevice_a1eff8e26d19e549854832caffe881544}
+
+\item 
+\hypertarget{classISAPnPDevice_a7ef60a94b9a22392cc26be2b85fec047}{virtual void {\bfseries on\-\_\-pnp\-\_\-key} ()}\label{classISAPnPDevice_a7ef60a94b9a22392cc26be2b85fec047}
+
+\item 
+\hypertarget{classISAPnPDevice_ac08ba398c7845074a80602a60b5d64ec}{virtual uint8\-\_\-t {\bfseries read} (Bitu addr)}\label{classISAPnPDevice_ac08ba398c7845074a80602a60b5d64ec}
+
+\item 
+\hypertarget{classISAPnPDevice_adb4e289227c64c9be96933dddf92e904}{virtual void {\bfseries write} (Bitu addr, Bitu val)}\label{classISAPnPDevice_adb4e289227c64c9be96933dddf92e904}
+
+\item 
+\hypertarget{classISAPnPDevice_ac73f006fe93881e217713ba0a2fc3c73}{virtual bool {\bfseries alloc} (size\-\_\-t sz)}\label{classISAPnPDevice_ac73f006fe93881e217713ba0a2fc3c73}
+
+\item 
+\hypertarget{classISAPnPDevice_aa9773b4ff25b7177fd1cd4fd2fa25a6b}{void {\bfseries write\-\_\-begin\-\_\-\-S\-M\-A\-L\-L\-T\-A\-G} (const I\-S\-A\-Pn\-P\-Device\-::\-Small\-Tags stag, unsigned char len)}\label{classISAPnPDevice_aa9773b4ff25b7177fd1cd4fd2fa25a6b}
+
+\item 
+\hypertarget{classISAPnPDevice_a05bed908a96cd203c1b8b391f33884a2}{void {\bfseries write\-\_\-begin\-\_\-\-L\-A\-R\-G\-E\-T\-A\-G} (const I\-S\-A\-Pn\-P\-Device\-::\-Large\-Tags stag, unsigned int len)}\label{classISAPnPDevice_a05bed908a96cd203c1b8b391f33884a2}
+
+\item 
+\hypertarget{classISAPnPDevice_a5819167c3d0e8e62831ef58fd28c1b21}{void {\bfseries write\-\_\-nstring} (const char $\ast$str, const size\-\_\-t l)}\label{classISAPnPDevice_a5819167c3d0e8e62831ef58fd28c1b21}
+
+\item 
+\hypertarget{classISAPnPDevice_aa0b89495be34f6c654d1177c6883789b}{void {\bfseries write\-\_\-byte} (const unsigned char c)}\label{classISAPnPDevice_aa0b89495be34f6c654d1177c6883789b}
+
+\item 
+\hypertarget{classISAPnPDevice_a97bb310a59a7fdf185b26776fc04bc4f}{void {\bfseries begin\-\_\-write\-\_\-res} ()}\label{classISAPnPDevice_a97bb310a59a7fdf185b26776fc04bc4f}
+
+\item 
+\hypertarget{classISAPnPDevice_a2117ff5e139941025c99dfe41538fbef}{void {\bfseries end\-\_\-write\-\_\-res} ()}\label{classISAPnPDevice_a2117ff5e139941025c99dfe41538fbef}
+
+\item 
+\hypertarget{classISAPnPDevice_a1d3dc3e65ec7a81b75366f9947d62804}{void {\bfseries write\-\_\-\-E\-N\-D} ()}\label{classISAPnPDevice_a1d3dc3e65ec7a81b75366f9947d62804}
+
+\item 
+\hypertarget{classISAPnPDevice_a731c79a2942bd32de7a92531c378da49}{void {\bfseries write\-\_\-\-I\-S\-A\-Pn\-P\-\_\-version} (unsigned char major, unsigned char minor, unsigned char vendor)}\label{classISAPnPDevice_a731c79a2942bd32de7a92531c378da49}
+
+\item 
+\hypertarget{classISAPnPDevice_a11b04e87db92c1ec88f12b880560d598}{void {\bfseries write\-\_\-\-Identifier\-\_\-\-String} (const char $\ast$str)}\label{classISAPnPDevice_a11b04e87db92c1ec88f12b880560d598}
+
+\item 
+\hypertarget{classISAPnPDevice_ab75df5a9d1778b9f72a7a4c41590e03e}{void {\bfseries write\-\_\-\-Logical\-\_\-\-Device\-\_\-\-I\-D} (const char c1, const char c2, const char c3, const char c4, const char c5, const char c6, const char c7)}\label{classISAPnPDevice_ab75df5a9d1778b9f72a7a4c41590e03e}
+
+\item 
+\hypertarget{classISAPnPDevice_a82333984e29355de6aa136cbf42650f2}{void {\bfseries write\-\_\-\-Compatible\-\_\-\-Device\-\_\-\-I\-D} (const char c1, const char c2, const char c3, const char c4, const char c5, const char c6, const char c7)}\label{classISAPnPDevice_a82333984e29355de6aa136cbf42650f2}
+
+\item 
+\hypertarget{classISAPnPDevice_a78ce0d3cb8d04542b75360fdd5fdbe50}{void {\bfseries write\-\_\-\-Device\-\_\-\-I\-D} (const char c1, const char c2, const char c3, const char c4, const char c5, const char c6, const char c7)}\label{classISAPnPDevice_a78ce0d3cb8d04542b75360fdd5fdbe50}
+
+\item 
+\hypertarget{classISAPnPDevice_ab4252c5d2c75204386a1e5f16b0e0055}{void {\bfseries write\-\_\-\-Dependent\-\_\-\-Function\-\_\-\-Start} (const I\-S\-A\-Pn\-P\-Device\-::\-Dependent\-Function\-Config cfg, const bool force=false)}\label{classISAPnPDevice_ab4252c5d2c75204386a1e5f16b0e0055}
+
+\item 
+\hypertarget{classISAPnPDevice_a4b9d92daa7f3303e08504d731bba5b97}{void {\bfseries write\-\_\-\-I\-R\-Q\-\_\-\-Format} (const uint16\-\_\-t I\-R\-Q\-\_\-mask, const unsigned char I\-R\-Q\-\_\-signal\-\_\-type=0)}\label{classISAPnPDevice_a4b9d92daa7f3303e08504d731bba5b97}
+
+\item 
+\hypertarget{classISAPnPDevice_aa37664f583dfa6bbffe21b1efae1088f}{void {\bfseries write\-\_\-\-D\-M\-A\-\_\-\-Format} (const uint8\-\_\-t D\-M\-A\-\_\-mask, const unsigned char transfer\-\_\-type\-\_\-preference, const bool is\-\_\-bus\-\_\-master, const bool byte\-\_\-mode, const bool word\-\_\-mode, const unsigned char speed\-\_\-supported)}\label{classISAPnPDevice_aa37664f583dfa6bbffe21b1efae1088f}
+
+\item 
+\hypertarget{classISAPnPDevice_a5370ef1d69bd8bb5dd32b929763af73c}{void {\bfseries write\-\_\-\-I\-O\-\_\-\-Port} (const uint16\-\_\-t min\-\_\-port, const uint16\-\_\-t max\-\_\-port, const uint8\-\_\-t count, const uint8\-\_\-t alignment=1, const bool full16bitdecode=true)}\label{classISAPnPDevice_a5370ef1d69bd8bb5dd32b929763af73c}
+
+\item 
+\hypertarget{classISAPnPDevice_a2547f7a84bfc336a39fb0c0daeecde18}{void {\bfseries write\-\_\-\-End\-\_\-\-Dependent\-\_\-\-Functions} ()}\label{classISAPnPDevice_a2547f7a84bfc336a39fb0c0daeecde18}
+
+\end{DoxyCompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classISAPnPDevice_a97c5e451b0269f0ce29bc9d42302f56b}{static const uint16\-\_\-t {\bfseries irq2mask} (const int I\-R\-Q)}\label{classISAPnPDevice_a97c5e451b0269f0ce29bc9d42302f56b}
+
+\item 
+\hypertarget{classISAPnPDevice_a127c562b37467036af4982d975b04795}{static const uint16\-\_\-t {\bfseries irq2mask} (const int a, const int b)}\label{classISAPnPDevice_a127c562b37467036af4982d975b04795}
+
+\item 
+\hypertarget{classISAPnPDevice_ac0b8798171356fed8172377e544b07f8}{static const uint16\-\_\-t {\bfseries irq2mask} (const int a, const int b, const int c)}\label{classISAPnPDevice_ac0b8798171356fed8172377e544b07f8}
+
+\item 
+\hypertarget{classISAPnPDevice_a787e3025b54ad7d77969b57197a9f1dc}{static const uint16\-\_\-t {\bfseries irq2mask} (const int a, const int b, const int c, const int d)}\label{classISAPnPDevice_a787e3025b54ad7d77969b57197a9f1dc}
+
+\item 
+\hypertarget{classISAPnPDevice_af4f49211bd1f636216cf03b464af0f2d}{static const uint16\-\_\-t {\bfseries irq2mask} (const int a, const int b, const int c, const int d, const int e)}\label{classISAPnPDevice_af4f49211bd1f636216cf03b464af0f2d}
+
+\item 
+\hypertarget{classISAPnPDevice_ad7f7ef654931dded7c14e6d15620d6d4}{static const uint16\-\_\-t {\bfseries dma2mask} (const int D\-M\-A)}\label{classISAPnPDevice_ad7f7ef654931dded7c14e6d15620d6d4}
+
+\item 
+\hypertarget{classISAPnPDevice_ab23b5892582a57bd53011888316814e8}{static const uint16\-\_\-t {\bfseries dma2mask} (const int a, const int b)}\label{classISAPnPDevice_ab23b5892582a57bd53011888316814e8}
+
+\item 
+\hypertarget{classISAPnPDevice_a521666a3e9340e9ce99ded4e62673e06}{static const uint16\-\_\-t {\bfseries dma2mask} (const int a, const int b, const int c)}\label{classISAPnPDevice_a521666a3e9340e9ce99ded4e62673e06}
+
+\item 
+\hypertarget{classISAPnPDevice_a8ee0428ad13f0334a3b07039ca40c51b}{static const uint16\-\_\-t {\bfseries dma2mask} (const int a, const int b, const int c, const int d)}\label{classISAPnPDevice_a8ee0428ad13f0334a3b07039ca40c51b}
+
+\item 
+\hypertarget{classISAPnPDevice_a41fb3d3aa48b622fd5620a285ea30de4}{static const uint16\-\_\-t {\bfseries dma2mask} (const int a, const int b, const int c, const int d, const int e)}\label{classISAPnPDevice_a41fb3d3aa48b622fd5620a285ea30de4}
+
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classISAPnPDevice_a3ef534419f26e56b1ca30e83b33587ef}{unsigned char {\bfseries C\-S\-N}}\label{classISAPnPDevice_a3ef534419f26e56b1ca30e83b33587ef}
+
+\item 
+\hypertarget{classISAPnPDevice_a64c6b4881d94ee36ffbd5902f35618f5}{unsigned char {\bfseries logical\-\_\-device}}\label{classISAPnPDevice_a64c6b4881d94ee36ffbd5902f35618f5}
+
+\item 
+\hypertarget{classISAPnPDevice_a64378b5635e71f680d7606e553802acc}{unsigned char {\bfseries ident} \mbox{[}9\mbox{]}}\label{classISAPnPDevice_a64378b5635e71f680d7606e553802acc}
+
+\item 
+\hypertarget{classISAPnPDevice_a679950e054d8888d78eff2b2c6a190ce}{unsigned char {\bfseries ident\-\_\-bp}}\label{classISAPnPDevice_a679950e054d8888d78eff2b2c6a190ce}
+
+\item 
+\hypertarget{classISAPnPDevice_a1a7e961359d21f4c9ac98ed9ed3b0064}{unsigned char {\bfseries ident\-\_\-2nd}}\label{classISAPnPDevice_a1a7e961359d21f4c9ac98ed9ed3b0064}
+
+\item 
+\hypertarget{classISAPnPDevice_ac4fcd7dcfc7bbf19f1289ed422be136a}{unsigned char {\bfseries resource\-\_\-ident}}\label{classISAPnPDevice_ac4fcd7dcfc7bbf19f1289ed422be136a}
+
+\item 
+\hypertarget{classISAPnPDevice_a3ab868b1c70dd0bcf10a1d69074d09c3}{unsigned char $\ast$ {\bfseries resource\-\_\-data}}\label{classISAPnPDevice_a3ab868b1c70dd0bcf10a1d69074d09c3}
+
+\item 
+\hypertarget{classISAPnPDevice_ac60d20aa084ba430d431810fd57e5318}{size\-\_\-t {\bfseries resource\-\_\-data\-\_\-len}}\label{classISAPnPDevice_ac60d20aa084ba430d431810fd57e5318}
+
+\item 
+\hypertarget{classISAPnPDevice_acb56f8c68573a4a5bf3483de48dacb76}{unsigned int {\bfseries resource\-\_\-data\-\_\-pos}}\label{classISAPnPDevice_acb56f8c68573a4a5bf3483de48dacb76}
+
+\item 
+\hypertarget{classISAPnPDevice_a0b6ff0bb3c342833d4eecf55b87e82ff}{size\-\_\-t {\bfseries alloc\-\_\-write}}\label{classISAPnPDevice_a0b6ff0bb3c342833d4eecf55b87e82ff}
+
+\item 
+\hypertarget{classISAPnPDevice_ab7645d92be95729a5f745d0735342296}{unsigned char $\ast$ {\bfseries alloc\-\_\-res}}\label{classISAPnPDevice_ab7645d92be95729a5f745d0735342296}
+
+\item 
+\hypertarget{classISAPnPDevice_ae872e27861732e57001057215332f53f}{size\-\_\-t {\bfseries alloc\-\_\-sz}}\label{classISAPnPDevice_ae872e27861732e57001057215332f53f}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 156 of file bios.\-h.
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+include/bios.\-h\item 
+src/ints/bios.\-cpp\end{DoxyCompactItemize}

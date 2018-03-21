@@ -1,0 +1,47 @@
+\hypertarget{classMT32Emu_1_1LA32WaveGenerator}{\section{M\-T32\-Emu\-:\-:L\-A32\-Wave\-Generator Class Reference}
+\label{classMT32Emu_1_1LA32WaveGenerator}\index{M\-T32\-Emu\-::\-L\-A32\-Wave\-Generator@{M\-T32\-Emu\-::\-L\-A32\-Wave\-Generator}}
+}
+
+
+{\ttfamily \#include $<$L\-A32\-Wave\-Generator.\-h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classMT32Emu_1_1LA32WaveGenerator_ae44cd58efdf0337f2fd3c425ae777c68}{void {\bfseries init\-Synth} (const bool sawtooth\-Waveform, const Bit8u pulse\-Width, const Bit8u resonance)}\label{classMT32Emu_1_1LA32WaveGenerator_ae44cd58efdf0337f2fd3c425ae777c68}
+
+\item 
+\hypertarget{classMT32Emu_1_1LA32WaveGenerator_a6cb6c79f0bc20c4856cd20b73d9c3043}{void {\bfseries init\-P\-C\-M} (const Bit16s $\ast$const pcm\-Wave\-Address, const Bit32u pcm\-Wave\-Length, const bool pcm\-Wave\-Looped, const bool pcm\-Wave\-Interpolated)}\label{classMT32Emu_1_1LA32WaveGenerator_a6cb6c79f0bc20c4856cd20b73d9c3043}
+
+\item 
+\hypertarget{classMT32Emu_1_1LA32WaveGenerator_a1094d09fbdeff263b8cc8be77eb00b36}{void {\bfseries generate\-Next\-Sample} (const Bit32u amp, const Bit16u pitch, const Bit32u cutoff)}\label{classMT32Emu_1_1LA32WaveGenerator_a1094d09fbdeff263b8cc8be77eb00b36}
+
+\item 
+\hypertarget{classMT32Emu_1_1LA32WaveGenerator_a44ccf3c2f8a5365c2778cfd025c8305c}{\hyperlink{structMT32Emu_1_1LogSample}{Log\-Sample} {\bfseries get\-Output\-Log\-Sample} (const bool first) const }\label{classMT32Emu_1_1LA32WaveGenerator_a44ccf3c2f8a5365c2778cfd025c8305c}
+
+\item 
+\hypertarget{classMT32Emu_1_1LA32WaveGenerator_a640be9d68680fb1fcfc3ba2cb2cb39c8}{void {\bfseries deactivate} ()}\label{classMT32Emu_1_1LA32WaveGenerator_a640be9d68680fb1fcfc3ba2cb2cb39c8}
+
+\item 
+\hypertarget{classMT32Emu_1_1LA32WaveGenerator_a894e66835e2e21a4be5a1db888c7db5c}{bool {\bfseries is\-Active} () const }\label{classMT32Emu_1_1LA32WaveGenerator_a894e66835e2e21a4be5a1db888c7db5c}
+
+\item 
+\hypertarget{classMT32Emu_1_1LA32WaveGenerator_a1540c5bd4f3d5658ff3551a1ab89dcec}{bool {\bfseries is\-P\-C\-M\-Wave} () const }\label{classMT32Emu_1_1LA32WaveGenerator_a1540c5bd4f3d5658ff3551a1ab89dcec}
+
+\item 
+\hypertarget{classMT32Emu_1_1LA32WaveGenerator_af37e29295fa788c5905b749889812c7a}{Bit32u {\bfseries get\-P\-C\-M\-Interpolation\-Factor} () const }\label{classMT32Emu_1_1LA32WaveGenerator_af37e29295fa788c5905b749889812c7a}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\hyperlink{classMT32Emu_1_1LA32WaveGenerator}{L\-A32\-Wave\-Generator} is aimed to represent the exact model of L\-A32 wave generator. The output square wave is created by adding high / low linear segments in-\/between the rising and falling cosine segments. Basically, it’s very similar to the phase distortion synthesis. Behaviour of a true resonance filter is emulated by adding decaying sine wave. The beginning and the ending of the resonant sine is multiplied by a cosine window. To synthesise sawtooth waves, the resulting square wave is multiplied by synchronous cosine wave. 
+
+Definition at line 61 of file L\-A32\-Wave\-Generator.\-h.
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+src/mt32/L\-A32\-Wave\-Generator.\-h\item 
+src/mt32/L\-A32\-Wave\-Generator.\-cpp\end{DoxyCompactItemize}

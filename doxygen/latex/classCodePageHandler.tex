@@ -1,0 +1,87 @@
+\hypertarget{classCodePageHandler}{\section{Code\-Page\-Handler Class Reference}
+\label{classCodePageHandler}\index{Code\-Page\-Handler@{Code\-Page\-Handler}}
+}
+Inheritance diagram for Code\-Page\-Handler\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classCodePageHandler}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classCodePageHandler_a87c79ce5b4fb25644c482db4b20a3103}{void {\bfseries Setup\-At} (Bitu \-\_\-phys\-\_\-page, \hyperlink{classPageHandler}{Page\-Handler} $\ast$\-\_\-old\-\_\-pagehandler)}\label{classCodePageHandler_a87c79ce5b4fb25644c482db4b20a3103}
+
+\item 
+\hypertarget{classCodePageHandler_aca18fa1db74292e125d5e7ff9f5beda6}{bool {\bfseries Invalidate\-Range} (Bitu start, Bitu end)}\label{classCodePageHandler_aca18fa1db74292e125d5e7ff9f5beda6}
+
+\item 
+\hypertarget{classCodePageHandler_a698b91e9fae57e129e1e930db514734a}{void {\bfseries writeb} (Phys\-Pt addr, Bitu val)}\label{classCodePageHandler_a698b91e9fae57e129e1e930db514734a}
+
+\item 
+\hypertarget{classCodePageHandler_a4b6f320fe1f85b3056475216b1dacab5}{void {\bfseries writew} (Phys\-Pt addr, Bitu val)}\label{classCodePageHandler_a4b6f320fe1f85b3056475216b1dacab5}
+
+\item 
+\hypertarget{classCodePageHandler_a26b021b0c312de57c1492021982dc13d}{void {\bfseries writed} (Phys\-Pt addr, Bitu val)}\label{classCodePageHandler_a26b021b0c312de57c1492021982dc13d}
+
+\item 
+\hypertarget{classCodePageHandler_aec57c55fad4cd460717c239bd1474e6e}{bool {\bfseries writeb\-\_\-checked} (Phys\-Pt addr, Bitu val)}\label{classCodePageHandler_aec57c55fad4cd460717c239bd1474e6e}
+
+\item 
+\hypertarget{classCodePageHandler_ac357bfc5ec260b491451e6f8ea44a138}{bool {\bfseries writew\-\_\-checked} (Phys\-Pt addr, Bitu val)}\label{classCodePageHandler_ac357bfc5ec260b491451e6f8ea44a138}
+
+\item 
+\hypertarget{classCodePageHandler_ac398f0075a3cc49afc076e25653da4c6}{bool {\bfseries writed\-\_\-checked} (Phys\-Pt addr, Bitu val)}\label{classCodePageHandler_ac398f0075a3cc49afc076e25653da4c6}
+
+\item 
+\hypertarget{classCodePageHandler_a4394a3a0c612f147e9313c32ad5a2ef2}{void {\bfseries Add\-Cache\-Block} (\hyperlink{classCacheBlock}{Cache\-Block} $\ast$block)}\label{classCodePageHandler_a4394a3a0c612f147e9313c32ad5a2ef2}
+
+\item 
+\hypertarget{classCodePageHandler_afaf5dfac51d87e16deefdf78a5091a3d}{void {\bfseries Add\-Cross\-Block} (\hyperlink{classCacheBlock}{Cache\-Block} $\ast$block)}\label{classCodePageHandler_afaf5dfac51d87e16deefdf78a5091a3d}
+
+\item 
+\hypertarget{classCodePageHandler_a74a0aa0138052d498472ee4f476a126f}{void {\bfseries Del\-Cache\-Block} (\hyperlink{classCacheBlock}{Cache\-Block} $\ast$block)}\label{classCodePageHandler_a74a0aa0138052d498472ee4f476a126f}
+
+\item 
+\hypertarget{classCodePageHandler_af3567ac970407100a37f9fdfdc5b11a5}{void {\bfseries Release} (void)}\label{classCodePageHandler_af3567ac970407100a37f9fdfdc5b11a5}
+
+\item 
+\hypertarget{classCodePageHandler_a2b352d9f945f5fa1dc191c8c025326ab}{void {\bfseries Clear\-Release} (void)}\label{classCodePageHandler_a2b352d9f945f5fa1dc191c8c025326ab}
+
+\item 
+\hypertarget{classCodePageHandler_a549b786d4eba57ca816945744f358c89}{\hyperlink{classCacheBlock}{Cache\-Block} $\ast$ {\bfseries Find\-Cache\-Block} (Bitu start)}\label{classCodePageHandler_a549b786d4eba57ca816945744f358c89}
+
+\item 
+\hypertarget{classCodePageHandler_ac4694e5e8bf91bdf4e86a3e4d1cb307a}{Host\-Pt {\bfseries Get\-Host\-Read\-Pt} (Bitu phys\-\_\-page)}\label{classCodePageHandler_ac4694e5e8bf91bdf4e86a3e4d1cb307a}
+
+\item 
+\hypertarget{classCodePageHandler_a9a17686f326a398c3b4938c4e34394e7}{Host\-Pt {\bfseries Get\-Host\-Write\-Pt} (Bitu phys\-\_\-page)}\label{classCodePageHandler_a9a17686f326a398c3b4938c4e34394e7}
+
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classCodePageHandler_a84538118ba7438d515bac485646702ce}{Bit8u {\bfseries write\-\_\-map} \mbox{[}4096\mbox{]}}\label{classCodePageHandler_a84538118ba7438d515bac485646702ce}
+
+\item 
+\hypertarget{classCodePageHandler_af014007ebce9214b94d6dabde94fc195}{Bit8u $\ast$ {\bfseries invalidation\-\_\-map}}\label{classCodePageHandler_af014007ebce9214b94d6dabde94fc195}
+
+\item 
+\hypertarget{classCodePageHandler_a967eb97a32a4281ba8e6cbf4b484c009}{\hyperlink{classCodePageHandler}{Code\-Page\-Handler} $\ast$ {\bfseries next}}\label{classCodePageHandler_a967eb97a32a4281ba8e6cbf4b484c009}
+
+\item 
+\hypertarget{classCodePageHandler_afbb9fc7febc79ace42c439c7564b23c7}{\hyperlink{classCodePageHandler}{Code\-Page\-Handler} $\ast$ {\bfseries prev}}\label{classCodePageHandler_afbb9fc7febc79ace42c439c7564b23c7}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 68 of file cache.\-h.
+
+
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+src/cpu/core\-\_\-dyn\-\_\-x86/cache.\-h\end{DoxyCompactItemize}

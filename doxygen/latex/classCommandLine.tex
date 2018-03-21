@@ -1,0 +1,109 @@
+\hypertarget{classCommandLine}{\section{Command\-Line Class Reference}
+\label{classCommandLine}\index{Command\-Line@{Command\-Line}}
+}
+\subsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+enum {\bfseries opt\-\_\-style} \{ {\bfseries dos} = 0, 
+{\bfseries gnu}, 
+{\bfseries gnu\-\_\-getopt}, 
+{\bfseries either}
+ \}
+\end{DoxyCompactItemize}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classCommandLine_a564a8d1913e306decc89493674b3198e}{{\bfseries Command\-Line} (int argc, char const $\ast$const argv\mbox{[}$\,$\mbox{]}, enum opt\-\_\-style opt=Command\-Line\-::either)}\label{classCommandLine_a564a8d1913e306decc89493674b3198e}
+
+\item 
+\hypertarget{classCommandLine_a6f1b87cd2fd1823d0166c98a954872ae}{{\bfseries Command\-Line} (char const $\ast$const name, char const $\ast$const cmdline, enum opt\-\_\-style opt=Command\-Line\-::either)}\label{classCommandLine_a6f1b87cd2fd1823d0166c98a954872ae}
+
+\item 
+\hypertarget{classCommandLine_a1f45b4326873dbcd8e1f3a37293390e1}{const char $\ast$ {\bfseries Get\-File\-Name} ()}\label{classCommandLine_a1f45b4326873dbcd8e1f3a37293390e1}
+
+\item 
+\hypertarget{classCommandLine_afb34ecd52f6c897051767042bcca5918}{bool {\bfseries Find\-Exist} (char const $\ast$const name, bool remove=false)}\label{classCommandLine_afb34ecd52f6c897051767042bcca5918}
+
+\item 
+\hypertarget{classCommandLine_ac3fd4a68a14b29f1a23e9a828d6a0683}{bool {\bfseries Find\-Hex} (char const $\ast$const name, int \&value, bool remove=false)}\label{classCommandLine_ac3fd4a68a14b29f1a23e9a828d6a0683}
+
+\item 
+\hypertarget{classCommandLine_a8179a05544caa1ac6170f5a79f0a1d99}{bool {\bfseries Find\-Int} (char const $\ast$const name, int \&value, bool remove=false)}\label{classCommandLine_a8179a05544caa1ac6170f5a79f0a1d99}
+
+\item 
+\hypertarget{classCommandLine_a1fe7d738d6388a60e04c8479312743ef}{bool {\bfseries Find\-String} (char const $\ast$const name, std\-::string \&value, bool remove=false)}\label{classCommandLine_a1fe7d738d6388a60e04c8479312743ef}
+
+\item 
+\hypertarget{classCommandLine_a68fc2c8be26d62d89f29dafb7fba5799}{bool {\bfseries Find\-Command} (unsigned int which, std\-::string \&value)}\label{classCommandLine_a68fc2c8be26d62d89f29dafb7fba5799}
+
+\item 
+\hypertarget{classCommandLine_a372efd83a11653150c7e05be677dbcae}{bool {\bfseries Find\-String\-Begin} (char const $\ast$const begin, std\-::string \&value, bool remove=false)}\label{classCommandLine_a372efd83a11653150c7e05be677dbcae}
+
+\item 
+\hypertarget{classCommandLine_a8995713eff76c14e1d53ec0515d833d6}{bool {\bfseries Find\-String\-Remain} (char const $\ast$const name, std\-::string \&value)}\label{classCommandLine_a8995713eff76c14e1d53ec0515d833d6}
+
+\item 
+\hypertarget{classCommandLine_a791da6ab1876316f66f545a31cee69e5}{bool {\bfseries Find\-String\-Remain\-Begin} (char const $\ast$const name, std\-::string \&value)}\label{classCommandLine_a791da6ab1876316f66f545a31cee69e5}
+
+\item 
+\hypertarget{classCommandLine_abdba027c787d2b5a70dee1e842c699dd}{bool {\bfseries Get\-String\-Remain} (std\-::string \&value)}\label{classCommandLine_abdba027c787d2b5a70dee1e842c699dd}
+
+\item 
+\hypertarget{classCommandLine_ac5b6c005e5f124ab3a1a7de6db8a86d3}{int {\bfseries Get\-Parameter\-From\-List} (const char $\ast$const params\mbox{[}$\,$\mbox{]}, std\-::vector$<$ std\-::string $>$ \&output)}\label{classCommandLine_ac5b6c005e5f124ab3a1a7de6db8a86d3}
+
+\item 
+\hypertarget{classCommandLine_a694f00846c0832d8cd97fe0a652d5567}{void {\bfseries Fill\-Vector} (std\-::vector$<$ std\-::string $>$ \&vector)}\label{classCommandLine_a694f00846c0832d8cd97fe0a652d5567}
+
+\item 
+\hypertarget{classCommandLine_aec22173334fc0db4e350b3475a162f1a}{unsigned int {\bfseries Get\-Count} (void)}\label{classCommandLine_aec22173334fc0db4e350b3475a162f1a}
+
+\item 
+\hypertarget{classCommandLine_aea42d5fe141ba6c58ef7045eb3b92f3e}{void {\bfseries Shift} (unsigned int amount=1)}\label{classCommandLine_aea42d5fe141ba6c58ef7045eb3b92f3e}
+
+\item 
+\hypertarget{classCommandLine_ab4e8866df99dac127353b303b95014ee}{Bit16u {\bfseries Get\-\_\-arglength} ()}\label{classCommandLine_ab4e8866df99dac127353b303b95014ee}
+
+\item 
+\hypertarget{classCommandLine_ad1780afea11368a1e6fdd35276a8c678}{bool {\bfseries Begin\-Opt} (bool eat\-\_\-argv=true)}\label{classCommandLine_ad1780afea11368a1e6fdd35276a8c678}
+
+\item 
+\hypertarget{classCommandLine_a4440913abd4b9f06635b3df3fe0ee7d4}{bool {\bfseries Get\-Opt} (std\-::string \&name)}\label{classCommandLine_a4440913abd4b9f06635b3df3fe0ee7d4}
+
+\item 
+\hypertarget{classCommandLine_a090151cab04fbb6e886f2053e2ef56a3}{bool {\bfseries Next\-Opt\-Argv} (std\-::string \&argv)}\label{classCommandLine_a090151cab04fbb6e886f2053e2ef56a3}
+
+\item 
+\hypertarget{classCommandLine_ac94cc029aca101fb5e39189fca40ff91}{bool {\bfseries Get\-Opt\-G\-N\-U\-Single\-Char\-Check} (std\-::string \&name)}\label{classCommandLine_ac94cc029aca101fb5e39189fca40ff91}
+
+\item 
+\hypertarget{classCommandLine_ac0f91f63b77400b7266128dbc1445b1b}{void {\bfseries Change\-Opt\-Style} (enum opt\-\_\-style opt\-\_\-style)}\label{classCommandLine_ac0f91f63b77400b7266128dbc1445b1b}
+
+\item 
+\hypertarget{classCommandLine_a941c71120faefc5e3c0876d69ac78491}{void {\bfseries End\-Opt} ()}\label{classCommandLine_a941c71120faefc5e3c0876d69ac78491}
+
+\item 
+\hypertarget{classCommandLine_a331a3c1e87e6a2c0306cf1e9f7a67945}{bool {\bfseries Get\-Current\-Argv} (std\-::string \&argv)}\label{classCommandLine_a331a3c1e87e6a2c0306cf1e9f7a67945}
+
+\item 
+\hypertarget{classCommandLine_ad457fad3218a71163a058bc095cfe0ed}{bool {\bfseries Current\-Argv\-End} (void)}\label{classCommandLine_ad457fad3218a71163a058bc095cfe0ed}
+
+\item 
+\hypertarget{classCommandLine_ab34d4cf4cb665ecb694f90e5f9c524c3}{void {\bfseries Eat\-Current\-Argv} (void)}\label{classCommandLine_ab34d4cf4cb665ecb694f90e5f9c524c3}
+
+\item 
+\hypertarget{classCommandLine_a89dd608d9095a3321d48eb90ecf210ba}{void {\bfseries Next\-Argv} (void)}\label{classCommandLine_a89dd608d9095a3321d48eb90ecf210ba}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 40 of file programs.\-h.
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+include/programs.\-h\item 
+src/misc/setup.\-cpp\end{DoxyCompactItemize}

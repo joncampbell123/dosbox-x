@@ -1,0 +1,198 @@
+\hypertarget{classIntel8255}{\section{Intel8255 Class Reference}
+\label{classIntel8255}\index{Intel8255@{Intel8255}}
+}
+Inheritance diagram for Intel8255\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classIntel8255}
+\end{center}
+\end{figure}
+\subsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+enum \{ {\bfseries Port\-A} = 0, 
+{\bfseries Port\-B} = 1, 
+{\bfseries Port\-C} = 2
+ \}
+\end{DoxyCompactItemize}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classIntel8255_ad140a9c3a8dda8fc954a8f25c4d1bfca}{void {\bfseries reset} (void)}\label{classIntel8255_ad140a9c3a8dda8fc954a8f25c4d1bfca}
+
+\item 
+\hypertarget{classIntel8255_a1a94705b45a2560e8a81cc2bd5a4275a}{void {\bfseries ack\-Port\-A} (void)}\label{classIntel8255_a1a94705b45a2560e8a81cc2bd5a4275a}
+
+\item 
+\hypertarget{classIntel8255_af08c9c489604d0eb1340f41e71a7bdc5}{void {\bfseries ack\-Port\-B} (void)}\label{classIntel8255_af08c9c489604d0eb1340f41e71a7bdc5}
+
+\item 
+\hypertarget{classIntel8255_a7794eec4462ed1d6b3888b9af91445c6}{virtual void {\bfseries strobe\-Port\-A} (void)}\label{classIntel8255_a7794eec4462ed1d6b3888b9af91445c6}
+
+\item 
+\hypertarget{classIntel8255_aa3fece75effbbf7eeb60a2a44976f1d3}{virtual void {\bfseries strobe\-Port\-B} (void)}\label{classIntel8255_aa3fece75effbbf7eeb60a2a44976f1d3}
+
+\item 
+\hypertarget{classIntel8255_a751260da953e9f51d5537664cc6e0173}{uint8\-\_\-t {\bfseries read\-Port\-A} (void)}\label{classIntel8255_a751260da953e9f51d5537664cc6e0173}
+
+\item 
+\hypertarget{classIntel8255_a0b4e956de16abf229c6599e8eedbe887}{uint8\-\_\-t {\bfseries read\-Port\-B} (void)}\label{classIntel8255_a0b4e956de16abf229c6599e8eedbe887}
+
+\item 
+\hypertarget{classIntel8255_a8d19749a800aa3250004d744d0fa6da8}{uint8\-\_\-t {\bfseries read\-Port\-C} (void)}\label{classIntel8255_a8d19749a800aa3250004d744d0fa6da8}
+
+\item 
+\hypertarget{classIntel8255_ab997e7e58d497ed718396817a786892a}{uint8\-\_\-t {\bfseries read\-Control} (void)}\label{classIntel8255_ab997e7e58d497ed718396817a786892a}
+
+\item 
+\hypertarget{classIntel8255_a248d0ab5644eca500f58c73c6dbbdbf9}{uint8\-\_\-t {\bfseries read\-By\-Port} (uint8\-\_\-t p03)}\label{classIntel8255_a248d0ab5644eca500f58c73c6dbbdbf9}
+
+\item 
+\hypertarget{classIntel8255_aba502bfd8176cd843afb53ed8249b02e}{void {\bfseries write\-Port\-A} (uint8\-\_\-t data, uint8\-\_\-t mask=0x\-F\-F\-U)}\label{classIntel8255_aba502bfd8176cd843afb53ed8249b02e}
+
+\item 
+\hypertarget{classIntel8255_ac0713f4c2044142742a5749802be95c6}{void {\bfseries write\-Port\-B} (uint8\-\_\-t data, uint8\-\_\-t mask=0x\-F\-F\-U)}\label{classIntel8255_ac0713f4c2044142742a5749802be95c6}
+
+\item 
+\hypertarget{classIntel8255_ad2698cf223a87e741bac7c1d30b10423}{void {\bfseries write\-Port\-C} (uint8\-\_\-t data, uint8\-\_\-t mask=0x\-F\-F\-U)}\label{classIntel8255_ad2698cf223a87e741bac7c1d30b10423}
+
+\item 
+\hypertarget{classIntel8255_a65938641a443329e477299bd6a7afda5}{void {\bfseries write\-Control} (uint8\-\_\-t data)}\label{classIntel8255_a65938641a443329e477299bd6a7afda5}
+
+\item 
+\hypertarget{classIntel8255_aa6679f39867668adf330fd5dce0ee19d}{void {\bfseries write\-By\-Port} (uint8\-\_\-t p03, uint8\-\_\-t data)}\label{classIntel8255_aa6679f39867668adf330fd5dce0ee19d}
+
+\item 
+\hypertarget{classIntel8255_a387e1edf0b09feea29362f1854398237}{virtual uint8\-\_\-t {\bfseries in\-Port\-A} (void) const }\label{classIntel8255_a387e1edf0b09feea29362f1854398237}
+
+\item 
+\hypertarget{classIntel8255_a5e4a8c34778bef66b5d2ddcf7b372be1}{virtual uint8\-\_\-t {\bfseries in\-Port\-B} (void) const }\label{classIntel8255_a5e4a8c34778bef66b5d2ddcf7b372be1}
+
+\item 
+\hypertarget{classIntel8255_ac02d52c1bf5c0fb0478dfb0ffb1b8ec8}{virtual uint8\-\_\-t {\bfseries in\-Port\-C} (void) const }\label{classIntel8255_ac02d52c1bf5c0fb0478dfb0ffb1b8ec8}
+
+\item 
+\hypertarget{classIntel8255_a15b8c1a78f8f1ca7ac90b92cc329f7d0}{virtual void {\bfseries out\-Port\-A} (const uint8\-\_\-t mask)}\label{classIntel8255_a15b8c1a78f8f1ca7ac90b92cc329f7d0}
+
+\item 
+\hypertarget{classIntel8255_a3004cbfc1a1eade447d2e312bc1faa29}{virtual void {\bfseries out\-Port\-B} (const uint8\-\_\-t mask)}\label{classIntel8255_a3004cbfc1a1eade447d2e312bc1faa29}
+
+\item 
+\hypertarget{classIntel8255_afaff12790fc1b0cf538c7b1a4f27d804}{virtual void {\bfseries out\-Port\-C} (const uint8\-\_\-t mask)}\label{classIntel8255_afaff12790fc1b0cf538c7b1a4f27d804}
+
+\item 
+\hypertarget{classIntel8255_a862582a9f1779bb8af99365361b63c03}{void {\bfseries update\-I\-N\-T\-R\-\_\-\-A} (void)}\label{classIntel8255_a862582a9f1779bb8af99365361b63c03}
+
+\item 
+\hypertarget{classIntel8255_ad2adbe70f430d36a9f4f27124de3335d}{void {\bfseries update\-I\-N\-T\-R\-\_\-\-B} (void)}\label{classIntel8255_ad2adbe70f430d36a9f4f27124de3335d}
+
+\item 
+\hypertarget{classIntel8255_a5a0199f3c744cd05b81936aaf58dc394}{void {\bfseries check\-I\-N\-T\-R\-\_\-\-A} (void)}\label{classIntel8255_a5a0199f3c744cd05b81936aaf58dc394}
+
+\item 
+\hypertarget{classIntel8255_aa1fb90bb0a5ecf6121e8f79eb7b757d8}{void {\bfseries check\-I\-N\-T\-R\-\_\-\-B} (void)}\label{classIntel8255_aa1fb90bb0a5ecf6121e8f79eb7b757d8}
+
+\item 
+\hypertarget{classIntel8255_a2338b0324884d4362c516631dd838466}{virtual void {\bfseries sig\-I\-N\-T\-R\-\_\-\-A} (void)}\label{classIntel8255_a2338b0324884d4362c516631dd838466}
+
+\item 
+\hypertarget{classIntel8255_a6d81c4a61f0cc7033e1da1a16cc2275e}{virtual void {\bfseries sig\-I\-N\-T\-R\-\_\-\-B} (void)}\label{classIntel8255_a6d81c4a61f0cc7033e1da1a16cc2275e}
+
+\item 
+\hypertarget{classIntel8255_a74f2c86ed0256d9d51ee468bc156b004}{const char $\ast$ {\bfseries get\-Name} (void) const }\label{classIntel8255_a74f2c86ed0256d9d51ee468bc156b004}
+
+\item 
+\hypertarget{classIntel8255_ab229c3b40dbb7fdf4304b82cd40696fa}{const char $\ast$ {\bfseries pin\-Name} (const unsigned int port, const unsigned int i) const }\label{classIntel8255_ab229c3b40dbb7fdf4304b82cd40696fa}
+
+\item 
+\hypertarget{classIntel8255_a3f2f6c30bb6cb840cac73d4a83414481}{const char $\ast$ {\bfseries port\-Name} (const unsigned int port) const }\label{classIntel8255_a3f2f6c30bb6cb840cac73d4a83414481}
+
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classIntel8255_a2b5cdceaa86b03a1d19c5c3f749f6d38}{uint8\-\_\-t {\bfseries port\-A\-Write\-Mask}}\label{classIntel8255_a2b5cdceaa86b03a1d19c5c3f749f6d38}
+
+\item 
+\hypertarget{classIntel8255_a0cba5817d6d2b0017b8e71d1d5fca1d8}{uint8\-\_\-t {\bfseries port\-B\-Write\-Mask}}\label{classIntel8255_a0cba5817d6d2b0017b8e71d1d5fca1d8}
+
+\item 
+\hypertarget{classIntel8255_aea9eef42c705822317af5fb69b6f5c35}{uint8\-\_\-t {\bfseries port\-C\-Write\-Mask}}\label{classIntel8255_aea9eef42c705822317af5fb69b6f5c35}
+
+\item 
+\hypertarget{classIntel8255_a4eb95c6f23bf4192324853afe9fe2178}{const char $\ast$ {\bfseries ppi\-Name}}\label{classIntel8255_a4eb95c6f23bf4192324853afe9fe2178}
+
+\item 
+\hypertarget{classIntel8255_a9b4ea7714e1b9df34052e269e7f06dfa}{const char $\ast$ {\bfseries pin\-Names} \mbox{[}3\mbox{]}\mbox{[}8\mbox{]}}\label{classIntel8255_a9b4ea7714e1b9df34052e269e7f06dfa}
+
+\item 
+\hypertarget{classIntel8255_a2439197a04df0425206d5d23328de77d}{const char $\ast$ {\bfseries port\-Names} \mbox{[}3\mbox{]}}\label{classIntel8255_a2439197a04df0425206d5d23328de77d}
+
+\item 
+\hypertarget{classIntel8255_a789e21fa7684972852c58e484fc8fa05}{uint8\-\_\-t {\bfseries latch\-Out\-Port\-A}}\label{classIntel8255_a789e21fa7684972852c58e484fc8fa05}
+
+\item 
+\hypertarget{classIntel8255_a6cab7d5af4469ef233e2b86734d0a002}{uint8\-\_\-t {\bfseries latch\-Out\-Port\-B}}\label{classIntel8255_a6cab7d5af4469ef233e2b86734d0a002}
+
+\item 
+\hypertarget{classIntel8255_ae7a6fa5ef9a676a043c28fe17fccd5cf}{uint8\-\_\-t {\bfseries latch\-Out\-Port\-C}}\label{classIntel8255_ae7a6fa5ef9a676a043c28fe17fccd5cf}
+
+\item 
+\hypertarget{classIntel8255_a9585630ec3ff22e97c26524931dab693}{uint8\-\_\-t {\bfseries mode}}\label{classIntel8255_a9585630ec3ff22e97c26524931dab693}
+
+\item 
+\hypertarget{classIntel8255_aab8c8fd1a89d777816aecbcd3b27eea8}{bool {\bfseries I\-B\-F\-\_\-\-A}}\label{classIntel8255_aab8c8fd1a89d777816aecbcd3b27eea8}
+
+\item 
+\hypertarget{classIntel8255_a5576bb32d1d14c809954c95b1e140b00}{bool {\bfseries I\-B\-F\-\_\-\-B}}\label{classIntel8255_a5576bb32d1d14c809954c95b1e140b00}
+
+\item 
+\hypertarget{classIntel8255_ad6207273407dcfb3ed9785613838baf7}{bool {\bfseries O\-B\-F\-\_\-\-A}}\label{classIntel8255_ad6207273407dcfb3ed9785613838baf7}
+
+\item 
+\hypertarget{classIntel8255_a5d84e8f433d4aeaf15d5f79cbadd878e}{bool {\bfseries O\-B\-F\-\_\-\-B}}\label{classIntel8255_a5d84e8f433d4aeaf15d5f79cbadd878e}
+
+\item 
+\hypertarget{classIntel8255_a1b037b991428a40a2c4437723fc26b63}{bool {\bfseries I\-N\-T\-R\-\_\-\-A}}\label{classIntel8255_a1b037b991428a40a2c4437723fc26b63}
+
+\item 
+\hypertarget{classIntel8255_af60b776612a4b393fb3ceb0fcb273750}{bool {\bfseries I\-N\-T\-R\-\_\-\-B}}\label{classIntel8255_af60b776612a4b393fb3ceb0fcb273750}
+
+\item 
+\hypertarget{classIntel8255_a3f0b361bdd3b3e17f2e4155a562e97f6}{bool {\bfseries p\-I\-N\-T\-R\-\_\-\-A}}\label{classIntel8255_a3f0b361bdd3b3e17f2e4155a562e97f6}
+
+\item 
+\hypertarget{classIntel8255_a20fdff00b2ce0c6ff6853a812cb4bd9d}{bool {\bfseries p\-I\-N\-T\-R\-\_\-\-B}}\label{classIntel8255_a20fdff00b2ce0c6ff6853a812cb4bd9d}
+
+\item 
+\hypertarget{classIntel8255_a86ff75a1d1c588498770aef868af1646}{bool {\bfseries I\-N\-T\-E\-\_\-1}}\label{classIntel8255_a86ff75a1d1c588498770aef868af1646}
+
+\item 
+\hypertarget{classIntel8255_a3c4ae09573e23e4d7ebe5fd5974e7237}{bool {\bfseries I\-N\-T\-E\-\_\-2}}\label{classIntel8255_a3c4ae09573e23e4d7ebe5fd5974e7237}
+
+\item 
+\hypertarget{classIntel8255_acb70507c44eaf7feb0e9d27a6a4546e8}{bool {\bfseries I\-N\-T\-E\-\_\-\-A}}\label{classIntel8255_acb70507c44eaf7feb0e9d27a6a4546e8}
+
+\item 
+\hypertarget{classIntel8255_a8417a1099c39abfa19d027e6d341bb7b}{bool {\bfseries I\-N\-T\-E\-\_\-\-B}}\label{classIntel8255_a8417a1099c39abfa19d027e6d341bb7b}
+
+\end{DoxyCompactItemize}
+\subsection*{Static Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classIntel8255_a4d14f0770973a9e416acc5ac04857eb1}{static const char $\ast$ {\bfseries nil\-\_\-if\-\_\-null} (const char $\ast$str)}\label{classIntel8255_a4d14f0770973a9e416acc5ac04857eb1}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 5 of file 8255.\-h.
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+include/8255.\-h\item 
+src/hardware/8255.\-cpp\end{DoxyCompactItemize}

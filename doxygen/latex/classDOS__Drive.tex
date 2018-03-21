@@ -1,0 +1,127 @@
+\hypertarget{classDOS__Drive}{\section{D\-O\-S\-\_\-\-Drive Class Reference}
+\label{classDOS__Drive}\index{D\-O\-S\-\_\-\-Drive@{D\-O\-S\-\_\-\-Drive}}
+}
+Inheritance diagram for D\-O\-S\-\_\-\-Drive\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=4.000000cm]{classDOS__Drive}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classDOS__Drive_a89edfab101b6473ab2c78e6d0a60a664}{virtual bool {\bfseries File\-Open} (\hyperlink{classDOS__File}{D\-O\-S\-\_\-\-File} $\ast$$\ast$file, const char $\ast$name, Bit32u flags)=0}\label{classDOS__Drive_a89edfab101b6473ab2c78e6d0a60a664}
+
+\item 
+\hypertarget{classDOS__Drive_aadcc90a2e2c8227e245bdb226abdc1d2}{virtual bool {\bfseries File\-Create} (\hyperlink{classDOS__File}{D\-O\-S\-\_\-\-File} $\ast$$\ast$file, const char $\ast$name, Bit16u attributes)=0}\label{classDOS__Drive_aadcc90a2e2c8227e245bdb226abdc1d2}
+
+\item 
+\hypertarget{classDOS__Drive_ad82f3601ae44410db65241752bdb0d37}{virtual bool {\bfseries File\-Unlink} (const char $\ast$\-\_\-name)=0}\label{classDOS__Drive_ad82f3601ae44410db65241752bdb0d37}
+
+\item 
+\hypertarget{classDOS__Drive_ade3271a57f28cc1a18dc84714dc2611b}{virtual bool {\bfseries Remove\-Dir} (const char $\ast$\-\_\-dir)=0}\label{classDOS__Drive_ade3271a57f28cc1a18dc84714dc2611b}
+
+\item 
+\hypertarget{classDOS__Drive_aa16cb38b04fd09608c749d2cf786fd21}{virtual bool {\bfseries Make\-Dir} (const char $\ast$\-\_\-dir)=0}\label{classDOS__Drive_aa16cb38b04fd09608c749d2cf786fd21}
+
+\item 
+\hypertarget{classDOS__Drive_a55e8ba77ed5a74e6a27932c3177b0998}{virtual bool {\bfseries Test\-Dir} (const char $\ast$\-\_\-dir)=0}\label{classDOS__Drive_a55e8ba77ed5a74e6a27932c3177b0998}
+
+\item 
+\hypertarget{classDOS__Drive_a85a98cf83473db4fb4fd15a7e1d9b21f}{virtual bool {\bfseries Find\-First} (const char $\ast$\-\_\-dir, \hyperlink{classDOS__DTA}{D\-O\-S\-\_\-\-D\-T\-A} \&dta, bool fcb\-\_\-findfirst=false)=0}\label{classDOS__Drive_a85a98cf83473db4fb4fd15a7e1d9b21f}
+
+\item 
+\hypertarget{classDOS__Drive_aa2feef7be81869b683b6945159df5149}{virtual bool {\bfseries Find\-Next} (\hyperlink{classDOS__DTA}{D\-O\-S\-\_\-\-D\-T\-A} \&dta)=0}\label{classDOS__Drive_aa2feef7be81869b683b6945159df5149}
+
+\item 
+\hypertarget{classDOS__Drive_aff8f34bd9601bceeeb587fd0e4cd51bf}{virtual bool {\bfseries Get\-File\-Attr} (const char $\ast$name, Bit16u $\ast$attr)=0}\label{classDOS__Drive_aff8f34bd9601bceeeb587fd0e4cd51bf}
+
+\item 
+\hypertarget{classDOS__Drive_a1329723ca172ad17e932caeb052469e8}{virtual bool {\bfseries Rename} (const char $\ast$oldname, const char $\ast$newname)=0}\label{classDOS__Drive_a1329723ca172ad17e932caeb052469e8}
+
+\item 
+\hypertarget{classDOS__Drive_a5e15b725bcef2e78fd17fad8981b560d}{virtual bool {\bfseries Allocation\-Info} (Bit16u $\ast$\-\_\-bytes\-\_\-sector, Bit8u $\ast$\-\_\-sectors\-\_\-cluster, Bit16u $\ast$\-\_\-total\-\_\-clusters, Bit16u $\ast$\-\_\-free\-\_\-clusters)=0}\label{classDOS__Drive_a5e15b725bcef2e78fd17fad8981b560d}
+
+\item 
+\hypertarget{classDOS__Drive_ac40baf5634ab1e58e38d0dda0dff3afb}{virtual bool {\bfseries File\-Exists} (const char $\ast$name)=0}\label{classDOS__Drive_ac40baf5634ab1e58e38d0dda0dff3afb}
+
+\item 
+\hypertarget{classDOS__Drive_a9e38d58283c5e54845e81751e36b646e}{virtual bool {\bfseries File\-Stat} (const char $\ast$name, \hyperlink{structFileStat__Block}{File\-Stat\-\_\-\-Block} $\ast$const stat\-\_\-block)=0}\label{classDOS__Drive_a9e38d58283c5e54845e81751e36b646e}
+
+\item 
+\hypertarget{classDOS__Drive_a344fbf135d82e7330c309c9b7dfad7e8}{virtual Bit8u {\bfseries Get\-Media\-Byte} (void)=0}\label{classDOS__Drive_a344fbf135d82e7330c309c9b7dfad7e8}
+
+\item 
+\hypertarget{classDOS__Drive_a60dbe76d92bff85e197fc51cc433f0e3}{virtual void {\bfseries Set\-Dir} (const char $\ast$path)}\label{classDOS__Drive_a60dbe76d92bff85e197fc51cc433f0e3}
+
+\item 
+\hypertarget{classDOS__Drive_afe789aa0e61388914c4ab1d73ff591d9}{virtual bool {\bfseries is\-Remote} (void)=0}\label{classDOS__Drive_afe789aa0e61388914c4ab1d73ff591d9}
+
+\item 
+\hypertarget{classDOS__Drive_a6931988116a287679e700e30083ec9de}{virtual bool {\bfseries is\-Removable} (void)=0}\label{classDOS__Drive_a6931988116a287679e700e30083ec9de}
+
+\item 
+\hypertarget{classDOS__Drive_aef7bc7c1cbf09e4fe88ee8bc7435db07}{virtual Bits {\bfseries Un\-Mount} (void)=0}\label{classDOS__Drive_aef7bc7c1cbf09e4fe88ee8bc7435db07}
+
+\item 
+\hypertarget{classDOS__Drive_ae382ad86607e9926893e78af7231ec61}{virtual void $\ast$ {\bfseries opendir} (const char $\ast$dir)}\label{classDOS__Drive_ae382ad86607e9926893e78af7231ec61}
+
+\item 
+\hypertarget{classDOS__Drive_af52e4214f17f23c70751df925582ba12}{virtual void {\bfseries closedir} (void $\ast$handle)}\label{classDOS__Drive_af52e4214f17f23c70751df925582ba12}
+
+\item 
+\hypertarget{classDOS__Drive_ac595d4546118da9910b2f736b7af1c41}{virtual bool {\bfseries read\-\_\-directory\-\_\-first} (void $\ast$handle, char $\ast$entry\-\_\-name, bool \&is\-\_\-directory)}\label{classDOS__Drive_ac595d4546118da9910b2f736b7af1c41}
+
+\item 
+\hypertarget{classDOS__Drive_aaf4039f2a7830fab1b0c8603542f9f31}{virtual bool {\bfseries read\-\_\-directory\-\_\-next} (void $\ast$handle, char $\ast$entry\-\_\-name, bool \&is\-\_\-directory)}\label{classDOS__Drive_aaf4039f2a7830fab1b0c8603542f9f31}
+
+\item 
+\hypertarget{classDOS__Drive_a64bf9af6eca73f8071c109a2d4c25d02}{virtual const char $\ast$ {\bfseries Get\-Info} (void)}\label{classDOS__Drive_a64bf9af6eca73f8071c109a2d4c25d02}
+
+\item 
+\hypertarget{classDOS__Drive_abbaeec032c93d0f14760b12f39386eec}{char $\ast$ {\bfseries Get\-Base\-Dir} (void)}\label{classDOS__Drive_abbaeec032c93d0f14760b12f39386eec}
+
+\item 
+\hypertarget{classDOS__Drive_a8e239d9aa134597f38505b39b8ca8016}{virtual char const $\ast$ {\bfseries Get\-Label} ()}\label{classDOS__Drive_a8e239d9aa134597f38505b39b8ca8016}
+
+\item 
+\hypertarget{classDOS__Drive_a20d9aa48e274a59070f10d949802a4b2}{virtual void {\bfseries Set\-Label} (const char $\ast$label, bool iscdrom, bool updatable)}\label{classDOS__Drive_a20d9aa48e274a59070f10d949802a4b2}
+
+\item 
+\hypertarget{classDOS__Drive_a2ec8efe8d1b50b3c8a7b3bde52000e0e}{virtual void {\bfseries Empty\-Cache} ()}\label{classDOS__Drive_a2ec8efe8d1b50b3c8a7b3bde52000e0e}
+
+\item 
+\hypertarget{classDOS__Drive_aceabb46a487741d6c63241539811e80d}{virtual void {\bfseries Media\-Change} ()}\label{classDOS__Drive_aceabb46a487741d6c63241539811e80d}
+
+\item 
+\hypertarget{classDOS__Drive_a1007125b58463bbffb07d890fd6f1c61}{virtual void {\bfseries Activate} (void)}\label{classDOS__Drive_a1007125b58463bbffb07d890fd6f1c61}
+
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classDOS__Drive_aa7a3f21acf8787c1bad16d2c4fb5c53c}{bool {\bfseries readonly}}\label{classDOS__Drive_aa7a3f21acf8787c1bad16d2c4fb5c53c}
+
+\item 
+\hypertarget{classDOS__Drive_ab8a268c6350773fa0e8b8c000b691447}{bool {\bfseries nocachedir}}\label{classDOS__Drive_ab8a268c6350773fa0e8b8c000b691447}
+
+\item 
+\hypertarget{classDOS__Drive_a781fd315606de345f8eab325c2a17c2e}{char {\bfseries curdir} \mbox{[}D\-O\-S\-\_\-\-P\-A\-T\-H\-L\-E\-N\-G\-T\-H\mbox{]}}\label{classDOS__Drive_a781fd315606de345f8eab325c2a17c2e}
+
+\item 
+\hypertarget{classDOS__Drive_a3e2b1d7526c099ba38ba991b9d2623e1}{char {\bfseries info} \mbox{[}256\mbox{]}}\label{classDOS__Drive_a3e2b1d7526c099ba38ba991b9d2623e1}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 238 of file dos\-\_\-system.\-h.
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+include/dos\-\_\-system.\-h\item 
+src/dos/drives.\-cpp\end{DoxyCompactItemize}

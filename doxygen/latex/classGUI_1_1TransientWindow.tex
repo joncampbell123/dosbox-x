@@ -1,0 +1,162 @@
+\hypertarget{classGUI_1_1TransientWindow}{\section{G\-U\-I\-:\-:Transient\-Window Class Reference}
+\label{classGUI_1_1TransientWindow}\index{G\-U\-I\-::\-Transient\-Window@{G\-U\-I\-::\-Transient\-Window}}
+}
+
+
+A floating temporary window that is not restricted by it's parent's area.  
+
+
+
+
+{\ttfamily \#include $<$gui\-\_\-tk.\-h$>$}
+
+Inheritance diagram for G\-U\-I\-:\-:Transient\-Window\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.886598cm]{classGUI_1_1TransientWindow}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classGUI_1_1TransientWindow_a233608f207df9a452281145e1086d31c}{virtual void \hyperlink{classGUI_1_1TransientWindow_a233608f207df9a452281145e1086d31c}{focus\-Changed} (bool gained)}\label{classGUI_1_1TransientWindow_a233608f207df9a452281145e1086d31c}
+
+\begin{DoxyCompactList}\small\item\em Handle automatic hiding. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1TransientWindow_af9215fcb2e62b8d472bbd5457054f3bc}{void \hyperlink{classGUI_1_1TransientWindow_af9215fcb2e62b8d472bbd5457054f3bc}{window\-Closed} (\hyperlink{classGUI_1_1ToplevelWindow}{Toplevel\-Window} $\ast$win)}\label{classGUI_1_1TransientWindow_af9215fcb2e62b8d472bbd5457054f3bc}
+
+\begin{DoxyCompactList}\small\item\em Handle automatic delete. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1TransientWindow_afd212cef088556c0c11b89020bfa64dd}{bool \hyperlink{classGUI_1_1TransientWindow_afd212cef088556c0c11b89020bfa64dd}{window\-Closing} (\hyperlink{classGUI_1_1ToplevelWindow}{Toplevel\-Window} $\ast$win)}\label{classGUI_1_1TransientWindow_afd212cef088556c0c11b89020bfa64dd}
+
+\begin{DoxyCompactList}\small\item\em No-\/op. \end{DoxyCompactList}\item 
+\hyperlink{classGUI_1_1TransientWindow_a9d3c071b550810d79451acb5959026fd}{Transient\-Window} (\hyperlink{classGUI_1_1Window}{Window} $\ast$\hyperlink{classGUI_1_1Window_a2e593ff65e7702178d82fe9010a0b539}{parent}, int \hyperlink{classGUI_1_1Window_a6ca6a80ca00c9e1d8ceea8d3d99a657d}{x}, int \hyperlink{classGUI_1_1Window_a0ee8e923aff2c3661fc2e17656d37adf}{y}, int w, int h)
+\begin{DoxyCompactList}\small\item\em Create a transient window with given position and size. \end{DoxyCompactList}\item 
+virtual void \hyperlink{classGUI_1_1TransientWindow_aec97d27a3f4ece3138c58d9fb40fbccc}{move} (int \hyperlink{classGUI_1_1Window_a6ca6a80ca00c9e1d8ceea8d3d99a657d}{x}, int \hyperlink{classGUI_1_1Window_a0ee8e923aff2c3661fc2e17656d37adf}{y})
+\begin{DoxyCompactList}\small\item\em Move this window to the given position relative to the parent window's origin. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1TransientWindow_a86352691dc46f2aa44234be025efc944}{virtual int \hyperlink{classGUI_1_1TransientWindow_a86352691dc46f2aa44234be025efc944}{get\-X} () const }\label{classGUI_1_1TransientWindow_a86352691dc46f2aa44234be025efc944}
+
+\begin{DoxyCompactList}\small\item\em Return this window's X position relative to the parent's top left corner. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1TransientWindow_af9b5c0937927c046fc4ea7d59b9ddf7a}{virtual int \hyperlink{classGUI_1_1TransientWindow_af9b5c0937927c046fc4ea7d59b9ddf7a}{get\-Y} () const }\label{classGUI_1_1TransientWindow_af9b5c0937927c046fc4ea7d59b9ddf7a}
+
+\begin{DoxyCompactList}\small\item\em Return this window's Y position relative to the parent's top left corner. \end{DoxyCompactList}\item 
+virtual void \hyperlink{classGUI_1_1TransientWindow_a5581ee490ae2ce490ca45e234f6712a2}{set\-Visible} (bool v)
+\begin{DoxyCompactList}\small\item\em Show or hide this window. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1TransientWindow_a7d6a4d5dbcc98148e501734d8abb85b0}{virtual void \hyperlink{classGUI_1_1TransientWindow_a7d6a4d5dbcc98148e501734d8abb85b0}{window\-Moved} (\hyperlink{classGUI_1_1Window}{Window} $\ast$src, int \hyperlink{classGUI_1_1Window_a6ca6a80ca00c9e1d8ceea8d3d99a657d}{x}, int \hyperlink{classGUI_1_1Window_a0ee8e923aff2c3661fc2e17656d37adf}{y})}\label{classGUI_1_1TransientWindow_a7d6a4d5dbcc98148e501734d8abb85b0}
+
+\begin{DoxyCompactList}\small\item\em Called whenever this window changes position. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1TransientWindow_a970674e955de6a1d5a0966953e56c587}{virtual bool \hyperlink{classGUI_1_1TransientWindow_a970674e955de6a1d5a0966953e56c587}{raise} ()}\label{classGUI_1_1TransientWindow_a970674e955de6a1d5a0966953e56c587}
+
+\begin{DoxyCompactList}\small\item\em Put window on top of all other windows without changing their relative order. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classGUI_1_1TransientWindow_a60cf2fbbe9a995a518426c436ae671d7}{\hyperlink{classGUI_1_1Window}{Window} $\ast$ \hyperlink{classGUI_1_1TransientWindow_a60cf2fbbe9a995a518426c436ae671d7}{realparent}}\label{classGUI_1_1TransientWindow_a60cf2fbbe9a995a518426c436ae671d7}
+
+\begin{DoxyCompactList}\small\item\em The true parent window. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1TransientWindow_ad4dd88c6ac5e34b4bc0032cd685fe1bf}{int \hyperlink{classGUI_1_1TransientWindow_ad4dd88c6ac5e34b4bc0032cd685fe1bf}{relx}}\label{classGUI_1_1TransientWindow_ad4dd88c6ac5e34b4bc0032cd685fe1bf}
+
+\begin{DoxyCompactList}\small\item\em User selected position relative to logical parent. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1TransientWindow_ae74be94cedae9e1277010b45f4f6248a}{int {\bfseries rely}}\label{classGUI_1_1TransientWindow_ae74be94cedae9e1277010b45f4f6248a}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+A floating temporary window that is not restricted by it's parent's area. 
+
+They have a parent which displays them, but that parent is not their real parent in the window hierarchy\-: They are always top-\/level elements, thus they are not clipped to their logical parent's area, they can freely overlay any part of the screen. As another consequence, they are not automatically deleted when their logical parent is deleted.
+
+You should observe the following points\-: \begin{DoxyItemize}
+\item Transient\-Windows behave mostly as if their logical parent was their true parent, but are not restricted to it's area \item Transient\-Windows are deleted automatically when the \hyperlink{classGUI_1_1ToplevelWindow}{Toplevel\-Window} is deleted in which their logical parent resides; do N\-O\-T delete them in your destructor or bad things will happen \item only the logical parent object can show/hide a \hyperlink{classGUI_1_1TransientWindow}{Transient\-Window} at will \item it will close automatically upon clicking other \hyperlink{namespaceGUI}{G\-U\-I} elements, {\itshape except\/} for the logical parent and it's children \end{DoxyItemize}
+
+
+Definition at line 1684 of file gui\-\_\-tk.\-h.
+
+
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classGUI_1_1TransientWindow_a9d3c071b550810d79451acb5959026fd}{\index{G\-U\-I\-::\-Transient\-Window@{G\-U\-I\-::\-Transient\-Window}!Transient\-Window@{Transient\-Window}}
+\index{Transient\-Window@{Transient\-Window}!GUI::TransientWindow@{G\-U\-I\-::\-Transient\-Window}}
+\subsubsection[{Transient\-Window}]{\setlength{\rightskip}{0pt plus 5cm}{\bf G\-U\-I\-::\-Transient\-Window\-::\-Transient\-Window} (
+\begin{DoxyParamCaption}
+\item[{{\bf Window} $\ast$}]{parent, }
+\item[{int}]{x, }
+\item[{int}]{y, }
+\item[{int}]{w, }
+\item[{int}]{h}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classGUI_1_1TransientWindow_a9d3c071b550810d79451acb5959026fd}
+
+
+Create a transient window with given position and size. 
+
+{\itshape parent\/} is the logical parent. The true parent object is always the screen the logical parent resides on. 
+
+Definition at line 1713 of file gui\-\_\-tk.\-h.
+
+
+
+References G\-U\-I\-::\-Window\-::add\-Window\-Handler(), G\-U\-I\-::\-Window\-::get\-Parent(), and realparent.
+
+
+
+\subsection{Member Function Documentation}
+\hypertarget{classGUI_1_1TransientWindow_aec97d27a3f4ece3138c58d9fb40fbccc}{\index{G\-U\-I\-::\-Transient\-Window@{G\-U\-I\-::\-Transient\-Window}!move@{move}}
+\index{move@{move}!GUI::TransientWindow@{G\-U\-I\-::\-Transient\-Window}}
+\subsubsection[{move}]{\setlength{\rightskip}{0pt plus 5cm}virtual void {\bf G\-U\-I\-::\-Transient\-Window\-::move} (
+\begin{DoxyParamCaption}
+\item[{int}]{x, }
+\item[{int}]{y}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline, virtual\mbox{]}}}}\label{classGUI_1_1TransientWindow_aec97d27a3f4ece3138c58d9fb40fbccc}
+
+
+Move this window to the given position relative to the parent window's origin. 
+
+If that would move part of the window outside of this window's area, the outside area will silently be clipped while drawing. 
+
+Reimplemented from \hyperlink{classGUI_1_1Window_a426af83d31a4c42b4e8f011fc3aa9555}{G\-U\-I\-::\-Window}.
+
+
+
+Definition at line 1737 of file gui\-\_\-tk.\-h.
+
+
+
+References G\-U\-I\-::\-Window\-::get\-Screen\-X(), G\-U\-I\-::\-Window\-::get\-Screen\-Y(), realparent, relx, G\-U\-I\-::\-Window\-::x, and G\-U\-I\-::\-Window\-::y.
+
+
+
+Referenced by window\-Moved().
+
+\hypertarget{classGUI_1_1TransientWindow_a5581ee490ae2ce490ca45e234f6712a2}{\index{G\-U\-I\-::\-Transient\-Window@{G\-U\-I\-::\-Transient\-Window}!set\-Visible@{set\-Visible}}
+\index{set\-Visible@{set\-Visible}!GUI::TransientWindow@{G\-U\-I\-::\-Transient\-Window}}
+\subsubsection[{set\-Visible}]{\setlength{\rightskip}{0pt plus 5cm}virtual void {\bf G\-U\-I\-::\-Transient\-Window\-::set\-Visible} (
+\begin{DoxyParamCaption}
+\item[{bool}]{v}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline, virtual\mbox{]}}}}\label{classGUI_1_1TransientWindow_a5581ee490ae2ce490ca45e234f6712a2}
+
+
+Show or hide this window. 
+
+By default, most windows are shown when created. Hidden windows do not receive any events. 
+
+Reimplemented from \hyperlink{classGUI_1_1Window_a7cd474e3c89ff37a4295da00f3624cc7}{G\-U\-I\-::\-Window}.
+
+
+
+Reimplemented in \hyperlink{classGUI_1_1Menu_aa98bb7305b74088dd875ead6747cfa52}{G\-U\-I\-::\-Menu}.
+
+
+
+Definition at line 1741 of file gui\-\_\-tk.\-h.
+
+
+
+Referenced by focus\-Changed().
+
+
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+src/libs/gui\-\_\-tk/\hyperlink{gui__tk_8h}{gui\-\_\-tk.\-h}\end{DoxyCompactItemize}

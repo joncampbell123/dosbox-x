@@ -1,0 +1,638 @@
+\hypertarget{classGUI_1_1Drawable}{\section{G\-U\-I\-:\-:Drawable Class Reference}
+\label{classGUI_1_1Drawable}\index{G\-U\-I\-::\-Drawable@{G\-U\-I\-::\-Drawable}}
+}
+
+
+A drawable represents a rectangular off-\/screen drawing area.  
+
+
+
+
+{\ttfamily \#include $<$gui\-\_\-tk.\-h$>$}
+
+Inheritance diagram for G\-U\-I\-:\-:Drawable\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classGUI_1_1Drawable}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classGUI_1_1Drawable_a0ae6adb7a236647e0a7f22d1402adb7b}{Drawable} (int w, int h, \hyperlink{namespaceGUI_aeafd135255365f3584da0e982fc79466}{R\-G\-B} \hyperlink{classGUI_1_1Drawable_a7cc6ef04bf37bed0be886b4376c8c173}{clear}=\hyperlink{namespaceGUI_1_1Color_a7ec3cc2d0178f404a31dac73d2048a10}{Color\-::\-Transparent})
+\begin{DoxyCompactList}\small\item\em Create an empty drawable object with given dimensions. \end{DoxyCompactList}\item 
+\hyperlink{classGUI_1_1Drawable_a093feedf8392b2a8ec9db583deb0f6c5}{Drawable} (\hyperlink{classGUI_1_1Drawable}{Drawable} \&src, \hyperlink{namespaceGUI_aeafd135255365f3584da0e982fc79466}{R\-G\-B} \hyperlink{classGUI_1_1Drawable_a7cc6ef04bf37bed0be886b4376c8c173}{clear}=0)
+\begin{DoxyCompactList}\small\item\em Deep-\/copying copy constructor. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_af15d26cf8727db29888212c17d58c00d}{\hyperlink{classGUI_1_1Drawable_af15d26cf8727db29888212c17d58c00d}{Drawable} (\hyperlink{classGUI_1_1Drawable}{Drawable} \&src, int \hyperlink{classGUI_1_1Drawable_a098294925bd310aa41080a2441790b80}{x}, int \hyperlink{classGUI_1_1Drawable_a574c99954cc268937f2c66ebe1332316}{y}, int w, int h)}\label{classGUI_1_1Drawable_af15d26cf8727db29888212c17d58c00d}
+
+\begin{DoxyCompactList}\small\item\em Shallow-\/copying copy constructor with clip \& translate. See set\-Clip\-Translate(int x, int y, int w, int h). \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_a51981686e6cf38d904cdfaa40c5996e4}{virtual \hyperlink{classGUI_1_1Drawable_a51981686e6cf38d904cdfaa40c5996e4}{$\sim$\-Drawable} ()}\label{classGUI_1_1Drawable_a51981686e6cf38d904cdfaa40c5996e4}
+
+\begin{DoxyCompactList}\small\item\em Destructor. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_a7cc6ef04bf37bed0be886b4376c8c173}{void \hyperlink{classGUI_1_1Drawable_a7cc6ef04bf37bed0be886b4376c8c173}{clear} (\hyperlink{namespaceGUI_aeafd135255365f3584da0e982fc79466}{R\-G\-B} \hyperlink{classGUI_1_1Drawable_a7cc6ef04bf37bed0be886b4376c8c173}{clear}=\hyperlink{namespaceGUI_1_1Color_a7ec3cc2d0178f404a31dac73d2048a10}{Color\-::\-Transparent})}\label{classGUI_1_1Drawable_a7cc6ef04bf37bed0be886b4376c8c173}
+
+\begin{DoxyCompactList}\small\item\em Clears the surface. \end{DoxyCompactList}\item 
+void \hyperlink{classGUI_1_1Drawable_a320fc166762d1109f833a1381a8b8b81}{set\-Color} (\hyperlink{namespaceGUI_aeafd135255365f3584da0e982fc79466}{R\-G\-B} c)
+\begin{DoxyCompactList}\small\item\em Change current drawing color. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_afd993dfb98455b33503f41685f7d8262}{\hyperlink{namespaceGUI_aeafd135255365f3584da0e982fc79466}{R\-G\-B} \hyperlink{classGUI_1_1Drawable_afd993dfb98455b33503f41685f7d8262}{get\-Color} ()}\label{classGUI_1_1Drawable_afd993dfb98455b33503f41685f7d8262}
+
+\begin{DoxyCompactList}\small\item\em Return the currently selected drawing color. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_a2dd6cf02efccfccd3c3c4184be74a587}{void \hyperlink{classGUI_1_1Drawable_a2dd6cf02efccfccd3c3c4184be74a587}{set\-Font} (const \hyperlink{classGUI_1_1Font}{Font} $\ast$f)}\label{classGUI_1_1Drawable_a2dd6cf02efccfccd3c3c4184be74a587}
+
+\begin{DoxyCompactList}\small\item\em Change current drawing font. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_a106eb9b6d8d1c5d0f3f92d3c5a6f6ced}{const \hyperlink{classGUI_1_1Font}{Font} $\ast$ \hyperlink{classGUI_1_1Drawable_a106eb9b6d8d1c5d0f3f92d3c5a6f6ced}{get\-Font} ()}\label{classGUI_1_1Drawable_a106eb9b6d8d1c5d0f3f92d3c5a6f6ced}
+
+\begin{DoxyCompactList}\small\item\em Return the currently selected drawing font. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_a4fe8d528c5a5b0e7bf146d74a2d517e6}{void \hyperlink{classGUI_1_1Drawable_a4fe8d528c5a5b0e7bf146d74a2d517e6}{set\-Line\-Width} (int w)}\label{classGUI_1_1Drawable_a4fe8d528c5a5b0e7bf146d74a2d517e6}
+
+\begin{DoxyCompactList}\small\item\em Change current line width. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_a51983595f2264c5a58cde822c5b2e99a}{int \hyperlink{classGUI_1_1Drawable_a51983595f2264c5a58cde822c5b2e99a}{get\-Line\-Width} ()}\label{classGUI_1_1Drawable_a51983595f2264c5a58cde822c5b2e99a}
+
+\begin{DoxyCompactList}\small\item\em Return the current line width. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_ab6f3428e79e905e81604d735e847ed2a}{void \hyperlink{classGUI_1_1Drawable_ab6f3428e79e905e81604d735e847ed2a}{goto\-X\-Y} (int \hyperlink{classGUI_1_1Drawable_a098294925bd310aa41080a2441790b80}{x}, int \hyperlink{classGUI_1_1Drawable_a574c99954cc268937f2c66ebe1332316}{y})}\label{classGUI_1_1Drawable_ab6f3428e79e905e81604d735e847ed2a}
+
+\begin{DoxyCompactList}\small\item\em Move the current position to the given coordinates. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_a5a3f0f200d175a9ecbf52af9ab2d0545}{int \hyperlink{classGUI_1_1Drawable_a5a3f0f200d175a9ecbf52af9ab2d0545}{get\-X} ()}\label{classGUI_1_1Drawable_a5a3f0f200d175a9ecbf52af9ab2d0545}
+
+\begin{DoxyCompactList}\small\item\em Return current position X. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_af3d4cc4db49ce4fb3d6228696309ea0e}{int \hyperlink{classGUI_1_1Drawable_af3d4cc4db49ce4fb3d6228696309ea0e}{get\-Y} ()}\label{classGUI_1_1Drawable_af3d4cc4db49ce4fb3d6228696309ea0e}
+
+\begin{DoxyCompactList}\small\item\em Return current position Y. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_a94ed40bdbbc36ed75d76152c635c9e3f}{int \hyperlink{classGUI_1_1Drawable_a94ed40bdbbc36ed75d76152c635c9e3f}{get\-Clip\-X} ()}\label{classGUI_1_1Drawable_a94ed40bdbbc36ed75d76152c635c9e3f}
+
+\begin{DoxyCompactList}\small\item\em Return clip width. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_a7a3482fe39959b477bb3fb5f8b401cd1}{int \hyperlink{classGUI_1_1Drawable_a7a3482fe39959b477bb3fb5f8b401cd1}{get\-Clip\-Y} ()}\label{classGUI_1_1Drawable_a7a3482fe39959b477bb3fb5f8b401cd1}
+
+\begin{DoxyCompactList}\small\item\em Return clip height. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_aaf2367001376101556076c424b7bd181}{int \hyperlink{classGUI_1_1Drawable_aaf2367001376101556076c424b7bd181}{get\-Clip\-Width} ()}\label{classGUI_1_1Drawable_aaf2367001376101556076c424b7bd181}
+
+\begin{DoxyCompactList}\small\item\em Return clip width. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_ac63bf6c4a6b3b6ea6a32cec0cd6182a2}{int \hyperlink{classGUI_1_1Drawable_ac63bf6c4a6b3b6ea6a32cec0cd6182a2}{get\-Clip\-Height} ()}\label{classGUI_1_1Drawable_ac63bf6c4a6b3b6ea6a32cec0cd6182a2}
+
+\begin{DoxyCompactList}\small\item\em Return clip height. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_af1fa4e18fd41af9e5251d6371d8912b8}{void \hyperlink{classGUI_1_1Drawable_af1fa4e18fd41af9e5251d6371d8912b8}{draw\-Pixel} ()}\label{classGUI_1_1Drawable_af1fa4e18fd41af9e5251d6371d8912b8}
+
+\begin{DoxyCompactList}\small\item\em Paint a single pixel at the current position. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_ae29880e7c96a41fdacef5a154f216c5d}{void \hyperlink{classGUI_1_1Drawable_ae29880e7c96a41fdacef5a154f216c5d}{draw\-Pixel} (int \hyperlink{classGUI_1_1Drawable_a098294925bd310aa41080a2441790b80}{x}, int \hyperlink{classGUI_1_1Drawable_a574c99954cc268937f2c66ebe1332316}{y})}\label{classGUI_1_1Drawable_ae29880e7c96a41fdacef5a154f216c5d}
+
+\begin{DoxyCompactList}\small\item\em Paint a single pixel at the given coordinates. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_a1d74a05317ac725da786c76fe5788cb5}{\hyperlink{namespaceGUI_aeafd135255365f3584da0e982fc79466}{R\-G\-B} \hyperlink{classGUI_1_1Drawable_a1d74a05317ac725da786c76fe5788cb5}{get\-Pixel} ()}\label{classGUI_1_1Drawable_a1d74a05317ac725da786c76fe5788cb5}
+
+\begin{DoxyCompactList}\small\item\em Return the pixel color at the current position. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_aa47df2365adb19c049cda5701b1baab9}{\hyperlink{namespaceGUI_aeafd135255365f3584da0e982fc79466}{R\-G\-B} \hyperlink{classGUI_1_1Drawable_aa47df2365adb19c049cda5701b1baab9}{get\-Pixel} (int \hyperlink{classGUI_1_1Drawable_a098294925bd310aa41080a2441790b80}{x}, int \hyperlink{classGUI_1_1Drawable_a574c99954cc268937f2c66ebe1332316}{y})}\label{classGUI_1_1Drawable_aa47df2365adb19c049cda5701b1baab9}
+
+\begin{DoxyCompactList}\small\item\em Return the pixel color at the given coordinates. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_a24e229cffbe0f1763f096ce3d03016b8}{void \hyperlink{classGUI_1_1Drawable_a24e229cffbe0f1763f096ce3d03016b8}{draw\-Line} (int x2, int y2)}\label{classGUI_1_1Drawable_a24e229cffbe0f1763f096ce3d03016b8}
+
+\begin{DoxyCompactList}\small\item\em Draw a straight line from the current position to the given coordinates. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_a580548bf9497c21e4591dcd12e99a8c2}{void \hyperlink{classGUI_1_1Drawable_a580548bf9497c21e4591dcd12e99a8c2}{draw\-Line} (int x1, int y1, int x2, int y2)}\label{classGUI_1_1Drawable_a580548bf9497c21e4591dcd12e99a8c2}
+
+\begin{DoxyCompactList}\small\item\em Draw a straight line from ({\ttfamily x1},{\ttfamily y1}) to ({\ttfamily x2},{\ttfamily y2}). \end{DoxyCompactList}\item 
+void \hyperlink{classGUI_1_1Drawable_afcec69b9023bab1ea5267b5bfbc7a0ec}{draw\-Circle} (int d)
+\begin{DoxyCompactList}\small\item\em Draw a circle centered at the current position with diameter {\ttfamily d}. \end{DoxyCompactList}\item 
+void \hyperlink{classGUI_1_1Drawable_add0650ef9d31fa54a378856ceec2bb72}{draw\-Circle} (int \hyperlink{classGUI_1_1Drawable_a098294925bd310aa41080a2441790b80}{x}, int \hyperlink{classGUI_1_1Drawable_a574c99954cc268937f2c66ebe1332316}{y}, int d)
+\begin{DoxyCompactList}\small\item\em Draw a circle centered at the given coordinates with diameter {\ttfamily d}. \end{DoxyCompactList}\item 
+void \hyperlink{classGUI_1_1Drawable_a58a078deebc5a6dc55fd249268ea9f89}{draw\-Rect} (int w, int h)
+\begin{DoxyCompactList}\small\item\em Draw a rectangle with top left at the current position and size {\ttfamily w}, {\ttfamily h}. \end{DoxyCompactList}\item 
+void \hyperlink{classGUI_1_1Drawable_aeee95c349ff9948da7470458db11ee3c}{draw\-Rect} (int \hyperlink{classGUI_1_1Drawable_a098294925bd310aa41080a2441790b80}{x}, int \hyperlink{classGUI_1_1Drawable_a574c99954cc268937f2c66ebe1332316}{y}, int w, int h)
+\begin{DoxyCompactList}\small\item\em Draw a rectangle with top left at the given coordinates and size {\ttfamily w}, {\ttfamily h}. \end{DoxyCompactList}\item 
+void \hyperlink{classGUI_1_1Drawable_acdff088e5bc17e7024353aac19c178c6}{fill} ()
+\begin{DoxyCompactList}\small\item\em Flood-\/fill an area at the current position. \end{DoxyCompactList}\item 
+void \hyperlink{classGUI_1_1Drawable_a87379f6a31eb6399616133d33d24cc11}{fill} (int \hyperlink{classGUI_1_1Drawable_a098294925bd310aa41080a2441790b80}{x}, int \hyperlink{classGUI_1_1Drawable_a574c99954cc268937f2c66ebe1332316}{y})
+\begin{DoxyCompactList}\small\item\em Flood-\/fill an area at a given position. \end{DoxyCompactList}\item 
+void \hyperlink{classGUI_1_1Drawable_a7c8bdd25268ee6b6fe28a8477d940273}{fill\-Circle} (int d)
+\begin{DoxyCompactList}\small\item\em Draw a filled circle centered at the current position with diameter {\ttfamily d}. \end{DoxyCompactList}\item 
+void \hyperlink{classGUI_1_1Drawable_aa6fbf7f2c20f1d7c5f37af4e5dc6e3f5}{fill\-Circle} (int \hyperlink{classGUI_1_1Drawable_a098294925bd310aa41080a2441790b80}{x}, int \hyperlink{classGUI_1_1Drawable_a574c99954cc268937f2c66ebe1332316}{y}, int d)
+\begin{DoxyCompactList}\small\item\em Draw a filled circle centered at the given coordinates with diameter {\ttfamily d}. \end{DoxyCompactList}\item 
+void \hyperlink{classGUI_1_1Drawable_af28c6abd372251f47f1c2748c2aea340}{fill\-Rect} (int w, int h)
+\begin{DoxyCompactList}\small\item\em Draw a filled rectangle with top left at the current position and size {\ttfamily w}, {\ttfamily h}. \end{DoxyCompactList}\item 
+void \hyperlink{classGUI_1_1Drawable_af31dc67b9230aa12a0988905643238c8}{fill\-Rect} (int \hyperlink{classGUI_1_1Drawable_a098294925bd310aa41080a2441790b80}{x}, int \hyperlink{classGUI_1_1Drawable_a574c99954cc268937f2c66ebe1332316}{y}, int w, int h)
+\begin{DoxyCompactList}\small\item\em Draw a filled rectangle with top left at the given coordinates and size {\ttfamily w}, {\ttfamily h}. \end{DoxyCompactList}\item 
+void \hyperlink{classGUI_1_1Drawable_ac88bcd93aad76b004ea2404fa0a37a69}{draw\-Text} (const \hyperlink{classGUI_1_1String}{String} \&text, bool interpret=true, \hyperlink{namespaceGUI_a10b6232e08729baa0bd211a86a69ce36}{Size} start=0, \hyperlink{namespaceGUI_a10b6232e08729baa0bd211a86a69ce36}{Size} len=(\hyperlink{namespaceGUI_a10b6232e08729baa0bd211a86a69ce36}{Size})-\/1)
+\begin{DoxyCompactList}\small\item\em Draw a text string. \end{DoxyCompactList}\item 
+{\footnotesize template$<$typename S\-T\-R $>$ }\\void \hyperlink{classGUI_1_1Drawable_ad4f33291af02b41b9e6accda249f935c}{draw\-Text} (int \hyperlink{classGUI_1_1Drawable_a098294925bd310aa41080a2441790b80}{x}, int \hyperlink{classGUI_1_1Drawable_a574c99954cc268937f2c66ebe1332316}{y}, const S\-T\-R text, bool interpret, \hyperlink{namespaceGUI_a10b6232e08729baa0bd211a86a69ce36}{Size} start, \hyperlink{namespaceGUI_a10b6232e08729baa0bd211a86a69ce36}{Size} len=(\hyperlink{namespaceGUI_a10b6232e08729baa0bd211a86a69ce36}{Size})-\/1)
+\begin{DoxyCompactList}\small\item\em Draw a text string at a fixed position. \end{DoxyCompactList}\item 
+void \hyperlink{classGUI_1_1Drawable_a7d0a7e8d1563edc7abcb8d89e8518b6f}{draw\-Text} (const \hyperlink{namespaceGUI_af6b04b46d40197b4f00e553d7d1a3e4c}{Char} c, bool interpret=false)
+\begin{DoxyCompactList}\small\item\em Draw a single character. \end{DoxyCompactList}\item 
+void \hyperlink{classGUI_1_1Drawable_a2f27520ec352423f6a164843e41e0365}{draw\-Text} (int \hyperlink{classGUI_1_1Drawable_a098294925bd310aa41080a2441790b80}{x}, int \hyperlink{classGUI_1_1Drawable_a574c99954cc268937f2c66ebe1332316}{y}, const \hyperlink{namespaceGUI_af6b04b46d40197b4f00e553d7d1a3e4c}{Char} c, bool interpret=false)
+\begin{DoxyCompactList}\small\item\em Draw a single character at a fixed position. \end{DoxyCompactList}\item 
+void \hyperlink{classGUI_1_1Drawable_a1ccc487035a97ccfb067f663d96ad798}{draw\-Drawable} (\hyperlink{classGUI_1_1Drawable}{Drawable} \&d, unsigned char alpha=1)
+\begin{DoxyCompactList}\small\item\em Copy the contents of another \hyperlink{classGUI_1_1Drawable}{Drawable} to this one. \end{DoxyCompactList}\item 
+void \hyperlink{classGUI_1_1Drawable_a6aaa69d3de9eaa1611c287c6030e232b}{draw\-Drawable} (int \hyperlink{classGUI_1_1Drawable_a098294925bd310aa41080a2441790b80}{x}, int \hyperlink{classGUI_1_1Drawable_a574c99954cc268937f2c66ebe1332316}{y}, \hyperlink{classGUI_1_1Drawable}{Drawable} \&d, unsigned char alpha=1)
+\begin{DoxyCompactList}\small\item\em Copy the contents of another \hyperlink{classGUI_1_1Drawable}{Drawable} to this one at a given position. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classGUI_1_1Drawable_a727ae1037135abcd7aa0309b39215320}{\hyperlink{namespaceGUI_aeafd135255365f3584da0e982fc79466}{R\-G\-B} $\ast$const \hyperlink{classGUI_1_1Drawable_a727ae1037135abcd7aa0309b39215320}{buffer}}\label{classGUI_1_1Drawable_a727ae1037135abcd7aa0309b39215320}
+
+\begin{DoxyCompactList}\small\item\em The actual pixel buffer. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_a494b6f1edafb1d03279b43b244883a1e}{const int \hyperlink{classGUI_1_1Drawable_a494b6f1edafb1d03279b43b244883a1e}{width}}\label{classGUI_1_1Drawable_a494b6f1edafb1d03279b43b244883a1e}
+
+\begin{DoxyCompactList}\small\item\em Total width of buffer. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_a02b7ebcd21396c6de9ee229193540df7}{const int \hyperlink{classGUI_1_1Drawable_a02b7ebcd21396c6de9ee229193540df7}{height}}\label{classGUI_1_1Drawable_a02b7ebcd21396c6de9ee229193540df7}
+
+\begin{DoxyCompactList}\small\item\em Total height of buffer. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_a2602c5a354a8aec3362a29272ff15367}{const bool \hyperlink{classGUI_1_1Drawable_a2602c5a354a8aec3362a29272ff15367}{owner}}\label{classGUI_1_1Drawable_a2602c5a354a8aec3362a29272ff15367}
+
+\begin{DoxyCompactList}\small\item\em {\ttfamily true} if {\itshape buffer\/} must be freed by this instance. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_a4baae1e13505d45245c49244703217d7}{\hyperlink{namespaceGUI_aeafd135255365f3584da0e982fc79466}{R\-G\-B} \hyperlink{classGUI_1_1Drawable_a4baae1e13505d45245c49244703217d7}{color}}\label{classGUI_1_1Drawable_a4baae1e13505d45245c49244703217d7}
+
+\begin{DoxyCompactList}\small\item\em Current color. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_a4abfb3277538fc4f75b21aa15af748a1}{const \hyperlink{classGUI_1_1Font}{Font} $\ast$ \hyperlink{classGUI_1_1Drawable_a4abfb3277538fc4f75b21aa15af748a1}{font}}\label{classGUI_1_1Drawable_a4abfb3277538fc4f75b21aa15af748a1}
+
+\begin{DoxyCompactList}\small\item\em Current font. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_acfffd5cf21e8f5c80f36d944cc8ee1c6}{int \hyperlink{classGUI_1_1Drawable_acfffd5cf21e8f5c80f36d944cc8ee1c6}{line\-Width}}\label{classGUI_1_1Drawable_acfffd5cf21e8f5c80f36d944cc8ee1c6}
+
+\begin{DoxyCompactList}\small\item\em Current line width. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_a3790664933274d9e31bbd0afc3f27331}{const int \hyperlink{classGUI_1_1Drawable_a3790664933274d9e31bbd0afc3f27331}{tx}}\label{classGUI_1_1Drawable_a3790664933274d9e31bbd0afc3f27331}
+
+\begin{DoxyCompactList}\small\item\em X translation. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_a3c68b44e92447585bbb97afd356afdc2}{const int \hyperlink{classGUI_1_1Drawable_a3c68b44e92447585bbb97afd356afdc2}{ty}}\label{classGUI_1_1Drawable_a3c68b44e92447585bbb97afd356afdc2}
+
+\begin{DoxyCompactList}\small\item\em Y translation. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_a240ea928c926f5839d09dc7230765542}{const int \hyperlink{classGUI_1_1Drawable_a240ea928c926f5839d09dc7230765542}{cx}}\label{classGUI_1_1Drawable_a240ea928c926f5839d09dc7230765542}
+
+\begin{DoxyCompactList}\small\item\em clip x. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_a2ed945d1c4c5ce0ed7b3b1349070df9d}{const int \hyperlink{classGUI_1_1Drawable_a2ed945d1c4c5ce0ed7b3b1349070df9d}{cy}}\label{classGUI_1_1Drawable_a2ed945d1c4c5ce0ed7b3b1349070df9d}
+
+\begin{DoxyCompactList}\small\item\em clip y. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_ab985de16e8c5543337da5911bcb554b8}{const int \hyperlink{classGUI_1_1Drawable_ab985de16e8c5543337da5911bcb554b8}{cw}}\label{classGUI_1_1Drawable_ab985de16e8c5543337da5911bcb554b8}
+
+\begin{DoxyCompactList}\small\item\em clip width. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_a18e1efe0fc94c2a2a86d74d1121e9f72}{const int \hyperlink{classGUI_1_1Drawable_a18e1efe0fc94c2a2a86d74d1121e9f72}{ch}}\label{classGUI_1_1Drawable_a18e1efe0fc94c2a2a86d74d1121e9f72}
+
+\begin{DoxyCompactList}\small\item\em clip height. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_a098294925bd310aa41080a2441790b80}{int \hyperlink{classGUI_1_1Drawable_a098294925bd310aa41080a2441790b80}{x}}\label{classGUI_1_1Drawable_a098294925bd310aa41080a2441790b80}
+
+\begin{DoxyCompactList}\small\item\em Current position x coordinate. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Drawable_a574c99954cc268937f2c66ebe1332316}{int \hyperlink{classGUI_1_1Drawable_a574c99954cc268937f2c66ebe1332316}{y}}\label{classGUI_1_1Drawable_a574c99954cc268937f2c66ebe1332316}
+
+\begin{DoxyCompactList}\small\item\em Current position y coordinate. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Friends}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classGUI_1_1Drawable_a0b4c177802d4d44b64a5d2e72cf8cb9d}{\hyperlink{namespaceGUI_af396fee5d5c26b98218f5803f85e3b65}{Ticks} {\bfseries Screen\-::update} (void $\ast$, \hyperlink{namespaceGUI_af396fee5d5c26b98218f5803f85e3b65}{Ticks})}\label{classGUI_1_1Drawable_a0b4c177802d4d44b64a5d2e72cf8cb9d}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+A drawable represents a rectangular off-\/screen drawing area. 
+
+It is an off-\/screen buffer which can be copied to other drawables or to a \hyperlink{classGUI_1_1Screen}{Screen}'s framebuffer. The drawable's origin is at the top left. All operations are silently clipped to the available area. The alpha channel is honoured while copying one drawable to another, but not during other drawing operations.
+
+Drawables have a current font, color and (x,y) position. Drawing takes place at the given point using the given font and color. The current position is then moved to the final point of the drawing primitive unless otherwise noted. Pixel width of all lines is selectable, but be aware that visual appearance of lines with width $>$ 1 is not as sophisticated as in well-\/known toolkits like Java or Qt.
+
+Some drawing primitives are overloaded to take full coordinates. These ignore the current position, but update it just like their regular brethren. 
+
+Definition at line 915 of file gui\-\_\-tk.\-h.
+
+
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classGUI_1_1Drawable_a0ae6adb7a236647e0a7f22d1402adb7b}{\index{G\-U\-I\-::\-Drawable@{G\-U\-I\-::\-Drawable}!Drawable@{Drawable}}
+\index{Drawable@{Drawable}!GUI::Drawable@{G\-U\-I\-::\-Drawable}}
+\subsubsection[{Drawable}]{\setlength{\rightskip}{0pt plus 5cm}{\bf G\-U\-I\-::\-Drawable\-::\-Drawable} (
+\begin{DoxyParamCaption}
+\item[{int}]{w, }
+\item[{int}]{h, }
+\item[{{\bf R\-G\-B}}]{clear = {\ttfamily {\bf Color\-::\-Transparent}}}
+\end{DoxyParamCaption}
+)}}\label{classGUI_1_1Drawable_a0ae6adb7a236647e0a7f22d1402adb7b}
+
+
+Create an empty drawable object with given dimensions. 
+
+Optionally, the area is cleared with a given color (default\-: fully transparent). 
+
+Definition at line 194 of file gui\-\_\-tk.\-cpp.
+
+
+
+References clear().
+
+\hypertarget{classGUI_1_1Drawable_a093feedf8392b2a8ec9db583deb0f6c5}{\index{G\-U\-I\-::\-Drawable@{G\-U\-I\-::\-Drawable}!Drawable@{Drawable}}
+\index{Drawable@{Drawable}!GUI::Drawable@{G\-U\-I\-::\-Drawable}}
+\subsubsection[{Drawable}]{\setlength{\rightskip}{0pt plus 5cm}{\bf G\-U\-I\-::\-Drawable\-::\-Drawable} (
+\begin{DoxyParamCaption}
+\item[{{\bf Drawable} \&}]{src, }
+\item[{{\bf R\-G\-B}}]{clear = {\ttfamily 0}}
+\end{DoxyParamCaption}
+)}}\label{classGUI_1_1Drawable_a093feedf8392b2a8ec9db583deb0f6c5}
+
+
+Deep-\/copying copy constructor. 
+
+It honours clip and translate so that the resulting drawable, if drawn to the source drawable at (0,0), yields the same result as drawing directly to the source surface. If {\ttfamily fill} is not explicitly set, will copy the original surface's contents 
+
+Definition at line 209 of file gui\-\_\-tk.\-cpp.
+
+
+
+References buffer, ch, clear(), cw, tx, ty, and width.
+
+
+
+\subsection{Member Function Documentation}
+\hypertarget{classGUI_1_1Drawable_afcec69b9023bab1ea5267b5bfbc7a0ec}{\index{G\-U\-I\-::\-Drawable@{G\-U\-I\-::\-Drawable}!draw\-Circle@{draw\-Circle}}
+\index{draw\-Circle@{draw\-Circle}!GUI::Drawable@{G\-U\-I\-::\-Drawable}}
+\subsubsection[{draw\-Circle}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf G\-U\-I\-::\-Drawable\-::draw\-Circle} (
+\begin{DoxyParamCaption}
+\item[{int}]{d}
+\end{DoxyParamCaption}
+)}}\label{classGUI_1_1Drawable_afcec69b9023bab1ea5267b5bfbc7a0ec}
+
+
+Draw a circle centered at the current position with diameter {\ttfamily d}. 
+
+The current position is not changed. 
+
+Definition at line 291 of file gui\-\_\-tk.\-cpp.
+
+
+
+References draw\-Pixel(), goto\-X\-Y(), line\-Width, x, and y.
+
+\hypertarget{classGUI_1_1Drawable_add0650ef9d31fa54a378856ceec2bb72}{\index{G\-U\-I\-::\-Drawable@{G\-U\-I\-::\-Drawable}!draw\-Circle@{draw\-Circle}}
+\index{draw\-Circle@{draw\-Circle}!GUI::Drawable@{G\-U\-I\-::\-Drawable}}
+\subsubsection[{draw\-Circle}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf G\-U\-I\-::\-Drawable\-::draw\-Circle} (
+\begin{DoxyParamCaption}
+\item[{int}]{x, }
+\item[{int}]{y, }
+\item[{int}]{d}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classGUI_1_1Drawable_add0650ef9d31fa54a378856ceec2bb72}
+
+
+Draw a circle centered at the given coordinates with diameter {\ttfamily d}. 
+
+The current position is set to the center. 
+
+Definition at line 1028 of file gui\-\_\-tk.\-h.
+
+
+
+References draw\-Circle(), and goto\-X\-Y().
+
+
+
+Referenced by draw\-Circle().
+
+\hypertarget{classGUI_1_1Drawable_a1ccc487035a97ccfb067f663d96ad798}{\index{G\-U\-I\-::\-Drawable@{G\-U\-I\-::\-Drawable}!draw\-Drawable@{draw\-Drawable}}
+\index{draw\-Drawable@{draw\-Drawable}!GUI::Drawable@{G\-U\-I\-::\-Drawable}}
+\subsubsection[{draw\-Drawable}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf G\-U\-I\-::\-Drawable\-::draw\-Drawable} (
+\begin{DoxyParamCaption}
+\item[{{\bf Drawable} \&}]{d, }
+\item[{unsigned char}]{alpha = {\ttfamily 1}}
+\end{DoxyParamCaption}
+)}}\label{classGUI_1_1Drawable_a1ccc487035a97ccfb067f663d96ad798}
+
+
+Copy the contents of another \hyperlink{classGUI_1_1Drawable}{Drawable} to this one. 
+
+The top left corner of the source \hyperlink{classGUI_1_1Drawable}{Drawable} is put at the current position. The alpha channel is fully honoured. Additionally, an extra {\ttfamily alpha} value may be given which is multiplied with the source alpha channel. The current position remains unchanged. 
+
+Definition at line 378 of file gui\-\_\-tk.\-cpp.
+
+
+
+References G\-U\-I\-::\-Color\-::\-Alpha\-Shift, G\-U\-I\-::\-Color\-::\-Blue\-Mask, buffer, ch, cw, cx, cy, G\-U\-I\-::\-Color\-::\-Green\-Mask, G\-U\-I\-::\-Color\-::\-Magenta\-Mask, G\-U\-I\-::\-Color\-::\-Red\-Mask, G\-U\-I\-::\-Color\-::\-Transparent, tx, ty, width, x, and y.
+
+\hypertarget{classGUI_1_1Drawable_a6aaa69d3de9eaa1611c287c6030e232b}{\index{G\-U\-I\-::\-Drawable@{G\-U\-I\-::\-Drawable}!draw\-Drawable@{draw\-Drawable}}
+\index{draw\-Drawable@{draw\-Drawable}!GUI::Drawable@{G\-U\-I\-::\-Drawable}}
+\subsubsection[{draw\-Drawable}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf G\-U\-I\-::\-Drawable\-::draw\-Drawable} (
+\begin{DoxyParamCaption}
+\item[{int}]{x, }
+\item[{int}]{y, }
+\item[{{\bf Drawable} \&}]{d, }
+\item[{unsigned char}]{alpha = {\ttfamily 1}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classGUI_1_1Drawable_a6aaa69d3de9eaa1611c287c6030e232b}
+
+
+Copy the contents of another \hyperlink{classGUI_1_1Drawable}{Drawable} to this one at a given position. 
+
+see \hyperlink{classGUI_1_1Drawable_a1ccc487035a97ccfb067f663d96ad798}{draw\-Drawable(\-Drawable \&d, unsigned char alpha)}. The current position is moved to the given coordinates. 
+
+Definition at line 1088 of file gui\-\_\-tk.\-h.
+
+
+
+References draw\-Drawable(), and goto\-X\-Y().
+
+
+
+Referenced by draw\-Drawable().
+
+\hypertarget{classGUI_1_1Drawable_a58a078deebc5a6dc55fd249268ea9f89}{\index{G\-U\-I\-::\-Drawable@{G\-U\-I\-::\-Drawable}!draw\-Rect@{draw\-Rect}}
+\index{draw\-Rect@{draw\-Rect}!GUI::Drawable@{G\-U\-I\-::\-Drawable}}
+\subsubsection[{draw\-Rect}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf G\-U\-I\-::\-Drawable\-::draw\-Rect} (
+\begin{DoxyParamCaption}
+\item[{int}]{w, }
+\item[{int}]{h}
+\end{DoxyParamCaption}
+)}}\label{classGUI_1_1Drawable_a58a078deebc5a6dc55fd249268ea9f89}
+
+
+Draw a rectangle with top left at the current position and size {\ttfamily w}, {\ttfamily h}. 
+
+The current position is not changed. 
+
+Definition at line 313 of file gui\-\_\-tk.\-cpp.
+
+
+
+References draw\-Line(), goto\-X\-Y(), line\-Width, x, and y.
+
+\hypertarget{classGUI_1_1Drawable_aeee95c349ff9948da7470458db11ee3c}{\index{G\-U\-I\-::\-Drawable@{G\-U\-I\-::\-Drawable}!draw\-Rect@{draw\-Rect}}
+\index{draw\-Rect@{draw\-Rect}!GUI::Drawable@{G\-U\-I\-::\-Drawable}}
+\subsubsection[{draw\-Rect}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf G\-U\-I\-::\-Drawable\-::draw\-Rect} (
+\begin{DoxyParamCaption}
+\item[{int}]{x, }
+\item[{int}]{y, }
+\item[{int}]{w, }
+\item[{int}]{h}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classGUI_1_1Drawable_aeee95c349ff9948da7470458db11ee3c}
+
+
+Draw a rectangle with top left at the given coordinates and size {\ttfamily w}, {\ttfamily h}. 
+
+The current position is set to the top left corner. 
+
+Definition at line 1035 of file gui\-\_\-tk.\-h.
+
+
+
+References draw\-Rect(), and goto\-X\-Y().
+
+
+
+Referenced by draw\-Rect().
+
+\hypertarget{classGUI_1_1Drawable_ac88bcd93aad76b004ea2404fa0a37a69}{\index{G\-U\-I\-::\-Drawable@{G\-U\-I\-::\-Drawable}!draw\-Text@{draw\-Text}}
+\index{draw\-Text@{draw\-Text}!GUI::Drawable@{G\-U\-I\-::\-Drawable}}
+\subsubsection[{draw\-Text}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf G\-U\-I\-::\-Drawable\-::draw\-Text} (
+\begin{DoxyParamCaption}
+\item[{const {\bf String} \&}]{text, }
+\item[{bool}]{interpret = {\ttfamily true}, }
+\item[{{\bf Size}}]{start = {\ttfamily 0}, }
+\item[{{\bf Size}}]{len = {\ttfamily ({\bf Size})-\/1}}
+\end{DoxyParamCaption}
+)}}\label{classGUI_1_1Drawable_ac88bcd93aad76b004ea2404fa0a37a69}
+
+
+Draw a text string. 
+
+Current position is the leftmost pixel on the baseline of the character. The current position is moved to the next character. Background is not cleared. If {\ttfamily interpret} is {\ttfamily true}, some A\-S\-C\-I\-I control characters like backspace, line-\/feed, tab and A\-N\-S\-I colors are interpreted, and text is word-\/wrapped at the window borders. You can optionally pass start and length of a substring to print 
+
+Definition at line 65 of file gui\-\_\-tk.\-cpp.
+
+
+
+References G\-U\-I\-::\-Color\-::\-Black, G\-U\-I\-::\-Color\-::\-Blue, color, cw, G\-U\-I\-::\-Color\-::\-Cyan, G\-U\-I\-::\-Font\-::draw\-String(), font, G\-U\-I\-::\-Font\-::get\-Height(), G\-U\-I\-::\-Font\-::get\-Width(), goto\-X\-Y(), G\-U\-I\-::\-Color\-::\-Green, G\-U\-I\-::\-Color\-::\-Magenta, G\-U\-I\-::\-Color\-::\-Red, set\-Color(), G\-U\-I\-::\-Font\-::to\-Special(), G\-U\-I\-::\-Color\-::\-White, width, x, y, and G\-U\-I\-::\-Color\-::\-Yellow.
+
+
+
+Referenced by G\-U\-I\-::\-Input\-::check\-Offset(), G\-U\-I\-::\-Input\-::find\-Pos(), G\-U\-I\-::\-Label\-::paint(), G\-U\-I\-::\-Input\-::paint(), G\-U\-I\-::\-Toplevel\-Window\-::paint(), G\-U\-I\-::\-Menu\-::paint(), G\-U\-I\-::\-Menubar\-::paint(), G\-U\-I\-::\-Frame\-::paint(), and G\-U\-I\-::\-Label\-::resize().
+
+\hypertarget{classGUI_1_1Drawable_ad4f33291af02b41b9e6accda249f935c}{\index{G\-U\-I\-::\-Drawable@{G\-U\-I\-::\-Drawable}!draw\-Text@{draw\-Text}}
+\index{draw\-Text@{draw\-Text}!GUI::Drawable@{G\-U\-I\-::\-Drawable}}
+\subsubsection[{draw\-Text}]{\setlength{\rightskip}{0pt plus 5cm}template$<$typename S\-T\-R $>$ void {\bf G\-U\-I\-::\-Drawable\-::draw\-Text} (
+\begin{DoxyParamCaption}
+\item[{int}]{x, }
+\item[{int}]{y, }
+\item[{const S\-T\-R}]{text, }
+\item[{bool}]{interpret, }
+\item[{{\bf Size}}]{start, }
+\item[{{\bf Size}}]{len = {\ttfamily ({\bf Size})-\/1}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classGUI_1_1Drawable_ad4f33291af02b41b9e6accda249f935c}
+
+
+Draw a text string at a fixed position. 
+
+see \hyperlink{classGUI_1_1Drawable_ac88bcd93aad76b004ea2404fa0a37a69}{draw\-Text(const String\& text, bool interpret, Size start, Size len)} 
+
+Definition at line 1070 of file gui\-\_\-tk.\-h.
+
+
+
+References draw\-Text(), and goto\-X\-Y().
+
+
+
+Referenced by draw\-Text().
+
+\hypertarget{classGUI_1_1Drawable_a7d0a7e8d1563edc7abcb8d89e8518b6f}{\index{G\-U\-I\-::\-Drawable@{G\-U\-I\-::\-Drawable}!draw\-Text@{draw\-Text}}
+\index{draw\-Text@{draw\-Text}!GUI::Drawable@{G\-U\-I\-::\-Drawable}}
+\subsubsection[{draw\-Text}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf G\-U\-I\-::\-Drawable\-::draw\-Text} (
+\begin{DoxyParamCaption}
+\item[{const {\bf Char}}]{c, }
+\item[{bool}]{interpret = {\ttfamily false}}
+\end{DoxyParamCaption}
+)}}\label{classGUI_1_1Drawable_a7d0a7e8d1563edc7abcb8d89e8518b6f}
+
+
+Draw a single character. 
+
+see draw\-Text(const S\-T\-R text, bool interpret), except wrapping is performed on this character only 
+
+Definition at line 404 of file gui\-\_\-tk.\-cpp.
+
+
+
+References cw, G\-U\-I\-::\-Font\-::draw\-Char(), font, G\-U\-I\-::\-Font\-::get\-Height(), G\-U\-I\-::\-Font\-::get\-Width(), goto\-X\-Y(), G\-U\-I\-::\-Font\-::to\-Special(), x, and y.
+
+\hypertarget{classGUI_1_1Drawable_a2f27520ec352423f6a164843e41e0365}{\index{G\-U\-I\-::\-Drawable@{G\-U\-I\-::\-Drawable}!draw\-Text@{draw\-Text}}
+\index{draw\-Text@{draw\-Text}!GUI::Drawable@{G\-U\-I\-::\-Drawable}}
+\subsubsection[{draw\-Text}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf G\-U\-I\-::\-Drawable\-::draw\-Text} (
+\begin{DoxyParamCaption}
+\item[{int}]{x, }
+\item[{int}]{y, }
+\item[{const {\bf Char}}]{c, }
+\item[{bool}]{interpret = {\ttfamily false}}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classGUI_1_1Drawable_a2f27520ec352423f6a164843e41e0365}
+
+
+Draw a single character at a fixed position. 
+
+see \hyperlink{classGUI_1_1Drawable_a7d0a7e8d1563edc7abcb8d89e8518b6f}{draw\-Text(const Char c, bool interpret)}. 
+
+Definition at line 1077 of file gui\-\_\-tk.\-h.
+
+
+
+References draw\-Text(), and goto\-X\-Y().
+
+
+
+Referenced by draw\-Text().
+
+\hypertarget{classGUI_1_1Drawable_acdff088e5bc17e7024353aac19c178c6}{\index{G\-U\-I\-::\-Drawable@{G\-U\-I\-::\-Drawable}!fill@{fill}}
+\index{fill@{fill}!GUI::Drawable@{G\-U\-I\-::\-Drawable}}
+\subsubsection[{fill}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf G\-U\-I\-::\-Drawable\-::fill} (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classGUI_1_1Drawable_acdff088e5bc17e7024353aac19c178c6}
+
+
+Flood-\/fill an area at the current position. 
+
+A continuous area with the same R\-G\-B value as the selected pixel is changed to the current color. The current position is not changed. 
+
+Definition at line 325 of file gui\-\_\-tk.\-cpp.
+
+
+
+References color, cw, draw\-Pixel(), get\-Pixel(), x, and y.
+
+\hypertarget{classGUI_1_1Drawable_a87379f6a31eb6399616133d33d24cc11}{\index{G\-U\-I\-::\-Drawable@{G\-U\-I\-::\-Drawable}!fill@{fill}}
+\index{fill@{fill}!GUI::Drawable@{G\-U\-I\-::\-Drawable}}
+\subsubsection[{fill}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf G\-U\-I\-::\-Drawable\-::fill} (
+\begin{DoxyParamCaption}
+\item[{int}]{x, }
+\item[{int}]{y}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classGUI_1_1Drawable_a87379f6a31eb6399616133d33d24cc11}
+
+
+Flood-\/fill an area at a given position. 
+
+see \hyperlink{classGUI_1_1Drawable_acdff088e5bc17e7024353aac19c178c6}{fill()}, but moves current position to the given coordinates 
+
+Definition at line 1043 of file gui\-\_\-tk.\-h.
+
+
+
+References fill(), and goto\-X\-Y().
+
+
+
+Referenced by fill().
+
+\hypertarget{classGUI_1_1Drawable_a7c8bdd25268ee6b6fe28a8477d940273}{\index{G\-U\-I\-::\-Drawable@{G\-U\-I\-::\-Drawable}!fill\-Circle@{fill\-Circle}}
+\index{fill\-Circle@{fill\-Circle}!GUI::Drawable@{G\-U\-I\-::\-Drawable}}
+\subsubsection[{fill\-Circle}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf G\-U\-I\-::\-Drawable\-::fill\-Circle} (
+\begin{DoxyParamCaption}
+\item[{int}]{d}
+\end{DoxyParamCaption}
+)}}\label{classGUI_1_1Drawable_a7c8bdd25268ee6b6fe28a8477d940273}
+
+
+Draw a filled circle centered at the current position with diameter {\ttfamily d}. 
+
+The current position is not changed. 
+
+Definition at line 346 of file gui\-\_\-tk.\-cpp.
+
+
+
+References draw\-Pixel(), goto\-X\-Y(), x, and y.
+
+\hypertarget{classGUI_1_1Drawable_aa6fbf7f2c20f1d7c5f37af4e5dc6e3f5}{\index{G\-U\-I\-::\-Drawable@{G\-U\-I\-::\-Drawable}!fill\-Circle@{fill\-Circle}}
+\index{fill\-Circle@{fill\-Circle}!GUI::Drawable@{G\-U\-I\-::\-Drawable}}
+\subsubsection[{fill\-Circle}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf G\-U\-I\-::\-Drawable\-::fill\-Circle} (
+\begin{DoxyParamCaption}
+\item[{int}]{x, }
+\item[{int}]{y, }
+\item[{int}]{d}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classGUI_1_1Drawable_aa6fbf7f2c20f1d7c5f37af4e5dc6e3f5}
+
+
+Draw a filled circle centered at the given coordinates with diameter {\ttfamily d}. 
+
+The current position is set to the center. 
+
+Definition at line 1050 of file gui\-\_\-tk.\-h.
+
+
+
+References fill\-Circle(), and goto\-X\-Y().
+
+
+
+Referenced by fill\-Circle().
+
+\hypertarget{classGUI_1_1Drawable_af28c6abd372251f47f1c2748c2aea340}{\index{G\-U\-I\-::\-Drawable@{G\-U\-I\-::\-Drawable}!fill\-Rect@{fill\-Rect}}
+\index{fill\-Rect@{fill\-Rect}!GUI::Drawable@{G\-U\-I\-::\-Drawable}}
+\subsubsection[{fill\-Rect}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf G\-U\-I\-::\-Drawable\-::fill\-Rect} (
+\begin{DoxyParamCaption}
+\item[{int}]{w, }
+\item[{int}]{h}
+\end{DoxyParamCaption}
+)}}\label{classGUI_1_1Drawable_af28c6abd372251f47f1c2748c2aea340}
+
+
+Draw a filled rectangle with top left at the current position and size {\ttfamily w}, {\ttfamily h}. 
+
+The current position is not changed. 
+
+Definition at line 367 of file gui\-\_\-tk.\-cpp.
+
+
+
+References draw\-Pixel(), goto\-X\-Y(), x, and y.
+
+
+
+Referenced by G\-U\-I\-::\-Input\-::paint(), G\-U\-I\-::\-Toplevel\-Window\-::paint(), G\-U\-I\-::\-Menu\-::paint(), G\-U\-I\-::\-Button\-::paint(), G\-U\-I\-::\-Menubar\-::paint(), G\-U\-I\-::\-Checkbox\-::paint(), and G\-U\-I\-::\-Radiobox\-::paint().
+
+\hypertarget{classGUI_1_1Drawable_af31dc67b9230aa12a0988905643238c8}{\index{G\-U\-I\-::\-Drawable@{G\-U\-I\-::\-Drawable}!fill\-Rect@{fill\-Rect}}
+\index{fill\-Rect@{fill\-Rect}!GUI::Drawable@{G\-U\-I\-::\-Drawable}}
+\subsubsection[{fill\-Rect}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf G\-U\-I\-::\-Drawable\-::fill\-Rect} (
+\begin{DoxyParamCaption}
+\item[{int}]{x, }
+\item[{int}]{y, }
+\item[{int}]{w, }
+\item[{int}]{h}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classGUI_1_1Drawable_af31dc67b9230aa12a0988905643238c8}
+
+
+Draw a filled rectangle with top left at the given coordinates and size {\ttfamily w}, {\ttfamily h}. 
+
+The current position is set to the top left corner. 
+
+Definition at line 1057 of file gui\-\_\-tk.\-h.
+
+
+
+References fill\-Rect(), and goto\-X\-Y().
+
+
+
+Referenced by fill\-Rect().
+
+\hypertarget{classGUI_1_1Drawable_a320fc166762d1109f833a1381a8b8b81}{\index{G\-U\-I\-::\-Drawable@{G\-U\-I\-::\-Drawable}!set\-Color@{set\-Color}}
+\index{set\-Color@{set\-Color}!GUI::Drawable@{G\-U\-I\-::\-Drawable}}
+\subsubsection[{set\-Color}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf G\-U\-I\-::\-Drawable\-::set\-Color} (
+\begin{DoxyParamCaption}
+\item[{{\bf R\-G\-B}}]{c}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}inline\mbox{]}}}}\label{classGUI_1_1Drawable_a320fc166762d1109f833a1381a8b8b81}
+
+
+Change current drawing color. 
+
+The alpha part is honoured in all drawing primitives like this\-: All drawing operations in this window will unconditionally overwrite earlier content of this window. Only when combining this window with it's parent, the alpha channel is fully honoured. 
+
+Definition at line 978 of file gui\-\_\-tk.\-h.
+
+
+
+References color.
+
+
+
+Referenced by draw\-Text(), G\-U\-I\-::\-Label\-::paint(), G\-U\-I\-::\-Input\-::paint(), G\-U\-I\-::\-Toplevel\-Window\-::paint(), G\-U\-I\-::\-Menu\-::paint(), G\-U\-I\-::\-Button\-::paint(), G\-U\-I\-::\-Menubar\-::paint(), G\-U\-I\-::\-Checkbox\-::paint(), G\-U\-I\-::\-Radiobox\-::paint(), and G\-U\-I\-::\-Frame\-::paint().
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+src/libs/gui\-\_\-tk/\hyperlink{gui__tk_8h}{gui\-\_\-tk.\-h}\item 
+src/libs/gui\-\_\-tk/\hyperlink{gui__tk_8cpp}{gui\-\_\-tk.\-cpp}\end{DoxyCompactItemize}

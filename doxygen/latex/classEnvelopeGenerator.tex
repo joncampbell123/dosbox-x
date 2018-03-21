@@ -1,0 +1,168 @@
+\hypertarget{classEnvelopeGenerator}{\section{Envelope\-Generator Class Reference}
+\label{classEnvelopeGenerator}\index{Envelope\-Generator@{Envelope\-Generator}}
+}
+\subsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+enum {\bfseries State} \{ {\bfseries A\-T\-T\-A\-C\-K}, 
+{\bfseries D\-E\-C\-A\-Y\-\_\-\-S\-U\-S\-T\-A\-I\-N}, 
+{\bfseries R\-E\-L\-E\-A\-S\-E}
+ \}
+\end{DoxyCompactItemize}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classEnvelopeGenerator_a5ecc39fc11bc972f8648734f4cc0cf89}{R\-E\-S\-I\-D\-\_\-\-I\-N\-L\-I\-N\-E void {\bfseries clock} ()}\label{classEnvelopeGenerator_a5ecc39fc11bc972f8648734f4cc0cf89}
+
+\item 
+\hypertarget{classEnvelopeGenerator_ad5946858b8f732804c1d030c1af5359e}{R\-E\-S\-I\-D\-\_\-\-I\-N\-L\-I\-N\-E void {\bfseries clock} (cycle\-\_\-count delta\-\_\-t)}\label{classEnvelopeGenerator_ad5946858b8f732804c1d030c1af5359e}
+
+\item 
+\hypertarget{classEnvelopeGenerator_a64179e4784e307cf16f4933f225dbcbc}{void {\bfseries reset} ()}\label{classEnvelopeGenerator_a64179e4784e307cf16f4933f225dbcbc}
+
+\item 
+\hypertarget{classEnvelopeGenerator_a4b15ac369e854d24f544680629b1729d}{void {\bfseries write\-C\-O\-N\-T\-R\-O\-L\-\_\-\-R\-E\-G} (reg8)}\label{classEnvelopeGenerator_a4b15ac369e854d24f544680629b1729d}
+
+\item 
+\hypertarget{classEnvelopeGenerator_afee0b414ba85d6ecdb367b988db866b7}{void {\bfseries write\-A\-T\-T\-A\-C\-K\-\_\-\-D\-E\-C\-A\-Y} (reg8)}\label{classEnvelopeGenerator_afee0b414ba85d6ecdb367b988db866b7}
+
+\item 
+\hypertarget{classEnvelopeGenerator_abf45adc8d4e07dfaed8829159946724a}{void {\bfseries write\-S\-U\-S\-T\-A\-I\-N\-\_\-\-R\-E\-L\-E\-A\-S\-E} (reg8)}\label{classEnvelopeGenerator_abf45adc8d4e07dfaed8829159946724a}
+
+\item 
+\hypertarget{classEnvelopeGenerator_a895dcd9c29340fb397a649ea07be6bef}{reg8 {\bfseries read\-E\-N\-V} ()}\label{classEnvelopeGenerator_a895dcd9c29340fb397a649ea07be6bef}
+
+\item 
+\hypertarget{classEnvelopeGenerator_af9bedd480853675e129dd08d67f79689}{R\-E\-S\-I\-D\-\_\-\-I\-N\-L\-I\-N\-E reg8 {\bfseries output} ()}\label{classEnvelopeGenerator_af9bedd480853675e129dd08d67f79689}
+
+\item 
+\hypertarget{classEnvelopeGenerator_a19a08268e0949a509d0cf1140da463dc}{void {\bfseries Save\-State} (std\-::ostream \&stream)}\label{classEnvelopeGenerator_a19a08268e0949a509d0cf1140da463dc}
+
+\item 
+\hypertarget{classEnvelopeGenerator_a6bc5fa20ee5623cf435820ed892c022c}{void {\bfseries Load\-State} (std\-::istream \&stream)}\label{classEnvelopeGenerator_a6bc5fa20ee5623cf435820ed892c022c}
+
+\end{DoxyCompactItemize}
+\subsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classEnvelopeGenerator_a1174e571e81e932651a4d8879e3d4c06}{reg16 {\bfseries rate\-\_\-counter}}\label{classEnvelopeGenerator_a1174e571e81e932651a4d8879e3d4c06}
+
+\item 
+\hypertarget{classEnvelopeGenerator_a808f2c86e6190a92d185ec92ba3082bb}{reg16 {\bfseries rate\-\_\-period}}\label{classEnvelopeGenerator_a808f2c86e6190a92d185ec92ba3082bb}
+
+\item 
+\hypertarget{classEnvelopeGenerator_af80f10348405747edc02ac9fa98ca0c6}{reg8 {\bfseries exponential\-\_\-counter}}\label{classEnvelopeGenerator_af80f10348405747edc02ac9fa98ca0c6}
+
+\item 
+\hypertarget{classEnvelopeGenerator_a3b69fccd0060cf276d292e8146fce477}{reg8 {\bfseries exponential\-\_\-counter\-\_\-period}}\label{classEnvelopeGenerator_a3b69fccd0060cf276d292e8146fce477}
+
+\item 
+\hypertarget{classEnvelopeGenerator_a464e4a37977dc1cba2ac2c2e0ab08dc5}{reg8 {\bfseries envelope\-\_\-counter}}\label{classEnvelopeGenerator_a464e4a37977dc1cba2ac2c2e0ab08dc5}
+
+\item 
+\hypertarget{classEnvelopeGenerator_aa0d69acef90f7b774ff310867abf303a}{bool {\bfseries hold\-\_\-zero}}\label{classEnvelopeGenerator_aa0d69acef90f7b774ff310867abf303a}
+
+\item 
+\hypertarget{classEnvelopeGenerator_ac9f0841261fbaebc81bec8c44d620efc}{reg4 {\bfseries attack}}\label{classEnvelopeGenerator_ac9f0841261fbaebc81bec8c44d620efc}
+
+\item 
+\hypertarget{classEnvelopeGenerator_a2358e25140510b053be819b7e30fe7c9}{reg4 {\bfseries decay}}\label{classEnvelopeGenerator_a2358e25140510b053be819b7e30fe7c9}
+
+\item 
+\hypertarget{classEnvelopeGenerator_ad20c416194325779cb19e6793d292bc3}{reg4 {\bfseries sustain}}\label{classEnvelopeGenerator_ad20c416194325779cb19e6793d292bc3}
+
+\item 
+\hypertarget{classEnvelopeGenerator_affb4071ce3cb5641d06789770e813c66}{reg4 {\bfseries release}}\label{classEnvelopeGenerator_affb4071ce3cb5641d06789770e813c66}
+
+\item 
+\hypertarget{classEnvelopeGenerator_a6d846838ae52984fbad4f5dacf1edee8}{reg8 {\bfseries gate}}\label{classEnvelopeGenerator_a6d846838ae52984fbad4f5dacf1edee8}
+
+\item 
+\hypertarget{classEnvelopeGenerator_a1330b888e7db119e687761699b460f69}{State {\bfseries state}}\label{classEnvelopeGenerator_a1330b888e7db119e687761699b460f69}
+
+\end{DoxyCompactItemize}
+\subsection*{Static Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+static reg16 {\bfseries rate\-\_\-counter\-\_\-period} \mbox{[}$\,$\mbox{]}
+\item 
+static reg8 {\bfseries sustain\-\_\-level} \mbox{[}$\,$\mbox{]}
+\end{DoxyCompactItemize}
+\subsection*{Friends}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classEnvelopeGenerator_a906a1c7f73b30e819416802226bba3ff}{class {\bfseries S\-I\-D2}}\label{classEnvelopeGenerator_a906a1c7f73b30e819416802226bba3ff}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 36 of file envelope.\-h.
+
+
+
+\subsection{Member Data Documentation}
+\hypertarget{classEnvelopeGenerator_a90bd81667686130fc52d8de368e26c8a}{\index{Envelope\-Generator@{Envelope\-Generator}!rate\-\_\-counter\-\_\-period@{rate\-\_\-counter\-\_\-period}}
+\index{rate\-\_\-counter\-\_\-period@{rate\-\_\-counter\-\_\-period}!EnvelopeGenerator@{Envelope\-Generator}}
+\subsubsection[{rate\-\_\-counter\-\_\-period}]{\setlength{\rightskip}{0pt plus 5cm}reg16 Envelope\-Generator\-::rate\-\_\-counter\-\_\-period\hspace{0.3cm}{\ttfamily  \mbox{[}static, protected\mbox{]}}}}\label{classEnvelopeGenerator_a90bd81667686130fc52d8de368e26c8a}
+{\bfseries Initial value\-:}
+\begin{DoxyCode}
+ {
+      9,  
+     32,  
+     63,  
+     95,  
+    149,  
+    220,  
+    267,  
+    313,  
+    392,  
+    977,  
+   1954,  
+   3126,  
+   3907,  
+  11720,  
+  19532,  
+  31251   
+}
+\end{DoxyCode}
+
+
+Definition at line 77 of file envelope.\-h.
+
+\hypertarget{classEnvelopeGenerator_abdb40ef8874340921d6c6fa034aa1f2c}{\index{Envelope\-Generator@{Envelope\-Generator}!sustain\-\_\-level@{sustain\-\_\-level}}
+\index{sustain\-\_\-level@{sustain\-\_\-level}!EnvelopeGenerator@{Envelope\-Generator}}
+\subsubsection[{sustain\-\_\-level}]{\setlength{\rightskip}{0pt plus 5cm}reg8 Envelope\-Generator\-::sustain\-\_\-level\hspace{0.3cm}{\ttfamily  \mbox{[}static, protected\mbox{]}}}}\label{classEnvelopeGenerator_abdb40ef8874340921d6c6fa034aa1f2c}
+{\bfseries Initial value\-:}
+\begin{DoxyCode}
+ {
+  0x00,
+  0x11,
+  0x22,
+  0x33,
+  0x44,
+  0x55,
+  0x66,
+  0x77,
+  0x88,
+  0x99,
+  0xaa,
+  0xbb,
+  0xcc,
+  0xdd,
+  0xee,
+  0xff,
+}
+\end{DoxyCode}
+
+
+Definition at line 80 of file envelope.\-h.
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+src/hardware/re\-S\-I\-D/envelope.\-h\item 
+src/hardware/re\-S\-I\-D/envelope.\-cpp\end{DoxyCompactItemize}

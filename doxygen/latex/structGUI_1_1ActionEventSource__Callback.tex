@@ -1,0 +1,58 @@
+\hypertarget{structGUI_1_1ActionEventSource__Callback}{\section{G\-U\-I\-:\-:Action\-Event\-Source\-\_\-\-Callback Struct Reference}
+\label{structGUI_1_1ActionEventSource__Callback}\index{G\-U\-I\-::\-Action\-Event\-Source\-\_\-\-Callback@{G\-U\-I\-::\-Action\-Event\-Source\-\_\-\-Callback}}
+}
+
+
+Callback for action events.  
+
+
+
+
+{\ttfamily \#include $<$gui\-\_\-tk.\-h$>$}
+
+Inheritance diagram for G\-U\-I\-:\-:Action\-Event\-Source\-\_\-\-Callback\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=4.865719cm]{structGUI_1_1ActionEventSource__Callback}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+virtual void \hyperlink{structGUI_1_1ActionEventSource__Callback_a36df23a424558a83b45e3e3d5c175cf2}{action\-Executed} (\hyperlink{classGUI_1_1ActionEventSource}{Action\-Event\-Source} $\ast$source, const \hyperlink{classGUI_1_1String}{String} \&arg)=0
+\begin{DoxyCompactList}\small\item\em Handler with optional \hyperlink{classGUI_1_1String}{String} argument. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Callback for action events. 
+
+Definition at line 1299 of file gui\-\_\-tk.\-h.
+
+
+
+\subsection{Member Function Documentation}
+\hypertarget{structGUI_1_1ActionEventSource__Callback_a36df23a424558a83b45e3e3d5c175cf2}{\index{G\-U\-I\-::\-Action\-Event\-Source\-\_\-\-Callback@{G\-U\-I\-::\-Action\-Event\-Source\-\_\-\-Callback}!action\-Executed@{action\-Executed}}
+\index{action\-Executed@{action\-Executed}!GUI::ActionEventSource_Callback@{G\-U\-I\-::\-Action\-Event\-Source\-\_\-\-Callback}}
+\subsubsection[{action\-Executed}]{\setlength{\rightskip}{0pt plus 5cm}virtual void {\bf G\-U\-I\-::\-Action\-Event\-Source\-\_\-\-Callback\-::action\-Executed} (
+\begin{DoxyParamCaption}
+\item[{{\bf Action\-Event\-Source} $\ast$}]{source, }
+\item[{const {\bf String} \&}]{arg}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}pure virtual\mbox{]}}}}\label{structGUI_1_1ActionEventSource__Callback_a36df23a424558a83b45e3e3d5c175cf2}
+
+
+Handler with optional \hyperlink{classGUI_1_1String}{String} argument. 
+
+If the event source doesn't provide an additional argument, the name will be used. 
+
+Implemented in \hyperlink{classGUI_1_1Frame_ad1e2d887bb7c22a47ca447fd5c6baaaf}{G\-U\-I\-::\-Frame}, \hyperlink{classGUI_1_1Menubar_af4c7d2663455b31660110c53c3d604e5}{G\-U\-I\-::\-Menubar}, \hyperlink{classGUI_1_1ToplevelWindow_a6b87e7cc4f8d21d661d29250d6899434}{G\-U\-I\-::\-Toplevel\-Window}, \hyperlink{classConfigurationWindow_a2dac96be9ab39e51f0eabec372406664}{Configuration\-Window}, \hyperlink{classSetLocalSize_ab71c2d90d683ddc1fdd31ee3fe972fa0}{Set\-Local\-Size}, \hyperlink{classSetVsyncrate_a7cb5a521b9e9c28bfc78d0820a2901a3}{Set\-Vsyncrate}, \hyperlink{classSetCycles_af44270f3268432309501b4918facf28a}{Set\-Cycles}, \hyperlink{classSaveLangDialog_aebf160f57b67dce3f0dc2ebac87e9f27}{Save\-Lang\-Dialog}, \hyperlink{classSaveDialog_af7dc3bd044aa8a69ae430faf64430058}{Save\-Dialog}, \hyperlink{classAutoexecEditor_a5103a2bb5e750230a808ce091448ed05}{Autoexec\-Editor}, \hyperlink{classSectionEditor_affef3df8632e3d7cef272a5cbcd4728f}{Section\-Editor}, and \hyperlink{classPropertyEditor_a216c28dd01d93a55fbd7523c1924d4c7}{Property\-Editor}.
+
+
+
+Referenced by G\-U\-I\-::\-Menubar\-::action\-Executed(), and G\-U\-I\-::\-Action\-Event\-Source\-::execute\-Action().
+
+
+
+The documentation for this struct was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+src/libs/gui\-\_\-tk/\hyperlink{gui__tk_8h}{gui\-\_\-tk.\-h}\end{DoxyCompactItemize}

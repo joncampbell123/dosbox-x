@@ -1,0 +1,90 @@
+\hypertarget{structPagingBlock}{\section{Paging\-Block Struct Reference}
+\label{structPagingBlock}\index{Paging\-Block@{Paging\-Block}}
+}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{structPagingBlock_a110f3f713ace59834f2f31983c1639cd}{Bitu {\bfseries cr3}}\label{structPagingBlock_a110f3f713ace59834f2f31983c1639cd}
+
+\item 
+\hypertarget{structPagingBlock_a9feb5924c8bb574637d86206e8a8f4b3}{Bitu {\bfseries cr2}}\label{structPagingBlock_a9feb5924c8bb574637d86206e8a8f4b3}
+
+\item 
+\hypertarget{structPagingBlock_a98edb6275607c408dc2078213632bf4e}{bool {\bfseries wp}}\label{structPagingBlock_a98edb6275607c408dc2078213632bf4e}
+
+\item 
+\hypertarget{structPagingBlock_adeab8f1ba3bf3bf96edb45f8b234231a}{\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+struct \{\\
+\>Bitu {\bfseries page}\\
+\>PhysPt {\bfseries addr}\\
+\} {\bfseries base}}\label{structPagingBlock_adeab8f1ba3bf3bf96edb45f8b234231a}
+\\
+
+\end{tabbing}\item 
+\hypertarget{structPagingBlock_a2a76eb861a773ce5763076e5d9541f3a}{\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+struct \{\\
+\>HostPt {\bfseries read} \mbox{[}TLB\_SIZE\mbox{]}\\
+\>HostPt {\bfseries write} \mbox{[}TLB\_SIZE\mbox{]}\\
+\>\hyperlink{classPageHandler}{PageHandler} $\ast$ {\bfseries readhandler} \mbox{[}TLB\_SIZE\mbox{]}\\
+\>\hyperlink{classPageHandler}{PageHandler} $\ast$ {\bfseries writehandler} \mbox{[}TLB\_SIZE\mbox{]}\\
+\>Bit32u {\bfseries phys\_page} \mbox{[}TLB\_SIZE\mbox{]}\\
+\} {\bfseries tlb}}\label{structPagingBlock_a2a76eb861a773ce5763076e5d9541f3a}
+\\
+
+\end{tabbing}\item 
+\hypertarget{structPagingBlock_abcd2b71951b223e0f2993bf1ecad21ef}{\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+struct \{\\
+\>Bitu {\bfseries used}\\
+\>Bit32u {\bfseries entries} \mbox{[}PAGING\_LINKS\mbox{]}\\
+\} {\bfseries links}}\label{structPagingBlock_abcd2b71951b223e0f2993bf1ecad21ef}
+\\
+
+\end{tabbing}\item 
+\hypertarget{structPagingBlock_ade9bb03667e97db8bbc56c0106a95aa8}{\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+struct \{\\
+\>Bitu {\bfseries used}\\
+\>Bit32u {\bfseries entries} \mbox{[}PAGING\_LINKS\mbox{]}\\
+\} {\bfseries ur\_links}}\label{structPagingBlock_ade9bb03667e97db8bbc56c0106a95aa8}
+\\
+
+\end{tabbing}\item 
+\hypertarget{structPagingBlock_aeb289a0cc475ed514bbf7010a3561c06}{\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+struct \{\\
+\>Bitu {\bfseries used}\\
+\>Bit32u {\bfseries entries} \mbox{[}PAGING\_LINKS\mbox{]}\\
+\} {\bfseries krw\_links}}\label{structPagingBlock_aeb289a0cc475ed514bbf7010a3561c06}
+\\
+
+\end{tabbing}\item 
+\hypertarget{structPagingBlock_a13b50ee189d4bcce48ba1520972e9015}{\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+struct \{\\
+\>Bitu {\bfseries used}\\
+\>Bit32u {\bfseries entries} \mbox{[}PAGING\_LINKS\mbox{]}\\
+\} {\bfseries kr\_links}}\label{structPagingBlock_a13b50ee189d4bcce48ba1520972e9015}
+\\
+
+\end{tabbing}\item 
+\hypertarget{structPagingBlock_a0f959a5a804ec18582f09350156f3e4f}{Bit32u {\bfseries firstmb} \mbox{[}L\-I\-N\-K\-\_\-\-S\-T\-A\-R\-T\mbox{]}}\label{structPagingBlock_a0f959a5a804ec18582f09350156f3e4f}
+
+\item 
+\hypertarget{structPagingBlock_a24a172f80cdcd97ec729fc564873831f}{bool {\bfseries enabled}}\label{structPagingBlock_a24a172f80cdcd97ec729fc564873831f}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 266 of file paging.\-h.
+
+
+
+The documentation for this struct was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+include/paging.\-h\end{DoxyCompactItemize}

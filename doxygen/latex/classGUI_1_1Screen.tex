@@ -1,0 +1,116 @@
+\hypertarget{classGUI_1_1Screen}{\section{G\-U\-I\-:\-:Screen Class Reference}
+\label{classGUI_1_1Screen}\index{G\-U\-I\-::\-Screen@{G\-U\-I\-::\-Screen}}
+}
+
+
+A \hyperlink{classGUI_1_1Screen}{Screen} represents the framebuffer that is the final destination of the \hyperlink{namespaceGUI}{G\-U\-I}.  
+
+
+
+
+{\ttfamily \#include $<$gui\-\_\-tk.\-h$>$}
+
+Inheritance diagram for G\-U\-I\-:\-:Screen\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{classGUI_1_1Screen}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classGUI_1_1Screen_a28790d016f26b151f43bac29a08bea12}{virtual \hyperlink{classGUI_1_1Screen_a28790d016f26b151f43bac29a08bea12}{$\sim$\-Screen} ()}\label{classGUI_1_1Screen_a28790d016f26b151f43bac29a08bea12}
+
+\begin{DoxyCompactList}\small\item\em Destructor. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Screen_ab2f5439bc43c1738495bc4f8431989ae}{{\footnotesize template$<$typename S\-T\-R $>$ }\\void \hyperlink{classGUI_1_1Screen_ab2f5439bc43c1738495bc4f8431989ae}{set\-Clipboard} (const S\-T\-R s)}\label{classGUI_1_1Screen_ab2f5439bc43c1738495bc4f8431989ae}
+
+\begin{DoxyCompactList}\small\item\em Set clipboard content. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Screen_a1fff320ba670a6bb14f4a0953e8e0b4b}{virtual void \hyperlink{classGUI_1_1Screen_a1fff320ba670a6bb14f4a0953e8e0b4b}{set\-Clipboard} (const \hyperlink{classGUI_1_1String}{String} \&s)}\label{classGUI_1_1Screen_a1fff320ba670a6bb14f4a0953e8e0b4b}
+
+\begin{DoxyCompactList}\small\item\em Set clipboard content. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Screen_abf7520d6b898a331ea8114a197306f84}{virtual const \hyperlink{classGUI_1_1String}{String} \& \hyperlink{classGUI_1_1Screen_abf7520d6b898a331ea8114a197306f84}{get\-Clipboard} ()}\label{classGUI_1_1Screen_abf7520d6b898a331ea8114a197306f84}
+
+\begin{DoxyCompactList}\small\item\em Get clipboard content. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Screen_a01265259b3322e72d9e6a1707eb0bb51}{virtual void \hyperlink{classGUI_1_1Screen_a01265259b3322e72d9e6a1707eb0bb51}{resize} (int w, int h)}\label{classGUI_1_1Screen_a01265259b3322e72d9e6a1707eb0bb51}
+
+\begin{DoxyCompactList}\small\item\em Do nothing. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Screen_a48a3586ad675d415de2baa45a5cf382d}{virtual void \hyperlink{classGUI_1_1Screen_a48a3586ad675d415de2baa45a5cf382d}{move} (int \hyperlink{classGUI_1_1Window_a6ca6a80ca00c9e1d8ceea8d3d99a657d}{x}, int \hyperlink{classGUI_1_1Window_a0ee8e923aff2c3661fc2e17656d37adf}{y})}\label{classGUI_1_1Screen_a48a3586ad675d415de2baa45a5cf382d}
+
+\begin{DoxyCompactList}\small\item\em Do nothing. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Screen_a9bcce98285a1d8e359c2f81099697184}{virtual bool \hyperlink{classGUI_1_1Screen_a9bcce98285a1d8e359c2f81099697184}{has\-Focus} () const }\label{classGUI_1_1Screen_a9bcce98285a1d8e359c2f81099697184}
+
+\begin{DoxyCompactList}\small\item\em \hyperlink{classGUI_1_1Screen}{Screen} has always focus. \end{DoxyCompactList}\item 
+\hyperlink{namespaceGUI_af396fee5d5c26b98218f5803f85e3b65}{Ticks} \hyperlink{classGUI_1_1Screen_a921cee1496805709968c4e016a5af4e6}{update} (void $\ast$surface, \hyperlink{namespaceGUI_af396fee5d5c26b98218f5803f85e3b65}{Ticks} ticks=1)
+\begin{DoxyCompactList}\small\item\em Update the given surface with this screen's content, fully honouring the alpha channel. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Screen_afa59a38d4f1fa75565c2bbfb699639be}{virtual void \hyperlink{classGUI_1_1Screen_afa59a38d4f1fa75565c2bbfb699639be}{paint} (\hyperlink{classGUI_1_1Drawable}{Drawable} \&d) const }\label{classGUI_1_1Screen_afa59a38d4f1fa75565c2bbfb699639be}
+
+\begin{DoxyCompactList}\small\item\em Default\-: clear screen. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classGUI_1_1Screen_a58999d2d77eb53b064b893e1c096c1c0}{virtual void \hyperlink{classGUI_1_1Screen_a58999d2d77eb53b064b893e1c096c1c0}{rgb\-To\-Surface} (\hyperlink{namespaceGUI_aeafd135255365f3584da0e982fc79466}{R\-G\-B} color, void $\ast$$\ast$pixel)=0}\label{classGUI_1_1Screen_a58999d2d77eb53b064b893e1c096c1c0}
+
+\begin{DoxyCompactList}\small\item\em Store a single R\-G\-B triple (8 bit each) as a native pixel value and advance pointer. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Screen_a0512d1dfadc6e7800b3c9c97fd6c733e}{virtual \hyperlink{namespaceGUI_aeafd135255365f3584da0e982fc79466}{R\-G\-B} \hyperlink{classGUI_1_1Screen_a0512d1dfadc6e7800b3c9c97fd6c733e}{surface\-To\-R\-G\-B} (void $\ast$pixel)=0}\label{classGUI_1_1Screen_a0512d1dfadc6e7800b3c9c97fd6c733e}
+
+\begin{DoxyCompactList}\small\item\em Map a single framebuffer pixel to an R\-G\-B value. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Screen_a04241cd66c7f02485574dac750164b16}{\hyperlink{classGUI_1_1Screen_a04241cd66c7f02485574dac750164b16}{Screen} (\hyperlink{namespaceGUI_a10b6232e08729baa0bd211a86a69ce36}{Size} \hyperlink{classGUI_1_1Window_a6cd42974c2b9239d05dac79d284f427d}{width}, \hyperlink{namespaceGUI_a10b6232e08729baa0bd211a86a69ce36}{Size} \hyperlink{classGUI_1_1Window_a5bbb3975f91e7572fc1a91c44e59d212}{height})}\label{classGUI_1_1Screen_a04241cd66c7f02485574dac750164b16}
+
+\begin{DoxyCompactList}\small\item\em Create a new screen with the given characteristics. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Screen_a240e1fb5ac8772cf01b9627792d544b3}{\hyperlink{classGUI_1_1Screen_a240e1fb5ac8772cf01b9627792d544b3}{Screen} (\hyperlink{classGUI_1_1Drawable}{Drawable} $\ast$d)}\label{classGUI_1_1Screen_a240e1fb5ac8772cf01b9627792d544b3}
+
+\begin{DoxyCompactList}\small\item\em Create a new screen from the given \hyperlink{classGUI_1_1Drawable}{G\-U\-I\-::\-Drawable}. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classGUI_1_1Screen_a30b34167fe1aad767a0f7fcfd617ddfa}{\hyperlink{classGUI_1_1Drawable}{Drawable} $\ast$const \hyperlink{classGUI_1_1Screen_a30b34167fe1aad767a0f7fcfd617ddfa}{buffer}}\label{classGUI_1_1Screen_a30b34167fe1aad767a0f7fcfd617ddfa}
+
+\begin{DoxyCompactList}\small\item\em \hyperlink{classGUI_1_1Screen}{Screen} buffer. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Screen_ae1bac72316cf4d07b19c2e4ae497e272}{\hyperlink{classGUI_1_1String}{String} \hyperlink{classGUI_1_1Screen_ae1bac72316cf4d07b19c2e4ae497e272}{clipboard}}\label{classGUI_1_1Screen_ae1bac72316cf4d07b19c2e4ae497e272}
+
+\begin{DoxyCompactList}\small\item\em Clipboard. \end{DoxyCompactList}\item 
+\hypertarget{classGUI_1_1Screen_a76597fbd366faf61d3a26f698e82e1f7}{\hyperlink{namespaceGUI_ad06082a7b02aa73697f39eb8e0856de9}{Mouse\-Button} \hyperlink{classGUI_1_1Screen_a76597fbd366faf61d3a26f698e82e1f7}{button}}\label{classGUI_1_1Screen_a76597fbd366faf61d3a26f698e82e1f7}
+
+\begin{DoxyCompactList}\small\item\em Currently pressed mouse button. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+A \hyperlink{classGUI_1_1Screen}{Screen} represents the framebuffer that is the final destination of the \hyperlink{namespaceGUI}{G\-U\-I}. 
+
+It's main purpose is to manage the current contents of the surface and to combine it with all \hyperlink{namespaceGUI}{G\-U\-I} elements. You can't resize and move the screen. Requests to do so will be ignored.
+
+This is an abstract base class. You need to use a subclass which implements rgb\-To\-Surface and surface\-To\-R\-G\-B.
+
+To make things work, \hyperlink{classGUI_1_1Screen}{Screen} needs events. Call the mouse and key event functions (see \hyperlink{classGUI_1_1Window}{Window}) whenever such an event occurs. Call update(void $\ast$surface, int ticks) regularly, if possible about every 40msec (25 fps). If nothing has changed, screen updates are quite fast. 
+
+Definition at line 694 of file gui\-\_\-tk.\-h.
+
+
+
+\subsection{Member Function Documentation}
+\hypertarget{classGUI_1_1Screen_a921cee1496805709968c4e016a5af4e6}{\index{G\-U\-I\-::\-Screen@{G\-U\-I\-::\-Screen}!update@{update}}
+\index{update@{update}!GUI::Screen@{G\-U\-I\-::\-Screen}}
+\subsubsection[{update}]{\setlength{\rightskip}{0pt plus 5cm}unsigned int {\bf G\-U\-I\-::\-Screen\-::update} (
+\begin{DoxyParamCaption}
+\item[{void $\ast$}]{surface, }
+\item[{{\bf Ticks}}]{ticks = {\ttfamily 1}}
+\end{DoxyParamCaption}
+)}}\label{classGUI_1_1Screen_a921cee1496805709968c4e016a5af4e6}
+
+
+Update the given surface with this screen's content, fully honouring the alpha channel. 
+
+{\ttfamily ticks} can be set to a different value depending on how much time has passed. Timing doesn't need to be perfect, but try to call this at least every 40 msec. Each tick amounts to about 10 msec. Returns the number of ticks until the next event is scheduled, or 0 if none. 
+
+Definition at line 1273 of file gui\-\_\-tk.\-cpp.
+
+
+
+References buffer, G\-U\-I\-::\-Drawable\-::buffer, G\-U\-I\-::\-Color\-::\-Green\-Mask, G\-U\-I\-::\-Window\-::height, G\-U\-I\-::\-Color\-::\-Magenta\-Mask, G\-U\-I\-::\-Timer\-::next(), G\-U\-I\-::\-Window\-::paint\-All(), rgb\-To\-Surface(), surface\-To\-R\-G\-B(), G\-U\-I\-::\-Window\-::width, G\-U\-I\-::\-Window\-::x, and G\-U\-I\-::\-Window\-::y.
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+src/libs/gui\-\_\-tk/\hyperlink{gui__tk_8h}{gui\-\_\-tk.\-h}\item 
+src/libs/gui\-\_\-tk/\hyperlink{gui__tk_8cpp}{gui\-\_\-tk.\-cpp}\end{DoxyCompactItemize}

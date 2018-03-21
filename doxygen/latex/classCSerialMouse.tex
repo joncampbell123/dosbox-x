@@ -1,0 +1,85 @@
+\hypertarget{classCSerialMouse}{\section{C\-Serial\-Mouse Class Reference}
+\label{classCSerialMouse}\index{C\-Serial\-Mouse@{C\-Serial\-Mouse}}
+}
+Inheritance diagram for C\-Serial\-Mouse\-:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classCSerialMouse}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classCSerialMouse_ad8ea74f5cd6916fc2fad0ab156fd25ec}{{\bfseries C\-Serial\-Mouse} (Bitu id, \hyperlink{classCommandLine}{Command\-Line} $\ast$cmd)}\label{classCSerialMouse_ad8ea74f5cd6916fc2fad0ab156fd25ec}
+
+\item 
+\hypertarget{classCSerialMouse_ad3c4bc01b47efa8b07e13cda6bad32a6}{void {\bfseries set\-R\-T\-S\-D\-T\-R} (bool rts, bool dtr)}\label{classCSerialMouse_ad3c4bc01b47efa8b07e13cda6bad32a6}
+
+\item 
+\hypertarget{classCSerialMouse_a9e1e2d4a7eb61767a04c6df69b21d102}{void {\bfseries set\-R\-T\-S} (bool val)}\label{classCSerialMouse_a9e1e2d4a7eb61767a04c6df69b21d102}
+
+\item 
+\hypertarget{classCSerialMouse_a6409e04e4c5c8d15706a72a5340f59be}{void {\bfseries set\-D\-T\-R} (bool val)}\label{classCSerialMouse_a6409e04e4c5c8d15706a72a5340f59be}
+
+\item 
+\hypertarget{classCSerialMouse_a6f4fe008180bd2bef5eac0a18ada3827}{void {\bfseries update\-Port\-Config} (Bit16u, Bit8u lcr)}\label{classCSerialMouse_a6f4fe008180bd2bef5eac0a18ada3827}
+
+\item 
+\hypertarget{classCSerialMouse_aecec2e372a2f5185119cb74f1b4bca93}{void {\bfseries update\-M\-S\-R} ()}\label{classCSerialMouse_aecec2e372a2f5185119cb74f1b4bca93}
+
+\item 
+\hypertarget{classCSerialMouse_ac5385cecbc9b750b30fd9ff8af026925}{void {\bfseries transmit\-Byte} (Bit8u val, bool first)}\label{classCSerialMouse_ac5385cecbc9b750b30fd9ff8af026925}
+
+\item 
+\hypertarget{classCSerialMouse_a7fecb5974e713f43cf6c663946dceb44}{void {\bfseries set\-Break} (bool value)}\label{classCSerialMouse_a7fecb5974e713f43cf6c663946dceb44}
+
+\item 
+\hypertarget{classCSerialMouse_a84300165413fad6e96fc3522ad32f37d}{void {\bfseries handle\-Upper\-Event} (Bit16u type)}\label{classCSerialMouse_a84300165413fad6e96fc3522ad32f37d}
+
+\item 
+\hypertarget{classCSerialMouse_ac33697aec9a1c937ea148d1a8d17ef66}{void {\bfseries on\-Mouse\-Reset} ()}\label{classCSerialMouse_ac33697aec9a1c937ea148d1a8d17ef66}
+
+\item 
+\hypertarget{classCSerialMouse_a602b3efff01fdee515d23b9025a146d6}{void {\bfseries on\-\_\-mouse\-\_\-event} (int delta\-\_\-x, int delta\-\_\-y, Bit8u buttonstate)}\label{classCSerialMouse_a602b3efff01fdee515d23b9025a146d6}
+
+\item 
+\hypertarget{classCSerialMouse_ae2878fe6cab53b6f2896a12de75364d6}{void {\bfseries start\-\_\-packet} ()}\label{classCSerialMouse_ae2878fe6cab53b6f2896a12de75364d6}
+
+\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classCSerialMouse_ab0c90ed4c6767060ada8cfbe0246d1b8}{Bit8u {\bfseries send\-\_\-ack}}\label{classCSerialMouse_ab0c90ed4c6767060ada8cfbe0246d1b8}
+
+\item 
+\hypertarget{classCSerialMouse_a90daf42329ed126107dace05a34bf737}{Bit8u {\bfseries packet} \mbox{[}3\mbox{]}}\label{classCSerialMouse_a90daf42329ed126107dace05a34bf737}
+
+\item 
+\hypertarget{classCSerialMouse_aadac1a4bed0949f61fe8b4542fd51794}{Bit8u {\bfseries packet\-\_\-xmit}}\label{classCSerialMouse_aadac1a4bed0949f61fe8b4542fd51794}
+
+\item 
+\hypertarget{classCSerialMouse_ae7c021aa53dc026703a7c2d5b0d43721}{Bit8u {\bfseries mouse\-\_\-buttons}}\label{classCSerialMouse_ae7c021aa53dc026703a7c2d5b0d43721}
+
+\item 
+\hypertarget{classCSerialMouse_ad30cc88a72d2735c5b3cf9a2f36af733}{Bit8u {\bfseries xmit\-\_\-another\-\_\-packet}}\label{classCSerialMouse_ad30cc88a72d2735c5b3cf9a2f36af733}
+
+\item 
+\hypertarget{classCSerialMouse_a14e865d07f45a13a6e7a7875f1c3c72a}{int {\bfseries mouse\-\_\-delta\-\_\-x}}\label{classCSerialMouse_a14e865d07f45a13a6e7a7875f1c3c72a}
+
+\item 
+\hypertarget{classCSerialMouse_a2aa1ffe757b4ce1c1915fec3146427ef}{int {\bfseries mouse\-\_\-delta\-\_\-y}}\label{classCSerialMouse_a2aa1ffe757b4ce1c1915fec3146427ef}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 28 of file serialmouse.\-h.
+
+
+
+The documentation for this class was generated from the following files\-:\begin{DoxyCompactItemize}
+\item 
+src/hardware/serialport/serialmouse.\-h\item 
+src/hardware/serialport/serialmouse.\-cpp\end{DoxyCompactItemize}
