@@ -49,22 +49,22 @@ dox:
 	doxygen
 
 dox-site-update:
-	if [[ !( -d subgit/gh-pages ) ]]; then git clone -b gh-pages https://github.com/joncampbell123/dosbox-x.git subgit/gh-pages; fi
-	(cd subgit/gh-pages && rm -Rfv doxygen)
-	cp -Rf doxygen subgit/gh-pages/
-	(cd subgit/gh-pages && git add doxygen/)
-	(cd subgit/gh-pages && git commit doxygen/)
+	if [[ !( -d ../dosbox-x-gh-pages ) ]]; then git clone -b gh-pages https://github.com/joncampbell123/dosbox-x.git ../dosbox-x-gh-pages; fi
+	(cd ../dosbox-x-gh-pages && rm -Rfv doxygen)
+	cp -Rf doxygen ../dosbox-x-gh-pages/
+	(cd ../dosbox-x-gh-pages && git add doxygen/)
+	(cd ../dosbox-x-gh-pages && git commit doxygen/)
 
 compat-site-update:
-	if [[ !( -d subgit/gh-pages ) ]]; then git clone -b gh-pages https://github.com/joncampbell123/dosbox-x.git subgit/gh-pages; fi
+	if [[ !( -d ../dosbox-x-gh-pages ) ]]; then git clone -b gh-pages https://github.com/joncampbell123/dosbox-x.git ../dosbox-x-gh-pages; fi
 	true # ----------
 	(cd /mnt/main/emu/demotest && ./make-compat-chart.pl)
-	cp /mnt/main/emu/demotest/compat-chart.html subgit/gh-pages/demoscene-compat.html
+	cp /mnt/main/emu/demotest/compat-chart.html ../dosbox-x-gh-pages/demoscene-compat.html
 	true # ----------
 	(cd /mnt/main/emu/msdostest && ./make-compat-chart.pl)
-	cp /mnt/main/emu/msdostest/compat-chart.html subgit/gh-pages/msdos-compat.html
+	cp /mnt/main/emu/msdostest/compat-chart.html ../dosbox-x-gh-pages/msdos-compat.html
 	true # ----------
-	(cd subgit/gh-pages && git add demoscene-compat.html)
-	(cd subgit/gh-pages && git add msdos-compat.html)
-	(cd subgit/gh-pages && git commit -m 'more' {msdos,demoscene}-compat.html)
+	(cd ../dosbox-x-gh-pages && git add demoscene-compat.html)
+	(cd ../dosbox-x-gh-pages && git add msdos-compat.html)
+	(cd ../dosbox-x-gh-pages && git commit -m 'more' {msdos,demoscene}-compat.html)
 
