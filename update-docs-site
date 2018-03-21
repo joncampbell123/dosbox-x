@@ -1,7 +1,7 @@
 #!/bin/bash
 make dox || exit 1
 make dox-site-update || exit 1
-make compat-site-update || exit 1
+make compat-site-update
 (cd subgit/gh-pages && git commit .)
 (cd subgit/gh-pages && git push)
 
