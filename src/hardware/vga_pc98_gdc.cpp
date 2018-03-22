@@ -270,6 +270,7 @@ void PC98_GDC_state::idle_proc(void) {
                 LOG_MSG("GDC: cursor setup");
                 break;
             case GDC_CMD_START_DISPLAY:       // 0x6B        0 1 1 0 1 0 1 1
+                display_enable = true;
                 idle = false;
                 break;
             case GDC_CMD_VERTICAL_SYNC_MODE:  // 0x6E        0 1 1 0 1 1 1 M
