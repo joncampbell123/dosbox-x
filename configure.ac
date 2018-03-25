@@ -609,7 +609,7 @@ dnl FEATURE: Whether to use X11 XKBlib
 AH_TEMPLATE(C_X11_XKB,[define to 1 if you have XKBlib.h and X11 lib])
 AC_MSG_CHECKING(for XKBlib support)
 if test x$have_x11_lib = xyes -a x$have_x11_h = xyes ; then
-   LIBS="$LIBS -lX11"
+   LIBS="$LIBS -lX11 -lxkbfile"
    AC_DEFINE(C_X11_XKB,1)
    AC_MSG_RESULT(yes)
 else

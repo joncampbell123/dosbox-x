@@ -3,12 +3,57 @@
 
 #ifdef LINUX
 #include "logging.h"
+#include "keymap.h"
 #include "SDL.h"
 #include "SDL_version.h"
 #include "SDL_syswm.h"
 
+#include <X11/XKBlib.h>
+#include <X11/extensions/XKBrules.h>
+
 void UpdateWindowDimensions(Bitu width, Bitu height);
 void UpdateWindowMaximized(bool flag);
+
+unsigned int Linux_GetKeyboardLayout(void) {
+#if defined(C_SDL2)
+    // TODO
+#else
+    SDL_SysWMinfo wminfo;
+    memset(&wminfo,0,sizeof(wminfo));
+    SDL_VERSION(&wminfo.version);
+    if (SDL_GetWMInfo(&wminfo) >= 0) {
+        if (wminfo.subsystem == SDL_SYSWM_X11 && wminfo.info.x11.display != NULL) {
+            XkbRF_VarDefsRec vd;
+            XkbStateRec state;
+
+            XkbGetState(wminfo.info.x11.display, XkbUseCoreKbd, &state);
+
+            XkbDescPtr desc = XkbGetKeyboard(wminfo.info.x11.display, XkbAllComponentsMask, XkbUseCoreKbd);
+            char *group = desc ? XGetAtomName(wminfo.info.x11.display, desc->names->groups[state.group]) : NULL;
+
+            if (group != NULL) LOG_MSG("Current X11 keyboard layout (full name) is: '%s'\n",group);
+
+            XkbRF_GetNamesProp(wminfo.info.x11.display, NULL, &vd);
+
+            char *tok = vd.layout ? strtok(vd.layout, ",") : NULL;
+
+            if (tok != NULL) {
+                for (int i = 0; i < state.group; i++) {
+                    tok = strtok(NULL, ",");
+                    if (tok == NULL) break;
+                }
+                if (tok != NULL) {
+                    LOG_MSG("Current X11 keyboard layout (token) is: '%s'\n",tok);
+                }
+            }
+
+            if (desc) XFree(desc);
+        }
+    }
+#endif
+
+    return DKM_US;
+}
 
 void UpdateWindowDimensions_Linux(void) {
 #if defined(C_SDL2)

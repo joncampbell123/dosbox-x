@@ -136,6 +136,28 @@ const char *DKM_to_descriptive_string(const unsigned int dkm) {
 unsigned int mapper_keyboard_layout = DKM_US;
 unsigned int host_keyboard_layout = DKM_US;
 
+void KeyboardLayoutDetect(void) {
+    unsigned int nlayout = DKM_US;
+
+#if defined(LINUX)
+    unsigned int Linux_GetKeyboardLayout(void);
+    nlayout = Linux_GetKeyboardLayout();
+#endif
+
+    LOG_MSG("Host keyboard layout is now %s ()",
+        DKM_to_string(host_keyboard_layout),
+        DKM_to_descriptive_string(host_keyboard_layout));
+}
+
+void SetMapperKeyboardLayout(const unsigned int dkm) {
+    /* TODO: Make mapper re-initialize layout. If the mapper interface is visible, redraw it. */
+    mapper_keyboard_layout = dkm;
+
+    LOG_MSG("Mapper keyboard layout is now %s ()",
+        DKM_to_string(mapper_keyboard_layout),
+        DKM_to_descriptive_string(mapper_keyboard_layout));
+}
+
 /* yksoft1 says that older MinGW headers lack this value --Jonathan C. */
 #ifndef MAPVK_VK_TO_VSC
 #define MAPVK_VK_TO_VSC 0
@@ -5411,6 +5433,10 @@ int main(int argc, char* argv[]) {
 
 		/* -- -- other steps to prepare SDL window/output */
 		SDL_Prepare();
+
+        /* -- -- Keyboard layout detection and setup */
+        KeyboardLayoutDetect();
+        SetMapperKeyboardLayout(host_keyboard_layout);
 
 		/* -- -- Initialise Joystick seperately. This way we can warn when it fails instead of exiting the application */
 		LOG(LOG_MISC,LOG_DEBUG)("Initializing SDL joystick subsystem...");
