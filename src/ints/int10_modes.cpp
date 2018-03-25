@@ -344,7 +344,10 @@ VideoModeBlock ModeList_VGA_Paradise[]={
 {0xFFFF  ,M_ERROR  ,0   ,0   ,0  ,0  ,0 ,0  ,0 ,0x00000 ,0x0000 ,0   ,0   ,0  ,0   ,0 	},
 };
 
-
+/* NTS: I will *NOT* set the double scanline flag for 200 line modes.
+ *      The modes listed here are intended to reflect the actual raster sent to the EGA monitor,
+ *      not what you think looks better. EGA as far as I know, is either sent a 200-line mode,
+ *      or a 350-line mode. There is no VGA-line 200 to 400 line doubling. */
 VideoModeBlock ModeList_EGA[]={
 /* mode  ,type     ,sw  ,sh  ,tw ,th ,cw,ch ,pt,pstart  ,plength,htot,vtot,hde,vde special flags */
 { 0x000  ,M_TEXT   ,320 ,350 ,40 ,25 ,8 ,14 ,8 ,0xB8000 ,0x0800 ,50  ,366 ,40 ,350 ,_EGA_HALF_CLOCK	},
