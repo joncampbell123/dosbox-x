@@ -1195,7 +1195,9 @@ bool INT10_SetVideoMode(Bit16u mode) {
 	default:
 		break;
 	}
-	if (CurMode->vdispend==350) underline=0x0f;
+
+    /* do NOT apply this to VESA BIOS modes */
+	if (CurMode->mode < 0x100 && CurMode->vdispend==350) underline=0x0f;
 
 	IO_Write(crtc_base,0x09);IO_Write(crtc_base+1,max_scanline);
 	IO_Write(crtc_base,0x14);IO_Write(crtc_base+1,underline);
