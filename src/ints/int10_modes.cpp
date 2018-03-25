@@ -927,7 +927,7 @@ bool INT10_SetVideoMode(Bit16u mode) {
 	/* Setup MISC Output Register */
 	Bit8u misc_output=0x2 | (mono_mode ? 0x0 : 0x1);
 
-	if ((CurMode->type==M_TEXT) && (CurMode->cwidth==9)) {
+	if (IS_VGA_ARCH && (CurMode->type==M_TEXT) && (CurMode->cwidth==9)) {
 		// 28MHz (16MHz EGA) clock for 9-pixel wide chars
 		misc_output|=0x4;
 	}
