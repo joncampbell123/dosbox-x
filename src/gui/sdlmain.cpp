@@ -144,7 +144,7 @@ void KeyboardLayoutDetect(void) {
     nlayout = Linux_GetKeyboardLayout();
 #endif
 
-    LOG_MSG("Host keyboard layout is now %s ()",
+    LOG_MSG("Host keyboard layout is now %s (%s)",
         DKM_to_string(host_keyboard_layout),
         DKM_to_descriptive_string(host_keyboard_layout));
 }
@@ -153,7 +153,7 @@ void SetMapperKeyboardLayout(const unsigned int dkm) {
     /* TODO: Make mapper re-initialize layout. If the mapper interface is visible, redraw it. */
     mapper_keyboard_layout = dkm;
 
-    LOG_MSG("Mapper keyboard layout is now %s ()",
+    LOG_MSG("Mapper keyboard layout is now %s (%s)",
         DKM_to_string(mapper_keyboard_layout),
         DKM_to_descriptive_string(mapper_keyboard_layout));
 }
