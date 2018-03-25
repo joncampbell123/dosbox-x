@@ -33,6 +33,7 @@ unsigned int Linux_GetKeyboardLayout(void) {
 
             if (group != NULL) LOG_MSG("Current X11 keyboard layout (full name) is: '%s'\n",group);
 
+            /* FIXME: Does this allocate anything? Do I need to free it? I am concerned about memory leaks --J.C. */
             XkbRF_GetNamesProp(wminfo.info.x11.display, NULL, &vd);
 
             char *tok = vd.layout ? strtok(vd.layout, ",") : NULL;
