@@ -5558,6 +5558,12 @@ int main(int argc, char* argv[]) {
 		MAPPER_StartUp();
 		DOSBOX_InitTickLoop();
 		DOSBOX_RealInit();
+
+        /* at this point: If the machine type is PC-98, and the mapper keyboard layout was "Japanese",
+         * then change the mapper layout to "Japanese PC-98" */
+        if (host_keyboard_layout == DKM_JPN && IS_PC98_ARCH)
+            SetMapperKeyboardLayout(DKM_JPN_PC98);
+
 		RENDER_Init();
 		CAPTURE_Init();
 		IO_Init();
