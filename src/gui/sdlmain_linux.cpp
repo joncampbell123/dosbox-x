@@ -15,6 +15,8 @@ void UpdateWindowDimensions(Bitu width, Bitu height);
 void UpdateWindowMaximized(bool flag);
 
 unsigned int Linux_GetKeyboardLayout(void) {
+    unsigned int ret = DKM_US;
+
 #if defined(C_SDL2)
     // TODO
 #else
@@ -45,6 +47,13 @@ unsigned int Linux_GetKeyboardLayout(void) {
                 }
                 if (tok != NULL) {
                     LOG_MSG("Current X11 keyboard layout (token) is: '%s'\n",tok);
+
+                    if (!strcmp(tok,"us"))
+                        ret = DKM_US;
+                    else if (!strcmp(tok,"jp"))
+                        ret = DKM_JPN;
+                    else if (!strcmp(tok,"de"))
+                        ret = DKM_DEU;
                 }
             }
 
@@ -53,7 +62,7 @@ unsigned int Linux_GetKeyboardLayout(void) {
     }
 #endif
 
-    return DKM_US;
+    return ret;
 }
 
 void UpdateWindowDimensions_Linux(void) {

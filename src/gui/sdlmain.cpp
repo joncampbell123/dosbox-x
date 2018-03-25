@@ -144,6 +144,8 @@ void KeyboardLayoutDetect(void) {
     nlayout = Linux_GetKeyboardLayout();
 #endif
 
+    host_keyboard_layout = nlayout;
+
     LOG_MSG("Host keyboard layout is now %s (%s)",
         DKM_to_string(host_keyboard_layout),
         DKM_to_descriptive_string(host_keyboard_layout));
