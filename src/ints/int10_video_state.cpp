@@ -167,6 +167,7 @@ bool INT10_VideoState_Save(Bitu state,RealPt buffer) {
 
 		IO_ReadB(crt_reg+6);
 		IO_WriteB(0x3c0,0x20);
+		IO_ReadB(crt_reg+6);
 
 		base_dest+=0x303;
 	}
@@ -316,6 +317,10 @@ bool INT10_VideoState_Restore(Bitu state,RealPt buffer) {
 		IO_ReadB(crt_reg+6);
 		IO_WriteB(0x3c0,0x14);
 		IO_WriteB(0x3c0,real_readb(base_seg,base_dest+0x303));
+
+		IO_ReadB(crt_reg+6);
+		IO_WriteB(0x3c0,0x20);
+		IO_ReadB(crt_reg+6);
 
 		Bitu dac_state=real_readb(base_seg,base_dest+0x000);
 		if (dac_state==0) {
