@@ -755,8 +755,8 @@ public:
                     else {
                         diskSwap[i] = new imageDisk(usefile, (Bit8u *)temp_line.c_str(), floppysize, false);
                     }
-
 					diskSwap[i]->Addref();
+					if (diskSwap[i]->active && !diskSwap[i]->hardDrive) incrementFDD(); //moved from imageDisk constructor
 
 					if (usefile_1==NULL) {
 						usefile_1=usefile;
