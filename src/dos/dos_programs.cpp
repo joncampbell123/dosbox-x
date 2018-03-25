@@ -3084,7 +3084,7 @@ private:
 				}
 			}
 		}
-		else if (machine == MCH_PC98) {
+		else if (IS_PC98_ARCH) {
 			//for pc-98 machines, mount floppies at first available index
 			for (int index = 0; index < 2; index++) {
 				if (imageDiskList[index] == NULL) {
@@ -3108,7 +3108,7 @@ private:
 				}
 			}
 		}
-		else if (machine == MCH_PC98) {
+		else if (IS_PC98_ARCH) {
 			//for pc-98 machines, mount floppies at first available index
 			for (int index = 0; index < 2; index++) {
 				if (imageDiskList[index] == NULL) {
