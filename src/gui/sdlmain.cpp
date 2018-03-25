@@ -100,6 +100,7 @@ bool OpenGL_using(void);
 #include "cpu.h"
 #include "fpu.h"
 #include "cross.h"
+#include "keymap.h"
 #include "control.h"
 
 #if defined(WIN32) && !defined(S_ISREG)
@@ -107,6 +108,30 @@ bool OpenGL_using(void);
 #endif
 
 using namespace std;
+
+const char *DKM_to_string(const unsigned int dkm) {
+    switch (dkm) {
+        case DKM_US:        return "us";
+        case DKM_DEU:       return "ger";
+        case DKM_JPN_PC98:  return "jpn_pc98";
+        case DKM_JPN:       return "jpn";
+        default:            break;
+    };
+
+    return "";
+}
+
+const char *DKM_to_descriptive_string(const unsigned int dkm) {
+    switch (dkm) {
+        case DKM_US:        return "US English";
+        case DKM_DEU:       return "German";
+        case DKM_JPN_PC98:  return "Japanese (PC-98)";
+        case DKM_JPN:       return "Japanese";
+        default:            break;
+    };
+
+    return "";
+}
 
 /* yksoft1 says that older MinGW headers lack this value --Jonathan C. */
 #ifndef MAPVK_VK_TO_VSC
