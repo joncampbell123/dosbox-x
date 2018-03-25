@@ -133,6 +133,9 @@ const char *DKM_to_descriptive_string(const unsigned int dkm) {
     return "";
 }
 
+unsigned int mapper_keyboard_layout = DKM_US;
+unsigned int host_keyboard_layout = DKM_US;
+
 /* yksoft1 says that older MinGW headers lack this value --Jonathan C. */
 #ifndef MAPVK_VK_TO_VSC
 #define MAPVK_VK_TO_VSC 0

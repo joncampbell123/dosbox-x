@@ -14,6 +14,9 @@ enum {
     DKM_MAX
 };
 
+extern unsigned int     mapper_keyboard_layout;
+extern unsigned int     host_keyboard_layout;
+
 const char *DKM_to_string(const unsigned int dkm);
 const char *DKM_to_descriptive_string(const unsigned int dkm);
 
