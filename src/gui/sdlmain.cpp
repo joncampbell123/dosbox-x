@@ -695,8 +695,12 @@ void PauseDOSBox(bool pressed) {
 	SDL_Event event;
 
 	if (!pressed) return;
+
+    void MAPPER_ReleaseAllKeys(void);
+    MAPPER_ReleaseAllKeys();
+
 	GFX_SetTitle(-1,-1,-1,true);
-	KEYBOARD_ClrBuffer();
+//	KEYBOARD_ClrBuffer();
 	GFX_LosingFocus();
 	while (SDL_PollEvent(&event)); // flush event queue.
 
@@ -753,7 +757,10 @@ void PauseDOSBox(bool pressed) {
 	void GFX_UpdateSDLCaptureState();
 	GFX_UpdateSDLCaptureState();
 
-	KEYBOARD_ClrBuffer();
+    void MAPPER_ReleaseAllKeys(void);
+    MAPPER_ReleaseAllKeys();
+
+//	KEYBOARD_ClrBuffer();
 	GFX_LosingFocus();
 
 	// redraw screen (ex. fullscreen - pause - alt+tab x2 - unpause)
