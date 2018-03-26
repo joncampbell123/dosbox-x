@@ -142,6 +142,17 @@ void KeyboardLayoutDetect(void) {
 #if defined(LINUX)
     unsigned int Linux_GetKeyboardLayout(void);
     nlayout = Linux_GetKeyboardLayout();
+#elif defined(WIN32)
+	WORD lid = LOWORD(GetKeyboardLayout(0));
+
+	LOG_MSG("Windows keyboard layout ID is 0x%04x", lid);
+
+	switch (lid) {
+		case 0x0407:	nlayout = DKM_DEU; break;
+		case 0x0409:	nlayout = DKM_US; break;
+		case 0x0411:	nlayout = DKM_JPN; break;
+		default:		break;
+	};
 #endif
 
     host_keyboard_layout = nlayout;
