@@ -171,6 +171,26 @@ void SetMapperKeyboardLayout(const unsigned int dkm) {
         DKM_to_descriptive_string(mapper_keyboard_layout));
 }
 
+#if defined(WIN32) && defined(C_SDL1)
+extern "C" unsigned char SDL1_hax_hasLayoutChanged(void);
+extern "C" void SDL1_hax_ackLayoutChanged(void);
+#endif
+
+void CheckMapperKeyboardLayout(void) {
+#if defined(WIN32) && defined(C_SDL1)
+	if (SDL1_hax_hasLayoutChanged()) {
+		SDL1_hax_ackLayoutChanged();
+		LOG_MSG("Keyboard layout changed");
+		KeyboardLayoutDetect();
+
+		if (host_keyboard_layout == DKM_JPN && IS_PC98_ARCH)
+			SetMapperKeyboardLayout(DKM_JPN_PC98);
+		else
+			SetMapperKeyboardLayout(host_keyboard_layout);
+	}
+#endif
+}
+
 /* yksoft1 says that older MinGW headers lack this value --Jonathan C. */
 #ifndef MAPVK_VK_TO_VSC
 #define MAPVK_VK_TO_VSC 0
@@ -3742,6 +3762,7 @@ void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message);
 #endif
 
 void GFX_Events() {
+	CheckMapperKeyboardLayout();
 #if defined(C_SDL2) /* SDL 2.x---------------------------------- */
     SDL_Event event;
 #if defined (REDUCE_JOYSTICK_POLLING)

@@ -63,6 +63,15 @@ void (*SDL1_hax_INITMENU_cb)() = NULL;
 #endif
 
 HKL hLayout = NULL;
+unsigned char hLayoutChanged = 0;
+
+unsigned char SDL1_hax_hasLayoutChanged(void) {
+	return hLayoutChanged;
+}
+
+void SDL1_hax_ackLayoutChanged(void) {
+	hLayoutChanged = 0;
+}
 
 /* The translation table from a Microsoft VK keysym to a SDL keysym */
 static SDLKey VK_keymap[SDLK_LAST];

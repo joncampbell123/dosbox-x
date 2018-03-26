@@ -258,6 +258,7 @@ static BOOL WINAPI WIN_TrackMouseEvent(TRACKMOUSEEVENT *ptme)
 #endif /* WM_MOUSELEAVE */
 
 extern HKL hLayout;
+extern unsigned char hLayoutChanged;
 int sysevents_mouse_pressed = 0;
 unsigned int SDL1_hax_inhibit_WM_PAINT = 0;
 
@@ -283,11 +284,16 @@ LRESULT CALLBACK WinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_ACTIVATE: {
 			SDL_VideoDevice *this = current_video;
 			BOOL active, minimized;
+			HKL hLayoutNew = NULL;
 			Uint8 appstate;
 
 			/* Windows 10 appears not to send WM_INPUTLANGCHANGE unless we're the active application.
 			   So if gaining focus we have to update what is the current layout. */
-			hLayout = GetKeyboardLayout(0);
+			hLayoutNew = GetKeyboardLayout(0);
+			if (hLayout != hLayoutNew) {
+				hLayoutChanged = 1;
+				hLayout = hLayoutNew;
+			}
 
 			minimized = HIWORD(wParam);
 			active = (LOWORD(wParam) != WA_INACTIVE) && !minimized;
@@ -703,13 +709,21 @@ this->hidden->hiresFix, &x, &y);
 		return(0);
 
 #ifndef NO_GETKEYBOARDSTATE
-		case WM_INPUTLANGCHANGE:
-			hLayout = (HKL)lParam;
-			ActivateKeyboardLayout(hLayout, 0);
+		case WM_INPUTLANGCHANGE: {
+			HKL hLayoutNew = NULL;
+
+			hLayoutNew = (HKL)lParam;
+			ActivateKeyboardLayout(hLayoutNew, 0);
+
+			if (hLayout != hLayoutNew) {
+				hLayoutChanged = 1;
+				hLayout = hLayoutNew;
+			}
 #ifndef _WIN64
 			codepage = GetCodePage();
 #endif
-		return(TRUE);
+			return(TRUE);
+		}
 #endif
 
 		default: {
