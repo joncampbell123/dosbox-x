@@ -287,14 +287,6 @@ LRESULT CALLBACK WinMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			HKL hLayoutNew = NULL;
 			Uint8 appstate;
 
-			/* Windows 10 appears not to send WM_INPUTLANGCHANGE unless we're the active application.
-			   So if gaining focus we have to update what is the current layout. */
-			hLayoutNew = GetKeyboardLayout(0);
-			if (hLayout != hLayoutNew) {
-				hLayoutChanged = 1;
-				hLayout = hLayoutNew;
-			}
-
 			minimized = HIWORD(wParam);
 			active = (LOWORD(wParam) != WA_INACTIVE) && !minimized;
 			if ( active ) {
@@ -709,6 +701,8 @@ this->hidden->hiresFix, &x, &y);
 		return(0);
 
 #ifndef NO_GETKEYBOARDSTATE
+		/* FIXME: Windows will not notify us of input lang change if the user takes focus from our window,
+		          and then changes input language. How do we get this notification even if inactive?? */
 		case WM_INPUTLANGCHANGE: {
 			HKL hLayoutNew = NULL;
 
