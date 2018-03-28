@@ -2198,17 +2198,17 @@ void DOSBOX_SetupConfigSections(void) {
 			"and demos to cause intermittent static noises when using Sound Blaster output. DOS programs\n"
 			"compressed with Microsoft EXEPACK will not run if the minimum MCB segment is below 64KB.");
 
-	Pbool = secprop->Add_bool("enable dummy device mcb",Property::Changeable::OnlyAtStart,true);
+	Pbool = secprop->Add_bool("enable dummy device mcb",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("If set (default), allocate a fake device MCB at the base of conventional memory.\n"
 			"Clearing this option can reclaim a small amount of conventional memory at the expense of\n"
 			"some minor DOS compatibility.");
 
-	Pbool = secprop->Add_bool("enable loadfix padding",Property::Changeable::OnlyAtStart,true);
+	Pbool = secprop->Add_bool("enable loadfix padding",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("If set (default), allocate a small 1KB region at the base of conventional memory.\n"
 			"Clearing this option can reclaim a small amount of conventional memory, but can also\n"
 			"cause some DOS games to break especially if dynamic kernel allocation is enabled.");
 
-	Pbool = secprop->Add_bool("enable dummy environment block",Property::Changeable::OnlyAtStart,true);
+	Pbool = secprop->Add_bool("enable dummy environment block",Property::Changeable::OnlyAtStart,false);
 	Pbool->Set_help("If set (default), allocate a dummy environment block at the base of conventional memory.\n"
 			"You can clear this option to reclaim a small amount of conventional memory.");
 
