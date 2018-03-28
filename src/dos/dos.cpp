@@ -138,6 +138,7 @@ Bit16u DOS_SDA_OFS=0;
 Bit16u DOS_CDS_SEG=0x108;
 Bit16u DOS_MEM_START=0x158;	 // regression to r3437 fixes nascar 2 colors
 Bit16u minimum_mcb_segment=0x70;
+Bit16u minimum_mcb_free=0x70;
 Bit16u minimum_dos_initial_private_segment=0x70;
 
 Bit16u DOS_PRIVATE_SEGMENT=0;//0xc800;
@@ -1933,6 +1934,7 @@ public:
 		enable_share_exe_fake = section->Get_bool("share");
 		enable_filenamechar = section->Get_bool("filenamechar");
 		dos_initial_hma_free = section->Get_int("hma free space");
+        minimum_mcb_free = section->Get_hex("minimum mcb free");
 		minimum_mcb_segment = section->Get_hex("minimum mcb segment");
 		private_segment_in_umb = section->Get_bool("private area in umb");
 		enable_collating_uppercase = section->Get_bool("collating and uppercase");
@@ -2221,6 +2223,41 @@ public:
 
 		/* carry on setup */
 		DOS_SetupMemory();								/* Setup first MCB */
+
+        if (minimum_mcb_free == 0)
+            minimum_mcb_free = 0x800;
+        else if (minimum_mcb_free < minimum_mcb_segment)
+            minimum_mcb_free = minimum_mcb_segment;
+
+        LOG(LOG_MISC,LOG_DEBUG)("   min free:     seg 0x%04x",minimum_mcb_free);
+
+        if (DOS_MEM_START < minimum_mcb_free) {
+            Bit16u sg=0,tmp;
+
+            dos.psp(8); // DOS ownership
+
+            tmp = 1; // start small
+            if (DOS_AllocateMemory(&sg,&tmp)) {
+                if (sg < minimum_mcb_free) {
+                    LOG(LOG_MISC,LOG_DEBUG)("   min free pad: seg 0x%04x",sg);
+                }
+                else {
+                    DOS_FreeMemory(sg);
+                    sg = 0;
+                }
+            }
+            else {
+                sg=0;
+            }
+
+            if (sg != 0 && sg < minimum_mcb_free) {
+                Bit16u tmp = minimum_mcb_free - sg;
+                if (!DOS_ResizeMemory(sg,&tmp)) {
+                    LOG(LOG_MISC,LOG_DEBUG)("    WARNING: cannot resize min free pad");
+                }
+            }
+        }
+
 		DOS_SetupPrograms();
 		DOS_SetupMisc();							/* Some additional dos interrupts */
 		DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).SetDrive(25); /* Else the next call gives a warning. */
