@@ -991,9 +991,7 @@ void SHELL_Init() {
 	DOS_OpenFile("CON",OPEN_READWRITE,&dummy);	/* STDAUX */
 	if (!DOS_OpenFile("PRN",OPEN_READWRITE,&dummy)) DOS_OpenFile("CON",OPEN_READWRITE,&dummy);	/* STDPRN */
 
-    /* segment of first byte beyond the memory allocated to the program */
-    mem_writew((psp_seg << 4) + 0x02,psp_seg + total_sz); /* no accessor in DOS_PSP, so manual work */
-    /* go on.. */
+    psp.SetSize(psp_seg + total_sz);
     psp.SetStack((stack_seg << 16) + reg_sp);
 	psp.SetParent(psp_seg);
 	/* Set the environment */
