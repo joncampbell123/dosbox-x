@@ -858,10 +858,63 @@ void SHELL_Init() {
 	CALLBACK_Setup(call_shellstop,shellstop_handler,CB_IRET,"shell stop");
 	PROGRAMS_MakeFile("COMMAND.COM",SHELL_ProgramStart);
 
+    /* NTS: Some DOS programs behave badly if run from a command interpreter
+     *      who's PSP segment is too low in memory and does not appear in
+     *      the MCB chain (SimCity 2000). So allocate shell memory normally
+     *      as any DOS application would do.
+     *
+     *      That includes allocating COMMAND.COM stack NORMALLY (not up in
+     *      the UMB as DOSBox SVN would do) */
+
 	/* Now call up the shell for the first time */
-	Bit16u psp_seg=DOS_FIRST_SHELL;
-	Bit16u env_seg=DOS_FIRST_SHELL+19; //DOS_GetMemory(1+(4096/16))+1;
-	Bit16u stack_seg=DOS_GetMemory(2048/16,"COMMAND.COM stack");
+	Bit16u psp_seg;//=DOS_FIRST_SHELL;
+	Bit16u env_seg;//=DOS_FIRST_SHELL+19; //DOS_GetMemory(1+(4096/16))+1;
+	Bit16u stack_seg;//=DOS_GetMemory(2048/16,"COMMAND.COM stack");
+    Bit16u tmp;
+
+    // decide shell env size
+    if (dosbox_shell_env_size == 0)
+        dosbox_shell_env_size = (0x158 - (0x118 + 19)) << 4; /* equivalent to mainline DOSBox */
+    else
+        dosbox_shell_env_size = (dosbox_shell_env_size+15)&(~15); /* round up to paragraph */
+
+    LOG_MSG("COMMAND.COM env size:             %u bytes",dosbox_shell_env_size);
+
+    // According to some sources, 0x0008 is a special PSP segment value used by DOS before the first
+    // program is used. We need the current PSP segment to be nonzero so that DOS_AllocateMemory()
+    // can properly allocate memory.
+    dos.psp(8);
+
+    // COMMAND.COM environment block
+    tmp = dosbox_shell_env_size>>4;
+	if (!DOS_AllocateMemory(&env_seg,&tmp)) E_Exit("COMMAND.COM failed to allocate environment block segment");
+    LOG_MSG("COMMAND.COM environment block:    0x%04x sz=0x%04x",env_seg,tmp);
+
+    // COMMAND.COM main binary (including PSP and stack)
+    tmp = 0x1A + (2048/16);
+	if (!DOS_AllocateMemory(&psp_seg,&tmp)) E_Exit("COMMAND.COM failed to allocate main body + PSP segment");
+    LOG_MSG("COMMAND.COM main body (PSP):      0x%04x sz=0x%04x",psp_seg,tmp);
+
+    // now COMMAND.COM has a main body and PSP segment, reflect it
+    dos.psp(psp_seg);
+
+    {
+        DOS_MCB mcb((Bit16u)(env_seg-1));
+        mcb.SetPSPSeg(psp_seg);
+        mcb.SetFileName("COMMAND");
+    }
+
+    {
+        DOS_MCB mcb((Bit16u)(psp_seg-1));
+        mcb.SetPSPSeg(psp_seg);
+        mcb.SetFileName("COMMAND");
+    }
+
+    // set the stack at 0x1A
+    stack_seg = psp_seg + 0x1A;
+    LOG_MSG("COMMAND.COM stack:                0x%04x",stack_seg);
+
+    // set the stack pointer
 	SegSet16(ss,stack_seg);
 	reg_sp=2046;
 
@@ -872,26 +925,6 @@ void SHELL_Init() {
 
 	/* Set up int 23 to "int 20" in the psp. Fixes what.exe */
 	real_writed(0,0x23*4,((Bit32u)psp_seg<<16));
-
-	/* sanity check */
-	if (DOS_FIRST_SHELL_END < 0xA000) { assert(DOS_FIRST_SHELL_END <= DOS_MEM_START); };
-	assert(DOS_FIRST_SHELL_END > env_seg);
-
-	if ((env_seg+(dosbox_shell_env_size>>4)) > DOS_FIRST_SHELL_END)
-		E_Exit("env_seg + env_size > SHELL_END programming mistake");
-
-	/* Setup MCBs */
-	DOS_MCB pspmcb((Bit16u)(psp_seg-1));
-	pspmcb.SetPSPSeg(psp_seg);	// MCB of the command shell psp
-	pspmcb.SetSize(0x10+2);
-	pspmcb.SetType(0x4d);
-	DOS_MCB envmcb((Bit16u)(env_seg-1));
-	envmcb.SetPSPSeg(psp_seg);	// MCB of the command shell environment
-	envmcb.SetSize(DOS_FIRST_SHELL_END-env_seg);
-	envmcb.SetType(0x4d);
-
-	LOG(LOG_MISC,LOG_DEBUG)("SHELL: psp_seg 0x%04x",psp_seg);
-	LOG(LOG_MISC,LOG_DEBUG)("SHELL: env_seg 0x%04x",env_seg);
 	
 	/* Setup environment */
 	PhysPt env_write=PhysMake(env_seg,0);

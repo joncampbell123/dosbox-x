@@ -136,8 +136,6 @@ Bit16u DOS_CONSTRING_SEG=0xa8;
 Bit16u DOS_SDA_SEG=0xb2;		// dos swappable area
 Bit16u DOS_SDA_OFS=0;
 Bit16u DOS_CDS_SEG=0x108;
-Bit16u DOS_FIRST_SHELL=0x118;
-Bit16u DOS_FIRST_SHELL_END=0x158;
 Bit16u DOS_MEM_START=0x158;	 // regression to r3437 fixes nascar 2 colors
 Bit16u minimum_mcb_segment=0x70;
 Bit16u minimum_dos_initial_private_segment=0x70;
@@ -1883,7 +1881,6 @@ Bitu MEM_PageMask(void);
 
 #include <assert.h>
 
-extern unsigned int dosbox_shell_env_size;
 extern bool dos_con_use_int16_to_detect_input;
 extern bool dbg_zero_on_dos_allocmem;
 extern bool log_dev_con;
@@ -2002,16 +1999,9 @@ public:
 			private_always_from_umb = false;
 		}
 
-		unsigned int DOS_FIRST_SHELL_SIZE;
-
 		if (minimum_mcb_segment > 0x8000) minimum_mcb_segment = 0x8000; /* FIXME: Clip against available memory */
 
 		if (dynamic_dos_kernel_alloc) {
-			if (dosbox_shell_env_size == 0)
-				dosbox_shell_env_size = (0x158 - (0x118 + 19)) << 4; /* equivalent to mainline DOSBox */
-			else
-				dosbox_shell_env_size = (dosbox_shell_env_size+15)&(~15); /* round up to paragraph */
-
 			/* we make use of the DOS_GetMemory() function for the dynamic allocation */
 			if (mainline_compatible_mapping) {
 				DOS_IHSEG = 0x70;
@@ -2060,8 +2050,6 @@ public:
 			LOG(LOG_MISC,LOG_DEBUG)("Dynamic DOS kernel mode, structures will be allocated from pool 0x%04x-0x%04x",
 				DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END-1);
 
-			DOS_FIRST_SHELL_SIZE = 19 + (dosbox_shell_env_size >> 4);
-
 			if (!mainline_compatible_mapping) DOS_IHSEG = DOS_GetMemory(1,"DOS_IHSEG");
 
             /* DOS_INFOBLOCK_SEG contains the entire List of Lists, though the INT 21h call returns seg:offset with offset nonzero */
@@ -2072,10 +2060,6 @@ public:
 			DOS_SDA_SEG = DOS_GetMemory(0x56,"DOS_SDA_SEG");		// was 0xB2  (0xB2 + 0x56 = 0x108)
 			DOS_SDA_OFS = 0;
 			DOS_CDS_SEG = DOS_GetMemory(0x10,"DOS_CDA_SEG");		// was 0x108
-			DOS_FIRST_SHELL = DOS_GetMemory(DOS_FIRST_SHELL_SIZE,"DOS_FIRST_SHELL");	// was 0x118
-			/* TODO: We should decide the shell's environment block segment here too */
-			DOS_FIRST_SHELL_END = DOS_FIRST_SHELL + DOS_FIRST_SHELL_SIZE; /* see src/shell/shell.cpp line 722 for more information */
-			/* defer DOS_MEM_START until right before SetupMemory */
 		}
 		else {
 			if (MEM_TotalPages() < 2) E_Exit("Not enough RAM for mainline compatible fixed kernel mapping");
@@ -2087,14 +2071,6 @@ public:
 			DOS_SDA_SEG = 0xb2;		// dos swappable area
 			DOS_SDA_OFS = 0;
 			DOS_CDS_SEG = 0x108;
-			DOS_FIRST_SHELL = 0x118;
-			DOS_FIRST_SHELL_SIZE = 0x40;
-			DOS_FIRST_SHELL_END = DOS_MEM_START = 0x158;	 // regression to r3437 fixes nascar 2 colors
-
-			if (dosbox_shell_env_size != 0) {
-				LOG(LOG_MISC,LOG_WARN)("WARNING: Shell environment block size setting is only available when dynamic dos kernel allocation is enabled");
-				dosbox_shell_env_size = (DOS_FIRST_SHELL_END - (DOS_FIRST_SHELL+19)) << 4; /* see src/shell/shell.cpp line 722 for more information */
-			}
 
 			if (!private_segment_in_umb) {
 				/* If private segment is not being placed in UMB, then it must follow the DOS kernel. */
@@ -2124,7 +2100,6 @@ public:
 		LOG(LOG_MISC,LOG_DEBUG)("   constring:    seg 0x%04x",DOS_CONSTRING_SEG);
 		LOG(LOG_MISC,LOG_DEBUG)("   SDA:          seg 0x%04x:0x%04x",DOS_SDA_SEG,DOS_SDA_OFS);
 		LOG(LOG_MISC,LOG_DEBUG)("   CDS:          seg 0x%04x",DOS_CDS_SEG);
-		LOG(LOG_MISC,LOG_DEBUG)("   first shell:  seg 0x%04x-0x%04x",DOS_FIRST_SHELL,DOS_FIRST_SHELL_END-1);
 		LOG(LOG_MISC,LOG_DEBUG)("[private segment @ this point 0x%04x-0x%04x mem=0x%04lx]",
 			DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END,
 			(unsigned long)(MEM_TotalPages() << (12 - 4)));

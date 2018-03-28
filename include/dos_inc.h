@@ -124,7 +124,6 @@ extern Bitu DOS_FILES;
 #define DOS_SDA_SEG 0xb2		// dos swappable area
 #define DOS_SDA_OFS 0
 #define DOS_CDS_SEG 0x108
-#define DOS_FIRST_SHELL 0x118
 #define DOS_MEM_START 0x158	 // regression to r3437 fixes nascar 2 colors
 //#define DOS_MEM_START 0x16f		//First Segment that DOS can use 
 
@@ -140,8 +139,6 @@ extern Bit16u DOS_CONSTRING_SEG;// 0xa8
 extern Bit16u DOS_SDA_SEG;// 0xb2		// dos swappable area
 extern Bit16u DOS_SDA_OFS;// 0
 extern Bit16u DOS_CDS_SEG;// 0x108
-extern Bit16u DOS_FIRST_SHELL;// 0x118
-extern Bit16u DOS_FIRST_SHELL_END;
 extern Bit16u DOS_MEM_START;// 0x158	 // regression to r3437 fixes nascar 2 colors
 
 extern Bit16u DOS_PRIVATE_SEGMENT;// 0xc800
