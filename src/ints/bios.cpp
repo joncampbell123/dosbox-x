@@ -6069,6 +6069,14 @@ private:
 
 		// TODO: If instructed to boot a guest OS...
 
+        /* wipe out the stack so it's not there to interfere with the system */
+        reg_esp = 0;
+        reg_eip = 0;
+        CPU_SetSegGeneral(cs, 0x60);
+        CPU_SetSegGeneral(ss, 0x60);
+
+        for (Bitu i=0;i < 0x400;i++) mem_writeb(0x7C00+i,0);
+
 		// Begin booting the DOSBox shell. NOTE: VM_Boot_DOSBox_Kernel will change CS:IP instruction pointer!
 		if (!VM_Boot_DOSBox_Kernel()) E_Exit("BIOS error: BOOT function failed to boot DOSBox kernel");
 		return CBRET_NONE;
