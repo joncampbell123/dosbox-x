@@ -2216,13 +2216,6 @@ public:
 			if (DOS_MEM_START < minimum_mcb_segment)
 				DOS_MEM_START = minimum_mcb_segment;
 		}
-		/* a lot of DOS games and demos have problems with an MCB starting at, say, 0x70 or 0x170. So just simulate MS-DOS 7.0 luck
-		 * and emulate a DOS kernel that consumes 20-30KB of memory to keep things from crashing a lot. A user who wants to push
-		 * their luck freeing more conventional memory is free to set "minimum mcb segment" to a lower value. */
-		else if (dynamic_dos_kernel_alloc && !mainline_compatible_mapping) {
-			if (DOS_MEM_START < 0x800)
-				DOS_MEM_START = 0x800;
-		}
 
 		LOG(LOG_MISC,LOG_DEBUG)("   mem start:    seg 0x%04x",DOS_MEM_START);
 
