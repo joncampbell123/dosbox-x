@@ -75,6 +75,7 @@ bool enable_dbcs_tables = true;
 bool enable_filenamechar = true;
 bool enable_share_exe_fake = true;
 int dos_initial_hma_free = 34*1024;
+int dos_sda_size = 0x560;
 
 extern bool int15_wait_force_unmask_irq;
 
@@ -134,6 +135,7 @@ Bit16u DOS_INFOBLOCK_SEG=0x80;	// sysvars (list of lists)
 Bit16u DOS_CONDRV_SEG=0xa0;
 Bit16u DOS_CONSTRING_SEG=0xa8;
 Bit16u DOS_SDA_SEG=0xb2;		// dos swappable area
+Bit16u DOS_SDA_SEG_SIZE=0x560;  // WordPerfect 5.1 consideration (emendelson)
 Bit16u DOS_SDA_OFS=0;
 Bit16u DOS_CDS_SEG=0x108;
 Bit16u DOS_MEM_START=0x158;	 // regression to r3437 fixes nascar 2 colors
@@ -1485,10 +1487,13 @@ static Bitu DOS_21Handler(void) {
 		*/
 	case 0x5d:					/* Network Functions */
 		if(reg_al == 0x06) {
+            /* FIXME: I'm still not certain, @emendelson, why this matters so much
+             *        to WordPerfect 5.1 and 6.2 and why it causes problems otherwise.
+             *        DOSBox and DOSBox-X only use the first 0x1A bytes anyway. */
 			SegSet16(ds,DOS_SDA_SEG);
 			reg_si = DOS_SDA_OFS;
-			reg_cx = 0x80;  // swap if in dos
-			reg_dx = 0x1a;  // swap always
+			reg_cx = DOS_SDA_SEG_SIZE;  // swap if in dos
+			reg_dx = 0x1a;  // swap always (NTS: Size of DOS SDA structure in dos_inc)
 			LOG(LOG_DOSMISC,LOG_ERROR)("Get SDA, Let's hope for the best!");
 		}
 		break;
@@ -1929,6 +1934,7 @@ public:
         }
 
         dos_in_hma = section->Get_bool("dos in hma");
+        dos_sda_size = section->Get_int("dos sda size");
         log_dev_con = control->opt_log_con || section->Get_bool("log console");
 		enable_dbcs_tables = section->Get_bool("dbcs");
 		enable_share_exe_fake = section->Get_bool("share");
@@ -1970,6 +1976,19 @@ public:
             cpm_compat_mode = CPM_COMPAT_MSDOS5; /* MS-DOS 5.x is default */
         else
             cpm_compat_mode = CPM_COMPAT_OFF;
+
+        /* FIXME: Boot up an MS-DOS system and look at what INT 21h on Microsoft's MS-DOS returns
+         *        for SDA size and location, then use that here.
+         *
+         *        Why does this value matter so much to WordPerfect 5.1? */
+        if (dos_sda_size == 0)
+            DOS_SDA_SEG_SIZE = 0x560;
+        else if (dos_sda_size < 0x1A)
+            DOS_SDA_SEG_SIZE = 0x1A;
+        else if (dos_sda_size > 32768)
+            DOS_SDA_SEG_SIZE = 32768;
+        else
+            DOS_SDA_SEG_SIZE = (dos_sda_size + 0xF) & (~0xF); /* round up to paragraph */
 
         /* msdos 2.x and msdos 5.x modes, if HMA is involved, require us to take the first 256 bytes of HMA
          * in order for "F01D:FEF0" to work properly whether or not A20 is enabled. Our direct mode doesn't
@@ -2059,7 +2078,7 @@ public:
 
 			DOS_CONDRV_SEG = DOS_GetMemory(0x08,"DOS_CONDRV_SEG");		// was 0xA0
 			DOS_CONSTRING_SEG = DOS_GetMemory(0x0A,"DOS_CONSTRING_SEG");	// was 0xA8
-			DOS_SDA_SEG = DOS_GetMemory(0x56,"DOS_SDA_SEG");		// was 0xB2  (0xB2 + 0x56 = 0x108)
+			DOS_SDA_SEG = DOS_GetMemory(DOS_SDA_SEG_SIZE>>4,"DOS_SDA_SEG");		// was 0xB2  (0xB2 + 0x56 = 0x108)
 			DOS_SDA_OFS = 0;
 			DOS_CDS_SEG = DOS_GetMemory(0x10,"DOS_CDA_SEG");		// was 0x108
 		}
@@ -2071,6 +2090,7 @@ public:
 			DOS_CONDRV_SEG = 0xa0;
 			DOS_CONSTRING_SEG = 0xa8;
 			DOS_SDA_SEG = 0xb2;		// dos swappable area
+            DOS_SDA_SEG_SIZE = 0x560;
 			DOS_SDA_OFS = 0;
 			DOS_CDS_SEG = 0x108;
 
@@ -2100,7 +2120,7 @@ public:
 		LOG(LOG_MISC,LOG_DEBUG)("   infoblock:    seg 0x%04x",DOS_INFOBLOCK_SEG);
 		LOG(LOG_MISC,LOG_DEBUG)("   condrv:       seg 0x%04x",DOS_CONDRV_SEG);
 		LOG(LOG_MISC,LOG_DEBUG)("   constring:    seg 0x%04x",DOS_CONSTRING_SEG);
-		LOG(LOG_MISC,LOG_DEBUG)("   SDA:          seg 0x%04x:0x%04x",DOS_SDA_SEG,DOS_SDA_OFS);
+		LOG(LOG_MISC,LOG_DEBUG)("   SDA:          seg 0x%04x:0x%04x %u bytes",DOS_SDA_SEG,DOS_SDA_OFS,DOS_SDA_SEG_SIZE);
 		LOG(LOG_MISC,LOG_DEBUG)("   CDS:          seg 0x%04x",DOS_CDS_SEG);
 		LOG(LOG_MISC,LOG_DEBUG)("[private segment @ this point 0x%04x-0x%04x mem=0x%04lx]",
 			DOS_PRIVATE_SEGMENT,DOS_PRIVATE_SEGMENT_END,

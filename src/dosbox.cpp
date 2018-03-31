@@ -2157,6 +2157,9 @@ void DOSBOX_SetupConfigSections(void) {
 	Pbool = secprop->Add_bool("dos in hma",Property::Changeable::WhenIdle,true);
 	Pbool->Set_help("Report that DOS occupies HMA (equiv. DOS=HIGH)");
 
+    Pint = secprop->Add_int("dos sda size",Property::Changeable::WhenIdle,0);
+    Pint->Set_help("SDA (swappable data area) size, in bytes. Set to 0 to use a reasonable default.");
+
 	Pint = secprop->Add_int("hma free space",Property::Changeable::WhenIdle,34*1024); /* default 34KB (TODO: How much does MS-DOS 5.0 usually occupy?) */
 	Pint->Set_help("Controls the amount of free space available in HMA. This setting is not meaningful unless the\n"
 			"DOS kernel occupies HMA and the emulated DOS version is at least 5.0.");

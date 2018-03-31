@@ -137,6 +137,7 @@ extern Bit16u DOS_INFOBLOCK_SEG;// 0x80	// sysvars (list of lists)
 extern Bit16u DOS_CONDRV_SEG;// 0xa0
 extern Bit16u DOS_CONSTRING_SEG;// 0xa8
 extern Bit16u DOS_SDA_SEG;// 0xb2		// dos swappable area
+extern Bit16u DOS_SDA_SEG_SIZE;
 extern Bit16u DOS_SDA_OFS;// 0
 extern Bit16u DOS_CDS_SEG;// 0x108
 extern Bit16u DOS_MEM_START;// 0x158	 // regression to r3437 fixes nascar 2 colors
