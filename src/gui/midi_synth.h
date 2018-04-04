@@ -189,10 +189,6 @@ public:
 
 		fluid_settings_setstr(settings, "audio.sample-format", "16bits");
 
-		if (synthsamplerate == 0) {
-			synthsamplerate = 44100;
-		}
-
 		fluid_settings_setnum(settings,
 			"synth.sample-rate", (double)synthsamplerate);
 
