@@ -124,12 +124,9 @@ int delete_fluid_midi_parser(fluid_midi_parser_t* parser) {
 #endif
 
 static MixerChannel *synthchan = NULL;
-
 static fluid_synth_t *synth_soft = NULL;
 static fluid_midi_parser_t *synth_parser = NULL;
-
 static int synthsamplerate = 0;
-
 
 static void synth_log(int level, char *message, void *data) {
 	switch (level) {
@@ -149,10 +146,10 @@ static void synth_log(int level, char *message, void *data) {
 }
 
 static void synth_CallBack(Bitu len) {
-    if (synth_soft != NULL) {
-        fluid_synth_write_s16(synth_soft, len, MixTemp, 0, 2, MixTemp, 1, 2);
-        synthchan->AddSamples_s16(len,(Bit16s *)MixTemp);
-    }
+	if (synth_soft != NULL) {
+		fluid_synth_write_s16(synth_soft, len, MixTemp, 0, 2, MixTemp, 1, 2);
+		synthchan->AddSamples_s16(len,(Bit16s *)MixTemp);
+	}
 }
 
 #if defined (WIN32) || defined (OS2)
@@ -170,12 +167,17 @@ private:
 
 public:
 	MidiHandler_synth() : MidiHandler(),isOpen(false) {};
-	const char * GetName(void) { return "synth"; };
+
+	const char * GetName(void) {
+		return "synth";
+	};
+
 	bool Open(const char *conf) {
+		if (isOpen) return false;
 
 		/* Sound font file required */
 		if (!conf || (conf[0] == '\0')) {
-			LOG(LOG_MISC,LOG_DEBUG)("SYNTH: Specify .SF2 sound font file with config=");
+			LOG(LOG_MISC,LOG_DEBUG)("SYNTH: Specify .SF2 sound font file with midiconfig=");
 			return false;
 		}
 
@@ -194,12 +196,8 @@ public:
 		}
 
 		fluid_settings_setstr(settings, "audio.sample-format", "16bits");
-
-		fluid_settings_setnum(settings,
-			"synth.sample-rate", (double)synthsamplerate);
-
-		//fluid_settings_setnum(settings,
-		//	"synth.gain", 0.5);
+		fluid_settings_setnum(settings, "synth.sample-rate", (double)synthsamplerate);
+		//fluid_settings_setnum(settings, "synth.gain", 0.5);
 
 		/* Create the synthesizer. */
 		synth_soft = new_fluid_synth(settings);
@@ -245,29 +243,30 @@ public:
 			return false;
 		}
 
-		synthchan=MIXER_AddChannel(synth_CallBack, synthsamplerate,
-					   "SYNTH");
+		synthchan = MIXER_AddChannel(synth_CallBack, synthsamplerate, "SYNTH");
 		synthchan->Enable(false);
 		isOpen = true;
 		return true;
 	};
+
 	void Close(void) {
 		if (!isOpen) return;
 
-        synthchan->Enable(false);
-        MIXER_DelChannel(synthchan);
-        synthchan=NULL;
-
+		synthchan->Enable(false);
+		MIXER_DelChannel(synthchan);
 		delete_fluid_midi_router(router);
 		delete_fluid_midi_parser(synth_parser);
 		delete_fluid_synth(synth_soft);
 		delete_fluid_settings(settings);
-        synth_parser=NULL;
-        synth_soft=NULL;
-        settings=NULL;
-		isOpen=false;
-        router=NULL;
+
+		synthchan = NULL;
+		router = NULL;
+		synth_parser = NULL;
+		synth_soft = NULL;
+		settings = NULL;
+		isOpen = false;
 	};
+
 	void PlayMsg(Bit8u *msg) {
 		fluid_midi_event_t *evt;
 		Bitu len;
@@ -285,6 +284,7 @@ public:
 			}
 		}
 	};
+
 	void PlaySysex(Bit8u *sysex, Bitu len) {
 		fluid_midi_event_t *evt;
 		Bitu i;
