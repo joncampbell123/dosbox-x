@@ -155,6 +155,12 @@ static void synth_CallBack(Bitu len) {
     }
 }
 
+#if defined (WIN32) || defined (OS2)
+#	define PATH_SEP "\\";
+#else
+#	define PATH_SEP "/";
+#endif
+
 class MidiHandler_synth: public MidiHandler {
 private:
 	fluid_settings_t *settings;
@@ -204,25 +210,19 @@ public:
 		}
 
 		/* Load a SoundFont */
-		extern std::string capturedir;
-		char str[260];
-		strcpy(str,capturedir.c_str());
-		#if defined (WIN32) || defined (OS2)
-		strcat(str,"\\");
-		#else
-		strcat(str,"/");
-		#endif
-		strcat(str,conf);
 		sfont_id = fluid_synth_sfload(synth_soft, conf, 0);
 		if (sfont_id == -1) {
-			sfont_id = fluid_synth_sfload(synth_soft, str, 0);
-			if (sfont_id == -1) {
-				LOG(LOG_MISC,LOG_WARN)("SYNTH: Failed to load MIDI sound font file \"%s\"",
-				   conf);
-				delete_fluid_synth(synth_soft);
-				delete_fluid_settings(settings);
-				return false;
-			}
+			extern std::string capturedir;
+			std::string str = capturedir + PATH_SEP + conf;
+			sfont_id = fluid_synth_sfload(synth_soft, str.c_str(), 0);
+		}
+
+		if (sfont_id == -1) {
+			LOG(LOG_MISC,LOG_WARN)("SYNTH: Failed to load MIDI sound font file \"%s\"",
+			   conf);
+			delete_fluid_synth(synth_soft);
+			delete_fluid_settings(settings);
+			return false;
 		}
 
 		/* Allocate one event to store the input data */
