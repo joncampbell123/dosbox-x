@@ -111,7 +111,7 @@ public:
 
 class DEBUG;
 
-DEBUG*	pDebugcom	= 0;
+//DEBUG*	pDebugcom	= 0;
 bool	exitLoop	= false;
 
 
@@ -2781,6 +2781,7 @@ static void LogInstruction(Bit16u segValue, Bit32u eipValue,  ofstream& out) {
 };
 #endif
 
+#if 0
 // DEBUG.COM stuff
 
 class DEBUG : public Program {
@@ -2838,14 +2839,28 @@ public:
 private:
 	bool	active;
 };
+#endif
+
+#if C_DEBUG
+extern bool debugger_break_on_exec;
+#endif
 
 void DEBUG_CheckExecuteBreakpoint(Bit16u seg, Bit32u off)
 {
+#if C_DEBUG
+    if (debugger_break_on_exec) {
+		CBreakpoint::AddBreakpoint(seg,off,true);		
+		CBreakpoint::ActivateBreakpoints(SegPhys(cs)+reg_eip,true);	
+        debugger_break_on_exec = false;
+    }
+#endif
+#if 0
 	if (pDebugcom && pDebugcom->IsActive()) {
 		CBreakpoint::AddBreakpoint(seg,off,true);		
 		CBreakpoint::ActivateBreakpoints(SegPhys(cs)+reg_eip,true);	
 		pDebugcom = 0;
 	};
+#endif
 };
 
 Bitu DEBUG_EnableDebugger(void)
@@ -2857,7 +2872,7 @@ Bitu DEBUG_EnableDebugger(void)
 };
 
 static void DEBUG_ProgramStart(Program * * make) {
-	*make=new DEBUG;
+//	*make=new DEBUG;
 }
 
 // INIT 
@@ -2925,8 +2940,8 @@ void DEBUG_ShutDown(Section * /*sec*/) {
 Bitu debugCallback;
 
 void DEBUG_DOSStartUp(Section *x) {
-	/* setup debug.com */
-	PROGRAMS_MakeFile("DEBUGBOX.COM",DEBUG_ProgramStart);
+//	/* setup debug.com */
+//	PROGRAMS_MakeFile("DEBUGBOX.COM",DEBUG_ProgramStart);
 }
 
 void DEBUG_Init() {
