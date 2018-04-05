@@ -614,11 +614,18 @@ bool MIDI_Available(void)  {
 class MIDI:public Module_base{
 public:
 	MIDI(Section* configuration):Module_base(configuration){
-		Section_prop * section=static_cast<Section_prop *>(configuration);
+		Section_prop * section = static_cast<Section_prop *>(configuration);
 		const char * dev=section->Get_string("mididevice");
-		std::string fullconf=section->Get_string("midiconfig");
+		std::string fullconf = section->Get_string("midiconfig");
+#if C_FLUIDSYNTH
+		synthsamplerate = section->Get_int("samplerate");
+		if (synthsamplerate == 0) synthsamplerate = 44100;
+#endif
+
 		/* If device = "default" go for first handler that works */
 		MidiHandler * handler;
+		bool opened = false;
+
 //		MAPPER_AddHandler(MIDI_SaveRawEvent,MK_f8,MMOD1|MMOD2,"caprawmidi","Cap MIDI");
 		midi.sysex.delay = 0;
 		midi.sysex.start = 0;
@@ -632,43 +639,41 @@ public:
 		midi.status=0x00;
 		midi.cmd_pos=0;
 		midi.cmd_len=0;
-		if (!strcasecmp(dev,"default")) goto getdefault;
-		handler=handler_list;
-		while (handler) {
-			if (!strcasecmp(dev,handler->GetName())) {
-#if C_FLUIDSYNTH
-                       if(!strcasecmp(dev,"synth"))    // synth device, get sample rate from config
-                           synthsamplerate=section->Get_int("samplerate");
-#endif
-				if (!handler->Open(conf)) {
-					LOG(LOG_MISC,LOG_WARN)("MIDI:Can't open device:%s with config:%s.",dev,conf);	
-					goto getdefault;
-				}
-				midi.handler=handler;
-				midi.available=true;	
-				LOG(LOG_MISC,LOG_DEBUG)("MIDI:Opened device:%s",handler->GetName());
 
-				// force reset to prevent crashes (when not properly shutdown)
-				// ex. Roland VSC = unexpected hard system crash
-				midi_state[0].init = false;
-				MIDI_State_LoadMessage();
-				return;
+		if (strcasecmp(dev,"default")) {
+			for (handler = handler_list; handler; handler = handler->next) {
+				if (!strcasecmp(dev,handler->GetName())) {
+					opened = handler->Open(conf);
+					break;
+				}
 			}
-			handler=handler->next;
+			if (handler == NULL)
+				LOG(LOG_MISC,LOG_DEBUG)("MIDI:Can't find device:%s, finding default handler.",dev);
+			else if (!opened)
+				LOG(LOG_MISC,LOG_WARN)("MIDI:Can't open device:%s with config:%s.",dev,conf);
 		}
-		LOG(LOG_MISC,LOG_DEBUG)("MIDI:Can't find device:%s, finding default handler.",dev);	
-getdefault:	
-		handler=handler_list;
-		while (handler) {
-			if (handler->Open(conf)) {
-				midi.available=true;	
-				midi.handler=handler;
-				LOG(LOG_MISC,LOG_DEBUG)("MIDI:Opened device:%s",handler->GetName());
-				return;
+
+		if (!opened) {
+			for (handler = handler_list; handler; handler = handler->next) {
+				opened = handler->Open(conf);
+				if (opened) break;
 			}
-			handler=handler->next;
 		}
-		/* This shouldn't be possible */
+
+		if (!opened) {
+			// This shouldn't be possible
+			LOG(LOG_MISC,LOG_WARN)("MIDI:Couldn't open a handler");
+			return;
+		}
+
+		midi.available=true;
+		midi.handler=handler;
+		LOG(LOG_MISC,LOG_DEBUG)("MIDI:Opened device:%s",handler->GetName());
+
+		// force reset to prevent crashes (when not properly shutdown)
+		// ex. Roland VSC = unexpected hard system crash
+		midi_state[0].init = false;
+		MIDI_State_LoadMessage();
 	}
 	~MIDI(){
 		if( midi.status < 0xf0 ) {
