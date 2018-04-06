@@ -474,8 +474,8 @@ bool DOS_Execute(char * name,PhysPt block_pt,Bit8u flags) {
 		 *
 		 * At some point I need to boot MS-DOS/PC-DOS 1.x and 2.x in small
 		 * amounts of RAM to verify that's what actually happens. --J.C. */
-		if (stack_sp >= (memsize*0x10))
-			stack_sp = (memsize*0x10)-2;
+		if (stack_sp > ((memsize*0x10UL)-2))
+			stack_sp = (memsize*0x10UL)-2;
 
 		csip=RealMake(pspseg,0x100);
 		sssp=RealMake(pspseg,stack_sp);
