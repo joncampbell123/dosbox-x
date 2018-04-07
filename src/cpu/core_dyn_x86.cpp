@@ -260,8 +260,6 @@ extern int dynamic_core_cache_block_size;
 
 static bool paging_warning = true;
 
-bool use_dynamic_core_with_paging = false;
-
 Bits CPU_Core_Dyn_X86_Run(void) {
     /* Dynamic core is NOT compatible with the way page faults
      * in the guest are handled in this emulator. Do not use
