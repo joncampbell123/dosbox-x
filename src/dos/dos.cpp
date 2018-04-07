@@ -1145,6 +1145,25 @@ static Bitu DOS_21Handler(void) {
 		/* TODO: If handle is STDIN and not binary do CTRL+C checking */
 		{ 
 			Bit16u toread=reg_cx;
+
+            /* if the offset and size exceed the end of the 64KB segment,
+             * truncate the read according to observed MS-DOS 5.0 behavior
+             * where the actual byte count read is 64KB minus (reg_dx % 16).
+             *
+             * This is needed for "Dark Purpose" to read it's DAT file
+             * correctly, which calls INT 21h AH=3Fh with DX=0004h and CX=FFFFh
+             * and will mis-render it's fonts, images, and color palettes
+             * if we do not do this.
+             *
+             * Ref: http://files.scene.org/get/mirrors/hornet/demos/1995/d/darkp.zip */
+            if (((uint32_t)toread+(uint32_t)reg_dx) > 0xFFFFUL) {
+                Bit16u nuread = (Bit16u)(0x10000UL - (reg_dx & 0xF)); /* FIXME: If MS-DOS 5.0 truncates it any farther I need to know! */
+
+                if (nuread > toread) nuread = toread;
+                LOG_MSG("INT 21h READ warning: DX=%04xh CX=%04xh exceeds 64KB, truncating to %04xh",reg_dx,toread,nuread);
+                toread = nuread;
+            }
+
 			dos.echo=true;
 			if (DOS_ReadFile(reg_bx,dos_copybuf,&toread)) {
 				MEM_BlockWrite(SegPhys(ds)+reg_dx,dos_copybuf,toread);
@@ -1162,6 +1181,22 @@ static Bitu DOS_21Handler(void) {
         unmask_irq0 |= disk_io_unmask_irq0;
 		{
 			Bit16u towrite=reg_cx;
+
+            /* if the offset and size exceed the end of the 64KB segment,
+             * truncate the write according to observed MS-DOS 5.0 READ behavior
+             * where the actual byte count written is 64KB minus (reg_dx % 16).
+             *
+             * This is copy-paste of AH=3Fh read handling because it's likely
+             * that MS-DOS probably does the same with write as well, though
+             * this has not yet been confirmed. --J.C. */
+            if (((uint32_t)towrite+(uint32_t)reg_dx) > 0xFFFFUL) {
+                Bit16u nuwrite = (Bit16u)(0x10000UL - (reg_dx & 0xF)); /* FIXME: If MS-DOS 5.0 truncates it any farther I need to know! */
+
+                if (nuwrite > towrite) nuwrite = towrite;
+                LOG_MSG("INT 21h WRITE warning: DX=%04xh CX=%04xh exceeds 64KB, truncating to %04xh",reg_dx,towrite,nuwrite);
+                towrite = nuwrite;
+            }
+
 			MEM_BlockRead(SegPhys(ds)+reg_dx,dos_copybuf,towrite);
 			if (DOS_WriteFile(reg_bx,dos_copybuf,&towrite)) {
 				reg_ax=towrite;
