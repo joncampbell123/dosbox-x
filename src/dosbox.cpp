@@ -1543,7 +1543,7 @@ void DOSBOX_SetupConfigSections(void) {
 
 	Pbool = secprop->Add_bool("use dynamic core with paging on",Property::Changeable::Always,false);
 	Pbool->Set_help("Dynamic core is NOT compatible with the way page faults in the guest are handled in DosBox-X.\n"
-			"Windows 9x may crash with paging on if dynamic core is enabled.\n");
+			"Windows 9x may crash with paging on if dynamic core is enabled. Enable at your own risk.\n");
 			
 	Pbool = secprop->Add_bool("ignore opcode 63",Property::Changeable::Always,true);
 	Pbool->Set_help("When debugging, do not report illegal opcode 0x63.\n"

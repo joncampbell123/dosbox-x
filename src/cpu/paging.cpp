@@ -267,6 +267,7 @@ void PrintPageInfo(const char* string, PhysPt lin_addr, bool writing, bool prepa
 }
 */
 
+bool use_dynamic_core_with_paging = false; /* allow dynamic core even with paging (AT YOUR OWN RISK!!!!) */
 bool dosbox_allow_nonrecursive_page_fault = false;	/* when set, do nonrecursive mode (when executing instruction) */
 
 // PAGING_NewPageFault
