@@ -1156,7 +1156,7 @@ static Bitu DOS_21Handler(void) {
              * if we do not do this.
              *
              * Ref: http://files.scene.org/get/mirrors/hornet/demos/1995/d/darkp.zip */
-            if (((uint32_t)toread+(uint32_t)reg_dx) > 0xFFFFUL) {
+            if (((uint32_t)toread+(uint32_t)reg_dx) > 0xFFFFUL && (reg_dx & 0xFU) != 0U) {
                 Bit16u nuread = (Bit16u)(0x10000UL - (reg_dx & 0xF)); /* FIXME: If MS-DOS 5.0 truncates it any farther I need to know! */
 
                 if (nuread > toread) nuread = toread;
@@ -1189,7 +1189,7 @@ static Bitu DOS_21Handler(void) {
              * This is copy-paste of AH=3Fh read handling because it's likely
              * that MS-DOS probably does the same with write as well, though
              * this has not yet been confirmed. --J.C. */
-            if (((uint32_t)towrite+(uint32_t)reg_dx) > 0xFFFFUL) {
+            if (((uint32_t)towrite+(uint32_t)reg_dx) > 0xFFFFUL && (reg_dx & 0xFU) != 0U) {
                 Bit16u nuwrite = (Bit16u)(0x10000UL - (reg_dx & 0xF)); /* FIXME: If MS-DOS 5.0 truncates it any farther I need to know! */
 
                 if (nuwrite > towrite) nuwrite = towrite;
