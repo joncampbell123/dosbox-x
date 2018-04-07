@@ -66,6 +66,8 @@ bool ignore_undefined_msr = true;
 
 extern bool ignore_opcode_63;
 
+extern bool use_dynamic_core_with_paging;
+
 bool cpu_double_fault_enable;
 bool cpu_triple_fault_reset;
 
@@ -2884,6 +2886,7 @@ public:
 		CPU_SkipCycleAutoAdjust=false;
 
 		ignore_opcode_63 = section->Get_bool("ignore opcode 63");
+		use_dynamic_core_with_paging = section->Get_bool("use dynamic core with paging on");
 		cpu_double_fault_enable = section->Get_bool("double fault");
 		cpu_triple_fault_reset = section->Get_bool("reset on triple fault");
 		cpu_allow_big16 = section->Get_bool("realbig16");
