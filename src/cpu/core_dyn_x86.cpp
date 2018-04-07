@@ -256,6 +256,7 @@ static void dyn_restoreregister(DynReg * src_reg, DynReg * dst_reg) {
 }
 #endif
 
+extern bool use_dynamic_core_with_paging;
 extern int dynamic_core_cache_block_size;
 
 static bool paging_warning = true;
