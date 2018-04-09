@@ -686,6 +686,12 @@ void FloppyController::on_fdc_in_command() {
 
 					/* if we're at the last sector of the track according to program, then stop */
 					if (in_cmd[4] == in_cmd[6]) break;
+
+                    /* next sector (TODO "multi-track" mode) */
+                    if (in_cmd[4] == image->sectors)
+                        in_cmd[4] = 1;
+                    else
+                        in_cmd[4]++;
 				}
 
 				if (fail) {
@@ -764,6 +770,12 @@ void FloppyController::on_fdc_in_command() {
 
 					/* if we're at the last sector of the track according to program, then stop */
 					if (in_cmd[4] == in_cmd[6]) break;
+
+                    /* next sector (TODO "multi-track" mode) */
+                    if (in_cmd[4] == image->sectors)
+                        in_cmd[4] = 1;
+                    else
+                        in_cmd[4]++;
 				}
 
 				if (fail) {
