@@ -170,7 +170,7 @@ void FDC_MotorStep(Bitu idx/*which IDE controller*/) {
 		idx,devidx,fdc->motor_steps,fdc->motor_dir,fdc->current_cylinder[devidx]);
 #endif
 
-	if (dev != NULL && dev->track0) {
+	if (dev != NULL && dev->track0 && fdc->motor_dir < 0) {
 		LOG_MSG("FDC: motor step abort. floppy drive signalling track0\n");
 		fdc->motor_steps = 0;
 		fdc->current_cylinder[devidx] = 0;
