@@ -266,6 +266,16 @@ private:
 
 	Bit8u fatSectBuffer[SECTOR_SIZE_MAX * 2];
 	Bit32u curFatSect;
+
+    /* the driver code must use THESE functions to read the disk, not directly from the disk drive,
+     * in order to support a drive with a smaller sector size than the FAT filesystem's "sector".
+     *
+     * It is very common for instance to have PC-98 HDI images formatted with 256 bytes/sector at
+     * the disk level and a FAT filesystem marked as having 1024 bytes/sector. */
+	virtual Bit8u Read_AbsoluteSector(Bit32u sectnum, void * data);
+	virtual Bit8u Write_AbsoluteSector(Bit32u sectnum, void * data);
+	virtual Bit32u getSectSize(void);
+	Bit32u sector_size;
 };
 
 

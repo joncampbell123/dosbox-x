@@ -738,6 +738,56 @@ fatDrive::fatDrive(imageDisk *sourceLoadedDisk) {
     fatDriveInit("", loadedDisk->sector_size, loadedDisk->sectors, loadedDisk->heads, loadedDisk->cylinders, loadedDisk->diskSizeK);
 }
 
+Bit8u fatDrive::Read_AbsoluteSector(Bit32u sectnum, void * data) {
+    if (loadedDisk != NULL) {
+        /* this will only work if the logical sector size is larger than the disk sector size */
+        const unsigned int lsz = loadedDisk->getSectSize();
+        unsigned int c = sector_size / lsz;
+
+        if (c != 0 && (sector_size % lsz) == 0) {
+            Bit32u ssect = sectnum * c;
+
+            while (c-- != 0) {
+                if (loadedDisk->Read_AbsoluteSector(ssect++,data) != 0)
+                    return 0x05;
+
+                data = (void*)((char*)data + lsz);
+            }
+
+            return 0;
+        }
+    }
+
+    return 0x05;
+}
+
+Bit8u fatDrive::Write_AbsoluteSector(Bit32u sectnum, void * data) {
+    if (loadedDisk != NULL) {
+        /* this will only work if the logical sector size is larger than the disk sector size */
+        const unsigned int lsz = loadedDisk->getSectSize();
+        unsigned int c = sector_size / lsz;
+
+        if (c != 0 && (sector_size % lsz) == 0) {
+            Bit32u ssect = sectnum * c;
+
+            while (c-- != 0) {
+                if (loadedDisk->Write_AbsoluteSector(ssect++,data) != 0)
+                    return 0x05;
+
+                data = (void*)((char*)data + lsz);
+            }
+
+            return 0;
+        }
+    }
+
+    return 0x05;
+}
+
+Bit32u fatDrive::getSectSize(void) {
+    return sector_size;
+}
+
 void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u cylsector, Bit32u headscyl, Bit32u cylinders, Bit32u filesize) {
 	Bit32u startSector;
 	bool pc98_512_to_1024_allow = false;
@@ -750,7 +800,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, Bit32u bytesector, Bit32u c
 
 	loadedDisk->Addref();
 
-    /* too much code here assumes 512 bytes per sector or less */
+	sector_size = loadedDisk->getSectSize();
     if (loadedDisk->getSectSize() > sizeof(bootbuffer)) {
         LOG_MSG("Disk sector/bytes (%u) is too large, not attempting FAT filesystem access",loadedDisk->getSectSize());
 		created_successfully = false;
