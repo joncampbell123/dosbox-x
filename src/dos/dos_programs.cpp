@@ -1110,9 +1110,16 @@ public:
                     mem_writew(0x5AE,disk_equip_144);   /* disk equipment (drive 0 is present, 1.44MB) */
                     mem_writeb(0x482,scsi_equip);
                 }
-                else {
+                else if (drive >= 'c') {
                     /* hard drive */
                     mem_writeb(0x584,0xA0/*type*/ + (drive - 'c')/*drive*/);
+                    mem_writew(0x55C,disk_equip);   /* disk equipment (drive 0 is present) */
+                    mem_writew(0x5AE,disk_equip_144);   /* disk equipment (drive 0 is present, 1.44MB) */
+                    mem_writeb(0x482,scsi_equip);
+                }
+                else {
+                    // FIXME
+                    mem_writeb(0x584,0x00);
                     mem_writew(0x55C,disk_equip);   /* disk equipment (drive 0 is present) */
                     mem_writew(0x5AE,disk_equip_144);   /* disk equipment (drive 0 is present, 1.44MB) */
                     mem_writeb(0x482,scsi_equip);
