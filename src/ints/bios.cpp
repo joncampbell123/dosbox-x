@@ -4700,6 +4700,8 @@ static void BIOS_Int10RightJustifiedPrint(const int x,int &y,const char *msg) {
 
                 mem_writew(0xA0000+bo,*s++);
                 mem_writeb(0xA2000+bo,0xE1);
+
+                bo += 2; /* and keep the cursor following the text */
             }
 
             reg_eax = 0x1300;   // set cursor pos (PC-98)
@@ -6057,8 +6059,15 @@ private:
 	CALLBACK_HandlerObject cb_bios_boot;
 	CALLBACK_HandlerObject cb_bios_bootfail;
 	static Bitu cb_bios_bootfail__func(void) {
-        // FIXME
-        E_Exit("Guest OS failed to boot");
+        int x,y;
+
+        x = y = 0;
+
+        /* PC-98 MS-DOS boot sector may RETF back to the BIOS, and this is where execution ends up */
+		BIOS_Int10RightJustifiedPrint(x,y,"Guest OS failed to boot, returned failure");
+
+        /* and then after this call, there is a JMP $ to loop endlessly */
+        return CBRET_NONE;
     }
 	static Bitu cb_bios_boot__func(void) {
 		/* Reset/power-on overrides the user's A20 gate preferences.
