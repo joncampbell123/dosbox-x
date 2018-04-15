@@ -272,7 +272,7 @@ private:
 
 	Bit8u fatSectBuffer[SECTOR_SIZE_MAX * 2];
 	Bit32u curFatSect;
-
+public:
     /* the driver code must use THESE functions to read the disk, not directly from the disk drive,
      * in order to support a drive with a smaller sector size than the FAT filesystem's "sector".
      *
