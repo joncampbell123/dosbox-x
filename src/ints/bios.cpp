@@ -2669,6 +2669,200 @@ static unsigned int PC98_FDC_SZ_TO_BYTES(unsigned int sz) {
     return 128U << sz;
 }
 
+int PC98_BIOS_SCSI_POS(imageDisk *floppy,Bit32u &sector) {
+    if (reg_al & 0x80) {
+        Bit32u img_heads=0,img_cyl=0,img_sect=0,img_ssz=0;
+
+        floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
+
+        /* DL = sector
+         * DH = head
+         * CX = track */
+        if (reg_dl >= img_sect ||
+            reg_dh >= img_heads ||
+            reg_cx >= img_cyl) {
+            return (reg_ah=0x60);
+        }
+
+        sector  = reg_cx;
+        sector *= img_heads;
+        sector += reg_dh;
+        sector *= img_sect;
+        sector += reg_dl;
+
+//        LOG_MSG("Sector CHS %u/%u/%u -> %u (geo %u/%u/%u)",reg_cx,reg_dh,reg_dl,sector,img_cyl,img_heads,img_sect);
+    }
+    else {
+        /* Linear LBA addressing */
+        sector = (reg_dl << 16UL) + reg_cx;
+        /* TODO: SASI caps at 0x1FFFFF according to NP2 */
+    }
+
+    return 0;
+}
+
+void PC98_BIOS_SCSI_CALL(void) {
+    Bit32u img_heads=0,img_cyl=0,img_sect=0,img_ssz=0;
+    Bit32u memaddr,size,ssize;
+    imageDisk *floppy;
+    unsigned int i;
+    Bit32u sector;
+    int idx;
+
+#if 0
+            LOG_MSG("PC-98 INT 1Bh SCSI BIOS call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+                    reg_ax,
+                    reg_bx,
+                    reg_cx,
+                    reg_dx,
+                    reg_si,
+                    reg_di,
+                    SegValue(ds),
+                    SegValue(es));
+#endif
+
+    idx = (reg_al & 0xF) + 2;
+    if (idx < 0 || idx >= MAX_DISK_IMAGES) {
+        CALLBACK_SCF(true);
+        reg_ah = 0x00;
+        /* TODO? Error code? */
+        return;
+    }
+
+    floppy = imageDiskList[idx];
+    if (floppy == NULL) {
+        CALLBACK_SCF(true);
+        reg_ah = 0x60;
+        return;
+    }
+
+    /* what to do is in the lower 4 bits of AH */
+    switch (reg_ah & 0x0F) {
+        case 0x05: /* write */
+            if (PC98_BIOS_SCSI_POS(floppy,/*&*/sector) == 0) {
+                floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
+                assert(img_ssz != 0);
+
+                size = reg_bx;
+                if (size == 0) size = 0x10000U;
+                memaddr = (SegValue(es) << 4) + reg_bp;
+
+                reg_ah = 0;
+                CALLBACK_SCF(false);
+
+//                LOG_MSG("WRITE memaddr=0x%lx size=0x%x sector=0x%lx ES:BP=%04x:%04X",
+//                    (unsigned long)memaddr,(unsigned int)size,(unsigned long)sector,SegValue(es),reg_bp);
+
+                while (size != 0) {
+                    ssize = size;
+                    if (ssize > img_ssz) ssize = img_ssz;
+
+//                    LOG_MSG(" ... memaddr=0x%lx ssize=0x%x sector=0x%lx",
+//                        (unsigned long)memaddr,(unsigned int)ssize,(unsigned long)sector);
+
+                    for (i=0;i < ssize;i++) PC98_BIOS_FLOPPY_BUFFER[i] = mem_readb(memaddr+i);
+
+                    if (floppy->Write_AbsoluteSector(sector,PC98_BIOS_FLOPPY_BUFFER) == 0) {
+                    }
+                    else {
+                        reg_ah = 0xD0;
+                        CALLBACK_SCF(true);
+                        break;
+                    }
+
+                    sector++;
+                    size -= ssize;
+                    memaddr += ssize;
+                }
+            }
+            else {
+                CALLBACK_SCF(true);
+            }
+            break;
+        case 0x06: /* read */
+            if (PC98_BIOS_SCSI_POS(floppy,/*&*/sector) == 0) {
+                floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
+                assert(img_ssz != 0);
+
+                size = reg_bx;
+                if (size == 0) size = 0x10000U;
+                memaddr = (SegValue(es) << 4) + reg_bp;
+
+                reg_ah = 0;
+                CALLBACK_SCF(false);
+
+//                LOG_MSG("READ memaddr=0x%lx size=0x%x sector=0x%lx ES:BP=%04x:%04X",
+//                    (unsigned long)memaddr,(unsigned int)size,(unsigned long)sector,SegValue(es),reg_bp);
+
+                while (size != 0) {
+                    ssize = size;
+                    if (ssize > img_ssz) ssize = img_ssz;
+
+//                    LOG_MSG(" ... memaddr=0x%lx ssize=0x%x sector=0x%lx",
+//                        (unsigned long)memaddr,(unsigned int)ssize,(unsigned long)sector);
+
+                    if (floppy->Read_AbsoluteSector(sector,PC98_BIOS_FLOPPY_BUFFER) == 0) {
+                        for (i=0;i < ssize;i++) mem_writeb(memaddr+i,PC98_BIOS_FLOPPY_BUFFER[i]);
+                    }
+                    else {
+                        reg_ah = 0xD0;
+                        CALLBACK_SCF(true);
+                        break;
+                    }
+
+                    sector++;
+                    size -= ssize;
+                    memaddr += ssize;
+                }
+            }
+            else {
+                CALLBACK_SCF(true);
+            }
+            break;
+        case 0x07: /* unknown, always succeeds */
+            reg_ah = 0x00;
+            CALLBACK_SCF(false);
+            break;
+        case 0x0E: /* unknown, always fails */
+            reg_ah = 0x40;
+            CALLBACK_SCF(true);
+            break;
+        case 0x04: /* drive status */
+            if (reg_ah == 0x84) {
+                floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
+
+                reg_dl = img_sect;
+                reg_dh = img_heads; /* Max 16 */
+                reg_cx = img_cyl;   /* Max 4096 */
+                reg_bx = img_ssz;
+
+                reg_ah = 0x00;
+                CALLBACK_SCF(false);
+                break;
+            }
+            else if (reg_ah == 0x04 || reg_ah == 0x14) {
+                reg_ah = 0x00;
+                CALLBACK_SCF(false);
+            }
+            else {
+                goto default_goto;
+            }
+        default:
+        default_goto:
+            LOG_MSG("PC-98 INT 1Bh unknown SCSI BIOS call AX=%04X BX=%04X CX=%04X DX=%04X SI=%04X DI=%04X DS=%04X ES=%04X",
+                    reg_ax,
+                    reg_bx,
+                    reg_cx,
+                    reg_dx,
+                    reg_si,
+                    reg_di,
+                    SegValue(ds),
+                    SegValue(es));
+            CALLBACK_SCF(true);
+            break;
+    };
+}
+
 void PC98_BIOS_FDC_CALL_GEO_UNPACK(unsigned int &fdc_cyl,unsigned int &fdc_head,unsigned int &fdc_sect,unsigned int &fdc_sz) {
     fdc_cyl = reg_cl;
     fdc_head = reg_dh;
@@ -2960,6 +3154,12 @@ static Bitu INT1B_PC98_Handler(void) {
         case 0x30: /* 1.44MB HD (NTS: not supported until the early 1990s) */
         case 0xB0:
             PC98_BIOS_FDC_CALL(PC98_FLOPPY_HIGHDENSITY|PC98_FLOPPY_2HEAD|PC98_FLOPPY_RPM_IBMPC);
+            break;
+        case 0x20: /* SCSI hard disk BIOS */
+        case 0xA0: /* SCSI hard disk BIOS */
+        case 0x00: /* SASI hard disk BIOS */
+        case 0x80: /* SASI hard disk BIOS */
+            PC98_BIOS_SCSI_CALL();
             break;
         /* TODO: Other disk formats */
         /* TODO: Future SASI/SCSI BIOS emulation for hard disk images */
