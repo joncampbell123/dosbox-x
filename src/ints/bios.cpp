@@ -4729,6 +4729,7 @@ Bitu call_pnp_pp = 0;
 Bitu isapnp_biosstruct_base = 0;
 
 Bitu BIOS_boot_code_offset = 0;
+Bitu BIOS_bootfail_code_offset = 0;
 
 bool bios_user_reset_vector_blob_run = false;
 Bitu bios_user_reset_vector_blob = 0;
@@ -6054,6 +6055,11 @@ private:
 		return CBRET_NONE;
 	}
 	CALLBACK_HandlerObject cb_bios_boot;
+	CALLBACK_HandlerObject cb_bios_bootfail;
+	static Bitu cb_bios_bootfail__func(void) {
+        // FIXME
+        E_Exit("Guest OS failed to boot");
+    }
 	static Bitu cb_bios_boot__func(void) {
 		/* Reset/power-on overrides the user's A20 gate preferences.
 		 * It's time to revert back to what the user wants. */
@@ -6278,6 +6284,7 @@ public:
 		cb_bios_adapter_rom_scan.Install(&cb_bios_adapter_rom_scan__func,CB_RETF,"BIOS Adapter ROM scan");
 		cb_bios_startup_screen.Install(&cb_bios_startup_screen__func,CB_RETF,"BIOS Startup screen");
 		cb_bios_boot.Install(&cb_bios_boot__func,CB_RETF,"BIOS BOOT");
+		cb_bios_bootfail.Install(&cb_bios_bootfail__func,CB_RETF,"BIOS BOOT FAIL");
 
 		// Compatible POST routine location: jump to the callback
 		{
@@ -6324,6 +6331,13 @@ public:
 			phys_writeb(wo+0x00,(Bit8u)0xFE);						//GRP 4
 			phys_writeb(wo+0x01,(Bit8u)0x38);						//Extra Callback instruction
 			phys_writew(wo+0x02,(Bit16u)cb_bios_boot.Get_callback());			//The immediate word
+			wo += 4;
+
+			// boot fail
+            BIOS_bootfail_code_offset = wo;
+			phys_writeb(wo+0x00,(Bit8u)0xFE);						//GRP 4
+			phys_writeb(wo+0x01,(Bit8u)0x38);						//Extra Callback instruction
+			phys_writew(wo+0x02,(Bit16u)cb_bios_bootfail.Get_callback());			//The immediate word
 			wo += 4;
 
 			/* fence */
