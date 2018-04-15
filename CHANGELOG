@@ -34,7 +34,7 @@
     value to fill memory.
   - Fixed COMMAND.COM PSP segment to correctly identify it's
     resident size in memory.
-  - COMMAND.COM in the DOSBox shell now allocated itself
+  - COMMAND.COM in the DOSBox shell now allocates itself
     normally instead of from a special segment so that it
     appears normally in the MCB allocation chain.
   - BIOS now clears it's stack before booting the DOS shell.
@@ -58,7 +58,7 @@
     VGA attribute controller properly so that the display is
     not left blank.
   - PC-98 GDC emulation fixed to handle START DISPLAY properly
-    by un-blanking the display (fixed "Ellena")
+    by un-blanking the display (fixes "Ellena")
   - Fixed possible format string vulnerabilities (gnustomp)
   - Added menu options to enable/disable EGC and GRCG
     emulation (yksoft1)
