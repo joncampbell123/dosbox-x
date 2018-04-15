@@ -1,4 +1,71 @@
 (next)
+  - Added PC-98 SCSI/SASI hard disk emulation, and fixed
+    BOOT to enable booting PC-98 MS-DOS from a hard drive
+    (HDI image)
+  - FAT driver fixed to read/write logical sectors vs
+    actual drive sectors and removed geometry remapping
+    hack.
+  - FAT driver fixed to avoid memory corruption that
+    may occur if reading a partition table from a drive
+    that has more than 512 bytes/sector.
+  - .BAT file parsing fixed to handle BAT files not
+    in the current directory (yksoft1)
+  - Fixed floppy controller emulation bug that failed
+    to advance sectors during multi-sector read/write.
+  - Fixed floppy emulation bug that prevented seeking.
+    The "head" would get stuck at track 0 and never move.
+  - Dynamic core allows running with paging enabled again,
+    IF dosbox.conf says to allow it (yksoft1)
+  - DOS file I/O functions AH=3Fh and AH=40h updated to
+    reflect undocumented MS-DOS behavior that silently
+    truncates read/written byte count if the offset
+    and byte count reach beyond the end of a 64KB segment.
+    This fixes some demoscene productions that read 64KB-1
+    bytes but apparently rely on this behavior to avoid
+    display errors.
+  - FluidSynth fixes and API updates. DOSBox-X no longer
+    uses a private API within FluidSynth. (heftig)
+  - Added dosbox.conf option to control the size of the
+    DOS "Swappable Data Area" which is said to help with
+    shelling and task swapping in WordPerfect 5.x and 6.x
+  - Added "minimum mcb free", and set minimum mcb segment to
+    value same or similar to DOSBox SVN. The "free" option
+    directs DOSBox-X to allocate memory before that segment
+    value to fill memory.
+  - Fixed COMMAND.COM PSP segment to correctly identify it's
+    resident size in memory.
+  - COMMAND.COM in the DOSBox shell now allocated itself
+    normally instead of from a special segment so that it
+    appears normally in the MCB allocation chain.
+  - BIOS now clears it's stack before booting the DOS shell.
+  - Fix Pause (CTRL+Pause or ALT+Pause) to release all keys
+    in the mapper so that CTRL, ALT, or Shift are not left
+    "stuck" when emulation resumes.
+  - Initial host keyboard recognition, and base framework
+    for general keyboard language/layout handling. Keyboard
+    layout recognition added for Windows and Linux/X11.
+  - Fixed 350-line INT 10h VESA modes not to apply EGA mode
+    adjustments, which fixes display distortion.
+  - INT 10h VESA modes 720x480 and 848x480 fixed.
+  - Fixed INT 10h VESA emulation to round up bytes/scanline
+    so that 4bpp planar modes display properly.
+  - Fixed INT 10h VESA mode 1400x1050 16-color (4bpp planar)
+    mode to resolve overlapping mode number.
+  - Pulled in VGA vtotal + 2 fix from DOSBox SVN
+  - Pulled in EGA display mode fixes from DOSBox SVN to fix
+    EGA graphics emulation.
+  - Fixed INT 10h AH=1Ch (save/restore VGA state) to handle
+    VGA attribute controller properly so that the display is
+    not left blank.
+  - PC-98 GDC emulation fixed to handle START DISPLAY properly
+    by un-blanking the display (fixed "Ellena")
+  - Fixed possible format string vulnerabilities (gnustomp)
+  - Added menu options to enable/disable EGC and GRCG
+    emulation (yksoft1)
+  - Added options to enable/disable EGC and GRCG emulation
+    (to emulate older hardware).
+  - Added PC-98 BIOS function to read 8x16 character bitmaps,
+    which fixes "Power Dolls 2"
   - BIOS now reports 16-color and EGC graphics. Some games
     that check the BIOS for capabilities may now begin to
     use 16-color graphics and EGC functions.
