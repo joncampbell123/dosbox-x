@@ -1,4 +1,8 @@
 (next)
+  - "BOOT" command in PC-98 mode updated to no longer
+    require the --force switch. Booting MS-DOS from a
+    hard disk or floppy disk image in PC-98 mode is
+    generally functional now.
   - Added PC-98 SCSI/SASI hard disk emulation, and fixed
     BOOT to enable booting PC-98 MS-DOS from a hard drive
     (HDI image)
