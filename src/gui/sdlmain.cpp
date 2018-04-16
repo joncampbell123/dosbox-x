@@ -171,13 +171,13 @@ void SetMapperKeyboardLayout(const unsigned int dkm) {
         DKM_to_descriptive_string(mapper_keyboard_layout));
 }
 
-#if defined(WIN32) && defined(C_SDL1)
+#if defined(WIN32) && !defined(C_SDL2)
 extern "C" unsigned char SDL1_hax_hasLayoutChanged(void);
 extern "C" void SDL1_hax_ackLayoutChanged(void);
 #endif
 
 void CheckMapperKeyboardLayout(void) {
-#if defined(WIN32) && defined(C_SDL1)
+#if defined(WIN32) && !defined(C_SDL2)
 	if (SDL1_hax_hasLayoutChanged()) {
 		SDL1_hax_ackLayoutChanged();
 		LOG_MSG("Keyboard layout changed");
