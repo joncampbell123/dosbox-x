@@ -422,11 +422,17 @@ imageDisk::imageDisk(FILE *imgFile, Bit8u *imgName, Bit32u imgSizeK, bool isHard
 
 void imageDisk::Set_Geometry(Bit32u setHeads, Bit32u setCyl, Bit32u setSect, Bit32u setSectSize) {
 	Bitu bigdisk_shift = 0;
-	if(setCyl > 16384 ) LOG_MSG("This disk image is too big.");
-	else if(setCyl > 8192) bigdisk_shift = 4;
-	else if(setCyl > 4096) bigdisk_shift = 3;
-	else if(setCyl > 2048) bigdisk_shift = 2;
-	else if(setCyl > 1024) bigdisk_shift = 1;
+
+    if (IS_PC98_ARCH) {
+        /* TODO: PC-98 has it's own 4096 cylinder limit */
+    }
+    else {
+        if(setCyl > 16384) LOG_MSG("This disk image is too big.");
+        else if(setCyl > 8192) bigdisk_shift = 4;
+        else if(setCyl > 4096) bigdisk_shift = 3;
+        else if(setCyl > 2048) bigdisk_shift = 2;
+        else if(setCyl > 1024) bigdisk_shift = 1;
+    }
 
 	heads = setHeads << bigdisk_shift;
 	cylinders = setCyl >> bigdisk_shift;

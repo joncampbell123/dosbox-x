@@ -3427,17 +3427,22 @@ private:
 			sizes[2] = 16; /* typical hard drive, unless a very old drive */
 			sizes[3]/*cylinders*/ = (Bitu)((Bit64u)sectors / (Bit64u)sizes[2]/*heads*/ / (Bit64u)sizes[1]/*sectors/track*/);
 
-			/* INT 13h mapping, deal with 1024-cyl limit */
-			while (sizes[3] > 1024) {
-				if (sizes[2] >= 255) break; /* nothing more we can do */
+            if (IS_PC98_ARCH) {
+                /* TODO: PC-98 has it's own issues with a 4096-cylinder limit */
+            }
+            else {
+                /* INT 13h mapping, deal with 1024-cyl limit */
+                while (sizes[3] > 1024) {
+                    if (sizes[2] >= 255) break; /* nothing more we can do */
 
-											/* try to generate head count 16, 32, 64, 128, 255 */
-				sizes[2]/*heads*/ *= 2;
-				if (sizes[2] >= 256) sizes[2] = 255;
+                    /* try to generate head count 16, 32, 64, 128, 255 */
+                    sizes[2]/*heads*/ *= 2;
+                    if (sizes[2] >= 256) sizes[2] = 255;
 
-				/* and recompute cylinders */
-				sizes[3]/*cylinders*/ = (Bitu)((Bit64u)sectors / (Bit64u)sizes[2]/*heads*/ / (Bit64u)sizes[1]/*sectors/track*/);
-			}
+                    /* and recompute cylinders */
+                    sizes[3]/*cylinders*/ = (Bitu)((Bit64u)sectors / (Bit64u)sizes[2]/*heads*/ / (Bit64u)sizes[1]/*sectors/track*/);
+                }
+            }
 		}
 
 		LOG(LOG_MISC, LOG_NORMAL)("Mounting image as C/H/S %u/%u/%u with %u bytes/sector",
