@@ -649,19 +649,12 @@ private:
 public:
    
 	void Run(void) {
-        bool force = false;
-
         boot_debug_break = false;
         if (cmd->FindExist("-debug",true))
             boot_debug_break = true;
 
         if (cmd->FindExist("-force",true))
-            force = true;
-
-        if (IS_PC98_ARCH && !force) {
-            WriteOut("Booting from PC-98 mode is not supported yet\n");
-            return;
-        }
+            { /* no-op */ }
 
 		//Hack To allow long commandlines
 		ChangeToLongCmd();
