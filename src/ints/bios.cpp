@@ -2872,8 +2872,9 @@ void PC98_BIOS_FDC_CALL_GEO_UNPACK(unsigned int &fdc_cyl,unsigned int &fdc_head,
 }
 
 void PC98_BIOS_FDC_CALL(unsigned int flags) {
-    static unsigned int fdc_cyl=0,fdc_head=0,fdc_sect=0,fdc_sz=0; // FIXME: Rename and move out. Making "static" is a hack here.
+    static unsigned int fdc_cyl[2]={0,0},fdc_head[2]={0,0},fdc_sect[2]={0,0},fdc_sz[2]={0,0}; // FIXME: Rename and move out. Making "static" is a hack here.
     Bit32u img_heads=0,img_cyl=0,img_sect=0,img_ssz=0;
+    unsigned int drive;
     unsigned int status;
     unsigned int size,accsize,unitsize;
     unsigned long memaddr;
@@ -2888,7 +2889,7 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
         return;
     }
 
-    floppy = GetINT13FloppyDrive(reg_al & 3);
+    floppy = GetINT13FloppyDrive(drive=(reg_al & 3));
 
     /* what to do is in the lower 4 bits of AH */
     switch (reg_ah & 0x0F) {
@@ -2918,8 +2919,8 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
             }
 	        floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
 
-            PC98_BIOS_FDC_CALL_GEO_UNPACK(/*&*/fdc_cyl,/*&*/fdc_head,/*&*/fdc_sect,/*&*/fdc_sz);
-            unitsize = PC98_FDC_SZ_TO_BYTES(fdc_sz);
+            PC98_BIOS_FDC_CALL_GEO_UNPACK(/*&*/fdc_cyl[drive],/*&*/fdc_head[drive],/*&*/fdc_sect[drive],/*&*/fdc_sz[drive]);
+            unitsize = PC98_FDC_SZ_TO_BYTES(fdc_sz[drive]);
             if (unitsize != img_ssz || img_heads == 0 || img_cyl == 0 || img_sect == 0) {
                 CALLBACK_SCF(true);
                 reg_ah = 0x00;
@@ -2932,7 +2933,7 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
             while (size > 0) {
                 accsize = size > unitsize ? unitsize : size;
 
-                if (floppy->Read_Sector(fdc_head,fdc_cyl,fdc_sect,PC98_BIOS_FLOPPY_BUFFER) != 0) {
+                if (floppy->Read_Sector(fdc_head[drive],fdc_cyl[drive],fdc_sect[drive],PC98_BIOS_FLOPPY_BUFFER) != 0) {
                     CALLBACK_SCF(true);
                     reg_ah = 0x00;
                     /* TODO? Error code? */
@@ -2945,11 +2946,11 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
                 memaddr += accsize;
                 size -= accsize;
 
-                if ((++fdc_sect) > img_sect) {
-                    fdc_sect = 1;
-                    if ((++fdc_head) >= img_heads) {
-                        fdc_head = 0;
-                        fdc_cyl++;
+                if ((++fdc_sect[drive]) > img_sect) {
+                    fdc_sect[drive] = 1;
+                    if ((++fdc_head[drive]) >= img_heads) {
+                        fdc_head[drive] = 0;
+                        fdc_cyl[drive]++;
                     }
                 }
             }
@@ -3009,8 +3010,8 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
 
             /* TODO: Error if write protected */
 
-            PC98_BIOS_FDC_CALL_GEO_UNPACK(/*&*/fdc_cyl,/*&*/fdc_head,/*&*/fdc_sect,/*&*/fdc_sz);
-            unitsize = PC98_FDC_SZ_TO_BYTES(fdc_sz);
+            PC98_BIOS_FDC_CALL_GEO_UNPACK(/*&*/fdc_cyl[drive],/*&*/fdc_head[drive],/*&*/fdc_sect[drive],/*&*/fdc_sz[drive]);
+            unitsize = PC98_FDC_SZ_TO_BYTES(fdc_sz[drive]);
             if (unitsize != img_ssz || img_heads == 0 || img_cyl == 0 || img_sect == 0) {
                 CALLBACK_SCF(true);
                 reg_ah = 0x00;
@@ -3026,7 +3027,7 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
                 for (unsigned int i=0;i < accsize;i++)
                     PC98_BIOS_FLOPPY_BUFFER[i] = mem_readb(memaddr+i);
 
-                if (floppy->Write_Sector(fdc_head,fdc_cyl,fdc_sect,PC98_BIOS_FLOPPY_BUFFER) != 0) {
+                if (floppy->Write_Sector(fdc_head[drive],fdc_cyl[drive],fdc_sect[drive],PC98_BIOS_FLOPPY_BUFFER) != 0) {
                     CALLBACK_SCF(true);
                     reg_ah = 0x00;
                     /* TODO? Error code? */
@@ -3036,11 +3037,11 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
                 memaddr += accsize;
                 size -= accsize;
 
-                if ((++fdc_sect) > img_sect) {
-                    fdc_sect = 1;
-                    if ((++fdc_head) >= img_heads) {
-                        fdc_head = 0;
-                        fdc_cyl++;
+                if ((++fdc_sect[drive]) > img_sect) {
+                    fdc_sect[drive] = 1;
+                    if ((++fdc_head[drive]) >= img_heads) {
+                        fdc_head[drive] = 0;
+                        fdc_cyl[drive]++;
                     }
                 }
             }
@@ -3068,7 +3069,7 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
             }
 
 	        floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
- 
+
             if (reg_ah & 0x10) { // seek to track number in CL
                 if (reg_cl >= img_cyl) {
                     CALLBACK_SCF(true);
@@ -3077,28 +3078,28 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
                     return;
                 }
 
-                fdc_cyl = img_cyl;
+                fdc_cyl[drive] = img_cyl;
             }
 
-            if (fdc_sect == 0)
-                fdc_sect = 1;
+            if (fdc_sect[drive] == 0)
+                fdc_sect[drive] = 1;
 
-            if (img_ssz >= 2048)
-                fdc_sz = 3;
+            if (img_ssz >= 1024)
+                fdc_sz[drive] = 3;
             else if (img_ssz >= 512)
-                fdc_sz = 2;
+                fdc_sz[drive] = 2;
             else if (img_ssz >= 256)
-                fdc_sz = 1;
+                fdc_sz[drive] = 1;
             else
-                fdc_sz = 0;
+                fdc_sz[drive] = 0;
 
-            reg_cl = fdc_cyl;
-            reg_dh = fdc_head;
-            reg_dl = fdc_sect;
+            reg_cl = fdc_cyl[drive];
+            reg_dh = fdc_head[drive];
+            reg_dl = fdc_sect[drive];
             /* ^ FIXME: A more realistic emulation would return a random number from 1 to N
              *          where N=sectors/track because the floppy motor is running and tracks
              *          are moving past the head. */
-            reg_ch = fdc_sz;
+            reg_ch = fdc_sz[drive];
 
             reg_ah = 0x00;
             CALLBACK_SCF(false);
