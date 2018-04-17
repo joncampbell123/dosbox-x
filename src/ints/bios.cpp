@@ -3080,6 +3080,18 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
                 fdc_cyl = img_cyl;
             }
 
+            if (fdc_sect == 0)
+                fdc_sect = 1;
+
+            if (img_ssz >= 2048)
+                fdc_sz = 3;
+            else if (img_ssz >= 512)
+                fdc_sz = 2;
+            else if (img_ssz >= 256)
+                fdc_sz = 1;
+            else
+                fdc_sz = 0;
+
             reg_cl = fdc_cyl;
             reg_dh = fdc_head;
             reg_dl = fdc_sect;
