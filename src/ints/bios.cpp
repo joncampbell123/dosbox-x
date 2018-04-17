@@ -2919,6 +2919,27 @@ void PC98_BIOS_FDC_CALL(unsigned int flags) {
             }
 	        floppy->Get_Geometry(&img_heads, &img_cyl, &img_sect, &img_ssz);
 
+            /* Prevent reading 1.44MB floppyies using 1.2MB read commands and vice versa.
+             * FIXME: It seems MS-DOS 5.0 booted from a HDI image has trouble understanding
+             *        when Drive A: (the first floppy) is a 1.44MB drive or not and fails
+             *        because it only attempts it using 1.2MB format read commands. */
+            if (flags & PC98_FLOPPY_RPM_IBMPC) {
+                if (img_ssz == 1024) { /* reject 1.2MB 3-mode format */
+                    CALLBACK_SCF(true);
+                    reg_ah = 0x00;
+                    /* TODO? Error code? */
+                    return;
+                }
+            }
+            else {
+                if (img_ssz == 512) { /* reject IBM PC 1.44MB format */
+                    CALLBACK_SCF(true);
+                    reg_ah = 0x00;
+                    /* TODO? Error code? */
+                    return;
+                }
+            }
+
             PC98_BIOS_FDC_CALL_GEO_UNPACK(/*&*/fdc_cyl[drive],/*&*/fdc_head[drive],/*&*/fdc_sect[drive],/*&*/fdc_sz[drive]);
             unitsize = PC98_FDC_SZ_TO_BYTES(fdc_sz[drive]);
             if (unitsize != img_ssz || img_heads == 0 || img_cyl == 0 || img_sect == 0) {
