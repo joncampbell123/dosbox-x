@@ -1389,12 +1389,14 @@ inline void VCPI_iopermw(uint16_t port,bool set) {
 }
 
 static void SetupVCPI() {
+    Bitu old_a20 = XMS_GetEnabledA20();
+
 	/* The EMM OS handle is often located just above the 1MB boundary.
 	 * And we're about to write that area directly. So for obvious
 	 * reasons we should enable the A20 gate now. This fixes random
 	 * crashes in v86 mode when a20=mask as opposed to a20=fast. */
 	if ((emm_handles[vcpi.ems_handle].mem<<12) & (1<<20)) {
-		LOG(LOG_MISC,LOG_DEBUG)("EMS:EMM OS handle is associated with memory on an odd megabyte. Enabling A20 gate to avoid corrupting DOS state");
+		LOG(LOG_MISC,LOG_DEBUG)("EMS:EMM OS handle is associated with memory on an odd megabyte. Enabling A20 gate to avoid corrupting DOS state, will restore A20 state after this setup phase.");
 		XMS_EnableA20(true);
 	}
 
@@ -1465,6 +1467,8 @@ static void SetupVCPI() {
 	mem_writed(vcpi.private_area+0x3008,0x00000014);	// ss
 
 	mem_writed(vcpi.private_area+0x3066,0x0068);		// io-map base (map follows, all zero)
+
+    XMS_EnableA20(old_a20 != 0);
 }
 
 static Bitu INT4B_Handler() {
@@ -1675,11 +1679,19 @@ public:
 			   in v86 mode, including protection fault exceptions */
 			call_v86mon.Install(&V86_Monitor,CB_IRET,"V86 Monitor");
 
-			mem_writeb(vcpi.private_area+0x2e00,(Bit8u)0xFE);       //GRP 4
-			mem_writeb(vcpi.private_area+0x2e01,(Bit8u)0x38);       //Extra Callback instruction
-			mem_writew(vcpi.private_area+0x2e02,call_v86mon.Get_callback());		//The immediate word
-			mem_writeb(vcpi.private_area+0x2e04,(Bit8u)0x66);
-			mem_writeb(vcpi.private_area+0x2e05,(Bit8u)0xCF);       //A IRETD Instruction
+            {
+                Bitu old_a20 = XMS_GetEnabledA20();
+
+                XMS_EnableA20(true);
+
+                mem_writeb(vcpi.private_area+0x2e00,(Bit8u)0xFE);       //GRP 4
+                mem_writeb(vcpi.private_area+0x2e01,(Bit8u)0x38);       //Extra Callback instruction
+                mem_writew(vcpi.private_area+0x2e02,call_v86mon.Get_callback());		//The immediate word
+                mem_writeb(vcpi.private_area+0x2e04,(Bit8u)0x66);
+                mem_writeb(vcpi.private_area+0x2e05,(Bit8u)0xCF);       //A IRETD Instruction
+
+                XMS_EnableA20(old_a20 != 0);
+            }
 
 			/* DOSBox's default EMS emulation provides the EMS memory mapping but without the virtual 8086
 			 * mode. But there are DOS games and demos that assume EMM386.EXE == virtual 8086 mode and will
