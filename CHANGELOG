@@ -1,4 +1,4 @@
-(next)
+0.82.5 (04/18/2018)
   - Expanded memory manager memory copy fixed to
     enable A20 gate temporarily so that the copy
     works correctly.
