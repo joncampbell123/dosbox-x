@@ -1,4 +1,7 @@
 (next)
+  - Expanded memory manager memory copy fixed to
+    enable A20 gate temporarily so that the copy
+    works correctly.
   - PC-98 FM board emulation now defaults to IRQ 12
     instead of IRQ 3. A lot of PC-98 games seem to
     have a strong preference for that IRQ with regard
