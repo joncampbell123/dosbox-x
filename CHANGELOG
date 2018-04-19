@@ -1,4 +1,24 @@
 (next)
+  - PC-98 reset I/O port (F0h) fixed to emulate CPU
+    reset according to the SHUT0 and SHUT1 state set
+    by the guest. Normally writing port F0h is a
+    signal to reset but SHUT0 and SHUT1 can be set to
+    indicate alternate behavior. This fixes VEMM486.EXE
+    (an expanded memory manager) and allows it to run,
+    since this manager appears to reset by port F0h
+    then resume execution normally. Prior to this fix,
+    booting a MS-DOS disk image that loads VEMM486.EXE
+    at startup yielded nothing but an infinite reboot
+    loop.
+  - XMS and EMS emulation fixed not to leave A20 gate
+    enabled unless EMS emulation is set to EMM386 and
+    dosbox.conf is set to run the system in virtual
+    8086 mode. There are plenty of DOS games that
+    malfunction if loaded too low in memory with the
+    A20 gate enabled.
+  - PC-98 mouse emulation, at the 8255 level, now uses
+    new C++ abstraction that seems to work fairly well
+    even with the common PC-98 MOUSE.COM driver.
   - "BOOT" command in PC-98 mode updated to no longer
     require the --force switch. Booting MS-DOS from a
     hard disk or floppy disk image in PC-98 mode is
