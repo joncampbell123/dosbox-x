@@ -241,6 +241,9 @@ void PC98_FM_OnEnterPC98(Section *sec) {
         irq = section->Get_int("pc-98 fm board irq");
         baseio = section->Get_hex("pc-98 fm board io port");
 
+        /* Manual testing shows PC-98 games like it when the board is on IRQ 12 */
+        if (irq == 0) irq = 12;
+
         fmirqidx = fmtimer_irq2index(irq);
 
         pc98fm_init = true;
