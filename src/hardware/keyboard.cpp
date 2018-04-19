@@ -1695,7 +1695,7 @@ public:
 static PC98_System_8255 pc98_sys_8255;
 
 static void pc98_reset_write(Bitu port,Bitu val,Bitu /*iolen*/) {
-    LOG_MSG("Restart by port F0h requested\n");
+    LOG_MSG("Restart by port F0h requested: val=%02x SHUT0=%u SHUT1=%u\n",(unsigned int)val,PC98_SHUT0,PC98_SHUT1);
     On_Software_CPU_Reset();
 }
 
