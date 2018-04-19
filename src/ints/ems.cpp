@@ -773,7 +773,10 @@ static Bit8u MemoryRegion(void) {
 		dest_off=region.dest_offset&(MEM_PAGE_SIZE-1);
 		dest_remain=MEM_PAGE_SIZE-dest_off;
 	}
-	Bitu toread;
+    Bitu toread;
+    bool a20_was_enabled = XMS_GetEnabledA20();
+
+    XMS_EnableA20(true);
 	while (region.bytes>0) {
 		if (region.bytes>MEM_PAGE_SIZE) toread=MEM_PAGE_SIZE;
 		else toread=region.bytes;
@@ -831,7 +834,9 @@ static Bit8u MemoryRegion(void) {
 		else dest_handle=MEM_NextHandle(dest_handle);
 		region.bytes-=toread;
 	}
-	return EMM_NO_ERROR;
+
+    if (!a20_was_enabled) XMS_EnableA20(false);
+    return EMM_NO_ERROR;
 }
 
 
