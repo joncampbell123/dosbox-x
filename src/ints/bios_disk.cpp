@@ -946,7 +946,7 @@ void BIOS_SetupDisks(void) {
 Bit8u imageDiskVFD::Read_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void * data) {
     vfdentry *ent;
 
-    LOG_MSG("VFD read sector: CHS %u/%u/%u",cylinder,head,sector);
+//    LOG_MSG("VFD read sector: CHS %u/%u/%u",cylinder,head,sector);
 
     ent = findSector(head,cylinder,sector);
     if (ent == NULL) return 0x05;
@@ -1000,7 +1000,7 @@ Bit8u imageDiskVFD::Write_Sector(Bit32u head,Bit32u cylinder,Bit32u sector,void 
     unsigned char tmp[12];
     vfdentry *ent;
 
-    LOG_MSG("VFD write sector: CHS %u/%u/%u",cylinder,head,sector);
+//    LOG_MSG("VFD write sector: CHS %u/%u/%u",cylinder,head,sector);
 
     ent = findSector(head,cylinder,sector);
     if (ent == NULL) return 0x05;
