@@ -1,4 +1,8 @@
 (next)
+  - PC-98 FM board emulation now defaults to IRQ 12
+    instead of IRQ 3. A lot of PC-98 games seem to
+    have a strong preference for that IRQ with regard
+    to FM music.
   - PC-98 reset I/O port (F0h) fixed to emulate CPU
     reset according to the SHUT0 and SHUT1 state set
     by the guest. Normally writing port F0h is a
