@@ -146,10 +146,6 @@ void pic_resetirq(REG8 irq) {
     PIC_DeActivateIRQ(irq);
 }
 
-int pc98_fm_irq = 3; /* TODO: Make configurable */
-unsigned int pc98_fm26_base = 0x088; /* TODO: Make configurable */
-unsigned int pc98_fm86_base = 0x188; /* TODO: Make configurable */
-
 #include "sound.h"
 #include "fmboard.h"
 
