@@ -1278,22 +1278,92 @@ void On_Software_286_reset_vector(unsigned char code) {
 
 void CPU_Exception_Level_Reset();
 
+extern bool PC98_SHUT0,PC98_SHUT1;
+
 void On_Software_CPU_Reset() {
 	unsigned char c;
 
 	CPU_Exception_Level_Reset();
 
-	/* software-initiated CPU reset. but the intent may not be to reset the system but merely
-	 * the CPU. check the CMOS shutdown byte */
-	switch (c=CMOS_GetShutdownByte()) {
-		case 0x05:	/* JMP double word pointer with EOI */
-		case 0x0A:	/* JMP double word pointer without EOI */
-			On_Software_286_reset_vector(c);
-			return;
-		case 0x09:	/* INT 15h block move return to real mode (to appease Windows 3.1 KRNL286.EXE and cputype=286, yuck) */
-			On_Software_286_int15_block_move_return(c);
-			return;
-	};
+    if (IS_PC98_ARCH) {
+        /* From Undocumented 9801, 9821 Volume 2:
+         *
+         * SHUT0 | SHUT1 | Meaning
+         * -----------------------
+         * 1       1       System reset (BIOS performs full reinitialization)
+         * 1       0       Invalid (BIOS will show "SYSTEM SHUTDOWN" and stop)
+         * 0       x       Continue program execution after CPU reset.
+         *                    BIOS loads SS:SP from 0000:0404 and then executes RETF */
+        if (PC98_SHUT0) {
+            if (!PC98_SHUT1)
+                E_Exit("PC-98 invalid reset aka SYSTEM SHUTDOWN (SHUT0=1 SHUT1=0)");
+        }
+        else { // SHUT0=0 SHUT1=x
+            void CPU_Snap_Back_To_Real_Mode();
+            void CPU_Snap_Back_Forget();
+
+            /* fake CPU reset */
+            CPU_Snap_Back_To_Real_Mode();
+            CPU_Snap_Back_Forget();
+
+            /* following CPU reset, and coming from the BIOS, CPU registers are trashed */
+            /* FIXME: VEM486.EXE appears to use this reset vector trick, then when regaining control,
+             *        checks to see if DX is 0x00F0 just as it was when it issued the OUT DX,AL
+             *        instruction. Why? If DX != 0x00F0 it writes whatever DX is to 0000:0486 and
+             *        then proceeds anyway. */
+            reg_eax = 0x2010000;
+            reg_ebx = 0x2111;
+            reg_ecx = 0;
+            reg_edx = 0xABCD;
+            reg_esi = 0;
+            reg_edi = 0;
+            reg_ebp = 0;
+            reg_esp = 0x4F8;
+            CPU_SetSegGeneral(ds,0x0040);
+            CPU_SetSegGeneral(es,0x0000);
+            CPU_SetSegGeneral(ss,0x0000);
+
+            /* continue program execution after CPU reset */
+            Bit16u reset_sp = mem_readw(0x404);
+            Bit16u reset_ss = mem_readw(0x406);
+
+            LOG_MSG("PC-98 reset and continue: SS:SP = %04x:%04x",reset_ss,reset_sp);
+
+            reg_esp = reset_sp;
+            CPU_SetSegGeneral(ss,reset_ss);
+
+            Bit16u new_ip = CPU_Pop16();
+            Bit16u new_cs = CPU_Pop16();
+
+            reg_eip = new_ip;
+            CPU_SetSegGeneral(cs,new_cs);
+
+            LOG_MSG("PC-98 reset and continue: RETF to %04x:%04x",SegValue(cs),reg_ip);
+
+            // DEBUG
+//            Bitu DEBUG_EnableDebugger(void);
+  //          DEBUG_EnableDebugger();
+
+            /* force execution change (FIXME: Is there a better way to do this?) */
+            throw int(4);
+            /* does not return */
+        }
+    }
+    else {
+        /* IBM reset vector or system reset by CMOS shutdown byte */
+
+        /* software-initiated CPU reset. but the intent may not be to reset the system but merely
+         * the CPU. check the CMOS shutdown byte */
+        switch (c=CMOS_GetShutdownByte()) {
+            case 0x05:	/* JMP double word pointer with EOI */
+            case 0x0A:	/* JMP double word pointer without EOI */
+                On_Software_286_reset_vector(c);
+                return;
+            case 0x09:	/* INT 15h block move return to real mode (to appease Windows 3.1 KRNL286.EXE and cputype=286, yuck) */
+                On_Software_286_int15_block_move_return(c);
+                return;
+        };
+    }
 
 #if C_DYNAMIC_X86
 	/* this technique is NOT reliable when running the dynamic core! */

@@ -1626,7 +1626,7 @@ static IO_WriteHandleObject Reset_PC98;
 
 extern bool gdc_5mhz_mode;
 
-static bool PC98_SHUT0=true,PC98_SHUT1=true;
+bool PC98_SHUT0=true,PC98_SHUT1=true;
 
 class PC98_System_8255 : public Intel8255 {
 public:
